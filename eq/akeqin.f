@@ -66,7 +66,7 @@ C
      &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
 C
       CALL SPL2D(BETAG,ALPHG,RPSS,RPSB,RPSA,RPSAB,UABR,
-     &           NTHMP,NTHMAX+1,NRMAX,0,0,IERR)
+     &           NTHMP,NTHMAX+1,NRMAX,3,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+10000
          RETURN
@@ -97,7 +97,7 @@ C
      &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
 C
       CALL SPL2D(BETAG,ALPHG,ZPSS,ZPSB,ZPSA,ZPSAB,UABZ,
-     &           NTHMP,NTHMAX+1,NRMAX,0,0,IERR)
+     &           NTHMP,NTHMAX+1,NRMAX,3,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+20000
          RETURN
@@ -262,14 +262,14 @@ C
       INCLUDE '../eq/eqcomq.h'
 C
       CALL ABTORZ(ALPHA,BETA,RP,ZP,IERR)
-      WRITE(6,'(A,1P2E12.4,I5)') 'RP,ZP,IERR=',RP,ZP,IERR
+C      WRITE(6,'(A,1P2E12.4,I5)') 'RP,ZP,IERR=',RP,ZP,IERR
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: ABTORZ ERROR : IERR=',IERR
 C
       CALL SPL2DD(RP,ZP,PSIL,PSIR,PSIZ,
      &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
-      WRITE(6,'(A,1P3E12.4,I5)') 
-     &     'PSIL,PSIR,PSIZ,IERR=',PSIL,PSIR,PSIZ,IERR
+C      WRITE(6,'(A,1P3E12.4,I5)') 
+C     &     'PSIL,PSIR,PSIZ,IERR=',PSIL,PSIR,PSIZ,IERR
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: SPL1DF ERROR : IERR=',IERR
 C
@@ -277,7 +277,7 @@ C
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: SPL1DF ERROR : IERR=',IERR
 C
-      WRITE(6,'(A,1P4E12.4)') 'RP,ZP,PSIL,TTL=',RP,ZP,PSIL,TTL
+C      WRITE(6,'(A,1P4E12.4)') 'RP,ZP,PSIL,TTL=',RP,ZP,PSIL,TTL
       BT= TTL/RP
       BR=-PSIZ/RP
       BZ= PSIR/RP
