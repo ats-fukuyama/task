@@ -260,6 +260,7 @@ C
       MDLUF=0
       MODEP=3
       MDCURT=0
+      MDNM1=0
 C
 C     *** Error Indicator for UFILE Reader ***
       MDALL=0
@@ -639,6 +640,7 @@ C         write(6,*) RRU(1),RAU(1),RKAPU(1),BBU(1)
       ENDIF
       RKAPS=SQRT(RKAP)
 C
+      CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
          RG(NR)  = DBLE(NR)*DR
@@ -807,6 +809,7 @@ C
            RW(NR,NF) = 0.D0
          ENDDO
       ENDDO
+      CALL TR_EDGE_SELECTOR(1)
 C
 C     *** CALCULATE PZC,PZFE ***
 C
@@ -854,9 +857,6 @@ C
             PNSSA(8)=PNSA(8)
          ENDIF
       ELSE
-c$$$         DO NR=1,NRMAX
-c$$$            ANC(NR)=1.D0/3.D1*RN(NR,1)
-c$$$         ENDDO
          DO NS=1,NSM
             PNSS(NS)=PNS(NS)
          ENDDO

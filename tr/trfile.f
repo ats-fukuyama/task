@@ -462,6 +462,41 @@ C
          PNS(4)=1.D-8
       ENDIF
 C
+c$$$      KFILE='NM1'
+c$$$      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+c$$$      CALL PRETREATMENT0(KFILE,UPRE0,NRFMAX,NTXMAX,IERR)
+c$$$      DO NR=1,NRMAX
+c$$$         RMN=(DBLE(NR)-0.5D0)*DR
+c$$$         CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
+c$$$         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE1: IERR=",IERR
+c$$$         RNU(NR,2,1)=F0*1.D-20
+c$$$      ENDDO
+c$$$      PN(2)=RNU(1,2,1)-2.D-8
+c$$$C      PN(3)=RNU(1,1,1)-RNU(1,2,1)-1.D-7
+c$$$C      PN(4)=1.D-7
+c$$$      IF(RHOA.EQ.1.D0) THEN
+c$$$         RGN=DBLE(NRMAX)*DR
+c$$$         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+c$$$         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+c$$$         PNS(2)=F0*1.D-20-2.D-8
+c$$$C         PNS(3)=PNS(1)-PNS(2)-1.D-8
+c$$$C         PNS(4)=1.D-8
+c$$$      ELSE
+c$$$         RGN=DBLE(NRAMAX)*DR
+c$$$         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+c$$$         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+c$$$         PNSA(2)=F0*1.D-20-2.D-8
+c$$$C         PNSA(3)=PNS(1)-PNS(2)-1.D-8
+c$$$C         PNSA(4)=1.D-8
+c$$$C
+c$$$         RGN=DBLE(NRMAX)*DR
+c$$$         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+c$$$         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+c$$$         PNS(2)=F0*1.D-20-2.D-8
+c$$$C         PNS(3)=PNS(1)-PNS(2)-1.D-8
+c$$$C         PNS(4)=1.D-8
+c$$$      ENDIF
+C
       KFILE='Q'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT0(KFILE,UPRE0,NRFMAX,NTXMAX,IERR)
@@ -918,6 +953,60 @@ C
          PNSA(1)=PNSUA(1,1)
          PNSA(2)=PNSUA(2,1)
       ENDIF
+C
+c$$$      KFILE='NM1'
+c$$$      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+c$$$      CALL PRETREATMENT2(KFILE,UPRE2,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+c$$$      DO NTA=1,NTAMAX
+c$$$         TMLCL=DT*DBLE(NTA)
+c$$$         DO NR=1,NRMAX
+c$$$            RMN=(DBLE(NR)-0.5D0)*DR
+c$$$            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UPRE2,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE1: IERR=",IERR
+c$$$            RNU(NR,2,NTA)=F0*1.D-20
+c$$$         ENDDO
+c$$$      ENDDO
+c$$$      PN(2)=RNU(1,2,1)-2.D-8
+c$$$C      PN(3)=RNU(1,1,1)-RNU(1,2,1)-1.D-7
+c$$$C      PN(4)=1.D-7
+c$$$      IF(RHOA.EQ.1.D0) THEN
+c$$$         RGN=DBLE(NRMAX)*DR
+c$$$         DO NTA=1,NTAMAX
+c$$$            TMLCL=DT*DBLE(NTA)
+c$$$            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+c$$$            PNSU(2,NTA)=F0*1.D-20
+c$$$         ENDDO
+c$$$         PNS(2)=PNSU(2,1)-2.D-8
+c$$$C         PNS(3)=PNSU(1,1)-PNSU(2,1)-1.D-8
+c$$$C         PNS(4)=1.D-8
+c$$$      ELSE
+c$$$         RGN =DBLE(NRMAX )*DR
+c$$$         RGNA=DBLE(NRAMAX)*DR
+c$$$         DO NTA=1,NTAMAX
+c$$$            TMLCL=DT*DBLE(NTA)
+c$$$            CALL SPL2DF(RGN ,TMLCL,F0 ,RUF,TMU,UPRE2,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+c$$$            CALL SPL2DF(RGNA,TMLCL,F0A,RUF,TMU,UPRE2,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE3: IERR=",IERR
+c$$$            PNSU (2,NTA)=F0 *1.D-20
+c$$$C            PNSU (3,NTA)=PNSU (1,NTA)-PNSU (2,NTA)-1.D-8
+c$$$C            PNSU (4,NTA)=1.D-8
+c$$$            PNSUA(2,NTA)=F0A*1.D-20
+c$$$C            PNSUA(3,NTA)=PNSUA(1,NTA)-PNSUA(2,NTA)-1.D-8
+c$$$C            PNSUA(4,NTA)=1.D-8
+c$$$         ENDDO
+c$$$         PNS (2)=PNSU (2,1)-2.D-8
+c$$$C         PNS (3)=PNSU (1,1)-PNSU (2,1)-1.D-8
+c$$$C         PNS (4)=1.D-8
+c$$$         PNSA(2)=PNSUA(2,1)-2.D-8
+c$$$C         PNSA(3)=PNSUA(1,1)-PNSUA(2,1)-1.D-8
+c$$$C         PNSA(4)=1.D-8
+c$$$      ENDIF
 C
       KFILE='Q'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -1519,6 +1608,14 @@ C
          RETURN
       ENDIF
 C
+      IF(KFILE.EQ.'NM1') THEN
+         MDNM1=1
+C         IF(NSMAX.EQ.2) THEN
+C            WRITE(6,*) "XX NSMAX=3 SHOULD BE RECOMMENDED."
+C            PAUSE
+C         ENDIF
+      ENDIF
+C
       DERIV(1)=0.D0
       DERIV(NRFMAX)=0.D0
       ID=0
@@ -1664,6 +1761,14 @@ C
          ENDDO
          ENDDO
          RETURN
+      ENDIF
+C
+      IF(KFILE.EQ.'NM1') THEN
+         MDNM1=1
+C         IF(NSMAX.EQ.2) THEN
+C            WRITE(6,*) "XX NSMAX=3 SHOULD BE RECOMMENDED."
+C            PAUSE
+C         ENDIF
       ENDIF
 C
       DO NTX=1,NTXMAX
