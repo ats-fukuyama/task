@@ -33,7 +33,7 @@ ak : $(OBJA)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCCL) | less
-checkeq :
+checktr :
 	ftnchek $(FCKFLAGS) $(SRCT) $(SRCCL) | less
 checkpl :
 	ftnchek $(FCKFLAGS) $(SRCP) $(SRCTL) | less

@@ -230,8 +230,8 @@ C
       ENDIF
 C
       IF(MODELF.EQ.0) THEN
-         VGPSI=PV0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFV0
-     &        +PV1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFV1
+         VPSI=PV0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFV0
+     &       +PV1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFV1
          PSIITB=1.D0-RHOITB**2
          IF(PSIN.GT.PSIITB) THEN
             VPSI=VPSI

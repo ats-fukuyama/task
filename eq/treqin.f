@@ -4,17 +4,6 @@ C   *******************************************
 C   **    Initialize EQ interface for TR     **
 C   *******************************************
 C
-      SUBROUTINE TREQIN
-C
-      CALL EQINIT
-      CALL EQPARF
-      RETURN
-      END
-C
-C   *******************************************
-C   **    EQ interface for TR     **
-C   *******************************************
-C
 C     input:
 C
 C     RR            : Major plasma radius (Geometrical center)   (m)
@@ -25,32 +14,38 @@ C     RDLT          : Triangularity
 C     BB            : Toroidal magnetic field at R=RR            (T)
 C     RIP           : Total plasma current                      (MA)
 C     NTRMAX        : Maximum array number
-C     PSI(NTRMAX)   : Poloidal flux                  (m^2kgs^-2A^-2)
-C     PPSI(NTRMAX)  : Pressure                                 (MPa)
-C     HJPSI(NTRMAX) : Plasma current density                (MA/m^2)
-C     VTPSI(NTRMAX) : Toroidal rotation velocity               (m/s)
-C     TPSI(NTRMAX)  : Temperature                              (keV)
+C     RHOTR(NTRMAX) : Normalized radial mesh
+C     HJRHO(NTRMAX) : Plasma current density                (MA/m^2)
 C
 C     output:
 C
-C     QPSI(NTRMAX)  : Safety factor
-C     VPSI(NTRMAX)  : Plamsa volume
-C     SPSI(NTRMAX)  : Plamsa poloidal crosssection area
+C     QRHO(NTRMAX+1)  : Safety factor
+C     IERR          : Error indicator
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQEX(RR1,RA1,RB1,RKAP1,RDLT1,BB1,RIP1,
-     &                  NTRMAX1,PSIP,PPSI,HJPSI,VTPSI,TPSI,
-     &                  QPSI,VPSI,SPSI,IERR)
+      SUBROUTINE TREQIN(RR1,RA1,RB1,RKAP1,RDLT1,BB1,RIP1,
+     &                  NTRMAX1,RHOTR1,HJRHO,QRHO,IERR)
 C              
-      INCLUDE 'eqcomc.h'
+      INCLUDE 'eqcomq.h'
       INCLUDE 'eqcom4.h'
-      DIMENSION PSIP(NTRMAX1),PPSI(NTRMAX1),HJPSI(NTRMAX1)
-      DIMENSION VTPSI(NTRMAX1),TPSI(NTRMAX1)
-      DIMENSION QPSI(NTRM),VPSI(NTRM),SPSI(NTRM)
-      DIMENSION DERIV(NTRM)
+      DIMENSION RHOTR1(NTRMAX1),HJRHO(NTRMAX1),QRHO(NTRMAX1+1)
+      DIMENSION DERIV(NTRM+2),BP(NTRM+1),DERIVX(NRM)
+      SAVE INIT
+      DATA INIT/0/
 C
-      IERR=0
+      IF(INIT.EQ.0) THEN
+         CALL EQINIT
+         CALL EQPARF
+         INIT=1
+      ENDIF
+C
+      PI     = 2.D0*ASIN(1.D0)
+      RMU0   = 4.D0*PI*1.D-7
+      AEE    = 1.60219D-19
+C
+      IERR   = 0
+      MODELF = 2
       RR     = RR1
       RA     = RA1
       RB     = RB1
@@ -60,31 +55,208 @@ C
       RIP    = RIP1
       NTRMAX = NTRMAX1
 C
-      DO NTR=1,NTRMAX
-         PSITR(NTR)=PSIP(NTR)/PSIP(NTRMAX)
+      DO NTR=1,NTRMAX-1
+         RHOTR(NTR)=RHOTR1(NTR)
+         RHOTRG(NTR+1)=0.5D0*(RHOTR1(NTR)+RHOTR1(NTR+1))
+         RHOTRX(NTR+1)=RHOTR1(NTR)
       ENDDO
+      RHOTRG(1)=0.D0
+      RHOTRX(1)=0.D0
+      RHOTR(NTRMAX)=RHOTR1(NTRMAX)
+      RHOTRG(NTRMAX+1)=RA
+      RHOTRX(NTRMAX+1)=RHOTR1(NTRMAX)
+      RHOTRX(NTRMAX+2)=RA
 C
-C     *** Calculate SPLINE coefficients ***
-C
-      CALL SPL1D(PSITR,PPSI,DERIV,UPPSI,NTRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PPSI: IERR=',IERR
-      CALL SPL1D(PSITR,HJPSI,DERIV,UJPSI,NTRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D HJPSI : IERR=',IERR
-      CALL SPL1D(PSITR,VTPSI,DERIV,UVTPSI,NTRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D VTPSI : IERR=',IERR
-      CALL SPL1D(PSITR,TPSI,DERIV,UTPSI,NTRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D TPSI : IERR=',IERR
-      UJPSI0(1)=0.D0
-      DO NTR=2,NTRMAX
-         PSIN=PSIP(NTR)/PSIP(NTRMAX)-1.D-8
-         CALL SPL1DF(PSIN,HJPSIL,PSITR,UJPSI,NTRMAX,IERR)
-         CALL SPL1DI(PSIN,HJPSID,PSITR,UJPSI,UJPSI0,NTRMAX,IERR)
-         UJPSI0(NTR)=UJPSI0(NTR-1)+HJPSID
-C         WRITE(6,'(I5,1P4E12.4)') NTR,PSIN,HJPSIL,HJPSID,UJPSI0(NTR)
+      BP(1)=0.D0
+      DO NTR=2,NTRMAX+1
+         DRHO=RHOTRG(NTR)-RHOTRG(NTR-1)
+         RHOH=0.5D0*(RHOTRG(NTR)+RHOTRG(NTR-1))
+         HJRH=HJRHO(NTR-1)
+         BP(NTR)=(RHOTRG(NTR-1)*BP(NTR-1)+RMU0*RHOH*DRHO*HJRH)
+     &           /RHOTRG(NTR)
       ENDDO
+      BPA= RMU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+      FACT=BPA/BP(NTRMAX+1)
+      DO NTR=2,NTRMAX+1
+         BP(NTR)=FACT*BP(NTR)
+      ENDDO
+      DO NTR=2,NTRMAX+1
+         QRHO(NTR)=RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
+      ENDDO
+      QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
+C
+      PSIRHO(1)=0.D0
+      DO NTR=2,NTRMAX+1
+         DPSIT=PI*RKAP*(RHOTRG(NTR)**2-RHOTRG(NTR-1)**2)*BB
+         PSIRHO(NTR)=PSIRHO(NTR-1)+2.D0*DPSIT/QRHO(NTR-1)
+         WRITE(6,'(A,I5,1P3E12.4)') 
+     &        'NTR,RHOTR,QRHO,PSIRHO=',
+     &        NTR,RHOTRG(NTR),QRHO(NTR),PSIRHO(NTR)
+      ENDDO
+      PAUSE
+      SAXIS=PSIRHO(NTRMAX+1)
+C
+      DERIV(1)=0.D0
+      CALL SPL1D(RHOTRG,PSIRHO,DERIV,UPSIRHO,NTRMAX+1,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PSIRHO : IERR=',IERR
+C
+      DR=RB/(NRMAX-1)
+      DO NR=1,NRMAX
+         RHOL=DR*(NR-1)/RA
+         IF(RHOL.GT.1.D0) THEN
+            FTS(NR)=PI*RKAP*(RA*RHOL)**2*BB
+            PSS(NR)=SAXIS-PSIRHO(NTRMAX)*RHOL
+         ELSE
+            FTS(NR)=PI*RKAP*(RA*RHOL)**2*BB
+            CALL SPL1DF(RHOL,PSIL,RHOTRG,UPSIRHO,NRMAX+1,IERR)
+            IF(IERR.NE.0) 
+     &           WRITE(6,*) 'XX TREQIN: SPL1DF PSS : IERR=',IERR
+            PSS(NR)=SAXIS-PSIL
+         ENDIF
+C         WRITE(6,'(A,I5,1P3E12.4)') 
+C     &        'NR,RHOL,PSS,FTS=',NR,RHOL,PSS(NR),FTS(NR)
+      ENDDO
+C      PAUSE
+C
+      CALL SPL1D(FTS,PSS,DERIVX,UFTT,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1DF PSS: IERR=',IERR
+      CALL SPL1D(PSS,FTS,DERIVX,UFTS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1DF FTS: IERR=',IERR
 C
       CALL EQMESH
       CALL EQPSIN
+C
+      RETURN
+      END
+C
+C   *******************************************
+C   **    EQ interface for TR     **
+C   *******************************************
+C
+C     input:
+C
+C     NTRMAX        : Maximum array number
+C     RHO(NTRMAX)   : Radial mesh
+C     PRHO(NTRMAX)  : Pressure                                 (MPa)
+C     HJRHO(NTRMAX) : Plasma current density                (MA/m^2)
+C     VTRHO(NTRMAX) : Toroidal rotation velocity               (m/s)
+C     TRHO(NTRMAX)  : Temperature                              (keV)
+C
+C     output:
+C
+C     QRHO(NTRMAX+1)  : Safety factor
+C     DVRHO(NTRMAX) : Plamsa volume
+C     IERR          : Error indicator
+C
+C   ***************************************************************
+C
+      SUBROUTINE TREQEX(NTRMAX1,PRHO,HJRHO,VTRHO,TRHO,
+     &                  QRHO,DVRHO,IERR)
+C              
+      INCLUDE 'eqcomq.h'
+      INCLUDE 'eqcom4.h'
+      DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
+      DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
+      DIMENSION QRHO(NTRMAX1+1),DVRHO(NTRMAX1)
+      DIMENSION WORK(NTRM+2),DERIV(NTRM+2)
+C
+      IERR=0
+      NTRMAX = NTRMAX1
+C
+      FTSA=FNFTS(1.D0)
+      DO NTR=1,NTRMAX
+         FTL=FTSA*RHOTR(NTR)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITR(NTR)=PSIL/SAXIS
+C
+         FTL=FTSA*RHOTRG(NTR)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITRG(NTR)=PSIL/SAXIS
+C
+         FTL=FTSA*RHOTRX(NTR)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITRX(NTR)=PSIL/SAXIS
+         WRITE(6,'(A,I5,1P4E12.4)') 
+     &        'NTR,FTL,PSIL,PSIN=',NTR,FTL,
+     &        PSITR(NTR),PSITRG(NTR),PSITRG(NTR)
+      ENDDO
+         FTL=FTSA*RHOTRG(NTRMAX+1)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITRG(NTRMAX+1)=PSIL/SAXIS
+C
+         FTL=FTSA*RHOTRX(NTRMAX+1)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITRX(NTRMAX+1)=PSIL/SAXIS
+C
+         FTL=FTSA*RHOTRX(NTRMAX+2)**2
+         CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
+         PSITRX(NTRMAX+2)=PSIL/SAXIS
+C
+      PAUSE
+C
+C     *** Calculate SPLINE coefficients ***
+C
+      WORK(1)=(9.D0*PRHO(1)-PRHO(2))/8.D0
+      DO NTR=1,NTRMAX
+         WORK(NTR+1)=PRHO(NTR)
+      ENDDO
+      WORK(NTRMAX+2)=0.D0
+      DERIV(1)=0.D0
+      CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX+2,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PRHO: IERR=',IERR
+C
+      WORK(1)=(9.D0*HJRHO(1)-HJRHO(2))/8.D0
+      DO NTR=1,NTRMAX
+         WORK(NTR+1)=HJRHO(NTR)
+      ENDDO
+      WORK(NTRMAX+2)=0.D0
+      DERIV(1)=0.D0
+      CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX+2,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D HJRHO: IERR=',IERR
+C
+      WORK(1)=(9.D0*VTRHO(1)-VTRHO(2))/8.D0
+      DO NTR=1,NTRMAX
+         WORK(NTR+1)=VTRHO(NTR)
+      ENDDO
+      WORK(NTRMAX+2)=0.D0
+      DERIV(1)=0.D0
+      CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX+2,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D VTRHO: IERR=',IERR
+C
+      WORK(1)=(9.D0*TRHO(1)-TRHO(2))/8.D0
+      DO NTR=1,NTRMAX
+         WORK(NTR+1)=TRHO(NTR)
+      ENDDO
+      WORK(NTRMAX+2)=0.D0
+      DERIV(1)=0.D0
+      CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX+2,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D TRHO: IERR=',IERR
+C
+      UJPSI0(1)=0.D0
+      DO NTR=2,NTRMAX
+         PSIL=PSITR(NTR)-1.D-8
+         CALL SPL1DF(PSIL,HJPSIL,PSITRX,UJPSI,NTRMAX+2,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQIN: SPL1DF HJPSIL: IERR=',IERR
+         CALL SPL1DF(PSIL,PPSIL,PSITRX,UPPSI,NTRMAX+2,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQIN: SPL1DF HJPSIL: IERR=',IERR
+         CALL SPL1DI(PSIL,HJPSID,PSITRX,UJPSI,UJPSI0,NTRMAX+2,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQIN: SPL1DI HJPSID: IERR=',IERR
+         UJPSI0(NTR)=UJPSI0(NTR-1)+HJPSID
+C         WRITE(6,'(A,I5,1P5E12.4)') 
+C     &        'NTR,PSIL,PPSIL,HJPSIL/D/0=',
+C     &        NTR,PSIL,PPSIL,HJPSIL,HJPSID,UJPSI0(NTR)
+      ENDDO
+C      PAUSE
+C
       CALL EQLOOP(IERR)
          IF(IERR.NE.0) GOTO 9000
       CALL EQTORZ
@@ -96,10 +268,11 @@ C
       CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
 C
       DO NTR=1,NTRMAX
-         PSIN=PSITR(NTR)/PSITR(NTRMAX)
-         QPSI(NTR)=FNQPS(PSIN)
-         VPSI(NTR)=FNVPS(PSIN)
-         SPSI(NTR)=FNSPS(PSIN)
+         PSIN=1.D0-PSITRG(NTR)
+         QRHO(NTR)=FNQPS(PSIN)
+         PSIN=1.D0-PSITR(NTR)
+         DVRHO(NTR)=FNVPS(PSIN)
       ENDDO
+      QRHO(NTRMAX+1)=FNQPS(0.D0)
  9000 RETURN
       END
