@@ -27,54 +27,77 @@ C
       SUBROUTINE EQCALA(IERR)
 C
       INCLUDE '../eq/eqcomq.h'
-      COMMON /EQAKV1/ ALPHG(NRM),BETAG(NRM)
-      COMMON /EQAKV2/ UABR(4,NTHM,NRM),UABZ(4,NTHM,NRM)
-      DIMENSION RPSA(NTHM,NRM),RPSB(NTHM,NRM),RPSAB(NTHM,NRM)
-      DIMENSION ZPSA(NTHM,NRM),ZPSB(NTHM,NRM),ZPSAB(NTHM,NRM)
+      COMMON /EQAKV1/ ALPHG(NRM),BETAG(NTHMP)
+      COMMON /EQAKV2/ UABR(4,NTHMP,NRM),UABZ(4,NTHMP,NRM)
+      DIMENSION RPSS(NTHMP,NRM),ZPSS(NTHMP,NRM)
+      DIMENSION RPSA(NTHMP,NRM),RPSB(NTHMP,NRM),RPSAB(NTHMP,NRM)
+      DIMENSION ZPSA(NTHMP,NRM),ZPSB(NTHMP,NRM),ZPSAB(NTHMP,NRM)
 C
       DTH=2.D0*PI/NTHMAX
       DO NR=1,NRMAX
          ALPHG(NR)=SQRT(FTS(NR))
       ENDDO
-      DO NTH=1,NTHMAX
+      DO NTH=1,NTHMAX+1
          BETAG(NTH)=DTH*(NTH-1)
       ENDDO
 C
       DO NR=1,NRMAX
-         RPSB(     1,NR)=(RPS(2,NR)-RPS(NTHMAX  ,NR))/(2.D0*DTH)
-         RPSB(NTHMAX,NR)=(RPS(1,NR)-RPS(NTHMAX-1,NR))/(2.D0*DTH)
+         DO NTH=1,NTHMAX
+            RPSS(NTH,NR)=RPS(NTH,NR)
+         ENDDO
+         RPSS(NTHMAX+1,NR)=RPS(1,NR)
       ENDDO
-      RPSAB(     1,    1)=(RPSB(     1,    2)-RPSB(1     ,      1))
-     &                   /(ALPHG(    2)-ALPHG(      1))
-      RPSAB(NTHMAX,    1)=(RPSB(NTHMAX,    2)-RPSB(NTHMAX,      1))
-     &                   /(ALPHG(    2)-ALPHG(      1))
-      RPSAB(     1,NRMAX)=(RPSB(     1,NRMAX)-RPSB(1     ,NRMAX-1))
-     &                   /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-      RPSAB(NTHMAX,NRMAX)=(RPSB(NTHMAX,NRMAX)-RPSB(NTHMAX,NRMAX-1))
-     &                   /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
 C
-      CALL SPL2D(BETAG,ALPHG,RPS,RPSB,RPSA,RPSAB,UABR,
-     &           NTHM,NTHMAX,NRMAX,0,0,IERR)
+      DO NR=1,NRMAX
+         RPSB(       1,NR)=(RPS(2,NR)-RPS(NTHMAX,NR))/(2.D0*DTH)
+         RPSB(NTHMAX+1,NR)=(RPS(2,NR)-RPS(NTHMAX,NR))/(2.D0*DTH)
+      ENDDO
+      RPSAB(       1,    1)=(RPSB(       1,    2)
+     &                           -RPSB(1       ,      1))
+     &                     /(ALPHG(    2)-ALPHG(      1))
+      RPSAB(NTHMAX+1,    1)=(RPSB(NTHMAX+1,    2)
+     &                           -RPSB(NTHMAX+1,      1))
+     &                     /(ALPHG(    2)-ALPHG(      1))
+      RPSAB(       1,NRMAX)=(RPSB(       1,NRMAX)
+     &                           -RPSB(1       ,NRMAX-1))
+     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
+      RPSAB(NTHMAX+1,NRMAX)=(RPSB(NTHMAX+1,NRMAX)
+     &                           -RPSB(NTHMAX+1,NRMAX-1))
+     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
+C
+      CALL SPL2D(BETAG,ALPHG,RPSS,RPSB,RPSA,RPSAB,UABR,
+     &           NTHMP,NTHMAX+1,NRMAX,0,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+10000
          RETURN
       ENDIF
 C
       DO NR=1,NRMAX
-         ZPSB(     1,NR)=(ZPS(2,NR)-ZPS(NTHMAX  ,NR))/(2.D0*DTH)
-         ZPSB(NTHMAX,NR)=(ZPS(1,NR)-ZPS(NTHMAX-1,NR))/(2.D0*DTH)
+         DO NTH=1,NTHMAX
+            ZPSS(NTH,NR)=ZPS(NTH,NR)
+         ENDDO
+         ZPSS(NTHMAX+1,NR)=ZPS(1,NR)
       ENDDO
-      ZPSAB(     1,    1)=(ZPSB(     1,    2)-ZPSB(1     ,      1))
-     &                   /(ALPHG(    2)-ALPHG(      1))
-      ZPSAB(NTHMAX,    1)=(ZPSB(NTHMAX,    2)-ZPSB(NTHMAX,      1))
-     &                   /(ALPHG(    2)-ALPHG(      1))
-      ZPSAB(     1,NRMAX)=(ZPSB(     1,NRMAX)-ZPSB(1     ,NRMAX-1))
-     &                   /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-      ZPSAB(NTHMAX,NRMAX)=(ZPSB(NTHMAX,NRMAX)-ZPSB(NTHMAX,NRMAX-1))
-     &                   /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
 C
-      CALL SPL2D(BETAG,ALPHG,ZPS,ZPSB,ZPSA,ZPSAB,UABZ,
-     &           NTHM,NTHMAX,NRMAX,0,0,IERR)
+      DO NR=1,NRMAX
+         ZPSB(       1,NR)=(ZPS(2,NR)-ZPS(NTHMAX,NR))/(2.D0*DTH)
+         ZPSB(NTHMAX+1,NR)=(ZPS(2,NR)-ZPS(NTHMAX,NR))/(2.D0*DTH)
+      ENDDO
+      ZPSAB(       1,    1)=(ZPSB(       1,    2)
+     &                           -ZPSB(1       ,      1))
+     &                     /(ALPHG(    2)-ALPHG(      1))
+      ZPSAB(NTHMAX+1,    1)=(ZPSB(NTHMAX+1,    2)
+     &                           -ZPSB(NTHMAX+1,      1))
+     &                     /(ALPHG(    2)-ALPHG(      1))
+      ZPSAB(       1,NRMAX)=(ZPSB(       1,NRMAX)
+     &                           -ZPSB(1       ,NRMAX-1))
+     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
+      ZPSAB(NTHMAX+1,NRMAX)=(ZPSB(NTHMAX+1,NRMAX)
+     &                           -ZPSB(NTHMAX+1,NRMAX-1))
+     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
+C
+      CALL SPL2D(BETAG,ALPHG,ZPSS,ZPSB,ZPSA,ZPSAB,UABZ,
+     &           NTHMP,NTHMAX+1,NRMAX,0,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+20000
          RETURN
@@ -141,8 +164,8 @@ C
       SUBROUTINE ABTORZ(ALPHA,BETA,R,Z,IERR)
 C
       INCLUDE '../eq/eqcomq.h'
-      COMMON /EQAKV1/ ALPHG(NRM),BETAG(NRM)
-      COMMON /EQAKV2/ UABR(4,NTHM,NRM),UABZ(4,NTHM,NRM)
+      COMMON /EQAKV1/ ALPHG(NRM),BETAG(NTHMP)
+      COMMON /EQAKV2/ UABR(4,NTHMP,NRM),UABZ(4,NTHMP,NRM)
 C
       IERR=0
       IF(ALPHA.LE.0.D0) THEN
@@ -150,14 +173,21 @@ C
       ELSE
          ALPH=SQRT(ALPHA)
       ENDIF
-      CALL SPL2DF(BETA,ALPH,R,
-     &            BETAG,ALPHG,UABR,NTHM,NTHMAX,NRMAX,IERR)
+      IF(BETA.LE.0.D0) THEN
+         BETAL=BETA+2.D0*PI
+      ELSEIF(BETA.GT.2.D0*PI) THEN
+         BETAL=BETA-2.D0*PI
+      ELSE
+         BETAL=BETA
+      ENDIF
+      CALL SPL2DF(BETAL,ALPH,R,
+     &            BETAG,ALPHG,UABR,NTHMP,NTHMAX+1,NRMAX,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+10000
          RETURN
       ENDIF
-      CALL SPL2DF(BETA,ALPH,Z,
-     &            BETAG,ALPHG,UABZ,NTHM,NTHMAX,NRMAX,IERR)
+      CALL SPL2DF(BETAL,ALPH,Z,
+     &            BETAG,ALPHG,UABZ,NTHMP,NTHMAX+1,NRMAX,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+20000
          RETURN
@@ -232,11 +262,14 @@ C
       INCLUDE '../eq/eqcomq.h'
 C
       CALL ABTORZ(ALPHA,BETA,RP,ZP,IERR)
+      WRITE(6,'(A,1P2E12.4,I5)') 'RP,ZP,IERR=',RP,ZP,IERR
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: ABTORZ ERROR : IERR=',IERR
 C
       CALL SPL2DD(RP,ZP,PSIL,PSIR,PSIZ,
      &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
+      WRITE(6,'(A,1P3E12.4,I5)') 
+     &     'PSIL,PSIR,PSIZ,IERR=',PSIL,PSIR,PSIZ,IERR
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: SPL1DF ERROR : IERR=',IERR
 C
@@ -244,6 +277,7 @@ C
       IF(IERR.NE.0) WRITE(6,*) 
      &        'XX BTOTAB: SPL1DF ERROR : IERR=',IERR
 C
+      WRITE(6,'(A,1P4E12.4)') 'RP,ZP,PSIL,TTL=',RP,ZP,PSIL,TTL
       BT= TTL/RP
       BR=-PSIZ/RP
       BZ= PSIR/RP

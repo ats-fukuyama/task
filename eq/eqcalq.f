@@ -152,6 +152,9 @@ C
             RPS(NTH,NR)=Y(1)
             ZPS(NTH,NR)=Y(2)
          ENDDO
+C         WRITE(6,'(A,I5,1P4E12.4)') 
+C     &        'NR,RPS,ZPS,RPS,ZPS=',
+C     &        NR,RPS(2,NR),ZPS(2,NR),RPS(NTHMAX,NR),ZPS(NTHMAX,NR)
       ENDDO
       FTSA=FTS(NRPMAX)
 C
