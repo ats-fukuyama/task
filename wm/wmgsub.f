@@ -234,7 +234,7 @@ C
   460    CONTINUE
          CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
          DO 470 NR=1,NRMAX+1
-            GY(NR,1)=GCLIP(PSIPS(NR)-SAXIS)
+            GY(NR,1)=GCLIP(PSIPS(NR))
   470    CONTINUE
          CALL WMGGR(GY,1,RTITL(8),GP(1,4))
          CALL WMGPRM('C',K3,0,0,0,0)

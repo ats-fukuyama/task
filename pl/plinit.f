@@ -155,10 +155,12 @@ C
 C        RHOMIN: rho at minimum q (0 for positive shear)
 C        QMIN  : q minimum for reversed shear
 C        RHOITB: rho at ITB (0 for no ITB)
+C        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
 C
       RHOMIN = 0.D0
       QMIN   = 1.5D0
       RHOITB = 0.D0
+      RHOEDG = 1.D0
 C
 C     ======( MODEL PARAMETERS )======
 C
@@ -186,7 +188,7 @@ C
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
-     &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
+     &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
      &              MODELG,MODELN,MODELQ,
      &              KNAMEQ,KNAMWR,KNAMFP,IDEBUG
 C
@@ -286,6 +288,7 @@ C
      &             'PROFN1',PROFN1,'PROFN2',PROFN2
       WRITE(6,601) 'PROFT1',PROFT1,'PROFT2',PROFT2,
      &             'PROFU1',PROFU1,'PROFU2',PROFU2
+      WRITE(6,601) 'RHOEDG',RHOEDG
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN,
      &             'MODELQ',MODELQ
 C

@@ -336,6 +336,26 @@ WR コードは光線追跡法あるいはビーム追跡法
 1&:& RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU \\
 2&:& RF,RP,ZP,PHI,MODE,ANGZ,ANGPH,UU
 \end{eqnarray*}
+      \item[IGTYPE] グラフの表示形式
+\begin{center}
+\begin{tabular}{ll}
+0:& 全トーラス，全半径（吸収パワーおよびフラックス） \\
+1:& 部分トーラス，全半径 \\
+2:& 全トーラス，部分半径 \\
+3:& 部分トーラス，部分半径 \\
+\end{tabular}
+\end{center}
+      \item[RHOGMN] 径方向分布グラフの規格化半径の下限
+      \item[RHOGMX] 径方向分布グラフの規格化半径の上限
+      \item[IQTYPE] 光線追跡法の常微分方程式解法
+\begin{center}
+\begin{tabular}{ll}
+0:& Runge-Kutta, 固定幅 \\
+1:& Runge-Kutta, 自動幅 \\
+2:& Runge-Kutta-Fahlberg, 自動幅 \\
+\end{tabular}
+\end{center}
+      \vspace{3mm}
       \item[NRZMAX] 吸収パワーの径方向分布を求めるための分割数
       \item[NRADMX] ビーム追跡法における吸収パワー分布分割数
       \item[RCURVA] ビーム波面の初期曲率半径（$\vk$ と $\vB$ に垂直）

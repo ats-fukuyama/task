@@ -97,7 +97,9 @@ C
          RKRI  = RKR0
          RKZI  =2.D6*PI*RF*RNZI  /VC
          RKPHII=2.D6*PI*RF*RNPHII/VC
-         CALL WRNWTN(RKRI,RKZI,RKPHII)
+         CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
+         IF(IERR.NE.0) GOTO 1200
+         
          WRITE(6,*) 'RKRI=',RKRI
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
@@ -116,10 +118,19 @@ C
             Y(6)= RKZI
          ENDIF
          Y(7)= UUI
-         CALL WRRKFT(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         IF(IQTYPE.EQ.0) THEN
+            CALL WRRKFT(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSEIF(IQTYPE.EQ.1) THEN
+            CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSEIF(IQTYPE.EQ.2) THEN
+            CALL WRRKFT_RKF(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSE
+            WRITE(6,*) 'XX WRCALC: unknown IQTYPE =', IQTYPE
+         ENDIF
          CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
          WRITE(6,'(A,F8.4)') 
      &        '# PABS/PIN=',1.D0-RAYS(7,NITMAX(NRAY),NRAY)
+ 1200    CONTINUE
       ENDDO
 C
       CALL GUTIME(TIME2)
@@ -177,7 +188,7 @@ C         WRITE(25,'(1P8E9.1)') XE,(Y(I),I=1,7)
             GOTO 11
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.1.D0) THEN
+         IF(PSIN.GT.(RB/RA)**2) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -244,7 +255,7 @@ C     &           '    KPHI=',YN(6,IT),' POWER=',YN(8,IT), '  Y(7)=',Y7
             GOTO 11
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.1.D0) THEN
+         IF(PSIN.GT.(RB/RA)**2) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -312,7 +323,7 @@ C
             GOTO 11
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.1.D0) THEN
+         IF(PSIN.GT.(RB/RA)**2) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -407,10 +418,11 @@ C      CALL GUFLSH
 C
 C************************************************************************
 C
-      SUBROUTINE WRNWTN(RKRI,RKZI,RKPHII)
+      SUBROUTINE WRNWTN(RKRI,RKZI,RKPHII,IERR)
 C
       INCLUDE 'wrcomm.h'
 C
+      IERR=0
       OMG=2.D6*PI*RF
       ICOUNT=0
  10   CONTINUE
@@ -432,6 +444,7 @@ C      WRITE(6,*) RKR
       GOTO 10
 C
  8000 WRITE(6,*) ' WRNWTN: DOES NOT CONVERGE'
+      IERR=1000
  9000 RETURN   
       END
 C

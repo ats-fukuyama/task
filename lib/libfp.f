@@ -1,28 +1,25 @@
 C     $Id$
 C
-C **************************************
-C     REAL*8 UNDERFLOW ERROR ROUTINE
-C **************************************
 C
-      SUBROUTINE ERUFL8(A)
-      REAL*8 A
-      A=0.D0
-      RETURN
-      END
+C ***********************************************************
 C
-      REAL*8 FUNCTION ERF(X)
+C                    ERROR FUNCTION(1)
+C
+C ***********************************************************
+C
+      FUNCTION ERF1(X)
       REAL*8 ERF,X
 CU    USES GAMMP
       REAL*8 GAMMP
       IF(X.LT.0.D0)THEN
-        ERF=-GAMMP(0.5D0,X**2)
+        ERF1=-GAMMP(0.5D0,X**2)
       ELSE
-        ERF=GAMMP(0.5D0,X**2)
+        ERF1=GAMMP(0.5D0,X**2)
       ENDIF
       RETURN
       END
 C
-      REAL*8 FUNCTION GAMMP(A,X)
+      FUNCTION GAMMP(A,X)
       REAL*8 A,GAMMP,X
 CU    USES GCF,GSER
       REAL*8 GAMMCF,GAMSER,GLN
@@ -93,7 +90,7 @@ CU    USES GAMMLN
       RETURN
       END
 C
-      REAL*8 FUNCTION GAMMLN(XX)
+      FUNCTION GAMMLN(XX)
       REAL*8 GAMMLN,XX
       INTEGER J
       DOUBLE PRECISION SER,STP,TMP,X,Y,COF(6)
@@ -111,22 +108,6 @@ C
         SER=SER+COF(J)/Y
 11    CONTINUE
       GAMMLN=TMP+LOG(STP*SER/X)
-      RETURN
-      END
-C
-C ***********************************************************
-C
-C                    ERROR FUNCTION(1)
-C
-C ***********************************************************
-C
-      FUNCTION ERF1(U)
-C
-      IMPLICIT REAL*8(A-H,O-R,T-Z)
-C$ALIAS DERF='erf'(%VAL)
-C
-      ERF1=ERF(U)
-C
       RETURN
       END
 C

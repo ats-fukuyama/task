@@ -89,7 +89,6 @@ C
 C     ----- Setup normalized radius for file data -----
 C
       PSIA =-PHI(NSRMAX)
-      SAXIS=-PHI(NSRMAX)
       DO NSR=1,NSRMAX
          S=-PHI(NSR)/PSIA
          IF(S.LT.0.D0) THEN
@@ -186,7 +185,6 @@ C
 C     ----- Setup normalized radius for file data -----
 C
       PSIA =-PHI(NSRMAX)
-      SAXIS=-PHI(NSRMAX)
       DO NSR=1,NSRMAX
          S=-PHI(NSR)/PSIA
          IF(S.LT.0.D0) THEN
