@@ -72,10 +72,22 @@ C
       CALL TRAJOH
 C
       DO 100 NR=1,NRMAX
+         IF(MDLEQ0.EQ.0) THEN
          SSIN(NR,1)=SIE(NR)                            +SNB(NR)
          SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)
          SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)
          SSIN(NR,4)=                            SNF(NR)
+         SSIN(NR,7)=-SIE(NR)                                   -SCX(NR)
+         SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
+         ELSEIF(MDLEQ0.EQ.1) THEN
+         SSIN(NR,1)=                                    SNB(NR)
+         SSIN(NR,2)=                           -SNF(NR)+SNB(NR)
+         SSIN(NR,3)=                           -SNF(NR)
+         SSIN(NR,4)=                            SNF(NR)
+         SSIN(NR,7)=                                           -SCX(NR)
+         SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
+         ENDIF
+C         write(6,*) NR,ANNU(NR),SIE(NR)
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1)
      &            +POH(NR)-PRL(NR)-PIE(NR)+PEX(NR,1)
          PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2)
@@ -83,7 +95,6 @@ C
          PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3)
      &            -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
          PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
-C         write(6,*) POH(NR),PIE(NR)
   100 CONTINUE
 C
       RETURN
@@ -353,11 +364,12 @@ C
          ANE=RN(NR,1)
          TE =RT(NR,1)
          EION  = 13.64D0
-         TN     = MAX(TE*1.D3/EION,1.D-2)
+         TN    = MAX(TE*1.D3/EION,1.D-2)
          SION  = 1.D-11*SQRT(TN)*EXP(-1.D0/TN)
      &          /(EION**1.5D0*(6.D0+TN))
-         PIE(NR)= ANE*ANNU(NR)*SION*1.D40*EION*AEE
-         SIE(NR)= ANE*ANNU(NR)*SION*1.D20
+         PIE(NR) = ANE*ANNU(NR)*SION*1.D40*EION*AEE
+         SIE(NR) = ANE*ANNU(NR)*SION*1.D20
+         TSIE(NR)= ANE*SION*1.D20
       ENDDO
 C
 C     ****** CHARGE EXCHANGE LOSS ******
@@ -370,10 +382,10 @@ C
          TNU = 0.D0
 C
          TN    = LOG10(MAX(TD*1.D3,50.D0))
-         SCX   = 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
+         SCX(NR)= 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
 C
          PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
-     &         +  1.5D0*ANDX*ANNU(NR)*SCX*(TD-TNU))*RKEV*1.D40
+     &         +  1.5D0*ANDX*ANNU(NR)*SCX(NR)*(TD-TNU))*RKEV*1.D40
       ENDDO
 C
       RETURN
@@ -1067,7 +1079,7 @@ C
                QP(NR) = 1.D0/QONE(NR)
 CCC               BP(NR)  = FKAP*RA*RG(NR)*BB/(RR*QP(NR))
                BP(NR)  = RA*RG(NR)*BB/(RR*QP(NR))
-               write(6,*) NR,BP(NR)
+C               write(6,*) NR,BP(NR)
             ENDDO
          ENDIF
       ENDIF

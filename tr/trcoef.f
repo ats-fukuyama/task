@@ -70,11 +70,6 @@ C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
       DO 100 NR=1,NRMAX
          DRL=AR1RHO(NR)/DR
-C         IF(NR.EQ.1) THEN
-C            EPS=0.5D0*              EPSRHO(NR)
-C         ELSE
-C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-C         ENDIF
          EPS=EPSRHO(NR)
          IF(NR.EQ.NRMAX) THEN
             ANE =PNSS(1)
@@ -271,14 +266,14 @@ C
             IF(MDLKAI.EQ.0) THEN
                AKDWL=CK0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=CK0/(1.D0-CKALFA*RG(NR)**2)
+               AKDWL=CK0/(1.D0-CKALFA*(RR*EPS/RA)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=CK0/(1.D0-CKALFA*RG(NR)**2)
+               AKDWL=CK0/(1.D0-CKALFA*(RR*EPS/RA)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=CK0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
             ELSE                                           
-               WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
+               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
             ENDIF
             AKDW(NR,1)=AKDWL
@@ -354,7 +349,7 @@ CCCCCC            ARG = 6.D0*(ETAI(NR)-ETAC(NR))*RA/CLN(NR)
                   HETA = 1.D0/(1.D0+EXP(-ARG))
                ENDIF
             ELSE
-               WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
+               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                RRSTAR = RR 
                FDREV  = 1.D0
                HETA   = 1.D0
@@ -412,7 +407,7 @@ C
                AKDW(NR,3)=ZEFFL*SQRT(TE/TT)*DKAI
                AKDW(NR,4)=ZEFFL*SQRT(TE/TA)*DKAI
             ELSE                                           
-               WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
+               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDW(NR,1)=0.D0
                AKDW(NR,2)=0.D0
                AKDW(NR,3)=0.D0
@@ -540,7 +535,7 @@ C
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
      &               /(1.D0+OMEGASS**2)
             ELSE                                           
-               WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
+               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                FS=1.D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -564,7 +559,7 @@ C
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
             VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
          ELSE                                           
-            WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD       
+            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
             AKDW(NR,1)=0.D0
             AKDW(NR,2)=0.D0
             AKDW(NR,3)=0.D0
@@ -622,11 +617,6 @@ C
          ENDIF
 C
          QL = QP(NR)
-C         IF(NR.EQ.1) THEN
-C            EPS=0.5D0*              EPSRHO(NR)
-C         ELSE
-C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-C         ENDIF
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
 C
@@ -819,7 +809,11 @@ C
 C
 C        ****** CLASSICAL RESISTIVITY ******
 C
-         EPS=RM(NR)*RA/RR
+         IF(NR.EQ.1) THEN
+            EPS=0.5D0*              EPSRHO(NR)
+         ELSE
+            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+         ENDIF
          EPSS=SQRT(EPS)**3
          ANE=RN(NR,1)
          TE =RT(NR,1)
@@ -851,9 +845,6 @@ C
 C        ****** NEOCLASSICAL RESISTIVITY PART II ******
 C
          ELSEIF(MDLETA.EQ.2) THEN
-            EPS=RA*RM(NR)/RR
-            EPSS=SQRT(EPS)**3
-C
             IF(NR.EQ.1) THEN
                QL=ABS(0.25D0*(3.D0*Q0+QP(NR)))
                ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
@@ -888,6 +879,7 @@ C
       SUBROUTINE TRCFAD
 C
       INCLUDE 'trcomm.h'
+      DIMENSION ACOEF(2),BCOEF(5)
 C
 C     ZEFF=1
 C
@@ -924,7 +916,7 @@ C
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
-            RX   = ALP(1)*RG(NR)/RA
+            RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
             IF(PROF0.LE.0.D0) THEN
                PROF1=0.D0
@@ -961,7 +953,7 @@ C
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
-            RX   = ALP(1)*RG(NR)/RA
+            RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
             IF(PROF0.LE.0.D0) THEN
                PROF1=0.D0
@@ -1001,11 +993,7 @@ C
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
             EZOHL = EZOH(NR)
-            IF(NR.EQ.1) THEN
-               EPS=0.5D0*              EPSRHO(NR)
-            ELSE
-               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-            ENDIF
+            EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
@@ -1056,11 +1044,6 @@ C
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
             EZOHL = EZOH(NR)
-C            IF(NR.EQ.1) THEN
-C               EPS=0.5D0*              EPSRHO(NR)
-C            ELSE
-C               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-C            ENDIF
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
@@ -1089,10 +1072,10 @@ C
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
 C
-            AVDW(NR,1) = -AV0*ADDW(NR,1)*RA*RG(NR)/RA**2
-            AVDW(NR,2) = -AV0*ADDW(NR,2)*RA*RG(NR)/RA**2
-            AVDW(NR,3) = -AV0*ADDW(NR,3)*RA*RG(NR)/RA**2
-            AVDW(NR,4) = -AV0*ADDW(NR,4)*RA*RG(NR)/RA**2
+            AVDW(NR,1) = -AV0*ADDW(NR,1)*RR*EPS/RA**2
+            AVDW(NR,2) = -AV0*ADDW(NR,2)*RR*EPS/RA**2
+            AVDW(NR,3) = -AV0*ADDW(NR,3)*RR*EPS/RA**2
+            AVDW(NR,4) = -AV0*ADDW(NR,4)*RR*EPS/RA**2
 C
             AV(NR,1) = AVDW(NR,1)+CNC*AVNC(NR,1)
             AV(NR,2) = AVDW(NR,2)+CNC*AVNC(NR,2)
@@ -1109,6 +1092,45 @@ C
          ENDDO
       ENDIF
 C
+C     /* for nuetral deuterium */
+C
+      ACOEF(1)=-3.231141D+1
+      ACOEF(2)=-1.386002D-1
+      BCOEF(1)=-3.330843D+1
+      BCOEF(2)=-5.738374D-1
+      BCOEF(3)=-1.028610D-1
+      BCOEF(4)=-3.920980D-3
+      BCOEF(5)= 5.964135D-4
+      DO NR=1,NRMAX
+         SUMA=0.D0
+         SUMB=0.D0
+         EDCM=0.5D0*(1.5D0*RT(NR,2)*1.D3)
+         DO NA=1,2
+            SUMA=SUMA+ACOEF(NA)*(LOG(4.D0*EDCM))**(NA-1)
+         ENDDO
+         DO NB=1,5
+            SUMB=SUMB+BCOEF(NB)*(LOG(4.D0*EDCM))**(NB-1)
+         ENDDO
+         SGMNI=2.D0*EXP(SUMA)*1.D-4
+         SGMNN=2.D0*EXP(SUMB)*1.D-4
+C         write(6,*) NR,SGMNI,SGMNN
+C
+         VNC=SQRT(0.025D-3*RKEV/(PA(7)*AMM))
+         VNH=SQRT(RT(NR,2)*RKEV/(PA(8)*AMM))
+         VNI=SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))
+         CFNCI =RN(NR,2)*1.D20*SGMNI*VNI
+         CFNCNC=RN(NR,7)*1.D20*SGMNN*VNC
+         CFNCNH=RN(NR,8)*1.D20*SGMNN*VNH
+         CFNHI =RN(NR,2)*1.D20*SGMNI*VNI
+         CFNHNH=RN(NR,8)*1.D20*SGMNN*VNH
+         CFNHNC=RN(NR,7)*1.D20*SGMNN*VNH
+         AD(NR,7) = VNC**2/(CFNCI+CFNCNC+CFNCNH)
+         AD(NR,8) = VNH**2/(CFNHI+CFNHNH+CFNHNC)
+C
+         AV(NR,7) = 0.D0
+         AV(NR,8) = 0.D0
+      ENDDO
+C
 C        ****** AVK : HEAT PINCH ******
 C
       IF(MDLAVK.EQ.0) THEN
@@ -1119,14 +1141,14 @@ C
          ENDDO
       ELSEIF(MDLAVK.EQ.1) THEN
          DO NR=1,NRMAX
-            AVK(NR,1)=-RG(NR)*CHP
-            AVK(NR,2)=-RG(NR)*CHP
-            AVK(NR,3)=-RG(NR)*CHP
-            AVK(NR,4)=-RG(NR)*CHP
+            AVK(NR,1)=-(RR*EPSRHO(NR)/RA)*CHP
+            AVK(NR,2)=-(RR*EPSRHO(NR)/RA)*CHP
+            AVK(NR,3)=-(RR*EPSRHO(NR)/RA)*CHP
+            AVK(NR,4)=-(RR*EPSRHO(NR)/RA)*CHP
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
          DO NR=1,NRMAX
-            AVKL=-RG(NR)*(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
+            AVKL=-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
             AVK(NR,1)=-AVKL
             AVK(NR,2)=-AVKL
             AVK(NR,3)=-AVKL
@@ -1146,7 +1168,6 @@ C
 C
       FUNCTION TRCOFS(S,ALFA,RKCV)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1184,7 +1205,6 @@ C
 C
       FUNCTION TRCOFSX(S,ALFA,RKCV,EPSA)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1228,7 +1248,6 @@ C        SA=(1.D0-(2*ALFA)/(1+3*(ALFA)**2))*ALFA-S
 C
       FUNCTION TRCOFSS(S,ALFA)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       SA=S-ALFA
@@ -1239,7 +1258,6 @@ C
 C
       FUNCTION TRCOFT(S,ALFA,RKCV,EPSA)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1277,9 +1295,6 @@ C
 C
       FUNCTION RLAMBDA(X)
 C
-C      REAL (KIND=8) RLAMBDA,X
-C      REAL (KIND=8) AX
-C      REAL (KIND=8) P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Y
       REAL*8 RLAMBDA,X
       REAL*8 AX
       REAL*8 P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Y

@@ -81,7 +81,6 @@ C     ***********************************************************
 C
       FUNCTION SIGMAM(TD,TT)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       TI = (3.D0*ABS(TD)+2.D0*ABS(TT))/5.D0
@@ -114,7 +113,6 @@ C      EC   : CRITICAL ENERGY (KEV)
 C      TI   : TRITIUM TEMPERATURE (KEV)
 C      PTNT : PB * TAUS / (ND * EB)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       XB=SQRT(EB/127.D0)
@@ -157,7 +155,6 @@ C
 C
       FUNCTION SIGMBS(XX,RGG,RGL,XC)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       X=XX/XC

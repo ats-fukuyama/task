@@ -14,7 +14,6 @@ C     ***********************************************************
 C
       SUBROUTINE TRGR1D(GX1,GX2,GY1,GY2,GX,GY,NXM,NXMAX,NGMAX,STR,MODE)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       DIMENSION GX(NXM),GY(NXM,NGMAX),IPAT(5)
@@ -140,7 +139,6 @@ C     ***********************************************************
 C
       SUBROUTINE TRGR1DX(GX1,GX2,GY1,GY2,GX,GY,NXM,NXMAX,NGMAX,STR,MODE)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       DIMENSION GX(NXM,NGMAX),GY(NXM,NGMAX),IPAT(5)
@@ -442,7 +440,6 @@ C     ***********************************************************
 C
       FUNCTION GLOG(X,XMIN,XMAX)
 C
-C      REAL (KIND=8) X,XMIN,XMAX,PLOG
       REAL*8 X,XMIN,XMAX,PLOG
 C
       GLOG=GCLIP(PLOG(X,XMIN,XMAX))

@@ -60,6 +60,7 @@ C
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
      &               '@NE,ND,NT,NA [10^20/m^3]  vs r@',2+INQ)
       ENDIF
+      IF(MDLEQ0.EQ.0) THEN
       DO NF=1,NFM
       DO NR=1,NRMAX
          GYR(NR,NF) = GCLIP(RNF(NR,NF))
@@ -67,6 +68,14 @@ C
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NFM,
      &            '@NB,NF [10^20 /m^3]  vs r@',2+INQ)
+      ELSEIF(MDLEQ0.EQ.1) THEN
+      DO NR=1,NRMAX
+         GYR(NR,1) = GUCLIP(RN(NR,7)*1.D5)
+         GYR(NR,2) = GUCLIP(RN(NR,8)*1.D5)
+      ENDDO
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &            '@NNC,NNH [10^15 /m^3]  vs r@',2+INQ)
+      ENDIF
 C
       DO NS=1,NSM
       DO NR=1,NRMAX
@@ -331,13 +340,19 @@ C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
      &            '@PIN [MW/m^3]  vs r@',2+INQ)
 C
-      DO NS=1,NSM
+c$$$      DO NS=1,NSM
+c$$$      DO NR=1,NRMAX
+c$$$C         GYR(NR,NS) = GCLIP(SSIN(NR,NS))
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
+c$$$     &            '@SSIN [/sm^3]  vs r@',2+INQ)
+      NS=1
       DO NR=1,NRMAX
-         GYR(NR,NS) = GCLIP(SSIN(NR,NS))
+         GYR(NR,NS) = GCLIP(SIE(NR))
       ENDDO
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &            '@SSIN [/sm^3]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
+     &            '@SIE [/sm^3]  vs r@',2+INQ)
 C
       DO NS=1,NSM
       DO NR=1,NRMAX

@@ -10,6 +10,8 @@ C
 C
       INCLUDE 'trcomm.h'
 C
+      VOID    = 0.D0
+C
       PI      = ASIN(1.D0)*2.D0
       AME     = 9.1093897D-31
       AMM     = 1.6605402D-27
@@ -56,6 +58,34 @@ C
       PTS(4)  = 0.05D0
       PNS(4)  = 1.D-8
 C
+      PA(5)   = VOID
+      PZ(5)   = VOID
+      PN(5)   = VOID
+      PT(5)   = VOID
+      PTS(5)  = VOID
+      PNS(5)  = VOID
+C
+      PA(6)   = VOID
+      PZ(6)   = VOID
+      PN(6)   = VOID
+      PT(6)   = VOID
+      PTS(6)  = VOID
+      PNS(6)  = VOID
+C
+      PA(7)   = 2.D0
+      PZ(7)   = 0.D0
+      PN(7)   = 1.D-10
+      PT(7)   = 0.D0
+      PTS(7)  = 0.D0
+      PNS(7)  = 1.D-7
+C
+      PA(8)   = 2.D0
+      PZ(8)   = 0.D0
+      PN(8)   = 1.D-10
+      PT(8)   = 0.D0
+      PTS(8)  = 0.D0
+      PNS(8)  = 1.D-10
+C
 C      PNC     = 1.D0
 C      PNFE    = 1.D-2
       PNC     = 0.D0
@@ -69,7 +99,7 @@ C
       PROFT2 = 1.D0
       PROFU1 =12.D0
       PROFU2 = 1.D0
-      PROFJ1 = -2.D0
+      PROFJ1 =-2.D0
       PROFJ2 = 1.D0
 C
       ALP(1) = 1.0D0
@@ -121,9 +151,8 @@ C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
 C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
 C
       MDLKAI = 31
-      MDLETA = 1
-C      MDLAD  = 1
-      MDLAD  = 0
+      MDLETA = 2
+      MDLAD  = 1
       MDLAVK = 0
       MDLJBS = 3
       MDLKNC = 1
@@ -137,22 +166,26 @@ C
       NGPST  = 4
       TSST   = 1.D9
 C
+C     *** Convergence Parameter ***
       EPSLTR = 0.001D0
 C      EPSLTR = 1.D99
       LMAXTR = 10
 C
+C     *** Semi-Empirical Parameter for Anomalous Transport ***
       CHP    = 0.D0
       CK0    = 12.D0
       CKALFA = 0.D0
       CKBETA = 0.D0
       CKGUMA = 0.D0
 C
+C     *** Sawtooth ***
       TPRST  = 0.1D0
       MDLST  = 0
 C
       MDLNF  = 0
       IZERO  = 3
 C
+C     *** NBI ***
       PNBTOT = 0.D0
       PNBR0  = 0.D0
       PNBRW  = 0.5D0
@@ -160,6 +193,7 @@ C
       PNBRTG = 3.D0
       MDLNB  = 1
 C
+C     *** ECH ***
       PECTOT = 0.D0
       PECR0  = 0.D0
       PECRW  = 0.2D0
@@ -167,6 +201,7 @@ C
       PECNPR = 0.D0
       MDLEC  = 0
 C
+C     *** LH ***
       PLHTOT = 0.D0
       PLHR0  = 0.D0
       PLHRW  = 0.2D0
@@ -174,6 +209,7 @@ C
       PLHNPR = 2.D0
       MDLLH  = 0
 C
+C     *** ICH ***
       PICTOT = 0.D0
       PICR0  = 0.D0
       PICRW  = 0.5D0
@@ -181,6 +217,7 @@ C
       PICNPR = 2.D0
       MDLIC  = 0
 C
+C     *** Current Drive ***
       PNBCD  = 1.D0
       PECCD  = 0.D0
       PLHCD  = 1.D0
@@ -188,6 +225,7 @@ C
       PBSCD  = 1.D0
       MDLCD  = 0
 C
+C     *** Pelet? ***
       PELTOT = 0.D0
       PELR0  = 0.D0
       PELRW  = 0.5D0
@@ -205,10 +243,14 @@ C
 C
 C     *****
 C
+C     *** TR or TR/EQ ***
+C        0 : TR
+C        3 : TR/EQ
       MODELG=0
       NTEQIT=10
       MDLUF=0
 C
+C     *** Error Indicator for UFILE Reader ***
       MDALL=0
       MDQ=0
       MDCUR=0
@@ -218,6 +260,22 @@ C
       MDRMJ=0
       MDGR1=0
       MDGR2=0
+C
+C     *** Eqs. Selection Parameter ***
+      MDLEQB=1  ! 0/1 for B_theta
+      MDLEQN=0  ! 0/1 for density
+      MDLEQT=1  ! 0/1 for heat
+      MDLEQU=0  ! 0/1 for rotation
+      MDLEQZ=0  ! 0/1 for impurity
+      MDLEQ0=0  ! 0/1 for neutral
+      MDLEQE=0  ! 0/1 for electron density
+C
+      NSMAX=4   ! the number of e, D, T and He
+      NSZMAX=0  ! the number of impurities
+      NSNMAX=0  ! the number of neutrals, 0 or 2 fixed
+C      NFMAX=0   ! the number of fast particles
+      NSCMAX=NSMAX+NSZMAX ! the number of charged particles
+      NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
       RETURN
       END
@@ -246,7 +304,9 @@ C
      &              PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC,
      &              PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD,
      &              PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL,
-     &              PELTIM,PELPAT,KFNLOG
+     &              PELTIM,PELPAT,KFNLOG,
+     &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
+     &              NSMAX,NSZMAX,NSNMAX
 C
       LOGICAL LEX
       CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
@@ -338,7 +398,9 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF')
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF'/
+     &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
+     &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX')
       END
 C
 C     ***********************************************************
@@ -352,6 +414,16 @@ C
       INCLUDE 'trcomm.h'
 C
       WRITE(6,*) '** TRANSPORT **'
+      WRITE(6,602) 'MDLEQB',MDLEQB,
+     &             'MDLEQN',MDLEQN,
+     &             'MDLEQT',MDLEQT,
+     &             'MDLEQU',MDLEQU
+      WRITE(6,602) 'MDLEQZ',MDLEQZ,
+     &             'MDLEQ0',MDLEQ0,
+     &             'MDLEQE',MDLEQE
+      WRITE(6,602) 'NSMAX ',NSMAX,
+     &             'NSZMAX',NSZMAX,
+     &             'NSNMAX',NSNMAX
       WRITE(6,601) 'RR    ',RR,
      &             'RA    ',RA,
      &             'RKAP  ',RKAP,
@@ -364,7 +436,7 @@ C
       WRITE(6,611)
   611 FORMAT(' ','NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
      &                   'PT(KEV)  PTS(KEV)  PELPAT')
-      DO NS=1,NSM
+      DO NS=1,NSTM
          WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),
      &                PELPAT(NS)
   612    FORMAT(' ',I2,1PD12.4,0P,F6.1,5F9.4)
@@ -641,10 +713,13 @@ C
             PEX(NR,3)=0.D0
             PEX(NR,4)=0.D0
          ENDIF
-         NS=1
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
-         ANNU(NR)= (PNNU-PNNUS)*PROF+PNNUS
+         IF(MDLEQ0.EQ.1) THEN
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
+            RN(NR,7) = (PN(7)-PNS(7))*PROF+PNS(7)
+            RN(NR,8) = (PN(8)-PNS(8))*PROF+PNS(8)
+            ANNU(NR) = RN(NR,7)+RN(NR,8)
+         ENDIF
 C
          DO NF=1,NFM
            RW(NR,NF) = 0.D0
@@ -685,6 +760,8 @@ C
       DO NS=2,NSM
          PNSS(NS)=PNS(NS)*DILUTE
       ENDDO
+      PNSS(7)=PNS(7)
+      PNSS(8)=PNS(8)
 C
 C     *** CALCULATE PROFILE OF AJ(R) ***
 C
@@ -1184,3 +1261,231 @@ C
       RETURN
       END
 C
+C
+C     ***********************************************************
+C
+C           MODEL SELECTOR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_EQS_SELECT
+C
+      INCLUDE 'trcomm.h'
+C
+      IF(MDLEQT.EQ.0) THEN
+         NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX
+     &         +MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
+      ELSEIF(MDLEQT.EQ.1) THEN
+         NEQMAX=MDLEQB+NSMAX+(MDLEQT+MDLEQU)*NSMAX
+     &         +MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
+      ENDIF
+C
+      IF(MDLEQN.EQ.0.AND.MDLEQE.EQ.1) THEN
+         WRITE(6,*) "ERROR! : MDLEQE can be 1 when MDLEQN is 1."
+         STOP
+      ENDIF
+C
+      DO NEQ=1,NEQM
+         NSS(NEQ)=-1
+         NSV(NEQ)=-1
+         NNS(NEQ)=0
+      ENDDO
+      NEQ=0
+      IF(MDLEQB.EQ.1) THEN
+         NEQ=NEQ+1
+         NSS(NEQ)=0
+         NSV(NEQ)=0
+      ENDIF
+      IND=0
+      DO NS=1,NSM
+         IF(MDLEQN.EQ.1.OR.MDLEQT.EQ.1) THEN
+            IF(MDLEQN.EQ.1) IND=1
+            CALL TR_TABLE(NS,NEQ,1,IND)
+            IF(IND.EQ.-1) CONTINUE
+         ENDIF
+         IF(MDLEQT.EQ.1) THEN
+            CALL TR_TABLE(NS,NEQ,2,IND)
+            IF(IND.EQ.-1) CONTINUE
+         ENDIF
+         IF(MDLEQU.EQ.1) THEN
+            CALL TR_TABLE(NS,NEQ,3,IND)
+            IF(IND.EQ.-1) CONTINUE
+         ENDIF
+      ENDDO
+      IF(MDLEQZ.EQ.1) THEN
+         IF(NSZMAX.EQ.1) THEN
+            NEQ=NEQ+1
+            NSS(NEQ  )=5
+            NSV(NEQ  )=1
+         ELSEIF(NSZMAX.EQ.2) THEN
+            NEQ=NEQ+2
+            NSS(NEQ-1)=5
+            NSV(NEQ-1)=1
+            NSS(NEQ  )=6
+            NSV(NEQ  )=1
+         ENDIF
+      ENDIF
+      IF(MDLEQ0.EQ.1) THEN
+         NEQ=NEQ+2
+         NSS(NEQ-1)=7
+         NSV(NEQ-1)=1
+         NSS(NEQ  )=8
+         NSV(NEQ  )=1
+      ENDIF
+C
+      NNSC=0
+      DO NEQ=1,NEQMAX
+         NNSN=NNS(NEQ)
+         IF(NNSN.NE.0) THEN
+            NNSC=NNSC+1
+         ELSE
+            GOTO 1000
+         ENDIF
+      ENDDO
+ 1000 CONTINUE
+      NNSMAX=NNSC
+      NEQRMAX=NEQMAX-NNSMAX
+C
+      NEQS=1
+      NEQT=1
+      DO NEQ=1,NEQMAX
+         NNSN=NNS(NEQ)
+         DO NEQ1=1,NEQMAX
+            IF(NEQ1.GE.NEQS) THEN
+               IF(NEQ1.LT.NNSN.OR.NNSN.EQ.0) THEN
+                  NST(NEQ1)=NEQT
+                  NEQT=NEQT+1
+                  IF(NEQT.GT.NEQRMAX) GOTO 1200
+               ELSEIF(NNSN.EQ.NEQ1) THEN
+                  NST(NEQ1)=0
+                  NEQS=NNSN+1
+                  GOTO 1100
+               ENDIF
+            ENDIF
+         ENDDO
+ 1100    CONTINUE
+      ENDDO
+ 1200 CONTINUE
+C
+      DO NS=1,NSTM
+         IF(PZ(NS).NE.0.D0) THEN
+            AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
+         ELSE
+            AMZ(NS)=0.D0
+C     I don't know this representation is whether true or false.
+         ENDIF
+      ENDDO
+C
+      WRITE(6,600) 'NEQ','NSS','NSV','NNS','NST'
+      DO NEQ=1,NEQMAX
+         WRITE(6,610) NEQ,NSS(NEQ),NSV(NEQ),NNS(NEQ),NST(NEQ)
+      ENDDO
+ 600  FORMAT(' ',5(' ',A))
+ 610  FORMAT(' ',5I4)
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           SORTER AS MAIN PART OF MODEL SELECTOR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND)
+C
+      INCLUDE 'trcomm.h'
+C
+      REM=AME/AMM
+      IF(NS.LE.NSMAX) THEN
+         IF(ABS(PA(NS)-REM).LE.1.D-10) THEN
+            NEQ=NEQ+1
+            NSS(NEQ)=1
+            NSV(NEQ)=NSW
+            IF(NSW.EQ.2.AND.IND.EQ.0) THEN
+               DO NEQI=NEQ-1,NEQMAX
+                  NSVN=NSV(NEQI)
+                  IF(NSVN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                     DO NEQII=1,NEQMAX
+                        NNSN=NNS(NEQII)
+                        IF(NNSN.EQ.0) THEN
+                           NNS(NEQII)=NEQI
+                           GOTO 100
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+ 100           CONTINUE
+            ELSEIF(NSW.EQ.2.AND.IND.EQ.1) THEN
+               IF(MDLEQE.EQ.0) THEN
+                  IF(NSS(1).EQ.0) THEN
+                     NNS(1)=2
+                  ELSEIF(NSS(1).EQ.1) THEN
+                     NNS(1)=1
+                  ENDIF
+               ENDIF
+            ENDIF
+         ELSEIF(PA(NS).EQ.2.D0) THEN
+            NEQ=NEQ+1
+            NSS(NEQ)=2
+            NSV(NEQ)=NSW
+            IF(NSW.EQ.2.AND.IND.EQ.0) THEN
+               DO NEQI=NEQ-1,NEQMAX
+                  NSVN=NSV(NEQI)
+                  IF(NSVN.EQ.1) THEN
+                     DO NEQII=1,NEQMAX
+                        NNSN=NNS(NEQII)
+                        IF(NNSN.EQ.0) THEN
+                           NNS(NEQII)=NEQI
+                           GOTO 200
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+ 200           CONTINUE
+            ENDIF
+         ELSEIF(PA(NS).EQ.3.D0) THEN
+            NEQ=NEQ+1
+            NSS(NEQ)=3
+            NSV(NEQ)=NSW
+            IF(NSW.EQ.2.AND.IND.EQ.0) THEN
+               DO NEQI=NEQ-1,NEQMAX
+                  NSVN=NSV(NEQI)
+                  IF(NSVN.EQ.1) THEN
+                     DO NEQII=1,NEQMAX
+                        NNSN=NNS(NEQII)
+                        IF(NNSN.EQ.0) THEN
+                           NNS(NEQII)=NEQI
+                           GOTO 300
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+ 300           CONTINUE
+            ENDIF
+         ELSEIF(PA(NS).EQ.4.D0) THEN
+            NEQ=NEQ+1
+            NSS(NEQ)=4
+            NSV(NEQ)=NSW
+            IF(NSW.EQ.2.AND.IND.EQ.0) THEN
+               DO NEQI=NEQ-1,NEQMAX
+                  NSVN=NSV(NEQI)
+                  IF(NSVN.EQ.1) THEN
+                     DO NEQII=1,NEQMAX
+                        NNSN=NNS(NEQII)
+                        IF(NNSN.EQ.0) THEN
+                           NNS(NEQII)=NEQI
+                           GOTO 400
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+ 400           CONTINUE
+            ENDIF
+         ELSEIF(PA(NS).EQ.0.D0) THEN
+            IND=-1
+         ENDIF
+      ENDIF
+C     
+      RETURN
+      END

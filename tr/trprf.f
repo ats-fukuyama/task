@@ -128,7 +128,6 @@ C           1 : TTMP
 C
       FUNCTION TRCDEF(WT,Z,XR,YR,ID)
 C
-C      IMPLICIT REAL (KIND=8) (A-H,O-Z)
       IMPLICIT REAL*8 (A-H,O-Z)
 C
       R=SQRT(XR*XR+YR*YR)
