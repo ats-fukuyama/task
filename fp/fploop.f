@@ -16,7 +16,7 @@ C
          CALL EQLOAD(3,KNAMEQ,IERR)
          IF(IERR.EQ.0) THEN
             CALL EQSETP
-            CALL EQPSIC(51,32,64,IERR)
+            CALL EQCAL2D(51,64,64,IERR)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
          ENDIF
       ENDIF

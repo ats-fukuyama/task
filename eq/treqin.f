@@ -355,9 +355,9 @@ C      CALL EQGOUT(1)
 C
 C     ***** Calculate eqilibrium quantities *****
 C
-      CALL EQSETP
       NRMAX1=NRMAX
-      CALL EQCAL1D(NRMAX1,IERR)
+      NTHMAX1=64
+      CALL EQCALQ(NRMAX1,NTHMAX1,0,IERR)
 C
 C     ***** Calculate Spline Coefficients *****
 C

@@ -129,12 +129,12 @@ C
     1 WRITE(6,*) '## INPUT : &DP'
       READ(5,DP,ERR=1,END=9000)
 C
- 3000 IF(MODELG.EQ.3) THEN
+ 3000 IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          IF(INITEQ.EQ.0) THEN
             CALL EQLOAD(MODELG,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQSETP
-               CALL EQPSIC(51,32,64)
+               CALL EQCAL2D(51,32,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
             ENDIF
             INITEQ=1
