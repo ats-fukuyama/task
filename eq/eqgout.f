@@ -123,13 +123,13 @@ C         RHJP(NX)=HJP1(NTGX,NSG)
       ENDDO
 C
       DO NX=1,2*NSGMAX
-         GX(NX)=GCLIP(XAX(NX))
-         GYPS(NX,1)=GCLIP(RPSI(NX))
-         GYJT(NX,1)=GCLIP(-RHJT(NX)*1.D-6)
-         GYJT(NX,2)=GCLIP(-RHJP(NX)*1.D-6)
-         GYJT(NX,3)=GCLIP(-(RHJT(NX)-RHJP(NX))*1.D-6)
-         GYPP(NX,1)=GCLIP(RPP(NX)*1.D-6)
-         GYTT(NX,1)=GCLIP(RTT(NX))
+         GX(NX)=GUCLIP(XAX(NX))
+         GYPS(NX,1)=GUCLIP(RPSI(NX))
+         GYJT(NX,1)=GUCLIP(-RHJT(NX)*1.D-6)
+         GYJT(NX,2)=GUCLIP(-RHJP(NX)*1.D-6)
+         GYJT(NX,3)=GUCLIP(-(RHJT(NX)-RHJP(NX))*1.D-6)
+         GYPP(NX,1)=GUCLIP(RPP(NX)*1.D-6)
+         GYTT(NX,1)=GUCLIP(RTT(NX))
       ENDDO
 C
       CALL PAGES
@@ -170,11 +170,11 @@ C
 C     ----- Poloidal flux dependence -----
 C
       DO NPS=1,NPSMAX
-         GRX(NPS)=GCLIP(PSIPS(NPS))
-         GRYPP(NPS)=GCLIP(PPPS(NPS)*1.D-6)
-         GRYTT(NPS)=GCLIP(TTPS(NPS))
-         GRYTE(NPS)=GCLIP(TEPS(NPS))
-         GRYOM(NPS)=GCLIP(OMPS(NPS))
+         GRX(NPS)=GUCLIP(PSIPS(NPS))
+         GRYPP(NPS)=GUCLIP(PPPS(NPS)*1.D-6)
+         GRYTT(NPS)=GUCLIP(TTPS(NPS))
+         GRYTE(NPS)=GUCLIP(TEPS(NPS))
+         GRYOM(NPS)=GUCLIP(OMPS(NPS))
       ENDDO
 C
       CALL PAGES
@@ -203,18 +203,18 @@ C
 C
       DO NTG=1,NTGMAX
       DO NSG=1,NSGMAX
-         GR(NSG,NTG)=GCLIP(RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG)))
-         GZ(NSG,NTG)=GCLIP(   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG)))
-         GF(NSG,NTG)=GCLIP(PSI(NTG,NSG))
+         GR(NSG,NTG)=GUCLIP(RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG)))
+         GZ(NSG,NTG)=GUCLIP(   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG)))
+         GF(NSG,NTG)=GUCLIP(PSI(NTG,NSG))
       ENDDO
       ENDDO
 C
       DO NTG=1,NTGMAX
-         GRS(NTG)=GCLIP(RR+RHOM(NTG)*COS(THGM(NTG)))
-         GZS(NTG)=GCLIP(   RHOM(NTG)*SIN(THGM(NTG)))
+         GRS(NTG)=GUCLIP(RR+RHOM(NTG)*COS(THGM(NTG)))
+         GZS(NTG)=GUCLIP(   RHOM(NTG)*SIN(THGM(NTG)))
       ENDDO
-         GRS(NTGMAX+1)=GCLIP(RR+RHOM(1)*COS(THGM(1)))
-         GZS(NTGMAX+1)=GCLIP(   RHOM(1)*SIN(THGM(1)))
+         GRS(NTGMAX+1)=GUCLIP(RR+RHOM(1)*COS(THGM(1)))
+         GZS(NTGMAX+1)=GUCLIP(   RHOM(1)*SIN(THGM(1)))
 C
       CALL PAGES
       CALL SETCHS(0.3,0.0)
@@ -224,7 +224,7 @@ C
 C
       DO NTG=1,NTGMAX
       DO NSG=1,NSGMAX
-         GF(NSG,NTG)=GCLIP(HJT(NTG,NSG))
+         GF(NSG,NTG)=GUCLIP(HJT(NTG,NSG))
       ENDDO
       ENDDO
 C
@@ -236,7 +236,7 @@ C
 C
       DO NTG=1,NTGMAX
       DO NSG=1,NSGMAX
-         GF(NSG,NTG)=GCLIP(RHO(NTG,NSG))
+         GF(NSG,NTG)=GUCLIP(RHO(NTG,NSG))
       ENDDO
       ENDDO
 C
@@ -259,15 +259,15 @@ C
 C
       IF(MODE.EQ.0) THEN
          DO NR=1,NRMAX
-            GX(NR)=GCLIP(PSS(NR)-SAXIS)
+            GX(NR)=GUCLIP(PSS(NR)-SAXIS)
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          DO NR=1,NRMAX
-            GX(NR)=GCLIP(SQRT(FTS(NR)/FTSA))
+            GX(NR)=GUCLIP(SQRT(FTS(NR)/FTSA))
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NR=1,NRMAX
-            GX(NR)=GCLIP(FTS(NR))
+            GX(NR)=GUCLIP(FTS(NR))
          ENDDO
       ENDIF
 
@@ -275,22 +275,22 @@ C
       CALL SETCHS(0.35,0.0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(PPS(NR)*1.D-6)
+         GY(NR,1)=GUCLIP(PPS(NR)*1.D-6)
       ENDDO
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@PPS@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(TTS(NR))
+         GY(NR,1)=GUCLIP(TTS(NR))
       ENDDO
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@TTS@',1)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(RLEN(NR))
+         GY(NR,1)=GUCLIP(RLEN(NR))
       ENDDO
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@RLEN@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(QPS(NR))
+         GY(NR,1)=GUCLIP(QPS(NR))
       ENDDO
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@QPS@',0)
 C
@@ -300,24 +300,24 @@ C
       CALL SETCHS(0.35,0.0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(VPS(NR))
+         GY(NR,1)=GUCLIP(VPS(NR))
       ENDDO
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@VPS@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(SPS(NR))
+         GY(NR,1)=GUCLIP(SPS(NR))
       ENDDO
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@SPS@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(RRMIN(NR))
-         GY(NR,2)=GCLIP(RRMAX(NR))
+         GY(NR,1)=GUCLIP(RRMIN(NR))
+         GY(NR,2)=GUCLIP(RRMAX(NR))
       ENDDO
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,'@RRMIN/MAX@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GCLIP(BBMIN(NR))
-         GY(NR,2)=GCLIP(BBMAX(NR))
+         GY(NR,1)=GUCLIP(BBMIN(NR))
+         GY(NR,2)=GUCLIP(BBMAX(NR))
          WRITE(6,'(I5,1P2E12.4)') NR,BBMIN(NR),BBMAX(NR)
       ENDDO
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,'@BBMIN/MAX@',0)
@@ -338,10 +338,10 @@ C
       DIMENSION KA(8,NRGM,NZGM)
       CHARACTER KTITL*80
 C
-      GRMIN=GCLIP(RGMIN)
-      GRMAX=GCLIP(RGMAX)
-      GZMIN=GCLIP(ZGMIN)
-      GZMAX=GCLIP(ZGMAX)
+      GRMIN=GUCLIP(RGMIN)
+      GRMAX=GUCLIP(RGMAX)
+      GZMIN=GUCLIP(ZGMIN)
+      GZMAX=GUCLIP(ZGMAX)
       GRLEN=GRMAX-GRMIN
       GZLEN=GZMAX-GZMIN
       IF(GRLEN.GT.GZLEN) THEN
@@ -362,14 +362,14 @@ C
       CALL GFRAME
 C
       DO NR=1,NRGMAX
-         GRG(NR)=GCLIP(RG(NR))
+         GRG(NR)=GUCLIP(RG(NR))
       ENDDO
       DO NZ=1,NZGMAX
-         GZG(NZ)=GCLIP(ZG(NZ))
+         GZG(NZ)=GUCLIP(ZG(NZ))
       ENDDO
       DO NZ=1,NZGMAX
          DO NR=1,NRGMAX
-            GPSIRZ(NR,NZ)=GCLIP(PSIRZ(NR,NZ))
+            GPSIRZ(NR,NZ)=GUCLIP(PSIRZ(NR,NZ))
          ENDDO
       ENDDO
       CALL GMNMX2(GPSIRZ,NRGM,1,NRGMAX,1,1,NZGMAX,1,GPMIN,GPMAX)
@@ -393,8 +393,8 @@ C
 C
       DO NR=1,NRMAX
          DO NTH=1,NTHMAX
-            GR(NTH)=GCLIP(RPS(NTH,NR))
-            GZ(NTH)=GCLIP(ZPS(NTH,NR))
+            GR(NTH)=GUCLIP(RPS(NTH,NR))
+            GZ(NTH)=GUCLIP(ZPS(NTH,NR))
          ENDDO
          GR(NTHMAX+1)=GR(1)
          GZ(NTHMAX+1)=GZ(1)
@@ -420,8 +420,8 @@ C
 C
       DO NR=1,NRMAX
       DO NTH=1,NTHMAX
-         GR(NR,NTH)=GCLIP(RPS(NTH,NR))
-         GZ(NR,NTH)=GCLIP(ZPS(NTH,NR))
+         GR(NR,NTH)=GUCLIP(RPS(NTH,NR))
+         GZ(NR,NTH)=GUCLIP(ZPS(NTH,NR))
       ENDDO
       ENDDO
 C
@@ -431,7 +431,7 @@ C
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
                R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
-               GF(NR,NTH)=GCLIP(DRPSI(NTH,NR)*R2)
+               GF(NR,NTH)=GUCLIP(DRPSI(NTH,NR)*R2)
             ENDDO
             ENDDO
             KTITL='/DRPSI*r^2/'
@@ -439,21 +439,21 @@ C
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
                R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
-               GF(NR,NTH)=GCLIP(DZPSI(NTH,NR)*R2)
+               GF(NR,NTH)=GUCLIP(DZPSI(NTH,NR)*R2)
             ENDDO
             ENDDO
             KTITL='/DZPSI*r^2/'
          ELSEIF(IND.EQ.3) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               GF(NR,NTH)=GCLIP(DRCHI(NTH,NR))
+               GF(NR,NTH)=GUCLIP(DRCHI(NTH,NR))
             ENDDO
             ENDDO
             KTITL='/DRCHI/'
          ELSEIF(IND.EQ.4) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               GF(NR,NTH)=GCLIP(DZCHI(NTH,NR))
+               GF(NR,NTH)=GUCLIP(DZCHI(NTH,NR))
             ENDDO
             ENDDO
             KTITL='/DZCHI/'
@@ -473,14 +473,14 @@ C
          GGFSTP=0.5*GGFSTP
          NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
          DO NSU=1,NSUMAX
-            GRSU(NSU)=GCLIP(RSU(NSU))
-            GZSU(NSU)=GCLIP(ZSU(NSU))
-            GRSW(NSU)=GCLIP(RSW(NSU))
-            GZSW(NSU)=GCLIP(ZSW(NSU))
+            GRSU(NSU)=GUCLIP(RSU(NSU))
+            GZSU(NSU)=GUCLIP(ZSU(NSU))
+            GRSW(NSU)=GUCLIP(RSW(NSU))
+            GZSW(NSU)=GUCLIP(ZSW(NSU))
          ENDDO
 C
-         GRLEN=GCLIP(RGMAX-RGMIN)
-         GZLEN=GCLIP(ZGMAX-ZGMIN)
+         GRLEN=GUCLIP(RGMAX-RGMIN)
+         GZLEN=GUCLIP(ZGMAX-ZGMIN)
          IF(GRLEN.GT.GZLEN) THEN
             GPR=15.0
             GPZ=15.0*GZLEN/GRLEN
@@ -733,12 +733,12 @@ C
       ENDDO
 C
       DO NX=1,2*NSGMAX
-         GX(NX)=GCLIP(XAX(NX))
-         GYPS(NX,1)=GCLIP(RPSINT(NX,1))
-         GYPS(NX,2)=GCLIP(RPSINT(NX,2))
-         GYPS(NX,3)=GCLIP(RPSINT(NX,3))
-         GYPS(NX,4)=GCLIP(RPSINT(NX,4))
-         GYPS(NX,5)=GCLIP(RPSINT(NX,5))
+         GX(NX)=GUCLIP(XAX(NX))
+         GYPS(NX,1)=GUCLIP(RPSINT(NX,1))
+         GYPS(NX,2)=GUCLIP(RPSINT(NX,2))
+         GYPS(NX,3)=GUCLIP(RPSINT(NX,3))
+         GYPS(NX,4)=GUCLIP(RPSINT(NX,4))
+         GYPS(NX,5)=GUCLIP(RPSINT(NX,5))
       ENDDO
 C
       CALL PAGES

@@ -473,7 +473,7 @@ C
       DO 300 I=1,NGT
          GYT(I,1)=GVT(I,85)*100.0
          GYT(I,2)=GVT(I,84)*100.0
-         GYT(I,3)=GVT(I,85)*100.0/(GVT(I,34)/GCLIP(RA*BB))
+         GYT(I,3)=GVT(I,85)*100.0/(GVT(I,34)/GUCLIP(RA*BB))
   300 CONTINUE
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3,
      &            '@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
@@ -535,7 +535,7 @@ C
       CALL PAGES
 C
       DO 100 I=1,NGT
-         GYT(I,1)=GCLIP(RA/RR)*GVT(I,83)
+         GYT(I,1)=GUCLIP(RA/RR)*GVT(I,83)
          GYT(I,2)=GVT(I,80)/GVT(I,81)
   100 CONTINUE
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,
@@ -549,7 +549,7 @@ C
      &            '@tauE/tauE89 vs li@',2+INQ)
 C
       DO 300 I=1,NGT
-         GYT(I,1)=GCLIP(RA/RR)*GVT(I,83)
+         GYT(I,1)=GUCLIP(RA/RR)*GVT(I,83)
          GYT(I,2)=GVT(I,38)/GVT(I,34)
   300 CONTINUE
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,

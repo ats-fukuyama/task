@@ -1366,7 +1366,7 @@ C
       CALL GFRAME
       CALL GSCALE(GSXMIN, GXSTEP, 0.0, 0.0, gSLEN, IND)
       IF (GXSTEP.LT.0.01) THEN
-         NGV=NGVLEN(GXSTEP*5)
+         NGV=NGULEN(GXSTEP*5)
          IF (NGV.LT.0) THEN
             NGV=NGV-3200
          ELSE
@@ -1374,7 +1374,7 @@ C
          ENDIF
          CALL GVALUE(GSXMIN, GXSTEP*5, 0.0, 0.0, NGV)
       ELSE
-         NGV=NGVLEN(GXSTEP*2)
+         NGV=NGULEN(GXSTEP*2)
          IF (NGV.LT.0) THEN
             NGV=NGV-3200
          ELSE
@@ -1385,7 +1385,7 @@ C
       CALL GSCALE(0.0, 0.0, GYORG, GYSTEP, gSLEN, IND)
       IF (GSYMIN.LT.0.0 .AND. GSYMAX.GT.0.0)
      &     CALL GSCALE(0.0, 0.0, 0.0, GSYMAX-GSYMIN,  2.0, 0)
-      CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGVLEN(GYSTEP*2))
+      CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGULEN(GYSTEP*2))
 C
 C MODE = 0: Change Line Color (Last Color Fixed)
 C

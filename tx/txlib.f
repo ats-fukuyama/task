@@ -233,27 +233,6 @@ C
       RETURN
       END
 C
-C     *****************************
-C
-C     OPTIMUM NUM LENGTH FOR GVALUE
-C
-C     *****************************
-C
-      FUNCTION NGVLEN(GSTEP)
-C
-      NGX = -INT(LOG10(GSTEP*0.11))
-      IF      (NGX.LT.-2) THEN
-         NGVLEN=-1
-      ELSE IF (NGX.LT.0)  THEN
-         NGVLEN=0
-      ELSE IF (NGX.LT.3)  THEN
-         NGVLEN=NGX
-      ELSE
-         NGVLEN=-1
-      ENDIF
-      RETURN
-      END
-C
 C     ***************************************************************
 C
 C        Convert Strings to Upper Case

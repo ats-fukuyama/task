@@ -248,8 +248,8 @@ C
 C
       DO NG=1,NGR
       DO NR=1,NRMAX
-         GWR(NR,NG) =  GVR(NR,NG,1)*GVR(NR,NG,5)*GCLIP(RKEV*1.D14)
-     &              +  GVR(NR,NG,2)*GVR(NR,NG,6)*GCLIP(RKEV*1.D14)
+         GWR(NR,NG) =  GVR(NR,NG,1)*GVR(NR,NG,5)*GUCLIP(RKEV*1.D14)
+     &              +  GVR(NR,NG,2)*GVR(NR,NG,6)*GUCLIP(RKEV*1.D14)
       ENDDO
       ENDDO
 C

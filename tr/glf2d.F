@@ -1321,10 +1321,10 @@ c
         call zgeev(jobvl,jobvr,ieq,mata,neq,w,cvl,neq,cvr,
      &             neq,work,lwork,rwork,ifail)
         do j1=1,neq
-         rr(j1) = real(w(j1))
+         rr(j1) = areal(w(j1))
          ri(j1) = aimag(w(j1))
          do j2=1,ieq
-           vr(j1,j2) = real(cvr(j1,j2))
+           vr(j1,j2) = areal(cvr(j1,j2))
            vi(j1,j2) = aimag(cvr(j1,j2))
          enddo
         enddo

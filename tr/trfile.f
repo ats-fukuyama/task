@@ -172,8 +172,8 @@ C
       RIPS=RIPE
       GRG(1)=0.0
       DO 800 NR=1,NRMAX
-         GRM(NR)  =GCLIP(RM(NR))
-         GRG(NR+1)=GCLIP(RG(NR))
+         GRM(NR)  =GUCLIP(RM(NR))
+         GRG(NR+1)=GUCLIP(RG(NR))
          QP(NR)  = RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
   800 CONTINUE
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -2113,7 +2113,7 @@ C
       KFILE=KDIRR1(1:KL1)//KFID
 C
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NE..TRUE.) THEN
+      IF(DIR.NEQV..TRUE.) THEN
          WRITE(6,'(A25,A34,A17)') 
      &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
          STOP
@@ -2161,7 +2161,7 @@ C
       KFILE=KDIRR2(1:KL2)//KFID
 C
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NE..TRUE.) THEN
+      IF(DIR.NEQV..TRUE.) THEN
          WRITE(6,'(A25,A34,A17)') 
      &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
          STOP

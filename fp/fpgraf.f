@@ -198,8 +198,8 @@ C
       GYMIN0= 1.E30
       DO 230 NT=1,NTG1
         DO 240 NR=1,NRMAX
-          GY(NR)=GCLIP(FR(NR,NT))
-          GX(NR)=GCLIP(RM(NR))
+          GY(NR)=GUCLIP(FR(NR,NT))
+          GX(NR)=GUCLIP(RM(NR))
   240   CONTINUE
         CALL GMNMX1(GY,1,NRMAX,1,GYMIN,GYMAX)
         GYMAX0=MAX(GYMAX0,GYMAX)
@@ -214,12 +214,12 @@ C
       CALL GFRAME
       GXORG=(INT(GXMIN1/(2*GXSTEP)+1))*2*GXSTEP
       CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)    
-      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGVLEN(2*GXSTEP))
-      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGVLEN(2*GYSTEP))
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGULEN(2*GYSTEP))
       DO 250 NT=1,NTG1
         DO 260 NR=1,NRMAX
-          GY(NR)=GCLIP(FR(NR,NT))
-          GX(NR)=GCLIP(RM(NR))
+          GY(NR)=GUCLIP(FR(NR,NT))
+          GX(NR)=GUCLIP(RM(NR))
   260   CONTINUE
         CALL SETLIN(0,2,7-MOD(NT-1,5))
         CALL GPLOTP(GX,GY,1,NRMAX,1,0,0,0)
@@ -251,8 +251,8 @@ C
       CALL SETFNT(32)
 C
       DO 10 N=1,NTG2
-        GX(N)=GCLIP(PTG(N))
-        GY(N)=GCLIP(FT(N))
+        GX(N)=GUCLIP(PTG(N))
+        GY(N)=GUCLIP(FT(N))
    10 CONTINUE
       CALL GMNMX1(GY,1,NTG2,1,GYMIN,GYMAX)
       IF(GYMIN.GT.0.) GYMIN=0.0
@@ -262,8 +262,8 @@ C
       CALL GDEFIN(3.,23.,2.,17.,0.,GX(NTG2),GYMIN1,GYMAX1)
       CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGVLEN(2*GXSTEP))
-      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGVLEN(2*GYSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
       CALL GPLOTP(GX,GY,1,NTG2,1,0,0,0)
       CALL MOVE(1.0,17.5)
       CALL TEXT(STRING,4)
@@ -298,13 +298,13 @@ C
          IF(FG(NTH,NP,NR).LT.1.D-14) THEN
             GY(NP,NR)=-14.0
          ELSE
-            GY(NP,NR)=GCLIP(LOG10(FG(NTH,NP,NR)))
+            GY(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
          ENDIF
   100 CONTINUE
       DO 200 NP=1,NPMAX
-         GX(NP)=GCLIP(PM(NP)**2)
+         GX(NP)=GUCLIP(PM(NP)**2)
   200 CONTINUE
-      GXMAX=GCLIP(PMAX**2)
+      GXMAX=GUCLIP(PMAX**2)
 CXX
       GXMAX=100.0
 CXX
@@ -319,7 +319,7 @@ C
       CALL GSCALL(0.,0,0.0,1,1.0,0)
       CALL GSCALL(0.,0,0.0,2,0.2,9)
       CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGVLEN(2*GXSTEP))
+      CALL GVALUE(0.,GXSTEP*2,0.0,0.0,NGULEN(2*GXSTEP))
       CALL GVALUL(0.,0.0,0.0,1,0)
       DO 250 NR=1,NRMAX
         CALL SETLIN(0,0,7-MOD(NR-1,5))
@@ -368,24 +368,24 @@ C
 C
       IF(MOD(MODE,2).EQ.0) THEN
          DO 10 NP=1,NPMAX
-            GP(NP)=GCLIP(PM(NP))
+            GP(NP)=GUCLIP(PM(NP))
    10    CONTINUE
          NPG=NPMAX
       ELSE
          DO 20 NP=1,NPMAX+1
-            GP(NP)=GCLIP(PG(NP))
+            GP(NP)=GUCLIP(PG(NP))
    20    CONTINUE
          NPG=NPMAX+1
       ENDIF
 C
       IF(MOD(MODE/2,2).EQ.0) THEN
          DO 30 NTH=1,NTHMAX
-            GTH(NTH)=GCLIP(THM(NTH))
+            GTH(NTH)=GUCLIP(THM(NTH))
    30    CONTINUE
          NTHG=NTHMAX
       ELSE
          DO 40 NTH=1,NTHMAX+1
-            GTH(NTH)=GCLIP(THG(NTH))
+            GTH(NTH)=GUCLIP(THG(NTH))
    40    CONTINUE
          NTHG=NTHMAX+1
       ENDIF
@@ -394,19 +394,19 @@ C
          DO 50 NTH=1,NTHMAX
          DO 50 NP=1,NPMAX
             NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            GF(NP,NTH)=GCLIP(FG(NM))
+            GF(NP,NTH)=GUCLIP(FG(NM))
    50    CONTINUE
       ELSEIF(MODE.EQ.1) THEN
          DO 60 NTH=1,NTHMAX
          DO 60 NP=1,NPMAX+1
             NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            GF(NP,NTH)=GCLIP(FG(NM))
+            GF(NP,NTH)=GUCLIP(FG(NM))
    60    CONTINUE
       ELSEIF(MODE.EQ.2) THEN
          DO 70 NTH=1,NTHMAX+1
          DO 70 NP=1,NPMAX
             NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
-            GF(NP,NTH)=GCLIP(FG(NM))
+            GF(NP,NTH)=GUCLIP(FG(NM))
    70    CONTINUE
       ELSEIF(MODE.EQ.4) THEN
          DO 80 NTH=1,NTHMAX
@@ -415,12 +415,12 @@ C
             IF(FG(NM).LT.1.D-70) THEN
                GF(NP,NTH)=-70.0
             ELSE
-               GF(NP,NTH)=GCLIP(LOG10(ABS(FG(NM))))
+               GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM))))
             ENDIF
    80    CONTINUE
       ENDIF         
 C
-      GPMAX=GCLIP(PMAX)
+      GPMAX=GUCLIP(PMAX)
 C
       CALL PAGES
       CALL SETCHS(.3,0.)
@@ -433,7 +433,7 @@ C
       CALL GDEFIN(3.,23.,2.,12.,-GPMAX,GPMAX,0.,GPMAX)
       CALL GFRAME
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGVLEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
 C
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
@@ -517,24 +517,24 @@ C
 C
       IF(MOD(MODE,2).EQ.0) THEN
          DO 10 NP=1,NPMAX
-            GP(NP)=GCLIP(PM(NP))
+            GP(NP)=GUCLIP(PM(NP))
    10    CONTINUE
          NPG=NPMAX
       ELSE
          DO 20 NP=1,NPMAX+1
-            GP(NP)=GCLIP(PG(NP))
+            GP(NP)=GUCLIP(PG(NP))
    20    CONTINUE
          NPG=NPMAX+1
       ENDIF
 C
       IF(MOD(MODE/2,2).EQ.0) THEN
          DO 30 NTH=1,NTHMAX
-            GTH(NTH)=GCLIP(THM(NTH))
+            GTH(NTH)=GUCLIP(THM(NTH))
    30    CONTINUE
          NTHG=NTHMAX
       ELSE
          DO 40 NTH=1,NTHMAX+1
-            GTH(NTH)=GCLIP(THG(NTH))
+            GTH(NTH)=GUCLIP(THG(NTH))
    40    CONTINUE
          NTHG=NTHMAX+1
       ENDIF
@@ -548,19 +548,19 @@ C
             NMT1=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
             NMT2=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH+1
             FHA=0.5D0*(FH(NMT1)+FH(NMT2))
-            GF(NP,NTH)=GCLIP(SQRT(FGA**2+FHA**2))
+            GF(NP,NTH)=GUCLIP(SQRT(FGA**2+FHA**2))
    50    CONTINUE
       ELSEIF(MODE.EQ.1) THEN
          DO 60 NTH=1,NTHMAX
          DO 60 NP=1,NPMAX+1
             NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            GF(NP,NTH)=GCLIP(SQRT(FG(NM)**2+FH(NM)**2))
+            GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
    60    CONTINUE
       ELSEIF(MODE.EQ.2) THEN
          DO 70 NTH=1,NTHMAX+1
          DO 70 NP=1,NPMAX
             NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
-            GF(NP,NTH)=GCLIP(SQRT(FG(NM)**2+FH(NM)**2))
+            GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
    70    CONTINUE
       ELSEIF(MODE.EQ.4) THEN
          DO 80 NTH=1,NTHMAX
@@ -569,12 +569,12 @@ C
             IF(FG(NM).LT.1.D-70) THEN
                GF(NP,NTH)=-70.0
             ELSE
-               GF(NP,NTH)=GCLIP(LOG10(ABS(SQRT(FG(NM)**2+FH(NM)**2))))
+               GF(NP,NTH)=GUCLIP(LOG10(ABS(SQRT(FG(NM)**2+FH(NM)**2))))
             ENDIF
    80    CONTINUE
       ENDIF         
 C
-      GPMAX=GCLIP(PMAX)
+      GPMAX=GUCLIP(PMAX)
 C
       CALL PAGES
       CALL SETCHS(.3,0.)
@@ -587,7 +587,7 @@ C
       CALL GDEFIN(3.,23.,2.,12.,-GPMAX,GPMAX,0.,GPMAX)
       CALL GFRAME
       CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGVLEN(2*GPSTEP))
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
 CXX
       GFSTEP=2000.0
 CXX

@@ -28,8 +28,8 @@ C
             CKY=RKY0
             CKZ=RKZ0
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
-            GX(NX)=GCLIP(DBLE(CRF))
-            GY(NX)=GCLIP(LOG10(ABS(CD)))
+            GX(NX)=GUCLIP(DBLE(CRF))
+            GY(NX)=GUCLIP(LOG10(ABS(CD)))
    10    CONTINUE
       ELSEIF(ISW.EQ.2) THEN
   102    WRITE(6,*) ' INPUT : RFI1,RFI2,NXMAX'
@@ -42,8 +42,8 @@ C
             CKY=RKY0
             CKZ=RKZ0
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
-            GX(NX)=GCLIP(DIMAG(CRF))
-            GY(NX)=GCLIP(LOG10(ABS(CD)))
+            GX(NX)=GUCLIP(DIMAG(CRF))
+            GY(NX)=GUCLIP(LOG10(ABS(CD)))
   110    CONTINUE
       ELSEIF(ISW.EQ.3) THEN
   202    WRITE(6,*) ' INPUT : RKX1,RKX2,NXMAX,RF0,RX0,RNPHII'
@@ -59,8 +59,8 @@ C
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
 C            write(6,*) 
 C            write(6,*)crf,ckx,cky,ckz,rx0,ry0,rz0,CD
-            GX(NX)=GCLIP(DBLE(CKX))
-            GY(NX)=GCLIP(LOG10(ABS(CD)))
+            GX(NX)=GUCLIP(DBLE(CKX))
+            GY(NX)=GUCLIP(LOG10(ABS(CD)))
   210    CONTINUE
       ELSEIF(ISW.EQ.4) THEN
   302    WRITE(6,*) ' INPUT : RKY1,RKY2,NXMAX'
@@ -73,8 +73,8 @@ C            write(6,*)crf,ckx,cky,ckz,rx0,ry0,rz0,CD
             CKY=RKY1+DKY*(NX-1)
             CKZ=RKZ0
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
-            GX(NX)=GCLIP(DBLE(CKY))
-            GY(NX)=GCLIP(LOG10(ABS(CD)))
+            GX(NX)=GUCLIP(DBLE(CKY))
+            GY(NX)=GUCLIP(LOG10(ABS(CD)))
   310    CONTINUE
       ELSEIF(ISW.EQ.5) THEN
   402    WRITE(6,*) ' INPUT : RKZ1,RKZ2,NXMAX'
@@ -87,8 +87,8 @@ C            write(6,*)crf,ckx,cky,ckz,rx0,ry0,rz0,CD
             CKY=RKY0
             CKZ=RKZ1+DKZ*(NX-1)
             CD=CFDISP(CRF,CKX,CKY,CKZ,RX0,RY0,RZ0)
-            GX(NX)=GCLIP(DBLE(CKZ))
-            GY(NX)=GCLIP(LOG10(ABS(CD)))
+            GX(NX)=GUCLIP(DBLE(CKZ))
+            GY(NX)=GUCLIP(LOG10(ABS(CD)))
   410    CONTINUE
       ELSE
          GOTO 1
@@ -191,9 +191,9 @@ C
             CKX0=RKX1+DKX*(NX-1)
             WRITE(6,*) CRF
             CALL DPBRENT1(CRF)
-            GX(NX)=GCLIP(DBLE(CKX0))
-            GY(NX)=GCLIP(DBLE(CRF))
-            GY2(NX)=GCLIP(DIMAG(-CRF))
+            GX(NX)=GUCLIP(DBLE(CKX0))
+            GY(NX)=GUCLIP(DBLE(CRF))
+            GY2(NX)=GUCLIP(DIMAG(-CRF))
   210    CONTINUE
          CALL DPGR1A(GX,GY,GY2,NXMAX,ISW)
       ELSEIF(ISW.EQ.3) THEN
@@ -212,9 +212,9 @@ C
             CKY0=RKY1+DKY*(NX-1)
             CALL DPBRENT1(CRF)
             WRITE(6,*) CRF
-            GX(NX)=GCLIP(DBLE(CKY0))
-            GY(NX)=GCLIP(DBLE(CRF))
-            GY2(NX)=GCLIP(DIMAG(-CRF))
+            GX(NX)=GUCLIP(DBLE(CKY0))
+            GY(NX)=GUCLIP(DBLE(CRF))
+            GY2(NX)=GUCLIP(DIMAG(-CRF))
   310    CONTINUE
          CALL DPGR1A(GX,GY,GY2,NXMAX,ISW)
       ELSEIF(ISW.EQ.4) THEN
@@ -233,9 +233,9 @@ C
             CKZ0=RKZ1+DKZ*(NX-1)
             CALL DPBRENT1(CRF)
             WRITE(6,*) CRF
-            GX(NX)=GCLIP(DBLE(CKZ0))
-            GY(NX)=GCLIP(DBLE(CRF))
-            GY2(NX)=GCLIP(DIMAG(-CRF))
+            GX(NX)=GUCLIP(DBLE(CKZ0))
+            GY(NX)=GUCLIP(DBLE(CRF))
+            GY2(NX)=GUCLIP(DIMAG(-CRF))
   410    CONTINUE
          CALL DPGR1A(GX,GY,GY2,NXMAX,ISW)
       ELSEIF(ISW.EQ.5) THEN
@@ -254,9 +254,9 @@ C
             XPOS0=RX1+DXPOS*(NX-1)
             CALL DPBRENT1(CRF)
             WRITE(6,*) CRF
-            GX(NX)=GCLIP(XPOS0)
-            GY(NX)=GCLIP(DBLE(CRF))
-            GY2(NX)=GCLIP(DIMAG(-CRF))
+            GX(NX)=GUCLIP(XPOS0)
+            GY(NX)=GUCLIP(DBLE(CRF))
+            GY2(NX)=GUCLIP(DIMAG(-CRF))
   510    CONTINUE
          CALL DPGR1A(GX,GY,GY2,NXMAX,ISW)
       ELSEIF(ISW.EQ.6) THEN
@@ -288,9 +288,9 @@ C
             ILIST=0
             XPOS0=RX1+DXPOS*(NX-1)
             CALL DPBRENT2(CKX)
-            GX(NX)=GCLIP(DBLE(XPOS0))
-            GY(NX)=GCLIP(DBLE(CKX**2))
-            GY2(NX)=GCLIP(DIMAG(CKX**2))
+            GX(NX)=GUCLIP(DBLE(XPOS0))
+            GY(NX)=GUCLIP(DBLE(CKX**2))
+            GY2(NX)=GUCLIP(DIMAG(CKX**2))
             WRITE(6,*) CKX
   710    CONTINUE
          CALL DPGR1A(GX,GY,GY2,NXMAX,ISW)
@@ -313,16 +313,16 @@ C
             ILIST=0
             XPOS0=RX1+DXPOS*(NX-1)
             CALL DPBRENT2(CKX)
-            GXA(NX,I)=GCLIP(XPOS0)
+            GXA(NX,I)=GUCLIP(XPOS0)
               IF(DBLE(CKX**2).GT.0) THEN
-                GYA(NX,I)=GCLIP(SQRT(DBLE(CKX**2)))
+                GYA(NX,I)=GUCLIP(SQRT(DBLE(CKX**2)))
               ELSEIF(DBLE(CKX**2).LT.0) THEN         
-                GYA(NX,I)=GCLIP(-SQRT(-DBLE(CKX**2)))
+                GYA(NX,I)=GUCLIP(-SQRT(-DBLE(CKX**2)))
               ENDIF
               IF(DIMAG(CKX**2).GT.0) THEN
-                GY2A(NX,I)=GCLIP(SQRT(DIMAG(CKX**2)))
+                GY2A(NX,I)=GUCLIP(SQRT(DIMAG(CKX**2)))
               ELSEIF(DIMAG(CKX**2).LT.0) THEN         
-                GY2A(NX,I)=GCLIP(-SQRT(DIMAG(CKX**2)))
+                GY2A(NX,I)=GUCLIP(-SQRT(DIMAG(CKX**2)))
               ENDIF
             WRITE(6,*) CKX
   810    CONTINUE

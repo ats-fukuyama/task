@@ -94,18 +94,18 @@ C
          DX=(XMAX-XMIN)/(NXGMAX-1)
          DO NX=1,NXGMAX
             X=XMIN+DX*(NX-1)
-            GX(NX)=GCLIP(X)
+            GX(NX)=GUCLIP(X)
             CZ=X
             CFZ=CFQZ(Q,CZ)
-            GY(NX,1)=GCLIP(DBLE(CFZ))
-            GY(NX,2)=GCLIP(DIMAG(CFZ))
+            GY(NX,1)=GUCLIP(DBLE(CFZ))
+            GY(NX,2)=GUCLIP(DIMAG(CFZ))
             CFZ=CFQZ_Z(Q,CZ)
-            GY(NX,3)=GCLIP(DBLE(CFZ))
-            GY(NX,4)=GCLIP(DIMAG(CFZ))
+            GY(NX,3)=GUCLIP(DBLE(CFZ))
+            GY(NX,4)=GUCLIP(DIMAG(CFZ))
 C            CFZ=CFQZ_EXP(Q,CZ)
 C            WRITE(6,'(1P3E12.4)') X,CFZ
-C            GY(NX,5)=GCLIP(DBLE(CFZ))
-C            GY(NX,6)=GCLIP(DIMAG(CFZ))
+C            GY(NX,5)=GUCLIP(DBLE(CFZ))
+C            GY(NX,6)=GUCLIP(DIMAG(CFZ))
             WRITE(6,'(1P5E12.4)') GX(NX),GY(NX,1),GY(NX,2),GY(NX,3),
      &                                   GY(NX,4)
          ENDDO

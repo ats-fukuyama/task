@@ -38,15 +38,15 @@ C
       CALL PAGES
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(QRHO(NR))
-         GYR(NR,2) = GCLIP(QP(NR))
+         GYR(NR,1) = GUCLIP(QRHO(NR))
+         GYR(NR,2) = GUCLIP(QP(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &            '@QRHO,QP vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR+1,1) = GCLIP(BPRHO(NR))
-         GYR(NR+1,2) = GCLIP(BP(NR))
+         GYR(NR+1,1) = GUCLIP(BPRHO(NR))
+         GYR(NR+1,2) = GUCLIP(BP(NR))
       ENDDO
       GYR(1,1) = 0.0
       GYR(1,2) = 0.0
@@ -54,13 +54,13 @@ C
      &            '@BPRHO,BP [T] vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(DVRHO(NR))
+         GYR(NR,1) = GUCLIP(DVRHO(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@DVRHO vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(DSRHO(NR))
+         GYR(NR,1) = GUCLIP(DSRHO(NR))
       ENDDO
 C
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
@@ -85,25 +85,25 @@ C
       CALL PAGES
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(ABRHO(NR))
+         GYR(NR,1) = GUCLIP(ABRHO(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@ABRHO vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(ARRHO(NR))
+         GYR(NR,1) = GUCLIP(ARRHO(NR))
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@ARRHO vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(AR1RHO(NR))
+         GYR(NR,1) = GUCLIP(AR1RHO(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@AR1RHO vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(AR2RHO(NR))
+         GYR(NR,1) = GUCLIP(AR2RHO(NR))
       ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@AR2RHO vs RHO@',2+INQ)

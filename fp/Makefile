@@ -8,7 +8,7 @@ SRCS = fpmain.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
 
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
                      ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
-                     ../lib/libspl.o ../lib/libgut.o \
+                     ../lib/libspl.o \
                      ../lib/libbrn.o \
                      ../lib/libde.o ../lib/libfp.o \
                      ../lib/libbes.o ../lib/libpcg.o ../lib/libchar.o ../lib/libfio.o

@@ -9,7 +9,7 @@ SRCS = dpmain.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
        ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
        ../lib/libdsp.o ../lib/libbes.o ../lib/libbrn.o \
-       ../lib/libspl.o ../lib/libgut.o ../lib/libchar.o ../lib/libfio.o
+       ../lib/libspl.o ../lib/libchar.o ../lib/libfio.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@

@@ -1013,7 +1013,7 @@ C               FASSZ2(IT,NCS2)=FASSX2(IT,NCS2)/RAYB(23,IT)
      &              +0.5*GUCLIP(RAYS(8,IT+1,NRAY)*DELP2(IT,NCS2))
                ENDDO
                GPAY(NRSMAX2,NRAY)=GPAY(NRSMAX2,NRAY)
-     &                  +(0.5-0.5*GCLIP(ERF0(FASSZ2(IT,NABSM2))))
+     &                  +(0.5-0.5*GUCLIP(ERF0(FASSZ2(IT,NABSM2))))
      &                  *GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE
                RLMA2(IT,0)=RLA

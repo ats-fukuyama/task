@@ -863,12 +863,12 @@ C
       L=IZERO
       IX=INT((NRMAX+1-IZERO)/(NGPST-1))
 C
-      GTS(NGST) = GCLIP(T)
+      GTS(NGST) = GUCLIP(T)
 C
-  100 GVT(NGST,K+89) = GCLIP(RT(L,1))
-      GVT(NGST,K+90) = GCLIP(RT(L,2))
-      GVT(NGST,K+91) = GCLIP(RT(L,3))
-      GVT(NGST,K+92) = GCLIP(RT(L,4))
+  100 GVT(NGST,K+89) = GUCLIP(RT(L,1))
+      GVT(NGST,K+90) = GUCLIP(RT(L,2))
+      GVT(NGST,K+91) = GUCLIP(RT(L,3))
+      GVT(NGST,K+92) = GUCLIP(RT(L,4))
 C
       K=K+4
       L=L+IX

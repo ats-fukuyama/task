@@ -1126,8 +1126,8 @@ C         WRITE(6,*) "L=",L
 C
       GRG(1)=0.0
       DO NR=1,NRMAX
-         GRM(NR)  =GCLIP(RM(NR))
-         GRG(NR+1)=GCLIP(RG(NR))
+         GRM(NR)  =GUCLIP(RM(NR))
+         GRG(NR+1)=GUCLIP(RG(NR))
       ENDDO
 C
       IF(MODELG.NE.0) THEN
