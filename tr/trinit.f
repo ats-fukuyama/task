@@ -824,27 +824,35 @@ C     *** CALCULATE IMPURITY DENSITY
 C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
 C
       IF(MDLUF.NE.3) THEN
-      DO NR=1,NRMAX
-         ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
-     &            *1.D-2*RN(NR,1)
-         ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
-     &            *1.D-2*RN(NR,1)
-         ANI = 0.D0
-         DO NS=2,NSM
-            ANI=ANI+PZ(NS)*RN(NR,NS)
+         DO NR=1,NRMAX
+            ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
+     &               *1.D-2*RN(NR,1)
+            ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
+     &               *1.D-2*RN(NR,1)
+            ANI = 0.D0
+            DO NS=2,NSM
+               ANI=ANI+PZ(NS)*RN(NR,NS)
+            ENDDO
+            ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+            DILUTE = 1.D0-ANZ/ANI
+            DO NS=2,NSM
+               RN(NR,NS) = RN(NR,NS)*DILUTE
+            ENDDO
          ENDDO
-         ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-         DILUTE = 1.D0-ANZ/ANI
+         PNSS(1)=PNS(1)
          DO NS=2,NSM
-            RN(NR,NS) = RN(NR,NS)*DILUTE
+            PNSS(NS)=PNS(NS)*DILUTE
          ENDDO
-      ENDDO
-      PNSS(1)=PNS(1)
-      DO NS=2,NSM
-         PNSS(NS)=PNS(NS)*DILUTE
-      ENDDO
-      PNSS(7)=PNS(7)
-      PNSS(8)=PNS(8)
+         PNSS(7)=PNS(7)
+         PNSS(8)=PNS(8)
+         IF(RHOA.NE.1.D0) THEN
+            PNSSA(1)=PNSA(1)
+            DO NS=2,NSM
+               PNSSA(NS)=PNSA(NS)*DILUTE
+            ENDDO
+            PNSSA(7)=PNSA(7)
+            PNSSA(8)=PNSA(8)
+         ENDIF
       ELSE
 c$$$         DO NR=1,NRMAX
 c$$$            ANC(NR)=1.D0/3.D1*RN(NR,1)
@@ -854,6 +862,13 @@ c$$$         ENDDO
          ENDDO
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
+         IF(RHOA.NE.1.D0) THEN
+            DO NS=1,NSM
+               PNSSA(NS)=PNSA(NS)
+            ENDDO
+            PNSSA(7)=PNSA(7)
+            PNSSA(8)=PNSA(8)
+         ENDIF
       ENDIF
 C
 C     *** CALCULATE PROFILE OF AJ(R) ***
@@ -1627,6 +1642,38 @@ C
      &     RMJRHO(NRMAX-1),RMJRHO(NRMAX))
       RMNRHOG(NR)=FEDG(RG(NR),RM(NRMAX-1),RM(NRMAX),
      &     RMNRHO(NRMAX-1),RMNRHO(NRMAX))
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           EDGE VALUE SELECTOR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_EDGE_SELECTOR(NSW)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION PNSSO(NSTM),PTSO(NSTM)
+      SAVE PNSSO,PTSO
+C
+      IF(RHOA.EQ.1.D0) RETURN
+C
+      IF(NSW.EQ.0) THEN
+         DO NS=1,NSM
+            PNSSO(NS)=PNSS (NS)
+            PTSO (NS)=PTS  (NS)
+C
+            PNSS (NS)=PNSSA(NS)
+            PTS  (NS)=PTSA (NS)
+         ENDDO
+      ELSE
+         DO NS=1,NSM
+            PNSS (NS)=PNSSO(NS)
+            PTS  (NS)=PTSO (NS)
+         ENDDO
+      ENDIF
 C
       RETURN
       END

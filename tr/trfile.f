@@ -376,12 +376,12 @@ C
          RGN=DBLE(NRAMAX)*DR
          CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
-         PTS(1)=F0*1.D-3
+         PTSA(1)=F0*1.D-3
 C
          RGN=DBLE(NRMAX)*DR
          CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
-         PTSA(1)=F0*1.D-3
+         PTS(1)=F0*1.D-3
       ENDIF
 C
       KFILE='TI'
@@ -410,16 +410,16 @@ C
          RGN=DBLE(NRAMAX)*DR
          CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI2: IERR=",IERR
-         PTS(2)=F0*1.D-3
-         PTS(3)=F0*1.D-3
-         PTS(4)=F0*1.D-3
+         PTSA(2)=F0*1.D-3
+         PTSA(3)=F0*1.D-3
+         PTSA(4)=F0*1.D-3
 C
          RGN=DBLE(NRMAX)*DR
          CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI2: IERR=",IERR
-         PTSA(2)=F0*1.D-3
-         PTSA(3)=F0*1.D-3
-         PTSA(4)=F0*1.D-3
+         PTS(2)=F0*1.D-3
+         PTS(3)=F0*1.D-3
+         PTS(4)=F0*1.D-3
       ENDIF
 C
       KFILE='NE'
@@ -448,18 +448,18 @@ C
          RGN=DBLE(NRAMAX)*DR
          CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
-         PNS(1)=F0*1.D-20
-         PNS(2)=F0*1.D-20-2.D-8
-         PNS(3)=1.D-8
-         PNS(4)=1.D-8
-C
-         RGN=DBLE(NRMAX)*DR
-         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
          PNSA(1)=F0*1.D-20
          PNSA(2)=F0*1.D-20-2.D-8
          PNSA(3)=1.D-8
          PNSA(4)=1.D-8
+C
+         RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+         PNS(1)=F0*1.D-20
+         PNS(2)=F0*1.D-20-2.D-8
+         PNS(3)=1.D-8
+         PNS(4)=1.D-8
       ENDIF
 C
       KFILE='Q'
@@ -1824,27 +1824,35 @@ C     *** CALCULATE IMPURITY DENSITY
 C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
 C
       IF(MDLUF.NE.3) THEN
-      DO NR=1,NRMAX
-         ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
-     &            *1.D-2*RN(NR,1)
-         ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
-     &            *1.D-2*RN(NR,1)
-         ANI = 0.D0
-         DO NS=2,NSM
-            ANI=ANI+PZ(NS)*RN(NR,NS)
+         DO NR=1,NRMAX
+            ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
+     &               *1.D-2*RN(NR,1)
+            ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
+     &               *1.D-2*RN(NR,1)
+            ANI = 0.D0
+            DO NS=2,NSM
+               ANI=ANI+PZ(NS)*RN(NR,NS)
+            ENDDO
+            ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+            DILUTE = 1.D0-ANZ/ANI
+            DO NS=2,NSM
+               RN(NR,NS) = RN(NR,NS)*DILUTE
+            ENDDO
          ENDDO
-         ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-         DILUTE = 1.D0-ANZ/ANI
+         PNSS(1)=PNS(1)
          DO NS=2,NSM
-            RN(NR,NS) = RN(NR,NS)*DILUTE
+            PNSS(NS)=PNS(NS)*DILUTE
          ENDDO
-      ENDDO
-      PNSS(1)=PNS(1)
-      DO NS=2,NSM
-         PNSS(NS)=PNS(NS)*DILUTE
-      ENDDO
-      PNSS(7)=PNS(7)
-      PNSS(8)=PNS(8)
+         PNSS(7)=PNS(7)
+         PNSS(8)=PNS(8)
+         IF(RHOA.NE.1.D0) THEN
+            PNSSA(1)=PNSA(1)
+            DO NS=2,NSM
+               PNSSA(NS)=PNSA(NS)*DILUTE
+            ENDDO
+            PNSSA(7)=PNSA(7)
+            PNSSA(8)=PNSA(8)
+         ENDIF
       ELSE
 c$$$         DO NR=1,NRMAX
 c$$$            ANC(NR)=1.D0/3.D1*RN(NR,1)
@@ -1854,6 +1862,13 @@ c$$$         ENDDO
          ENDDO
          PNSS(7)=PNS(7)
          PNSS(8)=PNS(8)
+         IF(RHOA.NE.1.D0) THEN
+            DO NS=1,NSM
+               PNSSA(NS)=PNSA(NS)*DILUTE
+            ENDDO
+            PNSSA(7)=PNSA(7)
+            PNSSA(8)=PNSA(8)
+         ENDIF
       ENDIF
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -1934,6 +1949,14 @@ C
       ENDDO
       PNSS(7)=PNS(7)
       PNSS(8)=PNS(8)
+      IF(RHOA.NE.1.D0) THEN
+         PNSSA(1)=PNSA(1)
+         DO NS=2,NSM
+            PNSSA(NS)=PNSA(NS)*DILUTE
+         ENDDO
+         PNSSA(7)=PNSA(7)
+         PNSSA(8)=PNSA(8)
+      ENDIF
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
@@ -2164,5 +2187,3 @@ C
 C
       RETURN
       END
-
-               

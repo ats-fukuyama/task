@@ -56,6 +56,7 @@ C     /* Stored Variables for Convergence Check */
       ENDDO
 C
  2000 CONTINUE
+      CALL TR_EDGE_SELECTOR(0)
 C
 C     /* Matrix Producer */
       CALL TRMTRX(NEQRMAX)
@@ -190,6 +191,7 @@ C
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
 C
+      CALL TR_EDGE_SELECTOR(1)
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       GOTO 2000
@@ -223,6 +225,7 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
+      CALL TR_EDGE_SELECTOR(1)
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
       IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S
 C

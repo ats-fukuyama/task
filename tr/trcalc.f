@@ -1163,7 +1163,7 @@ C
       NR=NRMAX
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-         ANE=PNS(1)
+         ANE=PNSS(1)
 C         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
 C         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
 C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))

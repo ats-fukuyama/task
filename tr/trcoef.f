@@ -132,6 +132,7 @@ C
             EZOHL=EZOH(NR)
 C
             DPP = (RPP-RPM)*DRL
+C            write(6,*) NR,RPP,RPM
 C
             TI  = RNTP/RNP
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
@@ -166,6 +167,7 @@ C
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
             DPP = (RPP-RPM)*DRL
+C            IF(NR.GE.48) write(6,*) NR,DPP
 C
             TI  = 0.5D0*(RNTP/RNP+RNTM/RNM)
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
@@ -1592,9 +1594,9 @@ C
                PROF1=PROF0**PROFN2
                PROF2=PROFN2*PROF0**(PROFN2-1.D0)
             ENDIF
-            PROF   = PROF1*(PN(1)-PNS(1))+PNS(1)
+            PROF   = PROF1*(PN(1)-PNSS(1))+PNSS(1)
             DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
-     &                *(PN(1)-PNS(1))*ALP(1)/RA *1.5D0
+     &                *(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
 C
             AV(NR,1) =AD(NR,1)*DPROF/PROF
             AV(NR,2) =AD(NR,2)*DPROF/PROF
