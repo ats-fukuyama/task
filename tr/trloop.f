@@ -1093,7 +1093,7 @@ C
             ELSE
 C
 C     *** NCLASS ***
-C
+C     *
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
                   F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
@@ -1110,14 +1110,14 @@ C
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
-                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
      &                       * PNSS(NSSN)
-     &                       * ADNCLD(NRJ,NSSN1,NSSN)
+     &                       * ADNCLA(NRJ,NSSN1,NSSN,NSVN)
      &                       / PNSS(NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
      &                       * PNSS(NSSN)
-     &                       * ADNCLN(NRJ,NSSN1,NSSN)
+     &                       * ADNCLB(NRJ,NSSN1,NSSN,NSVN)
      &                       /(PNSS(NSSN1)*PTS(NSSN1))
                      ENDIF
                   ENDDO
@@ -1129,14 +1129,14 @@ C
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
-                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
      &                       * 0.5D0*(RN(NRJ,NSSN )+RN(NRJ+1,NSSN ))
-     &                       * ADNCLD(NRJ,NSSN1,NSSN)
+     &                       * ADNCLA(NRJ,NSSN1,NSSN,NSVN)
      &                       /(0.5D0*(RN(NRJ,NSSN1)+RN(NRJ+1,NSSN1)))
                      ELSEIF(NSVN1.EQ.2) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
      &                       * 0.5D0*(RN(NRJ  ,NSSN )+RN(NRJ+1,NSSN ))
-     &                       * ADNCLN(NRJ,NSSN1,NSSN)
+     &                       * ADNCLB(NRJ,NSSN1,NSSN,NSVN)
      &                       /(0.5D0*(RN(NRJ  ,NSSN1)*RT(NRJ  ,NSSN1)
      &                               +RN(NRJ+1,NSSN1)*RT(NRJ+1,NSSN1)))
                      ENDIF
@@ -1157,16 +1157,16 @@ C
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
-                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)*DV23
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
      &                       * PNSS(NSSN)*PTS(NSSN)
-     &                       *( AKNCLN(NRJ,NSSN1,NSSN)
-     &                         +ADNCLD(NRJ,NSSN1,NSSN)*CC)
+     &                       *( AKNCLB(NRJ,NSSN1,NSSN)
+     &                         +ADNCLA(NRJ,NSSN1,NSSN,NSVN)*CC)
      &                       /PNSS(NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
      &                       * PNSS(NSSN)*PTS(NSSN)
-     &                       *( AKNCLD(NRJ,NSSN1,NSSN)
-     &                         +ADNCLN(NRJ,NSSN1,NSSN)*CC)
+     &                       *( AKNCLA(NRJ,NSSN1,NSSN)
+     &                         +ADNCLB(NRJ,NSSN1,NSSN,NSVN)*CC)
      &                       /(PNSS(NSSN1)*PTS(NSSN1))
                      ENDIF
                   ENDDO
@@ -1182,18 +1182,18 @@ C
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
-                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)*DV23
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
      &                       * 0.5D0*( RN(NRJ  ,NSSN )*RT(NRJ  ,NSSN )
      &                                +RN(NRJ+1,NSSN )*RT(NRJ+1,NSSN ))
-     &                       *( AKNCLN(NRJ,NSSN1,NSSN)
-     &                         +ADNCLD(NRJ,NSSN1,NSSN)*CC)
+     &                       *( AKNCLB(NRJ,NSSN1,NSSN)
+     &                         +ADNCLA(NRJ,NSSN1,NSSN,NSVN)*CC)
      &                       /(0.5D0*( RN(NRJ  ,NSSN1)+RN(NRJ+1,NSSN1)))
                      ELSEIF(NSVN1.EQ.2) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
      &                       * 0.5D0*( RN(NRJ  ,NSSN )*RT(NRJ  ,NSSN )
      &                                +RN(NRJ+1,NSSN )*RT(NRJ+1,NSSN ))
-     &                       *( AKNCLD(NRJ,NSSN1,NSSN)
-     &                         +ADNCLN(NRJ,NSSN1,NSSN)*CC)
+     &                       *( AKNCLA(NRJ,NSSN1,NSSN)
+     &                         +ADNCLB(NRJ,NSSN1,NSSN,NSVN)*CC)
      &                       /(0.5D0*( RN(NRJ  ,NSSN1)*RT(NRJ  ,NSSN1)
      &                                +RN(NRJ+1,NSSN1)*RT(NRJ+1,NSSN1)))
                      ENDIF
@@ -1208,7 +1208,9 @@ C
                   DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*VOID
                ENDIF
             ENDIF
-C  
+C     *
+C     **************
+C
             ENDIF
          ENDDO
 C
@@ -1290,7 +1292,7 @@ C
       DO NEQ=1,NEQMAX
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
-         IF(NR.EQ.NRMAX) THEN
+         IF(NR.EQ.NRMAX.AND.MDNCLS.EQ.0) THEN
             IF(NSSN.EQ.0) THEN
                D(NEQ,NR) = 0.D0
             ELSEIF(NSSN.EQ.5) THEN
@@ -1318,6 +1320,70 @@ C
                   STOP 'ERROR: must be NSSV=0 if NSSN=0'
                ENDIF
             ENDIF
+C     *** NCLASS ***
+C     *
+         ELSEIF(NR.EQ.NRMAX.AND.MDNCLS.NE.0) THEN
+            IF(NSSN.EQ.0) THEN
+               D(NEQ,NR) = 0.D0
+            ELSEIF(NSSN.EQ.5) THEN
+               D(NEQ,NR) = VOID
+            ELSEIF(NSSN.EQ.6) THEN
+               D(NEQ,NR) = VOID
+            ELSEIF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
+               D(NEQ,NR) = SSIN(NR,NSSN)*DV11
+               DO NEQ1=1,NEQMAX
+                  NSSN1=NSS(NEQ1)
+                  NSVN1=NSV(NEQ1)
+                  IF(NSVN1.EQ.1) THEN
+                     D(NEQ,NR) = D(NEQ,NR)
+     &                    +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                    *PNSS(NSSN1)
+                  ELSEIF(NSVN1.EQ.2) THEN
+                     D(NEQ,NR) = D(NEQ,NR)
+     &                    +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                    *PNSS(NSSN1)*PTS(NSSN1)
+                  ENDIF
+               ENDDO
+            ELSE
+               IF(NSVN.EQ.1) THEN
+                  D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        D(NEQ,NR) = D(NEQ,NR)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 *PNSS(NSSN1)
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        D(NEQ,NR) = D(NEQ,NR)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 *PNSS(NSSN1)*PTS(NSSN1)
+                     ENDIF
+                  ENDDO
+               ELSEIF(NSVN.EQ.2) THEN
+                  D(NEQ,NR) = (PIN(NR,NSSN)/(RKEV*1.D20)  )*DV53
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        D(NEQ,NR) = D(NEQ,NR)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 *PNSS(NSSN1)
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        D(NEQ,NR) = D(NEQ,NR)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 *PNSS(NSSN1)*PTS(NSSN1)
+                     ENDIF
+                  ENDDO
+               ELSEIF(NSVN.EQ.3) THEN
+                  D(NEQ,NR) = VOID
+               ELSE
+                  STOP 'ERROR: must be NSSV=0 if NSSN=0'
+               ENDIF
+            ENDIF
+C     *
+C     *************
+C
          ELSE
             IF(NSSN.EQ.0) THEN
                D(NEQ,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR

@@ -517,7 +517,7 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C               RG1=10.D0
 C               RG1=4.D0
-               RG1=3.1D0
+               RG1=3.6D0
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -1263,13 +1263,19 @@ C
 C
       ENDIF
 C
+C     Limit of neoclassical diffusivity
+         DO NS=1,4
+            CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
+            IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
+         ENDDO
+C
          AK(NR,1) = AKDW(NR,1)+CNC*AKNC(NR,1)
          AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
          AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
 C
-  100 CONTINUE
 C
+  100 CONTINUE
 C
 C     ***** NEOCLASSICAL TRANSPORT (NCLASS) *****
 C
@@ -1278,13 +1284,13 @@ C
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     AKNCLD(NR,NS,NS1)=AKDW(NR,NS)+AKNCT(NR,NS,NS1)
-     &                                            +AKNCP(NR,NS,NS1)
-                     AKNCLN(NR,NS,NS1)=AKDW(NR,NS)+AKNCT(NR,NS,NS1)
+                     AKNCLA(NR,NS,NS1)= AKDW(NR,NS)+AKNCT(NR,NS,NS1)
+     &                                             +AKNCP(NR,NS,NS1)
+                     AKNCLB(NR,NS,NS1)=-AKDW(NR,NS)-AKNCT(NR,NS,NS1)
                   ELSE
-                     AKNCLD(NR,NS,NS1)=            AKNCT(NR,NS,NS1)
-     &                                            +AKNCP(NR,NS,NS1)
-                     AKNCLN(NR,NS,NS1)=            AKNCT(NR,NS,NS1)
+                     AKNCLA(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
+     &                                             +AKNCP(NR,NS,NS1)
+                     AKNCLB(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
@@ -1546,6 +1552,7 @@ C
             AD(NR,2) = ADDW(NR,2)+CNC*ADNC(NR,2)
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
+C            write(6,*) NR,CNC*ADNC(NR,2),ADDW(NR,2)
 C
          ENDDO
       ELSEIF(MDLAD.EQ.4) THEN
@@ -1597,7 +1604,6 @@ C
             AD(NR,2) = ADDW(NR,2)+CNC*ADNC(NR,2)
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
-C            write(6,*) "D",NR,AD(NR,1)
 C
             AVDW(NR,1) = -AV0*ADDW(NR,1)*RR*EPS/RA**2
             AVDW(NR,2) = -AV0*ADDW(NR,2)*RR*EPS/RA**2
@@ -1625,9 +1631,26 @@ C
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                AV(NR,NS)=AVNCS(NR,NS)
+C
+c$$$               IF(NR.NE.NRMAX) THEN
+                  ADDW(NR,NS) = AD0*AKDW(NR,NS)
+c$$$               ELSE
+c$$$                  ADDW(NR,NS) = AD0*AKDW(NR-1,NS)
+c$$$               ENDIF
                DO NS1=1,NSMAX
-                  ADNCLD(NR,NS,NS1)=                 ADNCT(NR,NS,NS1)
-                  ADNCLN(NR,NS,NS1)=ADNCP(NR,NS,NS1)+ADNCT(NR,NS,NS1)
+                  IF(NS.EQ.NS1) THEN
+                     DO NA=1,2
+                     ADNCLA(NR,NS,NS1,NA)= ADDW(NR,NS)-ADNCT(NR,NS,NS1)
+                     ADNCLB(NR,NS,NS1,NA)=             ADNCT(NR,NS,NS1)
+     &                                                +ADNCP(NR,NS,NS1)
+                     ENDDO
+                  ELSE
+                     DO NA=1,2
+                     ADNCLA(NR,NS,NS1,NA)=            -ADNCT(NR,NS,NS1)
+                     ADNCLB(NR,NS,NS1,NA)=             ADNCT(NR,NS,NS1)
+     &                                                +ADNCP(NR,NS,NS1)
+                     ENDDO
+                  ENDIF
                ENDDO
             ENDDO
          ENDDO
@@ -1706,7 +1729,7 @@ C
       ENDIF
       ENDIF
 C
-C     *** NCLASS ***
+C     *** NCLASS***
 C
       IF(MDNCLS.NE.0) THEN
          DO NS=1,NSMAX

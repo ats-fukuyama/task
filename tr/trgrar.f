@@ -80,6 +80,7 @@ C
       DO NS=1,NSM
       DO NR=1,NRMAX
          GYR(NR,NS) = GCLIP(RT(NR,NS))
+C         IF(NS.EQ.2) write(6,*) GRM(NR),GYR(NR,NS)
       ENDDO
       ENDDO
       IF(MDLNF.EQ.0) THEN
@@ -396,6 +397,9 @@ C
       SUBROUTINE TRGRR7(INQ)
 C
       INCLUDE 'trcomm.h'
+      DIMENSION RQFLSUM(NRMP,NSM)
+      DIMENSION RNN(NRM,NSM),DTN(NRM,NSM)
+      DIMENSION AKNCG(NRM,NSM)
 C
       CALL PAGES
 C
@@ -411,6 +415,7 @@ C
      &           '@G,s,alpha vs r@',2+INQ)
 C
       IF(MDNCLS.EQ.0) THEN
+C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GCLIP(AK(NR,1))
          GYR(NR+1,2) = GCLIP(AK(NR,2))
@@ -420,7 +425,7 @@ C
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
      &           '@AKE,AKI vs r @',2+INQ)
 C
-      DO NR=1,NRMAX-1
+      DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,1),1.D-2,1.D2)
 C         GYR(NR+1,2) = GLOG(AKNC(NR,1),1.D-2,1.D2)
 C         GYR(NR+1,3) = GLOG(AKDW(NR,1),1.D-2,1.D2)
@@ -437,7 +442,7 @@ C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,1)/2)
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
      &            '@AKE,AKNCE,AKDWE [m^2/s]  vs r@',2+INQ)
 C
-      DO NR=1,NRMAX-1
+      DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,2),1.D-2,1.D2)
 C         GYR(NR+1,2) = GLOG(AKNC(NR,2),1.D-2,1.D2)
 C         GYR(NR+1,3) = GLOG(AKDW(NR,2),1.D-2,1.D2)
@@ -453,7 +458,9 @@ C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,2)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,2)/2)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
      &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+C
       ELSE
+C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GCLIP(AKDW(NR,1)+AKNCT(NR,1,1)+AKNCP(NR,1,1))
          GYR(NR+1,2) = GCLIP(AKDW(NR,2)+AKNCT(NR,1,2)+AKNCP(NR,1,2))
@@ -463,27 +470,53 @@ C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,2)/2)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
      &           '@AKE,AKI vs r @',2+INQ)
 C
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            RQFLSUM(NR,NS)=0.D0
+            DO NA=1,5
+               RQFLSUM(NR,NS)=RQFLSUM(NR,NS)+RQFLS(NR,NA,NS)
+            ENDDO
+         ENDDO
+      ENDDO
       DO NR=1,NRMAX-1
-         GYR(NR+1,1) = GCLIP(AKDW(NR,1)+AKNCT(NR,1,1)+AKNCP(NR,1,1))
-         GYR(NR+1,2) = GCLIP(AKNCT(NR,1,1)+AKNCP(NR,1,1))
+         DO NS=1,NSMAX
+            RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
+            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+         ENDDO
+      ENDDO
+      NR=NRMAX
+      DO NS=1,NSMAX
+         RNN(NR,NS)=PNSS(NS)
+         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+      ENDDO
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
+         ENDDO
+      ENDDO
+C
+      DO NR=1,NRMAX
+         GYR(NR+1,1) = GCLIP(AKDW(NR,1)+AKNCG(NR,1))
+         GYR(NR+1,2) = GCLIP(AKNCG(NR,1))
          GYR(NR+1,3) = GCLIP(AKDW(NR,1))
       ENDDO
-         GYR(1,1) = GCLIP(AKDW(1,1)+AKNCT(1,1,1)+AKNCP(1,1,1))
-         GYR(1,2) = GCLIP(AKNCT(1,1,1)+AKNCP(1,1,1))
+         GYR(1,1) = GCLIP(AKDW(1,1)+AKNCG(1,1))
+         GYR(1,2) = GCLIP(AKNCG(1,1))
          GYR(1,3) = GCLIP(AKDW(1,1))
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
      &            '@AKE,AKNCE,AKDWE [m^2/s]  vs r@',2+INQ)
 C
-      DO NR=1,NRMAX-1
-         GYR(NR+1,1) = GCLIP(AKDW(NR,2)+AKNCT(NR,2,2)+AKNCP(NR,2,2))
-         GYR(NR+1,2) = GCLIP(AKNCT(NR,2,2)+AKNCP(NR,2,2))
+      DO NR=1,NRMAX
+         GYR(NR+1,1) = GCLIP(AKDW(NR,2)+AKNCG(NR,2))
+         GYR(NR+1,2) = GCLIP(AKNCG(NR,2))
          GYR(NR+1,3) = GCLIP(AKDW(NR,2))
       ENDDO
-         GYR(1,1) = GCLIP(AKDW(1,2)+AKNCT(1,2,2)+AKNCP(1,2,2))
-         GYR(1,2) = GCLIP(AKNCT(1,2,2)+AKNCP(1,2,2))
+         GYR(1,1) = GCLIP(AKDW(1,2)+AKNCG(1,2))
+         GYR(1,2) = GCLIP(AKNCG(1,2))
          GYR(1,3) = GCLIP(AKDW(1,2))
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMp,NRMAX,3,
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
      &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+C
       ENDIF
 C
 C      DO NR=1,NRMAX-1
@@ -573,34 +606,71 @@ C
       SUBROUTINE TRGRR9(INQ)
 C
       INCLUDE 'trcomm.h'
+      DIMENSION RGFLSUM(NRMP,NSM)
+      DIMENSION DNN(NRM,NSM)
+      DIMENSION ADNCG(NRMP,NSM)
 C
       CALL PAGES
 C
-      DO NS=1,NSM
-      DO NR=1,NRMAX+1
-         GYR(NR+1,NS) = GCLIP(AD(NR,NS))
-      ENDDO
-      ENDDO
-         GYR(1,NS) = GCLIP(AD(2,NS))
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSM,
+      IF(MDNCLS.EQ.0) THEN
+         DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            GYR(NR+1,NS) = GCLIP(AD(NR,NS))
+         ENDDO
+            GYR(1,NS) = GCLIP(AD(2,NS))
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               RGFLSUM(NR,NS)=0.D0
+               DO NA=1,5
+                  RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
+               ENDDO
+            ENDDO
+         ENDDO
+         DO NR=1,NRMAX-1
+            DO NS=1,NSMAX
+               DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))*AR1RHO(NR)/DR
+            ENDDO
+         ENDDO
+         NR=NRMAX
+         DO NS=1,NSMAX
+            DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))*AR1RHO(NR)/DR
+         ENDDO
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+            ENDDO
+         ENDDO
+C     
+         DO NS=1,NSMAX
+         DO NR=1,NRMAX
+C            GYR(NR+1,NS) = GCLIP(ADNCG(NR,NS))
+            GYR(NR+1,NS) = GCLIP(ADNCG(NR,NS)+ADDW(NR,NS))
+         ENDDO
+C            GYR(1,NS) = GCLIP(ADNCG(2,NS))
+            GYR(1,NS) = GCLIP(ADNCG(2,NS)+ADDW(2,NS))
+         ENDDO
+      ENDIF
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
      &            '@AD [m^2/s]  vs r@',2+INQ)
 C
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR+1,NS) = GCLIP(AV(NR,NS))
       ENDDO
-      ENDDO
          GYR(1,NS) = 0.0
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSM,
+      ENDDO
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
      &            '@AV [m/s]  vs r@',2+INQ)
 C
-      DO NS=1,NSM
+      DO NS=1,NSMAX
       DO NR=1,NRMAX
          GYR(NR+1,NS) = GCLIP(AVK(NR,NS))
       ENDDO
-      ENDDO
          GYR(1,NS) = 0.0
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,NSM,
+      ENDDO
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
      &            '@AVK [m/s]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX

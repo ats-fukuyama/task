@@ -233,6 +233,7 @@ C            DO NS1=3,4
 C               write(6,'(3I5,1P2E20.7)') 
 C     &              NR,NS,NS1,dp_ss(NS,NS1),dt_ss(NS,NS1)
 C            ENDDO
+C            if(ns.eq.2) write(6,*) nr,dn_s(ns)
             DO NM=1,5
                RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
                RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
