@@ -135,11 +135,20 @@ C
       DIMENSION U(4,NXMAX)
 C
       IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
       FS=1.D0/(X(NXMAX)-X(1))
       NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
-C      NXI=NX
-      IF(NX.LT.1)     IERR=1
-      IF(NX.GT.NXMAX) IERR=2
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
 C
  5001 IF(NX.GE.NXMAX) GOTO 5002
       IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
@@ -152,7 +161,6 @@ C
          GOTO 5003
  5004 CONTINUE
       IF(NX.LT.2)     NX=2
-      IF(NX.GT.NXMAX) NX=NXMAX
 C
       DX=X0-X(NX-1)
 C
@@ -176,10 +184,20 @@ C
       DIMENSION U(4,NXMAX)
 C
       IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
       FS=1.D0/(X(NXMAX)-X(1))
       NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
-      IF(NX.LT.1)     IERR=1
-      IF(NX.GT.NXMAX) IERR=2
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
 C
  5001 IF(NX.GE.NXMAX) GOTO 5002
       IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
@@ -192,7 +210,6 @@ C
          GOTO 5003
  5004 CONTINUE
       IF(NX.LT.2)     NX=2
-      IF(NX.GT.NXMAX) NX=NXMAX
 C
       DX=X0-X(NX-1)
 C
@@ -238,7 +255,7 @@ C
       IMPLICIT REAL*8 (A-H,O-Z)
       PARAMETER (NMAX=10001)
 C
-      DIMENSION X(NXMAX),Y(NXMAX),F(NXM,NYMAX)
+      DIMENSION X(NXMAX),Y(NYMAX),F(NXM,NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
       DIMENSION FX(NXM,NYMAX),FY(NXM,NYMAX),FXY(NXM,NYMAX)
       DIMENSION AX(4,NMAX),IPX(NMAX),BX(NMAX)
@@ -505,18 +522,38 @@ C
 C
       IMPLICIT REAL*8 (A-H,O-Z)
 C
-      DIMENSION X(NXMAX),Y(NXMAX)
+      DIMENSION X(NXMAX),Y(NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
 C
       IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      IF(Y(NYMAX).EQ.Y(1)) THEN
+         IERR=8
+         RETURN
+      ENDIF
       FX=1.D0/(X(NXMAX)-X(1))
       NX=NINT((X0-X(1))*FX*(NXMAX-1))+1
-      IF(NX.LT.1)     IERR=1
-      IF(NX.GT.NXMAX) IERR=2
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
       FY=1.D0/(Y(NYMAX)-Y(1))
       NY=NINT((Y0-Y(1))*FY*(NYMAX-1))+1
-      IF(NY.LT.1)     IERR=3
-      IF(NY.GT.NYMAX) IERR=4
+      IF(NY.LT.1) THEN
+         IERR=3
+         NY=2
+      ENDIF
+      IF(NY.GT.NYMAX) THEN
+         IERR=4
+         NY=NYMAX
+      ENDIF
 C
  5001 IF(NX.GE.NXMAX) GOTO 5002
       IF((X0-X(NX  ))*FX.LE.0.D0) GOTO 5002
@@ -529,7 +566,6 @@ C
          GOTO 5003
  5004 CONTINUE
       IF(NX.LT.2)     NX=2
-      IF(NX.GT.NXMAX) NX=NXMAX
 C
  5005 IF(NY.GE.NYMAX) GOTO 5006
       IF((Y0-Y(NY  ))*FY.LE.0.D0) GOTO 5006
@@ -542,7 +578,6 @@ C
          GOTO 5007
  5008 CONTINUE
       IF(NY.LT.2)     NY=2
-      IF(NY.GT.NYMAX) NY=NYMAX
 C
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
@@ -563,18 +598,38 @@ C
 C
       IMPLICIT REAL*8 (A-H,O-Z)
 C
-      DIMENSION X(NXMAX),Y(NXMAX)
+      DIMENSION X(NXMAX),Y(NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
 C
       IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      IF(Y(NYMAX).EQ.Y(1)) THEN
+         IERR=8
+         RETURN
+      ENDIF
       FX=1.D0/(X(NXMAX)-X(1))
       NX=NINT((X0-X(1))*FX*(NXMAX-1))+1
-      IF(NX.LT.1)     IERR=1
-      IF(NX.GT.NXMAX) IERR=2
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
       FY=1.D0/(Y(NYMAX)-Y(1))
       NY=NINT((Y0-Y(1))*FY*(NYMAX-1))+1
-      IF(NY.LT.1)     IERR=3
-      IF(NY.GT.NYMAX) IERR=4
+      IF(NY.LT.1) THEN
+         IERR=3
+         NY=2
+      ENDIF
+      IF(NY.GT.NYMAX) THEN
+         IERR=4
+         NY=NYMAX
+      ENDIF
 C
  5001 IF(NX.GE.NXMAX) GOTO 5002
       IF((X0-X(NX  ))*FX.LE.0.D0) GOTO 5002
@@ -587,7 +642,6 @@ C
          GOTO 5003
  5004 CONTINUE
       IF(NX.LT.2)     NX=2
-      IF(NX.GT.NXMAX) NX=NXMAX
 C
  5005 IF(NY.GE.NYMAX) GOTO 5006
       IF((Y0-Y(NY  ))*FY.LE.0.D0) GOTO 5006
@@ -600,7 +654,6 @@ C
          GOTO 5007
  5008 CONTINUE
       IF(NY.LT.2)     NY=2
-      IF(NY.GT.NYMAX) NY=NYMAX
 C
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
@@ -750,10 +803,20 @@ C
       COMPLEX*16 U(4,NXMAX),F0
 C
       IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
       FS=1.D0/(X(NXMAX)-X(1))
       NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
-      IF(NX.LT.1)     IERR=1
-      IF(NX.GT.NXMAX) IERR=2
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
 C
  5001 IF(NX.GE.NXMAX) GOTO 5002
       IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
@@ -766,7 +829,6 @@ C
          GOTO 5003
  5004 CONTINUE
       IF(NX.LT.2)     NX=2
-      IF(NX.GT.NXMAX) NX=NXMAX
 C
       DX=X0-X(NX-1)
 C
