@@ -671,3 +671,142 @@ C00150 CONTINUE
 C
       RETURN
       END
+C
+C  
+C     ***********************************************************
+C
+C            IFS/PPPL Model
+C
+C     ***********************************************************
+C
+      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
+     &                          S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
+     &                          PNSS,PTS,RNFL,RNFEDG,MDLUF,NSMAX,
+     &                          AKDW)
+C
+      IMPLICIT NONE
+C
+      INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
+      REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),QP(NRM),S_AR(NRM),
+     &       EPSRHO(NRM),EKAPPA(NRM),RT(NRM,NSM),BB,AMM,AME,
+     &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
+     &       AKDW(NRM,NSTM)
+      integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
+      parameter (ipin=7,iptmp=8,ipout=9,screen=6)
+      real znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps,
+     &       ne19, tekev, tikev, rmajor, grhoi, gvti, gnu,
+     &       chii, chie, zkappa, btesla, gtau, omegaexb,
+     &       zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &       zrlt1, zrlt2
+C
+      EXTERNAL FEDG
+C
+      ierr=0
+C
+      do ii = 1, 32
+         switches(ii) = 0
+      end do
+      switches(1)  = 0 ! 0: it produces no diagnostic output
+      switches(2)  = 0 ! 0: it uses inputs ne19, tekev, tilev and btesla
+                       ! 1: it uses inputs grhoi, gvti, gnu and gtau
+      switches(3)  = 0 ! 0: the 1995 model, 1: the 1994 model
+      switches(4)  = 1 ! 0: use gnu as given
+                       ! 1: the definition in Dorland's IFS/PPPL routine
+      switches(5)  = 1 ! 0: won't relax the restrictions on znu
+                       ! 1: allows znu to be larger than 10.0
+      switches(30) = 0
+      switches(31) = 0
+      switches(32) = 0
+C
+      DO NR=1,NRMAX-1
+         znine  = SNGL( (RN(NR+1,2)+RN(NR,2))
+     &                 /(RN(NR+1,1)+RN(NR,1)))
+         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
+            zncne  = SNGL( (RN(NR+1,3)+RN(NR,3))
+     &                    /(RN(NR+1,1)+RN(NR,1)))
+         ELSE
+            zncne  = 0.0
+         ENDIF
+         znbne  = SNGL( (RNFL(NR+1 )+RNFL(NR ))
+     &                 /(RN (NR+1,1)+RN (NR,1)))
+         zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2)))*
+     &                           (RT(NR+1,2)-RT(NR,2))/DR*RJCB(NR))
+         zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*
+     &                           (RN(NR+1,1)-RN(NR,1))/DR*RJCB(NR))
+         zq     = SNGL(QP(NR))
+         zshat  = SNGL(S_AR(NR))
+         zeps   = SNGL(EPSRHO(NR))
+         zkappa = SNGL(EKAPPA(NR))
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
+     &                 /RT(NR,1)**1.5D0)
+C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
+         gtau   = SNGL( (RT(NR+1,2)+RT(NR,2))
+     &                 /(RT(NR+1,1)+RT(NR,1)))
+C
+         ne19   = SNGL(0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1)
+         tekev  = SNGL(0.5D0*(RT(NR+1,1)+RT(NR,1)))
+         tikev  = SNGL(0.5D0*(RT(NR+1,2)+RT(NR,2)))
+         rmajor = SNGL(RR)
+         btesla = SNGL(BB)
+         grhoi  = SNGL(6.46D-3*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2)))/BB)
+         gvti   = SNGL(2.19D5*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2))))
+C
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,
+     &                 zq, zshat, zeps, zkappa, omegaexb,
+     &                 ne19, tekev, tikev, rmajor, btesla,
+     &                 switches, grhoi, gvti, gnu, gtau,
+     &                 chii, chie,
+     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &                 zrlt1, zrlt2, ierr )
+C         IF(IERR.NE.0) THEN
+C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
+C            STOP
+C         ENDIF
+C
+         AKDW(NR,1) = DBLE(chie)
+         AKDW(NR,2) = DBLE(chii)
+      ENDDO
+C
+      NR=NRMAX
+         znine  = SNGL(PNSS(2)/PNSS(1))
+         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
+            zncne  = SNGL(PNSS(3)/PNSS(1))
+         ELSE
+            zncne  = 0.0
+         ENDIF
+         znbne  = SNGL(RNFEDG)
+         zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*RJCB(NR))
+         zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*RJCB(NR))
+         zq     = SNGL(QP(NR))
+         zshat  = SNGL(S_AR(NR))
+         zeps   = SNGL(EPSRHO(NR))
+         zkappa = SNGL(EKAPPA(NR))
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
+     &                 /RT(NR,1)**1.5D0)
+         gtau   = SNGL(PTS(2)/PTS(1))
+C
+         ne19   = SNGL(PNSS(1)*1.D1)
+         tekev  = SNGL(PTS(1))
+         tikev  = SNGL(PTS(2))
+         rmajor = SNGL(RR)
+         btesla = SNGL(BB)
+         grhoi  = SNGL(6.46D-3*SQRT(PTS(2))/BB)
+         gvti   = SNGL(2.19D5*SQRT(PTS(2)))
+C
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,
+     &                 zq, zshat, zeps, zkappa, omegaexb,
+     &                 ne19, tekev, tikev, rmajor, btesla,
+     &                 switches, grhoi, gvti, gnu, gtau,
+     &                 chii, chie,
+     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &                 zrlt1, zrlt2, ierr )
+C         IF(IERR.NE.0) THEN
+C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
+C            STOP
+C         ENDIF
+C
+         AKDW(NR,1) = DBLE(chie)
+         AKDW(NR,2) = DBLE(chii)
+C
+      RETURN
+      END
