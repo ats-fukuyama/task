@@ -79,8 +79,10 @@ new :
 	-cp -f glf/*.f ../trnew/glf
 	-cp -f glf/*.m ../trnew/glf
 	-cp -f glf/*.F ../trnew/glf
+	-cp -f glf/*.h ../trnew/glf
 	-mkdir ../trnew/nclass
 	-cp -f nclass/*.f ../trnew/nclass
+	-cp -f nclass/*.inc ../trnew/nclass
 	-mkdir ../trnew/doc
 	-cp -f doc/* ../trnew/doc
 
