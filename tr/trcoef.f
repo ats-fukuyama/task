@@ -436,6 +436,13 @@ C
             ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
+            RNST2=0.D0
+            OMEGASS=0.D0
+            SLAMDA=0.D0
+            RLAMDA=0.D0
+            RG1=0.D0
+            WE1=0.D0
+C     
             IF(MDLKAI.EQ.30) THEN
                FS=1.D0/(1.7D0+SQRT(6.D0)*S)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)

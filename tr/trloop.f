@@ -1043,7 +1043,7 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             NI=3
             NJ=2
          ENDIF
-         IF (NSW.EQ.2.OR.NSW.NE.NI) THEN
+         IF (NSW.EQ.2.OR.NSW.NE.NI.AND.NR+(NJ-2).NE.0) THEN
             VV(    NS,    NS,NMK,NSW) = FA(NI,NSW)*AV(NR+(NJ-2),NS)
             DD(    NS,    NS,NMK,NSW) = FB(NI,NSW)*AD(NR+(NJ-2),NS)
             VV(NSM+NS,NSM+NS,NMK,NSW) = FA(NI,NSW)*(AVK(NR+(NJ-2),NS)
@@ -1200,7 +1200,7 @@ C
             NI=3
             NJ=2
          ENDIF
-      IF (DNDR(NR,NS,NI).NE.0.D0) THEN
+      IF (DNDR(NR,NS,NI).NE.0.D0.AND.NR+(NJ-2).NE.0) THEN
          VV(    NS,    NS,NMK,NSW)= FA(NI,NSW)*(AVK(NR+(NJ-2),NS)
      &                                        +  AV(NR+(NJ-2),NS)*1.5D0)
          VV(NSM+NS,NSM+NS,NMK,NSW)=-FA(NI,NSW)*( AD(NR+(NJ-2),NS)*1.5D0
