@@ -11,19 +11,19 @@ C     *** CONSTANTS ****
 C
 C        PI    : Pi
 C        RMU0  : Permeability of free space
-C        BLTZ  : Boltzmann constant
 C        AN0   : Avogadro's number
 C        AMP   : Proton mass
 C        AEE   : Electron charge
+C        BLTZ  : Boltzmann constant
 C        RGAS  : BLTZ/AMP
 C
       PI     = 2.D0*ASIN(1.D0)
       RMU0   = 4.D0*PI*1.D-7
-      BLTZ   = 1.38066D-23
       AN0    = 6.0221367D23
       AMP    = 1.6726231D-27
       AEE    = 1.60217733D-19
-      RGAS   = BLTZ/AMP
+C      BLTZ   = 1.38066D-23
+C      RGAS   = BLTZ/AMP
 C
 C     *** CONFIGURATION PARAMETERS ***
 C
