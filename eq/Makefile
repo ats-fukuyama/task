@@ -1,7 +1,7 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
 
 SRCC = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f eqgsub.f
 SRCS = eqmain.f $(SRCC)

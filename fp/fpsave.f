@@ -27,7 +27,8 @@ C
 C
          RTT(NR,NTG1) = RWS(NR)/(1.5D0*RNS(NR)*AEE*1.D3)
          RET(NR,NTG1) = E1(NR)
-         RQT(NR,NTG1) = RM(NR)*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
+         RS=RSPSIN(RM(NR)*RM(NR))
+         RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
  1000 CONTINUE
 C
       RETURN
@@ -85,7 +86,8 @@ C
       PFWT(NTG2)=PFWT(NTG2)*2*PI*RR
       PECT(NTG2)=PECT(NTG2)*2*PI*RR
       PTT(NTG2) =PWT(NTG2)/(1.5D0*PNT(NTG2)*AEE*1.D3)
-      PQT(NTG2) =EPSR(1)*BB*2.D0/(BP(1)+BP(2))
+      RS=RSPSIN(RM(1)*RM(1))
+      PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
 C
       RETURN
