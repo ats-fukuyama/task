@@ -8,14 +8,15 @@ FFLAGS = $(OFLAGS)
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
-     callglf2d.f glf2d.F r8tomsqz.F zgeev.f blas_zgeev.f
+     callglf2d.f zgeev.f blas_zgeev.f
+SRCF=glf2d.F r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
 SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
      ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f ../eq/eqdsk.f
-SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f ../lib/libchar.f
+SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f ../lib/libchar.f ../lib/libfio.f
 
-OBJS=$(SRCS:.f=.o)
+OBJS=$(SRCS:.f=.o) $(SRCF:.F=.o)
 OBJ2D=$(SRC2D:.f=.o)
 OBJ3D=$(SRC3D:.f=.o)
 OBJE=$(SRCE:.f=.o)
@@ -77,7 +78,7 @@ trhelp.o : trhelp.f trcomm.h
 trgrad.o : trgrad.f trcomm.h
 trgra2.o : trgra2.f trcomm.h
 callglf2d.o : callglf2d.f glf.m
-glf2d.o  : glf2d.f glf.m f77_dcomplx.h
+glf2d.o  : glf2d.F glf.m f77_dcomplx.h
 	$(FC) $(FFLAGS) -o glf2d.o glf2d.F
 r8tomsqz.o : r8tomsqz.F f77_dcomplx.h
 	$(FC) $(FFLAGS) -o r8tomsqz.o r8tomsqz.F
@@ -101,3 +102,5 @@ blas_zgeev.o : blas_zgeev.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
 ../lib/libchar.o: ../lib/libchar.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
+../lib/libfior.o: ../lib/libfio.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f
