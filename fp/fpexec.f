@@ -116,7 +116,9 @@ C
                NOCONV=1
             ENDIF
          ENDIF
-         WRITE(6,*) 'PCGPME : ITR = ',ITR,'   ERROR = ',EPS(1)
+         IF(EPS(1).GT.EPSM) THEN
+            WRITE(6,*) 'PCGPME : ITR = ',ITR,'   ERROR = ',EPS(1)
+         ENDIF
 C
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX

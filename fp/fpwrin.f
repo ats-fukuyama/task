@@ -4,7 +4,7 @@ C***********************************************************************
 C     load ray data and calculate spline coefficient
 C***********************************************************************
 C
-      SUBROUTINE FPLDWR
+      SUBROUTINE FPLDWR(IERR)
 C
       INCLUDE 'fpcomm.h'
       INCLUDE '../dp/dpcom1.h'
@@ -15,12 +15,12 @@ C
      &          CFX3(0:NITM,NRAYM),FX4(0:NITM,NRAYM),
      &          FX5(0:NITM,NRAYM),FX6(0:NITM,NRAYM),FX7(0:NITM,NRAYM),
      &          FX8(0:NITM,NRAYM),FX9(0:NITM,NRAYM),FX0(0:NITM,NRAYM)
-      CHARACTER KNAM*32
+      CHARACTER KNAM*72
       LOGICAL LEX
 C      
-    1 WRITE(6,*) '# INPUT : WRDATA FILE NAME : ',KNAMWR
-      READ(5,'(A32)',ERR=1,END=900) KNAM
-      IF(KNAM(1:2).NE.'/ ') KNAMWR=KNAM
+C    1 WRITE(6,*) '# INPUT : WRDATA FILE NAME : ',KNAMWR
+C      READ(5,'(A72)',ERR=1,END=900) KNAM
+C      IF(KNAM(1:2).NE.'/ ') KNAMWR=KNAM
 C
       INQUIRE(FILE=KNAMWR,EXIST=LEX)
       IF(LEX) THEN
@@ -29,10 +29,12 @@ C
          WRITE(6,*) '# OLD FILE (',KNAMWR,') IS ASSIGNED FOR INPUT.'
          GOTO 30
    10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
-         GOTO 1
+         IERR=1
+         RETURN
       ELSE
          WRITE(6,*) 'XX FILE (',KNAMWR,') NOT FOUND' 
-         GOTO 1
+         IERR=2
+         RETURN
       ENDIF
 C
    30 CONTINUE
@@ -145,11 +147,12 @@ C
       DO NR=1,NRMAX
          PSIL =RM(NR)**2
          CALL PLRRMX(PSIL,RRMIN(NR),RRMAX(NR))
-         WRITE(6,602) NR,PSIL,RRMIN(NR),RRMAX(NR)
-  602    FORMAT('# NR,PSIL,RRMIN,RRMAX=',I3,1P3E15.7)
+C         WRITE(6,602) NR,PSIL,RRMIN(NR),RRMAX(NR)
+C  602    FORMAT('# NR,PSIL,RRMIN,RRMAX=',I3,1P3E15.7)
       ENDDO
 C
-  900 RETURN
+  900 IERR=0
+      RETURN
       END
 C
 C***********************************************************************

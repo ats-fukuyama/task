@@ -167,10 +167,12 @@ C
 C        KNAMEQ: Filename of equilibrium data
 C        KNAMWR: Filename of ray tracing data
 C        KNAMFP: Filename of Fokker-Planck data
+C        KNAMFO: Filename of File output
 C
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
       KNAMFP = 'fpdata'
+      KNAMFO = 'fodata'
 C
       IDEBUG = 0
 C
@@ -184,13 +186,13 @@ C
       INCLUDE '../pl/plcomm.h'
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32
+      CHARACTER KPNAME*72
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
      &              MODELG,MODELN,MODELQ,
-     &              KNAMEQ,KNAMWR,KNAMFP,IDEBUG
+     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG
 C
     1 WRITE(6,*) '## INPUT : &PL'
       READ(5,PL,ERR=1,END=9000)

@@ -6,7 +6,7 @@ C
 C      INCLUDE 'eqcomm.h'
       INCLUDE 'eqcomc.h'
 C
-      CHARACTER KNAMEQ1*32,KNAM*32,KPNAM*32
+      CHARACTER KNAMEQ1*72,KNAM*72,KPNAM*72
       CHARACTER KID*1
 C
       WRITE(6,*) '## TASK/EQ 2001/08/25'
@@ -74,7 +74,7 @@ C
       ELSEIF(KID.EQ.'L') THEN
          KNAMEQ1=KNAMEQ
    10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
-         READ(5,'(A32)',ERR=10,END=9000) KNAM
+         READ(5,'(A72)',ERR=10,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
          CALL EQLOAD(1,KNAMEQ1,IERR)
@@ -89,7 +89,7 @@ C
          GOTO 9000
       ELSEIF(KID.EQ.'I') THEN
    20    WRITE(6,*) '#EQ> INPUT : EQPARM FILE NAME : ','eqparm'
-         READ(5,'(A32)',ERR=20,END=9000) KPNAM
+         READ(5,'(A72)',ERR=20,END=9000) KPNAM
          CALL EQPARG(KPNAM)
       ELSE
          WRITE(6,*) 'X UNKNOWN COMMAND CHAR'

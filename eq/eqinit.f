@@ -206,7 +206,7 @@ C
       INCLUDE 'eqcomm.h'
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32,KPNAM*32
+      CHARACTER KPNAME*72,KPNAM*72
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,

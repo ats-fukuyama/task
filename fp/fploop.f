@@ -4,7 +4,7 @@ C *****************************
 C     PREPARATION OF FPLOOP
 C *****************************
 C
-      SUBROUTINE FPPREP
+      SUBROUTINE FPPREP(IERR)
 C
       INCLUDE 'fpcomm.h'
 C
@@ -42,7 +42,8 @@ C
       ENDIF
 C
       IF(MODELW.EQ.2) THEN
-         CALL FPLDWR
+         CALL FPLDWR(IERR)
+         IF(IERR.NE.0) RETURN
       ELSE
          RNE0=PN(1)
          RNES=PNS(1)
@@ -241,6 +242,7 @@ C
   320    CONTINUE
       END IF
 C
+      IERR=0
       RETURN
       END
 C

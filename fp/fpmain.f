@@ -21,7 +21,7 @@ C
 C
 C      ON REAL*8 UNDERFLOW CALL ERUFL8
 C
-      WRITE(6,*) '*** TASK/FP V3.0 [97/08/05] ***'
+      WRITE(6,*) '*** TASK/FP V3.1 [02/09/20] ***'
       CALL GSOPEN
       CALL PLINIT
       CALL FPINIT
@@ -29,20 +29,21 @@ C
       CALL FPPARF
 C
     1 WRITE(6,601)
-  601 FORMAT('#FP> SELECT : R:RUN  C,F:CONT  P,V:PARAM  G:GRAPH'/
+  601 FORMAT('#FP> SELECT : R:RUN  C:CONT  P,V:PARAM  G,F:GRAPH'/
      &       '              I:RESET  W:WRITE  Y:COEF  Q:QUIT')
       READ(5,'(A1)',ERR=1,END=9000) KID
       CALL GUCPTL(KID)
 C
-      IF (KID.EQ.'R'.OR.KID.EQ.'M') THEN
+      IF (KID.EQ.'R') THEN
          TIMEFP=0.D0
          NTG1=0
          NTG2=0
-         CALL FPPREP
-         IF(KID.EQ.'R') CALL FPFINI
+         CALL FPPREP(IERR)
+         IF(IERR.NE.0) GOTO 1
+         CALL FPFINI
          CALL FPSAVI
          CALL FPLOOP
-      ELSEIF (KID.EQ.'C'.OR.KID.EQ.'F') THEN
+      ELSEIF (KID.EQ.'C') THEN
          IF(KID.EQ.'F') THEN
             NTG1=0
             NTG2=0
@@ -55,18 +56,22 @@ C
          CALL FPVIEW
       ELSEIF (KID.EQ.'G') THEN
          CALL FPGRAF
+      ELSEIF (KID.EQ.'F') THEN
+         CALL FPFOUT
       ELSEIF (KID.EQ.'W') THEN
          CALL FPSGLB
          CALL FPWRIT
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
-         CALL FPPREP
+         CALL FPPREP(IERR)
+         IF(IERR.NE.0) GOTO 1
          CALL FPFINI
          CALL FPCOEF
          CALL FPSGLB
          CALL FPWRIT
       ELSEIF (KID.EQ.'I') THEN
-         CALL FPINIT
+         NTG1=0
+         NTG2=0
       ELSEIF (KID.EQ.'S') THEN
          CALL FPSAVE
       ELSEIF (KID.EQ.'L') THEN
