@@ -1011,9 +1011,11 @@ C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
       ENDIF
 C
       ELSEIF(MDLKAI.EQ.62) THEN
+         SNBEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),SNB(NR-1),SNB(NR-2))
+     &         /PNSS(1)
          CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
      &                       S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
-     &                       PNSS,PTS,
+     &                       PNSS,PTS,SNB,SNBEDG,MDLUF,NSMAX,
      &                       AKDW)
 C         DO NR=1,NRMAX
 C            write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
@@ -1027,15 +1029,15 @@ C     ***********************************************************
 C
       SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
      &                          S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
-     &                          PNSS,PTS,
+     &                          PNSS,PTS,SNB,SNBEDG,MDLUF,NSMAX,
      &                          AKDW)
 C
       IMPLICIT NONE
 c
-      INTEGER NRM,NSM,NSTM,NRMAX,NR
+      INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
       REAL*8 RN(NRM,NSM),RR,DR,AR1RHOG(NRM),QP(NRM),S_AR(NRM),
      &       EPSRHO(NRM),EKAPPA(NRM),RT(NRM,NSM),BB,AMM,AME,
-     &       PNSS(NSM),PTS(NSM),
+     &       PNSS(NSM),PTS(NSM),SNB(NRM),SNBEDG,
      &       AKDW(NRM,NSTM)
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
       parameter (ipin=7,iptmp=8,ipout=9,screen=6)
@@ -1044,6 +1046,8 @@ c
      &       chii, chie, zkappa, btesla, gtau, omegaexb,
      &       zchiicyc, zchii1, zchii2, zchie1, zchie2,
      &       zrlt1, zrlt2
+C
+      EXTERNAL FEDG
 C
       ierr=0
 C
@@ -1065,8 +1069,14 @@ C
       DO NR=1,NRMAX-1
          znine  = SNGL( 0.5D0*(RN(NR+1,2)+RN(NR,2))
      &                 /0.5D0*(RN(NR+1,1)+RN(NR,1)))
-         zncne  = 0.0
-         znbne  = 0.0
+         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
+            zncne  = SNGL( 0.5D0*(RN(NR+1,3)+RN(NR,3))
+     &                    /0.5D0*(RN(NR+1,1)+RN(NR,1)))
+         ELSE
+            zncne  = 0.0
+         ENDIF
+         znbne  = SNGL( 0.5D0*(SNB(NR+1  )+SNB(NR  ))
+     &                 /0.5D0*(RN (NR+1,1)+RN (NR,1)))
          zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2)))*
      &                           (RT(NR+1,2)-RT(NR,2))/DR*AR1RHOG(NR))
          zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*
@@ -1106,8 +1116,12 @@ C
 C
       NR=NRMAX
          znine  = SNGL(PNSS(2)/PNSS(1))
-         zncne  = 0.0
-         znbne  = 0.0
+         IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
+            zncne  = SNGL(PNSS(3)/PNSS(1))
+         ELSE
+            zncne  = 0.0
+         ENDIF
+         znbne  = SNGL(SNBEDG)
          zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*AR1RHOG(NR))
          zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*AR1RHOG(NR))
          zq     = SNGL(QP(NR))

@@ -833,7 +833,7 @@ C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
             GYR(NR,2) = GUCLIP(RTU(NR,2,NT))
-         ENDDO
+          ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
 C
