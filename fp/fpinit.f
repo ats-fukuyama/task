@@ -137,6 +137,8 @@ C     MODELE: 0 for fixed electric field
 C             1 for predicting electric field
 C     MODELA: 0 without bounce average
 C             1 with bounce average
+C     MODELR: 0 without relativistic effect
+C             1 with relativistic effect
 C     MODELC: 0 for linear collision operator
 C             1 for nonlinear collision operator
 C     MODELW: 0 for given diffusion coefficient model
@@ -146,6 +148,7 @@ C             3 for wave electric field calcurated by WR(with  beam radius)
 C
       MODELE= 0
       MODELA= 1
+      MODELR= 1
       MODELC= 1
       MODELW= 0
 C
