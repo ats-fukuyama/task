@@ -91,9 +91,9 @@ C
          CALL TRGOUT
 C
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN
-         write(6,*)  "J0=",AJ(1)*1.D-6
+C         write(6,*)  "J0=",AJ(1)*1.D-6
   102    WRITE(6,*) '# SELECT ',
-     &              ': PRINT TYPE (1..9)  H/HELP  X/EXIT'
+     &              ': PRINT TYPE (1..9)  N/NAMELIST H/HELP  X/EXIT'
          READ(5,'(A1)',ERR=102,END=1) KID
          CALL GUCPTL(KID)
          IF(KID.EQ.'H') THEN

@@ -640,7 +640,9 @@ C
       CHARACTER K1*3,K2*3,K3*3,K4*3,K5*3,K6*3
       CHARACTER KCOM*40
 C
-      IF(KID.EQ.'1') THEN
+      IF(KID.EQ.'N') THEN
+         CALL TRNLIN(-29,IST,IERR)
+      ELSEIF(KID.EQ.'1') THEN
          WRITE(6,601) T,
      &                WPT,WBULKT,WTAILT,WPDOT,
      &                TAUE1,TAUE2,TAUEP,QF,
