@@ -111,7 +111,7 @@ C
          ENQL  =-2.D0*(SLNQL/SLBL )
          ZL    = PZ(3)
          BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
-     &          *RKEV*1.D20/(BB**2/(2.D0*AMYU0))
+     &          *RKEV*1.D20/(BB**2/(2.D0*RMU0))
          AZL   = PA(3)
          COLL  = 1.D0
          ELL   = 1.D0
@@ -139,7 +139,7 @@ C
          RPM   = RNTM+RN(NR  ,1)*RT(NR  ,1)
      &               +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          DPP   = (RPP-RPM)*DRL
-         DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+         DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
          ALAL  =-QL*QL*DBDR*RR/RA
 C
          TRL   = 1.D0
@@ -201,8 +201,8 @@ c$$$         RPIM=0.5D0*(RPI1+RPI2)
 c$$$         RPI0=0.5D0*(RPI2+RPI3)
 c$$$         RPIP=0.5D0*(RPI3+RPI4)
 c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
-c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
+c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*EPS0)
 c$$$         DELTA2= VC**2/WPE2
 c$$$         DELTAE= SQRT(DELTA2)
 c$$$         SL    = SQRT(SL**2+0.1D0**2)
@@ -341,7 +341,7 @@ C
          EQL   =       SLNQL/SLTQL
          ENQL  =-2.D0*(SLNQL/SLBL )
          ZL    = PZ(3)
-         BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*AMYU0))
+         BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*RMU0))
          AZL   = PA(3)
          COLL  = 1.D0
          ELL   = 1.D0
@@ -367,7 +367,7 @@ C
      &               +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
      &               +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          DPP   = (RPP-RPM)*DRL
-         DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+         DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
          ALAL  =-QL*QL*DBDR*RR/RA
 C
          TRL   = 1.D0
@@ -429,8 +429,8 @@ c$$$         RPIM=0.5D0*(RPI1+RPI2)
 c$$$         RPI0=0.5D0*(RPI2+RPI3)
 c$$$         RPIP=0.5D0*(RPI3+RPI4)
 c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
-c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
+c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*EPS0)
 c$$$         DELTA2= VC**2/WPE2
 c$$$         DELTAE= SQRT(DELTA2)
 c$$$         SL    = SQRT(SL**2+0.1D0**2)

@@ -10,33 +10,65 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      NT=0
+C     *** CONSTANTS ****
 C
-      KUFDEV='jet'
-      KUFDCG='19649'
-      TIME_INT=0.D0
-C
-      VOID    = 0.D0
+C        PI    : Pi
+C        AEE   : Elementaty charge
+C        AME   : Electron mass
+C        AMM   : Proton mass
+C        VC    : Speed of light in vacuum
+C        RMU0  : Permeability of free space
+C        EPS0  : Permittivity of free space
+C        VOID  : 0.D0
 C
       PI      = ASIN(1.D0)*2.D0
+      AEE     = 1.60217733D-19
       AME     = 9.1093897D-31
       AMM     = 1.6726231D-27
-      AEE     = 1.60217733D-19
       VC      = 2.99792458D8
-      AMYU0   = 4.D0*PI*1.D-7
-      AEPS0   = 1.D0/(VC*VC*AMYU0)
+      RMU0    = 4.D0*PI*1.D-7
+      EPS0    = 1.D0/(VC*VC*RMU0)
       RKEV    = AEE*1.D3
+      VOID    = 0.D0
+C
+C     ==== DEVICE PARAMETERS ====
+C
+C        RR     : PLASMA MAJOR RADIUS (M)
+C        RA     : PLASMA MINOR RADIUS (M)
+C        RKAP   : ELIPTICITY OF POLOIDAL CROSS SECTION
+C        RDLT   : TRIANGULARITY OF POLOIDAL CROSS SECTION
+C        BB     : TOROIDAL MAGNETIC FIELD ON PLASMA AXIS (T)
+C        RIPS   : INITIAL VALUE OF PLASMA CURRENT (MA)
+C        RIPE   : FINAL VALUE OF PLASMA CURRENT (MA)
+C        RIPSS  : ???
+C        RHOA   : ???
 C
       RR      = 3.0D0
       RA      = 1.2D0
       RKAP    = 1.5D0
-      RKAPS   = SQRT(RKAP)
       RDLT    = 0.0D0
       BB      = 3.D0
       RIPS    = 3.D0
       RIPE    = 3.D0
       RIPSS   = 3.D0
       RHOA    = 1.D0
+C
+C     ==== PLASMA PARAMETERS ====
+C
+C        NSMAX  : NUMBER OF MAIN PARTICLE SPECIES (NS=1:ELECTRON)
+C        NSZMAX : NUMBER OF IMPURITIES SPECIES
+C        NSNMAX : NUMBER OF NEUTRAL SPECIES
+C
+C        PA(NS) : ATOMIC NUMBER
+C        PZ(NS) : CHARGE NUMBER
+C        PN(NS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
+C        PNS(NS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)
+C        PT(NS) : INITIAL TEMPERATURE ON AXIS (KEV)
+C        PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)
+C
+      NSMAX=2
+      NSZMAX=0  ! the number of impurities
+      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
 C
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -94,12 +126,31 @@ C
       PTS(8)  = 0.D0
       PNS(8)  = 1.D-15
 C
-C      PNC     = 1.D0
-C      PNFE    = 1.D-2
+C     ==== IMPURITY PARAMETERS ====
+C
+C        PNC    : CARBON DENSITY FACTOR
+C        PNFE   : IRON DENSITY FACTOR
+C                      COMPARED WITH ITER PHYSICS DESIGN GUIDELINE
+C        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
+C        PNNUS  :                        ON SURFACE (1.E20 M**-3)
+C
       PNC     = 0.D0
       PNFE    = 0.D0
       PNNU    = 0.D0
       PNNUS   = 0.D0
+C
+C     ==== PROFILE PARAMETERS ====
+C
+C        PROFN*: PROFILE PARAMETER OF INITIAL DENSITY
+C        PROFT*: PROFILE PARAMETER OF INITIAL TEMPERATURE
+C        PROFU*: PROFILE PARAMETER OF INITIAL CURRENT DENSITY
+C        PROFJ*: PROFILE PARAMETER OF NEUTRAL DENSITY
+C                    (X0-XS)(1-RHO**PROFX1)**PROFX2+XS
+C
+C        ALP   : ADDITIONAL PARAMETERS
+C           ALP(1): RADIUS REDUCTION FACTOR
+C           ALP(2): MASS WEIGHTING FACTOR FOR NC
+C           ALP(3): CHARGE WEIGHTING FACTOR FOR NC
 C
       PROFN1 = 2.D0
       PROFN2 = 0.5D0
@@ -114,6 +165,13 @@ C
       ALP(2) = 0.D0
       ALP(3) = 0.D0
 C
+C     ==== TRANSPORT PARAMETERS ====
+C
+C        AV0    : INWARD PARTICLE PINCH FACTOR
+C        AD0    : PARTICLE DIFFUSION FACTOR
+C        CNC    : COEFFICIENT FOR NEOCLASICAL DIFFUSION
+C        CDW(8) : COEFFICIENTS FOR DW MODEL
+C
       AV0    = 0.5D0
       AD0    = 0.5D0
 C
@@ -126,6 +184,10 @@ C
       CDW(6) = 0.04D0
       CDW(7) = 0.04D0
       CDW(8) = 0.04D0
+C
+C     ==== TRANSPORT MODEL ====
+C
+C        MDLKAI: TURBULENT TRANSPORT MODEL
 C
 C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
 C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
@@ -161,10 +223,21 @@ C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
 C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
 C
 C           *****  MDLKAI.EQ. 60  : GLF23 model *****
-C           *****  MDLKAI.EQ. 61  : GLF23 (numerical stability enhanced version) *****
+C           *****  MDLKAI.EQ. 61  : GLF23 (stability enhanced version) *****
 C           *****  MDLKAI.EQ. 62  : IFS/PPPL model *****
 C           *****  MDLKAI.EQ. 63  : Weiland model *****
 C           *****  MDLKAI.EQ. 64  : Bohm/Gyro-Bohm model *****
+C
+C        MDLETA: RESISTIVITY MODEL
+C                   0: CLASSICAL 
+C                   1: NEOCLASSICAL
+C        MDLAD : PARTICLE DIFFUSION MODEL
+C                   0: NO PARTICL TRANSPORT 
+C                   1: CONSTANT D
+C        MDLAVK: HEAT PINCH MODEL
+C                   0: NO HEAT PINCH
+C        MDLJBS: BOOTSTRAP CURRENT MODEL
+C        MDLKNS: NEOCLASSICAL TRANSPORT MODEL
 C
       MDLKAI = 31
       MDLETA = 3
@@ -173,12 +246,13 @@ C
       MDLJBS = 5
       MDLKNC = 1
 C
-C     MDLWLD : mode selector
+C        MDLWLD : Weiland model mode selector
 C            0    : using effective transport coefficients
 C            else : using transport coefficients' vectors
+C
       MDLWLD=0
 C
-C     MDDW : mode selector for anomalous particle transport coefficient.
+C        MDDW : mode selector for anomalous particle transport coefficient.
 C            you must not modify this parameter.
 C            0    : if MDDW=0 from start to finish when you choose
 C                   a certain transport model (MDLKAI),
@@ -191,21 +265,8 @@ C                   an anomalous particle transport coefficient
 C                   on their own.
       MDDW=0
 C
-      DT     = 0.01D0 
-      NRMAX  = 50
-      NTMAX  = 100
-      NTSTEP = 10
-      NGRSTP = 100
-      NGTSTP = 2
-      NGPST  = 4
-      TSST   = 1.D9
+C     ==== Semi-Empirical Parameter for Anomalous Transport ====
 C
-C     *** Convergence Parameter ***
-      EPSLTR = 0.001D0
-C      EPSLTR = 1.D99
-      LMAXTR = 10
-C
-C     *** Semi-Empirical Parameter for Anomalous Transport ***
       CHP    = 0.D0
       CK0    = 12.D0 ! for electron
       CK1    = 12.D0 ! for ions
@@ -215,30 +276,103 @@ C     *** Semi-Empirical Parameter for Anomalous Transport ***
       CKBETA = 0.D0
       CKGUMA = 0.D0
 C
-C     *** Sawtooth ***
+C     ==== CONTROL PARAMETERS ====
+C
+C        DT     : SIZE OF TIME STEP
+C        NRMAX  : NUMBER OF RADIAL MESH POINTS
+C        NTMAX  : NUMBER OF TIME STEP
+C        NTSTEP : INTERVAL OF SNAP DATA PRINT
+C        NGRSTP : INTERVAL OF RADIAL PROFILE SAVE
+C        NGTSTP : INTERVAL OF TIME EVOLUTION SAVE
+C        NGPST  : ???
+C        TSST   : ???
+C
+      DT     = 0.01D0 
+      NRMAX  = 50
+      NTMAX  = 100
+      NTSTEP = 10
+      NGRSTP = 100
+      NGTSTP = 2
+      NGPST  = 4
+      TSST   = 1.D9
+C
+C     ==== Convergence Parameter ====
+C
+C        EPSLTR : CONVERGENCE CRITERION OF ITERATION
+C        LMAXTR : MAXIMUM COUNT OF ITERATION
+C
+      EPSLTR = 0.001D0
+C      EPSLTR = 1.D99
+      LMAXTR = 10
+C
+C     ==== SAWTOOTH PARAMETERS ====
+C
+C        TPRST  : SAWTOOTH PERIOD (S)
+C        MDLST  : SAWTOOTH MODEL TYPE
+C                    0:OFF
+C                    1:ON
+C        IZERO  : SAWTOOTH CRASH TYPE
+C
       TPRST  = 0.1D0
       MDLST  = 0
-C
-      MDLNF  = 0
       IZERO  = 3
 C
-C     *** NBI ***
+C     ==== FUSION REACTION PARAMETERS ====
+C
+C        MDLNF  : FUSION REACTION MODEL TYPE
+C                    0:OFF
+C                    1:ON
+C
+      MDLNF  = 0
+C
+C     ==== NBI HEATING PARAMETERS ====
+C        PNBTOT : NBI TOTAL INPUT POWER (MW)
+C        PNBR0  : RADIAL POSITION OF NBI POWER DEPOSITION (M)
+C        PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)
+C        PNBENG : NBI BEAM ENERGY (keV)
+C        PNBRTG : TANGENTIAL RADIUS OF NBI BEAM (M)
+C        PNBCD  : CURRENT DRIVE FACTOR
+C        MDLNB  : NBI MODEL TYPE
+C                    0:OFF
+C                    1:GAUSSIAN
+C                    2:PENCIL BEAM
+C
       PNBTOT = 0.D0
       PNBR0  = 0.D0
       PNBRW  = 0.5D0
       PNBENG = 80.D0
       PNBRTG = 3.D0
+      PNBCD  = 1.D0
       MDLNB  = 1
 C
-C     *** ECH ***
+C     ==== ECRF PARAMETERS ====
+C
+C        PECTOT : ECRF INPUT POWER (MW)
+C        PECR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PECRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PECTOE : POWER PARTITION TO ELECTRON
+C        PECNPR : PARALLEL REFRACTIVE INDEX
+C        PECCD  : CURRENT DRIVE FACTOR
+C        MDLEC  : ECRF MODEL
+C
       PECTOT = 0.D0
       PECR0  = 0.D0
       PECRW  = 0.2D0
       PECTOE = 1.D0
       PECNPR = 0.D0
+      PECCD  = 0.D0
       MDLEC  = 0
 C
-C     *** LH ***
+C     ==== LHRF PARAMETERS ====
+C
+C        PLHTOT : LHRF INPUT POWER (MW)
+C        PLHR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PLHRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PLHTOE : POWER PARTITION TO ELECTRON
+C        PLHNPR : PARALLEL REFRACTIVE INDEX
+C        PLHCD  : CURRENT DRIVE FACTOR
+C        MDLLH  : LHRF MODEL
+C
       PLHTOT = 0.D0
       PLHR0  = 0.D0
       PLHRW  = 0.2D0
@@ -246,79 +380,116 @@ C     *** LH ***
       PLHNPR = 2.D0
       MDLLH  = 0
 C
-C     *** ICH ***
+C     ==== ICRF PARAMETERS ====
+C
+C        PICTOT : ICRF INPUT POWER (MW)
+C        PICR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PICRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PICTOE : POWER PARTITION TO ELECTRON
+C        PICNPR : PARALLEL REFRACTIVE INDEX
+C        PICCD  : CURRENT DRIVE FACTOR
+C        MDLIC  : ICRF MODEL
+C
       PICTOT = 0.D0
       PICR0  = 0.D0
       PICRW  = 0.5D0
       PICTOE = 0.5D0
       PICNPR = 2.D0
+      PICCD  = 0.D0
       MDLIC  = 0
 C
-C     *** Current Drive ***
-      PNBCD  = 1.D0
-      PECCD  = 0.D0
-      PLHCD  = 1.D0
-      PICCD  = 0.D0
+C     ==== CURRENT DRIVE PARAMETERS ====
+C
+C        PBSCD : BOOTSTRAP CURRENT DRIVE FACTOR
+C        MDLCD : CURRENT DRIVE OPERATION MODEL
+C                  0: TOTAL PLASMA CURRENT FIXED
+C                  1: TOTAL PLASMA CURRENT VARIABLE
+C
       PBSCD  = 1.D0
       MDLCD  = 0
 C
-C     *** Pelet ***
+C     ==== PELLET INJECTION PARAMETERS ====
+C
+C        MDLPEL : PELLET INJECTION MODEL TYPE
+C                    0:OFF  1:GAUSSIAN  2:NAKAMURA  3:HO
+C        PELTOT : TOTAL NUMBER OF PARTICLES IN PELLET
+C        PELR0  : RADIAL POSITION OF PELLET DEPOSITION (M)
+C        PELRW  : RADIAL WIDTH OF PELLET DEPOSITION (M)
+C        PELRAD : RADIUS OF PELLET (M)
+C        PELVEL : PELLET INJECTION VELOCITY (M/S)
+C        PELTIM : TIME FOR PELLET TO BE INJECTED
+C        PELPAT : PARTICLE RATIO IN PELLET'
+C
+      MDLPEL = 1
       PELTOT = 0.D0
       PELR0  = 0.D0
       PELRW  = 0.5D0
       PELRAD = 0.D0
       PELVEL = 0.D0
       PELTIM = -10.D0
-      MDLPEL = 1
 C
-      PELPAT(1) = 1.0D0
-      PELPAT(2) = 1.0D0
-      PELPAT(3) = 0.0D0
-      PELPAT(4) = 0.0D0
+      DO NS=1,NSMAX
+         PELPAT(NS) = 1.0D0
+      ENDDO
+C
+C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
+C        KUFDEV : DEVICE NAME
+C        KUFDCG : DISCHARGE NUMBER
+C
+      KUFDEV='jet'
+      KUFDCG='19649'
+C
+C     ==== LOG FILE NAME ====
+C        KFNLOG : LOG FILE NAME
 C
       KFNLOG='trf.log'
 C
-C     *****
+C     ==== INTERACTION WITH EQ ====
 C
-C     *** TR or TR/EQ ***
-C        0 : TR
-C        3 : TR/EQ
+C        MODELG: 0 : TR ONLY
+C                3 : TR/EQ COUPLED
+C        NTEQIT: STEP INTERVAL OF EQ CALCULATION
+C
       MODELG=0
-C     iteration interval for TASK/EQ
       NTEQIT=10
 C
-C     *** UFILE ***
-C        0 : not used
-C        1 : time evolution
-C        2 : steady state
-C        3 : compared with TOPICS
+C     ==== INPUT FROM UFILE ====
+C
+C        MDLUF :
+C           0 : not used
+C           1 : time evolution
+C           2 : steady state
+C           3 : compared with TOPICS
+C
       MDLUF=0
 C
-C        0 : NSMAX=2, ne=ni
-C        1 : calculate nimp and zeff profiles from NE, ZIMP and NM1
-C        2 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
-C        3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+C     ==== IMPURITY TREATMENT ====
+C
+C        MDNI  :
+C           0 : NSMAX=2, ne=ni
+C           1 : calculate nimp and zeff profiles from NE, ZIMP and NM1
+C           2 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
+C           3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+C
       MDNI=0
 C
-C     Initial profile switch
+C     ==== INITIAL PROFILE SWITCH ====
+C
+C        MODEP : ???
+C
       MODEP=3
 C
-C        0 : create AJ(NR) profile from experimental Q profile
-C        1 : create QP(NR) profile from experimental CURTOT profile
+C     ==== INITIAL CURRENT PROFILE SWITCH ====
+C
+C        MODEJQ : ???
+C
+C           0 : create AJ(NR) profile from experimental Q profile
+C           1 : create QP(NR) profile from experimental CURTOT profile
+C
       MDLJQ=0
 C
-C     *** Error Indicator for UFILE Reader ***
-      MDALL=0
-      MDQ=0
-      MDCUR=0
-      MDTT=0
-      MDAREA=0
-      MDRMJ=0
-      MDRMN=0
-      MDGR1=0
-      MDGR2=0
-C
 C     *** Eqs. Selection Parameter ***
+C
       MDLEQB=1  ! 0/1 for B_theta
       MDLEQN=0  ! 0/1 for density
       MDLEQT=1  ! 0/1 for heat
@@ -328,13 +499,6 @@ C     *** Eqs. Selection Parameter ***
       MDLEQE=0  ! 0/1 for electron density
 C
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
-C
-      NSMAX=2   ! the number of e, D, T and He
-      NSZMAX=0  ! the number of impurities
-      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
-C      NFMAX=0   ! the number of fast particles
-      NSCMAX=NSMAX+NSZMAX ! the number of charged particles
-      NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
 C     *** NCLASS SWITCH ***
 C        0    : off
@@ -347,6 +511,10 @@ C        else : multiplyer for TAUK (which is the required time of
 C               averaging magnetic surface)
       MDTC=0
 C
+C     ====== INTIALIZE ======
+C
+      NT=0
+      TIME_INT=0.D0
       CNB=1.D0
 C
       RETURN
@@ -421,6 +589,9 @@ C
       ELSE
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
          NTMAX_SAVE=NTMAX
+C
+         NSCMAX=NSMAX+NSZMAX ! the number of charged particles
+         NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
       ENDIF
       IERR=0
       RETURN
@@ -701,6 +872,9 @@ C
       NGST  = 0
       RIP   = RIPS
 C
+         NSCMAX=NSMAX+NSZMAX ! the number of charged particles
+         NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
+C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
          RR=RRU(1)
@@ -708,7 +882,6 @@ C
          RKAP=RKAPU(1)
          BB=BBU(1)
       ENDIF
-      RKAPS=SQRT(RKAP)
 C
       CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
@@ -1047,7 +1220,7 @@ C
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
             AJOH(NR)=AJ(NR)-AJNB(NR)
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
@@ -1055,18 +1228,18 @@ C
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
             AJOH(NR)=AJ(NR)-AJNB(NR)
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
          NR=1
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
          DO NR=2,NRMAX
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
@@ -1082,23 +1255,23 @@ C
          ENDDO
 C
          NR=1
-            FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+            FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
             AJOH(NR)=AJ(NR)
          DO NR=2,NRMAX
-            FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+            FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             AJOH(NR)=AJ(NR)
          ENDDO
          NR=1
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
          DO NR=2,NRMAX
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
@@ -1115,7 +1288,7 @@ C
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
             AJOH(NR)=AJ(NR)-AJNB(NR)
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
@@ -1123,18 +1296,18 @@ C
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
             AJOH(NR)=AJ(NR)-AJNB(NR)
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
          NR=1
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
          DO NR=2,NRMAX
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
@@ -1151,30 +1324,30 @@ C
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
             NR=1
-               FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+               FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
                AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
                AJOH(NR)=AJ(NR)
             DO NR=2,NRMAX
-               FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+               FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
                FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
                AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
                AJOH(NR)=AJ(NR)
             ENDDO
             NR=1
-               FACTOR0=RR/(AMYU0*DVRHO(NR))
+               FACTOR0=RR/(RMU0*DVRHO(NR))
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
                AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
             DO NR=2,NRMAX
-               FACTOR0=RR/(AMYU0*DVRHO(NR))
+               FACTOR0=RR/(RMU0*DVRHO(NR))
                FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
                AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             ENDDO
          ENDIF
 C
-C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
+C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/RMU0*1.D-6
          RIP   = RIPS
          RIPSS = RIP
          RIPE  = RIP
@@ -1185,11 +1358,11 @@ C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
          ENDDO
 C
          NR=1
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
          DO NR=2,NRMAX
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
@@ -1198,7 +1371,7 @@ C
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
-         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
             AJOH(NR)=FACT*AJOH(NR)
@@ -1219,29 +1392,29 @@ C
          ENDDO
 C
          NR=1
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
          NR=1
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
          DO NR=2,NRMAX
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
 C
-         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
             RDP(NR)=FACT*RDP(NR)
@@ -1266,7 +1439,7 @@ C
             TEL =ABS(RT(NR,1))
             ZEFFL=ZEFF(NR)
 C
-            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &           /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
             TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
 C
@@ -1310,7 +1483,7 @@ C               VTE=1.33D+7*DSQRT(TEL)
                FT=1.D0-(1.D0-EPS)**2
      &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
                rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(TEL)
-               TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
+               TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
      &             *(TEL*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
                RNUSE=RR*QL/(VTE*TAUE*EPSS)
                PHI=FT/(1.D0+(0.58D0+0.2D0*ZEFFL)*RNUSE)                
@@ -1354,21 +1527,21 @@ C
          ENDDO
 C
          NR=1
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
          DO NR=2,NRMAX
-            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
          ENDDO
          NR=1
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
          DO NR=2,NRMAX
-            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
@@ -1377,7 +1550,7 @@ C
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
-         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
             RDP(NR)  =FACT*RDP(NR)
@@ -1442,6 +1615,11 @@ C     &        ,RIPE
          ENDIF
       ENDIF
 C
+      DO NR=1,NRMAX
+         WRITE(6,'(I5,1P5E12.4)') 
+     &        NR,RN(NR,1),RT(NR,1),ETA(NR),AJ(NR),BP(NR)
+      ENDDO
+C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
       END
@@ -1504,19 +1682,20 @@ C         write(6,*) NR,BPNR,BP(NR)
 C         BP(NR)=BPNR
 C      ENDDO
 C
+      RKAPS=SQRT(RKAP)
       DO NR=1,NRMAX
          BPRHO(NR)=RKAPS*RA*RG(NR)*BB/(RR*QRHO(NR))
       ENDDO
 C
       NR=1
-         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
          FACTOR2=DVRHO(NR  )*ABRHO(NR  )
          FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
          FACTORP=0.5D0*(FACTOR2+FACTOR3)
          AJ(NR)= FACTOR0*FACTORP*BPRHO(NR)/DR/AR1RHO(NR) !/RJCB(NR)
 C         BPRHO(NR)= AJ(NR)*DR*AR1RHO(NR)/(FACTOR0*FACTORP)
       DO NR=2,NRMAX-1
-         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
          FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
          FACTOR2=DVRHO(NR  )*ABRHO(NR  )
          FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
@@ -1528,7 +1707,7 @@ C         BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
 C     &            /FACTORP
       ENDDO
       NR=NRMAX
-         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
          FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
          FACTOR2=DVRHO(NR  )*ABRHO(NR  )
          FACTORM=0.5D0*(FACTOR1+FACTOR2)
@@ -1941,6 +2120,7 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
+      RKAPS=SQRT(RKAP)
       IF(MDLUF.NE.0) THEN
          DO NR=1,NRMAX
             EPSRHO(NR)=RA*RG(NR)/RR

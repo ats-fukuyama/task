@@ -99,10 +99,6 @@ C
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(AR1RHO(NR))
       ENDDO
-c$$$      write(6,'(4F15.7)') RKAP,1.D0/RKAP,RKAPS,1.D0/RKAPS
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,*) NR,AR1RHO(NR)*RA,AR2RHO(NR)*RA*RA
-c$$$      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@AR1RHO vs RHO@',2+INQ)
 C

@@ -897,7 +897,7 @@ C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
 C         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
 C         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-C         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
+C         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
 C     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 C     &             *ZEFFL**4*AEE**4*rLnLam)
 C
@@ -919,7 +919,7 @@ C
 C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
 C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-C         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
+C         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)
 C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
 C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
@@ -1009,7 +1009,7 @@ C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
 C         ANE=PNSS(1)
 C         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-C         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
+C         TAUI=12.D0*PI*SQRT(PI)*EPS0**2*SQRT(AMM)
 C     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
 C     &             *ZEFFL**4*AEE**4*rLnLam)
 C
@@ -1031,7 +1031,7 @@ C
 C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
 C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-C         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
+C         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)
 C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
 C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
@@ -1131,7 +1131,7 @@ C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
          PAL=0.5D0*(RN(NR+1,4)*RT(NR+1,4)+RN(NR,4)*RT(NR,4))
          ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
          TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
          TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
@@ -1235,7 +1235,7 @@ C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
          PAL=PNSS(4)*PTS(4)
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
          TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
          TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
@@ -1370,7 +1370,7 @@ C
          PAL=RN(NR,4)*RT(NR,4)
          ZEFFL=ZEFF(NR)
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
          TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
          TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
@@ -1504,7 +1504,7 @@ C
          TAL=ABS(RT(NR,4))
          ZEFFL=ZEFF(NR)
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4*15.D0)
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2/(1.D20*AEE**4*15.D0)
          TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/ANE
          TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/ANE
          TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/ANE
@@ -1514,7 +1514,7 @@ C
          TAUBT = TAUT/ZEFFL
          TAUBA = TAUA/ZEFFL
 C
-C         COEF=6.D0*AEPS0**2*(PI*RKEV)**1.5D0
+C         COEF=6.D0*EPS0**2*(PI*RKEV)**1.5D0
 C     &       /(ANE*1.D20*ZEFF(NR)*AEE**4*15.D0)
 C         TAUBE=     COEF*TEL**1.5D0*SQRT(AME)
 C         TAUBD=2.D0*COEF*TDL**1.5D0*SQRT(AMD)/PZ(2)**2
@@ -1607,21 +1607,21 @@ C
 C
       IF(MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
       NR=1
-         FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+         FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
       DO NR=2,NRMAX
-         FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+         FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
       ENDDO
       NR=1
-         FACTOR0=RR/(AMYU0*DVRHO(NR))
+         FACTOR0=RR/(RMU0*DVRHO(NR))
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
          AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
       DO NR=2,NRMAX
-         FACTOR0=RR/(AMYU0*DVRHO(NR))
+         FACTOR0=RR/(RMU0*DVRHO(NR))
          FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
          AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
@@ -1742,6 +1742,7 @@ C
 C               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
             ENDDO
          ELSE
+            RKAPS=SQRT(RKAP)
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
                BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))

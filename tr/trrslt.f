@@ -238,11 +238,11 @@ C
          VOL = VOL +         DVRHO(NR)*DR
          SUM = SUM + SUML   *DVRHO(NR)*DR
          SUP = SUP + SUML**2*DVRHO(NR)*DR
-         BETA(NR)   = 2.D0*AMYU0*SUM      /(     VOL *BB**2)
-         BETAL(NR)  = 2.D0*AMYU0*SUML     /(          BB**2)
-         BETAP(NR)  = 2.D0*AMYU0*SUM      /(     VOL *BP(NRMAX)**2)
-         BETAPL(NR) = 2.D0*AMYU0*SUML     /(          BP(NRMAX)**2)
-         BETAQ(NR)  = 2.D0*AMYU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
+         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
       ENDDO
 C
 
@@ -258,11 +258,11 @@ C
          VOL = VOL +         DVRHO(NR)*DR
          SUM = SUM + SUML   *DVRHO(NR)*DR
          SUP = SUP + SUML**2*DVRHO(NR)*DR
-         BETA(NR)   = 2.D0*AMYU0*SUM      /(     VOL *BB**2)
-         BETAL(NR)  = 2.D0*AMYU0*SUML     /(          BB**2)
-         BETAP(NR)  = 2.D0*AMYU0*SUM      /(     VOL *BP(NRMAX)**2)
-         BETAPL(NR) = 2.D0*AMYU0*SUML     /(          BP(NRMAX)**2)
-         BETAQ(NR)  = 2.D0*AMYU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
+         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
 C
       BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
       BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
@@ -274,9 +274,9 @@ C
 C
       WPOL=0.D0
       DO NR=1,NRMAX
-         WPOL=WPOL+DVRHOG(NR)*ABRHOG(NR)*RDP(NR)**2*DR/(2.D0*AMYU0)
+         WPOL=WPOL+DVRHOG(NR)*ABRHOG(NR)*RDP(NR)**2*DR/(2.D0*RMU0)
       ENDDO
-      ALI=4.D0*WPOL/(AMYU0*RR*(AJT*1.D6)**2)
+      ALI=4.D0*WPOL/(RMU0*RR*(AJT*1.D6)**2)
 C
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 C

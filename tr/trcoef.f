@@ -301,7 +301,7 @@ C
             ENDIF
          ENDIF
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
      &         /(1.D20*AEE**4*COULOG(1,2,ANE,TE))
          TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANDX
          ANYUE = 0.5D0*(1.D0+ZEFFL)/TAUE
@@ -461,7 +461,7 @@ C
 C
             IF(MDLKAI.EQ.20) THEN
                CRTCL=6.D-2*SQRT(EZOHL*BB**3/(ANE*1.D20*SQRT(TE*RKEV)))
-     &              *SQRT(AEE**2/(AMYU0*SQRT(AME)))/(QL*RKEV)
+     &              *SQRT(AEE**2/(RMU0*SQRT(AME)))/(QL*RKEV)
                IF(ABS(DTE).LE.CRTCL.OR.
      &            DQ.LE.0.D0.OR.
      &            NR.EQ.1) THEN
@@ -471,7 +471,7 @@ C
      &                 +2.D0*ABS(DNE)/ANE)
      &                 *SQRT(TE/TI)*(1.D0/EPS)
      &                 *(QL**2/(DQ*BB*SQRT(RR)))*VC**2
-     &                 *SQRT(AMYU0*1.5D0*AMM)
+     &                 *SQRT(RMU0*1.5D0*AMM)
      &                 *(1.D0-CRTCL/ABS(DTE))
                ENDIF
                AKDW(NR,1)=                  DKAI
@@ -499,12 +499,12 @@ C
             PNI=ANDX+ANT+ANA
             AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
 C
-            VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
-            WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
+            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+            WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             S=RR*EPS*DQ/QL
 C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
             ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
@@ -530,7 +530,7 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.32) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -543,7 +543,7 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.34) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -558,7 +558,7 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.36) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -571,7 +571,7 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.38) THEN
                FS=TRCOFSS(S,0.D0)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -602,7 +602,7 @@ c$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
 c$$$               TAUAP=(QL*RR)/VA
 c$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
 c$$$C
-c$$$c$$$               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+c$$$c$$$               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 c$$$c$$$               DELTAE=SQRT(DELTA2)
 c$$$c$$$               SL=SQRT(S**2+0.1D0**2)
 c$$$c$$$               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -641,12 +641,12 @@ C
             PNI=ANDX+ANT+ANA
             AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
 C
-            VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
-            WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
+            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+            WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             S=RR*EPS*DQ/QL
 C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
             ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
@@ -671,7 +671,7 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.42) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -684,7 +684,7 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.44) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -699,7 +699,7 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.46) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -712,7 +712,7 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.48) THEN
                FS=TRCOFSS(S,0.D0)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -770,12 +770,12 @@ C
             PNI=ANDX+ANT+ANA
             AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
 C
-            VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
-            WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
+            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+            WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             S=RR*EPS*DQ/QL
 C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
             ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
@@ -1146,7 +1146,7 @@ C
          VTT = SQRT(ABS(TT*RKEV/AMT))
          VTA = SQRT(ABS(TA*RKEV/AMA))
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4)
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2/(1.D20*AEE**4)
          TAUE = COEF
      &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
      &         /ANDX
@@ -1170,7 +1170,7 @@ C
          RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
          RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &         /(ANDX*1.D20*ZEFFL*AEE**4)
          TAUE = COEF
      &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
@@ -1246,16 +1246,16 @@ C         rLnLamD=17.3D0-DLOG(ANDX)*0.5D0+DLOG(ABS(TD))*1.5D0
 C         rLnLamT=17.3D0-DLOG(ANT )*0.5D0+DLOG(ABS(TT))*1.5D0
 C         rLnLamA=17.3D0-DLOG(ANA )*0.5D0+DLOG(ABS(TA))*1.5D0
 C
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
+         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0
      &             /(PZ(1)**2*ANE*1.D20*AEE**4*rLnLamE)
-         TAUD=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMD)
+         TAUD=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMD)
      &             *(ABS(TD)*RKEV)**1.5D0
      &             /(PZ(2)**4*ANDX*1.D20*AEE**4*rLnLamD)
-         TAUT=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMT)
+         TAUT=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMT)
      &             *(ABS(TT)*RKEV)**1.5D0
      &             /(PZ(3)**4*ANT*1.D20*AEE**4*rLnLamT)
-         TAUA=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMA)
+         TAUA=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMA)
      &             *(ABS(TA)*RKEV)**1.5D0
      &             /(PZ(4)**4*ANA*1.D20*AEE**4*rLnLamA)
 C
@@ -1412,7 +1412,7 @@ C
          TE =RT(NR,1)
          ZEFFL=ZEFF(NR)
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &         /(ANI*1.D20*ZEFFL*AEE**4)
          TAUE = COEF
      &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
@@ -1453,7 +1453,7 @@ C         VTE=1.33D+7*DSQRT(ABS(TE))
          FT=1.D0-(1.D0-EPS)**2.D0
      &         /(DSQRT(1.D0-EPS**2.D0)*(1.D0+1.46D0*DSQRT(EPS)))
          rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
+         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
          RNUSE=RR*QL/(VTE*TAUE*EPSS)
          PHI=FT/(1.D0+(0.58D0+0.20D0*ZEFFL)*RNUSE)
@@ -1621,7 +1621,7 @@ C
             ENDIF
 C
 C            ZEFFL=ZEFF(NR)
-            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
@@ -1671,7 +1671,7 @@ C
                ENDDO
             ENDIF
 C
-            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
@@ -1846,7 +1846,7 @@ C     *** Hinton & Hazeltine model ***
             ENDIF
             ANED= ANE/ANI
 C
-            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4)
             BPL   = BP(NR)
             QPL   = QP(NR)

@@ -335,7 +335,7 @@ C
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       IF(MDLCD.EQ.0) THEN
-         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ELSE
          NEQ=1
          NSVN=NSS(NEQ)
@@ -345,18 +345,18 @@ C
             RDPA=0.D0
          ENDIF
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
-         RDPS=RDPA-4.D0*PI*PI*AMYU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         RDPS=RDPA-4.D0*PI*PI*RMU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ENDIF
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             CALL LAGLANGE(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-            RDPS=2.D0*PI*AMYU0*RIPL*1.D6
+            RDPS=2.D0*PI*RMU0*RIPL*1.D6
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ELSE
             TSL=DT*DBLE(NT)
             CALL LAGLANGE(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-            RDPS=2.D0*PI*AMYU0*RIPL*1.D6
+            RDPS=2.D0*PI*RMU0*RIPL*1.D6
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
       ENDIF
@@ -364,7 +364,7 @@ C      IF(MODELG.EQ.3) THEN
 C         BPS=BPSEQ*RIP/RIPEQ
 C      ENDIF
 C
-      COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*AEPS0**2)
+      COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)
 C
       DO NR=1,NRMAX
       DO NW=1,NEQMAX
@@ -1092,7 +1092,7 @@ C
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
                   F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
-     &                   /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
+     &                   /(RMU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
                   VV(NEQ,NEQ  ,NMK,NSW)= SIG(NMK)*F2C(NJ)*FC(NI,NSW)
                   DD(NEQ,NEQ  ,NMK,NSW)=          F2C(NJ)*FC(NI,NSW)
                ENDIF
@@ -1140,7 +1140,7 @@ C
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
                   F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
-     &                   /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
+     &                   /(RMU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
                   VV(NEQ,NEQ  ,NMK,NSW)= SIG(NMK)*F2C(NJ)*FC(NI,NSW)
                   DD(NEQ,NEQ  ,NMK,NSW)=          F2C(NJ)*FC(NI,NSW)
                ENDIF

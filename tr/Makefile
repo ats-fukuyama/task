@@ -1,9 +1,8 @@
 ## $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
+#FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
-#AFLAGS = $(DFLAGS) -lpgmm1 -lpgmm2 -lpgsse1 -lpgsse2
 
 SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f trmdlt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
