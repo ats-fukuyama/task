@@ -6,7 +6,7 @@ C   ************************************************
 C
       SUBROUTINE EQMESH
 C      
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       EXTERNAL EQFBND
 C
@@ -34,7 +34,7 @@ C   ************************************************
 C
       SUBROUTINE EQPSIN
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       RAXIS=RR
       ZAXIS=0.0D0
@@ -42,6 +42,7 @@ C
 C     --- assuming circular crosssection, flat current profile ---
 C
       PSI0=-0.5D0*RMU0*RIP*1.D6*RR
+      PSITS=PI*RKAP*RA**2*BB
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
           PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
@@ -57,7 +58,7 @@ C   ************************************************
 C
       SUBROUTINE EQLOOP(IERR)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL EQDEFB
       DO NLOOP=1,20
@@ -98,7 +99,7 @@ C   ************************************************
 C
       SUBROUTINE EQDEFB
 C      
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION DRHOM(NTGM),DRHOG(NTGMP)
       EXTERNAL EQFBND
@@ -165,7 +166,7 @@ C   ***********************************************
 C
       SUBROUTINE EQBAND
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       MMAX=NSGMAX*NTGMAX
       NBND=2*NTGMAX
@@ -247,7 +248,7 @@ C   ************************************************
 C
       SUBROUTINE EQRHSV(IERR)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       EXTERNAL EQPSID
@@ -502,7 +503,7 @@ C   ************************************************
 C
       SUBROUTINE EQSOLV
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION FJT(MLM),PSIOLD(NTGM,NSGM)
 C
@@ -546,7 +547,7 @@ C   ************************************************
 C
       SUBROUTINE EQTORZ
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
       EXTERNAL EQFBND
 C
       RMIN= RR-RB
@@ -589,6 +590,45 @@ C
       ENDDO
       ENDDO
 C
+      RETURN
+      END
+C
+C     ***** CALCULATE TTHETA *****
+C
+      SUBROUTINE EQCALT(TTH)
+C
+      INCLUDE '../eq/eqcomc.inc'
+      DIMENSION TTH(NRM)
+C
+      DRHO=1.D0/DBLE(NRMAX-1)
+      TTH(NR)=2.D0*PI*BB*RR
+      DO NR=NRMAX,2,-1
+         RHOP= NR   *DRHO
+         RHOM=(NR-1)*DRHO
+         PSINP=RHOP**2
+         PSINM=RHOM**2
+         CALL EQLPSI(PSINP,PLP,HJLP,PQLP,RG5P)
+         CALL EQLPSI(PSINM,PLM,HJLM,PQLM,RG5M)
+         RG5=0.5D0*(RG5P+RG5M)
+         PQL=0.5D0*(PQLP+PQLM)
+         HJL=0.5D0*(HJLP+HJLM)
+         VA= 0.5D0*RMU*(PLP-PLM)/(BB**2*RG5)
+         VB=-RMU*HJL*PSITS*(PSINP-PSINM)/(PQL*BB*RG5)
+         TTH(NR-1)=((1.D0+VA)*TTH(NR)-VB)/(1.D0-VA)
+      ENDDO
+      RETURN
+      END
+C
+C     ***** CALCULATE TTHETA *****
+C
+      SUBROUTINE EQLPSI(PSIN,PL,HJL,PQL,RG5)
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      CALL EQPPSI(PSIN,PL,DPPSI)
+      CALL EQJPSI(PSIN,HJL,DHJPSI)
+      PQL=FNQPS(PSIN)
+      RG5=FNG5S(PSIN)
       RETURN
       END
 C
@@ -668,7 +708,7 @@ C   ************************************************
 C
       SUBROUTINE EQCALP
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       IMDLEQF=MOD(MDLEQF,5)
       FDN=-1.D0/PSI0
@@ -726,7 +766,7 @@ C   ******************************************
 C
       SUBROUTINE EQSETF
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       DIMENSION PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM)
       DIMENSION PSISTX(NTGPM,NSGPM)
@@ -784,7 +824,7 @@ C   *******************************************
 C
       FUNCTION PSIF(RSIG,RTHG)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,U,
      &            NTGPM,NTGMAX+2,NSGMAX+2,IERR)
@@ -797,7 +837,7 @@ C   ************************************************
 C
       SUBROUTINE EQSAVE
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL FWOPEN(21,KNAMEQ,0,1,'EQ',IERR)
       IF(IERR.NE.0) RETURN

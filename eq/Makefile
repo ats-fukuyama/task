@@ -3,7 +3,7 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = eqinit.f eqmenu.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
+SRCS = eqinit.f eqmenu.f eqcalc.f eqcalq.f eqfunc.f eqsplf.f eqload.f \
        eqgout.f eqgsub.f eqdsk.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f pleqin.f
@@ -64,6 +64,7 @@ eqcalc.o: eqcalc.f eqcom1.inc eqcom2.inc
 eqcalq.o: eqcalq.f eqcom1.inc eqcom3.inc
 eqgout.o: eqgout.f eqcom1.inc eqcom2.inc eqcom3.inc
 eqfunc.o: eqfunc.f eqcom1.inc eqcom2.inc eqcom4.inc
+eqsplf.o: eqsplf.f eqcom1.inc eqcom2.inc eqcom4.inc
 eqload.o: eqload.f eqcom1.inc eqcom3.inc
 eqdsk.o: eqdsk.f eqcom1.inc eqcom3.inc
 trtest.o: trtest.f
