@@ -199,9 +199,9 @@ C
       RETURN
       END
 C
-C     ***** CALCULATE q AND dq/dalpha *****
+C     ***** CALCULATE q AND dq/dalpha, p *****
 C
-      SUBROUTINE SUBQPA(ALPHA,Q,DQDA)
+      SUBROUTINE SUBQPA(ALPHA,Q,DQDA,P)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -216,6 +216,9 @@ C
       ELSE
          DQDA=DQPL/DPSIL
       ENDIF
+      CALL SPL1DF(PSIL,PPL,PSS,UPPS,NRMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SUBQPA: SPL1DF ERROR3 : IERR=',IERR
+      P=PPL
       RETURN
       END
 C
