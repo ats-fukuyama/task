@@ -1097,6 +1097,8 @@ C     That is because this simple expression cannot be used if we
 C       consider impurity transports.
             IF(MDLEQ0.EQ.1) THEN
                NEQLMAX=NEQMAX-2 ! This means "Local NEQMAX".
+            ELSE
+               NEQLMAX=NEQMAX
             ENDIF
 C
             IF(NSVN.EQ.0) THEN

@@ -349,20 +349,20 @@ c$$$      ENDDO
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
 c$$$     &            '@SSIN [/sm^3]  vs r@',2+INQ)
 C
-c$$$      NS=1
-c$$$      DO NR=1,NRMAX
-c$$$         GYR(NR,NS) = GCLIP(SIE(NR))
-c$$$      ENDDO
-c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-c$$$     &            '@SIE [/sm^3]  vs r@',2+INQ)
-C
-      DO NS=1,NSMAX
+      NS=1
       DO NR=1,NRMAX
-         GYR(NR,NS) = GCLIP(SEX(NR,NS))
+         GYR(NR,NS) = GCLIP(SIE(NR))
       ENDDO
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &            '@SEX [/sm^3]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
+     &            '@SIE [/sm^3]  vs r@',2+INQ)
+C
+c$$$      DO NS=1,NSMAX
+c$$$      DO NR=1,NRMAX
+c$$$         GYR(NR,NS) = GCLIP(SEX(NR,NS))
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
+c$$$     &            '@SEX [/sm^3]  vs r@',2+INQ)
 C
       DO NS=1,NSM
       DO NR=1,NRMAX
