@@ -835,6 +835,9 @@ c$$$         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FCUR: IERR=',IERR
             BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
 CCC            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
          ENDDO
+         QP(NRMAX)=2.D0*QP(NRMAX-1)-QP(NRMAX-2)
+         BP(NRMAX)=FKAP*RA*RG(NRMAX)*BB/(RR*QP(NRMAX))
+C
          AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
          AJOH(1)=AJ(1)
          DO NR=2,NRMAX
@@ -932,9 +935,6 @@ C
          DO NR=2,NRMAX
             BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
-c$$$         DO NR=1,NRMAX
-c$$$            write(6,*) NR,AJ(NR),BP(NR)
-c$$$         ENDDO
 C
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
 CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
@@ -1073,8 +1073,6 @@ C         ENDDO
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
             AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR*RA
             BPRHO(NR)= AJ(NR)*DR/(FACTOR0*RA*FACTORP)
-C            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
-C            BPRHO(NR)= AJ(NR)*DR/(FACTOR0*FACTORP)
          DO NR=2,NRMAX-1
             FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
@@ -1085,8 +1083,6 @@ C            BPRHO(NR)= AJ(NR)*DR/(FACTOR0*FACTORP)
             AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
             BPRHO(NR)=(AJ(NR)*DR/(FACTOR0*RA)+FACTORM*BPRHO(NR-1))
      &                /FACTORP
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
-C            BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
          ENDDO
          NR=NRMAX
             FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
@@ -1097,8 +1093,6 @@ C            BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
             AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
             BPRHO(NR)=(AJ(NR)*DR/(FACTOR0*RA)+FACTORM*BPRHO(NR-1))
      &                /FACTORP
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
-C            BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
 C
          DO NR=1,NRMAX
             BP(NR)=BPRHO(NR)
@@ -1164,6 +1158,14 @@ C
 C
 C     *****
 C
+c$$$         DO NR=1,NRMAX
+c$$$            CALL SPL1DF(RM(NR),AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
+c$$$            IF(IERR.NE.0)
+c$$$     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR2L2: IERR=',IERR
+c$$$            AR2RHO(NR)=AVR2L
+c$$$         ENDDO
+c$$$         AR2RHO(NRMAX)=2.D0*AR2RHO(NRMAX-1)-AR2RHO(NRMAX-2)
+C
          DO NR=1,NRMAX
             BPRHO(NR)=BP(NR)
             QRHO(NR)=QP(NR)
@@ -1187,10 +1189,14 @@ C
             DSRHO(NR)=DSPL
 C
             CALL SPL1DF(RADNOW,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVRRL2: IERR=',IERR
             CALL SPL1DF(RADNOW,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVBRL2: IERR=',IERR
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR2L2: IERR=',IERR
+            AR2RHO(NR)=AVR2L
             ABRHO(NR)=AVR2L/AVRRL**2
+c$$$            ABRHO(NR)=AR2RHO(NR)/AVRRL**2
 C
             CALL SPL1DF(RADNOW,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
             IF(IERR.NE.0)
@@ -1208,11 +1214,6 @@ C
             IF(IERR.NE.0)
      &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR1L2: IERR=',IERR
             AR1RHO(NR)=AVR1L
-C
-            CALL SPL1DF(RADNOW,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR2L2: IERR=',IERR
-            AR2RHO(NR)=AVR2L
 C
             CALL SPL1DF(RADNOW,AVELL,ASR,UELLEQ,NUFMAX,IERR)
             IF(IERR.NE.0)
