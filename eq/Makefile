@@ -23,13 +23,13 @@ OBJA = $(SRCA:.f=.o) $(SRCQL:.f=.o)
 
 all : eq
 
-eq : $(SRCS) $(SRCCL)
+eq : $(OBJS)
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
-tr : $(SRCT) $(SRCCL)
+tr : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(SRCP) $(SRCQL)
+pl : $(OGJP)
 	$(FC) $(OBJP) -o $@ $(FFLAGS) $(FLIBS)
-ak : $(SRCA) $(SRCQL)
+ak : $(OBJA)
 	$(FC) $(OBJA) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
