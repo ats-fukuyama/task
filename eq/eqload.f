@@ -28,7 +28,7 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      CALL FROPEN(21,KNAMEQ,0,0,IERR)
+      CALL FROPEN(21,KNAMEQ,0,0,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 C
       READ(21) RR,BB,RIP
@@ -76,7 +76,7 @@ C
       RMU0=4.D0*PI*1.D-7
       KNAMEQ=KNAMEQ1
 C
-      CALL FROPEN(21,KNAMEQ,0,0,IERR)
+      CALL FROPEN(21,KNAMEQ,0,0,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 C
 c$$$      READ(21) RR,BB,RIP
