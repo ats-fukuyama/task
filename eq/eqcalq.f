@@ -137,11 +137,16 @@ C
             B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
             BMIN=MIN(BMIN,B)
             BMAX=MAX(BMAX,B)
-            SUMAVBR=SUMAVBR+H*BPR*BPR/(R*R)
-            SUMAVRR=SUMAVRR+H/(R*R)
-            SUMAVR1=SUMAVR1+H*BPR
-            SUMAVR2=SUMAVR2+H*BPR*BPR
-            SUML   =SUML+H
+C            SUMAVBR=SUMAVBR+H*BPR*BPR/(R*R)
+C            SUMAVRR=SUMAVRR+H/(R*R)
+C            SUMAVR1=SUMAVR1+H*BPR
+C            SUMAVR2=SUMAVR2+H*BPR*BPR
+C            SUML   =SUML+H
+            SUMAVBR=SUMAVBR+H*BPR/R
+            SUMAVRR=SUMAVRR+H/(R*BPR)
+            SUMAVR1=SUMAVR1+H*R
+            SUMAVR2=SUMAVR2+H*R*BPR
+            SUML   =SUML   +H*R/BPR
          ENDDO
 C
          SPS(NR)=SUMS
@@ -359,10 +364,12 @@ C
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0
       AVR2(1)=(4.D0*AVR2(2)-AVR2(3))/3.D0
 C
-C      DO NR=1,NRMAX
-C         WRITE(6,'(I5,1P,5E12.4)') 
-C     &        NR,PSS(NR),AVR1(NR),AVR2(NR),AVRR(NR),AVBR(NR)
-C      ENDDO
+      IF(NPRINT.GE.2) THEN
+         DO NR=1,NRMAX
+            WRITE(6,'(I5,1P,5E12.4)') 
+     &           NR,PSS(NR),AVR1(NR),AVR2(NR),AVRR(NR),AVBR(NR)
+         ENDDO
+      ENDIF
 C
       CALL SPL1D(PSS,PPS,DERIV,UPPS,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPS: IERR=',IERR
@@ -503,10 +510,13 @@ C
       BETAP=PSAVE/(BPA**2/(2.D0*RMU0))
       QAXIS=FNQPS(0.D0)
       QSURF=FNQPS(1.D0)
-C      WRITE(6,'(A,1P4E12.4)') 
-C     &     'PVOL,PAREA,PVAVE,PSAVE  =',PVOL,PAREA,PVAVE,PSAVE
-C      WRITE(6,'(A,1P4E12.4)') 
-C     &     'BETAT,BETAP,QAXIS,QSURF =',BETAT,BETAP,QAXIS,QSURF
+C
+      IF(NPRINT.GE.2) THEN
+         WRITE(6,'(A,1P4E12.4)') 
+     &        'PVOL,PAREA,PVAVE,PSAVE  =',PVOL,PAREA,PVAVE,PSAVE
+         WRITE(6,'(A,1P4E12.4)') 
+     &        'BETAT,BETAP,QAXIS,QSURF =',BETAT,BETAP,QAXIS,QSURF
+      ENDIF
 C
       RETURN
       END
