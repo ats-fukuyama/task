@@ -62,7 +62,7 @@ new :
 	cp -f *.inc ../wmnew
 
 clean:
-	rm -f core *.o ./*~ ../mtx/*.o
+	rm -f core *.o ./*~ ../mtx/*.o *.a
 
 veryclean: clean
 	rm -f wm

@@ -31,7 +31,7 @@ all : tot
 	(cd ../eq; make treqin.o)
 ../eq/wmeqin.o:
 	(cd ../eq; make wmeqin.o)
-../dp/tr2lib.a:
+../tr/tr2lib.a:
 	(cd ../tr; make tr2lib.a)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
