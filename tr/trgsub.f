@@ -388,7 +388,7 @@ C
                GEUN(NX)=GY(NX,NG)-GE(NX,NG)
                GEUP(NX)=GY(NX,NG)+GE(NX,NG)
             ENDDO
-            CALL GPLOTPE(GXE,GEUN,GEUP,1,NXMAX,1,0.1)
+            CALL GPLOTPE(GXE,GEUN,GEUP,1,NXEMAX,1,0.1)
          ELSEIF(NG.EQ.2) THEN
             IF(MOD(MODE/2,2).EQ.0) THEN
                CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
@@ -896,35 +896,35 @@ C
          GYT(NG,2)=GUCLIP(TE0(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
-     &            '@TE0(TR),TE0(UF) [keV]  vs t@',2+INQ)
+     &            '@TE0(TR),TE0(XP) [keV]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,10)
          GYT(NG,2)=GUCLIP(TI0(NG))
       ENDDO
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,2,
-     &            '@TI0(TR),TI0(UF) [keV]  vs t@',2+INQ)
+     &            '@TI0(TR),TI0(XP) [keV]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,33)
          GYT(NG,2)=GUCLIP(WTOT(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
-     &            '@WTOT(TR),WTOT(UF) [MJ]  vs t@',2+INQ)
+     &            '@WTOT(TR),WTOT(XP) [MJ]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,42)+GVT(NG,43)
          GYT(NG,2)=GUCLIP(PICRH(NG))
       ENDDO
       CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
-     &            '@PICRH(TR),PICRH(UF) [MW]  vs t@',2+INQ)
+     &            '@PICRH(TR),PICRH(XP) [MW]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,38)
          GYT(NG,2)=GUCLIP(RIBS(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,2,
-     &            '@IBS(TR),IBS(UF) [MA]  vs t@',2+INQ)
+     &            '@IBS(TR),IBS(XP) [MA]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,89)
@@ -933,14 +933,14 @@ C
          GYT(NG,4)=GUCLIP(PNBI(NG))
       ENDDO
       CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,
-     &            '@PNBIE;I;TOT(TR),PNBI(UF) [MW]  vs t@',2+INQ)
+     &            '@PNBIE;I;TOT(TR),PNBI(XP) [MW]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,34)
          GYT(NG,2)=GUCLIP(RIPL(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
-     &            '@IP(TR),IP(UF) [MA]  vs t@',2+INQ)
+     &            '@IP(TR),IP(XP) [MA]  vs t@',2+INQ)
 C
       CALL PAGEE
 C
@@ -965,14 +965,14 @@ C
             GYR(NR,2) = GUCLIP(RTU(NR,1,NT))
          ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TE(TR),TE(UF) [keV]  vs r@',2+INQ)
+     &               '@TE(TR),TE(XP) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
             GYR(NR,2) = GUCLIP(RTU(NR,2,NT))
           ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
+     &               '@TI(TR),TI(XP) [keV]  vs r@',2+INQ)
 C
          IF(MDLJQ.NE.1) THEN
             DO NR=1,NRMAX
@@ -980,14 +980,14 @@ C
                GYR(NR,2) = GUCLIP(QPU(NR,NT))
             ENDDO
             CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &                  '@QP(TR),QP(UF) vs r@',2+INQ)
+     &                  '@QP(TR),QP(XP) vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
                GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
                GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
             ENDDO
             CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &                  '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+     &                  '@AJ(TR),AJ(XP) [MA/m$+2$=]  vs r@',2+INQ)
          ENDIF
 C
          DO NR=1,NRMAX
@@ -995,7 +995,7 @@ C
             GYR(NR,2) = GUCLIP(BPU(NR,NT))
          ENDDO
          CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@BP(TR),BP(UF) [T] vs r@',2+INQ)
+     &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
          CALL PAGEE
       ELSEIF(MDLUF.EQ.2) THEN
@@ -1006,28 +1006,28 @@ C
             GYR(NR,2) = GUCLIP(RTU(NR,1,1))
          ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TE(TR),TE(UF) [keV]  vs r@',2+INQ)
+     &               '@TE(TR),TE(XP) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
             GYR(NR,2) = GUCLIP(RTU(NR,2,1))
          ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
+     &               '@TI(TR),TI(XP) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
             GYR(NR,2) = GUCLIP(AJU(NR,1)*1.D-6)
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &        '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+     &        '@AJ(TR),AJ(XP) [MA/m$+2$=]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(BP(NR))
             GYR(NR,2) = GUCLIP(BPU(NR,1))
          ENDDO
          CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@BP(TR),BP(UF) [T] vs r@',2+INQ)
+     &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
          CALL PAGEE
       ELSEIF(MDLUF.EQ.3) THEN
@@ -1038,21 +1038,21 @@ C
             GYR(NR,2) = GUCLIP(RTU(NR,1,NT))
          ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TE(TR),TE(UF) [keV]  vs r@',2+INQ)
+     &               '@TE(TR),TE(XP) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
             GYR(NR,2) = GUCLIP(RTU(NR,2,NT))
          ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
+     &               '@TI(TR),TI(XP) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
             GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+     &               '@AJ(TR),AJ(XP) [MA/m$+2$=]  vs r@',2+INQ)
 C
          IF(KUFDEV.EQ.'X'.AND.KUFDCG.EQ.'14') THEN
             DO NR=1,NRMAX
@@ -1060,14 +1060,14 @@ C
                GYR(NR,2) = GUCLIP(AJBSU(NR,NT)*1.D-6)
             ENDDO
             CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &                  '@AJBS(TR),AJBS(UF) [MA/m$+2$=]  vs r@',2+INQ)
+     &                  '@AJBS(TR),AJBS(XP) [MA/m$+2$=]  vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
                GYR(NR,1) = GUCLIP(QP(NR))
                GYR(NR,2) = GUCLIP(QPU(NR,NT))
             ENDDO
             CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &                  '@QP(TR),QP(UF)  vs r@',2+INQ)
+     &                  '@QP(TR),QP(XP)  vs r@',2+INQ)
          ENDIF
          CALL PAGEE
       ELSE
@@ -1090,6 +1090,11 @@ C
 C
       IF(MDLUF.EQ.2) THEN
          CALL PAGES
+         DO NG=1,2
+            DO NR=1,NRMP
+               GYR(NR,NG)=0.0
+            ENDDO
+         ENDDO
          DO NR=1,NREMAX(1)
             GYR(NR,1) = GUCLIP(RTEXU(NR,1))
             GER(NR,1) = GUCLIP(RTEXEU(NR,1))
@@ -1099,7 +1104,7 @@ C
          ENDDO
          CALL TRGR1DE( 3.0,12.0,11.0,17.0,GRM,GYR,GRE(1,1),GER,NRMP,
      &                NRMAX,NREMAX(1),2,
-     &                '@TE(UF),TE(TR) [keV]  vs r@',2+INQ)
+     &                '@TE(XP),TE(TR) [keV]  vs r@',2+INQ)
 C     
          DO NR=1,NREMAX(1)
             GYR(NR,1) = GUCLIP(RTIXU(NR,1))
@@ -1110,7 +1115,7 @@ C
          ENDDO
          CALL TRGR1DE(15.5,24.5,11.0,17.0,GRM,GYR,GRE(1,1),GER,NRMP,
      &                NRMAX,NREMAX(1),2,
-     &                '@TI(UF),TI(TR) [keV]  vs r@',2+INQ)
+     &                '@TI(XP),TI(TR) [keV]  vs r@',2+INQ)
 C     
          DO NR=1,NREMAX(2)
             GYR(NR,1) = GUCLIP(RNEXU(NR,1))
@@ -1121,7 +1126,7 @@ C
          ENDDO            
          CALL TRGR1DE( 3.0,12.0, 2.0, 8.0,GRM,GYR,GRE(1,2),GER,NRMP,
      &                NRMAX,NREMAX(2),2,
-     &                '@NE(UF),NE(TR) [10$+20$=/m$+3$=] vs r@',2+INQ)
+     &                '@NE(XP),NE(TR) [10$+20$=/m$+3$=] vs r@',2+INQ)
          CALL PAGEE
       ENDIF
 C

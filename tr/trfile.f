@@ -290,16 +290,16 @@ C
       CALL KTRIM(KUFDEV,IKNDEV)
       CALL KTRIM(KUFDCG,IKNDCG)
 C
-      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
-     &                          //KUFDCG(1:IKNDCG)//'/in/'
-C      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+C      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
 C     &                          //KUFDCG(1:IKNDCG)//'/in/'
+      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+     &                          //KUFDCG(1:IKNDCG)//'/in/'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NEQV..TRUE.) THEN
-         WRITE(6,'(A25,A34,A17)') 
-     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
-         STOP
-      ENDIF
+C      IF(DIR.NEQV..TRUE.) THEN
+C         WRITE(6,'(A25,A34,A17)') 
+C     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
+C         STOP
+C      ENDIF
 C
       CALL KTRIM(KDIRX,IKDIRX)
       KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
@@ -2690,13 +2690,13 @@ C
  1000 CONTINUE
       IF(KFID.EQ.'NEXP'.OR.KFID.EQ.'NEXPEB') THEN
          DO NTX=1,NTXMAX
-            DO NRF=1,NRFMAX
+            DO NRF=1,NRMU
                F2(NRF,NTX)=F2(NRF,NTX)*1.D-20
             ENDDO
          ENDDO
       ELSE
          DO NTX=1,NTXMAX
-            DO NRF=1,NRFMAX
+            DO NRF=1,NRMU
                F2(NRF,NTX)=F2(NRF,NTX)*1.D-3
             ENDDO
          ENDDO
