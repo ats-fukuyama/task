@@ -179,7 +179,7 @@ C
          enddo
       else
          call MPSETI(NDTMP,myrank,ista,iend)
-         call mpi_isend(dtmp(ista),iend-ista+1,mpi_double_precesion,
+         call mpi_isend(dtmp(ista),iend-ista+1,mpi_double_precision,
      &                  0,0,mpi_comm_world,ireq1,ierr)
          call mpi_wait(ireq1,istatus,ierr)
       endif
