@@ -141,7 +141,8 @@ C     MODELC: 0 for linear collision operator
 C             1 for nonlinear collision operator
 C     MODELW: 0 for given diffusion coefficient model
 C             1 for given wave electric field model
-C             2 for wave electric field calculated by WR
+C             2 for wave electric field calculated by WR(without beam radius)
+C             3 for wave electric field calcurated by WR(with  beam radius)
 C
       MODELE= 0
       MODELA= 1

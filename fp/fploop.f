@@ -41,7 +41,8 @@ C
          RG(NRMAX+1)=RMAX
       ENDIF
 C
-      IF(MODELW.EQ.2) THEN
+      IF(MODELW.EQ.2.OR.MODELW.EQ.3) THEN
+C      IF(MODELW.EQ.2) THEN
          CALL FPLDWR(IERR)
          IF(IERR.NE.0) RETURN
       ELSE
