@@ -903,13 +903,13 @@ C
          ENDDO
       ELSE
          NR=1
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
             AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
          DO NR=2,NRMAX-1
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
@@ -918,7 +918,7 @@ C
             AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
          ENDDO
          NR=NRMAX
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
@@ -926,6 +926,10 @@ C
             AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
       ENDIF
 C
+c$$$      DO NR=1,NRMAX
+c$$$         write(6,*) "trcalc.f AJ=",AJ(NR)
+c$$$      ENDDO
+C      
       DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
          EZOH(NR) = ETA(NR)*AJOH(NR)
@@ -1044,6 +1048,7 @@ C
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
                BP(NR)  = FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+               write(6,*) NR,BP(NR)
             ENDDO
          ENDIF
       ENDIF

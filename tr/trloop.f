@@ -41,7 +41,6 @@ C
       IF(NT.GE.NTMAX) GOTO 9000
 C
  1000 L=0
-C
       CALL TRATOX(NQM)
 C
       DO J=1,NQM
@@ -115,7 +114,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
      &                          /RN(NR,NS)
             ENDIF
             ENDIF
-C            write(6,*) NR,NS,RT(NR,NS)
          ENDDO
          BP(NR)    = 0.5D0*(XV(NQM,NR)+X(NQM*NR))
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
@@ -298,7 +296,11 @@ C
          FCM=0.5D0*(FC1+FC2)
          FC0=0.5D0*(FC2+FC3)
          FCP=0.5D0*(FC3+FC4)
-         FVL = FKAP/RKAP
+         IF (MODELG.EQ.0) THEN
+            FVL = FKAP/RKAP
+         ELSEIF (MODELG.EQ.3) THEN
+            FVL = 1.D0
+         ENDIF
 C
          A(NN,NN,NR) = F2M*FCM*FVL
          B(NN,NN,NR) =-F2M*FC0*FVL
@@ -455,7 +457,11 @@ C
          FCM=0.5D0*(FC1+FC2)
          FC0=0.5D0*(FC2+FC3)
          FCP=0.5D0*(FC3+FC4)
-         FVL = FKAP/RKAP
+         IF (MODELG.EQ.0) THEN
+            FVL = FKAP/RKAP
+         ELSEIF (MODELG.EQ.3) THEN
+            FVL = 1.D0
+         ENDIF
 C
 C         A(NN,NN,NR) = F2M*FCM*FVL
          A(NN,NN,NR) = 0.D0*FVL
@@ -1013,7 +1019,11 @@ C
          RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
       ENDDO
 C
-      FVL = FKAP/RKAP
+      IF (MODELG.EQ.0) THEN
+         FVL = FKAP/RKAP
+      ELSEIF (MODELG.EQ.3) THEN
+         FVL = 1.D0
+      ENDIF
       DO NMK=1,3
          IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
             FA(NMK,NSW)=DVRHO(NR+(NMK-2))*AR1RHO(NR+(NMK-2))*FVL/DR

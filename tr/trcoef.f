@@ -431,6 +431,7 @@ C
             VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
             S=RR*EPS*DQ/QL
+C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
             DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
             ALFA=-QL*QL*DBDR*RR/RA
@@ -449,6 +450,7 @@ C
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.31) THEN
                FS=TRCOFS(S,ALFA,RKCV)
+C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN

@@ -701,13 +701,30 @@ C
          DO NR=1,NRMAX
 C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
 C     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
+C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,A,K,RDLT,B,I=',
+C     &           NR,RA,RKAP,RDLT,BB,RIP
             QP(NR)=-QRHO(NR)
          ENDDO
 C         PAUSE
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
 C
-      CALL TRSETG
+      JL=0
+      AJOLD=0.D0
+      DO NR=1,NRMAX
+         IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
+      ENDDO
+ 2000 CALL TRSETG
+      JL=JL+1
+      AJMAX=0.D0
+      DO NR=1,NRMAX
+         IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
+      ENDDO
+C      write(6,'(I4,1P3E14.7)') JL,AJOLD,AJMAX,ABS(AJOLD-AJMAX)
+      IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
+         AJOLD=AJMAX
+         GOTO 2000
+      ENDIF
 C
       IF(MODELG.EQ.0) THEN
          GRG(1)=0.0
@@ -736,7 +753,7 @@ C
       INCLUDE 'trcomm.h'
 C
       IF(MODELG.EQ.3) THEN
-         DO NR=1,NRMAX
+        DO NR=1,NRMAX
             PRHO(NR)=0.D0
             TRHO(NR)=0.D0
             DO NS=1,NSM
@@ -749,13 +766,19 @@ C
             DO NS=2,NSM
                TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(NR,1)
             ENDDO
-            HJRHO(NR)=AJ(NR)
+            HJRHO(NR)=AJ(NR)*1.D-6
             VTRHO(NR)=0.D0
 C            WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,P/HJ/T/VTRHO=',NR,PRHO(NR),
 C     &           HJRHO(NR),TRHO(NR),VTRHO(NR)
          ENDDO
 C         PAUSE
+C
+         DO NR=1,NRMAX
+C            WRITE(6,'(A,2I5,1P4E12.4)')
+C     &           'NR,I/RM/J/V/T=',NR,NRMAX,RIP,
+C     &           HJRHO(NR),VTRHO(NR),TRHO(NR)
+         ENDDO
 C
          CALL TREQEX(RIP,NRMAX,PRHO,HJRHO,VTRHO,TRHO,
      &               QRHO,TTRHO,DVRHO,DSRHO,
@@ -766,34 +789,58 @@ C
 C            WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,Q/TT/DV/AB=',NR,QRHO(NR),
 C     &           TTRHO(NR),DVRHO(NR),ABRHO(NR)
+C            WRITE(6,'(A,I5,1P4E12.4)')
+C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
+C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
          ENDDO
 C         PAUSE
 C
+C         DO NR=1,NRMAX
+C            BPNR=RA*RHOTR(NR)*TTRHO(NR)*ARRHO(NR)/QRHO(NR)
+C            write(6,*) NR,BPNR,BP(NR)
+C            BP(NR)=BPNR
+C         ENDDO
          NR=1
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
-C            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
+            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
             BPRHO(NR)= AJ(NR)*DR/(FACTOR0*FACTORP)
          DO NR=2,NRMAX-1
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
             BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
          ENDDO
          NR=NRMAX
-            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
             FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
             BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
+C            write(6,*) "AJ(NR)=",AJ(NR)
+c$$$         DO NR=2,NRMAX-1
+c$$$C            write(6,*) TTRHO(NR),ARRHO(NR),DVRHO(NR)
+c$$$C            write(6,*) ABRHO(NR)
+c$$$            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+c$$$            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+c$$$            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+c$$$            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+c$$$            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+c$$$            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+c$$$            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+c$$$C           write(6,'(A,1P5E12.4)') 'F0,FP,FM,-,AJ='
+c$$$C     &           ,FACTOR0,FACTORP*BP(NR),FACTORM*BP(NR-1)
+c$$$C     &           ,FACTORP*BP(NR)-FACTORM*BP(NR-1),AJ(NR)
+c$$$         ENDDO
+C
          DO NR=1,NRMAX
             BP(NR)=BPRHO(NR)
             QP(NR)=QRHO(NR)
@@ -812,6 +859,20 @@ C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
 C            EPSRHO(NR)=RA*RM(NR)/RR
             EPSRHO(NR)=RA*RG(NR)/RR
          ENDDO
+c$$$         DO NR=2,NRMAX-1
+c$$$C         write(6,*) TTRHO(NR),ARRHO(NR),DVRHO(NR)
+c$$$C         write(6,*) ABRHO(NR)
+c$$$            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+c$$$            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+c$$$            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+c$$$            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+c$$$            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+c$$$            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+c$$$            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+c$$$C            write(6,'(A,1P5E12.4)') 'F0,FP,FM,-,AJ='
+c$$$C     &   ,FACTOR0,FACTORP,FACTORM,FACTORP*BP(NR)-FACTORM*BP(NR-1),AJ(NR)
+c$$$         ENDDO
       ENDIF
+C
       RETURN
       END
