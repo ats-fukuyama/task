@@ -510,6 +510,8 @@ C
       ENDDO
 C
       MDLETASTCK=MDLETA
+      MDNCLSSTCK=MDNCLS
+      IF(MDNCLS.EQ.1) MDNCLS=0
       DO MDLETA=1,3
          CALL TRCFET
          DO NR=1,NRMAX
@@ -517,8 +519,8 @@ C
          ENDDO
       ENDDO
       MDLETA=MDLETASTCK
+      MDNCLS=MDLNSCSTCK
 C
-      MDNCLSSTCK=MDNCLS
       IF(MDNCLS.EQ.0) MDNCLS=1
       CALL TR_NCLASS
       CALL TRAJBS_NCLASS
@@ -593,7 +595,7 @@ C
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX,4,
      &            '@ADNCE, AKNCD [m^2/s]  vs r@',2)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX,4,
-     &           '@AKNCE, AKNCD [m^2/s] vs r @',2)
+     &            '@AKNCE, AKNCD [m^2/s] vs r @',2)
       CALL TRGRTM
       CALL PAGEE
 C

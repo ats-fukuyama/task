@@ -416,7 +416,7 @@ C
       SUBROUTINE TRAJBS_NCLASS
 C
       INCLUDE 'trcomm.h'
-      DIMENSION ANI(NRM),AJBSL(NRM)
+      DIMENSION AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
 C
@@ -473,24 +473,26 @@ C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
-            RNTP= RN(NR,  2)*RT(NR,  2)
-     &           +RN(NR,  3)*RT(NR,  3)
-     &           +RN(NR,  4)*RT(NR,  4)
-     &           +RW(NR,  1)+RW(NR,  2)
-            RNP = RN(NR,  2)+RN(NR,  3)+RN(NR,  4)
-            RNTM= RN(NR-1,2)*RT(NR-1,2)
-     &           +RN(NR-1,3)*RT(NR-1,3)
-     &           +RN(NR-1,4)*RT(NR-1,4)
-     &           +RW(NR-1,1)+RW(NR-1,2)
-            RNM = RN(NR-1,2)+RN(NR-1,3)+RN(NR-1, 4)
+         RNTP=0.D0
+         RNP =0.D0
+         RNTM=0.D0
+         RNM =0.D0
+         DO NS=2,NSMAX
+            RNTP=RNTP+RN(NR  ,NS)*RT(NR  ,NS)
+            RNP =RNP +RN(NR  ,NS)
+            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
+            RNM =RNM +RN(NR-1,NS)
+         ENDDO
+         RNTP=RNTP+RW(NR,  1)+RW(NR,  2)
+         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
 C
 C     ****** ION PARAMETER ******
 C
-C     ***** ANI  is the the ion density (ni) *****
-C     ***** TI   is the ion temperature (Ti) *****
-C     ***** DTI  is the derivative of ion temperature (dTi/dr) *****
-C     ***** PPI  is the ion pressure (Pi) *****
-C     ***** DPI  is the derivative of ion pressure (dPi/dr) *****
+C     *** ANI  is the the ion density (ni) ***
+C     *** TI   is the ion temperature (Ti) ***
+C     *** DTI  is the derivative of ion temperature (dTi/dr) ***
+C     *** PPI  is the ion pressure (Pi) ***
+C     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 C
          ANI(NR)=0.D0
          DO NS=2,NSMAX
@@ -500,19 +502,21 @@ C
          PPI=0.5D0*(RNTP+RNTM)
          DTI=(RNTP/RNP-RNTM/RNM)*AR1RHO(NR)/DR
          DPI=(RNTP-RNTM)*AR1RHO(NR)/DR
+C         write(6,*) NR,TI,DTI
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
-     &           /((TI*1.D3)**1.5))
+     &           /(ABS(TI*1.D3)**1.5))
          RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii
-     &       /((TI*1.D3)**2*EPSS)
-C
+     &       /(ABS(TI*1.D3)**2*EPSS)
+C     
 C     ****** ELECTORON PARAMETER ******
 C
-C     ***** ANE  is the the electron density (ne) *****
-C     ***** TE   is the electron temperature (Te) *****
-C     ***** DTE  is the derivative of electron temperature (dTe/dr) ****
-C     ***** PE   is the electron pressure (Pe) *****
-C     ***** DPE  is the derivative of electron pressure (dPe/dr) *****
+C     *** ANE  is the the electron density (ne) ***
+C     *** TE   is the electron temperature (Te) ***
+C     *** PE   is the electron pressure (Pe) ***
+C     *** DNE  is the derivative of electron density (dne/dr) ***
+C     *** DTE  is the derivative of electron temperature (dTe/dr) ***
+C     *** DPE  is the derivative of electron pressure (dPe/dr) ***
 C
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
          TE= 0.5D0*(RT(NR-1,1)+RT(NR,1))
@@ -521,9 +525,9 @@ C
          DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
          DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*AR1RHO(NR)/DR
 C
-         rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TE*1.D3))
+         rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
-     &       /((TE*1.D3)**2*EPSS)
+     &       /(ABS(TE*1.D3)**2*EPSS)
 C
          RPE=PE/(PE+PPI)
 C     <1>
@@ -564,9 +568,9 @@ C
          RL32=F32EE(F32EETEFF,ZEFFL)+F32EI(F32EITEFF,ZEFFL)
          RL34=F31(F34TEFF,ZEFFL)
 C
-c$$$         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV
-c$$$     &             *( RL31*(DPE/PE+DPI/PE)+RL32*DTE/TE
-c$$$     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
+C         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV
+C     &             *( RL31*(DPE/PE+DPI/PE)+RL32*DTE/TE
+C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
          AJBSL(NR)=-PBSCD*(PE+PPI)*1.D20*RKEV
      &            *( RL31*DNE/ANE
      &              +RPE*(RL31+RL32)*DTE/TE
@@ -647,16 +651,18 @@ C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
-            RNTP= RN(NR,  2)*RT(NR,  2)
-     &           +RN(NR,  3)*RT(NR,  3)
-     &           +RN(NR,  4)*RT(NR,  4)
-     &           +RW(NR,  1)+RW(NR,  2)
-            RNP = RN(NR,  2)+RN(NR,  3)+RN(NR,  4)
-            RNTM= RN(NR-1,2)*RT(NR-1,2)
-     &           +RN(NR-1,3)*RT(NR-1,3)
-     &           +RN(NR-1,4)*RT(NR-1,4)
-     &           +RW(NR-1,1)+RW(NR-1,2)
-            RNM = RN(NR-1,2)+RN(NR-1,3)+RN(NR-1, 4)
+         RNTP=0.D0
+         RNP=0.D0
+         RNTM=0.D0
+         RNM=0.D0
+         DO NS=2,NSMAX
+            RNTP=RNTP+RN(NR  ,NS)*RT(NR  ,NS)
+            RNP =RNP +RN(NR  ,NS)
+            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
+            RNM =RNM +RN(NR-1,NS)
+         ENDDO
+         RNTP=RNTP+RW(NR,  1)+RW(NR,  2)
+         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
 C
 C     ****** ION PARAMETER ******
 C
@@ -677,13 +683,13 @@ C
          DPI=(RNTP-RNTM)*AR1RHO(NR)/DR
          VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
-C***  17.2 -> 17.3
-         rLnLam=17.3D0-DLOG(ANI(NR))*0.5D0+DLOG(ABS(TI))*1.5D0
-C***
+         ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
+         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
 C***  ZEFFL ?
-         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMM)
+         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
      &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
      &             *ZEFFL**4*AEE**4*rLnLam)
+         rLnLami=rLnLam
 C***
 C
          RNUI=QL*RR/(TAUI*VTI*EPSS)
@@ -698,7 +704,7 @@ C     ***** DPE  is the derivative of electron pressure (dPe/dr) *****
 C     ***** VTE  is the electron velocity (VTe) *****
 C
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-         TE= 0.5D0*(RT(NR,1)+RT(NR-1,1))
+         TE= 0.5D0*(RT(NR-1,1)+RT(NR,1))
          PE= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
          DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
          DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*AR1RHO(NR)/DR
@@ -706,7 +712,7 @@ C
 C
          rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
 C***  ZEFFL ?
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
+         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
      &             *ZEFFL**2*AEE**4*rLnLam)
 C***

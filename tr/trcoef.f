@@ -1125,10 +1125,13 @@ C            ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
          ENDIF
          RALFA=ZEFFL-1.D0
 C
-         rLnLamE=15.2D0-DLOG(ANE )*0.5D0+DLOG(ABS(TE))
-         rLnLamD=17.3D0-DLOG(ANDX)*0.5D0+DLOG(ABS(TD))*1.5D0
-         rLnLamT=17.3D0-DLOG(ANT )*0.5D0+DLOG(ABS(TT))*1.5D0
-         rLnLamA=17.3D0-DLOG(ANA )*0.5D0+DLOG(ABS(TA))*1.5D0
+         rLnLamE=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
+         rLnLamD=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TD))*1.5D0
+         rLnLamT=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TT))*1.5D0
+         rLnLamA=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TA))*1.5D0
+C         rLnLamD=17.3D0-DLOG(ANDX)*0.5D0+DLOG(ABS(TD))*1.5D0
+C         rLnLamT=17.3D0-DLOG(ANT )*0.5D0+DLOG(ABS(TT))*1.5D0
+C         rLnLamA=17.3D0-DLOG(ANA )*0.5D0+DLOG(ABS(TA))*1.5D0
 C
          TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0
@@ -1318,7 +1321,7 @@ C
                QL= 0.5D0*(QP(NR-1)+QP(NR))
             ENDIF
             ZEFFL=ZEFF(NR)
-            rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TE*1.D3))
+            rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
             RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
             SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
             FT=1.D0-(1.D0-EPS)**2.D0

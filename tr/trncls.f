@@ -82,7 +82,7 @@ C
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
       INCLUDE 'trncls.inc'
-      REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM),p_grbp(NRM)
+      REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
 C
       k_order=2
       k_potato=0
@@ -120,16 +120,12 @@ c$$$         ENDDO
 c$$$         p_gr2str(NRMAX)=(0.E0-p_grstr(NRMAX-1))/DR
 C
          DO NR=2,NRMAX
-            p_grrm(NR)=0.5E0*(p_grstr(NR)+p_grstr(NR-1))
-            p_grbp(NR)=0.5E0*SNGL(BP(NR)+BP(NR-1))
+            p_grrm(NR)=0.5E0*(p_grstr(NR  )/SNGL(BP(NR  ))
+     &                       +p_grstr(NR-1)/SNGL(BP(NR-1)))
          ENDDO
          p_grrm(1)=2.E0*p_grrm(2)-p_grrm(3)
-         p_grbp(1)=2.E0*p_grbp(2)-p_grbp(3)
          DO NR=1,NRMAX-1
-            p_gr2str(NR)=SNGL(BP(NR))*
-     &                   (p_grrm(NR+1)/p_grbp(NR+1)
-     &                   -p_grrm(NR  )/p_grbp(NR  ))
-     &                   /SNGL(DR)
+            p_gr2str(NR)=SNGL(BP(NR))*(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
          ENDDO
          p_gr2str(NRMAX)=2.E0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
       ELSE
@@ -144,7 +140,7 @@ C
 C
          p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
-         p_fhat=SNGL(QP(NR)/EPS)
+         p_fhat=SNGL(QP(NR)/EPS*AR1RHO(NR))
          DO i=1,3
             p_fm(i)=0.0
          ENDDO
@@ -163,10 +159,11 @@ C
      &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS)))
          p_ft=p_ft2
 C         p_grbm2=SNGL(AR2RHO(NR)/BB**2)
-         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
+C         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
+         p_grbm2=SNGL(AR2RHO(NR))/p_b2
          p_grphi=p_grstr(NR)
          p_gr2phi=p_gr2str(NR)
-         p_ngrth=SNGL(EPS/QP(NR))
+         p_ngrth=1.0/SNGL(QP(NR)*RR)
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(PTS(NS))
@@ -232,6 +229,10 @@ c$$$               if(ns.eq.ns1.and.ns.eq.1) ! or ns.eq.2
 c$$$     &              write(6,*) NR,ADNCP(NR,NS,NS1)+ADNCT(NR,NS,NS1),
 c$$$     &                            AKNCP(NR,NS,NS1)+AKNCT(NR,NS,NS1)
             ENDDO
+C            DO NS1=3,4
+C               write(6,'(3I5,1P2E20.7)') 
+C     &              NR,NS,NS1,dp_ss(NS,NS1),dt_ss(NS,NS1)
+C            ENDDO
             DO NM=1,5
                RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
                RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
@@ -242,6 +243,5 @@ c$$$     &                            AKNCP(NR,NS,NS1)+AKNCT(NR,NS,NS1)
 C
       ENDDO
 C
-C      STOP
       RETURN
       END
