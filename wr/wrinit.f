@@ -130,7 +130,6 @@ C
             IF(IERR.EQ.0) THEN
                CALL EQSETP
                CALL EQPSIC(51,32,64,IERR)
-C               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
             ENDIF
             INITEQ=1

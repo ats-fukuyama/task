@@ -153,7 +153,8 @@ C
       FA=FUNC(A)
       FB=FUNC(B)
       IF((FA.GT.0..AND.FB.GT.0.).OR.(FA.LT.0..AND.FB.LT.0.)) THEN
-         WRITE(6,'(A,1P3E12.4)') 'XX ZBRENT: ROOT MUST BE BETWEEN',X1,X2
+         WRITE(6,'(A,1P2E12.4)') 'XX ZBRENT: ROOT MUST BE BETWEEN',X1,X2
+         WRITE(6,'(A,1P2E12.4)') '         : F(X1),F(X2)=',FA,FB
          ZBRENT=A
          RETURN
       ENDIF

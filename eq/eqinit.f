@@ -209,8 +209,8 @@ C
       NPSMAX = 21
 C
       NRMAX  = 50
-      NTHMAX = 16
-      NSUMAX = 41
+      NTHMAX = 64
+      NSUMAX = 65
 C
 C     *** CONTROL PARAMETERS ***
 C

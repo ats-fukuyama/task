@@ -15,6 +15,7 @@ C     RIP           : Total plasma current                      (MA)
 C     NTRMAX        : Maximum array number
 C     RHOTR(NTRMAX) : Normalized radial mesh
 C     HJRHO(NTRMAX) : Plasma current density                (MA/m^2)
+C     MDLUF         :
 C
 C     output:
 C
@@ -195,6 +196,7 @@ C     ARRHO(NTRMAX) : <1/R^2>
 C     AR1RHO(NTRMAX): <nabla rho>
 C     AR2RHO(NTRMAX): <(nabla rho)^2>
 C     EPSRHO(NTRMAX): (Bmax-Bmin)/(Bmax+Bmin)
+C     MDLUF         :
 C     IERR          : Error indicator
 C
 C   ***************************************************************
@@ -286,7 +288,7 @@ C     <<< PRHO >>>
       ENDDO
       WORK(NTRMAX+2)=0.D0
       CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PRHO: IERR=',IERR
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D PRHO: IERR=',IERR
 C
 C     <<< HJRHO >>>
       WORK(1)=(9.D0*HJRHO(1)-HJRHO(2))/8.D0
@@ -298,7 +300,7 @@ C      DO NTR=1,NTRMAX+2
 C         write(6,*) PSITRX(NTR),WORK(NTR)
 C      ENDDO
       CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D HJRHO: IERR=',IERR
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D HJRHO: IERR=',IERR
 C
 C     <<< VTRHO >>>
       WORK(1)=(9.D0*VTRHO(1)-VTRHO(2))/8.D0
@@ -307,7 +309,7 @@ C     <<< VTRHO >>>
       ENDDO
       WORK(NTRMAX+2)=0.D0
       CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D VTRHO: IERR=',IERR
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D VTRHO: IERR=',IERR
 C
 C     <<< TRHO >>>
       WORK(1)=(9.D0*TRHO(1)-TRHO(2))/8.D0
@@ -316,7 +318,7 @@ C     <<< TRHO >>>
       ENDDO
       WORK(NTRMAX+2)=0.D0
       CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D TRHO: IERR=',IERR
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D TRHO: IERR=',IERR
 C
 C     <<< HJPSI & HJPSID >>>
       DO NTR=1,NTRMAX+2
@@ -328,10 +330,10 @@ C         PSIL=PSITRX(NTR)+1.D-8
          PSIL=PSITRX(NTR)
          CALL SPL1DF(PSIL,HJPSIL,PSITRX,UJPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX TREQIN: SPL1DF HJPSIL: IERR=',IERR
+     &        'XX TREQEX: SPL1DF HJPSIL: IERR=',IERR
          CALL SPL1DI(PSIL,HJPSID,PSITRX,UJPSI,UJPSI0,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX TREQIN: SPL1DI HJPSID: IERR=',IERR
+     &        'XX TREQEX: SPL1DI HJPSID: IERR=',IERR
          UJPSIX(NTR)=HJPSID
       ENDDO
 C      UJPSI0(NTRMAX+2)=0.D0
@@ -349,15 +351,13 @@ C
          IF(IERR.NE.0) GOTO 9000
       CALL EQTORZ
       CALL EQCALP
-      CALL EQSETP
 C      CALL EQGOUT(1)
 C
 C     ***** Calculate eqilibrium quantities *****
 C
+      CALL EQSETP
       NRMAX1=NRMAX
-      NTHMAX1=NTHMAX
-      NSUMAX1=NSUMAX
-      CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+      CALL EQCAL1D(NRMAX1,IERR)
 C
 C     ***** Calculate Spline Coefficients *****
 C

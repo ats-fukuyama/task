@@ -11,7 +11,7 @@ C
      &          dmion(NSUM),rhovn(NSUM)
 C
       neqdsk=21
-      CALL FROPEN(neqdsk,KNAMEQ,1,4,'EQ',IERR)
+      CALL FROPEN(neqdsk,KNAMEQ,1,0,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 c
       REWIND(neqdsk)
@@ -31,9 +31,10 @@ c
          ZG(NZG)=zmid-0.5D0*zdim+DZ*(NZG-1)
       ENDDO
       read (neqdsk,2020) RAXIS,ZAXIS,SAXIS,SBNDY,BB
-      DPS=(SBNDY-SAXIS)/(NPSMAX-1)
+      DPS=(SAXIS-SBNDY)/(NPSMAX-1)
+      SAXIS=SAXIS-SBNDY
       DO NPS=1,NPSMAX
-         PSIPS(NPS)=SAXIS+DPS*(NPS-1)
+         PSIPS(NPS)=SAXIS-DPS*(NPS-1)
       ENDDO
       read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
       RIP=RIP/1.D6
@@ -47,7 +48,13 @@ c
       read (neqdsk,2022) NSUMAX,limitr
       read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
-      read (neqdsk,2024) kvtor,rvtor,nmass
+C
+      GOTO 1000
+      kvtor=0
+      rvtor=0
+      nmass=0
+      read (neqdsk,2024,end=1000) kvtor,rvtor,nmass
+      WRITE(6,*) kvtor,rvtor,nmass
       if (kvtor.gt.0) then
          read (neqdsk,2020) (pressw(i),i=1,NPSMAX)
          read (neqdsk,2020) (pwprim(i),i=1,NPSMAX)
@@ -55,7 +62,8 @@ c
       if (nmass.gt.0) then
          read (neqdsk,2020) (dmion(i),i=1,NPSMAX)
       endif
-      read (neqdsk,2020) (rhovn(i),i=1,NPSMAX)
+      read (neqdsk,2020,end=1000) (rhovn(i),i=1,NPSMAX)
+ 1000 CONTINUE
       REWIND(neqdsk)
       CLOSE(neqdsk)
 C
@@ -65,6 +73,11 @@ C      WRITE(6,'(1P4E12.4)') RG(1),RG(2),RG(NRGMAX-1),RG(NRGMAX)
 C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
 C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
 C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
+      DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIRZ(NRG,NZG)=PSIRZ(NRG,NZG)-SBNDY
+         ENDDO
+      ENDDO
       return
 c     
  2000 format (6a8,3i4)

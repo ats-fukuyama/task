@@ -22,18 +22,21 @@ C                 4 : FILE NAME ERROR
 C                 5 : UNDEFINED MODEF
 C                 6 : OLD FILE OPEN ERROR
 C                 7 : OLD FILE NOT FOUND
+C                 8 : EMPTY FILE NAME
 C
       CHARACTER KNAMFL*80,KNAM*80,KPR*(*)
       LOGICAL LEX
 C
-      IF(MODEP.EQ.1) THEN
-         KNAM=KNAMFL
-         CALL KTRIM(KNAM,KL)
+      KNAM=KNAMFL
+      CALL KTRIM(KNAM,KL)
+      IF(MODEP.EQ.0) THEN
+         IF(KL.EQ.0) GOTO  9008
+      ELSEIF(MODEP.EQ.1) THEN
     1    WRITE(6,*) '#',KPR,'> INPUT : LOAD FILE NAME : ',KNAM(1:KL)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
          IF(KNAMFL(1:2).EQ.'  ') GOTO 9002
-      ELSEIF(MODEP.NE.0) THEN
+      ELSE
          WRITE(6,*) 'XX FROPEN: UNKNOWN MODEP : MODEP=',MODEP
          GOTO 9003
       ENDIF
@@ -86,6 +89,9 @@ C
 C
  9007 IERR=7
       RETURN
+C
+ 9008 IERR=8
+      RETURN
       END
 C
 C     ***** OPEN FILE FOR WRITE *****
@@ -113,15 +119,19 @@ C                 4 : FILE NAME ERROR
 C                 5 : UNDEFINED MODEF
 C                 6 : OLD FILE OPEN ERROR
 C                 7 : OLD FILE EXISTS
+C                 8 : EMPTY FILE NAME
 C
       CHARACTER KNAMFL*80,KNAM*80,KPR*(*),KID*1
       LOGICAL LEX
 C
       MODEPI=MODEP
 C
- 1000 IF(MODEPI.EQ.1) THEN
-         KNAM=KNAMFL
-         CALL KTRIM(KNAM,KL)
+      KNAM=KNAMFL
+      CALL KTRIM(KNAM,KL)
+C
+ 1000 IF(MODEPI.EQ.0) THEN
+         IF(KL.EQ.0) GOTO 9008
+      ELSEIF(MODEPI.EQ.1) THEN
     1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',KNAM(1:KL)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
@@ -214,5 +224,8 @@ C
       RETURN
 C
  9007 IERR=7
+      RETURN
+C
+ 9008 IERR=8
       RETURN
       END

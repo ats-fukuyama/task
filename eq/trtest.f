@@ -34,8 +34,9 @@ C
          HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
       ENDDO
 C
+      MDLUF=0
       CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
-     &            NTRMAX,RHOTR,HJRHO,QRHO,IERR)
+     &            NTRMAX,RHOTR,HJRHO,QRHO,MDLUF,IERR)
 C
 C      WRITE(6,'(A,I5,1P3E12.4)') 
 C     &     ('NTR,RHOTR,HJRHO,QRHO=',
@@ -52,23 +53,24 @@ C
 C
       CALL TREQEX(RIP,NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
      &            QRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,
-     &            EPSRHO,IERR)
+     &            EPSRHO,MDLUF,IERR)
 C
       CALL EQGOUT(1)
 C
       WRITE(6,*) 'NTR ','RHO         ','q           ','F=BR        ',
-     &                  'dV/drho     ','<Vrho^2/R^2>','<1/R^2>     '
+     &                  'dV/drho     ','dS/drho     ','<r/R>       '
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P6E12.4)') 
      &         NTR,RHOTR(NTR),QRHO(NTR),TTRHO(NTR),
      &             DVRHO(NTR),DSRHO(NTR),EPSRHO(NTR)
       ENDDO
+      WRITE(6,*) 'NTR ','RHO         ','<Vrho^2/R^2>','<1/R^2>     ',
+     &                  '<Vrho>      ','<Vrho^2>    '
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P5E12.4)') 
      &         NTR,RHOTR(NTR),ABRHO(NTR),ARRHO(NTR),
      &             AR1RHO(NTR),AR2RHO(NTR)
       ENDDO
-      GOTO 1
 C
       CALL GSCLOS
       STOP
