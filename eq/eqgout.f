@@ -633,7 +633,7 @@ C
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
          ENDIF
-         CALL SETCLP
+         CALL OFFCLP
          CALL SETLIN(-1,-1,6)
          CALL GPLOTP(GRSU,GZSU,1,NSUMAX+1,1,0,0,0)
          CALL SETLIN(-1,-1,5)
