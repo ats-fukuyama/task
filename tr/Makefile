@@ -79,9 +79,9 @@ trgrad.o : trgrad.f trcomm.h
 trgra2.o : trgra2.f trcomm.h
 callglf2d.o : callglf2d.f glf.m
 glf2d.o  : glf2d.F glf.m f77_dcomplx.h
-	$(FC) $(FFLAGS) -o glf2d.o glf2d.F
+	$(FC) $(FFLAGS) -c -o glf2d.o glf2d.F
 r8tomsqz.o : r8tomsqz.F f77_dcomplx.h
-	$(FC) $(FFLAGS) -o r8tomsqz.o r8tomsqz.F
+	$(FC) $(FFLAGS) -c -o r8tomsqz.o r8tomsqz.F
 zgeev.o  : zgeev.f
 blas_zgeev.o : blas_zgeev.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
@@ -102,5 +102,5 @@ blas_zgeev.o : blas_zgeev.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
 ../lib/libchar.o: ../lib/libchar.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
-../lib/libfior.o: ../lib/libfio.f
+../lib/libfio.o: ../lib/libfio.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f

@@ -926,7 +926,31 @@ C
                ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
      &                           /((1.D0-PHI)*(1.D0-CH*PHI)
      &                           *(1.D0+0.47D0*(ZEFFL-1.D0)))
-            ENDIF 
+C
+C        ****** NEOCLASSICAL RESISTIVITY BY O. SAUTER  ******
+C
+            ELSEIF(MDLETA.EQ.3) THEN
+               EPS=RM(NR)*RA/RR
+               EPSS=SQRT(EPS)**3
+               IF(NR.EQ.1) THEN
+                  Q0=(4.D0*QP(1)-QP(2))/3.D0
+                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+                  ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
+               ELSE
+                  QL= 0.5D0*(QP(NR-1)+QP(NR))
+                  ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
+               ENDIF
+               rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TEL*1.D3))
+               RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
+               SGMSPTZ=1.9012D4*(TEL*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+               FT=1.D0-(1.D0-EPS)**2.D0
+     &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+               RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
+     &             /((TEL*1.D3)**2*EPSS)
+               F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
+     &                +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
+               ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
+            ENDIF
             AJOH(NR)=1.D0/ETA(NR)
             AJ(NR)  =1.D0/ETA(NR)
          ENDDO

@@ -463,7 +463,7 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C               RG1=10.D0
 C               RG1=4.D0
-               RG1=2.8D0
+               RG1=3.1D0
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -1290,6 +1290,27 @@ C         VTE=1.33D+7*DSQRT(ABS(TE))
 C
          ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
      &            /((1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0)))
+C
+C        ****** NEOCLASSICAL RESISTIVITY BY O. SAUTER  ******
+C
+         ELSEIF(MDLETA.EQ.3) THEN
+            IF(NR.EQ.1) THEN
+               QL= 0.25D0*(3.D0*Q0+QP(NR))
+               ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
+            ELSE
+               QL= 0.5D0*(QP(NR-1)+QP(NR))
+               ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
+            ENDIF
+            rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TE*1.D3))
+            RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
+            SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+            FT=1.D0-(1.D0-EPS)**2.D0
+     &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+            RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
+     &          /((TE*1.D3)**2*EPSS)
+            F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
+     &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
+            ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
          ENDIF 
   150 CONTINUE
 C

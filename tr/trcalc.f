@@ -51,6 +51,9 @@ C
          CALL TRPELT
       ENDIF
       CALL TRZEFF
+C
+C     CALL NCLASS
+C
       CALL TRCOEF
       CALL TRLOSS
       CALL TRPWRF
@@ -504,8 +507,8 @@ C
      &        /(1.D0+0.5D0*SQRT(RNUI))+0.315D0*RNUI**2*FT**6)
      &        *1.D0/(1.D0+0.15D0*RNUI**2*FT**6)
 C
-         RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
-         SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+C         RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
+C         SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
 C
          SGMNEO=SGMSPTZ*F33(F33TEFF,ZEFFL)
          RL31=F31(F31TEFF,ZEFFL)
@@ -521,7 +524,6 @@ c$$$     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
      &             +(1.D0-RPE)*(1.D0+RL34/RL31*SALFA)*RL31*DTI/TI)
      &            /BP(NR)
       ENDDO
- 100  FORMAT(' ',1P4E25.15)
 C
       AJBS(1)=0.5D0*AJBSL(2)
       DO NR=2,NRMAX-1
@@ -824,9 +826,6 @@ C      DO 200 NR=2,NRMAX-1
          AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
   200 CONTINUE
       AJBS(NRMAX)=AJBSL(NRMAX)
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,*) NR,AJBS(NR)
-c$$$      ENDDO
 C
 C      IF(MDLUF.EQ.3) THEN
 C         DO NR=1,NRMAX
