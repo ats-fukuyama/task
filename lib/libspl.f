@@ -16,7 +16,7 @@ C              NXMAX     : NUMBER OF VARIABLES (<NMAX=10001)
 C              ID        : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
 C                          1 : DERIVATIVE FX(1) IS GIVEN
 C                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
-C                          3 : DERIVATIVES FX(1) AXD FX(NXMAX) ARE GIVEN
+C                          3 : DERIVATIVES FX(1) AND FX(NXMAX) ARE GIVEN
 C      OUTPUT: U(4,NXMAX): SPLINE COEFICIENTS
 C              FX(NXMAX) : ESTIMATED DERIVATIVES
 C              IERR      : ERROR INDICATOR
