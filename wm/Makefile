@@ -65,6 +65,6 @@ wmgout.o : wmgout.f wmcomm.h
 wmvout.o : wmvout.f wmcomm.h vmcomm.h
 wmgsub.o : wmgsub.f wmcomm.h
 wmdout.o : wmdout.f wmcomm.h	
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

@@ -7,6 +7,8 @@
 ## and comment out CALL WMTAE in wm/wmmain.f
 
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+#OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
+#OBJLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
 #OBJLA =
 
 ## mpi compile command
@@ -49,8 +51,8 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 #FC = pgf77
 
 ## for ifc
-#FLIBS=-L/usr/local/lib -lg3d-ixc -lgsp-ixc -lgdp-ixc -L/usr/X11R6/lib -lX11 -lm
-#FLIBS=-L/usr/local/lib -lg3d-ixc -lgsp-ixc -lgdum-ixc
+#FLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11 -lm
+#FLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdum-ifc
 #OFLAGS = -O
 #DFLAGS = -g -C
 #FC = ifc
@@ -63,10 +65,16 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 #OBJLA = /usr/lib/libcxml.so
 
 ## for macosx-g77
-#FLIBS=-L/usr/local/lib/g77 -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
+#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
+#OFLAGS = -O
+#DFLAGS = -g -fbounds-check
+#FC = g77
+
+## for macosx-xlf
+#FLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -O
 #DFLAGS = -g
-#FC = g77
+#FC = xlf
 
 ## for macosx-f2c
 #FLIBS=-L/usr/local/lib/f2c -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
