@@ -109,59 +109,6 @@ C
       END
 C
 C   ************************************************ 
-C   **          　　Pt(psi)                       **
-C   ************************************************
-C
-      REAL*8 FUNCTION PTPSI(PSIN1)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN1.LE.0.D0) THEN
-         PSIN=0.D0
-      ELSEIF(PSIN1.GE.1.D0) THEN
-         PSIN=1.D0
-      ELSE
-         PSIN=PSIN1
-      ENDIF
-      PTPSI=PH0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFH0
-     &     +PH1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFH1
-      PSIITB=1.D0-RHOITB**2
-      IF(PSIN.GT.PSIITB) THEN
-         PTPSI=PTPSI
-     &       +PH2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFH2
-      ENDIF
-      PTPSI=PTPSI*1.D6
-      RETURN
-      END
-C
-      REAL*8 FUNCTION DPTPSI(PSIN1)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN1.LE.0.D0) THEN
-         PSIN=0.D0
-      ELSEIF(PSIN1.GE.1.D0) THEN
-         PSIN=1.D0
-      ELSE
-         PSIN=PSIN1
-      ENDIF
-      DPTPSI=PH0*PROFH0*(1.D0-(1.D0-PSIN)**PROFR0)**(PROFH0-1.D0)
-     &                         *PROFR0*(1.D0-PSIN)**(PROFR0-1.D0)
-     &      +PH1*PROFH1*(1.D0-(1.D0-PSIN)**PROFR1)**(PROFH1-1.D0)
-     &                         *PROFR1*(1.D0-PSIN)**(PROFR1-1.D0)
-      PSIITB=1.D0-RHOITB**2
-      IF(PSIN.GT.PSIITB) THEN
-         DPTPSI=DPTPSI
-     &      +PH2*PROFH2
-     &      *(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**(PROFH2-1.D0)
-     &      *PROFR2*((1.D0-PSIN)/(1.D0-PSIITB))**(PROFR2-1.D0)
-     &      /(1.D0-PSIITB)
-      ENDIF
-      DPTPSI=DPTPSI*1.D6/PSI0
-      RETURN
-      END
-C
-C   ************************************************ 
 C   **          　 　T(psi)                       **
 C   ************************************************
 C
@@ -195,7 +142,7 @@ C      OLDTPS=TPSI
      &      +PT2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFT2
       ENDIF
 C      write(6,*) OLDTPS,TPSI-OLDTPS
-      TPSI=TPSI*1.D3*1.16D4
+      TPSI=TPSI*1.D3*AEE/AMP
       RETURN
       END
 C
@@ -224,12 +171,12 @@ C      ENDIF
       PSIITB=1.D0-RHOITB**2
       IF(PSIN.GT.PSIITB) THEN
          DTPSI=DTPSI
-     &           +PT2*PROFP2
+     &           +PT2*PROFT2
      &     *(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**(PROFT2-1.D0)
      &     *PROFR2*((1.D0-PSIN)/(1.D0-PSIITB))**(PROFR2-1.D0)
      &     /(1.D0-PSIITB)
       ENDIF
-      DTPSI=DTPSI*1.D3*1.16D4
+      DTPSI=DTPSI*1.D3*AEE/AMP
       RETURN
       END
 C
@@ -279,8 +226,8 @@ C
       PSIITB=1.D0-RHOITB**2
       IF(PSIN.GT.PSIITB) THEN
          DOMGPS=DOMGPS
-     &     +PV2*PROFP2
-     &     *(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**(PROFP2-1.D0)
+     &     +PV2*PROFV2
+     &     *(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**(PROFV2-1.D0)
      &     *PROFR2*((1.D0-PSIN)/(1.D0-PSIITB))**(PROFR2-1.D0)
      &     /(1.D0-PSIITB)
       ENDIF
