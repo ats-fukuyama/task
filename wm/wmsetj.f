@@ -15,12 +15,13 @@ C
      &          5.520, 7.016, 8.417, 9.761,
      &          8.654,10.173,11.620,13.015/
 C
-      DO 100 NDX=1,NDSIZ
-      DO 100 MDX=1,MDSIZ
+      DO NDX=1,NDSIZ
+      DO MDX=1,MDSIZ
          CJANT(1,MDX,NDX)=(0.D0,0.D0)
          CJANT(2,MDX,NDX)=(0.D0,0.D0)
          CJANT(3,MDX,NDX)=(0.D0,0.D0)
-  100 CONTINUE
+      ENDDO
+      ENDDO
 C
       IF(MODELJ.EQ.0) THEN
          CALL WMCANT
@@ -61,7 +62,7 @@ C
       DIMENSION CJT(MDM,NDM,NAM)
       DIMENSION CJZ(MDM,NDM,NAM)
 C
-      DO 100 NA=1,NAMAX
+      DO NA=1,NAMAX
          TH1=THJ1(NA)*PI/180.D0
          TH2=THJ2(NA)*PI/180.D0
          PH1=PHJ1(NA)*PI/180.D0
@@ -69,7 +70,7 @@ C
 C
          CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
 C   
-      DO 100 ND=NDMIN,NDMAX
+      DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
          NN=NPH0+NHC*ND
          IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
@@ -77,7 +78,7 @@ C
          ELSE
             CJN=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
          ENDIF
-      DO 100 MD=MDMIN,MDMAX
+      DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
          MM=NTH0+MD
          IF(ABS(MM+BETAJ).LE.0.D0) THEN
@@ -94,13 +95,15 @@ C
          ENDIF
          CJT(MDX,NDX,NA)=   CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
          CJZ(MDX,NDX,NA)=0.D0
-  100 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
-      DO 200 ND=NDMIN,NDMAX
+      DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
-      DO 200 MD=MDMIN,MDMAX
+      DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
-      DO 200 NA=1,NAMAX
+      DO NA=1,NAMAX
          CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
          CJANT(3,MDX,NDX)=CJANT(3,MDX,NDX)+CJZ(MDX,NDX,NA)
          IF(MYRANK.EQ.0) THEN
@@ -108,7 +111,9 @@ C
      &                   'NN,MM,CJANT=',
      &                   NPH0+NHC*ND,NTH0+MD,CJANT(2,MDX,NDX)
          ENDIF
-  200 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       RETURN
       END

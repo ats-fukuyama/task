@@ -348,14 +348,13 @@ C
       ENDDO
       ENDDO
 C
-C
-      NFD=22
+      NFD=23
       WRITE(NFD,'(3A1,I8)') K2,K3,K4,NPH
       WRITE(NFD,'(2I8)') NRMAX+1,NTHMAX
       WRITE(NFD,'(1P3E15.7)') ((GRL(NR,NTH),GZL(NR,NTH),GGL(NR,NTH),
      &                          NR=1,NRMAX+1),NTH=1,NTHMAX)
 C
-      WRITE(6,*) ' WMGFWR: Data written in fort.22'
+      WRITE(6,*) ' WMGFWR: Data written in fort.23'
       RETURN
       END
 C

@@ -97,7 +97,7 @@ C
         WRITE(6,*)
         WRITE(6,*)
         WRITE(6,*)
-        DO 210 WHILE ( NPRFI.NE.1.AND.NPRFI.NE.2 )
+        DO WHILE ( NPRFI.NE.1.AND.NPRFI.NE.2 )
           WRITE(6,*) 'SELECT MODE OF CALCULATION FOR ION'
           WRITE(6,*) '  1 : USE PROFILE DATA FORM FILE'
           WRITE(6,*) '  2 : USE DEFAULT METHOD OF WM CODE'
@@ -109,7 +109,8 @@ C
           ELSE
             READ(CWK1,*,ERR=210) NPRFI
           ENDIF
-  210   CONTINUE
+       ENDDO
+  210  CONTINUE
       ENDIF
 C
 C----  Open profile data file and read
@@ -121,10 +122,10 @@ C
       IFNO=22
       OPEN ( IFNO, FILE=TRFILE, ERR=9998 )
       READ ( IFNO, '(I3)', END=9999, ERR=9999 ) NPRF
-      DO 310 N=1,NPRF
+      DO N=1,NPRF
         READ ( IFNO, '(4E14.7)', END=9999, ERR=9999 )
      >                          PRFPSI(N), PRFNE(N), PRFTE(N), PRFTI(N)
-  310 CONTINUE
+      ENDDO
 C
 C----  Set coefficient for spline
 C
@@ -138,14 +139,14 @@ C
 C----  Set profile data at the point calculated in wm-code.
 C----    PSIPS : psi value at the point ( calculated at subroutine eqpsic )
 C
-      DO 410 NR=1,NRMAX1
+      DO NR=1,NRMAX1
         IF (XRHO(NR).GT.1.0D0) THEN
           PN60(NR,1) = 0.0D0
           PT60(NR,1) = PRFTE(NPRF)*PTS(1)
-          DO 420 NS=2,NSMAX
+          DO NS=2,NSMAX
              PN60(NR,NS) = 0.0D0
              PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
-  420     CONTINUE
+          ENDDO
         ELSE
           PSIL=PSIPS(NR)
           CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFNE,NPRF,IRC)
@@ -156,14 +157,14 @@ C
           PT60(NR,2)=PPL*PTS(2)
 C----  not need PNS(2)
           PN60(NR,2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN60(NR,1)
-          DO 430 NS=3,NSMAX
+          DO NS=3,NSMAX
              PN60(NR,NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN60(NR,1)
      &                  *PNS(NS)
              PT60(NR,NS)=PPL*PTS(NS)
-  430     CONTINUE
+          ENDDO
         ENDIF
-  410 CONTINUE
-C
+      ENDDO
+C     
 C----  Change the value at center and surface
 C
       PN(1)  = PRFNE(1)*1.0D-20*PNS(1)
@@ -176,11 +177,11 @@ C----  not need PNS(2)
          PTPR(2) = PRFTI(1)*1.0D-3*PTS(2)
          PTPP(2) = PRFTI(1)*1.0D-3*PTS(2)
 C
-         DO 510 NS=3,NSMAX
+         DO NS=3,NSMAX
             PN(NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN(1)*PNS(NS)
             PTPR(NS) = PRFTI(1)*1.D-3*PTS(NS)
             PTPP(NS) = PRFTI(1)*1.D-3*PTS(NS)
-  510    CONTINUE
+         ENDDO
       ENDIF
 C
 C----  Debug write
@@ -200,10 +201,10 @@ C
       KNAMEQSV=KNAMEQ
       ZEFFSV = ZEFF
       NSMAXSV = NSMAX
-      DO 2010 NS=1,NSMAX
+      DO NS=1,NSMAX
          PTSSV(NS)=PTS(NS)
          PNSSV(NS)=PNS(NS)
- 2010 CONTINUE
+      ENDDO
 C
       IERR = 0
 C

@@ -15,20 +15,20 @@ C
 C
 CF      OPEN(UNIT=6,FILE='OUTB',STATUS='UNKNOWN')
 C
-      DO 20 MN=1,MNMAX
+      DO MN=1,MNMAX
          IXM(MN)=NINT(XM(MN))
          IXN(MN)=NINT(XN(MN))
-   20 CONTINUE
+      ENDDO
 C
-      DO 30 MN=1,NTOR0
+      DO MN=1,NTOR0
          BMOD(MN)=1.5D0*BMOD(MN+MNMAX)-0.5D0*BMOD(MN+2*MNMAX)
          RGMOD(MN)=1.5D0*RGMOD(MN+MNMAX)-0.5D0*RGMOD(MN+2*MNMAX)
-   30 CONTINUE
+      ENDDO
 C
-      DO 40 MN=1+NTOR0,MNMAX
+      DO MN=1+NTOR0,MNMAX
          BMOD(MN)=0.D0
          RGMOD(MN)=0.D0
-   40 CONTINUE
+      ENDDO
 C
       RJTHETA(1) = 2.D0*RJTHETA(2) - RJTHETA(3)
       RJZETA (1) = 2.D0*RJZETA (2) - RJZETA (3)
@@ -53,25 +53,26 @@ C
 C
 C     ****** DETERMINE RADIAL BETA PROFILE AND |B|=BSQ ******
 C
-      DO 70 J=1,NSRMAX
+      DO J=1,NSRMAX
          LJ=(J-1)*MNMAX
          BETAP(J)=0.25D0*BMOD(MN0+LJ)**2
 C
-         DO 70 MN=1,MNMAX
+         DO MN=1,MNMAX
             BETAP(J)=0.25D0*BMOD(MN+LJ)**2+BETAP(J)
 C            IF(J.LE.2) WRITE(6,*) LJ,MN,BMOD(MN+LJ),BETAP(J)
-   70 CONTINUE
+         ENDDO
+      ENDDO
 C
-      DO 80 J=1,NSRMAX
+      DO J=1,NSRMAX
 C         WRITE(6,'(A,1P3E12.4)') 
 C     &        'PHI,PRES,BETAP=',PHI(J),PRES(J),BETAP(J)
          PHIMOD(MN0+MNMAX*(J-1))=XSQRT(ABS(PHI(J)))
          PHIMOD2(MN0+MNMAX*(J-1))=ABS(PHI(J))
-   80 CONTINUE
+      ENDDO
 C
-      DO 81 J=2,NSRMAX
+      DO J=2,NSRMAX
          BETAP(J)=PRES(J)/BETAP(J)
-   81 CONTINUE
+      ENDDO
 C
       BETAP(1)=1.5D0*BETAP(2)-0.5D0*BETAP(3)
       PRES (1)=1.5D0*PRES(2)-0.5D0*PRES(3)
@@ -79,13 +80,13 @@ C
       BZCO (1)=1.5D0*BZCO(2)-0.5D0*BZCO(3)
       BPCO (1)=0.D0
 C
-      DO 90 J=2,NSRMAX
+      DO J=2,NSRMAX
          UB(J)=VP(J)/PHIPS(J)
-   90 CONTINUE
+      ENDDO
 C
-      DO 100 J=2,NSRMAX
+      DO J=2,NSRMAX
          RMASS(J)=RMASS(J)/(ABS(PHIPS(J)))**RGAM
-  100 CONTINUE
+      ENDDO
 C
       RMASS(1)=1.5D0*RMASS(2)-0.5D0*RMASS(3)
       VP   (1)=1.5D0*VP(2)-0.5D0*VP(3)
@@ -95,7 +96,7 @@ C
       UB1     =1.5D0*UB(NSRMAX)-0.5D0*UB(NSRMAX-1)
       UB   (1)=UB(2)*TWOPI
 C
-      DO 110 J=2,NSRMAX-1
+      DO J=2,NSRMAX-1
          JP=J+1
          BPCO(J)=0.5D0*(BPCO(JP)+BPCO(J))
          UB(J)=0.5D0*(UB(JP)+UB(J))*TWOPI
@@ -104,7 +105,7 @@ C
          PRES(J)=0.5D0*(PRES(JP)+PRES(J))
          BETAP(J)=0.5D0*(BETAP(JP)+BETAP(J))
          BZCO(J)=0.5D0*(BZCO(JP)+BZCO(J))
-  110 CONTINUE
+      ENDDO
 C
       UB(NSRMAX)=TWOPI*UB1
       VP(NSRMAX)=TV1
@@ -114,9 +115,9 @@ C
       BPCO(NSRMAX)=2.D0*BPCO(NSRMAX)-BPCO(NSRMAX-1)
       BZCO(NSRMAX)=2.D0*BZCO(NSRMAX)-BZCO(NSRMAX-1)
 C
-      DO 130 I=1,NSRMAX
+      DO I=1,NSRMAX
          VP(I)=(TWOPI**2)*VP(I)
-  130 CONTINUE
+      ENDDO
 C
 C      PRINT 250, BETAP(1)
 C      WRITE(3,250)BETAP(1)
@@ -172,7 +173,7 @@ C      IF(NTOR.NE.1) NPHMAX=4
 C
       LES=1+NTHPTS*(NSRMAX-1)
 C
-      DO 10 KZ=1,NPHMAX
+      DO KZ=1,NPHMAX
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,R,Z,RMNC,ZMNS)
          IF(KZ.GT.1) GOTO 15
          RMAX=R(LES)
@@ -183,9 +184,9 @@ C
          RMIN=DMIN1(RMIN,AMINAF(R(LES),1,NTHPTS))
          ZMAX=DMAX1(ZMAX,AMAXAF(Z(LES),1,NTHPTS))
          ZMIN=DMIN1(ZMIN,AMINAF(Z(LES),1,NTHPTS))
-   10 CONTINUE
+      ENDDO
 C
-      DO 40 KZ=1,NPHMAX
+      DO KZ=1,NPHMAX
 C
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,R,Z,RMNC,ZMNS)
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,BSQ,Z,BMOD,ZMNS)
@@ -193,7 +194,7 @@ C
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,PHIM2,Z,PHIMOD2,ZMNS)
          CALL TOTZ(NTHPTS,NSRMAX,KZ,XM,XN,RGSQRT,Z,RGMOD,ZMNS)
 C
-         DO 20 KT=1,NTHPTS
+         DO KT=1,NTHPTS
 C
             R12(KT)=R(KT)
             Z12(KT)=Z(KT)
@@ -202,13 +203,14 @@ C
             Z12(KT+NTHPTS)=0.5D0*(SQRT(2.D0)-1.D0)
      &                    *(Z(KT+NTHPTS)-Z(KT))
 C
-         DO 20 J=2,NSRMAX
+         DO J=2,NSRMAX
 C
             L=KT+NTHPTS*(J-1)
             R12(L)=0.5D0*(R(L)+R(L-NTHPTS))
             Z12(L)=0.5D0*(Z(L)+Z(L-NTHPTS))
 C
-   20    CONTINUE
+         ENDDO
+         ENDDO
 C
          NDEG=IDNINT(360.D0*(KZ-1)/DBLE(NPHMAX))
          WRITE(MCHAR,30)'   NDEG = ',NDEG
@@ -234,7 +236,7 @@ C        CALL PAGES
      &  MCHAR,NCON(4),IVAR(4))
 C        CALL PAGEE
 C
-   40 CONTINUE
+      ENDDO
 C
       RETURN
       END
@@ -343,17 +345,15 @@ C
 C
 C     ****** SETUP TRANSFORMATION TO ORIGINAL AXES ******
 C
-      IF(IVAR.NE.2)GOTO 30
-C
-      DO 10 KT=1,NTHPTS,2
-         DO 20 J=1,NSRMAX
-            GRTHET(J)=GCLIP(R(KT+NTHPTS*(J-1)))
-            GZTHET(J)=GCLIP(Z(KT+NTHPTS*(J-1)))
-   20    CONTINUE
-         CALL GPLOTP(GRTHET,GZTHET,1,NSRMAX,1,0,1,2)
-   10 CONTINUE
-C
-   30 CONTINUE
+      IF(IVAR.EQ.2) THEN
+         DO KT=1,NTHPTS,2
+            DO J=1,NSRMAX
+               GRTHET(J)=GCLIP(R(KT+NTHPTS*(J-1)))
+               GZTHET(J)=GCLIP(Z(KT+NTHPTS*(J-1)))
+            ENDDO
+            CALL GPLOTP(GRTHET,GZTHET,1,NSRMAX,1,0,1,2)
+         ENDDO
+      ENDIF
 C
       CALL MOVE(19.0,17.0)
       CALL TEXT('MAX: ',5)
@@ -386,20 +386,21 @@ C
       PIZ=RC/NPHMAX
       NRTH=NS*NTH
 C
-      DO 10 L=1,NRTH
+      DO L=1,NRTH
           R(L)=0.D0
           Z(L)=0.D0
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 J=1,NS
+      DO J=1,NS
 C
          JES=NTH*(J-1)
          MES=MNMAX*(J-1)
-         DO 20 MN=1,MNMAX
+      DO  MN=1,MNMAX
          XM0=XM(MN)*PIT
          XN0=XN(MN)*PIZ
+         
 C
-      DO 20 KT=1,NTH
+      DO KT=1,NTH
 C
          L=KT+JES
          M=MN+MES
@@ -409,7 +410,9 @@ C
          R(L)=R(L)+RMNC(M)*COS(ARG)
          Z(L)=Z(L)+ZMNS(M)*SIN(ARG)
 C
-   20 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
       RETURN
       END
 C

@@ -1151,29 +1151,32 @@ C
       DO 500 ITER = 1, ITMAX 
         GHG = 0.D0
         DNORM = 0.D0
-        DO 120 I = 1, N
+        DO I = 1, N
           S = 0.D0
-          DO 110 J = 1, N
-  110     S = S + H(I, J) * G(J)
+          DO J = 1, N
+             S = S + H(I, J) * G(J)
+          ENDDo
           D(I) = -S
           DNORM = DNORM + ABS(S)
           GHG = GHG + G(I) * S
-  120   CONTINUE
+        ENDDO
         IF(DNORM .LT. EPS*TOLX) GO TO 620
 C
 C  IF H IS NOT POSITIVE DEFINITE, H IS RESET TO A UNIT MATRIX
         IF(GHG .LE. 0.D0) THEN
           GHG = 0.D0
           DNORM = 0.D0
-          DO 130 I = 1, N
-          DO 130 J = 1, N
-  130     H(J, I) = 0.D0
-          DO 140 I = 1, N
+          DO I = 1, N
+          DO J = 1, N
+             H(J, I) = 0.D0
+          ENDDO
+          ENDDO
+          DO I = 1, N
             H(I, I) = 1.D0
             D(I) = -G(I)
             DNORM = DNORM + ABS(D(I))
             GHG = GHG + D(I)**2
-  140     CONTINUE
+          ENDDO
           IF(LPRINT .GE. 1) WRITE(6, *) '  H IS RESET TO A UNIT MATRIX'
         END IF
 C
@@ -1185,19 +1188,21 @@ C
         F1 = F
         DG1 = -GHG
         ALAM2 = 1.D0
-        DO 230 IT1 = 1, 10
-          DO 210 I = 1, N
-  210     X2(I) = X(I) + ALAM2 * D(I)
+        DO IT1 = 1, 10
+          DO I = 1, N
+             X2(I) = X(I) + ALAM2 * D(I)
+          ENDDO
           CALL FANDG(N, X2, F2, G2)
           DG2 = 0.D0
-          DO 220 I = 1, N
-  220     DG2 = DG2 + D(I) * G2(I)
+          DO I = 1, N
+             DG2 = DG2 + D(I) * G2(I)
+          ENDDO
           IF(DG2 .GT. 0.D0 .OR. F2 .GT. F1) GO TO 240
           ALAM1 = ALAM2
           ALAM2 = 2.D0 * ALAM2
           F1 = F2
           DG1 = DG2
-  230   CONTINUE
+        ENDDO
         IF(LPRINT .GE. 1) WRITE(6, *) 'FAILURE IN THE LINEAR SEARCH'
         ALAM3 = ALAM1
         GO TO 300
@@ -1208,7 +1213,7 @@ C  FIND A MINIMUM USING CUBIC INTERPOLATION
      &      '   MINIMUM ALONG D IS TRAPPED',
      &      ' BETWEEN  ALAM=',ALAM1,'  AND  ',ALAM2
 C
-        DO 270 IT = 1, 5
+        DO IT = 1, 5
           DLAM = ALAM2 - ALAM1
           AA = (DLAM*(DG1+DG2) - 2*(F2-F1)) / DLAM**3
           BB = (3*(F2-F1) - DLAM*(2*DG1+DG2)) / DLAM**2
@@ -1222,14 +1227,16 @@ C
      &      'ALONG D IS ESTIMATED AT ALAM=', ALAM3
 C
 C  FUNCTION ESTIMATION AT THE INTERPOLATED MINIMUM
-          DO 250 I = 1, N
-  250     X3(I) = X(I) + ALAM3 * D(I)
+          DO I = 1, N
+             X3(I) = X(I) + ALAM3 * D(I)
+          ENDDO
           CALL FANDG(N, X3, F3, G3)
           DG3 = 0.D0
           G3NORM = 0.D0
-          DO 260 I = 1, N
+          DO I = 1, N
             G3NORM = G3NORM + ABS(G3(I))
-  260       DG3 = DG3 + D(I)*G3(I)
+            DG3 = DG3 + D(I)*G3(I)
+          ENDDO
           IF(ABS(DG3) .LE. EPS*DNORM*G3NORM) GO TO 300
           IF(F3 .LE. F) THEN
             IF((ALAM3-ALAM1)*DNORM .LT. TOLX) GO TO 300
@@ -1246,7 +1253,7 @@ C
             DG1 = DG3
           END IF
 C
-  270   CONTINUE
+        ENDDO
   300   CONTINUE
         IF(LPRINT .GE. 1) CALL PRINTFG(LPRINT, ITER, F3, X3, G3, N)
 C
@@ -1254,41 +1261,49 @@ C  CONVERGENCE CHECK
         IF(DNORM .LT. TOLX .AND. ALAM3*DNORM .LT. TOLX) GO TO 600
 C
 C  UPDATE OF H
-        DO 320 I = 1, N
-  320   Y(I) = G3(I) - G(I)
+        DO I = 1, N
+           Y(I) = G3(I) - G(I)
+        ENDDO
         GHG = 0.D0
         YHY = 0.D0
         HYNORM = 0.D0
-        DO 340 I = 1, N
+        DO I = 1, N
           SY = 0.D0
           SG = 0.D0
-          DO 330 J = 1, N
+          DO J = 1, N
             SG = SG + H(I, J) * G(J)
-  330       SY = SY + H(I, J) * Y(J)
+            SY = SY + H(I, J) * Y(J)
+          ENDDO
           HY(I) = SY
           HYNORM = HYNORM + ABS(SY)
           GHG = GHG + G(I) * SG
           YHY = YHY + Y(I)  * SY
-  340   CONTINUE
+        ENDDO
 C
         IF( YHY .GT. EPS*HYNORM) THEN
-          DO 360 I = 1, N
-            DO 360 J = I, N
+          DO I = 1, N
+            DO J = I, N
               H(I, J) = H(I, J) + ALAM3*D(I)*D(J)/GHG 
      &                          - HY(I)*HY(J)/YHY
-  360         H(J, I) = H(I, J)
+              H(J, I) = H(I, J)
+            ENDDO
+          ENDDO
         ELSE
-          DO 370 I = 1, N
-          DO 370 J = 1, N
-  370     H(I, J) = 0.D0
-          DO 380 I = 1, N
-  380     H(I, I) = 1.D0
+          DO I = 1, N
+          DO J = 1, N
+             H(I, J) = 0.D0
+          ENDDO
+          ENDDO
+          DO I = 1, N
+             H(I, I) = 1.D0
+          ENDDO
           IF(LPRINT .GE. 1) WRITE(6, *) '  H IS RESET TO A UNIT MATRIX'
         END IF
 C
-        DO 390 I = 1, N
+        DO I = 1, N
           X(I) = X3(I)
-  390     G(I) = G3(I)
+          G(I) = G3(I)
+        ENDDO
         F = F3
 C
   500 CONTINUE
@@ -1297,8 +1312,9 @@ C
       RETURN
 C
   600 CONTINUE
-      DO 610 I = 1, N
-  610   X(I) = X3(I)
+      DO I = 1, N
+         X(I) = X3(I)
+      ENDDO
       FMIN = F3
       RETURN
 C

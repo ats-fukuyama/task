@@ -456,7 +456,7 @@ C
       ENDDO
       P0=P0*1.D20*AEE*1.D3/1.D6
 C
-      DO 400 NR=1,NRMAX+1
+      DO NR=1,NRMAX+1
          RHOL=XRHO(NR)
          IF(RHOL.LE.1.D0) THEN
             IF(PN(1).LE.0.D0) THEN
@@ -476,7 +476,7 @@ C
          ELSE
             PPS(NR)=0.D0
          ENDIF
-  400 CONTINUE
+      ENDDO
 C
       NSUMAX=31
       DTHU=2.D0*PI/(NSUMAX-1)

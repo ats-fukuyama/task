@@ -740,41 +740,42 @@ C        ****** ETH = 0, EPH =0 AT R=RA ******
 C
          IF(NR.EQ.NRMAX) THEN
 C
-            DO 1100 ND=NDMIN,NDMAX
+            DO ND=NDMIN,NDMAX
                NDX=ND-NDMIN+1
-            DO 1100 MD=MDMIN,MDMAX
+            DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
-               DO 1000 MB=1,2*MBND-1
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
- 1000          CONTINUE
+               ENDDO
                CEMP(MBND,NDX,MDX,2)= 1.D0
                CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,2)= 0.D0
                CFVP(NDX,MDX,3)= 0.D0
- 1100       CONTINUE
+            ENDDO
+            ENDDO
 C
          ENDIF
 C
 C     ****** ELIMINATE EFLD AT MDMAX ******
 C
          IF(MDSIZ.GT.1) THEN
-            DO 1300 ND=NDMIN,NDMAX
+            DO ND=NDMIN,NDMAX
                NDX=ND-NDMIN+1
                MD=MDMAX
                MDX=MD-MDMIN+1
-               DO 1200 MB=1,2*MBND-1
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
- 1200          CONTINUE
+               ENDDO
                CEMP(MBND,NDX,MDX,1)= 1.D0
                CEMP(MBND,NDX,MDX,2)= 1.D0
                CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= 0.D0
                CFVP(NDX,MDX,3)= 0.D0
- 1300       CONTINUE
+            ENDDO
          ENDIF
 C
 C     ****** ELIMINATE EFLD AT NDMAX ******
@@ -782,20 +783,20 @@ C
          IF(NDSIZ.GT.1) THEN
             ND=NDMAX
             NDX=ND-NDMIN+1
-            DO 1500 MD=MDMIN,MDMAX
+            DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
-               DO 1400 MB=1,2*MBND-1
+               DO MB=1,2*MBND-1
                   CEMP(MB,NDX,MDX,1)= 0.D0
                   CEMP(MB,NDX,MDX,2)= 0.D0
                   CEMP(MB,NDX,MDX,3)= 0.D0
- 1400          CONTINUE
+               ENDDO
                CEMP(MBND,NDX,MDX,1)= 1.D0
                CEMP(MBND,NDX,MDX,2)= 1.D0
                CEMP(MBND,NDX,MDX,3)= 1.D0
                CFVP(NDX,MDX,1)= 0.D0
                CFVP(NDX,MDX,2)= 0.D0
                CFVP(NDX,MDX,3)= 0.D0
- 1500       CONTINUE
+            ENDDO
          ENDIF
 C
       RETURN

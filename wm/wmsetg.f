@@ -166,12 +166,12 @@ C            WRITE(6,*) 'NR,RS,RSD=',NR,RS,RSD
          ENDDO
 C
          P0=0.D0
-         DO 300 NS=1,NSMAX
+         DO NS=1,NSMAX
             P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-  300    CONTINUE
+         ENDDO
          P0=P0*1.D20*AEE*1.D3/1.D6
 C
-         DO 400 NR=1,NRMAX+1
+         DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
             IF(RHOL.LE.1.D0) THEN
                FEDGE=PNS(1)/PN(1)
@@ -186,10 +186,10 @@ C
             RBPS(NR)=BB*RR
             VPS(NR)=2*PI*RR*PI*XR(NR)**2
             RLEN(NR)=2*PI*XR(NR)
-  400    CONTINUE
+         ENDDO
 C
          DTHU=2.D0*PI/(NSUMAX-1)
-         DO 500 NSU=1,NSUMAX
+         DO NSU=1,NSUMAX
             RCOS=COS(DTHU*(NSU-1))
             RSIN=SIN(DTHU*(NSU-1))
             IF(MODELG.EQ.0) THEN
@@ -201,7 +201,7 @@ C
             ENDIF
             ZSU(NSU,1)=RA*RSIN
             ZSW(NSU,1)=RB*RSIN
-  500    CONTINUE
+         ENDDO
 C
          IF(MODELG.EQ.0) THEN
             RGMIN=-RB*1.01D0
@@ -324,12 +324,12 @@ C
          ENDDO
 C
          P0=0.D0
-         DO 300 NS=1,NSMAX
+         DO NS=1,NSMAX
             P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-  300    CONTINUE
+         ENDDO
          P0=P0*1.D20*AEE*1.D3/1.D6
 C
-         DO 400 NR=1,NRMAX+1
+         DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
             IF(RHOL.LE.1.D0) THEN
                FEDGE=PNS(1)/PN(1)
@@ -344,10 +344,10 @@ C
             RBPS(NR)=BB*RR
             VPS(NR)=2*PI*RR*PI*XR(NR)**2
             RLEN(NR)=2*PI*XR(NR)
-  400    CONTINUE
+         ENDDO
 C
          DTHU=2.D0*PI/(NSUMAX-1)
-         DO 500 NSU=1,NSUMAX
+         DO NSU=1,NSUMAX
             RCOS=COS(DTHU*(NSU-1))
             RSIN=SIN(DTHU*(NSU-1))
             IF(MODELG.EQ.0) THEN
@@ -359,7 +359,7 @@ C
             ENDIF
             ZSU(NSU,1)=RA*RSIN
             ZSW(NSU,1)=RB*RSIN
-  500    CONTINUE
+         ENDDO
 C
          IF(MODELG.EQ.0) THEN
             RGMIN=-RB*1.01D0
@@ -504,9 +504,9 @@ C
          ENDIF
 C
          RMAX=RSU(1,1)
-         DO 1020 NSU=2,NSUMAX
+         DO NSU=2,NSUMAX
             RMAX=MAX(RMAX,RSU(NSU,1))
- 1020    CONTINUE
+         ENDDO
 C
          PSIA=-SAXIS
 C

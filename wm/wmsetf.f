@@ -471,17 +471,17 @@ C
          ENDIF
          IF(KEY.EQ.0) THEN
             CALL FFT2L(CA,CT,CFFT,LFFT,N/2,IND,KEY+1,LP)
-            DO 10 I=1,N
+            DO I=1,N
                IX=I+N/2-1
                IF(IX.GT.N) IX=IX-N
                CA(IX)=CT(I)
-   10       CONTINUE
+            ENDDO
          ELSE
-            DO 20 I=1,N
+            DO I=1,N
                IX=I+N/2-1
                IF(IX.GT.N) IX=IX-N
                CT(I)=CA(IX)
-   20       CONTINUE
+            ENDDO
             CALL FFT2L(CT,CA,CFFT,LFFT,N/2,IND,KEY+1,LP)
          ENDIF
       ENDIF

@@ -187,14 +187,14 @@ C        PHJ1  : Start toroidal angle of antenna            (degree)
 C        PHJ2  : End toroidal angle of antenna              (degree)
 C
       NAMAX=1
-      DO 200 NA=1,NAM
-        AJ(NA)   = 1.D0
-        APH(NA)  = 0.D0
-        THJ1(NA) =-45.D0
-        THJ2(NA) = 45.D0
-        PHJ1(NA) = 0.D0
-        PHJ2(NA) = 0.D0
-  200 CONTINUE
+      DO NA=1,NAM
+         AJ(NA)   = 1.D0
+         APH(NA)  = 0.D0
+         THJ1(NA) =-45.D0
+         THJ2(NA) = 45.D0
+         PHJ1(NA) = 0.D0
+         PHJ2(NA) = 0.D0
+      ENDDO
 C
 C     *** MESH PARAMETERS ***
 C
