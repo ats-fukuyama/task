@@ -96,7 +96,7 @@ C        PROFT0: Temperature profile parameter
 C        PROFT1: Temperature profile parameter
 C        PROFT2: Temperature profile parameter
 C
-C         TSI=PT0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
+C        TPSI=PT0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
 C    &       +PT1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFT1
 C    &       +PT2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFT2
 C    &       +PTS

@@ -136,12 +136,10 @@ C      ENDIF
       TPSI=PTS+(PT0-PTS)*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
      &              +PT1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFT1
       PSIITB=1.D0-RHOITB**2
-C      OLDTPS=TPSI
       IF(PSIN.GT.PSIITB) THEN
         TPSI=TPSI
      &      +PT2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFT2
       ENDIF
-C      write(6,*) OLDTPS,TPSI-OLDTPS
       TPSI=TPSI*1.D3*AEE/AMP
       RETURN
       END

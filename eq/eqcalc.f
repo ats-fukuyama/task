@@ -310,7 +310,7 @@ C         HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
          HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
          HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
          HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
-         HJP2F=(1.D0/RGAS)*(2.D0*OMGPS(PSIN)*(DOMGPS(PSIN))
+         HJP2F=(1.D0/RGAS)*(2.D0*OMGPS(PSIN)*DOMGPS(PSIN)
      &        /TPSI(PSIN)
      &        -DTPSI(PSIN)*OMGPS(PSIN)**2/TPSI(PSIN)**2)
          HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
@@ -321,7 +321,6 @@ C         HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
 C         IF(FJT.EQ.0.D0) WRITE(6,'(A,2I5,1P4E12.4)') 
 C     &        'NTG,NSG,PSIN,PSI0,HJP1,HJT1=',
 C     &         NTG,NSG,PSIN,PSI0,HJP1(NTG,NSG),HJT1(NTG,NSG)
-
       ENDDO
       ENDDO
 C
@@ -336,6 +335,9 @@ C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
      &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)
      &              *EXP(RRC**2*OMGPS(PSIN)**2/(2.D0*RGAS*TPSI(PSIN)))))
 C     &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
+         RHO(NTG,NSG)=(PPSI(PSIN)/(RGAS*TPSI(PSIN)))
+     &              *EXP(RMM(NTG,NSG)**2*OMGPS(PSIN)**2
+     &              /(2.D0*RGAS*TPSI(PSIN)))
       ENDDO
       ENDDO
       RETURN
@@ -436,7 +438,7 @@ C
       END
 C
 C   ************************************************
-C   **          CALCULATE pp,tt                   **
+C   **      CALCULATE pp,tt,temp,omega,rho        **
 C   ************************************************
 C
       SUBROUTINE EQCALP
