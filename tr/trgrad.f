@@ -10,7 +10,7 @@ C
 C
       INCLUDE 'trcomm.h'
       CHARACTER K2*1,K3*3,KK*4
-      CHARACTER STR(88)*80,KV(88)*80
+      CHARACTER STRL*80,KVL*80
 C
       READ(K2,'(I1)',ERR=600) I2
       READ(K3,'(I1)') I3
@@ -29,8 +29,8 @@ C
       CALL CHNBPR(KK,NMB,IERR)
       IF (IERR.EQ.1) GOTO 100
 C
- 200  CALL TRGRTD(STR,KV,NMB)
-      CALL TRGRUR(G3D(1,1,NMB),STR(NMB),KV(NMB),INQ)
+ 200  CALL TRGRTD(STRL,KVL,NMB)
+      CALL TRGRUR(G3D(1,1,NMB),STRL,KVL,INQ)
 C
  100  RETURN
       END
@@ -66,11 +66,11 @@ C           GRAPHIC 3D : GRAPH TITLE DATA
 C
 C     **************************************************************
 C
-      SUBROUTINE TRGRTD(STR,KV,NMB)
+      SUBROUTINE TRGRTD(STRL,KVL,NMB)
 C
       INCLUDE 'trcomm.h'
-      CHARACTER STR(88)*80,KV(88)*80
-      CHARACTER STR0(88)*80,KV0(88)*80
+      CHARACTER STRL*80,KVL*80
+      CHARACTER STR0(29)*80,KV0(29)*80
 C
       DATA STR0/'@TE [keV] vs t@','@TD [keV] vs t@',
      &          '@TT [keV] vs t@','@TA [keV] vs t@',
@@ -97,9 +97,31 @@ C
      &          '@QP@','@EZOH@','@BETA@','@BETAP@','@VLOOP@'/
       SAVE STR0, KV0
 C
-      STR(NMB)=STR0(NMB)
-      KV (NMB)=KV0 (NMB)
+      STRL=STR0(NMB)
+      KVL =KV0 (NMB)
 C
+      RETURN
+      END
+C
+C     **************************************************************
+C
+C           GRAPHIC 3D : PARAMETER STRING FOR NP
+C
+C     **************************************************************
+C
+      SUBROUTINE CHKVPL(KVPL,NP)
+C
+      CHARACTER KVPL*4,KVP(29)*4
+C
+      DATA KVP /'TE  ','TD  ','TT  ','TA  ',
+     &          'NE  ','ND  ','NT  ','NA  ',
+     &          'AJ  ','AJOH','AJNB','AJRF','AJBS',
+     &          'PIN ','POH ','PNB ','PNF ',
+     &          'PRFE','PRFD','PRFT','PRFA',
+     &          'PRL ','PCX ','PIE ',
+     &          'QP  ','EZOH','BETA','BETP','VLOP'/
+C
+      KVPL=KVP(NP)
       RETURN
       END
 C
@@ -111,21 +133,12 @@ C     **************************************************************
 C
       SUBROUTINE CHNBPR(KK,NMB,IERR)
 C
-      CHARACTER KK*4,KVP(88)*4
-      COMMON KVP
-C
-      DATA KVP /'TE  ','TD  ','TT  ','TA  ',
-     &          'NE  ','ND  ','NT  ','NA  ',
-     &          'AJ  ','AJOH','AJNB','AJRF','AJBS',
-     &          'PIN ','POH ','PNB ','PNF ',
-     &          'PRFE','PRFD','PRFT','PRFA',
-     &          'PRL ','PCX ','PIE ',
-     &          'QP  ','EZOH','BETA','BETP','VLOP'/
-C      SAVE KVP
+      CHARACTER KK*4,KVPL*4
 C
       IERR=0
-      DO NP=1,88
-         IF (KK.EQ.KVP(NP)) THEN
+      DO NP=1,29
+         CALL CHKVPL(KVPL,NP)
+         IF (KK.EQ.KVPL) THEN
             NMB=NP
             GOTO 1000
          ENDIF
@@ -156,12 +169,12 @@ C
 C
  700  FORMAT(' ',
      &       '# 3D GRAPHICS LIST (EACH ONE IS CONSIST OF 4 LETTERS)')
- 710  FORMAT(' ',' 1- 5: ',4(A4,', '),A4,)
- 720  FORMAT(' ',' 6-10: ',4(A4,', '),A4,)
- 730  FORMAT(' ','11-15: ',4(A4,', '),A4,)
- 740  FORMAT(' ','16-20: ',4(A4,', '),A4,)
- 750  FORMAT(' ','21-25: ',4(A4,', '),A4,)
- 760  FORMAT(' ','26-29: ',3(A4,', '),A4,)
+ 710  FORMAT(' ',' 1- 5: ',4(A4,', '),A4)
+ 720  FORMAT(' ',' 6-10: ',4(A4,', '),A4)
+ 730  FORMAT(' ','11-15: ',4(A4,', '),A4)
+ 740  FORMAT(' ','16-20: ',4(A4,', '),A4)
+ 750  FORMAT(' ','21-25: ',4(A4,', '),A4)
+ 760  FORMAT(' ','26-29: ',3(A4,', '),A4)
 C
       RETURN
       END
