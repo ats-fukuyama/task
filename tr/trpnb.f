@@ -419,3 +419,15 @@ C
 C
       RETURN
       END
+C
+C     ***********************************************************
+C
+      FUNCTION HY(V)
+C
+      INCLUDE 'trcomm.h'
+C
+      HY = 2.D0*(LOG((V**3+1.D0)/(V+1.D0)**3)/6.D0
+     &      +(ATAN((2.D0*V-1.D0)/SQRT(3.D0))+PI/6.D0)
+     &       /SQRT(3.D0))/V**2
+      RETURN
+      END

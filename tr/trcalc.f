@@ -88,13 +88,13 @@ C
 C
 C     ***********************************************************
 C
-C           CALCULATE Z-FE AND Z-C
+C           CALCULATE Z-C
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRZEFF
+      FUNCTION TRZEC(TE)
 C
-      INCLUDE 'trcomm.h'
+      IMPLICIT REAL*8 (A-H,O-Z)
 C
       DATA BC00,BC01,BC02,BC03,BC04,BC05/
      &     2.093736D+03, 5.153766D+03, 5.042105D+03,
@@ -116,6 +116,41 @@ C
      &    -3.412166D+01, 1.250454D+02,-1.550822D+02,
      &     9.568297D+01,-2.937297D+01, 3.589667D+00/
 C
+         TEL = LOG10(TE)
+         IF(TE.LE.3.D-3) THEN
+            TRZEC=0.D0
+         ELSEIF(TE.LE.2.D-2) THEN
+            TRZEC= BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3)
+     &                 +(BC04*TEL**4)+(BC05*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            TRZEC= BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3)
+     &                 +(BC14*TEL**4)+(BC15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            TRZEC= BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3)
+     &                 +(BC24*TEL**4)+(BC25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            TRZEC= BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3)
+     &                 +(BC34*TEL**4)+(BC35*TEL**5)
+         ELSEIF(TE.LE.100.D0) THEN
+            TRZEC= BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3)
+     &                 +(BC44*TEL**4)+(BC45*TEL**5)
+         ELSE
+            TRZEC= 6.D0
+         ENDIF
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           CALCULATE Z-FE
+C
+C     ***********************************************************
+C
+      FUNCTION TRZEFE(TE)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
       DATA BF10,BF11,BF12,BF13,BF14,BF15/
      &     8.778318D+00,-5.581412D+01,-1.225124D+02,
      &    -1.013985D+02,-3.914244D+01,-5.851445D+00/
@@ -132,92 +167,60 @@ C
      &     2.122081D+01, 6.891607D+00,-4.076853D+00,
      &     1.577171D+00,-5.139468D-01, 8.934176D-02/
 C
-C     ===== IN THE CASE OF 0.003(KEV)<TE<0.02(KEV). =====
-C
-      ACSC0(TEL)  = BC00+(BC01*TEL)+(BC02*TEL**2)+(BC03*TEL**3)
-     &               +(BC04*TEL**4)+(BC05*TEL**5)
-C
-C     ===== IN THE CASE OF 0.02(KEV)<TE<0.2(KEV). =====
-C
-      ACSFE1(TEL) = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3)
-     &               +(BF14*TEL**4)+(BF15*TEL**5)
-C
-      ACSC1(TEL)  = BC10+(BC11*TEL)+(BC12*TEL**2)+(BC13*TEL**3)
-     &               +(BC14*TEL**4)+(BC15*TEL**5)
-C
-C     ===== IN THE CASE OF 0.2(KEV)<TE<2(KEV). =====
-C
-      ACSFE2(TEL) = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3)
-     &               +(BF24*TEL**4)+(BF25*TEL**5)
-C
-      ACSC2(TEL)  = BC20+(BC21*TEL)+(BC22*TEL**2)+(BC23*TEL**3)
-     &               +(BC24*TEL**4)+(BC25*TEL**5)
-C
-C     ===== IN THE CASE OF 2(KEV)<TE<20(KEV). =====
-C
-      ACSFE3(TEL) = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3)
-     &               +(BF34*TEL**4)+(BF35*TEL**5)
-C
-      ACSC3(TEL)  = BC30+(BC31*TEL)+(BC32*TEL**2)+(BC33*TEL**3)
-     &               +(BC34*TEL**4)+(BC35*TEL**5)
-C
-C     ===== IN THE CASE OF 20(KEV)<TE<100(KEV). =====
-C
-      ACSFE4(TEL) = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3)
-     &               +(BF44*TEL**4)+(BF45*TEL**5)
-      ACSC4(TEL)  = BC40+(BC41*TEL)+(BC42*TEL**2)+(BC43*TEL**3)
-     &               +(BC44*TEL**4)+(BC45*TEL**5)
-C
-      DO 10 NR=1,NRMAX
-         TE =RT(NR,1)
          TEL = LOG10(TE)
-         IF(TE.LE.3.D-3) THEN
-            PZFE(NR)=0.D0
-            PZC (NR)=0.D0
-         ELSEIF(TE.LE.2.D-2) THEN
-            PZFE(NR) = ACSFE1(TEL)
-            PZC (NR) = ACSC0 (TEL)
-         ELSEIF(TE.LE.0.2D0) THEN
-            PZFE(NR) = ACSFE1(TEL)
-            PZC (NR) = ACSC1 (TEL)
-         ELSEIF(TE.LE.2.D0) THEN
-            PZFE(NR) = ACSFE2(TEL)
-            PZC (NR) = ACSC2 (TEL)
-         ELSEIF(TE.LE.20.D0) THEN
-            PZFE(NR) = ACSFE3(TEL)
-            PZC (NR) = ACSC3 (TEL)
-         ELSEIF(TE.LE.100.D0) THEN
-            PZFE(NR) = ACSFE4(TEL)
-            PZC (NR) = ACSC4 (TEL)
-         ELSE
-             PZFE(NR)=26.D0
-             PZC (NR)= 6.D0
-         ENDIF
 C
-C        RN(NR,1) = PZ(2)  *RN(NR,2)
-C    &             +PZ(3)  *RN(NR,3)
-C    &             +PZ(4)  *RN(NR,4)
-C    &             +PZC(NR) *ANC (NR)
-C    &             +PZFE(NR)*ANFE(NR)
+         IF(TE.LE.3.D-3) THEN
+            TRZEFE=0.D0
+         ELSEIF(TE.LE.0.2D0) THEN
+            TRZEFE = BF10+(BF11*TEL)+(BF12*TEL**2)+(BF13*TEL**3)
+     &                   +(BF14*TEL**4)+(BF15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            TRZEFE = BF20+(BF21*TEL)+(BF22*TEL**2)+(BF23*TEL**3)
+     &                   +(BF24*TEL**4)+(BF25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            TRZEFE = BF30+(BF31*TEL)+(BF32*TEL**2)+(BF33*TEL**3)
+     &                   +(BF34*TEL**4)+(BF35*TEL**5)
+         ELSEIF(TE.LE.100.D0) THEN
+            TRZEFE = BF40+(BF41*TEL)+(BF42*TEL**2)+(BF43*TEL**3)
+     &                   +(BF44*TEL**4)+(BF45*TEL**5)
+         ELSE
+            TRZEFE = 26.D0
+         ENDIF
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           CALCULATE Z-EFFF
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRZEFF
+C
+      INCLUDE 'trcomm.h'
+C
+C
+      DO NR=1,NRMAX
+         TE =RT(NR,1)
          ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
      &             +PZ(3)  *PZ(3)  *RN(NR,3)
      &             +PZ(4)  *PZ(4)  *RN(NR,4)
-     &             +PZC(NR) *PZC(NR) *ANC (NR)
-     &             +PZFE(NR)*PZFE(NR)*ANFE(NR))/RN(NR,1)
-   10 CONTINUE
+     &             +TRZEC(TE)**2   *ANC (NR)
+     &             +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
+      ENDDO
 C
       RETURN
       END
 C
 C     ***********************************************************
 C
-C           POWER LOSS
+C           RADIATION POWER - C
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRLOSS
+      FUNCTION TRRPC(TE)
 C
-      INCLUDE 'trcomm.h'
+      IMPLICIT REAL*8 (A-H,O-Z)
 C
       DATA AC00,AC01,AC02,AC03,AC04,AC05/
      &     1.965300D+03, 4.572039D+03, 4.159590D+03,
@@ -239,6 +242,41 @@ C
      &    -2.476796D+01, 9.408181D+00,-9.657446D+00,
      &     4.999161D+00,-1.237382D+00, 1.160610D-01/
 C
+         TEL = LOG10(TE)
+         IF(TE.LE.3.D-3) THEN
+            TEL=LOG10(3.D-3)
+            ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3)
+     &              +(AC04*TEL**4)+(AC05*TEL**5)
+         ELSEIF(TE.LE.2.D-2) THEN
+            ARG=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3)
+     &              +(AC04*TEL**4)+(AC05*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            ARG=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3)
+     &              +(AC14*TEL**4)+(AC15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            ARG=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3)
+     &              +(AC24*TEL**4)+(AC25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            ARG=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3)
+     &              +(AC34*TEL**4)+(AC35*TEL**5)
+         ELSEIF(TE.LE.1.D2) THEN
+            ARG=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3)
+     &              +(AC44*TEL**4)+(AC45*TEL**5)
+         ENDIF
+         TRRPC = 10.D0**(ARG-13.D0)
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           RADIATION POWER - FE
+C
+C     ***********************************************************
+C
+      FUNCTION TRRPFE(TE)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
       DATA AF10,AF11,AF12,AF13,AF14,AF15/
      &    -2.752599D+01,-3.908228D+01,-6.469423D+01,
      &    -5.555048D+01,-2.405568D+01,-4.093160D+00/
@@ -255,95 +293,55 @@ C
      &    -2.453957D+01, 1.795222D+01,-2.356360D+01,
      &     1.484503D+01,-4.542323D+00, 5.477462D-01/
 C
-C                                      : RADIATION LOSS
-C                                      : BY C AND FE.
+         TEL = LOG10(TE)
+         IF(TE.LE.3.D-3) THEN
+            TEL=LOG10(3.D-3)
+            ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3)
+     &              +(AF14*TEL**4)+(AF15*TEL**5)
+         ELSEIF(TE.LE.0.2D0) THEN
+            ARG=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3)
+     &              +(AF14*TEL**4)+(AF15*TEL**5)
+         ELSEIF(TE.LE.2.D0) THEN
+            ARG=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3)
+     &              +(AF24*TEL**4)+(AF25*TEL**5)
+         ELSEIF(TE.LE.20.D0) THEN
+            ARG=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3)
+     &              +(AF34*TEL**4)+(AF35*TEL**5)
+         ELSEIF(TE.LE.1.D2) THEN
+            ARG=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3)
+     &              +(AF44*TEL**4)+(AF45*TEL**5)
+         ENDIF
+         TRRPFE = 10.D0**(ARG-13.D0)
+      RETURN
+      END
 C
-C     ===== IN THE CASE OF 0.02(KEV)<TE<0.2(KEV). =====
+C     ***********************************************************
 C
-      ALZFE1(TEL)=AF10+(AF11*TEL)+(AF12*TEL**2)+(AF13*TEL**3)
-     &             +(AF14*TEL**4)+(AF15*TEL**5)
+C           POWER LOSS
 C
-C     ===== IN THE CASE OF 0.2(KEV)<TE<2(KEV). =====
+C     ***********************************************************
 C
-      ALZFE2(TEL)=AF20+(AF21*TEL)+(AF22*TEL**2)+(AF23*TEL**3)
-     &             +(AF24*TEL**4)+(AF25*TEL**5)
+      SUBROUTINE TRLOSS
 C
-C     ===== IN THE CASE OF 2(KEV)<TE<20(KEV). =====
+      INCLUDE 'trcomm.h'
 C
-      ALZFE3(TEL)=AF30+(AF31*TEL)+(AF32*TEL**2)+(AF33*TEL**3)
-     &             +(AF34*TEL**4)+(AF35*TEL**5)
-C
-C     ===== IN THE CASE OF 20(KEV)<TE<100(KEV). =====
-C
-      ALZFE4(TEL)=AF40+(AF41*TEL)+(AF42*TEL**2)+(AF43*TEL**3)
-     &             +(AF44*TEL**4)+(AF45*TEL**5)
-C
-C     ===== IN THE CASE OF 0.003(KEV)<TE<0.02(KEV). =====
-C
-      ALZC0 (TEL)=AC00+(AC01*TEL)+(AC02*TEL**2)+(AC03*TEL**3)
-     &             +(AC04*TEL**4)+(AC05*TEL**5)
-C
-C     ===== IN THE CASE OF 0.02(KEV)<TE<0.2(KEV). =====
-C
-      ALZC1(TEL)=AC10+(AC11*TEL)+(AC12*TEL**2)+(AC13*TEL**3)
-     &             +(AC14*TEL**4)+(AC15*TEL**5)
-C
-C     ===== IN THE CASE OF 0.2(KEV)<TE<2(KEV). =====
-C
-      ALZC2(TEL)=AC20+(AC21*TEL)+(AC22*TEL**2)+(AC23*TEL**3)
-     &             +(AC24*TEL**4)+(AC25*TEL**5)
-C
-C     ===== IN THE CASE OF 2(KEV)<TE<20(KEV). =====
-C
-      ALZC3(TEL)=AC30+(AC31*TEL)+(AC32*TEL**2)+(AC33*TEL**3)
-     &             +(AC34*TEL**4)+(AC35*TEL**5)
-C
-C     ===== IN THE CASE OF 20(KEV)<TE<100(KEV). =====
-C
-      ALZC4(TEL)=AC40+(AC41*TEL)+(AC42*TEL**2)+(AC43*TEL**3)
-     &             +(AC44*TEL**4)+(AC45*TEL**5)
-C
-C     ****** RADIATION LOSS ******
-C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE =RN(NR,1)
          ANDX=RN(NR,2)
          ANT =RN(NR,3)
          ANHE=RN(NR,4)
-         TE  = RT(NR,1)
-         TEL = LOG10(TE)
-         IF(TE.LE.3.D-3) THEN
-            ARG1 = ALZFE1(LOG10(3.D-3))-13.D0
-            ARG2 = ALZC0 (LOG10(3.D-3))-13.D0
-         ELSEIF(TE.LE.2.D-2) THEN
-            ARG1 = ALZFE1(TEL)-13.D0
-            ARG2 = ALZC0 (TEL)-13.D0
-         ELSEIF(TE.LE.0.2D0) THEN
-            ARG1 = ALZFE1(TEL)-13.D0
-            ARG2 = ALZC1 (TEL)-13.D0
-         ELSEIF(TE.LE.2.D0) THEN
-            ARG1 = ALZFE2(TEL)-13.D0
-            ARG2 = ALZC2 (TEL)-13.D0
-         ELSEIF(TE.LE.20.D0) THEN
-            ARG1 = ALZFE3(TEL)-13.D0
-            ARG2 = ALZC3 (TEL)-13.D0
-         ELSEIF(TE.LE.1.D2) THEN
-            ARG1 = ALZFE4(TEL)-13.D0
-            ARG2 = ALZC4 (TEL)-13.D0
-         ENDIF
-         CLRFE = 10.D0**ARG1
-         CLRC  = 10.D0**ARG2
-         PLFE  = ANE*ANFE(NR)*CLRFE*1.D40
-         PLC   = ANE*ANC (NR)*CLRC *1.D40
+         TE  =RT(NR,1)
+         PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
+         PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
          PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
          PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
          PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
          PRL(NR)= PLFE+PLC+PLD+PLTT+PLHE
-  100 CONTINUE
+      ENDDO
 C
 C     ****** IONIZATION LOSS ******
 C
-      DO 200 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
          EION  = 13.64D0
@@ -352,11 +350,11 @@ C
      &          /(EION**1.5D0*(6.D0+TN))
          PIE(NR)= ANE*ANNU(NR)*SION*1.D40*EION*AEE
          SIE(NR)= ANE*ANNU(NR)*SION*1.D20
-  200 CONTINUE
+      ENDDO
 C
 C     ****** CHARGE EXCHANGE LOSS ******
 C
-      DO 300 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE =RN(NR,1)
          ANDX=RN(NR,2)
          TE  =RT(NR,1)
@@ -368,7 +366,7 @@ C
 C
          PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
      &         +  1.5D0*ANDX*ANNU(NR)*SCX*(TD-TNU))*RKEV*1.D40
-  300 CONTINUE
+      ENDDO
 C
       RETURN
       END

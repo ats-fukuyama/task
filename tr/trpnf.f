@@ -10,10 +10,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      HY(V) = 2.D0*(LOG((V**3+1.D0)/(V+1.D0)**3)/6.D0
-     &         +(ATAN((2.D0*V-1.D0)/SQRT(3.D0))+PI/6.D0)
-     &         /SQRT(3.D0))/V**2
-C
       IF(MDLNF.EQ.0) THEN
          DO 5 NR=1,NRMAX
             TAUF(NR)=1.D0
