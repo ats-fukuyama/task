@@ -11,7 +11,7 @@ C
       INCLUDE 'trcomm.inc'
       COMMON /PRETREAT2/ NTAMAX
 C
-      DIMENSION XX(MLM),YY(2,NRM)
+      DIMENSION XX(MLM),YY(2,NRM),ZZ(NSM,NRM)
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
@@ -34,6 +34,7 @@ C
       IF(NT.GE.NTMAX) GOTO 9000
 C
  1000 L=0
+C      write(6,*) NT,(AKDW(NR,2),NR=1,NRMAX)
 C     /* Making New Variables */
       CALL TRATOX
 C
@@ -48,6 +49,13 @@ C     /* Stored Variables for Convergence Check */
          YY(J,NR)=YV(J,NR)
       ENDDO
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            ZZ(J,NR)=ZV(J,NR)
+         ENDDO
+         ENDDO
+      ENDIF
 C
  2000 CONTINUE
       CALL TR_EDGE_SELECTOR(0)
@@ -69,6 +77,13 @@ C
          Y(J,NR) = Y(J,NR)/AY(J,NR)
       ENDDO
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            Z(J,NR) = Z(J,NR)/AZ(J,NR)
+         ENDDO
+         ENDDO
+      ENDIF
 C
 C     /* Convergence check */
       DO I=1,NEQRMAX*NRMAX
@@ -79,6 +94,13 @@ C     /* Convergence check */
          IF (ABS(Y(J,NR)-YY(J,NR)).GT.EPSLTR*ABS(Y(J,NR))) GOTO 3000
       ENDDO
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            IF (ABS(Z(J,NR)-ZZ(J,NR)).GT.EPSLTR*ABS(Z(J,NR))) GOTO 3000
+         ENDDO
+         ENDDO
+      ENDIF
 C
       GOTO 4000
 C
@@ -94,6 +116,13 @@ C     /* Stored Variables for Convergence Check */
          YY(J,NR) = Y(J,NR)
       ENDDO
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO J=1,NSMAX
+         DO NR=1,NRMAX
+            ZZ(J,NR) = Z(J,NR)
+         ENDDO
+         ENDDO
+      ENDIF
 C
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
@@ -217,6 +246,13 @@ C
          YV(NF,NR) = Y(NF,NR)
       ENDDO
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            ZV(NS,NR) = Z(NS,NR)
+         ENDDO
+         ENDDO
+      ENDIF
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
@@ -241,6 +277,10 @@ C     /* Sawtooth Oscillation */
 C
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
+      IF(MDTC.NE.0) THEN
+         CALL TRXTOA_AKDW
+         CALL TRCFDW_AKDW
+      ENDIF
 C
       IDGLOB=0
       IF(MOD(NT,NTSTEP).EQ.0) THEN
@@ -419,6 +459,13 @@ C
       Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
+      IF(MDTC.NE.0) THEN
+         DO NS=1,NSMAX
+            Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)
+     &              +AKDW(NR,NS)*DT/TAUK(NR)
+            AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+         ENDDO
+      ENDIF
 C
 C          /---------------------\
 C    ***   |   NR=2 to NRMAX-1   |   ***
@@ -478,6 +525,13 @@ C
          Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
          AY(1,NR)=1.D0+ADV/TAUB(NR)
          AY(2,NR)=1.D0+ADV/TAUF(NR)
+         IF(MDTC.NE.0) THEN
+            DO NS=1,NSMAX
+               Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)
+     &                 +AKDW(NR,NS)*DT/TAUK(NR)
+               AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+            ENDDO
+         ENDIF
 C 
       ENDDO
 C
@@ -540,6 +594,13 @@ C
       Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
       AY(1,NR)=1.D0+ADV/TAUB(NR)
       AY(2,NR)=1.D0+ADV/TAUF(NR)
+      IF(MDTC.NE.0) THEN
+         DO NS=1,NSMAX
+            Z(NS,NR)=(1.D0-PRV/TAUK(NR))*ZV(NS,NR)
+     &              +AKDW(NR,NS)*DT/TAUK(NR)
+            AZ(NS,NR)=1.D0+ADV/TAUK(NR)
+         ENDDO
+      ENDIF
 C
 C     ***** Band Matrix *****
 C
@@ -744,6 +805,13 @@ C
          YV(  1,NR) = RW(NR,1)
          YV(  2,NR) = RW(NR,2)
       ENDDO
+      IF(MDTC.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               ZV(NS,NR) = AKDW(NR,NS)
+            ENDDO
+         ENDDO
+      ENDIF
 C
       RETURN
       END
@@ -839,6 +907,16 @@ C
          SUM=SUM+RDP(NR)*DR
          RPSI(NR)=SUM
       ENDDO
+C
+      ENTRY TRXTOA_AKDW
+C
+      IF(MDTC.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               AKDW(NR,NS) = ZV(NS,NR)
+            ENDDO
+         ENDDO
+      ENDIF
 C
       RETURN
       END

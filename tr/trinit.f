@@ -309,6 +309,11 @@ C        0    : off
 C        else : on
       MDNCLS=0
 C
+C     *** MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ***
+C        0    : off
+C        else : on
+      MDTC=0
+C
       RETURN
       END
 C
@@ -339,7 +344,7 @@ C
      &              PELTIM,PELPAT,KFNLOG,
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
      &              NSMAX,NSZMAX,NSNMAX,
-     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ
+     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC
 C
       LOGICAL LEX
       CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
@@ -434,7 +439,7 @@ C
      &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
-     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ')
+     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC')
       END
 C
 C     ***********************************************************
@@ -501,7 +506,9 @@ C
      &             'MDLAD ',MDLAD,
      &             'MDLAVK',MDLAVK
       WRITE(6,602) 'MDLJBS',MDLJBS,
-     &             'MDLKNC',MDLKNC
+     &             'MDLKNC',MDLKNC,
+     &             'MDNCLS',MDNCLS,
+     &             'MDTC  ',MDTC
 C
       WRITE(6,601) 'CK0   ',CK0,
      &             'CNC   ',CNC,
@@ -541,7 +548,8 @@ C
 C
       WRITE(6,602) 'NTEQIT',NTEQIT,
      &             'MDLUF ',MDLUF,
-     &             'MDNCLS',MDNCLS
+     &             'MDNCLS',MDNCLS,
+     &             'MDTC  ',MDTC
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,

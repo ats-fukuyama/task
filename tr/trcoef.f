@@ -69,7 +69,8 @@ C     ***** CLT  is the ion temerature scale length Ti/(dTi/dr) *****
 C     ***** DQ   is the derivative of safety factor (dq/dr) *****
 C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
+         TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))*DBLE(MDTC)
          DRL=RJCB(NR)/DR
          EPS=EPSRHO(NR)
          RNTP=0.D0
@@ -772,7 +773,7 @@ C
             AKDW(NR,3)=0.D0
             AKDW(NR,4)=0.D0
          ENDIF
-  100 CONTINUE
+      ENDDO
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
 C
@@ -1050,7 +1051,7 @@ C
       AMT=PA(3)*AMM
       AMA=PA(4)*AMM
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN
             ANE =PNSS(1)
             ANDX=PNSS(2)
@@ -1251,14 +1252,16 @@ C     Limit of neoclassical diffusivity
             CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
             IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
          ENDDO
+      ENDDO
 C
+      ENTRY TRCFDW_AKDW
+C
+      DO NR=1,NRMAX
          AK(NR,1) = AKDW(NR,1)+CNC*AKNC(NR,1)
          AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
          AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
-C
-C
-  100 CONTINUE
+      ENDDO
 C
 C     ***** NEOCLASSICAL TRANSPORT (NCLASS) *****
 C
