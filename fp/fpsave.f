@@ -223,6 +223,7 @@ C
       SUBROUTINE FPWRIT
 C
       INCLUDE 'fpcomm.inc'
+      INCLUDE '../wr/wrcom1.inc'
 C
       WRITE(6,101) TIMEFP*1000
       WRITE(6,102) PNT(NTG2),PIT(NTG2),PWT(NTG2),PTT(NTG2)
@@ -233,10 +234,18 @@ C
          IF(ABS(PPWT(NTG2)).GT.0.D0) THEN
             WRITE(6,104) PLHT(NTG2),PFWT(NTG2),PECT(NTG2),
      &                   PIT(NTG2)/PPWT(NTG2)
+            DO NRAY=1,NRAYMX
+               EFFIP =PIT(NTG2)/PPWT(NTG2)
+               AVENE =PN(1)
+               RGAMMEF=AVENE*RR*EFFIP
+            WRITE(6,201) RAYIN(1,NRAY),RAYIN(6,NRAY),
+     &                   RAYIN(7,NRAY),RGAMMEF
+            ENDDO
 C
+            DO NS=1,NSMAX
             DO 1000 NR=1,NRMAX
                RPN=RPWT(NR,NTG1)*AMFP*1.D6
-     &               /(RNFP0*RNFP(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR))
+     &               /(RNFP0*RNFP(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR,NS))
                RJN=RJT(NR,NTG1)*AMFP*1.D6
      &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
                IF(ABS(RPN).LT.1.D-70) THEN
@@ -246,6 +255,7 @@ C
                ENDIF
                WRITE(6,106) RM(NR),RPN,RJN,RJP
  1000       CONTINUE
+            ENDDO
             DO 1100 NR=1,NRMAX
                WRITE(6,105) RM(NR),RPCT(NR,NTG1),RPWT(NR,NTG1),
      &                             RJT(NR,NTG1)
@@ -253,8 +263,9 @@ C
          ENDIF
 C
          IF (ABS(PPET(NTG2)).GT.0.D0) THEN
+            DO NS=1,NSMAX
             DO 2000 NR=1,NRMAX
-               REN=RET(NR,NTG1)*AEFP/(RNU(NR)*PTH(NR))
+               REN=RET(NR,NTG1)*AEFP/(RNU(NR,NS)*PTH(NR))
                RJN=RJT(NR,NTG1)*AMFP*1.D6
      &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
                IF(ABS(REN).LT.1.D-70) THEN
@@ -264,6 +275,7 @@ C
                ENDIF
                WRITE(6,107) RM(NR),REN,RJN,RJE
  2000       CONTINUE
+            ENDDO
          ENDIF
       ENDIF
       RETURN
@@ -275,6 +287,8 @@ C
      &           ' PE[MW]=',1PE11.4)
   104 FORMAT(1H ,' PLH   =',1PE11.4,' PFW   =',1PE11.4,
      &           ' PEC   =',1PE11.4,' I/P   =',1PE11.4)
+  201 FORMAT(1H ,' F[MHz]=',1PE11.4,' THP[D]=',1PE11.4,
+     &           ' THT[D]=',1PE11.4,' NOREFF=',1PE11.4)  
   105 FORMAT(1H ,' RHO   =',F6.3,5X,' PC    =',1PE11.4,
      &           ' PW    =',1PE11.4,' J     =',1PE11.4)
   106 FORMAT(1H ,' RHO   =',F6.3,5X,' PN    =',1PE11.4,

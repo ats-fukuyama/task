@@ -503,7 +503,7 @@ C
          IF(MODE.EQ.0) THEN
             NRG=NRMAX+1
          ELSE
-x            NRG=NRMAX
+            NRG=NRMAX
          ENDIF
          WRITE(6,*) '# INPUT NR (1..',NRG,') :'
          READ(5,*,ERR=1,END=9000) NR

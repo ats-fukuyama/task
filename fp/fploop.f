@@ -15,7 +15,8 @@ C
          IF(IERR.EQ.0) THEN
             CALL EQSETP
             CALL EQPSIC(51,32,64,IERR)
-            CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
+C            CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
+            CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
          ENDIF
       ENDIF
 C
@@ -81,7 +82,7 @@ C
                RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD)
             ENDIF
             VTFD(NS,NR)=SQRT(RTFD*1.D3*AEE/AMFD)
-            RNU(NS,NR)=RNFD*1.D20*AEFP**2*AEFD**2*RLNLR
+            RNU(NS,NR)=RNFD*1.D20*AEFP**2*AEFD**2*RLNRL
      &                /(4.D0*PI*EPS0**2*AMFP**2*VTFP(NR)**3)
          ENDDO
 C
