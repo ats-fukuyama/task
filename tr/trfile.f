@@ -312,8 +312,11 @@ C
          IF(KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d') THEN
             MDSLCT=MDSLCT+1
             NM2CHK=1
+         ELSE
+            GOTO 1000
          ENDIF
       ELSE
+ 1000    CONTINUE
          NM2CHK=0
          KFID='NM1'
          KFILE=KDIRR2(1:KL2)//KFID
