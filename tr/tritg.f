@@ -126,6 +126,7 @@ C
          RNL   = 0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1
          RLIST = 1.D0
          RNEQL = 9.D0 
+C
          RNTP=0.D0
          RNTM=0.D0
          DO NS=2,NSMAX
@@ -137,14 +138,66 @@ C
          DPP   = (RPP-RPM)*DRL
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
          ALAL  =-QL*QL*DBDR*RR/RA
+C
          TRL   = 1.D0
          RIWL  = 2.D0
          RISBL = 2.D0
          SEARCH= 1.D0
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
-         WEXBL = 0.D0
-         ROTL  = 0.D0
+C
+         RPI4=0.D0
+         RPI3=0.D0
+         RPI2=0.D0
+         RPI1=0.D0
+         IF(NR.LE.1) THEN
+            DO NS=2,NSMAX
+               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
+            ENDDO
+            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
+            ENDDO
+            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+         ENDIF
+            DO NS=2,NSMAX
+               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
+         IF(NR.GE.NR-1) THEN
+            DO NS=2,NSMAX
+               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
+            ENDDO
+            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+         ENDIF
+         IF(NR.GE.NR-2) THEN
+            DO NS=2,NSMAX
+               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
+            ENDDO
+            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+         ENDIF
+         RPIM=0.5D0*(RPI1+RPI2)
+         RPI0=0.5D0*(RPI2+RPI3)
+         RPIP=0.5D0*(RPI3+RPI4)
+         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
+         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+         DELTA2= VC**2/WPE2
+         DELTAE= SQRT(DELTA2)
+         SL    = SQRT(SL**2+0.1D0**2)
+         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+         ROTL  = 1.D0
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,
@@ -216,7 +269,7 @@ C            else : using transport coefficients' vectors
             ENDDO
          ENDIF
       ENDDO
-C     
+C
       NR=NRMAX
          DRL   = RJCB(NR)/DR
          EPS   = EPSRHO(NR)
@@ -252,6 +305,7 @@ C
          RNL   = PNSS(1)*1.D1
          RLIST = 1.D0
          RNEQL = 9.D0
+C
          RNTP=0.D0
          RNTM=0.D0
          DO NS=2,NSMAX
@@ -265,14 +319,65 @@ C
          DPP   = (RPP-RPM)*DRL
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
          ALAL  =-QL*QL*DBDR*RR/RA
+C
          TRL   = 1.D0
          RIWL  = 2.D0
          RISBL = 2.D0
          SEARCH= 2.D0
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
-         WEXBL = 0.D0
-         ROTL  = 0.D0
+C
+         RPI4=0.D0
+         RPI3=0.D0
+         RPI2=0.D0
+         RPI1=0.D0
+         IF(NR.LE.1) THEN
+            DO NS=2,NSMAX
+               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
+            ENDDO
+            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
+            ENDDO
+            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+         ENDIF
+            DO NS=2,NSMAX
+               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
+         IF(NR.GE.NR-1) THEN
+            DO NS=2,NSMAX
+               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
+            ENDDO
+            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+         ENDIF
+         IF(NR.GE.NR-2) THEN
+            DO NS=2,NSMAX
+               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
+            ENDDO
+            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+         ELSE
+            DO NS=2,NSMAX
+               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
+            ENDDO
+            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+         ENDIF
+         RPIM=0.5D0*(RPI1+RPI2)
+         RPI0=0.5D0*(RPI2+RPI3)
+         RPIP=0.5D0*(RPI3+RPI4)
+         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
+         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+         DELTA2= VC**2/WPE2
+         DELTAE= SQRT(DELTA2)
+         SL    = SQRT(SL**2+0.1D0**2)
+         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,

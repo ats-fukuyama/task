@@ -311,7 +311,8 @@ C        else : on
 C
 C     *** MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ***
 C        0    : off
-C        else : on
+C        else : multiplyer for TAUK (which is the required time of
+C               averaging magnetic surface)
       MDTC=0
 C
       RETURN

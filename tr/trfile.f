@@ -689,6 +689,19 @@ C
          SNBU(NR,2,1)=FAS(NR)
       ENDDO
 C
+C     *****
+C
+      MDSUM=MDRGEO+MDAMIN+MDIP+MDBT+MDKAPPA
+      IF(MDSUM.NE.0) THEN
+         DO NTX=1,NTXMAX
+           IF(MDRGEO .NE.0) RRU  (NTX)=RR
+           IF(MDAMIN .NE.0) RAU  (NTX)=RA
+           IF(MDIP   .NE.0) RIPU (NTX)=RIPS
+           IF(MDBT   .NE.0) BBU  (NTX)=BB
+           IF(MDKAPPA.NE.0) RKAPU(NTX)=RKAP
+         ENDDO
+      ENDIF
+C
 C     *** GEOMETORY FACTORS ***
 C
       KFID='RMAJOR'
@@ -741,17 +754,6 @@ C
          NTXSMAX=NTXMAX
          DO NTX=1,NTXMAX
             TMUS(NTX)=TMU(NTX)
-         ENDDO
-      ENDIF
-C
-      MDSUM=MDRGEO+MDAMIN+MDIP+MDBT+MDKAPPA
-      IF(MDSUM.NE.0) THEN
-         DO NTX=1,NTXMAX
-           IF(MDRGEO .NE.0) RRU  (NTX)=RR
-           IF(MDAMIN .NE.0) RAU  (NTX)=RA
-           IF(MDIP   .NE.0) RIPU (NTX)=RIPS
-           IF(MDBT   .NE.0) BBU  (NTX)=BB
-           IF(MDKAPPA.NE.0) RKAPU(NTX)=RKAP
          ENDDO
       ENDIF
 C
