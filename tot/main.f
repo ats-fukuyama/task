@@ -1,0 +1,109 @@
+C     $Id$
+C
+C*** /TASK/TASK*********************************************************
+C                                A. FUKUYAMA
+C             Department of Nuclear Engineering, Kyoto University
+C                      Sakyo-ku, Kyoto 606-8501, Japan
+C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
+C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
+C***********************************************************************
+C
+      INCLUDE '../wm/wmcomm.inc'
+      CHARACTER KPNAME*80
+C
+      CALL MPINIT(NPROCS,MYRANK)
+      IF(NPROCS.LT.NCPUMIN) THEN
+         WRITE(6,*) 'XX NPROCS.LT.NCPUMIN :',NPROCS,'.LT.',NCPUMIN
+         STOP
+      ENDIF
+      IF(NPROCS.GT.NCPUMAX) THEN
+         WRITE(6,*) 'XX NPROCS.GT.NCPUMAX :',NPROCS,'.GT.',NCPUMAX
+         STOP
+      ENDIF
+C
+      IF(MYRANK.EQ.0) THEN
+         WRITE(6,*) '##### /TASK/TASK  04/11/08 #####'
+         CALL GSOPEN
+      ENDIF
+      CALL MPSYNC
+C
+      CALL PLINIT
+      CALL EQINIT
+      CALL TRINIT
+      CALL DPINIT
+      CALL WRINIT
+      CALL WMINIT
+      CALL FPINIT
+      IF(MYRANK.EQ.0) THEN
+         OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
+         KPNAME='plparm'
+         CALL PLPARF(KPNAME)
+         KPNAME='eqparm'
+         CALL EQPARF(KPNAME)
+         KPNAME='trparm'
+         CALL TRPARF(KPNAME)
+         KPNAME='dpparm'
+         CALL DPPARF(KPNAME)
+         KPNAME='wrparm'
+         CALL WRPARF(KPNAME)
+         KPNAME='wmparm'
+         CALL WMPARF(KPNAME)
+         KPNAME='fpparm'
+         CALL FPPARF(KPNAME)
+      ENDIF
+      CALL MPSYNC
+      CALL WMPRBC
+C
+      CALL TASKMENU
+C
+      IF(MYRANK.EQ.0) CALL GSCLOS
+      IF(MYRANK.EQ.0) CLOSE(7)
+      CALL MPSYNC
+C
+      CALL MPTERM
+C
+      STOP
+      END
+C
+C     ***** TASK MENU *****
+C
+      SUBROUTINE TASKMENU
+C
+      CHARACTER KID*2,KID1*1,KID2*1
+C
+    1 CONTINUE
+         IF(MYRANK.EQ.0) THEN
+            WRITE(6,601)
+  601       FORMAT('## TASK MENU: EQ/TR/WR/WM/FP/DP/PL Q/QUIT')
+            READ(5,'(A2)') KID
+            KID1=KID(1:1)
+            KID2=KID(2:2)
+            CALL GUCPTL(KID1)
+            CALL GUCPTL(KID2)
+            KID=KID1//KID2
+         ENDIF
+         CALL MPBCKA(KID1)
+         CALL MPBCKA(KID2)
+         KID=KID1//KID2
+C
+         IF (KID.EQ.'EQ') THEN
+            CALL EQMENU
+         ELSE IF (KID.EQ.'TR') THEN
+            CALL TRMENU
+         ELSE IF (KID.EQ.'WR') THEN
+            CALL WRMENU
+         ELSE IF (KID.EQ.'WM') THEN
+            CALL WMMENU
+         ELSE IF (KID.EQ.'FP') THEN
+            CALL FPMENU
+         ELSE IF (KID.EQ.'DP') THEN
+            CALL DPMENU
+         ELSE IF (KID.EQ.'PL') THEN
+            CALL PLMENU
+         ELSE IF (KID1.EQ.'Q') THEN
+            GOTO 9000
+         ENDIF
+      GO TO 1
+C
+ 9000 RETURN
+      END
