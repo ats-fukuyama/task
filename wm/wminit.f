@@ -225,6 +225,7 @@ C                   1: Toroidal geometry
 C                   2: Straight helical geometry
 C                   3: TASK/EQ output geometry
 C                   4: VMEC output geometry
+C                   5: EQDSK output geometry
 C        MODELJ: Control antenna current model
 C                   0: Real antenna
 C                   1: Real antenna
@@ -241,7 +242,8 @@ C                   4: Hot plasma (Cold FLR)
 C                   5: Hot plasma (FLR)
 C        MODELN: Control plasma profile
 C                   0: Calculate from PN,PNS,PTPR,PTPP,PTS,PU,PUS
-C                   9: Read from file by means of WMXPRF routine
+C                   8: Read from file by means of WMDPRF routine (DIII-D)
+C                   9: Read from file by means of WMXPRF routine (JT-60)
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
 C                   1: Precession of alpha particles
@@ -291,8 +293,10 @@ C
 C     *** FILE NAME ***
 C
 C        KNAMEQ: Filename of equilibrium data
+C        KNAMPF: Filename of profile data
 C
       KNAMEQ = 'eqdata'
+      KNAMPF = 'pfdata'
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -376,7 +380,7 @@ C
       WRITE(6,*) '               AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,'
       WRITE(6,*) '               NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'
       WRITE(6,*) '               MODELG,MODELJ,MODELP,MODELA,MODELN,'
-      WRITE(6,*) '               MODELM,MODELW,KNAMEQ,'
+      WRITE(6,*) '               MODELM,MODELW,KNAMEQ,KNAMPF,'
       WRITE(6,*) '               NPRINT,NGRAPH,,'
       WRITE(6,*) '               FRMIN,FRMAX,FIMIN,FIMAX,FI0,'
       WRITE(6,*) '               FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'
@@ -384,7 +388,7 @@ C
       WRITE(6,*) '               DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'
       WRITE(6,*) '               RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'
       WRITE(6,*) '               RHOITB,PNITB,PTITB,PUITB'
-      WRITE(6,*) '               WAEMIN,WAEMAX'
+      WRITE(6,*) '               WAEMIN,WAEMAX,KNAMEQ,KNAMPF'
       RETURN
       END
 C
@@ -404,12 +408,13 @@ C
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELM,MODELW,KNAMEQ,
+     &              MODELM,MODELW,KNAMEQ,KNAMPF,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
      &              RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2,
-     &              RHOITB,PNITB,PTITB,PUITB,WAEMIN,WAEMAX
+     &              RHOITB,PNITB,PTITB,PUITB,WAEMIN,WAEMAX,
+     &              KNAMEQ,KNAMPF
 C
       MODE=0
  1000 CONTINUE
@@ -435,13 +440,13 @@ C
       RF=DBLE(CRF)
       RFI=DIMAG(CRF)
       KNAME=' &WM '//KLINE//' &END'
-      WRITE(33,'(A80)') KNAME
-      REWIND(33)
-      READ(33,WM,ERR=8,END=8)
+      WRITE(7,'(A80)') KNAME
+      REWIND(7)
+      READ(7,WM,ERR=8,END=8)
       WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
       GOTO 9
     8 CALL WMPLST
-    9 REWIND(33)
+    9 REWIND(7)
       CRF=DCMPLX(RF,RFI)
       GOTO 3000
 C
@@ -456,6 +461,7 @@ C
       RFI=DIMAG(CRF)
       OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
       READ(25,WM,ERR=9800,END=9900)
+      CLOSE(25)
       WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
       CRF=DCMPLX(RF,RFI)
 C
@@ -536,6 +542,8 @@ C
          WRITE(6,*) '## 3: TASK/EQ ##'
       ELSE IF(MODELG.EQ.4) THEN 
          WRITE(6,*) '## 4: VMEC ##'
+      ELSE IF(MODELG.EQ.5) THEN 
+         WRITE(6,*) '## 5: EQDSK ##'
       END IF
 C
       IF(MODELJ.EQ.0) THEN
@@ -564,8 +572,10 @@ C
          WRITE(6,*) '## 5: HOT PLASMA (FLR) ##'
       END IF
 C
-      IF(MODELN.EQ.9) THEN
-         WRITE(6,*) '## 9: READ PROFILE DATA ##'
+      IF(MODELN.EQ.8) THEN
+         WRITE(6,*) '## 8: READ PROFILE DATA : WMDPRF ##'
+      ELSEIF(MODELN.EQ.9) THEN
+         WRITE(6,*) '## 9: READ PROFILE DATA : WMXPRF ##'
       ENDIF
 C
       IF(MOD(MODELA,4).EQ.1) THEN
@@ -820,6 +830,7 @@ C
       CALL MPBCDN(PHJ1,NAMAX)
       CALL MPBCDN(PHJ2,NAMAX)
       CALL MPBCKN(KNAMEQ,72)
+      CALL MPBCKN(KNAMPF,72)
 C
       RETURN
       END

@@ -96,7 +96,7 @@ C
          READ(5,'(A72)',ERR=10,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
-         CALL EQLOAD(1,KNAMEQ1,IERR)
+         CALL EQLOAD(3,KNAMEQ1,IERR)
          IF(IERR.EQ.1) GOTO 10
          CALL EQSETP
          NRMAX1=NRMAX

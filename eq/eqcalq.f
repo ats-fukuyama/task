@@ -117,8 +117,8 @@ C
          SUMQ=0.D0
          RMIN=RINIT
          RMAX=RINIT
-         BMIN=TTS(NR)/RAXIS
-         BMAX=TTS(NR)/RAXIS
+         BMIN=ABS(TTS(NR)/RAXIS)
+         BMAX=ABS(TTS(NR)/RAXIS)
          SUMAVBR=0.D0
          SUMAVRR=0.D0
          SUMAVR1=0.D0
@@ -205,8 +205,8 @@ C
       RLEN(NR)=0.D0
       RRMIN(NR)=RAXIS
       RRMAX(NR)=RAXIS
-      BBMIN(NR)=TTS(NR)/RAXIS
-      BBMAX(NR)=TTS(NR)/RAXIS
+      BBMIN(NR)=ABS(TTS(NR)/RAXIS)
+      BBMAX(NR)=ABS(TTS(NR)/RAXIS)
       AVBR(NR)=0.D0
       AVRR(NR)=1.D0/RAXIS**2
       AVR1(NR)=0.D0

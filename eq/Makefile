@@ -4,11 +4,11 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-SRCC = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f eqgsub.f
+SRCC = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f eqgsub.f eqdsk.f
 SRCS = eqmain.f $(SRCC)
 SRCT = trtest.f treqin.f $(SRCC)
-SRCP = pltest.f pleqin.f eqload.f eqcalq.f
-SRCA = aktest.f akeqin.f eqload.f eqcalq.f
+SRCP = pltest.f pleqin.f eqload.f eqcalq.f eqdsk.f
+SRCA = aktest.f akeqin.f eqload.f eqcalq.f eqdsk.f
 
 SRCCL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 SRCQL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
@@ -69,3 +69,4 @@ pleqin.o: pleqin.f eqcom1.inc eqcom3.inc
 aktest.o: aktest.f
 akeqin.o: akeqin.f eqcom1.inc eqcom3.inc
 eqload.o: eqload.f eqcom1.inc eqcom3.inc
+eqdsk.o: eqdsk.f eqcom1.inc eqcom3.inc

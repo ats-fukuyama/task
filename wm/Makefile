@@ -2,10 +2,10 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCX = wminit.f wmsetg.f wmvmec.f wmsetj.f wmprof.f \
-       nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmtae.f wmxprf.f \
+       nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmtae.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f
 
 SRCS = wmmain.f wmeign.f $(SRCX)
@@ -17,7 +17,7 @@ OBJM = ../mtx/bandcd.o  ../mtx/mtxset.o ../mtx/precndcb.o \
 OBJL = ../lib/libdsp.o ../lib/libfft.o ../lib/libinv.o \
        ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o 
 
-OBJE = ../eq/eqload.o ../eq/eqcalq.o ../eq/wmeqin.o
+OBJE = ../eq/eqload.o ../eq/eqdsk.o ../eq/eqcalq.o ../eq/wmeqin.o
 
 OBJS = $(SRCS:.f=.o) $(OBJM) $(OBJL) $(OBJE) $(OBJLA)
 
@@ -59,6 +59,7 @@ wmsetm.o : wmsetm.f wmcomm.h
 wmsetf.o : wmsetf.f wmcomm.h
 wmdisp.o : wmdisp.f wmcomm.h
 wmtae.o : wmtae.f wmcomm.h
+wmdprf.o : wmdprf.f wmcomm.h
 wmxprf.o : wmxprf.f wmcomm.h wmxprf.h
 wmpout.o : wmpout.f wmcomm.h
 wmgout.o : wmgout.f wmcomm.h
@@ -66,5 +67,6 @@ wmvout.o : wmvout.f wmcomm.h vmcomm.h
 wmgsub.o : wmgsub.f wmcomm.h
 wmdout.o : wmdout.f wmcomm.h	
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

@@ -320,7 +320,7 @@ C
       DIMENSION GRS(NSUM),GZS(NSUM)
       CHARACTER K2,K3
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NTHGMAX=NTHGM
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
@@ -411,7 +411,7 @@ C
       CALL SETLIN(-1,-1,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NPHD=1
       ELSE
          NPHD=NPH
@@ -457,7 +457,7 @@ C
      &           1.0,0.0,0.0/
       DATA GLA/0.0,0.40,0.5,0.60,1.0/
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NTHGMAX=NTHGM
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
@@ -589,7 +589,7 @@ C
       CALL SETRGB(0.0,1.0,0.0)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NPHD=1
       ELSE
          NPHD=NPH
@@ -677,7 +677,7 @@ C
       ZMIN= 1.D32
       ZMAX=-1.D-32
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NPHD=1
       ELSE
          NPHD=NPH
@@ -905,7 +905,7 @@ C
          CALL DRAW(GXP,GYP)
       ENDDO
 C
-      IF(MODELG.LE.3) THEN
+      IF(MODELG.NE.4) THEN
          NPHD=1
       ELSE
          NPHD=NPH

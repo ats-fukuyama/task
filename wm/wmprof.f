@@ -39,6 +39,37 @@ C
             ENDDO
          ENDIF
 C
+      ELSEIF(MODELN.EQ.8) THEN
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =0.D0
+               IF (NS.LE.2) THEN
+                  RTPR(NS)=RTPRF(NRMAX+1,NS)*AEE*1.D3
+                  RTPP(NS)=RTPRF(NRMAX+1,NS)*AEE*1.D3
+               ELSE
+                  RTPR(NS)=PTS(NS)*AEE*1.D3
+                  RTPP(NS)=PTS(NS)*AEE*1.D3
+               ENDIF
+               RU(NS)  =PUS(NS)
+            ENDDO
+         ELSE
+            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            DO NS=1,NSMAX
+               IF (NS.LE.2) THEN
+                  RN(NS)  = RNPRF(NR,NS)*1.D20
+                  RTPR(NS)= RTPRF(NR,NS)*AEE*1.D3
+                  RTPP(NS)= RTPRF(NR,NS)*AEE*1.D3
+               ELSE
+                  RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))*1.D20
+                  RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
+                  RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
+               ENDIF
+               RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+            ENDDO
+         ENDIF
+C
       ELSEIF(MODELN.EQ.9) THEN
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX

@@ -143,7 +143,7 @@ C
       INCLUDE 'vmcomm.h'
 C
       COMMON /PLTCN2/ RMIN,RMAX,ZMIN,ZMAX
-      COMMON /PLTCN6/ LXC,LYC,NOXC,NOYC
+C      COMMON /PLTCN6/ LXC,LYC,NOXC,NOYC
       COMMON /RZARRAY/R(NRT),Z(NRT)
 C
       REAL*8 BSQ(NRT),R12(NRT),Z12(NRT),
@@ -152,9 +152,9 @@ C
       CHARACTER*100 MCHAR
 C 
       DATA IVAR / 0,1,2,3 / ,  NCON / 10,15,10,10 /,
-     &     NOXC,NOYC / 2,2 / , 
-     &     LXC,LYC / -1,0 / ,
      &     KPLOT / 2 /
+C     &     NOXC,NOYC / 2,2 / , 
+C     &     LXC,LYC / -1,0 / ,
 C
 C
 C     KPLOT: = 0, NO PLOTS; 

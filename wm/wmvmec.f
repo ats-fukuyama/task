@@ -3,18 +3,18 @@ C
 C    ****** RADIAL MESH AND METRIC TENSOR ******
 C
 C
-      SUBROUTINE WMXRZV(ID,IERR)
+      SUBROUTINE WMXRZV(IERR)
 C
       INCLUDE 'wmcomm.h'
 C     
       IERR=0
 C
-      IF(ID.EQ.4) THEN
+C      IF(ID.EQ.4) THEN
          CALL WMHFRD
-      ELSE
-         CALL WMHGRD(ID,IERR)
-         IF(IERR.NE.0) RETURN
-      ENDIF
+C      ELSE
+C         CALL WMHGRD(ID,IERR)
+C         IF(IERR.NE.0) RETURN
+C      ENDIF
       CALL WMHCRZ
       CALL WMHMTR
       CALL WMHCBB
