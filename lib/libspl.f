@@ -582,14 +582,48 @@ C
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
 C
-      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
-     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
-     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
-     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
-     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+C      WRITE(6,'(2I5,1P2E12.4)') NX,NY,X0,Y0
+C      IF(NX.EQ.33 .AND. NY.EQ.18) THEN
+C         WRITE(6,'(1P4E12.4)') X0,Y0,DX,DY
+C         WRITE(6,'(1P4E12.4)') U(1,1,NX,NY),U(1,2,NX,NY),
+C     &                         U(1,3,NX,NY),U(1,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(2,1,NX,NY),U(2,2,NX,NY),
+C     &                         U(2,3,NX,NY),U(2,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(3,1,NX,NY),U(3,2,NX,NY),
+C     &                         U(3,3,NX,NY),U(3,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(4,1,NX,NY),U(4,2,NX,NY),
+C     &                         U(4,3,NX,NY),U(4,4,NX,NY)
+C         CALL GUFLSH
+C      ENDIF
+C
+C      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
+C     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
+C     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
+C     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
+C     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+C
+      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
+      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
+      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
+      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+      F0= ((F4*DX+F3)*DX+F2)*DX+F1
+C
+C      F0=((( ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+C     &        +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)    )*DX
+C     &      +((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+C     &        +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)    )*DX
+C     &      +((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+C     &        +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)    )*DX
+C     &      +((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+C     &        +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+C
       IERR=0
       RETURN
       END
@@ -658,30 +692,52 @@ C
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
 C
-      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
-     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
-     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
-     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
-     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+C      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
+C     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
+C     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
+C     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
+C     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
 C
-      FX0=(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-     &    +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)
-     &   +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-     &    +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*2
-     &   +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-     &    +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*3
+      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
+      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
+      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
+      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+      F0= ((F4*DX+F3)*DX+F2)*DX+F1
 C
-      FY0=                   +U(1,2,NX,NY)
-     &    +U(1,3,NX,NY)*DY*2 +U(1,4,NX,NY)*DY*DY*3
-     &   +(                  +U(2,2,NX,NY)
-     &    +U(2,3,NX,NY)*DY*2 +U(2,4,NX,NY)*DY*DY*3 )*DX
-     &   +(                  +U(3,2,NX,NY)
-     &    +U(3,3,NX,NY)*DY*2 +U(3,4,NX,NY)*DY*DY*3 )*DX*DX
-     &   +(                  +U(4,2,NX,NY)
-     &    +U(4,3,NX,NY)*DY*2 +U(4,4,NX,NY)*DY*DY*3 )*DX*DX*DX
+C      FX0=(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &    +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)
+C     &   +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &    +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*2
+C     &   +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &    +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*3
+C
+      FX0= (3*F4*DX+2*F3)*DX+F2
+C
+C      FY0=                   +U(1,2,NX,NY)
+C     &    +U(1,3,NX,NY)*DY*2 +U(1,4,NX,NY)*DY*DY*3
+C     &   +(                  +U(2,2,NX,NY)
+C     &    +U(2,3,NX,NY)*DY*2 +U(2,4,NX,NY)*DY*DY*3 )*DX
+C     &   +(                  +U(3,2,NX,NY)
+C     &    +U(3,3,NX,NY)*DY*2 +U(3,4,NX,NY)*DY*DY*3 )*DX*DX
+C     &   +(                  +U(4,2,NX,NY)
+C     &    +U(4,3,NX,NY)*DY*2 +U(4,4,NX,NY)*DY*DY*3 )*DX*DX*DX
+C
+      FY4= (3*U(4,4,NX,NY) *DY     +2*U(4,3,NX,NY))*DY
+     &       +U(4,2,NX,NY)
+      FY3= (3*U(3,4,NX,NY) *DY     +2*U(3,3,NX,NY))*DY
+     &       +U(3,2,NX,NY)
+      FY2= (3*U(2,4,NX,NY) *DY     +2*U(2,3,NX,NY))*DY
+     &       +U(2,2,NX,NY)
+      FY1= (3*U(1,4,NX,NY) *DY     +2*U(1,3,NX,NY))*DY
+     &       +U(1,2,NX,NY)
+      FY0= ((FY4*DX+FY3)*DX+FY2)*DX+FY1
       IERR=0
       RETURN
       END
