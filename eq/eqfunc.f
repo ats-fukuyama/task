@@ -29,12 +29,15 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         PPSI=PP0*(1.D0-PSIN**PROFR0)**PROFP0
-     &       +PP1*(1.D0-PSIN**PROFR1)**PROFP1
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         PPSI=PP0*FPOW(1.D0-ARG0,PROFP0)
+     &       +PP1*FPOW(1.D0-ARG1,PROFP1)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             PPSI=PPSI
-     &          +PP2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFP2
+     &          +PP2*FPOW(1.D0-ARG2,PROFP2)
          ENDIF
          PPSI=PPSI*1.D6
       ELSE
@@ -61,16 +64,18 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         DPPSI=-PP0*PROFP0*(1.D0-PSIN**PROFR0)**(PROFP0-1.D0)
-     &                            *PROFR0*PSIN**(PROFR0-1.D0)
-     &         -PP1*PROFP1*(1.D0-PSIN**PROFR1)**(PROFP1-1.D0)
-     &                            *PROFR1*PSIN**(PROFR1-1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         DPPSI=-PP0*PROFP0*FPOW(1.D0-ARG0,PROFP0-1.D0)
+     &                            *PROFR0*FPOW(PSIN,PROFR0-1.D0)
+     &         -PP1*PROFP1*FPOW(1.D0-ARG1,PROFP1-1.D0)
+     &                            *PROFR1*FPOW(PSIN,PROFR1-1.D0)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             DPPSI=DPPSI
-     &           -PP2*PROFP2
-     &           *(1.D0-(PSIN/PSIITB)**PROFR2)**(PROFP2-1.D0)
-     &                   *PROFR2*(PSIN/PSIITB)**(PROFR2-1.D0)
+     &           -PP2*PROFP2*FPOW(1.D0-ARG2,PROFP2-1.D0)
+     &                   *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &           /PSIITB
          ENDIF
          DPPSI=DPPSI*1.D6
@@ -100,13 +105,16 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
          FPSI=BB*RR
-     &       +FF0*(1.D0-PSIN**PROFR0)**PROFF0
-     &       +FF1*(1.D0-PSIN**PROFR1)**PROFF1
+     &       +FF0*FPOW(1.D0-ARG0,PROFF0)
+     &       +FF1*FPOW(1.D0-ARG1,PROFF1)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             FPSI=FPSI
-     &          +FF2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFF2
+     &          +FF2*FPOW(1.D0-ARG2,PROFF2)
          ENDIF
       ELSE
          CALL SPL1DF(PSIN,FPSI,PSITRX,UFPSI,NTRMAX+2,IERR)
@@ -129,16 +137,18 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         DFPSI=-FF0*PROFF0*(1.D0-PSIN**PROFR0)**(PROFF0-1.D0)
-     &                            *PROFR0*PSIN**(PROFR0-1.D0)
-     &         -FF1*PROFF1*(1.D0-PSIN**PROFR1)**(PROFF1-1.D0)
-     &                            *PROFR1*PSIN**(PROFR1-1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         DFPSI=-FF0*PROFF0*FPOW(1.D0-ARG0,PROFF0-1.D0)
+     &                            *PROFR0*FPOW(PSIN,PROFR0-1.D0)
+     &         -FF1*PROFF1*FPOW(1.D0-ARG1,PROFF1-1.D0)
+     &                            *PROFR1*FPOW(PSIN,PROFR1-1.D0)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             DFPSI=DFPSI
-     &           -FF2*PROFF2
-     &           *(1.D0-(PSIN/PSIITB)**PROFR2)**(PROFF2-1.D0)
-     &                   *PROFR2*(PSIN/PSIITB)**(PROFR2-1.D0)
+     &           -FF2*PROFF2*FPOW(1.D0-ARG2,PROFF2-1.D0)
+     &                   *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &           /PSIITB
          ENDIF
       ELSE
@@ -166,13 +176,16 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
          QPSI=QQS
-     &       +(QQ0-QQS)*(1.D0-PSIN**PROFR0)**PROFQ0
-     &       +QQ1*(1.D0-PSIN**PROFR1)**PROFQ1
+     &       +(QQ0-QQS)*FPOW(1.D0-ARG0,PROFQ0)
+     &       +QQ1*FPOW(1.D0-ARG1,PROFQ1)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             QPSI=QPSI
-     &          +QQ2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFQ2
+     &          +QQ2*FPOW(1.D0-ARG2,PROFQ2)
          ENDIF
       ELSE
          CALL SPL1DF(PSIN,QPSI,QSITRX,UQPSI,NTRMAX+2,IERR)
@@ -197,16 +210,18 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         DQPSI=-(QQ0-QQS)*PROFQ0*(1.D0-PSIN**PROFR0)**(PROFQ0-1.D0)
-     &                            *PROFR0*PSIN**(PROFR0-1.D0)
-     &         -QQ1*PROFQ1*(1.D0-PSIN**PROFR1)**(PROFQ1-1.D0)
-     &                            *PROFR1*PSIN**(PROFR1-1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         DQPSI=-(QQ0-QQS)*PROFQ0*FPOW(1.D0-ARG0,PROFQ0-1.D0)
+     &                            *PROFR0*FPOW(PSIN,PROFR0-1.D0)
+     &         -QQ1*PROFQ1*FPOW(1.D0-ARG1,PROFQ1-1.D0)
+     &                            *PROFR1*FPOW(PSIN,PROFR1-1.D0)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             DQPSI=DQPSI
-     &           +QQ2*PROFQ2
-     &           *(1.D0-(PSIN/PSIITB)**PROFR2)**(PROFQ2-1.D0)
-     &                   *PROFR2*(PSIN/PSIITB)**(PROFR2-1.D0)
+     &           +QQ2*PROFQ2*FPOW(1.D0-ARG2,PROFQ2-1.D0)
+     &                   *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &           /PSIITB
          ENDIF
          DQPSI=DQPSI
@@ -236,11 +251,14 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         HJPSID=-PJ0*(1.D0-PSIN**PROFR0)**(PROFJ0+1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         ARG2=FPOW(PSIN,PROFR2)
+         HJPSID=-PJ0*FPOW(1.D0-ARG0,PROFJ0+1.D0)
      &              /(PROFR0*(PROFJ0+1.D0))
-     &          -PJ1*(1.D0-PSIN**PROFR1)**(PROFJ1+1.D0)
+     &          -PJ1*FPOW(1.D0-ARG1,PROFJ1+1.D0)
      &              /(PROFR1*(PROFJ1+1.D0))
-     &          -PJ2*(1.D0-PSIN**PROFR2)**(PROFJ2+1.D0)
+     &          -PJ2*FPOW(1.D0-ARG2,PROFJ2+1.D0)
      &              /(PROFR2*(PROFJ2+1.D0))
          HJPSID=HJPSID*1.D6
       ELSE
@@ -265,12 +283,15 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         HJPSI=PJ0*(1.D0-PSIN**PROFR0)**PROFJ0
-     &                   *PSIN**(PROFR0-1.D0)
-     &        +PJ1*(1.D0-PSIN**PROFR1)**PROFJ1
-     &                   *PSIN**(PROFR1-1.D0)
-     &        +PJ2*(1.D0-PSIN**PROFR2)**PROFJ2
-     &                   *PSIN**(PROFR2-1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         ARG2=FPOW(PSIN,PROFR2)
+         HJPSI=PJ0*FPOW(1.D0-ARG0,PROFJ0)
+     &                   *FPOW(PSIN,PROFR0-1.D0)
+     &        +PJ1*FPOW(1.D0-ARG1,PROFJ1)
+     &                   *FPOW(PSIN,PROFR1-1.D0)
+     &        +PJ2*FPOW(1.D0-ARG2,PROFJ2)
+     &                   *FPOW(PSIN,PROFR2-1.D0)
          HJPSI=HJPSI*1.D6
       ELSE
          CALL SPL1DF(PSIN,HJPSI,PSITRX,UJPSI,NTRMAX+2,IERR)
@@ -298,12 +319,15 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         TPSI=PTS+(PT0-PTS)*(1.D0-PSIN**PROFR0)**PROFT0
-     &                 +PT1*(1.D0-PSIN**PROFR1)**PROFT1
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         TPSI=PTS+(PT0-PTS)*FPOW(1.D0-ARG0,PROFT0)
+     &                 +PT1*FPOW(1.D0-ARG1,PROFT1)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             TPSI=TPSI
-     &          +PT2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFT2
+     &          +PT2*FPOW(1.D0-ARG2,PROFT2)
          ENDIF
          TPSI=TPSI*1.D3*AEE
       ELSE
@@ -328,17 +352,19 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
          DTPSI=(PT0-PTS)
-     &            *PROFT0*(1.D0-PSIN**PROFR0)**(PROFT0-1.D0)
-     &            *PROFR0*PSIN**(PROFR0-1.D0)
-     &        +PT1*PROFT1*(1.D0-PSIN**PROFR1)**(PROFT1-1.D0)
-     &            *PROFR1*PSIN**(PROFR1-1.D0)
+     &            *PROFT0*FPOW(1.D0-ARG0,PROFT0-1.D0)
+     &            *PROFR0*FPOW(PSIN,PROFR0-1.D0)
+     &        +PT1*PROFT1*FPOW(1.D0-ARG1,PROFT1-1.D0)
+     &            *PROFR1*FPOW(PSIN,PROFR1-1.D0)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             DTPSI=DTPSI
-     &           +PT2*PROFT2
-     &        *(1.D0-(PSIN/PSIITB)**PROFR2)**(PROFT2-1.D0)
-     &        *PROFR2*(PSIN/PSIITB)**(PROFR2-1.D0)
+     &           +PT2*PROFT2*FPOW(1.D0-ARG2,PROFT2-1.D0)
+     &        *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &         /PSIITB
          ENDIF
          DTPSI=DTPSI*1.D3*AEE
@@ -368,12 +394,15 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         VPSI=PV0*(1.D0-PSIN**PROFR0)**PROFV0
-     &       +PV1*(1.D0-PSIN**PROFR1)**PROFV1
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         VPSI=PV0*FPOW(1.D0-ARG0,PROFV0)
+     &       +PV1*FPOW(1.D0-ARG1,PROFV1)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             VPSI=VPSI
-     &         +PV2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFV2
+     &         +PV2*FPOW(1.D0-ARG2,PROFV2)
          ENDIF
          OMGPSI=VPSI/RAXIS
       ELSE
@@ -398,16 +427,18 @@ C
       ENDIF
 C
       IF(MDLEQF.LT.5) THEN
-         DVPSI=-PV0*PROFV0*(1.D0-PSIN**PROFR0)**(PROFV0-1.D0)
-     &             *PROFR0*PSIN**(PROFR0-1.D0)
-     &         -PV1*PROFV1*(1.D0-PSIN**PROFR1)**(PROFV1-1.D0)
-     &                            *PROFR1*PSIN**(PROFR1-1.D0)
+         ARG0=FPOW(PSIN,PROFR0)
+         ARG1=FPOW(PSIN,PROFR1)
+         DVPSI=-PV0*PROFV0*FPOW(1.D0-ARG0,PROFV0-1.D0)
+     &             *PROFR0*FPOW(PSIN,PROFR0-1.D0)
+     &         -PV1*PROFV1*FPOW(1.D0-ARG1,PROFV1-1.D0)
+     &             *PROFR1*FPOW(PSIN,PROFR1-1.D0)
          PSIITB=RHOITB**2
          IF(PSIN.LT.PSIITB) THEN
+            ARG2=FPOW(PSIN/PSIITB,PROFR2)
             DVPSI=DVPSI
-     &        -PV2*PROFV2
-     &        *(1.D0-(PSIN/PSIITB)**PROFR2)**(PROFV2-1.D0)
-     &       *PROFR2*(PSIN/PSIITB)**(PROFR2-1.D0)
+     &        -PV2*PROFV2*FPOW(1.D0-ARG2,PROFV2-1.D0)
+     &       *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &        /PSIITB
          ENDIF
          DOMGPSI=DVPSI/RAXIS
@@ -415,6 +446,26 @@ C
          CALL SPL1DD(PSIN,VPSI,DVPSI,PSITRX,UVTPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX DOMGPSI: SPL1DD : IERR=',IERR
          DOMGPSI=DVPSI/RAXIS
+      ENDIF
+      RETURN
+      END
+C
+C   ***************************************
+C   **         Power function            **
+C   ***************************************
+C
+      FUNCTION FPOW(X,Y)
+C
+      REAL*8 X,Y,FPOW
+C
+      IF(X.EQ.0.D0) THEN
+         IF(Y.EQ.0.D0) THEN
+            FPOW=1.D0
+         ELSE
+            FPOW=0.D0
+         ENDIF
+      ELSE
+         FPOW=X**Y
       ENDIF
       RETURN
       END

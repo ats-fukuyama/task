@@ -582,7 +582,7 @@ C
             NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
          ELSE
             GFMIN=0.0
-            GFMAX=GUCLIP(2.*PI)
+            GFMAX=GUCLIP(2.D0*PI)
             GGFMIN=0.0
             NSTEP=12
             GGFSTP=GFMAX/NSTEP

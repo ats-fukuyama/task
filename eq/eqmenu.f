@@ -7,11 +7,16 @@ C
       INCLUDE 'eqcomc.inc'
 C
       EXTERNAL EQPARM
-      CHARACTER KNAMEQ1*80,KNAM*80
+      CHARACTER KNAMEQ1*80,KNAM*80,KPNAME*80
       CHARACTER KID*1,LINE*80
-      SAVE MSTAT,KPNAME
-      DATA MSTAT/0/
-      DATA KPNAME/'eqparm'/
+      SAVE INIT,MSTAT,KPNAME
+      DATA INIT/0/
+C
+      IF(INIT.EQ.0) THEN
+         MSTAT=0
+         KPNAME='eqparm'
+         INIT=1
+      ENDIF
 C
     1 IERR=0
       WRITE(6,601) 
@@ -53,7 +58,7 @@ C
          ENDIF
 C
       ELSEIF(KID.EQ.'P') THEN
-         CALL EQPARM(0,'&EQ',IERR)
+         CALL EQPARM(0,'EQ',IERR)
          IF(KID.EQ.'Q') GOTO 9000
 C
       ELSEIF(KID.EQ.'V') THEN

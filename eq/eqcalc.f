@@ -407,16 +407,8 @@ C
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI(PSIN)
             HJT1(NTG,NSG)=HJPSI(PSIN)
-            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
-            HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
-            HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
-            HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
-            HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
-            HJP2F=FDN*AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)/TPSI(PSIN)
-     &           -FDN*DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
-            HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
+            HJP2C=1.D0-RRC**2/RMM(NTG,NSG)**2
+            HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)
             HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
 C
@@ -432,11 +424,8 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             TT(NTG,NSG)=SQRT(BB**2*RR**2
      &           +2.D0*RMU0*RRC
-     &           *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
-     &           *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
-            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
-     &           *EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
+     &           *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)))
+            RHO(NTG,NSG)=PPSI(PSIN)*AMP/TPSI(PSIN)
          ENDDO
          ENDDO
 C
