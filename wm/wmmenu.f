@@ -6,33 +6,34 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
+      EXTERNAL WMPARM
       CHARACTER KID*1,LINE*80
-      SAVE MODE,NFILEINI
-      DATA MODE,NFILEINI/0,0/
+      SAVE INIT,NFILEINI
+      DATA INIT/0/
+C
+      IF(INIT.EQ.0) THEN
+         NFILEINI=0
+         INIT=1
+      ENDIF
 C
     1 CONTINUE
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## WM MENU: P,V/PARM  R/RUN  A,F,C/AMP  E,S/SCAN  ',
      &      'G/GRAPH T/TAE W/WRITE Q/QUIT')
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
          CALL MPBCIA(MODE)
-         IF(MODE.EQ.1) THEN
-            CALL MPBCKA(KID)
-            GOTO 2
-         ENDIF
-         IF(MODE.EQ.2) THEN
-            CALL WMPRBC
-            GOTO 1
-         ENDIF
-         IF(MODE.EQ.3) GOTO 1
+         IF(MODE.EQ.2) CALL WMPRBC
+      IF(MODE.NE.1) GOTO 1
 C
-    2    CONTINUE
+      CALL MPBCKA(KID)
+C
          IF (KID.EQ.'P') THEN
-            IF(MYRANK.EQ.0) CALL WMPARM(KID)
-            CALL MPBCKA(KID)
+            IF(MYRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
+            CALL MPSYNC
             CALL WMPRBC
+            KID=' '
          ELSE IF(KID.EQ.'V') THEN
             IF(MYRANK.EQ.0) CALL WMVIEW
             CALL MPSYNC
@@ -109,6 +110,12 @@ C
             WRITE(6,*) '        Q: QUIT'
             KID=' '
 C
+         ELSEIF (KID.EQ.'D') THEN
+            CALL WMDEBUG(IERR)
+            CALL MPSYNC
+            IF(IERR.NE.0) GOTO 1
+            KID=' '
+C
          ELSE IF(KID.EQ.'Q') THEN
             GOTO 9000
 C
@@ -149,23 +156,8 @@ C
 C
       KID=LINE(1:1)
       CALL GUCPTL(KID)
-      IF(KID.EQ.'P'.OR.
-     &   KID.EQ.'V'.OR.
-     &   KID.EQ.'R'.OR.
-     &   KID.EQ.'A'.OR.
-     &   KID.EQ.'F'.OR.
-     &   KID.EQ.'C'.OR.
-     &   KID.EQ.'E') THEN
-         MODE=1
-         RETURN
-      ENDIF
-      IF(KID.EQ.'S'.OR.
-     &   KID.EQ.'G'.OR.
-     &   KID.EQ.'T'.OR.
-     &   KID.EQ.'W'.OR.
-     &   KID.EQ.'H'.OR.
-     &   KID.EQ.'X'.OR.
-     &   KID.EQ.'Q') THEN
+      IF(KID.GE.'A'.AND.
+     &   KID.LE.'Z') THEN
          MODE=1
          RETURN
       ENDIF

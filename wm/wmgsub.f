@@ -152,7 +152,7 @@ C
             IF(NG3.EQ.1) THEN
                GY(NR,NTH) =GUCLIP(PSIPS(NR))
             ELSEIF(NG3.EQ.2) THEN
-               GY(NR,NTH) =GUCLIP(BR(NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BPST(NTH,NPH,NR))
             ELSEIF(NG3.EQ.3) THEN
                GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
             ELSEIF(NG3.EQ.4) THEN
@@ -384,20 +384,20 @@ C
       DIMENSION GRS(NSUM),GZS(NSUM)
       CHARACTER K2,K3
 C
-      IF(MODELG.NE.4) THEN
-         NTHGMAX=NTHGM
-         DO NR=1,NRMAX+1
-         DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
-            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
-         ENDDO
-         ENDDO
-      ELSE
+      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
             GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
             GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+      ELSE
+         NTHGMAX=NTHGM
+         DO NR=1,NRMAX+1
+         DO NTH=1,NTHGMAX
+            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
          ENDDO
          ENDDO
       ENDIF
@@ -409,10 +409,14 @@ C
          IF(NTHP.GT.NTHMAX) NTHP=1
          DO NTHG=1,NTHGS
             NTHL=(NTH-1)*NTHGS+NTHG
-            FACT=DBLE(NTHG-1)/NTHGS
-            VAL=(1.D0-FACT)*BR(NTH,NPH,NR)+FACT*BR(NTHP,NPH,NR)
+            IF(NTHGS.EQ.1) THEN
+               FACT=0.D0
+            ELSE
+               FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
+            ENDIF
+            VAL=(1.0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
-            VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
+            VAL=(1.0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
             GFL(NR,NTHL)=GUCLIP(VAL)
          ENDDO
       ENDDO
@@ -446,7 +450,8 @@ C
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(2*GGZSTP))
 C
-      WRITE(6,'(I5,1P4E12.4)') NSTEP,GGFMIN,GGFSTP,GFMIN,GFMAX
+C      WRITE(6,'(1P4E12.4)') RGMIN,RGMAX,ZGMIN,ZGMAX
+C      WRITE(6,'(I5,1P4E12.4)') NSTEP,GGFMIN,GGFSTP,GFMIN,GFMAX
       IF(GFMIN*GFMAX.GT.0.0) THEN
          CALL SETLIN(-1,-1,6)
          CALL CONTP5(GFL,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -462,6 +467,8 @@ C
 C
       IF(K2.EQ.'P'.AND.K3.EQ.'3') THEN
 C
+         RF=DBLE(CRF)
+         BICF=2.D0*PI*AMP*RF*1.D6/AEE
          GBICF=GUCLIP(BICF)
          CALL SETLIN(0,-1,4)
          CALL CONTP5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -476,10 +483,10 @@ C
       CALL SETLIN(-1,-1,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
-      IF(MODELG.NE.4) THEN
-         NPHD=1
-      ELSE
+      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
          NPHD=NPH
+      ELSE
+         NPHD=1
       ENDIF
       DO NSW=1,NSWMAX
          GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
@@ -522,20 +529,20 @@ C
      &           1.0,0.0,0.0/
       DATA GLA/0.0,0.40,0.5,0.60,1.0/
 C
-      IF(MODELG.NE.4) THEN
-         NTHGMAX=NTHGM
-         DO NR=1,NRMAX+1
-         DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
-            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
-         ENDDO
-         ENDDO
-      ELSE
+      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
             GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
             GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+      ELSE
+         NTHGMAX=NTHGM
+         DO NR=1,NRMAX+1
+         DO NTH=1,NTHGMAX
+            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
          ENDDO
          ENDDO
       ENDIF
@@ -552,7 +559,7 @@ C
             ELSE
                FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
             ENDIF
-            VAL=(1.D0-FACT)*BR(NTH,NPH,NR)+FACT*BR(NTHP,NPH,NR)
+            VAL=(1.D0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
             VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
             GFL(NR,NTHL)=GUCLIP(VAL)
@@ -640,6 +647,8 @@ C
 C
       IF(K2.EQ.'P'.AND.K3.EQ.'3') THEN
 C
+         RF=DBLE(CRF)
+         BICF=2.D0*PI*AMP*RF*1.D6/AEE
          GBICF=GUCLIP(BICF)
          CALL SETRGB(0.0,1.0,0.0)
          CALL CONTP5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -654,10 +663,10 @@ C
       CALL SETRGB(0.0,1.0,0.0)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
-      IF(MODELG.NE.4) THEN
-         NPHD=1
-      ELSE
+      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
          NPHD=NPH
+      ELSE
+         NPHD=1
       ENDIF
       DO NSW=1,NSWMAX
          GRS(NSW)=GUCLIP(RSW(NSW,NPHD))

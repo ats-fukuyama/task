@@ -49,7 +49,6 @@ C
       INCLUDE 'vmcomm.inc'
 C
       DIMENSION shalf(NSRM),wjs(NSRM),wis(NSRM)
-      DIMENSION GX(NSRM),GY(NSRM,NMNM)
 C
 C 1002    WRITE(6,*) 'READ FILE NAME ?'
 C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
@@ -131,93 +130,9 @@ C
      &                       -DEL1*PBOZH(MN,NSRMAX-1))/DEL2
       ENDDO
 C
-      DO NSR=1,NSRMAX+1
-         WRITE(6,'(I5,2X,1P3E12.5)') NSR,SHALF(NSR),XS(NSR),XSH(NSR)
-      ENDDO
-C
-C     ----- graphics with psit axis -----
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(XSH(NSR))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(XSH(NSR))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(XSH(NSR))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(XSH(NSR))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
-      CALL PAGEE
-C
-C     ----- graphics with rho axis -----
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
-      CALL PAGEE
-C
-      DO NSR=1,NSRMAX+1
-         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
-         DO MN=1,MNMAX
-            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
-      CALL PAGEE
+C      DO NSR=1,NSRMAX+1
+C         WRITE(6,'(I5,2X,1P3E12.5)') NSR,SHALF(NSR),XS(NSR),XSH(NSR)
+C      ENDDO
 C
       RETURN
 C
@@ -246,7 +161,6 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
-      DIMENSION GX(NSRM),GY(NSRM,NMNM)
       DIMENSION BSPL(NSRM),RSPL(NSRM),ZSPL(NSRM),PSPL(NSRM)
 C
 C     ***** DEFINE XRHO, XR AND XSHRHO *****
@@ -321,28 +235,6 @@ C
          ENDDO
       ENDDO
 C
-C     ----- graphics with xrho axis -----
-C
-      DO NR=1,NRMAX+1
-         GX(NR)=GUCLIP(XRHO(NR))
-         DO MN=1,MNMAX
-            GY(NR,MN)=GUCLIP(SBMNC(MN,NR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SBMNC/',0)
-      CALL PAGEE
-C
-      DO NR=1,NRMAX+1
-         GX(NR)=GUCLIP(XRHO(NR))
-         DO MN=1,MNMAX
-            GY(NR,MN)=GUCLIP(DBMNC(MN,NR))
-         ENDDO
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DBMNC/',0)
-      CALL PAGEE
-C
       RETURN
       END
 C
@@ -359,7 +251,7 @@ C
       DPH=2.D0*PI/(NHC*NPHMAX)
       PSIA=1.D0
 C
-      DO NR=2,NRMAX+1
+      DO NR=1,NRMAX+1
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
 C
@@ -400,27 +292,30 @@ C
 C
 C  *****  DRS,DZS,DPHS,DRTH,DZTH,DPHTH,DRPH,DZPH,DPHPH GRAPH *****
 C            
+         BPST(  NTH,NPH,NR)=BPSS
          RPST(  NTH,NPH,NR)=RPSS
          ZPST(  NTH,NPH,NR)=ZPSS
          PPST(  NTH,NPH,NR)=PPSS
 C
-         DRS=DRS/(2.D0*PSIA*XRHO(NR))
-         DZS=DZS/(2.D0*PSIA*XRHO(NR))
-         DPS=DPS/(2.D0*PSIA*XRHO(NR))
-         RG11(NTH,NPH,NR)=DRS *DRS +DZS *DZS +DPS *DPS 
-         RG12(NTH,NPH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH
-         RG13(NTH,NPH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH
-         RG22(NTH,NPH,NR)=DRTH*DRTH+DZTH*DZTH+DPTH*DPTH
-         RG23(NTH,NPH,NR)=DRTH*DRPH+DZTH*DZPH+DPTH*DPPH
-         RG33(NTH,NPH,NR)=DRPH*DRPH+DZPH*DZPH+DPPH*DPPH
-         RJ  (NTH,NPH,NR)=(DRS *DZTH-DZS *DRTH)*DPPH
-     &                   +(DZS *DPTH-DPS *DZTH)*DRPH
-     &                   +(DPS *DRTH-DRS *DPTH)*DZPH
+         IF(NR.NE.1) THEN
+            DRS=DRS/(2.D0*PSIA*XRHO(NR))
+            DZS=DZS/(2.D0*PSIA*XRHO(NR))
+            DPS=DPS/(2.D0*PSIA*XRHO(NR))
+            RG11(NTH,NPH,NR)=DRS *DRS +DZS *DZS +DPS *DPS *RPSS**2
+            RG12(NTH,NPH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH*RPSS**2
+            RG13(NTH,NPH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH*RPSS**2
+            RG22(NTH,NPH,NR)=DRTH*DRTH+DZTH*DZTH+DPTH*DPTH*RPSS**2
+            RG23(NTH,NPH,NR)=DRTH*DRPH+DZTH*DZPH+DPTH*DPPH*RPSS**2
+            RG33(NTH,NPH,NR)=DRPH*DRPH+DZPH*DZPH+DPPH*DPPH*RPSS**2
+            RJ  (NTH,NPH,NR)=(DRS *DZTH-DZS *DRTH)*DPPH*RPSS
+     &                      +(DZS *DPTH-DPS *DZTH)*DRPH*RPSS
+     &                      +(DPS *DRTH-DRS *DPTH)*DZPH*RPSS
 C
-         RG11(NTH,NPH,NR)=RG11(NTH,NPH,NR)*XRHO(NR)**2
-         RG13(NTH,NPH,NR)=RG13(NTH,NPH,NR)*XRHO(NR)
-         RG22(NTH,NPH,NR)=RG22(NTH,NPH,NR)/XRHO(NR)**2
-         RG23(NTH,NPH,NR)=RG23(NTH,NPH,NR)/XRHO(NR)
+            RG11(NTH,NPH,NR)=RG11(NTH,NPH,NR)*XRHO(NR)**2
+            RG13(NTH,NPH,NR)=RG13(NTH,NPH,NR)*XRHO(NR)
+            RG22(NTH,NPH,NR)=RG22(NTH,NPH,NR)/XRHO(NR)**2
+            RG23(NTH,NPH,NR)=RG23(NTH,NPH,NR)/XRHO(NR)
+         ENDIF
       ENDDO
       ENDDO
       ENDDO
@@ -462,98 +357,21 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX WMHBBB: SPL1D: RIOTAS'
 C
       DO NR=1,NRMAX+1
-         CALL SPL1DD(XRHO(NR),SBMNC(MN,NR),DBMNC(MN,NR),
+         CALL SPL1DF(XRHO(NR),SIOTA(NR),
      &               XSHRHO,U1,NSRMAX+1,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: BMNC: NR=',NR
+         IF(IERR.NE.0) WRITE(6,*) 'XX WMHBBB: SPL1DD: IOTA: NR=',NR
+         QPS(NR)=1.D0/SIOTA(NR)
       ENDDO
 C
-      DO MN=1,MNMAX
-         DO NSR=1,NSRMAX
-            BSUS(NSR)=BSU(MN+(NSR-1)*MNMAX)
-            BSVS(NSR)=BSV(MN+(NSR-1)*MNMAX)
-         ENDDO
-C         IF(MYRANK.EQ.0) THEN
-C            WRITE(6,'( I5,1PE10.2,1P5E12.4)') MN,XM(MN),
-C     &                      BSUS(1),BSUS(2),BSUS(3),BSUS(4),BSUS(5)
-C            WRITE(6,'( 5X,1PE10.2,1P5E12.4)') XN(MN),
-C     &                      BSVS(1),BSVS(2),BSVS(3),BSVS(4),BSVS(5)
-C         ENDIF
-         IF(XM(MN).EQ.0) THEN
-            BSUS(1)=(4*BSUS(2)-BSUS(3))/3.D0
-            BSVS(1)=(4*BSVS(2)-BSVS(3))/3.D0
-C            BSUS(1)=(2*BSUS(2)-BSUS(3))/1.D0
-C            BSVS(1)=(2*BSVS(2)-BSVS(3))/1.D0
-            FX1(1)=0.D0
-            FX2(1)=0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,1,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,1,IERR)
-         ELSEIF(XM(MN).EQ.1) THEN
-C            BSUS(1)=(SQRT(2.D0)*BSUS(2)-BSUS(3))/(SQRT(2.D0)-1.D0)
-C            BSVS(1)=(SQRT(2.D0)*BSVS(2)-BSVS(3))/(SQRT(2.D0)-1.D0)
-            BSUS(1)=(2*BSUS(2)-BSUS(3))/1.D0
-            BSVS(1)=(2*BSVS(2)-BSVS(3))/1.D0
-C            BSUS(1)= 0.D0
-C            BSVS(1)= 0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,0,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,0,IERR)
-         ELSE
-            BSUS(1)= 0.D0
-            BSVS(1)= 0.D0
-C            FX1(1)=0.D0
-C            FX2(1)=0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,0,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,0,IERR)
-         ENDIF
-C
-         DO NR=1,NRMAX+1
-            CALL SPL1DF(XRHO(NR),BSTHL,XS,U1,NSRMAX,IERR)
-C            IF(IERR.EQ.2) THEN
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               BSTHL=BSUS(NSRMAX)+(BSUS(NSRMAX)-BSUS(NSRMAX-1))
-     &                           /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                           *(XRHO(NR)-XS(NSRMAX))
-            ENDIF
-            BSTH(MN,NR)=BSTHL
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               BSPHL=BSVS(NSRMAX)+(BSVS(NSRMAX)-BSVS(NSRMAX-1))
-     &                           /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                           *(XRHO(NR)-XS(NSRMAX))
-            ELSE
-               CALL SPL1DF(XRHO(NR),BSPHL,XS,U2,NSRMAX,IERR)
-            ENDIF
-            BSPH(MN,NR)=BSPHL
-         ENDDO
-      ENDDO
-C
-C      ***** CULCULATE MAGNETIC FIELD *****
-C 
-      DTH=2.D0*PI/NTHMAX
-      DPH=2.D0*PI/(NHC*NPHMAX)
-C      DO NR=2,NRMAX+1
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
       DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
-         TH=DTH*(NTH-1)
-         PH=DPH*(NPH-1)
-C
-         SBTH=0.D0
-         SBPH=0.D0
-         DO MN=1,MNMAX
-            RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
-            RCOS=COS(XM(MN)*TH-XN(MN)*PH)
-            SBTH=SBTH+BSTH(MN,NR)*RCOS
-            SBPH=SBPH+BSPH(MN,NR)*RCOS
-         ENDDO
-         BFLD(2,NTH,NPH,NR)=SBTH
-         BFLD(3,NTH,NPH,NR)=SBPH
+         FACT=  RG22(NTH,NPH,NR)*XRHO(NR)**2*SIOTA(NR)**2
+     &       +2*RG23(NTH,NPH,NR)*XRHO(NR)   *SIOTA(NR)
+     &       +  RG33(NTH,NPH,NR)
+         BFLD(3,NTH,NPH,NR)=BPST(NTH,NPH,NR)/SQRT(FACT)
+         BFLD(2,NTH,NPH,NR)=SIOTA(NR)*BFLD(3,NTH,NPH,NR)
       ENDDO
-      ENDDO
-      ENDDO
-C
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
-C         BFLD(2,NTH,NPH,1)=(4*BFLD(2,NTH,NPH,2)-BFLD(2,NTH,NPH,3))/3
-C         BFLD(3,NTH,NPH,1)=(4*BFLD(3,NTH,NPH,2)-BFLD(3,NTH,NPH,3))/3
       ENDDO
       ENDDO
 C     
@@ -589,6 +407,7 @@ C
 C
       NSUMAX=31
       DTHU=2.D0*PI/(NSUMAX-1)
+      DPH=2.D0*PI/(NHC*NPHMAX)
       DO NSU=1,NSUMAX
          DO NPH=1,NPHMAX
             RSU(NSU,NPH)=0.D0
@@ -596,10 +415,10 @@ C
             TH=DTHU*(NSU-1)
             PH=DPH*(NPH-1)
             DO MN=1,MNMAX
-               RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
-               RCOS=COS(XM(MN)*TH-XN(MN)*PH)
-               RSU(NSU,NPH)=RSU(NSU,NPH)+RMNCC(MN,NSRMAX)*RCOS
-               ZSU(NSU,NPH)=ZSU(NSU,NPH)+ZMNSS(MN,NSRMAX)*RSIN
+               RSIN=SIN(-XM(MN)*TH+XN(MN)*PH)
+               RCOS=COS(-XM(MN)*TH+XN(MN)*PH)
+               RSU(NSU,NPH)=RSU(NSU,NPH)+RBOZH(MN,NSRMAX)*RCOS
+               ZSU(NSU,NPH)=ZSU(NSU,NPH)+ZBOZH(MN,NSRMAX)*RSIN
             ENDDO
          ENDDO
       ENDDO
@@ -613,31 +432,15 @@ C
             TH=DTHW*(NSW-1)
             PH=DPH*(NPH-1)
             DO MN=1,MNMAX
-               RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
-               RCOS=COS(XM(MN)*TH-XN(MN)*PH)
-               RSW(NSW,NPH)=RSW(NSW,NPH)+SRMNC(MN,NRMAX+1)*RCOS
-               ZSW(NSW,NPH)=ZSW(NSW,NPH)+SZMNS(MN,NRMAX+1)*RSIN
+               RSIN=SIN(-XM(MN)*TH+XN(MN)*PH)
+               RCOS=COS(-XM(MN)*TH+XN(MN)*PH)
+               RSW(NSW,NPH)=RSW(NSW,NPH)+SRMNC(MN,NRMAX)*RCOS
+               ZSW(NSW,NPH)=ZSW(NSW,NPH)+SZMNS(MN,NRMAX)*RSIN
             ENDDO
          ENDDO
       ENDDO
 C
-C     ***** SPLINE IOTAS AND CULCULATE QPS *****
-C
-      RIOTAS(1)=2.D0*RIOTAS(2)-RIOTAS(3)
-C
-      CALL SPL1D(XS,RIOTAS,FX3,U3,NSRMAX,0,IERR)
-C
-      DO NR=1,NRMAX+1
-         CALL SPL1DF(XRHO(NR),RIOTASL,XS,U3,NSRMAX,IERR)
-         IF(IERR.EQ.2) THEN
-            RIOTASL=RIOTAS(NSRMAX)+(RIOTAS(NSRMAX)-RIOTAS(NSRMAX-1))
-     &                      /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                      *(XRHO(NR)-XS(NSRMAX))
-         ENDIF
-         QPS(NR)=2.D0*PI/RIOTASL
-      ENDDO                     
-C
-C     ***** COMPUTE R,Z MAGNETIC AXES *****
+C     ***** COMPUTE FIGURE BOUNDARY and MAJOR RADIUS *****
 C
       RGMIN=RSW(1,1)
       RGMAX=RSW(1,1)
@@ -652,6 +455,185 @@ C
          ENDDO
       ENDDO
       RR=0.5D0*(RGMIN+RGMAX)
+      BB=BPST(1,1,1)
+C
+      RETURN
+      END
+C
+C    ****** DRAW BOOZER DATA ******
+C
+      SUBROUTINE WMGBOOZ
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
+C
+      DIMENSION GX(NSRM),GY(NSRM,NMNM)
+C
+C     ----- graphics with psit axis -----
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
+      CALL PAGEE
+C
+C     ----- graphics with rho axis -----
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
+      CALL PAGEE
+C
+C     ----- graphics with xrho axis -----
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(SBMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SBMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(DBMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DBMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(SRMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SRMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(DRMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DRMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(SZMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SZMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(DZMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DZMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(SPMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SPMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(DPMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DPMNS/',0)
+      CALL PAGEE
 C
       RETURN
       END

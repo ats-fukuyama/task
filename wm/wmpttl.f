@@ -364,7 +364,7 @@ C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          READ(11,*) RPST(NTH,NPH,NR),ZPST(NTH,NPH,NR),
-     &        BR  (NTH,NPH,NR)
+     &        BPST(NTH,NPH,NR)
       ENDDO
       ENDDO
       ENDDO

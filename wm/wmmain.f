@@ -33,9 +33,8 @@ C
 C
       CALL WMINIT
       IF(MYRANK.EQ.0) THEN
-         OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-         KPNAME='wmparm'
-         CALL WMPARF(KPNAME)
+         OPEN(7,STATUS='SCRATCH')
+         CALL WMPARM(1,'wmparm',IERR)
       ENDIF
       CALL MPSYNC
       CALL WMPRBC

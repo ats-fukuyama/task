@@ -13,16 +13,43 @@ C
       CALL WMSETJ(IERR)
       IF(IERR.NE.0) RETURN
 C
-C      CALL WMSOLV
-C      CALL WMEFLD
-C      CALL WMBFLD
-C      CALL WMPABS
+      CALL WMSOLV
+      CALL WMEFLD
+      CALL WMBFLD
+      CALL WMPABS
 C
       IF(MYRANK.EQ.0) THEN
          CALL WMPFLX
          CALL WMPANT
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+      ENDIF
+      RETURN
+      END
+C
+C     ****** DEBUG: NO CALCULATION ******
+C
+      SUBROUTINE WMDEBUG(IERR)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      IERR=0
+      MODEEG=0
+      CALL WMSETG(IERR)
+      IF(IERR.NE.0) RETURN
+      CALL WMSETJ(IERR)
+      IF(IERR.NE.0) RETURN
+C
+C      CALL WMSOLV
+C      CALL WMEFLD
+C      CALL WMBFLD
+C      CALL WMPABS
+C
+      IF(MYRANK.EQ.0) THEN
+C         CALL WMPFLX
+C         CALL WMPANT
+C         CALL WMPOUT
+C         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
       ENDIF
       RETURN
       END

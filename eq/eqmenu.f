@@ -18,12 +18,13 @@ C
          INIT=1
       ENDIF
 C
-    1 IERR=0
-      WRITE(6,601) 
-  601 FORMAT('## EQ MENU: R/RUN C/CONT P,V,I/PARM G/GRAPH',
+    1 CONTINUE
+         IERR=0
+         WRITE(6,601) 
+  601    FORMAT('## EQ MENU: R/RUN C/CONT P,V,I/PARM G/GRAPH',
      &                  ' M/MULT S,L,K/FILE U/UFILE Q/QUIT')
 C
-      CALL TASK_KLIN(LINE,KID,MODE,EQPARM)
+         CALL TASK_KLIN(LINE,KID,MODE,EQPARM)
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'R') THEN
@@ -59,7 +60,6 @@ C
 C
       ELSEIF(KID.EQ.'P') THEN
          CALL EQPARM(0,'EQ',IERR)
-         IF(KID.EQ.'Q') GOTO 9000
 C
       ELSEIF(KID.EQ.'V') THEN
          CALL EQVIEW

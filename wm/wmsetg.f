@@ -84,7 +84,7 @@ C
          MDSIZX = 3*NTHMAX/2
       ENDIF
 C
-      CALL WMICRS
+      IF(MODELG.NE.6) CALL WMICRS
       IERR=0
       RETURN
       END
@@ -621,15 +621,15 @@ C
       DO NR=1,NRMAX+1
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
-         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-         BR(NTH,NPH,NR)=BABS
+         BSUPTH=BFLD(2,NTH,NPH,NR)
+         BSUPPH=BFLD(3,NTH,NPH,NR)
+         BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH*XRHO(NR)**2
+     &            +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH*XRHO(NR)
+     &            +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
+         BPST(NTH,NPH,NR)=BABS
       ENDDO
       ENDDO
       ENDDO
-C
-      RF=DBLE(CRF)
-      BICF=2.D0*PI*AMP*RF*1.D6/AEE
 C
       RETURN
       END
-

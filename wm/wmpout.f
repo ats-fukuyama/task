@@ -512,11 +512,11 @@ C
 C
                FACT1M=XRHOMH/XRHOM
                FACT1C=XRHOMH/XRHOC
-               FACT1P=XRHOPH/XRHOC
-               FACT2M=XRHOMH/XRHOM
+C               FACT1P=XRHOPH/XRHOC
+C               FACT2M=XRHOMH/XRHOM
                FACT2C=XRHOMH/XRHOC
                FACT2P=XRHOPH/XRHOC
-               FACT3M=XRHOMH/XRHOM
+C               FACT3M=XRHOMH/XRHOM
                FACT3C=XRHOMH/XRHOC
                FACT3P=XRHOPH/XRHOC
 C
@@ -1042,7 +1042,7 @@ C
   602 FORMAT(' ',5X,3X,27X,'PABS=',1P3E12.4)
 C  603 FORMAT(' ',I5,I5,3X,1P2E12.4,3X,1P3E12.4)
 C  604 FORMAT(' ',8X,3F8.4,24X,2F8.4)
-  605 FORMAT(' ',9F8.4)
+C  605 FORMAT(' ',9F8.4)
 C
       END
 C

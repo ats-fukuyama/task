@@ -9,7 +9,7 @@ C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
     1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  RCMP/P/123  CP/J',
-     &           '  P/F/SBQ23J   R/G  S'
+     &           '  P/F/SBQ23J   R/GZ  S'
       WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
      &           '  G/01234  ?/HELP  X/EXIT'
       READ(5,'(A5)',ERR=1,END=900) KSTR
@@ -41,10 +41,12 @@ C
          K4=KSTR(4:4)
 	 CALL GUCPTL(K4)
          IF(K1.EQ.'R') THEN
-            IF(K2.NE.'G') THEN
-               CALL WMGR1D(K2,K3)
-            ELSE
+            IF(K2.EQ.'G') THEN
                CALL WMGREQG(K2,K3,K4)
+            ELSEIF(K2.EQ.'Z') THEN
+               CALL WMGBOOZ
+            ELSE
+               CALL WMGR1D(K2,K3)
             ENDIF
          ENDIF
          IF(K1.EQ.'P'.OR.(K1.EQ.'C'.AND.NGRAPH.EQ.0))
