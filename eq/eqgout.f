@@ -418,11 +418,13 @@ C
       CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,1)
 C
       CALL SETRGB(1.0,0.0,0.0)
+      CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
       CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
      &            0.5*GPSTEP,GPSTEP,NPSTEP,0,0,KA)
       CALL SETRGB(0.0,0.0,1.0)
       CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
      &            -0.5*GPSTEP,-GPSTEP,NPSTEP,0,0,KA)
+      CALL OFFCLP
       CALL SETRGB(0.0,0.0,0.0)
       CALL EQGPRM
       CALL PAGEE
@@ -620,6 +622,7 @@ C
      &               REAL(RGMIN),REAL(RGMAX),
      &               REAL(ZGMIN),REAL(ZGMAX))
          CALL GFRAME
+         CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
 C
          IF(GFMIN*GFMAX.GE.0.) THEN
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
@@ -630,6 +633,7 @@ C
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
          ENDIF
+         CALL SETCLP
          CALL SETLIN(-1,-1,6)
          CALL GPLOTP(GRSU,GZSU,1,NSUMAX+1,1,0,0,0)
          CALL SETLIN(-1,-1,5)
@@ -747,6 +751,7 @@ C
      &               REAL(RGMIN),REAL(RGMAX),
      &               REAL(ZGMIN),REAL(ZGMAX))
          CALL GFRAME
+         CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
 C
          IF(GFMIN*GFMAX.GT.0.) THEN
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
@@ -757,6 +762,7 @@ C
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
          ENDIF
+         CALL OFFCLP
          CALL SETLIN(-1,-1,6)
          CALL GPLOTP(GRSU,GZSU,1,NSUMAX+1,1,0,0,0)
          CALL SETLIN(-1,-1,5)

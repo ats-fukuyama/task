@@ -281,7 +281,6 @@ C
      &               *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &               /PSIITB
          ENDIF
-         OMGPSI=VPSI/RAXIS
       ELSE
          CALL SPL1DD(PSIN,VPSI,DVPSI,PSITRX,UVTPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQOPSI: SPL1DD : IERR=',IERR
