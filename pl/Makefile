@@ -5,7 +5,7 @@ FFLAGS=$(OFLAGS)
 
 SRCS = plmain.f plinit.f plprof.f
 
-OBJS = $(SRCS:.f=.o) ../eq/eqload.o ../eq/eqread.o ../eq/eqcalq.o \
+OBJS = $(SRCS:.f=.o) ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
 	../lib/libspl.o ../lib/libbrn.o ../lib/libgut.o
 
 .f.o :

@@ -4,7 +4,7 @@ C     ****** INITIALIZE INPUT PARAMETERS ******
 C
       SUBROUTINE PLINIT
 C
-      INCLUDE 'plcomm.h'
+      INCLUDE '../pl/plcomm.h'
 C
 C     ======( PHYSICAL CONSTANTS )======
 C
@@ -179,7 +179,7 @@ C     ****** INPUT PARAMETERS ******
 C
       SUBROUTINE PLPARM(IERR)
 C
-      INCLUDE 'plcomm.h'
+      INCLUDE '../pl/plcomm.h'
 C
       LOGICAL LEX
       CHARACTER KPNAME*32
@@ -220,7 +220,7 @@ C     ****** INPUT PARAMETER CHECK******
 C
       SUBROUTINE PLCHEK(IERR)
 C
-      INCLUDE 'plcomm.h'
+      INCLUDE '../pl/plcomm.h'
 C
       IERR=0
 C
@@ -276,7 +276,7 @@ C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE PLVIEW
 C
-      INCLUDE 'plcomm.h'
+      INCLUDE '../pl/plcomm.h'
 C
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    ,
      &             'RA    ',RA    ,'RB    ',RB
