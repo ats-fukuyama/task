@@ -1289,13 +1289,11 @@ C
          ELSEIF(MDLETA.EQ.2) THEN
             IF(NR.EQ.1) THEN
                QL=ABS(0.25D0*(3.D0*Q0+QP(NR)))
-               ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
-C               ZEFFL=ZEFF(NR)
             ELSE
                QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
-               ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
             ENDIF
 C
+         ZEFFL=ZEFF(NR)
 C         VTE=1.33D+7*DSQRT(ABS(TE))
          VTE=SQRT(ABS(TE)*RKEV/AME)
          FT=1.D0-(1.D0-EPS)**2.D0
@@ -1316,11 +1314,10 @@ C
          ELSEIF(MDLETA.EQ.3) THEN
             IF(NR.EQ.1) THEN
                QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
             ELSE
                QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
             ENDIF
+            ZEFFL=ZEFF(NR)
             rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TE*1.D3))
             RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
             SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)

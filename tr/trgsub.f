@@ -479,8 +479,14 @@ C
       DIMENSION RGFLSUM(NRMP,NSM),RQFLSUM(NRMP,NSM)
       DIMENSION RNN(NRM,NSM),DNN(NRM,NSM),DTN(NRM,NSM)
       DIMENSION AKNCG(NRM,NSM),ADNCG(NRM,NSM)
+      DIMENSION AJBSSTCK(NRM),ETASTCK(NRM)
 C
-C     *** Bootstrap Current ***
+      DO NR=1,NRMAX
+         ETASTCK(NR)=ETA(NR)
+         AJBSSTCK(NR)=AJBS(NR)
+      ENDDO
+C
+C     *** Bootstrap Current and Neoclassical Resistivity ***
 C
       CALL OLDTRAJBS
       DO NR=1,NRMAX
@@ -503,28 +509,27 @@ C
          GJB(NR,4)=GCLIP(AJBS(NR)*1.D-6)
       ENDDO
 C
-      MDNCLS=1
-      CALL TR_NCLASS
-      CALL TRAJBS_NCLASS
-      DO NR=1,NRMAX
-         GJB(NR,5)=GCLIP(AJBS(NR)*1.D-6)
-      ENDDO
-      MDNCLS=0
-C
-C     *** Neoclassical Resistivity ***
-C
+      MDLETASTCK=MDLETA
       DO MDLETA=1,3
          CALL TRCFET
          DO NR=1,NRMAX
             GET(NR,MDLETA)=GLOG(ETA(NR),1.D-10,1.D0)
          ENDDO
       ENDDO
+      MDLETA=MDLETASTCK
 C
-      MDNCLS=1
+      MDNCLSSTCK=MDNCLS
+      IF(MDNCLS.EQ.0) MDNCLS=1
       CALL TR_NCLASS
-      CALL TRCFET
+      CALL TRAJBS_NCLASS
       DO NR=1,NRMAX
-         GET(NR,4)=GLOG(ETA(NR),1.D-10,1.D0)
+         GJB(NR,5)=GCLIP(AJBS(NR)*1.D-6)
+         GET(NR,4)=GLOG(ETANC(NR),1.D-10,1.D0)
+      ENDDO
+      MDNCLS=MDNCLSSTCK
+      DO NR=1,NRMAX
+         ETA(NR)=ETASTCK(NR)
+         AJBS(NR)=AJBSSTCK(NR)
       ENDDO
 C
 C     *** Neoclassical Particle and Heat Flux Diffusivity ***

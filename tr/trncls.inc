@@ -1,8 +1,11 @@
 !Declaration of input to NCLASS
-      INTEGER default
       INTEGER k_order,                 k_potato
-      REAL    c_den
-      REAL    p_eb,                    p_ft,
+      INTEGER m_i,                     m_z
+      REAL    c_den,                   c_potb,
+     &        c_potl
+      REAL    p_b2,                    p_bm2,
+     &        p_eb,                    p_fhat,
+     &        p_fm(3),                 p_ft,
      &        p_grbm2,                 p_ngrth,
      &        p_grphi,                 p_gr2phi
       REAL    amu_i(mx_mi),            grt_i(mx_mi),

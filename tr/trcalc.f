@@ -435,7 +435,8 @@ C
                DRTNW=(RT(NR,NS)-RT(NR-1,NS))*AR1RHO(NR)/DR
                DRPNW=(RN(NR,NS)*RT(NR,NS)-RN(NR-1,NS)*RT(NR-1,NS))
      &              *AR1RHO(NR)/DR
-               SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW+CJBSP(NR,NS)*DRPNW/RPNW
+               SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
+     &                +CJBSP(NR,NS)*DRPNW/RPNW
             ENDDO
 C
             AJBSL(NR)=-PBSCD*SUM/BB
@@ -468,7 +469,8 @@ C
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
+C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
+         QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
             RNTP= RN(NR,  2)*RT(NR,  2)
@@ -492,7 +494,7 @@ C     ***** DPI  is the derivative of ion pressure (dPi/dr) *****
 C
          ANI(NR)=0.D0
          DO NS=2,NSMAX
-            ANI(NR)=ANI(NR)+PZ(NS)*RN(NR,NS)
+            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR,NS)+RN(NR-1,NS))
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
@@ -513,7 +515,7 @@ C     ***** PE   is the electron pressure (Pe) *****
 C     ***** DPE  is the derivative of electron pressure (dPe/dr) *****
 C
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-         TE= 0.5D0*(RT(NR,1)+RT(NR-1,1))
+         TE= 0.5D0*(RT(NR-1,1)+RT(NR,1))
          PE= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
          DNE=(RN(NR,1)-RN(NR-1,1))*AR1RHO(NR)/DR
          DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
@@ -538,8 +540,8 @@ C     <4>
          FT=FT1
 C         write(6,'I2,4E20.12') NR,FT1,FT2,FT3,FT4
 C
-         F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
-     &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
+C         F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
+C     &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
          F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)
      &          +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
          F32EETEFF=FT/(1.D0+0.26D0*(1.D0-FT)*SQRT(RNUE)
@@ -552,12 +554,12 @@ C
          SALFA0=-1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
          SALFA=((SALFA0+0.25D0*(1.D0-FT**2)*SQRT(RNUI))
      &        /(1.D0+0.5D0*SQRT(RNUI))+0.315D0*RNUI**2*FT**6)
-     &        *1.D0/(1.D0+0.15D0*RNUI**2*FT**6)
+     &        /(1.D0+0.15D0*RNUI**2*FT**6)
 C
 C         RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
 C         SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+C         SGMNEO=SGMSPTZ*F33(F33TEFF,ZEFFL)
 C
-         SGMNEO=SGMSPTZ*F33(F33TEFF,ZEFFL)
          RL31=F31(F31TEFF,ZEFFL)
          RL32=F32EE(F32EETEFF,ZEFFL)+F32EI(F32EITEFF,ZEFFL)
          RL34=F31(F34TEFF,ZEFFL)
@@ -626,7 +628,7 @@ C
 C
 C     ***********************************************
 C
-C         BOOTSTRAP CURRENT (TOKAMAKS)
+C         BOOTSTRAP CURRENT (TOKAMAKS, H.R. Wilson)
 C
 C     ***********************************************
 C
@@ -641,7 +643,8 @@ C
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
+C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
+         QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
             RNTP= RN(NR,  2)*RT(NR,  2)
@@ -666,7 +669,7 @@ C     ***** VTI  is the ion velocity (VTi) *****
 C
          ANI(NR)=0.D0
          DO NS=2,NSMAX
-            ANI(NR)=ANI(NR)+PZ(NS)*RN(NR,NS)
+            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR,NS)+RN(NR-1,NS))
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
@@ -712,6 +715,7 @@ C
 C
          FT=1.D0-(1.D0-EPS)**2.D0
      &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+C         FT=1.46D0*SQRT(EPS)
          DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
 C
          DDD=-1.17D0/(1.D0+0.46D0*FT)
@@ -735,6 +739,18 @@ C
      &         +C2*(DPI/PPI)
      &         +C3*(DTE/TE)
      &         +C4*(DTI/TI))
+C
+C     *** H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263 ***
+C
+C         DDX=1.414D0*ZEFFL+ZEFFL**2+FT*(0.754D0+2.657D0*ZEFFL
+C     &        +2.D0*ZEFFL**2)+FT**2*(0.348D0+1.243D0*ZEFFL+ZEFFL**2)
+C         RL31=FT*( 0.754D0+2.21D0*ZEFFL+ZEFFL**2+FT*(0.348D0+1.243D0
+C     &            *ZEFFL+ZEFFL**2))/DDX
+C         RL32=-FT*(0.884D0+2.074D0*ZEFFL)/DDX
+C         DDD=-1.172D0/(1.D0+0.462D0*FT)
+C
+C         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*(DPE/PE)+(TI/(ZEFFL*TE))
+C     &        *((DPI/PPI)+DDD*(DTI/TI))+RL32*(DTE/TE))/BP(NR)
       ENDDO
 C
       AJBS(1)=0.5D0*AJBSL(2)

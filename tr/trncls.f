@@ -7,7 +7,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_NCLASS
 !***********************************************************************
-!TR_NCLASS calculates various paramters and arrays for TR_NCLASS_DRIVER.
+!TR_NCLASS calculates various paramters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
 !  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8" 
 !  or "DOUBLE".
@@ -19,60 +19,100 @@ C
 !  k_potato - option to include potato orbits (-)
 !           =0 off
 !           =else on
+!  m_i - number of isotopes (1<m_i<mx_mi+1)
+!  m_z - highest charge state of all species (0<m_z<mx_mz+1)
 !  c_den - density cutoff below which species is ignored (/m**3)
-!  default - switch parameter
-!          =0 use default parameters described by nclass_pt_dr.f
-!          =1 use parameters calculated here (strongly recommended)
-!  amu_i(i) - atomic mass number of i (-)
+!  c_potb - kappa(0)*Bt(0)/[2*q(0)**2] (T)
+!  c_potl - q(0)*R(0) (m)
+!  p_b2 - <B**2> (T**2)
+!  p_bm2 - <1/B**2> (/T**2)
 !  p_eb - <E.B> (V*T/m)
+!  p_fhat - mu_0*F/(dPsi/dr) (rho/m)
+!  p_fm(3) - poloidal moments of geometric factor for PS viscosity (-)
 !  p_ft - trapped particle fraction (-)
 !  p_grbm2 - <grad(rho)**2/BB**2> (rho**2/m**2/T**2)
 !  p_grphi - radial electric field Phi' (V/rho)
 !  p_gr2phi - radial electric field gradient Psi'(Phi'/Psi')' (V/rho**2)
+!  p_ngrth - <n.grad(Theta)> (1/m)
+!  amu_i(i) - atomic mass number of i (-)
 !  grt_i(i) - temperature gradient of i (keV/rho)
 !  temp_i(i) - temperature of i (keV)
 !  den_iz(i,z) - density of i,z (/m**3)
 !  fex_iz(3,i,z) - moments of external parallel force on i,z (T*j/m**3)
 !  grp_iz(i,z) - pressure gradient of i,z (keV/m**3/rho)
-!  p_eps - inverse aspect ratio (-) given by EPSRHO(NR)
-!  p_q - safety factor (-) given by QP(NR)
-!  r0 - major radius (m) given by RR
-!  a0 - minor radius (m) given by RA
-!  e0 - axial elongation (-) given by RKAP
-!  bt0 - axial toroidal magnetic field (T) given by BB
-!  q0 - axial safety factor (-) given by Q0
+!Using Output:
+!  p_bsjb - <J_bs.B> (A*T/m**2)
+!  p_etap - parallel electrical resistivity (Ohm*m)
+!  p_exjb - <J_ex.B> current response to fex_iz (A*T/m**2)
+!  bsjbp_s(s) - <J_bs.B> driven by unit p'/p of s (A*T*rho/m**3)
+!  bsjbt_s(s) - <J_bs.B> driven by unit T'/T of s (A*T*rho/m**3)
+!  gfl_s(m,s) - radial particle flux comps of s (rho/m**3/s)
+!             m=1, banana-plateau, p' and T'
+!             m=2, Pfirsch-Schluter
+!             m=3, classical
+!             m=4, banana-plateau, <E.B>
+!             m=5, banana-plateau, external parallel force fex_iz
+!  qfl_s(m,s) - radial heat conduction flux comps of s (W*rho/m**3)
+!             m=1, banana-plateau, p' and T'
+!             m=2, Pfirsch-Schluter
+!             m=3, classical
+!             m=4, banana-plateau, <E.B>
+!             m=5, banana-plateau, external parallel force fex_iz
+!  veb_s(s) - <E.B> particle convection velocity of s (rho/s)
+!  qeb_s(s) - <E.B> heat convection velocity of s (rho/s)
+!  chip_ss(s1,s2) - heat cond coefficient of s2 on p'/p of s1 (rho**2/s)
+!  chit_ss(s1,s2) - heat cond coefficient of s2 on T'/T of s1 (rho**2/s)
+!  dp_ss(s1,s2) - diffusion coefficient of s2 on p'/p of s1 (rho**2/s)
+!  dt_ss(s1,s2) - diffusion coefficient of s2 on T'/T of s1 (rho**2/s)
+!  iflag - warning and error flag
+!        =-4 warning: no viscosity
+!        =-3 warning: no banana viscosity
+!        =-2 warning: no Pfirsch-Schluter viscosity
+!        =-1 warning: no potato orbit viscosity
+!        = 0 no warnings or errors
+!        = 1 error: order of v moments to be solved must be 2 or 3
+!        = 2 error: number of species must be 1<m_i<mx_mi+1
+!        = 3 error: number of species must be 0<m_z<mx_mz+1
+!        = 4 error: number of species must be 1<m_s<mx_ms+1
+!        = 5 error: inversion of flow matrix failed
+!        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
       INCLUDE 'trcomm.h'
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
       INCLUDE 'trncls.inc'
-      REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
+      REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM),p_grbp(NRM)
 C
       k_order=2
       k_potato=0
+      m_i=NSMAX
+      DO NS=1,NSMAX
+         PZMAX=PZ(NS)
+         IF(PZ(NS).GE.PZMAX) PZMAX=PZ(NS)
+      ENDDO
+      m_z=INT(PZMAX)
       c_den=1.E10
-      default=1
+      c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
+      c_potl=SNGL(Q0*RR)
 C
       DO NS=1,NSMAX
          amu_i(NS)=SNGL(PA(NS))
       ENDDO
 C
       IF(NSMAX.EQ.2) THEN
-         NS=2
-         DO NR=1,NRMAX
-            IF(NR.EQ.NRMAX) THEN
-              p_grphi=SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &               /DR)*1.E20*SNGL(RKEV)
-     &               /(SNGL(PZ(NS)*AEE*PNSS(NS))*1.E20)
-            ELSE
-              p_grphi=SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &               /DR)*1.E20*SNGL(RKEV)
-     &               /(SNGL(PZ(NS)*AEE*0.5D0*(RN(NR+1,NS)+RN(NR,NS)))
-     &               *1.E20)
-            ENDIF
+         NS=NSMAX
+         DO NR=1,NRMAX-1
+            p_grphi=SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
+     &             /DR)*SNGL(RKEV)
+     &             /(SNGL(PZ(NS)*AEE*0.5D0*(RN(NR+1,NS)+RN(NR,NS))))
             p_grstr(NR)=p_grphi
          ENDDO
+         NR=NRMAX
+         p_grphi=SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
+     &          /DR)*SNGL(RKEV)
+     &          /(SNGL(PZ(NS)*AEE*PNSS(NS)))
+         p_grstr(NR)=p_grphi
 c$$$         p_gr2str(1)=(p_grstr(2)-0.E0)/DR
 c$$$         DO NR=2,NRMAX-1
 c$$$            p_gr2str(NR)=(p_grstr(NR+1)-p_grstr(NR-1))/DR
@@ -81,10 +121,15 @@ c$$$         p_gr2str(NRMAX)=(0.E0-p_grstr(NRMAX-1))/DR
 C
          DO NR=2,NRMAX
             p_grrm(NR)=0.5E0*(p_grstr(NR)+p_grstr(NR-1))
+            p_grbp(NR)=0.5E0*SNGL(BP(NR)+BP(NR-1))
          ENDDO
          p_grrm(1)=2.E0*p_grrm(2)-p_grrm(3)
+         p_grbp(1)=2.E0*p_grbp(2)-p_grbp(3)
          DO NR=1,NRMAX-1
-            p_gr2str(NR)=(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
+            p_gr2str(NR)=SNGL(BP(NR))*
+     &                   (p_grrm(NR+1)/p_grbp(NR+1)
+     &                   -p_grrm(NR  )/p_grbp(NR  ))
+     &                   /SNGL(DR)
          ENDDO
          p_gr2str(NRMAX)=2.E0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
       ELSE
@@ -95,8 +140,33 @@ C
       ENDIF
 C
       DO NR=1,NRMAX
+         EPS=EPSRHO(NR)
+C
+         p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
+         p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
+         p_fhat=SNGL(QP(NR)/EPS)
+         DO i=1,3
+            p_fm(i)=0.0
+         ENDDO
+         IF(SNGL(EPS).gt.0.0) THEN
+            DO i=1,3
+               p_fm(i)=SNGL(DBLE(i)*((1.D0-SQRT(1.D0-EPS**2))/EPS)
+     &                 **(2*i)
+     &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)
+     &                 **1.5*(QP(NR)*RR)**2))
+            ENDDO   
+         ENDIF
+         p_ft1=SNGL(1.D0-(1.D0-EPS)**2.D0/(DSQRT(1.D0-EPS**2)
+     &        *(1.D0+1.46D0*DSQRT(EPS))))
+         p_ft2=SNGL(1.46D0*SQRT(EPS))
+         p_ft3=SNGL(0.75D0*(1.5D0*SQRT(EPS))
+     &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS)))
+         p_ft=p_ft2
+C         p_grbm2=SNGL(AR2RHO(NR)/BB**2)
+         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
          p_grphi=p_grstr(NR)
          p_gr2phi=p_gr2str(NR)
+         p_ngrth=SNGL(EPS/QP(NR))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(PTS(NS))
@@ -108,6 +178,8 @@ C
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
                ENDDO
+               p_eb=SNGL((1.5D0*ETA(NR  )*AJOH(NR  )
+     &                   -0.5D0*ETA(NR-1)*AJOH(NR-1))*BB)
             ENDDO
          ELSE
             DO NS=1,NSMAX
@@ -121,36 +193,21 @@ C
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
                ENDDO
+               p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))
+     &                   *BB)
             ENDDO
          ENDIF
-         p_ft1=SNGL(1.D0-(1.D0-EPSRHO(NR))**2.D0
-     &        /(DSQRT(1.D0-EPSRHO(NR)**2)
-     &        *(1.D0+1.46D0*DSQRT(EPSRHO(NR)))))
-         p_ft2=SNGL(1.46D0*SQRT(EPSRHO(NR)))
-         p_ft3=SNGL(0.75D0*(1.5D0*SQRT(EPSRHO(NR)))
-     &             +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPSRHO(NR))))
-         p_ft=p_ft2
-         p_eb=SNGL(ETA(NR)*AJOH(NR)*BB)
-C         p_eb1=SNGL(0.1D0*BB/(2.D0*PI*RR))
-C         write(6,*) NR,p_eb,p_eb1
-         p_grbm2=SNGL(AR2RHO(NR)/BB**2)
-         p_ngrth=SNGL(EPSRHO(NR)/QP(NR))
 C
-         CALL TR_NCLASS_DRIVER(
+      CALL NCLASS(
 C     Input
-     &                         SNGL(EPSRHO(NR)),SNGL(QP(NR)),SNGL(RR),
-     &                         SNGL(RA),SNGL(RKAP),SNGL(BB),SNGL(Q0),
-     &                         k_order,k_potato,c_den,p_eb,p_ft,
-     &                         p_grbm2,p_grphi,p_gr2phi,p_ngrth,
-     &                         amu_i,grt_i,temp_i,den_iz,fex_iz,
-     &                         grp_iz,default,
+     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
+     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
+     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,
 C     Output
-     &                         iflag,m_s,p_bsjb,p_etap,p_exjb,
-     &                         calm_i,caln_ii,capm_ii,capn_ii,
-     &                         bsjbp_s,bsjbt_s,chip_ss,chit_ss,dn_s,
-     &                         dp_ss,dt_ss,gfl_s,jm_s,jz_s,qeb_s,
-     &                         qfl_s,sqz_s,upar_s,utheta_s,vn_s,
-     &                         veb_s,xi_s,ymu_s)
+     &            m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii,
+     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
+     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
+     &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 C
 C     *** Takeover Parameters ***
 C
@@ -186,194 +243,5 @@ C
       ENDDO
 C
 C      STOP
-      RETURN
-      END
-C  
-C     ***********************************************************
-C
-C           NCLASS DRIVER
-C
-C     ***********************************************************
-C
-      SUBROUTINE TR_NCLASS_DRIVER(
-C     Input
-     &                            p_eps,p_q,r0,a0,e0,bt0,q0,
-     &                            k_order,k_potato,c_den,p_eb,p_ft,
-     &                            p_grbm2,p_grphi,p_gr2phi,p_ngrth,
-     &                            amu_i,grt_i,temp_i,den_iz,fex_iz,
-     &                            grp_iz,default,
-C     Output
-     &                            iflag,m_s,p_bsjb,p_etap,p_exjb,
-     &                            calm_i,caln_ii,capm_ii,capn_ii,
-     &                            bsjbp_s,bsjbt_s,chip_ss,chit_ss,dn_s,
-     &                            dp_ss,dt_ss,gfl_s,jm_s,jz_s,qeb_s,
-     &                            qfl_s,sqz_s,upar_s,utheta_s,vn_s,
-     &                            veb_s,xi_s,ymu_s)
-C
-      IMPLICIT NONE
-      INCLUDE 'nclass/pamx_mi.inc'
-      INCLUDE 'nclass/pamx_ms.inc'
-      INCLUDE 'nclass/pamx_mz.inc'
-      INTEGER        default
-!Declaration of input to NCLASS
-      INTEGER        k_order,                 k_potato
-      INTEGER        m_i,                     m_z
-      REAL           c_den,                   c_potb,
-     #               c_potl
-      REAL           p_b2,                    p_bm2,
-     #               p_eb,                    p_fhat,
-     #               p_fm(3),                 p_ft,
-     #               p_grbm2,                 p_grphi,
-     #               p_gr2phi,                p_ngrth
-      REAL           amu_i(mx_mi),            grt_i(mx_mi),
-     #               temp_i(mx_mi)
-      REAL           den_iz(mx_mi,mx_mz),     fex_iz(3,mx_mi,mx_mz),
-     #               grp_iz(mx_mi,mx_mz)
-!Declaration of output from NCLASS
-      INTEGER        iflag,                   m_s
-      INTEGER        jm_s(mx_ms),             jz_s(mx_ms)
-      REAL           p_bsjb,                  p_etap,
-     #               p_exjb
-      REAL           calm_i(3,3,mx_mi)
-      REAL           caln_ii(3,3,mx_mi,mx_mi),capm_ii(3,3,mx_mi,mx_mi),
-     #               capn_ii(3,3,mx_mi,mx_mi)
-      REAL           bsjbp_s(mx_ms),          bsjbt_s(mx_ms),
-     #               dn_s(mx_ms),             gfl_s(5,mx_ms),
-     #               qfl_s(5,mx_ms),          sqz_s(mx_ms),
-     #               upar_s(3,3,mx_ms),       utheta_s(3,3,mx_ms),
-     #               vn_s(mx_ms),             veb_s(mx_ms),
-     #               qeb_s(mx_ms),            xi_s(mx_ms),
-     #               ymu_s(3,3,mx_ms)
-      REAL           chip_ss(mx_ms,mx_ms),    chit_ss(mx_ms,mx_ms),
-     #               dp_ss(mx_ms,mx_ms),      dt_ss(mx_ms,mx_ms)
-!Declaration of local variables
-      INTEGER        i,                       im,
-     #               iz,                      iza,
-     #               j,                       jm,
-     #               jza,                     k,
-     #               l
-      REAL           a0,                      bt0,
-     #               bpol,                    btor,
-     #               btot,                    ds,
-     #               e0,                      p_eps,
-     #               p_q,                     ppr,
-     #               q0,                      r0
-      REAL           z_coulomb,               z_electronmass,
-     #               z_j7kv,                  z_mu0,
-     #               z_pi,                    z_protonmass
-!Declaration of functions
-      REAL           RARRAY_SUM
-!Physical and conversion constants
-      z_coulomb=1.6022e-19
-      z_electronmass=9.1095e-31
-      z_j7kv=1.6022e-16
-      z_mu0=1.2566e-06
-      z_pi=ACOS(-1.0)
-      z_protonmass=1.6726e-27
-C
-      IF(default.EQ.0) THEN
-!Set default data
-!  k_order-order of v moments to be solved (-)
-!         =2 u and p_q
-!         =3 u, p_q, and u2
-!         =else error
-      k_order=2
-!  k_potato-option to include potato orbits (-)
-!          =0 off
-!          =else on
-      k_potato=0
-!  c_den-density cutoff below which species is ignored (/m**3)
-      c_den=1.0e10
-!  p_eps-inverse aspect ratio (-)
-      p_eps=0.1
-!  p_grphi-radial electric field Phi' (V/rho)
-      p_grphi=-5.0e3
-!  p_gr2phi-radial electric field gradient Psi'(Phi'/Psi')' (V/rho**2)
-      p_gr2phi=-2.0e4
-!  p_q-safety factor (-)
-      p_q=-3.0
-!  r0-major radius (m)
-      r0=3.0
-!  a0-minor radius, scale length for rho (m)
-      a0=1.0
-!  e0-axial elongation (-)
-      e0=1.0
-!  bt0-axial toroidal field (T)
-      bt0=-3.0
-!  q0-axial safety factor (-)
-      q0=-3.0
-      ENDIF
-C
-!Calculate input for NCLASS
-!  m_i-number of isotopes (1<mi<mx_mi+1)
-!  m_z-highest charge state of all species (0<mz<mx_mz+1)
-      m_i=0
-      m_z=0
-	DO i=1,mx_mi
-        ds=0.0
-	  DO j=1,mx_mz
-	    IF(den_iz(i,j).gt.c_den) THEN
-            ds=den_iz(i,j)
-	      IF(j.gt.m_z) m_z=j
-	    ENDIF
-	  ENDDO
-	  IF(ds.gt.c_den) m_i=m_i+1
-	ENDDO
-!  grt_i(i)-temperature gradient of i (keV/rho)
-!  grp_iz(i,z)-pressure gradient of i,z (keV/m**3/rho)
-      IF(default.EQ.0) THEN
-         DO i=1,m_i
-            grt_i(i)=-temp_i(i)/a0/2.0
-            DO j=1,m_z
-               grp_iz(i,j)=-temp_i(i)*den_iz(i,j)/a0
-            ENDDO   
-         ENDDO
-      ENDIF
-!  c_potb-kappa(0)*Bt(0)/[2*q(0)**2] (T)
-      c_potb=e0*bt0/2/q0**2
-!  c_potl-q(0)*R(0) (m)
-      c_potl=q0*r0
-!  p_b2-<B**2> (T**2)
-      p_b2=bt0**2*(1.0+0.5*p_eps**2)
-!  p_bm2-<1/B**2> (/T**2)
-      p_bm2=(1.0+1.5*p_eps**2)/bt0**2
-!  p_eb-<E.B> (V*T/m)
-      IF(default.EQ.0) THEN
-         p_eb=0.1*bt0/(2.0*z_pi*r0)
-      ENDIF
-!  p_fhat-mu_0*F/(dPsi/dr) (rho/m)
-      p_fhat=p_q/p_eps
-!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (-)
-      DO i=1,3
-        p_fm(i)=0.0
-      ENDDO
-      IF(p_eps.gt.0.0) THEN
-        DO i=1,3
-          p_fm(i)=i*((1.0-SQRT(1.0-p_eps**2))/p_eps)**(2.0*i)
-     #            *(1.0+i*SQRT(1.0-p_eps**2))/((1.0-p_eps**2)**1.5
-     #            *(p_q*r0)**2)
-        ENDDO   
-      ENDIF
-!  p_ft-trapped fraction (-)
-      IF(default.EQ.0) THEN
-         p_ft=1.46*SQRT(p_eps)
-      ENDIF
-!  p_grbm2-<grad(rho)**2/B**2> (rho**2/m**2/T**2)
-      IF(default.EQ.0) THEN
-         p_grbm2=1.0/bt0**2
-      ENDIF
-!  p_ngrth-<n.grad(Theta)> (1/m)
-      IF(default.EQ.0) THEN
-         p_ngrth=1.0/(p_q*r0)
-      ENDIF
-!Evaluate friction and viscosity coefficients and flows
-      CALL NCLASS(k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
-     #            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
-     #            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,m_s,
-     #            jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii,capm_ii,
-     #            capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,sqz_s,upar_s,
-     #            utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,chip_ss,chit_ss,
-     #            dp_ss,dt_ss,iflag)
-C
       RETURN
       END
