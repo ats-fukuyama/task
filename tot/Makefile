@@ -48,10 +48,28 @@ all : tot
 ../mtx/mpimtxlib.a:
 	(cd ../mtx; make mpimtxlib.a)
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
 ../mpi/nompilib.o:
 	(cd ../mpi; make nompilib.o)
 ../mpi/mpilib.o:
+	(cd ../mpi; make mpilib.o)
+
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make pleqin.o)
+	(cd ../eq; make treqin.o)
+	(cd ../eq; make wmeqin.o)
+	(cd ../tr; make tr2lib.a)
+	(cd ../dp; make dplib.a)
+	(cd ../wr; make wrlib.a)
+	(cd ../wm; make wmlib.a)
+	(cd ../wm; make mpiwmlib.a)
+	(cd ../fp; make fplib.a)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../mtx; make mpimtxlib.a)
+	(cd ../lib; make tasklib.a)
+	(cd ../mpi; make nompilib.o)
 	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)

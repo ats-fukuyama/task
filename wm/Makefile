@@ -29,6 +29,7 @@ wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o wmlib.a $(OBJS)
 mpiwmlib.a: $(OBJM)
 	$(LD) $(LDFLAGS) -o mpiwmlib.a $(OBJM)
+
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
@@ -46,6 +47,16 @@ mpiwmlib.a: $(OBJM)
 ../mtx/mpimtxlib.a:
 	(cd ../mtx; make mpimtxlib.a)
 ../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make wmeqin.o)
+	(cd ../eq; make pleqin.o)
+	(cd ../mpi; make nompilib.o)
+	(cd ../mpi; make mpilib.o)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../mtx; make mpimtxlib.a)
 	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)

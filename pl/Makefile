@@ -13,13 +13,20 @@ LIBS = pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 	$(FC) $(FFLAGS) -c $< -o $@
 
 all : pl
+
 pllib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
 
 ../eq/pleqin.o:
 	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
+libs:
+	(cd ../eq; make pleqin.o)
+	(cd ../lib; make tasklib.a)
+
+pllib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
 
 pl : plmain.o $(LIBS)
 	$(FC) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

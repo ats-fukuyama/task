@@ -17,6 +17,7 @@ all : fp
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o fplib.a $(OBJS)
+
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
@@ -24,7 +25,13 @@ fplib.a: $(OBJS)
 ../eq/pleqin.o:
 	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
+
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make pleqin.o)
+	(cd ../lib; make tasklib.a)
 
 fp : fpmain.o $(LIBS)
 	$(FC) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

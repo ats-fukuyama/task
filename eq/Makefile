@@ -18,10 +18,15 @@ OBJA = $(SRCA:.f=.o)
 	$(FC) $(FFLAGS) -c $< -o $@
 
 all : eq
+
 eqlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o eqlib.a $(OBJS)
+
 ../lib/tasklib.a: 
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
+libs:
+	(cd ../lib; make tasklib.a)
+
 eq : eqmain.o eqlib.a ../lib/tasklib.a
 	$(FC) eqmain.o eqlib.a ../lib/tasklib.a -o $@ $(FFLAGS) $(FLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a

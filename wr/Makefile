@@ -27,7 +27,13 @@ wrlib.a: $(OBJS)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make pleqin.o)
+	(cd ../dp; make dplib.a)
+	(cd ../lib; make tasklib.a)
 
 wr : wrmain.o $(LIBS)
 	$(FC) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

@@ -53,6 +53,13 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
 ../lib/tasklib.a:
 	(cd ../lib; make)
 
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make treqin.o)
+	(cd ../eq; make pleqin.o)
+	(cd ../lib; make)
+
 tr2: trmain.o $(LIBS2)
 	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 tr3: trmain.o $(LIBS3)

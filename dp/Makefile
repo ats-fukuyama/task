@@ -25,7 +25,12 @@ dplib.a: $(OBJS)
 ../eq/pleqin.o:
 	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make tasklib.a)
+libs:
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a)
+	(cd ../eq; make pleqin.o)
+	(cd ../lib; make tasklib.a)
 
 dp : dpmain.o $(LIBS)
 	(cd ../pl; make pllib.a)
