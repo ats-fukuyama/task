@@ -1,7 +1,34 @@
 C     $Id$
 C
-C     ****** CALCULATE ANTENNA CURRENT ******
+C     ****** CALCULATE ANTENNA EXCITATION ******
 C
+      SUBROUTINE WMEXEC(IERR)
+C
+      INCLUDE 'wmcomm.h'
+C
+      IERR=0
+      MODEEG=0
+      CALL WMSETG(IERR)
+      IF(IERR.NE.0) RETURN
+      CALL WMSETJ(IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALL WMSOLV
+      CALL WMEFLD
+      CALL WMBFLD
+      CALL WMPABS
+C
+      IF(MYRANK.EQ.0) THEN
+         CALL WMPFLX
+         CALL WMPANT
+         CALL WMPOUT
+         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+      ENDIF
+      RETURN
+      END
+C
+C     ****** CALCULATE ANTENNA CURRENT ******
+C     
       SUBROUTINE WMSETJ(IERR)
 C
       INCLUDE 'wmcomm.h'

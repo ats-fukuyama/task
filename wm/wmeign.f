@@ -6,8 +6,6 @@ C
 C
       INCLUDE 'wmcomm.h'
       CHARACTER LINE*80,KID*1
-      DIMENSION XA(2),WORK(2,2)
-      EXTERNAL DIAMIN,SUBDFP
 C
       MODE=0
     1 CONTINUE
@@ -434,7 +432,6 @@ C
             YY=Y
          ENDIF
 C
-         CALL DIAMIN(XX,YY,AMPL)
          FRINI=XX
          FIINI=YY
          CALL WMBFLD
@@ -828,13 +825,7 @@ C
      &       +ABS(CEFLD(2,NTH,NPH,NR))**2
      &       +ABS(CEFLD(3,NTH,NPH,NR))**2
          SUM=SUM+EABS
-C         IF(1.D0/SUM.EQ.0.D0) THEN
-C            WRITE(6,'(3I4,1P6E11.3)') NTH,NPH,NR,CEFLD(1,NTH,NPH,NR),
-C     &                                           CEFLD(2,NTH,NPH,NR),
-C     &                                           CEFLD(3,NTH,NPH,NR)
-C            SUM=0.D0
-C         ENDIF
-         EABS=ABS(CEFLD(2,NTH,NPH,NR))
+         EABS=ABS(CEFLD(2,NTH,NPH,NR))**2
          IF(EABS.GT.EABSMAX) THEN
             EABSMAX=EABS
             CEMAX=CEFLD(2,NTH,NPH,NR)
@@ -860,24 +851,28 @@ C
 C
       EABSMAX=0.D0
       CEMAX=0.D0
+      ACEMAX=0.D0
       DO NR=1,NRMAX+1
+         EABS2=0.D0
       DO ND=NDMIN,NDMAX
          NDX=ND-NDMIN+1
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
-         EABS=ABS(CEFLDK(2,MDX,NDX,NR))
-         IF(EABS.GT.EABSMAX) THEN
-            EABSMAX=EABS
+         EABS2=EABS2+DREAL(CEFLDK(2,MDX,NDX,NR))**2
+     &              +DIMAG(CEFLDK(2,MDX,NDX,NR))**2
+         IF(ABS(CEFLDK(2,MDX,NDX,NR)).GT.ACEMAX) THEN
             CEMAX=CEFLDK(2,MDX,NDX,NR)
+            ACEMAX=ABS(CEMAX)
          ENDIF
       ENDDO
       ENDDO
+         IF(EABS2.GT.EABSMAX) EABSMAX=EABS2
       ENDDO
 C
-      IF(ABS(CEMAX).EQ.0.D0) THEN
+      IF(EABSMAX.EQ.0.D0) THEN
          CFACT=1.D0
       ELSE
-         CFACT=1.D0/CEMAX
+         CFACT=ABS(CEMAX)/(CEMAX*SQRT(EABSMAX))
       ENDIF
       DO NR=1,NRMAX+1
       DO ND=NDMIN,NDMAX
@@ -908,7 +903,7 @@ C
       EXTERNAL SUB
 C
       LDUMP=MYRANK.EQ.0.AND.LIST.GE.2
-      LPRINT=MYRANK.EQ.0.AND.LIST.GE.1
+      LPRINT=MYRANK.EQ.0.AND.LIST.EQ.1
 C
       IER=0
       ITER=0
@@ -924,11 +919,14 @@ C
       ENDIF
       IF(LDUMP) WRITE(6,'(A,1P2E12.4)') 'X,Y   =',X,Y
       IF(LDUMP) CALL GUFLSH
+C
       CALL SUB(X,   Y,   F00)
       IF(LPRINT) WRITE(6,600) X,Y,0.D0,0.D0,F00
       IF(LPRINT) CALL GUFLSH
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y,F00
       IF(LDUMP) CALL GUFLSH
+      IF(F00.LE.2.D-15) GOTO 9001
+C
       CALL SUB(X-HX,Y,   FM0)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X-HX,Y,FM0
       IF(LDUMP) CALL GUFLSH
@@ -941,6 +939,7 @@ C
       CALL SUB(X,   Y+HY,F0P)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y+HY,F0P
       IF(LDUMP) CALL GUFLSH
+C
       FX=(FP0-FM0)/(2*HX)
       FY=(F0P-F0M)/(2*HY)
 C
@@ -965,18 +964,24 @@ C
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'FXX,FXY,FXY =',
      &                                         FXX,FXY,FYY
       IF(LDUMP) CALL GUFLSH
+C
       DF=SQRT(FX*FX+FY*FY)
       DET=FXX*FYY-FXY*FXY
       IF(LDUMP) WRITE(6,'(A,1P2E12.4)') 'DF,DET:0 =',DF,DET
       IF(LDUMP) CALL GUFLSH
+      IF(DF.LE.2.D-15) GO TO 9000
       CALL MPSYNC
+C
       H11= FYY/DET
       H12=-FXY/DET
       H21=-FXY/DET
       H22= FXX/DET
-C
       DX=-(H11*FX+H12*FY)
       DY=-(H21*FX+H22*FY)
+      V=SQRT(X*X+Y*Y+EPS)
+      DV=SQRT(DX*DX+DY*DY)
+      IF(DV/V.LE.EPS) GO TO 9000
+C
       TT=1.D0
     2 X=X+TT*DX
       Y=Y+TT*DY
@@ -986,7 +991,9 @@ C
       IF(LPRINT) CALL GUFLSH
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y,F00
       IF(LDUMP) CALL GUFLSH
+      IF(F00.LE.2.D-15) GOTO 9001
       CALL MPSYNC
+C
       CALL SUB(X-HX,Y,   FM0)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X-HX,Y,FM0
       IF(LDUMP) CALL GUFLSH
@@ -1001,6 +1008,7 @@ C
       CALL SUB(X,   Y+HY,F0P)
       IF(LDUMP) WRITE(6,'(A,1P3E12.4)') 'X,Y,F =',X,Y+HY,F0P
       IF(LDUMP) CALL GUFLSH
+C
       FXN=(FP0-FM0)/(2*HX)
       FYN=(F0P-F0M)/(2*HY)
 C
@@ -1017,24 +1025,21 @@ C
          FY=FYN
          DF=DFN
          ITER=ITER+1
-         V=SQRT(X*X+Y*Y+EPS)
-         DV=SQRT(DX*DX+DY*DY)
-         IF(DV/V.LE.EPS) GO TO 9000
-         IF(DF.LE.2.D-15) GO TO 9000
          IF(ITER.LE.ILMAX) GO TO 1
       ENDIF
 C
       IER=2
       IF(LPRINT) 
      &   WRITE(6,*) 'XX NEWTN0: LOOP COUNT EXCEEDS UPPER BOUND.'
-      GOTO 9000
+      GOTO 9001
 C
  8000 IER=1
       IF(LPRINT)
      &   WRITE(6,*) 'XX NEWTN0: DOES NOT CONVERGE.'
-      GOTO 9000
+      GOTO 9001
 C
- 9000 XX=X
+ 9000 CALL SUB(X,Y,F00)
+ 9001 XX=X
       YY=Y
       RETURN
   600 FORMAT(' ',3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
@@ -1378,5 +1383,54 @@ C
      &                      'X=',(X(I),I=1,N)
       IF(LPRINT .GE. 3) WRITE(6, '(3X,A,1P5E15.7/(5X,5E15.7))')
      &                      'G=',(G(I),I=1,N)
+      RETURN
+      END
+C
+C     ***** WRITE WAVE DATA *****
+C
+      SUBROUTINE WMWOUT
+C
+      INCLUDE 'wmcomm.h'
+C
+      NF=26
+      WRITE(NF,*) 'FR [MHz] = ',FRINI
+      WRITE(NF,*) 'FI [MHz] = ',FIINI
+      WRITE(NF,*) 'AMPN     = ',AMPEIGEN
+      WRITE(NF,*) 'NR COUNT = ',NRMAX+1
+      WRITE(NF,*) 'MD COUNT = ',MDMAX-MDMIN+1
+      WRITE(NF,*) 'ND COUNT = ',NDMAX-NDMIN+1
+      WRITE(NF,*)
+C
+      WRITE(NF,*) 'r [m]:'
+      WRITE(NF,'(1P5E14.6)') (XR(NR),NR=1,NRMAX+1)
+      WRITE(NF,*)
+C
+      DO ND=NDMIN,NDMAX
+         NDX=ND-NDMIN+1
+         DO MD=MDMIN,MDMAX
+            MDX=MD-MDMIN+1
+            WRITE(NF,*) 'MD           = ',MD+NTH0
+            WRITE(NF,*) 'ND           = ',ND+NPH0
+            WRITE(NF,*) 'Re Er:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DREAL(CEFLDK(1,MDX,NDX,NR)),NR=1,NRMAX+1)
+            WRITE(NF,*) 'Im Er:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DIMAG(CEFLDK(1,MDX,NDX,NR)),NR=1,NRMAX+1)
+            WRITE(NF,*) 'Re Etheta:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DREAL(CEFLDK(2,MDX,NDX,NR)),NR=1,NRMAX+1)
+            WRITE(NF,*) 'Im Etheta:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DIMAG(CEFLDK(2,MDX,NDX,NR)),NR=1,NRMAX+1)
+            WRITE(NF,*) 'Re Ephi:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DREAL(CEFLDK(3,MDX,NDX,NR)),NR=1,NRMAX+1)
+            WRITE(NF,*) 'Im Ephi:'
+            WRITE(NF,'(1P5E14.6)') 
+     &           (DIMAG(CEFLDK(3,MDX,NDX,NR)),NR=1,NRMAX+1)
+         ENDDO
+      ENDDO
+C
       RETURN
       END

@@ -4,7 +4,7 @@ include ../make.header
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
-SRCX = wminit.f wmsetg.f wmvmec.f wmsetj.f wmprof.f \
+SRCX = wminit.f wmsetg.f wmvmec.f wmexec.f wmprof.f \
        nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f wmtae.f
 
@@ -52,7 +52,7 @@ wmeign.o : wmeign.f wmcomm.h
 wminit.o : wminit.f wmcomm.h
 wmsetg.o : wmsetg.f wmcomm.h
 wmvmec.o : wmvmec.f wmcomm.h vmcomm.h
-wmsetj.o : wmsetj.f wmcomm.h
+wmexec.o : wmexec.f wmcomm.h
 wmprof.o : wmprof.f wmcomm.h wmxprf.h
 wmsolv.o : wmsolv.f wmcomm.h
 nowmsolv.o : nowmsolv.f wmcomm.h

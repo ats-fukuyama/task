@@ -1092,7 +1092,7 @@ C
             CALL MOVE(XPOS,YPOS-DY)
             CALL TEXT('ND:',3)
             CALL NUMBI(ND,'(I7)',7)
-         ELSE
+         ELSEIF(K3.EQ.'T'.OR.K3.EQ.'A') THEN
             CALL TEXT('Th:',3)
             CALL NUMBD(DBLE(NTH-1)/DBLE(NTHMAX)*360.D0,'(F9.4)',9)
             CALL MOVE(XPOS,YPOS-DY)

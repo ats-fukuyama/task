@@ -14,6 +14,7 @@ C***********************************************************************
 C
       INCLUDE 'wmcomm.h'
       CHARACTER KID*1,LINE*80
+      DATA NFILEINI/0/
 C
       CALL MPINIT(NPROCS,MYRANK)
       IF(NPROCS.LT.NCPUMIN) THEN
@@ -43,8 +44,8 @@ C
     1 CONTINUE
          IF(MYRANK.EQ.0) THEN
             WRITE(6,*)
-     &      '## INPUT: P,V/PARM  W/WAVE  A,F,C/AMP  E,S/SCAN  ',
-     &      'G/GRAPH  T/TAE  Q/QUIT'
+     &      '## INPUT: P,V/PARM  R/RUN  A,F,C/AMP  E,S/SCAN  ',
+     &      'G/GRAPH T/TAE W/WRITE Q/QUIT'
             CALL WMKLIN(LINE,KID,MODE)
          ENDIF
          CALL MPBCIA(MODE)
@@ -70,24 +71,10 @@ C
 C
 C        *** WAVE CALCULATION ***
 C
-         ELSEIF (KID.EQ.'W') THEN
-            MODEEG=0
-            CALL WMSETG(IERR)
-               IF(IERR.NE.0) GOTO 1
-            CALL WMSETJ(IERR)
-               IF(IERR.NE.0) GOTO 1
-C
-            CALL WMSOLV
-            CALL WMEFLD
-            CALL WMBFLD
-            CALL WMPABS
-            IF(MYRANK.EQ.0) THEN
-               CALL WMPFLX
-               CALL WMPANT
-               CALL WMPOUT
-               IF(MODELW.EQ.1) CALL WMDOUT(IERR)
-            ENDIF
+         ELSEIF (KID.EQ.'R') THEN
+            CALL WMEXEC(IERR)
             CALL MPSYNC
+            IF(IERR.NE.0) GOTO 1
             KID=' '
 C
 C        *** AMPLITUDE SURVEY ***
@@ -113,6 +100,19 @@ C
             CALL MPSYNC
             KID=' '
 C
+C        *** FILE OUTPUT ***
+C
+         ELSE IF (KID.EQ.'W') THEN
+            IF(MYRANK.EQ.0) THEN
+               IF(NFILEINI.EQ.0) THEN
+                  REWIND(26)
+                  NFILEINI=1
+               ENDIF
+               CALL WMWOUT
+            ENDIF
+            CALL MPSYNC
+            KID=' '
+C
 C        *** TAE FREQUENCY ***
 C
          ELSE IF (KID.EQ.'T') THEN
@@ -128,13 +128,14 @@ C
          ELSE IF(KID.EQ.'H') THEN
             WRITE(6,*) '# KID:  P: PARAMETER INPUT (VARNAME = VALUE)'
             WRITE(6,*) '        V: VIEW PARAMETERS'
-            WRITE(6,*) '        W: WAVE EXCITED BY EXTERNAL ANTENNA'
+            WRITE(6,*) '        R: WAVE EXCITED BY EXTERNAL ANTENNA'
             WRITE(6,*) '        A: AMPLITUDE OF INTERNALLY EXCITED WAVE'
             WRITE(6,*) '        F: REAL FREQUENCY SCAN OF AMPLITUDE'
             WRITE(6,*) '        C: COMPLEX FREQUENCY SCAN OF AMPLITUDE'
             WRITE(6,*) '        E: EIGEN VALUE SEARCH'
             WRITE(6,*) '        S: PARAMETER SCAN OF EIGEN VALUE'
             WRITE(6,*) '        G: GRAPHICS'
+            WRITE(6,*) '        W: FILE 26 OUTPUT: FIELD DATA'
             WRITE(6,*) '        H: HELP'
             WRITE(6,*) '        Q: QUIT'
             KID=' '
@@ -187,7 +188,7 @@ C
       CALL GUCPTL(KID)
       IF(KID.EQ.'P'.OR.
      &   KID.EQ.'V'.OR.
-     &   KID.EQ.'W'.OR.
+     &   KID.EQ.'R'.OR.
      &   KID.EQ.'A'.OR.
      &   KID.EQ.'F'.OR.
      &   KID.EQ.'C'.OR.
@@ -198,6 +199,7 @@ C
       IF(KID.EQ.'S'.OR.
      &   KID.EQ.'G'.OR.
      &   KID.EQ.'T'.OR.
+     &   KID.EQ.'W'.OR.
      &   KID.EQ.'H'.OR.
      &   KID.EQ.'X'.OR.
      &   KID.EQ.'Q') THEN
