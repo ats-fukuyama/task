@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE FPSAVE
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       CHARACTER*72 KNAM
 C      CHARACTER*1 KID
@@ -60,7 +60,7 @@ C     ***********************************************************
 C
       SUBROUTINE FPLOAD
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       CHARACTER*72 KNAM
       LOGICAL LEX

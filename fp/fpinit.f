@@ -6,7 +6,7 @@ C ***************************
 C
       SUBROUTINE FPINIT
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
 C-----------------------------------------------------------------------
 C     ZEFF  : effective ion charge
@@ -175,7 +175,7 @@ C ***********************
 C
       SUBROUTINE FPPARM
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       LOGICAL LEX
       CHARACTER KPNAME*72
@@ -263,7 +263,7 @@ C ***********************
 C
       SUBROUTINE FPVIEW
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       WRITE(6,600) 'E0    ',E0    ,'DRR0  ',DRR0  ,
      &             'ZEFF  ',ZEFF
@@ -364,7 +364,7 @@ C
          WRITE(6,*) 'XX UNKNOWN MODELW: MODELW =',MODELW
       END IF
 C
-      IF(MODELG.EQ.0)THEN
+      IF(MODELG.EQ.2)THEN
          WRITE(6,*) 'GIVEN PLASMA GEOMETRY'
       ELSE IF(MODELG.EQ.3)THEN
          WRITE(6,*) 'MHD EQUILIBRIUM FROM TASK/EQ'

@@ -6,7 +6,7 @@ C *************************
 C
       SUBROUTINE FPSPRF
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       IF(NTG1.LT.NTG1M) NTG1=NTG1+1
 C
@@ -40,7 +40,7 @@ C *************************
 C
       SUBROUTINE FPSGLB
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       IF(NTG2.LT.NTG2M) NTG2=NTG2+1
 C
@@ -99,7 +99,7 @@ C *************************
 C
       SUBROUTINE FPSSUB
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DO 1000 NR=1,NRMAX
          RSUM1=0.D0
@@ -222,7 +222,7 @@ C ***********************************************************
 C
       SUBROUTINE FPWRIT
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       WRITE(6,101) TIMEFP*1000
       WRITE(6,102) PNT(NTG2),PIT(NTG2),PWT(NTG2),PTT(NTG2)

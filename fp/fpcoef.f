@@ -8,7 +8,7 @@ C ************************************************************
 C
       SUBROUTINE FPCOEF
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       CALL FPCALE
 C
@@ -107,7 +107,7 @@ C ************************************************************
 C
       SUBROUTINE FPCALR
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DO 10 NR=1,NRMAX+1
          PSIN=RG(NR)**2
@@ -159,7 +159,7 @@ C ************************************************************
 C
       SUBROUTINE FPCALE
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DO 10 NR=1,NRMAX
       DO 10 NP=1,NPMAX+1
@@ -221,7 +221,7 @@ C ************************************************************
 C
       SUBROUTINE FPCALC
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 C
       DO 100 NR=1,NRMAX
@@ -355,7 +355,7 @@ C ***************************************************************
 C
       REAL*8 FUNCTION FPFN1R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=XM
       XX=X
@@ -371,7 +371,7 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN2R(X)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       A=PX
       X1=A*(X+1.D0)
@@ -385,7 +385,7 @@ C ==============================================================
 C
       REAL*8 FUNCTION FPFN3R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -400,7 +400,7 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN4R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -416,7 +416,7 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN5R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -432,7 +432,7 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN6R(X)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       A=PX
       X1=A*(X+1.D0)
@@ -445,7 +445,7 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPRMXW(X)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       EX=(1.D0-SQRT(1.D0+X**2*THETA0))/THETA(NRX)
       IF (EX.LT.-100.D0)THEN

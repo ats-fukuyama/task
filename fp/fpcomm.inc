@@ -4,4 +4,4 @@ C
 C
       INCLUDE '../pl/plcom1.h'
       INCLUDE '../pl/plcom2.h'
-      INCLUDE 'fpcom1.h'
+      INCLUDE 'fpcom1.inc'

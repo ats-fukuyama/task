@@ -6,15 +6,14 @@ C *****************************
 C
       SUBROUTINE FPPREP(IERR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       EXTERNAL FPFN0U,FPFN0T,FPFN1A,FPFN2A
 C
       IF(MODELG.EQ.3) THEN
-         CALL EQLOAD(1,KNAMEQ,IERR)
+         CALL EQLOAD(3,KNAMEQ,IERR)
          IF(IERR.EQ.0) THEN
             CALL EQSETP
-C            CALL EQPSIC(51,32,64)
             CALL EQPSIC(51,32,64,IERR)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
          ENDIF
@@ -253,7 +252,7 @@ C ****************************************
 C
       SUBROUTINE FPFINI
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DO 100 NR=1,NRMAX
       DO 100 NP=1,NPMAX
@@ -270,7 +269,7 @@ C ****************************************
 C
       FUNCTION FPMXWL(PML,NR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       IF(NR.EQ.0) THEN
          RL=RM(1)-DELR
@@ -330,7 +329,7 @@ C *************************
 C
       SUBROUTINE FPSAVI
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       ISAVE=0
       DO NR=1,NRMAX
@@ -368,7 +367,7 @@ C ============================================================
 C
       REAL*8 FUNCTION  FPFN0U(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -384,7 +383,7 @@ C ============================================================
 C
       REAL*8 FUNCTION FPFN0T(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       A0=ETAM(NTHX,NRX)
@@ -399,7 +398,7 @@ C ============================================================
 C
       REAL*8 FUNCTION FPFN1A(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -414,7 +413,7 @@ C ============================================================
 C
       REAL*8 FUNCTION FPFN2A(X,XM,XP)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       XX=X
       XX=XM
@@ -432,7 +431,7 @@ C *****************
 C
       SUBROUTINE FPLOOP
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION RJN(NRM),RJ3(NRM),E3(NRM),DELE(NRM)
       
@@ -522,7 +521,7 @@ C
 
       SUBROUTINE FPNEWE
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DO 10 NR=2,NRMAX
          BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)

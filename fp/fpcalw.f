@@ -8,7 +8,7 @@ C ************************************************************
 C
       SUBROUTINE FPCALW
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
 C =============  CALCULATION OF DWPP AND DWPT  ===============
 C
@@ -170,7 +170,7 @@ C =======================================================
 C
       SUBROUTINE FPSUMW(ETA,RSIN,RCOS,P,NR,SUM1,SUM2,SUM3,SUM4,SUM5)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DELH=2.D0*ETA/NAVMAX
 C
@@ -224,7 +224,7 @@ C     ******************************************
 C
       SUBROUTINE FPWAVE(PPARA,PPERP,NR,X,Y,DLHL,DFWL,DECL)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       P2=PPARA**2+PPERP**2
       PVPARA=PPARA/SQRT(1.D0+P2*THETA0)

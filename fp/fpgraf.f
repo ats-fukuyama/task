@@ -8,7 +8,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAF
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION TEMP(NTHM,NPM,NRM)
       CHARACTER KID*4,KID1*1,KID2*3
@@ -187,7 +187,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAR(STRING,FR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION FR(NRM,NTG1M),GX(NRM),GY(NRM)
       CHARACTER STRING*4
 C
@@ -241,7 +241,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAT(STRING,FT)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION  FT(NTG2M),GX(NTG2M),GY(NTG2M)
       CHARACTER STRING*4
 C
@@ -279,7 +279,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAP(STRING,FG)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION FG(NTHM,NPM,NRM),GX(NPM),GY(NPM,NRM)
       CHARACTER STRING*4
 C
@@ -340,7 +340,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAC(STRING,FG,MODE)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*)
       DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)
@@ -488,7 +488,7 @@ C ***********************************************************
 C
       SUBROUTINE FPGRAC2(STRING,FG,FH,MODE)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*),FH(*)
       DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)

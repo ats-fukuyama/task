@@ -15,7 +15,7 @@ C                      OKAYAMA UNIVERSITY
 C
 C ************************************************************
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       CHARACTER KID*1
 C

@@ -6,10 +6,10 @@ C***********************************************************************
 C
       SUBROUTINE FPLDWR(IERR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       INCLUDE '../dp/dpcom1.h'
       INCLUDE '../wr/wrcom1.h'
-      INCLUDE 'fpcom2.h'
+      INCLUDE 'fpcom2.inc'
 C
       DIMENSION CFX1(0:NITM,NRAYM),CFX2(0:NITM,NRAYM),
      &          CFX3(0:NITM,NRAYM),FX4(0:NITM,NRAYM),
@@ -163,9 +163,9 @@ C***********************************************************************
 C
       SUBROUTINE FPCROS(PSICR,NIT,NRAY,SICR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.h'
-      INCLUDE 'fpcom2.h'
+      INCLUDE 'fpcom2.inc'
 C
       Y   =PSIX(NIT-1,NRAY)-PSICR
       YNEW=PSIX(NIT  ,NRAY)-PSICR
@@ -213,9 +213,9 @@ C
       SUBROUTINE FPCREK(SICR,NRAY,
      &                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.h'
-      INCLUDE 'fpcom2.h'
+      INCLUDE 'fpcom2.inc'
 C
       NITMX=NITMAX(NRAY)
       CALL CSPL1DF(SICR,CEX,SI(0,NRAY),CU1(1,0,NRAY),NITMX,IERR)

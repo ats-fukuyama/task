@@ -5,7 +5,7 @@ C*******************************
 C
       SUBROUTINE FPCALN
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
       DIMENSION PLM(-1:LNM,M),PLG(-1:LNM,M),FPL(-1:LNM,N)

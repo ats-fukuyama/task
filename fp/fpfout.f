@@ -8,7 +8,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOUT
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION TEMP(NTHM,NPM,NRM)
       CHARACTER KID*4,KID1*1,KID2*3,KNAM*72
@@ -249,7 +249,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOTR(STRING,FR)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION FR(NRM,NTG1M)
       CHARACTER STRING*4
 C
@@ -266,7 +266,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOTT(STRING,FT)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION  FT(NTG2M)
       CHARACTER STRING*4
 C
@@ -282,7 +282,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOTP(STRING,FG)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION FG(NTHM,NPM,NRM),FL(NPM,NRM)
       CHARACTER STRING*4
 C
@@ -311,7 +311,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOTC(STRING,FG,MODE)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*)
       DIMENSION FL(NPMP,NTHMP)
@@ -390,7 +390,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOTC2(STRING,FG,FH,MODE)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*),FH(*)
       DIMENSION FL(NPMP,NTHMP)
@@ -474,7 +474,7 @@ C ***********************************************************
 C
       SUBROUTINE FPFOUX(STRING,N1MAX,N2MAX,FL,N1M)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DIMENSION FL(N1M,*)
       CHARACTER STRING*4

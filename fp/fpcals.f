@@ -8,9 +8,9 @@ C ************************************************************
 C
       SUBROUTINE FPCALS
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.h'
-      INCLUDE 'fpcom2.h'
+      INCLUDE 'fpcom2.inc'
 C
       DIMENSION DLA(0:NITM,NRAYMX)
 C
@@ -150,12 +150,12 @@ C
          DO 101 NTH=1,NTHMAX
             IF(NTH.EQ.ITL(NR).OR.NTH.EQ.ITU(NR)) GOTO 101
          DO 100 NP=1,NPMAX+1
-            IF(NP.EQ.10.AND.NTH.EQ.2) THEN
-               IFLAG=1 
-            ELSE
-               IFLAG=0
-            ENDIF
-            CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP),NR,
+C            IF(NP.EQ.10.AND.NTH.EQ.2) THEN
+C               IFLAG=1 
+C            ELSE
+C               IFLAG=0
+C            ENDIF
+            CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP),NR,NTH,
      &                  DWPPS,DWPTS,DWTPS,DWTTS)
             DWPP(NTH,NP,NR)=DWPPS
             DWPT(NTH,NP,NR)=DWPTS
@@ -326,14 +326,14 @@ C
             IF(NTH.NE.NTHMAX/2+1) THEN
                DO 1100 NP=1,NPMAX
                   CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
-     &                        NR,DWPPS,DWPTS,DWTPS,DWTTS)
+     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
                   DWTP(NTH,NP,NR)=DWTPS
                   DWTT(NTH,NP,NR)=DWTTS
  1100          CONTINUE
             ELSE
                DO 1200 NP=1,NPMAX
 C                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
-C     &                        NR,DWPPS,DWPTS,DWTPS,DWTTS)
+C     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
                   DWTP(NTH,NP,NR)=0.D0
                   DWTT(NTH,NP,NR)=0.D0
  1200          CONTINUE
@@ -362,11 +362,11 @@ C***********************************************************************
 C     Calculate DW averaged over magnetic surface for (p,theta0,r)
 C***********************************************************************
 C
-      SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,DWPPS,DWPTS,DWTPS,DWTTS)
+      SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.h'
-      INCLUDE 'fpcom2.h'
+      INCLUDE 'fpcom2.inc'
 C
       DIMENSION DLA(0:NITM,NRAYMX)
 C
@@ -428,34 +428,34 @@ C               WRITE(25,*) 'NAV,NCR,DELR2,ARG=',NAV,NCR,DELR2,ARG
 C
 C
             IF(MODELW.EQ.3) THEN
-                  ARG=ARGB(NR,NTH,NAV,NRAY)
+               ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
-               FACTOR= EXP(-ARG)
-               CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
-               CEX=CEB(1,NR,NTH,NAV,NRAY)*FACTOR
-               CEY=CEB(2,NR,NTH,NAV,NRAY)*FACTOR
-               CEZ=CEB(3,NR,NTH,NAV,NRAY)*FACTOR
-               RKX=RKB(1,NR,NTH,NAV,NRAY)
-               RKY=RKB(2,NR,NTH,NAV,NRAY)
-               RKZ=RKB(3,NR,NTH,NAV,NRAY)
-               RX =RBB(1,NR,NTH,NAV,NRAY)
-               RY =RBB(2,NR,NTH,NAV,NRAY)
-               RZ =RBB(3,NR,NTH,NAV,NRAY)
-               CALL FPDWLL(P,PSIN,PCOS,
-     &                     CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
-     &                     DWPPL,DWPTL,DWTPL,DWTTL)
+                  FACTOR= EXP(-ARG)
+                  CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
+                  CEX=CEB(1,NR,NTH,NAV,NRAY)*FACTOR
+                  CEY=CEB(2,NR,NTH,NAV,NRAY)*FACTOR
+                  CEZ=CEB(3,NR,NTH,NAV,NRAY)*FACTOR
+                  RKX=RKB(1,NR,NTH,NAV,NRAY)
+                  RKY=RKB(2,NR,NTH,NAV,NRAY)
+                  RKZ=RKB(3,NR,NTH,NAV,NRAY)
+                  RX =RBB(1,NR,NTH,NAV,NRAY)
+                  RY =RBB(2,NR,NTH,NAV,NRAY)
+                  RZ =RBB(3,NR,NTH,NAV,NRAY)
+                  CALL FPDWLL(P,PSIN,PCOS,
+     &                 CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
+     &                 DWPPL,DWPTL,DWTPL,DWTTL)
 C
-               DWPPS=DWPPS+DWPPL*RCOS/PCOS
-               DWPTS=DWPTS+DWPTL          /SQRT(PSI)
-               DWTPS=DWTPS+DWTPL          /SQRT(PSI)
-               DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
-C               WRITE(6,*) NR,NTH,DWPPS
-C            IF(IFLAG.EQ.1) THEN
-C               WRITE(6,'(3I3)') NR,NAV,NCR
-C               WRITE(6,'(1P3E12.4)') X,Y,Z
-C               WRITE(6,'(1P3E12.4)') RX,RY,RZ
-C               WRITE(6,'(1P3E12.4)') DELR2,DELCR2,ARG
-C            ENDIF
+                  DWPPS=DWPPS+DWPPL*RCOS/PCOS
+                  DWPTS=DWPTS+DWPTL          /SQRT(PSI)
+                  DWTPS=DWTPS+DWTPL          /SQRT(PSI)
+                  DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
+C                  WRITE(6,*) NR,NTH,DWPPS
+C                  IF(IFLAG.EQ.1) THEN
+C                     WRITE(6,'(3I3)') NR,NAV,NCR
+C                     WRITE(6,'(1P3E12.4)') X,Y,Z
+C                     WRITE(6,'(1P3E12.4)') RX,RY,RZ
+C                     WRITE(6,'(1P3E12.4)') DELR2,DELCR2,ARG
+C                  ENDIF
                ENDIF
             ENDIF
 C
@@ -480,7 +480,7 @@ C***********************************************************************
 C
       SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       IF(MODELA.EQ.0) THEN
          PSI=1.D0
@@ -506,7 +506,7 @@ C
      &                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
      &                  DWPPL,DWPTL,DWTPL,DWTTL)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       PARAMETER(NJMAX=100)
       DIMENSION RJ(0:NJMAX),DRJ(0:NJMAX)

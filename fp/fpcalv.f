@@ -8,7 +8,7 @@ C ************************************************************
 C
       SUBROUTINE FPCALV
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
 C =============  CALCULATION OF DWPP AND DWPT  ===============
 C
@@ -100,7 +100,7 @@ C =======================================================
 C
       SUBROUTINE FPSUMV(ETA,RSIN,RCOS,P,NR,DWPPS,DWPTS,DWTPS,DWTTS)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       DELH=2.D0*ETA/NAVMAX
 C
@@ -155,7 +155,7 @@ C ************************************************************
 C
       SUBROUTINE FPWAVV(PSIL,ETAL,PSIN,PCOS,P,DWPPL,DWPTL,DWTPL,DWTTL)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       PARAMETER(NJMAX=100)
       DIMENSION RJ(0:NJMAX),DRJ(0:NJMAX)
@@ -255,9 +255,9 @@ C     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 C
       SUBROUTINE FPSETB(PSIL,ETAL,BTL,BPL)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
-      IF(MODELG.EQ.0) THEN
+      IF(MODELG.EQ.2) THEN
          RS=SQRT(PSIL)*RA
          X=RS*COS(ETAL)
          BTL=BB/(1.D0+X/RR)
@@ -280,7 +280,7 @@ C     ****** CALCULATE LOCAL WAVE ELECTRIC FIELD ******
 C
       SUBROUTINE FPSETV(RHO0,ETAL,RKR,RKTH,RKPH,CER,CETH,CEPH)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       Y=RHO0*RA*SIN(ETAL)
 C

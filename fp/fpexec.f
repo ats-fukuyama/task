@@ -6,7 +6,7 @@ C     **************************
 C
       SUBROUTINE FPEXEC(NOCONV)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
       DIMENSION EPS(2)
 C
       DO NR=1,NRMAX
@@ -137,7 +137,7 @@ C ***********************
 C
       SUBROUTINE FPSETM(NTH,NP,NR,NL)
 C
-      INCLUDE 'fpcomm.h'
+      INCLUDE 'fpcomm.inc'
 C
       IF(NTH.EQ.ITL(NR)) THEN
          NTB=ITU(NR)

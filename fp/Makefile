@@ -32,23 +32,23 @@ new:
 	-mkdir ../fpnew
 	cp -f Makefile ../fpnew
 	cp -f *.f ../fpnew
-	cp -f *.h ../fpnew
+	cp -f *.inc ../fpnew
 
-fpmain.o : fpmain.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpinit.o : fpinit.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fploop.o : fploop.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpexec.o : fpexec.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpcoef.o : fpcoef.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpcalv.o : fpcalv.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpcaln.o : fpcaln.f fpcomm.h fpcom1.h ../pl/plcom1.h
+fpmain.o : fpmain.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpcaln.o : fpcaln.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
 
-fpsave.o : fpsave.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpgraf.o : fpgraf.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpfout.o : fpfout.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpfile.o : fpfile.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpcalw.o : fpcalw.f fpcomm.h fpcom1.h ../pl/plcom1.h
-fpcals.o : fpcals.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
-fpwrin.o : fpwrin.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
+fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpgraf.o : fpgraf.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.h ../wr/wrcom1.h fpcom2.inc
+fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.h ../wr/wrcom1.h fpcom2.inc
 
 ../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
 ../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
