@@ -17,6 +17,13 @@ C   *******************************************
 C
 C     input:
 C
+C     RR            : Major plasma radius (Geometrical center)   (m)
+C     RA            : Minor plasma radius (Horizontal plane)     (m)
+C     RB            : Minor wall radius                          (m)
+C     RKAP          : Elongation
+C     RDLT          : Triangularity
+C     BB            : Toroidal magnetic field at R=RR            (T)
+C     RIP           : Total plasma current                      (MA)
 C     NTRMAX        : Maximum array number
 C     PSI(NTRMAX)   : Poloidal flux                  (m^2kgs^-2A^-2)
 C     PPSI(NTRMAX)  : Pressure                                 (MPa)
@@ -32,7 +39,8 @@ C     SPSI(NTRMAX)  : Plamsa poloidal crosssection area
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQEX(PSIP,PPSI,HJPSI,VTPSI,TPSI,NTRMAX1,
+      SUBROUTINE TREQEX(RR1,RA1,RB1,RKAP1,RDLT1,BB1,RIP1,
+     &                  NTRMAX1,PSIP,PPSI,HJPSI,VTPSI,TPSI,
      &                  QPSI,VPSI,SPSI,IERR)
 C              
       INCLUDE 'eqcomc.h'
@@ -43,6 +51,13 @@ C
       DIMENSION DERIV(NTRM)
 C
       IERR=0
+      RR     = RR1
+      RA     = RA1
+      RB     = RB1
+      RKAP   = RKAP1
+      RDLT   = RDLT1
+      BB     = BB1
+      RIP    = RIP1
       NTRMAX = NTRMAX1
 C
       DO NTR=1,NTRMAX

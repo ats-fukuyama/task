@@ -17,14 +17,17 @@ C
       CALL TREQIN
 C
       NTRMAX=51
-      RR=3.D0
-      RA=1.D0
-      RIP=3.D0
-      BB=3.D0
-      PN0=0.5D0
-      PT0=6.D0
-      PROFJ1=2
-      PROFJ2=2
+      RR    = 3.D0
+      RA    = 1.D0
+      RB    = RA*1.1D0
+      RKAP  = 1.6D0
+      RDLT  = 0.25D0
+      BB    = 3.D0
+      RIP   = 3.D0
+      PN0   = 0.5D0
+      PT0   = 6.D0
+      PROFJ1= 2
+      PROFJ2= 2
 C
       DRHO=1.D0/(NTRMAX-1)
       DO NTR=1,NTRMAX
@@ -35,14 +38,14 @@ C
 C
       BP(1)=0.5D0*DRHO*RJ(1)
       DO NTR=2,NTRMAX
-         BP(NTR)=(RHOM(NTR-1)*BP(NTR-1)+RHOG(NTR)*DRHO*RJ(NTR))
+         BP(NTR)=(RHOM(NTR-1)*BP(NTR-1)+RHOG(NTR-1)*DRHO*RJ(NTR-1))
      &           /RHOM(NTR)
       ENDDO
       BPA= RMU0*RIP*1.D6/(2.D0*PI*RA)
       FACT=BPA/BP(NTRMAX)
       DO NTR=1,NTRMAX
          BP(NTR)=FACT*BP(NTR)
-         QP(NTR)=RHOM(NTR)*BB/(RR*BP(NTR))
+         QP(NTR)=RHOM(NTR)*RA*BB/(RR*BP(NTR))
       ENDDO
 C
       P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
@@ -59,18 +62,22 @@ C
          TPSI(NTR)=PT0*(1.D0-RHOG(NTR)**2)
       ENDDO
 C
-C      DO NTR=1,NTRMAX
-C         WRITE(6,'(1P4E12.4)') RHOG(NTR),RHOM(NTR),RJ(NTR),BP(NTR)
-C      ENDDO
+      DO NTR=1,NTRMAX
+         WRITE(6,'(I5,1P5E12.4)') NTR,RHOG(NTR),RHOM(NTR),
+     &                            RJ(NTR),BP(NTR),QP(NTR)
+      ENDDO
 C
 C      DO NTR=1,NTRMAX
 C         WRITE(6,'(1P4E12.4)') PSIP(NTR),PSIT(NTR),PPSI(NTR),HJPSI(NTR)
 C      ENDDO
 C
-      CALL TREQEX(PSIP,PPSI,HJPSI,VTPSI,TPSI,NTRMAX,QPSI,VPSI,SPSI,IERR)
+      CALL TREQEX(RR,RA,RB,RKAP,RDLT,BB,RIP,
+     &            NTRMAX,PSIP,PPSI,HJPSI,VTPSI,TPSI,
+     &            QPSI,VPSI,SPSI,IERR)
 C
       DO NTR=1,NTRMAX
-         WRITE(6,'(1P4E12.4)') PSIP(NTR),QPSI(NTR),VPSI(NTR),SPSI(NTR)
+         WRITE(6,'(I5,1P5E12.4)') NTR,PSIP(NTR),QP(NTR),QPSI(NTR),
+     &                            VPSI(NTR),SPSI(NTR)
       ENDDO
 C
  9000 CALL GSCLOS
