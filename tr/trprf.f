@@ -39,14 +39,14 @@ C
       SUMLH = 0.D0
       SUMIC = 0.D0
       DO 10 NR=1,NRMAX
-         SUMEC = SUMEC+DEXP(-((RM(NR)-PECR0)/PECRW)**2)*RM(NR)
-         SUMLH = SUMLH+DEXP(-((RM(NR)-PLHR0L)/PLHRW)**2)*RM(NR)
-         SUMIC = SUMIC+DEXP(-((RM(NR)-PICR0)/PICRW)**2)*RM(NR)
+         SUMEC = SUMEC
+     &         +DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
+         SUMLH = SUMLH
+     &         +DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
+         SUMIC = SUMIC
+     &         +DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
    10 CONTINUE
 C
-      SUMEC = SUMEC*2.D0*PI*RR*2.D0*PI*DR*RKAP
-      SUMLH = SUMLH*2.D0*PI*RR*2.D0*PI*DR*RKAP
-      SUMIC = SUMIC*2.D0*PI*RR*2.D0*PI*DR*RKAP
       PEC0 = PECTOT*1.D6/SUMEC
       PLH0 = PLHTOT*1.D6/SUMLH
       PIC0 = PICTOT*1.D6/SUMIC
@@ -65,9 +65,9 @@ C         VPHLH=VC/PLHNPR
 C      ENDIF
 C
       DO 20 NR=1,NRMAX
-         PECL = PEC0*DEXP(-((RM(NR)-PECR0)/PECRW)**2)
-         PLHL = PLH0*DEXP(-((RM(NR)-PLHR0L)/PLHRW)**2)
-         PICL = PIC0*DEXP(-((RM(NR)-PICR0)/PICRW)**2)
+         PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
+         PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
+         PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
          PRF(NR,1)=PECTOE*PECL
      &            +PLHTOE*PLHL
      &            +PICTOE*PICL
@@ -84,7 +84,7 @@ C
             IF(PECNPR.LE.1.D0) THEN
                EFCDEC=0.D0
             ELSE
-               EFCDEC=TRCDEF(VPHEC,ZEFF(NR),0.D0,RM(NR)/RR,0)
+               EFCDEC=TRCDEF(VPHEC,ZEFF(NR),0.D0,EPSRHO(NR),0)
             ENDIF
          ELSE
             EFCDEC=0.D0
@@ -93,7 +93,7 @@ C
             IF(ABS(VPHLH).GT.VC) THEN
                EFCDLH=0.D0
             ELSE
-               EFCDLH=TRCDEF(VPHLH/VTE,ZEFF(NR),0.D0,RM(NR)/RR,0)
+               EFCDLH=TRCDEF(VPHLH/VTE,ZEFF(NR),0.D0,EPSRHO(NR),0)
             ENDIF
          ELSE
             EFCDLH=0.D0
@@ -103,7 +103,7 @@ C
             IF(PICNPR.LE.1.D0) THEN
                EFCDIC=0.D0
             ELSE
-               EFCDIC=TRCDEF(VPHIC,ZEFF(NR),0.D0,RM(NR)/RR,1)
+               EFCDIC=TRCDEF(VPHIC,ZEFF(NR),0.D0,EPSRHO(NR),1)
             ENDIF
          ELSE
             EFCDIC=0.D0

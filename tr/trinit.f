@@ -22,6 +22,7 @@ C
       RR      = 3.0D0     
       RA      = 1.2D0      
       RKAP    = 1.5D0
+      RDLT    = 0.0D0
       BB      = 3.D0        
       RIPS    = 3.D0         
       RIPE    = 3.D0         
@@ -201,6 +202,7 @@ C
 C
       KFNLOG='trf.log'
 C
+      MODELG=1
       RETURN
       END
 C
@@ -214,14 +216,14 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      NAMELIST /TR/ RR,RA,RKAP,BB,RIPS,RIPE,
+      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNC,CDW,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,
+     &              MDLST,MDLNF,IZERO,MODELG,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -306,7 +308,7 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(1H ,'# &TR : RR,RA,RKAP,BB,RIPS,RIPE'/
+  601 FORMAT(1H ,'# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE'/
      &       1H ,8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
      &       1H ,8X,'PNC,PNFE,PNNU,PNNUS'/
      &       1H ,8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
@@ -320,7 +322,7 @@ C
      &       1H ,8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       1H ,8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       1H ,8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       1H ,8X,'PELTIM,PELPAT')
+     &       1H ,8X,'PELTIM,PELPAT,MODELG')
       END
 C
 C     ***********************************************************
@@ -337,9 +339,10 @@ C
       WRITE(6,601) 'RR    ',RR,
      &             'RA    ',RA,
      &             'RKAP  ',RKAP,
-     &             'BB    ',BB
+     &             'RDLT  ',RDLT
       WRITE(6,601) 'RIPS  ',RIPS,
-     &             'RIPE  ',RIPE
+     &             'RIPE  ',RIPE,
+     &             'BB    ',BB
 C
       WRITE(6,611)
   611 FORMAT(1H ,'NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
@@ -410,7 +413,8 @@ C
 C
       WRITE(6,602) 'MDLST ',MDLST,
      &             'MDLCD ',MDLCD,
-     &             'MDLNF ',MDLNF
+     &             'MDLNF ',MDLNF,
+     &             'MODELG',MODELG
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,
@@ -498,8 +502,9 @@ C
       NGR   = 0
       NGT   = 0
       NGST  = 0
+      RIP   = RIPS
 C
-      DR = RA/DBLE(NRMAX)
+      DR = 1.D0/DBLE(NRMAX)
       RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
       FKAP=0.5D0*(RKAP+1.D0)
      &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
@@ -508,17 +513,17 @@ C
          RG(NR)  = NR*DR
          RM(NR)  = (NR-0.5D0)*DR
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR)/RA)**PROFN1)**PROFN2
+         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
          DO 10 NS=1,NSM
             RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
    10    CONTINUE
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR)/RA)**PROFT1)**PROFT2
+         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
          DO 20 NS=1,NSM
             RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
    20    CONTINUE
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR)/RA)**PROFU1)**PROFU2
+         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
          ANNU(NR)= (PNNU-PNNUS)*PROF+PNNUS
 C
          DO 30 NF=1,NFM
@@ -536,7 +541,7 @@ C
       DO 200 NR=1,NRMAX
          ANESUM=ANESUM+RN(NR,1)*RM(NR)
   200 CONTINUE
-      ANEAVE=ANESUM*2.D0*PI*DR/(PI*RA*RA)
+      ANEAVE=ANESUM*2.D0*DR
 C
 C     *** CALCULATE IMPURITY DENSITY
 C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
@@ -561,134 +566,215 @@ C
          PNSS(NS)=PNS(NS)*DILUTE
   310 CONTINUE
 C
-C     *** CALCULATE Q(R) ***
-C
+C     *** CALCULATE PROFILE OF AJ(R) ***
 C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
-      DO 600 NR=1,NRMAX
-         IF((1.D0-(RM(NR)/RA)**ABS(PROFJ1)).LE.0.D0) THEN
-            PROF=0.D0    
-         ELSE             
-            PROF= (1.D0-(RM(NR)/RA)**PROFJ1)**ABS(PROFJ2)
-         ENDIF             
-         AJOH(NR)= PROF
-  600 CONTINUE
-C
-         BP(1)=(RM(1)*DR*AJOH(1))/RG(1)
-         DO 700 NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*DR*AJOH(NR))/RG(NR)
-  700    CONTINUE
-C
-      BPS= AMYU0*RIPS*1.D6/(2.D0*PI*RA*FKAP)
-      FACT=BPS/BP(NRMAX)
-C
-      DO 800 NR=1,NRMAX
-         BP(NR)=FACT*BP(NR)
-         QP(NR)=FKAP*RG(NR)*BB/(RR*BP(NR))
-  800 CONTINUE
-C
-      IF(PROFJ1.LE.0.D0) THEN
+      IF(PROFJ1.GT.0.D0) THEN
+         DO NR=1,NRMAX
+            IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
+               PROF=0.D0    
+            ELSE             
+               PROF= (1.D0-RM(NR)**PROFJ1)**ABS(PROFJ2)
+            ENDIF             
+            AJOH(NR)= PROF
+            AJ(NR)  = PROF
+         ENDDO
+      ELSE
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
          CALL TRZEFF
-         DO 810 NR=1,NRMAX
+         DO NR=1,NRMAX
 C
 C        ****** CLASSICAL RESISTIVITY ******
 C
-         ANE=RN(NR,1)
-         TEL =ABS(RT(NR,1))
-         ZEFFL=ZEFF(NR)
+            ANE=RN(NR,1)
+            TEL =ABS(RT(NR,1))
+            ZEFFL=ZEFF(NR)
 C
-         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
+            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+     &           /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+            TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
 C
-         ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
-     &             *(0.29D0+0.46D0/(1.08D0+ZEFFL))
+            ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
+     &              *(0.29D0+0.46D0/(1.08D0+ZEFFL))
 C
 C        ****** NEOCLASSICAL RESISTIVITY ******
 C
-         IF(MDLETA.EQ.1) THEN
-            EPS=RM(NR)/RR
-            EPSS=SQRT(EPS)**3
-            IF(NR.EQ.1) THEN
-               QL= 0.25D0*(3.D0*Q0+QP(NR))
-            ELSE
-               QL= 0.5D0*(QP(NR-1)+QP(NR))
-            ENDIF
-            VTE=SQRT(TEL*RKEV/AME)
-            RNUE=QL*RR/(TAUE*VTE*EPSS)
-            RK33E=RK33/(1.D0+RA33*SQRT(ABS(RNUE))+RB33*RNUE)
-     &                /(1.D0+RC33*RNUE*EPSS)
+            IF(MDLETA.EQ.1) THEN
+               EPS=RA*RM(NR)/RR
+               EPSS=SQRT(EPS)**3
+               IF(NR.EQ.1) THEN
+                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+               ELSE
+                  QL= 0.5D0*(QP(NR-1)+QP(NR))
+               ENDIF
+               VTE=SQRT(TEL*RKEV/AME)
+               RNUE=QL*RR/(TAUE*VTE*EPSS)
+               RK33E=RK33/(1.D0+RA33*SQRT(ABS(RNUE))+RB33*RNUE)
+     &                   /(1.D0+RC33*RNUE*EPSS)
 C
-            FT     = 1.D0-SQRT(EPS)*RK33E
-            ETA(NR)= ETA(NR)/FT
+               FT     = 1.D0-SQRT(EPS)*RK33E
+               ETA(NR)= ETA(NR)/FT
 C
 C        ****** NEOCLASSICAL RESISTIVITY PART II ******
 C
-         ELSEIF(MDLETA.EQ.2) THEN
-            EPS=RM(NR)/RR
-            EPSS=SQRT(EPS)**3
-            IF(NR.EQ.1) THEN
-               Q0=(4.D0*QP(1)-QP(2))/3.D0
-               QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
-C               ZEFFL=ZEFF(NR)
-            ELSE
-               QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
-            ENDIF
+            ELSEIF(MDLETA.EQ.2) THEN
+               EPS=RM(NR)*RA/RR
+               EPSS=SQRT(EPS)**3
+               IF(NR.EQ.1) THEN
+                  Q0=(4.D0*QP(1)-QP(2))/3.D0
+                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+                  ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
+               ELSE
+                  QL= 0.5D0*(QP(NR-1)+QP(NR))
+                  ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
+               ENDIF
 C
-         VTE=1.33D+7*DSQRT(TEL)
-         FT=1.D0-(1.D0-EPS)**2.D0
-     &         /(DSQRT(1.D0-EPS**2.D0)*(1.D0+1.46D0*DSQRT(EPS)))
-         rLnLam=15.2D0-DLOG(ANE)/2+DLOG(TEL)
-         TAUE=6.D0*PI*SQRT(2*PI)*AEPS0**2*DSQRT(AME)
+               VTE=1.33D+7*DSQRT(TEL)
+               FT=1.D0-(1.D0-EPS)**2
+     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+               rLnLam=15.2D0-DLOG(ANE)/2+DLOG(TEL)
+               TAUE=6.D0*PI*SQRT(2*PI)*AEPS0**2*DSQRT(AME)
      &             *(TEL*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
-         RNUSE=RR*QL/(VTE*TAUE*EPSS)
-         PHI=FT/(1.D0+(0.58D0+0.2D0*ZEFFL)*RNUSE)                
-         ETAS=1.65D-9*rLnLam/ABS(TEL)**1.5D0
-         CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
-
-         ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
-     &            /(1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0))
-         ENDIF 
-  810    CONTINUE
+               RNUSE=RR*QL/(VTE*TAUE*EPSS)
+               PHI=FT/(1.D0+(0.58D0+0.2D0*ZEFFL)*RNUSE)                
+               ETAS=1.65D-9*rLnLam/ABS(TEL)**1.5D0
+               CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
 C
-         BP(1)=(RM(1)*DR/ETA(1))/RG(1)
-         DO 820 NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*DR/ETA(NR))/RG(NR)
-  820    CONTINUE
-C
-         BPS= AMYU0*RIPS*1.D6/(2.D0*PI*RA*FKAP)
-         FACT=BPS/BP(NRMAX)
-C
-         DO 830 NR=1,NRMAX
-            BP(NR)=FACT*BP(NR)
-            QP(NR)=FKAP*RG(NR)*BB/(RR*BP(NR))
-  830    CONTINUE
-C
+               ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
+     &                           /(1.D0-PHI)*(1.D0-CH*PHI)
+     &                           *(1.D0+0.47D0*(ZEFFL-1.D0))
+            ENDIF 
+            AJOH(NR)=1.D0/ETA(NR)
+            AJ(NR)  =1.D0/ETA(NR)
+         ENDDO
       ENDIF
 C
-      Q0=(4.D0*QP(1)-QP(2))/3.D0
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         BP(1)=(RM(1)*AJ(1))/RG(1)
+         DO NR=2,NRMAX
+            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*AJ(NR))/RG(NR)
+         ENDDO
 C
-C      WRITE(6,691) 'COEF',COEF
-C      WRITE(6,691) 'RKEV',RKEV
-C      WRITE(6,691) 'RTE ',(RT(NR,1),NR=1,NRMAX)
-C      WRITE(6,691) 'ZEF ',(ZEFF(NR),NR=1,NRMAX)
-C      WRITE(6,691) 'ETA ',(ETA(NR),NR=1,NRMAX)
-C      WRITE(6,691) 'BP ',(BP(NR),NR=1,NRMAX)
-C      WRITE(6,691) 'QP ',(QP(NR),NR=1,NRMAX)
-C  691 FORMAT(1H ,A3/
-C     &      (1H ,1P5E12.4))
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+         FACT=BPS/BP(NRMAX)
 C
-      GRG(1)=0.0
-      DO 900 NR=1,NRMAX
-         GRM(NR)  =GCLIP(RM(NR))
-         GRG(NR+1)=GCLIP(RG(NR))
-  900 CONTINUE
+         DO NR=1,NRMAX
+            AJOH(NR)=FACT*AJOH(NR)
+            AJ(NR)  =AJOH(NR)
+            BP(NR)  =FACT*BP(NR)
+            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+         ENDDO
+         Q0=(4.D0*QP(1)-QP(2))/3.D0
+      ELSEIF(MODELG.EQ.3) THEN
+         DO NR=1,NRMAX
+            RHOTR(NR)=RM(NR)
+            AJ(NR)   =AJOH(NR)
+            HJRHO(NR)=AJ(NR)
+         ENDDO
+         CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
+     &               NRMAX,RHOTR,HJRHO,QRHO,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: IERR=',IERR
+         DO NR=1,NRMAX
+            QP(NR)=QRHO(NR)
+         ENDDO
+         Q0=(4.D0*QP(1)-QP(2))/3.D0
+      ENDIF
 C
+      CALL TRSETG
+C
+      IF(MODELG.EQ.0) THEN
+         GRG(1)=0.0
+         DO NR=1,NRMAX
+            GRM(NR)  =GCLIP(RA*RM(NR))
+            GRG(NR+1)=GCLIP(RA*RG(NR))
+         ENDDO
+      ELSE
+         GRG(1)=0.0
+         DO NR=1,NRMAX
+            GRM(NR)  =GCLIP(RM(NR))
+            GRG(NR+1)=GCLIP(RG(NR))
+         ENDDO
+      ENDIF
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           SET GEOMETRICAL FACTOR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRSETG
+C
+      INCLUDE 'trcomm.h'
+C
+      IF(MODELG.EQ.3) THEN
+         DO NR=1,NRMAX
+            PRHO(NR)=0.D0
+            TRHO(NR)=0.D0
+            DO NS=1,NSM
+               PRHO(NR)=PRHO(NR)+RN(NR,NS)*RT(NR,NS)*1.D20*RKEV
+            ENDDO
+            DO NF=1,NFM
+               PRHO(NR)=PRHO(NR)+RW(NR,NF)*1.D20*RKEV
+            ENDDO
+            TRHO(NR)=0.D0
+            DO NS=2,NSM
+               TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(1,NS)
+            ENDDO
+            HJRHO(NR)=AJ(NR)
+            VTRHO(NR)=0.D0
+         ENDDO
+C
+         CALL TREQEX(RIP,NRMAX,PRHO,HJRHO,VTRHO,TRHO,
+     &               QRHO,TTRHO,DVRHO,DSRHO,
+     &               ABRHO,ARRHO,AR1RHO,AR2RHO,
+     &               EPSRHO,IERR)
+C
+         NR=1
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+C            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
+            BPRHO(NR)= AJ(NR)*DR/(FACTOR0*FACTORP)
+         DO NR=2,NRMAX-1
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
+         ENDDO
+         NR=NRMAX
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
+C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            BPRHO(NR)=(AJ(NR)*DR/FACTOR0+FACTORM*BPRHO(NR-1))/FACTORP
+         DO NR=1,NRMAX
+            BP(NR)=BPRHO(NR)
+            QP(NR)=QRHO(NR)
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            QRHO(NR)=QP(NR)
+            TTRHO(NR)=BB*RR
+            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+            DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
+            ABRHO(NR)=1.D0/(RA*RR)**2
+            ARRHO(NR)=1.D0/RR**2
+            AR1RHO(NR)=1.D0/RA
+            AR2RHO(NR)=1.D0/RA**2
+            EPSRHO(NR)=RA*RM(NR)/RR
+         ENDDO
+      ENDIF
       RETURN
       END

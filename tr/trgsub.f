@@ -438,28 +438,6 @@ C           CEILING FUNCTION FOR LOG10 PLOT
 C
 C     ***********************************************************
 C
-      FUNCTION PLOG(X,XMIN,XMAX)
-C
-      REAL*8 X,XMIN,XMAX,PLOG
-C
-      IF(X.LT.XMIN) THEN
-         PLOG=LOG10(XMIN)
-      ELSEIF(X.GT.XMAX) THEN
-         PLOG=LOG10(XMAX)
-      ELSE
-         PLOG=LOG10(X)
-      ENDIF
-C
-      RETURN
-      END
-C
-C
-C     ***********************************************************
-C
-C           CEILING FUNCTION FOR LOG10 PLOT
-C
-C     ***********************************************************
-C
       FUNCTION GLOG(X,XMIN,XMAX)
 C
       REAL*8 X,XMIN,XMAX,PLOG
@@ -486,36 +464,5 @@ C
       CALL TEXT('T=',2)
       CALL NUMBD(T,'(1F7.3)',7)
       CALL TEXT(' SEC',4)
-      RETURN
-      END
-C
-C     *********************
-C
-C     CLIPPING FOR GRAPHICS
-C
-C     *********************
-C
-      FUNCTION GCLIP(D)
-      REAL*8 D
-      IF(ABS(D).GT.1.D-15) THEN
-         GCLIP=REAL(D)
-      ELSE
-         GCLIP=0.0
-      ENDIF
-      RETURN
-      END
-C
-C     *****************************
-C
-C     OPTIMUM NUM LENGTH FOR GVALUE
-C
-C     *****************************
-C
-      FUNCTION NGVLEN(GSTEP)
-C
-      NGX = -INT(LOG10(GSTEP*0.11))
-      IF(NGX.LT.0) NGX=0
-      IF(NGX.GT.5) NGX=-1
-      NGVLEN=NGX
       RETURN
       END

@@ -5,9 +5,10 @@ C
       DIMENSION RHOTR(NTRM)
       DIMENSION PRHO(NTRM),HJRHO(NTRM)
       DIMENSION VTRHO(NTRM),TRHO(NTRM)
-      DIMENSION QRHO(NTRM),TTRHO(NTRM),DVRHO(NTRM)
+      DIMENSION QRHO(NTRM),TTRHO(NTRM),DVRHO(NTRM),DSRHO(NTRM)
       DIMENSION ABRHO(NTRM),ARRHO(NTRM)
       DIMENSION AR1RHO(NTRM),AR2RHO(NTRM)
+      DIMENSION EPSRHO(NTRM)
 C
 C      PI     = 2.D0*ASIN(1.D0)
 C      RMU0   = 4.D0*PI*1.D-7
@@ -18,7 +19,6 @@ C
       NTRMAX= 50
       RR    = 3.D0
       RA    = 1.D0
-      RB    = RA*1.1D0
       RKAP  = 1.6D0
       RDLT  = 0.25D0
       BB    = 3.D0
@@ -34,7 +34,7 @@ C
          HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
       ENDDO
 C
-      CALL TREQIN(RR,RA,RB,RKAP,RDLT,BB,RIP,
+      CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
      &            NTRMAX,RHOTR,HJRHO,QRHO,IERR)
 C
 C      WRITE(6,'(A,I5,1P3E12.4)') 
@@ -50,16 +50,18 @@ C
          TRHO(NTR)=PT0*(1.D0-RHOTR(NTR)**2)
       ENDDO
 C
-      CALL TREQEX(NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
-     &            QRHO,TTRHO,DVRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,IERR)
+      CALL TREQEX(RIP,NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
+     &            QRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,
+     &            EPSRHO,IERR)
 C
       CALL EQGOUT(1)
 C
       WRITE(6,*) 'NTR ','RHO         ','q           ','F=BR        ',
      &                  'dV/drho     ','<Vrho^2/R^2>','<1/R^2>     '
       DO NTR=1,NTRMAX
-         WRITE(6,'(I5,1P4E12.4)') 
-     &         NTR,RHOTR(NTR),QRHO(NTR),TTRHO(NTR),DVRHO(NTR)
+         WRITE(6,'(I5,1P6E12.4)') 
+     &         NTR,RHOTR(NTR),QRHO(NTR),TTRHO(NTR),
+     &             DVRHO(NTR),DSRHO(NTR),EPSRHO(NTR)
       ENDDO
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P5E12.4)') 

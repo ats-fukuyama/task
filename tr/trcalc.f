@@ -32,6 +32,17 @@ C
          PFCL(NR,NS)=0.D0
    10 CONTINUE
 C
+      IF(MODELG.EQ.3) THEN
+         DO NR=1,NRMAX
+            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            QP(NR)=FKAP*RG(NR)*BB/(RR*BP(NR))
+         ENDDO
+      ENDIF
+      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
+C
       IF(T.LT.PELTIM+0.5D0*DT.AND.
      &   T.GE.PELTIM-0.5D0*DT) THEN
          CALL TRPELT
@@ -376,7 +387,7 @@ C
 C
       DO NR=2,NRMAX
 C
-         EPS=RG(NR)/RR
+         EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
          EPSS=SQRT(EPS)**3
          QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
 C         ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
@@ -407,8 +418,8 @@ C
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
-         DTI=(RNTP/RNP-RNTM/RNM)/DR
-         DPI=(RNTP-RNTM)/DR
+         DTI=(RNTP/RNP-RNTM/RNM)*AR1RHO(NR)/DR
+         DPI=(RNTP-RNTM)*AR1RHO(NR)/DR
          VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
          rLnLam=17.2D0-DLOG(ANI(NR))*0.5D0+DLOG(ABS(TI))*1.5D0
@@ -429,8 +440,8 @@ C
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
          TE= 0.5D0*(RT(NR,1)+RT(NR-1,1))
          PE= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
-         DTE=(RT(NR,1)-RT(NR-1,1))/DR
-         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))/DR
+         DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
+         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*AR1RHO(NR)/DR
          VTE=SQRT(ABS(TE)*RKEV/AME)
 C
          rLnLam=15.2D0-DLOG(ANE)/2+DLOG(ABS(TE))
@@ -505,7 +516,7 @@ C
 C
       DO 100 NR=2,NRMAX
 C
-         EPS=RG(NR)/RR
+         EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
 C         AND=0.5D0*(RN(NR-1,2)+RN(NR,2))
@@ -564,14 +575,15 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
          RK3A=((1.17D0-0.35D0*SQRT(RNUA))/(1.D0+0.7D0*SQRT(RNUA))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
-         DTE=(RT(NR,1)-RT(NR-1,1))/DR
-         DTD=(RT(NR,2)-RT(NR-1,2))/DR
-         DTT=(RT(NR,3)-RT(NR-1,3))/DR
-         DTA=(RT(NR,4)-RT(NR-1,4))/DR
-         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))/DR
-         DPD=(RN(NR,2)*RT(NR,2)-RN(NR-1,2)*RT(NR-1,2))/DR
-         DPT=(RN(NR,3)*RT(NR,3)-RN(NR-1,3)*RT(NR-1,3))/DR
-         DPA=(RN(NR,4)*RT(NR,4)-RN(NR-1,4)*RT(NR-1,4))/DR
+         DRL=AR1RHO(NR)/DR
+         DTE=(RT(NR,1)-RT(NR-1,1))*DRL
+         DTD=(RT(NR,2)-RT(NR-1,2))*DRL
+         DTT=(RT(NR,3)-RT(NR-1,3))*DRL
+         DTA=(RT(NR,4)-RT(NR-1,4))*DRL
+         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*DRL
+         DPD=(RN(NR,2)*RT(NR,2)-RN(NR-1,2)*RT(NR-1,2))*DRL
+         DPT=(RN(NR,3)*RT(NR,3)-RN(NR-1,3)*RT(NR-1,3))*DRL
+         DPA=(RN(NR,4)*RT(NR,4)-RN(NR-1,4)*RT(NR-1,4))*DRL
          BPL=BP(NR)
 C
          FACT=1.D0/(1.D0+(RNUE*EPS)**2)
@@ -694,38 +706,41 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
          IF(NR.EQ.1) THEN
-            DTE=(RT(2,1)-RT(1,1))/(2.D0*DR)
-            DTD=(RT(2,2)-RT(1,2))/(2.D0*DR)
-            DTT=(RT(2,3)-RT(1,3))/(2.D0*DR)
-            DTA=(RT(2,4)-RT(1,4))/(2.D0*DR)
-            DPE=(RN(2,1)*RT(2,1)-RN(1,1)*RT(1,1))/(2.D0*DR)
-            DPD=(RN(2,2)*RT(2,2)-RN(1,2)*RT(1,2))/(2.D0*DR)
-            DPT=(RN(2,3)*RT(2,3)-RN(1,3)*RT(1,3))/(2.D0*DR)
-            DPA=(RN(2,4)*RT(2,4)-RN(1,4)*RT(1,4))/(2.D0*DR)
+            DRL=AR1RHO(NR)/(2.D0*DR)
+            DTE=(RT(2,1)-RT(1,1))*DRL
+            DTD=(RT(2,2)-RT(1,2))*DRL
+            DTT=(RT(2,3)-RT(1,3))*DRL
+            DTA=(RT(2,4)-RT(1,4))*DRL
+            DPE=(RN(2,1)*RT(2,1)-RN(1,1)*RT(1,1))*DRL
+            DPD=(RN(2,2)*RT(2,2)-RN(1,2)*RT(1,2))*DRL
+            DPT=(RN(2,3)*RT(2,3)-RN(1,3)*RT(1,3))*DRL
+            DPA=(RN(2,4)*RT(2,4)-RN(1,4)*RT(1,4))*DRL
             BPL=0.5D0*BP(NR)
          ELSEIF(NR.EQ.NRMAX) THEN
-            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))/DR
-            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))/DR
-            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))/DR
-            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))/DR
+            DRL=AR1RHO(NR)/DR
+            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
+            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
+            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))*DRL
+            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))*DRL
             DPE=(PNSS(1)*PTS(1) 
-     &           -0.5D0*(RN(NR,1)*RT(NR,1)+RN(NR-1,1)*RT(NR-1,1)))/DR
+     &           -0.5D0*(RN(NR,1)*RT(NR,1)+RN(NR-1,1)*RT(NR-1,1)))*DRL
             DPD=(PNSS(2)*PTS(2) 
-     &           -0.5D0*(RN(NR,2)*RT(NR,2)+RN(NR-1,2)*RT(NR-1,2)))/DR
+     &           -0.5D0*(RN(NR,2)*RT(NR,2)+RN(NR-1,2)*RT(NR-1,2)))*DRL
             DPT=(PNSS(3)*PTS(3) 
-     &           -0.5D0*(RN(NR,3)*RT(NR,3)+RN(NR-1,3)*RT(NR-1,3)))/DR
+     &           -0.5D0*(RN(NR,3)*RT(NR,3)+RN(NR-1,3)*RT(NR-1,3)))*DRL
             DPA=(PNSS(4)*PTS(4) 
-     &           -0.5D0*(RN(NR,4)*RT(NR,4)+RN(NR-1,4)*RT(NR-1,4)))/DR
+     &           -0.5D0*(RN(NR,4)*RT(NR,4)+RN(NR-1,4)*RT(NR-1,4)))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ELSE
-            DTE=(RT(NR+1,1)-RT(NR-1,1))/(2.D0*DR)
-            DTD=(RT(NR+1,2)-RT(NR-1,2))/(2.D0*DR)
-            DTT=(RT(NR+1,3)-RT(NR-1,3))/(2.D0*DR)
-            DTA=(RT(NR+1,4)-RT(NR-1,4))/(2.D0*DR)
-            DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR-1,1)*RT(NR-1,1))/(2.D0*DR)
-            DPD=(RN(NR+1,2)*RT(NR+1,2)-RN(NR-1,2)*RT(NR-1,2))/(2.D0*DR)
-            DPT=(RN(NR+1,3)*RT(NR+1,3)-RN(NR-1,3)*RT(NR-1,3))/(2.D0*DR)
-            DPA=(RN(NR+1,4)*RT(NR+1,4)-RN(NR-1,4)*RT(NR-1,4))/(2.D0*DR)
+            DRL=AR1RHO(NR)/(2.D0*DR)
+            DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
+            DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
+            DTT=(RT(NR+1,3)-RT(NR-1,3))*DRL
+            DTA=(RT(NR+1,4)-RT(NR-1,4))*DRL
+            DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR-1,1)*RT(NR-1,1))*DRL
+            DPD=(RN(NR+1,2)*RT(NR+1,2)-RN(NR-1,2)*RT(NR-1,2))*DRL
+            DPT=(RN(NR+1,3)*RT(NR+1,3)-RN(NR-1,3)*RT(NR-1,3))*DRL
+            DPA=(RN(NR+1,4)*RT(NR+1,4)-RN(NR-1,4)*RT(NR-1,4))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ENDIF
 C
@@ -800,10 +815,11 @@ C
          VTT=SQRT(TTL*RKEV/AMT)
          VTA=SQRT(TAL*RKEV/AMA)
 C
-         RNUES=QP(NR)*RR**2.5D0/(TAUBE*VTE*RM(NR)**1.5D0)
-         RNUDS=QP(NR)*RR**2.5D0/(TAUBD*VTD*RM(NR)**1.5D0)
-         RNUTS=QP(NR)*RR**2.5D0/(TAUBT*VTT*RM(NR)**1.5D0)
-         RNUAS=QP(NR)*RR**2.5D0/(TAUBA*VTA*RM(NR)**1.5D0)
+         EPS=EPSRHO(NR)
+         RNUES=QP(NR)*RR/(TAUBE*VTE*EPS**1.5D0)
+         RNUDS=QP(NR)*RR/(TAUBD*VTD*EPS**1.5D0)
+         RNUTS=QP(NR)*RR/(TAUBT*VTT*EPS**1.5D0)
+         RNUAS=QP(NR)*RR/(TAUBA*VTA*EPS**1.5D0)
 C
          RK13E=2.44D0/(1.D0+0.85D0*RNUES)
          RK13D=2.44D0/(1.D0+0.85D0*RNUDS)
@@ -815,25 +831,28 @@ C
          RK23A=(1.33D0+3.D0*RNUAS)/(1.D0+RNUAS)
 C
          IF(NR.EQ.1) THEN
-            DN =(RN(2,1)-RN(1,1))/(2.D0*DR)
-            DTE=(RT(2,1)-RT(1,1))/(2.D0*DR)
-            DTD=(RT(2,2)-RT(1,2))/(2.D0*DR)
-            DTT=(RT(2,3)-RT(1,3))/(2.D0*DR)
-            DTA=(RT(2,4)-RT(1,4))/(2.D0*DR)
+            DRL=AR1RHO(NR)/(2.D0*DR)
+            DN =(RN(2,1)-RN(1,1))*DRL
+            DTE=(RT(2,1)-RT(1,1))*DRL
+            DTD=(RT(2,2)-RT(1,2))*DRL
+            DTT=(RT(2,3)-RT(1,3))*DRL
+            DTA=(RT(2,4)-RT(1,4))*DRL
             BPL=0.5D0*BP(NR)
          ELSEIF(NR.EQ.NRMAX) THEN
-            DN =(PNSS(1)-0.5D0*(RN(NR,1)+RN(NR-1,1)))/DR
-            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))/DR
-            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))/DR
-            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))/DR
-            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))/DR
+            DRL=AR1RHO(NR)/DR
+            DN =(PNSS(1)-0.5D0*(RN(NR,1)+RN(NR-1,1)))*DRL
+            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
+            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
+            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))*DRL
+            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ELSE
-            DN =(RN(NR+1,1)-RN(NR-1,1))/(2.D0*DR)
-            DTE=(RT(NR+1,1)-RT(NR-1,1))/(2.D0*DR)
-            DTD=(RT(NR+1,2)-RT(NR-1,2))/(2.D0*DR)
-            DTT=(RT(NR+1,3)-RT(NR-1,3))/(2.D0*DR)
-            DTA=(RT(NR+1,4)-RT(NR-1,4))/(2.D0*DR)
+            DRL=AR1RHO(NR)/(2.D0*DR)
+            DN =(RN(NR+1,1)-RN(NR-1,1))*DRL
+            DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
+            DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
+            DTT=(RT(NR+1,3)-RT(NR-1,3))*DRL
+            DTA=(RT(NR+1,4)-RT(NR-1,4))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ENDIF
          AJBS(NR)=-SQRT(RM(NR))
@@ -864,7 +883,6 @@ C         ENDIF
 C
       RETURN
       END
-C
 C     ***********************************************************
 C
 C           CALCULATE AJ, AJOH, POH, EZOH
@@ -875,19 +893,44 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      NR=1
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         NR=1
             AJ(NR) = (RG(NR)*BP(NR)                  )/(RM(NR)*DR)
      &                *FKAP/(RKAP*AMYU0)
-      DO 160 NR=2,NRMAX
+         DO NR=2,NRMAX
             AJ(NR) = (RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))/(RM(NR)*DR)
      &                *FKAP/(RKAP*AMYU0)
-  160 CONTINUE
+         ENDDO
+      ELSE
+         NR=1
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
+         DO NR=2,NRMAX-1
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+         ENDDO
+         NR=NRMAX
+            FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+      ENDIF
 C
-      DO 200 NR=1,NRMAX
+      DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
          EZOH(NR) = ETA(NR)*AJOH(NR)
          POH(NR)  = EZOH(NR)*AJOH(NR)
-  200 CONTINUE
+      ENDDO
 C
       RETURN
       END
@@ -935,7 +978,7 @@ C
 C
       SUM=0.D0
       DO 10 NR=1,NRMAX
-         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*RG(NR)*DR
+         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
          IF(SUM.LT.0.D0) GOTO 1000
    10 CONTINUE
       NR=NRMAX
@@ -951,7 +994,7 @@ C
 C
       SUM = 0.D0
       DO 30 NR=IONE,IZEROX
-         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*RG(NR)*DR
+         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
    30 CONTINUE
 C
       DO 40 NR=1,IZEROX
@@ -963,8 +1006,8 @@ C
             SUM1 = 0.D0
             SUM2 = 0.D0
             DO 50 NR=1,IZEROX
-               SUM1 = SUM1+RN(NR,NS)          *RM(NR)
-               SUM2 = SUM2+RN(NR,NS)*RT(NR,NS)*RM(NR)
+               SUM1 = SUM1+RN(NR,NS)          *DVRHO(NR)
+               SUM2 = SUM2+RN(NR,NS)*RT(NR,NS)*DVRHO(NR)
    50       CONTINUE
             RTN = SUM2/SUM1
 C
@@ -979,8 +1022,8 @@ C
             SUM1 = 0.D0
             SUM2 = 0.D0
             DO 80 NR=1,IZEROX
-               SUM1 = SUM1+          RM(NR)
-               SUM2 = SUM2+RN(NR,NS)*RM(NR)
+               SUM1 = SUM1+          DVRHO(NR)
+               SUM2 = SUM2+RN(NR,NS)*DVRHO(NR)
    80       CONTINUE
             RNN = SUM2/SUM1
             DO 90 NR=1,IZEROX
@@ -990,10 +1033,17 @@ C
       ENDIF
 C
       IF(LQ.EQ.1) THEN
-         DO 110 NR=1,IZEROX
-            QP(NR) = 1.D0/QONE(NR)
-            BP(NR)  = FKAP*RG(NR)*BB/(RR*QP(NR))
-  110    CONTINUE
+         IF(MODELG.EQ.3) THEN
+            DO NR=1,IZEROX
+               QP(NR) = 1.D0/QONE(NR)
+               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
+            ENDDO
+         ELSE
+            DO NR=1,IZEROX
+               QP(NR) = 1.D0/QONE(NR)
+               BP(NR)  = FKAP*RG(NR)*BB/(RR*QP(NR))
+            ENDDO
+         ENDIF
       ENDIF
 C
          WRITE(6,602) RM(IONE),RM(IZEROX),RTN,RNN

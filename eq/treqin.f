@@ -8,7 +8,6 @@ C     input:
 C
 C     RR            : Major plasma radius (Geometrical center)   (m)
 C     RA            : Minor plasma radius (Horizontal plane)     (m)
-C     RB            : Minor wall radius                          (m)
 C     RKAP          : Elongation
 C     RDLT          : Triangularity
 C     BB            : Toroidal magnetic field at R=RR            (T)
@@ -24,7 +23,7 @@ C     IERR          : Error indicator
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQIN(RR1,RA1,RB1,RKAP1,RDLT1,BB1,RIP1,
+      SUBROUTINE TREQIN(RR1,RA1,RKAP1,RDLT1,BB1,RIP1,
      &                  NTRMAX1,RHOTR1,HJRHO,QRHO,IERR)
 C              
       INCLUDE 'eqcomq.h'
@@ -48,7 +47,7 @@ C
       MODELF = 2
       RR     = RR1
       RA     = RA1
-      RB     = RB1
+      RB     = RA1*1.2D0
       RKAP   = RKAP1
       RDLT   = RDLT1
       BB     = BB1
@@ -155,6 +154,7 @@ C   *******************************************
 C
 C     input:
 C
+C     RIP           : Total plasma current                      (MA)
 C     NTRMAX        : Maximum array number
 C     PRHO(NTRMAX)  : Pressure                                 (MPa)
 C     HJRHO(NTRMAX) : Plasma current density                (MA/m^2)
@@ -166,28 +166,32 @@ C
 C     QRHO(NTRMAX)  : Safety factor
 C     TTRHO(NTRMAX) : Bphi R
 C     DVRHO(NTRMAX) : dV/drho
+C     DSRHO(NTRMAX) : dS/drho
 C     ABRHO(NTRMAX) : <(nabla rho)^2/R^2>
 C     ARRHO(NTRMAX) : <1/R^2>
 C     AR1RHO(NTRMAX): <nabla rho>
 C     AR2RHO(NTRMAX): <(nabla rho)^2>
+C     EPSRHO(NTRMAX): (Bmax-Bmin)/(Bmax+Bmin)
 C     IERR          : Error indicator
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQEX(NTRMAX1,PRHO,HJRHO,VTRHO,TRHO,
-     &                  QRHO,TTRHO,DVRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,
-     &                  IERR)
+      SUBROUTINE TREQEX(RIP1,NTRMAX1,PRHO,HJRHO,VTRHO,TRHO,
+     &                  QRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+     &                  AR1RHO,AR2RHO,EPSRHO,IERR)
 C              
       INCLUDE 'eqcomq.h'
       INCLUDE 'eqcom4.h'
       DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
       DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
-      DIMENSION QRHO(NTRMAX1),TTRHO(NTRMAX1),DVRHO(NTRMAX1)
+      DIMENSION QRHO(NTRMAX1),TTRHO(NTRMAX1)
+      DIMENSION DVRHO(NTRMAX1),DSRHO(NTRMAX1)
       DIMENSION ABRHO(NTRMAX1),ARRHO(NTRMAX1)
-      DIMENSION AR1RHO(NTRMAX1),AR2RHO(NTRMAX1)
+      DIMENSION AR1RHO(NTRMAX1),AR2RHO(NTRMAX1),EPSRHO(NTRMAX1)
       DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
 C
       IERR=0
+      RIP    = RIP1
       NTRMAX = NTRMAX1
 C
 C     ***** Calculate poloidal flux PSITR/G/X at RHOTR/G/X *****
@@ -316,6 +320,9 @@ C
          CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF VPL: IERR=',IERR
          DVRHO(NTR)=VPL*DPSIPDRHO
+         CALL SPL1DF(PSIL,SPL,PSS,USPS,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF SPL: IERR=',IERR
+         DSRHO(NTR)=SPL*DPSIPDRHO
          CALL SPL1DF(PSIL,AVBRL,PSS,UAVBR,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVBRL: IERR=',IERR
          ABRHO(NTR)=AVBRL**2*(PSIL-PSS(1))/DPSIPDRHO**2
@@ -327,9 +334,14 @@ C
          AR1RHO(NTR)=AVR1L*SQRT(PSIL-PSS(1))/DPSIPDRHO
          CALL SPL1DF(PSIL,AVR2L,PSS,UAVR2,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVR2L: IERR=',IERR
-         AR2RHO(NTR)=AVR2L**2*(PSIL-PSS(1))/DPSIPDRHO**2
-C         WRITE(6,'(I5,1P5E12.4)') 
-C     &        NTR,RHOTR(NTR),PSIL-PSS(1),PSITL,AVBRL,DPSIPDRHO
+         AR2RHO(NTR)=AVR2L*(PSIL-PSS(1))/DPSIPDRHO**2
+C
+         CALL SPL1DF(PSIL,BBMINL,PSS,UBBMIN,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF BBMINL: IERR=',IERR
+         CALL SPL1DF(PSIL,BBMAXL,PSS,UBBMAX,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF BBMAXL: IERR=',IERR
+         EPSRHO(NTR)=(BBMAXL-BBMINL)/(BBMAXL+BBMINL)
+C         WRITE(6,'(I5,1P3E12.4)') NTR,BBMINL,BBMAXL,EPSRHO(NTR)
       ENDDO
 C      PAUSE
  9000 RETURN

@@ -50,14 +50,13 @@ C
 C
       SUM = 0.D0
       DO 10 NR=1,NRMAX
-         SUM=SUM+DEXP(-((RM(NR)-PNBR0)/PNBRW)**2)*RM(NR)
+         SUM=SUM+DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)*DVRHO(NR)*DR
    10 CONTINUE
 C
-      SUM=SUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
       PNB0=PNBTOT*1.D6/SUM
 C
       DO 20 NR=1,NRMAX
-         PNB(NR)=PNB0*DEXP(-((RM(NR)-PNBR0)/PNBRW)**2)
+         PNB(NR)=PNB0*DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)
          SNB(NR)=PNB(NR)/(PNBENG*RKEV)*1.D-20
    20 CONTINUE
 C
@@ -87,7 +86,7 @@ C
   100 CONTINUE
 C
       DO 122 J=1,10
-        RWD=AP(J)*DR
+        RWD=AP(J)*RA*DR
         RDD=20.D0*AR(J)/19.D0
         CALL TRNBPB(PNBRTG,RWD,RDD)
   122 CONTINUE
@@ -118,10 +117,6 @@ C
       IB=INT(RWD/DR)+1
       I=NRMAX-IB+1
 C
-      DO 101 J=1,NRMAX
-         VOL(J) = 4.D0*PI*PI*RR*RM(J)*DR*RKAP
-  101 CONTINUE
-C
       SUML=0.D0
       DL=XL
 C
@@ -137,15 +132,15 @@ C
 C
       IF(I.GT.0) THEN
          IF(IM.GT.IB) THEN
-            RND=RR+SQRT(RM(IM)**2-RM(IB)**2)
+            RND=RR+RA*SQRT(RM(IM)**2-RM(IB)**2)
          ELSE
-            RND=RR+RM(IM)
+            RND=RR+RA*RM(IM)
          ENDIF
       ELSE
          IF(IM.GT.IB) THEN
-            RND=RR-SQRT(RM(IM)**2-RM(IB)**2)
+            RND=RR-RA*SQRT(RM(IM)**2-RM(IB)**2)
          ELSE
-            RND=RR-RM(IM)
+            RND=RR-RA*RM(IM)
          ENDIF
       ENDIF
 C
@@ -165,8 +160,8 @@ C
                DRR2=RM(IM  )**2-RM(IB)**2
                IF(DRR1.LT.0.D0) DRR1=0.D0
                IF(DRR2.LT.0.D0) DRR2=0.D0
-               DRM1=(RR+SQRT(DRR1))**2-R0**2
-               DRM2=(RR+SQRT(DRR2))**2-R0**2
+               DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
+               DRM2=(RR+RA*SQRT(DRR2))**2-R0**2
                IF(DRM1.LT.0.D0) DRM1=0.D0
                IF(DRM2.LT.0.D0) DRM2=0.D0
                DL = SQRT(DRM1)-SQRT(DRM2)
@@ -179,8 +174,8 @@ C
                DRR2=RM(IM  )**2-RM(IB)**2
                IF(DRR1.LT.0.D0) DRR1=0.D0
                IF(DRR2.LT.0.D0) DRR2=0.D0
-               DRM1=(RR-SQRT(DRR1))**2-R0**2
-               DRM2=(RR-SQRT(DRR2))**2-R0**2
+               DRM1=(RR-RA*SQRT(DRR1))**2-R0**2
+               DRM2=(RR-RA*SQRT(DRR2))**2-R0**2
                IF(DRM1.LT.0.D0) DRM1=0.D0
                IF(DRM2.LT.0.D0) DRM2=0.D0
                DL = SQRT(DRM1)-SQRT(DRM2)
@@ -192,13 +187,13 @@ C
          IF(I.GT.0) THEN
             DRR1=RM(IM+1)-RM(IB)**2
             IF(DRR1.LT.0.D0) DRR1=0.D0
-            DRM1=(RR+SQRT(DRR1))**2-R0**2
+            DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
             IF(DRM1.LT.0.D0) DRM1=0.D0
             DL = 2.D0*SQRT(DRM1)
          ELSE
             DRR1=RM(IM-1)-RM(IB)**2
             IF(DRR1.LT.0.D0) DRR1=0.D0
-            DRM1=(RR+SQRT(DRR1))**2-R0**2
+            DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
             IF(DRM1.LT.0.D0) DRM1=0.D0
             DL = 2.D0*SQRT(DRM1)
          ENDIF
@@ -247,7 +242,7 @@ C
          KL=0
       ENDIF
 C
-      SNB(IM) = SNB(IM)+P1/VOL(IM)
+      SNB(IM) = SNB(IM)+P1/DVRHO(IM)
 C
       IF(KL.EQ.0) RETURN
       ANL=ANL-P1
@@ -391,7 +386,7 @@ C
       DO 20 NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
-         EPS = RM(NR)/RR
+         EPS = EPSRHO(NR)
          VE  = SQRT(ABS(TE)*RKEV/AME)
        IF(ANE.EQ.0.D0) THEN
           TAUS=0.D0

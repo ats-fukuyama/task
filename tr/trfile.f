@@ -11,7 +11,7 @@ C
       INCLUDE 'trcomm.h'
 C
       CHARACTER*32 TRFNAM
-      CHARACTER*1 KID
+C      CHARACTER*1 KID
       CHARACTER*3 K1,K2,K3,K4,K5,K6
       LOGICAL LEX
 C
@@ -20,11 +20,11 @@ C
       IF(TRFNAM.EQ.'                                ') GOTO 900
       INQUIRE(FILE=TRFNAM,EXIST=LEX)
       IF(LEX) THEN
-         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-     &              'ARE YOU SURE {Y/N} ?'
-         READ(5,'(A1)',ERR=1,END=900) KID
-         CALL GUCPTL(KID)
-         IF(KID.NE.'Y') GOTO 1
+C         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
+C     &              'ARE YOU SURE {Y/N} ?'
+C         READ(5,'(A1)',ERR=1,END=900) KID
+C         CALL GUCPTL(KID)
+C         IF(KID.NE.'Y') GOTO 1
          OPEN(21,FILE=TRFNAM,IOSTAT=IST,STATUS='OLD',ERR=10,
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (',TRFNAM,') IS ASSIGNED FOR OUTPUT.'
@@ -199,11 +199,11 @@ C
       IF(TRFLNM.EQ.'                                ') GOTO 900
       INQUIRE (FILE=TRFLNM,EXIST=LEX)
       IF(LEX) THEN
-         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-     &              'ARE YOU SURE {Y/N}?'
-         READ(5,'(A1)',ERR=1,END=900) KID
-         CALL GUCPTL(KID)
-         IF(KID.NE.'Y') GOTO 1
+C         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
+C     &              'ARE YOU SURE {Y/N}?'
+C         READ(5,'(A1)',ERR=1,END=900) KID
+C         CALL GUCPTL(KID)
+C         IF(KID.NE.'Y') GOTO 1
          OPEN(22,FILE=TRFLNM,IOSTAT=IST,STATUS='OLD',ERR=10,
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (',TRFLNM,') IS ASSIGNED FOR OUTPUT.'

@@ -69,6 +69,12 @@ C     ***** DQ   is the derivative of safety factor (dq/dr) *****
 C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
       DO 100 NR=1,NRMAX
+         DRL=AR1RHO(NR)/DR
+         IF(NR.EQ.1) THEN
+            EPS=0.5D0*              EPSRHO(NR)
+         ELSE
+            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+         ENDIF
          IF(NR.EQ.NRMAX) THEN
             ANE=PNSS(1)
             AND=PNSS(2)
@@ -103,15 +109,15 @@ C
             RNM = 0.5D0*RNM
             RPM = 0.5D0*RPM
 C 
-            DTE = (PTS(1) -RT(NR,1))/DR
-            DNE = (PNSS(1)-RN(NR,1))/DR
+            DTE = (PTS(1) -RT(NR,1))*DRL
+            DNE = (PNSS(1)-RN(NR,1))*DRL
             ZEFFL=ZEFF(NR)
             EZOHL=EZOH(NR)
 C
-            DPP = (RPP-RPM)/DR
+            DPP = (RPP-RPM)*DRL
 C
             TI  = RNTP/RNP
-            DTI = (RNTP/RNP-RNTM/RNM)/DR
+            DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             AND    = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
@@ -137,15 +143,15 @@ C
             RPEP= RN(NR+1,1)*RT(NR+1,1)
             RPEM= RN(NR  ,1)*RT(NR  ,1)
 C
-            DTE = (RT(NR+1,1)-RT(NR  ,1))/DR
-            DNE = (RN(NR+1,1)-RN(NR  ,1))/DR
+            DTE = (RT(NR+1,1)-RT(NR  ,1))*DRL
+            DNE = (RN(NR+1,1)-RN(NR  ,1))*DRL
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
-            DPP = (RPP-RPM)/DR
+            DPP = (RPP-RPM)*DRL
 C
             TI  = 0.5D0*(RNTP/RNP+RNTM/RNM)
-            DTI = (RNTP/RNP-RNTM/RNM)/DR
+            DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ENDIF
 C
          IF(NR.LE.1) THEN
@@ -188,17 +194,16 @@ C
          RPIM=0.5D0*(RPI1+RPI2)
          RPI0=0.5D0*(RPI2+RPI3)
          RPIP=0.5D0*(RPI3+RPI4)
-         DPPP=(RPIP-2*RPI0+RPIM)/(DR*DR)
+         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 C
          IF(NR.EQ.1) THEN
-            DQ = (QP(NR+1)-QP(NR))/(1.5D0*DR)
+            DQ = (QP(NR+1)-QP(NR))/1.5D0*DRL
          ELSEIF(NR.EQ.NRMAX) THEN
-            DQ = (QP(NR)-QP(NR-1))/DR
+            DQ = (QP(NR)-QP(NR-1))*DRL
          ELSE
-            DQ = (QP(NR+1)-QP(NR-1))/(2.D0*DR)
+            DQ = (QP(NR+1)-QP(NR-1))/2.D0*DRL
          ENDIF
          QL = QP(NR)
-         RL = RG(NR)
 C
          VTE = SQRT(ABS(TE*RKEV/AME))
 C
@@ -223,7 +228,7 @@ C
          ENDIF
 C
          IF(ABS(RPEP-RPEM).GT.1.D-32) THEN
-            CLPE=0.5D0*DR*(RPEP+RPEM)/(RPEP-RPEM)
+            CLPE=0.5D0*(RPEP+RPEM)/(RPEP-RPEM)/DRL
          ELSE
             IF(RPEP-RPEM.GE.0.D0) THEN
                CLPE = 1.D32
@@ -233,7 +238,7 @@ C
          ENDIF
 C
          IF(ABS(DQ).GT.1.D-32) THEN
-            CLS=RR*QL*QL/(DQ*RL)
+            CLS=QL*QL/(DQ*EPS)
          ELSE
             IF(DQ.GE.0.D0) THEN
                CLS = 1.D32
@@ -248,7 +253,6 @@ C
 C
          ROUS = DSQRT(ABS(TE)*RKEV/AMD)/OMEGAD
          PPK  = 0.3D0/ROUS
-         EPS  = RL/RR
          OMEGAS  = PPK*TE*RKEV/(AEE*BB*ABS(CLN))
          OMEGATT = DSQRT(2.D0)*VTE/(RR*QL)
 C
@@ -266,9 +270,9 @@ C
             IF(MDLKAI.EQ.0) THEN
                AKDWL=CK0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=CK0/(1.D0-CKALFA*RL**2/RA**2)
+               AKDWL=CK0/(1.D0-CKALFA*RG(NR)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=CK0/(1.D0-CKALFA*RL**2/RA**2)
+               AKDWL=CK0/(1.D0-CKALFA*RG(NR)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=CK0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
@@ -425,7 +429,7 @@ C
 C
             VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
-            S=RL*DQ/QL
+            S=RR*EPS*DQ/QL
             DELTA2=VC**2/WPE2
             DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
             ALFA=-QL*QL*DBDR*RR/RA
@@ -604,7 +608,12 @@ C
          ENDIF
 C
          QL = QP(NR)
-         RL = RG(NR)
+         IF(NR.EQ.1) THEN
+            EPS=0.5D0*              EPSRHO(NR)
+         ELSE
+            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+         ENDIF
+         EPSS=SQRT(EPS)**3
 C
          VTE = SQRT(ABS(TE*RKEV/AME))
          VTD = SQRT(ABS(TD*RKEV/AMD))
@@ -617,8 +626,6 @@ C
          TAUT = COEF*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0/ANE
          TAUA = COEF*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0/ANE
 C
-         EPS  = RL/RR
-C
 C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
 C
 C
@@ -626,7 +633,6 @@ C     ***** OLD AKNC *****
 C
       IF(MDLKNC.EQ.1) THEN
 C
-         EPS=RG(NR)/RR
          EPSS=SQRT(EPS)**3
          RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(1)*AEE*BP(NR))**2
          RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(2)*AEE*BP(NR))**2
@@ -681,8 +687,6 @@ C
 C     ***** NEW AKNC *****
 C
          DELDA=0.D0
-         EPS=RG(NR)/RR
-         EPSS=SQRT(EPS)**3
 C
          IF(NR.EQ.1) THEN
             Q0=(4.D0*QP(1)-QP(2))/3.D0
@@ -801,6 +805,8 @@ C
 C
 C        ****** CLASSICAL RESISTIVITY ******
 C
+         EPS=RM(NR)/RR
+         EPSS=SQRT(EPS)**3
          ANE=RN(NR,1)
          TE =RT(NR,1)
          ZEFFL=ZEFF(NR)
@@ -815,8 +821,6 @@ C
 C        ****** NEOCLASSICAL RESISTIVITY ******
 C
          IF(MDLETA.EQ.1) THEN
-            EPS=RM(NR)/RR
-            EPSS=SQRT(EPS)**3
             IF(NR.EQ.1) THEN
                QL= 0.25D0*(3.D0*Q0+QP(NR))
             ELSE
@@ -981,7 +985,11 @@ C
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
             EZOHL = EZOH(NR)
-            EPS   = RG(NR)/RR
+            IF(NR.EQ.1) THEN
+               EPS=0.5D0*              EPSRHO(NR)
+            ELSE
+               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+            ENDIF
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
@@ -1032,7 +1040,11 @@ C
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
             EZOHL = EZOH(NR)
-            EPS   = RG(NR)/RR
+            IF(NR.EQ.1) THEN
+               EPS=0.5D0*              EPSRHO(NR)
+            ELSE
+               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+            ENDIF
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)

@@ -344,7 +344,7 @@ C
       DO NR=2,NRMAX
          AVBR(NR)=SQRT(AVBR(NR)/(PSS(NR)-PSS(1)))
          AVR1(NR)=AVR1(NR)/SQRT(PSS(NR)-PSS(1))
-         AVR2(NR)=SQRT(AVR2(NR)/(PSS(NR)-PSS(1)))
+         AVR2(NR)=AVR2(NR)/(PSS(NR)-PSS(1))
       ENDDO
       AVBR(1)=(4.D0*AVBR(2)-AVBR(3))/3.D0
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0

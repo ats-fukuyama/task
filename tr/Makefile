@@ -6,17 +6,22 @@ FFLAGS = $(OFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgsub.f trhelp.f trmtrx.f 
+     trgrar.f trgrat.f trgrap.f trgsub.f trhelp.f
+SRCE = ../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
+       ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
+SRCL = ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 OBJS = $(SRCS:.f=.o)
+OBJE = $(SRCE:.f=.o)
+OBJL = $(SRCL:.f=.o)
 PROG = trf
 
 all: $(PROG)
 
-$(PROG) : $(OBJS) trcomm.h
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(FLIBS)
+$(PROG) : $(OBJS) $(OBJE) trcomm.h
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJE) $(OBJL) $(FLIBS)
 
 check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(OBJL) | less
 
 clean : 
 	rm -f ./#* ./*~ *.o a.out core
@@ -55,5 +60,12 @@ trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
 trmtrx.o : trmtrx.f
 	$(FC) -c $(LFLAGS) trmtrx.f
+../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.h
+../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom3.h
+../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
+../eq/trtest.o: ../eq/trtest.f
+../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom4.h
 
 

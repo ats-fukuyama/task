@@ -89,12 +89,9 @@ C
             RT(NR,4)  = 0.5D0*(XV(8,NR)+X(NVM*NR-1))/(1.5D0*RN(NR,4))
          ENDIF
          BP(NR)    = 0.5D0*(XV(9,NR)+X(NVM*NR))
-         QP(NR)    =  FKAP*RG(NR)*BB/(RR*BP(NR))
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
   330 CONTINUE
-C
-      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
@@ -496,12 +493,9 @@ C
             RT(NR,4) = XV(8,NR)/(1.5D0*RN(NR,4))
          ENDIF
          BP(NR)  = XV(9,NR)
-         QP(NR)  = FKAP*RG(NR)*BB/(RR*BP(NR))
          RW(NR,1)  = YV(1,NR)/1.5D0
          RW(NR,2)  = YV(2,NR)/1.5D0
   100 CONTINUE
-C
-      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
       RETURN
       END
