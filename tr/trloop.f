@@ -157,6 +157,7 @@ C
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT
       RIP=RIP+DIP
+C      write(6,'(A,1P3E12.5)') "RIP,RIPE,DIP=",RIP,RIPE,DIP
 C
       DO J=1,NQM
       DO NR=1,NRMAX
@@ -203,6 +204,28 @@ C
          IF(IDGLOB.EQ.0) CALL TRGLOB
          IDGLOB=1
          CALL TRATOG
+      ENDIF
+      IF(MOD(NT,NTEQIT).EQ.0) THEN
+         L=0
+         AJOLD=0.D0
+         DO NR=1,NRMAX
+            IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
+         ENDDO
+ 2300    L=L+1
+         IF (L.GT.70) THEN
+            WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
+C            GOTO 9000
+            STOP
+         ENDIF
+         CALL TRSETG
+         AJMAX=0.D0
+         DO NR=1,NRMAX
+            IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
+         ENDDO
+         IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
+            AJOLD=AJMAX
+            GOTO 2300
+         ENDIF
       ENDIF
       IF(NT.LT.NTMAX) GOTO 1000
 C

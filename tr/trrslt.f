@@ -10,6 +10,11 @@ C
 C
       INCLUDE 'trcomm.h'
 C
+      IF (MODELG.EQ.3) THEN
+         FKAP=1.D0
+         RKAP=1.D0
+      ENDIF
+C
       VOL=0.D0
       DO NR=1,NRMAX
          VOL=VOL+DVRHO(NR)*DR
@@ -49,7 +54,7 @@ C
       ENDDO
 C
 C      DO NR=1,NRMAX
-C         write(6,*) POH(NR),DVRHO(NR)
+C         write(6,*) NR,POH(NR),DVRHO(NR)
 C      ENDDO
       CALL TRSUMD(POH,DVRHO,NRMAX,POHSUM)
       CALL TRSUMD(PNB,DVRHO,NRMAX,PNBSUM)
@@ -317,7 +322,6 @@ C     ********************************************************
 C
       SUBROUTINE TRSUMD(A,B,NMAX,SUM)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       DIMENSION A(NMAX),B(NMAX)
@@ -337,7 +341,6 @@ C     ********************************************************
 C
       SUBROUTINE TRSUMT(A,B,C,NMAX,SUM)
 C
-C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       DIMENSION A(NMAX),B(NMAX),C(NMAX)
@@ -363,7 +366,7 @@ C
       NGT=NGT+1
 C
       GT    (NGT) = GCLIP(T)
-C
+C     
       GVT(NGT, 1) = GCLIP(ANS0(1))
       GVT(NGT, 2) = GCLIP(ANS0(2))
       GVT(NGT, 3) = GCLIP(ANS0(3))
@@ -466,6 +469,49 @@ C
       GVT(NGT,87) = GCLIP(QF)
       GVT(NGT,88) = GCLIP(RIP)
 C
+C     *** FOR 3D ***
+C
+      DO NR=1,NRMAX
+         G3D(NR,NGT, 1) = GCLIP(RT(NR,1))
+         G3D(NR,NGT, 2) = GCLIP(RT(NR,2))
+         G3D(NR,NGT, 3) = GCLIP(RT(NR,3))
+         G3D(NR,NGT, 4) = GCLIP(RT(NR,4))
+C
+         G3D(NR,NGT, 5) = GCLIP(RN(NR,1))
+         G3D(NR,NGT, 6) = GCLIP(RN(NR,2))
+         G3D(NR,NGT, 7) = GCLIP(RN(NR,3))
+         G3D(NR,NGT, 8) = GCLIP(RN(NR,4))
+C
+         G3D(NR,NGT, 9) = GCLIP(AJ  (NR))
+         G3D(NR,NGT,10) = GCLIP(AJOH(NR))
+         G3D(NR,NGT,11) = GCLIP(AJNB(NR))
+         G3D(NR,NGT,12) = GCLIP(AJRF(NR))
+         G3D(NR,NGT,13) = GCLIP(AJBS(NR))
+C
+         G3D(NR,NGT,14) = GCLIP(POH(NR)+PNB(NR)+PNF(NR)
+     &                         +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))
+         G3D(NR,NGT,15) = GCLIP(POH(NR))
+         G3D(NR,NGT,16) = GCLIP(PNB(NR))
+         G3D(NR,NGT,17) = GCLIP(PNF(NR))
+         G3D(NR,NGT,18) = GCLIP(PRF(NR,1))
+         G3D(NR,NGT,19) = GCLIP(PRF(NR,2))
+         G3D(NR,NGT,20) = GCLIP(PRF(NR,3))
+         G3D(NR,NGT,21) = GCLIP(PRF(NR,4))
+         G3D(NR,NGT,22) = GCLIP(PRL(NR))
+         G3D(NR,NGT,23) = GCLIP(PCX(NR))
+         G3D(NR,NGT,24) = GCLIP(PIE(NR))
+C
+         IF (NR.EQ.1) THEN
+            G3D(NR,NGT,25) = GCLIP(Q0)
+         ELSE
+            G3D(NR,NGT,25) = GCLIP(QP(NR))
+         ENDIF
+         G3D(NR,NGT,26) = GCLIP(EZOH(NR))
+         G3D(NR,NGT,27) = GCLIP(BETA(NR))
+         G3D(NR,NGT,28) = GCLIP(BETAP(NR))
+         G3D(NR,NGT,29) = GCLIP(EZOH(NR)*2.D0*PI*RR)
+      ENDDO
+C      
       RETURN
       END
 C

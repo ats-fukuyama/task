@@ -7,16 +7,26 @@ FFLAGS = $(OFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f
+     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f trgra2.f
+SRCD=trmain.f trinit.f trfile.f trloop.f trrslt.f \
+     trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
+     trgrar.f trgrat.f trgrap.f trgrae.f trgsub3.f trhelp.f trgrad.f
 SRCE = ../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
        ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
 SRCL = ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 OBJS = $(SRCS:.f=.o)
+OBJD = $(SRCD:.f=.o)
 OBJE = $(SRCE:.f=.o)
 OBJL = $(SRCL:.f=.o)
-PROG = trf
+PROG = trf2
+PROG3 = trf
 
-all: $(PROG)
+all: $(PROG3)
+
+$(PROG3) : $(OBJD) $(OBJE) trcomm.h
+	$(FC) -o $@ $(FFLAGS) $(OBJD) $(OBJE) $(OBJL) -L/usr/local/lib -lgsgl-ixc
+
+2d : $(PROG)
 
 $(PROG) : $(OBJS) $(OBJE) trcomm.h
 	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJE) $(OBJL) $(FLIBS)
@@ -28,7 +38,7 @@ clean :
 	rm -f ./#* ./*~ *.o a.out core
 
 veryclean : clean
-	rm -f $(PROG)
+	rm -f $(PROG) $(PROG3)
 
 new :
 	-mkdir ../trnew
@@ -59,7 +69,10 @@ trgrat.o : trgrat.f trcomm.h
 trgrap.o : trgrap.f trcomm.h
 trgrae.o : trgrae.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
+trgsub3.o : trgsub3.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
+trgrad.o : trgrad.f trcomm.h
+trgrp2.o : trgrp2.f trcomm.h
 trmtrx.o : trmtrx.f
 	$(FC) -c $(LFLAGS) trmtrx.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.h

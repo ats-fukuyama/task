@@ -26,6 +26,7 @@ C
       BB      = 3.D0        
       RIPS    = 3.D0         
       RIPE    = 3.D0         
+      RIPSS   = 3.D0
 C
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -205,6 +206,8 @@ C
       MODELG=0
       MDCHG=0
       MDLEQ=0
+      NTEQIT=0
+C
       RETURN
       END
 C
@@ -218,14 +221,14 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,
+      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNC,CDW,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,
+     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,NTEQIT,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -310,7 +313,7 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE'/
+  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS'/
      &       ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
@@ -324,7 +327,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ')
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ,NTEQIT')
       END
 C
 C     ***********************************************************
@@ -344,6 +347,7 @@ C
      &             'RDLT  ',RDLT
       WRITE(6,601) 'RIPS  ',RIPS,
      &             'RIPE  ',RIPE,
+     &             'RIPSS ',RIPSS,
      &             'BB    ',BB
 C
       WRITE(6,611)
@@ -419,7 +423,8 @@ C
      &             'MODELG',MODELG
 C
       WRITE(6,602) 'MDCHG ',MDCHG,
-     &             'MDLEQ ',MDLEQ
+     &             'MDLEQ ',MDLEQ,
+     &             'NTEQIT',NTEQIT
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,
@@ -692,7 +697,7 @@ C
          DO NR=1,NRMAX
             RHOTR(NR)=RM(NR)
             AJ(NR)   =AJOH(NR)
-            HJRHO(NR)=AJ(NR)
+            HJRHO(NR)=AJ(NR)*1.D-6
          ENDDO
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
      &               NRMAX,RHOTR,HJRHO,QRHO,IERR)
@@ -709,18 +714,23 @@ C         PAUSE
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
 C
-      JL=0
+      DRIP  = (RIPSS-RIPS)/1.D1
+ 1000 RIP   = RIPSS
+      L=0
       AJOLD=0.D0
       DO NR=1,NRMAX
          IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
       ENDDO
- 2000 CALL TRSETG
-      JL=JL+1
+ 2000 L=L+1
+      IF (L.GT.70) THEN
+         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
+         STOP
+      ENDIF
+      CALL TRSETG
       AJMAX=0.D0
       DO NR=1,NRMAX
          IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
       ENDDO
-C      write(6,'(I4,1P3E14.7)') JL,AJOLD,AJMAX,ABS(AJOLD-AJMAX)
       IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
          AJOLD=AJMAX
          GOTO 2000
@@ -738,6 +748,17 @@ C
             GRM(NR)  =GCLIP(RM(NR))
             GRG(NR+1)=GCLIP(RG(NR))
          ENDDO
+C
+         RIPSS=RIPSS-DRIP
+C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
+C     &        ,RIPE
+         IF(DRIP.NE.0.AND.ABS(RIPSS-RIPS).LT.1.D-10) THEN
+C            write(6,*) RIPSS-RIPS
+            GOTO 1000
+         ENDIF
+C         RIP=RIPSS
+C         write(6,*) RIP
+C         STOP
       ENDIF
       RETURN
       END
@@ -844,6 +865,8 @@ C
          DO NR=1,NRMAX
             BP(NR)=BPRHO(NR)
             QP(NR)=QRHO(NR)
+            HJRHO(NR)=AJ(NR)*1.D-6
+C            write(6,*) NR,HJRHO(NR)
          ENDDO
       ELSE
          DO NR=1,NRMAX

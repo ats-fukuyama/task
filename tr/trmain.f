@@ -38,7 +38,7 @@ C
       INCLUDE 'trcomm.h'
 C
       CHARACTER KID*1,LINE*80
-      CHARACTER KIG*2,K1*1,K2*1
+      CHARACTER KIG*5,K1*1,K2*1,K3*1,K4*1,K5*1,KK*3
       DATA INIT/0/,INQG/0/
 C
 C     ------ INITIALIZATION ------
@@ -60,7 +60,7 @@ C
 C     ------ SELECTION OF TASK TYPE ------
 C
     1 IF(INIT.EQ.0) THEN
-         WRITE(6,*) '# INPUT : P,V,U/PARM  R/RUN  L/LOAD  T/EQ&TR  ',
+         WRITE(6,*) '# INPUT : P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ELSEIF(INIT.EQ.1) THEN
          WRITE(6,*) '# INPUT : G/GRAPH  ' 
@@ -68,7 +68,7 @@ C
      &                        'D/DATA  H/HELP  Q/QUIT'
       ELSE
          WRITE(6,*) '# INPUT : C/CONT  E/EQ  G/GRAPH  W/WRITE  S/SAVE'
-         WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  T/EQ&TR  ',
+         WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
 C
@@ -94,11 +94,17 @@ C
 C
          INIT=2
       ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
+      L=0
       AJOLD=0.D0
       DO NR=1,NRMAX
          IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
       ENDDO
- 2000 CALL TRSETG
+ 2000 L=L+1
+      IF (L.GT.70) THEN
+         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
+         GOTO 9000
+      ENDIF
+      CALL TRSETG
       AJMAX=0.D0
       DO NR=1,NRMAX
          IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
@@ -111,48 +117,23 @@ C
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2)THEN
          CALL TRLOOP
 C
-      ELSE IF(KID.EQ.'T') THEN
- 110     WRITE(6,'(2A,I5,A)') '# INPUT : RECURRENCE INTERVAL BETWEEN ',
-     &              'EQ AND TR  (NTMAX=',NTMAX,')'
-         READ(5,'(I3)',ERR=101,END=9000) INTERVAL
-         IF (INTERVAL.GT.NTMAX) GOTO 110
-         NTMACS = NTMAX
-         NTMAX  = INTERVAL
-         INCL   = INTERVAL
- 120     IF (INIT.EQ.2) THEN
-            CALL TRLOOP
-         ELSE
-            CALL TRPROF
-            CALL TRLOOP
-            INIT=2
-         ENDIF
-         AJOLD=0.D0
-         DO NR=1,NRMAX
-            IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
-         ENDDO
- 2100    CALL TRSETG
-         AJMAX=0.D0
-         DO NR=1,NRMAX
-            IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
-         ENDDO
-         IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
-            AJOLD=AJMAX
-            GOTO 2100
-         ENDIF
-         INCL = INCL+INTERVAL
-         IF (INCL.LE.NTMACS) GOTO 120
-         NTMAX = NTMACS
-C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
   101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
-     &                        ' A1-A2, E1-E9'
+     &                        ' A1-A2, E1-E9, D1-D29'
          WRITE(6,*) '           S/SAVE  L/LOAD  H/HELP  C/CLEAR  ',
      &              'I/INQ  X/EXIT'
-         READ(5,'(A2)',ERR=101,END=9000) KIG
+         READ(5,'(A5)',ERR=101,END=9000) KIG
          K1=KIG(1:1)
          K2=KIG(2:2)
+         K3=KIG(3:3)
+         K4=KIG(4:4)
+         K5=KIG(5:5)
          CALL GUCPTL(K1)
          CALL GUCPTL(K2)
+         CALL GUCPTL(K3)
+         CALL GUCPTL(K4)
+         CALL GUCPTL(K5)
+         KK=K3//K4//K5
 C
          IF(K1.EQ.'C') THEN
             NGR=0
@@ -185,6 +166,8 @@ C
             CALL TRGRA0(K2,INQG)
          ELSEIF(K1.EQ.'E') THEN
             CALL TRGRE0(K2,INQG)
+         ELSEIF(K1.EQ.'D') THEN
+            CALL TRGRD0(K2,KK,INQG)
          ELSEIF(K1.EQ.'H') THEN
             CALL TRHELP('G')
          ELSEIF(K1.EQ.'X') THEN
@@ -279,7 +262,6 @@ C
      &   KID.EQ.'R'.OR.
      &   KID.EQ.'E'.OR.
      &   KID.EQ.'C'.OR.
-     &   KID.EQ.'T'.OR.
      &   KID.EQ.'G'.OR.
      &   KID.EQ.'W'.OR.
      &   KID.EQ.'D'.OR.
