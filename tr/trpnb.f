@@ -337,10 +337,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      HY(V) = 2.D0*(LOG((V**3+1.D0)/(V+1.D0)**3)/6.D0
-     &         +(ATAN((2.D0*V-1.D0)/SQRT(3.D0))+PI/6.D0)
-     &         /SQRT(3.D0))/V**2
-C
       AMD=AMM*PA(2)
       AMT=AMM*PA(3)
       AMA=AMM*PA(4)
@@ -363,7 +359,7 @@ C
          VCA3 = P4*RN(NR,4)*PZ(4)**2/AMA
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
-         HYB=HY(VB/VCR)
+         HYB  = HY(VB/VCR)
          TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
          TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
          RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB
