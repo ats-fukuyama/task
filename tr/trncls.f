@@ -86,11 +86,20 @@ C
 C
       k_order=2
       k_potato=0
-      m_i=NSMAX
+      IF(MDLEQZ.EQ.0) THEN
+         m_i=NSMAX
+      ELSE
+         m_i=NSMAX+NSZMAX
+      ENDIF
+      PZMAX=0.D0
       DO NS=1,NSMAX
-         PZMAX=PZ(NS)
          IF(PZ(NS).GE.PZMAX) PZMAX=PZ(NS)
       ENDDO
+      IF(MDLEQZ.NE.0) THEN
+         DO NSZ=1,NSZMAX
+           IF(PZ(NSM+NSZ).GE.PZMAX) PZMAX=PZ(NSM+NSZ) 
+         ENDDO
+      ENDIF
       m_z=INT(PZMAX)
       c_den=1.E10
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
@@ -99,6 +108,11 @@ C
       DO NS=1,NSMAX
          amu_i(NS)=SNGL(PA(NS))
       ENDDO
+      IF(MDLEQZ.NE.0) THEN
+         DO NSZ=1,NSZMAX
+            amu_i(NSMAX+NSZ)=SNGL(PA(NSM+NSZ))
+         ENDDO
+      ENDIF
 C
       IF(NSMAX.EQ.2) THEN
          NS=NSMAX
@@ -175,9 +189,24 @@ C         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
                ENDDO
-               p_eb=SNGL((1.5D0*ETA(NR  )*AJOH(NR  )
-     &                   -0.5D0*ETA(NR-1)*AJOH(NR-1))*BB)
             ENDDO
+            IF(MDLEQZ.NE.0) THEN
+               DO NSZ=1,NSZMAX
+                  NS =NSM+NSZ
+                  NSN=NSMAX+NSZ
+                  temp_i(NSN)=SNGL(PTS(NS))
+                  grt_i(NSN)=SNGL(2.D0*(PTS(NS)-RN(NR,NS))/DR)
+                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
+                  grp_iz(NSN,INT(ABS(PZ(NS))))
+     &                 =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
+     &                 /DR)*1.E20
+                  DO NA=1,3
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.E0
+                  ENDDO
+               ENDDO
+            ENDIF
+            p_eb=SNGL((1.5D0*ETA(NR  )*AJOH(NR  )
+     &                -0.5D0*ETA(NR-1)*AJOH(NR-1))*BB)
          ELSE
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
@@ -190,9 +219,25 @@ C         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
                ENDDO
-               p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))
-     &                   *BB)
             ENDDO
+            IF(MDLEQZ.NE.0) THEN
+               DO NSZ=1,NSZMAX
+                  NS =NSM+NSZ
+                  NSN=NSMAX+NSZ
+                  temp_i(NSN)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
+                  grt_i(NSN)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
+                  den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
+     &                 +RN(NR,NS)))*1.E20
+                  grp_iz(NSN,INT(ABS(PZ(NS))))
+     &               =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
+     &                 /DR)*1.E20
+                  DO NA=1,3
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.E0
+                  ENDDO
+               ENDDO
+            ENDIF
+            p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))
+     &               *BB)
          ENDIF
 C
       CALL NCLASS(
@@ -225,15 +270,7 @@ C
                AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
                ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
                ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
-c$$$               if(ns.eq.ns1.and.ns.eq.1) ! or ns.eq.2
-c$$$     &              write(6,*) NR,ADNCP(NR,NS,NS1)+ADNCT(NR,NS,NS1),
-c$$$     &                            AKNCP(NR,NS,NS1)+AKNCT(NR,NS,NS1)
             ENDDO
-C            DO NS1=3,4
-C               write(6,'(3I5,1P2E20.7)') 
-C     &              NR,NS,NS1,dp_ss(NS,NS1),dt_ss(NS,NS1)
-C            ENDDO
-C            if(ns.eq.2) write(6,*) nr,dn_s(ns)
             DO NM=1,5
                RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
                RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
@@ -241,6 +278,26 @@ C            if(ns.eq.2) write(6,*) nr,dn_s(ns)
             AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
             AVNCS (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
          ENDDO
+         IF(MDLEQZ.NE.0) THEN
+            DO NSZ=1,NSZMAX
+               NS =NSM+NSZ
+               NSN=NSMAX+NSZ               
+               CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))/AR1RHO(NR)
+               CJBST(NR,NS)=DBLE(bsjbt_s(NSN))/AR1RHO(NR)
+               DO NS1=1,NSMAX
+                  AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
+                  AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
+                  ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)
+                  ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
+               ENDDO
+               DO NM=1,5
+                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
+                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
+               ENDDO
+               AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
+               AVNCS (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+            ENDDO
+         ENDIF
 C
       ENDDO
 C

@@ -55,10 +55,10 @@ C
       ENDDO
       IF(MDLNF.EQ.0) THEN
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@NE,ND [10^20/m^3]  vs r@',2+INQ)
+     &               '@NE,ND [10$+20$=/m$+3$=]  vs r@',2+INQ)
       ELSE
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &               '@NE,ND,NT,NA [10^20/m^3]  vs r@',2+INQ)
+     &               '@NE,ND,NT,NA [10$+20$=/m$+3$=]  vs r@',2+INQ)
       ENDIF
       IF(MDLEQ0.EQ.0) THEN
       DO NF=1,NFM
@@ -67,14 +67,14 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NFM,
-     &            '@NB,NF [10^20 /m^3]  vs r@',2+INQ)
+     &            '@NB,NF [10$+20$=/m$+3$=]  vs r@',2+INQ)
       ELSEIF(MDLEQ0.EQ.1) THEN
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(RN(NR,7)*1.D5)
          GYR(NR,2) = GUCLIP(RN(NR,8)*1.D5)
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &            '@NNC,NNH [10^15 /m^3]  vs r@',2+INQ)
+     &            '@NNC,NNH [10$+15$=/m$+3$=]  vs r@',2+INQ)
       ENDIF
 C
       DO NS=1,NSM
@@ -85,7 +85,7 @@ C         IF(NS.EQ.2) write(6,*) GRM(NR),GYR(NR,NS)
       ENDDO
       IF(MDLNF.EQ.0) THEN
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@TE,TD, [keV]  vs r@',2+INQ)
+     &               '@TE,TD [keV]  vs r@',2+INQ)
       ELSE
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
      &               '@TE,TD,TT,TA [keV]  vs r@',2+INQ)
@@ -131,7 +131,7 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+3,
-     &            '@POH,PNB,PNF,PRF [MW/m^3]  vs r@',2+INQ)
+     &            '@POH,PNB,PNF,PRF [MW/m$+3$=]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR,1) = GCLIP(POH(NR) * 1.D-6)
@@ -140,7 +140,7 @@ C
          GYR(NR,4) = GCLIP(PIE(NR) * 1.D-6)
       ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
-     &            '@POH,PRL,PCX,PIE [MW/m^3]  vs r@',2+INQ)
+     &            '@POH,PRL,PCX,PIE [MW/m$+3$=]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GCLIP(BETAL(NR))
@@ -204,7 +204,7 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1,
-     &            '@PBIN,PBCL [MW/m^3]  vs r@',2+INQ)
+     &            '@PBIN,PBCL [MW/m$+3$=]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR,1) = GCLIP(PFIN(NR) * 1.D-6)
@@ -215,7 +215,7 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM+1,
-     &            '@PFIN,PFCL [MW/m^3]  vs r@',2+INQ)
+     &            '@PFIN,PFCL [MW/m$+3$=]  vs r@',2+INQ)
 C
       CALL TRGRTM
       CALL PAGEE
@@ -256,7 +256,7 @@ C
          GYR(NR,5) = GCLIP(AJBS(NR) * 1.D-6)
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,5,
-     &            '@JTOT,JOH,JNB,JRF,JBS [MA/m^2]  vs r@',2+INQ)
+     &            '@JTOT,JOH,JNB,JRF,JBS [MA/m$+2$=]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR,1) = GLOG(ETA(NR),1.D-10,1.D0)
@@ -307,13 +307,13 @@ C
          GYR(NR,1) = GCLIP(ANC(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@ANC [10^20/m^3]  vs r@',2+INQ)
+     &            '@ANC [10$+20$=/m$+3$=]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR,1) = GCLIP(ANFE(NR))
       ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@ANFE [10^20/m^3]  vs r@',2+INQ)
+     &            '@ANFE [10$+20$=/m$+3$=]  vs r@',2+INQ)
 C
       CALL TRGRTM
       CALL PAGEE
@@ -339,7 +339,7 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &            '@PIN [MW/m^3]  vs r@',2+INQ)
+     &            '@PIN [MW/m$+3$=]  vs r@',2+INQ)
 C
 c$$$      DO NS=1,NSM
 c$$$      DO NR=1,NRMAX
@@ -347,14 +347,14 @@ c$$$C         GYR(NR,NS) = GCLIP(SSIN(NR,NS))
 c$$$      ENDDO
 c$$$      ENDDO
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-c$$$     &            '@SSIN [/sm^3]  vs r@',2+INQ)
+c$$$     &            '@SSIN [/sm$+3$=]  vs r@',2+INQ)
 C
       NS=1
       DO NR=1,NRMAX
          GYR(NR,NS) = GCLIP(SIE(NR))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@SIE [/sm^3]  vs r@',2+INQ)
+     &            '@SIE [/sm$+3$=]  vs r@',2+INQ)
 C
 c$$$      DO NS=1,NSMAX
 c$$$      DO NR=1,NRMAX
@@ -362,15 +362,22 @@ c$$$         GYR(NR,NS) = GCLIP(SEX(NR,NS))
 c$$$      ENDDO
 c$$$      ENDDO
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-c$$$     &            '@SEX [/sm^3]  vs r@',2+INQ)
+c$$$     &            '@SEX [/sm$+3$=  vs r@',2+INQ)
 C
-      DO NS=1,NSM
+c$$$      DO NS=1,NSM
+c$$$      DO NR=1,NRMAX
+c$$$         GYR(NR,NS) = GCLIP(SPE(NR,NS))
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
+c$$$     &            '@SPE [/m$+3$=]  vs r@',2+INQ)
+C
+      NS=1
       DO NR=1,NRMAX
-         GYR(NR,NS) = GCLIP(SPE(NR,NS))
+         GYR(NR,NS) = GCLIP(SCX(NR))
       ENDDO
-      ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &            '@SPE [/m^3]  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,1,
+     &            '@SCX [/sm$+3$=]  vs r@',2+INQ)
 C
       CALL TRGRTM
 C
@@ -440,7 +447,7 @@ C         GYR(NRMAX+1,1) = GCLIP(AK(NRMAX,1)/2)
 C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,1)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,1)/2)
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKE,AKNCE,AKDWE [m^2/s]  vs r@',2+INQ)
+     &            '@AKE,AKNCE,AKDWE [m$+2$=/s]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,2),1.D-2,1.D2)
@@ -457,7 +464,7 @@ C         GYR(NRMAX+1,1) = GCLIP(AK(NRMAX,2)/2)
 C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,2)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,2)/2)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+     &            '@AKD,AKNCD,AKDWD [m$+2$=/s]  vs r@',2+INQ)
 C
       ELSE
 C
@@ -504,7 +511,7 @@ C
          GYR(1,2) = GCLIP(AKNCG(1,1))
          GYR(1,3) = GCLIP(AKDW(1,1))
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKE,AKNCE,AKDWE [m^2/s]  vs r@',2+INQ)
+     &            '@AKE,AKNCE,AKDWE [m$+2$=/s]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GCLIP(AKDW(NR,2)+AKNCG(NR,2))
@@ -515,7 +522,7 @@ C
          GYR(1,2) = GCLIP(AKNCG(1,2))
          GYR(1,3) = GCLIP(AKDW(1,2))
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+     &            '@AKD,AKNCD,AKDWD [m$+2$=/s]  vs r@',2+INQ)
 C
       ENDIF
 C
@@ -534,7 +541,7 @@ C         GYR(NRMAX+1,1) = GCLIP(AK(NRMAX,3)/2)
 C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,3)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,3)/2)
 C      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-C     &            '@AKT,AKNCT,AKDWT [m^2/s]  vs r@',2+INQ)
+C     &            '@AKT,AKNCT,AKDWT [m$+2$=/s]  vs r@',2+INQ)
 C
       CALL TRGRTM
       CALL PAGEE
@@ -651,7 +658,7 @@ C
          ENDDO
       ENDIF
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
-     &            '@AD [m^2/s]  vs r@',2+INQ)
+     &            '@AD [m$+2$=/s]  vs r@',2+INQ)
 C
       DO NS=1,NSMAX
       DO NR=1,NRMAX

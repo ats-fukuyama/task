@@ -58,18 +58,18 @@ C
       PTS(4)  = 0.05D0
       PNS(4)  = 1.D-8
 C
-      PA(5)   = VOID
-      PZ(5)   = VOID
+      PA(5)   = 12.D0
+      PZ(5)   = 2.D0
       PN(5)   = VOID
-      PT(5)   = VOID
-      PTS(5)  = VOID
+      PT(5)   = 0.D0
+      PTS(5)  = 0.D0
       PNS(5)  = VOID
 C
-      PA(6)   = VOID
-      PZ(6)   = VOID
+      PA(6)   = 12.D0
+      PZ(6)   = 4.D0
       PN(6)   = VOID
-      PT(6)   = VOID
-      PTS(6)  = VOID
+      PT(6)   = 0.D0
+      PTS(6)  = 0.D0
       PNS(6)  = VOID
 C
       PA(7)   = 2.D0
@@ -77,7 +77,7 @@ C
       PN(7)   = 1.D-10
       PT(7)   = 0.D0
       PTS(7)  = 0.D0
-      PNS(7)  = 1.D-7
+      PNS(7)  = 1.D-5
 C
       PA(8)   = 2.D0
       PZ(8)   = 0.D0

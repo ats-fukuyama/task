@@ -21,8 +21,7 @@ C
       DATA IPAT/0,2,3,4,6/
 C
       CALL SETCHS(0.3,0.0)
-C      CALL SETFNT(32)
-      CALL SETFNT(2)
+      CALL SETFNT(32)
       CALL SETLNW(0.035)
       CALL SETRGB(0.0,0.0,0.0)
       CALL SETLIN(-1,-1,7)
@@ -147,8 +146,7 @@ C
       DATA IPAT/0,2,3,4,6/
 C
       CALL SETCHS(0.3,0.0)
-C      CALL SETFNT(32)
-      CALL SETFNT(2)
+      CALL SETFNT(32)
       CALL SETLNW(0.035)
       CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
@@ -281,8 +279,7 @@ C
       CHARACTER STR*(*),KT*80,KDL*1
 C
       CALL SETCHS(0.3,0.0)
-C      CALL SETFNT(32)
-      CALL SETFNT(2)
+      CALL SETFNT(32)
       CALL SETLNW(0.035)
       CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
@@ -377,8 +374,7 @@ C
       CHARACTER STR*(*),KT*80,KDL*1
 C
       CALL SETCHS(0.3,0.0)
-C      CALL SETFNT(32)
-      CALL SETFNT(2)
+      CALL SETFNT(32)
       CALL SETLNW(0.035)
       CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
@@ -463,8 +459,7 @@ C
 C
       CALL SETLIN(0,0,7)
       CALL SETCHS(0.3,0.0)
-C      CALL SETFNT(32)
-      CALL SETFNT(2)
+      CALL SETFNT(32)
       CALL MOVE(11.8,18.0)
       CALL TEXT('T=',2)
       CALL NUMBD(T,'(1F7.3)',7)
@@ -594,13 +589,13 @@ C     *** Graphic Routine ***
 C
       CALL PAGES
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GJB,NRMP,NRMAX,4,
-     &            '@JBS [MA/m^2]  vs r@',2)
+     &            '@JBS [MA/m$+2$=]  vs r@',2)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,4,
      &            '@LOG:ETA  vs r @',11)
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX,4,
-     &            '@ADNCE, ADNCD [m^2/s]  vs r@',2)
+     &            '@ADNCE, ADNCD [m$+2$=/s]  vs r@',2)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX,4,
-     &            '@AKNCE, AKNCD [m^2/s] vs r @',2)
+     &            '@AKNCE, AKNCD [m$+2$=/s] vs r @',2)
       CALL TRGRTM
       CALL PAGEE
 C

@@ -171,7 +171,7 @@ C
          GYT(I,2)=GVT(I,5)
   400 CONTINUE
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,2,
-     &            '@NE0,<NE> [10^20/m^3]  vs t@',2+INQ)
+     &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
 C
       CALL PAGEE
 C
@@ -309,8 +309,7 @@ C
      &            GTS,GYT,NTM,
      &            NGST,M,'@TE,TD,TT,TA [keV]@',1+INQ)
          CALL SETCHS(0.3,0.0)
-C         CALL SETFNT(32)
-         CALL SETFNT(2)
+         CALL SETFNT(32)
          CALL SETLIN(-1,-1,7)
          CALL MOVE(10.0,17.1-N*(GW+GD))
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
@@ -334,8 +333,7 @@ C
      &               GTS,GYT,NTM,NGST,M,'@TE,TD,TT,TA [keV]  vs t@',
      &               1+INQ)
          CALL SETCHS(0.3,0.0)
-C         CALL SETFNT(32)
-         CALL SETFNT(2)
+         CALL SETFNT(32)
          CALL SETLIN(-1,-1,7)
          CALL MOVE(22.5,17.1-NGPSTH*(GW+GD))
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
@@ -430,7 +428,7 @@ C
          GYT(I,2)=GVT(I,5)
  1400 CONTINUE
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
-     &            '@NE0,<NE> [10^20/m^3]  vs t@',2+INQ)
+     &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ELSE
       DO 1410 I=1,NGT
          GYT(I,1)=GVT(I,1)
@@ -439,7 +437,7 @@ C
          GYT(I,4)=GVT(I,4)
  1410 CONTINUE
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4,
-     &            '@NE0,ND0,NT0,NA0 [10^20/m^3]  vs t@',2+INQ)
+     &            '@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
 C
       CALL PAGEE

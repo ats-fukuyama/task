@@ -107,8 +107,8 @@ C
      &             +SEX(NR,3)
          SSIN(NR,4)=                            SNF(NR)
      &             +SEX(NR,4)
-         SSIN(NR,7)=                                           -SCX(NR)
-         SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
+         SSIN(NR,7)=0.D0
+         SSIN(NR,8)=                                    SNB(NR)
          ENDIF
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1)
      &            +POH(NR)-PRL(NR)-PIE(NR)+PEX(NR,1)
@@ -404,10 +404,12 @@ C
          TNU = 0.D0
 C
          TN    = LOG10(MAX(TD*1.D3,50.D0))
-         SCX(NR)= 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
+         SCH= 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
+         SCX(NR)=ANE*ANNU(NR)*SCH*1.D20
+         TSCX(NR)=ANE*SCH*1.D20
 C
          PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
-     &         +  1.5D0*ANDX*ANNU(NR)*SCX(NR)*(TD-TNU))*RKEV*1.D40
+     &         +  1.5D0*ANDX*ANNU(NR)*SCH*(TD-TNU))*RKEV*1.D40
       ENDDO
 C
       RETURN

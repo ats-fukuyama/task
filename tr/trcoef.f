@@ -45,10 +45,10 @@ C
          KGR3='/CLN,CLT  vs r/'
          KGR4='/CLS  vs r/'
       ELSEIF(MDLKAI.LT.40) THEN
-         KGR1='/NST^2 vs r/'
+         KGR1='/NST$+2$= vs r/'
          KGR2='/OmegaST vs r/'
          KGR3='@lambda vs r@'
-         KGR4='@Lambda,1/(1+OmgST^2),1/(1+G*WE1^2)vs r@'
+         KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
       ELSE
          KGR1='//'
          KGR2='//'

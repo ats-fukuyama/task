@@ -463,6 +463,7 @@ C
       ENDDO
 C
       CALL TR_IONIZATION(NR)
+      CALL TR_CHARGE_EXCHANGE(NR)
 C
 C     ***** RHS Vector *****
 C
@@ -521,6 +522,7 @@ C
          ENDDO
 C
          CALL TR_IONIZATION(NR)
+         CALL TR_CHARGE_EXCHANGE(NR)
 C
 C     ***** RHS Vector *****
 C
@@ -582,6 +584,7 @@ C
       ENDDO
 C
       CALL TR_IONIZATION(NR)
+      CALL TR_CHARGE_EXCHANGE(NR)
 C     
 C     ***** RHS Vector *****
 C
@@ -1517,14 +1520,14 @@ C
             IF(NSSV.EQ.1.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
+                  IF(NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)
                   ENDIF
                ENDDO
             ELSEIF(NSSV.EQ.2.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
+                  IF(NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
      &                                      *TSIE(NR)
                   ENDIF
@@ -1532,7 +1535,7 @@ C
             ELSEIF(NSSV.EQ.3.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
+                  IF(NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
      &                                      *TSIE(NR)
                   ENDIF
@@ -1540,13 +1543,40 @@ C
             ELSE
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF((NV.EQ.NW).AND.(NSSW.EQ.7.OR.NSSW.EQ.8)) THEN
+                  IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)-TSIE(NR)
                   ENDIF
                ENDDO
             ENDIF
          ENDDO
       ENDIF
-C      
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           CHARGE EXCHANGE 
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_CHARGE_EXCHANGE(NR)
+C
+      INCLUDE 'trcomm.h'
+      COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
+C
+      IF(MDLEQ0.EQ.1) THEN
+         DO NV=1,NEQMAX
+            DO NW=1,NEQMAX
+               NSSW=NSS(NW)
+               IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
+                  B(NV,NW,NR)=B(NV,NW,NR)-TSCX(NR)
+               ELSEIF(NV.EQ.NW.AND.NSSW.EQ.8) THEN
+                  B(NV,NW,NR)=B(NV,NW,NR)+TSCX(NR)
+               ENDIF
+            ENDDO
+         ENDDO
+      ENDIF
+C
       RETURN
       END
