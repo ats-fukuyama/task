@@ -7,7 +7,7 @@
    MDLEQ0=0
    MDLJBS=5
    MDLETA=3
-   NSMAX=3
+   NSMAX=2
    MDLUF=1
    KUFDEV='tftr'
    KUFDCG='79169'
@@ -18,4 +18,8 @@
    PROFN2=1.5
    PROFT1=1
    PROFT2=1.5
+   MDLEOI=1
+   MDLKAI=31
+   CK0=12
+   CK1=12
  &end

@@ -36,7 +36,6 @@ C
       IF(NT.GE.NTMAX) GOTO 9000
 C
  1000 L=0
-C      write(6,*) NT,(AKDW(NR,2),NR=1,NRMAX)
 C     /* Making New Variables */
       CALL TRATOX
 C
@@ -213,6 +212,7 @@ C
          ANNU(NR)=RN(NR,7)+RN(NR,8)
          BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
+C      write(6,*) L,XV(2,1)/RN(1,1),X(1)/RN(1,1)
 C
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
@@ -223,7 +223,6 @@ C
       GOTO 2000
 C
  4000 NT=NT+1
-C      write(6,*) "L=",L
       T=T+DT
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT
@@ -260,6 +259,7 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
+C      write(6,*) L,RT(1,1),"END"
       CALL TR_EDGE_SELECTOR(1)
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
 C      IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S
@@ -310,6 +310,7 @@ C         WRITE(6,*) "L=",L
          CALL TRSETG
          IF(IERR.NE.0) RETURN
       ENDIF
+      IF(IDGLOB.EQ.0) CALL TRGLOB
       IF(NT.LT.NTMAX) GOTO 1000
 C
  9000 IF(MDLUF.NE.1.AND.MDLUF.NE.3) RIPS=RIPE

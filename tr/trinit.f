@@ -27,14 +27,14 @@ C
       AEPS0   = 1.D0/(VC*VC*AMYU0)
       RKEV    = AEE*1.D3
 C
-      RR      = 3.0D0     
-      RA      = 1.2D0      
+      RR      = 3.0D0
+      RA      = 1.2D0
       RKAP    = 1.5D0
       RKAPS   = SQRT(RKAP)
       RDLT    = 0.0D0
-      BB      = 3.D0        
-      RIPS    = 3.D0         
-      RIPE    = 3.D0         
+      BB      = 3.D0
+      RIPS    = 3.D0
+      RIPE    = 3.D0
       RIPSS   = 3.D0
       RHOA    = 1.D0
 C
@@ -1635,7 +1635,6 @@ C
       RETURN
       END
 C
-C
 C     ***********************************************************
 C
 C           MODEL SELECTOR
@@ -1653,12 +1652,10 @@ C
          INS=0
       ELSE
          IF(NSSMAX.NE.NSMAX) THEN
-            NSMAX=NSSMAX
             INS=0
          ENDIF
       ENDIF
       NSSMAX=NSMAX
-      write(6,*) INIT,INS,NSMAX,MDLEOI
       IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
          IF(NSMAX.EQ.1) INS=1
          NSMAX=3
