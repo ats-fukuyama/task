@@ -39,8 +39,8 @@ C
          ENDDO
       ELSE
          DO NR=1,NRMAX
-CCC            QP(NR)=FKAP*RG(NR)*RA*BB/(RR*BP(NR))
-            QP(NR)=RG(NR)*RA*BB/(RR*BP(NR))
+            QP(NR)=FKAP*RG(NR)*RA*BB/(RR*BP(NR))
+CCC            QP(NR)=RG(NR)*RA*BB/(RR*BP(NR))
 C            if(nr.eq.1) write(6,*) NR,BP(NR),QP(NR)
          ENDDO
       ENDIF
@@ -636,8 +636,9 @@ C     &            BPL,AJBS(NR-1),AJBS(NR)
 C         ENDIF
   100 CONTINUE
 C
-      AJBS(1)=0.5D0*AJBSL(2)
-      DO 200 NR=2,NRMAX-1
+C      AJBS(1)=0.5D0*AJBSL(2)
+C      DO 200 NR=2,NRMAX-1
+      DO 200 NR=1,NRMAX-1
          AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
   200 CONTINUE
       AJBS(NRMAX)=AJBSL(NRMAX)
@@ -928,15 +929,15 @@ C
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
          NR=1
-C            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
-C     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
             AJ(NR) = (RG(NR)*RA*BP(NR)                  )
-     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
+     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
+CCC            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
+CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
          DO NR=2,NRMAX
-C            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
-C     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
             AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
-     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
+     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
+CCC            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
+CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
          ENDDO
       ELSE
          NR=1
@@ -1084,8 +1085,8 @@ C
          ELSE
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
-CCC               BP(NR)  = FKAP*RA*RG(NR)*BB/(RR*QP(NR))
-               BP(NR)  = RA*RG(NR)*BB/(RR*QP(NR))
+               BP(NR)  = FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+CCC               BP(NR)  = RA*RG(NR)*BB/(RR*QP(NR))
 C               write(6,*) NR,BP(NR)
             ENDDO
          ENDIF

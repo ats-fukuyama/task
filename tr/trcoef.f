@@ -22,6 +22,7 @@ C
       SUBROUTINE TRCFDW
 C
       INCLUDE 'trcomm.h'
+      INCLUDE 'trglf.h'
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -256,6 +257,8 @@ C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
 C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
 C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
 C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
+C        ***** 40.GE.MDLKAI.LT.50 : DRIFT ALFVEN BALLOONING MODEL ****
+C        *****       MDLKAI.GE.60 : GLF23 MODEL BY R.E.WALTZ *****
 C                                                                  
          IF(MDLKAI.LT.10) THEN
 C           *****  MDLKAI.EQ. 0   : CONSTANT *****
@@ -458,8 +461,9 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
-               RG1=10.D0
-C               RG1=8.D0
+C               RG1=10.D0
+C               RG1=4.D0
+               RG1=2.8D0
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -513,7 +517,154 @@ C               RG1=8.D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
 C
-            ELSEIF(MDLKAI.EQ.40) THEN
+c$$$            ELSEIF(MDLKAI.EQ.40) THEN
+c$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
+c$$$               WCI=AEI*BB/AMI
+c$$$               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
+c$$$               VTI=SQRT(ABS(PTI*RKEV/AMI))
+c$$$               RHOI=VTI/WCI
+c$$$C
+c$$$               FS=TRCOFT(S,ALFA,RKCV,RA/RR)
+c$$$               SA=S-ALFA
+c$$$               RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
+c$$$               RKPP2=RNST2/(FS*ABS(ALFA)*DELTA2)
+c$$$C
+c$$$               SLAMDA=RKPP2*RHOI**2
+c$$$               RLAMDA=RLAMBDA(SLAMDA)
+c$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
+c$$$               TAUAP=(QL*RR)/VA
+c$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
+c$$$C
+c$$$c$$$               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+c$$$c$$$               DELTAE=SQRT(DELTA2)
+c$$$c$$$               SL=SQRT(S**2+0.1D0**2)
+c$$$c$$$               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+c$$$c$$$C               RG1=10.D0
+c$$$c$$$C               RG1=4.D0
+c$$$c$$$               RG1=6.0D0
+c$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
+c$$$C
+c$$$               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+c$$$     &               /(RLAMDA*(1.D0+OMEGASS**2))
+c$$$               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+c$$$     &               /(1.D0+OMEGASS**2)
+            ELSE                                           
+               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
+               FS=1.D0
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+            ENDIF
+            AKDW(NR,1)=AKDWEL
+            AKDW(NR,2)=AKDWIL
+            AKDW(NR,3)=AKDWIL
+            AKDW(NR,4)=AKDWIL
+C
+            VGR1(NR,1)=FS
+            VGR1(NR,2)=S
+            VGR1(NR,3)=ALFA
+            VGR2(NR,1)=RNST2
+            VGR2(NR,2)=OMEGASS
+            VGR2(NR,3)=0.D0
+            VGR3(NR,1)=SLAMDA
+            VGR3(NR,2)=0.D0
+            VGR3(NR,3)=0.D0
+            VGR4(NR,1)=RLAMDA
+            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
+            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+C
+         ELSEIF(MDLKAI.LT.51) THEN
+C
+            PNI=ANDX+ANT+ANA
+            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
+C
+            VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
+            WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
+            S=RR*EPS*DQ/QL
+C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
+            DELTA2=VC**2/WPE2
+            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+            ALFA=-QL*QL*DBDR*RR/RA
+            RKCV=-EPS*(1.D0-1.D0/(QL*QL))
+C
+            RNST2=0.D0
+            OMEGASS=0.D0
+            SLAMDA=0.D0
+            RLAMDA=0.D0
+            RG1=0.D0
+            WE1=0.D0
+            F=VTE/VA
+C     
+            IF(MDLKAI.EQ.40) THEN
+               FS=1.D0/(1.7D0+SQRT(6.D0)*S)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.41) THEN
+               FS=TRCOFS(S,ALFA,RKCV)
+C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.42) THEN
+               FS=TRCOFS(S,ALFA,RKCV)
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DELTAE=SQRT(DELTA2)
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+               RG1=5.D0
+C               RG1=8.D0
+               FS=FS/(1.D0+RG1*WE1*WE1)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.43) THEN
+               FS=TRCOFS(S,0.D0,RKCV)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.44) THEN
+               FS=TRCOFS(S,0.D0,RKCV)
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DELTAE=SQRT(DELTA2)
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+               RG1=10.D0
+C               RG1=8.D0
+               FS=FS/(1.D0+RG1*WE1*WE1)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.45) THEN
+               FS=TRCOFSS(S,ALFA)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.46) THEN
+               FS=TRCOFSS(S,ALFA)
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DELTAE=SQRT(DELTA2)
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+               RG1=10.D0
+C               RG1=8.D0
+               FS=FS/(1.D0+RG1*WE1*WE1)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.47) THEN
+               FS=TRCOFSS(S,0.D0)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.48) THEN
+               FS=TRCOFSS(S,0.D0)
+               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+               DELTAE=SQRT(DELTA2)
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+               RG1=4.5D0
+C               RG1=8.D0
+               FS=FS/(1.D0+RG1*WE1*WE1)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+            ELSEIF(MDLKAI.EQ.49) THEN
+               FS=TRCOFSX(S,ALFA,RKCV,RA/RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+C
+            ELSEIF(MDLKAI.EQ.50) THEN
                AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
                WCI=AEI*BB/AMI
                PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
@@ -530,15 +681,10 @@ C
                OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
                TAUAP=(QL*RR)/VA
                OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
      &               /(RLAMDA*(1.D0+OMEGASS**2))
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
      &               /(1.D0+OMEGASS**2)
-            ELSE                                           
-               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
-               FS=1.D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ENDIF
 C
             AKDW(NR,1)=AKDWEL
@@ -558,6 +704,43 @@ C
             VGR4(NR,1)=RLAMDA
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
             VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+C
+         ELSEIF(MDLKAI.GE.60) THEN
+            PNI=ANDX+ANT+ANA
+            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
+C
+            VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
+            WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
+            S=RR*EPS*DQ/QL
+C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
+            DELTA2=VC**2/WPE2
+            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
+            ALFA=-QL*QL*DBDR*RR/RA
+            RKCV=-EPS*(1.D0-1.D0/(QL*QL))
+C
+            RNST2=0.D0
+            OMEGASS=0.D0
+            SLAMDA=0.D0
+            RLAMDA=0.D0
+            RG1=0.D0
+            WE1=0.D0
+C
+            S_AR(NR)=S
+            ALFA_AR(NR)=ALFA
+            RKCV_AR(NR)=RKCV
+C
+            VGR1(NR,1)=0.D0
+            VGR1(NR,2)=S
+            VGR1(NR,3)=ALFA
+            VGR2(NR,1)=RNST2
+            VGR2(NR,2)=OMEGASS
+            VGR2(NR,3)=0.D0
+            VGR3(NR,1)=SLAMDA
+            VGR3(NR,2)=0.D0
+            VGR3(NR,3)=0.D0
+            VGR4(NR,1)=RLAMDA
+            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
+            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
          ELSE                                           
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
             AKDW(NR,1)=0.D0
@@ -566,6 +749,244 @@ C
             AKDW(NR,4)=0.D0
          ENDIF
   100 CONTINUE
+C
+      IF(MDLKAI.GE.60) THEN
+C
+C     INPUTS
+         leigen=0        ! default
+         nroot=8         ! default
+         iglf=1
+         jshoot=1
+C     if jshoot=0, maximum argument of array is important.
+         jmm=0           ! default
+         jmaxm=NRMAX-1
+         itport_pt(1)=0
+         itport_pt(2)=1
+         itport_pt(3)=1
+         itport_pt(4)=0  ! default
+         itport_pt(5)=0  ! default
+         irotstab=1
+C
+         DO jm=0,jmaxm
+            te_m(jm)=RT(jm+1,1)
+            ti_m(jm)=RT(jm+1,2)
+            rne_m(jm)=RN(jm+1,1)*1.D1
+            rni_m(jm)=RN(jm+1,2)*1.D1
+            rns_m(jm)=0.D0
+         ENDDO
+C
+         igrad=0         ! default
+         idengrad=2      ! default
+         zpte_in=0.D0    ! default
+         zpti_in=0.D0    ! default
+         zpne_in=0.D0    ! default
+         zpni_in=0.D0    ! default
+         DO jm=0,jmaxm
+            angrotp_exp(jm)=0.D0     ! default
+            egamma_exp(jm)=0.D0      ! default
+            rgamma_p_exp(jm)=0.D0    ! default
+            vphi_m(jm)=0.D0          ! default
+            vpar_m(jm)=0.D0          ! default
+            vper_m(jm)=0.D0          ! default
+         ENDDO
+C
+         DO jm=0,jmaxm
+            zeff_exp(jm)=ZEFF(jm+1)
+         ENDDO
+C
+         bt_exp=BB
+         nbt_flag=0    ! default
+C
+C     normalized flux surface; 0 < rho < 1.
+         DO jm=0,jmaxm
+            rho(jm)=EPSRHO(jm+1)*RR/RA
+         ENDDO
+C
+C     rho(a)
+         arho_exp=rho(jmaxm)*RA   ! default
+C
+         DO jm=0,jmaxm
+            rgradrho_exp(jm)=AR1RHO(jm+1)
+            rgradrhosq_exp(jm)=AR2RHO(jm+1)
+            rmin_exp(jm)=RMNRHO(jm+1)
+            rmaj_exp(jm)=RMJRHO(jm+1)
+         ENDDO
+         rmajor_exp=RR
+C
+         zimp_exp=6.D0          ! default; finite date is necessary.
+         amassimp_exp=12.D0     ! default; finite date is necessary.
+C
+         DO jm=0,jmaxm
+            q_exp(jm)=QP(jm+1)
+         ENDDO
+C
+         DO jm=0,jmaxm
+            shat_exp(jm) =S_AR(jm+1)
+            alpha_exp(jm)=ALFA_AR(jm+1)
+            elong_exp(jm)=EKAPPA(jm+1)
+         ENDDO
+C
+         amassgas_exp=PA(2)
+         alpha_e=1.D0
+         x_alpha=1.D0
+         i_delay=0       ! default(usually recommended)
+C
+         call callglf2d( leigen, nroot, iglf
+     & , jshoot, jmm, jmaxm, itport_pt
+     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
+     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
+     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
+     & , zeff_exp, bt_exp, nbt_flag, rho
+     & , arho_exp, rgradrho_exp, rgradrhosq_exp
+     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
+     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
+     & , alpha_e, x_alpha, i_delay
+     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
+     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
+     & , exch_m, egamma_m, egamma_d, rgamma_p_m
+     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
+C
+      IF(MDLKAI.EQ.60) THEN
+         NR=1
+            AKDW(NR,1)=chie_m(NR)
+            AKDW(NR,2)=chii_m(NR)
+            AKDW(NR,3)=chii_m(NR)
+            AKDW(NR,4)=chii_m(NR)
+            ADDW(NR,1)=diff_m(NR)
+            ADDW(NR,2)=diff_m(NR)
+            ADDW(NR,3)=diff_m(NR)
+            ADDW(NR,4)=diff_m(NR)
+         DO NR=2,NRMAX-1
+            AKDW(NR,1)=chie_m(NR-1)
+            AKDW(NR,2)=chii_m(NR-1)
+            AKDW(NR,3)=chii_m(NR-1)
+            AKDW(NR,4)=chii_m(NR-1)
+            ADDW(NR,1)=diff_m(NR-1)
+            ADDW(NR,2)=diff_m(NR-1)
+            ADDW(NR,3)=diff_m(NR-1)
+            ADDW(NR,4)=diff_m(NR-1)
+         ENDDO
+         NR=NRMAX
+            AKDW(NR,1)=chie_m(NR-2)
+            AKDW(NR,2)=chii_m(NR-2)
+            AKDW(NR,3)=chii_m(NR-2)
+            AKDW(NR,4)=chii_m(NR-2)
+            ADDW(NR,1)=diff_m(NR-2)
+            ADDW(NR,2)=diff_m(NR-2)
+            ADDW(NR,3)=diff_m(NR-2)
+            ADDW(NR,4)=diff_m(NR-2)
+C
+      DO NR=1,NRMAX
+C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
+         DO NS=1,4
+            IF(AKDW(NR,NS).LT.0.D0) THEN
+               AKDW(NR,NS)=0.D0
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      ELSEIF(MDLKAI.EQ.61) THEN
+C
+      do jm=0,jmaxm
+         diff_st(jm)=diff_m(jm)
+         chie_st(jm)=chie_m(jm)
+         chii_st(jm)=chii_m(jm)
+      enddo
+C
+      do j=1,jmaxm
+        drho=rho(j-1)-rho(j)+epsilon
+        zpte_m(j)=-(log(te_m(j-1))-log(te_m(j)))/drho
+        zpti_m(j)=-(log(ti_m(j-1))-log(ti_m(j)))/drho
+        zpne_m(j)=-(log(rne_m(j-1))-log(rne_m(j)))/drho
+        zpni_m(j)=-(log(rni_m(j-1))-log(rni_m(j)))/drho
+      enddo
+C
+      epsilon  = 1.e-10
+      igrad=1
+      deltat=0.03D0
+      do j=1,jmaxm-1
+         jmm=j
+         zpte_in=zpte_m(j)*(1.D0+deltat)
+         zpti_in=zpti_m(j)*(1.D0+deltat)
+         zpne_in=zpne_m(j)*(1.D0+deltat)
+         zpni_in=zpni_m(j)*(1.D0+deltat)
+C
+         call callglf2d( leigen, nroot, iglf
+     & , jshoot, jmm, jmaxm, itport_pt
+     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
+     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
+     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
+     & , zeff_exp, bt_exp, nbt_flag, rho
+     & , arho_exp, rgradrho_exp, rgradrhosq_exp
+     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
+     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
+     & , alpha_e, x_alpha, i_delay
+     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
+     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
+     & , exch_m, egamma_m, egamma_d, rgamma_p_m
+     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
+C
+         diff_mn(j)=diffnem
+         chie_mn(j)=chietem
+         chii_mn(j)=chiitim
+      enddo
+C
+      DO NR=2,NRMAX-1
+         zpte_inv=(1.D0+deltat)*zpte_m(NR-1)
+         zpti_inv=(1.D0+deltat)*zpti_m(NR-1)
+         zpne_inv=(1.D0+deltat)*zpne_m(NR-1)
+         zpni_inv=(1.D0+deltat)*zpni_m(NR-1)
+         AKDW(NR,1)=(chie_mn(NR-1)*zpte_inv-chie_st(NR-1)*zpte_m(NR-1))
+     &             /(zpte_inv-zpte_m(NR-1))
+         AKDW(NR,2)=(chii_mn(NR-1)*zpti_inv-chii_st(NR-1)*zpti_m(NR-1))
+     &             /(zpti_inv-zpti_m(NR-1))
+         AKDW(NR,3)=AKDW(NR,2)
+         AKDW(NR,4)=AKDW(NR,2)
+         AVK(NR,1)=(chie_st(NR-1)-AKDW(NR,1))*zpte_m(NR-1)
+         AVK(NR,2)=(chii_st(NR-1)-AKDW(NR,2))*zpti_m(NR-1)
+         AVK(NR,3)=AVK(NR,2)
+         AVK(NR,4)=AVK(NR,2)
+         ADDW(NR,1)=diff_m(NR-1)
+         ADDW(NR,2)=diff_m(NR-1)
+         ADDW(NR,3)=diff_m(NR-1)
+         ADDW(NR,4)=diff_m(NR-1)
+      ENDDO
+      NR=1
+         AKDW(NR,1)=AKDW(NR+1,1)
+         AKDW(NR,2)=AKDW(NR+1,2)
+         AKDW(NR,3)=AKDW(NR+1,3)
+         AKDW(NR,4)=AKDW(NR+1,4)
+         ADDW(NR,1)=ADDW(NR+1,1)
+         ADDW(NR,2)=ADDW(NR+1,2)
+         ADDW(NR,3)=ADDW(NR+1,3)
+         ADDW(NR,4)=ADDW(NR+1,4)
+      NR=NRMAX
+         AKDW(NR,1)=AKDW(NR-1,1)
+         AKDW(NR,2)=AKDW(NR-1,2)
+         AKDW(NR,3)=AKDW(NR-1,3)
+         AKDW(NR,4)=AKDW(NR-1,4)
+         ADDW(NR,1)=ADDW(NR-1,1)
+         ADDW(NR,2)=ADDW(NR-1,2)
+         ADDW(NR,3)=ADDW(NR-1,3)
+         ADDW(NR,4)=ADDW(NR-1,4)
+C
+      DO NR=1,NRMAX
+C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
+         DO NS=1,4
+            IF(AKDW(NR,NS).LT.0.D0) THEN
+               AKDW(NR,NS)=0.D0
+               IF(NS.EQ.1) THEN
+                  AVK(NR,NS)=chie_st(NR-1)*zpte_m(NR-1)
+               ELSE
+                  AVK(NR,NS)=chii_st(NR-1)*zpti_m(NR-1)
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO
+      ENDIF
+C
+      ENDIF
+C
       RETURN
       END
 C
@@ -1135,6 +1556,7 @@ C
 C
 C        ****** AVK : HEAT PINCH ******
 C
+      IF(MDLKAI.NE.61) THEN
       IF(MDLAVK.EQ.0) THEN
          DO NS=1,NSM
          DO NR=1,NRMAX
@@ -1163,6 +1585,7 @@ C
             AVK(NR,NS)=0.D0
          ENDDO
          ENDDO
+      ENDIF
       ENDIF
 C
       RETURN

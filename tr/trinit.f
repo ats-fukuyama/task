@@ -152,7 +152,7 @@ C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
 C
       MDLKAI = 31
       MDLETA = 2
-      MDLAD  = 1
+      MDLAD  = 0
       MDLAVK = 0
       MDLJBS = 3
       MDLKNC = 1
@@ -257,6 +257,7 @@ C     *** Error Indicator for UFILE Reader ***
       MDTT=0
       MDSURF=0
       MDRMJ=0
+      MDRMN=0
       MDGR1=0
       MDGR2=0
 C
@@ -724,11 +725,20 @@ C            SEX(NR,2)=PSBI*1.D-20
             SEX(NR,4)=0.D0
          ENDIF
 C
+C     *****
+C
+         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+         DO NS=1,NSM
+            RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+         ENDDO
+C
          PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
          DO NS=1,NSM
             RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
          ENDDO
-c
+C
+C     *****
+C     
          IF(MDLEQ0.EQ.1) THEN
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
             RN(NR,7) = (PN(7)-PNS(7))*PROF+PNS(7)
@@ -798,16 +808,16 @@ C
             BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
 C
-CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
          FACT=BPS/BP(NRMAX)
          DO NR=1,NRMAX
             AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
-CCC            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
-            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
-c$$$  write(6,*) QP(NR),BP(NR),AJ(NR)
+            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+CCC            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
+c$$$            write(6,*) QP(NR),BP(NR),AJ(NR)
          ENDDO
       ELSE
          KFILE='Q.PHI'
@@ -824,8 +834,8 @@ C         KFILE='CUR'
             CALL SPL1DF(RG(NR),PQ,RAD,UQPH,NUFMAX,IERR)
             IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PQ: IERR=',IERR
             QP(NR)=PQ
-CCC            BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
-            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
+            BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+CCC            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
          ENDDO
 c$$$         AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
 c$$$         AJOH(1)=AJ(1)
@@ -841,8 +851,8 @@ c$$$         ENDDO
             AJ(NR)=PCUR
             AJOH(NR)=PCUR
          ENDDO
-CCC         RIP=2.D0*PI*RA*FKAP*BP(NRMAX)/AMYU0*1.D-6
-         RIP=2.D0*PI*RA*RKAP*BP(NRMAX)/AMYU0*1.D-6
+         RIP=2.D0*PI*RA*FKAP*BP(NRMAX)/AMYU0*1.D-6
+CCC         RIP=2.D0*PI*RA*RKAP*BP(NRMAX)/AMYU0*1.D-6
          RIPS=RIP
          RIPSS=RIP
          RIPE=RIP
@@ -850,7 +860,7 @@ c$$$         DO NR=1,NRMAX
 c$$$            write(6,*) NR,AJ(NR)
 c$$$         ENDDO
       ENDIF
-      Q0=(4.D0*QP(1)-QP(2))/3.D0
+C      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
@@ -895,7 +905,7 @@ C
                EPS=RM(NR)*RA/RR
                EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
-C                  Q0=(4.D0*QP(1)-QP(2))/3.D0
+                  Q0=(4.D0*QP(1)-QP(2))/3.D0
                   QL= 0.25D0*(3.D0*Q0+QP(NR))
                   ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
                ELSE
@@ -927,16 +937,19 @@ C
          DO NR=2,NRMAX
             BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
+C         DO NR=1,NRMAX
+C            write(6,*) NR,AJ(NR),BP(NR)
+C         ENDDO
 C
-CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
          FACT=BPS/BP(NRMAX)
          DO NR=1,NRMAX
             AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
-CCC            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
-            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+CCC            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
          ENDDO
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
@@ -1005,10 +1018,12 @@ C
       DIMENSION DERIV(NURM+2)
       DIMENSION ASR(NURM)
       DIMENSION FFQ(NURM),FFTT(NURM),FFVOL(NURM),FFDVOL(NURM)
-      DIMENSION FFSURF(NURM),FFRMJ(NURM),FFGR1(NURM),FFGR2(NURM)
+      DIMENSION FFSURF(NURM),FFELL(NURM),FFRMJ(NURM),FFRMN(NURM)
+      DIMENSION FFGR1(NURM),FFGR2(NURM)
       DIMENSION UQEQ(4,NURM),UTTEQ(4,NURM)
       DIMENSION UVOLEQ(4,NURM),UDVOLEQ(4,NURM),USURFEQ(4,NURM)
-      DIMENSION URMJEQ(4,NURM),UGR1EQ(4,NURM),UGR2EQ(4,NURM)
+      DIMENSION UELLEQ(4,NURM),URMJEQ(4,NURM),URMNEQ(4,NURM)
+      DIMENSION UGR1EQ(4,NURM),UGR2EQ(4,NURM)
       CHARACTER KFILE*10
 C
       IF(MODELG.EQ.3) THEN
@@ -1113,13 +1128,17 @@ C            write(6,*) NR,HJRHO(NR)
                QRHO(NR)=QP(NR)
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-CCC               DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
-               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
+               DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
+CCC               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
                ABRHO(NR)=1.D0/(RA*RR)**2
                ARRHO(NR)=1.D0/RR**2
                AR1RHO(NR)=1.D0/RA
                AR2RHO(NR)=1.D0/RA**2
                EPSRHO(NR)=RA*RG(NR)/RR
+C
+               EKAPPA(NR)=RKAP
+               RMJRHO(NR)=RR
+               RMNRHO(NR)=RA*RG(NR)
             ENDDO
          ELSE
 C
@@ -1131,9 +1150,17 @@ C
          CALL UFREAD(KFILE,ASR,FFSURF,NUFMAX,MDSURF,IERR)
          CALL SPL1D(ASR,FFSURF,DERIV,USURFEQ,NUFMAX,0,IERR)
 C
+         KFILE='ELL.PHI'
+         CALL UFREAD(KFILE,ASR,FFELL,NUFMAX,MDELL,IERR)
+         CALL SPL1D(ASR,FFELL,DERIV,UELLEQ,NUFMAX,0,IERR)
+C
          KFILE='RMJ.PHI'
          CALL UFREAD(KFILE,ASR,FFRMJ,NUFMAX,MDRMJ,IERR)
          CALL SPL1D(ASR,FFRMJ,DERIV,URMJEQ,NUFMAX,0,IERR)
+C
+         KFILE='RMN.PHI'
+         CALL UFREAD(KFILE,ASR,FFRMN,NUFMAX,MDRMN,IERR)
+         CALL SPL1D(ASR,FFRMN,DERIV,URMNEQ,NUFMAX,0,IERR)
 C
          KFILE='GR1.PHI'
          CALL UFREAD(KFILE,ASR,FFGR1,NUFMAX,MDGR1,IERR)
@@ -1184,8 +1211,14 @@ C
             CALL SPL1DF(RADNOW,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
             IF(IERR.NE.0)
      &           WRITE(6,*) 'XX TRINIT: SPL1DF AVRRL2: IERR=',IERR
+            RMJRHO(NR)=AVRRL
             ARRHO(NR)=1.D0/AVRRL**2
 c$$$            TTRHO(NR)=AVRRL*BB
+C
+            CALL SPL1DF(RADNOW,AVRML,ASR,URMNEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF : IERR=',IERR
+            RMNRHO(NR)=AVRML
 C
             CALL SPL1DF(RADNOW,AVR1L,ASR,UGR1EQ,NUFMAX,IERR)
             IF(IERR.NE.0)
@@ -1196,6 +1229,11 @@ C
             IF(IERR.NE.0)
      &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR2L2: IERR=',IERR
             AR2RHO(NR)=AVR2L
+C
+            CALL SPL1DF(RADNOW,AVELL,ASR,UELLEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF : IERR=',IERR
+            EKAPPA(NR)=AVELL
          ENDDO
          ENDIF
       ENDIF

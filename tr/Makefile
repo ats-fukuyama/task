@@ -3,10 +3,12 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f
+     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
+     callglf2d.f glf2d.F r8tomsqz.F zgeev.f blas_zgeev.f
 SRC2D=trg2d.f
 SRC3D=trg3d.f
 SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
@@ -25,12 +27,12 @@ all: 3d
 
 3d: $(PROG3)
 
-$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) trcomm.h
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) -L/usr/local/lib -lgsgl-ixc
+$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) trcomm.h trglf.h glf.m
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) -L/usr/local/lib -lgsgl-pgf77
 
 2d : $(PROG2)
 
-$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) trcomm.h
+$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) trcomm.h trglf.h glf.m
 	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(FLIBS)
 
 check : $(SRCS)
@@ -60,7 +62,7 @@ trloop.o : trloop.f trcomm.h
 trrslt.o : trrslt.f trcomm.h
 
 trcalc.o : trcalc.f trcomm.h
-trcoef.o : trcoef.f trcomm.h
+trcoef.o : trcoef.f trcomm.h trglf.h
 trpnb.o  : trpnb.f  trcomm.h
 trprf.o  : trprf.f  trcomm.h
 trpnf.o  : trpnf.f  trcomm.h
@@ -74,8 +76,13 @@ trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
 trgrad.o : trgrad.f trcomm.h
 trgra2.o : trgra2.f trcomm.h
-trmtrx.o : trmtrx.f
-	$(FC) -c $(LFLAGS) trmtrx.f
+callglf2d.o : callglf2d.f glf.m
+glf2d.o  : glf2d.f glf.m f77_dcomplx.h
+	$(FC) $(FFLAGS) -o glf2d.o glf2d.F
+r8tomsqz.o : r8tomsqz.F f77_dcomplx.h
+	$(FC) $(FFLAGS) -o r8tomsqz.o r8tomsqz.F
+zgeev.o  : zgeev.f
+blas_zgeev.o : blas_zgeev.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
 ../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.inc ../eq/eqcom2.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc

@@ -112,10 +112,6 @@ C     /* Matrix Solver */
      &              ' AT ',NT,' STEP.'
          GOTO 9000
       ENDIF
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,*) NR,X(NEQRMAX*(NR-1)+1),X(NEQRMAX*(NR-1)+2)
-c$$$      ENDDO
-C      STOP
 C     
       DO J=1,NFM
       DO NR=1,NRMAX
@@ -368,8 +364,8 @@ C
      &          *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
 C
       IF(MDLCD.EQ.0) THEN
-C         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
       ELSE
          NEQ=1
          NSVN=NSS(NEQ)
@@ -445,6 +441,7 @@ C
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
      &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
          C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
+C         write(6,*) NV,NW,B(NV,NW,NR) 
       ENDDO
       ENDDO
 C
@@ -982,8 +979,8 @@ C
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
-CCC         FVL = FKAP/RKAP
-         FVL = 1.D0
+         FVL = FKAP/RKAP
+CCC         FVL = 1.D0
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF

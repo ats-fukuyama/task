@@ -1009,7 +1009,7 @@ C
 C
       KXNDEV='X'
 C      KXNDCG='11'
-      KXNDCG='14'
+      KXNDCG='test'
       KXNID ='sim'
 C
       CALL KTRIM(KXNDEV,IKNDEV)
