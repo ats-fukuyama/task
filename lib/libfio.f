@@ -33,7 +33,7 @@ C
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
          IF(KNAMFL(1:2).EQ.'  ') GOTO 9002
-      ELSEIF(MODEL.NE.0) THEN
+      ELSEIF(MODEP.NE.0) THEN
          WRITE(6,*) 'XX FROPEN: UNKNOWN MODEP : MODEP=',MODEP
          GOTO 9003
       ENDIF
@@ -117,7 +117,7 @@ C
       CHARACTER KNAMFL*80,KNAM*80,KPR*(*),KID*1
       LOGICAL LEX
 C
-      MODELPI=MODELP
+      MODEPI=MODEP
 C
  1000 IF(MODEPI.EQ.1) THEN
          KNAM=KNAMFL
@@ -133,17 +133,17 @@ C
       CALL KTRIM(KNAM,KL)
 C
       IF(LEX) THEN
-         IF(MODELP.EQ.2) THEN
-            MODELPI=1
+         IF(MODEP.EQ.2) THEN
+            MODEPI=1
             GOTO 1000
-         ELSEIF(MODELP.EQ.3) THEN
+         ELSEIF(MODEP.EQ.3) THEN
     2       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
             READ(5,'(A1)',ERR=2,END=9001) KID
             CALL GUCPTL(KID)
             IF(KID.EQ.'N') GOTO 9007
-         ELSEIF(MODELP.EQ.4) THEN
+         ELSEIF(MODEP.EQ.4) THEN
             WRITE(6,*) 'XX FWOPEN: FILE ALREADY EXISTS.'
             GOTO 9007
          ELSE
