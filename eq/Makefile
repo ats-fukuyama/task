@@ -57,6 +57,10 @@ eqcalc.o: eqcalc.f eqcom1.h eqcom2.h
 eqcalq.o: eqcalq.f eqcom1.h eqcom3.h
 eqgout.o: eqgout.f eqcom1.h eqcom2.h
 eqshow.o: eqshow.f eqcom1.h eqcom3.h
-eqtest.o: eqtest.f eqcom1.h eqcom3.h
+pltest.o: pltest.f eqcom1.h eqcom3.h
 pleqin.o: pleqin.f eqcom1.h eqcom3.h
+aktest.o: aktest.f eqcom1.h eqcom3.h
+akeqin.o: akeqin.f eqcom1.h eqcom3.h
 eqload.o: eqload.f eqcom1.h eqcom3.h
+
+
