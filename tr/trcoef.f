@@ -1026,6 +1026,8 @@ C
 C         DO NR=1,NRMAX
 C            write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
 C         ENDDO
+      ELSEIF(MDLKAI.EQ.63) THEN
+         CALL TR_WEILAND
       ENDIF
 C
       RETURN

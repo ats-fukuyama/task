@@ -9,7 +9,8 @@ FFLAGS = $(OFLAGS)
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
-     callglf2d.f zgeev.f blas_zgeev.f ifspppl/ifspppl_model.f
+     callglf2d.f zgeev.f blas_zgeev.f itg/ifspppl_model.f \
+     trwld.f itg/weiland.f
 SRCF=glf2d.F r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
@@ -49,7 +50,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRC3D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o ifspppl/*.o a.out core
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o a.out core
 
 veryclean : clean
 	rm -f $(PROG) $(PROG3)
@@ -99,7 +100,9 @@ trncls.o : trncls.f trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-ifspppl/ifspppl_model.o : ifspppl/ifspppl_model.f
+itg/ifspppl_model.o : itg/ifspppl_model.f
+trwld.o  : trwld.f trcomm.inc trcom0.inc
+itg/weiland.o: itg/weiland.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
 ../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.inc ../eq/eqcom2.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc

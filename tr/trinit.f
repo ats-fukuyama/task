@@ -131,7 +131,9 @@ C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
 C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
 C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
 C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
-C                                                                  
+C        ***** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL *****
+C        *****       MDLKAI.GE.60 : THEORY BASED ITG(/TEM, ETG) MODEL *****
+C
 C           *****  MDLKAI.EQ. 0   : CONSTANT *****
 C           *****  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2) *****
 C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2) *****
@@ -157,6 +159,11 @@ C           *****  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5) *****
 C           *****  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2) *****
 C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
 C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
+C
+C           *****  MDLKAI.EQ. 60  : GLF23 model *****
+C           *****  MDLKAI.EQ. 61  : GLF23 (numerical stability enhanced version) *****
+C           *****  MDLKAI.EQ. 62  : IFS/PPPL model *****
+C           *****  MDLKAI.EQ. 63  : Weiland model *****
 C
       MDLKAI = 31
       MDLETA = 3
