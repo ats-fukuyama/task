@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCALC(IERR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
@@ -242,7 +242,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRZEFF
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLUF.EQ.3) THEN
          DO NR=1,NRMAX
@@ -373,7 +373,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRLOSS
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLUF.NE.0) THEN
          IF(NT.EQ.0) THEN
@@ -456,7 +456,7 @@ C     ***********************************************
 C
       SUBROUTINE TRAJBS_NCLASS
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
@@ -510,7 +510,7 @@ C     ***********************************************
 C
       SUBROUTINE TRAJBSSAUTER
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION ANI(NRM),AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
@@ -564,14 +564,12 @@ C
 C     *** ANE  is the the electron density (ne) ***
 C     *** TE   is the electron temperature (Te) ***
 C     *** PE   is the electron pressure (Pe) ***
-C     *** DNE  is the derivative of electron density (dne/dr) ***
 C     *** DTE  is the derivative of electron temperature (dTe/dr) ***
 C     *** DPE  is the derivative of electron pressure (dPe/dr) ***
 C
          ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
          TE= 0.5D0*(RT(NR+1,1)+RT(NR,1))
          PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
-         DNE=(RN(NR+1,1)-RN(NR,1))*DRL
          DTE=(RT(NR+1,1)-RT(NR,1))*DRL
          DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
 C
@@ -671,14 +669,12 @@ C
 C     *** ANE  is the the electron density (ne) ***
 C     *** TE   is the electron temperature (Te) ***
 C     *** PE   is the electron pressure (Pe) ***
-C     *** DNE  is the derivative of electron density (dne/dr) ***
 C     *** DTE  is the derivative of electron temperature (dTe/dr) ***
 C     *** DPE  is the derivative of electron pressure (dPe/dr) ***
 C
          ANE=PNSS(1)
          TE =PTS(1)
          PE =PNSS(1)*PTS(1)
-         DNE=2.D0*(PNSS(1)-RN(NR,1))*DRL
          DTE=2.D0*(PTS (1)-RT(NR,1))*DRL
          DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
 C     
@@ -788,7 +784,7 @@ C     ************************************************
 C
       SUBROUTINE TRAJBSNEW
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION ANI(NRM),AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
@@ -796,9 +792,9 @@ C
       DO NR=1,NRMAX-1
 C
          EPS=EPSRHO(NR)
-         EPSS=SQRT(EPS)**3
-         QL=ABS(QP(NR))
-         ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
+C         EPSS=SQRT(EPS)**3
+C         QL=ABS(QP(NR))
+C         ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
          DRL=1.D0/DR
 C
          RNTP=0.D0
@@ -831,15 +827,15 @@ C
          PPI=0.5D0*(RNTP+RNTM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
          DPI=(RNTP-RNTM)*DRL
-         VTI=SQRT(ABS(TI)*RKEV/AMM)
+C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
-         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
-         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
-     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
-     &             *ZEFFL**4*AEE**4*rLnLam)
+C         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
+C         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
+C         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
+C     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
+C     &             *ZEFFL**4*AEE**4*rLnLam)
 C
-         RNUI=QL*RR/(TAUI*VTI*EPSS)
+C         RNUI=QL*RR/(TAUI*VTI*EPSS)
 C
 C     ****** ELECTORON PARAMETER ******
 C
@@ -854,19 +850,19 @@ C
          PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
          DTE=(RT(NR+1,1)-RT(NR,1))*DRL
          DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
-         VTE=SQRT(ABS(TE)*RKEV/AME)
+C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
-         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
-     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
-     &             *ZEFFL**2*AEE**4*rLnLam)
+C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
+C         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
+C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
+C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
-         RNUE=QL*RR/(TAUE*VTE*EPSS)
+C         RNUE=QL*RR/(TAUE*VTE*EPSS)
 C
 C         FT=1.D0-(1.D0-EPS)**2.D0
 C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
 C         FT=1.46D0*SQRT(EPS)
-         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5
+         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
 C         DDD=-1.17D0/(1.D0+0.46D0*FT)
@@ -907,9 +903,9 @@ C
 C
       NR=NRMAX
          EPS=EPSRHO(NR)
-         EPSS=SQRT(EPS)**3
-         QL=ABS(QP(NR))
-         ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
+C         EPSS=SQRT(EPS)**3
+C         QL=ABS(QP(NR))
+C         ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
          DRL=1.D0/DR
 C
          RNTP=0.D0
@@ -942,15 +938,15 @@ C
          PPI=RNTP
          DTI=2.D0*(RNTP/RNP-RNTM/RNM)*DRL
          DPI=2.D0*(RNTP-RNTM)*DRL
-         VTI=SQRT(ABS(TI)*RKEV/AMM)
+C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
-         ANE=PNSS(1)
-         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
-     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
-     &             *ZEFFL**4*AEE**4*rLnLam)
+C         ANE=PNSS(1)
+C         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
+C         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
+C     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
+C     &             *ZEFFL**4*AEE**4*rLnLam)
 C
-         RNUI=QL*RR/(TAUI*VTI*EPSS)
+C         RNUI=QL*RR/(TAUI*VTI*EPSS)
 C
 C     ****** ELECTORON PARAMETER ******
 C
@@ -965,19 +961,19 @@ C
          PE =PNSS(1)*PTS(1)
          DTE=2.D0*(PTS(1)-RT(NR,1))*DRL
          DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
-         VTE=SQRT(ABS(TE)*RKEV/AME)
+C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
-         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
-     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
-     &             *ZEFFL**2*AEE**4*rLnLam)
+C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
+C         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
+C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
+C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
-         RNUE=QL*RR/(TAUE*VTE*EPSS)
+C         RNUE=QL*RR/(TAUE*VTE*EPSS)
 C
 C         FT=1.D0-(1.D0-EPS)**2.D0
 C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
 C         FT=1.46D0*SQRT(EPS)
-         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5
+         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
 C         DDD=-1.17D0/(1.D0+0.46D0*FT)
@@ -1031,7 +1027,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRAJBS
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION AJBSL(NRM)
 C     
 C     ZEFF=1
@@ -1274,7 +1270,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRAJBSO
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
 C     ZEFF=1
 C
@@ -1424,7 +1420,7 @@ C     ***********************************************************
 C
       SUBROUTINE OLDTRAJBS
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(PBSCD.LE.0.D0) RETURN
 C
@@ -1540,7 +1536,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRAJOH
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
       NR=1
@@ -1582,7 +1578,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRSAWT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       DIMENSION QONE(NRM)
 C

@@ -8,7 +8,7 @@ C     **************************************************************
 C
       SUBROUTINE TRGRUR(GVD,STR,KV,INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER STR*80,KV*80
       DIMENSION GVD(NRM,NTM)
 C

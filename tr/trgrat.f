@@ -75,7 +75,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -132,7 +132,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT2(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -189,7 +189,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT3(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -243,7 +243,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT4(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -284,7 +284,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT5(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(NGST.EQ.0) RETURN
 C
@@ -358,7 +358,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT6(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -458,7 +458,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT7(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -532,7 +532,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT8(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -569,7 +569,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRX1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C

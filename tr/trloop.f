@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRLOOP
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       COMMON /PRETREAT2/ NTAMAX
 C
       DIMENSION XX(MLM),YY(2,NRM)
@@ -279,7 +279,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRMTRX(NEQRMAX)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
       COMMON /TRLCL2/ D(NVM,NRM)
@@ -386,7 +386,7 @@ C
             NSSN1=NSS(NEQ1)
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
+               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &           *AMZ(NSSN1))*DV53*1.5D0
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -445,7 +445,7 @@ C
                NSSN1=NSS(NEQ1)
                NSSN =NSS(NEQ )
                IF(NSSN1.NE.NSSN) THEN
-                  C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
+                  C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &                 *AMZ(NSSN1))*DV53*1.5D0
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -507,7 +507,7 @@ C
             NSSN1=NSS(NEQ1)
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
+               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &              *AMZ(NSSN1))*DV53*1.5D0
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -583,7 +583,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_BAND_GEN(NR,NEQRMAX,ADV)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
       COMMON /TRLCL3/ RD(NEQM,NRM)
@@ -632,7 +632,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_BANDREDUCE(A,XR,P,NEQRMAX)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C     
       DIMENSION A(NEQM,NEQM),AA(NEQM,NEQM)
       DIMENSION XR(NEQM),P(NEQM),AL(NEQM,NEQM),AM(NEQM)
@@ -725,7 +725,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRATOX
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
@@ -756,7 +756,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRXTOA
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLUF.EQ.0) THEN
 C
@@ -851,7 +851,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRATOTN
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C     
       IF(NGT.GE.NTM) RETURN
 C
@@ -886,7 +886,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCHCK(ICHCK)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       ICHCK = 0
       DO NEQ=1,NEQMAX
@@ -944,7 +944,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_COEF_DECIDE(NR,NSW,DV53)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
       COMMON /TRLCL2/ D(NVM,NRM)
       COMMON /TRLCL3/ RD(NEQM,NRM)
@@ -1475,7 +1475,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_IONIZATION(NR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
 C
       IF(MDLEQ0.EQ.1) THEN
@@ -1527,7 +1527,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_CHARGE_EXCHANGE(NR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
 C
       IF(MDLEQ0.EQ.1) THEN

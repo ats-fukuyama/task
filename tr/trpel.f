@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPELT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(PELTOT.LE.0.D0) RETURN
 C
@@ -35,7 +35,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPELA
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       FSUM = 0.D0
       DO NR=1,NRMAX
@@ -62,7 +62,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPELB
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       NR = NRMAX
       RP = PELRAD
@@ -145,7 +145,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPELC
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       NR = NRMAX
       RP = PELRAD

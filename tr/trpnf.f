@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRALPH
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLNF.EQ.0) THEN
          DO 5 NR=1,NRMAX

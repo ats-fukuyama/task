@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRINIT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       NT=0
 C
@@ -313,7 +313,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPARM(KID)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
@@ -438,7 +438,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRVIEW(ID)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       WRITE(6,*) '** TRANSPORT **'
       WRITE(6,602) 'MDLEQB',MDLEQB,
@@ -603,7 +603,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPROF
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       COMMON /PRETREAT2/ NTAMAX
 C
 C     ZEFF=1
@@ -630,7 +630,6 @@ C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
          RR=RRU(1)
-C         write(6,*) RRU(1),RAU(1),RKAPU(1),BBU(1)
          RA=RAU(1)
          RKAP=RKAPU(1)
          BB=BBU(1)
@@ -1380,7 +1379,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRSETG
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MODELG.EQ.3) THEN
         DO NR=1,NRMAX
@@ -1538,7 +1537,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCONV(L,IERR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION AJOLD(NRM),AJDLT(NRM)
 C
       IERR=0
@@ -1597,7 +1596,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_EQS_SELECT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLUF.NE.0.AND.MDNI.NE.0) THEN
          NSMAX=3
@@ -1727,7 +1726,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       REM=AME/AMM
       IF(NS.LE.NSMAX) THEN
@@ -1850,7 +1849,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRSTGF
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLUF.NE.0) THEN
          DO NR=1,NRMAX
@@ -1900,7 +1899,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGFRG
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       DO NR=1,NRMAX-1
          AR1RHOG(NR)=0.5D0*(AR1RHO(NR)+AR1RHO(NR+1))
@@ -1936,7 +1935,7 @@ C     ***********************************************************
 C
       SUBROUTINE TR_EDGE_SELECTOR(NSW)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION PNSSO(NSTM),PTSO(NSTM),PNSSAO(NSTM),PTSAO(NSTM)
       SAVE PNSSO,PTSO,PNSSAO,PTSAO
 C
@@ -1945,8 +1944,8 @@ C
       IF(MDLUF.EQ.0) THEN
          IF(NSW.EQ.0) THEN
             DO NS=1,NSM
-               PNSSO (NS)=PNSS(NS)
-               PTSO  (NS)=PTS (NS)
+               PNSSO(NS)=PNSS(NS)
+               PTSO (NS)=PTS (NS)
 C
                PNSS (NS)=PNSSAO(NS)
                PTS  (NS)=PTSAO (NS)

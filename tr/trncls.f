@@ -77,7 +77,7 @@ C
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
@@ -121,9 +121,6 @@ C
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 C
-      DO NS=1,mx_mi
-         amu_i(NS)=0.D0
-      ENDDO
       DO NS=1,NSMAX
          amu_i(NS)=SNGL(PA(NS))
       ENDDO
@@ -146,25 +143,25 @@ C      IF(NSMAX.EQ.2) THEN
      &          /DR)*SNGL(RKEV)
      &          /(SNGL(PZ(NS)*AEE*PNSS(NS)))
          p_grstr(NR)=p_grphi
-c$$$         p_gr2str(1)=(p_grstr(2)-0.E0)/DR
+c$$$         p_gr2str(1)=(p_grstr(2)-0.0)/DR
 c$$$         DO NR=2,NRMAX-1
 c$$$            p_gr2str(NR)=(p_grstr(NR+1)-p_grstr(NR-1))/DR
 c$$$         ENDDO
-c$$$         p_gr2str(NRMAX)=(0.E0-p_grstr(NRMAX-1))/DR
+c$$$         p_gr2str(NRMAX)=(0.0-p_grstr(NRMAX-1))/DR
 C
          DO NR=2,NRMAX
             p_grrm(NR)=0.5E0*(p_grstr(NR  )/SNGL(BP(NR  ))
      &                       +p_grstr(NR-1)/SNGL(BP(NR-1)))
          ENDDO
-         p_grrm(1)=2.E0*p_grrm(2)-p_grrm(3)
+         p_grrm(1)=2.0*p_grrm(2)-p_grrm(3)
          DO NR=1,NRMAX-1
             p_gr2str(NR)=SNGL(BP(NR))*(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
          ENDDO
-         p_gr2str(NRMAX)=2.E0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
+         p_gr2str(NRMAX)=2.0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
 C      ELSE
 C         DO NR=1,NRMAX
-C            p_grstr(NR)=0.E0
-C            p_gr2str(NR)=0.E0
+C            p_grstr(NR)=0.0
+C            p_gr2str(NR)=0.0
 C         ENDDO
 C      ENDIF
 C
@@ -182,15 +179,15 @@ C
                p_fm(i)=SNGL(DBLE(i)*((1.D0-SQRT(1.D0-EPS**2))/EPS)
      &                 **(2*i)
      &                 *(1.D0+DBLE(i)*SQRT(1.D0-EPS**2))/((1.D0-EPS**2)
-     &                 **1.5*(QP(NR)*RR)**2))
+     &                 **1.5D0*(QP(NR)*RR)**2))
             ENDDO   
          ENDIF
-         p_ft1=SNGL(1.D0-(1.D0-EPS)**2.D0/(DSQRT(1.D0-EPS**2)
-     &        *(1.D0+1.46D0*DSQRT(EPS))))
-         p_ft2=SNGL(1.46D0*SQRT(EPS))
-         p_ft3=SNGL(0.75D0*(1.5D0*SQRT(EPS))
-     &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS)))
-         p_ft=p_ft1
+         p_ft1=1.D0-(1.D0-EPS)**2.D0/(DSQRT(1.D0-EPS**2)
+     &        *(1.D0+1.46D0*DSQRT(EPS)))
+         p_ft2=1.46D0*SQRT(EPS)
+         p_ft3=0.75D0*(1.5D0*SQRT(EPS))
+     &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS))
+         p_ft=SNGL(p_ft1)
 C         p_grbm2=SNGL(AR2RHOG(NR)/BB**2)
 C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grbm2=SNGL(AR2RHOG(NR))/p_b2
@@ -206,7 +203,7 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
      &              =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
      &              /DR)*1.E20
                DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
                ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
@@ -220,7 +217,7 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
      &                 =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
      &                 /DR)*1.E20
                   DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.E0
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
                   ENDDO
                ENDDO
             ENDIF
@@ -236,7 +233,7 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
      &             =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
      &              /DR)*1.E20
                DO NA=1,3
-                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
                ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
@@ -251,7 +248,7 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
      &               =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
      &                 /DR)*1.E20
                   DO NA=1,3
-                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.E0
+                     fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
                   ENDDO
                ENDDO
             ENDIF

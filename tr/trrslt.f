@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGLOB
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF (MODELG.EQ.3) THEN
          RKAP=1.D0
@@ -336,7 +336,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRATOT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION DERIV(NRM),U(4,NRM),U0(NRM)
 C
       IF(NGT.GE.NTM) RETURN
@@ -559,7 +559,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRATOG
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(NGR.GE.NGM) RETURN
       NGR=NGR+1
@@ -610,7 +610,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPRNT(KID)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CHARACTER KID*1
       CHARACTER K1*3,K2*3,K3*3,K4*3,K5*3,K6*3
@@ -853,7 +853,8 @@ C
          READ(5,'(A40)',END=9000,ERR=1600) KCOM
 C
 C         OPEN(16,POSITION='APPEND',FILE=KFNLOG)
-         OPEN(16,ACCESS='APPEND',FILE=KFNLOG)
+C         OPEN(16,ACCESS='APPEND',FILE=KFNLOG)
+         OPEN(16,ACCESS='SEQUENTIAL',FILE=KFNLOG)
 C
          CALL GUDATE(NDY,NDM,NDD,NTH1,NTM1,NTS1)
          WRITE(K1,'(I3)') 100+NDY
@@ -921,7 +922,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRDATA
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
     1 WRITE(6,*) '## INPUT MODE : 1:GVT(NT)  2:GVR(NR)  3:GVR(NG)'
       READ(5,*,END=9000,ERR=1) NID
@@ -968,7 +969,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRMXMN(N,STR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CHARACTER STR*7
 C
@@ -994,7 +995,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRSNAP
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       WRITE(6,601) T,WPT,TAUE1,Q0,RT(1,1),RT(1,2),RT(1,3),RT(1,4)
   601 FORMAT(' ','# T: ',F7.3,'(S)     WP:',F7.2,'(MJ)  ',
@@ -1013,7 +1014,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRXOUT
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C      INCLUDE 'trxcom.f'
 C
       COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
@@ -1240,7 +1241,7 @@ C     *****
 C
       SUBROUTINE TR_UFILE1D_CREATE(KFID,NUM,AMP,IERR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION GTL(NTM),GF1(NTM),TF(NTM),F1(NRM)
       DIMENSION DGT(NTM),DIN(NTM),DERIV(NTM),UOUT(4,NTM)
       DIMENSION DERIVQ(NRM),UQ95(4,NRM)
@@ -1301,7 +1302,7 @@ C
             ENDIF
             DO NTL=1,NGT
                DO NRL=1,NRMAX
-                  F1(NRL)=G3D(NRL,NTL,27)
+                  F1(NRL)=DBLE(G3D(NRL,NTL,27))
                ENDDO
                CALL SPL1D (RG,F1,DERIVQ,UQ95,NRMAX,0,IERR)
                CALL SPL1DF(0.95D0,FQ95,RG,UQ95,NRMAX,IERR)
@@ -1340,7 +1341,7 @@ C
       ENDIF
 C
       DTL=0.05D0
-      NTLMAX=INT((GT(NGT)-GT(1))/DTL)+1
+      NTLMAX=INT((GT(NGT)-GT(1))/SNGL(DTL))+1
 C
       DO NTL=1,NTLMAX
          TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
@@ -1361,7 +1362,7 @@ C     *****
 C
       SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION GF2(NRMP,NTM),GRL(NRMP),GTL(NTM)
       DIMENSION DGT(NTM),DIN(NTM)
       DIMENSION DERIV(NTM),U(4,NTM)
@@ -1373,10 +1374,10 @@ C
 C
       NRLMAX=NRMAX
       DTL=0.05D0
-      NTLMAX=INT((GT(NGT)-GT(1))/DTL)+1
+      NTLMAX=INT((GT(NGT)-GT(1))/SNGL(DTL))+1
       IF(ID.EQ.0) THEN
-         GRL(NRL)=GRM(NRL)
          DO NRL=1,NRLMAX
+            GRL(NRL)=GRM(NRL)
             DO NTL=1,NGT
                DIN(NTL)=DBLE(G3D(NRL,NTL,NUM))
             ENDDO

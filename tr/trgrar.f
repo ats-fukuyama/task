@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR0(K2,INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER K2*1
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -50,7 +50,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -121,7 +121,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR2(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -180,7 +180,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR3(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -236,7 +236,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR4(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -291,7 +291,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR5(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -334,7 +334,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR6(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -414,7 +414,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR7(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION RQFLSUM(NRMP,NSM)
       DIMENSION RNN(NRM,NSM),DTN(NRM,NSM)
       DIMENSION AKNCG(NRM,NSM)
@@ -568,7 +568,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR8(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -623,7 +623,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR9(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION RGFLSUM(NRMP,NSM)
       DIMENSION DNN(NRM,NSM)
       DIMENSION ADNCG(NRMP,NSM)
@@ -710,7 +710,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRY1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C

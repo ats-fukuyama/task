@@ -22,7 +22,7 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
       nclass/u_lu_backsub.f nclass/u_lu_decomp.f
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
-INCGLF=trglf.h glf.m
+INCGLF=trglf.inc glf.m
 
 OBJS=$(SRCS:.f=.o) $(SRCF:.F=.o)
 OBJ2D=$(SRC2D:.f=.o)
@@ -37,16 +37,16 @@ all: 3d 2d
 
 3d: $(PROG3)
 
-$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.h $(INCNC) $(INCGLF)
+$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
 	-$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(GLLIBS)
 
 2d : $(PROG2)
 
-$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) trcomm.h $(INCNC) $(INCGLF)
+$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
 	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(FLIBS)
 
 check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(FCKPIPE) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRC3D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
 	rm -f ./#* ./*~ *.o nclass/*.o ifspppl/*.o a.out core
@@ -59,35 +59,35 @@ new :
 	cp Makefile ../trnew
 	-cp -f HISTORY ../trnew
 	cp *.f ../trnew
-	cp *.h ../trnew
+	cp *.inc ../trnew
 	-mkdir ../trnew/in
 	-cp -f in/* ../trnew/in
 	-mkdir ../trnew/doc
 	-cp -f doc/* ../trnew/doc
 
-trmain.o : trmain.f trcomm.h
-trinit.o : trinit.f trcomm.h
-trfile.o : trfile.f trcomm.h
-trloop.o : trloop.f trcomm.h
-trrslt.o : trrslt.f trcomm.h
+trmain.o : trmain.f trcomm.inc trcom0.inc 
+trinit.o : trinit.f trcomm.inc trcom0.inc
+trfile.o : trfile.f trcomm.inc trcom0.inc
+trloop.o : trloop.f trcomm.inc trcom0.inc
+trrslt.o : trrslt.f trcomm.inc trcom0.inc
 
-trcalc.o : trcalc.f trcomm.h
-trcoef.o : trcoef.f trcomm.h trglf.h
-trpnb.o  : trpnb.f  trcomm.h
-trprf.o  : trprf.f  trcomm.h
-trpnf.o  : trpnf.f  trcomm.h
-trpel.o  : trpel.f  trcomm.h
+trcalc.o : trcalc.f trcomm.inc trcom0.inc
+trcoef.o : trcoef.f trcomm.inc trcom0.inc trglf.inc
+trpnb.o  : trpnb.f  trcomm.inc trcom0.inc
+trprf.o  : trprf.f  trcomm.inc trcom0.inc
+trpnf.o  : trpnf.f  trcomm.inc trcom0.inc
+trpel.o  : trpel.f  trcomm.inc trcom0.inc
 
-trgrar.o : trgrar.f trcomm.h
-trgrat.o : trgrat.f trcomm.h
-trgrap.o : trgrap.f trcomm.h
-trgrae.o : trgrae.f trcomm.h
-trgrad.o : trgrad.f trcomm.h
-trgsub.o : trgsub.f trcomm.h
-trhelp.o : trhelp.f trcomm.h
-trgrad.o : trgrad.f trcomm.h
-trg2d.o  : trg2d.f  trcomm.h
-trg3d.o  : trg3d.f  trcomm.h
+trgrar.o : trgrar.f trcomm.inc trcom0.inc
+trgrat.o : trgrat.f trcomm.inc trcom0.inc
+trgrap.o : trgrap.f trcomm.inc trcom0.inc
+trgrae.o : trgrae.f trcomm.inc trcom0.inc
+trgrad.o : trgrad.f trcomm.inc trcom0.inc
+trgsub.o : trgsub.f trcomm.inc trcom0.inc
+trhelp.o : trhelp.f trcomm.inc trcom0.inc
+trgrad.o : trgrad.f trcomm.inc trcom0.inc
+trg2d.o  : trg2d.f  trcomm.inc trcom0.inc
+trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 callglf2d.o : callglf2d.f glf.m
 glf2d.o  : glf2d.F glf.m f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf2d.o glf2d.F
@@ -95,7 +95,7 @@ r8tomsqz.o : r8tomsqz.F f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o r8tomsqz.o r8tomsqz.F
 zgeev.o  : zgeev.f
 blas_zgeev.o : blas_zgeev.f
-trncls.o : trncls.f trncls.inc trcomm.h nclass/pamx_mi.inc \
+trncls.o : trncls.f trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc

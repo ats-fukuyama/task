@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPWRF
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(PECTOT+PLHTOT+PICTOT.LE.0.D0) RETURN
 C
@@ -78,7 +78,7 @@ C
      &               +(1.D0-PLHTOE)*PLHL
      &               +(1.D0-PICTOE)*PICL
          PRFV(NR,2,1)=(1.D0-PECTOE)*PECL
-         PRFV(NR,2,2)=(1.D0-PLHTOE)*PLCL
+         PRFV(NR,2,2)=(1.D0-PLHTOE)*PLHL
          PRFV(NR,2,3)=(1.D0-PICTOE)*PICL
 C
          RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))

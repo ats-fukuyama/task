@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG0(K2,INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER K2*1
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -50,7 +50,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -82,7 +82,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG2(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -114,7 +114,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG3(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -146,7 +146,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG4(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -178,7 +178,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG5(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -210,7 +210,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG6(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -243,7 +243,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG7(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -275,7 +275,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRGA(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION GWR(NRMP,NGM)
 C
       CALL PAGES
@@ -321,7 +321,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRP1(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -350,7 +350,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRP2(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -379,7 +379,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRP3(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -408,7 +408,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRP4(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -437,7 +437,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRP5(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C

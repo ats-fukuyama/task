@@ -35,7 +35,7 @@ C     *        V2.21 : 00/04/19                                     *
 C     *                                                             *
 C     ***************************************************************
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CHARACTER KID*1,LINE*80
       CHARACTER KIG*5,K1*1,K2*1,K3*1,K4*1,K5*1,KK*3

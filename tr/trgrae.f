@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRE0(K2,INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER K2*1
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -33,7 +33,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRE8(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C
@@ -80,7 +80,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRE9(INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL PAGES
 C

@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRPWNB
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(MDLNB.EQ.0) THEN
          DO NR=1,NRMAX
@@ -44,7 +44,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRNBIA
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
@@ -71,7 +71,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRNBIB
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       DIMENSION AP(10),AR(10)
       DATA AP/0.0D0,1.0D0,2.0D0,3.0D0,4.0D0,
@@ -105,7 +105,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRNBPB(R0,RWD,RDD)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
@@ -334,7 +334,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRAJNB
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       AMD=AMM*PA(2)
       AMT=AMM*PA(3)
@@ -419,7 +419,7 @@ C     ***********************************************************
 C
       FUNCTION HY(V)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       HY = 2.D0*(LOG((V**3+1.D0)/(V+1.D0)**3)/6.D0
      &      +(ATAN((2.D0*V-1.D0)/SQRT(3.D0))+PI/6.D0)

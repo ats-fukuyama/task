@@ -7,7 +7,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCOEF
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
       CALL TRCFDW
       CALL TRCFNC
@@ -21,8 +21,8 @@ C     ***********************************************************
 C
       SUBROUTINE TRCFDW
 C
-      INCLUDE 'trcomm.h'
-      INCLUDE 'trglf.h'
+      INCLUDE 'trcomm.inc'
+      INCLUDE 'trglf.inc'
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -924,7 +924,7 @@ C
          chii_st(jm)=chii_m(jm)
       enddo
 C
-      epsilon  = 1.e-10
+      epsilon  = 1.D-10
       do j=1,jmaxm
         drho=rho(j-1)-rho(j)+epsilon
         zpte_m(j)=-(log(te_m(j-1))-log(te_m(j)))/drho
@@ -1091,7 +1091,8 @@ C
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(EKAPPA(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5)
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
+     &                 /RT(NR,1)**1.5D0)
 C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
          gtau   = SNGL( (RT(NR+1,2)+RT(NR,2))
      &                 /(RT(NR+1,1)+RT(NR,1)))
@@ -1134,7 +1135,8 @@ C
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(EKAPPA(NR))
-         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5)
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
+     &                 /RT(NR,1)**1.5D0)
          gtau   = SNGL(PTS(2)/PTS(1))
 C
          ne19   = SNGL(PNSS(1)*1.D1)
@@ -1167,7 +1169,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCFNC
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
 C     ZEFF=1
 C
@@ -1420,7 +1422,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCFET
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
 C
 C     ZEFF=1
 C
@@ -1500,13 +1502,13 @@ C
             ZEFFL=ZEFF(NR)
             rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
             RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
-            SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+            SGMSPTZ=1.9012D4*(TE*1.D3)**1.5D0/(ZEFFL*RNZ*rLnLame)
             FT=1.D0-(1.D0-EPS)**2.D0
      &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
             RNUE=6.921D-18*ABS(QL)*RR*ANE*1.D20*ZEFFL*rLnLame
      &          /((TE*1.D3)**2*EPSS)
             F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
-     &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
+     &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5D0)
             ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
          ENDIF
   150 CONTINUE
@@ -1527,7 +1529,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRCFAD
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       DIMENSION ACOEF(2),BCOEF(5)
 C
 C     ZEFF=1

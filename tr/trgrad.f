@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRD0(K2,K3,INQ)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER K2*1,K3*3,KK*4
       CHARACTER STRL*80,KVL*80
 C
@@ -44,7 +44,7 @@ C     **************************************************************
 C
       SUBROUTINE TRGRTD(STRL,KVL,NMB)
 C
-      INCLUDE 'trcomm.h'
+      INCLUDE 'trcomm.inc'
       CHARACTER STRL*80,KVL*80
       CHARACTER STR0(57)*80,KV0(57)*80
 C
