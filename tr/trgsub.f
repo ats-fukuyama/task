@@ -494,19 +494,19 @@ C
       ENDDO
       CALL TRAJBSO
       DO NR=1,NRMAX
-         GJB(NR,1)=GCLIP(AJBS(NR)*1.D-6)
+         GJB(NR,5)=GCLIP(AJBS(NR)*1.D-6)
       ENDDO
       CALL TRAJBS
       DO NR=1,NRMAX
-         GJB(NR,2)=GCLIP(AJBS(NR)*1.D-6)
+         GJB(NR,1)=GCLIP(AJBS(NR)*1.D-6)
       ENDDO
       CALL TRAJBSNEW
       DO NR=1,NRMAX
-         GJB(NR,3)=GCLIP(AJBS(NR)*1.D-6)
+         GJB(NR,2)=GCLIP(AJBS(NR)*1.D-6)
       ENDDO
       CALL TRAJBSSAUTER
       DO NR=1,NRMAX
-         GJB(NR,4)=GCLIP(AJBS(NR)*1.D-6)
+         GJB(NR,3)=GCLIP(AJBS(NR)*1.D-6)
       ENDDO
 C
       MDLETASTCK=MDLETA
@@ -525,7 +525,7 @@ C
       CALL TR_NCLASS
       CALL TRAJBS_NCLASS
       DO NR=1,NRMAX
-         GJB(NR,5)=GCLIP(AJBS(NR)*1.D-6)
+         GJB(NR,4)=GCLIP(AJBS(NR)*1.D-6)
          GET(NR,4)=GLOG(ETANC(NR),1.D-10,1.D0)
       ENDDO
       MDNCLS=MDNCLSSTCK
@@ -588,7 +588,7 @@ C
 C     *** Graphic Routine ***
 C
       CALL PAGES
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GJB,NRMP,NRMAX,5,
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GJB,NRMP,NRMAX,4,
      &            '@JBS [MA/m^2]  vs r@',2)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,4,
      &            '@LOG:ETA  vs r @',11)

@@ -77,10 +77,16 @@ C
          ENDIF
       ENDIF
 C
+C      IF(MDLUF.EQ.3) THEN
+C         DO NR=1,NRMAX
+C            AJBS(NR)=0.D0
+C         ENDDO
+C      ENDIF
+C
       CALL TRALPH
       CALL TRAJOH
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
          SSIN(NR,1)=SIE(NR)                            +SNB(NR)
      &             +SEX(NR,1)
@@ -111,7 +117,7 @@ C
          PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3)
      &            -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
          PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
-  100 CONTINUE
+      ENDDO
 C
       RETURN
       END
@@ -426,27 +432,38 @@ C
             AJBS(NR)=PBSCD*AJBSNC(NR)
          ENDDO
       ELSE
-         DO NR=2,NRMAX
+         DO NR=1,NRMAX-1
             SUM=0.D0
             DO NS=1,NSMAX
-               RTNW=0.5D0*(RT(NR-1,NS)+RT(NR,NS))
-               RPNW=0.5D0*(RN(NR-1,NS)*RT(NR-1,NS)
+               RTNW=0.5D0*(RT(NR+1,NS)+RT(NR,NS))
+               RPNW=0.5D0*(RN(NR+1,NS)*RT(NR+1,NS)
      &                    +RN(NR  ,NS)*RT(NR  ,NS))
-               DRTNW=(RT(NR,NS)-RT(NR-1,NS))*AR1RHO(NR)/DR
-               DRPNW=(RN(NR,NS)*RT(NR,NS)-RN(NR-1,NS)*RT(NR-1,NS))
+               DRTNW=(RT(NR+1,NS)-RT(NR,NS))*AR1RHO(NR)/DR
+               DRPNW=(RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
      &              *AR1RHO(NR)/DR
                SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
      &                +CJBSP(NR,NS)*DRPNW/RPNW
             ENDDO
-C
             AJBSL(NR)=-PBSCD*SUM/BB
          ENDDO
-C     
-         AJBS(1)=0.5D0*AJBSL(2)
-         DO NR=2,NRMAX-1
-            AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
+C
+         NR=NRMAX
+         SUM=0.D0
+         DO NS=1,NSMAX
+            RTNW=PTS(NS)
+            RPNW=PNSS(NS)*PTS(NS)
+            DRTNW=2.D0*(PTS(NS)-RT(NR,NS))*AR1RHO(NR)/DR
+            DRPNW=2.D0*(PNSS(NS)*PTS(NR)-RN(NR,NS)*RT(NR,NS))
+     &                *AR1RHO(NR)/DR
+            SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
+     &             +CJBSP(NR,NS)*DRPNW/RPNW
          ENDDO
-         AJBS(NRMAX)=AJBSL(NRMAX)
+         AJBSL(NR)=-PBSCD*SUM/BB
+C     
+         AJBS(1)=0.5D0*AJBSL(1)
+         DO NR=2,NRMAX
+            AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
+         ENDDO
       ENDIF
 C
       RETURN
@@ -465,11 +482,10 @@ C
 C
       IF(PBSCD.LE.0.D0) RETURN
 C
-      DO NR=2,NRMAX
+      DO NR=1,NRMAX-1
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
@@ -478,13 +494,13 @@ C
          RNTM=0.D0
          RNM =0.D0
          DO NS=2,NSMAX
-            RNTP=RNTP+RN(NR  ,NS)*RT(NR  ,NS)
-            RNP =RNP +RN(NR  ,NS)
-            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
-            RNM =RNM +RN(NR-1,NS)
+            RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
+            RNP =RNP +RN(NR+1,NS)
+            RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
+            RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR,  1)+RW(NR,  2)
-         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
+         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
 C
 C     ****** ION PARAMETER ******
 C
@@ -496,13 +512,12 @@ C     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 C
          ANI(NR)=0.D0
          DO NS=2,NSMAX
-            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR,NS)+RN(NR-1,NS))
+            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
          DTI=(RNTP/RNP-RNTM/RNM)*AR1RHO(NR)/DR
          DPI=(RNTP-RNTM)*AR1RHO(NR)/DR
-C         write(6,*) NR,TI,DTI
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
      &           /(ABS(TI*1.D3)**1.5))
@@ -518,12 +533,12 @@ C     *** DNE  is the derivative of electron density (dne/dr) ***
 C     *** DTE  is the derivative of electron temperature (dTe/dr) ***
 C     *** DPE  is the derivative of electron pressure (dPe/dr) ***
 C
-         ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-         TE= 0.5D0*(RT(NR-1,1)+RT(NR,1))
-         PE= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
-         DNE=(RN(NR,1)-RN(NR-1,1))*AR1RHO(NR)/DR
-         DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
-         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*AR1RHO(NR)/DR
+         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
+         TE= 0.5D0*(RT(NR+1,1)+RT(NR,1))
+         PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
+         DNE=(RN(NR+1,1)-RN(NR,1))*AR1RHO(NR)/DR
+         DTE=(RT(NR+1,1)-RT(NR,1))*AR1RHO(NR)/DR
+         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*AR1RHO(NR)/DR
 C
          rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
@@ -568,9 +583,9 @@ C
          RL32=F32EE(F32EETEFF,ZEFFL)+F32EI(F32EITEFF,ZEFFL)
          RL34=F31(F34TEFF,ZEFFL)
 C
-C         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV
+C         AJBSL(NR-1)=-PBSCD*PE*1.D20*RKEV
 C     &             *( RL31*(DPE/PE+DPI/PE)+RL32*DTE/TE
-C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
+C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR-1)
          AJBSL(NR)=-PBSCD*(PE+PPI)*1.D20*RKEV
      &            *( RL31*DNE/ANE
      &              +RPE*(RL31+RL32)*DTE/TE
@@ -578,11 +593,119 @@ C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
      &            /BP(NR)
       ENDDO
 C
-      AJBS(1)=0.5D0*AJBSL(2)
-      DO NR=2,NRMAX-1
-         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
+      NR=NRMAX
+      EPS=EPSRHO(NR)
+      EPSS=SQRT(EPS)**3
+      QL=ABS(QP(NR))
+      ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
+C
+      RNTP=0.D0
+      RNP =0.D0
+      RNTM=0.D0
+      RNM =0.D0
+      DO NS=2,NSMAX
+         RNTP=RNTP+PNSS(NS)*PTS(NS)
+         RNP =RNP +PNSS(NS)
+         RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
+         RNM =RNM +RN(NR,NS)
       ENDDO
-      AJBS(NRMAX)=AJBSL(NRMAX)
+      RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
+      RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+C
+C     ****** ION PARAMETER ******
+C
+C     *** ANI  is the the ion density (ni) ***
+C     *** TI   is the ion temperature (Ti) ***
+C     *** DTI  is the derivative of ion temperature (dTi/dr) ***
+C     *** PPI  is the ion pressure (Pi) ***
+C     *** DPI  is the derivative of ion pressure (dPi/dr) ***
+C
+      ANI(NR)=0.D0
+      DO NS=2,NSMAX
+         ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
+      ENDDO
+      TI =RNTP/RNP
+      PPI=RNTP
+      DTI=2.D0*(RNTP/RNP-RNTM/RNM)*AR1RHO(NR)/DR
+      DPI=2.D0*(RNTP-RNTM)*AR1RHO(NR)/DR
+C
+      rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
+     &     /(ABS(TI*1.D3)**1.5))
+      RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii
+     &     /(ABS(TI*1.D3)**2*EPSS)
+C     
+C     ****** ELECTORON PARAMETER ******
+C
+C     *** ANE  is the the electron density (ne) ***
+C     *** TE   is the electron temperature (Te) ***
+C     *** PE   is the electron pressure (Pe) ***
+C     *** DNE  is the derivative of electron density (dne/dr) ***
+C     *** DTE  is the derivative of electron temperature (dTe/dr) ***
+C     *** DPE  is the derivative of electron pressure (dPe/dr) ***
+C
+      ANE=PNSS(1)
+      TE =PTS(1)
+      PE =PNSS(1)*PTS(1)
+      DNE=2.D0*(PNSS(1)-RN(NR,1))*AR1RHO(NR)/DR
+      DTE=2.D0*(PTS (1)-RT(NR,1))*AR1RHO(NR)/DR
+      DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*AR1RHO(NR)/DR
+C     
+      rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
+      RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
+     &     /(ABS(TE*1.D3)**2*EPSS)
+C     
+      RPE=PE/(PE+PPI)
+C     <1>
+      FT1=1.D0-(1.D0-EPS)**2.D0
+     &     /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+C     <2>
+      FT2=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPSS)/SQRT(1-EPS**2)
+C     <3>
+      FT3=1.46D0*SQRT(EPS)
+C     <4>
+      FTU=1.5D0*SQRT(EPS)
+      FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
+      FT4=0.75D0*FTU+0.25D0*FTL
+      FT=FT1
+C         write(6,'I2,4E20.12') NR,FT1,FT2,FT3,FT4
+C
+C     F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
+C     &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
+      F31TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)
+     &     +0.5D0*(1.D0-FT)*RNUE/ZEFFL)
+      F32EETEFF=FT/(1.D0+0.26D0*(1.D0-FT)*SQRT(RNUE)
+     &     +0.18D0*(1.D0-0.37D0*FT)*RNUE/SQRT(ZEFFL))
+      F32EITEFF=FT/(1.D0+(1.D0+0.6D0*FT)*SQRT(RNUE)
+     &     +0.85D0*(1.D0-0.37D0*FT)*RNUE*(1.D0+ZEFFL))
+      F34TEFF=FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(RNUE)
+     &     +0.5D0*(1.D0-0.5D0*FT)*RNUE/ZEFFL)
+C
+      SALFA0=-1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
+      SALFA=((SALFA0+0.25D0*(1.D0-FT**2)*SQRT(RNUI))
+     &     /(1.D0+0.5D0*SQRT(RNUI))+0.315D0*RNUI**2*FT**6)
+     &     /(1.D0+0.15D0*RNUI**2*FT**6)
+C
+C     RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
+C     SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
+C     SGMNEO=SGMSPTZ*F33(F33TEFF,ZEFFL)
+C     
+      RL31=F31(F31TEFF,ZEFFL)
+      RL32=F32EE(F32EETEFF,ZEFFL)+F32EI(F32EITEFF,ZEFFL)
+      RL34=F31(F34TEFF,ZEFFL)
+C
+C     AJBSL(NR)=-PBSCD*PE*1.D20*RKEV
+C     &             *( RL31*(DPE/PE+DPI/PE)+RL32*DTE/TE
+C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
+      AJBSL(NR)=-PBSCD*(PE+PPI)*1.D20*RKEV
+     &                *( RL31*DNE/ANE
+     &                  +RPE*(RL31+RL32)*DTE/TE
+     &                  +(1.D0-RPE)*(1.D0+RL34/RL31*SALFA)*RL31*DTI/TI
+     &                  )/BP(NR)
+C
+      AJBS(1)=0.5D0*AJBSL(1)
+      DO NR=2,NRMAX
+         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
+      ENDDO
 C
       RETURN
       END
@@ -630,11 +753,11 @@ C
       RETURN
       END
 C
-C     ***********************************************
+C     ************************************************
 C
 C         BOOTSTRAP CURRENT (TOKAMAKS, H.R. Wilson)
 C
-C     ***********************************************
+C     ************************************************
 C
       SUBROUTINE TRAJBSNEW
 C
@@ -643,26 +766,25 @@ C
 C
       IF(PBSCD.LE.0.D0) RETURN
 C
-      DO NR=2,NRMAX
+      DO NR=1,NRMAX-1
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-C         QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
 C
          RNTP=0.D0
-         RNP=0.D0
+         RNP= 0.D0
          RNTM=0.D0
-         RNM=0.D0
+         RNM =0.D0
          DO NS=2,NSMAX
-            RNTP=RNTP+RN(NR  ,NS)*RT(NR  ,NS)
-            RNP =RNP +RN(NR  ,NS)
-            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
-            RNM =RNM +RN(NR-1,NS)
+            RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
+            RNP =RNP +RN(NR+1,NS)
+            RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
+            RNM =RNM +RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR,  1)+RW(NR,  2)
-         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
+         RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
 C
 C     ****** ION PARAMETER ******
 C
@@ -675,7 +797,7 @@ C     ***** VTI  is the ion velocity (VTi) *****
 C
          ANI(NR)=0.D0
          DO NS=2,NSMAX
-            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR,NS)+RN(NR-1,NS))
+            ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
@@ -683,14 +805,11 @@ C
          DPI=(RNTP-RNTM)*AR1RHO(NR)/DR
          VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
-         ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
+         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
          rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
-C***  ZEFFL ?
          TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
      &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
      &             *ZEFFL**4*AEE**4*rLnLam)
-         rLnLami=rLnLam
-C***
 C
          RNUI=QL*RR/(TAUI*VTI*EPSS)
 C
@@ -703,19 +822,16 @@ C     ***** PE   is the electron pressure (Pe) *****
 C     ***** DPE  is the derivative of electron pressure (dPe/dr) *****
 C     ***** VTE  is the electron velocity (VTe) *****
 C
-         ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-         TE= 0.5D0*(RT(NR-1,1)+RT(NR,1))
-         PE= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
-         DTE=(RT(NR,1)-RT(NR-1,1))*AR1RHO(NR)/DR
-         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*AR1RHO(NR)/DR
+         TE= 0.5D0*(RT(NR+1,1)+RT(NR,1))
+         PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
+         DTE=(RT(NR+1,1)-RT(NR,1))*AR1RHO(NR)/DR
+         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*AR1RHO(NR)/DR
          VTE=SQRT(ABS(TE)*RKEV/AME)
 C
          rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-C***  ZEFFL ?
          TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
      &             *ZEFFL**2*AEE**4*rLnLam)
-C***
 C
          RNUE=QL*RR/(TAUE*VTE*EPSS)
 C
@@ -759,11 +875,118 @@ C         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*(DPE/PE)+(TI/(ZEFFL*TE))
 C     &        *((DPI/PPI)+DDD*(DTI/TI))+RL32*(DTE/TE))/BP(NR)
       ENDDO
 C
-      AJBS(1)=0.5D0*AJBSL(2)
-      DO NR=2,NRMAX-1
-         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
+      NR=NRMAX
+         EPS=EPSRHO(NR)
+         EPSS=SQRT(EPS)**3
+         QL=ABS(QP(NR))
+         ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
+C
+         RNTP=0.D0
+         RNP= 0.D0
+         RNTM=0.D0
+         RNM =0.D0
+         DO NS=2,NSMAX
+            RNTP=RNTP+PNSS(NS)*PTS(NS)
+            RNP =RNP +PNSS(NS)
+            RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
+            RNM =RNM +RN(NR,NS)
+         ENDDO
+         RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
+         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+C
+C     ****** ION PARAMETER ******
+C
+C     ***** ANI  is the the ion density (ni) *****
+C     ***** TI   is the ion temperature (Ti) *****
+C     ***** DTI  is the derivative of ion temperature (dTi/dr) *****
+C     ***** PPI  is the ion pressure (Pi) *****
+C     ***** DPI  is the derivative of ion pressure (dPi/dr) *****
+C     ***** VTI  is the ion velocity (VTi) *****
+C
+         ANI(NR)=0.D0
+         DO NS=2,NSMAX
+            ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
+         ENDDO
+         TI =RNTP/RNP
+         PPI=RNTP
+         DTI=2.D0*(RNTP/RNP-RNTM/RNM)*AR1RHO(NR)/DR
+         DPI=2.D0*(RNTP-RNTM)*AR1RHO(NR)/DR
+         VTI=SQRT(ABS(TI)*RKEV/AMM)
+C
+         ANE=PNSS(1)
+         rLnLam=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TI))*1.5D0
+         TAUI=12.D0*PI*SQRT(PI)*AEPS0**2*SQRT(AMM)
+     &             *(ABS(TI)*RKEV)**1.5D0/(ANI(NR)*1.D20
+     &             *ZEFFL**4*AEE**4*rLnLam)
+C
+         RNUI=QL*RR/(TAUI*VTI*EPSS)
+C
+C     ****** ELECTORON PARAMETER ******
+C
+C     ***** ANE  is the the electron density (ne) *****
+C     ***** TE   is the electron temperature (Te) *****
+C     ***** DTE  is the derivative of electron temperature (dTe/dr) ****
+C     ***** PE   is the electron pressure (Pe) *****
+C     ***** DPE  is the derivative of electron pressure (dPe/dr) *****
+C     ***** VTE  is the electron velocity (VTe) *****
+C
+         TE =PTS(1)
+         PE =PNSS(1)*PTS(1)
+         DTE=2.D0*(PTS(1)-RT(NR,1))*AR1RHO(NR)/DR
+         DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*AR1RHO(NR)/DR
+         VTE=SQRT(ABS(TE)*RKEV/AME)
+C
+         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
+         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*SQRT(AME)
+     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
+     &             *ZEFFL**2*AEE**4*rLnLam)
+C
+         RNUE=QL*RR/(TAUE*VTE*EPSS)
+C
+         FT=1.D0-(1.D0-EPS)**2.D0
+     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+C         FT=1.46D0*SQRT(EPS)
+         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
+C
+         DDD=-1.17D0/(1.D0+0.46D0*FT)
+C
+         C1=(4.D0+2.6D0*FT)
+     &      /((1.D0+1.02D0*DSQRT(RNUE)+1.07D0*RNUE)
+     &       *(1.D0+1.07D0*EPSS*RNUE))
+         C2=C1*TI/TE
+         C3=(7.D0+6.5D0*FT)
+     &      /((1.D0+0.57D0*DSQRT(RNUE)+0.61D0*RNUE)
+     &       *(1.D0+0.61D0*EPSS*RNUE))
+     &      -2.5D0*C1
+         C4=((DDD+0.35D0*DSQRT(RNUI))
+     &      /(1.D0+0.7D0*DSQRT(RNUI))
+     &      +2.1D0*EPS**3*RNUI**2)*C2
+     &      /((1.D0+EPS**3*RNUI**2)
+     &       *(1.D0+EPS**3*RNUE**2))
+C
+         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))
+     &        *(C1*(DPE/PE)
+     &         +C2*(DPI/PPI)
+     &         +C3*(DTE/TE)
+     &         +C4*(DTI/TI))
+C
+C     *** H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263 ***
+C
+C         DDX=1.414D0*ZEFFL+ZEFFL**2+FT*(0.754D0+2.657D0*ZEFFL
+C     &        +2.D0*ZEFFL**2)+FT**2*(0.348D0+1.243D0*ZEFFL+ZEFFL**2)
+C         RL31=FT*( 0.754D0+2.21D0*ZEFFL+ZEFFL**2+FT*(0.348D0+1.243D0
+C     &            *ZEFFL+ZEFFL**2))/DDX
+C         RL32=-FT*(0.884D0+2.074D0*ZEFFL)/DDX
+C         DDD=-1.172D0/(1.D0+0.462D0*FT)
+C
+C         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*(DPE/PE)+(TI/(ZEFFL*TE))
+C     &        *((DPI/PPI)+DDD*(DTI/TI))+RL32*(DTE/TE))/BP(NR)
+C
+      AJBS(1)=0.5D0*AJBSL(1)
+      DO NR=2,NRMAX
+         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
       ENDDO
-      AJBS(NRMAX)=AJBSL(NRMAX)
+C
       RETURN
       END
 C
@@ -794,23 +1017,23 @@ C
       AMT=PA(3)*AMM
       AMA=PA(4)*AMM
 C
-      DO 100 NR=2,NRMAX
+      DO 100 NR=1,NRMAX-1
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
-         ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-C         ANDX=0.5D0*(RN(NR-1,2)+RN(NR,2))
-C         ANT =0.5D0*(RN(NR-1,3)+RN(NR,3))
-C         ANA =0.5D0*(RN(NR-1,4)+RN(NR,4))
-         TEL=ABS(0.5D0*(RT(NR-1,1)+RT(NR,1)))
-         TDL=ABS(0.5D0*(RT(NR-1,2)+RT(NR,2)))
-         TTL=ABS(0.5D0*(RT(NR-1,3)+RT(NR,3)))
-         TAL=ABS(0.5D0*(RT(NR-1,4)+RT(NR,4)))
-         PEL=0.5D0*(RN(NR-1,1)*RT(NR-1,1)+RN(NR,1)*RT(NR,1))
-         PDL=0.5D0*(RN(NR-1,2)*RT(NR-1,2)+RN(NR,2)*RT(NR,2))
-         PTL=0.5D0*(RN(NR-1,3)*RT(NR-1,3)+RN(NR,3)*RT(NR,3))
-         PAL=0.5D0*(RN(NR-1,4)*RT(NR-1,4)+RN(NR,4)*RT(NR,4))
-         ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
+         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
+C         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
+C         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
+C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
+         TEL=ABS(0.5D0*(RT(NR+1,1)+RT(NR,1)))
+         TDL=ABS(0.5D0*(RT(NR+1,2)+RT(NR,2)))
+         TTL=ABS(0.5D0*(RT(NR+1,3)+RT(NR,3)))
+         TAL=ABS(0.5D0*(RT(NR+1,4)+RT(NR,4)))
+         PEL=0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
+         PDL=0.5D0*(RN(NR+1,2)*RT(NR+1,2)+RN(NR,2)*RT(NR,2))
+         PTL=0.5D0*(RN(NR+1,3)*RT(NR+1,3)+RN(NR,3)*RT(NR,3))
+         PAL=0.5D0*(RN(NR+1,4)*RT(NR+1,4)+RN(NR,4)*RT(NR,4))
+         ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
 C
          COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
      &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
@@ -856,22 +1079,31 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
          DRL=AR1RHO(NR)/DR
-         DTE=(RT(NR,1)-RT(NR-1,1))*DRL
-         DTD=(RT(NR,2)-RT(NR-1,2))*DRL
-         DTT=(RT(NR,3)-RT(NR-1,3))*DRL
-         DTA=(RT(NR,4)-RT(NR-1,4))*DRL
-         DPE=(RN(NR,1)*RT(NR,1)-RN(NR-1,1)*RT(NR-1,1))*DRL
-         DPD=(RN(NR,2)*RT(NR,2)-RN(NR-1,2)*RT(NR-1,2))*DRL
-         DPT=(RN(NR,3)*RT(NR,3)-RN(NR-1,3)*RT(NR-1,3))*DRL
-         DPA=(RN(NR,4)*RT(NR,4)-RN(NR-1,4)*RT(NR-1,4))*DRL
+         DTE=(RT(NR+1,1)-RT(NR,1))*DRL
+         DTD=(RT(NR+1,2)-RT(NR,2))*DRL
+         DTT=(RT(NR+1,3)-RT(NR,3))*DRL
+         DTA=(RT(NR+1,4)-RT(NR,4))*DRL
+         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
+         DPD=(RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
+         DPT=(RN(NR+1,3)*RT(NR+1,3)-RN(NR,3)*RT(NR,3))*DRL
+         DPA=(RN(NR+1,4)*RT(NR+1,4)-RN(NR,4)*RT(NR,4))*DRL
          BPL=BP(NR)
 C
          FACT=1.D0/(1.D0+(RNUE*EPS)**2)
-         A=           DPE/PEL-    2.5D0*DTE/TEL
-     &    +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
-     &    +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
-     &    +(PAL/PEL)*(DPA/PAL-RK3A*FACT*DTA/TAL)
-         AJBSL(NR)=-PBSCD*SQRT(EPS)*RN(NR,1)*1.D20*RT(NR,1)*RKEV/BPL
+         IF(NSMAX.EQ.2) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+         ELSEIF(NSMAX.EQ.3) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+     &       +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
+         ELSEIF(NSMAX.EQ.4) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+     &       +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
+     &       +(PAL/PEL)*(DPA/PAL-RK3A*FACT*DTA/TAL)
+         ENDIF
+         AJBSL(NR)=-PBSCD*SQRT(EPS)*ANE*1.D20*TEL*RKEV/BPL
      &            *(RK13E*A+RK23E*DTE/TEL)
 C     
 C        WRITE(6,'(I3,1P6E12.4)') NR,RNUE,RK13E,RK23E,A,BPL,AJBSL(NR)
@@ -889,18 +1121,112 @@ C     &            BPL,AJBS(NR-1),AJBS(NR)
 C         ENDIF
   100 CONTINUE
 C
-C      AJBS(1)=0.5D0*AJBSL(2)
-C      DO 200 NR=2,NRMAX-1
-      DO 200 NR=1,NRMAX-1
-         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
-  200 CONTINUE
-      AJBS(NRMAX)=AJBSL(NRMAX)
+      NR=NRMAX
+         EPS=EPSRHO(NR)
+         EPSS=SQRT(EPS)**3
+         ANE=PNS(1)
+C         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
+C         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
+C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
+         TEL=ABS(PTS(1))
+         TDL=ABS(PTS(2))
+         TTL=ABS(PTS(3))
+         TAL=ABS(PTS(4))
+         PEL=PNSS(1)*PTS(1)
+         PDL=PNSS(2)*PTS(2)
+         PTL=PNSS(3)*PTS(3)
+         PAL=PNSS(4)*PTS(4)
+         ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
 C
-C      IF(MDLUF.EQ.3) THEN
-C         DO NR=1,NRMAX
-C            AJBS(NR)=0.D0
-C         ENDDO
-C      ENDIF
+         COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
+         TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
+         TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/PZ(3)**2
+         TAUA = COEF*SQRT(AMA)*(TAL*RKEV)**1.5D0/PZ(4)**2
+C
+         VTE=SQRT(TEL*RKEV/AME)
+         VTD=SQRT(TDL*RKEV/AMD)
+         VTT=SQRT(TTL*RKEV/AMT)
+         VTA=SQRT(TAL*RKEV/AMA)
+C
+         RNUE=ABS(QP(NR))*RR/(TAUE*VTE*EPSS)
+         RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
+         RNUT=ABS(QP(NR))*RR/(TAUT*VTT*EPSS)
+         RNUA=ABS(QP(NR))*RR/(TAUA*VTA*EPSS)
+C
+C         RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
+C     &              +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
+C         RK12E=RK12*(1.D0/(1.D0+RA12*SQRT(RNUE)+RB12*RNUE)
+C     &              +(EPSS*RC12)**2/RB12*RNUE/(1.D0+RC12*RNUE*EPSS))
+C         RK22E=RK22*(1.D0/(1.D0+RA22*SQRT(RNUE)+RB22*RNUE)
+C     &              +(EPSS*RC22)**2/RB22*RNUE/(1.D0+RC22*RNUE*EPSS))
+         RK13E=RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)
+     &             /(1.D0+RC13*RNUE*EPSS)
+         RK23E=RK23/(1.D0+RA23*SQRT(RNUE)+RB23*RNUE)
+     &             /(1.D0+RC23*RNUE*EPSS)
+C         RK33E=RK33/(1.D0+RA33*SQRT(RNUE)+RB33*RNUE)
+C     &             /(1.D0+RC33*RNUE*EPSS)
+C
+C         RK2D =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUD)+RB2 *RNUD)
+C     &              +(EPSS*RC2 )**2/RB2 *RNUD/(1.D0+RC2 *RNUD*EPSS))
+C         RK2T =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUT)+RB2 *RNUT)
+C     &              +(EPSS*RC2 )**2/RB2 *RNUT/(1.D0+RC2 *RNUT*EPSS))
+C         RK2A =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUA)+RB2 *RNUA)
+C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
+         RK3D=((1.17D0-0.35D0*SQRT(RNUD))/(1.D0+0.7D0*SQRT(RNUD))
+     &         -2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
+         RK3T=((1.17D0-0.35D0*SQRT(RNUT))/(1.D0+0.7D0*SQRT(RNUT))
+     &         -2.1D0*(RNUT*EPSS)**2)/(1.D0+(RNUT*EPSS)**2)
+         RK3A=((1.17D0-0.35D0*SQRT(RNUA))/(1.D0+0.7D0*SQRT(RNUA))
+     &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
+C
+         DRL=AR1RHO(NR)/DR
+         DTE=2.D0*(PTS(1)-RT(NR,1))*DRL
+         DTD=2.D0*(PTS(2)-RT(NR,2))*DRL
+         DTT=2.D0*(PTS(3)-RT(NR,3))*DRL
+         DTA=2.D0*(PTS(4)-RT(NR,4))*DRL
+         DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
+         DPD=2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
+         DPT=2.D0*(PNSS(3)*PTS(3)-RN(NR,3)*RT(NR,3))*DRL
+         DPA=2.D0*(PNSS(4)*PTS(4)-RN(NR,4)*RT(NR,4))*DRL
+         BPL=BP(NR)
+C
+         FACT=1.D0/(1.D0+(RNUE*EPS)**2)
+         IF(NSMAX.EQ.2) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+         ELSEIF(NSMAX.EQ.3) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+     &       +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
+         ELSEIF(NSMAX.EQ.4) THEN
+            A=           DPE/PEL-    2.5D0*DTE/TEL
+     &       +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
+     &       +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
+     &       +(PAL/PEL)*(DPA/PAL-RK3A*FACT*DTA/TAL)
+         ENDIF
+         AJBSL(NR)=-PBSCD*SQRT(EPS)*ANE*1.D20*TEL*RKEV/BPL
+     &            *(RK13E*A+RK23E*DTE/TEL)
+C     
+C        WRITE(6,'(I3,1P6E12.4)') NR,RNUE,RK13E,RK23E,A,BPL,AJBSL(NR)
+C         IF(NR.EQ.NRMAX) THEN
+C            WRITE(6,'(1P6E12.4)') DN,DTE,ANE,PNSS(1),TE,PTS(1)
+C            WRITE(6,'(1P6E12.4)') RK13E*(RN(NR,1)*RT(NR,1)
+C     &                   +RN(NR,2)*RT(NR,2)
+C     &                   +RN(NR,3)*RT(NR,3)
+C     &                   +RN(NR,4)*RT(NR,4)
+C     &                   +RW(NR,1)
+C     &                   +RW(NR,2)         )*DN/ANE,
+C     &            +(RK23E-1.5D0*RK13E)*RN(NR,1)*DTE,
+C     &            +RK13D*(RK23D-1.5D0)*RN(NR,2)*DTD,
+C     &            BPL,AJBS(NR-1),AJBS(NR)
+C         ENDIF
+C
+      AJBS(1)=0.5D0*AJBSL(1)
+      DO NR=2,NRMAX
+         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
+      ENDDO
 C
       RETURN
       END
