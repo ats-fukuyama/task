@@ -27,9 +27,9 @@ C
       DIMENSION X(NXMAX),F(NXMAX)
       DIMENSION U(4,NXMAX)
       DIMENSION FX(NXMAX)
-      DIMENSION AX(4,NMAX),IPX(NMAX),BX(NMAX)
-      DIMENSION WK(NMAX)
+      DIMENSION AX(4,NMAX),BX(NMAX)
 C
+      IERR=0
       IF(NXMAX.GT.NMAX) GOTO 9001
 C
       ID1=MOD(ID,2)
@@ -63,10 +63,6 @@ C
          AX(3,NXMAX)=0.D0
       ENDIF
 C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
-C
       IF(ID1.EQ.0) THEN
          BX(1)=3.D0*(F(2)-F(1))
       ELSE
@@ -83,10 +79,9 @@ C
       ELSE
          BX(NXMAX)=FX(NXMAX)
       ENDIF
-      CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-      DO NX=1,NXMAX
-         FX(NX)=BX(NX)
-      ENDDO
+C
+      CALL TDMSRD(AX,BX,NXMAX,FX,IERR)
+      IF(IERR.NE.0) GOTO 9003
 C
       DO NX=2,NXMAX
          DX=X(NX)-X(NX-1)
@@ -113,14 +108,13 @@ C
          U(3,NX)=V31*T11+V32*T21+V33*T31+V34*T41
          U(4,NX)=V41*T11+V42*T21+V43*T31+V44*T41
       ENDDO
-      IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX SPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
+ 9001 WRITE(6,*) 'XX SPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
+      IERR=1
       RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX SPL1D: BGLU1 ERROR'
+ 9003 WRITE(6,*) 'XX CSPL1D: TDMSRD ERROR : IERR=',IERR
+      IERR=3
       RETURN
       END
 C
@@ -340,9 +334,9 @@ C
       DIMENSION X(NXMAX),Y(NYMAX),F(NXM,NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
       DIMENSION FX(NXM,NYMAX),FY(NXM,NYMAX),FXY(NXM,NYMAX)
-      DIMENSION AX(4,NMAX),IPX(NMAX),BX(NMAX)
-      DIMENSION AY(4,NMAX),IPY(NMAX),BY(NMAX)
-      DIMENSION WK(NMAX)
+      DIMENSION AX(4,NMAX),AX0(4,NMAX),BX(NMAX)
+      DIMENSION AY(4,NMAX),AY0(4,NMAX),BY(NMAX)
+      DIMENSION FXY1(4,NMAX),FXY2(4,NMAX)
 C
       IF(NXMAX.GT.NMAX) GOTO 9001
       IF(NYMAX.GT.NMAX) GOTO 9002
@@ -379,10 +373,11 @@ C
          AX(2,NXMAX)=1.D0
          AX(3,NXMAX)=0.D0
       ENDIF
-C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
+      DO NX=1,NXMAX
+         AX0(1,NX)=AX(1,NX)
+         AX0(2,NX)=AX(2,NX)
+         AX0(3,NX)=AX(3,NX)
+      ENDDO
 C
       IF(IDY1.EQ.0) THEN
          DYP=Y(2)-Y(1)
@@ -411,12 +406,18 @@ C
          AY(2,NYMAX)=1.D0
          AY(3,NYMAX)=0.D0
       ENDIF
-C
-      EPS=1.D-14
-      CALL BGLU1(AY,NYMAX,1,1,4,EPS,WK,IPY,IERR)
-      IF(IERR.NE.0) GOTO 9004
+      DO NY=1,NYMAX
+         AY0(1,NY)=AY(1,NY)
+         AY0(2,NY)=AY(2,NY)
+         AY0(3,NY)=AY(3,NY)
+      ENDDO
 C
       DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            AX(1,NX)=AX0(1,NX)
+            AX(2,NX)=AX0(2,NX)
+            AX(3,NX)=AX0(3,NX)
+         ENDDO
          IF(IDX1.EQ.0) THEN
             BX(1)=3.D0*(F(2,NY)-F(1,NY))
          ELSE
@@ -433,13 +434,16 @@ C
          ELSE
             BX(NXMAX)=FX(NXMAX,NY)
          ENDIF
-         CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-         DO NX=1,NXMAX
-            FX(NX,NY)=BX(NX)
-         ENDDO
+         CALL TDMSRD(AX,BX,NXMAX,FX,IERR)
+         IF(IERR.NE.0) GOTO 9003
       ENDDO
 C
       DO NX=1,NXMAX
+         DO NY=1,NYMAX
+            AY(1,NY)=AY0(1,NY)
+            AY(2,NY)=AY0(2,NY)
+            AY(3,NY)=AY0(3,NY)
+         ENDDO
          IF(IDY1.EQ.0) THEN
             BY(1)=3.D0*(F(NX,2)-F(NX,1))
          ELSE
@@ -456,13 +460,16 @@ C
          ELSE
             BY(NYMAX)=FY(NX,NYMAX)
          ENDIF
-         CALL BGSLV1(AY,NYMAX,1,1,4,BY,IPY)
-         DO NY=1,NYMAX
-            FY(NX,NY)=BY(NY)
-         ENDDO
+         CALL TDMSRD(AY,BY,NYMAX,FY,IERR)
+         IF(IERR.NE.0) GOTO 9004
       ENDDO
 C
       DO NY=1,NYMAX,NYMAX-1
+         DO NX=1,NXMAX
+            AX(1,NX)=AX0(1,NX)
+            AX(2,NX)=AX0(2,NX)
+            AX(3,NX)=AX0(3,NX)
+         ENDDO
          IF(IDX1.EQ.0) THEN
             BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
          ELSE
@@ -479,13 +486,16 @@ C
          ELSE
             BX(NXMAX)=FXY(NXMAX,NY)
          ENDIF
-         CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-         DO NX=1,NXMAX
-            FXY(NX,NY)=BX(NX)
-         ENDDO
+         CALL TDMSRD(AX,BX,NXMAX,FXY1,IERR)
+         IF(IERR.NE.0) GOTO 9003
       ENDDO
 C
       DO NX=1,NXMAX
+         DO NY=1,NYMAX
+            AY(1,NY)=AY0(1,NY)
+            AY(2,NY)=AY0(2,NY)
+            AY(3,NY)=AY0(3,NY)
+         ENDDO
          IF(IDY1.EQ.0) THEN
             BY(1)=3.D0*(FX(NX,2)-FX(NX,1))
          ELSE
@@ -502,9 +512,15 @@ C
          ELSE
             BY(NYMAX)=FXY(NX,NYMAX)
          ENDIF
-         CALL BGSLV1(AY,NYMAX,1,1,4,BY,IPY)
-         DO NY=1,NYMAX
-            FXY(NX,NY)=BY(NY)
+         CALL TDMSRD(AY,BY,NYMAX,FXY2,IERR)
+         IF(IERR.NE.0) GOTO 9004
+      ENDDO
+C
+      DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            FXY(NX,NY)=0.5D0*(FXY1(NX,NY)+FXY2(NX,NY))
+C            FXY(NX,NY)=FXY1(NX,NY)
+C            FXY(NX,NY)=FXY2(NX,NY)
          ENDDO
       ENDDO
 C
@@ -583,17 +599,17 @@ C
       IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+ 9001 WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+      IERR=1
       RETURN
- 9002 IERR=2
-      WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+ 9002 WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+      IERR=2
       RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX SPL2D: BGLU1 ERROR'
+ 9003 WRITE(6,*) 'XX SPL2D: TDMSRD ERROR: IERR=',IERR
+      IERR=3
       RETURN
- 9004 IERR=4
-      WRITE(6,*) 'XX SPL2D: BGLU1 ERROR'
+ 9004 WRITE(6,*) 'XX SPL2D: TDMSRD ERROR: IERR=',IERR
+      IERR=4
       RETURN
       END
 C
@@ -832,7 +848,7 @@ C
       IMPLICIT REAL*8 (A-H,O-Z)
       PARAMETER (NMAX=10001)
 C
-      DIMENSION X(NXMAX),IPX(NMAX),AX(4,NMAX),WK(NMAX)
+      DIMENSION X(NXMAX),AX(4,NMAX)
       COMPLEX*16 F(NXMAX),U(4,NXMAX),FX(NXMAX),BX(NMAX)
       COMPLEX*16 T11,T21,T31,T41
 C
@@ -869,10 +885,6 @@ C
          AX(3,NXMAX)=0.D0
       ENDIF
 C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
-C
       IF(ID1.EQ.0) THEN
          BX(1)=3.D0*(F(2)-F(1))
       ELSE
@@ -889,10 +901,8 @@ C
       ELSE
          BX(NXMAX)=FX(NXMAX)
       ENDIF
-      CALL CBGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-      DO NX=1,NXMAX
-         FX(NX)=BX(NX)
-      ENDDO
+      CALL TDMSCD(AX,BX,NXMAX,FX,IERR)
+      IF(IERR.NE.0) GOTO 9003
 C
       DO NX=2,NXMAX
          DX=X(NX)-X(NX-1)
@@ -922,11 +932,11 @@ C
       IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX CSPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
+ 9001 WRITE(6,*) 'XX CSPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
+      IERR=1
       RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX CSPL1D: BGLU1 ERROR'
+ 9003 WRITE(6,*) 'XX CSPL1D: TDMSCD ERROR: IERR=',IERR
+      IERR=3
       RETURN
       END
 C
@@ -975,189 +985,5 @@ C
      &  + U(3,NX)*DX*DX
      &  + U(4,NX)*DX*DX*DX
       IERR=0
-      RETURN
-      END
-C
-C     *** LU DECOMPOSITION MATRIX SOLVER ***
-C
-      SUBROUTINE BGLU1( A, N, ML, MU, MM, EPS, WK, IP, IER )
-C
-C        BGLU1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
-C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
-C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : 2-DIM. ARRAY CONTAINING REAL BAND MATRIX.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             EPS      R *8  : PARAMETER TO CHECK SINGULARITY OF THE
-C                              MATRIX. ( STANDARD VALUE 3.52D-15 )
-C        OUTPUT - -
-C             A(-ML:MU+ML,N)
-C                            : RESULT OF GAUSSIAN ELIMINATION.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C             IER      I *4  : = 0,  FOR NORMAL EXECUTION.
-C                              = 1,  FOR SINGULAR MATRIX.
-C                              = 3,  FOR INVALID ARGUEMENT.
-C        WORKING  -
-C             WK(N)    R *8  : 1-DIM. ARRAY.
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), IP(*), WK(*)
-      DIMENSION A(-ML:MM-ML-1,*), IP(*), WK(*)
-C             LEFT HAND SIDE
-      IF( EPS.LT.0.0D0 )  EPS = 3.52D-15
-      IF( ( N.LE.0 ).OR.( ML.LE.0 ).OR.( MU.LE.0 ).OR.
-     &    ( ML.GE.N ).OR.( MU.GE.N ) )  THEN
-         IER = 3
-         WRITE(*,*) '  (SUBR. BGLU1)  INVALID ARGUMENT.  ML, MU, N =',
-     &              ML, MU, N
-         RETURN
-      END IF
-C
-      DO 10 K=1,N
-      DO 10 I=1,ML
-         A(MU+I,K)=0.D0
-   10 CONTINUE
-      IER = 0
-      DO 100 K = 1, N
-C             FIND MAXIMUM ELEMENT IN THE K-TH COLUMN.
-        AMAX = ABS(A(0,K))
-        IPK = K
-        DO 110 I = K+1, MIN(K+ML,N)
-          AIK = ABS(A(K-I,I))
-          IF( AIK.GT.AMAX )  THEN
-             IPK = I
-             AMAX = AIK
-          END IF
-  110   CONTINUE
-        IP(K) = IPK
-C
-        IF( AMAX.GT.EPS )  THEN
-           IF( IPK.NE.K )  THEN
-              DO 120 J = K, MIN(K+MU+ML,N)
-                W = A(J-IPK,IPK)
-                A(J-IPK,IPK) = A(J-K,K)
-                A(J-K,K) = W
-  120         CONTINUE
-           END IF
-C
-           DO 125 J = K+1, MIN(K+MU+ML,N)
-  125        WK(J) = A(J-K,K)
-C             COMPUTE ALFA AND PERFORM GAUSSIAN ELIMINATION.
-           DO 130 I = K+1, MIN(K+ML,N)
-             A(K-I,I) = -A(K-I,I)/A(0,K)
-             T = A(K-I,I)
-             DO 140 J = K+1, MIN(K+MU+ML,N)
-  140          A(J-I,I) = A(J-I,I)+T*WK(J)
-  130      CONTINUE
-C             MATRIX IS SINGULAR.
-        ELSE
-           IER = 1
-           IP(K) = K
-           DO 150 I = K+1, MIN(K+ML,N)
-  150        A(K-I,I) = 0.0D0
-           WRITE(*,*)  '  (SUBR. BGLU1)  MATRIX IS SINGULAR AT K =', K
-           RETURN
-        END IF
-  100 CONTINUE
-      RETURN
-      END
-C
-      SUBROUTINE BGSLV1( A, N, ML, MU, MM, B, IP )
-C
-C        BGSLV1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
-C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
-C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : RESULT OF GAUSSIAN ELIMINATION.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             B(N)     R *8  : 1-DIM. ARRAY CONTAINING THE RIGHT HAND
-C                              SIDE VECTOR.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C        OUTPUT - -
-C             B(N)           : SOLUTION.
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), B(*), IP(*)
-      DIMENSION A(-ML:MM-ML-1,*), B(*), IP(*)
-C             FORWARD ELIMINATION PROCESS
-      DO 100 K = 1, N
-        IPK = IP(K)
-        IF( IPK.NE.K )  THEN
-           W =B(IPK)
-           B(IPK) = B(K)
-           B(K) = W
-        END IF
-C             GAUSSIAN ELIMINATION
-        T = B(K)
-        DO 110 I = K+1, MIN(K+ML,N)
-  110     B(I) = B(I)+A(K-I,I)*T
-  100 CONTINUE
-C             BACKWARD SUBSTITUTION PROCESS
-      DO 200 K = N, 1, -1
-        S = -B(K)
-        DO 210 J = K+1, MIN(K+MU+ML,N)
-  210     S = S+A(J-K,K)*B(J)
-        B(K) = -S/A(0,K)
-  200 CONTINUE
-      RETURN
-      END
-C
-C
-      SUBROUTINE CBGSLV1( A, N, ML, MU, MM, B, IP )
-C
-C        BGSLV1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
-C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
-C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : RESULT OF GAUSSIAN ELIMINATION.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             B(N)     R *8  : 1-DIM. ARRAY CONTAINING THE RIGHT HAND
-C                              SIDE VECTOR.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C        OUTPUT - -
-C             B(N)           : SOLUTION.
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), B(*), IP(*)
-      DIMENSION IP(*),A(-ML:MM-ML-1,*)
-      COMPLEX*16 B(*),W,T,S
-C             FORWARD ELIMINATION PROCESS
-      DO 100 K = 1, N
-        IPK = IP(K)
-        IF( IPK.NE.K )  THEN
-           W =B(IPK)
-           B(IPK) = B(K)
-           B(K) = W
-        END IF
-C             GAUSSIAN ELIMINATION
-        T = B(K)
-        DO 110 I = K+1, MIN(K+ML,N)
-  110     B(I) = B(I)+A(K-I,I)*T
-  100 CONTINUE
-C             BACKWARD SUBSTITUTION PROCESS
-      DO 200 K = N, 1, -1
-        S = -B(K)
-        DO 210 J = K+1, MIN(K+MU+ML,N)
-  210     S = S+A(J-K,K)*B(J)
-        B(K) = -S/A(0,K)
-  200 CONTINUE
       RETURN
       END

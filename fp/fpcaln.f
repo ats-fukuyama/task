@@ -16,10 +16,10 @@ C
       DIMENSION RM1G(-1:LNM,N),RM3G(-1:LNM,N)
       DIMENSION RM2G(-1:LNM,N),RM4G(-1:LNM,N)
 C
-      DIMENSION TX(NTHM+2),TY(NTHM+2),TEMP(NTHM+2,3)
-      DIMENSION TX1(NPM+2),TY1(NPM+2),TEMP1(NPM+2,3)
-      DIMENSION IOPT(2),DF(2)
-      DIMENSION IOPT1(2),DF1(2)
+      DIMENSION TX(NTHM+2),TY(NTHM+2),DF(NTHM+2)
+      DIMENSION UTY(4,NTHM+2),UTY0(NTHM+2)
+      DIMENSION TX1(NPM+2),TY1(NPM+2),DF1(NPM+2)
+      DIMENSION UTY1(4,NPM+2),UTY10(NPM+2)
       DIMENSION PHYM(-1:LNM,N),PSYM(-1:LNM,N)
       DIMENSION D1PSYM(-1:LNM,N)
       DIMENSION PSYG(-1:LNM,N)
@@ -74,13 +74,13 @@ C
    80    CONTINUE
          TX(NTHMAX+2)=PI
          TY(NTHMAX+2)=0.D0
-         IOPT(1) = 1
-         DF(1)   = 0.D0
-         IOPT(2) = 1
-         DF(2)   = 0.D0
-         CALL SPLC(TX,NTHMAX+2,TY,DF,IOPT,TEMP,NTHM+2,IER)
+         DF(1)       = 0.D0
+         DF(NTHMAX+2)= 0.D0
+C         CALL SPLC(TX,NTHMAX+2,TY,DF,IOPT,TEMP,NTHM+2,IER)
+         CALL SPL1D(TX,TY,DF,UTY,NTHMAX+2,3,IER)
 C
-         CALL SPLQ(TX,NTHMAX+2,TY,TEMP,NTHM+2,0.D0,PI,SUM,IER)
+         CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
+         CALL SPL1DI(PI,SUM,TX,UTY,UTY0,NTHMAX+2,IER)
          FPL(L,NP)=0.5D0*(2*L+1.D0)*SUM
    90 CONTINUE
 C  
@@ -93,19 +93,23 @@ C
   100    CONTINUE          
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
-         IOPT1(1) = 1
          DF1(1)   = 0.D0
-         IOPT1(2) = 1
-         DF1(2)   = 0.D0
-         CALL SPLC(TX1,NPMAX+2,TY1,DF1,IOPT1,TEMP1,NPM+2,IER)
+         DF1(NPMAX+2)   = 0.D0
+         CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
+         CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
+         CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 C
          DO 115 NP=1,NPMAX
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PM(NP),PMAX,
-     &                                      RM1M(L,NP),IER)
+            CALL SPL1DI(PM(NP),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM1M(L,NP)=PSUM-SUM
+C            CALL SPLQ(PM(NP),PMAX,TX1,NPMAX+2,TY1,TEMP1,NPM+2,PM(NP),PMAX,
+C     &                                      RM1M(L,NP),IER)
   115 CONTINUE      
          DO 116 NPG=1,NPMAX+1
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PG(NPG),PMAX,
-     &                                      RM1G(L,NPG),IER)
+            CALL SPL1DI(PG(NPG),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM1G(L,NPG)=PSUM-SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PG(NPG),PMAX,
+C     &                                      RM1G(L,NPG),IER)
   116 CONTINUE      
   110 CONTINUE
 C
@@ -116,21 +120,22 @@ C
             TX1(NNP+1)=PM(NNP)
             TY1(NNP+1)=FPL(L,NNP)*(PM(NNP)**(2+L))
   120    CONTINUE          
-         TX1(NPMAX+2)=PMAX
-         TY1(NPMAX+2)=0.D0
-         IOPT1(1) = 1
          DF1(1)   = 0.D0
-         IOPT1(2) = 1
-         DF1(2)   = 0.D0
-         CALL SPLC(TX1,NPMAX+2,TY1,DF1,IOPT1,TEMP1,NPM+2,IER)
+         DF1(NPMAX+2)   = 0.D0
+         CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
+         CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
 C
          DO 135 NP=1,NPMAX
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PM(NP),
-     &                                      RM2M(L,NP),IER)
+            CALL SPL1DI(PM(NP),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM2M(L,NP)=SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PM(NP),
+C     &                                      RM2M(L,NP),IER)
   135 CONTINUE      
          DO 136 NPG=1,NPMAX+1
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PG(NPG),
-     &                                      RM2G(L,NPG),IER)
+            CALL SPL1DI(PG(NPG),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM2G(L,NPG)=SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PG(NPG),
+C     &                                      RM2G(L,NPG),IER)
   136 CONTINUE      
   130 CONTINUE
 C
@@ -143,19 +148,23 @@ C
   140    CONTINUE          
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
-         IOPT1(1) = 1
          DF1(1)   = 0.D0
-         IOPT1(2) = 1
-         DF1(2)   = 0.D0
-         CALL SPLC(TX1,NPMAX+2,TY1,DF1,IOPT1,TEMP1,NPM+2,IER)
+         DF1(NPMAX+2)   = 0.D0
+         CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
+         CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
+         CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 C
          DO 155 NP=1,NPMAX
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PM(NP),PMAX,
-     &                                      RM3M(L,NP),IER)
+            CALL SPL1DI(PM(NP),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM3M(L,NP)=PSUM-SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PM(NP),PMAX,
+C     &                                      RM3M(L,NP),IER)
   155 CONTINUE      
          DO 156 NPG=1,NPMAX+1
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PG(NPG),PMAX,
-     &                                      RM3G(L,NPG),IER)
+            CALL SPL1DI(PG(NPG),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM3G(L,NPG)=PSUM-SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,PG(NPG),PMAX,
+C     &                                      RM3G(L,NPG),IER)
   156 CONTINUE      
   150 CONTINUE
 C
@@ -168,19 +177,22 @@ C
   160    CONTINUE          
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
-         IOPT1(1) = 1
          DF1(1)   = 0.D0
-         IOPT1(2) = 1
-         DF1(2)   = 0.D0
-         CALL SPLC(TX1,NPMAX+2,TY1,DF1,IOPT1,TEMP1,NPM+2,IER)
+         DF1(NPMAX+2)   = 0.D0
+         CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
+         CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
 C
          DO 175 NP=1,NPMAX
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PM(NP),
-     &                                      RM4M(L,NP),IER)
+            CALL SPL1DI(PM(NP),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM4M(L,NP)=SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PM(NP),
+C     &                                      RM4M(L,NP),IER)
   175 CONTINUE      
          DO 176 NPG=1,NPMAX+1
-         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PG(NPG),
-     &                                      RM4G(L,NPG),IER)
+            CALL SPL1DI(PG(NPG),SUM,TX1,UTY1,UTY10,NPMAX+2,IER)
+            RM4G(L,NPG)=SUM
+C         CALL SPLQ(TX1,NPMAX+2,TY1,TEMP1,NPM+2,0.D0,PG(NPG),
+C     &                                      RM4G(L,NPG),IER)
   176 CONTINUE      
   170 CONTINUE
 C
