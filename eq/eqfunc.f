@@ -48,8 +48,6 @@ C
      &               *PROFR2*FPOW(PSIN/PSIITB,PROFR2-1.D0)
      &           /PSIITB
          ENDIF
-         PPSI=PPSI*1.D6
-         DPPSI=DPPSI*1.D6
       ELSE
          CALL SPL1DD(PSIN,PPSI,DPPSI,PSITRX,UPPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQPPSI: SPL1DD : IERR=',IERR

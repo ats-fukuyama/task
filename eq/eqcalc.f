@@ -265,7 +265,7 @@ C
       RSAVE=RAXIS
       ZSAVE=ZAXIS
       CALL NEWTN(EQPSID,RINIT,ZINIT,RAXIS,ZAXIS,
-     &     DELT,EPS,ILMAX,LIST,IER)
+     &           DELT,EPS,ILMAX,LIST,IER)
       IF(IER.NE.0) THEN
          WRITE(6,'(A,I5,1P2E12.4)')
      &        'XX EQRHSV: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
@@ -370,11 +370,9 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQFPSI(PSIN,FPSI,DFPSI)
-            CALL EQTPSI(PSIN,TPSI,DTPSI)
-            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
             PP(NTG,NSG)=PPSI
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+            ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
             HJT1(NTG,NSG)=BB*RR       *FDN*DFPSI/(RMU0*RMM(NTG,NSG))
             HJT2(NTG,NSG)=(FPSI-BB*RR)*FDN*DFPSI/(RMU0*RMM(NTG,NSG))
@@ -438,7 +436,7 @@ C
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             TT(NTG,NSG)=SQRT(BB**2*RR**2
      &                 +2.D0*RMU0*RRC*(TJ*HJPSID/FDN-RRC*PPSI))
-            RHO(NTG,NSG)=PPSI*AMP/TPSI
+            RHO(NTG,NSG)=0.D0
          ENDDO
          ENDDO
 C
@@ -459,9 +457,8 @@ C
             ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
             CALL FNFQT(PSIN,FQTL,DFQTL)
-            QPSIL=QPSI
-            TTL=QPSIL/FQTL
-            DTT=FDN*(DQPSI*FQTL-QPSIL*DFQTL)/FQTL**2
+            TTL=QPSI/FQTL
+            DTT=FDN*(DQPSI*FQTL-QPSI*DFQTL)/FQTL**2
             HJT1(NTG,NSG)=BB*RR*DTT/(RMU0*RMM(NTG,NSG))
             HJT2(NTG,NSG)=(TTL-BB*RR)*DTT/(RMU0*RMM(NTG,NSG))
             HJP2(NTG,NSG)=HJP1(NTG,NSG)
@@ -470,7 +467,6 @@ C
             FJP =FJP +HJP2(NTG,NSG)*DVOL
             FJT1=FJT1+HJT1(NTG,NSG)*DVOL
             FJT2=FJT2+HJT2(NTG,NSG)*DVOL
-            WRITE(25,'(2I5,1P4E12.4)') NTG,NSG,QPSIL,FQTL,TTL,DTT
          ENDDO
          ENDDO
          TJ=(-FJT1-SQRT(FJT1**2-4.D0*FJT2*(RIP*1.D6+FJP)))
@@ -490,9 +486,8 @@ C            HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQQPSI(PSIN,QPSI,DQPSI)
             CALL FNFQT(PSIN,FQTL,DFQTL)
-            QPSIL=QPSI
 C            TT(NTG,NSG)=TJ*QPSIL/FQTL
-            TT(NTG,NSG)=BB*RR+TJ1*(QPSIL/FQTL-BB*RR)
+            TT(NTG,NSG)=BB*RR+TJ1*(QPSI/FQTL-BB*RR)
             RHO(NTG,NSG)=(PPSI*AMP/TPSI)
      &                  *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
          ENDDO
@@ -669,30 +664,46 @@ C
       DO NPS=1,NPSMAX
          PSIPS(NPS)=DPS*(NPS-1)
          PSIN=1.D0-PSIPS(NPS)/PSI0
-         PPPS(NPS)=PPSI(PSIN)
+         CALL EQPPSI(PSIN,PPSI,DPPSI)
+         CALL EQJPSI(PSIN,HJPSID,HJPSI)
+         CALL EQTPSI(PSIN,TPSI,DTPSI)
+         CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
 C
          IF (IMDLEQF.EQ.0) THEN
-            OMPS(NPS)=OMGPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            PPPS(NPS)=PPSI
+            OMPS(NPS)=OMGPSI
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
-     &                  *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
-     &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+     &                  *(TJ*HJPSID/FDN-RRC*PPSI
+     &                  *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
+            TEPS(NPS)=TPSI/(AEE*1.D3)
          ELSEIF (IMDLEQF.EQ.1) THEN
-            TTPS(NPS)=BB*RR+TJ*(FPSI(PSIN)-BB*RR)
-            OMPS(NPS)=OMGPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQFPSI(PSIN,FPSI,DFPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            PPPS(NPS)=PPSI
+            TTPS(NPS)=BB*RR+TJ*(FPSI-BB*RR)
+            OMPS(NPS)=OMGPSI
+            TEPS(NPS)=TPSI/(AEE*1.D3)
          ELSEIF (IMDLEQF.EQ.2) THEN
-            OMPS(NPS)=OMGPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
             TTPS(NPS)=SQRT(BB**2*RR**2
-     &                  +2.D0*RMU0*RRC
-     &                  *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
-     &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+     &                    +2.D0*RMU0*RRC*(TJ*HJPSID/FDN-RRC*PPSI))
+            OMPS(NPS)=0.D0
+            TEPS(NPS)=0.D0
          ELSEIF (IMDLEQF.EQ.3) THEN
+            CALL EQQPSI(PSIN,QPSI,DQPSI)
             CALL FNFQT(PSIN,FQTL,DFQTL)
-            QPSIL=QPSI(PSIN)
-            TTPS(NPS)=QPSIL/FQTL
-            OMPS(NPS)=OMGPSI(PSIN)
+            TTPS(NPS)=QPSI/FQTL
+            OMPS(NPS)=0.D0
+            TEPS(NPS)=0.D0
          ENDIF
-         TEPS(NPS)=TPSI(PSIN)/(AEE*1.D3)
       ENDDO
       RETURN
       END
