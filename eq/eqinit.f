@@ -193,6 +193,7 @@ C     *** MESH PARAMETERS ***
 C
 C        NSGMAX: Number of radial mesh points for Grad-Shafranov eq.
 C        NTGMAX: Number of poloidal mesh points for Grad-Shafranov eq.
+C        NUGMAX: Number of radial mesh points for flux-average quantities
 C        NRGMAX: Number of horizontal mesh points in R-Z plane
 C        NZGMAX: Number of vertical mesh points in R-Z plane
 C        NPSMAX: Number of flux surfaces
@@ -202,6 +203,7 @@ C        NSUMAX: Number of boundary points
 C
       NSGMAX = 32
       NTGMAX = 32
+      NUGMAX = 32
 C
       NRGMAX = 32
       NZGMAX = 32
@@ -295,7 +297,7 @@ C
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
      &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,
-     &              NSGMAX,NTGMAX,
+     &              NSGMAX,NTGMAX,NUGMAX,
      &              NRGMAX,NZGMAX,
      &              NPSMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX,
@@ -327,7 +329,7 @@ C
      &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS'/
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
      &       9X,'PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,'/
-     &       9X,'NSGMAX,NTGMAX,NRGMAX,NZGMAX,NPSMAX'/
+     &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,KNAMEQ'/
      &       9X,'MDLEQF,MDLEQC,NPRINT')
       END
@@ -348,6 +350,10 @@ C
       ENDIF
       IF(NTGMAX.GT.NTGM) THEN
          WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NTGMAX.GT.NTGM: ',NTGMAX,NTGM
+         IERR=2
+      ENDIF
+      IF(NUGMAX.GT.NUGM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NUGMAX.GT.NUGM: ',NUGMAX,NUGM
          IERR=2
       ENDIF
       IF(NRGMAX.GT.NRGM) THEN
@@ -432,7 +438,8 @@ C
      &             'RHOITB',RHOITB
       WRITE(6,602) 'NSGMAX',NSGMAX,
      &             'NTGMAX',NTGMAX,
-     &             'NRGMAX',NRGMAX,
+     &             'NUGMAX',NUGMAX
+      WRITE(6,602) 'NRGMAX',NRGMAX,
      &             'NZGMAX',NZGMAX
       WRITE(6,602) 'NRMAX ',NRMAX,
      &             'NTHMAX',NTHMAX,

@@ -598,23 +598,23 @@ C
       SUBROUTINE EQCALT(TTH)
 C
       INCLUDE '../eq/eqcomc.inc'
-      DIMENSION TTH(NRM)
+      DIMENSION TTH(NUGM)
 C
-      DRHO=1.D0/DBLE(NRMAX-1)
+      DRHO=1.D0/DBLE(NUGMAX-1)
       TTH(NR)=2.D0*PI*BB*RR
-      DO NR=NRMAX,2,-1
-         RHOP= NR   *DRHO
-         RHOM=(NR-1)*DRHO
+      DO NU=NUGMAX,2,-1
+         RHOP= NU   *DRHO
+         RHON=(NU-1)*DRHO
          PSINP=RHOP**2
-         PSINM=RHOM**2
+         PSINN=RHON**2
          CALL EQLPSI(PSINP,PLP,HJLP,PQLP,RG5P)
-         CALL EQLPSI(PSINM,PLM,HJLM,PQLM,RG5M)
+         CALL EQLPSI(PSINN,PLM,HJLM,PQLM,RG5M)
          RG5=0.5D0*(RG5P+RG5M)
          PQL=0.5D0*(PQLP+PQLM)
          HJL=0.5D0*(HJLP+HJLM)
          VA= 0.5D0*RMU*(PLP-PLM)/(BB**2*RG5)
          VB=-RMU*HJL*PSITS*(PSINP-PSINM)/(PQL*BB*RG5)
-         TTH(NR-1)=((1.D0+VA)*TTH(NR)-VB)/(1.D0-VA)
+         TTH(NU-1)=((1.D0+VA)*TTH(NR)-VB)/(1.D0-VA)
       ENDDO
       RETURN
       END

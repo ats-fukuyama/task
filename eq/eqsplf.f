@@ -78,6 +78,14 @@ C
       RETURN
       END
 C
+      FUNCTION FNG5S(PSIN)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      FNG5S=0.D0
+      RETURN
+      END
+C
       FUNCTION FNVPS(PSIN)
 C
       INCLUDE '../eq/eqcomq.inc'
