@@ -233,11 +233,11 @@ C
       DIMENSION GX(NGZM),GY(NGZM),GZ(NGZM,NGZM)
       DIMENSION GFINF(3,NINFM),KA(8,NGZM,NGZM)
       DIMENSION RGBS(3,5)
-      DATA RGBS/1.0,0.0,0.0,
-     &          1.0,0.5,0.0,
-     &          0.0,1.0,0.0,
+      DATA RGBS/0.0,1.0,1.0,
      &          0.0,0.0,1.0,
-     &          0.0,1.0,1.0/
+     &          0.0,1.0,0.0,
+     &          1.0,0.5,0.0,
+     &          1.0,0.0,0.0/
 C
       GXMIN=GX(1)
       GXMAX=GX(NGXMAX)
@@ -268,8 +268,10 @@ C
       ENDIF
 C
       CALL PAGES
+      CALL SETFNT(32)
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(0,0,7)
+      CALL SETLNW(0.035)
       CALL GDEFIN( 4.0,24.0, 3.0,16.0,GXMIN,GXMAX,GYMIN,GYMAX)
       CALL GFRAME
       CALL GSCALE(GXORG,  GXSCL,0.0,0.0,0.2,9)
@@ -286,7 +288,7 @@ C      WRITE(6,*) '2D ',GZMIN,GZMAX,IMAX,10.0**IMAX,10.0**(IMAX-4)
          GL=10.0**(IMAX-I+1)
          IF(10*GL.GT.GZMIN.AND.GL.LT.GZMAX) THEN
             GZORG=GL
-            CALL SETLNW(0.036)
+            CALL SETLNW(0.035)
             CALL CONTQ1(GZ,NGZM,NGXMAX,NGYMAX,
      &                  GZORG,GZW,1,IPRD,0,KA)
             GZORG=1.5*GL
@@ -307,9 +309,8 @@ C      WRITE(6,*) '2D ',GZMIN,GZMAX,IMAX,10.0**IMAX,10.0**(IMAX-4)
      &                  GZORG,GZW,1,IPRD,2,KA)
          ENDIF
       ENDDO
-      CALL SETLNW(0.0)
 C
-      CALL SETLIN(0,0,5)
+      CALL SETRGB(0.0,1.0,0.0)
       CALL SETVEW( 4.0,24.0, 3.0,16.0,GXMIN,GXMAX,GYMIN,GYMAX)
       DO NINF=1,NINFM
          IF(GFINF(3,NINF).LT.1.E30) THEN
