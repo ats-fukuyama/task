@@ -5,7 +5,8 @@ C
       DIMENSION RHOTR(NTRM)
       DIMENSION PRHO(NTRM),HJRHO(NTRM)
       DIMENSION VTRHO(NTRM),TRHO(NTRM)
-      DIMENSION QRHO(NTRM),DVRHO(NTRM)
+      DIMENSION QRHO(NTRM),TTRHO(NTRM),DVRHO(NTRM)
+      DIMENSION ABRHO(NTRM),ARRHO(NTRM)
 C
 C      PI     = 2.D0*ASIN(1.D0)
 C      RMU0   = 4.D0*PI*1.D-7
@@ -22,7 +23,7 @@ C
       BB    = 3.D0
       RIP   = 3.D0
       PN0   = 0.05D0
-      PT0   = 0.9D0
+      PT0   = 0.6D0
       PROFJ1= 2
       PROFJ2= 2.5D0
 C
@@ -49,15 +50,17 @@ C
       ENDDO
 C
       CALL TREQEX(NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
-     &            QRHO,DVRHO,IERR)
+     &            QRHO,TTRHO,DVRHO,ABRHO,ARRHO,IERR)
 C
       CALL EQGOUT(1)
 C
-C      DO NTR=1,NTRMAX
-C         WRITE(6,'(A,I5,1P3E12.4)') 
-C     &        'NTR,RHOTR,QRHO,DVRHO=',
-C     &         NTR,RHOTR(NTR),QRHO(NTR),DVRHO(NTR)
-C      ENDDO
+      WRITE(6,*) 'NTR ','RHO         ','q           ','F=BR        ',
+     &                  'dV/drho     ','<Vrho^2/R^2>','<1/R^2>     '
+      DO NTR=1,NTRMAX
+         WRITE(6,'(I5,1P6E12.4)') 
+     &         NTR,RHOTR(NTR),QRHO(NTR),TTRHO(NTR),
+     &             DVRHO(NTR),ABRHO(NTR),ARRHO(NTR)
+      ENDDO
 C
       CALL GSCLOS
       STOP

@@ -163,20 +163,24 @@ C     TRHO(NTRMAX)  : Temperature                              (keV)
 C
 C     output:
 C
-C     QRHO(NTRMAX+1)  : Safety factor
-C     DVRHO(NTRMAX) : Plamsa volume
+C     QRHO(NTRMAX)  : Safety factor
+C     TTRHO(NTRMAX) : Bphi R
+C     DVRHO(NTRMAX) : dV/drho
+C     ABRHO(NTRMAX) : <(nabla rho)^2/R^2>
+C     ARRHO(NTRMAX) : <1/R^2>
 C     IERR          : Error indicator
 C
 C   ***************************************************************
 C
       SUBROUTINE TREQEX(NTRMAX1,PRHO,HJRHO,VTRHO,TRHO,
-     &                  QRHO,DVRHO,IERR)
+     &                  QRHO,TTRHO,DVRHO,ABRHO,ARRHO,IERR)
 C              
       INCLUDE 'eqcomq.h'
       INCLUDE 'eqcom4.h'
       DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
       DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
-      DIMENSION QRHO(NTRMAX1+1),DVRHO(NTRMAX1)
+      DIMENSION QRHO(NTRMAX1),TTRHO(NTRMAX1),DVRHO(NTRMAX1)
+      DIMENSION ABRHO(NTRMAX1),ARRHO(NTRMAX1)
       DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
 C
       IERR=0
@@ -289,14 +293,34 @@ C
       NSUMAX1=NSUMAX
       CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
 C
-C     ***** Calculate Q and DVRHO at given radial position *****
+C     ***** Calculate Q, DVRHO and others at given radial position *****
 C
+      PSITA=FNFTS(1.D0)
       DO NTR=1,NTRMAX
-         PSIN=1.D0-PSITRG(NTR)
-         QRHO(NTR)=FNQPS(PSIN)
-         PSIN=1.D0-PSITR(NTR)
-         DVRHO(NTR)=FNVPS(PSIN)
+         PSITL=PSITA*RHOTR(NTR)**2
+         DPSITDRHO=2.D0*PSITA*RHOTR(NTR)
+         CALL SPL1DF(PSITL,PSIL,FTS,UFTT,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DD PSIL: IERR=',IERR
+C
+         CALL SPL1DF(PSIL,QPL,PSS,UQPS,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF QPL: IERR=',IERR
+         QRHO(NTR)=QPL
+         DPSIPDRHO=DPSITDRHO/QPL
+         CALL SPL1DF(PSIL,TTL,PSS,UTTS,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF TTL: IERR=',IERR
+         TTRHO(NTR)=TTL
+         CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF VPL: IERR=',IERR
+         DVRHO(NTR)=VPL*DPSIPDRHO
+         CALL SPL1DF(PSIL,AVBRL,PSS,UAVBR,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVBRL: IERR=',IERR
+         ABRHO(NTR)=AVBRL**2*(PSIL-PSS(1))/DPSIPDRHO**2
+         CALL SPL1DF(PSIL,AVRRL,PSS,UAVRR,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVRRL: IERR=',IERR
+         ARRHO(NTR)=AVRRL
+C         WRITE(6,'(I5,1P5E12.4)') 
+C     &        NTR,RHOTR(NTR),PSIL-PSS(1),PSITL,AVBRL,DPSIPDRHO
       ENDDO
-      QRHO(NTRMAX+1)=FNQPS(0.D0)
+C      PAUSE
  9000 RETURN
       END

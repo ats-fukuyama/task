@@ -117,6 +117,9 @@ C
          RMAX=RINIT
          BMIN=TTS(NR)/RAXIS
          BMAX=TTS(NR)/RAXIS
+         SUMAVBR=0.D0
+         SUMAVRR=0.D0
+         SUM0=0.D0
          DO N=2,NA
             CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
             R=YA(1,N)
@@ -130,18 +133,29 @@ C
             B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
             BMIN=MIN(BMIN,B)
             BMAX=MAX(BMAX,B)
+            SUMAVBR=SUMAVBR+H*BPR/R**3
+            SUMAVRR=SUMAVRR+H/(BPR*R**3)
          ENDDO
 C
          SPS(NR)=SUMS
          VPS(NR)=SUMV*2.D0*PI
          QPS(NR)=SUMQ*TTS(NR)/(2.D0*PI)
-         FTS(NR)=FTS(NR-1)
-     &          +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
+         IF(NR.EQ.2) THEN
+            FTS(NR)=FTS(NR-1)
+     &             +QPS(NR)*(PSS(NR)-PSS(NR-1))
+         ELSE
+            FTS(NR)=FTS(NR-1)
+     &             +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
+         ENDIF
          RLEN(NR)=XA(NA)
          RRMIN(NR)=RMIN
          RRMAX(NR)=RMAX
          BBMIN(NR)=BMIN
          BBMAX(NR)=BMAX
+         AVBR(NR)=SUMAVBR/SUMQ
+         AVRR(NR)=SUMAVRR/SUMQ
+C         WRITE(6,'(A,I5,1P3E12.4)') 'NR,PSS,AVBR,AVRR=', 
+C     &                            NR,PSS(NR)-PSS(1),AVBR(NR),AVRR(NR)
 C
 C         WRITE(6,'(I5,1P6E12.4/5X,1P5E12.4)') 
 C     &        NR,PSS(NR),PPS(NR),TTS(NR),SPS(NR),VPS(NR),QPS(NR),
@@ -186,6 +200,8 @@ C
       RRMAX(NR)=RAXIS
       BBMIN(NR)=TTS(NR)/RAXIS
       BBMAX(NR)=TTS(NR)/RAXIS
+      AVBR(NR)=0.D0
+      AVRR(NR)=1.D0/RAXIS**2
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
@@ -202,6 +218,8 @@ C
          QPS(NR)=QPS(NRPMAX)+(QPS(NRPMAX)-QPS(NRPMAX-1))*FACTOR
          RLEN(NR)=RLEN(NRPMAX)+(RLEN(NRPMAX)-RLEN(NRPMAX-1))*FACTOR
          FTS(NR)=FTS(NRPMAX)+(FTS(NRPMAX)-FTS(NRPMAX-1))*FACTOR
+         AVBR(NR)=AVBR(NRPMAX)+(AVBR(NRPMAX)-AVBR(NRPMAX-1))*FACTOR
+         AVRR(NR)=AVRR(NRPMAX)+(AVRR(NRPMAX)-AVRR(NRPMAX-1))*FACTOR
 C
 C         WRITE(6,'(I5,1P6E12.4)') 
 C     &        NR,PSS(NR),PPS(NR),TTS(NR),SPS(NR),VPS(NR),QPS(NR)
@@ -229,6 +247,7 @@ C      DO NR=1,NRMAX
 C         WRITE(6,'(I5,1P4E12.4)') 
 C     &        NR,SQRT(ABS(FTS(NR)/FTSA)),FTS(NR)/FTSA,PSS(NR),FTS(NR)
 C      ENDDO
+C      PAUSE
 C
 C        +++++ CALCULATE PLASMA SURFACE DATA +++++
 C
@@ -313,6 +332,12 @@ C
 C
 C        +++++ CALCULATE SPLINE COEFFICIENTS +++++
 C
+      DO NR=2,NRMAX
+         AVBR(NR)=SQRT(AVBR(NR)/(PSS(NR)-PSS(1)))
+      ENDDO
+      AVBR(1)=(4.D0*AVBR(2)-AVBR(3))/3.D0
+C      WRITE(6,'(1P5E12.4)') (AVBR(NR),NR=1,20)
+C
       CALL SPL1D(PSS,PPS,DERIV,UPPS,NRMAX,0,IERR)
       CALL SPL1D(PSS,TTS,DERIV,UTTS,NRMAX,0,IERR)
       CALL SPL1D(PSS,QPS,DERIV,UQPS,NRMAX,0,IERR)
@@ -325,6 +350,8 @@ C
       CALL SPL1D(PSS,RRMAX,DERIV,URRMAX,NRMAX,0,IERR)
       CALL SPL1D(PSS,BBMIN,DERIV,UBBMIN,NRMAX,0,IERR)
       CALL SPL1D(PSS,BBMAX,DERIV,UBBMAX,NRMAX,0,IERR)
+      CALL SPL1D(PSS,AVBR,DERIV,UAVBR,NRMAX,0,IERR)
+      CALL SPL1D(PSS,AVRR,DERIV,UAVRR,NRMAX,0,IERR)
 C
 C        +++++ CALCULATE DERIVATIVES +++++
 C     
