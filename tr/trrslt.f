@@ -208,6 +208,7 @@ C
 C
       BETAPA=BETAP(NRMAX)
       BETAA =BETA(NRMAX)
+      BETAN =BETAA*100.D0/(RIP/(RA*BB))
 C
       ALI=8.D0*PI**2*DR*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
@@ -472,7 +473,7 @@ C
      &                WPT,WBULKT,WTAILT,WPDOT,
      &                TAUE1,TAUE2,TAUEP,QF,
      &                BETAP0,BETAPA,BETA0,BETAA,
-     &                Q0,RQ1,ZEFF0
+     &                Q0,RQ1,ZEFF0,BETAN
   601    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
      &          1H ,3X,'WPT   =',1PD10.3,'  WBULKT=',1PD10.3,
      &               '  WTAILT=',1PD10.3,'  WPDOT =',1PD10.3/
@@ -481,7 +482,7 @@ C
      &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3/
      &          1H ,3X,'Q0    =',1PD10.3,'  RQ1   =',1PD10.3,
-     &               '  ZEFF0=',1PD10.3)
+     &               '  ZEFF0 =',1PD10.3,'  BETAN =',1PD10.3)
 C
          WRITE(6,602) WST(1),TS0(1),TSAV(1),ANSAV(1),
      &                WST(2),TS0(2),TSAV(2),ANSAV(2),
@@ -669,11 +670,11 @@ C
       IF(KID.EQ.'7'.OR.KID.EQ.'8') THEN
          WRITE(6,671) T,
      &                WPT,TAUE1,TAUE2,TAUEP,
-     &                BETAP0,BETAPA,BETA0,BETAA
+     &                BETAN,BETAPA,BETA0,BETAA
   671    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
      &          1H ,3X,'WPT   =',1PD10.3,'  TAUE1 =',1PD10.3,
      &               '  TAUE2 =',1PD10.3,'  TAUEP =',1PD10.3/
-     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &          1H ,3X,'BETAN =',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C
          WRITE(6,672) WST(1),TS0(1),TSAV(1),ANSAV(1),
@@ -723,11 +724,11 @@ C
      &               '  PLHTOT=',1PD10.3,'  PLHNPR=',1PD10.3)
          WRITE(16,1671) T,
      &                WPT,TAUE1,TAUE2,TAUEP,
-     &                BETAP0,BETAPA,BETA0,BETAA
+     &                BETAN,BETAPA,BETA0,BETAA
  1671    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
      &          1H ,3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
      &               '  TAUED =',1PD10.3,'  TAUEP =',1PD10.3/
-     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &          1H ,3X,'BETAN =',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C
          WRITE(16,1672) WST(1),TS0(1),TSAV(1),ANSAV(1),
@@ -852,3 +853,4 @@ C
      &           '  TT:',F7.3,'(KEV)   TA:',F7.3,'(KEV)')
       RETURN
       END
+

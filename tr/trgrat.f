@@ -467,10 +467,10 @@ C
       DO 300 I=1,NGT
          GYT(I,1)=GVT(I,85)*100.0
          GYT(I,2)=GVT(I,84)*100.0
-         GYT(I,3)=GVT(I,85)*100.0/(GVT(I,34)/(RA*BB))
+         GYT(I,3)=GVT(I,85)*100.0/(GVT(I,34)/GCLIP(RA*BB))
   300 CONTINUE
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3,
-     &            '@BETAa,BETA0,BETAN[%]  vs t@',2+INQ)
+     &            '@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
 C
       DO 200 I=1,NGT
          GYT(I,1)=GVT(I,79)

@@ -87,6 +87,37 @@ C
       CDW(7) = 0.04D0
       CDW(8) = 0.04D0
 C
+C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
+C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
+C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
+C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
+C                                                                  
+C           *****  MDLKAI.EQ. 0   : CONSTANT *****
+C           *****  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2) *****
+C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2) *****
+C           *****  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C *****
+C                                                                  
+C           *****  MDLKAI.EQ. 10  : etac=1 *****
+C           *****  MDLKAI.EQ. 11  : etac=1 1/(1+exp) *****
+C           *****  MDLKAI.EQ. 12  : etac=1 1/(1+exp) *q *****
+C           *****  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2) *****
+C           *****  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp) *****
+C           *****  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln) *****
+C                                                                  
+C           *****  MDLKAI.EQ. 20  : Rebu-Lalla model *****
+C                                                                  
+C           *****  MDLKAI.EQ. 30  : CDBM 1/(1+s) *****
+C           *****  MDLKAI.EQ. 31  : CDBM F(s,alpha,kappaq) *****
+C           *****  MDLKAI.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 33  : CDBM F(s,0,kappaq) *****
+C           *****  MDLKAI.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5) *****
+C           *****  MDLKAI.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5) *****
+C           *****  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
+C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
+C
       MDLKAI = 31
       MDLETA = 1
 C      MDLAD  = 1
@@ -452,13 +483,13 @@ C
 C
 C     ZEFF=1
 C
-      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
-      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
-      DATA RK22,RA22,RB22,RC22/2.55D0,0.45D0,0.43D0,0.43D0/
-      DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
-      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
+C      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
+C      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
+C      DATA RK22,RA22,RB22,RC22/2.55D0,0.45D0,0.43D0,0.43D0/
+C      DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
+C      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
       DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
-      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
+C      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 C
       T     = 0.D0
       TPRE  = 0.D0
@@ -650,8 +681,8 @@ C      WRITE(6,691) 'ZEF ',(ZEFF(NR),NR=1,NRMAX)
 C      WRITE(6,691) 'ETA ',(ETA(NR),NR=1,NRMAX)
 C      WRITE(6,691) 'BP ',(BP(NR),NR=1,NRMAX)
 C      WRITE(6,691) 'QP ',(QP(NR),NR=1,NRMAX)
-  691 FORMAT(1H ,A3/
-     &      (1H ,1P5E12.4))
+C  691 FORMAT(1H ,A3/
+C     &      (1H ,1P5E12.4))
 C
       GRG(1)=0.0
       DO 900 NR=1,NRMAX

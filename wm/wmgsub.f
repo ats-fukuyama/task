@@ -382,8 +382,6 @@ C
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGVLEN(2*GGZSTP))
 C
-      WRITE(6,*) 'WMGXEQ: NTHGMAX=',NTHGMAX
-C
       IF(GFMIN*GFMAX.GT.0.0) THEN
          CALL SETLIN(-1,-1,6)
          CALL CONTP5(GFL,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -782,7 +780,7 @@ C
                ENDIF
 C
                IF(ICNVG.EQ.1) THEN
-                  WRITE(6,*) 'ITER=',ITER,NXP,NYP,IERR
+C                  WRITE(6,*) 'ITER=',ITER,NXP,NYP,IERR
 C                  WRITE(6,*) DRHO,DTHETA
 C                  WRITE(6,*) RHO,THETA
 C                  WRITE(6,*) A(1,1),A(2,1)

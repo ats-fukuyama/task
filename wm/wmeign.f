@@ -780,6 +780,12 @@ C
      &       +ABS(CEFLD(2,NTH,NPH,NR))**2
      &       +ABS(CEFLD(3,NTH,NPH,NR))**2
          SUM=SUM+EABS
+C         IF(1.D0/SUM.EQ.0.D0) THEN
+C            WRITE(6,'(3I4,1P6E11.3)') NTH,NPH,NR,CEFLD(1,NTH,NPH,NR),
+C     &                                           CEFLD(2,NTH,NPH,NR),
+C     &                                           CEFLD(3,NTH,NPH,NR)
+C            SUM=0.D0
+C         ENDIF
          EABS=ABS(CEFLD(2,NTH,NPH,NR))
          IF(EABS.GT.EABSMAX) THEN
             EABSMAX=EABS
@@ -837,7 +843,9 @@ C
       ENDDO
       ENDDO
 C
+C      WRITE(6,*) NRMAX,NTHMAX,NPHMAX,SUM,RF
       F=NRMAX*NTHMAX*NPHMAX/(SUM*RF**4)
+      IF(F.LE.1.D-12) F=1.D-12
 C
       RETURN
       END

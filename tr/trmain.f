@@ -75,8 +75,6 @@ C
       CALL TRKLIN(LINE,KID,MODE)
       IF(MODE.NE.1) GOTO 1
 C
-    2 CONTINUE
-C
       IF(KID.EQ.'P') THEN
          CALL TRPARM(KID)
          IF(KID.EQ.'Q') GOTO 9000
