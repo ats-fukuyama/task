@@ -45,6 +45,8 @@ C
             CALL EQGS1D(2)
          ELSEIF(K2.EQ.'D') THEN
             CALL EQGSDD
+         ELSEIF(K2.EQ.'B') THEN
+            CALL EQGSBB
          ENDIF
       ELSEIF (K1.EQ.'M') THEN
          CALL EQGC1M
@@ -559,6 +561,132 @@ C
             ENDDO
             ENDDO
             KTITL='/CHI/'
+         ENDIF
+C
+         GSUM=0.0
+         DO NTH=1,NTHMAX
+            GSUM=GSUM+GF(1,NTH)
+         ENDDO
+         GSUM=GSUM/NTHMAX
+         DO NTH=1,NTHMAX
+            GF(1,NTH)=GSUM
+         ENDDO
+C
+         CALL GMNMX2(GF,NRM,1,NRMAX,1,1,NTHMAX,1,GFMIN,GFMAX)
+         CALL GQSCAL(GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP)
+         GGFSTP=0.5*GGFSTP
+         NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
+         DO NSU=1,NSUMAX
+            GRSU(NSU)=GUCLIP(RSU(NSU))
+            GZSU(NSU)=GUCLIP(ZSU(NSU))
+            GRSW(NSU)=GUCLIP(RSW(NSU))
+            GZSW(NSU)=GUCLIP(ZSW(NSU))
+         ENDDO
+         GRSU(NSUMAX+1)=GUCLIP(RSU(NSU))
+         GZSU(NSUMAX+1)=GUCLIP(ZSU(NSU))
+         GRSW(NSUMAX+1)=GUCLIP(RSW(NSU))
+         GZSW(NSUMAX+1)=GUCLIP(ZSW(NSU))
+C
+         GRLEN=GUCLIP(RGMAX-RGMIN)
+         GZLEN=GUCLIP(ZGMAX-ZGMIN)
+         IF(GRLEN.GT.GZLEN) THEN
+            GPR=15.0
+            GPZ=15.0*GZLEN/GRLEN
+         ELSE
+            GPR=15.0*GRLEN/GZLEN
+            GPZ=15.0
+         ENDIF
+C
+         CALL PAGES
+         CALL MOVE(2.0,17.5)
+         CALL TEXTX(KTITL)
+C
+         CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
+     &               REAL(RGMIN),REAL(RGMAX),
+     &               REAL(ZGMIN),REAL(ZGMAX))
+         CALL GFRAME
+C
+         IF(GFMIN*GFMAX.GT.0.) THEN
+            CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
+     &                  GGFMIN,GGFSTP,NSTEP,2,0,KA)
+         ELSE
+            CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
+     &                   0.5*GGFSTP, GGFSTP,NSTEP,2,0,KA)
+            CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
+     &                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
+         ENDIF
+         CALL SETLIN(-1,-1,6)
+         CALL GPLOTP(GRSU,GZSU,1,NSUMAX+1,1,0,0,0)
+         CALL SETLIN(-1,-1,5)
+         CALL GPLOTP(GRSW,GZSW,1,NSUMAX+1,1,0,0,0)
+C
+         CALL SETLIN(0,0,7)
+         CALL MOVE(20.0,17.0)
+         CALL TEXT('MAX :',5)
+         CALL NUMBR(GFMAX,'(1PE12.4)',12)
+         CALL MOVE(20.0,16.5)
+         CALL TEXT('MIN :',5)
+         CALL NUMBR(GFMIN,'(1PE12.4)',12)
+         CALL MOVE(20.0,16.0)
+         CALL TEXT('STEP:',5)
+         CALL NUMBR(GGFSTP,'(1PE12.4)',12)
+C
+         CALL PAGEE
+C
+      ENDDO
+C
+      RETURN
+      END
+C
+C     ****** DRAW CALCULATED MAGNETIC FIELD ******
+C
+      SUBROUTINE EQGSBB
+C
+      INCLUDE 'eqcomq.inc'
+C
+      DIMENSION GF(NRM,NTHM),GR(NRM,NTHM),GZ(NRM,NTHM)
+      DIMENSION GRSU(NSUM),GZSU(NSUM)
+      DIMENSION GRSW(NSUM),GZSW(NSUM)
+      DIMENSION KA(4,NRM,NTHM)
+      CHARACTER KTITL*80
+C
+      DO NR=1,NRMAX
+      DO NTH=1,NTHMAX
+         GR(NR,NTH)=GUCLIP(RPS(NTH,NR))
+         GZ(NR,NTH)=GUCLIP(ZPS(NTH,NR))
+      ENDDO
+      ENDDO
+C
+      DO IND=1,4
+C
+         IF(IND.EQ.1) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(BPR(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/BPR/'
+         ELSEIF(IND.EQ.2) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(BPZ(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/BPZ/'
+         ELSEIF(IND.EQ.3) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(BPT(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/BPT/'
+         ELSEIF(IND.EQ.4) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(BTP(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/BTP/'
          ENDIF
 C
          GSUM=0.0

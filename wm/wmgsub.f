@@ -83,6 +83,14 @@ C
             NG3=7
          ELSEIF(K3.EQ.'Z') THEN
             NG3=8
+         ELSEIF(K3.EQ.'4') THEN
+            NG3=9
+         ELSEIF(K3.EQ.'5') THEN
+            NG3=10
+         ELSEIF(K3.EQ.'6') THEN
+            NG3=11
+         ELSEIF(K3.EQ.'7') THEN
+            NG3=12
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
             GOTO 9000
@@ -157,6 +165,14 @@ C
                GY(NR,NTH) =GUCLIP(RPS(NTH,NR))
             ELSEIF(NG3.EQ.8) THEN
                GY(NR,NTH) =GUCLIP(ZPS(NTH,NR))
+            ELSEIF(NG3.EQ.9) THEN
+               GY(NR,NTH) =GUCLIP(BTP(NTH,NR))
+            ELSEIF(NG3.EQ.10) THEN
+               GY(NR,NTH) =GUCLIP(BPT(NTH,NR))
+            ELSEIF(NG3.EQ.11) THEN
+               GY(NR,NTH) =GUCLIP(BPR(NTH,NR))
+            ELSEIF(NG3.EQ.12) THEN
+               GY(NR,NTH) =GUCLIP(BPZ(NTH,NR))
             ENDIF
          ENDIF
       ENDDO

@@ -152,18 +152,18 @@ C
             R=0.5D0*(YA(1,N-1)+YA(1,N))
             Z=0.5D0*(YA(2,N-1)+YA(2,N))
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPR=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
+            B=SQRT((TTS(NR)/R)**2+(BPRL/R)**2)
 C
-            SUMS=SUMS+H/BPR
-            SUMV=SUMV+H*R/BPR
-            SUMQ=SUMQ+H/(R*BPR)
+            SUMS=SUMS+H/BPRL
+            SUMV=SUMV+H*R/BPRL
+            SUMQ=SUMQ+H/(R*BPRL)
 C
-            SUMAVBR=SUMAVBR+H*BPR/R
-            SUMAVRR=SUMAVRR+H/(R*BPR)
+            SUMAVBR=SUMAVBR+H*BPRL/R
+            SUMAVRR=SUMAVRR+H/(R*BPRL)
             SUMAVR1=SUMAVR1+H*R
-            SUMAVR2=SUMAVR2+H*R*BPR
-            SUML   =SUML   +H*R/BPR
+            SUMAVR2=SUMAVR2+H*R*BPRL
+            SUML   =SUML   +H*R/BPRL
 C
             XCHI1(N)=SUMQ
             RCHI(N)=YA(1,N)
@@ -172,8 +172,8 @@ C
             R=YA(1,N)
             Z=YA(2,N)
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPR=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
+            B=SQRT((TTS(NR)/R)**2+(BPRL/R)**2)
 C
             RMIN=MIN(RMIN,R)
             RMAX=MAX(RMAX,Z)
@@ -280,12 +280,12 @@ C
             R=0.5D0*(YA(1,N-1)+YA(1,N))
             Z=0.5D0*(YA(2,N-1)+YA(2,N))
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPR=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTSA/R)**2+(BPR/R)**2)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
+            B=SQRT((TTSA/R)**2+(BPRL/R)**2)
 C
-            SUMS=SUMS+H/BPR
-            SUMV=SUMV+H*R/BPR
-            SUMQ=SUMQ+H/(R*BPR)
+            SUMS=SUMS+H/BPRL
+            SUMV=SUMV+H*R/BPRL
+            SUMQ=SUMQ+H/(R*BPRL)
          ENDDO
 C
          SPSA=SUMS
@@ -480,47 +480,44 @@ C
 C
 C        +++++ CALCULATE DERIVATIVES +++++
 C     
-C
       DTH=2.D0*PI/NTHMAX
-      DO NR=1,NRMAX
-         PSIT(NR)=FTS(NR)
-      ENDDO
       DO NTH=1,NTHMAX+1
          THIT(NTH)=DTH*(NTH-1)
       ENDDO
 C
-      DO NTH=1,NTHMAX+1
-         D10(NTH,1)=0.D0
-      ENDDO
-      D11(1,1)=0.D0
-      D11(NTHMAX+1,1)=0.D0
-      CALL SPL2D(THIT,PSIT,RPS,D10,D01,D11,URPS,
+      CALL SPL2D(THIT,RHOT,RPS,D10,D01,D11,URPS,
      &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for RPS: IERR=',IERR
 C
-      DO NTH=1,NTHMAX+1
-         D10(NTH,1)=0.D0
-      ENDDO
-      D11(1,1)=0.D0
-      D11(NTHMAX+1,1)=0.D0
-      CALL SPL2D(THIT,PSIT,ZPS,D10,D01,D11,UZPS,
-     &           NTHMP,NTHMAX+1,NRMAX,4,1,IERR)
+      CALL SPL2D(THIT,RHOT,ZPS,D10,D01,D11,UZPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for ZPS: IERR=',IERR
 C
       DO NTH=1,NTHMAX+1
          THITL=THIT(NTH)
          DO NR=1,NRMAX
-            PSITL=PSIT(NR)
-            CALL SPL2DD(THITL,PSITL,RPSL,DRCHIL,DRPSIL,
-     &                  THIT,PSIT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-            CALL SPL2DD(THITL,PSITL,ZPSL,DZCHIL,DZPSIL,
-     &                  THIT,PSIT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-            DRPSI(NTH,NR)=DRPSIL
-            DZPSI(NTH,NR)=DZPSIL
+            RHOTL=RHOT(NR)
+            CALL SPL2DD(THITL,RHOTL,RPSL,DRCHIL,DRRHOL,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            CALL SPL2DD(THITL,RHOTL,ZPSL,DZCHIL,DZRHOL,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            DRPSI(NTH,NR)=DRRHOL/(2.D0*FTSA)
+            DZPSI(NTH,NR)=DZRHOL/(2.D0*FTSA)
             DRCHI(NTH,NR)=DRCHIL
             DZCHI(NTH,NR)=DZCHIL
+C
+            CALL EQPSID(RPSL,ZPSL,DPSIDR,DPSIDZ)
+            BPR(NTH,NR)= DPSIDZ/RPSL
+            BPZ(NTH,NR)=-DPSIDR/RPSL
+            BPT(NTH,NR)=SQRT(BPR(NTH,NR)**2+BPZ(NTH,NR)**2)
+            BTP(NTH,NR)= TTS(NR)/RPSL
+C            WRITE(6,'(2I3,1P6E12.4)') 
+C     &           NTH,NR,RPSL,ZPSL,
+C     &           BPR(NTH,NR),BPZ(NTH,NR),BPT(NTH,NR),BTP(NTH,NR)
          ENDDO
       ENDDO
+C
+C        +++++ CALCULATE MAGNETIC FIELD +++++
 C
 C      DO NR=1,NRMAX,5
 C         DO NTH=1,NTHMAX

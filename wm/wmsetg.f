@@ -408,6 +408,8 @@ C
       SUBROUTINE WMXRZF(IERR)
 C
       INCLUDE 'wmcomm.h'
+C
+      DIMENSION BPR(NTHM,NRM),BPZ(NTHM,NRM),BTP(NTHM,NRM)
       CHARACTER KNAMEQSV*80
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV,KNAMEQSV
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
@@ -453,6 +455,7 @@ C
          CALL EQGETP(PSIPS,NRMAX+1)
          CALL EQGETR(RPS,DRPSI,DRCHI,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETZ(ZPS,DZPSI,DZCHI,NTHM,NTHMAX,NRMAX+1)
+         CALL EQGETBB(BPR,BPZ,BTP,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETQ(PPS,QPS,RBPS,VPS,RLEN,NRMAX+1)
          CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
          CALL EQGETF(RGMIN,RGMAX,ZGMIN,ZGMAX)
@@ -479,6 +482,8 @@ C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
       CALL MPBCDN(ZPS,NTHM*(NRMAX+1))
       CALL MPBCDN(DZPSI,NTHM*(NRMAX+1))
       CALL MPBCDN(DZCHI,NTHM*(NRMAX+1))
+      CALL MPBCDN(BPT,NTHM*(NRMAX+1))
+      CALL MPBCDN(BTP,NTHM*(NRMAX+1))
       CALL MPBCDN(PPS,NRMAX+1)
       CALL MPBCDN(QPS,NRMAX+1)
       CALL MPBCDN(RBPS,NRMAX+1)
@@ -537,9 +542,8 @@ C
          DO NTH=1,NTHMAX
          DO NPH=1,NPHMAX
             RG11(NTH,NPH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
-     &                        *XRHO(NR)*XRHO(NR)
-            RG12(NTH,NPH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
-     &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
+            RG12(NTH,NPH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR)
+     &                        +DZPSI(NTH,NR)*DZCHI(NTH,NR))/XRHO(NR)
             RG13(NTH,NPH,NR)=0.D0
             RG22(NTH,NPH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2)
      &                        /(XRHO(NR)*XRHO(NR))
@@ -547,10 +551,22 @@ C
             RG33(NTH,NPH,NR)= RPS(NTH,NR)**2
             RJ  (NTH,NPH,NR)= RPS(NTH,NR)
      &                      *( DRPSI(NTH,NR)*DZCHI(NTH,NR)
-     &                        -DRCHI(NTH,NR)*DZPSI(NTH,NR))
+     &                        -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
 C
-            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
+C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C
+            BPT=(BPR(NTH,NR)*DZPSI(NTH,NR)
+     &          -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR)
+     &           /SQRT(RG11(NTH,NPH,NR))
+     &           /SQRT(RG22(NTH,NPH,NR))
+C     &           /RPS(NTH,NR)
+            BFLD(2,NTH,NPH,NR)=BPT
+            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
+     &           RBPS(NR)/RPS(NTH,NR)**2,
+     &           BPT,BPT*RJ(NTH,NPH,NR)
+C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
 C            IF((NR.EQ.2).OR.(NR.EQ.3)) THEN
 C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
@@ -575,8 +591,16 @@ C
             RG23(NTH,NPH,NR)= 0.D0
             RG33(NTH,NPH,NR)= RPST(NTH,NPH,NR)**2
             RJ  (NTH,NPH,NR)= RJ(NTH,NPH,2)
-            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
+C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BPT=(BPR(NTH,NR)*DRPSI(NTH,NR)
+C     &          +BPZ(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
+            BFLD(2,NTH,NPH,NR)=BFLD(2,NTH,NPH,2)
+            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
+     &           RBPS(NR)/RPS(NTH,NR)**2,
+     &           BPT,BPT*RJ(NTH,NPH,NR)
+C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
          ENDDO
          ENDDO
