@@ -62,6 +62,7 @@ C
          CALL EQRHSV(IERR)
          IF(IERR.NE.0) GOTO 200
          CALL EQSOLV
+C
          SUM0=0.D0
          SUM1=0.D0
          DO NSG=1,NSGMAX
@@ -319,21 +320,20 @@ C
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI(PSIN)
-            HJT1(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJPSI(PSIN)
-     &                   +FDN*(1.D0-(RRC**2/RMM(NTG,NSG)**2))
-     &                    *RMM(NTG,NSG)*DPPSI(PSIN)
+            HJT1(NTG,NSG)=HJPSI(PSIN)
             HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
      &               /(2.D0*TPSI(PSIN)))
             HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
      &               /(2.D0*TPSI(PSIN)))
-            HJP2C=(HJP2A-1.D0)-(RRC**2/RMM(NTG,NSG)**2)*(HJP2B-1.D0)
+            HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
             HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
             HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
             HJP2F=FDN*AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)/TPSI(PSIN)
-     &           +FDN*DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
+     &           -FDN*DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
-            HJT2(NTG,NSG)=HJT1(NTG,NSG)
+            HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
+C
             FJP=FJP+HJP2(NTG,NSG)*DVOL
             FJT=FJT+HJT2(NTG,NSG)*DVOL
          ENDDO

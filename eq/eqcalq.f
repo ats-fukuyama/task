@@ -364,7 +364,7 @@ C
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0
       AVR2(1)=(4.D0*AVR2(2)-AVR2(3))/3.D0
 C
-      IF(NPRINT.GE.2) THEN
+      IF(NPRINT.GE.3) THEN
          DO NR=1,NRMAX
             WRITE(6,'(I5,1P,5E12.4)') 
      &           NR,PSS(NR),AVR1(NR),AVR2(NR),AVRR(NR),AVBR(NR)

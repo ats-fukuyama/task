@@ -1,6 +1,7 @@
 ### $Id$ ###
 include ../make.header
 
+LFLAGS=$(OFLAGS)
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
