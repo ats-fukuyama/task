@@ -203,6 +203,8 @@ C
       KFNLOG='trf.log'
 C
       MODELG=0
+      MDCHG=0
+      MDLEQ=0
       RETURN
       END
 C
@@ -223,7 +225,7 @@ C
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,
+     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -308,21 +310,21 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(1H ,'# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE'/
-     &       1H ,8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
-     &       1H ,8X,'PNC,PNFE,PNNU,PNNUS'/
-     &       1H ,8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
-     &       1H ,8X,'PROFJ1,PROFJ2,ALP'/
-     &       1H ,8X,'CK0,CNC,CDW,CKALFA,CKBETA,KFNLOG,MDLKNC'/
-     &       1H ,8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
-     &       1H ,8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
-     &       1H ,8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
-     &       1H ,8X,'PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,PNBCD,MDLNB'/
-     &       1H ,8X,'PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC'/
-     &       1H ,8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
-     &       1H ,8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
-     &       1H ,8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       1H ,8X,'PELTIM,PELPAT,MODELG')
+  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE'/
+     &       ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
+     &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
+     &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
+     &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
+     &       ' ',8X,'CK0,CNC,CDW,CKALFA,CKBETA,KFNLOG,MDLKNC'/
+     &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
+     &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
+     &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
+     &       ' ',8X,'PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,PNBCD,MDLNB'/
+     &       ' ',8X,'PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC'/
+     &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
+     &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
+     &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ')
       END
 C
 C     ***********************************************************
@@ -345,12 +347,12 @@ C
      &             'BB    ',BB
 C
       WRITE(6,611)
-  611 FORMAT(1H ,'NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
+  611 FORMAT(' ','NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
      &                   'PT(KEV)  PTS(KEV)  PELPAT')
       DO NS=1,NSM
          WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),
      &                PELPAT(NS)
-  612    FORMAT(1H ,I2,1PD12.4,0PF6.1,0P5F9.4)
+  612    FORMAT(' ',I2,1PD12.4,0P,F6.1,5F9.4)
       ENDDO
 C
       WRITE(6,601) 'PNC   ',PNC,
@@ -393,10 +395,10 @@ C
       IF((MDLKAI.GE.10.AND.MDLKAI.LT.20).OR.ID.EQ.1) 
      &   WRITE(6,613) CDW(1),CDW(2),CDW(3),CDW(4),
      &                CDW(5),CDW(6),CDW(7),CDW(8)
-  613 FORMAT(1H ,'    AKDW(E) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
-     &       1H ,'    AKDW(D) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
-     &       1H ,'    AKDW(T) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
-     &       1H ,'    AKDW(A) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW')
+  613 FORMAT(' ','    AKDW(E) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
+     &       ' ','    AKDW(D) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
+     &       ' ','    AKDW(T) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW'/
+     &       ' ','    AKDW(A) =  ',0PF6.3,' DEDW + ',F6.3,' DIDW')
 C
       WRITE(6,601) 'DT    ',DT,
      &             'EPSLTR',EPSLTR,
@@ -415,6 +417,9 @@ C
      &             'MDLCD ',MDLCD,
      &             'MDLNF ',MDLNF,
      &             'MODELG',MODELG
+C
+      WRITE(6,602) 'MDCHG ',MDCHG,
+     &             'MDLEQ ',MDLEQ
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,
@@ -467,11 +472,11 @@ C
       ENDIF
       RETURN
 C
-  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
+  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
      &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
+  602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-  603 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',1PE11.3:
+  603 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',1PE11.3:
      &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
       END
 C
@@ -510,27 +515,28 @@ C      FKAP=0.5D0*(RKAP+1.D0)
 C     &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
       FKAP=RKAP
 C
-      DO 100 NR=1,NRMAX
-         RG(NR)  = NR*DR
-         RM(NR)  = (NR-0.5D0)*DR
+      DO NR=1,NRMAX
+         RG(NR)  = DBLE(NR*DR)
+         RM(NR)  = DBLE(NR-0.5D0)*DR
 C
          PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-         DO 10 NS=1,NSM
+         DO NS=1,NSM
             RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
-   10    CONTINUE
+         ENDDO
+         NS=1
 C
          PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-         DO 20 NS=1,NSM
+         DO NS=1,NSM
             RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
-   20    CONTINUE
+         ENDDO
 C
          PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
          ANNU(NR)= (PNNU-PNNUS)*PROF+PNNUS
 C
-         DO 30 NF=1,NFM
+         DO NF=1,NFM
            RW(NR,NF) = 0.D0
-   30    CONTINUE
-  100 CONTINUE
+         ENDDO
+      ENDDO
 C
 C     *** CALCULATE PZC,PZFE ***
 C
@@ -539,33 +545,33 @@ C
 C     *** CALCULATE ANEAVE ***
 C
       ANESUM=0.D0
-      DO 200 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANESUM=ANESUM+RN(NR,1)*RM(NR)
-  200 CONTINUE
+      ENDDO 
       ANEAVE=ANESUM*2.D0*DR
 C
 C     *** CALCULATE IMPURITY DENSITY
 C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
 C
-      DO 300 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
      &            *1.D-2*RN(NR,1)
          ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
      &            *1.D-2*RN(NR,1)
          ANI = 0.D0
-         DO 210 NS=2,NSM
+         DO NS=2,NSM
             ANI=ANI+PZ(NS)*RN(NR,NS)
-  210    CONTINUE
+         ENDDO
          ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
          DILUTE = 1.D0-ANZ/ANI
-         DO 220 NS=2,NSM
+         DO NS=2,NSM
             RN(NR,NS) = RN(NR,NS)*DILUTE
-  220    CONTINUE
-  300 CONTINUE
+         ENDDO
+      ENDDO
       PNSS(1)=PNS(1)
-      DO 310 NS=2,NSM
+      DO NS=2,NSM
          PNSS(NS)=PNS(NS)*DILUTE
-  310 CONTINUE
+      ENDDO
 C
 C     *** CALCULATE PROFILE OF AJ(R) ***
 C
@@ -621,7 +627,8 @@ C
                EPS=RA*RM(NR)/RR
                EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
-                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+C                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+                  QL= 0.25D0*(3.D0*0.D0+QP(NR))
                ELSE
                   QL= 0.5D0*(QP(NR-1)+QP(NR))
                ENDIF
@@ -632,7 +639,7 @@ C
 C
                FT     = 1.D0-SQRT(EPS)*RK33E
                ETA(NR)= ETA(NR)/FT
-C
+C     
 C        ****** NEOCLASSICAL RESISTIVITY PART II ******
 C
             ELSEIF(MDLETA.EQ.2) THEN
@@ -690,7 +697,7 @@ C
          ENDDO
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
      &               NRMAX,RHOTR,HJRHO,QRHO,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: IERR=',IERR
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C
          DO NR=1,NRMAX
 C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
@@ -803,7 +810,8 @@ C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
             ARRHO(NR)=1.D0/RR**2
             AR1RHO(NR)=1.D0/RA
             AR2RHO(NR)=1.D0/RA**2
-            EPSRHO(NR)=RA*RM(NR)/RR
+C            EPSRHO(NR)=RA*RM(NR)/RR
+            EPSRHO(NR)=RA*RG(NR)/RR
          ENDDO
       ENDIF
       RETURN

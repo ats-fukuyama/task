@@ -243,22 +243,23 @@ C
 C
       CALL PAGES
 C
-      DO 100 NG=1,NGR
-      DO 100 NR=1,NRMAX
+      DO NG=1,NGR
+      DO NR=1,NRMAX
          GWR(NR,NG) =  GVR(NR,NG,1)*GVR(NR,NG,5)*GCLIP(RKEV*1.D14)
      &              +  GVR(NR,NG,2)*GVR(NR,NG,6)*GCLIP(RKEV*1.D14)
-  100 CONTINUE
+      ENDDO
+      ENDDO
 C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,
      &            GRM,GWR,NRMP,NRMAX,NGR,
      &            '@P [MP]  vs r@',2+INQ)
 C
-      DO 200 NR=1,NRMAX
+      DO NR=1,NRMAX
          GWR(NR,1) =  GVR(NR,1,10)
          GWR(NR,2) =  GVR(NR,1,12)
          GWR(NR,3) =  0.0
          GWR(NR,4) =  GVR(NR,1,14)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,
      &            GRM,GWR,NRMP,NRMAX,4,
      &            '@J,JOH,JBS [MA/m^2]  vs r@',2+INQ)

@@ -38,17 +38,18 @@ C
       INCLUDE 'trcomm.h'
 C
       FSUM = 0.D0
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          FSUM=FSUM+DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)*DVRHO(NR)*DR
-   10 CONTINUE
+      ENDDO
 C
       S0  =PELTOT/FSUM
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          SPEL=S0*DEXP(-((RA*RM(NR)-PELR0)/PELRW)**2)
-      DO 20 NS=1,NSM
+      DO NS=1,NSM
          SPE(NR,NS)=PELPAT(NS)*SPEL
-   20 CONTINUE
+      ENDDO
+      ENDDO
 C
       RETURN
       END
@@ -110,7 +111,7 @@ C
      &       *EFAST**0.4D0*RP**(-2.D0/3.D0)/ROS
 C
       RPPRE=RP
-      RP=RP-RPDOT*DR/PELVEL
+      RP=RP-RPDOT*DR*RA/PELVEL
 C
       IF(RP.LE.0.D0) THEN
          RPE=RA-RA*DR*(NR-1)+RA*DR*RPPRE/(RPPRE-RP)
@@ -122,10 +123,10 @@ C
          GOTO 9000
       ENDIF
 C
-      SPEL=ANS*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI/(DVRHO(NR)*PELVEL)
-      DO 10 NS=1,NSM
+      SPEL=ANS*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI*RA/(DVRHO(NR)*PELVEL)
+      DO NS=1,NSM
          SPE(NR,NS)=PELPAT(NS)*SPEL
-   10 CONTINUE
+      ENDDO
 C
       NR = NR-1
       GOTO 1000
@@ -133,7 +134,7 @@ C
  9000 WRITE(6,600) RPE
       RETURN
 C
-  600 FORMAT(1H ,'# PENETRATION LENGTH =',1F6.3,'(M)')
+  600 FORMAT(' ','# PENETRATION LENGTH =',1F6.3,'(M)')
       END
 C
 C     ***********************************************************
@@ -169,7 +170,7 @@ C
      &     *(ANE*1.D20)**(1.D0/3.D0)*ABS(TE)**1.64D0
 C
       RPPRE=RP
-      RP=RP-RPDOT*DR/PELVEL
+      RP=RP-RPDOT*DR*RA/PELVEL
 C
       IF(RP.LE.0.D0) THEN
          RPE=RA-RA*DR*(NR-1)+RA*DR*RPPRE/(RPPRE-RP)
@@ -181,10 +182,10 @@ C
          GOTO 9000
       ENDIF
 C
-      SPEL=ANP*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI/(DVRHO(NR)*PELVEL)
-      DO 10 NS=1,NSM
+      SPEL=ANP*RP*0.5D0*(RP+RPPRE)*RPDOT*4.D0*PI*RA/(DVRHO(NR)*PELVEL)
+      DO NS=1,NSM
          SPE(NR,NS)=PELPAT(NS)*SPEL
-   10 CONTINUE
+      ENDDO
 C
       NR = NR-1
       GOTO 100
@@ -192,5 +193,5 @@ C
  9000 WRITE(6,600) RPE
       RETURN
 C
-  600 FORMAT(1H ,'# PENETRATION LENGTH =',1F6.3,'(M)')
+  600 FORMAT(' ','# PENETRATION LENGTH =',1F6.3,'(M)')
       END

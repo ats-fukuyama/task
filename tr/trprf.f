@@ -22,7 +22,7 @@ C
                ELSE
                   VTEP=SQRT(ABS(RT(NR+1,1))*RKEV/AME)
                   FACT=(VTE-VPHLH)/(VTE-VTEP)
-                  PLHR0L=FACT*RM(NR+1)+(1.D0-FACT)*RM(NR)
+                  PLHR0L=(FACT*RM(NR+1)+(1.D0-FACT)*RM(NR))*RA
                ENDIF
                GOTO 6
             ENDIF
@@ -128,7 +128,8 @@ C           1 : TTMP
 C
       FUNCTION TRCDEF(WT,Z,XR,YR,ID)
 C
-      IMPLICIT REAL*8(A-H,O-Z)
+C      IMPLICIT REAL (KIND=8) (A-H,O-Z)
+      IMPLICIT REAL*8 (A-H,O-Z)
 C
       R=SQRT(XR*XR+YR*YR)
       IF(ID.EQ.0) THEN

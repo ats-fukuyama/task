@@ -11,9 +11,9 @@ C
       INCLUDE 'trcomm.h'
 C
       IF(MDLNB.EQ.0) THEN
-         DO 100 NR=1,NRMAX
+         DO NR=1,NRMAX
             TAUB(NR)=1.D0
-  100    CONTINUE
+         ENDDO
       ELSEIF(MDLNB.EQ.1) THEN
          CALL TRNBIA
          DO NR=1,NRMAX
@@ -183,13 +183,13 @@ C
          ENDIF
       ELSE
          IF(I.GT.0) THEN
-            DRR1=RM(IM+1)-RM(IB)**2
+            DRR1=RM(IM+1)**2-RM(IB)**2
             IF(DRR1.LT.0.D0) DRR1=0.D0
             DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
             IF(DRM1.LT.0.D0) DRM1=0.D0
             DL = 2.D0*SQRT(DRM1)
          ELSE
-            DRR1=RM(IM-1)-RM(IB)**2
+            DRR1=RM(IM-1)**2-RM(IB)**2
             IF(DRR1.LT.0.D0) DRR1=0.D0
             DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
             IF(DRM1.LT.0.D0) DRM1=0.D0
@@ -272,6 +272,7 @@ C
       SUBROUTINE TRBSCS(ANEX,TEX,EB,ANCX,ANFEX,ANOX,
      &                  PZCX,PZFEX,PZOX,SGM)
 C
+C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
 C     "C" DENOTES CARBON, "F" IRON, AND "O" OXIGEN.
@@ -298,22 +299,26 @@ C
       S2=0.D0
       S3=0.D0
       S4=0.D0
-      DO 100 I=1,2
-      DO 100 J=1,3
-      DO 100 K=1,2
+      DO I=1,2
+      DO J=1,3
+      DO K=1,2
          S1=S1+A(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)
      &                 *(LOG(TEX))**(K-1)
-  100 CONTINUE
-      DO 110 I=1,3
-      DO 110 J=1,2
-      DO 110 K=1,2
+      ENDDO
+      ENDDO
+      ENDDO
+      DO I=1,3
+      DO J=1,2
+      DO K=1,2
          S2=S2+C(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)
      &                 *(LOG(TEX))**(K-1)
          S3=S3+F(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)
      &                 *(LOG(TEX))**(K-1)
          S4=S4+O(I,J,K)*(LOG(EB))**(I-1)*(LOG(ANEX))**(J-1)
      &                 *(LOG(TEX))**(K-1)
-  110 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       SGM=EXP(S1)/EB*(1.D0+(ANCX *PZCX *(PZCX -1.D0)*S2
      &                     +ANFEX*PZFEX*(PZFEX-1.D0)*S3

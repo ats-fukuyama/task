@@ -46,11 +46,11 @@ C
        CALL GSOPEN
 C
       WRITE(6,600)
-  600 FORMAT(1H )
+  600 FORMAT(' ')
       WRITE(6,601) NRM,NSM,NFM,NGM,NTM
-  601 FORMAT(1H ,'# TASK/TR --- V2.21 : 00/04/19 ',
+  601 FORMAT(' ','# TASK/TR --- V2.21 : 00/04/19 ',
      &       '*** NRM, NSM, NFM, NGM, NTM  ***'/
-     &       1H ,33X,I5,I5,I5,I5,I5)
+     &       ' ',33X,I5,I5,I5,I5,I5)
       OPEN(33,STATUS='SCRATCH',FORM='FORMATTED')
 C
       CALL GUTIME(GTCPU1)
@@ -198,7 +198,7 @@ C
       CLOSE(33)
       CALL GUTIME(GTCPU2)
       WRITE(6,666) GTCPU2-GTCPU1
-  666 FORMAT(1H ,'#      CPU TIME :   ',F8.3,' SEC ')
+  666 FORMAT(' ','#      CPU TIME :   ',F8.3,' SEC ')
       STOP
       END
 C

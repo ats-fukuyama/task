@@ -78,22 +78,22 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I, 9)
          GYT(I,2)=GVT(I,10)
          GYT(I,3)=GVT(I,13)
          GYT(I,4)=GVT(I,14)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,34)
          GYT(I,2)=GVT(I,35)
          GYT(I,3)=GVT(I,36)
          GYT(I,4)=GVT(I,37)
          GYT(I,5)=GVT(I,38)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GT,GYT,NTM,NGT,5,
      &            '@IP,IOH,INB,IRF,IBS [MA]  vs t@',2+INQ)
 C

@@ -10,7 +10,7 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          SIE(NR)=0.D0
          SNF(NR)=0.D0
          SNB(NR)=0.D0
@@ -25,12 +25,13 @@ C
          AJNB(NR)=0.D0
          AJRF(NR)=0.D0
          AJBS(NR)=0.D0
-      DO 10 NS=1,NSM
+      DO NS=1,NSM
          SPE(NR,NS)=0.D0
          PRF(NR,NS)=0.D0
          PBCL(NR,NS)=0.D0
          PFCL(NR,NS)=0.D0
-   10 CONTINUE
+      ENDDO
+      ENDDO
 C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
@@ -38,7 +39,7 @@ C
          ENDDO
       ELSE
          DO NR=1,NRMAX
-            QP(NR)=FKAP*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)=FKAP*RG(NR)*RA*BB/(RR*BP(NR))
          ENDDO
       ENDIF
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -387,7 +388,8 @@ C
 C
       DO NR=2,NRMAX
 C
-         EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+C         EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+         EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
          QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
 C         ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
@@ -548,6 +550,7 @@ C
          RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
          RNUT=ABS(QP(NR))*RR/(TAUT*VTT*EPSS)
          RNUA=ABS(QP(NR))*RR/(TAUA*VTA*EPSS)
+C         write(6,*) ABS(QP(NR))
 C
 C         RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
 C     &              +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
@@ -593,7 +596,7 @@ C
      &    +(PAL/PEL)*(DPA/PAL-RK3A*FACT*DTA/TAL)
          AJBSL(NR)=-PBSCD*SQRT(EPS)*RN(NR,1)*1.D20*RT(NR,1)*RKEV/BPL
      &            *(RK13E*A+RK23E*DTE/TEL)
-C
+C     
 C        WRITE(6,'(I3,1P6E12.4)') NR,RNUE,RK13E,RK23E,A,BPL,AJBSL(NR)
 C         IF(NR.EQ.NRMAX) THEN
 C            WRITE(6,'(1P6E12.4)') DN,DTE,ANE,PNSS(1),TE,PTS(1)
@@ -646,7 +649,7 @@ C
 C
       DO 100 NR=1,NRMAX
 C
-         EPS=RM(NR)/RR
+         EPS=RA*RM(NR)/RR
          EPSS=SQRT(EPS)**3
          ANE=RN(NR,1)
          TEL=ABS(RT(NR,1))
@@ -895,11 +898,11 @@ C
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
          NR=1
-            AJ(NR) = (RG(NR)*BP(NR)                  )/(RM(NR)*DR)
-     &                *FKAP/(RKAP*AMYU0)
+            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
+     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
          DO NR=2,NRMAX
-            AJ(NR) = (RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))/(RM(NR)*DR)
-     &                *FKAP/(RKAP*AMYU0)
+            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
+     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
          ENDDO
       ELSE
          NR=1
@@ -930,6 +933,7 @@ C
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
          EZOH(NR) = ETA(NR)*AJOH(NR)
          POH(NR)  = EZOH(NR)*AJOH(NR)
+C         write(6,'(F14.7)') POH(NR)
 C         WRITE(6,'(I5,1P3E12.4)') NR,BP(NR),BPRHO(NR),AJ(NR)
       ENDDO
 C      PAUSE
@@ -968,7 +972,7 @@ C
       ENDIF
 C
       WRITE(6,601) MDLST,T
-  601 FORMAT(1H ,'# SAWTOOTH OSCILLATION -TYPE ',I1,
+  601 FORMAT(' ','# SAWTOOTH OSCILLATION -TYPE ',I1,
      &           ' AT ',F7.3,' SEC')
 C
       IF(MDLST.EQ.8) THEN
@@ -1043,12 +1047,12 @@ C
          ELSE
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
-               BP(NR)  = FKAP*RG(NR)*BB/(RR*QP(NR))
+               BP(NR)  = FKAP*RA*RG(NR)*BB/(RR*QP(NR))
             ENDDO
          ENDIF
       ENDIF
 C
          WRITE(6,602) RM(IONE),RM(IZEROX),RTN,RNN
-  602    FORMAT(1H ,' R-ONE,R-ZERO,RTN,RNN = ',4F8.3)
+  602    FORMAT(' ',' R-ONE,R-ZERO,RTN,RNN = ',4F8.3)
       RETURN
       END

@@ -10,9 +10,9 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      CHARACTER*32 TRFNAM
-C      CHARACTER*1 KID
-      CHARACTER*3 K1,K2,K3,K4,K5,K6
+      CHARACTER(32) :: TRFNAM
+C      CHARACTER(1) :: KID
+      CHARACTER(3) :: K1,K2,K3,K4,K5,K6
       LOGICAL LEX
 C
     1 WRITE(6,*) '# INPUT : SAVE FILE NAME (CR TO CANCEL)'
@@ -72,43 +72,43 @@ C
          WRITE(16,1670) K1(2:3),K2(2:3),K3(2:3),K4(2:3),K5(2:3),K6(2:3),
      &                  TRFNAM,
      &                  RIPS,RIPE,PN(1),PN(2),BB,PICTOT,PLHTOT,PLHNPR
- 1670    FORMAT(1H /
-     &          1H ,'## DATE: ',
+ 1670    FORMAT(' '/
+     &          ' ','## DATE: ',
      &              A2,'-',A2,'-',A2,'  ',A2,':',A2,':',A2,' : ',
      &              '  FILE: ',A40/
-     &          1H ,3X,'RIPS  =',1PD10.3,'  RIPE  =',1PD10.3,
+     &          ' ',3X,'RIPS  =',1PD10.3,'  RIPE  =',1PD10.3,
      &               '  PNE   =',1PD10.3,'  PNI   =',1PD10.3/
-     &          1H ,3X,'BB    =',1PD10.3,'  PICTOT=',1PD10.3,
+     &          ' ',3X,'BB    =',1PD10.3,'  PICTOT=',1PD10.3,
      &               '  PLHTOT=',1PD10.3,'  PLHNPR=',1PD10.3)
          WRITE(16,1671) T,
      &                WPT,TAUE1,TAUE2,TAUEP,
      &                BETAP0,BETAPA,BETA0,BETAA
- 1671    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
-     &          1H ,3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
+ 1671    FORMAT(' ','# TIME : ',F7.3,' SEC'/
+     &          ' ',3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
      &               '  TAUED =',1PD10.3,'  TAUEP =',1PD10.3/
-     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &          ' ',3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C
          WRITE(16,1672) WST(1),TS0(1),TSAV(1),ANSAV(1),
      &                WST(2),TS0(2),TSAV(2),ANSAV(2)
- 1672    FORMAT(1H ,3X,'WE    =',1PD10.3,'  TE0   =',1PD10.3,
+ 1672    FORMAT(' ',3X,'WE    =',1PD10.3,'  TE0   =',1PD10.3,
      &               '  TEAVE =',1PD10.3,'  NEAVE =',1PD10.3/
-     &          1H ,3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3,
+     &          ' ',3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3,
      &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3)
 C
          WRITE(16,1673) AJT,VLOOP,ALI,Q0,
      &                AJOHT,AJNBT,AJRFT,AJBST
- 1673    FORMAT(1H ,3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3,
+ 1673    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3,
      &               '  ALI   =',1PD10.3,'  Q0    =',1PD10.3/
-     &          1H ,3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3,
+     &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3,
      &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
 C
          WRITE(16,1674) PINT,POHT,PNBT,
      &                PRFT(1)+PRFT(2)+PRFT(3)+PRFT(4),
      &                POUT,PRLT,PCXT,PIET
- 1674    FORMAT(1H ,3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3,
+ 1674    FORMAT(' ',3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3,
      &               '  PNBT  =',1PD10.3,'  PRFT  =',1PD10.3/
-     &          1H ,3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3,
+     &          ' ',3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3,
      &               '  PCXT  =',1PD10.3,'  PIETE =',1PD10.3)
 C
       CLOSE(16)
@@ -126,7 +126,7 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      CHARACTER*32 TRFNAM
+      CHARACTER(32) :: TRFNAM
       LOGICAL LEX
 C
     1 WRITE(6,*) '# INPUT : LOAD FILE NAME (CR TO CANCEL)'
@@ -171,9 +171,9 @@ C
       RIPS=RIPE
       GRG(1)=0.0
       DO 800 NR=1,NRMAX
-         GRM(NR)  =GCLIP(RM(NR))
-         GRG(NR+1)=GCLIP(RG(NR))
-         QP(NR)  = FKAP*RG(NR)*BB/(RR*BP(NR))
+         GRM(NR)  =GCLIP(RA*RM(NR))
+         GRG(NR+1)=GCLIP(RA*RG(NR))
+         QP(NR)  = FKAP*RA*RG(NR)*BB/(RR*BP(NR))
   800 CONTINUE
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
@@ -190,8 +190,8 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      CHARACTER*32 TRFLNM
-C      CHARACTER*1  KID
+      CHARACTER(32) :: TRFLNM
+C      CHARACTER(1) :: KID
       LOGICAL LEX
 C
     1 WRITE(6,*) '# INPUT : GRAPHIC SAVE FILE NAME (CR TO CANCEL)'
@@ -238,7 +238,7 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      CHARACTER*32 TRFLNM
+      CHARACTER(32) :: TRFLNM
       LOGICAL LEX
 C
     1 WRITE(6,*) '# INPUT : GRAPHIC LOAD FILE NAME (CR TO CANCEL)'

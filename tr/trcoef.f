@@ -70,11 +70,13 @@ C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
       DO 100 NR=1,NRMAX
          DRL=AR1RHO(NR)/DR
-         IF(NR.EQ.1) THEN
-            EPS=0.5D0*              EPSRHO(NR)
-         ELSE
-            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-         ENDIF
+C         IF(NR.EQ.1) THEN
+C            EPS=0.5D0*              EPSRHO(NR)
+C         ELSE
+C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+C         ENDIF
+         EPS=EPSRHO(NR)
+C         write(6,*) NR,EPS
          IF(NR.EQ.NRMAX) THEN
             ANE=PNSS(1)
             AND=PNSS(2)
@@ -536,6 +538,7 @@ C
             AKDW(NR,2)=AKDWIL
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
+C            write(6,*) NT,NR,AKDW(NR,1)
 C
             VGR1(NR,1)=FS
             VGR1(NR,2)=S
@@ -608,11 +611,12 @@ C
          ENDIF
 C
          QL = QP(NR)
-         IF(NR.EQ.1) THEN
-            EPS=0.5D0*              EPSRHO(NR)
-         ELSE
-            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-         ENDIF
+C         IF(NR.EQ.1) THEN
+C            EPS=0.5D0*              EPSRHO(NR)
+C         ELSE
+C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+C         ENDIF
+         EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
 C
          VTE = SQRT(ABS(TE*RKEV/AME))
@@ -681,6 +685,7 @@ C
          AKNC(NR,2) = SQRT(EPS)*RHOD2/TAUD*RK2D
          AKNC(NR,3) = SQRT(EPS)*RHOT2/TAUT*RK2T
          AKNC(NR,4) = SQRT(EPS)*RHOA2/TAUA*RK2A
+C         write(6,*) NT,NR,AKNC(NR,1)
 C
       ELSE
 C
@@ -784,7 +789,7 @@ C
          AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
          AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
-C
+C         write(6,*) NT,NR,AKNC(NR,1)
 C
   100 CONTINUE
 C
@@ -805,7 +810,7 @@ C
 C
 C        ****** CLASSICAL RESISTIVITY ******
 C
-         EPS=RM(NR)/RR
+         EPS=RM(NR)*RA/RR
          EPSS=SQRT(EPS)**3
          ANE=RN(NR,1)
          TE =RT(NR,1)
@@ -837,7 +842,7 @@ C
 C        ****** NEOCLASSICAL RESISTIVITY PART II ******
 C
          ELSEIF(MDLETA.EQ.2) THEN
-            EPS=RM(NR)/RR
+            EPS=RA*RM(NR)/RR
             EPSS=SQRT(EPS)**3
 C
             IF(NR.EQ.1) THEN
@@ -883,13 +888,14 @@ C        ****** AD : PARTICLE DIFFUSION ******
 C        ****** AV : PARTICLE PINCH ******
 C
       IF(MDLAD.EQ.0) THEN
-         DO 200 NS=1,NSM
-         DO 200 NR=1,NRMAX
+         DO NS=1,NSM
+         DO NR=1,NRMAX
             AD(NR,NS)=0.D0
             AV(NR,NS)=0.D0
-  200    CONTINUE
+         ENDDO
+         ENDDO
       ELSEIF(MDLAD.EQ.1) THEN
-         DO 210 NR=1,NRMAX
+         DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE=PNSS(1)
                AND=PNSS(2)
@@ -924,9 +930,9 @@ C
             AV(NR,2) =AD(NR,2)*DPROF/PROF
             AV(NR,3) =AD(NR,3)*DPROF/PROF
             AV(NR,4) =AD(NR,4)*DPROF/PROF
-  210    CONTINUE
+         ENDDO
       ELSEIF(MDLAD.EQ.2) THEN
-         DO 220 NR=1,NRMAX
+         DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE=PNSS(1)
                AND=PNSS(2)
@@ -962,9 +968,9 @@ C
             AV(NR,2) =AD(NR,2)*DPROF/PROF
             AV(NR,3) =AD(NR,3)*DPROF/PROF
             AV(NR,4) =AD(NR,4)*DPROF/PROF
-  220    CONTINUE
+         ENDDO
       ELSEIF(MDLAD.EQ.3) THEN
-         DO 230 NR=1,NRMAX
+         DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
                TE  = PTS(1)
@@ -1017,9 +1023,9 @@ C
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
 C
-  230    CONTINUE
+         ENDDO
       ELSEIF(MDLAD.EQ.4) THEN
-         DO 240 NR=1,NRMAX
+         DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
                TE  = PTS(1)
@@ -1040,11 +1046,12 @@ C
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
             EZOHL = EZOH(NR)
-            IF(NR.EQ.1) THEN
-               EPS=0.5D0*              EPSRHO(NR)
-            ELSE
-               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-            ENDIF
+C            IF(NR.EQ.1) THEN
+C               EPS=0.5D0*              EPSRHO(NR)
+C            ELSE
+C               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+C            ENDIF
+            EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
@@ -1072,53 +1079,56 @@ C
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
 C
-            AVDW(NR,1) = -AV0*ADDW(NR,1)*RG(NR)/RA**2
-            AVDW(NR,2) = -AV0*ADDW(NR,2)*RG(NR)/RA**2
-            AVDW(NR,3) = -AV0*ADDW(NR,3)*RG(NR)/RA**2
-            AVDW(NR,4) = -AV0*ADDW(NR,4)*RG(NR)/RA**2
+            AVDW(NR,1) = -AV0*ADDW(NR,1)*RA*RG(NR)/RA**2
+            AVDW(NR,2) = -AV0*ADDW(NR,2)*RA*RG(NR)/RA**2
+            AVDW(NR,3) = -AV0*ADDW(NR,3)*RA*RG(NR)/RA**2
+            AVDW(NR,4) = -AV0*ADDW(NR,4)*RA*RG(NR)/RA**2
 C
             AV(NR,1) = AVDW(NR,1)+CNC*AVNC(NR,1)
             AV(NR,2) = AVDW(NR,2)+CNC*AVNC(NR,2)
             AV(NR,3) = AVDW(NR,3)+CNC*AVNC(NR,3)
             AV(NR,4) = AVDW(NR,4)+CNC*AVNC(NR,4)
-  240    CONTINUE
+         ENDDO
       ELSE
          WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
-         DO 250 NS=1,NSM
-         DO 250 NR=1,NRMAX
+         DO NS=1,NSM
+         DO NR=1,NRMAX
             AD(NR,NS)=0.D0
             AV(NR,NS)=0.D0
-  250    CONTINUE
+         ENDDO
+         ENDDO
       ENDIF
 C
 C        ****** AVK : HEAT PINCH ******
 C
       IF(MDLAVK.EQ.0) THEN
-         DO 300 NS=1,NSM
-         DO 300 NR=1,NRMAX
+         DO NS=1,NSM
+         DO NR=1,NRMAX
             AVK(NR,NS)=0.D0
-  300    CONTINUE
+         ENDDO
+         ENDDO
       ELSEIF(MDLAVK.EQ.1) THEN
-         DO 400 NR=1,NRMAX
-            AVK(NR,1)=-RG(NR)/RA*CHP
-            AVK(NR,2)=-RG(NR)/RA*CHP
-            AVK(NR,3)=-RG(NR)/RA*CHP
-            AVK(NR,4)=-RG(NR)/RA*CHP
-  400    CONTINUE
+         DO NR=1,NRMAX
+            AVK(NR,1)=-RG(NR)/CHP
+            AVK(NR,2)=-RG(NR)/CHP
+            AVK(NR,3)=-RG(NR)/CHP
+            AVK(NR,4)=-RG(NR)/CHP
+         ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
-         DO 500 NR=1,NRMAX
-            AVKL=-RG(NR)/RA*(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
+         DO NR=1,NRMAX
+            AVKL=-RG(NR)/(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
             AVK(NR,1)=-AVKL
             AVK(NR,2)=-AVKL
             AVK(NR,3)=-AVKL
             AVK(NR,4)=-AVKL
-  500    CONTINUE
+         ENDDO
       ELSE
          WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
-         DO 600 NS=1,NSM
-         DO 600 NR=1,NRMAX
+         DO NS=1,NSM
+         DO NR=1,NRMAX
             AVK(NR,NS)=0.D0
-  600    CONTINUE
+         ENDDO
+         ENDDO
       ENDIF
 C
       RETURN
@@ -1126,6 +1136,7 @@ C
 C
       FUNCTION TRCOFS(S,ALFA,RKCV)
 C
+C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1163,6 +1174,7 @@ C
 C
       FUNCTION TRCOFSX(S,ALFA,RKCV,EPSA)
 C
+C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1206,6 +1218,7 @@ C        SA=(1.D0-(2*ALFA)/(1+3*(ALFA)**2))*ALFA-S
 C
       FUNCTION TRCOFSS(S,ALFA)
 C
+C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       SA=S-ALFA
@@ -1216,6 +1229,7 @@ C
 C
       FUNCTION TRCOFT(S,ALFA,RKCV,EPSA)
 C
+C      IMPLICIT REAL (KIND=8) (A-F,H,O-Z)
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(ALFA.GE.0.D0) THEN
@@ -1253,6 +1267,9 @@ C
 C
       FUNCTION RLAMBDA(X)
 C
+C      REAL (KIND=8) RLAMBDA,X
+C      REAL (KIND=8) AX
+C      REAL (KIND=8) P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Y
       REAL*8 RLAMBDA,X
       REAL*8 AX
       REAL*8 P1,P2,P3,P4,P5,P6,P7,Q1,Q2,Q3,Q4,Q5,Q6,Q7,Q8,Q9,Y
