@@ -7,6 +7,7 @@
 ## and comment out CALL WMTAE in wm/wmmain.f
 
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 #OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 #OBJLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
 #OBJLA =
