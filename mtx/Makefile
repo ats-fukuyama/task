@@ -3,19 +3,25 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 
-SRCS = bandcd.f bandcdm.f bandcdbm.f \
-       bcgcdb.f bcgcdbm.f bcgcdbma.f \
-       cgscdb.f cgscdbm.f cgscdbma.f \
-       bstabcdb.f bstabcdbm.f bstabcdbma.f \
-       bandcdb.f\
-       precndcb.f precndcbm.f mpisrrc.f mtxset.f
+SRCM = bandcdm.f bandcdbm.f \
+       bcgcdbm.f bcgcdbma.f \
+       cgscdbm.f cgscdbma.f \
+       bstabcdbm.f bstabcdbma.f \
+       precndcbm.f mpisrrc.f
 
-OBJS = $(SRCS:.f=.o)
+SRCN = bandcd.f  mtxset.f precndcb.f \
+       bcgcdb.f cgscdb.f bstabcdb.f \
+       bandcdb.f
+
+OBJM = $(SRCM:.f=.o)
+OBJN = $(SRCN:.f=.o)
 
 .f.o :
-	$(MFC) $(LFLAGS) -c $< -o $@
+	$(FC) $(LFLAGS) -c $< -o $@
 
-all : $(OBJS)
+all : $(OBJM) $(ONJN)
+mpi : $(OBJM)
+nompi : $(OBJN)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less

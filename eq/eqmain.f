@@ -25,7 +25,7 @@ C
          CALL EQLOOP
          CALL EQTORZ
          CALL EQSETP
-         CALL EQPSIC
+         CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
          MODE=1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -35,7 +35,7 @@ C
             CALL EQLOOP
             CALL EQTORZ
             CALL EQSETP
-            CALL EQPSIC
+            CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
          ENDIF
@@ -70,7 +70,7 @@ C
          CALL EQLOAD(1,KNAMEQ1,IERR)
          IF(IERR.EQ.1) GOTO 10
          CALL EQSETP
-         CALL EQPSIC
+         CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
          MODE=2
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000

@@ -8,10 +8,14 @@ C     *********************
 C
       FUNCTION GCLIP(D)
       REAL*8 D
-      IF(ABS(D).GT.1.D-30) THEN
-         GCLIP=SNGL(D)
-      ELSE
+      IF(ABS(D).LE.1.D-30) THEN
          GCLIP=0.0
+      ELSE IF(D.GT. 1.D30) THEN
+         GCLIP= 1.E30
+      ELSE IF(D.LT.-1.D30) THEN
+         GCLIP=-1.E30
+      ELSE
+         GCLIP=SNGL(D)
       ENDIF
       RETURN
       END
