@@ -420,7 +420,7 @@ C
 C
       IF(PBSCD.LE.0.D0) RETURN
 C
-      NSW=0
+      NSW=1
       IF(NSW.EQ.0) THEN
          DO NR=1,NRMAX
             AJBS(NR)=PBSCD*AJBSNC(NR)
