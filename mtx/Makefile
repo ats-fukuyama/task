@@ -34,5 +34,6 @@ new:
 	cp -f *.f ../mtxnew
 
 clean:
-	rm -f core *.o ./*~
+	rm -f core *.o *.a ./*~
+
 veryclean: clean

@@ -251,16 +251,40 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE EQPARM(MODE,LINE,IERR)
+      SUBROUTINE EQPARM(MODE,KIN,IERR)
 C
-C     MODE=0 : normal namelinst input
+C     MODE=0 : standard namelinst input
 C     MODE=1 : namelist file input
 C     MODE=2 : namelist line input
 C
-      INCLUDE 'eqcomm.inc'
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
 C
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KNAME*90,LINE*80,KID*1
+      EXTERNAL EQNLIN,EQPLST
+      CHARACTER KIN*(*)
+C
+    1 CALL TASK_PARM(MODE,KIN,EQNLIN,EQPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALl EQCHEK(IERR)
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE EQNLIN(NID,IST,IERR)
+C
+      INCLUDE 'eqcomm.inc'
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,
@@ -278,66 +302,13 @@ C
      &              NRMAX,NTHMAX,NSUMAX,
      &              MDLEQF,MDLEQC,NPRINT
 C
-      IF(MODE.EQ.0) THEN
-    1    CONTINUE
-         WRITE(6,*) '# INPUT &EQ :'
-         READ(5,EQ,ERR=2,END=3)
-         KID=' '
-         GOTO 4
-C
-    2    CALL EQPLST
-         GOTO 1
-C
-    3    IERR=1
-    4    CONTINUE
-C
-      ELSEIF(MODE.EQ.1) THEN
-C
-         INQUIRE(FILE=LINE,EXIST=LEX,ERR=9800)
-         IF(.NOT.LEX) THEN
-            IERR=2
-            RETURN
-         ENDIF
-         OPEN(25,FILE=LINE,IOSTAT=IST,STATUS='OLD',ERR=9100)
-         READ(25,EQ,IOSTAT=IST,ERR=9800,END=9900)
-         CLOSE(25)
-         CALL KTRIM(LINE,KL)
-         WRITE(6,*) 
-     &     '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
-C
-      ELSEIF(MODE.EQ.2) THEN
-         KNAME=' &EQ '//LINE//' &END'
-         WRITE(7,'(A90)') KNAME
-         REWIND(7)
-         READ(7,EQ,ERR=8,END=8)
-         WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
-         GOTO 9
-    8    CALL EQPLST
-         IERR=3
-         RETURN
-    9    REWIND(7)
-      ELSE
-         WRITE(6,*) 'XX EQPARM : UNKNOWN MODE =',MODE
-         IERR=4
-         RETURN
-      ENDIF
-C
+      READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
-C
-C     PARAMETER CHECK SHOULD BE HERE
-C
-      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
-C
       RETURN
 C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
-      IERR=5
+ 9800 IERR=8
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
-      IERR=6
-      RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
-      IERR=7
+ 9900 IERR=9
       RETURN
       END
 C
@@ -360,6 +331,51 @@ C
      &       9X,'NSGMAX,NTGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,KNAMEQ'/
      &       9X,'MDLEQF,MDLEQC,NPRINT')
+      END
+C
+C     ***** CHECK INPUT PARAMETERS *****
+C
+      SUBROUTINE EQCHEK(IERR)
+C
+      INCLUDE 'eqcomm.inc'
+      INCLUDE 'eqcom2.inc'
+      INCLUDE 'eqcom3.inc'
+C
+      IERR=0
+C
+      IF(NSGMAX.GT.NSGM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NSGMAX.GT.NSGM: ',NSGMAX,NSGM
+         IERR=1
+      ENDIF
+      IF(NTGMAX.GT.NTGM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NTGMAX.GT.NTGM: ',NTGMAX,NTGM
+         IERR=2
+      ENDIF
+      IF(NRGMAX.GT.NRGM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NRGMAX.GT.NRGM: ',NRGMAX,NRGM
+         IERR=3
+      ENDIF
+      IF(NZGMAX.GT.NZGM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NZGMAX.GT.NZGM: ',NRGMAX,NRGM
+         IERR=4
+      ENDIF
+      IF(NPSMAX.GT.NPSM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NPSMAX.GT.NPSM: ',NPSMAX,NPSM
+         IERR=5
+      ENDIF
+      IF(NRMAX.GT.NRM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NRMAX.GT.NRM: ',NRMAX,NRM
+         IERR=6
+      ENDIF
+      IF(NTHMAX.GT.NTHM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NTHMAX.GT.NTHM: ',NTHMAX,NTHM
+         IERR=7
+      ENDIF
+      IF(NSUMAX.GT.NSUM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NSUMAX.GT.NSUM: ',NSUMAX,NSUM
+         IERR=8
+      ENDIF
+      RETURN
       END
 C
 C     ****** SHOW PARAMETERS ******

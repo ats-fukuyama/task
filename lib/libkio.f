@@ -35,11 +35,93 @@ C
       MODE=0
       RETURN
 C
-    2 WRITE(6,*) 'XX INPUT ERROR !'
+    2 WRITE(6,'(A)') 'XX INPUT ERROR !'
       MODE=3
       RETURN
 C
     3 KID='Q'
       MODE=1
+      RETURN
+      END
+C
+C     ****** INPUT PARAMETERS ******
+C
+      SUBROUTINE TASK_PARM(MODE,KIN,XXNLIN,XXPLST,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input end of file
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C
+      EXTERNAL XXNLIN,XXPLST
+      LOGICAL LEX
+      CHARACTER KIN*(*),LINE*80,KNLINE*90
+C
+      IERR=0
+      LINE=KIN
+C
+      IF(MODE.EQ.0) THEN
+    1    CONTINUE
+         CALL KTRIM(LINE,KL)
+         WRITE(6,'(A,A,A)') '## INPUT ',LINE(1:KL),' :'
+         CALL XXNLIN(5,IST,IERR)
+         IF(IERR.EQ.8) THEN
+            CALL XXPLST
+            GOTO 1
+         ENDIF
+         IF(IERR.EQ.9) IERR=1
+C
+      ELSEIF(MODE.EQ.1) THEN
+C
+         INQUIRE(FILE=LINE,EXIST=LEX,ERR=9800)
+         IF(.NOT.LEX) THEN
+            IERR=2
+            RETURN
+         ENDIF
+         OPEN(25,FILE=LINE,IOSTAT=IST,STATUS='OLD',ERR=9100)
+         CALL XXNLIN(25,IST,IERR)
+         IF(IERR.EQ.8) GOTO 9800
+         IF(IERR.EQ.9) GOTO 9900
+         CLOSE(25)
+         CALL KTRIM(LINE,KL)
+         WRITE(6,'(A,A,A)') 
+     &        '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
+C
+      ELSEIF(MODE.EQ.2) THEN
+         KNLINE=' &EQ '//LINE//' &END'
+         WRITE(7,'(A90)') KNLINE
+         REWIND(7)
+         CALL XXNLIN(7,IST,IERR)
+         REWIND(7)
+         IF(IERR.EQ.8.OR.IERR.EQ.9) THEN
+            WRITE(6,'(A)') '## PARM INPUT ERROR.'
+            CALL XXPLST
+            IERR=6
+            RETURN
+         ENDIF
+         WRITE(6,'(A)') '## PARM INPUT ACCEPTED.'
+      ELSE
+         WRITE(6,'(A,I4)') 'XX XXPARM : UNKNOWN MODE =',MODE
+         IERR=7
+         RETURN
+      ENDIF
+      RETURN
+C
+ 9100 WRITE(6,'(A,I6)') 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+      IERR=3
+      RETURN
+ 9800 WRITE(6,'(A,I6)') 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+      IERR=4
+      RETURN
+ 9900 WRITE(6,'(A)') 'XX PARM FILE EOF ERROR'
+      IERR=5
       RETURN
       END

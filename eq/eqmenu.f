@@ -53,7 +53,7 @@ C
          ENDIF
 C
       ELSEIF(KID.EQ.'P') THEN
-         CALL EQPARM(0,KID,IERR)
+         CALL EQPARM(0,'&EQ',IERR)
          IF(KID.EQ.'Q') GOTO 9000
 C
       ELSEIF(KID.EQ.'V') THEN
