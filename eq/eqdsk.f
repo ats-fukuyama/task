@@ -6,7 +6,7 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      character*10 case(6)
+      character case(6)*10
       dimension rlim(NSUM),zlim(NSUM),pressw(NPSM),pwprim(NPSM),
      &          dmion(NSUM),rhovn(NSUM)
       CHARACTER KLINE*80
