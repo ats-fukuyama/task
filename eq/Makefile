@@ -1,11 +1,12 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
        eqgout.f eqgsub.f
-SRCT = eqtest.f eqload.f eqcalq.f pleqin.f
+SRCT = eqtest.f pleqin.f eqload.f eqcalq.f
+SRCA = aktest.f akeqin.f eqload.f eqcalq.f
 
 SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \
        ../lib/libgut.f
@@ -13,6 +14,7 @@ SRCTL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 
 OBJS = $(SRCS:.f=.o) $(SRCSL:.f=.o) 
 OBJT = $(SRCT:.f=.o) $(SRCTL:.f=.o) 
+OBJA = $(SRCA:.f=.o) $(SRCTL:.f=.o) 
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -23,12 +25,16 @@ eq : $(OBJS)
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
 eqtest : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
+ak : $(OBJA)
+	$(FC) $(OBJA) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCSL) | less
 
 checkt :
 	ftnchek $(FCKFLAGS) $(SRCT) $(SRCTL) | less
+checka :
+	ftnchek $(FCKFLAGS) $(SRCA) $(SRCTL) | less
 
 clean:
 	rm -f core a.out *.o ./*~
