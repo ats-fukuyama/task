@@ -296,7 +296,7 @@ C
          IF(IERR.NE.0) GOTO 9000
       CALL EQTORZ
       CALL EQSETP
-      CALL EQGOUT(1)
+C      CALL EQGOUT(1)
 C
 C     ***** Calculate eqilibrium quantities *****
 C

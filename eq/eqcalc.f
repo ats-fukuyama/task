@@ -297,7 +297,7 @@ C     ----- positive current density, jp.gt.0-----
             RRC=RR-RA
          ELSEIF(MODELF.EQ.2) THEN
 C     ----- quasi-symmetric current density, jp:anti-symmetric -----
-            RRC=RR-RA
+            RRC=RR
          ENDIF
          FJP=0.D0
          FJT=0.D0
