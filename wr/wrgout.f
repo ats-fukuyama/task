@@ -918,14 +918,14 @@ C               SIGMA=5.D0*RAYB(23,IT)
      &                            +(ZLMA1(IT,NCS)-ZLA)**2)
 C               FASSZ1(IT,NCS)=FASSX1(IT,NCS)/RAYB(23,IT)
                FASSZ1(IT,NCS)=FASSX1(IT,NCS)/SIGMA
-               DELP1(IT,NCS)=ERF1(FASSZ1(IT,NCS))
-     &                      -ERF1(FASSZ1(IT,NCS-1))
+               DELP1(IT,NCS)=ERF0(FASSZ1(IT,NCS))
+     &                      -ERF0(FASSZ1(IT,NCS-1))
 C               WRITE(6,*) DELP1(IT,NCS)
                GPAY(NRSMIN1-NCS+1,NRAY)=GPAY(NRSMIN1-NCS+1,NRAY)
      &                   +0.5*GUCLIP(RAYS(8,IT+1,NRAY)*DELP1(IT,NCS))
                ENDDO
                GPAY(NRSMAX1,NRAY)=GPAY(NRSMAX1,NRAY)
-     &                  +GUCLIP(0.5D0-0.5D0*ERF1(FASSZ1(IT,NABSM1)))
+     &                  +GUCLIP(0.5D0-0.5D0*ERF0(FASSZ1(IT,NABSM1)))
      &                  *GUCLIP(RAYS(8,IT+1,NRAY))
 C             
             ELSE 
@@ -937,14 +937,14 @@ C
      &                           +(ZLMA1(IT,NCS)-ZLA)**2)
 C               FASSZ1(IT,NCS)=FASSX1(IT,NCS)/RAYB(23,IT)
                FASSZ1(IT,NCS)=FASSX1(IT,NCS)/SIGMA
-               DELP1(IT,NCS)=ERF1(FASSZ1(IT,NCS))
-     &                      -ERF1(FASSZ1(IT,NCS-1))
+               DELP1(IT,NCS)=ERF0(FASSZ1(IT,NCS))
+     &                      -ERF0(FASSZ1(IT,NCS-1))
 C               WRITE(6,*) DELP1(IT,NCS)
                GPAY(NRSMIN1+NCS-1,NRAY)=GPAY(NRSMIN1+NCS-1,NRAY)
      &                   +0.5*GUCLIP(RAYS(8,IT+1,NRAY)*DELP1(IT,NCS))
                ENDDO
                GPAY(NRSMAX1,NRAY)=GPAY(NRSMAX1,NRAY)
-     &                  +0.5*GUCLIP(1.0D0-ERF1(FASSZ1(IT,NABSM1)))
+     &                  +0.5*GUCLIP(1.0D0-ERF0(FASSZ1(IT,NABSM1)))
      &                  *GUCLIP(RAYS(8,IT+1,NRAY))
             ENDIF
             
@@ -1007,13 +1007,13 @@ C               SIGMA=5.D0*RAYB(23,IT)
      &                          +(ZLMA2(IT,NCS2)-ZLA)**2)
 C               FASSZ2(IT,NCS2)=FASSX2(IT,NCS2)/RAYB(23,IT)
                FASSZ2(IT,NCS2)=FASSX2(IT,NCS2)/SIGMA
-               DELP2(IT,NCS2)=ERF1(FASSZ2(IT,NCS2))
-     &                       -ERF1(FASSZ2(IT,NCS2-1))
+               DELP2(IT,NCS2)=ERF0(FASSZ2(IT,NCS2))
+     &                       -ERF0(FASSZ2(IT,NCS2-1))
                GPAY(NRSMIN2-NCS2+1,NRAY)=GPAY(NRSMIN2-NCS2+1,NRAY)
      &              +0.5*GUCLIP(RAYS(8,IT+1,NRAY)*DELP2(IT,NCS2))
                ENDDO
                GPAY(NRSMAX2,NRAY)=GPAY(NRSMAX2,NRAY)
-     &                  +(0.5-0.5*GCLIP(ERF1(FASSZ2(IT,NABSM2))))
+     &                  +(0.5-0.5*GCLIP(ERF0(FASSZ2(IT,NABSM2))))
      &                  *GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE
                RLMA2(IT,0)=RLA
@@ -1025,13 +1025,13 @@ C                SIGMA=5.D0*RAYB(23,IT)
      &                             +(ZLMA2(IT,NCS2)-ZLA)**2)
 C               FASSZ2(IT,NCS2)=FASSX2(IT,NCS2)/RAYB(23,IT)
                 FASSZ2(IT,NCS2)=FASSX2(IT,NCS2)/SIGMA
-               DELP2(IT,NCS2)=ERF1(FASSZ2(IT,NCS2))
-     &                       -ERF1(FASSZ2(IT,NCS2-1))
+               DELP2(IT,NCS2)=ERF0(FASSZ2(IT,NCS2))
+     &                       -ERF0(FASSZ2(IT,NCS2-1))
                GPAY(NRSMIN2+NCS2-1,NRAY)=GPAY(NRSMIN2+NCS2-1,NRAY)
      &                   +0.5*GUCLIP(RAYS(8,IT+1,NRAY)*delp2(it,ncs2))
                ENDDO
                GPAY(NRSMAX2,NRAY)=GPAY(NRSMAX2,NRAY)
-     &                  +(0.5-0.5*GUCLIP(ERF1(FASSZ2(IT,NABSM2))))
+     &                  +(0.5-0.5*GUCLIP(ERF0(FASSZ2(IT,NABSM2))))
      &                  *GUCLIP(RAYS(8,IT+1,NRAY))
             ENDIF
          ENDDO

@@ -3,18 +3,18 @@ C
 C
 C ***********************************************************
 C
-C                    ERROR FUNCTION(1)
+C                    ERROR FUNCTION
 C
 C ***********************************************************
 C
-      FUNCTION ERF1(X)
+      FUNCTION ERF0(X)
       REAL*8 ERF,X
 CU    USES GAMMP
       REAL*8 GAMMP
       IF(X.LT.0.D0)THEN
-        ERF1=-GAMMP(0.5D0,X**2)
+        ERF0=-GAMMP(0.5D0,X**2)
       ELSE
-        ERF1= GAMMP(0.5D0,X**2)
+        ERF0= GAMMP(0.5D0,X**2)
       ENDIF
       RETURN
       END
@@ -121,20 +121,20 @@ C
 C
 C ***********************************************************
 C
-C                    ERROR FUNCTION(2)
+C                    DERIVATIVE OF ERROR FUNCTION
 C
 C ***********************************************************
 C
-      FUNCTION ERF2(U)
+      FUNCTION ERF1(U)
 C
       IMPLICIT REAL*8(A-H,O-R,T-Z)
 C
       PI=3.14159265358979323846D0
       U2=U**2
       IF (U2.GT.100.D0)THEN
-         ERF2=0.D0
+         ERF1=0.D0
       ELSE
-         ERF2=2/SQRT(PI)*EXP(-U2)
+         ERF1=2/SQRT(PI)*EXP(-U2)
       END IF
 C
       RETURN
