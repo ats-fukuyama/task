@@ -1,6 +1,6 @@
 C     $Id$
-C     ****** DRAW 2D POLOIDAL GRAPH ******
 C
+C     ****** DRAW 2D POLOIDAL GRAPH ******
 C
       SUBROUTINE WMGREQ(K2,K3,K4)
 C
@@ -16,10 +16,31 @@ C
 C
       IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
          IF(K3.EQ.'R') THEN
+            NA3=1
             NG3=1
          ELSEIF(K3.EQ.'T') THEN
+            NA3=1
             NG3=2
          ELSEIF(K3.EQ.'Z') THEN
+            NA3=1
+            NG3=3
+         ELSEIF(K3.EQ.'S') THEN
+            NA3=2
+            NG3=1
+         ELSEIF(K3.EQ.'H') THEN
+            NA3=2
+            NG3=2
+         ELSEIF(K3.EQ.'B') THEN
+            NA3=2
+            NG3=3
+         ELSEIF(K3.EQ.'+') THEN
+            NA3=3
+            NG3=1
+         ELSEIF(K3.EQ.'-') THEN
+            NA3=3
+            NG3=2
+         ELSEIF(K3.EQ.'P') THEN
+            NA3=3
             NG3=3
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
@@ -49,8 +70,6 @@ C
             GOTO 9000
          ENDIF
       ELSE IF(K2.EQ.'J') THEN
-         NG3=0
-      ELSE IF(K2.EQ.'G') THEN
          NG3=0
       ELSE IF(K2.EQ.'F') THEN
          IF(K3.EQ.'S') THEN
@@ -89,200 +108,110 @@ C
          GOTO 2
       ENDIF
 C
-      IF(K2.EQ.'E') THEN
-         IF(K4.EQ.'R') THEN
-            DO 100 NTH=1,MDSIZ
-            DO 100 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DBLE(CEFLD(NG3,NTH,NPH,NR)))
-  100       CONTINUE
-         ELSEIF(K4.EQ.'I') THEN
-            DO 110 NTH=1,MDSIZ
-            DO 110 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DIMAG(CEFLD(NG3,NTH,NPH,NR)))
-  110       CONTINUE
-         ELSEIF(K4.EQ.'A') THEN
-            DO 120 NTH=1,MDSIZ
-            DO 120 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(ABS(CEFLD(NG3,NTH,NPH,NR)))
-  120       CONTINUE
-         ELSE
-            WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGREQ'
-            GOTO 9000
-         ENDIF
-      ELSEIF(K2.EQ.'B') THEN
-         IF(K4.EQ.'R') THEN
-            DO 200 NTH=1,MDSIZ
-            DO 200 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DBLE(CBFLD(NG3,NTH,NPH,NR)))
-  200       CONTINUE
-         ELSEIF(K4.EQ.'I') THEN
-            DO 210 NTH=1,MDSIZ
-            DO 210 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DIMAG(CBFLD(NG3,NTH,NPH,NR)))
-  210       CONTINUE
-         ELSEIF(K4.EQ.'A') THEN
-            DO 220 NTH=1,MDSIZ
-            DO 220 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(ABS(CBFLD(NG3,NTH,NPH,NR)))
-  220       CONTINUE
-         ELSE
-            WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGREQ'
-            GOTO 9000
-         ENDIF
-      ELSEIF(K2.EQ.'P') THEN
-         DO 300 NTH=1,MDSIZ
-         DO 300 NR=1,NRMAX
-            GY(NR,NTH) =GCLIP(PABS(NTH,NPH,NR,NG3))
-  300    CONTINUE
-         DO 310 NTH=1,MDSIZ
-            GY(NRMAX+1,NTH)=0.0
-  310    CONTINUE
-      ELSE IF (K2.EQ.'J') THEN
-         DO 320 NTH=1,MDSIZ
-         DO 320 NR=1,NRMAX
-            GY(NR,NTH)=GCLIP(PCUR(NTH,NPH,NR))
-  320    CONTINUE
-         DO 330 NTH=1,MDSIZ
-            GY(NRMAX+1,NTH)=0.0
-  330    CONTINUE
-      ELSE IF (K2.EQ.'F') THEN
-         IF(NG3.EQ.1) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(PSIPS(NR))
-            ENDDO
-            ENDDO
-         ELSEIF(NG3.EQ.2) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(BR(NTH,NPH,NR))
-            ENDDO
-            ENDDO
-         ELSEIF(NG3.EQ.3) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
-            ENDDO
-            ENDDO
-         ELSEIF(NG3.EQ.4) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(BFLD(2,NTH,NPH,NR))
-            ENDDO
-            ENDDO
-         ELSEIF(NG3.EQ.5) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR))
-            ENDDO
-            ENDDO
-         ELSEIF(NG3.EQ.6) THEN
-            DO NTH=1,NTHMAX
-            DO NR=1,NRMAX+1
-               GY(NR,NTH) =GCLIP(RJ(NTH,NPH,NR))
-            ENDDO
-            ENDDO
-         ENDIF
-      ELSEIF(K2.EQ.'G') THEN
-         CALL PAGES
-         CALL SETCHS(0.3,0.0)
-         RTITL(1)='RG11  '
-         RTITL(2)='RG12  '
-         RTITL(3)='RG13  '
-         RTITL(4)='RG22  '
-         RTITL(5)='RG23  '
-         RTITL(6)='RG33  '
-         RTITL(7)='RJ    '
-         RTITL(8)='PSI   '
-         DO 400 NTH=1,NTHMAX
-         DO 400 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG11(NTH,NPH,NR))
-  400    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(1),GP(1,1))
-         DO 410 NTH=1,NTHMAX
-         DO 410 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG12(NTH,NPH,NR))
-  410    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(2),GP(1,2))
-         DO 420 NTH=1,NTHMAX
-         DO 420 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG13(NTH,NPH,NR))
-  420    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(3),GP(1,3))
-         DO 430 NTH=1,NTHMAX
-         DO 430 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG22(NTH,NPH,NR))
-  430    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(4),GP(1,4))
-         CALL WMGPRM('C',K3,0,0,0,0)
-         CALL PAGEE
-         CALL PAGES
-         CALL SETCHS(0.3,0.0)
-         DO 440 NTH=1,NTHMAX
-         DO 440 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG23(NTH,NPH,NR))
-  440    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(5),GP(1,1))
-         DO 450 NTH=1,NTHMAX
-         DO 450 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG33(NTH,NPH,NR))
-  450    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(6),GP(1,2))
-         DO 460 NTH=1,NTHMAX
-         DO 460 NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RJ(NTH,NPH,NR))
-  460    CONTINUE
-         CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
-         DO 470 NR=1,NRMAX+1
-            GY(NR,1)=GCLIP(PSIPS(NR))
-  470    CONTINUE
-         CALL WMGGR(GY,1,RTITL(8),GP(1,4))
-         CALL WMGPRM('C',K3,0,0,0,0)
-         CALL PAGEE     
-      ENDIF
+      DO NTH=1,MDSIZ
+      DO NR=1,NRMAX+1
+         IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
+            IF(K2.EQ.'E') THEN
+               IF(NA3.EQ.1) THEN
+                  CFL=CEFLD(NG3,NTH,NPH,NR)
+               ELSEIF(NA3.EQ.2) THEN
+                  CFL=CEN(NG3,NTH,NPH,NR)
+               ELSEIF(NA3.EQ.3) THEN
+                  CFL=CEP(NG3,NTH,NPH,NR)
+               ENDIF
+            ELSEIF(K2.EQ.'B') THEN
+               CFL=CBFLD(NG3,NTH,NPH,NR)
+            ENDIF
 C
-      IF(K2.NE.'G') THEN
-         IF(NGRAPH.EQ.1) THEN
-            CALL PAGES
-            CALL SETCHS(0.3,0.0)
-            CALL WMGXEQ(GY,NPH,K2,K3)
-         ELSE IF(NGRAPH.EQ.2) THEN
-            CALL PAGES
-            CALL SETCHS(0.3,0.0)
-            CALL WMGXEQP(GY,NPH,K2,K3)
-         ELSE IF(NGRAPH.EQ.3) THEN
-            IF(NTHMAX.LE.2) THEN
-               WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
-               GO TO 9000
+            IF(K4.EQ.'R') THEn
+               GY(NR,NTH)=GCLIP(DBLE(CFL))
+            ELSEIF(K4.EQ.'I') THEN
+               GY(NR,NTH)=GCLIP(DIMAG(CFL))
+            ELSEIF(K4.EQ.'A') THEN
+               GY(NR,NTH)=GCLIP(ABS(CFL))
+            ELSE
+               WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
+               GOTO 9000
             ENDIF
-            CALL PAGES
-            CALL SETCHS(0.3,0.0)
-            CALL WMG3DA(GY,NPH,K2,K3,0)
-         ELSE IF(NGRAPH.EQ.4) THEN
-            IF(NTHMAX.LE.2) THEN
-               WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
-               GO TO 9000
+         ELSEIF(K2.EQ.'P') THEN
+            IF(NR.LE.NRMAX) THEN
+               GY(NR,NTH)=GCLIP(PABS(NTH,NPH,NR,NG3))
+            ELSE
+               GY(NR,NTH)=0.0
             ENDIF
-            CALL PAGES
-            CALL SETCHS(0.3,0.0)
-            CALL WMG3DA(GY,NPH,K2,K3,4)
-         ELSE
-            WRITE(6,*) 'XX WMGREQ: UNDEFINED NGRAPH: NGRAPH=',NGRAPH
+         ELSE IF (K2.EQ.'J') THEN
+            IF(NR.LE.NRMAX) THEN
+               GY(NR,NTH)=GCLIP(PCUR(NTH,NPH,NR))
+            ELSE
+               GY(NR,NTH)=0.0
+            ENDIF
+         ELSE IF (K2.EQ.'F') THEN
+            IF(NG3.EQ.1) THEN
+               GY(NR,NTH) =GCLIP(PSIPS(NR))
+            ELSEIF(NG3.EQ.2) THEN
+               GY(NR,NTH) =GCLIP(BR(NTH,NPH,NR))
+            ELSEIF(NG3.EQ.3) THEN
+               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
+            ELSEIF(NG3.EQ.4) THEN
+               GY(NR,NTH) =GCLIP(BFLD(2,NTH,NPH,NR))
+            ELSEIF(NG3.EQ.5) THEN
+               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR))
+            ELSEIF(NG3.EQ.6) THEN
+               GY(NR,NTH) =GCLIP(RJ(NTH,NPH,NR))
+            ENDIF
+         ENDIF
+      ENDDO
+      ENDDO
+C
+      IF(NGRAPH.EQ.0) THEN
+         CALL WMGFWR(GY,NPH,K2,K3,K4)
+         GOTO 9000
+      ELSEIF(NGRAPH.EQ.1) THEN
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMGXEQ(GY,NPH,K2,K3)
+      ELSE IF(NGRAPH.EQ.2) THEN
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMGXEQP(GY,NPH,K2,K3)
+      ELSE IF(NGRAPH.EQ.3) THEN
+         IF(NTHMAX.LE.2) THEN
+            WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
             GO TO 9000
          ENDIF
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMG3DA(GY,NPH,K2,K3,0)
+      ELSE IF(NGRAPH.EQ.4) THEN
+         IF(NTHMAX.LE.2) THEN
+            WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
+            GO TO 9000
+         ENDIF
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMG3DA(GY,NPH,K2,K3,4)
+      ELSE
+         WRITE(6,*) 'XX WMGREQ: UNDEFINED NGRAPH: NGRAPH=',NGRAPH
+         GO TO 9000
+      ENDIF
 C
-C      CALL MOVE(16.5,17.0)
       CALL MOVE(20.0,17.5)
       IF(K2.EQ.'E') CALL TEXT('E ',2)
       IF(K2.EQ.'B') CALL TEXT('B ',2)
       IF(K2.EQ.'P') CALL TEXT('P ',2)
       IF(K2.EQ.'J') CALL TEXT('J ',2)
-      IF(K2.EQ.'G') CALL TEXT('RG',2)
       CALL MOVE(20.0,17.1)
-      IF(K3.EQ.'R') CALL TEXT('r ',2)
-      IF(K3.EQ.'T') CALL TEXT('theta ',6)
-      IF(K3.EQ.'Z') CALL TEXT('phi ',4)
-      IF(K2.EQ.'P') THEN
+      IF(K2.NE.'P') THEN
+         IF(K3.EQ.'R') CALL TEXT('r ',2)
+         IF(K3.EQ.'T') CALL TEXT('theta ',6)
+         IF(K3.EQ.'Z') CALL TEXT('phi ',4)
+         IF(K3.EQ.'S') CALL TEXT('s ',2)
+         IF(K3.EQ.'H') CALL TEXT('h ',2)
+         IF(K3.EQ.'B') CALL TEXT('b ',2)
+         IF(K3.EQ.'+') CALL TEXT('+ ',2)
+         IF(K3.EQ.'-') CALL TEXT('- ',2)
+         IF(K3.EQ.'P') CALL TEXT('P ',2)
+      ELSE
          IF(K3.EQ.'E') CALL TEXT('e ',2)
          IF(K3.EQ.'D') CALL TEXT('D ',2)
          IF(K3.EQ.'T') CALL TEXT('T ',2)
@@ -293,9 +222,6 @@ C      CALL MOVE(16.5,17.0)
          IF(K3.EQ.'5') CALL TEXT('5 ',2)
          IF(K3.EQ.'6') CALL TEXT('6 ',2)
       ENDIF
-      IF(K2.EQ.'G') THEN
-         CALL TEXT('  ',2)
-      ENDIF
       CALL MOVE(20.0,16.7)
       IF(K4.EQ.'R') CALL TEXT('Real ',5)
       IF(K4.EQ.'I') CALL TEXT('Imag ',5)
@@ -304,9 +230,133 @@ C
       CALL WMGPRM('C',K3,0,0,0,0)
 C
       CALL PAGEE
-      ENDIF
 C
  9000 RETURN
+      END
+C
+C     ****** DRAW 1D RADIAL GRAPHS ******
+C
+      SUBROUTINE WMGREQG(K2,K3,K4)
+C
+      INCLUDE 'wmcomm.h'
+C
+      DIMENSION GY(NRM,MDM),GP(4,4)
+      CHARACTER*6 RTITL(8)
+      CHARACTER K2,K3,K4
+      DATA GP/ 3.0, 10.8,  9.5, 16.5,
+     &         3.0, 10.8,  1.0,  8.0,
+     &        13.8, 21.6,  9.5, 16.5,
+     &        13.8, 21.6,  1.0,  8.0/
+C
+C
+    2 IF(NPHMAX.EQ.1) THEN
+         NPH=1
+      ELSE
+         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
+         READ(5,*,ERR=2,END=9000) NPH
+      ENDIF
+      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NPH'
+         GOTO 2
+      ENDIF
+C
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         RTITL(1)='RG11  '
+         RTITL(2)='RG12  '
+         RTITL(3)='RG13  '
+         RTITL(4)='RG22  '
+         RTITL(5)='RG23  '
+         RTITL(6)='RG33  '
+         RTITL(7)='RJ    '
+         RTITL(8)='PSI   '
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG11(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(1),GP(1,1))
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG12(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(2),GP(1,2))
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG13(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(3),GP(1,3))
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG22(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(4),GP(1,4))
+         CALL WMGPRM('C',K3,0,0,0,0)
+         CALL PAGEE
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG23(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(5),GP(1,1))
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RG33(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(6),GP(1,2))
+         DO NTH=1,NTHMAX
+         DO NR=1,NRMAX+1
+            GY(NR,NTH)=GCLIP(RJ(NTH,NPH,NR))
+         ENDDO
+         ENDDO
+         CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
+         DO NR=1,NRMAX+1
+            GY(NR,1)=GCLIP(PSIPS(NR))
+         ENDDO
+         CALL WMGGR(GY,1,RTITL(8),GP(1,4))
+         CALL WMGPRM('C',K3,0,0,0,0)
+         CALL PAGEE     
+      CALL MOVE(20.0,17.5)
+      IF(K2.EQ.'G') CALL TEXT('RG',2)
+C
+      CALL WMGPRM('C',K3,0,0,0,0)
+C
+      CALL PAGEE
+C
+ 9000 RETURN
+      END
+C
+C     ****** WRITE GRAPHIC DATA IN FILE ******
+C
+      SUBROUTINE WMGFWR(GGL,NPH,K2,K3,K4)
+C
+      INCLUDE 'wmcomm.h'
+C
+      DIMENSION GGL(NRM,NTHM),GRL(NRM,NTHM),GZL(NRM,NTHM)
+      CHARACTER K2*1,K3*1,K4*1
+C
+      DO NR=1,NRMAX+1
+      DO NTH=1,NTHMAX
+         GRL(NR,NTH)=GCLIP(RPS(NTH,NR))
+         GZL(NR,NTH)=GCLIP(ZPS(NTH,NR))
+      ENDDO
+      ENDDO
+C
+C
+      NFD=22
+      WRITE(NFD,'(3A1,I8)') K2,K3,K4,NPH
+      WRITE(NFD,'(2I8)') NRMAX+1,NTHMAX
+      WRITE(NFD,'(1P3E15.7)') ((GRL(NR,NTH),GZL(NR,NTH),GGL(NR,NTH),
+     &                          NR=1,NRMAX+1),NTH=1,NTHMAX)
+C
+      WRITE(6,*) ' WMGFWR: Data written in fort.22'
+      RETURN
       END
 C
 C     ****** DRAW COUNTOUR IN MAGNETIC SURFACE COORDINATES ******

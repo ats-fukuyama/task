@@ -8,22 +8,29 @@ C
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
-    1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  RCMP/P/123  CP/J  P/G  S'
-      WRITE(6,*) '                 CMP/EB/RTZ/RIA  P/F/SBQ23J  X/EXIT'
+    1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  RCMP/P/123  CP/J',
+     &           '  P/F/SBQ23J   R/G  S'
+      WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
+     &           '  G/01234  ?/HELP  X/EXIT'
       READ(5,'(A5)',ERR=1,END=900) KSTR
       K1=KSTR(1:1)
+C
       CALL GUCPTL(K1)
       IF (K1.EQ.'X') GOTO 900
       IF (K1.EQ.'G') THEN
 	 K2=KSTR(2:2)
 	 CALL GUCPTL(K2)
+         IF(K2.EQ.'0') NGRAPH=0
          IF(K2.EQ.'1') NGRAPH=1
          IF(K2.EQ.'2') NGRAPH=2
          IF(K2.EQ.'3') NGRAPH=3
          IF(K2.EQ.'4') NGRAPH=4
          GOTO 1
       ENDIF
-      IF (K1.EQ.'Q') GOTO 900
+      IF(K1.EQ.'?') THEN
+         CALL WMGHELP
+         GOTO 1
+      ENDIF
 C
       IF((K1.EQ.'R').OR.(K1.EQ.'C').OR.(K1.EQ.'M').OR.
      &   (K1.EQ.'P').OR.(K1.EQ.'S')) THEN
@@ -33,10 +40,17 @@ C
 	 CALL GUCPTL(K3)
          K4=KSTR(4:4)
 	 CALL GUCPTL(K4)
-         IF(K1.EQ.'R') CALL WMGR1D(K2,K3)
+         IF(K1.EQ.'R') THEN
+            IF(K2.NE.'G') THEN
+               CALL WMGR1D(K2,K3)
+            ELSE
+               CALL WMGREQG(K2,K3,K4)
+            ENDIF
+         ENDIF
+         IF(K1.EQ.'P'.OR.(K1.EQ.'C'.AND.NGRAPH.EQ.0))
+     &        CALL WMGREQ(K2,K3,K4)
          IF(K1.EQ.'C') CALL WMGRTH(K2,K3,K4)
          IF(K1.EQ.'M') CALL WMGRMD(K2,K3,K4)
-         IF(K1.EQ.'P') CALL WMGREQ(K2,K3,K4)
          IF(K1.EQ.'S'.AND.MODELG.EQ.4) CALL WMGRMS
       ELSE
          WRITE(6,*) '## UNDEFINED CONTROL CHARACTER: K1=',K1
@@ -73,10 +87,10 @@ C
          NR=1
             GX1(NR)=GCLIP(       XR(NR))
             GX2(NR)=GCLIP(       XR(NR))
-         DO 10 NR=2,NRMAX+1
+         DO NR=2,NRMAX+1
             GX1(NR)=GCLIP(       XR(NR))
             GX2(NR)=GCLIP(0.5D0*(XR(NR-1)+XR(NR)))
-   10    CONTINUE
+         ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
          NG4=NSMAX
@@ -88,10 +102,10 @@ C
          NR=1
             GX2(NR)=GCLIP(       XR(NR))
             GX1(NR)=GCLIP(       XR(NR))
-         DO 20 NR=2,NRMAX+1
+         DO NR=2,NRMAX+1
             GX2(NR)=GCLIP(       XR(NR))
             GX1(NR)=GCLIP(0.5D0*(XR(NR-1)+XR(NR)))
-   20    CONTINUE
+         ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
          NG4=1
@@ -124,10 +138,11 @@ C
          ENDIF
 C
          IF(K2.EQ.'E') THEN
-            DO 100 I=1,3
-            DO 100 NR=1,NRMAX+1
+            DO I=1,3
+            DO NR=1,NRMAX+1
                CF(NR,I)=CEFLD(I,NTH,NPH,NR)
-  100       CONTINUE
+            ENDDO
+            ENDDO
             IF(K3.EQ.'A') THEN
                DO NS=1,NSMAX
                   DO NR=1,NRMAX
@@ -144,20 +159,21 @@ C
                ENDDO
             ENDIF
          ELSE
-            DO 200 I=1,3
-            DO 200 NR=1,NRMAX+1
+            DO I=1,3
+            DO NR=1,NRMAX+1
                CF(NR,I)=CBFLD(I,NTH,NPH,NR)
-  200       CONTINUE
+            ENDDO
+            ENDDO
             IF(K3.EQ.'A') THEN
-               DO 210 NR=1,NRMAX
+               DO NR=1,NRMAX
 C                  POWER(NR,1)=PCURR(NR)
                   POWER(NR,1)=QPS(NR)
-  210          CONTINUE
+               ENDDO
                POWER(NRMAX+1,1)=0.D0
             ELSE
-               DO 220 NR=1,NRMAX
+               DO NR=1,NRMAX
                   POWER(NR,1)=PCUR(NTH,NPH,NR)
-  220          CONTINUE
+               ENDDO
                POWER(NRMAX+1,1)=0.D0
             ENDIF
          ENDIF
@@ -186,10 +202,11 @@ C                  POWER(NR,1)=PCURR(NR)
          NDX=ND-NDMIN+1
 C
          IF(K2.EQ.'E') THEN
-            DO 300 I=1,3
-            DO 300 NR=1,NRMAX+1
+            DO I=1,3
+            DO NR=1,NRMAX+1
                CF(NR,I)=CEFLDK(I,MDX,NDX,NR)
-  300       CONTINUE
+            ENDDO
+            ENDDO
             DO NS=1,NSMAX
                DO NR=1,NRMAX
                   POWER(NR,NS)=PABSK(MDX,NDX,NR,NS)
@@ -197,14 +214,15 @@ C
                POWER(NRMAX+1,NS)=0.D0
             ENDDO
          ELSE
-            DO 400 I=1,3
-            DO 400 NR=1,NRMAX+1
+            DO I=1,3
+            DO NR=1,NRMAX+1
                CF(NR,I)=CBFLDK(I,MDX,NDX,NR)
-  400       CONTINUE
-            DO 410 NR=1,NRMAX
+            ENDDO
+            ENDDO
+            DO NR=1,NRMAX
                POWER(NR,1)=PCUR(MDX,NDX,NR)
-  410       CONTINUE
-               POWER(NRMAX+1,1)=0.D0
+            ENDDO
+            POWER(NRMAX+1,1)=0.D0
          ENDIF
       ELSEIF(K3.EQ.'N') THEN
     7    IF(NTHMAX.EQ.1) THEN
@@ -392,11 +410,11 @@ C
 C
       GYMIN= 1.E32
       GYMAX=-1.E32
-      DO 100 I=1,NY
+      DO I=1,NY
          CALL GMNMX1(GY(1,I),1,NX,1,GYMIN1,GYMAX1)
          GYMIN=MIN(GYMIN,GYMIN1)
          GYMAX=MAX(GYMAX,GYMAX1)
-  100 CONTINUE
+      ENDDO
 C
 C     CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSX)
       GSX=0.1
@@ -417,10 +435,10 @@ C
       CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GSY*2,NGVLEN(GSY*2))
 C
-      DO 200 I=1,NY
+      DO I=1,NY
          CALL SETLIN(0,2,ICL(I))
          CALL GPLOTP(GX,GY(1,I),1,NX,1,0,0,IPAT(I))
-  200 CONTINUE
+      ENDDO
       CALL SETLIN(0,2,7)
 C
  9000 CALL MOVE(GP(1),GP(4)+0.2)
@@ -468,11 +486,11 @@ C
       CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GSY*2,NGVLEN(GSY*2))
 C
-      DO 200 I=1,NY
+      DO I=1,NY
          CALL SETLIN(0,2,7-MOD(I-1,5))
          CALL GPLOTP(GX,GY1(1,I),1,NX,1,0,0,0)
          CALL GPLOTP(GX,GY2(1,I),1,NX,1,0,0,2)
-  200 CONTINUE
+      ENDDO
       CALL SETLIN(0,2,7)
 C
  9000 CALL MOVE(GP(1),GP(4)+0.2)
@@ -493,10 +511,31 @@ C
 C
       IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
          IF(K3.EQ.'R') THEN
+            NA3=1
             NG3=1
          ELSEIF(K3.EQ.'T') THEN
+            NA3=1
             NG3=2
          ELSEIF(K3.EQ.'Z') THEN
+            NA3=1
+            NG3=3
+         ELSEIF(K3.EQ.'S') THEN
+            NA3=2
+            NG3=1
+         ELSEIF(K3.EQ.'H') THEN
+            NA3=2
+            NG3=2
+         ELSEIF(K3.EQ.'B') THEN
+            NA3=2
+            NG3=3
+         ELSEIF(K3.EQ.'+') THEN
+            NA3=3
+            NG3=1
+         ELSEIF(K3.EQ.'-') THEN
+            NA3=3
+            NG3=2
+         ELSEIF(K3.EQ.'P') THEN
+            NA3=3
             NG3=3
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGRTH'
@@ -543,68 +582,51 @@ C
          GOTO 1
       ENDIF
 C
-      IF(K2.EQ.'E') THEN
-         IF(K4.EQ.'R') THEn
-            DO 100 NTH=1,MDSIZ
-            DO 100 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DBLE(CEFLD(NG3,NTH,NPH,NR)))
-  100       CONTINUE
-         ELSEIF(K4.EQ.'I') THEN
-            DO 110 NTH=1,MDSIZ
-            DO 110 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DIMAG(CEFLD(NG3,NTH,NPH,NR)))
-  110       CONTINUE
-         ELSEIF(K4.EQ.'A') THEN
-            DO 120 NTH=1,MDSIZ
-            DO 120 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(ABS(CEFLD(NG3,NTH,NPH,NR)))
-  120       CONTINUE
-         ELSE
-            WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
-            GOTO 9000
-         ENDIF
-         NX=NRMAX+1
-      ELSEIF(K2.EQ.'B') THEN
-         IF(K4.EQ.'R') THEN
-            DO 200 NTH=1,MDSIZ
-            DO 200 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DBLE(CBFLD(NG3,NTH,NPH,NR)))
-  200       CONTINUE
-         ELSEIF(K4.EQ.'I') THEN
-            DO 210 NTH=1,MDSIZ
-            DO 210 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(DIMAG(CBFLD(NG3,NTH,NPH,NR)))
-  210       CONTINUE
-         ELSEIF(K4.EQ.'A') THEN
-            DO 220 NTH=1,MDSIZ
-            DO 220 NR=1,NRMAX+1
-               GY(NR,NTH)=GCLIP(ABS(CBFLD(NG3,NTH,NPH,NR)))
-  220       CONTINUE
-         ELSE
-            WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
-            GOTO 9000
-         ENDIF
-         NX=NRMAX+1
-      ELSEIF(K2.EQ.'P') THEN
-         DO 300 NTH=1,MDSIZ
-         DO 300 NR=1,NRMAX
+      DO NTH=1,MDSIZ
+      DO NR=1,NRMAX+1
+         IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
+            IF(K2.EQ.'E') THEN
+               IF(NA3.EQ.1) THEN
+                  CFL=CEFLD(NG3,NTH,NPH,NR)
+               ELSEIF(NA3.EQ.2) THEN
+                  CFL=CEN(NG3,NTH,NPH,NR)
+               ELSEIF(NA3.EQ.3) THEN
+                  CFL=CEP(NG3,NTH,NPH,NR)
+               ENDIF
+            ELSEIF(K2.EQ.'B') THEN
+               CFL=CBFLD(NG3,NTH,NPH,NR)
+            ENDIF
+C
+            IF(K4.EQ.'R') THEn
+               GY(NR,NTH)=GCLIP(DBLE(CFL))
+            ELSEIF(K4.EQ.'I') THEN
+               GY(NR,NTH)=GCLIP(DIMAG(CFL))
+            ELSEIF(K4.EQ.'A') THEN
+               GY(NR,NTH)=GCLIP(ABS(CFL))
+            ELSE
+               WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
+               GOTO 9000
+            ENDIF
+            NX=NRMAX+1
+         ELSEIF(K2.EQ.'P') THEN
             GY(NR,NTH)=GCLIP(PABS(NTH,NPH,NR,NG3))
-  300    CONTINUE
-         NX=NRMAX
-      ELSE IF (K2.EQ.'J') THEN
-          DO 310 NTH=1,MDSIZ
-          DO 310 NR=1,NRMAX
+         ELSEIF(K2.EQ.'J') THEN
              GY(NR,NTH)=GCLIP(PCUR(NTH,NPH,NR))
-  310     CONTINUE
-          NX=NRMAX
-      END IF
+         ENDIF
+      ENDDO
+      ENDDO
+      IF(K2.EQ.'E'.OR.K2.EQ.'B') THEN
+         NX=NRMAX+1
+      ELSEIF(K2.EQ.'P'.OR.K2.EQ.'J') THEN
+         NX=NRMAX
+      ENDIF
 C
       CALL PAGES
       CALL SETCHS(0.3,0.0)
 C
-      DO 400 I=1,NX
+      DO I=1,NX
         GXR(I)=GCLIP(XR(I))
-  400 CONTINUE
+      ENDDO
 C
       CALL GMNMX1(GXR,1,NX,1,GRMIN,GRMAX)
       CALL GMNMX2(GY,NRM,1,NX,1,1,MDSIZ,1,GZ1MIN,GZ1MAX)
@@ -638,21 +660,31 @@ C
       IF(K2.EQ.'B') CALL TEXT('B ',2)
       IF(K2.EQ.'P') CALL TEXT('P ',2)
       IF(K2.EQ.'C') CALL TEXT('J ',2)
-      IF(K3.EQ.'R') CALL TEXT('r ',2)
-      IF(K3.EQ.'T') CALL TEXT('theta ',6)
-      IF(K3.EQ.'Z') CALL TEXT('phi ',4)
-      IF(K3.EQ.'E') CALL TEXT('e ',2)
-      IF(K3.EQ.'D') CALL TEXT('D ',2)
-      IF(K3.EQ.'T') CALL TEXT('T ',2)
-      IF(K3.EQ.'1') CALL TEXT('e ',2)
-      IF(K3.EQ.'2') CALL TEXT('D ',2)
-      IF(K3.EQ.'3') CALL TEXT('T ',2)
-      IF(K3.EQ.'4') CALL TEXT('a ',2)
-      IF(K3.EQ.'5') CALL TEXT('He',2)
-      IF(K3.EQ.'6') CALL TEXT('Be',2)
+      IF(K2.NE.'P') THEN
+         IF(K3.EQ.'R') CALL TEXT('r ',2)
+         IF(K3.EQ.'T') CALL TEXT('theta ',6)
+         IF(K3.EQ.'Z') CALL TEXT('phi ',4)
+         IF(K3.EQ.'S') CALL TEXT('s ',2)
+         IF(K3.EQ.'H') CALL TEXT('h ',2)
+         IF(K3.EQ.'B') CALL TEXT('b ',2)
+         IF(K3.EQ.'+') CALL TEXT('+ ',2)
+         IF(K3.EQ.'-') CALL TEXT('- ',2)
+         IF(K3.EQ.'P') CALL TEXT('P ',2)
+      ELSE
+         IF(K3.EQ.'E') CALL TEXT('e ',2)
+         IF(K3.EQ.'D') CALL TEXT('D ',2)
+         IF(K3.EQ.'T') CALL TEXT('T ',2)
+         IF(K3.EQ.'1') CALL TEXT('1 ',2)
+         IF(K3.EQ.'2') CALL TEXT('2 ',2)
+         IF(K3.EQ.'3') CALL TEXT('3 ',2)
+         IF(K3.EQ.'4') CALL TEXT('4 ',2)
+         IF(K3.EQ.'5') CALL TEXT('5 ',2)
+         IF(K3.EQ.'6') CALL TEXT('6 ',2)
+      ENDIF
       IF(K4.EQ.'R') CALL TEXT('Real ',5)
       IF(K4.EQ.'I') CALL TEXT('Imag ',5)
       IF(K4.EQ.'A') CALL TEXT('Abs ',4)
+C
       CALL MOVE(16.5,16.0)
       CALL TEXT('MAX :',5)
       CALL NUMBR(GZ1MAX,'(1PE12.4)',12)
@@ -735,26 +767,26 @@ C
 C
       IF (K2.EQ.'E') THEN
          IF (K4.EQ.'R') THEN
-            DO 100 NR=1,NRMAX+1
-               DO 101 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(DBLE(CEFLDK(NG3,MDX,NDX,NR)))
-  101          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(DBLE(CEFLDK(NG3,MDSIZ,NDX,NR)))
-  100       CONTINUE
+            ENDDO
          ELSE IF (K4.EQ.'I') THEN
-            DO 110 NR=1,NRMAX+1
-               DO 111 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(DIMAG(CEFLDK(NG3,MDX,NDX,NR)))
-  111          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(DIMAG(CEFLDK(NG3,MDSIZ,NDX,NR)))
-  110       CONTINUE
+            ENDDO
          ELSE IF (K4.EQ.'A') THEN
-            DO 120 NR=1,NRMAX+1
-               DO 121 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(ABS(CEFLDK(NG3,MDX,NDX,NR)))
-  121          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(ABS(CEFLDK(NG3,MDSIZ,NDX,NR)))
-  120       CONTINUE
+            ENDDO
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRMD'
             GOTO 9000
@@ -762,39 +794,39 @@ C
          NX=NRMAX+1
       ELSE IF (K2.EQ.'B') THEN
          IF (K4.EQ.'R') THEN
-            DO 105 NR=1,NRMAX+1
-               DO 106 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(DBLE(CBFLDK(NG3,MDX,NDX,NR)))
-  106          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(DBLE(CBFLDK(NG3,MDSIZ,NDX,NR)))
-  105       CONTINUE
+            ENDDO
          ELSE IF (K4.EQ.'I') THEN
-            DO 115 NR=1,NRMAX+1
-               DO 116 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(DIMAG(CBFLDK(NG3,MDX,NDX,NR)))
-  116          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(DIMAG(CBFLDK(NG3,MDSIZ,NDX,NR)))
-  115       CONTINUE
+            ENDDO
          ELSE IF (K4.EQ.'A') THEN
-            DO 125 NR=1,NRMAX+1
-               DO 126 MDX=1,MDSIZ
+            DO NR=1,NRMAX+1
+               DO MDX=1,MDSIZ
                   GY(NR,MDX+1)=GCLIP(ABS(CBFLDK(NG3,MDX,NDX,NR)))
-  126          CONTINUE
+               ENDDO
                GY(NR,1)=GCLIP(ABS(CBFLDK(NG3,MDSIZ,NDX,NR)))
-  125       CONTINUE
+            ENDDO
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRMD'
             GOTO 9000
          ENDIF
          NX=NRMAX+1
       ELSE IF (K2.EQ.'P') THEN
-            DO 300 NR=1,NRMAX
-               DO 290 MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(PABSK(MDX,NDX,NR,NG3))
-  290          CONTINUE
-               GY(NR,1)=GCLIP(PABSK(MDSIZ,NDX,NR,NG3))
-  300       CONTINUE
-            NX=NRMAX
+         DO NR=1,NRMAX
+            DO MDX=1,MDSIZ
+               GY(NR,MDX+1)=GCLIP(PABSK(MDX,NDX,NR,NG3))
+            ENDDO
+            GY(NR,1)=GCLIP(PABSK(MDSIZ,NDX,NR,NG3))
+         ENDDO
+         NX=NRMAX
       END IF
 C
 C
@@ -823,10 +855,10 @@ C
       GXMIN=GCLIP(XR(1))
       GXMAX=GCLIP(XR(NRMAX+1))
 C
-      DO 200 MD=MDMIN-1,MDMAX
+      DO MD=MDMIN-1,MDMAX
          MDX=MD-MDMIN+2
          GY(MDX)=NTH0+MD
-  200 CONTINUE
+      ENDDO
 C
       GYMIN=GY(1)
       GYMAX=GY(MDSIZ+1)
@@ -947,18 +979,18 @@ C
       YPOS=YPOS-5*DY
       CALL MOVE(XPOS,YPOS)
       CALL TEXT('PN: ',4)
-      DO 100 NS=1,NSMAX
+      DO NS=1,NSMAX
          CALL MOVE(XPOS,YPOS-NS*DY)
          CALL NUMBD(PN(NS),'(F12.4)',12)
-  100 CONTINUE
+      ENDDO
 C
       YPOS=YPOS-7*DY
       CALL MOVE(XPOS,YPOS)
       CALL TEXT('PTPR: ',6)
-      DO 200 NS=1,NSMAX
+      DO NS=1,NSMAX
          CALL MOVE(XPOS,YPOS-NS*DY)
          CALL NUMBD(PTPR(NS),'(F12.4)',12)
-  200 CONTINUE
+      ENDDO
 C
 C     ****** WAVE PARAMETERS ******
 C
@@ -1000,16 +1032,16 @@ C
          MDX=MD-MDMIN+1
          NDX=ND-NDMIN+1
          CALL TEXT('Pabs(MD):',9)
-         DO 300 NS=1,NSMAX
+         DO NS=1,NSMAX
             CALL MOVE(XPOS,YPOS-NS*DY)
             CALL NUMBD(PABSKT(MDX,NDX,NS),'(1PD12.4)',12)
-  300    CONTINUE
+         ENDDO
       ELSE
          CALL TEXT('Pabs:',5)
-         DO 400 NS=1,NSMAX
+         DO NS=1,NSMAX
             CALL MOVE(XPOS,YPOS-NS*DY)
             CALL NUMBD(PABST(NS),'(1PD12.4)',12)
-  400    CONTINUE
+         ENDDO
       ENDIF
 C
       YPOS=YPOS-7*DY
@@ -1056,6 +1088,80 @@ C
          ENDIF
       ENDIF
 C
+      RETURN
+      END
+C
+C     ****** EXPLANATION OF GRAPHIC COMMAND ******
+C
+      SUBROUTINE WMGHELP
+C
+      WRITE(6,600)
+  600 FORMAT(
+     &'   R: radial profile'/
+     &'    E: wave electric field'/
+     &'    B: wave magnetic field'/
+     &'     A: wave field at a poloidal angle and total Pabs'/
+     &'     T: wave field and Pabs at a poloidal angle'/
+     &'     M: wave field and Pabs with a poloidal mode number m'/
+     &'     N: wave field and Pabs for a range of m'/)
+C
+      WRITE(6,601)
+  601 FORMAT(
+     &'   P: poloidal cross section'/
+     &'   M: poloidal mode spectrum'/
+     &'   C: circular poloidal projection'/
+     &'    E: wave electric field'/
+     &'    B: wave magnetic field'/
+     &'     R: radial component'/
+     &'     T: poloidal component'/
+     &'     Z: toroidal component'/
+     &'     s: radial component'/
+     &'     h: perpendicular component'/
+     &'     b: parallel component'/
+     &'     +: right hand polarized component'/
+     &'     -: left hand polarized component'/
+     &'     P: parallel component'/
+     &'      R: real component'/
+     &'      I: imaginary component'/
+     &'      A: absolute value'/)
+C
+      WRITE(6,602)
+  602 FORMAT(
+     &'   P: poloidal cross section'/
+     &'   M: poloidal mode spectrum'/
+     &'   C: circular poloidal projection'/
+     &'    P: absorbed power density'/
+     &'     n: particle species number'/
+     &'        (usually 1: electron)'/)
+C
+      WRITE(6,603)
+  603 FORMAT(
+     &'   P: poloidal cross section'/
+     &'   C: circular poloidal projection'/
+     &'    J: currnet density'//
+     &'     n: particle species number'/
+     &'        (usually 1: electron)'//
+     &'   P: poloidal cross section'/
+     &'    F: various quantities'/
+     &'     S: psi'/
+     &'     B: total magnetic field'/
+     &'     Q: safety factor'/
+     &'     2: poloidal magnetic field'/
+     &'     3: toroidal magnetic field'/
+     &'     J: Jacobian'/)
+C
+      WRITE(6,604)
+  604 FORMAT(
+     &'   R: radial profile'/
+     &'    G: Fourier components metric tensor'//
+     &'   S: equilibrium profile'//
+     &'   G: graphic type'/
+     &'    1: contour map'/
+     &'    2: painted map'/
+     &'    3: bird eye view'/
+     &'    4: bird eye view'//
+     &'   ?: this help message'/
+     &'   X: exit'/)
       RETURN
       END
 C
