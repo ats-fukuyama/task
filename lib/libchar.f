@@ -93,7 +93,7 @@ C
       IF(INCL.LE.1) THEN
          KKLINEX=KKLINE(2:)
       ELSE
-         KKLINEX=KKLINE(2:INCL-1)
+         KKLINEX=KKLINE(2:INCL)
       ENDIF
       RETURN
       END
