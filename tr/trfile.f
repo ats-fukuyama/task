@@ -814,7 +814,7 @@ C
       AMP=1.D-3
       KFID='TE'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NR=1,NRMAX
          DO NTA=1,NTAMAX
             RTU(NR,1,NTA)=FAT(NR,NTA)
@@ -835,7 +835,7 @@ C
 C
       KFID='TI'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NR=1,NRMAX
          DO NS=2,3
             DO NTA=1,NTAMAX
@@ -865,7 +865,7 @@ C
       AMP=1.D-20
       KFID='NE'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
             RNU(NR,1,NTA)=FAT(NR,NTA)
@@ -908,7 +908,7 @@ C
          KFID='NM1'
       ENDIF
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
             RNU(NR,2,NTA)=FAT(NR,NTA)
@@ -944,7 +944,7 @@ C
       AMP=1.D0
       KFID='ZEFFR'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
             ZEFFU(NR,NTA)=FAT(NR,NTA)
@@ -984,7 +984,7 @@ C
 C
       KFID='NIMP'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,NRAMAX,
-     &            NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRMAX,TMUMAX,0,ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
             RNU(NR,2,NTA)=(RNU(NR,1,NTA)-PZ(3)*FAT(NR,NTA))/PZ(2)
@@ -1018,7 +1018,7 @@ C
 C
       AMP=1.D0
       KFID='Q'
-      CALL UF2DT(KFID,DR,DT,TMU,QPU ,AMP,NTAMAX,NRMAX,TMUMAX,1,0,
+      CALL UF2DT(KFID,DR,DT,TMU,QPU,AMP,NTAMAX,NRMAX,TMUMAX,1,0,
      &           ICK,IERR)
       KFID='CURTOT'
       CALL UF2DT(KFID,DR,DT,TMU,AJU ,AMP,NTAMAX,NRMAX,TMUMAX,0,0,
@@ -1206,7 +1206,7 @@ C
       AMP=1.D-20
       KFID='NE'
       CALL UF2DTP(KFID,DR,DT,PV,PVA,TMU,FAT,AMP,NTAMAX,RHOA,
-     &            NRAMAX,NRMAX,TMUMAX,0,0,ICK,IERR)
+     &            NRAMAX,NRMAX,TMUMAX,0,ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
             RNU(NR,1,NTA)=FAT(NR,NTA)
@@ -1316,7 +1316,7 @@ C
      &     ICK,IERR)
 C
       KFID='RMINOR'
-      CALL UF2DT(KFID,DR,DT,TMU,RMNRHOU,AMP,NTAMAX,NRMAX,TMUMAX,0,0,
+      CALL UF2DT(KFID,DR,DT,TMU,RMNRHOU,AMP,NTAMAX,NRMAX,TMUMAX,0,1,
      &     ICK,IERR)
 C
       KFID='GRHO1'
@@ -1328,7 +1328,7 @@ C
      &     ICK,IERR)
 C
       KFID='VRO'
-      CALL UF2DT(KFID,DR,DT,TMU,DVRHOU,AMP,NTAMAX,NRMAX,TMUMAX,0,0,
+      CALL UF2DT(KFID,DR,DT,TMU,DVRHOU,AMP,NTAMAX,NRMAX,TMUMAX,0,1,
      &     ICK,IERR)
       DO NTA=1,NTAMAX
          DO NR=1,NRMAX
@@ -1387,41 +1387,80 @@ C           1D UFILE READER
 C
 C     ***********************************************************
 C
-      SUBROUTINE UF1D(KFID,DT,TL,FOUT,NTLMAX,TLMAX,ICK,IERR)
+C     input:
+C
+C     KFID        : Variable Name
+C     DT          : Time Step Width
+C     NTLMAX      : Maximum Time Step for TASK/TR
+C     TLMAX       : Maximum Time for TASK/TR
+C     ICK         : Check Indicator of UFILE Consistency
+C
+C     output:
+C
+C     TL(NTURM)   : Total Time Data (The Number of DT)
+C     F1(NTURM)   : Functional Values
+C     IERR        : Error Indicator
+C
+C     *****************************************************
+C
+      SUBROUTINE UF1D(KFID,DT,TL,F1,NTLMAX,TLMAX,ICK,IERR)
 C
       INCLUDE 'trcom0.inc'
-      DIMENSION TL(NTURM),F1(NTURM),FOUT(NTUM),U(4,NTURM)
+      DIMENSION TL(NTURM),F1(NTURM)
       CHARACTER KFID*10
 C
       CALL UFREAD_TIME(KFID,TL,F1,NTXMAX,MDCHK,IERR)
-      CALL PRETREATMENT1(KFID,TL,F1,U,NTXMAX,NTLMAX,TLMAX,ICK,IERR)
+C
+      DO NTX=2,NTXMAX
+         TL(NTX)=(TL(NTX)-TL(1))
+      ENDDO
+      TL(1)=0.D0
+      IF(ICK.NE.0) THEN
+         IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
+         IF(TLMAX.NE.TL(NTXMAX)) THEN
+            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) TLMAX,TL(NTXMAX)
+            STOP
+         ENDIF
+      ENDIF
+ 1000 CONTINUE
+      TLMAX=TL(NTXMAX)
+      NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
+      IF(ICK.NE.2) ICK=1
+C
       DO NTL=1,NTLMAX
          TLN=DT*DBLE(NTL)
-         CALL SPL1DF(TLN,F0,TL,U,NTXMAX,IERR)
-         IF(IERR.NE.0) 
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
-         FOUT(NTL)=F0
+         CALL LAGLANGE(TLN,F0,TL,F1,NTXMAX,NTURM,IERR)
+C         IF(IERR.NE.0) 
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
       ENDDO
 C
  600  FORMAT(' ',A17,A10,A7,I2)
       RETURN
       END
 C
-      SUBROUTINE UF1DG(KFID,GTL,TL,FOUT,AMP,NINMAX,TLMAX,ICK,IERR)
+C     *** FOR GRAPHIC ROUTINE ***
+C
+      SUBROUTINE UF1DG(KFID,GTL,TL,FOUT,AMP,NINMAX,IERR)
 C
       INCLUDE 'trcom0.inc'
-      DIMENSION TL(NTURM),F1(NTURM),FOUT(NTUM),U(4,NTURM),GTL(NTM)
+      DIMENSION TL(NTURM),F1(NTURM),FOUT(NTUM),GTL(NTM)
       CHARACTER KFID*10
 C
       CALL UFREAD_TIME(KFID,TL,F1,NTXMAX,MDCHK,IERR)
-      CALL PRETREATMENT1(KFID,TL,F1,U,NTXMAX,NTLMAX,TLMAX,ICK,IERR)
+C
+      DO NTX=2,NTXMAX
+         TL(NTX)=(TL(NTX)-TL(1))
+      ENDDO
+      TL(1)=0.D0
       DO NIN=1,NINMAX
          TLN=DBLE(GTL(NIN))
-         CALL SPL1DF(TLN,F0,TL,U,NTXMAX,IERR)
-         IF(IERR.NE.0) 
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+         CALL LAGLANGE(TLN,F0,TL,F1,NTXMAX,NTURM,IERRL)
+C         IF(IERRL.NE.0) 
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
          FOUT(NIN)=F0
       ENDDO
+C     
       IF(IERR.EQ.1) THEN
          DO NIN=1,NINMAX
             FOUT(NIN)=0.D0
@@ -1455,7 +1494,7 @@ C
 C     output:
 C
 C     TL(NTURM)   : Total Time Data (The Number of DT)
-C     FOUT(NRMP)  : Function Values
+C     FOUT(NRMP)  : Functional Values
 C     IERR        : Error Indicator
 C
 C     *****************************************************
@@ -1498,10 +1537,10 @@ C     NRMAX       : Radial Node Number
 C
 C     output:
 C
-C     PV          : Surface(Peripheral) Function Value
-C     PVS         : Surface(Peripheral) Function Value 
+C     PV          : Surface(Peripheral) Functional Value
+C     PVS         : Surface(Peripheral) Functional Value 
 C                   Corresponding to RHOA
-C     FOUT(NRMP)  : Function Values
+C     FOUT(NRMP)  : Functional Values
 C     IERR        : Error Indicator
 C
 C     *****************************************************
@@ -1556,35 +1595,70 @@ C
 C     output:
 C
 C     TL(NTURM)   : Total Time Data (The Number of DT)
-C     FOUT(NRMP)  : Function Values
+C     FOUT(NRMP)  : Functional Values
 C     NTAMAX      : Maximum Time Step Number Corresponding to RHOA
 C     IERR        : Error Indicator
 C
 C     *****************************************************
 C
-      SUBROUTINE UF2DT(KFID,DR,DT,TL,FOUT,AMP,NTAMAX,NRMAX,TLMAX,NSW,
+      SUBROUTINE UF2DT(KFID,DR,DT,TL,FOUT,AMP,NTLMAX,NRMAX,TLMAX,NSW,
      &                 MODE,ICK,IERR)
 C
       INCLUDE 'trcom0.inc'
       DIMENSION RL(NRMU),TL(NTURM),F2(NRMU,NTURM),FOUT(NRMP,NTUM)
-      DIMENSION U(4,4,NRMU,NTURM)
+      DIMENSION U(4,NRMU),DERIV(NRMU)
+      DIMENSION TMP0(NRMU),TMP1(NTURM),TMP2(NRMP,NTUM)
       CHARACTER KFID*10
 C
       CALL UFREAD2_TIME(KFID,RL,TL,F2,NRLMAX,NTXMAX,MDCHK,IERR)
-      CALL PRETREATMENT2(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,NTAMAX,TLMAX,
-     &                   ICK,MODE,IERR)
-      DO NRL=1,NRMAX
-         IF(NSW.EQ.0) THEN
-            RSL=(DBLE(NRL)-0.5D0)*DR
-         ELSEIF(NSW.EQ.1) THEN
-            RSL= DBLE(NRL)       *DR
+      DERIV(1)=0.D0
+      DERIV(NRLMAX)=0.D0
+C
+      DO NTX=2,NTXMAX
+         TL(NTX)=(TL(NTX)-TL(1))
+      ENDDO
+      TL(1)=0.D0
+      IF(ICK.NE.0) THEN
+         IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
+         IF(TLMAX.NE.TL(NTXMAX)) THEN
+            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) TLMAX,TL(NTXMAX)
+            STOP
          ENDIF
-         DO NTA=1,NTAMAX
-            TSL=DT*DBLE(NTA)
-            CALL SPL2DF(RSL,TSL,F0,RL,TL,U,NRMU,NRLMAX,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL2DF",KFID,": IERR=",IERR
-            FOUT(NRL,NTA)=F0*AMP
+      ENDIF
+ 1000 CONTINUE
+      TLMAX=TL(NTXMAX)
+      NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
+      IF(ICK.NE.2) ICK=1
+C
+      DO NTX=1,NTXMAX
+         DO NRL=1,NRLMAX
+            TMP0(NRL)=F2(NRL,NTX)
+         ENDDO
+         IF(MODE.EQ.0) THEN
+            CALL SPL1D(RL,TMP0,DERIV,U,NRLMAX,1,IERR)
+         ELSEIF(MODE.EQ.1) THEN
+            CALL SPL1D(RL,TMP0,DERIV,U,NRLMAX,0,IERR)
+         ENDIF
+         DO NRL=1,NRMAX
+            IF(NSW.EQ.0) THEN
+               RSL=(DBLE(NRL)-0.5D0)*DR
+            ELSEIF(NSW.EQ.1) THEN
+               RSL= DBLE(NRL)       *DR
+            ENDIF
+            CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
+            TMP2(NRL,NTX)=F0
+         ENDDO
+      ENDDO
+C
+      DO NRL=1,NRMAX
+         DO NTX=1,NTXMAX
+            TMP1(NTX)=TMP2(NRL,NTX)
+         ENDDO
+         DO NTL=1,NTLMAX
+            TLN=DT*DBLE(NTL)
+            CALL LAGLANGE(TLN,F0,TL,TMP1,NTXMAX,NTURM,IERR)
+            FOUT(NRL,NTL)=F0*AMP
          ENDDO
       ENDDO
 C
@@ -1592,54 +1666,88 @@ C
       RETURN
       END
 C
-      SUBROUTINE UF2DTP(KFID,DR,DT,PV,PVA,TL,FOUT,AMP,NTAMAX,RHOA,
-     &                  NRAMAX,NRMAX,TLMAX,NSW,MODE,ICK,IERR)
+      SUBROUTINE UF2DTP(KFID,DR,DT,PV,PVA,TL,FOUT,AMP,NTLMAX,RHOA,
+     &                  NRAMAX,NRMAX,TLMAX,NSW,ICK,IERR)
 C
       INCLUDE 'trcom0.inc'
       DIMENSION RL(NRMU),TL(NTURM),F2(NRMU,NTURM),FOUT(NRMP,NTUM)
-      DIMENSION U(4,4,NRMU,NTURM)
+      DIMENSION U(4,NRMU),DERIV(NRMU)
+      DIMENSION TMP0(NRMU),TMP1(NTURM),TMP2(NRMP,NTUM)
       DIMENSION PV(NTUM),PVA(NTUM)
       CHARACTER KFID*10
 C
       CALL UFREAD2_TIME(KFID,RL,TL,F2,NRLMAX,NTXMAX,MDCHK,IERR)
-      CALL PRETREATMENT2(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,NTAMAX,TLMAX,
-     &                   ICK,MODE,IERR)
-      DO NRL=1,NRMAX
-         IF(NSW.EQ.0) THEN
-            RSL=(DBLE(NRL)-0.5D0)*DR
-         ELSEIF(NSW.EQ.1) THEN
-            RSL= DBLE(NRL)       *DR
+C
+      DO NTX=2,NTXMAX
+         TL(NTX)=(TL(NTX)-TL(1))
+      ENDDO
+      TL(1)=0.D0
+      IF(ICK.NE.0) THEN
+         IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
+         IF(TLMAX.NE.TL(NTXMAX)) THEN
+            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) TLMAX,TL(NTXMAX)
+            STOP
          ENDIF
-         DO NTA=1,NTAMAX
-            TSL=DT*DBLE(NTA)
-            CALL SPL2DF(RSL,TSL,F0,RL,TL,U,NRMU,NRLMAX,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL2DF",KFID,": IERR=",IERR
-            FOUT(NRL,NTA)=F0*AMP
+      ENDIF
+ 1000 CONTINUE
+      TLMAX=TL(NTXMAX)
+      NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
+      IF(ICK.NE.2) ICK=1
+C
+      DO NTX=1,NTXMAX
+         DO NRL=1,NRLMAX
+            TMP0(NRL)=F2(NRL,NTX)
+         ENDDO
+         CALL SPL1D(RL,TMP0,DERIV,U,NRLMAX,0,IERR)
+         DO NRL=1,NRMAX
+            IF(NSW.EQ.0) THEN
+               RSL=(DBLE(NRL)-0.5D0)*DR
+            ELSEIF(NSW.EQ.1) THEN
+               RSL= DBLE(NRL)       *DR
+            ENDIF
+            CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
+            TMP2(NRL,NTX)=F0
          ENDDO
       ENDDO
-      DO NTA=1,NTAMAX
-         DO NR=1,NRMAX
-C            if(kfid.eq.'NE'.and.nta.le.3) write(6,*) NTA,NR,FOUT(NR,NTA)
+C
+      DO NRL=1,NRMAX
+         DO NTX=1,NTXMAX
+            TMP1(NTX)=TMP2(NRL,NTX)
+         ENDDO
+         DO NTL=1,NTLMAX
+            TLN=DT*DBLE(NTL)
+            CALL LAGLANGE(TLN,F0,TL,TMP1,NTXMAX,NTURM,IERR)
+C            IF(IERR.NE.0) 
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
+            FOUT(NRL,NTL)=F0*AMP
          ENDDO
       ENDDO
 C
       RGN=DBLE(NRMAX)*DR
-      DO NTA=1,NTAMAX
-         TSL=DT*DBLE(NTA)
-         CALL SPL2DF(RGN,TSL,F0,RL,TL,U,NRMU,NRLMAX,NTXMAX,IERR)
-         IF(IERR.NE.0)
-     &        WRITE(6,*) "XX TRFILE: SPL2DF",KFID,": IERR=",IERR
-         PV(NTA)=F0*AMP
+      DO NTX=1,NTXMAX
+         CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
+         TMP1(NTX)=F0
+      ENDDO
+      DO NTL=1,NTLMAX
+         TLN=DT*DBLE(NTL)
+         CALL LAGLANGE(TLN,F0,TL,TMP1,NTXMAX,NTURM,IERR)
+C         IF(IERR.NE.0) 
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
+         PV(NTL)=F0*AMP
       ENDDO
       IF(RHOA.NE.1.D0) THEN
          RGN=DBLE(NRAMAX)*DR
-         DO NTA=1,NTAMAX
-            TSL=DT*DBLE(NTA)
-            CALL SPL2DF(RGN,TSL,F0,RL,TL,U,NRMU,NRLMAX,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL2DF",KFID,": IERR=",IERR
-            PVA(NTA)=F0*AMP
+         DO NTX=1,NTXMAX
+            CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
+            TMP1(NTX)=F0
+         ENDDO
+         DO NTL=1,NTLMAX
+            TLN=DT*DBLE(NTL)
+            CALL LAGLANGE(TLN,F0,TL,TMP1,NTXMAX,NTURM,IERR)
+C            IF(IERR.NE.0) 
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
+            PVA(NTL)=F0*AMP
          ENDDO
       ENDIF
 C
@@ -1649,7 +1757,7 @@ C
 C
 C     ***********************************************************
 C
-C           PRETREATMENT SUBROUTINE FOR TR_TIME_UFILE
+C           PRETREATMENT SUBROUTINE FOR UFILE INTERFACE
 C
 C     ***********************************************************
 C
@@ -1749,144 +1857,6 @@ C
       RETURN
  500  FORMAT(' ',A,F8.4,A,F9.5)
  510  FORMAT(' ',A,F8.4,A,F8.4)
-      END
-C
-C     *****
-C
-      SUBROUTINE PRETREATMENT1(KFID,TL,F1,U,NTXMAX,NTLMAX,TLMAX,
-     &                         ICK,IERR)
-C
-      INCLUDE 'trcomm.inc'
-      DIMENSION TL(NTURM),DERIV(NTURM),U(4,NTURM)
-      CHARACTER KFID*10
-C
-      IF(IERR.EQ.1) THEN
-         IERR=0
-         DO NTX=1,NTXMAX
-         DO NA=1,4
-            U(NA,NTX)=0.D0
-         ENDDO
-         ENDDO
-         RETURN
-      ENDIF
-C
-      DERIV(1)=0.D0
-      DERIV(NTXMAX)=0.D0
-C
-      DO NTX=2,NTXMAX
-         TL(NTX)=(TL(NTX)-TL(1))
-      ENDDO
-      TL(1)=0.D0
-      IF(ICK.NE.0) THEN
-         IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
-         IF(TLMAX.NE.TL(NTXMAX)) THEN
-            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
-            WRITE(6,*) TLMAX,TL(NTXMAX)
-            STOP
-         ENDIF
-      ENDIF
- 1000 CONTINUE
-      TLMAX=TL(NTXMAX)
-      NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
-      IF(ICK.NE.2) ICK=1
-C
-      CALL SPL1D(TL,F1,DERIV,U,NTXMAX,3,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL1D',KFID,': IERR=',IERR
-C
-      RETURN
-      END
-C
-C     *****
-C
-      SUBROUTINE PRETREATMENT2(KFID,RL,TL,F2,U,NRFMAX,NTXMAX,NTLMAX,
-     &                         TLMAX,ICK,MODE,IERR)
-C
-      INCLUDE 'trcomm.inc'
-C      COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
-C      COMMON /PRETREAT2/ NTAMAX
-      DIMENSION RL(NRMU),TL(NTURM),F2(NRMU,NTURM)
-      DIMENSION DERIVX(NRMU,NTURM),DERIVY(NRMU,NTURM)
-      DIMENSION DERIVXY(NRMU,NTURM)
-      DIMENSION U(4,4,NRMU,NTURM)
-      CHARACTER KFID*10
-      DIMENSION F3(NRMU),DERIV(NRMU),UT(4,NRMU)
-C
-      IF(IERR.EQ.1) THEN
-         IERR=0
-         DO NTX=1,NTXMAX
-         DO NRF=1,NRFMAX
-         DO NB=1,4
-         DO NA=1,4
-            U(NA,NB,NRF,NTX)=0.D0
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
-         RETURN
-      ENDIF
-C
-      IF(KFID.EQ.'NM1') THEN
-         MDNM1=1
-C         IF(NSMAX.EQ.2) THEN
-C            WRITE(6,*) "XX NSMAX=3 SHOULD BE RECOMMENDED."
-C            PAUSE
-C         ENDIF
-      ENDIF
-C
-      DO NTX=1,NTXMAX
-         DERIVX(1,NTX)=0.D0
-      ENDDO
-      DERIVXY(1,     1)=0.D0
-      DERIVXY(1,NTXMAX)=0.D0
-C
-      DO NTX=2,NTXMAX
-         TL(NTX)=(TL(NTX)-TL(1))
-      ENDDO
-      TL(1)=0.D0
-      IF(ICK.NE.0) THEN
-         IF(TLMAX.NE.TL(NTXMAX)) THEN
-            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
-            WRITE(6,*) TLMAX,TL(NTXMAX)
-            STOP
-         ENDIF
-      ENDIF
-      TLMAX=TL(NTXMAX)
-      NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
-C
-      IF(MODE.EQ.0) THEN
-         CALL SPL2D(RL,TL,F2,DERIVX,DERIVY,DERIVXY,U,
-     &              NRMU,NRFMAX,NTXMAX,1,0,IERR)
-      ELSEIF(MODE.EQ.1) THEN
-         CALL SPL2D(RL,TL,F2,DERIVX,DERIVY,DERIVXY,U,
-     &              NRMU,NRFMAX,NTXMAX,0,0,IERR)
-      ELSE
-         DERIV(1)=0.D0
-         DERIV(NTXMAX)=0.D0
-C
-         NTN=MODE-1
-         IF(NTN.LE.0) STOP
-         DO NRF=1,NRFMAX
-            F3(NRF)=F2(NRF,NTN)
-         ENDDO
-         CALL SPL1D(RL,F3,DERIV,UT,NRFMAX,3,IERR)
-         DO NR=1,NRMAX
-            RMN=(DBLE(NR)-0.5D0)*DR
-            CALL SPL1DF(RMN,F0,RL,UT,NRFMAX,IERR)
-            write(6,*) RMN,F0
-         ENDDO
-      ENDIF
-      IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL2D',KFID,': IERR=',IERR
-      ICK=1
-c$$$C
-c$$$      TMLCL=DT*DBLE(4)
-c$$$      DO NR=1,NRMAX
-c$$$         RMN=(DBLE(NR)-0.5D0)*DR
-c$$$         CALL SPL2DF(RMN,TMLCL,F0,RL,TL,U,
-c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
-c$$$         write(6,*) NR,F0*1.D-3
-c$$$      ENDDO
-C
-      RETURN
       END
 C
 C     ***********************************************************
@@ -2462,4 +2432,163 @@ C
       ENDIF
 C
       RETURN
+      END
+C
+C   *******************************************
+C   **    LAGRANGEAN INTERPOLATION METHOD    **
+C   *******************************************
+C
+C     input:
+C
+C     SLT     : Interesting Time
+C     T(NTM)  : Total Time Data
+C     F1(NTM) : Functional Values
+C     NTMAX   : Maximum Number of the Time Mesh from UFILE
+C     NTM     : Maximum Array Width for Time
+C
+C     output:
+C
+C     FOUT    : Interpolated Value
+C     IERR    : Error Indicator
+C     
+C     ***********************************************************
+C
+      SUBROUTINE LAGLANGE(SLT,FOUT,T,F1,NTMAX,NTM,IERR)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      COMMON /COMEPS/ EPS,IERRL
+      DIMENSION T(NTM),F1(NTM)
+C
+      M=5
+      EPS=1.D-5
+C
+      FOUT=FITLAG(SLT,T,F1,M,NTMAX,NTM)
+      IERR=IERRL
+C
+      RETURN
+      END
+C
+      FUNCTION FITLAG(X,A,F,M,N,NTM)
+****************************************************
+*                                                  *
+*     Compute iterated Lagrange interpolation      *
+*     at X based on data given in A(I) and F(I)    *
+*                                                  *
+*     ==== input data for arguments  ====          *
+*                                                  *
+*     N...total number of data (A(I),F(I)) given   *
+*         in the table                             *
+*     A(I)...I-th sampling point                   *
+*            A(I) must be given in ascending       *
+*            order with respect to I               *
+*     F(I)...data at I-th point, i.e. FUNC(A(I))   *
+*     M...number of sampling points used in both   *
+*         sides of X for interpolation             *
+*         M must be less than or equal to 5        *
+*                                                  *
+*     ==== input data for common block ====        *
+*                                                  *
+*     EPS...absolute error tolerance               *
+*                                                  *
+*     ==== output data for common block ====       *
+*                                                  *
+*     IERR...if IERR = 0 then converged            *
+*            if IERR = 1 then not converged        *
+*                                                  *
+*     ==== work arrays ====                        *
+*                                                  *
+*     B(J)...A(I) - X                              *
+*     V(I,J)...triangular table for interpolation  *
+*                                                  *
+****************************************************
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+      DIMENSION V(10,10),B(10)
+C
+      COMMON /COMEPS/ EPS,IERR
+      DIMENSION A(NTM),F(NTM)
+C
+      IF(M.GT.5) STOP 'M MUST BE LESS THAN 6.'
+C
+      M2=2*M
+C
+C     ---- find the nearest sampling point to x ----
+C                 by bisection method
+C
+      IS=1
+      IB=N
+C
+ 1    CONTINUE
+C
+      IM=(IS+IB)/2
+      IF(X.LT.A(IM)) THEN
+         IB=IM
+      ELSEIF(X.GT.A(IM)) THEN
+         IS=IM
+      ELSE
+         FITLAG=F(IM)
+         IERR=0
+         RETURN
+      ENDIF
+C
+      IF(IS.LT.IB-1) GOTO 1
+C
+C     ---- set sampling points to use ----
+C
+      IL=IS-M+1
+      IR=IB+M-1
+      IF(IL.LT.1) THEN
+         IL=1
+      ELSEIF(IR.GT.N) THEN
+         IL=N-M2+1
+      ENDIF
+C
+      DO I=1,M2
+         B(I)=A(I+IL-1)-X
+         V(1,I)=F(I+IL-1)
+      ENDDO
+C
+C     ---- sort ABS(B(I)) in ascending order ----
+C
+      DO I=2,M2
+         K=I-1
+         DO J=1,M2
+            IF(ABS(B(J)).LT.ABS(B(K))) K=J
+         ENDDO
+         IF(K.NE.I-1) THEN
+            BV=B(K)
+            B(K)=B(I-1)
+            B(I-1)=BV
+            VV=V(1,K)
+            V(1,K)=V(1,I-1)
+            V(1,I-1)=VV
+         ENDIF
+      ENDDO
+C
+C     ---- compute iterated interpolation ----
+C
+      DO I=2,M2
+C
+         DO J=2,I
+            V(J,I)=(V(J-1,J-1)*B(I)
+     &            - V(J-1,I  )*B(J-1))/(B(I)-B(J-1))
+         ENDDO
+C
+         IF(ABS(V(I,I)-V(I-1,I-1)).LE.EPS) THEN
+C
+C     ---- converged ----
+C
+            FITLAG=V(I,I)
+            IERR=0
+            RETURN
+         ENDIF
+C
+      ENDDO
+C
+C     ---- not converged ----
+C
+      FITLAG=V(M2,M2)
+      IERR=1
+      RETURN
+C
       END
