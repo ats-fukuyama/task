@@ -525,19 +525,18 @@ C
 C
          RPE=PE/(PE+PPI)
 C     <1>
-         FT=1.D0-(1.D0-EPS)**2.D0
+         FT1=1.D0-(1.D0-EPS)**2.D0
      &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
 C     <2>
-c$$$         HFT1=1.D0-EPS
-c$$$         HFT2=(1.D0-EPS)**1.5D0/SQRT(1.D0+EPS)
-c$$$         FT=1.D0-3.D0/8.D0*HFT2*(1.D0+1.D0/3.D0*HFT1
-c$$$     &     +1.D0/16.D0*(2.D0*HFT1**2+HFT2))
+         FT2=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPSS)/SQRT(1-EPS**2)
 C     <3>
-c$$$         FT=1.46D0*SQRT(EPS)
+         FT3=1.46D0*SQRT(EPS)
 C     <4>
-c$$$         FTU=1.5D0*SQRT(EPS)
-c$$$         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
-c$$$         FT=0.75D0*FTU+0.25D0*FTL
+         FTU=1.5D0*SQRT(EPS)
+         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
+         FT4=0.75D0*FTU+0.25D0*FTL
+         FT=FT1
+C         write(6,'I2,4E20.12') NR,FT1,FT2,FT3,FT4
 C
          F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
      &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)

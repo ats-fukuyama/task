@@ -1016,7 +1016,7 @@ C
             ANDX=PNSS(2)
             ANT =PNSS(3)
             ANA =PNSS(4)
-            TE=PTS(1)
+           TE=PTS(1)
             TD=PTS(2)
             TT=PTS(3)
             TA=PTS(4)

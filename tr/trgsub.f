@@ -466,3 +466,132 @@ C
       CALL TEXT(' SEC',4)
       RETURN
       END
+C
+C     ***********************************
+C
+C        COMPARE WITH DIFFERENT MODELS
+C
+C     ***********************************
+C
+      SUBROUTINE TRCOMPARE
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION RGFLSUM(NRMP,NSM),RQFLSUM(NRMP,NSM)
+      DIMENSION RNN(NRM,NSM),DNN(NRM,NSM),DTN(NRM,NSM)
+      DIMENSION AKNCG(NRM,NSM),ADNCG(NRM,NSM)
+C
+C     *** Bootstrap Current ***
+C
+      CALL OLDTRAJBS
+      DO NR=1,NRMAX
+         GJB(NR,6)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+      CALL TRAJBSO
+      DO NR=1,NRMAX
+         GJB(NR,1)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+      CALL TRAJBS
+      DO NR=1,NRMAX
+         GJB(NR,2)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+      CALL TRAJBSNEW
+      DO NR=1,NRMAX
+         GJB(NR,3)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+      CALL TRAJBSSAUTER
+      DO NR=1,NRMAX
+         GJB(NR,4)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+C
+      MDNCLS=1
+      CALL TR_NCLASS
+      CALL TRAJBS_NCLASS
+      DO NR=1,NRMAX
+         GJB(NR,5)=GCLIP(AJBS(NR)*1.D-6)
+      ENDDO
+      MDNCLS=0
+C
+C     *** Neoclassical Resistivity ***
+C
+      DO MDLETA=1,3
+         CALL TRCFET
+         DO NR=1,NRMAX
+            GET(NR,MDLETA)=GLOG(ETA(NR),1.D-10,1.D0)
+         ENDDO
+      ENDDO
+C
+      MDNCLS=1
+      CALL TR_NCLASS
+      CALL TRCFET
+      DO NR=1,NRMAX
+         GET(NR,4)=GLOG(ETA(NR),1.D-10,1.D0)
+      ENDDO
+C
+C     *** Neoclassical Particle and Heat Flux Diffusivity ***
+C
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            RGFLSUM(NR,NS)=0.D0
+            RQFLSUM(NR,NS)=0.D0
+            DO NA=1,5
+               RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
+               RQFLSUM(NR,NS)=RQFLSUM(NR,NS)+RQFLS(NR,NA,NS)
+            ENDDO
+         ENDDO
+      ENDDO
+      DO NR=1,NRMAX-1
+         DO NS=1,NSMAX
+            RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
+            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *AR1RHO(NR)/DR
+            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+         ENDDO
+      ENDDO
+      NR=NRMAX
+      DO NS=1,NSMAX
+         RNN(NR,NS)=PNSS(NS)
+         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *AR1RHO(NR)/DR
+         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+      ENDDO
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+            AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
+         ENDDO
+C         write(6,*) NR,ADNCG(NR,1),ADNCG(NR,2)
+      ENDDO
+      DO NR=1,NRMAX-1
+         GAD(NR+1,1) = GCLIP(ADNC(NR,1))
+         GAD(NR+1,2) = GCLIP(ADNC(NR,2))
+         GAK(NR+1,1) = GCLIP(AKNC(NR,1))
+         GAK(NR+1,2) = GCLIP(AKNC(NR,2))
+         GAD(NR+1,3) = GCLIP(ADNCG(NR,1))
+         GAD(NR+1,4) = GCLIP(ADNCG(NR,2))
+         GAK(NR+1,3) = GCLIP(AKNCG(NR,1))
+         GAK(NR+1,4) = GCLIP(AKNCG(NR,2))
+      ENDDO
+         GAD(1,1) = GCLIP(ADNC(1,1))
+         GAD(1,2) = GCLIP(ADNC(1,2))
+         GAK(1,1) = GCLIP(AKNC(1,1))
+         GAK(1,2) = GCLIP(AKNC(1,2))
+         GAD(1,3) = GCLIP(ADNCG(1,1))
+         GAD(1,4) = GCLIP(ADNCG(1,2))
+         GAK(1,3) = GCLIP(AKNCG(1,1))
+         GAK(1,4) = GCLIP(AKNCG(1,2))
+C
+C     *** Graphic Routine ***
+C
+      CALL PAGES
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GJB,NRMP,NRMAX,5,
+     &            '@JBS [MA/m^2]  vs r@',2)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,4,
+     &            '@LOG:ETA  vs r @',11)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX,4,
+     &            '@ADNCE, AKNCD [m^2/s]  vs r@',2)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX,4,
+     &           '@AKNCE, AKNCD [m^2/s] vs r @',2)
+      CALL TRGRTM
+      CALL PAGEE
+C
+      RETURN
+      END
+

@@ -451,7 +451,7 @@ C         GYR(NR+1,3) = GLOG(AKDW(NR,2),1.D-2,1.D2)
 C         GYR(NRMAX+1,1) = GCLIP(AK(NRMAX,2)/2)
 C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,2)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,2)/2)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMp,NRMAX,3,
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
      &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
       ELSE
       DO NR=1,NRMAX
