@@ -5,12 +5,13 @@ FFLAGS=$(OFLAGS)
 
 SRCS = wrmain.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 SRCPL= ../pl/plinit.f ../pl/plprof.f
-SRCEQ= ../eq/eqload.f ../eq/pleqin.f ../eq/eqcalq.f
+SRCEQ= ../eq/eqload.f ../eq/pleqin.f ../eq/eqcalq.f ../eq/eqdsk.f
 SRCDP= ../dp/dpinit.f ../dp/dproot.f ../dp/dpcont.f ../dp/dpdisp.f \
        ../dp/dptnsr.f ../dp/dpfpin.f ../dp/dphotf.f ../dp/dphotr.f
 SRCLIB=../lib/libdsp.f ../lib/libbes.f ../lib/libbrn.f \
        ../lib/libspl.f ../lib/libgut.f ../lib/libfp.f \
-       ../lib/libode.f ../lib/librkf.f ../lib/librk.f
+       ../lib/libode.f ../lib/librkf.f ../lib/librk.f \
+       ../lib/libchar.f ../lib/libfio.f
 
 OBJS = $(SRCS:.f=.o) $(SRCPL:.f=.o) $(SRCEQ:.f=.o) $(SRCDP:.f=.o) \
        $(SRCLIB:.f=.o)
@@ -34,24 +35,24 @@ new:
 	-mkdir ../wrnew
 	cp Makefile ../wrnew
 	cp *.f ../wrnew
-	cp *.h ../wrnew
+	cp *.inc ../wrnew
 
-wrmain.o: wrmain.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h
-wrinit.o: wrinit.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h
-wrcalc.o: wrcalc.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-wrbeam.o: wrbeam.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-wrgout.o: wrgout.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h
+wrmain.o: wrmain.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+wrinit.o: wrinit.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+wrcalc.o: wrcalc.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+wrbeam.o: wrbeam.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+wrgout.o: wrgout.f wrcomm.inc wrcom1.inc ../dp/dpcom1.inc ../pl/plcom1.inc
 
-../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
-../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
-../dp/dpinit.o: ../dp/dpinit.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
-../dp/dproot.o: ../dp/dproot.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
-../dp/dpcont.o: ../dp/dpcont.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
-../dp/dpdisp.o: ../dp/dpdisp.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-../dp/dptnsr.o: ../dp/dptnsr.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-../dp/dpfpin.o: ../dp/dpfpin.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
-../dp/dphotf.o: ../dp/dphotf.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
-../dp/dphotr.o: ../dp/dphotr.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.inc ../pl/plcom1.inc
+../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.inc ../pl/plcom1.inc ../pl/plcom2.inc
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../dp/dpinit.o: ../dp/dpinit.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+../dp/dproot.o: ../dp/dproot.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+../dp/dpcont.o: ../dp/dpcont.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+../dp/dpdisp.o: ../dp/dpdisp.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+../dp/dptnsr.o: ../dp/dptnsr.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+../dp/dpfpin.o: ../dp/dpfpin.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+../dp/dphotf.o: ../dp/dphotf.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc
+../dp/dphotr.o: ../dp/dphotr.f ../dp/dpcomm.inc ../dp/dpcom1.inc ../pl/plcom1.inc

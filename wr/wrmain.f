@@ -17,7 +17,7 @@ C                      V3.00  : 1997 AUG 05
 C                      V3.10  : 2000 NOV 25
 C     --------------------------------------------------------
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       CHARACTER KID*1
 C

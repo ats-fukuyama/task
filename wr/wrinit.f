@@ -56,7 +56,7 @@ C     ****** INITIALIZE INPUT PARAMETERS ******
 C
       SUBROUTINE WRINIT
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       RF     = 170.D3
       RPI    = 3.95D0
@@ -98,7 +98,7 @@ C     ****** INPUT PARAMETERS ******
 C
       SUBROUTINE WRPARM
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       LOGICAL LEX
       CHARACTER KPNAME*72
@@ -174,7 +174,7 @@ C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE WRVIEW
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       WRITE(6,601) 'SMAX  ',SMAX  ,'DELS  ',DELS  ,
      &             'UUMIN ',UUMIN

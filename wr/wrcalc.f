@@ -4,7 +4,7 @@ C***********************************************************************
 C
       SUBROUTINE WRCALC
 C    
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION Y(NEQ)
       REAL*4 TIME1,TIME2
@@ -143,7 +143,7 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT_ODE(Y,YN,NIT)
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       PARAMETER (NMAX=50,KMAXX=200)
       COMMON /DPODE1/ kmax,kount,dxsav,xp(KMAXX),yp(NMAX,KMAXX)
@@ -206,7 +206,7 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT_RKF(Y,YN,NIT)
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),ESTERR(NEQ),WORK1(NEQ),
@@ -273,7 +273,7 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT(Y,YN,NIT)
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       EXTERNAL WRFDRV
       DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
@@ -341,7 +341,7 @@ C************************************************************************
 C
       SUBROUTINE WRFDRV(X,Y,F) 
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(7),F(7)
 C
@@ -420,7 +420,7 @@ C************************************************************************
 C
       SUBROUTINE WRNWTN(RKRI,RKZI,RKPHII,IERR)
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       IERR=0
       OMG=2.D6*PI*RF
@@ -451,8 +451,8 @@ C************************************************************************
 C
       FUNCTION DISPFN(RKR,RKPHI,RKZ,RP,ZP,PHI,OMG)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -499,8 +499,8 @@ C************************************************************************
 C
       FUNCTION DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -539,8 +539,8 @@ C***********************************************************************
 C
       FUNCTION DISPXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
       CKX=RKXP
@@ -568,7 +568,7 @@ C***********************************************************************
 C
       SUBROUTINE WRCALE(YN,NITMX,NRAY)
 C    
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
       DIMENSION YN(0:NEQ,0:NITM),CDET(3,3)
       DIMENSION CDETP(3,3),CDETM(3,3),CDETD(3,3)
 C
@@ -651,7 +651,7 @@ C***********************************************************************
 C
       SUBROUTINE WRSAVE
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C      
       CHARACTER*72 KNAM
 C      CHARACTER*1 KID
@@ -725,8 +725,8 @@ C********************************** CAL K ********************************
 C
       SUBROUTINE WRCALK(NIT,NRAY,RKPARA,RKPERP)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       X=RAYS(1,NIT,NRAY)
       Y=RAYS(2,NIT,NRAY)

@@ -4,7 +4,7 @@ C
 C
       SUBROUTINE WRBEAM
 C    
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION Y(NBEQ)
       REAL*4 TIME1,TIME2
@@ -180,8 +180,8 @@ C************************************************************************
 C
       SUBROUTINE WRSETY(Y)
 C
-      INCLUDE 'wrcomm.h'      
-      INCLUDE '../pl/plcom2.h'      
+      INCLUDE 'wrcomm.inc'      
+      INCLUDE '../pl/plcom2.inc'      
 C
       DIMENSION Y(NBEQ)
       DIMENSION RUM(3,3),VS(3,3),VP(3,3)
@@ -264,8 +264,8 @@ C************************************************************************
 C
       SUBROUTINE WRGETY(Y,RC1,RC2,RB1,RB2,RTH1,RTH2,YY)
 C
-      INCLUDE 'wrcomm.h'      
-      INCLUDE '../pl/plcom2.h'      
+      INCLUDE 'wrcomm.inc'      
+      INCLUDE '../pl/plcom2.inc'      
 C
       DIMENSION Y(NBEQ),YY(27),DFK(3)
       DIMENSION RUM(3,3),VS(3,3),VP(3,3),WS(3,3),WP(3,3)
@@ -457,7 +457,7 @@ C************************************************************************
 C
       SUBROUTINE WRRKFTB(Y,YN,NIT)
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       EXTERNAL WRFDRVB
       DIMENSION Y(NBEQ),YM(NBEQ),YN(0:NBVAR,0:NITM),WORK(NBEQ,2)
@@ -557,7 +557,7 @@ C************************************************************************
 C
       SUBROUTINE WRFDRVB(X,Y,F) 
 C
-      INCLUDE 'wrcomm.h'      
+      INCLUDE 'wrcomm.inc'      
 C
       DIMENSION Y(NBEQ),F(NBEQ)
       DIMENSION DFR(3),DFK(3),DFRR(3,3),DFKK(3,3),DFRK(3,3)
@@ -794,8 +794,8 @@ C************************************************************************
 C
       FUNCTION DISPBXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION MODELPS(NSM)
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
@@ -834,8 +834,8 @@ C***********************************************************************
 C
       FUNCTION DISPBXI(XP,YP,ZP,RKXP,RKYP,RKZP,OMG)
 C
-      INCLUDE 'wrcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'wrcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       CRF=DCMPLX(OMG/(2.D6*PI),0.D0)
       CKX=RKXP

@@ -4,7 +4,7 @@ C*********************** GRAPHIC DATA ************************
 C
       SUBROUTINE WRGOUT
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       CHARACTER KID*1
 C
@@ -29,7 +29,7 @@ C     ***** POLOIDAL TRAJECTORY AND POWER *****
 C
       SUBROUTINE WRGRFA
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       PARAMETER(NSUM=201)
       PARAMETER(NGXL=101,NGYL=101)
@@ -264,7 +264,7 @@ C     ***** RADIAL DEPENDENCE 1 *****
 C
       SUBROUTINE WRGRFB
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       PARAMETER(NSUM=101)
       DIMENSION GX(NITM+1),GY(NITM+1)
@@ -398,7 +398,7 @@ C     ***** RADIAL DEPENDENCE 2 *****
 C
       SUBROUTINE WRGRFC
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,NRAYM)
       DIMENSION GKY(NITM+1,NRAYM)
@@ -560,7 +560,7 @@ C     ***** BEAM AND POWER *****
 C
       SUBROUTINE WRGRFD
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION GPX(NITM+1),GPY(NITM+1,NRAYM)
       DIMENSION GKX(NITM+1,NRAYM)
@@ -1048,7 +1048,7 @@ C     ***** ANGLE AND WS(I,J) *****
 C
       SUBROUTINE WRGRFE
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,1),GKY(NITM+1,2)
       DIMENSION GKSY(NITM+1,6),GKPY(NITM+1,6)
@@ -1240,7 +1240,7 @@ C     ***** K,(K*B),K*(K*B),VG *****
 C
       SUBROUTINE WRGRFF
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION GKX(NITM+1,1)
       DIMENSION GKY(NITM+1,3),GKBY(NITM+1,3),GKKBY(NITM+1,3)
@@ -1424,7 +1424,7 @@ C     ***** DRAW PARAMETERS *****
 C
       SUBROUTINE WRGPRM
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
 C     ----- DRAW PARAMETERS -----
 C
