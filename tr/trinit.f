@@ -13,7 +13,7 @@ C
       NT=0
 C
       KUFDEV='jet'
-      KUFDCG='19691'
+      KUFDCG='19649'
       TIME_INT=0.D0
 C
       VOID    = 0.D0
