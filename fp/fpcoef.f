@@ -10,7 +10,11 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+C     ----- Parallel electric field accleration term -----
+C
       CALL FPCALE
+C
+C     ----- Quasi-linear wave-particle interaction term -----
 C
       IF(MODELW.EQ.0) THEN
          CALL FPCALW
@@ -24,78 +28,94 @@ C
          WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW
       ENDIF
 C
-      IF (MODELC.EQ.0)THEN
-         CALL FPCALC
-      ELSE
-         CALL FPCALN
-      END IF
+C     ----- Collisional slowing down and diffusion term -----
+C
+      CALL FPCALC
+C
+C     ----- Sum up velocity diffusion terms -----
 C
       DO 10 NR=1,NRMAX
       DO 10 NP=1,NPMAX+1
-      DO 10 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          DPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DWPP(NTH,NP,NR)
          DPT(NTH,NP,NR)=DCPT(NTH,NP,NR)+DWPT(NTH,NP,NR)
          FPP(NTH,NP,NR)=FEPP(NTH,NP,NR)+FCPP(NTH,NP,NR)
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 NR=1,NRMAX
-      DO 20 NP=1,NPMAX
-      DO 20 NTH=1,NTHMAX+1
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX+1
          DTP(NTH,NP,NR)=DCTP(NTH,NP,NR)+DWTP(NTH,NP,NR)
          DTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DWTT(NTH,NP,NR)
          FTH(NTH,NP,NR)=FETH(NTH,NP,NR)+FCTH(NTH,NP,NR)
-   20 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
+C
+C     ----- Radial diffusion term (disabled) -----
 C
 C      CALL FPCALR
 C
-      DO 30 NR=1,NRMAX
-      DO 30 NP=1,NPMAX
-      DO 30 NTH=1,NTHMAX
+C     ----- Particle source term (disabled) -----
+C
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
          SP(NTH,NP,NR)=0.D0
-   30 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
 C     ****************************
 C     Boundary condition at p=pmax
 C     ****************************
 C
-      DO 50 NR=1,NRMAX
-      DO 50 NTH=1,NTHMAX
+      DO NR=1,NRMAX
+      DO NTH=1,NTHMAX
 C         DPP(NTH,NPMAX,NR)=0.5D0*DPP(NTH,NPMAX,NR)
 C         DPT(NTH,NPMAX,NR)=0.5D0*DPT(NTH,NPMAX,NR)
          DPP(NTH,NPMAX+1,NR)=0.D0
          DPT(NTH,NPMAX+1,NR)=0.D0
          FPMAX=FPP(NTH,NPMAX+1,NR)
          FPP(NTH,NPMAX+1,NR)=MAX(FPMAX,0.D0)
-   50 CONTINUE
-C      DO 60 NR=1,NRMAX
-C      DO 60 NTH=1,NTHMAX+1
+      ENDDO
+      ENDDO
+C
+C      DO NR=1,NRMAX
+C      DO NTH=1,NTHMAX+1
 C         DTP(NTH,NPMAX,NR)=0.D0
 C         DTT(NTH,NPMAX,NR)=0.D0
 C         FTH(NTH,NPMAX,NR)=0.D0
-C   60 CONTINUE
+C       ENDDO
+C       ENDDO
 C
-C
-      DO 70 NR=1,NRMAX
-      DO 70 NP=1,NPMAX+1
-      DO 70 NTH=1,NTHMAX
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX+1
+      DO NTH=1,NTHMAX
          WEIGHP(NTH,NP,NR)=FPWEGH(-DELP*FPP(NTH,NP,NR),
      &                             DPP(NTH,NP,NR))
-   70 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
-      DO 80 NR=1,NRMAX
-      DO 80 NP=1,NPMAX
-      DO 80 NTH=1,NTHMAX+1
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX+1
          WEIGHT(NTH,NP,NR)=FPWEGH(-DELTH*PM(NP)*FTH(NTH,NP,NR),
      &                             DTT(NTH,NP,NR))
-   80 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
-      DO 90 NR=1,NRMAX+1
-      DO 90 NP=1,NPMAX
-      DO 90 NTH=1,NTHMAX
+      DO NR=1,NRMAX+1
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
          WEIGHR(NTH,NP,NR)=FPWEGH(-DELR*FRR(NTH,NP,NR),
      &                             DRR(NTH,NP,NR))
-   90 CONTINUE
-
+      ENDDO
+      ENDDO
+      ENDDO
+C
       RETURN
       END
 C
@@ -214,24 +234,26 @@ C
 C
 C ************************************************************
 C
-C       CALCULATION OF DC AND FC (NONRELATIVISTIC VERSION)
+C       CALCULATION OF DC AND FC
 C
 C ************************************************************
 C
       SUBROUTINE FPCALC
 C
       INCLUDE 'fpcomm.inc'
-      EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 C
       DO NR=1,NRMAX
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
+            DCPP(NTH,NP,NR)=0.00
             DCPT(NTH,NP,NR)=0.D0
+            FCPP(NTH,NP,NR)=0.D0
          ENDDO
          ENDDO
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX+1
             DCTP(NTH,NP,NR)=0.D0
+            DCTT(NTH,NP,NR)=0.D0
             FCTH(NTH,NP,NR)=0.D0
          ENDDO
          ENDDO
@@ -239,31 +261,103 @@ C
 C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
-            RNUL=RNU(NS,NR)
-C
-         IF(MODELR.EQ.0) THEN
-C PTHL
-C
-            DO NP=1,NPMAX+1
-               IF(NP.EQ.1) THEN
-                  DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
-                  FCPPL=0.D0
-               ELSE
-                  U=PG(NP)*PTHL
-                  DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
-                  FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
+            IF(MODELC.LT.0) THEN
+               IF(NS.EQ.NSFP) THEN
+                  CALL FPCALC_L(NR,NS)
                ENDIF
-               DO NTH=1,NTHMAX
-                  DCPP(NTH,NP,NR)=DCPPL
-                  FCPP(NTH,NP,NR)=FCPPL
+C
+            ELSEIF(MODELC.EQ.0) THEN
+               CALL FPCALC_L(NR,NS)
+            ELSE
+               IF(NS.NSFP) THEN
+                  CALL FPCALC_NL(NR,NS)
+               ELSE
+                  CALL FPCALC_L(NR,NS)
+               ENDIF
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      IF (MODELA.NE.0) THEN
+C
+         DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               FACT=RLAMDA(NTH,NR)
+               DO NP=1,NPMAX+1
+                  DCPP(NTH,NP,NR)=FACT*DCPP(NTH,NP,NR)
+                  FCPP(NTH,NP,NR)=FACT*FCPP(NTH,NP,NR)
                ENDDO
             ENDDO
 C
-            DO NP=1,NPMAX
-               U=PM(NP)*PTHL
-               DCTTL= 0.25D0*RNUL*PTHL
-     &                      *((2.D0/U-1.D0/U**3)*ERF1(U)+ERF2(U)/U**2)
-     &               +0.5D0*RNUL*PTHL*ZEFF/U
+            DO NTH=1,NTHMAX+1
+               FACT=RLAMDC(NTH,NR)
+               DO NP=1,NPMAX
+                  DCTT(NTH,NP,NR)=FACT*DCTT(NTH,NP,NR)
+               ENDDO
+            ENDDO
+         ENDDO
+C
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX+1
+               DCPP(ITL(NR),NP,NR)
+     &              =RLAMDA(ITL(NR),NR)/4.D0
+     &                    *( DCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
+     &                      +DCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
+     &                      +DCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
+     &                      +DCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+C
+               FCPP(ITL(NR),NP,NR)
+     &              =RLAMDA(ITL(NR),NR)/4.D0
+     &                    *( FCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
+     &                      +FCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
+     &                      +FCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
+     &                      +FCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+               DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
+               FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
+            ENDDO
+         ENDDO
+      ENDI
+C
+      RETURN
+      END
+C
+C ************************************************************
+C
+C       CALCULATION OF LINEAR COLLISIONAL OPERATOR
+C
+C ************************************************************
+C
+      SUBROUTINE FPCALC_L(NR,NS)
+C
+      INCLUDE 'fpcomm.inc'
+      EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
+C
+      RNUL=RNU(NS,NR)
+      PTHL=
+C
+      IF(MODELR.EQ.0) THEN
+C
+         DO NP=1,NPMAX+1
+            IF(NP.EQ.1) THEN
+               DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
+               FCPPL=0.D0
+            ELSE
+               U=PG(NP)*PTHL
+               DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
+               FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
+            ENDIF
+            DO NTH=1,NTHMAX
+               DCPP(NTH,NP,NR)=DCPPL
+               FCPP(NTH,NP,NR)=FCPPL
+            ENDDO
+         ENDDO
+C
+         DO NP=1,NPMAX
+            U=PM(NP)*PTHL
+            DCTTL= 0.25D0*RNUL*PTHL
+     &                   *((2.D0/U-1.D0/U**3)*ERF1(U)+ERF2(U)/U**2)
+            IF(MODEL.LT.0) THEN
+     &            +0.5D0*RNUL*PTHL*ZEFF/U
                DO NTH=1,NTHMAX+1
                   DCTT(NTH,NP,NR)=DCTTL
                ENDDO
