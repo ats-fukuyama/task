@@ -692,11 +692,11 @@ C
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: IERR=',IERR
 C
          DO NR=1,NRMAX
-            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
-     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
+C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
+C     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
             QP(NR)=-QRHO(NR)
          ENDDO
-         PAUSE
+C         PAUSE
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
 C

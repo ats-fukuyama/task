@@ -930,9 +930,9 @@ C
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
          EZOH(NR) = ETA(NR)*AJOH(NR)
          POH(NR)  = EZOH(NR)*AJOH(NR)
-         WRITE(6,'(I5,1P3E12.4)') NR,BP(NR),BPRHO(NR),AJ(NR)
+C         WRITE(6,'(I5,1P3E12.4)') NR,BP(NR),BPRHO(NR),AJ(NR)
       ENDDO
-      PAUSE
+C      PAUSE
 C
       RETURN
       END

@@ -232,6 +232,7 @@ C
      &   KID.EQ.'L'.OR.
      &   KID.EQ.'S'.OR.
      &   KID.EQ.'R'.OR.
+     &   KID.EQ.'E'.OR.
      &   KID.EQ.'C'.OR.
      &   KID.EQ.'G'.OR.
      &   KID.EQ.'W'.OR.
