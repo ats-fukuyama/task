@@ -1,98 +1,121 @@
 C     $Id$
 C   ************************************************
-C   **              ƒXƒvƒ‰ƒCƒ“•âŠÔ                **
+C   **           Spline Interpolation             **
 C   ************************************************
 C
-C
 C     ****** One-Dimensional Spline Interpolation ******
-C       **** Calculation of coefficients ****
+C          **** Calculation of coefficients ****
 C
       SUBROUTINE SPL1D(X,F,FX,U,NXMAX,ID,IERR)
 C
 C      INPUT : X(NXMAX)  : COORDINATES
 C              F(NXMAX)  : VALUE
-C              FX(NXMAX) : EDGE DERIVATIVE FOR ID != 0
-C              NXMAX     : NUMBER OF VARIABLES (<NMAX=10001)
+C              FX(NXMAX) : EDGE DERIVATIVE FOR 1<= ID <=3
+C              NXMAX     : NUMBER OF VARIABLES
 C              ID        : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
 C                          1 : DERIVATIVE FX(1) IS GIVEN
 C                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
 C                          3 : DERIVATIVES FX(1) AND FX(NXMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NXMAX)
 C      OUTPUT: U(4,NXMAX): SPLINE COEFICIENTS
 C              FX(NXMAX) : ESTIMATED DERIVATIVES
 C              IERR      : ERROR INDICATOR
 C
       IMPLICIT REAL*8 (A-H,O-Z)
-      PARAMETER (NMAX=10001)
 C
-      DIMENSION X(NXMAX),F(NXMAX)
+      DIMENSION X(NXMAX),F(NXMAX),FX(NXMAX)
       DIMENSION U(4,NXMAX)
-      DIMENSION FX(NXMAX)
-      DIMENSION AX(4,NMAX),IPX(NMAX),BX(NMAX)
-      DIMENSION WK(NMAX)
 C
-      IF(NXMAX.GT.NMAX) GOTO 9001
+      IERR=0
 C
       ID1=MOD(ID,2)
       ID2=MOD(ID/2,2)
 C
-      IF(ID1.EQ.0) THEN
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
          DXP=X(2)-X(1)
-         AX(1,1)=0.D0
-         AX(2,1)=2.D0*DXP
-         AX(3,1)=DXP
+         U(1,1)=DXP
+         U(2,1)=2.D0*(DXP+DXM)
+         U(3,1)=DXM
       ELSE
-         AX(1,1)=0.D0
-         AX(2,1)=1.D0
-         AX(3,1)=0.D0
+         IF(ID1.EQ.0) THEN
+            DXP=X(2)-X(1)
+            U(1,1)=0.D0
+            U(2,1)=2.D0*DXP
+            U(3,1)=DXP
+         ELSE
+            U(1,1)=0.D0
+            U(2,1)=1.D0
+            U(3,1)=0.D0
+         ENDIF
       ENDIF
       DO NX=2,NXMAX-1
          DXM=X(NX)-X(NX-1)
          DXP=X(NX+1)-X(NX)
-         AX(1,NX)=DXP
-         AX(2,NX)=2.D0*(DXP+DXM)
-         AX(3,NX)=DXM
+         U(1,NX)=DXP
+         U(2,NX)=2.D0*(DXP+DXM)
+         U(3,NX)=DXM
       ENDDO
-      IF(ID2.EQ.0) THEN
+      IF(ID.EQ.4) THEN
          DXM=X(NXMAX)-X(NXMAX-1)
-         AX(1,NXMAX)=DXM
-         AX(2,NXMAX)=2.D0*DXM
-         AX(3,NXMAX)=0.D0
+         DXP=X(2)-X(1)
+         U(1,NXMAX)=DXP
+         U(2,NXMAX)=2.D0*(DXP+DXM)
+         U(3,NXMAX)=DXM
       ELSE
-         AX(1,NXMAX)=0.D0
-         AX(2,NXMAX)=1.D0
-         AX(3,NXMAX)=0.D0
+         IF(ID2.EQ.0) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            U(1,NXMAX)=DXM
+            U(2,NXMAX)=2.D0*DXM
+            U(3,NXMAX)=0.D0
+         ELSE
+            U(1,NXMAX)=0.D0
+            U(2,NXMAX)=1.D0
+            U(3,NXMAX)=0.D0
+         ENDIF
       ENDIF
 C
-      IF(ID1.EQ.0) THEN
-         BX(1)=3.D0*(F(2)-F(1))
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         FX(1)=3.D0*(DXM*(F(2)-F(1))/DXP
+     &              +DXP*(F(NXMAX)-F(NXMAX-1))/DXM)
       ELSE
-         BX(1)=FX(1)
+         IF(ID1.EQ.0) THEN
+            FX(1)=3.D0*(F(2)-F(1))
+         ENDIF
       ENDIF
       DO NX=2,NXMAX-1
          DXM=X(NX)-X(NX-1)
          DXP=X(NX+1)-X(NX)
-         BX(NX)=3.D0*(DXM*(F(NX+1)-F(NX))/DXP
+         FX(NX)=3.D0*(DXM*(F(NX+1)-F(NX))/DXP
      &               +DXP*(F(NX)-F(NX-1))/DXM)
       ENDDO
-      IF(ID2.EQ.0) THEN
-         BX(NXMAX)=3.D0*(F(NXMAX)-F(NXMAX-1))
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         FX(NXMAX)=3.D0*(DXM*(F(2)-F(1))/DXP
+     &                  +DXP*(F(NXMAX)-F(NXMAX-1))/DXM)
       ELSE
-         BX(NXMAX)=FX(NXMAX)
+         IF(ID2.EQ.0) THEN
+            FX(NXMAX)=3.D0*(F(NXMAX)-F(NXMAX-1))
+         ENDIF
       ENDIF
 C
-      WRITE(6,'(1P4E12.4)') AX(1,1),AX(2,1),AX(3,1),BX(1)
-      WRITE(6,'(1P4E12.4)') AX(1,2),AX(2,2),AX(3,2),BX(2)
-      WRITE(6,'(1P4E12.4)') AX(1,3),AX(2,3),AX(3,3),BX(3)
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
+      IF(ID.EQ.4) THEN
+         CALL TDMPRDX(U,FX,NXMAX-1,IERR)
+         IF(IERR.NE.0) GOTO 9001
+         FX(NXMAX)=FX(1)
+      ELSE
+         CALL TDMSRDX(U,FX,NXMAX,IERR)
+         IF(IERR.NE.0) GOTO 9002
+      ENDIF
 C
-      CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-      DO NX=1,NXMAX
-         FX(NX)=BX(NX)
-      ENDDO
-      WRITE(6,'(1P3E12.4)') FX(1),FX(2),FX(3)
-C
+      NX=1
+      U(1,NX)=0.D0
+      U(2,NX)=0.D0
+      U(3,NX)=0.D0
+      U(4,NX)=0.D0
       DO NX=2,NXMAX
          DX=X(NX)-X(NX-1)
 C
@@ -118,14 +141,13 @@ C
          U(3,NX)=V31*T11+V32*T21+V33*T31+V34*T41
          U(4,NX)=V41*T11+V42*T21+V43*T31+V44*T41
       ENDDO
-      IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX SPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
+ 9001 WRITE(6,*) 'XX SPL1D: TDMPRDX ERROR : IERR=',IERR
+      IERR=1
       RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX SPL1D: BGLU1 ERROR'
+ 9002 WRITE(6,*) 'XX SPL1D: TDMSRDX ERROR : IERR=',IERR
+      IERR=2
       RETURN
       END
 C
@@ -264,7 +286,7 @@ C
 C     ****** One-Dimensional Spline Interpolation ******
 C       **** Calculation of interpolation  ****
 C
-      SUBROUTINE SPL1DI(X0,F0D,X,U,U0,NXMAX,IERR)
+      SUBROUTINE SPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
 C
       IMPLICIT REAL*8 (A-H,O-Z)
 C
@@ -301,11 +323,342 @@ C
 C
       DX=X0-X(NX-1)
 C
-      F0D= U0(NX)
-     &   + U(1,NX)*DX
-     &   + U(2,NX)*DX*DX/2.D0
-     &   + U(3,NX)*DX*DX*DX/3.D0
-     &   + U(4,NX)*DX*DX*DX*DX/4.D0
+      FI= U0(NX-1)
+     &  + U(1,NX)*DX
+     &  + U(2,NX)*DX*DX/2.D0
+     &  + U(3,NX)*DX*DX*DX/3.D0
+     &  + U(4,NX)*DX*DX*DX*DX/4.D0
+C      WRITE(6,'(A,2I5,1P3E12.4)') 
+C     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
+      RETURN
+      END
+C
+C     ****** One-Dimensional Spline Interpolation ******
+C          **** Calculation of coefficients ****
+C
+      SUBROUTINE CSPL1D(X,F,FX,U,NXMAX,ID,IERR)
+C
+C      INPUT : X(NXMAX)  : COORDINATES
+C              F(NXMAX)  : VALUE
+C              FX(NXMAX) : EDGE DERIVATIVE FOR 1<= ID <=3
+C              NXMAX     : NUMBER OF VARIABLES
+C              ID        : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
+C                          1 : DERIVATIVE FX(1) IS GIVEN
+C                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
+C                          3 : DERIVATIVES FX(1) AND FX(NXMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NXMAX)
+C      OUTPUT: U(4,NXMAX): SPLINE COEFICIENTS
+C              FX(NXMAX) : ESTIMATED DERIVATIVES
+C              IERR      : ERROR INDICATOR
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      COMPLEX*16 F(NXMAX),FX(NXMAX),U(4,NXMAX)
+      COMPLEX*16 T11,T21,T31,T41
+C
+      IERR=0
+C
+      ID1=MOD(ID,2)
+      ID2=MOD(ID/2,2)
+C
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         U(1,1)=DXP
+         U(2,1)=2.D0*(DXP+DXM)
+         U(3,1)=DXM
+      ELSE
+         IF(ID1.EQ.0) THEN
+            DXP=X(2)-X(1)
+            U(1,1)=0.D0
+            U(2,1)=2.D0*DXP
+            U(3,1)=DXP
+         ELSE
+            U(1,1)=0.D0
+            U(2,1)=1.D0
+            U(3,1)=0.D0
+         ENDIF
+      ENDIF
+      DO NX=2,NXMAX-1
+         DXM=X(NX)-X(NX-1)
+         DXP=X(NX+1)-X(NX)
+         U(1,NX)=DXP
+         U(2,NX)=2.D0*(DXP+DXM)
+         U(3,NX)=DXM
+      ENDDO
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         U(1,NXMAX)=DXP
+         U(2,NXMAX)=2.D0*(DXP+DXM)
+         U(3,NXMAX)=DXM
+      ELSE
+         IF(ID2.EQ.0) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            U(1,NXMAX)=DXM
+            U(2,NXMAX)=2.D0*DXM
+            U(3,NXMAX)=0.D0
+         ELSE
+            U(1,NXMAX)=0.D0
+            U(2,NXMAX)=1.D0
+            U(3,NXMAX)=0.D0
+         ENDIF
+      ENDIF
+C
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         FX(1)=3.D0*(DXM*(F(2)-F(1))/DXP
+     &              +DXP*(F(NXMAX)-F(NXMAX-1))/DXM)
+      ELSE
+         IF(ID1.EQ.0) THEN
+            FX(1)=3.D0*(F(2)-F(1))
+         ENDIF
+      ENDIF
+      DO NX=2,NXMAX-1
+         DXM=X(NX)-X(NX-1)
+         DXP=X(NX+1)-X(NX)
+         FX(NX)=3.D0*(DXM*(F(NX+1)-F(NX))/DXP
+     &               +DXP*(F(NX)-F(NX-1))/DXM)
+      ENDDO
+      IF(ID.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         FX(NXMAX)=3.D0*(DXM*(F(2)-F(1))/DXP
+     &                  +DXP*(F(NXMAX)-F(NXMAX-1))/DXM)
+      ELSE
+         IF(ID2.EQ.0) THEN
+            FX(NXMAX)=3.D0*(F(NXMAX)-F(NXMAX-1))
+         ENDIF
+      ENDIF
+C
+      IF(ID.EQ.4) THEN
+         CALL TDMPCDX(U,FX,NXMAX-1,IERR)
+         IF(IERR.NE.0) GOTO 9001
+         FX(NXMAX)=FX(1)
+      ELSE
+         CALL TDMSCDX(U,FX,NXMAX,IERR)
+         IF(IERR.NE.0) GOTO 9002
+      ENDIF
+C
+      NX=1
+      U(1,NX)=0.D0
+      U(2,NX)=0.D0
+      U(3,NX)=0.D0
+      U(4,NX)=0.D0
+      DO NX=2,NXMAX
+         DX=X(NX)-X(NX-1)
+C
+         T11=  F(NX-1)
+         T21= FX(NX-1)
+         T31=  F(NX  )
+         T41= FX(NX  )
+C
+         DX1=1.D0/DX
+         DX2=DX1*DX1
+         DX3=DX2*DX1
+         V31=-3.D0*DX2
+         V32=-2.D0*DX1
+         V33= 3.D0*DX2
+         V34=-1.D0*DX1
+         V41= 2.D0*DX3
+         V42=      DX2
+         V43=-2.D0*DX3
+         V44=      DX2
+C
+         U(1,NX)=    T11
+         U(2,NX)=            T21
+         U(3,NX)=V31*T11+V32*T21+V33*T31+V34*T41
+         U(4,NX)=V41*T11+V42*T21+V43*T31+V44*T41
+      ENDDO
+      RETURN
+C
+ 9001 WRITE(6,*) 'XX CSPL1D: TDMPRDX ERROR : IERR=',IERR
+      IERR=1
+      RETURN
+ 9002 WRITE(6,*) 'XX CSPL1D: TDMSRDX ERROR : IERR=',IERR
+      IERR=2
+      RETURN
+      END
+C
+C     ****** One-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE CSPL1DF(X0,F0,X,U,NXMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      COMPLEX*16 U(4,NXMAX),F0
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      FS=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+      DX=X0-X(NX-1)
+C
+      F0= U(1,NX)
+     &  + U(2,NX)*DX
+     &  + U(3,NX)*DX*DX
+     &  + U(4,NX)*DX*DX*DX
+C      WRITE(6,'(A,2I5,1P3E12.4)') 
+C     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
+      RETURN
+      END
+C
+C     ****** One-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE CSPL1DD(X0,F0,DF0,X,U,NXMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      COMPLEX*16 U(4,NXMAX),F0,DF0
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      FS=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+      DX=X0-X(NX-1)
+C
+      F0= U(1,NX)
+     &  + U(2,NX)*DX
+     &  + U(3,NX)*DX*DX
+     &  + U(4,NX)*DX*DX*DX
+      DF0= U(2,NX)
+     &   + U(3,NX)*DX*2
+     &   + U(4,NX)*DX*DX*3
+      IERR=0
+      RETURN
+      END
+C
+C     ****** One-Dimensional Spline Interpolation ******
+C       **** Calculation of U0  ****
+C
+      SUBROUTINE CSPL1DI0(X,U,U0,NXMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      COMPLEX*16 U(4,NXMAX),U0(NXMAX)
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+C
+      U0(1)=0.D0
+      DO NX=2,NXMAX
+         DX=X(NX)-X(NX-1)
+C
+         U0(NX)= U0(NX-1)
+     &         + U(1,NX)*DX
+     &         + U(2,NX)*DX*DX/2.D0
+     &         + U(3,NX)*DX*DX*DX/3.D0
+     &         + U(4,NX)*DX*DX*DX*DX/4.D0
+      ENDDO
+C
+C     WRITE(6,'(A,2I5,1P3E12.4)') 
+C     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
+      RETURN
+      END
+C
+C     ****** One-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE CSPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      COMPLEX*16 U(4,NXMAX),U0(NXMAX),FI
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      FS=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+      DX=X0-X(NX-1)
+C
+      FI= U0(NX-1)
+     &  + U(1,NX)*DX
+     &  + U(2,NX)*DX*DX/2.D0
+     &  + U(3,NX)*DX*DX*DX/3.D0
+     &  + U(4,NX)*DX*DX*DX*DX/4.D0
 C      WRITE(6,'(A,2I5,1P3E12.4)') 
 C     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
       RETURN
@@ -340,14 +693,13 @@ C              FXY(NXM,NYMAX): ESTIMATED DERIVATIVES
 C              IERR          : ERROR INDICATOR
 C
       IMPLICIT REAL*8 (A-H,O-Z)
-      PARAMETER (NMAX=10001)
+      PARAMETER (NMAX=1001)
 C
       DIMENSION X(NXMAX),Y(NYMAX),F(NXM,NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
       DIMENSION FX(NXM,NYMAX),FY(NXM,NYMAX),FXY(NXM,NYMAX)
-      DIMENSION AX(4,NMAX),IPX(NMAX),BX(NMAX)
-      DIMENSION AY(4,NMAX),IPY(NMAX),BY(NMAX)
-      DIMENSION WK(NMAX)
+      DIMENSION UX(4,NMAX),UY(4,NMAX),UX0(4,NMAX),UY0(4,NMAX)
+      DIMENSION BX(NMAX)
 C
       IF(NXMAX.GT.NMAX) GOTO 9001
       IF(NYMAX.GT.NMAX) GOTO 9002
@@ -357,161 +709,265 @@ C
       IDY1=MOD(IDY,2)
       IDY2=MOD(IDY/2,2)
 C
-      IF(IDX1.EQ.0) THEN
+C     --- calculate UX ---
+C
+      IF(IDX.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
          DXP=X(2)-X(1)
-         AX(1,1)=0.D0
-         AX(2,1)=2.D0*DXP
-         AX(3,1)=DXP
+         UX(1,1)=DXP
+         UX(2,1)=2.D0*(DXP+DXM)
+         UX(3,1)=DXM
       ELSE
-         AX(1,1)=0.D0
-         AX(2,1)=1.D0
-         AX(3,1)=0.D0
+         IF(IDX1.EQ.0) THEN
+            DXP=X(2)-X(1)
+            UX(1,1)=0.D0
+            UX(2,1)=2.D0*DXP
+            UX(3,1)=DXP
+         ELSE
+            UX(1,1)=0.D0
+            UX(2,1)=1.D0
+            UX(3,1)=0.D0
+         ENDIF
       ENDIF
-      DO 1000 NX=2,NXMAX-1
+      DO NX=2,NXMAX-1
          DXM=X(NX)-X(NX-1)
          DXP=X(NX+1)-X(NX)
-         AX(1,NX)=DXP
-         AX(2,NX)=2.D0*(DXP+DXM)
-         AX(3,NX)=DXM
- 1000 CONTINUE
-      IF(IDX2.EQ.0) THEN
+         UX(1,NX)=DXP
+         UX(2,NX)=2.D0*(DXP+DXM)
+         UX(3,NX)=DXM
+      ENDDO
+      IF(IDX.EQ.4) THEN
          DXM=X(NXMAX)-X(NXMAX-1)
-         AX(1,NXMAX)=DXM
-         AX(2,NXMAX)=2.D0*DXM
-         AX(3,NXMAX)=0.D0
+         DXP=X(2)-X(1)
+         UX(1,NXMAX)=DXP
+         UX(2,NXMAX)=2.D0*(DXP+DXM)
+         UX(3,NXMAX)=DXM
       ELSE
-         AX(1,NXMAX)=0.D0
-         AX(2,NXMAX)=1.D0
-         AX(3,NXMAX)=0.D0
+         IF(IDX2.EQ.0) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            UX(1,NXMAX)=DXM
+            UX(2,NXMAX)=2.D0*DXM
+            UX(3,NXMAX)=0.D0
+         ELSE
+            UX(1,NXMAX)=0.D0
+            UX(2,NXMAX)=1.D0
+            UX(3,NXMAX)=0.D0
+         ENDIF
       ENDIF
+      DO NX=1,NXMAX
+         UX0(1,NX)=UX(1,NX)
+         UX0(2,NX)=UX(2,NX)
+         UX0(3,NX)=UX(3,NX)
+      ENDDO
 C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
+C     --- calculate UY ---
 C
-      IF(IDY1.EQ.0) THEN
+      IF(IDY.EQ.4) THEN
+         DYM=Y(NYMAX)-Y(NYMAX-1)
          DYP=Y(2)-Y(1)
-         AY(1,1)=0.D0
-         AY(2,1)=2.D0*DYP
-         AY(3,1)=DYP
+         UY(1,1)=DYP
+         UY(2,1)=2.D0*(DYP+DYM)
+         UY(3,1)=DYM
       ELSE
-         AY(1,1)=0.D0
-         AY(2,1)=1.D0
-         AY(3,1)=0.D0
+         IF(IDY1.EQ.0) THEN
+            DYP=Y(2)-Y(1)
+            UY(1,1)=0.D0
+            UY(2,1)=2.D0*DYP
+            UY(3,1)=DYP
+         ELSE
+            UY(1,1)=0.D0
+            UY(2,1)=1.D0
+            UY(3,1)=0.D0
+         ENDIF
       ENDIF
       DO NY=2,NYMAX-1
          DYM=Y(NY)-Y(NY-1)
          DYP=Y(NY+1)-Y(NY)
-         AY(1,NY)=DYP
-         AY(2,NY)=2.D0*(DYP+DYM)
-         AY(3,NY)=DYM
+         UY(1,NY)=DYP
+         UY(2,NY)=2.D0*(DYP+DYM)
+         UY(3,NY)=DYM
       ENDDO
-      IF(IDY2.EQ.0) THEN
+      IF(IDY.EQ.4) THEN
          DYM=Y(NYMAX)-Y(NYMAX-1)
-         AY(1,NYMAX)=DYM
-         AY(2,NYMAX)=2.D0*DYM
-         AY(3,NYMAX)=0.D0
+         DYP=Y(2)-Y(1)
+         UY(1,NYMAX)=DYP
+         UY(2,NYMAX)=2.D0*(DYP+DYM)
+         UY(3,NYMAX)=DYM
       ELSE
-         AY(1,NYMAX)=0.D0
-         AY(2,NYMAX)=1.D0
-         AY(3,NYMAX)=0.D0
+         IF(IDY2.EQ.0) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            UY(1,NYMAX)=DYM
+            UY(2,NYMAX)=2.D0*DYM
+            UY(3,NYMAX)=0.D0
+         ELSE
+            UY(1,NYMAX)=0.D0
+            UY(2,NYMAX)=1.D0
+            UY(3,NYMAX)=0.D0
+         ENDIF
       ENDIF
+      DO NY=1,NYMAX
+         UY0(1,NY)=UY(1,NY)
+         UY0(2,NY)=UY(2,NY)
+         UY0(3,NY)=UY(3,NY)
+      ENDDO
 C
-      EPS=1.D-14
-      CALL BGLU1(AY,NYMAX,1,1,4,EPS,WK,IPY,IERR)
-      IF(IERR.NE.0) GOTO 9004
+C     --- calculate FX ---
 C
       DO NY=1,NYMAX
-         IF(IDX1.EQ.0) THEN
-            BX(1)=3.D0*(F(2,NY)-F(1,NY))
+         DO NX=1,NXMAX
+            UX(1,NX)=UX0(1,NX)
+            UX(2,NX)=UX0(2,NX)
+            UX(3,NX)=UX0(3,NX)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(1)=3.D0*(DXM*(F(    2,NY)-F(      1,NY))/DXP
+     &                 +DXP*(F(NXMAX,NY)-F(NXMAX-1,NY))/DXM)
          ELSE
-            BX(1)=FX(1,NY)
+            IF(IDX1.EQ.0) THEN
+               BX(1)=3.D0*(F(2,NY)-F(1,NY))
+            ELSE
+               BX(1)=FX(1,NY)
+            ENDIF
          ENDIF
          DO NX=2,NXMAX-1
             DXM=X(NX)-X(NX-1)
             DXP=X(NX+1)-X(NX)
-            BX(NX)=3.D0*(DXM*(F(NX+1,NY)-F(NX,NY))/DXP
-     &                  +DXP*(F(NX,NY)-F(NX-1,NY))/DXM)
+            BX(NX)=3.D0*(DXM*(F(NX+1,NY)-F(NX,  NY))/DXP
+     &                  +DXP*(F(NX,  NY)-F(NX-1,NY))/DXM)
          ENDDO
-         IF(IDX2.EQ.0) THEN
-            BX(NXMAX)=3.D0*(F(NXMAX,NY)-F(NXMAX-1,NY))
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(NXMAX)=3.D0*(DXM*(F(    2,NY)-F(      1,NY))/DXP
+     &                     +DXP*(F(NXMAX,NY)-F(NXMAX-1,NY))/DXM)
          ELSE
-            BX(NXMAX)=FX(NXMAX,NY)
+            IF(IDX2.EQ.0) THEN
+               BX(NXMAX)=3.D0*(F(NXMAX,NY)-F(NXMAX-1,NY))
+            ELSE
+               BX(NXMAX)=FX(NXMAX,NY)
+            ENDIF
          ENDIF
-         CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
+C
+         IF(IDX.EQ.4) THEN
+            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9003
+            BX(NXMAX)=BX(1)
+         ELSE
+            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            IF(IERR.NE.0) GOTO 9004
+         ENDIF
          DO NX=1,NXMAX
             FX(NX,NY)=BX(NX)
          ENDDO
       ENDDO
 C
+C     --- calculate FY ---
+C
       DO NX=1,NXMAX
-         IF(IDY1.EQ.0) THEN
-            BY(1)=3.D0*(F(NX,2)-F(NX,1))
+         DO NY=1,NYMAX
+            UY(1,NY)=UY0(1,NY)
+            UY(2,NY)=UY0(2,NY)
+            UY(3,NY)=UY0(3,NY)
+         ENDDO
+         IF(IDY.EQ.4) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            DYP=Y(2)-Y(1)
+            BX(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP
+     &                 +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
-            BY(1)=FY(NX,1)
+            IF(IDY1.EQ.0) THEN
+               BX(1)=3.D0*(F(NX,2)-F(NX,1))
+            ELSE
+               BX(1)=FY(NX,1)
+            ENDIF
          ENDIF
          DO NY=2,NYMAX-1
             DYM=Y(NY)-Y(NY-1)
             DYP=Y(NY+1)-Y(NY)
-            BY(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY))/DYP
-     &                  +DYP*(F(NX,NY)-F(NX,NY-1))/DYM)
+            BX(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP
+     &                  +DYP*(F(NX,NY  )-F(NX,NY-1))/DYM)
          ENDDO
-         IF(IDY2.EQ.0) THEN
-            BY(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
+         IF(IDY.EQ.4) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            DYP=Y(2)-Y(1)
+            BX(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP
+     &                     +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
-            BY(NYMAX)=FY(NX,NYMAX)
+            IF(IDY2.EQ.0) THEN
+               BX(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
+            ELSE
+               BX(NYMAX)=FY(NX,NYMAX)
+            ENDIF
          ENDIF
-         CALL BGSLV1(AY,NYMAX,1,1,4,BY,IPY)
+C
+         IF(IDY.EQ.4) THEN
+            CALL TDMPRDX(UY,BX,NYMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9005
+            BX(NYMAX)=BX(1)
+         ELSE
+            CALL TDMSRDX(UY,BX,NYMAX,IERR)
+            IF(IERR.NE.0) GOTO 9006
+         ENDIF
          DO NY=1,NYMAX
-            FY(NX,NY)=BY(NY)
+            FY(NX,NY)=BX(NY)
          ENDDO
       ENDDO
 C
-      DO NY=1,NYMAX,NYMAX-1
-         IF(IDX1.EQ.0) THEN
-            BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
+C     --- calculate FXY ---
+C
+      DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            UX(1,NX)=UX0(1,NX)
+            UX(2,NX)=UX0(2,NX)
+            UX(3,NX)=UX0(3,NX)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(1)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                 +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
          ELSE
-            BX(1)=FXY(1,NY)
+            IF(IDX1.EQ.0) THEN
+               BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
+            ELSE
+               BX(1)=FXY(1,NY)
+            ENDIF
          ENDIF
          DO NX=2,NXMAX-1
             DXM=X(NX)-X(NX-1)
             DXP=X(NX+1)-X(NX)
-            BX(NX)=3.D0*(DXM*(FY(NX+1,NY)-FY(NX,NY))/DXP
-     &                  +DXP*(FY(NX,NY)-FY(NX-1,NY))/DXM)
+            BX(NX)=3.D0*(DXM*(FY(NX+1,NY)-FY(NX,  NY))/DXP
+     &                  +DXP*(FY(NX,  NY)-FY(NX-1,NY))/DXM)
          ENDDO
-         IF(IDX2.EQ.0) THEN
-            BX(NXMAX)=3.D0*(FY(NXMAX,NY)-FY(NXMAX-1,NY))
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(NXMAX)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                     +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
          ELSE
-            BX(NXMAX)=FXY(NXMAX,NY)
+            IF(IDX2.EQ.0) THEN
+               BX(NXMAX)=3.D0*(FY(NXMAX,NY)-FY(NXMAX-1,NY))
+            ELSE
+               BX(NXMAX)=FXY(NXMAX,NY)
+            ENDIF
          ENDIF
-         CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
+C
+         IF(IDX.EQ.4) THEN
+            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9007
+            BX(NXMAX)=BX(1)
+         ELSE
+            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            IF(IERR.NE.0) GOTO 9008
+         ENDIF
          DO NX=1,NXMAX
             FXY(NX,NY)=BX(NX)
          ENDDO
       ENDDO
 C
-      DO NX=1,NXMAX
-         IF(IDY1.EQ.0) THEN
-            BY(1)=3.D0*(FX(NX,2)-FX(NX,1))
-         ELSE
-            BY(1)=FXY(NX,1)
-         ENDIF
-         DO NY=2,NYMAX-1
-            DYM=Y(NY)-Y(NY-1)
-            DYP=Y(NY+1)-Y(NY)
-            BY(NY)=3.D0*(DYM*(FX(NX,NY+1)-FX(NX,NY))/DYP
-     &                  +DYP*(FX(NX,NY)-FX(NX,NY-1))/DYM)
-         ENDDO
-         IF(IDY2.EQ.0) THEN
-            BY(NYMAX)=3.D0*(FX(NX,NYMAX)-FX(NX,NYMAX-1))
-         ELSE
-            BY(NYMAX)=FXY(NX,NYMAX)
-         ENDIF
-         CALL BGSLV1(AY,NYMAX,1,1,4,BY,IPY)
-         DO NY=1,NYMAX
-            FXY(NX,NY)=BY(NY)
-         ENDDO
-      ENDDO
+C     --- calculate spline coefficients ---
 C
       DO NX=2,NXMAX
       DO NY=2,NYMAX
@@ -588,17 +1044,29 @@ C
       IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+ 9001 WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+      IERR=1
       RETURN
- 9002 IERR=2
-      WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+ 9002 WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+      IERR=2
       RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX SPL2D: BGLU1 ERROR'
+ 9003 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=3
       RETURN
- 9004 IERR=4
-      WRITE(6,*) 'XX SPL2D: BGLU1 ERROR'
+ 9004 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=4
+      RETURN
+ 9005 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=5
+      RETURN
+ 9006 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=6
+      RETURN
+ 9007 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=7
+      RETURN
+ 9008 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=8
       RETURN
       END
 C
@@ -715,6 +1183,9 @@ C
       RETURN
       END
 C
+C     ****** Two-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
       SUBROUTINE SPL2DD(X0,Y0,F0,FX0,FY0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
 C
       IMPLICIT REAL*8 (A-H,O-Z)
@@ -829,340 +1300,260 @@ C
       RETURN
       END
 C
-C     ****** One-Dimensional Spline Interpolation ******
-C       **** Calculation of coefficients ****
+C     ***** TRI-DIAGONAL MATRIX SOLVER *****
 C
-      SUBROUTINE CSPL1D(X,F,FX,U,NXMAX,ID,IERR)
+      SUBROUTINE TDMSRDX(A,X,NMAX,IERR)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
-      PARAMETER (NMAX=10001)
+C     +++++ INPUT +++++
+C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
+C        X(NMAX)   : D : RIGHT HAND SIDE VECTOR
+C             A(1,N)*X(N-1)+A(2,N)*X(N)+A(3,N)*X(N+1)=X(N)
+C        NMAX      : I : NUMBER OF EQUATIONS
+C     +++++ OUTPUT ++++
+C        X(NMAX)   : D : SOLUTION VECTOR
+C        IERR      : I : ERROR INDICATOR (0 for naormal)
+C     +++++ COMMENT +++
+C         This routine requires A(4,NMAX) rather than A(3,NMAX).
+C     +++++++++++++++++
 C
-      DIMENSION X(NXMAX),IPX(NMAX),AX(4,NMAX),WK(NMAX)
-      COMPLEX*16 F(NXMAX),U(4,NXMAX),FX(NXMAX),BX(NMAX)
-      COMPLEX*16 T11,T21,T31,T41
+      IMPLICIT NONE
+      REAL*8 A,X
+      REAL*8 AAN,BBN,AN,BN,CN,DN,FACT,XN
+      INTEGER NMAX,IERR,N
+      DIMENSION A(4,NMAX),X(NMAX)
 C
-      IF(NXMAX.GT.NMAX) GOTO 9001
-C
-      ID1=MOD(ID,2)
-      ID2=MOD(ID/2,2)
-C
-      IF(ID1.EQ.0) THEN
-         DXP=X(2)-X(1)
-         AX(1,1)=0.D0
-         AX(2,1)=2.D0*DXP
-         AX(3,1)=DXP
-      ELSE
-         AX(1,1)=0.D0
-         AX(2,1)=1.D0
-         AX(3,1)=0.D0
-      ENDIF
-      DO NX=2,NXMAX-1
-         DXM=X(NX)-X(NX-1)
-         DXP=X(NX+1)-X(NX)
-         AX(1,NX)=DXP
-         AX(2,NX)=2.D0*(DXP+DXM)
-         AX(3,NX)=DXM
+      AAN=0.D0
+      BBN=0.D0
+      DO N=1,NMAX
+         AN=A(1,N)
+         BN=A(2,N)
+         CN=A(3,N)
+         DN=X(N)
+         FACT=AN*AAN+BN
+         IF(FACT.EQ.0.D0) GOTO 9001
+         FACT=1.D0/FACT
+         AAN=-CN*FACT
+         BBN= (DN-AN*BBN)*FACT
+         A(1,N)=AAN
+         A(2,N)=BBN
       ENDDO
-      IF(ID2.EQ.0) THEN
-         DXM=X(NXMAX)-X(NXMAX-1)
-         AX(1,NXMAX)=DXM
-         AX(2,NXMAX)=2.D0*DXM
-         AX(3,NXMAX)=0.D0
-      ELSE
-         AX(1,NXMAX)=0.D0
-         AX(2,NXMAX)=1.D0
-         AX(3,NXMAX)=0.D0
-      ENDIF
+      XN=BBN
 C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
-C
-      IF(ID1.EQ.0) THEN
-         BX(1)=3.D0*(F(2)-F(1))
-      ELSE
-         BX(1)=FX(1)
-      ENDIF
-      DO NX=2,NXMAX-1
-         DXM=X(NX)-X(NX-1)
-         DXP=X(NX+1)-X(NX)
-         BX(NX)=3.D0*(DXM*(F(NX+1)-F(NX))/DXP
-     &               +DXP*(F(NX)-F(NX-1))/DXM)
-      ENDDO
-      IF(ID2.EQ.0) THEN
-         BX(NXMAX)=3.D0*(F(NXMAX)-F(NXMAX-1))
-      ELSE
-         BX(NXMAX)=FX(NXMAX)
-      ENDIF
-      CALL CBGSLV1(AX,NXMAX,1,1,4,BX,IPX)
-      DO NX=1,NXMAX
-         FX(NX)=BX(NX)
-      ENDDO
-C
-      DO NX=2,NXMAX
-         DX=X(NX)-X(NX-1)
-C
-         T11=  F(NX-1)
-         T21= FX(NX-1)
-         T31=  F(NX  )
-         T41= FX(NX  )
-C
-         DX1=1.D0/DX
-         DX2=DX1*DX1
-         DX3=DX2*DX1
-         V31=-3.D0*DX2
-         V32=-2.D0*DX1
-         V33= 3.D0*DX2
-         V34=-1.D0*DX1
-         V41= 2.D0*DX3
-         V42=      DX2
-         V43=-2.D0*DX3
-         V44=      DX2
-C
-         U(1,NX)=    T11
-         U(2,NX)=            T21
-         U(3,NX)=V31*T11+V32*T21+V33*T31+V34*T41
-         U(4,NX)=V41*T11+V42*T21+V43*T31+V44*T41
+      X(NMAX)=XN
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         X(N)=AAN*X(N+1)+BBN
       ENDDO
       IERR=0
       RETURN
 C
- 9001 IERR=1
-      WRITE(6,*) 'XX CSPL1D: NXMAX.GT.NMAX:',NXMAX,NMAX
-      RETURN
- 9003 IERR=3
-      WRITE(6,*) 'XX CSPL1D: BGLU1 ERROR'
+ 9001 IERR=9001
       RETURN
       END
 C
-C     ****** One-Dimensional Spline Interpolation ******
-C       **** Calculation of interpolation  ****
+C     ***** PERIODIC TRI-DIAGONAL MATRIX SOLVER *****
 C
-      SUBROUTINE CSPL1DF(X0,F0,X,U,NXMAX,IERR)
+      SUBROUTINE TDMPRDX(A,X,NMAX,IERR)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+C     +++++ INPUT +++++
+C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
+C        XS(NMAX)  : D : RIGHT HAND SIDE VECTOR
+C             A(1,N)*X(N-1)+A(2,N)*X(N)+A(3,N)*X(N+1)=X(N)
+C        NMAX      : I : NUMBER OF EQUATIONS
+C     +++++ OUTPUT ++++
+C        X(NMAX)   : D : SOLUTION VECTOR
+C        IERR      : I : ERROR INDICATOR (0 for naormal)
+C     +++++ COMMENT +++
+C        Do not include periodic points twice.
+C           X(0)  =X(N)
+C           X(N+1)=X(1)
+C        This routine requires A(4,NMAX) rather than A(3,NMAX).
+C     +++++++++++++++++
 C
-      DIMENSION X(NXMAX)
-      COMPLEX*16 U(4,NXMAX),F0
+      IMPLICIT NONE
+      REAL*8 A,X
+      REAL*8 AAN,BBN,CCN,DDN,EEN,DDNN,EENN
+      REAL*8 AN,BN,CN,DN,FACT,X1,XN
+      INTEGER NMAX,IERR,N
+      DIMENSION A(4,NMAX),X(NMAX)
 C
+      AAN=0.D0
+      BBN=0.D0
+      CCN=1.D0
+      DO N=1,NMAX
+         AN=A(1,N)
+         BN=A(2,N)
+         CN=A(3,N)
+         DN=X(N)
+         FACT=AN*AAN+BN
+         IF(FACT.EQ.0.D0) GOTO 9001
+         FACT=1.D0/FACT
+         AAN=-CN*FACT
+         BBN= (DN-AN*BBN)*FACT
+         CCN=-AN*CCN*FACT
+         A(1,N)=AAN
+         A(2,N)=BBN
+         A(3,N)=CCN
+      ENDDO
+      IF(CCN.EQ.1.D0) GOTO 9002
+      DDN=BBN/(1.D0-CCN)
+      EEN=AAN/(1.D0-CCN)
+      DDNN=DDN
+      EENN=EEN
+C
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         CCN=A(3,N)
+         DDN=AAN*DDN+BBN+CCN*DDNN
+         EEN=AAN*EEN    +CCN*EENN
+      ENDDO
+      IF(EEN.EQ.1.D0) GOTO 9003
+      X1=DDN/(1.D0-EEN)
+      XN=DDNN+EENN*X1
+C
+      X(NMAX)=XN
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         CCN=A(3,N)
+         X(N)=AAN*X(N+1)+BBN+CCN*XN
+      ENDDO
       IERR=0
-      IF(X(NXMAX).EQ.X(1)) THEN
-         IERR=9
-         RETURN
-      ENDIF
-      FS=1.D0/(X(NXMAX)-X(1))
-      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
-      IF(NX.LT.1) THEN
-         IERR=1
-         NX=2
-      ENDIF
-      IF(NX.GT.NXMAX) THEN
-         IERR=2
-         NX=NXMAX
-      ENDIF
+      RETURN
 C
- 5001 IF(NX.GE.NXMAX) GOTO 5002
-      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
-         NX=NX+1
-         GOTO 5001
- 5002 CONTINUE
- 5003 IF(NX.LE.2) GOTO 5004
-      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
-         NX=NX-1
-         GOTO 5003
- 5004 CONTINUE
-      IF(NX.LT.2)     NX=2
+ 9001 IERR=9001
+      RETURN
+ 9002 IERR=9002
+      RETURN
+ 9003 IERR=9003
+      RETURN
+      END
 C
-      DX=X0-X(NX-1)
+C     ***** TRI-DIAGONAL MATRIX SOLVER *****
 C
-      F0= U(1,NX)
-     &  + U(2,NX)*DX
-     &  + U(3,NX)*DX*DX
-     &  + U(4,NX)*DX*DX*DX
+      SUBROUTINE TDMSCDX(A,X,NMAX,IERR)
+C
+C     +++++ INPUT +++++
+C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
+C        X(NMAX)   : D : RIGHT HAND SIDE VECTOR
+C             A(1,N)*X(N-1)+A(2,N)*X(N)+A(3,N)*X(N+1)=X(N)
+C        NMAX      : I : NUMBER OF EQUATIONS
+C     +++++ OUTPUT ++++
+C        X(NMAX)   : D : SOLUTION VECTOR
+C        IERR      : I : ERROR INDICATOR (0 for naormal)
+C     +++++++++++++++++
+C
+      IMPLICIT NONE
+      COMPLEX*16 A,X
+      COMPLEX*16 AAN,BBN,AN,BN,CN,DN,FACT,XN
+      INTEGER NMAX,IERR,N
+      DIMENSION A(4,NMAX),X(NMAX)
+C
+      AAN=0.D0
+      BBN=0.D0
+      DO N=1,NMAX
+         AN=A(1,N)
+         BN=A(2,N)
+         CN=A(3,N)
+         DN=X(N)
+         FACT=AN*AAN+BN
+         IF(FACT.EQ.0.D0) GOTO 9001
+         FACT=1.D0/FACT
+         AAN=-CN*FACT
+         BBN= (DN-AN*BBN)*FACT
+         A(1,N)=AAN
+         A(2,N)=BBN
+      ENDDO
+      XN=BBN
+C
+      X(NMAX)=XN
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         X(N)=AAN*X(N+1)+BBN
+      ENDDO
       IERR=0
       RETURN
-      END
 C
-C     *** LU DECOMPOSITION MATRIX SOLVER ***
-C
-      SUBROUTINE BGLU1( A, N, ML, MU, MM, EPS, WK, IP, IER )
-C
-C        BGLU1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
-C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
-C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : 2-DIM. ARRAY CONTAINING REAL BAND MATRIX.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             EPS      R *8  : PARAMETER TO CHECK SINGULARITY OF THE
-C                              MATRIX. ( STANDARD VALUE 3.52D-15 )
-C        OUTPUT - -
-C             A(-ML:MU+ML,N)
-C                            : RESULT OF GAUSSIAN ELIMINATION.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C             IER      I *4  : = 0,  FOR NORMAL EXECUTION.
-C                              = 1,  FOR SINGULAR MATRIX.
-C                              = 3,  FOR INVALID ARGUEMENT.
-C        WORKING  -
-C             WK(N)    R *8  : 1-DIM. ARRAY.
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), IP(*), WK(*)
-      DIMENSION A(-ML:MM-ML-1,*), IP(*), WK(*)
-C             LEFT HAND SIDE
-      IF( EPS.LT.0.0D0 )  EPS = 3.52D-15
-      IF( ( N.LE.0 ).OR.( ML.LE.0 ).OR.( MU.LE.0 ).OR.
-     &    ( ML.GE.N ).OR.( MU.GE.N ) )  THEN
-         IER = 3
-         WRITE(*,*) '  (SUBR. BGLU1)  INVALID ARGUMENT.  ML, MU, N =',
-     &              ML, MU, N
-         RETURN
-      END IF
-C
-      DO 10 K=1,N
-      DO 10 I=1,ML
-         A(MU+I,K)=0.D0
-   10 CONTINUE
-      IER = 0
-      DO 100 K = 1, N
-C             FIND MAXIMUM ELEMENT IN THE K-TH COLUMN.
-        AMAX = ABS(A(0,K))
-        IPK = K
-        DO 110 I = K+1, MIN(K+ML,N)
-          AIK = ABS(A(K-I,I))
-          IF( AIK.GT.AMAX )  THEN
-             IPK = I
-             AMAX = AIK
-          END IF
-  110   CONTINUE
-        IP(K) = IPK
-C
-        IF( AMAX.GT.EPS )  THEN
-           IF( IPK.NE.K )  THEN
-              DO 120 J = K, MIN(K+MU+ML,N)
-                W = A(J-IPK,IPK)
-                A(J-IPK,IPK) = A(J-K,K)
-                A(J-K,K) = W
-  120         CONTINUE
-           END IF
-C
-           DO 125 J = K+1, MIN(K+MU+ML,N)
-  125        WK(J) = A(J-K,K)
-C             COMPUTE ALFA AND PERFORM GAUSSIAN ELIMINATION.
-           DO 130 I = K+1, MIN(K+ML,N)
-             A(K-I,I) = -A(K-I,I)/A(0,K)
-             T = A(K-I,I)
-             DO 140 J = K+1, MIN(K+MU+ML,N)
-  140          A(J-I,I) = A(J-I,I)+T*WK(J)
-  130      CONTINUE
-C             MATRIX IS SINGULAR.
-        ELSE
-           IER = 1
-           IP(K) = K
-           DO 150 I = K+1, MIN(K+ML,N)
-  150        A(K-I,I) = 0.0D0
-           WRITE(*,*)  '  (SUBR. BGLU1)  MATRIX IS SINGULAR AT K =', K
-           RETURN
-        END IF
-  100 CONTINUE
+ 9001 IERR=9001
       RETURN
       END
 C
-      SUBROUTINE BGSLV1( A, N, ML, MU, MM, B, IP )
+C     ***** PERIODIC TRI-DIAGONAL MATRIX SOLVER *****
 C
-C        BGSLV1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
+      SUBROUTINE TDMPCDX(A,X,NMAX,IERR)
 C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
+C     +++++ INPUT +++++
+C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
+C        XS(NMAX)  : D : RIGHT HAND SIDE VECTOR
+C             A(1,N)*X(N-1)+A(2,N)*X(N)+A(3,N)*X(N+1)=X(N)
+C        NMAX      : I : NUMBER OF EQUATIONS
+C     +++++ OUTPUT ++++
+C        X(NMAX)   : D : SOLUTION VECTOR
+C        IERR      : I : ERROR INDICATOR (0 for naormal)
+C     +++++ COMMENT +++
+C        X(0)  =X(N)
+C        X(N+1)=X(1)
+C     +++++++++++++++++
 C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : RESULT OF GAUSSIAN ELIMINATION.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             B(N)     R *8  : 1-DIM. ARRAY CONTAINING THE RIGHT HAND
-C                              SIDE VECTOR.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C        OUTPUT - -
-C             B(N)           : SOLUTION.
+      IMPLICIT NONE
+      COMPLEX*16 A,X
+      COMPLEX*16 AAN,BBN,CCN,DDN,EEN,DDNN,EENN
+      COMPLEX*16 AN,BN,CN,DN,FACT,X1,XN
+      INTEGER NMAX,IERR,N
+      DIMENSION A(4,NMAX),X(NMAX)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), B(*), IP(*)
-      DIMENSION A(-ML:MM-ML-1,*), B(*), IP(*)
-C             FORWARD ELIMINATION PROCESS
-      DO 100 K = 1, N
-        IPK = IP(K)
-        IF( IPK.NE.K )  THEN
-           W =B(IPK)
-           B(IPK) = B(K)
-           B(K) = W
-        END IF
-C             GAUSSIAN ELIMINATION
-        T = B(K)
-        DO 110 I = K+1, MIN(K+ML,N)
-  110     B(I) = B(I)+A(K-I,I)*T
-  100 CONTINUE
-C             BACKWARD SUBSTITUTION PROCESS
-      DO 200 K = N, 1, -1
-        S = -B(K)
-        DO 210 J = K+1, MIN(K+MU+ML,N)
-  210     S = S+A(J-K,K)*B(J)
-        B(K) = -S/A(0,K)
-  200 CONTINUE
+      AAN=0.D0
+      BBN=0.D0
+      CCN=1.D0
+      DO N=1,NMAX
+         AN=A(1,N)
+         BN=A(2,N)
+         CN=A(3,N)
+         DN=X(N)
+         FACT=AN*AAN+BN
+         IF(FACT.EQ.0.D0) GOTO 9001
+         FACT=1.D0/FACT
+         AAN=-CN*FACT
+         BBN= (DN-AN*BBN)*FACT
+         CCN=-AN*CCN*FACT
+         A(1,N)=AAN
+         A(2,N)=BBN
+         A(3,N)=CCN
+      ENDDO
+      IF(CCN.EQ.1.D0) GOTO 9002
+      DDN=BBN/(1.D0-CCN)
+      EEN=AAN/(1.D0-CCN)
+      DDNN=DDN
+      EENN=EEN
+C
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         CCN=A(3,N)
+         DDN=AAN*DDN+BBN+CCN*DDNN
+         EEN=AAN*EEN    +CCN*EENN
+      ENDDO
+      IF(EEN.EQ.1.D0) GOTO 9003
+      X1=DDN/(1.D0-EEN)
+      XN=DDNN+EENN*X1
+C
+      X(NMAX)=XN
+      DO N=NMAX-1,1,-1
+         AAN=A(1,N)
+         BBN=A(2,N)
+         CCN=A(3,N)
+         X(N)=AAN*X(N+1)+BBN+CCN*XN
+      ENDDO
+      IERR=0
       RETURN
-      END
 C
-C
-      SUBROUTINE CBGSLV1( A, N, ML, MU, MM, B, IP )
-C
-C        BGSLV1
-C               COPYRIGHT : H.HASEGAWA, OCT.  4 1991 V.1
-C
-C               SOLVES SIMULTANEOUS LINEAR EQUATIONS
-C               BY GAUSSIAN ELIMINATION METHOD FOR GENERAL BAND MATRIX.
-C
-C        INPUT - -
-C             A(-ML:MU+ML,N)
-C                      R *8  : RESULT OF GAUSSIAN ELIMINATION.
-C             N        I *4  : ORDER OF MATRIX.
-C             ML       I *4  : LOWER BAND WIDTH.
-C             MU       I *4  : UPPER BAND WIDTH.
-C             B(N)     R *8  : 1-DIM. ARRAY CONTAINING THE RIGHT HAND
-C                              SIDE VECTOR.
-C             IP(N)    I *4  : PIVOT NUMBER.
-C        OUTPUT - -
-C             B(N)           : SOLUTION.
-C
-      IMPLICIT REAL*8 (A-H,O-Z)
-C      DIMENSION A(-ML:MU+ML,*), B(*), IP(*)
-      DIMENSION IP(*),A(-ML:MM-ML-1,*)
-      COMPLEX*16 B(*),W,T,S
-C             FORWARD ELIMINATION PROCESS
-      DO 100 K = 1, N
-        IPK = IP(K)
-        IF( IPK.NE.K )  THEN
-           W =B(IPK)
-           B(IPK) = B(K)
-           B(K) = W
-        END IF
-C             GAUSSIAN ELIMINATION
-        T = B(K)
-        DO 110 I = K+1, MIN(K+ML,N)
-  110     B(I) = B(I)+A(K-I,I)*T
-  100 CONTINUE
-C             BACKWARD SUBSTITUTION PROCESS
-      DO 200 K = N, 1, -1
-        S = -B(K)
-        DO 210 J = K+1, MIN(K+MU+ML,N)
-  210     S = S+A(J-K,K)*B(J)
-        B(K) = -S/A(0,K)
-  200 CONTINUE
+ 9001 IERR=9001
+      RETURN
+ 9002 IERR=9002
+      RETURN
+ 9003 IERR=9003
       RETURN
       END
