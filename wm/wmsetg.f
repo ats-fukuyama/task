@@ -97,8 +97,10 @@ C
          NPHMAX=1
 C
          IF(RD.LE.RA.OR.RD.GE.RB) THEN
-            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZC/T: RD = (RA+RB)/2'
+            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZC: RD = (RA+RB)/2'
             RD=0.5D0*(RA+RB)
+            IF(MYRANK.EQ.0) 
+     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
          PSIA=RA*RA*BB/(Q0+QA)
@@ -257,8 +259,10 @@ C
          NPHMAX=1
 C
          IF(RD.LT.RA.OR.RD.GT.RB) THEN
-            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZC/T: RD = (RA+RB)/2'
+            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZT: RD = (RA+RB)/2'
             RD=0.5D0*(RA+RB)
+            IF(MYRANK.EQ.0) 
+     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
          PSIA=RA*RA*BB/(Q0+QA)
@@ -404,7 +408,7 @@ C
       SUBROUTINE WMXRZF(IERR)
 C
       INCLUDE 'wmcomm.h'
-      CHARACTER*72 KNAMEQSV
+      CHARACTER KNAMEQSV*72
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV,KNAMEQSV
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
       DATA KNAMEQSV/'                                '/
@@ -493,8 +497,10 @@ C
 C      WRITE(6,'(1P5E12.4)') RAXIS,ZAXIS,SAXIS,Q0,QA
 C
          IF(RD.LT.RA.OR.RD.GT.RB) THEN
-            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZC/T: RD = (RA+RB)/2'
+            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZF: RD = (RA+RB)/2'
             RD=0.5D0*(RA+RB)
+            IF(MYRANK.EQ.0) 
+     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
          RMAX=RSU(1,1)

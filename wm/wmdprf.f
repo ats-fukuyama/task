@@ -103,7 +103,7 @@ C
             DO NS=2,NSMAX
                RTPRF(NR,NS)=RTIL
             ENDDO
-            WRITE(6,'(I5,1P4E12.4)') NR,XRHOL,RNEL,RTEL,RTIL
+C            WRITE(6,'(I5,1P4E12.4)') NR,XRHOL,RNEL,RTEL,RTIL
          ENDIF
       ENDDO
 C

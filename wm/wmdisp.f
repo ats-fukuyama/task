@@ -47,6 +47,7 @@ C
       INCLUDE 'wmcomm.h'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
+      DIMENSION CGZ(1),CZ(1),CDZ(1)
 C
       CW=2*PI*CRF*1.D6
       WW=DBLE(CW)
@@ -162,17 +163,17 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                CCROS=0.D0
                CPARA=0.D0
                DO NC=-1,1
-                  CGZ =(CW-NC*CWC-RKPR*RU(NS))/RKTPR
+                  CGZ(1)=(CW-NC*CWC-RKPR*RU(NS))/RKTPR
                   CALL DSPFNA(1,CGZ,CZ,CDZ)
                   IF(NC.EQ.-1) THEN
-                     CPERP=CPERP+   CWP*CGZ0*CZ/2
-                     CCROS=CCROS-CI*CWP*CGZ0*CZ/2
+                     CPERP=CPERP+   CWP*CGZ0*CZ(1)/2
+                     CCROS=CCROS-CI*CWP*CGZ0*CZ(1)/2
                   ELSEIF(NC.EQ.0) THEN
                      CADD=1+RKPR*RU(NS)/(CW-RKPR*RU(NS))
-                     CPARA=CPARA-CWP*CDZ*CGZ*CGZ0*CADD*CADD
+                     CPARA=CPARA-CWP*CDZ(1)*CGZ(1)*CGZ0*CADD*CADD
                   ELSEIF(NC.EQ.1) THEN
-                     CPERP=CPERP+   CWP*CGZ0*CZ/2
-                     CCROS=CCROS+CI*CWP*CGZ0*CZ/2
+                     CPERP=CPERP+   CWP*CGZ0*CZ(1)/2
+                     CCROS=CCROS+CI*CWP*CGZ0*CZ(1)/2
                   ENDIF
                ENDDO
                CPERM=(0.D0,0.D0)
@@ -192,33 +193,36 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                CCROS1= 0.D0
                CCROS2= 0.D0
                DO NC=-2,2
-                  CGZ =(CW-NC*CWC-RKPR*RU(NS))/RKTPR
+                  CGZ(1) =(CW-NC*CWC-RKPR*RU(NS))/RKTPR
                   CADD=1+RKPR*RU(NS)/(CW-RKPR*RU(NS)-NC*CWC)
                   CALL DSPFNA(1,CGZ,CZ,CDZ)
                   IF(NC.EQ.-2) THEN 
-                     CPERP2=CPERP2+CWP*RKTPP*CGZ0*CZ
-                     CCROS2=CCROS2-CI*CWP*RKTPP*CGZ0*CZ
+                     CPERP2=CPERP2+CWP*RKTPP*CGZ0*CZ(1)
+                     CCROS2=CCROS2-CI*CWP*RKTPP*CGZ0*CZ(1)
                   ELSEIF(NC.EQ.-1) THEN
-                     CPERP1=CPERP1+CWP*CGZ0*CZ/2
-                     CPERP2=CPERP2-CWP*RKTPP*CGZ0*CZ
-                     CPERM2=CPERM2-CWP*RKTPP*CGZ0*2*CZ
-                     CPARA2=CPARA2-CWP*RKTPP*CGZ0*CGZ*CDZ*CADD*CADD
-                     CCROS1=CCROS1-CI*CWP*CGZ0*CZ/2
-                     CCROS2=CCROS2+CI*CWP*RKTPP*CGZ0*2*CZ
+                     CPERP1=CPERP1+CWP*CGZ0*CZ(1)/2
+                     CPERP2=CPERP2-CWP*RKTPP*CGZ0*CZ(1)
+                     CPERM2=CPERM2-CWP*RKTPP*CGZ0*2*CZ(1)
+                     CPARA2=CPARA2
+     &                     -CWP*RKTPP*CGZ0*CGZ(1)*CDZ(1)*CADD*CADD
+                     CCROS1=CCROS1-CI*CWP*CGZ0*CZ(1)/2
+                     CCROS2=CCROS2+CI*CWP*RKTPP*CGZ0*2*CZ(1)
                   ELSEIF(NC.EQ.0) THEN
-                     CPERM2=CPERM2+CWP*RKTPP*CGZ0*4*CZ
-                     CPARA1=CPARA1-CWP*CDZ*CGZ*CGZ0*CADD*CADD
-                     CPARA2=CPARA2+CWP*RKTPP*CGZ0*2*CGZ*CDZ*CADD*CADD
+                     CPERM2=CPERM2+CWP*RKTPP*CGZ0*4*CZ(1)
+                     CPARA1=CPARA1-CWP*CDZ(1)*CGZ(1)*CGZ0*CADD*CADD
+                     CPARA2=CPARA2
+     &                     +CWP*RKTPP*CGZ0*2*CGZ(1)*CDZ(1)*CADD*CADD
                   ELSEIF(NC.EQ.1) THEN
-                     CPERP1=CPERP1+CWP*CGZ0*CZ/2
-                     CPERP2=CPERP2-CWP*RKTPP*CGZ0*CZ
-                     CPERM2=CPERM2-CWP*RKTPP*CGZ0*2*CZ
-                     CPARA2=CPARA2-CWP*RKTPP*CGZ0*CGZ*CDZ*CADD*CADD
-                     CCROS1=CCROS1+CI*CWP*CGZ0*CZ/2
-                     CCROS2=CCROS2-CI*CWP*RKTPP*CGZ0*2*CZ
+                     CPERP1=CPERP1+CWP*CGZ0*CZ(1)/2
+                     CPERP2=CPERP2-CWP*RKTPP*CGZ0*CZ(1)
+                     CPERM2=CPERM2-CWP*RKTPP*CGZ0*2*CZ(1)
+                     CPARA2=CPARA2
+     &                     -CWP*RKTPP*CGZ0*CGZ(1)*CDZ(1)*CADD*CADD
+                     CCROS1=CCROS1+CI*CWP*CGZ0*CZ(1)/2
+                     CCROS2=CCROS2-CI*CWP*RKTPP*CGZ0*2*CZ(1)
                   ELSEIF(NC.EQ.2) THEN
-                     CPERP2=CPERM2+CWP*RKTPP*CGZ0*CZ
-                     CCROS2=CCROS2+CI*CWP*RKTPP*CGZ0*CZ
+                     CPERP2=CPERM2+CWP*RKTPP*CGZ0*CZ(1)
+                     CCROS2=CCROS2+CI*CWP*RKTPP*CGZ0*CZ(1)
                   ENDIF
                ENDDO
 C
