@@ -465,6 +465,7 @@ C
          CALL SPL1DD(XRHO(NR),SBMNC(MN,NR),DBMNC(MN,NR),
      &               XSHRHO,U1,NSRMAX+1,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: BMNC: NR=',NR
+      ENDDO
 C
       DO MN=1,MNMAX
          DO NSR=1,NSRMAX
