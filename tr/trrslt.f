@@ -13,8 +13,8 @@ C
       IF (MODELG.EQ.3) THEN
          FKAP=1.D0
          RKAP=1.D0
-      ELSE
-         FKAP=1.D0
+C      ELSE
+C         FKAP=1.D0
       ENDIF
 C
       VOL=0.D0
@@ -112,11 +112,10 @@ C      AJT   = AJTSUM*DR/1.D6
 C      AJOHT = AOHSUM*DR/1.D6
       AJT   = AJTSUM*DR/1.D6*(RKAP/FKAP)
       AJOHT = AOHSUM*DR/1.D6*(RKAP/FKAP)
-C
-C      DO NR=1,NRMAX
-C         write(6,*) NR,AJ(NR)
-C      ENDDO
-C      write(6,*) AJT,DR
+c$$$      DO NR=1,NRMAX
+c$$$         write(6,*) NR,AJ(NR)
+c$$$      ENDDO
+c$$$      write(6,*) AJT,DR
 C
       DRH=0.5D0*DR*RA
       DO 70 NS=1,NSM

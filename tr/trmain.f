@@ -36,7 +36,7 @@ C     *                                                             *
 C     ***************************************************************
 C
       INCLUDE 'trcomm.h'
-      PARAMETER(NURM=NRM+1,NUTM=61)
+      PARAMETER(NURM=51,NUTM=61)
       COMMON /TRBCH1/ RAD(NURM),FRFHE(NURM,NUTM),FRFHI(NURM,NUTM)
       COMMON /TRBCH3/ FUT(NUTM),NUFMAX,NTXMAX
       CHARACTER KFILE*10

@@ -41,7 +41,7 @@ C
          DO NR=1,NRMAX
             QP(NR)=FKAP*RG(NR)*RA*BB/(RR*BP(NR))
 CCC            QP(NR)=RG(NR)*RA*BB/(RR*BP(NR))
-C            if(nr.eq.1) write(6,*) NR,BP(NR),QP(NR)
+C            if(nr.le.7) write(6,*) NR,BP(NR)
          ENDDO
       ENDIF
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -928,24 +928,24 @@ C
       INCLUDE 'trcomm.h'
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-         NR=1
-            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
-     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
-CCC            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
-CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
-         DO NR=2,NRMAX
-            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
-     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
-CCC            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
-CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
-         ENDDO
-      ELSE
+c$$$         NR=1
+c$$$            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
+c$$$     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
+c$$$CCC            AJ(NR) = (RG(NR)*RA*BP(NR)                  )
+c$$$CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
+c$$$         DO NR=2,NRMAX
+c$$$            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
+c$$$     &              /(RM(NR)*RA**2*DR)*FKAP/(RKAP*AMYU0)
+c$$$CCC            AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
+c$$$CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
+c$$$         ENDDO
          NR=1
             FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR
+            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR*RA
+     &             *(FKAP/RKAP)
          DO NR=2,NRMAX-1
             FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
@@ -953,28 +953,47 @@ CCC     &              /(RM(NR)*RA**2*DR)/(RKAP*AMYU0)
             FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
+     &             *(FKAP/RKAP)
          ENDDO
          NR=NRMAX
             FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
             FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
             FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
-            FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+            FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
+     &             *(FKAP/RKAP)
+      ELSE
+         NR=1
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR*RA
+         DO NR=2,NRMAX-1
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=0.5D0*(FACTOR2+FACTOR3)
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
+         ENDDO
+         NR=NRMAX
+            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTORM=0.5D0*(FACTOR1+FACTOR2)
+            FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
       ENDIF
 C
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,*) "trcalc.f AJ=",AJ(NR)
-c$$$      ENDDO
-C      
       DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
          EZOH(NR) = ETA(NR)*AJOH(NR)
          POH(NR)  = EZOH(NR)*AJOH(NR)
-C         write(6,'(F14.7)') POH(NR)
       ENDDO
-C      PAUSE
 C
       RETURN
       END
