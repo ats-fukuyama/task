@@ -205,7 +205,7 @@ C
          IDGLOB=1
          CALL TRATOG
       ENDIF
-      IF(MOD(NT,NTEQIT).EQ.0) THEN
+      IF(MODELG.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
          CALL TRCONV(L,IERR)
          write(6,*) "L=",L
          IF(IERR.NE.0) RETURN
@@ -261,8 +261,8 @@ C
          D(NV,NR)=0.D0
       ENDDO
       ENDDO
-      DO NW=1,NVM-1
-      DO NV=1,NVM-1
+      DO NW=1,NVM
+      DO NV=1,NVM
       DO NX=1,4
       DO NSW=1,3
          IF (NX.LT.3) THEN
@@ -282,75 +282,20 @@ C
 C      NN=2*NSM+1
       NN=NQM
 C
-      DO NR=2,NRMAX-1
-         FAM=ETA(NR  )/(RR*TTRHO(NR  )*ARRHO(NR  ))
-         FAP=ETA(NR+1)/(RR*TTRHO(NR+1)*ARRHO(NR+1))
-         FBM=RR*TTRHO(NR  )**2/(AMYU0*DVRHO(NR  ))
-         FBP=RR*TTRHO(NR+1)**2/(AMYU0*DVRHO(NR+1))
-         FC1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-         FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-         FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-         IF(NR.EQ.NRMAX-1) THEN
-            FC4=2.D0*FC3-FC2
-         ELSE
-            FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
-         ENDIF
-         F1M=FAM*AR1RHO(NR  )*BB/DR
-         F1P=FAP*AR1RHO(NR+1)*BB/DR
-         F2M=FAM*FBM/(DR*DR)
-         F2P=FAP*FBP/(DR*DR)
-         FCM=0.5D0*(FC1+FC2)
-         FC0=0.5D0*(FC2+FC3)
-         FCP=0.5D0*(FC3+FC4)
-         IF (MODELG.EQ.0) THEN
-            FVL = FKAP/RKAP
-         ELSEIF (MODELG.EQ.3) THEN
-            FVL = 1.D0
-         ENDIF
-C
-         A(NN,NN,NR) = F2M*FCM*FVL
-         B(NN,NN,NR) =-F2M*FC0*FVL
-     &                -F2P*FC0*FVL
-         C(NN,NN,NR) = F2P*FCP*FVL
-         D(NN   ,NR) = F1M*(AJ(NR  )-AJOH(NR  ))
-     &                -F1P*(AJ(NR+1)-AJOH(NR+1))
-      ENDDO
-C
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF (MDLEQ.EQ.0) THEN
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=2,NRMAX-1
 C
-         DV11=DVRHO(NR)
-         DV23=DVRHO(NR)**(2.D0/3.D0)
-         DV53=DVRHO(NR)**(5.D0/3.D0)
-C
       NSW=2
-      CALL TRIPTC(NSW,NR)
+      CALL TRIPTC(DV11,DV53,NSW,NR)
 C
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
+      DO NV=1,NQM
+      DO NW=1,NQM
       DO NO=1,2
-         IF (NV.LE.NSM) THEN
          VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
          DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-         ELSEIF (NW.GT.NSM) THEN
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-         ELSE
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                   *0.5D0*(RT(NR+(NO-2),NW)+RT(NR+(NO-1),NW))
-     &                         *DV23
-         ENDIF
       ENDDO
-C      IF (NV.GT.NSM.AND.NV.EQ.NW) write(6,*) NR,DI(NV,NW,2,NSW)*2.D0
-C     &     /(3.D0*DV53)
-C      IF (NV.GT.NSM.AND.NV.EQ.NW+NSM) write(6,*) NR,DI(NV,NW,2,NSW)
-C     &     /DV53
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
      &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
@@ -361,6 +306,10 @@ C
       DO NS=1,NSM
          D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV11
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
+         D(   NQM,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR
+     &                 *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
+     &                 -ETA(NR+1)*AR1RHO(NR+1)*BB/(TTRHO(NR+1)*RR
+     &                 *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
 C
       DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
@@ -378,12 +327,8 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=2,NRMAX-1
 C
-         DV11=DVRHO(NR)
-         DV23=DVRHO(NR)**(2.D0/3.D0)
-         DV53=DVRHO(NR)**(5.D0/3.D0)
-C
       NSW=2
-      CALL TRIPTC(NSW,NR)
+      CALL TRIPTC(DV11,DV53,NSW,NR)
 C      CALL RKDNDR(DNDR,NR)
 C
       DO NV=1,NQM-1
@@ -448,67 +393,20 @@ C
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       NR=1
-         FAM=ETA(NR  )/(RR*TTRHO(NR  )*ARRHO(NR  ))
-         FAP=ETA(NR+1)/(RR*TTRHO(NR+1)*ARRHO(NR+1))
-         FBM=RR*TTRHO(NR  )**2/(AMYU0*DVRHO(NR  ))
-         FBP=RR*TTRHO(NR+1)**2/(AMYU0*DVRHO(NR+1))
-         FC1=0.D0
-         FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-         FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-         FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
-         F1M=FAM*AR1RHO(NR  )*BB/DR
-         F1P=FAP*AR1RHO(NR+1)*BB/DR
-         F2M=FAM*FBM/(DR*DR)
-         F2P=FAP*FBP/(DR*DR)
-         FCM=0.5D0*(FC1+FC2)
-         FC0=0.5D0*(FC2+FC3)
-         FCP=0.5D0*(FC3+FC4)
-         IF (MODELG.EQ.0) THEN
-            FVL = FKAP/RKAP
-         ELSEIF (MODELG.EQ.3) THEN
-            FVL = 1.D0
-         ENDIF
-C
-C         A(NN,NN,NR) = F2M*FCM*FVL
-         A(NN,NN,NR) = 0.D0*FVL
-         B(NN,NN,NR) =-F2M*FC0*FVL
-     &                -F2P*FC0*FVL
-         C(NN,NN,NR) = F2P*FCP*FVL
-         D(NN   ,NR) = F1M*(AJ(NR  )-AJOH(NR  ))
-     &                -F1P*(AJ(NR+1)-AJOH(NR+1))
 C     
-         DV11=DVRHO(NR)
-         DV23=DVRHO(NR)**(2.D0/3.D0)
-         DV53=DVRHO(NR)**(5.D0/3.D0)
-C
       NSW=1
-      CALL TRIPTC(NSW,NR)
+      CALL TRIPTC(DV11,DV53,NSW,NR)
 C
-      NO=2
+C      NO=2
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF (MDLEQ.EQ.0) THEN
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
-         IF (NV.LE.NSM) THEN
+      DO NV=1,NQM
+      DO NW=1,NQM
+      DO NO=1,2
          VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
          DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-         ELSEIF (NW.GT.NSM) THEN
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-         ELSE
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                   *0.5D0*(RT(NR+(NO-2),NW)+RT(NR+(NO-1),NW))
-     &                         *DV23
-         ENDIF
-C      IF (NV.GT.NSM.AND.NV.EQ.NW) write(6,*) DI(NV,NW,2,NSW)*2.D0
-C     &     /(3.D0*DV53)
-C      IF (NV.GT.NSM.AND.NV.EQ.NW+NSM) write(6,*) DI(NV,NW,2,NSW)
-C     &     /DV53
+      ENDDO
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
      &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
@@ -519,6 +417,10 @@ C
       DO NS=1,NSM
          D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV11
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
+         D(   NQM,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR
+     &                 *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
+     &                 -ETA(NR+1)*AR1RHO(NR+1)*BB/(TTRHO(NR+1)*RR
+     &                 *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
 C
       DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
@@ -572,51 +474,22 @@ C
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       NR=NRMAX
-         A(NN,NN,NR) = 0.D0
-         B(NN,NN,NR) = 0.D0
-         C(NN,NN,NR) = 0.D0
-         D(NN   ,NR) = 0.D0
-C
-         DV11=DVRHO(NR)
-         DV23=DVRHO(NR)**(2.D0/3.D0)
-         DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       NSW=3
-      CALL TRIPTC(NSW,NR)
+      CALL TRIPTC(DV11,DV53,NSW,NR)
 C
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF (MDLEQ.EQ.0) THEN
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
+      DO NV=1,NQM
+      DO NW=1,NQM
          NO=1
-         IF (NV.LE.NSM) THEN
          VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
          DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-         ELSEIF (NW.GT.NSM) THEN
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-         ELSE
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                   *0.5D0*(RT(NR+(NO-2),NW)+RT(NR+(NO-1),NW))
-     &                         *DV23
-         ENDIF
 C
          NO=2
-         IF (NV.LE.NSM) THEN
          VI(NV,NW,NO,NSW)=VV(NV,NW,NO  ,NSW)
          DI(NV,NW,NO,NSW)=DD(NV,NW,NO  ,NSW)
-         ELSEIF (NW.GT.NSM) THEN
-         VI(NV,NW,NO,NSW)=VV(NV,NW,NO  ,NSW)        *DV23
-         DI(NV,NW,NO,NSW)=DD(NV,NW,NO  ,NSW)        *DV23
-         ELSE
-         VI(NV,NW,NO,NSW)=VV(NV,NW,NO  ,NSW)        *DV23
-         DI(NV,NW,NO,NSW)=DD(NV,NW,NO  ,NSW)*PTS(NW)*DV23
-         ENDIF
 C
 C     *** ATTENTION PLEASE!! **************************************
 C     *                                                           *
@@ -641,6 +514,7 @@ C
      &                 +(-VI(NSM+NS,NSM+NS,2,NSW)
      &                 +  DI(NSM+NS,NSM+NS,2,NSW)*2.D0)
      &                 *PNSS(NS)*PTS(NS)
+         D(   NQM,NR) = 0.D0
 C
       DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
@@ -1015,21 +889,37 @@ C           INPUT COEFFECIENTS OF TRANSPORT EQUATIONS
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRIPTC(NSW,NR)
+      SUBROUTINE TRIPTC(DV11,DV53,NSW,NR)
 C
       INCLUDE 'trcomm.h'
 C
       DIMENSION SUM(3),DDM(NSM),DNDR(NRM,NSM,3)
+      DIMENSION F2C(2),SIG(4),FCB(4)
 C
       DO NS=1,NSM
          RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
       ENDDO
+C
+      DV11=DVRHO(NR)
+      DV23=DVRHO(NR)**(2.D0/3.D0)
+      DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
          FVL = FKAP/RKAP
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF
+C
+      DO NF=1,4
+         NRF=NR+(NF-2)
+         IF(NRF.EQ.0.OR.NRF.GT.NRMAX) THEN
+            FCB(NF)=0.D0
+         ELSE
+            FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
+         ENDIF
+      ENDDO
+      IF(NR.EQ.NRMAX-1) FCB(4)=2.D0*FCB(3)-FCB(2)
+C
       DO NMK=1,3
          IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
             FA(NMK,NSW)=DVRHO(NR+(NMK-2))*AR1RHO(NR+(NMK-2))*FVL/DR
@@ -1038,13 +928,22 @@ C
             FA(NMK,NSW)=0.D0
             FB(NMK,NSW)=0.D0
          ENDIF
+         IF(NSW.NE.3) THEN
+            FC(NMK,NSW)=0.5D0*(FCB(NMK)+FCB(NMK+1))*FVL/(DR*DR)
+         ELSE
+            FC(NMK,NSW)=0.D0
+         ENDIF
       ENDDO
 C
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF (MDLEQ.EQ.0) THEN
 C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       IF (MDCHG.EQ.0) THEN
-      DO NS=1,NSM
+         SIG(1)= 2.D0
+         SIG(2)= 2.D0
+         SIG(3)=-2.D0
+         SIG(4)=-2.D0
+         NSX=2*NSM+1
       DO NMK=1,4
          IF (NMK.EQ.1) THEN
             NI=1
@@ -1059,19 +958,38 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             NI=3
             NJ=2
          ENDIF
-         IF (NSW.EQ.2.OR.NSW.NE.NI.AND.NR+(NJ-2).NE.0) THEN
-            VV(    NS,    NS,NMK,NSW) = FA(NI,NSW)*AV(NR+(NJ-2),NS)
-            DD(    NS,    NS,NMK,NSW) = FB(NI,NSW)*AD(NR+(NJ-2),NS)
-            VV(NSM+NS,NSM+NS,NMK,NSW) = FA(NI,NSW)*(AVK(NR+(NJ-2),NS)
-     &                                 +AV(NR+(NJ-2),NS)*1.5D0)
-            DD(NSM+NS,NSM+NS,NMK,NSW) = FB(NI,NSW)*AK(NR+(NJ-2),NS)
-            VV(NSM+NS,    NS,NMK,NSW) = 0.D0
-            DD(NSM+NS,    NS,NMK,NSW) = FB(NI,NSW)*(AD(NR+(NJ-2),NS)
-     &                                       *1.5D0-AK(NR+(NJ-2),NS))
+         NRJ=NR+(NJ-2)
+         IF (NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
+            DO NS=1,NSM
+            VV(    NS,    NS,NMK,NSW) = FA(NI,NSW)*AV(NRJ,NS)
+            DD(    NS,    NS,NMK,NSW) = FB(NI,NSW)*AD(NRJ,NS)
+            VV(NSM+NS,NSM+NS,NMK,NSW) = FA(NI,NSW)*(AVK(NRJ,NS)
+     &                                 +AV(NRJ,NS)*1.5D0)*DV23
+            DD(NSM+NS,NSM+NS,NMK,NSW) = FB(NI,NSW)*AK(NRJ,NS)*DV23
+            VV(NSM+NS,    NS,NMK,NSW) = 0.D0*DV23
+            IF(NRJ.EQ.NRMAX) THEN
+            DD(NSM+NS,    NS,NMK,NSW) = FB(NI,NSW)*(AD(NRJ,NS)
+     &                                       *1.5D0-AK(NRJ,NS))*DV23
+     &                                       *PTS(NS)
+            ELSE
+            DD(NSM+NS,    NS,NMK,NSW) = FB(NI,NSW)*(AD(NRJ,NS)
+     &                                       *1.5D0-AK(NRJ,NS))*DV23
+     &                                 *0.5D0*(RT(NRJ,NS)+RT(NRJ+1,NS))
+            ENDIF
+            ENDDO
+         ENDIF
+         IF(NSW.NE.3) THEN
+            IF(NR.EQ.NRMAX) THEN
+               F2C(NJ)=0.D0
+            ELSE
+               F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
+     &               /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
+            ENDIF
+            VV(   NSX,   NSX,NMK,NSW) = SIG(NMK)*F2C(NJ)*FC(NI,NSW)
+            DD(   NSX,   NSX,NMK,NSW) =          F2C(NJ)*FC(NI,NSW)
          ENDIF
       ENDDO
-      ENDDO
-
+C
 C   /////////////////////////////////////////////////////////////////////
 C
       ELSEIF (MDCHG.EQ.1) THEN

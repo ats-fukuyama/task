@@ -207,7 +207,7 @@ C
       MDCHG=0
       MDLEQ=0
       NTEQIT=0
-      MDLUF=2
+      MDLUF=0
 C
       RETURN
       END
@@ -718,8 +718,12 @@ C         PAUSE
 C
       DRIP  = (RIPSS-RIPS)/1.D1
  1000 RIP   = RIPSS
-      CALL TRCONV(L,IERR)
-      write(6,*) "L=",L
+      IF(MODELG.EQ.3) THEN
+         CALL TRCONV(L,IERR)
+         write(6,*) "L=",L
+      ELSE
+         CALL TRSETG
+      ENDIF
 C
       IF(MODELG.EQ.0) THEN
          GRG(1)=0.0
