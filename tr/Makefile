@@ -56,6 +56,7 @@ trpel.o  : trpel.f  trcomm.h
 trgrar.o : trgrar.f trcomm.h
 trgrat.o : trgrat.f trcomm.h
 trgrap.o : trgrap.f trcomm.h
+trgrae.o : trgrae.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
 trmtrx.o : trmtrx.f
@@ -65,7 +66,6 @@ trmtrx.o : trmtrx.f
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
 ../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom3.h
 ../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
-../eq/trtest.o: ../eq/trtest.f
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom4.h
 
 

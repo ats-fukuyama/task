@@ -495,6 +495,13 @@ C         WRITE(6,'(A,I5,1P3E12.4)')
 C     &        'NPS,PSIN,PPPs,HJPSID=',NPS,PSIN,PPPS(NPS),HJPSID(PSIN)
          IF (MODELF.EQ.0.OR.MODELF.EQ.2) THEN
             OMPS(NPS)=OMGPSI(PSIN)
+            HHH=HJPSID(PSIN)
+            TTT=TPSI(PSIN)
+            A1=BB**2*RR**2
+            A2=TJ*HJPSID(PSIN)
+            A3=RRC*PPPS(NPS)
+            A4=RRC**2*OMPS(NPS)**2*AMP/(2.D0*TPSI(PSIN))
+C            WRITE(6,'(I3,1P6E12.4)') NPS,HHH,TTT,A1,A2,A3,A4
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
      &                  *(TJ*HJPSID(PSIN)-RRC*PPPS(NPS)

@@ -16,7 +16,7 @@ C      RMU0   = 4.D0*PI*1.D-7
 C
       CALL GSOPEN
 C
-      NTRMAX= 50
+    1 NTRMAX= 50
       RR    = 3.D0
       RA    = 1.D0
       RKAP  = 1.6D0
@@ -68,6 +68,7 @@ C
      &         NTR,RHOTR(NTR),ABRHO(NTR),ARRHO(NTR),
      &             AR1RHO(NTR),AR2RHO(NTR)
       ENDDO
+      GOTO 1
 C
       CALL GSCLOS
       STOP
