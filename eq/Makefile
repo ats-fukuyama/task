@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 
 SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
-       eqgout.f eqshow.f eqgraf.f
+       eqgout.f eqgsub.f
 SRCT = eqtest.f eqload.f eqcalq.f pleqin.f
 
 SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \

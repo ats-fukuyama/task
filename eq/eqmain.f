@@ -52,18 +52,7 @@ C
          CALL EQVIEW
 C
       ELSEIF(KID.EQ.'G') THEN
-         IF(MODE.EQ.0) THEN
-            WRITE(6,*) 'XX DATA UNDEFINED!'
-         ELSE
-            IF(MODE.EQ.1) THEN
-               CALL EQGRAP
-            ENDIF
-            CALL SHOWPS
-            CALL EQDRAW(1)
-            CALL EQDRAW(2)
-            CALL EQDRAW(3)
-            CALL EQDRAW(4)
-         ENDIF
+         CALL EQGOUT(MODE)
 C
       ELSEIF(KID.EQ.'S') THEN
          CALL EQSAVE
