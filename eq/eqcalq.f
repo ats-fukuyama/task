@@ -266,7 +266,8 @@ C
       DO NR=2,NRPMAX
          IF(NR.EQ.2) THEN
             FTS(NR)=FTS(NR-1)
-     &             +QPS(NR)*(PSS(NR)-PSS(NR-1))
+     &             +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
+C     &             +QPS(NR)*(PSS(NR)-PSS(NR-1))
          ELSE
             FTS(NR)=FTS(NR-1)
      &             +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))

@@ -691,20 +691,23 @@ C
          PSIX(NTG,NSGMAX+2)=0.D0
       ENDDO
 C
-      DO NSGP=1,NSGMAX+2
-         PSITX(       1,NSGP)=(PSIX(2,NSGP)-PSIX(NTGMAX+1,NSGP))
-     &                       /(2.D0*PI+THGMX(2)-THGMX(NTGMAX+1))
-         PSITX(NTGMAX+2,NSGP)=PSITX(       1,NSGP)
-      ENDDO
-      PSISTX(       1,       1)=(PSITX(1,2)-PSITX(1,1))
-     &                         /(SIGMX(  2)-SIGMX(  1))
-      PSISTX(NTGMAX+2,       1)=PSISTX(1,1)
-      PSISTX(       1,NSGMAX+2)=(PSITX(1,NSGMAX+2)-PSITX(1,NSGMAX+1))
-     &                         /(SIGMX(  NSGMAX+2)-SIGMX(  NSGMAX+1))
-      PSISTX(NTGMAX+2,NSGMAX+2)=PSISTX(1,NSGMAX+2)
+C      DO NSGP=1,NSGMAX+2
+C         PSITX(       1,NSGP)=(PSIX(2,NSGP)-PSIX(NTGMAX+1,NSGP))
+C     &                       /(2.D0*PI+THGMX(2)-THGMX(NTGMAX+1))
+C         PSITX(NTGMAX+2,NSGP)=PSITX(       1,NSGP)
+C      ENDDO
+C      PSISTX(       1,       1)=(PSITX(1,2)-PSITX(1,1))
+C     &                         /(SIGMX(  2)-SIGMX(  1))
+C      PSISTX(NTGMAX+2,       1)=PSISTX(1,1)
+C      PSISTX(       1,NSGMAX+2)=(PSITX(1,NSGMAX+2)-PSITX(1,NSGMAX+1))
+C     &                         /(SIGMX(  NSGMAX+2)-SIGMX(  NSGMAX+1))
+C      PSISTX(NTGMAX+2,NSGMAX+2)=PSISTX(1,NSGMAX+2)
+C
+C      CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
+C     &           NTGPM,NTGPMAX,NSGPMAX,3,0,IERR)
 C
       CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
-     &           NTGPM,NTGPMAX,NSGPMAX,3,0,IERR)
+     &           NTGPM,NTGPMAX,NSGPMAX,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIX: IERR=',IERR
       RETURN
       END
