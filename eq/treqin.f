@@ -31,13 +31,14 @@ C
       DIMENSION RHOTR1(NTRMAX1),HJRHO(NTRMAX1),QRHO(NTRMAX1+1)
       DIMENSION DERIV(NTRM+2),BP(NTRM+1),DERIVX(NRM)
       DIMENSION ASR(NTRM)
-      CHARACTER KFILE*10
+      CHARACTER KFILE*10,KPNAM*72
       SAVE INIT
       DATA INIT/0/
 C
       IF(INIT.EQ.0) THEN
          CALL EQINIT
-         CALL EQPARF('eqparm')
+         KPNAM='eqparm'
+         CALL EQPARF(KPNAM)
          INIT=1
       ENDIF
 C
@@ -219,6 +220,14 @@ C
       IERR=0
       RIP    = RIP1
       NTRMAX = NTRMAX1
+      MDQ=0
+      MDVOL=0
+      MDAREA=0
+      MDRMJ=0
+      MDGR1=0
+      MDGR2=0
+      MDALL=0
+      MDTT =0
 C
 C     ***** Calculate poloidal flux PSITR/G/X at RHOTR/G/X *****
 C
