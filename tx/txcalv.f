@@ -14,6 +14,8 @@ C
       AMb = AMi
       DR = RB / NRMAX
       NQMAX = NQM
+      UHth=1.D0/SQRT(1.D0+DBLE(NCPHI)*2)
+      UHph=DBLE(NCPHI)*UHth
 C
 C  Integer mesh
 C
@@ -167,7 +169,13 @@ C
 C
 C     Poloidal magnetic field on wall
 C
-      Bthb = rMU0 * rIP * 1.D6 / (2.D0 * PI * RB)
+      IF(FSHL.EQ.0.D0) THEN
+         Bthb = rMU0 * rIP * 1.D6 / (2.D0 * PI * RB)
+      ELSE
+         RL=RB
+         QL=(Q0-QA)*(1-(RL/RA)**2)+QA
+         Bthb = BB*RL/(QL*RR)
+      ENDIF
 C
 C     *** Normalization factor for heating profile ***
 C
@@ -250,7 +258,7 @@ C
      &                     + ABS(PTiHI(NR)) * rKeV / AMI)**1.5D0)
 CCC     &                  * (  ABS(PTeHI(NR)) * rKeV / AME
 C
-C     *** Neoclassical viscosity ***
+C     *** Toroidal Neoclassical viscosity ***
 C
          Wte = Vte / (QHI(NR) * RR)
          Wti = Vti / (QHI(NR) * RR)
@@ -262,6 +270,29 @@ C
      &               * Wte * 1.78D0 * rNuAsE / (1 + 1.78D0 * rNuAsE)
          rNuiNC(NR) = FSNC * SQRT(PI) * QHI(NR)**2
      &               * Wti * 1.78D0 * rNuAsI / (1 + 1.78D0 * rNuAsI)
+C     &               * (1 + EpsL**1.5D0 * rNuAsI)
+C     &               / (1 + 1.44D0
+C     &                      * ((EpsL**1.5D0 * rNuAsI)**2
+C     &                         + ( ErHI(NR)
+C     &                             / ( Vti * BthHI(NR)) )**2))
+CC     &                         + ( ErHI(NR) * BBL
+CC     &                             / ( Vti * BthHI(NR)**2) )**2))
+C
+C     *** Helical Neoclassical viscosity ***
+C
+         Wte = Vte * NCphi / RR
+         Wti = Vti * NCphi / RR
+         EpsL = EpsH * RHI(NR) / RA
+         rNuAsE = rNuei(NR) / (EpsL**1.5D0 * Wte)
+         rNuAsI = rNuii(NR) / (EpsL**1.5D0 * Wti)
+         rNueHL(NR) = FSHL * SQRT(PI)
+     &               * Wte * 1.78D0 * rNuAsE / (1 + 1.78D0 * rNuAsE)
+         rNuiHL(NR) = FSHL * SQRT(PI)
+     &               * Wti * 1.78D0 * rNuAsI / (1 + 1.78D0 * rNuAsI)
+C         WRITE(6,'(I5,1P4E12.4)') 
+C     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
+C         rNueHL(NR) = 0.D0
+C         rNuiHL(NR) = 0.D0
 C     &               * (1 + EpsL**1.5D0 * rNuAsI)
 C     &               / (1 + 1.44D0
 C     &                      * ((EpsL**1.5D0 * rNuAsI)**2
@@ -445,12 +476,12 @@ C
             RhoIT = MIN(RhoIT,0.1D0)
             rNuAsI = rNuii(NR) * QHI(NR) * RR / (EpsL**1.5D0 * Vti)
             ExpArg = 2 * EpsL / Vti**2 * (ErI(NR) / BthI(NR))**2
-            AiP = rNuii(NR) * SQRT(EpsL) / (1 + rNuAsI) * EXP2(- ExpArg)
+            AiP = rNuii(NR) * SQRT(EpsL) / (1 + rNuAsI) * EXPV(- ExpArg)
             Uith = 0.5D0*(UithI(NR)+UithI(NR+1))
             Uiph = 0.5D0*(UiphI(NR)+UiphI(NR+1))
             DO NR1 = NP, NRMAX - 1
                DISTAN = (RHI(NR1) - RHI(NR)) / RhoIT
-               SiLCL = AiP * EXP2( - DISTAN**2) * PNiHI(NR)
+               SiLCL = AiP * EXPV( - DISTAN**2) * PNiHI(NR)
                SiLC(NR) = SiLC(NR) - SiLCL
                SiLC(NR1) = SiLC(NR1) + SiLCL * RHI(NR) / RHI(NR1)
                SiLCthL = SiLCL * AMi * Uith

@@ -19,49 +19,24 @@ C     --------------------------------------------------------
 C
       INCLUDE 'wrcomm.inc'
 C
-      CHARACTER KID*1
+      CHARACTER KPNAME*80
 C
+      WRITE(6,601) 
+  601 FORMAT('## TASK/WR 2004/11/08')
       CALL GSOPEN
       CALL PLINIT
-      CALL PLPARF(IERR)
       CALL DPINIT
-      CALL DPPARF
       CALL WRINIT
-      CALL WRPARF
+      KPNAME='plparm'
+      CALL PLPARF(KPNAME)
+      KPNAME='dpparm'
+      CALL DPPARF(KPNAME)
+      KPNAME='wrparm'
+      CALL WRPARF(KPNAME)
+      CALL PLDATA_SETN(50,1)
 C
-    1 WRITE(6,601)
-  601 FORMAT('#WR> SELECT : P,V/PARM  R,B/RAY  G/GRAPH  S/SAVE',
-     &       '  1,2,3/DISP  F/ROOT  Q/QUIT')
-      READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL WRMENU
 C
-      IF(KID.EQ.'P') THEN
-         CALL WRPARM
-      ELSEIF(KID.EQ.'V') THEN
-         CALL PLVIEW
-         CALL DPVIEW
-         CALL WRVIEW
-      ELSEIF(KID.EQ.'1') THEN
-         CALL DPGRP1
-      ELSEIF(KID.EQ.'2') THEN
-         CALL DPCONT
-      ELSEIF(KID.EQ.'3') THEN
-         CALL DPCONTX
-      ELSEIF(KID.EQ.'F') THEN
-         CALL DPROOT
-      ELSEIF(KID.EQ.'R') THEN
-         CALL WRCALC
-      ELSEIF(KID.EQ.'B') THEN
-         CALL WRBEAM
-      ELSEIF(KID.EQ.'G') THEN
-         CALL WRGOUT
-      ELSEIF(KID.EQ.'S') THEN
-         CALL WRSAVE
-      ELSEIF(KID.EQ.'Q') THEN
-         GOTO 9000
-      ENDIF
-      GOTO 1
-C
- 9000 CALL GSCLOS
+      CALL GSCLOS
       STOP
       END

@@ -93,6 +93,7 @@ C
 C
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
+      DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
 C
       IF(PSIN.LE.0.D0) THEN
          RHOL=0.D0
@@ -209,6 +210,16 @@ C
                RZCL(NS)=PZCL(NS)
             ENDDO
          ENDIF
+C
+      ELSEIF(MODELN.EQ.10) THEN
+         CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
+         DO NS=1,NSMAX
+            RN(NS)  =RNPL(NS)
+            RTPR(NS)=RTPL(NS)
+            RTPP(NS)=RTPL(NS)
+            RU(NS)  =RUPL(NS)
+            RZCL(NS)=0.D0
+         ENDDO
       ENDIF
 C
       RETURN

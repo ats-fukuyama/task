@@ -890,6 +890,8 @@ C
          RPSI(NR)=SUM
       ENDDO
 C
+      CALl PLDATA_SETP(RN,RT,RU)
+C
       ENTRY TRXTOA_AKDW
 C
       IF(MDTC.NE.0) THEN

@@ -152,7 +152,6 @@ C
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
-C            GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
                SDR=(RHO2-RHO1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR

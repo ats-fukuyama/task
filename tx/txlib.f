@@ -33,14 +33,14 @@ C     For no '*** MATH LIBRARY ERROR 14: DEXP(X) UNDERFLOW'
 C
 C     ***************************************************************
 C
-      FUNCTION EXP2(X)
+      FUNCTION EXPV(X)
 C
       IMPLICIT REAL*8(A-F, H, O-Z)
 C
       IF (X .LT. -708) THEN
-         EXP2 = 0.D0
+         EXPV = 0.D0
       ELSE
-         EXP2 = EXP(X)
+         EXPV = EXP(X)
       ENDIF
 C
       RETURN

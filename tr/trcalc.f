@@ -9,6 +9,9 @@ C
       SUBROUTINE TRCALC(IERR)
 C
       INCLUDE 'trcomm.inc'
+      DIMENSION PWRPL(NRM,NSM),AJWRPL(NRM)
+      DIMENSION PWMPL(NRM,NSM),AJWMPL(NRM)
+      CHARACTER KID*80
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
@@ -72,6 +75,31 @@ C
       CALL TRLOSS
       IF(MDLUF.NE.1.AND.MDLUF.NE.3) CALL TRPWRF
       CALL TRPWNB
+C
+      CALL PLDATA_GETNW(NWRMAX,NWMMAX)
+      DO NWR=1,NWRMAX
+         CALL PLDATA_GETWR(NWR,KID,PWRPL,AJWRPL)
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               PRF(NR,NS)=PRF(NR,NS)+PWRPL(NR,NS)
+            ENDDO
+         ENDDO
+         DO NR=1,NRMAX
+            AJRF(NR)=AJRF(NR)+AJWRPL(NR)
+         ENDDO
+      ENDDO
+C
+      DO NWM=1,NWMMAX
+         CALL PLDATA_GETWM(NWM,KID,PWMPL,AJWMPL)
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               PRF(NR,NS)=PRF(NR,NS)+PWMPL(NR,NS)
+            ENDDO
+         ENDDO
+         DO NR=1,NRMAX
+            AJRF(NR)=AJRF(NR)+AJWMPL(NR)
+         ENDDO
+      ENDDO
 C
       IF(MDNCLS.NE.0) THEN
          CALL TRAJBS_NCLASS

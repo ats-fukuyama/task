@@ -8,6 +8,7 @@ C
       INCLUDE 'wmxprf.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
+      DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
 C
       RHOL=XRHO(NR)
       IF(RHOL.LE.0.D0) RHOL=0.D0
@@ -85,6 +86,24 @@ C
                   RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
                ENDIF
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+            ENDDO
+         ENDIF
+      ELSEIF(MODELN.EQ.10) THEN
+         IF(RHOL.GE.1.D0) THEN
+            CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
+            DO NS=1,NSMAX
+               RN(NS)  =0.D0
+               RTPR(NS)=RTPL(NS)
+               RTPP(NS)=RTPL(NS)
+               RU(NS)  =PUS(NS)
+            ENDDO
+         ELSE
+            CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
+            DO NS=1,NSMAX
+               RN(NS)  =RNPL(NS)
+               RTPR(NS)=RTPL(NS)
+               RTPP(NS)=RTPL(NS)
+               RU(NS)  =RUPL(NS)
             ENDDO
          ENDIF
       ENDIF

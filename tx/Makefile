@@ -1,18 +1,25 @@
 ### $Id$ ###
 include ../make.header
 
-LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
-SRCS = txmain.f txinit.f txexec.f txcalv.f txcala.f \
-       txfile.f txrslt.f txgraf.f txlib.f txband.f
+SRCS = txmenu.f txinit.f txexec.f txcalv.f txcala.f \
+       txfile.f txrslt.f txgraf.f txlib.f
 OBJS = $(SRCS:.f=.o)
 PROG = tx
+LIBS=txlib.a ../lib/tasklib.a
+
+.f.o :
+	$(FC) $(FFLAGS) -c $< -o $@
 
 all: $(PROG)
 
-$(PROG): $(OBJS) txcomm.inc
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(FLIBS)
+txlib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o txlib.a $(OBJS)
+
+$(PROG): txmain.o $(LIBS)
+	(cd ../lib; make tasklib.a)
+	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
@@ -35,6 +42,7 @@ new :
 	-cp -f in/* ../txnew/in
 
 txmain.o: txmain.f txcomm.inc
+txmenu.o: txmenu.f txcomm.inc
 txinit.o: txinit.f txcomm.inc
 txexec.o: txexec.f txcomm.inc
 txcalv.o: txcalv.f txcomm.inc
@@ -42,8 +50,4 @@ txcala.o: txcala.f txcomm.inc
 txfile.o: txfile.f txcomm.inc
 txrslt.o: txrslt.f txcomm.inc
 txgraf.o: txgraf.f txcomm.inc
-
-txband.o: ${@:.o=.f}
-	$(FC) $(LFLAGS) -c ${@:.o=.f}
-txlib.o: ${@:.o=.f}
-	$(FC) $(LFLAGS) -c ${@:.o=.f}
+txlib.o: txlib.f

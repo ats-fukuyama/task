@@ -76,8 +76,8 @@ C
       DIMENSION AP(10),AR(10)
       DATA AP/0.0D0,1.0D0,2.0D0,3.0D0,4.0D0,
      &        5.0D0,6.0D0,7.0D0,8.0D0,9.0D0/
-      DATA AR/0.05D0,0.1D0,0.1D0,0.1D0,0.1D0,
-     &        0.1D0, 0.1D0,0.1D0,0.1D0,0.1D0/
+      DATA AR/0.02D0,0.06D0,0.12D0,0.14D0,0.16D0,
+     &        0.16D0,0.14D0,0.12D0,0.08D0,0.02D0/
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
@@ -85,15 +85,16 @@ C
          SNB(NR) = 0.D0
   100 CONTINUE
 C
-      DO 122 J=1,10
-        RWD=AP(J)*RA*DR
-        RDD=20.D0*AR(J)/19.D0
-        CALL TRNBPB(PNBRTG,RWD,RDD)
-  122 CONTINUE
+      NRNBMAX=10
+      DO J=1,NRNBMAX
+         RWD=PNBRW*DBLE(J-1)/(RA*DBLE(NRNBMAX-1))
+         RDD=AR(J)
+         CALL TRNBPB(PNBRTG,RWD,RDD)
+      ENDDO
 C
-      DO 110 NR=1,NRMAX
+      DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
-  110 CONTINUE
+      ENDDO
       RETURN
       END
 C
@@ -189,7 +190,7 @@ C
             IF(DRM1.LT.0.D0) DRM1=0.D0
             DL = 2.D0*SQRT(DRM1)
          ELSE
-            DRR1=RM(IM-1)**2-RM(IB)**2
+            DRR1=RM(IM)**2-RM(IB)**2
             IF(DRR1.LT.0.D0) DRR1=0.D0
             DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
             IF(DRM1.LT.0.D0) DRM1=0.D0
@@ -240,7 +241,12 @@ C
          KL=0
       ENDIF
 C
-      SNB(IM) = SNB(IM)+P1/DVRHO(IM)
+C      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
+      IF(IM.GT.1) 
+     &     SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
+      SNB(IM) = SNB(IM)+0.5D0*P1/(DVRHO(IM)*DR)
+      IF(IM.LE.NRMAX) 
+     &     SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
 C
       IF(KL.EQ.0) RETURN
       ANL=ANL-P1

@@ -313,15 +313,11 @@ C
       KFID='NM2'
       KFILE=KDIRR2(1:KL2)//KFID
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
-      IF(LEX.EQV..TRUE.) THEN
-         IF(KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d') THEN
-            MDSLCT=MDSLCT+1
-            NM2CHK=1
-         ELSE
-            GOTO 1000
-         ENDIF
+      IF(LEX.EQV..TRUE..AND.
+     &   KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d') THEN
+         MDSLCT=MDSLCT+1
+         NM2CHK=1
       ELSE
- 1000    CONTINUE
          NM2CHK=0
          KFID='NM1'
          KFILE=KDIRR2(1:KL2)//KFID

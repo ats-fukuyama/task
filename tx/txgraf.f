@@ -2,6 +2,213 @@ C     $Id$
 C
 C     ***************************************************************
 C
+C        GRAPHIC Command loop
+C
+C     ***************************************************************
+C
+      SUBROUTINE TXGOUT
+C
+      INCLUDE 'txcomm.inc'
+      CHARACTER STR*5, STR2*5, KID1*1, KID2*1
+C
+C     *** MENU ***
+C
+   10 WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B,C: ',
+     &           'S,L,M:file I:init X:exit'
+      READ(5,'(A5)',ERR=50,END=9000) STR
+C
+      KID1 = STR(1:1)
+      KID2 = STR(2:2)
+      CALL GUCPTL(KID1)
+      CALL GUCPTL(KID2)
+C
+      IF      (KID1 .EQ. 'S') THEN
+         CALL TXGSAV
+C
+      ELSE IF (KID1 .EQ. 'L') THEN
+         CALL TXGLOD
+C
+      ELSE IF (KID1 .EQ. 'I') THEN
+         TIME = 0.D0
+         TPRE = 0.D0
+         NGT = -1
+         NGVV = -1
+         CALL TXSTGT(SNGL(TIME))
+         CALL TXSTGV(SNGL(TIME))
+C
+      ELSE IF (KID1.EQ.'R') THEN
+         READ(STR(2:5),*,ERR=50) NGPR
+         IF (NGPR.GE.0 .AND. NGPR.LE.NGPRM) THEN
+            MODE=MODEl
+            CALL TXGRFR(NGPR,MODE)
+         ENDIF
+C
+      ELSE IF (KID1 .EQ. 'T') THEN
+         IF      (KID2 .EQ. 'A') THEN
+            DO NGPT = 1, NGPTM
+               MODE=MODEl
+               CALL TXGRFT(NGPT,MODE)
+            ENDDO
+         ELSE IF (KID2 .EQ. 'B') THEN
+            DO NGPT = 1, 6
+               MODE=MODEl
+               CALL TXGRFT(NGPT,MODE)
+            ENDDO
+            DO NGPT = 9, 10
+               MODE=MODEl
+               CALL TXGRFT(NGPT,MODE)
+            ENDDO
+C
+         ELSE IF (KID2 .EQ. 'C') THEN
+            DO NGPT = 1, 5
+               MODE=MODEl
+               CALL TXGRFT(NGPT,MODE)
+            ENDDO
+C
+         ELSE
+            READ(STR(2:5),*,ERR=50) NGPT
+            IF (NGPT.GE.1 .AND. NGPT.LE.NGPTM) THEN
+               MODE=MODEl
+               CALL TXGRFT(NGPT,MODE)
+            ENDIF
+         ENDIF
+C
+      ELSE IF (KID1 .EQ. 'V') THEN
+         IF      (KID2 .EQ. 'A') THEN
+            DO NGPV = 1, NGPVM
+               MODE=MODEl
+               CALL TXGRFV(NGPV,MODE)
+            ENDDO
+C
+         ELSE IF (KID2 .EQ. 'B') THEN
+            DO NGPV = 1, 6
+               MODE=MODEl
+               CALL TXGRFV(NGPV,MODE)
+            ENDDO
+            DO NGPV = 9, 10
+               MODE=MODEl
+               CALL TXGRFV(NGPV,MODE)
+            ENDDO
+C
+         ELSE IF (KID2 .EQ. 'C') THEN
+            DO NGPV = 1, 5
+               MODE=MODEl
+               CALL TXGRFV(NGPV,MODE)
+            ENDDO
+C
+         ELSE
+            READ(STR(2:5),*,ERR=50) NGPV
+            IF (NGPV.GE.1 .AND. NGPV.LE.NGPVM) THEN
+               MODE=MODEl
+               CALL TXGRFV(NGPV,MODE)
+            ENDIF
+         ENDIF
+C
+      ELSE IF (KID1 .EQ. 'U') THEN
+         IF      (KID2 .EQ. 'A') THEN
+            DO NQ = 1, NQMAX, 4
+               CALL PAGES
+               DO NQL=NQ,MIN(NQ+3,NQMAX)
+                  CALL TXGRFQ(NQL,MOD(NQL-1,4)+1)
+               ENDDO
+               CALL PAGEE
+            ENDDO
+C
+         ELSE
+            READ(STR(2:5),*,ERR=50) NQ
+            IF (NQ.GE.1 .AND. NQ.LE.NQMAX) THEN
+               CALL PAGES
+               DO NQL=NQ,MIN(NQ+3,NQMAX)
+                  CALL TXGRFQ(NQL,NQL-NQ+1)
+               ENDDO
+               CALL PAGEE
+            ENDIF
+         ENDIF
+C
+      ELSE IF (KID1 .EQ. 'A') THEN
+         DO NGPR = 1, NGPRM
+            MODE=MODEl
+            CALL TXGRFR(NGPR,MODE)
+         ENDDO
+C
+      ELSE IF (KID1 .EQ. 'B') THEN
+         DO NGPR = 1, 6
+            MODE=MODEl
+            CALL TXGRFR(NGPR,MODE)
+         ENDDO
+         DO NGPR = 9, 10
+            MODE=MODEl
+            CALL TXGRFR(NGPR,MODE)
+         ENDDO
+C
+      ELSE IF (KID1 .EQ. 'C') THEN
+         DO NGPR = 1, 5
+            MODE=MODEl
+            CALL TXGRFR(NGPR,MODE)
+         ENDDO
+C
+      ELSE IF (KID1 .EQ. 'M') THEN
+  100    WRITE(6,*) '## Number of files :'
+         READ(5,*,END=10,ERR=100) NGFMAX
+         NGR=-1
+         DO NGF=1,NGFMAX
+            CALL TXLOAD
+            CALL TXSTGR
+         ENDDO
+  110    WRITE(6,*) '## INPUT GRAPH NUMBER'
+         READ(5,'(A5)',ERR=110,END=10) STR2
+         CALL TOUPPER(STR2)
+         IF      (STR2 .EQ. '     ') THEN
+C     For space or return only 
+C     Correspond to GMA
+         ELSE IF (STR2(1:1) .EQ. 'A') THEN
+            DO I = 1, NGPRM
+               MODE=MODEl
+               CALL TXGRFR(I,MODE)
+            ENDDO
+C     Correspond to GMB
+         ELSE IF (STR2(1:1) .EQ. 'B') THEN
+            DO I = 1, 6
+               MODE=MODEl
+               CALL TXGRFR(I,MODE)
+            ENDDO
+            DO I = 9, 10
+               MODE=MODEl
+               CALL TXGRFR(I,MODE)
+            ENDDO
+C     Correspond to GMC
+         ELSE IF (STR2(1:1) .EQ. 'C') THEN
+            DO I = 1, 5
+               MODE=MODEl
+               CALL TXGRFR(I,MODE)
+            ENDDO
+         ELSE
+            READ(STR2,'(I5)',ERR=110) NGPR
+            IF      (NGPR .EQ. 0) THEN
+               GOTO 10
+            ELSE IF (NGPR.GE.0 .AND. NGPR.LE.NGPRM) THEN
+               MODE=MODEl
+               CALL TXGRFR(NGPR,MODE)
+            ENDIF
+         ENDIF
+         GOTO 110
+C
+      ELSE IF (KID1.EQ.'X') THEN
+         GO TO 9000
+C
+      ELSE
+         WRITE(6,*) 'XX UNKNOWN GRAPHIC COMMAND'
+      ENDIF
+      GOTO 10
+C
+   50 WRITE(6,*) '### ERROR : Invalid Command : ', STR
+      GOTO 10
+C
+ 9000 RETURN
+      END
+C
+C     ***************************************************************
+C
 C        Initialize graphic axes
 C
 C     ***************************************************************
@@ -1126,11 +1333,10 @@ C        2 : Equation is half integer mesh.
      &           15.0,22.0,10.5,17.0,
      &           15.0,22.0, 1.5, 8.0/
 C
-      IDL=MOD(ID-1,4)+1
-      GPXY(1) = GPXYA(1,IDL)
-      GPXY(2) = GPXYA(2,IDL)
-      GPXY(3) = GPXYA(3,IDL)
-      GPXY(4) = GPXYA(4,IDL)
+      GPXY(1) = GPXYA(1,ID)
+      GPXY(2) = GPXYA(2,ID)
+      GPXY(3) = GPXYA(3,ID)
+      GPXY(4) = GPXYA(4,ID)
 C
       DO NC = 1, NLCMAX(NQ)
          NR = 0

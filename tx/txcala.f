@@ -200,6 +200,10 @@ C Beam ion current
 C
           BLC(4,LQm3,NR) = - rMU0 * PZ * AEE * 1.D20
           NLC(4,LQm3,NR) = LQb4
+C
+C Virtual current for helical sysytem
+C
+          PLC(5,LQm3,NR) = - rMU0 * AJV(NR)
       ENDDO
 C
 C Out of region
@@ -208,7 +212,7 @@ C
           BLC(1,LQm3,NR) = 1.D0
           NLC(1,LQm3,NR) = LQm3
 C
-      NLCMAX(LQm3) = 4
+      NLCMAX(LQm3) = 5
       RETURN
       END
 C
@@ -516,6 +520,15 @@ C
           BLC(15,LQe3,NR) = - rNu0eL
           NLC(15,LQe3,NR) = LQe3
 C
+C Helical Neoclassical viscosity force
+C
+          rNueHLL =rNueHL(NR)
+          BLC(16,LQe3,NR) = - rNueHLL*(1.D0-UHth*UHth)
+          NLC(16,LQe3,NR) = LQe3
+          BLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2
+          CLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2
+          NLC(17,LQe3,NR) = LQe4
+C
       ENDDO
 C
 C Ns*UsTheta(NRMAX) : 0
@@ -524,7 +537,7 @@ C
           BLC(1,LQe3,NR) = 1
           NLC(1,LQe3,NR) = LQe3
 C
-      NLCMAX(LQe3) = 15
+      NLCMAX(LQe3) = 17
       RETURN
       END
 C
@@ -627,6 +640,15 @@ C
           BLC(10,LQe4,NR) = - rNu0e(NR)
           NLC(10,LQe4,NR) = LQe4
 C
+C Helical Neoclassical viscosity force
+C
+          rNueHLL = 0.5D0 * (rNueHL(NR) + rNueHL(NR+1))
+          ALC(11,LQe4,NR) =   rNueHL(NR+1)*UHth*UHph/2
+          BLC(11,LQe4,NR) =   rNueHL(NR  )*UHth*UHph/2
+          NLC(11,LQe4,NR) = LQe3
+          BLC(12,LQe4,NR) = - rNueHLL*(1.D0-UHph*UHph)
+          NLC(12,LQe4,NR) = LQe4
+C
       ENDDO
 C
 C Out of region
@@ -635,7 +657,7 @@ C
           BLC(1,LQe4,NR) = 1.D0
           NLC(1,LQe4,NR) = LQe4
 C
-      NLCMAX(LQe4) = 10
+      NLCMAX(LQe4) = 12
       RETURN
       END
 C
@@ -1034,6 +1056,15 @@ C Loss cone loss
 C
           SiLCthL = 0.5D0 * (SiLCth(NR) + SiLCth(NR-1))
           PLC(17,LQi3,NR) = + SiLCthL
+C
+C Helical Neoclassical viscosity force
+C
+          rNuiHLL = rNuiHL(NR)
+          BLC(18,LQi3,NR) = - rNuiHLL*(1.D0-UHth*UHth)
+          NLC(18,LQi3,NR) = LQi3
+          BLC(19,LQi3,NR) =   0.5D0*rNuiHLL*UHph*UHth
+          CLC(19,LQi3,NR) =   0.5D0*rNuiHLL*UHph*UHth
+          NLC(19,LQi3,NR) = LQi4
       ENDDO
 C
 C Ns*UsTheta(NRMAX) : 0
@@ -1042,7 +1073,7 @@ C
           BLC(1,LQi3,NR) = 1.D0
           NLC(1,LQi3,NR) = LQi3
 C
-      NLCMAX(LQi3) = 17
+      NLCMAX(LQi3) = 19
       RETURN
       END
 C
@@ -1154,6 +1185,15 @@ C Loss conde loss
 C
           PLC(12,LQi4,NR) = SiLCph(NR)
 C
+C Helical Neoclassical viscosity force
+C
+          rNuiHLL = 0.5D0 * (rNuiHL(NR) + rNuiHL(NR+1))
+          ALC(13,LQi4,NR) =   rNuiHL(NR+1)*UHth*UHph/2
+          BLC(13,LQi4,NR) =   rNuiHL(NR  )*UHth*UHph/2
+          NLC(13,LQi4,NR) = LQi3
+          BLC(14,LQi4,NR) = - rNuiHLL*(1.D0-UHph*UHph)
+          NLC(14,LQi4,NR) = LQi4
+C
       ENDDO
 C
 C Out of region
@@ -1162,7 +1202,7 @@ C
           BLC(1,LQi4,NR) = 1.D0
           NLC(1,LQi4,NR) = LQi4
 C
-      NLCMAX(LQi4) = 12
+      NLCMAX(LQi4) = 14
       RETURN
       END
 C

@@ -17,24 +17,14 @@ C-----------------------------------------------------------------------
 C
       INCLUDE 'plcomm.inc'
 C
-      CHARACTER KID*1
+      CHARACTER KPNAME*80
 C
+      WRITE(6,*) '## TASK/PL 2004/11/08'
       CALL PLINIT
-      CALL PLPARF(IERR)
+      KPNAME='plparm'
+      CALL PLPARF(KPNAME)
 C
-    1 WRITE(6,601)
-  601 FORMAT('#PL> SELECT : P,V/PARM  Q/QUIT')
-      READ(5,'(A1)',ERR=1,END=9000) KID
-      CALL GUCPTL(KID)
+      CALL PLMENU
 C
-      IF(KID.EQ.'P') THEN
-         CALL PLPARM(IERR)
-      ELSEIF(KID.EQ.'V') THEN
-         CALL PLVIEW
-      ELSEIF(KID.EQ.'Q') THEN
-         GOTO 9000
-      ENDIF
-      GOTO 1
-C
- 9000 STOP
+      STOP
       END

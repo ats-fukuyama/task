@@ -148,8 +148,11 @@ C     Orbit loss parameter
 CCCC      FSLC = 1.D0
       FSLC = 0.D0
 C
-C     Neoclassical viscosity parameter
+C     Toroidal Neoclassical viscosity parameter
       FSNC = 1.D0
+C
+C     Helical Neoclassical viscosity parameter
+      FSHL = 0.D0
 C
 C     Particle loss to divertor parameter
       FSLP = 1.D0
@@ -288,6 +291,16 @@ C
 C     Amount of increase of density by command DEL
       DelN = 5.D-1
 C
+C     Helical ripple amplitude at r=a, Bhelical/Btoroidal, linear to r/a
+      EpsH = 0.1D0
+C
+C     Helical pitch number
+      NCphi = 10
+C
+C     Safety factor for helical
+      Q0 = 3.D0
+      QA = 2.D0
+C
       NGR=-1
 C
       RETURN
@@ -299,7 +312,7 @@ C        Change input parameters
 C
 C     ***************************************************************
 C
-      SUBROUTINE TXPARM
+      SUBROUTINE TXPARM(KID)
 C
       INCLUDE 'txcomm.inc'
 C
@@ -317,31 +330,60 @@ C
      & DLT,DT,EPS,ICMAX,
      & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,
      & DelR,DelN,
-     & rG1,
+     & rG1,EpsH,FSHL,NCPHI,Q0,QA,
      & rIPs,rIPe,
-     & MODEG, gDIV, MODEAV, MODEl
+     & MODEG, gDIV, MODEAV, MODEl,
+     & FSHL,EpsH, NCphi
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32
+      CHARACTER KPNAME*80,KLINE*80,KNAME*90,KID*1
 C
-   10 WRITE(6,*) '# INPUT : &TX'
-      CALL GUFLSH
-      READ(*,TX,ERR=10,END=20)
-   20 CONTINUE
+      MODE=0
+    1    CONTINUE
+         WRITE(6,*) '# INPUT &TX :'
+         READ(5,TX,ERR=2,END=3)
+         KID=' '
+         GOTO 4
 C
-      RETURN
+    2    CALL TXPLST
+      GOTO 1
 C
-      ENTRY TXPARF
+    3 KID='Q'
+    4 GOTO 3000
 C
-      KPNAME='txparm'
+      ENTRY TXPARL(KLINE)
+C
+      MODE=1
+      KNAME=' &TX '//KLINE//' &END'
+      WRITE(7,'(A90)') KNAME
+      REWIND(7)
+      READ(7,TX,ERR=8,END=8)
+      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
+      GOTO 9
+    8 CALL TXPLST
+    9 REWIND(7)
+      GOTO 3000
+C
+      ENTRY TXPARF(KPNAME)
+C
+      MODE=2
       INQUIRE(FILE=KPNAME,EXIST=LEX)
-      IF(LEX) THEN
-         OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-         READ(25,TX,ERR=9800,END=9900)
-         WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
-      ENDIF
-      RETURN
+      IF(.NOT.LEX) RETURN
 C
+      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
+      READ(25,TX,IOSTAT=IST,ERR=9800,END=9900)
+      CALL KTRIM(KPNAME,KL)
+      WRITE(6,*) 
+     &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
+C
+ 3000 IERR=0
+C
+C     ERROR CHECK
+C
+      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
+C
+      RETURN
+
  9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
       RETURN
  9800 WRITE(6,*) 'XX PARM FILE READ ERROR'
@@ -349,6 +391,31 @@ C
  9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
       RETURN
 
+      END
+C
+C     ***** INPUT PARAMETER LIST *****
+C
+      SUBROUTINE TXPLST
+C
+      WRITE(6,601)
+      RETURN
+C
+  601 FORMAT(' ','# &TX : RA,RB,RR,BB,PA,PZ,Zeff,'/
+     &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/
+     &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/
+     &       ' ',8X,'Chie0,Chii0,'/
+     &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/
+     &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSION,FSD0,'/
+     &       ' ',8X,'rLn,rLT,'/
+     &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/
+     &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/
+     &       ' ',8X,'DLT,DT,EPS,ICMAX,'/
+     &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/
+     &       ' ',8X,'DelR,DelN,'/
+     &       ' ',8X,'rG1,EpsH,FSHL,NCPHI,Q0,QA,'/
+     &       ' ',8X,'rIPs,rIPe,'/
+     &       ' ',8X,'MODEG, gDIV, MODEAV, MODEl,'/
+     &       ' ',8X,'FSHL,EpsH, NCphi')
       END
 C
 C     ***************************************************************
@@ -389,14 +456,16 @@ C
      &   'PN0s  ', PN0s  ,  'DLT   ', DLT   , 
      &   'EPS   ', EPS   ,  'DT    ', DT    ,
      &   'rG1   ', rG1   ,  'Zeff  ', Zeff  , 
-     &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe
+     &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,
+     &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,
+     &   'Q0    ', Q0    ,  'QA    ', QA
       WRITE(6,'((1H ,A6,2H =,I5,3(6X,A6,2H =,I5)))')
      &   'NRMAX ', NRMAX , 
      &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP, 
      &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP, 
      &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,
      &   'MODEG ', MODEG ,  'MODEAV', MODEAV,
-     &   'MODEl', MODEl
+     &   'MODEl ', MODEl ,  'NCPHI ', NCPHI
 C
       RETURN
       END
@@ -442,32 +511,61 @@ CCCC            X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
             X(LQi5,NR) = PTia*X(LQi1,NR)
          ENDIF
          X(LQn1,NR) = PN0s
-         X(LQm5,NR) = BB
          X(LQn2,NR) = 0.D0
+         X(LQm5,NR) = BB
 C
          IF((1.D0-(RHI(NR)/RA)**PROFJ).LE.0.D0) THEN
             PROF=0.D0    
          ELSE             
             PROF= (1.D0-(RHI(NR)/RA)**PROFJ)
          ENDIF             
-         X(LQe4,NR) = - rIps * 1.D6 / (AEE * PI * RA**2 * 1.D20)
-     &                  * (PROFJ + 1) * PROF**PROFJ
-         AJOH(NR)= PROF
+         IF(FSHL.EQ.0.D0) THEN
+            X(LQe4,NR) = - rIps * 1.D6 / (AEE * PI * RA**2 * 1.D20)
+     &                     * (PROFJ + 1) * PROF**PROFJ
+            AJOH(NR)= PROF
+         ELSE
+            X(LQe4,NR) = 0.D0
+            AJOH(NR)= 0.D0
+         ENDIF
       ENDDO
 C
 C Integer mesh variables
 C
-      X(LQm4,0) = 0.D0
-      DO NR = 1, NRMAX
-         RL=R(NR)
-         IF (RL .LT. RA) THEN
-            PROF = 1.D0 - (RL / RA)**2
-            X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
-     &                * (1 - PROF**(PROFJ+1))
-         ELSE
-            X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
-         ENDIF
-      ENDDO
+      IF(FSHL.EQ.0.D0) THEN
+         X(LQm4,0) = 0.D0
+         DO NR = 1, NRMAX
+            RL=R(NR)
+            IF (RL .LT. RA) THEN
+               PROF = 1.D0 - (RL / RA)**2
+               X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
+     &              * (1 - PROF**(PROFJ+1))
+            ELSE
+               X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
+            ENDIF
+         ENDDO
+      ELSE
+         X(LQm4,0) = 0.D0
+         DO NR = 1, NRMAX
+            RL=R(NR)
+            QL=(Q0-QA)*(1-(RL/RA)**2)+QA
+            X(LQm4,NR) = BB*RL/(QL*RR)
+         ENDDO
+      ENDIF
+C
+      IF(FSHL.EQ.0.D0) THEN
+         DO NR=0,NRMAX
+            AJV(NR)=0.D0
+         ENDDO
+      ELSE
+         DO NR=0,NRMAX
+            RL=R(NR)
+            RIP1=2.D0*PI*RL*X(LQm4,NR)/rMU0
+            RL=R(NR+1)
+            RIP2=2.D0*PI*RL*X(LQm4,NR+1)/rMU0
+            RL=RHI(NR)
+            AJV(NR)=(RIP2-RIP1)/(2.D0*PI*RL*DR)
+         ENDDO
+      ENDIF
 C
       DO NR = 0, NRMAX - 1
          RL=RHI(NR)
@@ -484,8 +582,11 @@ C
      &                   * EPS0**2
      &                   * (ABS(PTeHI(NR)) * rKeV)**1.5D0)
          rJP = rIps * 1.D6 / (PI * RA**2) * (PROFJ + 1) * PROF
-         X(LQm3,NR) = ETA * rJP
-C         X(LQm3,NR) = 0.D0
+         IF(FSHL.EQ.0.D0) THEN
+            X(LQm3,NR) = ETA * rJP
+         ELSE
+            X(LQm3,NR) = 0.D0
+         ENDIF
       ENDDO
 C
       TIME=0.D0

@@ -12,7 +12,10 @@ OBJS = $(SRCS:.f=.o)
 .f.o :
 	$(FC) $(LFLAGS) -c $< -o $@
 
-all : $(OBJS)
+all : tasklib.a
+
+tasklib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o tasklib.a $(OBJS)
 
 testspl : testspl.o libspl.o ../grf/libgrf.o
 	$(FC) -o $@ testspl.o $(FFLAGS) libspl.o ../grf/libgrf.o $(FLIBS)

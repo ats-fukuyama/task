@@ -1,24 +1,29 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-LFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
-SRCS = fpmain.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
+SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
        fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f
 
-OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
-                     ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
-                     ../lib/libspl.o \
-                     ../lib/libbrn.o \
-                     ../lib/libde.o ../lib/libfp.o \
-                     ../lib/libbes.o ../lib/libpcg.o ../lib/libchar.o ../lib/libfio.o
+OBJS = $(SRCS:.f=.o)
+
+LIBS = fplib.a ../pl/pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-fp : $(OBJS)
-	$(FC) $(OBJS) -o fp $(FFLAGS) $(FLIBS)
+all : fp
+
+fplib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o fplib.a $(OBJS)
+
+
+fp : fpmain.o $(LIBS)
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a pleqin.o)
+	(cd ../lib; make tasklib.a)
+	$(FC) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
@@ -36,13 +41,13 @@ new:
 	cp -f *.inc ../fpnew
 
 fpmain.o : fpmain.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpmenu.o : fpmenu.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcaln.o : fpcaln.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
-
 fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpgraf.o : fpgraf.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
@@ -50,26 +55,3 @@ fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
 fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
-
-../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.inc ../pl/plcom1.inc
-../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.inc ../pl/plcom1.inc ../pl/plcom2.inc
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../lib/libspl.o: ../lib/libspl.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libspl.f
-../lib/libbrn.o: ../lib/libbrn.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
-../lib/libbde.o: ../lib/libbde.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libbde.f
-../lib/libfp.o: ../lib/libfp.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libfp.f
-../lib/libbes.o: ../lib/libbes.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libbes.f
-../lib/libpcg.o: ../lib/libpcg.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libpcg.f
-../lib/libchar.o: ../lib/libchar.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
-../lib/libfio.o: ../lib/libfio.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f

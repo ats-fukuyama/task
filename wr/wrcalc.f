@@ -140,6 +140,8 @@ C
  1200    CONTINUE
       ENDDO
 C
+      CALL WRAPWR
+C
       CALL GUTIME(TIME2)
       WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
 C
@@ -765,5 +767,101 @@ C
       RKA=SQRT(RKX**2+RKY**2+RKZ**2)
       RKPARA=RKX*BNX+RKY*BNY+RKZ*BNZ
       RKPERP=SQRT(RKA**2-RKPARA**2)
+      RETURN
+      END
+C
+C     ***** ABSORBED POWER PROFILE*****
+C
+      SUBROUTINE WRAPWR
+C
+      INCLUDE 'wrcomm.inc'
+C
+      PARAMETER(NRM=201)
+C
+      DIMENSION PWRRAY(NRM,NRAYM)
+      DIMENSION PWR(NRM,NSM),AJR(NRM)
+C
+C     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
+C
+      CALL PLDATA_GETN(NRMAXPL,NSMAXPL)
+C
+      DRHO=1.D0/NRMAXPL
+      DO NRAY=1,NRAYMX
+         DO NR=1,NRMAXPL
+            PWRRAY(NR,NRAY)=0.0
+         ENDDO
+      ENDDO
+
+      DO NRAY=1,NRAYMX
+         DO IT=0,NITMAX(NRAY)-1
+            XL=RAYS(1,IT,NRAY)
+            YL=RAYS(2,IT,NRAY)
+            ZL=RAYS(3,IT,NRAY)
+            CALL PLMAG(XL,YL,ZL,PSIN1)
+            RHO1=SQRT(PSIN1)
+	    NRS1=INT(RHO1/DRHO)+1
+            XL=RAYS(1,IT+1,NRAY)
+            YL=RAYS(2,IT+1,NRAY)
+            ZL=RAYS(3,IT+1,NRAY)
+            CALL PLMAG(XL,YL,ZL,PSIN2)
+            RHO2=SQRT(PSIN2)
+            NRS2=INT(RHO2/DRHO)+1
+            NDR=ABS(NRS2-NRS1)
+            IF(NDR.EQ.0) THEN
+               PWRRAY(NRS1,NRAY)
+     &              =PWRRAY(NRS1,NRAY)+RAYS(8,IT+1,NRAY)
+            ELSE IF(NRS1.LT.NRS2) THEN
+               SDR=(RHO2-RHO1)/DRHO
+               DELP=RAYS(8,IT+1,NRAY)/SDR
+               PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
+     &              +(DBLE(NRS1)-RHO1/DRHO)*DELP
+               DO NR=NRS1+1,NRS2-1
+                  PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
+               ENDDO
+               PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
+     &              +(RHO2/DRHO-DBLE(NRS2-1))*DELP
+            ELSE
+               SDR=(RHO1-RHO2)/DRHO
+               DELP=RAYS(8,IT+1,NRAY)/SDR
+               PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
+     &              +(DBLE(NRS2)-RHO2/DRHO)*DELP
+               DO NR=NRS2+1,NRS1-1
+                  PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
+               ENDDO
+               PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
+     &              +(RHO1/DRHO-DBLE(NRS1-1))*DELP
+            ENDIF
+         ENDDO
+C         WRITE(6,'(5(I3,1PE12.4))') (NR,PWRRAY(NR,NRAY),NR=1,NRMAXPL)
+      ENDDO
+C
+      DO NR=1,NRMAXPL
+         DO NRAY=1,NRAYMX
+            PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)
+     &                 /(2*PI*(DBLE(NR)-0.5D0)*DRHO*DRHO)
+         ENDDO
+C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
+      ENDDO
+C
+C     ----- weight of power for each ray-------
+C
+      DO NR=1,NRMAXPL
+         PWR(NR,1)=0.D0
+         DO NRAY=1,NRAYMX
+            PWR(NR,1)=PWR(NR,1)+RAYIN(8,NRAY)*PWRRAY(NR,NRAY)
+         ENDDO
+      ENDDO
+C      WRITE(6,'(1P5E12.4)') (PWR(NR,1),NR=1,NRMAXPL)
+      DO NS=2,NSMAXPL
+         DO NR=1,NRMAXPL
+            PWR(NR,NS)=0.D0
+         ENDDO
+      ENDDO
+      DO NR=1,NRMAXPL
+         AJR(NR)=0.D0
+      ENDDO
+C
+      CALL PLDATA_SETWR(1,'EC1',PWR,AJR)
+C
       RETURN
       END

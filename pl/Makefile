@@ -3,16 +3,23 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = plmain.f plinit.f plprof.f
+SRCS = plmenu.f plinit.f plprof.f pldata.f
 
-OBJS = $(SRCS:.f=.o) ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
-	../lib/libspl.o ../lib/libbrn.o ../lib/libgut.o ../lib/libchar.o ../lib/libfio.o
+OBJS = $(SRCS:.f=.o) 
+
+LIBS = pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-pl : $(OBJS)
-	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
+all : pl
+pllib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
+
+pl : plmain.o $(LIBS)
+	(cd ../lib; make tasklib.a)
+	(cd ../eq; make eqlib.a pleqin.o)
+	$(FC) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
@@ -30,9 +37,8 @@ new:
 	cp -f *.inc ../plnew
 
 plmain.o: plmain.f plcomm.inc plcom1.inc
+plmenu.o: plmenu.f plcomm.inc plcom1.inc
 plinit.o: plinit.f plcomm.inc plcom1.inc
 plprof.o: plprof.f plcomm.inc plcom1.inc plcom2.inc
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+pldata.o: pldata.f plcomd.inc plcom3.inc
 ../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

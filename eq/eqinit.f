@@ -251,12 +251,16 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE EQPARM(KID)
+      SUBROUTINE EQPARM(MODE,LINE,IERR)
+C
+C     MODE=0 : normal namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
 C
       INCLUDE 'eqcomm.inc'
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32,KNAME*90,LINE*80,KID*1
+      CHARACTER KPNAME*80,KNAME*90,LINE*80,KID*1
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,
@@ -274,44 +278,50 @@ C
      &              NRMAX,NTHMAX,NSUMAX,
      &              MDLEQF,MDLEQC,NPRINT
 C
-      MODE=0
-    1 CONTINUE
-         WRITE(6,*) '# INPUT &eq :'
+      IF(MODE.EQ.0) THEN
+    1    CONTINUE
+         WRITE(6,*) '# INPUT &EQ :'
          READ(5,EQ,ERR=2,END=3)
          KID=' '
          GOTO 4
 C
     2    CALL EQPLST
-      GOTO 1
+         GOTO 1
 C
-    3 KID='Q'
-    4 GOTO 3000
+    3    IERR=1
+    4    CONTINUE
 C
-      ENTRY EQPARL(LINE)
+      ELSEIF(MODE.EQ.1) THEN
 C
-      MODE=1
-      KNAME=' &EQ '//LINE//' &END'
-      WRITE(7,'(A90)') KNAME
-      REWIND(7)
-      READ(7,EQ,ERR=8,END=8)
-      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
-      GOTO 9
-    8 CALL EQPLST
-    9 REWIND(7)
-      GOTO 3000
+         INQUIRE(FILE=LINE,EXIST=LEX,ERR=9800)
+         IF(.NOT.LEX) THEN
+            IERR=2
+            RETURN
+         ENDIF
+         OPEN(25,FILE=LINE,IOSTAT=IST,STATUS='OLD',ERR=9100)
+         READ(25,EQ,IOSTAT=IST,ERR=9800,END=9900)
+         CLOSE(25)
+         CALL KTRIM(LINE,KL)
+         WRITE(6,*) 
+     &     '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
 C
-      ENTRY EQPARF(KPNAME)
+      ELSE(MODE.EQ.2) THEN
+         KNAME=' &EQ '//LINE//' &END'
+         WRITE(7,'(A90)') KNAME
+         REWIND(7)
+         READ(7,EQ,ERR=8,END=8)
+         WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
+         GOTO 9
+    8    CALL EQPLST
+         IERR=3
+         RETURN
+    9    REWIND(7)
+      ELSE
+         WRITE(6,*) 'XX EQPARM : UNKNOWN MODE =',MODE
+         IERR=4
+         RETURN
+      ENDIF
 C
-      MODE=2
-      INQUIRE(FILE=KPNAME,EXIST=LEX,ERR=9800)
-      IF(.NOT.LEX) RETURN
-C
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,EQ,IOSTAT=IST,ERR=9800,END=9900)
-      CLOSE(25)
-      WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
-C
- 3000 CONTINUE
       IERR=0
 C
 C     PARAMETER CHECK SHOULD BE HERE
@@ -321,10 +331,13 @@ C
       RETURN
 C
  9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+      IERR=5
       RETURN
  9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+      IERR=6
       RETURN
  9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
+      IERR=7
       RETURN
       END
 C

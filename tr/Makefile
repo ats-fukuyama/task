@@ -1,12 +1,10 @@
 ### $Id$ ###
 include ../make.header
 
-LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
-#LFLAGS = $(DFLAGS)
 #FFLAGS = $(DFLAGS)
 
-SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
+SRCS=trmenu.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
      glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f \
@@ -14,11 +12,6 @@ SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
 SRCF=glf/glf2d.F glf/r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
-SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
-     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f \
-     ../eq/eqdsk.f
-SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f \
-     ../lib/libchar.f ../lib/libfio.f
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
       nclass/u_lu_backsub.f nclass/u_lu_decomp.f
@@ -34,20 +27,35 @@ OBJNC=$(SRCNC:.f=.o)
 PROG2=tr2
 PROG3=trf
 
-all: 3d 2d
+LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
+LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 
-3d: $(PROG3)
+.f.o :
+	$(FC) $(FFLAGS) -c $< -o $@
 
-$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
-	-$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(GLLIBS)
+all: tr2 tr3
 
-2d : $(PROG2)
+tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) \
+          trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) -o tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)
 
-$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(FLIBS)
+tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
+          trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
+
+tr2: trmain.o $(LIBS2)
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a treqin.o pleqin.o)
+	(cd ../lib; make tasklib.a)
+	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+tr3: trmain.o $(LIBS3)
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a treqin.o)
+	(cd ../lib; make tasklib.a)
+	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS)
 
 check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRC3D) $(SRCNC) $(FCKPIPE) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
 	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core
@@ -67,6 +75,7 @@ new :
 	-cp -f doc/* ../trnew/doc
 
 trmain.o : trmain.f trcomm.inc trcom0.inc 
+trmenu.o : trmenu.f trcomm.inc trcom0.inc 
 trinit.o : trinit.f trcomm.inc trcom0.inc
 trfile.o : trfile.f trcomm.inc trcom0.inc
 trloop.o : trloop.f trcomm.inc trcom0.inc
@@ -92,7 +101,7 @@ trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FC) $(FFLAGS) -c -o glf/glf2d.o glf/glf2d.F
+	$(FC) $(FFLAGS) -c -o glf/glf2d.o -I glf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 glf/zgeev.o  : glf/zgeev.f
@@ -103,26 +112,5 @@ nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
 itg/ifspppl_model.o : itg/ifspppl_model.f
 itg/weiland.o: itg/weiland.f
-../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
-../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.inc ../eq/eqcom2.inc
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.inc ../eq/eqcom2.inc \
-                ../eq/eqcom3.inc
-../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.inc ../eq/eqcom2.inc \
-                ../eq/eqcom4.inc
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc \
                 ../eq/eqcom4.inc
-../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o : ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../lib/libbnd.o: ../lib/libbnd.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
-../lib/libspl.o: ../lib/libspl.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libspl.f
-../lib/libbrn.o: ../lib/libbrn.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
-../lib/libgut.o: ../lib/libgut.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
-../lib/libchar.o: ../lib/libchar.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
-../lib/libfio.o: ../lib/libfio.f
-	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f

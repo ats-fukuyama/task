@@ -1,35 +1,31 @@
 ### $Id$ ###
 include ../make.header
 
-LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
-SRCX = wminit.f wmsetg.f wmvmec.f wmbooz.f \
+SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmexec.f wmprof.f wmdisp.f \
        nowmsolv.f wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f wmtae.f
 
-SRCS = wmmain.f wmeign.f $(SRCX)
+OBJS = $(SRCS:.f=.o)
 
-OBJM = ../mtx/bandcd.o  ../mtx/mtxset.o ../mtx/precndcb.o \
-       ../mtx/bcgcdb.o ../mtx/cgscdb.o ../mtx/bstabcdb.o \
-       ../mtx/bandcdb.o
-
-OBJL = ../lib/libdsp.o ../lib/libfft.o ../lib/libinv.o \
-       ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o ../lib/libchar.o \
-       ../lib/libfio.o ../lib/libgut.o ../lib/libgrf.o
-
-OBJE = ../eq/eqload.o ../eq/eqdsk.o ../eq/eqcalq.o ../eq/wmeqin.o
-
-OBJS = $(SRCS:.f=.o) $(OBJM) $(OBJL) $(OBJE) $(OBJLA)
+LIBS = wmlib.a ../eq/wmeqin.o ../eq/eqlib.a ../mtx/mtxlib.a \
+       ../lib/tasklib.a $(OBJLA)
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
 all : wm
 
-wm : $(OBJS) wmcomm.inc
-	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
+wmlib.a: $(OBJS)
+	$(LD) $(LDFLAGS) -o wmlib.a $(OBJS)
+
+wm : wmmain.o $(LIBS)
+	(cd ../eq; make eqlib.a wmeqin.o)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../lib; make tasklib.a)
+	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
@@ -49,6 +45,7 @@ veryclean: clean
 	rm -f wm
 
 wmmain.o : wmmain.f wmcomm.inc
+wmmenu.o : wmmenu.f wmcomm.inc
 wmeign.o : wmeign.f wmcomm.inc
 wminit.o : wminit.f wmcomm.inc
 wmsetg.o : wmsetg.f wmcomm.inc
@@ -69,7 +66,4 @@ wmvout.o : wmvout.f wmcomm.inc vmcomm.inc
 wmgsub.o : wmgsub.f wmcomm.inc
 wmdout.o : wmdout.f wmcomm.inc	
 wmbooz.o : wmbooz.f wmcomm.inc vmcomm.inc
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
