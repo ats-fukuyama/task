@@ -309,6 +309,13 @@ C
 C
 C     ----- calculate right hand side vector -----
 C
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+      ENDDO
+      ENDDO
+C
       IMDLEQF=MOD(MDLEQF,5)
       FDN=-1.D0/PSI0
 C
@@ -420,7 +427,7 @@ C
             HJT1(NTG,NSG)=HJPSI
             HJP2C=1.D0-RR**2*RGJ**2/(RMM(NTG,NSG)**2*RGB)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)
-            HJT2(NTG,NSG)=RR*RGJ/(RMM(NTG,NSG))*RGB)*HJT1(NTG,NSG)
+            HJT2(NTG,NSG)=RR*RGJ/(RMM(NTG,NSG)*RGB)*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
 C
             FJP=FJP+HJP2(NTG,NSG)*DVOL
