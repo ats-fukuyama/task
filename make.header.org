@@ -124,3 +124,13 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = sxf90
 #LD=ld
 #LDFLAGS=-r
+
+# for ITBL
+#FLIBS=/srfs/home1/g5/jz245/lib/libg3d.so /srfs/home1/g5/jz245/lib/libgsp.so \
+#/srfs/home1/g5/jz245/lib/libgdp.so /usr/X/lib/libX11.so -lm
+#OFLAGS = -O
+#DFLAGS = -g
+#FC=f77
+#LD=ld
+#LDFLAGS=-r
+

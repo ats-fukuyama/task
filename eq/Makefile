@@ -52,8 +52,6 @@ new:
 	cp -f Makefile ../eqnew
 	cp -f *.f ../eqnew
 	cp -f *.inc ../eqnew
-	-mkdir ../eqnew/in
-	cp -f in/* ../eqnew/in
 
 eqmain.o: eqmain.f eqcom1.inc
 eqinit.o: eqinit.f eqcom1.inc

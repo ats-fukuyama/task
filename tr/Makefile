@@ -73,8 +73,14 @@ new :
 	-cp -f HISTORY ../trnew
 	cp *.f ../trnew
 	cp *.inc ../trnew
-	-mkdir ../trnew/in
-	-cp -f in/* ../trnew/in
+	-mkdir ../trnew/itg
+	-cp -f itg/*.f ../trnew/itg
+	-mkdir ../trnew/glf
+	-cp -f glf/*.f ../trnew/glf
+	-cp -f glf/*.m ../trnew/glf
+	-cp -f glf/*.F ../trnew/glf
+	-mkdir ../trnew/nclass
+	-cp -f nclass/*.f ../trnew/nclass
 	-mkdir ../trnew/doc
 	-cp -f doc/* ../trnew/doc
 

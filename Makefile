@@ -12,6 +12,7 @@ message:
 clean:
 	(cd lib; make clean)
 	(cd mtx; make clean)
+	(cd mpi; make clean)
 	(cd eq; make clean)
 	(cd pl; make clean)
 	(cd dp; make clean)
@@ -26,6 +27,7 @@ clean:
 veryclean: clean
 	(cd lib; make veryclean)
 	(cd mtx; make veryclean)
+	(cd mpi; make veryclean)
 	(cd eq; make veryclean)
 	(cd pl; make veryclean)
 	(cd dp; make veryclean)
@@ -39,11 +41,13 @@ veryclean: clean
 new:
 	-mkdir ../tasknew
 	cp Makefile ../tasknew
-	cp make.header ../tasknew
+	cp make.header.org ../tasknew
 	(cd lib; make new)
 	mv libnew ../tasknew/lib
 	(cd mtx; make new)
 	mv mtxnew ../tasknew/mtx
+	(cd mpi; make new)
+	mv mpinew ../tasknew/mpi
 	(cd eq; make new)
 	mv eqnew ../tasknew/eq
 	(cd pl; make new)
