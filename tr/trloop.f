@@ -80,13 +80,13 @@ C
          RN(NR,4) = 0.5D0*(XV(4,NR)+X(NVM*NR-5))
          RN(NR,1) = PZ(2)*RN(NR,2) +PZ(3)*RN(NR,3)+PZ(4)*RN(NR,4)
      &             +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-         RT(NR,1)  = 0.5D0*(XV(5,NR)+X(NVM*NR-4))/(1.5D0*RN(NR,1))
-         RT(NR,2)  = 0.5D0*(XV(6,NR)+X(NVM*NR-3))/(1.5D0*RN(NR,2))
-         RT(NR,3)  = 0.5D0*(XV(7,NR)+X(NVM*NR-2))/(1.5D0*RN(NR,3))
+         RT(NR,1)  = 0.5D0*(XV(5,NR)+X(NVM*NR-4))/RN(NR,1)
+         RT(NR,2)  = 0.5D0*(XV(6,NR)+X(NVM*NR-3))/RN(NR,2)
+         RT(NR,3)  = 0.5D0*(XV(7,NR)+X(NVM*NR-2))/RN(NR,3)
          IF(RN(NR,4).LT.1.D-70) THEN
             RT(NR,4)  = 0.D0
          ELSE
-            RT(NR,4)  = 0.5D0*(XV(8,NR)+X(NVM*NR-1))/(1.5D0*RN(NR,4))
+            RT(NR,4)  = 0.5D0*(XV(8,NR)+X(NVM*NR-1))/RN(NR,4)
          ENDIF
          BP(NR)    = 0.5D0*(XV(9,NR)+X(NVM*NR))
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
@@ -180,8 +180,8 @@ C
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
       ELSE
          BPA=XV(9,NRMAX)
-         RLP=RA*LOG(8.D0*RR/RA-2.D0)
-         BPS=BPA-DT*EZOH(NRMAX)/RLP
+         RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
+         BPS=BPA-AMYU0*DT*EZOH(NRMAX)/RLP
       ENDIF
 C
       COEF = AEE**4*5.D0*1.D20/(SQRT(2.D0*PI)*PI*AEPS0**2)
@@ -216,8 +216,8 @@ C
          ELSE
             FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
          ENDIF
-         F1M=FAM*AR1RHO(NR  )/DR
-         F1P=FAP*AR1RHO(NR+1)/DR
+         F1M=FAM*AR1RHO(NR  )*BB/DR
+         F1P=FAP*AR1RHO(NR+1)*BB/DR
          F2M=FAM*FBM/(DR*DR)
          F2P=FAP*FBP/(DR*DR)
          FCM=0.5D0*(FC1+FC2)
@@ -306,8 +306,8 @@ C
          FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
          FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
          FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
-         F1M=FAM*AR1RHO(NR  )/DR
-         F1P=FAP*AR1RHO(NR+1)/DR
+         F1M=FAM*AR1RHO(NR  )*BB/DR
+         F1P=FAP*AR1RHO(NR+1)*BB/DR
          F2M=FAM*FBM/(DR*DR)
          F2P=FAP*FBP/(DR*DR)
          FCM=0.5D0*(FC1+FC2)
@@ -443,7 +443,7 @@ C
      &                 +(-VNP+DNP*2.D0)*PNSS(NS)
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
      &                 +(-VXP+DXP*2.D0)*PNSS(NS)
-     &                 +(-VTP+DTP*2.D0)*PNSS(NS)*PTS(NS)*1.5D0
+     &                 +(-VTP+DTP*2.D0)*PNSS(NS)*PTS(NS)
 C
       DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
