@@ -107,8 +107,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      DIMENSION VOL(NRM)
-C
       IF(PNBTOT.LE.0.D0) RETURN
 C
       XL = SQRT((RR+RA)**2-R0**2)

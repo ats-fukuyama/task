@@ -21,7 +21,7 @@ $(PROG) : $(OBJS) $(OBJE) trcomm.h
 	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJE) $(OBJL) $(FLIBS)
 
 check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(OBJL) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(FCKPIPE) | less
 
 clean : 
 	rm -f ./#* ./*~ *.o a.out core

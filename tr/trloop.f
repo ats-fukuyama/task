@@ -171,9 +171,9 @@ C
       RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
       FKAP=0.5D0*(RKAP+1.D0)
      &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
-      DO 5 NS=1,NSM
-        AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
-    5 CONTINUE
+      DO NS=1,NSM
+         AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
+      ENDDO
 C
       IF(MDLCD.EQ.0) THEN
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
@@ -184,188 +184,273 @@ C
       ENDIF
 C
       COEF = AEE**4*5.D0*1.D20/(SQRT(2.D0*PI)*PI*AEPS0**2)
-      FVL  = FKAP/RKAP
-      DR1  = FVL/DR
-      DR2  = FVL/(DR*DR)
 C
-      DO 10 NR=1,NRMAX
-      DO 10 NW=1,NVM
-      DO 10 NV=1,NVM
+      DO NR=1,NRMAX
+      DO NW=1,NVM
+      DO NV=1,NVM
          A(NV,NW,NR)=0.D0
          B(NV,NW,NR)=0.D0
          C(NV,NW,NR)=0.D0
-   10 CONTINUE
-      DO 15 NR=1,NRMAX
-      DO 15 NV=1,NVM
+      ENDDO
+      ENDDO
+      ENDDO
+      DO NR=1,NRMAX
+      DO NV=1,NVM
          D(NV,NR)=0.D0
-   15 CONTINUE
-         
+      ENDDO
+      ENDDO
 C
-      DO 20 NR=2,NRMAX-1
-         NN=2*NSM+1
-         A(NN,NN,NR) = ETA(NR  )*RG(NR-1)/(RM(NR  )*AMYU0)  *DR2
-         B(NN,NN,NR) =-ETA(NR  )*RG(NR  )/(RM(NR  )*AMYU0)  *DR2
-     &                -ETA(NR+1)*RG(NR  )/(RM(NR+1)*AMYU0)  *DR2
-         C(NN,NN,NR) = ETA(NR+1)*RG(NR+1)/(RM(NR+1)*AMYU0)  *DR2
-         D(NN   ,NR) = ETA(NR  )*(AJ(NR  )-AJOH(NR  ))      /DR
-     &                -ETA(NR+1)*(AJ(NR+1)-AJOH(NR+1))      /DR
+      NN=2*NSM+1
 C
-         DO 18 NS=1,NSM
+      DO NR=2,NRMAX-1
+         FAM=ETA(NR  )/(RR*TTRHO(NR  )*ARRHO(NR  ))
+         FAP=ETA(NR+1)/(RR*TTRHO(NR+1)*ARRHO(NR+1))
+         FBM=RR*TTRHO(NR  )**2/(AMYU0*DVRHO(NR  ))
+         FBP=RR*TTRHO(NR+1)**2/(AMYU0*DVRHO(NR+1))
+         FC1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+         FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+         FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+         IF(NR.EQ.NRMAX-1) THEN
+            FC4=FC3
+         ELSE
+            FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
+         ENDIF
+         F1M=FAM*AR1RHO(NR  )/DR
+         F1P=FAP*AR1RHO(NR+1)/DR
+         F2M=FAM*FBM/(DR*DR)
+         F2P=FAP*FBP/(DR*DR)
+         FCM=0.5D0*(FC1+FC2)
+         FC0=0.5D0*(FC2+FC3)
+         FCP=0.5D0*(FC3+FC4)
+C
+         A(NN,NN,NR) = F2M*FCM
+         B(NN,NN,NR) =-F2M*FC0
+     &                -F2P*FC0
+         C(NN,NN,NR) = F2P*FCP
+         D(NN   ,NR) = F1M*(AJ(NR  )-AJOH(NR  ))
+     &                -F1P*(AJ(NR+1)-AJOH(NR+1))
+C
+         FA1=DVRHO(NR-1)*AR1RHO(NR-1)/DR
+         FA2=DVRHO(NR  )*AR1RHO(NR  )/DR
+         FA3=DVRHO(NR+1)*AR1RHO(NR+1)/DR
+         FB1=DVRHO(NR-1)*AR2RHO(NR-1)/(DR*DR)
+         FB2=DVRHO(NR  )*AR2RHO(NR  )/(DR*DR)
+         FB3=DVRHO(NR+1)*AR2RHO(NR+1)/(DR*DR)
+         DO NS=1,NSM
             RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
-   18    CONTINUE
-      DO 20 NS=1,NSM
-         VNM=RG(NR-1)*AV(NR-1,NS)/RM(NR)
-         VNP=RG(NR  )*AV(NR  ,NS)/RM(NR)
-         DNM=RG(NR-1)*AD(NR-1,NS)/RM(NR)
-         DNP=RG(NR  )*AD(NR  ,NS)/RM(NR)
+         ENDDO
 C
-         VTM=RG(NR-1)*(AVK(NR-1,NS)/1.5D0+AV(NR-1,NS))/RM(NR)
-         VTP=RG(NR  )*(AVK(NR  ,NS)/1.5D0+AV(NR  ,NS))/RM(NR)
-         DTM=RG(NR-1)* AK(NR-1,NS)/(1.5D0*RM(NR))
-         DTP=RG(NR  )* AK(NR  ,NS)/(1.5D0*RM(NR))
+      DO NS=1,NSM
+         VNM=0.5D0*(FA1*AV(NR-1,NS)+FA2*AV(NR  ,NS))
+         VNP=0.5D0*(FA2*AV(NR  ,NS)+FA3*AV(NR+1,NS))
+         DNM=0.5D0*(FB1*AD(NR-1,NS)+FB2*AD(NR  ,NS))
+         DNP=0.5D0*(FB2*AD(NR  ,NS)+FB3*AD(NR+1,NS))
 C
-         VXM=0.D0
-         VXP=0.D0
-         RTL=0.5D0*(RT(NR-1,NS)+RT(NR  ,NS))
-         DXM=RG(NR-1)*(1.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RTL/RM(NR)
-         RTL=0.5D0*(RT(NR  ,NS)+RT(NR+1,NS))
-         DXP=RG(NR  )*(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RTL/RM(NR)
+         DV23=DVRHO(NR)**(2.D0/3.D0)
+         DV53=DVRHO(NR)**(5.D0/3.D0)
+         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*2.5D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
+         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*2.5D0
+         ADK1=AK(NR-1,NS)
+         ADK2=AK(NR  ,NS)
+         ADK3=AK(NR+1,NS)
+         VTM=0.5D0*(FA1*AVK1+FA2*AVK2)*DV23
+         VTP=0.5D0*(FA2*AVK2+FA3*AVK3)*DV23
+         DTM=0.5D0*(FB1*ADK1+FB2*ADK2)*DV23
+         DTP=0.5D0*(FB2*ADK2+FB3*ADK3)*DV23
 C
-         A(    NS,    NS,NR) = 0.5D0*VNM*DR1+DNM*DR2
-         B(    NS,    NS,NR) = 0.5D0*VNM*DR1-DNM*DR2
-     &                        -0.5D0*VNP*DR1-DNP*DR2
-         C(    NS,    NS,NR) =-0.5D0*VNP*DR1+DNP*DR2
+         ADX1=(2.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
+         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         ADX3=(2.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
+         VXM=0.D0*DV23
+         VXP=0.D0*DV23
+         DXM=0.5D0*(FB1*ADX1+FB2*ADX2)*DV23
+         DXP=0.5D0*(FB2*ADX2+FB3*ADX3)*DV23
 C
-         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1+DTM*DR2
-         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1-DTM*DR2
-     &                        -0.5D0*VTP*DR1-DTP*DR2
-         C(NSM+NS,NSM+NS,NR) =-0.5D0*VTP*DR1+DTP*DR2
+         A(    NS,    NS,NR) = 0.5D0*VNM+DNM
+         B(    NS,    NS,NR) = 0.5D0*VNM-DNM
+     &                        -0.5D0*VNP-DNP
+         C(    NS,    NS,NR) =-0.5D0*VNP+DNP
 C
-         A(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1+DXM*DR2
-         B(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1-DXM*DR2
-     &                        -0.5D0*VXP*DR1-DXP*DR2
-         C(NSM+NS,    NS,NR) =-0.5D0*VXP*DR1+DXP*DR2
+         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM+DTM
+         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM-DTM
+     &                        -0.5D0*VTP-DTP
+         C(NSM+NS,NSM+NS,NR) =-0.5D0*VTP+DTP
 C
-         D(    NS,NR) = SSIN(NR,NS)+SPE(NR,NS)/DT
-         D(NSM+NS,NR) = PIN(NR,NS)/(RKEV*1.D20)
+         A(NSM+NS,    NS,NR) = 0.5D0*VXM+DXM
+         B(NSM+NS,    NS,NR) = 0.5D0*VXM-DXM
+     &                        -0.5D0*VXP-DXP
+         C(NSM+NS,    NS,NR) =-0.5D0*VXP+DXP
 C
-      DO 20 NS1=1,NSM
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+         D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
+C
+      DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))
+            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
             B(NSM+NS,NSM+NS, NR)=B(NSM+NS,NSM+NS, NR)-RN(NR,NS1)*C1
             B(NSM+NS,NSM+NS1,NR)=B(NSM+NS,NSM+NS1,NR)+RN(NR,NS )*C1
          ENDIF
-   20 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       NR=1
-         NN=2*NSM+1
-         A(NN,NN,NR) = 0.D0
-         B(NN,NN,NR) =-ETA(NR  )*RG(NR  )/(RM(NR  )*AMYU0)  *DR2
-     &                -ETA(NR+1)*RG(NR  )/(RM(NR+1)*AMYU0)  *DR2
-         C(NN,NN,NR) = ETA(NR+1)*RG(NR+1)/(RM(NR+1)*AMYU0)  *DR2
-         D(NN   ,NR) = ETA(NR  )*(AJ(NR  )-AJOH(NR  ))      /DR
-     &                -ETA(NR+1)*(AJ(NR+1)-AJOH(NR+1))      /DR
+         FAM=ETA(NR  )/(RR*TTRHO(NR  )*ARRHO(NR  ))
+         FAP=ETA(NR+1)/(RR*TTRHO(NR+1)*ARRHO(NR+1))
+         FBM=RR*TTRHO(NR  )**2/(AMYU0*DVRHO(NR  ))
+         FBP=RR*TTRHO(NR+1)**2/(AMYU0*DVRHO(NR+1))
+         FC1=0.D0
+         FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+         FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+         FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
+         F1M=FAM*AR1RHO(NR  )/DR
+         F1P=FAP*AR1RHO(NR+1)/DR
+         F2M=FAM*FBM/(DR*DR)
+         F2P=FAP*FBP/(DR*DR)
+         FCM=0.5D0*(FC1+FC2)
+         FC0=0.5D0*(FC2+FC3)
+         FCP=0.5D0*(FC3+FC4)
 C
-         DO 28 NS=1,NSM
+         A(NN,NN,NR) = F2M*FCM
+         B(NN,NN,NR) =-F2M*FC0
+     &                -F2P*FC0
+         C(NN,NN,NR) = F2P*FCP
+         D(NN   ,NR) = F1M*(AJ(NR  )-AJOH(NR  ))
+     &                -F1P*(AJ(NR+1)-AJOH(NR+1))
+C
+         FA1=0.D0
+         FA2=DVRHO(NR  )*AR1RHO(NR  )/DR
+         FA3=DVRHO(NR+1)*AR1RHO(NR+1)/DR
+         FB1=0.D0
+         FB2=DVRHO(NR  )*AR2RHO(NR  )/(DR*DR)
+         FB3=DVRHO(NR+1)*AR2RHO(NR+1)/(DR*DR)
+         DO NS=1,NSM
             RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
-   28    CONTINUE
-      DO 30 NS=1,NSM
+         ENDDO
+C
+      DO NS=1,NSM
          VNM=0.D0
-         VNP=RG(NR  )*AV(NR  ,NS)/RM(NR)
+         VNP=0.5D0*(FA2*AV(NR  ,NS)+FA3*AV(NR+1,NS))
          DNM=0.D0
-         DNP=RG(NR  )*AD(NR  ,NS)/RM(NR)
+         DNP=0.5D0*(FB2*AD(NR  ,NS)+FB3*AD(NR+1,NS))
+C
+         DV23=DVRHO(NR)**(2.D0/3.D0)
+         DV53=DVRHO(NR)**(5.D0/3.D0)
+         AVK1=0.D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
+         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*2.5D0
+         ADK1=0.D0
+         ADK2=AK(NR  ,NS)
+         ADK3=AK(NR+1,NS)
          VTM=0.D0
-         VTP=RG(NR  )*(AVK(NR  ,NS)/1.5D0+AV(NR  ,NS))/RM(NR)
+         VTP=0.5D0*(FA2*AVK2+FA3*AVK3)*DV23
          DTM=0.D0
-         DTP=RG(NR  )* AK(NR  ,NS)/(1.5D0*RM(NR))
+         DTP=0.5D0*(FB2*ADK2+FB3*ADK3)*DV23
+C
+         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         ADX3=(2.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
          VXM=0.D0
-         VXP=0.D0
-         DXM=0.D0
-         RTL=0.5D0*(RT(NR  ,NS)+RT(NR+1,NS))
-         DXP=RG(NR  )*(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RTL/RM(NR)
+         VXP=0.D0*DV23
+         DXM=0.0D0
+         DXP=0.5D0*(FB2*ADX2+FB3*ADX3)*DV23
 C
-         A(    NS,    NS,NR) = 0.5D0*VNM*DR1+DNM*DR2
-         B(    NS,    NS,NR) = 0.5D0*VNM*DR1-DNM*DR2
-     &                        -0.5D0*VNP*DR1-DNP*DR2
-         C(    NS,    NS,NR) =-0.5D0*VNP*DR1+DNP*DR2
+         A(    NS,    NS,NR) = 0.5D0*VNM+DNM
+         B(    NS,    NS,NR) = 0.5D0*VNM-DNM
+     &                        -0.5D0*VNP-DNP
+         C(    NS,    NS,NR) =-0.5D0*VNP+DNP
 C
-         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1+DTM*DR2
-         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1-DTM*DR2
-     &                        -0.5D0*VTP*DR1-DTP*DR2
-         C(NSM+NS,NSM+NS,NR) =-0.5D0*VTP*DR1+DTP*DR2
+         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM+DTM
+         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM-DTM
+     &                        -0.5D0*VTP-DTP
+         C(NSM+NS,NSM+NS,NR) =-0.5D0*VTP+DTP
 C
-         A(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1+DXM*DR2
-         B(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1-DXM*DR2
-     &                        -0.5D0*VXP*DR1-DXP*DR2
-         C(NSM+NS,    NS,NR) =-0.5D0*VXP*DR1+DXP*DR2
+         A(NSM+NS,    NS,NR) = 0.5D0*VXM+DXM
+         B(NSM+NS,    NS,NR) = 0.5D0*VXM-DXM
+     &                        -0.5D0*VXP-DXP
+         C(NSM+NS,    NS,NR) =-0.5D0*VXP+DXP
 C
-         D(    NS,NR) = SSIN(NR,NS)+SPE(NR,NS)/DT
-         D(NSM+NS,NR) = PIN(NR,NS)/(RKEV*1.D20)
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+         D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
 C
-      DO 30 NS1=1,NSM
+      DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))
+            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
             B(NSM+NS,NSM+NS, NR)=B(NSM+NS,NSM+NS, NR)-RN(NR,NS1)*C1
             B(NSM+NS,NSM+NS1,NR)=B(NSM+NS,NSM+NS1,NR)+RN(NR,NS )*C1
          ENDIF
-   30 CONTINUE
+      ENDDO
+      ENDDO
 C
       NR=NRMAX
-         NN=2*NSM+1
          A(NN,NN,NR) = 0.D0
          B(NN,NN,NR) = 0.D0
          C(NN,NN,NR) = 0.D0
          D(NN   ,NR) = 0.D0
 C
-         DO 38 NS=1,NSM
+         FA1=DVRHO(NR-1)*AR1RHO(NR-1)/DR
+         FA2=DVRHO(NR  )*AR1RHO(NR  )/DR
+         FA3=DVRHO(NR+1)*AR1RHO(NR+1)/DR
+         FB1=DVRHO(NR-1)*AR2RHO(NR-1)/(DR*DR)
+         FB2=DVRHO(NR  )*AR2RHO(NR  )/(DR*DR)
+         FB3=DVRHO(NR+1)*AR2RHO(NR+1)/(DR*DR)
+         DO NS=1,NSM
             RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
-   38    CONTINUE
-      DO 40 NS=1,NSM
-         VNM=RG(NR-1)*AV(NR-1,NS)/RM(NR)
-         VNP=RG(NR  )*AV(NR  ,NS)/RM(NR)
-         DNM=RG(NR-1)*AD(NR-1,NS)/RM(NR)
-         DNP=RG(NR  )*AD(NR  ,NS)/RM(NR)
+         ENDDO
 C
-         VTM=RG(NR-1)*(AVK(NR-1,NS)/1.5D0+AV(NR-1,NS))/RM(NR)
-         VTP=RG(NR  )*(AVK(NR  ,NS)/1.5D0+AV(NR  ,NS))/RM(NR)
-         DTM=RG(NR-1)* AK(NR-1,NS)/(1.5D0*RM(NR))
-         DTP=RG(NR  )* AK(NR  ,NS)/(1.5D0*RM(NR))
+      DO NS=1,NSM
+         VNM=0.5D0*(FA1*AV(NR-1,NS)+FA2*AV(NR  ,NS))
+         VNP=       FA2*AV(NR  ,NS)
+         DNM=0.5D0*(FB1*AD(NR-1,NS)+FB2*AD(NR  ,NS))
+         DNP=       FB2*AD(NR  ,NS)
 C
-         VXM=0.D0
-         VXP=0.D0
-         RTL=0.5D0*(RT(NR-1,NS)+RT(NR,NS))
-         DXM=RG(NR-1)*(1.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RTL/RM(NR)
-         RTL=PTS(NS)
-         DXP=RG(NR  )*(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RTL/RM(NR)
+         DV23=DVRHO(NR)**(2.D0/3.D0)
+         DV53=DVRHO(NR)**(5.D0/3.D0)
+         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*2.5D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
+         ADK1=AK(NR-1,NS)
+         ADK2=AK(NR  ,NS)
+         VTM=0.5D0*(FA1*AVK1+FA2*AVK2)*DV23
+         VTP=       FA2*AVK2          *DV23
+         DTM=0.5D0*(FB1*ADK1+FB2*ADK2)*DV23
+         DTP=       FB2*ADK2          *DV23
 C
-         A(    NS,    NS,NR) = 0.5D0*VNM*DR1+DNM*DR2
-         B(    NS,    NS,NR) = 0.5D0*VNM*DR1-DNM*DR2
-     &                        -0.0D0*VNP*DR1-DNP*DR2*2.D0
-         C(    NS,    NS,NR) = 0.D0
+         ADX1=(2.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
+         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         VXM=0.D0*DV23
+         VXP=0.D0*DV23
+         DXM=0.5D0*(FB1*ADX1+FB2*ADX2)*DV23
+         DXP=       FB2*ADX2          *DV23
 C
-         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1+DTM*DR2
-         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM*DR1-DTM*DR2
-     &                        -0.0D0*VTP*DR1-DTP*DR2*2.D0
-         C(NSM+NS,NSM+NS,NR) = 0.0D0
+         A(    NS,    NS,NR) = 0.5D0*VNM+DNM
+         B(    NS,    NS,NR) = 0.5D0*VNM-DNM
+     &                        -0.0D0*VNP-DNP-DNP
+         C(    NS,    NS,NR) =-0.0D0
 C
-         A(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1+DXM*DR2
-         B(NSM+NS,    NS,NR) = 0.5D0*VXM*DR1-DXM*DR2
-     &                        -0.0D0*VXP*DR1-DXP*DR2*2.D0
-         C(NSM+NS,    NS,NR) = 0.0D0
+         A(NSM+NS,NSM+NS,NR) = 0.5D0*VTM+DTM
+         B(NSM+NS,NSM+NS,NR) = 0.5D0*VTM-DTM
+     &                        -0.0D0*VTP-DTP-DTP
+         C(NSM+NS,NSM+NS,NR) =-0.0D0
 C
-         D(    NS,NR) = SSIN(NR,NS)+SPE(NR,NS)/DT
-     &                 +(-VNP*DR1+DNP*DR2*2.D0)*PNSS(NS)
-         D(NSM+NS,NR) = PIN(NR,NS)/(RKEV*1.D20)
-     &                 +(-VXP*DR1+DXP*DR2*2.D0)*PNSS(NS)
-     &                 +(-VTP*DR1+DTP*DR2*2.D0)*PNSS(NS)*PTS(NS)*1.5D0
-
-      DO 40 NS1=1,NSM
+         A(NSM+NS,    NS,NR) = 0.5D0*VXM+DXM
+         B(NSM+NS,    NS,NR) = 0.5D0*VXM-DXM
+     &                        -0.0D0*VXP-DXP-DXP
+         C(NSM+NS,    NS,NR) =-0.0D0
+C
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+     &                 +(-VNP+DNP*2.D0)*PNSS(NS)
+         D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
+     &                 +(-VXP+DXP*2.D0)*PNSS(NS)
+     &                 +(-VTP+DTP*2.D0)*PNSS(NS)*PTS(NS)*1.5D0
+C
+      DO NS1=1,NSM
          IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))
+            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
             B(NSM+NS,NSM+NS, NR)=B(NSM+NS,NSM+NS, NR)-RN(NR,NS1)*C1
             B(NSM+NS,NSM+NS1,NR)=B(NSM+NS,NSM+NS1,NR)+RN(NR,NS )*C1
          ENDIF
-   40 CONTINUE
+      ENDDO
+      ENDDO
 C
 C      FADV=0.5D0
       FADV=1.0D0
@@ -373,70 +458,85 @@ C
       PRV=(1.D0-FADV)*DT
       ADV=FADV*DT
 C
-      DO 80 NR=1,NRMAX
-      DO 80 NV=1,NVM
+      DO NR=1,NRMAX
+      DO NV=1,NVM
          X(NVM*(NR-1)+NV) = XV(NV,NR)+DT*D(NV,NR)
-   80 CONTINUE
+      ENDDO
+      ENDDO
 C
       NR=1
-      DO 90 NW=1,NVM
-      DO 90 NV=1,NVM
+      DO NW=1,NVM
+      DO NV=1,NVM
          X(NVM*(NR-1)+NV)=X(NVM*(NR-1)+NV)+PRV*(
      &                                         +B(NV,NW,NR)*XV(NW,NR  )
      &                                         +C(NV,NW,NR)*XV(NW,NR+1))
-   90 CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 92 NR=2,NRMAX-1
-      DO 92 NW=1,NVM
-      DO 92 NV=1,NVM
+      DO NR=2,NRMAX-1
+      DO NW=1,NVM
+      DO NV=1,NVM
          X(NVM*(NR-1)+NV)=X(NVM*(NR-1)+NV)+PRV*(A(NV,NW,NR)*XV(NW,NR-1)
      &                                         +B(NV,NW,NR)*XV(NW,NR  )
      &                                         +C(NV,NW,NR)*XV(NW,NR+1))
-   92 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       NR=NRMAX
-      DO 94 NW=1,NVM
-      DO 94 NV=1,NVM
+      DO NW=1,NVM
+      DO NV=1,NVM
          X(NVM*(NR-1)+NV)=X(NVM*(NR-1)+NV)+PRV*(A(NV,NW,NR)*XV(NW,NR-1)
      &                                         +B(NV,NW,NR)*XV(NW,NR  )
      &                                         )
-   94 CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 100 MV=1,NVM*NRMAX
-      DO 100 MW=1,MWM
+      DO MV=1,NVM*NRMAX
+      DO MW=1,MWM
          AX(MW,MV) = 0.D0
-  100 CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 110 NV=1,NVM
-      DO 110 NW=1,NVM
-      DO 110 NR=1,NRMAX
+      DO NR=1,NRMAX
+      DO NV=1,NVM
+      DO NW=1,NVM
          AX(  NVM+NW-NV,NVM*(NR-1)+NV) = -ADV*A(NV,NW,NR)
          AX(2*NVM+NW-NV,NVM*(NR-1)+NV) = -ADV*B(NV,NW,NR)
          AX(3*NVM+NW-NV,NVM*(NR-1)+NV) = -ADV*C(NV,NW,NR)
-  110 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
-      DO 120 NV=1,NVM
-      DO 120 NR=1,NRMAX
-         AX(2*NVM,NVM*(NR-1)+NV) = AX(2*NVM,NVM*(NR-1)+NV) + 1.D0
-  120 CONTINUE
+      DO NR=1,NRMAX
+         DV53=DVRHO(NR)**(5.D0/3.D0)
+         DO NS=1,NSM
+            AX(2*NVM,NVM*(NR-1)+NS) 
+     &           = AX(2*NVM,NVM*(NR-1)+NS) + 1.D0
+            AX(2*NVM,NVM*(NR-1)+NSM+NS) 
+     &           = AX(2*NVM,NVM*(NR-1)+NSM+NS) + 1.5D0*DV53
+         ENDDO
+            AX(2*NVM,NVM*(NR-1)+NN) 
+     &           = AX(2*NVM,NVM*(NR-1)+NN) + 1.D0
+      ENDDO
 C
 C     ***** Surface Boundary Condition for Bp *****
 C
       MV=NVM*NRMAX
-      DO 130 MW=1,MWM
+      DO MW=1,MWM
          AX(MW,MV)=0.D0
-  130 CONTINUE
+      ENDDO
       AX(2*NVM,MV)=1.D0
       X(MV)=BPS
 C
 C     ***** Evolution of fast ion components *****
 C
-      DO 150 NR=1,NRMAX
-         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-         AY(1,NR)=1.D0+ADV/TAUB(NR)
-         AY(2,NR)=1.D0+ADV/TAUF(NR)
-  150 CONTINUE
+      DO NR=1,NRMAX
+         Y(1,NR)=(1.5D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
+         Y(2,NR)=(1.5D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+         AY(1,NR)=1.5D0+ADV/TAUB(NR)
+         AY(2,NR)=1.5D0+ADV/TAUF(NR)
+      ENDDO
 C
       RETURN
       END
@@ -451,19 +551,19 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          XV(1,NR) = RN(NR,1)
          XV(2,NR) = RN(NR,2)
          XV(3,NR) = RN(NR,3)
          XV(4,NR) = RN(NR,4)
-         XV(5,NR) = 1.5D0*RN(NR,1)*RT(NR,1)
-         XV(6,NR) = 1.5D0*RN(NR,2)*RT(NR,2)
-         XV(7,NR) = 1.5D0*RN(NR,3)*RT(NR,3)
-         XV(8,NR) = 1.5D0*RN(NR,4)*RT(NR,4)
+         XV(5,NR) = RN(NR,1)*RT(NR,1)
+         XV(6,NR) = RN(NR,2)*RT(NR,2)
+         XV(7,NR) = RN(NR,3)*RT(NR,3)
+         XV(8,NR) = RN(NR,4)*RT(NR,4)
          XV(9,NR) = BP(NR)
-         YV(1,NR) = 1.5D0*RW(NR,1)
-         YV(2,NR) = 1.5D0*RW(NR,2)
-  100 CONTINUE
+         YV(1,NR) = RW(NR,1)
+         YV(2,NR) = RW(NR,2)
+      ENDDO
 C
       RETURN
       END
@@ -478,24 +578,24 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          RN(NR,2) = XV(2,NR)
          RN(NR,3) = XV(3,NR)
          RN(NR,4) = XV(4,NR)
          RN(NR,1) = PZ(2)*RN(NR,2)+PZ(3)*RN(NR,3)+PZ(4)*RN(NR,4)
      &             +PZC(NR)*ANC(NR)+PZFE(NR)*ANFE(NR)
-         RT(NR,1) = XV(5,NR)/(1.5D0*RN(NR,1))
-         RT(NR,2) = XV(6,NR)/(1.5D0*RN(NR,2))
-         RT(NR,3) = XV(7,NR)/(1.5D0*RN(NR,3))
+         RT(NR,1) = XV(5,NR)/RN(NR,1)
+         RT(NR,2) = XV(6,NR)/RN(NR,2)
+         RT(NR,3) = XV(7,NR)/RN(NR,3)
          IF(RN(NR,4).LT.1.D-70)THEN
             RT(NR,4) = 0.D0
          ELSE
-            RT(NR,4) = XV(8,NR)/(1.5D0*RN(NR,4))
+            RT(NR,4) = XV(8,NR)/RN(NR,4)
          ENDIF
          BP(NR)  = XV(9,NR)
-         RW(NR,1)  = YV(1,NR)/1.5D0
-         RW(NR,2)  = YV(2,NR)/1.5D0
-  100 CONTINUE
+         RW(NR,1)  = YV(1,NR)
+         RW(NR,2)  = YV(2,NR)
+      ENDDO
 C
       RETURN
       END
