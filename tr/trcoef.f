@@ -1632,11 +1632,7 @@ C
             DO NS=1,NSMAX
                AV(NR,NS)=AVNCS(NR,NS)
 C
-c$$$               IF(NR.NE.NRMAX) THEN
-                  ADDW(NR,NS) = AD0*AKDW(NR,NS)
-c$$$               ELSE
-c$$$                  ADDW(NR,NS) = AD0*AKDW(NR-1,NS)
-c$$$               ENDIF
+               ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
                      DO NA=1,2

@@ -272,7 +272,7 @@ C     *** Eqs. Selection Parameter ***
 C
       NSMAX=2   ! the number of e, D, T and He
       NSZMAX=0  ! the number of impurities
-      NSNMAX=0  ! the number of neutrals, 0 or 2 fixed
+      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
 C      NFMAX=0   ! the number of fast particles
       NSCMAX=NSMAX+NSZMAX ! the number of charged particles
       NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles

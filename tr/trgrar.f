@@ -645,10 +645,8 @@ C
 C     
          DO NS=1,NSMAX
          DO NR=1,NRMAX
-C            GYR(NR+1,NS) = GCLIP(ADNCG(NR,NS))
             GYR(NR+1,NS) = GCLIP(ADNCG(NR,NS)+ADDW(NR,NS))
          ENDDO
-C            GYR(1,NS) = GCLIP(ADNCG(2,NS))
             GYR(1,NS) = GCLIP(ADNCG(2,NS)+ADDW(2,NS))
          ENDDO
       ENDIF

@@ -947,12 +947,12 @@ C
          ELSEIF(NSSN.EQ.6.AND.IND.NE.6) THEN
             WRITE(6,*) '     TI2(',NR,')=',RT(NR,NSSN)
             IND=6
-         ELSEIF(NSSN.EQ.7.AND.IND.NE.7) THEN
-            WRITE(6,*) '     TNC(',NR,')=',RT(NR,NSSN)
-            IND=7
-         ELSEIF(NSSN.EQ.8.AND.IND.NE.8) THEN
-            WRITE(6,*) '     TNH(',NR,')=',RT(NR,NSSN)
-            IND=8
+C         ELSEIF(NSSN.EQ.7.AND.IND.NE.7) THEN
+C            WRITE(6,*) '     TNC(',NR,')=',RT(NR,NSSN)
+C            IND=7
+C         ELSEIF(NSSN.EQ.8.AND.IND.NE.8) THEN
+C            WRITE(6,*) '     TNH(',NR,')=',RT(NR,NSSN)
+C            IND=8
          ENDIF
       ENDDO
       ICHCK=1
@@ -1085,8 +1085,6 @@ C
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*VOID
                   DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*VOID
-                  VV(NEQ,NEQ-1,NMK,NSW)= FA(NI,NSW)*VOID
-                  DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*VOID
                ENDIF
             ENDIF
 C
@@ -1094,6 +1092,13 @@ C
 C
 C     *** NCLASS ***
 C     *
+C     This expression below is the interim way to solve the problem.
+C     That is because this simple expression cannot be used if we
+C       consider impurity transports.
+            IF(MDLEQ0.EQ.1) THEN
+               NEQLMAX=NEQMAX-2 ! This means "Local NEQMAX".
+            ENDIF
+C
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
                   F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
@@ -1102,11 +1107,17 @@ C     *
                   DD(NEQ,NEQ  ,NMK,NSW)=          F2C(NJ)*FC(NI,NSW)
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
+               IF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
+                  IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
+                     VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*AV(NRJ,NSSN)
+                     DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*AD(NRJ,NSSN)
+                  ENDIF
+               ELSE
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   IF(NRJ.EQ.NRMAX) THEN
                      VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)
      &                      *(AV(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)/PNSS(NSSN))
-                  DO NEQ1=1,NEQMAX
+                  DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
@@ -1125,7 +1136,7 @@ C     *
                      VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)
      &                       *(AV(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)
      &                        /(0.5D0*(RN(NRJ,NSSN)+RN(NRJ+1,NSSN))))
-                  DO NEQ1=1,NEQMAX
+                  DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
@@ -1143,6 +1154,7 @@ C     *
                   ENDDO
                   ENDIF
                ENDIF
+               ENDIF
             ELSEIF(NSVN.EQ.2) THEN
                CC=1.5D0
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
@@ -1153,7 +1165,7 @@ C     *
      &                      /(PNSS(NSSN)*PTS(NSSN))
      &                      +RGFLS(NRJ,5,NSSN)*CC
      &                      / PNSS(NSSN))
-                  DO NEQ1=1,NEQMAX
+                  DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
@@ -1178,7 +1190,7 @@ C     *
      &                               +RN(NRJ+1,NSSN)*RT(NRJ+1,NSSN)))
      &                      +RGFLS(NRJ,5,NSSN)*CC
      &                      /(0.5D0*( RN(NRJ,NSSN)  +RN(NRJ+1,NSSN))))
-                  DO NEQ1=1,NEQMAX
+                  DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
@@ -1204,8 +1216,6 @@ C     *
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*VOID
                   DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*VOID
-                  VV(NEQ,NEQ-1,NMK,NSW)= FA(NI,NSW)*VOID
-                  DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*VOID
                ENDIF
             ENDIF
 C     *
