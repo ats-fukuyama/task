@@ -13,8 +13,8 @@ LIB0 = ../eq/eqlib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
        ../lib/tasklib.a 
-LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o  $(OBJLA)
-LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o $(OBJLA)
+LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
+LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -55,10 +55,10 @@ all : tot
 	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
-	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
 
 mpitot : main.o $(LIBM)
-	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
+	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
 
 xtot :
 	(cd ../pl; make pllib.a)

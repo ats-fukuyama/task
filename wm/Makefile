@@ -15,7 +15,7 @@ OBJS = $(SRCS:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
 LIB0 = ../eq/wmeqin.o ../eq/eqlib.a ../eq/pleqin.o \
-       ../pl/pllib.a ../lib/tasklib.a $(OBJLA)
+       ../pl/pllib.a ../lib/tasklib.a
 
 LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
@@ -47,10 +47,10 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mtx; make mpimtxlib.a)
 
 wm : wmmain.o $(LIBS)
-	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJA)
 
 mpiwm : wmmain.o $(LIBM)
-	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
+	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(OBJA)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
