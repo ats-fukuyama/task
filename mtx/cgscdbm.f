@@ -245,7 +245,7 @@ C
       CALL MPI_BCAST(C1,1,MPI_DOUBLE_COMPLEX,0,
      &     MPI_COMM_WORLD,IERR)
 C
-      IF(MYRANK.EQ.0) WRITE(6,'(A8,1PE13.4)') 'SC1=',CDABS(C1)
+C      IF(MYRANK.EQ.0) WRITE(6,'(A8,1PE13.4)') 'SC1=',CDABS(C1)
 C
 C     ITERATION PHASE
 C
@@ -476,7 +476,7 @@ C
 C
       IF (X1 .NE. 0.D0) THEN
          RES = DSQRT(X2/X1)
-         IF(MYRANK.EQ.0) write(6,*) 'EPS=',kk,res
+C         IF(MYRANK.EQ.0) write(6,*) 'EPS=',kk,res
          IF(RES.LE.EPS) THEN
             ITR  = KK
             IERR = 0
