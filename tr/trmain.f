@@ -64,6 +64,7 @@ C
 C     ------ SELECTION OF TASK TYPE ------
 C
       IERR=0
+      NTSMAX=NTMAX
     1 IF(INIT.EQ.0) THEN
          WRITE(6,*) '# INPUT : P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
@@ -78,7 +79,7 @@ C
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
 C
-      CALL TRKLIN(LINE,KID,MODE,IERR)
+      CALL TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,NTMOLD,IERR)
       IF(MODE.EQ.1.AND.IERR.EQ.2) GOTO 100
       IF(MODE.EQ.1.AND.IERR.EQ.3) GOTO 9000
       IF(MODE.NE.1) GOTO 1
@@ -99,6 +100,13 @@ C
          CALL TRSAVE
       ELSE IF(KID.EQ.'R') THEN
          CALL TR_EQS_SELECT
+         IF(MDLUF.EQ.1) THEN
+            IF(INIT.EQ.2.AND.NT.NE.0) THEN
+               NT=0
+               NTMAX=NTSMAX
+            ENDIF
+            CALL TR_TIME_UFILE
+         ENDIF
          IF(MDLUF.EQ.3) THEN
             KFILE='RFHE'
             CALL UFREAD2(KFILE,RAD,FUT,FRFHE,NUFMAX,NTXMAX,MDRFHE,IERR)
@@ -109,11 +117,17 @@ C
          CALL TRLOOP
 C
          INIT=2
+         NTMOLD=NTMAX
       ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
       CALL TRCONV(L,IERR)
 C   
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
+         IF(MDLUF.EQ.1) THEN
+            NT=NTMOLD
+            NTMAX=NTSMAX+NTMOLD
+         ENDIF
          CALL TRLOOP
+         NTMOLD=NTMAX
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
   101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
@@ -199,7 +213,7 @@ C
             CALL TRLOAD
             NGR=NFL-1
             NGT=NFL-1
-            CALL TRCALC
+            CALL TRCALC(IERR)
             CALL TRGLOB
             CALL TRATOT
             CALL TRATOG
@@ -238,7 +252,7 @@ C                        1: KID INPUT
 C                        2: PARM INPUT
 C                        3: NEW PROMPT
 C
-      SUBROUTINE TRKLIN(LINE,KID,MODE,IERR)
+      SUBROUTINE TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,NTMOLD,IERR)
 C
       CHARACTER LINE*80,KID*1
 C
@@ -250,7 +264,10 @@ C
          IF(LINE(I:I).EQ.'=') ID=1
       ENDDO
       IF(ID.EQ.1) THEN
+C         NTMOLD=NTMAX
          CALL TRPARL(LINE)
+C         write(6,*) LINE,NTMOLD,NTMAX
+         IF(NTSMAX.NE.NTMAX) NTSMAX=NTMAX
          MODE=2
          RETURN
       ENDIF

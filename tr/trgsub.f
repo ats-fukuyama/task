@@ -522,7 +522,7 @@ C
       MDNCLS=MDLNSCSTCK
 C
       IF(MDNCLS.EQ.0) MDNCLS=1
-      CALL TR_NCLASS
+      CALL TR_NCLASS(IERR)
       CALL TRAJBS_NCLASS
       DO NR=1,NRMAX
          GJB(NR,4)=GCLIP(AJBS(NR)*1.D-6)
@@ -549,15 +549,15 @@ C
       DO NR=1,NRMAX-1
          DO NS=1,NSMAX
             RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
-            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *AR1RHO(NR)/DR
-            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *AR1RHOG(NR)/DR
+            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
          ENDDO
       ENDDO
       NR=NRMAX
       DO NS=1,NSMAX
          RNN(NR,NS)=PNSS(NS)
-         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *AR1RHO(NR)/DR
-         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHO(NR)/DR
+         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *AR1RHOG(NR)/DR
+         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
       ENDDO
       DO NR=1,NRMAX
          DO NS=1,NSMAX

@@ -101,11 +101,12 @@ C
          GYT(I,1)=GVT(I,39)
          GYT(I,2)=GVT(I,40)
          GYT(I,3)=GVT(I,41)
-         GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)+GVT(I,89)
+         GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)
          GYT(I,5)=GVT(I,46)
+         GYT(I,6)=GVT(I,89)+GVT(I,90)+GVT(I,91)+GVT(I,92)
   300 CONTINUE
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,5,
-     &            '@PIN,POH,PNB,PRF,PNF [MW]  vs t@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,6,
+     &            '@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
 C
       DO 400 I=1,NGT
          GYT(I,1)=GVT(I,57)
@@ -384,9 +385,10 @@ C
          GYT(I,3)=GVT(I,41)
          GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)
          GYT(I,5)=GVT(I,46)
+         GYT(I,6)=GVT(I,89)+GVT(I,90)+GVT(I,91)+GVT(I,92)
   300 CONTINUE
-      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,5,
-     &            '@PIN,POH,PNB,PRF,PNF [MW]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,6,
+     &            '@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
 C
       DO 400 I=1,NGT
          GYT(I,1)=GVT(I,57)

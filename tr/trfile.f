@@ -174,7 +174,7 @@ C
       DO 800 NR=1,NRMAX
          GRM(NR)  =GCLIP(RM(NR))
          GRG(NR+1)=GCLIP(RG(NR))
-         QP(NR)  = FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+         QP(NR)  = RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
   800 CONTINUE
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
@@ -265,3 +265,719 @@ C
 C
   900 RETURN
       END
+C
+C     ***********************************************************
+C
+C           TIME EVOLUTIONAL UFILE DATA INPUT ROUTINE
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_TIME_UFILE
+C
+      INCLUDE 'trcomm.h'
+      COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
+      COMMON /PRETREAT2/ NTAMAX
+      DIMENSION UQPTU(4,4,NRMU,NTURM)
+      DIMENSION UQNBETU(4,4,NRMU,NTURM),UQNBITU(4,4,NRMU,NTURM)
+      DIMENSION UQICETU(4,4,NRMU,NTURM),UQICITU(4,4,NRMU,NTURM)
+      DIMENSION UQRLTU(4,4,NRMU,NTURM)
+      DIMENSION UVOLTU(4,4,NRMU,NTURM)
+      DIMENSION URMJTU(4,4,NRMU,NTURM) ,URMNTU(4,4,NRMU,NTURM)
+      DIMENSION UGR1TU(4,4,NRMU,NTURM) ,UGR2TU(4,4,NRMU,NTURM)
+      DIMENSION UTETU(4,4,NRMU,NTURM)  ,UTITU(4,4,NRMU,NTURM)
+      DIMENSION UNETU(4,4,NRMU,NTURM)
+      DIMENSION URRTU(4,NTURM)         ,URATU(4,NTURM)
+      DIMENSION UIPTU(4,NTURM)         ,UBTTU(4,NTURM)
+      DIMENSION UKAPTU(4,NTURM)
+      CHARACTER KFILE*20
+C
+      DR = 1.D0/DBLE(NRMAX)
+      ICK=0
+      TMUMAX=0.D0
+C
+C     *** 1D VALUE ***
+C
+      KFILE='RGEO'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,URRTU,NTXMAX,TMUMAX,ICK,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         CALL SPL1DF(TMLCL,F0,TMU,URRTU,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF RGEO: IERR=",IERR
+         RRU(NTA)=F0
+      ENDDO
+C
+      KFILE='AMIN'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,URATU,NTXMAX,TMUMAX,ICK,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         CALL SPL1DF(TMLCL,F0,TMU,URATU,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF AMIN: IERR=",IERR
+         RAU(NTA)=F0
+      ENDDO
+C
+      KFILE='IP'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,UIPTU,NTXMAX,TMUMAX,ICK,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         CALL SPL1DF(TMLCL,F0,TMU,UIPTU,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF IP: IERR=",IERR
+         RIPU(NTA)=ABS(F0*1.D-6)
+      ENDDO
+C
+      KFILE='BT'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,UBTTU,NTXMAX,TMUMAX,ICK,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         CALL SPL1DF(TMLCL,F0,TMU,UBTTU,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF BT: IERR=",IERR
+         BBU(NTA)=ABS(F0)
+      ENDDO
+C
+      KFILE='KAPPA'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,UKAPTU,NTXMAX,TMUMAX,ICK,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         CALL SPL1DF(TMLCL,F0,TMU,UKAPTU,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF KAPPA: IERR=",IERR
+         RKAPU(NTA)=F0
+      ENDDO
+C
+C     *** 2D VALUE ***
+      KFILE='TE'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UTETU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      TMLCL=DT*DBLE(1)
+      DO NR=1,NRMAX
+         RMN=DBLE(NR-0.5D0)*DR
+         CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTETU,NRMU,NRFMAX,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE1: IERR=",IERR
+         RT(NR,1)=F0*1.D-3
+      ENDDO
+      PT(1) =RT(1,1)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=NRMAX-1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTETU,NRMU,NRFMAX,NTXMAX,
+     &                  IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
+         ENDDO
+         PTSU(1,NTA)=F0*1.D-3
+      ENDDO
+      PTS(1)=PTSU(1,1)
+C
+      KFILE='TI'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UTITU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      TMLCL=DT*DBLE(1)
+      DO NR=1,NRMAX
+         RMN=DBLE(NR-0.5D0)*DR
+         CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTITU,NRMU,NRFMAX,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI1: IERR=",IERR
+         RT(NR,2)=F0*1.D-3
+      ENDDO
+      PT(2) =RT(1,2)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=NRMAX-1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTITU,NRMU,NRFMAX,NTXMAX,
+     &                  IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
+         ENDDO
+         PTSU(2,NTA)=F0*1.D-3
+      ENDDO
+      PTS(2)=PTSU(2,1)
+C
+      KFILE='NE'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UNETU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      TMLCL=DT*DBLE(1)
+      RMN=DBLE(1.D0-0.5D0)*DR
+      CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UNETU,NRMU,NRFMAX,NTXMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE1: IERR=",IERR
+      PN(1)=F0*1.D-20
+      PN(2)=F0*1.D-20
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UNETU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE1: IERR=",IERR
+            RNU(NR,1,NTA)=F0*1.D-20
+            RNU(NR,2,NTA)=F0*1.D-20
+         ENDDO
+         PNSU(1,NTA)=RNU(1,1,NTA)
+         PNSU(2,NTA)=RNU(1,2,NTA)
+      ENDDO
+      PNS(1)=PNSU(1,1)
+      PNS(2)=PNSU(2,1)
+C
+      KFILE='Q'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQPTU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RGN=DBLE(NR)*DR
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UQPTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF Q: IERR=",IERR
+            QPU(NR,NTA)=F0
+         ENDDO
+      ENDDO
+C
+      KFILE='QNBIE'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQNBETU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQNBETU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF QNBIE: IERR=",IERR
+            IF(F0.LT.0.D0) THEN
+               PNBU(NR,1,NTA)=0.D0
+            ELSE
+               PNBU(NR,1,NTA)=F0
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      KFILE='QNBII'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQNBITU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQNBITU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF QNBII: IERR=",IERR
+            IF(F0.LT.0.D0) THEN
+               PNBU(NR,2,NTA)=0.D0
+            ELSE
+               PNBU(NR,2,NTA)=F0
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      DO NTA=1,NTAMAX
+         DO NR=1,NRMAX
+            PICU(NR,1,NTA)=0.D0
+            PICU(NR,2,NTA)=0.D0
+         ENDDO
+      ENDDO
+      KFILE='QICRHE'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQICETU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQICETU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(F0.LT.0.D0) THEN
+               PICU(NR,1,NTA)=0.D0
+            ELSE
+               PICU(NR,1,NTA)=F0
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      KFILE='QICRHI'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQICITU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQICITU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF QICRHI: IERR=",IERR
+            IF(F0.LT.0.D0) THEN
+               PICU(NR,2,NTA)=0.D0
+            ELSE
+               PICU(NR,2,NTA)=F0
+            ENDIF
+         ENDDO
+      ENDDO
+C
+      KFILE='QRAD'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQRLTU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQRLTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF QRAD: IERR=",IERR
+            PRLU(NR,NTA)=F0
+         ENDDO
+      ENDDO
+C
+C     *** GEOMETORY FACTORS ***
+C
+      KFILE='VOLUME'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UVOLTU,NRFMAX,NTXMAX,TMUMAX,ICK,1,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DD(RMN,TMLCL,F0,DFX0,DFY0,RUF,TMU,UVOLTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF VOLUME: IERR=",IERR
+            DVRHOU(NR,NTA)=DFX0
+         ENDDO
+      ENDDO
+C
+      KFILE='RMAJOR'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,URMJTU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,URMJTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF RMAJOR: IERR=",IERR
+            RMJRHOU(NR,NTA)=F0
+            ARRHOU(NR,NTA)=1.D0/RMJRHOU(NR,NTA)**2
+            TTRHOU(NR,NTA)=BB*RMJRHOU(NR,NTA)
+            DSRHOU(NR,NTA)=DVRHOU(NR,NTA)/(2.D0*PI*RMJRHOU(NR,NTA))
+         ENDDO
+      ENDDO
+C
+      KFILE='RMINOR'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,URMNTU,NRFMAX,NTXMAX,TMUMAX,ICK,1,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,URMNTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF RMINOR: IERR=",IERR
+            RMNRHOU(NR,NTA)=F0
+         ENDDO
+      ENDDO
+C
+      KFILE='GRHO1'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UGR1TU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UGR1TU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF GRHO1: IERR=",IERR
+            AR1RHOU(NR,NTA)=F0
+         ENDDO
+      ENDDO
+C
+      KFILE='GRHO2'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UGR2TU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=DBLE(NR-0.5D0)*DR
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UGR2TU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF GRHO2: IERR=",IERR
+            AR2RHOU(NR,NTA)=F0
+            ABRHOU(NR,NTA)=AR2RHOU(NR,NTA)*ARRHOU(NR,NTA)
+         ENDDO
+      ENDDO
+C
+      RETURN
+      END
+C
+C
+C     ***********************************************************
+C
+C           PRETREATMENT SUBROUTINE FOR TR_TIME_UFILE
+C
+C     ***********************************************************
+C
+      SUBROUTINE PRETREATMENT1(KFILE,U,NTXMAX,TMUMAX,ICK,IERR)
+C
+      INCLUDE 'trcomm.h'
+      COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
+      COMMON /PRETREAT2/ NTAMAX
+      DIMENSION DERIV(NTURM)
+      DIMENSION U(4,NTURM)
+      CHARACTER KFILE*20
+C
+      IF(IERR.EQ.1) THEN
+         STOP 'XX NECESSARY FILE CANNOT BE FOUND!'
+      ENDIF
+
+      DERIV(1)=0.D0
+      DERIV(NTXMAX)=0.D0
+C
+      DO NTX=2,NTXMAX
+         TMU(NTX)=(TMU(NTX)-TMU(1))
+      ENDDO
+      TMU(1)=0.D0
+      IF(ICK.NE.0) THEN
+         IF(TMUMAX.NE.TMU(NTXMAX)) THEN
+            WRITE(6,*) 'XX TRFILE:',KFILE,'UFILE HAS AN ERROR!'
+            WRITE(6,*) TMUMAX,TMU(NTXMAX)
+            STOP
+         ENDIF
+      ENDIF
+      TMUMAX=TMU(NTXMAX)
+      NTAMAX=INT(DINT(TMU(NTXMAX)*1.D2)*1.D-2/DT)
+C
+      CALL SPL1D(TMU,F1,DERIV,U,NTXMAX,3,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL1D',KFILE,': IERR=',IERR
+      ICK=1
+C
+      RETURN
+      END
+C
+C     *****
+C
+      SUBROUTINE PRETREATMENT2(KFILE,U,NRFMAX,NTXMAX,TMUMAX,
+     &                         ICK,MODE,IERR)
+C
+      INCLUDE 'trcomm.h'
+      COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
+      COMMON /PRETREAT2/ NTAMAX
+      DIMENSION DERIVX(NRMU,NTURM),DERIVY(NRMU,NTURM)
+      DIMENSION DERIVXY(NRMU,NTURM)
+      DIMENSION U(4,4,NRMU,NTURM)
+      CHARACTER KFILE*20
+C
+      IF(IERR.EQ.1) THEN
+         IERR=0
+         RETURN
+      ENDIF
+C
+      DO NTX=1,NTXMAX
+         DERIVX(1,NTX)=0.D0
+      ENDDO
+      DERIVXY(1,     1)=0.D0
+      DERIVXY(1,NTXMAX)=0.D0
+C
+      DO NTX=2,NTXMAX
+         TMU(NTX)=(TMU(NTX)-TMU(1))
+      ENDDO
+      TMU(1)=0.D0
+      IF(ICK.NE.0) THEN
+         IF(TMUMAX.NE.TMU(NTXMAX)) THEN
+            WRITE(6,*) 'XX TRFILE:',KFILE,'UFILE HAS AN ERROR!'
+            WRITE(6,*) TMUMAX,TMU(NTXMAX)
+            STOP
+         ENDIF
+      ENDIF
+      TMUMAX=TMU(NTXMAX)
+      NTAMAX=INT(DINT(TMU(NTXMAX)*1.D2)*1.D-2/DT)
+!C
+c$$$      CALL SPL2D(RUF,TMU,F2,DERIVX,DERIVY,DERIVXY,U,
+c$$$     &           NRMU,NRFMAX,NTXMAX,0,0,IERR)
+c$$$      DO NTX=1,NTXMAX
+c$$$         DO NRF=NRFMAX,NRFMAX
+c$$$C            RFL=1.D0
+c$$$            RFL=RUF(NRF)
+c$$$C            TML=DBLE(NTA)*DT
+c$$$            TML=TMU(NTX)
+c$$$            CALL SPL2DF(RFL,TML,F2L,RUF,TMU,U,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$C            write(6,*) NTX,NRF,F2(NRF,NTX),F2L
+c$$$         ENDDO
+c$$$      ENDDO
+C
+      IF(MODE.EQ.0) THEN
+         CALL SPL2D(RUF,TMU,F2,DERIVX,DERIVY,DERIVXY,U,
+     &              NRMU,NRFMAX,NTXMAX,1,0,IERR)
+      ELSE
+         CALL SPL2D(RUF,TMU,F2,DERIVX,DERIVY,DERIVXY,U,
+     &              NRMU,NRFMAX,NTXMAX,0,0,IERR)
+      ENDIF
+      IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL2D',KFILE,': IERR=',IERR
+      ICK=1
+C
+      RETURN
+      END
+C
+C
+C     ***********************************************************
+C
+C           READING DATA FROM UFILES WITH NT INCREMENT
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_UFREAD
+C
+      INCLUDE 'trcomm.h'
+C
+      RKAP=RKAPU(NT)
+      RKAPS=SQRT(RKAP)
+C
+      RR=RRU(NT)
+      RA=RAU(NT)
+      BB=BBU(NT)
+C
+      DO NR=1,NRMAX
+         RN(NR,1)=RNU(NR,1,NT)
+         RN(NR,2)=RNU(NR,2,NT)
+         QP(NR)=QPU(NR,NT)
+         BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
+         PEX(NR,1)=PNBU(NR,1,NT)
+         PEX(NR,2)=PNBU(NR,2,NT)
+         PRF(NR,1)=PICU(NR,1,NT)
+         PRF(NR,2)=PICU(NR,2,NT)
+         TTRHO(NR)=TTRHOU(NR,NT)
+         DVRHO(NR)=DVRHOU(NR,NT)
+         DSRHO(NR)=DSRHOU(NR,NT)
+         ABRHO(NR)=ABRHOU(NR,NT)
+         ARRHO(NR)=ARRHOU(NR,NT)
+         AR1RHO(NR)=AR1RHOU(NR,NT)
+         AR2RHO(NR)=AR2RHOU(NR,NT)
+         RMJRHO(NR)=RMJRHOU(NR,NT)
+         RMNRHO(NR)=RMNRHOU(NR,NT)
+         EKAPPA(NR)=RKAP
+      ENDDO
+C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
+      CALL TRARRG
+C
+      PNS(1)=PNSU(1,NT)
+      PNS(2)=PNSU(2,NT)      
+      PTS(1)=PTSU(1,NT)
+      PTS(2)=PTSU(2,NT)
+C
+C     *** CALCULATE PZC,PZFE ***
+C
+      CALL TRZEFF
+C
+C     *** CALCULATE ANEAVE ***
+C
+      ANESUM=0.D0
+      DO NR=1,NRMAX
+         ANESUM=ANESUM+RN(NR,1)*RM(NR)
+      ENDDO 
+      ANEAVE=ANESUM*2.D0*DR
+C
+C     *** CALCULATE IMPURITY DENSITY
+C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
+C
+      DO NR=1,NRMAX
+         ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
+     &            *1.D-2*RN(NR,1)
+         ANFE(NR)= (0.0D0+0.05D0*(0.7D0/ANEAVE)**2.3D0)*PNFE
+     &            *1.D-2*RN(NR,1)
+         ANI = 0.D0
+         DO NS=2,NSM
+            ANI=ANI+PZ(NS)*RN(NR,NS)
+         ENDDO
+         ANZ = PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+         DILUTE = 1.D0-ANZ/ANI
+         DO NS=2,NSM
+            RN(NR,NS) = RN(NR,NS)*DILUTE
+         ENDDO
+      ENDDO
+      PNSS(1)=PNS(1)
+      DO NS=2,NSM
+         PNSS(NS)=PNS(NS)*DILUTE
+      ENDDO
+      PNSS(7)=PNS(7)
+      PNSS(8)=PNS(8)
+C
+      RETURN
+      END
+C
+C   **************************************************
+C   **    UFILE read for TR (Time Ecolution UFILE)  **
+C   **************************************************
+C
+C     input:
+C
+C     KFID     : UFILE exsisting directory
+C
+C     output:
+C
+C     RUF(NRMU)      : Equally Spaced Normalized Radial Data
+C     TMU(NTURM)     : Total Time Data (The Number of DT)
+C     F1(NTURM)      : Functional Values
+C     F2(NRMU,NTURM) : Functional Values
+C     NRFMAX         : Maximum Number of the Radial Mesh
+C     NTXMAX         : Maximum Number of the Time Mesh
+C     MDCHK          : Loop Check Value
+C     IERR           : Error Indicator
+C
+C   ***************************************************************
+C
+      SUBROUTINE UFREAD_TIME(KFID,TT,F1,NTXMAX,MDCHK,IERR)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION TT(NTURM),F1(NTURM)
+      COMMON /TRUFL1/ KUFDEV,KUFDCG
+      CHARACTER KDIRR1*80
+      CHARACTER KDIRX*80
+      CHARACTER KFILE*80,KFID*20
+      LOGICAL LEX
+C
+C      IF(MDCHK.NE.0) GOTO 9000
+C
+      CALL KTRIM(KUFDEV,IKNDEV)
+      CALL KTRIM(KUFDCG,IKNDCG)
+C
+      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
+     &                          //KUFDCG(1:IKNDCG)//'/in/'
+      CALL KTRIM(KDIRX,IKDIRX)
+      KDIRR1=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
+     &       //'1d'//KUFDCG(1:IKNDCG)//'.'
+C
+      CALL KTRIM(KDIRR1,KL1)
+      KFILE=KDIRR1(1:KL1)//KFID
+C
+      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
+C
+      IF(LEX) THEN
+         CALL TRXR1D(KDIRR1,KFID,TT,F1,NTURM,NTXMAX,0)
+         MDCHK=1
+         IERR=0
+      ELSE
+         DO NT=1,NTURM
+            F1(NT)=0.D0
+         ENDDO
+         IERR=1
+      ENDIF
+C
+ 9000 RETURN
+      END
+C
+C     *****
+C
+      SUBROUTINE UFREAD2_TIME(KFID,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION RUF(NRMU),TMU(NTURM),F2(NRMU,NTURM)
+      DIMENSION F2CTR(NTURM),F2EDG(NTURM)
+      COMMON /TRUFL1/ KUFDEV,KUFDCG
+      CHARACTER KDIRR2*80
+      CHARACTER KDIRX*80
+      CHARACTER KFILE*80,KFID*20
+      LOGICAL LEX
+C
+C      IF(MDCHK.NE.0) GOTO 9000
+C
+      CALL KTRIM(KUFDEV,IKNDEV)
+      CALL KTRIM(KUFDCG,IKNDCG)
+C
+      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
+     &                          //KUFDCG(1:IKNDCG)//'/in/'
+      CALL KTRIM(KDIRX,IKDIRX)
+      KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
+     &       //'2d'//KUFDCG(1:IKNDCG)//'.'
+C
+      CALL KTRIM(KDIRR2,KL2)
+      KFILE=KDIRR2(1:KL2)//KFID
+C
+      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
+      IF(LEX) THEN
+         NRFMAX=52              ! equal to NRMU
+         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2,NRMU,NTURM,NRFMAX,NTXMAX,0)
+         MDCHK=1
+         IERR=0
+      ELSE
+         DO NTA=1,NTURM
+            DO NRF=1,NRMU
+               F2(NRF,NTA)=0.D0
+            ENDDO
+         ENDDO
+         IERR=1
+         GOTO 9000
+      ENDIF
+C     
+      MD=0
+      IF(RUF(1).NE.0.D0.AND.RUF(NRFMAX).NE.1.D0) THEN
+         DO NTX=1,NTXMAX
+            F2CTR(NTX)=FCTR(RUF(1),RUF(2),F2(1,NTX),F2(2,NTX))
+            F2EDG(NTX)=FEDG(1.D0,RUF(NRFMAX-1),RUF(NRFMAX),
+     &                      F2(NRFMAX-1,NTX),F2(NRFMAX,NTX))
+         ENDDO
+         MD=1
+      ELSEIF(RUF(1).NE.0.D0.AND.RUF(NRFMAX).EQ.1.D0) THEN
+         DO NTX=1,NTXMAX
+            F2CTR(NTX)=FCTR(RUF(1),RUF(2),F2(1,NTX),F2(2,NTX))
+         ENDDO
+         MD=2
+      ELSEIF(RUF(1).EQ.0.D0.AND.RUF(NRFMAX).EQ.1.D0) THEN
+         MD=3
+      ELSE
+         STOP 'XX TRFILE: TRXR2D: ERROR'
+      ENDIF
+C
+      IF(MD.EQ.1) THEN
+         NRFMAX=NRFMAX+2
+         DO NRF=NRFMAX-1,2,-1
+            RUF(NRF)=RUF(NRF-1)
+         ENDDO
+         RUF(1)=0.D0
+         RUF(NRFMAX)=1.D0
+         DO NTX=1,NTXMAX
+            DO NRF=NRFMAX-1,2,-1
+               F2(NRF,NTX)=F2(NRF-1,NTX)
+            ENDDO
+            F2(1,NTX)=F2CTR(NTX)
+            F2(NRFMAX,NTX)=F2EDG(NTX)
+         ENDDO
+      ELSEIF(MD.EQ.2) THEN
+         NRFMAX=NRFMAX+1
+         DO NRF=NRFMAX,2,-1
+            RUF(NRF)=RUF(NRF-1)
+         ENDDO
+         RUF(1)=0.D0
+         DO NTX=1,NTXMAX
+            DO NRF=NRFMAX,2,-1
+               F2(NRF,NTX)=F2(NRF-1,NTX)
+            ENDDO
+            F2(1,NTX)=F2CTR(NTX)
+         ENDDO
+      ENDIF
+C
+ 9000 RETURN
+      END
+C
+C     *****
+C
+      FUNCTION FCTR(R1,R2,F1,F2)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      FCTR = (R2**2*F1-R1**2*F2)/(R2**2-R1**2)
+C
+      RETURN
+      END
+C
+      FUNCTION FEDG(R0,R1,R2,F1,F2)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      FEDG = ((R2-R0)*F1-(R1-R0)*F2)/(R2-R1)
+C
+      RETURN
+      END
+

@@ -1709,7 +1709,8 @@ C
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
          DO NR=1,NRMAX
-            AVKL=-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
+            AVKL=-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)
+     &           /(ANE*1.D20*TE*RKEV)
             AVK(NR,1)=-AVKL
             AVK(NR,2)=-AVKL
             AVK(NR,3)=-AVKL

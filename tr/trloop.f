@@ -12,15 +12,20 @@ C
       PARAMETER(NURM=51,NUTM=61)
       COMMON /TRBCH1/ RAD(NURM),FRFHE(NURM,NUTM),FRFHI(NURM,NUTM)
       COMMON /TRBCH3/ FUT(NUTM),NUFMAX,NTXMAX
+      COMMON /PRETREAT2/ NTAMAX
       DIMENSION DERIVR(NURM),URFHEPH(4,NURM),URFHIPH(4,NURM)
       DIMENSION DERIVT(NUTM),UFUTE(4,NUTM),UFUTI(4,NUTM)
       DIMENSION FRFHET(NUTM),FRFHIT(NUTM),FRFHER(NURM),FRFHIR(NURM)
 C
       DIMENSION XX(MLM),YY(2,NRM)
 C
-      NT=0
-      RIP=RIPS
-      IF(NTMAX.NE.0) DIP=(RIPE-RIPS)/DBLE(NTMAX)
+      IF(MDLUF.NE.1) THEN
+         NT=0
+         RIP=RIPS
+         IF(NTMAX.NE.0) DIP=(RIPE-RIPS)/DBLE(NTMAX)
+      ELSE
+         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
+      ENDIF
       ICHCK=0
 C
 C     *****
@@ -73,7 +78,8 @@ C
 C
 C     *****
 C
-      CALL TRCALC
+      CALL TRCALC(IERR)
+      IF(IERR.NE.0) RETURN
       CALL TRGLOB
       CALL TRSNAP
       IF(NGT.EQ.0) THEN
@@ -270,14 +276,19 @@ C
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
 C
-      CALL TRCALC
+      CALL TRCALC(IERR)
+      IF(IERR.NE.0) RETURN
       GOTO 2000
 C
  4000 NT=NT+1
       T=T+DT
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT
-      RIP=RIP+DIP
+      IF(MDLUF.EQ.1) THEN
+         RIP=RIPU(NT)
+      ELSE
+         RIP=RIP+DIP
+      ENDIF
 C      write(6,'(A,1P3E12.5)') "RIP,RIPE,DIP=",RIP,RIPE,DIP
 C
 C     /* Making new XV(NEQ,NR) and YV(NF,NR) */
@@ -298,6 +309,7 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
+      IF(MDLUF.EQ.1) CALL TR_UFREAD
 C
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
@@ -314,7 +326,8 @@ C     /* Sawtooth Oscillation */
          TST=0.D0
       ENDIF
 C
-      CALL TRCALC
+      CALL TRCALC(IERR)
+      IF(IERR.NE.0) RETURN
 C
       IDGLOB=0
       IF(MOD(NT,NTSTEP).EQ.0) THEN
@@ -340,7 +353,7 @@ C
       ENDIF
       IF(NT.LT.NTMAX) GOTO 1000
 C
- 9000 RIPS=RIPE
+ 9000 IF(MDLUF.NE.1) RIPS=RIPE
       RETURN
       END
 C
@@ -359,13 +372,8 @@ C
       COMMON /TRLCL3/ RD(NEQM,NRM)
       COMMON /TRLCL4/ PPA(NEQM,NRM),PPB(NEQM,NRM),PPC(NEQM,NRM)
 C     
-      RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
-      FKAP=0.5D0*(RKAP+1.D0)
-     &          *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
-C
       IF(MDLCD.EQ.0) THEN
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
-CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
       ELSE
          NEQ=1
          NSVN=NSS(NEQ)
@@ -376,6 +384,15 @@ CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
          ENDIF
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
          BPS=BPA-AMYU0*DT*EZOH(NRMAX)/RLP
+      ENDIF
+      IF(MDLUF.EQ.1) THEN
+         IF(NT.EQ.0) THEN
+            RKAP=RKAPU(1)
+            BPS=AMYU0*RIPU(1)*1.D6/(2.D0*PI*RA*RKAPS)
+         ELSE
+            RKAP=RKAPU(NT)
+            BPS=AMYU0*RIPU(NT)*1.D6/(2.D0*PI*RA*RKAPS)
+         ENDIF
       ENDIF
 C
       COEF = AEE**4*5.D0*1.D20/(SQRT(2.D0*PI)*PI*AEPS0**2)
@@ -982,8 +999,8 @@ C
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
-         FVL = FKAP/RKAP
-CCC         FVL = 1.D0
+C         FVL = FKAP/RKAP
+         FVL = 1.D0
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF

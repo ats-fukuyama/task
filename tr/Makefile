@@ -3,6 +3,7 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
+#LFLAGS = $(DFLAGS)
 #FFLAGS = $(DFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \

@@ -11,10 +11,7 @@ C
       INCLUDE 'trcomm.h'
 C
       IF (MODELG.EQ.3) THEN
-         FKAP=1.D0
          RKAP=1.D0
-C      ELSE
-C         FKAP=1.D0
       ENDIF
 C
       VOL=0.D0
@@ -98,24 +95,15 @@ C
       CALL TRSUMD(AJNB,DSRHO,NRMAX,ANBSUM)
       CALL TRSUMD(AJRF,DSRHO,NRMAX,ARFSUM)
       CALL TRSUMD(AJBS,DSRHO,NRMAX,ABSSUM)
-C      AJNBT = ANBSUM*DR/1.D6
-C      AJRFT = ARFSUM*DR/1.D6
-C      AJBST = ABSSUM*DR/1.D6
-      AJNBT = ANBSUM*DR/1.D6*(RKAP/FKAP)
-      AJRFT = ARFSUM*DR/1.D6*(RKAP/FKAP)
-      AJBST = ABSSUM*DR/1.D6*(RKAP/FKAP)
+      AJNBT = ANBSUM*DR/1.D6
+      AJRFT = ARFSUM*DR/1.D6
+      AJBST = ABSSUM*DR/1.D6
 C
       CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
       CALL TRSUMD(AJOH,DSRHO,NRMAX,AOHSUM)
 C
-C      AJT   = AJTSUM*DR/1.D6
-C      AJOHT = AOHSUM*DR/1.D6
-      AJT   = AJTSUM*DR/1.D6*(RKAP/FKAP)
-      AJOHT = AOHSUM*DR/1.D6*(RKAP/FKAP)
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,*) NR,AJ(NR)
-c$$$      ENDDO
-c$$$      write(6,*) AJT,DR
+      AJT   = AJTSUM*DR/1.D6
+      AJOHT = AOHSUM*DR/1.D6
 C
       DRH=0.5D0*DR*RA
       DO 70 NS=1,NSM
@@ -131,14 +119,14 @@ C
          SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
      &            +( VNP-DNP/DRH)*PNSS(NS))
      &            *DVRHO(NRMAX)
-     &            *(FKAP/RKAP)/(RM(NRMAX)*RA)
+     &            /(RM(NRMAX)*RA)
 C
          PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
      &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
      &            +( VXP-DXP/DRH)*PNSS(NS)
      &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
      &            *DVRHO(NRMAX)*RKEV*1.D14
-     &            *(FKAP/RKAP)/(RM(NRMAX)*RA)
+     &            /(RM(NRMAX)*RA)
    70 CONTINUE
 C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
@@ -223,17 +211,21 @@ C         SUP = SUP + 0.5D0*SUPL*SUMS*DR
          SUM = SUM + SUML*DVRHO(NR)*DR/(2.D0*PI*RR*RKAP)
          SUP = SUP + 0.5D0*SUPL*SUMS*DR*RM(NR)*RA/(2.D0*RKAP*2.D0*PI*RR)
          SUL = SUL + BP(NR)**2*DSRHO(NR)*DR
-     &       *RG(NR)/(2.D0*PI*FKAP*RA*RM(NR)*DR)
+     &       *RG(NR)/(2.D0*PI*RKAPS*RA*RM(NR)*DR)
          BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
          BETAL(NR)  = 2.D0*SUML*AMYU0/(     BB**2)
          BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-     &                *RKAP/FKAP**2
-         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)*RKAP/FKAP**2
+     &                /RKAP
+C     &                *RKAP/FKAP**2
+         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
+     &                /RKAP
+C     &                *RKAP/FKAP**2
          BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-     &                *RKAP/FKAP**2
+     &                /RKAP
+C     &                *RKAP/FKAP**2
          SUP = SUP + 0.5D0*SUPL*PI*RM(NR+1)*RM(NR+1)*DR*RA**3
       ENDDO
 C
@@ -267,17 +259,21 @@ C         BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2)
          SUM = SUM + SUML*DVRHO(NR)*DR/(2.D0*PI*RR*RKAP)
          SUP = SUP + 0.5D0*SUPL*SUMS*DR*RM(NR)*RA/(2.D0*RKAP*2.D0*PI*RR)
          SUL = SUL + 0.5D0*BP(NR)**2*DSRHO(NR)*DR
-     &       *RG(NR)/(2.D0*PI*FKAP*RA*RM(NR)*DR)
+     &       *RG(NR)/(2.D0*PI*RKAPS*RA*RM(NR)*DR)
          BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
          BETAL(NR)  = 2.D0*SUML*AMYU0/(     BB**2)
          BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-     &                *RKAP/FKAP**2
-         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)*RKAP/FKAP**2
+     &                /RKAP
+C     &                *RKAP/FKAP**2
+         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
+     &                /RKAP
+C     &                *RKAP/FKAP**2
          BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2
      &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-     &                *RKAP/FKAP**2
+     &                /RKAP
+C     &                *RKAP/FKAP**2
 C
       BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
       BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
@@ -288,7 +284,8 @@ C
       BETAN =BETAA*1.D2/(RIP/(RA*BB))
 C
 C      ALI=4.D0*PI*SUL/((AMYU0*AJT*1.D6)**2)
-      ALI=8.D0*PI**2*DR*RA*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
+C      ALI=8.D0*PI**2*DR*RA*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
+      ALI=8.D0*PI**2*DR*RA*SUL*RKAP**2/((AMYU0*AJT*1.D6)**2)
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 C
       PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
@@ -481,7 +478,11 @@ C
       GVT(NGT,86) = GCLIP(ZEFF0)
       GVT(NGT,87) = GCLIP(QF)
       GVT(NGT,88) = GCLIP(RIP)
-      GVT(NGT,89) = GCLIP(PEXST)
+C 
+      GVT(NGT,89) = GCLIP(PEXT(1))
+      GVT(NGT,90) = GCLIP(PEXT(2))
+      GVT(NGT,91) = GCLIP(PEXT(3))
+      GVT(NGT,92) = GCLIP(PEXT(4))
 C
 C     *** FOR 3D ***
 C

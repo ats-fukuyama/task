@@ -5,7 +5,7 @@ C            NCLASS
 C
 C     ***********************************************************
 C
-      SUBROUTINE TR_NCLASS
+      SUBROUTINE TR_NCLASS(IERR)
 !***********************************************************************
 !TR_NCLASS calculates various paramters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
@@ -84,6 +84,8 @@ C
       INCLUDE 'trncls.inc'
       REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
 C
+      IERR=0
+C
       k_order=2
       k_potato=0
       IF(MDLEQZ.EQ.0) THEN
@@ -154,7 +156,7 @@ C
 C
          p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
-         p_fhat=SNGL(QP(NR)/EPS*AR1RHO(NR))
+         p_fhat=SNGL(QP(NR)/EPS*AR1RHOG(NR))
          DO i=1,3
             p_fm(i)=0.0
          ENDDO
@@ -172,9 +174,9 @@ C
          p_ft3=SNGL(0.75D0*(1.5D0*SQRT(EPS))
      &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS)))
          p_ft=p_ft2
-C         p_grbm2=SNGL(AR2RHO(NR)/BB**2)
-C         p_grbm2=SNGL(AR2RHO(NR))*p_bm2
-         p_grbm2=SNGL(AR2RHO(NR))/p_b2
+C         p_grbm2=SNGL(AR2RHOG(NR)/BB**2)
+C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
+         p_grbm2=SNGL(AR2RHOG(NR))/p_b2
          p_grphi=p_grstr(NR)
          p_gr2phi=p_gr2str(NR)
          p_ngrth=1.0/SNGL(QP(NR)*RR)
@@ -254,7 +256,11 @@ C
 C     *** Takeover Parameters ***
 C
          IF(k_potato.EQ.0) THEN
-            IF(iflag.NE.-1) WRITE(6,*) "XX iflag=",iflag
+            IF(iflag.NE.-1) THEN
+               WRITE(6,*) "XX iflag=",iflag
+               IERR=1
+               RETURN
+            ENDIF
          ELSE
             IF(iflag.NE. 0) WRITE(6,*) "XX iflag=",iflag
          ENDIF
@@ -263,39 +269,39 @@ C
          AJEXNC(NR)=DBLE(p_exjb)/BB
 C
          DO NS=1,NSMAX
-            CJBSP(NR,NS)=DBLE(bsjbp_s(NS))/AR1RHO(NR)
-            CJBST(NR,NS)=DBLE(bsjbt_s(NS))/AR1RHO(NR)
+            CJBSP(NR,NS)=DBLE(bsjbp_s(NS))/AR1RHOG(NR)
+            CJBST(NR,NS)=DBLE(bsjbt_s(NS))/AR1RHOG(NR)
             DO NS1=1,NSMAX
-               AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
-               AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
-               ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
-               ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
+               AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHOG(NR)
+               AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHOG(NR)
+               ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHOG(NR)
+               ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHOG(NR)
             ENDDO
             DO NM=1,5
-               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
+               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHOG(NR)
+               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHOG(NR)
             ENDDO
-            AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-            AVNCS (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
+            AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHOG(NR)
+            AVNCS (NR,NS)=DBLE(veb_s(NS))/AR1RHOG(NR)
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
                NS =NSM+NSZ
-               NSN=NSMAX+NSZ               
-               CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))/AR1RHO(NR)
-               CJBST(NR,NS)=DBLE(bsjbt_s(NSN))/AR1RHO(NR)
+               NSN=NSMAX+NSZ
+               CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))/AR1RHOG(NR)
+               CJBST(NR,NS)=DBLE(bsjbt_s(NSN))/AR1RHOG(NR)
                DO NS1=1,NSMAX
-                  AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
-                  AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)
-                  ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
+                  AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHOG(NR)
+                  AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHOG(NR)
+                  ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHOG(NR)
+                  ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHOG(NR)
                ENDDO
                DO NM=1,5
-                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
+                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHOG(NR)
+                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHOG(NR)
                ENDDO
-               AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-               AVNCS (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+               AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHOG(NR)
+               AVNCS (NR,NS)=DBLE(veb_s(NSN))/AR1RHOG(NR)
             ENDDO
          ENDIF
 C
