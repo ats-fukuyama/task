@@ -46,11 +46,19 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE TASK_PARM(MODE,KIN,XXNLIN,XXPLST,IERR)
+      SUBROUTINE TASK_PARM(MODE,KWD,KIN,XXNLIN,XXPLST,IERR)
 C
-C     MODE=0 : standard namelinst input
-C     MODE=1 : namelist file input
-C     MODE=2 : namelist line input
+C     MODE=0 : standard namelist input  KIN: not used
+C     MODE=1 : namelist file input      KIN: file name
+C     MODE=2 : namelist line input      KIN: data string
+C
+C     KWD:     namelist name (not longer than 6 chars)
+C     XXNLIN:  namelist subroutine XXNLIN(NID,IST,IERR)
+C                      input  NID:  device number
+C                      output IST:  io status
+C                             IERR: error indicater
+C     XXPLST:  error prompt subroutine XXPLST
+C                      indicating valid namelist variables
 C
 C     IERR=0 : normal end
 C     IERR=1 : namelist standard input end of file
@@ -63,15 +71,16 @@ C     IERR=7 : unknown MODE
 C
       EXTERNAL XXNLIN,XXPLST
       LOGICAL LEX
-      CHARACTER KIN*(*),LINE*80,KNLINE*90
+      CHARACTER KWD*(*),KIN*(*),LINE*80,KNLINE*94,KNL*6
 C
       IERR=0
+      KNL=KWD
       LINE=KIN
 C
       IF(MODE.EQ.0) THEN
     1    CONTINUE
-         CALL KTRIM(LINE,KL)
-         WRITE(6,'(A,A,A)') '## INPUT ',LINE(1:KL),' :'
+         CALL KTRIM(KNL,KL)
+         WRITE(6,'(A,A,A)') '## INPUT ',KNL(1:KL),' :'
          CALL XXNLIN(5,IST,IERR)
          IF(IERR.EQ.8) THEN
             CALL XXPLST
@@ -96,7 +105,9 @@ C
      &        '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
 C
       ELSEIF(MODE.EQ.2) THEN
-         KNLINE=' &EQ '//LINE//' &END'
+         CALL KTRIM(KNL,KL1)
+         CALL KTRIM(LINE,KL2)
+         KNLINE=' &'//KNL(1:KL1)//' '//LINE(1:KL2)//' &END'
          WRITE(7,'(A90)') KNLINE
          REWIND(7)
          CALL XXNLIN(7,IST,IERR)

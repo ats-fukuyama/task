@@ -30,7 +30,7 @@ all : tot
 ../eq/wmeqin.o:
 	(cd ../eq; make wmeqin.o)
 ../dp/tr2lib.a:
-	(cd ../dp; make tr2lib.a)
+	(cd ../tr; make tr2lib.a)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
 ../wr/wrlib.a:
@@ -46,6 +46,18 @@ all : tot
 
 tot : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+
+xtot :
+	(cd ../pl; make pllib.a)
+	(cd ../eq; make eqlib.a pleqin.o treqin.o wmeqin.o)
+	(cd ../tr; make tr2lib.a)
+	(cd ../dp; make dplib.a)
+	(cd ../wr; make wrlib.a)
+	(cd ../wm; make wmlib.a)
+	(cd ../fp; make fplib.a)
+	(cd ../mtx; make mtxlib.a)
+	(cd ../lib; make)
+	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)
 
 force : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)

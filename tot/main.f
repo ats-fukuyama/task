@@ -11,7 +11,9 @@ C
       INCLUDE '../wm/wmcomm.inc'
       CHARACTER KPNAME*80
 C
+         WRITE(6,*) '##### test1 #####'
       CALL MPINIT(NPROCS,MYRANK)
+         WRITE(6,*) '##### test2 #####', NPROCS, MYRANK
       IF(NPROCS.LT.NCPUMIN) THEN
          WRITE(6,*) 'XX NPROCS.LT.NCPUMIN :',NPROCS,'.LT.',NCPUMIN
          STOP
@@ -20,20 +22,24 @@ C
          WRITE(6,*) 'XX NPROCS.GT.NCPUMAX :',NPROCS,'.GT.',NCPUMAX
          STOP
       ENDIF
+      WRITE(6,*) '##### test3 #####', NPROCS, MYRANK
 C
       IF(MYRANK.EQ.0) THEN
          WRITE(6,*) '##### /TASK/TASK  04/11/08 #####'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC
+         WRITE(6,*) '##### test4 #####'
 C
       CALL PLINIT
       CALL EQINIT
       CALL TRINIT
+         WRITE(6,*) '##### test5 #####'
       CALL DPINIT
       CALL WRINIT
       CALL WMINIT
       CALL FPINIT
+         WRITE(6,*) '##### test6 #####'
       IF(MYRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
          KPNAME='plparm'
@@ -42,6 +48,7 @@ C
          CALL EQPARM(1,KPNAME,IERR)
          KPNAME='trparm'
          CALL TRPARF(KPNAME)
+         WRITE(6,*) '##### test7 #####'
          KPNAME='dpparm'
          CALL DPPARF(KPNAME)
          KPNAME='wrparm'
@@ -51,8 +58,10 @@ C
          KPNAME='fpparm'
          CALL FPPARF(KPNAME)
       ENDIF
+         WRITE(6,*) '##### test8 #####'
       CALL MPSYNC
       CALL WMPRBC
+         WRITE(6,*) '##### test9 #####'
 C
       CALL TASKMENU
 C
