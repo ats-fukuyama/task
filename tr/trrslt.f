@@ -95,15 +95,15 @@ C
       CALL TRSUMD(AJNB,DSRHO,NRMAX,ANBSUM)
       CALL TRSUMD(AJRF,DSRHO,NRMAX,ARFSUM)
       CALL TRSUMD(AJBS,DSRHO,NRMAX,ABSSUM)
-      AJNBT = ANBSUM*DR/1.D6
-      AJRFT = ARFSUM*DR/1.D6
-      AJBST = ABSSUM*DR/1.D6
+      AJNBT = ANBSUM*DR/1.D6*(RKAP/RKAPS)
+      AJRFT = ARFSUM*DR/1.D6*(RKAP/RKAPS)
+      AJBST = ABSSUM*DR/1.D6*(RKAP/RKAPS)
 C
       CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
       CALL TRSUMD(AJOH,DSRHO,NRMAX,AOHSUM)
 C
-      AJT   = AJTSUM*DR/1.D6
-      AJOHT = AOHSUM*DR/1.D6
+      AJT   = AJTSUM*DR/1.D6*(RKAP/RKAPS)
+      AJOHT = AOHSUM*DR/1.D6*(RKAP/RKAPS)
 C
       DRH=0.5D0*DR*RA
       DO 70 NS=1,NSM
@@ -119,14 +119,14 @@ C
          SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
      &            +( VNP-DNP/DRH)*PNSS(NS))
      &            *DVRHO(NRMAX)
-     &            /(RM(NRMAX)*RA)
+     &            *(RKAPS/RKAP)/(RM(NRMAX)*RA)
 C
          PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
      &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
      &            +( VXP-DXP/DRH)*PNSS(NS)
      &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
      &            *DVRHO(NRMAX)*RKEV*1.D14
-     &            /(RM(NRMAX)*RA)
+     &            *(RKAPS/RKAP)/(RM(NRMAX)*RA)
    70 CONTINUE
 C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
@@ -285,7 +285,7 @@ C
 C
 C      ALI=4.D0*PI*SUL/((AMYU0*AJT*1.D6)**2)
 C      ALI=8.D0*PI**2*DR*RA*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
-      ALI=8.D0*PI**2*DR*RA*SUL*RKAP**2/((AMYU0*AJT*1.D6)**2)
+      ALI=8.D0*PI**2*DR*RA*SUL*RKAPS**2/((AMYU0*AJT*1.D6)**2)
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 C
       PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
