@@ -62,6 +62,11 @@ C      ENDDO
       POHT = POHSUM*DR/1.D6
       PNBT = PNBSUM*DR/1.D6
       PNFT = PNFSUM*DR/1.D6
+      DO NS=1,NSM
+         CALL TRSUMD(PEX(1,NS),DVRHO,NRMAX,PEXSUM)
+         PEXT(NS) = PEXSUM*DR/1.D6
+      ENDDO
+C
       DO 30 NS=1,NSM
         CALL TRSUMD(PRF(1,NS),DVRHO,NRMAX,PRFSUM)
         PRFT(NS) = PRFSUM*DR/1.D6
@@ -148,11 +153,13 @@ C
    80 CONTINUE
 C
       WBULKT=0.D0
+      PEXST =0.D0
       PRFST =0.D0
       PLST  =0.D0
       SLST  =0.D0
       DO 100 NS=1,NSM
          WBULKT=WBULKT+WST(NS)
+         PEXST =PEXST +PEXT(NS)
          PRFST =PRFST +PRFT(NS)
          PLST  =PLST  +PLT(NS)
          SLST  =SLST  +SLT(NS)
@@ -163,7 +170,7 @@ C
   110 CONTINUE
 C
       WPT =WBULKT+WTAILT
-      PINT=POHT+PNBT+PRFST+PNFT
+      PINT=POHT+PNBT+PRFST+PNFT+PEXST
       POUT=PLST+PCXT+PIET+PRLT
       SINT=SIET+SNBT
       SOUT=SLST
@@ -294,7 +301,7 @@ C
      &            *(PAI**0.5D0)
      &            *(PINT**(-0.5D0))
 C
-      QF=5.D0*PNFT/(POHT+PNBT+PRFST)
+      QF=5.D0*PNFT/(POHT+PNBT+PRFST+PEXST)
 C
       IF(Q0.GE.1.D0) THEN
          RQ1=0.D0
@@ -473,6 +480,7 @@ C
       GVT(NGT,86) = GCLIP(ZEFF0)
       GVT(NGT,87) = GCLIP(QF)
       GVT(NGT,88) = GCLIP(RIP)
+      GVT(NGT,89) = GCLIP(PEXST)
 C
 C     *** FOR 3D ***
 C
@@ -494,6 +502,7 @@ C
          G3D(NR,NGT,13) = GCLIP(AJBS(NR))
 C
          G3D(NR,NGT,14) = GCLIP(POH(NR)+PNB(NR)+PNF(NR)
+     &                         +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4)
      &                         +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))
          G3D(NR,NGT,15) = GCLIP(POH(NR))
          G3D(NR,NGT,16) = GCLIP(PNB(NR))
@@ -505,6 +514,10 @@ C
          G3D(NR,NGT,22) = GCLIP(PRL(NR))
          G3D(NR,NGT,23) = GCLIP(PCX(NR))
          G3D(NR,NGT,24) = GCLIP(PIE(NR))
+         G3D(NR,NGT,25) = GCLIP(PEX(NR,1))
+         G3D(NR,NGT,26) = GCLIP(PEX(NR,2))
+         G3D(NR,NGT,27) = GCLIP(PEX(NR,3))
+         G3D(NR,NGT,28) = GCLIP(PEX(NR,4))
 C
          IF (NR.EQ.1) THEN
             G3D(NR,NGT,25) = GCLIP(Q0)
@@ -764,6 +777,7 @@ C         CALL TRMXMN(85,' BETAA ')
 C         CALL TRMXMN(86,' ZEFF0 ')
          CALL TRMXMN(87,'   QF  ')
 C         CALL TRMXMN(88,'   IP  ')
+         CALL TRMXMN(89,'  PEX  ')
       ENDIF
 C
       IF(KID.EQ.'5') THEN

@@ -203,11 +203,21 @@ C
 C
       KFNLOG='trf.log'
 C
+C     *****
+C
       MODELG=0
-      MDCHG=0
-      MDLEQ=0
       NTEQIT=0
       MDLUF=0
+C
+      MDALL=0
+      MDQ=0
+      MDCUR=0
+      MDTT=0
+      MDVOL=0
+      MDAREA=0
+      MDRMJ=0
+      MDGR1=0
+      MDGR2=0
 C
       RETURN
       END
@@ -229,7 +239,7 @@ C
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,NTEQIT,MDLUF,
+     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -328,7 +338,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ,NTEQIT,MDLUF')
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF')
       END
 C
 C     ***********************************************************
@@ -423,9 +433,7 @@ C
      &             'MDLNF ',MDLNF,
      &             'MODELG',MODELG
 C
-      WRITE(6,602) 'MDCHG ',MDCHG,
-     &             'MDLEQ ',MDLEQ,
-     &             'NTEQIT',NTEQIT,
+      WRITE(6,602) 'NTEQIT',NTEQIT,
      &             'MDLUF ',MDLUF
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
@@ -496,6 +504,13 @@ C
       SUBROUTINE TRPROF
 C
       INCLUDE 'trcomm.h'
+      PARAMETER(NURM=NRM+1)
+      DIMENSION RAD(NURM),FQ(NURM),FNE(NURM),FTE(NURM),FTI(NURM)
+      DIMENSION FDVOL(NURM),FPBE(NURM),FPBI(NURM),FCUR(NURM),DERIV(NURM)
+      DIMENSION UQPH(4,NURM),UNEPH(4,NURM),UTEPH(4,NURM),UTIPH(4,NURM)
+      DIMENSION UDVOLPH(4,NURM),UPBEPH(4,NURM),UPBIPH(4,NURM)
+      DIMENSION UCURPH(4,NURM)
+      CHARACTER KFILE*10
 C
 C     ZEFF=1
 C
@@ -506,6 +521,59 @@ C      DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
 C      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
       DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 C      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
+C
+C
+      MODEP=2
+      IF(MDLUF.EQ.2.AND.(MODEP.EQ.1.OR.MODEP.EQ.2)) THEN
+         WRITE(6,*) "*****"
+         KFILE='NE.PHI'
+         CALL UFREAD(KFILE,RAD,FNE,NUFMAX,MDNE,IERR)
+         CALL SPL1D(RAD,FNE,DERIV,UNEPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FNE: IERR=',IERR
+         RADNOW=RAD(NRMAX+1)
+         CALL SPL1DF(RADNOW,PNEPH,RAD,UNEPH,NUFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF FNE: IERR=',IERR
+         PNS(1)=PNEPH*1.D-20
+         PNS(2)=PNEPH*1.D-20-2.D-8
+         PNS(3)=1.D-8
+         PNS(4)=1.D-8
+C
+         KFILE='TE.PHI'
+         CALL UFREAD(KFILE,RAD,FTE,NUFMAX,MDTE,IERR)
+         CALL SPL1D(RAD,FTE,DERIV,UTEPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FTE: IERR=',IERR
+         RADNOW=RAD(NRMAX+1)
+         CALL SPL1DF(RADNOW,PTEPH,RAD,UTEPH,NUFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF FTE: IERR=',IERR
+         PTS(1)=PTEPH*1.D-3
+C     
+         KFILE='TI.PHI'
+         CALL UFREAD(KFILE,RAD,FTI,NUFMAX,MDTE,IERR)
+         CALL SPL1D(RAD,FTI,DERIV,UTIPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FTI: IERR=',IERR
+         RADNOW=RAD(NRMAX+1)
+         CALL SPL1DF(RADNOW,PTIPH,RAD,UTIPH,NUFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF FTI: IERR=',IERR
+         PTS(2)=PTIPH*1.D-3
+         PTS(3)=PTIPH*1.D-3
+         PTS(4)=PTIPH*1.D-3
+C         write(6,*) PTS(1),PTS(2)
+C
+         KFILE='DVOL.PHI'
+         CALL UFREAD(KFILE,RAD,FDVOL,NUFMAX,MDDVOL,IERR)
+         CALL SPL1D(RAD,FDVOL,DERIV,UDVOLPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FDVOL: IERR=',IERR
+C         
+         KFILE='PBE.PHI'
+         CALL UFREAD(KFILE,RAD,FPBE,NUFMAX,MDPBE,IERR)
+         CALL SPL1D(RAD,FPBE,DERIV,UPBEPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FPBE: IERR=',IERR
+C
+         KFILE='PBI.PHI'
+         CALL UFREAD(KFILE,RAD,FPBI,NUFMAX,MDPBI,IERR)
+         CALL SPL1D(RAD,FPBI,DERIV,UPBIPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FPBI: IERR=',IERR
+      ENDIF
 C
       T     = 0.D0
       TPRE  = 0.D0
@@ -526,16 +594,55 @@ C
          RG(NR)  = DBLE(NR*DR)
          RM(NR)  = DBLE(NR-0.5D0)*DR
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-         DO NS=1,NSM
-            RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
-         ENDDO
-         NS=1
+         IF(MDLUF.EQ.0.OR.MODEP.NE.2) THEN
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+            DO NS=1,NSM
+               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+            ENDDO
 C
-         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-         DO NS=1,NSM
-            RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
-         ENDDO
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+            DO NS=1,NSM
+               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+            ENDDO
+C
+            DO NS=1,NSM
+               PEX(NR,NS) = 0.D0
+            ENDDO
+         ELSE
+            RMNOW=RM(NR)
+            CALL SPL1DF(RMNOW,PNE,RAD,UNEPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PNE: IERR=',IERR
+            RN(NR,1) = PNE*1.D-20
+            RN(NR,2) = PNE*1.D-20-2.D-8
+            RN(NR,3) = 1.D-8
+            RN(NR,4) = 1.D-8
+C
+            RMNOW=RM(NR)
+            CALL SPL1DF(RMNOW,PDVOL,RAD,UDVOLPH,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRPROF: SPL1DF PDVOL: IERR=',IERR
+C
+            RMNOW=RM(NR)
+            CALL SPL1DF(RMNOW,PTE,RAD,UTEPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PTE: IERR=',IERR
+            RT(NR,1) = PTE*1.D-3
+            CALL SPL1DF(RMNOW,PTI,RAD,UTIPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PTI: IERR=',IERR
+            DO NS=2,NSM
+               RT(NR,NS) = PTI*1.D-3
+            ENDDO
+C
+            RMNOW=RM(NR)
+            CALL SPL1DF(RMNOW,PBE,RAD,UPBEPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PBE: IERR=',IERR
+            PEX(NR,1)=PBE
+            CALL SPL1DF(RMNOW,PBI,RAD,UPBIPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PBI: IERR=',IERR
+            PEX(NR,2)=PBI
+            PEX(NR,3)=0.D0
+            PEX(NR,4)=0.D0
+         ENDIF
+         NS=1
 C
          PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
          ANNU(NR)= (PNNU-PNNUS)*PROF+PNNUS
@@ -584,6 +691,7 @@ C     *** CALCULATE PROFILE OF AJ(R) ***
 C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
+      IF(MDLUF.NE.2) THEN
       DO NR=1,NRMAX
          IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
             PROF=0.D0    
@@ -606,8 +714,52 @@ C
          AJ(NR)  =AJOH(NR)
          BP(NR)  =FACT*BP(NR)
          QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+c$$$         write(6,*) QP(NR),BP(NR),AJ(NR)
       ENDDO
+      ELSE
+         KFILE='Q.PHI'
+         CALL UFREAD(KFILE,RAD,FQ,NUFMAX,MDQ,IERR)
+         CALL SPL1D(RAD,FQ,DERIV,UQPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FQ: IERR=',IERR
+         KFILE='CUR.PHI'
+         CALL UFREAD(KFILE,RAD,FCUR,NUFMAX,MDCUR,IERR)
+         CALL SPL1D(RAD,FCUR,DERIV,UCURPH,NUFMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FCUR: IERR=',IERR
+         DO NR=1,NRMAX
+            RGNOW=RG(NR)
+            CALL SPL1DF(RGNOW,PQ,RAD,UQPH,NUFMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1DF PQ: IERR=',IERR
+            CALL SPL1DF(RGNOW,PCUR,RAD,UCURPH,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRPROF: SPL1DF PCUR: IERR=',IERR
+            QP(NR)=PQ
+            BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+         ENDDO
+c$$$         AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
+c$$$         AJOH(1)=AJ(1)
+c$$$         DO NR=2,NRMAX
+c$$$            AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
+c$$$     &            /(RM(NR)*RA*DR*AMYU0)
+c$$$            AJOH(NR)=AJ(NR)
+c$$$         ENDDO
+         DO NR=1,NRMAX
+            RGNOW=RG(NR)
+            CALL SPL1DF(RGNOW,PCUR,RAD,UCURPH,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRPROF: SPL1DF PCUR: IERR=',IERR
+            AJ(NR)=PCUR
+            AJOH(NR)=PCUR
+         ENDDO
+         RIP=2.D0*PI*RA*FKAP*BP(NRMAX)/AMYU0*1.D-6
+         RIPS=RIP
+         RIPSS=RIP
+         RIPE=RIP
+c$$$         DO NR=1,NRMAX
+c$$$            write(6,*) NR,AJ(NR)
+c$$$         ENDDO
+      ENDIF
 C      Q0=(4.D0*QP(1)-QP(2))/3.D0
+C      STOP
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
@@ -711,8 +863,10 @@ C     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
 C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,A,K,RDLT,B,I=',
 C     &           NR,RA,RKAP,RDLT,BB,RIP
             QP(NR)=-QRHO(NR)
+C            write(6,*) NR,QP(NR)
          ENDDO
 C         PAUSE
+C         STOP
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
 C
@@ -761,6 +915,15 @@ C
       SUBROUTINE TRSETG
 C
       INCLUDE 'trcomm.h'
+      PARAMETER(NURM=NRM+1)
+      DIMENSION DERIV(NURM+2)
+      DIMENSION ASR(NURM)
+      DIMENSION FFQ(NURM),FFTT(NURM),FFVOL(NURM),FFDVOL(NURM)
+      DIMENSION FFAREA(NURM),FFRMJ(NURM),FFGR1(NURM),FFGR2(NURM)
+      DIMENSION UQEQ(4,NURM),UTTEQ(4,NURM)
+      DIMENSION UVOLEQ(4,NURM),UDVOLEQ(4,NURM),UAREAEQ(4,NURM)
+      DIMENSION URMJEQ(4,NURM),UGR1EQ(4,NURM),UGR2EQ(4,NURM)
+      CHARACTER KFILE*10
 C
       IF(MODELG.EQ.3) THEN
         DO NR=1,NRMAX
@@ -858,32 +1021,102 @@ C
 C            write(6,*) NR,HJRHO(NR)
          ENDDO
       ELSE
+         IF(MDLUF.NE.2) THEN
+            DO NR=1,NRMAX
+               BPRHO(NR)=BP(NR)
+               QRHO(NR)=QP(NR)
+               TTRHO(NR)=BB*RR
+               DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+               DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
+               ABRHO(NR)=1.D0/(RA*RR)**2
+               ARRHO(NR)=1.D0/RR**2
+               AR1RHO(NR)=1.D0/RA
+               AR2RHO(NR)=1.D0/RA**2
+C               EPSRHO(NR)=RA*RM(NR)/RR
+               EPSRHO(NR)=RA*RG(NR)/RR
+            ENDDO
+         ELSE
+C
+         KFILE='VOL.PHI'
+         CALL UFREAD(KFILE,ASR,FFVOL,NUFMAX,MDVOL,IERR)
+         CALL SPL1D(ASR,FFVOL,DERIV,UVOLEQ,NUFMAX,0,IERR)
+C         DO NUF=1,NUFMAX
+C            RHOFDV=ASR(NUF)
+C            CALL SPL1DD(RHOFDV,VPL,DVPL,ASR,UVOLEQ,NUFMAX,IERR)
+C            FFDVOL(NUF)=DVPL
+C         ENDDO
+C         CALL SPL1D(ASR,FFDVOL,DERIV,UDVOLEQ,NUFMAX,0,IERR)
+C
+         KFILE='AREA.PHI'
+         CALL UFREAD(KFILE,ASR,FFAREA,NUFMAX,MDAREA,IERR)
+         CALL SPL1D(ASR,FFAREA,DERIV,UAREAEQ,NUFMAX,0,IERR)
+C
+         KFILE='RMJ.PHI'
+         CALL UFREAD(KFILE,ASR,FFRMJ,NUFMAX,MDRMJ,IERR)
+         CALL SPL1D(ASR,FFRMJ,DERIV,URMJEQ,NUFMAX,0,IERR)
+C
+         KFILE='GR1.PHI'
+         CALL UFREAD(KFILE,ASR,FFGR1,NUFMAX,MDGR1,IERR)
+         CALL SPL1D(ASR,FFGR1,DERIV,UGR1EQ,NUFMAX,0,IERR)
+C     
+         KFILE='GR2.PHI'
+         CALL UFREAD(KFILE,ASR,FFGR2,NUFMAX,MDGR2,IERR)
+         CALL SPL1D(ASR,FFGR2,DERIV,UGR2EQ,NUFMAX,0,IERR)
+C
+c$$$         KFILE='TT.PHI'
+c$$$         CALL UFREAD(KFILE,ASR,FFTT,NUFMAX,MDTT,IERR)
+c$$$         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
+         MDTT=1
+         CALL UFTTRHO(FFTT)
+         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
+C
+C     *****
+C
          DO NR=1,NRMAX
             BPRHO(NR)=BP(NR)
             QRHO(NR)=QP(NR)
-            TTRHO(NR)=BB*RR
-            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-            DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
-            ABRHO(NR)=1.D0/(RA*RR)**2
-            ARRHO(NR)=1.D0/RR**2
-            AR1RHO(NR)=1.D0/RA
-            AR2RHO(NR)=1.D0/RA**2
-C            EPSRHO(NR)=RA*RM(NR)/RR
             EPSRHO(NR)=RA*RG(NR)/RR
-         ENDDO
-c$$$         DO NR=2,NRMAX-1
-c$$$C         write(6,*) TTRHO(NR),ARRHO(NR),DVRHO(NR)
-c$$$C         write(6,*) ABRHO(NR)
-c$$$            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-c$$$            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-c$$$            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-c$$$            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-c$$$            FACTORM=0.5D0*(FACTOR1+FACTOR2)
-c$$$            FACTORP=0.5D0*(FACTOR2+FACTOR3)
-c$$$            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
-c$$$C            write(6,'(A,1P5E12.4)') 'F0,FP,FM,-,AJ='
-c$$$C     &   ,FACTOR0,FACTORP,FACTORM,FACTORP*BP(NR)-FACTORM*BP(NR-1),AJ(NR)
-c$$$         ENDDO
+C
+            RADNOW=RM(NR)
+C
+            CALL SPL1DF(RADNOW,TTL,ASR,UTTEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF TTL2: IERR=',IERR
+            TTRHO(NR)=TTL
+C
+            CALL SPL1DD(RADNOW,VPL,DVPL,ASR,UVOLEQ,NUFMAX,IERR)
+C            CALL SPL1DF(RADNOW,VPL,ASR,UDVOLEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF VPL2: IERR=',IERR
+            DVRHO(NR)=DVPL
+C
+            CALL SPL1DD(RADNOW,SPL,DSPL,ASR,UAREAEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF SPL2: IERR=',IERR
+            DSRHO(NR)=DSPL
+C
+            CALL SPL1DF(RADNOW,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
+            CALL SPL1DF(RADNOW,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVBRL2: IERR=',IERR
+            ABRHO(NR)=AVRRL*AVR2L
+C
+            CALL SPL1DF(RADNOW,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVRRL2: IERR=',IERR
+            ARRHO(NR)=1.D0/(AVRRL**2)
+C
+            CALL SPL1DF(RADNOW,AVR1L,ASR,UGR1EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR1L2: IERR=',IERR
+            AR1RHO(NR)=AVR1L
+C
+            CALL SPL1DF(RADNOW,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TRINIT: SPL1DF AVR2L2: IERR=',IERR
+            AR2RHO(NR)=AVR2L
+            ENDDO
+         ENDIF
       ENDIF
 C
       RETURN

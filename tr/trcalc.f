@@ -76,12 +76,13 @@ C
          SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)
          SSIN(NR,4)=                            SNF(NR)
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1)
-     &            +POH(NR)-PRL(NR)-PIE(NR)
+     &            +POH(NR)-PRL(NR)-PIE(NR)+PEX(NR,1)
          PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2)
-     &            -PN(2)*PCX(NR)/(PN(2)+PN(3))
+     &            -PN(2)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,2)
          PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3)
-     &            -PN(3)*PCX(NR)/(PN(2)+PN(3))
-         PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)
+     &            -PN(3)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,3)
+         PIN(NR,4)=PBCL(NR,4)+PFCL(NR,4)+PRF(NR,4)+PEX(NR,4)
+C         write(6,*) POH(NR),PIE(NR)
   100 CONTINUE
 C
       RETURN

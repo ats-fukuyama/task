@@ -101,7 +101,7 @@ C
          GYT(I,1)=GVT(I,39)
          GYT(I,2)=GVT(I,40)
          GYT(I,3)=GVT(I,41)
-         GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)
+         GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)+GVT(I,89)
          GYT(I,5)=GVT(I,46)
   300 CONTINUE
       CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,5,

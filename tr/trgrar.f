@@ -117,7 +117,7 @@ C
       ENDDO
       DO NS=1,NSM
       DO NR=1,NRMAX
-         GYR(NR,NS+3) = GCLIP(PRF(NR,NS) * 1.D-6)
+         GYR(NR,NS+3) = GCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
       ENDDO
       ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+3,

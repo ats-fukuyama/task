@@ -17,18 +17,8 @@ C
       IF(NTMAX.NE.0) DIP=(RIPE-RIPS)/NTMAX
       ICHCK=0
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-         NQM=NVM
-         MWMAX=MWM
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-         NQM=NSM+1
-         MWMAX=4*NQM-1
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+      NQM=NVM
+      MWMAX=MWM
 C
       CALL TRCALC
       CALL TRGLOB
@@ -92,9 +82,6 @@ C
       ENDDO
       ENDDO
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=1,NRMAX
          RN(NR,1) = 0.D0
          DO NS=2,NSM
@@ -120,33 +107,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
       ENDDO
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=1,NRMAX
-         RN(NR,1) = 0.D0
-         DO NS=2,NSM
-            RN(NR,1)  = RN(NR,1)+PZ(NS)*RN(NR,NS)
-         ENDDO
-         RN(NR,1) = RN(NR,1)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-         DO NS=1,NSM
-            IF(NS.NE.NSM) THEN
-               RT(NR,NS) = 0.5D0*(XV(NS,NR)+X(NQM*(NR-1)+NS))/RN(NR,NS)
-            ELSE
-            IF(RN(NR,NSM).LT.1.D-70) THEN
-               RT(NR,NS) = 0.D0
-            ELSE
-               RT(NR,NS) = 0.5D0*(XV(NS,NR)+X(NQM*(NR-1)+NS))/RN(NR,NS)
-            ENDIF
-            ENDIF
-         ENDDO
-         BP(NR)    = 0.5D0*(XV(NQM,NR)+X(NQM*NR))
-         RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
-         RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C 
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
       CALL TRCALC
@@ -228,7 +188,6 @@ C
 C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
       COMMON /TRLCL2/ D(NVM,NRM)
-C      DIMENSION DNDR(NRM,NSM,3)
 C
       RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
       FKAP=0.5D0*(RKAP+1.D0)
@@ -282,9 +241,6 @@ C
 C      NN=2*NSM+1
       NN=NQM
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=2,NRMAX-1
 C
       NSW=2
@@ -321,76 +277,6 @@ C
       ENDDO
       ENDDO
       ENDDO
-C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=2,NRMAX-1
-C
-      NSW=2
-      CALL TRIPTC(DV11,DV53,NSW,NR)
-C      CALL RKDNDR(DNDR,NR)
-C
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
-      DO NO=1,2
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         IF (NR.EQ.2) THEN
-         VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                   +0.5D0*( VV(NSM+NV,NSM+NW,NO  ,NSW)
-     &                           +VV(NSM+NV,NSM+NW,NO+2,NSW))
-     &                  /(0.5D0*(RN(NR+(NO-2),NW)+RN(NR+(NO-1),NW)))
-C     &                   *0.5D0*(DNDR(NR+(NO-2),NW,NO)
-C     &                          +DNDR(NR+(NO-1),NW,NO+1))
-     &                         *(RN(NR+ NO   ,NW)-RN(NR+(NO-2),NW))
-     &                         *DV23
-         ELSEIF (NR.EQ.NRMAX-1) THEN
-         VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                   +0.5D0*( VV(NSM+NV,NSM+NW,NO  ,NSW)
-     &                           +VV(NSM+NV,NSM+NW,NO+2,NSW))
-     &                  /(0.5D0*(RN(NR+(NO-2),NW)+RN(NR+(NO-1),NW)))
-C     &                   *0.5D0*(DNDR(NR+(NO-2),NW,NO)
-C     &                          +DNDR(NR+(NO-1),NW,NO+1))
-     &                         *(RN(NR+(NO-1),NW)-RN(NR+(NO-3),NW))
-     &                         *DV23
-         ELSE
-          VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                    +0.5D0*( VV(NSM+NV,NSM+NW,NO  ,NSW)
-     &                            +VV(NSM+NV,NSM+NW,NO+2,NSW))
-     &                   /(0.5D0*(RN(NR+(NO-2),NW)+RN(NR+(NO-1),NW)))
-C     &                   *0.5D0*(DNDR(NR+(NO-2),NW,NO)
-C     &                          +DNDR(NR+(NO-1),NW,NO+1))
-     &                    *0.5D0*(RN(NR+ NO   ,NW)+RN(NR+(NO-1),NW)
-     &                           -RN(NR+(NO-2),NW)-RN(NR+(NO-3),NW))
-     &                          *DV23
-         ENDIF
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-      ENDDO
-         A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
-         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
-     &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
-         C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
-      ENDDO
-      ENDDO
-C
-      DO NS=1,NSM
-         D(NS,NR) = (PIN(NR,NS)/(RKEV*1.D20))*DV53
-C
-      DO NS1=1,NSM
-         IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
-     &             *1.5D0
-            B(NS,NS, NR)=B(NS,NS, NR)-RN(NR,NS1)*C1
-            B(NS,NS1,NR)=B(NS,NS1,NR)+RN(NR,NS )*C1
-         ENDIF
-      ENDDO
-      ENDDO
-C
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       NR=1
 C     
@@ -398,9 +284,6 @@ C
       CALL TRIPTC(DV11,DV53,NSW,NR)
 C
 C      NO=2
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NV=1,NQM
       DO NW=1,NQM
       DO NO=1,2
@@ -431,56 +314,12 @@ C
          ENDIF
       ENDDO
       ENDDO
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-C      CALL RKDNDR(DNDR,NR)
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                   +0.5D0*( VV(NSM+NV,NSM+NW,NO  ,NSW)
-     &                           +VV(NSM+NV,NSM+NW,NO+2,NSW))
-     &                  /(0.5D0*(RN(NR+(NO-2),NW)+RN(NR+(NO-1),NW)))
-C     &                   *0.5D0*(DNDR(NR+(NO-2),NW,NO)
-C     &                          +DNDR(NR+(NO-1),NW,NO+1))
-     &                         *(RN(NR+ NO   ,NW)-RN(NR+(NO-2),NW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-C
-         A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
-         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
-     &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
-         C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
-      ENDDO
-      ENDDO
-C
-      DO NS=1,NSM
-         D(NS,NR) = (PIN(NR,NS)/(RKEV*1.D20))*DV53
-C
-      DO NS1=1,NSM
-         IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
-     &             *1.5D0
-            B(NS,NS, NR)=B(NS,NS, NR)-RN(NR,NS1)*C1
-            B(NS,NS1,NR)=B(NS,NS1,NR)+RN(NR,NS )*C1
-         ENDIF
-      ENDDO
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       NR=NRMAX
 C
       NSW=3
       CALL TRIPTC(DV11,DV53,NSW,NR)
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NV=1,NQM
       DO NW=1,NQM
          NO=1
@@ -525,61 +364,6 @@ C
          ENDIF
       ENDDO
       ENDDO
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-C      CALL RKDNDR(DNDR,NR)
-      DO NV=1,NQM-1
-      DO NW=1,NQM-1
-         NO=1
-         VI(NV,NW,NO,NSW)=0.5D0*(VV(NV,NW,NO  ,NSW)+VV(NV,NW,NO+2,NSW))
-     &                         *DV23
-         VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                   +0.5D0*( VV(NSM+NV,NSM+NW,NO  ,NSW)
-     &                           +VV(NSM+NV,NSM+NW,NO+2,NSW))
-     &                  /(0.5D0*(RN(NR+(NO-2),NW)+RN(NR+(NO-1),NW)))
-C     &                   *0.5D0*(DNDR(NR+(NO-2),NW,NO)
-C     &                          +DNDR(NR+(NO-1),NW,NO+1))
-     &                         *(RN(NR+(NO-1),NW)-RN(NR+(NO-3),NW))
-     &                         *DV23
-         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO  ,NSW)+DD(NV,NW,NO+2,NSW))
-     &                         *DV23
-C
-         NO=2
-         VI(NV,NW,NO,NSW)=VV(NV,NW,NO  ,NSW)*DV23
-         VI(NV,NW,NO,NSW)=VI(NV,NW,NO,NSW)
-     &                   +VV(NSM+NV,NSM+NW,NO  ,NSW)/PNSS(NW)
-C     &                   *DNDR(NR+(NO-2),NW,NO)
-     &                   *(2.D0*PNSS(NW)-RN(NR+(NO-2),NW)
-     &                                  -RN(NR+(NO-3),NW))     
-     &                   *DV23
-         DI(NV,NW,NO,NSW)=DD(NV,NW,NO  ,NSW)*DV23
-C
-         A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
-         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
-     &                -0.0D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
-     &                                      -DI(NV,NW,2,NSW)
-         C(NV,NW,NR) =-0.0D0
-      ENDDO
-      ENDDO
-C
-      DO NS=1,NSM
-         D(NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
-     &             +(-VI(NS,NS,2,NSW)+DI(NS,NS,2,NSW)*2.D0)
-     &             *PNSS(NS)*PTS(NS)
-C
-      DO NS1=1,NSM
-         IF(NS1.NE.NS) THEN
-            C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
-     &             *1.5D0
-            B(NS,NS, NR)=B(NS,NS, NR)-RN(NR,NS1)*C1
-            B(NS,NS1,NR)=B(NS,NS1,NR)+RN(NR,NS )*C1
-         ENDIF
-      ENDDO
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
 C      FADV=0.5D0
       FADV=1.0D0
@@ -587,9 +371,6 @@ C
       PRV=(1.D0-FADV)*DT
       ADV=FADV*DT
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=1,NRMAX
          DV11=DVRHO(NR)
          DV53=DVRHO(NR)**(5.D0/3.D0)
@@ -602,20 +383,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          NV=NQM
          X(NQM*(NR-1)+NV) = XV(NV,NR)+DT*D(NV,NR)
       ENDDO
-C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=1,NRMAX
-         DV53=DVRHO(NR)**(5.D0/3.D0)
-         DO NS=1,NSM
-            X(NQM*(NR-1)+NS) = 1.5D0*DV53*XV(NS,NR)+DT*D(NS,NR)
-         ENDDO
-         NS=NQM
-         X(NQM*(NR-1)+NS) = XV(NS,NR)+DT*D(NS,NR)
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       NR=1
       DO NW=1,NQM
@@ -661,9 +428,6 @@ C
       ENDDO
       ENDDO
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=1,NRMAX
          DV11=DVRHO(NR)
          DV53=DVRHO(NR)**(5.D0/3.D0)
@@ -676,20 +440,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             AX(2*NQM,NQM*(NR-1)+NN) 
      &    = AX(2*NQM,NQM*(NR-1)+NN)     + 1.D0
       ENDDO
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=1,NRMAX
-         DV53=DVRHO(NR)**(5.D0/3.D0)
-         DO NS=1,NSM
-            AX(2*NQM,NQM*(NR-1)+NS) 
-     &    = AX(2*NQM,NQM*(NR-1)+NS) + 1.5D0*DV53
-         ENDDO
-            AX(2*NQM,NQM*(NR-1)+NN) 
-     &    = AX(2*NQM,NQM*(NR-1)+NN) + 1.D0
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
 C     ***** Surface Boundary Condition for Bp *****
 C
@@ -722,9 +472,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=1,NRMAX
       DO NS=1,NSM
          XV(    NS,NR) = RN(NR,NS)
@@ -734,19 +481,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          YV(  1,NR) = RW(NR,1)
          YV(  2,NR) = RW(NR,2)
       ENDDO
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=1,NRMAX
-      DO NS=1,NSM
-         XV(NS,NR) = RN(NR,NS)*RT(NR,NS)
-      ENDDO
-         XV(NQM,NR) = BP(NR)
-         YV(  1,NR) = RW(NR,1)
-         YV(  2,NR) = RW(NR,2)
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       RETURN
       END
@@ -761,9 +495,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
       DO NR=1,NRMAX
          RN(NR,1) = 0.D0
          DO NS=2,NSM
@@ -786,32 +517,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
       ENDDO
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      DO NR=1,NRMAX
-         RN(NR,1) = 0.D0
-         DO NS=2,NSM
-            RN(NR,1) = RN(NR,1)+PZ(NS)*RN(NR,NS)
-         ENDDO
-         RN(NR,1) = RN(NR,1)+PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
-         DO NS=1,NSM
-         IF(NS.NE.NSM) THEN
-            RT(NR,NS) = XV(NS,NR)/RN(NR,NS)
-         ELSE
-            IF(RN(NR,NSM).LT.1.D-70) THEN
-               RT(NR,NS) = 0.D0
-            ELSE
-               RT(NR,NS) = XV(NS,NR)/RN(NR,NS)
-            ENDIF
-         ENDIF
-      ENDDO
-      BP(NR)   = XV(NQM,NR)
-      RW(NR,1) = YV(1,NR)
-      RW(NR,2) = YV(2,NR)
-      ENDDO
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
       RETURN
       END
@@ -893,7 +598,6 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      DIMENSION SUM(3),DDM(NSM),DNDR(NRM,NSM,3)
       DIMENSION F2C(2),SIG(4),FCB(4)
 C
       DO NS=1,NSM
@@ -935,15 +639,11 @@ C
          ENDIF
       ENDDO
 C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDLEQ.EQ.0) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      IF (MDCHG.EQ.0) THEN
-         SIG(1)= 2.D0
-         SIG(2)= 2.D0
-         SIG(3)=-2.D0
-         SIG(4)=-2.D0
-         NSX=2*NSM+1
+      SIG(1)= 2.D0
+      SIG(2)= 2.D0
+      SIG(3)=-2.D0
+      SIG(4)=-2.D0
+      NSX=2*NSM+1
       DO NMK=1,4
          IF (NMK.EQ.1) THEN
             NI=1
@@ -988,205 +688,6 @@ C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
             VV(   NSX,   NSX,NMK,NSW) = SIG(NMK)*F2C(NJ)*FC(NI,NSW)
             DD(   NSX,   NSX,NMK,NSW) =          F2C(NJ)*FC(NI,NSW)
          ENDIF
-      ENDDO
-C
-C   /////////////////////////////////////////////////////////////////////
-C
-      ELSEIF (MDCHG.EQ.1) THEN
-C
-      DO NMK=1,3
-C     ** BEFORE **
-      IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
-      DO NS=1,NSM
-         VV(    NS,    NS,NMK,NSW) = FA(NMK,NSW)*AV(NR+(NMK-2),1)
-         VV(NSM+NS,NSM+NS,NMK,NSW) = FA(NMK,NSW)*(AVK(NR+(NMK-2),NS)
-     &                       +AV(NR+(NMK-2),NS)*1.5D0)*RN(NR+(NMK-2),NS)
-         DD(NSM+NS,NSM+NS,NMK,NSW) = FB(NMK,NSW)*RN(NR+(NMK-2),NS)
-     &                         *AK(NR+(NMK-2),NS)
-         VV(NSM+NS,    NS,NMK,NSW) = 0.D0
-         DD(NSM+NS,    NS,NMK,NSW) = FB(NMK,NSW)*1.5D0*RT(NR+(NMK-2),NS)
-     &                         *AD(NR+(NMK-2),NS)
-      ENDDO
-C
-      DO NW=1,NSM
-      DO NS=1,NSM
-         DD(    NS,    NW,NMK,NSW) = FB(NMK,NSW)*AD(NR+(NMK-2),1)
-     &        *RN(NR+(NMK-2),NS)*RT(NR+(NMK-2),NW)
-     &        /(RN(NR+(NMK-2),1)*RT(NR+(NMK-2),1))
-         DD(    NS,NSM+NW,NMK,NSW) = FB(NMK,NSW)*AD(NR+(NMK-2),1)
-     &        *3.D0*RN(NR+(NMK-2),NS)*RN(NR+(NMK-2),NW)
-     &        /(2.D0*RN(NR+(NMK-2),1)*RT(NR+(NMK-2),1))
-      ENDDO
-      ENDDO
-      ENDIF
-C     ** AFTER **
-      DO NS=1,NSM
-         VV(NSM+NS,NSM+NS,NMK,NSW) = VV(NSM+NS,NSM+NS,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NS)
-         DD(NSM+NS,NSM+NS,NMK,NSW) = DD(NSM+NS,NSM+NS,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NS)
-         DD(NSM+NS,    NS,NMK,NSW) = DD(NSM+NS,    NS,NMK,NSW)
-     &                    -(RT(NR+(NMK-2),NS)/RN(NR+(NMK-2),NS))
-     &                    *(DD(NSM+NS,NSM+NS,NMK,NSW)*RN(NR+(NMK-2),NS))
-      ENDDO
-C
-      DO NW=1,NSM
-      DO NS=1,NSM
-         DD(    NS,    NW,NMK,NSW) = DD(    NS,    NW,NMK,NSW)
-     &                              -DD(    NS,NSM+NW,NMK,NSW)
-     &                            *(RT(NR+(NMK-2),NW)/RN(NR+(NMK-2),NW))
-         DD(    NS,NSM+NW,NMK,NSW) = DD(    NS,NSM+NW,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NW)
-      ENDDO
-      ENDDO
-C
-      ENDDO
-C
-C   /////////////////////////////////////////////////////////////////////
-C
-      ELSEIF (MDCHG.EQ.2) THEN
-C
-      DO NMK=1,3
-         SUM(NMK)=0.D0
-      ENDDO
-      DO NMK=1,3
-      DO NS=2,NSM
-         SUM(NMK)=SUM(NMK)+PZ(NS)*RN(NR+(NMK-2),NS)*RT(NR+(NMK-2),NS)
-      ENDDO
-      ENDDO
-C
-      DO NMK=1,3
-C     ** BEFORE **
-      IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
-      DO NS=1,NSM
-         VV(    NS,    NS,NMK,NSW) = FA(NMK,NSW)*AV(NR+(NMK-2),NS)
-         DD(    NS,    NS,NMK,NSW) = FB(NMK,NSW)*AD(NR+(NMK-2),NS)
-     &                              *(1.D0+SUM(NMK)/(RN(NR+(NMK-2),1)
-     &                              *RT(NR+(NMK-2),1)))
-         VV(    NS,NSM+NS,NMK,NSW) = FA(NMK,NSW)*AV(NR+(NMK-2),NS)
-         VV(NSM+NS,NSM+NS,NMK,NSW) = FA(NMK,NSW)*(AVK(NR+(NMK-2),NS)
-     &                              +AV(NR+(NMK-2),NS)*1.5D0)
-     &                              *RN(NR+(NMK-2),NS)
-         DD(NSM+NS,NSM+NS,NMK,NSW) = FB(NMK,NSW)*RN(NR+(NMK-2),NS)
-     &                              *AK(NR+(NMK-2),NS)
-         VV(NSM+NS,    NS,NMK,NSW) = 0.D0
-         DD(NSM+NS,    NS,NMK,NSW) = FB(NMK,NSW)*1.5D0*RT(NR+(NMK-2),NS)
-     &                              *AD(NR+(NMK-2),NS)
-         DDM(NS) = DD(    NS,    NS,NMK,NSW)
-      ENDDO
-C
-      DO NW=1,NSM
-      DO NS=1,NSM
-      DD(    NS,NSM+NW,NMK,NSW) = FB(NMK,NSW)*AD(NR+(NMK-2),NS)
-     &        *3.D0*RN(NR+(NMK-2),NS)*ABS(PZ(NW))*RN(NR+(NMK-2),NW)
-     &        /(2.D0*RN(NR+(NMK-2),1)*RT(NR+(NMK-2),1))
-      ENDDO
-      ENDDO
-      ENDIF
-C     ** AFTER **
-      DO NS=1,NSM
-         VV(NSM+NS,NSM+NS,NMK,NSW) = VV(NSM+NS,NSM+NS,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NS)
-         DD(NSM+NS,NSM+NS,NMK,NSW) = DD(NSM+NS,NSM+NS,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NS)
-         DD(NSM+NS,    NS,NMK,NSW) = DD(NSM+NS,    NS,NMK,NSW)
-     &                            -(RT(NR+(NMK-2),NS)/RN(NR+(NMK-2),NS))
-     &                    *(DD(NSM+NS,NSM+NS,NMK,NSW)*RN(NR+(NMK-2),NS))
-         DD(    NS,     1,NMK,NSW) =-DD(    NS,NSM+ 1,NMK,NSW)
-     &                             *(RT(NR+(NMK-2),1)/RN(NR+(NMK-2),1))
-         DD(    NS,NSM +1,NMK,NSW) = DD(    NS,NSM +1,NMK,NSW)
-     &                              /RN(NR+(NMK-2),1)
-      ENDDO
-C
-      DO NW=2,NSM
-      DO NS=1,NSM
-         DD(    NS,    NW,NMK,NSW) =-DD(    NS,NSM+NW,NMK,NSW)
-     &                            *(RT(NR+(NMK-2),NW)/RN(NR+(NMK-2),NW))
-         DD(    NS,NSM+NW,NMK,NSW) = DD(    NS,NSM+NW,NMK,NSW)
-     &                              /RN(NR+(NMK-2),NW)
-      ENDDO
-      ENDDO
-      DO NS=1,NSM
-         DD(    NS,    NS,NMK,NSW) = DD(    NS,    NS,NMK,NSW)+DDM(NS)
-      ENDDO
-C
-      ENDDO
-      ENDIF
-C
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-      ELSEIF (MDLEQ.EQ.10) THEN
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-      CALL RKDNDR(DNDR,NR)
-C
-      DO NS=1,NSM
-      DO NMK=1,4
-         IF (NMK.EQ.1) THEN
-            NI=1
-            NJ=1
-         ELSEIF (NMK.EQ.2) THEN
-            NI=2
-            NJ=2
-         ELSEIF (NMK.EQ.3) THEN
-            NI=2
-            NJ=1
-         ELSE
-            NI=3
-            NJ=2
-         ENDIF
-      IF (DNDR(NR,NS,NI).NE.0.D0.AND.NR+(NJ-2).NE.0) THEN
-         VV(    NS,    NS,NMK,NSW)= FA(NI,NSW)*(AVK(NR+(NJ-2),NS)
-     &                                        +  AV(NR+(NJ-2),NS)*1.5D0)
-         VV(NSM+NS,NSM+NS,NMK,NSW)=-FA(NI,NSW)*( AD(NR+(NJ-2),NS)*1.5D0
-     &                                        -  AK(NR+(NJ-2),NS))
-         DD(    NS,    NS,NMK,NSW)= FB(NI,NSW)*  AK(NR+(NJ-2),NS)
-      ENDIF
-      ENDDO
-      ENDDO
-C
-      ENDIF
-C+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-C
-      RETURN
-      END
-C
-C     ***********************************************************
-C
-C           RECKON NUMERATOR OF DN/DR
-C
-C     ***********************************************************
-C
-      SUBROUTINE RKDNDR(DNDR,NR)
-C
-      INCLUDE 'trcomm.h'
-C
-      DIMENSION DNDR(NRM,NSM,3)
-C
-      DO NS=1,NSM
-      IF (NR.EQ.1) THEN
-         NMK=1
-         DNDR(NR,NS,NMK) = 0.D0
-         DO NMK=2,3
-         DNDR(NR,NS,NMK) = RN(NR+(NMK-2)+1,NS)-RN(NR+(NMK-2),NS)
-         ENDDO
-      ELSEIF (NR.EQ.NRMAX-1) THEN
-         DO NMK=1,2
-         DNDR(NR,NS,NMK) = RN(NR+(NMK-2)+1,NS)-RN(NR+(NMK-2),NS)
-         ENDDO
-         NMK=3
-         DNDR(NR,NS,NMK) = 2.D0*(PNSS(NS)-RN(NR+(NMK-2),NS))
-      ELSEIF (NR.EQ.NRMAX) THEN
-         NMK=1
-         DNDR(NR,NS,NMK) = RN(NR+(NMK-2)+1,NS)-RN(NR+(NMK-2),NS)
-         NMK=2
-         DNDR(NR,NS,NMK) = 2.D0*(PNSS(NS)-RN(NR+(NMK-2),NS))
-         NMK=3
-         DNDR(NR,NS,NMK) = 0.D0
-      ELSE
-         DO NMK=1,3
-         DNDR(NR,NS,NMK) = RN(NR+(NMK-2)+1,NS)-RN(NR+(NMK-2),NS)
-         ENDDO
-      ENDIF
       ENDDO
 C
       RETURN
