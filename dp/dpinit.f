@@ -55,7 +55,7 @@ C     ****** INITIALIZE INPUT PARAMETERS ******
 C
       SUBROUTINE DPINIT
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
          MODELP(1)= 5
          NDISP1(1)=-2
@@ -108,7 +108,7 @@ C     ****** INPUT PARAMETERS ******
 C
       SUBROUTINE DPPARM
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       LOGICAL LEX
       CHARACTER KPNAME*72
@@ -178,7 +178,7 @@ C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE DPVIEW
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       WRITE(6,100)
       DO I=1,NSMAX

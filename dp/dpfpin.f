@@ -4,8 +4,8 @@ C****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPFMFL(NS)
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       IF(MODELV.EQ.1) RETURN
 C
@@ -54,8 +54,8 @@ C     ****** SET LOCAL VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPFPFL(NS)
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION THT(NTHM+2),FPT(NTHM+2),FPX(NTHM+2)
       DIMENSION U2(4,NTHM+2)
@@ -127,7 +127,7 @@ C****** LOAD VELOCITY DISTRIBUTION DATA ******
 C
       SUBROUTINE DPLDFP
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C      
       DIMENSION FPR(NRM+2),FPX(NRM+2)
 C

@@ -4,8 +4,8 @@ C     ****** CALCULATE DIELECTRIC TENSOR ******
 C
       SUBROUTINE DPTENS(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6)
       DATA CI/(0.D0,1.D0)/
@@ -102,8 +102,8 @@ C     ****** COLLISIONLESS COLD MODEL ******
 C
       SUBROUTINE DPTNCL(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -122,8 +122,8 @@ C     ****** COLLISIONAL COLD MODEL ******
 C
       SUBROUTINE DPTNCC(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -146,8 +146,8 @@ C     ****** IDEAL MHD MODEL ******
 C
       SUBROUTINE DPTNIM(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS))
@@ -166,8 +166,8 @@ C     ****** RESISTIVE MHD MODEL ******
 C
       SUBROUTINE DPTNRM(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -190,8 +190,8 @@ C     ****** WARM PLAMSA MODEL ******
 C
       SUBROUTINE DPTNWP(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
@@ -221,8 +221,8 @@ C     ******  UNMAGNETIZE KINETIC DISPERSION ******
 C
       SUBROUTINE DPTNUP(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
@@ -250,8 +250,8 @@ C     ****** KINETIC MODEL WITHOUT FLR ******
 C
       SUBROUTINE DPTNHP(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
       DIMENSION CGZ(-1:1),CZ(-1:1),CDZ(-1:1)
       DATA CI/(0.D0,1.D0)/
@@ -318,8 +318,8 @@ C     ****** KINETIC MODEL WITH LOWEST FLR ******
 C
       SUBROUTINE DPTNKL(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
       DATA CI/(0.D0,1.D0)/
 C
@@ -371,8 +371,8 @@ C     ****** KINETIC MODEL WITH FLR ******
 C
       SUBROUTINE DPTNKP(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
       DATA CI/(0.D0,1.D0)/
 C
@@ -435,8 +435,8 @@ C     ******     WEAKLY RELATIVISTIC THERMAL PLASMA     ******
 C
       SUBROUTINE DPTNKR(NS,CLDISP)
 C
-      INCLUDE '../dp/dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C      
       DATA CI/(0.D0,1.D0)/
@@ -566,7 +566,7 @@ C           *** WITH Z-FUNCTION ***
 C
       FUNCTION CFQZ(Q,CZ)
 C
-      INCLUDE '../dp/dpcomm.h'
+      INCLUDE '../dp/dpcomm.inc'
 C
       DATA CI/(0.D0,1.D0)/
 C
@@ -606,7 +606,7 @@ C           *** WITH Z-FUNCTION ***
 C
       FUNCTION CFQZ_Z(Q,CZ)
 C
-      INCLUDE '../dp/dpcomm.h'
+      INCLUDE '../dp/dpcomm.inc'
 C
       DATA CI/(0.D0,1.D0)/
 C
@@ -628,7 +628,7 @@ C     *** WITH ASYMPTOTIC EXPANSION ***
 C
       FUNCTION CFQZ_EXP(Q,CZ)
 C
-      INCLUDE '../dp/dpcomm.h'
+      INCLUDE '../dp/dpcomm.inc'
 C
       CFQZ=(0.D0,0.D0)
 C

@@ -17,7 +17,7 @@ C                      V3.10  : 2000 NOV 25
 C
 C-----------------------------------------------------------------------
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       PARAMETER (NXGM=101)
       DIMENSION GX(NXGM),GY(NXGM,6)

@@ -7,9 +7,9 @@ SRCS = dpmain.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
        dpfpin.f dphotf.f dphotr.f
 
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
-       ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
+       ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
        ../lib/libdsp.o ../lib/libbes.o ../lib/libbrn.o \
-       ../lib/libspl.o ../lib/libgut.o
+       ../lib/libspl.o ../lib/libgut.o ../lib/libchar.o ../lib/libfio.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -30,14 +30,14 @@ new:
 	-mkdir ../dpnew
 	cp -f Makefile ../dpnew
 	cp -f *.f ../dpnew
-	cp -f *.h ../dpnew
+	cp -f *.inc ../dpnew
 
-dpmain.o: dpmain.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dpinit.o: dpinit.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dproot.o: dproot.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dpcont.o: dpcont.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dpdisp.o: dpdisp.f dpcomm.h dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-dptnsr.o: dptnsr.f dpcomm.h dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
-dpfpin.o: dpfpin.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dphotf.o: dphotf.f dpcomm.h dpcom1.h ../pl/plcom1.h
-dphotr.o: dphotr.f dpcomm.h dpcom1.h ../pl/plcom1.h
+dpmain.o: dpmain.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dpinit.o: dpinit.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dproot.o: dproot.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dpcont.o: dpcont.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dpdisp.o: dpdisp.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+dptnsr.o: dptnsr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
+dpfpin.o: dpfpin.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dphotf.o: dphotf.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+dphotr.o: dphotr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc

@@ -15,7 +15,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTR(NS,CLDISP)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6),CLDISP2(6)
 C
@@ -33,8 +33,8 @@ C ******************************************************
 C
       SUBROUTINE DPHOTRR(NS,CLDISP)
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
 C
@@ -222,8 +222,8 @@ C ******************************************************
 C
       SUBROUTINE DPHOTRI(NS,CLDISP)
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
       DATA CI/(0.D0,1.D0)/

@@ -4,8 +4,8 @@ C     ***** PLOT CONTOUR GRAPH *************************************
 C
       SUBROUTINE DPCONT
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM)
       DIMENSION Z(NGXM,NGYM)
       DIMENSION KA(8,NGXM,NGYM)
@@ -230,8 +230,8 @@ C     ***** DENSITY SCAN *****
 C
       SUBROUTINE DPCONTX
 C
-      INCLUDE 'dpcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
       PARAMETER (NGPM=21)
       DIMENSION GX(NGXM),GY(NGYM),GZ(NGXM,NGYM,NGPM)
       DIMENSION Z(NGXM,NGYM,NGPM)

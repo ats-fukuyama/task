@@ -8,7 +8,7 @@ C     **************************************************************
 C
       SUBROUTINE DPGRP1
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
       DIMENSION GX(NXM),GY(NXM)
 C
     1 WRITE(6,*)'## SELECT : (1)RF (2)RFI (3)KX (4)KY (5)KZ (0)END'
@@ -148,7 +148,7 @@ C     **************************************************************
 C
       SUBROUTINE DPROOT
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       PARAMETER (IGM=100)
       DIMENSION GX(NXM),GY(NXM),GY2(NXM)
@@ -340,7 +340,7 @@ C
 C
       SUBROUTINE DPBRENT1(CX)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC1
 C
@@ -374,7 +374,7 @@ C#######################################################
 C
       FUNCTION DPFUNC1(N,X,I)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N)
 C
@@ -398,7 +398,7 @@ C############################################################
 C
       SUBROUTINE DPBRENT2(CX)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC2
 C
@@ -433,7 +433,7 @@ C#######################################################
 C
       FUNCTION DPFUNC2(N,X,I)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N)
 C
@@ -457,7 +457,7 @@ C############################################################
 C
       SUBROUTINE DPBRENT3(CX)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       EXTERNAL DPFUNC3
 C
@@ -492,7 +492,7 @@ C#######################################################
 C
       FUNCTION DPFUNC3(N,X,I)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       DIMENSION X(N)
 C
@@ -664,7 +664,7 @@ C     ###############################################################
 C
       SUBROUTINE DPGPRM(ISW)
 C
-      INCLUDE 'dpcomm.h'
+      INCLUDE 'dpcomm.inc'
 C
       CALL SETLIN(0,0,7)
       IF (ISW.EQ.1) THEN
