@@ -349,6 +349,8 @@ C
          IF(MDNI.EQ.1) MDNI=3
       ENDIF
 C
+      WRITE(6,'(A7,A8,A6,A15)') 'DEVICE=',KUFDEV,'SHOT#=',KUFDCG
+C
       IF(NSW.EQ.1) THEN
          CALL TR_TIME_UFILE
       ELSEIF(NSW.EQ.2) THEN

@@ -81,6 +81,7 @@ C
       INCLUDE 'trcomm.inc'
       DIMENSION CHIL(5),CHEL(5),DL(5),CHQL(5),DQL(5)
 C
+      MDDW=1
       IF(NT.EQ.0) THEN
          IST=1
       ELSE

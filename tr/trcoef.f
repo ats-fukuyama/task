@@ -835,6 +835,7 @@ C     &                /(PZ(2)*RA*BB)
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
 C
+         MDDW=1
 C     INPUTS
          leigen=1        ! default
          nroot=8         ! default
@@ -1600,7 +1601,8 @@ C
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.3) THEN
-C     *** Hinton & Hazeltine model w/o anomalous transport effect ***
+C     *** Hinton & Hazeltine model w/o anomalous part of ***
+C     *** transport effect of heat pinch ***
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
@@ -1612,9 +1614,11 @@ C     *** Hinton & Hazeltine model w/o anomalous transport effect ***
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 C
-            DO NS=1,NSM
-               ADDW(NR,NS) = AD0*AKDW(NR,NS)
-            ENDDO
+            IF(MDDW.EQ.0) THEN
+               DO NS=1,NSM
+                  ADDW(NR,NS) = AD0*AKDW(NR,NS)
+               ENDDO
+            ENDIF
 C
 C            ZEFFL=ZEFF(NR)
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
@@ -1648,7 +1652,8 @@ C
 C
          ENDDO
       ELSEIF(MDLAD.EQ.4) THEN
-C     *** Hinton & Hazeltine model with anomalous transport effect ***
+C     *** Hinton & Hazeltine model with anomalous part of ***
+C     *** transport effect of heat pinch ***
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
@@ -1660,9 +1665,11 @@ C     *** Hinton & Hazeltine model with anomalous transport effect ***
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 C
-            DO NS=1,NSM
-               ADDW(NR,NS) = AD0*AKDW(NR,NS)
-            ENDDO
+            IF(MDDW.EQ.0) THEN
+               DO NS=1,NSM
+                  ADDW(NR,NS) = AD0*AKDW(NR,NS)
+               ENDDO
+            ENDIF
 C
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
@@ -1717,7 +1724,7 @@ C
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
-               ADDW(NR,NS) = AD0*AKDW(NR,NS)
+               IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= ADDW(NR,NS)-ADNCT(NR,NS,NS1)

@@ -178,6 +178,19 @@ C            0    : using effective transport coefficients
 C            else : using transport coefficients' vectors
       MDLWLD=0
 C
+C     MDDW : mode selector for anomalous particle transport coefficient.
+C            you must not modify this parameter.
+C            0    : if MDDW=0 from start to finish when you choose
+C                   a certain transport model (MDLKAI),
+C                   you could control a ratio of anomalous particle
+C                   transport to total particle transport to manipulate
+C                   the factor of AD0.
+C            else : this is because you chose MDLKAI=60, 61, or 63
+C                   which assign the transport models that can calculate
+C                   an anomalous particle transport coefficient
+C                   on their own.
+      MDDW=0
+C
       DT     = 0.01D0 
       NRMAX  = 50
       NTMAX  = 100
@@ -1660,18 +1673,20 @@ C
          NSV(NEQ)=0
       ENDIF
       IND=0
+      INDH=0
+      INDHD=0
       DO NS=1,NSM
          IF(MDLEQN.EQ.1.OR.MDLEQT.EQ.1) THEN
             IF(MDLEQN.EQ.1) IND=1
-            CALL TR_TABLE(NS,NEQ,1,IND)
+            CALL TR_TABLE(NS,NEQ,1,IND,INDH,INDHD)
             IF(IND.EQ.-1) CONTINUE
          ENDIF
          IF(MDLEQT.EQ.1) THEN
-            CALL TR_TABLE(NS,NEQ,2,IND)
+            CALL TR_TABLE(NS,NEQ,2,IND,INDH,INDHD)
             IF(IND.EQ.-1) CONTINUE
          ENDIF
          IF(MDLEQU.EQ.1) THEN
-            CALL TR_TABLE(NS,NEQ,3,IND)
+            CALL TR_TABLE(NS,NEQ,3,IND,INDH,INDHD)
             IF(IND.EQ.-1) CONTINUE
          ENDIF
       ENDDO
@@ -1789,7 +1804,7 @@ C           SORTER AS MAIN PART OF MODEL SELECTOR
 C
 C     ***********************************************************
 C
-      SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND)
+      SUBROUTINE TR_TABLE(NS,NEQ,NSW,IND,INDH,INDHD)
 C
       INCLUDE 'trcomm.inc'
 C
@@ -1822,9 +1837,15 @@ C
                   ENDIF
                ENDIF
             ENDIF
-         ELSEIF(PA(NS).EQ.2.D0) THEN
+         ELSEIF(PA(NS).EQ.1.D0.OR.PA(NS).EQ.2.D0) THEN
+            IF(PA(NS).EQ.1) INDH=1
             NEQ=NEQ+1
-            NSS(NEQ)=2
+            IF(INDH.EQ.1.AND.PA(NS).EQ.2.D0) THEN
+               NSS(NEQ)=3
+               INDHD=1
+            ELSE
+               NSS(NEQ)=2
+            ENDIF
             NSV(NEQ)=NSW
             IF(NSW.EQ.2.AND.IND.EQ.0) THEN
                DO NEQI=NEQ-1,NEQMAX
@@ -1843,7 +1864,11 @@ C
             ENDIF
          ELSEIF(PA(NS).EQ.3.D0) THEN
             NEQ=NEQ+1
-            NSS(NEQ)=3
+            IF(INDHD.EQ.1) THEN
+               NSS(NEQ)=4
+            ELSE
+               NSS(NEQ)=3
+            ENDIF
             NSV(NEQ)=NSW
             IF(NSW.EQ.2.AND.IND.EQ.0) THEN
                DO NEQI=NEQ-1,NEQMAX
