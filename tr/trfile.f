@@ -283,6 +283,10 @@ C
       COMMON /TRUFC3/ NM2CHK
       LOGICAL DIR,LEX
 C
+      NRAMAX=INT(RHOA*NRMAX)
+      DR = 1.D0/DBLE(NRMAX)
+C
+      IF(NSW.NE.0) THEN
       CALL KTRIM(KUFDEV,IKNDEV)
       CALL KTRIM(KUFDCG,IKNDCG)
 C
@@ -355,6 +359,10 @@ C
       ELSEIF(NSW.EQ.3) THEN
          CALL TR_TIME_UFILE_TOPICS
       ENDIF
+      ENDIF
+C
+      NROMAX = NRMAX
+      NRMAX  = NRAMAX
 C
  9000 RETURN
       END
@@ -370,12 +378,10 @@ C
       INCLUDE 'trcomm.h'
       COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
       COMMON /TRUFC3/ NM2CHK
+      COMMON /TRUFC4/ NREMAX(2),GRE(NRM,2)
       DIMENSION UPRE0(4,NRMU)
       DIMENSION TMUS(NTURM)
       CHARACTER KFILE*20
-C
-      NRAMAX=INT(RHOA*NRMAX)
-      DR = 1.D0/DBLE(NRMAX)
 C
       MDRGEO=0
       MDAMIN=0
@@ -472,6 +478,15 @@ C
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE3: IERR=",IERR
          PTSA(1)=F0*1.D-3
       ENDIF
+C
+      KFILE='TEXP'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RTEXU,NRFMAX,NTXMAX,MDCHK,IERR)
+      NREMAX(1)=NRFMAX
+      DO NR=1,NRFMAX
+         GRE(NR,1)=GUCLIP(RUF(NR))
+      ENDDO
+      KFILE='TEXPEB'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RTEXEU,NRFMAX,NTXMAX,MDCHK,IERR)
 C     
       KFILE='TI'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -506,6 +521,11 @@ C
          PTSA(4)=F0*1.D-3
       ENDIF
 C
+      KFILE='TIXP'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RTIXU,NRFMAX,NTXMAX,MDCHK,IERR)
+      KFILE='TIXPEB'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RTIXEU,NRFMAX,NTXMAX,MDCHK,IERR)
+C
       KFILE='NE'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT0(KFILE,UPRE0,NRFMAX,NTXMAX,IERR)
@@ -537,6 +557,15 @@ C
          PNSA(3)=1.D-8
          PNSA(4)=1.D-8
       ENDIF
+C
+      KFILE='NEXP'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RNEXU,NRFMAX,NTXMAX,MDCHK,IERR)
+      NREMAX(2)=NRFMAX
+      DO NR=1,NRFMAX
+         GRE(NR,2)=GUCLIP(RUF(NR))
+      ENDDO
+      KFILE='NEXPEB'
+      CALL UFREAD2_ERROR(KFILE,RUF,TMU,RNEXEU,NRFMAX,NTXMAX,MDCHK,IERR)
 C
       IF(MDNI.EQ.1) THEN !!!
       IF(NM2CHK.EQ.1) THEN
@@ -885,9 +914,6 @@ C
       STOP 'UFILE HAS AN ERROR!'
  2000 CONTINUE
 C
-      NROMAX = NRMAX
-      NRMAX  = NRAMAX
-C
       RETURN
       END
 C
@@ -907,8 +933,6 @@ C
       DIMENSION UPRE2T(4,4,NRMU,NTURM)
       CHARACTER KFILE*20
 C
-      NRAMAX=INT(RHOA*NRMAX)
-      DR = 1.D0/DBLE(NRMAX)
       ICK=0
       TMUMAX=0.D0
 C
@@ -1542,9 +1566,6 @@ c$$$            DVRHOU(NR,NTA)=DFX0
 c$$$         ENDDO
 c$$$      ENDDO
 C
-      NROMAX = NRMAX
-      NRMAX  = NRAMAX
-C
       RETURN
       END
 C
@@ -1564,8 +1585,6 @@ C
       DIMENSION UPRE1(4,NTURM),UPRE2(4,4,NRMU,NTURM)
       CHARACTER KFILE*20
 C
-      NRAMAX=INT(RHOA*NRMAX)
-      DR = 1.D0/DBLE(NRMAX)
       ICK=0
       TMUMAX=0.D0
 C
@@ -1899,9 +1918,6 @@ C
       ENDDO
 C
 C     ***
-C
-      NROMAX = NRMAX
-      NRMAX  = NRAMAX
 C
       RETURN
       END
@@ -2447,7 +2463,7 @@ C
       END
 C
 C   **************************************************
-C   **    UFILE read for TR (Time Ecolution UFILE)  **
+C   **    UFILE read for TR (Time Evolution UFILE)  **
 C   **************************************************
 C
 C     input:
@@ -2624,6 +2640,70 @@ C
       RETURN
       END
 C
+C
+C     *****
+C
+      SUBROUTINE UFREAD2_ERROR(KFID,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION RUF(NRMU),TMU(NTURM),F2(NRMU,NTURM)
+      CHARACTER KDIRX*80
+      CHARACTER KDIRR2*80
+      CHARACTER KFILE*80,KFID*20
+      COMMON /TRUFC1/ KDIRX
+      COMMON /TRUFC2/ IKNDEV,IKNDCG
+      LOGICAL LEX
+C
+C      IF(MDCHK.NE.0) GOTO 9000
+C
+      CALL KTRIM(KDIRX,IKDIRX)
+      KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
+     &       //'2d'//KUFDCG(1:IKNDCG)//'.'
+C
+      CALL KTRIM(KDIRR2,KL2)
+      KFILE=KDIRR2(1:KL2)//KFID
+C
+      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
+      IF(LEX) THEN
+         NRFMAX=NRMU           ! equal to NRMU
+         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2,NRMU,NTURM,NRFMAX,NTXMAX,0)
+         MDCHK=1
+         IERR=0
+      ELSE
+         DO NTA=1,NTURM
+            DO NRF=1,NRMU
+               F2(NRF,NTA)=0.D0
+            ENDDO
+         ENDDO
+         IERR=1
+         GOTO 9000
+      ENDIF
+C
+      IF(RUF(NRFMAX).GT.1.D0) THEN
+         DO NRF=1,NRFMAX
+            IF(RUF(NRF).GT.1.D0) THEN
+               NRFMAX=NRF-1
+               GOTO 1000
+            ENDIF
+         ENDDO
+      ENDIF
+ 1000 CONTINUE
+      IF(KFID.EQ.'NEXP'.OR.KFID.EQ.'NEXPEB') THEN
+         DO NTX=1,NTXMAX
+            DO NRF=1,NRFMAX
+               F2(NRF,NTX)=F2(NRF,NTX)*1.D-20
+            ENDDO
+         ENDDO
+      ELSE
+         DO NTX=1,NTXMAX
+            DO NRF=1,NRFMAX
+               F2(NRF,NTX)=F2(NRF,NTX)*1.D-3
+            ENDDO
+         ENDDO
+      ENDIF
+C
+ 9000 RETURN
+      END
 C
 C     ***********************************************************
 C

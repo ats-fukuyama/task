@@ -85,8 +85,9 @@ trgrae.o : trgrae.f trcomm.h
 trgrad.o : trgrad.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
-trg2d.o : trg2d.f trcomm.h
-trg3d.o : trg3d.f trcomm.h
+trgrad.o : trgrad.f trcomm.h
+trg2d.o  : trg2d.f  trcomm.h
+trg3d.o  : trg3d.f  trcomm.h
 callglf2d.o : callglf2d.f glf.m
 glf2d.o  : glf2d.F glf.m f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf2d.o glf2d.F
@@ -109,7 +110,7 @@ ifspppl/ifspppl_model.o : ifspppl/ifspppl_model.f
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc \
                 ../eq/eqcom4.inc
 ../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o : ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../lib/libbnd.o: ../lib/libbnd.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
 ../lib/libspl.o: ../lib/libspl.f

@@ -1508,7 +1508,7 @@ C
             F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
      &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
             ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
-         ENDIF 
+         ENDIF
   150 CONTINUE
 C
 C

@@ -159,10 +159,10 @@ C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
 C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
 C
       MDLKAI = 31
-      MDLETA = 2
+      MDLETA = 3
       MDLAD  = 0
       MDLAVK = 0
-      MDLJBS = 3
+      MDLJBS = 5
       MDLKNC = 1
 C
       DT     = 0.01D0 
@@ -233,7 +233,7 @@ C     *** Current Drive ***
       PBSCD  = 1.D0
       MDLCD  = 0
 C
-C     *** Pelet? ***
+C     *** Pelet ***
       PELTOT = 0.D0
       PELR0  = 0.D0
       PELRW  = 0.5D0
@@ -627,11 +627,6 @@ C
       NGST  = 0
       RIP   = RIPS
 C
-      IF(RHOA.EQ.1.D0) THEN
-         DR = 1.D0/DBLE(NRMAX)
-      ELSE
-         DR = 1.D0/DBLE(NROMAX)
-      ENDIF
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
          RR=RRU(1)
@@ -642,6 +637,7 @@ C         write(6,*) RRU(1),RAU(1),RKAPU(1),BBU(1)
       ENDIF
       RKAPS=SQRT(RKAP)
 C
+      CALL TR_EDGE_DETERMINER(0)
       CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
@@ -893,6 +889,7 @@ C
            RW(NR,NF) = 0.D0
          ENDDO
       ENDDO
+      CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
 C
 C     *** CALCULATE GEOMETRIC FACTOR ***
@@ -1179,10 +1176,6 @@ C
          ENDDO
       ENDIF
 C      Q0=(4.D0*QP(1)-QP(2))/3.D0
-      DO NR=2,NRMAX
-         RPSI(NR)=(RDP(NR)-RDP(NR-1))/DR
-      ENDDO
-      RPSI(1)=FCTR(RM(2),RM(3),RPSI(2),RPSI(3))
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
@@ -1321,7 +1314,10 @@ C
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
  2000 CONTINUE
+      SUM=0.D0
       DO NR=1,NRMAX
+         SUM=SUM+RDP(NR)*DR
+         RPSI(NR)=SUM
          BPRHO(NR)=BP(NR)
          QRHO(NR)=QP(NR)
       ENDDO
@@ -1941,25 +1937,64 @@ C
       SUBROUTINE TR_EDGE_SELECTOR(NSW)
 C
       INCLUDE 'trcomm.h'
-      DIMENSION PNSSO(NSTM),PTSO(NSTM)
-      SAVE PNSSO,PTSO
+      DIMENSION PNSSO(NSTM),PTSO(NSTM),PNSSAO(NSTM),PTSAO(NSTM)
+      SAVE PNSSO,PTSO,PNSSAO,PTSAO
 C
       IF(RHOA.EQ.1.D0) RETURN
 C
-      IF(NSW.EQ.0) THEN
-         DO NS=1,NSM
-            PNSSO(NS)=PNSS (NS)
-            PTSO (NS)=PTS  (NS)
+      IF(MDLUF.EQ.0) THEN
+         IF(NSW.EQ.0) THEN
+            DO NS=1,NSM
+               PNSSO (NS)=PNSS(NS)
+               PTSO  (NS)=PTS (NS)
 C
-            PNSS (NS)=PNSSA(NS)
-            PTS  (NS)=PTSA (NS)
-         ENDDO
+               PNSS (NS)=PNSSAO(NS)
+               PTS  (NS)=PTSAO (NS)
+            ENDDO
+         ELSE
+            DO NS=1,NSM
+               PNSS (NS)=PNSSO(NS)
+               PTS  (NS)=PTSO (NS)
+            ENDDO
+         ENDIF
       ELSE
-         DO NS=1,NSM
-            PNSS (NS)=PNSSO(NS)
-            PTS  (NS)=PTSO (NS)
-         ENDDO
+         IF(NSW.EQ.0) THEN
+            DO NS=1,NSM
+               PNSSO(NS)=PNSS (NS)
+               PTSO (NS)=PTS  (NS)
+C
+               PNSS (NS)=PNSSA(NS)
+               PTS  (NS)=PTSA (NS)
+            ENDDO
+         ELSE
+            DO NS=1,NSM
+               PNSS (NS)=PNSSO(NS)
+               PTS  (NS)=PTSO (NS)
+            ENDDO
+         ENDIF
+      ENDIF
+      GOTO 9000
+C
+      ENTRY TR_EDGE_DETERMINER(NSW)
+C
+      IF(MDLUF.EQ.0.AND.RHOA.NE.1.D0) THEN
+         IF(NSW.EQ.0) THEN
+            DO NS=1,NSM
+               PNSSAO(NS)=PNSS(NS)
+               PTSAO (NS)=PTS (NS)
+            ENDDO
+         ELSE
+            DO NS=1,NSM
+               PNSSAO(NS)=RN(NRAMAX,NS)
+               PTSAO (NS)=RT(NRAMAX,NS)
+               PNSSA (NS)=PNSSAO(NS)
+               PTSA  (NS)=PTSAO (NS)
+            ENDDO
+         ENDIF
+      ELSE
+         RETURN
       ENDIF
 C
-      RETURN
+ 9000 RETURN
       END
+

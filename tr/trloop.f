@@ -285,7 +285,7 @@ C
       COMMON /TRLCL2/ D(NVM,NRM)
       COMMON /TRLCL3/ RD(NEQM,NRM)
       COMMON /TRLCL4/ PPA(NEQM,NRM),PPB(NEQM,NRM),PPC(NEQM,NRM)
-C     
+C
       IF(MDLCD.EQ.0) THEN
          RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ELSE
@@ -834,10 +834,11 @@ C
 C
       ENDIF
 C
-      DO NR=2,NRMAX
-         RPSI(NR)=(RDP(NR)-RDP(NR-1))/DR
+      SUM=0.D0
+      DO NR=1,NRMAX
+         SUM=SUM+RDP(NR)*DR
+         RPSI(NR)=SUM
       ENDDO
-      RPSI(1)=FCTR(RM(2),RM(3),RPSI(2),RPSI(3))
 C
       RETURN
       END
@@ -953,13 +954,6 @@ C
       DV23=DVRHO(NR)**(2.D0/3.D0)
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
-      IF (MODELG.EQ.0) THEN
-C         FVL = RKAPS/RKAP
-         FVL = 1.D0
-      ELSEIF (MODELG.EQ.3) THEN
-         FVL = 1.D0
-      ENDIF
-C
       DO NEQ=1,NEQMAX
 C
          NSSN=NSS(NEQ)
@@ -992,15 +986,14 @@ C
 C     
          DO NMK=1,3
             IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
-               FA(NMK,NSW)=DVRHO(NR+(NMK-2))*AR1RHO(NR+(NMK-2))*FVL/DR
-               FB(NMK,NSW)=DVRHO(NR+(NMK-2))*AR2RHO(NR+(NMK-2))*FVL
-     &                    /(DR*DR)
+               FA(NMK,NSW)=DVRHO(NR+(NMK-2))*AR1RHO(NR+(NMK-2))/DR
+               FB(NMK,NSW)=DVRHO(NR+(NMK-2))*AR2RHO(NR+(NMK-2))/(DR*DR)
             ELSE
                FA(NMK,NSW)=0.D0
                FB(NMK,NSW)=0.D0
             ENDIF
             IF(NSW.NE.3) THEN
-               FC(NMK,NSW)=0.5D0*(FCB(NMK)+FCB(NMK+1))*FVL/(DR*DR)
+               FC(NMK,NSW)=0.5D0*(FCB(NMK)+FCB(NMK+1))/(DR*DR)
             ELSE
                FC(NMK,NSW)=0.D0
             ENDIF

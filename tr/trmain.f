@@ -109,6 +109,8 @@ C
                NTMAX=NTSMAX
             ENDIF
             CALL TR_UFILE_CONTROL(3)
+         ELSE
+            CALL TR_UFILE_CONTROL(0)
          ENDIF
          CALL TRPROF
          CALL TRLOOP
@@ -127,7 +129,7 @@ C
          NTMOLD=NTMAX
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
-  101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
+  101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G7, P1-P5, Z1, Y1,',
      &                        ' A1-A2, E1-E9, D1-D32, M1-M3'
          WRITE(6,*) '           S/SAVE  L/LOAD  H/HELP  C/CLEAR  ',
      &              'I/INQ  X/EXIT'

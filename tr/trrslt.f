@@ -115,31 +115,39 @@ C
       AJT   = AJTSUM*DR/1.D6
       AJOHT = AOHSUM*DR/1.D6
 C
-      DRH=0.5D0*DR
       IF(RHOA.EQ.1.D0) THEN
          NRL=NRMAX
       ELSE
          NRL=NRAMAX
       ENDIF
-      DO NS=1,NSM
-         VNP=AV(NRL,NS)*AR1RHO(NRL)
-         DNP=AD(NRL,NS)*AR2RHO(NRL)
-C
-         VTP=(AVK(NRL,NS)/1.5D0+AV(NRL,NS))*AR1RHO(NRL)
-         DTP= AK(NRL,NS)/(1.5D0)*AR2RHO(NRL)
-C
-         VXP=0.D0
-         DXP=(1.5D0*AD(NRL,NS)-AK(NRL,NS))*PTS(NS)*AR2RHO(NRL)
-C
-         SLT(NS) =((     DNP/DRH)*RN(NRL,NS)
-     &            +( VNP-DNP/DRH)*PNSS(NS))
-     &            *DVRHO(NRL)
-C
-         PLT(NS) =((     DXP/DRH)*RN(NRL,NS)
-     &            +(     DTP/DRH)*RN(NRL,NS)*RT(NRL,NS)*1.5D0
-     &            +( VXP-DXP/DRH)*PNSS(NS)
-     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
-     &            *DVRHO(NRL)*RKEV*1.D14
+      NSW=3
+      CALL TR_COEF_DECIDE(NRL,NSW,DV53)
+      NMK=2
+      DRH=DR/DVRHO(NRL)**(2.D0/3.D0)
+      DO NEQ=1,NEQMAX
+         NSSN=NSS(NEQ)
+         NSVN=NSV(NEQ)
+         SUM=0.D0
+         DO NW=1,NEQMAX
+            NSSN1=NSS(NW)
+            NSVN1=NSV(NW)
+            IF(NSVN1.EQ.1) THEN
+               SUM=SUM+  DD(NEQ,NW,NMK,NSW)*2.D0 *DRH *RN(NRL,NSSN1)
+     &                +( VV(NEQ,NW,NMK,NSW)      *DRH
+     &                  -DD(NEQ,NW,NMK,NSW)*2.D0)*DRH *PNSS(NSSN1)
+            ELSEIF(NSVN1.EQ.2) THEN
+               SUM=SUM+  DD(NEQ,NW,NMK,NSW)*2.D0 *DRH *RN(NRL,NSSN1)
+     &                                                *RT(NRL,NSSN1)
+     &                +( VV(NEQ,NW,NMK,NSW)      *DRH
+     &                  -DD(NEQ,NW,NMK,NSW)*2.D0 *DRH)*PNSS(NSSN1)
+     &                                                *PTS (NSSN1)
+            ENDIF
+         ENDDO
+         IF(NSVN.EQ.1) THEN
+            SLT(NSSN)=SUM*RKEV*1.D14
+         ELSEIF(NSVN.EQ.2) THEN
+            PLT(NSSN)=SUM*RKEV*1.D14
+         ENDIF
       ENDDO
 C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
