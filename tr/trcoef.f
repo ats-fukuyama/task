@@ -302,7 +302,7 @@ C
          ENDIF
 C
          COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2
-     &         /(1.D20*AEE**4*CLOG(1,2,ANE,TE))
+     &         /(1.D20*AEE**4*COULOG(1,2,ANE,TE))
          TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANDX
          ANYUE = 0.5D0*(1.D0+ZEFFL)/TAUE
 C
@@ -1146,13 +1146,17 @@ C
          VTA = SQRT(ABS(TA*RKEV/AMA))
 C
          COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4)
-         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+         TAUE = COEF
+     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
      &         /ANDX
-         TAUD = COEF/CLOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
+         TAUD = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
      &         /ANDX
-         TAUT = COEF/CLOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
+         TAUT = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
      &         /ANDX
-         TAUA = COEF/CLOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
+         TAUA = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
      &         /ANDX
 C
 C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
@@ -1167,13 +1171,17 @@ C
 C
          COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
      &         /(ANDX*1.D20*ZEFFL*AEE**4)
-         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+         TAUE = COEF
+     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
      &         /SQRT(2.D0)
-         TAUD = COEF/CLOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
+         TAUD = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
      &         /PZ(2)**2
-         TAUT = COEF/CLOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
+         TAUT = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
      &         /PZ(3)**2
-         TAUA = COEF/CLOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
+         TAUA = COEF
+     &         /COULOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
      &         /PZ(4)**2
 C
          RNUE=ABS(QP(NR))*RR/(TAUE*VTE*EPSS)
@@ -1405,7 +1413,8 @@ C
 C
          COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
      &         /(ANI*1.D20*ZEFFL*AEE**4)
-         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+         TAUE = COEF
+     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
      &         /SQRT(2.D0)
 C
          ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
@@ -1609,7 +1618,7 @@ C
 C
 C            ZEFFL=ZEFF(NR)
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &            /(ANI*1.D20*PZ(2)**2*AEE**4*CLOG(1,2,ANE,TE))
+     &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1656,7 +1665,7 @@ C
             ENDDO
 C
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &            /(ANI*1.D20*PZ(2)**2*AEE**4*CLOG(1,2,ANE,TE))
+     &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1840,9 +1849,9 @@ C
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             VTD   = SQRT(TD*RKEV/(PA(2)*AMM))
-            TAUE  = COEF/CLOG(1,2,ANE,TE)
+            TAUE  = COEF/COULOG(1,2,ANE,TE)
      &             *SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
-            TAUD  = COEF/CLOG(2,2,ANE,TE)
+            TAUD  = COEF/COULOG(2,2,ANE,TE)
      &             *SQRT(PA(2)*AMM)*(TD*RKEV)**1.5D0/PZ(2)**2
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RNUD  = ABS(QPL)*RR/(TAUD*VTD*EPSS)

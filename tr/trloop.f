@@ -439,7 +439,8 @@ C
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &           *AMZ(NSSN1))*DV53*CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &           *AMZ(NSSN1))*DV53
+     &           *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
@@ -506,7 +507,7 @@ C
                IF(NSSN1.NE.NSSN) THEN
                   C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &                 *AMZ(NSSN1))*DV53
-     &                 *CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &                 *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
                ENDIF
@@ -575,7 +576,8 @@ C
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &              *AMZ(NSSN1))*DV53*CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &              *AMZ(NSSN1))*DV53
+     &              *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
@@ -1617,7 +1619,7 @@ C           COULOMB LOGARITHM for electron-ion collisions
 C
 C     ***********************************************************
 C
-      FUNCTION CLOG(NS1,NS2,RN,RT)
+      FUNCTION COULOG(NS1,NS2,RN,RT)
 C
 C     RNE : electron density (10^20 /m^3)
 C     RTE : electron temperature (keV)
@@ -1625,9 +1627,9 @@ C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-         CLOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
+         COULOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
       ELSE
-         CLOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
+         COULOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
       ENDIF
 C
       RETURN
