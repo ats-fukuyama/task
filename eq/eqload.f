@@ -4,7 +4,7 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG,KNAMEQ1,IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       CHARACTER KNAMEQ1*72
 C
       PI=2.D0*ASIN(1.D0)
@@ -28,7 +28,7 @@ C     ***** LOAD TASK/EQ DATA *****
 C
       SUBROUTINE EQRTSK(IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       LOGICAL LEX
 C
@@ -79,7 +79,7 @@ C     ***** LOAD TASK/EQ DATA AND UFILE *****
 C
       SUBROUTINE EQUFIN(KNAMEQ1,IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PARAMETER (NREM=130,NZEM=130)
       COMMON /TRKID1/ KDIRR2
@@ -176,7 +176,7 @@ C     ***** GET PARAMETERS *****
 C
       SUBROUTINE EQGETB(BB1,RR1,RIP1,RA1,RKAP1,RDEL1,RB1)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       BB1  =BB
       RR1  =RR
@@ -508,7 +508,7 @@ C
 C
 C     ***** READ 2D VARIABLE *****
 C
-      SUBROUTINE TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,MODE)
+      SUBROUTINE TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,MODEL)
 C
       IMPLICIT REAL*8(A-H,O-Z)
       DIMENSION T(NTM),R(NRM),F2(NRM,NTM)
@@ -518,6 +518,7 @@ C
       CHARACTER KKLINE*80,KKLINE1*80,KKLINE2*80
       LOGICAL KMATCH,LEX
 C
+      MODE=MODEL
       IMATCH=0
       KMATCH1='# OF X PTS'
       KMATCH2='# OF Y PTS'

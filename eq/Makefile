@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCC = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f eqgsub.f
 SRCS = eqmain.f $(SRCC)
@@ -52,20 +52,20 @@ new:
 	-mkdir ../eqnew
 	cp -f Makefile ../eqnew
 	cp -f *.f ../eqnew
-	cp -f *.h ../eqnew
+	cp -f *.inc ../eqnew
 	-mkdir ../eqnew/in
 	cp -f in/* ../eqnew/in
 
-eqmain.o: eqmain.f eqcom1.h
-eqinit.o: eqinit.f eqcom1.h
-eqcalc.o: eqcalc.f eqcom1.h eqcom2.h
-eqcalq.o: eqcalq.f eqcom1.h eqcom3.h
-eqgout.o: eqgout.f eqcom1.h eqcom2.h eqcom3.h
-eqfunc.o: eqfunc.f eqcom1.h eqcom2.h eqcom4.h
+eqmain.o: eqmain.f eqcom1.inc
+eqinit.o: eqinit.f eqcom1.inc
+eqcalc.o: eqcalc.f eqcom1.inc eqcom2.inc
+eqcalq.o: eqcalq.f eqcom1.inc eqcom3.inc
+eqgout.o: eqgout.f eqcom1.inc eqcom2.inc eqcom3.inc
+eqfunc.o: eqfunc.f eqcom1.inc eqcom2.inc eqcom4.inc
 trtest.o: trtest.f
-treqin.o: treqin.f eqcom1.h eqcom3.h eqcom4.h
+treqin.o: treqin.f eqcom1.inc eqcom3.inc eqcom4.inc
 pltest.o: pltest.f
-pleqin.o: pleqin.f eqcom1.h eqcom3.h
+pleqin.o: pleqin.f eqcom1.inc eqcom3.inc
 aktest.o: aktest.f
-akeqin.o: akeqin.f eqcom1.h eqcom3.h
-eqload.o: eqload.f eqcom1.h eqcom3.h
+akeqin.o: akeqin.f eqcom1.inc eqcom3.inc
+eqload.o: eqload.f eqcom1.inc eqcom3.inc

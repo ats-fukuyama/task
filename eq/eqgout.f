@@ -66,7 +66,7 @@ C     ****** DRAW CALCULATED EQ1D GRAPH ******
 C
       SUBROUTINE EQGC1D
 C
-      INCLUDE 'eqcomc.h'
+      INCLUDE 'eqcomc.inc'
 C
       DIMENSION GX(NXM)
       DIMENSION GYPS(NXM,1),GYJT(NXM,3),GYPP(NXM,1),GYTT(NXM,1)
@@ -195,7 +195,7 @@ C     ****** DRAW CALCULATED EQ2D GRAPH ******
 C
       SUBROUTINE EQGC2D
 C
-      INCLUDE 'eqcomc.h'
+      INCLUDE 'eqcomc.inc'
 C
       DIMENSION GF(NSGM,NTGM),GR(NSGM,NTGM),GZ(NSGM,NTGM)
       DIMENSION GRS(NTGMP),GZS(NTGMP)
@@ -253,7 +253,7 @@ C     ****** DRAW SPLINED EQ1D GRAPH ******
 C
       SUBROUTINE EQGS1D(MODE)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE 'eqcomq.inc'
 C
       DIMENSION GX(NRM),GY(NRM,2)
 C
@@ -330,7 +330,7 @@ C     ****** DRAW SPLINED EQ2D GRAPH ******
 C
       SUBROUTINE EQGS2D
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE 'eqcomq.inc'
 C
       DIMENSION GR(NTHMP),GZ(NTHMP)
       DIMENSION GPSIRZ(NRGM,NZGM),GRG(NRGM),GZG(NZGM)
@@ -409,7 +409,7 @@ C     ****** DRAW CALCULATED EQ2D DERIVATIVE GRAPH ******
 C
       SUBROUTINE EQGSDD
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE 'eqcomq.inc'
 C
       DIMENSION GF(NRM,NTHM),GR(NRM,NTHM),GZ(NRM,NTHM)
       DIMENSION GRSU(NSUM),GZSU(NSUM)
@@ -533,7 +533,7 @@ C     ***** Draw Parameters *****
 C
       SUBROUTINE EQGPRM
 C
-      INCLUDE 'eqcomc.h'
+      INCLUDE 'eqcomc.inc'
 C
       REAL*4 XPOS,YPOS,DELY
 C
@@ -697,7 +697,7 @@ C     ****** DRAW CALCULATED EQ1D MULTI GRAPH ******
 C
       SUBROUTINE EQGC1M
 C
-      INCLUDE 'eqcomc.h'
+      INCLUDE 'eqcomc.inc'
 C
       DIMENSION GX(NXM),GYPS(NXM,5)
 C

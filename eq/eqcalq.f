@@ -4,7 +4,7 @@ C     ***** SETUP DATA *****
 C
       SUBROUTINE EQSETP
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       DIMENSION DERIV(NPSM)
@@ -13,8 +13,11 @@ C      DIMENSION GX(101),GY(101,2)
 C
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,URZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIRZ: IERR=',IERR
       CALL SPL1D(PSIPS,PPPS,  DERIV,UPPPS, NPSMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPPS: IERR=',IERR
       CALL SPL1D(PSIPS,TTPS,  DERIV,UTTPS, NPSMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTPS: IERR=',IERR
 C
       DELT=1.D-8
       EPS=1.D-8
@@ -50,7 +53,7 @@ C     *****
 C
       SUBROUTINE EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL PSIAX,EQDERV
       DIMENSION Y(2),DYDX(2),YOUT(2)
@@ -106,8 +109,6 @@ C
          PSS(NR)=PSIG(RINIT,ZINIT)
          PPS(NR)=PPFUNC(PSS(NR))
          TTS(NR)=TTFUNC(PSS(NR))
-C         WRITE(6,'(A,I4,4E12.4)') 
-C     &        'NR,YA,PSS,PPS,TTS=',NR,YA(1,1),PSS(NR),PPS(NR),TTS(NR)
 C
          CALL EQMAGS(RINIT,ZINIT,NMAX,XA,YA,NA,IERR)
 C
@@ -350,24 +351,39 @@ C
       AVBR(1)=(4.D0*AVBR(2)-AVBR(3))/3.D0
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0
       AVR2(1)=(4.D0*AVR2(2)-AVR2(3))/3.D0
-C      WRITE(6,'(1P5E12.4)') (AVBR(NR),NR=1,20)
 C
       CALL SPL1D(PSS,PPS,DERIV,UPPS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPS: IERR=',IERR
       CALL SPL1D(PSS,TTS,DERIV,UTTS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTS: IERR=',IERR
       CALL SPL1D(PSS,QPS,DERIV,UQPS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPS: IERR=',IERR
       CALL SPL1D(PSS,FTS,DERIV,UFTS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for FTS: IERR=',IERR
       CALL SPL1D(FTS,PSS,DERIV,UFTT,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSS: IERR=',IERR
       CALL SPL1D(PSS,VPS,DERIV,UVPS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for VPS: IERR=',IERR
       CALL SPL1D(PSS,SPS,DERIV,USPS,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for SPS: IERR=',IERR
       CALL SPL1D(PSS,RLEN,DERIV,URLEN,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RLEN: IERR=',IERR
       CALL SPL1D(PSS,RRMIN,DERIV,URRMIN,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RRMIN: IERR=',IERR
       CALL SPL1D(PSS,RRMAX,DERIV,URRMAX,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RRMAX: IERR=',IERR
       CALL SPL1D(PSS,BBMIN,DERIV,UBBMIN,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBMIN: IERR=',IERR
       CALL SPL1D(PSS,BBMAX,DERIV,UBBMAX,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBMAX: IERR=',IERR
       CALL SPL1D(PSS,AVBR,DERIV,UAVBR,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVBR: IERR=',IERR
       CALL SPL1D(PSS,AVRR,DERIV,UAVRR,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVRR: IERR=',IERR
       CALL SPL1D(PSS,AVR1,DERIV,UAVR1,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVR1: IERR=',IERR
       CALL SPL1D(PSS,AVR2,DERIV,UAVR2,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVR2: IERR=',IERR
 C
 C        +++++ CALCULATE DERIVATIVES +++++
 C     
@@ -487,7 +503,7 @@ C     *****
 C
       SUBROUTINE EQMAGS(RINIT,ZINIT,NMAX,XA,YA,N,IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       EXTERNAL EQDERV
       DIMENSION Y(2),DYDX(2),YOUT(2)
@@ -557,7 +573,7 @@ C     ***** INTERPOLATE FUNCTIONS *****
 C
       FUNCTION FNPSIN(RHON)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       FTL=FTSA*RHON*RHON
       CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
@@ -568,7 +584,7 @@ C
 C
       FUNCTION FNFTS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,FTL,PSS,UFTS,NRMAX,IERR)
@@ -579,7 +595,7 @@ C
 C
       FUNCTION FNPPS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,PPL,PSS,UPPS,NRMAX,IERR)
@@ -590,7 +606,7 @@ C
 C
       FUNCTION FNTTS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       IF(PSIN.LT.1.D0) THEN
          PSIL=SAXIS*(1.D0-PSIN)
@@ -607,7 +623,7 @@ C         write(6,*) PSIL
 C
       FUNCTION FNQPS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
 C      write(6,*) PSIL
@@ -619,7 +635,7 @@ C      write(6,*) PSIL
 C
       FUNCTION FNVPS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
@@ -630,7 +646,7 @@ C
 C
       FUNCTION FNSPS(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,SPL,PSS,USPS,NRMAX,IERR)
@@ -641,7 +657,7 @@ C
 C
       FUNCTION FNRLEN(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
 C      write(6,*) PSIL
@@ -653,7 +669,7 @@ C      write(6,*) PSIL
 C
       FUNCTION FNRRMN(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,RRMINL,PSS,URRMIN,NRMAX,IERR)
@@ -664,7 +680,7 @@ C
 C
       FUNCTION FNRRMX(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,RRMAXL,PSS,URRMAX,NRMAX,IERR)
@@ -675,7 +691,7 @@ C
 C
       FUNCTION FNBBMN(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,BBMINL,PSS,UBBMIN,NRMAX,IERR)
@@ -686,7 +702,7 @@ C
 C
       FUNCTION FNBBMX(PSIN)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,BBMAXL,PSS,UBBMAX,NRMAX,IERR)
@@ -699,9 +715,8 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,Z) *****
 C
       FUNCTION PSIG(R,Z)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
-C      write(6,*) PSIL
       CALL SPL2DF(R,Z,PSIL,RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX PSIG: SPL2DF ERROR : IERR=',IERR
       PSIG=PSIL
@@ -712,7 +727,7 @@ C     ***** INTERPOLATE SUBROUTINE PSI,DPSIDR,DPSIDZ(R,Z) *****
 C
       SUBROUTINE  EQPSID(R,Z,DPSIDR,DPSIDZ)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL2DD(R,Z,PSI,DPSIDR,DPSIDZ,
      &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
@@ -724,7 +739,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,ZAXIS) *****
 C
       FUNCTION PSIAX(R)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       PSIAX=PSIG(R,ZAXIS)
       RETURN
@@ -734,7 +749,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSI) *****
 C
       FUNCTION PPFUNC(PSIL)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
 C      write(6,*) PSIL
       CALL SPL1DF(PSIL,PPL,PSIPS,UPPPS,NPSMAX,IERR)
@@ -750,7 +765,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSI) *****
 C
       FUNCTION TTFUNC(PSIL)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
 C      write(6,*) PSIL
       CALL SPL1DF(PSIL,TTL,PSIPS,UTTPS,NPSMAX,IERR)
@@ -763,7 +778,7 @@ C     ***** DERIVATIVES *****
 C
       SUBROUTINE EQDERV(X,Y,DYDX)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       DIMENSION Y(2),DYDX(2)
 C
       CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)

@@ -26,7 +26,7 @@ C     ***** INITIALIZE RZ-AB CONVERSION *****
 C
       SUBROUTINE EQCALA(IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ ALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
       DIMENSION RPSS(NTHMP,NRM),ZPSS(NTHMP,NRM)
@@ -110,7 +110,7 @@ C     ***** CONVERSION (R,Z) to (Alpha,Beta) *****
 C
       SUBROUTINE RZTOAB(R,Z,ALPHA,BETA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKF1/ ALPHAF1,RF1,ZF1
       EXTERNAL FNBETA
 C
@@ -132,7 +132,7 @@ C     ----- FNBETA=0 FOR BETA CLOSEST TO (RF1,ZF1) FOR FIXED ALPHA
 C
       FUNCTION FNBETA(BETA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKF1/ ALPHAF1,RF1,ZF1
 C
       DBETA=1.D-6
@@ -154,7 +154,7 @@ C     ***** CONVERSION (Alpha,Beta) TO (R,Z) *****
 C
       SUBROUTINE ABTORZ(ALPHA,BETA,R,Z,IERR)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ ALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
 C
@@ -190,7 +190,7 @@ C     ***** INTERPOLATE FUNCTIONS *****
 C
       FUNCTION PSIP_EQ(ALPHA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       FTL=ALPHA
       CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
@@ -203,7 +203,7 @@ C     ***** CALCULATE q AND dq/dalpha *****
 C
       SUBROUTINE SUBQPA(ALPHA,Q,DQDA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       FTL=ALPHA
       CALL SPL1DD(FTL,PSIL,DPSIL,FTS,UFTT,NRMAX,IERR)
@@ -223,7 +223,7 @@ C     ***** CALCULATE Bmax AND dBmax/dalpha *****
 C
       SUBROUTINE SUBBMX(ALPHA,BMX,DBMXDA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       FTL=ALPHA
       CALL SPL1DD(FTL,PSIL,DPSIL,FTS,UFTT,NRMAX,IERR)
@@ -243,7 +243,7 @@ C     ***** CALCULATE Bmin AND dBmin/dalpha *****
 C
       SUBROUTINE SUBBMN(ALPHA,BMN,DBMNDA)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       FTL=ALPHA
       CALL SPL1DD(FTL,PSIL,DPSIL,FTS,UFTT,NRMAX,IERR)
@@ -263,7 +263,7 @@ C     ***** CALCULATE MAGNETIC FIELD *****
 C
       SUBROUTINE SUBMAG(ALPHA,BETA,BR,BZ,BT,BTOT)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       CALL ABTORZ(ALPHA,BETA,RP,ZP,IERR)
 C      WRITE(6,'(A,1P2E12.4,I5)') 'RP,ZP,IERR=',RP,ZP,IERR
@@ -293,7 +293,7 @@ C     ***** GET MAGNETIC AXIS *****
 C
       SUBROUTINE GETAXS(RAXIS1,ZAXIS1)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
 C
       RAXIS1=RAXIS
       ZAXIS1=ZAXIS
@@ -304,7 +304,7 @@ C     ***** GET PLASMA BOUNDARY POSITION *****
 C
       SUBROUTINE GETRSU(RSU1,ZSU1,N,NSUMAX1)
 C
-      INCLUDE '../eq/eqcomq.h'
+      INCLUDE '../eq/eqcomq.inc'
       DIMENSION RSU1(N),ZSU1(N)
 C
       NSUMAX1=NSUMAX

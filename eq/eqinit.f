@@ -4,7 +4,7 @@ C     ****** DEFAULT PARAMETERS ******
 C
       SUBROUTINE EQINIT
 C
-      INCLUDE 'eqcomm.h'
+      INCLUDE 'eqcomm.inc'
 C
 C
 C     *** CONSTANTS ****
@@ -13,17 +13,11 @@ C        PI    : Pi
 C        RMU0  : Permeability of free space
 C        AMP   : Proton mass
 C        AEE   : Electron charge
-C        AN0   : Avogadro's number
-C        BLTZ  : Boltzmann constant
-C        RGAS  : BLTZ/AMP
 C
       PI     = 2.D0*ASIN(1.D0)
       RMU0   = 4.D0*PI*1.D-7
       AMP    = 1.6726231D-27
       AEE    = 1.60217733D-19
-C      AN0    = 6.0221367D23
-C      BLTZ   = 1.38066D-23
-C      RGAS   = BLTZ/AMP
 C
 C     *** CONFIGURATION PARAMETERS ***
 C
@@ -52,9 +46,9 @@ C        PROFP0: Pressure profile parameter
 C        PROFP1: Pressure profile parameter
 C        PROFP2: Pressure profile parameter
 C
-C        PPSI=PP0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFP0
-C    &       +PP1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFP1
-C    &       +PP2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFP2
+C        PPSI=PP0*(1.D0-PSIN**PROFR0)**PROFP0
+C    &       +PP1*(1.D0-PSIN**PROFR1)**PROFP1
+C    &       +PP2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFP2
 C
 C        The third term exists for RHO < RHOITB
 C
@@ -72,12 +66,12 @@ C        PROFJ0: Current density profile parameter
 C        PROFJ1: Current density profile parameter
 C        PROFJ2: Current density profile parameter
 C
-C      HJPSI=-PJ0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFJ0
-C     &                *(1.D0-PSIN)**(PROFR0-1.D0)
-C     &      -PJ1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFJ1
-C     &                *(1.D0-PSIN)**(PROFR1-1.D0)
-C     &      -PJ2*(1.D0-(1.D0-PSIN)**PROFR2)**PROFJ2
-C     &               *(1.D0-PSIN)**(PROFR2-1.D0)
+C      HJPSI=-PJ0*(1.D0-PSIN**PROFR0)**PROFJ0
+C     &                *PSIN**(PROFR0-1.D0)
+C     &      -PJ1*(1.D0-PSIN**PROFR1)**PROFJ1
+C     &                *PSIN**(PROFR1-1.D0)
+C     &      -PJ2*(1.D0-PSIN**PROFR2)**PROFJ2
+C     &                *PSIN**(PROFR2-1.D0)
 C
 C        The third term exists for RHO < RHOITB
 C
@@ -88,6 +82,51 @@ C
       PROFJ1 = 1.5D0
       PROFJ2 = 1.5D0
 C
+C        FF0   : Current density at R=RR (main component) : Fixed to 1
+C        FF1   : Current density at R=RR (sub component)       (arb)
+C        FF2   : Current density at R=RR (sub component)       (arb)
+C        PROFF0: Current density profile parameter
+C        PROFF1: Current density profile parameter
+C        PROFF2: Current density profile parameter
+C
+C      FPSI=BB*RR
+C     &      +FF0*(1.D0-PSIN**PROFR0)**PROFF0
+C     &      +FF1*(1.D0-PSIN**PROFR1)**PROFF1
+C     &      +FF2*(1.D0-PSIN**PROFR2)**PROFF2
+C
+C        The third term exists for RHO < RHOITB
+C
+      FF0    = 1.0D0
+      FF1    = 0.0D0
+      FF2    = 0.0D0
+      PROFF0 = 1.5D0
+      PROFF1 = 1.5D0
+      PROFF2 = 1.5D0
+C
+C        QQ0   : Safety factor on axis for QQ1=QQ2=0
+C        QQS   : Safety factor on surface
+C        QQ0   : Safety factor 
+C        QQ1   : Safety factor (sub component)
+C        QQ2   : Safety factor (increment within ITB)
+C        PROFQ0: Safety factor profile parameter
+C        PROFQ1: Safety factor profile parameter
+C        PROFP2: Pressure profile parameter
+C
+C        QPSI=QQS
+C    &       +(QQ0-QQS)*(1.D0-PSIN**PROFR0)**PROFQ0
+C    &       +QQ1*(1.D0-PSIN**PROFR1)**PROFQ1
+C    &       +QQ2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFQ2
+C
+C        The third term exists for RHO < RHOITB
+C
+      QQ0    = 1.D0
+      QQS    = 3.D0
+      QQ1    = 0.0D0
+      QQ2    = 0.0D0
+      PROFQ0 = 1.0D0
+      PROFQ1 = 1.0D0
+      PROFQ2 = 1.0D0
+C
 C        PT0   : Plasma temperature (main component)           (keV)
 C        PT1   : Plasma temperature (sub component)            (keV)
 C        PT2   : Plasma temperature (increment within ITB)     (keV)
@@ -96,9 +135,9 @@ C        PROFT0: Temperature profile parameter
 C        PROFT1: Temperature profile parameter
 C        PROFT2: Temperature profile parameter
 C
-C        TPSI=PTS+(PT0-PTS)*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
-C    &       +PT1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFT1
-C    &       +PT2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFT2
+C        TPSI=PTS+(PT0-PTS)*(1.D0-PSIN**PROFR0)**PROFT0
+C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFT1
+C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFT2
 C    &       +PTS
 C
 C        The third term exits for RHO < RHOITB
@@ -118,9 +157,9 @@ C        PROFV0: Velocity profile parameter
 C        PROFV1: Velocity profile parameter
 C        PROFV2: Velocity profile parameter
 C
-C        PVSI=PV0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFV0
-C    &       +PV1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFV1
-C    &       +PV2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFV2
+C        PVSI=PV0*(1.D0-PSIN**PROFR0)**PROFV0
+C    &       +PV1*(1.D0-PSIN**PROFR1)**PROFV1
+C    &       +PV2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFV2
 C
 C        The third term exits for RHO < RHOITB
 C
@@ -182,13 +221,20 @@ C
 C        MODELF : Profile parameter
 C            0: given analytic profile  P,J,T,Vph
 C            1: given analytic profile  P,F,T,Vph
-C            2: given spline profile  P,F,T,Vph
+C            2: given analytic profile  P,q,T,Vph
+C            5: given spline profile  P,J,T,Vph
+C            6: given spline profile  P,F,T,Vph
+C            7: given spline profile  P,q,T,Vph
 C
       MODELF = 0
 C
 C        KMODE : Parameter file error judgement
 C
       KMODE = 0
+C
+C        NPRINT: Level print out
+C
+      NPRINT= 0
 C
 C     *** FILE NAME ***
 C
@@ -201,77 +247,109 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE EQPARM
+      SUBROUTINE EQPARM(KID)
 C
-      INCLUDE 'eqcomm.h'
+      INCLUDE 'eqcomm.inc'
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32,KPNAM*32
+      CHARACTER KPNAME*32,KNAME*90,LINE*80,KID*1
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
+     &              FF0,FF1,FF2,PROFF0,PROFF1,PROFF2,
+     &              QQ0,QQ1,QQ2,PROFQ0,PROFQ1,PROFQ2,QQS,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
-     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM,
+     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
      &              PROFR0,PROFR1,PROFR2,RHOITB,
      &              NSGMAX,NTGMAX,
      &              NRGMAX,NZGMAX,
      &              EPSEQ,MODELF,
      &              NPSMAX,KNAMEQ,
-     &              NRMAX,NTHMAX,NSUMAX
+     &              NRMAX,NTHMAX,NSUMAX,NPRINT
 C
-    1 WRITE(6,*) '# INPUT &eq :'
-      READ(5,EQ,ERR=1,END=9000)
+      MODE=0
+    1 CONTINUE
+         WRITE(6,*) '# INPUT &eq :'
+         READ(5,EQ,ERR=2,END=3)
+         KID=' '
+         GOTO 4
 C
- 9000 RETURN
+    2    CALL EQPLST
+      GOTO 1
 C
+    3 KID='Q'
+    4 GOTO 3000
 C
-      ENTRY EQPARF
+      ENTRY EQPARL(LINE)
 C
-      KPNAME='eqparm'
+      MODE=1
+      KNAME=' &EQ '//LINE//' &END'
+      WRITE(7,'(A90)') KNAME
+      REWIND(7)
+      READ(7,EQ,ERR=8,END=8)
+      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
+      GOTO 9
+    8 CALL EQPLST
+    9 REWIND(7)
+      GOTO 3000
+C
+      ENTRY EQPARF(KPNAME)
+C
+      MODE=2
       INQUIRE(FILE=KPNAME,EXIST=LEX,ERR=9800)
-      IF(LEX) THEN
-         OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-         READ(25,EQ,ERR=9800,END=9900)
-         CLOSE(25)
-         WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
-         KMODE=0
-      ENDIF
-      GOTO 9000
+      IF(.NOT.LEX) RETURN
 C
+      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
+      READ(25,EQ,IOSTAT=IST,ERR=9800,END=9900)
+      CLOSE(25)
+      WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
 C
-      ENTRY EQPARG(KPNAM)
+ 3000 CONTINUE
+      IERR=0
 C
-      INQUIRE(FILE=KPNAM,EXIST=LEX,ERR=9800)
-      IF(LEX) THEN
-         CALL EQINIT
-         OPEN(25,FILE=KPNAM,IOSTAT=IST,STATUS='OLD',ERR=9100)
-         READ(25,EQ,ERR=9800,END=9900)
-         CLOSE(25)
-         WRITE(6,*) '## FILE (',KPNAM,') IS ASSIGNED FOR PARM INPUT'
-      ELSE 
-         WRITE(6,*) 'XX FILE (',KPNAM,') NOT FOUND'
-         KMODE=1
-      ENDIF
-      GOTO 9000
+C     PARAMETER CHECK SHOULD BE HERE
+C
+      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
+C
+      RETURN
 C
  9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
-      KMODE=1
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR'
-      KMODE=1
+ 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
       RETURN
  9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
-      KMODE=1
+      RETURN
+      END
+C
+C     ***** INPUT PARAMETER LIST *****
+C
+      SUBROUTINE EQPLST
+C
+      WRITE(6,601)
+      RETURN
+C
+  601 FORMAT(' ','# &EQ : RR,BB,RIP,RA,RKAP,RDLT,RB'/
+     &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
+     &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
+     &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
+     &       9X,'QQ0,QQ1,QQ2,PROFQ0,PROFQ1,PROFQ2,QQS'/
+     &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
+     &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS'/
+     &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
+     &       9X,'PROFR0,PROFR1,PROFR2,RHOITB'/
+     &       9X,'NSGMAX,NTGMAX,NRGMAX,NZGMAX,NPSMAX'/
+     &       9X,'NRMAX,NTHMAX,NSUMAX,EPSEQ,MODELF,KNAMEQ'/
+     &       9X,'NPRINT')
       END
 C
 C     ****** SHOW PARAMETERS ******
 C
       SUBROUTINE EQVIEW
 C
-      INCLUDE 'eqcomm.h'
+      INCLUDE 'eqcomm.inc'
 C
       WRITE(6,601) 'RR    ',RR,
      &             'BB    ',BB,
@@ -289,10 +367,18 @@ C
      &             'PROFP1',PROFP1,
      &             'PJ1   ',PJ1,
      &             'PROFJ1',PROFJ1
-      WRITE(6,601) 'PP2   ',PP2,
-     &             'PROFP2',PROFP2,
-     &             'PJ2   ',PJ2,
-     &             'PROFJ2',PROFJ2
+      WRITE(6,601) 'FF0   ',FF0,
+     &             'PROFF0',PROFF0,
+     &             'QQ0   ',QQ0,
+     &             'PROFQ0',PROFQ0
+      WRITE(6,601) 'FF1   ',FF1,
+     &             'PROFF1',PROFF1,
+     &             'QQ1   ',QQ1,
+     &             'PROFQ1',PROFQ1
+      WRITE(6,601) 'FF2   ',FF2,
+     &             'PROFF2',PROFF2,
+     &             'QQ2   ',QQ2,
+     &             'PROFQ2',PROFQ2
       WRITE(6,601) 'PT0   ',PT0,
      &             'PROFT0',PROFT0,
      &             'PV0   ',PV0,
@@ -306,6 +392,7 @@ C
      &             'PV2   ',PV2,
      &             'PROFV2',PROFV2
       WRITE(6,601) 'PTS   ',PTS,
+     &             'QQS   ',QQS,
      &             'PN0   ',PN0
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
@@ -319,7 +406,8 @@ C
      &             'NTHMAX',NTHMAX,
      &             'NPSMAX',NPSMAX,
      &             'NSUMAX',NSUMAX
-      WRITE(6,602) 'MODELF',MODELF
+      WRITE(6,602) 'MODELF',MODELF,
+     &             'NPRINT',NPRINT
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))
