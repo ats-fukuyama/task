@@ -73,7 +73,7 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 ## for macosx-xlf
 #FLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -O
-#DFLAGS = -g -C -qfltrap
+#DFLAGS = -g -C -qflttrap
 #FC = xlf
 
 ## for macosx-f2c
