@@ -2,11 +2,11 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgsub.f trhelp.f
+     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f
 SRCE = ../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
        ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
 SRCL = ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f

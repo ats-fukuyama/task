@@ -390,10 +390,8 @@ C
 C
          FA1=DVRHO(NR-1)*AR1RHO(NR-1)/DR
          FA2=DVRHO(NR  )*AR1RHO(NR  )/DR
-         FA3=DVRHO(NR+1)*AR1RHO(NR+1)/DR
          FB1=DVRHO(NR-1)*AR2RHO(NR-1)/(DR*DR)
          FB2=DVRHO(NR  )*AR2RHO(NR  )/(DR*DR)
-         FB3=DVRHO(NR+1)*AR2RHO(NR+1)/(DR*DR)
          DO NS=1,NSM
             RTM(NS)=RT(NR,NS)*RKEV/(PA(NS)*AMM)
          ENDDO

@@ -202,7 +202,7 @@ C
 C
       KFNLOG='trf.log'
 C
-      MODELG=1
+      MODELG=0
       RETURN
       END
 C
@@ -570,20 +570,34 @@ C     *** CALCULATE PROFILE OF AJ(R) ***
 C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
-      IF(PROFJ1.GT.0.D0) THEN
-         DO NR=1,NRMAX
-            IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
-               PROF=0.D0    
-            ELSE             
-               PROF= (1.D0-RM(NR)**PROFJ1)**ABS(PROFJ2)
-            ENDIF             
-            AJOH(NR)= PROF
-            AJ(NR)  = PROF
-         ENDDO
-      ELSE
+      DO NR=1,NRMAX
+         IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
+            PROF=0.D0    
+         ELSE             
+            PROF= (1.D0-RM(NR)**ABS(PROFJ1))**ABS(PROFJ2)
+         ENDIF             
+         AJOH(NR)= PROF
+         AJ(NR)  = PROF
+      ENDDO
+C
+      BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+      DO NR=2,NRMAX
+         BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+      ENDDO
+C
+      BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+      FACT=BPS/BP(NRMAX)
+      DO NR=1,NRMAX
+         AJOH(NR)=FACT*AJOH(NR)
+         AJ(NR)  =AJOH(NR)
+         BP(NR)  =FACT*BP(NR)
+         QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+      ENDDO
+      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
+      IF(PROFJ1.LE.0.D0) THEN
          CALL TRZEFF
          DO NR=1,NRMAX
 C
@@ -650,17 +664,14 @@ C
             AJOH(NR)=1.D0/ETA(NR)
             AJ(NR)  =1.D0/ETA(NR)
          ENDDO
-      ENDIF
 C
-      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-         BP(1)=(RM(1)*AJ(1))/RG(1)
+         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
          DO NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*AJ(NR))/RG(NR)
+            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
 C
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
          FACT=BPS/BP(NRMAX)
-C
          DO NR=1,NRMAX
             AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
@@ -668,7 +679,9 @@ C
             QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
          ENDDO
          Q0=(4.D0*QP(1)-QP(2))/3.D0
-      ELSEIF(MODELG.EQ.3) THEN
+      ENDIF
+C
+      IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
             RHOTR(NR)=RM(NR)
             AJ(NR)   =AJOH(NR)
@@ -677,9 +690,13 @@ C
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
      &               NRMAX,RHOTR,HJRHO,QRHO,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: IERR=',IERR
+C
          DO NR=1,NRMAX
-            QP(NR)=QRHO(NR)
+            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
+     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
+            QP(NR)=-QRHO(NR)
          ENDDO
+         PAUSE
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
 C
@@ -716,23 +733,34 @@ C
             PRHO(NR)=0.D0
             TRHO(NR)=0.D0
             DO NS=1,NSM
-               PRHO(NR)=PRHO(NR)+RN(NR,NS)*RT(NR,NS)*1.D20*RKEV
+               PRHO(NR)=PRHO(NR)+RN(NR,NS)*RT(NR,NS)*1.D14*RKEV
             ENDDO
             DO NF=1,NFM
-               PRHO(NR)=PRHO(NR)+RW(NR,NF)*1.D20*RKEV
+               PRHO(NR)=PRHO(NR)+RW(NR,NF)*1.D14*RKEV
             ENDDO
             TRHO(NR)=0.D0
             DO NS=2,NSM
-               TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(1,NS)
+               TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(NR,1)
             ENDDO
             HJRHO(NR)=AJ(NR)
             VTRHO(NR)=0.D0
+C            WRITE(6,'(A,I5,1P4E12.4)')
+C     &           'NR,P/HJ/T/VTRHO=',NR,PRHO(NR),
+C     &           HJRHO(NR),TRHO(NR),VTRHO(NR)
          ENDDO
+C         PAUSE
 C
          CALL TREQEX(RIP,NRMAX,PRHO,HJRHO,VTRHO,TRHO,
      &               QRHO,TTRHO,DVRHO,DSRHO,
      &               ABRHO,ARRHO,AR1RHO,AR2RHO,
      &               EPSRHO,IERR)
+C
+         DO NR=1,NRMAX
+C            WRITE(6,'(A,I5,1P4E12.4)')
+C     &           'NR,Q/TT/DV/AB=',NR,QRHO(NR),
+C     &           TTRHO(NR),DVRHO(NR),ABRHO(NR)
+         ENDDO
+C         PAUSE
 C
          NR=1
             FACTOR0=RR*TTRHO(NR)**2/(AMYU0*DVRHO(NR))

@@ -67,7 +67,7 @@ C
          WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ELSE
-         WRITE(6,*) '# INPUT : C/CONT  G/GRAPH  W/WRITE  S/SAVE  '
+         WRITE(6,*) '# INPUT : C/CONT  E/EQ  G/GRAPH  W/WRITE  S/SAVE'
          WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
@@ -92,13 +92,15 @@ C
          CALL TRPROF
          CALL TRLOOP
          INIT=2
+      ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
+         CALL TRSETG
 C
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2)THEN
          CALL TRLOOP
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
   101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
-     &                        ' A1-A2'
+     &                        ' A1-A2, E1-E9'
          WRITE(6,*) '           S/SAVE  L/LOAD  H/HELP  C/CLEAR  ',
      &              'I/INQ  X/EXIT'
          READ(5,'(A2)',ERR=101,END=9000) KIG
@@ -136,10 +138,10 @@ C
             CALL TRGRP0(K2,INQG)
          ELSEIF(K1.EQ.'A') THEN
             CALL TRGRA0(K2,INQG)
+         ELSEIF(K1.EQ.'E') THEN
+            CALL TRGRE0(K2,INQG)
          ELSEIF(K1.EQ.'H') THEN
             CALL TRHELP('G')
-         ELSEIF(K1.EQ.'E') THEN
-            GOTO 1
          ELSEIF(K1.EQ.'X') THEN
             GOTO 1
          ELSE

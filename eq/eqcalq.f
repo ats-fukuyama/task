@@ -342,7 +342,7 @@ C
 C        +++++ CALCULATE SPLINE COEFFICIENTS +++++
 C
       DO NR=2,NRMAX
-         AVBR(NR)=SQRT(AVBR(NR)/(PSS(NR)-PSS(1)))
+         AVBR(NR)=AVBR(NR)/(PSS(NR)-PSS(1))
          AVR1(NR)=AVR1(NR)/SQRT(PSS(NR)-PSS(1))
          AVR2(NR)=AVR2(NR)/(PSS(NR)-PSS(1))
       ENDDO
