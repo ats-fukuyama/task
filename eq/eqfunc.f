@@ -15,13 +15,16 @@ C   ************************************************
 C   **          　　P(psi)                        **
 C   ************************************************
 C
-      REAL*8 FUNCTION PPSI(PSIN)
+      REAL*8 FUNCTION PPSI(PSIN1)
 C
       INCLUDE 'eqcomc.h'
 C
-      IF(PSIN.LE.0.D0) THEN
-         PPSI=0.D0
-         RETURN
+      IF(PSIN1.LE.0.D0) THEN
+         PSIN=0.D0
+      ELSEIF(PSIN1.GE.1.D0) THEN
+         PSIN=1.D0
+      ELSE
+         PSIN=PSIN1
       ENDIF
       PPSI=PP0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFP0
      &    +PP1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFP1
@@ -34,13 +37,16 @@ C
       RETURN
       END
 C
-      REAL*8 FUNCTION DPPSI(PSIN)
+      REAL*8 FUNCTION DPPSI(PSIN1)
 C
       INCLUDE 'eqcomc.h'
 C
-      IF(PSIN.LE.0.D0) THEN
-         DPPSI=0.D0
-         RETURN
+      IF(PSIN1.LE.0.D0) THEN
+         PSIN=0.D0
+      ELSEIF(PSIN1.GE.1.D0) THEN
+         PSIN=1.D0
+      ELSE
+         PSIN=PSIN1
       ENDIF
       DPPSI=PP0*PROFP0*(1.D0-(1.D0-PSIN)**PROFR0)**(PROFP0-1.D0)
      &                        *PROFR0*(1.D0-PSIN)**(PROFR0-1.D0)
@@ -62,13 +68,16 @@ C   ************************************************
 C   **          　　J0(psi)                        **
 C   ************************************************
 C
-      REAL*8 FUNCTION HJPSID(PSIN)
+      REAL*8 FUNCTION HJPSID(PSIN1)
 C
       INCLUDE 'eqcomc.h'
 C
-      IF(PSIN.LE.0.D0) THEN
-         HJPSID=0.D0
-         RETURN
+      IF(PSIN1.LE.0.D0) THEN
+         PSIN=0.D0
+      ELSEIF(PSIN1.GE.1.D0) THEN
+         PSIN=1.D0
+      ELSE
+         PSIN=PSIN1
       ENDIF
       HJPSID=-PJ0*(1.D0-(1.D0-PSIN)**PROFR0)**(PROFJ0+1.D0)
      &           *PSI0/(PROFR0*(PROFJ0+1.D0))
@@ -79,13 +88,16 @@ C
       RETURN
       END
 C
-      REAL*8 FUNCTION HJPSI(PSIN)
+      REAL*8 FUNCTION HJPSI(PSIN1)
 C
       INCLUDE 'eqcomc.h'
 C
-      IF(PSIN.LE.0.D0) THEN
-         HJPSI=0.D0
-         RETURN
+      IF(PSIN1.LE.0.D0) THEN
+         PSIN=0.D0
+      ELSEIF(PSIN1.GE.1.D0) THEN
+         PSIN=1.D0
+      ELSE
+         PSIN=PSIN1
       ENDIF
       HJPSI=-PJ0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFJ0
      &                *(1.D0-PSIN)**(PROFR0-1.D0)

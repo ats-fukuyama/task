@@ -70,8 +70,6 @@ C
          ENDDO
          ENDDO
          SUM=SQRT(SUM1/SUM0)
-         WRITE(6,'(A,1P4E14.6)') 
-     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
          IF(SUM.LT.EPSEQ)GOTO 100
       ENDDO
   100 CONTINUE 
@@ -398,8 +396,6 @@ C
          TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
      &                   *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
-C         WRITE(6,'(I5,1P4E12.4)') 
-C     &        NPS,PSIPS(NPS),PPPS(NPS),TTPS(NPS),HJPSID(PSIN)
       ENDDO
       RETURN
       END

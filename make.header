@@ -43,9 +43,9 @@ FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 #FC = g77
 
 ## for pgf77
-OFLAGS = -fast
-DFLAGS = -g -Mbounds -Minform,inform
-FC = pgf77
+#OFLAGS = -fast
+#DFLAGS = -g -Mbounds -Minform,inform
+#FC = pgf77
 
 ## for Linux-alpha-compaq
 #OFLAGS = -fast
@@ -53,7 +53,21 @@ FC = pgf77
 #FC = fort
 #OBJLA = /usr/lib/libcxml.so
 
-## for macosx
+## for macosx-g77
+FLIBS=-L/usr/local/lib/g77 -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
+OFLAGS = -O
+DFLAGS = -g
+FC = g77
+
+## for macosx-f2c
+#FLIBS=-L/usr/local/lib/f2c -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -O
 #DFLAGS = -g
-#FC = fort77
+#FC = fort777
+
+## for macosx-absoft
+#FLIBS=-L/usr/local/lib/absoft -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 
+#OBJLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
+#OFLAGS = -f -N15 -s -O
+#DFLAGS = -f -N15 -s -g
+#FC = f77

@@ -194,8 +194,11 @@ C
      &   KID.EQ.'A'.OR.
      &   KID.EQ.'F'.OR.
      &   KID.EQ.'C'.OR.
-     &   KID.EQ.'E'.OR.
-     &   KID.EQ.'S'.OR.
+     &   KID.EQ.'E') THEN
+         MODE=1
+         RETURN
+      ENDIF
+      IF(KID.EQ.'S'.OR.
      &   KID.EQ.'G'.OR.
      &   KID.EQ.'T'.OR.
      &   KID.EQ.'H'.OR.

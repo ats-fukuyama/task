@@ -141,7 +141,7 @@ C
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              PROFR0,PROFR1,PROFR2,RHOITB,
      &              NSGMAX,NTGMAX,
-     &              NRGMAX,NZGMAX,NPSMAX,NSUMAX,
+     &              NRGMAX,NZGMAX,
      &              EPSEQ,
      &              NPSMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX
