@@ -6,7 +6,7 @@ FFLAGS=$(OFLAGS)
 SRCS = wrmain.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
-       ../eq/eqload.o ../eq/eqread.o ../eq/eqcalq.o \
+       ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
        ../dp/dpinit.o ../dp/dproot.o ../dp/dpcont.o ../dp/dpdisp.o \
        ../dp/dpfpin.o ../dp/dphotf.o ../dp/dphotr.o \
        ../lib/libdsp.o ../lib/libbes.o ../lib/libbrn.o \

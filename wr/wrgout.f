@@ -46,8 +46,8 @@ C     ----- PLASMA BOUNDARY -----
 C
       CALL PLRZSU(RSU,ZSU,NSUM,NSUMAX)
       DO NSU=1,NSUMAX
-         GRS(NSU)=GCLIP(RSU(NSU))
-         GZS(NSU)=GCLIP(ZSU(NSU))
+         GRS(NSU)=GUCLIP(RSU(NSU))
+         GZS(NSU)=GUCLIP(ZSU(NSU))
       ENDDO
 C
       CALL GMNMX1(GRS,1,NSUMAX,1,GRSMIN,GRSMAX)
@@ -86,18 +86,18 @@ C
       IF(MODELG.EQ.3) THEN
          DGX=DBLE(GRMAX-GRMIN)/(NGXL-1)
          DO NGX=1,NGXL
-            GCX(NGX)=GRMIN+(NGX-1)*GCLIP(DGX)
+            GCX(NGX)=GRMIN+(NGX-1)*GUCLIP(DGX)
          ENDDO
          DGY=DBLE(GZMAX-GZMIN)/(NGYL-1)
          DO NGY=1,NGYL
-            GCY(NGY)=GZMIN+(NGY-1)*GCLIP(DGY)
+            GCY(NGY)=GZMIN+(NGY-1)*GUCLIP(DGY)
          ENDDO
          DO NGY=1,NGYL
             ZL=DBLE(GCY(NGY))
             DO NGX=1,NGXL
                RL=DBLE(GCX(NGX))
-               CALL GETRZ(RL,ZL,PHIL,BR,BZ,BPHI,PSIN)
-               GCF(NGX,NGY)=GCLIP(PSIN)
+               CALL PLMAG(RL,0.D0,ZL,PSIN)
+               GCF(NGX,NGY)=GUCLIP(PSIN)
             ENDDO
          ENDDO
          CALL CONTP2(GCF,GCX,GCY,NGXL,NGXL,NGYL,
@@ -109,8 +109,8 @@ C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
             RL=SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
-            GX(IT+1)=GCLIP(RL)
-            GY(IT+1)=GCLIP(RAYS(3,IT,NRAY))
+            GX(IT+1)=GUCLIP(RL)
+            GY(IT+1)=GUCLIP(RAYS(3,IT,NRAY))
          ENDDO
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
          CALL GPLOTP(GX,GY,1,NITMAX(NRAY)+1,1,0,0,0)
@@ -120,7 +120,7 @@ C     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 C
       DRHO=1.D0/NRZMAX
       DO NRZ=1,NRZMAX
-         GPX(NRZ)=GCLIP(NRZ*DRHO)
+         GPX(NRZ)=GUCLIP(NRZ*DRHO)
       ENDDO
       DO NRAY=1,NRAYMX
          DO NRZ=1,NRZMAX
@@ -144,27 +144,27 @@ C
             NRS2=INT(RHO2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
-               GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GCLIP(RAYS(8,IT+1,NRAY))
+               GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
                SDR=(RHO2-RHO1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
                DO NR=NRS1+1,NRS2-1
-                  GPY(NR,NRAY)=GPY(NR,NRAY)+GCLIP(DELP)
+                  GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
+     &                       +GUCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
             ELSE
                SDR=(RHO1-RHO2)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
                DO NR=NRS2+1,NRS1-1
-                  GPY(NR,NRAY)=GPY(NR,NRAY)+GCLIP(DELP)
+                  GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
+     &                       +GUCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
             ENDIF
          ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
@@ -173,7 +173,7 @@ C
       DO NRAY=1,NRAYMX
       DO NRZ=1,NRZMAX
          GPY(NRZ,NRAY)=GPY(NRZ,NRAY)
-     &                 /GCLIP(2*PI*(DBLE(NRZ)-0.5D0)*DRHO*DRHO)
+     &                 /GUCLIP(2*PI*(DBLE(NRZ)-0.5D0)*DRHO*DRHO)
       ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
       ENDDO
@@ -223,8 +223,8 @@ C
             ZL=RAYS(3,IT,NRAY)
             CALL PLMAG(XL,YL,ZL,PSIN)
             RHO=SQRT(PSIN)
-	    GUX(IT+1)=GCLIP(RHO)
-            GUY(IT+1)=GCLIP(RAYS(7,IT,NRAY))
+	    GUX(IT+1)=GUCLIP(RHO)
+            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
          ENDDO
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
          CALL GPLOTP(GUX,GUY,1,NITMAX(NRAY)+1,1,0,0,0)      
@@ -259,17 +259,17 @@ C
       DTH=2*PI/(NSUMAX-1)
       DO NSU=1,NSUMAX
          TH=DTH*(NSU-1)
-         GLCX(NSU)=GCLIP(RMAX*COS(TH))
-         GLCY(NSU)=GCLIP(RMAX*SIN(TH))
-         GSCX(NSU)=GCLIP(RMIN*COS(TH))
-         GSCY(NSU)=GCLIP(RMIN*SIN(TH))
+         GLCX(NSU)=GUCLIP(RMAX*COS(TH))
+         GLCY(NSU)=GUCLIP(RMAX*SIN(TH))
+         GSCX(NSU)=GUCLIP(RMIN*COS(TH))
+         GSCY(NSU)=GUCLIP(RMIN*SIN(TH))
       ENDDO
-C      GRRMAX=GCLIP(RMAX)
+C      GRRMAX=GUCLIP(RMAX)
 C      CALL GQSCAL(-GRRMAX,GRRMAX,GXMIN,GXMAX,GXSTEP)
 C      CALL GQSCAL(-GRRMAX,GRRMAX,GYMIN,GYMAX,GYSTEP)
 C
-      CALL GQSCAL(GCLIP(RR-RA),GCLIP(RR+RA),GXMIN,GXMAX,GXSTEP)
-      CALL GQSCAL(GCLIP(  -RA),GCLIP(   RA),GYMIN,GYMAX,GYSTEP)
+      CALL GQSCAL(GUCLIP(RR-RA),GUCLIP(RR+RA),GXMIN,GXMAX,GXSTEP)
+      CALL GQSCAL(GUCLIP(  -RA),GUCLIP(   RA),GYMIN,GYMAX,GYSTEP)
 C
       CALL GDEFIN(1.7,11.7,1.0,11.0,GXMIN,GXMAX,GYMIN,GYMAX)
       CALL SETLIN(0,0,7)
@@ -285,8 +285,8 @@ C
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GX(IT+1)=GCLIP(RAYS(1,IT,NRAY))
-            GY(IT+1)=GCLIP(RAYS(2,IT,NRAY))
+            GX(IT+1)=GUCLIP(RAYS(1,IT,NRAY))
+            GY(IT+1)=GUCLIP(RAYS(2,IT,NRAY))
          ENDDO
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
          CALL GPLOTP(GX,GY,1,NITMAX(NRAY)+1,1,0,0,0)
@@ -302,9 +302,9 @@ C
             CALL PLMAG(XL,YL,ZL,PSIN)
             RHO=SQRT(PSIN)
             CALL WRCALK(IT,NRAY,RKPARA,RKPERP)
-            GKX( IT+1,NRAY)=GCLIP(RHO)
-            GKY1(IT+1,NRAY)=GCLIP(RKPARA)
-            GKY2(IT+1,NRAY)=GCLIP(RKPERP)
+            GKX( IT+1,NRAY)=GUCLIP(RHO)
+            GKY1(IT+1,NRAY)=GUCLIP(RKPARA)
+            GKY2(IT+1,NRAY)=GUCLIP(RKPERP)
          ENDDO
       ENDDO
 C
@@ -377,7 +377,7 @@ C
             ZL=RAYS(3,IT,NRAY)
             CALL PLMAG(XL,YL,ZL,PSIN)
             RHO=SQRT(PSIN)
-            GKX( IT+1,NRAY)=GCLIP(RHO)
+            GKX( IT+1,NRAY)=GUCLIP(RHO)
          ENDDO
       ENDDO
       CALL GQSCAL(0.0,1.0,GXMIN,GXMAX,GXSTEP)
@@ -389,7 +389,7 @@ C
             RL=SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
             RKR  =( RAYS(4,IT,NRAY)*RAYS(1,IT,NRAY)
      &             +RAYS(5,IT,NRAY)*RAYS(2,IT,NRAY))/RL
-            GKY( IT+1,NRAY)=GCLIP(RKR)
+            GKY( IT+1,NRAY)=GUCLIP(RKR)
          ENDDO
       ENDDO
       NRAY=1
@@ -418,7 +418,7 @@ C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
             RKZ  =  RAYS(6,IT,NRAY)
-            GKY( IT+1,NRAY)=GCLIP(RKZ)
+            GKY( IT+1,NRAY)=GUCLIP(RKZ)
          ENDDO
       ENDDO
       NRAY=1
@@ -449,7 +449,7 @@ C
             RL=SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
             RKPHI=(-RAYS(4,IT,NRAY)*RAYS(2,IT,NRAY)
      &             +RAYS(5,IT,NRAY)*RAYS(1,IT,NRAY))/RL
-            GKY( IT+1,NRAY)=GCLIP(RKPHI)
+            GKY( IT+1,NRAY)=GUCLIP(RKPHI)
          ENDDO
       ENDDO
       NRAY=1
@@ -479,7 +479,7 @@ C
          DO IT=0,NITMAX(NRAY)
             RNPHI=(-RAYS(4,IT,NRAY)*RAYS(2,IT,NRAY)
      &             +RAYS(5,IT,NRAY)*RAYS(1,IT,NRAY))
-            GKY( IT+1,NRAY)=GCLIP(RNPHI)
+            GKY( IT+1,NRAY)=GUCLIP(RNPHI)
          ENDDO
       ENDDO
       NRAY=1
@@ -539,8 +539,8 @@ C
             CALL PLMAG(XL,YL,ZL,PSIN)
             RHO=SQRT(PSIN)
 C            WRITE(6,'(A,I5,1P5E12.4)') '!!',IT,XL,YL,ZL,PSIN,RHO
-            GKX( IT+1,NRAY)=GCLIP(RHO)
-C            GKX( IT+1,NRAY)=GCLIP(RAYB(0,IT))
+            GKX( IT+1,NRAY)=GUCLIP(RHO)
+C            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
 C
@@ -551,8 +551,8 @@ C     ----- Fig.1  R-CURV-----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GCLIP(RAYB(21,IT))
-            GKY( IT+1,2)=GCLIP(RAYB(22,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(21,IT))
+            GKY( IT+1,2)=GUCLIP(RAYB(22,IT))
          ENDDO
       ENDDO
 C
@@ -574,8 +574,8 @@ C     ----- Fig.3   R-BEAM-----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GCLIP(RAYB(23,IT))
-            GKY( IT+1,2)=GCLIP(RAYB(24,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(23,IT))
+            GKY( IT+1,2)=GUCLIP(RAYB(24,IT))
 C           WRITE(6,*) GKY(IT+1,2),RAYB(24,IT)
          ENDDO
       ENDDO
@@ -607,8 +607,8 @@ C     ----- Fig.3  Beam-Rot -----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GCLIP(RAYB(25,IT))
-            GKY( IT+1,2)=GCLIP(RAYB(26,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(25,IT))
+            GKY( IT+1,2)=GUCLIP(RAYB(26,IT))
          ENDDO
       ENDDO
 C
@@ -632,7 +632,7 @@ C     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 C
       DRHO=1.D0/NRZMAX
       DO NRZ=1,NRZMAX
-         GPX(NRZ)=GCLIP(NRZ*DRHO)
+         GPX(NRZ)=GUCLIP(NRZ*DRHO)
       ENDDO
       DO NRAY=1,NRAYMX
          DO NRZ=1,NRZMAX
@@ -656,27 +656,27 @@ C
             NRS2=INT(RHO2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
-               GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GCLIP(RAYS(8,IT+1,NRAY))
+               GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
                SDR=(RHO2-RHO1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
                DO NR=NRS1+1,NRS2-1
-                  GPY(NR,NRAY)=GPY(NR,NRAY)+GCLIP(DELP)
+                  GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
+     &                       +GUCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
             ELSE
                SDR=(RHO1-RHO2)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
                DO NR=NRS2+1,NRS1-1
-                  GPY(NR,NRAY)=GPY(NR,NRAY)+GCLIP(DELP)
+                  GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
+     &                       +GUCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
             ENDIF
          ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
@@ -685,7 +685,7 @@ C
       DO NRAY=1,NRAYMX
       DO NRZ=1,NRZMAX
          GPY(NRZ,NRAY)=GPY(NRZ,NRAY)
-     &                 /GCLIP(2*PI*(DBLE(NRZ)-0.5D0)*DRHO*DRHO)
+     &                 /GUCLIP(2*PI*(DBLE(NRZ)-0.5D0)*DRHO*DRHO)
       ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
       ENDDO
@@ -757,7 +757,7 @@ C            YL=RAYS(2,IT,NRAY)
 C            ZL=RAYS(3,IT,NRAY)
 C            CALL PLMAG(XL,YL,ZL,PSIN)
 C            RHO=SQRT(PSIN)
-            GKX( IT+1,NRAY)=GCLIP(RAYB(0,IT))
+            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
 C
@@ -769,7 +769,7 @@ C
       DO NRAY=1,NRAYMX         
          DO IT=0,NITMAX(NRAY)
             DO N=1,6
-            GKSY(IT+1,N)=GCLIP(RAYB(25+N,IT))
+            GKSY(IT+1,N)=GUCLIP(RAYB(25+N,IT))
             ENDDO
          ENDDO
       ENDDO
@@ -814,7 +814,7 @@ C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
             DO N=1,6
-            GKPY( IT+1,N)=GCLIP(RAYB(31+N,IT))
+            GKPY( IT+1,N)=GUCLIP(RAYB(31+N,IT))
             ENDDO
          ENDDO
       ENDDO
@@ -853,7 +853,7 @@ C     ----- Fig.3   Angle-----
 C
       DO NRAY=1,NRAYMX         
          DO IT=0,NITMAX(NRAY)
-            GTHY( IT+1,1)=GCLIP(RAYB(25,IT))
+            GTHY( IT+1,1)=GUCLIP(RAYB(25,IT))
          ENDDO
       ENDDO
 C
@@ -887,8 +887,8 @@ C     -------fig4  LAMDA------------------------
 C
             DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GCLIP(RAYB(47,IT))
-            GKY( IT+1,2)=GCLIP(RAYB(48,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(47,IT))
+            GKY( IT+1,2)=GUCLIP(RAYB(48,IT))
 C           WRITE(6,*) GKY(IT+1,5),RAYB(30,IT)
          ENDDO
       ENDDO
@@ -945,7 +945,7 @@ C     ----- X AXIS -----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKX( IT+1,NRAY)=GCLIP(RAYB(0,IT))
+            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
 C
@@ -956,9 +956,9 @@ C     ------fig 1  K----------
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GCLIP(RAYB(38,IT))
-            GKY( IT+1,2)=GCLIP(RAYB(39,IT))
-            GKY( IT+1,3)=GCLIP(RAYB(40,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(38,IT))
+            GKY( IT+1,2)=GUCLIP(RAYB(39,IT))
+            GKY( IT+1,3)=GUCLIP(RAYB(40,IT))
          ENDDO
       ENDDO
       CALL SETRGB(0.0,0.0,0.0)
@@ -994,9 +994,9 @@ C     ------fig 2 K*B---------
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKBY( IT+1,1)=GCLIP(RAYB(41,IT))
-            GKBY( IT+1,2)=GCLIP(RAYB(42,IT))
-            GKBY( IT+1,3)=GCLIP(RAYB(43,IT))
+            GKBY( IT+1,1)=GUCLIP(RAYB(41,IT))
+            GKBY( IT+1,2)=GUCLIP(RAYB(42,IT))
+            GKBY( IT+1,3)=GUCLIP(RAYB(43,IT))
          ENDDO
       ENDDO
       CALL SETRGB(0.0,0.0,0.0)
@@ -1032,9 +1032,9 @@ C     ------fig 3 K*(K*B)-----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKKBY( IT+1,1)=GCLIP(RAYB(44,IT))
-            GKKBY( IT+1,2)=GCLIP(RAYB(45,IT))
-            GKKBY( IT+1,3)=GCLIP(RAYB(46,IT))
+            GKKBY( IT+1,1)=GUCLIP(RAYB(44,IT))
+            GKKBY( IT+1,2)=GUCLIP(RAYB(45,IT))
+            GKKBY( IT+1,3)=GUCLIP(RAYB(46,IT))
          ENDDO
       ENDDO
 C
@@ -1071,9 +1071,9 @@ C     ------fig 4 VG ---------
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GVGY( IT+1,1)=GCLIP(RAYB(49,IT))
-            GVGY( IT+1,2)=GCLIP(RAYB(50,IT))
-            GVGY( IT+1,3)=GCLIP(RAYB(51,IT))
+            GVGY( IT+1,1)=GUCLIP(RAYB(49,IT))
+            GVGY( IT+1,2)=GUCLIP(RAYB(50,IT))
+            GVGY( IT+1,3)=GUCLIP(RAYB(51,IT))
          ENDDO
       ENDDO
 C
