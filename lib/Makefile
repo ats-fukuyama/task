@@ -14,6 +14,9 @@ OBJS = $(SRCS:.f=.o)
 
 all : $(OBJS)
 
+testspl : testspl.o libspln.o ../grf/libgrf.o
+	$(FC) -o $@ testspl.o $(FFLAGS) libspln.o ../grf/libgrf.o $(FLIBS)
+
 new :
 	mkdir ../libnew
 	cp -f Makefile ../libnew

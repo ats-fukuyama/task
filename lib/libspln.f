@@ -143,10 +143,10 @@ C
       ENDDO
       RETURN
 C
- 9001 WRITE(6,*) 'XX SPL1D: TDMPRD ERROR : IERR=',IERR
+ 9001 WRITE(6,*) 'XX SPL1D: TDMPRDX ERROR : IERR=',IERR
       IERR=1
       RETURN
- 9002 WRITE(6,*) 'XX SPL1D: TDMSRD ERROR : IERR=',IERR
+ 9002 WRITE(6,*) 'XX SPL1D: TDMSRDX ERROR : IERR=',IERR
       IERR=2
       RETURN
       END
@@ -474,10 +474,10 @@ C
       ENDDO
       RETURN
 C
- 9001 WRITE(6,*) 'XX CSPL1D: TDMPRD ERROR : IERR=',IERR
+ 9001 WRITE(6,*) 'XX CSPL1D: TDMPRDX ERROR : IERR=',IERR
       IERR=1
       RETURN
- 9002 WRITE(6,*) 'XX CSPL1D: TDMSRD ERROR : IERR=',IERR
+ 9002 WRITE(6,*) 'XX CSPL1D: TDMSRDX ERROR : IERR=',IERR
       IERR=2
       RETURN
       END
@@ -709,6 +709,8 @@ C
       IDY1=MOD(IDY,2)
       IDY2=MOD(IDY/2,2)
 C
+C     --- calculate UX ---
+C
       IF(IDX.EQ.4) THEN
          DXM=X(NXMAX)-X(NXMAX-1)
          DXP=X(2)-X(1)
@@ -757,6 +759,8 @@ C
          UX0(2,NX)=UX(2,NX)
          UX0(3,NX)=UX(3,NX)
       ENDDO
+C
+C     --- calculate UY ---
 C
       IF(IDY.EQ.4) THEN
          DYM=Y(NYMAX)-Y(NYMAX-1)
@@ -807,6 +811,8 @@ C
          UY0(3,NY)=UY(3,NY)
       ENDDO
 C
+C     --- calculate FX ---
+C
       DO NY=1,NYMAX
          DO NX=1,NXMAX
             UX(1,NX)=UX0(1,NX)
@@ -846,16 +852,18 @@ C
 C
          IF(IDX.EQ.4) THEN
             CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
-            IF(IERR.NE.0) GOTO 9001
+            IF(IERR.NE.0) GOTO 9003
             BX(NXMAX)=BX(1)
          ELSE
             CALL TDMSRDX(UX,BX,NXMAX,IERR)
-            IF(IERR.NE.0) GOTO 9002
+            IF(IERR.NE.0) GOTO 9004
          ENDIF
          DO NX=1,NXMAX
             FX(NX,NY)=BX(NX)
          ENDDO
       ENDDO
+C
+C     --- calculate FY ---
 C
       DO NX=1,NXMAX
          DO NY=1,NYMAX
@@ -896,83 +904,70 @@ C
 C
          IF(IDY.EQ.4) THEN
             CALL TDMPRDX(UY,BX,NYMAX-1,IERR)
-            IF(IERR.NE.0) GOTO 9001
+            IF(IERR.NE.0) GOTO 9005
             BX(NYMAX)=BX(1)
          ELSE
-            CALL TDMSRDX(UX,BX,NYMAX,IERR)
-            IF(IERR.NE.0) GOTO 9002
+            CALL TDMSRDX(UY,BX,NYMAX,IERR)
+            IF(IERR.NE.0) GOTO 9006
          ENDIF
          DO NY=1,NYMAX
             FY(NX,NY)=BX(NY)
          ENDDO
       ENDDO
-C------
 C
-      DO NY=1,NYMAX,NYMAX-1
+C     --- calculate FXY ---
+C
+      DO NY=1,NYMAX
          DO NX=1,NXMAX
-            AX(1,NX)=AX0(1,NX)
-            AX(2,NX)=AX0(2,NX)
-            AX(3,NX)=AX0(3,NX)
+            UX(1,NX)=UX0(1,NX)
+            UX(2,NX)=UX0(2,NX)
+            UX(3,NX)=UX0(3,NX)
          ENDDO
-         IF(IDX1.EQ.0) THEN
-            BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(1)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                 +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
          ELSE
-            BX(1)=FXY(1,NY)
+            IF(IDX1.EQ.0) THEN
+               BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
+            ELSE
+               BX(1)=FXY(1,NY)
+            ENDIF
          ENDIF
          DO NX=2,NXMAX-1
             DXM=X(NX)-X(NX-1)
             DXP=X(NX+1)-X(NX)
-            BX(NX)=3.D0*(DXM*(FY(NX+1,NY)-FY(NX,NY))/DXP
-     &                  +DXP*(FY(NX,NY)-FY(NX-1,NY))/DXM)
+            BX(NX)=3.D0*(DXM*(FY(NX+1,NY)-FY(NX,  NY))/DXP
+     &                  +DXP*(FY(NX,  NY)-FY(NX-1,NY))/DXM)
          ENDDO
-         IF(IDX2.EQ.0) THEN
-            BX(NXMAX)=3.D0*(FY(NXMAX,NY)-FY(NXMAX-1,NY))
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(NXMAX)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                     +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
          ELSE
-            BX(NXMAX)=FXY(NXMAX,NY)
+            IF(IDX2.EQ.0) THEN
+               BX(NXMAX)=3.D0*(FY(NXMAX,NY)-FY(NXMAX-1,NY))
+            ELSE
+               BX(NXMAX)=FXY(NXMAX,NY)
+            ENDIF
          ENDIF
-         CALL TDMSRD(AX,BX,NXMAX,IERR)
-         IF(IERR.NE.0) GOTO 9003
+C
+         IF(IDX.EQ.4) THEN
+            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9007
+            BX(NXMAX)=BX(1)
+         ELSE
+            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            IF(IERR.NE.0) GOTO 9008
+         ENDIF
          DO NX=1,NXMAX
-            FXY1(NX,NY)=BX(NX)
+            FXY(NX,NY)=BX(NX)
          ENDDO
       ENDDO
 C
-      DO NX=1,NXMAX
-         DO NY=1,NYMAX
-            AY(1,NY)=AY0(1,NY)
-            AY(2,NY)=AY0(2,NY)
-            AY(3,NY)=AY0(3,NY)
-         ENDDO
-         IF(IDY1.EQ.0) THEN
-            BY(1)=3.D0*(FX(NX,2)-FX(NX,1))
-         ELSE
-            BY(1)=FXY(NX,1)
-         ENDIF
-         DO NY=2,NYMAX-1
-            DYM=Y(NY)-Y(NY-1)
-            DYP=Y(NY+1)-Y(NY)
-            BY(NY)=3.D0*(DYM*(FX(NX,NY+1)-FX(NX,NY))/DYP
-     &                  +DYP*(FX(NX,NY)-FX(NX,NY-1))/DYM)
-         ENDDO
-         IF(IDY2.EQ.0) THEN
-            BY(NYMAX)=3.D0*(FX(NX,NYMAX)-FX(NX,NYMAX-1))
-         ELSE
-            BY(NYMAX)=FXY(NX,NYMAX)
-         ENDIF
-         CALL TDMSRD(AY,BY,NYMAX,IERR)
-         IF(IERR.NE.0) GOTO 9004
-         DO NY=1,NYMAX
-            FXY2(NX,NY)=BY(NY)
-         ENDDO
-      ENDDO
-C
-      DO NY=1,NYMAX
-         DO NX=1,NXMAX
-            FXY(NX,NY)=0.5D0*(FXY1(NX,NY)+FXY2(NX,NY))
-C            FXY(NX,NY)=FXY1(NX,NY)
-C            FXY(NX,NY)=FXY2(NX,NY)
-         ENDDO
-      ENDDO
+C     --- calculate spline coefficients ---
 C
       DO NX=2,NXMAX
       DO NY=2,NYMAX
@@ -1055,11 +1050,23 @@ C
  9002 WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
       IERR=2
       RETURN
- 9003 WRITE(6,*) 'XX SPL2D: TDMSRD ERROR: IERR=',IERR
+ 9003 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
       IERR=3
       RETURN
- 9004 WRITE(6,*) 'XX SPL2D: TDMSRD ERROR: IERR=',IERR
+ 9004 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
       IERR=4
+      RETURN
+ 9005 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=5
+      RETURN
+ 9006 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=6
+      RETURN
+ 9007 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=7
+      RETURN
+ 9008 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
+      IERR=8
       RETURN
       END
 C
@@ -1347,7 +1354,7 @@ C
 C
 C     ***** PERIODIC TRI-DIAGONAL MATRIX SOLVER *****
 C
-      SUBROUTINE TDMPRD(A,X,NMAX,IERR)
+      SUBROUTINE TDMPRDX(A,X,NMAX,IERR)
 C
 C     +++++ INPUT +++++
 C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
@@ -1426,7 +1433,7 @@ C
 C
 C     ***** TRI-DIAGONAL MATRIX SOLVER *****
 C
-      SUBROUTINE TDMSCD(A,X,NMAX,IERR)
+      SUBROUTINE TDMSCDX(A,X,NMAX,IERR)
 C
 C     +++++ INPUT +++++
 C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
@@ -1476,7 +1483,7 @@ C
 C
 C     ***** PERIODIC TRI-DIAGONAL MATRIX SOLVER *****
 C
-      SUBROUTINE TDMPCD(A,X,NMAX,IERR)
+      SUBROUTINE TDMPCDX(A,X,NMAX,IERR)
 C
 C     +++++ INPUT +++++
 C        A(4,NMAX) : D : MATRIX COEEFICIENS (CONTENTS TO BE DESTROYED)
