@@ -340,7 +340,7 @@ C     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
             ENDIF
  1101    CONTINUE
 C
-
+C
 C
          IF(MODELA.EQ.1) THEN
             DO 1300 NTH=ITL(NR)+1,NTHMAX/2
@@ -408,6 +408,9 @@ C
               IF(ARG.LT.15.D0) THEN
                FACTOR=EXP(-ARG)
 C               WRITE(25,*) 'NAV,NCR,DELR2,ARG=',NAV,NCR,DELR2,ARG
+C               CALL PLMAG(X,Y,Z,PSIR)
+C               RHOR=SQRT(PSIR) 
+C               WRITE(6,*) RHOR,RM(NR)
                CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
                CEX=CECR(1,NCR,NR,NRAY)*FACTOR
                CEY=CECR(2,NCR,NR,NRAY)*FACTOR

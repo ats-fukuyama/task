@@ -242,6 +242,7 @@ C
             RNUL=RNU(NS,NR)
 C
          IF(MODELR.EQ.0) THEN
+C PTHL
 C
             DO NP=1,NPMAX+1
                IF(NP.EQ.1) THEN

@@ -193,6 +193,7 @@ C
 C
       CALL PAGES
       CALL SETCHS(0.3,0.)
+      CALL SETFNT(32)
       GYMAX0=-1.E30
       GYMIN0= 1.E30
       DO 230 NT=1,NTG1
@@ -220,10 +221,10 @@ C
           GY(NR)=GCLIP(FR(NR,NT))
           GX(NR)=GCLIP(RM(NR))
   260   CONTINUE
-        CALL SETLIN(0,0,7-MOD(NT-1,5))
+        CALL SETLIN(0,2,7-MOD(NT-1,5))
         CALL GPLOTP(GX,GY,1,NRMAX,1,0,0,0)
   250 CONTINUE
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(0,2,7)
       CALL MOVE(1.0,17.5)
       CALL TEXT(STRING,4)
       CALL MOVE(24.0,1.0)
@@ -247,6 +248,7 @@ C
 C
       CALL PAGES
       CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
 C
       DO 10 N=1,NTG2
         GX(N)=GCLIP(PTG(N))
@@ -290,6 +292,7 @@ C
 C
       CALL PAGES
       CALL SETCHS(0.3,0.)
+      CALL SETFNT(32)
       DO 100 NR=1,NRMAX
       DO 100 NP=1,NPMAX
          IF(FG(NTH,NP,NR).LT.1.D-14) THEN
@@ -421,6 +424,7 @@ C
 C
       CALL PAGES
       CALL SETCHS(.3,0.)
+      CALL SETFNT(32)
 C
       CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
@@ -455,7 +459,7 @@ C
   100    CONTINUE
       ENDIF
 C
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(0,2,7)
       CALL MOVE(24.0,1.0)
       CALL TEXT('PPARA',5)
       CALL MOVE(1.0,13.5)
@@ -499,7 +503,7 @@ C
          IF(MODE.EQ.0) THEN
             NRG=NRMAX+1
          ELSE
-            NRG=NRMAX
+x            NRG=NRMAX
          ENDIF
          WRITE(6,*) '# INPUT NR (1..',NRG,') :'
          READ(5,*,ERR=1,END=9000) NR
@@ -574,6 +578,7 @@ C
 C
       CALL PAGES
       CALL SETCHS(.3,0.)
+      CALL SETFNT(32)
 C
       CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
@@ -604,13 +609,13 @@ CXX
       ELSE
          DO 100 I=1,NGLINE
            GLIN=GFMAX-0.020*(I-1)**2
-           CALL SETLIN(0,0,7-MOD(I-1,5))
+           CALL SETLIN(0,2,7-MOD(I-1,5))
            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
      &                 GLIN,GFSTEP*100,1,0,KA)
   100    CONTINUE
       ENDIF
 C
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(0,2,7)
       CALL MOVE(24.0,1.0)
       CALL TEXT('PPARA',5)
       CALL MOVE(1.0,13.5)
