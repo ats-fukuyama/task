@@ -33,12 +33,12 @@ OBJNC=$(SRCNC:.f=.o)
 PROG2=tr2
 PROG3=trf
 
-all: 3d
+all: 3d 2d
 
 3d: $(PROG3)
 
 $(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.h $(INCNC) $(INCGLF)
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) -L/home/honda/lib -lgsgl-pgf77
+	-$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(GLLIBS)
 
 2d : $(PROG2)
 

@@ -9,13 +9,7 @@ C
       SUBROUTINE TRLOOP
 C
       INCLUDE 'trcomm.h'
-      PARAMETER(NURM=51,NUTM=61)
-      COMMON /TRBCH1/ RAD(NURM),FRFHE(NURM,NUTM),FRFHI(NURM,NUTM)
-      COMMON /TRBCH3/ FUT(NUTM),NUFMAX,NTXMAX
       COMMON /PRETREAT2/ NTAMAX
-      DIMENSION DERIVR(NURM),URFHEPH(4,NURM),URFHIPH(4,NURM)
-      DIMENSION DERIVT(NUTM),UFUTE(4,NUTM),UFUTI(4,NUTM)
-      DIMENSION FRFHET(NUTM),FRFHIT(NUTM),FRFHER(NURM),FRFHIR(NURM)
 C
       DIMENSION XX(MLM),YY(2,NRM)
 C
@@ -576,7 +570,7 @@ C
             AX(MW,MV)=0.D0
          ENDDO
          AX(2*NEQRMAX,MV)=RD(NEQ,NRMAX)
-         X(MV)=BPS
+         X(MV)=BPS/RJCB(NRMAX)
       ENDIF
 C
       RETURN
@@ -954,8 +948,8 @@ C
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
-         FVL = RKAPS/RKAP
-C         FVL = 1.D0
+C         FVL = RKAPS/RKAP
+         FVL = 1.D0
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF
@@ -969,7 +963,8 @@ C
 C     /* Coefficients of left hand side variables */
 C
          IF(NSVN.EQ.0) THEN
-            RD(NEQ,NR)=1.D0
+C            RD(NEQ,NR)=1.D0
+            RD(NEQ,NR)=1.D0/RJCB(NR)
          ELSEIF(NSVN.EQ.1) THEN
             RD(NEQ,NR)=DV11
          ELSEIF(NSVN.EQ.2) THEN
@@ -985,7 +980,8 @@ C
             IF(NRF.EQ.0.OR.NRF.GT.NRMAX) THEN
                FCB(NF)=0.D0
             ELSE
-               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
+               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/(TTRHO(NRF)*RJCB(NRF))
+C               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
             ENDIF
          ENDDO
          IF(NR.EQ.NRMAX-1) FCB(4)=2.D0*FCB(3)-FCB(2)
@@ -1373,9 +1369,13 @@ C     *************
 C
          ELSE
             IF(NSSN.EQ.0) THEN
-               D(NEQ,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR
+C               D(NEQ,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR
+C     &                    *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
+C     &                    -ETA(NR+1)*AR1RHO(NR+1)*BB/(TTRHO(NR+1)*RR
+C     &                    *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
+               D(NEQ,NR) = ETA(NR  )*BB/(TTRHO(NR  )*RR
      &                    *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
-     &                    -ETA(NR+1)*AR1RHO(NR+1)*BB/(TTRHO(NR+1)*RR
+     &                    -ETA(NR+1)*BB/(TTRHO(NR+1)*RR
      &                    *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
             ELSEIF(NSSN.EQ.5) THEN
                D(NEQ,NR) = VOID

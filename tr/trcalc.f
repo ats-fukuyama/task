@@ -47,7 +47,8 @@ C            QP(NR)=FACTQ(NR)*QL
             QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
-         IF(MDLUF.NE.1.AND.MDLUF.NE.3) THEN
+C         IF(MDLUF.NE.1.AND.MDLUF.NE.3) THEN
+         IF(MDLUF.NE.1) THEN
             DO NR=1,NRMAX
                QP(NR)=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
             ENDDO
@@ -472,9 +473,8 @@ C
                RTNW=0.5D0*(RT(NR+1,NS)+RT(NR,NS))
                RPNW=0.5D0*(RN(NR+1,NS)*RT(NR+1,NS)
      &                    +RN(NR  ,NS)*RT(NR  ,NS))
-               DRTNW=(RT(NR+1,NS)-RT(NR,NS))*AR1RHOG(NR)/DR
-               DRPNW=(RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &              *AR1RHOG(NR)/DR
+               DRTNW=(RT(NR+1,NS)-RT(NR,NS))/DR
+               DRPNW=(RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))/DR
                SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
      &                +CJBSP(NR,NS)*DRPNW/RPNW
             ENDDO
@@ -486,9 +486,8 @@ C
          DO NS=1,NSMAX
             RTNW=PTS(NS)
             RPNW=PNSS(NS)*PTS(NS)
-            DRTNW=2.D0*(PTS(NS)-RT(NR,NS))*AR1RHOG(NR)/DR
-            DRPNW=2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &                *AR1RHOG(NR)/DR
+            DRTNW=2.D0*(PTS(NS)-RT(NR,NS))/DR
+            DRPNW=2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))/DR
             SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
      &             +CJBSP(NR,NS)*DRPNW/RPNW
          ENDDO
@@ -522,6 +521,7 @@ C
          EPSS=SQRT(EPS)**3
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
+         DRL=RJCB(NR)/DR
 C
          RNTP=0.D0
          RNP =0.D0
@@ -550,8 +550,8 @@ C
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
-         DTI=(RNTP/RNP-RNTM/RNM)*AR1RHOG(NR)/DR
-         DPI=(RNTP-RNTM)*AR1RHOG(NR)/DR
+         DTI=(RNTP/RNP-RNTM/RNM)*DRL
+         DPI=(RNTP-RNTM)*DRL
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
      &           /(ABS(TI*1.D3)**1.5D0))
@@ -570,9 +570,9 @@ C
          ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
          TE= 0.5D0*(RT(NR+1,1)+RT(NR,1))
          PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
-         DNE=(RN(NR+1,1)-RN(NR,1))*AR1RHOG(NR)/DR
-         DTE=(RT(NR+1,1)-RT(NR,1))*AR1RHOG(NR)/DR
-         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*AR1RHOG(NR)/DR
+         DNE=(RN(NR+1,1)-RN(NR,1))*DRL
+         DTE=(RT(NR+1,1)-RT(NR,1))*DRL
+         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
 C
          rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
@@ -624,13 +624,13 @@ C     &             +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
      &            *( RL31*DNE/ANE
      &              +RPE*(RL31+RL32)*DTE/TE
      &             +(1.D0-RPE)*(1.D0+RL34/RL31*SALFA)*RL31*DTI/TI)
-     &            /BP(NR)*RKAPS
-C         write(6,*) NR,(PE+PPI)/BP(NR)*RKAPS
+     &            /BP(NR)!*RKAPS
+C         write(6,*) NR,(PE+PPI)/BP(NR)
 C         write(6,*) NR,RL31
 C         write(6,*) NR,-DNE/ANE
-C         write(6,*) NR,-RPE*(RL31+RL32)*DTE/TE*(PE+PPI)/BP(NR)*RKAPS
+C         write(6,*) NR,-RPE*(RL31+RL32)*DTE/TE*(PE+PPI)/BP(NR)
 C         write(6,*) NR,-(1.D0-RPE)*(1.D0+RL34/RL31*SALFA)*RL31*DTI/TI
-C     &        *(PE+PPI)/BP(NR)*RKAPS
+C     &        *(PE+PPI)/BP(NR)
       ENDDO
 C
       NR=NRMAX
@@ -638,6 +638,7 @@ C
       EPSS=SQRT(EPS)**3
       QL=ABS(QP(NR))
       ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
+      DRL=RJCB(NR)/DR
 C
       RNTP=0.D0
       RNP =0.D0
@@ -666,8 +667,8 @@ C
       ENDDO
       TI =RNTP/RNP
       PPI=RNTP
-      DTI=2.D0*(RNTP/RNP-RNTM/RNM)*AR1RHOG(NR)/DR
-      DPI=2.D0*(RNTP-RNTM)*AR1RHOG(NR)/DR
+      DTI=2.D0*(RNTP/RNP-RNTM/RNM)*DRL
+      DPI=2.D0*(RNTP-RNTM)*DRL
 C
       rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
      &     /(ABS(TI*1.D3)**1.5D0))
@@ -686,9 +687,9 @@ C
       ANE=PNSS(1)
       TE =PTS(1)
       PE =PNSS(1)*PTS(1)
-      DNE=2.D0*(PNSS(1)-RN(NR,1))*AR1RHOG(NR)/DR
-      DTE=2.D0*(PTS (1)-RT(NR,1))*AR1RHOG(NR)/DR
-      DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*AR1RHOG(NR)/DR
+      DNE=2.D0*(PNSS(1)-RN(NR,1))*DRL
+      DTE=2.D0*(PTS (1)-RT(NR,1))*DRL
+      DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
 C     
       rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
       RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
@@ -740,7 +741,7 @@ C     &               +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/BP(NR)
      &                *( RL31*DNE/ANE
      &                  +RPE*(RL31+RL32)*DTE/TE
      &                  +(1.D0-RPE)*(1.D0+RL34/RL31*SALFA)*RL31*DTI/TI
-     &                  )/BP(NR)*RKAPS
+     &                  )/BP(NR)!*RKAPS
 C
       AJBS(1)=0.5D0*AJBSL(1)
       DO NR=2,NRMAX
@@ -795,7 +796,7 @@ C
 C
 C     ************************************************
 C
-C         BOOTSTRAP CURRENT (TOKAMAKS, H.R. Wilson)
+C         BOOTSTRAP CURRENT (Hirshman (Wilson))
 C
 C     ************************************************
 C
@@ -812,6 +813,7 @@ C
          EPSS=SQRT(EPS)**3
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
+         DRL=RJCB(NR)/DR
 C
          RNTP=0.D0
          RNP= 0.D0
@@ -841,8 +843,8 @@ C
          ENDDO
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
          PPI=0.5D0*(RNTP+RNTM)
-         DTI=(RNTP/RNP-RNTM/RNM)*AR1RHOG(NR)/DR
-         DPI=(RNTP-RNTM)*AR1RHOG(NR)/DR
+         DTI=(RNTP/RNP-RNTM/RNM)*DRL
+         DPI=(RNTP-RNTM)*DRL
          VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
          ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
@@ -864,8 +866,8 @@ C     ***** VTE  is the electron velocity (VTe) *****
 C
          TE= 0.5D0*(RT(NR+1,1)+RT(NR,1))
          PE= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
-         DTE=(RT(NR+1,1)-RT(NR,1))*AR1RHOG(NR)/DR
-         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*AR1RHOG(NR)/DR
+         DTE=(RT(NR+1,1)-RT(NR,1))*DRL
+         DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
          VTE=SQRT(ABS(TE)*RKEV/AME)
 C
          rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
@@ -877,7 +879,8 @@ C
 C
 C         FT=1.D0-(1.D0-EPS)**2.D0
 C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-         FT=1.46D0*SQRT(EPS)
+C         FT=1.46D0*SQRT(EPS)
+         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
 C         DDD=-1.17D0/(1.D0+0.46D0*FT)
@@ -895,23 +898,24 @@ C     &      +2.1D0*EPS**3*RNUI**2)*C2
 C     &      /((1.D0+EPS**3*RNUI**2)
 C     &       *(1.D0+EPS**3*RNUE**2))
 C
-C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))*RKAPS
+C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))!*RKAPS
 C     &        *(C1*(DPE/PE)
 C     &         +C2*(DPI/PPI)
 C     &         +C3*(DTE/TE)
 C     &         +C4*(DTI/TI))
 C
-C     *** H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263 ***
+C     *** S. P. Hirshman, Phys Fluids 31, 1988 3150 ***
+C     *** cited (H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263) ***
 C
-         DDX=1.414D0*ZEFFL+ZEFFL**2+FT*(0.754D0+2.657D0*ZEFFL
-     &        +2.D0*ZEFFL**2)+FT**2*(0.348D0+1.243D0*ZEFFL+ZEFFL**2)
-         RL31=FT*( 0.754D0+2.21D0*ZEFFL+ZEFFL**2+FT*(0.348D0+1.243D0
-     &            *ZEFFL+ZEFFL**2))/DDX
-         RL32=-FT*(0.884D0+2.074D0*ZEFFL)/DDX
+         DDX=1.414D0*PZ(2)+PZ(2)**2+FT*(0.754D0+2.657D0*PZ(2)
+     &        +2.D0*PZ(2)**2)+FT**2*(0.348D0+1.243D0*PZ(2)+PZ(2)**2)
+         RL31=FT*( 0.754D0+2.21D0*PZ(2)+PZ(2)**2+FT*(0.348D0+1.243D0
+     &            *PZ(2)+PZ(2)**2))/DDX
+         RL32=-FT*(0.884D0+2.074D0*PZ(2))/DDX
          DDD=-1.172D0/(1.D0+0.462D0*FT)
 C
-         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(ZEFFL*TE))
-     &        *((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/BP(NR)*RKAPS
+         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(PZ(2)*TE))
+     &        *((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/BP(NR)!*RKAPS
       ENDDO
 C
       NR=NRMAX
@@ -919,6 +923,7 @@ C
          EPSS=SQRT(EPS)**3
          QL=ABS(QP(NR))
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
+         DRL=RJCB(NR)/DR
 C
          RNTP=0.D0
          RNP= 0.D0
@@ -948,8 +953,8 @@ C
          ENDDO
          TI =RNTP/RNP
          PPI=RNTP
-         DTI=2.D0*(RNTP/RNP-RNTM/RNM)*AR1RHOG(NR)/DR
-         DPI=2.D0*(RNTP-RNTM)*AR1RHOG(NR)/DR
+         DTI=2.D0*(RNTP/RNP-RNTM/RNM)*DRL
+         DPI=2.D0*(RNTP-RNTM)*DRL
          VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
          ANE=PNSS(1)
@@ -971,8 +976,8 @@ C     ***** VTE  is the electron velocity (VTe) *****
 C
          TE =PTS(1)
          PE =PNSS(1)*PTS(1)
-         DTE=2.D0*(PTS(1)-RT(NR,1))*AR1RHOG(NR)/DR
-         DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*AR1RHOG(NR)/DR
+         DTE=2.D0*(PTS(1)-RT(NR,1))*DRL
+         DPE=2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
          VTE=SQRT(ABS(TE)*RKEV/AME)
 C
          rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
@@ -984,7 +989,8 @@ C
 C
 C         FT=1.D0-(1.D0-EPS)**2.D0
 C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-         FT=1.46D0*SQRT(EPS)
+C         FT=1.46D0*SQRT(EPS)
+         FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
 C         DDD=-1.17D0/(1.D0+0.46D0*FT)
@@ -1002,23 +1008,24 @@ C     &      +2.1D0*EPS**3*RNUI**2)*C2
 C     &      /((1.D0+EPS**3*RNUI**2)
 C     &       *(1.D0+EPS**3*RNUE**2))
 C
-C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))*RKAPS
+C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))!*RKAPS
 C     &        *(C1*(DPE/PE)
 C     &         +C2*(DPI/PPI)
 C     &         +C3*(DTE/TE)
 C     &         +C4*(DTI/TI))
 C
-C     *** H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263 ***
+C     *** S. P. Hirshman, Phys Fluids 31, 1988 3150 ***
+C     *** cited (H.R. WILSON, Nucl.Fusion 32,no.2,1992 259-263) ***
 C
-         DDX=1.414D0*ZEFFL+ZEFFL**2+FT*(0.754D0+2.657D0*ZEFFL
-     &        +2.D0*ZEFFL**2)+FT**2*(0.348D0+1.243D0*ZEFFL+ZEFFL**2)
-         RL31=FT*( 0.754D0+2.21D0*ZEFFL+ZEFFL**2+FT*(0.348D0+1.243D0
-     &            *ZEFFL+ZEFFL**2))/DDX
-         RL32=-FT*(0.884D0+2.074D0*ZEFFL)/DDX
+         DDX=1.414D0*PZ(2)+PZ(2)**2+FT*(0.754D0+2.657D0*PZ(2)
+     &        +2.D0*PZ(2)**2)+FT**2*(0.348D0+1.243D0*PZ(2)+PZ(2)**2)
+         RL31=FT*( 0.754D0+2.21D0*PZ(2)+PZ(2)**2+FT*(0.348D0+1.243D0
+     &            *PZ(2)+PZ(2)**2))/DDX
+         RL32=-FT*(0.884D0+2.074D0*PZ(2))/DDX
          DDD=-1.172D0/(1.D0+0.462D0*FT)
 C
-         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(ZEFFL*TE))
-     &        *((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/BP(NR)*RKAPS
+         AJBSL(NR)=-PBSCD*PE*1.D20*RKEV*(RL31*((DPE/PE)+(TI/(PZ(2)*TE))
+     &        *((DPI/PPI)+DDD*(DTI/TI)))+RL32*(DTE/TE))/BP(NR)!*RKAPS
 C
       AJBS(1)=0.5D0*AJBSL(1)
       DO NR=2,NRMAX
@@ -1116,7 +1123,7 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
          RK3A=((1.17D0-0.35D0*SQRT(RNUA))/(1.D0+0.7D0*SQRT(RNUA))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
-         DRL=AR1RHOG(NR)/DR
+         DRL=RJCB(NR)/DR
          DTE=(RT(NR+1,1)-RT(NR,1))*DRL
          DTD=(RT(NR+1,2)-RT(NR,2))*DRL
          DTT=(RT(NR+1,3)-RT(NR,3))*DRL
@@ -1125,7 +1132,7 @@ C
          DPD=(RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
          DPT=(RN(NR+1,3)*RT(NR+1,3)-RN(NR,3)*RT(NR,3))*DRL
          DPA=(RN(NR+1,4)*RT(NR+1,4)-RN(NR,4)*RT(NR,4))*DRL
-         BPL=BP(NR)/RKAPS
+         BPL=BP(NR)!/RKAPS
 C
          FACT=1.D0/(1.D0+(RNUE*EPS)**2)
          IF(NSMAX.EQ.2) THEN
@@ -1220,7 +1227,7 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
          RK3A=((1.17D0-0.35D0*SQRT(RNUA))/(1.D0+0.7D0*SQRT(RNUA))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
-         DRL=AR1RHOG(NR)/DR
+         DRL=RJCB(NR)/DR
          DTE=2.D0*(PTS(1)-RT(NR,1))*DRL
          DTD=2.D0*(PTS(2)-RT(NR,2))*DRL
          DTT=2.D0*(PTS(3)-RT(NR,3))*DRL
@@ -1229,7 +1236,7 @@ C
          DPD=2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
          DPT=2.D0*(PNSS(3)*PTS(3)-RN(NR,3)*RT(NR,3))*DRL
          DPA=2.D0*(PNSS(4)*PTS(4)-RN(NR,4)*RT(NR,4))*DRL
-         BPL=BP(NR)/RKAPS
+         BPL=BP(NR)!/RKAPS
 C
          FACT=1.D0/(1.D0+(RNUE*EPS)**2)
          IF(NSMAX.EQ.2) THEN
@@ -1359,7 +1366,7 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
          IF(NR.EQ.1) THEN
-            DRL=AR1RHOG(NR)/(2.D0*DR)
+            DRL=RJCB(NR)/(2.D0*DR)
             DTE=(RT(2,1)-RT(1,1))*DRL
             DTD=(RT(2,2)-RT(1,2))*DRL
             DTT=(RT(2,3)-RT(1,3))*DRL
@@ -1370,7 +1377,7 @@ C
             DPA=(RN(2,4)*RT(2,4)-RN(1,4)*RT(1,4))*DRL
             BPL=0.5D0*BP(NR)
          ELSEIF(NR.EQ.NRMAX) THEN
-            DRL=AR1RHOG(NR)/DR
+            DRL=RJCB(NR)/DR
             DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
             DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
             DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))*DRL
@@ -1385,7 +1392,7 @@ C
      &           -0.5D0*(RN(NR,4)*RT(NR,4)+RN(NR-1,4)*RT(NR-1,4)))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ELSE
-            DRL=AR1RHOG(NR)/(2.D0*DR)
+            DRL=RJCB(NR)/(2.D0*DR)
             DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
             DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
             DTT=(RT(NR+1,3)-RT(NR-1,3))*DRL
@@ -1484,7 +1491,7 @@ C
          RK23A=(1.33D0+3.D0*RNUAS)/(1.D0+RNUAS)
 C
          IF(NR.EQ.1) THEN
-            DRL=AR1RHOG(NR)/(2.D0*DR)
+            DRL=RJCB(NR)/(2.D0*DR)
             DN =(RN(2,1)-RN(1,1))*DRL
             DTE=(RT(2,1)-RT(1,1))*DRL
             DTD=(RT(2,2)-RT(1,2))*DRL
@@ -1492,7 +1499,7 @@ C
             DTA=(RT(2,4)-RT(1,4))*DRL
             BPL=0.5D0*BP(NR)
          ELSEIF(NR.EQ.NRMAX) THEN
-            DRL=AR1RHOG(NR)/DR
+            DRL=RJCB(NR)/DR
             DN =(PNSS(1)-0.5D0*(RN(NR,1)+RN(NR-1,1)))*DRL
             DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
             DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
@@ -1500,7 +1507,7 @@ C
             DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))*DRL
             BPL=0.5D0*(BP(NR-1)+BP(NR))
          ELSE
-            DRL=AR1RHOG(NR)/(2.D0*DR)
+            DRL=RJCB(NR)/(2.D0*DR)
             DN =(RN(NR+1,1)-RN(NR-1,1))*DRL
             DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
             DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
@@ -1546,20 +1553,92 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-c$$$      NR=1
-c$$$      AJ(NR) = (RG(NR)*RA*BP(NR)                  )
-c$$$     &        /(RM(NR)*RA**2*DR)/AMYU0/RKAPS
-c$$$      DO NR=2,NRMAX
-c$$$         AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
-c$$$     &           /(RM(NR)*RA**2*DR)/AMYU0/RKAPS
-c$$$      ENDDO
+      NSW=3
 C
+      IF(NSW.EQ.1) THEN ! SIMPLE TYPE
+      NR=1
+      AJ(NR) = (RG(NR)*RA*BP(NR)                  )
+     &        /(RM(NR)*RA**2*DR)/AMYU0/RKAPS
+      DO NR=2,NRMAX
+         AJ(NR) = (RG(NR)*RA*BP(NR)-RG(NR-1)*RA*BP(NR-1))
+     &           /(RM(NR)*RA**2*DR)/AMYU0/RKAPS
+      ENDDO
+      ELSEIF(NSW.EQ.2) THEN ! RIGOROUS TYPE
+      NR=1
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/RJCB(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/RJCB(NR+1)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*FACTORP*BP(NR)/DR
+      DO NR=2,NRMAX-1
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/RJCB(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/RJCB(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/RJCB(NR+1)
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+      ENDDO
+      NR=NRMAX
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/RJCB(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/RJCB(NR  )
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
+      ELSEIF(NSW.EQ.3) THEN ! MODIFYING <|\nabla\rho|> FROM NSW=2
+      NR=1
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*FACTORP*BP(NR)/DR/RJCB(NR)
+      DO NR=2,NRMAX-1
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR/RJCB(NR)
+      ENDDO
+      NR=NRMAX
+         FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR/RJCB(NR)
+      ELSEIF(NSW.EQ.4) THEN ! ECLECTIC TYPE
+      NR=1
+         FACTOR0=1.D0/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*FACTORP*BP(NR)/DR/RJCB(NR)
+      DO NR=2,NRMAX-1
+         FACTOR0=1.D0/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR/RJCB(NR)
+      ENDDO
+      NR=NRMAX
+         FACTOR0=1.D0/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+         AJ(NR) =FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR/RJCB(NR)
+      ELSE ! OLD TYPE
       NR=1
          FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
          FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
          FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
          FACTORP=0.5D0*(FACTOR2+FACTOR3)
-         AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR/AR1RHO(NR)/RKAPS
+         AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR/RJCB(NR)!*RA*RKAPS
       DO NR=2,NRMAX-1
          FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
          FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
@@ -1568,7 +1647,7 @@ C
          FACTORM=0.5D0*(FACTOR1+FACTOR2)
          FACTORP=0.5D0*(FACTOR2+FACTOR3)
          AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &          /DR/AR1RHO(NR)/RKAPS
+     &          /DR/RJCB(NR)!*RA*RKAPS
       ENDDO
       NR=NRMAX
          FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
@@ -1577,7 +1656,8 @@ C
          FACTORM=0.5D0*(FACTOR1+FACTOR2)
          FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
          AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &          /DR/AR1RHO(NR)/RKAPS
+     &          /DR/RJCB(NR)!*RA*RKAPS
+      ENDIF
 C
       IF(MDLUF.EQ.2) THEN
          IF(MDCURT.NE.0) THEN

@@ -603,13 +603,7 @@ C
       SUBROUTINE TRPROF
 C
       INCLUDE 'trcomm.h'
-      PARAMETER(NURM=51)
       COMMON /PRETREAT2/ NTAMAX
-      DIMENSION RAD(NURM),FQ(NURM),FNE(NURM),FTE(NURM),FTI(NURM)
-      DIMENSION FPBE(NURM),FPBI(NURM),FSBTH(NURM),DERIV(NURM)
-      DIMENSION UQPH(4,NURM),UNEPH(4,NURM),UTEPH(4,NURM),UTIPH(4,NURM)
-      DIMENSION UPBEPH(4,NURM),UPBIPH(4,NURM),UPSBIPH(4,NURM)
-      CHARACTER KFILE*10
 C
 C     ZEFF=1
 C
@@ -650,8 +644,8 @@ C
       CALL TR_EDGE_SELECTOR(0)
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
-         RG(NR)  = DBLE(NR)*DR
-         RM(NR)  = (DBLE(NR)-0.5D0)*DR
+         RG(NR) = DBLE(NR)*DR
+         RM(NR) =(DBLE(NR)-0.5D0)*DR
 C
          IF(MDLUF.EQ.1) THEN
             IF(MDNI.EQ.0) THEN
@@ -1241,17 +1235,6 @@ C
       SUBROUTINE TRSETG
 C
       INCLUDE 'trcomm.h'
-      PARAMETER(NURM=51)
-      DIMENSION DERIV(NURM+2)
-      DIMENSION ASR(NURM)
-      DIMENSION FFTT(NURM),FFVOL(NURM)
-      DIMENSION FFAREA(NURM),FFELL(NURM),FFRMJ(NURM),FFRMN(NURM)
-      DIMENSION FFGR1(NURM),FFGR2(NURM)
-      DIMENSION UQEQ(4,NURM),UTTEQ(4,NURM)
-      DIMENSION UVOLEQ(4,NURM),UAREAEQ(4,NURM)
-      DIMENSION UELLEQ(4,NURM),URMJEQ(4,NURM),URMNEQ(4,NURM)
-      DIMENSION UGR1EQ(4,NURM),UGR2EQ(4,NURM)
-      CHARACTER KFILE*10
 C
       IF(MODELG.EQ.3) THEN
         DO NR=1,NRMAX
@@ -1289,7 +1272,7 @@ C
 C         DO NR=1,NRMAX
 C            WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,Q/TT/DV/AB=',NR,QRHO(NR),
-C     &           TTRHO(NR),DVRHO(NR),ABRHONR)
+C     &           TTRHO(NR),DVRHO(NR),ABRHO(NR)
 C            WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
 C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
@@ -1307,32 +1290,32 @@ C
          ENDDO
 C
          NR=1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*FACTORP*BPRHO(NR)/DR/AR1RHO(NR)
+            AJ(NR)= FACTOR0*FACTORP*BPRHO(NR)/DR/AR1RHO(NR)!/RJCB(NR)
 C            BPRHO(NR)= AJ(NR)*DR*AR1RHO(NR)/(FACTOR0*FACTORP)
          DO NR=2,NRMAX-1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+            FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
             FACTORP=0.5D0*(FACTOR2+FACTOR3)
             AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
-     &             /DR/AR1RHO(NR)
+     &             /DR/AR1RHO(NR)!/RJCB(NR)
 C            BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
 C     &                /FACTORP
          ENDDO
          NR=NRMAX
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+            FACTOR0=RR*RR/(AMYU0*DVRHO(NR))
+            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+            FACTOR2=DVRHO(NR  )*ABRHO(NR  )
             FACTORM=0.5D0*(FACTOR1+FACTOR2)
             FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
             AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
-     &             /DR/AR1RHO(NR)
+     &             /DR/AR1RHO(NR)!/RJCB(NR)
 C            BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
 C     &                /FACTORP
 C
@@ -1369,29 +1352,29 @@ C
                ARRHO(NR)=ARRHOU(NR,1)
                AR1RHO(NR)=AR1RHOU(NR,1)
                AR2RHO(NR)=AR2RHOU(NR,1)
+C               RJCB(NR)=1.D0/(RKAPS*RA)
+               RJCB(NR)=AR1RHOU(NR,1)
                RMJRHO(NR)=RMJRHOU(NR,1)
                RMNRHO(NR)=RMNRHOU(NR,1)
                EKAPPA(NR)=RKAP
             ENDDO
          ELSE
             DO NR=1,NRMAX
+               EPSRHO(NR)=RA*RG(NR)/RR
                BPRHO(NR)=BP(NR)
                QRHO(NR)=QP(NR)
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
                DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
-C               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
-               ABRHO(NR)=1.D0/(RA*RR)**2
+               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
                ARRHO(NR)=1.D0/RR**2
-C               AR1RHO(NR)=1.D0/(RKAPS*RA)
-C               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-               AR1RHO(NR)=1.D0/RA
-               AR2RHO(NR)=1.D0/RA**2
-               EPSRHO(NR)=RA*RG(NR)/RR
+               AR1RHO(NR)=1.D0/(RKAPS*RA)
+               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+               RJCB(NR)=1.D0/(RKAPS*RA)
 C
                EKAPPA(NR)=RKAP
                RMJRHO(NR)=RR
-               RMNRHO(NR)=RA*RG(NR)
+               RMNRHO(NR)=RA*RM(NR)
             ENDDO
          ENDIF
       ENDIF

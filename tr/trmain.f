@@ -36,10 +36,6 @@ C     *                                                             *
 C     ***************************************************************
 C
       INCLUDE 'trcomm.h'
-      PARAMETER(NURM=51,NUTM=61)
-      COMMON /TRBCH1/ RAD(NURM),FRFHE(NURM,NUTM),FRFHI(NURM,NUTM)
-      COMMON /TRBCH3/ FUT(NUTM),NUFMAX,NTXMAX
-      CHARACTER KFILE*10
 C
       CHARACTER KID*1,LINE*80
       CHARACTER KIG*5,K1*1,K2*1,K3*1,K4*1,K5*1,KK*3
@@ -196,6 +192,7 @@ C
          GOTO 101
 C
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN
+         write(6,*)  "J0=",AJ(1)*1.D-6
   102    WRITE(6,*) '# SELECT ',
      &              ': PRINT TYPE (1..9)  H/HELP  X/EXIT'
          READ(5,'(A1)',ERR=102,END=1) KID

@@ -9,8 +9,8 @@
    MDLKAI=31
    PROFJ1=2.0
    MDLUF=2
-   KUFDEV='jt60u'
-   KUFDCG='21795'
+   KUFDEV='d3d'
+   KUFDCG='81507'
    TIME_INT=0.0
    MODEP=2
    MDNI=3
@@ -19,9 +19,4 @@
    PROFN2=1.5
    PROFT1=1
    PROFT2=1.5
-   RR=3.325
-   RA=0.961
-   RIPS=1.347
-   BB=2.409
-   RKAP=1.410
  &end

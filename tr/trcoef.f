@@ -70,7 +70,7 @@ C     ***** DQ   is the derivative of safety factor (dq/dr) *****
 C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
       DO 100 NR=1,NRMAX
-         DRL=AR1RHO(NR)/DR
+         DRL=RJCB(NR)/DR
          EPS=EPSRHO(NR)
          RNTP=0.D0
          RNP =0.D0
@@ -784,21 +784,28 @@ C     INPUTS
 C     if jshoot=0, maximum argument of array is important.
          jmm=0           ! default
          jmaxm=NRMAX-1
-         itport_pt(1)=0
+         itport_pt(1)=1
          itport_pt(2)=1
          itport_pt(3)=1
          itport_pt(4)=0  ! default
          itport_pt(5)=0  ! default
          irotstab=1
 C
-         DO jm=0,jmaxm
-            te_m(jm) =RT(jm+1,1)
-            ti_m(jm) =RT(jm+1,2)
-            rne_m(jm)=RN(jm+1,1)*1.D1
-            rni_m(jm)=RN(jm+1,2)*1.D1
-            rns_m(jm)=0.D0
+         DO jm=0,jmaxm-1
+            te_m(jm) =0.5D0*(RT(jm+2,1)+RT(jm+1,1))
+            ti_m(jm) =0.5D0*(RT(jm+2,2)+RT(jm+1,2))
+            rne_m(jm)=0.5D0*(RN(jm+2,1)+RN(jm+1,1))*1.D1
+            rni_m(jm)=0.5D0*(RN(jm+2,2)+RN(jm+1,2))*1.D1
+            rns_m(jm)=0.5D0*(RNF(jm+2,1)+RNF(jm+1,1))*1.D1
          ENDDO
-C
+         jm=jmaxm
+            te_m(jm) =PTS(1)
+            ti_m(jm) =PTS(2)
+            rne_m(jm)=PNSS(1)
+            rni_m(jm)=PNSS(2)
+            rns_m(jm)=FEDG(RG(jm+1),RG(jm),RG(jm-1),
+     &                     RNF(jm,1),RNF(jm-1,1))*1.D1
+C     
          igrad=0         ! default
          idengrad=2      ! default
          zpte_in=0.D0    ! default
@@ -815,8 +822,8 @@ C
          ENDDO
 C
          DO jm=0,jmaxm
-C            zeff_exp(jm)=ZEFF(jm+1)
-            zeff_exp(jm)=1.D0
+            zeff_exp(jm)=ZEFF(jm+1)
+C            zeff_exp(jm)=1.D0
          ENDDO
 C
          bt_exp=BB
@@ -831,8 +838,8 @@ C     rho(a)
          arho_exp=rho(jmaxm)*RA   ! default
 C
          DO jm=0,jmaxm
-            rgradrho_exp(jm)  =AR1RHOG(jm+1)
-            rgradrhosq_exp(jm)=AR2RHOG(jm+1)
+            rgradrho_exp(jm)  =AR1RHOG(jm+1)*RA
+            rgradrhosq_exp(jm)=AR2RHOG(jm+1)*RA*RA
             rmin_exp(jm)      =RMNRHOG(jm+1)
             rmaj_exp(jm)      =RMJRHOG(jm+1)
          ENDDO
@@ -902,7 +909,6 @@ C
             ADDW(NR,4)=diff_m(NR-2)
 C
       DO NR=1,NRMAX
-C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
          DO NS=1,4
             IF(AKDW(NR,NS).LT.0.D0) THEN
                AKDW(NR,NS)=0.D0
@@ -1011,11 +1017,11 @@ C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
       ENDIF
 C
       ELSEIF(MDLKAI.EQ.62) THEN
-         SNBEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),SNB(NR-1),SNB(NR-2))
+         RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
-         CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
+         CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
      &                       S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
-     &                       PNSS,PTS,SNB,SNBEDG,MDLUF,NSMAX,
+     &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AKDW)
 C         DO NR=1,NRMAX
 C            write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
@@ -1027,17 +1033,17 @@ C
 C
 C     ***********************************************************
 C
-      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
+      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
      &                          S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
-     &                          PNSS,PTS,SNB,SNBEDG,MDLUF,NSMAX,
+     &                          PNSS,PTS,RNFL,RNFEDG,MDLUF,NSMAX,
      &                          AKDW)
 C
       IMPLICIT NONE
 c
       INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
-      REAL*8 RN(NRM,NSM),RR,DR,AR1RHOG(NRM),QP(NRM),S_AR(NRM),
+      REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),QP(NRM),S_AR(NRM),
      &       EPSRHO(NRM),EKAPPA(NRM),RT(NRM,NSM),BB,AMM,AME,
-     &       PNSS(NSM),PTS(NSM),SNB(NRM),SNBEDG,
+     &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
      &       AKDW(NRM,NSTM)
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
       parameter (ipin=7,iptmp=8,ipout=9,screen=6)
@@ -1058,37 +1064,37 @@ C
       switches(2)  = 0 ! 0: it uses inputs ne19, tekev, tilev and btesla
                        ! 1: it uses inputs grhoi, gvti, gnu and gtau
       switches(3)  = 0 ! 0: the 1995 model, 1: the 1994 model
-      switches(4)  = 0 ! 0: use gnu as given
+      switches(4)  = 1 ! 0: use gnu as given
                        ! 1: the definition in Dorland's IFS/PPPL routine
-      switches(5)  = 0 ! 0: won't relax the restrictions on znu
+      switches(5)  = 1 ! 0: won't relax the restrictions on znu
                        ! 1: allows znu to be larger than 10.0
       switches(30) = 0
       switches(31) = 0
       switches(32) = 0
 C
       DO NR=1,NRMAX-1
-         znine  = SNGL( 0.5D0*(RN(NR+1,2)+RN(NR,2))
-     &                 /0.5D0*(RN(NR+1,1)+RN(NR,1)))
+         znine  = SNGL( (RN(NR+1,2)+RN(NR,2))
+     &                 /(RN(NR+1,1)+RN(NR,1)))
          IF(MDLUF.NE.0.AND.NSMAX.EQ.3) THEN
-            zncne  = SNGL( 0.5D0*(RN(NR+1,3)+RN(NR,3))
-     &                    /0.5D0*(RN(NR+1,1)+RN(NR,1)))
+            zncne  = SNGL( (RN(NR+1,3)+RN(NR,3))
+     &                    /(RN(NR+1,1)+RN(NR,1)))
          ELSE
             zncne  = 0.0
          ENDIF
-         znbne  = SNGL( 0.5D0*(SNB(NR+1  )+SNB(NR  ))
-     &                 /0.5D0*(RN (NR+1,1)+RN (NR,1)))
+         znbne  = SNGL( (RNFL(NR+1 )+RNFL(NR ))
+     &                 /(RN (NR+1,1)+RN (NR,1)))
          zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2)))*
-     &                           (RT(NR+1,2)-RT(NR,2))/DR*AR1RHOG(NR))
+     &                           (RT(NR+1,2)-RT(NR,2))/DR*RJCB(NR))
          zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*
-     &                           (RN(NR+1,1)-RN(NR,1))/DR*AR1RHOG(NR))
+     &                           (RN(NR+1,1)-RN(NR,1))/DR*RJCB(NR))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(EKAPPA(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5)
 C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
-         gtau   = SNGL( 0.5D0*(RT(NR+1,2)+RT(NR,2))
-     &                 /0.5D0*(RT(NR+1,1)+RT(NR,1)))
+         gtau   = SNGL( (RT(NR+1,2)+RT(NR,2))
+     &                 /(RT(NR+1,1)+RT(NR,1)))
 C
          ne19   = SNGL(0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1)
          tekev  = SNGL(0.5D0*(RT(NR+1,1)+RT(NR,1)))
@@ -1121,9 +1127,9 @@ C
          ELSE
             zncne  = 0.0
          ENDIF
-         znbne  = SNGL(SNBEDG)
-         zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*AR1RHOG(NR))
-         zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*AR1RHOG(NR))
+         znbne  = SNGL(RNFEDG)
+         zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*RJCB(NR))
+         zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*RJCB(NR))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))

@@ -493,13 +493,13 @@ C
       DO NR=1,NRMAX-1
          DO NS=1,NSMAX
             RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
-            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
+            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
          ENDDO
       ENDDO
       NR=NRMAX
       DO NS=1,NSMAX
          RNN(NR,NS)=PNSS(NS)
-         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
+         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
       ENDDO
       DO NR=1,NRMAX
          DO NS=1,NSMAX
@@ -642,12 +642,12 @@ C
          ENDDO
          DO NR=1,NRMAX-1
             DO NS=1,NSMAX
-               DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))*AR1RHOG(NR)/DR
+               DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))*RJCB(NR)/DR
             ENDDO
          ENDDO
          NR=NRMAX
          DO NS=1,NSMAX
-            DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))*AR1RHOG(NR)/DR
+            DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))*RJCB(NR)/DR
          ENDDO
          DO NR=1,NRMAX
             DO NS=1,NSMAX

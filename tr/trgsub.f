@@ -571,22 +571,21 @@ C
       DO NR=1,NRMAX-1
          DO NS=1,NSMAX
             RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
-            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *AR1RHOG(NR)/DR
-            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
+            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *RJCB(NR)/DR
+            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
          ENDDO
       ENDDO
       NR=NRMAX
       DO NS=1,NSMAX
          RNN(NR,NS)=PNSS(NS)
-         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *AR1RHOG(NR)/DR
-         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*AR1RHOG(NR)/DR
+         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *RJCB(NR)/DR
+         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
       ENDDO
       DO NR=1,NRMAX
          DO NS=1,NSMAX
             ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
             AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
          ENDDO
-C         write(6,*) NR,ADNCG(NR,1),ADNCG(NR,2)
       ENDDO
       DO NR=1,NRMAX-1
          GAD(NR+1,1) = GUCLIP(ADNC(NR,1))
@@ -837,6 +836,20 @@ C
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
 C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
+            GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(BP(NR))
+            GYR(NR,2) = GUCLIP(BPU(NR,NT))
+         ENDDO
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@BP(TR),BP(UF) [T] vs r@',2+INQ)
+C
          CALL PAGEE
       ELSEIF(MDLUF.EQ.2) THEN
          CALL PAGES
@@ -862,6 +875,13 @@ C
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@NE(TR),NE(UF) [10$+20$=/m$+3$=]  vs r@',2+INQ)
 C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(BP(NR))
+            GYR(NR,2) = GUCLIP(BPU(NR,1))
+         ENDDO
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@BP(TR),BP(UF) [T] vs r@',2+INQ)
+C
          CALL PAGEE
       ELSEIF(MDLUF.EQ.3) THEN
          CALL PAGES
@@ -885,7 +905,7 @@ C
             GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@AJ(TR),AJ(UF) [keV]  vs r@',2+INQ)
+     &               '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
 C
          IF(KUFDEV.EQ.'X'.AND.KUFDCG.EQ.'14') THEN
             DO NR=1,NRMAX
@@ -893,7 +913,7 @@ C
                GYR(NR,2) = GUCLIP(AJBSU(NR,NT)*1.D-6)
             ENDDO
             CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &                  '@AJBS(TR),AJBS(UF) [keV]  vs r@',2+INQ)
+     &                  '@AJBS(TR),AJBS(UF) [MA/m$+2$=]  vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
                GYR(NR,1) = GUCLIP(QP(NR))

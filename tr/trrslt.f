@@ -119,54 +119,62 @@ C
       AJT   = AJTSUM*DR/1.D6
       AJOHT = AOHSUM*DR/1.D6
 C
-      DRH=0.5D0*DR*RA
+      DRH=0.5D0*DR
       IF(RHOA.EQ.1.D0) THEN
-         DO NS=1,NSM
-            VNP=AV(NRMAX,NS)
-            DNP=AD(NRMAX,NS)
-C
-            VTP=(AVK(NRMAX,NS)/1.5D0+AV(NRMAX,NS))
-            DTP= AK(NRMAX,NS)/(1.5D0)
-C
-            VXP=0.D0
-            DXP=(1.5D0*AD(NRMAX,NS)-AK(NRMAX,NS))*PTS(NS)
-C
-            SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
-     &               +( VNP-DNP/DRH)*PNSS(NS))
-     &               *DVRHO(NRMAX)
-     &               *(RKAPS/RKAP)/(RM(NRMAX)*RA)
-C
-            PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
-     &               +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
-     &               +( VXP-DXP/DRH)*PNSS(NS)
-     &               +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
-     &               *DVRHO(NRMAX)*RKEV*1.D14
-     &               *(RKAPS/RKAP)/(RM(NRMAX)*RA)
-         ENDDO
+         NRL=NRMAX
       ELSE
-         DO NS=1,NSM
-            VNP=AV(NRAMAX,NS)
-            DNP=AD(NRAMAX,NS)
-C
-            VTP=(AVK(NRAMAX,NS)/1.5D0+AV(NRAMAX,NS))
-            DTP= AK(NRAMAX,NS)/(1.5D0)
-C
-            VXP=0.D0
-            DXP=(1.5D0*AD(NRAMAX,NS)-AK(NRAMAX,NS))*PTSA(NS)
-C
-            SLT(NS) =((     DNP/DRH)*RN(NRAMAX,NS)
-     &               +( VNP-DNP/DRH)*PNSSA(NS))
-     &               *DVRHO(NRAMAX)
-     &               *(RKAPS/RKAP)/(RM(NRAMAX)*RA)
-C
-            PLT(NS) =((     DXP/DRH)*RN(NRAMAX,NS)
-     &               +(     DTP/DRH)*RN(NRAMAX,NS)*RT(NRAMAX,NS)*1.5D0
-     &               +( VXP-DXP/DRH)*PNSSA(NS)
-     &               +( VTP-DTP/DRH)*PNSSA(NS)*PTSA(NS)*1.5D0)
-     &               *DVRHO(NRAMAX)*RKEV*1.D14
-     &               *(RKAPS/RKAP)/(RM(NRAMAX)*RA)
-         ENDDO
+         NRL=NRAMAX
       ENDIF
+      DO NS=1,NSM
+         VNP=AV(NRL,NS)*AR1RHO(NRL)
+         DNP=AD(NRL,NS)*AR2RHO(NRL)
+C
+         VTP=(AVK(NRL,NS)/1.5D0+AV(NRL,NS))*AR1RHO(NRL)
+         DTP= AK(NRL,NS)/(1.5D0)*AR2RHO(NRL)
+C
+         VXP=0.D0
+         DXP=(1.5D0*AD(NRL,NS)-AK(NRL,NS))*PTS(NS)*AR2RHO(NRL)
+C
+         SLT(NS) =((     DNP/DRH)*RN(NRL,NS)
+     &            +( VNP-DNP/DRH)*PNSS(NS))
+     &            *DVRHO(NRL)
+C
+         PLT(NS) =((     DXP/DRH)*RN(NRL,NS)
+     &            +(     DTP/DRH)*RN(NRL,NS)*RT(NRL,NS)*1.5D0
+     &            +( VXP-DXP/DRH)*PNSS(NS)
+     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
+     &            *DVRHO(NRL)*RKEV*1.D14
+      ENDDO
+C
+c$$$      DRH=0.5D0*DR*RA
+c$$$      ELG=1.D0/RKAP
+c$$$      IF(RHOA.EQ.1.D0) THEN
+c$$$         NRL=NRMAX
+c$$$      ELSE
+c$$$         NRL=NRAMAX
+c$$$      ENDIF
+c$$$      DO NS=1,NSM
+c$$$         VNP=AV(NRL,NS)
+c$$$         DNP=AD(NRL,NS)
+c$$$C
+c$$$         VTP=(AVK(NRL,NS)/1.5D0+AV(NRL,NS))
+c$$$         DTP= AK(NRL,NS)/(1.5D0)
+c$$$C
+c$$$         VXP=0.D0
+c$$$         DXP=(1.5D0*AD(NRL,NS)-AK(NRL,NS))*PTS(NS)
+c$$$C
+c$$$         SLT(NS) =((     DNP/DRH)*RN(NRL,NS)
+c$$$     &            +( VNP-DNP/DRH)*PNSS(NS))
+c$$$     &            *DVRHO(NRL)
+c$$$     &            /(RM(NRL)*RA)*ELG
+c$$$C
+c$$$         PLT(NS) =((     DXP/DRH)*RN(NRL,NS)
+c$$$     &            +(     DTP/DRH)*RN(NRL,NS)*RT(NRL,NS)*1.5D0
+c$$$     &            +( VXP-DXP/DRH)*PNSS(NS)
+c$$$     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
+c$$$     &            *DVRHO(NRL)*RKEV*1.D14
+c$$$     &            /(RM(NRL)*RA)*ELG
+c$$$      ENDDO
 C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
       CALL TRSUMD(SNF,DVRHO,NRMAX,SNFSUM)
