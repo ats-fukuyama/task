@@ -68,7 +68,7 @@ C
       DELRAY = 1.D-3
       DELDER = 1.D-4
 C
-      NRZMAX = 100
+      NRZMAX = 1000
       INTYPE = 0
 C
       RCURVA = 0.D0
@@ -114,7 +114,7 @@ C
             CALL EQLOAD(1,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQSETP
-               CALL EQPSIC(51,32,64)
+               CALL EQPSIC(51,32,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
             ENDIF
             INITEQ=1

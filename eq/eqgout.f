@@ -510,13 +510,13 @@ C
          CALL GPLOTP(GRSW,GZSW,1,NSUMAX,1,0,0,0)
 C
          CALL SETLIN(0,0,7)
-         CALL MOVE(16.5,17.0)
+         CALL MOVE(20.0,17.0)
          CALL TEXT('MAX :',5)
          CALL NUMBR(GFMAX,'(1PE12.4)',12)
-         CALL MOVE(16.5,16.5)
+         CALL MOVE(20.0,16.5)
          CALL TEXT('MIN :',5)
          CALL NUMBR(GFMIN,'(1PE12.4)',12)
-         CALL MOVE(16.5,16.0)
+         CALL MOVE(20.0,16.0)
          CALL TEXT('STEP:',5)
          CALL NUMBR(GGFSTP,'(1PE12.4)',12)
 C
@@ -538,7 +538,8 @@ C
       CALL SETCHS(0.3,0.0)
       CALL SETLIN(0,0,7)
 C
-      XPOS=16.5
+C      XPOS=16.5
+      XPOS=20.0
       YPOS=15.0
       DELY= 0.5
 C

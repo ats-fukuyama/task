@@ -1,4 +1,5 @@
 ### $Id$ ###
+##
 ## LAPACK library
 ## If you don't have LAPACK library,
 ## OBJLA =
@@ -6,14 +7,13 @@
 ## and comment out CALL WMTAE in wm/wmmain.f
 
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+#OBJLA =
 
 ## mpi compile command
 MFC = mpif77
 
 ## ftnchek options
 FCKFLAGS = -array=0 -usage=no-com-block-unused
-
-FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 
 # for HPUX
 #FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
@@ -73,3 +73,10 @@ FC = pgf77
 #OFLAGS = -f -N15 -s -O
 #DFLAGS = -f -N15 -s -g
 #FC = f77
+
+## for nifs-sx
+#FLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
+#OFLAGS =
+#DFLAGS =
+#FC = sxf90
+

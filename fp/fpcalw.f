@@ -214,7 +214,7 @@ C
          SUM2=SUM2*DELH/PI
          SUM3=SUM3*DELH/PI
          SUM4=SUM4*DELH/PI
-         SUM5=SUM4*DELH/PI
+         SUM5=SUM5*DELH/PI
       RETURN
       END
 C
