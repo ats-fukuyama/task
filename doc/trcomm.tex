@@ -1,0 +1,462 @@
+%     $Id$
+\documentclass[11pt]{jarticle}
+\usepackage{af}
+\def\baselinestretch{1.0}
+\pagestyle{empty}
+
+\def\r#1{\mathrm{#1}}
+\def\unit#1{\,\r{#1}}
+
+\begin{document}
+\title{Compile Parameters}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{  50}{Maximum number of radial mesh}
+\compileParm{NSM}{I}{   4}{Maximum number of thermal particle species}
+\compileParm{NFM}{I}{   2}{Maximum number of fast particle species}
+\compileParm{NTM}{I}{1001}{Maximum number of time grid points}
+\compileParm{NGM}{I}{ 101}{Maximum number of time slices for 1D profile data}
+\compileParm{NCGM}{I}{ 20}{Maximum number of items for 1D profile data}
+\compileParm{NCTM}{I}{300}{Maximum number of items for 0D integrated data}
+\end{tabbing}
+
+\title{Derived Parameters}
+\begin{tabbing}
+\derivedParmLine
+\derivedParm{NVM}{I}{2*NSM+1}{Number of equations}
+\derivedParm{MWM}{I}{4*NVM-1}{Width of coefficient band matrix}
+\derivedParm{MLM}{I}{NVM*NRM}{Length of coefficient band matrix}
+\derivedParm{NRMP}{I}{NRM+1}{Number of radial grid points inclding both ends}
+\end{tabbing}
+
+\title{Input Parameters}
+\begin{tabbing}
+\inputParmLine
+\inputParmBlock{TRPRM1}{Device Parameters}
+\inputParm{RR}{D}{3}{Major radius [m]}
+\inputParm{RA}{D}{}{Minor radius [m]}
+\inputParm{RKAP}{D}{}{Ellipticity of poloidal crosssection}
+\inputParm{RDLT}{D}{}{Triangularity of poloidal crosssection}
+\inputParm{BB}{D}{}{Toroidal magnetic field at plasma center [T]}
+\inputComment{\texttt{MODELG=1}: on magnetic axis}
+\inputComment{\texttt{MODELG=3}: on geometrical center}
+\inputParm{RIPS}{D}{}{Initial value of plasma current [MA]}
+\inputParm{RIPE}{D}{}{Final value of plasma current [MA]}
+
+\inputParmBlock{TRPRM2}{Plasma Parameters}
+\inputParm{PA(NSM)}{D}{}{Atomic weight (mass devided by unit mass) }
+\inputParm{PZ(NSM)}{D}{}{Charge number}
+\inputParm{PN(NSM)}{D}{}{Initial number density on axis [$10^{20}\unit{m^{-3}}$]}
+\inputParm{PNS(NSM)}{D}{}{Initial number density on surface [$10^{20}\unit{m^{-3}}$]}
+\inputParm{PT(NSM)}{D}{}{Initial temperature on axis [keV]}
+\inputParm{PTS(NSM)}{D}{}{Initial temperature on surface [keV]}
+
+\inputParmBlock{TRPRM3}{Impurity Parameters}
+\inputParm{PNC}{D}{}{Carbon density factor}
+\inputParm{PNFE}{D}{}{Iron density factor}
+\inputParm{PNNU}{D}{}{Neutral number density on axis [$10^{20}\unit{m^{-3}}$]}
+\inputParm{PNNUS}{D}{}{Neutral number density on surface [$10^{20}\unit{m^{-3}}$]}
+
+\inputParmBlock{TRPRM4}{Profile Parameters}
+\inputParm{PROFN1}{D}{}{Initial density profile parameter}
+\inputParm{PROFN2}{D}{}{Initial density profile parameter}
+\inputComment{\texttt{n(rho)=(1-rho**PROFN1)**PROFN2}}
+\inputParm{PROFT1}{D}{}{Initial temperature profile parameter}
+\inputParm{PROFT2}{D}{}{Initial temperature profile parameter}
+\inputComment{\texttt{T(rho)=(1-rho**PROFT1)**PROFT2}}
+\inputParm{PROFU1}{D}{}{Initial neutral density profile parameter}
+\inputParm{PROFU2}{D}{}{Initial neutral density profile parameter}
+\inputComment{\texttt{n0(rho)=(1-rho**PROFU1)**PROFU2}}
+
+\inputParmBlock{TRPRM5}{Profile Parameters}
+\inputParm{PROFJ1}{D}{}{Initial current density profile parameter}
+\inputParm{PROFJ2}{D}{}{Initial current density profile parameter}
+\inputComment{if \texttt{PROFJ1>0  n0(rho)=(1-rho**PROFU1)**PROFU2}}
+\inputComment{if \texttt{PROFJ1<0} Ez=const}
+\inputParm{ALP(3)}{D}{}{Auxilliary parameter}
+\inputComment{\texttt{ALP(1)}: Radial profile extension factor}
+\inputComment{\texttt{ALP(2)}: Diffusion coef parameter}
+\inputComment{\texttt{ALP(3)}: Diffusion coef parameter}
+\inputComment{\texttt{AD=PA**ALP(2)*PZ**ALP(3)}}
+
+\inputParmBlock{TRPRM6}{Transport Parameters}
+\inputParm{AD0}{D}{}{}
+\inputParm{AV0}{D}{}{}
+\inputParm{CNC}{D}{}{}
+\inputParm{CDW(8)}{D}{}{}
+\inputParm{MDLKAI}{D}{}{}
+\inputParm{MDLETA}{D}{}{}
+\inputParm{MDLAD}{D}{}{}
+\inputParm{MDLAVK}{D}{}{}
+
+\inputParmBlock{TRPRM7}{Simulation Parameters 7}
+\inputParm{DT}{D}{}{}
+\inputParm{NRMAX}{D}{}{}
+\inputParm{NTMAX}{D}{}{}
+\inputParm{NTSTEP}{D}{}{}
+\inputParm{NGTSTP}{D}{}{}
+\inputParm{NGRSTP}{D}{}{}
+\inputParm{NGPST}{D}{}{}
+\inputParm{TSST}{D}{}{}
+
+\inputParmBlock{TRPRM8}{Simulation Parameters 8}
+\inputParm{EPSLTR}{D}{}{}
+\inputParm{LMAXTR}{D}{}{}
+
+\inputParmBlock{TRPRM9}{Simulation Parameters 9}
+\inputParm{CHP}{D}{}{}
+\inputParm{CK0}{D}{}{}
+\inputParm{CKALFA}{D}{}{}
+\inputParm{CKBETA}{D}{}{}
+\inputParm{CKGUMA}{D}{}{}
+
+\inputParmBlock{TRMDL1}{Model Parameters 1}
+\inputParm{TPRST}{D}{}{}
+\inputParm{MDLST}{I}{}{}
+\inputParm{MDLNF}{I}{}{}
+\inputParm{IZERO}{I}{}{}
+
+\inputParmBlock{TRMDL2}{Model Parameters 1}
+\inputParm{PNBTOT}{D}{}{}
+\inputParm{PNBR0}{D}{}{}
+\inputParm{PNBRW}{D}{}{}
+\inputParm{PNBENG}{D}{}{}
+\inputParm{PNBRTG}{D}{}{}
+\inputParm{MDLNB}{D}{}{}
+
+\inputParmBlock{TRMDL3}{Model Parameters 1}
+\inputParm{PECTOT}{D}{}{}
+\inputParm{PECR0}{D}{}{}
+\inputParm{PECRW}{D}{}{}
+\inputParm{PECTOE}{D}{}{}
+\inputParm{PECNPR}{D}{}{}
+\inputParm{MDLEC}{D}{}{}
+
+\inputParmBlock{TRMDL4}{Model Parameters 1}
+\inputParm{PLHTOT}{D}{}{}
+\inputParm{PLHR0}{D}{}{}
+\inputParm{PLHRW}{D}{}{}
+\inputParm{PLHTOE}{D}{}{}
+\inputParm{PLHNPR}{D}{}{}
+\inputParm{MDLLH}{D}{}{}
+
+\inputParmBlock{TRMDL5}{Model Parameters 1}
+\inputParm{PICTOT}{D}{}{}
+\inputParm{PICR0}{D}{}{}
+\inputParm{PICRW}{D}{}{}
+\inputParm{PICTOE}{D}{}{}
+\inputParm{PICNPR}{D}{}{}
+\inputParm{MDLIC}{D}{}{}
+
+\inputParmBlock{TRMDL6}{Model Parameters 1}
+\inputParm{PNBCD}{D}{}{}
+\inputParm{PECCD}{D}{}{}
+\inputParm{PLHCD}{D}{}{}
+\inputParm{PICCD}{D}{}{}
+\inputParm{PBSCD}{D}{}{}
+\inputParm{MDLCD}{D}{}{}
+
+\inputParmBlock{TRMDL7}{Model Parameters 1}
+\inputParm{PELTOT}{D}{}{}
+\inputParm{PELR0}{D}{}{}
+\inputParm{PELRW}{D}{}{}
+\inputParm{PELRAD}{D}{}{}
+\inputParm{PELVEL}{D}{}{}
+
+\inputParmBlock{TRMDL8}{Model Parameters 1}
+\inputParm{PELTIM}{D}{}{}
+\inputParm{PELPAT(NSM)}{D}{}{}
+\inputParm{MDLPEL}{D}{}{}
+\inputParm{MDLJBS}{D}{}{}
+
+\inputParmBlock{TRMDL9}{Model Parameters 1}
+\inputParm{MODELG}{D}{}{}
+\end{tabbing}
+
+\title{Common Variables}
+\begin{tabbing}
+\commonVarLine
+\commonBlock{TRCNS1}{Mathematical and Physical Constans}
+\commonVar{PI}{D}{$\pi$}
+\commonVar{AME}{D}{Electron mass [kg]}
+\commonVar{AMM}{D}{Unit mass (1/12 of carbon12) [kg]}
+\commonVar{AEE}{D}{Elementary charge [C]}
+\commonVar{VC}{D}{Speed of light in vacuum [m/s]]}
+\commonVar{AMYU0}{D}{Permeability of free space [H/m]}
+\commonVar{AEPS0}{D}{Permittivity of free space [F/m]}
+\commonVar{RKEV}{D}{Conversion factor of keV to J}
+
+\commonBlock{TRPRMn}{Input Plasma Parameters}
+\commonBlock{TRMDLn}{Input Model Parameters}
+
+\commonBlock{TRCTL1}{Control Variables 1}
+\commonVar{T}{D}{Time [s]}
+\commonVar{TST}{D}{Time since the last sawtooth [s]}
+\commonVar{TPRE}{D}{Time of last diagnostic time [s]}
+\commonVar{WPPRE}{D}{Stored energy at last diagnostic time [MJ]}
+\commonVar{RIP}{D}{Plasma current [MA]}
+\commonVar{NT}{I}{Time step number in this time loop}
+
+\commonBlock{TRCTL2}{Control Variables 2}
+\commonVar{DR}{D}{Radial mesh size [m]}
+\commonVar{FKAP}{D}{Ellipticity in length}
+\commonVar{PNSS(NSM)}{D}{Temporal suraface density [$\unit{10^{20}m^{-3}}$]}
+
+\commonBlock{TRCTL3}{Control Variables 3}
+\commonVar{VSEC}{D}{Vertical magnetic flux [Vs]}
+
+\commonBlock{TRCTL4}{Control Variables 4}
+\commonVar{GTCPU1}{S}{Initial cpu time [s]}
+
+\commonBlock{TRMTX1}{Matrix Variables 1}
+\commonVar{XV(NVM,NRM)}{D}{Variable array of transport eq.}
+\commonVar{YV(NFM,NRM)}{D}{Variable array of decay eq.}
+
+\commonBlock{TRMTX2}{Matrix Variables 2}
+\commonVar{AX(MWM,MLM)}{D}{Coefficient band matrix of transport eq.}
+\commonVar{X(MLM)}{D}{Variable vector of transport eq.}
+\commonVar{AY(NFM,NRM)}{D}{Coefficient matrix of decay eq.}
+\commonVar{Y(NFM,NRM)}{D}{Variable vector of decay eq.}
+
+
+\commonBlock{TRVAR1}{Fundamental Variables 1}
+\commonVar{RG(NRM)}{D}{}
+\commonVar{RM(NRM)}{D}{}
+
+\commonBlock{TRVAR2}{Fundamental Variables 2}
+\commonVar{RN(NRM,NSM)}{D}{}
+\commonVar{RT(NRM,NSM)}{D}{}
+\commonVar{RW(NRM,NFM)}{D}{}
+\commonVar{BP(NRM)}{D}{}
+
+\commonBlock{TRPFL1}{Profile Variables 1}
+\commonVar{RNF(NRM,NFM)}{D}{}
+\commonVar{RTF(NRM,NFM)}{D}{}
+
+\commonBlock{TRPFL2}{Profile Variables 2}
+\commonVar{ANC(NRM)}{D}{}
+\commonVar{ANFE(NRM)}{D}{}
+\commonVar{ANNU(NRM)}{D}{}
+
+\commonBlock{TRPFL3}{Profile Variables 3}
+\commonVar{ZEFF(NRM)}{D}{}
+\commonVar{PZC(NRM)}{D}{}
+\commonVar{PZFE(NRM)}{D}{}
+
+\commonBlock{TRPFL4}{Profile Variables 4}
+\commonVar{BETA(NRM)}{D}{}
+\commonVar{BETAP(NRM)}{D}{}
+
+\commonBlock{TRPFL5}{Profile Variables 5}
+\commonVar{BETAL(NRM)}{D}{}
+\commonVar{BETAPL(NRM)}{D}{}
+\commonVar{BETAQ(NRM)}{D}{}
+
+\commonBlock{TRSRC1}{Source Variables 1}
+\commonVar{PIN(NRM,NSM)}{D}{}
+\commonVar{SSIN(NRM,NSM)}{D}{}
+
+\commonBlock{TRSRC2}{Source Variables 2}
+\commonVar{AJ(NRM)}{D}{}
+\commonVar{AJOH(NRM)}{D}{}
+\commonVar{EZOH(NRM)}{D}{}
+\commonVar{QP(NRM)}{D}{}
+
+\commonBlock{TRSRC3}{Source Variables 3}
+\commonVar{AJNB(NRM)}{D}{}
+\commonVar{AJRF(NRM)}{D}{}
+\commonVar{AJBS(NRM)}{D}{}
+
+\commonBlock{TRSRC4}{Source Variables 4}
+\commonVar{PNB(NRM)}{D}{}
+\commonVar{SNB(NRM)}{D}{}
+\commonVar{PBIN(NRM)}{D}{}
+\commonVar{PBCL(NRM,NSM)}{D}{}
+
+\commonBlock{TRSRC5}{Source Variables 5}
+\commonVar{PNF(NRM)}{D}{}
+\commonVar{SNF(NRM)}{D}{}
+\commonVar{PFIN(NRM)}{D}{}
+\commonVar{PFCL(NRM,NSM)}{D}{}
+
+\commonBlock{TRSRC6}{Source Variables 6}
+\commonVar{POH(NRM)}{D}{}
+\commonVar{PRF(NRM,NSM)}{D}{}
+\commonVar{SPE(NRM,NSM)}{D}{}
+
+\commonBlock{TRSRC7}{Source Variables 7}
+\commonVar{PRL(NRM)}{D}{}
+\commonVar{PCX(NRM)}{D}{}
+\commonVar{PIE(NRM)}{D}{}
+\commonVar{SIE(NRM)}{D}{}
+
+
+\commonBlock{TRCEF1}{Coefficient Variables 1}
+\commonVar{ETA(NRM)}{D}{}
+
+\commonBlock{TRCEF2}{Coefficient Variables 2}
+\commonVar{AK(NRM,NSM)}{D}{}
+\commonVar{AVK(NRM,NSM)}{D}{}
+\commonVar{AD(NRM,NSM)}{D}{}
+\commonVar{AV(NRM,NSM)}{D}{}
+
+\commonBlock{TRCEF3}{Coefficient Variables 3}
+\commonVar{AKNC(NRM,NSM)}{D}{}
+\commonVar{AKDW(NRM,NSM)}{D}{}
+\commonVar{MDLKNC}{I}{}
+
+\commonBlock{TRCEF4}{Coefficient Variables 4}
+\commonVar{ADNC(NRM,NSM)}{D}{}
+\commonVar{ADDW(NRM,NSM)}{D}{}
+
+\commonBlock{TRCEF5}{Coefficient Variables 5}
+\commonVar{AVNC(NRM,NSM)}{D}{}
+\commonVar{AVDW(NRM,NSM)}{D}{}
+
+\commonBlock{TRCEF6}{Coefficient Variables 6}
+\commonVar{TAUB(NRM)}{D}{}
+\commonVar{TAUF(NRM)}{D}{}
+
+\commonBlock{TRCEF7}{Coefficient Variables 7}
+\commonVar{VGR1(NRM,4)}{D}{}
+\commonVar{VGR2(NRM,4)}{D}{}
+\commonVar{VGR3(NRM,4)}{D}{}
+\commonVar{VGR4(NRM,4)}{D}{}
+
+\commonBlock{TRCEF8}{Coefficient Variables 8}
+\commonVar{KGR1}{K}{}
+\commonVar{KGR2}{K}{}
+\commonVar{KGR3}{K}{}
+\commonVar{KGR4}{K}{}
+
+\commonBlock{TRGLB1}{Global Variables 1}
+\commonVar{ANS0(NSM)}{D}{}
+\commonVar{TS0(NSM)}{D}{}
+\commonVar{ANSAV(NSM)}{D}{}
+\commonVar{TSAV(NSM)}{D}{}
+\commonVar{WST(NSM)}{D}{}
+
+\commonBlock{TRGLB2}{Global Variables 2}
+\commonVar{ANF0(NFM)}{D}{}
+\commonVar{TF0(NFM)}{D}{}
+\commonVar{ANFAV(NFM)}{D}{}
+\commonVar{TFAV(NFM)}{D}{}
+\commonVar{WFT(NFM)}{D}{}
+
+\commonBlock{TRGLB3}{Global Variables 3}
+\commonVar{WBULKT}{D}{}
+\commonVar{WTAILT}{D}{}
+\commonVar{WPT}{D}{}
+
+\commonBlock{TRGLB4}{Global Variables 4}
+\commonVar{AJT}{D}{}
+\commonVar{AJOHT}{D}{}
+\commonVar{AJNBT}{D}{}
+\commonVar{AJRFT}{D}{}
+\commonVar{AJBST}{D}{}
+
+\commonBlock{TRGLB5}{Global Variables 5}
+\commonVar{PINT}{D}{}
+\commonVar{POHT}{D}{}
+\commonVar{PNBT}{D}{}
+\commonVar{PRFT(NSM)}{D}{}
+\commonVar{PNFT}{D}{}
+
+\commonBlock{TRGLB6}{Global Variables 6}
+\commonVar{PBINT}{D}{}
+\commonVar{PBCLT(NSM)}{D}{}
+\commonVar{PFINT}{D}{}
+\commonVar{PFCLT(NSM)}{D}{}
+
+\commonBlock{TRGLB7}{Global Variables 7}
+\commonVar{POUT}{D}{}
+\commonVar{PCXT}{D}{}
+\commonVar{PIET}{D}{}
+\commonVar{PRLT}{D}{}
+\commonVar{PLT(NSM)}{D}{}
+
+\commonBlock{TRGLB8}{Global Variables 8}
+\commonVar{SINT}{D}{}
+\commonVar{SIET}{D}{}
+\commonVar{SNBT}{D}{}
+\commonVar{SNFT}{D}{}
+\commonVar{SPET(NSM)}{D}{}
+\commonVar{SOUT}{D}{}
+\commonVar{SLT(NSM)}{D}{}
+
+\commonBlock{TRGLB9}{Global Variables 9}
+\commonVar{VLOOP}{D}{}
+\commonVar{ALI}{D}{}
+\commonVar{RQ1}{D}{}
+\commonVar{RPE}{D}{}
+\commonVar{Q0}{D}{}
+\commonVar{ZEFF0}{D}{}
+\commonVar{QF}{D}{}
+
+\commonBlock{TRGLBA}{Global Variables 10}
+\commonVar{WPDOT}{D}{}
+\commonVar{TAUE1}{D}{}
+\commonVar{TAUE2}{D}{}
+\commonVar{TAUEP}{D}{}
+
+\commonBlock{TRGLBB}{Global Variables 11}
+\commonVar{BETAP0}{D}{}
+\commonVar{BETAPA}{D}{}
+\commonVar{BETA0}{D}{}
+\commonVar{BETAA}{D}{}
+\commonVar{BETAQ0}{D}{}
+\commonVar{BETAN}{D}{}
+
+\commonBlock{TRPLR1}{Graphic Data Variables (radial)}
+\commonVar{GVR(NRMP,NGM,NCGM)}{S}{}
+\commonVar{GRM(NRM)}{S}{}
+\commonVar{GRG(NRMP)}{S}{}
+\commonVar{GTR(NGM)}{S}{}
+\commonVar{NGR}{I}{}
+
+\commonBlock{TRPLT1}{Graphic Data Variables (temporal)}
+\commonVar{GVT(NTM,NCTM)}{S}{}
+\commonVar{GT(NTM)}{S}{}
+\commonVar{GTS(NTM)}{S}{}
+\commonVar{NGT}{I}{}
+\commonVar{NGST}{I}{}
+
+\commonBlock{TRPLG1}{Graphic Data Variables (local)}
+\commonVar{GYR(NRMP,8)}{S}{}
+\commonVar{GYT(NTM,8)}{S}{}
+
+\commonBlock{TREQV1}{Equilibrium interface Variables 1}
+\commonVar{RHOTR(NRM)}{D}{}
+
+\commonBlock{TREQV2}{Equilibrium interface Variables 2}
+\commonVar{PRHO(NRM)}{D}{}
+\commonVar{HJRHO(NRM)}{D}{}
+\commonVar{VTRHO(NRM)}{D}{}
+\commonVar{TRHO(NRM)}{D}{}
+
+\commonBlock{TREQV3}{Equilibrium interface Variables 3}
+\commonVar{QRHO(NRM)}{D}{}
+\commonVar{TTRHO(NRM)}{D}{}
+\commonVar{DVRHO(NRM)}{D}{}
+\commonVar{DSRHO(NRM)}{D}{}
+
+\commonBlock{TREQV4}{Equilibrium interface Variables 4}
+\commonVar{ABRHO(NRM)}{D}{}
+\commonVar{ARRHO(NRM)}{D}{}
+
+\commonBlock{TREQV5}{Equilibrium interface Variables 5}
+\commonVar{AR1RHO(NRM)}{D}{}
+\commonVar{AR2RHO(NRM)}{D}{}
+
+\commonBlock{TREQV6}{Equilibrium interface Variables 6}
+\commonVar{EPSRHO(NRM)}{D}{}
+\commonVar{BPRHO(NRM)}{D}{}
+
+LOG FILE NAME
+\commonBlock{TRLOG1}{Logging variables}
+\commonVar{KFNLOG}{K}{Log file name}
+
+\end{tabbing}
+\end{document}
+
+

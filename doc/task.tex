@@ -1,0 +1,612 @@
+\documentclass[11pt]{jarticle}
+\usepackage{af}
+\usepackage{sym}
+\usepackage{doc}
+
+\begin{document}
+\begin{flushright}
+2002/08/01
+\end{flushright}
+
+\begin{center}
+{\Large \gt TASK コードの利用説明書}
+\end{center}                                   
+
+\section{TASK コードとは}
+
+TASK (\textbf{T}ransport \textbf{A}nalyzing \textbf{S}ystem for
+takama\textbf{K}) コードは，主にトカマクプラズマにおける平衡，輸送，波
+動伝播，速度分布を解析するコード群である．
+
+使用言語は FORTRAN であり，原則として FORTRAN 95 に含まれる FORTRAN 77 
+仕様と GNU fortran g77 に含まれる FORTRAN 77 からの拡張を含む．すなわ
+ち g77 コンパイラおよび FORTRAN 95 に準拠する FORTRAN コンパイラのいず
+れによっても，コンパイルすることができる．
+
+使用するグラフィックライブラリは GSAF である．このライブラリは，
+\tline{http://p-grp.nucleng.kyoto-u.ac.jp/gsaf/}\\ 
+から入手することができ，図形を X-window あるいは postscript ファイルと
+して出力することができる．数値計算ライブラリとして LAPACK を使用する場
+合があるが，その機能が不必要であれば容易に省略することができる．並列化
+ライブラリとしてMPI を使用しているが，MPI ライブラリがなくてもコンパイ
+ルできる．
+
+\section{TASK コードのインストール}
+
+\subsection{TASK コードの入手}
+
+TASK コードは次のいずれかの方法で入手することができる．
+\begin{enumerate}
+\item
+cvs root にアクセスできる場合には，
+\tline{export CVS\underline{ }RSH}
+\tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs}
+\tline{cvs co}
+\\
+によって，CVS ファイルツリーを入手することができる．
+\item
+圧縮されたファイルツリー task-YYMMDD.tar.gz ファイルは
+\tline{http://p-grp.nucleng.kyoto-u.ac.jp/bpsi/task.html}
+\\
+から入手できる．ただし，最新のファイルツリーである保証はない．
+得られた task.tar.gz は gnu tar の場合
+\tline{tar xvzf task.tar.gz}
+\\
+で，あるいは通常の tar の場合
+\tline{gzcat task.tar.gz | tar xvf}
+\\
+等によって解凍することができる．
+\end{enumerate}
+
+\subsection{コードのコンパイル}
+
+あらかじめ，グラフィックライブラリ GSAF をコンパイルし，適切なライブラ
+リ検索パスに含まれているようにする．
+\begin{enumerate}
+\item
+ライブラリパスを \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
+を実行しておく．これらの操作には root 権限が必要．
+\item
+環境変数 \ttype{LD\underline{ }LIBRARY\underline{ }PATH} にライブラリ
+パスを含めておく．\ttype{LD\underline{ }LIBRARY\underline{ }PATH} が
+定義されていなければ，自分で定義しておく．
+\end{enumerate}
+
+まず，task ディレクトリの \ttype{make.header.org} ファイルを
+\ttype{make.header} という名前でコピーし，その内容を環境に合わせて変
+更する．基本的には，利用するコンパイラに関連した script 行のコメント文
+字 \# を削除する．
+
+次に利用するコードのディレクトリに移動し，\ttype{make} と入力すれば，
+コンパイルリンクが実行される．
+
+\subsection{コードの各プログラムの起動}
+
+各プログラムはグラフィックライブラリに GSAF を使用しており，プログラム
+起動時（正確には \ttype{CALL GSOPEN} が実行されたとき）に，原則として
+グラフィック出力設定を問い合わせる．
+\begin{enumerate}
+\item
+最初の問い合わせは解像度の指定であり，１文字で指定する．'0' が指定され
+た場合には，画面には出力されず，必要に応じてファイルに図形データが出力
+さえる．
+\item
+２番目の問い合わせは，図形ファイルへの出力の指定であり，やはり１文字で
+指定する．ファイルに出力せずに続行する場合は 'C' を指定する．表示内容
+をファイルに保存する場合は，'Y'，'F' を指定し，出力ファイル名の問い合
+わせがある．'Y' が指定された場合には常に保存，'F' が指定された場合には
+ファイルは指定されたが保存は可能になっていない．最初の問い合わせへの回
+答が無出力 '0' の場合には，ファイルが指定されると，特に指定しない限り，
+各ページを保存する．ファイルが指定されなければ，保存はしない．最初の問
+い合わせへの回答が '0' 以外の場合には，各ページ出力後に問い合わせがあ
+り，単に改行の場合は標準値，' Y' は連続保存，'S' は単発保存，' N' は保
+存せず，となる．
+\end{enumerate}
+
+
+コンパイル・パラメータ：
+
+XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
+
+\title{plcom1.h}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NSM}{I}{  5}{Maximum number of particle species}
+\end{tabbing}
+
+\title{plcom2.h}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NHM}{I}{100}{Maximum number of cyclotron harmonics}
+\compileParm{NXM}{I}{1001}{Maximum number of 1D graph mesh points}
+\compileParm{NPM}{I}{100}{Maximum number of momentum amplitude mesh}
+\compileParm{NTHM}{I}{100}{Maximum number of pitch angle mesh}
+\compileParm{NRM}{I}{25}{Maximum number of radial mesh}
+\compileParm{NGXM}{I}{101}{Maximum number of graphic x mesh}
+\compileParm{NGYM}{I}{101}{Maximum number of graphic y mesh}
+\end{tabbing}
+
+コンパイル・パラメータ：
+
+XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
+
+\title{wrcom1.h}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NEQ}{I}{8}{Number of equations in ray tracing}
+\compileParm{NBEQ}{I}{19}{Number of equations in beam tracing}
+\compileParm{NBVAR}{I}{53}{Number of variables in beam tracing}
+\compileParm{NRAYM}{I}{9}{Maximum number of rays and beams}
+\compileParm{NITM}{I}{10000}{Maximum number of iterations in tracing}
+\compileParm{NRADM}{I}{1000}{Maximum number of radial division in
+power deposition}
+\end{tabbing}
+
+コンパイル・パラメータ：
+
+XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
+
+\title{fpcom1.h}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{25}{Maximum number of radial mesh}
+\compileParm{NPM}{I}{50}{Maximum number of momentum amplitude mesh}
+\compileParm{NTHM}{I}{50}{Maximum number of pitch angle mesh}
+\compileParm{NTG1M}{I}{21}{Maximum number of detail time mesh}
+\compileParm{NTG2M}{I}{501}{Maximum number of time mesh}
+\compileParm{NCRM}{I}{5}{Maximum number of cyclotron harmonics}
+\compileParm{NLM}{I}{13}{Maximum number of Legendre harmonics}
+\end{tabbing}
+
+
+\section{WR コード}
+
+WR コードは光線追跡法あるいはビーム追跡法
+による伝播解析，分散関係表示などができる．
+
+\subsection{WR コードの実行}
+\begin{itemize}
+ \item[] {\tt P} : パラメータを変更する．
+ \item[] {\tt V} : パラメータを表示する．
+ \item[] {\tt R} : 光線追跡法を実行する．
+ \item[] {\tt B} : ビーム追跡法を実行する．
+ \item[] {\tt G} : 伝播解析結果のグラフを表示する．
+ \item[] {\tt S} : 伝播解析結果のデータを保存する．
+ \item[] {\tt 1} : 分散関係を表示する．
+ \item[] {\tt 2} : 分散関係を表示する．
+ \item[] {\tt 3} : 分散関係を表示する．
+ \item[] {\tt F} : 分散式の解を求める．
+ \item[] {\tt Q} : 終了する．
+\end{itemize}
+
+一連の作業の流れとしては{\tt P}でパラメータを変更した後，{\tt R}で光線
+追跡を実行した後，{\tt G}でグラフを見たり，{\tt S}で伝播解析の結果を保
+存したりする．
+
+\subsection{{\tt P,V} :  入力パラメータ}
+
+入力パラメータは，namelist を用いて，任意のパラメータを変更することが
+できる．入力行は，まず空白１文字の後，'\&wr ' に引き続いて，「パラメー
+タ名＝新しい値」の形式で設定を繰り返し，最後に，'\&end ' を入力して終
+了する．入力例は
+\tline{\ \&wr\ RR=8.14,RA=2.8,BB=5.68\ \&end}
+\tline{\ \&wr\ PN=0.2,0.1,0.1\ \&end}
+\\
+ここで \ttype{PN=} は \ttype{PN(1),PN(2),PN(3)=}に対応する．
+
+以下に入力パラメータの説明と標準値を示す．
+
+   \begin{itemize}
+   \item[]
+   \begin{namelist}{RKX1,RKX2xx}
+      \vspace{-2mm}
+      \item[ RR   ] プラズマ主半径 : 3.0 [m]
+      \item[ RA   ] プラズマ小半径 : 1.0 [m]
+      \item[ RB   ] 壁小半径 : 1.2 [m]
+      \item[ RKAP ] 楕円率 : 1.0
+      \item[ RDLT ] 三角形度 : 0.0
+      \item[ BB   ] 中心での磁場 : 3.0 [T]
+      \item[ Q0   ] r=0 での安全係数 : 1.0
+      \item[ QA   ] r=RA での安全係数 : 3.0
+      \item[ RIP  ] 全電流 : 3.0 [MA]
+      \item[ PROFJ] 電流分布パラメータ : 2.0
+      \vspace{3mm}  
+
+      \item[ PROFN1] 密度分布形状パラメータ : 2.0D0
+      \item[ PROFN2] 密度分布形状パラメータ : 0.5D0
+      \item[ PROFT1] 温度分布形状パラメータ : 2.0D0
+      \item[ PROFT2] 温度分布形状パラメータ : 1.0D0
+      \item[ PROFU1] 平行速度分布形状パラメータ : 2.0D0
+      \item[ PROFU2] 平行速度分布形状パラメータ : 1.0D0
+      \vspace{3mm}  
+
+      \item[ NSMAX] 粒子種の数 : 2　（1 : 電子）
+      \item[ PA   ] 原子の質量 [陽子質量]: PA(1)=5.4462e-4, PA(2)=1.0
+      \item[ PZ   ] 電荷の数 [素電荷]: PZ(1)=-1.0, PZ(2)=1.0
+      \item[ PN   ] 中心密度 [$10^{20}/\r{m}^3$] : PN(1)=1.0, PN(2)=1.0
+      \item[ PNS  ] 周辺密度 [$10^{20}/\r{m}^3$] : PNS(1)=0.0, PNS(2)=0.0
+      \item[ PZCL ] 衝突周波数 [$\nu/\omega$] : PZCL(1)=0.0, PZCL(2)=0.0
+      \item[ PTPR ] 中心平行方向温度 [keV] : PTPR(1)=5.0, PTPR(2)=5.0
+      \item[ PTPP ] 中心垂直方向温度 [keV] : PTPP(1)=5.0, PTPP(2)=5.0
+      \item[ PTS  ] 周辺温度 [keV] : PTS(1)=0.05, PTS(2)=0.05
+      \item[ PU   ] 中心平行方向速度 [m/s] : PU(1)=0.0, PU(2)=0.0
+      \item[ PUS  ] 周辺平行方向速度 [m/s] : PUS(1)=0.0, PUS(2)=0.0
+      \item[ PNITB] ITB での密度増分 [$10^{20}/\r{m}^3$] : PNITB(1)=0.0
+      \item[ PTITB] ITB での温度増分 [keV] : PTITB(1)=0.0
+      \item[ PUITB] ITB での速度増分 [m/s] : PUITB(1)=0.0
+      \vspace{3mm}  
+
+      \item[ MODELG] 配位モデル
+\begin{eqnarray*}
+0&:&平板モデル \\
+1&:&円柱モデル \\
+2&:&トカマクモデル \\
+3&:&TASK/EQ 平衡配位 \\
+4&:&VMEC 平衡配位\\
+\end{eqnarray*}
+
+      \item[ MODELN] 径方向分布モデル
+\begin{eqnarray*}
+0&:&PN,PNS,PT,PTS 等で指定 \\
+1&:&PN は指定，PT は平衡圧力から計算 \\
+2&:&PN*PT が平衡圧力に比例 \\
+9&:&分布データ読み込み \\
+\end{eqnarray*}
+
+      \item[ MODELN] 安全係数分布モデル (MODELG=0,1,2)
+\begin{eqnarray*}
+0&:&QO, QA を指定 \\
+1&:&RIP, PROFJ を指定 \\
+\end{eqnarray*}
+
+      \item[ RHOMIN] 安全係数が極小となる規格化半径
+      \item[ QMIN]   極小安全係数
+      \item[ RHOITB] ITB を与える規格化半径
+      \vspace{3mm}  
+
+      \item[ KNAMEQ] 平衡データファイル名
+      \item[ KNAMWR] 波動伝播データファイル名
+      \item[ KNAMFP] 速度分布データファイル名
+      \vspace{3mm}  
+
+      \item[ MODELP] 誘電率テンソル : MODELP(1)=5,MODELP(2)=0
+\begin{eqnarray*}
+0&:&無衝突の冷たいプラズマ\\
+1&:&衝突のある冷たいプラズマ\\
+2&:&理想電磁流体プラズマ\\
+3&:&抵抗性電磁流体プラズマ\\
+4&:&有限ラーモア半径効果を無視した運動論的プラズマ\\
+5&:&有限ラーモア半径効果を取り入れた運動論的プラズマ\\
+6&:&相対論効果を取り入れた運動論的プラズマ\\
+7&:&速度分布を与えた運動論的プラズマ\\
+8&:&ジャイロ運動論的プラズマ\\
+9&:&速度分布を与えたジャイロ運動論的プラズマ\\
+0-9&:&伝播＝与えられたモデル\\
+& &偏波＝与えられたモデル\\
+& &吸収＝与えられたモデル\\
+10-19&:&伝播＝冷たいプラズマモデル\\
+& &偏波＝与えられたモデル\\
+& &吸収＝与えられたモデル\\
+20-29&:&伝播＝冷たいプラズマモデル\\
+& &偏波＝冷たいプラズマモデル\\
+& &吸収＝与えられたモデル\\
+\end{eqnarray*}
+      \item[NDISP1] 最小サイクロトロン高調波番号：NDISP1(1)=-2, NDISP1(2)=-2
+      \item[NDISP2] 最大サイクロトロン高調波番号：NDISP2(1)=2, NDISP2(2)=2
+      \item[MODELV] 速度分布モデル
+\begin{eqnarray*}
+0&:&非相対論的マクスウェル速度分布\\
+1&:&非相対論的任意速度分布（ファイルから読み込み）\\
+2&:&相対論的マクスウェル速度分布\\
+3&:&相対論的任意速度分布（ファイルから読み込み）\\
+\end{eqnarray*}
+      \vspace{3mm}
+
+      \item[RF    ] 周波数 [MHz]
+      \item[RPI   ] 初期大半径位置 [m]
+      \item[ZPI   ] 初期垂直位置 [m]
+      \item[PHII  ] 初期トロイダル角 [Rad]
+      \item[RNZI  ] 初期垂直方向屈折率
+      \item[RNPHII] 初期トロイダル方向屈折率
+      \item[RKR0  ] 径方向波数の初期推定値（Newton法の初期値）
+      \item[UUI   ] 規格化パワー初期値
+      \vspace{3mm}
+
+      \item[SMAX  ] 光線長の最大値 [m] : 5.00
+      \item[DELS  ] 光線の刻み幅 [m] : 1.00e-2
+      \item[UUMIN ] 光線を追跡する最小パワー : 1.00e-4
+      \item[NRAYMX] 光線本数
+      \vspace{3mm}
+
+      \item[EPSRAY] 常微分方程式の収束判定条件
+      \item[DELRAY] 常微分方程式のステップ幅の下限
+      \item[DELDER] 数値微分のステップ幅
+      \item[DELKR ] ニュートン法における数値微分のステップ幅
+      \item[EPSNW ] ニュートン法における収束判定条件
+      \item[LMAXNW] ニュートン法における反復回数の上限
+      \vspace{3mm}
+
+      \item[INTYPE] 計算出発パラメータの入力形式
+\begin{eqnarray*}
+0&:& RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU \\
+1&:& RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU \\
+2&:& RF,RP,ZP,PHI,MODE,ANGZ,ANGPH,UU
+\end{eqnarray*}
+      \item[NRZMAX] 吸収パワーの径方向分布を求めるための分割数
+      \item[NRADMX] ビーム追跡法における吸収パワー分布分割数
+      \item[RCURVA] ビーム波面の初期曲率半径（$\vk$ と $\vB$ に垂直）
+      \item[RCURVB] ビーム波面の初期曲率半径（$\vk$ と $\vk\times\vB$ に垂直）
+      \item[RBRADA] ビームの初期半径（$\vk$ と $\vB$ に垂直）
+      \item[RBRADB] ビームの初期半径（$\vk$ と $\vk\times\vB$ に垂直）
+   \end{namelist}
+   \end{itemize}
+
+\subsection{{\tt R} : 光線追跡法を実行する}
+``{\tt R}''\ を入力した場合は光線追跡法を実行する．
+
+\tline{170e3,10.8,,,-2000,,0.8/}
+\\
+
+など．現在値のままの場合は省略可能であり，/ は以降を省略する．
+光線の数だけ繰り返す．パラメータの物理的意味を以下に示す．
+\begin{itemize}
+\item
+\ttype{INTYPE=0}
+   \begin{tabbing}
+MMM\=MMMMMMM\=\kill
+入力データ\\
+　　  \> RF    \>周波数 [MHz] \\
+      \> RPI   \>初期主半径 R [m] \\
+      \> ZPI   \>初期垂直方向位置 Z [m]\\
+      \> PHII  \>初期トロイダル角 [radian]\\
+      \> RKR0  \>径方向波数の初期推測値（ニュートン法の初期値）[1/m] \\
+      \> RNZI  \>初期垂直方向屈折率 \\
+      \> RNPHII\>初期トロイダル方向屈折率\\
+      \> UUI   \>規格化パワー初期値\\
+\end{tabbing}   
+\item
+\ttype{INTYPE=1}
+   \begin{tabbing}
+MMM\=MMMMMMM\=\kill
+入力データ\\
+　　  \> RF    \>周波数 [MHz] \\
+      \> RPI   \>初期主半径 R [m] \\
+      \> ZPI   \>初期垂直方向位置 Z [m]\\
+      \> PHII  \>初期トロイダル角 [radian]\\
+      \> RKR0  \>径方向波数の初期推測値（ニュートン法の初期値）[1/m] \\
+      \> ANGZ  \>初期ポロイダル方向入射角 \\
+      \> ANGPH \>初期トロイダル方向入射角\\
+      \> UUI   \>規格化パワー初期値\\
+\end{tabbing}   
+\item
+\ttype{INTYPE=2}（未サポート）
+   \begin{tabbing}
+MMM\=MMMMMMM\=\kill
+入力データ\\
+　　  \> RF    \>周波数 [MHz] \\
+      \> RPI   \>初期主半径 R [m] \\
+      \> ZPI   \>初期垂直方向位置 Z [m]\\
+      \> PHII  \>初期トロイダル角 [radian]\\
+      \> MODEW \>モード選択（0:slow wave, 1:fast wave）\\
+      \> ANGZ  \>初期ポロイダル方向入射角 \\
+      \> ANGPH \>初期トロイダル方向入射角\\
+      \> UUI   \>規格化パワー初期値\\
+\end{tabbing}   
+\end{itemize}
+
+\subsection{{\tt G} : グラフ表示}
+\begin{itemize}
+\item['1']：ポロイダル軌跡とパワー分布
+\item['2']：径方向依存性１
+\item['3']：径方向依存性２
+\item['4']：ビーム軌跡とパワー分布
+\item['5']：偏光面角度と $s$
+\item['6']：波数方向
+\item['X']：終了
+\end{itemize}
+
+
+
+
+\section{FP コード}
+FP コードは波動による電流駆動を解析するために，相対論効果や捕捉粒子の
+寄与を含めて速度分布の時間発展を記述することができる．
+\subsection{FP コードを使う}
+\begin{itemize}
+ \item[] {\tt R} : FP方程式の時間発展計算を開始する．
+ \item[] {\tt C} : FP方程式の時間発展計算を続行する．
+ \item[] {\tt F} : FP方程式の時間発展計算を続行する．（図はクリアする）
+ \item[] {\tt P} : パラメータを変更する．
+ \item[] {\tt V} : パラメータを表示する．
+ \item[] {\tt G} : 結果のグラフを表示する．
+ \item[] {\tt I} : パラメータを初期化する．
+ \item[] {\tt W} : 結果のみを表示する．
+ \item[] {\tt Y} : FP方程式の係数を計算する．
+ \item[] {\tt S} : 速度分布関数をファイルに保存する．
+ \item[] {\tt L} : 速度分布関数をファイルから読み込む．．
+ \item[] {\tt Q} : 終了する．
+\end{itemize}
+作業の流れの例としては，{\tt P}でパラメータを変更した後，{\tt R}でフォッ
+カープランク方程式を解き，，
+{\tt G}でグラフを見たり，{\tt S}で速度分布関数を保存したりする．
+
+コンパイル・パラメータ：
+
+XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
+
+\title{fpcom1.h}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{25}{Maximum number of radial mesh}
+\compileParm{NPM}{I}{50}{Maximum number of momentum amplitude mesh}
+\compileParm{NTHM}{I}{50}{Maximum number of pitch angle mesh}
+\compileParm{NTG1M}{I}{21}{Maximum number of detail time mesh}
+\compileParm{NTG2M}{I}{501}{Maximum number of time mesh}
+\compileParm{NCRM}{I}{5}{Maximum number of cyclotron harmonics}
+\compileParm{NLM}{I}{13}{Maximum number of Legendre harmonics}
+\end{tabbing}
+
+\subsection{{\tt P,V} :  入力パラメータ}
+入力パラメータは，namelist を用いて，任意のパラメータを変更することが
+できる．入力行は，まず空白１文字の後，'\&fp ' に引き続いて，「パラメー
+タ名＝新しい値」の形式で設定を繰り返し，最後に，'\&end ' を入力して終
+了する．
+入力例は
+\tline{\ \&fp\ DELT=0.1,NTMAX=5, \&end}
+\\
+
+以下に入力パラメータの説明と標準値を示す．
+
+   \begin{itemize}
+   \item[]    
+   \begin{namelist}{RNPHIIxx}
+      \item[R1    ] NRMAX=1 の場合の半径方向の位置 [m]
+      \item[DELR1 ] NRMAX=1 の場合の半径方向の仮想的間隔 [m]
+      \item[RMIN  ] NRMAX$\ne$1 の場合の最小半径
+      \item[RMAX  ] NRMAX$\ne$1 の場合の最大半径
+      \item[E0    ] トロイダル電場 [V/m] : 
+      \item[DRR0  ] 半径方向の拡散係数 $[\r m^2/\r s]$
+      \vspace{3mm}
+
+      \item[DEC   ] 規格化された電子サイクロトロン波による拡散係数
+      \item[PEC1  ] 電子サイクロトロン波の N パラレルスペクトルの中心
+      \item[PEC2  ] 電子サイクロトロン波の N パラレルスペクトルの幅
+      \item[RFEC  ] 電子サイクロトロン周波数[MHz]
+      \item[DELYEC] 電子サイクロトロン波ビームの垂直幅 [m]
+      \vspace{3mm}
+
+      \item[DLH   ] 規格化された低域混成波の拡散係数
+      \item[PLH1  ] 低域混成波スペクトル（最小速度，またはスペクトルの中心）
+      \item[PLH2  ] 低域混成波スペクトル（最大速度，またはスペクトルの幅）
+      \item[RLH   ] 低域混成波の最小近接小半径[m]
+      \vspace{3mm}
+
+      \item[DFW   ] 規格化された速波の拡散係数
+      \item[RFW   ] 速波の最小近接短軸半径[m]
+      \item[PFW1  ] 速波スペクトル（最小速度，またはスペクトルの中心）
+      \item[PFW2  ] 速波スペクトル（最大速度，またはスペクトルの幅）
+      \vspace{3mm}
+
+      \item[RFDW  ] 周波数 [MHz] :
+      \item[DELNPR] トロイダル方向屈折率のスペクトル幅
+      \item[NCMIN ] サイクロトロン高調波番号の下限
+      \item[NCMAX ] サイクロトロン高調波番号の上限
+      \vspace{3mm}
+
+      \item[CEWR  ] 波動電界の径方向成分
+      \item[CEWTH ] 波動電界のポロイダル方向成分
+      \item[CEWPH ] 波動電界のトロイダル方向成分
+      \item[RKWR  ] 波数の径方向成分
+      \item[RKWTH ] 波数のポロイダル方向成分
+      \item[RKWPH ] 波数のトロイダル方向成分
+      \item[REWY  ] 光線の垂直方向位置
+      \item[DREWY ] 光線の垂直方向幅
+      \vspace{3mm}
+
+      \item[PMAX  ] 中心熱運動量で正規化された最大運動量
+      \item[DELT  ] 時間ステップ幅[s]
+      \item[RIMPL ] 計算の implicit パラメーター
+      \item[EPSM  ] 行列方程式を解く場合の収束限界
+      \item[EPSE  ] 電場計算での収束限界
+      \item[LMAXE ] 電場計算での最大繰り返し数
+      \item[EPSDE ] 2 重指数積分法での収束限界
+      \item[H0DE  ] 2 重指数積分法での初期ステップ幅
+      \item[NGLINE] 等高線の最大本数
+      \item[LLMAX ] Legendre 展開の最大次数
+      \vspace{3mm}
+
+      \item[NPMAX ] 運動量の大きさ方向の分割数
+      \item[NTHMAX] 運動量の角度方向の分割数
+      \item[NRMAX ] 半径方向の分割数
+      \item[NAVMAX] 波の拡散係数を計算するための軌道平均の分割数
+      \vspace{3mm}
+
+      \item[NTMAX ] 最大時間ステップ幅
+      \item[NTSTP1] 半径方向分布形状データを保存するための時間ステップ幅
+      \item[NTSTP2] 全体的なデータを保存するための時間ステップ幅
+      \item[NTSTPC] 係数を再計算するための時間ステップ幅
+      \vspace{3mm}
+
+      \item[MODELE] 電場の計算をする場合には 1 とする
+      \item[MODELR] 相対効果を含む場合には 1 とする
+      \item[MODELA] バウンス平均をする場合には 1 とする
+      \item[MODELC] 非線形衝突演算子を用いる場合には 1 とする
+      \vspace{3mm}
+      \item[MODELW] 拡散係数の計算モデル
+\begin{eqnarray*}
+0&:&近似モデル式\\
+1&:&近似電磁界を用いて計算\\
+2&:&波動伝播解析 WR の結果を読み込んで計算\\
+\end{eqnarray*}
+
+      \item[PWAVE ] 入力パワー
+      \item[LMAXNWR] 光線と磁気面の交点を求める Newton 法の反復回数上限
+      \item[EPSNWR] 光線と磁気面の交点を求める Newton 法の収束判定条件
+   \end{namelist}
+   \end{itemize}
+
+\subsection{{\tt G} : グラフ表示}
+各種グラフの説明を以下に示す．
+   \begin{tabbing}
+MMM\=MMMMMMM\=\kill
+\> F1   \>１次元速度分布\\
+\> F2   \>２次元速度分布\\
+\> FX2  \>２次元速度分布のピッチ角差分\\
+\> FS11 \>１次元速度分布の内側境界値\\
+\> FS12 \>２次元速度分布の内側境界値\\
+\> FS21 \>１次元速度分布の外側境界値\\
+\> FS22 \>２次元速度分布の外側境界値\\
+\> DPP  \>拡散係数 $D_{pp}$ の運動量依存性\\
+\> DPT  \>拡散係数 $D_{p\theta}$ の運動量依存性\\
+\> DTP  \>拡散係数 $D_{\theta p}$ の運動量依存性\\
+\> DTT  \>拡散係数 $D_{\theta\theta}$ の運動量依存性\\
+\> DRR  \>拡散係数 $D_{rr}$ の運動量依存性\\
+\> DCPP \>衝突拡散係数 $D_{\r{C}pp}$ の運動量依存性\\
+\> DCPT \>衝突拡散係数 $D_{\r{C}p\theta}$ の運動量依存性\\
+\> DCTP \>衝突拡散係数 $D_{\r{C}\theta p}$ の運動量依存性\\
+\> DCTT \>衝突拡散係数 $D_{\r{C}\theta\theta}$ の運動量依存性\\
+\> DCRR \>衝突拡散係数 $D_{\r{C}rr}$ の運動量依存性\\
+\> DWPP \>波動による拡散係数 $D_{\r{W}pp}$ の運動量依存性\\
+\> DWPT \>波動による拡散係数 $D_{\r{W}p\theta}$ の運動量依存性\\
+\> DWTP \>波動による拡散係数 $D_{\r{W}\theta p}$ の運動量依存性\\
+\> DWTT \>波動による拡散係数 $D_{\r{W}\theta\theta}$ の運動量依存性\\
+\> DWRR \>波動による拡散係数 $D_{\r{W}rr}$ の運動量依存性\\
+\> FP   \>摩擦係数 $F_{p}$ の運動量依存性\\
+\> FT   \>摩擦係数 $F_{\theta}$ の運動量依存性\\
+\> FR   \>摩擦係数 $F_{r}$ の運動量依存性\\
+\> FCP  \>衝突摩擦係数 $F_{\r{C}p}$ の運動量依存性\\
+\> FCT  \>衝突摩擦係数 $F_{\r{C}\theta}$ の運動量依存性\\
+\> FCR  \>衝突摩擦係数 $F_{\r{C}r}$ の運動量依存性\\
+\> FEP  \>電界加速係数 $F_{\r{E}p}$ の運動量依存性\\
+\> FET  \>電界加速係数 $F_{\r{E}\theta}$ の運動量依存性\\
+\> FER  \>電界加速係数 $F_{\r{E}r}$ の運動量依存性\\
+\> RN   \>電子密度の径方向依存性\\
+\> RI   \>電流密度の径方向依存性\\
+\> RW   \>エネルギー密度の径方向依存性\\
+\> RPC  \>衝突吸収パワー密度の径方向依存性\\
+\> RPW  \>波動吸収パワー密度の径方向依存性\\
+\> RPE  \>電界吸収パワー密度の径方向依存性\\
+\> RT   \>温度の径方向依存性\\
+\> RQ   \>安全係数の径方向依存性\\
+\> RE   \>トロイダル電界の径方向依存性\\
+\> TN   \>電子密度の時間依存性\\
+\> TI   \>電流の時間依存性\\
+\> TW   \>エネルギーの時間依存性\\
+\> TPC  \>衝突吸収パワーの時間依存性\\
+\> TPW  \>波動吸収パワーの時間依存性\\
+\> TPE  \>電界吸収パワーの時間依存性\\
+\> TT   \>温度の時間依存性\\
+\> TQ   \>安全係数の時間依存性\\
+\> TE   \>トロイダル電界の時間依存性\\ 
+\end{tabbing}   
+\end{document}
+
+
+
+
+
+
