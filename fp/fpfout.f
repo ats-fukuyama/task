@@ -14,7 +14,7 @@ C
       CHARACTER KID*4,KID1*1,KID2*3,KNAM*72
       LOGICAL LEX,LOP
 C
- 1000 INQUIRE(22,OPENED=LOP)
+      INQUIRE(22,OPENED=LOP)
       IF(.NOT.LOP) THEN
 C 1001    WRITE(6,*) '# INPUT : FPFOUT FILE NAME : ',KNAMFO
 C         READ(5,'(A72)',ERR=1001,END=9000) KNAM
@@ -332,8 +332,6 @@ C
          NR=1
       END IF
 C
-      LMODE=MODE/4
-C
       IF(MOD(MODE,2).EQ.0) THEN
          NPG=NPMAX
       ELSE
@@ -410,8 +408,6 @@ C
       ELSE
          NR=1
       END IF
-C
-      LMODE=MODE/4
 C
       IF(MOD(MODE,2).EQ.0) THEN
          NPG=NPMAX

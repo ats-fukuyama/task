@@ -101,6 +101,8 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+C
       DO 1000 NR=1,NRMAX
          RSUM1=0.D0
          RSUM2=0.D0
@@ -194,8 +196,8 @@ C
   400    CONTINUE
          FACT=RNFP0*1.D20
          RNS(NR) = RSUM1*FACT               *1.D-20
-         RJS(NR) = RSUM2*FACT*AEFP*PTH0/AMFP*1.D-6
-         FACT=RNFP0*1.D20*PTH0**2/AMFP
+         RJS(NR) = RSUM2*FACT*AEFP*PTFP0/AMFP*1.D-6
+         FACT=RNFP0*1.D20*PTFP0**2/AMFP
          RWS(NR) = RSUM3*FACT               *1.D-6
          RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6
@@ -245,9 +247,10 @@ C
             DO NS=1,NSMAX
             DO 1000 NR=1,NRMAX
                RPN=RPWT(NR,NTG1)*AMFP*1.D6
-     &               /(RNFP0*RNFP(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR,NS))
+     &               /(RNFP0*RNFP(NR)*1.D20
+     &                *PTFP(NR)*PTFP(NR)*RNUD(NR,NS))
                RJN=RJT(NR,NTG1)*AMFP*1.D6
-     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
+     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTFP(NR))
                IF(ABS(RPN).LT.1.D-70) THEN
                   RJP=0.D0
                ELSE
@@ -265,9 +268,9 @@ C
          IF (ABS(PPET(NTG2)).GT.0.D0) THEN
             DO NS=1,NSMAX
             DO 2000 NR=1,NRMAX
-               REN=RET(NR,NTG1)*AEFP/(RNU(NR,NS)*PTH(NR))
+               REN=RET(NR,NTG1)*AEFP/(RNUD(NR,NS)*PTFP(NR))
                RJN=RJT(NR,NTG1)*AMFP*1.D6
-     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
+     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTFP(NR))
                IF(ABS(REN).LT.1.D-70) THEN
                   RJE=0.D0
                ELSE

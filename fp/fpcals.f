@@ -368,8 +368,6 @@ C
       INCLUDE '../wr/wrcom1.inc'
       INCLUDE 'fpcom2.inc'
 C
-      DIMENSION DLA(0:NITM,NRAYMX)
-C
       DELH=4.D0*ETA/NAVMAX
 C
       DWPPS=0.D0
@@ -391,7 +389,6 @@ C
          ZL=Z
          DO NRAY=1,NRAYMX
 C            IF(IFLAG.EQ.1) WRITE(6,*) 'NR,NCRMAX=',NR,NCRMAX(NR,NRAY)
-            NITMX=NITMAX(NRAY)
             RFDW=RAYIN(1,NRAY)
 C
             IF(MODELW.EQ.2) THEN
@@ -519,6 +516,7 @@ C
 C
       RW     =2.D0*PI*RFDW*1.D6
       RWC    =AEFP*BABS/AMFP
+      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 C
       RKPARA = RKX*BNX +RKY*BNY +RKZ*BNZ
       RKPERP = SQRT(RKX*RKX+RKY*RKY+RKZ*RKZ-RKPARA*RKPARA)
@@ -539,8 +537,8 @@ C
       CEMINUS=(CE1-CI*CE2)/SQRT(2.D0)
 C
       RGAMMA =SQRT(1.D0+P*P*THETA0)
-      PPARA  =PTH0*P*PCOS
-      PPERP  =PTH0*P*PSIN
+      PPARA  =PTFP0*P*PCOS
+      PPERP  =PTFP0*P*PSIN
       VPARA  =PPARA/(AMFP*RGAMMA)
       VPERP  =PPERP/(AMFP*RGAMMA)
 C 
@@ -604,7 +602,7 @@ C
             IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
-                DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTH0**2
+                DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTFP0**2
      &              /(RW*ABS(PPARA)*DELNPR/(AMFP*VC))
             ENDIF
          ENDIF

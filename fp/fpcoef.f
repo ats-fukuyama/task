@@ -182,54 +182,64 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DO 10 NR=1,NRMAX
-      DO 10 NP=1,NPMAX+1
-      DO 10 NTH=1,NTHMAX
-         FEPP(NTH,NP,NR)= AEFP*E2(NR)/PTH0*COSM(NTH)
-   10 CONTINUE
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX+1
+      DO NTH=1,NTHMAX
+         FEPP(NTH,NP,NR)= AEFP*E2(NR)/PTFP0*COSM(NTH)
+      ENDDO
+      ENDDO
+      ENDDO
 C
-      DO 20 NR=1,NRMAX
-      DO 20 NP=1,NPMAX
-      DO 20 NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR)=-AEFP*E2(NR)/PTH0*SING(NTH)
-   20 CONTINUE
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX+1
+         FETH(NTH,NP,NR)=-AEFP*E2(NR)/PTFP0*SING(NTH)
+      ENDDO
+      ENDDO
+      ENDDO
 C
       IF (MODELA.EQ.0) RETURN
 C
-      DO 200 NR=1,NRMAX
+      DO NR=1,NRMAX
          FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
 C
-         DO 110 NP=1,NPMAX+1
-         DO 110 NTH=1,ITL(NR)-1
+         DO NP=1,NPMAX+1
+         DO NTH=1,ITL(NR)-1
             FEPP(NTH,NP,NR)= FACT*FEPP(NTH,NP,NR)
-  110    CONTINUE
+         ENDDO
+         ENDDO
 C
-         DO 120 NP=1,NPMAX+1
-         DO 120 NTH=ITL(NR),ITU(NR)
+         DO NP=1,NPMAX+1
+         DO NTH=ITL(NR),ITU(NR)
             FEPP(NTH,NP,NR)= 0.D0
-  120    CONTINUE
+         ENDDO
+         ENDDO
 C
-         DO 130 NP=1,NPMAX+1
-         DO 130 NTH=ITU(NR)+1,NTHMAX
+         DO NP=1,NPMAX+1
+         DO NTH=ITU(NR)+1,NTHMAX
             FEPP(NTH,NP,NR)= FACT*FEPP(NTH,NP,NR)
-  130    CONTINUE
+         ENDDO
+         ENDDO
 C
-         DO 140 NP=1,NPMAX
-         DO 140 NTH=1,ITL(NR)
+         DO NP=1,NPMAX
+         DO NTH=1,ITL(NR)
             FETH(NTH,NP,NR)=FACT*FETH(NTH,NP,NR)
-  140    CONTINUE
+         ENDDO
+         ENDDO
 C
-         DO 150 NP=1,NPMAX
-         DO 150 NTH=ITL(NR)+1,ITU(NR)
+         DO NP=1,NPMAX
+         DO NTH=ITL(NR)+1,ITU(NR)
             FETH(NTH,NP,NR)= 0.D0
-  150    CONTINUE
+         ENDDO
+         ENDDO
 C
-         DO 160 NP=1,NPMAX
-         DO 160 NTH=ITU(NR)+1,NTHMAX+1
+         DO NP=1,NPMAX
+         DO NTH=ITU(NR)+1,NTHMAX+1
             FETH(NTH,NP,NR)=FACT*FETH(NTH,NP,NR)
-  160    CONTINUE
+         ENDDO
+         ENDDO
 C
-  200 CONTINUE
+      ENDDO
 C
       RETURN
       END
@@ -247,7 +257,7 @@ C
       DO NR=1,NRMAX
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
-            DCPP(NTH,NP,NR)=0.00
+            DCPP(NTH,NP,NR)=0.D0
             DCPT(NTH,NP,NR)=0.D0
             FCPP(NTH,NP,NR)=0.D0
          ENDDO
@@ -318,7 +328,7 @@ C
                FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
             ENDDO
          ENDDO
-      ENDI
+      ENDIF
 C
       RETURN
       END
@@ -332,30 +342,33 @@ C
       SUBROUTINE FPCALC_L(NR,NS)
 C
       INCLUDE 'fpcomm.inc'
-      EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
+      COMMON /FPFNV1/ PNFD,TMC2FD
+      EXTERNAL FPFN0R,FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 C
-      RNNL=RNFD(NR,NS)/RNFD(1,NS)
-      RTNL=RTFD(NR,NS)/RTFD(1,NS)
-      RNUFL=RNUF(NR,NS)
-      RNUDL=RNUD(NR,NS)
+      AMFD=PA(NS)*AMP
+      PTFPL=PTFP(NR)
+      VTFPL=VTFP(NR)
+      RNNL=RNFD(NR,NS)/RNFP0
+      RNUFL=RNUF(NR,NS)*RNNL
+      RNUDL=RNUD(NR,NS)*RNNL
       PTFDL=PTFD(NR,NS)
       VTFDL=VTFD(NR,NS)
-      VTNL=VTFDL/VTFD(1,NS)
+C
+C     ----- Non-Relativistic -----
 C
       IF(MODELR.EQ.0) THEN
-C
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
-               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))*RNUL
+               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
+     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
                FCPPL=0.D0
             ELSE
-               PTFPL=PG(NP)*PTFP0
-               VTFPL=PTFPL/AMFP
-               U=VTFP/(SQRT(2.D0)*VTFD(NR,NS))
-               FCPPL=-0.5D0*RNUFL*RNNL/VTFDL**2
-     &              *(ERF1(U)/U**2-ERF2(U)/U)
-C               FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
-C               DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
+               PFPL=PG(NP)*PTFP0
+               VFPL=PFPL/AMFP
+               V=VFPL/VTFP0
+               U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
+               DCPPL= 0.5D0*RNUDL/V   *(ERF0(U)/U**2-ERF1(U)/U)
+               FCPPL=-      RNUFL/V**2*(ERF0(U)-U*ERF1(U))
             ENDIF
             DO NTH=1,NTHMAX
                DCPP(NTH,NP,NR)=DCPPL
@@ -364,97 +377,82 @@ C               DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
          ENDDO
 C
          DO NP=1,NPMAX
-            U=PM(NP)*PTH0/(AMFP*VTFD(NR,NS))
-            DCTTL= 0.25D0*RNUL*PTHL
-     &                   *((2.D0/U-1.D0/U**3)*ERF1(U)+ERF2(U)/U**2)
-            IF(MODEL.LT.0) THEN
-     &            +0.5D0*RNUL*PTHL*ZEFF/U
-               DO NTH=1,NTHMAX+1
-                  DCTT(NTH,NP,NR)=DCTTL
-               ENDDO
+            PFPL=PM(NP)*PTFP0
+            VFPL=PFPL/AMFP
+            V=VFPL/VTFP0
+            U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
+            DCTTL= 0.25D0*RNUDL/V 
+     &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
+            IF(NS.EQ.1.AND.MODELC.LT.0) THEN
+               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
+            ENDIF
+            DO NTH=1,NTHMAX+1
+               DCTT(NTH,NP,NR)=DCTTL
             ENDDO
+         ENDDO
 C
-         ELSE
-            NRX=NR
-            THETAL=THETA(NR)
-            RNUR=(RNUL*SQRT(THETA0)**3)/(3.D0*THETAL*DKBSR(NR))
-            DO NP=1,NPMAX+1
-               IF(NP.EQ.1) THEN
-                  DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
-                  FCPPL=0.D0
-               ELSE
-                  PX=PG(NP)
-                  PV=PX/SQRT(1.D0+THETA0*PX*PX)
-                  CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
-                  CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
-                  DCPPL=RNUR*(RINT1/PV**3
-     &                       +RINT2)
-                  CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
-                  CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
-                  CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
-                  FCPPL=-RNUR*(3.D0*RINT4/PV**2
-     &                        -THETA0*RINT5/PV**2
-     &                        +2.D0*THETA0*RINT6*PV)
-               ENDIF
-               DO NTH=1,NTHMAX
-                  DCPP(NTH,NP,NR)=DCPPL
-                  FCPP(NTH,NP,NR)=FCPPL
-               ENDDO
-            ENDDO
+C     ----- Relativistic -----
 C
-            DO NP=1,NPMAX
-               PX=PM(NP)
-               PV=PX/SQRT(1.D0+THETA0*PX*PX)
+      ELSE
+         DO NP=1,NPMAX+1
+            IF(NP.EQ.1) THEN
+               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
+     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
+               FCPPL=0.D0
+            ELSE
+               PFPL=PG(NP)*PTFP0
+               VFPL=PFPL/SQRT(AMFP**2+PTFPL**2/VC**2)
+               VFDL=VFPL
+               PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
+               PNFDL=PFDL/PTFDL
+               PNFD=PNFDL
+               TMC2FD=PTFDL**2/(AMFD*VC)**2
+               CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
-               CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R)
-               DCTTL=RNUR*(1.5D0*RINT3/PV
-     &                    -0.5D0*RINT1/PV**3
-     &                    +RINT2)
-     &                    +0.5D0*RNUL*ZEFF/PV
-C
-               DO NTH=1,NTHMAX+1
-                  DCTT(NTH,NP,NR)=DCTTL
-               ENDDO
+               DCPPL= 4.D0*PI*RNUDL*VTFP0/3.D0
+     &              *(RINT1*VTFDL**2/(RINT0*VTFPL**3)
+     &               +RINT2/(RINT0*VTFDL))
+               CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
+               CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
+               CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
+               FCPPL=-4.D0*PI*RNUDL*VTFP0**2/3.D0
+     &              *(3.D0*RINT4*VTFDL   /(RINT0*VTFPL**2)
+     &               -     RINT5*VTFDL**3/(RINT0*VTFPL**2*VC**2)
+     &               +2.D0*RINT6*VTFPL   /(RINT0*VC**2))
+            ENDIF
+            DO NTH=1,NTHMAX
+               DCPP(NTH,NP,NR)=DCPPL
+               FCPP(NTH,NP,NR)=FCPPL
             ENDDO
-         ENDIF
-C
          ENDDO
-      ENDDO
 C
-      IF (MODELA.EQ.0) RETURN
+         DO NP=1,NPMAX
+            PFPL=PM(NP)*PTFP0
+            VFPL=PFPL/SQRT(AMFP**2+PTFPL**2/VC**2)
+            VFDL=VFPL
+            PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
+            PNFDL=PFDL/PTFDL
+            PNFD=PNFDL
+            TMC2FD=PTFDL**2/(AMFD*VC)**2
+            CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
+            CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
+            CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
+            CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R)
+            DCTTL= 4.D0*PI*RNUDL*VTFP0/3.D0
+     &           *(1.5D0*RINT3*VTFPL**2/(RINT0*VTFPL**3)
+     &            -0.5D0*RINT1*VTFDL**2/(RINT0*VTFPL**3)
+     &            +RINT2/(RINT0*VTFDL))
+            IF(NS.EQ.1.AND.MODELC.LT.0) THEN
+               V=VFPL/VTFP0
+               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
+            ENDIF
 C
-      DO 8000 NR=1,NRMAX
-         DO 6000 NTH=1,NTHMAX
-            FACT=RLAMDA(NTH,NR)
-         DO 6000 NP=1,NPMAX+1
-            DCPP(NTH,NP,NR)=FACT*DCPP(NTH,NP,NR)
-            FCPP(NTH,NP,NR)=FACT*FCPP(NTH,NP,NR)
- 6000    CONTINUE
-C
-         DO 7000 NTH=1,NTHMAX+1
-            FACT=RLAMDC(NTH,NR)
-         DO 7000 NP=1,NPMAX
-            DCTT(NTH,NP,NR)=FACT*DCTT(NTH,NP,NR)
- 7000    CONTINUE
- 8000 CONTINUE
-C
-      DO 9000 NR=1,NRMAX
-      DO 9000 NP=1,NPMAX+1
-         DCPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
-     &                    *( DCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
-     &                      +DCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
-     &                      +DCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
-     &                      +DCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
-C
-         FCPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
-     &                    *( FCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
-     &                      +FCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
-     &                      +FCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
-     &                      +FCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
-         DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
-         FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
- 9000 CONTINUE
+            DO NTH=1,NTHMAX+1
+               DCTT(NTH,NP,NR)=DCTTL
+            ENDDO
+         ENDDO
+      ENDIF
 C
       RETURN
       END
@@ -465,16 +463,29 @@ C                       SET OF INTEGRAND
 C
 C ***************************************************************
 C
+      REAL*8 FUNCTION FPFN0R(X)
+C
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
+C
+      A=PNFD
+      PN=A*X
+      FPFN0R=A*PN**2*FPRMXW(PN)
+C
+      RETURN
+      END
+C
       REAL*8 FUNCTION FPFN1R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
       XX=XM
       XX=X
-      A=0.5D0*PX
-      X1=A*XP
-      B=X1**4/(1.D0+X1**2*THETA0)
-      FPFN1R=A*B*FPRMXW(X1)
+      A=0.5D0*PNFD
+      PN=A*XP
+      B=PN**4/(1.D0+PN**2*TMC2FD)
+      FPFN1R=A*B*FPRMXW(PN)
 C
       RETURN
       END
@@ -483,12 +494,13 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN2R(X)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
-      A=PX
-      X1=A*(X+1.D0)
-      B=X1*SQRT(1.D0+X1**2*THETA0)
-      FPFN2R=A*B*FPRMXW(X1)
+      A=PNFD
+      PN=A*(X+1.D0)
+      B=PN*SQRT(1.D0+PN**2*TMC2FD)
+      FPFN2R=A*B*FPRMXW(PN)
 C
       RETURN
       END
@@ -497,13 +509,14 @@ C ==============================================================
 C
       REAL*8 FUNCTION FPFN3R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
       XX=X
       XX=XM
-      A=0.5D0*PX
-      X1=A*XP
-      FPFN3R=A*X1**2*FPRMXW(X1)
+      A=0.5D0*PNFD
+      PN=A*XP
+      FPFN3R=A*PN**2*FPRMXW(PN)
 C
       RETURN
       END
@@ -512,14 +525,15 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN4R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
       XX=X
       XX=XM
-      A=0.5D0*PX
-      X1=A*XP
-      B=X1**2/SQRT(1.D0+X1**2*THETA0)
-      FPFN4R=A*B*FPRMXW(X1)
+      A=0.5D0*PNFD
+      PN=A*XP
+      B=PN**2/SQRT(1.D0+PN**2*TMC2FD)
+      FPFN4R=A*B*FPRMXW(PN)
 C
       RETURN
       END
@@ -528,14 +542,15 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN5R(X,XM,XP)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
       XX=X
       XX=XM
-      A=0.5D0*PX
-      X1=A*XP
-      B=X1**4/(SQRT(1.D0+X1**2*THETA0))**3
-      FPFN5R=A*B*FPRMXW(X1)
+      A=0.5D0*PNFD
+      PN=A*XP
+      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD))**3
+      FPFN5R=A*B*FPRMXW(PN)
 C
       RETURN
       END
@@ -544,22 +559,24 @@ C ===============================================================
 C
       REAL*8 FUNCTION FPFN6R(X)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
-      A=PX
-      X1=A*(X+1.D0)
-      FPFN6R=A*X1*FPRMXW(X1)
+      A=PNFD
+      PN=A*(X+1.D0)
+      FPFN6R=A*PN*FPRMXW(PN)
 C
       RETURN
       END
 C
 C ===============================================================
 C
-      REAL*8 FUNCTION FPRMXW(X)
+      REAL*8 FUNCTION FPRMXW(PN)
 C
-      INCLUDE 'fpcomm.inc'
+      IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
+      COMMON /FPFNV1/ PNFD,TMC2FD
 C
-      EX=(1.D0-SQRT(1.D0+X**2*THETA0))/THETA(NRX)
+      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD))/TMC2FD
       IF (EX.LT.-100.D0)THEN
          FPRMXW=0.D0
       ELSE

@@ -47,16 +47,15 @@ C
 C
 C     ------ INITIALIZATION ------
 C
-      CALL GSOPEN
-C
       WRITE(6,600)
   600 FORMAT(' ')
       WRITE(6,601) NRM,NSM,NFM,NGM,NTM
-  601 FORMAT(' ','# TASK/TR --- V2.21 : 00/04/19 ',
+  601 FORMAT(' ','# TASK/TR --- V2.30 : 04/03/21 ',
      &       '*** NRM, NSM, NFM, NGM, NTM  ***'/
      &       ' ',33X,I5,I5,I5,I5,I5)
       OPEN(33,STATUS='SCRATCH',FORM='FORMATTED')
 C
+      CALL GSOPEN
       CALL GUTIME(GTCPU1)
       CALL TRINIT
       CALL TRPARF

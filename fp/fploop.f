@@ -107,10 +107,10 @@ C
                RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
             ENDIF
             FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
-            RNUF(NR,NS)=FACT*RNFD(1,NS)*1.D20
-     &                 /(2.D0*AMFD*VTFD(1,NS)**2*PTFP(1))
-            RNUD(NR,NS)=FACT*RNFD(1,NS)*1.D20
-     &                 /(SQRT(2.D0)*VTFD(1,NS)*PTFP(1)**2)
+            RNUD(NR,NS)=FACT*RNFP0*1.D20
+     &                 /(VTFP0*PTFP0**2)
+            RNUF(NR,NS)=FACT*RNFP0*1.D20
+     &                 /(AMFD*VTFP0**2*PTFP0)
          ENDDO
       ENDDO
 C
@@ -350,6 +350,7 @@ C
 C
       ELSE
 C
+         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
          IF(NR.EQ.0.OR.NR.EQ.NRMAX+1) THEN
             THETAL=THETA0*RTFPL
             Z=1.D0/THETAL
@@ -510,7 +511,7 @@ C
                   RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
                ENDDO
                ENDDO
-               RJN(NR)=AEFP*RNFP0*1.D20*PTH0*DELP*RSUM/(AMFP*RM(NR)*RA)
+               RJN(NR)=AEFP*RNFP0*1.D20*PTFP0*DELP*RSUM/(AMFP*RM(NR)*RA)
             ENDDO
             RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
 C

@@ -226,6 +226,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
       P2=PPARA**2+PPERP**2
       PVPARA=PPARA/SQRT(1.D0+P2*THETA0)
 C
@@ -233,16 +234,16 @@ C        ***** LOWER HTYBRID WAVE *****
 C
 C        IF (PVPARA.GT.PLH1.AND.PVPARA.LT.PLH2.AND.
 C    &       RM(NR).GE.RLH)THEN
-C           DLHL=DLH*RNU0
+C           DLHL=DLH*RNUD(NR,NSFP)
 C        ELSE
 C           DLHL=0.D0
 C        END IF
 C
          IF (DLH.GT.0.D0.AND.RM(NR).GE.RLH)THEN
             IF(ABS(PVPARA).GT.1.D-70) THEN
-               ARG=((AMFP*VC/(PTH0*PVPARA)-PLH1)/PLH2)**2
+               ARG=((AMFP*VC/(PTFP0*PVPARA)-PLH1)/PLH2)**2
                IF(ARG.LT.20.D0) THEN
-                  DLHL=DLH*RNU0*EXP(-ARG)
+                  DLHL=DLH*RNUD(NR,NSFP)*EXP(-ARG)
                ELSE
                   DLHL=0.D0
                ENDIF
@@ -257,7 +258,7 @@ C        ***** FAST WAVE *****
 C
 C        IF (PVPARA.GT.PFW1.AND.PVPARA.LT.PFW2.AND.
 C    &       RM(NR).GE.RFW)THEN
-C           DFWL=DFW*RNU0/(PPARA**2)
+C           DFWL=DFW*RNUD(NR,NSFP)/(PPARA**2)
 C    &         *(PPERP**2-2.D0*(TE(NR)+0.025D0*551.D0/TE0))**2
 C        ELSE
 C           DFWL=0.D0
@@ -271,42 +272,45 @@ C
                WFW2=(RFW*1.D6*2*PI)**2
                FACT=RTFP(NR)+WFW2*AMFP*VC*VC/(WPI2*RTFP0*1.D3)
                IF(ABS(PFW1-2.2D0).LT.1.D-30) THEN
-                  ARG=((AMFP*VC/(PTH0*PVPARA)-2.2D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTFP0*PVPARA)-2.2D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
-                     DFWL1=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
+                     DFWL1=DFW*RNUD(NR,NSFP)*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL1=0.D0
                   ENDIF
-                  ARG=((AMFP*VC/(PTH0*PVPARA)+2.2D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTFP0*PVPARA)+2.2D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
-                     DFWL2=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
+                     DFWL2=DFW*RNUF(NR,NSFP)*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL2=0.D0
                   ENDIF
                   DFWL=DFWL1+DFWL2
                ELSEIF(ABS(PFW1-1.6D0).LT.1.D-30) THEN
-                  ARG=((AMFP*VC/(PTH0*PVPARA)-1.6D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTFP0*PVPARA)-1.6D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
-                     DFWL1=1.5D0*DFW*RNU0*EXP(-ARG)/(PVPARA**2)
+                     DFWL1=1.5D0*DFW*RNUD(NR,NSFP)*EXP(-ARG)
+     &                    /(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL1=0.D0
                   ENDIF
-                  ARG=((AMFP*VC/(PTH0*PVPARA)+2.8D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTFP0*PVPARA)+2.8D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
-                     DFWL2=0.5D0*DFW*RNU0*EXP(-ARG)/(PVPARA**2)
-     &                   *(PPERP**2-2.D0*FACT)**2
+                     DFWL2=0.5D0*DFW*RNUD(NR,NSFP)*EXP(-ARG)
+     &                    /(PVPARA**2)
+     &                    *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL2=0.D0
                   ENDIF
                   DFWL=DFWL1+DFWL2
                ELSE
-                  ARG=((AMFP*VC/(PTH0*PVPARA)-PFW1)/PFW2)**2
+                  ARG=((AMFP*VC/(PTFP0*PVPARA)-PFW1)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
-                     DFWL=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
-     &                   *(PPERP**2-2.D0*FACT)**2
+                     DFWL=DFW*RNUD(NR,NSFP)*EXP(-ARG)
+     &                    /(PVPARA**2)
+     &                    *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL=0.D0
                   ENDIF
@@ -331,7 +335,7 @@ C
                ARG2=(FN/DELF)**2
                IF(ARG2.LT.20.0) THEN
                   FACT2=EXP(-ARG2)
-                  DECL=DEC*RNU0*FACT1*FACT2
+                  DECL=DEC*RNUD(NR,NSFP)*FACT1*FACT2
                ELSE
                   DECL=0.D0
                ENDIF
