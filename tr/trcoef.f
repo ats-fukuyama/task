@@ -789,7 +789,6 @@ C
             ALFA_AR(NR) = ALFA
             RKCV_AR(NR) = RKCV
 C
-            VGR1(NR,1)=0.D0
             VGR1(NR,2)=S
             VGR1(NR,3)=ALFA
             VGR2(NR,1)=RNST2
@@ -802,24 +801,27 @@ C
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
             VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
             IF(MDLKAI.EQ.64) THEN
+               DPERHO=DPE/RJCB(NR)
+               DTERHO=DTE/RJCB(NR)
                NR08=INT(0.8D0*NRMAX)
-               CHIB  = (ABS(DPE*1.D3)/(ANE*BB))*QL*QL
+               CHIB  = (ABS(DPERHO*1.D3)/(ANE*BB))*QL*QL
      &                *((RT(NR08,1)-RT(NRMAX,1))/RT(NRMAX,1))
                RHOS  = 1.02D-4*SQRT(PA(2)*TE*1.D3/PZ(2))/(RA*BB)
-               CHIGB = RHOS*ABS(DTE*1.D3)/BB
+C               RHOS  = SQRT(2.D0*AMM/AEE)*SQRT(PA(2)*TE*1.D3)
+C     &                /(PZ(2)*RA*BB)
+               CHIGB = RHOS*ABS(DTERHO*1.D3)/BB
                CS    = SQRT(ABS(TE*RKEV/(PA(2)*AMM)))
-C               ALNI  = -DND/ANDX
-C               ALTI  = -DTD/TD
                ALNI  = ABS(DND/ANDX)
                ALTI  = ABS(DTD/TD)
                AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
-               S=RR*EPS*DQ/QL
+               AGME(NR)=0.D0
                AKDW(NR,1) = 8.D-5  *CHIB*FBHM(AGME(NR),AGITG,S)
      &                     +7.D-2  *CHIGB
                AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(AGME(NR),AGITG,S)
      &                     +1.75D-2*CHIGB
                AKDW(NR,3) = AKDW(NR,2)
                AKDW(NR,4) = AKDW(NR,2)
+               VGR1(NR,1) = FBHM(AGME(NR),AGITG,S)
             ENDIF
          ELSE                                           
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
@@ -1196,10 +1198,10 @@ C     &         -2.1*(RNUT*EPSS)**2)/(1+(RNUT*EPSS)**2)
 C         RK3A=((1.17-0.35*SQRT(RNUA))/(1.D0+0.7*SQRT(RNUA))
 C     &         -2.1*(RNUA*EPSS)**2)/(1+(RNUA*EPSS)**2)
 C
-         AKNC(NR,1) = SQRT(EPS)*RHOE2/TAUE*RK22E
-         AKNC(NR,2) = SQRT(EPS)*RHOD2/TAUD*RK2D
-         AKNC(NR,3) = SQRT(EPS)*RHOT2/TAUT*RK2T
-         AKNC(NR,4) = SQRT(EPS)*RHOA2/TAUA*RK2A
+         AKNC(NR,1) = CNC*SQRT(EPS)*RHOE2/TAUE*RK22E
+         AKNC(NR,2) = CNC*SQRT(EPS)*RHOD2/TAUD*RK2D
+         AKNC(NR,3) = CNC*SQRT(EPS)*RHOT2/TAUT*RK2T
+         AKNC(NR,4) = CNC*SQRT(EPS)*RHOA2/TAUA*RK2A
 C
       ELSE
 C
@@ -1295,27 +1297,26 @@ C
      &       /(1.D0+1.79D0*RALFA))
      &       *(F1-F2)
 C
-         AKNC(NR,1)=(QL**2*RHOIE**2)/(EPSS*TAUE)*(TERM1E+TERM2E)
-         AKNC(NR,2)=(QL**2*RHOID**2)/(EPSS*TAUD)*(TERM1D+TERM2D)
-         AKNC(NR,3)=(QL**2*RHOIT**2)/(EPSS*TAUT)*(TERM1T+TERM2T)
-         AKNC(NR,4)=(QL**2*RHOIA**2)/(EPSS*TAUA)*(TERM1A+TERM2A)
+         AKNC(NR,1)=CNC*(QL**2*RHOIE**2)/(EPSS*TAUE)*(TERM1E+TERM2E)
+         AKNC(NR,2)=CNC*(QL**2*RHOID**2)/(EPSS*TAUD)*(TERM1D+TERM2D)
+         AKNC(NR,3)=CNC*(QL**2*RHOIT**2)/(EPSS*TAUT)*(TERM1T+TERM2T)
+         AKNC(NR,4)=CNC*(QL**2*RHOIA**2)/(EPSS*TAUA)*(TERM1A+TERM2A)
 C
       ENDIF
 C
 C     Limit of neoclassical diffusivity
          DO NS=1,4
             CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
-            IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
+            IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CNC*CHECK
          ENDDO
       ENDDO
 C
       ENTRY TRCFDW_AKDW
 C
       DO NR=1,NRMAX
-         AK(NR,1) = AKDW(NR,1)+CNC*AKNC(NR,1)
-         AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
-         AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
-         AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
+         DO NS=1,NSM
+            AK(NR,NS) = AKDW(NR,NS)+AKNC(NR,NS)
+         ENDDO
       ENDDO
 C
 C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
@@ -1988,7 +1989,7 @@ C     *** for Mixed Bohm/gyro-Bohm model ***
 C
       FUNCTION FBHM(AGME,AGITG,S)
 C
-      REAL*8 AGME,AGITG,S
+      REAL*8 AGME,AGITG,S,FBHM
 C
       FBHM=1.D0/(1.D0+EXP(20.D0*(0.05D0+AGME/AGITG-S)))
 C

@@ -165,7 +165,7 @@ C     ****** STORED VARIABLES FOR UFILE ******
 C
       COMMON /TRSVU1/ QPU(NTUM,NRMP),     RNU(NTUM,NRMP,NSM),
      &                RTU(NTUM,NRMP,NSM), AJU(NTUM,NRMP),
-     &                BPU(NTUM,NRMP)
+     &                AJNBU(NTUM,NRMP),   BPU(NTUM,NRMP)
       COMMON /TRSVU2/ PNBU(NTUM,NRMP,NSM),PICU(NTUM,NRMP,NSM),
      &                PRLU(NTUM,NRMP),    PECU(NTUM,NRMP),
      &                POHU(NTUM,NRMP)

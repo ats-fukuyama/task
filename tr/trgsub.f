@@ -790,7 +790,7 @@ C
       DIMENSION PICRH(NTUM),PNBI(NTUM)
       CHARACTER KFID*10
 C
-      IF(MDLUF.NE.1) RETURN
+      IF(MDLUF.EQ.0.OR.MDLUF.EQ.2) RETURN
       ICK=2
       TMUMAX=0.D0
 C
@@ -945,12 +945,21 @@ C
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@TI(TR),TI(XP) [keV]  vs r@',2+INQ)
 C
-         DO NR=1,NRMAX
-            GYR(NR,1) = GUCLIP(AJ(NR)   *1.D-6)
-            GYR(NR,2) = GUCLIP(AJU(1,NR)*1.D-6)
-         ENDDO
-         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &        '@AJ(TR),AJ(XP) [MA/m$+2$=]  vs r@',2+INQ)
+         IF(MDLJQ.NE.1) THEN
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(QP(NR))
+               GYR(NR,2) = GUCLIP(QPU(1,NR))
+            ENDDO
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@QP(TR),QP(XP)  vs r@',2+INQ)
+         ELSE
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(AJ(NR)   *1.D-6)
+               GYR(NR,2) = GUCLIP(AJU(1,NR)*1.D-6)
+            ENDDO
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@AJ(TR),AJ(XP) [MA/m$+2$=]  vs r@',2+INQ)
+         ENDIF
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(BP(NR))
@@ -1084,17 +1093,40 @@ C
       COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
-      IF(MDLUF.NE.1) RETURN
+      IF(MDLUF.EQ.0) RETURN
 C
       CALL PAGES
-      TSL=DT*DBLE(NT)
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
-         CALL LAGLANGE(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
-         GYR(NR,2) = GUCLIP(RTL*1.D-6)
-      ENDDO
+      IF(MDLUF.EQ.2) THEN
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
+            GYR(NR,2) = GUCLIP(POHU(1,NR)*1.D-6)
+         ENDDO
+      ELSE
+         TSL=DT*DBLE(NT)
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
+            CALL LAGLANGE(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
+            GYR(NR,2) = GUCLIP(RTL*1.D-6)
+         ENDDO
+      ENDIF
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
-     &     '@POH(TR),POH(XP) [MW/m$+3$=]  vs r@',2+INQ)
+     &            '@POH(TR),POH(XP) [MW/m$+3$=]  vs r@',2+INQ)
+C
+      IF(MDLUF.EQ.2) THEN
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(ZEFF(NR))
+            GYR(NR,2) = GUCLIP(ZEFFU(1,NR))
+         ENDDO
+      ELSE
+         TSL=DT*DBLE(NT)
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(ZEFF(NR))
+            CALL LAGLANGE(TSL,RTL,TMU,ZEFFU(1,NR),NTXMAX,NTUM,IERR)
+            GYR(NR,2) = GUCLIP(RTL)
+         ENDDO
+      ENDIF
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &            '@ZEFF(TR),ZEFF(XP) [keV]  vs r@',2+INQ)
       CALL PAGEE
 C     
       RETURN

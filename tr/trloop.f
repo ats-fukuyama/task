@@ -364,7 +364,7 @@ C      IF(MODELG.EQ.3) THEN
 C         BPS=BPSEQ*RIP/RIPEQ
 C      ENDIF
 C
-      COEF = AEE**4*5.D0*1.D20/(SQRT(2.D0*PI)*PI*AEPS0**2)
+      COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*AEPS0**2)
 C
       DO NR=1,NRMAX
       DO NW=1,NEQMAX
@@ -439,7 +439,7 @@ C
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &           *AMZ(NSSN1))*DV53*1.5D0
+     &           *AMZ(NSSN1))*DV53*CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
@@ -505,7 +505,8 @@ C
                NSSN =NSS(NEQ )
                IF(NSSN1.NE.NSSN) THEN
                   C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &                 *AMZ(NSSN1))*DV53*1.5D0
+     &                 *AMZ(NSSN1))*DV53
+     &                 *CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
                ENDIF
@@ -574,7 +575,7 @@ C
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &              *AMZ(NSSN1))*DV53*1.5D0
+     &              *AMZ(NSSN1))*DV53*CLOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
@@ -1017,6 +1018,7 @@ C
       DV11=DVRHO(NR)
       DV23=DVRHO(NR)**(2.D0/3.D0)
       DV53=DVRHO(NR)**(5.D0/3.D0)
+      CC=1.5D0
 C
       DO NEQ=1,NEQMAX  ! *** NEQ ***
 C
@@ -1100,16 +1102,16 @@ C
             ELSEIF(NSVN.EQ.2) THEN
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*(AVK(NRJ,NSSN)
-     &                                  +AV(NRJ,NSSN)*1.5D0)*DV23
+     &                                  +AV(NRJ,NSSN)*CC)*DV23
                   DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*AK(NRJ,NSSN)*DV23
                   VV(NEQ,NEQ-1,NMK,NSW)= 0.D0*DV23
                   IF(NRJ.EQ.NRMAX) THEN
                   DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*(AD(NRJ,NSSN)
-     &                                  *1.5D0-AK(NRJ,NSSN))*DV23
+     &                                  *CC-AK(NRJ,NSSN))*DV23
      &                                  *PTS(NSSN)
                   ELSE
                   DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*(AD(NRJ,NSSN)
-     &                                  *1.5D0-AK(NRJ,NSSN))*DV23*0.5D0
+     &                                  *CC-AK(NRJ,NSSN))*DV23*0.5D0
      &                                  *(RT(NRJ,NSSN)+RT(NRJ+1,NSSN))
                   ENDIF
                ENDIF
@@ -1190,7 +1192,6 @@ C
                ENDIF
                ENDIF
             ELSEIF(NSVN.EQ.2) THEN
-               CC=1.5D0
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   IF(NRJ.EQ.NRMAX) THEN  ! *** NRJ ***
                   VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*DV23
@@ -1605,6 +1606,28 @@ C
                ENDIF
             ENDDO
          ENDDO
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           COULOMB LOGARITHM for electron-ion collisions
+C
+C     ***********************************************************
+C
+      FUNCTION CLOG(NS1,NS2,RN,RT)
+C
+C     RNE : electron density (10^20 /m^3)
+C     RTE : electron temperature (keV)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
+         CLOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
+      ELSE
+         CLOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
       ENDIF
 C
       RETURN

@@ -534,7 +534,7 @@ C
 C      REAL*8 SEARCHMODE,SEARCH
       INTEGER SEARCHMODE
       REAL*8 SEARCH
-      INTEGER ISHW,IKL,ISTL
+      INTEGER ICP,IKL,ISTL
       REAL*8 GKL,WEXBL,ROTL,SCHIL,SCHEL,SDL,SCHQL,SDQL
       COMPLEX*16 HQ,WZ,WZP
       COMMON/PARAM/ CT
@@ -565,9 +565,9 @@ C      REAL*8 SEARCHMODE,SEARCH
       COMMON/SEARCHMODE/ SEARCHMODE
       COMMON/WDE/ WDE
 C
-C     ISHW : controlling printout in TR_WEILAND_BRIDGE (0: off)
-      ISHW=0
-      IF(ISHW.NE.0) THEN
+C     ICP : controlling printout in TR_WEILAND_BRIDGE (0: off)
+      ICP=0
+      IF(ICP.NE.0) THEN
          WRITE(6,*) '//////////////////////////////////////////////////'
       ENDIF
 C
@@ -685,7 +685,7 @@ C
 C
       NI=GQ*N
       CS=3.09501D5*DSQRT(TE/MA)
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,00126) EN,EI,EE,FL,TAU
 00126    FORMAT(2X,'EN=',F8.3,' EI=',F8.3,' EE=',F8.3,' FL=',F8.3,
      &        ' TAU=',G12.4)
@@ -711,14 +711,14 @@ C
       VEF=VEI/(EPS*WDE)
       VEF=COL*VEF
 C
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,00130) WST,VEF,VEI,ZEFF,COL
 00130    FORMAT(2X,'WST=',G11.3,' VEF=',G11.3,' VEI=',G11.3,
      &        ' ZEFF=',G11.3,' COL=',G11.3)
       ENDIF
 C
       H=0.5D0*ABS(S)/q
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,00133) H
 00133    FORMAT(2X,'H=',G12.4)
       ENDIF
@@ -736,7 +736,7 @@ C
       GO TO 160
   140 WR=C
       WI=SQRT(-DS)
-      IF(ISHW.NE.0) WRITE(*,170) WR,WI
+      IF(ICP.NE.0) WRITE(*,170) WR,WI
   160 CONTINUE
   170 FORMAT(2X,'WR=',F7.3,' WI=',F7.3)
 C
@@ -747,7 +747,7 @@ C      IST=1
 c
       CALL disp9t(NDISP,ZZ)
 c
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,174) ISB
  174     FORMAT(' ISB=',I5)
          WRITE(*,175) ITC,ITS,ITERA
@@ -765,7 +765,7 @@ C
       RP(IR)=ZZ(I)
 00199 CONTINUE
 C
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,310) IR
  310     FORMAT(2X,' IR=',I4)
          WRITE(*,00134) ALAF
@@ -775,17 +775,17 @@ C
       W=RP(I)
       WR=EN*DREAL(W)
       WI=EN*DIMAG(W)
-      IF(ISHW.NE.0) WRITE(*,311) WR,WI,I
+      IF(ICP.NE.0) WRITE(*,311) WR,WI,I
       WRS=WDE*DREAL(W)
       WIS=WDE*DIMAG(W)
-      IF(ISHW.NE.0) WRITE(*,321) WRS,WIS
+      IF(ICP.NE.0) WRITE(*,321) WRS,WIS
  0200 CONTINUE
   311 FORMAT(//,2X,'WR=',G11.3,' WI=',G11.3,' I=',I5)
   321 FORMAT(' WRS=',G11.3,' WIS=',G11.3)
 C
       WZ=EN*WZ
       HQ=EN*HQ
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,00128) ALF,ALP,WZ,KAPPA
 00128    FORMAT(/,2X,' ALF=',G11.3,' ALP=',G11.3,' WZ=',2G11.3,
      &        /,' KAPPA=',G11.3)
@@ -801,7 +801,7 @@ C
 C
       CALL DIFF(RP,IR,TAUI,FT,U,CHI,CHE,D,CHQ,DQ)
 C
-      IF(ISHW.NE.0) THEN
+      IF(ICP.NE.0) THEN
          WRITE(*,330) SCHI,SCHE,SD,SCHQ,SDQ
  330     FORMAT(/,2X,'CHIEFF=',G11.3,' CHEEFF=',G11.3,' DEFF=',G11.3,
      &        ' CHQEFF=',G11.3,' DQEFF=',G11.3)

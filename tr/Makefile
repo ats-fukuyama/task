@@ -15,7 +15,7 @@ SRC2D=trg2d.f
 SRC3D=trg3d.f
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
-      nclass/u_lu_backsub.f nclass/u_lu_decomp.f
+      nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
 

@@ -20,7 +20,7 @@ C
 C
       PI      = ASIN(1.D0)*2.D0
       AME     = 9.1093897D-31
-      AMM     = 1.6605402D-27
+      AMM     = 1.6726231D-27
       AEE     = 1.60217733D-19
       VC      = 2.99792458D8
       AMYU0   = 4.D0*PI*1.D-7
@@ -1028,14 +1028,16 @@ C
          IF(MDLJQ.EQ.0) THEN
          NR=1
             AJ(NR)=AJU(1,NR)
-            AJOH(NR)=AJU(1,NR)
+            AJNB(NR)=AJNBU(1,NR)
+            AJOH(NR)=AJ(NR)-AJNB(NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
             AJ(NR)=AJU(1,NR)
-            AJOH(NR)=AJU(1,NR)
+            AJNB(NR)=AJNBU(1,NR)
+            AJOH(NR)=AJ(NR)-AJNB(NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
@@ -1094,14 +1096,16 @@ C
          IF(MDLJQ.EQ.0) THEN
             NR=1
             AJ(NR)=AJU(1,NR)
-            AJOH(NR)=AJU(1,NR)
+            AJNB(NR)=AJNBU(1,NR)
+            AJOH(NR)=AJ(NR)-AJNB(NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
             AJ(NR)=AJU(1,NR)
-            AJOH(NR)=AJU(1,NR)
+            AJNB(NR)=AJNBU(1,NR)
+            AJOH(NR)=AJ(NR)-AJNB(NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
@@ -1623,7 +1627,7 @@ C
          IF(NSMAX.EQ.1) INS=1
          NSMAX=3
          PA(3)=12.D0
-         PZ(3)=6.D0
+C         PZ(3)=6.D0
       ENDIF
 C
       IF(MDLEQT.EQ.0) THEN
@@ -1739,7 +1743,7 @@ C
             AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
          ELSE
             AMZ(NS)=0.D0
-C     I don't know this representation is whether true or false.
+C     I don't know whether this representation is true or not.
          ENDIF
       ENDDO
 C
@@ -1919,8 +1923,8 @@ C
             ARRHO(NR)=ARRHOU(1,NR)
             AR1RHO(NR)=AR1RHOU(1,NR)
             AR2RHO(NR)=AR2RHOU(1,NR)
-C            RJCB(NR)=1.D0/(RKAPS*RA)
-            RJCB(NR)=AR1RHOU(1,NR)
+            RJCB(NR)=1.D0/(RKAPS*RA)
+C            RJCB(NR)=AR1RHOU(1,NR)
             RMJRHO(NR)=RMJRHOU(1,NR)
             RMNRHO(NR)=RMNRHOU(1,NR)
             EKAPPA(NR)=RKAP

@@ -83,6 +83,10 @@ C
       INCLUDE 'nclass/pamx_mz.inc'
       INCLUDE 'trncls.inc'
       REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
+      REAL           a0,                      bt0,
+     #               e0,                      p_eps,
+     #               p_q,                     q0,
+     #               r0
 C
 C     /* Initialization */
       DO I=1,mx_mi
@@ -130,47 +134,41 @@ C
          ENDDO
       ENDIF
 C
-C      IF(NSMAX.EQ.2) THEN
       NS=2
          DO NR=1,NRMAX-1
             p_grphi=SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &             /DR)*SNGL(RKEV)
-     &             /(SNGL(PZ(NS)*AEE*0.5D0*(RN(NR+1,NS)+RN(NR,NS))))
+     &             /DR*RKEV)
+     &             /SNGL(PZ(NS)*AEE*0.5D0*(RN(NR+1,NS)+RN(NR,NS)))
             p_grstr(NR)=p_grphi
          ENDDO
          NR=NRMAX
          p_grphi=SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &          /DR)*SNGL(RKEV)
-     &          /(SNGL(PZ(NS)*AEE*PNSS(NS)))
+     &          /DR*RKEV)
+     &          /SNGL(PZ(NS)*AEE*PNSS(NS))
          p_grstr(NR)=p_grphi
-c$$$         p_gr2str(1)=(p_grstr(2)-0.0)/DR
-c$$$         DO NR=2,NRMAX-1
-c$$$            p_gr2str(NR)=(p_grstr(NR+1)-p_grstr(NR-1))/DR
-c$$$         ENDDO
-c$$$         p_gr2str(NRMAX)=(0.0-p_grstr(NRMAX-1))/DR
-C
          DO NR=2,NRMAX
-            p_grrm(NR)=0.5E0*(p_grstr(NR  )/SNGL(BP(NR  ))
-     &                       +p_grstr(NR-1)/SNGL(BP(NR-1)))
+            p_gr2str(NR)=SNGL(0.5D0*(RDP(NR)+RDP(NR-1))
+     &                             *( p_grstr(NR  )/RDP(NR  )
+     &                               -p_grstr(NR-1)/RDP(NR-1))/DR)
          ENDDO
-         p_grrm(1)=2.0*p_grrm(2)-p_grrm(3)
-         DO NR=1,NRMAX-1
-            p_gr2str(NR)=SNGL(BP(NR))*(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
-         ENDDO
-         p_gr2str(NRMAX)=2.0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
-C      ELSE
-C         DO NR=1,NRMAX
-C            p_grstr(NR)=0.0
-C            p_gr2str(NR)=0.0
-C         ENDDO
-C      ENDIF
+         NR=1
+         p_gr2str(NR)=0.D0
+c$$$         DO NR=2,NRMAX
+c$$$            p_grrm(NR)=0.5E0*(p_grstr(NR  )/SNGL(BP(NR  ))
+c$$$     &                       +p_grstr(NR-1)/SNGL(BP(NR-1)))
+c$$$         ENDDO
+c$$$         p_grrm(1)=2.0*p_grrm(2)-p_grrm(3)
+c$$$         DO NR=1,NRMAX-1
+c$$$            p_gr2str(NR)=SNGL(BP(NR))*(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
+c$$$         ENDDO
+c$$$         p_gr2str(NRMAX)=2.0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
 C
       DO NR=1,NRMAX
          EPS=EPSRHO(NR)
 C
          p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
-         p_fhat=SNGL(BB/BP(NR)*AR1RHOG(NR))
+         p_fhat=SNGL(TTRHOG(NR)/RDP(NR))
          DO i=1,3
             p_fm(i)=0.0
          ENDDO
@@ -255,9 +253,6 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
             p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))*BB)
          ENDIF
 C
-C         do ns=1,nsmax
-C            write(6,*) nt,nr,ns,temp_i(ns)
-C         enddo
       CALL NCLASS(
 C     Input
      &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
@@ -268,6 +263,28 @@ C     Output
      &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
      &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+C
+C     ICP : controlling printout in TR_NCLASS (0: off)
+      ICP=0
+      IF(ICP.NE.0) THEN
+      p_eps = SNGL(EPS)
+      p_q   = SNGL(QP(NR))
+      r0    = SNGL(RR)
+      a0    = SNGL(RA)
+      e0    = SNGL(RKAP)
+      bt0   = SNGL(BB)
+      q0    = SNGL(Q0)
+      CALL NCLASS_CHECK(6,NR,
+     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
+     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
+     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,
+     &            p_eps,p_q,r0,a0,e0,bt0,q0,
+     &            m_s,jm_s,jz_s,p_bsjb,
+     &            p_etap,p_exjb,calm_i,caln_ii,
+     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
+     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
+     &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+      ENDIF
 C
 C     *** Takeover Parameters ***
 C
@@ -322,6 +339,609 @@ C
          ENDIF
 C
       ENDDO
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C            PARAMETER AND CONSISTENCY CHECK
+C
+C     ***********************************************************
+C
+      SUBROUTINE NCLASS_CHECK(nout,nr,
+     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
+     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
+     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,
+     &            p_eps,p_q,r0,a0,e0,bt0,q0,
+     &            m_s,jm_s,jz_s,p_bsjb,
+     &            p_etap,p_exjb,calm_i,caln_ii,
+     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
+     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
+     &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+C
+      INCLUDE 'nclass/pamx_mi.inc'
+      INCLUDE 'nclass/pamx_ms.inc'
+      INCLUDE 'nclass/pamx_mz.inc'
+      INCLUDE 'trncls.inc'
+!Declaration of local variables
+      CHARACTER      label*120
+      INTEGER        nr
+      INTEGER        i,                       im,
+     #               iz,                      iza,
+     #               j,                       jm,
+     #               jza,                     k,
+     #               k_out,                   l,
+     #               nin,                     nout
+      INTEGER        idum(8)
+      REAL           a0,                      bt0,
+     #               bpol,                    btor,
+     #               btot,                    ds,
+     #               e0,                      p_eps,
+     #               p_q,                     ppr,
+     #               q0,                      r0,
+     #               uthai
+      REAL           dq_s(mx_ms),             vq_s(mx_ms)
+      REAL           z_coulomb,               z_electronmass,
+     #               z_j7kv,                  z_mu0,
+     #               z_pi,                    z_protonmass
+      REAL           dum(8),                  edum(8),
+     #               rdum(8)
+!Declaration of functions
+      REAL           RARRAY_SUM
+!Physical and conversion constants
+      z_coulomb=1.6022e-19
+      z_electronmass=9.1095e-31
+      z_j7kv=1.6022e-16
+      z_mu0=1.2566e-06
+      z_pi=ACOS(-1.0)
+      z_protonmass=1.6726e-27
+C
+      WRITE(nout,'(A3,I3)') "NR=",NR
+!Check warning flags
+      IF(iflag.eq.-1) THEN
+        label='WARNING:NCLASS-no potato orbit viscosity'
+        CALL WRITE_LINE(nout,label,0,0)
+      ELSEIF(iflag.eq.-2) THEN
+        label='WARNING:NCLASS-Pfirsch-Schluter viscosity'
+        CALL WRITE_LINE(nout,label,0,0)
+      ELSEIF(iflag.eq.-3) THEN
+        label='WARNING:NCLASS-no banana viscosity'
+        CALL WRITE_LINE(nout,label,0,0)
+      ELSEIF(iflag.eq.-4) THEN
+        label='WARNING:NCLASS-no viscosity'
+        CALL WRITE_LINE(nout,label,0,0)
+      ENDIF
+!Check error flags
+      IF(iflag.gt.0) THEN
+        IF(k_out.gt.0) THEN
+          IF(iflag.eq.1) THEN
+            label='ERROR:NCLASS-k_order must be 2 or 3, k_order='
+            idum(1)=k_order
+            CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          ELSEIF(iflag.eq.2) THEN
+            label='ERROR:NCLASS-require 1<m_i<mx_mi, m_i='
+            idum(1)=m_i
+            CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          ELSEIF(iflag.eq.3) THEN
+            label='ERROR:NCLASS-require 0<m_z<mx_mz, m_z='
+            idum(1)=m_z
+            CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          ELSEIF(iflag.eq.4) THEN
+            label='ERROR:NCLASS-require 0<m_s<mx_ms, m_s='
+            idum(1)=m_s
+            CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          ELSEIF(iflag.eq.5) THEN
+            label='ERROR:NCLASS-inversion of flow matrix failed'
+            CALL WRITE_LINE(nout,label,0,0)
+          ENDIF
+        ENDIF
+        STOP
+      ENDIF
+!Check for optional output
+      IF(k_out.gt.1) THEN
+!  Species identification
+        label='     *** Species Identification ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Isotope     Species      Charge        Mass'//
+     #        '     Density Temperature  Chg Factor'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -           -     Coulomb         AMU'//
+     #        '       /m**3         keV           -'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          im=jm_s(i)
+          iz=jz_s(i)
+          iza=IABS(iz)
+          idum(1)=im
+          idum(2)=i
+          idum(3)=iz
+          rdum(1)=amu_i(im)
+          rdum(2)=den_iz(im,iza)
+          rdum(3)=temp_i(im)
+          rdum(4)=xi_s(i)
+          CALL WRITE_IR(nout,3,idum,4,rdum,2)
+        ENDDO
+!  Friction coefficients
+        label='     *** Friction Coefficients ***'
+        CALL WRITE_LINE(nout,label,2,0)
+        DO im=1,m_i
+          DO jm=1,m_i
+            CALL WRITE_LINE(nout,' ',0,0)            
+            label='  Isotopes ='
+            idum(1)=im
+            idum(2)=jm
+            CALL WRITE_LINE_IR(nout,label,2,idum,0,rdum,0)           
+!           Mkl
+            label='  Mkl(-) ='
+            CALL WRITE_LINE(nout,label,0,0)           
+            DO k=1,k_order
+              DO l=1,k_order
+                rdum(l)=capm_ii(k,l,im,jm)
+              ENDDO
+              CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+            ENDDO            
+!           Nkl
+            label='  Nkl(-) ='
+            CALL WRITE_LINE(nout,label,0,0)           
+            DO k=1,k_order
+              DO l=1,k_order
+                rdum(l)=capn_ii(k,l,im,jm)
+              ENDDO
+              CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+            ENDDO   
+          ENDDO    
+        ENDDO
+!  Reduced friction coefficients
+        label='     *** Reduced Friction Coefficients ***'
+        CALL WRITE_LINE(nout,label,2,0)
+!       cal(M)
+        DO im=1,m_i
+          CALL WRITE_LINE(nout,' ',0,0)
+          label='  calMij (kg/m**3/s) for Isotope ='
+          idum(1)=im
+          CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)           
+          DO j=1,k_order
+            DO k=1,k_order
+              rdum(k)=calm_i(j,k,im)
+            ENDDO
+            CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+          ENDDO            
+        ENDDO   
+!       cal(N)
+        DO im=1,m_i
+          CALL RARRAY_ZERO(3,dum)
+          DO jm=1,m_i
+            CALL WRITE_LINE(nout,' ',0,0)
+            label='  calNij (kg/m**3/s) for Isotopes ='
+            idum(1)=im
+            idum(2)=jm
+            CALL WRITE_LINE_IR(nout,label,2,idum,0,rdum,0)           
+            DO k=1,k_order
+              dum(k)=dum(k)-caln_ii(k,1,im,jm)
+              DO l=1,k_order
+                rdum(l)=caln_ii(k,l,im,jm)
+              ENDDO
+              CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+            ENDDO            
+          ENDDO   
+!         Momentum check
+          CALL WRITE_LINE(nout,' ',0,0)
+          label='Momentum check for Isotope ='
+          CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          label='  sum_b[-calNk1] (kg/m**3/s) ='
+          CALL WRITE_LINE_IR(nout,label,0,idum,k_order,dum,2)           
+          label='  calMk1 (kg/m**3/s)         ='
+          CALL WRITE_LINE_IR(nout,label,0,idum,k_order,calm_i(1,1,im),2)           
+          label='  Difference ='
+          DO k=1,k_order
+            dum(k+3)=dum(k)-calm_i(k,1,im)
+          ENDDO
+          CALL WRITE_LINE_IR(nout,label,0,idum,k_order,dum(4),2)           
+        ENDDO
+!  Normalized viscosities
+        label='     *** Normalized Viscosities ***'
+        CALL WRITE_LINE(nout,label,2,0)
+        DO i=1,m_s
+          CALL WRITE_LINE(nout,' ',0,0)
+          label='  muij (kg/m**3/s) for Species ='
+          idum(1)=i
+          CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          DO k=1,k_order
+            DO l=1,k_order
+              rdum(l)=ymu_s(k,l,i)
+            ENDDO
+            CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+          ENDDO            
+        ENDDO
+!  Normalized parallel flows
+        label='     *** Normalized Parallel Flows ***'
+        CALL WRITE_LINE(nout,label,2,0)
+        DO i=1,m_s
+          CALL WRITE_LINE(nout,' ',0,0)
+          label='  upar_ij (T*m/s) for Species ='
+          idum(1)=i
+          CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          DO j=1,k_order
+            DO k=1,k_order
+              rdum(k)=upar_s(j,k,i)
+            ENDDO
+            CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+          ENDDO
+        ENDDO
+!  Normalized poloidal flows
+        label='     *** Normalized Poloidal Flows ***'
+        CALL WRITE_LINE(nout,label,2,0)
+        DO i=1,m_s
+          CALL WRITE_LINE(nout,' ',0,0)
+          label='  utheta_ij (m/s/T) for Species ='
+          idum(1)=i
+          CALL WRITE_LINE_IR(nout,label,1,idum,0,rdum,0)
+          DO j=1,k_order
+            DO k=1,k_order
+              rdum(k)=utheta_s(j,k,i)
+            ENDDO
+            CALL WRITE_IR(nout,0,idum,k_order,rdum,2)           
+          ENDDO
+        ENDDO
+!  Radial particle fluxes
+        label='     *** Radial Particle Fluxes ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species          BP          PS          CL'//
+     #        '       <E.B>         src       total'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -     /m**2/s     /m**2/s     /m**2/s'//
+     #        '     /m**2/s     /m**2/s     /m**2/s'
+        CALL WRITE_LINE(nout,label,0,0)
+        CALL RARRAY_ZERO(6,dum)
+        CALL RARRAY_ZERO(6,edum)
+!       Load into rdum the five flux components and total
+!       Load into dum the z-weighted + charge (ion) components
+!       Load into edum the z-weighted - charge (electron) components 
+        DO i=1,m_s
+          iz=jz_s(i)
+          idum(1)=i
+          CALL RARRAY_COPY(5,gfl_s(1,i),1,rdum,1)
+          rdum(6)=RARRAY_SUM(5,rdum,1)
+          CALL WRITE_IR(nout,1,idum,6,rdum,2)           
+          DO k=1,5
+            IF(iz.gt.0) THEN
+              dum(k)=dum(k)+iz*gfl_s(k,i)
+            ELSE
+              edum(k)=edum(k)+iz*gfl_s(k,i)
+            ENDIF
+          ENDDO
+          IF(iz.gt.0) THEN
+            dum(6)=dum(6)+iz*rdum(6)
+          ELSE
+            edum(6)=edum(6)+iz*rdum(6)
+          ENDIF
+        ENDDO
+!  Ambipolarity check
+        label='     *** Ambipolarity Check ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='  Sum_i Z_i*Gamma_i ='
+        CALL WRITE_LINE(nout,label,0,0)
+        idum(1)=0
+        CALL WRITE_IR(nout,1,idum,6,dum,2)           
+        label='  Sum_e Z_e*Gamma_e ='
+        CALL WRITE_LINE(nout,label,0,0)
+        CALL WRITE_IR(nout,1,idum,6,edum,2)           
+        label='  Difference ='
+        CALL WRITE_LINE(nout,label,0,0)
+        DO k=1,6
+          rdum(k)=edum(k)+dum(k)
+        ENDDO
+        CALL WRITE_IR(nout,1,idum,6,rdum,2)
+!  Particle transport is returned in three forms
+!  Particle flux consistency check
+        label='     *** Particle Flux Consistency Check ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species       gfl_s   dn_s,vn_s   dp_s,dt_s'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -     /m**2/s     /m**2/s     /m**2/s'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          im=jm_s(i)
+          iza=IABS(jz_s(i))
+          idum(1)=i
+!    Gamma total is sum of components
+          rdum(1)=RARRAY_SUM(4,gfl_s(1,i),1)
+!    Gamma total is diffusive plus pinch
+          rdum(2)=-dn_s(i)*(grp_iz(im,iza)-den_iz(im,iza)*grt_i(im))
+     #            /temp_i(im)+den_iz(im,iza)*(vn_s(i)+veb_s(i))
+!    Gamma total is sum over T' and p' of all species
+          rdum(3)=0.0
+          DO j=1,m_s
+            jm=jm_s(j)
+            jza=IABS(jz_s(j))
+            rdum(3)=rdum(3)-dt_ss(j,i)*grt_i(jm)/temp_i(jm)
+     #              -dp_ss(j,i)*grp_iz(jm,jza)/den_iz(jm,jza)/temp_i(jm)
+          ENDDO
+          rdum(3)=(rdum(3)+veb_s(i))*den_iz(im,iza)
+          CALL WRITE_IR(nout,1,idum,3,rdum,2)
+        ENDDO
+!  Particle diffusion, velocity
+        label='     *** Particle Diffusion, Velocity ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species         D_s         V_s'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      m**2/s         m/s'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          im=jm_s(i)
+          iza=IABS(jz_s(i))
+          idum(1)=i
+          rdum(1)=dn_s(i)
+          rdum(2)=vn_s(i)+veb_s(i)+gfl_s(5,i)/den_iz(im,iza)
+          CALL WRITE_IR(nout,1,idum,2,rdum,2)
+        ENDDO
+!  Particle diffusivity matrices
+!    On p'/p           
+        label='     *** Particle Diffusivity Matrices ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species    on dp/dr ... by Species'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      m**2/s ...'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          CALL WRITE_IR(nout,1,idum,m_s,dp_ss(1,i),2)
+        ENDDO
+!    On T'/T
+         label='     Species    on dT/dr ... by Species'
+        CALL WRITE_LINE(nout,label,1,0)
+        label='           -      m**2/s ...'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          CALL WRITE_IR(nout,1,idum,m_s,dt_ss(1,i),2)
+        ENDDO
+!  Radial conduction fluxes
+        label='     *** Radial Conduction Fluxes ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species          BP          PS          CL'//
+     #        '       <E.B>         src       total'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      w/m**2      w/m**2      w/m**2'//
+     #        '      w/m**2      w/m**2      w/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+        CALL RARRAY_ZERO(6,dum)
+        CALL RARRAY_ZERO(6,edum)
+        DO i=1,m_s
+          iz=jz_s(i)
+          idum(1)=i
+          CALL RARRAY_COPY(5,qfl_s(1,i),1,rdum,1)
+          rdum(6)=RARRAY_SUM(5,qfl_s(1,i),1)
+          CALL WRITE_IR(nout,1,idum,6,rdum,2)           
+          DO k=1,5
+            IF(iz.gt.0) THEN
+              dum(k)=dum(k)+qfl_s(k,i)
+            ELSE
+              edum(k)=edum(k)+qfl_s(k,i)
+            ENDIF
+          ENDDO
+          IF(iz.gt.0) THEN
+            dum(6)=dum(6)+rdum(6)
+          ELSE
+            edum(6)=edum(6)+rdum(6)
+          ENDIF
+        ENDDO
+!     Total electron radial conduction flux
+        label='  Sum of electron conduction fluxes ='
+        CALL WRITE_LINE(nout,label,1,0)
+        idum(1)=0
+        CALL WRITE_IR(nout,1,idum,6,edum,2)
+!     Total ion radial conduction flux
+        label='  Sum of ion conduction fluxes ='
+        CALL WRITE_LINE(nout,label,1,0)
+        idum(1)=0
+        CALL WRITE_IR(nout,1,idum,6,dum,2)
+!  Heat conduction is returned in two forms, add diagonal form
+!  Heat flux consistency check
+        label='     *** Heat Flux Consistency Check ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species       qfl_s   dq_s,vq_s,  cp_s,ct_s'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      w/m**2      w/m**2      w/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          im=jm_s(i)
+          iza=IABS(jz_s(i))
+          idum(1)=i
+!    Conduction total is sum of components
+          rdum(1)=RARRAY_SUM(5,qfl_s(1,i),1)
+!    Diagonal conductivity plus convective velocity
+          dq_s(i)=chit_ss(i,i)+chip_ss(i,i)
+          vq_s(i)=rdum(1)/(den_iz(im,iza)*z_j7kv*temp_i(im))
+     #            +dq_s(i)*grt_i(im)/temp_i(im)
+          rdum(2)=den_iz(im,iza)*z_j7kv*(-dq_s(i)*grt_i(im)
+     #                                   +vq_s(i)*temp_i(im))
+!    Conduction total is sum over T' and p' of all species
+          rdum(3)=0.0
+          DO j=1,m_s
+            jm=jm_s(j)
+            jza=IABS(jz_s(j))
+            rdum(3)=rdum(3)-chit_ss(j,i)*grt_i(jm)/temp_i(jm)
+     #                     -chip_ss(j,i)*grp_iz(jm,jza)
+     #                      /den_iz(jm,jza)/temp_i(jm)
+          ENDDO
+          rdum(3)=(rdum(3)+qeb_s(i))*den_iz(im,iza)*temp_i(im)*z_j7kv
+          CALL WRITE_IR(nout,1,idum,3,rdum,2)
+        ENDDO
+!  Heat conduction, velocity
+        label='     *** Heat Conduction, Velocity ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species         X_s         V_s'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      m**2/s         m/s'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          rdum(1)=dq_s(i)
+          rdum(2)=vq_s(i)
+          CALL WRITE_IR(nout,1,idum,2,rdum,2)
+        ENDDO
+!     Effective ion heat conduction, velocity
+        label='  Effective ion conduction, velocity ='
+        CALL WRITE_LINE(nout,label,1,0)
+        idum(1)=0
+        CALL RARRAY_ZERO(4,rdum)
+        DO i=1,m_s
+          im=jm_s(i)
+          iz=jz_s(i)
+          iza=IABS(iz)
+          IF(iz.gt.0) THEN
+            rdum(1)=rdum(1)+(chit_ss(i,i)+chip_ss(i,i))*den_iz(im,iza)
+            rdum(2)=rdum(2)+RARRAY_SUM(5,qfl_s(1,i),1)/temp_i(im)/z_j7kv
+            rdum(3)=rdum(1)+den_iz(im,iza)
+            rdum(4)=rdum(4)+(chit_ss(i,i)+chip_ss(i,i))*den_iz(im,iza)
+     #                      *grt_i(im)/temp_i(im)
+          ENDIF
+        ENDDO
+        rdum(1)=rdum(1)/rdum(3)
+        rdum(2)=(rdum(2)+rdum(4))/rdum(3)
+        CALL WRITE_IR(nout,1,idum,2,rdum,2)
+!  Thermal diffusivity matrices
+!    On p'/p           
+        label='     *** Thermal Diffusivity Matrices ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species    on dp/dr ... by Species'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      m**2/s ...'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          CALL WRITE_IR(nout,1,idum,m_s,chip_ss(1,i),2)
+        ENDDO
+!    On T'/T
+         label='     Species    on dT/dr ... by Species'
+        CALL WRITE_LINE(nout,label,1,0)
+        label='           -      m**2/s ...'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          CALL WRITE_IR(nout,1,idum,m_s,chit_ss(1,i),2)
+        ENDDO
+!  Radial energy (conduction+convection) fluxes
+        label='     *** Radial Energy (Cond+Conv) Fluxes ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species    ban-plat          PS   classical'//
+     #        '       <E.B>  extern src       total'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -      w/m**2      w/m**2      w/m**2'//
+     #        '      w/m**2      w/m**2      w/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+        CALL RARRAY_ZERO(6,dum)
+        DO i=1,m_s
+          idum(1)=i
+          im=jm_s(i)
+          iz=jz_s(i)
+          DO k=1,5
+            rdum(k)=qfl_s(k,i)+2.5*gfl_s(k,i)*temp_i(im)*z_j7kv
+          ENDDO
+          rdum(6)=RARRAY_SUM(5,rdum,1)
+          CALL WRITE_IR(nout,1,idum,6,rdum,2)           
+          IF(iz.gt.0) THEN
+            DO k=1,5
+              dum(k)=dum(k)+qfl_s(k,i)+2.5*gfl_s(k,i)*temp_i(im)*z_j7kv
+            ENDDO
+            dum(6)=dum(6)+rdum(6)
+          ENDIF
+        ENDDO
+!     Total ion radial energy flux
+        label='  Sum of ion energy fluxes ='
+        CALL WRITE_LINE(nout,label,1,0)
+        idum(1)=0
+        CALL WRITE_IR(nout,1,idum,6,dum,2)           
+!  Bootstrap current is returned in two forms
+!  Bootstrap current consistency check
+        label='     *** Bootstrap Current Consistency Check ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='      p_bsjb   dp_s,dt_s'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='    A*T/m**2    A*T/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+!    Total bootstrap current
+        rdum(1)=p_bsjb
+!    Bootstrap current summed over T' and p' components
+        rdum(2)=0.0
+        DO i=1,m_s
+          im=jm_s(i)
+          iza=IABS(jz_s(i))
+          rdum(2)=rdum(2)-bsjbt_s(i)*grt_i(im)/temp_i(im)
+     #                   -bsjbp_s(i)*grp_iz(im,iza)
+     #                    /den_iz(im,iza)/temp_i(im)
+        ENDDO
+        CALL WRITE_IR(nout,0,idum,2,rdum,2)
+!  Bootstrap current arrays
+!    On p'/p           
+        label='     *** Bootstrap Current Arrays ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species    on dp/dr    on dT/dr'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -    A*T/m**2    A*T/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+        DO i=1,m_s
+          idum(1)=i
+          rdum(1)=bsjbp_s(i)
+          rdum(2)=bsjbt_s(i)
+          CALL WRITE_IR(nout,1,idum,2,rdum,2)
+        ENDDO
+!  Current response to external source
+        label='     *** Bootstrap and External Source Current ***'           
+        CALL WRITE_LINE(nout,label,2,1)
+        label='   Bootstrap    External       Total'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='    A*T/m**2    A*T/m**2    A*T/m**2'
+        CALL WRITE_LINE(nout,label,0,0)
+        rdum(1)=p_bsjb
+        rdum(2)=p_exjb
+        rdum(3)=rdum(1)+rdum(2)
+        CALL WRITE_IR(nout,0,idum,3,rdum,2)
+!  Flow velocities on outside midplane
+        label='     *** Flow Velocities on Outside Midplane ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='     Species       v-tor       v-pol       v-par'//
+     #        '      v-perp'
+        CALL WRITE_LINE(nout,label,0,0)
+        label='           -         m/s         m/s         m/s'//
+     #        '         m/s'
+        CALL WRITE_LINE(nout,label,0,0)                        
+        btor=bt0/(1.0+p_eps)
+        bpol=btor/p_fhat
+        btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
+        DO i=1,m_s
+          idum(1)=i
+          im=jm_s(i)
+          iz=jz_s(i)
+          iza=IABS(iz)
+          ppr=p_fhat*grp_iz(im,iza)*z_j7kv
+     #        /(z_coulomb*iz*den_iz(im,iza))+p_fhat*p_grphi
+          uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
+!         Toroidal
+          rdum(1)=uthai*btor-ppr/btor
+!         Poloidal
+          rdum(2)=uthai*bpol
+!         Parallel
+          rdum(3)=uthai*btot-ppr/btot
+!         Perpendicular
+          rdum(4)=ppr*bpol/btot/btor
+          CALL WRITE_IR(nout,1,idum,4,rdum,2)           
+        ENDDO
+!  Miscellaneous parameters
+        label='     *** Miscellaneous Parameters ***'
+        CALL WRITE_LINE(nout,label,2,1)
+        label='<J_bs.B>/Bt0 (A/m**2) ='
+        rdum(1)=p_bsjb/bt0
+        CALL WRITE_LINE_IR(nout,label,0,idum,1,rdum,2)
+        label='<J_ex.B>/Bt0 (A/m**2) ='
+        rdum(1)=p_exjb/bt0
+        CALL WRITE_LINE_IR(nout,label,0,idum,1,rdum,2)
+        label='eta parallel (Ohm*m) ='
+        rdum(1)=p_etap
+        CALL WRITE_LINE_IR(nout,label,0,idum,1,rdum,2)
+      ENDIF
 C
       RETURN
       END

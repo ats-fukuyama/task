@@ -28,12 +28,11 @@ C
          PNF(NR)=0.D0
          PBIN(NR)=0.D0
          PFIN(NR)=0.D0
-         AJNB(NR)=0.D0
+C         AJNB(NR)=0.D0
          AJRF(NR)=0.D0
          AJBS(NR)=0.D0
       DO NS=1,NSM
          SPE(NR,NS)=0.D0
-C         IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(MDLUF.NE.0) THEN
             IF(NS.GE.3) PRF(NR,NS)=0.D0
          ELSE
