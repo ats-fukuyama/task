@@ -79,19 +79,16 @@ C
       DO MN=1,MNMAX
          read(NFL,*) M,N
          read(NFL,*,ERR=8002) (RBOZH(MN,NSR),NSR=2,NSRMAX)
-         RBOZH(MN,1)=0.D0
       ENDDO
 C
       DO MN=1,MNMAX
          read(NFL,*) M,N
          read(NFL,*,ERR=8003) (ZBOZH(MN,NSR),NSR=2,NSRMAX)
-         ZBOZH(MN,1)=0.D0
       ENDDO
 C
       DO MN=1,MNMAX
          read(NFL,*) M,N
          read(NFL,*,ERR=8004) (PBOZH(MN,NSR),NSR=2,NSRMAX)
-         PBOZH(MN,1)=0.D0
       ENDDO
 C
       CLOSE(NFL)
@@ -249,7 +246,14 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
-C     ----- DEFINE XRHO AND XR ---
+      DIMENSION GX(NSRM),GY(NSRM,NMNM)
+      DIMENSION BSPL(NSRM),RSPL(NSRM),ZSPL(NSRM),PSPL(NSRM)
+C
+C     ***** DEFINE XRHO, XR AND XSHRHO *****
+C
+C     XRHO   : NORMALIZED RADIUS         (poloidal flux)
+C     XR     : AVERAGE RADIUS            (poloidal flux)
+C     XSHRHO : NORMALIZED RADIUS OF DATA (poloidal flux)
 C
       RHOB=RB/RA
       DRHO=RHOB/NRMAX
@@ -262,51 +266,83 @@ C
          XSHRHO(NSR)=SQRT(XSH(NSR))
       ENDDO
 C
-C      ***** SPLINE PSIPS *****
-C
-      CALL SPL1D(XSHRHO,PHI,FX1,U1,NSRMAX,0,IERR)
+C      ***** PSIPS (normalized) *****
 C
       DO NR=1,NRMAX+1
-         CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U1,NSRMAX,IERR)
+         PSIPS(NR)=XRHO(NR)**2
       ENDDO
 C     
-C      ***** SPLINE RMNC(S),ZMNS(S) DRMNC(S) DZMNS(S) *****
+C      ***** SPLINE BBOZH(S),RBOZH(S),ZBOZH(S),PBOZH(S) *****
 C
       DO MN=1,MNMAX
-         CALL SPL1D(XS,YRBS,FX1,U1,NSRMAX,0,IERR)
-         CALL SPL1D(XS,YZBS,FX2,U2,NSRMAX,0,IERR)
+         DO NSR=1,NSRMAX+1
+            BSPL(NSR)=BBOZH(MN,NSR)
+            RSPL(NSR)=RBOZH(MN,NSR)
+            ZSPL(NSR)=ZBOZH(MN,NSR)
+            PSPL(NSR)=PBOZH(MN,NSR)
+         ENDDO
+         IF(XM(MN).EQ.0.D0) THEN
+            FX1(1)=0.D0
+            CALL SPL1D(XSHRHO,BSPL,FX1,U1,NSRMAX+1,1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: BBOZH'
+            FX2(1)=0.D0
+            CALL SPL1D(XSHRHO,RSPL,FX2,U2,NSRMAX+1,1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: RBOZH'
+            FX3(1)=0.D0
+            CALL SPL1D(XSHRHO,ZSPL,FX3,U3,NSRMAX+1,1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: ZBOZH'
+            FX3(1)=0.D0
+            CALL SPL1D(XSHRHO,PSPL,FX4,U4,NSRMAX+1,1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: PBOZH'
+         ELSE
+            CALL SPL1D(XSHRHO,BSPL,FX1,U1,NSRMAX+1,0,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: BBOZH'
+            CALL SPL1D(XSHRHO,RSPL,FX2,U2,NSRMAX+1,0,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: RBOZH'
+            CALL SPL1D(XSHRHO,ZSPL,FX3,U3,NSRMAX+1,0,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: ZBOZH'
+            CALL SPL1D(XSHRHO,PSPL,FX4,U4,NSRMAX+1,0,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: PBOZH'
+         ENDIF
 C
          DO NR=1,NRMAX+1
+            CALL SPL1DD(XRHO(NR),SBMNC(MN,NR),DBMNC(MN,NR),
+     &                  XSHRHO,U1,NSRMAX+1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: BMNC: NR=',NR
             CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
-     &                  XS,U1,NSRMAX,IERR)
-C            WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
-C            IF(IERR.EQ.2) THEN
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               DRMNC(MN,NR)=(YRBS(NSRMAX)-YRBS(NSRMAX-1))
-     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
-               SRMNC(MN,NR)=YRBS(NSRMAX)
-     &                     +DRMNC(MN,NR)*(XRHO(NR)-XS(NSRMAX))
-            ENDIF
+     &                  XSHRHO,U2,NSRMAX+1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: RMNC: NR=',NR
             CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
-     &                  XS,U2,NSRMAX,IERR)
-C            IF(IERR.EQ.2) THEN
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               DZMNS(MN,NR)=(YZBS(NSRMAX)-YZBS(NSRMAX-1))
-     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
-               SZMNS(MN,NR)=YZBS(NSRMAX)
-     &                     +DZMNS(MN,NR)*(XRHO(NR)-XS(NSRMAX))
-            ENDIF
+     &                  XSHRHO,U3,NSRMAX+1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: ZMNC: NR=',NR
+            CALL SPL1DD(XRHO(NR),SPMNS(MN,NR),DPMNS(MN,NR),
+     &                  XSHRHO,U4,NSRMAX+1,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: PMNC: NR=',NR
          ENDDO
       ENDDO
 C
-C     ***** CALCULATE R,Z *****
+C     ----- graphics with xrho axis -----
 C
-      DO MN=1,MNMAX
-         DO NSR=1,NSRMAX
-            RMNCC(MN,NSR)=RMNC(MN+(NSR-1)*MNMAX)
-            ZMNSS(MN,NSR)=ZMNS(MN+(NSR-1)*MNMAX)
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(SBMNC(MN,NR))
          ENDDO
       ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/SBMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GY(NR,MN)=GUCLIP(DBMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NRMAX+1,MNMAX,'/DBMNC/',0)
+      CALL PAGEE
+C
       RETURN
       END
 C
@@ -321,53 +357,70 @@ C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
       DTH=2.D0*PI/NTHMAX
       DPH=2.D0*PI/(NHC*NPHMAX)
+      PSIA=1.D0
 C
-      DO NR=1,NRMAX+1
+      DO NR=2,NRMAX+1
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
 C
-         RPSS=0.D0
-         ZPSS=0.D0
-         DRS=0.D0
-         DZS=0.D0
-         DRTH=0.D0
-         DZTH=0.D0
-         DRPH=0.D0
-         DZPH=0.D0
-         DPHPH=0.D0
-C
          TH=DTH*(NTH-1)
          PH=DPH*(NPH-1)
+C
+         BPSS=0.D0
+         RPSS=0.D0
+         ZPSS=0.D0
+         PPSS=PH
+         DRS=0.D0
+         DZS=0.D0
+         DPS=0.D0
+         DRTH=0.D0
+         DZTH=0.D0
+         DPTH=0.D0
+         DRPH=0.D0
+         DZPH=0.D0
+         DPPH=1.D0
+C
          DO MN=1,MNMAX
-            RSIN=SIN(XM(MN)*TH-XN(MN)*PH)
-            RCOS=COS(XM(MN)*TH-XN(MN)*PH)
+            RSIN=SIN(-XM(MN)*TH+XN(MN)*PH)
+            RCOS=COS(-XM(MN)*TH+XN(MN)*PH)
+            BPSS =BPSS +       SBMNC(MN,NR)*RCOS
             RPSS =RPSS +       SRMNC(MN,NR)*RCOS
             ZPSS =ZPSS +       SZMNS(MN,NR)*RSIN
+            PPSS =PPSS +       SPMNS(MN,NR)*RSIN
             DRS  =DRS  +       DRMNC(MN,NR)*RCOS
             DZS  =DZS  +       DZMNS(MN,NR)*RSIN
-            DRTH =DRTH -XM(MN)*SRMNC(MN,NR)*RSIN
-            DZTH =DZTH +XM(MN)*SZMNS(MN,NR)*RCOS
-            DRPH =DRPH +XN(MN)*SRMNC(MN,NR)*RSIN
-            DZPH =DZPH -XN(MN)*SZMNS(MN,NR)*RCOS
-            DPHPH=DPHPH+       SRMNC(MN,NR)*RCOS
+            DPS  =DPS  +       DPMNS(MN,NR)*RSIN
+            DRTH =DRTH +XM(MN)*SRMNC(MN,NR)*RSIN
+            DZTH =DZTH -XM(MN)*SZMNS(MN,NR)*RCOS
+            DPTH =DPTH -XM(MN)*SPMNS(MN,NR)*RCOS
+            DRPH =DRPH -XN(MN)*SRMNC(MN,NR)*RSIN
+            DZPH =DZPH +XN(MN)*SZMNS(MN,NR)*RCOS
+            DPPH =DPPH +XN(MN)*SPMNS(MN,NR)*RCOS
          ENDDO
 C
 C  *****  DRS,DZS,DPHS,DRTH,DZTH,DPHTH,DRPH,DZPH,DPHPH GRAPH *****
 C            
          RPST(  NTH,NPH,NR)=RPSS
          ZPST(  NTH,NPH,NR)=ZPSS
+         PPST(  NTH,NPH,NR)=PPSS
 C
-         IF(NR.NE.1) THEN
-            DRS=DRS/(2.D0*PSIA*XRHO(NR))
-            DZS=DZS/(2.D0*PSIA*XRHO(NR))
-            RG11(NTH,NPH,NR)=(DRS *DRS +DZS *DZS )*XRHO(NR)**2
-            RG12(NTH,NPH,NR)=(DRS *DRTH+DZS *DZTH)
-            RG13(NTH,NPH,NR)=(DRS *DRPH+DZS *DZPH)*XRHO(NR)
-            RG22(NTH,NPH,NR)=(DRTH*DRTH+DZTH*DZTH)/XRHO(NR)**2
-            RG23(NTH,NPH,NR)=(DRTH*DRPH+DZTH*DZPH)/XRHO(NR)
-            RG33(NTH,NPH,NR)= DRPH*DRPH+DZPH*DZPH+DPHPH*DPHPH
-            RJ  (NTH,NPH,NR)=DPHPH*(DRS*DZTH-DZS*DRTH)
-         ENDIF
+         DRS=DRS/(2.D0*PSIA*XRHO(NR))
+         DZS=DZS/(2.D0*PSIA*XRHO(NR))
+         DPS=DPS/(2.D0*PSIA*XRHO(NR))
+         RG11(NTH,NPH,NR)=DRS *DRS +DZS *DZS +DPS *DPS 
+         RG12(NTH,NPH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH
+         RG13(NTH,NPH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH
+         RG22(NTH,NPH,NR)=DRTH*DRTH+DZTH*DZTH+DPTH*DPTH
+         RG23(NTH,NPH,NR)=DRTH*DRPH+DZTH*DZPH+DPTH*DPPH
+         RG33(NTH,NPH,NR)=DRPH*DRPH+DZPH*DZPH+DPPH*DPPH
+         RJ  (NTH,NPH,NR)=(DRS *DZTH-DZS *DRTH)*DPPH
+     &                   +(DZS *DPTH-DPS *DZTH)*DRPH
+     &                   +(DPS *DRTH-DRS *DPTH)*DZPH
+C
+         RG11(NTH,NPH,NR)=RG11(NTH,NPH,NR)*XRHO(NR)**2
+         RG13(NTH,NPH,NR)=RG13(NTH,NPH,NR)*XRHO(NR)
+         RG22(NTH,NPH,NR)=RG22(NTH,NPH,NR)/XRHO(NR)**2
+         RG23(NTH,NPH,NR)=RG23(NTH,NPH,NR)/XRHO(NR)
       ENDDO
       ENDDO
       ENDDO
