@@ -156,7 +156,8 @@ C
 C
          p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
-         p_fhat=SNGL(QP(NR)/EPS*AR1RHOG(NR))
+C         p_fhat=SNGL(QP(NR)/EPS*AR1RHOG(NR))
+         p_fhat=SNGL(QP(NR)*AR1RHOG(NR)/(EPS*RKAPS))
          DO i=1,3
             p_fm(i)=0.0
          ENDDO
@@ -179,18 +180,19 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grbm2=SNGL(AR2RHOG(NR))/p_b2
          p_grphi=p_grstr(NR)
          p_gr2phi=p_gr2str(NR)
-         p_ngrth=1.0/SNGL(QP(NR)*RR)
+C         p_ngrth=1.0/SNGL(QP(NR)*RR)
+         p_ngrth=RKAPS/SNGL(QP(NR)*RR)
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(PTS(NS))
-               grt_i(NS)=SNGL(2.D0*(PTS(NS)-RN(NR,NS))/DR)
+               grt_i(NS)=SNGL(2.D0*(PTS(NS)-RT(NR,NS))/DR)
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                grp_iz(NS,INT(ABS(PZ(NS))))
      &              =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
      &              /DR)*1.E20
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
-               ENDDO
+ 7             ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
@@ -207,8 +209,8 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
                   ENDDO
                ENDDO
             ENDIF
-            p_eb=SNGL((1.5D0*ETA(NR  )*AJOH(NR  )
-     &                -0.5D0*ETA(NR-1)*AJOH(NR-1))*BB)
+            p_eb=SNGL(FEDG(RG(NR),RM(NR-1),RM(NR),ETA(NR-1)*AJOH(NR-1),
+     &                ETA(NR)*AJOH(NR))*BB)
          ELSE
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))

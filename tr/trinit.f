@@ -14,9 +14,9 @@ C
       NT=0
 C
       KUFDEV='jet'
-C      KUFDCG='19691'
+      KUFDCG='19691'
 C      KUFDCG='26095'
-      KUFDCG='38287'
+C      KUFDCG='38287'
 C
       VOID    = 0.D0
 C

@@ -80,7 +80,7 @@ C
       DO NS=1,NSM
       DO NR=1,NRMAX
          GYR(NR,NS) = GCLIP(RT(NR,NS))
-C         IF(NS.EQ.2) write(6,*) GRM(NR),GYR(NR,NS)
+C         IF(NS.EQ.1) write(6,*) GRM(NR),GYR(NR,NS)
       ENDDO
       ENDDO
       IF(MDLNF.EQ.0) THEN
