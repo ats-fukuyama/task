@@ -7,11 +7,11 @@ SRCS = fpmain.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
        fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f
 
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
-                     ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
+                     ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
                      ../lib/libspl.o ../lib/libspl2.o ../lib/libgut.o \
                      ../lib/libbrn.o \
                      ../lib/libde.o ../lib/libfp.o \
-                     ../lib/libbes.o ../lib/libpcg.o 
+                     ../lib/libbes.o ../lib/libpcg.o ../lib/libchar.o ../lib/libfio.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -52,6 +52,6 @@ fpwrin.o : fpwrin.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
 
 ../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
 ../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
