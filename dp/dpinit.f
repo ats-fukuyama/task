@@ -73,6 +73,8 @@ C
          NDISP2(NS)= 2
       ENDDO
 C
+      MODELV = 0
+C
       RF0    = 160.D3
       RFI0   =   0.D0
       RKX0   = 800.D0
