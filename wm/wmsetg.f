@@ -89,8 +89,6 @@ C
 C
       INCLUDE 'wmcomm.h'
 C
-    1 CONTINUE
-C
          IERR=0
 C
          NSUMAX=31
@@ -250,7 +248,6 @@ C
 C
       INCLUDE 'wmcomm.h'
 C
-    1 CONTINUE
 C
          IERR=0
 C
@@ -572,10 +569,6 @@ C
 C
          ENDDO
          ENDDO
-      RETURN
-C
- 8000 IF(MYRANK.EQ.0) WRITE(6,*) 'WMXRZF: FILE READ ERROR'
- 9000 IERR=1
       RETURN
       END
 C

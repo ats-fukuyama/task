@@ -1,4 +1,5 @@
 C     $Id$
+C
 C    ****** RADIAL MESH AND METRIC TENSOR ******
 C
 C
@@ -51,7 +52,7 @@ C
          XN(MN)   =R1DATA( 2)
          RMNC(MN) =R1DATA( 3)
          ZMNS(MN) =R1DATA( 4)
-         WRITE(6,*) MN,XM(MN),XN(MN),RMNC(MN),ZMNS(MN)
+C         WRITE(6,*) MN,XM(MN),XN(MN),RMNC(MN),ZMNS(MN)
          RLMNS(MN)=R1DATA( 5)
          BMOD(MN) =R1DATA( 6)
          RGMOD(MN)=R1DATA( 7)
@@ -234,9 +235,9 @@ C
             YZBS(NSR)=ZMNS(MN+(NSR-1)*MNMAX)
          ENDDO
 C         IF(MYRANK.EQ.0) THEN
-            WRITE(6,'( I5,1P6E12.4)') MN,XM(MN),XN(MN),
-     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
-            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
+C            WRITE(6,'( I5,1P6E12.4)') MN,XM(MN),XN(MN),
+C     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
+C            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
 C         ENDIF
          CALL SPL1D(XS,YRBS,FX1,U1,NSRMAX,0,IERR)
          CALL SPL1D(XS,YZBS,FX2,U2,NSRMAX,0,IERR)

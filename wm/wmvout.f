@@ -121,15 +121,15 @@ C
 C      PRINT 250, BETAP(1)
 C      WRITE(3,250)BETAP(1)
 C
-  200 FORMAT(//,40X,'FOURIER COEFFICIENTS X(M,N)',/)
-  210 FORMAT(//,9X,' S ',3X,6(7X,A2,I1,',',I3,')'),/)
-  220 FORMAT(1P7E15.3)
-  230 FORMAT(//,25X,'COVARIANT COMPONENTS OF B',
-     &            ' AND INTEGRATED CURRENTS',//,
-     &  9X,' S ',10X,'<BZETA>',8X,'<BTHETA>',8X,
-     &                    'RITOL',11X,'RIPOL',/)
-  240 FORMAT(//,9X,' S ',11X,'VP',12X,'DV/DPHI',10X,'RMASS',13X,
-     & 'P',12X,'BETA',/)
+C  200 FORMAT(//,40X,'FOURIER COEFFICIENTS X(M,N)',/)
+C  210 FORMAT(//,9X,' S ',3X,6(7X,A2,I1,',',I3,')'),/)
+C  220 FORMAT(1P7E15.3)
+C  230 FORMAT(//,25X,'COVARIANT COMPONENTS OF B',
+C     &            ' AND INTEGRATED CURRENTS',//,
+C     &  9X,' S ',10X,'<BZETA>',8X,'<BTHETA>',8X,
+C     &                    'RITOL',11X,'RIPOL',/)
+C  240 FORMAT(//,9X,' S ',11X,'VP',12X,'DV/DPHI',10X,'RMASS',13X,
+C     & 'P',12X,'BETA',/)
 C  250 FORMAT(//,' BETA ON AXIS (SUM OVER MODES) = ',1PE10.3)
 C
       RETURN
