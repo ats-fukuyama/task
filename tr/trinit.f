@@ -1647,8 +1647,16 @@ C
       SAVE NSSMAX
 C
       IF(NSMAX.EQ.1.AND.MDLEOI.EQ.0) MDLEOI=1
-      IF(INIT.EQ.0.OR.(INIT.NE.0.AND.NSSMAX.NE.NSMAX)) INS=0
+      IF(INIT.EQ.0) THEN
+         INS=0
+      ELSE
+         IF(NSSMAX.NE.NSMAX) THEN
+            NSMAX=NSSMAX
+            INS=0
+         ENDIF
+      ENDIF
       NSSMAX=NSMAX
+      write(6,*) INIT,INS,NSMAX,MDLEOI
       IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
          IF(NSMAX.EQ.1) INS=1
          NSMAX=3
@@ -1673,6 +1681,7 @@ C
          NSS(NEQ)=-1
          NSV(NEQ)=-1
          NNS(NEQ)=0
+         NST(NEQ)=0
       ENDDO
       NEQ=0
       IF(MDLEQB.EQ.1) THEN
