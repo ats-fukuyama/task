@@ -120,28 +120,53 @@ C
       AJOHT = AOHSUM*DR/1.D6
 C
       DRH=0.5D0*DR*RA
-      DO 70 NS=1,NSM
-         VNP=AV(NRMAX,NS)
-         DNP=AD(NRMAX,NS)
+      IF(RHOA.EQ.1.D0) THEN
+         DO NS=1,NSM
+            VNP=AV(NRMAX,NS)
+            DNP=AD(NRMAX,NS)
 C
-         VTP=(AVK(NRMAX,NS)/1.5D0+AV(NRMAX,NS))
-         DTP= AK(NRMAX,NS)/(1.5D0)
+            VTP=(AVK(NRMAX,NS)/1.5D0+AV(NRMAX,NS))
+            DTP= AK(NRMAX,NS)/(1.5D0)
 C
-         VXP=0.D0
-         DXP=(1.5D0*AD(NRMAX,NS)-AK(NRMAX,NS))*PTS(NS)
+            VXP=0.D0
+            DXP=(1.5D0*AD(NRMAX,NS)-AK(NRMAX,NS))*PTS(NS)
 C
-         SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
-     &            +( VNP-DNP/DRH)*PNSS(NS))
-     &            *DVRHO(NRMAX)
-     &            *(RKAPS/RKAP)/(RM(NRMAX)*RA)
+            SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
+     &               +( VNP-DNP/DRH)*PNSS(NS))
+     &               *DVRHO(NRMAX)
+     &               *(RKAPS/RKAP)/(RM(NRMAX)*RA)
 C
-         PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
-     &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
-     &            +( VXP-DXP/DRH)*PNSS(NS)
-     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
-     &            *DVRHO(NRMAX)*RKEV*1.D14
-     &            *(RKAPS/RKAP)/(RM(NRMAX)*RA)
-   70 CONTINUE
+            PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
+     &               +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
+     &               +( VXP-DXP/DRH)*PNSS(NS)
+     &               +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
+     &               *DVRHO(NRMAX)*RKEV*1.D14
+     &               *(RKAPS/RKAP)/(RM(NRMAX)*RA)
+         ENDDO
+      ELSE
+         DO NS=1,NSM
+            VNP=AV(NRAMAX,NS)
+            DNP=AD(NRAMAX,NS)
+C
+            VTP=(AVK(NRAMAX,NS)/1.5D0+AV(NRAMAX,NS))
+            DTP= AK(NRAMAX,NS)/(1.5D0)
+C
+            VXP=0.D0
+            DXP=(1.5D0*AD(NRAMAX,NS)-AK(NRAMAX,NS))*PTSA(NS)
+C
+            SLT(NS) =((     DNP/DRH)*RN(NRAMAX,NS)
+     &               +( VNP-DNP/DRH)*PNSSA(NS))
+     &               *DVRHO(NRAMAX)
+     &               *(RKAPS/RKAP)/(RM(NRAMAX)*RA)
+C
+            PLT(NS) =((     DXP/DRH)*RN(NRAMAX,NS)
+     &               +(     DTP/DRH)*RN(NRAMAX,NS)*RT(NRAMAX,NS)*1.5D0
+     &               +( VXP-DXP/DRH)*PNSSA(NS)
+     &               +( VTP-DTP/DRH)*PNSSA(NS)*PTSA(NS)*1.5D0)
+     &               *DVRHO(NRAMAX)*RKEV*1.D14
+     &               *(RKAPS/RKAP)/(RM(NRAMAX)*RA)
+         ENDDO
+      ENDIF
 C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
       CALL TRSUMD(SNF,DVRHO,NRMAX,SNFSUM)
@@ -574,10 +599,12 @@ C
          G3D(NR,NGT,52) = GUCLIP(1.D0) ! DELTAR
          G3D(NR,NGT,53) = GUCLIP(AR1RHO(NR))
          G3D(NR,NGT,54) = GUCLIP(AR2RHO(NR))
+         G3D(NR,NGT,55) = GUCLIP(AKDW(NR,1))
+         G3D(NR,NGT,56) = GUCLIP(AKDW(NR,2))
 C         IF(NT.EQ.0) THEN
-C            G3D(NR,NGT,55) = GUCLIP(RTU(NR,2,1))
+C            G3D(NR,NGT,57) = GUCLIP(RTU(NR,2,1))
 C         ELSE
-C            G3D(NR,NGT,55) = GUCLIP(RTU(NR,2,NT))
+C            G3D(NR,NGT,57) = GUCLIP(RTU(NR,2,NT))
 C         ENDIF
 C
       ENDDO
@@ -1258,6 +1285,15 @@ C
 C
       KFID='CURBS'
       CALL TR_UFILE2D_CREATE(KFID,13,1.D6 ,NRXMAX,IERR)
+C
+      KFID='CHITBE'
+      CALL TR_UFILE2D_CREATE(KFID,55,1.D0 ,NRXMAX,IERR)
+C
+      KFID='CHITBI'
+      CALL TR_UFILE2D_CREATE(KFID,56,1.D0 ,NRXMAX,IERR)
+C
+      KFID='ETAR'
+      CALL TR_UFILE2D_CREATE(KFID,32,1.D0 ,NRXMAX,IERR)
 C
       RETURN
       END

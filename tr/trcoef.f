@@ -132,12 +132,9 @@ C
             EZOHL=EZOH(NR)
 C
             DPP = (RPP-RPM)*DRL
-C            write(6,*) NR,RPP,RPM
 C
             TI  = RNTP/RNP
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
-C            write(6,*) RN(NR-1,1)*RT(NR-1,1),RN(NR,1)*RT(NR,1),
-C     &           PNSS(1)*PTS(1)
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
@@ -154,8 +151,8 @@ C
                RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
                RNM =RNM +RN(NR  ,NS)
             ENDDO
-            RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-            RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+            RNTP= RNTP+RW(NR+1,1)+RW(NR+1,2)
+            RNTM= RNTM+RW(NR  ,1)+RW(NR  ,2)
             RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)
             RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)
             RPEP= RN(NR+1,1)*RT(NR+1,1)
@@ -167,7 +164,6 @@ C
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
             DPP = (RPP-RPM)*DRL
-C            IF(NR.GE.48) write(6,*) NR,DPP
 C
             TI  = 0.5D0*(RNTP/RNP+RNTM/RNM)
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
@@ -471,7 +467,7 @@ C
             RLAMDA=0.D0
             RG1=0.D0
             WE1=0.D0
-C     
+C
             IF(MDLKAI.EQ.30) THEN
                FS=1.D0/(1.7D0+SQRT(6.D0)*S)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -480,6 +476,7 @@ C
                FS=TRCOFS(S,ALFA,RKCV)
 C               IF(NR.GE.NRMAX-1)
 C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
+               
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN

@@ -113,7 +113,7 @@ C
                   BP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
-               IF(MDLUF.NE.3) THEN
+               IF(MDLUF.EQ.0) THEN !!!
                IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
                   RN(NR,NSSN) = 0.D0
                   DO NEQ1=1,NEQMAX
@@ -143,14 +143,14 @@ C
      &                                  +  X(NEQRMAX*(NR-1)+NSTN))
                   ENDIF
                ENDIF
+            ELSE !!!
+               IF(NSTN.EQ.0) THEN
+                  RN(NR,NSSN) = XV(NEQ,NR)
                ELSE
-                  IF(NSTN.EQ.0) THEN
-                     RN(NR,NSSN) = XV(NEQ,NR)
-                  ELSE
-                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)
-     &                                  +  X(NEQRMAX*(NR-1)+NSTN))
-                  ENDIF
+                  RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)
+     &                              +  X(NEQRMAX*(NR-1)+NSTN))
                ENDIF
+            ENDIF !!!
             ELSEIF(NSVN.EQ.2) THEN
                IF(NSTN.EQ.0) THEN
                   IF(NSSN.NE.NSM) THEN
@@ -422,10 +422,10 @@ C
 C
 C     ***** Evolution of fast ion components *****
 C
-      Y(1,NR)=(1.5D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.5D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.5D0+ADV/TAUB(NR)
-      AY(2,NR)=1.5D0+ADV/TAUF(NR)
+      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
+      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+      AY(1,NR)=1.D0+ADV/TAUB(NR)
+      AY(2,NR)=1.D0+ADV/TAUF(NR)
 C
 C          /---------------------\
 C    ***   |   NR=2 to NRMAX-1   |   ***
@@ -481,10 +481,10 @@ C
 C
 C     ***** Evolution of fast ion components *****
 C
-         Y(1,NR)=(1.5D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-         Y(2,NR)=(1.5D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-         AY(1,NR)=1.5D0+ADV/TAUB(NR)
-         AY(2,NR)=1.5D0+ADV/TAUF(NR)
+         Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
+         Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+         AY(1,NR)=1.D0+ADV/TAUB(NR)
+         AY(2,NR)=1.D0+ADV/TAUF(NR)
 C 
       ENDDO
 C
@@ -543,10 +543,10 @@ C
 C
 C     ***** Evolution of fast ion components *****
 C
-      Y(1,NR)=(1.5D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
-      Y(2,NR)=(1.5D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
-      AY(1,NR)=1.5D0+ADV/TAUB(NR)
-      AY(2,NR)=1.5D0+ADV/TAUF(NR)
+      Y(1,NR)=(1.D0-PRV/TAUB(NR))*YV(1,NR)+PNB(NR)*DT/(RKEV*1.D20)
+      Y(2,NR)=(1.D0-PRV/TAUF(NR))*YV(2,NR)+PNF(NR)*DT/(RKEV*1.D20)
+      AY(1,NR)=1.D0+ADV/TAUB(NR)
+      AY(2,NR)=1.D0+ADV/TAUF(NR)
 C
 C     ***** Band Matrix *****
 C
@@ -765,7 +765,7 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      IF(MDLUF.NE.3) THEN
+      IF(MDLUF.EQ.0) THEN
 C
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX

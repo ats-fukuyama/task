@@ -2,9 +2,9 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(OFLAGS)
+#FFLAGS = $(OFLAGS)
 #LFLAGS = $(DFLAGS)
-#FFLAGS = $(DFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
@@ -38,7 +38,7 @@ all: 3d
 3d: $(PROG3)
 
 $(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.h $(INCNC) $(INCGLF)
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) -L/home/honda/lib -lgsgl
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) -L/home/honda/lib -lgsgl-pgf77
 
 2d : $(PROG2)
 

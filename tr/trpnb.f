@@ -346,7 +346,7 @@ C
       DO 10 NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
-         WB =RW(NR,1)*1.5D0
+         WB =RW(NR,1)!*1.5D0
          IF(ANE.EQ.0.D0) THEN
             P4=0.D0
             TAUS=0.D0
