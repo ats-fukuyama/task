@@ -4,8 +4,8 @@ C      ****** DRAW MAGNETIC SURFACE DATA ******
 C
       SUBROUTINE WMGRMS
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
 *************
 *                 THIS PROGRAM - PROUT - ACCEPTS THE OUTPUT
@@ -46,8 +46,8 @@ C     ****** RADIAL BETA PROFILE AND |B|=BSQ ROUTINE ******
 C
       SUBROUTINE WRFCN
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       TWOPI=8.D0*DATAN(1.D0)
 C
@@ -140,8 +140,8 @@ C     ****** DATA PLOT ROUTINE ******
 C
       SUBROUTINE PLOTTER
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       COMMON /PLTCN2/ RMIN,RMAX,ZMIN,ZMAX
 C      COMMON /PLTCN6/ LXC,LYC,NOXC,NOYC
@@ -246,8 +246,8 @@ C
       SUBROUTINE CONTOUR(XPLOT,YPLOT,FUNC,ITOP,MTITLE,NCON,
      &                   IVAR)
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       COMMON /PLTCN2/ RMIN,RMAX,ZMIN,ZMAX
       COMMON /RZARRAY/ R(NRT),Z(NRT)
@@ -375,7 +375,7 @@ C
       SUBROUTINE TOTZ(NTH,NS,KZ,XM,XN,
      &                R,Z,RMNC,ZMNS)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RMNC(*),ZMNS(*),R(*),Z(*),XM(*),XN(*)
       COMMON /WMHVR1/ NSRMAX,MNMAX

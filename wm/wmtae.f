@@ -5,7 +5,7 @@ C   ***********************************************
 C
       SUBROUTINE WMTAE
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       PARAMETER(MMM=MDM*NDM)
       DIMENSION CWALF(MDM,NDM),CWALFK(MDM,NDM)

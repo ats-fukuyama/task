@@ -4,7 +4,7 @@ C     ***** SINGLE CALCULATION *****
 C
       SUBROUTINE WMAM0D(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
 C
       MODE=0
@@ -46,7 +46,7 @@ C     ***** 1D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM1D(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GZ(NGZM,1)
       CHARACTER LINE*80,KID*1
 C
@@ -159,7 +159,7 @@ C     ***** 2D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM2D(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GY(NGZM)
       DIMENSION GZ(NGZM,NGZM)
       PARAMETER (NINFM=5)
@@ -384,7 +384,7 @@ C     ***** FIND EIGEN VALUE *****
 C
       SUBROUTINE WMEIGN(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
       DIMENSION XA(2),WORK(2,2)
       EXTERNAL DIAMIN,SUBDFP
@@ -448,7 +448,7 @@ C     ***** PARAMETER SCAN *****
 C
       SUBROUTINE WMSCAN(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION PNSAVE(NSM),PTPRSAVE(NSM),PTPPSAVE(NSM)
       DIMENSION PNITBSAVE(NSM),PTITBSAVE(NSM),PUITBSAVE(NSM)
       DIMENSION PUSAVE(NSM)
@@ -786,7 +786,7 @@ C
 C
       SUBROUTINE SUBDFP(N,XA,F,DFA)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION XA(N),DFA(N)
 C
       H=DLTNW
@@ -804,7 +804,7 @@ C     ***** CALCULATE AMPLITUDE *****
 C
       SUBROUTINE DIAMIN(X,Y,F)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       RF=X
       RFI=Y
@@ -1390,7 +1390,7 @@ C     ***** WRITE WAVE DATA *****
 C
       SUBROUTINE WMWOUT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       NF=26
       WRITE(NF,*) 'FR [MHz] = ',FRINI

@@ -4,7 +4,7 @@ C     ****** INITIALIZE CONSTANTS & PARAMETERS ******
 C
       SUBROUTINE WMINIT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
 C     *** CONSTANTS ****
 C
@@ -399,7 +399,7 @@ C     ****** INPUT PARAMETERS ******
 C
       SUBROUTINE WMPARM(KID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       LOGICAL LEX
       CHARACTER KPNAME*6,KLINE*70,KNAME*80,KID*1
@@ -531,7 +531,7 @@ C     ****** DISPLAY INPUT DATA ******
 C
       SUBROUTINE WMVIEW
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       IF(NPRINT.LT.2) RETURN
 C
@@ -699,7 +699,7 @@ C     ****** BROADCAST PARAMETERS ******
 C
       SUBROUTINE WMPRBC
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION IPARA(22),DPARA(28)
 C

@@ -4,7 +4,7 @@ C    ***** INTERFACE FOR BOOZER COORDINATE EQUILIBRIUM *****
 C
       SUBROUTINE WMXRZB(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C     
       IERR=0
 C
@@ -45,16 +45,15 @@ C	    wjs	  : toroidal current within a flux surface
 C	    wis	  : poloidal current without a flux surface
 C
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       DIMENSION shalf(NSRM),wjs(NSRM),wis(NSRM)
-      DIMENSION GX(NSRM),GY(NSRM,4)
-      CHARACTER FNAME*80,KTITLE*80
+      DIMENSION GX(NSRM),GY(NSRM,NMNM)
 C
 C 1002    WRITE(6,*) 'READ FILE NAME ?'
 C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
-          FNAME='wout'
+C          FNAME='wout'
 C
       NFL=11
       KNAMEQ='m08n06.X1.1320_b_0.00.asc'
@@ -72,25 +71,26 @@ C
 C
       DO MN=1,MNMAX
          read(NFL,*) M,N
-         read(NFL,*) (BBOZH(MN,NSR),NSR=2,NSRMAX)
+         read(NFL,*,ERR=8001) (BBOZH(MN,NSR),NSR=2,NSRMAX)
          XM(MN)=DBLE(M)
          XN(MN)=DBLE(N)
-         BBOZH(MN,1)=0.D0
       ENDDO
 C
       DO MN=1,MNMAX
          read(NFL,*) M,N
-         read(NFL,*) (RBOZH(MN,NSR),NSR=2,NSRMAX)
+         read(NFL,*,ERR=8002) (RBOZH(MN,NSR),NSR=2,NSRMAX)
          RBOZH(MN,1)=0.D0
       ENDDO
+C
       DO MN=1,MNMAX
          read(NFL,*) M,N
-         read(NFL,*) (ZBOZH(MN,NSR),NSR=2,NSRMAX)
+         read(NFL,*,ERR=8003) (ZBOZH(MN,NSR),NSR=2,NSRMAX)
          ZBOZH(MN,1)=0.D0
       ENDDO
+C
       DO MN=1,MNMAX
          read(NFL,*) M,N
-         read(NFL,*) (PBOZH(MN,NSR),NSR=2,NSRMAX)
+         read(NFL,*,ERR=8004) (PBOZH(MN,NSR),NSR=2,NSRMAX)
          PBOZH(MN,1)=0.D0
       ENDDO
 C
@@ -98,86 +98,158 @@ C
 C
 C     ----- Setup normalized radius for file data -----
 C
-      SA=SHALF(NSRMAX)*((NSRMAX-1.D0)/(NSRMAX-1.5D0))**2
-      DO NSR=2,NSRMAX
-C         XSH(NSR)=SHALF(NSR)*PI
-         XSH(NSR)=SQRT(SHALF(NSR)/SA)
+      DELPSI=1.D0/(NSRMAX-1)
+      DO NSR=1,NSRMAX
+         XS(NSR)=DELPSI*(NSR-1)
       ENDDO
       XSH(1)=0.D0
-      XSH(NSRMAX+1)=1.D0
-      DO NSR=2,NSRMAX-1
-         XS(NSR)=0.5D0*(XSH(NSR)+XSH(NSR+1))
+      DO NSR=2,NSRMAX
+         XSH(NSR)=DELPSI*(NSR-1.5D0)
       ENDDO
-      XS(1)=0.D0
-      XS(NSRMAX)=1.D0
+      XSH(NSRMAX+1)=(RB/RA)**2
+C
+C     ----- Extraporate to axis and wall radius -----
+C
+      DO MN=1,MNMAX
+         IF(XM(MN).EQ.0.D0) THEN
+            BBOZH(MN,1)=(3*BBOZH(MN,2)-BBOZH(MN,3))/2
+            RBOZH(MN,1)=(3*RBOZH(MN,2)-RBOZH(MN,3))/2
+            ZBOZH(MN,1)=(3*ZBOZH(MN,2)-ZBOZH(MN,3))/2
+            PBOZH(MN,1)=(3*PBOZH(MN,2)-PBOZH(MN,3))/2
+         ELSE
+            BBOZH(MN,1)=0.D0
+            RBOZH(MN,1)=0.D0
+            ZBOZH(MN,1)=0.D0
+            PBOZH(MN,1)=0.D0
+         ENDIF
+         DEL1=XSH(NSRMAX+1)-XSH(NSRMAX)
+         DEL2=XSH(NSRMAX)-XSH(NSRMAX-1)
+         BBOZH(MN,NSRMAX+1)=((DEL1+DEL2)*BBOZH(MN,NSRMAX)
+     &                       -DEL1*BBOZH(MN,NSRMAX-1))/DEL2
+         RBOZH(MN,NSRMAX+1)=((DEL1+DEL2)*RBOZH(MN,NSRMAX)
+     &                       -DEL1*RBOZH(MN,NSRMAX-1))/DEL2
+         ZBOZH(MN,NSRMAX+1)=((DEL1+DEL2)*ZBOZH(MN,NSRMAX)
+     &                       -DEL1*ZBOZH(MN,NSRMAX-1))/DEL2
+         PBOZH(MN,NSRMAX+1)=((DEL1+DEL2)*PBOZH(MN,NSRMAX)
+     &                       -DEL1*PBOZH(MN,NSRMAX-1))/DEL2
+      ENDDO
 C
       DO NSR=1,NSRMAX+1
          WRITE(6,'(I5,2X,1P3E12.5)') NSR,SHALF(NSR),XS(NSR),XSH(NSR)
       ENDDO
 C
-      DO NSR=1,NSRMAX
+C     ----- graphics with psit axis -----
+C
+      DO NSR=1,NSRMAX+1
          GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(RBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(RBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(RBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(RBOZH(4,NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
       ENDDO
       CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/RBOZH/',0)
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
       CALL PAGEE
 C
-      DO NSR=1,NSRMAX
+      DO NSR=1,NSRMAX+1
          GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(ZBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(ZBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(ZBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(ZBOZH(4,NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
       ENDDO
       CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/ZBOZH/',0)
-      CALL PAGEE
-      DO NSR=1,NSRMAX
-         GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(RBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(RBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(RBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(RBOZH(4,NSR))
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/RBOZH/',0)
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
       CALL PAGEE
 C
-      DO NSR=1,NSRMAX
+      DO NSR=1,NSRMAX+1
          GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(PBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(PBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(PBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(PBOZH(4,NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
       ENDDO
       CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/PBOZH/',0)
-      CALL PAGEE
-      DO NSR=1,NSRMAX
-         GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(RBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(RBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(RBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(RBOZH(4,NSR))
-      ENDDO
-      CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/RBOZH/',0)
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
       CALL PAGEE
 C
-      DO NSR=1,NSRMAX
+      DO NSR=1,NSRMAX+1
          GX(NSR)=GUCLIP(XSH(NSR))
-         GY(NSR,1)=GUCLIP(BBOZH(1,NSR))
-         GY(NSR,2)=GUCLIP(BBOZH(2,NSR))
-         GY(NSR,3)=GUCLIP(BBOZH(3,NSR))
-         GY(NSR,4)=GUCLIP(BBOZH(4,NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
       ENDDO
       CALL PAGES
-      CALL GRF1D(0,GX,GY,NSRM,NSRMAX,4,'/BBOZH/',0)
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
       CALL PAGEE
+C
+C     ----- graphics with rho axis -----
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/RBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/ZBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/PBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+1
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRM,NSRMAX+1,MNMAX,'/BBOZH/',0)
+      CALL PAGEE
+C
+      RETURN
+C
+ 8001 DO NSR=1,NSRMAX
+         WRITE(6,*) 'MN,M,N,NSR,B=',MN,M,N,NSR,BBOZH(MN,NSR)
+      ENDDO
+      STOP
+ 8002 DO NSR=1,NSRMAX
+         WRITE(6,*) 'MN,M,N,NSR,B=',MN,M,N,NSR,RBOZH(MN,NSR)
+      ENDDO
+      STOP
+ 8003 DO NSR=1,NSRMAX
+         WRITE(6,*) 'MN,M,N,NSR,B=',MN,M,N,NSR,ZBOZH(MN,NSR)
+      ENDDO
+      STOP
+ 8004 DO NSR=1,NSRMAX
+         WRITE(6,*) 'MN,M,N,NSR,B=',MN,M,N,NSR,PBOZH(MN,NSR)
+      ENDDO
+      STOP
+      END
+C
+C    ****** CALCULATE R AND Z ******
+C
+      SUBROUTINE WMHBRZ
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
+C
+C     ----- DEFINE XRHO AND XR ---
 C
       RHOB=RB/RA
       DRHO=RHOB/NRMAX
@@ -186,19 +258,13 @@ C
          XR(NR)  =RB*XRHO(NR)
       ENDDO
 C
-      RETURN
-      END
-C
-C    ****** CALCULATE R AND Z ******
-C
-      SUBROUTINE WMHBRZ
-C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      DO NSR=1,NSRMAX+1
+         XSHRHO(NSR)=SQRT(XSH(NSR))
+      ENDDO
 C
 C      ***** SPLINE PSIPS *****
 C
-      CALL SPL1D(XS,PHI,FX1,U1,NSRMAX,0,IERR)
+      CALL SPL1D(XSHRHO,PHI,FX1,U1,NSRMAX,0,IERR)
 C
       DO NR=1,NRMAX+1
          CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U1,NSRMAX,IERR)
@@ -207,15 +273,6 @@ C
 C      ***** SPLINE RMNC(S),ZMNS(S) DRMNC(S) DZMNS(S) *****
 C
       DO MN=1,MNMAX
-         DO NSR=1,NSRMAX
-            YRBS(NSR)=RMNC(MN+(NSR-1)*MNMAX)
-            YZBS(NSR)=ZMNS(MN+(NSR-1)*MNMAX)
-         ENDDO
-C         IF(MYRANK.EQ.0) THEN
-C            WRITE(6,'( I5,1P6E12.4)') MN,XM(MN),XN(MN),
-C     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
-C            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
-C         ENDIF
          CALL SPL1D(XS,YRBS,FX1,U1,NSRMAX,0,IERR)
          CALL SPL1D(XS,YZBS,FX2,U2,NSRMAX,0,IERR)
 C
@@ -257,8 +314,8 @@ C    ****** CALCULTE METRIC ******
 C
       SUBROUTINE WMHBMT
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
 C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
@@ -334,8 +391,8 @@ C    ***** SPLINE POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
 C
       SUBROUTINE WMHBBB
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       DO MN=1,MNMAX
          DO NSR=1,NSRMAX

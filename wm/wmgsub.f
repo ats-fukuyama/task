@@ -4,7 +4,7 @@ C     ****** DRAW 2D POLOIDAL GRAPH ******
 C
       SUBROUTINE WMGREQ(K2,K3,K4)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM)
       CHARACTER K2,K3,K4
@@ -253,7 +253,7 @@ C     ****** DRAW 1D RADIAL GRAPHS ******
 C
       SUBROUTINE WMGREQG(K2,K3,K4)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM),GP(4,4)
       CHARACTER RTITL(8)*6
@@ -351,7 +351,7 @@ C     ****** WRITE GRAPHIC DATA IN FILE ******
 C
       SUBROUTINE WMGFWR(GGL,NPH,K2,K3,K4)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GGL(NRM,NTHM),GRL(NRM,NTHM),GZL(NRM,NTHM)
       CHARACTER K2*1,K3*1,K4*1
@@ -377,7 +377,7 @@ C     ****** DRAW COUNTOUR IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMGXEQ(GGL,NPH,K2,K3)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GGL(NRM,NTHM),GBY(NRM,NTHGM)
       DIMENSION GFL(NRM,NTHGM),GRL(NRM,NTHGM),GZL(NRM,NTHGM)
@@ -505,7 +505,7 @@ C     ****** PAINT CONTOUR IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMGXEQP(GGL,NPH,K2,K3)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       PARAMETER (NRGBA=5)
       PARAMETER (NSTEPM=101)
@@ -687,7 +687,7 @@ C     ****** DRAW BIRD-EYE VIEW IN MAGNETIC SURFACE COORDINATES ******
 C
       SUBROUTINE WMG3DA(GFL,NPH,K2,K3,IND)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)
 C
@@ -1045,7 +1045,7 @@ C     ****** CALCULATE THE VALUE OF MESH POINTS BY SPLINE ******
 C
       SUBROUTINE MESHVL(RHO,THETA,U,F,DFX,DFY,IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)
 C
@@ -1060,7 +1060,7 @@ C     ****** EXCEED THE MAX POINT ******
 C
       SUBROUTINE SUBSPL1(X,Y,Z,DZX,DZY,U,IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       COMMON /WMSPL1/ TH(NTHM+1)
 C
@@ -1259,7 +1259,7 @@ C     ****** DRAW METRIC GRAPH ******
 C
       SUBROUTINE WMGGR(GY,NGMAX,RTITL,GP)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GX(NRM),GY(NRM,MDM),GP(4)
       DIMENSION ICL(6),IPAT(6)

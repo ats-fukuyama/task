@@ -4,7 +4,7 @@ C     ****** CONTROL GRAPHICS ******
 C
       SUBROUTINE WMGOUT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
@@ -64,7 +64,7 @@ C     ****** DRAW 1D GRAPH ******
 C
       SUBROUTINE WMGR1D(K2,K3)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GX1(NRM),GX2(NRM),GY(NRM,NSM),GP(4,4)
       DIMENSION GY1(NRM,NMDM),GY2(NRM,NMDM)
@@ -399,7 +399,7 @@ C     ****** DRAW LINES OF 1D GRAPH ******
 C
       SUBROUTINE WMGSUB(NX,GX,GXMIN,GXMAX,GY,NY,GP,KTITL)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GX(NRM),GY(NRM,NSM),GP(4)
       DIMENSION ICL(6),IPAT(6)
@@ -451,7 +451,7 @@ C     ****** DRAW LINES OF 1D GRAPH ******
 C
       SUBROUTINE WMGN1D(NX,GX,GXMIN,GXMAX,GY1,GY2,NY,GP,KTITL)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GX(NRM),GY1(NRM,NMDM),GY2(NRM,NMDM),GP(4)
       CHARACTER KTITL*6
@@ -503,7 +503,7 @@ C     ****** DRAW 2D POLOIDAL GRAPH ******
 C
       SUBROUTINE WMGRTH(K2,K3,K4)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM),GXR(NRM)
 C
@@ -706,7 +706,7 @@ C     ****** DRAW 2D MODE GRAPH ******
 C
       SUBROUTINE WMGRMD(K2,K3,K4)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM+1)
 C
@@ -847,7 +847,7 @@ C     ****** DRAW GRAPH OF MULTIPLE LINES ******
 C
       SUBROUTINE WMGCON(GZL,K2,K3,K4,NX)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(MDM+1),GZL(NRM,MDM+1)
       CHARACTER K2,K3,K4
@@ -930,7 +930,7 @@ C     ****** WRITE PARAMETERS ******
 C
       SUBROUTINE WMGPRM(K1,K3,NTH,NPH,MD,ND)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CHARACTER K1,K3
       REAL*4 XPOS,YPOS,DY

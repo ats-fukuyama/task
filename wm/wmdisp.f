@@ -7,7 +7,7 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
@@ -44,7 +44,7 @@ C
 C           NR : NODE NUMBER (RADIAL POSITION)
 C           NS : PARTICLE SPECIES 
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION CGZ(1),CZ(1),CDZ(1)
@@ -298,7 +298,7 @@ C     ****** CALCULATE ALPHA PARTICLE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 C
       SUBROUTINE WMTNAX(NR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CW=2*PI*CRF*1.D6
 C
@@ -389,7 +389,7 @@ C     ****** CALCULATE ALPHA PARTICLE MAGNETIC DRIFT DIELECTRIC TENSOR ******
 C
       SUBROUTINE WMTNEX(NR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
 C
       CW=2*PI*CRF*1.D6

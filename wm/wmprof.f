@@ -4,8 +4,8 @@ C     ****** DENSITY PROFILE ******
 C
       SUBROUTINE WMCDEN(NR,RN,RTPR,RTPP,RU)
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'wmxprf.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'wmxprf.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
 C
@@ -128,7 +128,7 @@ C     ****** MAGNETIC FIELD PROFILE ******
 C
       SUBROUTINE WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       BSUPTH=BFLD(2,NTH,NPH,NR)
       BSUPPH=BFLD(3,NTH,NPH,NR)
@@ -144,7 +144,7 @@ C     ***** CALCULATE N AND T OF FAST ALPHA PARTICLES ******
 C
       SUBROUTINE WMCALF(RNE,RND,RNT,RTE,RTD,RTT,RNA,RTA)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       AME=AMP*PA(1)
       FTAUS  =0.75D0*PI*SQRT(PI)*(EPS0/AEE)**2*(4.D0*AMP/AEE)*(AME/AEE)
@@ -194,7 +194,7 @@ C     ****** XL(NR): DISTANCE FROM AXIS ******
 C
       SUBROUTINE WMCPOS(NR,XL)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       FACT=XRHO(NR)**2
       IF(FACT.LT.0.D0)THEN

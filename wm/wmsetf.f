@@ -4,7 +4,7 @@ C     ****** CALCULATE LOCAL MATRIX ******
 C
       SUBROUTINE WMSETF(NR,NS0)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       DIMENSION RMA(3,3),RMB(3,3),RGA(3,3),RGB(3,3)
       DIMENSION CEP0(3,3,-MDMX:MDMX,-NDMX:NDMX,MDM,NDM)
       DIMENSION CRA(MDM,NDM,3,3),CFA(MDM,NDM,3,3)
@@ -394,7 +394,7 @@ C     ****** 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBG(RF1,RF2,CF)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RF1(MDM,NDM),RF2(MDM,NDM),CF(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
@@ -425,7 +425,7 @@ C     ****** 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBF(CF1,CF2)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
@@ -456,7 +456,7 @@ C     ****** INTERFACE FOR FFT ******
 C
       SUBROUTINE WMXFFT(CA,N,KEY)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       COMPLEX*16 CA(N)
       DATA NS/0/

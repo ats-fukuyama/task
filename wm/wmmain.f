@@ -12,7 +12,7 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
       CHARACTER KID*1,LINE*80
       DATA NFILEINI/0/
 C

@@ -2,7 +2,7 @@ C     $Id$
 C
 C     ****** CALCULATE TOTAL ABSORPED POWER ROUTINE ******
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CHARACTER KNAMEO*6,KNAMEP*13,KNAMER*10,KNAMES*6,KNAMET*6
       CHARACTER KSTR*1
@@ -62,7 +62,7 @@ C     ****** READ DATA AND COMPARE IT WITH ORIGINAL DATA *****
 C
       SUBROUTINE WMDTRC(KNAMER,KNAMET,NF,IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CHARACTER KNAMEO*6,KNAMEP*13,KNAMER*10,KNAMET*6
       LOGICAL LEX
@@ -411,7 +411,7 @@ C     ****** GRAPHIC ROUTINE ******
 C
       SUBROUTINE WMPGRP
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION GY(NRM,MDM)
       CHARACTER KSTR*4,K1,K2,K3,K4

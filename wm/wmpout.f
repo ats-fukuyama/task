@@ -4,7 +4,7 @@ C     ****** CALCULATE ELECTRIC FIELD ******
 C
       SUBROUTINE WMEFLD
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
@@ -260,7 +260,7 @@ C     ****** CALCULATE MAGNETIC FIELD ******
 C
       SUBROUTINE WMBFLD
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM)
 C
@@ -364,7 +364,7 @@ C     ****** CALCULATE ABSORBED POWER ******
 C
       SUBROUTINE WMPABS
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
@@ -923,7 +923,7 @@ C     ****** CALCULATE ENERGY FLUX ******
 C
       SUBROUTINE WMPFLX
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       RETURN
       END
@@ -932,7 +932,7 @@ C     ****** CALCULATE ANTENNA IMPEDANCE ******
 C
       SUBROUTINE WMPANT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       RETURN
       END
@@ -948,7 +948,7 @@ C           1 : TTMP
 C
       FUNCTION W1CDEF(WT,Z,XL,YL,ID)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       R=SQRT(XL*XL+YL*YL)
       IF(ID.EQ.0) THEN
@@ -1002,7 +1002,7 @@ C     ****** DISPLAY OUTPUT DATA ******
 C
       SUBROUTINE WMPOUT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       IF(NPRINT.LT.1) RETURN
 C
@@ -1050,7 +1050,7 @@ C     ****** 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBH(RF1,CF2)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
@@ -1081,7 +1081,7 @@ C     ****** 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBE(CF1,CF2)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION CF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)
@@ -1112,7 +1112,7 @@ C     ****** 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBD(RF1,CF2)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RF1(MDM,NDM),CF2(MDM,NDM)
       DIMENSION CFM(MDM),CFN(NDM)

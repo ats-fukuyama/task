@@ -7,7 +7,7 @@ C     This subroutine get profile data for wm-code.
 C     Profile data got from tokrd file on nanasvr is for JT-60.
 C
 C     Input
-C       wmcomm.h
+C       wmcomm.inc
 C         NRMAX  : number of the point for calculated
 C         NTHMAX : number of poloidal mesh points
 C         NSUMAX : number of the coordinates of separatrix surface,
@@ -18,14 +18,14 @@ C         XRHO   : ro data of the calculated point ( sub. WMXRZF )
 C         PSIPS  : psi data of the calculated point ( sub. EQGETP )
 C
 C     Output
-C       wmcomm.h
+C       wmcomm.inc
 C         PN(I)  : density at center                   (1.0E20/m*3)
 C         PNS(I) : density on plasma surface           (1.0E20/m*3)
 C         PTPR(I): Parallel temperature at center      (keV)
 C         PTPP(I): Perpendicular temperature at center (keV)
 C         PTS(I) : temperature on plasma surface       (keV)
 C         I=1:electron, I=2:Impurity, I=3:ion
-C       wmxprf.h
+C       wmxprf.inc
 C         NPRFI     : calculation mode for ion
 C         PN60(N,I) : density at the calculated point     (1/m3)
 C         PT60(N,I) : temperature at the calculated point (eV)
@@ -34,8 +34,8 @@ C
 C                                     created by Itakura : CSK  00/07/31
 C=======================================================================
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'wmxprf.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'wmxprf.inc'
 C
       REAL*8 PRFPSI(NXPRF)  , PRFNE(NXPRF)   , PRFTE(NXPRF)
      >     , PRFTI(NXPRF)

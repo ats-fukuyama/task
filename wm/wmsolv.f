@@ -4,7 +4,7 @@ C     ****** SOLVE SIMULTANEOUS EQUATIONS ******
 C
       SUBROUTINE WMSOLV
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       COMPLEX * 16 D,X
       COMPLEX * 16 P1,P2,Q1,Q2,R1,R2

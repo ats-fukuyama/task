@@ -9,7 +9,7 @@ C       RHO, NE, TE, TI
 C
 C       number of data is number of lines
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RHOFL(NRM),RNEFL(NRM),RTEFL(NRM),RTIFL(NRM)
       DIMENSION DERIV(NRM),URNEFL(4,NRM),URTEFL(4,NRM),URTIFL(4,NRM)

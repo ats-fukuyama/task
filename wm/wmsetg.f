@@ -4,7 +4,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE WMSETG(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
 C     ****** CYLINDRICAL COORDINATES ******
 C
@@ -93,7 +93,7 @@ C     ****** RADIAL MESH (CYLINDRICAL COORDINATES) ******
 C
       SUBROUTINE WMXRZC(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
          IERR=0
 C
@@ -254,7 +254,7 @@ C     ****** RADIAL MESH (TOROIDAL COORDINATES) ******
 C
       SUBROUTINE WMXRZT(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
 C
          IERR=0
@@ -412,7 +412,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE WMXRZF(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       CHARACTER KNAMEQSV*80
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV,KNAMEQSV
@@ -616,7 +616,7 @@ C     ****** CALCULATE ION CYCROTRON RESONANCE SURFACE ******
 C
       SUBROUTINE WMICRS
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DO NR=1,NRMAX+1
       DO NPH=1,NPHMAX

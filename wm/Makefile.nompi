@@ -2,10 +2,11 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
-SRCX = wminit.f wmsetg.f wmvmec.f wmexec.f wmprof.f \
-       nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmxprf.f wmdprf.f \
+SRCX = wminit.f wmsetg.f wmvmec.f wmbooz.f \
+       wmexec.f wmprof.f wmdisp.f \
+       nowmsolv.f wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f wmtae.f
 
 SRCS = wmmain.f wmeign.f $(SRCX)
@@ -16,7 +17,7 @@ OBJM = ../mtx/bandcd.o  ../mtx/mtxset.o ../mtx/precndcb.o \
 
 OBJL = ../lib/libdsp.o ../lib/libfft.o ../lib/libinv.o \
        ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o ../lib/libchar.o \
-       ../lib/libfio.o ../lib/libgut.o
+       ../lib/libfio.o ../lib/libgut.o ../lib/libgrf.o
 
 OBJE = ../eq/eqload.o ../eq/eqdsk.o ../eq/eqcalq.o ../eq/wmeqin.o
 
@@ -27,7 +28,7 @@ OBJS = $(SRCS:.f=.o) $(OBJM) $(OBJL) $(OBJE) $(OBJLA)
 
 all : wm
 
-wm : $(OBJS) wmcomm.h
+wm : $(OBJS) wmcomm.inc
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
@@ -39,7 +40,7 @@ new :
 	cp -f Makefile.mpi ../wmnew
 	cp -f Makefile.nompi ../wmnew
 	cp -f *.f ../wmnew
-	cp -f *.h ../wmnew
+	cp -f *.inc ../wmnew
 
 clean:
 	rm -f core *.o ./*~ ../mtx/*.o
@@ -47,26 +48,27 @@ clean:
 veryclean: clean
 	rm -f wm
 
-wmmain.o : wmmain.f wmcomm.h
-wmeign.o : wmeign.f wmcomm.h
-wminit.o : wminit.f wmcomm.h
-wmsetg.o : wmsetg.f wmcomm.h
-wmvmec.o : wmvmec.f wmcomm.h vmcomm.h
-wmexec.o : wmexec.f wmcomm.h
-wmprof.o : wmprof.f wmcomm.h wmxprf.h
-wmsolv.o : wmsolv.f wmcomm.h
-nowmsolv.o : nowmsolv.f wmcomm.h
-wmsetm.o : wmsetm.f wmcomm.h
-wmsetf.o : wmsetf.f wmcomm.h
-wmdisp.o : wmdisp.f wmcomm.h
-wmtae.o : wmtae.f wmcomm.h
-wmdprf.o : wmdprf.f wmcomm.h
-wmxprf.o : wmxprf.f wmcomm.h wmxprf.h
-wmpout.o : wmpout.f wmcomm.h
-wmgout.o : wmgout.f wmcomm.h
-wmvout.o : wmvout.f wmcomm.h vmcomm.h
-wmgsub.o : wmgsub.f wmcomm.h
-wmdout.o : wmdout.f wmcomm.h	
+wmmain.o : wmmain.f wmcomm.inc
+wmeign.o : wmeign.f wmcomm.inc
+wminit.o : wminit.f wmcomm.inc
+wmsetg.o : wmsetg.f wmcomm.inc
+wmvmec.o : wmvmec.f wmcomm.inc vmcomm.inc
+wmexec.o : wmexec.f wmcomm.inc
+wmprof.o : wmprof.f wmcomm.inc wmxprf.inc
+wmsolv.o : wmsolv.f wmcomm.inc
+nowmsolv.o : nowmsolv.f wmcomm.inc
+wmsetm.o : wmsetm.f wmcomm.inc
+wmsetf.o : wmsetf.f wmcomm.inc
+wmdisp.o : wmdisp.f wmcomm.inc
+wmtae.o : wmtae.f wmcomm.inc
+wmdprf.o : wmdprf.f wmcomm.inc
+wmxprf.o : wmxprf.f wmcomm.inc wmxprf.inc
+wmpout.o : wmpout.f wmcomm.inc
+wmgout.o : wmgout.f wmcomm.inc
+wmvout.o : wmvout.f wmcomm.inc vmcomm.inc
+wmgsub.o : wmgsub.f wmcomm.inc
+wmdout.o : wmdout.f wmcomm.inc	
+wmbooz.o : wmbooz.f wmcomm.inc vmcomm.inc
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc

@@ -5,7 +5,7 @@ C
 C
       SUBROUTINE WMXRZV(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C     
       IERR=0
 C
@@ -26,8 +26,8 @@ C    ****** READ WOUT FILE ******
 C
       SUBROUTINE WMHFRD
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       CHARACTER FNAME*80
 C
@@ -118,8 +118,8 @@ C    ****** READ WOUT FILE ******
 C
       SUBROUTINE WMHGRD(ID,IERR)
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       CHARACTER FNAME*80
 C
@@ -214,8 +214,8 @@ C    ****** CALCULATE R AND Z ******
 C
       SUBROUTINE WMHCRZ
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
 C      ***** SPLINE PSIPS *****
 C
@@ -278,8 +278,8 @@ C    ****** CALCULTE METRIC ******
 C
       SUBROUTINE WMHMTR
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
 C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
@@ -355,8 +355,8 @@ C    ***** SPLINE POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
 C
       SUBROUTINE WMHCBB
 C
-      INCLUDE 'wmcomm.h'
-      INCLUDE 'vmcomm.h'
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
 C
       DO MN=1,MNMAX
          DO NSR=1,NSRMAX
@@ -551,7 +551,7 @@ C   ***** DRAW R,Z GRAPH *****
 C
       SUBROUTINE WMGS1D(XG,YG,NXGMAX,KTITL,NGD)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION XG(NXGMAX),YG(NXGMAX)
       DIMENSION GX(NRM),GY(NRM)

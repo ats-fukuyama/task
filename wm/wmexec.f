@@ -4,7 +4,7 @@ C     ****** CALCULATE ANTENNA EXCITATION ******
 C
       SUBROUTINE WMEXEC(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       IERR=0
       MODEEG=0
@@ -31,7 +31,7 @@ C     ****** CALCULATE ANTENNA CURRENT ******
 C     
       SUBROUTINE WMSETJ(IERR)
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION RHO(0:3,1:3,2:3)
 C
@@ -84,7 +84,7 @@ C     ****** CALCULATE ANTENNA CURRENT ******
 C
       SUBROUTINE WMCANT
 C
-      INCLUDE 'wmcomm.h'
+      INCLUDE 'wmcomm.inc'
 C
       DIMENSION CJT(MDM,NDM,NAM)
       DIMENSION CJZ(MDM,NDM,NAM)
