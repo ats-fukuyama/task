@@ -1,3 +1,11 @@
+2003/10/22
+        PRFIN added
+        fileio updated
+2003/10/13
+        polaraized component calculation included
+        DIII-D profile date read included
+        EQDSK data read included
+
 2000/10/31 V3.42
         MODELK is fixed to 0. Do not use MODELK=1.
         Harmonics sum modified in wmdisp.f

@@ -168,6 +168,7 @@ C     BETAJ : Antenna current profile parameter
 C     NTH0  : Central value of poloidal mode number
 C     NPH0  : Central value of toroidal mode number
 C     NHC   : Number of helical coils
+C     PRFIN : Input Power (0 for given antenna current) (W)
 C
       CRF    = (50.0D0,0.D0)
       RD     = 1.1D0
@@ -175,6 +176,7 @@ C
       NTH0   = 0
       NPH0   = 8
       NHC    = 10
+      PRFIN  = 0.D0
 C
 C     *** ANTENNA PARAMETERS ***
 C
@@ -381,7 +383,7 @@ C
       WRITE(6,*) '               NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'
       WRITE(6,*) '               MODELG,MODELJ,MODELP,MODELA,MODELN,'
       WRITE(6,*) '               MODELM,MODELW,KNAMEQ,KNAMPF,'
-      WRITE(6,*) '               NPRINT,NGRAPH,,'
+      WRITE(6,*) '               NPRINT,NGRAPH,PRFIN,'
       WRITE(6,*) '               FRMIN,FRMAX,FIMIN,FIMAX,FI0,'
       WRITE(6,*) '               FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'
       WRITE(6,*) '               SCMIN,SCMAX,NSCMAX,LISTEG,'
@@ -414,7 +416,7 @@ C
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
      &              RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2,
      &              RHOITB,PNITB,PTITB,PUITB,WAEMIN,WAEMAX,
-     &              KNAMEQ,KNAMPF
+     &              KNAMEQ,KNAMPF,PRFIN
 C
       MODE=0
  1000 CONTINUE
@@ -641,7 +643,7 @@ C
      &             'PNAL  ',PNAL  ,'PTA   ',PTA
       WRITE(6,601) 'PROFU1',PROFU1,'PROFU2',PROFU2,
      &             'RHOMIN',RHOMIN,'QMIN  ',QMIN
-      WRITE(6,601) 'RHOITB',RHOITB
+      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
@@ -696,7 +698,7 @@ C
 C
       INCLUDE 'wmcomm.h'
 C
-      DIMENSION IPARA(22),DPARA(27)
+      DIMENSION IPARA(22),DPARA(28)
 C
       IF(MYRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -751,10 +753,11 @@ C
          DPARA(25)=RHOITB
          DPARA(26)=PROFU1
          DPARA(27)=PROFU2
+         DPARA(28)=PRFIN
       ENDIF
 C
       CALL MPBCIN(IPARA,22)
-      CALL MPBCDN(DPARA,27)
+      CALL MPBCDN(DPARA,28)
 C
       IF(MYRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -807,6 +810,7 @@ C
          RHOITB=DPARA(25)
          PROFU1=DPARA(26)
          PROFU2=DPARA(27)
+         PRFIN =DPARA(28)
          CRF=DCMPLX(RF,RFI)
       ENDIF
 C
@@ -829,8 +833,8 @@ C
       CALL MPBCDN(THJ2,NAMAX)
       CALL MPBCDN(PHJ1,NAMAX)
       CALL MPBCDN(PHJ2,NAMAX)
-      CALL MPBCKN(KNAMEQ,72)
-      CALL MPBCKN(KNAMPF,72)
+      CALL MPBCKN(KNAMEQ,80)
+      CALL MPBCKN(KNAMPF,80)
 C
       RETURN
       END

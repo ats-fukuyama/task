@@ -15,7 +15,8 @@ OBJM = ../mtx/bandcd.o  ../mtx/mtxset.o ../mtx/precndcb.o \
        ../mtx/bandcdb.o
 
 OBJL = ../lib/libdsp.o ../lib/libfft.o ../lib/libinv.o \
-       ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o 
+       ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o ../lib/libchar.o \
+       ../lib/libfio.o
 
 OBJE = ../eq/eqload.o ../eq/eqdsk.o ../eq/eqcalq.o ../eq/wmeqin.o
 
