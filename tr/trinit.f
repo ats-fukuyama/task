@@ -505,9 +505,10 @@ C
       RIP   = RIPS
 C
       DR = 1.D0/DBLE(NRMAX)
-      RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
-      FKAP=0.5D0*(RKAP+1.D0)
-     &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
+C      RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
+C      FKAP=0.5D0*(RKAP+1.D0)
+C     &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
+      FKAP=RKAP
 C
       DO 100 NR=1,NRMAX
          RG(NR)  = NR*DR
@@ -793,6 +794,7 @@ C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR
          ENDDO
       ELSE
          DO NR=1,NRMAX
+            BPRHO(NR)=BP(NR)
             QRHO(NR)=QP(NR)
             TTRHO(NR)=BB*RR
             DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)

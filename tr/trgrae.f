@@ -42,10 +42,12 @@ C
      &            '@QRHO,QP vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GCLIP(BPRHO(NR))
-         GYR(NR,2) = GCLIP(BP(NR))
+         GYR(NR+1,1) = GCLIP(BPRHO(NR))
+         GYR(NR+1,2) = GCLIP(BP(NR))
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+      GYR(1,1) = 0.0
+      GYR(1,2) = 0.0
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,2,
      &            '@BPRHO,BP [T] vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
