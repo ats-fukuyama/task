@@ -26,15 +26,14 @@ C
       ENDIF
 C
       IF(MYRANK.EQ.0) THEN
-         OPEN(33,STATUS='SCRATCH',FORM='FORMATTED')
-         WRITE(6,*) '######## /TASK/WM V3.44 02/09/04 ########'
+         WRITE(6,*) '######## /TASK/WM V3.50 03/10/22 ########'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC
 C
       CALL WMINIT
       IF(MYRANK.EQ.0) THEN
-         OPEN(7,STATUS='SCRATCH')
+         OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
          CALL WMPARF
       ENDIF
       CALL MPSYNC

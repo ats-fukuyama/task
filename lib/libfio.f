@@ -45,7 +45,7 @@ C
          IF(MODEF.EQ.0) THEN
             OPEN(NFL,FILE=KNAMFL,IOSTAT=IST,STATUS='OLD',ERR=20,
      &           FORM='UNFORMATTED')
-         ELSEIF(MODDEF.EQ.1) THEN
+         ELSEIF(MODEF.EQ.1) THEN
             OPEN(NFL,FILE=KNAMFL,IOSTAT=IST,STATUS='OLD',ERR=20,
      &           FORM='FORMATTED')
          ELSE

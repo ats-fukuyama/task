@@ -10,8 +10,8 @@ SRCT = trtest.f treqin.f $(SRCC)
 SRCP = pltest.f pleqin.f eqload.f eqcalq.f eqdsk.f
 SRCA = aktest.f akeqin.f eqload.f eqcalq.f eqdsk.f
 
-SRCCL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
-SRCQL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
+SRCQL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f ../lib/libchar.f ../lib/libfio.f
+SRCCL= ../lib/libbnd.f $(SRCQL)
 
 OBJS = $(SRCS:.f=.o) $(SRCCL:.f=.o) 
 OBJT = $(SRCT:.f=.o) $(SRCCL:.f=.o) 
@@ -70,3 +70,15 @@ aktest.o: aktest.f
 akeqin.o: akeqin.f eqcom1.inc eqcom3.inc
 eqload.o: eqload.f eqcom1.inc eqcom3.inc
 eqdsk.o: eqdsk.f eqcom1.inc eqcom3.inc
+../lib/libbnd.o: ../lib/libbnd.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
+../lib/libspl.o: ../lib/libspl.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libspl.f
+../lib/libbrn.o: ../lib/libbrn.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
+../lib/libgut.o: ../lib/libgut.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
+../lib/libchar.o: ../lib/libchar.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
+../lib/libfio.o: ../lib/libfio.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f

@@ -13,23 +13,11 @@ C
 C
       LOGICAL LEX
 C
-      IERR=0
       neqdsk=21
-      IF(KNAMEQ(1:2).EQ.'  ') GOTO 9000
-      INQUIRE(FILE=KNAMEQ,EXIST=LEX,ERR=9000)
-      IF(LEX) THEN
-         OPEN(neqdsk,FILE=KNAMEQ,IOSTAT=IST,STATUS='OLD',ERR=10,
-     &        FORM='FORMATTED')
-         WRITE(6,*) '# OLD FILE (',KNAMEQ,') IS ASSIGNED FOR INPUT.'
-         GOTO 30
-   10    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
-         GOTO 9000
-      ELSE
-         WRITE(6,*) 'XX FILE (',KNAMEQ,') NOT FOUND'
-         GOTO 9000
-      ENDIF
+      CALL FROPEN(neqdsk,KNAMEQ,1,4,'EQ',IERR)
+      IF(IERR.NE.0) RETURN
 c
-   30 REWIND(neqdsk)
+      REWIND(neqdsk)
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
       read (neqdsk,2020) rdim,zdim,RR,rleft,zmid
@@ -86,7 +74,4 @@ c
  2020 format (5e16.9)
  2022 format (2i5)
  2024 format (i5,e16.9,i5)
-C
- 9000 IERR=1
-      RETURN
        end

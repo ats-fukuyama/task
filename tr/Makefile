@@ -11,7 +11,7 @@ SRC2D=trg2d.f
 SRC3D=trg3d.f
 SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
      ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f ../eq/eqdsk.f
-SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
+SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f ../lib/libchar.f
 
 OBJS=$(SRCS:.f=.o)
 OBJ2D=$(SRC2D:.f=.o)
@@ -92,3 +92,5 @@ trmtrx.o : trmtrx.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
 ../lib/libgut.o: ../lib/libgut.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
+../lib/libchar.o: ../lib/libchar.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f

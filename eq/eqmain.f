@@ -8,7 +8,7 @@ C   PSIN: 0 on axis, 1 on boundary
 C
       INCLUDE 'eqcomc.inc'
 C
-      CHARACTER KNAMEQ1*72,KNAM*72,KPNAME*32
+      CHARACTER KNAMEQ1*80,KNAM*80,KPNAME*80
       CHARACTER KID*1,LINE*80
 C
       WRITE(6,*) '## TASK/EQ 2003/09/28'
@@ -19,6 +19,7 @@ C
       KPNAME='eqparm'
       CALL EQPARF(KPNAME)
 C
+      IERR=0
     1 WRITE(6,*) '#EQ> SELECT : R/RUN C/CONT P,V,I/PARM G/GRAPH',
      &           ' M/MULTI S,L/FILE U/UFILE Q/QUIT'
 C
@@ -68,7 +69,7 @@ C
 C
       ELSEIF(KID.EQ.'I') THEN
    20    WRITE(6,'(A,A)') '#EQ> INPUT : EQPARM FILE NAME : ',KPNAME
-         READ(5,'(A72)',ERR=20,END=9000) KPNAME
+         READ(5,'(A80)',ERR=20,END=9000) KPNAME
          CALL EQPARF(KPNAME)
 C
       ELSEIF(KID.EQ.'G') THEN
@@ -92,8 +93,9 @@ C
 C
       ELSEIF(KID.EQ.'L') THEN
          KNAMEQ1=KNAMEQ
-   10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
-         READ(5,'(A72)',ERR=10,END=9000) KNAM
+         CALL KTRIM(KNAMEQ1,KL)
+   10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1(1:KL)
+         READ(5,'(A80)',ERR=10,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
          CALL EQLOAD(3,KNAMEQ1,IERR)
@@ -108,7 +110,7 @@ C
       ELSEIF(KID.EQ.'U') THEN
          KNAMEQ1=KNAMEQ
    30    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
-         READ(5,'(A72)',ERR=30,END=9000) KNAM
+         READ(5,'(A80)',ERR=30,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
          CALL EQUFIN(KNAMEQ1,IERR)
@@ -143,7 +145,7 @@ C
 C
       READ(5,'(A80)',ERR=2,END=3) LINE
 C
-      IERR=0
+      IF(IERR.NE.0) GOTO 4
       ID=0
       DO I=1,80
          IF(LINE(I:I).EQ.'=') ID=1
