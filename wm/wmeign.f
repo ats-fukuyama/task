@@ -1,5 +1,49 @@
 C     $Id$
 C
+C     ***** SINGLE CALCULATION *****
+C
+      SUBROUTINE WMAM0D(KID)
+C
+      INCLUDE 'wmcomm.h'
+      CHARACTER LINE*80,KID*1
+      DIMENSION XA(2),WORK(2,2)
+      EXTERNAL DIAMIN,SUBDFP
+C
+      MODE=0
+    1 CONTINUE
+         IF(MYRANK.EQ.0) THEN
+    2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4)')
+     &      ' ## FR,FI=',FRINI,FIINI
+            WRITE(6,'(A)') ' ## INPUT : KID or FR,FI'
+            CALL WMKLIN(LINE,KID,MODE)
+            IF(MODE.EQ.0)
+     &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
+         ENDIF
+         CALL MPBCIA(MODE)
+         IF(MODE.EQ.1) THEN
+            CALL MPBCKA(KID)
+            GOTO 9000
+         ENDIF
+         IF(MODE.EQ.2) THEN
+            CALL WMPRBC
+            GOTO 1
+         ENDIF
+         IF(MODE.EQ.3) GOTO 1
+C
+         CALL MPBCDA(FRINI)
+         CALL MPBCDA(FIINI)
+C
+         CALL DIAMIN(FRINI,FIINI,AMPL)
+         CALL WMBFLD
+         CALL WMPABS
+         CALL WMPFLX
+         CALL WMPANT
+      GOTO 1
+C
+ 9000 CONTINUE
+      RETURN
+      END
+C
 C     ***** 1D PLOT OF AMPLITUDE *****
 C
       SUBROUTINE WMAM1D(KID)
@@ -850,6 +894,7 @@ C
 C      WRITE(6,*) NRMAX,NTHMAX,NPHMAX,SUM,RF
       F=NRMAX*NTHMAX*NPHMAX/(SUM*RF**4)
       IF(F.LE.1.D-15) F=1.D-15
+      AMPEIGEN=F
 C
       RETURN
       END

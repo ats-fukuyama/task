@@ -973,10 +973,10 @@ C
       CALL MOVE(XPOS,YPOS-4*DY)
       CALL TEXT('QA: ',4)
       CALL NUMBD(QA,'(F8.4)',8)
+      YPOS=YPOS-5*DY
 C
 C     ****** PLASMA PARAMETERS ******
 C
-      YPOS=YPOS-5*DY
       CALL MOVE(XPOS,YPOS)
       CALL TEXT('PN: ',4)
       DO NS=1,NSMAX
@@ -991,42 +991,54 @@ C
          CALL MOVE(XPOS,YPOS-NS*DY)
          CALL NUMBD(PTPR(NS),'(F12.4)',12)
       ENDDO
+      YPOS= YPOS-8*DY
 C
 C     ****** WAVE PARAMETERS ******
 C
-      YPOS= YPOS-8*DY
+      IF(MODEEG.EQ.0) THEN
+         CALL MOVE(XPOS,YPOS)
+         CALL TEXT('RF:',3)
+         CALL NUMBD(DBLE(CRF),'(F9.4)',9)
+         YPOS= YPOS-2*DY
+      ELSE
+         CALL MOVE(XPOS,YPOS)
+         CALL TEXT('RFR:',4)
+         CALL MOVE(XPOS,YPOS-DY)
+         CALL NUMBD(DREAL(CRF),'(1PD12.4)',12)
+         CALL MOVE(XPOS,YPOS-2*DY)
+         CALL TEXT('RFI:',4)
+         CALL MOVE(XPOS,YPOS-3*DY)
+         CALL NUMBD(DIMAG(CRF),'(1PD12.4)',12)
+         CALL MOVE(XPOS,YPOS-4*DY)
+         CALL TEXT('AMP:',4)
+         CALL MOVE(XPOS,YPOS-5*DY)
+         CALL NUMBD(AMPEIGEN,'(1PD12.4)',12)
+         YPOS= YPOS-7*DY
+      ENDIF
+C
       CALL MOVE(XPOS,YPOS)
-      CALL TEXT('RF:',3)
-      CALL NUMBD(DBLE(CRF),'(F9.4)',9)
-C
-      CALL MOVE(XPOS,YPOS-DY)
-      CALL TEXT('RFI:',4)
-      CALL MOVE(XPOS,YPOS-2*DY)
-      CALL NUMBD(DIMAG(CRF),'(1PD12.4)',12)
-C
-      CALL MOVE(XPOS,YPOS-3*DY)
       CALL TEXT('NPH0:',5)
       CALL NUMBI(NPH0,'(I7)',7)
 C
-      CALL MOVE(XPOS,YPOS-4*DY)
+      CALL MOVE(XPOS,YPOS-DY)
       CALL TEXT('NTH0:',5)
       CALL NUMBI(NTH0,'(I7)',7)
 C
-      CALL MOVE(XPOS,YPOS-5*DY)
+      CALL MOVE(XPOS,YPOS-2*DY)
       CALL TEXT('NRMAX:',6)
       CALL NUMBI(NRMAX,'(I6)',6)
 C
-      CALL MOVE(XPOS,YPOS-6*DY)
+      CALL MOVE(XPOS,YPOS-3*DY)
       CALL TEXT('NTHMAX:',7)
       CALL NUMBI(NTHMAX,'(I5)',5)
 C
-      CALL MOVE(XPOS,YPOS-7*DY)
+      CALL MOVE(XPOS,YPOS-4*DY)
       CALL TEXT('NPHMAX:',7)
       CALL NUMBI(NPHMAX,'(I5)',5)
+      YPOS=YPOS-6*DY
 C
 C     ****** COMPUTATION RESULTS ******
 C
-      YPOS=YPOS-9*DY
       CALL MOVE(XPOS,YPOS)
       IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
          MDX=MD-MDMIN+1
@@ -1043,34 +1055,35 @@ C
             CALL NUMBD(PABST(NS),'(1PD12.4)',12)
          ENDDO
       ENDIF
-C
       YPOS=YPOS-7*DY
-      CALL MOVE(XPOS,YPOS)
-      CALL TEXT('CUR:',4)
-      CALL MOVE(XPOS,YPOS-DY)
-      CALL NUMBD(PCURTT,'(1PE12.4)',12)
 C
-      YPOS=YPOS-2*DY
-      CALL MOVE(XPOS,YPOS)
-      IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
-         NDX=ND-NDMIN+1
-         MDX=MD-MDMIN+1
-         CALL TEXT('Imp(MD):',8)
+      IF(MODEEG.EQ.0) THEN
+         CALL MOVE(XPOS,YPOS)
+         CALL TEXT('CUR:',4)
          CALL MOVE(XPOS,YPOS-DY)
-         CALL NUMBD(DBLE(CRADKT(MDX,NDX)),'(1PE12.4)',12)
-         CALL MOVE(XPOS,YPOS-2*DY)
-         CALL NUMBD(DIMAG(CRADKT(MDX,NDX)),'(1PE12.4)',12)
-      ELSE
-         CALL TEXT('Imp:',4)
-         CALL MOVE(XPOS,YPOS-DY)
-         CALL NUMBD(DBLE(CRADTT),'(1PE12.4)',12)
-         CALL MOVE(XPOS,YPOS-2*DY)
-         CALL NUMBD(DIMAG(CRADTT),'(1PE12.4)',12)
+         CALL NUMBD(PCURTT,'(1PE12.4)',12)
+         YPOS=YPOS-2*DY
+         CALL MOVE(XPOS,YPOS)
+         IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN
+            NDX=ND-NDMIN+1
+            MDX=MD-MDMIN+1
+            CALL TEXT('Imp(MD):',8)
+            CALL MOVE(XPOS,YPOS-DY)
+            CALL NUMBD(DBLE(CRADKT(MDX,NDX)),'(1PE12.4)',12)
+            CALL MOVE(XPOS,YPOS-2*DY)
+            CALL NUMBD(DIMAG(CRADKT(MDX,NDX)),'(1PE12.4)',12)
+         ELSE
+            CALL TEXT('Imp:',4)
+            CALL MOVE(XPOS,YPOS-DY)
+            CALL NUMBD(DBLE(CRADTT),'(1PE12.4)',12)
+            CALL MOVE(XPOS,YPOS-2*DY)
+            CALL NUMBD(DIMAG(CRADTT),'(1PE12.4)',12)
+         ENDIF
+         YPOS=YPOS-4*DY
       ENDIF
 C
 C     ****** THETA/MODE ******
 C
-      YPOS=YPOS-4*DY
       CALL MOVE(XPOS,YPOS)
       IF(K1.EQ.'R') THEN
          IF(K3.EQ.'M') THEN

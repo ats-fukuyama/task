@@ -89,16 +89,11 @@ C
             ENDIF
             CALL MPSYNC
             KID=' '
-         ELSEIF (KID.EQ.'A') THEN
-            RF=DBLE(CRF)
-            RFI=DIMAG(CRF)
-            CALL DIAMIN(RF,RFI,AMPL)
-            IF(MYRANK.EQ.0) 
-     &      WRITE(6,'(A,1P3E12.4)') '      RF,RFI,AMPL=',RF,RFI,AMPL
-            KID=' '
 C
 C        *** AMPLITUDE SURVEY ***
 C
+         ELSEIF (KID.EQ.'A') THEN
+            CALL WMAM0D(KID)
          ELSE IF (KID.EQ.'F') THEN
             CALL WMAM1D(KID)
          ELSE IF (KID.EQ.'C') THEN
