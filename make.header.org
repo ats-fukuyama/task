@@ -1,8 +1,9 @@
 ### $Id$ ###
 ##
 ## LAPACK library
-## If you don't have LAPACK library,
-## OBJLA =
+## If you don't have LAPACK library, 
+## set "OBJLA ="
+## comment the line "OBJLA =....", if exists, in the section you have chosen
 ## delete wmtae.f from SRCX in wm/Makefile
 ## and comment out CALL WMTAE in wm/wmmain.f
 
@@ -19,7 +20,6 @@ FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for g77
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -g -O
 #DFLAGS = -g -fbounds-check
 #FC = g77
@@ -47,7 +47,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
 
 ## for macosx-g77
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm -L/usr/lib -lcc_dynamic 
+#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -L/usr/lib -lcc_dynamic 
 #OFLAGS = -O -I.
 #DFLAGS = -g -fbounds-check -I.
 #FC = g77
@@ -64,7 +64,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 
 ## for macosx-f2c
-#FLIBS=-L/usr/local/lib/f2c -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -O
 #DFLAGS = -g
 #FC = fort77
@@ -79,6 +78,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = f77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 ## for nifs-sx
 #FLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
@@ -87,6 +87,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = sxf90
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 
 # for ITBL
 #FLIBS=/srfs/home1/g5/jz245/lib/libg3d.so /srfs/home1/g5/jz245/lib/libgsp.so \
@@ -96,40 +97,43 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /srfs/home1/g5/jz245/lib/lapack.a /srfs/home1/g5/jz245/lib/blas.a
 
 # for Solaris
-#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so \
-#/usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so -lm
+#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so /usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so
 #OFLAGS = -O
 #DFLAGS = -g
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 # for HPUX
 #FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
-#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl -lm
-#OFLAGS = +T -K  +O2
+#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl
+#OFLAGS = +T -K +O2
 #DFLAGS = +T -K -g -C
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 # for DEC OS
 #FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
-#        -lX11 -lm
+#        -lX11
 ##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
 #OFLAGS = -O -fpe1
+#DFLAGS = -g -fpe1
 #FC = f77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 ## for Linux-alpha-compaq
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
 #OFLAGS = -fast
 #DFLAGS = -g -check overflow -check bounds
 #FC = fort
-#OBJLA = /usr/lib/libcxml.so
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/lib/libcxml.so
 
