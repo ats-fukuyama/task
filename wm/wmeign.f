@@ -992,7 +992,7 @@ C
  9000 XX=X
       YY=Y
       RETURN
-  600 FORMAT(1H ,3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
+  600 FORMAT(' ',3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
       END
 C
 C     ****** TWO-DIMENSIONAL NEWTON METHOD (SIMPLER) ******
@@ -1089,7 +1089,7 @@ C
  9000 XX=X
       YY=Y
       RETURN
-  600 FORMAT(1H ,3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
+  600 FORMAT(' ',3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
       END
 C
 C    WRITTEN BY YOSHIO OYANAGI
@@ -1136,11 +1136,14 @@ C
       IF(LPRINT .GT. 3) LPRINT = 3
 C
 C  INVERSE HESSIAN H IS SET TO A UNIT MATRIX
-      DO 50 I = 1, N
-      DO 50 J = 1, N
-   50 H(J, I) = 0.D0
-      DO 60 I = 1, N
-   60 H(I, I) = 1.D0
+      DO I = 1, N
+      DO J = 1, N
+         H(J, I) = 0.D0
+      ENDDO
+      ENDDO
+      DO I = 1, N
+         H(I, I) = 1.D0
+      ENDDO
 C
 C  ESTIMATION AT THE STARTING POINT
       CALL FANDG(N, X, F, G)
@@ -1148,7 +1151,7 @@ C  ESTIMATION AT THE STARTING POINT
 C
 C  STARTING OF THE MAIN LOOP
 C
-      DO 500 ITER = 1, ITMAX 
+      DO ITER = 1, ITMAX 
         GHG = 0.D0
         DNORM = 0.D0
         DO I = 1, N
@@ -1306,7 +1309,7 @@ C
         ENDDO
         F = F3
 C
-  500 CONTINUE
+      ENDDO
       WRITE(6, *) '(SUBR.DFP) ITERATION TERMINATED DUE TO ITMAX'
       FMIN = F3
       RETURN

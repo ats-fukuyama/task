@@ -673,20 +673,20 @@ C
       ENDDO
       RETURN
 C
-  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
+  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
      &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
+  602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-  610 FORMAT(1H ,I1,6(1PE11.3))
-  611 FORMAT(1H ,I1,7(1PE11.3))
-  612 FORMAT(1H ,I1,22X,5(1PE11.3))
-  691 FORMAT(1H ,'NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
+  610 FORMAT(' ',I1,6(1PE11.3))
+  611 FORMAT(' ',I1,7(1PE11.3))
+  612 FORMAT(' ',I1,22X,5(1PE11.3))
+  691 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PZCL')
-  692 FORMAT(1H ,'NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
+  692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
-     &       1H ,'        ',11X,    9X,'PU',9X,'PUS',
+     &       ' ','        ',11X,    9X,'PU',9X,'PUS',
      &                      7X,'PNITB',6X,'PTITB',5X,'PUITB')
-  693 FORMAT(1H ,'NA    AJ',9X,'APH',8X,'THJ1',7X,'THJ2',
+  693 FORMAT(' ','NA    AJ',9X,'APH',8X,'THJ1',7X,'THJ2',
      &                      7X,'PHJ1',7X,'PHJ2')
       END
 C
