@@ -30,7 +30,8 @@ C
          AJBS(NR)=0.D0
       DO NS=1,NSM
          SPE(NR,NS)=0.D0
-         IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+C         IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         IF(MDLUF.NE.0) THEN
             IF(NS.GE.3) PRF(NR,NS)=0.D0
          ELSE
             PRF(NR,NS)=0.D0
@@ -377,7 +378,7 @@ C
       COMMON /TMSLC1/ TMU(NTUM)
       COMMON /TMSLC3/ NTXMAX
 C
-      IF(MDLUF.NE.0) THEN
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             DO NR=1,NRMAX
@@ -391,20 +392,32 @@ C
                PRL(NR)=PRLL
             ENDDO
          ENDIF
+      ELSEIF(MDLUF.EQ.2) THEN
+         IF(NT.EQ.0) THEN
+            TSL=DT*DBLE(1)
+            DO NR=1,NRMAX
+               PRL(NR)=PRLU(1,NR)
+            ENDDO
+         ELSE
+            TSL=DT*DBLE(NT)
+            DO NR=1,NRMAX
+               PRL(NR)=PRLU(1,NR)
+            ENDDO
+         ENDIF
       ELSE
-      DO NR=1,NRMAX
-         ANE =RN(NR,1)
-         ANDX=RN(NR,2)
-         ANT =RN(NR,3)
-         ANHE=RN(NR,4)
-         TE  =RT(NR,1)
-         PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
-         PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
-         PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
-         PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
-         PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
-         PRL(NR)= PLFE+PLC+PLD+PLTT+PLHE
-      ENDDO
+         DO NR=1,NRMAX
+            ANE =RN(NR,1)
+            ANDX=RN(NR,2)
+            ANT =RN(NR,3)
+            ANHE=RN(NR,4)
+            TE  =RT(NR,1)
+            PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
+            PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
+            PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+            PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+            PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
+            PRL(NR)= PLFE+PLC+PLD+PLTT+PLHE
+         ENDDO
       ENDIF
 C
 C     ****** IONIZATION LOSS ******

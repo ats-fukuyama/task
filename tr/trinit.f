@@ -396,10 +396,10 @@ C
          IERR=1
       ENDIF
 C
-      IF(NTMAX.LT.1.OR.NTMAX.GT.NTM) THEN
+      IF(NTMAX.LT.1.OR.NTMAX/NGTSTP.GT.NTM) THEN
          WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NTMAX'
          WRITE(6,*) '                  NTMAX,NTM =',NTMAX,NTM
-         NTMAX=NTM
+         NTMAX=NTM*NGTSTP
          IERR=1
       ENDIF
 C

@@ -672,6 +672,16 @@ C
          ENDIF
       ENDDO
 C
+      KFID='QECH'
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
+      DO NR=1,NRMAX
+         IF(FAS(NR).LT.0.D0) THEN
+            PECU(1,NR)=0.D0
+         ELSE
+            PECU(1,NR)=FAS(NR)
+         ENDIF
+      ENDDO
+C
       KFID='QRAD'
       CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
       DO NR=1,NRMAX
@@ -852,6 +862,7 @@ C
       DO NS=2,4
          DO NTX=1,NTXMAX
             PTSU (NTX,NS)=PV(NTX)
+C            if(ns.eq.2)write(6,*) ntx,ptsu(ntx,ns)
          ENDDO
          PTS (NS)=PTSU(1,NS)
       ENDDO
@@ -1023,13 +1034,13 @@ C
       CALL UF2DT(KFID,DR,DT,TMU,QPU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,1,0,
      &           ICK,IERR)
       KFID='CURTOT'
-      CALL UF2DT(KFID,DR,DT,TMU,AJU ,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
+      CALL UF2DT(KFID,DR,DT,TMU,AJU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
      &           ICK,IERR)
       KFID='BPOL'
-      CALL UF2DT(KFID,DR,DT,TMU,BPU ,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,
+      CALL UF2DT(KFID,DR,DT,TMU,BPU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,
      &     ICK,IERR)
       KFID='QNBIE'
-      CALL UF2DT(KFID,DR,DT,TMU,FAT ,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
+      CALL UF2DT(KFID,DR,DT,TMU,FAT,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
      &     ICK,IERR)
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
@@ -1452,7 +1463,7 @@ C
          TLN=DBLE(GTL(NIN))
          CALL LAGLANGE(TLN,F0,TL,F1,NTXMAX,NTUM,IERRL)
 C         IF(IERRL.NE.0) 
-C     &        WRITE(6,600) "XX TRFILE: LAGLAN",KFID,": IERR=",IERR
+C     &        WRITE(6,600) "XX TRFILE: LAGLAN ",KFID,": IERR=",IERR
          FOUT(NIN)=F0
       ENDDO
 C     
@@ -1466,7 +1477,7 @@ C
          ENDDO
       ENDIF
 C
- 600  FORMAT(' ',A17,A10,A7,I2)
+ 600  FORMAT(' ',A18,A10,A7,I2)
       RETURN
       END
 C
@@ -1497,6 +1508,7 @@ C
       SUBROUTINE UF2DS(KFID,DR,TL,FOUT,AMP,NRMAX,NSW,IERR)
 C
       INCLUDE 'trcom0.inc'
+      COMMON /TMSLC3/ NTXMAX
       DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU),FOUT(NRMP)
       DIMENSION U(4,NRMU)
       CHARACTER KFID*10
@@ -1511,11 +1523,11 @@ C
          ENDIF
          CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          FOUT(NRL)=F0*AMP
       ENDDO
 C
- 600  FORMAT(' ',A17,A10,A7,I2)
+ 600  FORMAT(' ',A18,A10,A7,I2)
       RETURN
       END
 C
@@ -1553,23 +1565,24 @@ C
          RMN=(DBLE(NRL)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          FOUT(NRL)=F0*AMP
       ENDDO
 C
       RGN=DBLE(NRMAX)*DR
       CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+      IF(IERR.NE.0)
+     &     WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
       PV=F0*AMP
       IF(RHOA.NE.1.D0) THEN
          RGN=DBLE(NRAMAX)*DR
          CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          PVA=F0*AMP
       ENDIF
 C
- 600  FORMAT(' ',A17,A10,A7,I2)
+ 600  FORMAT(' ',A18,A10,A7,I2)
       RETURN
       END
 C
@@ -1643,12 +1656,12 @@ C
             ENDIF
             CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
             FOUT(NTX,NRL)=F0*AMP
          ENDDO
       ENDDO
 C
- 600  FORMAT(' ',A17,A10,A7,I2)      
+ 600  FORMAT(' ',A18,A10,A7,I2)      
       RETURN
       END
 C
@@ -1684,6 +1697,7 @@ C
       IF(ICK.NE.2) ICK=1
 C
       DO NTX=1,NTXMAX
+C         if(kfid.eq.'TI') write(6,*) ntx,f2(ntx,nrlmax)
          DO NRL=1,NRLMAX
             TMP0(NRL)=F2(NTX,NRL)
          ENDDO
@@ -1696,29 +1710,26 @@ C
             ENDIF
             CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
             FOUT(NTX,NRL)=F0*AMP
          ENDDO
-      ENDDO
 C
-      RGN=DBLE(NRMAX)*DR
-      DO NTX=1,NTXMAX
+         RGN=DBLE(NRMAX)*DR
          CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          PV(NTX)=F0*AMP
-      ENDDO
-      IF(RHOA.NE.1.D0) THEN
-         RGN=DBLE(NRAMAX)*DR
-         DO NTX=1,NTXMAX
+C         if(kfid.eq.'TI') write(6,*) ntx,pv(ntx)
+         IF(RHOA.NE.1.D0) THEN
+            RGN=DBLE(NRAMAX)*DR
             CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
             PVA(NTX)=F0*AMP
-         ENDDO
-      ENDIF
+         ENDIF
+      ENDDO
 C
- 600  FORMAT(' ',A17,A10,A7,I2)      
+ 600  FORMAT(' ',A18,A10,A7,I2)      
       RETURN
       END
 C
@@ -2109,9 +2120,11 @@ C
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
-         RN(NR,1)=RNU(1,NR,1)
-         RN(NR,2)=RNU(1,NR,2)
-         IF(MDNI.NE.0) RN(NR,3)=RNU(1,NR,3)
+         IF(MDLEQN.EQ.0) THEN
+            RN(NR,1)=RNU(1,NR,1)
+            RN(NR,2)=RNU(1,NR,2)
+            IF(MDNI.NE.0) RN(NR,3)=RNU(1,NR,3)
+         ENDIF
          IF(INS.NE.0) THEN
             RT(NR,2)=RTU(1,NR,2)
             RT(NR,3)=RTU(1,NR,3)

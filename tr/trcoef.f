@@ -487,8 +487,8 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C               RG1=10.D0
-               RG1=4.5D0
-C               RG1=4.D0
+               RG1=8.D0
+C               RG1=4.5D0
 C               RG1=2.8D0
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
