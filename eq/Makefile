@@ -19,7 +19,7 @@ OBJA = $(SRCA:.f=.o) $(SRCTL:.f=.o)
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-all : eq pl ak
+all : eq
 
 eq : $(OBJS)
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)

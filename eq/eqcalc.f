@@ -299,9 +299,21 @@ C
          PSIN=PSI(NTG,NSG)/PSI0
          PP(NTG,NSG)=PPSI(PSIN)
          RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-         HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
+C         HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
+         HJP1(NTG,NSG)=RMM(NTG,NSG)*DPTPSI(PSIN)
          HJT1(NTG,NSG)=HJPSI(PSIN)
-         HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
+C         HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
+         HJP2A=EXP(RMM(NTG,NSG)**2*OMGPS(PSIN)**2
+     &        /(2.D0*RGAS*TPSI(PSIN)))
+         HJP2B=EXP(RRC**2*OMGPS(PSIN)**2
+     &        /(2.D0*RGAS*TPSI(PSIN)))
+         HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
+         HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
+         HJP2E=0.5D0*PTPSI(PSIN)*RMM(NTG,NSG)**3
+         HJP2F=(1.D0/RGAS)*(2.D0*OMGPS(PSIN)*(DOMGPS(PSIN))
+     &        /TPSI(PSIN)
+     &        -DTPSI(PSIN)*OMGPS(PSIN)**2/TPSI(PSIN)**2)
+         HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
          HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
          DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
          FJP=FJP+HJP2(NTG,NSG)*DVOL
@@ -321,7 +333,9 @@ C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
          PSIN=PSI(NTG,NSG)/PSI0
          TT(NTG,NSG)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
-     &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
+     &                  *(TJ*HJPSID(PSIN)-RRC*PTPSI(PSIN)
+     &              *EXP(RRC**2*OMGPS(PSIN)**2/(2.D0*RGAS*TPSI(PSIN)))))
+C     &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
       ENDDO
       ENDDO
       RETURN
@@ -436,7 +450,11 @@ C
          PPPS(NPS)=PPSI(PSIN)
          TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
-     &                   *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
+     &                  *(TJ*HJPSID(PSIN)-RRC*PTPSI(PSIN)
+     &              *EXP(RRC**2*OMGPS(PSIN)**2/(2.D0*RGAS*TPSI(PSIN)))))
+C     &                   *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
+         TEPS(NPS)=TPSI(PSIN)/(1.16D4*1.D3)
+         OMPS(NPS)=OMGPS(PSIN)
       ENDDO
       RETURN
       END
@@ -567,6 +585,8 @@ C
       WRITE(21) (PSIPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (PPPS(NPS),NPS=1,NPSMAX)
       WRITE(21) (TTPS(NPS),NPS=1,NPSMAX)
+      WRITE(21) (TEPS(NPS),NPS=1,NPSMAX)
+      WRITE(21) (OMPS(NPS),NPS=1,NPSMAX)
 C
       WRITE(21) NSGMAX,NTGMAX
       WRITE(21) RA,RKAP,RDLT,RB
