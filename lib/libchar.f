@@ -76,6 +76,7 @@ C
          KKLINE=KKLINE1
          KL=IBOTTOM-ITOP+1
       ENDIF
+      KKLINEX=KKLINE
       RETURN
       END
 C
@@ -96,7 +97,7 @@ C
       ELSE
          KKLINE2=KKLINE1(1:INCL-1)
       ENDIF
-      KKLINE=KKLINE2
+      KKLINEX=KKLINE2
       RETURN
       END
 C
