@@ -153,8 +153,8 @@ C
             R=0.5D0*(YA(1,N-1)+YA(1,N))
             Z=0.5D0*(YA(2,N-1)+YA(2,N))
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTS(NR)/R)**2+(BPRL/R)**2)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI)
+            B=SQRT((TTS(NR)/(2.D0*PI*R))**2+(BPRL/R)**2)
 C
             SUMS=SUMS+H/BPRL
             SUMV=SUMV+H*R/BPRL
@@ -173,8 +173,8 @@ C
             R=YA(1,N)
             Z=YA(2,N)
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTS(NR)/R)**2+(BPRL/R)**2)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI)
+            B=SQRT((TTS(NR)/(2.D0*PI*R))**2+(BPRL/R)**2)
 C
             RMIN=MIN(RMIN,R)
             RMAX=MAX(RMAX,Z)
@@ -188,7 +188,7 @@ C            ENDIF
 C
          SPS(NR)=SUMS
          VPS(NR)=SUMV*2.D0*PI
-         QPS(NR)=SUMQ*TTS(NR)/(2.D0*PI)
+         QPS(NR)=SUMQ*TTS(NR)/(2.D0*PI)**2
          RLEN(NR)=XA(NA)
          RRMIN(NR)=RMIN
          RRMAX(NR)=RMAX
@@ -263,8 +263,8 @@ C
       RLEN(NR)=0.D0
       RRMIN(NR)=RAXIS
       RRMAX(NR)=RAXIS
-      BBMIN(NR)=ABS(TTS(NR)/RAXIS)
-      BBMAX(NR)=ABS(TTS(NR)/RAXIS)
+      BBMIN(NR)=ABS(TTS(NR)/(2.D0*PI*RAXIS))
+      BBMAX(NR)=ABS(TTS(NR)/(2.D0*PI*RAXIS))
 C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
@@ -351,7 +351,7 @@ C
          ZL=ZAXIS
          PSS(NR)=PSIG(RL,ZL)
          PPS(NR)=0.D0
-         TTS(NR)=BB*RR
+         TTS(NR)=2.D0*PI*BB*RR
 C
          FACTOR=(RL-RPS(1,NRPMAX))/(RPS(1,NRPMAX)-RPS(1,NRPMAX-1))
          SPS(NR)=SPS(NRPMAX)+(SPS(NRPMAX)-SPS(NRPMAX-1))*FACTOR

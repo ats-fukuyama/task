@@ -128,9 +128,9 @@ C
       DO NX=1,2*NSGMAX
          GX(NX)=GUCLIP(XAX(NX))
          GYPS(NX,1)=GUCLIP(RPSI(NX))
-         GYJT(NX,1)=GUCLIP(-RHJT(NX)*1.D-6)
-         GYJT(NX,2)=GUCLIP(-RHJP(NX)*1.D-6)
-         GYJT(NX,3)=GUCLIP(-(RHJT(NX)-RHJP(NX))*1.D-6)
+         GYJT(NX,1)=GUCLIP(RHJT(NX)*1.D-6)
+         GYJT(NX,2)=GUCLIP(RHJP(NX)*1.D-6)
+         GYJT(NX,3)=GUCLIP((RHJT(NX)-RHJP(NX))*1.D-6)
          GYPP(NX,1)=GUCLIP(RPP(NX)*1.D-6)
          GYTT(NX,1)=GUCLIP(RTT(NX))
       ENDDO
