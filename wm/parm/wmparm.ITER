@@ -1,0 +1,7 @@
+ &wm
+   KNAMEQ='eqdata.ITER'
+   MODELG=3
+   NRMAX=100
+   NTHMAX=16
+   RF=80
+ &end

@@ -1,0 +1,9 @@
+ &eq 
+   RR=0.84D0
+   RA=0.12D0
+   RKAP=1.1D0
+   RDLT=0.0D0
+   RB=0.14D0
+   BB=7.D0
+   RIP=0.06D0
+ &end

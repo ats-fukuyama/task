@@ -82,10 +82,11 @@ trgrar.o : trgrar.f trcomm.h
 trgrat.o : trgrat.f trcomm.h
 trgrap.o : trgrap.f trcomm.h
 trgrae.o : trgrae.f trcomm.h
+trgrad.o : trgrad.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
-trgrad.o : trgrad.f trcomm.h
-trgra2.o : trgra2.f trcomm.h
+trg2d.o : trg2d.f trcomm.h
+trg3d.o : trg3d.f trcomm.h
 callglf2d.o : callglf2d.f glf.m
 glf2d.o  : glf2d.F glf.m f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf2d.o glf2d.F

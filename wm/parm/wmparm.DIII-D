@@ -1,0 +1,6 @@
+ &wm
+   KNAMEQ='eqdsk.data'
+   MODELG=5
+   MODELN=8
+   NTHMAX=8
+ &end
