@@ -1,12 +1,14 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
        eqgout.f eqgsub.f
 SRCT = pltest.f pleqin.f eqload.f eqcalq.f
 SRCA = aktest.f akeqin.f eqload.f eqcalq.f
+SRCH = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f \
+       eqgsub.f treqin.f trtest.f
 
 SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \
        ../lib/libgut.f
@@ -15,6 +17,7 @@ SRCTL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 OBJS = $(SRCS:.f=.o) $(SRCSL:.f=.o) 
 OBJT = $(SRCT:.f=.o) $(SRCTL:.f=.o) 
 OBJA = $(SRCA:.f=.o) $(SRCTL:.f=.o) 
+OBJH = $(SRCH:.f=.o) $(SRCTL:.f=.o) 
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -27,6 +30,8 @@ pl : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
 ak : $(OBJA)
 	$(FC) $(OBJA) -o $@ $(FFLAGS) $(FLIBS)
+ho : $(OBJH)
+	$(FC) $(OBJH) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCSL) | less

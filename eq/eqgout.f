@@ -9,9 +9,9 @@ C
       CHARACTER KSTR*2,K1*1,K2*1
 C
     1 IF(MODE.EQ.1) THEN
-         WRITE(6,*) ' ## INPUT KID : C,C1,C2 S,S1,S2,SR,ST,SD A X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : C,C1,C2 S,S1,S2,SR,ST,SD M A X/EXIT'
       ELSE
-         WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD X/EXIT'
       ENDIF
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
@@ -46,6 +46,8 @@ C
          ELSEIF(K2.EQ.'D') THEN
             CALL EQGSDD
          ENDIF
+      ELSEIF (K1.EQ.'M') THEN
+         CALL EQGC1M
       ELSEIF (K1.EQ.'A') THEN
          CALL EQGC2D
          CALL EQGC1D
@@ -121,6 +123,7 @@ C
       DO NX=1,2*NSGMAX
          GX(NX)=GCLIP(XAX(NX))
          GYPS(NX,1)=GCLIP(RPSI(NX))
+C         write(6,*) rpsi(nx)
          GYJT(NX,1)=GCLIP(-RHJT(NX)*1.D-6)
          GYJT(NX,2)=GCLIP(-RHJP(NX)*1.D-6)
          GYJT(NX,3)=GCLIP(-(RHJT(NX)-RHJP(NX))*1.D-6)
@@ -132,7 +135,11 @@ C
       KSTR='/PSI(X)/'
       CALL EQGR1D(GX1,GX2,GY1,GY2,GX,GYPS(1,1),NXM,2*NSGMAX,1,KSTR,0)
       KSTR='/-HJT(X)/'
+      IF (MODIFY.EQ.0) THEN
       CALL EQGR1D(GX3,GX4,GY3,GY4,GX,GYJT(1,1),NXM,2*NSGMAX,3,KSTR,0)
+      ELSEIF (MODIFY.EQ.1) THEN
+      CALL EQGR1D(GX3,GX4,GY3,GY4,GX,GYJT(1,1),NXM,2*NSGMAX,1,KSTR,0)
+      ENDIF
       KSTR='/PP(X)/'
       CALL EQGR1D(GX5,GX6,GY5,GY6,GX,GYPP(1,1),NXM,2*NSGMAX,1,KSTR,0)
       KSTR='/TT(X)/'
@@ -683,3 +690,59 @@ C
 C
       RETURN
       END
+C
+C     ****** DRAW CALCULATED EQ1D MULTI GRAPH ******
+C
+      SUBROUTINE EQGC1M
+C
+      INCLUDE 'eqcomc.h'
+C
+      DIMENSION GX(NXM),GYPS(NXM,5),GRX(NPSM)
+C
+      CHARACTER KSTR*80
+C
+      GX1=2.5
+      GX2=25.0
+      GY1=1.5
+      GY2=17.5
+C
+C     ----- Major radius dependence -----
+C
+      NTGX=NTGMAX/2+1
+      DO NSG=NSGMAX,1,-1
+         NX=NSGMAX-NSG+1
+         XAX(NX)=RMG(NSG,NTGX)
+         RPSINT(NX,1)=PSIO(NTGX,NSG,1)
+         RPSINT(NX,2)=PSIO(NTGX,NSG,2)
+         RPSINT(NX,3)=PSIO(NTGX,NSG,3)
+         RPSINT(NX,4)=PSIO(NTGX,NSG,4)
+         RPSINT(NX,5)=PSIO(NTGX,NSG,5)
+      ENDDO
+      NTGX=1
+      DO NSG=1,NSGMAX
+         NX=NSGMAX+NSG
+         XAX(NX)=RMG(NSG,NTGX)
+         RPSINT(NX,1)=PSIO(NTGX,NSG,1)
+         RPSINT(NX,2)=PSIO(NTGX,NSG,2)
+         RPSINT(NX,3)=PSIO(NTGX,NSG,3)
+         RPSINT(NX,4)=PSIO(NTGX,NSG,4)
+         RPSINT(NX,5)=PSIO(NTGX,NSG,5)
+      ENDDO
+C
+      DO NX=1,2*NSGMAX
+         GX(NX)=GCLIP(XAX(NX))
+         GYPS(NX,1)=GCLIP(RPSINT(NX,1))
+         GYPS(NX,2)=GCLIP(RPSINT(NX,2))
+         GYPS(NX,3)=GCLIP(RPSINT(NX,3))
+         GYPS(NX,4)=GCLIP(RPSINT(NX,4))
+         GYPS(NX,5)=GCLIP(RPSINT(NX,5))
+      ENDDO
+C
+      CALL PAGES
+      KSTR='/PSI(X)/'
+      CALL EQGR1D(GX1,GX2,GY1,GY2,GX,GYPS(1,1),NXM,2*NSGMAX,5,KSTR,0)
+      CALL PAGEE
+C
+      RETURN
+      END
+C

@@ -15,7 +15,7 @@ C        BLTZ  : Boltzmann constant
 C        AN0   : Avogadro's number
 C        AMP   : Proton mass
 C        AEE   : Electron charge
-C        RGAS  : Gas constant
+C        RGAS  : BLTZ/AMP
 C
       PI     = 2.D0*ASIN(1.D0)
       RMU0   = 4.D0*PI*1.D-7
@@ -23,7 +23,7 @@ C
       AN0    = 6.0221367D23
       AMP    = 1.6726231D-27
       AEE    = 1.60217733D-19
-      RGAS   = AN0*BLTZ
+      RGAS   = BLTZ/AMP
 C
 C     *** CONFIGURATION PARAMETERS ***
 C
@@ -96,7 +96,7 @@ C        PROFT0: Temperature profile parameter
 C        PROFT1: Temperature profile parameter
 C        PROFT2: Temperature profile parameter
 C
-C        TPSI=PT0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
+C        TPSI=PTS+(PT0-PTS)*(1.D0-(1.D0-PSIN)**PROFR0)**PROFT0
 C    &       +PT1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFT1
 C    &       +PT2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFT2
 C    &       +PTS
@@ -114,9 +114,9 @@ C
 C        PV0   : Toroidal rotation (main component)              (m/s)
 C        PV1   : Toroidal rotation (sub component)               (m/s)
 C        PV2   : Toroidal rotation (increment within ITB)        (m/s)
-C        PROFV0: Pressure profile parameter
-C        PROFV1: Pressure profile parameter
-C        PROFV2: Pressure profile parameter
+C        PROFV0: Velocity profile parameter
+C        PROFV1: Velocity profile parameter
+C        PROFV2: Velocity profile parameter
 C
 C        PVSI=PV0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFV0
 C    &       +PV1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFV1
@@ -145,6 +145,11 @@ C
       PROFR2 = 2.D0
       RHOITB = 0.5D0
 C
+C        OTC   : Constant OMEGA**2/TPSI
+C        HM    : Constant                                       (Am)
+C
+      OTC = 0.15D0
+      HM  = 1.D6
 C
 C     *** MESH PARAMETERS ***
 C
@@ -174,6 +179,14 @@ C        EPSEQ : Convergence criterion for equilibrium
 C
       EPSEQ  = 1.D-6
 C
+C        Switch parameter MODIFY=0,1 or 2
+C
+      MODIFY=0
+C
+C        KMODE : Parameter file error judgement
+C
+      KMODE=0
+C
 C     *** FILE NAME ***
 C
 C        KNAMEQ: Filename of equilibrium data
@@ -190,7 +203,7 @@ C
       INCLUDE 'eqcomm.h'
 C
       LOGICAL LEX
-      CHARACTER KPNAME*32
+      CHARACTER KPNAME*32,KPNAM*32
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,
@@ -198,11 +211,11 @@ C
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
-     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
+     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM,
      &              PROFR0,PROFR1,PROFR2,RHOITB,
      &              NSGMAX,NTGMAX,
      &              NRGMAX,NZGMAX,
-     &              EPSEQ,
+     &              EPSEQ,MODIFY,
      &              NPSMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX
 C
@@ -221,14 +234,34 @@ C
          READ(25,EQ,ERR=9800,END=9900)
          CLOSE(25)
          WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
+         KMODE=0
+      ENDIF
+      GOTO 9000
+C
+C
+      ENTRY EQPARG(KPNAM)
+C
+      INQUIRE(FILE=KPNAM,EXIST=LEX,ERR=9800)
+      IF(LEX) THEN
+         CALL EQINIT
+         OPEN(25,FILE=KPNAM,IOSTAT=IST,STATUS='OLD',ERR=9100)
+         READ(25,EQ,ERR=9800,END=9900)
+         CLOSE(25)
+         WRITE(6,*) '## FILE (',KPNAM,') IS ASSIGNED FOR PARM INPUT'
+      ELSE 
+         WRITE(6,*) 'XX FILE (',KPNAM,') NOT FOUND'
+         KMODE=1
       ENDIF
       GOTO 9000
 C
  9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+      KMODE=1
       RETURN
  9800 WRITE(6,*) 'XX PARM FILE READ ERROR'
+      KMODE=1
       RETURN
  9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
+      KMODE=1
       END
 C
 C     ****** SHOW PARAMETERS ******
@@ -259,18 +292,18 @@ C
      &             'PROFJ2',PROFJ2
       WRITE(6,601) 'PT0   ',PT0,
      &             'PROFT0',PROFT0,
-     &             'PT1   ',PT1,
-     &             'PROFT1',PROFT1
-      WRITE(6,601) 'PT2   ',PT2,
-     &             'PROFT2',PROFT2,
-     &             'PTS   ',PTS,
-     &             'PN0   ',PN0
-      WRITE(6,601) 'PV0   ',PV0,
-     &             'PROFV0',PROFV0,
+     &             'PV0   ',PV0,
+     &             'PROFV0',PROFV0
+      WRITE(6,601) 'PT1   ',PT1,
+     &             'PROFT1',PROFT1,
      &             'PV1   ',PV1,
      &             'PROFV1',PROFV1
-      WRITE(6,601) 'PV2   ',PV2,
+      WRITE(6,601) 'PT2   ',PT2,
+     &             'PROFT2',PROFT2,
+     &             'PV2   ',PV2,
      &             'PROFV2',PROFV2
+      WRITE(6,601) 'PTS   ',PTS,
+     &             'PN0   ',PN0
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
      &             'PROFR2',PROFR2,
@@ -283,6 +316,7 @@ C
      &             'NTHMAX',NTHMAX,
      &             'NPSMAX',NPSMAX,
      &             'NSUMAX',NSUMAX
+      WRITE(6,602) 'MODIFY',MODIFY
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))
