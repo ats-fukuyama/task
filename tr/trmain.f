@@ -37,14 +37,12 @@ C     ***************************************************************
 C
       INCLUDE 'trcomm.inc'
 C
-      CHARACTER KPNAME*80
-C
 C     ------ INITIALIZATION ------
 C
       WRITE(6,600)
   600 FORMAT(' ')
       WRITE(6,601) NRM,NSM,NFM,NGM,NTM
-  601 FORMAT(' ','***** TASK/TR  04/03/21 *****',
+  601 FORMAT(' ','***** TASK/TR  04/12/10 *****',
      &       '*** NRM, NSM, NFM, NGM, NTM  ***'/
      &       ' ',33X,I5,I5,I5,I5,I6)
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
@@ -52,8 +50,7 @@ C
       CALL GSOPEN
       CALL GUTIME(GTCPU1)
       CALL TRINIT
-      KPNAME='trparm'
-      CALL TRPARF(KPNAME)
+      CALL TRPARM(1,'trparm',IERR)
 C
       CALL TRMENU
 C

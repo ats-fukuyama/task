@@ -133,6 +133,8 @@ C
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          MSTAT=2
 C
+      ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
+         CONTINUE
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000
       ELSE

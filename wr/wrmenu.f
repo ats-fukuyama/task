@@ -13,7 +13,7 @@ C
          IERR=0
          WRITE(6,601)
   601    FORMAT('## WR MENU: P,V/PARM  R,B/RAY  G/GRAPH  S/SAVE',
-     &          '  A,F,C/DISP  E/ROOT  Q/QUIT')
+     &          '  Dn/DISP  F/ROOT  Q/QUIT')
          CALL TASK_KLIN(LINE,KID,MODE,WRPARM)
       IF(MODE.NE.1) GOTO 1
 C
@@ -23,13 +23,18 @@ C
          CALL PLVIEW
          CALL DPVIEW
          CALL WRVIEW
-      ELSEIF(KID.EQ.'A') THEN
-         CALL DPGRP1
+      ELSEIF(KID.EQ.'D') THEN
+         READ(LINE(2:),*,ERR=1,END=1) NID
+         IF(NID.EQ.1) THEN
+            CALL DPGRP1
+         ELSEIF(NID.EQ.2) THEN
+            CALL DPCONT
+         ELSEIF(NID.EQ.3) THEN
+            CALL DPCONTX
+         ELSE
+            WRITE(6,*) 'XX WRMENU: unknown NID'
+         ENDIF
       ELSEIF(KID.EQ.'F') THEN
-         CALL DPCONT
-      ELSEIF(KID.EQ.'C') THEN
-         CALL DPCONTX
-      ELSEIF(KID.EQ.'E') THEN
          CALL DPROOT
       ELSEIF(KID.EQ.'R') THEN
          CALL WRCALC

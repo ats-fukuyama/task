@@ -19,7 +19,7 @@ C
     1 CONTINUE
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
-  601       FORMAT('## WM MENU: P,V/PARM R/RUN A,F,C/AMP E,S/SCAN ',
+  601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ',
      &      'G/GRAPH T/TAE W/WRITE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
@@ -50,19 +50,24 @@ C
 C
 C        *** AMPLITUDE SURVEY ***
 C
-         ELSEIF (KID.EQ.'A') THEN
-            CALL WMAM0D(KID)
+      ELSEIF(KID.EQ.'D') THEN
+         READ(LINE(2:),*,ERR=1,END=1) NID
+         IF(NID.EQ.0) THEN
+            CALL WMAM0D(KID,LINE)
+         ELSEIF(NID.EQ.1) THEN
+            CALL WMAM1D(KID,LINE)
+         ELSEIF(NID.EQ.2) THEN
+            CALL WMAM2D(KID,LINE)
+         ELSEIF(NID.EQ.3) THEN
+            CALL WMSCAN(KID,LINE)
+         ELSE
+            WRITE(6,*) 'XX WMMENU: unknown NID'
+         ENDIF
+C
+C        *** FIND ROOT ***
+C
          ELSE IF (KID.EQ.'F') THEN
-            CALL WMAM1D(KID)
-         ELSE IF (KID.EQ.'C') THEN
-            CALL WMAM2D(KID)
-C
-C        *** EIGENMODE ***
-C
-         ELSE IF (KID.EQ.'E') THEN
-            CALL WMEIGN(KID)
-         ELSE IF (KID.EQ.'S') THEN
-            CALL WMSCAN(KID)
+            CALL WMEIGN(KID,LINE)
 C
 C        *** GRAPHICS ***
 C
@@ -97,24 +102,27 @@ C
             KID=' '
 C
          ELSE IF(KID.EQ.'H') THEN
-            WRITE(6,*) '# KID:  P: PARAMETER INPUT (VARNAME = VALUE)'
-            WRITE(6,*) '        V: VIEW PARAMETERS'
-            WRITE(6,*) '        R: WAVE EXCITED BY EXTERNAL ANTENNA'
-            WRITE(6,*) '        A: AMPLITUDE OF INTERNALLY EXCITED WAVE'
-            WRITE(6,*) '        F: REAL FREQUENCY SCAN OF AMPLITUDE'
-            WRITE(6,*) '        C: COMPLEX FREQUENCY SCAN OF AMPLITUDE'
-            WRITE(6,*) '        E: EIGEN VALUE SEARCH'
-            WRITE(6,*) '        S: PARAMETER SCAN OF EIGEN VALUE'
-            WRITE(6,*) '        G: GRAPHICS'
-            WRITE(6,*) '        W: FILE 26 OUTPUT: FIELD DATA'
-            WRITE(6,*) '        H: HELP'
-            WRITE(6,*) '        Q: QUIT'
+            WRITE(6,*) '# KID: P: PARAMETER INPUT (VARNAME = VALUE)'
+            WRITE(6,*) '       V:  VIEW PARAMETERS'
+            WRITE(6,*) '       R:  WAVE EXCITED BY EXTERNAL ANTENNA'
+            WRITE(6,*) '       D0: AMPLITUDE OF INTERNALLY EXCITED WAVE'
+            WRITE(6,*) '       D1: FREQUENCY SCAN OF AMPLITUDE'
+            WRITE(6,*) '       D2: COMPLEX FREQUENCY SCAN OF AMPLITUDE'
+            WRITE(6,*) '       D3: PARAMETER SCAN OF EIGEN VALUE'
+            WRITE(6,*) '       F:  FIND EIGEN VALUE'
+            WRITE(6,*) '       G: GRAPHICS'
+            WRITE(6,*) '       W: FILE 26 OUTPUT: FIELD DATA'
+            WRITE(6,*) '       H: HELP'
+            WRITE(6,*) '       Q: QUIT'
             KID=' '
 C
-         ELSEIF (KID.EQ.'D') THEN
+         ELSEIF (KID.EQ.'Z') THEN
             CALL WMDEBUG(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
+            KID=' '
+C
+         ELSE IF(KID.EQ.'X') THEN
             KID=' '
 C
          ELSE IF(KID.EQ.'Q') THEN

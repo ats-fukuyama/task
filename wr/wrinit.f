@@ -181,7 +181,7 @@ C
 C
 C     ***** CHECK INPUT PARAMETERS *****
 C
-      SUBROUTINE EQCHEK(IERR)
+      SUBROUTINE WRCHEK(IERR)
 C
       INCLUDE 'wrcomm.inc'
 C  

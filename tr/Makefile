@@ -5,7 +5,7 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 #AFLAGS = $(DFLAGS) -lpgmm1 -lpgmm2 -lpgsse1 -lpgsse2
 
-SRCS=trmenu.f trinit.f trfile.f trloop.f trrslt.f \
+SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
      glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f \

@@ -340,7 +340,41 @@ C           PARAMETER INPUT
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRPARM(KID)
+      SUBROUTINE TRPARM(MODE,KIN,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
+C
+      INCLUDE 'trcomm.inc'
+C
+      EXTERNAL TRNLIN,TRPLST
+      CHARACTER KIN*(*)
+C
+    1 CALL TASK_PARM(MODE,'TR',KIN,TRNLIN,TRPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALL TRCHEK(IERR)
+      NTMAX_SAVE=NTMAX
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE TRNLIN(NID,IST,IERR)
 C
       INCLUDE 'trcomm.inc'
 C
@@ -364,74 +398,15 @@ C
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX,
      &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB
 C
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KLINE*70,KNAME*80,KID*1
-C
-      MODE=0
-    1    CONTINUE
-         WRITE(6,*) '# INPUT &TR :'
-         READ(5,TR,ERR=2,END=3)
-         KID=' '
-         GOTO 4
-C
-    2    CALL TRPLST
-      GOTO 1
-C
-    3 KID='Q'
-    4 GOTO 3000
-C
-      ENTRY TRPARL(KLINE)
-C
-      MODE=1
-      KNAME=' &TR '//KLINE//' &END'
-      WRITE(7,'(A80)') KNAME
-      REWIND(7)
-      READ(7,TR,ERR=8,END=8)
-      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
-      GOTO 9
-    8 CALL TRPLST
-    9 REWIND(7)
-      GOTO 3000
-C
-      ENTRY TRPARF(KPNAME)
-C
-      MODE=2
-      INQUIRE(FILE=KPNAME,EXIST=LEX)
-      IF(.NOT.LEX) RETURN
-C
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,TR,ERR=9800,IOSTAT=IST,END=9900)
-      CLOSE(25)
-      CALL KTRIM(KPNAME,KL)
-      WRITE(6,*) '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
-C
- 3000 IERR=0
-C
-      IF(NRMAX.LT.1.OR.NRMAX.GT.NRM) THEN
-         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NRMAX'
-         WRITE(6,*) '                  NRMAX,NRM =',NRMAX,NRM
-         NRMAX=NRM
-         IERR=1
-      ENDIF
-C
-      IF(NTMAX.LT.1.OR.NTMAX/NGTSTP.GT.NTM) THEN
-         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NTMAX'
-         WRITE(6,*) '                  NTMAX,NTM =',NTMAX,NTM
-         NTMAX=NTM*NGTSTP
-         IERR=1
-      ENDIF
-C
-      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
-C
+      READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
+      NTMAX_SAVE=NTMAX
+      IERR=0
       RETURN
 C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+ 9800 IERR=8
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+ 9900 IERR=9
       RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
-      RETURN
-C
       END
 C
 C     ***** INPUT PARAMETER LIST *****
@@ -460,6 +435,31 @@ C
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')
+      END
+C
+C     ***** CHECK INPUT PARAMETERS *****
+C
+      SUBROUTINE TRCHEK(IERR)
+C
+      INCLUDE 'trcomm.inc'
+C
+      IERR=0
+C
+      IF(NRMAX.LT.1.OR.NRMAX.GT.NRM) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NRMAX'
+         WRITE(6,*) '                  NRMAX,NRM =',NRMAX,NRM
+         NRMAX=NRM
+         IERR=1
+      ENDIF
+C
+      IF(NTMAX.LT.1.OR.NTMAX/NGTSTP.GT.NTM) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NTMAX'
+         WRITE(6,*) '                  NTMAX,NTM =',NTMAX,NTM
+         NTMAX=NTM*NGTSTP
+         IERR=1
+      ENDIF
+C
+      RETURN
       END
 C
 C     ***********************************************************
@@ -496,7 +496,7 @@ C
       WRITE(6,611)
   611 FORMAT(' ','NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
      &                   'PT(KEV)  PTS(KEV)  PELPAT')
-      DO NS=1,NSTM
+      DO NS=1,NSTMAX
          WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),
      &                PELPAT(NS)
   612    FORMAT(' ',I2,1PD12.4,0P,F6.1,5F9.4)
@@ -1726,7 +1726,7 @@ C
       ENDDO
  1200 CONTINUE
 C
-      DO NS=1,NSTM
+      DO NS=1,NSTMAX
          IF(PZ(NS).NE.0.D0) THEN
             AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
          ELSE

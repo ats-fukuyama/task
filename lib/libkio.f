@@ -26,7 +26,7 @@ C
       KID=LINE(1:1)
       CALL GUCPTL(KID)
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR.
-     &    KID.EQ.'?') THEN
+     &    KID.EQ.'?'.OR.KID.EQ.'#') THEN
          MODE=1
          RETURN
       ENDIF

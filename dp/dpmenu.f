@@ -15,7 +15,7 @@ C
 C
     1 CONTINUE
          WRITE(6,*) '## DP MENU: P,V/PARM  ',
-     &       'A,F,C/DISP  E/ROOT  T,S/TEST  Q/QUIT'
+     &       'D1,D2,D3/DISP  F/ROOT  T,S/TEST  Q/QUIT'
 C
          CALL TASK_KLIN(LINE,KID,MODE,DPPARM)
       IF(MODE.NE.1) GOTO 1
@@ -25,13 +25,18 @@ C
       ELSEIF(KID.EQ.'V') THEN
          CALL PLVIEW
          CALL DPVIEW
-      ELSEIF(KID.EQ.'A') THEN
-         CALL DPGRP1
+      ELSEIF(KID.EQ.'D') THEN
+         READ(LINE(2:),*,ERR=1,END=1) NID
+         IF(NID.EQ.1) THEN
+            CALL DPGRP1
+         ELSEIF(NID.EQ.2) THEN
+            CALL DPCONT
+         ELSEIF(NID.EQ.3) THEN
+            CALL DPCONTX
+         ELSE
+            WRITE(6,*) 'XX WRMENU: unknown NID'
+         ENDIF
       ELSEIF(KID.EQ.'F') THEN
-         CALL DPCONT
-      ELSEIF(KID.EQ.'C') THEN
-         CALL DPCONTX
-      ELSEIF(KID.EQ.'E') THEN
          CALL DPROOT
       ELSEIF(KID.EQ.'T') THEN
          MODELPS=MODELP(1)
