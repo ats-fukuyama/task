@@ -1950,6 +1950,15 @@ C
  600  FORMAT(' ',5(' ',A))
  610  FORMAT(' ',5I4)
 C
+C     |-----------------------|
+C     |MDDIAG |NCLASS |Weiland|
+C     |-------|-------|-------|
+C     |   0   |   *   |   *   |
+C     |   1   |   o   |   *   |
+C     |   2   |   *   |   o   |
+C     |   3   |   o   |   o   |
+C     |-----------------------|
+C
       IF(MDNCLS.EQ.0) THEN
          IF(MDLKAI.EQ.63) THEN
             IF(MDLWLD.EQ.0) THEN

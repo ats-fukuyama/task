@@ -520,7 +520,10 @@ C
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.31) THEN
+C               ALFA=ALFA/SQRT(RKAP)**3
                ALFAL=ALFA*CALF
+C               S=S*SQRT(RKAP)
+C               QL=QL/RKAP
                FS=TRCOFS(S,ALFAL,RKCV)
 C               IF(NR.GE.NRMAX-1)
 C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
@@ -1362,11 +1365,11 @@ C
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     AKLP(NR,NS,NS1)= CNC*AKNC(NR,NS)+AKDWP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)=                 AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)+CNC*AKNC(NR,NS)
+                     AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)
                   ELSE
-                     AKLP(NR,NS,NS1)=                 AKDWP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)=                 AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
@@ -1411,11 +1414,10 @@ C
          TE =RT(NR,1)
          ZEFFL=ZEFF(NR)
 C
-         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANI*1.D20*ZEFFL*AEE**4)
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
+     &         /(ANI*1.D20*PZ(2)**2*AEE**4)
          TAUE = COEF
      &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
-     &         /SQRT(2.D0)
 C
          ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
      &             *(0.29D0+0.46D0/(1.08D0+ZEFFL))
@@ -1620,7 +1622,7 @@ C
             ENDIF
 C
 C            ZEFFL=ZEFF(NR)
-            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
+            COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
@@ -1629,7 +1631,7 @@ C            ZEFFL=ZEFF(NR)
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
+            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
 C
@@ -1670,7 +1672,7 @@ C
                ENDDO
             ENDIF
 C
-            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
+            COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
      &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
@@ -1679,7 +1681,7 @@ C
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
+            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
 C
@@ -1743,11 +1745,11 @@ C
                AV(NR,NS)=AVDW(NR,NS)+AV(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= CNC*ADNC(NR,NS)+ADDWD(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)=                 ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)+CNC*ADNC(NR,NS)
+                     ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)
                   ELSE
-                     ADLD(NR,NS,NS1)=                +ADDWD(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)=                 ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO

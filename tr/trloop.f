@@ -259,7 +259,6 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
-C      write(6,*) L,RT(1,1),"END"
       CALL TR_EDGE_SELECTOR(1)
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
 C      IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S

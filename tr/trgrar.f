@@ -434,16 +434,27 @@ C
 C
       IF(MDNCLS.EQ.0) THEN
 C
-      DO NR=1,NRMAX
-         GYR(NR+1,1) = GLOG(AK(NR,1),1.D-3,1.D2)
-         GYR(NR+1,2) = GLOG(AK(NR,2),1.D-3,1.D2)
-      ENDDO
-      GYR(1,1) = GLOG(AK(1,1),1.D-3,1.D2)
-      GYR(1,2) = GLOG(AK(1,2),1.D-3,1.D2)
-C      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
-C     &           '@AKE,AKI vs r @',2+INQ)
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
-     &           '@LOG:AKE,AKI vs r @',11+INQ)
+      IF(MDLUF.EQ.0) THEN
+         DO NR=1,NRMAX
+            GYR(NR+1,1) = GLOG(AK(NR,1),1.D-3,1.D2)
+            GYR(NR+1,2) = GLOG(AK(NR,2),1.D-3,1.D2)
+         ENDDO
+         GYR(1,1) = GLOG(AK(1,1),1.D-3,1.D2)
+         GYR(1,2) = GLOG(AK(1,2),1.D-3,1.D2)
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
+     &               '@LOG:AKE,AKI vs r @',11+INQ)
+      ELSE
+         DO NR=1,NRMAX
+            GYR(NR+1,1) = GUCLIP(AK(NR,3))
+            GYR(NR+1,2) = GUCLIP(AKNC(NR,3))
+            GYR(NR+1,3) = GUCLIP(AKDW(NR,3))
+         ENDDO
+         GYR(1,1) = GUCLIP(AK(1,3))
+         GYR(1,2) = GUCLIP(AKNC(1,3))
+         GYR(1,3) = GUCLIP(AKDW(1,3))
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,3,
+     &               '@AKQ,AKNCQ,AKDWQ [m$+2$=/s]  vs r@',2+INQ)
+      ENDIF
 C
       DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,1),1.D-2,1.D2)
@@ -464,7 +475,7 @@ C         GYR(NRMAX+1,3) = GUCLIP(AKDW(NRMAX,1)/2)
 C
       DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,2),1.D-2,1.D2)
-C         GYR(NR+1,2) = GLOG(AKNC(NR,2),1xb.D-2,1.D2)
+C         GYR(NR+1,2) = GLOG(AKNC(NR,2),1.D-2,1.D2)
 C         GYR(NR+1,3) = GLOG(AKDW(NR,2),1.D-2,1.D2)
          GYR(NR+1,1) = GUCLIP(AK(NR,2))
          GYR(NR+1,2) = GUCLIP(AKNC(NR,2))
@@ -481,14 +492,27 @@ C         GYR(NRMAX+1,3) = GUCLIP(AKDW(NRMAX,2)/2)
 C
       ELSE
 C
-      DO NR=1,NRMAX
-         GYR(NR+1,1) = GLOG(AKLP(NR,1,1),1.D-3,1.D2)
-         GYR(NR+1,2) = GLOG(AKLP(NR,2,2),1.D-3,1.D2)
-      ENDDO
-      GYR(1,1) = GLOG(AKLP(1,1,1),1.D-3,1.D2)
-      GYR(1,2) = GLOG(AKLP(1,2,2),1.D-3,1.D2)
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
-     &           '@LOG:AKE,AKI vs r @',11+INQ)
+      IF(MDLUF.EQ.0) THEN
+         DO NR=1,NRMAX
+            GYR(NR+1,1) = GLOG(AKLP(NR,1,1),1.D-3,1.D2)
+            GYR(NR+1,2) = GLOG(AKLP(NR,2,2),1.D-3,1.D2)
+         ENDDO
+         GYR(1,1) = GLOG(AKLP(1,1,1),1.D-3,1.D2)
+         GYR(1,2) = GLOG(AKLP(1,2,2),1.D-3,1.D2)
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
+     &               '@LOG:AKE,AKI vs r @',11+INQ)
+      ELSE
+         DO NR=1,NRMAX
+            GYR(NR+1,1) = GUCLIP(AK(NR,3))
+            GYR(NR+1,2) = GUCLIP(AKNC(NR,3))
+            GYR(NR+1,3) = GUCLIP(AKDW(NR,3))
+         ENDDO
+         GYR(1,1) = GUCLIP(AK(1,3))
+         GYR(1,2) = GUCLIP(AKNC(1,3))
+         GYR(1,3) = GUCLIP(AKDW(1,3))
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,3,
+     &               '@AKQ,AKNCQ,AKDWQ [m$+2$=/s]  vs r@',2+INQ)
+      ENDIF
 C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
