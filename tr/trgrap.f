@@ -8,8 +8,10 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRG0(K2,INQ)
 C
+      INCLUDE 'trcomm.h'
       CHARACTER K2*1
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(K2.EQ.'1') CALL TRGRG1(INQ)
       IF(K2.EQ.'2') CALL TRGRG2(INQ)
       IF(K2.EQ.'3') CALL TRGRG3(INQ)
@@ -17,6 +19,7 @@ C
       IF(K2.EQ.'5') CALL TRGRG5(INQ)
       IF(K2.EQ.'6') CALL TRGRG6(INQ)
       IF(K2.EQ.'A') CALL TRGRGA(INQ)
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
       RETURN
       END
 C  

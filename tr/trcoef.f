@@ -781,9 +781,9 @@ C
             RG1=0.D0
             WE1=0.D0
 C
-            S_AR(NR)=S
-            ALFA_AR(NR)=ALFA
-            RKCV_AR(NR)=RKCV
+            S_AR(NR)    = S
+            ALFA_AR(NR) = ALFA
+            RKCV_AR(NR) = RKCV
 C
             VGR1(NR,1)=0.D0
             VGR1(NR,2)=S
@@ -806,7 +806,7 @@ C
          ENDIF
   100 CONTINUE
 C
-      IF(MDLKAI.GE.60) THEN
+      IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
 C
 C     INPUTS
          leigen=1        ! default
@@ -1042,7 +1042,135 @@ C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
       ENDDO
       ENDIF
 C
+      ELSEIF(MDLKAI.EQ.62) THEN
+         CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
+     &                       S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
+     &                       PNSS,PTS,
+     &                       AKDW)
+C         DO NR=1,NRMAX
+C            write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
+C         ENDDO
       ENDIF
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,AR1RHOG,QP,
+     &                          S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
+     &                          PNSS,PTS,
+     &                          AKDW)
+C
+      IMPLICIT NONE
+c
+      INTEGER NRM,NSM,NSTM,NRMAX,NR
+      REAL*8 RN(NRM,NSM),RR,DR,AR1RHOG(NRM),QP(NRM),S_AR(NRM),
+     &       EPSRHO(NRM),EKAPPA(NRM),RT(NRM,NSM),BB,AMM,AME,
+     &       PNSS(NSM),PTS(NSM),
+     &       AKDW(NRM,NSTM)
+      integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
+      parameter (ipin=7,iptmp=8,ipout=9,screen=6)
+      real znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps,
+     &       ne19, tekev, tikev, rmajor, grhoi, gvti, gnu,
+     &       chii, chie, zkappa, btesla, gtau, omegaexb,
+     &       zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &       zrlt1, zrlt2
+C
+      ierr=0
+C
+      do ii = 1, 32
+         switches(ii) = 0
+      end do
+      switches(1)  = 0 ! 0: it produces no diagnostic output
+      switches(2)  = 0 ! 0: it uses inputs ne19, tekev, tilev and btesla
+                       ! 1: it uses inputs grhoi, gvti, gnu and gtau
+      switches(3)  = 0 ! 0: the 1995 model, 1: the 1994 model
+      switches(4)  = 0 ! 0: use gnu as given
+                       ! 1: the definition in Dorland's IFS/PPPL routine
+      switches(5)  = 0 ! 0: won't relax the restrictions on znu
+                       ! 1: allows znu to be larger than 10.0
+      switches(30) = 0
+      switches(31) = 0
+      switches(32) = 0
+C
+      DO NR=1,NRMAX-1
+         znine  = SNGL( 0.5D0*(RN(NR+1,2)+RN(NR,2))
+     &                 /0.5D0*(RN(NR+1,1)+RN(NR,1)))
+         zncne  = 0.0
+         znbne  = 0.0
+         zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2)))*
+     &                           (RT(NR+1,2)-RT(NR,2))/DR*AR1RHOG(NR))
+         zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*
+     &                           (RN(NR+1,1)-RN(NR,1))/DR*AR1RHOG(NR))
+         zq     = SNGL(QP(NR))
+         zshat  = SNGL(S_AR(NR))
+         zeps   = SNGL(EPSRHO(NR))
+         zkappa = SNGL(EKAPPA(NR))
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5)
+C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
+         gtau   = SNGL( 0.5D0*(RT(NR+1,2)+RT(NR,2))
+     &                 /0.5D0*(RT(NR+1,1)+RT(NR,1)))
+C
+         ne19   = SNGL(0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1)
+         tekev  = SNGL(0.5D0*(RT(NR+1,1)+RT(NR,1)))
+         tikev  = SNGL(0.5D0*(RT(NR+1,2)+RT(NR,2)))
+         rmajor = SNGL(RR)
+         btesla = SNGL(BB)
+         grhoi  = SNGL(6.46D-3*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2)))/BB)
+         gvti   = SNGL(2.19D5*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2))))
+C
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,
+     &                 zq, zshat, zeps, zkappa, omegaexb,
+     &                 ne19, tekev, tikev, rmajor, btesla,
+     &                 switches, grhoi, gvti, gnu, gtau,
+     &                 chii, chie,
+     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &                 zrlt1, zrlt2, ierr )
+C         IF(IERR.NE.0) THEN
+C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
+C            STOP
+C         ENDIF
+C
+         AKDW(NR,1) = DBLE(chie)
+         AKDW(NR,2) = DBLE(chii)
+      ENDDO
+C
+      NR=NRMAX
+         znine  = SNGL(PNSS(2)/PNSS(1))
+         zncne  = 0.0
+         znbne  = 0.0
+         zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*AR1RHOG(NR))
+         zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*AR1RHOG(NR))
+         zq     = SNGL(QP(NR))
+         zshat  = SNGL(S_AR(NR))
+         zeps   = SNGL(EPSRHO(NR))
+         zkappa = SNGL(EKAPPA(NR))
+         gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20/RT(NR,1)**1.5)
+         gtau   = SNGL(PTS(2)/PTS(1))
+C
+         ne19   = SNGL(PNSS(1)*1.D1)
+         tekev  = SNGL(PTS(1))
+         tikev  = SNGL(PTS(2))
+         rmajor = SNGL(RR)
+         btesla = SNGL(BB)
+         grhoi  = SNGL(6.46D-3*SQRT(PTS(2))/BB)
+         gvti   = SNGL(2.19D5*SQRT(PTS(2)))
+C
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,
+     &                 zq, zshat, zeps, zkappa, omegaexb,
+     &                 ne19, tekev, tikev, rmajor, btesla,
+     &                 switches, grhoi, gvti, gnu, gtau,
+     &                 chii, chie,
+     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2,
+     &                 zrlt1, zrlt2, ierr )
+C         IF(IERR.NE.0) THEN
+C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
+C            STOP
+C         ENDIF
+C
+         AKDW(NR,1) = DBLE(chie)
+         AKDW(NR,2) = DBLE(chii)
 C
       RETURN
       END
@@ -1111,9 +1239,6 @@ C
 C
 C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
 C
-C
-C     ***** OLD AKNC *****
-C
       IF(MDLKNC.EQ.1) THEN
 C
          EPSS=SQRT(EPS)**3
@@ -1167,7 +1292,7 @@ C
 C
       ELSE
 C
-C     ***** NEW AKNC *****
+C     ***** CHANG HINTON *****
 C
          DELDA=0.D0
 C
@@ -1347,7 +1472,8 @@ C
             RK33E=RK33/(1.D0+RA33*SQRT(RNUE)+RB33*RNUE)
      &                /(1.D0+RC33*RNUE*EPSS)
 C
-            FT     = 1.D0-SQRT(EPS)*RK33E
+            H      = BB/(BB+BP(NR))
+            FT     = 1.D0/H-SQRT(EPS)*RK33E
             ETA(NR)= ETA(NR)/FT
 C
 C        ****** NEOCLASSICAL RESISTIVITY PART II ******

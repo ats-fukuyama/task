@@ -8,7 +8,10 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRR0(K2,INQ)
 C
+      INCLUDE 'trcomm.h'
       CHARACTER K2*1
+C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
       IF(K2.EQ.'1') CALL TRGRR1(INQ)
       IF(K2.EQ.'2') CALL TRGRR2(INQ)
@@ -19,6 +22,9 @@ C
       IF(K2.EQ.'7') CALL TRGRR7(INQ)
       IF(K2.EQ.'8') CALL TRGRR8(INQ)
       IF(K2.EQ.'9') CALL TRGRR9(INQ)
+C
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+C
       RETURN
       END
 C  
@@ -80,7 +86,6 @@ C
       DO NS=1,NSM
       DO NR=1,NRMAX
          GYR(NR,NS) = GCLIP(RT(NR,NS))
-C         IF(NS.EQ.1) write(6,*) GRM(NR),GYR(NR,NS)
       ENDDO
       ENDDO
       IF(MDLNF.EQ.0) THEN

@@ -36,6 +36,7 @@ C
       RIPS    = 3.D0         
       RIPE    = 3.D0         
       RIPSS   = 3.D0
+      RHOA    = 1.D0
 C
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -255,7 +256,9 @@ C        0 : TR
 C        3 : TR/EQ
       MODELG=0
       NTEQIT=10
+C
       MDLUF=0
+      MODEP=3
 C
 C     *** Error Indicator for UFILE Reader ***
       MDALL=0
@@ -302,7 +305,7 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,
+      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNC,CDW,
@@ -319,7 +322,7 @@ C
      &              PELTIM,PELPAT,KFNLOG,
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
      &              NSMAX,NSZMAX,NSNMAX,
-     &              KUFDEV,KUFDCG,TIME_INT
+     &              KUFDEV,KUFDCG,TIME_INT,MODEP
 C
       LOGICAL LEX
       CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
@@ -397,7 +400,7 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS'/
+  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA'/
      &       ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
@@ -413,7 +416,8 @@ C
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
      &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
-     &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG,TIME_INT')
+     &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
+     &       ' ',8X,'TIME_INT,MODEP')
       END
 C
 C     ***********************************************************
@@ -610,8 +614,6 @@ C      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 C
       FACTJ   = 1.D0
 C
-      MODEP=2
-C
       T     = 0.D0
       TPRE  = 0.D0
       TST   = 0.D0
@@ -621,16 +623,22 @@ C
       NGST  = 0
       RIP   = RIPS
 C
-      DR = 1.D0/DBLE(NRMAX)
-      IF(MDLUF.EQ.1) THEN
+      IF(RHOA.EQ.1.D0) THEN
+         DR = 1.D0/DBLE(NRMAX)
+      ELSE
+         DR = 1.D0/DBLE(NROMAX)
+      ENDIF
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
          RR=RRU(1)
+C         write(6,*) RRU(1),RAU(1),RKAPU(1),BBU(1)
          RA=RAU(1)
          RKAP=RKAPU(1)
          BB=BBU(1)
       ENDIF
       RKAPS=SQRT(RKAP)
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
          RG(NR)  = DBLE(NR)*DR
          RM(NR)  = (DBLE(NR)-0.5D0)*DR
@@ -642,9 +650,20 @@ C
             RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
             RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
+            IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
+               PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
+               DO NS=1,2
+                  RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+               ENDDO
+            ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
+               RT(NR,1) = RTU(NR,1,1)
+               RT(NR,2) = RTU(NR,2,1)
+            ENDIF
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-            RT(NR,3) = (PT(3)-PTS(3))*PROF+PTS(3)
-            RT(NR,4) = (PT(4)-PTS(4))*PROF+PTS(4)
+            RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                 +RTU(NRMAX,2,1)
+            RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                 +RTU(NRMAX,2,1)
 C
             PEX(NR,1) = PNBU(NR,1,1)
             PEX(NR,2) = PNBU(NR,2,1)
@@ -656,15 +675,35 @@ C
             PRF(NR,4) = 0.D0
          ELSEIF(MDLUF.EQ.2) THEN
             IF(MODEP.EQ.1) THEN
-               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               DO NS=1,NSM
-                  RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
-               ENDDO
+               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
+                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
+                  DO NS=1,2
+                     RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+                  ENDDO
+               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
+                  RN(NR,1) = RNU(NR,1,1)
+                  RN(NR,2) = RNU(NR,2,1)
+               ENDIF
+               PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
+               RN(NR,3) = (RNU(NR,2,1)-RNU(NRMAX,2,1))*PROF
+     &                    +RNU(NRMAX,2,1)
+               RN(NR,4) = (RNU(NR,2,1)-RNU(NRMAX,2,1))*PROF
+     &                    +RNU(NRMAX,2,1)
 C
+               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
+                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
+                  DO NS=1,2
+                     RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+                  ENDDO
+               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
+                  RT(NR,1) = RTU(NR,1,1)
+                  RT(NR,2) = RTU(NR,2,1)
+               ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               DO NS=1,NSM
-                  RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
-               ENDDO
+               RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                    +RTU(NRMAX,2,1)
+               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                    +RTU(NRMAX,2,1)
             ELSEIF(MODEP.EQ.2) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
                RN(NR,1) = RNU(NR,1,1)
@@ -672,10 +711,29 @@ C
                RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
-               RT(NR,1) = RTU(NR,1,1)
-               RT(NR,2) = RTU(NR,2,1)
                RT(NR,3) = RTU(NR,2,1)
                RT(NR,4) = RTU(NR,2,1)
+            ELSEIF(MODEP.EQ.3) THEN
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+               RN(NR,1) = RNU(NR,1,1)
+               RN(NR,2) = RNU(NR,2,1)
+               RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
+               RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
+C
+               IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
+                  PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
+                  DO NS=1,2
+                     RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+                  ENDDO
+               ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
+                  RT(NR,1) = RTU(NR,1,1)
+                  RT(NR,2) = RTU(NR,2,1)
+               ENDIF
+               PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+               RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                    +RTU(NRMAX,2,1)
+               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
+     &                    +RTU(NRMAX,2,1)
             ENDIF
 C
             PEX(NR,1)=PNBU(NR,1,1)
@@ -688,6 +746,25 @@ C
             SEX(NR,2)=SNBU(NR,2,1)*BOGUS
             SEX(NR,3)=0.D0
             SEX(NR,4)=0.D0
+         ELSEIF(MDLUF.EQ.3) THEN
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+            DO NS=1,NSM
+               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+            ENDDO
+C
+            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+            DO NS=1,NSM
+               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+            ENDDO
+C
+            PEX(NR,1) = PNBU(NR,1,1)
+            PEX(NR,2) = PNBU(NR,2,1)
+            PEX(NR,3) = 0.D0
+            PEX(NR,4) = 0.D0
+            PRF(NR,1) = PICU(NR,1,1)
+            PRF(NR,2) = PICU(NR,2,1)
+            PRF(NR,3) = 0.D0
+            PRF(NR,4) = 0.D0
          ELSE
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
@@ -745,6 +822,7 @@ C
 C     *** CALCULATE IMPURITY DENSITY
 C                ACCORDING TO ITER PHYSICS DESIGN GUIDELINE ***
 C
+      IF(MDLUF.NE.3) THEN
       DO NR=1,NRMAX
          ANC (NR)= (0.9D0+0.60D0*(0.7D0/ANEAVE)**2.6D0)*PNC
      &            *1.D-2*RN(NR,1)
@@ -766,6 +844,16 @@ C
       ENDDO
       PNSS(7)=PNS(7)
       PNSS(8)=PNS(8)
+      ELSE
+c$$$         DO NR=1,NRMAX
+c$$$            ANC(NR)=1.D0/3.D1*RN(NR,1)
+c$$$         ENDDO
+         DO NS=1,NSM
+            PNSS(NS)=PNS(NS)
+         ENDDO
+         PNSS(7)=PNS(7)
+         PNSS(8)=PNS(8)
+      ENDIF
 C
 C     *** CALCULATE PROFILE OF AJ(R) ***
 C
@@ -793,19 +881,61 @@ C
             QP(NR)=QPU(NR,1)
             BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
 CCC            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
+            DSRHO(NR)=DSRHOU(NR,1)
          ENDDO
 C
-         AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
-         AJOH(1)=AJ(1)
-         DO NR=2,NRMAX
-            AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
-     &            /(RM(NR)*RA*DR*AMYU0)
+         IF(MODEP.EQ.3) THEN
+            DO NR=1,NRMAX
+               AJ(NR)=AJU(NR,1)
+            ENDDO
+         ELSE
+            AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
+C            AJOH(1)=AJ(1)
+            DO NR=2,NRMAX
+               AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
+     &              /(RM(NR)*RA*DR*AMYU0)
+C               AJOH(NR)=AJ(NR)
+            ENDDO
+         ENDIF
+         CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
+         AJT   = AJTSUM*DR/1.D6
+         FACT=RIPS/AJT
+         DO NR=1,NRMAX
+            AJ(NR)=FACT*AJ(NR)
             AJOH(NR)=AJ(NR)
          ENDDO
+C
 C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
          RIP   = RIPS
          RIPSS = RIP
          RIPE  = RIP
+      ELSEIF(MDLUF.EQ.3) THEN
+         DO NR=1,NRMAX
+            AJOH(NR)=AJU(NR,1)
+            AJ(NR)  =AJU(NR,1)
+         ENDDO
+C
+         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+         DO NR=2,NRMAX
+            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+         ENDDO
+C
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
+         FACT=BPS/BP(NRMAX)
+         DO NR=1,NRMAX
+            AJOH(NR)=FACT*AJOH(NR)/RKAPS
+            AJ(NR)  =AJOH(NR)
+            BP(NR)  =FACT*BP(NR)
+            QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+         ENDDO
+C
+C         DO NR=1,NRMAX
+C            DSRHO(NR)=DSRHOU(NR,1)
+C         ENDDO
+C         CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
+C         AJT   = AJTSUM*DR/1.D6
+C         write(6,*) AJT
+C         STOP
       ELSE
          DO NR=1,NRMAX
             IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
@@ -940,7 +1070,7 @@ C
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
          FACT=BPS/BP(NRMAX)
          DO NR=1,NRMAX
-            AJOH(NR)=FACT*AJOH(NR)
+            AJOH(NR)=FACT*AJOH(NR)/RKAPS
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
             QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
@@ -995,6 +1125,7 @@ C     &        ,RIPE
          ENDIF
       ENDIF
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
       END
 C
@@ -1121,7 +1252,8 @@ c$$$            FACTQ(NR)=QRHO(NR)/QL
 c$$$         ENDDO
 C
       ELSE
-         IF(MDLUF.EQ.1.OR.MDLUF.EQ.2) THEN
+C         IF(MDLUF.EQ.1.OR.MDLUF.EQ.2) THEN
+         IF(MDLUF.NE.0) THEN
             DO NR=1,NRMAX
                BPRHO(NR)=BP(NR)
                QRHO(NR)=QP(NR)
@@ -1443,6 +1575,25 @@ C
                   ENDIF
                ENDDO
  400           CONTINUE
+            ENDIF
+         ELSEIF(PA(NS).EQ.12.D0.AND.NSMAX.EQ.3) THEN
+            NEQ=NEQ+1
+            NSS(NEQ)=3
+            NSV(NEQ)=NSW
+            IF(NSW.EQ.2.AND.IND.EQ.0) THEN
+               DO NEQI=NEQ-1,NEQMAX
+                  NSVN=NSV(NEQI)
+                  IF(NSVN.EQ.1) THEN
+                     DO NEQII=1,NEQMAX
+                        NNSN=NNS(NEQII)
+                        IF(NNSN.EQ.0) THEN
+                           NNS(NEQII)=NEQI
+                           GOTO 500
+                        ENDIF
+                     ENDDO
+                  ENDIF
+               ENDDO
+ 500           CONTINUE
             ENDIF
          ELSEIF(PA(NS).EQ.0.D0) THEN
             IND=-1

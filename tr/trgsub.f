@@ -475,11 +475,16 @@ C     ***********************************************************
 C
       SUBROUTINE TRCOMP(K2,INQ)
 C
+      INCLUDE 'trcomm.h'
       CHARACTER K2*1
+C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
       IF(K2.EQ.'1') CALL TRCMP1(INQ)
       IF(K2.EQ.'2') CALL TRCMP2(INQ)
       IF(K2.EQ.'3') CALL TRCMP3(INQ)
+C
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
       RETURN
       END
@@ -629,7 +634,7 @@ C
 C
       INCLUDE 'trcomm.h'
       COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
-      DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM),RIBS(NTUM)
+      DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM),RIBS(NTUM),RIPL(NTUM)
       DIMENSION PICRH(NTUM),PNBI(NTUM)
       DIMENSION UTRCMP(4,NTURM)
       CHARACTER KFILE*20
@@ -684,6 +689,16 @@ C
             RIBS(NG)=ABS(F0*1.D-6)
          ENDDO
       ENDIF
+C
+      KFILE='IP'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT1(KFILE,UTRCMP,NTXMAX,TMUMAX,ICK,IERR)
+      DO NG=1,NGT
+         TMLCL=DBLE(GT(NG))
+         CALL SPL1DF(TMLCL,F0,TMU,UTRCMP,NTXMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF RIBS: IERR=",IERR
+         RIPL(NG)=ABS(F0*1.D-6)
+      ENDDO
 C
       KFILE='PICRH'
       CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
@@ -754,7 +769,7 @@ C
          GYT(NG,2)=GUCLIP(RIBS(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,2,
-     &            '@IBS(TR),IBS(UF) [MW]  vs t@',2+INQ)
+     &            '@IBS(TR),IBS(UF) [MA]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,89)
@@ -765,11 +780,18 @@ C
       CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,
      &            '@PNBIE;I;TOT(TR),PNBI(UF) [MW]  vs t@',2+INQ)
 C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG,34)
+         GYT(NG,2)=GUCLIP(RIPL(NG))
+      ENDDO
+      CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
+     &            '@IP(TR),IP(UF) [MA]  vs t@',2+INQ)
+C
       CALL PAGEE
 C
       RETURN
       END
-C
+Ct
 C     **********************************************
 C
 C        COMPARE WITH UFILE DATA (RADIAL PROFILE)
@@ -822,6 +844,46 @@ C
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@NE(TR),NE(UF) [10$+20$=/m$+3$=]  vs r@',2+INQ)
 C
+         CALL PAGEE
+      ELSEIF(MDLUF.EQ.3) THEN
+         CALL PAGES
+C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RT(NR,1))
+            GYR(NR,2) = GUCLIP(RTU(NR,1,NT))
+         ENDDO
+         CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@TE(TR),TE(UF) [keV]  vs r@',2+INQ)
+C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RT(NR,2))
+            GYR(NR,2) = GUCLIP(RTU(NR,2,NT))
+         ENDDO
+         CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
+C
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
+            GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &               '@AJ(TR),AJ(UF) [keV]  vs r@',2+INQ)
+C
+         IF(KUFDEV.EQ.'X'.AND.KUFDCG.EQ.'14') THEN
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(AJBS(NR)    *1.D-6)
+               GYR(NR,2) = GUCLIP(AJBSU(NR,NT)*1.D-6)
+            ENDDO
+            CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@AJBS(TR),AJBS(UF) [keV]  vs r@',2+INQ)
+         ELSE
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(QP(NR))
+               GYR(NR,2) = GUCLIP(QPU(NR,NT))
+            ENDDO
+            CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@QP(TR),QP(UF)  vs r@',2+INQ)
+         ENDIF
          CALL PAGEE
       ELSE
          RETURN

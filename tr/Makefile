@@ -9,7 +9,7 @@ FFLAGS = $(OFLAGS)
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
-     callglf2d.f zgeev.f blas_zgeev.f
+     callglf2d.f zgeev.f blas_zgeev.f ifspppl/ifspppl_model.f
 SRCF=glf2d.F r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
@@ -97,6 +97,7 @@ trncls.o : trncls.f trncls.inc trcomm.h nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
+ifspppl/ifspppl_model.o : ifspppl/ifspppl_model.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
 ../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.inc ../eq/eqcom2.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc

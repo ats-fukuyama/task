@@ -192,7 +192,7 @@ C         p_ngrth=RKAPS/SNGL(QP(NR)*RR)
      &              /DR)*1.E20
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
- 7             ENDDO
+               ENDDO
             ENDDO
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX

@@ -13,6 +13,7 @@ C
       IF (MODELG.EQ.3) THEN
          RKAP=1.D0
       ENDIF
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
       VOL=0.D0
       DO NR=1,NRMAX
@@ -315,6 +316,7 @@ C
 C
       ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
 C
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
       RETURN
       END
 C
@@ -480,6 +482,7 @@ C
 C
 C     *** FOR 3D ***
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX
          G3D(NR,NGT, 1) = GCLIP(RT(NR,1))
          G3D(NR,NGT, 2) = GCLIP(RT(NR,2))
@@ -532,6 +535,7 @@ C
          ENDIF
 C
       ENDDO
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C      
       RETURN
       END
@@ -550,6 +554,7 @@ C
       NGR=NGR+1
       GTR(NGR)=GCLIP(T)
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO 10 NR=1,NRMAX
          GVR(NR,NGR, 1)  = GCLIP(RN(NR,1))
          GVR(NR,NGR, 2)  = GCLIP(RN(NR,2))
@@ -579,6 +584,7 @@ C         GVR(NR,NGR,19)  = GCLIP(PNB(NR)*1.D-6)
 C         GVR(NR,NGR,20)  = GCLIP(PNF(NR)*1.D-6)
    10 CONTINUE
          GVR(1,NGR, 9)  = GCLIP(Q0)
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
       RETURN
       END
@@ -833,8 +839,8 @@ C
  1600    WRITE(6,*) '## INPUT COMMENT FOR trn.data (A40)'
          READ(5,'(A40)',END=9000,ERR=1600) KCOM
 C
-         OPEN(16,POSITION='APPEND',FILE=KFNLOG)
-C         OPEN(16,ACCESS='APPEND',FILE=KFNLOG)
+C         OPEN(16,POSITION='APPEND',FILE=KFNLOG)
+         OPEN(16,ACCESS='APPEND',FILE=KFNLOG)
 C
          CALL GUDATE(NDY,NDM,NDD,NTH1,NTM1,NTS1)
          WRITE(K1,'(I3)') 100+NDY

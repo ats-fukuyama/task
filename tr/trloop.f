@@ -19,64 +19,14 @@ C
 C
       DIMENSION XX(MLM),YY(2,NRM)
 C
-      IF(MDLUF.NE.1) THEN
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
+      ELSE
          NT=0
          RIP=RIPS
          IF(NTMAX.NE.0) DIP=(RIPE-RIPS)/DBLE(NTMAX)
-      ELSE
-         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
       ENDIF
       ICHCK=0
-C
-C     *****
-C
-      IF(MDLUF.EQ.3) THEN
-         DO NUR=1,NURM
-            DERIVR(NUR)=0.D0
-         ENDDO
-         DO NUT=1,NUTM
-            DERIVT(NUT)=0.D0
-         ENDDO
-         DO NUF=1,NUFMAX
-            DO NTX=1,NTXMAX
-               FRFHET(NTX)=FRFHE(NUF,NTX)
-               FRFHIT(NTX)=FRFHI(NUF,NTX)
-            ENDDO
-            CALL SPL1D(FUT,FRFHET,DERIVT,UFUTE,NTXMAX,0,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FUTE: IERR=',IERR
-            CALL SPL1D(FUT,FRFHIT,DERIVT,UFUTI,NTXMAX,0,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FUTI: IERR=',IERR
-C     
-            CALL SPL1DF(T,PRFHEA,FUT,UFUTE,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHEA: IERR=',IERR
-            CALL SPL1DF(T,PRFHIA,FUT,UFUTI,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHIA: IERR=',IERR
-            FRFHER(NUF)=PRFHEA
-            FRFHIR(NUF)=PRFHIA
-         ENDDO
-C
-         CALL SPL1D(RAD,FRFHER,DERIVR,URFHEPH,NUFMAX,0,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FRFHER: IERR=',IERR
-         CALL SPL1D(RAD,FRFHIR,DERIVR,URFHIPH,NUFMAX,0,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FRFHIR: IERR=',IERR
-         DO NR=1,NRMAX
-            RMNOW=RM(NR)
-            CALL SPL1DF(RMNOW,PRFHE,RAD,URFHEPH,NUFMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHE: IERR=',IERR
-            CALL SPL1DF(RMNOW,PRFHI,RAD,URFHIPH,NUFMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHI: IERR=',IERR
-            PEX(NR,1)=PRFHE
-            PEX(NR,2)=PRFHI
-            PEX(NR,3)=0.D0
-            PEX(NR,4)=0.D0
-         ENDDO
-      ENDIF
-C
-C     *****
 C
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
@@ -135,51 +85,6 @@ C     /* Convergence check */
       ENDDO
       ENDDO
 C
-C     *****
-C
-      IF(MDLUF.EQ.3) THEN
-C         write(6,*) "T=",T
-         DO NUF=1,NUFMAX
-            DO NTX=1,NTXMAX
-               FRFHET(NTX)=FRFHE(NUF,NTX)
-               FRFHIT(NTX)=FRFHI(NUF,NTX)
-            ENDDO
-            CALL SPL1D(FUT,FRFHET,DERIVT,UFUTE,NTXMAX,0,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FUTE: IERR=',IERR
-            CALL SPL1D(FUT,FRFHIT,DERIVT,UFUTI,NTXMAX,0,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FUTI: IERR=',IERR
-C     
-            CALL SPL1DF(T,PRFHEA,FUT,UFUTE,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHEA: IERR=',IERR
-            CALL SPL1DF(T,PRFHIA,FUT,UFUTI,NTXMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHIA: IERR=',IERR
-            FRFHER(NUF)=PRFHEA
-            FRFHIR(NUF)=PRFHIA
-         ENDDO
-C
-         CALL SPL1D(RAD,FRFHER,DERIVR,URFHEPH,NUFMAX,0,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FRFHER: IERR=',IERR
-         CALL SPL1D(RAD,FRFHIR,DERIVR,URFHIPH,NUFMAX,0,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TRLOOP: SPL1D FRFHIR: IERR=',IERR
-         DO NR=1,NRMAX
-            RMNOW=RM(NR)
-            CALL SPL1DF(RMNOW,PRFHE,RAD,URFHEPH,NUFMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHE: IERR=',IERR
-            CALL SPL1DF(RMNOW,PRFHI,RAD,URFHIPH,NUFMAX,IERR)
-            IF(IERR.NE.0)
-     &           WRITE(6,*) 'XX TRLOOP: SPL1DF PRFHI: IERR=',IERR
-            PEX(NR,1)=PRFHE
-            PEX(NR,2)=PRFHI
-            PEX(NR,3)=0.D0
-            PEX(NR,4)=0.D0
-         ENDDO
-      ENDIF
-C
-C     *****
-C
       GOTO 4000
 C
  3000 L=L+1
@@ -207,6 +112,7 @@ C
                   BP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
+               IF(MDLUF.NE.3) THEN
                IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
                   RN(NR,NSSN) = 0.D0
                   DO NEQ1=1,NEQMAX
@@ -228,6 +134,14 @@ C
                   IF(MDLEQE.EQ.0) XV(NEQ,NR) = RN(NR,NSSN)
                ELSEIF(NSSN.EQ.1.AND.MDLEQE.EQ.1) THEN
                   RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NEQ))
+               ELSE
+                  IF(NSTN.EQ.0) THEN
+                     RN(NR,NSSN) = XV(NEQ,NR)
+                  ELSE
+                     RN(NR,NSSN) = 0.5D0*(XV(NEQ,NR)
+     &                                  +  X(NEQRMAX*(NR-1)+NSTN))
+                  ENDIF
+               ENDIF
                ELSE
                   IF(NSTN.EQ.0) THEN
                      RN(NR,NSSN) = XV(NEQ,NR)
@@ -284,7 +198,7 @@ C
       T=T+DT
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT
-      IF(MDLUF.EQ.1) THEN
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          RIP=RIPU(NT)
       ELSE
          RIP=RIP+DIP
@@ -309,7 +223,8 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
-      IF(MDLUF.EQ.1) CALL TR_UFREAD
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
+      IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S
 C
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
@@ -354,7 +269,7 @@ C         WRITE(6,*) "L=",L
       ENDIF
       IF(NT.LT.NTMAX) GOTO 1000
 C
- 9000 IF(MDLUF.NE.1) RIPS=RIPE
+ 9000 IF(MDLUF.NE.1.AND.MDLUF.NE.3) RIPS=RIPE
       RETURN
       END
 C
@@ -386,7 +301,7 @@ C
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
          BPS=BPA-AMYU0*DT*EZOH(NRMAX)/RLP
       ENDIF
-      IF(MDLUF.EQ.1) THEN
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
             RKAP=RKAPU(1)
             RKAPS=SQRT(RKAP)
@@ -475,7 +390,7 @@ C
             NSSN1=NSS(NEQ1)
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
+               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
      &           *AMZ(NSSN1))*DV53*1.5D0
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -534,7 +449,7 @@ C
                NSSN1=NSS(NEQ1)
                NSSN =NSS(NEQ )
                IF(NSSN1.NE.NSSN) THEN
-                  C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
+                  C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
      &                 *AMZ(NSSN1))*DV53*1.5D0
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -596,7 +511,7 @@ C
             NSSN1=NSS(NEQ1)
             NSSN =NSS(NEQ )
             IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
+               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5*AMZ(NSSN)
      &              *AMZ(NSSN1))*DV53*1.5D0
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
@@ -847,6 +762,8 @@ C
 C
       INCLUDE 'trcomm.h'
 C
+      IF(MDLUF.NE.3) THEN
+C
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
             NSSN=NSS(NEQ)
@@ -886,9 +803,38 @@ C     I think the above expression is obsolete.
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
          ANNU(NR) = RN(NR,7)+RN(NR,8)
-C         if(NR.EQ.40.OR.NR.EQ.45) write(6,*) NT,NR,RN(NR,7),RN(NR,8)
-C         write(6,*) ANNU(NR),RN(NR,7),RN(NR,8)
       ENDDO
+C
+      ELSE
+C
+      DO NR=1,NRMAX
+         DO NEQ=1,NEQMAX
+            NSSN=NSS(NEQ)
+            NSVN=NSV(NEQ)
+            IF(NSVN.EQ.0) THEN
+               BP(NR) = XV(NEQ,NR)
+            ELSEIF(NSVN.EQ.1) THEN
+               RN(NR,NSSN) = XV(NEQ,NR)
+            ELSEIF(NSVN.EQ.2) THEN
+               IF(NSSN.NE.NSM) THEN
+                  RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+               ELSE
+                  IF(RN(NR,NSM).LT.1.D-70) THEN
+                     RT(NR,NSM) = 0.D0
+                  ELSE
+                     RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
+                  ENDIF
+               ENDIF
+            ELSEIF(NSVN.EQ.3) THEN
+               RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
+            ENDIF
+         ENDDO
+         RW(NR,1) = YV(1,NR)
+         RW(NR,2) = YV(2,NR)
+         ANNU(NR) = RN(NR,7)+RN(NR,8)
+      ENDDO
+C
+      ENDIF
 C
       RETURN
       END
