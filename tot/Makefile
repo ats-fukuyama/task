@@ -7,12 +7,14 @@ SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = ../eq/eqlib.a \
+LIB0 = ../eq/eqlib.a \
        ../eq/pleqin.o ../pl/pllib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
-       ../eq/wmeqin.o ../wm/wmlib.a ../fp/fplib.a \
-       ../mtx/mtxlib.a ../lib/tasklib.a ../mpi/nompilib.o $(OBJLA)
+       ../eq/wmeqin.o ../fp/fplib.a \
+       ../lib/tasklib.a 
+LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o  $(OBJLA)
+LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o $(OBJLA)
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -37,17 +39,26 @@ all : tot
 	(cd ../wr; make wrlib.a)
 ../wm/wmlib.a:
 	(cd ../wm; make wmlib.a)
+../wm/mpiwmlib.a:
+	(cd ../wm; make mpiwmlib.a)
 ../fp/fplib.a:
 	(cd ../fp; make fplib.a)
 ../mtx/mtxlib.a:
 	(cd ../mtx; make mtxlib.a)
+../mtx/mpimtxlib.a:
+	(cd ../mtx; make mpimtxlib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make)
 ../mpi/nompilib.o:
 	(cd ../mpi; make nompilib.o)
+../mpi/mpilib.o:
+	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+
+mpitot : main.o $(LIBM)
+	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
 
 xtot :
 	(cd ../pl; make pllib.a)

@@ -43,6 +43,8 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mpi; make mpilib.o)
 ../mtx/mtxlib.a:
 	(cd ../mtx; make mtxlib.a)
+../mtx/mpimtxlib.a:
+	(cd ../mtx; make mpimtxlib.a)
 
 wm : wmmain.o $(LIBS)
 	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
