@@ -173,6 +173,11 @@ C
       MDLJBS = 5
       MDLKNC = 1
 C
+C     MDLWLD : mode selector
+C            0    : using effective transport coefficients
+C            else : using transport coefficients' vectors
+      MDLWLD=0
+C
       DT     = 0.01D0 
       NRMAX  = 50
       NTMAX  = 100
@@ -386,7 +391,7 @@ C
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,MDNCLS,
+     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,MDNCLS,MDLWLD,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -431,7 +436,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS'/
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS,MDLWLD'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')
@@ -530,13 +535,14 @@ C
       WRITE(6,602) 'MDLJBS',MDLJBS,
      &             'MDLKNC',MDLKNC,
      &             'MDNCLS',MDNCLS,
-     &             'MDTC  ',MDTC
+     &             'MDLWLD',MDLWLD
 C
       WRITE(6,604) 'MDLUF ',MDLUF,
      &             'KUFDEV',KUFDEV,
      &             'KUFDCG',KUFDCG,
      &             'MDNI  ',MDNI
-      WRITE(6,603) 'MDLJQ ',MDLJQ,
+      WRITE(6,605) 'MDLJQ ',MDLJQ,
+     &             'MDTC  ',MDTC,
      &             'RHOA  ',RHOA
 C
       WRITE(6,602) 'MODELG',MODELG,
@@ -634,14 +640,16 @@ C
       WRITE(6,601) 'CNB   ',CNB 
       RETURN
 C
-  601 FORMAT(' ',A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
-     &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  602 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
-     &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
-  603 FORMAT(' ',A6,'=',I7,4X  :2X,A6,'=',1PE11.3:
-     &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
-  604 FORMAT(' ',A6,'=',I7,4X:2X,A6,'=',1X,A6,4X:
+  601 FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3:
+     &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
+  602 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  :
+     &        2X,A6,'=',I7,4X   :2X,A6,'=',I7)
+  603 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1PE11.3:
+     &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
+  604 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1X,A6,4X:
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
+  605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  :
+     &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
       END
 C
 C     ***********************************************************
@@ -1741,6 +1749,28 @@ C
       ENDDO
  600  FORMAT(' ',5(' ',A))
  610  FORMAT(' ',5I4)
+C
+      IF(MDNCLS.EQ.0) THEN
+         IF(MDLKAI.EQ.63) THEN
+            IF(MDLWLD.EQ.0) THEN
+               MDDIAG=0
+            ELSE
+               MDDIAG=2
+            ENDIF
+         ELSE
+            MDDIAG=0
+         ENDIF
+      ELSE
+         IF(MDLKAI.EQ.63) THEN
+            IF(MDLWLD.EQ.0) THEN
+               MDDIAG=1
+            ELSE
+               MDDIAG=3
+            ENDIF
+         ELSE
+            MDDIAG=1
+         ENDIF
+      ENDIF
 C
       RETURN
       END

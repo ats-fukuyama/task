@@ -1318,21 +1318,48 @@ C
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
       ENDDO
 C
-C     ***** NEOCLASSICAL TRANSPORT (NCLASS) *****
+C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 C
-      IF(MDNCLS.NE.0) THEN
+C     AKLP : heat flux coefficient for pressure gradient
+C     AKLD : heat flux coefficient for density gradient
+C
+      IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     AKNCLA(NR,NS,NS1)= AKDW(NR,NS)+AKNCT(NR,NS,NS1)
-     &                                             +AKNCP(NR,NS,NS1)
-                     AKNCLB(NR,NS,NS1)=-AKDW(NR,NS)-AKNCT(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= AKDW(NR,NS)+AKNCT(NR,NS,NS1)
+     &                                           +AKNCP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)=-AKDW(NR,NS)-AKNCT(NR,NS,NS1)
                   ELSE
-                     AKNCLA(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
-     &                                             +AKNCP(NR,NS,NS1)
-                     AKNCLB(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
+     &                                           +AKNCP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)=            -AKNCT(NR,NS,NS1)
                   ENDIF
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(MDDIAG.EQ.2) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               DO NS1=1,NSMAX
+                  IF(NS.EQ.NS1) THEN
+                     AKLP(NR,NS,NS1)= CNC*AKNC(NR,NS)+AKDWP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)=                 AKDWD(NR,NS,NS1)
+                  ELSE
+                     AKLP(NR,NS,NS1)=                 AKDWP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)=                 AKDWD(NR,NS,NS1)
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(MDDIAG.EQ.3) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               DO NS1=1,NSMAX
+                  AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)+AKNCT(NR,NS,NS1)
+     &                                             +AKNCP(NR,NS,NS1)
+                  AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)-AKNCT(NR,NS,NS1)
                ENDDO
             ENDDO
          ENDDO
@@ -1667,28 +1694,52 @@ C
          ENDDO
       ENDIF
 C
-C     *** NCLASS ***
+C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 C
-      IF(MDNCLS.NE.0) THEN
+C     ADLP : particle flux coefficient for pressure gradient
+C     ADLD : particle flux coefficient for density gradient
+C
+      IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                AV(NR,NS)=AVNCS(NR,NS)
-C
                ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     DO NA=1,2
-                     ADNCLA(NR,NS,NS1,NA)= ADDW(NR,NS)-ADNCT(NR,NS,NS1)
-                     ADNCLB(NR,NS,NS1,NA)=             ADNCT(NR,NS,NS1)
-     &                                                +ADNCP(NR,NS,NS1)
-                     ENDDO
+                     ADLD(NR,NS,NS1)= ADDW(NR,NS)-ADNCT(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)=             ADNCT(NR,NS,NS1)
+     &                                           +ADNCP(NR,NS,NS1)
                   ELSE
-                     DO NA=1,2
-                     ADNCLA(NR,NS,NS1,NA)=            -ADNCT(NR,NS,NS1)
-                     ADNCLB(NR,NS,NS1,NA)=             ADNCT(NR,NS,NS1)
-     &                                                +ADNCP(NR,NS,NS1)
-                     ENDDO
+                     ADLD(NR,NS,NS1)=            -ADNCT(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)=             ADNCT(NR,NS,NS1)
+     &                                           +ADNCP(NR,NS,NS1)
                   ENDIF
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(MDDIAG.EQ.2) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               AV(NR,NS)=AVNCS(NR,NS)
+               DO NS1=1,NSMAX
+                  IF(NS.EQ.NS1) THEN
+                     ADLD(NR,NS,NS1)= CNC*ADNC(NR,NS)+ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)=                 ADDWP(NR,NS,NS1)
+                  ELSE
+                     ADLD(NR,NS,NS1)=                +ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)=                 ADDWP(NR,NS,NS1)
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDDO
+      ELSEIF(MDDIAG.EQ.3) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               AV(NR,NS)=AVNCS(NR,NS)
+               DO NS1=1,NSMAX
+                  ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)-ADNCT(NR,NS,NS1)
+                  ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)+ADNCT(NR,NS,NS1)
+     &                                             +ADNCP(NR,NS,NS1)
                ENDDO
             ENDDO
          ENDDO

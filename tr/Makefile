@@ -5,7 +5,7 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 #AFLAGS = $(DFLAGS) -lpgmm1 -lpgmm2 -lpgsse1 -lpgsse2
 
-SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f \
+SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f trmdlt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
      glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f \
@@ -100,6 +100,7 @@ trprf.o  : trprf.f  trcomm.inc trcom0.inc
 trpnf.o  : trpnf.f  trcomm.inc trcom0.inc
 trpel.o  : trpel.f  trcomm.inc trcom0.inc
 
+trgout.o : trgout.f trcomm.inc trcom0.inc
 trgrar.o : trgrar.f trcomm.inc trcom0.inc
 trgrat.o : trgrat.f trcomm.inc trcom0.inc
 trgrap.o : trgrap.f trcomm.inc trcom0.inc
@@ -111,6 +112,7 @@ trgrad.o : trgrad.f trcomm.inc trcom0.inc
 trg2d.o  : trg2d.f  trcomm.inc trcom0.inc
 trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
+trmdlt.o : trmdlt.f trcomm.inc trcom0.inc
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F

@@ -464,7 +464,7 @@ C         GYR(NRMAX+1,3) = GUCLIP(AKDW(NRMAX,1)/2)
 C
       DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,2),1.D-2,1.D2)
-C         GYR(NR+1,2) = GLOG(AKNC(NR,2),1.D-2,1.D2)
+C         GYR(NR+1,2) = GLOG(AKNC(NR,2),1xb.D-2,1.D2)
 C         GYR(NR+1,3) = GLOG(AKDW(NR,2),1.D-2,1.D2)
          GYR(NR+1,1) = GUCLIP(AK(NR,2))
          GYR(NR+1,2) = GUCLIP(AKNC(NR,2))
@@ -482,13 +482,13 @@ C
       ELSE
 C
       DO NR=1,NRMAX
-         GYR(NR+1,1) = GUCLIP(AKDW(NR,1)+AKNCT(NR,1,1)+AKNCP(NR,1,1))
-         GYR(NR+1,2) = GUCLIP(AKDW(NR,2)+AKNCT(NR,1,2)+AKNCP(NR,1,2))
+         GYR(NR+1,1) = GLOG(AKLP(NR,1,1),1.D-3,1.D2)
+         GYR(NR+1,2) = GLOG(AKLP(NR,2,2),1.D-3,1.D2)
       ENDDO
-      GYR(1,1) = GUCLIP(AKDW(1,1)+AKNCT(1,1,1)+AKNCP(1,1,1))
-      GYR(1,2) = GUCLIP(AKDW(1,2)+AKNCT(1,1,2)+AKNCP(1,1,2))
+      GYR(1,1) = GLOG(AKLP(1,1,1),1.D-3,1.D2)
+      GYR(1,2) = GLOG(AKLP(1,2,2),1.D-3,1.D2)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
-     &           '@AKE,AKI vs r @',2+INQ)
+     &           '@LOG:AKE,AKI vs r @',11+INQ)
 C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
@@ -519,23 +519,27 @@ C
          GYR(NR+1,1) = GUCLIP(AKDW(NR,1)+AKNCG(NR,1))
          GYR(NR+1,2) = GUCLIP(AKNCG(NR,1))
          GYR(NR+1,3) = GUCLIP(AKDW(NR,1))
+         GYR(NR+1,4) = GUCLIP(AKLP(NR,1,1))
       ENDDO
          GYR(1,1) = GUCLIP(AKDW(1,1)+AKNCG(1,1))
          GYR(1,2) = GUCLIP(AKNCG(1,1))
          GYR(1,3) = GUCLIP(AKDW(1,1))
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKE,AKNCE,AKDWE [m$+2$=/s]  vs r@',2+INQ)
+         GYR(1,4) = GUCLIP(AKLP(1,1,1))
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,4,
+     &            '@AKE,AKNCE,AKDWE,AKEDIAG [m$+2$=/s]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(AKDW(NR,2)+AKNCG(NR,2))
          GYR(NR+1,2) = GUCLIP(AKNCG(NR,2))
          GYR(NR+1,3) = GUCLIP(AKDW(NR,2))
+         GYR(NR+1,4) = GUCLIP(AKLP(NR,2,2))
       ENDDO
          GYR(1,1) = GUCLIP(AKDW(1,2)+AKNCG(1,2))
          GYR(1,2) = GUCLIP(AKNCG(1,2))
          GYR(1,3) = GUCLIP(AKDW(1,2))
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
-     &            '@AKD,AKNCD,AKDWD [m$+2$=/s]  vs r@',2+INQ)
+         GYR(1,4) = GUCLIP(AKLP(1,2,2))
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,4,
+     &            '@AKD,AKNCD,AKDWD,AKDDIAG [m$+2$=/s]  vs r@',2+INQ)
 C
       ENDIF
 C

@@ -1,5 +1,27 @@
+2004/12/10
+	TASK/TR can implement one dimensional modelling tests of
+	  the mean and the mean square deviations of the predictions
+ 	  for stored energies(AVERW, RW), and the standard 
+	  deviations(STD) and offsets(OFF) for electron and ion
+          (you can see details in Ncl. Fus. Vol.39, No.12 p2219-2222 
+          (1999)).
+	The procedure is the following:
+	  1. Run TASK/TR.
+	  2. Push the key of 'M' if it pauses then it writes out
+	     pre-statistical analysis datafile named 
+             '(device)(shot#).dat'.
+	  3. Iterate this procedure until datafiles of each shot
+ 	     you'd like to survey are accumulated.
+	  4. Implement perl script 'trstat' which gathers all files
+  	     which have the extention names of 'dat' in a current
+             directory then you can get 'stat_results' file.
+	  5. Make a graph with, for instance, Kaleida graph or something
+	     kind of that to read 'stat_results'.
+	You can use perl script 'trclsf' if you'd like to put it into
+	  sections in order to show an analysis graph topically.
+
 2003/11/18
-	The NCLASS module  is added, which calculates the neoclassical
+	The NCLASS module is added, which calculates the neoclassical
 	  transport properties of a multi-species axisymmetric plasma of
 	  arbitrary aspect ratio, geometry and collisionality.
 	The NCLASS module for TR consists of header file, trncls.inc, 

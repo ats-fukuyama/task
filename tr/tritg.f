@@ -216,67 +216,104 @@ C
      &      SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST,
      &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 C
-C     MODE : mode selector
-C            0    : using effective transport coefficients
-C            else : using transport coefficients' vectors
-         MODE=0
-         IF(MODE.EQ.0) THEN
+         IF(PA(3).EQ.3.D0) THEN
+            AKDW(NR,1)=SCHE
+            AKDW(NR,2)=SCHI
+            AKDW(NR,3)=SCHI
+            AKDW(NR,4)=SCHI
+            ADDW(NR,1)=SD
+            DO NS=2,NSM
+               ADDW(NR,NS)=0.D0
+            ENDDO
+            IF(MDLWLD.NE.0) THEN
+               ADDWD(NR,1,1)=DL(3)
+               ADDWP(NR,1,1)=DL(2)
+               ADDWD(NR,2,1)=0.D0
+               ADDWP(NR,2,1)=DL(1)
+               ADDWD(NR,3,1)=0.D0
+               ADDWP(NR,3,1)=DL(1)
+               ADDWD(NR,4,1)=0.D0
+               ADDWP(NR,4,1)=DL(1)
+               AKDWD(NR,1,1)=CHEL(3)
+               AKDWP(NR,1,1)=CHEL(2)
+               AKDWD(NR,2,1)=0.D0
+               AKDWP(NR,2,1)=CHEL(1)
+               AKDWD(NR,3,1)=0.D0
+               AKDWP(NR,3,1)=CHEL(1)
+               AKDWD(NR,4,1)=0.D0
+               AKDWP(NR,4,1)=CHEL(1)
+               DO NS1=2,NSM
+                  DO NS=1,NSM
+                     ADDWD(NR,NS,NS1)=0.D0
+                     ADDWP(NR,NS,NS1)=0.D0
+                  ENDDO
+                  AKDWD(NR,1,NS1)=CHIL(3)
+                  AKDWP(NR,1,NS1)=CHIL(2)
+                  AKDWD(NR,2,NS1)=0.D0
+                  AKDWP(NR,2,NS1)=CHIL(1)
+                  AKDWD(NR,3,NS1)=0.D0
+                  AKDWP(NR,3,NS1)=CHIL(1)
+                  AKDWD(NR,4,NS1)=0.D0
+                  AKDWP(NR,4,NS1)=CHIL(1)
+               ENDDO
+            ENDIF
+         ELSE
             AKDW(NR,1)=SCHE
             AKDW(NR,2)=SCHI
             AKDW(NR,3)=SCHQ
             AKDW(NR,4)=SCHQ
             ADDW(NR,1)=SD
-            ADDW(NR,2)=SD
+            ADDW(NR,2)=0.D0
             ADDW(NR,3)=SDQ
             ADDW(NR,4)=SDQ
-         ELSE
-            DO NS=1,NSM
-               DO NS1=1,NSM
-                  DO NA=1,2
-                     AKWLDW(NR,NS,NS1,NA)=0.D0
-                     ADWLDW(NR,NS,NS1,NA)=0.D0
+            IF(MDLWLD.NE.0) THEN
+               ADDWD(NR,1,1)=DL(3)
+               ADDWP(NR,1,1)=DL(2)
+               ADDWD(NR,2,1)=0.D0
+               ADDWP(NR,2,1)=DL(1)
+               DO NS=3,NSM
+                  ADDWD(NR,NS,1)=DL(5)
+                  ADDWP(NR,NS,1)=DL(4)
+               ENDDO
+               AKDWD(NR,1,1)=CHEL(3)
+               AKDWP(NR,1,1)=CHEL(2)
+               AKDWD(NR,2,1)=0.D0
+               AKDWP(NR,2,1)=CHEL(1)
+               DO NS=3,NSM
+                  AKDWD(NR,NS,1)=CHEL(5)
+                  AKDWP(NR,NS,1)=CHEL(4)
+               ENDDO
+               DO NS=1,NSM
+                  ADDWD(NR,NS,2)=0.D0
+                  ADDWP(NR,NS,2)=0.D0
+               ENDDO
+               AKDWD(NR,1,2)=CHIL(3)
+               AKDWP(NR,1,2)=CHIL(2)
+               AKDWD(NR,2,2)=0.D0
+               AKDWP(NR,2,2)=CHIL(1)
+               DO NS=3,NSM
+                  AKDWD(NR,NS,2)=CHIL(5)
+                  AKDWP(NR,NS,2)=CHIL(4)
+               ENDDO
+               DO NS1=3,NSM
+                  ADDWD(NR,1,NS1)=DQL(3)
+                  ADDWP(NR,1,NS1)=DQL(2)
+                  ADDWD(NR,2,NS1)=0.D0
+                  ADDWP(NR,2,NS1)=DQL(1)
+                  DO NS=3,NSM
+                     ADDWD(NR,NS,NS1)=DQL(5)
+                     ADDWP(NR,NS,NS1)=DQL(4)
+                  ENDDO
+                  AKDWD(NR,1,NS1)=CHQL(3)
+                  AKDWP(NR,1,NS1)=CHQL(2)
+                  AKDWD(NR,2,NS1)=0.D0
+                  AKDWP(NR,2,NS1)=CHQL(1)
+                  DO NS=3,NSM
+                     AKDWD(NR,NS,NS1)=CHQL(5)
+                     AKDWP(NR,NS,NS1)=CHQL(4)
                   ENDDO
                ENDDO
-            ENDDO
-            DO NEQ=1,NEQMAX
-               NSSN=NSS(NEQ)
-               NSVN=NSV(NEQ)
-               IF(NSVN.EQ.1) THEN
-                  IF(NSSN.EQ.1) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(3)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (3)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(3)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(3)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (3)
-                  ELSEIF(NSSN.EQ.3) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(5)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (5)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(5)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(5)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (5)
-                  ENDIF
-               ELSEIF(NSVN.EQ.2) THEN
-                  IF(NSSN.EQ.1) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(2)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (2)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(2)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(2)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (2)
-                  ELSEIF(NSSN.EQ.2) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(1)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (1)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(1)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(1)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (1)
-                  ELSEIF(NSSN.EQ.3) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(4)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (4)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(4)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(4)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (4)
-                  ENDIF
-               ENDIF
-            ENDDO
+            ENDIF
          ENDIF
       ENDDO
 C
@@ -406,63 +443,51 @@ C
      &      SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST,
      &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 C
-         IF(MODE.EQ.0) THEN
-            AKDW(NR,1)=SCHE
-            AKDW(NR,2)=SCHI
-            AKDW(NR,3)=SCHQ
-            AKDW(NR,4)=SCHQ
-            ADDW(NR,1)=SD
-            ADDW(NR,2)=SD
-            ADDW(NR,3)=SDQ
-            ADDW(NR,4)=SDQ
-         ELSE
-            DO NS=1,NSM
-               DO NS1=1,NSM
-                  DO NA=1,2
-                     AKWLDW(NR,NS,NS1,NA)=0.D0
-                     ADWLDW(NR,NS,NS1,NA)=0.D0
-                  ENDDO
-               ENDDO
-            ENDDO
-            DO NEQ=1,NEQMAX
-               NSSN=NSS(NEQ)
-               NSVN=NSV(NEQ)
-               IF(NSVN.EQ.1) THEN
-                  IF(NSSN.EQ.1) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(3)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (3)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(3)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(3)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (3)
-                  ELSEIF(NSSN.EQ.3) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(5)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (5)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(5)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(5)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (5)
-                  ENDIF
-               ELSEIF(NSVN.EQ.2) THEN
-                  IF(NSSN.EQ.1) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(2)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (2)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(2)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(2)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (2)
-                  ELSEIF(NSSN.EQ.2) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(1)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (1)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(1)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(1)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (1)
-                  ELSEIF(NSSN.EQ.3) THEN
-                     AKWLDW(NR,1,NSSN,NSVN)=CHEL(4)
-                     ADWLDW(NR,1,NSSN,NSVN)=DL  (4)
-                     AKWLDW(NR,2,NSSN,NSVN)=CHIL(4)
-                     AKWLDW(NR,3,NSSN,NSVN)=CHQL(4)
-                     ADWLDW(NR,3,NSSN,NSVN)=DQL (4)
-                  ENDIF
-               ENDIF
-            ENDDO
+         AKDW(NR,1)=SCHE
+         AKDW(NR,2)=SCHI
+         AKDW(NR,3)=SCHQ
+         AKDW(NR,4)=SCHQ
+         ADDW(NR,1)=SD
+         ADDW(NR,2)=SD
+         ADDW(NR,3)=SDQ
+         ADDW(NR,4)=SDQ
+         IF(MDLWLD.NE.0) THEN
+            ADDWD(NR,1,1)=DL(3)
+            ADDWP(NR,1,1)=DL(2)
+            ADDWD(NR,2,1)=0.D0
+            ADDWP(NR,2,1)=DL(1)
+            ADDWD(NR,3,1)=DL(5)
+            ADDWP(NR,3,1)=DL(4)
+            AKDWD(NR,1,1)=CHEL(3)
+            AKDWP(NR,1,1)=CHEL(2)
+            AKDWD(NR,2,1)=0.D0
+            AKDWP(NR,2,1)=CHEL(1)
+            AKDWD(NR,3,1)=CHEL(5)
+            AKDWP(NR,3,1)=CHEL(4)
+            ADDWD(NR,1,2)=0.D0
+            ADDWP(NR,1,2)=0.D0
+            ADDWD(NR,2,2)=0.D0
+            ADDWP(NR,2,2)=0.D0
+            ADDWD(NR,3,2)=0.D0
+            ADDWP(NR,3,2)=0.D0
+            AKDWD(NR,1,2)=CHIL(3)
+            AKDWP(NR,1,2)=CHIL(2)
+            AKDWD(NR,2,2)=0.D0
+            AKDWP(NR,2,2)=CHIL(1)
+            AKDWD(NR,3,2)=CHIL(5)
+            AKDWP(NR,3,2)=CHIL(4)
+            ADDWD(NR,1,3)=DQL(3)
+            ADDWP(NR,1,3)=DQL(2)
+            ADDWD(NR,2,3)=0.D0
+            ADDWP(NR,2,3)=DQL(1)
+            ADDWD(NR,3,3)=DQL(5)
+            ADDWP(NR,3,3)=DQL(4)
+            AKDWD(NR,1,3)=CHQL(3)
+            AKDWP(NR,1,3)=CHQL(2)
+            AKDWD(NR,2,3)=0.D0
+            AKDWP(NR,2,3)=CHQL(1)
+            AKDWD(NR,3,3)=CHQL(5)
+            AKDWP(NR,3,3)=CHQL(4)
          ENDIF
 C
       RETURN
@@ -781,8 +806,10 @@ C
  330     FORMAT(/,2X,'CHIEFF=',G11.3,' CHEEFF=',G11.3,' DEFF=',G11.3,
      &        ' CHQEFF=',G11.3,' DQEFF=',G11.3)
 C     
-         WRITE(*,331) CHE(2),SCHEF
- 331     FORMAT(' CHE(2)=',G11.3,' SCHEF=',G11.3)
+C         WRITE(*,331) CHE(2),SCHEF
+C 331     FORMAT(' CHE(2)=',G11.3,' SCHEF=',G11.3)
+         WRITE(*,331) CHQ(5),SCHQ
+ 331     FORMAT(' CHQ(5)=',G11.3,' SCHQ=',G11.3)
          DTOT=SD+DEF
          WRITE(*,332) D(3),DEF,DTOT
  332     FORMAT(' D(3)=',G11.3,' DEF=',G11.3,' DTOT=',G11.3)

@@ -1698,6 +1698,7 @@ C
       XQ(3)=0.D0
       XQ(4)=(1.D0+TVR*TS)*XQH
       XQ(5)=-TVR*TQ*(1.D0+T1)*XQH/NQ
+C      write(6,*) XQ(5),TVR*TQ*(1.D0+T1)*XQH,NQ
 C
       PQ=TVR*XQH*T2*EA
 C
@@ -1718,6 +1719,7 @@ C
       GCE=XE(2)+XE(3)*N/(TE*EE)-PE*GK*2.D0*LTE
       GD=XD(2)*TE*EE/N+XD(3)-PN*GK*2.D0*LN
       GCQ=XQ(4)+XQ(5)*NQ/(TQ*EQ)-PQ*GK*2.D0*LTQ
+C      write(6,*) XQ(4),XQ(5),XQ(5)*NQ/(TQ*EQ)
       GNQ=XDQ(4)*TQ*EQ/NQ+XDQ(5)-PNQ*GK*2.D0*LNQ
 C
 C

@@ -27,7 +27,7 @@ C
       ELSE
          WRITE(6,603)
   603    FORMAT('## TR MENU: C/CONT  E/EQ  G/GRAPH  W/WRITE  ',
-     &                      'S/SAVE  O/UFILEOUT '/
+     &                      'S/SAVE  O/UFILEOUT  M/MDLTST'/
      &          '            P,V,U/PARM  R/RUN  L/LOAD  ',
      &                      'D/DATA  H/HELP  Q/QUIT')
       ENDIF
@@ -122,6 +122,8 @@ C
 C
       ELSE IF(KID.EQ.'O'.AND.INIT.EQ.2) THEN
          CALL TRXOUT
+      ELSE IF(KID.EQ.'M'.AND.INIT.EQ.2) THEN
+         CALL TRMDLT
       ELSE IF(KID.EQ.'H') THEN
          CALL TRHELP('M')
       ELSE IF(KID.EQ.'Q') THEN
