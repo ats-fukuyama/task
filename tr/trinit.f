@@ -620,7 +620,7 @@ C
       SUBROUTINE TRPROF
 C
       INCLUDE 'trcomm.inc'
-      COMMON /PRETREAT2/ NTAMAX
+      COMMON /TMSLC2/ NTAMAX
 C
 C     ZEFF=1
 C
@@ -662,8 +662,8 @@ C
          IF(MDLUF.EQ.1) THEN
             IF(MDNI.EQ.0) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(NR,1,1)
-               RN(NR,2) = RNU(NR,2,1)
+               RN(NR,1) = RNU(1,NR,1)
+               RN(NR,2) = RNU(1,NR,2)
                RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
@@ -673,19 +673,19 @@ C
                      RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(NR,1,1)
-                  RT(NR,2) = RTU(NR,2,1)
+                  RT(NR,1) = RTU(1,NR,1)
+                  RT(NR,2) = RTU(1,NR,2)
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ELSE
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(NR,1,1)
-               RN(NR,2) = RNU(NR,2,1)
-               RN(NR,3) = RNU(NR,3,1)
+               RN(NR,1) = RNU(1,NR,1)
+               RN(NR,2) = RNU(1,NR,2)
+               RN(NR,3) = RNU(1,NR,3)
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
@@ -694,21 +694,21 @@ C
                      RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(NR,1,1)
-                  RT(NR,2) = RTU(NR,2,1)
-                  RT(NR,3) = RTU(NR,3,1)
+                  RT(NR,1) = RTU(1,NR,1)
+                  RT(NR,2) = RTU(1,NR,2)
+                  RT(NR,3) = RTU(1,NR,3)
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ENDIF
 C
-            PEX(NR,1) = PNBU(NR,1,1)
-            PEX(NR,2) = PNBU(NR,2,1)
+            PEX(NR,1) = PNBU(1,NR,1)
+            PEX(NR,2) = PNBU(1,NR,2)
             PEX(NR,3) = 0.D0
             PEX(NR,4) = 0.D0
-            PRF(NR,1) = PICU(NR,1,1)
-            PRF(NR,2) = PICU(NR,2,1)
+            PRF(NR,1) = PICU(1,NR,1)
+            PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
          ELSEIF(MDLUF.EQ.2) THEN
@@ -720,14 +720,14 @@ C
                      RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RN(NR,1) = RNU(NR,1,1)
-                  RN(NR,2) = RNU(NR,2,1)
+                  RN(NR,1) = RNU(1,NR,1)
+                  RN(NR,2) = RNU(1,NR,2)
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-               RN(NR,3) = (RNU(NR,2,1)-RNU(NRMAX,2,1))*PROF
-     &                    +RNU(NRMAX,2,1)
-               RN(NR,4) = (RNU(NR,2,1)-RNU(NRMAX,2,1))*PROF
-     &                    +RNU(NRMAX,2,1)
+               RN(NR,3) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF
+     &                    +RNU(1,NRMAX,2)
+               RN(NR,4) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF
+     &                    +RNU(1,NRMAX,2)
 C
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
                   PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
@@ -735,27 +735,27 @@ C
                      RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(NR,1,1)
-                  RT(NR,2) = RTU(NR,2,1)
+                  RT(NR,1) = RTU(1,NR,1)
+                  RT(NR,2) = RTU(1,NR,2)
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ELSEIF(MODEP.EQ.2) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(NR,1,1)
-               RN(NR,2) = RNU(NR,2,1)
+               RN(NR,1) = RNU(1,NR,1)
+               RN(NR,2) = RNU(1,NR,2)
                RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
-               RT(NR,3) = RTU(NR,2,1)
-               RT(NR,4) = RTU(NR,2,1)
+               RT(NR,3) = RTU(1,NR,2)
+               RT(NR,4) = RTU(1,NR,2)
             ELSEIF(MODEP.EQ.3) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-               RN(NR,1) = RNU(NR,1,1)
-               RN(NR,2) = RNU(NR,2,1)
+               RN(NR,1) = RNU(1,NR,1)
+               RN(NR,2) = RNU(1,NR,2)
                RN(NR,3) = (PN(3)-PNS(3))*PROF+PNS(3)
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
@@ -765,14 +765,14 @@ C
                      RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
-                  RT(NR,1) = RTU(NR,1,1)
-                  RT(NR,2) = RTU(NR,2,1)
+                  RT(NR,1) = RTU(1,NR,1)
+                  RT(NR,2) = RTU(1,NR,2)
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,3) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,3) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ENDIF
             ELSE !!!
             IF(MODEP.EQ.1) THEN
@@ -783,12 +783,12 @@ C
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
                   DO NS=1,3
-                     RN(NR,NS) = RNU(NR,NS,1)
+                     RN(NR,NS) = RNU(1,NR,NS)
                   ENDDO
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
-               RN(NR,4) = (RNU(NR,2,1)-RNU(NRMAX,2,1))*PROF
-     &                    +RNU(NRMAX,2,1)
+               RN(NR,4) = (RNU(1,NR,2)-RNU(1,NRMAX,2))*PROF
+     &                    +RNU(1,NRMAX,2)
 C
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
                   PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
@@ -797,24 +797,24 @@ C
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
                   DO NS=1,3
-                     RT(NR,NS) = RTU(NR,NS,1)
+                     RT(NR,NS) = RTU(1,NR,NS)
                   ENDDO
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ELSEIF(MODEP.EQ.2) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
                DO NS=1,3
-                  RN(NR,NS) = RNU(NR,NS,1)
+                  RN(NR,NS) = RNU(1,NR,NS)
                ENDDO
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
-               RT(NR,4) = RTU(NR,2,1)
+               RT(NR,4) = RTU(1,NR,2)
             ELSEIF(MODEP.EQ.3) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
                DO NS=1,3
-                  RN(NR,NS) = RNU(NR,NS,1)
+                  RN(NR,NS) = RNU(1,NR,NS)
                ENDDO
                RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
 C
@@ -825,23 +825,23 @@ C
                   ENDDO
                ELSEIF(RHOA.NE.1.D0.AND.NR.GT.NRAMAX) THEN
                   DO NS=1,3
-                     RT(NR,NS) = RTU(NR,NS,1)
+                     RT(NR,NS) = RTU(1,NR,NS)
                   ENDDO
                ENDIF
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-               RT(NR,4) = (RTU(NR,2,1)-RTU(NRMAX,2,1))*PROF
-     &                    +RTU(NRMAX,2,1)
+               RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                    +RTU(1,NRMAX,2)
             ENDIF
             ENDIF !!!
 C
-            PEX(NR,1)=PNBU(NR,1,1)
-            PEX(NR,2)=PNBU(NR,2,1)
+            PEX(NR,1)=PNBU(1,NR,1)
+            PEX(NR,2)=PNBU(1,NR,2)
             PEX(NR,3)=0.D0
             PEX(NR,4)=0.D0
 C
             BOGUS=0.D0
-            SEX(NR,1)=SNBU(NR,1,1)*BOGUS
-            SEX(NR,2)=SNBU(NR,2,1)*BOGUS
+            SEX(NR,1)=SNBU(1,NR,1)*BOGUS
+            SEX(NR,2)=SNBU(1,NR,2)*BOGUS
             SEX(NR,3)=0.D0
             SEX(NR,4)=0.D0
          ELSEIF(MDLUF.EQ.3) THEN
@@ -855,12 +855,12 @@ C
                RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
             ENDDO
 C
-            PEX(NR,1) = PNBU(NR,1,1)
-            PEX(NR,2) = PNBU(NR,2,1)
+            PEX(NR,1) = PNBU(1,NR,1)
+            PEX(NR,2) = PNBU(1,NR,2)
             PEX(NR,3) = 0.D0
             PEX(NR,4) = 0.D0
-            PRF(NR,1) = PICU(NR,1,1)
-            PRF(NR,2) = PICU(NR,2,1)
+            PRF(NR,1) = PICU(1,NR,1)
+            PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
          ELSE
@@ -980,15 +980,15 @@ C
       IF(MDLUF.EQ.1) THEN
          IF(MDLJQ.EQ.0) THEN
          NR=1
-            AJ(NR)=AJU(NR,1)
-            AJOH(NR)=AJU(NR,1)
+            AJ(NR)=AJU(1,NR)
+            AJOH(NR)=AJU(1,NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
-            AJ(NR)=AJU(NR,1)
-            AJOH(NR)=AJU(NR,1)
+            AJ(NR)=AJU(1,NR)
+            AJOH(NR)=AJU(1,NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
@@ -1010,7 +1010,7 @@ C
          ENDDO
          ELSEIF(MDLJQ.EQ.1) THEN
          DO NR=1,NRMAX
-            QP(NR) =QPU(NR,1)
+            QP(NR) =QPU(1,NR)
             RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
@@ -1046,15 +1046,15 @@ C
       ELSEIF(MDLUF.EQ.2) THEN
          IF(MDLJQ.EQ.0) THEN
             NR=1
-            AJ(NR)=AJU(NR,1)
-            AJOH(NR)=AJU(NR,1)
+            AJ(NR)=AJU(1,NR)
+            AJOH(NR)=AJU(1,NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
             RDP(NR)=FACTOR0*DR/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
-            AJ(NR)=AJU(NR,1)
-            AJOH(NR)=AJU(NR,1)
+            AJ(NR)=AJU(1,NR)
+            AJOH(NR)=AJU(1,NR)
             FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
@@ -1076,14 +1076,14 @@ C
          ENDDO
          ELSEIF(MDLJQ.EQ.1) THEN
          DO NR=1,NRMAX
-            QP(NR) =QPU(NR,1)
+            QP(NR) =QPU(1,NR)
             RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
          IF(MDCURT.EQ.0) THEN
             DO NR=1,NRMAX
-               AJ(NR)=AJU(NR,1)
+               AJ(NR)=AJU(1,NR)
                AJOH(NR)=AJ(NR)
             ENDDO
          ELSE
@@ -1118,8 +1118,8 @@ C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
          RIPE  = RIP
       ELSEIF(MDLUF.EQ.3) THEN
          DO NR=1,NRMAX
-            AJOH(NR)=AJU(NR,1)
-            AJ(NR)  =AJU(NR,1)
+            AJOH(NR)=AJU(1,NR)
+            AJ(NR)  =AJU(1,NR)
          ENDDO
 C
          NR=1
@@ -1507,17 +1507,17 @@ c$$$               BPRHO(NR)=BP(NR)
 c$$$               QRHO(NR)=QP(NR)
 c$$$               EPSRHO(NR)=RA*RG(NR)/RR
 c$$$C
-c$$$               TTRHO(NR)=TTRHOU(NR,1)
-c$$$               DVRHO(NR)=DVRHOU(NR,1)
-c$$$               DSRHO(NR)=DSRHOU(NR,1)
-c$$$               ABRHO(NR)=ABRHOU(NR,1)
-c$$$               ARRHO(NR)=ARRHOU(NR,1)
-c$$$               AR1RHO(NR)=AR1RHOU(NR,1)
-c$$$               AR2RHO(NR)=AR2RHOU(NR,1)
+c$$$               TTRHO(NR)=TTRHOU(1,NR)
+c$$$               DVRHO(NR)=DVRHOU(1,NR)
+c$$$               DSRHO(NR)=DSRHOU(1,NR)
+c$$$               ABRHO(NR)=ABRHOU(1,NR)
+c$$$               ARRHO(NR)=ARRHOU(1,NR)
+c$$$               AR1RHO(NR)=AR1RHOU(1,NR)
+c$$$               AR2RHO(NR)=AR2RHOU(1,NR)
 c$$$C               RJCB(NR)=1.D0/(RKAPS*RA)
-c$$$               RJCB(NR)=AR1RHOU(NR,1)
-c$$$               RMJRHO(NR)=RMJRHOU(NR,1)
-c$$$               RMNRHO(NR)=RMNRHOU(NR,1)
+c$$$               RJCB(NR)=AR1RHOU(1,NR)
+c$$$               RMJRHO(NR)=RMJRHOU(1,NR)
+c$$$               RMNRHO(NR)=RMNRHOU(1,NR)
 c$$$               EKAPPA(NR)=RKAP
 c$$$            ENDDO
 c$$$         ELSE
@@ -1886,17 +1886,17 @@ C
          DO NR=1,NRMAX
             EPSRHO(NR)=RA*RG(NR)/RR
 C
-            TTRHO(NR)=TTRHOU(NR,1)
-            DVRHO(NR)=DVRHOU(NR,1)
-            DSRHO(NR)=DSRHOU(NR,1)
-            ABRHO(NR)=ABRHOU(NR,1)
-            ARRHO(NR)=ARRHOU(NR,1)
-            AR1RHO(NR)=AR1RHOU(NR,1)
-            AR2RHO(NR)=AR2RHOU(NR,1)
+            TTRHO(NR)=TTRHOU(1,NR)
+            DVRHO(NR)=DVRHOU(1,NR)
+            DSRHO(NR)=DSRHOU(1,NR)
+            ABRHO(NR)=ABRHOU(1,NR)
+            ARRHO(NR)=ARRHOU(1,NR)
+            AR1RHO(NR)=AR1RHOU(1,NR)
+            AR2RHO(NR)=AR2RHOU(1,NR)
 C            RJCB(NR)=1.D0/(RKAPS*RA)
-            RJCB(NR)=AR1RHOU(NR,1)
-            RMJRHO(NR)=RMJRHOU(NR,1)
-            RMNRHO(NR)=RMNRHOU(NR,1)
+            RJCB(NR)=AR1RHOU(1,NR)
+            RMJRHO(NR)=RMJRHOU(1,NR)
+            RMNRHO(NR)=RMNRHOU(1,NR)
             EKAPPA(NR)=RKAP
          ENDDO
       ELSE

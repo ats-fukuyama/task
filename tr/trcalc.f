@@ -374,15 +374,21 @@ C
       SUBROUTINE TRLOSS
 C
       INCLUDE 'trcomm.inc'
+      COMMON /TMSLC1/ TMU(NTUM)
+      COMMON /TMSLC3/ NTXMAX
 C
       IF(MDLUF.NE.0) THEN
          IF(NT.EQ.0) THEN
+            TSL=DT*DBLE(1)
             DO NR=1,NRMAX
-               PRL(NR)=PRLU(NR,1)
+               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
+               PRL(NR)=PRLL
             ENDDO
          ELSE
+            TSL=DT*DBLE(NT)
             DO NR=1,NRMAX
-               PRL(NR)=PRLU(NR,NT)
+               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
+               PRL(NR)=PRLL
             ENDDO
          ENDIF
       ELSE
