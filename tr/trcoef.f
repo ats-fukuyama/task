@@ -301,26 +301,26 @@ C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) *****
 C           *****  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C *****
 C
             IF(MDLKAI.EQ.0) THEN
-               AKDWL=CK0
+               AKDWL=1.D0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=CK0/(1.D0-CKALFA*(RR*EPS/RA)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*(RR*EPS/RA)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=CK0/(1.D0-CKALFA*(RR*EPS/RA)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*(RR*EPS/RA)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
-               AKDWL=CK0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
+               AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
             ELSE                                           
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
             ENDIF
-            AKDW(NR,1)=AKDWL
+            AKDW(NR,1)=CK0*AKDWL
             IF(MDLUF.EQ.3) THEN
-               AKDW(NR,2)=AKDWL*2.D0
+               AKDW(NR,2)=CK1*AKDWL*2.D0
             ELSE
-               AKDW(NR,2)=AKDWL
+               AKDW(NR,2)=CK1*AKDWL
             ENDIF
-            AKDW(NR,3)=AKDWL
-            AKDW(NR,4)=AKDWL
+            AKDW(NR,3)=CK1*AKDWL
+            AKDW(NR,4)=CK1*AKDWL
 C
             VGR1(NR,1)=TI
             VGR1(NR,2)=0.D0
@@ -395,7 +395,7 @@ CCCCCC            ARG = 6.D0*(ETAI(NR)-ETAC(NR))*RA/CLN(NR)
      &            *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)
      &             +OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
 C
-            DIDW = CK0*2.5D0*OMEGAS/PPK**2*HETA
+            DIDW = CK1*2.5D0*OMEGAS/PPK**2*HETA
      &            *SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
 C
             AKDW(NR,1) = CDW(1)*DEDW+CDW(2)*DIDW
@@ -483,7 +483,7 @@ C
             IF(MDLKAI.EQ.30) THEN
                FS=1.D0/(1.7D0+SQRT(6.D0)*S)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.31) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
@@ -491,7 +491,7 @@ C               IF(NR.GE.NRMAX-1)
 C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
@@ -501,11 +501,11 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.33) THEN
                FS=TRCOFS(S,0.D0,RKCV)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.34) THEN
                FS=TRCOFS(S,0.D0,RKCV)
                DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
@@ -514,12 +514,12 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.35) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.36) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
@@ -529,11 +529,11 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.37) THEN
                FS=TRCOFSS(S,0.D0)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.38) THEN
                FS=TRCOFSS(S,0.D0)
                DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
@@ -542,12 +542,12 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.39) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSX(S,ALFAL,RKCV,RA/RR)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
 C
 c$$$            ELSEIF(MDLKAI.EQ.40) THEN
 c$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
@@ -575,13 +575,13 @@ c$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
 c$$$C
 c$$$               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
 c$$$     &               /(RLAMDA*(1.D0+OMEGASS**2))
-c$$$               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+c$$$               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
 c$$$     &               /(1.D0+OMEGASS**2)
             ELSE                                           
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                FS=1.D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ENDIF
             AKDW(NR,1)=AKDWEL
             AKDW(NR,2)=AKDWIL
@@ -626,13 +626,13 @@ C
             IF(MDLKAI.EQ.40) THEN
                FS=1.D0/(1.7D0+SQRT(6.D0)*S)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.41) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
 C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.42) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
@@ -642,11 +642,11 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.43) THEN
                FS=TRCOFS(S,0.D0,RKCV)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.44) THEN
                FS=TRCOFS(S,0.D0,RKCV)
                DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
@@ -655,12 +655,12 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.45) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.46) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
@@ -670,11 +670,11 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.47) THEN
                FS=TRCOFSS(S,0.D0)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.48) THEN
                FS=TRCOFSS(S,0.D0)
                DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
@@ -683,12 +683,12 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.49) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSX(S,ALFAL,RKCV,RA/RR)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
 C
             ELSEIF(MDLKAI.EQ.50) THEN
                AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
@@ -709,7 +709,7 @@ C
                OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
      &               /(RLAMDA*(1.D0+OMEGASS**2))
-               AKDWIL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
      &               /(1.D0+OMEGASS**2)
             ENDIF
 C

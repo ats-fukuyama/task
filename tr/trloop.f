@@ -223,6 +223,7 @@ C
       GOTO 2000
 C
  4000 NT=NT+1
+C      write(6,*) "L=",L
       T=T+DT
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT

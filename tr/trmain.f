@@ -94,7 +94,7 @@ C
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL TRSAVE
       ELSE IF(KID.EQ.'R') THEN
-         CALL TR_EQS_SELECT
+         CALL TR_EQS_SELECT(INIT)
          IF(MDLUF.EQ.1) THEN
             IF(INIT.EQ.2.AND.NT.NE.0) THEN
                NT=0
@@ -191,7 +191,6 @@ C
          GOTO 101
 C
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN
-         write(6,*)  "J0=",AJ(1)*1.D-6
   102    WRITE(6,*) '# SELECT ',
      &              ': PRINT TYPE (1..9)  H/HELP  X/EXIT'
          READ(5,'(A1)',ERR=102,END=1) KID

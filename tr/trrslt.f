@@ -684,7 +684,7 @@ C
 C
          WRITE(6,604) PINT,POHT,PNBT,PNFT,
      &                PRFT(1),PRFT(2),PRFT(3),PRFT(4),
-     &                PBINT,PFINT,
+     &                PBINT,PFINT,AJ(1)*1.D-6,
      &                PBCLT(1),PBCLT(2),PBCLT(3),PBCLT(4),
      &                PFCLT(1),PFCLT(2),PFCLT(3),PFCLT(4),
      &                POUT,PRLT,PCXT,PIET,
@@ -693,7 +693,8 @@ C
      &               '  PNBT  =',1PD10.3,'  PNFTE =',1PD10.3/
      &          ' ',3X,'PRFTE =',1PD10.3,'  PRFTD =',1PD10.3,
      &               '  PRFTT =',1PD10.3,'  PRFTA =',1PD10.3/
-     &          ' ',3X,'PBIN  =',1PD10.3,'  PFIN  =',1PD10.3/
+     &          ' ',3X,'PBIN  =',1PD10.3,'  PFIN  =',1PD10.3,
+     &               '  AJ0   =',1PD10.3/
      &          ' ',3X,'PBCLE =',1PD10.3,'  PBCLD =',1PD10.3,
      &               '  PBCLT =',1PD10.3,'  PBCLA =',1PD10.3/
      &          ' ',3X,'PFCLE =',1PD10.3,'  PFCLD =',1PD10.3,

@@ -188,9 +188,10 @@ C      EPSLTR = 1.D99
 C
 C     *** Semi-Empirical Parameter for Anomalous Transport ***
       CHP    = 0.D0
-      CK0    = 12.D0
-      CWEB   = 0.D0
-      CALF   = 1.D0
+      CK0    = 12.D0 ! for electron
+      CK1    = 12.D0 ! for ions
+      CWEB   = 0.D0  ! for omega ExB
+      CALF   = 1.D0  ! for s-alpha
       CKALFA = 0.D0
       CKBETA = 0.D0
       CKGUMA = 0.D0
@@ -348,7 +349,8 @@ C
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNC,CDW,CWEB,CALF,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
-     &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
+     &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
+     &              TPRST,
      &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,MDNCLS,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
@@ -442,7 +444,8 @@ C
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
-     &       ' ',8X,'CK0,CNC,CDW,CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC'/
+     &       ' ',8X,'CK0,CK1,CNC,CDW,CWEB,CALF,CKALFA,CKBETA'/
+     &       ' ',8X,'KFNLOG,MDLKNC'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
      &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
@@ -538,11 +541,12 @@ C
      &             'NTEQIT',NTEQIT
 C
       WRITE(6,601) 'CK0   ',CK0,
+     &             'CK1   ',CK1,
      &             'CNC   ',CNC,
-     &             'AD0   ',AD0,
-     &             'CHP   ',CHP
+     &             'AD0   ',AD0
 C
-      WRITE(6,601) 'CWEB  ',CWEB,
+      WRITE(6,601) 'CHP   ',CHP,
+     &             'CWEB  ',CWEB,
      &             'CALF  ',CALF
 C
       IF((MDLKAI.GE.1.AND.MDLKAI.LT.10).OR.ID.EQ.1)
@@ -1636,13 +1640,15 @@ C           MODEL SELECTOR
 C
 C     ***********************************************************
 C
-      SUBROUTINE TR_EQS_SELECT
+      SUBROUTINE TR_EQS_SELECT(INIT)
 C
       INCLUDE 'trcomm.inc'
       COMMON /TRINS1/ INS
+      SAVE NSSMAX
 C
       IF(NSMAX.EQ.1.AND.MDLEOI.EQ.0) MDLEOI=1
-      INS=0
+      IF(INIT.EQ.0.OR.(INIT.NE.0.AND.NSSMAX.NE.NSMAX)) INS=0
+      NSSMAX=NSMAX
       IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
          IF(NSMAX.EQ.1) INS=1
          NSMAX=3

@@ -810,7 +810,7 @@ C
       KFID='IP'
       CALL UF1D(KFID,DT,TMU1,RIPU ,NTAMAX1,NTXMAX1,TMUMAX,ICK,IERR)
       DO NTX=1,NTXMAX1
-         RIPU(NTX)=ABS(RIPU(NTX))
+         RIPU(NTX)=ABS(RIPU(NTX)*1.D-6)
       ENDDO
       KFID='BT'
       CALL UF1D(KFID,DT,TMU1,BBU  ,NTAMAX1,NTXMAX1,TMUMAX,ICK,IERR)
@@ -868,7 +868,6 @@ C
       DO NS=2,4
          DO NTX=1,NTXMAX
             PTSU (NTX,NS)=PV(NTX)
-C            if(ns.eq.2)write(6,*) ntx,ptsu(ntx,ns)
          ENDDO
          PTS (NS)=PTSU(1,NS)
       ENDDO
