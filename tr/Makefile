@@ -43,15 +43,20 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
           trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
 
-tr2: trmain.o $(LIBS2)
+../pl/pllib.a:
 	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a treqin.o pleqin.o)
-	(cd ../lib; make tasklib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/treqin.o:
+	(cd ../eq; make treqin.o)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../lib/tasklib.a:
+	(cd ../lib; make)
+
+tr2: trmain.o $(LIBS2)
 	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 tr3: trmain.o $(LIBS3)
-	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a treqin.o)
-	(cd ../lib; make tasklib.a)
 	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS)
 
 check : $(SRCS)

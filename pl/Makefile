@@ -16,9 +16,12 @@ all : pl
 pllib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
 
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../lib/tasklib.a:
+	(cd ../lib; make)
+
 pl : plmain.o $(LIBS)
-	(cd ../lib; make tasklib.a)
-	(cd ../eq; make eqlib.a pleqin.o)
 	$(FC) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :

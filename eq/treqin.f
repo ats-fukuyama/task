@@ -39,7 +39,7 @@ C
       IF(INIT.EQ.0) THEN
          CALL EQINIT
          KPNAME='eqparm'
-         CALL EQPARF(KPNAME)
+         CALL EQPARM(1,KPNAME,IERR)
          INIT=1
       ENDIF
 C

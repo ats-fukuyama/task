@@ -305,7 +305,7 @@ C
          WRITE(6,*) 
      &     '## FILE (',LINE(1:KL),') IS ASSIGNED FOR PARM INPUT'
 C
-      ELSE(MODE.EQ.2) THEN
+      ELSEIF(MODE.EQ.2) THEN
          KNAME=' &EQ '//LINE//' &END'
          WRITE(7,'(A90)') KNAME
          REWIND(7)

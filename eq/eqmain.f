@@ -15,7 +15,7 @@ C
       OPEN(7,STATUS='SCRATCH')
       CALL EQINIT
       KPNAME='eqparm'
-      CALL EQPARF(KPNAME)
+      CALL EQPARM(1,KPNAME,IERR)
 C
       CALL EQMENU
 C

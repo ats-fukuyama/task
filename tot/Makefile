@@ -19,26 +19,35 @@ LIBS = ../eq/eqlib.a \
 
 all : tot
 
-tot : main.o $(LIBS)
-	(cd ../eq; make eqlib.a pleqin.o treqin.o wmeqin.o)
+../pl/pllib.a:
 	(cd ../pl; make pllib.a)
-	(cd ../tr; make tr2lib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../eq/treqin.o:
+	(cd ../eq; make treqin.o)
+../eq/wmeqin.o:
+	(cd ../eq; make wmeqin.o)
+../dp/tr2lib.a:
+	(cd ../dp; make tr2lib.a)
+../dp/dplib.a:
 	(cd ../dp; make dplib.a)
+../wr/wrlib.a:
 	(cd ../wr; make wrlib.a)
+../wm/wmlib.a:
 	(cd ../wm; make wmlib.a)
+../fp/fplib.a:
 	(cd ../fp; make fplib.a)
+../mtx/mtxlib.a:
 	(cd ../mtx; make mtxlib.a)
+../lib/tasklib.a:
+	(cd ../lib; make)
+
+tot : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
-force : 
-	(cd ../eq; make eqlib.a pleqin.o treqin.o wmeqin.o)
-	(cd ../pl; make pllib.a)
-	(cd ../tr; make tr2lib.a)
-	(cd ../dp; make dplib.a)
-	(cd ../wr; make wrlib.a)
-	(cd ../wm; make wmlib.a)
-	(cd ../fp; make fplib.a)
-	(cd ../mtx; make mtxlib.a)
+force : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)
 
 check :

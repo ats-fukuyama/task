@@ -39,7 +39,7 @@ C
          KPNAME='plparm'
          CALL PLPARF(KPNAME)
          KPNAME='eqparm'
-         CALL EQPARF(KPNAME)
+         CALL EQPARM(1,KPNAME,IERR)
          KPNAME='trparm'
          CALL TRPARF(KPNAME)
          KPNAME='dpparm'

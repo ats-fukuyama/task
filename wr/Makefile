@@ -18,11 +18,18 @@ all : wr
 wrlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o wrlib.a $(OBJS)
 
-wr : wrmain.o $(LIBS)
+../pl/pllib.a:
 	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a pleqin.o)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../dp/dplib.a:
 	(cd ../dp; make dplib.a)
-	(cd ../lib; make tasklib.a)
+../lib/tasklib.a:
+	(cd ../lib; make)
+
+wr : wrmain.o $(LIBS)
 	$(FC) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :

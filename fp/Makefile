@@ -17,12 +17,16 @@ all : fp
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o fplib.a $(OBJS)
-
+../pl/pllib.a:
+	(cd ../pl; make pllib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../lib/tasklib.a:
+	(cd ../lib; make)
 
 fp : fpmain.o $(LIBS)
-	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a pleqin.o)
-	(cd ../lib; make tasklib.a)
 	$(FC) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :

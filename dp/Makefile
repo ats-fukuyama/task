@@ -18,6 +18,15 @@ all : dp
 dplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o dplib.a $(OBJS)
 
+../pl/pllib.a:
+	(cd ../pl; make pllib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../lib/tasklib.a:
+	(cd ../lib; make)
+
 dp : dpmain.o $(LIBS)
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a pleqin.o)
