@@ -7,29 +7,32 @@ FFLAGS = $(OFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f trgra2.f
-SRCD=trmain.f trinit.f trfile.f trloop.f trrslt.f \
-     trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgsub3.f trhelp.f trgrad.f
-SRCE = ../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
-       ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
-SRCL = ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
-OBJS = $(SRCS:.f=.o)
-OBJD = $(SRCD:.f=.o)
-OBJE = $(SRCE:.f=.o)
-OBJL = $(SRCL:.f=.o)
-PROG = trf2
-PROG3 = trf
+     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f
+SRC2D=trgra2.f
+SRC3D=trgrad.f
+SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
+     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
+SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 
-all: $(PROG3)
+OBJS=$(SRCS:.f=.o)
+OBJ2D=$(SRC2D:.f=.o)
+OBJ3D=$(SRC3D:.f=.o)
+OBJE=$(SRCE:.f=.o)
+OBJL=$(SRCL:.f=.o)
+PROG2=tr2
+PROG3=trf
 
-$(PROG3) : $(OBJD) $(OBJE) trcomm.h
-	$(FC) -o $@ $(FFLAGS) $(OBJD) $(OBJE) $(OBJL) -L/usr/local/lib -lgsgl-ixc
+all: 3d
 
-2d : $(PROG)
+3d: $(PROG3)
 
-$(PROG) : $(OBJS) $(OBJE) trcomm.h
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJE) $(OBJL) $(FLIBS)
+$(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) trcomm.h
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) -L/usr/local/lib -lgsgl-ixc
+
+2d : $(PROG2)
+
+$(PROG2) : $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) trcomm.h
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(FLIBS)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(FCKPIPE) | less
@@ -69,7 +72,6 @@ trgrat.o : trgrat.f trcomm.h
 trgrap.o : trgrap.f trcomm.h
 trgrae.o : trgrae.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
-trgsub3.o : trgsub3.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
 trgrad.o : trgrad.f trcomm.h
 trgrp2.o : trgrp2.f trcomm.h
@@ -82,5 +84,11 @@ trmtrx.o : trmtrx.f
 ../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom3.h ../eq/eqcom4.h
 ../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
-
-
+../lib/libbnd.o: ../lib/libbnd.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
+../lib/libspl.o: ../lib/libspl.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libspl.f
+../lib/libbrn.o: ../lib/libbrn.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
+../lib/libgut.o: ../lib/libgut.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libgut.f
