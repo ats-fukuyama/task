@@ -90,8 +90,15 @@ C
          RAYIN(3,NRAY)=ZPI
          RAYIN(4,NRAY)=PHII
          RAYIN(5,NRAY)=RKR0
-         RAYIN(6,NRAY)=RNZI
-         RAYIN(7,NRAY)=RNPHII
+C     
+         IF(INTYPE.EQ.0)THEN
+            RAYIN(6,NRAY)=RNZI
+            RAYIN(7,NRAY)=RNPHII
+         ELSE
+            RAYIN(6,NRAY)=ANGZ
+            RAYIN(7,NRAY)=ANGPH
+         ENDIF
+C         
          RAYIN(8,NRAY)=UUI
 C          
          RKRI  = RKR0
@@ -640,6 +647,23 @@ C
          RXS(NIT,NRAY)=X1
          RYS(NIT,NRAY)=Y1
          RZS(NIT,NRAY)=Z1
+C
+C         IF(NRAYMX.EQ.1) THEN
+C            FACTA=0.D0
+C         ELSE
+C            FACTA=EXP(-1.D0)/(1.D0+EXP(-1.D0)*(NRAYMX))
+C         ENDIF
+C            FACTB=1.D0-FACTA*(NRAYMX)
+C
+C         IF(NRAY.EQ.1)THEN
+C            CEXS(NIT,NRAY)=CEXS(NIT,NRAY)*FACTB
+C            CEYS(NIT,NRAY)=CEYS(NIT,NRAY)*FACTB
+C            CEZS(NIT,NRAY)=CEZS(NIT,NRAY)*FACTB
+C         ELSE
+C            CEXS(NIT,NRAY)=CEXS(NIT,NRAY)*FACTA
+C            CEYS(NIT,NRAY)=CEYS(NIT,NRAY)*FACTA
+C            CEZS(NIT,NRAY)=CEZS(NIT,NRAY)*FACTA
+C         ENDIF
       ENDDO
 C
       RETURN

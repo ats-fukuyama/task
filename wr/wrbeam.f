@@ -106,8 +106,15 @@ C
       RAYIN(3,NRAY)=ZPI
       RAYIN(4,NRAY)=PHII
       RAYIN(5,NRAY)=RKR0
-      RAYIN(6,NRAY)=RNZI
-      RAYIN(7,NRAY)=RNPHII
+C     
+      IF(INTYPE.EQ.0)THEN
+         RAYIN(6,NRAY)=RNZI
+         RAYIN(7,NRAY)=RNPHII
+      ELSE
+         RAYIN(6,NRAY)=ANGZ
+         RAYIN(7,NRAY)=ANGPH
+      ENDIF
+C
       RAYIN(8,NRAY)=UUI
 C
       RKRI  = RKR0
@@ -538,7 +545,8 @@ C
             GOTO 10
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.(RB/RA)**2) THEN
+C         IF(PSIN.GT.(RB/RA)**2) THEN
+          IF(PSIN.GT.4.D0) THEN
             NIT = IT
             WRITE(6,*) '--- Out of bounds ---'
             GOTO 10
