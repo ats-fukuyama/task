@@ -69,7 +69,9 @@ C
             SUM1=SUM1+DELPSI(NTG,NSG)**2
          ENDDO
          ENDDO
-         SUM=SQRT(SUM1/SUM0)
+         WRITE(6,'(A,1P4E14.6)')
+     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+      SUM=SQRT(SUM1/SUM0)
          IF(SUM.LT.EPSEQ)GOTO 100
       ENDDO
   100 CONTINUE 
