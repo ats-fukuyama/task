@@ -75,7 +75,8 @@ C     &               GRMID-0.333*GZLEN,GRMID+0.333*GZLEN,GZMIN,GZMAX)
          CALL GDEFIN(1.5,11.5,1.0,16.0,GRMIN,GRMAX,GZMIN,GZMAX)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETCHS(0.25,0.)
+      CALL SETFNT(32)
       CALL SETLIN(0,0,7)
       CALL GFRAME
       CALL GSCALE(GRORG,  GRSTEP,0.0,  GZSTEP,0.1,9)
@@ -127,7 +128,7 @@ C
             GPY(NRZ,NRAY)=0.0
          ENDDO
       ENDDO
-C
+
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)-1
             XL=RAYS(1,IT,NRAY)
@@ -145,6 +146,7 @@ C
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
+C            GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
                SDR=(RHO2-RHO1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
@@ -181,6 +183,7 @@ c
 c     ----- draw deposition profile -----
 c
       CALL GQSCAL(0.0,1.0,GXMIN,GXMAX,GXSTEP)
+C      CALL GQSCAL(0.38,0.52,GXMIN,GXMAX,GXSTEP)
 c
       CALL GMNMX2(GPY,NITM+1,1,NRZMAX,1,1,NRAYMX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
@@ -192,11 +195,14 @@ c
 C
       CALL MOVE(13.5,16.1)
       CALL TEXT('ABS POWER',10)
-      CALL GDEFIN(13.5,23.5,9.0,16.0,0.0,GXMAX,GYSMIN,GYSMAX)
+C      CALL GDEFIN(13.5,23.5,9.0,16.0,0.0,GXMAX,GYSMIN,GYSMAX)
+      CALL GDEFIN(13.5,23.5,9.0,16.0,GXMIN,GXMAX,GYSMIN,GYSMAX)
       CALL SETLIN(0,0,7)
       CALL GFRAME
-      CALL GSCALE(0.0,GXSTEP,GYSMIN,GYSCAL,0.1,9)      
-      CALL GVALUE(0.0,2*GXSTEP,GYSMIN,GYSCAL,2)
+C      CALL GSCALE(0.0,GXSTEP,GYSMIN,GYSCAL,0.1,9)
+      CALL GSCALE(GXMIN,GXSTEP,GYSMIN,GYSCAL,0.1,9)
+C      CALL GVALUE(0.0,2*GXSTEP,GYSMIN,GYSCAL,2)
+      CALL GVALUE(GXMIN,2*GXSTEP,GYSMIN,GYSCAL,2)
       CALL SETLIN(0,0,4)
       DO NRAY=1,NRAYMX
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
@@ -229,7 +235,6 @@ C
          CALL SETLIN(0,0,7-MOD(NRAY-1,5))
          CALL GPLOTP(GUX,GUY,1,NITMAX(NRAY)+1,1,0,0,0)      
       ENDDO
-C
       CALL WRGPRM
       CALL PAGEE
       RETURN
@@ -248,7 +253,8 @@ C
       DIMENSION GLCX(NSUM),GLCY(NSUM),GSCX(NSUM),GSCY(NSUM)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETFNT(32)
+      CALL SETCHS(0.25,0.)
       CALL SETLIN(0,0,7)
 C
 C     ----- TOLOIDAL CROSS SECTION -----
@@ -365,7 +371,8 @@ C
       DIMENSION GKY(NITM+1,NRAYM)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETFNT(32)
+      CALL SETCHS(0.25,0.)
       CALL SETLIN(0,0,7)
 C
 C     ----- X AXIS -----
@@ -521,11 +528,20 @@ C
       DIMENSION GX(NITM+1),GY(NITM+1)
       DIMENSION GUX(NITM+1),GUY(NITM+1)
       DIMENSION GPX(NITM+1),GPY(NITM+1,NRAYM)
-      DIMENSION GKX(NITM+1,2)
-      DIMENSION GKY(NITM+1,2)
+      DIMENSION GKX(NITM+1,NRAYM)
+      DIMENSION GKY(NITM+1,NRAYM*2)
+      DIMENSION GRLRO1(0:NRADM+1),GZLRO1(0:NRADM+1)
+      DIMENSION GRLRO2(0:NRADM+1),GZLRO2(0:NRADM+1)
+      DIMENSION GPAX(NITM+1),GPAY(NITM+1,NRAYM)
+      DIMENSION RLMA1(0:NITM+1,0:NRADM),ZLMA1(0:NITM+1,0:NRADM)
+      DIMENSION RLMA2(0:NITM+1,0:NRADM),ZLMA2(0:NITM+1,0:NRADM)
+      DIMENSION GASSX1(0:NITM+1,0:NRADM),GASSZ1(0:NITM+1,0:NRADM)
+      DIMENSION DELP1(0:NITM+1,0:NRADM),DELP2(0:NITM+1,0:NRADM)
+      DIMENSION GASSX2(0:NITM+1,0:NRADM),GASSZ2(0:NITM+1,0:NRADM)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETFNT(32)
+      CALL SETCHS(0.25,0.)
       CALL SETRGB(0.0,0.0,0.0)
       CALL SETLNW(0.035)
 C
@@ -565,18 +581,19 @@ C
       CALL GSCALE(0.0,GXSTEP,0.0,2.0,0.1,9)
       CALL GVALUE(0.0,2*GXSTEP,0.0,2.0,1)
       CALL SETRGB(0.0,0.0,1.0)
-      CALL GPLOTP(GKX,GKY(1,1),1,NITMAX(1)+1,1,0,0,0)
-      CALL SETRGB(1.0,0.0,0.0)
-      CALL GPLOTP(GKX,GKY(1,2),1,NITMAX(1)+1,1,0,0,0)
-      CALL SETRGB(0.0,0.0,0.0)
+      DO NRAY=1,NRAYM
+         CALL GPLOTP(GKX,GKY(1,NRAY),1,NITMAX(1)+1,1,0,0,0)
+C      CALL SETRGB(1.0,0.0,0.0)
+         CALL GPLOTP(GKX,GKY(1,NRAY+1),1,NITMAX(1)+1,1,0,0,0)
+      ENDDO
+C      CALL SETRGB(0.0,0.0,0.0)
 C
-C     ----- Fig.3   R-BEAM-----
+C     ----- Fig.2   R-BEAM-----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
             GKY( IT+1,1)=GUCLIP(RAYB(23,IT))
             GKY( IT+1,2)=GUCLIP(RAYB(24,IT))
-C           WRITE(6,*) GKY(IT+1,2),RAYB(24,IT)
          ENDDO
       ENDDO
 C
@@ -590,7 +607,7 @@ C      GYMIN1=MIN(GYMINA,GYMINB)
 C      GYMAX1=MAX(GYMAXA,GYMAXB)     
       CALL GQSCAL (GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
 C      CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-      CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,0.0,0.06)
+      CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,0.0,0.10)
       CALL SETLIN(0,0,7)
       CALL GFRAME
       CALL GSCALE(0.0,GXSTEP,0.0,0.01,0.1,9)
@@ -603,19 +620,44 @@ C      CALL GVALUE(0.0,2*GXSTEP,GYMIN,GYSTEP,2)
       CALL GPLOTP(GKX,GKY(1,2),1,NITMAX(1)+1,1,0,0,0)
       CALL SETRGB(0.0,0.0,0.0)
 C
+      CALL MOVE(9.0,16.4)
+      CALL TEXT ('X1= ',3)
+      CALL NUMBR(GKX(K,1),'(F5.3)',5)
+      CALL MOVE(5.0,16.4)
+      CALL TEXT ('dMIN1= ',6)
+      CALL NUMBR(GKY(K,1),'(F9.7)',9)
+C
+      CALL MOVE(9.0,16.0)
+      CALL TEXT ('X2= ',3)
+      CALL NUMBR(GKX(I,1),'(F5.3)',5)
+      CALL MOVE(5.0,16.0)
+      CALL TEXT ('dMIN2= ',6)
+      CALL NUMBR(GKY(I,2),'(F9.7)',9)
+C
+      CALL MOVE(1.0,16.4)
+      CALL TEXT ('SMAX= ',6)
+      CALL NUMBD(smax,'(F5.2)',5)
+      CALL MOVE(11.0,16.0)
+      CALL TEXT ('RCURV= ',6)
+      CALL NUMBD(RCURVA,'(F5.2)',5)
+      CALL MOVE(11.0,16.4)
+      CALL TEXT ('RBRAD= ',6)
+      CALL NUMBD(RBRADA,'(F5.2)',5)
+C
 C     ----- Fig.3  Beam-Rot -----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GUCLIP(RAYB(25,IT))
-            GKY( IT+1,2)=GUCLIP(RAYB(26,IT))
+            GKY(IT+1,1)=GUCLIP(RAYB(25,IT))
+            GKY(IT+1,2)=GUCLIP(RAYB(26,IT))
+C             GKY(IT+1,1)=GUCLIP(RAYB(20,IT))
          ENDDO
       ENDDO
 C
       CALL SETRGB(0.0,0.0,0.0)
       CALL SETLNW(0.035)
       CALL MOVE(13.5,16.1)
-      CALL TEXT('Beam-rot',8)
+      CALL TEXT('Beam-rot',8) 
       CALL GDEFIN(13.5,23.5,9.0,16.0,0.0,GXMAX,0.0,180.0)
       CALL GFRAME
       CALL GSCALE(0.0,GXSTEP,0.0,0.0,0.1,9)
@@ -628,8 +670,10 @@ C
       CALL GPLOTP(GKX,GKY(1,2),1,NITMAX(1)+1,1,0,0,0)
       CALL SETRGB(0.0,0.0,0.0)
 C
-C     ----- CALCULATE RADIAL DEPOSITION PROFILE -----
 C
+C     -------------------------------------------------------------------
+C     ----- CALCULATE RADIAL DEPOSITION PROFILE (without beam radial)----
+C     -------------------------------------------------------------------
       DRHO=1.D0/NRZMAX
       DO NRZ=1,NRZMAX
          GPX(NRZ)=GUCLIP(NRZ*DRHO)
@@ -642,26 +686,33 @@ C
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)-1
-            XL=RAYS(1,IT,NRAY)
-            YL=RAYS(2,IT,NRAY)
-            ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN1)
+            RLA =SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
+            ZLA =RAYS(3,IT,NRAY)
+            CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSIN1)
+C            XL=RAYS(1,IT,NRAY)
+C            YL=RAYS(2,IT,NRAY)
+C            ZL=RAYS(3,IT,NRAY)
+C            CALL PLMAG(XL,YL,ZL,PSIN1)
             RHO1=SQRT(PSIN1)
 	    NRS1=INT(RHO1/DRHO)+1
-            XL=RAYS(1,IT+1,NRAY)
-            YL=RAYS(2,IT+1,NRAY)
-            ZL=RAYS(3,IT+1,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN2)
+            RLAD=SQRT(RAYS(1,IT+1,NRAY)**2+RAYS(2,IT+1,NRAY)**2)
+            ZLAD=RAYS(3,IT+1,NRAY)
+            CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,PSIN2)            
+C            XL=RAYS(1,IT+1,NRAY)
+C            YL=RAYS(2,IT+1,NRAY)
+C            ZL=RAYS(3,IT+1,NRAY)
+C            CALL PLMAG(XL,YL,ZL,PSIN2)
             RHO2=SQRT(PSIN2)
             NRS2=INT(RHO2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
+C
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
                SDR=(RHO2-RHO1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)              
                DO NR=NRS1+1,NRS2-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
@@ -678,7 +729,7 @@ C
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
      &                       +GUCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
             ENDIF
-         ENDDO
+            ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
       ENDDO
 C
@@ -690,9 +741,238 @@ C
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
       ENDDO
 c
+C
+C     -------------------------------------------------------------------
+C     ----- CALCULATE RADIAL DEPOSITION PROFILE (with beam radial)-------
+C     -------------------------------------------------------------------
+C
+      IF (MODELG.EQ.3) THEN
+       DRHO=1.D0/NRZMAX  
+      DO NRZ=1,NRZMAX
+         GPX(NRZ)=GUCLIP(NRZ*DRHO)
+      ENDDO
+      DO NRAY=1,NRAYMX
+         DO NRZ=1,NRZMAX
+            GPAY(NRZ,NRAY)=0.0
+         ENDDO
+      ENDDO
+C    
+      DO NRAY=1,NRAYMX
+         DO IT=0,NITMAX(NRAY)-1
+            DRAD=1.D0/(NRADMX)
+C        ---------------------------------------------------------
+C
+C        ----- CALC SLOPE OF RAY TRAJECTORY-----------------------
+            RLA =SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
+            RLAD=SQRT(RAYS(1,IT+1,NRAY)**2+RAYS(2,IT+1,NRAY)**2)
+            ZLA =RAYS(3,IT ,NRAY)
+            ZLAD=RAYS(3,IT+1,NRAY)
+            DRL=RLAD-RLA
+            DZL=ZLAD-ZLA
+C        ---------------------------------------------------------
+C
+C        -----(i)ROTATE DRL and DZL (90 Degree)-------------------
+            DRLS=-DZL
+            DZLS= DRL
+            DABSS=SQRT(DRLS**2+DZLS**2)
+            DRLSN=DRLS/DABSS
+            DZLSN=DZLS/DABSS
+C        ---------------------------------------------------------
+C
+C        ----- JUDGE MAGNETIC SURFACE-----------------------------
+            DO NRAD=0,NRADMX
+               GRLRO1(NRAD)=RLA+NRAD*DRAD*DRLSN*RAYB(23,IT)
+               GZLRO1(NRAD)=ZLA+NRAD*DRAD*DZLSN*RAYB(23,IT)
+            ENDDO
+C            ---------------------------------------------
+C
+C            ------ REFERENCE DIRECTION ------------------
+               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINR)
+               RHOR=SQRT(PSINR)
+               NRSR=INT(RHOR/DRHO)+1
+               CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,PSINDR)
+               RHODR=SQRT(PSINDR)
+               NRSDR=INT(RHODR/DRHO)+1
+               NDRF=ABS(NRSDR-NRSR)
+C            ---------------------------------------------
+C            
+C            ------ BEAM RADIAL DIRECTION ----------------
+               RLDMAX1=GRLRO1(NRADMX)
+               ZLDMAX1=GZLRO1(NRADMX)
+               CALL GETRZ(RLDMAX1,ZLDMAX1,PHIL,BR,BZ,BPHI,PSINDMAX1)
+               RHOMAX1=SQRT(PSINDMAX1)
+               NRSMAX1=INT(RHOMAX1/DRHO)+1
+               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINDMIN1)
+               RHOMIN1=SQRT(PSINDMIN1)
+               NRSMIN1=INT(RHOMIN1/DRHO)+1
+               NDBRD1=(NRSMAX1-NRSMIN1)
+               NABSM1=ABS(NDBRD1)
+C
+               
+           DO NRAD=0,NRADMX-1
+               RL1=GRLRO1(NRAD)
+               ZL1=GZLRO1(NRAD)
+               CALL GETRZ(RL1,ZL1,PHIL,BR,BZ,BPHI,PSIN1)
+               RHO1=SQRT(PSIN1)
+               NRSA1=INT(RHO1/DRHO)+1
+C
+               RLD1=GRLRO1(NRAD+1)
+               ZLD1=GZLRO1(NRAD+1)
+               CALL GETRZ(RLD1,ZLD1,PHIL,BR,BZ,BPHI,PSIND1)
+               RHOD1=SQRT(PSIND1)
+               NRSDA1=INT(RHOD1/DRHO)+1
+C
+                IF (NRSDA1.NE.NRSA1) THEN
+                   RLMA1(IT,ABS(NRSDA1-NRSMIN1))=RL1
+                   ZLMA1(IT,ABS(NRSDA1-NRSMIN1))=ZL1
+                ENDIF
+            ENDDO
+C           
+            IF (NDBRD1.EQ.0) THEN
+               GPAY(NRSMIN1,NRAY)=GPAY(NRSMIN1,NRAY)
+     &                        +0.5D0*GUCLIP(RAYS(8,IT+1,NRAY))
+            ELSE IF (NDBRD1.LT.0) THEN 
+               RLMA1(IT,0)=RLA
+               ZLMA1(IT,0)=ZLA
+               DO NCS=1,NABSM1
+               SIGMA=RAYB(23,IT)/3.D0
+C               SIGMA=5.D0*RAYB(23,IT)
+               GASSX1(IT,NCS)=SQRT((RLMA1(IT,NCS)-RLA)**2
+     &                            +(ZLMA1(IT,NCS)-ZLA)**2)
+C               GASSZ1(IT,NCS)=GASSX1(IT,NCS)/RAYB(23,IT)
+               GASSZ1(IT,NCS)=GASSX1(IT,NCS)/SIGMA
+               DELP1(IT,NCS)=ERF1((GASSZ1(IT,NCS)))
+     &                     -ERF1((GASSZ1(IT,NCS-1)))
+C               WRITE(6,*) DELP1(IT,NCS)
+               GPAY(NRSMIN1-NCS+1,NRAY)=GPAY(NRSMIN1-NCS+1,NRAY)
+     &                   +0.5D0*DELP1(IT,NCS)*GUCLIP(RAYS(8,IT+1,NRAY))
+               ENDDO
+               GPAY(NRSMAX1,NRAY)=GPAY(NRSMAX1,NRAY)
+     &                  +(0.5D0-0.5D0*ERF1((GASSZ1(IT,NABSM1))))
+     &                  *GUCLIP(RAYS(8,IT+1,NRAY))
+C             
+            ELSE 
+               RLMA1(IT,0)=RLA
+               ZLMA1(IT,0)=ZLA
+               DO NCS=1,NABSM1
+               SIGMA=RAYB(23,IT)/3.D0
+               GASSX1(IT,NCS)=SQRT((RLMA1(IT,NCS)-RLA)**2
+     &                           +(ZLMA1(IT,NCS)-ZLA)**2)
+C               GASSZ1(IT,NCS)=GASSX1(IT,NCS)/RAYB(23,IT)
+               GASSZ1(IT,NCS)=GASSX1(IT,NCS)/SIGMA
+               DELP1(IT,NCS)=ERF1((GASSZ1(IT,NCS)))
+     &                     -ERF1((GASSZ1(IT,NCS-1)))
+C               WRITE(6,*) DELP1(IT,NCS)
+               GPAY(NRSMIN1+NCS-1,NRAY)=GPAY(NRSMIN1+NCS-1,NRAY)
+     &                   +0.5D0*DELP1(IT,NCS)*GUCLIP(RAYS(8,IT+1,NRAY))
+               ENDDO
+               GPAY(NRSMAX1,NRAY)=GPAY(NRSMAX1,NRAY)
+     &                  +(0.5D0-0.5D0*ERF1((GASSZ1(IT,NABSM1))))
+     &                  *GUCLIP(RAYS(8,IT+1,NRAY))
+            ENDIF
+            
+C      ------------------------------------------------------
+C
+C      -----(ii)ROTATE DRLS and DZLS (-90 Degree)
+            DRLT= DZL
+            DZLT=-DRL
+            DABST=SQRT(DRLT**2+DZLT**2)
+            DRLTN=DRLT/DABST
+            DZLTN=DZLT/DABST
+C      ------------------------------------------------------
+C
+C      ------ JUDGE MAGNETIC SURFACE ------------------------
+            DO NRAD=0,NRADMX
+               GRLRO2(NRAD)=RLA+NRAD*DRAD*DRLTN*RAYB(23,IT)
+               GZLRO2(NRAD)=ZLA+NRAD*DRAD*DZLTN*RAYB(23,IT)
+            ENDDO
+C
+               RLDMAX2=GRLRO2(NRADMX)
+               ZLDMAX2=GZLRO2(NRADMX)
+               CALL GETRZ(RLDMAX2,ZLDMAX2,PHIL,BR,BZ,BPHI,PSINDMAX2)
+               RHOMAX2=SQRT(PSINDMAX2)
+               NRSMAX2=INT(RHOMAX2/DRHO)+1
+               CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSINDMIN2)
+               RHOMIN2=SQRT(PSINDMIN2)
+               NRSMIN2=INT(RHOMIN2/DRHO)+1
+               NDBRD2=(NRSMAX2-NRSMIN2)
+               NABSM2=ABS(NDBRD2)
+C
+            DO NRAD=0,NRADMX-1
+               RL2=GRLRO2(NRAD)
+               ZL2=GZLRO2(NRAD)
+               CALL GETRZ(RL2,ZL2,PHIL,BR,BZ,BPHI,PSIN2)
+               RHO2=SQRT(PSIN2)
+               NRSA2=INT(RHO2/DRHO)+1
+C
+               RLD2=GRLRO2(NRAD+1)
+               ZLD2=GZLRO2(NRAD+1)
+               CALL GETRZ(RLD2,ZLD2,PHIL,BR,BZ,BPHI,PSIND2)
+               RHOD2=SQRT(PSIND2)
+               NRSDA2=INT(RHOD2/DRHO)+1
+C            
+               IF (NRSDA2.NE.NRSA2) THEN
+                     RLMA2(IT,ABS(NRSDA2-NRSMIN2))=RL2
+                     ZLMA2(IT,ABS(NRSDA2-NRSMIN2))=ZL2
+               ENDIF
+            ENDDO
+C 
+            IF (NDBRD2.EQ.0) THEN
+               GPAY(NRSMIN2,NRAY)=GPAY(NRSMIN2,NRAY)
+     &                        +0.5D0*GUCLIP(RAYS(8,IT+1,NRAY))
+            ELSE IF (NDBRD2.LT.0) THEN
+               RLMA2(IT,0)=RLA
+               ZLMA2(IT,0)=ZLA
+               DO NCS2=1,NABSM2
+               SIGMA=RAYB(23,IT)/3.D0
+C               SIGMA=5.D0*RAYB(23,IT)
+               GASSX2(IT,NCS2)=SQRT((RLMA2(IT,NCS2)-RLA)**2
+     &                          +(ZLMA2(IT,NCS2)-ZLA)**2)
+C               GASSZ2(IT,NCS2)=GASSX2(IT,NCS2)/RAYB(23,IT)
+               GASSZ2(IT,NCS2)=GASSX2(IT,NCS2)/SIGMA
+               DELP2(IT,NCS2)=ERF1((GASSZ2(IT,NCS2)))
+     &                        -ERF1((GASSZ2(IT,NCS2-1)))
+               GPAY(NRSMIN2-NCS2+1,NRAY)=GPAY(NRSMIN2-NCS2+1,NRAY)
+     &              +0.5D0*DELP2(IT,NCS2)*GUCLIP(RAYS(8,IT+1,NRAY))
+               ENDDO
+               GPAY(NRSMAX2,NRAY)=GPAY(NRSMAX2,NRAY)
+     &                  +(0.5D0-0.5D0*ERF1((GASSZ2(IT,NABSM2))))
+     &                  *GUCLIP(RAYS(8,IT+1,NRAY))
+            ELSE
+               RLMA2(IT,0)=RLA
+               ZLMA2(IT,0)=ZLA
+               DO NCS2=1,NABSM2
+               SIGMA=RAYB(23,IT)/3.D0
+C                SIGMA=5.D0*RAYB(23,IT)
+               GASSX2(IT,NCS2)=SQRT((RLMA2(IT,NCS2)-RLA)**2
+     &                             +(ZLMA2(IT,NCS2)-ZLA)**2)
+C               GASSZ2(IT,NCS2)=GASSX2(IT,NCS2)/RAYB(23,IT)
+                GASSZ2(IT,NCS2)=GASSX2(IT,NCS2)/SIGMA
+               DELP2(IT,NCS2)=ERF1((GASSZ2(IT,NCS2)))
+     &                       -ERF1((GASSZ2(IT,NCS2-1)))
+               GPAY(NRSMIN2+NCS2-1,NRAY)=GPAY(NRSMIN2+NCS2-1,NRAY)
+     &                   +0.5D0*DELP2(IT,NCS2)*GUCLIP(RAYS(8,IT+1,NRAY))
+               ENDDO
+               GPAY(NRSMAX2,NRAY)=GPAY(NRSMAX2,NRAY)
+     &                  +(0.5D0-0.5D0*ERF1((GASSZ2(IT,NABSM2))))
+     &                  *GUCLIP(RAYS(8,IT+1,NRAY))
+            ENDIF
+         ENDDO
+      ENDDO
+C
+C
+      DO NRAY=1,NRAYMX
+         DO NRZ=1,NRZMAX
+            GPAY(NRZ,NRAY)=GPAY(NRZ,NRAY)
+     &                 /GUCLIP(2*PI*(DBLE(NRZ)-0.5D0)*DRHO*DRHO)
+         ENDDO
+C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPAY(NRZ,NRAY),NRZ=1,NRZMAX)
+      ENDDO
+      ENDIF
 c     ----- draw deposition profile -----
 c
       CALL GQSCAL(0.0,1.0,GXMIN,GXMAX,GXSTEP)
+C      CALL GQSCAL(0.38,0.52,GXMIN,GXMAX,GXSTEP)
 c
       CALL GMNMX2(GPY,NITM+1,1,NRZMAX,1,1,NRAYMX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYSMIN,GYSMAX1,GYSCAL1)
@@ -704,21 +984,31 @@ c
 C
       CALL MOVE(13.5,8.1)
       CALL TEXT('ABS POWER',10)
-      CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,GYSMIN,GYSMAX)
+C      CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,GYSMIN,GYSMAX)
+      CALL GDEFIN(13.5,23.5,1.0,8.0,GXMIN,GXMAX,GYSMIN,GYSMAX)
       CALL SETRGB(0.0,0.0,0.0)
       CALL GFRAME
-      CALL GSCALE(0.0,GXSTEP,GYSMIN,GYSCAL,0.1,9)      
-      CALL GVALUE(0.0,2*GXSTEP,GYSMIN,GYSCAL,2)
-      CALL SETLIN(0,0,4)
-      CALL SETRGB(1.0,0.0,0.0)
-      CALL GPLOTP(GPX,GPY(1,1),1,NRZMAX,1,0,0,0)
-      CALL SETRGB(0.0,0.0,0.0)
+      CALL GSCALE(GXMIN,GXSTEP,GYSMIN,GYSCAL,0.1,9)      
+      CALL GVALUE(GXMIN,2*GXSTEP,GYSMIN,GYSCAL,2)
+C      CALL SETLIN(0,0,4)
+      DO NRAY=1,NRAYMX
+         CALL SETLIN(0,0,7-MOD(NRAY-1,5))
+         CALL GPLOTP(GPX,GPY(1,NRAY),1,NRZMAX,1,0,0,0)
+         CALL SETRGB(0.0,0.0,0.0)
+      ENDDO
+C
+      DO NRAY=1,NRAYMX
+         CALL SETLIN(0,0,7-MOD(NRAY,5))
+         CALL GPLOTP(GPX,GPAY(1,NRAY),1,NRADMX,1,0,0,0)
+         CALL SETRGB(1.0,0.0,0.0)
+      ENDDO     
 C
       CALL WRGPRM
       CALL PAGEE
       RETURN
       END
 C
+
 C
 C
 C
@@ -744,7 +1034,8 @@ C
       DIMENSION GTHY(NITM+1,1)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETFNT(32)
+      CALL SETCHS(0.25,0.)
       CALL SETRGB(0.0,0.0,0.0)
       CALL SETLNW(0.035)
 C
@@ -752,17 +1043,19 @@ C     ----- X AXIS -----
 C
       DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-C            XL=RAYS(1,IT,NRAY)
-C            YL=RAYS(2,IT,NRAY)
-C            ZL=RAYS(3,IT,NRAY)
-C            CALL PLMAG(XL,YL,ZL,PSIN)
-C            RHO=SQRT(PSIN)
+            XL=RAYS(1,IT,NRAY)
+            YL=RAYS(2,IT,NRAY)
+            ZL=RAYS(3,IT,NRAY)
+            CALL PLMAG(XL,YL,ZL,PSIN)
+            RHO=SQRT(PSIN)
             GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
 C
-      CALL GMNMX1(GKX,1,NITMAX(1),1,GXMIN1,GXMAX1)
-      CALL GQSCAL(GKMIN1,GXMAX1,GXMIN,GXMAX,GXSTEP) 
+C      CALL GMNMX1(GKX,1,NITMAX(1),1,GXMIN1,GXMAX1)
+C      CALL GQSCAL(GKMIN1,GXMAX1,GXMIN,GXMAX,GXSTEP) 
+C      CALL GQSCAL(3.0,4.0,GXMIN,GXMAX,GXSTEP)
+       CALL GQSCAL(0.0,4.0,GXMIN,GXMAX,GXSTEP)
 C
 C     ----- Fig.1  WS-----
 C
@@ -887,26 +1180,28 @@ C     -------fig4  LAMDA------------------------
 C
             DO NRAY=1,NRAYMX
          DO IT=0,NITMAX(NRAY)
-            GKY( IT+1,1)=GUCLIP(RAYB(47,IT))
-            GKY( IT+1,2)=GUCLIP(RAYB(48,IT))
-C           WRITE(6,*) GKY(IT+1,5),RAYB(30,IT)
+C            GKY( IT+1,1)=GUCLIP(RAYB(47,IT))
+C            GKY( IT+1,2)=GUCLIP(RAYB(48,IT))
+            GKY( IT+1,1)=GUCLIP(RAYB(20,IT))
          ENDDO
       ENDDO
 C
-      CALL GMNMX1(GKY(1,1),1,NITMAX(1),1,GYMINA,GYMAXA)
-      CALL GMNMX1(GKY(1,2),1,NITMAX(1),1,GYMINB,GYMAXB)
+      CALL GMNMX1(GKY(1,1),1,NITMAX(1),1,GYMIN1,GYMAX1)
+C      CALL GMNMX1(GKY(1,1),1,NITMAX(1),1,GYMINA,GYMAXA)
+C      CALL GMNMX1(GKY(1,2),1,NITMAX(1),1,GYMINB,GYMAXB)
 C
-      GYMIN1=MIN(GYMINA,GYMINB)
-      GYMAX1=MAX(GYMAXA,GYMAXB)
+C      GYMIN1=MIN(GYMINA,GYMINB)
+C      GYMAX1=MAX(GYMAXA,GYMAXB)
       CALL MOVE(13.5,8.1)
-      CALL TEXT('LAMDA',6)
+C      CALL TEXT('LAMDA',6)
       CALL GQSCAL(GYMIN1,GYMAX1,GYMIN,GYMAX,GYSTEP)
-      CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
-C       CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,-50.0,50.0)
+C      CALL GDEFIN(13.5,23.5,1.0,8.0,0.0,GXMAX,GYMIN,GYMAX)
+C      CALL GDEFIN(1.7,11.7,1.0,8.0,0.0,GXMAX,-50.0,50.0)
+      CALL GDEFIN(13.5,23.5,1.0,8.0,GXMIN,GXMAX,GYMIN,GYMAX)
 C      CALL SETLIN(0,0,7)
       CALL GFRAME
-      CALL GSCALE(0.0,GXSTEP,GYMIN,GYSTEP,0.1,9)
-      CALL GVALUE(0.0,2*GXSTEP,GYMIN,GYSTEP,1)
+      CALL GSCALE(GXMIN,GXSTEP,GYMIN,GYSTEP,0.1,9)
+      CALL GVALUE(GXMIN,2*GXSTEP,GYMIN,GYSTEP,1)
 C      CALL GVALUE(0.0,0.0,0.0,0.01,2)
       CALL SETRGB(0.0,0.0,1.0)
 C      
@@ -937,7 +1232,8 @@ C
       DIMENSION GVGY(NITM+1,3)
 C
       CALL PAGES
-      CALL SETCHS(0.2,0.)
+      CALL SETFNT(32)
+      CALL SETCHS(0.25,0.)
       CALL SETRGB(0.0,0.0,0.0)
       CALL SETLNW(0.035)
 C

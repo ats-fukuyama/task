@@ -7,7 +7,7 @@ C
       INCLUDE 'dpcomm.h'
       INCLUDE '../pl/plcom2.h'
 C
-      IF(MODELF.EQ.1) RETURN
+      IF(MODELV.EQ.1) RETURN
 C
       NPMAX=100
       NTHMAX=100

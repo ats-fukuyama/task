@@ -4,3 +4,4 @@ C
 C
       INCLUDE '../pl/plcom1.h'
       INCLUDE 'dpcom1.h'
+      INCLUDE 'dpcom2.h'

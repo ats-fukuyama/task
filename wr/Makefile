@@ -9,7 +9,7 @@ SRCEQ= ../eq/eqload.f ../eq/pleqin.f ../eq/eqcalq.f
 SRCDP= ../dp/dpinit.f ../dp/dproot.f ../dp/dpcont.f ../dp/dpdisp.f \
        ../dp/dptnsr.f ../dp/dpfpin.f ../dp/dphotf.f ../dp/dphotr.f
 SRCLIB=../lib/libdsp.f ../lib/libbes.f ../lib/libbrn.f \
-       ../lib/libspl.f ../lib/libgut.f \
+       ../lib/libspl.f ../lib/libgut.f ../lib/libfp.f \
        ../lib/libode.f ../lib/librkf.f ../lib/librk.f
 
 OBJS = $(SRCS:.f=.o) $(SRCPL:.f=.o) $(SRCEQ:.f=.o) $(SRCDP:.f=.o) \

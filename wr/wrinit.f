@@ -39,6 +39,7 @@ C     RBRADA  : INITIAL BEAM RADIUS
 C     RBRADB  : INITIAL BEAM RADIUS
 C                 RBRADA perp to k and B
 C                 RBRADB perp to k and in kxB plane
+C     NRADMX  : NUMBER OF RADIAL DIVISION IN BEAM TRACING
 C
 C     ****** INITIALIZE INPUT PARAMETERS ******
 C
@@ -75,6 +76,7 @@ C
       RCURVB = 0.D0
       RBRADA = 0.03D0
       RBRADB = 0.03D0
+      NRADMX= 100
 C
       RETURN
       END
@@ -98,11 +100,11 @@ C
      &              RF1,RFI1,RKX1,RKY1,RKZ1,RX1,
      &              RF2,RFI2,RKX2,RKY2,RKZ2,RX2,
      &              NXMAX,EPSRT,LMAXRT,
-     &              MODELF,INTYPE,
+     &              MODELV,INTYPE,
      &              RF,RPI,ZPI,PHII,RNZI,RNPHII,RKR0,UUI,
      &              SMAX,DELS,UUMIN,EPSNW,DELKR,EPSRAY,DELRAY,DELDER,
      &              LMAXNW,NRZMAX,NRAYMX,KNAMWR,
-     &              RCURVA,RCURVB,RBRADA,RBRADB
+     &              RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
       DATA INITEQ,INITFP/0,0/
 C
     1 WRITE(6,*) '## INPUT : &WR'
@@ -124,7 +126,7 @@ C
       ENDIF
       IF(IERR.EQ.1) RETURN
 C
-      IF(MODELF.EQ.1) THEN
+      IF(MODELV.EQ.1) THEN
          IF(INITFP.EQ.0) THEN
             CALL DPLDFP
             INITFP=1
@@ -167,7 +169,8 @@ C
       WRITE(6,601) 'EPSRAY',EPSRAY,'DELRAY',DELRAY,
      &             'DELDER',DELDER
       WRITE(6,602) 'NRAYMX',NRAYMX,'LMAXNW',LMAXNW,
-     &             'NRZMAX',NRZMAX,'INTYPE',INTYPE
+     &             'NRZMAX',NRZMAX,'NRADMX',NRADMX
+      WRITE(6,602) 'INTYPE',INTYPE
       RETURN
 C
   601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:

@@ -12,7 +12,7 @@ C
 C 
       CALL GUTIME(TIME1)
 C
-    1 IF(INTYPE.EQ.0) THEN
+      IF(INTYPE.EQ.0) THEN
          WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
          WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
          WRITE(6,'(1PE12.4,0P6F10.3)') 
@@ -55,6 +55,9 @@ C
          ENDIF
       ENDIF
 C
+      DO NRAY=1,NRAYMX
+C
+ 1       WRITE(6,*) '# NRAY=' ,NRAY
       IF(INTYPE.EQ.0) THEN
          READ(5,*,ERR=1,END=9000) 
      &                   RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,
@@ -131,25 +134,25 @@ C
 C
       CALL WRRKFTB(Y,RAYB,NITMAXB)
 C
-C      DO IT=0,NITMAXB
-C         WRITE(6,*) RAYB(38,IT),RAYB(39,IT),RAYB(40,IT)
-C      ENDDO
-C
-      NRAYMX=1
-      NITMAX(1)=NITMAXB
+C      NRAYMX=1
+
+C      NITMAX(1)=NITMAXB
+      NITMAX(NRAY)=NITMAXB
       DO NIT=0,NITMAXB
-         RAYS(1,NIT,1)=RAYB( 1,NIT)
-         RAYS(2,NIT,1)=RAYB( 2,NIT)
-         RAYS(3,NIT,1)=RAYB( 3,NIT)
-         RAYS(4,NIT,1)=RAYB( 4,NIT)
-         RAYS(5,NIT,1)=RAYB( 5,NIT)
-         RAYS(6,NIT,1)=RAYB( 6,NIT)
-         RAYS(7,NIT,1)=RAYB(19,NIT)
-         RAYS(8,NIT,1)=RAYB(20,NIT)
+         RAYS(1,NIT,NRAY)=RAYB( 1,NIT)
+         RAYS(2,NIT,NRAY)=RAYB( 2,NIT)
+         RAYS(3,NIT,NRAY)=RAYB( 3,NIT)
+         RAYS(4,NIT,NRAY)=RAYB( 4,NIT)
+         RAYS(5,NIT,NRAY)=RAYB( 5,NIT)
+         RAYS(6,NIT,NRAY)=RAYB( 6,NIT)
+         RAYS(7,NIT,NRAY)=RAYB(19,NIT)
+         RAYS(8,NIT,NRAY)=RAYB(20,NIT)
       ENDDO
-      CALL WRCALE(RAYS,NITMAX(1),1)
+C      CALL WRCALE(RAYS,NITMAX(1),1)
+      CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
       WRITE(6,'(A,F8.4)') 
-     &        '# PABS/PIN=',UUI-RAYS(7,NITMAX(1),1)
+     &        '# PABS/PIN=',UUI-RAYS(7,NITMAX(NRAY),NRAY)
+      ENDDO
 C
       CALL GUTIME(TIME2)
       WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'

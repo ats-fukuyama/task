@@ -37,16 +37,16 @@ C
          ELSE IF(ID1.EQ.6) THEN
             CALL DPTNKR(NS,CLDISP)
          ELSE IF(ID1.EQ.7) THEN
-            IF(MODELF.EQ.0) THEN
+            IF(MODELV.EQ.0) THEN
                CALL DPFMFL(NS)
                CALL DPHOTF(NS,CLDISP)
-            ELSE IF(MODELF.EQ.1) THEN
+            ELSE IF(MODELV.EQ.1) THEN
                CALL DPFPFL(NS)
                CALL DPHOTF(NS,CLDISP)
-            ELSE IF(MODELF.EQ.2) THEN
+            ELSE IF(MODELV.EQ.2) THEN
                CALL DPFMFL(NS)
                CALL DPHOTR(NS,CLDISP)
-            ELSE IF(MODELF.EQ.3) THEN
+            ELSE IF(MODELV.EQ.3) THEN
                CALL DPFPFL(NS)
                CALL DPHOTR(NS,CLDISP)  
             ENDIF

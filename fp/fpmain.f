@@ -35,7 +35,7 @@ C
       CALL GUCPTL(KID)
 C
       IF (KID.EQ.'R'.OR.KID.EQ.'M') THEN
-         TIME=0.D0
+         TIMEFP=0.D0
          NTG1=0
          NTG2=0
          CALL FPPREP
@@ -59,7 +59,7 @@ C
          CALL FPSGLB
          CALL FPWRIT
       ELSEIF (KID.EQ.'Y') THEN
-         TIME=0.D0
+         TIMEFP=0.D0
          CALL FPPREP
          CALL FPFINI
          CALL FPCOEF

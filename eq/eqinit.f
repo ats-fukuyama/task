@@ -179,7 +179,7 @@ C        EPSEQ : Convergence criterion for equilibrium
 C
       EPSEQ  = 1.D-6
 C
-C        MODELF : Switch parameter
+C        MODELF : Profile parameter
 C            0: given analytic profile  P,J,T,Vph
 C            1: given analytic profile  P,F,T,Vph
 C            2: given spline profile  P,F,T,Vph
