@@ -48,7 +48,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o a.out core
+	rm -f ./#* ./*~ *.o nclass/*.o a.out core
 
 veryclean : clean
 	rm -f $(PROG) $(PROG3)

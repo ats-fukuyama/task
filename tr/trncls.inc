@@ -3,8 +3,10 @@
       INTEGER k_order,                 k_potato
       REAL    c_den
       REAL    p_grphi,                 p_gr2phi
-      REAL    amu_i(mx_mi),            temp_i(mx_mi)
-      REAL    den_iz(mx_mi,mx_mz)
+      REAL    amu_i(mx_mi),            grt_i(mx_mi),
+     &        temp_i(mx_mi)
+      REAL    den_iz(mx_mi,mx_mz),     fex_iz(3,mx_mi,mx_mz),
+     &        grp_iz(mx_mi,mx_mz)
 C
 !Declaration of output from NCLASS
       INTEGER iflag,                   m_s

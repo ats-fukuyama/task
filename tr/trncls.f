@@ -6,17 +6,49 @@ C
 C     ***********************************************************
 C
       SUBROUTINE TR_NCLASS
-C
+!***********************************************************************
+!TR_NCLASS calculates various paramters and arrays for TR_NCLASS_DRIVER.
+!Please note that type declarations of all variables except "INTEGER" 
+!  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8" 
+!  or "DOUBLE".
+!Input:
+!  k_order - order of v moments to be solved (-)
+!          =2 u and q
+!          =3 u, q, and u2
+!          =else error
+!  k_potato - option to include potato orbits (-)
+!           =0 off
+!           =else on
+!  c_den - density cutoff below which species is ignored (/m**3)
+!  default - switch parameter
+!          =0 use default parameters described by nclass_pt_dr.f
+!          =1 use parameters calculated here (strongly recommended)
+!  amu_i(i) - atomic mass number of i (-)
+!  p_grphi - radial electric field Phi' (V/rho)
+!  p_gr2phi - radial electric field gradient Psi'(Phi'/Psi')' (V/rho**2)
+!  grt_i(i) - temperature gradient of i (keV/rho)
+!  temp_i(i) - temperature of i (keV)
+!  den_iz(i,z) - density of i,z (/m**3)
+!  fex_iz(3,i,z) - moments of external parallel force on i,z (T*j/m**3)
+!  grp_iz(i,z) - pressure gradient of i,z (keV/m**3/rho)
+!  p_eps - inverse aspect ratio (-) given by EPSRHO(NR)
+!  p_q - safety factor (-) given by QP(NR)
+!  r0 - major radius (m) given by RR
+!  a0 - minor radius (m) given by RA
+!  e0 - axial elongation (-) given by RKAP
+!  bt0 - axial toroidal magnetic field (T) given by BB
+!  q0 - axial safety factor (-) given by Q0
+!***********************************************************************
       INCLUDE 'trcomm.h'
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
       INCLUDE 'trncls.inc'
 C
-      k_order=2    ! order of v moments to be solved
-      k_potato=0   ! option to include potato orbits
-      c_den=1.E10  ! density cutoff below which species is ignored
-      default=1    ! switch parameter(setting 1 strongly recommended)
+      k_order=2
+      k_potato=0
+      c_den=1.E10
+      default=1
 C
       DO NS=1,NSMAX
          amu_i(NS)=SNGL(PA(NS))
@@ -24,17 +56,31 @@ C
 C
       DO NR=1,NRMAX
          p_grphi=0.E0
-         P_gr2phi=0.E0
+         p_gr2phi=0.E0
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(PTS(NS))
+               grt_i(NS)=SNGL(2.D0*(PTS(NS)-RN(NR,NS))*AR1RHO(NR)/DR)
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
+               grp_iz(NS,INT(ABS(PZ(NS))))
+     &              =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
+     &              *AR1RHO(NR)/DR)*1.E20
+               DO NA=1,3
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
+               ENDDO
             ENDDO
          ELSE
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
+               grt_i(NS)=SNGL((RT(NR+1,NS)-RT(NR,NS))*AR1RHO(NR)/DR)
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
      &                                                +RN(NR,NS)))*1.E20
+               grp_iz(NS,INT(ABS(PZ(NS))))
+     &             =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
+     &              *AR1RHO(NR)/DR)*1.E20
+               DO NA=1,3
+                  fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.E0
+               ENDDO
             ENDDO
          ENDIF
 C
@@ -43,7 +89,8 @@ C     Input
      &                         SNGL(EPSRHO(NR)),SNGL(QP(NR)),SNGL(RR),
      &                         SNGL(RA),SNGL(RKAP),SNGL(BB),SNGL(Q0),
      &                         k_order,k_potato,c_den,p_grphi,
-     &                         p_gr2phi,amu_i,temp_i,den_iz,default,
+     &                         p_gr2phi,amu_i,grt_i,temp_i,
+     &                         den_iz,fex_iz,grp_iz,default,
 C     Output
      &                         iflag,m_s,p_bsjb,p_etap,p_exjb,
      &                         calm_i,caln_ii,capm_ii,capn_ii,
@@ -100,7 +147,8 @@ C
 C     Input
      &                            p_eps,p_q,r0,a0,e0,bt0,q0,
      &                            k_order,k_potato,c_den,p_grphi,
-     &                            p_gr2phi,amu_i,temp_i,den_iz,default,
+     &                            p_gr2phi,amu_i,grt_i,temp_i,
+     &                            den_iz,fex_iz,grp_iz,default,
 C     Output
      &                            iflag,m_s,p_bsjb,p_etap,p_exjb,
      &                            calm_i,caln_ii,capm_ii,capn_ii,
@@ -220,12 +268,14 @@ C
 	ENDDO
 !  grt_i(i)-temperature gradient of i (keV/rho)
 !  grp_iz(i,z)-pressure gradient of i,z (keV/m**3/rho)
+      IF(default.EQ.0) THEN
       DO i=1,m_i
         grt_i(i)=-temp_i(i)/a0/2.0
         DO j=1,m_z
           grp_iz(i,j)=-temp_i(i)*den_iz(i,j)/a0
         ENDDO   
       ENDDO
+      ENDIF
 !  c_potb-kappa(0)*Bt(0)/[2*q(0)**2] (T)
       c_potb=e0*bt0/2/q0**2
 !  c_potl-q(0)*R(0) (m)
