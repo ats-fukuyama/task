@@ -447,6 +447,25 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
+C     ***** EXTRAPORATE RIOTAS *****
+C
+      RIOTAS(1)=(3*RIOTAS(2)-RIOTAS(3))/2
+      DEL1=XSH(NSRMAX+1)-XSH(NSRMAX)
+      DEL2=XSH(NSRMAX)-XSH(NSRMAX-1)
+      RIOTAS(NSRMAX+1)=((DEL1+DEL2)*RIOTAS(NSRMAX)
+     &                       -DEL1 *RIOTAS(NSRMAX-1))/DEL2
+C
+C     ***** INTERPORATE RIOTAS *****
+C
+      FX1(1)=0.D0
+      CALL SPL1D(XSHRHO,RIOTAS,FX1,U1,NSRMAX+1,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX WMHBBB: SPL1D: RIOTAS'
+C
+      DO NR=1,NRMAX+1
+         CALL SPL1DD(XRHO(NR),SBMNC(MN,NR),DBMNC(MN,NR),
+     &               XSHRHO,U1,NSRMAX+1,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: BMNC: NR=',NR
+C
       DO MN=1,MNMAX
          DO NSR=1,NSRMAX
             BSUS(NSR)=BSU(MN+(NSR-1)*MNMAX)
