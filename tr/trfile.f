@@ -446,6 +446,9 @@ C
             RKAPU(NTX)=F1(NTX)
          ENDDO
       ENDIF
+c$$$      DO NTX=1,NTXMAX1
+c$$$         RKAPU(NTX)=1.D0
+c$$$      ENDDO
 C
       IF(IERR.NE.0) STOP 'SOME 1D UFILES DO NOT EXIST.'
 C
