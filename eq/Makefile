@@ -57,14 +57,14 @@ new:
 
 eqmain.o: eqmain.f eqcom1.h
 eqinit.o: eqinit.f eqcom1.h
-eqcalc.o: eqcalc.f eqcom1.h eqcom2.h eqcom4.h
+eqcalc.o: eqcalc.f eqcom1.h eqcom2.h
 eqcalq.o: eqcalq.f eqcom1.h eqcom3.h
 eqgout.o: eqgout.f eqcom1.h eqcom2.h eqcom3.h
 eqfunc.o: eqfunc.f eqcom1.h eqcom2.h eqcom4.h
 trtest.o: trtest.f
-treqin.o: treqin.f eqcom1.h eqcom4.h
-pltest.o: pltest.f eqcom1.h eqcom3.h
+treqin.o: treqin.f eqcom1.h eqcom3.h eqcom4.h
+pltest.o: pltest.f
 pleqin.o: pleqin.f eqcom1.h eqcom3.h
-aktest.o: aktest.f eqcom1.h eqcom3.h
+aktest.o: aktest.f
 akeqin.o: akeqin.f eqcom1.h eqcom3.h
 eqload.o: eqload.f eqcom1.h eqcom3.h

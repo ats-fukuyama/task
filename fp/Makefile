@@ -49,6 +49,7 @@ fpfile.o : fpfile.f fpcomm.h fpcom1.h ../pl/plcom1.h
 fpcalw.o : fpcalw.f fpcomm.h fpcom1.h ../pl/plcom1.h
 fpcals.o : fpcals.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
 fpwrin.o : fpwrin.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
+
 ../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
 ../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h

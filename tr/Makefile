@@ -62,10 +62,11 @@ trhelp.o : trhelp.f trcomm.h
 trmtrx.o : trmtrx.f
 	$(FC) -c $(LFLAGS) trmtrx.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.h
-../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
+../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.h ../eq/eqcom2.h
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
 ../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom3.h
 ../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
-../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom4.h
+../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom3.h ../eq/eqcom4.h
+../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
 
 
