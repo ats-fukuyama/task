@@ -277,7 +277,7 @@ C
          DCPP(NTH,NP,NR)=FACT*WA
   200 CONTINUE               
 C
-         RNUL=RNU0*RNE(NR)
+         RNUL=RNU0*RNFP(NR)
       DO 220 NP=1,NPMAX
          PX=PM(NP)
          PV=PX/SQRT(1.D0+THETA0*PX*PX)

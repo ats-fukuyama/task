@@ -25,8 +25,8 @@ C
          DELR=(RMAX-RMIN)/NRMAX
       ENDIF
 C
-C      BETAN=LOG(RNE0/RNES)/RA**ALPHN
-C      BETAT=LOG(TE0 /TES )/RA**ALPHT
+C      BETAN=LOG(RNFP0/RNFPS)/RA**ALPHN
+C      BETAT=LOG(RTFP0/RTFPS)/RA**ALPHT
 C
       IF(NRMAX.EQ.1) THEN
          RM(1)=R1
@@ -40,15 +40,16 @@ C
          RG(NRMAX+1)=RMAX
       ENDIF
 C
+      AEFP=PZ(NSFP)*AEE
+      AMFP=PA(NSFP)*AMP
+      RNFP0=PN(NSFP)
+      RNFPS=PNS(NSFP)
+      RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
+      RTFPS=PTS(NSFP)
+C
       IF(MODELW.EQ.2.OR.MODELW.EQ.3) THEN
-C      IF(MODELW.EQ.2) THEN
          CALL FPLDWR(IERR)
          IF(IERR.NE.0) RETURN
-      ELSE
-         RNE0=PN(1)
-         RNES=PNS(1)
-         TE0=(PTPR(1)+2.D0*PTPP(1))/3.D0
-         TES=PTS(1)
       ENDIF
 C
       DO 12 NR=1,NRMAX
@@ -60,18 +61,31 @@ C
 C     ***** EQUI-SPACE RADIUS *****
 C
          PSIL=RM(NR)**2
-C
          CALL PLPROF(PSIL)
-         RNE(NR)=RN(1)/RNE0
-         TE(NR) =RTPR(1)/TE0
 C
-C         RNE(NR)=EXP(-BETAN*RM(NR)**ALPHN)
-C         TE(NR) =EXP(-BETAT*RM(NR)**ALPHT)
+         RNFP(NR)=RN(NSFP)
+         RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
+         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
+         RNE=RN(1)
+         RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
+         DO NS=1,NSMAX
+            AEFD=PZ(NS)*AEE
+            AMFD=PA(NS)*AMP
+            RNFD=RN(NS)
+            RTFD=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
+               RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
+            ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
+               RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
+            ELSE
+               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD)
+            ENDIF
+            VTFD(NS,NR)=SQRT(RTFD*1.D3*AEE/AMFD)
+            RNU(NS,NR)=RNFD*1.D20*AEFP**2*AEFD**2*RLNLR
+     &                /(4.D0*PI*EPS0**2*AMFP**2*VTFP(NR)**3)
+         ENDDO
 C
-         VTE=SQRT(TE0*TE(NR)*1.D3*AEE/AME)
-         WPE(NR)=SQRT(RNE0*RNE(NR)*1.D20*AEE**2/(AME*EPS0))
-         RNU(NR)=15.D0*WPE(NR)**4/(4.D0*PI*RNE0*RNE(NR)*1.D20*VTE**3)
-         PTH(NR)=SQRT(TE0*TE(NR)*1.D3*AEE*AME)
+         PTH(NR)=SQRT(RTFP0*RTFP(NR)*1.D3*AEE*AMFP)
          EPSR(NR)=RSPSIN(PSIL)/RR
    12 CONTINUE
 C
@@ -90,10 +104,11 @@ C
          RJ2(NR)=RJ1(NR)
    30 CONTINUE
 C
-      VTE0=SQRT(TE0*1.D3*AEE/AME)
-      WPE0=SQRT(RNE0*1.D20*AEE**2/(AME*EPS0))
-      RNU0=15.D0*WPE0**4/(4.D0*PI*RNE0*1.D20*VTE0**3)
-      PTH0=SQRT(TE0*1.D3*AEE*AME)
+      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
+C      RWP0=SQRT(RNFP0*1.D20*AEFP**2/(AMFP*EPS0))
+C      RNU0=15.D0*RWP0**4/(4.D0*PI*RNFP0*1.D20*VTFP0**3)
+      RNU0=15.D0*RNFP0*1.D20*AEFP**4/(4.D0*PI*AMFP**2*EPS0**2*VTFP0**3)
+      PTH0=SQRT(RTFP0*1.D3*AEE*AMFP)
       DELP =PMAX/NPMAX
       DELTH=PI/NTHMAX
 C
@@ -133,9 +148,9 @@ C
 C
       ELSE
 C
-         THETA0=TE0/511.D0
+         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
          DO 110 NR=1,NRMAX
-            THETA(NR)=TE0*TE(NR)/511.D0
+            THETA(NR)=THETA0*RTFP(NR)
             Z=1.D0/THETA(NR)
 C            IF(Z.LE.100.D0) THEN
                DKBSR(NR)=DKBES(2,Z)
@@ -275,23 +290,23 @@ C
          RL=RM(1)-DELR
          PSIN=RL**2
          CALL PLPROF(PSIN)
-         RNEL=RN(1)/RNE0
-         TEL =RTPR(1)/TE0
+         RNFPL=RN(NSFP)/RNFP0
+         RTFPL=RTPR(NSFP)/RTFP0
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
          PSIN=RL**2
          CALL PLPROF(PSIN)
-         RNEL=RN(1)/RNE0
-         TEL =RTPR(1)/TE0
+         RNFPL=RN(NSFP)/RNFP0
+         RTFPL=RTPR(NSFP)/RTFP0
       ELSE
-         RNEL=RNE(NR)
-         TEL =TE (NR)
+         RNFPL=RNFP(NR)
+         RTFPL=RTFP(NR)
       ENDIF
 C
       IF (MODELR.EQ.0) THEN
 C
-         FACT=RNEL/SQRT(2.D0*PI*TEL)**3
-         EX=PML**2/(2.D0*TEL)            
+         FACT=RNFPL/SQRT(2.D0*PI*RTFPL)**3
+         EX=PML**2/(2.D0*RTFPL)            
          IF(EX.GT.100.D0) THEN
             FPMXWL=0.D0
          ELSE
@@ -301,18 +316,14 @@ C
       ELSE
 C
          IF(NR.EQ.0.OR.NR.EQ.NRMAX+1) THEN
-            THETAL=TE0*TEL/511.D0
+            THETAL=THETA0*RTFPL
             Z=1.D0/THETAL
-C            IF(Z.LE.100.D0) THEN
-               DKBSL=DKBES(2,Z)
-C            ELSE
-C               DKBSL=SQRT(0.5D0*PI/Z)*(1.D0+15.D0/(8.D0*Z))
-C            ENDIF
+            DKBSL=DKBES(2,Z)
          ELSE
             THETAL=THETA(NR)
             DKBSL=DKBSR(NR)
          ENDIF
-         FACT=RNEL*SQRT(THETA0)/(4.D0*PI*TEL*DKBSL)
+         FACT=RNFPL*SQRT(THETA0)/(4.D0*PI*RTFPL*DKBSL)
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
@@ -463,7 +474,7 @@ C
                DO 200 NTH=1,NTHMAX
                   RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
   200          CONTINUE
-               RJN(NR)=-AEE*RNE0*1.D20*PTH0*DELP*RSUM/(AME*RM(NR)*RA)
+               RJN(NR)=AEFP*RNFP0*1.D20*PTH0*DELP*RSUM/(AMFP*RM(NR)*RA)
   210       CONTINUE
             RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
 C

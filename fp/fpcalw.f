@@ -240,7 +240,7 @@ C        END IF
 C
          IF (DLH.GT.0.D0.AND.RM(NR).GE.RLH)THEN
             IF(ABS(PVPARA).GT.1.D-70) THEN
-               ARG=((AME*VC/(PTH0*PVPARA)-PLH1)/PLH2)**2
+               ARG=((AMFP*VC/(PTH0*PVPARA)-PLH1)/PLH2)**2
                IF(ARG.LT.20.D0) THEN
                   DLHL=DLH*RNU0*EXP(-ARG)
                ELSE
@@ -265,20 +265,20 @@ C        END IF
 C
          IF (DFW.GT.0.D0.AND.RM(NR).GE.RFW)THEN
             IF(ABS(PVPARA).GT.1.D-70) THEN
-               RMI=2*1836*AME
-               REI=1*AEE
-               WPI2=RNE0*1.D20*RNE(NR)*REI*AEE/(RMI*EPS0)
-               WFW2=(135.D6*2*PI)**2
-               FACT=TE(NR)+WFW2*551.D0/(WPI2*TE0)
+               AMI=2*AMP
+               AEI=1*AEE
+               WPI2=RNFP0*1.D20*RNFP(NR)*AEI*AEE/(AMI*EPS0)
+               WFW2=(RFW*1.D6*2*PI)**2
+               FACT=RTFP(NR)+WFW2*AMFP*VC*VC/(WPI2*RTFP0*1.D3)
                IF(ABS(PFW1-2.2D0).LT.1.D-30) THEN
-                  ARG=((AME*VC/(PTH0*PVPARA)-2.2D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTH0*PVPARA)-2.2D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
                      DFWL1=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL1=0.D0
                   ENDIF
-                  ARG=((AME*VC/(PTH0*PVPARA)+2.2D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTH0*PVPARA)+2.2D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
                      DFWL2=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
@@ -287,14 +287,14 @@ C
                   ENDIF
                   DFWL=DFWL1+DFWL2
                ELSEIF(ABS(PFW1-1.6D0).LT.1.D-30) THEN
-                  ARG=((AME*VC/(PTH0*PVPARA)-1.6D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTH0*PVPARA)-1.6D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
                      DFWL1=1.5D0*DFW*RNU0*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
                   ELSE
                      DFWL1=0.D0
                   ENDIF
-                  ARG=((AME*VC/(PTH0*PVPARA)+2.8D0)/PFW2)**2
+                  ARG=((AMFP*VC/(PTH0*PVPARA)+2.8D0)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
                      DFWL2=0.5D0*DFW*RNU0*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
@@ -303,7 +303,7 @@ C
                   ENDIF
                   DFWL=DFWL1+DFWL2
                ELSE
-                  ARG=((AME*VC/(PTH0*PVPARA)-PFW1)/PFW2)**2
+                  ARG=((AMFP*VC/(PTH0*PVPARA)-PFW1)/PFW2)**2
                   IF(ARG.LT.20.D0) THEN
                      DFWL=DFW*RNU0*EXP(-ARG)/(PVPARA**2)
      &                   *(PPERP**2-2.D0*FACT)**2
@@ -325,7 +325,7 @@ C
             IF(ARG1.LT.20.0) THEN
                FACT1=EXP(-ARG1)
                W=RFEC/(1.D0+X/RR)
-               PARAN=PPARA*SQRT(TE0/551.D0)
+               PARAN=PPARA*SQRT(RTFP0*1.D3*AEE/(AMFP*VC*VC))
                FN=PEC1*PARAN-SQRT(1.D0+THETA0*P2)+W
                DELF=PEC2*PARAN
                ARG2=(FN/DELF)**2

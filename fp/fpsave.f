@@ -192,11 +192,11 @@ C
      &              *(DWECPP(NTH,NP,NR)*DFP
      &               +DWECPT(NTH,NP,NR)*DFT)
   400    CONTINUE
-         FACT=RNE0*1.D20
-         RNS(NR) = RSUM1*FACT              *1.D-20
-         RJS(NR) = RSUM2*FACT*AEE*PTH0/AME *1.D-6
-         FACT=RNE0*1.D20*PTH0**2/AME
-         RWS(NR) = RSUM3*FACT              *1.D-6
+         FACT=RNFP0*1.D20
+         RNS(NR) = RSUM1*FACT               *1.D-20
+         RJS(NR) = RSUM2*FACT*AEFP*PTH0/AMFP*1.D-6
+         FACT=RNFP0*1.D20*PTH0**2/AMFP
+         RWS(NR) = RSUM3*FACT               *1.D-6
          RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RPES(NR)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
@@ -235,10 +235,10 @@ C
      &                   PIT(NTG2)/PPWT(NTG2)
 C
             DO 1000 NR=1,NRMAX
-               RPN=RPWT(NR,NTG1)*AME*1.D6
-     &               /(RNE0*RNE(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR))
-               RJN=RJT(NR,NTG1)*AME*1.D6
-     &               /(RNE0*RNE(NR)*1.D20*AEE*PTH(NR))
+               RPN=RPWT(NR,NTG1)*AMFP*1.D6
+     &               /(RNFP0*RNFP(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR))
+               RJN=RJT(NR,NTG1)*AMFP*1.D6
+     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
                IF(ABS(RPN).LT.1.D-70) THEN
                   RJP=0.D0
                ELSE
@@ -254,9 +254,9 @@ C
 C
          IF (ABS(PPET(NTG2)).GT.0.D0) THEN
             DO 2000 NR=1,NRMAX
-               REN=RET(NR,NTG1)*AEE/(RNU(NR)*PTH(NR))
-               RJN=RJT(NR,NTG1)*AME*1.D6
-     &               /(RNE0*RNE(NR)*1.D20*AEE*PTH(NR))
+               REN=RET(NR,NTG1)*AEFP/(RNU(NR)*PTH(NR))
+               RJN=RJT(NR,NTG1)*AMFP*1.D6
+     &               /(RNFP0*RNFP(NR)*1.D20*AEFP*PTH(NR))
                IF(ABS(REN).LT.1.D-70) THEN
                   RJE=0.D0
                ELSE

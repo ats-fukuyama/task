@@ -112,11 +112,10 @@ C
       DO 10 NR=1,NRMAX+1
          PSIN=RG(NR)**2
          CALL PLPROF(PSIN)
-         RNL=RN(1)/RNE0
-         TEL=RTPR(1)/TE0
+         RTFPL=RTPR(NSFP)/RTFP0
          FACTR=-2.D0*RG(NR)/RA
       DO 10 NP=1,NPMAX
-          FACTP=1.D0/SQRT(1.D0+PG(NP)**2/TEL)
+          FACTP=1.D0/SQRT(1.D0+PG(NP)**2/RTFPL)
       DO 10 NTH=1,NTHMAX
          DRR(NTH,NP,NR)=DRR0*FACTP
          FRR(NTH,NP,NR)=DRR0*FACTP*FACTR
@@ -164,13 +163,13 @@ C
       DO 10 NR=1,NRMAX
       DO 10 NP=1,NPMAX+1
       DO 10 NTH=1,NTHMAX
-         FEPP(NTH,NP,NR)= AEE*E2(NR)/PTH0*COSM(NTH)
+         FEPP(NTH,NP,NR)= AEFP*E2(NR)/PTH0*COSM(NTH)
    10 CONTINUE
 C
       DO 20 NR=1,NRMAX
       DO 20 NP=1,NPMAX
       DO 20 NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR)=-AEE*E2(NR)/PTH0*SING(NTH)
+         FETH(NTH,NP,NR)=-AEFP*E2(NR)/PTH0*SING(NTH)
    20 CONTINUE
 C
       IF (MODELA.EQ.0) RETURN
@@ -224,25 +223,27 @@ C
       INCLUDE 'fpcomm.inc'
       EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 C
-      DO 100 NR=1,NRMAX
-         DO 10 NP=1,NPMAX+1
-         DO 10 NTH=1,NTHMAX
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
             DCPT(NTH,NP,NR)=0.D0
-   10    CONTINUE
-         DO 20 NP=1,NPMAX
-         DO 20 NTH=1,NTHMAX+1
+         ENDDO
+         ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
             DCTP(NTH,NP,NR)=0.D0
             FCTH(NTH,NP,NR)=0.D0
-   20    CONTINUE
-  100 CONTINUE
+         ENDDO
+         ENDDO
+      ENDDO
 C
-      DO 5000 NR=1,NRMAX
-         RNUL=RNU0*RNE(NR)
-         PTHL=PTH0/(SQRT(2.D0)*PTH(NR))
+      DO NR=1,NRMAX
+         DO NS=1,NSMAX
+            RNUL=RNU(NS,NR)
 C
          IF(MODELR.EQ.0) THEN
 C
-            DO 1000 NP=1,NPMAX+1
+            DO NP=1,NPMAX+1
                IF(NP.EQ.1) THEN
                   DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
                   FCPPL=0.D0
@@ -251,25 +252,27 @@ C
                   DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
                   FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
                ENDIF
-            DO 1000 NTH=1,NTHMAX
-               DCPP(NTH,NP,NR)=DCPPL
-               FCPP(NTH,NP,NR) =FCPPL
- 1000       CONTINUE
+               DO NTH=1,NTHMAX
+                  DCPP(NTH,NP,NR)=DCPPL
+                  FCPP(NTH,NP,NR)=FCPPL
+               ENDDO
+            ENDDO
 C
-            DO 2000 NP=1,NPMAX
+            DO NP=1,NPMAX
                U=PM(NP)*PTHL
                DCTTL= 0.25D0*RNUL*PTHL
      &                      *((2.D0/U-1.D0/U**3)*ERF1(U)+ERF2(U)/U**2)
      &               +0.5D0*RNUL*PTHL*ZEFF/U
-            DO 2000 NTH=1,NTHMAX+1
-               DCTT(NTH,NP,NR)=DCTTL
- 2000       CONTINUE
+               DO NTH=1,NTHMAX+1
+                  DCTT(NTH,NP,NR)=DCTTL
+               ENDDO
+            ENDDO
 C
          ELSE
             NRX=NR
             THETAL=THETA(NR)
             RNUR=(RNUL*SQRT(THETA0)**3)/(3.D0*THETAL*DKBSR(NR))
-            DO 3000 NP=1,NPMAX+1
+            DO NP=1,NPMAX+1
                IF(NP.EQ.1) THEN
                   DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
                   FCPPL=0.D0
@@ -287,12 +290,13 @@ C
      &                        -THETA0*RINT5/PV**2
      &                        +2.D0*THETA0*RINT6*PV)
                ENDIF
-               DO 3000 NTH=1,NTHMAX
+               DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR)=DCPPL
                   FCPP(NTH,NP,NR)=FCPPL
- 3000       CONTINUE
+               ENDDO
+            ENDDO
 C
-            DO 4000 NP=1,NPMAX
+            DO NP=1,NPMAX
                PX=PM(NP)
                PV=PX/SQRT(1.D0+THETA0*PX*PX)
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
@@ -303,12 +307,14 @@ C
      &                    +RINT2)
      &                    +0.5D0*RNUL*ZEFF/PV
 C
-            DO 4000 NTH=1,NTHMAX+1
+               DO NTH=1,NTHMAX+1
                   DCTT(NTH,NP,NR)=DCTTL
- 4000       CONTINUE
+               ENDDO
+            ENDDO
          ENDIF
 C
- 5000 CONTINUE
+         ENDDO
+      ENDDO
 C
       IF (MODELA.EQ.0) RETURN
 C

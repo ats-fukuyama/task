@@ -10,8 +10,10 @@ C
 C
 C-----------------------------------------------------------------------
 C     ZEFF  : effective ion charge
+C     NSFP  : particle species of distribution
 C
       ZEFF  = 2.D0
+      NSFP  = 1
 C
 C-----------------------------------------------------------------------
 C     DRR0  : radial diffusion coefficient (m^2/s)

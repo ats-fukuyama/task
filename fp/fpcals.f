@@ -515,7 +515,7 @@ C
       CALL PLMAG(RX,RY,RZ,PSIL)
 C
       RW     =2.D0*PI*RFDW*1.D6
-      RWC    =-AEE*BABS/AME
+      RWC    =AEFP*BABS/AMFP
 C
       RKPARA = RKX*BNX +RKY*BNY +RKZ*BNZ
       RKPERP = SQRT(RKX*RKX+RKY*RKY+RKZ*RKZ-RKPARA*RKPARA)
@@ -538,15 +538,15 @@ C
       RGAMMA =SQRT(1.D0+P*P*THETA0)
       PPARA  =PTH0*P*PCOS
       PPERP  =PTH0*P*PSIN
-      VPARA  =PPARA/(AME*RGAMMA)
-      VPERP  =PPERP/(AME*RGAMMA)
+      VPARA  =PPARA/(AMFP*RGAMMA)
+      VPERP  =PPERP/(AMFP*RGAMMA)
 C 
       DWC11=0.D0
       DWC12=0.D0
       DWC21=0.D0
       DWC22=0.D0
       RKW  =RKPARA/RW
-      RGZAI=RKPERP*PPERP/(RWC*AME)
+      RGZAI=RKPERP*PPERP/(RWC*AMFP)
 C
 C      WRITE(26,*) 'RKPERP,PPERP,RWC,RGZAI = ',RKPERP,PPERP,RWC,RGZAI
 C      CALL BESSEL(RGZAI,RJ,NCBMAX,NJMAX+1)
@@ -579,14 +579,14 @@ C
          ELSE
              CTHETA=(CEPLUS*RJNM+CEMINUS*RJNP)/SQRT(2.D0)
      &              +CEPARA*PPARA*(RJNM+RJNP)*RKPERP
-     &              /(2*NC*RWC*AME)
+     &              /(2*NC*RWC*AMFP)
          ENDIF
          RTHETA2=ABS(CTHETA)**2
          IF (NC.EQ.0) THEN
             A11=0
             A12=0
             A21=0
-            A22=RTHETA2*RKW**2/(AME**2*RGAMMA**2)
+            A22=RTHETA2*RKW**2/(AMFP**2*RGAMMA**2)
 	 ELSE
             A11=RTHETA2*(1.D0-RKW*VPARA)**2
             A12=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
@@ -596,13 +596,13 @@ C
          IF(VPARA.EQ.0.D0) THEN
             DWC=0.D0  
          ELSE
-            EX=-((RGAMMA-RKPARA*PPARA/(RW*AME)-NC*RWC/RW)
-     &           /(PPARA*DELNPR/(AME*VC)))**2
+            EX=-((RGAMMA-RKPARA*PPARA/(RW*AMFP)-NC*RWC/RW)
+     &           /(PPARA*DELNPR/(AMFP*VC)))**2
             IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
-                DWC=0.5D0*SQRT(PI)*AEE**2*EXP(EX)/PTH0**2
-     &              /(RW*ABS(PPARA)*DELNPR/(AME*VC))
+                DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTH0**2
+     &              /(RW*ABS(PPARA)*DELNPR/(AMFP*VC))
             ENDIF
          ENDIF
          DWC11=DWC11+DWC*A11

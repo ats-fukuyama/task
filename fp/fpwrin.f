@@ -70,10 +70,10 @@ C
       CLOSE(21)
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
       WRITE(6,*) 'NRAYMX=',NRAYMX
-      TE0=(PTPR(1)+2.D0*PTPP(1))/3.D0
-      TES=PTS(1)
-      RNE0=PN(1)
-      RNES=PNS(1)
+      RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
+      RTFPS=PTS(NSFP)
+      RNFP0=PN(NSFP)
+      RNFPS=PNS(NSFP)
 C
 C     ----- Calculate spline coefficients -----
 C
