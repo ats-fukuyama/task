@@ -101,9 +101,21 @@ C
          GOTO 1
       ENDIF
 C
+      RAYIN(1,NRAY)=RF
+      RAYIN(2,NRAY)=RPI
+      RAYIN(3,NRAY)=ZPI
+      RAYIN(4,NRAY)=PHII
+      RAYIN(5,NRAY)=RKR0
+      RAYIN(6,NRAY)=RNZI
+      RAYIN(7,NRAY)=RNPHII
+      RAYIN(8,NRAY)=UUI
+C
       RKRI  = RKR0
       RKZI  =2.D6*PI*RF*RNZI  /VC
       RKPHII=2.D6*PI*RF*RNPHII/VC
+      CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
+      IF(IERR.NE.0) GOTO 1200
+C
       CALL WRNWTN(RKRI,RKZI,RKPHII,IERR)
       WRITE(6,*) 'RKRI=',RKRI
 C
@@ -139,6 +151,7 @@ C      NRAYMX=1
 C      NITMAX(1)=NITMAXB
       NITMAX(NRAY)=NITMAXB
       DO NIT=0,NITMAXB
+         RAYS(0,NIT,NRAY)=RAYB( 0,NIT)
          RAYS(1,NIT,NRAY)=RAYB( 1,NIT)
          RAYS(2,NIT,NRAY)=RAYB( 2,NIT)
          RAYS(3,NIT,NRAY)=RAYB( 3,NIT)
@@ -147,11 +160,14 @@ C      NITMAX(1)=NITMAXB
          RAYS(6,NIT,NRAY)=RAYB( 6,NIT)
          RAYS(7,NIT,NRAY)=RAYB(19,NIT)
          RAYS(8,NIT,NRAY)=RAYB(20,NIT)
+         RAYRB1(NIT,NRAY)=RAYB(23,NIT)
+         RAYRB2(NIT,NRAY)=RAYB(24,NIT)
       ENDDO
 C      CALL WRCALE(RAYS,NITMAX(1),1)
       CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
       WRITE(6,'(A,F8.4)') 
      &        '# PABS/PIN=',UUI-RAYS(7,NITMAX(NRAY),NRAY)
+ 1200 CONTINUE
       ENDDO
 C
       CALL GUTIME(TIME2)
@@ -522,8 +538,7 @@ C
             GOTO 10
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-C         IF(PSIN.GT.(RB/RA)**2) THEN
-         IF(PSIN.GT.4.D0) THEN
+         IF(PSIN.GT.(RB/RA)**2) THEN
             NIT = IT
             WRITE(6,*) '--- Out of bounds ---'
             GOTO 10
