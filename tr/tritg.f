@@ -25,22 +25,22 @@ C     BETAEL : electron beta
 C     AZL    : impurity mass number
 C     COLL   : factor multiplying collisionality (0 or 1)
 C     ELL    : factor multiplying electromagnetic effects (0 or 1)
-C     TEL    : electron temperature
+C     TEL    : electron temperature [keV]
 C     TAUZL  : Te/Tq
-C     RA     : minor radius (meter)
+C     RA     : minor radius [m]
 C     QL     : safety factor
 C     SL     : magnetic shear
 C     EPS    : inverse aspect ratio (a/R)
-C     RNL    : electron density
-C     RLIST  : controling printout in disp9t (0: off)
+C     RNL    : electron density [10^19 m^-3]
+C     RLIST  : controlling printout in disp9t (0: off)
 C     RNEQL  : number of equations (NDISP)
 C     ALAL   : normalized pressure gradient
 C     RKAP   : ellipticity
 C     TRL    : not used in this code
-C     RIWL   : controling printout in DIFFTD (0: off)
-C     RISBL  : if ISB=1, we use the strong ballooning approximation
-C              (GAV=1)
-C     BB     : toroidal magnetic field
+C     RIWL   : controlling printout in DIFFTD (0: off)
+C     RISBL  : If ISB=1, we use the strong ballooning approximation
+C              (GAV=1).
+C     BB     : toroidal magnetic field [T]
 C     SEARCH : The way the code chooses between ion and electron
 C              eigenvalues for the use in the eigenfunction (WZ).
 C              1 : Only eigenvalues with negative real part are used.
@@ -65,7 +65,7 @@ C                    previous time step
 C
 C  <OUTPUT>
 C     CHIL(5) : ion thermal transport coefficients for Ti, Te, Ne, Tq
-C               and Nq equations
+C               and Nq equations [m^2/s (same as above)]
 C     CHEL(5) : electron thermal transport coefficients
 C     DL(5)   : ion particle transport coefficients
 C     CHQL(5) : impurity thermal transport coefficients
@@ -415,7 +415,7 @@ C      REAL*8 SEARCHMODE,SEARCH
       COMMON/SEARCHMODE/ SEARCHMODE
       COMMON/WDE/ WDE
 C
-C     ISHW : controling printout in TR_WEILAND_BRIDGE (0: off)
+C     ISHW : controlling printout in TR_WEILAND_BRIDGE (0: off)
       ISHW=0
 C
       GK   = GKL
