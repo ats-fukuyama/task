@@ -5,8 +5,8 @@ FFLAGS=$(OFLAGS)
 
 SRCS = plmain.f plinit.f plprof.f
 
-OBJS = $(SRCS:.f=.o) ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
-	../lib/libspl.o ../lib/libbrn.o ../lib/libgut.o
+OBJS = $(SRCS:.f=.o) ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o ../eq/eqdsk.o \
+	../lib/libspl.o ../lib/libbrn.o ../lib/libgut.o ../lib/libchar.o ../lib/libfio.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -27,11 +27,11 @@ new:
 	-mkdir ../plnew
 	cp -f Makefile ../plnew
 	cp -f *.f ../plnew
-	cp -f *.h ../plnew
+	cp -f *.inc ../plnew
 
-plmain.o: plmain.f plcomm.h plcom1.h
-plinit.o: plinit.f plcomm.h plcom1.h
-plprof.o: plprof.f plcomm.h plcom1.h plcom2.h
-../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
+plmain.o: plmain.f plcomm.inc plcom1.inc
+plinit.o: plinit.f plcomm.inc plcom1.inc
+plprof.o: plprof.f plcomm.inc plcom1.inc plcom2.inc
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc

@@ -4,8 +4,8 @@ C     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 C
       SUBROUTINE PLMAG(X,Y,Z,PSIN)
 C
-      INCLUDE '../pl/plcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../pl/plcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       IF(MODELG.EQ.0) THEN
          RS   = X-RR
@@ -91,8 +91,8 @@ C     ****** CALCULATE PLASMA PROFILE ******
 C
       SUBROUTINE PLPROF(PSIN)
 C
-      INCLUDE '../pl/plcomm.h'
-      INCLUDE '../pl/plcom2.h'
+      INCLUDE '../pl/plcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       IF(PSIN.LE.0.D0) THEN
          RHOL=0.D0
@@ -218,7 +218,7 @@ C     ****** CALCULATE Q PROFILE ******
 C
       SUBROUTINE PLQPRF(PSIN,QL)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       IF(PSIN.LE.0.D0) THEN
          RHOL=0.D0
@@ -265,7 +265,7 @@ C     ****** CALCULATE BMIN ON MAG SURFACE ******
 C
       SUBROUTINE PLBMIN(PSIN,BMINL)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
          RS=RSPSIN(PSIN)
@@ -293,7 +293,7 @@ C     ****** CALCULATE RRMIN AND RRMAX ON MAG SURFACE ******
 C
       SUBROUTINE PLRRMX(PSIN,RRMINL,RRMAXL)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
          RRMINL=RR
@@ -313,7 +313,7 @@ C     ***** AVERAGE MINOR RADIUS FOR PARABOLIC Q PROFILE *****
 C
       FUNCTION RSPSIN(PSIN)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.LT.3) THEN
          IF(PSIN.LE.0.D0) THEN
@@ -335,7 +335,7 @@ C     ***** PLASMA MAGNETIC AXIS *****
 C
       SUBROUTINE PLAXIS(RAXIS,ZAXIS)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.LT.3) THEN
          RAXIS=RR
@@ -350,7 +350,7 @@ C     ***** PLASMA BOUNDARY *****
 C
       SUBROUTINE PLRZSU(RSU,ZSU,NM,NSUMAX)
 C
-      INCLUDE '../pl/plcomm.h'
+      INCLUDE '../pl/plcomm.inc'
 C
       DIMENSION RSU(NM),ZSU(NM)
 C

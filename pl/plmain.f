@@ -15,7 +15,7 @@ C                     V1.10  : 2000 NOV 25
 C
 C-----------------------------------------------------------------------
 C
-      INCLUDE 'plcomm.h'
+      INCLUDE 'plcomm.inc'
 C
       CHARACTER KID*1
 C
