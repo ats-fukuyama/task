@@ -13,7 +13,7 @@
    RIPE=3
    NSMAX=2
    RKAP=1.5
-   AD0=0.3
+   AD0=0.1
    MDLUF=0
    PROFJ1=-2.0
  &end

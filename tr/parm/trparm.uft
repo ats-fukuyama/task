@@ -18,4 +18,5 @@
    PROFN2=1.5
    PROFT1=1
    PROFT2=1.5
+   MDLJQ=0
  &end

@@ -1896,6 +1896,7 @@ C
       SUBROUTINE TR_UFREAD
 C
       INCLUDE 'trcomm.inc'
+      COMMON /TRINS1/ INS
 C
       RKAP=RKAPU(NT)
       RKAPS=SQRT(RKAPU(NT))
@@ -1910,6 +1911,10 @@ C
          RN(NR,1)=RNU(NR,1,NT)
          RN(NR,2)=RNU(NR,2,NT)
          IF(MDNI.NE.0) RN(NR,3)=RNU(NR,3,NT)
+         IF(INS.NE.0) THEN
+            RT(NR,2)=RTU(NR,2,NT)
+            RT(NR,3)=RTU(NR,3,NT)
+         ENDIF
          QP(NR)=QPU(NR,NT)
          PEX(NR,1)=PNBU(NR,1,NT)
          PEX(NR,2)=PNBU(NR,2,NT)
@@ -2095,6 +2100,7 @@ C
       SUBROUTINE TR_UFREAD_S
 C
       INCLUDE 'trcomm.inc'
+      COMMON /TRINS1/ INS
 C
       RKAP=RKAPU(1)
       RKAPS=SQRT(RKAP)
@@ -2108,6 +2114,10 @@ C
          RN(NR,1)=RNU(NR,1,1)
          RN(NR,2)=RNU(NR,2,1)
          IF(MDNI.NE.0) RN(NR,3)=RNU(NR,3,1)
+         IF(INS.NE.0) THEN
+            RT(NR,2)=RTU(NR,2,1)
+            RT(NR,3)=RTU(NR,3,1)
+         ENDIF
          QP(NR)=QPU(NR,1)
          PEX(NR,1)=PNBU(NR,1,1)
          PEX(NR,2)=PNBU(NR,2,1)

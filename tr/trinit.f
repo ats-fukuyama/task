@@ -1597,8 +1597,11 @@ C
       SUBROUTINE TR_EQS_SELECT
 C
       INCLUDE 'trcomm.inc'
+      COMMON /TRINS1/ INS
 C
-      IF(MDLUF.NE.0.AND.MDNI.NE.0) THEN
+      INS=0
+      IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
+         IF(NSMAX.EQ.1) INS=1
          NSMAX=3
          PA(3)=12.D0
          PZ(3)=6.D0
@@ -1663,6 +1666,18 @@ C
          NSV(NEQ-1)=1
          NSS(NEQ  )=8
          NSV(NEQ  )=1
+      ENDIF
+C
+      IF(INS.NE.0) THEN
+         NEQI=0
+         DO NEQ=1,NEQMAX
+            NSSN=NSS(NEQ)
+            NSVN=NSV(NEQ)
+            IF(NSSN.NE.1.OR.NSVN.NE.2) THEN
+               NEQI=NEQI+1
+               NNS(NEQI)=NEQ
+            ENDIF
+         ENDDO
       ENDIF
 C
       NNSC=0
