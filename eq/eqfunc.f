@@ -40,8 +40,10 @@ C
       ELSEIF(MODELF.EQ.2) THEN
          CALL SPL1DF(PSIN,PPSI,PSITRX,UPPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX PPSI: SPL1DF : IERR=',IERR
+         IF(PPSI.LT.0.D0) PPSI=0.D0
          PPSI=PPSI*1.D6
       ENDIF
+C      write(6,*) PPSI
       RETURN
       END
 C
@@ -213,7 +215,7 @@ C
       END
 C
 C   ************************************************ 
-C   **          　 　OMGPS(psi)                   **
+C   **          　 　OMGPSI(psi)                  **
 C   ************************************************
 C
       REAL*8 FUNCTION OMGPSI(PSIN1)

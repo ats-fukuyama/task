@@ -1,8 +1,8 @@
-LIBS=-L /usr/local/lib -lgsp -lgdp -L /usr/X11R6/lib -lX11
+LIBS=-L /usr/local/lib -lgsgl
 
 fc=pgf77
 
-SRC=analytic.f
+SRC=analytic3d.f
 
 OBJ=$(SRC:.f=.o)
 

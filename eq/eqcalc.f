@@ -72,8 +72,8 @@ C
          ENDDO
          SUM=SQRT(SUM1/SUM0)
 C            write(6,*) raxis,zaxis,psi0
-         WRITE(6,'(A,1P4E14.6)')
-     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+C         WRITE(6,'(A,1P4E14.6)')
+C     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
          IF(SUM.LT.EPSEQ)GOTO 100
       ENDDO
 C
@@ -248,6 +248,7 @@ C
 C
       IERR=0
       CALL EQTORZ
+C      write(6,*) ((PSIRZ(NRG,NZG),NZG=1,NZGMAX),NRG=1,NRGMAX)
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,URZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
 C
@@ -308,26 +309,32 @@ C     ----- quasi-symmetric current density, jp:anti-symmetric -----
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
-            HJT1(NTG,NSG)=HJPSI(PSIN)
-C           HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
+            HJT1(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJPSI(PSIN)
+     &         +(1.D0-(RRC**2/RMM(NTG,NSG)**2))*RMM(NTG,NSG)*DPPSI(PSIN)
+C            write(6,*) PSIN,HJPSI(PSIN),DPPSI(PSIN)
+C            HJT1(NTG,NSG)=HJPSI(PSIN)
+C            HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
             HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
      &               /(2.D0*TPSI(PSIN)))
             HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
      &               /(2.D0*TPSI(PSIN)))
-            HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
+            HJP2C=(HJP2A-1.D0)-(RRC**2/RMM(NTG,NSG)**2)*(HJP2B-1.D0)
+C            HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
             HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
             HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
             HJP2F=AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)
      &           /TPSI(PSIN)
      &           -DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
-            HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
+C            HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
+            HJT2(NTG,NSG)=HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
             FJP=FJP+HJP2(NTG,NSG)*DVOL
             FJT=FJT+HJT2(NTG,NSG)*DVOL
          ENDDO
          ENDDO
          TJ=(-RIP*1.D6-FJP)/FJT
+C         write(6,'(3E16.7)') TJ,FJT
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
@@ -339,6 +346,7 @@ C           HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
             RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
      &           *EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
      &               /(2.D0*TPSI(PSIN)))
+C            write(6,*) TT(NTG,NSG),RHO(NTG,NSG)
          ENDDO
          ENDDO
       ELSEIF(MODELF.EQ.1) THEN
@@ -409,9 +417,10 @@ C
          I=(NSG-1)*NTGMAX
       DO NTG=1,NTGMAX
          PSI(NTG,NSG)=FJT(I+NTG)
+C         write(6,*) PSI(NTG,NSG)
          IF (ABS(PSI(NTG,NSG)).GT.ABS(PSIM)) THEN
             PSIM=PSI(NTG,NSG)
-C            RM=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+            RM=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
          endif
       ENDDO
       ENDDO
@@ -554,6 +563,7 @@ C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
          PSIX(NTG+1,NSG+1)=PSI(NTG,NSG)
+C         write(6,*) PSIX(NTG+1,NSG+1)
       ENDDO
       ENDDO
 C
@@ -595,8 +605,10 @@ C
 C
       INCLUDE 'eqcomc.h'
 C
+C      write(6,*) PSIL
       CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,U,
      &            NTGPM,NTGPMAX,NSGPMAX,IERR)
+C      write(6,*) PSIL
       IF(IERR.NE.0) WRITE(6,*) 'XX PSIF: SPL2DF ERROR : IERR=',IERR
       PSIF=PSIL
       RETURN
@@ -608,8 +620,8 @@ C
 C
       INCLUDE 'eqcomc.h'
 C
-      CHARACTER*72 KNAM
-C      CHARACTER*1 KID
+      CHARACTER KNAM*72
+C      CHARACTER KID*1
       LOGICAL LEX
 C
     1 WRITE(6,*) '#EQ> INPUT : SAVE FILE NAME : ',KNAMEQ

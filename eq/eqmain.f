@@ -16,7 +16,7 @@ C
       CALL EQPARF
 C
     1 WRITE(6,*) '#EQ> SELECT : R/RUN C/CONT P,V,I/PARM G/GRAPH',
-     &           ' M/MULTI S,L/FILE Q/QUIT'
+     &           ' M/MULTI S,L/FILE U/UFILE Q/QUIT'
       READ(5,'(A1)',ERR=1,END=9000) KID
       CALL GUCPTL(KID)
 C
@@ -91,6 +91,22 @@ C
    20    WRITE(6,*) '#EQ> INPUT : EQPARM FILE NAME : ','eqparm'
          READ(5,'(A72)',ERR=20,END=9000) KPNAM
          CALL EQPARG(KPNAM)
+c$$$      ELSEIF(KID.EQ.'U') THEN
+c$$$         CALL EQUFRD
+      ELSEIF(KID.EQ.'U') THEN
+         KNAMEQ1=KNAMEQ
+   30    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
+         READ(5,'(A72)',ERR=30,END=9000) KNAM
+         IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
+C
+         CALL EQUFIN(KNAMEQ1,IERR)
+         IF(IERR.EQ.1) GOTO 30
+         CALL EQSETP
+         NRMAX1=NRMAX
+         NTHMAX1=NTHMAX
+         NSUMAX1=NSUMAX
+         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         MODE=2
       ELSE
          WRITE(6,*) 'X UNKNOWN COMMAND CHAR'
       ENDIF
