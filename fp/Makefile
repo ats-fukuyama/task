@@ -52,5 +52,5 @@ fpwrin.o : fpwrin.f fpcomm.h fpcom1.h ../pl/plcom1.h ../wr/wrcom1.h fpcom2.h
 ../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
 ../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/pleqin.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqcalq.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h

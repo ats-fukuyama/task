@@ -41,3 +41,15 @@ wrinit.o: wrinit.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h
 wrcalc.o: wrcalc.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
 wrbeam.o: wrcalc.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
 wrgout.o: wrgout.f wrcomm.h wrcom1.h ../dp/dpcom1.h ../pl/plcom1.h
+
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
+../dp/dpinit.o: ../dp/dpinit.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../dp/dproot.o: ../dp/dproot.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../dp/dpcont.o: ../dp/dpcont.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../dp/dpdisp.o: ../dp/dpdisp.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
+../dp/dptnsr.o: ../dp/dptnsr.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
+../dp/dpfpin.o: ../dp/dpfpin.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../dp/dphotf.o: ../dp/dphotf.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h
+../dp/dphotr.o: ../dp/dphotr.f ../dp/dpcomm.h ../dp/dpcom1.h ../pl/plcom1.h

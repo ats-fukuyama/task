@@ -5,17 +5,14 @@ LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
 SRCX = wminit.f wmsetg.f wmvmec.f wmsetj.f wmprof.f \
-       wmsolv.f wmsetm.f wmsetf.f wmdisp.f wmtae.f wmxprf.f \
-       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f mpilib.f
+       nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmtae.f wmxprf.f \
+       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f
 
 SRCS = wmmain.f wmeign.f $(SRCX)
 
-OBJM = ../mtx/bandcd.o ../mtx/bandcdm.o ../mtx/bandcdbm.o \
-       ../mtx/bcgcdb.o ../mtx/bcgcdbm.o ../mtx/bcgcdbma.o \
-       ../mtx/cgscdb.o ../mtx/cgscdbm.o ../mtx/cgscdbma.o \
-       ../mtx/bstabcdb.o ../mtx/bstabcdbm.o ../mtx/bstabcdbma.o \
-       ../mtx/bandcdb.o ../mtx/mtxset.o \
-       ../mtx/precndcb.o ../mtx/precndcbm.o ../mtx/mpisrrc.o
+OBJM = ../mtx/bandcd.o  ../mtx/mtxset.o ../mtx/precndcb.o \
+       ../mtx/bcgcdb.o ../mtx/cgscdb.o ../mtx/bstabcdb.o \
+       ../mtx/bandcdb.o
 
 OBJL = ../lib/libdsp.o ../lib/libfft.o ../lib/libinv.o \
        ../lib/libspl.o ../lib/libbrn.o ../lib/libbnd.o 
@@ -25,12 +22,12 @@ OBJE = ../eq/eqload.o ../eq/eqcalq.o ../eq/wmeqin.o
 OBJS = $(SRCS:.f=.o) $(OBJM) $(OBJL) $(OBJE) $(OBJLA)
 
 .f.o :
-	$(MFC) $(FFLAGS) -c $< -o $@
+	$(FC) $(FFLAGS) -c $< -o $@
 
 all : wm
 
 wm : $(OBJS) wmcomm.h
-	$(MFC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less

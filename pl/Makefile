@@ -32,3 +32,6 @@ new:
 plmain.o: plmain.f plcomm.h plcom1.h
 plinit.o: plinit.f plcomm.h plcom1.h
 plprof.o: plprof.f plcomm.h plcom1.h plcom2.h
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h

@@ -37,6 +37,7 @@ dpinit.o: dpinit.f dpcomm.h dpcom1.h ../pl/plcom1.h
 dproot.o: dproot.f dpcomm.h dpcom1.h ../pl/plcom1.h
 dpcont.o: dpcont.f dpcomm.h dpcom1.h ../pl/plcom1.h
 dpdisp.o: dpdisp.f dpcomm.h dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
+dptnsr.o: dptnsr.f dpcomm.h dpcom1.h ../pl/plcom1.h ../pl/plcom2.h
 dpfpin.o: dpfpin.f dpcomm.h dpcom1.h ../pl/plcom1.h
 dphotf.o: dphotf.f dpcomm.h dpcom1.h ../pl/plcom1.h
 dphotr.o: dphotr.f dpcomm.h dpcom1.h ../pl/plcom1.h
