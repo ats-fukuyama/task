@@ -206,7 +206,7 @@ C
 C     *****
 C
       MODELG=0
-      NTEQIT=0
+      NTEQIT=10
       MDLUF=0
 C
       MDALL=0

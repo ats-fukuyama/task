@@ -11,7 +11,7 @@ SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
 SRC2D=trg2d.f
 SRC3D=trg3d.f
 SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
-     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
+     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f ../eq/eqdsk.f
 SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 
 OBJS=$(SRCS:.f=.o)
@@ -84,6 +84,7 @@ trmtrx.o : trmtrx.f
 ../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.inc ../eq/eqcom2.inc ../eq/eqcom4.inc
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc ../eq/eqcom4.inc
 ../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../lib/libbnd.o: ../lib/libbnd.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
 ../lib/libspl.o: ../lib/libspl.f
