@@ -375,22 +375,37 @@ C
       SUBROUTINE TRLOSS
 C
       INCLUDE 'trcomm.inc'
-      COMMON /TMSLC1/ TMU(NTUM)
-      COMMON /TMSLC3/ NTXMAX
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC2/ NTAMAX
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
+      COMMON /TMSLC4/ PNBI
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             DO NR=1,NRMAX
-               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
-               PRL(NR)=PRLL
+C               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
+C               PRL(NR)=PRLL
+               PRL(NR)=PRLU(1,NR)
             ENDDO
          ELSE
             TSL=DT*DBLE(NT)
-            DO NR=1,NRMAX
-               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
-               PRL(NR)=PRLL
-            ENDDO
+            IF(KUFDEV.EQ.'X') THEN
+               DO NR=1,NRMAX
+                  CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,
+     &                          IERR)
+                  PRL(NR)=PRLL
+               ENDDO
+            ELSE
+               DO NR=1,NRMAX
+                  IF(PNBI.LT.12.D6) THEN
+                     PRL(NR)=PRLU(1,NR)
+                  ELSE
+                     PRL(NR)=PRLU(2,NR)
+                     IF(NT.EQ.NTAMAX) PRL(NR)=PRLU(3,NR)
+                  ENDIF
+               ENDDO
+            ENDIF
          ENDIF
       ELSEIF(MDLUF.EQ.2) THEN
          IF(NT.EQ.0) THEN
@@ -554,7 +569,9 @@ C
             RNM =RNM +RN(NR  ,NS)
          ENDDO
          RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+     &            +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
 C
 C     ****** ION PARAMETER ******
 C
@@ -660,6 +677,7 @@ C
          ENDDO
          RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
 C
 C     ****** ION PARAMETER ******
 C
@@ -827,7 +845,9 @@ C
             RNM =RNM +RN(NR  ,NS)
          ENDDO
          RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
+     &            +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
 C
 C     ****** ION PARAMETER ******
 C
@@ -939,6 +959,7 @@ C
          ENDDO
          RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
+     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
 C
 C     ****** ION PARAMETER ******
 C

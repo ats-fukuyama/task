@@ -635,6 +635,7 @@ C
       IF(K2.EQ.'2') CALL TRCMP2(INQ)
       IF(K2.EQ.'3') CALL TRCMP3(INQ)
       IF(K2.EQ.'4') CALL TRCMP4(INQ)
+      IF(K2.EQ.'5') CALL TRCMP5(INQ)
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
@@ -784,7 +785,7 @@ C
       SUBROUTINE TRCMP2(INQ)
 C
       INCLUDE 'trcomm.inc'
-      COMMON /TMSLC1/ TMU(NTUM)
+      DIMENSION TMU(NTUM)
       DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM),RIBS(NTUM),RIPL(NTUM)
       DIMENSION PICRH(NTUM),PNBI(NTUM)
       CHARACTER KFID*10
@@ -877,8 +878,8 @@ C
       SUBROUTINE TRCMP3(INQ)
 C
       INCLUDE 'trcomm.inc'
-      COMMON /TMSLC1/ TMU(NTUM)
-      COMMON /TMSLC3/ NTXMAX
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       TSL=DT*DBLE(NT)
       IF(MDLUF.EQ.1) THEN
@@ -1021,9 +1022,9 @@ C
 C
       INCLUDE 'trcomm.inc'
       COMMON /TRUFC4/ NREMAX(2),GRE(NRM,2)
-      COMMON /TRSVUC/ RTEXU(NTUM,NRMP),   RTIXU(NTUM,NRMP),
+      COMMON /TRERU1/ RTEXU(NTUM,NRMP),   RTIXU(NTUM,NRMP),
      &                RNEXU(NTUM,NRMP)
-      COMMON /TRSVUD/ RTEXEU(NTUM,NRMP),  RTIXEU(NTUM,NRMP),
+      COMMON /TRERU2/ RTEXEU(NTUM,NRMP),  RTIXEU(NTUM,NRMP),
      &                RNEXEU(NTUM,NRMP)
 C
       IF(MDLUF.EQ.2) THEN
@@ -1064,9 +1065,37 @@ C
          ENDDO            
          CALL TRGR1DE( 3.0,12.0, 2.0, 8.0,GRM,GYR,GRE(1,2),GER,NRMP,
      &                NRMAX,NREMAX(2),2,
-     &                '@NE(XP),NE(TR) [10$+20$=/m$+3$=] vs r@',2+INQ)
+     &                '@NE(XP),NE(TR) [10$+20$=/m$+3$=]  vs r@',2+INQ)
          CALL PAGEE
       ENDIF
 C
+      RETURN
+      END
+C
+C     **********************************************
+C
+C        COMPARE WITH UFILE DATA (OTHER)
+C
+C     **********************************************
+C
+      SUBROUTINE TRCMP5(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
+C
+      IF(MDLUF.NE.1) RETURN
+C
+      CALL PAGES
+      TSL=DT*DBLE(NT)
+      DO NR=1,NRMAX
+         GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
+         CALL LAGLANGE(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
+         GYR(NR,2) = GUCLIP(RTL*1.D-6)
+      ENDDO
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &     '@POH(TR),POH(XP) [MW/m$+3$=]  vs r@',2+INQ)
+      CALL PAGEE
+C     
       RETURN
       END

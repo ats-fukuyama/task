@@ -252,10 +252,12 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
                   ENDDO
                ENDDO
             ENDIF
-            p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))
-     &               *BB)
+            p_eb=SNGL(0.5D0*(ETA(NR+1)*AJOH(NR+1)+ETA(NR)*AJOH(NR))*BB)
          ENDIF
 C
+C         do ns=1,nsmax
+C            write(6,*) nt,nr,ns,temp_i(ns)
+C         enddo
       CALL NCLASS(
 C     Input
      &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,

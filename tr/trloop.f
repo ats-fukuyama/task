@@ -9,9 +9,9 @@ C
       SUBROUTINE TRLOOP
 C
       INCLUDE 'trcomm.inc'
-      COMMON /TMSLC1/ TMU(NTUM)
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
       COMMON /TMSLC2/ NTAMAX
-      COMMON /TMSLC3/ NTXMAX
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       DIMENSION XX(MLM),YY(2,NRM),ZZ(NSM,NRM)
 C
@@ -138,7 +138,7 @@ C
                   RDP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
-               IF(MDLUF.EQ.0) THEN !!!
+               IF(MDLEQN.NE.0) THEN !!!
                IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
                   RN(NR,NSSN) = 0.D0
                   DO NEQ1=1,NEQMAX
@@ -228,7 +228,7 @@ C
       IF(Q0.LT.1.D0) TST=TST+DT
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          TSL=DT*DBLE(NT)
-         CALL LAGLANGE(TSL,RIP,TMU,RIPU,NTXMAX,NTUM,IERR)
+         CALL LAGLANGE(TSL,RIP,TMU1,RIPU,NTXMAX1,NTUM,IERR)
       ELSE
          RIP=RIP+DIP
       ENDIF
@@ -329,8 +329,8 @@ C
       COMMON /TRLCL2/ D(NVM,NRM)
       COMMON /TRLCL3/ RD(NEQM,NRM)
       COMMON /TRLCL4/ PPA(NEQM,NRM),PPB(NEQM,NRM),PPC(NEQM,NRM)
-      COMMON /TMSLC1/ TMU(NTUM)
-      COMMON /TMSLC3/ NTXMAX
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       IF(MDLCD.EQ.0) THEN
          RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
@@ -348,12 +348,12 @@ C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
-            CALL LAGLANGE(TSL,RIPL,TMU,RIPU,NTXMAX,NTUM,IERR)
+            CALL LAGLANGE(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
             RDPS=2.D0*PI*AMYU0*RIPL*1.D6
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ELSE
             TSL=DT*DBLE(NT)
-            CALL LAGLANGE(TSL,RIPL,TMU,RIPU,NTXMAX,NTUM,IERR)
+            CALL LAGLANGE(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
             RDPS=2.D0*PI*AMYU0*RIPL*1.D6
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
@@ -836,8 +836,6 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      IF(MDLUF.EQ.0) THEN
-C
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
             NSSN=NSS(NEQ)
@@ -845,18 +843,23 @@ C
             IF(NSVN.EQ.0) THEN
                RDP(NR) = XV(NEQ,NR)
             ELSEIF(NSVN.EQ.1) THEN
-               IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
-                  RN(NR,NSSN) = 0.D0
-                  DO NEQ1=1,NEQMAX
-                     NSSN1=NSS(NEQ1)
-                     NSVN1=NSV(NEQ1)
-                     IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
-                        RN(NR,NSSN) = RN(NR,NSSN)+PZ(NSSN1)*XV(NEQ1,NR)
-                     ENDIF
-                  ENDDO
-                  RN(NR,NSSN) = RN(NR,NSSN)
-     &                         +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
+               IF(MDLEQN.NE.0) THEN
+                  IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
+                     RN(NR,NSSN) = 0.D0
+                     DO NEQ1=1,NEQMAX
+                        NSSN1=NSS(NEQ1)
+                        NSVN1=NSV(NEQ1)
+                        IF(NSVN1.EQ.1.AND.NSSN1.NE.1) THEN
+                           RN(NR,NSSN) = RN(NR,NSSN)
+     &                                  +PZ(NSSN1)*XV(NEQ1,NR)
+                        ENDIF
+                     ENDDO
+                     RN(NR,NSSN) = RN(NR,NSSN)
+     &                    +PZFE(NR)*ANFE(NR)+PZC(NR)*ANC(NR)
 C     I think the above expression is obsolete.
+                  ELSE
+                     RN(NR,NSSN) = XV(NEQ,NR)
+                  ENDIF
                ELSE
                   RN(NR,NSSN) = XV(NEQ,NR)
                ENDIF
@@ -879,38 +882,6 @@ C     I think the above expression is obsolete.
          ANNU(NR) = RN(NR,7)+RN(NR,8)
          BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
-C
-      ELSE
-C
-      DO NR=1,NRMAX
-         DO NEQ=1,NEQMAX
-            NSSN=NSS(NEQ)
-            NSVN=NSV(NEQ)
-            IF(NSVN.EQ.0) THEN
-               RDP(NR) = XV(NEQ,NR)
-            ELSEIF(NSVN.EQ.1) THEN
-               RN(NR,NSSN) = XV(NEQ,NR)
-            ELSEIF(NSVN.EQ.2) THEN
-               IF(NSSN.NE.NSM) THEN
-                  RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
-               ELSE
-                  IF(RN(NR,NSM).LT.1.D-70) THEN
-                     RT(NR,NSM) = 0.D0
-                  ELSE
-                     RT(NR,NSM) = XV(NEQ,NR)/RN(NR,NSM)
-                  ENDIF
-               ENDIF
-            ELSEIF(NSVN.EQ.3) THEN
-               RU(NR,NSSN) = XV(NEQ,NR)/(PA(NSSN)*AMM*RN(NR,NSSN))
-            ENDIF
-         ENDDO
-         RW(NR,1) = YV(1,NR)
-         RW(NR,2) = YV(2,NR)
-         ANNU(NR) = RN(NR,7)+RN(NR,8)
-         BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
-      ENDDO
-C
-      ENDIF
 C
       SUM=0.D0
       DO NR=1,NRMAX

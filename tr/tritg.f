@@ -134,7 +134,9 @@ C
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
          ENDDO
          RPP   = RNTP+RN(NR+1,1)*RT(NR+1,1)
+     &               +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          RPM   = RNTM+RN(NR  ,1)*RT(NR  ,1)
+     &               +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          DPP   = (RPP-RPM)*DRL
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
          ALAL  =-QL*QL*DBDR*RR/RA
@@ -155,37 +157,44 @@ C
                RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
             ENDDO
             RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
             ENDDO
             RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
          ENDIF
             DO NS=2,NSMAX
                RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-         IF(NR.GE.NR-1) THEN
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         IF(NR.GE.NRMAX-1) THEN
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          ENDIF
-         IF(NR.GE.NR-2) THEN
+         IF(NR.GE.NRMAX-2) THEN
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          ENDIF
          RPIM=0.5D0*(RPI1+RPI2)
          RPI0=0.5D0*(RPI2+RPI3)
@@ -316,6 +325,8 @@ C
          RPP   = RNTP+PNSS(1)*PTS(1)
          RPM   = RNTM+RN(NR-1,1)*RT(NR-1,1)
      &               +RN(NR  ,1)*RT(NR  ,1)
+     &               +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
+     &               +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          DPP   = (RPP-RPM)*DRL
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*AMYU0))
          ALAL  =-QL*QL*DBDR*RR/RA
@@ -336,37 +347,44 @@ C
                RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
             ENDDO
             RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
             ENDDO
             RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
          ENDIF
             DO NS=2,NSMAX
                RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-         IF(NR.GE.NR-1) THEN
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         IF(NR.GE.NRMAX-1) THEN
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          ENDIF
-         IF(NR.GE.NR-2) THEN
+         IF(NR.GE.NRMAX-2) THEN
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
          ELSE
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          ENDIF
          RPIM=0.5D0*(RPI1+RPI2)
          RPI0=0.5D0*(RPI2+RPI3)

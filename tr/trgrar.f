@@ -435,13 +435,15 @@ C
       IF(MDNCLS.EQ.0) THEN
 C
       DO NR=1,NRMAX
-         GYR(NR+1,1) = GUCLIP(AK(NR,1))
-         GYR(NR+1,2) = GUCLIP(AK(NR,2))
+         GYR(NR+1,1) = GLOG(AK(NR,1),1.D-3,1.D2)
+         GYR(NR+1,2) = GLOG(AK(NR,2),1.D-3,1.D2)
       ENDDO
-      GYR(1,1) = GUCLIP(AK(1,1))
-      GYR(1,2) = GUCLIP(AK(1,2))
+      GYR(1,1) = GLOG(AK(1,1),1.D-3,1.D2)
+      GYR(1,2) = GLOG(AK(1,2),1.D-3,1.D2)
+C      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
+C     &           '@AKE,AKI vs r @',2+INQ)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
-     &           '@AKE,AKI vs r @',2+INQ)
+     &           '@LOG:AKE,AKI vs r @',11+INQ)
 C
       DO NR=1,NRMAX
 C         GYR(NR+1,1) = GLOG(AK  (NR,1),1.D-2,1.D2)
