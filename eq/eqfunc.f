@@ -28,7 +28,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          PPSI=PP0*(1.D0-PSIN**PROFR0)**PROFP0
      &       +PP1*(1.D0-PSIN**PROFR1)**PROFP1
          PSIITB=RHOITB**2
@@ -60,7 +60,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          DPPSI=-PP0*PROFP0*(1.D0-PSIN**PROFR0)**(PROFP0-1.D0)
      &                            *PROFR0*PSIN**(PROFR0-1.D0)
      &         -PP1*PROFP1*(1.D0-PSIN**PROFR1)**(PROFP1-1.D0)
@@ -99,7 +99,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          FPSI=BB*RR
      &       +FF0*(1.D0-PSIN**PROFR0)**PROFF0
      &       +FF1*(1.D0-PSIN**PROFR1)**PROFF1
@@ -128,7 +128,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          DFPSI=-FF0*PROFF0*(1.D0-PSIN**PROFR0)**(PROFF0-1.D0)
      &                            *PROFR0*PSIN**(PROFR0-1.D0)
      &         -FF1*PROFF1*(1.D0-PSIN**PROFR1)**(PROFF1-1.D0)
@@ -165,7 +165,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          QPSI=QQS
      &       +(QQ0-QQS)*(1.D0-PSIN**PROFR0)**PROFQ0
      &       +QQ1*(1.D0-PSIN**PROFR1)**PROFQ1
@@ -196,7 +196,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          DQPSI=-(QQ0-QQS)*PROFQ0*(1.D0-PSIN**PROFR0)**(PROFQ0-1.D0)
      &                            *PROFR0*PSIN**(PROFR0-1.D0)
      &         -QQ1*PROFQ1*(1.D0-PSIN**PROFR1)**(PROFQ1-1.D0)
@@ -235,7 +235,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          HJPSID=-PJ0*(1.D0-PSIN**PROFR0)**(PROFJ0+1.D0)
      &              /(PROFR0*(PROFJ0+1.D0))
      &          -PJ1*(1.D0-PSIN**PROFR1)**(PROFJ1+1.D0)
@@ -264,7 +264,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          HJPSI=PJ0*(1.D0-PSIN**PROFR0)**PROFJ0
      &                   *PSIN**(PROFR0-1.D0)
      &        +PJ1*(1.D0-PSIN**PROFR1)**PROFJ1
@@ -297,7 +297,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          TPSI=PTS+(PT0-PTS)*(1.D0-PSIN**PROFR0)**PROFT0
      &                 +PT1*(1.D0-PSIN**PROFR1)**PROFT1
          PSIITB=RHOITB**2
@@ -327,7 +327,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          DTPSI=(PT0-PTS)
      &            *PROFT0*(1.D0-PSIN**PROFR0)**(PROFT0-1.D0)
      &            *PROFR0*PSIN**(PROFR0-1.D0)
@@ -342,7 +342,7 @@ C
      &         /PSIITB
          ENDIF
          DTPSI=DTPSI*1.D3*AEE
-      ELSEIF(MODELF.EQ.2) THEN
+      ELSEIF(MDLEQF.EQ.2) THEN
          CALL SPL1DD(PSIN,TPSI,DTPSI,PSITRX,UTPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX DTPSI: SPL1DD : IERR=',IERR
          DTPSI=DTPSI*1.D3*AEE
@@ -367,7 +367,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          VPSI=PV0*(1.D0-PSIN**PROFR0)**PROFV0
      &       +PV1*(1.D0-PSIN**PROFR1)**PROFV1
          PSIITB=RHOITB**2
@@ -397,7 +397,7 @@ C
          PSIN=PSIN1
       ENDIF
 C
-      IF(MODELF.LT.5) THEN
+      IF(MDLEQF.LT.5) THEN
          DVPSI=-PV0*PROFV0*(1.D0-PSIN**PROFR0)**(PROFV0-1.D0)
      &             *PROFR0*PSIN**(PROFR0-1.D0)
      &         -PV1*PROFV1*(1.D0-PSIN**PROFR1)**(PROFV1-1.D0)

@@ -129,7 +129,7 @@ C
             CALL EQLOAD(1,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQSETP
-               CALL EQCAL2D(51,64,64,IERR)
+               CALL EQCALQ(51,64,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
             ENDIF
             INITEQ=1

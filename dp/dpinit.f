@@ -134,7 +134,7 @@ C
             CALL EQLOAD(MODELG,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQSETP
-               CALL EQCAL2D(51,32,64,IERR)
+               CALL EQCALQ(51,32,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
             ENDIF
             INITEQ=1

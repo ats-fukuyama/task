@@ -1,7 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+LFLAGS=$(OFLAGS)
 
 SRCS = fpmain.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
        fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f
@@ -56,3 +57,19 @@ fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpco
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../lib/libspl.o: ../lib/libspl.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libspl.f
+../lib/libbrn.o: ../lib/libbrn.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbrn.f
+../lib/libbde.o: ../lib/libbde.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbde.f
+../lib/libfp.o: ../lib/libfp.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libfp.f
+../lib/libbes.o: ../lib/libbes.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libbes.f
+../lib/libpcg.o: ../lib/libpcg.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libpcg.f
+../lib/libchar.o: ../lib/libchar.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libchar.f
+../lib/libfio.o: ../lib/libfio.f
+	$(FC) -o $@ $(LFLAGS) -c ../lib/libfio.f

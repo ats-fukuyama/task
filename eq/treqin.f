@@ -48,7 +48,7 @@ C
       AEE    = 1.60217733D-19
 C
       IERR   = 0
-      MODELF = 5
+      MDLEQF = 5
       RR     = RR1
       RA     = RA1
       RB     = RA1*1.2D0

@@ -218,19 +218,23 @@ C        EPSEQ : Convergence criterion for equilibrium
 C
       EPSEQ  = 1.D-6
 C
-C        MODELF : Profile parameter
-C            0: given analytic profile  P,J,T,Vph
+C        MDLEQF : Profile parameter
+C            0: given analytic profile  P,Jtoroidal,T,Vph
 C            1: given analytic profile  P,F,T,Vph
-C            2: given analytic profile  P,q,T,Vph
-C            5: given spline profile  P,J,T,Vph
+C            2: given analytic profile  P,Jparallel,T,Vph
+C            3: given analytic profile  P,q,T,Vph
+C            5: given spline profile  P,Jtoroial,T,Vph
 C            6: given spline profile  P,F,T,Vph
-C            7: given spline profile  P,q,T,Vph
+C            7: given spline profile  P,Jparapllel,T,Vph
+C            8: given spline profile  P,q,T,Vph
 C
-      MODELF = 0
+      MDLEQF = 0
 C
-C        KMODE : Parameter file error judgement
+C        MDLEQC : Poloidal coordinate parameter
+C            0: Poloidal length coordinate
+C            1: Boozer coordinate
 C
-      KMODE = 0
+      MDLEQC = 0
 C
 C        NPRINT: Level print out
 C
@@ -263,12 +267,12 @@ C
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
-     &              PROFR0,PROFR1,PROFR2,RHOITB,
+     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,
      &              NSGMAX,NTGMAX,
      &              NRGMAX,NZGMAX,
-     &              EPSEQ,MODELF,
      &              NPSMAX,KNAMEQ,
-     &              NRMAX,NTHMAX,NSUMAX,NPRINT
+     &              NRMAX,NTHMAX,NSUMAX,
+     &              MDLEQF,MDLEQC,NPRINT
 C
       MODE=0
     1 CONTINUE
@@ -339,10 +343,10 @@ C
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS'/
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
-     &       9X,'PROFR0,PROFR1,PROFR2,RHOITB'/
+     &       9X,'PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NRGMAX,NZGMAX,NPSMAX'/
-     &       9X,'NRMAX,NTHMAX,NSUMAX,EPSEQ,MODELF,KNAMEQ'/
-     &       9X,'NPRINT')
+     &       9X,'NRMAX,NTHMAX,NSUMAX,KNAMEQ'/
+     &       9X,'MDLEQF,MDLEQC,NPRINT')
       END
 C
 C     ****** SHOW PARAMETERS ******
@@ -406,7 +410,8 @@ C
      &             'NTHMAX',NTHMAX,
      &             'NPSMAX',NPSMAX,
      &             'NSUMAX',NSUMAX
-      WRITE(6,602) 'MODELF',MODELF,
+      WRITE(6,602) 'MDLEQF',MDLEQF,
+     &             'MDLEQC',MDLEQC,
      &             'NPRINT',NPRINT
 C
       RETURN

@@ -1092,7 +1092,7 @@ C
 C     ***** Rays ***********
       SUBROUTINE WRGRFE
 C
-      INCLUDE 'wrcomm.h'
+      INCLUDE 'wrcomm.inc'
 C
       DIMENSION GSX (NITM+1,NRAYM),GRX (NITM+1,NRAYM)
       DIMENSION GKY1(NITM+1,NRAYM),GKY2(NITM+1,NRAYM)

@@ -304,12 +304,12 @@ C         IERR=103
 C         RETURN
 C      ENDIF
 C
-      IMODELF=MOD(MODELF,5)
+      IMDLEQF=MOD(MDLEQF,5)
       FDN=-1.D0/PSI0
 C
 C     --- Pressure and current profile ---
 C
-      IF(IMODELF.EQ.0) THEN
+      IF(IMDLEQF.EQ.0) THEN
          RRC=RAXIS
          FJP=0.D0
          FJT=0.D0
@@ -356,7 +356,7 @@ C
 C
 C     --- Pressure and toroidal field profile ---
 C
-      ELSEIF(IMODELF.EQ.1) THEN
+      ELSEIF(IMDLEQF.EQ.1) THEN
          FJP=0.D0
          FJT1=0.D0
          FJT2=0.D0
@@ -395,7 +395,7 @@ C
 C
 C     --- Pressure and safety factor profile ---
 C
-      ELSEIF(IMODELF.EQ.2) THEN
+      ELSEIF(IMDLEQF.EQ.2) THEN
          CALL EQPSIQ
          FJP=0.D0
          FJT1=0.D0
@@ -610,7 +610,7 @@ C
 C
       INCLUDE 'eqcomc.inc'
 C
-      IMODELF=MOD(MODELF,5)
+      IMDLEQF=MOD(MDLEQF,5)
       FDN=-1.D0/PSI0
       DPS=PSI0/(NPSMAX-1)
       DO NPS=1,NPSMAX
@@ -618,16 +618,16 @@ C
          PSIN=1.D0-PSIPS(NPS)/PSI0
          PPPS(NPS)=PPSI(PSIN)
 C
-         IF (IMODELF.EQ.0) THEN
+         IF (IMDLEQF.EQ.0) THEN
             OMPS(NPS)=OMGPSI(PSIN)
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
      &                  *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
      &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
-         ELSEIF (IMODELF.EQ.1) THEN
+         ELSEIF (IMDLEQF.EQ.1) THEN
             TTPS(NPS)=BB*RR+TJ*(FPSI(PSIN)-BB*RR)
             OMPS(NPS)=OMGPSI(PSIN)
-         ELSEIF (IMODELF.EQ.2) THEN
+         ELSEIF (IMDLEQF.EQ.2) THEN
             CALL FNFQT(PSIN,FQTL,DFQTL)
             QPSIL=QPSI(PSIN)
             TTPS(NPS)=QPSIL/FQTL
