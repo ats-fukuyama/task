@@ -479,7 +479,7 @@ C
 C
       DO NTH=1,NTHMAX
       DO NR=1,NRMAX
-         GY(NR,NTH)=GCLIP(PABS(NTH,NPH,NR,NG3))
+         GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
       ENDDO
       ENDDO
 C

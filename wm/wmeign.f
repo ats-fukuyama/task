@@ -47,8 +47,8 @@ C
                   CALl GUFLSH
                ENDIF
             ENDIF
-            GX(NGF)=GCLIP(FR)
-            GZ(NGF,1)=GCLIP(LOG10(AMPL))
+            GX(NGF)=GUCLIP(FR)
+            GZ(NGF,1)=GUCLIP(LOG10(AMPL))
             IF(AMPL.LE.AMPMIN) THEN
                FRINI=FR
                FIINI=FI
@@ -61,7 +61,7 @@ C
             CALL GUFLSH
          ENDIF
 C
-         CALL WMEG1D(GX,GZ,NGZM,NGFMAX,1,GCLIP(FI0))
+         CALL WMEG1D(GX,GZ,NGZM,NGFMAX,1,GUCLIP(FI0))
 C
       GOTO 1
 C
@@ -87,7 +87,7 @@ C
       CALL GFRAME
       CALL GSCALE(GXMIN,  GXSCL,0.0,0.0,0.2,9)
       GXMIN=NINT(GXMIN/(2*GXSCL)+1)*2*GXSCL
-      CALL GVALUE(GXMIN,2*GXSCL,0.0,0.0,NGVLEN(2*GXSCL))  
+      CALL GVALUE(GXMIN,2*GXSCL,0.0,0.0,NGULEN(2*GXSCL))  
       CALL GSCALL(0.0,0,  GZMIN,3,0.2,9)
       GZMIN=NINT(GZMIN/(2*GZSCL)+1)*2*GZSCL
       CALL GVALUL(0.0,0,  GZMIN,1,1)
@@ -162,7 +162,7 @@ C
          DELTFI=(FIMAX-FIMIN)/(NGYMAX-1)
          DO NGX=1,NGXMAX
             FR=FRMIN+(NGX-1)*DELTFR
-            GX(NGX)=GCLIP(FR)
+            GX(NGX)=GUCLIP(FR)
             DO NGY=1,NGYMAX
                FI=FIMIN+(NGY-1)*DELTFI
                CALL DIAMIN(FR,FI,AMPL)
@@ -172,8 +172,8 @@ C
                CALL GUFLSH
                ENDIF
                ENDIF
-               GY(NGY)=GCLIP(FI)
-               GZ(NGX,NGY)=GCLIP(AMPL)
+               GY(NGY)=GUCLIP(FI)
+               GZ(NGX,NGY)=GUCLIP(AMPL)
             ENDDO
          ENDDO
 C
@@ -546,7 +546,7 @@ C
 C
          DO NSC=1,NSCMAX
             SC=SCMIN+DSC*(NSC-1)
-            GX(NSC)=GCLIP(SC)
+            GX(NSC)=GUCLIP(SC)
          ENDDO
 C
          DO NSC=1,NSCMAX
@@ -618,9 +618,9 @@ C
             IF(IERR.NE.0) GOTO 3000
 C
             CALL DIAMIN(XX,YY,AMPL)
-            GY(NSC,1)=GCLIP(XX)
-            GY(NSC,2)=GCLIP(YY)
-            GY(NSC,3)=GCLIP(AMPL)
+            GY(NSC,1)=GUCLIP(XX)
+            GY(NSC,2)=GUCLIP(YY)
+            GY(NSC,3)=GUCLIP(AMPL)
             X=XX
             Y=YY
          ENDDO

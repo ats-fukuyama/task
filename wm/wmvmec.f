@@ -564,11 +564,11 @@ C
      &        13.8, 21.6,  1.0,  8.0/
 C
       DO NXG=1,NXGMAX
-         GX(NXG)=GCLIP(XG(NXG))
-         GY(NXG)=GCLIP(YG(NXG))
+         GX(NXG)=GUCLIP(XG(NXG))
+         GY(NXG)=GUCLIP(YG(NXG))
       ENDDO
       GXMIN=0.0
-      GXMAX=GCLIP(RB/RA)
+      GXMAX=GUCLIP(RB/RA)
 C
       CALL WMGSUB(NXGMAX,GX,GXMIN,GXMAX,GY,1,GP(1,NGD),KTITL)
 C

@@ -124,40 +124,40 @@ C
             ENDIF
 C
             IF(K4.EQ.'R') THEn
-               GY(NR,NTH)=GCLIP(DBLE(CFL))
+               GY(NR,NTH)=GUCLIP(DBLE(CFL))
             ELSEIF(K4.EQ.'I') THEN
-               GY(NR,NTH)=GCLIP(DIMAG(CFL))
+               GY(NR,NTH)=GUCLIP(DIMAG(CFL))
             ELSEIF(K4.EQ.'A') THEN
-               GY(NR,NTH)=GCLIP(ABS(CFL))
+               GY(NR,NTH)=GUCLIP(ABS(CFL))
             ELSE
                WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
                GOTO 9000
             ENDIF
          ELSEIF(K2.EQ.'P') THEN
             IF(NR.LE.NRMAX) THEN
-               GY(NR,NTH)=GCLIP(PABS(NTH,NPH,NR,NG3))
+               GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
             ELSE
                GY(NR,NTH)=0.0
             ENDIF
          ELSE IF (K2.EQ.'J') THEN
             IF(NR.LE.NRMAX) THEN
-               GY(NR,NTH)=GCLIP(PCUR(NTH,NPH,NR))
+               GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
             ELSE
                GY(NR,NTH)=0.0
             ENDIF
          ELSE IF (K2.EQ.'F') THEN
             IF(NG3.EQ.1) THEN
-               GY(NR,NTH) =GCLIP(PSIPS(NR))
+               GY(NR,NTH) =GUCLIP(PSIPS(NR))
             ELSEIF(NG3.EQ.2) THEN
-               GY(NR,NTH) =GCLIP(BR(NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BR(NTH,NPH,NR))
             ELSEIF(NG3.EQ.3) THEN
-               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR)/BFLD(2,NTH,NPH,NR))
             ELSEIF(NG3.EQ.4) THEN
-               GY(NR,NTH) =GCLIP(BFLD(2,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(2,NTH,NPH,NR))
             ELSEIF(NG3.EQ.5) THEN
-               GY(NR,NTH) =GCLIP(BFLD(3,NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR))
             ELSEIF(NG3.EQ.6) THEN
-               GY(NR,NTH) =GCLIP(RJ(NTH,NPH,NR))
+               GY(NR,NTH) =GUCLIP(RJ(NTH,NPH,NR))
             ENDIF
          ENDIF
       ENDDO
@@ -272,25 +272,25 @@ C
          RTITL(8)='PSI   '
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG11(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG11(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(1),GP(1,1))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG12(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG12(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(2),GP(1,2))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG13(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG13(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(3),GP(1,3))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG22(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG22(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(4),GP(1,4))
@@ -300,24 +300,24 @@ C
          CALL SETCHS(0.3,0.0)
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG23(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG23(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(5),GP(1,1))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RG33(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RG33(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(6),GP(1,2))
          DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
-            GY(NR,NTH)=GCLIP(RJ(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(RJ(NTH,NPH,NR))
          ENDDO
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
          DO NR=1,NRMAX+1
-            GY(NR,1)=GCLIP(PSIPS(NR))
+            GY(NR,1)=GUCLIP(PSIPS(NR))
          ENDDO
          CALL WMGGR(GY,1,RTITL(8),GP(1,4))
          CALL WMGPRM('C',K3,0,0,0,0)
@@ -343,8 +343,8 @@ C
 C
       DO NR=1,NRMAX+1
       DO NTH=1,NTHMAX
-         GRL(NR,NTH)=GCLIP(RPS(NTH,NR))
-         GZL(NR,NTH)=GCLIP(ZPS(NTH,NR))
+         GRL(NR,NTH)=GUCLIP(RPS(NTH,NR))
+         GZL(NR,NTH)=GUCLIP(ZPS(NTH,NR))
       ENDDO
       ENDDO
 C
@@ -373,16 +373,16 @@ C
          NTHGMAX=NTHGM
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GCLIP(RPSG(NTH,NR))
-            GZL(NR,NTH)=GCLIP(ZPSG(NTH,NR))
+            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
          ENDDO
          ENDDO
       ELSE
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GCLIP(RPST(NTH,NPH,NR))
-            GZL(NR,NTH)=GCLIP(ZPST(NTH,NPH,NR))
+            GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
          ENDDO
          ENDDO
       ENDIF
@@ -396,9 +396,9 @@ C
             NTHL=(NTH-1)*NTHGS+NTHG
             FACT=DBLE(NTHG-1)/NTHGS
             VAL=(1.D0-FACT)*BR(NTH,NPH,NR)+FACT*BR(NTHP,NPH,NR)
-            GBY(NR,NTHL)=GCLIP(VAL)
+            GBY(NR,NTHL)=GUCLIP(VAL)
             VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
-            GFL(NR,NTHL)=GCLIP(VAL)
+            GFL(NR,NTHL)=GUCLIP(VAL)
          ENDDO
       ENDDO
       ENDDO
@@ -408,8 +408,8 @@ C
       GGFSTP=0.5*GGFSTP
       NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
 C
-      GRLEN=GCLIP(RGMAX-RGMIN)
-      GZLEN=GCLIP(ZGMAX-ZGMIN)
+      GRLEN=GUCLIP(RGMAX-RGMIN)
+      GZLEN=GUCLIP(ZGMAX-ZGMIN)
       IF(GRLEN.GT.GZLEN) THEN
          GPR=15.0
          GPZ=15.0*GZLEN/GRLEN
@@ -417,19 +417,19 @@ C
          GPR=15.0*GRLEN/GZLEN
          GPZ=15.0
       ENDIF
-      CALL GQSCAL(GCLIP(RGMIN),GCLIP(RGMAX),GGRMIN,GGRMAX,GGRSTP)
-      CALL GQSCAL(GCLIP(ZGMIN),GCLIP(ZGMAX),GGZMIN,GGZMAX,GGZSTP)
+      CALL GQSCAL(GUCLIP(RGMIN),GUCLIP(RGMAX),GGRMIN,GGRMAX,GGRSTP)
+      CALL GQSCAL(GUCLIP(ZGMIN),GUCLIP(ZGMAX),GGZMIN,GGZMAX,GGZSTP)
 
 C
       CALL SETLIN(0,2,7)
       CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
-     &            GCLIP(RGMIN),GCLIP(RGMAX),
-     &            GCLIP(ZGMIN),GCLIP(ZGMAX))
+     &            GUCLIP(RGMIN),GUCLIP(RGMAX),
+     &            GUCLIP(ZGMIN),GUCLIP(ZGMAX))
       CALL GFRAME
       CALL GSCALE(GGRMIN+GGRSTP,GGRSTP,0.0,0.0,0.1,9)
-      CALL GVALUE(GGRMIN+GGRSTP,GGRSTP*2,0.0,0.0,NGVLEN(2*GGRSTP))
+      CALL GVALUE(GGRMIN+GGRSTP,GGRSTP*2,0.0,0.0,NGULEN(2*GGRSTP))
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGVLEN(2*GGZSTP))
+      CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(2*GGZSTP))
 C
       IF(GFMIN*GFMAX.GT.0.0) THEN
          CALL SETLIN(-1,-1,6)
@@ -446,17 +446,17 @@ C
 C
       IF(K2.EQ.'P'.AND.K3.EQ.'3') THEN
 C
-         GBICF=GCLIP(BICF)
+         GBICF=GUCLIP(BICF)
          CALL SETLIN(0,-1,4)
          CALL CONTP5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
      &               GBICF,1.0,1,2,7,KACONT)
 C
       ENDIF
 C
-      DO 1030 NSU=1,NSUMAX
-         GRS(NSU)=GCLIP(RSU(NSU,NPH))
-         GZS(NSU)=GCLIP(ZSU(NSU,NPH))
- 1030 CONTINUE
+      DO NSU=1,NSUMAX
+         GRS(NSU)=GUCLIP(RSU(NSU,NPH))
+         GZS(NSU)=GUCLIP(ZSU(NSU,NPH))
+      ENDDO
       CALL SETLIN(-1,-1,4)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
@@ -465,10 +465,10 @@ C
       ELSE
          NPHD=NPH
       ENDIF
-      DO 1040 NSW=1,NSWMAX
-         GRS(NSW)=GCLIP(RSW(NSW,NPHD))
-         GZS(NSW)=GCLIP(ZSW(NSW,NPHD))
- 1040 CONTINUE
+      DO NSW=1,NSWMAX
+         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
+         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
+      ENDDO
       CALL SETLIN(-1,-1,7)
       CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
 C
@@ -510,16 +510,16 @@ C
          NTHGMAX=NTHGM
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GCLIP(RPSG(NTH,NR))
-            GZL(NR,NTH)=GCLIP(ZPSG(NTH,NR))
+            GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
          ENDDO
          ENDDO
       ELSE
          NTHGMAX=NTHMAX
          DO NR=1,NRMAX+1
          DO NTH=1,NTHGMAX
-            GRL(NR,NTH)=GCLIP(RPST(NTH,NPH,NR))
-            GZL(NR,NTH)=GCLIP(ZPST(NTH,NPH,NR))
+            GRL(NR,NTH)=GUCLIP(RPST(NTH,NPH,NR))
+            GZL(NR,NTH)=GUCLIP(ZPST(NTH,NPH,NR))
          ENDDO
          ENDDO
       ENDIF
@@ -537,9 +537,9 @@ C
                FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
             ENDIF
             VAL=(1.D0-FACT)*BR(NTH,NPH,NR)+FACT*BR(NTHP,NPH,NR)
-            GBY(NR,NTHL)=GCLIP(VAL)
+            GBY(NR,NTHL)=GUCLIP(VAL)
             VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
-            GFL(NR,NTHL)=GCLIP(VAL)
+            GFL(NR,NTHL)=GUCLIP(VAL)
          ENDDO
       ENDDO
       ENDDO
@@ -575,8 +575,8 @@ C         ENDDO
 C
 C      ENDIF
 C
-      GRLEN=GCLIP(RGMAX-RGMIN)
-      GZLEN=GCLIP(ZGMAX-ZGMIN)
+      GRLEN=GUCLIP(RGMAX-RGMIN)
+      GZLEN=GUCLIP(ZGMAX-ZGMIN)
       IF(GRLEN.GT.GZLEN) THEN
          GPR=15.0
          GPZ=15.0*GZLEN/GRLEN
@@ -584,19 +584,19 @@ C
          GPR=15.0*GRLEN/GZLEN
          GPZ=15.0
       ENDIF
-      CALL GQSCAL(GCLIP(RGMIN),GCLIP(RGMAX),GGRMIN,GGRMAX,GGRSTP)
-      CALL GQSCAL(GCLIP(ZGMIN),GCLIP(ZGMAX),GGZMIN,GGZMAX,GGZSTP)
+      CALL GQSCAL(GUCLIP(RGMIN),GUCLIP(RGMAX),GGRMIN,GGRMAX,GGRSTP)
+      CALL GQSCAL(GUCLIP(ZGMIN),GUCLIP(ZGMAX),GGZMIN,GGZMAX,GGZSTP)
 
 C
       CALL SETLIN(0,2,7)
       CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
-     &            GCLIP(RGMIN),GCLIP(RGMAX),
-     &            GCLIP(ZGMIN),GCLIP(ZGMAX))
+     &            GUCLIP(RGMIN),GUCLIP(RGMAX),
+     &            GUCLIP(ZGMIN),GUCLIP(ZGMAX))
       CALL GFRAME
       CALL GSCALE(GGRMIN+GGRSTP,GGRSTP,0.0,0.0,0.1,9)
-      CALL GVALUE(GGRMIN+GGRSTP,GGRSTP*2,0.0,0.0,NGVLEN(2*GGRSTP))
+      CALL GVALUE(GGRMIN+GGRSTP,GGRSTP*2,0.0,0.0,NGULEN(2*GGRSTP))
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGVLEN(2*GGZSTP))
+      CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(2*GGZSTP))
 C
       CALL CONTF5(GFL,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
      &            GDL,GRGBL,ISTEP,2)
@@ -624,17 +624,17 @@ C
 C
       IF(K2.EQ.'P'.AND.K3.EQ.'3') THEN
 C
-         GBICF=GCLIP(BICF)
+         GBICF=GUCLIP(BICF)
          CALL SETRGB(0.0,1.0,0.0)
          CALL CONTP5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
      &               GBICF,1.0,1,2,7,KACONT)
 C
       ENDIF
 C
-      DO 1030 NSU=1,NSUMAX
-         GRS(NSU)=GCLIP(RSU(NSU,NPH))
-         GZS(NSU)=GCLIP(ZSU(NSU,NPH))
- 1030 CONTINUE
+      DO NSU=1,NSUMAX
+         GRS(NSU)=GUCLIP(RSU(NSU,NPH))
+         GZS(NSU)=GUCLIP(ZSU(NSU,NPH))
+      ENDDO
       CALL SETRGB(0.0,1.0,0.0)
       CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
 C
@@ -643,10 +643,10 @@ C
       ELSE
          NPHD=NPH
       ENDIF
-      DO 1040 NSW=1,NSWMAX
-         GRS(NSW)=GCLIP(RSW(NSW,NPHD))
-         GZS(NSW)=GCLIP(ZSW(NSW,NPHD))
- 1040 CONTINUE
+      DO NSW=1,NSWMAX
+         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
+         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
+      ENDDO
       CALL SETRGB(0.0,0.0,0.0)
       CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
 C
@@ -695,18 +695,19 @@ C
          TH(NTH)=DTH*(NTH-1)
       ENDDO
 C
-      DO 1000 NR=1,NRMAX+1
-      DO 1000 NTH=1,NTHMAX
+      DO NR=1,NRMAX+1
+      DO NTH=1,NTHMAX
          RBS(NR,NTH)=RPST(NTH,NPH,NR)
          ZBS(NR,NTH)=ZPST(NTH,NPH,NR)
          FBS(NR,NTH)=DBLE(GFL(NR,NTH))
- 1000 CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 1100 NR=1,NRMAX+1
+      DO NR=1,NRMAX+1
          RBS(NR,NTHMAX+1)=RPST(1,NPH,NR)
          ZBS(NR,NTHMAX+1)=ZPST(1,NPH,NR)
          FBS(NR,NTHMAX+1)=DBLE(GFL(NR,1))
- 1100 CONTINUE
+      ENDDO
 C
       DO NR=1,NRMAX+1
          FY(NR,1)=0.D0
@@ -780,10 +781,10 @@ C
 C
       EPS=1.D-8
 C
-      DO 200 NYP=1,NDIV+1
+      DO NYP=1,NDIV+1
 C
          IXFST=0
-         DO 100 NXP=1,NDIV+1
+         DO NXP=1,NDIV+1
 C
             CALL SPL1DF(XMP(NXP),ZUPL,RSWB,U1,NSWMAX1,IERR)
             IF(IERR.EQ.2) THEN
@@ -795,8 +796,8 @@ C
             ENDIF
 C
             IF(YMP(NYP).LT.ZDWL.OR.YMP(NYP).GT.ZUPL) THEN
-C               GXM(NXP)    =GCLIP(XMP(NXP))
-C               GYM(NYP)    =GCLIP(YMP(NYP))
+C               GXM(NXP)    =GUCLIP(XMP(NXP))
+C               GYM(NYP)    =GUCLIP(YMP(NYP))
                GFM(NXP,NYP)=0.0
                GO TO 100
             ENDIF
@@ -887,11 +888,12 @@ C
                FMP = 0.D0
             ENDIF
 C
-            GFM(NXP,NYP)=GCLIP(FMP     )
+            GFM(NXP,NYP)=GUCLIP(FMP     )
             IXFST=IXFST+1
 C
-  100    CONTINUE
-  200 CONTINUE
+  100       CONTINUE
+         ENDDO
+      ENDDO
 C
       GZMIN= 1.E32
       GZMAX=-1.E32
@@ -906,10 +908,10 @@ C
          GZMIN=-GMAX
       ENDIF
 C
-      GXMAX=GCLIP(RGMAX)
-      GXMIN=GCLIP(RGMIN)
-      GYMAX=GCLIP(ZGMAX)
-      GYMIN=GCLIP(ZGMIN)
+      GXMAX=GUCLIP(RGMAX)
+      GXMIN=GUCLIP(RGMIN)
+      GYMAX=GUCLIP(ZGMAX)
+      GYMIN=GUCLIP(ZGMIN)
 C
       CALL SETLIN(0,0,7)
 C      CALL SETCHS(0.20,0.0)
@@ -943,13 +945,13 @@ C      CALL GVALUE3DZ(0.0,2.*GZSCAL,-2,1)
 C
       CALL SETRGB(0.0,1.0,0.0)
       NSU=1
-         GRL=GCLIP(RSU(NSU,NPH))
-         GZL=GCLIP(ZSU(NSU,NPH))
+         GRL=GUCLIP(RSU(NSU,NPH))
+         GZL=GUCLIP(ZSU(NSU,NPH))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL MOVE(GXP,GYP)
       DO NSU=2,NSUMAX
-         GRL=GCLIP(RSU(NSU,NPH))
-         GZL=GCLIP(ZSU(NSU,NPH))
+         GRL=GUCLIP(RSU(NSU,NPH))
+         GZL=GUCLIP(ZSU(NSU,NPH))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL DRAW(GXP,GYP)
       ENDDO
@@ -961,13 +963,13 @@ C
       ENDIF
       CALL SETRGB(0.0,0.0,0.0)
       NSW=1
-         GRL=GCLIP(RSW(NSW,NPHD))
-         GZL=GCLIP(ZSW(NSW,NPHD))
+         GRL=GUCLIP(RSW(NSW,NPHD))
+         GZL=GUCLIP(ZSW(NSW,NPHD))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL MOVE(GXP,GYP)
       DO NSW=2,NSWMAX
-         GRL=GCLIP(RSW(NSW,NPHD))
-         GZL=GCLIP(ZSW(NSW,NPHD))
+         GRL=GUCLIP(RSW(NSW,NPHD))
+         GZL=GUCLIP(ZSW(NSW,NPHD))
          CALL GTTTA(GRL,GZL,0.0,GXP,GYP)
          CALL DRAW(GXP,GYP)
       ENDDO
@@ -1185,8 +1187,8 @@ C
       KMAX=NSTEP
 C
       IE=0
-      DO 100 NY=1,NYM
-      DO 100 NX=1,NXM
+      DO NY=1,NYM
+      DO NX=1,NXM
          IE=IE+1
          NXP=NX+1
          NYP=NY+1
@@ -1201,13 +1203,14 @@ C
          K3=INT((Z(NXP,NY )-ZORG)/ZSTEP+ZBIAS)
          KA(1,IE)=MAX(MIN(K1,K2,K3),1)
          KA(2,IE)=MAX(K1,K2,K3,1)
-  100 CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 1000 K=1,KMAX
+      DO K=1,KMAX
          U0=REAL(K+1)
-      DO 1000 NY=1,NYM
-      DO 1000 NX=1,NXM
-      DO 1000 NE=1,2
+      DO NY=1,NYM
+      DO NX=1,NXM
+      DO NE=1,2
          IE=(NXM*(NY-1)+NX-1)*2+NE
          IF(KA(1,IE).LE.K.AND.KA(2,IE).GT.K) THEN
             N1X=NX
@@ -1422,7 +1425,11 @@ C
             IF(.NOT.LEND) GOTO 200
 C
          ENDIF
- 1000 CONTINUE
+ 1000    CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -1467,22 +1474,22 @@ C
          RGBS(1,0)=RGB(1,0)
          RGBS(2,0)=RGB(2,0)
          RGBS(3,0)=RGB(3,0)
-         DO 10 J=1,KMAX
+         DO J=1,KMAX
             HT(J)=ZL(J)
             RGBS(1,J)=RGB(1,J)
             RGBS(2,J)=RGB(2,J)
             RGBS(3,J)=RGB(3,J)
-   10    CONTINUE
+         ENDDO
       ELSE
          RGBS(1,0)=RGB(1,KMAX)
          RGBS(2,0)=RGB(2,KMAX)
          RGBS(3,0)=RGB(3,KMAX)
-         DO 20 J=1,KMAX
+         DO J=1,KMAX
             HT(J)=ZL(KMAX-J+1)
             RGBS(1,J)=RGB(1,KMAX-J+1)
             RGBS(2,J)=RGB(2,KMAX-J+1)
             RGBS(3,J)=RGB(3,KMAX-J+1)
-   20    CONTINUE
+         ENDDO
       ENDIF
 C
       HT(0)=-1.E35
@@ -1493,8 +1500,8 @@ C
       IF(IPRD.EQ.1.OR.IPRD.EQ.3) NXMAX=NX
       IF(IPRD.EQ.2.OR.IPRD.EQ.3) NYMAX=NY
 C
-      DO 100 J=1,NYMAX
-      DO 100 I=1,NXMAX
+      DO J=1,NYMAX
+      DO I=1,NXMAX
          IF(INDX.EQ.0.OR.INDX.EQ.2) THEN
             XA(1)=X(1)*(NXA*(J-1)+I-1)+X(2)
             XA(2)=X(1)*(NXA*(J-1)+I  )+X(2)
@@ -1539,7 +1546,7 @@ C
 C
          CALL CONTFX(XA,YA,ZA,4,XT,YT,JH,HT,KMAX)
 C
-         DO 100 IH=0,KMAX
+         DO IH=0,KMAX
             IF(JH(IH).GE.3) THEN
                CALL SETRGB(RGBS(1,IH),RGBS(2,IH),RGBS(3,IH))
                CALL SUBV(XT(1,IH),YT(1,IH),JH(IH),XG,YG,100,NN)
@@ -1547,7 +1554,9 @@ C
                YG(NN+1)=YG(1)
                CALL POLY(XG,YG,NN+1)
             ENDIF
-  100 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       CALL SETRGB(RS,GS,BS)
       RETURN
@@ -1589,11 +1598,11 @@ C
 C
       DATA ICL/7,6,5,4,3,2/,IPAT/0,2,4,6,3,1/
 C
-      GXMIN=GCLIP(XR(1))
-      GXMAX=GCLIP(XR(NRMAX+1))
-      DO 10 NR=1,NRMAX+1
-   10    GX(NR)=GCLIP(XR(NR))
-      CONTINUE
+      GXMIN=GUCLIP(XR(1))
+      GXMAX=GUCLIP(XR(NRMAX+1))
+      DO NR=1,NRMAX+1
+         GX(NR)=GUCLIP(XR(NR))
+      ENDDO
       CALL GMNMX2(GY,NRM,1,NRMAX+1,1,1,NGMAX,1,GYMIN,GYMAX)
 C
       CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSX)
@@ -1613,15 +1622,15 @@ C
       CALL GDEFIN(GP(1),GP(2),GP(3),GP(4),GXMIN,GXMAX,GSYMIN,GSYMAX)
       CALL GFRAME
       CALL GSCALE(GXMIN,GSX,0.0,0.0,0.1,9)
-      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGVLEN(GSX*5))
+      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGULEN(GSX*5))
       CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGVLEN(GSY*2))
+      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGULEN(GSY*2))
 C
-      DO 20 I=1,NGMAX
+      DO I=1,NGMAX
          ILD=MOD(I-1,6)+1
          CALL SETLIN(0,2,ICL(ILD))
          CALL GPLOTP(GX,GY(1,I),1,NRMAX+1,1,0,0,IPAT(ILD))
-   20 CONTINUE
+      ENDDO
       CALL SETLIN(0,2,7)
 C
  9000 CALL MOVE(GP(1),GP(4)+0.2)
@@ -1641,11 +1650,11 @@ C
       X1=DX*(RMAX-GXS)+PXS
       Y1=DY*(    -GYS)+PYS
       CALL MOVE(X1,Y1)
-      DO 10 I=1,101
+      DO I=1,101
          X1=DX*(RMAX*COS(DT1*(I-1))-GXS)+PXS
          Y1=DY*(RMAX*SIN(DT1*(I-1))-GYS)+PYS
          CALL DRAW(X1,Y1)
-   10 CONTINUE
+      ENDDO
 C
       RETURN
       END

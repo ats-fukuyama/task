@@ -80,16 +80,16 @@ C
      &        13.8, 21.6,  9.5, 16.5,
      &        13.8, 21.6,  1.0,  8.0/
 C
-      GXMIN=GCLIP(XR(1))
-      GXMAX=GCLIP(XR(NRMAX+1))
+      GXMIN=GUCLIP(XR(1))
+      GXMAX=GUCLIP(XR(NRMAX+1))
 C
       IF(K2.EQ.'E') THEN
          NR=1
-            GX1(NR)=GCLIP(       XR(NR))
-            GX2(NR)=GCLIP(       XR(NR))
+            GX1(NR)=GUCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(       XR(NR))
          DO NR=2,NRMAX+1
-            GX1(NR)=GCLIP(       XR(NR))
-            GX2(NR)=GCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+            GX1(NR)=GUCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
          ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
@@ -100,11 +100,11 @@ C
          KTITL(4)='Pabs  '
       ELSE
          NR=1
-            GX2(NR)=GCLIP(       XR(NR))
-            GX1(NR)=GCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(       XR(NR))
+            GX1(NR)=GUCLIP(       XR(NR))
          DO NR=2,NRMAX+1
-            GX2(NR)=GCLIP(       XR(NR))
-            GX1(NR)=GCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+            GX2(NR)=GUCLIP(       XR(NR))
+            GX1(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
          ENDDO
          NX1=NRMAX+1
          NX2=NRMAX+1
@@ -287,27 +287,27 @@ C
 C        *** E/B(R) ****
 C
          DO NR=1,NX2
-            GY(NR,1)=GCLIP(DBLE(CF(NR,1)))
-            GY(NR,2)=GCLIP(DIMAG(CF(NR,1)))
-            GY(NR,3)=GCLIP(ABS(CF(NR,1)))
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,1)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,1)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,1)))
          ENDDO
          CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,1),KTITL(1))
 C
 C        *** E/B(THETA) ****
 C
          DO NR=1,NX1
-            GY(NR,1)=GCLIP(DBLE(CF(NR,2)))
-            GY(NR,2)=GCLIP(DIMAG(CF(NR,2)))
-            GY(NR,3)=GCLIP(ABS(CF(NR,2)))
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,2)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,2)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,2)))
          ENDDO
          CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,2),KTITL(2))
 C
 C        *** E/B(Z) ****
 C
          DO NR=1,NX1
-            GY(NR,1)=GCLIP(DBLE(CF(NR,3)))
-            GY(NR,2)=GCLIP(DIMAG(CF(NR,3)))
-            GY(NR,3)=GCLIP(ABS(CF(NR,3)))
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,3)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,3)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,3)))
          ENDDO
          CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,3),KTITL(3))
 C
@@ -315,7 +315,7 @@ C        *** POWER / CURRENT ***
 C
          DO I=1,NG4
          DO NR=1,NX2
-            GY(NR,I)=GCLIP(POWER(NR,I))
+            GY(NR,I)=GUCLIP(POWER(NR,I))
          ENDDO
          ENDDO
          CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,NG4,GP(1,4),KTITL(4))
@@ -325,8 +325,8 @@ C        *** E/B(R) ****
 C
          DO I=1,IMAX
          DO NR=1,NX2
-            GY1(NR,I)=GCLIP(DBLE(CF1(NR,I)))
-            GY2(NR,I)=GCLIP(DIMAG(CF1(NR,I)))
+            GY1(NR,I)=GUCLIP(DBLE(CF1(NR,I)))
+            GY2(NR,I)=GUCLIP(DIMAG(CF1(NR,I)))
          ENDDO
          ENDDO
          CALL WMGN1D(NX1,GX1,GXMIN,GXMAX,GY1,GY2,IMAX,GP(1,1),KTITL(1))
@@ -335,8 +335,8 @@ C        *** E/B(THETA) ****
 C
          DO I=1,IMAX
          DO NR=1,NX1
-            GY1(NR,I)=GCLIP(DBLE(CF2(NR,I)))
-            GY2(NR,I)=GCLIP(DIMAG(CF2(NR,I)))
+            GY1(NR,I)=GUCLIP(DBLE(CF2(NR,I)))
+            GY2(NR,I)=GUCLIP(DIMAG(CF2(NR,I)))
          ENDDO
          ENDDO
          CALL WMGN1D(NX1,GX1,GXMIN,GXMAX,GY1,GY2,IMAX,GP(1,2),KTITL(2))
@@ -345,8 +345,8 @@ C        *** E/B(Z) ****
 C
          DO I=1,IMAX
          DO NR=1,NX1
-            GY1(NR,I)=GCLIP(DBLE(CF3(NR,I)))
-            GY2(NR,I)=GCLIP(DIMAG(CF3(NR,I)))
+            GY1(NR,I)=GUCLIP(DBLE(CF3(NR,I)))
+            GY2(NR,I)=GUCLIP(DIMAG(CF3(NR,I)))
          ENDDO
          ENDDO
          CALL WMGN1D(NX1,GX1,GXMIN,GXMAX,GY1,GY2,IMAX,GP(1,3),KTITL(3))
@@ -355,8 +355,8 @@ C        *** POWER / CURRENT ***
 C
          DO I=1,IMAX
          DO NR=1,NX2
-            GY1(NR,I)=GCLIP(PF1(NR,I))
-            GY2(NR,I)=GCLIP(PF2(NR,I))
+            GY1(NR,I)=GUCLIP(PF1(NR,I))
+            GY2(NR,I)=GUCLIP(PF2(NR,I))
          ENDDO
          ENDDO
          CALL WMGN1D(NX2,GX2,GXMIN,GXMAX,GY1,GY2,IMAX,GP(1,4),KTITL(4))
@@ -431,9 +431,9 @@ C
       CALL GDEFIN(GP(1),GP(2),GP(3),GP(4),GXMIN,GXMAX,GSYMIN,GSYMAX)
       CALL GFRAME
       CALL GSCALE(GXMIN,GSX,0.0,0.0,0.1,9)
-      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGVLEN(GSX*5))
+      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGULEN(GSX*5))
       CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGVLEN(GSY*2))
+      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGULEN(GSY*2))
 C
       DO I=1,NY
          CALL SETLIN(0,2,ICL(I))
@@ -482,9 +482,9 @@ C
       CALL GDEFIN(GP(1),GP(2),GP(3),GP(4),GXMIN,GXMAX,GSYMIN,GSYMAX)
       CALL GFRAME
       CALL GSCALE(GXMIN,GSX,0.0,0.0,0.1,9)
-      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGVLEN(GSX*5))
+      CALL GVALUE(GXMIN,GSX*5,0.0,0.0,NGULEN(GSX*5))
       CALL GSCALE(0.0,0.0,0.0,GSY,0.1,9)
-      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGVLEN(GSY*2))
+      CALL GVALUE(0.0,0.0,0.0,GSY*2,NGULEN(GSY*2))
 C
       DO I=1,NY
          CALL SETLIN(0,2,7-MOD(I-1,5))
@@ -598,20 +598,20 @@ C
             ENDIF
 C
             IF(K4.EQ.'R') THEn
-               GY(NR,NTH)=GCLIP(DBLE(CFL))
+               GY(NR,NTH)=GUCLIP(DBLE(CFL))
             ELSEIF(K4.EQ.'I') THEN
-               GY(NR,NTH)=GCLIP(DIMAG(CFL))
+               GY(NR,NTH)=GUCLIP(DIMAG(CFL))
             ELSEIF(K4.EQ.'A') THEN
-               GY(NR,NTH)=GCLIP(ABS(CFL))
+               GY(NR,NTH)=GUCLIP(ABS(CFL))
             ELSE
                WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH'
                GOTO 9000
             ENDIF
             NX=NRMAX+1
          ELSEIF(K2.EQ.'P') THEN
-            GY(NR,NTH)=GCLIP(PABS(NTH,NPH,NR,NG3))
+            GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
          ELSEIF(K2.EQ.'J') THEN
-             GY(NR,NTH)=GCLIP(PCUR(NTH,NPH,NR))
+             GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
          ENDIF
       ENDDO
       ENDDO
@@ -625,7 +625,7 @@ C
       CALL SETCHS(0.3,0.0)
 C
       DO I=1,NX
-        GXR(I)=GCLIP(XR(I))
+        GXR(I)=GUCLIP(XR(I))
       ENDDO
 C
       CALL GMNMX1(GXR,1,NX,1,GRMIN,GRMAX)
@@ -769,23 +769,23 @@ C
          IF (K4.EQ.'R') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(DBLE(CEFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(DBLE(CEFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(DBLE(CEFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(DBLE(CEFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE IF (K4.EQ.'I') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(DIMAG(CEFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(DIMAG(CEFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(DIMAG(CEFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(DIMAG(CEFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE IF (K4.EQ.'A') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(ABS(CEFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(ABS(CEFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(ABS(CEFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(ABS(CEFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRMD'
@@ -796,23 +796,23 @@ C
          IF (K4.EQ.'R') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(DBLE(CBFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(DBLE(CBFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(DBLE(CBFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(DBLE(CBFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE IF (K4.EQ.'I') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(DIMAG(CBFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(DIMAG(CBFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(DIMAG(CBFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(DIMAG(CBFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE IF (K4.EQ.'A') THEN
             DO NR=1,NRMAX+1
                DO MDX=1,MDSIZ
-                  GY(NR,MDX+1)=GCLIP(ABS(CBFLDK(NG3,MDX,NDX,NR)))
+                  GY(NR,MDX+1)=GUCLIP(ABS(CBFLDK(NG3,MDX,NDX,NR)))
                ENDDO
-               GY(NR,1)=GCLIP(ABS(CBFLDK(NG3,MDSIZ,NDX,NR)))
+               GY(NR,1)=GUCLIP(ABS(CBFLDK(NG3,MDSIZ,NDX,NR)))
             ENDDO
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRMD'
@@ -822,9 +822,9 @@ C
       ELSE IF (K2.EQ.'P') THEN
          DO NR=1,NRMAX
             DO MDX=1,MDSIZ
-               GY(NR,MDX+1)=GCLIP(PABSK(MDX,NDX,NR,NG3))
+               GY(NR,MDX+1)=GUCLIP(PABSK(MDX,NDX,NR,NG3))
             ENDDO
-            GY(NR,1)=GCLIP(PABSK(MDSIZ,NDX,NR,NG3))
+            GY(NR,1)=GUCLIP(PABSK(MDSIZ,NDX,NR,NG3))
          ENDDO
          NX=NRMAX
       END IF
@@ -852,8 +852,8 @@ C
       DIMENSION GY(MDM+1),GZL(NRM,MDM+1)
       CHARACTER K2,K3,K4
 C
-      GXMIN=GCLIP(XR(1))
-      GXMAX=GCLIP(XR(NRMAX+1))
+      GXMIN=GUCLIP(XR(1))
+      GXMAX=GUCLIP(XR(NRMAX+1))
 C
       DO MD=MDMIN-1,MDMAX
          MDX=MD-MDMIN+2
@@ -1158,42 +1158,9 @@ C
      &'   G: graphic type'/
      &'    1: contour map'/
      &'    2: painted map'/
-     &'    3: bird eye view'/
-     &'    4: bird eye view'//
+     &'    3: bird eye view 1 (only for circular for the present)'/
+     &'    4: bird eye view 2 (only for circular for the present)'//
      &'   ?: this help message'/
      &'   X: exit'/)
-      RETURN
-      END
-C
-C     ****** AVOID REAL*4 UNDERFLOW ******
-C
-      REAL FUNCTION GCLIP(D)
-C
-      REAL*8 D
-C
-      IF(ABS(D).GT.1.D-30) then
-         GCLIP=SNGL(D)
-      ELSE
-         GCLIP=0.0
-      ENDIF
-      RETURN
-      END
-C
-C     *****************************
-C
-C     OPTIMUM NUM LENGTH FOR GVALUE
-C
-C     *****************************
-C
-      FUNCTION NGVLEN(GSTEP)
-C
-      NGX = -INT(LOG10(DBLE(GSTEP*0.11)))
-      IF(NGX.LT.-5)THEN
-         NGX=-1
-      ELSE
-         IF(NGX.LT.0) NGX=0
-         IF(NGX.GT.5) NGX=-1
-      ENDIF
-      NGVLEN=NGX
       RETURN
       END

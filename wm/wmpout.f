@@ -32,11 +32,12 @@ C
       DO MD=MDMIN,MDMAX
          MDX=MD-MDMIN+1
          MM=NTH0+MD
-         CEFLDK(1,MDX,NDX,NR)=CEFLDK(1,MDX,NDX,NR+1)
          IF(ABS(MM).EQ.1) THEN
+            CEFLDK(1,MDX,NDX,NR)=CEFLDK(1,MDX,NDX,NR+1)
             CEFLDK(2,MDX,NDX,NR)=A1*CEFLDK(2,MDX,NDX,NR+1)
      &                          +A2*CEFLDK(2,MDX,NDX,NR+2)
          ELSE
+            CEFLDK(1,MDX,NDX,NR)=0.D0
             CEFLDK(2,MDX,NDX,NR)=0.D0
          ENDIF
          IF(MM.EQ.0) THEN
@@ -107,15 +108,10 @@ C
 C
 C     ----- Calculate CEN from CEsup -----
 C
-      DO NR=1,NRMAX+1
+      DO NR=2,NRMAX+1
 C
-      IF(NR.EQ.1) THEN
-         XRI=1.D6/XRHO(2)
-         XRL=XRHO(2)/1.D6
-      ELSE
          XRI=1.D0/XRHO(NR)
          XRL=XRHO(NR)
-      ENDIF
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
@@ -153,31 +149,81 @@ C
             WRITE(6,'(3I5,1P2E12.4)') NR,NTH,NPH,TC3,TC2
          ENDIF
 C
-C         IF(NR.EQ.1.OR.NR.EQ.2) THEN
+C         IF(NR.EQ.2.OR.NR.EQ.3) THEN
 C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
 C            WRITE(6,'(1P3E12.4)') RMA(1,1),RMA(1,2),RMA(1,3)
 C            WRITE(6,'(1P3E12.4)') RMA(2,1),RMA(2,2),RMA(2,3)
 C            WRITE(6,'(1P3E12.4)') RMA(3,1),RMA(3,2),RMA(3,3)
 C            WRITE(6,'(1P3E12.4)') RJ(NTH,NPH,NR),RF11,XRI
+C            WRITE(6,'(1P3E12.4)') TC2,TC3,XRL
 C         ENDIF
 C
          CEN(1,NTH,NPH,NR)=RMA(1,1)*CEFLD(1,NTH,NPH,NR)*XRI
-     &                    +RMA(1,2)*CEFLD(2,NTH,NPH,NR)*XRI
-     &                    +RMA(1,3)*CEFLD(3,NTH,NPH,NR)*XRI
-         CEN(2,NTH,NPH,NR)=RMA(2,1)*CEFLD(1,NTH,NPH,NR)*XRL
+     &                    +RMA(1,2)*CEFLD(2,NTH,NPH,NR)*XRL
+     &                    +RMA(1,3)*CEFLD(3,NTH,NPH,NR)
+         CEN(2,NTH,NPH,NR)=RMA(2,1)*CEFLD(1,NTH,NPH,NR)*XRI
      &                    +RMA(2,2)*CEFLD(2,NTH,NPH,NR)*XRL
-     &                    +RMA(2,3)*CEFLD(3,NTH,NPH,NR)*XRL
-         CEN(3,NTH,NPH,NR)=RMA(3,1)*CEFLD(1,NTH,NPH,NR)
-     &                    +RMA(3,2)*CEFLD(2,NTH,NPH,NR)
+     &                    +RMA(2,3)*CEFLD(3,NTH,NPH,NR)
+         CEN(3,NTH,NPH,NR)=RMA(3,1)*CEFLD(1,NTH,NPH,NR)*XRI
+     &                    +RMA(3,2)*CEFLD(2,NTH,NPH,NR)*XRL
      &                    +RMA(3,3)*CEFLD(3,NTH,NPH,NR)
          CEP(1,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
      &                     +CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
          CEP(2,NTH,NPH,NR)=(   CEN(1,NTH,NPH,NR)
      &                     -CI*CEN(2,NTH,NPH,NR))/SQRT(2.D0)
          CEP(3,NTH,NPH,NR)=    CEN(3,NTH,NPH,NR)
+C
+C         IF(NR.EQ.1) THEN
+C            WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
+C            WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
+C            WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
+C         ENDIF
       ENDDO
       ENDDO
       ENDDO
+C
+      DO NPH=1,NPHMAX
+         CEN1=0.D0
+         CEN2=0.D0
+         CEN3=0.D0
+         CEP1=0.D0
+         CEP2=0.D0
+         CEP3=0.D0
+         DO NTH=1,NTHMAX
+            CEN1=CEN1+CEN(1,NTH,NPH,2)
+            CEN2=CEN1+CEN(2,NTH,NPH,2)
+            CEN3=CEN1+CEN(3,NTH,NPH,2)
+            CEP1=CEP1+CEP(1,NTH,NPH,2)
+            CEP2=CEP1+CEP(2,NTH,NPH,2)
+            CEP3=CEP1+CEP(3,NTH,NPH,2)
+         ENDDO
+         CEN1=CEN1/NTHMAX
+         CEN2=CEN2/NTHMAX
+         CEN3=CEN3/NTHMAX
+         CEP1=CEP1/NTHMAX
+         CEP2=CEP2/NTHMAX
+         CEP3=CEP3/NTHMAX
+         DO NTH=1,NTHMAX
+            CEN(1,NTH,NPH,1)=CEN1
+            CEN(2,NTH,NPH,1)=CEN2
+            CEN(3,NTH,NPH,1)=CEN3
+            CEP(1,NTH,NPH,1)=CEP1
+            CEP(2,NTH,NPH,1)=CEP2
+            CEP(3,NTH,NPH,1)=CEP3
+         ENDDO
+      ENDDO
+C      NR=1
+C      NTH=1
+C      NPH=1
+C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
+C      NR=2
+C      NTH=1
+C      NPH=1
+C      WRITE(6,'(1P4E12.4)') CEN(1,NTH,NPH,NR),CEP(1,NTH,NPH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(2,NTH,NPH,NR),CEP(2,NTH,NPH,NR)
+C      WRITE(6,'(1P4E12.4)') CEN(3,NTH,NPH,NR),CEP(3,NTH,NPH,NR)
 C
 C     ----- Normalize CEFLD -----
 C
@@ -202,7 +248,7 @@ C
 C         WRITE(21,*) nth,nph,nr,CEFLD(1,NTH,NPH,NR)
 C         WRITE(21,*) nth,nph,nr,CEFLD(2,NTH,NPH,NR)
 C         WRITE(21,*) nth,nph,nr,CEFLD(3,NTH,NPH,NR)
-
+C
       ENDDO
       ENDDO
       ENDDO
