@@ -282,7 +282,11 @@ C
                AKDWL=0.D0
             ENDIF
             AKDW(NR,1)=AKDWL
-            AKDW(NR,2)=AKDWL
+            IF(MDLUF.EQ.3) THEN
+               AKDW(NR,2)=AKDWL*2.D0
+            ELSE
+               AKDW(NR,2)=AKDWL
+            ENDIF
             AKDW(NR,3)=AKDWL
             AKDW(NR,4)=AKDWL
 C
@@ -859,19 +863,20 @@ C               ZEFFL=ZEFF(NR)
                ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
             ENDIF
 C
-         VTE=1.33D+7*DSQRT(ABS(TE))
+C         VTE=1.33D+7*DSQRT(ABS(TE))
+         VTE=SQRT(ABS(TE)*RKEV/AME)
          FT=1.D0-(1.D0-EPS)**2.D0
      &         /(DSQRT(1.D0-EPS**2.D0)*(1.D0+1.46D0*DSQRT(EPS)))
-         rLnLam=15.2D0-DLOG(ANE)/2+DLOG(ABS(TE))
-         TAUE=6.D0*PI*SQRT(2*PI)*AEPS0**2*DSQRT(AME)
+         rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
+         TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
          RNUSE=RR*QL/(VTE*TAUE*EPSS)
          PHI=FT/(1.D0+(0.58D0+0.20D0*ZEFFL)*RNUSE)
-         ETAS=1.65D-9*rLnLam/(ABS(TE))**1.5D0
+         ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
          CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
 C
          ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
-     &            /(1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0))
+     &            /((1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0)))
          ENDIF 
   150 CONTINUE
 C

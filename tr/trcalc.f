@@ -201,16 +201,21 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-C
-      DO NR=1,NRMAX
-         TE =RT(NR,1)
-         ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
-     &             +PZ(3)  *PZ(3)  *RN(NR,3)
-     &             +PZ(4)  *PZ(4)  *RN(NR,4)
-     &             +TRZEC(TE)**2   *ANC (NR)
-     &             +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
-      ENDDO
-C
+      IF(MDLUF.EQ.3) THEN
+         DO NR=1,NRMAX
+            ZEFF(NR)=2.D0
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            TE =RT(NR,1)
+            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
+     &                +PZ(3)  *PZ(3)  *RN(NR,3)
+     &                +PZ(4)  *PZ(4)  *RN(NR,4)
+     &                +TRZEC(TE)**2   *ANC (NR)
+     &                +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
+         ENDDO
+      ENDIF
+C     
       RETURN
       END
 C
@@ -616,6 +621,12 @@ C
          AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
   200 CONTINUE
       AJBS(NRMAX)=AJBSL(NRMAX)
+C
+      IF(MDLUF.EQ.3) THEN
+         DO NR=1,NRMAX
+            AJBS(NR)=0.D0
+         ENDDO
+      ENDIF
 C
       RETURN
       END

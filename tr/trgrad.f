@@ -70,7 +70,7 @@ C
 C
       INCLUDE 'trcomm.h'
       CHARACTER STRL*80,KVL*80
-      CHARACTER STR0(29)*80,KV0(29)*80
+      CHARACTER STR0(32)*80,KV0(32)*80
 C
       DATA STR0/'@TE [keV] vs t@','@TD [keV] vs t@',
      &          '@TT [keV] vs t@','@TA [keV] vs t@',
@@ -85,16 +85,19 @@ C
      &          '@PRFT [MW/m^3] vs t@','@PRFA [MW/m^3] vs t@',
      &          '@PRL [MW/m^3] vs t@','@PCX [MW/m^3] vs t@',
      &          '@PIE [MW/m^3] vs t@',
+     &          '@PEXE [MW/m^3] vs t@','@PEXI [MW/m^3] vs t@',
      &          '@QP vs t@','@EZOH [V/m] vs t@',
-     &          '@BETA vs t@','@BETAP vs t@','@VLOOP [V] vs t@'/
+     &          '@BETA vs t@','@BETAP vs t@','@VLOOP [V] vs t@',
+     &          '@ETA [Ohm*m] vs t@'/
 C
       DATA KV0 /'@TE@','@TD@','@TT@','@TA@',
      &          '@NE@','@ND@','@NT@','@NA@',
      &          '@AJ@','@AJOH@','@AJNB@','@AJRF@','@AJBS@',
      &          '@PIN@','@POH@','@PNB@','@PNF@',
      &          '@PRFE@','@PRFD@','@PRFT@','@PRFA@',
-     &          '@PRL@','@PCX@','@PIE@',
-     &          '@QP@','@EZOH@','@BETA@','@BETAP@','@VLOOP@'/
+     &          '@PRL@','@PCX@','@PIE@','@PEXE@','@PEXI@',
+     &          '@QP@','@EZOH@','@BETA@','@BETAP@','@VLOOP@',
+     &          '@ETA@'/
       SAVE STR0, KV0
 C
       STRL=STR0(NMB)
@@ -111,15 +114,17 @@ C     **************************************************************
 C
       SUBROUTINE CHKVPL(KVPL,NP)
 C
-      CHARACTER KVPL*4,KVP(29)*4
+      CHARACTER KVPL*4,KVP(32)*4
 C
       DATA KVP /'TE  ','TD  ','TT  ','TA  ',
      &          'NE  ','ND  ','NT  ','NA  ',
      &          'AJ  ','AJOH','AJNB','AJRF','AJBS',
      &          'PIN ','POH ','PNB ','PNF ',
      &          'PRFE','PRFD','PRFT','PRFA',
-     &          'PRL ','PCX ','PIE ',
-     &          'QP  ','EZOH','BETA','BETP','VLOP'/
+     &          'PRL ','PCX ','PIE ','PEXE','PEXI',
+     &          'QP  ','EZOH','BETA','BETP','VLOP',
+     &          'ETA '/
+C      SAVE KVP
 C
       KVPL=KVP(NP)
       RETURN
@@ -165,16 +170,18 @@ C
       WRITE(6,730) (KVP(I),I=11,15)
       WRITE(6,740) (KVP(I),I=16,20)
       WRITE(6,750) (KVP(I),I=21,25)
-      WRITE(6,760) (KVP(I),I=26,29)
+      WRITE(6,760) (KVP(I),I=26,30)
+      WRITE(6,770) (KVP(I),I=31,32)
 C
  700  FORMAT(' ',
      &       '# 3D GRAPHICS LIST (EACH ONE IS CONSIST OF 4 LETTERS)')
- 710  FORMAT(' ',' 1- 5: ',4(A4,', '),A4)
- 720  FORMAT(' ',' 6-10: ',4(A4,', '),A4)
- 730  FORMAT(' ','11-15: ',4(A4,', '),A4)
- 740  FORMAT(' ','16-20: ',4(A4,', '),A4)
- 750  FORMAT(' ','21-25: ',4(A4,', '),A4)
- 760  FORMAT(' ','26-29: ',3(A4,', '),A4)
+ 710  FORMAT(' ',' 1- 5: ',4(A4,', '),A4,)
+ 720  FORMAT(' ',' 6-10: ',4(A4,', '),A4,)
+ 730  FORMAT(' ','11-15: ',4(A4,', '),A4,)
+ 740  FORMAT(' ','16-20: ',4(A4,', '),A4,)
+ 750  FORMAT(' ','21-25: ',4(A4,', '),A4,)
+ 760  FORMAT(' ','26-30: ',4(A4,', '),A4,)
+ 770  FORMAT(' ','31-32: ',2(A4,', '),A4,)
 C
       RETURN
       END

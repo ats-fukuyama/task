@@ -557,13 +557,12 @@ C
          PTS(2)=PTIPH*1.D-3
          PTS(3)=PTIPH*1.D-3
          PTS(4)=PTIPH*1.D-3
-C         write(6,*) PTS(1),PTS(2)
 C
          KFILE='DVOL.PHI'
          CALL UFREAD(KFILE,RAD,FDVOL,NUFMAX,MDDVOL,IERR)
          CALL SPL1D(RAD,FDVOL,DERIV,UDVOLPH,NUFMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FDVOL: IERR=',IERR
-C         
+C
          KFILE='PBE.PHI'
          CALL UFREAD(KFILE,RAD,FPBE,NUFMAX,MDPBE,IERR)
          CALL SPL1D(RAD,FPBE,DERIV,UPBEPH,NUFMAX,0,IERR)
@@ -594,7 +593,7 @@ C
          RG(NR)  = DBLE(NR*DR)
          RM(NR)  = DBLE(NR-0.5D0)*DR
 C
-         IF(MDLUF.EQ.0.OR.MODEP.NE.2) THEN
+         IF(MDLUF.NE.2.OR.MODEP.NE.2) THEN
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
                RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
@@ -812,20 +811,21 @@ C
                   ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
                ENDIF
 C
-               VTE=1.33D+7*DSQRT(TEL)
+C               VTE=1.33D+7*DSQRT(TEL)
+               VTE=SQRT(ABS(TE)*RKEV/AME)
                FT=1.D0-(1.D0-EPS)**2
      &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-               rLnLam=15.2D0-DLOG(ANE)/2+DLOG(TEL)
-               TAUE=6.D0*PI*SQRT(2*PI)*AEPS0**2*DSQRT(AME)
+               rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(TEL)
+               TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
      &             *(TEL*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
                RNUSE=RR*QL/(VTE*TAUE*EPSS)
                PHI=FT/(1.D0+(0.58D0+0.2D0*ZEFFL)*RNUSE)                
-               ETAS=1.65D-9*rLnLam/ABS(TEL)**1.5D0
+               ETAS=1.65D-9*rLnLam/(ABS(TEL)**1.5D0)
                CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
 C
                ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
-     &                           /(1.D0-PHI)*(1.D0-CH*PHI)
-     &                           *(1.D0+0.47D0*(ZEFFL-1.D0))
+     &                           /((1.D0-PHI)*(1.D0-CH*PHI)
+     &                           *(1.D0+0.47D0*(ZEFFL-1.D0)))
             ENDIF 
             AJOH(NR)=1.D0/ETA(NR)
             AJ(NR)  =1.D0/ETA(NR)

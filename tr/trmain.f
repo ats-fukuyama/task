@@ -36,6 +36,10 @@ C     *                                                             *
 C     ***************************************************************
 C
       INCLUDE 'trcomm.h'
+      PARAMETER(NURM=NRM+1,NUTM=61)
+      COMMON /TRBCH1/ RAD(NURM),FRFHE(NURM,NUTM),FRFHI(NURM,NUTM)
+      COMMON /TRBCH3/ FUT(NUTM),NUFMAX,NTXMAX
+      CHARACTER KFILE*10
 C
       CHARACTER KID*1,LINE*80
       CHARACTER KIG*5,K1*1,K2*1,K3*1,K4*1,K5*1,KK*3
@@ -68,7 +72,8 @@ C
          WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ELSE
-         WRITE(6,*) '# INPUT : C/CONT  E/EQ  G/GRAPH  W/WRITE  S/SAVE'
+         WRITE(6,*) '# INPUT : C/CONT  E/EQ  G/GRAPH  W/WRITE  S/SAVE ',
+     &                        ' O/UFILEOUT '
          WRITE(6,*) '          P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
@@ -93,6 +98,12 @@ C
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL TRSAVE
       ELSE IF(KID.EQ.'R') THEN
+         IF(MDLUF.EQ.3) THEN
+            KFILE='RFHE'
+            CALL UFREAD2(KFILE,RAD,FUT,FRFHE,NUFMAX,NTXMAX,MDRFHE,IERR)
+            KFILE='RFHI'
+            CALL UFREAD2(KFILE,RAD,FUT,FRFHI,NUFMAX,NTXMAX,MDRFHI,IERR)
+         ENDIF
          CALL TRPROF
          CALL TRLOOP
 C
@@ -105,7 +116,7 @@ C
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
   101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
-     &                        ' A1-A2, E1-E9, D1-D29'
+     &                        ' A1-A2, E1-E9, D1-D32'
          WRITE(6,*) '           S/SAVE  L/LOAD  H/HELP  C/CLEAR  ',
      &              'I/INQ  X/EXIT'
          READ(5,'(A5)',ERR=101,END=9000) KIG
@@ -192,6 +203,8 @@ C
  1000    CONTINUE
          INIT=1
 C
+      ELSE IF(KID.EQ.'O') THEN
+         CALL TRXOUT
       ELSE IF(KID.EQ.'H') THEN
          CALL TRHELP('M')
       ELSE IF(KID.EQ.'Q') THEN
@@ -252,6 +265,7 @@ C
      &   KID.EQ.'G'.OR.
      &   KID.EQ.'W'.OR.
      &   KID.EQ.'D'.OR.
+     &   KID.EQ.'O'.OR.
      &   KID.EQ.'H'.OR.
      &   KID.EQ.'Q') THEN
          MODE=1

@@ -520,14 +520,15 @@ C
          G3D(NR,NGT,28) = GCLIP(PEX(NR,4))
 C
          IF (NR.EQ.1) THEN
-            G3D(NR,NGT,25) = GCLIP(Q0)
+            G3D(NR,NGT,27) = GCLIP(Q0)
          ELSE
-            G3D(NR,NGT,25) = GCLIP(QP(NR))
+            G3D(NR,NGT,27) = GCLIP(QP(NR))
          ENDIF
-         G3D(NR,NGT,26) = GCLIP(EZOH(NR))
-         G3D(NR,NGT,27) = GCLIP(BETA(NR))
-         G3D(NR,NGT,28) = GCLIP(BETAP(NR))
-         G3D(NR,NGT,29) = GCLIP(EZOH(NR)*2.D0*PI*RR)
+         G3D(NR,NGT,28) = GCLIP(EZOH(NR))
+         G3D(NR,NGT,29) = GCLIP(BETA(NR))
+         G3D(NR,NGT,30) = GCLIP(BETAP(NR))
+         G3D(NR,NGT,31) = GCLIP(EZOH(NR)*2.D0*PI*RR)
+         G3D(NR,NGT,32) = GCLIP(ETA(NR))
       ENDDO
 C      
       RETURN
@@ -980,4 +981,250 @@ C
      &           '  TT:',F7.3,'(KEV)   TA:',F7.3,'(KEV)')
       RETURN
       END
-
+C
+C
+C     ***********************************************************
+C
+C           SAVE PROFILE DATA
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRXOUT
+C
+      INCLUDE 'trcomm.h'
+C      INCLUDE 'trxcom.f'
+C
+      COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
+      COMMON /TRKID2/ KDIRW1,KDIRW2
+      CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80
+      CHARACTER KDIRW*80,KDIRW1*80,KDIRW2*80,KFID*80
+      DIMENSION GF1(NTM),GF2(NRMP,NTM),GRX(NRM),GRIN(NRMP)
+      DIMENSION DIN(NRM),DRM(NRM),DERIV(NRM)
+      DIMENSION UTEOUT(4,NRM),UTIOUT(4,NRM),UQOUT(4,NRM)
+C
+      NRXMAX=NRMAX+1
+C
+      KXNDEV='X'
+      KXNDCG='11'
+      KXNID ='sim'
+C
+      CALL KTRIM(KXNDEV,IKNDEV)
+      CALL KTRIM(KXNDCG,IKNDCG)
+      CALL KTRIM(KXNID ,IKNID )
+      KDIRW='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/'
+     &                          //KXNDCG(1:IKNDCG)//'/'
+     &                          //KXNID (1:IKNID )//'/'
+      CALL KTRIM(KDIRW,IKDIRW)
+      KDIRW1=KDIRW(1:IKDIRW)//KXNDEV(1:IKNDEV)
+     &       //'1d'//KXNDCG(1:IKNDCG)//'.'
+      KDIRW2=KDIRW(1:IKDIRW)//KXNDEV(1:IKNDEV)
+     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
+C
+c$$$      KFID='LI'
+c$$$      DO 1000 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,75)
+c$$$ 1000 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='POHM'
+c$$$      DO 1100 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,40)*1.E6
+c$$$ 1100 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='TE0'
+c$$$      DO 1200 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,9)*1.E3
+c$$$ 1200 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='TI0'
+c$$$      DO 1300 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,10)*1.E3
+c$$$ 1300 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='VSURF'
+c$$$      DO 1400 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,74)
+c$$$ 1400 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='WTH'
+c$$$      DO 1500 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,31)*1.E6
+c$$$ 1500 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      KFID='WTOT'
+c$$$      DO 1600 NT=1,NGT
+c$$$         GF1(NT)=GVT(NT,33)*1.E6
+c$$$ 1600 CONTINUE
+c$$$      CALL TRXW1D(KFID,GT,GF1,NTM,NGT)
+c$$$C
+c$$$      DGR=1.D0/DBLE(NRMAX)
+c$$$      DO 2000 NR=1,NRMAX
+c$$$         GRX(NR)=DGR*(NR-0.5D0)
+c$$$ 2000 CONTINUE
+C
+      KFID='TE'
+      CALL TR_UFILE2D_CREATE(KFID, 1,1.D3 ,NRXMAX,IERR)
+C
+      KFID='TI'
+      CALL TR_UFILE2D_CREATE(KFID, 2,1.D3 ,NRXMAX,IERR)
+C
+      KFID='NE'
+      CALL TR_UFILE2D_CREATE(KFID, 5,1.D20,NRXMAX,IERR)
+C
+      KFID='CUR'
+      CALL TR_UFILE2D_CREATE(KFID, 9,1.D0 ,NRXMAX,IERR)
+C
+      KFID='CURBS'
+      CALL TR_UFILE2D_CREATE(KFID,13,1.D0 ,NRXMAX,IERR)
+C
+      KFID='POH'
+      CALL TR_UFILE2D_CREATE(KFID,15,1.D0 ,NRXMAX,IERR)
+C
+      KFID='PCX'
+      CALL TR_UFILE2D_CREATE(KFID,23,1.D0 ,NRXMAX,IERR)
+C
+      KFID='PIE'
+      CALL TR_UFILE2D_CREATE(KFID,24,1.D0 ,NRXMAX,IERR)
+C
+      KFID='RFHE'
+      CALL TR_UFILE2D_CREATE(KFID,25,1.D0 ,NRXMAX,IERR)
+C
+      KFID='RFHI'
+      CALL TR_UFILE2D_CREATE(KFID,26,1.D0 ,NRXMAX,IERR)
+C
+      KFID='Q'
+      CALL TR_UFILE2D_CREATE(KFID,27,1.D0 ,NRXMAX,IERR)
+C
+      KFID='V'
+      CALL TR_UFILE2D_CREATE(KFID,31,1.D0 ,NRXMAX,IERR)
+C
+      KFID='ETA_NC'
+      CALL TR_UFILE2D_CREATE(KFID,32,1.D0 ,NRXMAX,IERR)
+C
+      RETURN
+      END
+C
+C     *****
+C
+      SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,NRXMAX,IERR)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION GF2(NRMP,NTM),GRIN(NRMP)
+      DIMENSION DIN(NRM),DRM(NRM),DERIV(NRM),UOUT(4,NRM)
+      CHARACTER KFID*80,KERR*80,KERRF*80
+C
+      DO NR=1,NRM
+         DERIV(NR)=0.D0
+      ENDDO
+      DO NT=1,NGT
+         DO NR=1,NRMAX
+            DRM(NR)=DBLE(GRM(NR))
+            DIN(NR)=DBLE(G3D(NR,NT,NUM))
+         ENDDO
+         CALL SPL1D(DRM,DIN,DERIV,UOUT,NRMAX,0,IERR)
+         WRITE(KERR,'(A,I2,A,I2)')
+     &        'XX TRXOUT: SPL1D G3D(',NUM,'): IERR=',IERR
+         IF(IERR.NE.0) WRITE(6,*) KERR
+         DO NR=1,NRXMAX
+            RIN=DBLE(NR-1)/DBLE(NRMAX)
+            CALL SPL1DF(RIN,DATOUT,DRM,UOUT,NRMAX,IERR)
+            WRITE(KERRF,'(A,I2,A,I2)')
+     &           'XX TRXOUT: SPL1DF G3D(',NUM,'): IERR=',IERR
+            IF(IERR.NE.0) WRITE(6,*) KERRF
+            GF2(NR,NT)=GUCLIP(DATOUT*AMP)
+            GRIN(NR)=GUCLIP(RIN)
+         ENDDO
+      ENDDO
+      CALL TRXW2D(KFID,GT,GRIN,GF2,NRMP,NTM,NRXMAX,NGT)
+C
+      RETURN
+      END
+C
+C     *****
+C
+      SUBROUTINE TRXW1D(KFID,GT,GF,NTM,NTXMAX)
+C
+      IMPLICIT REAL*8(A-F,H,O-Z)
+      DIMENSION GT(NTM),GF(NTM)
+      COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
+      COMMON /TRKID2/ KDIRW1,KDIRW2
+      CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80
+      CHARACTER KDIRW1*80,KDIRW2*80,KFID*80,KFILE*80
+C
+      CALL KTRIM(KDIRW1,KL1)
+      KFILE=KDIRW1(1:KL1)//KFID
+      WRITE(6,*) '- OPEN FILE:',KFILE(1:55)
+C
+      OPEN(16,FILE=KFILE,IOSTAT=IST,FORM='FORMATTED',ERR=10)
+C
+      WRITE(16,'(1X,A8,A8,A14,A18)') KXNDCG(1:8),KXNDEV(1:8),
+     &     '               ',
+     &     ';-SHOT #- DEVICE -'
+      WRITE(16,'(1X,A30,A29)')
+     &     'TIME          SECONDS         ',
+     &     ';-INDEPENDENT VARIABLE LABEL-'
+      WRITE(16,'(1X,A30,A27)') KFID,
+     &     ';-DEPENDENT VARIABLE LABEL-'
+      WRITE(16,'(1X,I30,A33)') NTXMAX,
+     &     ';-# OF PTS-  X, F(X) DATA FOLLOW:'
+C
+      WRITE(16,'(1X,1P6E13.6)') (GT(NTX),NTX=1,NTXMAX)
+      WRITE(16,'(1X,1P6E13.6)') (GF(NTX),NTX=1,NTXMAX)
+C
+      CLOSE(16)
+      RETURN
+C
+   10 WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+      RETURN
+      END
+C
+C     *****
+C
+      SUBROUTINE TRXW2D(KFID,GT,GR,GF,NRM,NTM,NRXMAX,NTXMAX)
+C
+      IMPLICIT REAL*8(A-F,H,O-Z)
+      DIMENSION GT(NTM),GR(NRM),GF(NRM,NTM)
+      COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
+      COMMON /TRKID2/ KDIRW1,KDIRW2
+      CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80
+      CHARACTER KDIRW1*80,KDIRW2*80,KFID*80,KFILE*80
+C
+      CALL KTRIM(KDIRW2,KL2)
+      KFILE=KDIRW2(1:KL2)//KFID
+      WRITE(6,*) '- OPEN FILE:',KFILE(1:55)
+C
+      OPEN(16,FILE=KFILE,IOSTAT=IST,FORM='FORMATTED',ERR=10)
+C
+C
+      WRITE(16,'(1X,A8,A8,A14,A18)') KXNDCG(1:8),KXNDEV(1:8),
+     &     '               ',
+     &     ';-SHOT #- DEVICE -'
+      WRITE(16,'(1X,A30,A32)')
+     &     'RHO                           ',
+     &     ';-INDEPENDENT VARIABLE LABEL: X-'
+      WRITE(16,'(1X,A30,A32)')
+     &     'TIME          SECONDS         ',
+     &     ';-INDEPENDENT VARIABLE LABEL: Y-'
+      WRITE(16,'(1X,A30,A27)') KFID,
+     &     ';-DEPENDENT VARIABLE LABEL-'
+      WRITE(16,'(1X,I30,A12)') NRXMAX,
+     &     ';-# OF X PTS-:'
+      WRITE(16,'(1X,I30,A35)') NTXMAX,
+     &     ';-# OF Y PTS-  X, F(X) DATA FOLLOW:'
+C
+      WRITE(16,'(1X,1P6E13.6)') (GR(NRX),NRX=1,NRXMAX)
+      WRITE(16,'(1X,1P6E13.6)') (GT(NTX),NTX=1,NTXMAX)
+      WRITE(16,'(1X,1P6E13.6)') ((GF(NRX,NTX),NRX=1,NRXMAX),
+     &                                        NTX=1,NTXMAX)
+C
+      CLOSE(16)
+      RETURN
+C
+   10 WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
+      RETURN
+      END
