@@ -102,7 +102,8 @@ C
          NRPMAX=NRMAX
       ELSE
          DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
-         NRPMAX=INT((REDGE-RAXIS)/DR)
+         NRPMAX=NINT((REDGE-RAXIS)/DR)+1
+         DR=(REDGE-RAXIS)/(NRPMAX-1)
       ENDIF
       DTH=2*PI/NTHMAX
 C
@@ -218,7 +219,7 @@ C
          IF(NTHMAX.GT.0) THEN
             DO N=1,NA
                XCHI0(N)=2.D0*PI*XA(N)/XA(NA)
-               XCHI1(N)=2.D0*PI*XCHI1(N)/SUMQ
+               XCHI1(N)=2.D0*PI*XCHI1(N)/XCHI1(NA)
             ENDDO
             RCHI(NA)=RCHI(1)
             ZCHI(NA)=ZCHI(1)
@@ -268,31 +269,30 @@ C
 C
 C     ----- CALCULATE EDGE VALUE -----
 C
-         RINIT=REDGE
-         TTSA=TTFUNC(0.D0)
-         CALL EQMAGS(RINIT,ZINIT,NMAX,XA,YA,NA,IERR)
+      RINIT=REDGE
+      TTSA=TTFUNC(0.D0)
+      CALL EQMAGS(RINIT,ZINIT,NMAX,XA,YA,NA,IERR)
 C
-         SUMS=0.D0
-         SUMV=0.D0
-         SUMQ=0.D0
-         DO N=2,NA
-            H=XA(N)-XA(N-1)
-            R=0.5D0*(YA(1,N-1)+YA(1,N))
-            Z=0.5D0*(YA(2,N-1)+YA(2,N))
-            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT((TTSA/R)**2+(BPRL/R)**2)
+      SUMS=0.D0
+      SUMV=0.D0
+      SUMQ=0.D0
+      DO N=2,NA
+         H=XA(N)-XA(N-1)
+         R=0.5D0*(YA(1,N-1)+YA(1,N))
+         Z=0.5D0*(YA(2,N-1)+YA(2,N))
+         CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+         BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
+         B=SQRT((TTSA/R)**2+(BPRL/R)**2)
 C
-            SUMS=SUMS+H/BPRL
-            SUMV=SUMV+H*R/BPRL
-            SUMQ=SUMQ+H/(R*BPRL)
-         ENDDO
+         SUMS=SUMS+H/BPRL
+         SUMV=SUMV+H*R/BPRL
+         SUMQ=SUMQ+H/(R*BPRL)
+      ENDDO
 C
-         SPSA=SUMS
-         VPSA=SUMV*2.D0*PI
-         QPSA=SUMQ*TTSA/(2.D0*PI)
-         FTSA=FTS(NRPMAX)
-     &           +0.5D0*(QPSA+QPS(NRPMAX))*(0.D0-PSS(NRPMAX))
+      SPSA=SUMS
+      VPSA=SUMV*2.D0*PI
+      QPSA=SUMQ*TTSA/(2.D0*PI)
+      FTSA=FTS(NRPMAX)
 C
       DO NR=2,NRPMAX
          AVBR(NR)=AVBR(NR)*QPS(NR)**2/(4.D0*FTS(NR)*FTSA)
@@ -337,24 +337,10 @@ C
 C     +++++ SETUP VACUUM DATA +++++
 C
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
-      NRPMAX=INT((REDGE-RAXIS)/DR)
+      NRPMAX=NINT((REDGE-RAXIS)/DR)+1
+      DR=(RB-RA)/(NRMAX-NRPMAX)
       DO NR=NRPMAX+1,NRMAX
-C         RL=DR*(NR-1)
-C         FACTOR=RL/(DR*(NRPMAX-1))
-C         PPS(NR)=0.D0
-C         TTS(NR)=BB*RR
-C         PSS(NR)= (PSS(NRPMAX)-SAXIS) *FACTOR + SAXIS
-C         SPS(NR)= SPS(NRPMAX) *FACTOR**2
-C         VPS(NR)= VPS(NRPMAX) *FACTOR**2
-C         QPS(NR)= QPS(NRPMAX) *FACTOR**2
-C         RLEN(NR)=RLEN(NRPMAX)*FACTOR
-C         FTS(NR)= FTS(NRPMAX) *FACTOR**2
-C         AVBR(NR)=AVBR(NRPMAX)
-C         AVRR(NR)=AVRR(NRPMAX)
-C         AVR1(NR)=AVR1(NRPMAX)
-C         AVR2(NR)=AVR2(NRPMAX)
-C
-         RL=RAXIS+DR*(NR-1)
+         RL=REDGE+DR*(NR-NRPMAX)
          ZL=ZAXIS
          PSS(NR)=PSIG(RL,ZL)
          PPS(NR)=0.D0

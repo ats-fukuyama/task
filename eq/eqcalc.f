@@ -574,8 +574,8 @@ C
             CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
             R=YA(1,N)
             H=XA(N)-XA(N-1)
-            BPR=SQRT(DPSIDR**2+DPSIDZ**2)
-            SUMQ=SUMQ+H/(BPR*R)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
+            SUMQ=SUMQ+H/(BPRL*R)
          ENDDO
          FQT(NR)=SUMQ/(2.D0*PI)
 C         WRITE(6,*) NR,PSQ(NR),FQT(NR)

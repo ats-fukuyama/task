@@ -9,9 +9,10 @@ C
       CHARACTER KSTR*2,K1*1,K2*1
 C
     1 IF(MODE.EQ.1) THEN
-        WRITE(6,*) ' ## INPUT KID : C,C1,C2 S,S1,S2,SR,ST,SD M A X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
+     &                             'S,S1,S2,SR,ST,SD,SB M A X/EXIT'
       ELSE
-        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB X/EXIT'
       ENDIF
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
@@ -557,7 +558,7 @@ C
          ELSEIF(IND.EQ.8) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               GF(NR,NTH)=GUCLIP((2.D0*PI*NTH-1)/NTHMAX)
+               GF(NR,NTH)=GUCLIP((2.D0*PI*(NTH-1))/NTHMAX)
             ENDDO
             ENDDO
             KTITL='/CHI/'
@@ -572,10 +573,19 @@ C
             GF(1,NTH)=GSUM
          ENDDO
 C
-         CALL GMNMX2(GF,NRM,1,NRMAX,1,1,NTHMAX,1,GFMIN,GFMAX)
-         CALL GQSCAL(GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP)
-         GGFSTP=0.5*GGFSTP
-         NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
+         IF(IND.NE.8) THEN
+            CALL GMNMX2(GF,NRM,1,NRMAX,1,1,NTHMAX,1,GFMIN,GFMAX)
+            CALL GQSCAL(GFMIN,GFMAX,GGFMIN,GGFMAX,GGFSTP)
+            GGFSTP=0.5*GGFSTP
+            NSTEP=INT((GGFMAX-GGFMIN)/GGFSTP)+1
+         ELSE
+            GFMIN=0.0
+            GFMAX=GUCLIP(2.*PI)
+            GGFMIN=0.0
+            NSTEP=12
+            GGFSTP=GFMAX/NSTEP
+         ENDIF
+C
          DO NSU=1,NSUMAX
             GRSU(NSU)=GUCLIP(RSU(NSU))
             GZSU(NSU)=GUCLIP(ZSU(NSU))
@@ -606,7 +616,7 @@ C
      &               REAL(ZGMIN),REAL(ZGMAX))
          CALL GFRAME
 C
-         IF(GFMIN*GFMAX.GT.0.) THEN
+         IF(GFMIN*GFMAX.GE.0.) THEN
             CALL CONTP5(GF,GR,GZ,NRM,NRMAX,NTHMAX,
      &                  GGFMIN,GGFSTP,NSTEP,2,0,KA)
          ELSE
