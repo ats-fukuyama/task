@@ -257,20 +257,26 @@ WR コードは光線追跡法あるいはビーム追跡法
 9&:&分布データ読み込み \\
 \end{eqnarray*}
 
-      \item[ MODELN] 安全係数分布モデル (MODELG=0,1,2)
+      \item[ MODELQ] 安全係数分布モデル (MODELG=0,1,2)
 \begin{eqnarray*}
 0&:&QO, QA を指定 \\
 1&:&RIP, PROFJ を指定 \\
 \end{eqnarray*}
 
-      \item[ RHOMIN] 安全係数が極小となる規格化半径
+      \item[ RHOMIN] 安全係数が極小となる規格化半径: 0.D0
       \item[ QMIN]   極小安全係数
-      \item[ RHOITB] ITB を与える規格化半径
+      \item[ RHOITB] ITB を与える規格化半径: 0.D0
+      \item[ RHOEDG] プラズマ表面での分布の平滑化を与える規格化半径: 1.D0
       \vspace{3mm}  
 
-      \item[ KNAMEQ] 平衡データファイル名
-      \item[ KNAMWR] 波動伝播データファイル名
-      \item[ KNAMFP] 速度分布データファイル名
+      \item[RHOGMN] 径方向分布グラフの規格化半径の下限: 0.00
+      \item[RHOGMX] 径方向分布グラフの規格化半径の上限: 1.D0
+      \vspace{3mm}  
+
+      \item[ KNAMEQ] 平衡データファイル名: eqdata
+      \item[ KNAMWR] 波動伝播データファイル名: wrdata
+      \item[ KNAMFP] 速度分布データファイル名: fpdata
+      \item[ KNAMFO] 数値データファイル名: fodata
       \vspace{3mm}  
 
       \item[ MODELP] 誘電率テンソル : MODELP(1)=5,MODELP(2)=0
@@ -339,14 +345,10 @@ WR コードは光線追跡法あるいはビーム追跡法
       \item[IGTYPE] グラフの表示形式
 \begin{center}
 \begin{tabular}{ll}
-0:& 全トーラス，全半径（吸収パワーおよびフラックス） \\
-1:& 部分トーラス，全半径 \\
-2:& 全トーラス，部分半径 \\
-3:& 部分トーラス，部分半径 \\
+0:& 全トーラス
+1:& 部分トーラス
 \end{tabular}
 \end{center}
-      \item[RHOGMN] 径方向分布グラフの規格化半径の下限
-      \item[RHOGMX] 径方向分布グラフの規格化半径の上限
       \item[IQTYPE] 光線追跡法の常微分方程式解法
 \begin{center}
 \begin{tabular}{ll}
@@ -439,12 +441,12 @@ FP コードは波動による電流駆動を解析するために，相対論効果や捕捉粒子の
 \begin{itemize}
  \item[] {\tt R} : FP方程式の時間発展計算を開始する．
  \item[] {\tt C} : FP方程式の時間発展計算を続行する．
- \item[] {\tt F} : FP方程式の時間発展計算を続行する．（図はクリアする）
  \item[] {\tt P} : パラメータを変更する．
  \item[] {\tt V} : パラメータを表示する．
  \item[] {\tt G} : 結果のグラフを表示する．
- \item[] {\tt I} : パラメータを初期化する．
- \item[] {\tt W} : 結果のみを表示する．
+ \item[] {\tt F} : 結果を ascii 形式でファイルに出力する．
+ \item[] {\tt I} : 過去の履歴データをクリアする．
+ \item[] {\tt W} : 結果を再表示する．
  \item[] {\tt Y} : FP方程式の係数を計算する．
  \item[] {\tt S} : 速度分布関数をファイルに保存する．
  \item[] {\tt L} : 速度分布関数をファイルから読み込む．．
@@ -570,8 +572,8 @@ XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
    \end{namelist}
    \end{itemize}
 
-\subsection{{\tt G} : グラフ表示}
-各種グラフの説明を以下に示す．
+\subsection{{\tt G, F} : グラフ表示およびファイル出力}
+各種グラフ出力およびファイル出力の説明を以下に示す．
    \begin{tabbing}
 MMM\=MMMMMMM\=\kill
 \> F1   \>１次元速度分布\\
@@ -625,9 +627,3 @@ MMM\=MMMMMMM\=\kill
 \> TE   \>トロイダル電界の時間依存性\\ 
 \end{tabbing}   
 \end{document}
-
-
-
-
-
-
