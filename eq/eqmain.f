@@ -30,7 +30,7 @@ C
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
-         IF (MODIFY.EQ.0) CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          MODE=1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -44,7 +44,7 @@ C
             NRMAX1=NRMAX
             NTHMAX1=NTHMAX
             NSUMAX1=NSUMAX
-            IF (MODIFY.EQ.0) CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+            CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
          ENDIF

@@ -179,13 +179,16 @@ C        EPSEQ : Convergence criterion for equilibrium
 C
       EPSEQ  = 1.D-6
 C
-C        Switch parameter MODIFY=0,1 or 2
+C        MODELF : Switch parameter
+C            0: given analytic profile  P,J,T,Vph
+C            1: given analytic profile  P,F,T,Vph
+C            2: given spline profile  P,F,T,Vph
 C
-      MODIFY=0
+      MODELF = 0
 C
 C        KMODE : Parameter file error judgement
 C
-      KMODE=0
+      KMODE = 0
 C
 C     *** FILE NAME ***
 C
@@ -215,7 +218,7 @@ C
      &              PROFR0,PROFR1,PROFR2,RHOITB,
      &              NSGMAX,NTGMAX,
      &              NRGMAX,NZGMAX,
-     &              EPSEQ,MODIFY,
+     &              EPSEQ,MODELF,
      &              NPSMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX
 C
@@ -316,7 +319,7 @@ C
      &             'NTHMAX',NTHMAX,
      &             'NPSMAX',NPSMAX,
      &             'NSUMAX',NSUMAX
-      WRITE(6,602) 'MODIFY',MODIFY
+      WRITE(6,602) 'MODELF',MODELF
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))

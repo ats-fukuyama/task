@@ -3,21 +3,19 @@ include ../make.header
 
 FFLAGS=$(DFLAGS)
 
-SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
-       eqgout.f eqgsub.f
-SRCT = pltest.f pleqin.f eqload.f eqcalq.f
+SRCC = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f eqgsub.f
+SRCS = eqmain.f $(SRCC)
+SRCT = trtest.f treqin.f $(SRCC)
+SRCP = pltest.f pleqin.f eqload.f eqcalq.f
 SRCA = aktest.f akeqin.f eqload.f eqcalq.f
-SRCH = eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f eqgout.f \
-       eqgsub.f treqin.f trtest.f
 
-SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \
-       ../lib/libgut.f
-SRCTL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
+SRCCL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
+SRCQL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
 
-OBJS = $(SRCS:.f=.o) $(SRCSL:.f=.o) 
-OBJT = $(SRCT:.f=.o) $(SRCTL:.f=.o) 
-OBJA = $(SRCA:.f=.o) $(SRCTL:.f=.o) 
-OBJH = $(SRCH:.f=.o) $(SRCTL:.f=.o) 
+OBJS = $(SRCS:.f=.o) $(SRCCL:.f=.o) 
+OBJT = $(SRCT:.f=.o) $(SRCCL:.f=.o) 
+OBJP = $(SRCP:.f=.o) $(SRCQL:.f=.o) 
+OBJA = $(SRCA:.f=.o) $(SRCQL:.f=.o) 
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -26,18 +24,19 @@ all : eq
 
 eq : $(OBJS)
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
-pl : $(OBJT)
+tr : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
+pl : $(OBJP)
+	$(FC) $(OBJP) -o $@ $(FFLAGS) $(FLIBS)
 ak : $(OBJA)
 	$(FC) $(OBJA) -o $@ $(FFLAGS) $(FLIBS)
-ho : $(OBJH)
-	$(FC) $(OBJH) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRCSL) | less
-
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCCL) | less
+checkeq :
+	ftnchek $(FCKFLAGS) $(SRCT) $(SRCCL) | less
 checkpl :
-	ftnchek $(FCKFLAGS) $(SRCT) $(SRCTL) | less
+	ftnchek $(FCKFLAGS) $(SRCP) $(SRCTL) | less
 checkak :
 	ftnchek $(FCKFLAGS) $(SRCA) $(SRCTL) | less
 
@@ -58,14 +57,14 @@ new:
 
 eqmain.o: eqmain.f eqcom1.h
 eqinit.o: eqinit.f eqcom1.h
-eqcalc.o: eqcalc.f eqcom1.h eqcom2.h
+eqcalc.o: eqcalc.f eqcom1.h eqcom2.h eqcom4.h
 eqcalq.o: eqcalq.f eqcom1.h eqcom3.h
-eqgout.o: eqgout.f eqcom1.h eqcom2.h
-eqshow.o: eqshow.f eqcom1.h eqcom3.h
+eqgout.o: eqgout.f eqcom1.h eqcom2.h eqcom3.h
+eqfunc.o: eqfunc.f eqcom1.h eqcom2.h eqcom4.h
+trtest.o: trtest.f
+treqin.o: treqin.f eqcom1.h eqcom4.h
 pltest.o: pltest.f eqcom1.h eqcom3.h
 pleqin.o: pleqin.f eqcom1.h eqcom3.h
 aktest.o: aktest.f eqcom1.h eqcom3.h
 akeqin.o: akeqin.f eqcom1.h eqcom3.h
 eqload.o: eqload.f eqcom1.h eqcom3.h
-
-

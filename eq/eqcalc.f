@@ -56,48 +56,27 @@ C
 C
       INCLUDE 'eqcomc.h'
 C
-      IF (MODIFY.EQ.2) THEN
-         CALL EQDEFB
-         DO NLOOP=1,20
-            CALL EQBAND
-C            CALL TRRHSV(IERR)
-            IF(IERR.NE.0) GOTO 200
-            CALL EQSOLV
-            SUM0=0.D0
-            SUM1=0.D0
-            DO NSG=1,NSGMAX
-               DO NTG=1,NTGMAX
-                  SUM0=SUM0+PSI(NTG,NSG)**2
-                  SUM1=SUM1+DELPSI(NTG,NSG)**2
-               ENDDO
+      CALL EQDEFB
+      DO NLOOP=1,20
+         CALL EQBAND
+         CALL EQRHSV(IERR)
+         IF(IERR.NE.0) GOTO 200
+         CALL EQSOLV
+         SUM0=0.D0
+         SUM1=0.D0
+         DO NSG=1,NSGMAX
+            DO NTG=1,NTGMAX
+               SUM0=SUM0+PSI(NTG,NSG)**2
+               SUM1=SUM1+DELPSI(NTG,NSG)**2
             ENDDO
-            SUM=SQRT(SUM1/SUM0)
-            WRITE(6,'(A,1P4E14.6)')
-     &           'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
-            IF(SUM.LT.EPSEQ)GOTO 100
          ENDDO
-      ELSE
-         CALL EQDEFB
-         DO NLOOP=1,20
-            CALL EQBAND
-            CALL EQRHSV(IERR)
-            IF(IERR.NE.0) GOTO 200
-            CALL EQSOLV
-            SUM0=0.D0
-            SUM1=0.D0
-            DO NSG=1,NSGMAX
-               DO NTG=1,NTGMAX
-                  SUM0=SUM0+PSI(NTG,NSG)**2
-                  SUM1=SUM1+DELPSI(NTG,NSG)**2
-               ENDDO
-            ENDDO
-            SUM=SQRT(SUM1/SUM0)
+         SUM=SQRT(SUM1/SUM0)
 C            write(6,*) raxis,zaxis,psi0
-            WRITE(6,'(A,1P4E14.6)')
-     &           'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
-            IF(SUM.LT.EPSEQ)GOTO 100
-         ENDDO
-      ENDIF
+         WRITE(6,'(A,1P4E14.6)')
+     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+         IF(SUM.LT.EPSEQ)GOTO 100
+      ENDDO
+C
   100 CONTINUE 
       IERR=0
       RETURN
@@ -312,58 +291,42 @@ C         IERR=103
 C         RETURN
 C      ENDIF
 C         
+      IF(MODELF.EQ.0.OR.MODELF.EQ.2) THEN
+         IF(MODELF.EQ.0) THEN
 C     ----- positive current density, jp.gt.0-----
-      RRC=RR-RA
+            RRC=RR-RA
+         ELSEIF(MODELF.EQ.2) THEN
 C     ----- quasi-symmetric current density, jp:anti-symmetric -----
-C      RRC=RR
-C
-      FJP=0.D0
-      FJT=0.D0
-      DO NSG=1,NSGMAX
-      DO NTG=1,NTGMAX
-         PSIN=PSI(NTG,NSG)/PSI0
-         PP(NTG,NSG)=PPSI(PSIN)
-         RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-         IF (MODIFY.EQ.0) THEN
+            RRC=RR
+         ENDIF
+         FJP=0.D0
+         FJT=0.D0
+         DO NSG=1,NSGMAX
+         DO NTG=1,NTGMAX
+            PSIN=PSI(NTG,NSG)/PSI0
+            PP(NTG,NSG)=PPSI(PSIN)
+            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
             HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
             HJT1(NTG,NSG)=HJPSI(PSIN)
 C           HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
-            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPS(PSIN)**2
-     &           /(2.D0*RGAS*TPSI(PSIN)))
-            HJP2B=EXP(RRC**2*OMGPS(PSIN)**2
-     &           /(2.D0*RGAS*TPSI(PSIN)))
+            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
+            HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
             HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
             HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
             HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
-            HJP2F=(1.D0/RGAS)*(2.D0*OMGPS(PSIN)*DOMGPS(PSIN)
+            HJP2F=AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)
      &           /TPSI(PSIN)
-     &           -DTPSI(PSIN)*OMGPS(PSIN)**2/TPSI(PSIN)**2)
+     &           -DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
             HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
             FJP=FJP+HJP2(NTG,NSG)*DVOL
             FJT=FJT+HJT2(NTG,NSG)*DVOL
-         ELSEIF (MODIFY.EQ.1) THEN
-            HJP1(NTG,NSG)=RMM(NTG,NSG)*(PP1*1.D6)
-C            HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
-C            if (ntg.eq.1) write(6,*) PP1*1.D6,DPPSI(PSIN)
-            HJT1(NTG,NSG)=HM*1.D6/(RR**2*RMM(NTG,NSG))
-            HJP2(NTG,NSG)=HJP1(NTG,NSG)*EXP(OTC*RMM(NTG,NSG)**2
-     &           /(2.D0*RGAS))
-            HJT(NTG,NSG)=HJT1(NTG,NSG)+HJP2(NTG,NSG)
-            DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
-            HJT(NTG,NSG)=HJT(NTG,NSG)*DVOL
-C           if (ntg.eq.1) write(6,*) HJP2(NTG,NSG),HJT1(NTG,NSG)
-         ENDIF
-C     IF(FJT.EQ.0.D0) WRITE(6,'(A,2I5,1P4E12.4)') 
-C     &        'NTG,NSG,PSIN,PSI0,HJP1,HJT1=',
-C     &         NTG,NSG,PSIN,PSI0,HJP1(NTG,NSG),HJT1(NTG,NSG)
-      ENDDO
-      ENDDO
-C
-C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
-      IF (MODIFY.EQ.0) THEN
+         ENDDO
+         ENDDO
          TJ=(-RIP*1.D6-FJP)/FJT
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
@@ -372,25 +335,44 @@ C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
             TT(NTG,NSG)=SQRT(BB**2*RR**2
      &           +2.D0*RMU0*RRC
      &           *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)
-     &           *EXP(RRC**2*OMGPS(PSIN)**2/(2.D0*RGAS*TPSI(PSIN)))))
-C     &               *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
-            RHO(NTG,NSG)=(PPSI(PSIN)/(RGAS*(TPSI(PSIN))))
-     &           *EXP(RMM(NTG,NSG)**2*OMGPS(PSIN)**2
-     &           /(2.D0*RGAS*TPSI(PSIN)))
+     &           *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
+     &           *EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
          ENDDO
          ENDDO
-      ELSEIF (MODIFY.EQ.1) THEN
+      ELSEIF(MODELF.EQ.1) THEN
+         DO NSG=1,NSGMAX
+         DO NTG=1,NTGMAX
+            PSIN=PSI(NTG,NSG)/PSI0
+            PP(NTG,NSG)=PPSI(PSIN)
+            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+            HJP1(NTG,NSG)=RMM(NTG,NSG)*(PP1*1.D6)
+            HJT1(NTG,NSG)=HM*1.D6/(RR**2*RMM(NTG,NSG))
+            HJP2(NTG,NSG)=HJP1(NTG,NSG)*EXP(OTC*RMM(NTG,NSG)**2*AMP
+     &                   /2.D0)
+            HJT(NTG,NSG)=HJT1(NTG,NSG)+HJP2(NTG,NSG)
+            DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
+            HJT(NTG,NSG)=HJT(NTG,NSG)*DVOL
+         ENDDO
+         ENDDO
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             PSIN=PSI(NTG,NSG)/PSI0
             TT(NTG,NSG)=SQRT(BB**2*RR**2
      &                 +2.D0*RMU0*HM*1.D6*PSI(NTG,NSG)/RR**2
      &                 +(2.D0*RMU0*HM*1.D6*PP0)/(RR**2*PP1))
-            RHO(NTG,NSG)=(PPSI(PSIN)/(RGAS*TPSI(PSIN)))
-     &           *EXP(OTC*RMM(NTG,NSG)**2/(2.D0*RGAS))
+            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
+     &           *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
          ENDDO
          ENDDO 
       ENDIF
+C     IF(FJT.EQ.0.D0) WRITE(6,'(A,2I5,1P4E12.4)') 
+C     &        'NTG,NSG,PSIN,PSI0,HJP1,HJT1=',
+C     &         NTG,NSG,PSIN,PSI0,HJP1(NTG,NSG),HJT1(NTG,NSG)
+C
+C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
       RETURN
       END
 C
@@ -429,7 +411,7 @@ C
          PSI(NTG,NSG)=FJT(I+NTG)
          IF (ABS(PSI(NTG,NSG)).GT.ABS(PSIM)) THEN
             PSIM=PSI(NTG,NSG)
-            RM=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+C            RM=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
          endif
       ENDDO
       ENDDO
@@ -491,11 +473,7 @@ C
       ENDDO
       ENDDO
 C
-      IF (MODIFY.EQ.2) THEN
-C         CALL TREQCP
-      ELSE
-         CALL EQCALP
-      ENDIF
+      CALL EQCALP
 C
       RETURN
       END
@@ -513,23 +491,19 @@ C
          PSIPS(NPS)=DPS*(NPS-1)
          PSIN=PSIPS(NPS)/PSI0
          PPPS(NPS)=PPSI(PSIN)
-         IF (MODIFY.EQ.0) THEN
+         IF (MODELF.EQ.0.OR.MODELF.EQ.2) THEN
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
      &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)
-     &              *EXP(RRC**2*OMGPS(PSIN)**2/(2.D0*RGAS*TPSI(PSIN)))))
-C     &                   *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
-         ELSEIF (MODIFY.EQ.1) THEN
+     &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+            OMPS(NPS)=OMGPSI(PSIN)
+         ELSEIF (MODELF.EQ.1) THEN
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                 +2.D0*RMU0*HM*1.D6*PSIPS(NPS)/RR**2
      &                 +(2.D0*RMU0*HM*1.D6*PP0)/(RR**2*PP1))
-         ENDIF
-         TEPS(NPS)=TPSI(PSIN)*BLTZ/(AEE*1.D3)
-         IF (MODIFY.EQ.0) THEN
-            OMPS(NPS)=OMGPS(PSIN)
-         ELSEIF (MODIFY.EQ.1) THEN
             OMPS(NPS)=SQRT(OTC*TPSI(PSIN))
          ENDIF
+         TEPS(NPS)=TPSI(PSIN)/(AEE*1.D3)
       ENDDO
       RETURN
       END

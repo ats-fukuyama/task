@@ -1,36 +1,76 @@
-C 
-C     *** CAUTION! ***
+C     $Id$
 C
-C    -------------------------------------------------------------
-C   | If you want to compile this, you must remove "C" at line 63 |
-C   | and 495 on eqcalc.f.                                        |
-C    -------------------------------------------------------------
+      IMPLICIT COMPLEX*16(C),REAL*8(A,B,D-F,H,O-Z)
+      PARAMETER (NTRM=51)
+      DIMENSION RHOM(NTRM),RHOG(NTRM)
+      DIMENSION PSIP(NTRM),PSIT(NTRM)
+      DIMENSION PPSI(NTRM),HJPSI(NTRM)
+      DIMENSION VTPSI(NTRM),TPSI(NTRM)
+      DIMENSION QPSI(NTRM),VPSI(NTRM),SPSI(NTRM)
+      DIMENSION RJ(NTRM),BP(NTRM),QP(NTRM)
 C
-C   ************************************************
-C   **                  TRTEST                    **
-C   ************************************************
+      PI     = 2.D0*ASIN(1.D0)
+      RMU0   = 4.D0*PI*1.D-7
+      AEE     = 1.60219D-19
 C
-      SUBROUTINE TREQIN(IERR)
+      CALL GSOPEN
+      CALL TREQIN
 C
-      INCLUDE 'eqcomc.h'
-      INCLUDE 'eqcom4.h'
+      NTRMAX=51
+      RR=3.D0
+      RA=1.D0
+      RIP=3.D0
+      BB=3.D0
+      PN0=0.5D0
+      PT0=6.D0
+      PROFJ1=2
+      PROFJ2=2
 C
-      CHARACTER KNAMEQ1*32,KNAM*32,KPNAM*32
+      DRHO=1.D0/(NTRMAX-1)
+      DO NTR=1,NTRMAX
+         RHOG(NTR)=DRHO*(NTR-1)
+         RHOM(NTR)=DRHO*(DBLE(NTR)-0.5D0)
+         RJ(NTR)= (1.D0-RHOG(NTR)**PROFJ1)**PROFJ2
+      ENDDO
 C
-      WRITE(6,*) '## TRTEST 2002/01/31'
-      CALL EQINIT
-C      CALL EQPARF
-      MODIFY = 2
+      BP(1)=0.5D0*DRHO*RJ(1)
+      DO NTR=2,NTRMAX
+         BP(NTR)=(RHOM(NTR-1)*BP(NTR-1)+RHOG(NTR)*DRHO*RJ(NTR))
+     &           /RHOM(NTR)
+      ENDDO
+      BPA= RMU0*RIP*1.D6/(2.D0*PI*RA)
+      FACT=BPA/BP(NTRMAX)
+      DO NR=1,NTRMAX
+         BP(NTR)=FACT*BP(NTR)
+         QP(NTR)=RHOM(NR)*BB/(RR*BP(NR))
+      ENDDO
 C
-      CALL EQMESH
-      CALL TRPSIN(IERR)
-      IF(IEER.NE.0) GOTO 1000
-      CALL EQLOOP(IERR)
-      IF(IERR.NE.0) GOTO 1000
-      CALL EQTORZ
-      CALL EQSETP
+      P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
+      PSIT(1)=0.D0
+      PSIP(1)=0.D0
+      DO NTR=2,NTRMAX
+         PSIT(NTR)=PI*RHOG(NTR)**2*BB
+         PSIP(NTR)=(PSIT(NTR)-PSIT(NTR-1))/QP(NTR)+PSIP(NTR-1)
+         PPSI(NTR)=P0*(1.D0-RHOG(NTR)**2)
+         HJPSI(NTR)=RJ(NTR)
+         VTPSI(NTR)=0.D0
+         TPSI(NTR)=PT0*(1.D0-RHOG(NTR)**2)
+      ENDDO
 C
- 1000 WRITE(6,*) 'XX TRTEST: ERROR : IERR=',IERR
-C      STOP
-      RETURN
+      DO NTR=1,NTRMAX
+         WRITE(6,'(1P4E12.4)') RHOG(NTR),RHOM(NTR),RJ(NTR),BP(NTR)
+      ENDDO
+C
+      DO NTR=1,NTRMAX
+         WRITE(6,'(1P4E12.4)') PSIP(NTR),PSIT(NTR),PPSI(NTR),HJPSI(NTR)
+      ENDDO
+C
+      CALL TREQEX(PSIP,PPSI,HJPSI,VTPSI,TPSI,NTRMAX,QPSI,VPSI,SPSI,IERR)
+C
+      DO NTR=1,NTRMAX
+         WRITE(6,'(1P4E12.4)') PSIP(NTR),QPSI(NTR),VPSI(NTR),SPSI(NTR)
+      ENDDO
+C
+ 9000 CALL GSCLOS
+      STOP
       END
