@@ -11,7 +11,7 @@ C
       ELSEIF(MODELG.EQ.5) THEN
          KNAMEQ='eqdskdata'
       ELSE
-         WRITE(6,*) 'XX UNKNOWN MODELG FOR EQLOAD')
+         WRITE(6,*) 'XX UNKNOWN MODELG FOR EQLOAD'
          GOTO 1
       ENDIF
       CALL EQLOAD(MODELG,KNAMEQ,IERR)

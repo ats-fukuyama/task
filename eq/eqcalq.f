@@ -97,7 +97,7 @@ C
       RAEQ=(REDGE-RAXIS)
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=INT((REDGE-RAXIS)/DR)+1
-      DTH=2*PI/(NTHMAX-1)
+      DTH=2*PI/NTHMAX
 C
 C     ----- SET NUMBER OF DIVISION for integration -----
 C
@@ -108,7 +108,7 @@ C
 C     ----- CALCULATE PSI,PPS,TTS,FTS and RPS, ZPS on magnetic surfaces -----
 C
       NR=1
-      DO NTH=1,NTHMAX
+      DO NTH=1,NTHMAX+1
          RPS(NTH,NR)=RAXIS
          ZPS(NTH,NR)=ZAXIS
       ENDDO
@@ -226,7 +226,7 @@ C         CALL SPL1D(XCHI0,ZCHI,DXCHI,UZCHI,NA,4,IERR)
 C
          RPS(1,NR)=YA(1,1)
          ZPS(1,NR)=YA(2,1)
-         DO NTH=2,NTHMAX
+         DO NTH=2,NTHMAX+1
             TH=DTH*(NTH-1)
 C            CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
 C            CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
@@ -234,7 +234,7 @@ C            CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
             CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
          ENDDO
 C         IF(NR.EQ.20) THEN
-C            DO NTH=1,NTHMAX
+C            DO NTH=1,NTHMAX+1
 C               TH=DTH*(NTH-1)
 C               WRITE(6,'(A,I5,1P3E12.4)') 'NTH,TH,R,Z=',
 C     &              NTH,TH,RPS(NTH,NR),ZPS(NTH,NR)
@@ -300,7 +300,7 @@ C     &        NR,PSS(NR),PPS(NR),TTS(NR),SPS(NR),VPS(NR),QPS(NR)
 C
          RMIN=RR
          RMAX=RR
-         DO NTH=1,NTHMAX
+         DO NTH=1,NTHMAX+1
             DELR=RPS(NTH,NRPMAX)-RPS(NTH,NRPMAX-1)
             DELZ=ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1)
             RPS(NTH,NR)=RPS(NTH,NRPMAX)+FACTOR*DELR
@@ -464,7 +464,7 @@ C
 C
 C        +++++ CALCULATE DERIVATIVES +++++
 C     
-      DO NTH=1,NTHMAX
+      DO NTH=1,NTHMAX+1
          NR=1
             DRPSI(NTH,NR)=0.D0
             DZPSI(NTH,NR)=0.D0
@@ -499,7 +499,7 @@ C
             ENDIF
             DRCHI(NTH,NR)=(RPS(NTH+1,NR)-RPS(NTHMAX,NR))/(2*DCHI)
             DZCHI(NTH,NR)=(ZPS(NTH+1,NR)-ZPS(NTHMAX,NR))/(2*DCHI)
-         DO NTH=2,NTHMAX-1
+         DO NTH=2,NTHMAX
             IF(PSIN.GT.0.D0) THEN
                CALL EQPSID(RPS(NTH,NR),ZPS(NTH,NR),DPSIDR,DPSIDZ)
                DPSI=SQRT(DPSIDR**2+DPSIDZ**2)
@@ -510,7 +510,7 @@ C
             DRCHI(NTH,NR)=(RPS(NTH+1,NR)-RPS(NTH-1,NR))/(2*DCHI)
             DZCHI(NTH,NR)=(ZPS(NTH+1,NR)-ZPS(NTH-1,NR))/(2*DCHI)
          ENDDO
-         NTH=NTHMAX
+         NTH=NTHMAX+1
             IF(PSIN.GT.0.D0) THEN
                CALL EQPSID(RPS(NTH,NR),ZPS(NTH,NR),DPSIDR,DPSIDZ)
                DPSI=SQRT(DPSIDR**2+DPSIDZ**2)
