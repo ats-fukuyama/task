@@ -589,9 +589,6 @@ C
       ELSE
          READ(NID,TR,IOSTAT=IST,ERR=9800,END=9900)
          NTMAX_SAVE=NTMAX
-C
-         NSCMAX=NSMAX+NSZMAX ! the number of charged particles
-         NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
       ENDIF
       IERR=0
       RETURN
@@ -871,9 +868,6 @@ C
       NGT   = 0
       NGST  = 0
       RIP   = RIPS
-C
-         NSCMAX=NSMAX+NSZMAX ! the number of charged particles
-         NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
@@ -1615,11 +1609,6 @@ C     &        ,RIPE
          ENDIF
       ENDIF
 C
-      DO NR=1,NRMAX
-         WRITE(6,'(I5,1P5E12.4)') 
-     &        NR,RN(NR,1),RT(NR,1),ETA(NR),AJ(NR),BP(NR)
-      ENDDO
-C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
       END
@@ -1809,6 +1798,9 @@ C
       INCLUDE 'trcomm.inc'
       COMMON /TRINS1/ INS
       SAVE NSSMAX
+C
+      NSCMAX=NSMAX+NSZMAX ! the number of charged particles
+      NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
       IF(NSMAX.EQ.1.AND.MDLEOI.EQ.0) MDLEOI=1
       IF(INIT.EQ.0) THEN
