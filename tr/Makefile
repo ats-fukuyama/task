@@ -3,6 +3,7 @@ include ../make.header
 
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
+#AFLAGS = $(DFLAGS) -lpgmm1 -lpgmm2 -lpgsse1 -lpgsse2
 
 SRCS=trmenu.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
@@ -24,8 +25,6 @@ OBJ3D=$(SRC3D:.f=.o)
 OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
-PROG2=tr2
-PROG3=trf
 
 LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
@@ -66,7 +65,7 @@ clean :
 	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core *.a
 
 veryclean : clean
-	rm -f $(PROG2) $(PROG3)
+	rm -f tr2 tr3
 
 new :
 	-mkdir ../trnew

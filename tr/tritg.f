@@ -106,7 +106,7 @@ C
          PDEVL = 8.D0
          PSTL  = 1.D0
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
-         EQL   =-      SLNQL/SLTQL
+         EQL   =       SLNQL/SLTQL
          ENQL  =-2.D0*(SLNQL/SLBL )
          ZL    = PZ(3)
          BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
@@ -148,65 +148,66 @@ C
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
 C
-         RPI4=0.D0
-         RPI3=0.D0
-         RPI2=0.D0
-         RPI1=0.D0
-         IF(NR.LE.1) THEN
-            DO NS=2,NSMAX
-               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
-            ENDDO
-            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
-            ENDDO
-            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
-         ENDIF
-            DO NS=2,NSMAX
-               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         IF(NR.GE.NRMAX-1) THEN
-            DO NS=2,NSMAX
-               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-         ENDIF
-         IF(NR.GE.NRMAX-2) THEN
-            DO NS=2,NSMAX
-               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-         ENDIF
-         RPIM=0.5D0*(RPI1+RPI2)
-         RPI0=0.5D0*(RPI2+RPI3)
-         RPIP=0.5D0*(RPI3+RPI4)
-         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
-         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
-         DELTA2= VC**2/WPE2
-         DELTAE= SQRT(DELTA2)
-         SL    = SQRT(SL**2+0.1D0**2)
-         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
-         ROTL  = 1.D0
+c$$$         RPI4=0.D0
+c$$$         RPI3=0.D0
+c$$$         RPI2=0.D0
+c$$$         RPI1=0.D0
+c$$$         IF(NR.LE.1) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+c$$$     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
+c$$$         ENDIF
+c$$$            DO NS=2,NSMAX
+c$$$               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         IF(NR.GE.NRMAX-1) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+c$$$         ENDIF
+c$$$         IF(NR.GE.NRMAX-2) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+c$$$         ENDIF
+c$$$         RPIM=0.5D0*(RPI1+RPI2)
+c$$$         RPI0=0.5D0*(RPI2+RPI3)
+c$$$         RPIP=0.5D0*(RPI3+RPI4)
+c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
+c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+c$$$         DELTA2= VC**2/WPE2
+c$$$         DELTAE= SQRT(DELTA2)
+c$$$         SL    = SQRT(SL**2+0.1D0**2)
+c$$$         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+         WEXBL = AGME(NR)
+         ROTL  = 0.D0
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,
@@ -299,7 +300,7 @@ C
          PDEVL = 8.D0
          PSTL  = 1.D0
          BQL   = PNSS(3)/PNSS(1)
-         EQL   =-      SLNQL/SLTQL
+         EQL   =       SLNQL/SLTQL
          ENQL  =-2.D0*(SLNQL/SLBL )
          ZL    = PZ(3)
          BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*AMYU0))
@@ -338,64 +339,65 @@ C
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
 C
-         RPI4=0.D0
-         RPI3=0.D0
-         RPI2=0.D0
-         RPI1=0.D0
-         IF(NR.LE.1) THEN
-            DO NS=2,NSMAX
-               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
-            ENDDO
-            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
-            ENDDO
-            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
-         ENDIF
-            DO NS=2,NSMAX
-               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         IF(NR.GE.NRMAX-1) THEN
-            DO NS=2,NSMAX
-               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-         ENDIF
-         IF(NR.GE.NRMAX-2) THEN
-            DO NS=2,NSMAX
-               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-         ELSE
-            DO NS=2,NSMAX
-               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-         ENDIF
-         RPIM=0.5D0*(RPI1+RPI2)
-         RPI0=0.5D0*(RPI2+RPI3)
-         RPIP=0.5D0*(RPI3+RPI4)
-         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
-         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
-         DELTA2= VC**2/WPE2
-         DELTAE= SQRT(DELTA2)
-         SL    = SQRT(SL**2+0.1D0**2)
-         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+c$$$         RPI4=0.D0
+c$$$         RPI3=0.D0
+c$$$         RPI2=0.D0
+c$$$         RPI1=0.D0
+c$$$         IF(NR.LE.1) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
+c$$$     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
+c$$$         ENDIF
+c$$$            DO NS=2,NSMAX
+c$$$               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         IF(NR.GE.NRMAX-1) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
+c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+c$$$         ENDIF
+c$$$         IF(NR.GE.NRMAX-2) THEN
+c$$$            DO NS=2,NSMAX
+c$$$               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
+c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+c$$$         ELSE
+c$$$            DO NS=2,NSMAX
+c$$$               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
+c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+c$$$         ENDIF
+c$$$         RPIM=0.5D0*(RPI1+RPI2)
+c$$$         RPI0=0.5D0*(RPI2+RPI3)
+c$$$         RPIP=0.5D0*(RPI3+RPI4)
+c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
+c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*AMYU0))
+c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*AEPS0)
+c$$$         DELTA2= VC**2/WPE2
+c$$$         DELTAE= SQRT(DELTA2)
+c$$$         SL    = SQRT(SL**2+0.1D0**2)
+c$$$         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+         WEXB = AGME(NR)
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,
@@ -540,6 +542,9 @@ C      REAL*8 SEARCHMODE,SEARCH
 C
 C     ISHW : controlling printout in TR_WEILAND_BRIDGE (0: off)
       ISHW=0
+      IF(ISHW.NE.0) THEN
+         WRITE(6,*) '//////////////////////////////////////////////////'
+      ENDIF
 C
       GK   = GKL
       WEXB = WEXBL
@@ -787,7 +792,7 @@ C
       ENDIF
 C00150 CONTINUE
       SCHIL = SCHI
-      SCHEL = SCHEL
+      SCHEL = SCHE
       SDL   = SD
       SCHQL = SCHQ
       SDQL  = SDQ

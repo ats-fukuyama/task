@@ -237,7 +237,7 @@ C
 C
 C     ***********************************************************
 C
-C           GRAPHIC : RADIAL PROFILE : BP,Psi
+C           GRAPHIC : RADIAL PROFILE : BP,PSI
 C
 C     ***********************************************************
 C
@@ -253,7 +253,7 @@ C
 C
       CALL TRGR1D(15.5,24.5,11.0,17.0,
      &            GRM,GVR(1,1,22),NRMP,NRMAX,NGR,
-     &            '@Psi vs r@',0+INQ)
+     &            '@PSI vs r@',0+INQ)
 C
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,
 c$$$     &            GRM,GVR(1,1,23),NRMP,NRMAX,NGR,

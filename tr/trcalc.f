@@ -944,7 +944,7 @@ C     &      -2.5D0*C1
 C         C4=((DDD+0.35D0*DSQRT(RNUI))
 C     &      /(1.D0+0.7D0*DSQRT(RNUI))
 C     &      +2.1D0*EPS**3*RNUI**2)*C2
-C     &      /((1.D0+EPS**3*RNUI**2)
+C     &      /((1.D0-EPS**3*RNUI**2)
 C     &       *(1.D0+EPS**3*RNUE**2))
 C
 C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))
@@ -1056,7 +1056,7 @@ C     &      -2.5D0*C1
 C         C4=((DDD+0.35D0*DSQRT(RNUI))
 C     &      /(1.D0+0.7D0*DSQRT(RNUI))
 C     &      +2.1D0*EPS**3*RNUI**2)*C2
-C     &      /((1.D0+EPS**3*RNUI**2)
+C     &      /((1.D0-EPS**3*RNUI**2)
 C     &       *(1.D0+EPS**3*RNUE**2))
 C
 C         AJBSL(NR)=-PBSCD*FT*PE*1.D20*RKEV/(DDX*BP(NR))

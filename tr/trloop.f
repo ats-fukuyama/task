@@ -886,7 +886,7 @@ C     I think the above expression is obsolete.
       ENDDO
 C
       SUM=0.D0
-      DO NR=1,NRMAX
+      DO NR=1,NROMAX
          SUM=SUM+RDP(NR)*DR
          RPSI(NR)=SUM
       ENDDO
@@ -1018,7 +1018,7 @@ C
       DV23=DVRHO(NR)**(2.D0/3.D0)
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
-      DO NEQ=1,NEQMAX
+      DO NEQ=1,NEQMAX  ! *** NEQ ***
 C
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
@@ -1067,7 +1067,7 @@ C
          SIG(2)= 2.D0
          SIG(3)=-2.D0
          SIG(4)=-2.D0
-         DO NMK=1,4
+         DO NMK=1,4  ! *** NMK ***
             IF(NMK.EQ.1) THEN
                NI=1
                NJ=1
@@ -1083,7 +1083,7 @@ C
             ENDIF
             NRJ=NR+(NJ-2)
 C
-            IF(MDNCLS.EQ.0) THEN
+            IF(MDNCLS.EQ.0) THEN  ! *** MDNCLS ***
 C
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
@@ -1120,7 +1120,7 @@ C
                ENDIF
             ENDIF
 C
-            ELSE
+            ELSE  ! *** MDNCLS ***
 C
 C     *** NCLASS ***
 C     *
@@ -1255,10 +1255,10 @@ C
 C     *
 C     **************
 C
-            ENDIF
-         ENDDO
+            ENDIF  ! *** MDNCLS ***
+         ENDDO  ! *** NMK ***
 C
-      ENDDO
+      ENDDO  ! *** NEQ ***
 C
       IF(MDLEQE.EQ.1) THEN
          IND=0

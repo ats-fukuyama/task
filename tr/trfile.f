@@ -377,10 +377,10 @@ C
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
       COMMON /TRUFC3/ NM2CHK
       COMMON /TRUFC4/ NREMAX(2),GRE(NRM,2)
-      COMMON /TRERU1/ RTEXU(NTUM,NRMP),   RTIXU(NTUM,NRMP),
-     &                RNEXU(NTUM,NRMP)
-      COMMON /TRERU2/ RTEXEU(NTUM,NRMP),  RTIXEU(NTUM,NRMP),
-     &                RNEXEU(NTUM,NRMP)
+      COMMON /TRERU1/ RTEXU(NTUM,NRMU),   RTIXU(NTUM,NRMU),
+     &                RNEXU(NTUM,NRMU)
+      COMMON /TRERU2/ RTEXEU(NTUM,NRMU),  RTIXEU(NTUM,NRMU),
+     &                RNEXEU(NTUM,NRMU)
       DIMENSION RUF(NRMU),F1(NTUM),FAS(NRMP)
       CHARACTER KFID*10
 C
@@ -645,6 +645,8 @@ C
          PICU(1,NR,1)=0.D0
          PICU(1,NR,2)=0.D0
          PECU(1,NR  )=0.D0
+         VROTU(1,NR )=0.D0
+         VTORU(1,NR )=0.D0
       ENDDO
       KFID='QICRHE'
       CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
@@ -692,6 +694,18 @@ C
       CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
       DO NR=1,NRMAX
          SNBU(1,NR,2)=FAS(NR)
+      ENDDO
+C
+      KFID='VROT'
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
+      DO NR=1,NRMAX
+         VROTU(1,NR)=FAS(NR)
+      ENDDO
+C
+      KFID='VTOR'
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,IERR)
+      DO NR=1,NRMAX
+         VTORU(1,NR)=FAS(NR)
       ENDDO
 C
 C     *****
@@ -2200,6 +2214,8 @@ C
          PEX(NR,2)=PNBU(1,NR,2)
          PRF(NR,1)=PICU(1,NR,1)+PECU(1,NR)
          PRF(NR,2)=PICU(1,NR,2)
+         VROT(NR) =VROTU(1,NR)
+         VTOR(NR) =VTORU(1,NR)
          TTRHO(NR)=TTRHOU(1,NR)
          DVRHO(NR)=DVRHOU(1,NR)
          DSRHO(NR)=DSRHOU(1,NR)
@@ -2488,9 +2504,9 @@ C
             ENDDO
          ENDDO
       ELSE
-         DO NTA=1,NTUM
+         DO NTX=1,NTUM
             DO NRF=1,NRMU
-               F2(NTA,NRF)=0.D0
+               F2(NTX,NRF)=0.D0
             ENDDO
          ENDDO
          IERR=1
@@ -2575,8 +2591,8 @@ C
       COMMON /COMEPS/ EPS,IERRL
       DIMENSION T(NTM),F1(NTM)
 C
-C      M=5
-      M=1
+      M=5
+C      M=1
       EPS=1.D-5
 C
       FOUT=FITLAG(SLT,T,F1,M,NTMAX,NTM)

@@ -69,6 +69,21 @@ C     ***** CLT  is the ion temerature scale length Ti/(dTi/dr) *****
 C     ***** DQ   is the derivative of safety factor (dq/dr) *****
 C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
+C     /* Calculate ExB velocity in advance 
+C        for ExB shearing rate calculation */
+      DO NR=1,NRMAX
+         CVE=1.D0
+         DRL=RJCB(NR)/DR
+         IF(NR.EQ.NRMAX) THEN
+            DPD = 2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
+            ER=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+         ELSE
+            DPD = (RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
+            ER=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+         ENDIF
+         VEXB(NR)= -CVE*ER/BB
+      ENDDO
+C
       DO NR=1,NRMAX
          TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))*DBLE(MDTC)
          DRL=RJCB(NR)/DR
@@ -129,8 +144,12 @@ C
             RNM = 0.5D0*RNM
             RPM = 0.5D0*RPM
 C 
-            DTE = (PTS(1) -RT(NR,1))*DRL
-            DNE = (PNSS(1)-RN(NR,1))*DRL
+            DTE = 2.D0*(PTS(1) -RT(NR,1))*DRL
+            DNE = 2.D0*(PNSS(1)-RN(NR,1))*DRL
+            DPE = 2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
+            DTD = 2.D0*(PTS(2) -RT(NR,2))*DRL
+            DND = 2.D0*(PNSS(2)-RN(NR,2))*DRL
+            DPD = 2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
             ZEFFL=ZEFF(NR)
             EZOHL=EZOH(NR)
 C
@@ -165,6 +184,10 @@ C
 C
             DTE = (RT(NR+1,1)-RT(NR  ,1))*DRL
             DNE = (RN(NR+1,1)-RN(NR  ,1))*DRL
+            DPE = (RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
+            DTD = (RT(NR+1,2)-RT(NR  ,2))*DRL
+            DND = (RN(NR+1,2)-RN(NR  ,2))*DRL
+            DPD = (RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
@@ -287,12 +310,23 @@ C
          OMEGAS  = PPK*TE*RKEV/(AEE*BB*ABS(CLN))
          OMEGATT = DSQRT(2.D0)*VTE/(RR*QL)
 C
+         S=RR*EPS*DQ/QL
+         IF(NR.EQ.1) THEN
+            DVE = (VEXB(NR+1)-VEXB(NR))/1.5D0*DRL
+         ELSEIF(NR.EQ.NRMAX) THEN
+            DVE = (VEXB(NR)-VEXB(NR-1))*DRL
+         ELSE
+            DVE = (VEXB(NR+1)-VEXB(NR-1))/2.D0*DRL
+         ENDIF
+         AGME(NR) = (S-1.D0)*VEXB(NR)/(EPS*RR)+DVE
+         AGMP(NR) = QP(NR)/EPS*AGME(NR)
+C
 C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
 C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
 C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
 C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
 C        ***** 40.GE.MDLKAI.LT.50 : DRIFT ALFVEN BALLOONING MODEL ****
-C        *****       MDLKAI.GE.60 : GLF23 MODEL BY R.E.WALTZ *****
+C        *****       MDLKAI.GE.60 : ITG AND BOHM/GYROBOHM MODELS *****
 C                                                                  
          IF(MDLKAI.LT.10) THEN
 C           *****  MDLKAI.EQ. 0   : CONSTANT *****
@@ -767,6 +801,26 @@ C
             VGR4(NR,1)=RLAMDA
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
             VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+            IF(MDLKAI.EQ.64) THEN
+               NR08=INT(0.8D0*NRMAX)
+               CHIB  = (ABS(DPE*1.D3)/(ANE*BB))*QL*QL
+     &                *((RT(NR08,1)-RT(NRMAX,1))/RT(NRMAX,1))
+               RHOS  = 1.02D-4*SQRT(PA(2)*TE*1.D3/PZ(2))/(RA*BB)
+               CHIGB = RHOS*ABS(DTE*1.D3)/BB
+               CS    = SQRT(ABS(TE*RKEV/(PA(2)*AMM)))
+C               ALNI  = -DND/ANDX
+C               ALTI  = -DTD/TD
+               ALNI  = ABS(DND/ANDX)
+               ALTI  = ABS(DTD/TD)
+               AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
+               S=RR*EPS*DQ/QL
+               AKDW(NR,1) = 8.D-5  *CHIB*FBHM(AGME(NR),AGITG,S)
+     &                     +7.D-2  *CHIGB
+               AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(AGME(NR),AGITG,S)
+     &                     +1.75D-2*CHIGB
+               AKDW(NR,3) = AKDW(NR,2)
+               AKDW(NR,4) = AKDW(NR,2)
+            ENDIF
          ELSE                                           
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
             AKDW(NR,1)=0.D0
@@ -815,10 +869,10 @@ C
          zpne_in=0.D0    ! default
          zpni_in=0.D0    ! default
          DO jm=0,jmaxm
-            angrotp_exp(jm)=0.D0     ! default
-            egamma_exp(jm)=0.D0      ! default
-            rgamma_p_exp(jm)=0.D0    ! default
-            vphi_m(jm)=0.D0          ! default
+            angrotp_exp(jm)=VROT(jm+1)
+            egamma_exp(jm)=AGME(jm+1)
+            rgamma_p_exp(jm)=AGMP(jm+1)
+            vphi_m(jm)=VTOR(jm+1)
             vpar_m(jm)=0.D0          ! default
             vper_m(jm)=0.D0          ! default
          ENDDO
@@ -829,7 +883,7 @@ C            zeff_exp(jm)=1.D0
          ENDDO
 C
          bt_exp=BB
-         nbt_flag=0    ! default
+         nbt_flag=1    ! default
 C
 C     normalized flux surface; 0 < rho < 1.
          DO jm=0,jmaxm
@@ -1876,5 +1930,16 @@ C
         RLAMBDA=(1.D0/SQRT(AX))*(Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*
      &                           (Q7+Y*(Q8+Y*Q9))))))))
       ENDIF
+      RETURN
+      END
+C
+C     *** for Mixed Bohm/gyro-Bohm model ***
+C
+      FUNCTION FBHM(AGME,AGITG,S)
+C
+      REAL*8 AGME,AGITG,S
+C
+      FBHM=1.D0/(1.D0+EXP(20.D0*(0.05D0+AGME/AGITG-S)))
+C
       RETURN
       END
