@@ -66,9 +66,9 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 #OBJLA = /usr/lib/libcxml.so
 
 ## for macosx-g77
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
-#OFLAGS = -O
-#DFLAGS = -g -fbounds-check
+#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm -L/usr/lib -lcc_dynamic 
+#OFLAGS = -O -I.
+#DFLAGS = -g -fbounds-check -I.
 #FC = g77
 
 ## for macosx-xlf
