@@ -211,7 +211,7 @@ C
          FC2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
          FC3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
          IF(NR.EQ.NRMAX-1) THEN
-            FC4=FC3
+            FC4=2.D0*FC3-FC2
          ELSE
             FC4=DVRHO(NR+2)*ABRHO(NR+2)/TTRHO(NR+2)
          ENDIF
@@ -246,11 +246,12 @@ C
          DNM=0.5D0*(FB1*AD(NR-1,NS)+FB2*AD(NR  ,NS))
          DNP=0.5D0*(FB2*AD(NR  ,NS)+FB3*AD(NR+1,NS))
 C
+         DV11=DVRHO(NR)
          DV23=DVRHO(NR)**(2.D0/3.D0)
          DV53=DVRHO(NR)**(5.D0/3.D0)
-         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*2.5D0
-         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
-         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*2.5D0
+         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*1.5D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*1.5D0
+         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*1.5D0
          ADK1=AK(NR-1,NS)
          ADK2=AK(NR  ,NS)
          ADK3=AK(NR+1,NS)
@@ -259,9 +260,9 @@ C
          DTM=0.5D0*(FB1*ADK1+FB2*ADK2)*DV23
          DTP=0.5D0*(FB2*ADK2+FB3*ADK3)*DV23
 C
-         ADX1=(2.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
-         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
-         ADX3=(2.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
+         ADX1=(1.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
+         ADX2=(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         ADX3=(1.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
          VXM=0.D0*DV23
          VXP=0.D0*DV23
          DXM=0.5D0*(FB1*ADX1+FB2*ADX2)*DV23
@@ -282,7 +283,7 @@ C
      &                        -0.5D0*VXP-DXP
          C(NSM+NS,    NS,NR) =-0.5D0*VXP+DXP
 C
-         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV11
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
 C
       DO NS1=1,NSM
@@ -335,11 +336,12 @@ C
          DNM=0.D0
          DNP=0.5D0*(FB2*AD(NR  ,NS)+FB3*AD(NR+1,NS))
 C
+         DV11=DVRHO(NR)
          DV23=DVRHO(NR)**(2.D0/3.D0)
          DV53=DVRHO(NR)**(5.D0/3.D0)
          AVK1=0.D0
-         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
-         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*2.5D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*1.5D0
+         AVK3=AVK(NR+1,NS)+AV(NR+1,NS)*1.5D0
          ADK1=0.D0
          ADK2=AK(NR  ,NS)
          ADK3=AK(NR+1,NS)
@@ -348,8 +350,8 @@ C
          DTM=0.D0
          DTP=0.5D0*(FB2*ADK2+FB3*ADK3)*DV23
 C
-         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
-         ADX3=(2.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
+         ADX2=(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         ADX3=(1.5D0*AD(NR+1,NS)-AK(NR+1,NS))*RT(NR+1,NS)
          VXM=0.D0
          VXP=0.D0*DV23
          DXM=0.0D0
@@ -370,7 +372,7 @@ C
      &                        -0.5D0*VXP-DXP
          C(NSM+NS,    NS,NR) =-0.5D0*VXP+DXP
 C
-         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV11
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
 C
       DO NS1=1,NSM
@@ -402,10 +404,11 @@ C
          DNM=0.5D0*(FB1*AD(NR-1,NS)+FB2*AD(NR  ,NS))
          DNP=       FB2*AD(NR  ,NS)
 C
+         DV11=DVRHO(NR)
          DV23=DVRHO(NR)**(2.D0/3.D0)
          DV53=DVRHO(NR)**(5.D0/3.D0)
-         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*2.5D0
-         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*2.5D0
+         AVK1=AVK(NR-1,NS)+AV(NR-1,NS)*1.5D0
+         AVK2=AVK(NR  ,NS)+AV(NR  ,NS)*1.5D0
          ADK1=AK(NR-1,NS)
          ADK2=AK(NR  ,NS)
          VTM=0.5D0*(FA1*AVK1+FA2*AVK2)*DV23
@@ -413,8 +416,8 @@ C
          DTM=0.5D0*(FB1*ADK1+FB2*ADK2)*DV23
          DTP=       FB2*ADK2          *DV23
 C
-         ADX1=(2.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
-         ADX2=(2.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
+         ADX1=(1.5D0*AD(NR-1,NS)-AK(NR-1,NS))*RT(NR-1,NS)
+         ADX2=(1.5D0*AD(NR  ,NS)-AK(NR  ,NS))*RT(NR  ,NS)
          VXM=0.D0*DV23
          VXP=0.D0*DV23
          DXM=0.5D0*(FB1*ADX1+FB2*ADX2)*DV23
@@ -435,7 +438,7 @@ C
      &                        -0.0D0*VXP-DXP-DXP
          C(NSM+NS,    NS,NR) =-0.0D0
 C
-         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV53
+         D(    NS,NR) = (SSIN(NR,NS)+SPE(NR,NS)/DT)*DV11
      &                 +(-VNP+DNP*2.D0)*PNSS(NS)
          D(NSM+NS,NR) = (PIN(NR,NS)/(RKEV*1.D20)  )*DV53
      &                 +(-VXP+DXP*2.D0)*PNSS(NS)
@@ -457,9 +460,16 @@ C
       ADV=FADV*DT
 C
       DO NR=1,NRMAX
-      DO NV=1,NVM
+         DV11=DVRHO(NR)
+         DV53=DVRHO(NR)**(5.D0/3.D0)
+         DO NS=1,NSM
+            NV=NS
+            X(NVM*(NR-1)+NV) = DV11*XV(NV,NR)+DT*D(NV,NR)
+            NV=NSM+NS
+            X(NVM*(NR-1)+NV) = DV53*XV(NV,NR)+DT*D(NV,NR)
+         ENDDO
+         NV=2*NSM+1
          X(NVM*(NR-1)+NV) = XV(NV,NR)+DT*D(NV,NR)
-      ENDDO
       ENDDO
 C
       NR=1
@@ -507,10 +517,11 @@ C
       ENDDO
 C
       DO NR=1,NRMAX
+         DV11=DVRHO(NR)
          DV53=DVRHO(NR)**(5.D0/3.D0)
          DO NS=1,NSM
             AX(2*NVM,NVM*(NR-1)+NS) 
-     &           = AX(2*NVM,NVM*(NR-1)+NS) + 1.D0
+     &           = AX(2*NVM,NVM*(NR-1)+NS) + DV11
             AX(2*NVM,NVM*(NR-1)+NSM+NS) 
      &           = AX(2*NVM,NVM*(NR-1)+NSM+NS) + 1.5D0*DV53
          ENDDO
