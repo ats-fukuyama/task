@@ -389,9 +389,11 @@ C
       IF(MDLUF.EQ.1) THEN
          IF(NT.EQ.0) THEN
             RKAP=RKAPU(1)
+            RKAPS=SQRT(RKAP)
             BPS=AMYU0*RIPU(1)*1.D6/(2.D0*PI*RA*RKAPS)
          ELSE
             RKAP=RKAPU(NT)
+            RKAPS=SQRT(RKAP)
             BPS=AMYU0*RIPU(NT)*1.D6/(2.D0*PI*RA*RKAPS)
          ENDIF
       ENDIF
@@ -1003,8 +1005,8 @@ C
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
-C         FVL = FKAP/RKAP
-         FVL = 1.D0
+         FVL = RKAPS/RKAP
+C         FVL = 1.D0
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF

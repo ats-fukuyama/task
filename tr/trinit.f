@@ -817,16 +817,15 @@ C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
             AJ(NR)  = PROF
          ENDDO
 C
-         BP(1)=AMYU0*AJ(1)*RKAPS*RA*RM(1)*DR/RG(1)
+         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
          DO NR=2,NRMAX
-            BP(NR)=( AMYU0*AJ(1)*RKAPS*RA*RM(NR)*DR
-     &              +RM(NR-1)*BP(NR-1))/RG(NR)
+            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
 C
          BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
          FACT=BPS/BP(NRMAX)
          DO NR=1,NRMAX
-            AJOH(NR)=FACT*AJOH(NR)
+            AJOH(NR)=FACT*AJOH(NR)/RKAPS
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
             QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
@@ -1146,10 +1145,13 @@ C
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
                DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
-               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+C               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+               ABRHO(NR)=1.D0/(RA*RR)**2
                ARRHO(NR)=1.D0/RR**2
-               AR1RHO(NR)=1.D0/(RKAPS*RA)
-               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+C               AR1RHO(NR)=1.D0/(RKAPS*RA)
+C               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+               AR1RHO(NR)=1.D0/RA
+               AR2RHO(NR)=1.D0/RA**2
                EPSRHO(NR)=RA*RG(NR)/RR
 C
                EKAPPA(NR)=RKAP
