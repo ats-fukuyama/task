@@ -733,7 +733,6 @@ C
       INCLUDE 'eqcomc.inc'
 C
       CHARACTER KNAM*72
-C      CHARACTER KID*1
       LOGICAL LEX
 C
     1 WRITE(6,*) '#EQ> INPUT : SAVE FILE NAME : ',KNAMEQ
