@@ -978,7 +978,7 @@ C
          V=SQRT(X*X+Y*Y+EPS)
          DV=SQRT(DX*DX+DY*DY)
          IF(DV/V.LE.EPS) GO TO 9000
-C         IF(DF.LE.EPS) GO TO 9000
+         IF(DF.LE.2.D-15) GO TO 9000
          IF(ITER.LE.ILMAX) GO TO 1
       ENDIF
 C
