@@ -587,7 +587,7 @@ C
             AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
          ENDDO
       ENDDO
-      DO NR=1,NRMAX-1
+      DO NR=1,NRMAX
          GAD(NR+1,1) = GUCLIP(ADNC(NR,1))
          GAD(NR+1,2) = GUCLIP(ADNC(NR,2))
          GAK(NR+1,1) = GUCLIP(AKNC(NR,1))
@@ -836,12 +836,21 @@ C
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
 C
-         DO NR=1,NRMAX
-            GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
-            GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
-         ENDDO
-         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+         IF(MDLJQ.NE.1) THEN
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(QP(NR))
+               GYR(NR,2) = GUCLIP(QPU(NR,NT))
+            ENDDO
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@QP(TR),QP(UF) vs r@',2+INQ)
+         ELSE
+            DO NR=1,NRMAX
+               GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
+               GYR(NR,2) = GUCLIP(AJU(NR,NT)*1.D-6)
+            ENDDO
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &                  '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
+         ENDIF
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(BP(NR))
@@ -869,11 +878,11 @@ C
      &               '@TI(TR),TI(UF) [keV]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
-            GYR(NR,1) = GUCLIP(RN(NR,1))
-            GYR(NR,2) = GUCLIP(RNU(NR,1,1))
+            GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
+            GYR(NR,2) = GUCLIP(AJU(NR,1)*1.D-6)
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &               '@NE(TR),NE(UF) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+     &        '@AJ(TR),AJ(UF) [MA/m$+2$=]  vs r@',2+INQ)
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(BP(NR))

@@ -150,22 +150,22 @@ C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(BETAL(NR))
          GYR(NR+1,2) = GUCLIP(BETA(NR))
+         GYR(NR+1,3) = GUCLIP(BETAQ(NR))
       ENDDO
       GYR(1,1)=GUCLIP(BETA0)
       GYR(1,2)=GUCLIP(BETA0)
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
-     &            '@BETA,<BETA>  vs r@',2+INQ)
+      GYR(1,3)=GUCLIP(BETAQ0)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,3,
+     &            '@BETA,<BETA>,BETAQ  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(BETAPL(NR))
          GYR(NR+1,2) = GUCLIP(BETAP(NR))
-         GYR(NR+1,3) = GUCLIP(BETAQ(NR))
       ENDDO
       GYR(1,1)=GUCLIP(BETAP0)
       GYR(1,2)=GUCLIP(BETAP0)
-      GYR(1,3)=GUCLIP(BETAQ0)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,3,
-     &            '@BETAP,<BETAP>,BETAP1  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
+     &            '@BETAP,<BETAP>  vs r@',2+INQ)
 C
       CALL TRGRTM
       CALL PAGEE
@@ -384,16 +384,22 @@ C
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@SCX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 C
-      CALL TRGRTM
-C
-      CALL MOVE(17.5,4.0)
-      CALL TEXT('PELVEL=',7)
-      CALL NUMBD(PELVEL,'(1PE10.3)',10)
-      CALL TEXT('[m/s]',5)
-      CALL MOVE(17.5,3.0)
-      CALL TEXT('PELRAD=',7)
-      CALL NUMBD(PELRAD,'(1PE10.3)',10)
-      CALL TEXT('[m]',3)
+      NS=1
+      DO NR=1,NRMAX
+         GYR(NR,NS) = GUCLIP(RPSI(NR))
+      ENDDO
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
+     &            '@PSI [Wb]  vs r@',2+INQ)
+c$$$      CALL TRGRTM
+c$$$C
+c$$$      CALL MOVE(17.5,4.0)
+c$$$      CALL TEXT('PELVEL=',7)
+c$$$      CALL NUMBD(PELVEL,'(1PE10.3)',10)
+c$$$      CALL TEXT('[m/s]',5)
+c$$$      CALL MOVE(17.5,3.0)
+c$$$      CALL TEXT('PELRAD=',7)
+c$$$      CALL NUMBD(PELRAD,'(1PE10.3)',10)
+c$$$      CALL TEXT('[m]',3)
 C
       CALL PAGEE
 C

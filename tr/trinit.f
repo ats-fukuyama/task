@@ -268,6 +268,7 @@ C
       MODEP=3
       MDCURT=0
       MDNM1=0
+      MDLJQ=0
 C
 C     *** Error Indicator for UFILE Reader ***
       MDALL=0
@@ -331,7 +332,7 @@ C
      &              PELTIM,PELPAT,KFNLOG,
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
      &              NSMAX,NSZMAX,NSNMAX,
-     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI
+     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ
 C
       LOGICAL LEX
       CHARACTER KPNAME*32,KLINE*70,KNAME*80,KID*1
@@ -426,7 +427,7 @@ C
      &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
-     &       ' ',8X,'TIME_INT,MODEP,MDNI')
+     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ')
       END
 C
 C     ***********************************************************
@@ -894,6 +895,11 @@ C
       ENDDO
       CALL TR_EDGE_SELECTOR(1)
 C
+C     *** CALCULATE GEOMETRIC FACTOR ***
+C
+      CALL TRSTGF
+      CALL TRGFRG
+C
 C     *** CALCULATE PZC,PZFE ***
 C
       CALL TRZEFF
@@ -958,49 +964,141 @@ C     *** CALCULATE PROFILE OF AJ(R) ***
 C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
+      IF(MDLUF.NE.0.AND.MDCURT.EQ.1) MDLJQ=1
       IF(MDLUF.EQ.1) THEN
+         IF(MDLJQ.EQ.0) THEN
+         NR=1
+            AJ(NR)=AJU(NR,1)
+            AJOH(NR)=AJU(NR,1)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+         DO NR=2,NRMAX
+            AJ(NR)=AJU(NR,1)
+            AJOH(NR)=AJU(NR,1)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+         ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
          DO NR=1,NRMAX
-            QP(NR)=QPU(NR,1)
-            BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
+            QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
+         ENDDO
+         ELSEIF(MDLJQ.EQ.1) THEN
+         DO NR=1,NRMAX
+            QP(NR) =QPU(NR,1)
+            RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
-         AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
-         AJOH(1)=AJ(1)
+         NR=1
+            FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+            AJOH(NR)=AJ(NR)
          DO NR=2,NRMAX
-            AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
-     &            /(RM(NR)*RA*DR*AMYU0)
+            FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             AJOH(NR)=AJ(NR)
          ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
+         ENDIF
+C
          RIP   = RIPU(1)
          RIPS  = RIPU(1)
          RIPSS = RIPU(1)
          RIPE  = RIPU(1)
       ELSEIF(MDLUF.EQ.2) THEN
+         IF(MDLJQ.EQ.0) THEN
+            NR=1
+            AJ(NR)=AJU(NR,1)
+            AJOH(NR)=AJU(NR,1)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+         DO NR=2,NRMAX
+            AJ(NR)=AJU(NR,1)
+            AJOH(NR)=AJU(NR,1)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+         ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
          DO NR=1,NRMAX
-            QP(NR)=QPU(NR,1)
-            BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
-CCC            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
-            DSRHO(NR)=DSRHOU(NR,1)
+            QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
+         ENDDO
+         ELSEIF(MDLJQ.EQ.1) THEN
+         DO NR=1,NRMAX
+            QP(NR) =QPU(NR,1)
+            RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
          IF(MDCURT.EQ.0) THEN
             DO NR=1,NRMAX
                AJ(NR)=AJU(NR,1)
+               AJOH(NR)=AJ(NR)
             ENDDO
          ELSE
-            AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
+            NR=1
+               FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+               AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+               AJOH(NR)=AJ(NR)
             DO NR=2,NRMAX
-               AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
-     &              /(RM(NR)*RA*DR*AMYU0)
+               FACTOR0=TTRHO(NR)**2/(AMYU0*BB*DVRHO(NR))
+               FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+               AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+               AJOH(NR)=AJ(NR)
+            ENDDO
+            NR=1
+               FACTOR0=RR/(AMYU0*DVRHO(NR))
+               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+               AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+            DO NR=2,NRMAX
+               FACTOR0=RR/(AMYU0*DVRHO(NR))
+               FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+               AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             ENDDO
          ENDIF
-         CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
-         AJT   = AJTSUM*DR/1.D6
-         FACT=RIPS/AJT
-         DO NR=1,NRMAX
-            AJ(NR)=FACT*AJ(NR)
-            AJOH(NR)=AJ(NR)
-         ENDDO
+         ENDIF
 C
 C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
          RIP   = RIPS
@@ -1012,27 +1110,29 @@ C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/AMYU0*1.D-6
             AJ(NR)  =AJU(NR,1)
          ENDDO
 C
-         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+         NR=1
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
          DO NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
+         ENDDO
+         DO NR=1,NRMAX
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
-         FACT=BPS/BP(NRMAX)
+         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
-            AJOH(NR)=FACT*AJOH(NR)/RKAPS
+            AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
-            QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)  =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
+     &              /(4.D0*PI**2*RDP(NR))
          ENDDO
-C
-C         DO NR=1,NRMAX
-C            DSRHO(NR)=DSRHOU(NR,1)
-C         ENDDO
-C         CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
-C         AJT   = AJTSUM*DR/1.D6
-C         write(6,*) AJT
-C         STOP
       ELSE
          DO NR=1,NRMAX
             IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
@@ -1044,21 +1144,45 @@ C         STOP
             AJ(NR)  = PROF
          ENDDO
 C
-         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+         NR=1
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          DO NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+         ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
 C
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
-         FACT=BPS/BP(NRMAX)
+         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
-            AJOH(NR)=FACT*AJOH(NR)/RKAPS
+            RDP(NR)=FACT*RDP(NR)
+            AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
-            QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)  =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
+     &              /(4.D0*PI**2*RDP(NR))
          ENDDO
       ENDIF
 C      Q0=(4.D0*QP(1)-QP(2))/3.D0
+      DO NR=2,NRMAX
+         RPSI(NR)=(RDP(NR)-RDP(NR-1))/DR
+      ENDDO
+      RPSI(1)=FCTR(RM(2),RM(3),RPSI(2),RPSI(3))
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
@@ -1159,22 +1283,48 @@ C
             AJ(NR)  =1.D0/ETA(NR)
          ENDDO
 C
-         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+         NR=1
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
          DO NR=2,NRMAX
-            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTORM*RDP(NR-1)+FACTOR0*DR)/FACTORP
+         ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
+         DO NR=1,NRMAX
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
 C
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
-         FACT=BPS/BP(NRMAX)
+         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         FACT=RDPS/RDP(NRMAX)
          DO NR=1,NRMAX
-            AJOH(NR)=FACT*AJOH(NR)/RKAPS
-            AJ(NR)  =AJOH(NR)
-            BP(NR)  =FACT*BP(NR)
-            QP(NR)  =RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+            RDP(NR)  =FACT*RDP(NR)
+            AJOH(NR) =FACT*AJOH(NR)
+            AJ(NR)   =AJOH(NR)
+            AJTOR(NR)=FACT*AJTOR(NR)
+            BP(NR)   =FACT*BP(NR)
+            QP(NR)   =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
+     &               /(4.D0*PI**2*RDP(NR))
          ENDDO
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
  2000 CONTINUE
+      DO NR=1,NRMAX
+         BPRHO(NR)=BP(NR)
+         QRHO(NR)=QP(NR)
+      ENDDO
 C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
@@ -1337,48 +1487,49 @@ c$$$            QL=RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
 c$$$            FACTQ(NR)=QRHO(NR)/QL
 c$$$         ENDDO
 C
-      ELSE
-C         IF(MDLUF.EQ.1.OR.MDLUF.EQ.2) THEN
-         IF(MDLUF.NE.0) THEN
-            DO NR=1,NRMAX
-               BPRHO(NR)=BP(NR)
-               QRHO(NR)=QP(NR)
-               EPSRHO(NR)=RA*RG(NR)/RR
-C
-               TTRHO(NR)=TTRHOU(NR,1)
-               DVRHO(NR)=DVRHOU(NR,1)
-               DSRHO(NR)=DSRHOU(NR,1)
-               ABRHO(NR)=ABRHOU(NR,1)
-               ARRHO(NR)=ARRHOU(NR,1)
-               AR1RHO(NR)=AR1RHOU(NR,1)
-               AR2RHO(NR)=AR2RHOU(NR,1)
-C               RJCB(NR)=1.D0/(RKAPS*RA)
-               RJCB(NR)=AR1RHOU(NR,1)
-               RMJRHO(NR)=RMJRHOU(NR,1)
-               RMNRHO(NR)=RMNRHOU(NR,1)
-               EKAPPA(NR)=RKAP
-            ENDDO
-         ELSE
-            DO NR=1,NRMAX
-               EPSRHO(NR)=RA*RG(NR)/RR
-               BPRHO(NR)=BP(NR)
-               QRHO(NR)=QP(NR)
-               TTRHO(NR)=BB*RR
-               DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
-               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
-               ARRHO(NR)=1.D0/RR**2
-               AR1RHO(NR)=1.D0/(RKAPS*RA)
-               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-               RJCB(NR)=1.D0/(RKAPS*RA)
-C
-               EKAPPA(NR)=RKAP
-               RMJRHO(NR)=RR
-               RMNRHO(NR)=RA*RM(NR)
-            ENDDO
-         ENDIF
+         CALL TRGFRG
+c$$$      ELSE
+c$$$C         IF(MDLUF.EQ.1.OR.MDLUF.EQ.2) THEN
+c$$$         IF(MDLUF.NE.0) THEN
+c$$$            DO NR=1,NRMAX
+c$$$               BPRHO(NR)=BP(NR)
+c$$$               QRHO(NR)=QP(NR)
+c$$$               EPSRHO(NR)=RA*RG(NR)/RR
+c$$$C
+c$$$               TTRHO(NR)=TTRHOU(NR,1)
+c$$$               DVRHO(NR)=DVRHOU(NR,1)
+c$$$               DSRHO(NR)=DSRHOU(NR,1)
+c$$$               ABRHO(NR)=ABRHOU(NR,1)
+c$$$               ARRHO(NR)=ARRHOU(NR,1)
+c$$$               AR1RHO(NR)=AR1RHOU(NR,1)
+c$$$               AR2RHO(NR)=AR2RHOU(NR,1)
+c$$$C               RJCB(NR)=1.D0/(RKAPS*RA)
+c$$$               RJCB(NR)=AR1RHOU(NR,1)
+c$$$               RMJRHO(NR)=RMJRHOU(NR,1)
+c$$$               RMNRHO(NR)=RMNRHOU(NR,1)
+c$$$               EKAPPA(NR)=RKAP
+c$$$            ENDDO
+c$$$         ELSE
+c$$$            DO NR=1,NRMAX
+c$$$               EPSRHO(NR)=RA*RG(NR)/RR
+c$$$               BPRHO(NR)=BP(NR)
+c$$$               QRHO(NR)=QP(NR)
+c$$$               TTRHO(NR)=BB*RR
+c$$$               DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+c$$$               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
+c$$$               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+c$$$               ARRHO(NR)=1.D0/RR**2
+c$$$               AR1RHO(NR)=1.D0/(RKAPS*RA)
+c$$$               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+c$$$               RJCB(NR)=1.D0/(RKAPS*RA)
+c$$$C
+c$$$               EKAPPA(NR)=RKAP
+c$$$               RMJRHO(NR)=RR
+c$$$               RMNRHO(NR)=RA*RM(NR)
+c$$$            ENDDO
+c$$$         ENDIF
+c$$$         CALL TRGFRG
       ENDIF
-      CALL TRARRG
 C
       RETURN
       END
@@ -1697,11 +1848,61 @@ C
 C
 C     ***********************************************************
 C
+C           SET GEOMETRIC FACTOR AT HALF MESH
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRSTGF
+C
+      INCLUDE 'trcomm.h'
+C
+      IF(MDLUF.NE.0) THEN
+         DO NR=1,NRMAX
+            EPSRHO(NR)=RA*RG(NR)/RR
+C
+            TTRHO(NR)=TTRHOU(NR,1)
+            DVRHO(NR)=DVRHOU(NR,1)
+            DSRHO(NR)=DSRHOU(NR,1)
+            ABRHO(NR)=ABRHOU(NR,1)
+            ARRHO(NR)=ARRHOU(NR,1)
+            AR1RHO(NR)=AR1RHOU(NR,1)
+            AR2RHO(NR)=AR2RHOU(NR,1)
+C            RJCB(NR)=1.D0/(RKAPS*RA)
+            RJCB(NR)=AR1RHOU(NR,1)
+            RMJRHO(NR)=RMJRHOU(NR,1)
+            RMNRHO(NR)=RMNRHOU(NR,1)
+            EKAPPA(NR)=RKAP
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            EPSRHO(NR)=RA*RG(NR)/RR
+            BPRHO(NR)=BP(NR)
+            QRHO(NR)=QP(NR)
+            TTRHO(NR)=BB*RR
+            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+            DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
+            ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+            ARRHO(NR)=1.D0/RR**2
+            AR1RHO(NR)=1.D0/(RKAPS*RA)
+            AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+            RJCB(NR)=1.D0/(RKAPS*RA)
+C
+            EKAPPA(NR)=RKAP
+            RMJRHO(NR)=RR
+            RMNRHO(NR)=RA*RM(NR)
+         ENDDO
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
 C           GEOMETRIC FACTOR AT GRID MESH
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRARRG
+      SUBROUTINE TRGFRG
 C
       INCLUDE 'trcomm.h'
 C
@@ -1710,16 +1911,23 @@ C
          AR2RHOG(NR)=0.5D0*(AR2RHO(NR)+AR2RHO(NR+1))
          RMJRHOG(NR)=0.5D0*(RMJRHO(NR)+RMJRHO(NR+1))
          RMNRHOG(NR)=0.5D0*(RMNRHO(NR)+RMNRHO(NR+1))
+         TTRHOG (NR)=0.5D0*(TTRHO (NR)+TTRHO (NR+1))
+         DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
+         ARRHOG (NR)=0.5D0*(ARRHO (NR)+ARRHO (NR+1))
+         ABRHOG (NR)=0.5D0*(ABRHO (NR)+ABRHO (NR+1))
       ENDDO
       NR=NRMAX
-      AR1RHOG(NR)=FEDG(RG(NR),RM(NRMAX-1),RM(NRMAX),
-     &     AR1RHO(NRMAX-1),AR1RHO(NRMAX))
-      AR2RHOG(NR)=FEDG(RG(NR),RM(NRMAX-1),RM(NRMAX),
-     &     AR2RHO(NRMAX-1),AR2RHO(NRMAX))
-      RMJRHOG(NR)=FEDG(RG(NR),RM(NRMAX-1),RM(NRMAX),
-     &     RMJRHO(NRMAX-1),RMJRHO(NRMAX))
-      RMNRHOG(NR)=FEDG(RG(NR),RM(NRMAX-1),RM(NRMAX),
-     &     RMNRHO(NRMAX-1),RMNRHO(NRMAX))
+         RGL=RG(NR)
+         RML=RM(NR)
+         RML1=RM(NR-1)
+         AR1RHOG(NR)=FEDG(RGL,RML,RML1,AR1RHO(NR),AR1RHO(NR-1))
+         AR2RHOG(NR)=FEDG(RGL,RML,RML1,AR2RHO(NR),AR2RHO(NR-1))
+         RMJRHOG(NR)=FEDG(RGL,RML,RML1,RMJRHO(NR),RMJRHO(NR-1))
+         RMNRHOG(NR)=FEDG(RGL,RML,RML1,RMNRHO(NR),RMNRHO(NR-1))
+         TTRHOG (NR)=FEDG(RGL,RML,RML1,TTRHO (NR),TTRHO (NR-1))
+         DVRHOG (NR)=FEDG(RGL,RML,RML1,DVRHO (NR),DVRHO (NR-1))
+         ARRHOG (NR)=FEDG(RGL,RML,RML1,ARRHO (NR),ARRHO (NR-1))
+         ABRHOG (NR)=FEDG(RGL,RML,RML1,ABRHO (NR),ABRHO (NR-1))
 C
       RETURN
       END

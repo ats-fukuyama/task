@@ -174,7 +174,7 @@ C
       DO 800 NR=1,NRMAX
          GRM(NR)  =GUCLIP(RM(NR))
          GRG(NR+1)=GUCLIP(RG(NR))
-         QP(NR)  = RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+         QP(NR)   =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
   800 CONTINUE
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
@@ -779,8 +779,9 @@ C
          CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF RMAJOR: IERR=",IERR
          RMJRHOU(NR,1)=F0
-         ARRHOU(NR,1)=1.D0/RMJRHOU(NR,1)**2
-         TTRHOU(NR,1)=BB*RMJRHOU(NR,1)
+C         ARRHOU(NR,1)=1.D0/RMJRHOU(NR,1)**2
+         ARRHOU(NR,1)=1.D0/RRU(1)**2
+         TTRHOU(NR,1)=BBU(1)*RRU(1)
       ENDDO
 C
       KFILE='RMINOR'
@@ -1447,8 +1448,12 @@ C
             IF(IERR.NE.0)
      &           WRITE(6,*) "XX TRFILE: SPL2DF RMAJOR: IERR=",IERR
             RMJRHOU(NR,NTA)=F0
-            ARRHOU(NR,NTA)=1.D0/RMJRHOU(NR,NTA)**2
-            TTRHOU(NR,NTA)=BB*RMJRHOU(NR,NTA)
+C            ARRHOU(NR,NTA)=1.D0/RMJRHOU(NR,NTA)**2
+C            EPS=RMN*RAU(NTA)/RRU(NTA)
+C            ARRHOU(NR,NTA)=1.D0/(RRU(NTA)**2*(1.D0-EPS**2)**1.5)
+C            ARRHOU(NR,NTA)=(1.D0+1.5D0*EPS**2)/RRU(NTA)**2
+            ARRHOU(NR,NTA)=1.D0/RRU(NTA)**2
+            TTRHOU(NR,NTA)=RRU(NTA)*BBU(NTA)
          ENDDO
          IF(KUFDEV.EQ.'jt60u') RRU(NTA)=RMJRHOU(1,NTA)
       ENDDO
@@ -1833,7 +1838,7 @@ C            IF(IERR.NE.0)
 C     &           WRITE(6,*) "XX TRFILE: SPL2DF RMAJOR: IERR=",IERR
 C            RMJRHOU(NR,NTA)=F0
 C            ARRHOU(NR,NTA)=1.D0/RMJRHOU(NR,NTA)**2
-C            TTRHOU(NR,NTA)=BB*RMJRHOU(NR,NTA)
+C            TTRHOU(NR,NTA)=BBU(NTA)*RRU(NTA)
 C            DSRHOU(NR,NTA)=DVRHOU(NR,NTA)/(2.D0*PI*RMJRHOU(NR,NTA))
 C         ENDDO
 C      ENDDO
@@ -2169,8 +2174,6 @@ C
          RN(NR,2)=RNU(NR,2,NT)
          IF(MDNI.NE.0) RN(NR,3)=RNU(NR,3,NT)
          QP(NR)=QPU(NR,NT)
-         BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
-C         BP(NR)=BPU(NR,NT)
          PEX(NR,1)=PNBU(NR,1,NT)
          PEX(NR,2)=PNBU(NR,2,NT)
          PRF(NR,1)=PICU(NR,1,NT)+PECU(NR,NT)
@@ -2187,14 +2190,48 @@ C         RJCB(NR)=1.D0/(RKAPS*RA)
          RMJRHO(NR)=RMJRHOU(NR,NT)
          RMNRHO(NR)=RMNRHOU(NR,NT)
          EKAPPA(NR)=RKAP
+C         BP(NR)=BPU(NR,NT)
 C         ZEFF(NR)=ZEFFU(NR,NT)
       ENDDO
+      CALL TRGFRG
+      IF(MDLJQ.EQ.0) THEN
+         NR=1
+            AJ(NR)=AJU(NR,NT)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=FACTOR0*DR/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+            QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
+         DO NR=2,NRMAX
+            AJ(NR)=AJU(NR,NT)
+            FACTOR0=AMYU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+            RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+            QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
+         ENDDO
+         NR=1
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*FACTORP*RDP(NR)/DR
+         DO NR=2,NRMAX
+            FACTOR0=RR/(AMYU0*DVRHO(NR))
+            FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+            FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+            AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+         ENDDO
+      ENDIF
       ELSEIF(MDLUF.EQ.3) THEN
       DO NR=1,NRMAX
 C         RN(NR,1)=RNU(NR,1,NT)
 C         RN(NR,2)=RNU(NR,2,NT)
 C         QP(NR)=QPU(NR,NT)
-C         BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
          PEX(NR,1)=PNBU(NR,1,NT)
          PEX(NR,2)=PNBU(NR,2,NT)
          PRF(NR,1)=PICU(NR,1,NT)+PECU(NR,NT)
@@ -2214,7 +2251,7 @@ C         RJCB(NR)=1.D0/(RKAPS*RA)
       ENDDO
       ENDIF
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
-      CALL TRARRG
+      CALL TRGFRG
 C
       IF(MDLUF.EQ.1) THEN
          DO NS=1,2
@@ -2335,7 +2372,6 @@ C
          RN(NR,2)=RNU(NR,2,1)
          IF(MDNI.NE.0) RN(NR,3)=RNU(NR,3,1)
          QP(NR)=QPU(NR,1)
-         BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
          PEX(NR,1)=PNBU(NR,1,1)
          PEX(NR,2)=PNBU(NR,2,1)
          PRF(NR,1)=PICU(NR,1,1)+PECU(NR,1)
@@ -2354,7 +2390,11 @@ C         RJCB(NR)=1.D0/(RKAPS*RA)
          EKAPPA(NR)=RKAP
       ENDDO
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
-      CALL TRARRG
+      CALL TRGFRG
+      DO NR=1,NRMAX
+         RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
+         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+      ENDDO
 C
 C     *** CALCULATE PZC,PZFE ***
 C

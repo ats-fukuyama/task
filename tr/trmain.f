@@ -101,17 +101,14 @@ C
                NTMAX=NTSMAX
             ENDIF
             CALL TR_UFILE_CONTROL(1)
-C            CALL TR_TIME_UFILE
          ELSEIF(MDLUF.EQ.2) THEN
             CALL TR_UFILE_CONTROL(2)
-C            CALL TR_STEADY_UFILE
          ELSEIF(MDLUF.EQ.3) THEN
             IF(INIT.EQ.2.AND.NT.NE.0) THEN
                NT=0
                NTMAX=NTSMAX
             ENDIF
             CALL TR_UFILE_CONTROL(3)
-C            CALL TR_TIME_UFILE_TOPICS
          ENDIF
          CALL TRPROF
          CALL TRLOOP
@@ -221,7 +218,7 @@ C
  1000    CONTINUE
          INIT=1
 C
-      ELSE IF(KID.EQ.'O') THEN
+      ELSE IF(KID.EQ.'O'.AND.INIT.EQ.2) THEN
          CALL TRXOUT
       ELSE IF(KID.EQ.'H') THEN
          CALL TRHELP('M')

@@ -18,6 +18,7 @@ C
       IF(K2.EQ.'4') CALL TRGRG4(INQ)
       IF(K2.EQ.'5') CALL TRGRG5(INQ)
       IF(K2.EQ.'6') CALL TRGRG6(INQ)
+      IF(K2.EQ.'7') CALL TRGRG7(INQ)
       IF(K2.EQ.'A') CALL TRGRGA(INQ)
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
       RETURN
@@ -228,6 +229,39 @@ C
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,
      &            GRM,GVR(1,1,20),NRMP,NRMAX-1,NGR,
      &            '@AKD [m^2/s]  vs r@',0+INQ)
+C
+      CALL PAGEE
+      RETURN
+      END
+C
+C
+C     ***********************************************************
+C
+C           GRAPHIC : RADIAL PROFILE : BP,Psi
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRG7(INQ)
+C
+      INCLUDE 'trcomm.h'
+C
+      CALL PAGES
+C
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,
+     &            GRG,GVR(1,1,21),NRMP,NRMAX,NGR,
+     &            '@BP vs r@',0+INQ)
+C
+      CALL TRGR1D(15.5,24.5,11.0,17.0,
+     &            GRM,GVR(1,1,22),NRMP,NRMAX,NGR,
+     &            '@Psi vs r@',0+INQ)
+C
+c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,
+c$$$     &            GRM,GVR(1,1,23),NRMP,NRMAX,NGR,
+c$$$     &            '@alpha  vs r@',0+INQ)
+c$$$C
+c$$$      CALL TRGR1D(15.5,24.5, 2.0, 8.0,
+c$$$     &            GRM,GVR(1,1,24),NRMP,NRMAX-1,NGR,
+c$$$     &            '@AKD [m^2/s]  vs r@',0+INQ)
 C
       CALL PAGEE
       RETURN

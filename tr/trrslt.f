@@ -9,7 +9,6 @@ C
       SUBROUTINE TRGLOB
 C
       INCLUDE 'trcomm.h'
-      DIMENSION TEST(NRM)
 C
       IF (MODELG.EQ.3) THEN
          RKAP=1.D0
@@ -54,9 +53,6 @@ C
          ENDIF
       ENDDO
 C
-C      DO NR=1,NRMAX
-C         write(6,*) NR,POH(NR),DVRHO(NR)
-C      ENDDO
       CALL TRSUMD(POH,DVRHO,NRMAX,POHSUM)
       CALL TRSUMD(PNB,DVRHO,NRMAX,PNBSUM)
       CALL TRSUMD(PNF,DVRHO,NRMAX,PNFSUM)
@@ -146,36 +142,6 @@ C
      &            *DVRHO(NRL)*RKEV*1.D14
       ENDDO
 C
-c$$$      DRH=0.5D0*DR*RA
-c$$$      ELG=1.D0/RKAP
-c$$$      IF(RHOA.EQ.1.D0) THEN
-c$$$         NRL=NRMAX
-c$$$      ELSE
-c$$$         NRL=NRAMAX
-c$$$      ENDIF
-c$$$      DO NS=1,NSM
-c$$$         VNP=AV(NRL,NS)
-c$$$         DNP=AD(NRL,NS)
-c$$$C
-c$$$         VTP=(AVK(NRL,NS)/1.5D0+AV(NRL,NS))
-c$$$         DTP= AK(NRL,NS)/(1.5D0)
-c$$$C
-c$$$         VXP=0.D0
-c$$$         DXP=(1.5D0*AD(NRL,NS)-AK(NRL,NS))*PTS(NS)
-c$$$C
-c$$$         SLT(NS) =((     DNP/DRH)*RN(NRL,NS)
-c$$$     &            +( VNP-DNP/DRH)*PNSS(NS))
-c$$$     &            *DVRHO(NRL)
-c$$$     &            /(RM(NRL)*RA)*ELG
-c$$$C
-c$$$         PLT(NS) =((     DXP/DRH)*RN(NRL,NS)
-c$$$     &            +(     DTP/DRH)*RN(NRL,NS)*RT(NRL,NS)*1.5D0
-c$$$     &            +( VXP-DXP/DRH)*PNSS(NS)
-c$$$     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
-c$$$     &            *DVRHO(NRL)*RKEV*1.D14
-c$$$     &            /(RM(NRL)*RA)*ELG
-c$$$      ENDDO
-C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
       CALL TRSUMD(SNF,DVRHO,NRMAX,SNFSUM)
       CALL TRSUMD(SNB,DVRHO,NRMAX,SNBSUM)
@@ -224,109 +190,59 @@ C
 C
       SUM=0.D0
       SUP=0.D0
-      SUL=0.D0
-C
-C      SUMS=0.D0
+      VOL=0.D0
       DO NR=1,NRMAX-1
-C         IF(NR.EQ.1) THEN
-C            SUMS=SUMS+DVRHO(NR)*DR
-C         ELSE
-C            SUMS=SUMS+0.5D0*(DVRHO(NR-1)+DVRHO(NR))*DR
-C         ENDIF
-         SUMS=DVRHO(NR)
          SUML=0.D0
-         SUPL=0.D0
          DO NS=1,NSM
             SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
-            SUPL = SUPL +(RN(NR+1,NS)*RT(NR+1,NS)
-     &                   -RN(NR  ,NS)*RT(NR  ,NS))*RKEV*1.D20/(DR*RA)
          ENDDO
          DO NF=1,NFM
             SUML = SUML +RW(NR,NF)*RKEV*1.D20
-            SUPL = SUPL +(RW(NR+1,NF)
-     &                   -RW(NR  ,NF))*RKEV*1.D20/(DR*RA)
          ENDDO
 C
-C         SUM = SUM + SUML*DVRHO(NR)*DR
-C         SUP = SUP + 0.5D0*SUPL*SUMS*DR
-C         SUL = SUL + BP(NR)**2*DSRHO(NR)*DR
-C         BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2)
-C         BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2)
-C         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
-C         BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2)
-C         SUP = SUP + 0.5D0*SUPL*SUMS*DR
-         SUM = SUM + SUML*DVRHO(NR)*DR/(2.D0*PI*RR*RKAP)
-         SUP = SUP + 0.5D0*SUPL*SUMS*DR*RM(NR)*RA/(2.D0*RKAP*2.D0*PI*RR)
-         SUL = SUL + BP(NR)**2*DSRHO(NR)*DR
-     &       *RG(NR)/(2.D0*PI*RKAP*RA*RM(NR)*DR)
-         BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-         BETAL(NR)  = 2.D0*SUML*AMYU0/(     BB**2)
-         BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-C     &                *RKAP/FKAP**2
-         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
-C     &                *RKAP/FKAP**2
-         BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-C     &                *RKAP/FKAP**2
-         SUP = SUP + 0.5D0*SUPL*PI*RM(NR+1)*RM(NR+1)*DR*RA**3
+         VOL = VOL +         DVRHO(NR)*DR
+         SUM = SUM + SUML   *DVRHO(NR)*DR
+         SUP = SUP + SUML**2*DVRHO(NR)*DR
+         BETA(NR)   = 2.D0*AMYU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*AMYU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*AMYU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*AMYU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*AMYU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
       ENDDO
 C
 
       NR=NRMAX
-C         SUMS=SUMS+0.5D0*(DVRHO(NR-1)+DVRHO(NR))*DR
-         SUMS=DVRHO(NR)
          SUML=0.D0
-         SUPL=0.D0
          DO NS=1,NSM
-C            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
-            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RM(NR)*RA*RKEV*1.D20
-            SUPL = SUPL +(PNSS(NS)   *PTS(NS)
-     &                   -RN(NR  ,NS)*RT(NR  ,NS))*RKEV*1.D20
-     &                   /(DR*RA)*2.D0
+            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
          ENDDO
          DO NF=1,NFM
-C            SUML = SUML +RW(NR,NF)*RKEV*1.D20
-            SUML = SUML +RW(NR,NF)*RM(NR)*RA*RKEV*1.D20
-            SUPL = SUPL +(0.D0-RW(NR  ,NF))*RKEV*1.D20/(DR*RA)*2.D0
+            SUML = SUML +RW(NR,NF)*RKEV*1.D20
          ENDDO
 C
-C         SUM = SUM + SUML*DVRHO(NR)*DR
-C         SUP = SUP + 0.5D0*SUPL*SUMS*DR
-C         SUL = SUL + 0.5D0*BP(NR)**2*DSRHO(NR)*DR
-C         BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2)
-C         BETAL(NR)  = 2.D0*SUML*AMYU0/(     BB **2)
-C         BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2)
-C         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
-C         BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2)
-         SUM = SUM + SUML*DVRHO(NR)*DR/(2.D0*PI*RR*RKAP)
-         SUP = SUP + 0.5D0*SUPL*SUMS*DR*RM(NR)*RA/(2.D0*RKAP*2.D0*PI*RR)
-         SUL = SUL + 0.5D0*BP(NR)**2*DSRHO(NR)*DR
-     &       *RG(NR)/(2.D0*PI*RKAP*RA*RM(NR)*DR)
-         BETA(NR)   = 2.D0*SUM *AMYU0/(SUMS*BB**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-         BETAL(NR)  = 2.D0*SUML*AMYU0/(     BB**2)
-         BETAP(NR)  = 2.D0*SUM *AMYU0/(SUMS*BP(NRMAX)**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-C     &                *RKAP/FKAP**2
-         BETAPL(NR) = 2.D0*SUML*AMYU0/(     BP(NRMAX)**2)
-C     &                *RKAP/FKAP**2
-         BETAQ(NR)  =-2.D0*SUP *AMYU0/(SUMS*BP(NR   )**2
-     &                *RG(NR)**2/(2.D0*RKAP*2.D0*PI*RR*RM(NR)))
-C     &                *RKAP/FKAP**2
+         VOL = VOL +         DVRHO(NR)*DR
+         SUM = SUM + SUML   *DVRHO(NR)*DR
+         SUP = SUP + SUML**2*DVRHO(NR)*DR
+         BETA(NR)   = 2.D0*AMYU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*AMYU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*AMYU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*AMYU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*AMYU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
 C
       BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
       BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
-      BETAQ0=0.D0
+      BETAQ0=(4.D0*BETAQ(1) -BETAQ(2) )/3.D0
 C
       BETAPA=BETAP(NRMAX)
       BETAA =BETA(NRMAX)
       BETAN =BETAA*1.D2/(RIP/(RA*BB))
 C
-C      ALI=4.D0*PI*SUL/((AMYU0*AJT*1.D6)**2)
-C      ALI=8.D0*PI**2*DR*RA*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
-      ALI=8.D0*PI**2*DR*RA*SUL*RKAPS**2/((AMYU0*AJT*1.D6)**2)
+      WPOL=0.D0
+      DO NR=1,NRMAX
+         WPOL=WPOL+DVRHOG(NR)*ABRHOG(NR)*RDP(NR)**2*DR/(2.D0*AMYU0)
+      ENDDO
+      ALI=4.D0*WPOL/(AMYU0*RR*(AJT*1.D6)**2)
+C
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 C
       PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
@@ -531,6 +447,11 @@ C
       GVT(NGT,95) = GUCLIP(PRFVT(1,3)) ! ICRH to electron
       GVT(NGT,96) = GUCLIP(PRFVT(2,3)) ! ICRH to ions
 C
+      GVT(NGT,97) = GUCLIP(RR)
+      GVT(NGT,98) = GUCLIP(RA)
+      GVT(NGT,99) = GUCLIP(BB)
+      GVT(NGT,100)= GUCLIP(RKAP)
+C
 C     *** FOR 3D ***
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -597,18 +518,19 @@ C
          G3D(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
          G3D(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
          G3D(NR,NGT,47) = GUCLIP(BP(NR))
+         G3D(NR,NGT,48) = GUCLIP(RPSI(NR))
 C
-         G3D(NR,NGT,48) = GUCLIP(RMJRHO(NR))
-         G3D(NR,NGT,49) = GUCLIP(RMNRHO(NR))
+         G3D(NR,NGT,49) = GUCLIP(RMJRHO(NR))
+         G3D(NR,NGT,50) = GUCLIP(RMNRHO(NR))
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DI(RMN,F0D,RM,U,U0,NRMAX,IERR)
-         G3D(NR,NGT,50) = GUCLIP(F0D)
-         G3D(NR,NGT,51) = GUCLIP(EKAPPA(NR))
-         G3D(NR,NGT,52) = GUCLIP(1.D0) ! DELTAR
-         G3D(NR,NGT,53) = GUCLIP(AR1RHO(NR))
-         G3D(NR,NGT,54) = GUCLIP(AR2RHO(NR))
-         G3D(NR,NGT,55) = GUCLIP(AKDW(NR,1))
-         G3D(NR,NGT,56) = GUCLIP(AKDW(NR,2))
+         G3D(NR,NGT,51) = GUCLIP(F0D)
+         G3D(NR,NGT,52) = GUCLIP(EKAPPA(NR))
+         G3D(NR,NGT,53) = GUCLIP(1.D0) ! DELTAR
+         G3D(NR,NGT,54) = GUCLIP(AR1RHO(NR))
+         G3D(NR,NGT,55) = GUCLIP(AR2RHO(NR))
+         G3D(NR,NGT,56) = GUCLIP(AKDW(NR,1))
+         G3D(NR,NGT,57) = GUCLIP(AKDW(NR,2))
 C         IF(NT.EQ.0) THEN
 C            G3D(NR,NGT,57) = GUCLIP(RTU(NR,2,1))
 C         ELSE
@@ -663,6 +585,8 @@ C         GVR(NR,NGR,17)  = GUCLIP(RW(NR,1)*1.D-6*1.5D0)
 C         GVR(NR,NGR,18)  = GUCLIP(RW(NR,2)*1.D-6*1.5D0)
 C         GVR(NR,NGR,19)  = GUCLIP(PNB(NR)*1.D-6)
 C         GVR(NR,NGR,20)  = GUCLIP(PNF(NR)*1.D-6)
+         GVR(NR,NGR,21)  = GUCLIP(BP(NR))
+         GVR(NR,NGR,22)  = GUCLIP(RPSI(NR))
    10 CONTINUE
          GVR(1,NGR, 9)  = GUCLIP(Q0)
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -1089,11 +1013,9 @@ C
       CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80
       CHARACTER KDIRW*80,KDIRW1*80,KDIRW2*80,KFID*80
 C
-      NRXMAX=NRMAX+1
-C
       KXNDEV='X'
       KXNDCG='test'
-      KXNID ='sim'
+      KXNID ='in'
 C
       CALL KTRIM(KXNDEV,IKNDEV)
       CALL KTRIM(KXNDCG,IKNDCG)
@@ -1189,119 +1111,119 @@ C
 C     *** 2D DATA ***
 C
       KFID='TE'
-      CALL TR_UFILE2D_CREATE(KFID, 1,1.D3 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID, 1,1.D3 ,0,IERR)
 C
       KFID='TI'
-      CALL TR_UFILE2D_CREATE(KFID, 2,1.D3 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID, 2,1.D3 ,0,IERR)
 C
       KFID='NE'
-      CALL TR_UFILE2D_CREATE(KFID, 5,1.D20,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID, 5,1.D20,0,IERR)
 C
       IF(MDLUF.NE.0) THEN
       KFID='QNBIE'
-      CALL TR_UFILE2D_CREATE(KFID,89,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,89,1.D0 ,0,IERR)
       ENDIF
 C
       KFID='QICRHE'
-      CALL TR_UFILE2D_CREATE(KFID,38,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,38,1.D0 ,0,IERR)
 C
       KFID='QECHE'
-      CALL TR_UFILE2D_CREATE(KFID,36,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,36,1.D0 ,0,IERR)
 C
       KFID='QLHE'
-      CALL TR_UFILE2D_CREATE(KFID,37,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,37,1.D0 ,0,IERR)
 C
       IF(MDLUF.NE.0) THEN
       KFID='QNBII'
-      CALL TR_UFILE2D_CREATE(KFID,90,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,90,1.D0 ,0,IERR)
       ENDIF
 C
       KFID='QICRHI'
-      CALL TR_UFILE2D_CREATE(KFID,41,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,41,1.D0 ,0,IERR)
 C
       KFID='QECHI'
-      CALL TR_UFILE2D_CREATE(KFID,39,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,39,1.D0 ,0,IERR)
 C
       KFID='QLHI'
-      CALL TR_UFILE2D_CREATE(KFID,40,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,40,1.D0 ,0,IERR)
 C
       KFID='CURNBI'
-      CALL TR_UFILE2D_CREATE(KFID,11,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,11,1.D0 ,0,IERR)
 C
       KFID='CURICRH'
-      CALL TR_UFILE2D_CREATE(KFID,44,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,44,1.D0 ,0,IERR)
 C
       KFID='CURECH'
-      CALL TR_UFILE2D_CREATE(KFID,42,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,42,1.D0 ,0,IERR)
 C
       KFID='CURLH'
-      CALL TR_UFILE2D_CREATE(KFID,43,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,43,1.D0 ,0,IERR)
 C
       KFID='NFAST'
-      CALL TR_UFILE2D_CREATE(KFID,45,1.D20,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,45,1.D20,0,IERR)
 C
       KFID='QRAD'
-      CALL TR_UFILE2D_CREATE(KFID,22,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,22,1.D0 ,0,IERR)
 C
       KFID='ZEFFR'
-      CALL TR_UFILE2D_CREATE(KFID,33,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,33,1.D0 ,0,IERR)
 C
       KFID='Q'
-      CALL TR_UFILE2D_CREATE(KFID,27,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,27,1.D0 ,1,IERR)
 C
       KFID='CHIE'
-      CALL TR_UFILE2D_CREATE(KFID,34,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,34,1.D0 ,1,IERR)
 C
       KFID='CHII'
-      CALL TR_UFILE2D_CREATE(KFID,35,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,35,1.D0 ,1,IERR)
 C
       KFID='NM1'
-      CALL TR_UFILE2D_CREATE(KFID, 6,1.D20,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID, 6,1.D20,0,IERR)
 C
       KFID='CURTOT'
-      CALL TR_UFILE2D_CREATE(KFID, 9,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID, 9,1.D0 ,0,IERR)
 C
       KFID='NIMP'
-      CALL TR_UFILE2D_CREATE(KFID,46,1.D20,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,46,1.D20,0,IERR)
 C
       KFID='QOHM'
-      CALL TR_UFILE2D_CREATE(KFID,15,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,15,1.D0 ,0,IERR)
 C
       KFID='BPOL'
-      CALL TR_UFILE2D_CREATE(KFID,47,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,47,1.D0 ,1,IERR)
 C
       KFID='RMAJOR'
-      CALL TR_UFILE2D_CREATE(KFID,48,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,49,1.D0 ,0,IERR)
 C
       KFID='RMINOR'
-      CALL TR_UFILE2D_CREATE(KFID,49,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,50,1.D0 ,0,IERR)
 C
       KFID='VOLUME'
-      CALL TR_UFILE2D_CREATE(KFID,50,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,51,1.D0 ,0,IERR)
 C
       KFID='KAPPAR'
-      CALL TR_UFILE2D_CREATE(KFID,51,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,52,1.D0 ,0,IERR)
 C
       KFID='DELTAR'
-      CALL TR_UFILE2D_CREATE(KFID,52,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,53,1.D0 ,0,IERR)
 C
       KFID='GRHO1'
-      CALL TR_UFILE2D_CREATE(KFID,53,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,54,1.D0 ,0,IERR)
 C
       KFID='GRHO2'
-      CALL TR_UFILE2D_CREATE(KFID,54,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,55,1.D0 ,0,IERR)
 C
       KFID='CURBS'
-      CALL TR_UFILE2D_CREATE(KFID,13,1.D6 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,13,1.D0 ,0,IERR)
 C
       KFID='CHITBE'
-      CALL TR_UFILE2D_CREATE(KFID,55,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,56,1.D0 ,1,IERR)
 C
       KFID='CHITBI'
-      CALL TR_UFILE2D_CREATE(KFID,56,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,57,1.D0 ,1,IERR)
 C
       KFID='ETAR'
-      CALL TR_UFILE2D_CREATE(KFID,32,1.D0 ,NRXMAX,IERR)
+      CALL TR_UFILE2D_CREATE(KFID,32,1.D0 ,0,IERR)
 C
       RETURN
       END
@@ -1314,7 +1236,7 @@ C
       DIMENSION GTL(NTM),GF1(NTM),TF(NTM),F1(NRM)
       DIMENSION DGT(NTM),DIN(NTM),DERIV(NTM),UOUT(4,NTM)
       DIMENSION DERIVQ(NRM),UQ95(4,NRM)
-      CHARACTER KFID*80,KERR*80,KERRF*80
+      CHARACTER KFID*80,KERRF*80
 C
       IF(KFID.EQ.'DIRECT') THEN
          IF(NUM.EQ.2) THEN
@@ -1429,60 +1351,92 @@ C
 C
 C     *****
 C
-      SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,NRXMAX,IERR)
+      SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
 C
       INCLUDE 'trcomm.h'
       DIMENSION GF2(NRMP,NTM),GRL(NRMP),GTL(NTM)
-      DIMENSION DGT(NTM),DGR(NRM),DIN(NRM,NTM),TF(NRM,NTM)
-      DIMENSION DERIV(NRM),DERIVX(NRM,NTM), DERIVY(NRM,NTM)
-      DIMENSION DERIVXY(NRM,NTM),U0(NRM),UV(4,NRM),U(4,4,NRM,NTM)
-      CHARACTER KFID*80,KERR*80,KERRF*80
-C
-      DO NTL=1,NGT
-         DERIVX(1,NTL)=0.D0
-      ENDDO
-      DERIVXY(1,  1)=0.D0
-      DERIVXY(1,NGT)=0.D0
-C
-      IF(NUM.EQ.27) THEN
-         DO NRL=1,NRMAX
-            DGR(NRL)=DBLE(GRG(NRL+1))
-         ENDDO
-      ELSE
-         DO NRL=1,NRMAX
-            DGR(NRL)=DBLE(GRM(NRL))
-         ENDDO
-      ENDIF
+      DIMENSION DGT(NTM),DIN(NTM)
+      DIMENSION DERIV(NTM),U(4,NTM)
+      CHARACTER KFID*80
 C
       DO NTL=1,NGT
          DGT(NTL)=DBLE(GT(NTL))
-         DO NRL=1,NRMAX
-            DIN(NRL,NTL)=DBLE(G3D(NRL,NTL,NUM))
-         ENDDO
       ENDDO
 C
-      CALL SPL2D(DGR,DGT,DIN,DERIVX,DERIVY,DERIVXY,U,
-     &              NRM,NRMAX,NGT,1,0,IERR)
-      IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)')
-     &     'XX TRXOUT: SPL2D G3D(',NUM,'): IERR=',IERR
-C
+      NRLMAX=NRMAX
       DTL=0.05D0
       NTLMAX=INT((GT(NGT)-GT(1))/DTL)+1
-      NRLMAX=NRMAX+1
-C
-      DO NTL=1,NTLMAX
-         TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
+      IF(ID.EQ.0) THEN
+         GRL(NRL)=GRM(NRL)
          DO NRL=1,NRLMAX
-            RIN=DBLE(NRL-1)/DBLE(NRMAX)
-            CALL SPL2DF(RIN,TIN,DATOUT,DGR,DGT,U,NRM,NRMAX,NGT,IERR)
-            WRITE(KERRF,'(A,I2,A,I2)')
-     &           'XX TRXOUT: SPL2DF G3D(',NUM,'): IERR=',IERR
-            IF(IERR.NE.0) WRITE(6,*) KERRF
-            GRL(NRL)    =GUCLIP(RIN)
-            GTL(NTL)    =GUCLIP(TIN)
-            GF2(NRL,NTL)=GUCLIP(DATOUT*AMP)
+            DO NTL=1,NGT
+               DIN(NTL)=DBLE(G3D(NRL,NTL,NUM))
+            ENDDO
+            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)')
+     &           'XX TRXOUT: SPL1D G3D(',NUM,'): IERR=',IERR
+C     
+            DO NTL=1,NTLMAX
+               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
+               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)')
+     &              'XX TRXOUT: SPL1DF G3D(',NUM,'): IERR=',IERR
+               GTL(NTL)    =GUCLIP(TIN)
+               GF2(NRL,NTL)=GUCLIP(F0*AMP)
+            ENDDO
          ENDDO
-      ENDDO
+      ELSEIF(ID.EQ.1) THEN
+         NRLMAX=NRMAX+1
+         NRL=1
+            GRL(NRL)=GRG(NRL)
+            IF(KFID.EQ.'Q') THEN
+               DO NTL=1,NGT
+                  DIN(NTL)=(4.D0*DBLE(G3D(NRL  ,NTL,NUM))
+     &                          -DBLE(G3D(NRL+1,NTL,NUM)))/3.D0
+               ENDDO
+            ELSEIF(KFID.EQ.'BPOL') THEN
+               DO NTL=1,NGT
+                  DIN(NTL)=0.D0
+               ENDDO
+            ELSE
+               DO NTL=1,NGT
+                  R1=DBLE(GRL(NRL))
+                  R2=DBLE(GRL(NRL+1))
+                  F1=DBLE(G3D(NRL  ,NTL,NUM))
+                  F2=DBLE(G3D(NRL+1,NTL,NUM))
+                  DIN(NTL)=FCTR(R1,R2,F1,F2)
+               ENDDO
+            ENDIF
+            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)')
+     &           'XX TRXOUT: SPL1D G3D(',NUM,'): IERR=',IERR
+            DO NTL=1,NTLMAX
+               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
+               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)')
+     &              'XX TRXOUT: SPL1DF G3D(',NUM,'): IERR=',IERR
+               GTL(NTL)    =GUCLIP(TIN)
+               GF2(NRL,NTL)=GUCLIP(F0*AMP)
+            ENDDO
+C
+         DO NRL=2,NRLMAX
+            GRL(NRL)=GRG(NRL)
+            DO NTL=1,NGT
+               DIN(NTL)=DBLE(G3D(NRL-1,NTL,NUM))
+            ENDDO
+            CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)')
+     &           'XX TRXOUT: SPL1D G3D(',NUM,'): IERR=',IERR
+            DO NTL=1,NTLMAX
+               TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
+               CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)')
+     &              'XX TRXOUT: SPL1DF G3D(',NUM,'): IERR=',IERR
+               GTL(NTL)    =GUCLIP(TIN)
+               GF2(NRL,NTL)=GUCLIP(F0*AMP)
+            ENDDO
+         ENDDO
+      ENDIF
       CALL TRXW2D(KFID,GTL,GRL,GF2,NRMP,NTM,NRLMAX,NTLMAX)
 C
       RETURN

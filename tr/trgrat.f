@@ -17,6 +17,7 @@ C
       IF(K2.EQ.'5') CALL TRGRT5(INQ)
       IF(K2.EQ.'6') CALL TRGRT6(INQ)
       IF(K2.EQ.'7') CALL TRGRT7(INQ)
+      IF(K2.EQ.'8') CALL TRGRT8(INQ)
       RETURN
       END
 C  
@@ -516,6 +517,44 @@ C
  1400 CONTINUE
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,1,
      &            '@RQ1 [m]  vs t@',2+INQ)
+C
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C
+C     ***********************************************************
+C
+C           GRAPHIC : TIME DEPENDENCE : RR,RA,RKAP,IP,BB
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRT8(INQ)
+C
+      INCLUDE 'trcomm.h'
+C
+      CALL PAGES
+C
+      DO 100 I=1,NGT
+         GYT(I,1)=GVT(I,97)
+         GYT(I,2)=GVT(I,98)
+  100 CONTINUE
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
+     &            '@RR, RA [M]  vs t@',2+INQ)
+C
+      DO 300 I=1,NGT
+         GYT(I,1)=GVT(I,99)
+         GYT(I,2)=GVT(I,34)
+  300 CONTINUE
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
+     &            '@BT, IP  vs t@',2+INQ)
+C
+      DO 1100 I=1,NGT
+         GYT(I,1)=GVT(I,100)
+ 1100 CONTINUE
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
+     &            '@RKAP  vs t@',2+INQ)
 C
       CALL PAGEE
 C

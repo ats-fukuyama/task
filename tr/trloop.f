@@ -102,9 +102,9 @@ C
             NSTN=NST(NEQ)
             IF(NSVN.EQ.0) THEN
                IF(NSTN.EQ.0) THEN
-                  BP(NR) = XV(NEQ,NR)
+                  RDP(NR) = XV(NEQ,NR)
                ELSE
-                  BP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
+                  RDP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
                ENDIF
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLUF.EQ.0) THEN !!!
@@ -180,6 +180,7 @@ C
             ENDIF
          ENDDO
          ANNU(NR)=RN(NR,7)+RN(NR,8)
+         BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
 C
       CALL TRCHCK(ICHCK)
@@ -286,27 +287,25 @@ C
       COMMON /TRLCL4/ PPA(NEQM,NRM),PPB(NEQM,NRM),PPC(NEQM,NRM)
 C     
       IF(MDLCD.EQ.0) THEN
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAPS)
+         RDPS=2.D0*PI*AMYU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ELSE
          NEQ=1
          NSVN=NSS(NEQ)
          IF(NSVN.EQ.0) THEN
-            BPA=XV(NEQ,NRMAX)
+            RDPA=XV(NEQ,NRMAX)
          ELSE
-            BPA=0.D0
+            RDPA=0.D0
          ENDIF
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
-         BPS=BPA-AMYU0*DT*EZOH(NRMAX)/RLP
+         RDPS=RDPA-4.D0*PI*PI*AMYU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ENDIF
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NT.EQ.0) THEN
-            RKAP=RKAPU(1)
-            RKAPS=SQRT(RKAP)
-            BPS=AMYU0*RIPU(1)*1.D6/(2.D0*PI*RA*RKAPS)
+            RDPS=2.D0*PI*AMYU0*RIPU(1)*1.D6
+     &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ELSE
-            RKAP=RKAPU(NT)
-            RKAPS=SQRT(RKAP)
-            BPS=AMYU0*RIPU(NT)*1.D6/(2.D0*PI*RA*RKAPS)
+            RDPS=2.D0*PI*AMYU0*RIPU(NT)*1.D6
+     &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
       ENDIF
 C      IF(MODELG.EQ.3) THEN
@@ -570,7 +569,7 @@ C
             AX(MW,MV)=0.D0
          ENDDO
          AX(2*NEQRMAX,MV)=RD(NEQ,NRMAX)
-         X(MV)=BPS/RJCB(NRMAX)
+         X(MV)=RDPS
       ENDIF
 C
       RETURN
@@ -733,7 +732,7 @@ C
             NSVN=NSV(NEQ)
             NSSN=NSS(NEQ)
             IF(NSVN.EQ.0) THEN
-               XV(NEQ,NR) = BP(NR)
+               XV(NEQ,NR) = RDP(NR)
             ELSEIF(NSVN.EQ.1) THEN
                XV(NEQ,NR) = RN(NR,NSSN)
             ELSEIF(NSVN.EQ.2) THEN
@@ -766,7 +765,7 @@ C
             NSSN=NSS(NEQ)
             NSVN=NSV(NEQ)
             IF(NSVN.EQ.0) THEN
-               BP(NR) = XV(NEQ,NR)
+               RDP(NR) = XV(NEQ,NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
                   RN(NR,NSSN) = 0.D0
@@ -800,6 +799,7 @@ C     I think the above expression is obsolete.
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
          ANNU(NR) = RN(NR,7)+RN(NR,8)
+         BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
 C
       ELSE
@@ -809,7 +809,7 @@ C
             NSSN=NSS(NEQ)
             NSVN=NSV(NEQ)
             IF(NSVN.EQ.0) THEN
-               BP(NR) = XV(NEQ,NR)
+               RDP(NR) = XV(NEQ,NR)
             ELSEIF(NSVN.EQ.1) THEN
                RN(NR,NSSN) = XV(NEQ,NR)
             ELSEIF(NSVN.EQ.2) THEN
@@ -829,9 +829,15 @@ C
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
          ANNU(NR) = RN(NR,7)+RN(NR,8)
+         BP(NR)   = AR1RHOG(NR)*RDP(NR)/RR
       ENDDO
 C
       ENDIF
+C
+      DO NR=2,NRMAX
+         RPSI(NR)=(RDP(NR)-RDP(NR-1))/DR
+      ENDDO
+      RPSI(1)=FCTR(RM(2),RM(3),RPSI(2),RPSI(3))
 C
       RETURN
       END
@@ -963,8 +969,7 @@ C
 C     /* Coefficients of left hand side variables */
 C
          IF(NSVN.EQ.0) THEN
-C            RD(NEQ,NR)=1.D0
-            RD(NEQ,NR)=1.D0/RJCB(NR)
+            RD(NEQ,NR)=1.D0
          ELSEIF(NSVN.EQ.1) THEN
             RD(NEQ,NR)=DV11
          ELSEIF(NSVN.EQ.2) THEN
@@ -980,8 +985,7 @@ C
             IF(NRF.EQ.0.OR.NRF.GT.NRMAX) THEN
                FCB(NF)=0.D0
             ELSE
-               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/(TTRHO(NRF)*RJCB(NRF))
-C               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
+               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
             ENDIF
          ENDDO
          IF(NR.EQ.NRMAX-1) FCB(4)=2.D0*FCB(3)-FCB(2)
@@ -1369,14 +1373,10 @@ C     *************
 C
          ELSE
             IF(NSSN.EQ.0) THEN
-C               D(NEQ,NR) = ETA(NR  )*AR1RHO(NR  )*BB/(TTRHO(NR  )*RR
-C     &                    *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
-C     &                    -ETA(NR+1)*AR1RHO(NR+1)*BB/(TTRHO(NR+1)*RR
-C     &                    *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
-               D(NEQ,NR) = ETA(NR  )*BB/(TTRHO(NR  )*RR
-     &                    *ARRHO(NR  )*DR)*(AJ(NR  )-AJOH(NR  ))
-     &                    -ETA(NR+1)*BB/(TTRHO(NR+1)*RR
-     &                    *ARRHO(NR+1)*DR)*(AJ(NR+1)-AJOH(NR+1))
+               D(NEQ,NR) = ETA(NR  )*BB/(TTRHO(NR  )*ARRHO(NR  )*DR)
+     &                    *(AJ(NR  )-AJOH(NR  ))
+     &                    -ETA(NR+1)*BB/(TTRHO(NR+1)*ARRHO(NR+1)*DR)
+     &                    *(AJ(NR+1)-AJOH(NR+1))
             ELSEIF(NSSN.EQ.5) THEN
                D(NEQ,NR) = VOID
             ELSEIF(NSSN.EQ.6) THEN

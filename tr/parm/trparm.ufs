@@ -10,13 +10,14 @@
    PROFJ1=2.0
    MDLUF=2
    KUFDEV='d3d'
-   KUFDCG='81507'
-   TIME_INT=0.0
+   KUFDCG='82188'
+   TIME_INT=3.775
    MODEP=2
    MDNI=3
-   RHOA=1.0
+   RHOA=0.9
    PROFN1=1
    PROFN2=1.5
    PROFT1=1
    PROFT2=1.5
+   MDLJQ=0
  &end
