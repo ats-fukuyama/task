@@ -64,7 +64,7 @@ wmsetm.o : wmsetm.f wmcomm.h
 wmsetf.o : wmsetf.f wmcomm.h
 wmdisp.o : wmdisp.f wmcomm.h
 wmtae.o : wmtae.f wmcomm.h
-wmxprf.o : wmdprf.f wmcomm.h
+wmdprf.o : wmdprf.f wmcomm.h
 wmxprf.o : wmxprf.f wmcomm.h wmxprf.h
 wmpout.o : wmpout.f wmcomm.h
 wmgout.o : wmgout.f wmcomm.h
