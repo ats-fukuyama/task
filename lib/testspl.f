@@ -80,7 +80,7 @@ C
          CALL PAGEE
       ELSE
          DX0=(XMAX-XMIN)/(NXMAX0-1)
-         DY0=(YMAX-YMIN)/(NXMAX0-1)
+         DY0=(YMAX-YMIN)/(NYMAX0-1)
          DO NY=1,NYMAX0
             Y=YMIN+DY0*(NY-1)
             Y0(NY)=Y
