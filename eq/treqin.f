@@ -90,28 +90,13 @@ C
       DO NTR=2,NTRMAX+1
          BP(NTR)=FACT*BP(NTR)
       ENDDO
-      IF(MDLUF.NE.2) THEN
-         DO NTR=2,NTRMAX+1
-            QRHO(NTR)=-RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
-         ENDDO
-         QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
+      DO NTR=2,NTRMAX+1
+         QRHO(NTR)=-RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
+      ENDDO
+      QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
 C         DO NTR=1,NTRMAX+1
 C            write(6,*) NTR,RHOTRG(NTR),QRHO(NTR)
 C         ENDDO
-      ELSE
-         KFILE='Q.PHI'
-         CALL UFREAD(KFILE,ASR,QRHO,NUFMAX,MDQRHO,IERR)
-         CALL SPL1D(ASR,QRHO,DERIV,UQRHOEQ,NUFMAX,0,IERR)
-         DO NTR=1,NTRMAX+1
-            ARHOTRG=RHOTRG(NTR)
-            CALL SPL1DF(ARHOTRG,AQRHO,ASR,UQRHOEQ,NUFMAX,IERR)
-            IF(IERR.NE.0) 
-     &           WRITE(6,*) 'XX TREQIN: SPL1DF QRHO : IERR=',IERR
-            QRHO(NTR)=-AQRHO
-C            write(6,*) NTR,QRHO(NTR)
-         ENDDO
-C         STOP 'END'
-      ENDIF
 C
 C     ***** Calculate interim poloidal flux PSIRHO *****
 C
@@ -245,7 +230,7 @@ C
          CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
          PSITRG(NTR)=RHOTRG(NTR)**2
-C         PSITRG(NTR)=PSIL/SAXIS
+         RHOT=RHOTRG(NTR)
 C
          FTL=FTSA*RHOTRX(NTR)**2
          CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
@@ -361,88 +346,6 @@ C
 C
 C     ***** Calculate Spline Coefficients *****
 C
-      IF(MDLUF.EQ.2) THEN
-         IF(MDALL.EQ.0) THEN
-         WRITE(6,*) "*****"
-         PSITA=FNFTS(1.D0)
-C
-         KFILE='Q.PHI'
-         CALL UFREAD(KFILE,ASR,FFQ,NUFMAX,MDQ,IERR)
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFQ,DERIV,UQEQ,NUFMAX,0,IERR)
-C
-c$$$         KFILE='TT.PHI'
-c$$$         CALL UFREAD(KFILE,ASR,FFTT,NUFMAX,MDTT,IERR)
-c$$$         DO NR=1,NUFMAX
-c$$$            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-c$$$         ENDDO
-c$$$         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
-         MDTT=1
-         CALL UFTTRHO(FFTT,MDLUF)
-         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
-C         DO NUF=1,NUFMAX
-C            write(6,*) NUF,ASR(NUF),FFTT(NUF)
-C         ENDDO
-C
-         KFILE='VOL.PHI'
-         CALL UFREAD(KFILE,ASR,FFVOL,NUFMAX,MDVOL,IERR)
-         CALL SPL1D(ASR,FFVOL,DERIV,UVOLEQ,NUFMAX,0,IERR)
-         DO NUF=1,NUFMAX
-            RHOFDV=ASR(NUF)
-            CALL SPL1DD(RHOFDV,VPL,DVPL,ASR,UVOLEQ,NUFMAX,IERR)
-            FFDVOL(NUF)=DVPL
-         ENDDO
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFDVOL,DERIV,UDVOLEQ,NUFMAX,0,IERR)
-C
-         KFILE='AREA.PHI'
-         CALL UFREAD(KFILE,ASR,FFAREA,NUFMAX,MDAREA,IERR)
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFAREA,DERIV,UAREAEQ,NUFMAX,0,IERR)
-C
-         KFILE='RMJ.PHI'
-         CALL UFREAD(KFILE,ASR,FFRMJ,NUFMAX,MDRMJ,IERR)
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFRMJ,DERIV,URMJEQ,NUFMAX,0,IERR)
-C
-         KFILE='GR1.PHI'
-         CALL UFREAD(KFILE,ASR,FFGR1,NUFMAX,MDGR1,IERR)
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFGR1,DERIV,UGR1EQ,NUFMAX,0,IERR)
-C     
-         KFILE='GR2.PHI'
-         CALL UFREAD(KFILE,ASR,FFGR2,NUFMAX,MDGR2,IERR)
-         DO NR=1,NUFMAX
-            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
-         ENDDO
-         CALL SPL1D(ASR,FFGR2,DERIV,UGR2EQ,NUFMAX,0,IERR)
-C
-         MDALL=MDQ
-C             +MDTT
-     &        +MDVOL+MDAREA+MDRMJ+MDGR1+MDGR2
-         WRITE(6,*) "*****"
-         ENDIF
-      ELSEIF(MDLUF.EQ.3) THEN
-         MDTT=2
-         PSITA=FNFTS(1.D0)
-         NUFMAX=51
-         DO NUF=1,NUFMAX
-            DUF=DBLE(NUF-1)/DBLE(NUFMAX-1)
-            ASR(NUF)=PSITA*(DUF**2-1.D0)
-         ENDDO
-         CALL UFTTRHO(FFTT,MDLUF)
-         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
-      ENDIF
 C
 C     ***** Calculate Q, DVRHO and others at given radial position *****
 C
@@ -577,188 +480,5 @@ C         WRITE(6,'(I5,1P3E12.4)') NTR,BBMINL,BBMAXL,EPSRHO(NTR)
       ENDDO
 C      PAUSE
  9000 RETURN
-      END
-C
-C
-C   *******************************************
-C   **    UFILE read for TR                  **
-C   *******************************************
-C
-C     input:
-C
-C     KFID     : UFILE exsisting directory
-C
-C     output:
-C
-C     AR(NUFM) : Equally Spaced Normalized Radial Data
-C     F1(NUFM) : Functional Values
-C     NUFMAX   : Maximum Number of the Radial Mesh
-C     MDCHK    : Loop Check Value
-C     IERR     : Error Indicator
-C
-C   ***************************************************************
-C
-      SUBROUTINE UFREAD(KFID,ASR,F1,NUFMAX,MDCHK,IERR)
-C
-      INCLUDE 'eqcomq.inc'
-      INCLUDE 'eqcom4.inc'
-      PARAMETER (NUFM=51)
-      DIMENSION T(1),ASR(NUFM),F1(NUFM),F2(NUFM,1)
-      CHARACTER KXNDEV*80,KXNDCG*80
-      CHARACTER KDIRR2*80
-      CHARACTER KDIRX*80
-      CHARACTER KFID*20
-C
-C      IF(MDCHK.NE.0) GOTO 9000
-C
-      NUFMAX=51
-      KXNDEV='X'
-      KXNDCG='11'
-C      KXNDEV='jt60u'
-C      KXNDCG='29728'
-C
-      CALL KTRIM(KXNDEV,IKNDEV)
-      CALL KTRIM(KXNDCG,IKNDCG)
-C
-      KDIRX='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/'
-     &                          //KXNDCG(1:IKNDCG)//'/in/'
-      CALL KTRIM(KDIRX,IKDIRX)
-      KDIRR2=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
-     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
-C
-      CALL TRXR2D(KDIRR2,KFID,T,ASR,F2,NUFM,1,NUFMAX,NTXMAX,0)
-      DO NUF=1,NUFMAX
-         F1(NUF)=F2(NUF,1)
-      ENDDO
-      MDCHK=1
-      IERR=0
-C
-      RETURN
-      END
-C
-C
-C   *******************************************
-C   **    UFILE read for TR                  **
-C   *******************************************
-C
-C     input:
-C
-C     KFID     : UFILE exsisting directory
-C
-C     output:
-C
-C     AR(NUFM)     : Equally Spaced Normalized Radial Data
-C     F2(NUFM,NTM) : Functional Values
-C     NUFMAX       : Maximum Number of the Radial Mesh
-C     NTXMAX       : Maximum Number of the Time Mesh
-C     MDCHK        : Loop Check Value
-C     IERR         : Error Indicator
-C
-C   ***************************************************************
-C
-      SUBROUTINE UFREAD2(KFID,ASR,T,F2,NUFMAX,NTXMAX,MDCHK,IERR)
-C
-      INCLUDE 'eqcomq.inc'
-      INCLUDE 'eqcom4.inc'
-      PARAMETER (NUFM=51,NTM=1001)
-      DIMENSION T(NTM),ASR(NUFM),F1(NUFM),F2(NUFM,NTM)
-      CHARACTER KXNDEV*80,KXNDCG*80
-      CHARACTER KDIRR2*80
-      CHARACTER KDIRX*80
-      CHARACTER KFID*20
-C
-C      IF(MDCHK.NE.0) GOTO 9000
-C
-      NUFMAX=51
-      KXNDEV='X'
-      KXNDCG='11'
-C      KXNDEV='jt60u'
-C      KXNDCG='29728'
-C
-      CALL KTRIM(KXNDEV,IKNDEV)
-      CALL KTRIM(KXNDCG,IKNDCG)
-C
-      KDIRX='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/'
-     &                          //KXNDCG(1:IKNDCG)//'/in/'
-      CALL KTRIM(KDIRX,IKDIRX)
-      KDIRR2=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
-     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
-C
-      CALL TRXR2D(KDIRR2,KFID,T,ASR,F2,NUFM,NTM,NUFMAX,NTXMAX,0)
-      MDCHK=1
-      IERR=0
-C
-      RETURN
-      END
-C
-C   *******************************************
-C   **    UFILE TTRHO read for TR            **
-C   *******************************************
-C
-      SUBROUTINE UFTTRHO(TTRHO,MDLUF)
-C
-      IMPLICIT REAL*8 (T)
-      PARAMETER(NUFM=51)
-      DIMENSION TTRHO(NUFM)
-C
-      IF(MDLUF.EQ.2) THEN
-         TTRHO(1) = 1.153D1
-         TTRHO(2) = 1.153D1
-         TTRHO(3) = 1.153D1
-         TTRHO(4) = 1.153D1
-         TTRHO(5) = 1.153D1
-         TTRHO(6) = 1.153D1
-         TTRHO(7) = 1.153D1
-         TTRHO(8) = 1.153D1
-         TTRHO(9) = 1.153D1
-         TTRHO(10) = 1.154D1
-         TTRHO(11) = 1.154D1
-         TTRHO(12) = 1.154D1
-         TTRHO(13) = 1.154D1
-         TTRHO(14) = 1.154D1
-         TTRHO(15) = 1.154D1
-         TTRHO(16) = 1.154D1
-         TTRHO(17) = 1.154D1
-         TTRHO(18) = 1.154D1
-         TTRHO(19) = 1.154D1
-         TTRHO(20) = 1.154D1
-         TTRHO(21) = 1.154D1
-         TTRHO(22) = 1.154D1
-         TTRHO(23) = 1.154D1
-         TTRHO(24) = 1.154D1
-         TTRHO(25) = 1.154D1
-         TTRHO(26) = 1.154D1
-         TTRHO(27) = 1.154D1
-         TTRHO(28) = 1.154D1
-         TTRHO(29) = 1.154D1
-         TTRHO(30) = 1.154D1
-         TTRHO(31) = 1.154D1
-         TTRHO(32) = 1.154D1
-         TTRHO(33) = 1.154D1
-         TTRHO(34) = 1.154D1
-         TTRHO(35) = 1.154D1
-         TTRHO(36) = 1.154D1
-         TTRHO(37) = 1.155D1
-         TTRHO(38) = 1.155D1
-         TTRHO(39) = 1.155D1
-         TTRHO(40) = 1.155D1
-         TTRHO(41) = 1.155D1
-         TTRHO(42) = 1.155D1
-         TTRHO(43) = 1.155D1
-         TTRHO(44) = 1.155D1
-         TTRHO(45) = 1.155D1
-         TTRHO(46) = 1.155D1
-         TTRHO(47) = 1.155D1
-         TTRHO(48) = 1.155D1
-         TTRHO(49) = 1.155D1
-         TTRHO(50) = 1.155D1
-         TTRHO(51) = 1.155D1
-      ELSEIF(MDLUF.EQ.3) THEN
-         DO NUF=1,NUFM
-            TTRHO(NUF) = 1.26D1
-         ENDDO
-      ENDIF
-C
-      RETURN
       END
 C
