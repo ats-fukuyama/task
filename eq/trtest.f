@@ -33,20 +33,21 @@ C
       DO NTR=1,NTRMAX
          RHOG(NTR)=DRHO*(NTR-1)
          RHOM(NTR)=DRHO*(DBLE(NTR)-0.5D0)
-         RJ(NTR)= (1.D0-RHOG(NTR)**PROFJ1)**PROFJ2
+         RJ(NTR)= (1.D0-RHOM(NTR)**PROFJ1)**PROFJ2
       ENDDO
 C
-      BP(1)=0.5D0*DRHO*RJ(1)
+      BP(1)=0.0
       DO NTR=2,NTRMAX
-         BP(NTR)=(RHOM(NTR-1)*BP(NTR-1)+RHOG(NTR-1)*DRHO*RJ(NTR-1))
-     &           /RHOM(NTR)
+         BP(NTR)=(RHOG(NTR-1)*BP(NTR-1)+RHOM(NTR-1)*DRHO*RJ(NTR-1))
+     &           /RHOG(NTR)
       ENDDO
-      BPA= RMU0*RIP*1.D6/(2.D0*PI*RA)
+      BPA= RMU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
       FACT=BPA/BP(NTRMAX)
-      DO NTR=1,NTRMAX
+      DO NTR=2,NTRMAX
          BP(NTR)=FACT*BP(NTR)
-         QP(NTR)=RHOM(NTR)*RA*BB/(RR*BP(NTR))
+         QP(NTR)=RHOG(NTR)*RA*BB/(RR*BP(NTR))
       ENDDO
+      QP(1)=(4.D0*QP(2)-QP(3))/3.D0
 C
       P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
       PSIT(1)=0.D0
@@ -55,17 +56,18 @@ C
       HJPSI(1)=RJ(1)
       DO NTR=2,NTRMAX
          PSIT(NTR)=PI*RHOG(NTR)**2*BB
-         PSIP(NTR)=(PSIT(NTR)-PSIT(NTR-1))/QP(NTR)+PSIP(NTR-1)
+         PSIP(NTR)=2.D0*(PSIT(NTR)-PSIT(NTR-1))/(QP(NTR)+QP(NTR-1))
+     &            +PSIP(NTR-1)
          PPSI(NTR)=P0*(1.D0-RHOG(NTR)**2)
          HJPSI(NTR)=RJ(NTR)
          VTPSI(NTR)=0.D0
          TPSI(NTR)=PT0*(1.D0-RHOG(NTR)**2)
       ENDDO
 C
-      DO NTR=1,NTRMAX
-         WRITE(6,'(I5,1P5E12.4)') NTR,RHOG(NTR),RHOM(NTR),
-     &                            RJ(NTR),BP(NTR),QP(NTR)
-      ENDDO
+C      DO NTR=1,NTRMAX
+C         WRITE(6,'(I5,1P5E12.4)') NTR,RHOG(NTR),RHOM(NTR),
+C     &                            RJ(NTR),BP(NTR),QP(NTR)
+C      ENDDO
 C
 C      DO NTR=1,NTRMAX
 C         WRITE(6,'(1P4E12.4)') PSIP(NTR),PSIT(NTR),PPSI(NTR),HJPSI(NTR)
