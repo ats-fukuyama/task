@@ -30,6 +30,7 @@ C
       IF (IERR.EQ.1) GOTO 100
 C
  200  CALL TRGRTD(STRL,KVL,NMB)
+      IF(NMB.GE.33) NMB=33
       CALL TRGRUR(G3D(1,1,NMB),STRL,KVL,INQ)
 C
  100  RETURN
@@ -158,7 +159,7 @@ C
  740  FORMAT(' ','16-20: ',4(A4,', '),A4)
  750  FORMAT(' ','21-25: ',4(A4,', '),A4)
  760  FORMAT(' ','26-30: ',4(A4,', '),A4)
- 770  FORMAT(' ','31-32: ',2(A4,', '),A4)
+ 770  FORMAT(' ','31-32: ',1(A4,', '),A4)
 C
       RETURN
       END

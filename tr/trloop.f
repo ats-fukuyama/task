@@ -347,8 +347,9 @@ C
          CALL TRATOG
       ENDIF
       IF(MODELG.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
-         CALL TRCONV(L,IERR)
-         WRITE(6,*) "L=",L
+C         CALL TRCONV(L,IERR)
+C         WRITE(6,*) "L=",L
+         CALL TRSETG
          IF(IERR.NE.0) RETURN
       ENDIF
       IF(NT.LT.NTMAX) GOTO 1000
@@ -394,6 +395,9 @@ C
             BPS=AMYU0*RIPU(NT)*1.D6/(2.D0*PI*RA*RKAPS)
          ENDIF
       ENDIF
+C      IF(MODELG.EQ.3) THEN
+C         BPS=BPSEQ*RIP/RIPEQ
+C      ENDIF
 C
       COEF = AEE**4*5.D0*1.D20/(SQRT(2.D0*PI)*PI*AEPS0**2)
 C
@@ -458,7 +462,6 @@ C
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
      &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
          C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
-C         write(6,*) NV,NW,B(NV,NW,NR) 
       ENDDO
       ENDDO
 C
@@ -881,6 +884,7 @@ C     I think the above expression is obsolete.
          RW(NR,1) = YV(1,NR)
          RW(NR,2) = YV(2,NR)
          ANNU(NR) = RN(NR,7)+RN(NR,8)
+C         if(NR.EQ.40.OR.NR.EQ.45) write(6,*) NT,NR,RN(NR,7),RN(NR,8)
 C         write(6,*) ANNU(NR),RN(NR,7),RN(NR,8)
       ENDDO
 C
@@ -1011,7 +1015,7 @@ C
          NSVN=NSV(NEQ)
          IF(NSSN.NE.0) RTM(NSSN)=RT(NR,NSSN)*RKEV/(PA(NSSN)*AMM)
 C
-C     /* Coefficients of right hand side variables */
+C     /* Coefficients of left hand side variables */
 C
          IF(NSVN.EQ.0) THEN
             RD(NEQ,NR)=1.D0
@@ -1538,7 +1542,7 @@ C
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
                   IF(NSSW.EQ.7) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)
+                     B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
             ELSEIF(NSSV.EQ.2.AND.NSVV.EQ.1) THEN
@@ -1546,7 +1550,7 @@ C
                   NSSW=NSS(NW)
                   IF(NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
-     &                                      *TSIE(NR)
+     &                                      *TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
             ELSEIF(NSSV.EQ.3.AND.NSVV.EQ.1) THEN
@@ -1554,14 +1558,14 @@ C
                   NSSW=NSS(NW)
                   IF(NSSW.EQ.7) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
-     &                                      *TSIE(NR)
+     &                                      *TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
             ELSE
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
                   IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)-TSIE(NR)
+                     B(NV,NW,NR)=B(NV,NW,NR)-TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
             ENDIF
@@ -1584,12 +1588,13 @@ C
 C
       IF(MDLEQ0.EQ.1) THEN
          DO NV=1,NEQMAX
+            NSSV=NSS(NV)
             DO NW=1,NEQMAX
                NSSW=NSS(NW)
                IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
-                  B(NV,NW,NR)=B(NV,NW,NR)-TSCX(NR)
-               ELSEIF(NV.EQ.NW.AND.NSSW.EQ.8) THEN
-                  B(NV,NW,NR)=B(NV,NW,NR)+TSCX(NR)
+                  B(NV,NW,NR)=B(NV,NW,NR)-TSCX(NR)*DVRHO(NR)
+               ELSEIF(NSSV.EQ.8.AND.NSSW.EQ.7) THEN
+                  B(NV,NW,NR)=B(NV,NW,NR)+TSCX(NR)*DVRHO(NR)
                ENDIF
             ENDDO
          ENDDO

@@ -156,8 +156,8 @@ C
 C
          p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
-C         p_fhat=SNGL(QP(NR)/EPS*AR1RHOG(NR))
-         p_fhat=SNGL(QP(NR)*AR1RHOG(NR)/(EPS*RKAPS))
+         p_fhat=SNGL(QP(NR)/EPS*AR1RHOG(NR))
+C         p_fhat=SNGL(QP(NR)*AR1RHOG(NR)/(EPS*RKAPS))
          DO i=1,3
             p_fm(i)=0.0
          ENDDO
@@ -180,8 +180,8 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grbm2=SNGL(AR2RHOG(NR))/p_b2
          p_grphi=p_grstr(NR)
          p_gr2phi=p_gr2str(NR)
-C         p_ngrth=1.0/SNGL(QP(NR)*RR)
-         p_ngrth=RKAPS/SNGL(QP(NR)*RR)
+         p_ngrth=1.0/SNGL(QP(NR)*RR)
+C         p_ngrth=RKAPS/SNGL(QP(NR)*RR)
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
                temp_i(NS)=SNGL(PTS(NS))

@@ -516,8 +516,10 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C               RG1=10.D0
+               RG1=4.D0
 C               RG1=4.D0
-               RG1=3.6D0
+C               RG1=3.6D0
+C               RG1=2.8
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -807,10 +809,10 @@ C
       IF(MDLKAI.GE.60) THEN
 C
 C     INPUTS
-         leigen=0        ! default
+         leigen=1        ! default
          nroot=8         ! default
          iglf=1
-         jshoot=1
+         jshoot=0        ! strongly recommended
 C     if jshoot=0, maximum argument of array is important.
          jmm=0           ! default
          jmaxm=NRMAX-1
@@ -822,8 +824,8 @@ C     if jshoot=0, maximum argument of array is important.
          irotstab=1
 C
          DO jm=0,jmaxm
-            te_m(jm)=RT(jm+1,1)
-            ti_m(jm)=RT(jm+1,2)
+            te_m(jm) =RT(jm+1,1)
+            ti_m(jm) =RT(jm+1,2)
             rne_m(jm)=RN(jm+1,1)*1.D1
             rni_m(jm)=RN(jm+1,2)*1.D1
             rns_m(jm)=0.D0
@@ -845,7 +847,8 @@ C
          ENDDO
 C
          DO jm=0,jmaxm
-            zeff_exp(jm)=ZEFF(jm+1)
+C            zeff_exp(jm)=ZEFF(jm+1)
+            zeff_exp(jm)=1.D0
          ENDDO
 C
          bt_exp=BB
@@ -860,10 +863,10 @@ C     rho(a)
          arho_exp=rho(jmaxm)*RA   ! default
 C
          DO jm=0,jmaxm
-            rgradrho_exp(jm)=AR1RHO(jm+1)
-            rgradrhosq_exp(jm)=AR2RHO(jm+1)
-            rmin_exp(jm)=RMNRHO(jm+1)
-            rmaj_exp(jm)=RMJRHO(jm+1)
+            rgradrho_exp(jm)  =AR1RHOG(jm+1)
+            rgradrhosq_exp(jm)=AR2RHOG(jm+1)
+            rmin_exp(jm)      =RMNRHOG(jm+1)
+            rmaj_exp(jm)      =RMJRHOG(jm+1)
          ENDDO
          rmajor_exp=RR
 C
@@ -947,6 +950,7 @@ C
          chii_st(jm)=chii_m(jm)
       enddo
 C
+      epsilon  = 1.e-10
       do j=1,jmaxm
         drho=rho(j-1)-rho(j)+epsilon
         zpte_m(j)=-(log(te_m(j-1))-log(te_m(j)))/drho
@@ -955,7 +959,6 @@ C
         zpni_m(j)=-(log(rni_m(j-1))-log(rni_m(j)))/drho
       enddo
 C
-      epsilon  = 1.e-10
       igrad=1
       deltat=0.03D0
       do j=1,jmaxm-1

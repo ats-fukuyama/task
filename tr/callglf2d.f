@@ -593,7 +593,7 @@ c
         zpne_m(j)=-(dlog(ne_m(j-1))-dlog(ne_m(j)))/drho
         zpni_m(j)=-(dlog(ni_m(j-1))-dlog(ni_m(j)))/drho
       enddo
- 
+
         zpmte=zpte_m(jm+1-jshoot)
         zpmti=zpti_m(jm+1-jshoot)
         zpmne=zpne_m(jm+1-jshoot)

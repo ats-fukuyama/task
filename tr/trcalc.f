@@ -41,7 +41,9 @@ C
 C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
-            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
+            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
+            QP(NR)=FACTQ(NR)*QL
+C            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
          IF(MDLUF.NE.1) THEN
@@ -407,12 +409,14 @@ C
          ANE=RN(NR,1)
          TE =RT(NR,1)
          EION  = 13.64D0
+C         SIONS  = 1.76D-13/SQRT(TE*1.D3)*FKN(EION/(TE*1.D3))
          TN    = MAX(TE*1.D3/EION,1.D-2)
          SION  = 1.D-11*SQRT(TN)*EXP(-1.D0/TN)
      &          /(EION**1.5D0*(6.D0+TN))
+C         PIE(NR) =0.D0
          PIE(NR) = ANE*ANNU(NR)*SION*1.D40*EION*AEE
          SIE(NR) = ANE*ANNU(NR)*SION*1.D20
-         TSIE(NR)= ANE*SION*1.D20
+         TSIE(NR)= ANE         *SION*1.D20
       ENDDO
 C
 C     ****** CHARGE EXCHANGE LOSS ******
@@ -426,12 +430,22 @@ C
 C
          TN    = LOG10(MAX(TD*1.D3,50.D0))
          SCH= 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
-         SCX(NR)=ANE*ANNU(NR)*SCH*1.D20
-         TSCX(NR)=ANE*SCH*1.D20
+         SCX(NR) =ANDX*ANNU(NR)*SCH*1.D20
+         TSCX(NR)=ANDX         *SCH*1.D20
 C
-         PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
-     &         +  1.5D0*ANDX*ANNU(NR)*SCH*(TD-TNU))*RKEV*1.D40
+         PCX(NR)=1.5D0*ANDX*ANNU(NR)*SCH*(TD-TNU)*RKEV*1.D40
+C         PCX(NR)=0.D0
       ENDDO
+C
+      RETURN
+      END
+C
+      FUNCTION FKN(X)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      GAMMA=0.577215664901532D0
+      FKN=-(LOG10(X)+GAMMA-X+X**2/4.D0-X**3/1.8D1)
 C
       RETURN
       END
@@ -1529,60 +1543,30 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-         NR=1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-            FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR/AR1RHO(NR)
-C            AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR*RA
-         DO NR=2,NRMAX-1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-            FACTORM=0.5D0*(FACTOR1+FACTOR2)
-            FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &             /DR/AR1RHO(NR)
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
-         ENDDO
-         NR=NRMAX
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTORM=0.5D0*(FACTOR1+FACTOR2)
-            FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &             /DR/AR1RHO(NR)
-C            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))/DR*RA
-      ELSE
-         NR=1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-            FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*FACTORP*BP(NR)/(DR*AR1RHO(NR))
-         DO NR=2,NRMAX-1
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
-            FACTORM=0.5D0*(FACTOR1+FACTOR2)
-            FACTORP=0.5D0*(FACTOR2+FACTOR3)
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &             /(DR*AR1RHO(NR))
-         ENDDO
-         NR=NRMAX
-            FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
-            FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
-            FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
-            FACTORM=0.5D0*(FACTOR1+FACTOR2)
-            FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
-            AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
-     &             /(DR*AR1RHO(NR))
-      ENDIF
+      NR=1
+         FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR)= FACTOR0*FACTORP*BP(NR)/DR/AR1RHO(NR)
+      DO NR=2,NRMAX-1
+         FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1)
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+         AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
+     &          /DR/AR1RHO(NR)
+      ENDDO
+      NR=NRMAX
+         FACTOR0=TTRHO(NR)/(ARRHO(NR)*AMYU0*DVRHO(NR))
+         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1)
+         FACTOR2=DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  )
+         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+         FACTORP=0.5D0*(3.D0*FACTOR2-FACTOR1)
+         AJ(NR)= FACTOR0*(FACTORP*BP(NR)-FACTORM*BP(NR-1))
+     &          /DR/AR1RHO(NR)
 C
       DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR  )+AJRF(NR  )+AJBS(NR ))
@@ -1694,7 +1678,8 @@ C
          IF(MODELG.EQ.3) THEN
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
-               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
+C               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
+               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
             ENDDO
          ELSE
             DO NR=1,IZEROX

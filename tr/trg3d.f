@@ -151,7 +151,7 @@ C
       CALL GTEXTX3D(0.5*(GSXMIN+GSXMAX),
      &              GY(1)+0.1*(GY(1)-GY(NYMAX)),
      &              GSYMIN,
-     &              '@R@',
+     &              '@RHO@',
      &              2)
       CALL Set3DTextBaseLine(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
       CALL GTEXTX3D(GSXMIN,

@@ -108,8 +108,8 @@ C
       GYL=20.0*1.5
       GZL=10.0*1.5
       CALL GDEFIN3D(GX1,GX2,GY1,GY2,GXL,GYL,GZL)
-      GPHI=-30.0
-      GTHETA=40.0
+      GPHI=-60.0
+      GTHETA=65.0
       GRADIUS=100.0
       GOX=0.5*(GSXMIN+GSXMAX)
       GOY=0.5*(GYMIN+GYMAX)

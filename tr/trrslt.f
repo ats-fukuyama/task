@@ -531,6 +531,12 @@ C
          G3D(NR,NGT,30) = GCLIP(BETAP(NR))
          G3D(NR,NGT,31) = GCLIP(EZOH(NR)*2.D0*PI*RR)
          G3D(NR,NGT,32) = GCLIP(ETA(NR))
+         IF(NT.EQ.0) THEN
+            G3D(NR,NGT,33) = GCLIP(RTU(NR,2,1))
+         ELSE
+            G3D(NR,NGT,33) = GCLIP(RTU(NR,2,NT))
+         ENDIF
+C
       ENDDO
 C      
       RETURN

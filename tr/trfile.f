@@ -280,7 +280,7 @@ C
       DIMENSION UQPTU(4,4,NRMU,NTURM)
       DIMENSION UQNBETU(4,4,NRMU,NTURM),UQNBITU(4,4,NRMU,NTURM)
       DIMENSION UQICETU(4,4,NRMU,NTURM),UQICITU(4,4,NRMU,NTURM)
-      DIMENSION UQRLTU(4,4,NRMU,NTURM)
+      DIMENSION UQECTU(4,4,NRMU,NTURM), UQRLTU(4,4,NRMU,NTURM)
       DIMENSION UVOLTU(4,4,NRMU,NTURM)
       DIMENSION URMJTU(4,4,NRMU,NTURM) ,URMNTU(4,4,NRMU,NTURM)
       DIMENSION UGR1TU(4,4,NRMU,NTURM) ,UGR2TU(4,4,NRMU,NTURM)
@@ -351,18 +351,23 @@ C     *** 2D VALUE ***
       KFILE='TE'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT2(KFILE,UTETU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
-      TMLCL=DT*DBLE(1)
-      DO NR=1,NRMAX
-         RMN=DBLE(NR-0.5D0)*DR
-         CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTETU,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE1: IERR=",IERR
-         RT(NR,1)=F0*1.D-3
-      ENDDO
-      PT(1) =RT(1,1)
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
-         NR=NRMAX
-         RGN=DBLE(NR)*DR
+         DO NR=1,NRMAX
+            RMN=(DBLE(NR)-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTETU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE1: IERR=",IERR
+            RTU(NR,1,NTA)=F0*1.D-3
+         ENDDO
+      ENDDO
+      DO NR=1,NRMAX
+         RT(NR,1)=RTU(NR,1,1)
+      ENDDO
+      PT(1) = RT(1,1)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         RGN=DBLE(NRMAX)*DR
          CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UTETU,NRMU,NRFMAX,NTXMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
          PTSU(1,NTA)=F0*1.D-3
@@ -372,12 +377,18 @@ C
       KFILE='TI'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT2(KFILE,UTITU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
-      TMLCL=DT*DBLE(1)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=(DBLE(NR)-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTITU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI1: IERR=",IERR
+            RTU(NR,2,NTA)=F0*1.D-3
+         ENDDO
+      ENDDO
       DO NR=1,NRMAX
-         RMN=DBLE(NR-0.5D0)*DR
-         CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UTITU,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI1: IERR=",IERR
-         RT(NR,2)=F0*1.D-3
+         RT(NR,2)=RTU(NR,2,1)
       ENDDO
       PT(2) =RT(1,2)
       DO NTA=1,NTAMAX
@@ -395,7 +406,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UNETU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE1: IERR=",IERR
@@ -436,7 +447,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQNBETU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -455,7 +466,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQNBITU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -472,6 +483,7 @@ C
          DO NR=1,NRMAX
             PICU(NR,1,NTA)=0.D0
             PICU(NR,2,NTA)=0.D0
+            PECU(NR,  NTA)=0.D0
          ENDDO
       ENDDO
       KFILE='QICRHE'
@@ -480,7 +492,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQICETU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(F0.LT.0.D0) THEN
@@ -497,7 +509,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQICITU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -510,13 +522,32 @@ C
          ENDDO
       ENDDO
 C
+      KFILE='QECH'
+      CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
+      CALL PRETREATMENT2(KFILE,UQICITU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
+      DO NTA=1,NTAMAX
+         TMLCL=DT*DBLE(NTA)
+         DO NR=1,NRMAX
+            RMN=(DBLE(NR)-0.5D0)*DR
+            CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQECTU,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL2DF QICRHI: IERR=",IERR
+            IF(F0.LT.0.D0) THEN
+               PECU(NR,NTA)=0.D0
+            ELSE
+               PECU(NR,NTA)=F0
+            ENDIF
+         ENDDO
+      ENDDO
+C
       KFILE='QRAD'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT2(KFILE,UQRLTU,NRFMAX,NTXMAX,TMUMAX,ICK,0,IERR)
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UQRLTU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -533,7 +564,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DD(RMN,TMLCL,F0,DFX0,DFY0,RUF,TMU,UVOLTU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -548,7 +579,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,URMJTU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -566,7 +597,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,URMNTU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -581,7 +612,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UGR1TU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -596,7 +627,7 @@ C
       DO NTA=1,NTAMAX
          TMLCL=DT*DBLE(NTA)
          DO NR=1,NRMAX
-            RMN=DBLE(NR-0.5D0)*DR
+            RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UGR2TU,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
             IF(IERR.NE.0)
@@ -637,18 +668,20 @@ C
       ENDDO
       TMU(1)=0.D0
       IF(ICK.NE.0) THEN
+         IF(ICK.EQ.2.AND.TMUMAX.EQ.0.D0) GOTO 1000
          IF(TMUMAX.NE.TMU(NTXMAX)) THEN
             WRITE(6,*) 'XX TRFILE:',KFILE,'UFILE HAS AN ERROR!'
             WRITE(6,*) TMUMAX,TMU(NTXMAX)
             STOP
          ENDIF
       ENDIF
+ 1000 CONTINUE
       TMUMAX=TMU(NTXMAX)
       NTAMAX=INT(DINT(TMU(NTXMAX)*1.D2)*1.D-2/DT)
+      IF(ICK.NE.2) ICK=1
 C
       CALL SPL1D(TMU,F1,DERIV,U,NTXMAX,3,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL1D',KFILE,': IERR=',IERR
-      ICK=1
 C
       RETURN
       END
@@ -690,20 +723,6 @@ C
       ENDIF
       TMUMAX=TMU(NTXMAX)
       NTAMAX=INT(DINT(TMU(NTXMAX)*1.D2)*1.D-2/DT)
-!C
-c$$$      CALL SPL2D(RUF,TMU,F2,DERIVX,DERIVY,DERIVXY,U,
-c$$$     &           NRMU,NRFMAX,NTXMAX,0,0,IERR)
-c$$$      DO NTX=1,NTXMAX
-c$$$         DO NRF=NRFMAX,NRFMAX
-c$$$C            RFL=1.D0
-c$$$            RFL=RUF(NRF)
-c$$$C            TML=DBLE(NTA)*DT
-c$$$            TML=TMU(NTX)
-c$$$            CALL SPL2DF(RFL,TML,F2L,RUF,TMU,U,
-c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
-c$$$C            write(6,*) NTX,NRF,F2(NRF,NTX),F2L
-c$$$         ENDDO
-c$$$      ENDDO
 C
       IF(MODE.EQ.0) THEN
          CALL SPL2D(RUF,TMU,F2,DERIVX,DERIVY,DERIVXY,U,
@@ -714,6 +733,14 @@ C
       ENDIF
       IF(IERR.NE.0) WRITE(6,*) 'XX TRFILE: SPL2D',KFILE,': IERR=',IERR
       ICK=1
+c$$$C
+c$$$      TMLCL=DT*DBLE(4)
+c$$$      DO NR=1,NRMAX
+c$$$         RMN=(DBLE(NR)-0.5D0)*DR
+c$$$         CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,U,
+c$$$     &                  NRMU,NRFMAX,NTXMAX,IERR)
+c$$$         write(6,*) NR,F0*1.D-3
+c$$$      ENDDO
 C
       RETURN
       END
@@ -743,7 +770,7 @@ C
          BP(NR)=RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
          PEX(NR,1)=PNBU(NR,1,NT)
          PEX(NR,2)=PNBU(NR,2,NT)
-         PRF(NR,1)=PICU(NR,1,NT)
+         PRF(NR,1)=PICU(NR,1,NT)+PECU(NR,NT)
          PRF(NR,2)=PICU(NR,2,NT)
          TTRHO(NR)=TTRHOU(NR,NT)
          DVRHO(NR)=DVRHOU(NR,NT)

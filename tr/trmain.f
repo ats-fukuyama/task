@@ -131,7 +131,7 @@ C
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
   101    WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G5, P1-P5, Z1, Y1,',
-     &                        ' A1-A2, E1-E9, D1-D32, M'
+     &                        ' A1-A2, E1-E9, D1-D32, M1-M3'
          WRITE(6,*) '           S/SAVE  L/LOAD  H/HELP  C/CLEAR  ',
      &              'I/INQ  X/EXIT'
          READ(5,'(A5)',ERR=101,END=9000) KIG
@@ -183,7 +183,7 @@ C
          ELSEIF(K1.EQ.'H') THEN
             CALL TRHELP('G')
          ELSEIF(K1.EQ.'M') THEN
-            CALL TRCOMPARE
+            CALL TRCOMP(K2,INQG)
          ELSEIF(K1.EQ.'X') THEN
             GOTO 1
          ELSE
