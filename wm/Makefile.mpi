@@ -44,7 +44,7 @@ new :
 	cp -f *.h ../wmnew
 
 clean:
-	rm -f core *.o ./*~
+	rm -f core *.o ./*~ ../mtx/*.o
 
 veryclean: clean
 	rm -f wm

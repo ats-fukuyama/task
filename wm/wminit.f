@@ -244,10 +244,10 @@ C                   0: Calculate from PN,PNS,PTPR,PTPP,PTS,PU,PUS
 C                   9: Read from file by means of WMXPRF routine
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
-C                   1: Calculate alpha particle density using slowing down
-C                   2: Precession of alpha particles
-C                   3: Precession of electrons
-C                   4: Precession of both alpha particles and electrons
+C                   1: Precession of alpha particles
+C                   2: Precession of electrons
+C                   3: Precession of both alpha particles and electrons
+C                   4: Calculate alpha particle density using slowing down
 C        MODELK: Control mode number cutoff
 C                   0: No cutoff
 C                   1: With cutoff (this should not be used)
@@ -742,30 +742,9 @@ C
          DPARA(26)=PROFU1
          DPARA(27)=PROFU2
       ENDIF
-      CALL MPSYNC
 C
-      CALL MPBCIN(IPARA,18)
-      CALL MPBCDN(DPARA,20)
-      CALL MPBCDN(PA,NSMAX)
-      CALL MPBCDN(PZ,NSMAX)
-      CALL MPBCDN(PN,NSMAX)
-      CALL MPBCDN(PNS,NSMAX)
-      CALL MPBCDN(PZCL,NSMAX)
-      CALL MPBCDN(PTPR,NSMAX)
-      CALL MPBCDN(PTPP,NSMAX)
-      CALL MPBCDN(PTS,NSMAX)
-      CALL MPBCDN(PU,NSMAX)
-      CALL MPBCDN(PUS,NSMAX)
-      CALL MPBCDN(PNITB,NSMAX)
-      CALL MPBCDN(PTITB,NSMAX)
-      CALL MPBCDN(PUITB,NSMAX)
-      CALL MPBCDN(AJ,NAMAX)
-      CALL MPBCDN(APH,NAMAX)
-      CALL MPBCDN(THJ1,NAMAX)
-      CALL MPBCDN(THJ2,NAMAX)
-      CALL MPBCDN(PHJ1,NAMAX)
-      CALL MPBCDN(PHJ2,NAMAX)
-      CALL MPBCKN(KNAMEQ,32)
+      CALL MPBCIN(IPARA,22)
+      CALL MPBCDN(DPARA,27)
 C
       IF(MYRANK.NE.0) THEN
          NSMAX =IPARA(1) 
@@ -820,7 +799,27 @@ C
          PROFU2=DPARA(27)
          CRF=DCMPLX(RF,RFI)
       ENDIF
-      CALL MPSYNC
+C
+      CALL MPBCDN(PA,NSMAX)
+      CALL MPBCDN(PZ,NSMAX)
+      CALL MPBCDN(PN,NSMAX)
+      CALL MPBCDN(PNS,NSMAX)
+      CALL MPBCDN(PZCL,NSMAX)
+      CALL MPBCDN(PTPR,NSMAX)
+      CALL MPBCDN(PTPP,NSMAX)
+      CALL MPBCDN(PTS,NSMAX)
+      CALL MPBCDN(PU,NSMAX)
+      CALL MPBCDN(PUS,NSMAX)
+      CALL MPBCDN(PNITB,NSMAX)
+      CALL MPBCDN(PTITB,NSMAX)
+      CALL MPBCDN(PUITB,NSMAX)
+      CALL MPBCDN(AJ,NAMAX)
+      CALL MPBCDN(APH,NAMAX)
+      CALL MPBCDN(THJ1,NAMAX)
+      CALL MPBCDN(THJ2,NAMAX)
+      CALL MPBCDN(PHJ1,NAMAX)
+      CALL MPBCDN(PHJ2,NAMAX)
+      CALL MPBCKN(KNAMEQ,32)
 C
       RETURN
       END

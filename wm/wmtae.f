@@ -102,9 +102,8 @@ C
          NGY(NR)=INMAX
          DO NY=1,INMAX
             GY(NR,NY)=GCLIP(1.D0/(2*PI*1.D6*SQRT(W(NY))))
-C            GY(NR,NY)=SQRT(W(NY))/(2*PI*1.D6)
-               WRITE(6,602) NR,XRHO(NR),GY(NR,NY)
-  602          FORMAT(I3,1P2E13.5)
+C               WRITE(6,602) NR,XRHO(NR),GY(NR,NY)
+C  602          FORMAT(I3,1P2E13.5)
          ENDDO
       ENDDO
 C
