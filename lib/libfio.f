@@ -140,7 +140,7 @@ C
     2       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
-            READ(5,'(A1)',ERR=2,END=1) KID
+            READ(5,'(A1)',ERR=2,END=9001) KID
             CALL GUCPTL(KID)
             IF(KID.EQ.'N') GOTO 9007
          ELSEIF(MODELP.EQ.4) THEN
