@@ -7,7 +7,7 @@ C
       INCLUDE 'wmcomm.h'
 C
       DIMENSION GY(NRM,MDM),GP(4,4)
-      CHARACTER*6 RTITL(8)
+      CHARACTER RTITL(8)*6
       CHARACTER K2,K3,K4
       DATA GP/ 3.0, 10.8,  9.5, 16.5,
      &         3.0, 10.8,  1.0,  8.0,
@@ -241,7 +241,7 @@ C
       INCLUDE 'wmcomm.h'
 C
       DIMENSION GY(NRM,MDM),GP(4,4)
-      CHARACTER*6 RTITL(8)
+      CHARACTER RTITL(8)*6
       CHARACTER K2,K3,K4
       DATA GP/ 3.0, 10.8,  9.5, 16.5,
      &         3.0, 10.8,  1.0,  8.0,

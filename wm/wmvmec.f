@@ -29,7 +29,7 @@ C
       INCLUDE 'wmcomm.h'
       INCLUDE 'vmcomm.h'
 C
-      CHARACTER*80 FNAME
+      CHARACTER FNAME*80
 C
 C 1002    WRITE(6,*) 'READ FILE NAME ?'
 C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
@@ -121,7 +121,7 @@ C
       INCLUDE 'wmcomm.h'
       INCLUDE 'vmcomm.h'
 C
-      CHARACTER*80 FNAME
+      CHARACTER FNAME*80
 C
       IERR=0
 C
