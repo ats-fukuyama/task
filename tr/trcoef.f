@@ -77,10 +77,10 @@ C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
 C         ENDIF
          EPS=EPSRHO(NR)
          IF(NR.EQ.NRMAX) THEN
-            ANE=PNSS(1)
-            AND=PNSS(2)
-            ANT=PNSS(3)
-            ANA=PNSS(4)
+            ANE =PNSS(1)
+            ANDX=PNSS(2)
+            ANT =PNSS(3)
+            ANA =PNSS(4)
             TE=PTS(1)
             TD=PTS(2)
             TT=PTS(3)
@@ -121,7 +121,7 @@ C
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
-            AND    = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
+            ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
             ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
             ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             TE     = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
@@ -425,8 +425,8 @@ C
 C
          ELSEIF(MDLKAI.LT.41) THEN
 C
-            PNI=AND+ANT+ANA
-            AMI=(AMD*AND+AMT*ANT+AMA*ANA)/PNI
+            PNI=ANDX+ANT+ANA
+            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
 C
             VA=SQRT(BB**2/(AMYU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*AEPS0)
@@ -513,9 +513,9 @@ C               RG1=8.D0
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
 C
             ELSEIF(MDLKAI.EQ.40) THEN
-               AEI=(PZ(2)*AND+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
+               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
                WCI=AEI*BB/AMI
-               PTI=(TD*AND+TT*ANT+TA*ANA)/PNI
+               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
                VTI=SQRT(ABS(PTI*RKEV/AMI))
                RHOI=VTI/WCI
 C
@@ -590,10 +590,10 @@ C
 C
       DO 100 NR=1,NRMAX
          IF(NR.EQ.NRMAX) THEN
-            ANE=PNSS(1)
-            AND=PNSS(2)
-            ANT=PNSS(3)
-            ANA=PNSS(4)
+            ANE =PNSS(1)
+            ANDX=PNSS(2)
+            ANT =PNSS(3)
+            ANA =PNSS(4)
             TE=PTS(1)
             TD=PTS(2)
             TT=PTS(3)
@@ -603,7 +603,7 @@ C
 C
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
-            AND    = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
+            ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
             ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
             ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             TE     = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
@@ -708,17 +708,17 @@ C            ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
          ENDIF
          RALFA=ZEFFL-1.D0
 C
-         rLnLamE=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-         rLnLamD=17.3D0-DLOG(AND)*0.5D0+DLOG(ABS(TD))*1.5D0
-         rLnLamT=17.3D0-DLOG(ANT)*0.5D0+DLOG(ABS(TT))*1.5D0
-         rLnLamA=17.3D0-DLOG(ANA)*0.5D0+DLOG(ABS(TA))*1.5D0
+         rLnLamE=15.2D0-DLOG(ANE )*0.5D0+DLOG(ABS(TE))
+         rLnLamD=17.3D0-DLOG(ANDX)*0.5D0+DLOG(ABS(TD))*1.5D0
+         rLnLamT=17.3D0-DLOG(ANT )*0.5D0+DLOG(ABS(TT))*1.5D0
+         rLnLamA=17.3D0-DLOG(ANA )*0.5D0+DLOG(ABS(TA))*1.5D0
 C
          TAUE=6.D0*PI*SQRT(2.D0*PI)*AEPS0**2*DSQRT(AME)
      &             *(ABS(TE)*RKEV)**1.5D0
      &             /(PZ(1)**2*ANE*1.D20*AEE**4*rLnLamE)
          TAUD=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMD)
      &             *(ABS(TD)*RKEV)**1.5D0
-     &             /(PZ(2)**4*AND*1.D20*AEE**4*rLnLamD)
+     &             /(PZ(2)**4*ANDX*1.D20*AEE**4*rLnLamD)
          TAUT=12.D0*PI*SQRT(PI)*AEPS0**2*DSQRT(AMT)
      &             *(ABS(TT)*RKEV)**1.5D0
      &             /(PZ(3)**4*ANT*1.D20*AEE**4*rLnLamT)
@@ -900,22 +900,22 @@ C
       ELSEIF(MDLAD.EQ.1) THEN
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
-               ANE=PNSS(1)
-               AND=PNSS(2)
-               ANT=PNSS(3)
-               ANA=PNSS(4)
+               ANE =PNSS(1)
+               ANDX=PNSS(2)
+               ANT =PNSS(3)
+               ANA =PNSS(4)
             ELSE
                ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
-               AND    = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
+               ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
             AD(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
             AD(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
             AD(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
-            AD(NR,1) =(PZ(2)*AND*AD(NR,2)
-     &                +PZ(3)*ANT*AD(NR,3)
-     &                +PZ(4)*ANA*AD(NR,4))/(AND+ANT+ANA)
+            AD(NR,1) =(PZ(2)*ANDX*AD(NR,2)
+     &                +PZ(3)*ANT *AD(NR,3)
+     &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
             RX   = ALP(1)*RG(NR)/RA
             PROF0 = 1.D0-RX**PROFN1
@@ -937,22 +937,22 @@ C
       ELSEIF(MDLAD.EQ.2) THEN
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
-               ANE=PNSS(1)
-               AND=PNSS(2)
-               ANT=PNSS(3)
-               ANA=PNSS(4)
+               ANE =PNSS(1)
+               ANDX=PNSS(2)
+               ANT =PNSS(3)
+               ANA =PNSS(4)
             ELSE
-               ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
-               AND    = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
-               ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
-               ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
+               ANE = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
+               ANDX= 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
+               ANT = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
+               ANA = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
             AD(NR,2) = AD0*AKDW(NR,2)
             AD(NR,3) = AD0*AKDW(NR,3)
             AD(NR,4) = AD0*AKDW(NR,4)
-            AD(NR,1) =(PZ(2)*AND*AD(NR,2)
-     &                +PZ(3)*ANT*AD(NR,3)
-     &                +PZ(4)*ANA*AD(NR,4))/(AND+ANT+ANA)
+            AD(NR,1) =(PZ(2)*ANDX*AD(NR,2)
+     &                +PZ(3)*ANT *AD(NR,3)
+     &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
             RX   = ALP(1)*RG(NR)/RA
             PROF0 = 1.D0-RX**PROFN1

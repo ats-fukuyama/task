@@ -306,9 +306,9 @@ C
 C     ****** RADIATION LOSS ******
 C
       DO 100 NR=1,NRMAX
-         ANE=RN(NR,1)
-         AND=RN(NR,2)
-         ANT=RN(NR,3)
+         ANE =RN(NR,1)
+         ANDX=RN(NR,2)
+         ANT =RN(NR,3)
          ANHE=RN(NR,4)
          TE  = RT(NR,1)
          TEL = LOG10(TE)
@@ -335,8 +335,8 @@ C
          CLRC  = 10.D0**ARG2
          PLFE  = ANE*ANFE(NR)*CLRFE*1.D40
          PLC   = ANE*ANC (NR)*CLRC *1.D40
-         PLD   = ANE*AND*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
-         PLTT  = ANE*ANT*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+         PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
+         PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
          PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
          PRL(NR)= PLFE+PLC+PLD+PLTT+PLHE
   100 CONTINUE
@@ -357,17 +357,17 @@ C
 C     ****** CHARGE EXCHANGE LOSS ******
 C
       DO 300 NR=1,NRMAX
-         ANE=RN(NR,1)
-         AND=RN(NR,2)
-         TE =RT(NR,1)
-         TD =RT(NR,2)
-         TNU= 0.D0
+         ANE =RN(NR,1)
+         ANDX=RN(NR,2)
+         TE  =RT(NR,1)
+         TD  =RT(NR,2)
+         TNU = 0.D0
 C
          TN    = LOG10(MAX(TD*1.D3,50.D0))
          SCX   = 1.57D-16*SQRT(ABS(TD)*1.D3)*(TN*TN-14.63D0*TN+53.65D0)
 C
          PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
-     &         +  1.5D0*AND*ANNU(NR)*SCX*(TD-TNU))*RKEV*1.D40
+     &         +  1.5D0*ANDX*ANNU(NR)*SCX*(TD-TNU))*RKEV*1.D40
   300 CONTINUE
 C
       RETURN
@@ -521,9 +521,9 @@ C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
          ANE=0.5D0*(RN(NR-1,1)+RN(NR,1))
-C         AND=0.5D0*(RN(NR-1,2)+RN(NR,2))
-C         ANT=0.5D0*(RN(NR-1,3)+RN(NR,3))
-C         ANA=0.5D0*(RN(NR-1,4)+RN(NR,4))
+C         ANDX=0.5D0*(RN(NR-1,2)+RN(NR,2))
+C         ANT =0.5D0*(RN(NR-1,3)+RN(NR,3))
+C         ANA =0.5D0*(RN(NR-1,4)+RN(NR,4))
          TEL=ABS(0.5D0*(RT(NR-1,1)+RT(NR,1)))
          TDL=ABS(0.5D0*(RT(NR-1,2)+RT(NR,2)))
          TTL=ABS(0.5D0*(RT(NR-1,3)+RT(NR,3)))
