@@ -1109,14 +1109,14 @@ C
          ENDDO
       ELSEIF(MDLAVK.EQ.1) THEN
          DO NR=1,NRMAX
-            AVK(NR,1)=-RG(NR)/CHP
-            AVK(NR,2)=-RG(NR)/CHP
-            AVK(NR,3)=-RG(NR)/CHP
-            AVK(NR,4)=-RG(NR)/CHP
+            AVK(NR,1)=-RG(NR)*CHP
+            AVK(NR,2)=-RG(NR)*CHP
+            AVK(NR,3)=-RG(NR)*CHP
+            AVK(NR,4)=-RG(NR)*CHP
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
          DO NR=1,NRMAX
-            AVKL=-RG(NR)/(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
+            AVKL=-RG(NR)*(CHP*1.D6)/(ANE*1.D20*TE*RKEV)
             AVK(NR,1)=-AVKL
             AVK(NR,2)=-AVKL
             AVK(NR,3)=-AVKL

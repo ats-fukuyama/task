@@ -510,10 +510,10 @@ C
       RIP   = RIPS
 C
       DR = 1.D0/DBLE(NRMAX)
-C      RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
-C      FKAP=0.5D0*(RKAP+1.D0)
-C     &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
-      FKAP=RKAP
+      RKAPX=(RKAP-1.D0)/(RKAP+1.D0)
+      FKAP=0.5D0*(RKAP+1.D0)
+     &     *(1.D0+RKAPX/4.D0+RKAPX*RKAPX/64.D0)
+C      FKAP=RKAP
 C
       DO NR=1,NRMAX
          RG(NR)  = DBLE(NR*DR)
