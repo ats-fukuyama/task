@@ -2,7 +2,7 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
 SRCX = wminit.f wmsetg.f wmvmec.f wmsetj.f wmprof.f \
        nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmtae.f wmxprf.f wmdprf.f \
@@ -68,6 +68,6 @@ wmvout.o : wmvout.f wmcomm.h vmcomm.h
 wmgsub.o : wmgsub.f wmcomm.h
 wmdout.o : wmdout.f wmcomm.h	
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

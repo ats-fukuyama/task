@@ -84,10 +84,10 @@ C
             NG3=5
          ELSEIF(K3.EQ.'J') THEN
             NG3=6
-C         ELSEIF(K3.EQ.'N') THEN
-C            NG3=7
-C         ELSEIF(K3.EQ.'T') THEN
-C            NG3=8
+         ELSEIF(K3.EQ.'R') THEN
+            NG3=7
+         ELSEIF(K3.EQ.'Z') THEN
+            NG3=8
          ELSE
             WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #3 IN WMGREQ'
             GOTO 9000
@@ -158,6 +158,10 @@ C
                GY(NR,NTH) =GUCLIP(BFLD(3,NTH,NPH,NR))
             ELSEIF(NG3.EQ.6) THEN
                GY(NR,NTH) =GUCLIP(RJ(NTH,NPH,NR))
+            ELSEIF(NG3.EQ.7) THEN
+               GY(NR,NTH) =GUCLIP(RPS(NTH,NR))
+            ELSEIF(NG3.EQ.8) THEN
+               GY(NR,NTH) =GUCLIP(ZPS(NTH,NR))
             ENDIF
          ENDIF
       ENDDO
@@ -709,18 +713,14 @@ C
          FBS(NR,NTHMAX+1)=DBLE(GFL(NR,1))
       ENDDO
 C
-      DO NR=1,NRMAX+1
-         FY(NR,1)=0.D0
-         FY(NR,NTHMAX+1)=0.D0
-      ENDDO
       CALL SPL2D(XR,TH,RBS,FX,FY,FXY,UR,
-     &           NRM,NRMAX+1,NTHMAX+1,0,3,IERR)
+     &           NRM,NRMAX+1,NTHMAX+1,0,4,IERR)
 C
       CALL SPL2D(XR,TH,ZBS,FX,FY,FXY,UZ,
-     &           NRM,NRMAX+1,NTHMAX+1,0,0,IERR)
+     &           NRM,NRMAX+1,NTHMAX+1,0,4,IERR)
 C
       CALL SPL2D(XR,TH,FBS,FX,FY,FXY,UF,
-     &           NRM,NRMAX+1,NTHMAX+1,0,0,IERR)
+     &           NRM,NRMAX+1,NTHMAX+1,0,4,IERR)
 C
       RMIN= 1.D32
       RMAX=-1.D-32
