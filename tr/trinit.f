@@ -168,8 +168,8 @@ C           *****  MDLKAI.EQ. 64  : Bohm/Gyro-Bohm model *****
 C
       MDLKAI = 31
       MDLETA = 3
-      MDLAD  = 0
-      MDLAVK = 0
+      MDLAD  = 3
+      MDLAVK = 3
       MDLJBS = 5
       MDLKNC = 1
 C

@@ -644,28 +644,37 @@ C
             GYR(1,NS) = GUCLIP(AD(2,NS))
          ENDDO
       ELSE
-         DO NR=1,NRMAX
-            DO NS=1,NSMAX
-               RGFLSUM(NR,NS)=0.D0
-               DO NA=1,5
-                  RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
+         MODE=0
+         IF(MODE.EQ.0) THEN
+            DO NR=1,NRMAX
+               DO NS=1,NSMAX
+                  ADNCG(NR,NS)=ADNCS(NR,NS)
                ENDDO
             ENDDO
-         ENDDO
-         DO NR=1,NRMAX-1
-            DO NS=1,NSMAX
-               DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))*RJCB(NR)/DR
+         ELSE
+            DO NR=1,NRMAX
+               DO NS=1,NSMAX
+                  RGFLSUM(NR,NS)=0.D0
+                  DO NA=1,5
+                     RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
+                  ENDDO
+               ENDDO
             ENDDO
-         ENDDO
-         NR=NRMAX
-         DO NS=1,NSMAX
-            DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))*RJCB(NR)/DR
-         ENDDO
-         DO NR=1,NRMAX
-            DO NS=1,NSMAX
-               ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+            DO NR=1,NRMAX-1
+               DO NS=1,NSMAX
+                  DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))*RJCB(NR)/DR
+               ENDDO
             ENDDO
-         ENDDO
+            NR=NRMAX
+            DO NS=1,NSMAX
+               DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))*RJCB(NR)/DR
+            ENDDO
+            DO NR=1,NRMAX
+               DO NS=1,NSMAX
+                  ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+               ENDDO
+            ENDDO
+         ENDIF
 C     
          DO NS=1,NSMAX
          DO NR=1,NRMAX
@@ -677,12 +686,21 @@ C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
      &            '@AD [m$+2$=/s]  vs r@',2+INQ)
 C
-      DO NS=1,NSMAX
-      DO NR=1,NRMAX
-         GYR(NR+1,NS) = GUCLIP(AV(NR,NS))
-      ENDDO
-         GYR(1,NS) = 0.0
-      ENDDO
+      IF(MDNCLS.EQ.0) THEN
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               GYR(NR+1,NS) = GUCLIP(AV(NR,NS))
+            ENDDO
+            GYR(1,NS) = 0.0
+         ENDDO
+      ELSE
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               GYR(NR+1,NS) = GUCLIP(AV(NR,NS)+AVNCS(NR,NS))
+            ENDDO
+            GYR(1,NS) = 0.0
+         ENDDO
+      ENDIF
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,
      &            '@AV [m/s]  vs r@',2+INQ)
 C

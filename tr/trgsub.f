@@ -711,35 +711,45 @@ C
 C
 C     *** Neoclassical Particle and Heat Flux Diffusivity ***
 C
-      DO NR=1,NRMAX
-         DO NS=1,NSMAX
-            RGFLSUM(NR,NS)=0.D0
-            RQFLSUM(NR,NS)=0.D0
-            DO NA=1,5
-               RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
-               RQFLSUM(NR,NS)=RQFLSUM(NR,NS)+RQFLS(NR,NA,NS)
+      MODE=0
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,2
+               AKNCG(NR,NS)=AKNCP(NR,NS,NS)+AKNCT(NR,NS,NS)
+               ADNCG(NR,NS)=ADNCS(NR,NS)
             ENDDO
          ENDDO
-      ENDDO
-      DO NR=1,NRMAX-1
-         DO NS=1,NSMAX
-            RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
-            DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *RJCB(NR)/DR
-            DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
+      ELSE
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               RGFLSUM(NR,NS)=0.D0
+               RQFLSUM(NR,NS)=0.D0
+               DO NA=1,5
+                  RGFLSUM(NR,NS)=RGFLSUM(NR,NS)+RGFLS(NR,NA,NS)
+                  RQFLSUM(NR,NS)=RQFLSUM(NR,NS)+RQFLS(NR,NA,NS)
+               ENDDO
+            ENDDO
          ENDDO
-      ENDDO
-      NR=NRMAX
-      DO NS=1,NSMAX
-         RNN(NR,NS)=PNSS(NS)
-         DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *RJCB(NR)/DR
-         DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
-      ENDDO
-      DO NR=1,NRMAX
-         DO NS=1,NSMAX
-            ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
-            AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
+         DO NR=1,NRMAX-1
+            DO NS=1,NSMAX
+               RNN(NR,NS)=(RN(NR+1,NS)+RN(NR,NS))*0.5D0
+               DNN(NR,NS)=(RN(NR+1,NS)-RN(NR,NS))     *RJCB(NR)/DR
+               DTN(NR,NS)=(RT(NR+1,NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
+            ENDDO
          ENDDO
-      ENDDO
+         NR=NRMAX
+         DO NS=1,NSMAX
+            RNN(NR,NS)=PNSS(NS)
+            DNN(NR,NS)=2.D0*(PNSS(NS)-RN(NR,NS))     *RJCB(NR)/DR
+            DTN(NR,NS)=2.D0*(PTS (NS)-RT(NR,NS))*RKEV*RJCB(NR)/DR
+         ENDDO
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+               AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
+            ENDDO
+         ENDDO
+      ENDIF
       DO NR=1,NRMAX
          GAD(NR+1,1) = GUCLIP(ADNC(NR,1))
          GAD(NR+1,2) = GUCLIP(ADNC(NR,2))
@@ -769,7 +779,7 @@ C
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX,4,
      &            '@ADNCE, ADNCD [m$+2$=/s]  vs r@',2+INQ)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX,4,
-     &            '@AKNCE, AKNCD [m$+2$=/s] vs r @',2+INQ)
+     &            '@AKNCE, AKNCD [m$+2$=/s]  vs r @',2+INQ)
       CALL TRGRTM
       CALL PAGEE
 C

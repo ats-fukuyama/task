@@ -85,7 +85,7 @@ C
       REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
       REAL           a0,                      bt0,
      #               e0,                      p_eps,
-     #               p_q,                     q0,
+     #               p_q,                     q0l,
      #               r0
 C
 C     /* Initialization */
@@ -104,6 +104,11 @@ C     /* Initialization */
 C
       IERR=0
 C
+!  k_out-option for output to nout (-)
+!       =1 errors only
+!       =2 errors and results 
+!       =else no output
+      k_out=0
       k_order=2
       k_potato=0
       IF(MDLEQZ.EQ.0) THEN
@@ -264,26 +269,24 @@ C     Output
      &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 C
-C     ICP : controlling printout in TR_NCLASS (0: off)
-      ICP=0
-      IF(ICP.NE.0) THEN
-      p_eps = SNGL(EPS)
-      p_q   = SNGL(QP(NR))
-      r0    = SNGL(RR)
-      a0    = SNGL(RA)
-      e0    = SNGL(RKAP)
-      bt0   = SNGL(BB)
-      q0    = SNGL(Q0)
-      CALL NCLASS_CHECK(6,NR,
-     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
-     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
-     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,
-     &            p_eps,p_q,r0,a0,e0,bt0,q0,
-     &            m_s,jm_s,jz_s,p_bsjb,
-     &            p_etap,p_exjb,calm_i,caln_ii,
-     &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
-     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
-     &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+      IF(k_out.eq.1.or.k_out.eq.2) THEN
+         p_eps = SNGL(EPS)
+         p_q   = SNGL(QP(NR))
+         r0    = SNGL(RR)
+         a0    = SNGL(RA)
+         e0    = SNGL(RKAP)
+         bt0   = SNGL(BB)
+         q0l   = SNGL(Q0)
+         CALL NCLASS_CHECK(6,NR,
+     &        k_out,k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
+     &        p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
+     &        p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,
+     &        p_eps,p_q,r0,a0,e0,bt0,q0l,
+     &        m_s,jm_s,jz_s,p_bsjb,
+     &        p_etap,p_exjb,calm_i,caln_ii,
+     &        capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
+     &        sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
+     &        chip_ss,chit_ss,dp_ss,dt_ss,iflag)
       ENDIF
 C
 C     *** Takeover Parameters ***
@@ -301,9 +304,11 @@ C
          ETANC(NR) =DBLE(p_etap)
          AJEXNC(NR)=DBLE(p_exjb)/BB
 C
-         DO NS=1,NSMAX
+         DO NS=1,NSM
             CJBSP(NR,NS)=DBLE(bsjbp_s(NS))
             CJBST(NR,NS)=DBLE(bsjbt_s(NS))
+            ADNCS(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
+            AVNCS(NR,NS)=DBLE(vn_s(NS))/AR1RHO(NR)
             DO NS1=1,NSMAX
                AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
                AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
@@ -315,7 +320,7 @@ C
                RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHOG(NR)
             ENDDO
             AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-            AVNCS (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
+            AVNCES(NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
@@ -323,6 +328,8 @@ C
                NSN=NSMAX+NSZ
                CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
                CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
+               ADNCS(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
+               AVNCS(NR,NS)=DBLE(vn_s(NSN))/AR1RHO(NR)
                DO NS1=1,NSMAX
                   AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
                   AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
@@ -334,7 +341,7 @@ C
                   RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHOG(NR)
                ENDDO
                AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-               AVNCS (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+               AVNCES(NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
             ENDDO
          ENDIF
 C
@@ -349,7 +356,7 @@ C            PARAMETER AND CONSISTENCY CHECK
 C
 C     ***********************************************************
 C
-      SUBROUTINE NCLASS_CHECK(nout,nr,
+      SUBROUTINE NCLASS_CHECK(nout,nr,k_out,
      &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2,
      &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi,
      &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz,

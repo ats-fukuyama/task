@@ -301,8 +301,9 @@ C
             ENDIF
          ENDIF
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANE
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2
+     &         /(1.D20*AEE**4*CLOG(1,2,ANE,TE))
+         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANDX
          ANYUE = 0.5D0*(1.D0+ZEFFL)/TAUE
 C
          ROUS = DSQRT(ABS(TE)*RKEV/AMD)/OMEGAD
@@ -1144,11 +1145,15 @@ C
          VTT = SQRT(ABS(TT*RKEV/AMT))
          VTA = SQRT(ABS(TA*RKEV/AMA))
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANE
-         TAUD = COEF*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0/ANE
-         TAUT = COEF*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0/ANE
-         TAUA = COEF*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0/ANE
+         COEF = 6.D0*PI*SQRT(2.D0*PI)*AEPS0**2/(1.D20*AEE**4)
+         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+     &         /ANDX
+         TAUD = COEF/CLOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
+     &         /ANDX
+         TAUT = COEF/CLOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
+     &         /ANDX
+         TAUA = COEF/CLOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
+     &         /ANDX
 C
 C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
 C
@@ -1161,11 +1166,15 @@ C
          RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 C
          COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/SQRT(2.D0)
-         TAUD = COEF*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0/PZ(2)**2
-         TAUT = COEF*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0/PZ(3)**2
-         TAUA = COEF*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0/PZ(4)**2
+     &         /(ANDX*1.D20*ZEFFL*AEE**4)
+         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+     &         /SQRT(2.D0)
+         TAUD = COEF/CLOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
+     &         /PZ(2)**2
+         TAUT = COEF/CLOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
+     &         /PZ(3)**2
+         TAUA = COEF/CLOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
+     &         /PZ(4)**2
 C
          RNUE=ABS(QP(NR))*RR/(TAUE*VTE*EPSS)
          RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
@@ -1390,12 +1399,14 @@ C
          ENDIF
          EPSS=SQRT(EPS)**3
          ANE=RN(NR,1)
+         ANI=RN(NR,2)
          TE =RT(NR,1)
          ZEFFL=ZEFF(NR)
 C
          COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/SQRT(2.D0)
+     &         /(ANI*1.D20*ZEFFL*AEE**4)
+         TAUE = COEF/CLOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
+     &         /SQRT(2.D0)
 C
          ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
      &             *(0.29D0+0.46D0/(1.08D0+ZEFFL))
@@ -1487,6 +1498,7 @@ C     ZEFF=1
 C
       DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
       DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
+      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
 C
 C        ****** AD : PARTICLE DIFFUSION ******
 C        ****** AV : PARTICLE PINCH ******
@@ -1494,6 +1506,7 @@ C
       IF(MDLAD.EQ.0) THEN
          DO NS=1,NSM
          DO NR=1,NRMAX
+            ADNC(NR,NS)=0.D0
             AD(NR,NS)=0.D0
             AV(NR,NS)=0.D0
          ENDDO
@@ -1511,12 +1524,15 @@ C
                ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA    = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            AD(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
-            AD(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
-            AD(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
-            AD(NR,1) =(PZ(2)*ANDX*AD(NR,2)
+            ADNC(NR,2) = PA(2)**ALP(2)*PZ(2)**ALP(3)*AD0
+            ADNC(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
+            ADNC(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
+            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            DO NS=1,NSM
+               AD(NR,NS) = ADNC(NR,NS)
+            ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
@@ -1530,10 +1546,9 @@ C
             PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
             DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
 C
-            AV(NR,1) =AD(NR,1)*DPROF/PROF
-            AV(NR,2) =AD(NR,2)*DPROF/PROF
-            AV(NR,3) =AD(NR,3)*DPROF/PROF
-            AV(NR,4) =AD(NR,4)*DPROF/PROF
+            DO NS=1,NSM
+               AV(NR,NS) =AD(NR,NS)*DPROF/PROF
+            ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.2) THEN
          DO NR=1,NRMAX
@@ -1548,12 +1563,15 @@ C
                ANT = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
                ANA = 0.5D0*(RN(NR+1,4)+RN(NR  ,4))
             ENDIF
-            AD(NR,2) = AD0*AKDW(NR,2)
-            AD(NR,3) = AD0*AKDW(NR,3)
-            AD(NR,4) = AD0*AKDW(NR,4)
-            AD(NR,1) =(PZ(2)*ANDX*AD(NR,2)
+            ADNC(NR,2) = AD0*AKDW(NR,2)
+            ADNC(NR,3) = AD0*AKDW(NR,3)
+            ADNC(NR,4) = AD0*AKDW(NR,4)
+            ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+            DO NS=1,NSM
+               AD(NR,NS) = ADNC(NR,NS)
+            ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
@@ -1568,29 +1586,30 @@ C
             DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
      &                *(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
 C
-            AV(NR,1) =AD(NR,1)*DPROF/PROF
-            AV(NR,2) =AD(NR,2)*DPROF/PROF
-            AV(NR,3) =AD(NR,3)*DPROF/PROF
-            AV(NR,4) =AD(NR,4)*DPROF/PROF
+            DO NS=1,NSM
+               AV(NR,NS) =AD(NR,NS)*DPROF/PROF
+            ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.3) THEN
+C     *** Hinton & Hazeltine model w/o anomalous transport effect ***
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
+               ANI = PNSS(2)
                TE  = PTS(1)
             ELSE
                ANE = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
+               ANI = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 C
-            ADDW(NR,1) = AD0*AKDW(NR,1)
-            ADDW(NR,2) = AD0*AKDW(NR,1)
-            ADDW(NR,3) = AD0*AKDW(NR,1)
-            ADDW(NR,4) = AD0*AKDW(NR,1)
+            DO NS=1,NSM
+               ADDW(NR,NS) = AD0*AKDW(NR,NS)
+            ENDDO
 C
-            ZEFFL=ZEFF(NR)
+C            ZEFFL=ZEFF(NR)
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &            /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+     &            /(ANI*1.D20*PZ(2)**2*AEE**4*CLOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1605,44 +1624,39 @@ C
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)
      &             /(1.D0+RC13*RNUE*EPSS)
 C
-            AV(NR,1) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AV(NR,2) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AV(NR,3) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AV(NR,4) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
+            H     = BB/(BB+BPL)
+            DO NS=1,NSM
+               AV(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
+            ENDDO
 C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
-            ADNC(NR,1) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,2) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,3) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,4) = SQRT(EPS)*RHOE2/TAUE*RK11E
-C
-            AD(NR,1) = ADDW(NR,1)+CNC*ADNC(NR,1)
-            AD(NR,2) = ADDW(NR,2)+CNC*ADNC(NR,2)
-            AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
-            AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
-C            write(6,*) NR,CNC*ADNC(NR,2),ADDW(NR,2)
+            DO NS=1,NSM
+               ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
+               AD(NR,NS)   = ADDW(NR,NS)+CNC*ADNC(NR,NS)
+            ENDDO
 C
          ENDDO
       ELSEIF(MDLAD.EQ.4) THEN
+C     *** Hinton & Hazeltine model with anomalous transport effect ***
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE = PNSS(1)
+               ANI = PNSS(2)
                TE  = PTS(1)
             ELSE
                ANE = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
+               ANI = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
                TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
             ENDIF
 C
-            ADDW(NR,1) = AD0*AKDW(NR,1)
-            ADDW(NR,2) = AD0*AKDW(NR,1)
-            ADDW(NR,3) = AD0*AKDW(NR,1)
-            ADDW(NR,4) = AD0*AKDW(NR,1)
+            DO NS=1,NSM
+               ADDW(NR,NS) = AD0*AKDW(NR,NS)
+            ENDDO
 C
-            ZEFFL=ZEFF(NR)
             COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
-     &            /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+     &            /(ANI*1.D20*PZ(2)**2*AEE**4*CLOG(1,2,ANE,TE))
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1657,33 +1671,23 @@ C
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)
      &             /(1.D0+RC13*RNUE*EPSS)
 C
-            AVNC(NR,1) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AVNC(NR,2) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AVNC(NR,3) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
-            AVNC(NR,4) = -(RK13E*SQRT(EPS)*EZOHL) / BPL
+            H     = BB/(BB+BPL)
+            DO NS=1,NSM
+               AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
+            ENDDO
 C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
-            ADNC(NR,1) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,2) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,3) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ADNC(NR,4) = SQRT(EPS)*RHOE2/TAUE*RK11E
+            DO NS=1,NSM
+               ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
+            ENDDO
 C
-            AD(NR,1) = ADDW(NR,1)+CNC*ADNC(NR,1)
-            AD(NR,2) = ADDW(NR,2)+CNC*ADNC(NR,2)
-            AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
-            AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
-C
-            AVDW(NR,1) = -AV0*ADDW(NR,1)*RR*EPS/RA**2
-            AVDW(NR,2) = -AV0*ADDW(NR,2)*RR*EPS/RA**2
-            AVDW(NR,3) = -AV0*ADDW(NR,3)*RR*EPS/RA**2
-            AVDW(NR,4) = -AV0*ADDW(NR,4)*RR*EPS/RA**2
-C
-            AV(NR,1) = AVDW(NR,1)+CNC*AVNC(NR,1)
-            AV(NR,2) = AVDW(NR,2)+CNC*AVNC(NR,2)
-            AV(NR,3) = AVDW(NR,3)+CNC*AVNC(NR,3)
-            AV(NR,4) = AVDW(NR,4)+CNC*AVNC(NR,4)
+            DO NS=1,NSM
+               AD(NR,NS)   = ADDW(NR,NS)+CNC*ADNC(NR,NS)
+               AVDW(NR,NS) =-AV0*ADDW(NR,NS)*RR*EPS/RA**2
+               AV(NR,NS)   = AVDW(NR,NS)+CNC*AVNC(NR,NS)
+            ENDDO
          ENDDO
       ELSE
          WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
@@ -1703,7 +1707,7 @@ C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVNCS(NR,NS)
+               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
                ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
@@ -1721,7 +1725,7 @@ C
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVNCS(NR,NS)
+               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CNC*ADNC(NR,NS)+ADDWD(NR,NS,NS1)
@@ -1736,7 +1740,7 @@ C
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVNCS(NR,NS)
+               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
                DO NS1=1,NSMAX
                   ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)-ADNCT(NR,NS,NS1)
                   ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)+ADNCT(NR,NS,NS1)
@@ -1809,6 +1813,54 @@ C
             AVK(NR,2)=-AVKL
             AVK(NR,3)=-AVKL
             AVK(NR,4)=-AVKL
+         ENDDO
+      ELSEIF(MDLAVK.EQ.3) THEN
+C     *** Hinton & Hazeltine model ***
+         DO NR=1,NRMAX
+            IF(NR.EQ.NRMAX) THEN
+               ANE = PNSS(1)
+               ANI = PNSS(2)
+               TE  = PTS(1)
+               TD  = PTS(2)
+            ELSE
+               ANE = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
+               ANI = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
+               TE  = 0.5D0*(RT(NR+1,1)+RT(NR  ,1))
+               TD  = 0.5D0*(RT(NR+1,2)+RT(NR  ,2))
+            ENDIF
+            ANED= ANE/ANI
+C
+            COEF = 12.D0*PI*SQRT(PI)*AEPS0**2
+     &            /(ANI*1.D20*PZ(2)**2*AEE**4)
+            BPL   = BP(NR)
+            QPL   = QP(NR)
+            IF(QPL.GT.100.D0) QPL=100.D0
+            EZOHL = EZOH(NR)
+            EPS   = EPSRHO(NR)
+            EPSS  = SQRT(EPS)**3
+            VTE   = SQRT(TE*RKEV/AME)
+            VTD   = SQRT(TD*RKEV/(PA(2)*AMM))
+            TAUE  = COEF/CLOG(1,2,ANE,TE)
+     &             *SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
+            TAUD  = COEF/CLOG(2,2,ANE,TE)
+     &             *SQRT(PA(2)*AMM)*(TD*RKEV)**1.5D0/PZ(2)**2
+            RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
+            RNUD  = ABS(QPL)*RR/(TAUD*VTD*EPSS)
+C
+            RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)
+     &             /(1.D0+RC13*RNUE*EPSS)
+            RK23E = RK23/(1.D0+RA23*SQRT(RNUE)+RB23*RNUE)
+     &             /(1.D0+RC23*RNUE*EPSS)
+            RK3D  =((1.17D0-0.35D0*SQRT(RNUD))/(1.D0+0.7D0*SQRT(RNUD))
+     &             -2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
+C
+            H     = BB/(BB+BPL)
+            AVK(NR,1) = (-RK23E+2.5D0*RK13E)*SQRT(EPS)*EZOHL/BPL/H
+            DO NS=2,NSM
+               AVK(NR,NS) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))
+     &                     *RK13E*SQRT(EPS)*EZOHL/BPL/H*ANED
+     &                     
+            ENDDO
          ENDDO
       ELSE
          WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
