@@ -11,18 +11,19 @@ C
       KNAMEQ='eqdata'
 C
       CALL AKEQIN(KNAMEQ,NRMAX,NTHMAX,NSUMAX,
-     &            BB,RR,RIP,RA,RKAP,RDEL,
-     &            RAXIS,ZAXIS,ALPMAX,IERR)
+     &            ALPMAX,RAXIS,ZAXIS,IERR)
       IF(IERR.NE.0) GOTO 9000
+      WRITE(6,'(A,1PE12.4)') 'ALPMAX=',ALPMAX
+      WRITE(6,'(A,1PE12.4)') 'RAXIS =',RAXIS
+      WRITE(6,'(A,1PE12.4)') 'ZAXIS =',ZAXIS
+C
+      CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
       WRITE(6,'(A,1PE12.4)') 'BB    =',BB
       WRITE(6,'(A,1PE12.4)') 'RR    =',RR
       WRITE(6,'(A,1PE12.4)') 'RIP   =',RIP
       WRITE(6,'(A,1PE12.4)') 'RA    =',RA
       WRITE(6,'(A,1PE12.4)') 'RKAP  =',RKAP
       WRITE(6,'(A,1PE12.4)') 'RDEL  =',RDEL
-      WRITE(6,'(A,1PE12.4)') 'RAXIS =',RAXIS
-      WRITE(6,'(A,1PE12.4)') 'ZAXIS =',ZAXIS
-      WRITE(6,'(A,1PE12.4)') 'ALPMAX=',ALPMAX
 C
     1 WRITE(6,*) '# INPUT R,Z'
       READ(5,*,ERR=1,END=9000) R,Z

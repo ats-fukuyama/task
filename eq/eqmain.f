@@ -22,26 +22,28 @@ C
       IF(KID.EQ.'R') THEN
          CALL EQMESH
          CALL EQPSIN
-         CALL EQLOOP
+         CALL EQLOOP(IERR)
+            IF(IERR.NE.0) GOTO 1
          CALL EQTORZ
          CALL EQSETP
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
-         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1)
+         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          MODE=1
 C
       ELSEIF(KID.EQ.'C') THEN
          IF(MODE.EQ.1) THEN 
   101       WRITE(6,*) '#EQ> INPUT PP0,PP1,PP2,PJ0,PJ1,PJ2:'
             READ(5,*,ERR=101,END=1) PP0,PP1,PP2,PJ0,PJ1,PJ2
-            CALL EQLOOP
+            CALL EQLOOP(IERR)
+               IF(IERR.NE.0) GOTO 1
             CALL EQTORZ
             CALL EQSETP
             NRMAX1=NRMAX
             NTHMAX1=NTHMAX
             NSUMAX1=NSUMAX
-            CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1)
+            CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
          ENDIF
@@ -68,7 +70,7 @@ C
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
-         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1)
+         CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
          MODE=2
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000

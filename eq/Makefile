@@ -1,11 +1,11 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
 
 SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
        eqgout.f eqgsub.f
-SRCT = eqtest.f pleqin.f eqload.f eqcalq.f
+SRCT = pltest.f pleqin.f eqload.f eqcalq.f
 SRCA = aktest.f akeqin.f eqload.f eqcalq.f
 
 SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \
@@ -19,11 +19,11 @@ OBJA = $(SRCA:.f=.o) $(SRCTL:.f=.o)
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-all : eq eqtest
+all : eq pl ak
 
 eq : $(OBJS)
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
-eqtest : $(OBJT)
+pl : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
 ak : $(OBJA)
 	$(FC) $(OBJA) -o $@ $(FFLAGS) $(FLIBS)
@@ -31,9 +31,9 @@ ak : $(OBJA)
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCSL) | less
 
-checkt :
+checkpl :
 	ftnchek $(FCKFLAGS) $(SRCT) $(SRCTL) | less
-checka :
+checkak :
 	ftnchek $(FCKFLAGS) $(SRCA) $(SRCTL) | less
 
 clean:
@@ -41,7 +41,7 @@ clean:
 	rm -f doc/*~
 
 veryclean: clean
-	rm -f eq eqtest
+	rm -f eq pl ak
 
 new:
 	-mkdir ../eqnew

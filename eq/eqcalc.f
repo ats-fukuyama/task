@@ -52,14 +52,15 @@ C   ************************************************
 C   **               Iteration Loop               **
 C   ************************************************
 C
-      SUBROUTINE EQLOOP
+      SUBROUTINE EQLOOP(IERR)
 C
       INCLUDE 'eqcomc.h'
 C
       CALL EQDEFB
       DO NLOOP=1,20
          CALL EQBAND
-         CALL EQRHSV
+         CALL EQRHSV(IERR)
+         IF(IERR.NE.0) GOTO 200
          CALL EQSOLV
          SUM0=0.D0
          SUM1=0.D0
@@ -75,7 +76,11 @@ C
          IF(SUM.LT.EPSEQ)GOTO 100
       ENDDO
   100 CONTINUE 
+      IERR=0
+      RETURN
 C
+  200 CONTINUE
+      IERR=200
       RETURN
       END
 C
@@ -232,13 +237,14 @@ C   ************************************************
 C   **                  RHS vector                **
 C   ************************************************
 C
-      SUBROUTINE EQRHSV
+      SUBROUTINE EQRHSV(IERR)
 C
       INCLUDE 'eqcomc.h'
 C
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       EXTERNAL EQPSID
 C
+      IERR=0
       CALL EQTORZ
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,URZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
@@ -251,8 +257,36 @@ C
       ZINIT=ZAXIS
       CALL NEWTN(EQPSID,RINIT,ZINIT,RAXIS,ZAXIS,
      &            DELT,EPS,ILMAX,LIST,IER)
-      IF(IER.NE.0) WRITE(6,*) 'XX EQRHSV: NEWTN ERROR: IER=',IER
-      IF(RAXIS.LE.RR+RB) PSI0=PSIG(RAXIS,ZAXIS)
+      IF(IER.NE.0) THEN
+         WRITE(6,'(A,I5)') 'XX EQRHSV: NEWTN ERROR: IER=',IER
+         IERR=101
+         RETURN
+      ENDIF
+      IF(RAXIS.LE.RR+RB) THEN
+         PSI0=PSIG(RAXIS,ZAXIS)
+      ELSE
+         WRITE(6,'(A)') 'XX EQRHSV: AXIS OUT OF PLASMA:'
+         IERR=102
+         RETURN
+      ENDIF
+      PSIMIN=PSI(1,1)
+      PSIMAX=PSI(1,1)
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         IF(PSI(NTG,NSG).LT.PSIMIN) PSIMIN=PSI(NTG,NSG)
+         IF(PSI(NTG,NSG).GT.PSIMAX) PSIMAX=PSI(NTG,NSG)
+      ENDDO
+      ENDDO
+      PSIMIN=PSIMIN/PSI0
+      PSIMAX=PSIMAX/PSI0
+      IF(MAX(ABS(PSIMIN),ABS(PSIMAX)).GT.3.D0*ABS(PSI0)) THEN
+         WRITE(6,'(A)') 'XX EQRHSV: PSI OUT OF RANGE:'
+         WRITE(6,'(A,1P3E12.4)') 
+     &        '  PSIMIN,PSIMAX,PSI0=',PSIMIN,PSIMAX,PSI0
+         IERR=103
+         RETURN
+      ENDIF
+         
 C     ----- positive current density, jp.gt.0-----
       RRC=RR-RA
 C     ----- quasi-symmetric current density, jp:anti-symmetric -----
@@ -272,9 +306,14 @@ C
          DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
          FJP=FJP+HJP2(NTG,NSG)*DVOL
          FJT=FJT+HJT2(NTG,NSG)*DVOL
+C         IF(FJT.EQ.0.D0) WRITE(6,'(A,2I5,1P4E12.4)') 
+C     &        'NTG,NSG,PSIN,PSI0,HJP1,HJT1=',
+C     &         NTG,NSG,PSIN,PSI0,HJP1(NTG,NSG),HJT1(NTG,NSG)
+
       ENDDO
       ENDDO
 C
+C      WRITE(6,'(A,1P3E12.4)') 'RIP,FJP,FJT=',RIP,FJP,FJT
       TJ=(-RIP*1.D6-FJP)/FJT
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
@@ -447,7 +486,6 @@ C
      &                        /16.D0
      &                       +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
      &                        /16.D0
-C         PSIX(NTGMAX+2,NSG+1)=(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))/8.D0
          PSIX(NTGMAX+2,NSG+1)=PSIX(1,NSG+1)
       ENDDO
 C
@@ -455,21 +493,20 @@ C
          PSIX(NTG,NSGMAX+2)=0.D0
       ENDDO
 C
-      DO NSGP=1,NSGPMAX
-         PSITX(     1,NSGP)=0.D0
-         PSITX(NTGPMAX,NSGP)=0.D0
+      DO NSGP=1,NSGMAX+2
+         PSITX(       1,NSGP)=(PSIX(2,NSGP)-PSIX(NTGMAX+1,NSGP))
+     &                       /(2.D0*PI+THGMX(2)-THGMX(NTGMAX+1))
+         PSITX(NTGMAX+2,NSGP)=PSITX(       1,NSGP)
       ENDDO
-      DO NTGP=1,NTGPMAX
-         PSISX(NTGP,1)=0.D0
-      ENDDO
-C
-      PSISTX(     1,     1)=0.D0
-      PSISTX(NTGPMAX,     1)=0.D0
-      PSISTX(     1,NSGPMAX)=0.D0
-      PSISTX(NTGPMAX,NSGPMAX)=0.D0
+      PSISTX(       1,       1)=(PSITX(1,2)-PSITX(1,1))
+     &                         /(SIGMX(  2)-SIGMX(  1))
+      PSISTX(NTGMAX+2,       1)=PSISTX(1,1)
+      PSISTX(       1,NSGMAX+2)=(PSITX(1,NSGMAX+2)-PSITX(1,NSGMAX+1))
+     &                         /(SIGMX(  NSGMAX+2)-SIGMX(  NSGMAX+1))
+      PSISTX(NTGMAX+2,NSGMAX+2)=PSISTX(1,NSGMAX+2)
 C
       CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
-     &           NTGPM,NTGPMAX,NSGPMAX,3,1,IERR)
+     &           NTGPM,NTGPMAX,NSGPMAX,3,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX EQSETF: SPL2D ERROR : IERR=',IERR
       RETURN
       END
