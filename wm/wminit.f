@@ -442,13 +442,13 @@ C
       RF=DBLE(CRF)
       RFI=DIMAG(CRF)
       KNAME=' &WM '//KLINE//' &END'
-      WRITE(7,'(A80)') KNAME
-      REWIND(7)
-      READ(7,WM,ERR=8,END=8)
+      WRITE(33,'(A80)') KNAME
+      REWIND(33)
+      READ(33,WM,ERR=8,END=8)
       WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
       GOTO 9
     8 CALL WMPLST
-    9 REWIND(7)
+    9 REWIND(33)
       CRF=DCMPLX(RF,RFI)
       GOTO 3000
 C
