@@ -45,6 +45,8 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mtx; make mtxlib.a)
 ../mtx/mpimtxlib.a:
 	(cd ../mtx; make mpimtxlib.a)
+../lib/tasklib.a:
+	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
 	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
