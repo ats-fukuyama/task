@@ -557,11 +557,13 @@ C
       CALL PAGES
 C
       DO 100 NR=1,NRMAX
-         GYR(NR,1) = GCLIP(VGR3(NR,1))
-         GYR(NR,2) = GCLIP(VGR1(NR,1))
+         GYR(NR,1) = GCLIP(VGR1(NR,3))
+         GYR(NR,2) = GCLIP(VGR1(NR,2))
   100 CONTINUE
+C      CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,
+C     &            '@s  vs alpha@',2+INQ)
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GYR(1,1),GYR(1,2),NRMP,NRMAX,1,
-     &            '@s  vs alpha@',2+INQ)
+     &            '@s  vs alpha@',2+4)
 C
       DO 200 NR=1,NRMAX
          GYR(NR,1) = GCLIP(AK(NR,1))

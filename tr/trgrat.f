@@ -309,10 +309,11 @@ C
      &            GTS,GYT,NTM,
      &            NGST,M,'@TE,TD,TT,TA [keV]@',1+INQ)
          CALL SETCHS(0.3,0.0)
-         CALL SETLIN(0,0,7)
+         CALL SETFNT(32)
+         CALL SETLIN(-1,-1,7)
          CALL MOVE(10.0,17.1-N*(GW+GD))
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
-         CALL TEXT('[M]',3)
+         CALL TEXT('[m]',3)
 C        
    10 CONTINUE
 C
@@ -332,7 +333,8 @@ C
      &               GTS,GYT,NTM,NGST,M,'@TE,TD,TT,TA [keV]  vs t@',
      &               1+INQ)
          CALL SETCHS(0.3,0.0)
-         CALL SETLIN(0,0,7)
+         CALL SETFNT(32)
+         CALL SETLIN(-1,-1,7)
          CALL MOVE(22.5,17.1-NGPSTH*(GW+GD))
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
          CALL TEXT('[m]',3)

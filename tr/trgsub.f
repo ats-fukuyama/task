@@ -22,8 +22,9 @@ C
 C
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
-      CALL SETLNW(0.05)
-      CALL SETLIN(0,0,7)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
       I=2
     1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
@@ -93,7 +94,7 @@ C
       CALL GDEFIN(GX1,GX2,GY1,GY2,
      &            GSXMIN,GSXMAX,GSYMIN,GSYMAX)
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(-1,-1,7)
       CALL GFRAME
       CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
       CALL GSCALE(0.0,0.0,0.0,2*(GSYMAX-GSYMIN),0.0,0)
@@ -107,7 +108,7 @@ C
       ENDIF
 C
       DO 10 NG=1,NGMAX
-         CALL SETLIN(0,0,7-MOD(NG-1,5))
+         CALL SETLIN(-1,-1,7-MOD(NG-1,5))
          IF(MOD(MODE/2,2).EQ.0) THEN
             CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
 C            IF(NG.EQ.5) THEN
@@ -120,7 +121,7 @@ C            ENDIF
          ENDIF
    10 CONTINUE
 C
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(-1,-1,7)
   900 RETURN
       END
 C
@@ -145,7 +146,9 @@ C
       DATA IPAT/0,2,3,4,6/
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,7)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
       I=2
     1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
@@ -231,7 +234,7 @@ C
       CALL GDEFIN(GX1,GX2,GY1,GY2,
      &            GSXMIN,GSXMAX,GSYMIN,GSYMAX)
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(-1,-1,7)
       CALL GFRAME
       CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
       CALL GSCALE(0.0,0.0,0.0,2*(GSYMAX-GSYMIN),0.0,0)
@@ -245,7 +248,7 @@ C
       ENDIF
 C
       DO 10 NG=1,NGMAX
-         CALL SETLIN(0,0,7-MOD(NG-1,5))
+         CALL SETLIN(-1,-1,7-MOD(NG-1,5))
          IF(MOD(MODE/2,2).EQ.0) THEN
             CALL GPLOTP(GX(1,NG),GY(1,NG),1,NXMAX,1,0,0,0)
 C            IF(NG.EQ.5) THEN
@@ -259,7 +262,7 @@ C            ENDIF
          ENDIF
    10 CONTINUE
 C
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(-1,-1,7)
   900 RETURN
       END
 C
@@ -276,7 +279,9 @@ C
       CHARACTER STR*(*),KT*80,KDL*1
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,7)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
       I=2
     1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
@@ -318,14 +323,14 @@ C
       ENDIF      
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(-1,-1,7)
       CALL GDEFIN(GX1,GX2,GY1,GY2,GXMIN,GXMAX,GYMIN,GYMAX)
       CALL GFRAME
       CALL GSCALE(GXORG,GXSTEP,GYORG,GYSTEP,0.1,9)
       CALL GSCALE(0.0,100*GXSTEP,0.0,100*GYSTEP,0.0,0)
       CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGVLEN(2*GXSTEP))
       CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,NGVLEN(2*GYSTEP))
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(-1,-1,7)
       IF(GZMIN*GZMAX.GE.0.D0) THEN
          IF(MOD(MODE,2).EQ.0) THEN
             GZORG=GZMIN
@@ -353,7 +358,8 @@ C
       CALL TEXT('STEP =',6)
       CALL NUMBR(GZSTEP,'(1PE10.2)',10)
 C
-  900 RETURN
+  900 CALL SETLIN(-1,-1,7)
+      RETURN
       END
 C
 C     ***********************************************************
@@ -368,7 +374,9 @@ C
       CHARACTER STR*(*),KT*80,KDL*1
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,7)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETLIN(-1,-1,7)
       KDL=STR(1:1)
       I=2
     1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
@@ -412,14 +420,15 @@ C   1 WRITE(6,*) 'INPUT : IND,ZMIN,ZMAX,HX,HY,HZ,A,B,C,D,E,X1,X2,Y1,Y2 '
 C     READ(5,*,END=9999) IND,ZMIN,ZMAX,HX,HY,HZ,A,B,C,D,E,X1,X2,Y1,Y2
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(-1,-1,7)
       CALL GDEFIN(GX1,GX2,GY1,GY2,X1,X2,Y1,Y2)
       CALL GFRAME
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(-1,-1,7)
       CALL PERSE1(GZ,NXM,NXMAX,NYMAX,GZMIN,GZMAX,IXY,IND,
      &            XL,YL,ZL,A,B,C,D,E)
 C
-  900 RETURN
+  900 CALL SETLIN(-1,-1,7)
+      RETURN
       END
 C
 C
@@ -470,8 +479,9 @@ C
 C
       INCLUDE 'trcomm.h'
 C
-      CALL SETLIN(0,0,4)
+      CALL SETLIN(0,0,7)
       CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
       CALL MOVE(11.8,18.0)
       CALL TEXT('T=',2)
       CALL NUMBD(T,'(1F7.3)',7)
