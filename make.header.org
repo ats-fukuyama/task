@@ -7,9 +7,6 @@
 ## and comment out CALL WMTAE in wm/wmmain.f
 
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
-#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
-#OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
-#OBJLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
 #OBJLA =
 
 ## mpi compile command
@@ -20,33 +17,6 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 
 FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
-
-# for HPUX
-#FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
-#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl -lm
-#OFLAGS = +T -K  +O2
-#DFLAGS = +T -K -g -C
-#FC=f77
-#LD=ld
-#LDFLAGS=-r
-
-# for Solaris
-#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so \
-#/usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so -lm
-#OFLAGS = -O
-#DFLAGS = -g
-#FC=f77
-#LD=ld
-#LDFLAGS=-r
-
-# for DEC OS
-#FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
-#        -lX11 -lm
-##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
-#OFLAGS = -O -fpe1
-#FC = f77
-#LD=ld
-#LDFLAGS=-r
 
 ## for g77
 #FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
@@ -64,6 +34,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = pgf77
 #LD=ld
 #LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
 ## for Intel fortran compiler 
 #FLIBS=-L /usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
@@ -73,15 +44,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = ifc
 #LD=ld
 #LDFLAGS=-r
-
-## for Linux-alpha-compaq
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
-#OFLAGS = -fast
-#DFLAGS = -g -check overflow -check bounds
-#FC = fort
-#OBJLA = /usr/lib/libcxml.so
-#LD=ld
-#LDFLAGS=-r
+#OBJLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
 
 ## for macosx-g77
 #FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm -L/usr/lib -lcc_dynamic 
@@ -98,7 +61,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = xlf
 #LD=ld
 #LDFLAGS=-r
-
+#OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 
 ## for macosx-f2c
 #FLIBS=-L/usr/local/lib/f2c -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
@@ -131,6 +94,42 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OFLAGS = -O
 #DFLAGS = -g
 #FC=f77
+#LD=ld
+#LDFLAGS=-r
+
+# for Solaris
+#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so \
+#/usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so -lm
+#OFLAGS = -O
+#DFLAGS = -g
+#FC=f77
+#LD=ld
+#LDFLAGS=-r
+
+# for HPUX
+#FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
+#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl -lm
+#OFLAGS = +T -K  +O2
+#DFLAGS = +T -K -g -C
+#FC=f77
+#LD=ld
+#LDFLAGS=-r
+
+# for DEC OS
+#FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
+#        -lX11 -lm
+##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
+#OFLAGS = -O -fpe1
+#FC = f77
+#LD=ld
+#LDFLAGS=-r
+
+## for Linux-alpha-compaq
+#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lm
+#OFLAGS = -fast
+#DFLAGS = -g -check overflow -check bounds
+#FC = fort
+#OBJLA = /usr/lib/libcxml.so
 #LD=ld
 #LDFLAGS=-r
 
