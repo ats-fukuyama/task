@@ -47,10 +47,10 @@ mpiwmlib.a: $(OBJM)
 	(cd ../mtx; make mpimtxlib.a)
 
 wm : wmmain.o $(LIBS)
-	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJA)
+	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
 
 mpiwm : wmmain.o $(LIBM)
-	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(OBJA)
+	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less

@@ -408,6 +408,7 @@ C
       CALL GQSCAL(GRMIN,GRMAX,GGRMIN,GGRMAX,GGRSTP)
       CALL GQSCAL(GZMIN,GZMAX,GGZMIN,GGZMAX,GGZSTP)
 C
+      CALL SETLIN(0,2,7)
       CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
      &            GRMIN,GRMAX,GZMIN,GZMAX)
       CALL GFRAME
@@ -448,6 +449,7 @@ C
       CALL GQSCAL(GRMIN,GRMAX,GGRMIN,GGRMAX,GGRSTP)
       CALL GQSCAL(GZMIN,GZMAX,GGZMIN,GGZMAX,GGZSTP)
 C
+      CALL SETLIN(0,2,7)
       CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
      &            GRMIN,GRMAX,GZMIN,GZMAX)
       CALL GFRAME
@@ -613,6 +615,7 @@ C
          CALL MOVE(2.0,17.5)
          CALL TEXTX(KTITL)
 C
+         CALL SETLIN(0,2,7)
          CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
      &               REAL(RGMIN),REAL(RGMAX),
      &               REAL(ZGMIN),REAL(ZGMAX))
@@ -632,7 +635,7 @@ C
          CALL SETLIN(-1,-1,5)
          CALL GPLOTP(GRSW,GZSW,1,NSUMAX+1,1,0,0,0)
 C
-         CALL SETLIN(0,0,7)
+         CALL SETLIN(0,-1,7)
          CALL MOVE(20.0,17.0)
          CALL TEXT('MAX :',5)
          CALL NUMBR(GFMAX,'(1PE12.4)',12)
@@ -739,6 +742,7 @@ C
          CALL MOVE(2.0,17.5)
          CALL TEXTX(KTITL)
 C
+         CALL SETLIN(0,2,7)
          CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
      &               REAL(RGMIN),REAL(RGMAX),
      &               REAL(ZGMIN),REAL(ZGMAX))
@@ -758,7 +762,7 @@ C
          CALL SETLIN(-1,-1,5)
          CALL GPLOTP(GRSW,GZSW,1,NSUMAX+1,1,0,0,0)
 C
-         CALL SETLIN(0,0,7)
+         CALL SETLIN(0,-1,7)
          CALL MOVE(20.0,17.0)
          CALL TEXT('MAX :',5)
          CALL NUMBR(GFMAX,'(1PE12.4)',12)
@@ -785,7 +789,7 @@ C
       REAL*4 XPOS,YPOS,DELY
 C
       CALL SETCHS(0.3,0.0)
-      CALL SETLIN(0,0,7)
+      CALL SETLIN(0,-1,7)
 C
 C      XPOS=16.5
       XPOS=20.0
