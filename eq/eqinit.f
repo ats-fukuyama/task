@@ -266,8 +266,8 @@ C     IERR=6 : namelist line input error
 C     IERR=7 : unknown MODE
 C     IERR=10X : input parameter out of range
 C
-      EXTERNAL EQNLIN,EQPLST
       CHARACTER KIN*(*)
+      EXTERNAL EQNLIN,EQPLST
 C
     1 CALL TASK_PARM(MODE,'EQ',KIN,EQNLIN,EQPLST,IERR)
       IF(IERR.NE.0) RETURN

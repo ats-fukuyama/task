@@ -7,7 +7,7 @@ C     ######## SEND AND RECIEVE ROUTINE ########
 C     
       SUBROUTINE SENDRCVC(B,NMAX,M,NFST,NEND)
 C     
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND
@@ -87,7 +87,7 @@ C     ######## SEND AND RECIEVE ROUTINE ########
 C
       SUBROUTINE SENDRCVC2(SR,F,NMAX,M,LA,NFST,NEND)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND

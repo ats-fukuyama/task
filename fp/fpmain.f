@@ -19,16 +19,14 @@ C
 C
       CHARACTER KPNAME*80
 C
-      WRITE(6,*) '***** TASK/FP 2004/11/08 *****'
+      WRITE(6,*) '***** TASK/FP 2004/12/10 *****'
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C
       CALL PLINIT
       CALL FPINIT
-      KPNAME='plparm'
-      CALL PLPARF(KPNAME)
-      KPNAME='fpparm'
-      CALL FPPARF(KPNAME)
+      CALL PLPARM(1,'plparm',IERR)
+      CALL FPPARM(1,'fpparm',IERR)
 C
       CALL FPMENU
 C

@@ -8,8 +8,7 @@ C                    Email: fukuyama@nucleng.kyoto-u.ac.jp
 C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
-      INCLUDE '../wm/wmcomm.inc'
-      CHARACTER KPNAME*80
+      INCLUDE '../mpi/mpicom.inc'
 C
          WRITE(6,*) '##### test1 #####'
       CALL MPINIT(NPROCS,MYRANK)
@@ -42,21 +41,14 @@ C
          WRITE(6,*) '##### test6 #####'
       IF(MYRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
-         KPNAME='plparm'
-         CALL PLPARF(KPNAME)
-         KPNAME='eqparm'
-         CALL EQPARM(1,KPNAME,IERR)
-         KPNAME='trparm'
-         CALL TRPARF(KPNAME)
+         CALL PLPARM(1,'plparm',IERR)
+         CALL EQPARM(1,'eqparm',IERR)
+         CALL TRPARM(1,'trparm',IERR)
          WRITE(6,*) '##### test7 #####'
-         KPNAME='dpparm'
-         CALL DPPARF(KPNAME)
-         KPNAME='wrparm'
-         CALL WRPARF(KPNAME)
-         KPNAME='wmparm'
-         CALL WMPARF(KPNAME)
-         KPNAME='fpparm'
-         CALL FPPARF(KPNAME)
+         CALL DPPARM(1,'dpparm',IERR)
+         CALL WRPARM(1,'wrparm',IERR)
+         CALL WMPARM(1,'wmparm',IERR)
+         CALL FPPARM(1,'fpparm',IERR)
       ENDIF
          WRITE(6,*) '##### test8 #####'
       CALL MPSYNC
@@ -77,6 +69,8 @@ C
 C     ***** TASK MENU *****
 C
       SUBROUTINE TASKMENU
+C
+      INCLUDE '../mpi/mpicom.inc'
 C
       CHARACTER KID*2,KID1*1,KID2*1
 C

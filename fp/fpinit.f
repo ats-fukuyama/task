@@ -175,7 +175,38 @@ C ***********************
 C     PARAMETER INPUT
 C ***********************
 C
-      SUBROUTINE FPPARM(KID)
+      SUBROUTINE FPPARM(MODE,KIN,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
+C
+      CHARACTER KIN*(*)
+      EXTERNAL FPNLIN,FPPLST
+C
+    1 CALL TASK_PARM(MODE,'FP',KIN,FPNLIN,FPPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALL FPCHEK(IERR)
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE FPNLIN(NID,IST,IERR)
 C
       INCLUDE 'fpcomm.inc'
 C
@@ -194,74 +225,15 @@ C
      &              RFDW,DELNPR,NCMIN,NCMAX,
      &              CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,
      &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KLINE*70,KNAME*80,KID*1
 C
-      MODE=0
-    1    CONTINUE
-         WRITE(6,*) '## INPUT &FP : '
-         READ(5,FP,ERR=2,END=3)
-         KID=' '
-         GOTO 4
-C
-    2    CALL FPPLST
-      GOTO 1
-C
-    3 KID='Q'
-    4 GOTO 3000
-C
-      ENTRY FPPARL(KLINE)
-C
-      MODE=1
-      KNAME=' &FP '//KLINE//' &END'
-      WRITE(7,'(A80)') KNAME
-      REWIND(7)
-      READ(7,FP,ERR=8,END=8)
-      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
-      GOTO 9
-    8 CALL FPPLST
-    9 REWIND(7)
-      GOTO 3000
-C
-      ENTRY FPPARF(KPNAME)
-C
-      MODE=2
-      INQUIRE(FILE=KPNAME,EXIST=LEX)
-      IF(.NOT.LEX) RETURN
-C
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,FP,IOSTAT=IST,ERR=9800,END=9900)
-      CLOSE(25)
-      CALL KTRIM(KPNAME,KL)
-      WRITE(6,*) '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
-C
- 3000 IERROR=0
-      IF(NRMAX.GT.NRM) THEN
-         WRITE(6,*) 'FP : ERROR : NRMAX.GE.NRM'
-         IERROR=1
-      ENDIF
-      IF(NPMAX.GT.NPM) THEN
-         WRITE(6,*) 'FP : ERROR : NPMAX.GE.NPM'
-         IERROR=1
-      ENDIF
-      IF(NTHMAX.GT.NTHM) THEN
-         WRITE(6,*) 'FP : ERROR : NTHMAX.GE.NTHM'
-         IERROR=1
-      ENDIF
-      IF(MOD(NTHMAX,2).NE.0) THEN
-         WRITE(6,*) 'FP : ERROR : NTHMAX MUST BE EVEN'
-         IERROR=1
-      ENDIF
-C
-      IF(IERROR.NE.0.AND.MODE.EQ.0) GOTO 1
-C
+      READ(NID,FP,IOSTAT=IST,ERR=9800,END=9900)
+      IERR=0
       RETURN
 C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+ 9800 IERR=8
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+ 9900 IERR=9
       RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
       END
 C
 C     ***** INPUT PARAMETER LIST *****
@@ -282,6 +254,33 @@ C
       WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
       WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV'
+      RETURN
+      END
+C
+C     ***** CHECK INPUT PARAMETERS *****
+C
+      SUBROUTINE FPCHEK(IERR)
+C
+      INCLUDE 'fpcomm.inc'
+C
+      IERR=0
+C
+      IF(NRMAX.GT.NRM) THEN
+         WRITE(6,*) 'FP : ERROR : NRMAX.GE.NRM'
+         IERR=1
+      ENDIF
+      IF(NPMAX.GT.NPM) THEN
+         WRITE(6,*) 'FP : ERROR : NPMAX.GE.NPM'
+         IERR=2
+      ENDIF
+      IF(NTHMAX.GT.NTHM) THEN
+         WRITE(6,*) 'FP : ERROR : NTHMAX.GE.NTHM'
+         IERR=3
+      ENDIF
+      IF(MOD(NTHMAX,2).NE.0) THEN
+         WRITE(6,*) 'FP : ERROR : NTHMAX MUST BE EVEN'
+         IERR=4
+      ENDIF
       RETURN
       END
 C

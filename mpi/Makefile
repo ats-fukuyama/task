@@ -1,0 +1,29 @@
+### $Id$ ###
+include ../make.header
+
+FFLAGS = $(OFLAGS)
+
+SRCN = nompilib.f
+SRCM = mpilib.f
+
+OBJN = $(SRCN:.f=.o)
+OBJM = $(SRCM:.f=.o)
+
+all : $(OBJN) $(OBJM)
+
+check : 
+	ftnchek -array=0 -usage=no-com-block-unused $(SRCN) $(SRCM) | less
+
+new :
+	mkdir ../mpinew
+	cp -f Makefile ../mpinew
+	cp -f *.f ../mpinew
+	cp -f *.inc ../mpinew
+
+clean:
+	rm -f core *.a *.o ./*~
+
+veryclean: clean
+
+nompilib.o : nompilib.f mpicom.inc
+mpilib.o : mpilib.f mpicom.inc mpilib.inc mpif.inc

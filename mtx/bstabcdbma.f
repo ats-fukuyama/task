@@ -24,7 +24,7 @@ C
       SUBROUTINE BSTABCDBMA(A,N,M,LA,LD,B,EPS,ITER,X,D,R,RT,P,PH,V,T,
      &                    S,SH,F,TEMP1,TEMP2,NM,NBSIZ,NFST,NEND,IERR)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND

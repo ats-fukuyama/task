@@ -6,7 +6,7 @@ all: message
 message:
 	echo '## This is TASK main directory'
 	echo '     change working directory to'
-	echo '         dp, ec, eq, fp, vmec, wm or wr'
+	echo '         pl, eq, tr, dp, wm, wr, fp or tot'
 	echo '     and make it'
 
 clean:
@@ -17,12 +17,10 @@ clean:
 	(cd dp; make clean)
 	(cd wr; make clean)
 	(cd fp; make clean)
-	(cd ec; make clean)
-	(cd vmec; make clean)
 	(cd wm; make clean)
-	(cd wmx; make clean)
 	(cd tr; make clean)
 	(cd tx; make clean)
+	(cd tot; make clean)
 	rm -f core a.out *.o ./*~
 
 veryclean: clean
@@ -33,12 +31,10 @@ veryclean: clean
 	(cd dp; make veryclean)
 	(cd wr; make veryclean)
 	(cd fp; make veryclean)
-	(cd ec; make veryclean)
-	(cd vmec; make veryclean)
 	(cd wm; make veryclean)
-	(cd wmx; make veryclean)
 	(cd tr; make veryclean)
 	(cd tx; make veryclean)
+	(cd tot; make veryclean)
 
 new:
 	-mkdir ../tasknew
@@ -58,15 +54,11 @@ new:
 	mv wrnew ../tasknew/wr
 	(cd fp; make new)
 	mv fpnew ../tasknew/fp
-	(cd ec; make new)
-	mv ecnew ../tasknew/ec
-	(cd vmec; make new)
-	mv vmecnew ../tasknew/vmec
 	(cd wm; make new)
 	mv wmnew ../tasknew/wm
-	(cd wmx; make new)
-	mv wmxnew ../tasknew/wmx
 	(cd tr; make new)
 	mv trnew ../tasknew/tr
 	(cd tx; make new)
 	mv txnew ../tasknew/tx
+	(cd tot; make new)
+	mv totnew ../tasknew/tot

@@ -307,6 +307,7 @@ c     forms the dot product of a vector.
 c     jack dongarra, 3/11/78.
 c     modified 12/3/93, array(1) declarations changed to array(*)
 c
+      INTRINSIC          DCONJG
       double complex zx(*),zy(*),ztemp
       integer i,incx,incy,ix,iy,n
       ztemp = (0.0d0,0.0d0)

@@ -6,7 +6,7 @@ C
      &                    TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
      &                    NBSIZ,NFST,NEND,IERR)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND

@@ -105,7 +105,7 @@ trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FC) $(FFLAGS) -c -o glf/glf2d.o -I glf glf/glf2d.F
+	$(FC) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 glf/zgeev.o  : glf/zgeev.f

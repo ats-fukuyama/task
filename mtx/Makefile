@@ -22,8 +22,8 @@ OBJM = $(SRCM:.f=.o)
 all : mtxlib.a mpimtxlib.a
 mtxlib.a : $(OBJN)
 	$(LD) $(LDFLAGS) -o mtxlib.a $(OBJN)
-mpimtxlib.a : $(OBJM)
-	$(LD) $(LDFLAGS) -o mpimtxlib.a $(OBJM)
+mpimtxlib.a : $(OBJN) $(OBJM)
+	$(LD) $(LDFLAGS) -o mpimtxlib.a $(OBJN) $(OBJM)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less

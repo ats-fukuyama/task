@@ -19,7 +19,7 @@ C
       SUBROUTINE CGSCDBMA(A,N,M,LA,LD,B,EPS,ITR,X,D,P,Q,R,R0,E,H,W,F,
      &                   TEMP1,TEMP2,NM,NBSIZ,NFST,NEND,IERR)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND

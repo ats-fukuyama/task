@@ -12,7 +12,7 @@ LIBS = ../eq/eqlib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../wm/wmlib.a ../fp/fplib.a \
-       ../mtx/mtxlib.a ../lib/tasklib.a $(OBJLA)
+       ../mtx/mtxlib.a ../lib/tasklib.a ../mpi/nompilib.o $(OBJLA)
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -43,6 +43,8 @@ all : tot
 	(cd ../mtx; make mtxlib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make)
+../mpi/nompilib.o:
+	(cd ../mpi; make nompilib.o)
 
 tot : main.o $(LIBS)
 	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
@@ -57,6 +59,7 @@ xtot :
 	(cd ../fp; make fplib.a)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../lib; make)
+	(cd ../mpi; make nompilib.o)
 	$(FC) main.o $(LIBS) -o tot $(FFLAGS) $(FLIBS)
 
 force : main.o $(LIBS)

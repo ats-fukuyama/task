@@ -3,15 +3,22 @@ include ../make.header
 
 FFLAGS = $(OFLAGS)
 
-SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
+SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmexec.f wmprof.f wmdisp.f \
-       nowmsolv.f wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
-       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f wmtae.f
+       wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
+       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f wmtae.f
+
+SRCS = $(SRC0) nowmsolv.f 
+SRCM = $(SRC0) wmsolv.f 
 
 OBJS = $(SRCS:.f=.o)
+OBJM = $(SRCM:.f=.o)
 
-LIBS = wmlib.a ../eq/wmeqin.o ../eq/eqlib.a ../eq/pleqin.o ../pl/pllib.a ../mtx/mtxlib.a \
-       ../lib/tasklib.a $(OBJLA)
+LIB0 = ../eq/wmeqin.o ../eq/eqlib.a ../eq/pleqin.o \
+       ../pl/pllib.a ../lib/tasklib.a $(OBJLA)
+
+LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
+LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -20,13 +27,28 @@ all : wm
 
 wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o wmlib.a $(OBJS)
+mpiwmlib.a: $(OBJM)
+	$(LD) $(LDFLAGS) -o mpiwmlib.a $(OBJM)
+../pl/pllib.a:
+	(cd ../pl; make pllib.a)
+../eq/eqlib.a:
+	(cd ../eq; make eqlib.a)
+../eq/wmeqin.o:
+	(cd ../eq; make wmeqin.o)
+../eq/pleqin.o:
+	(cd ../eq; make pleqin.o)
+../mpi/nompilib.o:
+	(cd ../mpi; make nompilib.o)
+../mpi/mpilib.o:
+	(cd ../mpi; make mpilib.o)
+../mtx/mtxlib.a:
+	(cd ../mtx; make mtxlib.a)
 
 wm : wmmain.o $(LIBS)
-	(cd ../eq; make eqlib.a wmeqin.o pleqin.o)
-	(cd ../pl; make pllib.a)
-	(cd ../mtx; make mtxlib.a)
-	(cd ../lib; make tasklib.a)
 	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+
+mpiwm : wmmain.o $(LIBM)
+	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
@@ -34,8 +56,6 @@ check :
 new :
 	mkdir ../wmnew
 	cp -f Makefile ../wmnew
-	cp -f Makefile.mpi ../wmnew
-	cp -f Makefile.nompi ../wmnew
 	cp -f *.f ../wmnew
 	cp -f *.inc ../wmnew
 

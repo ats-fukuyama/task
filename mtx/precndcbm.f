@@ -193,7 +193,7 @@ C
       SUBROUTINE CALCUDBMS(A,D,TEMP1,NM,LA,LD,N,M,NBSIZ,F,
      &                    NFST,NEND,IERR)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND
@@ -280,7 +280,7 @@ C
       SUBROUTINE CALLDUBMS(A,D,TEMP2,X,LA,LD,N,M,NBSIZ,F,
      &                    NFST,NEND,IERR)
 C
-      INCLUDE 'mpif.h'
+      INCLUDE '../mpi/mpif.inc'
 C
       COMMON /MPIVR1/ NPROCS,MYRANK
       COMMON /MPIVR2/ ISTA,IEND

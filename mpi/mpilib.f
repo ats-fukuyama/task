@@ -2,7 +2,7 @@ C     $Id$
 C
       SUBROUTINE MPINIT(nprocs1,myrank1)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       call mpi_init(ierr)
       call mpi_comm_size(mpi_comm_world,nprocs,ierr)
@@ -15,7 +15,7 @@ C
 C
       SUBROUTINE MPTERM
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       call mpi_finalize(ierr)
 C
@@ -24,7 +24,7 @@ C
 C
       SUBROUTINE MPSYNC
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       call mpi_barrier(mpi_comm_world,ierr)
 C
@@ -33,7 +33,7 @@ C
 C
       SUBROUTINE MPSETI(NMAX,NRANK,ista,iend)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       iwork1 = NMAX/nprocs
       iwork2 = mod(NMAX,nprocs)
@@ -44,7 +44,7 @@ C
 C
       SUBROUTINE MPBCDN(dtmp,NDTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       REAL*8 dtmp(NDTMP)
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -56,7 +56,7 @@ C
 C
       SUBROUTINE MPBCRN(rtmp,NRTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       DIMENSION rtmp(NRTMP)
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -68,7 +68,7 @@ C
 C
       SUBROUTINE MPBCIN(itmp,NITMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       DIMENSION itmp(NITMP)
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -80,7 +80,7 @@ C
 C
       SUBROUTINE MPBCKN(ktmp,NKTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       CHARACTER ktmp*(*)
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -92,7 +92,7 @@ C
 C
       SUBROUTINE MPBCCN(ctmp,NDTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       COMPLEX*16 ctmp(NDTMP)
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -104,7 +104,7 @@ C
 C
       SUBROUTINE MPBCDA(D)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       REAL*8 D
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -116,7 +116,7 @@ C
 C
       SUBROUTINE MPBCRA(R)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       call mpi_barrier(mpi_comm_world,ierr)
       call mpi_bcast(R,1,mpi_real,
@@ -127,7 +127,7 @@ C
 C
       SUBROUTINE MPBCIA(I)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       call mpi_barrier(mpi_comm_world,ierr)
       call mpi_bcast(I,1,mpi_integer,
@@ -138,7 +138,7 @@ C
 C
       SUBROUTINE MPBCKA(K)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       CHARACTER K*1
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -150,7 +150,7 @@ C
 C
       SUBROUTINE MPBCCA(C)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
       COMPLEX*16 C
 C
       call mpi_barrier(mpi_comm_world,ierr)
@@ -162,11 +162,11 @@ C
 C
       SUBROUTINE MPGTDN(dtmp,NDTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       REAL*8 dtmp(NDTMP)
       DIMENSION istatus(mpi_status_size)
-      DIMENSION ireq(0:NCPUM-1)
+      DIMENSION ireq(0:NCPUMAX-1)
 C
       if(myrank.eq.0)then
          do irank=1,nprocs-1
@@ -190,11 +190,11 @@ C
 C
       SUBROUTINE MPGTRN(rtmp,NRTMP)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       DIMENSION rtmp(NRTMP)
       DIMENSION istatus(mpi_status_size)
-      DIMENSION ireq(0:NCPUM-1)
+      DIMENSION ireq(0:NCPUMAX-1)
 C
       if(myrank.eq.0)then
          do irank=1,nprocs-1
@@ -218,11 +218,11 @@ C
 C
       SUBROUTINE MPGTRV(GX,NV,GXTOT,NVTOT,NM)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       DIMENSION GX(NV),GXTOT(NM)
-      dimension ircnt(NCPUM)
-      dimension idisp(NCPUM)
+      dimension ircnt(NCPUMAX)
+      dimension idisp(NCPUMAX)
 C
       call mpi_gather(NV,1,mpi_integer,
      &                ircnt,1,mpi_integer,
@@ -249,11 +249,11 @@ C
 C
       SUBROUTINE MPGTCV(CX,NV,CXTOT,NVTOT,NM)
 C
-      include 'mpilib.inc'
+      include '../mpi/mpilib.inc'
 C
       complex*16 CX(NV),CXTOT(NM)
-      dimension ircnt(NCPUM)
-      dimension idisp(NCPUM)
+      dimension ircnt(NCPUMAX)
+      dimension idisp(NCPUMAX)
 C
       call mpi_gather(NV,1,mpi_integer,
      &                ircnt,1,mpi_integer,
