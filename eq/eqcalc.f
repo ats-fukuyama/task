@@ -316,20 +316,22 @@ C
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
-            PP(NTG,NSG)=PPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            PP(NTG,NSG)=PPSI
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-            HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI(PSIN)
-            HJT1(NTG,NSG)=HJPSI(PSIN)
-            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
-            HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
+            HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI
+            HJT1(NTG,NSG)=HJPSI
+            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI**2*AMP/(2.D0*TPSI))
+            HJP2B=EXP(RRC**2         *OMGPSI**2*AMP/(2.D0*TPSI))
             HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
             HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
-            HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
-            HJP2F=FDN*AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)/TPSI(PSIN)
-     &           -FDN*DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
+            HJP2E=0.5D0*PPSI*RMM(NTG,NSG)**3
+            HJP2F=FDN*AMP*(2.D0*OMGPSI*DOMGPSI/TPSI
+     &           -FDN*DTPSI*OMGPSI**2/TPSI**2)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
             HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
@@ -344,13 +346,16 @@ C
          DO NTG=1,NTGMAX
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
             TT(NTG,NSG)=SQRT(BB**2*RR**2
-     &           +2.D0*RMU0*RRC
-     &           *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
-     &           *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
-            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
-     &           *EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
-     &               /(2.D0*TPSI(PSIN)))
+     &                 +2.D0*RMU0*RRC
+     &                 *(TJ*HJPSID/FDN-RRC*PPSI
+     &                 *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
+            RHO(NTG,NSG)=(PPSI*AMP/TPSI)
+     &                  *EXP(RMM(NTG,NSG)**2*OMGPSI**2*AMP/(2.D0*TPSI))
          ENDDO
          ENDDO
 C
@@ -363,14 +368,16 @@ C
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
-            PP(NTG,NSG)=PPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQFPSI(PSIN,FPSI,DFPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            PP(NTG,NSG)=PPSI
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
             ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-            HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI(PSIN)
-            HJT1(NTG,NSG)=BB*RR*FDN*DFPSI(PSIN)
-     &                   /(RMU0*RMM(NTG,NSG))
-            HJT2(NTG,NSG)=(FPSI(PSIN)-BB*RR)*FDN*DFPSI(PSIN)
-     &                   /(RMU0*RMM(NTG,NSG))
+            HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
+            HJT1(NTG,NSG)=BB*RR       *FDN*DFPSI/(RMU0*RMM(NTG,NSG))
+            HJT2(NTG,NSG)=(FPSI-BB*RR)*FDN*DFPSI/(RMU0*RMM(NTG,NSG))
             HJP2(NTG,NSG)=HJP1(NTG,NSG)
      &                   *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
@@ -387,9 +394,12 @@ C
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
      &                                +TJ*TJ*HJT2(NTG,NSG)
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
-            TT(NTG,NSG)=BB*RR+TJ*(FPSI(PSIN)-BB*RR)
-            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
-     &           *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQFPSI(PSIN,FPSI,DFPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            TT(NTG,NSG)=BB*RR+TJ*(FPSI-BB*RR)
+            RHO(NTG,NSG)=(PPSI*AMP/TPSI)
+     &                  *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
          ENDDO
          ENDDO 
 C
@@ -402,11 +412,13 @@ C
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
-            PP(NTG,NSG)=PPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            PP(NTG,NSG)=PPSI
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-            HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI(PSIN)
-            HJT1(NTG,NSG)=HJPSI(PSIN)
+            ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+            HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI
+            HJT1(NTG,NSG)=HJPSI
             HJP2C=1.D0-RRC**2/RMM(NTG,NSG)**2
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)
             HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
@@ -422,10 +434,11 @@ C
          DO NTG=1,NTGMAX
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
             TT(NTG,NSG)=SQRT(BB**2*RR**2
-     &           +2.D0*RMU0*RRC
-     &           *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)))
-            RHO(NTG,NSG)=PPSI(PSIN)*AMP/TPSI(PSIN)
+     &                 +2.D0*RMU0*RRC*(TJ*HJPSID/FDN-RRC*PPSI))
+            RHO(NTG,NSG)=PPSI*AMP/TPSI
          ENDDO
          ENDDO
 C
@@ -439,20 +452,22 @@ C
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
-            PP(NTG,NSG)=PPSI(PSIN)
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQQPSI(PSIN,QPSI,DQPSI)
+            PP(NTG,NSG)=PPSI
             RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-            HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI(PSIN)
+            ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+            HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
             CALL FNFQT(PSIN,FQTL,DFQTL)
-            QPSIL=QPSI(PSIN)
+            QPSIL=QPSI
             TTL=QPSIL/FQTL
-            DTT=FDN*(DQPSI(PSIN)*FQTL-QPSIL*DFQTL)/FQTL**2
+            DTT=FDN*(DQPSI*FQTL-QPSIL*DFQTL)/FQTL**2
             HJT1(NTG,NSG)=BB*RR*DTT/(RMU0*RMM(NTG,NSG))
             HJT2(NTG,NSG)=(TTL-BB*RR)*DTT/(RMU0*RMM(NTG,NSG))
             HJP2(NTG,NSG)=HJP1(NTG,NSG)
      &                   *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
-            FJP=FJP+HJP2(NTG,NSG)*DVOL
+            FJP =FJP +HJP2(NTG,NSG)*DVOL
             FJT1=FJT1+HJT1(NTG,NSG)*DVOL
             FJT2=FJT2+HJT2(NTG,NSG)*DVOL
             WRITE(25,'(2I5,1P4E12.4)') NTG,NSG,QPSIL,FQTL,TTL,DTT
@@ -472,12 +487,14 @@ C            HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
      &                                +TJ*TJ*HJT2(NTG,NSG)
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQQPSI(PSIN,QPSI,DQPSI)
             CALL FNFQT(PSIN,FQTL,DFQTL)
-            QPSIL=QPSI(PSIN)
+            QPSIL=QPSI
 C            TT(NTG,NSG)=TJ*QPSIL/FQTL
             TT(NTG,NSG)=BB*RR+TJ1*(QPSIL/FQTL-BB*RR)
-            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
-     &           *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
+            RHO(NTG,NSG)=(PPSI*AMP/TPSI)
+     &                  *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
          ENDDO
          ENDDO 
          STOP
