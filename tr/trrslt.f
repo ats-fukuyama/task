@@ -1,0 +1,854 @@
+C     $Id$
+C
+C     ***********************************************************
+C
+C           CALCULATE GLOBAL QUANTITIES
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGLOB
+C
+      INCLUDE 'trcomm.h'
+C
+      DO 10 NS=1,NSM
+         CALL TRSUMD(RN(1,NS),RM,NRMAX,RNSUM)
+         CALL TRSUMT(RT(1,NS),RN(1,NS),RM,NRMAX,RTSUM)
+         ANSAV(NS) = RNSUM*2.D0*PI*DR/(PI*RA*RA)
+         ANS0(NS) = (9.D0*RN(1,NS)-RN(2,NS))/8.D0
+         IF(RNSUM.GT.0.D0) THEN
+            TSAV(NS) = RTSUM/RNSUM
+         ELSE
+            TSAV(NS)=0.D0
+         ENDIF
+         TS0(NS) = (9.D0*RT(1,NS)-RT(2,NS))/8.D0
+         WST(NS) = RTSUM*1.5D0*2.D0*PI*RR*2.D0*PI*DR*RKAP*RKEV*1.D14
+   10 CONTINUE
+C
+      DO 20 NF=1,NFM
+         CALL TRSUMD(RNF(1,NF),RM,NRMAX,ANFSUM)
+         CALL TRSUMD(RW(1,NF),RM,NRMAX,RWSUM)
+         WFT(NF) = RWSUM*1.5D0*2.D0*PI*RR*2.D0*PI*DR*RKAP*RKEV*1.D14
+         ANFAV(NF) = ANFSUM*2.D0*PI*DR/(PI*RA*RA)
+         ANF0(NF)  = (9.D0*RNF(1,NF)-RNF(2,NF))/8.D0
+         IF(ANFSUM.GT.0.D0) THEN
+            TFAV(NF)  = RWSUM/ANFSUM
+         ELSE
+            TFAV(NF)  = 0.D0
+         ENDIF
+         IF(RNF(1,NF).GT.0.D0) THEN
+            TF0(NF)  = (9.D0*RW(1,NF)-RW(2,NF))/8.D0
+     &                 /ANF0(NF)
+         ELSE
+            TF0(NF)  = 0.D0
+         ENDIF
+   20 CONTINUE
+C
+      CALL TRSUMD(POH,RM,NRMAX,POHSUM)
+      CALL TRSUMD(PNB,RM,NRMAX,PNBSUM)
+      CALL TRSUMD(PNF,RM,NRMAX,PNFSUM)
+      POHT = POHSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      PNBT = PNBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      PNFT = PNFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      DO 30 NS=1,NSM
+        CALL TRSUMD(PRF(1,NS),RM,NRMAX,PRFSUM)
+        PRFT(NS) = PRFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+   30 CONTINUE
+C
+      CALL TRSUMD(PBIN,RM,NRMAX,PBSUM)
+      PBINT = PBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      DO 40 NS=1,NSM
+        CALL TRSUMD(PBCL(1,NS),RM,NRMAX,PBSUM)
+        PBCLT(NS) = PBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+   40 CONTINUE
+C
+      CALL TRSUMD(PFIN,RM,NRMAX,PFSUM)
+      PFINT = PFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      DO 50 NS=1,NSM
+        CALL TRSUMD(PFCL(1,NS),RM,NRMAX,PFSUM)
+        PFCLT(NS) = PFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+   50 CONTINUE
+C
+      CALL TRSUMD(PRL,RM,NRMAX,PRLSUM)
+      CALL TRSUMD(PCX,RM,NRMAX,PCXSUM)
+      CALL TRSUMD(PIE,RM,NRMAX,PIESUM)
+      PRLT = PRLSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      PCXT = PCXSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+      PIET = PIESUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
+C
+      CALL TRSUMD(AJNB,RM,NRMAX,ANBSUM)
+      CALL TRSUMD(AJRF,RM,NRMAX,ARFSUM)
+      CALL TRSUMD(AJBS,RM,NRMAX,ABSSUM)
+      AJNBT = ANBSUM*            2.D0*PI*DR*RKAP/1.D6
+      AJRFT = ARFSUM*            2.D0*PI*DR*RKAP/1.D6
+      AJBST = ABSSUM*            2.D0*PI*DR*RKAP/1.D6
+C
+      CALL TRSUMD(AJ  ,RM,NRMAX,AJTSUM)
+      CALL TRSUMD(AJOH,RM,NRMAX,AOHSUM)
+C
+      AJT   = AJTSUM*            2.D0*PI*DR*RKAP/1.D6
+      AJOHT = AOHSUM*            2.D0*PI*DR*RKAP/1.D6
+C
+      DRH=0.5D0*DR
+      DO 70 NS=1,NSM
+         VNP=AV(NRMAX,NS)
+         DNP=AD(NRMAX,NS)
+C
+         VTP=(AVK(NRMAX,NS)/1.5D0+AV(NRMAX,NS))
+         DTP= AK(NRMAX,NS)/(1.5D0)
+C
+         VXP=0.D0
+         DXP=(1.5D0*AD(NRMAX,NS)-AK(NRMAX,NS))*PTS(NS)
+C
+         SLT(NS) =((     DNP/DRH)*RN(NRMAX,NS)
+     &            +( VNP-DNP/DRH)*PNSS(NS))
+     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP
+C
+         PLT(NS) =((     DXP/DRH)*RN(NRMAX,NS)
+     &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
+     &            +( VXP-DXP/DRH)*PNSS(NS)
+     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
+     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*RKEV*1.D14
+   70 CONTINUE
+C
+      CALL TRSUMD(SIE,RM,NRMAX,SIESUM)
+      CALL TRSUMD(SNF,RM,NRMAX,SNFSUM)
+      CALL TRSUMD(SNB,RM,NRMAX,SNBSUM)
+      SIET = SIESUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
+      SNFT = SNFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
+      SNBT = SNBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
+C
+      DO 80 NS=1,NSM
+         CALL TRSUMD(SPE(1,NS),RM,NRMAX,SPESUM)
+         SPET(NS) = SPESUM*2.D0*PI*RR*2.D0*PI*DR
+   80 CONTINUE
+C
+      WBULKT=0.D0
+      PRFST =0.D0
+      PLST  =0.D0
+      SLST  =0.D0
+      DO 100 NS=1,NSM
+         WBULKT=WBULKT+WST(NS)
+         PRFST =PRFST +PRFT(NS)
+         PLST  =PLST  +PLT(NS)
+         SLST  =SLST  +SLT(NS)
+  100 CONTINUE
+      WTAILT=0.D0
+      DO 110 NF=1,NFM
+         WTAILT=WTAILT+WFT(NF)
+  110 CONTINUE
+C
+      WPT =WBULKT+WTAILT
+      PINT=POHT+PNBT+PRFST+PNFT
+      POUT=PLST+PCXT+PIET+PRLT
+      SINT=SIET+SNBT
+      SOUT=SLST
+C
+      IF(ABS(T-TPRE).LE.1.D-70) THEN
+         WPDOT=0.D0
+      ELSE
+         WPDOT=(WPT-WPPRE)/(T-TPRE)
+      ENDIF
+      WPPRE=WPT
+      TPRE=T
+C
+      TAUE1=WPT/PINT
+      TAUE2=WPT/(PINT-WPDOT)
+C
+      SUM=0.D0
+      SUP=0.D0
+      SUL=0.D0
+      FACT=RKAP/FKAP**2
+C
+      DO 220 NR=1,NRMAX-1
+         SUML=0.D0
+         SUPL=0.D0
+         DO 200 NS=1,NSM
+            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
+            SUPL = SUPL +(RN(NR+1,NS)*RT(NR+1,NS)
+     &                   -RN(NR  ,NS)*RT(NR  ,NS))*RKEV*1.D20/DR
+  200    CONTINUE
+C
+         SUM = SUM + SUML*2.D0*PI*RM(NR)*DR
+         SUP = SUP + 0.5D0*SUPL*PI*RM(NR)*RM(NR)*DR
+         SUL = SUL + BP(NR)**2*RG(NR)
+         BETA(NR)   = 2.D0*SUM *AMYU0/(PI*(RG(NR)*BB)**2)
+         BETAL(NR)  = 2.D0*SUML*AMYU0/(           BB **2)
+         BETAP(NR)  = 2.D0*SUM *AMYU0/(PI*(RG(NR)*BP(NRMAX))**2)*FACT
+         BETAPL(NR) = 2.D0*SUML*AMYU0/(           BP(NRMAX)**2)*FACT
+         BETAQ(NR)  =-2.D0*SUP *AMYU0/(PI*(RG(NR)*BP(NR))**2)*FACT
+         SUP = SUP + 0.5D0*SUPL*PI*RM(NR+1)*RM(NR+1)*DR
+  220 CONTINUE
+C
+
+      NR=NRMAX
+         SUML=0.D0
+         SUPL=0.D0
+         DO 230 NS=1,NSM
+            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RM(NR)*RKEV*1.D20
+            SUPL = SUPL +(PNSS(NS)   *PTS(NS)
+     &                   -RN(NR  ,NS)*RT(NR  ,NS))*RKEV*1.D20/DR*2.D0
+  230    CONTINUE
+         DO 240 NF=1,NFM
+            SUML = SUML +RW(NR,NF)*RM(NR)*RKEV*1.D20
+            SUPL = SUPL +(0.D0-RW(NR  ,NF))*RKEV*1.D20/DR*2.D0
+  240    CONTINUE
+C
+         SUM = SUM + SUML*2.D0*PI*RM(NR)*DR
+         SUP = SUP + 0.5D0*SUPL*PI*RM(NR)*RM(NR)*DR
+         SUL = SUL + 0.5D0*BP(NR)**2*RG(NR)
+         BETA(NR)   = 2.D0*SUM *AMYU0/(PI*(RG(NR)*BB)**2)
+         BETAL(NR)  = 2.D0*SUML*AMYU0/(           BB **2)
+         BETAP(NR)  = 2.D0*SUM *AMYU0/(PI*(RG(NR)*BP(NRMAX))**2)*FACT
+         BETAPL(NR) = 2.D0*SUML*AMYU0/(           BP(NRMAX)**2)*FACT
+         BETAQ(NR)  =-2.D0*SUP *AMYU0/(PI*(RG(NR)*BP(NR))**2)*FACT
+C
+      BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
+      BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
+      BETAQ0=0.D0
+C
+      BETAPA=BETAP(NRMAX)
+      BETAA =BETA(NRMAX)
+C
+      ALI=8.D0*PI**2*DR*SUL*FKAP**2/((AMYU0*AJT*1.D6)**2)
+      VLOOP = EZOH(NRMAX)*2.D0*PI*RR
+C
+      PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
+C
+      TAUEP=4.8D-2*(RIP**0.85D0)
+     &            *(RR**1.2D0)
+     &            *(RA**0.3D0)
+     &            *(RKAP**0.5D0)
+     &            *(ANSAV(1)**0.1D0)
+     &            *(BB**0.2D0)
+     &            *(PAI**0.5D0)
+     &            *(PINT**(-0.5D0))
+C
+      QF=5.D0*PNFT/(POHT+PNBT+PRFST)
+C
+      IF(Q0.GE.1.D0) THEN
+         RQ1=0.D0
+      ELSE
+         IF(QP(1).GT.1.D0) THEN
+            RQ1=SQRT((1.D0-Q0)/(QP(1)-Q0))*DR
+            GOTO 310
+         ENDIF
+         DO 300 NR=2,NRMAX
+            IF(QP(NR).GT.1.D0) THEN
+               RQ1=(RG(NR)-RG(NR-1))*(1.D0-QP(NR-1))/(QP(NR)-QP(NR-1))
+     &             +RG(NR-1)
+               GOTO 310
+            ENDIF
+  300    CONTINUE
+         RQ1=RA
+  310    CONTINUE
+      ENDIF
+C
+      ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
+C
+      RETURN
+      END
+C
+C     ********************************************************
+C
+C           RADIAL INTEGRATION  (DOUBLE VARIABLES)
+C
+C     ********************************************************
+C
+      SUBROUTINE TRSUMD(A,B,NMAX,SUM)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      DIMENSION A(NMAX),B(NMAX)
+C
+      SUM=0.D0
+      DO 100 N=1,NMAX
+         SUM=SUM+A(N)*B(N)
+  100 CONTINUE
+      RETURN
+      END
+C
+C     ********************************************************
+C
+C           RADIAL INTEGRATION  (TRIPLE VARIABLES)
+C
+C     ********************************************************
+C
+      SUBROUTINE TRSUMT(A,B,C,NMAX,SUM)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      DIMENSION A(NMAX),B(NMAX),C(NMAX)
+C
+      SUM=0.D0
+      DO 100 N=1,NMAX
+         SUM=SUM+A(N)*B(N)*C(N)
+  100 CONTINUE
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           SAVE DATA TO DATAT FOR GRAPHICS
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRATOT
+C
+      INCLUDE 'trcomm.h'
+C
+      IF(NGT.GE.NTM) RETURN
+      NGT=NGT+1
+C
+      GT    (NGT) = GCLIP(T)
+C
+      GVT(NGT, 1) = GCLIP(ANS0(1))
+      GVT(NGT, 2) = GCLIP(ANS0(2))
+      GVT(NGT, 3) = GCLIP(ANS0(3))
+      GVT(NGT, 4) = GCLIP(ANS0(4))
+      GVT(NGT, 5) = GCLIP(ANSAV(1))
+      GVT(NGT, 6) = GCLIP(ANSAV(2))
+      GVT(NGT, 7) = GCLIP(ANSAV(3))
+      GVT(NGT, 8) = GCLIP(ANSAV(4))
+C
+      GVT(NGT, 9) = GCLIP(TS0(1))
+      GVT(NGT,10) = GCLIP(TS0(2))
+      GVT(NGT,11) = GCLIP(TS0(3))
+      GVT(NGT,12) = GCLIP(TS0(4))
+      GVT(NGT,13) = GCLIP(TSAV(1))
+      GVT(NGT,14) = GCLIP(TSAV(2))
+      GVT(NGT,15) = GCLIP(TSAV(3))
+      GVT(NGT,16) = GCLIP(TSAV(4))
+C
+      GVT(NGT,17) = GCLIP(WST(1))
+      GVT(NGT,18) = GCLIP(WST(2))
+      GVT(NGT,19) = GCLIP(WST(3))
+      GVT(NGT,20) = GCLIP(WST(4))
+C
+      GVT(NGT,21) = GCLIP(ANF0(1))
+      GVT(NGT,22) = GCLIP(ANF0(2))
+      GVT(NGT,23) = GCLIP(ANFAV(1))
+      GVT(NGT,24) = GCLIP(ANFAV(2))
+      GVT(NGT,25) = GCLIP(TF0(1))
+      GVT(NGT,26) = GCLIP(TF0(2))
+      GVT(NGT,27) = GCLIP(TFAV(1))
+      GVT(NGT,28) = GCLIP(TFAV(2))
+C
+      GVT(NGT,29) = GCLIP(WFT(1))
+      GVT(NGT,30) = GCLIP(WFT(2))
+      GVT(NGT,31) = GCLIP(WBULKT)
+      GVT(NGT,32) = GCLIP(WTAILT)
+      GVT(NGT,33) = GCLIP(WPT)
+C
+      GVT(NGT,34) = GCLIP(AJT)
+      GVT(NGT,35) = GCLIP(AJOHT)
+      GVT(NGT,36) = GCLIP(AJNBT)
+      GVT(NGT,37) = GCLIP(AJRFT)
+      GVT(NGT,38) = GCLIP(AJBST)
+C
+      GVT(NGT,39) = GCLIP(PINT)
+      GVT(NGT,40) = GCLIP(POHT)
+      GVT(NGT,41) = GCLIP(PNBT)
+      GVT(NGT,42) = GCLIP(PRFT(1))
+      GVT(NGT,43) = GCLIP(PRFT(2))
+      GVT(NGT,44) = GCLIP(PRFT(3))
+      GVT(NGT,45) = GCLIP(PRFT(4))
+      GVT(NGT,46) = GCLIP(PNFT)
+C
+      GVT(NGT,47) = GCLIP(PBINT)
+      GVT(NGT,48) = GCLIP(PBCLT(1))
+      GVT(NGT,49) = GCLIP(PBCLT(2))
+      GVT(NGT,50) = GCLIP(PBCLT(3))
+      GVT(NGT,51) = GCLIP(PBCLT(4))
+      GVT(NGT,52) = GCLIP(PFINT)
+      GVT(NGT,53) = GCLIP(PFCLT(1))
+      GVT(NGT,54) = GCLIP(PFCLT(2))
+      GVT(NGT,55) = GCLIP(PFCLT(3))
+      GVT(NGT,56) = GCLIP(PFCLT(4))
+C
+      GVT(NGT,57) = GCLIP(POUT)
+      GVT(NGT,58) = GCLIP(PCXT)
+      GVT(NGT,59) = GCLIP(PIET)
+      GVT(NGT,60) = GCLIP(PRLT)
+      GVT(NGT,61) = GCLIP(PLT(1))
+      GVT(NGT,62) = GCLIP(PLT(2))
+      GVT(NGT,63) = GCLIP(PLT(3))
+      GVT(NGT,64) = GCLIP(PLT(4))
+C
+      GVT(NGT,65) = GCLIP(SINT)
+      GVT(NGT,66) = GCLIP(SIET)
+      GVT(NGT,67) = GCLIP(SNBT)
+      GVT(NGT,68) = GCLIP(SNFT)
+      GVT(NGT,69) = GCLIP(SOUT)
+      GVT(NGT,70) = GCLIP(SLT(1))
+      GVT(NGT,71) = GCLIP(SLT(2))
+      GVT(NGT,72) = GCLIP(SLT(3))
+      GVT(NGT,73) = GCLIP(SLT(4))
+C
+      GVT(NGT,74) = GCLIP(VLOOP)
+      GVT(NGT,75) = GCLIP(ALI)
+      GVT(NGT,76) = GCLIP(RQ1)
+      GVT(NGT,77) = GCLIP(Q0)
+C
+      GVT(NGT,78) = GCLIP(WPDOT)
+      GVT(NGT,79) = GCLIP(TAUE1)
+      GVT(NGT,80) = GCLIP(TAUE2)
+      GVT(NGT,81) = GCLIP(TAUEP)
+C
+      GVT(NGT,82) = GCLIP(BETAP0)
+      GVT(NGT,83) = GCLIP(BETAPA)
+      GVT(NGT,84) = GCLIP(BETA0)
+      GVT(NGT,85) = GCLIP(BETAA)
+C
+      GVT(NGT,86) = GCLIP(ZEFF0)
+      GVT(NGT,87) = GCLIP(QF)
+      GVT(NGT,88) = GCLIP(RIP)
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           SAVE DATA TO DATA FOR GRAPHICS
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRATOG
+C
+      INCLUDE 'trcomm.h'
+C
+      IF(NGR.GE.NGM) RETURN
+      NGR=NGR+1
+      GTR(NGR)=GCLIP(T)
+C
+      DO 10 NR=1,NRMAX
+         GVR(NR,NGR, 1)  = GCLIP(RN(NR,1))
+         GVR(NR,NGR, 2)  = GCLIP(RN(NR,2))
+         GVR(NR,NGR, 3)  = GCLIP(RN(NR,3))
+         GVR(NR,NGR, 4)  = GCLIP(RN(NR,4))
+         GVR(NR,NGR, 5)  = GCLIP(RT(NR,1))
+         GVR(NR,NGR, 6)  = GCLIP(RT(NR,2))
+         GVR(NR,NGR, 7)  = GCLIP(RT(NR,3))
+         GVR(NR,NGR, 8)  = GCLIP(RT(NR,4))
+         GVR(NR+1,NGR, 9)  = GCLIP(QP(NR))
+         GVR(NR,NGR,10)  = GCLIP(AJ(NR)*1.D-6)
+         GVR(NR,NGR,11)  = GCLIP(EZOH(NR))
+         GVR(NR,NGR,12)  = GCLIP(AJOH(NR)*1.D-6)
+         GVR(NR,NGR,13)  = GCLIP((AJNB(NR)+AJRF(NR))*1.D-6)
+         GVR(NR,NGR,14)  = GCLIP(AJBS(NR)*1.D-6)
+         GVR(NR,NGR,15)  = GCLIP((PIN(NR,1)+PIN(NR,2)
+     &                           +PIN(NR,3)+PIN(NR,4))*1.D-6)
+         GVR(NR,NGR,16)  = GCLIP(POH(NR)*1.D-6)
+         GVR(NR,NGR,17)  = GCLIP(VGR1(NR,2))
+         GVR(NR,NGR,18)  = GCLIP(VGR1(NR,1))
+         GVR(NR,NGR,19)  = GCLIP(VGR1(NR,3))
+C         GVR(NR,NGR,19)  = GCLIP(VGR3(NR,1))
+         GVR(NR,NGR,20)  = GCLIP(AK(NR,2))
+C         GVR(NR,NGR,17)  = GCLIP(RW(NR,1)*1.D-6*1.5D0)
+C         GVR(NR,NGR,18)  = GCLIP(RW(NR,2)*1.D-6*1.5D0)
+C         GVR(NR,NGR,19)  = GCLIP(PNB(NR)*1.D-6)
+C         GVR(NR,NGR,20)  = GCLIP(PNF(NR)*1.D-6)
+   10 CONTINUE
+         GVR(1,NGR, 9)  = GCLIP(Q0)
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           PRINT GLOBAL QUANTITIES
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRPRNT(KID)
+C
+      INCLUDE 'trcomm.h'
+C
+      CHARACTER KID*1
+      CHARACTER*3 K1,K2,K3,K4,K5,K6
+      CHARACTER KCOM*40
+C
+      IF(KID.EQ.'1') THEN
+         WRITE(6,601) T,
+     &                WPT,WBULKT,WTAILT,WPDOT,
+     &                TAUE1,TAUE2,TAUEP,QF,
+     &                BETAP0,BETAPA,BETA0,BETAA,
+     &                Q0,RQ1,ZEFF0
+  601    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
+     &          1H ,3X,'WPT   =',1PD10.3,'  WBULKT=',1PD10.3,
+     &               '  WTAILT=',1PD10.3,'  WPDOT =',1PD10.3/
+     &          1H ,3X,'TAUE1 =',1PD10.3,'  TAUE2 =',1PD10.3,
+     &               '  TAUEP =',1PD10.3,'  QF    =',1PD10.3/
+     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3/
+     &          1H ,3X,'Q0    =',1PD10.3,'  RQ1   =',1PD10.3,
+     &               '  ZEFF0=',1PD10.3)
+C
+         WRITE(6,602) WST(1),TS0(1),TSAV(1),ANSAV(1),
+     &                WST(2),TS0(2),TSAV(2),ANSAV(2),
+     &                WST(3),TS0(3),TSAV(3),ANSAV(3),
+     &                WST(4),TS0(4),TSAV(4),ANSAV(4),
+     &                WFT(1),TF0(1),TFAV(1),ANFAV(1),
+     &                WFT(2),TF0(2),TFAV(2),ANFAV(2)
+  602    FORMAT(1H ,3X,'WE    =',1PD10.3,'  TE0   =',1PD10.3,
+     &               '  TEAVE =',1PD10.3,'  NEAVE =',1PD10.3/
+     &          1H ,3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3,
+     &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3/
+     &          1H ,3X,'WT    =',1PD10.3,'  TT0   =',1PD10.3,
+     &               '  TTAVE =',1PD10.3,'  NTAVE =',1PD10.3/
+     &          1H ,3X,'WA    =',1PD10.3,'  TA0   =',1PD10.3,
+     &               '  TAAVE =',1PD10.3,'  NAAVE =',1PD10.3/
+     &          1H ,3X,'WB    =',1PD10.3,'  TB0   =',1PD10.3,
+     &               '  TBAVE =',1PD10.3,'  NBAVE =',1PD10.3/
+     &          1H ,3X,'WF    =',1PD10.3,'  TF0   =',1PD10.3,
+     &               '  TFAVE =',1PD10.3,'  NFAVE =',1PD10.3)
+C
+         WRITE(6,603) AJT,VLOOP,ALI,VSEC,
+     &                AJOHT,AJNBT,AJRFT,AJBST
+  603    FORMAT(1H ,3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3,
+     &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/
+     &          1H ,3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3,
+     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+C
+         WRITE(6,604) PINT,POHT,PNBT,PNFT,
+     &                PRFT(1),PRFT(2),PRFT(3),PRFT(4),
+     &                PBINT,PFINT,
+     &                PBCLT(1),PBCLT(2),PBCLT(3),PBCLT(4),
+     &                PFCLT(1),PFCLT(2),PFCLT(3),PFCLT(4),
+     &                POUT,PRLT,PCXT,PIET,
+     &                PLT(1),PLT(2),PLT(3),PLT(4)
+  604    FORMAT(1H ,3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3,
+     &               '  PNBT  =',1PD10.3,'  PNFTE =',1PD10.3/
+     &          1H ,3X,'PRFTE =',1PD10.3,'  PRFTD =',1PD10.3,
+     &               '  PRFTT =',1PD10.3,'  PRFTA =',1PD10.3/
+     &          1H ,3X,'PBIN  =',1PD10.3,'  PFIN  =',1PD10.3/
+     &          1H ,3X,'PBCLE =',1PD10.3,'  PBCLD =',1PD10.3,
+     &               '  PBCLT =',1PD10.3,'  PBCLA =',1PD10.3/
+     &          1H ,3X,'PFCLE =',1PD10.3,'  PFCLD =',1PD10.3,
+     &               '  PFCLT =',1PD10.3,'  PFCLA =',1PD10.3/
+     &          1H ,3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3,
+     &               '  PCXT  =',1PD10.3,'  PIETE =',1PD10.3/
+     &          1H ,3X,'PLTE  =',1PD10.3,'  PLTD  =',1PD10.3,
+     &               '  PLTTE =',1PD10.3,'  PLTA  =',1PD10.3)
+C
+         WRITE(6,605) SINT,SIET,SNBT,SNFT,
+     &                SOUT,ZEFF(1),ANC(1),ANFE(1),
+     &                SLT(1),SLT(2),SLT(3),SLT(4)
+  605    FORMAT(1H ,3X,'SINT  =',1PD10.3,'  SIET  =',1PD10.3,
+     &               '  SNBT  =',1PD10.3,'  SNFT  =',1PD10.3/
+     &          1H ,3X,'SOUT  =',1PD10.3,'  ZEFF0 =',1PD10.3,
+     &               '  ANC0  =',1PD10.3,'  ANFE0 =',1PD10.3/
+     &          1H ,3X,'SLTET =',1PD10.3,'  SLTD  =',1PD10.3,
+     &               '  SLTTT =',1PD10.3,'  SLTA  =',1PD10.3)
+      ENDIF
+C
+      IF(KID.EQ.'2') THEN
+         WRITE(6,611) Q0,(QP(I),I=1,NRMAX)
+  611    FORMAT(1H ,'* Q PROFILE *'/
+     &         (1H ,5F7.3,2X,5F7.3))
+      ENDIF
+C
+      IF(KID.EQ.'3') THEN
+         CALL GUTIME(GTCPU2)
+         WRITE(6,621) GTCPU2-GTCPU1
+  621    FORMAT(1H ,'# CPU TIME = ',F8.3,' S')
+         RETURN
+      ENDIF
+C
+      IF(KID.EQ.'4') THEN
+         WRITE(6,631)
+  631    FORMAT(1H ,'#',12X,'FIRST',7X,'MAX',9X,'MIN',9X,'LAST')
+         CALL TRMXMN( 1,'  NE0  ')
+C         CALL TRMXMN( 2,'  ND0  ')
+C         CALL TRMXMN( 3,'  NT0  ')
+C         CALL TRMXMN( 4,'  NA0  ')
+         CALL TRMXMN( 5,'  NEAV ')
+C         CALL TRMXMN( 6,'  NDAV ')
+C         CALL TRMXMN( 7,'  NTAV ')
+C         CALL TRMXMN( 8,'  NAAV ')
+         CALL TRMXMN( 9,'  TE0  ')
+         CALL TRMXMN(10,'  TD0  ')
+         CALL TRMXMN(11,'  TT0  ')
+C         CALL TRMXMN(12,'  TA0  ')
+         CALL TRMXMN(13,'  TEAV ')
+         CALL TRMXMN(14,'  TDAV ')
+C         CALL TRMXMN(15,'  TTAV ')
+C         CALL TRMXMN(16,'  TAAV ')
+C         CALL TRMXMN(17,'  WE   ')
+C         CALL TRMXMN(18,'  WD   ')
+C         CALL TRMXMN(19,'  WT   ')
+C         CALL TRMXMN(20,'  WA   ')
+C
+C         CALL TRMXMN(21,'  NB0  ')
+C         CALL TRMXMN(22,'  NF0  ')
+C         CALL TRMXMN(23,'  NBAV ')
+C         CALL TRMXMN(24,'  NFAV ')
+C         CALL TRMXMN(25,'  TB0  ')
+C         CALL TRMXMN(26,'  TF0  ')
+C         CALL TRMXMN(27,'  TBAV ')
+C         CALL TRMXMN(28,'  TFAV ')
+         CALL TRMXMN(29,'  WB   ')
+         CALL TRMXMN(30,'  WF   ')
+         CALL TRMXMN(31,' WBULK ')
+C         CALL TRMXMN(32,' WTAIL ')
+         CALL TRMXMN(33,'  WP   ')
+C
+C         CALL TRMXMN(34,'  IP   ')
+         CALL TRMXMN(35,'  IOH  ')
+         CALL TRMXMN(36,'  INB  ')
+C         CALL TRMXMN(37,'  IRF  ')
+         CALL TRMXMN(38,'  IBS  ')
+C
+C         CALL TRMXMN(39,'  PIN  ')
+         CALL TRMXMN(40,'  POH  ')
+         CALL TRMXMN(41,'  PNB  ')
+C         CALL TRMXMN(42,'  PRFE ')
+C         CALL TRMXMN(43,'  PRFD ')
+C         CALL TRMXMN(44,'  PRFT ')
+C         CALL TRMXMN(45,'  PRFA ')
+         CALL TRMXMN(46,'  PNF  ')
+C         CALL TRMXMN(47,'  PBINT')
+C         CALL TRMXMN(48,'  PBCLE')
+C         CALL TRMXMN(49,'  PBCLD')
+C         CALL TRMXMN(50,'  PBCLT')
+C         CALL TRMXMN(51,'  PBCLA')
+C         CALL TRMXMN(52,'  PFINT')
+C         CALL TRMXMN(53,'  PFCLE')
+C         CALL TRMXMN(54,'  PFCLD')
+C         CALL TRMXMN(55,'  PFCLT')
+C         CALL TRMXMN(56,'  PFCLA')
+C         CALL TRMXMN(57,'  POUT ')
+         CALL TRMXMN(58,'  PCX  ')
+         CALL TRMXMN(59,'  PIE  ')
+         CALL TRMXMN(60,'  PRL  ')
+         CALL TRMXMN(61,'  PLE  ')
+         CALL TRMXMN(62,'  PLD  ')
+         CALL TRMXMN(63,'  PLT  ')
+         CALL TRMXMN(64,'  PLA  ')
+C
+C         CALL TRMXMN(65,'  SIN  ')
+C         CALL TRMXMN(66,'  SIE  ')
+C         CALL TRMXMN(67,'  SNB  ')
+C         CALL TRMXMN(68,'  SNF  ')
+C         CALL TRMXMN(69,'  SOUT ')
+C         CALL TRMXMN(70,'  SLE  ')
+C         CALL TRMXMN(71,'  SLD  ')
+C         CALL TRMXMN(72,'  SLT  ')
+C         CALL TRMXMN(73,'  SLA  ')
+C
+         CALL TRMXMN(74,' VLOOP ')
+         CALL TRMXMN(75,'  LI   ')
+C         CALL TRMXMN(76,'  RQ1  ')
+C         CALL TRMXMN(77,'   Q0  ')
+C         CALL TRMXMN(78,' WPDOT ')
+C         CALL TRMXMN(79,' TAUE1 ')
+C         CALL TRMXMN(80,' TAUE2 ')
+C         CALL TRMXMN(81,' TAUEP ')
+C         CALL TRMXMN(82,' BETAP0')
+         CALL TRMXMN(83,' BETAPA')
+C         CALL TRMXMN(84,' BETA0 ')
+C         CALL TRMXMN(85,' BETAA ')
+C         CALL TRMXMN(86,' ZEFF0 ')
+         CALL TRMXMN(87,'   QF  ')
+C         CALL TRMXMN(88,'   IP  ')
+      ENDIF
+C
+      IF(KID.EQ.'5') THEN
+         WRITE(6,641)NGR,NGT,DT,NTMAX
+  641    FORMAT(1H ,'# PARAMETER INFORMATION',/
+     &          1H ,'  NGR   =',I3,'    NGT   =',I3,/
+     &          1H ,'  DT    =',1F5.3,'  NTMAX =',I3)
+      ENDIF
+C
+      IF(KID.EQ.'6') THEN
+         WRITE(6,651)T,TAUE1,TAUE2,TAUEP,PINT
+ 651     FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
+     &          1H ,3X,'TAUE1 =',1PD10.3,'  TAUE2 =',1PD10.3,
+     &              '  TAUEP =',1PD10.3,'  PINT  =',1PD10.3)
+      ENDIF
+C
+      IF(KID.EQ.'7'.OR.KID.EQ.'8') THEN
+         WRITE(6,671) T,
+     &                WPT,TAUE1,TAUE2,TAUEP,
+     &                BETAP0,BETAPA,BETA0,BETAA
+  671    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
+     &          1H ,3X,'WPT   =',1PD10.3,'  TAUE1 =',1PD10.3,
+     &               '  TAUE2 =',1PD10.3,'  TAUEP =',1PD10.3/
+     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
+C
+         WRITE(6,672) WST(1),TS0(1),TSAV(1),ANSAV(1),
+     &                WST(2),TS0(2),TSAV(2),ANSAV(2)
+  672    FORMAT(1H ,3X,'WE    =',1PD10.3,'  TE0   =',1PD10.3,
+     &               '  TEAVE =',1PD10.3,'  NEAVE =',1PD10.3/
+     &          1H ,3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3,
+     &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3)
+C
+         WRITE(6,673) AJT,VLOOP,ALI,Q0,
+     &                AJOHT,AJNBT,AJRFT,AJBST
+  673    FORMAT(1H ,3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3,
+     &               '  ALI   =',1PD10.3,'  Q0    =',1PD10.3/
+     &          1H ,3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3,
+     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+C
+         WRITE(6,674) PINT,POHT,PNBT,
+     &                PRFT(1)+PRFT(2)+PRFT(3)+PRFT(4),
+     &                POUT,PRLT,PCXT,PIET
+  674    FORMAT(1H ,3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3,
+     &               '  PNBT  =',1PD10.3,'  PRFT  =',1PD10.3/
+     &          1H ,3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3,
+     &               '  PCXT  =',1PD10.3,'  PIETE =',1PD10.3)
+C
+      IF(KID.EQ.'8') THEN
+ 1600    WRITE(6,*) '## INPUT COMMENT FOR trn.data (A40)'
+         READ(5,'(A40)',END=9000,ERR=1600) KCOM
+C
+         OPEN(16,ACCESS='APPEND',FILE=KFNLOG)
+C
+         CALL GUDATE(NDY,NDM,NDD,NTH1,NTM1,NTS1)
+         WRITE(K1,'(I3)') 100+NDY
+         WRITE(K2,'(I3)') 100+NDM
+         WRITE(K3,'(I3)') 100+NDD
+         WRITE(K4,'(I3)') 100+NTH1
+         WRITE(K5,'(I3)') 100+NTM1
+         WRITE(K6,'(I3)') 100+NTS1
+         WRITE(16,1670) K1(2:3),K2(2:3),K3(2:3),K4(2:3),K5(2:3),K6(2:3),
+     &                  KCOM,
+     &                  RIPS,RIPE,PN(1),PN(2),BB,PICTOT,PLHTOT,PLHNPR
+ 1670    FORMAT(1H /
+     &          1H ,'## DATE : ',
+     &              A2,'-',A2,'-',A2,'  ',A2,':',A2,':',A2,' : ',A40/
+     &          1H ,3X,'RIPS  =',1PD10.3,'  RIPE  =',1PD10.3,
+     &               '  PNE   =',1PD10.3,'  PNI   =',1PD10.3/
+     &          1H ,3X,'BB    =',1PD10.3,'  PICTOT=',1PD10.3,
+     &               '  PLHTOT=',1PD10.3,'  PLHNPR=',1PD10.3)
+         WRITE(16,1671) T,
+     &                WPT,TAUE1,TAUE2,TAUEP,
+     &                BETAP0,BETAPA,BETA0,BETAA
+ 1671    FORMAT(1H ,'# TIME : ',F7.3,' SEC'/
+     &          1H ,3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
+     &               '  TAUED =',1PD10.3,'  TAUEP =',1PD10.3/
+     &          1H ,3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
+     &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
+C
+         WRITE(16,1672) WST(1),TS0(1),TSAV(1),ANSAV(1),
+     &                WST(2),TS0(2),TSAV(2),ANSAV(2)
+ 1672    FORMAT(1H ,3X,'WE    =',1PD10.3,'  TE0   =',1PD10.3,
+     &               '  TEAVE =',1PD10.3,'  NEAVE =',1PD10.3/
+     &          1H ,3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3,
+     &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3)
+C
+         WRITE(16,1673) AJT,VLOOP,ALI,Q0,
+     &                AJOHT,AJNBT,AJRFT,AJBST
+ 1673    FORMAT(1H ,3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3,
+     &               '  ALI   =',1PD10.3,'  Q0    =',1PD10.3/
+     &          1H ,3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3,
+     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+C
+         WRITE(16,1674) PINT,POHT,PNBT,
+     &                PRFT(1)+PRFT(2)+PRFT(3)+PRFT(4),
+     &                POUT,PRLT,PCXT,PIET
+ 1674    FORMAT(1H ,3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3,
+     &               '  PNBT  =',1PD10.3,'  PRFT  =',1PD10.3/
+     &          1H ,3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3,
+     &               '  PCXT  =',1PD10.3,'  PIETE =',1PD10.3)
+         CLOSE(16)
+      ENDIF
+      ENDIF
+C
+      IF(KID.EQ.'9') THEN
+         CALL TRDATA
+      ENDIF
+C
+ 9000 RETURN
+      END
+C
+C     ***********************************************************
+C
+C           PRINT LOCAL DATA
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRDATA
+C
+      INCLUDE 'trcomm.h'
+C
+    1 WRITE(6,*) '## INPUT MODE : 1:GVT(NT)  2:GVR(NR)  3:GVR(NG)'
+      READ(5,*,END=9000,ERR=1) NID
+      IF(NID.EQ.0) GOTO 9000
+C
+      IF(NID.EQ.1) THEN
+   10    WRITE(6,*) '## INPUT NID,NTMIN,NTMAX,NTSTEP'
+         READ(5,*,END=1,ERR=10) MID,MTMIN,MTMAX,MTSTEP
+         IF(MID.EQ.0) GOTO 1
+         DO 1000 NT=MTMIN,MTMAX,MTSTEP
+            WRITE(6,601) NT,GT(NT),GVT(NT,MID)
+ 1000    CONTINUE
+         GOTO 10
+      ELSEIF(NID.EQ.2) THEN
+   20    WRITE(6,*) '## INPUT NID,NG,NRMIN,NRMAX,NRSTEP'
+         READ(5,*,END=1,ERR=20) MID,NG,MRMIN,MRMAX,MRSTEP
+         IF(MID.EQ.0) GOTO 1
+         DO 2000 NR=MRMIN,MRMAX,MRSTEP
+            WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+ 2000    CONTINUE
+         GOTO 20
+      ELSEIF(NID.EQ.3) THEN
+   30    WRITE(6,*) '## INPUT NID,NR,NGMIN,NGMAX,NGSTEP'
+         READ(5,*,END=1,ERR=30) MID,NR,MGMIN,MGMAX,MGSTEP
+         IF(MID.EQ.0) GOTO 1
+         DO 3000 NG=MGMIN,MGMAX,MGSTEP
+            WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+ 3000    CONTINUE
+         GOTO 30
+      ENDIF
+      GOTO 1
+C
+ 9000 RETURN
+  601 FORMAT(1H ,'  NT=',I3,'  T=',1PE12.4,'  DATA=',1PE12.4)
+  602 FORMAT(1H ,'  NG=',I3,'  NR=',I3,
+     &                      '  R=',1PE12.4,    '  DATA=',1PE12.4)
+      END
+C
+C     ***********************************************************
+C
+C          PEAK-VALUE WO SAGASE
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRMXMN(N,STR)
+C
+      INCLUDE 'trcomm.h'
+C
+      CHARACTER*7 STR
+C
+      GVMAX=GVT(1,N)
+      GVMIN=GVT(1,N)
+C
+      DO 100 NT=2,NGT
+         GVMAX=MAX(GVMAX,GVT(NT,N))
+         GVMIN=MIN(GVMIN,GVT(NT,N))
+  100 CONTINUE
+C
+      WRITE(6,600) STR,GVT(1,N),GVMAX,GVMIN,GVT(NGT,N)
+  600 FORMAT(1H ,A8,5X,1PD10.3,2X,1PD10.3,2X,1PD10.3,2X,1PD10.3)
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           SIMPLE STATUS REPORT
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRSNAP
+C
+      INCLUDE 'trcomm.h'
+C
+      WRITE(6,601) T,WPT,TAUE1,Q0,RT(1,1),RT(1,2),RT(1,3),RT(1,4)
+  601 FORMAT(1H ,'# T: ',F7.3,'(S)     WP:',F7.2,'(MJ)  ',
+     &           '  TAUE:',F7.3,'(S)   Q0:',F7.3,/
+     &       1H ,'  TE:',F7.3,'(KEV)   TD:',F7.3,'(KEV) ',
+     &           '  TT:',F7.3,'(KEV)   TA:',F7.3,'(KEV)')
+      RETURN
+      END

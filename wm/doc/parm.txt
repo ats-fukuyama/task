@@ -1,0 +1,362 @@
+ファイル wminit.f のサブルーチン WMINIT で定義されている変数の多くは，
+namelist wm で定義されており，パラメータ入力で変更可能である．
+
+C
+C     ****** INITIALIZE CONSTANTS & PARAMETERS ******
+C
+      SUBROUTINE WMINIT
+C
+      INCLUDE 'wmcomm.h'
+C
+C     *** CONSTANTS ****
+C
+C        CI    : Imaginary unit
+C        PI    : Pi
+C        AEE   : Elementaty charge
+C        AME   : Electron mass
+C        AMP   : Proton mass
+C        VC    : Speed of light in vacuum
+C        RMU0  : Permeability of free space
+C        EPS0  : Permittivity of free space
+C
+      CI     = (0.D0,1.D0)
+      PI     = ACOS(0.D0)*2.D0
+      AEE    = 1.60217733D-19
+      AME    = 9.1093897D-31
+      AMP    = 1.6726231D-27
+      VC     = 2.997924580D8
+      RMU0   = 4.D0*PI*1.D-7
+      EPS0   = 1.D0/(VC*VC*RMU0)
+      PI     = ACOS(0.D0)*2.D0
+      AEE    = 1.60217733D-19
+      AME    = 9.1093897D-31
+      AMP    = 1.6726231D-27
+      VC     = 2.997924580D8
+      RMU0   = 4.D0*PI*1.D-7
+      EPS0   = 1.D0/(VC*VC*RMU0)
+C
+C     *** CONFIGURATION PARAMETERS ***
+C
+C        BB    : Magnetic field at center                        (T)
+C        RR    : Plasma major radius                             (m)
+C        RA    : Plasma minor radius                             (m)
+C        RB    : Wall minor radius                               (m)
+C        Q0    : Safety factor at center
+C        QA    : Safety factor on plasma surface
+C        RKAP  : Plasma shape elongation
+C        RDEL  : Plasma shape triangularity *
+C
+      BB     = 3.00D0
+      RR     = 3.00D0
+      RA     = 1.00D0
+      RB     = 1.20D0
+      Q0     = 1.00D0
+      QA     = 3.00D0
+      RKAP   = 1.00D0
+      RDEL   = 0.00D0
+C
+C     *** PLASMA PARAMETERS ***
+C
+C        NSMAX : Number of particle species
+C        PA    : Mass number
+C        PZ    : Charge number
+C        PN    : Density at center                     (1.0E20/Mm*3)
+C        PNS   : Density on plasma surface             (1.0E20/m**3)
+C        PTPR  : Parallel temperature at center                (keV)
+C        PTPP  : Perpendicular temperature at center           (keV)
+C        PTS   : Temperature on surface                        (keV)
+C        PZCL  : Ratio of collision frequency to wave frequency
+C        PU    : Toroidal rotation velocity at center          (m/s)
+C        PUS   : Toroidal rotation velocity on surface         (m/s)
+C        PNITB : Density increment at ITB              (1.0E20/Mm*3)
+C        PTITB : Temperature increment at ITB                  (keV)
+C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
+C
+C        ZEFF  : Effective Z (\sum n Z^2 / \sum n Z)
+C        PROFN1: Density profile parameter (power of psi)
+C        PROFN2: Density profile parameter (power of (1 - psi^PROFN1))
+C        PROFT1: Temperature profile parameter (power of psi)
+C        PROFT2: Temperature profile parameter (power of (1 - psi^PROFN1))
+C        PROFU1: Rotation profile parameter (power of psi)
+C        PROFU2: Rotation profile parameter (power of (1 - psi^PROFN1))
+C
+      NSMAX  = 3
+C
+C     < E >
+C
+      PA(1)   =  AME/AMP
+      PZ(1)   = -1.0D0
+      PN(1)   =  1.D0
+      PNS(1)  =  0.1D0
+      PZCL(1) =  1.D-2
+      PTPR(1) =  3.D0
+      PTPP(1) =  3.D0
+      PTS(1)  =  0.3D0
+      PU(1)   =  0.D0
+      PUS(1)  =  0.D0
+      PNITB(1)=  0.D0
+      PTITB(1)=  0.D0
+      PUITB(1)=  0.D0
+C
+C     < D >
+C
+      PA(2)   =  2.0D0
+      PZ(2)   =  1.0D0
+      PN(2)   =  0.9D0
+      PNS(2)  =  0.09D0
+      PZCL(2) =  1.0D-2
+      PTPR(2) =  3.D0
+      PTPP(2) =  3.D0
+      PTS(2)  =  0.3D0
+      PU(2)   =  0.D0
+      PUS(2)  =  0.D0
+      PNITB(2)=  0.D0
+      PTITB(2)=  0.D0
+      PUITB(2)=  0.D0
+C
+C     < H >
+C
+      IF(NSM.GE.3) THEN
+         PA(3)   =  1.0D0
+         PZ(3)   =  1.0D0
+         PN(3)   =  0.1D0
+         PNS(3)  =  0.01D0
+         PZCL(3) =  1.0D-2
+         PTPR(3) =  3.D0
+         PTPP(3) =  3.D0
+         PTS(3)  =  0.3D0
+         PU(3)   =  0.D0
+         PUS(3)  =  0.D0
+         PNITB(3)=  0.D0
+         PTITB(3)=  0.D0
+         PUITB(3)=  0.D0
+      ENDIF
+C
+C     < He >
+C
+      IF(NSM.GE.4) THEN
+         NS=4
+         PA(NS)   =  4.0D0
+         PZ(NS)   =  2.0D0
+         PN(NS)   =  0.5D0
+         PNS(NS)  =  0.05D0
+         PZCL(NS) =  1.0D-2
+         PTPR(NS) =  3.D0
+         PTPP(NS) =  3.D0
+         PTS(NS)  =  1.D0
+         PU(NS)   =  0.D0
+         PUS(NS)  =  0.D0
+         PNITB(NS)=  0.D0
+         PTITB(NS)=  0.D0
+         PUITB(NS)=  0.D0
+      ENDIF
+C
+      ZEFF  = 2.D0
+      PROFN1= 2.D0
+      PROFN2= 0.5D0
+      PROFT1= 2.D0
+      PROFT2= 1.D0
+      PROFU1= 2.D0
+      PROFU2= 1.D0
+C
+C     **** ALPHA PARTICLE PARAMETERS ****
+C
+C        PNA   : Alpha density at center               (1.0E20/Mm*3)
+C        PNAL  : Density scale length                            (m)
+C        PTA   : Effective temperature                         (keV)
+C
+      PNA  = 0.02D0
+      PNAL = 1.D0
+      PTA  = 3.5D3
+C
+C     *** WAVE PARAMETER ***
+C
+C     CRF   : Wave frequency                            (MHz)
+C     RD    : Antenna minor radius                      (m)
+C     BETAJ : Antenna current profile parameter
+C     NTH0  : Central value of poloidal mode number
+C     NPH0  : Central value of toroidal mode number
+C     NHC   : Number of helical coils
+C
+      CRF    = (50.0D0,0.D0)
+      RD     = 1.1D0
+      BETAJ  = 0.D0
+      NTH0   = 0
+      NPH0   = 8
+      NHC    = 10
+C
+C     *** ANTENNA PARAMETERS ***
+C
+C        NAMAX : Number of antennae
+C        AJ    : Antenna current density                       (A/m)
+C        APH   : Antenna phase                              (degree)
+C        THJ1  : Start poloidal angle of antenna            (degree)
+C        THJ2  : End poloidal angle of antenna              (degree)
+C        PHJ1  : Start toroidal angle of antenna            (degree)
+C        PHJ2  : End toroidal angle of antenna              (degree)
+C
+      NAMAX=1
+      DO 200 NA=1,NAM
+        AJ(NA)   = 1.D0
+        APH(NA)  = 0.D0
+        THJ1(NA) =-45.D0
+        THJ2(NA) = 45.D0
+        PHJ1(NA) = 0.D0
+        PHJ2(NA) = 0.D0
+  200 CONTINUE
+C
+C     *** MESH PARAMETERS ***
+C
+C        NRMAX : Number of radial mesh points
+C        NTHMAX: Number of poloidal mesh points
+C        NRMAX : Number of toroidal mesh points
+C
+      NRMAX   = 50
+      NTHMAX  = 1
+      NPHMAX  = 1
+C
+C     *** CONTROL PARAMETERS ***
+C
+C        NPRINT: Control print output
+C                   0: No print out
+C                   1: Minimum print out (without input data)
+C                   2: Minimum print out (with input data)
+C                   3: Standard print out
+C                   4: More print out
+C        NGRAPH: Control graphic output
+C                   0: No graphic out
+C                   1: Standard graphic out (2D: Coutour)
+C                   2: Standard graphic out (2D: Paint)
+C                   3: Standard graphic out (2D: Bird's eye)
+C        MODELG: Control plasma geometry model
+C                   0: Cylindrical geometry
+C                   1: Toroidal geometry
+C                   2: Straight helical geometry
+C                   3: TASK/EQ output geometry
+C                   4: VMEC output geometry
+C        MODELJ: Control antenna current model
+C                   0: Real antenna
+C                   1: Real antenna
+C                   2: Poloidal current
+C                   3: Toroidal current
+C                  2X: Vacuum eigen mode, poloidal current
+C                  3X: Vacuum eigen mode, toroidal current
+C        MODELP: Control plasma dielectric tensor model
+C                   0: Vacuum
+C                   1: MHD plasma
+C                   2: Cold plasma
+C                   3: Hot plasma (No FLR)
+C                   4: Hot plasma (Cold FLR)
+C                   5: Hot plasma (FLR)
+C        MODELA: Control alpha particle contribution
+C                   0: No alpha effect
+C                   1: Precession of alpha particles
+C                   2: Precession of electrons
+C                   3: Precession of both alpha particles and electrons
+C        MODELK: Control mode number cutoff
+C                   0: No cutoff
+C                   1: With cutoff
+C        MODELM: Control matrix solver
+C                   0: BANDCD
+C                   1: BCGCDB
+C                   2: CGSCDB
+C                   3: BCGSTAB
+C                   4: BANDCDM
+C                   5: BCGCDBM
+C                   6: CGSCDBM
+C                   7: BSTABCDBM
+C                   8: BANDCDBM
+C                   9: BCGCDBMA
+C                  10: CGSCDBMA
+C                  11: BSTABCDBMA
+C                  12: BANDCDB
+C        MODELW: Control writting a data of absorped power
+C                   0: Not writting
+C                   1: Writting
+C
+C        RHOMIN: sqrt(psi/psia) at minimum q for reversed shear
+C        QMIN  : q minimum for reversed shear
+C        RHOITB: sqrt(psi/psia) at ITB
+C
+      NPRINT = 2
+      NGRAPH = 1
+      MODELG = 1
+      MODELJ = 0
+      MODELP = 4
+      MODELA = 0
+      MODELK = 0
+      MODELM = 0
+      MODELW = 0
+C
+      RHOMIN = 0.D0
+      QMIN   = 1.5D0
+      RHOITB = 0.D0
+C
+C     *** FILE NAME ***
+C
+C        KNAMEQ: Filename of equilibrium data
+C
+      KNAMEQ = 'eqdata'
+C
+C     *** EIGEN VALUE PARAMETERS ***
+C
+C        FRMIN : Minimum real part of frequency in amplitude scan
+C        FRMAX : Maximum real part of frequency in amplitude scan
+C        FIMIN : Minimum imag part of frequency in amplitude scan
+C        FIMAX : Maximum imag part of frequency in amplitude scan
+C        FI0   : Imag part of frequency in 1D amplitude scan
+C
+C        NGFMAX: Number of real freq mesh in 1D amplitude scan
+C        NGXMAX: Number of real freq mesh in 2D amplitude scan
+C        NGYMAX: Number of imag freq mesh in 2D amplitude scan
+C
+C        SCMIN : Minimum value in parameter scan
+C        SCMAX : Maximum value in parameter scan
+C        NSCMAX: Number of mesh in parameter scan
+C
+C        LISTEG: Listing in parameter scan
+C
+C        FRINI : Initial real part of frequency in Newton method
+C        FIINI : Initial imag part of frequency in Newton method
+C
+C        DLTNW : Step size in evaluating derivatives in Newton method
+C        EPSNW : Convergence criterion in Newton method
+C        LMAXNW: Maximum iteration count in Newton method
+C        LISTNW: Listing in Newton method
+C        MODENW: Type of Newton method
+C
+C        NCONT : Number of contour lines
+C        ILN1  : Line type of lower contours
+C        IBL1  : Line boldness of lower contours
+C        ICL1  : Line color of lower contours
+C        ILN2  : Line type of higher contours
+C        IBL2  : Line boldness of higher contours
+C        ICL2  : Line color of higher contours
+C
+      FRMIN = 0.1D0
+      FRMAX = 1.D0
+      FIMIN =-0.1D0
+      FIMAX = 0.1D0
+      FI0   = 0.D0
+C
+      FRINI = DBLE(CRF)
+      FIINI = DIMAG(CRF)
+C
+      NGFMAX= 11
+      NGXMAX= 11
+      NGYMAX= 11
+C
+      SCMIN = 0.1D0
+      SCMAX = 1.D0
+      NSCMAX= 11
+C
+      LISTEG= 1
+C
+      DLTNW = 1.D-6
+      EPSNW = 1.D-6
+      LMAXNW= 10
+      LISTNW= 1
+      MODENW= 0
+C
+      RETURN
+      END

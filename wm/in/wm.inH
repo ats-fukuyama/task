@@ -1,0 +1,33 @@
+0
+f
+gsdata.H
+c
+p
+ &wm modelp=4,nthmax=8,nphmax=4,modelg=4,rf=50,modelk=1,
+    pn(1)=0.5d0,pns(1)=0.05d0,
+    pn(2)=0.475d0,pns(2)=0.0475d0,
+    pn(3)=25.0d-3,pns(3)=25.0d-4
+ &
+w
+g
+peti
+1
+peti
+2
+peti
+3
+peti
+4
+pp3
+1
+pp3
+2
+pp3
+3
+pp3
+4
+rea
+1
+1
+x
+q

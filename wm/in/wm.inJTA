@@ -1,0 +1,28 @@
+0
+f
+gsdata.JTA
+c
+p
+ &wm
+   modelg=3,KNAMEQ='eqdata.jt60'
+   modelm=2
+   modelp=3
+   NSMAX=2
+   PA(2)=2.0
+   PZ(2)=1.0
+   PN= 0.2356,0.2356
+   PNS=0.05,0.05
+   PROFN2=0.5
+   PTPR=4.1,3.7
+   PTPP=4.1,3.7
+   PTS= 0.8,0.4
+   PROFT2=2.0
+   NTHMAX=16
+   NRMAX=100
+   NTH0=0
+   NPH0=1
+ &end
+v
+c
+0.05,0.15,21,-0.01,0.01,11
+q

@@ -1,0 +1,19 @@
+ &wm
+   modelg=3,KNAMEQ='eqdata.JR'
+   modelm=5
+   modelp=3
+   NSMAX=2
+   PA(2)=2.0
+   PZ(2)=1.0
+   PN= 0.3,0.3
+   PNS=0.1,0.1
+   PROFN2=2.0
+   PTPR=6,4
+   PTPP=6,4
+   PTS= 0.5,0.5
+   PROFT2=2.0
+   NRMAX=100
+   NTHMAX=16
+   NTH0=-14
+   NPH0=7
+ &end

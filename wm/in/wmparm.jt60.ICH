@@ -1,0 +1,18 @@
+ &wm
+   modelg=3,KNAMEQ='eqdata.jt60'
+   modelm=5
+   modelp=3
+   NSMAX=3
+   PA(2)=2.0
+   PZ(2)=1.0
+   PN= 0.5,0.45,0.05
+   PNS=0.05,0.045,0.005
+   PROFN2=0.5
+   PTPR=5,5
+   PTPP=5,5
+   PTS= 0.8,0.4,0.4
+   PROFT2=2.0
+   NTHMAX=8
+   NTH0=-0
+   NPH0=16
+ &end

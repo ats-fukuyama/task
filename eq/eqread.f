@@ -1,0 +1,97 @@
+C     $Id$
+C
+C     ***** GET PSIN AND MAGNETIC FIELD *****
+C
+C           PSIN=0 ON MAGNETIC AXIS
+C           PSIN=1 ON PLASMA BOUNDARY
+C
+C           PSI=SAXIS ON MAGNETIC AXIS
+C           PSI=0     ON PLASMA BOUNDARY
+C
+      SUBROUTINE GETRZ(RP,ZP,PHIP,BR,BZ,BT,PSIN)
+C
+      INCLUDE 'eqcomq.h'
+C
+      CALL SPL2DD(RP,ZP,PSI,PSIR,PSIZ,
+     &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
+C
+      PSIN=1.D0-PSI/SAXIS
+      IF(PSIN.LE.0.D0) THEN
+         PSIN=0.D0
+         BT=FNTTS(0.D0)/RR
+         BR=0.D0
+         BZ=0.D0
+      ELSE
+         BT=FNTTS(PSIN)/RP
+         BR=-PSIZ/RP
+         BZ= PSIR/RP
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ***** GET PRESSURE AS A FUNCTION OF PSIN *****
+C
+      SUBROUTINE GETPP(PSIN,PP)
+C
+      INCLUDE 'eqcomq.h'
+C
+      PP=FNPPS(PSIN)
+      RETURN
+      END
+C
+C     ***** GET SAFETY FACTOR AS A FUNCTION OF PSIN *****
+C
+      SUBROUTINE GETQP(PSIN,QP)
+C
+      INCLUDE 'eqcomq.h'
+C
+      QP=FNQPS(PSIN)
+      RETURN
+      END
+C
+C     ***** GET MINIMUM R AS A FUNCTION OF PSIN *****
+C
+      SUBROUTINE GETRMN(PSIN,RRMINL)
+C
+      INCLUDE 'eqcomq.h'
+C
+      RRMINL=FNRRMN(PSIN)
+      RETURN
+      END
+C
+C     ***** GET MAXIMUM R AS A FUNCTION OF PSIN *****
+C
+      SUBROUTINE GETRMX(PSIN,RRMAXL)
+C
+      INCLUDE 'eqcomq.h'
+C
+      RRMAXL=FNRRMX(PSIN)
+      RETURN
+      END
+C
+C     ***** GET MAGNETIC AXIS *****
+C
+      SUBROUTINE GETAXS(RAXIS1,ZAXIS1)
+C
+      INCLUDE 'eqcomq.h'
+C
+      RAXIS1=RAXIS
+      ZAXIS1=ZAXIS
+      RETURN
+      END
+C
+C     ***** GET PLASMA BOUNDARY POSITION *****
+C
+      SUBROUTINE GETRSU(RSU1,ZSU1,N,NSUMAX1)
+C
+      INCLUDE 'eqcomq.h'
+      DIMENSION RSU1(N),ZSU1(N)
+C
+      NSUMAX1=NSUMAX
+      DO NSU=1,MIN(N,NSUMAX)
+         RSU1(NSU)=RSU(NSU)
+         ZSU1(NSU)=ZSU(NSU)
+      ENDDO
+      RETURN
+      END

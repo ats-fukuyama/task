@@ -1,0 +1,132 @@
+0
+f
+gsdata.H2
+c
+p
+ &wm nthmax=16,nphmax=4,nrmax=100,
+     modelg=4,modelm=5,modelp=2,ngraph=2,
+     rf=42,nph0=8,
+     pn(1)=0.100d0,pns(1)=0.01d0,
+     pn(2)=0.095d0,pns(2)=0.0095d0,
+     pn(3)=0.005d0,pns(3)=0.0005d0
+ &
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=43
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=44
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=45
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=46
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=47
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=48
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=49
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=50
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=51
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=52
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+ rf=53
+w
+g
+pp3
+1
+rea
+1
+1
+x
+#
+q

@@ -1,0 +1,15 @@
+ &wm
+ BB=4.D0
+ RR=4.D0
+ RA=1.D0
+ RB=1.2D0
+ Q0=1.D0
+ QA=2.D0
+ NSMAX=2
+ PA(2)=2.D0
+ PZ(2)=1.D0
+ PN(1)=1.D0  
+ PNS(1)=1.D0
+ PN(2)=1.D0  
+ PNS(2)=1.D0
+ &end

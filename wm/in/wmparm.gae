@@ -1,0 +1,2 @@
+ &wm modelg=0 nph0=19 nth0=-1 q0=1000 qa=1000 
+     nsmax=2 pn=1,1, pns=0.1,0.1,&end

@@ -1,0 +1,54 @@
+### $Id$ ###
+## LAPACK library
+## If you don't have LAPACK library,
+## OBJLA =
+## delete wmtae.f from SRCX in wm/Makefile
+## and comment out CALL WMTAE in wm/wmmain.f
+
+OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+
+## mpi compile command
+MFC = mpif77
+
+## ftnchek options
+FCKFLAGS = -array=0 -usage=no-com-block-unused
+
+# for Linux
+FLIBS=-L /usr/local/lib -lg3d -lgsp -lgdp -L /usr/X11R6/lib -lX11 -lm
+
+# for HPUX
+#FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
+#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl -lm
+#OFLAGS = +T -K  +O2
+#DFLAGS = +T -K -g -C
+#FC=f77
+
+# for Solaris
+#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so \
+#/usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so -lm
+#OFLAGS = -O
+#DFLAGS = -g
+#FC=f77
+
+# for DEC OS
+#FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
+#        -lX11 -lm
+##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
+#OFLAGS = -O -fpe1
+#FC = f77
+
+## for g77
+#OFLAGS = -g -O
+#DFLAGS = -g -fbounds-check
+#FC = g77
+
+## for pgf77
+OFLAGS = -fast
+DFLAGS = -g -Mbounds -Minform,inform
+FC = pgf77
+
+## for Linux-alpha-compaq
+#OFLAGS = -fast
+#DFLAGS = -g -check overflow -check bounds
+#FC = fort
+#OBJLA = /usr/lib/libcxml.so

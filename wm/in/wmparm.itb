@@ -1,0 +1,17 @@
+ &wm
+   MODELG=2
+   NSMAX=2
+   PN(1)=0.5,0.5,
+   PNS(1)=0.5,0.5,
+   NPH0=1
+   NTH0=-3
+   NTHMAX=8
+   RHOMIN=0.5
+   Q0=3.0
+   QMIN=2.5
+   QA=5.0
+   RHOITB=0.5
+   PNITB=0.0
+   MODENW=1
+   MODELP=3
+ &end

@@ -1,0 +1,360 @@
+C     $Id$
+C
+C     ****** CALCULATE LOCAL MAGNETIC FIELD ******
+C
+      SUBROUTINE PLMAG(X,Y,Z,PSIN)
+C
+      INCLUDE 'plcomm.h'
+      INCLUDE 'plcom2.h'
+C
+      IF(MODELG.EQ.0) THEN
+         RS   = X-RR
+         RHOL = RS/RA
+         PSIN = RHOL**2
+         CALL PLQPRF(PSIN,QL)
+         IF(RS.LE.0.D0) QL=-QL
+         BT   = BB
+         BP   = RS*BT/(RR*QL)
+         BX   = 0.D0
+         BY   = BB
+         BZ   = BP
+C
+      ELSEIF(MODELG.EQ.1) THEN
+         RS =SQRT((X-RR)**2+Z**2)
+         RHOL=RS/RA
+         PSIN=RHOL**2
+         IF(RS.LE.0.D0) THEN
+            BX   = 0.D0
+            BY   = BB
+            BZ   = 0.D0
+         ELSE
+            CALL PLQPRF(PSIN,QL)
+            RSINT= Z/RS
+            RCOST= (X-RR)/RS
+            BT   = BB
+            BP   = RS*BT/(RR*QL)
+            BX   =-BP*RSINT
+            BY   = BB
+            BZ   = BP*RCOST
+         ENDIF
+C
+      ELSEIF(MODELG.EQ.2) THEN
+         RL=SQRT(X**2+Y**2)
+         RS =SQRT((RL-RR)**2+Z**2)
+         RHOL=RS/RA
+         PSIN=RHOL**2
+         IF(RS.LE.0.D0) THEN
+            BT   = BB
+            BR   = 0.D0
+            BZ   = 0.D0
+         ELSE
+            CALL PLQPRF(PSIN,QL)
+            RSINP= Z/RS
+            RCOSP= (RL-RR)/RS
+            BT   = BB/(1.D0+RS*RCOSP/RR)
+            BP   = RS*BT/(RR*QL)
+            BR   =-BP*RSINP
+            BZ   = BP*RCOSP
+         ENDIF
+         RCOST=X/RL
+         RSINT=Y/RL
+         BX = BR*RCOST-BT*RSINT
+         BY = BR*RSINT+BT*RCOST
+C
+      ELSEIF(MODELG.EQ.3) THEN
+         RL=SQRT(X**2+Y**2)
+         PP=0.D0
+         CALL GETRZ(RL,Z,PP,BR,BZ,BT,PSIN)
+C         WRITE(6,'(1P6E12.4)') RL,ZZ,BR,BZ,BT,PSIN
+         RCOST=X/RL
+         RSINT=Y/RL
+         BX = BR*RCOST-BT*RSINT
+         BY = BR*RSINT+BT*RCOST
+      ENDIF
+C
+      BABS = SQRT(BX**2+BY**2+BZ**2)
+C
+      IF(BABS.LE.0.D0) THEN
+         BNX = 0.D0
+         BNY = 1.D0
+         BNZ = 0.D0
+      ELSE
+         BNX = BX/BABS
+         BNY = BY/BABS
+         BNZ = BZ/BABS
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE PLASMA PROFILE ******
+C
+      SUBROUTINE PLPROF(PSIN)
+C
+      INCLUDE 'plcomm.h'
+      INCLUDE 'plcom2.h'
+C
+      IF(PSIN.LE.0.D0) THEN
+         RHOL=0.D0
+      ELSE
+         RHOL=SQRT(PSIN)
+      ENDIF
+C
+      IF(MODELN.EQ.0) THEN
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =PNS(NS)
+               RTPR(NS)=PTS(NS)
+               RTPP(NS)=PTS(NS)
+               RU(NS)  =PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+         ELSE
+            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            DO NS=1,NSMAX
+               RN(NS)  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+               RTPR(NS)=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+               RTPP(NS)=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
+               RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               RZCL(NS)=PZCL(NS)
+               IF(RHOL.LT.RHOITB) THEN
+                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
+                  RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
+                  RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
+                  RU(NS)  =RU(NS)  +PUITB(NS)*FACTITB
+               ENDIF
+            ENDDO
+         ENDIF
+C
+      ELSEIF(MODELN.EQ.1) THEN
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =PNS(NS)
+               RTPR(NS)=PTS(NS)
+               RTPP(NS)=PTS(NS)
+               RU(NS)  =PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+         ELSE
+            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            DO NS=1,NSMAX
+               RN(NS)  =PN(NS)  *FACTN
+               RTPR(NS)=PTPR(NS)*FACTT
+               RTPP(NS)=PTPP(NS)*FACTT
+               RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+            PTOT=0.D0
+            DO NS=1,NSMAX
+               PTOT=PTOT+RN(NS)*(RTPR(NS)+RTPP(NS)*2)/3
+            ENDDO
+            PTOT=PTOT*1.D20*1.D3/AEE
+            CALL GETPP(PSIN,PL)
+            FACT=PL/PTOT
+            DO NS=1,NSMAX
+               RTPR(NS)=FACT*RTPR(NS)
+               RTPP(NS)=FACT*RTPP(NS)
+            ENDDO
+         ENDIF
+C
+      ELSEIF(MODELN.EQ.2) THEN
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =PNS(NS)
+               RTPR(NS)=PTS(NS)
+               RTPP(NS)=PTS(NS)
+               RU(NS)  =PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+         ELSE
+            PTOT=PTOT*1.D20*1.D3/AEE
+            CALL GETPP(0.D0,PL0)
+            CALL GETPP(PSIN,PL)
+            FACT=SQRT(PTOT*PL/PL0)
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            DO NS=1,NSMAX
+               RN(NS)  =PN(NS)  *FACT
+               RTPR(NS)=PTPR(NS)*FACT
+               RTPP(NS)=PTPP(NS)*FACT
+               RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+         ENDIF
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE Q PROFILE ******
+C
+      SUBROUTINE PLQPRF(PSIN,QL)
+C
+      INCLUDE 'plcomm.h'
+C
+      IF(PSIN.LE.0.D0) THEN
+         RHOL=0.D0
+      ELSE
+         RHOL=SQRT(PSIN)
+      ENDIF
+C
+      IF(MODELG.LE.2) THEN
+         IF(MODELQ.EQ.0) THEN
+            IF(RHOL.GT.1.D0) THEN
+               QL = QA*RHOL**2
+            ELSEIF(RHOMIN.LE.0.D0)THEN
+               QL =(Q0-QA)*(1-RHOL**2)+QA
+            ELSE
+               QSA0    =1/Q0-1/QMIN
+               QSAA    =1/QA-1/QMIN
+               IF(RHOL.LE.RHOMIN)THEN
+                  QL =1/(1/Q0-QSA0*(3*RHOL**2/RHOMIN**2
+     &                       -2*RHOL**3/RHOMIN**3))
+               ELSE
+                  QL =1/(1/QMIN+3*QSA0*(RHOL-RHOMIN)**2/RHOMIN**2
+     &                  +(QSAA-3*QSA0*(1-RHOMIN)**2/RHOMIN**2)
+     &                    *(RHOL-RHOMIN)**3/(1-RHOMIN)**3)
+               ENDIF
+            ENDIF
+         ELSEIF(MODELQ.EQ.1) THEN
+            QA=2.D0*PI*RA*RA*BB/(RMU0*RIP*1.D6*RR)
+            Q0=QA/(1.D0+PROFJ)
+            IF(RHOL.GE.1.D0) THEN
+               QL = QA*RHOL**2
+            ELSEIF(RHOL.LE.1.D-30) THEN
+               QL = Q0
+            ELSE
+               QL=QA*RHOL**2/(1.D0-(1.D0-RHOL**2)**(PROFJ+1.D0))
+            ENDIF
+         ENDIF
+      ELSE
+         CALL GETQP(RHOL**2,QL)
+      ENDIF
+      RETURN
+      END
+C
+C     ****** CALCULATE BMIN ON MAG SURFACE ******
+C
+      SUBROUTINE PLBMIN(PSIN,BMINL)
+C
+      INCLUDE 'plcomm.h'
+C
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         RS=RSPSIN(PSIN)
+         BMINT= BB
+         CALL GETQP(PSIN,QL)
+         BMINP= RS*BMINT/(RR*QL)
+         BMINL= SQRT(BMINT**2+BMINP**2)
+      ELSEIF(MODELG.EQ.2) THEN
+         RS=RSPSIN(PSIN)
+         BMINT= BB/(1+RS/RR)
+         CALL GETQP(PSIN,QL)
+         BMINP= RS*BMINT/((RR+RS)*QL)
+         BMINL= SQRT(BMINT**2+BMINP**2)
+      ELSEIF(MODELG.EQ.3) THEN
+         CALL GETRMX(PSIN,RRMAXL)
+         BTL=BB*RR/RRMAXL
+         CALL PLQPRF(PSIN,QL)
+         BPL=RS*BTL/(RR*QL)
+         BMINL=SQRT(BTL**2+BPL**2)
+      ENDIF
+      RETURN
+      END
+C
+C     ****** CALCULATE RRMIN AND RRMAX ON MAG SURFACE ******
+C
+      SUBROUTINE PLRRMX(PSIN,RRMINL,RRMAXL)
+C
+      INCLUDE 'plcomm.h'
+C
+      IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+         RRMINL=RR
+         RRMAXL=RR
+      ELSEIF(MODELG.EQ.2) THEN
+         RS=RSPSIN(PSIN)
+         RRMINL=RR-RS
+         RRMAXL=RR+RS
+      ELSEIF(MODELG.EQ.3) THEN
+         CALL GETRMN(PSIN,RRMINL)
+         CALL GETRMX(PSIN,RRMAXL)
+      ENDIF
+      RETURN
+      END
+C
+C     ***** AVERAGE MINOR RADIUS FOR PARABOLIC Q PROFILE *****
+C
+      FUNCTION RSPSIN(PSIN)
+C
+      INCLUDE 'plcomm.h'
+C
+      IF(MODELG.LT.3) THEN
+         IF(PSIN.LE.0.D0) THEN
+           RHOL=0.D0
+         ELSE
+           RHOL=SQRT(PSIN)
+         ENDIF
+         RSPSIN=RHOL*RA
+      ELSEIF(MODELG.EQ.3) THEN
+         PSINT=PSIN
+         CALL GETRMN(PSINT,RRMINL)
+         CALL GETRMX(PSINT,RRMAXL)
+         RSPSIN=0.5D0*(RRMAXL-RRMINL)
+      ENDIF
+      RETURN
+      END
+C
+C     ***** PLASMA MAGNETIC AXIS *****
+C
+      SUBROUTINE PLAXIS(RAXIS,ZAXIS)
+C
+      INCLUDE 'plcomm.h'
+C
+      IF(MODELG.LT.3) THEN
+         RAXIS=RR
+         ZAXIS=0.D0
+      ELSEIF(MODELG.EQ.3) THEN
+         CALL GETAXS(RAXIS,ZAXIS)
+      ENDIF
+      RETURN
+      END
+C
+C     ***** PLASMA BOUNDARY *****
+C
+      SUBROUTINE PLRZSU(RSU,ZSU,NM,NSUMAX)
+C
+      INCLUDE 'plcomm.h'
+C
+      DIMENSION RSU(NM),ZSU(NM)
+C
+      IF(MODELG.EQ.0)THEN
+         NSUMAX=5
+         RSU(1)=RR-RA
+         ZSU(1)=  -RA
+         RSU(2)=RR+RA
+         ZSU(2)=  -RA
+         RSU(3)=RR+RA
+         ZSU(3)=  +RA
+         RSU(4)=RR-RA
+         ZSU(4)=  +RA
+         RSU(5)=RR-RA
+         ZSU(5)=  -RA
+      ELSEIF(MODELG.EQ.1.OR.MODELG.EQ.2) THEN
+         NSUMAX=MIN(NM,101)
+         DTH=2.D0*PI/(NSUMAX-1)
+         DO NSU=1,NSUMAX
+            TH=(NSU-1)*DTH
+            RSU(NSU)=RR+     RA*COS(TH)
+            ZSU(NSU)=   RKAP*RA*SIN(TH)
+         ENDDO
+      ELSEIF(MODELG.EQ.3) THEN
+         CALL GETRSU(RSU,ZSU,NM,NSUMAX)
+      ENDIF
+      RETURN
+      END
+
+
+

@@ -1,0 +1,39 @@
+0
+f
+gsdata.H1
+c
+p
+ &wm nthmax=16,nphmax=4,nrmax=100,
+     modelg=4,modelm=5,modelp=2,ngraph=2,
+     rf=50,nph0=8,
+     pn(1)=0.100d0,pns(1)=0.01d0,
+     pn(2)=0.095d0,pns(2)=0.0095d0,
+     pn(3)=0.005d0,pns(3)=0.0005d0
+ &
+w
+ngraph=1
+g
+peti
+1
+peti
+2
+peti
+3
+peti
+4
+x
+ngraph=2
+g
+pp3
+1
+pp3
+2
+pp3
+3
+pp3
+4
+rea
+1
+1
+x
+q

@@ -1,0 +1,289 @@
+C     $Id$
+C
+C     ***********************************************************
+C
+C           HELP MESSAGE CONTROL SUBROUTINE
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHELP(KID)
+C
+      CHARACTER*1 KID
+C
+      IF(KID.EQ.'M') CALL TRHLPM
+      IF(KID.EQ.'G') CALL TRHLPG
+      IF(KID.EQ.'W') CALL TRHLPW
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           HELP MESSAGE FOR MENU
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHLPM
+C
+      CHARACTER*1 KID
+C
+    1 WRITE(6,601)
+  601 FORMAT(
+     &1H ,'# INPUT FIRST CHARACTER OF MENU ITEMS:'/
+     &1H ,' (R)UN       : START NEW TRANSPORT CALCULATION'/
+     &1H ,'               AFTER PARAMETER INPUT.'/
+     &1H ,' (C)ONTINUE  : CONTINUE CALCULATION WITH SAME PARAMETERS.'/
+     &1H ,' (P)ARAMETER : CHANGE PARAMETERS AND CONTINUE CALCULATION.'/
+     &1H ,' (G)RAPH     : GRAPHIC PRESENTATION OF TRANSPORT DATA.'/
+     &1H ,' (W)RITE     : PRINT DETAIL OF TRANSPORT DATA.')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,602)
+  602 FORMAT(
+     &1H ,' (S)AVE      : SAVE TRANSPORT DATA OF PRESENT CALCULATION'/
+     &1H ,'               INTO FILE.'/
+     &1H ,' (L)OAD      : LOAD TRANSPORT DATA FROM FILE AND CONTINUE'/
+     &1H ,'               OLD CALCULATION AFTER PARAMETER INPUT.'/
+     &1H ,' (H)ELP      : SHOW HELP MESSAGE WHICH YOU ARE READING.'/
+     &1H ,' (E)ND       : TERMINATE TRANSPORT CODE.'/
+     &1H ,'# IF YOU NEED LIST OF INPUT PARAMETERS THROUGH NAMELIST ',
+     &    '&TR, INPUT P.'/
+     &1H ,'   ANY OTHER CHARACTER BRINGS YOU BACK TO INITIAL MENU.')
+      READ(5,'(A1)',ERR=1,END=900) KID
+      CALL GUCPTL(KID)
+      IF(KID.EQ.'P') CALL TRHLPP
+  900 RETURN
+      END
+C
+C     ***********************************************************
+C
+C           HELP MESSAGE FOR GRAPHIC MENU
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHLPG
+C
+      WRITE(6,601)
+  601 FORMAT(
+     &1H ,'          ***  GRAPHIC INFORMATION  ***'/
+     &1H ,'# INPUT GRAPH TYPE OR FIRST CHARACTER OF MENU ITEMS:'/
+     &1H ,' (R1)    : RADIAL PROFILE OF N AND T.'/
+     &1H ,' (R2)    : RADIAL PROFILE OF W AND BETA.'/
+     &1H ,' (R3)    : RADIAL PROFILE OF POWER.'/
+     &1H ,' (R4)    : RADIAL PROFILE OF Q,EZ,J,S.'/
+     &1H ,' (R5)    : RADIAL PROFILE OF ZEFF,IMPURITY.'/
+     &1H ,' (R6)    : RADIAL PROFILE OF PIN,SSIN,PELLET.'/
+     &1H ,' (R7)    : RADIAL PROFILE OF ETA,AK.'/
+     &1H ,' (R8)    : RADIAL PROFILE OF DEDW,DIDW,ETAC,ETAI,LN,LT'/
+     &1H ,' (R9)    : RADIAL PROFILE OF AD,AV,AVK,TAUB,TAUF.')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,602)
+  602 FORMAT(
+     &1H ,' (G1/P1) : RADIAL/TEMPORAL PROFILE OF NE,ND,NT,NA.'/
+     &1H ,' (G2/P2) : RADIAL/TEMPORAL PROFILE OF TE,TD,TT,TA.'/
+     &1H ,' (G3/P3) : RADIAL/TEMPORAL PROFILE OF Q,JTOT,EZOH,JOH.'/
+     &1H ,' (G4/P4) : RADIAL/TEMPORAL PROFILE OF JNB,JBS,WB,WF.'/
+     &1H ,' (G5/P5) : RADIAL/TEMPORAL PROFILE OF PIN,POH,PNB,PNF.'/
+     &1H ,' (T1)    : TIME EVOLUTION OF T0,I,PIN,POUT.'/
+     &1H ,' (T2)    : TIME EVOLUTION OF W,T0,TAV,ANE.'/
+     &1H ,' (T3)    : TIME EVOLUTION OF TAUE,QF,BETA.'/
+     &1H ,' (T4)    : TIME EVOLUTION OF VLOOP,LI,Q0,RQ1.')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,603)
+  603 FORMAT(
+     &1H ,' (C)     : CLEAR GRAPHIC DATA GVR AND GVT.'/
+     &1H ,' (S)     : SAVE GRAPHIC DATA.'/
+     &1H ,' (L)     : LOAD GRAPHIC DATA.'/
+     &1H ,' (Q)     : CHANGE GRAPH SCALE INQUIRE MODE.'/
+     &1H ,' (H)ELP  : SHOW HELP MESSAGE WHICH YOU ARE READING.'/
+     &1H ,' (E)ND   : GO BACK TO MAIN MENU.')
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           HELP MESSAGE FOR WRITE MENU
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHLPW
+C
+      WRITE(6,601)
+  601 FORMAT(
+     &1H ,'          ***  TR INFORMATION  ***'/
+     &1H ,'# INPUT PRINT TYPE OR FIRST CHARACTER OF MENU ITEMS:'/
+     &1H ,' (1)    : DETAIL OF GLOBAL DATA.'/
+     &1H ,' (2)    : Q PROFILE.'/
+     &1H ,' (3)    : USED CPU TIME.'/
+     &1H ,' (4)    : MIN MAX OF GVT DATA.'/
+     &1H ,' (5)    : SHOW GRAPHIC INFORMATION (NGR,NGT)'/
+     &1H ,' (H)ELP : SHOW HELP MESSAGE WHICH YOU ARE READING.'/
+     &1H ,' (E)ND  : GO BACK TO MAIN MENU.')
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           LIST OF INPUT PARAMETERS
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHLPP
+C
+      WRITE(6,601)
+  601 FORMAT(
+     &1H ,'# INPUT PARAMETERS THROUGH NAMELIST &TR ##'/
+     &1H ,'      ==== DEVICE PARAMETERS ===='/
+     &1H ,'  RR     : PLASMA MAJOR RADIUS (M)'/
+     &1H ,'  RA     : PLASMA MINOR RADIUS (M)'/
+     &1H ,'  RKAP   : ELIPTICITY OF POLOIDAL CROSS SECTION'/
+     &1H ,'  BB     : TOROIDAL MAGNETIC FIELD ON PLASMA AXIS (T)'/
+     &1H ,'  RIPS   : INITIAL VALUE OF PLASMA CURRENT (MA)'/
+     &1H ,'  RIPE   : FINAL VALUE OF PLASMA CURRENT (MA)')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,603)
+  603 FORMAT(
+     &1H ,'      ==== PLASMA PARAMETERS ===='/
+     &1H ,'  NSMAX  : NUMBER OF PARTICLE SPECIES (NS=1:ELECTRON)'/
+     &1H ,'  PA(IS) : ATOMIC NUMBER'/
+     &1H ,'  PZ(IS) : CHARGE NUMBER'/
+     &1H ,'  PN(IS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)'/
+     &1H ,'  PNS(IS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)'/
+     &1H ,'  PT(IS) : INITIAL TEMPERATURE ON AXIS (KEV)'/
+     &1H ,'  PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,604)
+  604 FORMAT(
+     &1H ,'  PROFN*: PROFILE PARAMETER OF INITIAL DENSITY'/
+     &1H ,'  PROFT*: PROFILE PARAMETER OF INITIAL TEMPERATURE'/
+     &1H ,'  PROFU*: PROFILE PARAMETER OF INITIAL CURRENT DENSITY'/
+     &1H ,'  PROFJ*: PROFILE PARAMETER OF NEUTRAL DENSITY')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,605)
+  605 FORMAT(
+     &1H ,'      ==== IMPURITY PARAMETERS ===='/
+     &1H ,'  PNC    : CARBON DENSITY FACTOR'/
+     &1H ,'  PNFE   : IRON DENSITY FACTOR'/
+     &1H ,'              COMPARED WITH ITER PHYSICS DESIGN GUIDELINE'/
+     &1H ,'  PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)'/
+     &1H ,'  PNNUS  :                        ON SURFACE (1.E20 M**-3)'/
+     &1H ,'      ==== TRANSPORT PARAMETERS ===='/
+     &1H ,'  AD0    : INWARD PARTICLE DIFFUSION COEFFICIENT (M2/S)'/
+     &1H ,'  CNC    : COEFFICIENT FOR NEOCLASICAL DIFFUSION'/
+     &1H ,'  CDW    : COEFFICIENTS OF DW MODEL')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,606)
+  606 FORMAT(
+     &1H ,'  ALP(1) : RAIDUS REDUCTION FACTOR'/
+     &1H ,'  ALP(2) : MASS WEIGHTING FACTOR OF AD'/
+     &1H ,'  ALP(3) : CHARGE WEIGHTING FACTOR OF ADL'/
+     &1H ,'  MDLKAI : DW TRANSPORT MODEL TYPE'/
+     &1H ,'           0:GYRO-BOHM  1:ETAC=1  2:ROMANELLI 3 :ITOH'/
+     &1H ,'  MDLETA : RESISTIVITY MODEL TYPE'/
+     &1H ,'           0:CLASSICAL 1:NEOCLASSICAL'/
+     &1H ,'  MDLAD  : PARTICLE DIFFUSION MODEL TYPE'/
+     &1H ,'           0:NO PARTICL TRANSPORT 1:CONSTANT D'/
+     &1H ,'  MDLAVK : HEAT PINCH MODEL TYPE'/
+     &1H ,'           0:NO HEAT PINCH')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,607)
+  607 FORMAT(
+     &1H ,'      ==== CONTROL PARAMETERS ===='/
+     &1H ,'  NRMAX  : NUMBER OF RADIAL MESH POINTS'/
+     &1H ,'  DT     : SIZE OF TIME STEP'/
+     &1H ,'  NTMAX  : NUMBER OF TIME STEP'/
+     &1H ,'  NTSTEP : INTERVAL OF SNAP DATA PRINT'/
+     &1H ,'  NGRSTP : INTERVAL OF RADIAL PROFILE SAVE'/
+     &1H ,'  NGTSTP : INTERVAL OF TIME EVOLUTION SAVE'/
+     &1H ,'  EPSLTR : CONVERGENCE CRITERION OF ITERATION'/
+     &1H ,'  LMAXTR : MAXIMUM COUNT OF ITERATION')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,608)
+  608 FORMAT(
+     &1H ,'      ==== SAWTOOTH PARAMETERS ===='/
+     &1H ,'  TPRST  : SAWTOOTH PERIOD (S)'/
+     &1H ,'  MDLST  : SAWTOOTH MODEL TYPE'/
+     &1H ,'           0:OFF  1:ON'/
+     &1H ,'      ==== FUSION REACTION PARAMETERS ===='/
+     &1H ,'  MDLNF  : FUSION REACTION MODEL TYPE'/
+     &1H ,'           0:OFF  1:ON'/
+     &1H ,'      ==== NBI HEATING PARAMETERS ===='/
+     &1H ,'  PNBTOT : NBI TOTAL INPUT POWER (MW)'/
+     &1H ,'  PNBR0  : RADIAL POSITION OF NBI POWER DEPOSITION (M)'/
+     &1H ,'  PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)'/
+     &1H ,'  PNBENG : NBI BEAM ENERGY (KEV)'/
+     &1H ,'  PNBRT  : TANGENTIAL RADIUS OF NBI BEAM (M)'/
+     &1H ,'  MDLNB  : NBI MODEL TYPE'/
+     &1H ,'           0:OFF  1:GAUSSIAN  2:PENCIL BEAM')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,609)
+  609 FORMAT(
+     &1H ,'      ==== RF HEATING PARAMETERS ===='/
+     &1H ,'  PRFTOT : RF INPUT POWER (MW)'/
+     &1H ,'  PRFR0  : RADIAL POSITION OF RF POWER DEPOSITION (M)'/
+     &1H ,'  PRFRW  : RADIAL WIDTH OF RF POWER DEPOSITION (M)'/
+     &1H ,'  DIVRF  : DIVISION OF RF POWER TO PARTICLE SPECIES'/
+     &1H ,'      ==== CURRENT DRIVE PARAMETERS ===='/
+     &1H ,'  PNBCD  : CURRENT DRIVE EFFICIENCY FACTOR OF NBI'/
+     &1H ,'  PRFCD  : CURRENT DRIVE EFFICIENCY FACTOR OF RF'/
+     &1H ,'  PBSCD  : BOOTSTRAP CURRENT DRIVE FACTOR'/
+     &1H ,'  MDLCD  : CURRENT DRIVE MODE TYPE'/
+     &1H ,'           0:CONSTANT IP  1:NO OHMIC')
+      CALL TRHLPQ(IEND)
+      IF(IEND.EQ.1) RETURN
+C
+      WRITE(6,610)
+  610 FORMAT(
+     &1H ,'       ==== PELLET PARAMETERS ===='/
+     &1H ,'  MDLPEL : PELLET INJECTION MODEL TYPE'/
+     &1H ,'           0:OFF  1:GAUSSIAN  2:NAKAMURA  3:HO'/
+     &1H ,'  PELTOT : TOTAL NUMBER OF PARTICLES IN PELLET'/
+     &1H ,'  PELR0  : RADIAL POSITION OF PELLET DEPOSITION (M)'/
+     &1H ,'  PELRW  : RADIAL WIDTH OF PELLET DEPOSITION (M)'/
+     &1H ,'  PELTIM : TIME FOR PELLET TO BE INJECTED'/
+     &1H ,'  PELRAD : RADIUS OF PELLET (M)'/
+     &1H ,'  PELVEL : PELLET INJECTION VELOCITY (M/S)'/
+     &1H ,'  PELPAT : PARTICLE RATIO IN PELLET')
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           INQUIRY IN HELP MESSAGE
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRHLPQ(IEND)
+C
+      CHARACTER*1 KID
+C
+      IEND=0
+    1 WRITE(6,*) '# INPUT "E" KEY TO GO BACK TO MENU, ',
+     &           'OTHERWISE CONTINUE HELP.'
+      READ(5,'(A1)',ERR=1,END=900) KID
+      CALL GUCPTL(KID)
+      IF(KID.EQ.'E') IEND=1
+  900 RETURN
+      END

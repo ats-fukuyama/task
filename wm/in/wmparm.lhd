@@ -1,0 +1,7 @@
+ &wm nthmax=8,nphmax=4,nrmax=100,
+     modelg=4,modelm=5,modelp=4,
+     rf=50,nph0=16,
+     pn(1)=0.100d0,pns(1)=0.01d0,
+     pn(2)=0.095d0,pns(2)=0.0095d0,
+     pn(3)=0.005d0,pns(3)=0.0005d0
+ &

@@ -1,0 +1,45 @@
+0
+f
+gsdata.iam20
+c
+p
+ &wm
+   NGRAPH=2
+   MODELG=3
+   MODELJ=0
+   MODELP=4
+   MODELM=0
+   RF=20,NPH0=21,RD=1.1,THJ1(1)=-30,THJ2(1)=30,
+   NSMAX=3,ZEFF=1.32,
+   PA(2)=2,PZ(2)=1,
+   PA(3)=3,PZ(3)=1,
+   PN(1)=1.4,0.4,1.0
+   PNS(1)=0.8,0.2286,0.5714
+   PTPP(1)=19.,19.,19.
+   PTPR(1)=19.,19.,19.
+   PTS(1)=0.05,0.05,0.05
+   PROFN1=2.0
+   PROFN2=0.26
+   PROFT1=2.0
+   PROFT2=1.0
+   KNAMEQ='eqdata.iam20'
+   NRMAX=100
+   NTHMAX=16
+   NTH0=0
+ &end
+v
+w
+g
+rea
+1
+perr
+peri
+petr
+peti
+pezr
+pezi
+pp1
+pp2
+pp3
+x
+q

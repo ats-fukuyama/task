@@ -1,0 +1,21 @@
+0
+f
+gsdata.iam20
+c
+p
+ &eq 
+   RR=6.2
+   RA=1.9
+   RB=2.1
+   BB=5.51
+   RIP=13.3
+   RKAP=1.67
+   RDLT=0.34
+ &end
+r
+c
+ 0.64/
+g
+s
+eqdata.iam20
+q

@@ -1,0 +1,63 @@
+2000/10/31 V3.42
+        MODELK is fixed to 0. Do not use MODELK=1.
+        Harmonics sum modified in wmdisp.f
+        Many other bug fixes.
+
+2000/08/11 V3.41
+	Pofile data handling for MODELM=9 updated: wmxprf.f ...
+        Name of Pabs variables were changed
+
+2000/08/10 V3.40
+	Alfven eigenmode structure can be drawn.
+	wmtae.f requires LAPACK library.
+	If LAPACK library is not available,
+	   comment CALL WMTAE in wmmain.f
+	   and delete wmtae.f in Makefile
+	Profile data can be read from file when MODELN=9.
+	Input parameters WAEMIN,WAEMAX,MODELN added.
+
+2000/01/28 V3.32
+	Input parameters PU,PUS,PROFU1,PROFU2 added.
+	Input parameters PNITB,PTITB,PUITB added as an array.
+	NGRAPH=4 is now working.
+
+1999/24/04 V3.31
+	Input parameters RHOMIN,QMIN,PNITB,RHOITB added.
+
+1999/08/04 V3.30
+	Input interface modified.
+	Multi mode radial graph
+	Eigenmode routine reconstructed.
+
+C
+C*** /TASK/WM **********************************************************
+C*                                                                     *
+C*                           ANALYSIS OF                               *
+C*                ICRF WAVE PROPAGATION AND ABSORPTION                 *
+C*                ------------------------------------                 *
+C*                         HOT or COLD PLASMA                          *
+C*                    3-DIMENSIONAL INHOMOGENEITY                      *
+C*                 FIRST ORDER FINITE ELEMENT METHOD                   *
+C*                           FLUX COORDNATE                            *
+C*                  MODE EXPANSION IN THETA AND PHI                    *
+C*                                                                     *
+C*                           T. KOHSAKA                                *
+C*                           H. KIMURA                                 *
+C*                           T. MIZOTA                                 *
+C*                           T. TOHNAI                                 *
+C*                        OKAYAMA UNIVERSITY                           *
+C*                           A. FUKUYAMA                               *
+C*                         KYOTO UNIVERSITY                            *
+C*                                                                     *
+C*                         V1.02  91/07/12  ORIGINAL VERSION           *
+C*                         V1.10  91/09/04  TOROIDAL GEOMETRY          *
+C*                         V1.20  91/09/20  DRIVEN CURRENT, FLR EFFECT *
+C*                         V1.30  91/12/25  EIGEN MODE                 *
+C*                         V1.40  92/03/30  TAE MODE                   *
+C*                         V1.50  92/06/03  MHD                        *
+C*                         V1.60  93/02/16  FINITE DIFFERENCE          *
+C*                         V2.00  94/09/16  NON CIRCULAR               *
+C*                         V3.00  96/11/16  3-DIMENSIONAL              *
+C*                         V3.22  99/02/13  3-DIMENSIONAL OK           *
+C*                                                                     *
+C***********************************************************************
