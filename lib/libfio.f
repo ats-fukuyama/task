@@ -133,20 +133,27 @@ C
       CALL KTRIM(KNAM,KL)
 C
       IF(LEX) THEN
-         IF(MODEP.EQ.2) THEN
-            MODEPI=1
-            GOTO 1000
-         ELSEIF(MODEP.EQ.3) THEN
+         IF(MODEPI.EQ.1) THEN
     2       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
             READ(5,'(A1)',ERR=2,END=9001) KID
             CALL GUCPTL(KID)
+            IF(KID.EQ.'N') GOTO 1000
+         ELSEIF(MODEPI.EQ.2) THEN
+            MODEPI=1
+            GOTO 1000
+         ELSEIF(MODEPI.EQ.3) THEN
+    3       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
+     &                 ') IS GOING TO BE OVERWRITTEN'
+            WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
+            READ(5,'(A1)',ERR=3,END=9001) KID
+            CALL GUCPTL(KID)
             IF(KID.EQ.'N') GOTO 9007
-         ELSEIF(MODEP.EQ.4) THEN
+         ELSEIF(MODEPI.EQ.4) THEN
             WRITE(6,*) 'XX FWOPEN: FILE ALREADY EXISTS.'
             GOTO 9007
-         ELSE
+         ELSEIF(MODEPI.NE.0) THEN
             WRITE(6,*) 'XX FWOPEN: UNKNOWN MODEP : MODEP=',MODEP
             GOTO 9003
          ENDIF

@@ -732,7 +732,7 @@ C
 C
       INCLUDE 'eqcomc.inc'
 C
-      CALL FWOPEN(21,KNAMEQ,1,1,'EQ',IERR)
+      CALL FWOPEN(21,KNAMEQ,0,1,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 C
       REWIND(21)
