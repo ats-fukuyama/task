@@ -1543,7 +1543,7 @@ C
             AD(NR,2) = ADDW(NR,2)+CNC*ADNC(NR,2)
             AD(NR,3) = ADDW(NR,3)+CNC*ADNC(NR,3)
             AD(NR,4) = ADDW(NR,4)+CNC*ADNC(NR,4)
-C            write(6,*) "D",NR,AD(NR,2)
+C            write(6,*) "D",NR,AD(NR,1)
 C
             AVDW(NR,1) = -AV0*ADDW(NR,1)*RR*EPS/RA**2
             AVDW(NR,2) = -AV0*ADDW(NR,2)*RR*EPS/RA**2
