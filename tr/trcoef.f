@@ -1210,10 +1210,30 @@ C
          AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
          AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
-C         write(6,*) "K",NR,AKNC(NR,2)
 C
   100 CONTINUE
 C
+C
+C     ***** NEOCLASSICAL TRANSPORT (NCLASS) *****
+C
+      IF(MDNCLS.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               DO NS1=1,NSMAX
+                  IF(NS.EQ.NS1) THEN
+                     AKNCLD(NR,NS,NS1)=AKDW(NR,NS)+AKNCT(NR,NS,NS1)
+     &                                            +AKNCP(NR,NS,NS1)
+                     AKNCLN(NR,NS,NS1)=AKDW(NR,NS)+AKNCT(NR,NS,NS1)
+                  ELSE
+                     AKNCLD(NR,NS,NS1)=            AKNCT(NR,NS,NS1)
+     &                                            +AKNCP(NR,NS,NS1)
+                     AKNCLN(NR,NS,NS1)=            AKNCT(NR,NS,NS1)
+                  ENDIF
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDIF
+C     
       RETURN
       END
 C
@@ -1313,6 +1333,15 @@ C
             ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
          ENDIF 
   150 CONTINUE
+C
+C
+C        ****** NEOCLASSICAL RESISTIVITY BY NCLASS  ******
+C
+      IF(MDNCLS.NE.0) THEN
+         DO NR=1,NRMAX
+            ETA(NR)=ETANC(NR)
+         ENDDO
+      ENDIF
 C
       RETURN
       END
@@ -1536,6 +1565,20 @@ C
          ENDDO
       ENDIF
 C
+C     *** NCLASS ***
+C
+      IF(MDNCLS.NE.0) THEN
+         DO NR=1,NRMAX
+            DO NS=1,NSMAX
+               AV(NR,NS)=AVNCS(NR,NS)
+               DO NS1=1,NSMAX
+                  ADNCLD(NR,NS,NS1)=                 ADNCT(NR,NS,NS1)
+                  ADNCLN(NR,NS,NS1)=ADNCP(NR,NS,NS1)+ADNCT(NR,NS,NS1)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDIF
+C
 C     /* for nuetral deuterium */
 C
       ACOEF(1)=-3.231141D+1
@@ -1607,6 +1650,16 @@ C
          ENDDO
          ENDDO
       ENDIF
+      ENDIF
+C
+C     *** NCLASS ***
+C
+      IF(MDNCLS.NE.0) THEN
+         DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            AVK(NR,NS)=AVKNCS(NR,NS)
+         ENDDO
+         ENDDO
       ENDIF
 C
       RETURN

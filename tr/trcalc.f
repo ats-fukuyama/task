@@ -52,25 +52,29 @@ C
       ENDIF
       CALL TRZEFF
 C
-C     CALL NCLASS
+      IF(MDNCLS.NE.0) CALL TR_NCLASS
 C
       CALL TRCOEF
       CALL TRLOSS
       CALL TRPWRF
       CALL TRPWNB
 C
-      IF(MDLJBS.EQ.1) THEN
-         CALL OLDTRAJBS
-      ELSEIF(MDLJBS.EQ.2) THEN
-         CALL TRAJBSO
-      ELSEIF(MDLJBS.EQ.3) THEN
-         CALL TRAJBS
-      ELSEIF(MDLJBS.EQ.4) THEN
-         CALL TRAJBSNEW
-      ELSEIF(MDLJBS.EQ.5) THEN
-         CALL TRAJBSSAUTER
+      IF(MDNCLS.NE.0) THEN
+         CALL TRAJBS_NCLASS
       ELSE
-         CALL TRAJBS
+         IF(MDLJBS.EQ.1) THEN
+            CALL OLDTRAJBS
+         ELSEIF(MDLJBS.EQ.2) THEN
+            CALL TRAJBSO
+         ELSEIF(MDLJBS.EQ.3) THEN
+            CALL TRAJBS
+         ELSEIF(MDLJBS.EQ.4) THEN
+            CALL TRAJBSNEW
+         ELSEIF(MDLJBS.EQ.5) THEN
+            CALL TRAJBSSAUTER
+         ELSE
+            CALL TRAJBS
+         ENDIF
       ENDIF
 C
       CALL TRALPH
@@ -399,6 +403,50 @@ C
          PCX(NR)=(-1.5D0*ANE*ANNU(NR)*SION*TNU
      &         +  1.5D0*ANDX*ANNU(NR)*SCX(NR)*(TD-TNU))*RKEV*1.D40
       ENDDO
+C
+      RETURN
+      END
+C
+C     ***********************************************
+C
+C         BOOTSTRAP CURRENT (NCLASS)
+C
+C     ***********************************************
+C
+      SUBROUTINE TRAJBS_NCLASS
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION ANI(NRM),AJBSL(NRM)
+C
+      IF(PBSCD.LE.0.D0) RETURN
+C
+      NSW=0
+      IF(NSW.EQ.0) THEN
+         DO NR=1,NRMAX
+            AJBS(NR)=PBSCD*AJBSNC(NR)
+         ENDDO
+      ELSE
+         DO NR=2,NRMAX
+            SUM=0.D0
+            DO NS=1,NSMAX
+               RTNW=0.5D0*(RT(NR-1,NS)+RT(NR,NS))
+               RPNW=0.5D0*(RN(NR-1,NS)*RT(NR-1,NS)
+     &                    +RN(NR  ,NS)*RT(NR  ,NS))
+               DRTNW=(RT(NR,NS)-RT(NR-1,NS))*AR1RHO(NR)/DR
+               DRPNW=(RN(NR,NS)*RT(NR,NS)-RN(NR-1,NS)*RT(NR-1,NS))
+     &              *AR1RHO(NR)/DR
+               SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW+CJBSP(NR,NS)*DRPNW/RPNW
+            ENDDO
+C
+            AJBSL(NR)=-PBSCD*SUM/BB
+         ENDDO
+C     
+         AJBS(1)=0.5D0*AJBSL(2)
+         DO NR=2,NRMAX-1
+            AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR+1))
+         ENDDO
+         AJBS(NRMAX)=AJBSL(NRMAX)
+      ENDIF
 C
       RETURN
       END

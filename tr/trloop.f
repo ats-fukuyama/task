@@ -1050,6 +1050,9 @@ C
                NJ=2
             ENDIF
             NRJ=NR+(NJ-2)
+C
+            IF(MDNCLS.EQ.0) THEN
+C
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
                   F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
@@ -1085,6 +1088,127 @@ C
                   VV(NEQ,NEQ-1,NMK,NSW)= FA(NI,NSW)*VOID
                   DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*VOID
                ENDIF
+            ENDIF
+C
+            ELSE
+C
+C     *** NCLASS ***
+C
+            IF(NSVN.EQ.0) THEN
+               IF(NSW.NE.3) THEN
+                  F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
+     &                   /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
+                  VV(NEQ,NEQ  ,NMK,NSW)= SIG(NMK)*F2C(NJ)*FC(NI,NSW)
+                  DD(NEQ,NEQ  ,NMK,NSW)=          F2C(NJ)*FC(NI,NSW)
+               ENDIF
+            ELSEIF(NSVN.EQ.1) THEN
+               IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
+                  IF(NRJ.EQ.NRMAX) THEN
+                     VV(NEQ,NEQ  ,NMK,NSW)=-FA(NI,NSW)
+     &                      *(AV(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)/PNSS(NSSN))
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
+     &                       * PNSS(NSSN)
+     &                       * ADNCLD(NRJ,NSSN1,NSSN)
+     &                       / PNSS(NSSN1)
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)
+     &                       * PNSS(NSSN)
+     &                       * ADNCLN(NRJ,NSSN1,NSSN)
+     &                       /(PNSS(NSSN1)*PTS(NSSN1))
+                     ENDIF
+                  ENDDO
+                  ELSE
+                     VV(NEQ,NEQ  ,NMK,NSW)=-FA(NI,NSW)
+     &                       *(AV(NRJ,NSSN)+RGFLS(NRJ,5,NSSN)
+     &                        /(0.5D0*(RN(NRJ,NSSN)+RN(NRJ+1,NSSN))))
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)
+     &                       * 0.5D0*(RN(NRJ,NSSN )+RN(NRJ+1,NSSN ))
+     &                       * ADNCLD(NRJ,NSSN1,NSSN)
+     &                       /(0.5D0*(RN(NRJ,NSSN1)+RN(NRJ+1,NSSN1)))
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)
+     &                       * 0.5D0*(RN(NRJ  ,NSSN )+RN(NRJ+1,NSSN ))
+     &                       * ADNCLN(NRJ,NSSN1,NSSN)
+     &                       /(0.5D0*(RN(NRJ  ,NSSN1)*RT(NRJ  ,NSSN1)
+     &                               +RN(NRJ+1,NSSN1)*RT(NRJ+1,NSSN1)))
+                     ENDIF
+                  ENDDO
+                  ENDIF
+               ENDIF
+            ELSEIF(NSVN.EQ.2) THEN
+               CC=1.5D0
+               IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
+                  IF(NRJ.EQ.NRMAX) THEN
+                  VV(NEQ,NEQ  ,NMK,NSW)=-FA(NI,NSW)*DV23
+     &                    *( AVK(NRJ,NSSN)+AV(NRJ,NSSN)*CC
+     &                      +RQFLS(NRJ,5,NSSN)
+     &                      /(PNSS(NSSN)*PTS(NSSN))
+     &                      +RGFLS(NRJ,5,NSSN)*CC
+     &                      / PNSS(NSSN))
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
+     &                       * PNSS(NSSN)*PTS(NSSN)
+     &                       *( AKNCLN(NRJ,NSSN1,NSSN)
+     &                         +ADNCLD(NRJ,NSSN1,NSSN)*CC)
+     &                       /PNSS(NSSN1)
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)*DV23
+     &                       * PNSS(NSSN)*PTS(NSSN)
+     &                       *( AKNCLD(NRJ,NSSN1,NSSN)
+     &                         +ADNCLN(NRJ,NSSN1,NSSN)*CC)
+     &                       /(PNSS(NSSN1)*PTS(NSSN1))
+                     ENDIF
+                  ENDDO
+                  ELSE
+                  VV(NEQ,NEQ  ,NMK,NSW)=-FA(NI,NSW)*DV23
+     &                    *( AVK(NRJ,NSSN)+AV(NRJ,NSSN)*CC
+     &                      +RQFLS(NRJ,5,NSSN)
+     &                      /(0.5D0*( RN(NRJ  ,NSSN)*RT(NRJ  ,NSSN)
+     &                               +RN(NRJ+1,NSSN)*RT(NRJ+1,NSSN)))
+     &                      +RGFLS(NRJ,5,NSSN)*CC
+     &                      /(0.5D0*( RN(NRJ,NSSN)  +RN(NRJ+1,NSSN))))
+                  DO NEQ1=1,NEQMAX
+                     NSSN1=NSS(NEQ1)
+                     NSVN1=NSV(NEQ1)
+                     IF(NSVN1.EQ.1) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
+     &                       * 0.5D0*( RN(NRJ  ,NSSN )*RT(NRJ  ,NSSN )
+     &                                +RN(NRJ+1,NSSN )*RT(NRJ+1,NSSN ))
+     &                       *( AKNCLN(NRJ,NSSN1,NSSN)
+     &                         +ADNCLD(NRJ,NSSN1,NSSN)*CC)
+     &                       /(0.5D0*( RN(NRJ  ,NSSN1)+RN(NRJ+1,NSSN1)))
+                     ELSEIF(NSVN1.EQ.2) THEN
+                        DD(NEQ,NEQ1,NMK,NSW)=-FB(NI,NSW)*DV23
+     &                       * 0.5D0*( RN(NRJ  ,NSSN )*RT(NRJ  ,NSSN )
+     &                                +RN(NRJ+1,NSSN )*RT(NRJ+1,NSSN ))
+     &                       *( AKNCLD(NRJ,NSSN1,NSSN)
+     &                         +ADNCLN(NRJ,NSSN1,NSSN)*CC)
+     &                       /(0.5D0*( RN(NRJ  ,NSSN1)*RT(NRJ  ,NSSN1)
+     &                                +RN(NRJ+1,NSSN1)*RT(NRJ+1,NSSN1)))
+                     ENDIF
+                  ENDDO
+                  ENDIF
+               ENDIF
+            ELSEIF(NSVN.EQ.3) THEN
+               IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
+                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*VOID
+                  DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*VOID
+                  VV(NEQ,NEQ-1,NMK,NSW)= FA(NI,NSW)*VOID
+                  DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*VOID
+               ENDIF
+            ENDIF
+C  
             ENDIF
          ENDDO
 C

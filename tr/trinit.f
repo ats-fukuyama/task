@@ -277,6 +277,11 @@ C      NFMAX=0   ! the number of fast particles
       NSCMAX=NSMAX+NSZMAX ! the number of charged particles
       NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
+C     *** NCLASS SWITCH ***
+C        0    : off
+C        else : on
+      MDNCLS=0
+C
       RETURN
       END
 C
@@ -297,7 +302,7 @@ C
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,
+     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,MDNCLS,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -398,7 +403,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF'/
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,NSMAX,NSZMAX,NSNMAX')
       END
@@ -506,7 +511,8 @@ C
      &             'MODELG',MODELG
 C
       WRITE(6,602) 'NTEQIT',NTEQIT,
-     &             'MDLUF ',MDLUF
+     &             'MDLUF ',MDLUF,
+     &             'MDNCLS',MDNCLS
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,

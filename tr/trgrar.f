@@ -410,6 +410,7 @@ C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,3,
      &           '@G,s,alpha vs r@',2+INQ)
 C
+      IF(MDNCLS.EQ.0) THEN
       DO NR=1,NRMAX
          GYR(NR+1,1) = GCLIP(AK(NR,1))
          GYR(NR+1,2) = GCLIP(AK(NR,2))
@@ -452,6 +453,38 @@ C         GYR(NRMAX+1,2) = GCLIP(AKNC(NRMAX,2)/2)
 C         GYR(NRMAX+1,3) = GCLIP(AKDW(NRMAX,2)/2)
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMp,NRMAX,3,
      &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+      ELSE
+      DO NR=1,NRMAX
+         GYR(NR+1,1) = GCLIP(AKDW(NR,1)+AKNCT(NR,1,1)+AKNCP(NR,1,1))
+         GYR(NR+1,2) = GCLIP(AKDW(NR,2)+AKNCT(NR,1,2)+AKNCP(NR,1,2))
+      ENDDO
+      GYR(1,1) = GCLIP(AKDW(1,1)+AKNCT(1,1,1)+AKNCP(1,1,1))
+      GYR(1,2) = GCLIP(AKDW(1,2)+AKNCT(1,1,2)+AKNCP(1,1,2))
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX,2,
+     &           '@AKE,AKI vs r @',2+INQ)
+C
+      DO NR=1,NRMAX-1
+         GYR(NR+1,1) = GCLIP(AKDW(NR,1)+AKNCT(NR,1,1)+AKNCP(NR,1,1))
+         GYR(NR+1,2) = GCLIP(AKNCT(NR,1,1)+AKNCP(NR,1,1))
+         GYR(NR+1,3) = GCLIP(AKDW(NR,1))
+      ENDDO
+         GYR(1,1) = GCLIP(AKDW(1,1)+AKNCT(1,1,1)+AKNCP(1,1,1))
+         GYR(1,2) = GCLIP(AKNCT(1,1,1)+AKNCP(1,1,1))
+         GYR(1,3) = GCLIP(AKDW(1,1))
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3,
+     &            '@AKE,AKNCE,AKDWE [m^2/s]  vs r@',2+INQ)
+C
+      DO NR=1,NRMAX-1
+         GYR(NR+1,1) = GCLIP(AKDW(NR,2)+AKNCT(NR,2,2)+AKNCP(NR,2,2))
+         GYR(NR+1,2) = GCLIP(AKNCT(NR,2,2)+AKNCP(NR,2,2))
+         GYR(NR+1,3) = GCLIP(AKDW(NR,2))
+      ENDDO
+         GYR(1,1) = GCLIP(AKDW(1,2)+AKNCT(1,2,2)+AKNCP(1,2,2))
+         GYR(1,2) = GCLIP(AKNCT(1,2,2)+AKNCP(1,2,2))
+         GYR(1,3) = GCLIP(AKDW(1,2))
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMp,NRMAX,3,
+     &            '@AKD,AKNCD,AKDWD [m^2/s]  vs r@',2+INQ)
+      ENDIF
 C
 C      DO NR=1,NRMAX-1
 C         GYR(NR+1,1) = GLOG(AK  (NR,3),1.D-2,1.D2)
