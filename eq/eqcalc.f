@@ -307,7 +307,7 @@ C
       IMDLEQF=MOD(MDLEQF,5)
       FDN=-1.D0/PSI0
 C
-C     --- Pressure and current profile ---
+C     --- Pressure and toroidal current profile ---
 C
       IF(IMDLEQF.EQ.0) THEN
          RRC=RAXIS
@@ -393,9 +393,56 @@ C
          ENDDO
          ENDDO 
 C
-C     --- Pressure and safety factor profile ---
+C     --- Pressure and parallel current profile ---
 C
       ELSEIF(IMDLEQF.EQ.2) THEN
+         RRC=RAXIS
+         FJP=0.D0
+         FJT=0.D0
+         DO NSG=1,NSGMAX
+         DO NTG=1,NTGMAX
+            PSIN=1.D0-PSI(NTG,NSG)/PSI0
+            PP(NTG,NSG)=PPSI(PSIN)
+            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+            HJP1(NTG,NSG)=FDN*RMM(NTG,NSG)*DPPSI(PSIN)
+            HJT1(NTG,NSG)=HJPSI(PSIN)
+            HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
+            HJP2B=EXP(RRC**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
+            HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
+            HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
+            HJP2E=0.5D0*PPSI(PSIN)*RMM(NTG,NSG)**3
+            HJP2F=FDN*AMP*(2.D0*OMGPSI(PSIN)*DOMGPSI(PSIN)/TPSI(PSIN)
+     &           -FDN*DTPSI(PSIN)*OMGPSI(PSIN)**2/TPSI(PSIN)**2)
+            HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
+            HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
+            DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
+C
+            FJP=FJP+HJP2(NTG,NSG)*DVOL
+            FJT=FJT+HJT2(NTG,NSG)*DVOL
+         ENDDO
+         ENDDO
+         TJ=(-RIP*1.D6-FJP)/FJT
+C
+         DO NSG=1,NSGMAX
+         DO NTG=1,NTGMAX
+            HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
+            PSIN=1.D0-PSI(NTG,NSG)/PSI0
+            TT(NTG,NSG)=SQRT(BB**2*RR**2
+     &           +2.D0*RMU0*RRC
+     &           *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
+     &           *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+            RHO(NTG,NSG)=(PPSI(PSIN)*AMP/TPSI(PSIN))
+     &           *EXP(RMM(NTG,NSG)**2*OMGPSI(PSIN)**2*AMP
+     &               /(2.D0*TPSI(PSIN)))
+         ENDDO
+         ENDDO
+C
+C     --- Pressure and safety factor profile ---
+C
+      ELSEIF(IMDLEQF.EQ.3) THEN
          CALL EQPSIQ
          FJP=0.D0
          FJT1=0.D0
@@ -628,6 +675,12 @@ C
             TTPS(NPS)=BB*RR+TJ*(FPSI(PSIN)-BB*RR)
             OMPS(NPS)=OMGPSI(PSIN)
          ELSEIF (IMDLEQF.EQ.2) THEN
+            OMPS(NPS)=OMGPSI(PSIN)
+            TTPS(NPS)=SQRT(BB**2*RR**2
+     &                  +2.D0*RMU0*RRC
+     &                  *(TJ*HJPSID(PSIN)/FDN-RRC*PPSI(PSIN)
+     &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
+         ELSEIF (IMDLEQF.EQ.3) THEN
             CALL FNFQT(PSIN,FQTL,DFQTL)
             QPSIL=QPSI(PSIN)
             TTPS(NPS)=QPSIL/FQTL

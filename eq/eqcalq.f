@@ -224,22 +224,29 @@ C
             RCHI(NA)=RCHI(1)
             ZCHI(NA)=ZCHI(1)
 C     
-C            CALL SPL1D(XCHI0,RCHI,DXCHI,URCHI,NA,4,IERR)
-            CALL SPL1D(XCHI1,RCHI,DXCHI,URCHI,NA,4,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
-C
-C            CALL SPL1D(XCHI0,ZCHI,DXCHI,UZCHI,NA,4,IERR)
-            CALL SPL1D(XCHI1,ZCHI,DXCHI,UZCHI,NA,4,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+            IF(MDLEQC.EQ.0) THEN
+               CALL SPL1D(XCHI0,RCHI,DXCHI,URCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
+               CALL SPL1D(XCHI0,ZCHI,DXCHI,UZCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+            ELSE
+               CALL SPL1D(XCHI1,RCHI,DXCHI,URCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
+               CALL SPL1D(XCHI1,ZCHI,DXCHI,UZCHI,NA,4,IERR)
+               IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+            ENDIF
 C
             RPS(1,NR)=YA(1,1)
             ZPS(1,NR)=YA(2,1)
             DO NTH=2,NTHMAX+1
                TH=DTH*(NTH-1)
-C               CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
-C               CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
-               CALL SPL1DF(TH,RPS(NTH,NR),XCHI1,URCHI,NA,IERR)
-               CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
+               IF(MDLEQC.EQ.0) THEN
+                  CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
+                  CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
+               ELSE
+                  CALL SPL1DF(TH,RPS(NTH,NR),XCHI1,URCHI,NA,IERR)
+                  CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
+               ENDIF
             ENDDO
 C         WRITE(6,'(A,I5,1P4E12.4)') 
 C     &        'NR,RPS,ZPS,RPS,ZPS=',
