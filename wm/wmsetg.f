@@ -35,6 +35,11 @@ C     ****** EQUILIBRIUM (EQDSK) ******
 C
       ELSEIF(MODELG.EQ.5) THEN
          CALL WMXRZF(IERR)
+C
+C     ****** EQUILIBRIUM (BOOZER) ******
+C
+      ELSEIF(MODELG.EQ.6) THEN
+         CALL WMXRZB(IERR)
       ENDIF
 C
       IF(IERR.NE.0) RETURN

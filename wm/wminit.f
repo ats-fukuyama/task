@@ -228,6 +228,7 @@ C                   2: Straight helical geometry
 C                   3: TASK/EQ output geometry
 C                   4: VMEC output geometry
 C                   5: EQDSK output geometry
+C                   6: Boozer output geometry
 C        MODELJ: Control antenna current model
 C                   0: Real antenna
 C                   1: Real antenna
@@ -546,6 +547,8 @@ C
          WRITE(6,*) '## 4: VMEC ##'
       ELSE IF(MODELG.EQ.5) THEN 
          WRITE(6,*) '## 5: EQDSK ##'
+      ELSE IF(MODELG.EQ.6) THEN 
+         WRITE(6,*) '## 6: BOOZER ##'
       END IF
 C
       IF(MODELJ.EQ.0) THEN
