@@ -126,7 +126,7 @@ C
                IF(IERR.NE.0) GOTO 1
             CALL WMSETJ(IERR)
                IF(IERR.NE.0) GOTO 1
-            IF(MYRANK.EQ.0) CALL WMTAE
+C            IF(MYRANK.EQ.0) CALL WMTAE
             CALL MPSYNC
             KID=' '
 C
