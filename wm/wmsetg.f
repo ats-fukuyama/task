@@ -567,9 +567,9 @@ C
 C     &           /RPS(NTH,NR)
             BFLD(2,NTH,NPH,NR)=BPTL
             BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
-            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
-     &           RBPS(NR)/RPS(NTH,NR)**2,
-     &           BPTL,BPTL*RJ(NTH,NPH,NR)
+C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
+C     &           RBPS(NR)/RPS(NTH,NR)**2,
+C     &           BPTL,BPTL*RJ(NTH,NPH,NR)
 C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
 C            IF((NR.EQ.2).OR.(NR.EQ.3)) THEN

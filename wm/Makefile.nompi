@@ -10,7 +10,7 @@ SRCS = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = wmlib.a ../eq/wmeqin.o ../eq/eqlib.a ../mtx/mtxlib.a \
+LIBS = wmlib.a ../eq/wmeqin.o ../eq/eqlib.a ../eq/pleqin.o ../pl/pllib.a ../mtx/mtxlib.a \
        ../lib/tasklib.a $(OBJLA)
 
 .f.o :
@@ -22,7 +22,8 @@ wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o wmlib.a $(OBJS)
 
 wm : wmmain.o $(LIBS)
-	(cd ../eq; make eqlib.a wmeqin.o)
+	(cd ../eq; make eqlib.a wmeqin.o pleqin.o)
+	(cd ../pl; make pllib.a)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../lib; make tasklib.a)
 	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

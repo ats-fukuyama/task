@@ -93,20 +93,21 @@ C
             CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
                RN(NS)  =0.D0
-               RTPR(NS)=RTPL(NS)
-               RTPP(NS)=RTPL(NS)
+               RTPR(NS)=RTPL(NS)*AEE*1.D3
+               RTPP(NS)=RTPL(NS)*AEE*1.D3
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
             CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
-               RN(NS)  =RNPL(NS)
-               RTPR(NS)=RTPL(NS)
-               RTPP(NS)=RTPL(NS)
+               RN(NS)  =RNPL(NS)*1.D20
+               RTPR(NS)=RTPL(NS)*AEE*1.D3
+               RTPP(NS)=RTPL(NS)*AEE*1.D3
                RU(NS)  =RUPL(NS)
             ENDDO
          ENDIF
       ENDIF
+      WRITE(6,'(1P5E12.4)') RHOL,RN(1),RTPR(1),RN(2),RTPR(2)
 C
 C     ****** CALCULATION OF FAST ALPHA DENSITY AND TEMPERATURE ******
 C     **** FAST ALPHA DENSITY IS SUBTRACTED FROM HELIUM DENSITY *****

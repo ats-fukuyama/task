@@ -891,7 +891,8 @@ C
          RPSI(NR)=SUM
       ENDDO
 C
-      CALl PLDATA_SETP(RN,RT,RU)
+      N=NRM
+      CALL PLDATA_SETP(N,RN,RT,RU)
 C
       ENTRY TRXTOA_AKDW
 C
