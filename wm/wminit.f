@@ -372,37 +372,44 @@ C
       RETURN
       END
 C
-C     ***** INPUT PARAMETER LIST *****
-C
-      SUBROUTINE WMPLST
-C
-      WRITE(6,*) '## INPUT &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDEL,'
-      WRITE(6,*) '               PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'
-      WRITE(6,*) '               PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'
-      WRITE(6,*) '               NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'
-      WRITE(6,*) '               AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,'
-      WRITE(6,*) '               NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'
-      WRITE(6,*) '               MODELG,MODELJ,MODELP,MODELA,MODELN,'
-      WRITE(6,*) '               MODELM,MODELW,KNAMEQ,KNAMPF,'
-      WRITE(6,*) '               NPRINT,NGRAPH,PRFIN,'
-      WRITE(6,*) '               FRMIN,FRMAX,FIMIN,FIMAX,FI0,'
-      WRITE(6,*) '               FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'
-      WRITE(6,*) '               SCMIN,SCMAX,NSCMAX,LISTEG,'
-      WRITE(6,*) '               DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'
-      WRITE(6,*) '               RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'
-      WRITE(6,*) '               RHOITB,PNITB,PTITB,PUITB'
-      WRITE(6,*) '               WAEMIN,WAEMAX,KNAMEQ,KNAMPF'
-      RETURN
-      END
-C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE WMPARM(KID)
+      SUBROUTINE WMPARM(MODE,KIN,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
 C
       INCLUDE 'wmcomm.inc'
 C
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KLINE*70,KNAME*80,KID*1
+      EXTERNAL WMNLIN,WMPLST
+      CHARACTER KIN*(*)
+C
+    1 CALL TASK_PARM(MODE,'WM',KIN,WMNLIN,WMPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALl WMCHEK(IERR)
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE WMNLIN(NID,IST,IERR)
+C
+      INCLUDE 'wmcomm.inc'
 C
       NAMELIST /WM/ BB,RR,RA,RB,Q0,QA,RKAP,RDEL,
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,NSMAX,
@@ -419,56 +426,51 @@ C
      &              RHOITB,PNITB,PTITB,PUITB,WAEMIN,WAEMAX,
      &              KNAMEQ,KNAMPF,PRFIN
 C
-      MODE=0
- 1000 CONTINUE
-      RF=DBLE(CRF)
+      RF=DREAL(CRF)
       RFI=DIMAG(CRF)
-    1    CONTINUE
-         WRITE(6,*) '# INPUT : &WM'
-         READ(5,WM,ERR=2,END=3)
-         KID=' '
-         GOTO 4
-C
-    2    CALL WMPLST
-      GOTO 1
-C
-    3 KID='Q'
-    4 CONTINUE
+      READ(NID,WM,IOSTAT=IST,ERR=9800,END=9900)
       CRF=DCMPLX(RF,RFI)
-      GOTO 3000
+      IERR=0
+      RETURN
 C
-      ENTRY WMPARL(KLINE)
+ 9800 IERR=8
+      RETURN
+ 9900 IERR=9
+      RETURN
+      END
 C
-      MODE=1
-      RF=DBLE(CRF)
-      RFI=DIMAG(CRF)
-      KNAME=' &WM '//KLINE//' &END'
-      WRITE(7,'(A80)') KNAME
-      REWIND(7)
-      READ(7,WM,ERR=8,END=8)
-      WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
-      GOTO 9
-    8 CALL WMPLST
-    9 REWIND(7)
-      CRF=DCMPLX(RF,RFI)
-      GOTO 3000
+C     ***** INPUT PARAMETER LIST *****
 C
-      ENTRY WMPARF(KPNAME)
+      SUBROUTINE WMPLST
 C
-      MODE=2
-      INQUIRE(FILE=KPNAME,EXIST=LEX)
-      IF(.NOT.LEX) RETURN
+      WRITE(6,601)
+      RETURN
 C
-      RF=DBLE(CRF)
-      RFI=DIMAG(CRF)
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,WM,IOSTAT=IST,ERR=9800,END=9900)
-      CLOSE(25)
-      CALL KTRIM(KPNAME,KL)
-      WRITE(6,*) '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
-      CRF=DCMPLX(RF,RFI)
+  601 FORMAT(' ','# &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDEL,'/
+     &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
+     &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
+     &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
+     &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,'/
+     &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
+     &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
+     &       9X,'MODELM,MODELW,KNAMEQ,KNAMPF,'/
+     &       9X,'NPRINT,NGRAPH,PRFIN,'/
+     &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
+     &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
+     &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,'/
+     &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'/
+     &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
+     &       9X,'RHOITB,PNITB,PTITB,PUITB'/
+     &       9X,'WAEMIN,WAEMAX,KNAMEQ,KNAMPF')
+      END
 C
- 3000 IERR=0
+C     ***** CHECK INPUT PARAMETERS *****
+C
+      SUBROUTINE WMCHEK(IERR)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      IERR=0
 C
       IF(NSMAX.LT.0.OR.NSMAX.GT.NSM) THEN
          WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NSMAX'
@@ -514,17 +516,7 @@ C
          IERR=1
       ENDIF
 C
-      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1000
-C
       RETURN
-C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
-      RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
-      RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
-      RETURN
-C
       END
 C
 C     ****** DISPLAY INPUT DATA ******

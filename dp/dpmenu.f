@@ -11,25 +11,27 @@ C
 C
       DIMENSION CD4(6),CD5(6),CD6(6),CD7(6)
       CHARACTER KID*1,LINE*80
+      EXTERNAL DPPARM
 C
-    1 WRITE(6,601)
-  601 FORMAT('## DP MENU: P,V/PARM  ',
-     &       '1,2,3/DISP  F/ROOT  T,S/TEST  Q/QUIT')
-      CALL DPKLIN(LINE,KID,MODE)
+    1 CONTINUE
+         WRITE(6,*) '## DP MENU: P,V/PARM  ',
+     &       'A,F,C/DISP  E/ROOT  T,S/TEST  Q/QUIT'
+C
+         CALL TASK_KLIN(LINE,KID,MODE,DPPARM)
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'P') THEN
-         CALL DPPARM(KID)
+         CALL DPPARM(0,'DP',IERR)
       ELSEIF(KID.EQ.'V') THEN
          CALL PLVIEW
          CALL DPVIEW
-      ELSEIF(KID.EQ.'1') THEN
+      ELSEIF(KID.EQ.'A') THEN
          CALL DPGRP1
-      ELSEIF(KID.EQ.'2') THEN
-         CALL DPCONT
-      ELSEIF(KID.EQ.'3') THEN
-         CALL DPCONTX
       ELSEIF(KID.EQ.'F') THEN
+         CALL DPCONT
+      ELSEIF(KID.EQ.'C') THEN
+         CALL DPCONTX
+      ELSEIF(KID.EQ.'E') THEN
          CALL DPROOT
       ELSEIF(KID.EQ.'T') THEN
          MODELPS=MODELP(1)
@@ -98,49 +100,6 @@ C            GY(NX,6)=GUCLIP(DIMAG(CFZ))
       GOTO 1
 C
  9000 RETURN
-      END
-C
-C     ***** INPUT KID or LINE *****
-C                   MODE=0: LINE INPUT 
-C                        1: KID INPUT
-C                        2: PARM INPUT
-C                        3: NEW PROMPT
-C
-      SUBROUTINE DPKLIN(LINE,KID,MODE)
-C
-      CHARACTER LINE*80,KID*1
-C
-      READ(5,'(A80)',ERR=2,END=3) LINE
-C
-      ID=0
-      DO I=1,80
-         IF(LINE(I:I).EQ.'=') ID=1
-      ENDDO
-      IF(ID.EQ.1) THEN
-         CALL DPPARL(LINE)
-         MODE=2
-         RETURN
-      ENDIF
-C
-      KID=LINE(1:1)
-      CALL GUCPTL(KID)
-      IF((KID.GE.'0'.AND.KID.LE.'9').OR.
-     &   (KID.GE.'A'.AND.KID.LE.'Z')) THEN
-         MODE=1
-         RETURN
-      ENDIF
-C
-      KID=' '
-      MODE=0
-      RETURN
-C
-    2 WRITE(6,*) 'XX INPUT ERROR !'
-      MODE=3
-      RETURN
-C
-    3 KID='Q'
-      MODE=1
-      RETURN
       END
 C
 C     ###############################################################

@@ -13,7 +13,6 @@ C                  URL: http://p-grp.nucleng.kyoto-u.ac.jp/wm/
 C***********************************************************************
 C
       INCLUDE 'wmcomm.inc'
-      CHARACTER KPNAME*80
 C
       CALL MPINIT(NPROCS,MYRANK)
       IF(NPROCS.LT.NCPUMIN) THEN

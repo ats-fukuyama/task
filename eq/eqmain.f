@@ -4,10 +4,7 @@ C   ************************************************
 C   **  Grad-Shafranov Equation (Fixed Boundary)  **
 C   ************************************************
 C
-C   PSIN: 0 on axis, 1 on boundary
-C
       INCLUDE 'eqcomc.inc'
-C
 C
       WRITE(6,*) '## TASK/EQ 2004/11/08'
       CALL GSOPEN

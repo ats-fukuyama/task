@@ -5,6 +5,7 @@ C
       SUBROUTINE WMAM0D(KID)
 C
       INCLUDE 'wmcomm.inc'
+      EXTERNAL WMPARM
       CHARACTER LINE*80,KID*1
 C
       MODE=0
@@ -13,7 +14,7 @@ C
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4)')
      &      ' ## FR,FI=',FRINI,FIINI
             WRITE(6,'(A)') ' ## INPUT : KID or FR,FI'
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
@@ -49,6 +50,7 @@ C
       INCLUDE 'wmcomm.inc'
       DIMENSION GX(NGZM),GZ(NGZM,1)
       CHARACTER LINE*80,KID*1
+      EXTERNAL WMPARM
 C
       MODE=0
     1 CONTINUE
@@ -56,7 +58,7 @@ C
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4,I5,1PE12.4)')
      &      ' ## FRMIN,FRMAX,NGFMAX,FI0=',FRMIN,FRMAX,NGFMAX,FI0
             WRITE(6,'(A)') ' ## INPUT : KID or FRMIN,FRMAX,NGFMAX,FI0'
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRMIN,FRMAX,NGFMAX,FI0
          ENDIF
@@ -177,7 +179,7 @@ C
             ENDIF
             WRITE(6,'(A,A)') ' ## INPUT : KID or ',
      &               'FRMIN,FRMAX,NGXMAX,FIMIN,FIMAX,NGYMAX'
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2)
      &                         FRMIN,FRMAX,NGXMAX,FIMIN,FIMAX,NGYMAX
@@ -387,7 +389,7 @@ C
       INCLUDE 'wmcomm.inc'
       CHARACTER LINE*80,KID*1
       DIMENSION XA(2),WORK(2,2)
-      EXTERNAL DIAMIN,SUBDFP
+      EXTERNAL DIAMIN,SUBDFP,WMPARM
 C
       MODE=0
     1 CONTINUE
@@ -395,7 +397,7 @@ C
     2       IF(MODE.EQ.0) WRITE(6,'(A,1P2E12.4)')
      &      ' ## FRINI,FIINI=',FRINI,FIINI
             WRITE(6,'(A)') ' ## INPUT : KID or FRINI,FINII'
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) FRINI,FIINI
          ENDIF
@@ -455,7 +457,7 @@ C
       DIMENSION GX(NGZM),GY(NGZM,3)
       DIMENSION XA(2),WORK(2,2)
       CHARACTER LINE*80,KID*1,KV*4
-      EXTERNAL DIAMIN,SUBDFP
+      EXTERNAL DIAMIN,SUBDFP,WMPARM
 C
       MODE=0
       ISCAN=0
@@ -468,7 +470,7 @@ C
      &      ' ##        9:qmin 10:rhomin 11:itb 12:rhoitb 13:PU'
             ENDIF
             WRITE(6,'(A)') ' ## INPUT : KID or ISCAN'
-            CALL WMKLIN(LINE,KID,MODE)
+            CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
             IF(MODE.EQ.0)
      &      READ(LINE,*,ERR=2,END=2) ISCAN
          ENDIF
@@ -560,7 +562,7 @@ C
      &           SCMIN,SCMAX,NSCMAX,FRINI,FIINI
             WRITE(6,'(A)') 
      &      ' ## INPUT : KID or SCMIN,SCMAX,NSCMAX,FRINI,FIINI'
-            CALL WMKLIN(LINE,KID,MODE1)
+            CALL TASK_KLIN(LINE,KID,MODE1,WMPARM)
             IF(MODE1.EQ.0)
      &       READ(LINE,*,ERR=12,END=12) SCMIN,SCMAX,NSCMAX,FRINI,FIINI
          ENDIF

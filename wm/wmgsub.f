@@ -414,9 +414,9 @@ C
             ELSE
                FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
             ENDIF
-            VAL=(1.0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
+            VAL=(1.D0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
-            VAL=(1.0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
+            VAL=(1.D0-FACT)*DBLE(GGL(NR,NTH))+FACT*DBLE(GGL(NR,NTHP))
             GFL(NR,NTHL)=GUCLIP(VAL)
          ENDDO
       ENDDO
@@ -555,7 +555,7 @@ C
          DO NTHG=1,NTHGS
             NTHL=(NTH-1)*NTHGS+NTHG
             IF(NTHGS.EQ.1) THEN
-               FACT=1.D0
+               FACT=0.D0
             ELSE
                FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
             ENDIF

@@ -17,14 +17,13 @@ C-----------------------------------------------------------------------
 C
       INCLUDE 'plcomm.inc'
 C
-      CHARACTER KPNAME*80
-C
       WRITE(6,*) '## TASK/PL 2004/11/08'
+      OPEN(7,STATUS='SCRATCH')
       CALL PLINIT
-      KPNAME='plparm'
-      CALL PLPARF(KPNAME)
+      CALL PLPARM(1,'plparm',IER)
 C
       CALL PLMENU
 C
+      CLOSE(7)
       STOP
       END

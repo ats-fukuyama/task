@@ -19,19 +19,17 @@ C-----------------------------------------------------------------------
 C
       INCLUDE 'dpcomm.inc'
 C
-      CHARACTER KPNAME*80
-C
       WRITE(6,*) '## TASK/DP 2004/11/08'
       CALL GSOPEN
+      OPEN(7,STATUS='SCRATCH')
       CALL PLINIT
       CALL DPINIT
-      KPNAME='plparm'
-      CALL PLPARF(KPNAME)
-      KPNAME='dpparm'
-      CALL DPPARF(KPNAME)
+      CALL PLPARM(1,'plparm',IERR)
+      CALL DPPARM(1,'dpparm',IERR)
 C
       CALL DPMENU
 C
+      CLOSE(7)
       CALL GSCLOS
       STOP
       END

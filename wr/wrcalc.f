@@ -788,7 +788,7 @@ C
       DRHO=1.D0/NRMAXPL
       DO NRAY=1,NRAYMX
          DO NR=1,NRMAXPL
-            PWRRAY(NR,NRAY)=0.0
+            PWRRAY(NR,NRAY)=0.D0
          ENDDO
       ENDDO
 

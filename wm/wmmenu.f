@@ -19,7 +19,7 @@ C
     1 CONTINUE
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
-  601       FORMAT('## WM MENU: P,V/PARM  R/RUN  A,F,C/AMP  E,S/SCAN  ',
+  601       FORMAT('## WM MENU: P,V/PARM R/RUN A,F,C/AMP E,S/SCAN ',
      &      'G/GRAPH T/TAE W/WRITE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
@@ -27,7 +27,8 @@ C
          IF(MODE.EQ.2) CALL WMPRBC
       IF(MODE.NE.1) GOTO 1
 C
-      CALL MPBCKA(KID)
+    2 CONTINUE
+         CALL MPBCKA(KID)
 C
          IF (KID.EQ.'P') THEN
             IF(MYRANK.EQ.0) CALL WMPARM(0,'WM',IERR)
@@ -118,11 +119,8 @@ C
 C
          ELSE IF(KID.EQ.'Q') THEN
             GOTO 9000
-C
-         ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
-            KID=' '
          ELSE
-            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMMAIN: UNKNOWN KID'
+            IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMMENU: UNKNOWN KID'
             KID=' '
          END IF
 C
@@ -130,47 +128,4 @@ C
       GO TO 1
 C
  9000 RETURN
-      END
-C
-C     ***** INPUT KID or LINE *****
-C                   MODE=0: LINE INPUT 
-C                        1: KID INPUT
-C                        2: PARM INPUT
-C                        3: NEW PROMPT
-C
-      SUBROUTINE WMKLIN(LINE,KID,MODE)
-C
-      CHARACTER LINE*80,KID*1
-C
-      READ(5,'(A80)',ERR=2,END=3) LINE
-C
-      ID=0
-      DO I=1,80
-         IF(LINE(I:I).EQ.'=') ID=1
-      ENDDO
-      IF(ID.EQ.1) THEN
-         CALL WMPARL(LINE)
-         MODE=2
-         RETURN
-      ENDIF
-C
-      KID=LINE(1:1)
-      CALL GUCPTL(KID)
-      IF(KID.GE.'A'.AND.
-     &   KID.LE.'Z') THEN
-         MODE=1
-         RETURN
-      ENDIF
-C
-      KID=' '
-      MODE=0
-      RETURN
-C
-    2 WRITE(6,*) 'XX INPUT ERROR !'
-      MODE=3
-      RETURN
-C
-    3 KID='Q'
-      MODE=1
-      RETURN
       END

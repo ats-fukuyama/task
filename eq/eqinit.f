@@ -6,7 +6,6 @@ C
 C
       INCLUDE 'eqcomm.inc'
 C
-C
 C     *** CONSTANTS ****
 C
 C        PI    : Pi
@@ -273,7 +272,7 @@ C
     1 CALL TASK_PARM(MODE,'EQ',KIN,EQNLIN,EQPLST,IERR)
       IF(IERR.NE.0) RETURN
 C
-      CALl EQCHEK(IERR)
+      CALL EQCHEK(IERR)
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C

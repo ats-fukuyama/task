@@ -96,12 +96,40 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE WRPARM(KID)
+      SUBROUTINE WRPARM(MODE,KIN,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
+C
+      EXTERNAL WRNLIN,WRPLST
+      CHARACTER KIN*(*)
+C
+    1 CALL TASK_PARM(MODE,'WR',KIN,WRNLIN,WRPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALl WRCHEK(IERR)
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE WRNLIN(NID,IST,IERR)
 C
       INCLUDE 'wrcomm.inc'
-C
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KNAME*90,LINE*80,KID*1
 C
       NAMELIST /WR/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
@@ -115,80 +143,15 @@ C
      &              SMAX,DELS,UUMIN,EPSNW,DELKR,EPSRAY,DELRAY,DELDER,
      &              LMAXNW,NRZMAX,NRAYMX,KNAMWR,
      &              RCURVA,RCURVB,RBRADA,RBRADB,NRADMX
-      DATA INITEQ,INITFP/0,0/
 C
-      MODE=0
-    1 CONTINUE
-         WRITE(6,*) '# INPUT &WR :'
-         READ(5,WR,ERR=2,END=3)
-         KID=' '
-         GOTO 4
-C
-    2    CALL WRPLST
-      GOTO 1
-C
-    3 KID='Q'
-    4 GOTO 3000
-C
-      ENTRY WRPARL(LINE)
-C
-      MODE=1
-      KNAME=' &WR '//LINE//' &END'
-      WRITE(7,'(A90)') KNAME
-      REWIND(7)
-      READ(7,WR,ERR=8,END=8)
-      WRITE(6,'(A)') '## PARM INPUT ACCEPTED.'
-      GOTO 9
-    8 CALL WRPLST
-    9 REWIND(7)
-      GOTO 3000
-C
-      ENTRY WRPARF(KPNAME)
-C
-      MODE=2
-      INQUIRE(FILE=KPNAME,EXIST=LEX,ERR=9800)
-      IF(.NOT.LEX) RETURN
-C
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,WR,IOSTAT=IST,ERR=9800,END=9900)
-      CLOSE(25)
-      CALL KTRIM(KPNAME,KL)
-      WRITE(6,*) 
-     &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
-C
- 3000 IERR=0
-      IF(MODELG.EQ.3) THEN
-         IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(3,KNAMEQ,IERR)
-            IF(IERR.EQ.0) THEN
-               CALL EQSETP
-               CALL EQCALQ(51,64,64,IERR)
-               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-            ENDIF
-            INITEQ=1
-         ENDIF
-      ELSE
-         INITEQ=0
-      ENDIF
-C
-      IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
-C
-      IF(MODELV.EQ.1) THEN
-         IF(INITFP.EQ.0) THEN
-            CALL DPLDFP
-            INITFP=1
-         ENDIF
-      ELSE
-         INITFP=0
-      ENDIF
-C
+      READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
+      IERR=0
       RETURN
 C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+ 9800 IERR=8
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+ 9900 IERR=9
       RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
       END
 C
 C     ***** INPUT PARAMETER LIST *****
@@ -214,6 +177,42 @@ C
      &       9X,'SMAX,DELS,UUMIN,EPSNW,DELKR,EPSRAY,DELRAY,DELDER,'/
      &       9X,'LMAXNW,NRZMAX,NRAYMX,KNAMWR,'/
      &       9X,'RCURVA,RCURVB,RBRADA,RBRADB,NRADMX')
+      END
+C
+C     ***** CHECK INPUT PARAMETERS *****
+C
+      SUBROUTINE EQCHEK(IERR)
+C
+      INCLUDE 'wrcomm.inc'
+C  
+      DATA INITEQ,INITFP/0,0/
+C
+      IERR=0
+C
+      IF(MODELG.EQ.3) THEN
+         IF(INITEQ.EQ.0) THEN
+            CALL EQLOAD(3,KNAMEQ,IERR)
+            IF(IERR.EQ.0) THEN
+               CALL EQSETP
+               CALL EQCALQ(51,64,64,IERR)
+               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+            ENDIF
+            INITEQ=1
+         ENDIF
+      ELSE
+         INITEQ=0
+      ENDIF
+C
+      IF(MODELV.EQ.1) THEN
+         IF(INITFP.EQ.0) THEN
+            CALL DPLDFP
+            INITFP=1
+         ENDIF
+      ELSE
+         INITFP=0
+      ENDIF
+C
+      RETURN
       END
 C
 C     ****** SHOW PARAMETERS ******

@@ -19,24 +19,21 @@ C     --------------------------------------------------------
 C
       INCLUDE 'wrcomm.inc'
 C
-      CHARACTER KPNAME*80
 C
-      WRITE(6,601) 
-  601 FORMAT('## TASK/WR 2004/11/08')
+      WRITE(6,*) '## TASK/WR 2004/11/08'
+C
       CALL GSOPEN
+      OPEN(7,STATUS='SCRATCH')
       CALL PLINIT
       CALL DPINIT
       CALL WRINIT
-      KPNAME='plparm'
-      CALL PLPARF(KPNAME)
-      KPNAME='dpparm'
-      CALL DPPARF(KPNAME)
-      KPNAME='wrparm'
-      CALL WRPARF(KPNAME)
-      CALL PLDATA_SETN(50,1)
+      CALL PLPARM(1,'plparm',IERR)
+      CALL DPPARM(1,'dpparm',IERR)
+      CALL WRPARM(1,'wrparm',IERR)
 C
       CALL WRMENU
 C
+      CLOSE(7)
       CALL GSCLOS
       STOP
       END

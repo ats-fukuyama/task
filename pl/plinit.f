@@ -189,12 +189,41 @@ C
 C
 C     ****** INPUT PARAMETERS ******
 C
-      SUBROUTINE PLPARM(IERR)
+      SUBROUTINE PLPARM(MODE,KIN,IERR)
+C
+C     MODE=0 : standard namelinst input
+C     MODE=1 : namelist file input
+C     MODE=2 : namelist line input
+C
+C     IERR=0 : normal end
+C     IERR=1 : namelist standard input error
+C     IERR=2 : namelist file does not exist
+C     IERR=3 : namelist file open error
+C     IERR=4 : namelist file read error
+C     IERR=5 : namelist file abormal end of file
+C     IERR=6 : namelist line input error
+C     IERR=7 : unknown MODE
+C     IERR=10X : input parameter out of range
+C
+      EXTERNAL PLNLIN,PLPLST
+      CHARACTER KIN*(*)
+C
+    1 CALL TASK_PARM(MODE,'PL',KIN,PLNLIN,PLPLST,IERR)
+      IF(IERR.NE.0) RETURN
+C
+      CALl PLCHEK(IERR)
+      IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
+      IF(IERR.NE.0) IERR=IERR+100
+C
+      RETURN
+      END
+C
+C     ****** INPUT NAMELIST ******
+C
+      SUBROUTINE PLNLIN(NID,IST,IERR)
 C
       INCLUDE '../pl/plcomm.inc'
 C
-      LOGICAL LEX
-      CHARACTER KPNAME*80
       NAMELIST /PL/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
@@ -202,33 +231,32 @@ C
      &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
      &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG
 C
-    1 WRITE(6,*) '## INPUT : &PL'
-      READ(5,PL,ERR=1,END=9000)
-      CALL PLCHEK(IERR)
-      IF(IERR.NE.0) GOTO 1
-C
- 9000 RETURN
-C
-      ENTRY PLPARF(KPNAME)
-C
-      INQUIRE(FILE=KPNAME,EXIST=LEX)
-      IF(.NOT.LEX) RETURN
-C
-      OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
-      READ(25,PL,IOSTAT=IST,ERR=9800,END=9900)
-      CLOSE(25)
-      WRITE(6,*) '## FILE (',KPNAME,') IS ASSIGNED FOR PARM INPUT'
-      CALL PLCHEK(IERR)
+      READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
+      IERR=0
       RETURN
 C
- 9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
+ 9800 IERR=8
       RETURN
- 9800 WRITE(6,*) 'XX PARM FILE READ ERROR : IOSTAT = ',IST
+ 9900 IERR=9
       RETURN
- 9900 WRITE(6,*) 'XX PARM FILE EOF ERROR'
       END
 C
-C     ****** INPUT PARAMETER CHECK******
+C     ***** INPUT PARAMETER LIST *****
+C
+      SUBROUTINE PLPLST
+C
+      WRITE(6,601)
+      RETURN
+C
+  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,'/
+     &       9X,'NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,'/
+     &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/
+     &       9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/
+     &       9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/
+     &       9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG')
+      END
+C
+C     ****** CHECK INPUT PARAMETER ******
 C
       SUBROUTINE PLCHEK(IERR)
 C
