@@ -21,10 +21,10 @@ C
       RDLT  = 0.25D0
       BB    = 3.D0
       RIP   = 3.D0
-      PN0   = 0.5D0
-      PT0   = 6.D0
+      PN0   = 0.05D0
+      PT0   = 0.9D0
       PROFJ1= 2
-      PROFJ2= 2
+      PROFJ2= 2.5D0
 C
       DRHO=1.D0/NTRMAX
       DO NTR=1,NTRMAX
@@ -42,13 +42,13 @@ C     &                           NTR=1,NTRMAX)
 C
       P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
       DO NTR=1,NTRMAX
-         PRHO(NTR)=P0*(1.D0-RHOTR(NTR)**2)**2
+         PRHO(NTR)=P0*(1.D0-RHOTR(NTR)**2)**1.5D0
          HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
          VTRHO(NTR)=0.D0
-         TRHO(NTR)=PT0*(1.D0-RHOTR(NTR)**2)**2
+         TRHO(NTR)=PT0*(1.D0-RHOTR(NTR)**2)
       ENDDO
 C
-      CALL TREQEX(NTRMAX,RHOTR,PRHO,HJRHO,VTRHO,TRHO,
+      CALL TREQEX(NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
      &            QRHO,DVRHO,IERR)
 C
       CALL EQGOUT(1)

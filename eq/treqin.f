@@ -55,6 +55,11 @@ C
       RIP    = RIP1
       NTRMAX = NTRMAX1
 C
+C     ***** Define radial array *****
+C     ----- RHOTR:  half-integer mesh in TR
+C     ----- RHOTRG: integer mesh deduced from RHOTR
+C     ----- RHOTRX: half-integer mesh with 0 and 1 for SPLINE
+C
       DO NTR=1,NTRMAX-1
          RHOTR(NTR)=RHOTR1(NTR)
          RHOTRG(NTR+1)=0.5D0*(RHOTR1(NTR)+RHOTR1(NTR+1))
@@ -66,6 +71,8 @@ C
       RHOTRG(NTRMAX+1)=RA
       RHOTRX(NTRMAX+1)=RHOTR1(NTRMAX)
       RHOTRX(NTRMAX+2)=RA
+C
+C     ***** Calculate interim poloidal magnetic field *****
 C
       BP(1)=0.D0
       DO NTR=2,NTRMAX+1
@@ -81,47 +88,60 @@ C
          BP(NTR)=FACT*BP(NTR)
       ENDDO
       DO NTR=2,NTRMAX+1
-         QRHO(NTR)=RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
+         QRHO(NTR)=-RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
       ENDDO
       QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
+C
+C     ***** Calculate interim poloidal flux PSIRHO *****
 C
       PSIRHO(1)=0.D0
       DO NTR=2,NTRMAX+1
          DPSIT=PI*RKAP*(RHOTRG(NTR)**2-RHOTRG(NTR-1)**2)*BB
-         PSIRHO(NTR)=PSIRHO(NTR-1)+2.D0*DPSIT/QRHO(NTR-1)
-         WRITE(6,'(A,I5,1P3E12.4)') 
-     &        'NTR,RHOTR,QRHO,PSIRHO=',
-     &        NTR,RHOTRG(NTR),QRHO(NTR),PSIRHO(NTR)
+         PSIRHO(NTR)=PSIRHO(NTR-1)-2.D0*DPSIT/QRHO(NTR-1)
+C         WRITE(6,'(A,I5,1P3E12.4)') 
+C     &        'NTR,RHOTR,QRHO,PSIRHO=',
+C     &        NTR,RHOTRG(NTR),QRHO(NTR),PSIRHO(NTR)
       ENDDO
-      PAUSE
-      SAXIS=PSIRHO(NTRMAX+1)
+C      PAUSE
+      SAXIS=-PSIRHO(NTRMAX+1)
+      DO NTR=1,NTRMAX+1
+         PSIRHO(NTR)=SAXIS+PSIRHO(NTR)
+      ENDDO
+C
+C     ***** Calculate SPLINE for PSIRHO vs RHO *****
 C
       DERIV(1)=0.D0
       CALL SPL1D(RHOTRG,PSIRHO,DERIV,UPSIRHO,NTRMAX+1,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PSIRHO : IERR=',IERR
+C
+C     ***** Calculate interim toroidal flux FTS *****
 C
       DR=RB/(NRMAX-1)
       DO NR=1,NRMAX
          RHOL=DR*(NR-1)/RA
          IF(RHOL.GT.1.D0) THEN
             FTS(NR)=PI*RKAP*(RA*RHOL)**2*BB
-            PSS(NR)=SAXIS-PSIRHO(NTRMAX)*RHOL
+            PSS(NR)=SAXIS-SAXIS*RHOL
          ELSE
             FTS(NR)=PI*RKAP*(RA*RHOL)**2*BB
             CALL SPL1DF(RHOL,PSIL,RHOTRG,UPSIRHO,NRMAX+1,IERR)
             IF(IERR.NE.0) 
      &           WRITE(6,*) 'XX TREQIN: SPL1DF PSS : IERR=',IERR
-            PSS(NR)=SAXIS-PSIL
+            PSS(NR)=PSIL
          ENDIF
 C         WRITE(6,'(A,I5,1P3E12.4)') 
 C     &        'NR,RHOL,PSS,FTS=',NR,RHOL,PSS(NR),FTS(NR)
       ENDDO
 C      PAUSE
 C
+C     ***** Calculate SPLINE for PSS vs FTS and FTS vs PSS *****
+C
       CALL SPL1D(FTS,PSS,DERIVX,UFTT,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1DF PSS: IERR=',IERR
       CALL SPL1D(PSS,FTS,DERIVX,UFTS,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1DF FTS: IERR=',IERR
+C
+C     ***** Setup 2D mesh and initial psi *****
 C
       CALL EQMESH
       CALL EQPSIN
@@ -136,7 +156,6 @@ C
 C     input:
 C
 C     NTRMAX        : Maximum array number
-C     RHO(NTRMAX)   : Radial mesh
 C     PRHO(NTRMAX)  : Pressure                                 (MPa)
 C     HJRHO(NTRMAX) : Plasma current density                (MA/m^2)
 C     VTRHO(NTRMAX) : Toroidal rotation velocity               (m/s)
@@ -158,10 +177,12 @@ C
       DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
       DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
       DIMENSION QRHO(NTRMAX1+1),DVRHO(NTRMAX1)
-      DIMENSION WORK(NTRM+2),DERIV(NTRM+2)
+      DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
 C
       IERR=0
       NTRMAX = NTRMAX1
+C
+C     ***** Calculate poloidal flux PSITR/G/X at RHOTR/G/X *****
 C
       FTSA=FNFTS(1.D0)
       DO NTR=1,NTRMAX
@@ -179,9 +200,9 @@ C
          CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
          PSITRX(NTR)=PSIL/SAXIS
-         WRITE(6,'(A,I5,1P4E12.4)') 
-     &        'NTR,FTL,PSIL,PSIN=',NTR,FTL,
-     &        PSITR(NTR),PSITRG(NTR),PSITRG(NTR)
+C         WRITE(6,'(A,I5,1P4E12.4)') 
+C     &        'NTR,FTL,PSIL,PSIN=',NTR,FTL,
+C     &        PSITR(NTR),PSITRG(NTR),PSITRX(NTR)
       ENDDO
          FTL=FTSA*RHOTRG(NTRMAX+1)**2
          CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
@@ -198,17 +219,16 @@ C
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF PSIL: IERR=',IERR
          PSITRX(NTRMAX+2)=PSIL/SAXIS
 C
-      PAUSE
+C      PAUSE
 C
-C     *** Calculate SPLINE coefficients ***
+C     *** Calculate SPLINE coefficients for PPSI, JPSI, VTPSI, TPSI ***
 C
       WORK(1)=(9.D0*PRHO(1)-PRHO(2))/8.D0
       DO NTR=1,NTRMAX
          WORK(NTR+1)=PRHO(NTR)
       ENDDO
       WORK(NTRMAX+2)=0.D0
-      DERIV(1)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX+2,1,IERR)
+      CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX+2,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PRHO: IERR=',IERR
 C
       WORK(1)=(9.D0*HJRHO(1)-HJRHO(2))/8.D0
@@ -216,8 +236,7 @@ C
          WORK(NTR+1)=HJRHO(NTR)
       ENDDO
       WORK(NTRMAX+2)=0.D0
-      DERIV(1)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX+2,1,IERR)
+      CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX+2,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D HJRHO: IERR=',IERR
 C
       WORK(1)=(9.D0*VTRHO(1)-VTRHO(2))/8.D0
@@ -225,8 +244,7 @@ C
          WORK(NTR+1)=VTRHO(NTR)
       ENDDO
       WORK(NTRMAX+2)=0.D0
-      DERIV(1)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX+2,1,IERR)
+      CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX+2,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D VTRHO: IERR=',IERR
 C
       WORK(1)=(9.D0*TRHO(1)-TRHO(2))/8.D0
@@ -234,38 +252,44 @@ C
          WORK(NTR+1)=TRHO(NTR)
       ENDDO
       WORK(NTRMAX+2)=0.D0
-      DERIV(1)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX+2,1,IERR)
+      CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX+2,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D TRHO: IERR=',IERR
 C
-      UJPSI0(1)=0.D0
-      DO NTR=2,NTRMAX
-         PSIL=PSITR(NTR)-1.D-8
+      UJPSIX(1)=0.D0
+      DO NTR=2,NTRMAX+2
+         PSIL=PSITRX(NTR)+1.D-8
          CALL SPL1DF(PSIL,HJPSIL,PSITRX,UJPSI,NTRMAX+2,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX TREQIN: SPL1DF HJPSIL: IERR=',IERR
-         CALL SPL1DF(PSIL,PPSIL,PSITRX,UPPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 
      &        'XX TREQIN: SPL1DF HJPSIL: IERR=',IERR
          CALL SPL1DI(PSIL,HJPSID,PSITRX,UJPSI,UJPSI0,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 
      &        'XX TREQIN: SPL1DI HJPSID: IERR=',IERR
-         UJPSI0(NTR)=UJPSI0(NTR-1)+HJPSID
-C         WRITE(6,'(A,I5,1P5E12.4)') 
-C     &        'NTR,PSIL,PPSIL,HJPSIL/D/0=',
-C     &        NTR,PSIL,PPSIL,HJPSIL,HJPSID,UJPSI0(NTR)
+         UJPSIX(NTR)=HJPSID
+      ENDDO
+      UJPSI0(NTRMAX+2)=0.D0
+      DO NTR=NTRMAX+1,1,-1
+         UJPSI0(NTR)=UJPSI0(NTR+1)-UJPSIX(NTR+1)
+C         WRITE(6,'(A,I5,1P3E12.4)') 
+C     &        'NTR,PSIL,HJPSID/0=',
+C     &        NTR,PSITRX(NTR),UJPSIX(NTR),UJPSI0(NTR)
       ENDDO
 C      PAUSE
+C
+C     ***** Solve GS equation for given profile *****
 C
       CALL EQLOOP(IERR)
          IF(IERR.NE.0) GOTO 9000
       CALL EQTORZ
       CALL EQSETP
 C
+C     ***** Calculate eqilibrium quantities *****
+C
       NRMAX1=NRMAX
       NTHMAX1=NTHMAX
       NSUMAX1=NSUMAX
       CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+C
+C     ***** Calculate Q and DVRHO at given radial position *****
 C
       DO NTR=1,NTRMAX
          PSIN=1.D0-PSITRG(NTR)

@@ -297,7 +297,7 @@ C     ----- positive current density, jp.gt.0-----
             RRC=RR-RA
          ELSEIF(MODELF.EQ.2) THEN
 C     ----- quasi-symmetric current density, jp:anti-symmetric -----
-            RRC=RR
+            RRC=RR-RA
          ENDIF
          FJP=0.D0
          FJT=0.D0
@@ -491,12 +491,14 @@ C
          PSIPS(NPS)=DPS*(NPS-1)
          PSIN=PSIPS(NPS)/PSI0
          PPPS(NPS)=PPSI(PSIN)
+C         WRITE(6,'(A,I5,1P3E12.4)')
+C     &        'NPS,PSIN,PPPs,HJPSID=',NPS,PSIN,PPPS(NPS),HJPSID(PSIN)
          IF (MODELF.EQ.0.OR.MODELF.EQ.2) THEN
+            OMPS(NPS)=OMGPSI(PSIN)
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                  +2.D0*RMU0*RRC
-     &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)
-     &              *EXP(RRC**2*OMGPSI(PSIN)**2*AMP/(2.D0*TPSI(PSIN)))))
-            OMPS(NPS)=OMGPSI(PSIN)
+     &                  *(TJ*HJPSID(PSIN)-RRC*PPPS(NPS)
+     &              *EXP(RRC**2*OMPS(NPS)**2*AMP/(2.D0*TPSI(PSIN)))))
          ELSEIF (MODELF.EQ.1) THEN
             TTPS(NPS)=SQRT(BB**2*RR**2
      &                 +2.D0*RMU0*HM*1.D6*PSIPS(NPS)/RR**2
