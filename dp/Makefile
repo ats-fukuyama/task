@@ -3,11 +3,11 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = dpmain.f dpinit.f dproot.f dpcont.f dpdisp.f \
+SRCS = dpmain.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
        dpfpin.f dphotf.f dphotr.f
 
 OBJS = $(SRCS:.f=.o) ../pl/plinit.o ../pl/plprof.o \
-       ../eq/eqload.o ../eq/eqread.o ../eq/eqcalq.o \
+       ../eq/eqload.o ../eq/pleqin.o ../eq/eqcalq.o \
        ../lib/libdsp.o ../lib/libbes.o ../lib/libbrn.o \
        ../lib/libspl.o ../lib/libgut.o
 

@@ -213,7 +213,7 @@ C
          CLDISP(5)=FACT*(CINTG112+CINTG212)
          CLDISP(6)=FACT*(CINTG123+CINTG223)
 C 
- 9000 RETURN
+      RETURN
       END                     
 C
 C ******************************************************
@@ -534,5 +534,5 @@ C
 C      WRITE(6,'(1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(3)
 C      WRITE(6,'(1P6E12.4)') CLDISP(4),CLDISP(5),CLDISP(6)
 C 
- 9000 RETURN
+      RETURN
       END                     

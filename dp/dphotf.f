@@ -191,7 +191,7 @@ C
          CLDISP(4)=FACT*(CINTG113+CINTG213)
          CLDISP(5)=FACT*(CINTG112+CINTG212)
          CLDISP(6)=FACT*(CINTG123+CINTG223)
- 9000 RETURN
+      RETURN
       END                     
 C
 C ******************************************************
@@ -392,5 +392,5 @@ C
       CLDISP(5)=FACT*(CINTG312+CINTG412)
       CLDISP(6)=FACT*(CINTG323+CINTG423)
 C
- 9000 RETURN
+      RETURN
       END                     
