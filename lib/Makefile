@@ -5,7 +5,7 @@ LFLAGS = $(OFLAGS)
 
 SRCS = libdsp.f libode.f librkf.f libspl.f libbrn.f libgut.f libbnd.f \
        libpcg.f libde.f libfp.f libbes.f librk.f \
-       libfft.f libinv.f libchar.f libfio.f libspl2.f
+       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f
 
 OBJS = $(SRCS:.f=.o)
 
@@ -16,6 +16,9 @@ all : $(OBJS)
 
 testspl : testspl.o libspl.o ../grf/libgrf.o
 	$(FC) -o $@ testspl.o $(FFLAGS) libspl.o ../grf/libgrf.o $(FLIBS)
+
+testgrf : testgrf.o $(OBJS)
+	$(FC) -o $@ testgrf.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 new :
 	mkdir ../libnew
