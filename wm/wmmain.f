@@ -27,7 +27,7 @@ C
 C
       IF(MYRANK.EQ.0) THEN
          OPEN(33,STATUS='SCRATCH',FORM='FORMATTED')
-         WRITE(6,*) '######## /TASK/WM V3.42 00/10/31 ########'
+         WRITE(6,*) '######## /TASK/WM V3.43 01/12/07 ########'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC
