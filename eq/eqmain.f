@@ -91,8 +91,6 @@ C
    20    WRITE(6,*) '#EQ> INPUT : EQPARM FILE NAME : ','eqparm'
          READ(5,'(A72)',ERR=20,END=9000) KPNAM
          CALL EQPARG(KPNAM)
-c$$$      ELSEIF(KID.EQ.'U') THEN
-c$$$         CALL EQUFRD
       ELSEIF(KID.EQ.'U') THEN
          KNAMEQ1=KNAMEQ
    30    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1

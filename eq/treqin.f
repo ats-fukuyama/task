@@ -24,12 +24,14 @@ C
 C   ***************************************************************
 C
       SUBROUTINE TREQIN(RR1,RA1,RKAP1,RDLT1,BB1,RIP1,
-     &                  NTRMAX1,RHOTR1,HJRHO,QRHO,IERR)
+     &                  NTRMAX1,RHOTR1,HJRHO,QRHO,MDLUF,IERR)
 C              
       INCLUDE 'eqcomq.h'
       INCLUDE 'eqcom4.h'
       DIMENSION RHOTR1(NTRMAX1),HJRHO(NTRMAX1),QRHO(NTRMAX1+1)
       DIMENSION DERIV(NTRM+2),BP(NTRM+1),DERIVX(NRM)
+      DIMENSION ASR(NTRM)
+      CHARACTER KFILE*10
       SAVE INIT
       DATA INIT/0/
 C
@@ -88,10 +90,25 @@ C
       DO NTR=2,NTRMAX+1
          BP(NTR)=FACT*BP(NTR)
       ENDDO
-      DO NTR=2,NTRMAX+1
-         QRHO(NTR)=-RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
-      ENDDO
-      QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
+c$$$      IF(MDLUF.NE.2) THEN
+         DO NTR=2,NTRMAX+1
+            QRHO(NTR)=-RHOTRG(NTR  )*RA*BB/(RR*BP(NTR  ))
+         ENDDO
+         QRHO(1)=(4.D0*QRHO(2)-QRHO(3))/3.D0
+c$$$      ELSE
+c$$$         KFILE='Q.PHI'
+c$$$         CALL UFREAD(KFILE,ASR,QRHO,NUFMAX,MDQRHO,IERR)
+c$$$         CALL SPL1D(ASR,QRHO,DERIV,UQRHOEQ,NUFMAX,0,IERR)
+c$$$         DO NTR=1,NTRMAX+1
+c$$$            ARHOTRG=RHOTRG(NTR)
+c$$$            CALL SPL1DF(ARHOTRG,AQRHO,ASR,UQRHOEQ,NUFMAX,IERR)
+c$$$            IF(IERR.NE.0) 
+c$$$     &           WRITE(6,*) 'XX TREQIN: SPL1DF QRHO : IERR=',IERR
+c$$$            RHOTRG(NTR)=ARHOTRG
+c$$$            QRHO(NTR)=AQRHO
+c$$$         ENDDO
+c$$$C         STOP 'END'
+c$$$      ENDIF
 C
 C     ***** Calculate interim poloidal flux PSIRHO *****
 C
@@ -115,9 +132,6 @@ C     ***** Calculate SPLINE for PSIRHO vs RHO *****
 C
       DERIV(1)=0.D0
       CALL SPL1D(RHOTRG,PSIRHO,DERIV,UPSIRHO,NTRMAX+1,1,IERR)
-C      DO NTR=1,NTRMAX+1
-C         write(6,*) NTR,DERIV(NTR)
-C      ENDDO
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D PSIRHO : IERR=',IERR
 C
 C     ***** Calculate interim toroidal flux FTS *****
@@ -185,7 +199,7 @@ C   ***************************************************************
 C
       SUBROUTINE TREQEX(RIP1,NTRMAX1,PRHO,HJRHO,VTRHO,TRHO,
      &                  QRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
-     &                  AR1RHO,AR2RHO,EPSRHO,IERR)
+     &                  AR1RHO,AR2RHO,EPSRHO,MDLUF,IERR)
 C              
       INCLUDE 'eqcomq.h'
       INCLUDE 'eqcom4.h'
@@ -196,6 +210,10 @@ C
       DIMENSION ABRHO(NTRMAX1),ARRHO(NTRMAX1)
       DIMENSION AR1RHO(NTRMAX1),AR2RHO(NTRMAX1),EPSRHO(NTRMAX1)
       DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
+      DIMENSION ASR(NRM)
+      DIMENSION FFQ(NRM),FFTT(NRM),FFVOL(NRM),FFDVOL(NRM)
+      DIMENSION FFAREA(NRM),FFRMJ(NRM),FFGR1(NRM),FFGR2(NRM)
+      CHARACTER KFILE*10
 C
       IERR=0
       RIP    = RIP1
@@ -324,51 +342,186 @@ C
       NSUMAX1=NSUMAX
       CALL EQPSIC(NRMAX1,NTHMAX1,NSUMAX1,IERR)
 C
+C     ***** Calculate Spline Coefficients *****
+C
+      IF(MDLUF.EQ.2) THEN
+         PSITA=FNFTS(1.D0)
+C
+C         write(6,*) MDQ
+         KFILE='Q.PHI'
+         CALL UFREAD(KFILE,ASR,FFQ,NUFMAX,MDQ,IERR)
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFQ,DERIV,UQEQ,NUFMAX,0,IERR)
+C
+c$$$         KFILE='TT.PHI'
+c$$$         CALL UFREAD(KFILE,ASR,FFTT,NUFMAX,MDTT,IERR)
+c$$$         DO NR=1,NUFMAX
+c$$$            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+c$$$         ENDDO
+c$$$         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
+         CALL UFTTRHO(FFTT)
+         CALL SPL1D(ASR,FFTT,DERIV,UTTEQ,NUFMAX,0,IERR)
+C         DO NUF=1,NUFMAX
+C            write(6,*) NUF,ASR(NUF),FFTT(NUF)
+C         ENDDO
+C
+         KFILE='VOL.PHI'
+         CALL UFREAD(KFILE,ASR,FFVOL,NUFMAX,MDVOL,IERR)
+         CALL SPL1D(ASR,FFVOL,DERIV,UVOLEQ,NUFMAX,0,IERR)
+         DO NUF=1,NUFMAX
+            RHOFDV=ASR(NUF)
+            CALL SPL1DD(RHOFDV,VPL,DVPL,ASR,UVOLEQ,NUFMAX,IERR)
+            FFDVOL(NUF)=DVPL
+         ENDDO
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFDVOL,DERIV,UDVOLEQ,NUFMAX,0,IERR)
+C
+         KFILE='AREA.PHI'
+         CALL UFREAD(KFILE,ASR,FFAREA,NUFMAX,MDAREA,IERR)
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFAREA,DERIV,UAREAEQ,NUFMAX,0,IERR)
+C
+         KFILE='RMJ.PHI'
+         CALL UFREAD(KFILE,ASR,FFRMJ,NUFMAX,MDRMJ,IERR)
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFRMJ,DERIV,URMJEQ,NUFMAX,0,IERR)
+C
+         KFILE='GR1.PHI'
+         CALL UFREAD(KFILE,ASR,FFGR1,NUFMAX,MDGR1,IERR)
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFGR1,DERIV,UGR1EQ,NUFMAX,0,IERR)
+C     
+         KFILE='GR2.PHI'
+         CALL UFREAD(KFILE,ASR,FFGR2,NUFMAX,MDGR2,IERR)
+         DO NR=1,NUFMAX
+            ASR(NR)=PSITA*(ASR(NR)**2-1.D0)
+         ENDDO
+         CALL SPL1D(ASR,FFGR2,DERIV,UGR2EQ,NUFMAX,0,IERR)
+      ENDIF
+C
 C     ***** Calculate Q, DVRHO and others at given radial position *****
 C
       PSITA=FNFTS(1.D0)
       DO NTR=1,NTRMAX
-         PSITL=PSITA*RHOTR(NTR)**2
-C         write(6,*) NTR,PSITL
-         DPSITDRHO=2.D0*PSITA*RHOTR(NTR)
+C
 C        <<< PSIL >>>
+         PSITL=PSITA*RHOTR(NTR)**2
+         DPSITDRHO=2.D0*PSITA*RHOTR(NTR)
          CALL SPL1DF(PSITL,PSIL,FTS,UFTT,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DD PSIL: IERR=',IERR
-C
+C     
 C        <<< QRHO >>>
-         CALL SPL1DF(PSIL,QPL,PSS,UQPS,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF QPL: IERR=',IERR
-C         WRITE(6,'(I5,1P3E12.4)') NTR,RHOTR(NTR),PSIL,QPL
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,QPL,PSS,UQPS,NRMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF QPL: IERR=',IERR
+C            WRITE(6,'(I5,1P3E12.4)') NTR,RHOTR(NTR),PSIL,QPL
+         ELSE
+            CALL SPL1DF(PSIL,QPL,ASR,UQEQ,NUFMAX,IERR)
+            IF(IERR.NE.0) 
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF QPL2: IERR=',IERR
+         ENDIF
          QRHO(NTR)=QPL
          DPSIPDRHO=DPSITDRHO/QPL
+C         write(6,*) NTR,PSIL,QRHO(NTR)
+C
 C        <<< TTRHO >>>
-         CALL SPL1DF(PSIL,TTL,PSS,UTTS,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF TTL: IERR=',IERR
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,TTL,PSS,UTTS,NRMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF TTL: IERR=',IERR
+         ELSE
+            CALL SPL1DF(PSIL,TTL,ASR,UTTEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF TTL2: IERR=',IERR
+         ENDIF
          TTRHO(NTR)=TTL
+C         write(6,*) NTR,PSIL,TTL
+C
 C        <<< DVRHO >>>
-         CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF VPL: IERR=',IERR
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF VPL: IERR=',IERR
+         ELSE
+            CALL SPL1DF(PSIL,VPL,ASR,UDVOLEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF VPL2: IERR=',IERR
+         ENDIF
          DVRHO(NTR)=VPL*DPSIPDRHO
+C         write(6,*) NTR,PSIL,DVRHO(NTR)
+C
 C        <<< DSRHO >>>
-         CALL SPL1DF(PSIL,SPL,PSS,USPS,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF SPL: IERR=',IERR
-         DSRHO(NTR)=SPL*DPSIPDRHO
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,SPL,PSS,USPS,NRMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF SPL: IERR=',IERR
+         ELSE
+            CALL SPL1DD(PSIL,SPL,DSPL,ASR,UAREAEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF SPL2: IERR=',IERR
+         ENDIF
+            DSRHO(NTR)=DSPL*DPSIPDRHO
+C
 C        <<< ABRHO >>>
-         CALL SPL1DF(PSIL,AVBRL,PSS,UAVBR,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVBRL: IERR=',IERR
-         ABRHO(NTR)=AVBRL*(PSIL-PSS(1))/DPSIPDRHO**2
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,AVBRL,PSS,UAVBR,NRMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVBRL: IERR=',IERR
+            ABRHO(NTR)=AVBRL*(PSIL-PSS(1))/DPSIPDRHO**2
+         ELSE
+            CALL SPL1DF(PSIL,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
+            CALL SPL1DF(PSIL,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVBRL2: IERR=',IERR
+            ABRHO(NTR)=(AVRRL*AVR2L)*(PSIL-PSS(1))/DPSIPDRHO**2
+         ENDIF
+C
 C        <<< ARRHO >>>
-         CALL SPL1DF(PSIL,AVRRL,PSS,UAVRR,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVRRL: IERR=',IERR
-         ARRHO(NTR)=AVRRL
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,AVRRL,PSS,UAVRR,NRMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVRRL: IERR=',IERR
+            ARRHO(NTR)=AVRRL
+         ELSE
+            CALL SPL1DF(PSIL,AVRRL,ASR,URMJEQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVRRL2: IERR=',IERR
+            ARRHO(NTR)=1.D0/(AVRRL**2)
+         ENDIF
+C
 C        <<< AR1RHO >>>
-         CALL SPL1DF(PSIL,AVR1L,PSS,UAVR1,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVR1L: IERR=',IERR
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,AVR1L,PSS,UAVR1,NRMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVR1L: IERR=',IERR
+         ELSE
+            CALL SPL1DF(PSIL,AVR1L,ASR,UGR1EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVR1L2: IERR=',IERR
+         ENDIF
          AR1RHO(NTR)=AVR1L*SQRT(PSIL-PSS(1))/DPSIPDRHO
+C         write(6,*) NTR,PSIL,AR1RHO(NTR)
+C
 C        <<< AR2RHO >>>
-         CALL SPL1DF(PSIL,AVR2L,PSS,UAVR2,NRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF AVR2L: IERR=',IERR
+         IF(MDLUF.NE.2) THEN
+            CALL SPL1DF(PSIL,AVR2L,PSS,UAVR2,NRMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVR2L: IERR=',IERR
+         ELSE
+            CALL SPL1DF(PSIL,AVR2L,ASR,UGR2EQ,NUFMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) 'XX TREQEX: SPL1DF AVR2L2: IERR=',IERR
+         ENDIF
          AR2RHO(NTR)=AVR2L*(PSIL-PSS(1))/DPSIPDRHO**2
+C         write(6,*) NTR,PSIL,AR2RHO(NTR)
+C
 C        <<< EPSRHO >>>
          CALL SPL1DF(PSIL,BBMINL,PSS,UBBMIN,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF BBMINL: IERR=',IERR
@@ -380,3 +533,122 @@ C         WRITE(6,'(I5,1P3E12.4)') NTR,BBMINL,BBMAXL,EPSRHO(NTR)
 C      PAUSE
  9000 RETURN
       END
+C
+C
+C   *******************************************
+C   **    UFILE read for TR                  **
+C   *******************************************
+C
+C     input:
+C
+C     KFID     : UFILE exsisting directory
+C
+C     output:
+C
+C     AR(NUFM) : Equally Spaced Normalized Radial Data
+C     F1(NUFM) : Functional Values
+C     NUFMAX   : Maximum Number of the Radial Mesh
+C     IERR     : Error Indicator
+C
+C   ***************************************************************
+C
+      SUBROUTINE UFREAD(KFID,ASR,F1,NUFMAX,MDCHK,IERR)
+C
+      INCLUDE 'eqcomq.h'
+      INCLUDE 'eqcom4.h'
+      PARAMETER (NUFM=51)
+      DIMENSION T(1),ASR(NUFM),F1(NUFM),F2(NUFM,1)
+      CHARACTER KXNDEV*80,KXNDCG*80
+      CHARACTER KDIRR2*80
+      CHARACTER KDIRX*80
+      CHARACTER KFID*20
+C
+C      IF(MDCHK.EQ.1) GOTO 9000
+      NUFMAX=51
+      KXNDEV='jt60u'
+      KXNDCG='29728'
+C
+      CALL KTRIM(KXNDEV,IKNDEV)
+      CALL KTRIM(KXNDCG,IKNDCG)
+C
+      KDIRX='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/'
+     &                          //KXNDCG(1:IKNDCG)//'/in/'
+      CALL KTRIM(KDIRX,IKDIRX)
+      KDIRR2=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
+     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
+C
+      CALL TRXR2D(KDIRR2,KFID,T,ASR,F2,NUFM,1,NUFMAX,1,0)
+      DO NUF=1,NUFMAX
+         F1(NUF)=F2(NUF,1)
+      ENDDO
+      MDCHK=1
+C
+ 9000 RETURN
+      END
+C
+C
+C   *******************************************
+C   **    UFILE TTRHO read for TR            **
+C   *******************************************
+C
+      SUBROUTINE UFTTRHO(TTTRHO)
+C
+      IMPLICIT REAL*8 (T)
+      PARAMETER(NUFM=51)
+      DIMENSION TTTRHO(NUFM)
+C
+      TTTRHO(1) = 1.153D1
+      TTTRHO(2) = 1.153D1
+      TTTRHO(3) = 1.153D1
+      TTTRHO(4) = 1.153D1
+      TTTRHO(5) = 1.153D1
+      TTTRHO(6) = 1.153D1
+      TTTRHO(7) = 1.153D1
+      TTTRHO(8) = 1.153D1
+      TTTRHO(9) = 1.153D1
+      TTTRHO(10) = 1.154D1
+      TTTRHO(11) = 1.154D1
+      TTTRHO(12) = 1.154D1
+      TTTRHO(13) = 1.154D1
+      TTTRHO(14) = 1.154D1
+      TTTRHO(15) = 1.154D1
+      TTTRHO(16) = 1.154D1
+      TTTRHO(17) = 1.154D1
+      TTTRHO(18) = 1.154D1
+      TTTRHO(19) = 1.154D1
+      TTTRHO(20) = 1.154D1
+      TTTRHO(21) = 1.154D1
+      TTTRHO(22) = 1.154D1
+      TTTRHO(23) = 1.154D1
+      TTTRHO(24) = 1.154D1
+      TTTRHO(25) = 1.154D1
+      TTTRHO(26) = 1.154D1
+      TTTRHO(27) = 1.154D1
+      TTTRHO(28) = 1.154D1
+      TTTRHO(29) = 1.154D1
+      TTTRHO(30) = 1.154D1
+      TTTRHO(31) = 1.154D1
+      TTTRHO(32) = 1.154D1
+      TTTRHO(33) = 1.154D1
+      TTTRHO(34) = 1.154D1
+      TTTRHO(35) = 1.154D1
+      TTTRHO(36) = 1.154D1
+      TTTRHO(37) = 1.155D1
+      TTTRHO(38) = 1.155D1
+      TTTRHO(39) = 1.155D1
+      TTTRHO(40) = 1.155D1
+      TTTRHO(41) = 1.155D1
+      TTTRHO(42) = 1.155D1
+      TTTRHO(43) = 1.155D1
+      TTTRHO(44) = 1.155D1
+      TTTRHO(45) = 1.155D1
+      TTTRHO(46) = 1.155D1
+      TTTRHO(47) = 1.155D1
+      TTTRHO(48) = 1.155D1
+      TTTRHO(49) = 1.155D1
+      TTTRHO(50) = 1.155D1
+      TTTRHO(51) = 1.155D1
+C
+      RETURN
+      END
+C
