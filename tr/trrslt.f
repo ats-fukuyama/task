@@ -1066,6 +1066,9 @@ C
       KDIRW='../../tr.new/data/'//KXNDEV(1:IKNDEV)//'/'
      &                          //KXNDCG(1:IKNDCG)//'/'
      &                          //KXNID (1:IKNID )//'/'
+C      KDIRW='../../../profile/profile_data/'//KXNDEV(1:IKNDEV)//'/'
+C     &                          //KXNDCG(1:IKNDCG)//'/'
+C     &                          //KXNID (1:IKNID )//'/'
       CALL KTRIM(KDIRW,IKDIRW)
       KDIRW1=KDIRW(1:IKDIRW)//KXNDEV(1:IKNDEV)
      &       //'1d'//KXNDCG(1:IKNDCG)//'.'
@@ -1317,14 +1320,20 @@ C
             ENDDO
          ELSEIF(NUM.EQ.26) THEN
             KFID='Q95'
+            ID=0
+            IF(MDLUF.NE.0.AND.NRMAX.NE.NROMAX) THEN
+               ID=1
+               NRMAX=NROMAX
+            ENDIF
             DO NTL=1,NGT
                DO NRL=1,NRMAX
                   F1(NRL)=G3D(NRL,NTL,27)
                ENDDO
                CALL SPL1D (RG,F1,DERIVQ,UQ95,NRMAX,0,IERR)
-               CALL SPL1DF(0.95D0,FQ95,RGL,UQ95,NRMAX,IERR)
+               CALL SPL1DF(0.95D0,FQ95,RG,UQ95,NRMAX,IERR)
                TF(NTL)=FQ95
             ENDDO
+            IF(ID.NE.0) NRMAX=NRAMAX
          ELSEIF(NUM.EQ.29) THEN
             KFID='RHOA'
             DO NTL=1,NGT

@@ -716,6 +716,7 @@ C
             GOTO 2000
          ENDIF
       ENDDO
+      write(6,*) "PASS"
       STOP 'UFILE HAS AN ERROR!'
  2000 CONTINUE
 C
@@ -803,7 +804,7 @@ C
             RKAPU(NTA)=F0
          ENDDO
       ENDIF
-C
+C     
 C     *** 2D VALUE ***
 C
       KFILE='TE'
@@ -1172,6 +1173,7 @@ C
             TTRHOU(NR,NTA)=BB*RMJRHOU(NR,NTA)
             DSRHOU(NR,NTA)=DVRHOU(NR,NTA)/(2.D0*PI*RMJRHOU(NR,NTA))
          ENDDO
+         IF(KUFDEV.EQ.'jt60u') RRU(NTA)=RMJRHOU(1,NTA)
       ENDDO
 C
       KFILE='RMINOR'
@@ -1187,6 +1189,7 @@ C
      &           WRITE(6,*) "XX TRFILE: SPL2DF RMINOR: IERR=",IERR
             RMNRHOU(NR,NTA)=F0
          ENDDO
+         IF(KUFDEV.EQ.'jt60u') RAU(NTA)=RMNRHOU(NRMAX,NTA)
       ENDDO
 C
       KFILE='GRHO1'
@@ -1201,6 +1204,7 @@ C
             IF(IERR.NE.0)
      &           WRITE(6,*) "XX TRFILE: SPL2DF GRHO1: IERR=",IERR
             AR1RHOU(NR,NTA)=F0
+           IF(KUFDEV.EQ.'jt60u') AR1RHOU(NR,NTA)=1.D0/RMNRHOU(NRMAX,NTA)
          ENDDO
       ENDDO
 C
@@ -1217,6 +1221,10 @@ C
      &           WRITE(6,*) "XX TRFILE: SPL2DF GRHO2: IERR=",IERR
             AR2RHOU(NR,NTA)=F0
             ABRHOU(NR,NTA)=AR2RHOU(NR,NTA)*ARRHOU(NR,NTA)
+           IF(KUFDEV.EQ.'jt60u') THEN
+              AR2RHOU(NR,NTA)=1.D0/RMNRHOU(NRMAX,NTA)**2
+              ABRHOU(NR,NTA)=AR2RHOU(NR,NTA)*ARRHOU(NR,NTA)
+           ENDIF
          ENDDO
       ENDDO
 C
@@ -2105,6 +2113,8 @@ C
 C
       KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
      &                          //KUFDCG(1:IKNDCG)//'/in/'
+C      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+C     &                          //KUFDCG(1:IKNDCG)//'/in/'
       CALL KTRIM(KDIRX,IKDIRX)
       KDIRR1=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
      &       //'1d'//KUFDCG(1:IKNDCG)//'.'
@@ -2112,12 +2122,12 @@ C
       CALL KTRIM(KDIRR1,KL1)
       KFILE=KDIRR1(1:KL1)//KFID
 C
-      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NEQV..TRUE.) THEN
-         WRITE(6,'(A25,A34,A17)') 
-     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
-         STOP
-      ENDIF
+C      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
+C      IF(DIR.NE..TRUE.) THEN
+C         WRITE(6,'(A25,A34,A17)') 
+C     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
+C         STOP
+C      ENDIF
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN
@@ -2153,6 +2163,8 @@ C
 C
       KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
      &                          //KUFDCG(1:IKNDCG)//'/in/'
+C      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+C     &                          //KUFDCG(1:IKNDCG)//'/in/'
       CALL KTRIM(KDIRX,IKDIRX)
       KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
      &       //'2d'//KUFDCG(1:IKNDCG)//'.'
@@ -2160,12 +2172,12 @@ C
       CALL KTRIM(KDIRR2,KL2)
       KFILE=KDIRR2(1:KL2)//KFID
 C
-      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NEQV..TRUE.) THEN
-         WRITE(6,'(A25,A34,A17)') 
-     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
-         STOP
-      ENDIF
+C      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
+C      IF(DIR.NE..TRUE.) THEN
+C         WRITE(6,'(A25,A34,A17)') 
+C     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
+C         STOP
+C      ENDIF
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN

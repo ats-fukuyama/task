@@ -38,7 +38,7 @@ all: 3d
 3d: $(PROG3)
 
 $(PROG3) : $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) trcomm.h $(INCNC) $(INCGLF)
-	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) -L/usr/local/lib -lgsgl-pgf77
+	$(FC) -o $@ $(FFLAGS) $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) -L/home/honda/lib -lgsgl
 
 2d : $(PROG2)
 
