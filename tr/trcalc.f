@@ -557,7 +557,7 @@ C
          DPI=(RNTP-RNTM)*AR1RHOG(NR)/DR
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
-     &           /(ABS(TI*1.D3)**1.5))
+     &           /(ABS(TI*1.D3)**1.5D0))
          RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii
      &       /(ABS(TI*1.D3)**2*EPSS)
 C     
@@ -667,7 +667,7 @@ C
       DPI=2.D0*(RNTP-RNTM)*AR1RHOG(NR)/DR
 C
       rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
-     &     /(ABS(TI*1.D3)**1.5))
+     &     /(ABS(TI*1.D3)**1.5D0))
       RNUI=4.90D-18*QL*RR*ANI(NR)*1.D20*PZ(2)**4*rLnLamii
      &     /(ABS(TI*1.D3)**2*EPSS)
 C     

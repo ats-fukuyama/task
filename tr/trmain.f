@@ -79,7 +79,7 @@ C
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
 C
-      CALL TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,NTMOLD,IERR)
+      CALL TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,IERR)
       IF(MODE.EQ.1.AND.IERR.EQ.2) GOTO 100
       IF(MODE.EQ.1.AND.IERR.EQ.3) GOTO 9000
       IF(MODE.NE.1) GOTO 1
@@ -119,7 +119,7 @@ C
          INIT=2
          NTMOLD=NTMAX
       ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
-      CALL TRCONV(L,IERR)
+         CALL TRCONV(L,IERR)
 C   
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
          IF(MDLUF.EQ.1) THEN
@@ -252,7 +252,7 @@ C                        1: KID INPUT
 C                        2: PARM INPUT
 C                        3: NEW PROMPT
 C
-      SUBROUTINE TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,NTMOLD,IERR)
+      SUBROUTINE TRKLIN(LINE,KID,MODE,NTMAX,NTSMAX,IERR)
 C
       CHARACTER LINE*80,KID*1
 C
@@ -264,9 +264,7 @@ C
          IF(LINE(I:I).EQ.'=') ID=1
       ENDDO
       IF(ID.EQ.1) THEN
-C         NTMOLD=NTMAX
          CALL TRPARL(LINE)
-C         write(6,*) LINE,NTMOLD,NTMAX
          IF(NTSMAX.NE.NTMAX) NTSMAX=NTMAX
          MODE=2
          RETURN

@@ -9,9 +9,6 @@ C
       character case(6)*10
       dimension rlim(NSUM),zlim(NSUM),pressw(NPSM),pwprim(NPSM),
      &          dmion(NSUM),rhovn(NSUM)
-      CHARACTER KLINE*80
-C
-      LOGICAL LEX
 C
       neqdsk=21
       CALL FROPEN(neqdsk,KNAMEQ,1,4,'EQ',IERR)
