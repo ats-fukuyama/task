@@ -41,3 +41,9 @@ dptnsr.o: dptnsr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
 dpfpin.o: dpfpin.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
 dphotf.o: dphotf.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
 dphotr.o: dphotr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.inc ../pl/plcom1.inc
+../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.inc ../pl/plcom1.inc ../pl/plcom2.inc
+../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

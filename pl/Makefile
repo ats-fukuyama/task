@@ -33,5 +33,6 @@ plmain.o: plmain.f plcomm.inc plcom1.inc
 plinit.o: plinit.f plcomm.inc plcom1.inc
 plprof.o: plprof.f plcomm.inc plcom1.inc plcom2.inc
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqdsk.o: ../eq/eqdsk.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
