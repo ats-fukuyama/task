@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXSAVE
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER TXFNAM*100, STR*1, RCSId*100
       LOGICAL LEX
@@ -85,7 +85,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXLOAD
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER TXFNAM*100, LOADSLID*8, RCSId*100
       LOGICAL LEX
@@ -185,7 +185,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGSAV
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER TXFNAM*100, STR*1, RCSId*100
       LOGICAL LEX
@@ -266,7 +266,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGLOD
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER TXFNAM*100, LOADSLID*8, RCSId*100
       LOGICAL LEX

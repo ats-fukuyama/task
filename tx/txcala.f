@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCALA
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
@@ -79,7 +79,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQm1CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Er(0) = 0
 C
@@ -121,7 +121,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQm2CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Etheta(0) : 0
 C
@@ -174,7 +174,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQm3CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX - 1
           BLC(0,LQm3,NR) = 1.D0 / (VC**2 * DT)
@@ -220,7 +220,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQm4CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Btheta(0) : 0
 C
@@ -259,7 +259,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQm5CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX - 1
           BLC(0,LQm5,NR) = 1.D0 / DT
@@ -290,7 +290,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQe1CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX - 1
           BLC(0,LQe1,NR) = 1.D0 / DT
@@ -339,7 +339,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQe2CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ns*Usr(0) : fixed
 C
@@ -404,7 +404,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQe3CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ns*UsTheta(0) : 0
 C
@@ -536,7 +536,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQe4CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Uephi(0)' : 0
 C
@@ -647,7 +647,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQe5CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Fixed Temperature
 C
@@ -784,7 +784,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQi1CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX - 1
           BLC(0,LQi1,NR) = 1.D0 / DT
@@ -846,7 +846,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQi2CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ns*Usr(0) : fixed
 C
@@ -911,7 +911,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQi3CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ni*UiTheta(0) : 0
 C
@@ -1054,7 +1054,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQi4CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Uiphi'(0) : 0
 C
@@ -1174,7 +1174,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQi5CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Fixed temperature
 C
@@ -1310,7 +1310,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQb1CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX - 1
           BLC(0,LQb1,NR) = 1.D0 / DT
@@ -1344,7 +1344,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQb3CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ubth(0) : 0
 C
@@ -1391,7 +1391,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQb4CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C Ubphi'(0) : 0
 C
@@ -1449,7 +1449,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQn1CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX-1
           BLC(0,LQn1,NR) = 1.D0 / DT
@@ -1522,7 +1522,7 @@ C     ***************************************************************
 C
       SUBROUTINE LQn2CC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX-1
           BLC(0,LQn2,NR) = 1.D0 / DT

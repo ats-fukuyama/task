@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXPRFG
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO NR = 0, NRMAX
          GX(NR,1) = SNGL(R(NR) / RA)
@@ -29,7 +29,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXSTGR
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       IF (NGR.LT.NGRM) THEN
          NGR = NGR + 1
@@ -118,7 +118,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXSTGT(GTIME)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       IF (NGT.LT.NGTM) THEN
          NGT=NGT+1
@@ -209,7 +209,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXSTGV(GTIME)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       IF (NGVV.LT.NGVM) THEN
          NGVV=NGVV+1
@@ -274,7 +274,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFR(NGYR,MODE)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER STR*40
       DIMENSION GYL(0:NRM,0:NGRM)
@@ -542,7 +542,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX1, NGMAX, STR, MODE, IND)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION GXL(0:NRM),GYL(0:NRM,0:NGMAX),GPXY(4)
       CHARACTER STR*(*)
@@ -566,7 +566,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFT(NGYT,MODE)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
       CHARACTER STR*40
 C
       DIMENSION GTYL(0:NGTM,NGYTM)
@@ -837,7 +837,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFV(NGYV,MODE)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
       CHARACTER STR*40
 C
       DIMENSION GVYL(0:NGVM,NGYVM)
@@ -1058,7 +1058,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFTX(K, GTXL, GTYL, NGTLM, NGTL, NG, STR, MODE,IND)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
       DIMENSION GTXL(0:NGTLM),GTYL(0:NGTLM,NG),GPXY(4)
       CHARACTER STR*(*)
 C
@@ -1080,7 +1080,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTLM, NGTL, NG, STR, IND)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
       DIMENSION GTXL(0:NGTLM),GTYL(0:NGTLM,NG),GPXY(4)
       CHARACTER STR*(*)
 C
@@ -1102,7 +1102,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXGRFQ(NQ,ID)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION GQY(0:NRM,NCM), IHIGQ(NQM), GPXY(4), GPXYA(4,4)
       CHARACTER STRGQ(NQM)*80, STR*80
@@ -1183,7 +1183,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXWPGR
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
       COMMON /TXPRS1/ GXM,GYM,GYS,NP
 C
       CALL INQFNT(IFNT)
@@ -1463,7 +1463,7 @@ C     ***************************************************************
 C
       SUBROUTINE DIVGY(GIN, GOUT, NXM, NXMAX, NYMAX, gDIVL)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION GIN(NXM,NYMAX), GOUT(NXM,NYMAX)
 C

@@ -8,7 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TXGLOB
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION BP(NRM),BETA(NRM),BETAP(NRM)
       DIMENSION BETAL(NRM),BETAPL(NRM),BETAQ(NRM)

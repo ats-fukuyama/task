@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCALM
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       AMi = PA * AMP
       AMb = AMi
@@ -38,7 +38,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCALV(XL)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION XL(NQM,0:NRM)
 C
@@ -153,7 +153,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCALC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C     *** Constants ***
 C

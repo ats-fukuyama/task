@@ -42,7 +42,7 @@ C        G29 = D    G30 = G1h2    G31 = MuI        half integer
 C        G32 = S    G33 = Alpha   G34 = rKappa     half integer
 C        G35 = Slow N0   G36 = Fast N0             half integer
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CALL GSOPEN
 C
@@ -68,7 +68,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXMAIN
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER STR*40, STR2*5, KID*1, KID2*2, KID3*3
 C

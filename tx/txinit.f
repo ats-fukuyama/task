@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXINIT
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C     ***** Version ID *****
 C     SLID is used to identify data file.
@@ -301,7 +301,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXPARM
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       NAMELIST /TX/
      & RA,RB,RR,BB,
@@ -359,7 +359,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXVIEW
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       WRITE(6,'((1H ,A6,2H =,1PD9.2,3(2X,A6,2H =,1PD9.2)))')
      &   'RA    ', RA    ,  'RB    ', RB    , 
@@ -409,7 +409,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXPROF
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CALL TXCALM
       CALL TXPRFG

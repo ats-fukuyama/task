@@ -8,7 +8,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXEXEC
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CHARACTER STR1*10, STR2*10, STR3*10
 C
@@ -65,7 +65,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXLOOP
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION XP(NQM,0:NRM)
 C
@@ -228,7 +228,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCALB
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DO I = 1, NQMAX * 4 - 1
          DO J = 1, NQMAX * (NRMAX + 1)
@@ -324,7 +324,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXCHEK(NTL,IC,XL,IER)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       DIMENSION XL(NQM,0:NRM)
 C
@@ -365,7 +365,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXWDAT
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
 C     ***** Volume-averaged density *****
 C
@@ -395,7 +395,7 @@ C     ***************************************************************
 C
       SUBROUTINE TXWDAT2
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
       CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
@@ -419,7 +419,7 @@ C     ***********************************************************
 C
       REAL*8 FUNCTION rLINEAVE(Rho)
 C
-      INCLUDE 'txcomm.h'
+      INCLUDE 'txcomm.inc'
 C
       D = Rho * RA
       NY = 100
