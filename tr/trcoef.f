@@ -76,7 +76,6 @@ C         ELSE
 C            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
 C         ENDIF
          EPS=EPSRHO(NR)
-C         write(6,*) NR,EPS
          IF(NR.EQ.NRMAX) THEN
             ANE=PNSS(1)
             AND=PNSS(2)
@@ -538,7 +537,6 @@ C
             AKDW(NR,2)=AKDWIL
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
-C            write(6,*) NT,NR,AKDW(NR,1)
 C
             VGR1(NR,1)=FS
             VGR1(NR,2)=S
@@ -685,7 +683,6 @@ C
          AKNC(NR,2) = SQRT(EPS)*RHOD2/TAUD*RK2D
          AKNC(NR,3) = SQRT(EPS)*RHOT2/TAUT*RK2T
          AKNC(NR,4) = SQRT(EPS)*RHOA2/TAUA*RK2A
-C         write(6,*) NT,NR,AKNC(NR,1)
 C
       ELSE
 C
@@ -789,7 +786,6 @@ C
          AK(NR,2) = AKDW(NR,2)+CNC*AKNC(NR,2)
          AK(NR,3) = AKDW(NR,3)+CNC*AKNC(NR,3)
          AK(NR,4) = AKDW(NR,4)+CNC*AKNC(NR,4)
-C         write(6,*) NT,NR,AKNC(NR,1)
 C
   100 CONTINUE
 C

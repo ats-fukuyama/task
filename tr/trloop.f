@@ -612,10 +612,6 @@ C     * NO=2 section is slightly diffrent from that of tr.020319. *
 C     *                                                           *
 C     *************************************************************
 C
-C      IF (NV.GT.NSM.AND.NV.EQ.NW) write(6,*) DI(NV,NW,2,NSW)*2.D0
-C     &     /(3.D0*DV53)
-C      IF (NV.GT.NSM.AND.NV.EQ.NW+NSM) write(6,*) DI(NV,NW,2,NSW)
-C     &     /DV53
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
      &                -0.0D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
@@ -633,7 +629,6 @@ C
      &                 +(-VI(NSM+NS,NSM+NS,2,NSW)
      &                 +  DI(NSM+NS,NSM+NS,2,NSW)*2.D0)
      &                 *PNSS(NS)*PTS(NS)
-C         write(6,*) D(NSM+NS,NR)
 C
       DO NS1=1,NSM
          IF(NS1.NE.NS) THEN

@@ -550,7 +550,6 @@ C
          RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
          RNUT=ABS(QP(NR))*RR/(TAUT*VTT*EPSS)
          RNUA=ABS(QP(NR))*RR/(TAUA*VTA*EPSS)
-C         write(6,*) ABS(QP(NR))
 C
 C         RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
 C     &              +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
@@ -934,7 +933,6 @@ C
          EZOH(NR) = ETA(NR)*AJOH(NR)
          POH(NR)  = EZOH(NR)*AJOH(NR)
 C         write(6,'(F14.7)') POH(NR)
-C         WRITE(6,'(I5,1P3E12.4)') NR,BP(NR),BPRHO(NR),AJ(NR)
       ENDDO
 C      PAUSE
 C
