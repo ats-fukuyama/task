@@ -291,7 +291,7 @@ C
 C      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
 C     &                          //KUFDCG(1:IKNDCG)//'/in/'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NE..TRUE.) THEN
+      IF(DIR.NEQV..TRUE.) THEN
          WRITE(6,'(A25,A34,A17)') 
      &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
          STOP
@@ -308,7 +308,7 @@ C
       KFID='NM2'
       KFILE=KDIRR2(1:KL2)//KFID
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
-      IF(LEX.EQ..TRUE.) THEN
+      IF(LEX.EQV..TRUE.) THEN
          IF(KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d') THEN
             MDSLCT=MDSLCT+1
             NM2CHK=1
