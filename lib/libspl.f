@@ -224,6 +224,56 @@ C
       RETURN
       END
 C
+C     ****** One-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE SPL1DI(X0,F0D,X,U,U0,NXMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX)
+      DIMENSION U(4,NXMAX),U0(NXMAX)
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      FS=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FS*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FS.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FS.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+      DX=X0-X(NX-1)
+C
+      F0D= U0(NX)
+     &   + U(1,NX)*DX
+     &   + U(2,NX)*DX*DX/2.D0
+     &   + U(3,NX)*DX*DX*DX/3.D0
+     &   + U(4,NX)*DX*DX*DX*DX/4.D0
+C      WRITE(6,'(A,2I5,1P3E12.4)') 
+C     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
+      RETURN
+      END
+C
 C     ****** Two-Dimensional Spline Interpolation ******
 C       **** Calculation of coefficients ****
 C
