@@ -29,7 +29,8 @@ C
          GOTO 9000
       ENDIF
 c
-   30 read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
+   30 REWIND(neqdsk)
+      read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
       read (neqdsk,2020) rdim,zdim,RR,rleft,zmid
       RA=0.5D0*rdim
@@ -70,6 +71,8 @@ c
          read (neqdsk,2020) (dmion(i),i=1,NPSMAX)
       endif
       read (neqdsk,2020) (rhovn(i),i=1,NPSMAX)
+      REWIND(neqdsk)
+      CLOSE(neqdsk)
 C
 C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
 C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,SAXIS,SBNDY

@@ -33,7 +33,8 @@ C
          GOTO 9000
       ENDIF
 c
-   30 NR=0
+   30 REWIND(NPFDSK)
+      NR=0
    40 READ(NPFDSK,'(4E15.8)',IOSTAT=IST,ERR=80,END=90) D1,D2,D3,D4
       NR=NR+1
       RHOFL(NR)=D1
@@ -46,7 +47,9 @@ C
       IERR=8003
       GOTO 9000
 C
-   90 NRFLMAX=NR
+   90 REWIND(NPFDSK)
+      CLOSE(NPFDSK)
+      NRFLMAX=NR
 C
 C     ----- Convert density in 10^19 to 10^20 -----
 C
