@@ -6,7 +6,7 @@
 
 \begin{document}
 \begin{flushright}
-2002/08/01
+2005/01/31
 \end{flushright}
 
 \begin{center}
@@ -19,59 +19,159 @@ TASK (\textbf{T}ransport \textbf{A}nalyzing \textbf{S}ystem for
 takama\textbf{K}) コードは，主にトカマクプラズマにおける平衡，輸送，波
 動伝播，速度分布を解析するコード群である．
 
+\subsection{TASK コードの特色}
+\begin{itemize}
+\item
+\textbf{トカマクの時間発展シミュレーション}
+\begin{itemize}
+\item
+モジュール構造の統合シミュレーション
+\item
+様々な加熱・電流駆動機構の解析
+\item
+高い移植性
+\item
+ヘリカル系への拡張
+\item
+MPI ライブラリを用いた並列分散処理
+\item
+実験データベースの利用
+\end{itemize}
+\item
+\textbf{核燃焼プラズマ統合コード構想のコアコード}
+\begin{itemize}
+\item
+最小限の統合コード：各モジュールは交換可能
+\item
+インターフェースの標準化：実装の検証
+\item
+利用者の拡大：マニュアル等の整備
+\end{itemize}
+\end{itemize}
+
+\subsection{TASK コードのモジュール構成}
+\begin{center}
+\begin{tabular}{r|ll}
+\hline
+\texttt{TASK/EQ} & {２次元平衡解析} & 固定境界，トロイダル回転効果 \\[2mm]
+\texttt{TR} & {１次元輸送解析} & 拡散型輸送方程式，輸送モデル \\[2mm]
+\texttt{WR} & {幾何光学的波動解析} & EC, LH: 光線追跡法，ビーム追跡
+法 \\[2mm]
+\texttt{WM} & {波動光学的波動解析} & IC, AW: アンテナ励起，固有モー
+ド \\[2mm]
+\texttt{FP} & {速度分布解析} & 相対論的，軌道平均，３次元 \\[2mm]
+\texttt{DP} & {波動分散解析} & 局所誘電率テンソル，任意速度分布 \\
+\texttt{PL} & {データ交換} & 座標変換，標準データ，分布データベース \\[2mm]
+\texttt{LIB} & {共通ライブラリ} & 行列解法，特殊関数 \\
+\texttt{MTX} & {行列解法} & 直接法／反復法，並列化 \\
+\texttt{MPI} & {並列化} & 並列化ライブラリインターフェース \\
+\texttt{TOT} & {一体化} & 一体化コード \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{仕様}
+
 使用言語は FORTRAN であり，原則として FORTRAN 95 に含まれる FORTRAN 77 
 仕様と GNU fortran g77 に含まれる FORTRAN 77 からの拡張を含む．すなわ
 ち g77 コンパイラおよび FORTRAN 95 に準拠する FORTRAN コンパイラのいず
 れによっても，コンパイルすることができる．
 
 使用するグラフィックライブラリは GSAF である．このライブラリは，
-\tline{http://p-grp.nucleng.kyoto-u.ac.jp/gsaf/}\\ 
-から入手することができ，図形を X-window あるいは postscript ファイルと
-して出力することができる．数値計算ライブラリとして LAPACK を使用する場
-合があるが，その機能が不必要であれば容易に省略することができる．並列化
-ライブラリとしてMPI を使用しているが，MPI ライブラリがなくてもコンパイ
-ルできる．
+
+\tline{http://p-grp.nucleng.kyoto-u.ac.jp/gsaf/}
+から入手することができる．このライブラリを用いて，図形を X-window に表
+示し，図形データをファイルに保存し，このデータを postscript ファイルに
+変換することができる．数値計算ライブラリとして LAPACK を使用する場合が
+あるが，その機能が不必要であれば容易に省略することができる．並列化ライ
+ブラリとして MPI を使用しているが，MPI ライブラリがなくてもコンパイルで
+きる．
 
 \section{TASK コードのインストール}
 
 \subsection{TASK コードの入手}
 
-TASK コードは次のいずれかの方法で入手することができる．
+TASK コードは次のいずれかの方法で入手することができる．現在の所，
 \begin{enumerate}
 \item
-cvs root にアクセスできる場合には，
-\tline{export CVS\underline{ }RSH}
-\tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs}
-\tline{cvs co}
-\\
-によって，CVS ファイルツリーを入手することができる．
+TASK と GSAF の最新ソースファイルは，CVS サーバーから以下の手順で
+download することができる．この場合に必要な password は
+fukuyama@nucleng.kyoto-u.ac.jp まで問い合わせること．なお，この方法では
+修正したファイルを upload することはできない．
+
+\tline{export CVS\underline{ }RSH=ssh} \\
+\tline{export
+  CVSROOT=:pserver:anonymous@p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs} \\
+\tline{cvs login} \\
+\tline{password: XXXXXXXX} \\
+\tline{cvs co task} \\
+\tline{cvs co gsaf}
+
+\item
+CVS サーバーに account を有する場合には，修正したファイルを upload す
+ることができる．この場合の手順は
+
+\tline{export CVS\underline{ }RSH=ssh} \\
+\tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs} \\
+\tline{cvs co task} \\
+\tline{cvs co gsaf}
+
 \item
 圧縮されたファイルツリー task-YYMMDD.tar.gz ファイルは
-\tline{http://p-grp.nucleng.kyoto-u.ac.jp/bpsi/task.html}
-\\
-から入手できる．ただし，最新のファイルツリーである保証はない．
+
+\tline{http://bpsi.nucleng.kyoto-u.ac.jp/taks/}
+
+から入手できる予定である．ただし，最新のファイルツリーである保証はない．
 得られた task.tar.gz は gnu tar の場合
+
 \tline{tar xvzf task.tar.gz}
-\\
+
 で，あるいは通常の tar の場合
+
 \tline{gzcat task.tar.gz | tar xvf}
-\\
+
 等によって解凍することができる．
 \end{enumerate}
 
 \subsection{コードのコンパイル}
 
-あらかじめ，グラフィックライブラリ GSAF をコンパイルし，適切なライブラ
-リ検索パスに含まれているようにする．
+\subsubsection{GSAF のコンパイル}
+
 \begin{enumerate}
 \item
-ライブラリパスを \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
+\tline{cd gsaf/src}：ソースディレクトリに移動する．
+\item
+\tline{cp ../arch/XXXX-XXXX/Makefile.arch .}：必要な設定ファイルをコピー
+する．
+\item
+Makefile.arch の中の directory BINPATH, LIBPATH を適切に設定する．
+\item
+\tline{make}：ライブラリを作成する．
+\item
+BINPATH, LIBPATH に書込権限をもつ user として，\\
+\tline{make install}：コマンドを作成し，ライブラリとともにインストール
+する．
+\item
+LIBPATH がライブラリ検索 path に含まれているようにする．
+\begin{itemize}
+\item
+LIBPATH を \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
 を実行しておく．これらの操作には root 権限が必要．
 \item
-環境変数 \ttype{LD\underline{ }LIBRARY\underline{ }PATH} にライブラリ
-パスを含めておく．\ttype{LD\underline{ }LIBRARY\underline{ }PATH} が
-定義されていなければ，自分で定義しておく．
+環境変数 \ttype{LD\underline{ }LIBRARY\underline{ }PATH} に LIBPATH を
+含める．
+\end{itemize}
+\item
+\tline{cd test}
+\item
+\tline{make}
+\item
+\tline{./bsctest}：基本テストプログラムを実行する．
+\item
+\tline{cd ../../..}
 \end{enumerate}
+
+\subsubsection{TASK のコンパイル}
 
 まず，task ディレクトリの \ttype{make.header.org} ファイルを
 \ttype{make.header} という名前でコピーし，その内容を環境に合わせて変
@@ -102,21 +202,29 @@ cvs root にアクセスできる場合には，
 い合わせへの回答が '0' 以外の場合には，各ページ出力後に問い合わせがあ
 り，単に改行の場合は標準値，' Y' は連続保存，'S' は単発保存，' N' は保
 存せず，となる．
+
+\item
+グラフィック出力設定の入力は，環境変数 GSGDP を指定することで，省略す
+ることができる．例えば
+\tline{export GSGDP=3c}
+
 \end{enumerate}
 
 
-コンパイル・パラメータ：
+\section{コンパイル・パラメータ}
 
-XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+XXcomn.inc の中で配列の大きさを指定するパラメータが設定されており，それ
 らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
 
-\title{plcom1.h}
+
+
+\title{plcom1.inc}
 \begin{tabbing}
 \compileParmLine
 \compileParm{NSM}{I}{  5}{Maximum number of particle species}
 \end{tabbing}
 
-\title{plcom2.h}
+\title{plcom2.inc}
 \begin{tabbing}
 \compileParmLine
 \compileParm{NHM}{I}{100}{Maximum number of cyclotron harmonics}
@@ -128,12 +236,7 @@ XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
 \compileParm{NGYM}{I}{101}{Maximum number of graphic y mesh}
 \end{tabbing}
 
-コンパイル・パラメータ：
-
-XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
-らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
-
-\title{wrcom1.h}
+\title{wrcom1.inc}
 \begin{tabbing}
 \compileParmLine
 \compileParm{NEQ}{I}{8}{Number of equations in ray tracing}
@@ -145,12 +248,7 @@ XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
 power deposition}
 \end{tabbing}
 
-コンパイル・パラメータ：
-
-XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
-らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
-
-\title{fpcom1.h}
+\title{fpcom1.inc}
 \begin{tabbing}
 \compileParmLine
 \compileParm{NRM}{I}{25}{Maximum number of radial mesh}
@@ -345,7 +443,7 @@ WR コードは光線追跡法あるいはビーム追跡法
       \item[IGTYPE] グラフの表示形式
 \begin{center}
 \begin{tabular}{ll}
-0:& 全トーラス
+0:& 全トーラス \\
 1:& 部分トーラス
 \end{tabular}
 \end{center}
@@ -458,10 +556,10 @@ FP コードは波動による電流駆動を解析するために，相対論効果や捕捉粒子の
 
 コンパイル・パラメータ：
 
-XXcomn.h の中で配列の大きさを指定するパラメータが設定されており，それ
+XXcomn.inc の中で配列の大きさを指定するパラメータが設定されており，それ
 らを変更することにより，計算パラメータ領域を拡大あるいは縮小できる．
 
-\title{fpcom1.h}
+\title{fpcom1.inc}
 \begin{tabbing}
 \compileParmLine
 \compileParm{NRM}{I}{25}{Maximum number of radial mesh}
