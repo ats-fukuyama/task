@@ -68,12 +68,18 @@ C
          PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
          PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
          PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
-         PRF(NR,1)=PECTOE*PECL
-     &            +PLHTOE*PLHL
-     &            +PICTOE*PICL
-         PRF(NR,2)=(1.D0-PECTOE)*PECL
-     &            +(1.D0-PLHTOE)*PLHL
-     &            +(1.D0-PICTOE)*PICL
+         PRF (NR,1  )=PECTOE*PECL
+     &               +PLHTOE*PLHL
+     &               +PICTOE*PICL
+         PRFV(NR,1,1)=PECTOE*PECL
+         PRFV(NR,1,2)=PLHTOE*PLHL
+         PRFV(NR,1,3)=PICTOE*PICL
+         PRF (NR,2  )=(1.D0-PECTOE)*PECL
+     &               +(1.D0-PLHTOE)*PLHL
+     &               +(1.D0-PICTOE)*PICL
+         PRFV(NR,2,1)=(1.D0-PECTOE)*PECL
+         PRFV(NR,2,2)=(1.D0-PLHTOE)*PLCL
+         PRFV(NR,2,3)=(1.D0-PICTOE)*PICL
 C
          RLNLMD=16.1D0 - 1.15D0*LOG10(RN(NR,1))
      &                 + 2.30D0*LOG10(RT(NR,1))
@@ -108,6 +114,12 @@ C
          ELSE
             EFCDIC=0.D0
          ENDIF
+         AJRFV(NR,1)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD)
+     &              *(PECCD*PECTOE*EFCDEC*PECL)
+         AJRFV(NR,2)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD)
+     &              *(PLHCD*PLHTOE*EFCDLH*PLHL)
+         AJRFV(NR,3)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD)
+     &              *(PICCD*PICTOE*EFCDIC*PICL)
          AJRF(NR)=0.384D0*RT(NR,1)/(RN(NR,1)*RLNLMD)
      &           *(PECCD*PECTOE*EFCDEC*PECL
      &            +PLHCD*PLHTOE*EFCDLH*PLHL

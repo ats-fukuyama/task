@@ -30,7 +30,7 @@ C
       IF (IERR.EQ.1) GOTO 100
 C
  200  CALL TRGRTD(STRL,KVL,NMB)
-      IF(NMB.GE.33) NMB=33
+      IF(NMB.GE.55) NMB=55
       CALL TRGRUR(G3D(1,1,NMB),STRL,KVL,INQ)
 C
  100  RETURN
@@ -46,7 +46,7 @@ C
 C
       INCLUDE 'trcomm.h'
       CHARACTER STRL*80,KVL*80
-      CHARACTER STR0(32)*80,KV0(32)*80
+      CHARACTER STR0(54)*80,KV0(54)*80
 C
       DATA STR0/'@TE [keV] vs t@','@TD [keV] vs t@',
      &          '@TT [keV] vs t@','@TA [keV] vs t@',
@@ -64,7 +64,19 @@ C
      &          '@PEXE [MW/m^3] vs t@','@PEXI [MW/m^3] vs t@',
      &          '@QP vs t@','@EZOH [V/m] vs t@',
      &          '@BETA vs t@','@BETAP vs t@','@VLOOP [V] vs t@',
-     &          '@ETA [Ohm*m] vs t@'/
+     &          '@ETA [Ohm*m] vs t@','@ZEFF vs t@',
+     &          '@AKE [m^2/s] vs t@','@AKD [m^2/s] vs t@',
+     &          '@PRECE [MW/m^3] vs t@','@PRLHE [MW/m^3] vs t@',
+     &          '@PRICE [MW/m^3] vs t@','@PRECI [MW/m^3] vs t@',
+     &          '@PRLHI [MW/m^3] vs t@','@PRICI [MW/m^3] vs t@',
+     &          '@AJEC [MA/m^2] vs t@','@AJLH [MA/m^2] vs t@',
+     &          '@AJIC [MA/m^2] vs t@',
+     &          '@NFAST [10^20/m^3] vs t@','@NIMP [10^20/m^3] vs t@',
+     &          '@BPOL [T] vs t@',
+     &          '@RMAJOR [m] vs t@','@RMINOR [m] vs t@',
+     &          '@VOLUME [m^3] sv t@','@KAPPAR vs t@',
+     &          '@DELTAR@',
+     &          '@GRHO1 vs t@','@GRHO2 vs t@'/
 C
       DATA KV0 /'@TE@','@TD@','@TT@','@TA@',
      &          '@NE@','@ND@','@NT@','@NA@',
@@ -73,7 +85,13 @@ C
      &          '@PRFE@','@PRFD@','@PRFT@','@PRFA@',
      &          '@PRL@','@PCX@','@PIE@','@PEXE@','@PEXI@',
      &          '@QP@','@EZOH@','@BETA@','@BETAP@','@VLOOP@',
-     &          '@ETA@'/
+     &          '@ETA@','@ZEFF@','@AKE@','@AKD@',
+     &          '@PRECE@','@PRLHE@','@PRICE@',
+     &          '@PRECI@','@PRLHI@','@PRICI@',
+     &          '@AJEC@','@AJLH@','@AJIC@',
+     &          '@NFAST@','@NIMP@','@BPOL@',
+     &          '@RMAJOR@','@RMINOR@','@VOLUME@','@KAPPAR@',
+     &          '@DELTAR@','@GRHO1@','@GRHO2@'/
       SAVE STR0, KV0
 C
       STRL=STR0(NMB)
@@ -90,7 +108,7 @@ C     **************************************************************
 C
       SUBROUTINE GETVPL(KVPL,NP)
 C
-      CHARACTER KVPL*4,KVP(32)*4
+      CHARACTER KVPL*4,KVP(54)*4
 C
       DATA KVP /'TE  ','TD  ','TT  ','TA  ',
      &          'NE  ','ND  ','NT  ','NA  ',
@@ -99,7 +117,11 @@ C
      &          'PRFE','PRFD','PRFT','PRFA',
      &          'PRL ','PCX ','PIE ','PEXE','PEXI',
      &          'QP  ','EZOH','BETA','BETP','VLOP',
-     &          'ETA '/
+     &          'ETA ','ZEFF','AKE ','AKD ',
+     &          'PREE','PRLE','PRIE','PREI','PRLI','PRII',
+     &          'AJEC','AJLH','AJIC',
+     &          'NFST','NIMP','BP  ',
+     &          'RMJ ','RMN ','VOL ','EKAP','DLT ','GRH1','GRH2'/
 C      SAVE KVP
 C
       KVPL=KVP(NP)
@@ -117,7 +139,7 @@ C
       CHARACTER KK*4,KVPL*4
 C
       IERR=0
-      DO NP=1,32
+      DO NP=1,54
          CALL GETVPL(KVPL,NP)
          IF (KK.EQ.KVPL) THEN
             NMB=NP
@@ -137,9 +159,9 @@ C     **************************************************************
 C
       SUBROUTINE VIEW3DLIST
 C
-      CHARACTER KVP(32)*4
+      CHARACTER KVP(54)*4
 C
-      DO I=1,32
+      DO I=1,54
          CALL GETVPL(KVP(I),I)
       ENDDO
       WRITE(6,700)
@@ -149,7 +171,11 @@ C
       WRITE(6,740) (KVP(I),I=16,20)
       WRITE(6,750) (KVP(I),I=21,25)
       WRITE(6,760) (KVP(I),I=26,30)
-      WRITE(6,770) (KVP(I),I=31,32)
+      WRITE(6,770) (KVP(I),I=31,35)
+      WRITE(6,780) (KVP(I),I=36,40)
+      WRITE(6,790) (KVP(I),I=41,45)
+      WRITE(6,800) (KVP(I),I=46,50)
+      WRITE(6,810) (KVP(I),I=51,54)
 C
  700  FORMAT(' ',
      &       '# 3D GRAPHICS LIST (EACH ONE IS CONSIST OF 4 LETTERS)')
@@ -159,7 +185,11 @@ C
  740  FORMAT(' ','16-20: ',4(A4,', '),A4)
  750  FORMAT(' ','21-25: ',4(A4,', '),A4)
  760  FORMAT(' ','26-30: ',4(A4,', '),A4)
- 770  FORMAT(' ','31-32: ',1(A4,', '),A4)
+ 770  FORMAT(' ','31-35: ',4(A4,', '),A4)
+ 780  FORMAT(' ','36-40: ',4(A4,', '),A4)
+ 790  FORMAT(' ','41-45: ',4(A4,', '),A4)
+ 800  FORMAT(' ','46-50: ',4(A4,', '),A4)
+ 810  FORMAT(' ','51-54: ',3(A4,', '),A4)
 C
       RETURN
       END

@@ -259,6 +259,7 @@ C        3 : TR/EQ
 C
       MDLUF=0
       MODEP=3
+      MDCURT=0
 C
 C     *** Error Indicator for UFILE Reader ***
       MDALL=0
@@ -884,17 +885,15 @@ CCC            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
             DSRHO(NR)=DSRHOU(NR,1)
          ENDDO
 C
-         IF(MODEP.EQ.3) THEN
+         IF(MDCURT.EQ.0) THEN
             DO NR=1,NRMAX
                AJ(NR)=AJU(NR,1)
             ENDDO
          ELSE
             AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
-C            AJOH(1)=AJ(1)
             DO NR=2,NRMAX
                AJ(NR)=(RG(NR)*BP(NR)-RG(NR-1)*BP(NR-1))
      &              /(RM(NR)*RA*DR*AMYU0)
-C               AJOH(NR)=AJ(NR)
             ENDDO
          ENDIF
          CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)

@@ -86,6 +86,27 @@ C
             TT=PTS(3)
             TA=PTS(4)
 C
+c$$$            DO NS=2,NSMAX
+c$$$               RNTP=RNTP+2.D0*PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS)
+c$$$               RNP =RNP +2.D0*PNSS(NS)-RN(NR,NS)
+c$$$               RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
+c$$$               RNM =RNM +RN(NR,NS)
+c$$$            ENDDO
+c$$$            RNTM=RNTM+RW(NR,1)+RW(NR,2)
+c$$$            RPP =RNTP+2.D0*PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1)
+c$$$            RPM =RNTM+RN(NR,1)*RT(NR,1)
+c$$$            RPEP=2.D0*PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1)
+c$$$            RPEM=RN(NR,1)*RT(NR,1)
+c$$$            DTE =2.D0*(PTS (1)-RT(NR,1))*DRL
+c$$$            DNE =2.D0*(PNSS(1)-RN(NR,1))*DRL
+c$$$            ZEFFL=ZEFF(NR)
+c$$$            EZOHL=EZOH(NR)
+c$$$C
+c$$$            DPP = (RPP-RPM)*DRL
+c$$$C
+c$$$            TI  = RNTP/RNP
+c$$$            DTI = (RNTP/RNP-RNTM/RNM)*DRL
+C
             DO NS=2,NSMAX
                RNTP=RNTP+PNSS(NS)*PTS(NS)
                RNP =RNP +PNSS(NS)
@@ -95,20 +116,6 @@ C
             ENDDO
             RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
      &               +RW(NR  ,1)+RW(NR  ,2)
-c$$$            RNTP= PNSS(2)*PTS(2)
-c$$$     &           +PNSS(3)*PTS(3)
-c$$$     &           +PNSS(4)*PTS(4)
-c$$$            RNP = PNSS(2)+PNSS(3)+PNSS(4)
-c$$$            RNTM= RN(NR-1,2)*RT(NR-1,2)
-c$$$     &           +RN(NR-1,3)*RT(NR-1,3)
-c$$$     &           +RN(NR-1,4)*RT(NR-1,4)
-c$$$     &           +RW(NR-1,1)+RW(NR-1,2)
-c$$$     &           +RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
-c$$$            RNM = RN(NR-1,2)+RN(NR-1,3)+RN(NR-1,4)
-c$$$     &           +RN(NR,  2)+RN(NR,  3)+RN(NR, 4)
             RPP = RNTP+PNSS(1)   *PTS(1)
             RPM = RNTM+RN(NR-1,1)*RT(NR-1,1)
      &                +RN(NR  ,1)*RT(NR  ,1)
@@ -128,6 +135,8 @@ C
 C
             TI  = RNTP/RNP
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
+C            write(6,*) RN(NR-1,1)*RT(NR-1,1),RN(NR,1)*RT(NR,1),
+C     &           PNSS(1)*PTS(1)
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
@@ -146,16 +155,6 @@ C
             ENDDO
             RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
             RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-c$$$            RNTP= RN(NR+1,2)*RT(NR+1,2)
-c$$$     &           +RN(NR+1,3)*RT(NR+1,3)
-c$$$     &           +RN(NR+1,4)*RT(NR+1,4)
-c$$$     &           +RW(NR+1,1)+RW(NR+1,2)
-c$$$            RNP = RN(NR+1,2)+RN(NR+1,3)+RN(NR+1,4)
-c$$$            RNTM= RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
-c$$$            RNM = RN(NR,  2)+RN(NR,  3)+RN(NR, 4)
             RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)
             RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)
             RPEP= RN(NR+1,1)*RT(NR+1,1)
@@ -181,65 +180,37 @@ C
                RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
             ENDDO
             RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-c$$$            RPI4= RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
          ELSE
             DO NS=2,NSMAX
                RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
             ENDDO
             RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-c$$$            RPI4= RN(NR-1,2)*RT(NR-1,2)
-c$$$     &           +RN(NR-1,3)*RT(NR-1,3)
-c$$$     &           +RN(NR-1,4)*RT(NR-1,4)
-c$$$     &           +RW(NR-1,1)+RW(NR-1,2)
          ENDIF
             DO NS=2,NSMAX
                RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-c$$$            RPI3= RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
          IF(NR.GE.NR-1) THEN
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-c$$$            RPI2= RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
          ELSE
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-c$$$            RPI2= RN(NR+1,2)*RT(NR+1,2)
-c$$$     &           +RN(NR+1,3)*RT(NR+1,3)
-c$$$     &           +RN(NR+1,4)*RT(NR+1,4)
-c$$$     &           +RW(NR+1,1)+RW(NR+1,2)
          ENDIF
          IF(NR.GE.NR-2) THEN
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-c$$$            RPI1= RN(NR,  2)*RT(NR,  2)
-c$$$     &           +RN(NR,  3)*RT(NR,  3)
-c$$$     &           +RN(NR,  4)*RT(NR,  4)
-c$$$     &           +RW(NR,  1)+RW(NR,  2)
          ELSE
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-c$$$            RPI1= RN(NR+2,2)*RT(NR+2,2)
-c$$$     &           +RN(NR+2,3)*RT(NR+2,3)
-c$$$     &           +RN(NR+2,4)*RT(NR+2,4)
-c$$$     &           +RW(NR+2,1)+RW(NR+2,2)
          ENDIF
          RPIM=0.5D0*(RPI1+RPI2)
          RPI0=0.5D0*(RPI2+RPI3)
@@ -516,10 +487,8 @@ C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                SL=SQRT(S**2+0.1D0**2)
                WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 C               RG1=10.D0
-               RG1=4.D0
 C               RG1=4.D0
-C               RG1=3.6D0
-C               RG1=2.8
+               RG1=2.8D0
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -1201,7 +1170,7 @@ C
             ANDX=PNSS(2)
             ANT =PNSS(3)
             ANA =PNSS(4)
-           TE=PTS(1)
+            TE=PTS(1)
             TD=PTS(2)
             TT=PTS(3)
             TA=PTS(4)

@@ -369,12 +369,20 @@ C
       PT(1) = RT(1,1)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
+         PTS(1)=F0*1.D-3
       ELSE
          RGN=DBLE(NRAMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
+         PTS(1)=F0*1.D-3
+C
+         RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
+         PTSA(1)=F0*1.D-3
       ENDIF
-      CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
-      PTS(1)=F0*1.D-3
 C
       KFILE='TI'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -382,7 +390,7 @@ C
       DO NR=1,NRMAX
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE1: IERR=",IERR
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI1: IERR=",IERR
          RTU(NR,2,1)=F0*1.D-3
       ENDDO
       DO NR=1,NRMAX
@@ -393,14 +401,26 @@ C
       PT(4) = RT(1,2)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI2: IERR=",IERR
+         PTS(2)=F0*1.D-3
+         PTS(3)=F0*1.D-3
+         PTS(4)=F0*1.D-3
       ELSE
          RGN=DBLE(NRAMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI2: IERR=",IERR
+         PTS(2)=F0*1.D-3
+         PTS(3)=F0*1.D-3
+         PTS(4)=F0*1.D-3
+C
+         RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TI2: IERR=",IERR
+         PTSA(2)=F0*1.D-3
+         PTSA(3)=F0*1.D-3
+         PTSA(4)=F0*1.D-3
       ENDIF
-      CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF TE2: IERR=",IERR
-      PTS(2)=F0*1.D-3
-      PTS(3)=F0*1.D-3
-      PTS(4)=F0*1.D-3
 C
       KFILE='NE'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -418,15 +438,29 @@ C
       PN(4)=1.D-7
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+         PNS(1)=F0*1.D-20
+         PNS(2)=F0*1.D-20-2.D-8
+         PNS(3)=1.D-8
+         PNS(4)=1.D-8
       ELSE
          RGN=DBLE(NRAMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+         PNS(1)=F0*1.D-20
+         PNS(2)=F0*1.D-20-2.D-8
+         PNS(3)=1.D-8
+         PNS(4)=1.D-8
+C
+         RGN=DBLE(NRMAX)*DR
+         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
+         PNSA(1)=F0*1.D-20
+         PNSA(2)=F0*1.D-20-2.D-8
+         PNSA(3)=1.D-8
+         PNSA(4)=1.D-8
       ENDIF
-      CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF NE2: IERR=",IERR
-      PNS(1)=F0*1.D-20
-      PNS(2)=F0*1.D-20-2.D-8
-      PNS(3)=1.D-8
-      PNS(4)=1.D-8
 C
       KFILE='Q'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -437,21 +471,21 @@ C
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF Q: IERR=",IERR
          QPU(NR,1)=F0
       ENDDO
-      IF(KUFDEV.EQ.'jt60u') THEN
-         DO NR=NRMAX-1,NRMAX
-            QPU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
-     &                     QPU(NR-1,1),QPU(NR-2,1))
-         ENDDO
-         WRITE(6,*) KFILE,'IS MODIFIED.'
-      ENDIF
+c$$$      IF(KUFDEV.EQ.'jt60u') THEN
+c$$$         DO NR=NRMAX-1,NRMAX
+c$$$            QPU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
+c$$$     &                     QPU(NR-1,1),QPU(NR-2,1))
+c$$$         ENDDO
+c$$$         WRITE(6,*) KFILE,'IS MODIFIED.'
+c$$$      ENDIF
 C
       KFILE='CURTOT'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
       CALL PRETREATMENT0(KFILE,UPRE0,NRFMAX,NTXMAX,IERR)
       DO NR=1,NRMAX
-         RGN=DBLE(NR)*DR
-         CALL SPL1DF(RGN,F0,RUF,UPRE0,NRFMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF Q: IERR=",IERR
+         RMN=(DBLE(NR)-0.5D0)*DR
+         CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF CURTOT: IERR=",IERR
          AJU(NR,1)=F0
       ENDDO
 C
@@ -532,7 +566,7 @@ C
       DO NR=1,NRMAX
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF QRAD: IERR=",IERR
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF SNBIE: IERR=",IERR
          SNBU(NR,1,1)=F0
       ENDDO
 C
@@ -542,7 +576,7 @@ C
       DO NR=1,NRMAX
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RUF,UPRE0,NRFMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF QRAD: IERR=",IERR
+         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF SNBII: IERR=",IERR
          SNBU(NR,2,1)=F0
       ENDDO
 C
@@ -557,13 +591,13 @@ C
          IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DD VOLUME: IERR=",IERR
          DVRHOU(NR,1)=DF0
       ENDDO
-      IF(KUFDEV.EQ.'jt60u') THEN
-         DO NR=NRMAX-2,NRMAX
-            DVRHOU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
-     &                        DVRHOU(NR-1,1),DVRHOU(NR-2,1))
-         ENDDO
-         WRITE(6,*) KFILE,'IS MODIFIED.'
-      ENDIF
+c$$$      IF(KUFDEV.EQ.'jt60u') THEN
+c$$$         DO NR=NRMAX-2,NRMAX
+c$$$            DVRHOU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
+c$$$     &                        DVRHOU(NR-1,1),DVRHOU(NR-2,1))
+c$$$         ENDDO
+c$$$         WRITE(6,*) KFILE,'IS MODIFIED.'
+c$$$      ENDIF
 C
       KFILE='RMAJOR'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -608,14 +642,14 @@ C
          AR2RHOU(NR,1)=F0
          ABRHOU(NR,1)=AR2RHOU(NR,1)*ARRHOU(NR,1)
       ENDDO
-      IF(KUFDEV.EQ.'jt60u') THEN
-         DO NR=NRMAX-2,NRMAX
-            AR2RHOU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
-     &                         AR2RHOU(NR-1,1),AR2RHOU(NR-2,1))
-            ABRHOU(NR,1)=AR2RHOU(NR,1)*ARRHOU(NR,1)
-         ENDDO
-         WRITE(6,*) KFILE,'IS MODIFIED.'
-      ENDIF
+c$$$      IF(KUFDEV.EQ.'jt60u') THEN
+c$$$         DO NR=NRMAX-2,NRMAX
+c$$$            AR2RHOU(NR,1)=FEDG(DBLE(NR)*DR,DBLE(NR-1)*DR,DBLE(NR-2)*DR,
+c$$$     &                         AR2RHOU(NR-1,1),AR2RHOU(NR-2,1))
+c$$$            ABRHOU(NR,1)=AR2RHOU(NR,1)*ARRHOU(NR,1)
+c$$$         ENDDO
+c$$$         WRITE(6,*) KFILE,'IS MODIFIED.'
+c$$$      ENDIF
 C
 C     *****
 C
@@ -756,16 +790,31 @@ C
       PT(1) = RT(1,1)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
+            PTSU(1,NTA)=F0*1.D-3
+         ENDDO
+         PTS(1)=PTSU(1,1)
       ELSE
-         RGN=DBLE(NRAMAX)*DR
+         RGN =DBLE(NRMAX )*DR
+         RGNA=DBLE(NRAMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN ,TMLCL,F0 ,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
+            CALL SPL2DF(RGNA,TMLCL,F0A,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE3: IERR=",IERR
+            PTSU (1,NTA)=F0 *1.D-3
+            PTSUA(1,NTA)=F0A*1.D-3
+         ENDDO
+         PTS (1)=PTSU (1,1)
+         PTSA(1)=PTSUA(1,1)
       ENDIF
-      DO NTA=1,NTAMAX
-         TMLCL=DT*DBLE(NTA)
-         CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
-         PTSU(1,NTA)=F0*1.D-3
-      ENDDO
-      PTS(1)=PTSU(1,1)
 C
       KFILE='TI'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -788,18 +837,37 @@ C
       PT(4) = RT(1,2)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI2: IERR=",IERR
+            PTSU(2,NTA)=F0*1.D-3
+         ENDDO
+         PTS(2)=PTSU(2,1)
+         PTS(3)=PTSU(2,1)
+         PTS(4)=PTSU(2,1)
       ELSE
-         RGN=DBLE(NRAMAX)*DR
+         RGN =DBLE(NRMAX )*DR
+         RGNA=DBLE(NRAMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN ,TMLCL,F0 ,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI2: IERR=",IERR
+            CALL SPL2DF(RGNA,TMLCL,F0A,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI3: IERR=",IERR
+            PTSU (2,NTA)=F0 *1.D-3
+            PTSUA(2,NTA)=F0A*1.D-3
+         ENDDO
+         PTS (2)=PTSU (2,1)
+         PTS (3)=PTSU (2,1)
+         PTS (4)=PTSU (2,1)
+         PTSA(2)=PTSUA(2,1)
+         PTSA(3)=PTSUA(2,1)
+         PTSA(4)=PTSUA(2,1)
       ENDIF
-      DO NTA=1,NTAMAX
-         TMLCL=DT*DBLE(NTA)
-         CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE2: IERR=",IERR
-         PTSU(2,NTA)=F0*1.D-3
-      ENDDO
-      PTS(2)=PTSU(2,1)
-      PTS(3)=PTSU(2,1)
-      PTS(4)=PTSU(2,1)
 C
       KFILE='NE'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -819,18 +887,37 @@ C
       PN(2)=RNU(1,2,1)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+            PNSU(1,NTA)=F0*1.D-20
+            PNSU(2,NTA)=F0*1.D-20
+         ENDDO
+         PNS(1)=PNSU(1,1)
+         PNS(2)=PNSU(2,1)
       ELSE
-         RGN=DBLE(NRAMAX)*DR
+         RGN =DBLE(NRMAX )*DR
+         RGNA=DBLE(NRAMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN ,TMLCL,F0 ,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+            CALL SPL2DF(RGNA,TMLCL,F0A,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE3: IERR=",IERR
+            PNSU (1,NTA)=F0 *1.D-20
+            PNSU (2,NTA)=F0 *1.D-20
+            PNSUA(1,NTA)=F0A*1.D-20
+            PNSUA(2,NTA)=F0A*1.D-20
+         ENDDO
+         PNS (1)=PNSU (1,1)
+         PNS (2)=PNSU (2,1)
+         PNSA(1)=PNSUA(1,1)
+         PNSA(2)=PNSUA(2,1)
       ENDIF
-      DO NTA=1,NTAMAX
-         TMLCL=DT*DBLE(NTA)
-         CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
-         PNSU(1,NTA)=F0*1.D-20
-         PNSU(2,NTA)=F0*1.D-20
-      ENDDO
-      PNS(1)=PNSU(1,1)
-      PNS(2)=PNSU(2,1)
 C
       KFILE='Q'
       CALL UFREAD2_TIME(KFILE,RUF,TMU,F2,NRFMAX,NTXMAX,MDCHK,IERR)
@@ -1081,7 +1168,7 @@ C
             RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UPRE2,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE1: IERR=",IERR
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TE: IERR=",IERR
             RTU(NR,1,NTA)=F0*1.D-3
          ENDDO
       ENDDO
@@ -1095,7 +1182,7 @@ C
             RMN=(DBLE(NR)-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UPRE2,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI1: IERR=",IERR
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF TI: IERR=",IERR
             RTU(NR,2,NTA)=F0*1.D-3
          ENDDO
       ENDDO
@@ -1118,16 +1205,31 @@ C      PN(1)=RNU(1,1,1)
 C      PN(2)=RNU(1,2,1)
       IF(RHOA.EQ.1.D0) THEN
          RGN=DBLE(NRMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+            PNSU(1,NTA)=F0*1.D-20
+            PNSU(2,NTA)=F0*1.D-20
+         ENDDO
       ELSE
-         RGN=DBLE(NRAMAX)*DR
+         RGN =DBLE(NRMAX )*DR
+         RGNA=DBLE(NRAMAX)*DR
+         DO NTA=1,NTAMAX
+            TMLCL=DT*DBLE(NTA)
+            CALL SPL2DF(RGN ,TMLCL,F0 ,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
+            CALL SPL2DF(RGNA,TMLCL,F0A,RUF,TMU,UPRE2,
+     &                  NRMU,NRFMAX,NTXMAX,IERR)
+            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE3: IERR=",IERR
+            PNSU (1,NTA)=F0 *1.D-20
+            PNSU (2,NTA)=F0 *1.D-20
+            PNSUA(1,NTA)=F0A*1.D-20
+            PNSUA(2,NTA)=F0A*1.D-20
+         ENDDO
       ENDIF
-      DO NTA=1,NTAMAX
-         TMLCL=DT*DBLE(NTA)
-         CALL SPL2DF(RGN,TMLCL,F0,RUF,TMU,UPRE2,NRMU,NRFMAX,NTXMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL2DF NE2: IERR=",IERR
-         PNSU(1,NTA)=F0*1.D-20
-         PNSU(2,NTA)=F0*1.D-20
-      ENDDO
 C      PNS(1)=PNSU(1,1)
 C      PNS(2)=PNSU(2,1)
 C
@@ -1154,7 +1256,8 @@ C
             RMN=DBLE(NR-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UPRE2,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF Q: IERR=",IERR
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL1DF CURTOT: IERR=",IERR
             AJU(NR,NTA)=F0
          ENDDO
       ENDDO
@@ -1169,7 +1272,8 @@ C
             RMN=DBLE(NR-0.5D0)*DR
             CALL SPL2DF(RMN,TMLCL,F0,RUF,TMU,UPRE2,
      &                  NRMU,NRFMAX,NTXMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) "XX TRFILE: SPL1DF Q: IERR=",IERR
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL1DF CURBS: IERR=",IERR
             AJBSU(NR,NTA)=F0
          ENDDO
       ENDDO
@@ -1405,17 +1509,19 @@ C
       CHARACTER KFILE*20
 C
       IF(IERR.EQ.1) THEN
-         IERR=0
-         DO NTX=1,NTXMAX
+         DO NRF=1,NRFMAX
          DO NA=1,4
-            U(NA,NTX)=0.D0
+            U(NA,NRF)=0.D0
          ENDDO
          ENDDO
+         IF(KFILE.EQ.'CURTOT') MDCURT=1
+         IERR=0
          RETURN
       ENDIF
 C
       DERIV(1)=0.D0
       DERIV(NRFMAX)=0.D0
+      ID=0
 C
       IF(NTXMAX.NE.1) THEN
          IF(TIME_INT.LE.0.D0) THEN
@@ -1457,7 +1563,11 @@ C
                   ENDIF
                ENDDO
             ENDIF
-            STOP '## AN ERROR HAS OCCURRED!'
+            WRITE(6,*)
+     &           '## DESIGNATED TIME_INT IS NOT IN THE RANGE.'
+            WRITE(6,*) 'TIME_INT=',SNGL(TIME_INT),
+     &           'RANGE=',SNGL(TMU(1)),'-',SNGL(TMU(NTXMAX))
+            STOP
          ENDIF
 C
  200     WRITE(6,510) 'TIME_INT=',TIME_INT,' HAS BEEN REPLACED BY',
@@ -1466,12 +1576,12 @@ C
          NISTP=NTX_MIN
  1000    CONTINUE
 C
-         CALL SPL1D(RUF,F2(1,NISTP),DERIV,U,NRFMAX,3,IERR)
+         CALL SPL1D(RUF,F2(1,NISTP),DERIV,U,NRFMAX,ID,IERR)
          IF(IERR.NE.0)
      &        WRITE(6,*) 'XX TRFILE: SPL1D',KFILE,': IERR=',IERR
          
       ELSE
-         CALL SPL1D(RUF,F2(1,1),DERIV,U,NRFMAX,3,IERR)
+         CALL SPL1D(RUF,F2(1,1),DERIV,U,NRFMAX,ID,IERR)
          IF(IERR.NE.0)
      &        WRITE(6,*) 'XX TRFILE: SPL1D',KFILE,': IERR=',IERR
       ENDIF
@@ -1677,21 +1787,25 @@ C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
       CALL TRARRG
 C
       IF(MDLUF.EQ.1) THEN
-      PNS(1)=PNSU(1,NT)
-      PNS(2)=PNSU(2,NT)
-      PTS(1)=PTSU(1,NT)
-      PTS(2)=PTSU(2,NT)
-      IF(RHOA.NE.1.D0) THEN
-         DO NR=NRAMAX+1,NRMAX
-            PROF    = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
-            RT(NR,1)=RTU(NR,1,NT)
-            RT(NR,2)=RTU(NR,2,NT)
-            RT(NR,3)=(RTU(NR,2,NT)-RTU(NRMAX,2,NT))*PROF
-     &               +RTU(NRMAX,2,1)
-            RT(NR,4)=(RTU(NR,2,NT)-RTU(NRMAX,2,NT))*PROF
-     &               +RTU(NRMAX,2,1)
-         ENDDO
-      ENDIF
+         PNS (1)=PNSU (1,NT)
+         PNS (2)=PNSU (2,NT)
+         PTS (1)=PTSU (1,NT)
+         PTS (2)=PTSU (2,NT)
+         PNSA(1)=PNSUA(1,NT)
+         PNSA(2)=PNSUA(2,NT)
+         PTSA(1)=PTSUA(1,NT)
+         PTSA(2)=PTSUA(2,NT)
+         IF(RHOA.NE.1.D0) THEN
+            DO NR=NRAMAX+1,NRMAX
+               PROF    =(1.D0-(ALP(1)*RM(NR)/RHOA)**PROFT1)**PROFT2
+               RT(NR,1)= RTU(NR,1,NT)
+               RT(NR,2)= RTU(NR,2,NT)
+               RT(NR,3)=(RTU(NR,2,NT)-RTU(NRMAX,2,NT))*PROF
+     &                  +RTU(NRMAX,2,1)
+               RT(NR,4)=(RTU(NR,2,NT)-RTU(NRMAX,2,NT))*PROF
+     &                  +RTU(NRMAX,2,1)
+            ENDDO
+         ENDIF
       ENDIF
 C
 C     *** CALCULATE PZC,PZFE ***
@@ -1854,7 +1968,7 @@ C
       CHARACTER KDIRR1*80
       CHARACTER KDIRX*80
       CHARACTER KFILE*80,KFID*20
-      LOGICAL LEX
+      LOGICAL LEX,DIR
 C
 C      IF(MDCHK.NE.0) GOTO 9000
 C
@@ -1869,6 +1983,13 @@ C
 C
       CALL KTRIM(KDIRR1,KL1)
       KFILE=KDIRR1(1:KL1)//KFID
+C
+      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
+      IF(DIR.NE..TRUE.) THEN
+         WRITE(6,'(A25,A34,A17)') 
+     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
+         STOP
+      ENDIF
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN
@@ -1895,7 +2016,7 @@ C
       CHARACTER KDIRR2*80
       CHARACTER KDIRX*80
       CHARACTER KFILE*80,KFID*20
-      LOGICAL LEX
+      LOGICAL LEX,DIR
 C
 C      IF(MDCHK.NE.0) GOTO 9000
 C
@@ -1910,6 +2031,13 @@ C
 C
       CALL KTRIM(KDIRR2,KL2)
       KFILE=KDIRR2(1:KL2)//KFID
+C
+      INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
+      IF(DIR.NE..TRUE.) THEN
+         WRITE(6,'(A25,A34,A17)') 
+     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
+         STOP
+      ENDIF
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN

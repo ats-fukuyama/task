@@ -1580,14 +1580,14 @@ C
      &          /DR/AR1RHO(NR)/RKAPS
 C
       IF(MDLUF.EQ.2) THEN
-         IF(MODEP.EQ.2) THEN
+         IF(MDCURT.NE.0) THEN
             CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
             AJT   = AJTSUM*DR/1.D6
             FACT=RIPS/AJT
             DO NR=1,NRMAX
                AJ(NR)=FACT*AJ(NR)
             ENDDO
-         ELSEIF(MODEP.EQ.3) THEN
+         ELSE
             DO NR=1,NRMAX
                AJ(NR)=AJU(NR,1)
             ENDDO

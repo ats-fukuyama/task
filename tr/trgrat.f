@@ -114,6 +114,7 @@ C
          GYT(I,3)=GVT(I,59)
          GYT(I,4)=GVT(I,60)
          GYT(I,5)=GVT(I,61)+GVT(I,62)+GVT(I,63)+GVT(I,64)
+C     &           +GVT(I,89)+GVT(I,90)
   400 CONTINUE
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,5,
      &            '@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
@@ -396,6 +397,7 @@ C
          GYT(I,3)=GVT(I,59)
          GYT(I,4)=GVT(I,60)
          GYT(I,5)=GVT(I,61)+GVT(I,62)+GVT(I,63)+GVT(I,64)
+C     &           +GVT(I,89)+GVT(I,90)
   400 CONTINUE
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,5,
      &            '@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)

@@ -751,7 +751,7 @@ C
      &            '@TI0(TR),TI0(UF) [keV]  vs t@',2+INQ)
 C
       DO NG=1,NGT
-         GYT(NG,1)=GVT(NG,31)
+         GYT(NG,1)=GVT(NG,33)
          GYT(NG,2)=GUCLIP(WTOT(NG))
       ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
