@@ -6,7 +6,7 @@ FFLAGS = $(DFLAGS)
 
 SRCX = wminit.f wmsetg.f wmvmec.f wmsetj.f wmprof.f \
        nowmsolv.f wmsetm.f wmsetf.f wmdisp.f wmxprf.f wmdprf.f \
-       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f
+       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f nompilib.f wmtae.f
 
 SRCS = wmmain.f wmeign.f $(SRCX)
 
