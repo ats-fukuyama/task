@@ -1,3 +1,4 @@
+
 C     $Id$
 C
 C     ***********************************************************
@@ -600,7 +601,7 @@ C
          BP(NR)  =FACT*BP(NR)
          QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
       ENDDO
-      Q0=(4.D0*QP(1)-QP(2))/3.D0
+C      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
@@ -627,8 +628,7 @@ C
                EPS=RA*RM(NR)/RR
                EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
-C                  QL= 0.25D0*(3.D0*Q0+QP(NR))
-                  QL= 0.25D0*(3.D0*0.D0+QP(NR))
+                  QL= 0.25D0*(3.D0*Q0+QP(NR))
                ELSE
                   QL= 0.5D0*(QP(NR-1)+QP(NR))
                ENDIF
