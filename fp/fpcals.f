@@ -9,7 +9,7 @@ C
       SUBROUTINE FPCALS
 C
       INCLUDE 'fpcomm.inc'
-      INCLUDE '../wr/wrcom1.h'
+      INCLUDE '../wr/wrcom1.inc'
       INCLUDE 'fpcom2.inc'
 C
       DIMENSION DLA(0:NITM,NRAYMX)
@@ -365,7 +365,7 @@ C
       SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
 C
       INCLUDE 'fpcomm.inc'
-      INCLUDE '../wr/wrcom1.h'
+      INCLUDE '../wr/wrcom1.inc'
       INCLUDE 'fpcom2.inc'
 C
       DIMENSION DLA(0:NITM,NRAYMX)

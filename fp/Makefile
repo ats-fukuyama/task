@@ -34,24 +34,24 @@ new:
 	cp -f *.f ../fpnew
 	cp -f *.inc ../fpnew
 
-fpmain.o : fpmain.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpcaln.o : fpcaln.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
+fpmain.o : fpmain.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcaln.o : fpcaln.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 
-fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpgraf.o : fpgraf.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.h
-fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.h ../wr/wrcom1.h fpcom2.inc
-fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.h ../wr/wrcom1.h fpcom2.inc
+fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpgraf.o : fpgraf.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
+fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
 
-../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.h ../pl/plcom1.h
-../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.h ../pl/plcom1.h ../pl/plcom2.h
+../pl/plinit.o: ../pl/plinit.f ../pl/plcomm.inc ../pl/plcom1.inc
+../pl/plprof.o: ../pl/plprof.f ../pl/plcomm.inc ../pl/plcom1.inc ../pl/plcom2.inc
 ../eq/eqload.o: ../eq/eqload.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
