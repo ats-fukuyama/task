@@ -41,9 +41,9 @@ C
 C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
-            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
-            QP(NR)=FACTQ(NR)*QL
-C            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
+C            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
+C            QP(NR)=FACTQ(NR)*QL
+            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
          IF(MDLUF.NE.1) THEN
@@ -1678,8 +1678,8 @@ C
          IF(MODELG.EQ.3) THEN
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
-C               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
-               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
+               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
+C               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
             ENDDO
          ELSE
             DO NR=1,IZEROX

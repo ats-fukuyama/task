@@ -106,8 +106,9 @@ C
                NTMAX=NTSMAX
             ENDIF
             CALL TR_TIME_UFILE
-         ENDIF
-         IF(MDLUF.EQ.3) THEN
+         ELSEIF(MDLUF.EQ.2) THEN
+            CALL TR_STEADY_UFILE
+         ELSEIF(MDLUF.EQ.3) THEN
             KFILE='RFHE'
             CALL UFREAD2(KFILE,RAD,FUT,FRFHE,NUFMAX,NTXMAX,MDRFHE,IERR)
             KFILE='RFHI'

@@ -629,7 +629,8 @@ C
 C
       INCLUDE 'trcomm.h'
       COMMON /PRETREAT1/ RUF(NRMU),TMU(NTURM),F1(NTURM),F2(NRMU,NTURM)
-      DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM)
+      DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM),RIBS(NTUM)
+      DIMENSION PICRH(NTUM),PNBI(NTUM)
       DIMENSION UTRCMP(4,NTURM)
       CHARACTER KFILE*20
 C
@@ -667,6 +668,57 @@ C
          WTOT(NG)=F0*1.D-6
       ENDDO
 C
+      KFILE='IBOOT'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      IF(IERR.EQ.1) THEN
+         DO NG=1,NGT
+            RIBS(NG)=0.D0
+         ENDDO
+      ELSE
+         CALL PRETREATMENT1(KFILE,UTRCMP,NTXMAX,TMUMAX,ICK,IERR)
+         DO NG=1,NGT
+            TMLCL=DBLE(GT(NG))
+            CALL SPL1DF(TMLCL,F0,TMU,UTRCMP,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL1DF RIBS: IERR=",IERR
+            RIBS(NG)=ABS(F0*1.D-6)
+         ENDDO
+      ENDIF
+C
+      KFILE='PICRH'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      IF(IERR.EQ.1) THEN
+         DO NG=1,NGT
+            PICRH(NG)=0.D0
+         ENDDO
+      ELSE
+         CALL PRETREATMENT1(KFILE,UTRCMP,NTXMAX,TMUMAX,ICK,IERR)
+         DO NG=1,NGT
+            TMLCL=DBLE(GT(NG))
+            CALL SPL1DF(TMLCL,F0,TMU,UTRCMP,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL1DF PICRH: IERR=",IERR
+            PICRH(NG)=F0*1.D-6
+         ENDDO
+      ENDIF
+C
+      KFILE='PNBI'
+      CALL UFREAD_TIME(KFILE,TMU,F1,NTXMAX,MDCHK,IERR)
+      IF(IERR.EQ.1) THEN
+         DO NG=1,NGT
+            PNBI(NG)=0.D0
+         ENDDO
+      ELSE
+         CALL PRETREATMENT1(KFILE,UTRCMP,NTXMAX,TMUMAX,ICK,IERR)
+         DO NG=1,NGT
+            TMLCL=DBLE(GT(NG))
+            CALL SPL1DF(TMLCL,F0,TMU,UTRCMP,NTXMAX,IERR)
+            IF(IERR.NE.0)
+     &           WRITE(6,*) "XX TRFILE: SPL1DF PNBI: IERR=",IERR
+            PNBI(NG)=F0*1.D-6
+         ENDDO
+      ENDIF
+C
       CALL PAGES
 C
       DO NG=1,NGT
@@ -689,6 +741,29 @@ C
       ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
      &            '@WTOT(TR),WTOT(UF) [MJ]  vs t@',2+INQ)
+C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG,42)+GVT(NG,43)
+         GYT(NG,2)=GUCLIP(PICRH(NG))
+      ENDDO
+      CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
+     &            '@PICRH(TR),PICRH(UF) [MW]  vs t@',2+INQ)
+C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG,38)
+         GYT(NG,2)=GUCLIP(RIBS(NG))
+      ENDDO
+      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,2,
+     &            '@IBS(TR),IBS(UF) [MW]  vs t@',2+INQ)
+C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG,89)
+         GYT(NG,2)=GVT(NG,90)
+         GYT(NG,3)=GVT(NG,89)+GVT(NG,90)
+         GYT(NG,4)=GUCLIP(PNBI(NG))
+      ENDDO
+      CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,
+     &            '@PNBIE;I;TOT(TR),PNBI(UF) [MW]  vs t@',2+INQ)
 C
       CALL PAGEE
 C
@@ -746,6 +821,7 @@ C
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
      &               '@NE(TR),NE(UF) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+C
          CALL PAGEE
       ELSE
          RETURN

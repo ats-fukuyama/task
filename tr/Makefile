@@ -13,8 +13,8 @@ SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
 SRCF=glf2d.F r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
-SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f	\
-     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f	\
+SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
+     ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f \
      ../eq/eqdsk.f
 SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f \
      ../lib/libchar.f ../lib/libfio.f

@@ -1389,7 +1389,7 @@ C
             SGMSPTZ=1.9012D4*(TE*1.D3)**1.5/(ZEFFL*RNZ*rLnLame)
             FT=1.D0-(1.D0-EPS)**2.D0
      &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-            RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
+            RNUE=6.921D-18*ABS(QL)*RR*ANE*1.D20*ZEFFL*rLnLame
      &          /((TE*1.D3)**2*EPSS)
             F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
      &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
