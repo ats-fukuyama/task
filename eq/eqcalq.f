@@ -338,6 +338,7 @@ C     +++++ SETUP VACUUM DATA +++++
 C
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=(REDGE-RAXIS)/DR
+      DTH=2.D0*PI/NTHMAX
       DO NR=NRPMAX+1,NRMAX
          RL=DR*(NR-1)
          FACTOR=RL/(DR*(NRPMAX-1))
@@ -356,9 +357,16 @@ C
 C
          RMIN=RR
          RMAX=RR
+         EPS=RL/RR
+         EPS2=EPS*EPS
          DO NTH=1,NTHMAX+1
-            RPS(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
-            ZPS(NTH,NR)=ZAXIS+(ZPS(NTH,NRPMAX)-ZAXIS)*FACTOR
+            DELR=RPS(NTH,NRPMAX)-RPS(NTH,NRPMAX-1)
+            DELZ=ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1)
+            RPS(NTH,NR)=RPS(NTH,NRPMAX)+RAXIS
+     &                       +FAC1*(RPS(NTH1,NRPMAX)-RAXIS)*FACTOR
+     &                       +FAC2*(RPS(NTH2,NRPMAX)-RAXIS)*FACTOR
+            ZPS(NTH,NR)=ZAXIS+FAC1*(ZPS(NTH1,NRPMAX)-ZAXIS)*FACTOR
+     &                       +FAC2*(ZPS(NTH2,NRPMAX)-ZAXIS)*FACTOR
             RMIN=MIN(RMIN,RPS(NTH,NR))
             RMAX=MAX(RMAX,RPS(NTH,NR))
          ENDDO
@@ -402,6 +410,7 @@ C
       INCLUDE '../eq/eqcomq.inc'
 C
       DIMENSION DERIV(NPSM)
+      DIMENSION D01(NTHMP,NRM),D10(NTHMP,NRM),D11(NTHMP,NRM)
 C
       IERR=0
       DTH=2*PI/NTHMAX
@@ -457,62 +466,46 @@ C
 C
 C        +++++ CALCULATE DERIVATIVES +++++
 C     
+C
+      DTH=2.D0*PI/NTHMAX
+      DO NR=1,NRMAX
+         PSIT(NR)=FTS(NR)
+      ENDDO
       DO NTH=1,NTHMAX+1
-         NR=1
-            DRPSI(NTH,NR)=0.D0
-            DZPSI(NTH,NR)=0.D0
-         DO NR=2,NRMAX-1
-            DPSI=PSS(NR+1)-PSS(NR-1)
-            DRPSI(NTH,NR)=(RPS(NTH,NR+1)-RPS(NTH,NR-1))/DPSI
-            DZPSI(NTH,NR)=(ZPS(NTH,NR+1)-ZPS(NTH,NR-1))/DPSI
-         ENDDO
-         NR=NRMAX
-            DPSI=PSS(NR)-PSS(NR-1)
-            DRPSI(NTH,NR)=(RPS(NTH,NR)-RPS(NTH,NR-1))/DPSI
-            DZPSI(NTH,NR)=(ZPS(NTH,NR)-ZPS(NTH,NR-1))/DPSI
+         THIT(NTH)=DTH*(NTH-1)
       ENDDO
 C
-      DO NR=1,NRMAX
-         PSIN=1.D0-PSS(NR)/SAXIS
-         IF(PSIN.GT.0.D0) THEN
-            FLTT=FNTTS(PSIN)
-            FLQP=FNQPS(PSIN)
-            FLRL=FNRLEN(PSIN)
-            FACTOR=FLTT*FLRL/(2.D0*PI*FLQP)
-         ENDIF
-C         WRITE(6,'(1P5E12.4)') PSIN,FLTT,FLQP,FLRL,FACTOR
+      DO NTH=1,NTHMAX+1
+         D10(NTH,1)=0.D0
+      ENDDO
+      D11(1,1)=0.D0
+      D11(NTHMAX+1,1)=0.D0
+      CALL SPL2D(THIT,PSIT,RPS,D10,D01,D11,URPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for RPS: IERR=',IERR
 C
-         NTH=1
-            IF(PSIN.GT.0.D0) THEN
-               CALL EQPSID(RPS(NTH,NR),ZPS(NTH,NR),DPSIDR,DPSIDZ)
-               DPSI=SQRT(DPSIDR**2+DPSIDZ**2)
-               DCHI=FACTOR*DTH/(RPS(NTH,NR)*DPSI)
-            ELSE
-               DCHI=DTH
-            ENDIF
-            DRCHI(NTH,NR)=(RPS(NTH+1,NR)-RPS(NTHMAX,NR))/(2*DCHI)
-            DZCHI(NTH,NR)=(ZPS(NTH+1,NR)-ZPS(NTHMAX,NR))/(2*DCHI)
-         DO NTH=2,NTHMAX
-            IF(PSIN.GT.0.D0) THEN
-               CALL EQPSID(RPS(NTH,NR),ZPS(NTH,NR),DPSIDR,DPSIDZ)
-               DPSI=SQRT(DPSIDR**2+DPSIDZ**2)
-               DCHI=FACTOR*DTH/(RPS(NTH,NR)*DPSI)
-            ELSE
-               DCHI=DTH
-            ENDIF
-            DRCHI(NTH,NR)=(RPS(NTH+1,NR)-RPS(NTH-1,NR))/(2*DCHI)
-            DZCHI(NTH,NR)=(ZPS(NTH+1,NR)-ZPS(NTH-1,NR))/(2*DCHI)
+      DO NTH=1,NTHMAX+1
+         D10(NTH,1)=0.D0
+      ENDDO
+      D11(1,1)=0.D0
+      D11(NTHMAX+1,1)=0.D0
+      CALL SPL2D(THIT,PSIT,ZPS,D10,D01,D11,UZPS,
+     &           NTHMP,NTHMAX+1,NRMAX,4,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for ZPS: IERR=',IERR
+C
+      DO NTH=1,NTHMAX+1
+         THITL=THIT(NTH)
+         DO NR=1,NRMAX
+            PSITL=PSIT(NR)
+            CALL SPL2DD(THITL,PSITL,RPSL,DRCHIL,DRPSIL,
+     &                  THIT,PSIT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            CALL SPL2DD(THITL,PSITL,ZPSL,DZCHIL,DZPSIL,
+     &                  THIT,PSIT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            DRPSI(NTH,NR)=DRPSIL
+            DZPSI(NTH,NR)=DZPSIL
+            DRCHI(NTH,NR)=DRCHIL
+            DZCHI(NTH,NR)=DZCHIL
          ENDDO
-         NTH=NTHMAX+1
-            IF(PSIN.GT.0.D0) THEN
-               CALL EQPSID(RPS(NTH,NR),ZPS(NTH,NR),DPSIDR,DPSIDZ)
-               DPSI=SQRT(DPSIDR**2+DPSIDZ**2)
-               DCHI=FACTOR*DTH/(RPS(NTH,NR)*DPSI)
-            ELSE
-               DCHI=DTH
-            ENDIF
-            DRCHI(NTH,NR)=(RPS(1,NR)-RPS(NTH-1,NR))/(2*DCHI)
-            DZCHI(NTH,NR)=(ZPS(1,NR)-ZPS(NTH-1,NR))/(2*DCHI)
       ENDDO
 C
 C      DO NR=1,NRMAX,5
@@ -578,7 +571,7 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      DIMENSION RU(NTHUMAX),ZU(NTHUMAX)
+      DIMENSION RU(NTHUMAX+1),ZU(NTHUMAX+1)
       DIMENSION XA(NNM),YA(2,NNM)
       DIMENSION RCHI(NNM),ZCHI(NNM),DXCHI(NNM)
       DIMENSION URCHI(4,NNM),UZCHI(4,NNM)

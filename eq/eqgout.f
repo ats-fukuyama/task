@@ -484,7 +484,7 @@ C
       ENDDO
       ENDDO
 C
-      DO IND=1,4
+      DO IND=1,8
 C
          IF(IND.EQ.1) THEN
             DO NR=1,NRMAX
@@ -516,6 +516,34 @@ C
             ENDDO
             ENDDO
             KTITL='/DZCHI/'
+         ELSEIF(IND.EQ.5) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(RPS(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/RPS/'
+         ELSEIF(IND.EQ.6) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(ZPS(NTH,NR))
+            ENDDO
+            ENDDO
+            KTITL='/ZPS/'
+         ELSEIF(IND.EQ.7) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP(PSS(NR))
+            ENDDO
+            ENDDO
+            KTITL='/PSS/'
+         ELSEIF(IND.EQ.8) THEN
+            DO NR=1,NRMAX
+            DO NTH=1,NTHMAX
+               GF(NR,NTH)=GUCLIP((2.D0*PI*NTH-1)/NTHMAX)
+            ENDDO
+            ENDDO
+            KTITL='/CHI/'
          ENDIF
 C
          GSUM=0.0
@@ -537,6 +565,10 @@ C
             GRSW(NSU)=GUCLIP(RSW(NSU))
             GZSW(NSU)=GUCLIP(ZSW(NSU))
          ENDDO
+         GRSU(NSUMAX+1)=GUCLIP(RSU(NSU))
+         GZSU(NSUMAX+1)=GUCLIP(ZSU(NSU))
+         GRSW(NSUMAX+1)=GUCLIP(RSW(NSU))
+         GZSW(NSUMAX+1)=GUCLIP(ZSW(NSU))
 C
          GRLEN=GUCLIP(RGMAX-RGMIN)
          GZLEN=GUCLIP(ZGMAX-ZGMIN)
@@ -567,9 +599,9 @@ C
      &                  -0.5*GGFSTP,-GGFSTP,NSTEP,2,2,KA)
          ENDIF
          CALL SETLIN(-1,-1,6)
-         CALL GPLOTP(GRSU,GZSU,1,NSUMAX,1,0,0,0)
+         CALL GPLOTP(GRSU,GZSU,1,NSUMAX+1,1,0,0,0)
          CALL SETLIN(-1,-1,5)
-         CALL GPLOTP(GRSW,GZSW,1,NSUMAX,1,0,0,0)
+         CALL GPLOTP(GRSW,GZSW,1,NSUMAX+1,1,0,0,0)
 C
          CALL SETLIN(0,0,7)
          CALL MOVE(20.0,17.0)
