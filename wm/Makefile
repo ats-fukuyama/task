@@ -30,26 +30,21 @@ wm : $(OBJS) wmcomm.h
 	$(FC) $(OBJS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
+
+new :
+	mkdir ../wmnew
+	cp -f Makefile ../wmnew
+	cp -f Makefile.mpi ../wmnew
+	cp -f Makefile.nompi ../wmnew
+	cp -f *.f ../wmnew
+	cp -f *.h ../wmnew
 
 clean:
 	rm -f core *.o ./*~
 
 veryclean: clean
 	rm -f wm
-
-new :
-	-mkdir ../wmnew
-	cp -f Makefile ../wmnew
-	cp -f Makefile.mpi ../wmnew
-	cp -f Makefile.nompi ../wmnew
-	cp -f HISTORY ../wmnew
-	cp -f *.f ../wmnew
-	cp -f *.h ../wmnew
-	-mkdir ../wmnew/in
-	cp -f in/* ../wmnew/in
-	-mkdir ../wmnew/doc
-	cp -f doc/* ../wmnew/doc
 
 wmmain.o : wmmain.f wmcomm.h
 wmeign.o : wmeign.f wmcomm.h

@@ -382,6 +382,8 @@ C
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGVLEN(2*GGZSTP))
 C
+      WRITE(6,*) 'WMGXEQ: NTHGMAX=',NTHGMAX
+C
       IF(GFMIN*GFMAX.GT.0.0) THEN
          CALL SETLIN(-1,-1,6)
          CALL CONTP5(GFL,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -1100,6 +1102,7 @@ C
          XB=DX*(0.5*(X(NB)+X(NB+1))-GXS)+PXS
          YB=DY*(0.5*(Y(NB)+Y(NB+NXAC))-GYS)+PYS
       ENDIF
+C
       IF(ABS(UB-UA).GT.0.0) THEN
          XS=(XB-XA)*(U0-UA)/(UB-UA)+XA
          YS=(YB-YA)*(U0-UA)/(UB-UA)+YA

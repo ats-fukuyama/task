@@ -17,7 +17,7 @@ C
 C
       include 'mpilib.h'
 C
-      call mpi_finalize(mpi_comm_world,ierr)
+      call mpi_finalize(ierr)
 C
       RETURN
       END

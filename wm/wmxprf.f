@@ -45,13 +45,14 @@ C
       REAL*8 XPAR1, XPAR2, XPAR
 C
       CHARACTER    TRFILE*80, CWK1*10
-      DATA TRFILE / 'trdata' /  ! fixed name
 C
       CHARACTER*32 KNAMEQSV
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV,KNAMEQSV
+      SAVE ZEFFSV, NSMAXSV, PTSSV, PNSSV
+C
+      DATA TRFILE / 'trdata' /  ! fixed name
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
       DATA KNAMEQSV/'                                '/
-      SAVE ZEFFSV, NSMAXSV, PTSSV, PNSSV
       DATA ZEFFSV / 0.0D0 /
       DATA NSMAXSV /0/
       DATA PTSSV / NSM*0.0D0 /

@@ -40,9 +40,12 @@ C
             FR=FRMIN+(NGF-1)*DELTFR
             FI=FI0
             CALL DIAMIN(FR,FI,AMPL)
-            IF(LISTEG.GE.1) THEN
-               WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPL = ',FR,FI,AMPL
-               CALL GUFLSH
+            IF(MYRANK.EQ.0) THEN
+               IF(LISTEG.GE.1) THEN
+                  WRITE(6,'(A,1P3E12.4)') 
+     &              '      FR,FI,AMPL = ',FR,FI,AMPL
+                  CALl GUFLSH
+               ENDIF
             ENDIF
             GX(NGF)=GCLIP(FR)
             GZ(NGF,1)=GCLIP(LOG10(AMPL))
@@ -52,8 +55,11 @@ C
                AMPMIN=AMPL
             ENDIF
          ENDDO
-         WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
-     &                                  FRINI,FIINI,AMPMIN
+         IF(MYRANK.EQ.0) THEN
+            WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
+     &                                     FRINI,FIINI,AMPMIN
+            CALL GUFLSH
+         ENDIF
 C
          CALL WMEG1D(GX,GZ,NGZM,NGFMAX,1,GCLIP(FI0))
 C
@@ -160,10 +166,11 @@ C
             DO NGY=1,NGYMAX
                FI=FIMIN+(NGY-1)*DELTFI
                CALL DIAMIN(FR,FI,AMPL)
+               IF(MYRANK.EQ.0) THEN
                IF(LISTEG.GE.1) THEN
-                  WRITE(6,'(A,1P3E12.4)') 
-     &                 '      FR,FI,AMPL = ',FR,FI,AMPL
-                  CALL GUFLSH
+               WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPL = ',FR,FI,AMPL
+               CALL GUFLSH
+               ENDIF
                ENDIF
                GY(NGY)=GCLIP(FI)
                GZ(NGX,NGY)=GCLIP(AMPL)
@@ -204,8 +211,11 @@ C
             FIINI=DBLE(GFINF(2,1))
             AMPMIN=DBLE(GFINF(3,1))
          ENDIF
-         WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
-     &                           FRINI,FIINI,AMPMIN
+         IF(MYRANK.EQ.0) THEN
+            WRITE(6,'(A,1P3E12.4)') '      FR,FI,AMPMIN=',
+     &                              FRINI,FIINI,AMPMIN
+            CALL GUFLSH
+         ENDIF
 C
          CALL WMEG2D(GX,GY,GZ,NGZM,NGXMAX,NGYMAX,
      &               KA,GFINF,NINFM)
@@ -360,7 +370,7 @@ C
          X=FRINI
          Y=FIINI
          IF (MODENW.EQ.0) THEN
-            CALL NEWTN0X(DIAMIN,X,Y,XX,YY,
+            CALL NEWTN0(DIAMIN,X,Y,XX,YY,
      &                  DLTNW,EPSNW,LMAXNW,LISTNW,IERR)
          ELSEIF(MODENW.EQ.1) THEN
             CALL NEWTN1(DIAMIN,X,Y,XX,YY,
@@ -663,9 +673,12 @@ C
          CALL WMSC1G(GX,GY(1,1),NSCMAX,ISCAN,KV)
          CALL WMSC1G(GX,GY(1,2),NSCMAX,ISCAN,KV)
 C
-         WRITE(6,*) '      '//KV
-         WRITE(6,'(I5,1P4E12.4)') 
-     &        (I,GX(I),GY(I,1),GY(I,2),GY(I,3),I=1,NSCMAX) 
+         IF(MYRANK.EQ.0) THEN
+            WRITE(6,*) '      '//KV
+            WRITE(6,'(I5,1P4E12.4)') 
+     &          (I,GX(I),GY(I,1),GY(I,2),GY(I,3),I=1,NSCMAX) 
+            CALL GUFLSH
+          ENDIF
 C
       GOTO 11
 C
@@ -857,105 +870,6 @@ C
       FY=(F0P-F0M)/(2*HY)
 C
     1 CONTINUE
-C      CALL SUB(X-HX,Y-HY,FMM)
-C      CALL SUB(X-HX,Y+HY,FMP)
-C      CALL SUB(X+HX,Y-HY,FPM)
-      CALL SUB(X+HX,Y+HY,FPP)
-C
-      FXX=(FP0-2*F00+FM0)/(HX*HX)
-      FYY=(F0P-2*F00+F0M)/(HY*HY)
-C      FXY=(FPP-FPM-FMP+FMM)/(4*HX*HY)
-      FXY=(FPP-FP0-F0P+F00)/(HX*HY)
-      DF=SQRT(FX*FX+FY*FY)
-      DET=FXX*FYY-FXY*FXY
-      H11= FYY/DET
-      H12=-FXY/DET
-      H21=-FXY/DET
-      H22= FXX/DET
-C
-      DX=-(H11*FX+H12*FY)
-      DY=-(H21*FX+H22*FY)
-      TT=1.D0
-    2 X=X+TT*DX
-      Y=Y+TT*DY
-C
-      CALL SUB(X,   Y,   F00)
-C      CALL SUB(X-HX,Y,   FM0)
-      CALL SUB(X+HX,Y,   FP0)
-C      CALL SUB(X,   Y-HY,F0M)
-      CALL SUB(X,   Y+HY,F0P)
-C      FXN=(FP0-FM0)/(2*HX)
-C      FYN=(F0P-F0M)/(2*HY)
-      FXN=(FP0-F00)/HX
-      FYN=(F0P-F00)/HY
-      IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
-      IF(LIST.GT.0) CALL GUFLSH
-      DFN=SQRT(FXN*FXN+FYN*FYN)
-C      IF(DFN.GT.DF) THEN
-C         X=X-TT*DX
-C         Y=Y-TT*DY
-C         TT=0.5D0*TT
-C         ITER=ITER+1
-C         IF(TT.LE.1.D-3) GOTO 8000
-C         IF(ITER.LE.ILMAX) GOTO 2
-C      ELSE
-         CALL SUB(X-HX,Y,   FM0)
-         CALL SUB(X,   Y-HY,F0M)
-         FX=(FP0-FM0)/(2*HX)
-         FY=(F0P-F0M)/(2*HY)
-         DF=DFN
-         ITER=ITER+1
-         V=SQRT(X*X+Y*Y+EPS)
-         DV=SQRT(DX*DX+DY*DY)
-         IF(DV/V.LE.EPS) GO TO 9000
-         IF(DF.LE.1.D-3*EPS) GO TO 9000
-         IF(ITER.LE.ILMAX) GO TO 1
-C      ENDIF
-C
-      IER=2
-      IF(LIST.GT.0)
-     &   WRITE(6,*) 'XX NEWTN0: LOOP COUNT EXCEEDS UPPER BOUND.'
-      GOTO 9000
-C
- 8000 IER=1
-      IF(LIST.GT.0)
-     &   WRITE(6,*) 'XX NEWTN0: DOES NOT CONVERGE.'
-      GOTO 9000
-C
- 9000 XX=X
-      YY=Y
-      RETURN
-  600 FORMAT(1H ,3X,'X,Y,DX,DY,F = ',1P2E15.7,1P3E10.2)
-      END
-C
-C     ****** TWO-DIMENSIONAL NEWTON METHOD ******
-C
-      SUBROUTINE NEWTN0X(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,IER)
-C
-      IMPLICIT REAL*8(A-H,O-Z)
-      EXTERNAL SUB
-C
-      IER=0
-      ITER=0
-      IF(ABS(X).GT.1.D0) THEN
-         HX=DELT*X
-      ELSE
-         HX=DELT
-      ENDIF
-      IF(ABS(Y).GT.1.D0) THEN
-         HY=DELT*Y
-      ELSE
-         HY=DELT
-      ENDIF
-      CALL SUB(X,   Y,   F00)
-      CALL SUB(X-HX,Y,   FM0)
-      CALL SUB(X+HX,Y,   FP0)
-      CALL SUB(X,   Y-HY,F0M)
-      CALL SUB(X,   Y+HY,F0P)
-      FX=(FP0-FM0)/(2*HX)
-      FY=(F0P-F0M)/(2*HY)
-C
-    1 CONTINUE
       CALL SUB(X-HX,Y-HY,FMM)
       CALL SUB(X-HX,Y+HY,FMP)
       CALL SUB(X+HX,Y-HY,FPM)
@@ -984,8 +898,10 @@ C
       CALL SUB(X,   Y+HY,F0P)
       FXN=(FP0-FM0)/(2*HX)
       FYN=(F0P-F0M)/(2*HY)
-      IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
-      IF(LIST.GT.0) CALL GUFLSH
+      IF(MYRANK.EQ.0) THEN
+         IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
+         IF(LIST.GT.0) CALL GUFLSH
+      ENDIF
       DFN=SQRT(FXN*FXN+FYN*FYN)
       IF(DFN.GT.DF) THEN
          X=X-TT*DX
@@ -1007,13 +923,17 @@ C         IF(DF.LE.EPS) GO TO 9000
       ENDIF
 C
       IER=2
-      IF(LIST.GT.0)
+      IF(MYRANK.EQ.0) THEN
+         IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: LOOP COUNT EXCEEDS UPPER BOUND.'
+      ENDIF
       GOTO 9000
 C
  8000 IER=1
+      IF(MYRANK.EQ.0) THEN
       IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: DOES NOT CONVERGE.'
+      ENDIF
       GOTO 9000
 C
  9000 XX=X
@@ -1075,8 +995,10 @@ C
       CALL SUB(X,   Y+HY,F0P)
       FXN=(FP0-FM0)/(2*HX)
       FYN=(F0P-F0M)/(2*HY)
-      IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
-      IF(LIST.GT.0) CALL GUFLSH
+      IF(MYRANK.EQ.0) THEN
+         IF(LIST.GT.0) WRITE(6,600) X,Y,DX,DY,F00
+         IF(LIST.GT.0) CALL GUFLSH
+      ENDIF
       DFN=SQRT(FXN*FXN+FYN*FYN)
       IF(DFN.GT.DF) THEN
          X=X-TT*DX
@@ -1098,13 +1020,17 @@ C         IF(DF.LE.EPS) GO TO 9000
       ENDIF
 C
       IER=2
+      IF(MYRANK.EQ.0) THEN
       IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: LOOP COUNT EXCEEDS UPPER BOUND.'
+      ENDIF
       GOTO 9000
 C
  8000 IER=1
+      IF(MYRANK.EQ.0) THEN
       IF(LIST.GT.0)
      &   WRITE(6,*) 'XX NEWTN2: DOES NOT CONVERGE.'
+      ENDIF
       GOTO 9000
 C
  9000 XX=X

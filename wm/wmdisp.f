@@ -306,8 +306,8 @@ C
          RETURN
       ENDIF
       RTA=PTA*AEE*1.D3
-      AM=4.D0*AMP
-      AE=2.D0*AEE
+      AM=PA(3)*AMP
+      AE=PZ(3)*AEE
       VTA=SQRT(2.D0*RTA/AM)
       WP2=AE*AE*RNA/(AM*EPS0)
 C
