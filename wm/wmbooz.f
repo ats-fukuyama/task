@@ -55,7 +55,7 @@ C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
 C          FNAME='wout'
 C
       NFL=11
-      KNAMEQ='m08n06.X1.1320_b_0.00.asc'
+C      KNAMEQ='m08n06.X1.1320_b_0.00.asc'
       CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
 C
       rewind NFL
