@@ -10,24 +10,24 @@ C
 C
       EXTERNAL FPFN0U,FPFN0T,FPFN1A,FPFN2A
 C
+C     ----- exec EQ -----
+C
       IF(MODELG.EQ.3) THEN
          CALL EQLOAD(3,KNAMEQ,IERR)
          IF(IERR.EQ.0) THEN
             CALL EQSETP
             CALL EQPSIC(51,32,64,IERR)
-C            CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
          ENDIF
       ENDIF
+C
+C     ----- set radial mesh -----
 C
       IF(NRMAX.EQ.1) THEN
          DELR=DELR1
       ELSE
          DELR=(RMAX-RMIN)/NRMAX
       ENDIF
-C
-C      BETAN=LOG(RNFP0/RNFPS)/RA**ALPHN
-C      BETAT=LOG(RTFP0/RTFPS)/RA**ALPHT
 C
       IF(NRMAX.EQ.1) THEN
          RM(1)=R1
@@ -41,6 +41,15 @@ C
          RG(NRMAX+1)=RMAX
       ENDIF
 C
+C     ----- load WR resluts -----
+C
+      IF(MODELW.EQ.2.OR.MODELW.EQ.3) THEN
+         CALL FPLDWR(IERR)
+         IF(IERR.NE.0) RETURN
+      ENDIF
+C
+C     ----- set parameters for target species -----
+C
       AEFP=PZ(NSFP)*AEE
       AMFP=PA(NSFP)*AMP
       RNFP0=PN(NSFP)
@@ -48,78 +57,98 @@ C
       RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
       RTFPS=PTS(NSFP)
 C
-      IF(MODELW.EQ.2.OR.MODELW.EQ.3) THEN
-         CALL FPLDWR(IERR)
-         IF(IERR.NE.0) RETURN
+      IF(MODELR.EQ.0) THEN
+         PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
+         VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
+      ELSE
+         RKE=RTFP0*1.D3*AEE
+         PTFP0=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
+         VTFP0=PTFP0/SQRT(AMFP**2+PTFP0**2/VC**2)
       ENDIF
 C
-      DO 12 NR=1,NRMAX
+C     ----- set profile data -----
 C
-C     ***** EQUI-SPACE PSI *****
-C
-C         PSIL=RM(NR)
-C
-C     ***** EQUI-SPACE RADIUS *****
+      DO NR=1,NRMAX
 C
          PSIL=RM(NR)**2
          CALL PLPROF(PSIL)
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
-         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
+         IF(MODELR.EQ.0) THEN
+            PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
+            VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
+         ELSE
+            RKE=RTFP(NR)*1.D3*AEE
+            PTFP(NR)=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
+            VTFP(NR)=PTFP(NR)/SQRT(AMFP**2+PTFP(NR)**2/VC**2)
+         ENDIF
          RNE=RN(1)
          RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
          DO NS=1,NSMAX
             AEFD=PZ(NS)*AEE
             AMFD=PA(NS)*AMP
-            RNFD=RN(NS)
-            RTFD=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            RNFD(NR,NS)=RN(NS)
+            RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            IF(MODELR.EQ.0) THEN
+               PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
+               VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
+            ELSE
+               RKE=RTFD(NR,NS)*1.D3*AEE
+               PTFD(NR,NS)=SQRT(RKE*RKE+2.D0*RKE*AMFD*VC*VC)/VC
+               VTFD(NR,NS)=PTFD(NR,NS)
+     &                    /SQRT(AMFD**2+PTFD(NR,NS)**2/VC**2)
+            ENDIF
             IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
                RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
             ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
                RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
             ELSE
-               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD)
+               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
             ENDIF
-            VTFD(NS,NR)=SQRT(RTFD*1.D3*AEE/AMFD)
-            RNU(NS,NR)=RNFD*1.D20*AEFP**2*AEFD**2*RLNRL
-     &                /(4.D0*PI*EPS0**2*AMFP**2*VTFP(NR)**3)
+            FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
+            RNUF(NR,NS)=FACT*RNFD(1,NS)*1.D20
+     &                 /(2.D0*AMFD*VTFD(1,NS)**2*PTFP(1))
+            RNUD(NR,NS)=FACT*RNFD(1,NS)*1.D20
+     &                 /(SQRT(2.D0)*VTFD(1,NS)*PTFP(1)**2)
          ENDDO
+      ENDDO
 C
-         PTH(NR)=SQRT(RTFP0*RTFP(NR)*1.D3*AEE*AMFP)
+C     ----- set poloidal magneticl field -----
+C
+      DO NR=1,NRMAX+1
+         PSIL=RG(NR)**2
+         CALL FPSETB(PSIL,0.5D0*PI,BT,BP(NR))
          EPSR(NR)=RSPSIN(PSIL)/RR
-   12 CONTINUE
+      ENDDO
 C
-      DO 13 NR=1,NRMAX+1
-         CALL FPSETB(RG(NR)*RG(NR),0.5D0*PI,BT,BP(NR))
-   13 CONTINUE
+C     ----- set parallel current density -----
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          RJ1(NR)=(RG(NR+1)*BP(NR+1)-RM(NR)*BP(NR))
      &          /(RMU0*RM(NR)*DELR)
-   20 CONTINUE
+      ENDDO
 C
-      DO 30 NR=1,NRMAX
+C     ----- set parallel electric field -----
+C
+      DO NR=1,NRMAX
          E1(NR)=E0
          E2(NR)=E0
          RJ2(NR)=RJ1(NR)
-   30 CONTINUE
+      ENDDO
 C
-      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
-C      RWP0=SQRT(RNFP0*1.D20*AEFP**2/(AMFP*EPS0))
-C      RNU0=15.D0*RWP0**4/(4.D0*PI*RNFP0*1.D20*VTFP0**3)
-      RNU0=15.D0*RNFP0*1.D20*AEFP**4/(4.D0*PI*AMFP**2*EPS0**2*VTFP0**3)
-      PTH0=SQRT(RTFP0*1.D3*AEE*AMFP)
+C     ----- set momentum space mesh -----
+C
       DELP =PMAX/NPMAX
       DELTH=PI/NTHMAX
 C
-      DO 40 NP=1,NPMAX
+      DO NP=1,NPMAX
         PG(NP)=DELP*(NP-1)
         PM(NP)=DELP*(NP-0.5D0)
-   40 CONTINUE
+      ENDDO
       PG(NPMAX+1)=PMAX
 C
-      DO 50 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          THG(NTH)=DELTH*(NTH-1)
          THM(NTH)=DELTH*(NTH-0.5D0)
 C
@@ -127,30 +156,31 @@ C
          COSM(NTH)=COS(THM(NTH))
          SING(NTH)=SIN(THG(NTH))
          COSG(NTH)=COS(THG(NTH))
-   50 CONTINUE
-         THG(NTHMAX+1)=PI
-         SING(NTHMAX+1)=0.D0
-         COSG(NTHMAX+1)=-1.D0
+      ENDDO
+      THG(NTHMAX+1)=PI
+      SING(NTHMAX+1)=0.D0
+      COSG(NTHMAX+1)=-1.D0
 C
-      DO 60 NP=1,NPMAX
-      DO 60 NTH=1,NTHMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
          VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
-   60 CONTINUE
+      ENDDO
+      ENDDO
 C
-C =============   BOUNDARY DISTRIBUTION  =============
+C     ----- set relativistic parameters -----
 C
       IF (MODELR.EQ.0) THEN
 C
          THETA0=0.D0
-         DO 100 NR=1,NRMAX
+         DO NR=1,NRMAX
             THETA(NR)=0.D0
             DKBSR(NR)=0.D0
-  100    CONTINUE
+         ENDDO
 C
       ELSE
 C
          THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-         DO 110 NR=1,NRMAX
+         DO NR=1,NRMAX
             THETA(NR)=THETA0*RTFP(NR)
             Z=1.D0/THETA(NR)
 C            IF(Z.LE.100.D0) THEN
@@ -158,29 +188,33 @@ C            IF(Z.LE.100.D0) THEN
 C            ELSE
 C               DKBSR(NR)=SQRT(0.5D0*PI/Z)*(1.D0+15.D0/(8.D0*Z))
 C            ENDIF
-  110    CONTINUE
+         ENDDO
       ENDIF
 C
-      DO 120 NP=1,NPMAX
+C     ----- set boundary distribution functions -----
+C
+      DO NP=1,NPMAX
          FL=FPMXWL(PM(NP),0)
-      DO 120 NTH=1,NTHMAX
-         FS1(NTH,NP)=FL
-  120 CONTINUE
+         DO NTH=1,NTHMAX
+            FS1(NTH,NP)=FL
+         ENDDO
+      ENDDO
 C
-      DO 130 NP=1,NPMAX
+      DO NP=1,NPMAX
          FL=FPMXWL(PM(NP),NRMAX+1)
-      DO 130 NTH=1,NTHMAX
-         FS2(NTH,NP)=FL
-  130 CONTINUE
+         DO NTH=1,NTHMAX
+            FS2(NTH,NP)=FL
+         ENDDO
+      ENDDO
 C
-C ================  BOUNCE AVERAGE  ==========================
+C     ----- set bounce-average parameters -----
 C
       IF (MODELA.NE.0) THEN
-         DO 290 NR=1,NRMAX
+         DO NR=1,NRMAX
             A1=ACOS(SQRT(2.D0*EPSR(NR)/(1.D0+EPSR(NR))))
-            DO 200 NTH=1,NTHMAX/2
+            DO NTH=1,NTHMAX/2
                IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 201
-  200       CONTINUE
+            ENDDO
 C
   201       CONTINUE
 C
@@ -193,36 +227,34 @@ C
             EPSR(NR)=EPSL
             FACT=(1.D0+EPSL)/(2.D0*EPSL)
 C
-            DO 210 NTH=1,ITL(NR)
+            DO NTH=1,ITL(NR)
                ETAM(NTH,NR)=PI/2.D0
-  210       CONTINUE
+            ENDDO
 C
-            DO 220 NTH=ITL(NR)+1,ITU(NR)-1
+            DO NTH=ITL(NR)+1,ITU(NR)-1
                A1=FACT*COSM(NTH)**2
                ETAM(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-  220       CONTINUE
+            ENDDO
 C
-            DO 230 NTH=ITU(NR),NTHMAX
+            DO NTH=ITU(NR),NTHMAX
                ETAM(NTH,NR)=PI/2.D0
-  230       CONTINUE
+            ENDDO
 C
-            DO 240 NTH=1,ITL(NR)
+            DO NTH=1,ITL(NR)
                ETAG(NTH,NR)=PI/2.D0
-  240       CONTINUE
+            ENDDO
 C
-            DO 250 NTH=ITL(NR)+1,ITU(NR)
+            DO NTH=ITL(NR)+1,ITU(NR)
                A1=FACT*COSG(NTH)**2
                ETAG(NTH,NR)=0.5D0*DACOS(1.D0-2.D0*A1)
-  250       CONTINUE
+            ENDDO
 C
-            DO 260 NTH=ITU(NR)+1,NTHMAX+1
+            DO NTH=ITU(NR)+1,NTHMAX+1
                ETAG(NTH,NR)=PI/2.D0
-  260       CONTINUE
-C
-C -----------------  CALCULATION OF RLAMDA  ------------------
+            ENDDO
 C
             NRX=NR
-            DO 270 NTH=1,NTHMAX/2
+            DO NTH=1,NTHMAX/2
                NTHX=NTH
                IF(NTH.LT.ITL(NR)) THEN
                   CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U)
@@ -234,28 +266,28 @@ C
                CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
                RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
                RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
-  270       CONTINUE
+            ENDDO
             RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR)
      &                               +RLAMDA(ITL(NR)+1,NR))
-            DO 280 NTH=1,NTHMAX/2
+            DO NTH=1,NTHMAX/2
                RLAMDA(NTHMAX-NTH+1,NR)=RLAMDA(NTH,NR)
                RLAMDC(NTHMAX-NTH+2,NR)=RLAMDC(NTH,NR)
-  280       CONTINUE
-               RLAMDC(NTHMAX/2+1,NR)=0.D0
+            ENDDO
+            RLAMDC(NTHMAX/2+1,NR)=0.D0
+         ENDDO
 C
-  290    CONTINUE
       ELSE
-         DO 320 NR=1,NRMAX
+         DO NR=1,NRMAX
             ITL(NR)=0
             ITU(NR)=0
-            DO 300 NTH=1,NTHMAX
+            DO NTH=1,NTHMAX
                ETAM(NTH,NR)=PI/2.D0
                RLAMDA(NTH,NR)=1.D0
-  300       CONTINUE
-            DO 310 NTH=1,NTHMAX+1
+            ENDDO
+            DO NTH=1,NTHMAX+1
                ETAG(NTH,NR)=PI/2.D0
-  310       CONTINUE
-  320    CONTINUE
+            ENDDO
+         ENDDO
       END IF
 C
       IERR=0
@@ -270,12 +302,14 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DO 100 NR=1,NRMAX
-      DO 100 NP=1,NPMAX
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
          FL=FPMXWL(PM(NP),NR)
-      DO 100 NTH=1,NTHMAX
-         F(NTH,NP,NR)=FL
-  100 CONTINUE
+         DO NTH=1,NTHMAX
+            F(NTH,NP,NR)=FL
+         ENDDO
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -450,15 +484,15 @@ C
 C
       IF(MODELE.NE.0) CALL FPNEWE
 C
-      DO 1000 NT=1,NTMAX
+      DO NT=1,NTMAX
 C
          L=0
 C
          IF(MODELE.NE.0) THEN
-            DO 100 NR=1,NRMAX
+            DO NR=1,NRMAX
                E3(NR)=0.D0
                RJ3(NR)=0.D0
-  100       CONTINUE
+            ENDDO
          ENDIF
 C
     1    L=L+1
@@ -469,18 +503,19 @@ C
          IF(NOCONV.NE.0) GOTO 250
 C
          IF(MODELE.NE.0) THEN
-            DO 210 NR=2,NRMAX
+            DO NR=2,NRMAX
                RSUM=0.D0
-               DO 200 NP=1,NPMAX
-               DO 200 NTH=1,NTHMAX
+               DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
                   RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
-  200          CONTINUE
+               ENDDO
+               ENDDO
                RJN(NR)=AEFP*RNFP0*1.D20*PTH0*DELP*RSUM/(AMFP*RM(NR)*RA)
-  210       CONTINUE
+            ENDDO
             RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
 C
             DELEM=0.D0
-            DO 220 NR=1,NRMAX
+            DO NR=1,NRMAX
                IF(ABS(RJN(NR)-RJ3(NR)).GT.1.D-20) THEN
                   DELE(NR)=(RJN(NR)-RJ2(NR))*(E2(NR)-E3(NR))
      &                    /(RJN(NR)-RJ3(NR))
@@ -489,24 +524,26 @@ C
                   E2(NR)=E2(NR)-DELE(NR)
                   DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
                ENDIF
-  220       CONTINUE
+            ENDDO
 C
             IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 1
             IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
 C
-            DO 230 NR=1,NRMAX
+            DO NR=1,NRMAX
                E1(NR)=E2(NR)
                RJ1(NR)=RJN(NR)
-  230       CONTINUE
+            ENDDO
             CALL FPNEWE
          ENDIF
 C
   250    CONTINUE
-         DO 300 NR=1,NRMAX
-         DO 300 NP=1,NPMAX
-         DO 300 NTH=1,NTHMAX
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
             F(NTH,NP,NR)=F1(NTH,NP,NR)
-  300    CONTINUE
+         ENDDO
+         ENDDO
+         ENDDO
 C
          TIMEFP=TIMEFP+DELT
 C
@@ -520,7 +557,7 @@ C
          ENDIF
 C
          IF(NOCONV.NE.0) GOTO 1100
- 1000 CONTINUE
+      ENDDO
  1100 CONTINUE
 C
       RETURN
@@ -535,18 +572,18 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DO 10 NR=2,NRMAX
+      DO NR=2,NRMAX
          BP(NR)=BP(NR)+(E1(NR)-E1(NR-1))*DELT/(RA*DELR)
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          RJ2(NR)=(RG(NR+1)*BP(NR+1)-RG(NR)*BP(NR))
      &           /(RMU0*RM(NR)*DELR*RA)
-   20 CONTINUE
+      ENDDO
 C
-      DO 30 NR=1,NRMAX
+      DO NR=1,NRMAX
          E2(NR)=RJ2(NR)*E1(NR)/RJ1(NR)
-   30 CONTINUE
+      ENDDO
 C
       RETURN
       END

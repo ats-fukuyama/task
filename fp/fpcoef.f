@@ -34,12 +34,14 @@ C
 C
 C     ----- Sum up velocity diffusion terms -----
 C
-      DO 10 NR=1,NRMAX
-      DO 10 NP=1,NPMAX+1
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
          DPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DWPP(NTH,NP,NR)
          DPT(NTH,NP,NR)=DCPT(NTH,NP,NR)+DWPT(NTH,NP,NR)
          FPP(NTH,NP,NR)=FEPP(NTH,NP,NR)+FCPP(NTH,NP,NR)
+      ENDDO
+      ENDDO
       ENDDO
 C
       DO NR=1,NRMAX
@@ -269,7 +271,7 @@ C
             ELSEIF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
             ELSE
-               IF(NS.NSFP) THEN
+               IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_NL(NR,NS)
                ELSE
                   CALL FPCALC_L(NR,NS)
@@ -332,19 +334,28 @@ C
       INCLUDE 'fpcomm.inc'
       EXTERNAL FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 C
-      RNUL=RNU(NS,NR)
-      PTHL=
+      RNNL=RNFD(NR,NS)/RNFD(1,NS)
+      RTNL=RTFD(NR,NS)/RTFD(1,NS)
+      RNUFL=RNUF(NR,NS)
+      RNUDL=RNUD(NR,NS)
+      PTFDL=PTFD(NR,NS)
+      VTFDL=VTFD(NR,NS)
+      VTNL=VTFDL/VTFD(1,NS)
 C
       IF(MODELR.EQ.0) THEN
 C
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
-               DCPPL=(2.D0/(3.D0*SQRT(PI)))*RNUL*PTHL
+               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))*RNUL
                FCPPL=0.D0
             ELSE
-               U=PG(NP)*PTHL
-               DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
-               FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
+               PTFPL=PG(NP)*PTFP0
+               VTFPL=PTFPL/AMFP
+               U=VTFP/(SQRT(2.D0)*VTFD(NR,NS))
+               FCPPL=-0.5D0*RNUFL*RNNL/VTFDL**2
+     &              *(ERF1(U)/U**2-ERF2(U)/U)
+C               FCPPL=-RNUL*PTHL*PTHL*(ERF1(U)/U**2-ERF2(U)/U)
+C               DCPPL= 0.5D0*RNUL*PTHL*(ERF1(U)/U**3-ERF2(U)/U**2)
             ENDIF
             DO NTH=1,NTHMAX
                DCPP(NTH,NP,NR)=DCPPL
@@ -353,7 +364,7 @@ C
          ENDDO
 C
          DO NP=1,NPMAX
-            U=PM(NP)*PTHL
+            U=PM(NP)*PTH0/(AMFP*VTFD(NR,NS))
             DCTTL= 0.25D0*RNUL*PTHL
      &                   *((2.D0/U-1.D0/U**3)*ERF1(U)+ERF2(U)/U**2)
             IF(MODEL.LT.0) THEN
