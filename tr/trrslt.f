@@ -106,6 +106,11 @@ C      AJOHT = AOHSUM*DR/1.D6
       AJT   = AJTSUM*DR/1.D6*(RKAP/FKAP)
       AJOHT = AOHSUM*DR/1.D6*(RKAP/FKAP)
 C
+C      DO NR=1,NRMAX
+C         write(6,*) NR,AJ(NR)
+C      ENDDO
+C      write(6,*) AJT,DR
+C
       DRH=0.5D0*DR*RA
       DO 70 NS=1,NSM
          VNP=AV(NRMAX,NS)

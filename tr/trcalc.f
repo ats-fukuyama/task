@@ -36,6 +36,7 @@ C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
             QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
+C            write(6,*) NR,BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
          DO NR=1,NRMAX

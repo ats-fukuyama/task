@@ -206,26 +206,9 @@ C
          CALL TRATOG
       ENDIF
       IF(MOD(NT,NTEQIT).EQ.0) THEN
-         L=0
-         AJOLD=0.D0
-         DO NR=1,NRMAX
-            IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
-         ENDDO
- 2300    L=L+1
-         IF (L.GT.70) THEN
-            WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
-C            GOTO 9000
-            STOP
-         ENDIF
-         CALL TRSETG
-         AJMAX=0.D0
-         DO NR=1,NRMAX
-            IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
-         ENDDO
-         IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
-            AJOLD=AJMAX
-            GOTO 2300
-         ENDIF
+         CALL TRCONV(L,IERR)
+         write(6,*) "L=",L
+         IF(IERR.NE.0) RETURN
       ENDIF
       IF(NT.LT.NTMAX) GOTO 1000
 C

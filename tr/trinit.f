@@ -207,6 +207,7 @@ C
       MDCHG=0
       MDLEQ=0
       NTEQIT=0
+      MDLUF=2
 C
       RETURN
       END
@@ -228,7 +229,7 @@ C
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CKALFA,CKBETA,CKGUMA,TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,NTEQIT,
+     &              MDLST,MDLNF,IZERO,MODELG,MDCHG,MDLEQ,NTEQIT,MDLUF,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -327,7 +328,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ,NTEQIT')
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,MDCHG,MDLEQ,NTEQIT,MDLUF')
       END
 C
 C     ***********************************************************
@@ -424,7 +425,8 @@ C
 C
       WRITE(6,602) 'MDCHG ',MDCHG,
      &             'MDLEQ ',MDLEQ,
-     &             'NTEQIT',NTEQIT
+     &             'NTEQIT',NTEQIT,
+     &             'MDLUF ',MDLUF
 C
       IF((PNBTOT.GT.0.D0).OR.(ID.EQ.1)) THEN
          WRITE(6,601) 'PNBTOT',PNBTOT,
@@ -700,7 +702,7 @@ C
             HJRHO(NR)=AJ(NR)*1.D-6
          ENDDO
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
-     &               NRMAX,RHOTR,HJRHO,QRHO,IERR)
+     &               NRMAX,RHOTR,HJRHO,QRHO,MDLUF,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C
          DO NR=1,NRMAX
@@ -716,25 +718,8 @@ C         PAUSE
 C
       DRIP  = (RIPSS-RIPS)/1.D1
  1000 RIP   = RIPSS
-      L=0
-      AJOLD=0.D0
-      DO NR=1,NRMAX
-         IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
-      ENDDO
- 2000 L=L+1
-      IF (L.GT.70) THEN
-         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
-         STOP
-      ENDIF
-      CALL TRSETG
-      AJMAX=0.D0
-      DO NR=1,NRMAX
-         IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
-      ENDDO
-      IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
-         AJOLD=AJMAX
-         GOTO 2000
-      ENDIF
+      CALL TRCONV(L,IERR)
+      write(6,*) "L=",L
 C
       IF(MODELG.EQ.0) THEN
          GRG(1)=0.0
@@ -804,7 +789,7 @@ C
          CALL TREQEX(RIP,NRMAX,PRHO,HJRHO,VTRHO,TRHO,
      &               QRHO,TTRHO,DVRHO,DSRHO,
      &               ABRHO,ARRHO,AR1RHO,AR2RHO,
-     &               EPSRHO,IERR)
+     &               EPSRHO,MDLUF,IERR)
 C
          DO NR=1,NRMAX
 C            WRITE(6,'(A,I5,1P4E12.4)')
@@ -899,3 +884,62 @@ c$$$         ENDDO
 C
       RETURN
       END
+C
+C     ***********************************************************
+C
+C           CONVERGENCE TEST
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRCONV(L,IERR)
+C
+      INCLUDE 'trcomm.h'
+      DIMENSION AJOLD(NRM),AJDLT(NRM)
+C
+      IERR=0
+      L=0
+      DO NR=1,NRMAX
+         AJOLD(NR)=0.D0
+      ENDDO
+ 200  L=L+1
+      IF (L.GT.50) THEN
+         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 50)'
+         IERR=1
+         RETURN
+      ENDIF
+      CALL TRSETG
+      DO NR=1,NRMAX
+         AJDLT(NR)=AJ(NR)-AJOLD(NR)
+      ENDDO
+      CALL TRSUMJ(AJDLT,RHOTR,NRMAX,SUMJDLT)
+      CALL TRSUMJ(AJ   ,RHOTR,NRMAX,SUMJNOW)
+      CONV=SQRT((SUMJDLT/DBLE(NRMAX))/(SUMJNOW/DBLE(NRMAX)))
+      IF(CONV.GT.1.D-5) THEN
+         DO NR=1,NRMAX
+            AJOLD(NR)=AJ(NR)
+         ENDDO
+         GOTO 200
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ********************************************************
+C
+C           RADIAL INTEGRATION ONLY FOR J CONVERGENCE
+C
+C     ********************************************************
+C
+      SUBROUTINE TRSUMJ(A,B,NMAX,SUM)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      DIMENSION A(NMAX),B(NMAX)
+C
+      SUM=0.D0
+      DO 100 N=1,NMAX
+         SUM=SUM+A(N)**2*B(N)
+  100 CONTINUE
+      RETURN
+      END
+C

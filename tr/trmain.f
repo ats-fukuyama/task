@@ -59,6 +59,7 @@ C
 C
 C     ------ SELECTION OF TASK TYPE ------
 C
+      IERR=0
     1 IF(INIT.EQ.0) THEN
          WRITE(6,*) '# INPUT : P,V,U/PARM  R/RUN  L/LOAD  ',
      &                        'D/DATA  H/HELP  Q/QUIT'
@@ -72,7 +73,9 @@ C
      &                        'D/DATA  H/HELP  Q/QUIT'
       ENDIF
 C
-      CALL TRKLIN(LINE,KID,MODE)
+      CALL TRKLIN(LINE,KID,MODE,IERR)
+      IF(MODE.EQ.1.AND.IERR.EQ.2) GOTO 101
+      IF(MODE.EQ.1.AND.IERR.EQ.3) GOTO 9000
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'P') THEN
@@ -94,27 +97,9 @@ C
 C
          INIT=2
       ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
-      L=0
-      AJOLD=0.D0
-      DO NR=1,NRMAX
-         IF (AJOLD.LE.AJ(NR)) AJOLD = AJ(NR)
-      ENDDO
- 2000 L=L+1
-      IF (L.GT.70) THEN
-         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 70)'
-         GOTO 9000
-      ENDIF
-      CALL TRSETG
-      AJMAX=0.D0
-      DO NR=1,NRMAX
-         IF (AJMAX.LE.AJ(NR)) AJMAX = AJ(NR)
-      ENDDO
-      IF(ABS(AJOLD-AJMAX).GT.1.D-7) THEN
-         AJOLD=AJMAX
-         GOTO 2000
-      ENDIF
+      CALL TRCONV(L,IERR)
 C   
-      ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2)THEN
+      ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
          CALL TRLOOP
 C
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
@@ -236,12 +221,13 @@ C                        1: KID INPUT
 C                        2: PARM INPUT
 C                        3: NEW PROMPT
 C
-      SUBROUTINE TRKLIN(LINE,KID,MODE)
+      SUBROUTINE TRKLIN(LINE,KID,MODE,IERR)
 C
       CHARACTER LINE*80,KID*1
 C
       READ(5,'(A80)',ERR=2,END=3) LINE
 C
+      IF(IERR.NE.0) GOTO 4
       ID=0
       DO I=1,80
          IF(LINE(I:I).EQ.'=') ID=1
@@ -281,5 +267,22 @@ C
 C
     3 KID='Q'
       MODE=1
+      RETURN
+C
+    4 KID=LINE(1:1)
+      CALL GUCPTL(KID)
+      IF(KID.EQ.'G') THEN
+         MODE=1
+         IERR=2
+      ELSEIF (KID.EQ.'Q') THEN
+         MODE=1
+         IEER=3
+      ENDIF
+      RETURN
+C
+      KID=' '
+      MODE=0
+      RETURN
+C
       RETURN
       END

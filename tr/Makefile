@@ -74,7 +74,7 @@ trgrae.o : trgrae.f trcomm.h
 trgsub.o : trgsub.f trcomm.h
 trhelp.o : trhelp.f trcomm.h
 trgrad.o : trgrad.f trcomm.h
-trgrp2.o : trgrp2.f trcomm.h
+trgra2.o : trgra2.f trcomm.h
 trmtrx.o : trmtrx.f
 	$(FC) -c $(LFLAGS) trmtrx.f
 ../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.h
