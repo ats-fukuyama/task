@@ -10,7 +10,7 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-C      IF (MODELG.EQ.3) THEN
+C      IF (MODELQ.EQ.3) THEN
 C         RKAP=1.D0
 C      ENDIF
       IF(RHOA.NE.1.D0) NRMAX=NROMAX

@@ -40,8 +40,8 @@ C        RDLT   : TRIANGULARITY OF POLOIDAL CROSS SECTION
 C        BB     : TOROIDAL MAGNETIC FIELD ON PLASMA AXIS (T)
 C        RIPS   : INITIAL VALUE OF PLASMA CURRENT (MA)
 C        RIPE   : FINAL VALUE OF PLASMA CURRENT (MA)
-C        RIPSS  : ???
-C        RHOA   : ???
+C        RIPSS  : VALUE OF PLASMA CURRENT FOR INITIAL CONVERGENCE
+C        RHOA   : EDGE OF CALCULATE REGION (NORMALIZED SMALL RADIUS)
 C
       RR      = 3.0D0
       RA      = 1.2D0
@@ -253,7 +253,7 @@ C
       MDLWLD=0
 C
 C        MDDW : mode selector for anomalous particle transport coefficient.
-C            you must not modify this parameter.
+C            you must NOT modify this parameter.
 C            0    : if MDDW=0 from start to finish when you choose
 C                   a certain transport model (MDLKAI),
 C                   you could control a ratio of anomalous particle
@@ -447,10 +447,13 @@ C
 C     ==== INTERACTION WITH EQ ====
 C
 C        MODELG: 0 : TR ONLY
+C                3 : USING GEOMETRIC FACTORS FROM EQ FOR INITIAL PROFILE
+C        MODELQ: 0 : TR ONLY
 C                3 : TR/EQ COUPLED
 C        NTEQIT: STEP INTERVAL OF EQ CALCULATION
 C
       MODELG=0
+      MODELQ=0
       NTEQIT=10
 C
 C     ==== INPUT FROM UFILE ====
@@ -475,13 +478,13 @@ C
 C
 C     ==== INITIAL PROFILE SWITCH ====
 C
-C        MODEP : ???
+C        MODEP : initial profile selector for steady-state simulation
 C
       MODEP=3
 C
 C     ==== INITIAL CURRENT PROFILE SWITCH ====
 C
-C        MODEJQ : ???
+C        MDLJQ : 
 C
 C           0 : create AJ(NR) profile from experimental Q profile
 C           1 : create QP(NR) profile from experimental CURTOT profile
@@ -572,7 +575,8 @@ C
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,
-     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDLUF,MDNCLS,MDLWLD,
+     &              MDLST,MDLNF,IZERO,MODELG,MODELQ,NTEQIT,
+     &              MDLUF,MDNCLS,MDLWLD,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -621,7 +625,8 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDLUF,MDNCLS,MDLWLD'/
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,MODELQ,NTEQIT'/
+     &       ' ',8X,'MDLUF,MDNCLS,MDLWLD'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')
@@ -686,7 +691,7 @@ C
       WRITE(6,611)
   611 FORMAT(' ','NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
      &                   'PT(KEV)  PTS(KEV)  PELPAT')
-      DO NS=1,NSTMAX
+      DO NS=1,NSMAX
          WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),
      &                PELPAT(NS)
   612    FORMAT(' ',I2,1PD12.4,0P,F6.1,5F9.4)
@@ -731,6 +736,7 @@ C
      &             'RHOA  ',RHOA
 C
       WRITE(6,602) 'MODELG',MODELG,
+     &             'MODELQ',MODELQ,
      &             'NTEQIT',NTEQIT
 C
       WRITE(6,601) 'CK0   ',CK0,
@@ -1566,7 +1572,7 @@ C
          QRHO(NR)=QP(NR)
       ENDDO
 C
-      IF(MODELG.EQ.3) THEN
+      IF(MODELQ.EQ.3) THEN
          DO NR=1,NRMAX
             RHOTR(NR)=RM(NR)
             AJ(NR)   =AJOH(NR)
@@ -1588,7 +1594,7 @@ C     &           NR,RA,RKAP,RDLT,BB,RIP
 C
       DRIP  = (RIPSS-RIPS)/1.D1
  1000 RIP   = RIPSS
-      IF(MODELG.EQ.3) THEN
+      IF(MODELQ.EQ.3) THEN
 C         CALL TRCONV(L,IERR)
 C         WRITE(6,*) "L=",L
          CALL TRSETG
@@ -1600,7 +1606,7 @@ C
          GRG(NR+1)=GUCLIP(RG(NR))
       ENDDO
 C
-      IF(MODELG.NE.0) THEN
+      IF(MODELQ.NE.0) THEN
          RIPSS=RIPSS-DRIP
 C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
 C     &        ,RIPE
@@ -1954,6 +1960,14 @@ C
          ELSE
             MDDIAG=0
          ENDIF
+         DO NR=1,NRMAX
+            DO NA=1,5
+               DO NS=1,NSM
+                  RGFLS(NR,NA,NS)=0.D0
+                  RQFLS(NR,NA,NS)=0.D0
+               ENDDO
+            ENDDO
+         ENDDO
       ELSE
          IF(MDLKAI.EQ.63) THEN
             IF(MDLWLD.EQ.0) THEN
@@ -2114,40 +2128,52 @@ C
 C
       RKAPS=SQRT(RKAP)
       IF(MDLUF.NE.0) THEN
-         DO NR=1,NRMAX
-            EPSRHO(NR)=RA*RG(NR)/RR
+         IF(MODELG.EQ.0) THEN
+            DO NR=1,NRMAX
+               EPSRHO(NR)=RA*RG(NR)/RR
 C
-            TTRHO(NR)=TTRHOU(1,NR)
-            DVRHO(NR)=DVRHOU(1,NR)
-            DSRHO(NR)=DSRHOU(1,NR)
-            ABRHO(NR)=ABRHOU(1,NR)
-            ARRHO(NR)=ARRHOU(1,NR)
-            AR1RHO(NR)=AR1RHOU(1,NR)
-            AR2RHO(NR)=AR2RHOU(1,NR)
-            RJCB(NR)=1.D0/(RKAPS*RA)
-C            RJCB(NR)=AR1RHOU(1,NR)
-            RMJRHO(NR)=RMJRHOU(1,NR)
-            RMNRHO(NR)=RMNRHOU(1,NR)
-            EKAPPA(NR)=RKAP
-         ENDDO
+               TTRHO(NR)=TTRHOU(1,NR)
+               DVRHO(NR)=DVRHOU(1,NR)
+               DSRHO(NR)=DSRHOU(1,NR)
+               ABRHO(NR)=ABRHOU(1,NR)
+               ARRHO(NR)=ARRHOU(1,NR)
+               AR1RHO(NR)=AR1RHOU(1,NR)
+               AR2RHO(NR)=AR2RHOU(1,NR)
+               RJCB(NR)=1.D0/(RKAPS*RA)
+C               RJCB(NR)=AR1RHOU(1,NR)
+               RMJRHO(NR)=RMJRHOU(1,NR)
+               RMNRHO(NR)=RMNRHOU(1,NR)
+               EKAPPA(NR)=RKAP
+            ENDDO
+         ELSE
+C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAPPA,
+C     &                         NRMAX,NRM)
+         ENDIF
       ELSE
-         DO NR=1,NRMAX
-            EPSRHO(NR)=RA*RG(NR)/RR
-            BPRHO(NR)=BP(NR)
-            QRHO(NR)=QP(NR)
-            TTRHO(NR)=BB*RR
-            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-            DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
-            ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
-            ARRHO(NR)=1.D0/RR**2
-            AR1RHO(NR)=1.D0/(RKAPS*RA)
-            AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-            RJCB(NR)=1.D0/(RKAPS*RA)
+         IF(MODELG.EQ.0) THEN
+            DO NR=1,NRMAX
+               EPSRHO(NR)=RA*RG(NR)/RR
+               BPRHO(NR)=BP(NR)
+               QRHO(NR)=QP(NR)
+               TTRHO(NR)=BB*RR
+               DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
+               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+               ARRHO(NR)=1.D0/RR**2
+               AR1RHO(NR)=1.D0/(RKAPS*RA)
+               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+               RJCB(NR)=1.D0/(RKAPS*RA)
 C
-            EKAPPA(NR)=RKAP
-            RMJRHO(NR)=RR
-            RMNRHO(NR)=RA*RM(NR)
-         ENDDO
+               EKAPPA(NR)=RKAP
+               RMJRHO(NR)=RR
+               RMNRHO(NR)=RA*RM(NR)
+            ENDDO
+         ELSE
+C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAPPA,
+C     &                         NRMAX,NRM)
+         ENDIF
       ENDIF
 C
       RETURN

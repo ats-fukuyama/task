@@ -43,7 +43,7 @@ C         AJNB(NR)=0.D0
       ENDDO
       ENDDO
 C
-      IF(MODELG.EQ.3) THEN
+      IF(MODELQ.EQ.3) THEN
          DO NR=1,NRMAX
 C            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
 C            QP(NR)=FACTQ(NR)*QL
@@ -1735,7 +1735,7 @@ C
       ENDIF
 C
       IF(LQ.EQ.1) THEN
-         IF(MODELG.EQ.3) THEN
+         IF(MODELQ.EQ.3) THEN
             DO NR=1,IZEROX
                QP(NR) = 1.D0/QONE(NR)
                BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)

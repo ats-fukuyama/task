@@ -1160,7 +1160,7 @@ c New part using electron WZ for electron root
       IF(SEARCHMODE.NE.3) GO TO 10085
 C
       WRITE(*,90075)
-90075 FORMAT(' SEARCMODE=3')
+90075 FORMAT(' SEARCHMODE=3')
       IF(ISEARCH.EQ.3) GO TO 10083
       IF(DREAL(WZ).GT.0.) GO TO 10085
       ISEARCH=3

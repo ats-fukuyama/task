@@ -524,7 +524,6 @@ C
                FS=TRCOFS(S,ALFAL,RKCV)
 C               IF(NR.GE.NRMAX-1)
 C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
-               
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN
@@ -1557,7 +1556,7 @@ C
             DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
 C
             DO NS=1,NSM
-               AV(NR,NS) =AD(NR,NS)*DPROF/PROF
+               AV(NR,NS) = AD(NR,NS)*DPROF/PROF
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.2) THEN
@@ -1741,7 +1740,7 @@ C
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
+               AV(NR,NS)=AVDW(NR,NS)+AV(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CNC*ADNC(NR,NS)+ADDWD(NR,NS,NS1)

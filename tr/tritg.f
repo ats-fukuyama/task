@@ -9,24 +9,22 @@ C
 C
 C***********************************************************************
 C  <INPUT>
-C     ENL    : 2 Lne/Lb (Lb=R)
-C     EIL    : Lni/Lti
-C     EEL    : Lne/Lte
-C     TAUL   : Te/Ti
+C     ENL    : 2 Lne/Lb (Lb=R) (epsilon_ne)
+C     EIL    : Lni/Lti (eta_i)
+C     EEL    : Lne/Lte (eta_e)
+C     TAUL   : Te/Ti (tau_i)
 C     FLL    : Finite Larmor Radius parameter: (k_perp*rhos)**2=0.1
 C     FTL    : trapped particle fraction
-C     PDEVL  : maybe not used in this code
-C     PSTL   : maybe not used in this code
 C     BQL    : fraction of an impurity
-C     EQL    : Lnq/Ltq (q represents an impurity)
-C     ENQL   : 2 Lnq/Lb
+C     EQL    : Lnq/Ltq (q represents an impurity) (eta_q)
+C     ENQL   : 2 Lnq/Lb (epsilon_nq)
 C     ZL     : Z value for an impurity
 C     BETAEL : electron beta
 C     AZL    : impurity mass number
 C     COLL   : factor multiplying collisionality (0 or 1)
 C     ELL    : factor multiplying electromagnetic effects (0 or 1)
 C     TEL    : electron temperature [keV]
-C     TAUZL  : Te/Tq
+C     TAUZL  : Te/Tq (tau_q)
 C     RA     : minor radius [m]
 C     QL     : safety factor
 C     SL     : magnetic shear
@@ -36,7 +34,6 @@ C     RLIST  : controlling printout in disp9t (0: off)
 C     RNEQL  : number of equations (NDISP)
 C     ALAL   : normalized pressure gradient
 C     RKAP   : ellipticity
-C     TRL    : not used in this code
 C     RIWL   : controlling printout in DIFFTD (0: off)
 C     RISBL  : If ISB=1, we use the strong ballooning approximation
 C              (GAV=1).
@@ -104,8 +101,6 @@ C
          FLL   = 1.D-1
          FTL   = 1.D0-(1.D0-EPS)**2.D0
      &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-         PDEVL = 8.D0
-         PSTL  = 1.D0
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
          EQL   =       SLNQL/SLTQL
          ENQL  =-2.D0*(SLNQL/SLBL )
@@ -142,180 +137,25 @@ C
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
          ALAL  =-QL*QL*DBDR*RR/RA
 C
-         TRL   = 1.D0
          RIWL  = 2.D0
          RISBL = 2.D0
-         SEARCH= 1.D0
+         SEARCH= 2.D0
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
 C
-c$$$         RPI4=0.D0
-c$$$         RPI3=0.D0
-c$$$         RPI2=0.D0
-c$$$         RPI1=0.D0
-c$$$         IF(NR.LE.1) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
-c$$$            ENDDO
-c$$$            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
-c$$$            ENDDO
-c$$$            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-c$$$     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
-c$$$         ENDIF
-c$$$            DO NS=2,NSMAX
-c$$$               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         IF(NR.GE.NRMAX-1) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
-c$$$            ENDDO
-c$$$            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-c$$$         ENDIF
-c$$$         IF(NR.GE.NRMAX-2) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
-c$$$            ENDDO
-c$$$            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-c$$$         ENDIF
-c$$$         RPIM=0.5D0*(RPI1+RPI2)
-c$$$         RPI0=0.5D0*(RPI2+RPI3)
-c$$$         RPIP=0.5D0*(RPI3+RPI4)
-c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*EPS0)
-c$$$         DELTA2= VC**2/WPE2
-c$$$         DELTAE= SQRT(DELTA2)
-c$$$         SL    = SQRT(SL**2+0.1D0**2)
-c$$$         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
          WEXBL = AGME(NR)
          ROTL  = 0.D0
+         EPSA  = RA/RR
 C
          CALL TR_WEILAND_BRIDGE
-     &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,
+     &     (ENL,EIL,EEL,TAUL,FLL,FTL,
      &      BQL,EQL,ENQL,ZL,BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA,
-     &      QL,SL,EPS,RNL,RLIST,RNEQL,ALAL,RKAP,TRL,RIWL,RISBL,BB,
+     &      QL,SL,EPSA,RNL,RLIST,RNEQL,ALAL,RKAP,RIWL,RISBL,BB,
      &      SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST,
      &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 C
-         IF(PA(3).EQ.3.D0) THEN
-            AKDW(NR,1)=SCHE
-            AKDW(NR,2)=SCHI
-            AKDW(NR,3)=SCHI
-            AKDW(NR,4)=SCHI
-            ADDW(NR,1)=SD
-            DO NS=2,NSM
-               ADDW(NR,NS)=0.D0
-            ENDDO
-            IF(MDLWLD.NE.0) THEN
-               ADDWD(NR,1,1)=DL(3)
-               ADDWP(NR,1,1)=DL(2)
-               ADDWD(NR,2,1)=0.D0
-               ADDWP(NR,2,1)=DL(1)
-               ADDWD(NR,3,1)=0.D0
-               ADDWP(NR,3,1)=DL(1)
-               ADDWD(NR,4,1)=0.D0
-               ADDWP(NR,4,1)=DL(1)
-               AKDWD(NR,1,1)=CHEL(3)
-               AKDWP(NR,1,1)=CHEL(2)
-               AKDWD(NR,2,1)=0.D0
-               AKDWP(NR,2,1)=CHEL(1)
-               AKDWD(NR,3,1)=0.D0
-               AKDWP(NR,3,1)=CHEL(1)
-               AKDWD(NR,4,1)=0.D0
-               AKDWP(NR,4,1)=CHEL(1)
-               DO NS1=2,NSM
-                  DO NS=1,NSM
-                     ADDWD(NR,NS,NS1)=0.D0
-                     ADDWP(NR,NS,NS1)=0.D0
-                  ENDDO
-                  AKDWD(NR,1,NS1)=CHIL(3)
-                  AKDWP(NR,1,NS1)=CHIL(2)
-                  AKDWD(NR,2,NS1)=0.D0
-                  AKDWP(NR,2,NS1)=CHIL(1)
-                  AKDWD(NR,3,NS1)=0.D0
-                  AKDWP(NR,3,NS1)=CHIL(1)
-                  AKDWD(NR,4,NS1)=0.D0
-                  AKDWP(NR,4,NS1)=CHIL(1)
-               ENDDO
-            ENDIF
-         ELSE
-            AKDW(NR,1)=SCHE
-            AKDW(NR,2)=SCHI
-            AKDW(NR,3)=SCHQ
-            AKDW(NR,4)=SCHQ
-            ADDW(NR,1)=SD
-            ADDW(NR,2)=0.D0
-            ADDW(NR,3)=SDQ
-            ADDW(NR,4)=SDQ
-            IF(MDLWLD.NE.0) THEN
-               ADDWD(NR,1,1)=DL(3)
-               ADDWP(NR,1,1)=DL(2)
-               ADDWD(NR,2,1)=0.D0
-               ADDWP(NR,2,1)=DL(1)
-               DO NS=3,NSM
-                  ADDWD(NR,NS,1)=DL(5)
-                  ADDWP(NR,NS,1)=DL(4)
-               ENDDO
-               AKDWD(NR,1,1)=CHEL(3)
-               AKDWP(NR,1,1)=CHEL(2)
-               AKDWD(NR,2,1)=0.D0
-               AKDWP(NR,2,1)=CHEL(1)
-               DO NS=3,NSM
-                  AKDWD(NR,NS,1)=CHEL(5)
-                  AKDWP(NR,NS,1)=CHEL(4)
-               ENDDO
-               DO NS=1,NSM
-                  ADDWD(NR,NS,2)=0.D0
-                  ADDWP(NR,NS,2)=0.D0
-               ENDDO
-               AKDWD(NR,1,2)=CHIL(3)
-               AKDWP(NR,1,2)=CHIL(2)
-               AKDWD(NR,2,2)=0.D0
-               AKDWP(NR,2,2)=CHIL(1)
-               DO NS=3,NSM
-                  AKDWD(NR,NS,2)=CHIL(5)
-                  AKDWP(NR,NS,2)=CHIL(4)
-               ENDDO
-               DO NS1=3,NSM
-                  ADDWD(NR,1,NS1)=DQL(3)
-                  ADDWP(NR,1,NS1)=DQL(2)
-                  ADDWD(NR,2,NS1)=0.D0
-                  ADDWP(NR,2,NS1)=DQL(1)
-                  DO NS=3,NSM
-                     ADDWD(NR,NS,NS1)=DQL(5)
-                     ADDWP(NR,NS,NS1)=DQL(4)
-                  ENDDO
-                  AKDWD(NR,1,NS1)=CHQL(3)
-                  AKDWP(NR,1,NS1)=CHQL(2)
-                  AKDWD(NR,2,NS1)=0.D0
-                  AKDWP(NR,2,NS1)=CHQL(1)
-                  DO NS=3,NSM
-                     AKDWD(NR,NS,NS1)=CHQL(5)
-                     AKDWP(NR,NS,NS1)=CHQL(4)
-                  ENDDO
-               ENDDO
-            ENDIF
-         ENDIF
+         CALL WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,
+     &                        SCHI,SCHE,SD,SCHQ,SDQ)
       ENDDO
 C
       NR=NRMAX
@@ -335,8 +175,6 @@ C
          FLL   = 1.D-1
          FTL   = 1.D0-(1.D0-EPS)**2.D0
      &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-         PDEVL = 8.D0
-         PSTL  = 1.D0
          BQL   = PNSS(3)/PNSS(1)
          EQL   =       SLNQL/SLTQL
          ENQL  =-2.D0*(SLNQL/SLBL )
@@ -370,86 +208,84 @@ C
          DBDR  = DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
          ALAL  =-QL*QL*DBDR*RR/RA
 C
-         TRL   = 1.D0
          RIWL  = 2.D0
          RISBL = 2.D0
          SEARCH= 2.D0
          PMA   = PA(2)
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
 C
-c$$$         RPI4=0.D0
-c$$$         RPI3=0.D0
-c$$$         RPI2=0.D0
-c$$$         RPI1=0.D0
-c$$$         IF(NR.LE.1) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
-c$$$            ENDDO
-c$$$            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
-c$$$            ENDDO
-c$$$            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-c$$$     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
-c$$$         ENDIF
-c$$$            DO NS=2,NSMAX
-c$$$               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         IF(NR.GE.NRMAX-1) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
-c$$$            ENDDO
-c$$$            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-c$$$         ENDIF
-c$$$         IF(NR.GE.NRMAX-2) THEN
-c$$$            DO NS=2,NSMAX
-c$$$               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
-c$$$            ENDDO
-c$$$            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-c$$$     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
-c$$$         ELSE
-c$$$            DO NS=2,NSMAX
-c$$$               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
-c$$$            ENDDO
-c$$$            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-c$$$     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-c$$$         ENDIF
-c$$$         RPIM=0.5D0*(RPI1+RPI2)
-c$$$         RPI0=0.5D0*(RPI2+RPI3)
-c$$$         RPIP=0.5D0*(RPI3+RPI4)
-c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
-c$$$         DBDRR = DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-c$$$         WPE2  = RNL*1.D20*AEE*AEE/(AME*EPS0)
-c$$$         DELTA2= VC**2/WPE2
-c$$$         DELTAE= SQRT(DELTA2)
-c$$$         SL    = SQRT(SL**2+0.1D0**2)
-c$$$         WEXBL = SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
          WEXB = AGME(NR)
+         EPSA = RA/RR
 C
          CALL TR_WEILAND_BRIDGE
-     &     (ENL,EIL,EEL,TAUL,FLL,FTL,PDEVL,PSTL,
+     &     (ENL,EIL,EEL,TAUL,FLL,FTL,
      &      BQL,EQL,ENQL,ZL,BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA,
-     &      QL,SL,EPS,RNL,RLIST,RNEQL,ALAL,RKAP,TRL,RIWL,RISBL,BB,
+     &      QL,SL,EPSA,RNL,RLIST,RNEQL,ALAL,RKAP,RIWL,RISBL,BB,
      &      SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST,
      &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 C
+         CALL WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,
+     &                        SCHI,SCHE,SD,SCHQ,SDQ)
+C
+      RETURN
+      END
+C
+C     ****************************************************************
+C
+      SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,
+     &                           SCHI,SCHE,SD,SCHQ,SDQ)
+C
+      INCLUDE 'trcomm.inc'
+      DIMENSION CHIL(5),CHEL(5),DL(5),CHQL(5),DQL(5)
+C
+      IF(PA(3).EQ.3.D0) THEN
+         AKDW(NR,1)=SCHE
+         AKDW(NR,2)=SCHI
+         AKDW(NR,3)=SCHI
+         AKDW(NR,4)=SCHI
+         ADDW(NR,1)=SD
+         DO NS=2,NSM
+            ADDW(NR,NS)=0.D0
+         ENDDO
+         IF(MDLWLD.NE.0) THEN
+            ADDWD(NR,1,1)=DL(3)
+            ADDWP(NR,1,1)=DL(2)
+            ADDWD(NR,2,1)=0.D0
+            ADDWP(NR,2,1)=DL(1)
+            ADDWD(NR,3,1)=0.D0
+            ADDWP(NR,3,1)=DL(1)
+            ADDWD(NR,4,1)=0.D0
+            ADDWP(NR,4,1)=DL(1)
+            AKDWD(NR,1,1)=CHEL(3)
+            AKDWP(NR,1,1)=CHEL(2)
+            AKDWD(NR,2,1)=0.D0
+            AKDWP(NR,2,1)=CHEL(1)
+            AKDWD(NR,3,1)=0.D0
+            AKDWP(NR,3,1)=CHEL(1)
+            AKDWD(NR,4,1)=0.D0
+            AKDWP(NR,4,1)=CHEL(1)
+            DO NS1=2,NSM
+               DO NS=1,NSM
+                  ADDWD(NR,NS,NS1)=0.D0
+                  ADDWP(NR,NS,NS1)=0.D0
+               ENDDO
+               AKDWD(NR,1,NS1)=CHIL(3)
+               AKDWP(NR,1,NS1)=CHIL(2)
+               AKDWD(NR,2,NS1)=0.D0
+               AKDWP(NR,2,NS1)=CHIL(1)
+               AKDWD(NR,3,NS1)=0.D0
+               AKDWP(NR,3,NS1)=CHIL(1)
+               AKDWD(NR,4,NS1)=0.D0
+               AKDWP(NR,4,NS1)=CHIL(1)
+            ENDDO
+         ENDIF
+      ELSE
          AKDW(NR,1)=SCHE
          AKDW(NR,2)=SCHI
          AKDW(NR,3)=SCHQ
          AKDW(NR,4)=SCHQ
          ADDW(NR,1)=SD
-         ADDW(NR,2)=SD
+         ADDW(NR,2)=0.D0
          ADDW(NR,3)=SDQ
          ADDW(NR,4)=SDQ
          IF(MDLWLD.NE.0) THEN
@@ -457,39 +293,50 @@ C
             ADDWP(NR,1,1)=DL(2)
             ADDWD(NR,2,1)=0.D0
             ADDWP(NR,2,1)=DL(1)
-            ADDWD(NR,3,1)=DL(5)
-            ADDWP(NR,3,1)=DL(4)
+            DO NS=3,NSM
+               ADDWD(NR,NS,1)=DL(5)
+               ADDWP(NR,NS,1)=DL(4)
+            ENDDO
             AKDWD(NR,1,1)=CHEL(3)
             AKDWP(NR,1,1)=CHEL(2)
             AKDWD(NR,2,1)=0.D0
             AKDWP(NR,2,1)=CHEL(1)
-            AKDWD(NR,3,1)=CHEL(5)
-            AKDWP(NR,3,1)=CHEL(4)
-            ADDWD(NR,1,2)=0.D0
-            ADDWP(NR,1,2)=0.D0
-            ADDWD(NR,2,2)=0.D0
-            ADDWP(NR,2,2)=0.D0
-            ADDWD(NR,3,2)=0.D0
-            ADDWP(NR,3,2)=0.D0
+            DO NS=3,NSM
+               AKDWD(NR,NS,1)=CHEL(5)
+               AKDWP(NR,NS,1)=CHEL(4)
+            ENDDO
+            DO NS=1,NSM
+               ADDWD(NR,NS,2)=0.D0
+               ADDWP(NR,NS,2)=0.D0
+            ENDDO
             AKDWD(NR,1,2)=CHIL(3)
             AKDWP(NR,1,2)=CHIL(2)
             AKDWD(NR,2,2)=0.D0
             AKDWP(NR,2,2)=CHIL(1)
-            AKDWD(NR,3,2)=CHIL(5)
-            AKDWP(NR,3,2)=CHIL(4)
-            ADDWD(NR,1,3)=DQL(3)
-            ADDWP(NR,1,3)=DQL(2)
-            ADDWD(NR,2,3)=0.D0
-            ADDWP(NR,2,3)=DQL(1)
-            ADDWD(NR,3,3)=DQL(5)
-            ADDWP(NR,3,3)=DQL(4)
-            AKDWD(NR,1,3)=CHQL(3)
-            AKDWP(NR,1,3)=CHQL(2)
-            AKDWD(NR,2,3)=0.D0
-            AKDWP(NR,2,3)=CHQL(1)
-            AKDWD(NR,3,3)=CHQL(5)
-            AKDWP(NR,3,3)=CHQL(4)
+            DO NS=3,NSM
+               AKDWD(NR,NS,2)=CHIL(5)
+               AKDWP(NR,NS,2)=CHIL(4)
+            ENDDO
+            DO NS1=3,NSM
+               ADDWD(NR,1,NS1)=DQL(3)
+               ADDWP(NR,1,NS1)=DQL(2)
+               ADDWD(NR,2,NS1)=0.D0
+               ADDWP(NR,2,NS1)=DQL(1)
+               DO NS=3,NSM
+                  ADDWD(NR,NS,NS1)=DQL(5)
+                  ADDWP(NR,NS,NS1)=DQL(4)
+               ENDDO
+               AKDWD(NR,1,NS1)=CHQL(3)
+               AKDWP(NR,1,NS1)=CHQL(2)
+               AKDWD(NR,2,NS1)=0.D0
+               AKDWP(NR,2,NS1)=CHQL(1)
+               DO NS=3,NSM
+                  AKDWD(NR,NS,NS1)=CHQL(5)
+                  AKDWP(NR,NS,NS1)=CHQL(4)
+               ENDDO
+            ENDDO
          ENDIF
+      ENDIF
 C
       RETURN
       END
@@ -497,24 +344,23 @@ C
 C     ****************************************************************
 C
       SUBROUTINE TR_WEILAND_BRIDGE
-     &     (EN,EI,EE,TAU,FL,FT,PDEV,PST,
+     &     (EN,EI,EE,TAU,FL,FT,
      &      BQ,EQ,ENQ,Z,BETAE,AZ,COL,EL,TE,TAUZ,PR,
-     &      Q,S,E,N,LIST,RNEQ,ALA,KAPPA,TR,RIW,RISB,BTOR,
+     &      Q,S,E,N,LIST,RNEQ,ALA,KAPPA,RIW,RISB,BTOR,
      &      SEARCH,MA,GKL,WEXBL,ROTL,IKL,ISTL,
      &      CHI,CHE,D,CHQ,DQ,SCHIL,SCHEL,SDL,SCHQL,SDQL)
 C
       IMPLICIT NONE
-      INTEGER FNBI,I,IW,IX
-      REAL*8 CT(0:4),U(5,100)
+      INTEGER I,IW,IX
+      REAL*8 U(5,100)
       COMPLEX*16 ZZ(10),RP(10),W
-      PARAMETER (FNBI=20)
       INTEGER IR,IK,IST,ITS,ITL,ITERA,ITC,ISB
       REAL*8 RAT,RT,ENI,EEI,TE,BTOR
-      REAL*8 A,B,C,DS,ZX,TR,RIW,RISB
+      REAL*8 A,B,C,DS,ZX,RIW,RISB
       REAL*8 EI,TAU,FL,THRD,TVR,STR,XIH
-      REAL*8 EN,ENH,ENN,PST,RFL,H,H1
+      REAL*8 EN,ENH,ENN,RFL,H,H1
       REAL*8 LBT,TAUI,FTR,EIH,EEH
-      REAL*8 FT,EE,PDEV
+      REAL*8 FT,EE
       REAL*8 BQ,EQ,ENQ,Z,GQ,BF,ZE,TAUZ,ZEFF,NQ,NI,G
       REAL*8 CETAIN(32),BETAE,MA
       REAL*8 E,Q,S,CS,KAPPA,KPPA,RAV
@@ -538,7 +384,6 @@ C      REAL*8 SEARCHMODE,SEARCH
       INTEGER ICP,IKL,ISTL
       REAL*8 GKL,WEXBL,ROTL,SCHIL,SCHEL,SDL,SCHQL,SDQL
       COMPLEX*16 HQ,WZ,WZP
-      COMMON/PARAM/ CT
       COMMON/IRET/ IRET
       COMMON/PAR/ THRD,FTR,STR,RFL,D1,XIH,IX,IW
       COMMON/EFF DIFF/ SCHI,SCHE,SD,SCHQ,SDQ
@@ -547,7 +392,7 @@ C      REAL*8 SEARCHMODE,SEARCH
       COMMON/IMP/ BF,GQ,SI,ZE,TAUZC,ENQC,EQC,KIQ,KXQ,ZFS
       COMMON/ETAWN6/ CETAIN,ETE,ETI,ETQ,TAUC,AZL,
      &FTC,FLC,LPRINTIN,NDIM
-      COMMON/W/ WR,WI
+C      COMMON/W/ WR,WI ! not used
       COMMON/BETAE/ BETAEC,QC,SC,CS,EM
       COMMON/TEST/ ALP,ALF,KPC,KPS
       COMMON/HQ/ H1,HQ,GAV,WZ,WZP,WZIMAX
@@ -564,7 +409,7 @@ C      REAL*8 SEARCHMODE,SEARCH
       COMMON/LT/ LTH,LTE,LN,LTQ,LNQ
       COMMON/ISB/ ISB
       COMMON/SEARCHMODE/ SEARCHMODE
-      COMMON/WDE/ WDE
+      COMMON/WDE/ WDE ! added
 C
 C     ICP : controlling printout in TR_WEILAND_BRIDGE (0: off)
       ICP=0
@@ -572,120 +417,121 @@ C     ICP : controlling printout in TR_WEILAND_BRIDGE (0: off)
          WRITE(6,*) '//////////////////////////////////////////////////'
       ENDIF
 C
-      GK   = GKL
-      WEXB = WEXBL
-      ROT  = ROTL
-      IK   = IKL
-      IST  = ISTL
+      GK   = GKL     ! GRHO1/(a*GRHO2)
+      WEXB = WEXBL   ! EXB shearing rate according to Hahm and Burrell
+      ROT  = ROTL    ! factor that multiplies the EXB shearing rate
+      IK   = IKL     ! the space profile index
+      IST  = ISTL    ! 1:analytical form used, other:previous value used
 C
       ZFS = 0.D0
 C
-      THRD=1.D0/3.D0
-      TVR=2.D0*THRD
-      FTR=5.D0/3.D0
-      STR=7.D0/3.D0
-      BTA=1.5D0
-      EPS=E
-      SEARCHMODE=INT(SEARCH)
-      AZL=AZ
-      EM=EL
-      ZE=Z
-      LBT=EI/EN
-      ENI=EN
-      EEI=EE
-      BF=BQ
-      G=1.D0-Z*BQ
-      NI=G*N
-      ENN=1.D0-Z*BQ*EN/ENQ
+      THRD=1.D0/3.D0 ! fixed coefficient (THiRD)
+      TVR=2.D0*THRD  ! fixed coefficient (Two thiRd)
+      FTR=5.D0/3.D0  ! fixed coefficient (Five ThiRd)
+      STR=7.D0/3.D0  ! fixed coefficient (Seven ThiRd)
+      BTA=1.5D0      ! fixed, parameter used in the collision model
+      EPS=E          ! inverse aspect ratio
+      SEARCHMODE=INT(SEARCH) ! the way to search eigenvalues
+      AZL=AZ         ! atomic number of impurity
+      EM=EL          ! factor that multiplies electromagnetic effects
+      ZE=Z           ! charge state of impurity
+C      LBT=EI/EN      ! not used
+      ENI=EN         ! 2*Lne/R(Lb)
+      EEI=EE         ! Lne/Lte
+      BF=BQ          ! nq/ne
+      G=1.D0-Z*BQ    ! transforming factor from ne to ni
+      NI=G*N         ! ni i.e. bulk ion density
+      ENN=1.D0-Z*BQ*EN/ENQ ! (Lne/Lni)*(ni/ne)
       IF(ABS(ENN).GE.0.001D0) GO TO 89
       IF(ENN.LT.0.D0) ENN=-0.001D0
       IF(ENN.GT.0.D0) ENN= 0.001D0
    89 CONTINUE
-      ENH=G*EN/ENN
-      EIC=EI
-      EEC=EE
-      TAUC=TAU
-      FLC=DSQRT(FL)
-      FTC=FT
-      EQC=EQ
-      ENQC=EN
-      ENHC=ENH
-      BETAEC=BETAE
-      TAUZC=TAUZ
-      QC=Q
-      SC=S
-      NEQ=INT(RNEQ)
-      ISB=INT(RISB)
-      ALAF=ALA
-      NDISP=NEQ
-      NDIM=5
-      KPPA=KAPPA
-      EA=E
-      IW=INT(RIW)
-      R=PR/E
-      D1=6.462D0*DSQRT(MA)/(R*BTOR**2)
+      ENH=G*EN/ENN   ! 2*Lni/R
+      EIC=EI         ! Lni/Lti
+      EEC=EE         ! Lne/Lte
+      TAUC=TAU       ! Te/Ti
+      FLC=DSQRT(FL)  ! FLR parameter (sqrt((Kperp*rhos)**2=0.1))
+      FTC=FT         ! trapped particle fraction
+      EQC=EQ         ! Lnq/Ltq
+      ENQC=EN        ! 2*Lne/R
+      ENHC=ENH       ! 2*Lni/R
+      BETAEC=BETAE   ! electron beta
+      TAUZC=TAUZ     ! Te/Tq
+      QC=Q           ! safety factor
+      SC=S           ! magnetic shear
+      NEQ=INT(RNEQ)  ! number of equations (NDISP)
+      ISB=INT(RISB)  ! ballooning parameter
+      ALAF=ALA       ! MHD alpha
+      NDISP=NEQ      ! number of equations (NDISP)
+      NDIM=5         ! dimension of transport matrix
+      KPPA=KAPPA     ! elongation
+      EA=E           ! inverse aspect ratio
+      IW=INT(RIW)    ! controls printout in DIFFTD
+      R=PR/E         ! major radius
+      D1=6.462D0*DSQRT(MA)/(R*BTOR**2) ! machine dependent parameter
 C
-      IX=IK
+      IX=IK          ! the space profile index
 C
       DO I=1,31
-         CETAIN(I)=0.D0
+         CETAIN(I)=0.D0 ! control vector
       ENDDO
-      CETAIN(32)=1.D-15
+C      CETAIN(32)=1.D-15
+      CETAIN(32)=0.001  ! accuracy parameter in the NAG routine
       LPRINTIN=INT(LIST)
 C
-      FTRT=FTR/TAU
-      TAUI=1.D0/TAU
-      RFL=SQRT(FL)
-      RAT=EI/EN
-      GQ=1.D0-Z*BQ
-      NQ=BQ*N
-      NI=GQ*N
-      ZEFF=(NI+Z*Z*NQ)/N
+C      FTRT=FTR/TAU   ! not used, FTR*Ti/Te
+      TAUI=1.D0/TAU  ! Ti/Te
+      RFL=SQRT(FL)   ! FLR parameter (same with FLC)
+C      RAT=EI/EN      ! not used, the ratio of K_perp and K_theta (Lni/Lti)*(R/(2*Lne))
+      GQ=1.D0-Z*BQ   ! transforming factor from ne to ni (same with G)
+      NQ=BQ*N        ! impurity density
+      NI=GQ*N        ! bulk ion density (double definition)
+      ZEFF=(NI+Z*Z*NQ)/N ! effective charge state
 C
-      EIC=EI
-      EEC=EE
-      ENC=EN
-      FTC=FT
-      FLC=DSQRT(FL)
-      BETAEC=BETAE
-      KPPA=KAPPA
-      LN=0.5D0*R*EN/PR
-      LTE=LN/EE
-      ENN=1.D0-Z*BQ*EN/ENQ
+      EIC=EI         ! Lni/Lti
+      EEC=EE         ! Lne/Lte
+      ENC=EN         ! 2*Lne/R
+      FTC=FT         ! trapped particle fraction
+      FLC=DSQRT(FL)  ! FLR parameter (double definition)
+      BETAEC=BETAE   ! electron beta (double definition)
+      KPPA=KAPPA     ! elongation (double definition)
+      LN=0.5D0*R*EN/PR ! Lne/a
+      LTE=LN/EE      ! Lte/a
+      ENN=1.D0-Z*BQ*EN/ENQ  ! (Lne/Lni)*(ni/ne)
       IF(ABS(ENN).GE.0.001D0) GO TO 90
       IF(ENN.LT.0.) ENN=-0.001D0
       IF(ENN.GT.0.D0) ENN=0.001D0
    90 CONTINUE
-      ENH=GQ*EN/ENN
-      ENHC=ENH
-      LNH=0.5D0*R*ENH/PR
-      LNQ=0.5D0*R*ENQ/PR
-      LTH=LNH/EI
-      LTQ=LNQ/EQ
+      ENH=GQ*EN/ENN  ! 2*Lni/R (double definition)
+      ENHC=ENH       ! 2*Lni/R (double definition)
+      LNH=0.5D0*R*ENH/PR ! Lni/a
+      LNQ=0.5D0*R*ENQ/PR ! Lnq/a
+      LTH=LNH/EI     ! Lti/a
+      LTQ=LNQ/EQ     ! Ltq/a
 C
 C
-      TAUI=1.D0/TAU
-      RT=EN/ENI
-C      EI=RAT*EN
-C      EE=RT*RT*EEI
-      EIH=EI-7.D0/3.D0+FTR*EN
-      EEH=EE-7.D0/3.D0+FTR*EN
-      GQ=1.D0-Z*BQ
-      GNE=2.D0/EN
-      GNH=2.D0/ENH
-      GNQ=2.D0/ENQ
-      GTE=EE*GNE
-      GTH=EI*GNH
-      GTQ=EQ*GNQ
-      ETI=ENH/EI
-      ETE=EN/EE
-      ETQ=ENQ/EQ
+      TAUI=1.D0/TAU  ! Ti/Te (double definition)
+C      RT=EN/ENI      ! 1.D0 because EN=ENI (maybe not necessary)
+C      EI=RAT*EN      ! RAT is defined as EI/EN (maybe not necessary)
+C      EE=RT*RT*EEI   ! Lne/Lte (maybe not necessary)
+C     EIH=EI-7.D0/3.D0+FTR*EN ! not used
+C     EEH=EE-7.D0/3.D0+FTR*EN ! not used
+      GQ=1.D0-Z*BQ   ! transforming factor from ne to ni (double definition)
+C      GNE=2.D0/EN    ! not used, R/Lne
+C      GNH=2.D0/ENH   ! not used, R/Lni
+C      GNQ=2.D0/ENQ   ! not used, R/Lnq
+C      GTE=EE*GNE     ! not used, R/Lte
+C      GTH=EI*GNH     ! not used, R/Lti
+C      GTQ=EQ*GNQ     ! not used, R/Ltq
+      ETI=ENH/EI     ! 2*Lti/R
+      ETE=EN/EE      ! 2*Lte/R
+      ETQ=ENQ/EQ     ! 2*Ltq/R
 C
-      KIQ=ENQ/ENH
-      KXQ=EN/ENQ
+      KIQ=ENQ/ENH    ! Lnq/Lni
+      KXQ=EN/ENQ     ! Lne/Lnq
 C
-      NI=GQ*N
-      CS=3.09501D5*DSQRT(TE/MA)
+      NI=GQ*N        ! ni (double definition)
+      CS=3.09501D5*DSQRT(TE/MA) ! sound speed
       IF(ICP.NE.0) THEN
          WRITE(*,00126) EN,EI,EE,FL,TAU
 00126    FORMAT(2X,'EN=',F8.3,' EI=',F8.3,' EE=',F8.3,' FL=',F8.3,
@@ -705,11 +551,11 @@ C     &        ,' RT=',G10.4)
 00134    FORMAT(2X,' Ballooning alpha =',G11.3)
       ENDIF
 C
-      WST=DSQRT(FL)*CS/(PR*ABS(LN))
-      WDE=ABS(EN)*WST
-      LAMB=15.95D0-DLOG(DSQRT(N)/TE)
-      VEI=9.19D2*NI*LAMB/TE**1.5D0
-      VEF=VEI/(EPS*WDE)
+      WST=DSQRT(FL)*CS/(PR*ABS(LN))  ! diamagnetic frequency (omega_star)
+      WDE=ABS(EN)*WST           ! curvature drift frequency (omega_drift_electron)
+      LAMB=15.95D0-DLOG(DSQRT(N)/TE) ! coulomb logarithm (lambda)
+      VEI=9.19D2*NI*LAMB/TE**1.5D0   ! collisionality (nu_electron_ion)
+      VEF=VEI/(EPS*WDE)         ! effective electron ion collision frequency for trapped electrons, normalized by omega_de
       VEF=COL*VEF
 C
       IF(ICP.NE.0) THEN
@@ -718,7 +564,7 @@ C
      &        ' ZEFF=',G11.3,' COL=',G11.3)
       ENDIF
 C
-      H=0.5D0*ABS(S)/q
+      H=0.5D0*ABS(S)/q ! not used
       IF(ICP.NE.0) THEN
          WRITE(*,00133) H
 00133    FORMAT(2X,'H=',G12.4)
@@ -732,18 +578,18 @@ C
       C=A/(2.D0*(1.D0+FL))
       DS=C*C-B/(1.D0+FL)
       IF(DS.LT.0.D0) GOTO 140
-      WR=C+SQRT(DS)
-      WI=0.D0
+      WR=C+SQRT(DS)  ! not used
+      WI=0.D0        ! not used
       GO TO 160
-  140 WR=C
-      WI=SQRT(-DS)
+  140 WR=C           ! not used
+      WI=SQRT(-DS)   ! not used
       IF(ICP.NE.0) WRITE(*,170) WR,WI
   160 CONTINUE
   170 FORMAT(2X,'WR=',F7.3,' WI=',F7.3)
 C
-      ITC=1
-      ITL=80
-      TOL=0.01D0
+      ITC=1      ! 1:iteration, other:previous eigenvalues used
+      ITL=80     ! Maximum number of iterations
+      TOL=0.01D0 ! relative error for convergence
 C      IST=1
 c
       CALL disp9t(NDISP,ZZ)

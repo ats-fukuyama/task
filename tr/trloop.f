@@ -304,7 +304,7 @@ C
          IDGLOB=1
          CALL TRATOG
       ENDIF
-      IF(MODELG.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
+      IF(MODELQ.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
 C         CALL TRCONV(L,IERR)
 C         WRITE(6,*) "L=",L
          CALL TRSETG
@@ -360,7 +360,7 @@ C
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
       ENDIF
-C      IF(MODELG.EQ.3) THEN
+C      IF(MODELQ.EQ.3) THEN
 C         BPS=BPSEQ*RIP/RIPEQ
 C      ENDIF
 C
