@@ -25,7 +25,7 @@ C
          RFWT(NR,NTG1)= RFWS(NR)
          RECT(NR,NTG1)= RECS(NR)
 C
-         RTT(NR,NTG1) = RWS(NR)/(1.5D0*RNS(NR)*AEE*1.D3)
+         RTT(NR,NTG1) = RWS(NR)*1.D6/(1.5D0*RNS(NR)*1.D20*AEE*1.D3)
          RET(NR,NTG1) = E1(NR)
          RS=RSPSIN(RM(NR)*RM(NR))
          RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
@@ -85,7 +85,7 @@ C
       PLHT(NTG2)=PLHT(NTG2)*2*PI*RR
       PFWT(NTG2)=PFWT(NTG2)*2*PI*RR
       PECT(NTG2)=PECT(NTG2)*2*PI*RR
-      PTT(NTG2) =PWT(NTG2)/(1.5D0*PNT(NTG2)*AEE*1.D3)
+      PTT(NTG2) =PWT(NTG2)*1.D6/(1.5D0*PNT(NTG2)*1.D20*AEE*1.D3)
       RS=RSPSIN(RM(1)*RM(1))
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
@@ -193,15 +193,15 @@ C
      &               +DWECPT(NTH,NP,NR)*DFT)
   400    CONTINUE
          FACT=RNE0*1.D20
-         RNS(NR) = RSUM1*FACT
-         RJS(NR) = RSUM2*FACT*AEE*PTH0/AME
+         RNS(NR) = RSUM1*FACT              *1.D-20
+         RJS(NR) = RSUM2*FACT*AEE*PTH0/AME *1.D-6
          FACT=RNE0*1.D20*PTH0**2/AME
-         RWS(NR) = RSUM3*FACT
-         RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH
-         RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH
-         RPES(NR)=-RSUM6*FACT*2.D0*PI*DELP*DELTH
-         RLHS(NR)=-RSUM7*FACT*2.D0*PI*DELP*DELTH
-         RFWS(NR)=-RSUM8*FACT*2.D0*PI*DELP*DELTH
+         RWS(NR) = RSUM3*FACT              *1.D-6
+         RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         RPES(NR)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         RLHS(NR)=-RSUM7*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         RFWS(NR)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RECS(NR)=-RSUM9*FACT*2.D0*PI*DELP*DELTH
 C
 C         IF(MODELA.EQ.1) THEN
@@ -235,9 +235,9 @@ C
      &                   PIT(NTG2)/PPWT(NTG2)
 C
             DO 1000 NR=1,NRMAX
-               RPN=RPWT(NR,NTG1)*AME
+               RPN=RPWT(NR,NTG1)*AME*1.D6
      &               /(RNE0*RNE(NR)*1.D20*PTH(NR)*PTH(NR)*RNU(NR))
-               RJN=RJT(NR,NTG1)*AME
+               RJN=RJT(NR,NTG1)*AME*1.D6
      &               /(RNE0*RNE(NR)*1.D20*AEE*PTH(NR))
                IF(ABS(RPN).LT.1.D-70) THEN
                   RJP=0.D0
@@ -255,7 +255,7 @@ C
          IF (ABS(PPET(NTG2)).GT.0.D0) THEN
             DO 2000 NR=1,NRMAX
                REN=RET(NR,NTG1)*AEE/(RNU(NR)*PTH(NR))
-               RJN=RJT(NR,NTG1)*AME
+               RJN=RJT(NR,NTG1)*AME*1.D6
      &               /(RNE0*RNE(NR)*1.D20*AEE*PTH(NR))
                IF(ABS(REN).LT.1.D-70) THEN
                   RJE=0.D0
@@ -269,15 +269,17 @@ C
       RETURN
 C
   101 FORMAT(1H ,' TIME=',F12.3,' MS')
-  102 FORMAT(1H ,' N   =',1PE12.5,' I   =',1PE12.5,
-     &           ' W   =',1PE12.5,' T   =',1PE12.5)
-  103 FORMAT(1H ,' PC  =',1PE12.5,' PW  =',1PE12.5,' PE  =',1PE12.5)
-  104 FORMAT(1H ,' PLH =',1PE12.5,' PFW =',1PE12.5,' PEC =',1PE12.5,
-     &           ' I/P =',1PE12.5)
-  105 FORMAT(1H ,' R   =',F6.3,6X,' PC  =',1PE12.5,
-     &           ' PW  =',1PE12.5,' J   =',1PE12.5)
-  106 FORMAT(1H ,' R   =',F6.3,6X,' PN  =',1PE12.5,
-     &           ' JN  =',1PE12.5,' J/P =',1PE12.5)
-  107 FORMAT(1H ,' R   =',F6.3,6X,' EN  =',1PE12.5,
-     &           ' JN  =',1PE12.5,' J/E =',1PE12.5)
+  102 FORMAT(1H ,' N [20]=',1PE11.4,' I [MA]=',1PE11.4,
+     &           ' W [MJ]=',1PE11.4,' T[keV]=',1PE11.4)
+  103 FORMAT(1H ,' PC[MW]=',1PE11.4,' PW[MW]=',1PE11.4,
+     &           ' PE[MW]=',1PE11.4)
+  104 FORMAT(1H ,' PLH   =',1PE11.4,' PFW   =',1PE11.4,
+     &           ' PEC   =',1PE11.4,' I/P   =',1PE11.4)
+  105 FORMAT(1H ,' RHO   =',F6.3,5X,' PC    =',1PE11.4,
+     &           ' PW    =',1PE11.4,' J     =',1PE11.4)
+  106 FORMAT(1H ,' RHO   =',F6.3,5X,' PN    =',1PE11.4,
+     &           ' JN    =',1PE11.4,' J/P   =',1PE11.4)
+  107 FORMAT(1H ,' RHO   =',F6.3,5X,' EN    =',1PE11.4,
+     &           ' JN    =',1PE11.4,' J/E   =',1PE11.4)
       END
+

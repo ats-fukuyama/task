@@ -1,3 +1,4 @@
+2002/09/23   fp: output unit changed. [10^20m^-3],[MJ],[MA]
 2002/09/20   pl: RHOGMN,RHOGMX,RHOEDG added
              wr: IGTYPE,IQTYPE added
              fp: fpfout.f added
