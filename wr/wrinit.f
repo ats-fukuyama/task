@@ -86,8 +86,6 @@ C
       NRZMAX = 1000
       INTYPE = 0
       IGTYPE = 0
-      RHOGMN = 0.D0
-      RHOGMX = 1.D0
       IQTYPE = 0
 C
       RCURVA = 0.D0
@@ -190,7 +188,6 @@ C
      &             'NRZMAX',NRZMAX,'NRADMX',NRADMX
       WRITE(6,602) 'INTYPE',INTYPE,'IGTYPE',IGTYPE,
      &             'IQTYPE',IQTYPE
-      WRITE(6,601) 'RHOGMN',RHOGMN,'RHOGMX',RHOGMX
       RETURN
 C
   601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:

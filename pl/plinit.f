@@ -162,6 +162,14 @@ C
       RHOITB = 0.D0
       RHOEDG = 1.D0
 C
+C     ======( GRAPHIC PARAMETERS )======
+C
+C        RHOGMN: minimum rho in radial profile
+C        RHOGMX: maximum rho in radial profile
+C
+      RHOGMN = 0.D0
+      RHOGMX = 1.D0
+C
 C     ======( MODEL PARAMETERS )======
 C
 C        KNAMEQ: Filename of equilibrium data
@@ -191,7 +199,7 @@ C
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
-     &              MODELG,MODELN,MODELQ,
+     &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
      &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG
 C
     1 WRITE(6,*) '## INPUT : &PL'
@@ -290,7 +298,8 @@ C
      &             'PROFN1',PROFN1,'PROFN2',PROFN2
       WRITE(6,601) 'PROFT1',PROFT1,'PROFT2',PROFT2,
      &             'PROFU1',PROFU1,'PROFU2',PROFU2
-      WRITE(6,601) 'RHOEDG',RHOEDG
+      WRITE(6,601) 'RHOEDG',RHOEDG,'RHOGMN',RHOGMN,
+     &             'RHOGMX',RHOGMX
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN,
      &             'MODELQ',MODELQ
 C

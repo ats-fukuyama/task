@@ -13,7 +13,7 @@ C
       DIMENSION TEMP(NTHM,NPM,NRM)
       CHARACTER KID*4,KID1*1,KID2*3
 C
-    1 WRITE(6,*)'INPUT GRAPH TYPE : F/FX/FS1/FS2 1/2, X,'
+    1 WRITE(6,*)'INPUT GRAPH TYPE : F/FX/FS1/FS2 1/2, X:exit,'
       WRITE(6,*)'             : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
       WRITE(6,*)'             : R/T N/I/W/PC/PW/PE/T/Q/E'
       READ(5,'(A4)',ERR=1,END=9000) KID
@@ -25,9 +25,11 @@ C
       CALL GUCPTL(KID2(3:3))
 C
       IF (KID1.EQ.'F') THEN
-         IF(KID2.EQ.'1  ') CALL FPGRAP('F   ',F)
-         IF(KID2.EQ.'2  ') CALL FPGRAC('F   ',F,4)
-         IF(KID2.EQ.'X2  ') THEN
+         IF(KID2.EQ.'1  ') THEN
+            CALL FPGRAP('F1  ',F)
+         ELSE IF(KID2.EQ.'2  ') THEN
+            CALL FPGRAC('F2  ',F,4)
+         ELSE IF(KID2.EQ.'X2  ') THEN
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
@@ -35,9 +37,8 @@ C
             ENDDO
             ENDDO
             ENDDO
-            CALL FPGRAC('FX  ',TEMP,4)
-         ENDIF
-         IF(KID2.EQ.'Y2  ') THEN
+            CALL FPGRAC('FX2 ',TEMP,4)
+         ELSE IF(KID2.EQ.'Y2  ') THEN
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
@@ -45,67 +46,132 @@ C
             ENDDO
             ENDDO
             ENDDO
-            CALL FPGRAC('FX  ',TEMP,0)
+            CALL FPGRAC('FY2 ',TEMP,0)
+         ELSE IF(KID2.EQ.'S11') THEN
+            CALL FPGRAP('FS11',FS1)
+         ELSE IF(KID2.EQ.'S12') THEN
+            CALL FPGRAC('FS12',FS1,4)
+         ELSE IF(KID2.EQ.'S21') THEN
+            CALL FPGRAP('FS21',FS2)
+         ELSE IF(KID2.EQ.'S22') THEN
+            CALL FPGRAC('FS22',FS2,4)
+         ELSE IF(KID2.EQ.'P  ') THEN
+            CALL FPGRAC('FP  ',FPP,1)
+         ELSE IF(KID2.EQ.'T  ') THEN
+            CALL FPGRAC('FT  ',FTH,2)
+         ELSE IF(KID2.EQ.'R  ') THEN
+            CALL FPGRAC('FR  ',FRR,0)
+         ELSE IF(KID2.EQ.'PP ') THEN
+            CALL FPGRAC('FPP ',FPP,1)
+         ELSE IF(KID2.EQ.'TH ') THEN
+            CALL FPGRAC('FTH ',FTH,2)
+         ELSE IF(KID2.EQ.'RR ') THEN
+            CALL FPGRAC('FRR ',FRR,0)
+         ELSE IF(KID2.EQ.'CP ') THEN
+            CALL FPGRAC('FCP ',FCPP,1)
+         ELSE IF(KID2.EQ.'CT ') THEN
+            CALL FPGRAC('FCT ',FCTH,2)
+         ELSE IF(KID2.EQ.'EP ') THEN
+            CALL FPGRAC('FEP ',FEPP,1)
+         ELSE IF(KID2.EQ.'ET ') THEN
+            CALL FPGRAC('FET ',FETH,2)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID2'
          ENDIF
-         IF(KID2.EQ.'S11') CALL FPGRAP('F   ',FS1)
-         IF(KID2.EQ.'S12') CALL FPGRAC('F   ',FS1,4)
-         IF(KID2.EQ.'S21') CALL FPGRAP('F   ',FS2)
-         IF(KID2.EQ.'S22') CALL FPGRAC('F   ',FS2,4)
-         IF(KID2.EQ.'P  ') CALL FPGRAC('FP  ',FPP,1)
-         IF(KID2.EQ.'T  ') CALL FPGRAC('FTH ',FTH,2)
-         IF(KID2.EQ.'R  ') CALL FPGRAC('FR  ',FRR,0)
-         IF(KID2.EQ.'PP ') CALL FPGRAC('FP  ',FPP,1)
-         IF(KID2.EQ.'TH ') CALL FPGRAC('FTH ',FTH,2)
-         IF(KID2.EQ.'RR ') CALL FPGRAC('FR  ',FRR,0)
-         IF(KID2.EQ.'CP ') CALL FPGRAC('FCP ',FCPP,1)
-         IF(KID2.EQ.'CT ') CALL FPGRAC('FCTH',FCTH,2)
-         IF(KID2.EQ.'EP ') CALL FPGRAC('FEP ',FEPP,1)
-         IF(KID2.EQ.'ET ') CALL FPGRAC('FETH',FETH,2)
       ELSE IF (KID1.EQ.'R') THEN
-         IF(KID2.EQ.'N  ') CALL FPGRAR('N   ',RNT)
-         IF(KID2.EQ.'I  ') CALL FPGRAR('I   ',RJT)
-         IF(KID2.EQ.'W  ') CALL FPGRAR('W   ',RWT)
-         IF(KID2.EQ.'PC ') CALL FPGRAR('PC  ',RPCT)
-         IF(KID2.EQ.'PW ') CALL FPGRAR('PW  ',RPWT)
-         IF(KID2.EQ.'PE ') CALL FPGRAR('PE  ',RPET)
-         IF(KID2.EQ.'LH ') CALL FPGRAR('LH  ',RLHT)
-         IF(KID2.EQ.'FW ') CALL FPGRAR('FW  ',RFWT)
-         IF(KID2.EQ.'EC ') CALL FPGRAR('EC  ',RECT)
-         IF(KID2.EQ.'T  ') CALL FPGRAR('T   ',RTT)
-         IF(KID2.EQ.'Q  ') CALL FPGRAR('Q   ',RQT)
-         IF(KID2.EQ.'E  ') CALL FPGRAR('E   ',RET)
+         IF(KID2.EQ.'N  ') THEN
+            CALL FPGRAR('RN  ',RNT)
+         ELSE IF(KID2.EQ.'I  ') THEN
+            CALL FPGRAR('RI  ',RJT)
+         ELSE IF(KID2.EQ.'W  ') THEN
+            CALL FPGRAR('RW  ',RWT)
+         ELSE IF(KID2.EQ.'PC ') THEN
+            CALL FPGRAR('RPC ',RPCT)
+         ELSE IF(KID2.EQ.'PW ') THEN
+            CALL FPGRAR('RPW ',RPWT)
+         ELSE IF(KID2.EQ.'PE ') THEN
+            CALL FPGRAR('RPE ',RPET)
+         ELSE IF(KID2.EQ.'LH ') THEN
+            CALL FPGRAR('RLH ',RLHT)
+         ELSE IF(KID2.EQ.'FW ') THEN
+            CALL FPGRAR('RFW ',RFWT)
+         ELSE IF(KID2.EQ.'EC ') THEN
+            CALL FPGRAR('REC ',RECT)
+         ELSE IF(KID2.EQ.'T  ') THEN
+            CALL FPGRAR('RT  ',RTT)
+         ELSE IF(KID2.EQ.'Q  ') THEN
+            CALL FPGRAR('RQ  ',RQT)
+         ELSE IF(KID2.EQ.'E  ') THEN
+            CALL FPGRAR('RE  ',RET)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID2'
+         ENDIF
       ELSE IF (KID1.EQ.'T') THEN
-         IF(KID2.EQ.'N  ') CALL FPGRAT('N   ',PNT)
-         IF(KID2.EQ.'I  ') CALL FPGRAT('I   ',PIT)
-         IF(KID2.EQ.'W  ') CALL FPGRAT('W   ',PWT)
-         IF(KID2.EQ.'PC ') CALL FPGRAT('PC  ',PPCT)
-         IF(KID2.EQ.'PW ') CALL FPGRAT('PW  ',PPWT)
-         IF(KID2.EQ.'PE ') CALL FPGRAT('PE  ',PPET)
-         IF(KID2.EQ.'LH ') CALL FPGRAT('LH  ',PLHT)
-         IF(KID2.EQ.'FW ') CALL FPGRAT('FW  ',PFWT)
-         IF(KID2.EQ.'EC ') CALL FPGRAT('EC  ',PECT)
-         IF(KID2.EQ.'T  ') CALL FPGRAT('T   ',PTT)
-         IF(KID2.EQ.'Q  ') CALL FPGRAT('Q   ',PQT)
-         IF(KID2.EQ.'E  ') CALL FPGRAT('E   ',PET)
+         IF(KID2.EQ.'N  ') THEN
+            CALL FPGRAT('TN  ',PNT)
+         ELSE IF(KID2.EQ.'I  ') THEN
+            CALL FPGRAT('TI  ',PIT)
+         ELSE IF(KID2.EQ.'W  ') THEN
+            CALL FPGRAT('TW  ',PWT)
+         ELSE IF(KID2.EQ.'PC ') THEN
+            CALL FPGRAT('TPC ',PPCT)
+         ELSE IF(KID2.EQ.'PW ') THEN
+            CALL FPGRAT('TPW ',PPWT)
+         ELSE IF(KID2.EQ.'PE ') THEN
+            CALL FPGRAT('TPE ',PPET)
+         ELSE IF(KID2.EQ.'LH ') THEN
+            CALL FPGRAT('TLH ',PLHT)
+         ELSE IF(KID2.EQ.'FW ') THEN
+            CALL FPGRAT('TFW ',PFWT)
+         ELSE IF(KID2.EQ.'EC ') THEN
+            CALL FPGRAT('TEC ',PECT)
+         ELSE IF(KID2.EQ.'T  ') THEN
+            CALL FPGRAT('TT  ',PTT)
+         ELSE IF(KID2.EQ.'Q  ') THEN
+            CALL FPGRAT('TQ  ',PQT)
+         ELSE IF(KID2.EQ.'E  ') THEN
+            CALL FPGRAT('TE  ',PET)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID2'
+         ENDIF
       ELSE IF (KID1.EQ.'D') THEN
-         IF(KID2.EQ.'PP ') CALL FPGRAC('DPP ',DPP ,1)
-         IF(KID2.EQ.'PT ') CALL FPGRAC('DPT ',DPT ,1)
-         IF(KID2.EQ.'TP ') CALL FPGRAC('DTP ',DTP ,2)
-         IF(KID2.EQ.'TT ') CALL FPGRAC('DTT ',DTT ,2)
-         IF(KID2.EQ.'CPP') CALL FPGRAC('DCPP',DCPP,1)
-         IF(KID2.EQ.'CPT') CALL FPGRAC('DCPT',DCPT,1)
-         IF(KID2.EQ.'CTP') CALL FPGRAC('DCTP',DCTP,2)
-         IF(KID2.EQ.'CTT') CALL FPGRAC('DCTT',DCTT,2)
-         IF(KID2.EQ.'W  ') CALL FPGRAC2('DW  ',DWPP,DWTT,0)
-         IF(KID2.EQ.'WPP') CALL FPGRAC('DWPP',DWPP,1)
-         IF(KID2.EQ.'WPT') CALL FPGRAC('DWPT',DWPT,1)
-         IF(KID2.EQ.'WTP') CALL FPGRAC('DWTP',DWTP,2)
-         IF(KID2.EQ.'WTT') CALL FPGRAC('DWTT',DWTT,2)
-         IF(KID2.EQ.'RR ') CALL FPGRAC('DRR ',DRR ,0)
+         IF(KID2.EQ.'PP ') THEN
+            CALL FPGRAC('DPP ',DPP ,1)
+         ELSE IF(KID2.EQ.'PT ') THEN
+            CALL FPGRAC('DPT ',DPT ,1)
+         ELSE IF(KID2.EQ.'TP ') THEN
+            CALL FPGRAC('DTP ',DTP ,2)
+         ELSE IF(KID2.EQ.'TT ') THEN
+            CALL FPGRAC('DTT ',DTT ,2)
+         ELSE IF(KID2.EQ.'CPP') THEN
+            CALL FPGRAC('DCPP',DCPP,1)
+         ELSE IF(KID2.EQ.'CPT') THEN
+            CALL FPGRAC('DCPT',DCPT,1)
+         ELSE IF(KID2.EQ.'CTP') THEN
+            CALL FPGRAC('DCTP',DCTP,2)
+         ELSE IF(KID2.EQ.'CTT') THEN
+            CALL FPGRAC('DCTT',DCTT,2)
+         ELSE IF(KID2.EQ.'W  ') THEN
+            CALL FPGRAC2('DW  ',DWPP,DWTT,0)
+         ELSE IF(KID2.EQ.'WPP') THEN
+            CALL FPGRAC('DWPP',DWPP,1)
+         ELSE IF(KID2.EQ.'WPT') THEN
+            CALL FPGRAC('DWPT',DWPT,1)
+         ELSE IF(KID2.EQ.'WTP') THEN
+            CALL FPGRAC('DWTP',DWTP,2)
+         ELSE IF(KID2.EQ.'WTT') THEN
+            CALL FPGRAC('DWTT',DWTT,2)
+         ELSE IF(KID2.EQ.'RR ') THEN
+            CALL FPGRAC('DRR ',DRR ,0)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID2'
+         ENDIF
       ELSE IF (KID1.EQ.'X') THEN
          GO TO 9000
       ELSE IF (KID1.EQ.'Q') THEN
          GO TO 9000
+      ELSE
+         WRITE(6,*) 'XX UNKNOWN KID1'
       END IF
 C
       GO TO 1
@@ -142,15 +208,12 @@ C
       IF(GYMIN0 .GE. 0.) GYMIN0=0.
       IF(GYMAX0 .LE. 0.) GYMAX0=0.
       CALL GQSCAL(GYMIN0,GYMAX0,GYMIN1,GYMAX1,GYSTEP)
-C      CALL GQSCAL(0.0,1.0,GXMIN1,GXMAX1,GXSTEP)
-      CALL GQSCAL(0.38,0.52,GXMIN1,GXMAX1,GXSTEP)
-C      CALL GDEFIN(3.0,23.0,2.0,17.0,0.0,1.0,GYMIN1,GYMAX1)
+      CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN1,GXMAX1,GXSTEP)
       CALL GDEFIN(3.0,23.0,2.0,17.0,GXMIN1,GXMAX1,GYMIN1,GYMAX1)
-C      CALL GSCALE(0.,GXSTEP,0.0,GYSTEP,1.0,0)
-      CALL GSCALE(GXMIN1,GXSTEP,0.0,GYSTEP,0.1,9)    
       CALL GFRAME
-C      CALL GVALUE(0.,2*GXSTEP,0.0,0.0,NGVLEN(2*GXSTEP))
-      CALL GVALUE(GXMIN1,2*GXSTEP,0.0,0.0,NGVLEN(2*GXSTEP))
+      GXORG=(INT(GXMIN1/(2*GXSTEP)+1))*2*GXSTEP
+      CALL GSCALE(GXORG,GXSTEP,0.0,GYSTEP,0.1,9)    
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,NGVLEN(2*GXSTEP))
       CALL GVALUE(0.,0.0,0.0,2*GYSTEP,NGVLEN(2*GYSTEP))
       DO 250 NT=1,NTG1
         DO 260 NR=1,NRMAX
