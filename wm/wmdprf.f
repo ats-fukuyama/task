@@ -71,12 +71,18 @@ C
 C
 C     ----  Set profile data at the point calculated in wm-code.
 C
+      PNI=0.D0
+      DO NS=2,NSMAX
+         PNI=PNI+PZ(NS)*PN(NS)
+      ENDDO
       DO NR=1,NRMAX+1
          XRHOL=XRHO(NR)
          IF (XRHOL.GT.1.0D0) THEN
-            DO NS=1,NSMAX
-               RNPRF(NR,NS)=0.0D0
-               RTPRF(NR,NS)=0.0D0
+            RNPRF(NR,1)=RNEFL(NRFLMAX)
+            RTPRF(NR,1)=RTEFL(NRFLMAX)
+            DO NS=2,NSMAX
+               RNPRF(NR,NS)=RNEFL(NRFLMAX)*PN(NS)/PNI
+               RTPRF(NR,NS)=RTIFL(NRFLMAX)
             ENDDO
          ELSE
             CALL SPL1DF(XRHOL,RNEL,RHOFL,URNEFL,NRFLMAX,IERR)
@@ -85,9 +91,8 @@ C
                GOTO 9000
             ENDIF
             RNPRF(NR,1)=RNEL
-            RNPRF(NR,2)=RNEL/PZ(2)
-            DO NS=3,NSMAX
-               RNPRF(NR,NS)=RNEL
+            DO NS=2,NSMAX
+               RNPRF(NR,NS)=RNEL*PN(NS)/PNI
             ENDDO
             CALL SPL1DF(XRHOL,RTEL,RHOFL,URTEFL,NRFLMAX,IERR)
             IF(IERR.NE.0) THEN
@@ -109,23 +114,12 @@ C            WRITE(6,'(I5,1P4E12.4)') NR,XRHOL,RNEL,RTEL,RTIL
 C
 C     ----  Change the value at center and surface
 C
-      PN(1)  =RNEFL(1)
-      PTPR(1)=RTEFL(1)
-      PTPP(1)=RTEFL(1)
-      PNS(1) =RNEFL(NRFLMAX)
-      PTS(1) =RTEFL(NRFLMAX)
-C
-      PN(2)  =RNEFL(1)/PZ(2)
-      PTPR(2)=RTIFL(1)
-      PTPP(2)=RTIFL(1)
-      PNS(2) =RNEFL(NRFLMAX)/PZ(2)
-      PTS(2) =RTIFL(NRFLMAX)
-      DO NS=3,NSMAX
-         PN(NS)  =0.D0
-         PTPR(NS)=RTIFL(1)
-         PTPP(NS)=RTIFL(1)
-         PNS(NS) =0.D0
-         PTS(NS) =RTIFL(NRFLMAX)
+      DO NS=1,NSMAX
+         PN(NS)  =RNPRF(1,NS)
+         PTPR(NS)=RTPRF(1,NS)
+         PTPP(NS)=RTPRF(1,NS)
+         PNS(NS) =RNPRF(NRMAX+1,NS)
+         PTS(NS) =RTPRF(NRMAX+1,NS)
       ENDDO
 C
  9000 RETURN

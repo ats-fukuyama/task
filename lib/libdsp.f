@@ -169,7 +169,13 @@ C
          ENDIF
 C
          ABZS2=1.0D0/(SRE+SIM)
-         IF(MOD(IDNINT(XRE/H2),2).EQ.0) THEN
+         XREH2=ABS(XRE/H2)
+         IF(XREH2.GT.1.D8) THEN
+            IXRE=0
+         ELSE
+            IXRE=IDNINT(XRE/H2)
+         ENDIF
+         IF(MOD(IXRE,2).EQ.0) THEN
             D1=FN11-XXR
             D2=FN12-XXR
             D3=FN13-XXR
@@ -750,7 +756,13 @@ C
          ENDIF
 C
          ABZS2=1.0D0/(SRE+SIM)
-         IF(MOD(IDNINT(XRE/H2),2).EQ.0) THEN
+         XREH2=ABS(XRE/H2)
+         IF(XREH2.GT.1.D8) THEN
+            IXRE=0
+         ELSE
+            IXRE=IDNINT(XRE/H2)
+         ENDIF
+         IF(MOD(IXRE,2).EQ.0) THEN
             D1=FN11-XXR
             D2=FN12-XXR
             D3=FN13-XXR

@@ -35,7 +35,7 @@ c
       RA=0.5D0*rdim
       RKAP=zdim/rdim
       RDLT=0.D0
-      RB=1.2D0*RA
+      RB=1.1D0*RA
       DR=rdim/(NRGMAX-1)
       DZ=zdim/(NZGMAX-1)
       DO NRG=1,NRGMAX
