@@ -300,7 +300,8 @@ C
       ENDDO
 C
       IF(MDLCD.EQ.0) THEN
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+C         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
       ELSE
          BPA=XV(NQM,NRMAX)
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
@@ -712,7 +713,8 @@ C
       DV53=DVRHO(NR)**(5.D0/3.D0)
 C
       IF (MODELG.EQ.0) THEN
-         FVL = FKAP/RKAP
+CCC         FVL = FKAP/RKAP
+         FVL = 1.D0
       ELSEIF (MODELG.EQ.3) THEN
          FVL = 1.D0
       ENDIF

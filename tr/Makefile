@@ -3,13 +3,13 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCS=trmain.f trinit.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgsub.f trhelp.f
-SRC2D=trgra2.f
-SRC3D=trgrad.f
+     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f
+SRC2D=trg2d.f
+SRC3D=trg3d.f
 SRCE=../eq/treqin.f ../eq/eqinit.f ../eq/eqcalc.f ../eq/eqfunc.f \
      ../eq/eqcalq.f ../eq/eqload.f ../eq/eqgout.f ../eq/eqgsub.f
 SRCL=../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
@@ -77,13 +77,13 @@ trgrad.o : trgrad.f trcomm.h
 trgra2.o : trgra2.f trcomm.h
 trmtrx.o : trmtrx.f
 	$(FC) -c $(LFLAGS) trmtrx.f
-../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.h
-../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.h ../eq/eqcom2.h
-../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
-../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom3.h
-../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.h ../eq/eqcom2.h ../eq/eqcom4.h
-../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.h ../eq/eqcom3.h ../eq/eqcom4.h
-../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.h ../eq/eqcom3.h
+../eq/eqinit.o: ../eq/eqinit.f ../eq/eqcom1.inc
+../eq/eqcalc.o: ../eq/eqcalc.f ../eq/eqcom1.inc ../eq/eqcom2.inc
+../eq/eqcalq.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+../eq/eqgout.o: ../eq/eqgout.f ../eq/eqcom1.inc ../eq/eqcom2.inc ../eq/eqcom3.inc
+../eq/eqfunc.o: ../eq/eqfunc.f ../eq/eqcom1.inc ../eq/eqcom2.inc ../eq/eqcom4.inc
+../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc ../eq/eqcom4.inc
+../eq/eqload.o: ../eq/eqcalq.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 ../lib/libbnd.o: ../lib/libbnd.f
 	$(FC) -o $@ $(LFLAGS) -c ../lib/libbnd.f
 ../lib/libspl.o: ../lib/libspl.f

@@ -291,13 +291,7 @@ C
          IERR=2
       ELSEIF (KID.EQ.'Q') THEN
          MODE=1
-         IEER=3
+         IERR=3
       ENDIF
-      RETURN
-C
-      KID=' '
-      MODE=0
-      RETURN
-C
       RETURN
       END

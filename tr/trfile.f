@@ -171,8 +171,8 @@ C
       RIPS=RIPE
       GRG(1)=0.0
       DO 800 NR=1,NRMAX
-         GRM(NR)  =GCLIP(RA*RM(NR))
-         GRG(NR+1)=GCLIP(RA*RG(NR))
+         GRM(NR)  =GCLIP(RM(NR))
+         GRG(NR+1)=GCLIP(RG(NR))
          QP(NR)  = FKAP*RA*RG(NR)*BB/(RR*BP(NR))
   800 CONTINUE
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0

@@ -691,36 +691,40 @@ C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
       IF(MDLUF.NE.2) THEN
-      DO NR=1,NRMAX
-         IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
-            PROF=0.D0    
-         ELSE             
-            PROF= (1.D0-RM(NR)**ABS(PROFJ1))**ABS(PROFJ2)
-         ENDIF             
-         AJOH(NR)= PROF
-         AJ(NR)  = PROF
-      ENDDO
+         DO NR=1,NRMAX
+            IF((1.D0-RM(NR)**ABS(PROFJ1)).LE.0.D0) THEN
+               PROF=0.D0    
+            ELSE             
+               PROF= (1.D0-RM(NR)**ABS(PROFJ1))**ABS(PROFJ2)
+            ENDIF             
+            AJOH(NR)= PROF
+            AJ(NR)  = PROF
+         ENDDO
 C
-      BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
-      DO NR=2,NRMAX
-         BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
-      ENDDO
+         BP(1)=(RM(1)*RA*DR*AMYU0*AJ(1))/RG(1)
+         DO NR=2,NRMAX
+            BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
+         ENDDO
 C
-      BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
-      FACT=BPS/BP(NRMAX)
-      DO NR=1,NRMAX
-         AJOH(NR)=FACT*AJOH(NR)
-         AJ(NR)  =AJOH(NR)
-         BP(NR)  =FACT*BP(NR)
-         QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
-c$$$         write(6,*) QP(NR),BP(NR),AJ(NR)
-      ENDDO
+CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
+         FACT=BPS/BP(NRMAX)
+         DO NR=1,NRMAX
+            AJOH(NR)=FACT*AJOH(NR)
+            AJ(NR)  =AJOH(NR)
+            BP(NR)  =FACT*BP(NR)
+CCC            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
+c$$$  write(6,*) QP(NR),BP(NR),AJ(NR)
+         ENDDO
       ELSE
-         KFILE='Q.PHI'
+C         KFILE='Q.PHI'
+         KFILE='Q'
          CALL UFREAD(KFILE,RAD,FQ,NUFMAX,MDQ,IERR)
          CALL SPL1D(RAD,FQ,DERIV,UQPH,NUFMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FQ: IERR=',IERR
-         KFILE='CUR.PHI'
+C         KFILE='CUR.PHI'
+         KFILE='CUR'
          CALL UFREAD(KFILE,RAD,FCUR,NUFMAX,MDCUR,IERR)
          CALL SPL1D(RAD,FCUR,DERIV,UCURPH,NUFMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TRPROF: SPL1D FCUR: IERR=',IERR
@@ -732,7 +736,8 @@ c$$$         write(6,*) QP(NR),BP(NR),AJ(NR)
             IF(IERR.NE.0)
      &           WRITE(6,*) 'XX TRPROF: SPL1DF PCUR: IERR=',IERR
             QP(NR)=PQ
-            BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+CCC            BP(NR)=FKAP*RA*RG(NR)*BB/(RR*QP(NR))
+            BP(NR)=RA*RG(NR)*BB/(RR*QP(NR))
          ENDDO
 c$$$         AJ(1)=BP(1)*RG(1)/(RM(1)*RA*DR*AMYU0)
 c$$$         AJOH(1)=AJ(1)
@@ -749,7 +754,8 @@ c$$$         ENDDO
             AJ(NR)=PCUR
             AJOH(NR)=PCUR
          ENDDO
-         RIP=2.D0*PI*RA*FKAP*BP(NRMAX)/AMYU0*1.D-6
+CCC         RIP=2.D0*PI*RA*FKAP*BP(NRMAX)/AMYU0*1.D-6
+         RIP=2.D0*PI*RA*RKAP*BP(NRMAX)/AMYU0*1.D-6
          RIPS=RIP
          RIPSS=RIP
          RIPE=RIP
@@ -812,7 +818,7 @@ C
                ENDIF
 C
 C               VTE=1.33D+7*DSQRT(TEL)
-               VTE=SQRT(ABS(TE)*RKEV/AME)
+               VTE=SQRT(ABS(TEL)*RKEV/AME)
                FT=1.D0-(1.D0-EPS)**2
      &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
                rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(TEL)
@@ -836,13 +842,15 @@ C
             BP(NR)=(RG(NR-1)*BP(NR-1)+RM(NR)*RA*DR*AMYU0*AJ(NR))/RG(NR)
          ENDDO
 C
-         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+CCC         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*FKAP)
+         BPS= AMYU0*RIP*1.D6/(2.D0*PI*RA*RKAP)
          FACT=BPS/BP(NRMAX)
          DO NR=1,NRMAX
             AJOH(NR)=FACT*AJOH(NR)
             AJ(NR)  =AJOH(NR)
             BP(NR)  =FACT*BP(NR)
-            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+CCC            QP(NR)  =FKAP*RA*RG(NR)*BB/(RR*BP(NR))
+            QP(NR)  =RA*RG(NR)*BB/(RR*BP(NR))
          ENDDO
          Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
@@ -879,18 +887,13 @@ C
          CALL TRSETG
       ENDIF
 C
-      IF(MODELG.EQ.0) THEN
-         GRG(1)=0.0
-         DO NR=1,NRMAX
-            GRM(NR)  =GCLIP(RA*RM(NR))
-            GRG(NR+1)=GCLIP(RA*RG(NR))
-         ENDDO
-      ELSE
-         GRG(1)=0.0
-         DO NR=1,NRMAX
-            GRM(NR)  =GCLIP(RM(NR))
-            GRG(NR+1)=GCLIP(RG(NR))
-         ENDDO
+      GRG(1)=0.0
+      DO NR=1,NRMAX
+         GRM(NR)  =GCLIP(RM(NR))
+         GRG(NR+1)=GCLIP(RG(NR))
+      ENDDO
+C
+      IF(MODELG.NE.0) THEN
 C
          RIPSS=RIPSS-DRIP
 C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
@@ -1027,7 +1030,8 @@ C            write(6,*) NR,HJRHO(NR)
                QRHO(NR)=QP(NR)
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-               DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
+CCC               DSRHO(NR)=2.D0*PI*FKAP*RA*RA*RM(NR)
+               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
                ABRHO(NR)=1.D0/(RA*RR)**2
                ARRHO(NR)=1.D0/RR**2
                AR1RHO(NR)=1.D0/RA

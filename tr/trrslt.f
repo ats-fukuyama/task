@@ -13,6 +13,8 @@ C
       IF (MODELG.EQ.3) THEN
          FKAP=1.D0
          RKAP=1.D0
+      ELSE
+         FKAP=1.D0
       ENDIF
 C
       VOL=0.D0
@@ -1005,7 +1007,8 @@ C
       NRXMAX=NRMAX+1
 C
       KXNDEV='X'
-      KXNDCG='11'
+C      KXNDCG='11'
+      KXNDCG='14'
       KXNID ='sim'
 C
       CALL KTRIM(KXNDEV,IKNDEV)
@@ -1118,13 +1121,13 @@ C
       DIMENSION DIN(NRM),DRM(NRM),DERIV(NRM),UOUT(4,NRM)
       CHARACTER KFID*80,KERR*80,KERRF*80
 C
-      DO NR=1,NRM
-         DERIV(NR)=0.D0
-      ENDDO
       DO NT=1,NGT
          DO NR=1,NRMAX
             DRM(NR)=DBLE(GRM(NR))
             DIN(NR)=DBLE(G3D(NR,NT,NUM))
+         ENDDO
+         DO NR=1,NRM
+            DERIV(NR)=0.D0
          ENDDO
          CALL SPL1D(DRM,DIN,DERIV,UOUT,NRMAX,0,IERR)
          WRITE(KERR,'(A,I2,A,I2)')
