@@ -4,7 +4,7 @@ C     ***** SETUP DATA *****
 C
       SUBROUTINE EQSETP
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       DIMENSION DERIV(NPSM)
@@ -27,23 +27,19 @@ C
       SAXIS=PSIG(RAXIS,ZAXIS)
 C      WRITE(6,*) RAXIS,ZAXIS,SAXIS
 C
-  900 RETURN
+      RETURN
       END
 C
 C     ***** 
 C
-      SUBROUTINE EQPSIC(NRMAX1,NTHMAX1,NSUMAX1)
+      SUBROUTINE EQPSIC
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       EXTERNAL PSIAX,EQDERV
       DIMENSION Y(2),DYDX(2),YOUT(2)
       DIMENSION XA(NSUM),YA(2,NSUM)
       DIMENSION DERIV(NPSM)
-C
-      NRMAX=NRMAX1
-      NTHMAX=NTHMAX1
-      NSUMAX=NSUMAX1
 C
       RLIM=RG(NRGMAX)
 C
@@ -59,10 +55,10 @@ C
       NMAX=100
 C
       NR=1
-      DO 2500 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          RPS(NTH,NR)=RAXIS
          ZPS(NTH,NR)=ZAXIS
- 2500 CONTINUE
+      ENDDO
       PSS(1)=PSIG(RAXIS,ZAXIS)
       PPS(1)=PPFUNC(PSS(1))
       TTS(1)=TTFUNC(PSS(1))
@@ -392,7 +388,7 @@ C     *****
 C
       SUBROUTINE EQMAGS(RINIT,ZINIT,NMAX,XA,YA,N,IERR)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       EXTERNAL EQDERV
       DIMENSION Y(2),DYDX(2),YOUT(2)
@@ -461,7 +457,7 @@ C     ***** INTERPOLATE FUNCTIONS *****
 C
       FUNCTION FNPPS(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,PPL,PSS,UPPS,NRMAX,IERR)
@@ -472,7 +468,7 @@ C
 C
       FUNCTION FNTTS(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       IF(PSIN.LT.1.D0) THEN
          PSIL=SAXIS*(1.D0-PSIN)
@@ -488,7 +484,7 @@ C
 C
       FUNCTION FNQPS(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,QPL,PSS,UQPS,NRMAX,IERR)
@@ -499,7 +495,7 @@ C
 C
       FUNCTION FNVPS(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,VPL,PSS,UVPS,NRMAX,IERR)
@@ -510,7 +506,7 @@ C
 C
       FUNCTION FNSPS(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,SPL,PSS,USPS,NRMAX,IERR)
@@ -521,7 +517,7 @@ C
 C
       FUNCTION FNRLEN(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,RLENL,PSS,URLEN,NRMAX,IERR)
@@ -532,7 +528,7 @@ C
 C
       FUNCTION FNRRMN(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,RRMINL,PSS,URRMIN,NRMAX,IERR)
@@ -543,7 +539,7 @@ C
 C
       FUNCTION FNRRMX(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,RRMAXL,PSS,URRMAX,NRMAX,IERR)
@@ -554,7 +550,7 @@ C
 C
       FUNCTION FNBBMN(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,BBMINL,PSS,UBBMIN,NRMAX,IERR)
@@ -565,7 +561,7 @@ C
 C
       FUNCTION FNBBMX(PSIN)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIL=SAXIS*(1.D0-PSIN)
       CALL SPL1DF(PSIL,BBMAXL,PSS,UBBMAX,NRMAX,IERR)
@@ -578,7 +574,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,Z) *****
 C
       FUNCTION PSIG(R,Z)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       CALL SPL2DF(R,Z,PSIL,RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX PSIG: SPL2DF ERROR : IERR=',IERR
@@ -590,7 +586,7 @@ C     ***** INTERPOLATE SUBROUTINE PSI,DPSIDR,DPSIDZ(R,Z) *****
 C
       SUBROUTINE  EQPSID(R,Z,DPSIDR,DPSIDZ)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       CALL SPL2DD(R,Z,PSI,DPSIDR,DPSIDZ,
      &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
@@ -602,7 +598,7 @@ C     ***** INTERPOLATE FUNCTION OF PSI(R,ZAXIS) *****
 C
       FUNCTION PSIAX(R)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       PSIAX=PSIG(R,ZAXIS)
       RETURN
@@ -612,7 +608,7 @@ C     ***** INTERPOLATE FUNCTION OF PP(PSI) *****
 C
       FUNCTION PPFUNC(PSIL)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       CALL SPL1DF(PSIL,PPL,PSIPS,UPPPS,NPSMAX,IERR)
       IF(IERR.NE.0) THEN
@@ -627,7 +623,7 @@ C     ***** INTERPOLATE FUNCTION OF TT(PSI) *****
 C
       FUNCTION TTFUNC(PSIL)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       CALL SPL1DF(PSIL,TTL,PSIPS,UTTPS,NPSMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TTFUNC: SPL1DF ERROR : IERR=',IERR
@@ -639,7 +635,7 @@ C     ***** DERIVATIVES *****
 C
       SUBROUTINE EQDERV(X,Y,DYDX)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
       DIMENSION Y(2),DYDX(2)
 C
       CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)

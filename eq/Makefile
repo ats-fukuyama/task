@@ -3,12 +3,16 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = eqmain.f eqinit.f eqcalc.f eqcalq.f eqload.f eqgout.f eqshow.f eqgraf.f
-SRCT = eqtest.f eqload.f eqcalq.f eqread.f
+SRCS = eqmain.f eqinit.f eqcalc.f eqfunc.f eqcalq.f eqload.f \
+       eqgout.f eqshow.f eqgraf.f
+SRCT = eqtest.f eqload.f eqcalq.f pleqin.f
 
-OBJS = $(SRCS:.f=.o) ../lib/libbnd.o ../lib/libspl.o ../lib/libbrn.o \
-       ../lib/libgut.o
-OBJT = $(SRCT:.f=.o) ../lib/libspl.o ../lib/libbrn.o ../lib/libgut.o
+SRCSL= ../lib/libbnd.f ../lib/libspl.f ../lib/libbrn.f \
+       ../lib/libgut.f
+SRCTL= ../lib/libspl.f ../lib/libbrn.f ../lib/libgut.f
+
+OBJS = $(SRCS:.f=.o) $(SRCSL:.f=.o) 
+OBJT = $(SRCT:.f=.o) $(SRCTL:.f=.o) 
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -21,10 +25,10 @@ eqtest : $(OBJT)
 	$(FC) $(OBJT) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRCSL) | less
 
 checkt :
-	ftnchek $(FCKFLAGS) $(SRCT) | less
+	ftnchek $(FCKFLAGS) $(SRCT) $(SRCTL) | less
 
 clean:
 	rm -f core a.out *.o ./*~
@@ -48,5 +52,5 @@ eqcalq.o: eqcalq.f eqcom1.h eqcom3.h
 eqgout.o: eqgout.f eqcom1.h eqcom2.h
 eqshow.o: eqshow.f eqcom1.h eqcom3.h
 eqtest.o: eqtest.f eqcom1.h eqcom3.h
-eqread.o: eqread.f eqcom1.h eqcom3.h
+pleqin.o: pleqin.f eqcom1.h eqcom3.h
 eqload.o: eqload.f eqcom1.h eqcom3.h

@@ -4,7 +4,7 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG,KNAMEQ1,IERR)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
       CHARACTER*32 KNAMEQ1
 C
       PI=2.D0*ASIN(1.D0)
@@ -28,7 +28,7 @@ C     ***** LOAD TASK/EQ DATA *****
 C
       SUBROUTINE EQRTSK(IERR)
 C
-      INCLUDE 'eqcomq.h'
+      INCLUDE '../eq/eqcomq.h'
 C
       LOGICAL LEX
 C
@@ -63,7 +63,7 @@ C
       READ(21) PROFR0,PROFR1,PROFR2
       CLOSE(21)
 C
-  900 IERR=0
+      IERR=0
       RETURN
 C
  9000 IERR=1

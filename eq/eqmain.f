@@ -5,10 +5,10 @@ C   ************************************************
 C
       INCLUDE 'eqcomm.h'
 C
-      CHARACTER KNAM*32
+      CHARACTER KNAMEQ1*32,KNAM*32
       CHARACTER KID*1
 C
-      WRITE(6,*) '## TASK/EQ V2.0 1999/06/10'
+      WRITE(6,*) '## TASK/EQ 2001/08/25'
       MODE=0
       CALL GSOPEN
       CALL EQINIT
@@ -25,17 +25,17 @@ C
          CALL EQLOOP
          CALL EQTORZ
          CALL EQSETP
-         CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
+         CALL EQPSIC
          MODE=1
 C
       ELSEIF(KID.EQ.'C') THEN
          IF(MODE.EQ.1) THEN 
-  101       WRITE(6,*) '# INPUT PP0,PP1,PP2,PJ0,PJ1,PJ2 :'
+  101       WRITE(6,*) '#EQ> INPUT PP0,PP1,PP2,PJ0,PJ1,PJ2:'
             READ(5,*,ERR=101,END=1) PP0,PP1,PP2,PJ0,PJ1,PJ2
             CALL EQLOOP
             CALL EQTORZ
             CALL EQSETP
-            CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
+            CALL EQPSIC
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
          ENDIF
@@ -62,14 +62,15 @@ C
       ELSEIF(KID.EQ.'S') THEN
          CALL EQSAVE
       ELSEIF(KID.EQ.'L') THEN
-   10    WRITE(6,*) '# INPUT : EQDATA FILE NAME : ',KNAMEQ
+         KNAMEQ1=KNAMEQ
+   10    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
          READ(5,'(A32)',ERR=10,END=9000) KNAM
-         IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
+         IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
-         CALL EQLOAD(1,KNAMEQ,IERR)
+         CALL EQLOAD(1,KNAMEQ1,IERR)
          IF(IERR.EQ.1) GOTO 10
          CALL EQSETP
-         CALL EQPSIC(NRMAX,NTHMAX,NSUMAX)
+         CALL EQPSIC
          MODE=2
       ELSEIF(KID.EQ.'Q') THEN
          GOTO 9000

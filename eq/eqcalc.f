@@ -13,18 +13,18 @@ C
       DSG=1.D0/NSGMAX
       DTG=2.D0*PI/NTGMAX 
 C
-      DO 100 NSG=1,NSGMAX
+      DO NSG=1,NSGMAX
          SIGM(NSG)=DSG*(NSG-0.5D0)
- 100  CONTINUE
-      DO 150 NSG=1,NSGMAX+1
+      ENDDO
+      DO NSG=1,NSGMAX+1
          SIGG(NSG)=DSG*(NSG-1.D0)
- 150  CONTINUE
-      DO 200 NTG=1,NTGMAX
+      ENDDO
+      DO NTG=1,NTGMAX
          THGM(NTG)=DTG*(NTG-0.5D0)
- 200  CONTINUE
-      DO 250 NTG=1,NTGMAX+1
+      ENDDO
+      DO NTG=1,NTGMAX+1
          THGG(NTG)=DTG*(NTG-1.D0)
- 250  CONTINUE
+      ENDDO
       RETURN
       END
 C
@@ -39,11 +39,12 @@ C
       RAXIS=RR
       ZAXIS=0.D0
       PSI0=-0.5D0*RMU0*RIP*1.D6*RR
-      DO 100 NSG=1,NSGMAX
-       DO 100 NTG=1,NTGMAX
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
           PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
           DELPSI(NTG,NSG)=0.D0
- 100  CONTINUE
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -56,23 +57,24 @@ C
       INCLUDE 'eqcomc.h'
 C
       CALL EQDEFB
-      DO 200 NLOOP=1,20
+      DO NLOOP=1,20
          CALL EQBAND
          CALL EQRHSV
          CALL EQSOLV
          SUM0=0.D0
          SUM1=0.D0
-         DO 100 NSG=1,NSGMAX
-         DO 100 NTG=1,NTGMAX
+         DO NSG=1,NSGMAX
+         DO NTG=1,NTGMAX
             SUM0=SUM0+PSI(NTG,NSG)**2
             SUM1=SUM1+DELPSI(NTG,NSG)**2
-  100    CONTINUE
+         ENDDO
+         ENDDO
          SUM=SQRT(SUM1/SUM0)
          WRITE(6,'(A,1P4E14.6)') 
      &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
-         IF(SUM.LT.EPSEQ)GOTO 300
-  200 CONTINUE
-  300 CONTINUE 
+         IF(SUM.LT.EPSEQ)GOTO 100
+      ENDDO
+  100 CONTINUE 
 C
       RETURN
       END
@@ -90,150 +92,57 @@ C
 C
       EPSZ=1.D-8
 C
-      DO 300 NTG=1,NTGMAX
+      DO NTG=1,NTGMAX
          ZBRF=TAN(THGM(NTG))
          THDASH=ZBRENT(EQFBND,THGM(NTG)-1.0D0,THGM(NTG)+1.0D0,EPSZ)
          RHOM(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
      &                    +RKAP**2*SIN(THDASH)**2)
-  300 CONTINUE
+      ENDDO
       DRHOM(1)=(RHOM(2)-RHOM(NTGMAX))/(2*DTG)
-      DO 350 NTG=2,NTGMAX-1
+      DO NTG=2,NTGMAX-1
          DRHOM(NTG)=(RHOM(NTG+1)-RHOM(NTG-1))/(2*DTG)
-  350 CONTINUE
+      ENDDO
       DRHOM(NTGMAX)=(RHOM(1)-RHOM(NTGMAX-1))/(2*DTG)
 C
-      DO 400 NTG=1,NTGMAX
+      DO NTG=1,NTGMAX
          ZBRF=TAN(THGG(NTG))
          THDASH=ZBRENT(EQFBND,THGG(NTG)-1.0D0,THGG(NTG)+1.0D0,EPSZ)
          RHOG(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
      &                    +RKAP**2*SIN(THDASH)**2)
-  400 CONTINUE
+      ENDDO
       RHOG(NTGMAX+1)=RHOG(1)
       DRHOG(1)=(RHOG(2)-RHOG(NTGMAX))/(2*DTG)
-      DO 450 NTG=2,NTGMAX-1
+      DO NTG=2,NTGMAX-1
          DRHOG(NTG)=(RHOG(NTG+1)-RHOG(NTG-1))/(2*DTG)
-  450 CONTINUE
+      ENDDO
       DRHOG(NTGMAX)=(RHOG(1)-RHOG(NTGMAX-1))/(2*DTG)
       DRHOG(NTGMAX+1)=DRHOG(1)
 C
-      DO 500 NSG=1,NSGMAX
-       DO 500 NTG=1,NTGMAX+1
-          RMG(NSG,NTG)=RR+SIGM(NSG)*RHOG(NTG)*COS(THGG(NTG))
- 500  CONTINUE
-      DO 600 NSG=1,NSGMAX+1
-       DO 600 NTG=1,NTGMAX
-          RGM(NSG,NTG)=RR+SIGG(NSG)*RHOM(NTG)*COS(THGM(NTG))       
- 600  CONTINUE
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX+1
+         RMG(NSG,NTG)=RR+SIGM(NSG)*RHOG(NTG)*COS(THGG(NTG))
+      ENDDO
+      ENDDO
+      DO NSG=1,NSGMAX+1
+      DO NTG=1,NTGMAX
+         RGM(NSG,NTG)=RR+SIGG(NSG)*RHOM(NTG)*COS(THGM(NTG))       
+      ENDDO
+      ENDDO
 C
-      DO 700 NSG=1,NSGMAX+1
-       DO 700 NTG=1,NTGMAX
-          AA(NSG,NTG)=SIGG(NSG)/RGM(NSG,NTG)
-     &               +(DRHOM(NTG)*DRHOM(NTG)*SIGG(NSG))
-     &               /(RGM(NSG,NTG)*RHOM(NTG)*RHOM(NTG))  
-          AB(NSG,NTG)=-DRHOM(NTG)/(RGM(NSG,NTG)*RHOM(NTG))
- 700  CONTINUE
-      DO 800 NSG=1,NSGMAX
-       DO 800 NTG=1,NTGMAX+1
-          AC(NSG,NTG)=-DRHOG(NTG)/(RMG(NSG,NTG)*RHOG(NTG))
-          AD(NSG,NTG)=1/(RMG(NSG,NTG)*SIGM(NSG))
- 800  CONTINUE
-      RETURN
-      END
-C
-C   ************************************************
-C   **         Boundary shape function            **
-C   ************************************************
-C
-      FUNCTION EQFBND(X)
-C      
-      INCLUDE 'eqcomc.h'
-C
-      EQFBND=ZBRF*COS(X+RDLT*SIN(X))-RKAP*SIN(X)
-      RETURN
-      END
-C
-C   ************************************************ 
-C   **          　　P(psi)                        **
-C   ************************************************
-C
-      REAL*8 FUNCTION PPSI(PSIN)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN.LE.0.D0) THEN
-         PPSI=0.D0
-         RETURN
-      ENDIF
-      PPSI=PP0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFP0
-     &    +PP1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFP1
-      PSIITB=1.D0-RHOITB**2
-      IF(PSIN.GT.PSIITB) THEN
-         PPSI=PPSI
-     &       +PP2*(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**PROFP2
-      ENDIF
-      PPSI=PPSI*1.D6
-      RETURN
-      END
-C
-      REAL*8 FUNCTION DPPSI(PSIN)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN.LE.0.D0) THEN
-         DPPSI=0.D0
-         RETURN
-      ENDIF
-      DPPSI=PP0*PROFP0*(1.D0-(1.D0-PSIN)**PROFR0)**(PROFP0-1.D0)
-     &                        *PROFR0*(1.D0-PSIN)**(PROFR0-1.D0)
-     &     +PP1*PROFP1*(1.D0-(1.D0-PSIN)**PROFR1)**(PROFP1-1.D0)
-     &                        *PROFR1*(1.D0-PSIN)**(PROFR1-1.D0)
-      PSIITB=1.D0-RHOITB**2
-      IF(PSIN.GT.PSIITB) THEN
-         DPPSI=DPPSI
-     &     +PP2*PROFP2
-     &     *(1.D0-((1.D0-PSIN)/(1.D0-PSIITB))**PROFR2)**(PROFP2-1.D0)
-     &     *PROFR2*((1.D0-PSIN)/(1.D0-PSIITB))**(PROFR2-1.D0)
-     &     /(1.D0-PSIITB)
-      ENDIF
-      DPPSI=DPPSI*1.D6/PSI0
-      RETURN
-      END
-C
-C   ************************************************ 
-C   **          　　J0(psi)                        **
-C   ************************************************
-C
-      REAL*8 FUNCTION HJPSID(PSIN)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN.LE.0.D0) THEN
-         HJPSID=0.D0
-         RETURN
-      ENDIF
-      HJPSID=-PJ0*(1.D0-(1.D0-PSIN)**PROFR0)**(PROFJ0+1.D0)
-     &           *PSI0/(PROFR0*(PROFJ0+1.D0))
-     &       -PJ1*(1.D0-(1.D0-PSIN)**PROFR1)**(PROFJ1+1.D0)
-     &           *PSI0/(PROFR1*(PROFJ1+1.D0))
-     &       -PJ2*(1.D0-(1.D0-PSIN)**PROFR2)**(PROFJ2+1.D0)
-     &           *PSI0/(PROFR2*(PROFJ2+1.D0))
-      RETURN
-      END
-C
-      REAL*8 FUNCTION HJPSI(PSIN)
-C
-      INCLUDE 'eqcomc.h'
-C
-      IF(PSIN.LE.0.D0) THEN
-         HJPSI=0.D0
-         RETURN
-      ENDIF
-      HJPSI=-PJ0*(1.D0-(1.D0-PSIN)**PROFR0)**PROFJ0
-     &                *(1.D0-PSIN)**(PROFR0-1.D0)
-     &      -PJ1*(1.D0-(1.D0-PSIN)**PROFR1)**PROFJ1
-     &                *(1.D0-PSIN)**(PROFR1-1.D0)
-     &      -PJ2*(1.D0-(1.D0-PSIN)**PROFR2)**PROFJ2
-     &               *(1.D0-PSIN)**(PROFR2-1.D0)
+      DO NSG=1,NSGMAX+1
+      DO NTG=1,NTGMAX
+         AA(NSG,NTG)=SIGG(NSG)/RGM(NSG,NTG)
+     &              +(DRHOM(NTG)*DRHOM(NTG)*SIGG(NSG))
+     &              /(RGM(NSG,NTG)*RHOM(NTG)*RHOM(NTG))  
+         AB(NSG,NTG)=-DRHOM(NTG)/(RGM(NSG,NTG)*RHOM(NTG))
+      ENDDO
+      ENDDO
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX+1
+         AC(NSG,NTG)=-DRHOG(NTG)/(RMG(NSG,NTG)*RHOG(NTG))
+         AD(NSG,NTG)=1/(RMG(NSG,NTG)*SIGM(NSG))
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -247,71 +156,75 @@ C
 C
       MMAX=NSGMAX*NTGMAX
       NBND=2*NTGMAX
-      DO 100 N=1,MMAX
-      DO 100 M=1,2*NBND-1
+      DO N=1,MMAX
+      DO M=1,2*NBND-1
           Q(M,N)=0.D0
- 100  CONTINUE
+      ENDDO
+      ENDDO
 C
-      DO 200 NSG=1,NSGMAX
-       DO 200 NTG=1,NTGMAX
-        I=(NSG-1)*NTGMAX+NTG
-        IF(NTG.EQ.1)THEN
-           Q(NBND         -1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
-     &                          /(4*DSG*DTG)
-           Q(NBND  +NTGMAX-1,I)= (AB(NSG,NTG)-AB(NSG+1,NTG))
-     &                          /(4*DSG*DTG)
-     &                          +AD(NSG,NTG)/(DTG*DTG)
-           Q(NBND+2*NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
-     &                          /(4*DSG*DTG)
-        ELSE
-           Q(NBND  -NTGMAX-1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
-     &                          /(4*DSG*DTG)
-           Q(NBND         -1,I)=(AB(NSG,NTG)-AB(NSG+1,NTG))
-     &                          /(4*DSG*DTG)
-     &                          +AD(NSG,NTG)/(DTG*DTG)
-           Q(NBND  +NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
-     &                          /(4*DSG*DTG)
-        ENDIF
-        Q(NBND-NTGMAX,I)=AA(NSG,NTG)/(DSG*DSG)
-     &                  -(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
-        Q(NBND       ,I)=-(AA(NSG+1,NTG)+AA(NSG,NTG))/(DSG*DSG)
-     &                  -(AD(NSG,NTG+1)+AD(NSG,NTG))/(DTG*DTG)
-        Q(NBND+NTGMAX,I)=AA(NSG+1,NTG)/(DSG*DSG)
-     &                  +(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
-        IF(NTG.EQ.NTGMAX)THEN	
-           Q(NBND-2*NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         I=(NSG-1)*NTGMAX+NTG
+         IF(NTG.EQ.1)THEN
+            Q(NBND         -1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
      &                           /(4*DSG*DTG)
-           Q(NBND-  NTGMAX+1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
+            Q(NBND  +NTGMAX-1,I)= (AB(NSG,NTG)-AB(NSG+1,NTG))
      &                           /(4*DSG*DTG)
-     &                         +  AD(NSG,NTG+1)/(DTG*DTG)
-           Q(NBND         +1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
+     &                           +AD(NSG,NTG)/(DTG*DTG)
+            Q(NBND+2*NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
      &                           /(4*DSG*DTG)
-        ELSE
-           Q(NBND-NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))/(4*DSG*DTG)
-           Q(NBND       +1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
-     &                         /(4*DSG*DTG)
-     &                       +  AD(NSG,NTG+1)/(DTG*DTG)
-           Q(NBND+NTGMAX+1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
-     &                         /(4*DSG*DTG)
-        ENDIF
- 200  CONTINUE
+         ELSE
+            Q(NBND  -NTGMAX-1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
+     &                           /(4*DSG*DTG)
+            Q(NBND         -1,I)=(AB(NSG,NTG)-AB(NSG+1,NTG))
+     &                           /(4*DSG*DTG)
+     &                           +AD(NSG,NTG)/(DTG*DTG)
+            Q(NBND  +NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
+     &                           /(4*DSG*DTG)
+         ENDIF
+         Q(NBND-NTGMAX,I)=  AA(NSG,NTG)/(DSG*DSG)
+     &                   -(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
+         Q(NBND       ,I)=-(AA(NSG+1,NTG)+AA(NSG,NTG))/(DSG*DSG)
+     &                   -(AD(NSG,NTG+1)+AD(NSG,NTG))/(DTG*DTG)
+         Q(NBND+NTGMAX,I)=  AA(NSG+1,NTG)/(DSG*DSG)
+     &                   +(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
+         IF(NTG.EQ.NTGMAX)THEN	
+            Q(NBND-2*NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
+     &                            /(4*DSG*DTG)
+            Q(NBND-  NTGMAX+1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
+     &                            /(4*DSG*DTG)
+     &                          +  AD(NSG,NTG+1)/(DTG*DTG)
+            Q(NBND         +1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
+     &                            /(4*DSG*DTG)
+         ELSE
+            Q(NBND-NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))/(4*DSG*DTG)
+            Q(NBND       +1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
+     &                          /(4*DSG*DTG)
+     &                        +  AD(NSG,NTG+1)/(DTG*DTG)
+            Q(NBND+NTGMAX+1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
+     &                          /(4*DSG*DTG)
+         ENDIF
+      ENDDO
+      ENDDO
 C
-      DO 300 I=1,NTGMAX
-       DO 300 J=1,NTGMAX/2
-          Q(NBND+J-I,I)=Q(NBND+J-I,I)
-     &                 +Q(NBND+J-I-NTGMAX/2,I)
-          Q(NBND+J-I-NTGMAX/2,I)=0.D0
-          Q(NBND+J-I+NTGMAX/2,I)=Q(NBND+J-I+NTGMAX/2,I)
-     &                          +Q(NBND+J-I-NTGMAX,I)
-          Q(NBND+J-I-NTGMAX,I)=0.D0
- 300  CONTINUE
-      DO 400 I=1,NTGMAX
-       DO 400 J=1,NTGMAX
-          Q(NBND+J-I,I+(NSGMAX-1)*NTGMAX)
-     &                    =Q(NBND+J-I,I+(NSGMAX-1)*NTGMAX)
-     &                    -Q(NBND+J-I+NTGMAX,I+(NSGMAX-1)*NTGMAX)
-          Q(NBND+J-I+NTGMAX,I+(NSGMAX-1)*NTGMAX)=0.D0
- 400  CONTINUE
+      DO I=1,NTGMAX
+      DO J=1,NTGMAX/2
+         Q(NBND+J-I,I)=Q(NBND+J-I,I)
+     &                +Q(NBND+J-I-NTGMAX/2,I)
+         Q(NBND+J-I-NTGMAX/2,I)=0.D0
+         Q(NBND+J-I+NTGMAX/2,I)=Q(NBND+J-I+NTGMAX/2,I)
+     &                         +Q(NBND+J-I-NTGMAX,I)
+         Q(NBND+J-I-NTGMAX,I)=0.D0
+      ENDDO
+      ENDDO
+      DO I=1,NTGMAX
+      DO J=1,NTGMAX
+         Q(NBND+J-I,I+(NSGMAX-1)*NTGMAX)
+     &                   =Q(NBND+J-I,I+(NSGMAX-1)*NTGMAX)
+     &                   -Q(NBND+J-I+NTGMAX,I+(NSGMAX-1)*NTGMAX)
+         Q(NBND+J-I+NTGMAX,I+(NSGMAX-1)*NTGMAX)=0.D0
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -347,30 +260,31 @@ C      RRC=RR
 C
       FJP=0.D0
       FJT=0.D0
-      DO 200 NSG=1,NSGMAX
-      DO 200 NTG=1,NTGMAX
-          PSIN=PSI(NTG,NSG)/PSI0
-          PP(NTG,NSG)=PPSI(PSIN)
-          RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-          HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
-          HJT1(NTG,NSG)=HJPSI(PSIN)
-          HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
-          HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
-          DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
-          FJP=FJP+HJP2(NTG,NSG)*DVOL
-          FJT=FJT+HJT2(NTG,NSG)*DVOL
-  200 CONTINUE
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         PSIN=PSI(NTG,NSG)/PSI0
+         PP(NTG,NSG)=PPSI(PSIN)
+         RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+         HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI(PSIN)
+         HJT1(NTG,NSG)=HJPSI(PSIN)
+         HJP2(NTG,NSG)=(1.D0-RRC**2/RMM(NTG,NSG)**2)*HJP1(NTG,NSG)
+         HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
+         DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
+         FJP=FJP+HJP2(NTG,NSG)*DVOL
+         FJT=FJT+HJT2(NTG,NSG)*DVOL
+      ENDDO
+      ENDDO
 C
       TJ=(-RIP*1.D6-FJP)/FJT
-      DO 400 NSG=1,NSGMAX
-      DO 400 NTG=1,NTGMAX
-          HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
-          PSIN=PSI(NTG,NSG)/PSI0
-          TT(NTG,NSG)=SQRT(BB**2*RR**2
-     &                   +2.D0*RMU0*RRC
-     &                   *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
- 400  CONTINUE
-C
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT2(NTG,NSG)
+         PSIN=PSI(NTG,NSG)/PSI0
+         TT(NTG,NSG)=SQRT(BB**2*RR**2
+     &                  +2.D0*RMU0*RRC
+     &                  *(TJ*HJPSID(PSIN)-RRC*PPSI(PSIN)))
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -384,31 +298,35 @@ C
 C
       DIMENSION FJT(MLM),PSIOLD(NTGM,NSGM)
 C
-      DO 100 NSG=1,NSGMAX
-       DO 100 NTG=1,NTGMAX
-          PSIOLD(NTG,NSG)=PSI(NTG,NSG)
- 100  CONTINUE
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         PSIOLD(NTG,NSG)=PSI(NTG,NSG)
+      ENDDO
+      ENDDO
 C
-      DO 200 NSG=1,NSGMAX
-          I=(NSG-1)*NTGMAX
-       DO 200 NTG=1,NTGMAX
-          FJT(I+NTG)=-RMU0*HJT(NTG,NSG)*SIGM(NSG)*RHOM(NTG)*RHOM(NTG)
- 200  CONTINUE
+      DO NSG=1,NSGMAX
+         I=(NSG-1)*NTGMAX
+      DO NTG=1,NTGMAX
+         FJT(I+NTG)=-RMU0*HJT(NTG,NSG)*SIGM(NSG)*RHOM(NTG)*RHOM(NTG)
+      ENDDO
+      ENDDO
 C
       CALL BANDRD(Q,FJT,NTGMAX*NSGMAX,4*NTGMAX-1,MWM,IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX EQSOLV: BANDRD ERROR: IERR = ',IERR
          ENDIF
 C
-      DO 300 NSG=1,NSGMAX
-          I=(NSG-1)*NTGMAX
-       DO 300 NTG=1,NTGMAX
-          PSI(NTG,NSG)=FJT(I+NTG)
- 300  CONTINUE
-      DO 400 NSG=1,NSGMAX
-       DO 400 NTG=1,NTGMAX
-          DELPSI(NTG,NSG)=PSI(NTG,NSG)-PSIOLD(NTG,NSG)
- 400  CONTINUE
+      DO NSG=1,NSGMAX
+         I=(NSG-1)*NTGMAX
+      DO NTG=1,NTGMAX
+         PSI(NTG,NSG)=FJT(I+NTG)
+      ENDDO
+      ENDDO
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         DELPSI(NTG,NSG)=PSI(NTG,NSG)-PSIOLD(NTG,NSG)
+      ENDDO
+      ENDDO
       RETURN
       END
 C
@@ -442,23 +360,24 @@ C
 C
       CALL EQSETF
 C
-      DO 200 NRG=1,NRGMAX
-       DO 200 NZG=1,NZGMAX
-          THL=ATAN2(ZG(NZG),RG(NRG)-RR)
-          IF(THL.LT.0.D0) THL=THL+2.D0*PI
-          ZBRF=TAN(THL)
-          THDASH=ZBRENT(EQFBND,THL-1.0D0,THL+1.0D0,EPSZ)
-          RHOL=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
-     &                +RKAP**2*SIN(THDASH)**2)
-          SIGL=SQRT((RG(NRG)-RR)**2+ZG(NZG)**2)/RHOL
-          IF(SIGL.LT.1.D0) THEN
-             PSIRZ(NRG,NZG)=PSIF(SIGL,THL)
-          ELSE
-             PSI1=PSIF(SIG1,THL)
-             PSI2=PSIF(SIG2,THL)
-             PSIRZ(NRG,NZG)=PSI2+(PSI1-PSI2)*(SIGL-SIG2)/(SIG1-SIG2)
-          ENDIF
-  200 CONTINUE
+      DO NRG=1,NRGMAX
+      DO NZG=1,NZGMAX
+         THL=ATAN2(ZG(NZG),RG(NRG)-RR)
+         IF(THL.LT.0.D0) THL=THL+2.D0*PI
+         ZBRF=TAN(THL)
+         THDASH=ZBRENT(EQFBND,THL-1.0D0,THL+1.0D0,EPSZ)
+         RHOL=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
+     &               +RKAP**2*SIN(THDASH)**2)
+         SIGL=SQRT((RG(NRG)-RR)**2+ZG(NZG)**2)/RHOL
+         IF(SIGL.LT.1.D0) THEN
+            PSIRZ(NRG,NZG)=PSIF(SIGL,THL)
+         ELSE
+            PSI1=PSIF(SIG1,THL)
+            PSI2=PSIF(SIG2,THL)
+            PSIRZ(NRG,NZG)=PSI2+(PSI1-PSI2)*(SIGL-SIG2)/(SIG1-SIG2)
+         ENDIF
+      ENDDO
+      ENDDO
       CALL EQCALP
       RETURN
       END
@@ -579,19 +498,13 @@ C
 C      CHARACTER*1 KID
       LOGICAL LEX
 C
-    1 WRITE(6,*) '# INPUT : SAVE FILE NAME : ',KNAMEQ
+    1 WRITE(6,*) '#EQ> INPUT : SAVE FILE NAME : ',KNAMEQ
       READ(5,'(A32)',ERR=1,END=900) KNAM
       IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
       IF(KNAM(1:2).EQ.'  ') GOTO 900
 C
       INQUIRE(FILE=KNAMEQ,EXIST=LEX,ERR=1)
       IF(LEX) THEN
-C         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-C     &              'ARE YOU SURE {Y/N} ?'
-C         READ(5,502) KID
-C  502    FORMAT(A1)
-C         CALL GUCPTL(KID)
-C         IF(KID.NE.'Y') GOTO 1
          OPEN(21,FILE=KNAMEQ,IOSTAT=IST,STATUS='OLD',ERR=10,
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (',KNAMEQ,') IS ASSIGNED FOR OUTPUT.'

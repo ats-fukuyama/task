@@ -148,7 +148,7 @@ C
       CALL EQGR1D(GPX3,GPX4,GPY3,GPY4,GRX,GRYTT,NPSM,NPSMAX,1,KSTR,1)
       CALL PAGEE
 C
- 9000 RETURN
+      RETURN
       END
 C
 C     ***** Draw Parameters *****
