@@ -36,12 +36,12 @@ C
       IF(MODELG.EQ.3) THEN
          DO NR=1,NRMAX
             QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
-C            write(6,*) NR,BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
          DO NR=1,NRMAX
 CCC            QP(NR)=FKAP*RG(NR)*RA*BB/(RR*BP(NR))
             QP(NR)=RG(NR)*RA*BB/(RR*BP(NR))
+C            if(nr.eq.1) write(6,*) NR,BP(NR),QP(NR)
          ENDDO
       ENDIF
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -74,20 +74,27 @@ C
       DO 100 NR=1,NRMAX
          IF(MDLEQ0.EQ.0) THEN
          SSIN(NR,1)=SIE(NR)                            +SNB(NR)
+     &             +SEX(NR,1)
          SSIN(NR,2)=PN(2)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)+SNB(NR)
-         SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)
-         SSIN(NR,4)=                            SNF(NR)
+     &             +SEX(NR,2)
+         SSIN(NR,3)=PN(3)*SIE(NR)/(PN(2)+PN(3))-SNF(NR)        
+     &             +SEX(NR,3)
+         SSIN(NR,4)=                            SNF(NR)        
+     &             +SEX(NR,4)
          SSIN(NR,7)=-SIE(NR)                                   -SCX(NR)
          SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
          ELSEIF(MDLEQ0.EQ.1) THEN
          SSIN(NR,1)=                                    SNB(NR)
+     &             +SEX(NR,1)
          SSIN(NR,2)=                           -SNF(NR)+SNB(NR)
+     &             +SEX(NR,2)
          SSIN(NR,3)=                           -SNF(NR)
+     &             +SEX(NR,3)
          SSIN(NR,4)=                            SNF(NR)
+     &             +SEX(NR,4)
          SSIN(NR,7)=                                           -SCX(NR)
          SSIN(NR,8)=                                    SNB(NR)+SCX(NR)
          ENDIF
-C         write(6,*) NR,ANNU(NR),SIE(NR)
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1)
      &            +POH(NR)-PRL(NR)-PIE(NR)+PEX(NR,1)
          PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2)

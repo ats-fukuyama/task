@@ -112,6 +112,10 @@ C     /* Matrix Solver */
      &              ' AT ',NT,' STEP.'
          GOTO 9000
       ENDIF
+c$$$      DO NR=1,NRMAX
+c$$$         write(6,*) NR,X(NEQRMAX*(NR-1)+1),X(NEQRMAX*(NR-1)+2)
+c$$$      ENDDO
+C      STOP
 C     
       DO J=1,NFM
       DO NR=1,NRMAX
@@ -1051,12 +1055,8 @@ C
             NRJ=NR+(NJ-2)
             IF(NSVN.EQ.0) THEN
                IF(NSW.NE.3) THEN
-                  IF(NR.EQ.NRMAX) THEN
-                     F2C(NJ)=0.D0
-                  ELSE
-                     F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
-     &                    /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
-                  ENDIF
+                  F2C(NJ)=ETA(NRJ+1)*TTRHO(NRJ+1)
+     &                   /(AMYU0*ARRHO(NRJ+1)*DVRHO(NRJ+1))
                   VV(NEQ,NEQ  ,NMK,NSW)= SIG(NMK)*F2C(NJ)*FC(NI,NSW)
                   DD(NEQ,NEQ  ,NMK,NSW)=          F2C(NJ)*FC(NI,NSW)
                ENDIF
@@ -1302,7 +1302,7 @@ C
 C
 C     ***********************************************************
 C
-C           DECIDE COEEFICIENTS FOR EQUATIONS
+C           IONIZATION 
 C
 C     ***********************************************************
 C
