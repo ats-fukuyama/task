@@ -59,6 +59,7 @@ C
       DIMENSION Y(2),DYDX(2),YOUT(2)
       DIMENSION XA(NNM),YA(2,NNM)
       DIMENSION DERIV(NPSM)
+      DIMENSION TEMP(NPSM)
 C
       IERR=0
       NRMAX=NRMAX1
@@ -87,6 +88,7 @@ C      SEDGE=PSIG(REDGE,ZAXIS)
 C      SLIM =PSIG(RLIM, ZAXIS)
 C      WRITE(6,*) REDGE,RLIM,SEDGE,SLIM
 C
+      RAEQ=(REDGE-RAXIS)
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=INT((REDGE-RAXIS)/DR)+1
       DTH=2*PI/NTHMAX
@@ -131,17 +133,13 @@ C
             BPR=SQRT(DPSIDR**2+DPSIDZ**2)
             SUMS=SUMS+H/BPR
             SUMV=SUMV+H*R/BPR
-            SUMQ=SUMQ+H/(BPR*R)
+            SUMQ=SUMQ+H/(R*BPR)
             RMIN=MIN(RMIN,R)
             RMAX=MAX(RMAX,R)
             B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
             BMIN=MIN(BMIN,B)
             BMAX=MAX(BMAX,B)
-C            SUMAVBR=SUMAVBR+H*BPR*BPR/(R*R)
-C            SUMAVRR=SUMAVRR+H/(R*R)
-C            SUMAVR1=SUMAVR1+H*BPR
-C            SUMAVR2=SUMAVR2+H*BPR*BPR
-C            SUML   =SUML+H
+C
             SUMAVBR=SUMAVBR+H*BPR/R
             SUMAVRR=SUMAVRR+H/(R*BPR)
             SUMAVR1=SUMAVR1+H*R
@@ -168,6 +166,8 @@ C
          AVRR(NR)=SUMAVRR/SUML
          AVR1(NR)=SUMAVR1/SUML
          AVR2(NR)=SUMAVR2/SUML
+C            WRITE(6,'(I5,1P,6E12.4)') 
+C     &      NR,SUMAVR1,SUMAVR2,SUML,SUMAVR1/SUML,SUMAVR2/SUML
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR,PSS,AVBR,AVRR=', 
 C     &                            NR,PSS(NR)-PSS(1),AVBR(NR),AVRR(NR)
 C
@@ -350,15 +350,16 @@ C
 C
 C        +++++ CALCULATE SPLINE COEFFICIENTS +++++
 C
+C      WRITE(6,'(A,1P,2E12.4)') 'RA,RAEQ=',RA,RAEQ
       DO NR=2,NRMAX
          IF(NR.EQ.NRMAX) THEN
-            DPSIDRHO=(PSS(NR  )-PSS(NR-1))/(DR/RA)
+            DPSIDRHO=(PSS(NR  )-PSS(NR-1))/(DR/RAEQ)
          ELSE
-            DPSIDRHO=(PSS(NR+1)-PSS(NR-1))/(2*DR/RA)
+            DPSIDRHO=(PSS(NR+1)-PSS(NR-1))/(2*DR/RAEQ)
          ENDIF
-         AVBR(NR)=AVBR(NR)/DPSIDRHO
+         AVBR(NR)=AVBR(NR)/DPSIDRHO**2
          AVR1(NR)=AVR1(NR)/DPSIDRHO
-         AVR2(NR)=AVR2(NR)/(DPSIDRHO*DPSIDRHO)
+         AVR2(NR)=AVR2(NR)/DPSIDRHO**2
       ENDDO
       AVBR(1)=(4.D0*AVBR(2)-AVBR(3))/3.D0
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0
@@ -367,7 +368,8 @@ C
       IF(NPRINT.GE.3) THEN
          DO NR=1,NRMAX
             WRITE(6,'(I5,1P,5E12.4)') 
-     &           NR,PSS(NR),AVR1(NR),AVR2(NR),AVRR(NR),AVBR(NR)
+     &      NR,PSS(NR)-PSS(1),RLEN(NR),AVR1(NR),AVR2(NR),
+     &           AVRR(NR)
          ENDDO
       ENDIF
 C
