@@ -19,6 +19,35 @@ C
       CALL GETAXS(RAXIS,ZAXIS)
 C
       CALL EQCALA(IERR)
+C      CALL AKTEST
+      RETURN
+      END
+C
+C     ***** TEST *****
+C
+      SUBROUTINE AKTEST
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      ALPHAMAX=FTS(NRPMAX)
+      DELA=0.2D0*ALPHAMAX
+      DELTH=2.D0*PI/4.D0
+      DO NR=1,5
+         ALPHA=DELA*NR
+         BETA=0.D0
+         CALL ABTORZ(ALPHA,BETA,R0,Z0,IERR)
+         BETA=DELTH
+         CALL ABTORZ(ALPHA,BETA,R1,Z1,IERR)
+         BETA=2*DELTH
+         CALL ABTORZ(ALPHA,BETA,R2,Z2,IERR)
+         BETA=3*DELTH
+         CALL ABTORZ(ALPHA,BETA,R3,Z3,IERR)
+         BETA=4*DELTH
+         CALL ABTORZ(ALPHA,BETA,R4,Z4,IERR)
+         WRITE(6,'(I5,1P6E12.4)') NR,ALPHA,R0,R1,R2,R3,R4
+         WRITE(6,'(I5,1P6E12.4)') NR,BETA,Z0,Z1,Z2,Z3,Z4
+         WRITE(6,*)
+      ENDDO
       RETURN
       END
 C
@@ -29,75 +58,26 @@ C
       INCLUDE '../eq/eqcomq.inc'
       COMMON /EQAKV1/ ALPHG(NRM),BETAG(NTHMP)
       COMMON /EQAKV2/ UABR(4,4,NTHMP,NRM),UABZ(4,4,NTHMP,NRM)
-      DIMENSION RPSS(NTHMP,NRM),ZPSS(NTHMP,NRM)
       DIMENSION RPSA(NTHMP,NRM),RPSB(NTHMP,NRM),RPSAB(NTHMP,NRM)
       DIMENSION ZPSA(NTHMP,NRM),ZPSB(NTHMP,NRM),ZPSAB(NTHMP,NRM)
 C
-      DTH=2.D0*PI/NTHMAX
+      DTH=2.D0*PI/(NTHMAX-1)
       DO NR=1,NRMAX
          ALPHG(NR)=FTS(NR)
       ENDDO
-      DO NTH=1,NTHMAX+1
+      DO NTH=1,NTHMAX
          BETAG(NTH)=DTH*(NTH-1)
       ENDDO
 C
-      DO NR=1,NRMAX
-         DO NTH=1,NTHMAX
-            RPSS(NTH,NR)=RPS(NTH,NR)
-         ENDDO
-         RPSS(NTHMAX+1,NR)=RPS(1,NR)
-      ENDDO
-C
-      DO NR=1,NRMAX
-         RPSB(       1,NR)=(RPS(2,NR)-RPS(NTHMAX,NR))/(2.D0*DTH)
-         RPSB(NTHMAX+1,NR)=(RPS(2,NR)-RPS(NTHMAX,NR))/(2.D0*DTH)
-      ENDDO
-      RPSAB(       1,    1)=(RPSB(       1,    2)
-     &                           -RPSB(1       ,      1))
-     &                     /(ALPHG(    2)-ALPHG(      1))
-      RPSAB(NTHMAX+1,    1)=(RPSB(NTHMAX+1,    2)
-     &                           -RPSB(NTHMAX+1,      1))
-     &                     /(ALPHG(    2)-ALPHG(      1))
-      RPSAB(       1,NRMAX)=(RPSB(       1,NRMAX)
-     &                           -RPSB(1       ,NRMAX-1))
-     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-      RPSAB(NTHMAX+1,NRMAX)=(RPSB(NTHMAX+1,NRMAX)
-     &                           -RPSB(NTHMAX+1,NRMAX-1))
-     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-C
-      CALL SPL2D(BETAG,ALPHG,RPSS,RPSB,RPSA,RPSAB,UABR,
-     &           NTHMP,NTHMAX+1,NRMAX,3,0,IERR)
+      CALL SPL2D(BETAG,ALPHG,RPS,RPSB,RPSA,RPSAB,UABR,
+     &           NTHM,NTHMAX,NRMAX,4,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+10000
          RETURN
       ENDIF
 C
-      DO NR=1,NRMAX
-         DO NTH=1,NTHMAX
-            ZPSS(NTH,NR)=ZPS(NTH,NR)
-         ENDDO
-         ZPSS(NTHMAX+1,NR)=ZPS(1,NR)
-      ENDDO
-C
-      DO NR=1,NRMAX
-         ZPSB(       1,NR)=(ZPS(2,NR)-ZPS(NTHMAX,NR))/(2.D0*DTH)
-         ZPSB(NTHMAX+1,NR)=(ZPS(2,NR)-ZPS(NTHMAX,NR))/(2.D0*DTH)
-      ENDDO
-      ZPSAB(       1,    1)=(ZPSB(       1,    2)
-     &                           -ZPSB(1       ,      1))
-     &                     /(ALPHG(    2)-ALPHG(      1))
-      ZPSAB(NTHMAX+1,    1)=(ZPSB(NTHMAX+1,    2)
-     &                           -ZPSB(NTHMAX+1,      1))
-     &                     /(ALPHG(    2)-ALPHG(      1))
-      ZPSAB(       1,NRMAX)=(ZPSB(       1,NRMAX)
-     &                           -ZPSB(1       ,NRMAX-1))
-     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-      ZPSAB(NTHMAX+1,NRMAX)=(ZPSB(NTHMAX+1,NRMAX)
-     &                           -ZPSB(NTHMAX+1,NRMAX-1))
-     &                     /(ALPHG(NRMAX)-ALPHG(NRMAX-1))
-C
-      CALL SPL2D(BETAG,ALPHG,ZPSS,ZPSB,ZPSA,ZPSAB,UABZ,
-     &           NTHMP,NTHMAX+1,NRMAX,3,0,IERR)
+      CALL SPL2D(BETAG,ALPHG,ZPS,ZPSB,ZPSA,ZPSAB,UABZ,
+     &           NTHM,NTHMAX,NRMAX,4,0,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+20000
          RETURN
@@ -125,6 +105,8 @@ C
       EPSZ=1.D-8
       BETAIN=ATAN2((Z-ZAXIS)/RKAP,R-RAXIS)
       BETA=ZBRENTX(FNBETA,BETAIN-0.5D0,BETAIN+0.5D0,EPSZ)
+      IF(BETA.LT.0.D0)    BETA=BETA+2.D0*PI
+      IF(BETA.GT.2.D0*PI) BETA=BETA-2.D0*PI
       RETURN
       END
 C
@@ -168,13 +150,13 @@ C
          BETAL=BETA
       ENDIF
       CALL SPL2DF(BETAL,ALPHAL,R,
-     &            BETAG,ALPHG,UABR,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &            BETAG,ALPHG,UABR,NTHM,NTHMAX,NRMAX,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+10000
          RETURN
       ENDIF
       CALL SPL2DF(BETAL,ALPHAL,Z,
-     &            BETAG,ALPHG,UABZ,NTHMP,NTHMAX+1,NRMAX,IERR)
+     &            BETAG,ALPHG,UABZ,NTHM,NTHMAX,NRMAX,IERR)
       IF(IERR.NE.0) THEN
          IERR=IERR+20000
          RETURN

@@ -58,10 +58,14 @@ C
       EXTERNAL PSIAX,EQDERV
       DIMENSION Y(2),DYDX(2),YOUT(2)
       DIMENSION XA(NNM),YA(2,NNM)
+      DIMENSION XCHI0(NNM),XCHI1(NNM),RCHI(NNM),ZCHI(NNM),DXCHI(NNM)
+      DIMENSION URCHI(4,NNM),UZCHI(4,NNM)
       DIMENSION DERIV(NPSM)
-      DIMENSION TEMP(NPSM)
 C
       IERR=0
+C
+C     ----- CHECK NRMAX,NTHMAX,NSUMAX are not greater than *M -----
+C
       NRMAX=NRMAX1
       NTHMAX=NTHMAX1
       NSUMAX=NSUMAX1
@@ -80,6 +84,8 @@ C      WRITE(6,*) 'NRMAX,NTHMAX,NSUMAX=',NRMAX,NTHMAX,NSUMAX
       ENDIF
       IF(IERR.NE.0) RETURN
 C
+C     ----- SET DR, DTH -----
+C
       RLIM=RG(NRGMAX)
 C
       REDGE=ZBRENT(PSIAX,RR,RLIM,1.D-8)
@@ -91,9 +97,15 @@ C
       RAEQ=(REDGE-RAXIS)
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=INT((REDGE-RAXIS)/DR)+1
-      DTH=2*PI/NTHMAX
+      DTH=2*PI/(NTHMAX-1)
+C
+C     ----- SET NUMBER OF DIVISION for integration -----
+C
+
       NMAX=200
       IF(NMAX.GT.NNM) NMAX=NNM
+C
+C     ----- CALCULATE PSI,PPS,TTS,FTS and RPS, ZPS on magnetic surfaces -----
 C
       NR=1
       DO NTH=1,NTHMAX
@@ -119,44 +131,63 @@ C
          SUMQ=0.D0
          RMIN=RINIT
          RMAX=RINIT
-         BMIN=ABS(TTS(NR)/RAXIS)
-         BMAX=ABS(TTS(NR)/RAXIS)
+         BMIN=2.D0*BB
+         BMAX=0.D0
+C         BMIN=ABS(TTS(NR)/RAXIS)
+C         BMAX=ABS(TTS(NR)/RAXIS)
          SUMAVBR=0.D0
          SUMAVRR=0.D0
          SUMAVR1=0.D0
          SUMAVR2=0.D0
          SUML=0.D0
+         XCHI0(1)=0.D0
+         XCHI1(1)=0.D0
+         RCHI(1)=RINIT
+         ZCHI(1)=ZINIT
          DO N=2,NA
-            CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
-            R=YA(1,N)
             H=XA(N)-XA(N-1)
+            R=0.5D0*(YA(1,N-1)+YA(1,N))
+            Z=0.5D0*(YA(2,N-1)+YA(2,N))
+            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
             BPR=SQRT(DPSIDR**2+DPSIDZ**2)
+            B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
+C
             SUMS=SUMS+H/BPR
             SUMV=SUMV+H*R/BPR
             SUMQ=SUMQ+H/(R*BPR)
-            RMIN=MIN(RMIN,R)
-            RMAX=MAX(RMAX,R)
-            B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
-            BMIN=MIN(BMIN,B)
-            BMAX=MAX(BMAX,B)
+            XCHI1(N)=SUMQ
+            RCHI(N)=YA(1,N)
+            ZCHI(N)=YA(2,N)
 C
             SUMAVBR=SUMAVBR+H*BPR/R
             SUMAVRR=SUMAVRR+H/(R*BPR)
             SUMAVR1=SUMAVR1+H*R
             SUMAVR2=SUMAVR2+H*R*BPR
             SUML   =SUML   +H*R/BPR
+C
+            R=YA(1,N)
+            Z=YA(2,N)
+            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+            BPR=SQRT(DPSIDR**2+DPSIDZ**2)
+            B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
+C
+            RMIN=MIN(RMIN,R)
+            RMAX=MAX(RMAX,Z)
+            BMIN=MIN(BMIN,B)
+            BMAX=MAX(BMAX,B)
+C            IF(NR.EQ.NRPMAX) THEN
+C               WRITE(6,'(I5,1P5E12.4)') 
+C     &              N,XA(N),YA(1,N),YA(2,N),SUMQ
+C            ENDIF
          ENDDO
 C
          SPS(NR)=SUMS
          VPS(NR)=SUMV*2.D0*PI
          QPS(NR)=SUMQ*TTS(NR)/(2.D0*PI)
-         IF(NR.EQ.2) THEN
-            FTS(NR)=FTS(NR-1)
-     &             +QPS(NR)*(PSS(NR)-PSS(NR-1))
-         ELSE
-            FTS(NR)=FTS(NR-1)
-     &             +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
-         ENDIF
+         DO N=1,NA
+            XCHI0(N)=2.D0*PI*XA(N)/XA(NA)
+            XCHI1(N)=2.D0*PI*XCHI1(N)/SUMQ
+         ENDDO
          RLEN(NR)=XA(NA)
          RRMIN(NR)=RMIN
          RRMAX(NR)=RMAX
@@ -166,6 +197,7 @@ C
          AVRR(NR)=SUMAVRR/SUML
          AVR1(NR)=SUMAVR1/SUML
          AVR2(NR)=SUMAVR2/SUML
+C
 C            WRITE(6,'(I5,1P,6E12.4)') 
 C     &      NR,SUMAVR1,SUMAVR2,SUML,SUMAVR1/SUML,SUMAVR2/SUML
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR,PSS,AVBR,AVRR=', 
@@ -177,31 +209,42 @@ C     &        RLEN(NR),RRMIN(NR),RRMAX(NR),BBMIN(NR),BBMAX(NR)
 C
 C        +++++ RECALCULATE MAGSURFACE FOR MESH DATA +++++
 C
-         DX=XA(NA)/NTHMAX
-         NDIV=NMAX/NTHMAX+1
-         NEQ=2
-         H=DX/NDIV
-         X=0.D0
-         Y(1)=RINIT
-         Y(2)=ZINIT
-         RPS(1,NR)=Y(1)
-         ZPS(1,NR)=Y(2)
+C         DO N=1,NA
+C            WRITE(6,'(A,I5,1P4E12.4)') 'N,X1,X2,R,Z=',
+C     &            N,XCHI0(N),XCHI1(N),RCHI(N),ZCHI(N)
+C         ENDDO
+C         STOP
+C
+         RCHI(NA)=RCHI(1)
+         ZCHI(NA)=ZCHI(1)
+C         CALL SPL1D(XCHI0,RCHI,DXCHI,URCHI,NA,4,IERR)
+         CALL SPL1D(XCHI1,RCHI,DXCHI,URCHI,NA,4,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RCHI: IERR=',IERR
+C         CALL SPL1D(XCHI0,ZCHI,DXCHI,UZCHI,NA,4,IERR)
+         CALL SPL1D(XCHI1,ZCHI,DXCHI,UZCHI,NA,4,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for ZCHI: IERR=',IERR
+C
+         RPS(1,NR)=YA(1,1)
+         ZPS(1,NR)=YA(2,1)
          DO NTH=2,NTHMAX
-            DO J=1,NDIV
-               CALL EQDERV(X,Y,DYDX)
-               CALL RK4(X,Y,DYDX,YOUT,H,NEQ,EQDERV)
-               X=X+H
-               Y(1)=YOUT(1)
-               Y(2)=YOUT(2)
-            ENDDO
-            RPS(NTH,NR)=Y(1)
-            ZPS(NTH,NR)=Y(2)
+            TH=DTH*(NTH-1)
+C            CALL SPL1DF(TH,RPS(NTH,NR),XCHI0,URCHI,NA,IERR)
+C            CALL SPL1DF(TH,ZPS(NTH,NR),XCHI0,UZCHI,NA,IERR)
+            CALL SPL1DF(TH,RPS(NTH,NR),XCHI1,URCHI,NA,IERR)
+            CALL SPL1DF(TH,ZPS(NTH,NR),XCHI1,UZCHI,NA,IERR)
          ENDDO
+C         IF(NR.EQ.20) THEN
+C            DO NTH=1,NTHMAX
+C               TH=DTH*(NTH-1)
+C               WRITE(6,'(A,I5,1P3E12.4)') 'NTH,TH,R,Z=',
+C     &              NTH,TH,RPS(NTH,NR),ZPS(NTH,NR)
+C            ENDDO
+C            STOP
+C         ENDIF
 C         WRITE(6,'(A,I5,1P4E12.4)') 
 C     &        'NR,RPS,ZPS,RPS,ZPS=',
-C     &        NR,RPS(2,NR),ZPS(2,NR),RPS(NTHMAX,NR),ZPS(NTHMAX,NR)
+C     &        NR,RPS(1,NR),ZPS(1,NR),RPS(NTHMAX,NR),ZPS(NTHMAX,NR)
       ENDDO
-      FTSA=FTS(NRPMAX)
 C
 C     +++++ SETUP AXIS DATA +++++
 C
@@ -218,6 +261,18 @@ C
       AVRR(NR)=1.D0/RAXIS**2
       AVR1(NR)=0.D0
       AVR2(NR)=0.D0
+C
+      FTS(1)=0.D0
+      DO NR=2,NRPMAX
+         IF(NR.EQ.2) THEN
+            FTS(NR)=FTS(NR-1)
+     &             +QPS(NR)*(PSS(NR)-PSS(NR-1))
+         ELSE
+            FTS(NR)=FTS(NR-1)
+     &             +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
+         ENDIF
+      ENDDO
+      FTSA=FTS(NRPMAX)
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
@@ -542,7 +597,7 @@ C
       YA(2,N)=Y(2)
       NEQ=2
 C      H=4.D0*PI*(Y(1)-RAXIS)/NMAX
-      H=2.D0*4.D0*PI*(Y(1)-RAXIS)/NMAX
+      H=1.2D0*2.D0*PI*RKAP*(Y(1)-RAXIS)/NMAX
       IMODE=0
       DO I=2,NMAX
          CALL EQDERV(X,Y,DYDX)
