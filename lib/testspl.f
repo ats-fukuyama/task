@@ -1,0 +1,58 @@
+C     $Id$
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+      PARAMETER (NXM=1001)
+      DIMENSION X0(NXM),F0(NXM),DF0(NXM),UF(4,NXM)
+      DIMENSION GX(NXM),GF(NXM,3),U0(NXM)
+C
+      CALL GSOPEN
+C
+      PI=2.D0*ASIN(1.D0)
+      XMIN=0.D0
+      XMAX=2.D0*PI
+      NXMAX0=11
+      NXMAX=101
+C
+      DX0=(XMAX-XMIN)/(NXMAX0-1)
+      DO NX=1,NXMAX0
+         X=XMIN+DX0*(NX-1)
+C         F=SIN(X)
+         IF(ABS(X-PI).LE.0.5D0*PI) THEN
+            F=1.D0
+         ELSE
+            F=0.D0
+         ENDIF
+         X0(NX)=X
+         F0(NX)=F
+      ENDDO
+C
+C      CALL SPL1D(X0,F0,DF0,UF,NXMAX0,0,IERR)
+      CALL SPL1D(X0,F0,DF0,UF,NXMAX0,4,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D ERROR: IERR=',IERR
+C
+      CALL SPL1DI0(X0,UF,U0,NXMAX0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1DI0 ERROR: IERR=',IERR
+C
+      DX=(XMAX-XMIN)/(NXMAX-1)
+      DO NX=1,NXMAX
+         X=XMIN+DX*(NX-1)
+         CALL SPL1DD(X,F,DF,X0,UF,NXMAX0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1DD ERROR: IERR=',IERR
+         CALL SPL1DI(X,FI,X0,UF,U0,NXMAX0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1DI ERROR: IERR=',IERR
+         GX(NX)=GUCLIP(X)
+         GF(NX,1)=GUCLIP(F)
+         GF(NX,2)=GUCLIP(DF)
+         GF(NX,3)=GUCLIP(FI)
+      ENDDO
+C
+      NGMAX=3
+      STR='/SIN(X)/'
+      MODE=0
+      CALL PAGES
+      CALL GRF1D(0,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL PAGEE
+C
+      CALL GSCLOS
+      STOP
+      END

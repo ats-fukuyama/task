@@ -63,10 +63,6 @@ C
          AX(3,NXMAX)=0.D0
       ENDIF
 C
-      EPS=1.D-14
-      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
-      IF(IERR.NE.0) GOTO 9003
-C
       IF(ID1.EQ.0) THEN
          BX(1)=3.D0*(F(2)-F(1))
       ELSE
@@ -83,10 +79,19 @@ C
       ELSE
          BX(NXMAX)=FX(NXMAX)
       ENDIF
+C
+      WRITE(6,'(1P4E12.4)') AX(1,1),AX(2,1),AX(3,1),BX(1)
+      WRITE(6,'(1P4E12.4)') AX(1,2),AX(2,2),AX(3,2),BX(2)
+      WRITE(6,'(1P4E12.4)') AX(1,3),AX(2,3),AX(3,3),BX(3)
+      EPS=1.D-14
+      CALL BGLU1(AX,NXMAX,1,1,4,EPS,WK,IPX,IERR)
+      IF(IERR.NE.0) GOTO 9003
+C
       CALL BGSLV1(AX,NXMAX,1,1,4,BX,IPX)
       DO NX=1,NXMAX
          FX(NX)=BX(NX)
       ENDDO
+      WRITE(6,'(1P3E12.4)') FX(1),FX(2),FX(3)
 C
       DO NX=2,NXMAX
          DX=X(NX)-X(NX-1)
