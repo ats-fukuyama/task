@@ -84,6 +84,20 @@ C
       INCLUDE 'trncls.inc'
       REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
 C
+C     /* Initialization */
+      DO I=1,mx_mi
+         amu_i(I)=0.0
+         grt_i(I)=0.0
+         temp_i(I)=0.0
+         DO J=1,mx_mz
+            den_iz(I,J)=0.0
+            grp_iz(I,J)=0.0
+            DO K=1,3
+               fex_iz(K,I,J)=0.0
+            ENDDO
+         ENDDO
+      ENDDO
+C
       IERR=0
 C
       k_order=2
@@ -107,6 +121,9 @@ C
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 C
+      DO NS=1,mx_mi
+         amu_i(NS)=0.D0
+      ENDDO
       DO NS=1,NSMAX
          amu_i(NS)=SNGL(PA(NS))
       ENDDO
