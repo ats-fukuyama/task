@@ -195,6 +195,19 @@ C
       RETURN
       END
 C
+C     ***** INTERPOLATE FUNCTIONS *****
+C
+      FUNCTION PSIP(ALPHA)
+C
+      INCLUDE '../eq/eqcomq.h'
+C
+      FTL=FTSA*RHON*RHON
+      CALL SPL1DF(FTL,PSIL,FTS,UFTT,NRMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX FNFTS: SPL1DF ERROR : IERR=',IERR
+      PSIP=PSIL-SAXIS
+      RETURN
+      END
+C
 C     ***** CALCULATE q AND dq/dalpha *****
 C
       SUBROUTINE SUBQPA(ALPHA,Q,DQDA)
