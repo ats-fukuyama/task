@@ -123,6 +123,7 @@ C
          SUMAVRR=0.D0
          SUMAVR1=0.D0
          SUMAVR2=0.D0
+         SUML=0.D0
          DO N=2,NA
             CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
             R=YA(1,N)
@@ -136,10 +137,11 @@ C
             B=SQRT((TTS(NR)/R)**2+(BPR/R)**2)
             BMIN=MIN(BMIN,B)
             BMAX=MAX(BMAX,B)
-            SUMAVBR=SUMAVBR+H*BPR/R**3
-            SUMAVRR=SUMAVRR+H/(BPR*R**3)
-            SUMAVR1=SUMAVR1+H/R
-            SUMAVR2=SUMAVR2+H*BPR/R
+            SUMAVBR=SUMAVBR+H*BPR*BPR/(R*R)
+            SUMAVRR=SUMAVRR+H/(R*R)
+            SUMAVR1=SUMAVR1+H*BPR
+            SUMAVR2=SUMAVR2+H*BPR*BPR
+            SUML   =SUML+H
          ENDDO
 C
          SPS(NR)=SUMS
@@ -157,10 +159,10 @@ C
          RRMAX(NR)=RMAX
          BBMIN(NR)=BMIN
          BBMAX(NR)=BMAX
-         AVBR(NR)=SUMAVBR/SUMQ
-         AVRR(NR)=SUMAVRR/SUMQ
-         AVR1(NR)=SUMAVR1/SUMQ
-         AVR2(NR)=SUMAVR2/SUMQ
+         AVBR(NR)=SUMAVBR/SUML
+         AVRR(NR)=SUMAVRR/SUML
+         AVR1(NR)=SUMAVR1/SUML
+         AVR2(NR)=SUMAVR2/SUML
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR,PSS,AVBR,AVRR=', 
 C     &                            NR,PSS(NR)-PSS(1),AVBR(NR),AVRR(NR)
 C
@@ -344,13 +346,23 @@ C
 C        +++++ CALCULATE SPLINE COEFFICIENTS +++++
 C
       DO NR=2,NRMAX
-         AVBR(NR)=AVBR(NR)/(PSS(NR)-PSS(1))
-         AVR1(NR)=AVR1(NR)/SQRT(PSS(NR)-PSS(1))
-         AVR2(NR)=AVR2(NR)/(PSS(NR)-PSS(1))
+         IF(NR.EQ.NRMAX) THEN
+            DPSIDRHO=(PSS(NR  )-PSS(NR-1))/(DR/RA)
+         ELSE
+            DPSIDRHO=(PSS(NR+1)-PSS(NR-1))/(2*DR/RA)
+         ENDIF
+         AVBR(NR)=AVBR(NR)/DPSIDRHO
+         AVR1(NR)=AVR1(NR)/DPSIDRHO
+         AVR2(NR)=AVR2(NR)/(DPSIDRHO*DPSIDRHO)
       ENDDO
       AVBR(1)=(4.D0*AVBR(2)-AVBR(3))/3.D0
       AVR1(1)=(4.D0*AVR1(2)-AVR1(3))/3.D0
       AVR2(1)=(4.D0*AVR2(2)-AVR2(3))/3.D0
+C
+      DO NR=1,NRMAX
+         WRITE(6,'(I5,1P,5E12.4)') 
+     &        NR,RLEN(NR),AVR1(NR),AVR2(NR),AVRR(NR),AVBR(NR)
+      ENDDO
 C
       CALL SPL1D(PSS,PPS,DERIV,UPPS,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPS: IERR=',IERR
