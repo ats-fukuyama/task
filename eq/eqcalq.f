@@ -357,16 +357,16 @@ C
 C
          RMIN=RR
          RMAX=RR
-         EPS=RL/RR
-         EPS2=EPS*EPS
+         RLN=DR*(NR-NRPMAX)
          DO NTH=1,NTHMAX+1
             DELR=RPS(NTH,NRPMAX)-RPS(NTH,NRPMAX-1)
             DELZ=ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1)
-            RPS(NTH,NR)=RPS(NTH,NRPMAX)+RAXIS
-     &                       +FAC1*(RPS(NTH1,NRPMAX)-RAXIS)*FACTOR
-     &                       +FAC2*(RPS(NTH2,NRPMAX)-RAXIS)*FACTOR
-            ZPS(NTH,NR)=ZAXIS+FAC1*(ZPS(NTH1,NRPMAX)-ZAXIS)*FACTOR
-     &                       +FAC2*(ZPS(NTH2,NRPMAX)-ZAXIS)*FACTOR
+            DEL=SQRT(DELR**2+DELZ**2)
+            DELRN=DELR/DEL
+            DELZN=DELZ/DEL
+            RLN=DR*(NR-NRPMAX)
+            RPS(NTH,NR)=RPS(NTH,NRPMAX)+DELRN*RLN
+            ZPS(NTH,NR)=ZPS(NTH,NRPMAX)+DELZN*RLN
             RMIN=MIN(RMIN,RPS(NTH,NR))
             RMAX=MAX(RMAX,RPS(NTH,NR))
          ENDDO
