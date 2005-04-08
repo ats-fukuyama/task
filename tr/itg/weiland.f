@@ -976,6 +976,7 @@ c
         omega(j) = zalfr(j) / zb
         gamma(j) = zalfi(j) / zb
         ZZ(j)=omega(j)+(0.D0,1.D0)*gamma(j)
+C        write(6,*) j,omega(j),gamma(j)
 c
        enddo
 c
@@ -1678,6 +1679,9 @@ C
       XE(1)=0.D0
       XE(2)=FT*XEH*(1.D0+TVR*(DH-DEVGB-DEVGA3-WII*(DEVB+DEVA3)))
       XE(3)=-TVR*FT*XEH*(C1+DEVGA1+WII*DEVA1)*TE/N
+C      writE(6,'(I3,5F15.7)') IX,DH,-DEVGB,-DEVGA3,-WII*(DEVB+DEVA3),
+C     &     DH-DEVGB-DEVGA3-WII*(DEVB+DEVA3)
+C      write(6,'(I3,3F15.7)') IX,WII,DEVB
       XE(4)=0.D0
       XE(5)=0.D0
 C

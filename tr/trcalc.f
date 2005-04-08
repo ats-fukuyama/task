@@ -272,20 +272,14 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      IF(MDLUF.EQ.3) THEN
-         DO NR=1,NRMAX
-            ZEFF(NR)=2.D0
-         ENDDO
-      ELSE
-         DO NR=1,NRMAX
-            TE =RT(NR,1)
-            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
-     &                +PZ(3)  *PZ(3)  *RN(NR,3)
-     &                +PZ(4)  *PZ(4)  *RN(NR,4)
-     &                +TRZEC(TE)**2   *ANC (NR)
-     &                +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
-         ENDDO
-      ENDIF
+      DO NR=1,NRMAX
+         TE =RT(NR,1)
+         ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
+     &             +PZ(3)  *PZ(3)  *RN(NR,3)
+     &             +PZ(4)  *PZ(4)  *RN(NR,4)
+     &             +TRZEC(TE)**2   *ANC (NR)
+     &             +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
+      ENDDO
 C     
       RETURN
       END
@@ -572,9 +566,17 @@ C
       SUBROUTINE TRAJBSSAUTER
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION ANI(NRM),AJBSL(NRM)
+      DIMENSION ANI(NRM),AJBSL(NRM),PADD(NRM+1)
 C
       IF(PBSCD.LE.0.D0) RETURN
+C
+      DO NR=1,NRMAX
+         IF(SUMPBM.EQ.0.D0) THEN
+            PADD(NR)=0.D0
+         ELSE
+            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
+         ENDIF
+      ENDDO
 C
       DO NR=1,NRMAX-1
 C
@@ -596,9 +598,9 @@ C
             RNM =RNM +RN(NR  ,NS)
          ENDDO
          RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-     &            +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         RPIP=RNTP+PADD(NR+1)
+         RPIM=RNTP+PADD(NR  )
 C
 C     ****** ION PARAMETER ******
 C
@@ -612,10 +614,10 @@ C
          DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
+         PPI=0.5D0*(RPIP+RPIM)
+         DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
-         PPI=0.5D0*(RNTP+RNTM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-         DPI=(RNTP-RNTM)*DRL
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
      &           /(ABS(TI*1.D3)**1.5D0))
@@ -692,6 +694,10 @@ C
 C         DRL=RJCB(NR)/DR
          DRL=1.D0/DR
 C
+C     In the following, we assume that
+C        1. pressures of beam and fusion at rho=1 are negligible,
+C        2. calibration of Pbeam (from UFILE) is not necessary at rho=1.
+C
          RNTP=0.D0
          RNP =0.D0
          RNTM=0.D0
@@ -699,12 +705,17 @@ C
          DO NS=2,NSMAX
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
-            RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
-            RNM =RNM +RN(NR,NS)
+            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
+     &               +RN(NR  ,NS)*RT(NR  ,NS)
+            RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         RNTM=RNTM+RW(NR-1,1)+RW(NR-1,2)
+     &            +RW(NR  ,1)+RW(NR  ,2)
+         RPIP=RNTP
+         RPIM=RNTM+PADD(NR-1)+PADD(NR  )
+         RNTM=0.5D0*RNTM
+         RNM =0.5D0*RNM
+         RPIM=0.5D0*RPIM
 C
 C     ****** ION PARAMETER ******
 C
@@ -718,10 +729,10 @@ C
          DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
+         PPI=RPIP
+         DPI=(RPIP-RPIM)*DRL
          TI =RNTP/RNP
-         PPI=RNTP
-         DTI=2.D0*(RNTP/RNP-RNTM/RNM)*DRL
-         DPI=2.D0*(RNTP-RNTM)*DRL
+         DTI=(RNTP/RNP-RNTM/RNM)*DRL
 C
          rLnLamii=30.D0-LOG(PZ(2)**3*SQRT(ANI(NR)*1.D20)
      &        /(ABS(TI*1.D3)**1.5D0))
@@ -849,9 +860,17 @@ C
       SUBROUTINE TRAJBSNEW
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION ANI(NRM),AJBSL(NRM)
+      DIMENSION ANI(NRM),AJBSL(NRM),PADD(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
+C
+      DO NR=1,NRMAX
+         IF(SUMPBM.EQ.0.D0) THEN
+            PADD(NR)=0.D0
+         ELSE
+            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
+         ENDIF
+      ENDDO
 C
       DO NR=1,NRMAX-1
 C
@@ -872,9 +891,9 @@ C
             RNM =RNM +RN(NR  ,NS)
          ENDDO
          RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
-     &            +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         RPIP=RNTP+PADD(NR+1)
+         RPIM=RNTM+PADD(NR  )
 C
 C     ****** ION PARAMETER ******
 C
@@ -889,10 +908,10 @@ C
          DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
+         PPI=0.5D0*(RPIP+RPIM)
+         DPI=(RPIP-RPIM)*DRL
          TI =0.5D0*(RNTP/RNP+RNTM/RNM)
-         PPI=0.5D0*(RNTP+RNTM)
          DTI=(RNTP/RNP-RNTM/RNM)*DRL
-         DPI=(RNTP-RNTM)*DRL
 C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
 C         ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
@@ -974,6 +993,10 @@ C         QL=ABS(QP(NR))
 C         ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
          DRL=1.D0/DR
 C
+C     In the following, we assume that
+C        1. pressures of beam and fusion at rho=1 are negligible,
+C        2. calibration of Pbeam (from UFILE) is not necessary at rho=1.
+C
          RNTP=0.D0
          RNP= 0.D0
          RNTM=0.D0
@@ -981,12 +1004,17 @@ C
          DO NS=2,NSMAX
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
-            RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
-            RNM =RNM +RN(NR,NS)
+            RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
+     &               +RN(NR  ,NS)*RT(NR  ,NS)
+            RNM =RNM +RN(NR-1,NS)+RN(NR  ,NS)
          ENDDO
-         RNTP=RNTP+RW(NR  ,1)+RW(NR  ,2)
-         RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
-     &            +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+         RNTM=RNTP+RW(NR-1,1)+RW(NR-1,2)
+     &            +RW(NR  ,1)+RW(NR  ,2)
+         RPIP=RNTP
+         RPIM=RNTM+PADD(NR-1)+PADD(NR  )
+         RNTM=0.5D0*RNTM
+         RNM =0.5D0*RNM
+         RPIM=0.5D0*RPIM
 C
 C     ****** ION PARAMETER ******
 C
@@ -1001,10 +1029,10 @@ C
          DO NS=2,NSMAX
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
-         TI =RNTP/RNP
-         PPI=RNTP
-         DTI=2.D0*(RNTP/RNP-RNTM/RNM)*DRL
-         DPI=2.D0*(RNTP-RNTM)*DRL
+         PPI=0.5D0*(RPIP+RPIM)
+         DPI=(RPIP-RPIM)*DRL
+         TI =0.5D0*(RNTP/RNP+RNTM/RNM)
+         DTI=(RNTP/RNP-RNTM/RNM)*DRL
 C         VTI=SQRT(ABS(TI)*RKEV/AMM)
 C
 C         ANE=PNSS(1)

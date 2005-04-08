@@ -23,6 +23,7 @@ C
 C
       INCLUDE 'trcomm.inc'
       INCLUDE 'trglf.inc'
+      DIMENSION ER(NRM),PADD(NRM)
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -69,19 +70,28 @@ C     ***** CLT  is the ion temerature scale length Ti/(dTi/dr) *****
 C     ***** DQ   is the derivative of safety factor (dq/dr) *****
 C     ***** CLS  is the shear length R*q**2/(r*dq/dr) *****
 C
+      DO NR=1,NRMAX
+         IF(SUMPBM.EQ.0.D0) THEN
+            PADD(NR)=0.D0
+         ELSE
+            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
+         ENDIF
+      ENDDO
+C
 C     /* Calculate ExB velocity in advance 
 C        for ExB shearing rate calculation */
       DO NR=1,NRMAX
          CVE=1.D0
          DRL=RJCB(NR)/DR
          IF(NR.EQ.NRMAX) THEN
-            DPD = 2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
-            ER=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+            DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
+            ER(NR)=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
          ELSE
-            DPD = (RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
-            ER=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+            DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
+     &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
+            ER(NR)=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
          ENDIF
-         VEXB(NR)= -CVE*ER/BB
+         VEXB(NR)= -CVE*ER(NR)/BB
       ENDDO
 C
       DO NR=1,NRMAX
@@ -102,26 +112,9 @@ C
             TT=PTS(3)
             TA=PTS(4)
 C
-c$$$            DO NS=2,NSMAX
-c$$$               RNTP=RNTP+2.D0*PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS)
-c$$$               RNP =RNP +2.D0*PNSS(NS)-RN(NR,NS)
-c$$$               RNTM=RNTM+RN(NR,NS)*RT(NR,NS)
-c$$$               RNM =RNM +RN(NR,NS)
-c$$$            ENDDO
-c$$$            RNTM=RNTM+RW(NR,1)+RW(NR,2)
-c$$$            RPP =RNTP+2.D0*PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1)
-c$$$            RPM =RNTM+RN(NR,1)*RT(NR,1)
-c$$$            RPEP=2.D0*PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1)
-c$$$            RPEM=RN(NR,1)*RT(NR,1)
-c$$$            DTE =2.D0*(PTS (1)-RT(NR,1))*DRL
-c$$$            DNE =2.D0*(PNSS(1)-RN(NR,1))*DRL
-c$$$            ZEFFL=ZEFF(NR)
-c$$$            EZOHL=EZOH(NR)
-c$$$C
-c$$$            DPP = (RPP-RPM)*DRL
-c$$$C
-c$$$            TI  = RNTP/RNP
-c$$$            DTI = (RNTP/RNP-RNTM/RNM)*DRL
+C     In the following, we assume that
+C        1. pressures of beam and fusion at rho=1 are negligible,
+C        2. calibration of Pbeam (from UFILE) is not necessary at rho=1.
 C
             DO NS=2,NSMAX
                RNTP=RNTP+PNSS(NS)*PTS(NS)
@@ -134,9 +127,7 @@ C
      &                +RW(NR  ,1)+RW(NR  ,2)
             RPP = RNTP+PNSS(1)   *PTS(1)
             RPM = RNTM+RN(NR-1,1)*RT(NR-1,1)
-     &                +RN(NR  ,1)*RT(NR  ,1)
-     &                +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
-     &                +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+     &                +RN(NR  ,1)*RT(NR  ,1)+PADD(NR-1)+PADD(NR)
             RPEP= PNSS(1)   *PTS(1)
             RPEM= 0.5D0*(RN(NR-1,1)*RT(NR-1,1)
      &                  +RN(NR  ,1)*RT(NR  ,1))
@@ -149,7 +140,6 @@ C
             DPE = 2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
             DTD = 2.D0*(PTS(2) -RT(NR,2))*DRL
             DND = 2.D0*(PNSS(2)-RN(NR,2))*DRL
-            DPD = 2.D0*(PNSS(2)*PTS(2)-RN(NR,2)*RT(NR,2))*DRL
             ZEFFL=ZEFF(NR)
             EZOHL=EZOH(NR)
 C
@@ -175,10 +165,8 @@ C
             ENDDO
             RNTP= RNTP+RW(NR+1,1)+RW(NR+1,2)
             RNTM= RNTM+RW(NR  ,1)+RW(NR  ,2)
-            RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)
-     &                +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
-            RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)
-     &                +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+            RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)+PADD(NR+1)
+            RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)+PADD(NR  )
             RPEP= RN(NR+1,1)*RT(NR+1,1)
             RPEM= RN(NR  ,1)*RT(NR  ,1)
 C
@@ -187,7 +175,6 @@ C
             DPE = (RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
             DTD = (RT(NR+1,2)-RT(NR  ,2))*DRL
             DND = (RN(NR+1,2)-RN(NR  ,2))*DRL
-            DPD = (RN(NR+1,2)*RT(NR+1,2)-RN(NR,2)*RT(NR,2))*DRL
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
@@ -205,45 +192,38 @@ C
             DO NS=2,NSMAX
                RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
             ENDDO
-            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)+PADD(NR  )
          ELSE
             DO NS=2,NSMAX
                RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
             ENDDO
-            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)
-     &          +(PBM(NR-1)*1.D-20/RKEV-RNFS(NR-1)*RT(NR-1,2))
+            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)+PADD(NR-1)
          ENDIF
             DO NS=2,NSMAX
                RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
-            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          IF(NR.GE.NRMAX-1) THEN
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
-            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          ELSE
             DO NS=2,NSMAX
                RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
-            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
          ENDIF
          IF(NR.GE.NRMAX-2) THEN
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
-            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)
-     &          +(PBM(NR  )*1.D-20/RKEV-RNFS(NR  )*RT(NR  ,2))
+            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          ELSE
             DO NS=2,NSMAX
                RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
-            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)
-     &          +(PBM(NR+1)*1.D-20/RKEV-RNFS(NR+1)*RT(NR+1,2))
+            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
          ENDIF
          RPIM=0.5D0*(RPI1+RPI2)
          RPI0=0.5D0*(RPI2+RPI3)
@@ -321,6 +301,15 @@ C
          ENDIF
          AGME(NR) = (S-1.D0)*VEXB(NR)/(EPS*RR)+DVE
          AGMP(NR) = QP(NR)/EPS*AGME(NR)
+C
+         IF(NR.EQ.1) THEN
+            DER = (ER(NR+1)/BP(NR+1)-ER(NR)/BP(NR))/RR/1.5D0*DRL
+         ELSEIF(NR.EQ.NRMAX) THEN
+            DER = (ER(NR)/BP(NR)-ER(NR-1)/BP(NR-1))/RR*DRL
+         ELSE
+            DER = (ER(NR+1)/BP(NR+1)-ER(NR-1)/BP(NR-1))/RR/2.D0*DRL
+         ENDIF
+         WEXB(NR)=RR*BP(NR)/BB*DER
 C
 C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
 C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
@@ -839,91 +828,121 @@ C
 C
          MDDW=1
 C     INPUTS
-         leigen=1        ! default
-         nroot=8         ! default
-         iglf=1
-         jshoot=0        ! strongly recommended
+         leigen=1        ! 1 for tomsqz, 0 for cgg solver
+         IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
+            nroot=12   ! num. of equations, 8 for default, 12 for imp.
+         ELSE
+            nroot=8
+         ENDIF
+         iglf=1          ! 0 for original model, 1 for retuned model
+         jshoot=0        ! 0 for time-dep code, 1 for shooting code
 C     if jshoot=0, maximum argument of array is important.
-         jmm=0           ! default
-         jmaxm=NRMAX-1
-         itport_pt(1)=1
-         itport_pt(2)=1
-         itport_pt(3)=1
-         itport_pt(4)=0  ! default
-         itport_pt(5)=0  ! default
-         irotstab=1
+         jmm=0           ! jmm=0 does full grid from jm=1,jmaxm-1
+         jmaxm=NRMAX-1   ! maximum num. of grid points
+         itport_pt(1)=MDLEQN  ! density transport
+         IF(MDLEQT.NE.0) THEN
+            IF(NSMAX.EQ.1) THEN
+               IF(MDLEOI.EQ.1) THEN
+                  itport_pt(2)=MDLEQT ! electron transport
+                  itport_pt(3)=0      ! ion transport
+               ELSEIF(MDLEOI.EQ.2) THEN
+                  itport_pt(2)=0
+                  itport_pt(3)=MDLEQT
+               ELSE
+                  itport_pt(2)=MDLEQT ! i.e. itport_pt(2)=1
+                  itport_pt(3)=MDLEQT ! i.e. itport_pt(3)=1
+               ENDIF
+            ELSE
+               itport_pt(2)=MDLEQT ! i.e. itport_pt(2)=1
+               itport_pt(3)=MDLEQT ! i.e. itport_pt(3)=1
+            ENDIF
+         ELSE
+            itport_pt(2)=MDLEQT
+            itport_pt(3)=MDLEQT   
+         ENDIF
+         itport_pt(4)=0  ! v_phi transport
+         itport_pt(5)=0  ! v_theta transport
+         irotstab=1      ! 1 uses internally computed ExB shear
 C
          DO jm=0,jmaxm-1
-            te_m(jm) =0.5D0*(RT(jm+2,1)+RT(jm+1,1))
-            ti_m(jm) =0.5D0*(RT(jm+2,2)+RT(jm+1,2))
-            rne_m(jm)=0.5D0*(RN(jm+2,1)+RN(jm+1,1))*1.D1
-            rni_m(jm)=0.5D0*(RN(jm+2,2)+RN(jm+1,2))*1.D1
-            rns_m(jm)=0.5D0*(RNF(jm+2,1)+RNF(jm+1,1))*1.D1
+            te_m(jm) =0.5D0*(RT(jm+2,1)+RT(jm+1,1))        ! Te [keV]
+            ti_m(jm) =0.5D0*(RT(jm+2,2)+RT(jm+1,2))        ! Ti [keV]
+            rne_m(jm)=0.5D0*(RN(jm+2,1)+RN(jm+1,1))*1.D1   ! Ne [^-19]
+            rni_m(jm)=0.5D0*(RN(jm+2,2)+RN(jm+1,2))*1.D1   ! Ni [^-19]
+            rns_m(jm)=0.5D0*(RNF(jm+2,1)+RNF(jm+1,1))*1.D1 ! Nf [^-19]
          ENDDO
          jm=jmaxm
             te_m(jm) =PTS(1)
             ti_m(jm) =PTS(2)
-            rne_m(jm)=PNSS(1)
-            rni_m(jm)=PNSS(2)
+            rne_m(jm)=PNSS(1)*1.D1
+            rni_m(jm)=PNSS(2)*1.D1
             rns_m(jm)=FEDG(RG(jm+1),RG(jm),RG(jm-1),
      &                     RNF(jm,1),RNF(jm-1,1))*1.D1
 C     
-         igrad=0         ! default
-         idengrad=2      ! default
-         zpte_in=0.D0    ! default
-         zpti_in=0.D0    ! default
-         zpne_in=0.D0    ! default
-         zpni_in=0.D0    ! default
+         igrad=0         ! compute gradients (1=input gradients)
+         IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
+            idengrad=3   ! compute simple dilution (3=actual dilution)
+         ELSE
+            idengrad=2
+         ENDIF
+         zpte_in=0.D0    ! 1/Lte (necessary if igrad and jmm != 0)
+         zpti_in=0.D0    ! 1/Lti (necessary if igrad and jmm != 0)
+         zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
+         zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
          DO jm=0,jmaxm
-            angrotp_exp(jm)=VROT(jm+1)
-            egamma_exp(jm)=AGME(jm+1)
-            rgamma_p_exp(jm)=AGMP(jm+1)
-            vphi_m(jm)=VTOR(jm+1)
-            vpar_m(jm)=0.D0          ! default
-            vper_m(jm)=0.D0          ! default
+            angrotp_exp(jm)=VROT(jm+1) ! exp. toroidal ang. vel. [1/s]
+            egamma_exp(jm)=AGME(jm+1)  ! exp. ExB shearing rate
+            rgamma_p_exp(jm)=0.D0      ! exp. para. vel. shearing rate
+            vphi_m(jm)=VTOR(jm+1)    ! toroidal velosity [m/s]
+            vpar_m(jm)=0.D0          ! parallel velosity [m/s]
+            vper_m(jm)=0.D0          ! perpendicular velosity [m/s]
          ENDDO
 C
          DO jm=0,jmaxm
-            zeff_exp(jm)=ZEFF(jm+1)
-C            zeff_exp(jm)=1.D0
+            zeff_exp(jm)=ZEFF(jm+1)  ! effective charge
          ENDDO
 C
-         bt_exp=BB
-         nbt_flag=1    ! default
+         bt_exp=BB      ! toroidal field [T]
+         nbt_flag=1     ! >0 for Beff, Bt otherwise
 C
 C     normalized flux surface; 0 < rho < 1.
          DO jm=0,jmaxm
-            rho(jm)=EPSRHO(jm+1)*RR/RA
+            rho(jm)=EPSRHO(jm+1)*RR/RA ! norm. toroidal flux surf. label
          ENDDO
 C
-C     rho(a)
-         arho_exp=rho(jmaxm)*RA   ! default
+         IF(PHIA.EQ.0) THEN
+            arho_exp=rho(jmaxm)*RA ! rho at last closed flux surface [m]
+         ELSE
+            arho_exp=SQRT(PHIA/(PI*bt_exp))
+         ENDIF
 C
          DO jm=0,jmaxm
-            rgradrho_exp(jm)  =AR1RHOG(jm+1)*RA
-            rgradrhosq_exp(jm)=AR2RHOG(jm+1)*RA*RA
-            rmin_exp(jm)      =RMNRHOG(jm+1)
-            rmaj_exp(jm)      =RMJRHOG(jm+1)
+            rgradrho_exp(jm)  =AR1RHOG(jm+1)*arho_exp
+            rgradrhosq_exp(jm)=AR2RHOG(jm+1)*arho_exp**2
+            rmin_exp(jm)      =RMNRHOG(jm+1) ! local minor radius [m]
+            rmaj_exp(jm)      =RMJRHOG(jm+1) ! local major radius [m]
          ENDDO
-         rmajor_exp=RR
+         rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
 C
-         zimp_exp=6.D0          ! default; finite date is necessary.
-         amassimp_exp=12.D0     ! default; finite date is necessary.
+         zimp_exp=PZ(3)         ! Zimp; finite data is necessary
+         amassimp_exp=PA(3)     ! Aimp; finite data is necessary
 C
          DO jm=0,jmaxm
-            q_exp(jm)=QP(jm+1)
+            q_exp(jm)=QP(jm+1)  ! safety factor
          ENDDO
 C
          DO jm=0,jmaxm
-            shat_exp(jm) =S_AR(jm+1)
-            alpha_exp(jm)=ALFA_AR(jm+1)
-            elong_exp(jm)=EKAPPA(jm+1)
+            shat_exp(jm) =S_AR(jm+1)    ! magnetic shear
+            alpha_exp(jm)=ALFA_AR(jm+1) ! MHD alpha
+C            write(6,'(I3,3F15.7)') jm,rho(jm),q_exp(jm),shat_exp(jm)
+            elong_exp(jm)=EKAP(jm+1)    ! local elongation
          ENDDO
+C         stop
 C
-         amassgas_exp=PA(2)
-         alpha_e=1.D0
-         x_alpha=1.D0
-         i_delay=0       ! default(usually recommended)
+         amassgas_exp=PA(2) ! atomic num. of working gas
+         alpha_e=1.D0  ! ExB shear stabilization (0=off,>0=on)
+         x_alpha=1.D0  ! alpha stabilization (0=off,>0=on)
+         i_delay=0     ! default(usually recommended)
 C
          call callglf2d( leigen, nroot, iglf
      & , jshoot, jmm, jmaxm, itport_pt
@@ -1022,6 +1041,7 @@ C
          diff_mn(j)=diffnem
          chie_mn(j)=chietem
          chii_mn(j)=chiitim
+C         write(6,*) jmm,j,chiitim,chii_st(j)
       enddo
 C
       DO NR=2,NRMAX-1
@@ -1035,6 +1055,8 @@ C
      &             /(zpti_inv-zpti_m(NR-1))
          AKDW(NR,3)=AKDW(NR,2)
          AKDW(NR,4)=AKDW(NR,2)
+C         write(6,'(I3,3F15.7)') NR,chie_mn(NR-1)*zpte_inv,
+C     &        chie_st(NR-1)*zpte_m(NR-1),zpte_inv-zpte_m(NR-1)
          AVK(NR,1)=(chie_st(NR-1)-AKDW(NR,1))*zpte_m(NR-1)
          AVK(NR,2)=(chii_st(NR-1)-AKDW(NR,2))*zpti_m(NR-1)
          AVK(NR,3)=AVK(NR,2)
@@ -1082,9 +1104,9 @@ C
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
          CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                       S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
+     &                       S_AR,EPSRHO,EKAP,RT,BB,AMM,AME,
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
-     &                       AKDW)
+     &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63) THEN
          CALL TR_WEILAND
       ENDIF
@@ -1218,10 +1240,10 @@ C     &         -2.1*(RNUT*EPSS)**2)/(1+(RNUT*EPSS)**2)
 C         RK3A=((1.17-0.35*SQRT(RNUA))/(1.D0+0.7*SQRT(RNUA))
 C     &         -2.1*(RNUA*EPSS)**2)/(1+(RNUA*EPSS)**2)
 C
-         AKNC(NR,1) = CNC*SQRT(EPS)*RHOE2/TAUE*RK22E
-         AKNC(NR,2) = CNC*SQRT(EPS)*RHOD2/TAUD*RK2D
-         AKNC(NR,3) = CNC*SQRT(EPS)*RHOT2/TAUT*RK2T
-         AKNC(NR,4) = CNC*SQRT(EPS)*RHOA2/TAUA*RK2A
+         AKNC(NR,1) = SQRT(EPS)*RHOE2/TAUE*RK22E
+         AKNC(NR,2) = SQRT(EPS)*RHOD2/TAUD*RK2D
+         AKNC(NR,3) = SQRT(EPS)*RHOT2/TAUT*RK2T
+         AKNC(NR,4) = SQRT(EPS)*RHOA2/TAUA*RK2A
 C
       ELSE
 C
@@ -1317,17 +1339,17 @@ C
      &       /(1.D0+1.79D0*RALFA))
      &       *(F1-F2)
 C
-         AKNC(NR,1)=CNC*(QL**2*RHOIE**2)/(EPSS*TAUE)*(TERM1E+TERM2E)
-         AKNC(NR,2)=CNC*(QL**2*RHOID**2)/(EPSS*TAUD)*(TERM1D+TERM2D)
-         AKNC(NR,3)=CNC*(QL**2*RHOIT**2)/(EPSS*TAUT)*(TERM1T+TERM2T)
-         AKNC(NR,4)=CNC*(QL**2*RHOIA**2)/(EPSS*TAUA)*(TERM1A+TERM2A)
+         AKNC(NR,1)=(QL**2*RHOIE**2)/(EPSS*TAUE)*(TERM1E+TERM2E)
+         AKNC(NR,2)=(QL**2*RHOID**2)/(EPSS*TAUD)*(TERM1D+TERM2D)
+         AKNC(NR,3)=(QL**2*RHOIT**2)/(EPSS*TAUT)*(TERM1T+TERM2T)
+         AKNC(NR,4)=(QL**2*RHOIA**2)/(EPSS*TAUA)*(TERM1A+TERM2A)
 C
       ENDIF
 C
 C     Limit of neoclassical diffusivity
          DO NS=1,4
             CHECK=ABS(RT(NR,NS)*RKEV/(2.D0*PZ(NS)*AEE*RR*BB))*RG(NR)*RA
-            IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CNC*CHECK
+            IF(AKNC(NR,NS).GT.CHECK) AKNC(NR,NS)=CHECK
          ENDDO
       ENDDO
 C
@@ -1335,7 +1357,7 @@ C
 C
       DO NR=1,NRMAX
          DO NS=1,NSM
-            AK(NR,NS) = AKDW(NR,NS)+AKNC(NR,NS)
+            AK(NR,NS) = CDH*AKDW(NR,NS)+CNH*AKNC(NR,NS)
          ENDDO
       ENDDO
 C
@@ -1349,13 +1371,15 @@ C
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     AKLP(NR,NS,NS1)= AKDW(NR,NS)+AKNCT(NR,NS,NS1)
-     &                                           +AKNCP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)=-AKDW(NR,NS)-AKNCT(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CDH*  AKDW(NR,NS)
+     &                               +CNH*( AKNCT(NR,NS,NS1)
+     &                                     +AKNCP(NR,NS,NS1))
+                     AKLD(NR,NS,NS1)= CDH*(-AKDW(NR,NS))
+     &                               +CNH*(-AKNCT(NR,NS,NS1))
                   ELSE
-                     AKLP(NR,NS,NS1)=             AKNCT(NR,NS,NS1)
-     &                                           +AKNCP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)=            -AKNCT(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CNH*( AKNCT(NR,NS,NS1)
+     &                                     +AKNCP(NR,NS,NS1))
+                     AKLD(NR,NS,NS1)= CNH*(-AKNCT(NR,NS,NS1))
                   ENDIF
                ENDDO
             ENDDO
@@ -1365,11 +1389,12 @@ C
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)+CNC*AKNC(NR,NS)
-                     AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CDH*AKDWP(NR,NS,NS1)
+     &                               +CNH*AKNC(NR,NS)
+                     AKLD(NR,NS,NS1)= CDH*AKDWD(NR,NS,NS1)
                   ELSE
-                     AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)
-                     AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)
+                     AKLP(NR,NS,NS1)= CDH*AKDWP(NR,NS,NS1)
+                     AKLD(NR,NS,NS1)= CDH*AKDWD(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
@@ -1378,9 +1403,11 @@ C
          DO NR=1,NRMAX
             DO NS=1,NSMAX
                DO NS1=1,NSMAX
-                  AKLP(NR,NS,NS1)= AKDWP(NR,NS,NS1)+AKNCT(NR,NS,NS1)
-     &                                             +AKNCP(NR,NS,NS1)
-                  AKLD(NR,NS,NS1)= AKDWD(NR,NS,NS1)-AKNCT(NR,NS,NS1)
+                  AKLP(NR,NS,NS1)= CDH*  AKDWP(NR,NS,NS1)
+     &                            +CNH*( AKNCT(NR,NS,NS1)
+     &                                  +AKNCP(NR,NS,NS1))
+                  AKLD(NR,NS,NS1)= CDH*  AKDWD(NR,NS,NS1)
+     &                            +CNH*(-AKNCT(NR,NS,NS1))
                ENDDO
             ENDDO
          ENDDO
@@ -1542,7 +1569,7 @@ C
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
             DO NS=1,NSM
-               AD(NR,NS) = ADNC(NR,NS)
+               AD(NR,NS) = CNP*ADNC(NR,NS)
             ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
@@ -1558,7 +1585,8 @@ C
             DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
 C
             DO NS=1,NSM
-               AV(NR,NS) = AD(NR,NS)*DPROF/PROF
+               AVNC(NR,NS) = AD(NR,NS)*DPROF/PROF
+               AV(NR,NS)   = CNP*AVNC(NR,NS)
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.2) THEN
@@ -1581,7 +1609,7 @@ C
      &                +PZ(3)*ANT *AD(NR,3)
      &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
             DO NS=1,NSM
-               AD(NR,NS) = ADNC(NR,NS)
+               AD(NR,NS) = CNP*ADNC(NR,NS)
             ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
@@ -1598,7 +1626,8 @@ C
      &                *(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
 C
             DO NS=1,NSM
-               AV(NR,NS) =AD(NR,NS)*DPROF/PROF
+               AVNC(NR,NS) = AD(NR,NS)*DPROF/PROF
+               AV(NR,NS)   = CNP*AVNC(NR,NS)
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.3) THEN
@@ -1640,7 +1669,7 @@ C
 C
             H     = BB/(BB+BPL)
             DO NS=1,NSM
-               AV(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
+               AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ENDDO
 C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
@@ -1648,7 +1677,8 @@ C
 C
             DO NS=1,NSM
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
-               AD(NR,NS)   = ADDW(NR,NS)+CNC*ADNC(NR,NS)
+               AD(NR,NS)   = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
+               AV(NR,NS)   = CNP*AVNC(NR,NS)
             ENDDO
 C
          ENDDO
@@ -1701,9 +1731,9 @@ C
             ENDDO
 C
             DO NS=1,NSM
-               AD(NR,NS)   = ADDW(NR,NS)+CNC*ADNC(NR,NS)
+               AD(NR,NS)   = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
                AVDW(NR,NS) =-AV0*ADDW(NR,NS)*RR*EPS/RA**2
-               AV(NR,NS)   = AVDW(NR,NS)+CNC*AVNC(NR,NS)
+               AV(NR,NS)   = CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
             ENDDO
          ENDDO
       ELSE
@@ -1724,17 +1754,18 @@ C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
+               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
                IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= ADDW(NR,NS)-ADNCT(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)=             ADNCT(NR,NS,NS1)
-     &                                           +ADNCP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDP*  ADDW(NR,NS)
+     &                               +CNP*(-ADNCT(NR,NS,NS1))
+                     ADLP(NR,NS,NS1)= CNP*( ADNCT(NR,NS,NS1)
+     &                                     +ADNCP(NR,NS,NS1))
                   ELSE
-                     ADLD(NR,NS,NS1)=            -ADNCT(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)=             ADNCT(NR,NS,NS1)
-     &                                           +ADNCP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CNP*(-ADNCT(NR,NS,NS1))
+                     ADLP(NR,NS,NS1)= CNP*( ADNCT(NR,NS,NS1)
+     &                                     +ADNCP(NR,NS,NS1))
                   ENDIF
                ENDDO
             ENDDO
@@ -1742,14 +1773,15 @@ C
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVDW(NR,NS)+AV(NR,NS)
+               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AV(NR,NS)
                DO NS1=1,NSMAX
                   IF(NS.EQ.NS1) THEN
-                     ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)+CNC*ADNC(NR,NS)
-                     ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
+     &                               +CNP*ADNC(NR,NS)
+                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
                   ELSE
-                     ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)
-                     ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)
+                     ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
+                     ADLP(NR,NS,NS1)= CDP*ADDWP(NR,NS,NS1)
                   ENDIF
                ENDDO
             ENDDO
@@ -1757,11 +1789,13 @@ C
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               AV(NR,NS)=AVDW(NR,NS)+AVNCES(NR,NS)
+               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
                DO NS1=1,NSMAX
-                  ADLD(NR,NS,NS1)= ADDWD(NR,NS,NS1)-ADNCT(NR,NS,NS1)
-                  ADLP(NR,NS,NS1)= ADDWP(NR,NS,NS1)+ADNCT(NR,NS,NS1)
-     &                                             +ADNCP(NR,NS,NS1)
+                  ADLD(NR,NS,NS1)= CDP*  ADDWD(NR,NS,NS1)
+     &                            +CNP*(-ADNCT(NR,NS,NS1))
+                  ADLP(NR,NS,NS1)= CDP*  ADDWP(NR,NS,NS1)
+     &                            +CNP*( ADNCT(NR,NS,NS1)
+     &                                  +ADNCP(NR,NS,NS1))
                ENDDO
             ENDDO
          ENDDO
@@ -1799,8 +1833,8 @@ C
          CFNHI =RN(NR,2)*1.D20*SGMNI*VNI
          CFNHNH=RN(NR,8)*1.D20*SGMNN*VNH
          CFNHNC=RN(NR,7)*1.D20*SGMNN*VNH
-         AD(NR,7) = VNC**2/(CFNCI+CFNCNC+CFNCNH)
-         AD(NR,8) = VNH**2/(CFNHI+CFNHNH+CFNHNC)
+         AD(NR,7) = CNP*VNC**2/(CFNCI+CFNCNC+CFNCNH)
+         AD(NR,8) = CNP*VNH**2/(CFNHI+CFNHNH+CFNHNC)
 C
          AV(NR,7) = 0.D0
          AV(NR,8) = 0.D0
@@ -1817,19 +1851,18 @@ C
          ENDDO
       ELSEIF(MDLAVK.EQ.1) THEN
          DO NR=1,NRMAX
-            AVK(NR,1)=-(RR*EPSRHO(NR)/RA)*CHP
-            AVK(NR,2)=-(RR*EPSRHO(NR)/RA)*CHP
-            AVK(NR,3)=-(RR*EPSRHO(NR)/RA)*CHP
-            AVK(NR,4)=-(RR*EPSRHO(NR)/RA)*CHP
+            DO NS=1,NSM
+               AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*CHP
+               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
+            ENDDO
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
          DO NR=1,NRMAX
-            AVKL=-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)
-     &           /(ANE*1.D20*TE*RKEV)
-            AVK(NR,1)=-AVKL
-            AVK(NR,2)=-AVKL
-            AVK(NR,3)=-AVKL
-            AVK(NR,4)=-AVKL
+            DO NS=1,NSM
+               AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)
+     &                       /(ANE*1.D20*TE*RKEV)
+               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
+            ENDDO
          ENDDO
       ELSEIF(MDLAVK.EQ.3) THEN
 C     *** Hinton & Hazeltine model ***
@@ -1872,11 +1905,12 @@ C
      &             -2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
 C
             H     = BB/(BB+BPL)
-            AVK(NR,1) = (-RK23E+2.5D0*RK13E)*SQRT(EPS)*EZOHL/BPL/H
+            AVKNC(NR,1) = (-RK23E+2.5D0*RK13E)*SQRT(EPS)*EZOHL/BPL/H
+            AVK(NR,1)   = CNH*AVKNC(NR,1)
             DO NS=2,NSM
-               AVK(NR,NS) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))
-     &                     *RK13E*SQRT(EPS)*EZOHL/BPL/H*ANED
-     &                     
+               AVKNC(NR,NS) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))
+     &                       *RK13E*SQRT(EPS)*EZOHL/BPL/H*ANED
+               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
             ENDDO
          ENDDO
       ELSE

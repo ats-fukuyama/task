@@ -337,8 +337,10 @@ C
                   ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
                ENDDO
                DO NM=1,5
-                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHOG(NR)
-                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHOG(NR)
+                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20
+     &                           /AR1RHOG(NR)
+                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20
+     &                           /AR1RHOG(NR)
                ENDDO
                AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
                AVNCES(NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)

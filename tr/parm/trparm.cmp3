@@ -9,6 +9,8 @@
    MDLETA=2
    MDLKAI=31
    MDLKNC=0
+   MDLAD=0
+   MDLAVK=0
    NSMAX=3
    MDLUF=3
    KUFDEV='X'

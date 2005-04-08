@@ -94,7 +94,7 @@ C
       RISBL = 2.D0
       SEARCH= 2.D0
       PMA   = PA(2)
-      ROTL  = 0.D0
+      ROTL  = 1.D0
       EPSA  = RA/RR
       DO NR=1,NRMAX-1
          DRL   = RJCB(NR)/DR
@@ -106,16 +106,21 @@ C
          SLTIL = 0.5D0*(RT(NR+1,2)+RT(NR,2))/((RT(NR+1,2)-RT(NR,2))*DRL)
          SLTQL = 0.5D0*(RT(NR+1,3)+RT(NR,3))/((RT(NR+1,3)-RT(NR,3))*DRL)
          SLBL  = RR
-         ENL   =-2.D0*(SLNEL/SLBL )
-         EIL   =       SLNIL/SLTIL
-         EEL   =       SLNEL/SLTEL
+C         ENL   =-2.D0*(SLNEL/SLBL )
+C         EIL   =       SLNIL/SLTIL
+C         EEL   =       SLNEL/SLTEL
+         ENL   = ABS(2.D0*(SLNEL/SLBL ))
+         EIL   = ABS(      SLNIL/SLTIL)
+         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
          FTL   = 1.D0-(1.D0-EPS)**2.D0
      &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
-         EQL   =       SLNQL/SLTQL
-         ENQL  =-2.D0*(SLNQL/SLBL )
+C         EQL   =       SLNQL/SLTQL
+C         ENQL  =-2.D0*(SLNQL/SLBL )
+         EQL   = ABS(      SLNQL/SLTQL)
+         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
          BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
      &          *RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
@@ -130,7 +135,7 @@ C
          RNL   = 0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
-         WEXBL = AGME(NR)
+         WEXBL = WEXB(NR)
 C
 C         COEF = PZ(2)**2*AEE**4*1.D20
 C     &         /(6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)*RKEV**1.5D0)
@@ -147,7 +152,11 @@ C
 C
          CALL WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,
      &                        SCHI,SCHE,SD,SCHQ,SDQ)
-C         write(6,*) NR,CHQL(4),SCHQ
+C       write(6,'(I3,5F15.7)') NR,CHEL(1),CHEL(2),CHEL(3),CHEL(4),CHEL(5)
+C       write(6,'(I3,5F15.7)') NR,CHIL(1),CHIL(2),CHIL(3),CHIL(4),CHIL(5)
+C       write(6,'(I3,5F15.7)') NR,CHQL(1),CHQL(2),CHQL(3),CHQL(4),CHQL(5)
+C       write(6,'(I3,5F15.7)') NR,DL(1),DL(2),DL(3),DL(4),DL(5)
+C         if(nr.eq.4) write(6,'(I4,5F15.7)') NT,DL(3),CHQL(4)
       ENDDO
 C
       NR=NRMAX
@@ -160,16 +169,21 @@ C
          SLTIL = PTS (2)/(2.D0*(PTS (2)-RT(NR,2))*DRL)
          SLTQL = PTS (3)/(2.D0*(PTS (3)-RT(NR,3))*DRL)
          SLBL  = RR
-         ENL   =-2.D0*(SLNEL/SLBL )
-         EIL   =       SLNIL/SLTIL
-         EEL   =       SLNEL/SLTEL
+C         ENL   =-2.D0*(SLNEL/SLBL )
+C         EIL   =       SLNIL/SLTIL
+C         EEL   =       SLNEL/SLTEL
+         ENL   = ABS(2.D0*(SLNEL/SLBL ))
+         EIL   = ABS(      SLNIL/SLTIL)
+         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
          FTL   = 1.D0-(1.D0-EPS)**2.D0
      &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
          BQL   = PNSS(3)/PNSS(1)
-         EQL   =       SLNQL/SLTQL
-         ENQL  =-2.D0*(SLNQL/SLBL )
+C         EQL   =       SLNQL/SLTQL
+C         ENQL  =-2.D0*(SLNQL/SLBL )
+         EQL   = ABS(      SLNQL/SLTQL)
+         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
          BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = PTS(1)
          TAUZL = PTS(1)/PTS(3)
@@ -179,7 +193,7 @@ C
          RNL   = PNSS(1)*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
-         WEXB = AGME(NR)
+         WEXBL = WEXB(NR)
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,
@@ -205,12 +219,15 @@ C
 C     It is assumed that De=Di in the followings.
 C
       IF(PA(3).EQ.3.D0) THEN
-         AKDW(NR,1)=SCHE
+C         AKDW(NR,1)=SCHE
+         AKDW(NR,1)=CHEL(2)
          DO NS=2,NSM
-            AKDW(NR,NS)=SCHI
+C            AKDW(NR,NS)=SCHI
+            AKDW(NR,NS)=CHIL(1)
          ENDDO
          DO NS=1,NSM
-            ADDW(NR,NS)=SD
+C            ADDW(NR,NS)=SD
+            ADDW(NR,NS)=DL(3)
          ENDDO
          IF(MDLWLD.NE.0) THEN
             ADDWD(NR,1,1)=DL(3)
@@ -241,14 +258,15 @@ C
             ENDDO
          ENDIF
       ELSE
-         AKDW(NR,1)=SCHE
-         AKDW(NR,2)=SCHI
-         AKDW(NR,3)=SCHQ
-         AKDW(NR,4)=SCHQ
-         ADDW(NR,1)=SD
-         ADDW(NR,2)=SD
-         ADDW(NR,3)=SDQ
-         ADDW(NR,4)=SDQ
+         AKDW(NR,1)=CHEL(2)
+         AKDW(NR,2)=CHIL(1)
+         AKDW(NR,3)=CHQL(4)
+         AKDW(NR,4)=CHQL(4)
+         ADDW(NR,1)=DL(3)
+         ADDW(NR,2)=DL(3)
+C         ADDW(NR,2)=0.D0
+         ADDW(NR,3)=DQL(5)
+         ADDW(NR,4)=DQL(5)
          IF(MDLWLD.NE.0) THEN
             ADDWD(NR,1,1)=DL(3)
             ADDWP(NR,1,1)=CHEL(3)
@@ -486,9 +504,8 @@ C
       WDE=ABS(EN)*WST           ! curvature drift frequency (omega_drift_electron)
       LAMB=15.95D0-DLOG(DSQRT(N)/TE) ! coulomb logarithm (lambda)
       VEI=9.19D2*NI*LAMB/TE**1.5D0   ! collisionality (nu_electron_ion)
-C      LAMB=15.2D0-0.5D0*DLOG(N)+DLOG(TE) ! for N (10^20)
-C      VEI=9.19D3*NI*LAMB/TE**1.5D0   ! for N (10^20)
-      VEF=COL*VEI/(EPS*WDE)         ! effective electron ion collision frequency for trapped electrons, normalized by omega_de
+      VEF=COL*VEI/(EPS*WDE)     ! effective electron ion collision frequency for trapped electrons, normalized by omega_de
+      WEXB=WEXB/WDE ! ExB shearing rate should be normalized with WDE
 C
       IF(ICP.NE.0) THEN
          WRITE(*,00130) WST,VEF,VEI,ZEFF,COL
@@ -524,6 +541,7 @@ C
       TOL=0.01D0 ! relative error for convergence
 C      IST=1
 c
+C      IF(IX.GE.48) write(6,'(I3,2F15.7)') IX,HQ
       CALL disp9t(NDISP,ZZ)
 c
       IF(ICP.NE.0) THEN
@@ -614,17 +632,17 @@ C
 C     ***********************************************************
 C
       SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                          S_AR,EPSRHO,EKAPPA,RT,BB,AMM,AME,
+     &                          S_AR,EPSRHO,EKAP,RT,BB,AMM,AME,
      &                          PNSS,PTS,RNFL,RNFEDG,MDLUF,NSMAX,
-     &                          AKDW)
+     &                          AR1RHOG,AR2RHOG,AKDW)
 C
       IMPLICIT NONE
 C
       INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
       REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),QP(NRM),S_AR(NRM),
-     &       EPSRHO(NRM),EKAPPA(NRM),RT(NRM,NSM),BB,AMM,AME,
+     &       EPSRHO(NRM),EKAP(NRM),RT(NRM,NSM),BB,AMM,AME,
      &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
-     &       AKDW(NRM,NSTM)
+     &       AR1RHOG(NRM),AR2RHOG(NRM),AKDW(NRM,NSTM)
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
       parameter (ipin=7,iptmp=8,ipout=9,screen=6)
       real znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps,
@@ -670,7 +688,7 @@ C
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
-         zkappa = SNGL(EKAPPA(NR))
+         zkappa = SNGL(EKAP(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
      &                 /RT(NR,1)**1.5D0)
 C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
@@ -697,8 +715,8 @@ C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
 C            STOP
 C         ENDIF
 C
-         AKDW(NR,1) = DBLE(chie)
-         AKDW(NR,2) = DBLE(chii)
+         AKDW(NR,1) = DBLE(chie)*AR1RHOG(NR)/AR2RHOG(NR)
+         AKDW(NR,2) = DBLE(chii)*AR1RHOG(NR)/AR2RHOG(NR)
       ENDDO
 C
       NR=NRMAX
@@ -714,7 +732,7 @@ C
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
-         zkappa = SNGL(EKAPPA(NR))
+         zkappa = SNGL(EKAP(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
      &                 /RT(NR,1)**1.5D0)
          gtau   = SNGL(PTS(2)/PTS(1))
@@ -739,8 +757,8 @@ C            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
 C            STOP
 C         ENDIF
 C
-         AKDW(NR,1) = DBLE(chie)
-         AKDW(NR,2) = DBLE(chii)
+         AKDW(NR,1) = DBLE(chie)*AR1RHOG(NR)/AR2RHOG(NR)
+         AKDW(NR,2) = DBLE(chii)*AR1RHOG(NR)/AR2RHOG(NR)
 C
       RETURN
       END

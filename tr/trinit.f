@@ -169,13 +169,19 @@ C     ==== TRANSPORT PARAMETERS ====
 C
 C        AV0    : INWARD PARTICLE PINCH FACTOR
 C        AD0    : PARTICLE DIFFUSION FACTOR
-C        CNC    : COEFFICIENT FOR NEOCLASICAL DIFFUSION
+C        CNP    : COEFFICIENT FOR NEOCLASICAL PARTICLE DIFFUSION
+C        CNH    : COEFFICIENT FOR NEOCLASICAL HEAT DIFFUSION
+C        CDP    : COEFFICIENT FOR TURBULENT PARTICLE DIFFUSION
+C        CDH    : COEFFICIENT FOR TURBLUENT HEAT DIFFUSION
 C        CDW(8) : COEFFICIENTS FOR DW MODEL
 C
       AV0    = 0.5D0
       AD0    = 0.5D0
 C
-      CNC    = 1.D0
+      CNP    = 1.D0
+      CNH    = 1.D0
+      CDP    = 1.D0
+      CDH    = 1.D0
       CDW(1) = 0.04D0
       CDW(2) = 0.04D0
       CDW(3) = 0.04D0
@@ -491,6 +497,15 @@ C           1 : create QP(NR) profile from experimental CURTOT profile
 C
       MDLJQ=0
 C
+C     ==== FLUX SWITCH ====
+C
+C        MDLFLX :
+C
+C           0 : use diffusion and convection coefficients
+C           1 : use FLUX term made from source files
+C
+      MDLFLX=0
+C
 C     *** Eqs. Selection Parameter ***
 C
       MDLEQB=1  ! 0/1 for B_theta
@@ -499,7 +514,8 @@ C
       MDLEQU=0  ! 0/1 for rotation
       MDLEQZ=0  ! 0/1 for impurity
       MDLEQ0=0  ! 0/1 for neutral
-      MDLEQE=0  ! 0/1 for electron density
+      MDLEQE=0  ! 0/1/2 for electron density
+C                 0: electron only, 1: both, 2: ion only
 C
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
 C
@@ -519,6 +535,7 @@ C
       NT=0
       TIME_INT=0.D0
       CNB=1.D0
+      SUMPBM=0.D0
 C
       RETURN
       END
@@ -570,13 +587,14 @@ C
       NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
-     &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNC,CDW,CWEB,CALF,
+     &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,
+     &              CWEB,CALF,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,
      &              MDLST,MDLNF,IZERO,MODELG,MODELQ,NTEQIT,
-     &              MDLUF,MDNCLS,MDLWLD,
+     &              MDLUF,MDNCLS,MDLWLD,MDLFLX,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -615,8 +633,8 @@ C
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
-     &       ' ',8X,'CK0,CK1,CNC,CDW,CWEB,CALF,CKALFA,CKBETA'/
-     &       ' ',8X,'KFNLOG,MDLKNC'/
+     &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW'/
+     &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
      &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
@@ -626,7 +644,7 @@ C
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
      &       ' ',8X,'PELTIM,PELPAT,MODELG,MODELQ,NTEQIT'/
-     &       ' ',8X,'MDLUF,MDNCLS,MDLWLD'/
+     &       ' ',8X,'MDLUF,MDNCLS,MDLWLD,MDLFLX'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')
@@ -733,18 +751,23 @@ C
      &             'MDNI  ',MDNI
       WRITE(6,605) 'MDLJQ ',MDLJQ,
      &             'MDTC  ',MDTC,
-     &             'RHOA  ',RHOA
+     &             'RHOA  ',RHOA,
+     &             'MDLFLX',MDLFLX
 C
       WRITE(6,602) 'MODELG',MODELG,
      &             'MODELQ',MODELQ,
      &             'NTEQIT',NTEQIT
 C
       WRITE(6,601) 'CK0   ',CK0,
-     &             'CK1   ',CK1,
-     &             'CNC   ',CNC,
-     &             'AD0   ',AD0
+     &             'CK1   ',CK1
 C
-      WRITE(6,601) 'CHP   ',CHP,
+      WRITE(6,601) 'CNP   ',CNP,
+     &             'CNH   ',CNH,
+     &             'CDP   ',CDP,
+     &             'CDH   ',CDH
+C
+      WRITE(6,601) 'AD0   ',AD0,
+     &             'CHP   ',CHP,
      &             'CWEB  ',CWEB,
      &             'CALF  ',CALF
 C
@@ -853,6 +876,7 @@ C
 C
       INCLUDE 'trcomm.inc'
       COMMON /TMSLC2/ NTAMAX
+      DIMENSION TMP(NRM)
 C
 C     ZEFF=1
 C
@@ -890,7 +914,7 @@ C
          RG(NR) = DBLE(NR)*DR
          RM(NR) =(DBLE(NR)-0.5D0)*DR
 C
-         IF(MDLUF.EQ.1) THEN
+         IF(MDLUF.EQ.1) THEN ! *** MDLUF ***
             IF(MDNI.EQ.0) THEN
                PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
                RN(NR,1) = RNU(1,NR,1)
@@ -946,9 +970,9 @@ C
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
 C
-            PBM(NR)  = PBMU(1,NR)
-            RNFS(NR) = RNFU(1,NR)
-         ELSEIF(MDLUF.EQ.2) THEN
+            PBM(NR)   = PBMU(1,NR)
+            RNF(NR,1) = RNFU(1,NR)
+         ELSEIF(MDLUF.EQ.2) THEN ! *** MDLUF ***
             IF(MDNI.EQ.0) THEN !!!
             IF(MODEP.EQ.1) THEN
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
@@ -1076,12 +1100,12 @@ C
             PEX(NR,3)=0.D0
             PEX(NR,4)=0.D0
 C
-            BOGUS=0.D0
-            SEX(NR,1)=SNBU(1,NR,1)*BOGUS
-            SEX(NR,2)=SNBU(1,NR,2)*BOGUS
+            SEX(NR,1)=SNBU(1,NR,1)+SWLU(1,NR)/PZ(2)
+            SEX(NR,2)=SNBU(1,NR,2)+SWLU(1,NR)
             SEX(NR,3)=0.D0
             SEX(NR,4)=0.D0
-         ELSEIF(MDLUF.EQ.3) THEN
+            RNF(NR,1) = RNFU(1,NR)
+         ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
                RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
@@ -1100,7 +1124,7 @@ C
             PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
-         ELSE
+         ELSE ! *** MDLUF ***
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
                RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
@@ -1116,20 +1140,6 @@ C
             ENDDO
          ENDIF
 C
-C     *****
-C
-C         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-C         DO NS=1,NSM
-C            RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
-C         ENDDO
-C
-C         PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-C         DO NS=1,NSM
-C            RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
-C         ENDDO
-C
-C     *****
-C     
          IF(MDLEQ0.EQ.1) THEN
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFU1)**PROFU2
             RN(NR,7) = (PN(7)-PNS(7))*PROF+PNS(7)
@@ -1138,8 +1148,10 @@ C
          ENDIF
 C
          DO NF=1,NFM
-           RW(NR,NF) = 0.D0
+            RW(NR,NF) = 0.D0
          ENDDO
+C
+         SUMPBM=SUMPBM+PBM(NR)
       ENDDO
       CALL PLDATA_SETR(RG,RM)
       CALL TR_EDGE_DETERMINER(1)
@@ -1302,6 +1314,16 @@ C
             RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
             BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
+C
+c$$$         DO NR=1,NRMAX
+c$$$            AJ(NR)=AJU(1,NR)
+c$$$            AJNB(NR)=AJNBU(1,NR)
+c$$$            AJOH(NR)=AJ(NR)-AJNB(NR)
+c$$$            CALL TRSUMD(AJ,DVRHO,NR,RTMP)
+c$$$            RDP(NR)=RMU0/(RR*DVRHOG(NR)*ABRHOG(NR))*RTMP*DR
+c$$$            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
+c$$$         ENDDO
+C
          NR=1
             FACTOR0=RR/(RMU0*DVRHO(NR))
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
@@ -1832,8 +1854,8 @@ C
      &         +MDLEQ0*NSNMAX+MDLEQZ*NSZMAX
       ENDIF
 C
-      IF(MDLEQN.EQ.0.AND.MDLEQE.EQ.1) THEN
-         WRITE(6,*) "ERROR! : MDLEQE can be 1 when MDLEQN is 1."
+      IF(MDLEQN.EQ.0.AND.(MDLEQE.EQ.1.OR.MDLEQE.EQ.2)) THEN
+         WRITE(6,*) "ERROR! : MDLEQE can be 1 or 2 when MDLEQN is 1."
          STOP
       ENDIF
 C
@@ -2029,6 +2051,8 @@ C
                   ELSEIF(NSS(1).EQ.1) THEN
                      NNS(1)=1
                   ENDIF
+               ELSEIF(MDLEQE.EQ.2) THEN
+                  NNS(1)=3
                ENDIF
             ENDIF
          ELSEIF(PA(NS).EQ.1.D0.OR.PA(NS).EQ.2.D0) THEN
@@ -2152,11 +2176,12 @@ C
 C               RJCB(NR)=AR1RHOU(1,NR)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
-               EKAPPA(NR)=RKAP
+               EKAP(NR)=RKAP
             ENDDO
+            CALL FLUX
          ELSE
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
-C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAPPA,
+C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAP,
 C     &                         NRMAX,NRM)
          ENDIF
       ELSE
@@ -2174,13 +2199,13 @@ C     &                         NRMAX,NRM)
                AR2RHO(NR)=1.D0/(RKAPS*RA)**2
                RJCB(NR)=1.D0/(RKAPS*RA)
 C
-               EKAPPA(NR)=RKAP
+               EKAP(NR)=RKAP
                RMJRHO(NR)=RR
                RMNRHO(NR)=RA*RM(NR)
             ENDDO
          ELSE
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
-C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAPPA,
+C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,EKAP,
 C     &                         NRMAX,NRM)
          ENDIF
       ENDIF

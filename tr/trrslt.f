@@ -34,20 +34,20 @@ C
          WST(NS) = 1.5D0*RTSUM*DR*RKEV*1.D14
       ENDDO
 C
-      IF(MDLUF.EQ.1) THEN
-         CALL TRSUMD(RNFS,DVRHO,NRMAX,ANFSUM)
-         CALL TRSUMT(RNFS,RT(1,2),DVRHO,NRMAX,RNTSUM)
+      IF(MDLUF.NE.0) THEN
+         CALL TRSUMD(RNF(1,1),DVRHO,NRMAX,ANFSUM)
+         CALL TRSUMT(RNF(1,1),RT(1,2),DVRHO,NRMAX,RNTSUM)
          CALL TRSUMD(PBM,DVRHO,NRMAX,RWSUM)
          NF=1
          WFT(NF) = RWSUM*DR*1.D-6-1.5D0*RNTSUM*DR*RKEV*1.D14
          ANFAV(NF) = ANFSUM*DR/VOL
-         ANF0(NF)  = (9.D0*RNFS(1)-RNFS(2))/8.D0
+         ANF0(NF)  = (9.D0*RNF(1,1)-RNF(2,1))/8.D0
          IF(ANFSUM.GT.0.D0) THEN
             TFAV(NF)  = RWSUM/(RKEV*1.D20)/ANFSUM
          ELSE
             TFAV(NF)  = 0.D0
          ENDIF
-         IF(RNFS(1).GT.0.D0) THEN
+         IF(RNF(1,1).GT.0.D0) THEN
             TF0(NF)  = (9.D0*PBM(1)-PBM(2))/8.D0/(RKEV*1.D20)
      &                 /ANF0(NF)
          ELSE
@@ -148,7 +148,9 @@ C
          NRL=NRAMAX
       ENDIF
       NSW=3
+      NRMAX=NRAMAX
       CALL TR_COEF_DECIDE(NRL,NSW,DV53)
+      NRMAX=NROMAX
       NMK=2
       DRH=DR/DVRHO(NRL)**(2.D0/3.D0)
       DO NEQ=1,NEQMAX
@@ -560,7 +562,7 @@ C
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DI(RMN,F0D,RM,U,U0,NRMAX,IERR)
          G3D(NR,NGT,51) = GUCLIP(F0D)
-         G3D(NR,NGT,52) = GUCLIP(EKAPPA(NR))
+         G3D(NR,NGT,52) = GUCLIP(EKAP(NR))
          G3D(NR,NGT,53) = GUCLIP(1.D0) ! DELTAR
          G3D(NR,NGT,54) = GUCLIP(AR1RHO(NR))
          G3D(NR,NGT,55) = GUCLIP(AR2RHO(NR))

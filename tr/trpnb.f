@@ -349,10 +349,31 @@ C
       PZB=PZ(2)
       VB=SQRT(2.D0*PNBENG*RKEV/AMB)
 C
-      DO 10 NR=1,NRMAX
+      IF(MDLUF.NE.0) THEN
+      DO NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
-         WB =RW(NR,1)!*1.5D0
+         IF(ANE.EQ.0.D0) THEN
+            P4=0.D0
+            TAUS=0.D0
+         ELSE
+         P4 = 3.D0*SQRT(0.5D0*PI)*AME/ANE
+     &       *(ABS(TE)*RKEV/AME)**1.5D0
+         VCD3 = P4*RN(NR,2)*PZ(2)**2/AMD
+         VCT3 = P4*RN(NR,3)*PZ(3)**2/AMT
+         VCA3 = P4*RN(NR,4)*PZ(4)**2/AMA
+         VC3  = VCD3+VCT3+VCA3
+         VCR  = VC3**(1.D0/3.D0)
+         HYB  = HY(VB/VCR)
+         TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
+         TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
+         ENDIF
+      ENDDO
+      ELSE
+      DO NR=1,NRMAX
+         ANE=RN(NR,1)
+         TE =RT(NR,1)
+         WB =RW(NR,1)*1.5D0
          IF(ANE.EQ.0.D0) THEN
             P4=0.D0
             TAUS=0.D0
@@ -381,14 +402,13 @@ C
          PBCL(NR,2) = VCD3/VC3*HYB*PBIN(NR)
          PBCL(NR,3) = VCT3/VC3*HYB*PBIN(NR)
          PBCL(NR,4) = VCA3/VC3*HYB*PBIN(NR)
-   10 CONTINUE
+      ENDDO
 C
       IF(PNBCD.LE.0.D0) RETURN
-      IF(MDLUF.NE.0) RETURN
 C
       TAUS0=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*AMB*AME
      &     /(1.D20*AEE**4*PZB**2*15.D0)
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
          EPS = EPSRHO(NR)
@@ -415,9 +435,10 @@ C
 C
          AJNB(NR) = PNBCD*2.D0*AEE*PZB*TAUS/(AMB*VCR)
      &            *(1.D0-PZB*(1.D0-P2)/ZEFF(NR))*P3*PBIN(NR)
-       ENDIF
+      ENDIF
+      ENDDO
 C
-   20 CONTINUE
+      ENDIF
 C
       RETURN
       END

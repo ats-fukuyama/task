@@ -11,6 +11,8 @@
    CK0=1.0
    CK1=1.0
    CNC=0.0
+   MDLAD=0
+   MDLAVK=0
    NSMAX=3
    MDLUF=3
    KUFDEV='X'
