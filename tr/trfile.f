@@ -291,10 +291,10 @@ C
       CALL KTRIM(KUFDEV,IKNDEV)
       CALL KTRIM(KUFDCG,IKNDCG)
 C
-      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
-     &                          //KUFDCG(1:IKNDCG)//'/in/'
-C      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+C      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
 C     &                          //KUFDCG(1:IKNDCG)//'/in/'
+      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+     &                          //KUFDCG(1:IKNDCG)//'/in/'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
       IF(DIR.NEQV..TRUE.) THEN
          WRITE(6,'(A25,A34,A17)') 
@@ -486,10 +486,12 @@ C
 C
       KFID='TEXP'
       CALL UFREAD2_ERROR(KFID,RUF,TMU,RTEXU,NRFMAX,NTXMAX,MDCHK,IERR)
-      NREMAX(1)=NRFMAX
-      DO NR=1,NRFMAX
-         GRE(NR,1)=GUCLIP(RUF(NR))
-      ENDDO
+      IF(IERR.EQ.0) THEN
+         NREMAX(1)=NRFMAX
+         DO NR=1,NRFMAX
+            GRE(NR,1)=GUCLIP(RUF(NR))
+         ENDDO
+      ENDIF
       KFID='TEXPEB'
       CALL UFREAD2_ERROR(KFID,RUF,TMU,RTEXEU,NRFMAX,NTXMAX,MDCHK,IERR)
 C     
@@ -542,10 +544,12 @@ C
 C
       KFID='NEXP'
       CALL UFREAD2_ERROR(KFID,RUF,TMU,RNEXU,NRFMAX,NTXMAX,MDCHK,IERR)
-      NREMAX(2)=NRFMAX
-      DO NR=1,NRFMAX
-         GRE(NR,2)=GUCLIP(RUF(NR))
-      ENDDO
+      IF(IERR.EQ.0) THEN
+         NREMAX(2)=NRFMAX
+         DO NR=1,NRFMAX
+            GRE(NR,2)=GUCLIP(RUF(NR))
+         ENDDO
+      ENDIF
       KFID='NEXPEB'
       CALL UFREAD2_ERROR(KFID,RUF,TMU,RNEXEU,NRFMAX,NTXMAX,MDCHK,IERR)
 C
