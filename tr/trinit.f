@@ -901,10 +901,10 @@ C
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
-         RR=RRU(1)
-         RA=RAU(1)
-         RKAP=RKAPU(1)
-         BB=BBU(1)
+         RR=RRU(NTSL)
+         RA=RAU(NTSL)
+         RKAP=RKAPU(NTSL)
+         BB=BBU(NTSL)
       ENDIF
 C
       CALL TR_EDGE_DETERMINER(0)
@@ -1290,10 +1290,10 @@ C
          ENDDO
          ENDIF
 C
-         RIP   = RIPU(1)
-         RIPS  = RIPU(1)
-         RIPSS = RIPU(1)
-         RIPE  = RIPU(1)
+         RIP   = RIPU(NTSL)
+         RIPS  = RIPU(NTSL)
+         RIPSS = RIPU(NTSL)
+         RIPE  = RIPU(NTSL)
       ELSEIF(MDLUF.EQ.2) THEN
          IF(MDLJQ.EQ.0) THEN
             NR=1
@@ -1447,6 +1447,10 @@ C
      &              /(4.D0*PI**2*RDP(NR))
          ENDDO
       ENDIF
+      CALL TRSUMD(AJ,DSRHO,NRMAX,SUMAJ)
+      SUMAJ=SUMAJ*DR/1.D6
+      writE(6,*) SUMAJ,RIPS
+C      STOP
 C      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***

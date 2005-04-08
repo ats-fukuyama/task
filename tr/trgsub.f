@@ -776,9 +776,9 @@ C
      &            '@JBS [MA/m$+2$=]  vs r@',2+INQ)
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,4,
      &            '@LOG:ETA  vs r @',11+INQ)
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX,4,
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX+1,4,
      &            '@ADNCE, ADNCD [m$+2$=/s]  vs r@',2+INQ)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX,4,
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX+1,4,
      &            '@AKNCE, AKNCD [m$+2$=/s]  vs r @',2+INQ)
       CALL TRGRTM
       CALL PAGEE
@@ -920,11 +920,13 @@ C
 C
          IF(MDLJQ.NE.1) THEN
             DO NR=1,NRMAX
-               GYR(NR,1) = GUCLIP(QP(NR))
+               GYR(NR+1,1) = GUCLIP(QP(NR))
                CALL LAGLANGE(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
-               GYR(NR,2) = GUCLIP(QPL)
+               GYR(NR+1,2) = GUCLIP(QPL)
             ENDDO
-            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+            GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
+            GYR(1,2) = (4.0*GYR(2,2)-GYR(3,2))/3.0
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &                  '@QP(TR),QP(XP) vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
@@ -937,11 +939,13 @@ C
          ENDIF
 C
          DO NR=1,NRMAX
-            GYR(NR,1) = GUCLIP(BP(NR))
+            GYR(NR+1,1) = GUCLIP(BP(NR))
             CALL LAGLANGE(TSL,BPL,TMU,BPU(1,NR),NTXMAX,NTUM,IERR)
-            GYR(NR,2) = GUCLIP(BPL)
+            GYR(NR+1,2) = GUCLIP(BPL)
          ENDDO
-         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+         GYR(1,1) = 0.0
+         GYR(1,2) = 0.0
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
          CALL PAGEE
@@ -964,10 +968,12 @@ C
 C
          IF(MDLJQ.NE.1) THEN
             DO NR=1,NRMAX
-               GYR(NR,1) = GUCLIP(QP(NR))
-               GYR(NR,2) = GUCLIP(QPU(1,NR))
+               GYR(NR+1,1) = GUCLIP(QP(NR))
+               GYR(NR+1,2) = GUCLIP(QPU(1,NR))
             ENDDO
-            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+            GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
+            GYR(1,2) = (4.0*GYR(2,2)-GYR(3,2))/3.0
+            CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &                  '@QP(TR),QP(XP)  vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
@@ -979,10 +985,12 @@ C
          ENDIF
 C
          DO NR=1,NRMAX
-            GYR(NR,1) = GUCLIP(BP(NR))
-            GYR(NR,2) = GUCLIP(BPU(1,NR))
+            GYR(NR+1,1) = GUCLIP(BP(NR))
+            GYR(NR+1,2) = GUCLIP(BPU(1,NR))
          ENDDO
-         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+         GYR(1,1) = 0.0
+         GYR(1,2) = 0.0
+         CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
          CALL PAGEE
@@ -1023,11 +1031,13 @@ C
      &                  '@AJBS(TR),AJBS(XP) [MA/m$+2$=]  vs r@',2+INQ)
          ELSE
             DO NR=1,NRMAX
-               GYR(NR,1) = GUCLIP(QP(NR))
+               GYR(NR+1,1) = GUCLIP(QP(NR))
                CALL LAGLANGE(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
-               GYR(NR,2) = GUCLIP(QPL)
+               GYR(NR+1,2) = GUCLIP(QPL)
             ENDDO
-            CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+            GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
+            GYR(1,2) = (4.0*GYR(2,2)-GYR(3,2))/3.0
+            CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &                  '@QP(TR),QP(XP)  vs r@',2+INQ)
          ENDIF
          CALL PAGEE
