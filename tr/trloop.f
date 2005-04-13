@@ -1139,7 +1139,7 @@ C
                   ELSE
                   VV(NEQ,NEQ  ,NMK,NSW)=(FA(NI,NSW)*AVK(NRJ,NSSN)
      &                                  +CC*RGFLX(NRJ,NSSN)
-     &                                  /RNV(NRJ,NSSN))*DV23
+     &                                  /(RNV(NRJ,NSSN)*DR))*DV23
                   ENDIF
                   DD(NEQ,NEQ  ,NMK,NSW)= FB(NI,NSW)*AK(NRJ,NSSN)*DV23
                   VV(NEQ,NEQ-1,NMK,NSW)= 0.D0*DV23
@@ -1207,11 +1207,11 @@ C
      &                      +RQFLS(NRJ,5,NSSN)   /RPV(NRJ,NSSN)
      &                      +RGFLS(NRJ,5,NSSN)*CC/RNV(NRJ,NSSN))
                   ELSE
-                  VV(NEQ,NEQ  ,NMK,NSW)= (FA(NI,NSW)
+                  VV(NEQ,NEQ  ,NMK,NSW)= DV23*(FA(NI,NSW)
      &                    *( AVK(NRJ,NSSN)
-     &                      +RQFLS(NRJ,5,NSSN)   /RPV(NRJ,NSSN)
-     &                      +RGFLS(NRJ,5,NSSN)*CC/RNV(NRJ,NSSN))
-     &                      +RGFLX(NRJ,NSSN)  *CC/RNV(NRJ,NSSN))*DV23
+     &                      +RQFLS(NRJ,5,NSSN)   / RPV(NRJ,NSSN)
+     &                      +RGFLS(NRJ,5,NSSN)*CC/ RNV(NRJ,NSSN))
+     &                     +(RGFLX(NRJ,NSSN)  *CC/(RNV(NRJ,NSSN)*DR)))
                   ENDIF
                   DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)

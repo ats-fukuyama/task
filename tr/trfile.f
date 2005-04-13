@@ -335,6 +335,15 @@ C
 C
       IF(MDSLCT.EQ.0) THEN
          MDNI=0
+         NEQL=0
+         DO NEQ=1,NEQMAX
+            IF(NST(NEQ).NE.0) NEQL=NEQL+1
+         ENDDO
+         IF(NEQL.EQ.1) THEN
+            NSMAX=1
+         ELSE
+            NSMAX=2
+         ENDIF
       ELSEIF(MDSLCT.EQ.1) THEN
          IF(MDNI.EQ.2.OR.MDNI.EQ.3) MDNI=1
       ELSEIF(MDSLCT.EQ.2) THEN
@@ -445,6 +454,12 @@ C
          ENDDO
       ENDIF
 C
+      IF(KUFDEV.EQ.'tftr'.AND.(KUFDCG.EQ.'50862'
+     &     .OR.KUFDCG.EQ.'50921'.OR.KUFDCG.EQ.'52527')) THEN
+      DO NTX=1,NTXMAX1
+         RKAPU(NTX)=1.D0
+      ENDDO
+      ELSE
       KFID='KAPPA'
       CALL UFREAD_TIME(KFID,TMU1,F1,NTXMAX1,MDCHK,IERR)
       IF(IERR.EQ.1.AND.KUFDEV.EQ.'jt60u') THEN
@@ -455,9 +470,7 @@ C
             RKAPU(NTX)=F1(NTX)
          ENDDO
       ENDIF
-c$$$      DO NTX=1,NTXMAX1
-c$$$         RKAPU(NTX)=1.D0
-c$$$      ENDDO
+      ENDIF
       IF(IERR.NE.0) STOP 'SOME 1D UFILES DO NOT EXIST.'
 C
       KFID='PHIA'

@@ -1447,10 +1447,6 @@ C
      &              /(4.D0*PI**2*RDP(NR))
          ENDDO
       ENDIF
-      CALL TRSUMD(AJ,DSRHO,NRMAX,SUMAJ)
-      SUMAJ=SUMAJ*DR/1.D6
-      writE(6,*) SUMAJ,RIPS
-C      STOP
 C      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***

@@ -367,7 +367,7 @@ C
       ENDDO
       ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-     &            '@SEX [/sm$+3$=]  vs r@',2+INQ)
+     &            '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 C
 c$$$      DO NS=1,NSM
 c$$$      DO NR=1,NRMAX
