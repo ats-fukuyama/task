@@ -361,12 +361,22 @@ c$$$      ENDDO
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
 c$$$     &            '@SIE [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 C
-      DO NS=1,NSMAX
+c$$$      DO NS=1,NSMAX
+c$$$      DO NR=1,NRMAX
+c$$$         GYR(NR,NS) = GUCLIP(SEX(NR,NS))
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
+c$$$     &            '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
+C
       DO NR=1,NRMAX
-         GYR(NR,NS) = GUCLIP(SEX(NR,NS))
+         GYR(NR,1) = GUCLIP(SEX(NR,1))
+         GYR(NR,2) = GUCLIP(SEX(NR,2))
+         GYR(NR,3) = GUCLIP(SNBU(1,NR,1))
+         GYR(NR,4) = GUCLIP(SNBU(1,NR,2))
+         GYR(NR,5) = GUCLIP(SWLU(1,NR))
       ENDDO
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,5,
      &            '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 C
 c$$$      DO NS=1,NSM
@@ -672,7 +682,7 @@ C
          IF(MODE.EQ.0) THEN
             DO NR=1,NRMAX
                DO NS=1,NSMAX
-                  ADNCG(NR,NS)=CNP*ADNCS(NR,NS)
+                  ADNCG(NR,NS)=ADNCS(NR,NS)
                ENDDO
             ENDDO
          ELSE
@@ -702,9 +712,9 @@ C
 C     
          DO NS=1,NSMAX
          DO NR=1,NRMAX
-            GYR(NR+1,NS) = GUCLIP(ADNCG(NR,NS)+ADDW(NR,NS))
+            GYR(NR+1,NS) = GUCLIP(CNP*ADNCG(NR,NS)+CDP*ADDW(NR,NS))
          ENDDO
-            GYR(1,NS) = GUCLIP(ADNCG(2,NS)+ADDW(2,NS))
+            GYR(1,NS) = GUCLIP(CNP*ADNCG(2,NS)+CDP*ADDW(2,NS))
          ENDDO
       ENDIF
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,NSMAX,

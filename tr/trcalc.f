@@ -600,7 +600,7 @@ C
          RNTP=RNTP+RW(NR+1,1)+RW(NR+1,2)
          RNTM=RNTM+RW(NR  ,1)+RW(NR  ,2)
          RPIP=RNTP+PADD(NR+1)
-         RPIM=RNTP+PADD(NR  )
+         RPIM=RNTM+PADD(NR  )
 C
 C     ****** ION PARAMETER ******
 C
