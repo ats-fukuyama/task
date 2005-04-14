@@ -276,21 +276,22 @@ C
       ENDIF
 C
  9000 IF(KFID(1:6).EQ.'VOLUME'.OR.
+     &   KFID(1:4).EQ.'BPOL'.OR.
      &   KFID(1:4).EQ.'SURF'.OR.
      &   KFID(1:6).EQ.'RMINOR') THEN
-      IF(R(1).NE.0.D0) THEN
-         NRXMAX=NRXMAX+1
-         DO NRX=NRXMAX,2,-1
-            R(NRX)=R(NRX-1)
-         ENDDO
-         R(1)=0.D0
-         DO NZX=1,NZXMAX
+         IF(R(1).NE.0.D0) THEN
+            NRXMAX=NRXMAX+1
             DO NRX=NRXMAX,2,-1
-               F2(NRX,NZX)=F2(NRX-1,NZX)
+               R(NRX)=R(NRX-1)
             ENDDO
-            F2(1,NZX)=0.D0
-         ENDDO
-      ENDIF
+            R(1)=0.D0
+            DO NZX=1,NZXMAX
+               DO NRX=NRXMAX,2,-1
+                  F2(NRX,NZX)=F2(NRX-1,NZX)
+               ENDDO
+               F2(1,NZX)=0.D0
+            ENDDO
+         ENDIF
       ENDIF
       RETURN
 C
@@ -587,21 +588,22 @@ C
       ENDIF
 C
  9000 IF(KFID(1:6).EQ.'VOLUME'.OR.
+     &   KFID(1:4).EQ.'BPOL'.OR.
      &   KFID(1:4).EQ.'SURF'.OR.
      &   KFID(1:6).EQ.'RMINOR') THEN
-      IF(R(1).NE.0.D0) THEN
-         NRXMAX=NRXMAX+1
-         DO NRX=NRXMAX,2,-1
-            R(NRX)=R(NRX-1)
-         ENDDO
-         R(1)=0.D0
-         DO NTX=1,NTXMAX
+         IF(R(1).NE.0.D0) THEN
+            NRXMAX=NRXMAX+1
             DO NRX=NRXMAX,2,-1
-               F2(NRX,NTX)=F2(NRX-1,NTX)
+               R(NRX)=R(NRX-1)
             ENDDO
-            F2(1,NTX)=0.D0
-         ENDDO
-      ENDIF
+            R(1)=0.D0
+            DO NTX=1,NTXMAX
+               DO NRX=NRXMAX,2,-1
+                  F2(NRX,NTX)=F2(NRX-1,NTX)
+               ENDDO
+               F2(1,NTX)=0.D0
+            ENDDO
+         ENDIF
       ENDIF
       RETURN
 C
