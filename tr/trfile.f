@@ -293,7 +293,7 @@ C
 C
 C      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
 C     &                          //KUFDCG(1:IKNDCG)//'/in/'
-      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+      KDIRX='../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
      &                          //KUFDCG(1:IKNDCG)//'/in/'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
       IF(DIR.NEQV..TRUE.) THEN
@@ -407,6 +407,8 @@ C
       MDBT=0
       MDKAPPA=0
       MDPHIA=0
+C
+      NTSLS=0
 C
 C     *** 1D VALUE ***
 C
@@ -687,7 +689,7 @@ C
       ENDDO
 C
       KFID='BPOL'
-      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,1,1,IERR)
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,1,0,IERR)
       DO NR=1,NRMAX
          BPU(1,NR)=FAS(NR)
       ENDDO
@@ -848,7 +850,7 @@ C         ARRHOU(1,NR)=1.D0/RMJRHOU(1,NR)**2
       ENDDO
 C
       KFID='RMINOR'
-      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,1,IERR)
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,0,IERR)
       DO NR=1,NRMAX
          RMNRHOU(1,NR)=FAS(NR)
       ENDDO
@@ -881,7 +883,7 @@ c$$$         WRITE(6,*) KFID,'IS MODIFIED.'
 c$$$      ENDIF
 C
       KFID='SURF'
-      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,1,IERR)
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,0,IERR)
       IF(TMU(2).EQ.0.D0) NTSL=NTSLS
       DO NR=1,NRMAX
          DVRHOU(1,NR)=FAS(NR)/AR1RHOU(1,NR)
@@ -1254,7 +1256,7 @@ C
       CALL UF2DT(KFID,DR,DT,TMU,AJNBU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,
      &           0,ICK,IERR)
       KFID='BPOL'
-      CALL UF2DT(KFID,DR,DT,TMU,BPU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,
+      CALL UF2DT(KFID,DR,DT,TMU,BPU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,1,0,
      &     ICK,IERR)
       KFID='QNBIE'
       CALL UF2DT(KFID,DR,DT,TMU,FAT,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
@@ -1373,7 +1375,7 @@ C            ARRHOU(NTX,NR)=(1.D0+1.5D0*EPS**2)/RRU(NTX)**2
 C
       KFID='RMINOR'
       CALL UF2DT(KFID,DR,DT,TMU,RMNRHOU,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,
-     &           0,1,ICK,IERR)
+     &           0,0,ICK,IERR)
       IF(KUFDEV.EQ.'jt60u') THEN
          DO NTX=1,NTXMAX
             RAU(NTX)=RMNRHOU(NTX,NRMAX)
@@ -1412,7 +1414,7 @@ C
       ENDDO
 C
       KFID='SURF'
-      CALL UF2DT(KFID,DR,DT,TMU,FAT,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,
+      CALL UF2DT(KFID,DR,DT,TMU,FAT,AMP,NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,
      &           ICK,IERR)
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
@@ -1423,6 +1425,7 @@ C            DSRHOU(NTX,NR)=DVRHOU(NTX,NR)/(2.D0*PI*RMJRHOU(NTX,NR))
       ENDDO
 C
       IF(NTAMAX.LT.NTAMAX1) NTAMAX=NTAMAX1
+      STOP
       RETURN
       END
 C
@@ -2057,8 +2060,11 @@ C
       DIMENSION DERIV(NRMU),U(4,NRMU),TMP(NRMU)
       CHARACTER KFID*10
 C
+      DERIV(1)=0.D0
+      DERIV(NRFMAX)=0.D0
+C
       IF(IERR.EQ.1) THEN
-         DO NRF=1,NRFMAX
+         DO NRF=1,NRMU
          DO NA=1,4
             U(NA,NRF)=0.D0
          ENDDO
@@ -2068,9 +2074,7 @@ C
          RETURN
       ENDIF
 C
-      DERIV(1)=0.D0
-      DERIV(NRFMAX)=0.D0
-C
+      NTSL=1
       IF(NTXMAX.NE.1) THEN
          IF(TIME_INT.LE.0.D0) THEN
  100        WRITE(6,500) 'INPUT ARBITRARY TIME:',TL(1),' -',TL(NTXMAX)
@@ -2123,22 +2127,14 @@ C
          TIME_INT=TL(NTX_MIN)
          NTSL=NTX_MIN
  1000    CONTINUE
-C
-         DO NRL=1,NRFMAX
-            TMP(NRL)=F2(NTSL,NRL)
-         ENDDO
-         CALL SPL1D(RL,TMP,DERIV,U,NRFMAX,ID,IERR)
-         IF(IERR.NE.0)
-     &        WRITE(6,*) 'XX TRFILE: SPL1D',KFID,': IERR=',IERR
-      ELSE
-         NTSL=1
-         DO NRL=1,NRFMAX
-            TMP(NRL)=F2(1,NRL)
-         ENDDO
-         CALL SPL1D(RL,TMP,DERIV,U,NRFMAX,ID,IERR)
-         IF(IERR.NE.0)
-     &        WRITE(6,*) 'XX TRFILE: SPL1D',KFID,': IERR=',IERR
       ENDIF
+C
+      DO NRL=1,NRFMAX
+         TMP(NRL)=F2(NTSL,NRL)
+      ENDDO
+      CALL SPL1D(RL,TMP,DERIV,U,NRFMAX,ID,IERR)
+      IF(IERR.NE.0)
+     &     WRITE(6,*) 'XX TRFILE: SPL1D',KFID,': IERR=',IERR
 C
       RETURN
  500  FORMAT(' ',A,F9.5,A,F9.5)
