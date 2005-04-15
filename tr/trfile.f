@@ -293,7 +293,7 @@ C
 C
 C      KDIRX='../../tr.new/data/'//KUFDEV(1:IKNDEV)//'/'
 C     &                          //KUFDCG(1:IKNDCG)//'/in/'
-      KDIRX='../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
+      KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
      &                          //KUFDCG(1:IKNDCG)//'/in/'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
       IF(DIR.NEQV..TRUE.) THEN
@@ -1794,6 +1794,7 @@ C     DR          : Radial Step Width
 C     AMP         : Amplitude Factor of FOUT
 C     NRMAX       : Radial Node Number
 C     NSW         : Mesh Selector (0:RM, 1:RG)
+C     ID          : Boundary Condition in the center of edge for Spline
 C
 C     output:
 C
@@ -1895,7 +1896,7 @@ C     AMP         : Amplitude Factor of FOUT
 C     NRMAX       : Radial Node Number
 C     TLMAX       : Maximum Time
 C     NSW         : Mesh Selector (0:RM, 1:RG)
-C     MODE        : Boundary Condition in the center for Spline
+C     ID          : Boundary Condition in the center of edge for Spline
 C     ICK         : Check Indicator
 C
 C     output:
@@ -1908,7 +1909,7 @@ C
 C     *****************************************************
 C
       SUBROUTINE UF2DT(KFID,DR,DT,TL,FOUT,AMP,NTLMAX,NTXMAX,NRMAX,TLMAX,
-     &                 NSW,MODE,ICK,IERR)
+     &                 NSW,ID,ICK,IERR)
 C
       INCLUDE 'trcom0.inc'
       DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU),FOUT(NTUM,NRMP)
@@ -1949,7 +1950,7 @@ C
          DO NRL=1,NRLMAX
             TMP0(NRL)=F2(NTX,NRL)
          ENDDO
-         CALL SPL1D(RL,TMP0,DERIV,U,NRLMAX,MODE,IERR)
+         CALL SPL1D(RL,TMP0,DERIV,U,NRLMAX,ID,IERR)
          DO NRL=1,NRMAX
             IF(NSW.EQ.0) THEN
                RSL=(DBLE(NRL)-0.5D0)*DR
@@ -2048,6 +2049,14 @@ C
 C           PRETREATMENT SUBROUTINE FOR UFILE INTERFACE
 C
 C     ***********************************************************
+C
+C     This subroutine is only used if MDLUF=2 and any subroutines
+C     do not call this except UF2DS and UF2DSP.
+C     In this subroutine, one can choose arbitrary slice time if one
+C     did not choose it ahead of time. If one choose the time,
+C     this checks its value consistent with the range of time.
+C     One of the main function in this section is to make "Spline Array"
+C     in order to interpolate various profiles radially.
 C
       SUBROUTINE PRETREAT0(KFID,RL,TL,F2,U,NRFMAX,NTXMAX,ID,IERR)
 C
@@ -2662,7 +2671,7 @@ C
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN
-         NRFMAX=52              ! equal to NRMU
+         NRFMAX=NRMU
          CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2I,NRMU,NTUM,NRFMAX,NTXMAX,0)
          MDCHK=1
          IERR=0
@@ -2680,6 +2689,13 @@ C
          IERR=1
          GOTO 9000
       ENDIF
+C
+C     *****
+C       For interpolation, center and/or edge value is added
+C       if necessary. The variables with center value having to
+C       be zero such as BPOL, RMINOR and SURF were beforehand 
+C       manupulated and thus in this section MD=4 will be selected.
+C     *****
 C
       MD=0
       IF(RUF(1).NE.0.D0.AND.RUF(NRFMAX).NE.1.D0) THEN
