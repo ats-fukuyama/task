@@ -749,10 +749,11 @@ C
      &             'KUFDEV',KUFDEV,
      &             'KUFDCG',KUFDCG,
      &             'MDNI  ',MDNI
+C
       WRITE(6,605) 'MDLJQ ',MDLJQ,
+     &             'MDLFLX',MDLFLX,
      &             'MDTC  ',MDTC,
-     &             'RHOA  ',RHOA,
-     &             'MDLFLX',MDLFLX
+     &             'RHOA  ',RHOA
 C
       WRITE(6,602) 'MODELG',MODELG,
      &             'MODELQ',MODELQ,
@@ -863,7 +864,7 @@ C
   604 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1X,A6,4X:
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
   605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  :
-     &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
+     &        2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
       END
 C
 C     ***********************************************************
