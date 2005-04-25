@@ -1971,7 +1971,7 @@ C
       ENDDO
  1200 CONTINUE
 C
-      DO NS=1,NSTMAX
+      DO NS=1,8 ! 8 means all particles we should consider.
          IF(PZ(NS).NE.0.D0) THEN
             AMZ(NS)=PA(NS)*AMM/PZ(NS)**2
          ELSE
