@@ -1,4 +1,3 @@
-C     $Id$
 C
 C     ***********************************************************
 C
@@ -11,6 +10,8 @@ C
       INCLUDE 'trcomm.inc'
       CHARACTER KFILE*80,KSTAT*3
       LOGICAL LEX
+C
+      IF(MDLUF.EQ.0) RETURN
 C
 C     *** RATIO AND MEAN SQUARE DEVIATION ***
 C
@@ -77,6 +78,9 @@ C
             RDEOI=RDEOI+(RT(NR,2)-RTU(NT,NR,2))
          ENDIF
       ENDDO
+C
+      NRHO02=INT(0.2*NRMAX)
+      NRDMSH=NRHO09-NRHO02
       STDE=SQRT(RDESE)/SQRT(RNUME)
       STDI=SQRT(RDESI)/SQRT(RNUMI)
       OFFE=RDEOE      /SQRT(RNUME)
