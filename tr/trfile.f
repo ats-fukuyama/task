@@ -1466,6 +1466,7 @@ C
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
             RTU(NTX,NR,2)=FAT(NTX,NR)
+            RTU(NTX,NR,3)=FAT(NTX,NR)
          ENDDO
       ENDDO
 C

@@ -244,6 +244,8 @@ C        MDLAVK: HEAT PINCH MODEL
 C                   0: NO HEAT PINCH
 C        MDLJBS: BOOTSTRAP CURRENT MODEL
 C        MDLKNS: NEOCLASSICAL TRANSPORT MODEL
+C                0    : Hinton and Hazeltin
+C                else : Chang and Hinton
 C
       MDLKAI = 31
       MDLETA = 3
@@ -1107,6 +1109,18 @@ C
             SEX(NR,4)=0.D0
             RNF(NR,1) = RNFU(1,NR)
          ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
+c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+c$$$            RN(NR,1) = RNU(1,NR,1)
+c$$$            RN(NR,2) = RNU(1,NR,2)
+c$$$            RN(NR,3) = RNU(1,NR,3)
+c$$$            RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
+c$$$            RT(NR,1) = RTU(1,NR,1)
+c$$$            RT(NR,2) = RTU(1,NR,2)
+c$$$            RT(NR,3) = RTU(1,NR,3)
+c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+c$$$            RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+c$$$     &                 +RTU(1,NRMAX,2)
+C
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
                RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)

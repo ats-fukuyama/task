@@ -1145,7 +1145,7 @@ C
                   VV(NEQ,NEQ-1,NMK,NSW)= 0.D0*DV23
                   DD(NEQ,NEQ-1,NMK,NSW)= FB(NI,NSW)*(AD(NRJ,NSSN)
      &                                  *CC-AK(NRJ,NSSN))
-     &                                  *RNV(NRJ,NSSN)*DV23
+     &                                  *RTV(NRJ,NSSN)*DV23
                ENDIF
             ELSEIF(NSVN.EQ.3) THEN
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN

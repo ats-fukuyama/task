@@ -338,11 +338,7 @@ C
                AKDWL=0.D0
             ENDIF
             AKDW(NR,1)=CK0*AKDWL
-            IF(MDLUF.EQ.3) THEN
-               AKDW(NR,2)=CK1*AKDWL*2.D0
-            ELSE
-               AKDW(NR,2)=CK1*AKDWL
-            ENDIF
+            AKDW(NR,2)=CK1*AKDWL
             AKDW(NR,3)=CK1*AKDWL
             AKDW(NR,4)=CK1*AKDWL
 C
@@ -1566,8 +1562,8 @@ C
             ADNC(NR,3) = PA(3)**ALP(2)*PZ(3)**ALP(3)*AD0
             ADNC(NR,4) = PA(4)**ALP(2)*PZ(4)**ALP(3)*AD0
             ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
-     &                +PZ(3)*ANT *AD(NR,3)
-     &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+     &                  +PZ(3)*ANT *AD(NR,3)
+     &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
             DO NS=1,NSM
                AD(NR,NS) = CNP*ADNC(NR,NS)
             ENDDO
@@ -1582,7 +1578,7 @@ C
                PROF2=PROFN2*PROF0**(PROFN2-1.D0)
             ENDIF
             PROF   = PROF1+PNSS(1)/(PN(1)-PNSS(1))
-            DPROF  = -PROFN1*RX**(PROFN1-1.D0)*PROF2
+            DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 C
             DO NS=1,NSM
                AVNC(NR,NS) = AD(NR,NS)*DPROF/PROF
@@ -1606,8 +1602,8 @@ C
             ADNC(NR,3) = AD0*AKDW(NR,3)
             ADNC(NR,4) = AD0*AKDW(NR,4)
             ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
-     &                +PZ(3)*ANT *AD(NR,3)
-     &                +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
+     &                  +PZ(3)*ANT *AD(NR,3)
+     &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
             DO NS=1,NSM
                AD(NR,NS) = CNP*ADNC(NR,NS)
             ENDDO
