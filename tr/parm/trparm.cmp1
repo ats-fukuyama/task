@@ -10,7 +10,8 @@
    MDLKAI=0
    CK0=1.0
    CK1=1.0
-   CNC=0.0
+   CNP=0.0
+   CNH=0.0
    MDLAD=0
    MDLAVK=0
    NSMAX=3

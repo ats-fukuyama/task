@@ -68,7 +68,7 @@ C        PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)
 C
       NSMAX=2
       NSZMAX=0  ! the number of impurities
-      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
+      NSNMAX=0  ! the number of neutrals, 0 or 2 fixed
 C
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -902,10 +902,10 @@ C
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
-         RR=RRU(NTSL)
-         RA=RAU(NTSL)
-         RKAP=RKAPU(NTSL)
-         BB=BBU(NTSL)
+         RR=RRU(1)
+         RA=RAU(1)
+         RKAP=RKAPU(1)
+         BB=BBU(1)
       ENDIF
 C
       CALL TR_EDGE_DETERMINER(0)

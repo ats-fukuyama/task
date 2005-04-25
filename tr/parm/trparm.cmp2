@@ -8,7 +8,8 @@
    PBSCD=0
    MDLETA=2
    MDLKAI=31
-   CNC=0.0
+   CNP=0.0
+   CNH=0.0
    MDLAD=0
    MDLAVK=0
    NSMAX=3

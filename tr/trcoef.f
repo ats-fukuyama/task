@@ -116,7 +116,7 @@ C     In the following, we assume that
 C        1. pressures of beam and fusion at rho=1 are negligible,
 C        2. calibration of Pbeam (from UFILE) is not necessary at rho=1.
 C
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RNTP=RNTP+PNSS(NS)*PTS(NS)
                RNP =RNP +PNSS(NS)
                RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
@@ -157,7 +157,7 @@ C
             TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
             TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
 C
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
                RNP =RNP +RN(NR+1,NS)
                RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
@@ -189,38 +189,38 @@ C
          RPI2=0.D0
          RPI1=0.D0
          IF(NR.LE.1) THEN
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
             ENDDO
             RPI4=RPI4+RW(NR,  1)+RW(NR,  2)+PADD(NR  )
          ELSE
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
             ENDDO
             RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)+PADD(NR-1)
          ENDIF
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          IF(NR.GE.NRMAX-1) THEN
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          ELSE
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
          ENDIF
          IF(NR.GE.NRMAX-2) THEN
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
             ENDDO
             RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
          ELSE
-            DO NS=2,NSMAX
+            DO NS=2,NSM
                RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
             ENDDO
             RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)

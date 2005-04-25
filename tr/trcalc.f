@@ -591,7 +591,7 @@ C
          RNP =0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
             RNP =RNP +RN(NR+1,NS)
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
@@ -611,7 +611,7 @@ C     *** PPI  is the ion pressure (Pi) ***
 C     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 C
          ANI(NR)=0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
@@ -702,7 +702,7 @@ C
          RNP =0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
@@ -726,7 +726,7 @@ C     *** PPI  is the ion pressure (Pi) ***
 C     *** DPI  is the derivative of ion pressure (dPi/dr) ***
 C
          ANI(NR)=0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
          PPI=RPIP
@@ -884,7 +884,7 @@ C
          RNP= 0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
             RNP =RNP +RN(NR+1,NS)
             RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
@@ -905,7 +905,7 @@ C     ***** DPI  is the derivative of ion pressure (dPi/dr) *****
 C     ***** VTI  is the ion velocity (VTi) *****
 C
          ANI(NR)=0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             ANI(NR)=ANI(NR)+0.5D0*PZ(NS)*(RN(NR+1,NS)+RN(NR,NS))
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
@@ -1001,7 +1001,7 @@ C
          RNP= 0.D0
          RNTM=0.D0
          RNM =0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             RNTP=RNTP+PNSS(NS)*PTS(NS)
             RNP =RNP +PNSS(NS)
             RNTM=RNTM+RN(NR-1,NS)*RT(NR-1,NS)
@@ -1026,7 +1026,7 @@ C     ***** DPI  is the derivative of ion pressure (dPi/dr) *****
 C     ***** VTI  is the ion velocity (VTi) *****
 C
          ANI(NR)=0.D0
-         DO NS=2,NSMAX
+         DO NS=2,NSM
             ANI(NR)=ANI(NR)+PZ(NS)*PNSS(NS)
          ENDDO
          PPI=0.5D0*(RPIP+RPIM)
