@@ -50,6 +50,21 @@ C
          KGR2='/OmegaST vs r/'
          KGR3='@lambda vs r@'
          KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
+      ELSEIF(MDLKAI.LT.50) THEN
+         KGR1='/NST$+2$= vs r/'
+         KGR2='/OmegaST vs r/'
+         KGR3='@lambda vs r@'
+         KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
+      ELSEIF(MDLKAI.LT.60) THEN
+         KGR1='/NST$+2$= vs r/'
+         KGR2='/OmegaST vs r/'
+         KGR3='@lambda vs r@'
+         KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
+      ELSEIF(MDLKAI.LT.70) THEN
+         KGR1='/V$-ExB$=/'
+         KGR2='/GROWTH RATE/'
+         KGR3='/ExB SHEARING RATE with SHEAR/'
+         KGR4='/ExB SHEARING RATE without SHEAR/'
       ELSE
          KGR1='//'
          KGR2='//'
@@ -779,15 +794,15 @@ C
 C
             VGR1(NR,2)=S
             VGR1(NR,3)=ALFA
-            VGR2(NR,1)=RNST2
-            VGR2(NR,2)=OMEGASS
+            VGR2(NR,1)=VEXB(NR)
+            VGR2(NR,2)=AGMP(NR)
             VGR2(NR,3)=0.D0
-            VGR3(NR,1)=SLAMDA
+            VGR3(NR,1)=AGME(NR)
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=RLAMDA
-            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
-            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+            VGR4(NR,1)=WEXB(NR)
+            VGR4(NR,2)=0.D0
+            VGR4(NR,3)=0.D0
             IF(MDLKAI.EQ.64) THEN
                DPERHO=DPE/RJCB(NR)
                DTERHO=DTE/RJCB(NR)
