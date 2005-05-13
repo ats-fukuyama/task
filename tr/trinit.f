@@ -246,6 +246,7 @@ C        MDLJBS: BOOTSTRAP CURRENT MODEL
 C        MDLKNS: NEOCLASSICAL TRANSPORT MODEL
 C                0    : Hinton and Hazeltin
 C                else : Chang and Hinton
+C        MDLTPF: TRAPPED PARTICLE FRACTION MODEL
 C
       MDLKAI = 31
       MDLETA = 3
@@ -253,6 +254,7 @@ C
       MDLAVK = 3
       MDLJBS = 5
       MDLKNC = 1
+      MDLTPF = 0
 C
 C        MDLWLD : Weiland model mode selector
 C            0    : using effective transport coefficients
@@ -444,8 +446,8 @@ C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
 C        KUFDEV : DEVICE NAME
 C        KUFDCG : DISCHARGE NUMBER
 C
-      KUFDEV='jet'
-      KUFDCG='19649'
+      KUFDEV=''
+      KUFDCG=''
 C
 C     ==== LOG FILE NAME ====
 C        KFNLOG : LOG FILE NAME
@@ -591,7 +593,7 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,
      &              CWEB,CALF,
-     &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,
+     &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,
@@ -636,7 +638,7 @@ C
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
      &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW'/
-     &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC'/
+     &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC,MDLTPF'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
      &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
@@ -744,8 +746,8 @@ C
 C
       WRITE(6,602) 'MDLJBS',MDLJBS,
      &             'MDLKNC',MDLKNC,
-     &             'MDNCLS',MDNCLS,
-     &             'MDLWLD',MDLWLD
+     &             'MDLTPF',MDLTPF,
+     &             'MDNCLS',MDNCLS
 C
       WRITE(6,604) 'MDLUF ',MDLUF,
      &             'KUFDEV',KUFDEV,
@@ -757,7 +759,8 @@ C
      &             'MDTC  ',MDTC,
      &             'RHOA  ',RHOA
 C
-      WRITE(6,602) 'MODELG',MODELG,
+      WRITE(6,602) 'MDLWLD',MDLWLD,
+     &             'MODELG',MODELG,
      &             'MODELQ',MODELQ,
      &             'NTEQIT',NTEQIT
 C
@@ -1469,8 +1472,14 @@ C
       IF(PROFJ1.LE.0.D0.OR.MDNCLS.EQ.1) THEN
          CALL TRZEFF
          DO NR=1,NRMAX
+            IF(NR.EQ.1) THEN
+               EPS=0.5D0*              EPSRHO(NR)
+            ELSE
+               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
+            ENDIF
+            EPSS=SQRT(EPS)**3
 C
-C        ****** CLASSICAL RESISTIVITY ******
+C        ****** CLASSICAL RESISTIVITY (Spitzer) ******
 C
             ANE=RN(NR,1)
             TEL =ABS(RT(NR,1))
@@ -1483,12 +1492,11 @@ C
             ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
      &              *(0.29D0+0.46D0/(1.08D0+ZEFFL))
 C
-C        ****** NEOCLASSICAL RESISTIVITY ******
+C        ****** NEOCLASSICAL RESISTIVITY (Hinton, Hazeltine) ******
 C
             IF(MDLETA.EQ.1) THEN
-               EPS=RA*RM(NR)/RR
-               EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
+                  Q0=(4.D0*QP(1)-QP(2))/3.D0
                   QL= 0.25D0*(3.D0*Q0+QP(NR))
                ELSE
                   QL= 0.5D0*(QP(NR-1)+QP(NR))
@@ -1501,24 +1509,19 @@ C
                FT     = 1.D0-SQRT(EPS)*RK33E
                ETA(NR)= ETA(NR)/FT
 C     
-C        ****** NEOCLASSICAL RESISTIVITY PART II ******
+C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Hawryluk) ******
 C
             ELSEIF(MDLETA.EQ.2) THEN
-               EPS=RM(NR)*RA/RR
-               EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
                   Q0=(4.D0*QP(1)-QP(2))/3.D0
                   QL= 0.25D0*(3.D0*Q0+QP(NR))
-                  ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
                ELSE
                   QL= 0.5D0*(QP(NR-1)+QP(NR))
-                  ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
                ENDIF
-C
+               ZEFFL=ZEFF(NR)
 C               VTE=1.33D+7*DSQRT(TEL)
                VTE=SQRT(ABS(TEL)*RKEV/AME)
-               FT=1.D0-(1.D0-EPS)**2
-     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+               FT=FTPF(MDLTPF,EPS)
                rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(TEL)
                TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
      &             *(TEL*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
@@ -1531,29 +1534,56 @@ C
      &                           /((1.D0-PHI)*(1.D0-CH*PHI)
      &                           *(1.D0+0.47D0*(ZEFFL-1.D0)))
 C
-C        ****** NEOCLASSICAL RESISTIVITY BY O. SAUTER  ******
+C        ****** NEOCLASSICAL RESISTIVITY (Sauter)  ******
 C
             ELSEIF(MDLETA.EQ.3) THEN
-               EPS=RM(NR)*RA/RR
-               EPSS=SQRT(EPS)**3
                IF(NR.EQ.1) THEN
                   Q0=(4.D0*QP(1)-QP(2))/3.D0
                   QL= 0.25D0*(3.D0*Q0+QP(NR))
-                  ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
                ELSE
                   QL= 0.5D0*(QP(NR-1)+QP(NR))
-                  ZEFFL=0.5D0*(ZEFF(NR-1)+ZEFF(NR))
                ENDIF
+               ZEFFL=ZEFF(NR)
                rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TEL*1.D3))
                RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
                SGMSPTZ=1.9012D4*(TEL*1.D3)**1.5D0/(ZEFFL*RNZ*rLnLame)
-               FT=1.D0-(1.D0-EPS)**2.D0
-     &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+               FT=FTPF(MDLTPF,EPS)
                RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
      &             /((TEL*1.D3)**2*EPSS)
                F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
      &                +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5D0)
                ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
+C
+C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Sigmar)  ******
+C
+            ELSEIF(MDLETA.EQ.4) THEN
+               IF(NR.EQ.1) THEN
+                  Q0=(4.D0*QP(1)-QP(2))/3.D0
+                  QL= 0.25D0*(3.D0*Q0+QP(NR))
+               ELSE
+                  QL= 0.5D0*(QP(NR-1)+QP(NR))
+               ENDIF
+               ZEFFL=ZEFF(NR)
+               ANE  =RN(NR,1)
+               TEL  =ABS(RT(NR,1))
+C
+               COEF = 12.D0*PI*SQRT(PI)*EPS0**2
+     &              /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+               TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
+C
+C     p1157 (7.36)
+               ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
+     &              *( (1.D0+1.198D0*ZEFFL+0.222D0*ZEFFL**2)
+     &                /(1.D0+2.966D0*ZEFFL+0.753D0*ZEFFL**2))
+C
+               FT=FTPF(MDLTPF,EPS)
+               XI=0.58D0+0.2D0*ZEFFL
+               CR=0.56D0/ZEFFL*(3.D0-ZEFFL)/(3.D0+ZEFFL)
+C     RNUE expressions is given by the paper by Hirshman, Hawryluk.
+               RNUE=SQRT(2.D0)/EPSS*RR*QL/SQRT(2.D0*TEL*RKEV/AME)/TAUE
+C     p1158 (7.41)
+               ETA(NR)=ETA(NR)/(1.D0-FT/(1.D0+ZI*RNUE))
+     &                        /(1.D0-CR*FT/(1.D0+XI*RNUE))
             ENDIF
          ENDDO
          IF(PROFJ1.GT.0.D0.AND.MDNCLS.EQ.1) GOTO 2000

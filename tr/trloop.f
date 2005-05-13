@@ -1599,28 +1599,6 @@ C
 C
 C     ***********************************************************
 C
-C           COULOMB LOGARITHM for electron-ion collisions
-C
-C     ***********************************************************
-C
-      FUNCTION COULOG(NS1,NS2,RN,RT)
-C
-C     RNE : electron density (10^20 /m^3)
-C     RTE : electron temperature (keV)
-C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-         COULOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
-      ELSE
-         COULOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
-      ENDIF
-C
-      RETURN
-      END
-C
-C     ***********************************************************
-C
 C           LOCAL VARIABLES FOR DENSITY, TEMPERATURE, PRESSURE
 C
 C     ***********************************************************

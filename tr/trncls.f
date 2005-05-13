@@ -82,7 +82,6 @@ C
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
       INCLUDE 'trncls.inc'
-      REAL p_grstr(NRM),p_gr2str(NRM),p_grrm(NRM)
       REAL           a0,                      bt0,
      #               e0,                      p_eps,
      #               p_q,                     q0l,
@@ -108,9 +107,9 @@ C
 !       =1 errors only
 !       =2 errors and results 
 !       =else no output
-      k_out=0
+      k_out=1
       k_order=2
-      k_potato=0
+      k_potato=1
       IF(MDLEQZ.EQ.0) THEN
          m_i=NSMAX
       ELSE
@@ -139,35 +138,6 @@ C
          ENDDO
       ENDIF
 C
-      NS=2
-         DO NR=1,NRMAX-1
-            p_grphi=SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &             /DR*RKEV)
-     &             /SNGL(PZ(NS)*AEE*0.5D0*(RN(NR+1,NS)+RN(NR,NS)))
-            p_grstr(NR)=p_grphi
-         ENDDO
-         NR=NRMAX
-         p_grphi=SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &          /DR*RKEV)
-     &          /SNGL(PZ(NS)*AEE*PNSS(NS))
-         p_grstr(NR)=p_grphi
-         DO NR=2,NRMAX
-            p_gr2str(NR)=SNGL(0.5D0*(RDP(NR)+RDP(NR-1))
-     &                             *( p_grstr(NR  )/RDP(NR  )
-     &                               -p_grstr(NR-1)/RDP(NR-1))/DR)
-         ENDDO
-         NR=1
-         p_gr2str(NR)=0.D0
-c$$$         DO NR=2,NRMAX
-c$$$            p_grrm(NR)=0.5E0*(p_grstr(NR  )/SNGL(BP(NR  ))
-c$$$     &                       +p_grstr(NR-1)/SNGL(BP(NR-1)))
-c$$$         ENDDO
-c$$$         p_grrm(1)=2.0*p_grrm(2)-p_grrm(3)
-c$$$         DO NR=1,NRMAX-1
-c$$$            p_gr2str(NR)=SNGL(BP(NR))*(p_grrm(NR+1)-p_grrm(NR))/SNGL(DR)
-c$$$         ENDDO
-c$$$         p_gr2str(NRMAX)=2.0*p_gr2str(NRMAX-1)-p_gr2str(NRMAX-2)
-C
       DO NR=1,NRMAX
          EPS=EPSRHO(NR)
 C
@@ -185,17 +155,18 @@ C
      &                 **1.5D0*(QP(NR)*RR)**2))
             ENDDO   
          ENDIF
-         p_ft1=1.D0-(1.D0-EPS)**2.D0/(DSQRT(1.D0-EPS**2)
-     &        *(1.D0+1.46D0*DSQRT(EPS)))
-         p_ft2=1.46D0*SQRT(EPS)
-         p_ft3=0.75D0*(1.5D0*SQRT(EPS))
-     &        +0.25D0*(3.D0*SQRT(2.D0)/PI*SQRT(EPS))
-         p_ft=SNGL(p_ft1)
+         p_ft=SNGL(FTPF(MDLTPF,EPS))
 C         p_grbm2=SNGL(AR2RHOG(NR)/BB**2)
 C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grbm2=SNGL(AR2RHOG(NR))/p_b2
-         p_grphi=p_grstr(NR)
-         p_gr2phi=p_gr2str(NR)
+         p_grphi=ER(NR)
+         IF(NR.EQ.1) THEN
+            p_gr2phi=0.0
+         ELSE
+            p_gr2phi=SNGL(0.5D0*(RDP(NR)+RDP(NR-1))
+     &                         *( ER(NR  )/RDP(NR  )
+     &                           -ER(NR-1)/RDP(NR-1))/DR)
+         ENDIF
          p_ngrth=SNGL(BP(NR)/(BB*EPS*RR))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSMAX
@@ -233,8 +204,8 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
      &                                                +RN(NR,NS)))*1.E20
                grp_iz(NS,INT(ABS(PZ(NS))))
-     &             =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &              /DR)*1.E20
+     &             =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1)
+     &                    -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))/DR)*1.E20
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
                ENDDO
@@ -248,8 +219,9 @@ C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
                   den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
      &                 +RN(NR,NS)))*1.E20
                   grp_iz(NSN,INT(ABS(PZ(NS))))
-     &               =SNGL((RN(NR+1,NS)*RT(NR+1,NS)-RN(NR,NS)*RT(NR,NS))
-     &                 /DR)*1.E20
+     &               =SNGL(( RN(NR+1,NS)*RT(NR+1,NS)+PADD(NR+1)
+     &                      -RN(NR  ,NS)*RT(NR  ,NS)-PADD(NR  ))
+     &                     /DR)*1.E20
                   DO NA=1,3
                      fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
                   ENDDO
@@ -316,8 +288,8 @@ C
                ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
             ENDDO
             DO NM=1,5
-               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHOG(NR)
-               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHOG(NR)
+               RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
+               RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
             ENDDO
             AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
             AVNCES(NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
@@ -337,10 +309,8 @@ C
                   ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
                ENDDO
                DO NM=1,5
-                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20
-     &                           /AR1RHOG(NR)
-                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20
-     &                           /AR1RHOG(NR)
+                  RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
+                  RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
                ENDDO
                AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
                AVNCES(NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
@@ -406,7 +376,7 @@ C
       z_pi=ACOS(-1.0)
       z_protonmass=1.6726e-27
 C
-      WRITE(nout,'(A3,I3)') "NR=",NR
+      IF(iflag.ne.0) WRITE(nout,'(A3,I3)') "NR=",NR
 !Check warning flags
       IF(iflag.eq.-1) THEN
         label='WARNING:NCLASS-no potato orbit viscosity'

@@ -59,6 +59,27 @@ C            QP(NR)=FACTQ(NR)*QL
       ENDIF
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
+C     *** RADIAL ELECTRIC FIELD ***
+C
+      DO NR=1,NRMAX
+         IF(SUMPBM.EQ.0.D0) THEN
+            PADD(NR)=0.D0
+         ELSE
+            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
+         ENDIF
+      ENDDO
+      DO NR=1,NRMAX
+         DRL=RJCB(NR)/DR
+         IF(NR.EQ.NRMAX) THEN
+            DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
+            ER(NR)=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+         ELSE
+            DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
+     &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
+            ER(NR)=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+         ENDIF
+      ENDDO
+C
       IF(T.LT.PELTIM+0.5D0*DT.AND.
      &   T.GE.PELTIM-0.5D0*DT) THEN
          CALL TRPELT
@@ -566,17 +587,9 @@ C
       SUBROUTINE TRAJBSSAUTER
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION ANI(NRM),AJBSL(NRM),PADD(NRM+1)
+      DIMENSION ANI(NRM),AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
-C
-      DO NR=1,NRMAX
-         IF(SUMPBM.EQ.0.D0) THEN
-            PADD(NR)=0.D0
-         ELSE
-            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
-         ENDIF
-      ENDDO
 C
       DO NR=1,NRMAX-1
 C
@@ -584,7 +597,6 @@ C
          EPSS=SQRT(EPS)**3
          QL=ABS(QP(NR))
          ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
-C         DRL=RJCB(NR)/DR
          DRL=1.D0/DR
 C
          RNTP=0.D0
@@ -643,19 +655,7 @@ C
      &       /(ABS(TE*1.D3)**2*EPSS)
 C
          RPE=PE/(PE+PPI)
-C     <1>
-         FT1=1.D0-(1.D0-EPS)**2.D0
-     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-C     <2>
-         FT2=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPSS)/SQRT(1-EPS**2)
-C     <3>
-         FT3=1.46D0*SQRT(EPS)
-C     <4>
-         FTU=1.5D0*SQRT(EPS)
-         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
-         FT4=0.75D0*FTU+0.25D0*FTL
-         FT=FT1
-C         write(6,'I2,4E20.12') NR,FT1,FT2,FT3,FT4
+         FT=FTPF(MDLTPF,EPS)
 C
 C         F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
 C     &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
@@ -691,7 +691,6 @@ C
          EPSS=SQRT(EPS)**3
          QL=ABS(QP(NR))
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
-C         DRL=RJCB(NR)/DR
          DRL=1.D0/DR
 C
 C     In the following, we assume that
@@ -758,19 +757,7 @@ C
      &        /(ABS(TE*1.D3)**2*EPSS)
 C     
          RPE=PE/(PE+PPI)
-C     <1>
-         FT1=1.D0-(1.D0-EPS)**2.D0
-     &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-C     <2>
-         FT2=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPSS)/SQRT(1-EPS**2)
-C     <3>
-         FT3=1.46D0*SQRT(EPS)
-C     <4>
-         FTU=1.5D0*SQRT(EPS)
-         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
-         FT4=0.75D0*FTU+0.25D0*FTL
-         FT=FT1
-C         write(6,'I2,4E20.12') NR,FT1,FT2,FT3,FT4
+         FT=FTPF(MDLTPF,EPS)
 C
 C     F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
 C     &          +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5)
@@ -800,19 +787,21 @@ C
      &           *( RL31*(DPE/PE+DPI/PE)+RL32*DTE/TE
      &             +RL34*SALFA*(1.D0-RPE)/RPE*DTI/TI)/RDP(NR)/BB
 C
-         AJBS(1)=0.5D0*AJBSL(1)
-         DO NR=2,NRMAX
-            AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
-         ENDDO
+      AJBS(1)=0.5D0*AJBSL(1)
+      DO NR=2,NRMAX
+         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
+      ENDDO
 C
       RETURN
       END
 C
-C     *****
+C     *********************
+C     *  Fitting Function *
+C     *********************
 C
       FUNCTION F33(X,Z)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      REAL*8 F33,X,Z
 C
       F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
 C
@@ -821,7 +810,7 @@ C
 C
       FUNCTION F31(X,Z)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      REAL*8 F31,X,Z
 C
       F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2
      &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
@@ -831,7 +820,7 @@ C
 C
       FUNCTION F32EE(X,Z)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      REAL*8 F32EE,X,Z
 C
       F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4)
      &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4))
@@ -842,7 +831,7 @@ C
 C
       FUNCTION F32EI(X,Z)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      REAL*8 F32EI,X,Z
 C
       F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4)
      &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4))
@@ -860,17 +849,9 @@ C
       SUBROUTINE TRAJBSNEW
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION ANI(NRM),AJBSL(NRM),PADD(NRM)
+      DIMENSION ANI(NRM),AJBSL(NRM)
 C
       IF(PBSCD.LE.0.D0) RETURN
-C
-      DO NR=1,NRMAX
-         IF(SUMPBM.EQ.0.D0) THEN
-            PADD(NR)=0.D0
-         ELSE
-            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
-         ENDIF
-      ENDDO
 C
       DO NR=1,NRMAX-1
 C
@@ -944,9 +925,7 @@ C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
 C         RNUE=QL*RR/(TAUE*VTE*EPSS)
 C
-C         FT=1.D0-(1.D0-EPS)**2.D0
-C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-C         FT=1.46D0*SQRT(EPS)
+C         FT=FTPF(MDLTPF,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
@@ -1065,9 +1044,7 @@ C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
 C         RNUE=QL*RR/(TAUE*VTE*EPSS)
 C
-C         FT=1.D0-(1.D0-EPS)**2.D0
-C     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-C         FT=1.46D0*SQRT(EPS)
+C         FT=FTPF(MDLTPF,EPS)
          FT=(1.46D0*SQRT(EPS)+2.4D0*EPS)/(1.D0-EPS)**1.5D0
 C
 C         DDX=2.4D0+5.4D0*FT+2.6D0*FT**2
@@ -1780,5 +1757,61 @@ C               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
 C
          WRITE(6,602) RM(IONE),RM(IZEROX),RTN,RNN
   602    FORMAT(' ',' R-ONE,R-ZERO,RTN,RNN = ',4F8.3)
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           TRAPPED PARTICLE FRACTION
+C
+C     ***********************************************************
+C
+      FUNCTION FTPF(ID,EPS)
+C
+      INTEGER ID
+      REAL*8 FTPF,EPS,PI,FTU,FTL
+C
+      IF(ID.EQ.0) THEN
+         FTPF=1.D0-(1.D0-EPS)**2.D0
+     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+      ELSEIF(ID.EQ.1) THEN
+         FTPF=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPS*1.5D0)/SQRT(1-EPS**2)
+      ELSEIF(ID.EQ.2) THEN
+         FTPF=1.46D0*SQRT(EPS)
+      ELSEIF(ID.EQ.3) THEN
+         PI=ASIN(1.D0)*2.D0
+         FTU=1.5D0*SQRT(EPS)
+         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
+         FTPF=0.75D0*FTU+0.25D0*FTL
+      ELSE
+         FTPF=1.D0-(1.D0-EPS)**2.D0
+     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+      ENDIF
+C
+      RETURN
+      END
+C     ***********************************************************
+C
+C           COULOMB LOGARITHM for electron-ion collisions
+C
+C     ***********************************************************
+C
+      FUNCTION COULOG(NS1,NS2,RN,RT)
+C
+C     RNE : electron density (10^20 /m^3)
+C     RTE : electron temperature (keV)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
+         COULOG=14.9D0-0.5D0*LOG(RN)+LOG(RT)
+      ELSE
+         IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
+            COULOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
+         ELSE
+            COULOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
+         ENDIF
+      ENDIF
+C
       RETURN
       END

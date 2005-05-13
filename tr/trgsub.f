@@ -16,9 +16,9 @@ C
 C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
-      DIMENSION GX(NXM),GY(NXM,NGMAX),IPAT(5)
+      DIMENSION GX(NXM),GY(NXM,NGMAX),IPAT(6)
       CHARACTER STR*(*),KT*80,KDL*1
-      DATA IPAT/0,2,3,4,6/
+      DATA IPAT/0,2,3,4,6,7/
 C
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
@@ -108,7 +108,7 @@ C
       ENDIF
 C
       DO 10 NG=1,NGMAX
-         CALL SETLIN(-1,-1,7-MOD(NG-1,5))
+         CALL SETLIN(-1,-1,7-MOD(NG-1,6))
          IF(MOD(MODE/2,2).EQ.0) THEN
             CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
 C            IF(NG.EQ.5) THEN
@@ -117,7 +117,7 @@ C            ELSE
 C            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
 C            ENDIF
          ELSE
-            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,5)+1))
+            CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,6)+1))
          ENDIF
    10 CONTINUE
 C
@@ -687,7 +687,7 @@ C
       MDLETASTCK=MDLETA
       MDNCLSSTCK=MDNCLS
       IF(MDNCLS.EQ.1) MDNCLS=0
-      DO MDLETA=1,3
+      DO MDLETA=1,4
          CALL TRCFET
          DO NR=1,NRMAX
             GET(NR,MDLETA)=GLOG(ETA(NR),1.D-10,1.D0)
@@ -701,7 +701,7 @@ C
       CALL TRAJBS_NCLASS
       DO NR=1,NRMAX
          GJB(NR,4)=GUCLIP(AJBS(NR)*1.D-6)
-         GET(NR,4)=GLOG(ETANC(NR),1.D-10,1.D0)
+         GET(NR,5)=GLOG(ETANC(NR),1.D-10,1.D0)
       ENDDO
       MDNCLS=MDNCLSSTCK
       DO NR=1,NRMAX
@@ -750,35 +750,43 @@ C
             ENDDO
          ENDDO
       ENDIF
-      DO NR=1,NRMAX
-         GAD(NR+1,1) = GUCLIP(ADNC(NR,1))
-         GAD(NR+1,2) = GUCLIP(ADNC(NR,2))
-         GAK(NR+1,1) = GUCLIP(AKNC(NR,1))
-         GAK(NR+1,2) = GUCLIP(AKNC(NR,2))
-         GAD(NR+1,3) = GUCLIP(ADNCG(NR,1))
-         GAD(NR+1,4) = GUCLIP(ADNCG(NR,2))
-         GAK(NR+1,3) = GUCLIP(AKNCG(NR,1))
-         GAK(NR+1,4) = GUCLIP(AKNCG(NR,2))
+C
+      MDLKNCSTCK=MDLKNC
+      DO MDLKNC=1,3,2
+         CALL TRCFNC
+         DO NR=1,NRMAX
+            GAK(NR+1,MDLKNC+2) = GUCLIP(AKNC(NR,1))
+            GAK(NR+1,MDLKNC+3) = GUCLIP(AKNC(NR,2))
+         ENDDO
+         GAK(1,MDLKNC+2) = GUCLIP(AKNC(1,1))
+         GAK(1,MDLKNC+3) = GUCLIP(AKNC(1,2))
       ENDDO
-         GAD(1,1) = GUCLIP(ADNC(1,1))
-         GAD(1,2) = GUCLIP(ADNC(1,2))
-         GAK(1,1) = GUCLIP(AKNC(1,1))
-         GAK(1,2) = GUCLIP(AKNC(1,2))
-         GAD(1,3) = GUCLIP(ADNCG(1,1))
-         GAD(1,4) = GUCLIP(ADNCG(1,2))
-         GAK(1,3) = GUCLIP(AKNCG(1,1))
-         GAK(1,4) = GUCLIP(AKNCG(1,2))
+      MDLKNC=MDLKNCSTCK
+      DO NR=1,NRMAX
+         GAD(NR+1,1) = GUCLIP(ADNCG(NR,1))
+         GAD(NR+1,2) = GUCLIP(ADNCG(NR,2))
+         GAK(NR+1,1) = GUCLIP(AKNCG(NR,1))
+         GAK(NR+1,2) = GUCLIP(AKNCG(NR,2))
+         GAD(NR+1,3) = GUCLIP(ADNC(NR,1))
+         GAD(NR+1,4) = GUCLIP(ADNC(NR,2))
+      ENDDO
+         GAD(1,1) = GUCLIP(ADNCG(1,1))
+         GAD(1,2) = GUCLIP(ADNCG(1,2))
+         GAK(1,1) = GUCLIP(AKNCG(1,1))
+         GAK(1,2) = GUCLIP(AKNCG(1,2))
+         GAD(1,3) = GUCLIP(ADNC(1,1))
+         GAD(1,4) = GUCLIP(ADNC(1,2))
 C
 C     *** Graphic Routine ***
 C
       CALL PAGES
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GJB,NRMP,NRMAX,4,
      &            '@JBS [MA/m$+2$=]  vs r@',2+INQ)
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,4,
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GET,NRMP,NRMAX,5,
      &            '@LOG:ETA  vs r @',11+INQ)
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GAD,NRMP,NRMAX+1,4,
      &            '@ADNCE, ADNCD [m$+2$=/s]  vs r@',2+INQ)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX+1,4,
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GAK,NRMP,NRMAX+1,6,
      &            '@AKNCE, AKNCD [m$+2$=/s]  vs r @',2+INQ)
       CALL TRGRTM
       CALL PAGEE

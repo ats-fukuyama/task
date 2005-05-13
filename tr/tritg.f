@@ -114,8 +114,7 @@ C         EEL   =       SLNEL/SLTEL
          EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
-         FTL   = 1.D0-(1.D0-EPS)**2.D0
-     &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+         FTL   = FTPF(MDLTPF,EPS)
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
 C         EQL   =       SLNQL/SLTQL
 C         ENQL  =-2.D0*(SLNQL/SLBL )
@@ -177,8 +176,7 @@ C         EEL   =       SLNEL/SLTEL
          EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
-         FTL   = 1.D0-(1.D0-EPS)**2.D0
-     &          /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+         FTL   = FTPF(MDLTPF,EPS)
          BQL   = PNSS(3)/PNSS(1)
 C         EQL   =       SLNQL/SLTQL
 C         ENQL  =-2.D0*(SLNQL/SLBL )

@@ -23,7 +23,6 @@ C
 C
       INCLUDE 'trcomm.inc'
       INCLUDE 'trglf.inc'
-      DIMENSION ER(NRM),PADD(NRM)
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -97,15 +96,6 @@ C     /* Calculate ExB velocity in advance
 C        for ExB shearing rate calculation */
       DO NR=1,NRMAX
          CVE=1.D0
-         DRL=RJCB(NR)/DR
-         IF(NR.EQ.NRMAX) THEN
-            DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
-            ER(NR)=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
-         ELSE
-            DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
-     &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
-            ER(NR)=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
-         ENDIF
          VEXB(NR)= -CVE*ER(NR)/BB
       ENDDO
 C
@@ -1131,8 +1121,6 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-C     ZEFF=1
-C
 C      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
 C      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
       DATA RK22,RA22,RB22,RC22/2.55D0,0.45D0,0.43D0,0.43D0/
@@ -1155,9 +1143,7 @@ C
             TD=PTS(2)
             TT=PTS(3)
             TA=PTS(4)
-C
             ZEFFL=ZEFF(NR)
-C
          ELSE
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
@@ -1167,9 +1153,7 @@ C
             TD     = 0.5D0*(RT(NR+1,2)+RT(NR  ,2))
             TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
             TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
-C
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
-C
          ENDIF
 C
          QL = QP(NR)
@@ -1181,49 +1165,30 @@ C
          VTT = SQRT(ABS(TT*RKEV/AMT))
          VTA = SQRT(ABS(TA*RKEV/AMA))
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2/(1.D20*AEE**4)
-         TAUE = COEF
-     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
-     &         /ANDX
-         TAUD = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
-     &         /ANDX
-         TAUT = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
-     &         /ANDX
-         TAUA = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
-     &         /ANDX
-C
-C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
-C
-      IF(MDLKNC.EQ.1) THEN
-C
-         EPSS=SQRT(EPS)**3
          RHOE2=2.D0*AME*ABS(TE)*RKEV/(PZ(1)*AEE*BP(NR))**2
          RHOD2=2.D0*AMD*ABS(TD)*RKEV/(PZ(2)*AEE*BP(NR))**2
          RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
          RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 C
          COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANDX*1.D20*ZEFFL*AEE**4)
-         TAUE = COEF
+     &         /(ANDX*1.D20*AEE**4)
+         TAUE = COEF/SQRT(2.D0)
      &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
-     &         /SQRT(2.D0)
-         TAUD = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
-     &         /PZ(2)**2
-         TAUT = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
-     &         /PZ(3)**2
-         TAUA = COEF
-     &         /COULOG(2,2,ANE,TE)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
-     &         /PZ(4)**2
+         TAUD = COEF/PZ(2)**4
+     &         /COULOG(2,2,ANE,TD)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
+         TAUT = COEF/PZ(3)**4
+     &         /COULOG(2,2,ANE,TT)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
+         TAUA = COEF/PZ(4)**4
+     &         /COULOG(2,2,ANE,TA)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
 C
-         RNUE=ABS(QP(NR))*RR/(TAUE*VTE*EPSS)
-         RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
-         RNUT=ABS(QP(NR))*RR/(TAUT*VTT*EPSS)
-         RNUA=ABS(QP(NR))*RR/(TAUA*VTA*EPSS)
+         RNUE=ABS(QL)*RR/(TAUE*VTE*EPSS)
+         RNUD=ABS(QL)*RR/(TAUD*VTD*EPSS)
+         RNUT=ABS(QL)*RR/(TAUT*VTT*EPSS)
+         RNUA=ABS(QL)*RR/(TAUA*VTA*EPSS)
+C
+C     ***** NEOCLASSICAL TRANSPORT (HINTON, HAZELTINE) *****
+C
+      IF(MDLKNC.EQ.1) THEN
 C
 C         RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
 C     &              +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
@@ -1262,54 +1227,12 @@ C     ***** CHANG HINTON *****
 C
          DELDA=0.D0
 C
-         IF(NR.EQ.1) THEN
-            Q0=(4.D0*QP(1)-QP(2))/3.D0
-            QL=ABS(0.25D0*(3.D0*Q0+QP(NR)))
-C            ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR+1))
-            ZEFFL=ZEFF(NR)
+         IF(MDLUF.EQ.0) THEN
+            RALFA=ZEFFL-1.D0
          ELSE
-            QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
-            ZEFFL=0.5D0*(ZEFF(NR)+ZEFF(NR-1))
+            RALFA=PZ(3)**2*ANT/(PZ(2)**2*ANDX)
          ENDIF
-         RALFA=ZEFFL-1.D0
 C
-         rLnLamE=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
-         rLnLamD=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TD))*1.5D0
-         rLnLamT=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TT))*1.5D0
-         rLnLamA=17.3D0-DLOG(ANE)*0.5D0+DLOG(ABS(TA))*1.5D0
-C         rLnLamD=17.3D0-DLOG(ANDX)*0.5D0+DLOG(ABS(TD))*1.5D0
-C         rLnLamT=17.3D0-DLOG(ANT )*0.5D0+DLOG(ABS(TT))*1.5D0
-C         rLnLamA=17.3D0-DLOG(ANA )*0.5D0+DLOG(ABS(TA))*1.5D0
-C
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
-     &             *(ABS(TE)*RKEV)**1.5D0
-     &             /(PZ(1)**2*ANE*1.D20*AEE**4*rLnLamE)
-         TAUD=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMD)
-     &             *(ABS(TD)*RKEV)**1.5D0
-     &             /(PZ(2)**4*ANDX*1.D20*AEE**4*rLnLamD)
-         TAUT=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMT)
-     &             *(ABS(TT)*RKEV)**1.5D0
-     &             /(PZ(3)**4*ANT*1.D20*AEE**4*rLnLamT)
-         TAUA=12.D0*PI*SQRT(PI)*EPS0**2*DSQRT(AMA)
-     &             *(ABS(TA)*RKEV)**1.5D0
-     &             /(PZ(4)**4*ANA*1.D20*AEE**4*rLnLamA)
-C
-         RNUE=QL*RR/(TAUE*VTE*EPSS)
-         RNUD=QL*RR/(TAUD*VTD*EPSS)
-         RNUT=QL*RR/(TAUT*VTT*EPSS)
-         RNUA=QL*RR/(TAUA*VTA*EPSS)
-C
-         OMEGACE=(AEE*PZ(1)*BB)/AME
-         OMEGACD=(AEE*PZ(2)*BB)/AMD
-         OMEGACT=(AEE*PZ(3)*BB)/AMT
-         OMEGACA=(AEE*PZ(4)*BB)/AMA
-C
-         RHOIE=DSQRT(2.D0*ABS(TE)*RKEV/AME)/OMEGACE
-         RHOID=DSQRT(2.D0*ABS(TD)*RKEV/AMD)/OMEGACD
-         RHOIT=DSQRT(2.D0*ABS(TT)*RKEV/AMT)/OMEGACT
-         RHOIA=DSQRT(2.D0*ABS(TA)*RKEV/AMA)/OMEGACA
-C
-         RMUSE=RNUE*(1.D0+1.54D0*RALFA)
          RMUSD=RNUD*(1.D0+1.54D0*RALFA)
          RMUST=RNUT*(1.D0+1.54D0*RALFA)
          RMUSA=RNUA*(1.D0+1.54D0*RALFA)
@@ -1320,9 +1243,6 @@ C
          F2=DSQRT(1.D0-EPS**2)*(1.D0+0.5D0*EPS*DELDA)
      &         /(1.D0+DELDA/EPS*(DSQRT(1.D0-EPS**2)-1.D0))
 C
-         TERM1E=(0.66D0*(1.D0+1.54D0*RALFA)
-     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
-     &       /(1.D0+1.03D0*DSQRT(RMUSE)+0.31D0*RMUSE)
          TERM1D=(0.66D0*(1.D0+1.54D0*RALFA)
      &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
      &       /(1.D0+1.03D0*DSQRT(RMUSD)+0.31D0*RMUSD)
@@ -1333,27 +1253,26 @@ C
      &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
      &       /(1.D0+1.03D0*DSQRT(RMUSA)+0.31D0*RMUSA)
 C
-         TERM2E=0.59D0*RMUSE*EPS/(1.D0+0.74D0*RMUSE*EPSS)
+         TERM2D=0.583D0*RMUSD*EPS/(1.D0+0.74D0*RMUSD*EPSS)
      &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
      &       /(1.D0+1.79D0*RALFA))
      &       *(F1-F2)
-         TERM2D=0.59D0*RMUSD*EPS/(1.D0+0.74D0*RMUSD*EPSS)
+         TERM2T=0.583D0*RMUST*EPS/(1.D0+0.74D0*RMUST*EPSS)
      &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
      &       /(1.D0+1.79D0*RALFA))
      &       *(F1-F2)
-         TERM2T=0.59D0*RMUST*EPS/(1.D0+0.74D0*RMUST*EPSS)
-     &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
-     &       /(1.D0+1.79D0*RALFA))
-     &       *(F1-F2)
-         TERM2A=0.59D0*RMUSA*EPS/(1.D0+0.74D0*RMUSA*EPSS)
+         TERM2A=0.583D0*RMUSA*EPS/(1.D0+0.74D0*RMUSA*EPSS)
      &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
      &       /(1.D0+1.79D0*RALFA))
      &       *(F1-F2)
 C
-         AKNC(NR,1)=(QL**2*RHOIE**2)/(EPSS*TAUE)*(TERM1E+TERM2E)
-         AKNC(NR,2)=(QL**2*RHOID**2)/(EPSS*TAUD)*(TERM1D+TERM2D)
-         AKNC(NR,3)=(QL**2*RHOIT**2)/(EPSS*TAUT)*(TERM1T+TERM2T)
-         AKNC(NR,4)=(QL**2*RHOIA**2)/(EPSS*TAUA)*(TERM1A+TERM2A)
+         AKNC(NR,1)=0.D0
+C         AKNC(NR,2)=(QL**2*RHOD2)/(EPSS*TAUD)*(TERM1D+TERM2D)
+C         AKNC(NR,3)=(QL**2*RHOT2)/(EPSS*TAUT)*(TERM1T+TERM2T)
+C         AKNC(NR,4)=(QL**2*RHOA2)/(EPSS*TAUA)*(TERM1A+TERM2A)
+         AKNC(NR,2)=(RHOD2*SQRT(EPS))/TAUD*(TERM1D+TERM2D)
+         AKNC(NR,3)=(RHOT2*SQRT(EPS))/TAUT*(TERM1T+TERM2T)
+         AKNC(NR,4)=(RHOA2*SQRT(EPS))/TAUA*(TERM1A+TERM2A)
 C
       ENDIF
 C
@@ -1437,16 +1356,16 @@ C     ZEFF=1
 C
       DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 C
-      DO 150 NR=1,NRMAX
-C
-C        ****** CLASSICAL RESISTIVITY ******
-C
+      DO NR=1,NRMAX
          IF(NR.EQ.1) THEN
             EPS=0.5D0*              EPSRHO(NR)
          ELSE
             EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
          ENDIF
          EPSS=SQRT(EPS)**3
+C
+C        ****** CLASSICAL RESISTIVITY (Spitzer) ******
+C
          ANE=RN(NR,1)
          ANI=RN(NR,2)
          TE =RT(NR,1)
@@ -1460,7 +1379,7 @@ C
          ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
      &             *(0.29D0+0.46D0/(1.08D0+ZEFFL))
 C
-C        ****** NEOCLASSICAL RESISTIVITY ******
+C        ****** NEOCLASSICAL RESISTIVITY (Hinton, Hazeltine) ******
 C
          IF(MDLETA.EQ.1) THEN
             IF(NR.EQ.1) THEN
@@ -1477,7 +1396,7 @@ C
             FT     = 1.D0/H-SQRT(EPS)*RK33E
             ETA(NR)= ETA(NR)/FT
 C
-C        ****** NEOCLASSICAL RESISTIVITY PART II ******
+C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Hawryluk) ******
 C
          ELSEIF(MDLETA.EQ.2) THEN
             IF(NR.EQ.1) THEN
@@ -1485,24 +1404,22 @@ C
             ELSE
                QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
             ENDIF
+            ZEFFL=ZEFF(NR)
+C            VTE=1.33D+7*DSQRT(ABS(TE))
+            VTE=SQRT(ABS(TE)*RKEV/AME)
+            FT=FTPF(MDLTPF,EPS)
+            rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
+            TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
+     &           *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
+            RNUSE=RR*QL/(VTE*TAUE*EPSS)
+            PHI=FT/(1.D0+(0.58D0+0.20D0*ZEFFL)*RNUSE)
+            ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
+            CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
 C
-         ZEFFL=ZEFF(NR)
-C         VTE=1.33D+7*DSQRT(ABS(TE))
-         VTE=SQRT(ABS(TE)*RKEV/AME)
-         FT=1.D0-(1.D0-EPS)**2.D0
-     &         /(DSQRT(1.D0-EPS**2.D0)*(1.D0+1.46D0*DSQRT(EPS)))
-         rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
-         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
-     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
-         RNUSE=RR*QL/(VTE*TAUE*EPSS)
-         PHI=FT/(1.D0+(0.58D0+0.20D0*ZEFFL)*RNUSE)
-         ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
-         CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
+            ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
+     &           /((1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0)))
 C
-         ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
-     &            /((1.D0-PHI)*(1.D0-CH*PHI)*(1.D0+0.47D0*(ZEFFL-1.D0)))
-C
-C        ****** NEOCLASSICAL RESISTIVITY BY O. SAUTER  ******
+C        ****** NEOCLASSICAL RESISTIVITY (Sauter)  ******
 C
          ELSEIF(MDLETA.EQ.3) THEN
             IF(NR.EQ.1) THEN
@@ -1514,15 +1431,47 @@ C
             rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
             RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
             SGMSPTZ=1.9012D4*(TE*1.D3)**1.5D0/(ZEFFL*RNZ*rLnLame)
-            FT=1.D0-(1.D0-EPS)**2.D0
-     &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+            FT=FTPF(MDLTPF,EPS)
             RNUE=6.921D-18*ABS(QL)*RR*ANE*1.D20*ZEFFL*rLnLame
      &          /((TE*1.D3)**2*EPSS)
             F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
      &             +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5D0)
             ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
+C
+C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Sigmar)  ******
+C
+         ELSEIF(MDLETA.EQ.4) THEN
+            IF(NR.EQ.1) THEN
+               QL= 0.25D0*(3.D0*Q0+QP(NR))
+            ELSE
+               QL= 0.5D0*(QP(NR-1)+QP(NR))
+            ENDIF
+            ZEFFL=ZEFF(NR)
+            ANE  =RN(NR,1)
+            TEL  =ABS(RT(NR,1))
+C
+            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
+     &           /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
+            TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
+C     p1157 (7.36) ! TAUEE?
+            ETA(NR) = AME*ZEFFL/(ANE*1.D20*AEE*AEE*TAUE)
+     &           *( (1.D0+1.198D0*ZEFFL+0.222D0*ZEFFL**2)
+     &             /(1.D0+2.966D0*ZEFFL+0.753D0*ZEFFL**2))
+c$$$            TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
+c$$$     &           *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
+c$$$            rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
+c$$$            ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
+C
+            FT=FTPF(MDLTPF,EPS)
+            XI=0.58D0+0.2D0*ZEFFL
+            CR=0.56D0/ZEFFL*(3.D0-ZEFFL)/(3.D0+ZEFFL)
+C     RNUE expressions is given by the paper by Hirshman, Hawryluk.
+            RNUE=SQRT(2.D0)/EPSS*RR*QL/SQRT(2.D0*TEL*RKEV/AME)/TAUE
+C     p1158 (7.41)
+            ETA(NR)=ETA(NR)/(1.D0-FT/(1.D0+XI*RNUE))
+     &                     /(1.D0-CR*FT/(1.D0+XI*RNUE))
          ENDIF
-  150 CONTINUE
+      ENDDO
 C
 C
 C        ****** NEOCLASSICAL RESISTIVITY BY NCLASS  ******
