@@ -57,7 +57,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for macosx-xlf
 #FLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
 #OFLAGS = -O -qmaxmem=-1
-#DFLAGS = -g -C -qfltrap=enable,zerodivide,overflow,invalid
+#DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
 #FC = xlf
 #LD=ld
 #LDFLAGS=-r
