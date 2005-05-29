@@ -61,7 +61,7 @@ C
          BX = BR*RCOST-BT*RSINT
          BY = BR*RSINT+BT*RCOST
 C
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          RL=SQRT(X**2+Y**2)
          PP=0.D0
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,PSIN)

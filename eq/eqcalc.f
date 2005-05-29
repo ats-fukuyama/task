@@ -1,8 +1,8 @@
 C     $Id$
 C
-C   ************************************************  
-C   **            Mesh Definition                 **
-C   ************************************************
+C   ************************************************ 
+C   **       Mesh Definition (sigma, theta)       **
+C   ************************************************ 
 C
       SUBROUTINE EQMESH
 C      
@@ -255,7 +255,7 @@ C
 C
       IERR=0
 C
-C     ----- calculate psi(R,Z) from psi(sigma, theta) -----
+C     ----- calculate PSIRZ(R,Z) from PSI(sigma, theta) -----
 C
       CALL EQTORZ
 C
@@ -303,22 +303,15 @@ C     ----- calculate R(sigma, theta) and Z(sigma,theta) -----
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
-            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
+         RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+         ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
       ENDDO
       ENDDO
 C
 C     ----- calculate right hand side vector -----
 C
-      DO NSG=1,NSGMAX
-      DO NTG=1,NTGMAX
-            RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-            ZMM(NTG,NSG)=SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-      ENDDO
-      ENDDO
-C
       IMDLEQF=MOD(MDLEQF,5)
-      FDN=-1.D0/PSI0
+      JMDLEQF=MDLEQF/5
 C
 C     ----- Given pressure and toroidal current profiles -----
 C
@@ -333,6 +326,12 @@ C
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             CALL EQTPSI(PSIN,TPSI,DTPSI)
             CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            IF(JMDLEQF.EQ.0) THEN
+               FDN=-1.D0/PSI0
+            ELSE
+               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
+               FDN=-1.D0/(PSI0*RUGQL)
+            ENDIF
             PP(NTG,NSG)=PPSI
             HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
             HJT1(NTG,NSG)=-HJPSI
@@ -361,6 +360,12 @@ C
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             CALL EQTPSI(PSIN,TPSI,DTPSI)
             CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            IF(JMDLEQF.EQ.0) THEN
+               FDN=-1.D0/PSI0
+            ELSE
+               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
+               FDN=-1.D0/(PSI0*RUGQL)
+            ENDIF
             TT(NTG,NSG)=SQRT((2.D0*PI*BB*RR)**2
      &                 +2.D0*RMU0*RRC
      &                 *(2.D0*PI*TJ*HJPSID/FDN-RRC*PPSI
@@ -381,6 +386,12 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQFPSI(PSIN,FPSI,DFPSI)
+            IF(JMDLEQF.EQ.0) THEN
+               FDN=-1.D0/PSI0
+            ELSE
+               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
+               FDN=-1.D0/(PSI0*RUGQL)
+            ENDIF
             PP(NTG,NSG)=PPSI
             HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
             HJT1(NTG,NSG)=-2.D0*PI*BB*RR       *FDN*DFPSI
@@ -422,7 +433,12 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
-C            CALL EQGPSI(PSIN,RGJ,RG1,RG2,RG3,RGB)
+            CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
+            IF(JMDLEQF.EQ.0) THEN
+               FDN=-1.D0/PSI0
+            ELSE
+               FDN=-1.D0/(PSI0*RUGQL)
+            ENDIF
             PP(NTG,NSG)=PPSI
             HJP1(NTG,NSG)=2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
             HJT1(NTG,NSG)=HJPSI
@@ -444,7 +460,6 @@ C
 C     ----- Given pressure and safety factor profiles ------
 C
       ELSEIF(IMDLEQF.EQ.3) THEN
-         CALL EQPSIQ
          FJP=0.D0
          FJT1=0.D0
          FJT2=0.D0
@@ -453,6 +468,11 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQQPSI(PSIN,QPSI,DQPSI)
+            IF(JMDLEQF.EQ.0) THEN
+               FDN=-1.D0/PSI0
+            ELSE
+               FDN=-1.D0/(PSI0*QPSI)
+            ENDIF
             PP(NTG,NSG)=PPSI
             HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
             CALL FNFQT(PSIN,FQTL,DFQTL)
@@ -478,14 +498,12 @@ C         TJ=(-RIP*1.D6-FJP)/FJT
 C
          DO NSG=1,NSGMAX
          DO NTG=1,NTGMAX
-C            HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
             HJT(NTG,NSG)=HJP2(NTG,NSG)+TJ*HJT1(NTG,NSG)
      &                                +TJ*TJ*HJT2(NTG,NSG)
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQQPSI(PSIN,QPSI,DQPSI)
             CALL FNFQT(PSIN,FQTL,DFQTL)
-C            TT(NTG,NSG)=TJ*QPSIL/FQTL
             TT(NTG,NSG)=BB*RR+TJ1*(QPSI/FQTL-BB*RR)
             RHO(NTG,NSG)=(PPSI*AMP/TPSI)
      &                  *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
@@ -607,19 +625,19 @@ C
          RHON=(NU-1)*DRHO
          PSINP=RHOP**2
          PSINN=RHON**2
-         CALL EQLPSI(PSINP,PLP,HJLP,PQLP,RG5P)
-         CALL EQLPSI(PSINN,PLM,HJLM,PQLM,RG5M)
-         RG5=0.5D0*(RG5P+RG5M)
-         PQL=0.5D0*(PQLP+PQLM)
-         HJL=0.5D0*(HJLP+HJLM)
-         VA= 0.5D0*RMU*(PLP-PLM)/(BB**2*RG5)
-         VB=-RMU*HJL*PSITS*(PSINP-PSINM)/(PQL*BB*RG5)
+         CALL EQGPSI(PSINP,RUGQP,RUGJP,RUG1P,RUG2P,RUG3P,RUGBP)
+         CALL EQGPSI(PSINN,RUGQN,RUGJN,RUG1N,RUG2N,RUG3N,RUGBN)
+         RG5=0.5D0*(RG5P+RG5N)
+         PQL=0.5D0*(PQLP+PQLN)
+         HJL=0.5D0*(HJLP+HJLN)
+         VA= 0.5D0*RMU*(PLP-PLN)/(BB**2*RG5)
+         VB=-RMU*HJL*PSITS*(PSINP-PSINN)/(PQL*BB*RG5)
          TTH(NU-1)=((1.D0+VA)*TTH(NR)-VB)/(1.D0-VA)
       ENDDO
       RETURN
       END
 C
-C     ***** CALCULATE TTHETA *****
+C     ***** CALCULATE METRIC *****
 C
       SUBROUTINE EQLPSI(PSIN,PL,HJL,PQL,RG5)
 C

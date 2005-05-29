@@ -171,8 +171,8 @@ C
             R=YA(1,N)
             Z=YA(2,N)
             CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-            B=SQRT(TTS(NR)**2+BPRL**2)/(2.D0*PI*R)
+            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI)
+            B=SQRT((TTS(NR)/(2.D0*PI*R))**2+(BPRL/R)**2)
 C
             RMIN=MIN(RMIN,R)
             RMAX=MAX(RMAX,Z)
@@ -181,7 +181,7 @@ C
          ENDDO
 C
          SPS(NR)=SUMS
-         VPS(NR)=SUMV*2.D0*PI
+         VPS(NR)=SUMV
          QPS(NR)=SUMQ*TTS(NR)/(2.D0*PI)**2
          RLEN(NR)=XA(NA)
          RRMIN(NR)=RMIN
@@ -265,7 +265,9 @@ C
          Z=0.5D0*(YA(2,N-1)+YA(2,N))
          CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
          BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-         B=SQRT((TTSA/R)**2+(BPRL/R)**2)
+         BPL=BPRL/(2.D0*PI*R)
+         BTL=TTSA/(2.D0*PI*R)
+         B=SQRT(BPL**2+BTL**2)
 C
          SUMS=SUMS+H/BPRL
          SUMV=SUMV+H*R/BPRL
@@ -488,10 +490,10 @@ C
             DZCHI(NTH,NR)=DZCHIL
 C
             CALL EQPSID(RPSL,ZPSL,DPSIDR,DPSIDZ)
-            BPR(NTH,NR)= DPSIDZ/RPSL
-            BPZ(NTH,NR)=-DPSIDR/RPSL
+            BPR(NTH,NR)= DPSIDZ/(2.D0*PI*RPSL)
+            BPZ(NTH,NR)=-DPSIDR/(2.D0*PI*RPSL)
             BPT(NTH,NR)=SQRT(BPR(NTH,NR)**2+BPZ(NTH,NR)**2)
-            BTP(NTH,NR)= TTS(NR)/RPSL
+            BTP(NTH,NR)= TTS(NR)/(2.D0*PI*RPSL)
 C            WRITE(6,'(2I3,1P6E12.4)') 
 C     &           NTH,NR,RPSL,ZPSL,
 C     &           BPR(NTH,NR),BPZ(NTH,NR),BPT(NTH,NR),BTP(NTH,NR)
@@ -622,16 +624,23 @@ C
       DIMENSION Y(2),DYDX(2),YOUT(2)
       DIMENSION XA(NMAX),YA(2,NMAX)
 C
-      X=0.D0
+      NEQ=2
+C
+      FACT=SQRT(SQRT(2.D0))
+      H=FACT*2.D0*PI*RKAP*(RINIT-RAXIS)/NMAX
+      ISTEP=0
+C      WRITE(6,'(I5,1P3E12.4)') 0,H,RAXIS,ZAXIS
+C
+  100 X=0.D0
       Y(1)=RINIT
       Y(2)=ZINIT
+C      WRITE(6,'(I5,1P3E12.4)') 1,X,Y(1),Y(2)
+C
       N=1
       XA(N)=X
       YA(1,N)=Y(1)
       YA(2,N)=Y(2)
-      NEQ=2
-C      H=4.D0*PI*(Y(1)-RAXIS)/NMAX
-      H=1.2D0*2.D0*PI*RKAP*(Y(1)-RAXIS)/NMAX
+C
       IMODE=0
       DO I=2,NMAX
          CALL EQDERV(X,Y,DYDX)
@@ -644,12 +653,18 @@ C      H=4.D0*PI*(Y(1)-RAXIS)/NMAX
          X=X+H
          Y(1)=YOUT(1)
          Y(2)=YOUT(2)
-C         WRITE(6,'(I5,1P3E12.4)') N,X,Y(1),Y(2)
+C         WRITE(6,'(I5,1P3E12.4)') N+1,X,Y(1),Y(2)
          N=N+1
          XA(N)=X
          YA(1,N)=Y(1)
          YA(2,N)=Y(2)
       ENDDO
+C
+      IF(ISTEP.LE.4) THEN
+         H=FACT*H
+         ISTEP=ISTEP+1
+         GOTO 100
+      ENDIF
       WRITE(6,*) 'XX RK4: NOT ENOUGH N'
       IERR=1
       RETURN

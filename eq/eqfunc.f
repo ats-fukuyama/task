@@ -290,6 +290,29 @@ C
       RETURN
       END
 C
+C     ************************************************ 
+C     *          Interporate Q and metrics           *
+C     ************************************************
+C
+      SUBROUTINE EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
+C
+      INCLUDE 'eqcomc.inc'
+C
+      CALL SPL1DF(PSIN,RUGQL,PSIRU,URUGQ,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUGQ): IERR=',IERR
+      CALL SPL1DF(PSIN,RUGJL,PSIRU,URUGJ,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUGJ): IERR=',IERR
+      CALL SPL1DF(PSIN,RUG1L,PSIRU,URUG1,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUG1): IERR=',IERR
+      CALL SPL1DF(PSIN,RUG2L,PSIRU,URUG2,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUG2): IERR=',IERR
+      CALL SPL1DF(PSIN,RUG3L,PSIRU,URUG3,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUG3): IERR=',IERR
+      CALL SPL1DF(PSIN,RUGBL,PSIRU,URUGB,NUGMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQGPSI: SPL1DF(RUGB): IERR=',IERR
+      RETURN
+      END
+C
 C   ***************************************
 C   **         Power function            **
 C   ***************************************
