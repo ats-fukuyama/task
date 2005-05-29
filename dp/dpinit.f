@@ -13,6 +13,11 @@ C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS
 C                 7 : KINETIC NUMERICAL MODEL
 C                 8 : GYROKINETIC MODEL (coming)
 C                 9 : GYROKINETIC NUMERICAL MODEL (coming)
+C                -1 : (WM) MHD plasma
+C                -2 : (WM) Cold plasma
+C                -3 : (WM) Hot plasma (No FLR)
+C                -4 : (WM) Hot plasma (Cold FLR)
+C                -5 : (WM) Hot plasma (FLR)
 C
 C              0- 9 : PROPAGATION  = GIVEN MODEL
 C                     POLARIZATION = GIVEN MODEL

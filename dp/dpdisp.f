@@ -58,7 +58,33 @@ C
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
-      DIMENSION CDISP(6),CLDISP(6),CDET(3,3)
+      DIMENSION CDTNS(3,3),CDET(3,3)
+C
+      CW=2.D0*PI*1.D6*CRF
+      CL2=VC*VC/(CW*CW)
+C
+      CALL DPEXEC(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,0,CDTNS)
+C
+      CDET(1,1)=-CL2*(CKY*CKY+CKZ*CKZ)+CDTNS(1,1)
+      CDET(1,2)= CL2* CKX*CKY         +CDTNS(1,2)
+      CDET(1,3)= CL2* CKX*CKZ         +CDTNS(1,3)
+      CDET(2,1)= CL2* CKY*CKX         +CDTNS(2,1)
+      CDET(2,2)=-CL2*(CKZ*CKZ+CKX*CKX)+CDTNS(2,2)
+      CDET(2,3)= CL2* CKY*CKZ         +CDTNS(2,3)
+      CDET(3,1)= CL2* CKZ*CKX         +CDTNS(3,1)
+      CDET(3,2)= CL2* CKZ*CKY         +CDTNS(3,2)
+      CDET(3,3)=-CL2*(CKX*CKX+CKY*CKY)+CDTNS(3,3)
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE DIELECTRIC TENSOR ******
+C
+      SUBROUTINE DPEXEC(CRF,CKX,CKY,CKZ,XPOS,YPOS,ZPOS,NS,CDTNS)
+C
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CDTNS(3,3)
 C
       CALL PLMAG(XPOS,YPOS,ZPOS,PSIN)
       CALL PLPROF(PSIN)
@@ -67,79 +93,101 @@ C
       CKPR=BNX*CKX+BNY*CKY+BNZ*CKZ
       IF(ABS(CKPR).LE.1.D-8) CKPR=1.D-8
       CKPP=SQRT(CKX**2+CKY**2+CKZ**2-CKPR**2)
-      IF(ABS(CKPP).LE.1.D-8) CKPP=1.D-8
 C
-      CL2=VC*VC/(CW*CW)
-      CDV11 =1.D0-CL2*(CKY*CKY+CKZ*CKZ)
-      CDV12 =     CL2* CKX*CKY
-      CDV13 =     CL2* CKX*CKZ
-      CDV21 =     CL2* CKY*CKX
-      CDV22 =1.D0-CL2*(CKZ*CKZ+CKX*CKX)
-      CDV23 =     CL2* CKY*CKZ
-      CDV31 =     CL2* CKZ*CKX
-      CDV32 =     CL2* CKZ*CKY
-      CDV33 =1.D0-CL2*(CKX*CKX+CKY*CKY)
+      CALL DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
 C
-      DO I=1,6
-         CDISP(I)=0.D0
-      ENDDO
+      IF(ABS(CKPP).EQ.0.D0) THEN
+         BNXY=SQRT(BNX*BNX+BNY*BNY)
+         IF(BNXY.EQ.0.D0) THEN
+            CU11= 1.D0
+            CU12= 0.D0
+            CU13= 0.D0
+            CU21= 0.D0
+            CU22= 1.D0
+            CU23= 0.D0
+            CU31= 1.D0
+            CU32= 0.D0
+            CU33= 0.D0
+         ELSE
+            CU11=-BNZ*BNX/BNXY
+            CU12=-BNZ*BNY/BNXY
+            CU13= BNXY
+            CU21= BNY/BNXY
+            CU22=-BNX/BNXY
+            CU23= 0.D0
+            CU31= BNX
+            CU32= BNY
+            CU33= BNZ
+         ENDIF
+      ELSE
+         CU11=( (1.D0-BNX**2)*CKX-BNX*BNY*CKY-BNX*BNZ*CKZ)/CKPP
+         CU12=(-BNY*BNX*CKX+(1.D0-BNY**2)*CKY-BNY*BNZ*CKZ)/CKPP
+         CU13=(-BNZ*BNX*CKX-BNZ*BNY*CKY+(1.D0-BNZ**2)*CKZ)/CKPP
+         CU21=(BNY*CKZ-BNZ*CKY)/CKPP
+         CU22=(BNZ*CKX-BNX*CKZ)/CKPP
+         CU23=(BNX*CKY-BNY*CKX)/CKPP
+         CU31=BNX
+         CU32=BNY
+         CU33=BNZ
+      ENDIF
 C
-      DO NS=1,NSMAX
-         CALL DPTENS(NS,CLDISP)
-         DO I=1,6
-            CDISP(I)=CDISP(I)+CLDISP(I)
+      CDET11=CDTNS(1,1)*CU11+CDTNS(1,2)*CU21+CDTNS(1,3)*CU31
+      CDET12=CDTNS(1,1)*CU12+CDTNS(1,2)*CU22+CDTNS(1,3)*CU32
+      CDET13=CDTNS(1,1)*CU13+CDTNS(1,2)*CU23+CDTNS(1,3)*CU33
+      CDET21=CDTNS(2,1)*CU11+CDTNS(2,2)*CU21+CDTNS(2,3)*CU31
+      CDET22=CDTNS(2,1)*CU12+CDTNS(2,2)*CU22+CDTNS(2,3)*CU32
+      CDET23=CDTNS(2,1)*CU13+CDTNS(2,2)*CU23+CDTNS(2,3)*CU33
+      CDET31=CDTNS(3,1)*CU11+CDTNS(3,2)*CU21+CDTNS(3,3)*CU31
+      CDET32=CDTNS(3,1)*CU12+CDTNS(3,2)*CU22+CDTNS(3,3)*CU32
+      CDET33=CDTNS(3,1)*CU13+CDTNS(3,2)*CU23+CDTNS(3,3)*CU33
+c
+      CDTNS(1,1)=CU11*CDET11+CU21*CDET21+CU31*CDET31
+      CDTNS(1,2)=CU11*CDET12+CU21*CDET22+CU31*CDET32
+      CDTNS(1,3)=CU11*CDET13+CU21*CDET23+CU31*CDET33
+      CDTNS(2,1)=CU12*CDET11+CU22*CDET21+CU32*CDET31
+      CDTNS(2,2)=CU12*CDET12+CU22*CDET22+CU32*CDET32
+      CDTNS(2,3)=CU12*CDET13+CU22*CDET23+CU32*CDET33
+      CDTNS(3,1)=CU13*CDET11+CU23*CDET21+CU33*CDET31
+      CDTNS(3,2)=CU13*CDET12+CU23*CDET22+CU33*CDET32
+      CDTNS(3,3)=CU13*CDET13+CU23*CDET23+CU33*CDET33
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE DIELECTRIC TENSOR ******
+C
+      SUBROUTINE DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
+C
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CDISP(6),CLDISP(6),CDTNS(3,3)
+C
+      CALL PLPROF(PSIN)
+C
+      IF(NS.EQ.0) THEN
+         CDISP(1)=1.D0
+         DO I=2,6
+            CDISP(I)=0.D0
          ENDDO
-      ENDDO
+         DO NS1=1,NSMAX
+            CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+            DO I=1,6
+               CDISP(I)=CDISP(I)+CLDISP(I)
+            ENDDO
+         ENDDO
+      ELSE
+         CALL DPTENS(CW,CKPR,CKPP,NS,CDISP)
+      ENDIF
 C
-      CU11=( (1.D0-BNX**2)*CKX-BNX*BNY*CKY-BNX*BNZ*CKZ)/CKPP
-      CU12=(-BNY*BNX*CKX+(1.D0-BNY**2)*CKY-BNY*BNZ*CKZ)/CKPP
-      CU13=(-BNZ*BNX*CKX-BNZ*BNY*CKY+(1.D0-BNZ**2)*CKZ)/CKPP
-      CU21=(BNY*CKZ-BNZ*CKY)/CKPP
-      CU22=(BNZ*CKX-BNX*CKZ)/CKPP
-      CU23=(BNX*CKY-BNY*CKX)/CKPP
-      CU31=BNX
-      CU32=BNY
-      CU33=BNZ
-C
-      CDET11=CDV11+CDISP(1)
-     &            +     CU31*CU31*CDISP(2)
-     &            +     CU21*CU21*CDISP(3)
-     &            +2.D0*CU31*CU11*CDISP(4)
-      CDET22=CDV22+CDISP(1)
-     &            +     CU32*CU32*CDISP(2)
-     &            +     CU22*CU22*CDISP(3)
-     &            +2.D0*CU32*CU12*CDISP(4)
-      CDET33=CDV33+CDISP(1)
-     &            +     CU33*CU33*CDISP(2)
-     &            +     CU23*CU23*CDISP(3)
-     &            +2.D0*CU33*CU13*CDISP(4)
-      CDET1P=           CU31*CU32*CDISP(2)
-     &            +     CU21*CU22*CDISP(3)
-     &            +     CU31*CU12*CDISP(4)
-     &            +     CU32*CU11*CDISP(4)
-      CDET2P=           CU32*CU33*CDISP(2)
-     &            +     CU22*CU23*CDISP(3)
-     &            +     CU32*CU13*CDISP(4)
-     &            +     CU33*CU12*CDISP(4)
-      CDET3P=           CU33*CU31*CDISP(2)
-     &            +     CU23*CU21*CDISP(3)
-     &            +     CU33*CU11*CDISP(4)
-     &            +     CU31*CU13*CDISP(4)
-      CDET1M=           CU33*CDISP(5)
-     &            +     CU13*CDISP(6)
-      CDET2M=           CU31*CDISP(5)
-     &            +     CU11*CDISP(6)
-      CDET3M=           CU32*CDISP(5)
-     &            +     CU12*CDISP(6)
-      CDET(1,1)=CDET11
-      CDET(2,2)=CDET22
-      CDET(3,3)=CDET33
-      CDET(1,2)=CDV12+CDET1P+CDET1M
-      CDET(2,1)=CDV21+CDET1P-CDET1M
-      CDET(2,3)=CDV23+CDET2P+CDET2M
-      CDET(3,2)=CDV32+CDET2P-CDET2M
-      CDET(3,1)=CDV31+CDET3P+CDET3M
-      CDET(1,3)=CDV13+CDET3P-CDET3M
+      CDTNS(1,1)= CDISP(1)
+      CDTNS(1,2)= CDISP(5)
+      CDTNS(1,3)= CDISP(4)
+      CDTNS(2,1)=-CDISP(5)
+      CDTNS(2,2)= CDISP(1)+CDISP(3)
+      CDTNS(2,3)= CDISP(6)
+      CDTNS(3,1)= CDISP(4)
+      CDTNS(3,2)=-CDISP(6)
+      CDTNS(3,3)= CDISP(1)+CDISP(2)
 C
       RETURN
       END

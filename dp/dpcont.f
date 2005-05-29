@@ -37,7 +37,7 @@ C
          CALL PLPARM
          GOTO 1
       ELSEIF(KID1.EQ.'D') THEN
-         CALL DPPARM
+         CALL DPPARM(0,'DP',IERR)
          GOTO 1
       ELSEIF(KID1.EQ.'V') THEN
          CALL PLVIEW
@@ -261,7 +261,7 @@ C
       IF(KID1.EQ.'Q') THEN
          GOTO 9000
       ELSEIF(KID1.EQ.'P') THEN
-         CALL DPPARM
+         CALL DPPARM(0,'DP',IERR)
          GOTO 1
       ELSEIF(KID1.EQ.'V') THEN
          CALL DPVIEW

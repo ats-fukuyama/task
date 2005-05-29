@@ -53,13 +53,13 @@ C
          CALL PLMAG(RL,0.D0,0.D0,PSIN)
          CALL PLPROF(PSIN)
          MODELP(1)=4
-         CALL DPTENS(1,CD4)
+         CALL DPTENS(CW,CKPR,CKPP,1,CD4)
          MODELP(1)=5
-         CALL DPTENS(1,CD5)
+         CALL DPTENS(CW,CKPR,CKPP,1,CD5)
          MODELP(1)=6
-         CALL DPTENS(1,CD6)
+         CALL DPTENS(CW,CKPR,CKPP,1,CD6)
          MODELP(1)=7
-         CALL DPTENS(1,CD7)
+         CALL DPTENS(CW,CKPR,CKPP,1,CD7)
          WRITE(6,602) 
   602    FORMAT(6X,'MODELP=4',13X,'MODELP=5',
      &         13X,'MODELP=6',13X,'MODELP=7')

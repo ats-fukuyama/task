@@ -8,14 +8,14 @@ C                      94/05/14
 C                           programed by K.TANAKA
 C ******************************************************
 C
-      SUBROUTINE DPHOTF(NS,CLDISP)
+      SUBROUTINE DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6),CLDISP2(6)
 C
-      CALL DPHOTFR(NS,CLDISP1)
-      CALL DPHOTFI(NS,CLDISP2)
+      CALL DPHOTFR(CW,CKPR,CKPP,NS,CLDISP1)
+      CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP2)
       DO 100 I=1,6
          CLDISP(I)=CLDISP1(I)+CLDISP2(I)
   100 CONTINUE
@@ -26,13 +26,12 @@ C ******************************************************
 C                       DPHOTFR
 C ******************************************************
 C
-      SUBROUTINE DPHOTFR(NS,CLDISP)
+      SUBROUTINE DPHOTFR(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
-      DATA CI/(0.D0,1.D0)/
 C
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)
@@ -198,13 +197,12 @@ C ******************************************************
 C                       DPHOTFI
 C ******************************************************
 C
-      SUBROUTINE DPHOTFI(NS,CLDISP)
+      SUBROUTINE DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6)
-      DATA CI/(0.D0,1.D0)/
 C
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)

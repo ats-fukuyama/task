@@ -13,14 +13,14 @@ C                      96/01/17
 C                           programed by N.KAIHARA
 C ******************************************************
 C
-      SUBROUTINE DPHOTR(NS,CLDISP)
+      SUBROUTINE DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6),CLDISP2(6)
 C
-      CALL DPHOTRR(NS,CLDISP1)
-      CALL DPHOTRI(NS,CLDISP2)
+      CALL DPHOTRR(CW,CKPR,CKPP,NS,CLDISP1)
+      CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP2)
       DO 100 I=1,6
          CLDISP(I)=CLDISP1(I)+CLDISP2(I)
   100 CONTINUE
@@ -31,7 +31,7 @@ C ******************************************************
 C                       DPHOTRR
 C ******************************************************
 C
-      SUBROUTINE DPHOTRR(NS,CLDISP)
+      SUBROUTINE DPHOTRR(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -220,13 +220,11 @@ C ******************************************************
 C                       DPHOTRI
 C ******************************************************
 C
-      SUBROUTINE DPHOTRI(NS,CLDISP)
+      SUBROUTINE DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
-C
-      DATA CI/(0.D0,1.D0)/
 C
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)

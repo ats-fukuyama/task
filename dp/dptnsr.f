@@ -2,76 +2,75 @@ C     $Id$
 C
 C     ****** CALCULATE DIELECTRIC TENSOR ******
 C
-      SUBROUTINE DPTENS(NS,CLDISP)
+      SUBROUTINE DPTENS(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
       DIMENSION CLDISP(6),CLDISP1(6)
-      DATA CI/(0.D0,1.D0)/
 C
       IF(RN(NS).LE.0.D0) THEN
-         CALL DPTNCL(NS,CLDISP)
+         CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
       ELSE
          ID1=MOD(MODELP(NS),10)
          ID2=MODELP(NS)/10
 C
          IF(ID2.EQ.2) THEN
-            CALL DPTNCL(NS,CLDISP1)
+            CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP1)
          ELSEIF(ID2.EQ.3) THEN
-            CALL DPTNKP(NS,CLDISP1)
+            CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP1)
          ENDIF
 C
          IF(ID1.EQ.0) THEN
-            CALL DPTNCL(NS,CLDISP)
+            CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.1) THEN
-            CALL DPTNCC(NS,CLDISP)
+            CALL DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.2) THEN
-            CALL DPTNIM(NS,CLDISP)
+            CALL DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.3) THEN
-            CALL DPTNRM(NS,CLDISP)
+            CALL DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.4) THEN
-            CALL DPTNHP(NS,CLDISP)
+            CALL DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.5) THEN
-            CALL DPTNKP(NS,CLDISP)
+            CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.6) THEN
-            CALL DPTNKR(NS,CLDISP)
+            CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.7) THEN
             IF(MODELV.EQ.0) THEN
                CALL DPFMFL(NS)
                IF(ID2.EQ.2) THEN
-                  CALL DPHOTFI(NS,CLDISP)
+                  CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
-                  CALL DPHOTF(NS,CLDISP)
+                  CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.1) THEN
                CALL DPFPFL(NS)
                IF(ID2.EQ.2) THEN
-                  CALL DPHOTFI(NS,CLDISP)
+                  CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
-                  CALL DPHOTF(NS,CLDISP)
+                  CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.2) THEN
                CALL DPFMFL(NS)
                IF(ID2.EQ.2) THEN
-                  CALL DPHOTRI(NS,CLDISP)
+                  CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
-                  CALL DPHOTR(NS,CLDISP)
+                  CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.3) THEN
                CALL DPFPFL(NS)
                IF(ID2.EQ.2) THEN
-                  CALL DPHOTRI(NS,CLDISP)
+                  CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
-                  CALL DPHOTR(NS,CLDISP)
+                  CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ENDIF
          ENDIF
 C
          IF(ID2.EQ.2) THEN
-            CALL DPTNCL(NS,CLDISP1)
+            CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP1)
          ELSEIF(ID2.EQ.3) THEN
-            CALL DPTNKP(NS,CLDISP1)
+            CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP1)
          ENDIF
 C
          IF(ID2.EQ.2.OR.ID2.eq.3) THEN
@@ -100,7 +99,7 @@ C             CLDISP(6)=EPS_YZ
 C           
 C     ****** COLLISIONLESS COLD MODEL ******
 C
-      SUBROUTINE DPTNCL(NS,CLDISP)
+      SUBROUTINE DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -120,7 +119,7 @@ C
 C
 C     ****** COLLISIONAL COLD MODEL ******
 C
-      SUBROUTINE DPTNCC(NS,CLDISP)
+      SUBROUTINE DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -144,7 +143,7 @@ C
 C
 C     ****** IDEAL MHD MODEL ******
 C
-      SUBROUTINE DPTNIM(NS,CLDISP)
+      SUBROUTINE DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -164,7 +163,7 @@ C
 C
 C     ****** RESISTIVE MHD MODEL ******
 C
-      SUBROUTINE DPTNRM(NS,CLDISP)
+      SUBROUTINE DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -188,7 +187,7 @@ C
 C
 C     ****** WARM PLAMSA MODEL ******
 C
-      SUBROUTINE DPTNWP(NS,CLDISP)
+      SUBROUTINE DPTNWP(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -219,7 +218,7 @@ C
 C
 C     ******  UNMAGNETIZE KINETIC DISPERSION ******
 C
-      SUBROUTINE DPTNUP(NS,CLDISP)
+      SUBROUTINE DPTNUP(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -248,13 +247,12 @@ C
 C
 C     ****** KINETIC MODEL WITHOUT FLR ******
 C
-      SUBROUTINE DPTNHP(NS,CLDISP)
+      SUBROUTINE DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
       DIMENSION CGZ(-1:1),CZ(-1:1),CDZ(-1:1)
-      DATA CI/(0.D0,1.D0)/
 C
       DO I=1,6
          CLDISP(I)=0.D0
@@ -316,12 +314,11 @@ C
 C
 C     ****** KINETIC MODEL WITH LOWEST FLR ******
 C
-      SUBROUTINE DPTNKL(NS,CLDISP)
+      SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
-      DATA CI/(0.D0,1.D0)/
 C
       DO I=1,6
          CLDISP(I)=0.D0
@@ -369,12 +366,11 @@ C
 C
 C     ****** KINETIC MODEL WITH FLR ******
 C
-      SUBROUTINE DPTNKP(NS,CLDISP)
+      SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
-      DATA CI/(0.D0,1.D0)/
 C
       DO I=1,6
          CLDISP(I)=0.D0
@@ -433,13 +429,11 @@ C     ****** CALCULATE DETERMINANT OF DISPERSION TENSOR ******
 C     ******                    IN                      ******
 C     ******     WEAKLY RELATIVISTIC THERMAL PLASMA     ******
 C
-      SUBROUTINE DPTNKR(NS,CLDISP)
+      SUBROUTINE DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
-C      
-      DATA CI/(0.D0,1.D0)/
 C
       DELZ=1.D-6
 C
@@ -568,8 +562,6 @@ C
 C
       INCLUDE '../dp/dpcomm.inc'
 C
-      DATA CI/(0.D0,1.D0)/
-C
       IF(ABS(CZ).GT.15.D0) THEN
          NUMAX=20
          CSUM=0.D0
@@ -607,8 +599,6 @@ C
       FUNCTION CFQZ_Z(Q,CZ)
 C
       INCLUDE '../dp/dpcomm.inc'
-C
-      DATA CI/(0.D0,1.D0)/
 C
       NUMAX=NINT(Q-3.D0/2.D0)
       CSUM=(0.D0,0.D0)
