@@ -539,7 +539,7 @@ C
          IPARA(16)=MODELM
          IPARA(17)=MODELW
          IPARA(18)=LISTEG
-         IPARA(190)=LMAXNW
+         IPARA(19)=LMAXNW
          IPARA(20)=LISTNW
          IPARA(21)=MODENW
 C
