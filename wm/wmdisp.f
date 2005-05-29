@@ -38,6 +38,14 @@ C
             CALL WMDPIN(NR,NS)
          ENDIF
       ENDIF
+C
+      WRITE(6,*) 'WMDISP: NR,NS=',NR,NS
+      WRITE(6,'(1P6E12.4)') 
+     &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
+     &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
+     &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
+      IF(NR.EQ.2) STOP
+C
       RETURN
       END
 C
@@ -68,6 +76,9 @@ C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+C         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
+C            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
+C         ENDIF
 C
          DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
@@ -83,7 +94,7 @@ C
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
 C
-            IF(MODELP(NS).EQ.-5) THEN
+            IF(MODELP(NS).EQ.-4) THEN
                DTT=1.D0
                DTX=0.D0
                DO NSS=1,NSMAX
@@ -159,7 +170,7 @@ C
 C               WRITE(6,*) NR,NS,CPERP,CPARA
             ELSE IF(MODELP(NS).EQ.-3) THEN
                RT=(RTPR(NS)+2*RTPP(NS))/3.D0
-               RKTPR=ABS(RKPR)*SQRT(2.D0*RT/AM)
+               RKTPR=ABS(RKPR)*SQRT(2.D0*RT*AEE/AM)
                CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
                CWC=AE*BABS/AM
                CGZ0=(CW       -RKPR*RU(NS))/RKTPR
@@ -181,14 +192,12 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                   ENDIF
                ENDDO
                CPERM=(0.D0,0.D0)
-            ELSE IF((MODELP(NS).EQ.-4).OR.
-     &              (MODELP(NS).EQ.-5)) THEN
-               RT=(RTPR(NS)+2*RTPP(NS))/3.D0
-               RKTPR=ABS(RKPR)*SQRT(2.D0*RT/AM)
+            ELSE IF(MODELP(NS).EQ.-4) THEN
                CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
                RWC=AE*BABS/AM
+               RKTPR=ABS(RKPR)*SQRT(2.D0*RTPR(NS)*AEE/AM)
+               RKTPP=RTPP(NS)*AEE/(AM*RWC*RWC)
                CWC=DCMPLX(RWC,0.D0)
-               RKTPP=RT/(AM*RWC*RWC)
                CGZ0=(CW       -RKPR*RU(NS))/RKTPR
                CPERP1= 0.D0
                CPERP2= 0.D0
@@ -315,10 +324,19 @@ C
 C
       PSIN=XRHO(NR)**2
       CALL PLPROF(PSIN)
+      IF(NR.EQ.1) THEN
+         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
+         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
+         WRITE(6,*) 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
+         WRITE(6,*) 'RU  :',RU(1)  ,RU(2)  ,RU(3)
+      ENDIF
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
+            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
+         ENDIF
 C
          DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND

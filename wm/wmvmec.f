@@ -177,11 +177,11 @@ C
 C
 C      ***** SPLINE PSIPS *****
 C
-      CALL SPL1D(XS,PHI,FX1,U1,NSRMAX,0,IERR)
+      CALL SPL1D(XS,PHI,FX6,U6,NSRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: PHI: IEER=',IERR
 C
       DO NR=1,NRMAX+1
-         CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U1,NSRMAX,IERR)
+         CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U6,NSRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 
      &        'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
       ENDDO
@@ -198,14 +198,14 @@ C            WRITE(6,'( I5,1P6E12.4)') MN,XM(MN),XN(MN),
 C     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
 C            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
 C         ENDIF
-         CALL SPL1D(XS,YRBS,FX1,U1,NSRMAX,0,IERR)
+         CALL SPL1D(XS,YRBS,FX1,U1(1,1,MN),NSRMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: YRBS: IEER=',IERR
-         CALL SPL1D(XS,YZBS,FX2,U2,NSRMAX,0,IERR)
+         CALL SPL1D(XS,YZBS,FX2,U2(1,1,MN),NSRMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: YZBS: IEER=',IERR
 C
          DO NR=1,NRMAX+1
             CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
-     &                  XS,U1,NSRMAX,IERR)
+     &                  XS,U1(1,1,MN),NSRMAX,IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX WMHCRZ: SPL1DD: SRMNC: IEER=',IERR
                WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
@@ -218,7 +218,7 @@ C
      &                     +DRMNC(MN,NR)*(XRHO(NR)-XS(NSRMAX))
             ENDIF
             CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
-     &                  XS,U2,NSRMAX,IERR)
+     &                  XS,U2(1,1,MN),NSRMAX,IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX WMHCRZ: SPL1DD: SSMNC: IEER=',IERR
                WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
@@ -326,6 +326,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
+      DIMENSION BSUS(NSRM),BSVS(NSRM)
 C
       DO MN=1,MNMAX
          DO NSR=1,NSRMAX
@@ -343,10 +344,10 @@ C         ENDIF
             BSVS(1)=(4*BSVS(2)-BSVS(3))/3.D0
 C            BSUS(1)=(2*BSUS(2)-BSUS(3))/1.D0
 C            BSVS(1)=(2*BSVS(2)-BSVS(3))/1.D0
-            FX1(1)=0.D0
-            FX2(1)=0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,1,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,1,IERR)
+            FX3(1)=0.D0
+            FX4(1)=0.D0
+            CALL SPL1D(XS,BSUS,FX3,U3(1,1,MN),NSRMAX,1,IERR)
+            CALL SPL1D(XS,BSVS,FX4,U4(1,1,MN),NSRMAX,1,IERR)
          ELSEIF(XM(MN).EQ.1) THEN
 C            BSUS(1)=(SQRT(2.D0)*BSUS(2)-BSUS(3))/(SQRT(2.D0)-1.D0)
 C            BSVS(1)=(SQRT(2.D0)*BSVS(2)-BSVS(3))/(SQRT(2.D0)-1.D0)
@@ -354,33 +355,32 @@ C            BSVS(1)=(SQRT(2.D0)*BSVS(2)-BSVS(3))/(SQRT(2.D0)-1.D0)
             BSVS(1)=(2*BSVS(2)-BSVS(3))/1.D0
 C            BSUS(1)= 0.D0
 C            BSVS(1)= 0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,0,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,0,IERR)
+            CALL SPL1D(XS,BSUS,FX3,U3(1,1,MN),NSRMAX,0,IERR)
+            CALL SPL1D(XS,BSVS,FX4,U4(1,1,MN),NSRMAX,0,IERR)
          ELSE
             BSUS(1)= 0.D0
             BSVS(1)= 0.D0
 C            FX1(1)=0.D0
 C            FX2(1)=0.D0
-            CALL SPL1D(XS,BSUS,FX1,U1,NSRMAX,0,IERR)
-            CALL SPL1D(XS,BSVS,FX2,U2,NSRMAX,0,IERR)
+            CALL SPL1D(XS,BSUS,FX3,U3(1,1,MN),NSRMAX,0,IERR)
+            CALL SPL1D(XS,BSVS,FX4,U4(1,1,MN),NSRMAX,0,IERR)
          ENDIF
 C
+         BSTHSV(MN)=BSUS(NSRMAX)
+         BSTHSD(MN)=(BSUS(NSRMAX)-BSUS(NSRMAX-1))
+     &             /(XS(NSRMAX)  -XS(NSRMAX-1))
+         BSPHSV(MN)=BSVS(NSRMAX)
+         BSPHSD(MN)=(BSVS(NSRMAX)-BSVS(NSRMAX-1))
+     &             /(XS(NSRMAX)  -XS(NSRMAX-1))
          DO NR=1,NRMAX+1
-            CALL SPL1DF(XRHO(NR),BSTHL,XS,U1,NSRMAX,IERR)
-C            IF(IERR.EQ.2) THEN
             IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               BSTHL=BSUS(NSRMAX)+(BSUS(NSRMAX)-BSUS(NSRMAX-1))
-     &                           /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                           *(XRHO(NR)-XS(NSRMAX))
+               BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+               BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+            ELSE
+               CALL SPL1DF(XRHO(NR),BSTHL,XS,U1(1,1,MN),NSRMAX,IERR)
+               CALL SPL1DF(XRHO(NR),BSPHL,XS,U2(1,1,MN),NSRMAX,IERR)
             ENDIF
             BSTH(MN,NR)=BSTHL
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               BSPHL=BSVS(NSRMAX)+(BSVS(NSRMAX)-BSVS(NSRMAX-1))
-     &                           /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                           *(XRHO(NR)-XS(NSRMAX))
-            ELSE
-               CALL SPL1DF(XRHO(NR),BSPHL,XS,U2,NSRMAX,IERR)
-            ENDIF
             BSPH(MN,NR)=BSPHL
          ENDDO
       ENDDO
@@ -485,10 +485,10 @@ C     ***** SPLINE IOTAS AND CULCULATE QPS *****
 C
       RIOTAS(1)=2.D0*RIOTAS(2)-RIOTAS(3)
 C
-      CALL SPL1D(XS,RIOTAS,FX3,U3,NSRMAX,0,IERR)
+      CALL SPL1D(XS,RIOTAS,FX5,U5,NSRMAX,0,IERR)
 C
       DO NR=1,NRMAX+1
-         CALL SPL1DF(XRHO(NR),RIOTASL,XS,U3,NSRMAX,IERR)
+         CALL SPL1DF(XRHO(NR),RIOTASL,XS,U5,NSRMAX,IERR)
          IF(IERR.EQ.2) THEN
             RIOTASL=RIOTAS(NSRMAX)+(RIOTAS(NSRMAX)-RIOTAS(NSRMAX-1))
      &                      /(XS(NSRMAX)-XS(NSRMAX-1))
@@ -512,6 +512,46 @@ C
          ENDDO
       ENDDO
       RR=0.5D0*(RGMIN+RGMAX)
+C
+      RETURN
+      END
+C
+C    ***** LOCAL POLOIDAL AND TOROIDAL MAGNETIC FIELD *****
+C
+      SUBROUTINE WMHCBL(XRHOL,THL,PHL,BFLD2L,BFLD3L,QPSL)
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
+C
+      SBTH=0.D0
+      SBPH=0.D0
+      DO MN=1,MNMAX
+         IF(XRHOL-XS(NSRMAX).GT.0.D0) THEN
+            BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHOL-XS(NSRMAX))
+            BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHOL-XS(NSRMAX))
+         ELSE
+            CALL SPL1DF(XRHOL,BSTHL,XS,U1(1,1,MN),NSRMAX,IERR)
+            CALL SPL1DF(XRHOL,BSPHL,XS,U2(1,1,MN),NSRMAX,IERR)
+         ENDIF
+C
+C      ***** CULCULATE MAGNETIC FIELD *****
+C 
+         RSIN=SIN(XM(MN)*THL-XN(MN)*PHL)
+         RCOS=COS(XM(MN)*THL-XN(MN)*PHL)
+         SBTH=SBTH+BSTHL*RCOS
+         SBPH=SBPH+BSPHL*RCOS
+      ENDDO
+      BFLD2L=SBTH
+      BFLD3L=SBPH
+C
+      IF(XRHOL-XS(NSRMAX).GT.0.D0) THEN
+         RIOTASL=RIOTAS(NSRMAX)+(RIOTAS(NSRMAX)-RIOTAS(NSRMAX-1))
+     &                         /(XS(NSRMAX)-XS(NSRMAX-1))
+     &                         *(XRHOL-XS(NSRMAX))
+      ELSE
+         CALL SPL1DF(XRHOL,RIOTASL,XS,U5,NSRMAX,IERR)
+      ENDIF
+      QPSL=2.D0*PI/RIOTASL
 C
       RETURN
       END

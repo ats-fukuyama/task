@@ -90,14 +90,13 @@ C                   2: Poloidal current
 C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
-C                   0: Vacuum
+C
+C        MODELP: Extra control of plasma response model
 C                   -1: MHD plasma
 C                   -2: Cold plasma
 C                   -3: Hot plasma (No FLR)
 C                   -4: Hot plasma (Cold FLR)
-C                   -5: Hot plasma (FLR)
-C                   8: TASK/DP (No FLR)
-C                   9: TAKS/DP (Cold FLR)
+C
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
 C                   1: Precession of alpha particles
@@ -247,7 +246,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      NAMELIST /WM/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RTP,PROFJ,
+      NAMELIST /WM/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
      &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
@@ -365,11 +364,11 @@ C
       IF(NPRINT.LT.2) RETURN
 C
       IF(MODELG.EQ.0) THEN
-         WRITE(6,*) '## 0: CYLINDRICAL ##'
+         WRITE(6,*) '## 0: UNIFORM ##'
       ELSE IF(MODELG.EQ.1) THEN 
-         WRITE(6,*) '## 1: TOROIDAL ##'
+         WRITE(6,*) '## 1: CYLINDRICAL ##'
       ELSE IF(MODELG.EQ.2) THEN 
-         WRITE(6,*) '## 2: STRAIGHT HELICAL ##'
+         WRITE(6,*) '## 2: TOROIDAL ##'
       ELSE IF(MODELG.EQ.3) THEN 
          WRITE(6,*) '## 3: TASK/EQ ##'
       ELSE IF(MODELG.EQ.4) THEN 
@@ -392,7 +391,7 @@ C
          WRITE(6,*) '##',MODELJ,': VACUUM EIGEN MODE ##'
       END IF
 C
-      WRITE(6,'(A,(I3))') 'MODELP=',(MODELP(NS),NS=1,NSMAX)
+      WRITE(6,'(A,(10I5))') 'MODELP=',(MODELP(NS),NS=1,NSMAX)
 C
       IF(MODELN.EQ.8) THEN
          WRITE(6,*) '## 8: READ PROFILE DATA : WMDPRF ##'
@@ -500,8 +499,8 @@ C
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
   612 FORMAT(' ',I1,22X,5(1PE11.3))
-  691 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
-     &                      8X,'PZCL')
+C  691 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
+C     &                      8X,'PZCL')
   692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
      &       ' ','        ',11X,    9X,'PU',9X,'PUS',
