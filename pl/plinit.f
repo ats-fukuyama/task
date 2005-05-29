@@ -15,6 +15,7 @@ C        AMP   : Proton mass
 C        VC    : Speed of light in vacuum
 C        RMU0  : Permeability of free space
 C        EPS0  : Permittivity of free space
+C        CI    : Imaginary unit
 C
       PI    = 2.D0*ACOS(0.D0)
       AEE   = 1.6021892  D-19
@@ -23,6 +24,7 @@ C
       VC    = 2.99792458 D  8
       RMU0  = 4.D0*PI*1.D-7
       EPS0  = 1.D0/(VC*VC*RMU0)
+      CI    = (0.D0,1.D0)
 C
 C     ======( DEVICE PARAMETERS )======
 C
@@ -139,11 +141,14 @@ C                   1: Cylindrical geometry
 C                   2: Toroidal geometry
 C                   3: TASK/EQ output geometry
 C                   4: VMEC output geometry
+C                   5: EQDSK output geometry
+C                   6: Boozer output geometry
 C        MODELN: Control plasma profile
 C                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS
 C                   1: PT calculated from TASK/EQ pressure profile
 C                   2: PN*PT proportional to TASK/EQ pressure profile
-C                   9: Read from file by means of WMXPRF routine
+C                   8: Read from file by means of WMDPRF routine (DIII-D)
+C                   9: Read from file by means of WMXPRF routine (JT-60)
 C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 C                   1: Given current profile (RIP,PROFJ)
@@ -174,13 +179,17 @@ C     ======( MODEL PARAMETERS )======
 C
 C        KNAMEQ: Filename of equilibrium data
 C        KNAMWR: Filename of ray tracing data
+C        KNAMWM: Filename of full wave data
 C        KNAMFP: Filename of Fokker-Planck data
 C        KNAMFO: Filename of File output
+C        KNAMPF: Filename of profile data
 C
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
+      KNAMWM = 'wmdata'
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
+      KNAMPF = 'pfdata'
 C
       IDEBUG = 0
 C

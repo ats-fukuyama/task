@@ -14,9 +14,6 @@ LIBS = pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
 
 all : pl
 
-pllib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
-
 ../eq/pleqin.o:
 	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
