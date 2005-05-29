@@ -9,12 +9,9 @@ C
 C     
       IERR=0
 C
-C      IF(ID.EQ.4) THEN
-         CALL WMHFRD
-C      ELSE
-C         CALL WMHGRD(ID,IERR)
-C         IF(IERR.NE.0) RETURN
-C      ENDIF
+C
+      CALL WMHGRD(IERR)
+         IF(IERR.NE.0) RETURN
       CALL WMHCRZ
       CALL WMHMTR
       CALL WMHCBB
@@ -24,166 +21,126 @@ C
 C
 C    ****** READ WOUT FILE ******
 C
-      SUBROUTINE WMHFRD
+      SUBROUTINE WMHGRD(IERR)
 C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
-C
-      CHARACTER FNAME*80
-C
-C 1002    WRITE(6,*) 'READ FILE NAME ?'
-C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
-          FNAME='wout'
-C
-      OPEN(8,FILE=FNAME,FORM='UNFORMATTED',STATUS='OLD')
-C
-      READ(8) (R1DATA(I),I=1,3),MNMAX,NTOR0,MN0,N1,N2
-      VOLI=DBLE(R1DATA(1))
-      RGAM=DBLE(R1DATA(2))
-      RC  =DBLE(R1DATA(3))
-C
-      NSRMAX=31
-      WRITE(6,*) 'MNMAX,NTOR0,MN0=',MNMAX,NTOR0,MN0
-      WRITE(6,*) 'VOLI,RGAM,RC   =',VOLI,RGAM,RC
-C
-      DO MN=1,NSRMAX*MNMAX
-         READ(8) (R1DATA(I),I=1,12)
-         XM(MN)   =R1DATA( 1)
-         XN(MN)   =R1DATA( 2)
-         RMNC(MN) =R1DATA( 3)
-         ZMNS(MN) =R1DATA( 4)
-C         WRITE(6,*) MN,XM(MN),XN(MN),RMNC(MN),ZMNS(MN)
-         RLMNS(MN)=R1DATA( 5)
-         BMOD(MN) =R1DATA( 6)
-         RGMOD(MN)=R1DATA( 7)
-C         BSUBU    =R1DATA( 8)
-C         BSUBV    =R1DATA( 9)
-C         BSUBS    =R1DATA(10)
-         BSU(MN)  =R1DATA(11)
-         BSV(MN)  =R1DATA(12)
-      ENDDO
-C
-      READ(8) ((R2DATA(I,NSR),I=1,11),NSR=2,NSRMAX)
-      DO NSR=2,NSRMAX
-         RIOTAS(NSR) =R2DATA( 1,NSR)
-         RMASS(NSR)  =R2DATA( 2,NSR)
-         PRES(NSR)   =R2DATA( 3,NSR)
-         PHIPS(NSR)  =R2DATA( 4,NSR)
-         BPCO(NSR)   =R2DATA( 5,NSR)
-         BACO(NSR)   =R2DATA( 6,NSR)
-         PHI(NSR)    =R2DATA( 7,NSR)
-         VP(NSR)     =R2DATA( 8,NSR)
-         RJTHETA(NSR)=R2DATA( 9,NSR)
-         RJZETA(NSR) =R2DATA(10,NSR)
-         SPECW(NSR)  =R2DATA(11,NSR)
-      ENDDO
-C
-      READ(8) ((R3DATA(I,J),I=1,2),J=1,100)
-      DO J=1,100
-         FSQT(I)=R3DATA(1,J)
-         WDOT(I)=R3DATA(2,J)
-      ENDDO
-C
-      CLOSE(8)
-C
-C     ----- Setup normalized radius for file data -----
-C
-      PSIA =-PHI(NSRMAX)
-      DO NSR=1,NSRMAX
-         S=-PHI(NSR)/PSIA
-         IF(S.LT.0.D0) THEN
-            XS(NSR)=0.D0
-         ELSE
-            XS(NSR)=SQRT(S)
-         ENDIF
-         IF(NSR.EQ.1) THEN
-            XSH(NSR)=0.D0
-         ELSE
-            XSH(NSR)=0.5D0*(XS(NSR)+XS(NSR-1))
-         ENDIF
-C         WRITE(6,'(I5,2X,1P3E12.5)') NSR,PHI(NSR),XS(NSR),PRES(NSR)
-      ENDDO
-C
-      RHOB=RB/RA
-      DRHO=RHOB/NRMAX
-      DO NR=1,NRMAX+1
-         XRHO(NR)=DRHO*(NR-1)
-         XR(NR)  =RB*XRHO(NR)
-      ENDDO
-C
-      RETURN
-      END
-C
-C    ****** READ WOUT FILE ******
-C
-      SUBROUTINE WMHGRD(ID,IERR)
-C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE 'vmcomm.inc'
-C
-      CHARACTER FNAME*80
 C
       IERR=0
 C
-C 1002 WRITE(6,*) 'READ FILE NAME ?'
-C      READ(5,'(A80)',ERR=1002,END=9000) FNAME
-      IF(ID.EQ.5) THEN
-         FNAME='woutS'
-      ELSEIF(ID.EQ.6) THEN
-         FNAME='woutT'
-      ELSE
-         WRITE(6,*) 'XX WMHGRD: UNKNOWN ID :',ID
-         IERR=1
-         RETURN
-      ENDIF
+      NFL=8
+      CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
 C
-      OPEN(8,FILE=FNAME,FORM='UNFORMATTED',STATUS='OLD')
-C
-      READ(8) VOLI,RGAM,RC,D2,D3,N1,
-     &        MNMAX,NSRMAX,NTHET1,NZETA1,
-     &        N2,N3,N4,N5,NTOR0,MN0
-C
-C      WRITE(6,*) 'NSRMAX=',NSRMAX
-C      WRITE(6,*) 'MNMAX =',MNMAX
-C      WRITE(6,*) 'NTHET1=',NTHET1
-C      WRITE(6,*) 'NZETA1=',NZETA1
-C
-      NTHET2=1+NTHET1/2
-      NZNT=NZETA1*NTHET2
-C
-C
-      MN=0
-      DO NSR=1,NSRMAX
-         DO I=1,MNMAX
-            MN=MN+1
-            READ(8) XM(MN),XN(MN),
-     &              RMNC(MN),ZMNS(MN),RLMNS(MN),
-     &              BMOD(MN),RGMOD(MN),
-     &              D1,D2,D3,
-     &              BSU(MN),BSV(MN)
-C            IF(MN.LE.100) WRITE(6,'(A,I5,1P5E12.4)')
-C     &              'MN,M,N,R,Z,B=',
-C     &               MN,XM(MN),XN(MN),RMNC(MN),ZMNS(MN),BMOD(MN)
-         ENDDO
-C
-         READ(8) (D1,D2,D3,D4,D5,D6,D7,K=1,NZNT)
-      ENDDO
-C
-      READ(8) (RIOTAS(NSR),PRES(NSR),VP(NSR),PHIPS(NSR),
-     &         BPCO(NSR),BACO(NSR),
-     &         PHI(NSR),RCHI(NSR),RJTHETA(NSR),RJZETA(NSR),
-     &         SPECW(NSR),NSR=2,NSRMAX)
-C
-      IF(ID.EQ.6) THEN
-         READ(8) (AMVM(K),K=0,5)
-      ENDIF
-      READ(8) (FSQT(I),WDOT(I),I=1,100)
+C      open(8,FILE=FNAME,FORM='FORMATTED',STATUS='OLD')
+c
+c     write (nfort8,711) voli,gamma,1.0/nfp,Rmajor_p,bz_vmec,
+c    >       ncurr,mnmax,ns,ntheta,nzeta,itfsq,niter/nstep+1,
+c    >       mpol,ntor,ntor+1,1
+      read  (     8,711) voli, rgam,     d2,      rc,     d3,
+     >          n1,mnmax,nsrmax,ntheta_in,nzeta_in,n2,n3,
+     >       mpol_in,ntor_in,n4,n5
+ 711  format(5e20.13,11i6)
+c
+            ntheta1 = 2*(ntheta/2)
+            ntheta2 = 1 + ntheta1/2
+            nznt = nzeta*ntheta2
+            mpol1 = mpol_in - 1
+            ntor0 = ntor_in + 1 ! or ntor_in not definite
+            mn0   = 1           ! not definite
+c
+       print *,   ' nsrmax    = ',nsrmax
+       print *,   '  mnmax    = ', mnmax
+       print *,   '   mpol_in = ',  mpol_in
+       print *,   '   ntor_in = ',  ntor_in
+       print *,   ' ntheta    = ',ntheta
+       print *,   '  nzeta    = ', nzeta
+       print *,   '   nznt    = ',  nznt
+c
+      if( nsrmax .GT. nsd ) then
+        print 600,' ns_in     = ',   nsrmax,'  > nsd    = ',nsd
+        stop
+      endif
+      if( mnmax .GT. nmnm ) then
+        print 600,' mnmax     = ',    mnmax,'  > nmnm   = ',nmnm
+        stop
+      endif
+      if( mpol_in .NE. mpol ) then
+        print 600,' mpol_in   = ',  mpol_in,' /= mpol   = ',mpol
+        stop
+      endif
+      if( ntor_in .NE. nmax ) then
+        print 600,' ntor_in   = ',  ntor_in,' /= nmax   = ',nmax
+        stop
+      endif
+      if( ntheta_in .NE. ntheta ) then
+        print 600,' ntheta_in = ',ntheta_in,' /= ntheta = ',ntheta
+        stop
+      endif
+      if( nzeta_in .NE. nzeta ) then
+        print 600,' nzeta_in  = ', nzeta_in,' /= nzeta  = ',nzeta
+        stop
+      endif
+ 600  format(2x,a13,i6,a13,i6)
+c
+            mn = 0
+      do js = 1, nsrmax
+         do m = 0, mpol1
+            nmin0 = -ntor_in
+            if (m .eq. 0) nmin0 = 0
+            do n = nmin0, ntor_in
+               mn = mn + 1
+c                write (nfort8,722) xm(mn),xn(mn),
+c    f			rmnc(mn),zmns(mn),lmns(mn),
+c    h			bmn,gmn,
+c    h			bsubumn, bsubvmn, bsubsmn, bsupumn, bsupvmn
+c	 ----------------------------
+                 read  (     8,722) xm(mn),xn(mn),
+     f			rmnc(mn),zmns(mn),rlmns(mn),
+     h			bmod(mn),rgmod(mn),
+     h			     d1,      d2,      d3, bsu(mn), bsv(mn)
+c	 ----------------------------
+            enddo
+         enddo
+c          write (nfort8,723)
+c    h          ( gsqrt(js,k),
+c    h            bsubu(js,k),  bsubv(js,k),  bsubs(js,k),
+c    h            bsupu(js,k),  bsupv(js,k),
+c    h            bmod    (k),  k=1,nznt                  )
+           read (      8,723) (d1,d2,d3,d4,d5,d6,d7,k=1,nznt)
+      enddo
+ 722  format(12e20.13)
+ 723  format(7e20.13)
+c
+c          write (nfort8,732) (iotas(js),pres(js),vp(js),phips(js),
+c    1            buco(js),bvco(js),phi(js),chi(js),jcuru(js),
+c    2            jcurv(js),specw(js),js=2,ns)
+c	 --------------------------------------------------------
+           read  (     8,732) (riotas(js),pres(js),vp(js),phips(js),
+     1            bpco(js),baco(js),phi(js),rchi(js),rjtheta(js),
+     2            rjzeta(js),specw(js),js=2,nsrmax)
+ 732  format(11e20.13)
+      print 995, (js,riotas(js),pres(js),vp(js),phips(js),
+     >               bpco(js),baco(js),phi(js),rchi(js),rjtheta(js),
+     >               rjzeta(js),specw(js), js=2,nsrmax)
+ 995  format(/1x,' is' ,1x,'    iota_h',1x,'    pres_h'
+     >                 ,1x,'      vp_h',1x,'    phip_h'
+     >                 ,1x,'    buco_h',1x,'    bvco_h'
+     >                 ,1x,'     phi_f',1x,'     chi_f'
+     >                 ,1x,'   jcuru_f',1x,'   jcurv_f'
+     >                 ,1x,'     specw'/(1x,i3,11(1x,1pd10.3)) )
 
-C
-      CLOSE(8)
+c       write (nfort8,734) (am(i),i=0,10)
+c       write (nfort8,735) (fsqt(i),wdot(i),i=1,100)
+        read  (     8,734) (amvm(i),i=0,10)
+        read  (     8,735) (fsqt(i),wdot(i),i=1,100)
+ 734  format(11e20.13)
+ 735  format(2e20.13)
+c
+      close(8)
 C
 C     ----- Setup normalized radius for file data -----
 C
+         phi(1) = 0.0d0
       PSIA =-PHI(NSRMAX)
       DO NSR=1,NSRMAX
          S=-PHI(NSR)/PSIA
@@ -197,7 +154,8 @@ C
          ELSE
             XSH(NSR)=0.5D0*(XS(NSR)+XS(NSR-1))
          ENDIF
-C         WRITE(6,'(I5,2X,1P3E12.5)') NSR,PHI(NSR),XS(NSR),PRES(NSR)
+C         WRITE(6,'(I5,2X,1P4E12.5)') 
+C     &           NSR,PHI(NSR),XS(NSR),PRES(NSR),riotas(nsr)
       ENDDO
 C
       RHOB=RB/RA
@@ -220,9 +178,12 @@ C
 C      ***** SPLINE PSIPS *****
 C
       CALL SPL1D(XS,PHI,FX1,U1,NSRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: PHI: IEER=',IERR
 C
       DO NR=1,NRMAX+1
          CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U1,NSRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
       ENDDO
 C     
 C      ***** SPLINE RMNC(S),ZMNS(S) DRMNC(S) DZMNS(S) *****
@@ -238,13 +199,18 @@ C     &                                YRBS(1),YRBS(2),YRBS(3),YRBS(4)
 C            WRITE(6,'(29X,1P4E12.4)') YZBS(1),YZBS(2),YZBS(3),YZBS(4)
 C         ENDIF
          CALL SPL1D(XS,YRBS,FX1,U1,NSRMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: YRBS: IEER=',IERR
          CALL SPL1D(XS,YZBS,FX2,U2,NSRMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: YZBS: IEER=',IERR
 C
          DO NR=1,NRMAX+1
             CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
      &                  XS,U1,NSRMAX,IERR)
-C            WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
-C            IF(IERR.EQ.2) THEN
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX WMHCRZ: SPL1DD: SRMNC: IEER=',IERR
+               WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
+            ENDIF
+C
             IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
                DRMNC(MN,NR)=(YRBS(NSRMAX)-YRBS(NSRMAX-1))
      &                     /(XS(NSRMAX)-XS(NSRMAX-1))
@@ -253,7 +219,10 @@ C            IF(IERR.EQ.2) THEN
             ENDIF
             CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
      &                  XS,U2,NSRMAX,IERR)
-C            IF(IERR.EQ.2) THEN
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX WMHCRZ: SPL1DD: SSMNC: IEER=',IERR
+               WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
+            ENDIF
             IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
                DZMNS(MN,NR)=(YZBS(NSRMAX)-YZBS(NSRMAX-1))
      &                     /(XS(NSRMAX)-XS(NSRMAX-1))

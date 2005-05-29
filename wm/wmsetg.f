@@ -6,17 +6,17 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-C     ****** CYLINDRICAL COORDINATES ******
+C     ****** RECTANGULAR COORDINATES ******
 C
       IF(MODELG.EQ.0) THEN
          CALL WMXRZC(IERR)
 C
-C     ****** TOROIDAL COORDINATES ******
+C     ****** CYLINDRICAL COORDINATES ******
 C
       ELSEIF(MODELG.EQ.1) THEN
          CALL WMXRZT(IERR)
 C
-C     ****** TEMP COORDINATES ******
+C     ****** TOROIDAL COORDINATES ******
 C
       ELSEIF(MODELG.EQ.2) THEN
          CALL WMXRZT(IERR)
@@ -452,7 +452,7 @@ C
          CALL EQSETP
          CALL EQCALQ(NRMAX+1,NTHMAX,NSUMAX,IERR)
 C
-         CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
+         CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
 C
 C         WRITE(6,'(1P6E12.4)') BB,RR,RIP,RA,RKAP,RB
 C
@@ -477,7 +477,7 @@ C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
       CALL MPBCDA(RIP)
       CALL MPBCDA(RA)
       CALL MPBCDA(RKAP)
-      CALL MPBCDA(RDEL)
+      CALL MPBCDA(RDLT)
       CALL MPBCDA(RB)
       CALL MPBCDN(PSIPS,NRMAX+1)
       CALL MPBCDN(RPS,NTHM*(NRMAX+1))
@@ -602,9 +602,9 @@ C            BPT=(BPR(NTH,NR)*DRPSI(NTH,NR)
 C     &          +BPZ(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
             BFLD(2,NTH,NPH,NR)=BFLD(2,NTH,NPH,2)
             BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
-            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
-     &           RBPS(NR)/RPS(NTH,NR)**2,
-     &           BPTL,BPTL*RJ(NTH,NPH,NR)
+C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
+C     &           RBPS(NR)/RPS(NTH,NR)**2,
+C     &           BPTL,BPTL*RJ(NTH,NPH,NR)
 C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
          ENDDO

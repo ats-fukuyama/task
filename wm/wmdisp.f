@@ -32,7 +32,11 @@ C
       ELSEIF((MOD(MODELA/2,2).EQ.1).AND.(NS.EQ.1)) THEN
          CALL WMTNEX(NR)
       ELSE
-         CALL WMTNSX(NR,NS)
+         IF(MODELP(NS).LT.0) THEN
+            CALL WMTNSX(NR,NS)
+         ELSE
+            CALL WMDPIN(NR,NS)
+         ENDIF
       ENDIF
       RETURN
       END
@@ -79,7 +83,7 @@ C
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
 C
-            IF(MODELP.EQ.4) THEN
+            IF(MODELP(NS).EQ.-5) THEN
                DTT=1.D0
                DTX=0.D0
                DO NSS=1,NSMAX
@@ -126,7 +130,7 @@ C
 C
             AM=PA(NS)*AMP
             AE=PZ(NS)*AEE
-            IF(MODELP.EQ.1) THEN
+            IF(MODELP(NS).EQ.-1) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
                CWP=AE*AE*RN(NS)/(AM*EPS0)
@@ -140,7 +144,7 @@ C
                END IF
                CCROS=(0.D0,0.D0)
                CPERM=(0.D0,0.D0)
-            ELSE IF(MODELP.EQ.2) THEN
+            ELSE IF(MODELP(NS).EQ.-2) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
                CWP=AE*AE*RN(NS)/(AM*EPS0)
@@ -153,7 +157,7 @@ C
      &                     *CWN/CWU)
                CPERM=(0.D0,0.D0)
 C               WRITE(6,*) NR,NS,CPERP,CPARA
-            ELSE IF(MODELP.EQ.3) THEN
+            ELSE IF(MODELP(NS).EQ.-3) THEN
                RT=(RTPR(NS)+2*RTPP(NS))/3.D0
                RKTPR=ABS(RKPR)*SQRT(2.D0*RT/AM)
                CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
@@ -177,7 +181,8 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                   ENDIF
                ENDDO
                CPERM=(0.D0,0.D0)
-            ELSE IF(MODELP.EQ.4) THEN
+            ELSE IF((MODELP(NS).EQ.-4).OR.
+     &              (MODELP(NS).EQ.-5)) THEN
                RT=(RTPR(NS)+2*RTPP(NS))/3.D0
                RKTPR=ABS(RKPR)*SQRT(2.D0*RT/AM)
                CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
@@ -276,6 +281,129 @@ C
      &     =CTNSR(2,2,MD,ND,NTH,NPH) + CPERP + UYY2*CPERM
             CTNSR(3,3,MD,ND,NTH,NPH)
      &     =CTNSR(3,3,MD,ND,NTH,NPH) + CPARA
+C
+C            IF(NR.EQ.30.AND.NTH.EQ.1.AND.MDX.EQ.1) THEN
+C               WRITE(6,*) 'RN,RTPR,RTPP=',RN(1)/1.D20,
+C     &                    RTPR(1)/(AEE*1.D3),RTPP(1)/(AEE*1.D3)
+C               WRITE(6,*) 'BABS,QR=',BABS,QR
+C               WRITE(6,*) 'RKPR,RKPP2=',RKPR,RKPP2
+C               WRITE(6,*) 'CGZ(0)=',CGZ(0)
+C               WRITE(6,*) 'CDZ(0)=',CDZ(0)
+C               WRITE(6,*) 'CTNSR(3,3)=',CTNSR(3,3,NTH,MDX)
+C            ENDIF
+         ENDDO
+         ENDDO
+      ENDDO
+      ENDDO
+C
+      RETURN
+      END
+C
+C     ****** IMPORT FROM TASK/DP ******
+C
+      SUBROUTINE WMDPIN(NR,NS)
+C
+C           NR : NODE NUMBER (RADIAL POSITION)
+C           NS : PARTICLE SPECIES 
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CDTNS(3,3)
+C
+      CW=2*PI*CRF*1.D6
+      WW=DBLE(CW)
+C
+      PSIN=XRHO(NR)**2
+      CALL PLPROF(PSIN)
+C
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+C
+         DO ND=-NDSIZX,NDSIZX
+            NN=NPH0+NHC*ND
+         DO MD=-MDSIZX,MDSIZX
+            MM=NTH0+MD
+C
+            RKTH=MM*BSUPTH/BABS
+            RKPH=NN*BSUPPH/BABS
+            RKPR=RKTH+RKPH
+C
+            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
+            RNPR=VC*RKPR/WW
+C
+            IF(MODELP(NS).EQ.5) THEN
+               DTT=1.D0
+               DTX=0.D0
+               DO NSS=1,NSMAX
+                  AM=PA(NSS)*AMP
+                  AE=PZ(NSS)*AEE
+                  WP=AE*AE*RN(NSS)/(AM*EPS0)
+                  WC=AE*BABS/AM
+                  DTT=DTT-WP/(WW*WW-WC*WC)
+                  DTX=DTX-WP*WC/((WW*WW-WC*WC)*WW)
+               ENDDO
+               RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
+               RKPP2=RNPP2*WW*WW/(VC*VC)
+               RKPP=SQRT(RKPP2)
+               RKX2=     MM*MM*RG22(NTH,NPH,NR)*XRHO(NR)**2
+     &             +2.D0*MM*NN*RG23(NTH,NPH,NR)*XRHO(NR)
+     &             +     NN*NN*RG33(NTH,NPH,NR)
+               IF(RKPP2.GT.0.D0) THEN
+                  RKT2=RKX2-RKPR**2
+                  IF(RKT2.GT.0.D0) THEN
+                     IF(RKT2.LE.RKPP2) THEN
+                        RKR2=RKPP2-RKT2
+                     ELSE
+                        RKR2=0.D0
+                     ENDIF
+                  ELSE
+                     RKT2=0.D0
+                     RKR2=RKPP2
+                  ENDIF
+                  UXX2= RKX2/RKPP2
+                  UYY2= RKR2/RKPP2
+               ELSE
+                  RKPP2=0.D0
+                  RKPP=0.D0
+                  RKT2=0.D0
+                  RKR2=0.D0
+                  UXX2=0.D0
+                  UYY2=0.D0
+               ENDIF
+            ELSE
+               RKPP2=0.D0
+               RKPP=0.D0
+               RKT2=0.D0
+               RKR2=0.D0
+               UXX2=0.D0
+               UYY2=0.D0
+            ENDIF
+C
+            RKPP=0.D0
+C            RKPR=1.D0
+C            IF(NR.EQ.10.AND.MD.EQ.0.AND.ND.EQ.0) WRITE(6,*) NTH,RKPR
+            CKPR=RKPR
+            CKPP=RKPP
+            CALL DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
+C
+C      IF(NR.EQ.1) THEN
+C         WRITE(6,*) 'CPERP,CPERM,CPARA:',CPERP,CPERM,CPARA
+C         WRITE(6,*) 'UXX2,UYY2:',UXX2,UYY2
+C      ENDIF
+C
+            CPERM=CDTNS(2,2)-CDTNS(1,1)
+C
+            CTNSR(1,1,MD,ND,NTH,NPH)
+     &     =CTNSR(1,1,MD,ND,NTH,NPH) + CDTNS(1,1) + UXX2*CPERM
+            CTNSR(1,2,MD,ND,NTH,NPH)
+     &     =CTNSR(1,2,MD,ND,NTH,NPH) + CDTNS(1,2)
+            CTNSR(2,1,MD,ND,NTH,NPH)
+     &     =CTNSR(2,1,MD,ND,NTH,NPH) + CDTNS(2,1)
+            CTNSR(2,2,MD,ND,NTH,NPH)
+     &     =CTNSR(2,2,MD,ND,NTH,NPH) + CDTNS(1,1) + UYY2*CPERM
+            CTNSR(3,3,MD,ND,NTH,NPH)
+     &     =CTNSR(3,3,MD,ND,NTH,NPH) + CDTNS(3,3)
 C
 C            IF(NR.EQ.30.AND.NTH.EQ.1.AND.MDX.EQ.1) THEN
 C               WRITE(6,*) 'RN,RTPR,RTPP=',RN(1)/1.D20,

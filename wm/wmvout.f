@@ -185,6 +185,10 @@ C
          ZMAX=DMAX1(ZMAX,AMAXAF(Z(LES),1,NTHPTS))
          ZMIN=DMIN1(ZMIN,AMINAF(Z(LES),1,NTHPTS))
       ENDDO
+c---------------------------------------------------------------------------
+      print *,' rmin = ',rmin,' rmax = ',rmax
+      print *,' zmin = ',zmin,' zmax = ',zmax
+c---------------------------------------------------------------------------
 C
       DO KZ=1,NPHMAX
 C
@@ -381,9 +385,13 @@ C
       COMMON /WMHVR1/ NSRMAX,MNMAX
       COMMON /WMHRD1/ MN0,NTOR0
       COMMON /WMHRD2/ HS,OHS,DNORM,RC
+C
       TWOPI=8.D0*DATAN(1.D0)
       PIT=1.D0/(NTH-1.D0)
-      PIZ=RC/NPHMAX
+c.... updated on 05/05/03 by N^2 .. start ...........
+c     PIZ=RC/NPHMAX
+      PIZ=1.0d0/dble(nhc*NPHMAX)
+c.... updated on 05/05/03 by N^2 .. end .............
       NRTH=NS*NTH
 C
       DO L=1,NRTH

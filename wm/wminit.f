@@ -6,150 +6,6 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-C     *** CONSTANTS ****
-C
-C        CI    : Imaginary unit
-C        PI    : Pi
-C        AEE   : Elementaty charge
-C        AME   : Electron mass
-C        AMP   : Proton mass
-C        VC    : Speed of light in vacuum
-C        RMU0  : Permeability of free space
-C        EPS0  : Permittivity of free space
-C
-      CI     = (0.D0,1.D0)
-      PI     = ACOS(0.D0)*2.D0
-      AEE    = 1.60217733D-19
-      AME    = 9.1093897D-31
-      AMP    = 1.6726231D-27
-      VC     = 2.997924580D8
-      RMU0   = 4.D0*PI*1.D-7
-      EPS0   = 1.D0/(VC*VC*RMU0)
-C
-C     *** CONFIGURATION PARAMETERS ***
-C
-C        BB    : Magnetic field at center                        (T)
-C        RR    : Plasma major radius                             (m)
-C        RA    : Plasma minor radius                             (m)
-C        RB    : Wall minor radius                               (m)
-C        Q0    : Safety factor at center
-C        QA    : Safety factor on plasma surface
-C        RKAP  : Plasma shape elongation
-C        RDEL  : Plasma shape triangularity *
-C
-      BB     = 3.00D0
-      RR     = 3.00D0
-      RA     = 1.00D0
-      RB     = 1.20D0
-      Q0     = 1.00D0
-      QA     = 3.00D0
-      RKAP   = 1.00D0
-      RDEL   = 0.00D0
-C
-C     *** PLASMA PARAMETERS ***
-C
-C        NSMAX : Number of particle species
-C        PA    : Mass number
-C        PZ    : Charge number
-C        PN    : Density at center                      (1.0E20/m^3)
-C        PNS   : Density on plasma surface              (1.0E20/m^3)
-C        PTPR  : Parallel temperature at center                (keV)
-C        PTPP  : Perpendicular temperature at center           (keV)
-C        PTS   : Temperature on surface                        (keV)
-C        PZCL  : Ratio of collision frequency to wave frequency
-C        PU    : Toroidal rotation velocity at center          (m/s)
-C        PUS   : Toroidal rotation velocity on surface         (m/s)
-C        PNITB : Density increment at ITB               (1.0E20/m^3)
-C        PTITB : Temperature increment at ITB                  (keV)
-C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
-C
-C        ZEFF  : Effective Z (\sum n Z^2 / \sum n Z)
-C        PROFN1: Density profile parameter (power of rho)
-C        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
-C        PROFT1: Temperature profile parameter (power of rho)
-C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
-C        PROFU1: Rotation profile parameter (power of rho)
-C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
-C
-      NSMAX  = 3
-C
-C     < E >
-C
-      PA(1)   =  AME/AMP
-      PZ(1)   = -1.0D0
-      PN(1)   =  1.D0
-      PNS(1)  =  0.1D0
-      PZCL(1) =  3.D-2
-      PTPR(1) =  3.D0
-      PTPP(1) =  3.D0
-      PTS(1)  =  0.3D0
-      PU(1)   =  0.D0
-      PUS(1)  =  0.D0
-      PNITB(1)=  0.D0
-      PTITB(1)=  0.D0
-      PUITB(1)=  0.D0
-C
-C     < D >
-C
-      PA(2)   =  2.0D0
-      PZ(2)   =  1.0D0
-      PN(2)   =  0.9D0
-      PNS(2)  =  0.09D0
-      PZCL(2) =  3.0D-2
-      PTPR(2) =  3.D0
-      PTPP(2) =  3.D0
-      PTS(2)  =  0.3D0
-      PU(2)   =  0.D0
-      PUS(2)  =  0.D0
-      PNITB(2)=  0.D0
-      PTITB(2)=  0.D0
-      PUITB(2)=  0.D0
-C
-C     < H >
-C
-      IF(NSM.GE.3) THEN
-         PA(3)   =  1.0D0
-         PZ(3)   =  1.0D0
-         PN(3)   =  0.1D0
-         PNS(3)  =  0.01D0
-         PZCL(3) =  3.0D-2
-         PTPR(3) =  3.D0
-         PTPP(3) =  3.D0
-         PTS(3)  =  0.3D0
-         PU(3)   =  0.D0
-         PUS(3)  =  0.D0
-         PNITB(3)=  0.D0
-         PTITB(3)=  0.D0
-         PUITB(3)=  0.D0
-      ENDIF
-C
-C     < He >
-C
-      IF(NSM.GE.4) THEN
-         NS=4
-         PA(NS)   =  4.0D0
-         PZ(NS)   =  2.0D0
-         PN(NS)   =  0.5D0
-         PNS(NS)  =  0.05D0
-         PZCL(NS) =  3.0D-2
-         PTPR(NS) =  3.D0
-         PTPP(NS) =  3.D0
-         PTS(NS)  =  1.D0
-         PU(NS)   =  0.D0
-         PUS(NS)  =  0.D0
-         PNITB(NS)=  0.D0
-         PTITB(NS)=  0.D0
-         PUITB(NS)=  0.D0
-      ENDIF
-C
-      ZEFF  = 2.D0
-      PROFN1= 2.D0
-      PROFN2= 0.5D0
-      PROFT1= 2.D0
-      PROFT2= 1.D0
-      PROFU1= 2.D0
-      PROFU2= 1.D0
-C
 C     **** ALPHA PARTICLE PARAMETERS ****
 C
 C        PNA   : Alpha density at center               (1.0E20/Mm*3)
@@ -159,6 +15,12 @@ C
       PNA  = 0.02D0
       PNAL = 0.5D0
       PTA  = 3.5D3
+C
+C     **** ZEFF PARAMETERS ****
+C
+C        ZEFF  : Effective Z (sum n Z^2 / sum n Z)
+C
+         ZEFF  = 2.D0
 C
 C     *** WAVE PARAMETER ***
 C
@@ -221,14 +83,6 @@ C                   0: No graphic out
 C                   1: Standard graphic out (2D: Coutour)
 C                   2: Standard graphic out (2D: Paint)
 C                   3: Standard graphic out (2D: Bird's eye)
-C        MODELG: Control plasma geometry model
-C                   0: Cylindrical geometry
-C                   1: Toroidal geometry
-C                   2: Straight helical geometry
-C                   3: TASK/EQ output geometry
-C                   4: VMEC output geometry
-C                   5: EQDSK output geometry
-C                   6: Boozer output geometry
 C        MODELJ: Control antenna current model
 C                   0: Real antenna
 C                   1: Real antenna
@@ -236,17 +90,14 @@ C                   2: Poloidal current
 C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
-C        MODELP: Control plasma dielectric tensor model
 C                   0: Vacuum
-C                   1: MHD plasma
-C                   2: Cold plasma
-C                   3: Hot plasma (No FLR)
-C                   4: Hot plasma (Cold FLR)
-C                   5: Hot plasma (FLR)
-C        MODELN: Control plasma profile
-C                   0: Calculate from PN,PNS,PTPR,PTPP,PTS,PU,PUS
-C                   8: Read from file by means of WMDPRF routine (DIII-D)
-C                   9: Read from file by means of WMXPRF routine (JT-60)
+C                   -1: MHD plasma
+C                   -2: Cold plasma
+C                   -3: Hot plasma (No FLR)
+C                   -4: Hot plasma (Cold FLR)
+C                   -5: Hot plasma (FLR)
+C                   8: TASK/DP (No FLR)
+C                   9: TAKS/DP (Cold FLR)
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
 C                   1: Precession of alpha particles
@@ -280,26 +131,11 @@ C        RHOITB: rho at ITB
 C
       NPRINT = 2
       NGRAPH = 1
-      MODELG = 1
       MODELJ = 0
-      MODELP = 4
-      MODELN = 0
       MODELA = 0
       MODELK = 0
       MODELM = 2
       MODELW = 0
-C
-      RHOMIN = 0.D0
-      QMIN   = 1.5D0
-      RHOITB = 0.D0
-C
-C     *** FILE NAME ***
-C
-C        KNAMEQ: Filename of equilibrium data
-C        KNAMPF: Filename of profile data
-C
-      KNAMEQ = 'eqdata'
-      KNAMPF = 'pfdata'
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -411,20 +247,21 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      NAMELIST /WM/ BB,RR,RA,RB,Q0,QA,RKAP,RDEL,
-     &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,NSMAX,
-     &              PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,
-     &              PNA,PNAL,PTA,
+      NAMELIST /WM/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RTP,PROFJ,
+     &              PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,NSMAX,
+     &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
+     &              PNA,PNAL,PTA,ZEFF,NDISP1,NDISP2,
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELM,MODELW,KNAMEQ,KNAMPF,
+     &              MODELM,MODELW,MODELV,KNAMEQ,KNAMPF,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
-     &              RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2,
-     &              RHOITB,PNITB,PTITB,PUITB,WAEMIN,WAEMAX,
-     &              KNAMEQ,KNAMPF,PRFIN
+     &              RHOMIN,QMIN,RHOEDG,
+     &              RHOITB,PNITB,PTITB,PUITB,
+     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMPF,
+     &              WAEMIN,WAEMAX,PRFIN
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -446,7 +283,7 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDEL,'/
+  601 FORMAT(' ','# &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDLT,'/
      &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
      &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
@@ -555,19 +392,7 @@ C
          WRITE(6,*) '##',MODELJ,': VACUUM EIGEN MODE ##'
       END IF
 C
-      IF(MODELP.EQ.0) THEN
-         WRITE(6,*) '## 0: VACUUM ##'
-      ELSE IF(MODELP.EQ.1) THEN 
-         WRITE(6,*) '## 1: MHD PLASMA ##'
-      ELSE IF(MODELP.EQ.2) THEN 
-         WRITE(6,*) '## 2: COLD PLASMA ##'
-      ELSE IF(MODELP.EQ.3) THEN 
-         WRITE(6,*) '## 3: HOT PLASMA (NO FLR) ##'
-      ELSE IF(MODELP.EQ.4) THEN 
-         WRITE(6,*) '## 4: HOT PLASMA (COLD FLR) ##'
-      ELSE IF(MODELP.EQ.5) THEN 
-         WRITE(6,*) '## 5: HOT PLASMA (FLR) ##'
-      END IF
+      WRITE(6,'(A,(I3))') 'MODELP=',(MODELP(NS),NS=1,NSMAX)
 C
       IF(MODELN.EQ.8) THEN
          WRITE(6,*) '## 8: READ PROFILE DATA : WMDPRF ##'
@@ -631,7 +456,7 @@ C
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    ,
      &             'RA    ',RA    ,'RB    ',RB
       WRITE(6,601) 'Q0    ',Q0    ,'QA    ',QA    ,
-     &             'RKAP  ',RKAP  ,'RDEL  ',RDEL
+     &             'RKAP  ',RKAP  ,'RDLT  ',RDLT
       WRITE(6,601) 'PROFN1',PROFN1,'PROFN2',PROFN2,
      &             'PROFT1',PROFT1,'PROFT2',PROFT2
       WRITE(6,601) 'ZEFF  ',ZEFF  ,'PNA   ',PNA   ,
@@ -646,12 +471,11 @@ C
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC
 C
-      IF(MODELP.EQ.1.OR.MODELP.EQ.2) THEN
-         WRITE(6,691)
-         DO NS=1,NSMAX
-            WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
-         ENDDO
-      ELSE IF(MODELP.GT.2) THEN
+C         WRITE(6,691)
+C         DO NS=1,NSMAX
+C            WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
+C         ENDDO
+C
          WRITE(6,692)
          DO NS=1,NSMAX
             WRITE(6,611) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),
@@ -661,7 +485,6 @@ C
             WRITE(6,612) NS,PU(NS),PUS(NS),
      &                   PNITB(NS),PTITB(NS),PUITB(NS)
          ENDDO
-      ENDIF
 C
       WRITE(6,693)
       DO NA=1,NAMAX
@@ -693,7 +516,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      DIMENSION IPARA(22),DPARA(28)
+      DIMENSION IPARA(21),DPARA(28)
 C
       IF(MYRANK.EQ.0) THEN
          RF=DBLE(CRF)
@@ -710,16 +533,15 @@ C
          IPARA(10)=NGRAPH
          IPARA(11)=MODELG
          IPARA(12)=MODELJ
-         IPARA(13)=MODELP
-         IPARA(14)=MODELN
-         IPARA(15)=MODELA
-         IPARA(16)=MODELK
-         IPARA(17)=MODELM
-         IPARA(18)=MODELW
-         IPARA(19)=LISTEG
-         IPARA(20)=LMAXNW
-         IPARA(21)=LISTNW
-         IPARA(22)=MODENW
+         IPARA(13)=MODELN
+         IPARA(14)=MODELA
+         IPARA(15)=MODELK
+         IPARA(16)=MODELM
+         IPARA(17)=MODELW
+         IPARA(18)=LISTEG
+         IPARA(190)=LMAXNW
+         IPARA(20)=LISTNW
+         IPARA(21)=MODENW
 C
          DPARA(1) =BB
          DPARA(2) =RR
@@ -728,7 +550,7 @@ C
          DPARA(5) =Q0
          DPARA(6) =QA
          DPARA(7) =RKAP
-         DPARA(8) =RDEL
+         DPARA(8) =RDLT
          DPARA(9) =PROFN1
          DPARA(10)=PROFN2
          DPARA(11)=PROFT1
@@ -767,16 +589,15 @@ C
          NGRAPH=IPARA(10)
          MODELG=IPARA(11)
          MODELJ=IPARA(12)
-         MODELP=IPARA(13)
-         MODELN=IPARA(14)
-         MODELA=IPARA(15)
-         MODELK=IPARA(16)
-         MODELM=IPARA(17)
-         MODELW=IPARA(18)
-         LISTEG=IPARA(19)
-         LMAXNW=IPARA(20)
-         LISTNW=IPARA(21)
-         MODENW=IPARA(22)
+         MODELN=IPARA(13)
+         MODELA=IPARA(14)
+         MODELK=IPARA(15)
+         MODELM=IPARA(16)
+         MODELW=IPARA(17)
+         LISTEG=IPARA(18)
+         LMAXNW=IPARA(19)
+         LISTNW=IPARA(20)
+         MODENW=IPARA(21)
 C       
          BB    =DPARA(1) 
          RR    =DPARA(2) 
@@ -785,7 +606,7 @@ C
          Q0    =DPARA(5) 
          QA    =DPARA(6) 
          RKAP  =DPARA(7) 
-         RDEL  =DPARA(8) 
+         RDLT  =DPARA(8) 
          PROFN1=DPARA(9) 
          PROFN2=DPARA(10)
          PROFT1=DPARA(11)
@@ -822,6 +643,7 @@ C
       CALL MPBCDN(PNITB,NSMAX)
       CALL MPBCDN(PTITB,NSMAX)
       CALL MPBCDN(PUITB,NSMAX)
+      CALL MPBCIN(MODELP,NSMAX)
       CALL MPBCDN(AJ,NAMAX)
       CALL MPBCDN(APH,NAMAX)
       CALL MPBCDN(THJ1,NAMAX)

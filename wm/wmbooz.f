@@ -50,17 +50,22 @@ C
 C
       DIMENSION shalf(NSRM),wjs(NSRM),wis(NSRM)
 C
-C 1002    WRITE(6,*) 'READ FILE NAME ?'
-C         READ(5,'(A80)',ERR=1002,END=9000) FNAME
-C          FNAME='wout'
-C
       NFL=11
-C      KNAMEQ='m08n06.X1.1320_b_0.00.asc'
       CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
 C
       rewind NFL
       read(NFL,*) MNMAX, NSRMAX, nfp
       NSRMAX=NSRMAX+1
+      IF(MNMAX.GT.NMNM) THEN
+         WRITE(6,'(A,2I8)') 
+     &        'XX WMHBRD: MNMAX.GT.NMNM: MNMAX,NMNM=',MNMAX,NMNM
+         STOP
+      ENDIF
+      IF(NSRMAX.GT.NSRM) THEN
+         WRITE(6,'(A,2I8)') 
+     &        'XX WMHBRD: NSRMAX.GT.NSRM: NSRMAX,NSRM=',NSRAX,NSRM
+         STOP
+      ENDIF
 C
       read(NFL,*) (shalf(NSR),NSR=2,NSRMAX)
       read(NFL,*) (RIOTAS(NSR),NSR=2,NSRMAX)

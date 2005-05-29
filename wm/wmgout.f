@@ -53,7 +53,7 @@ C
      &        CALL WMGREQ(K2,K3,K4)
          IF(K1.EQ.'C') CALL WMGRTH(K2,K3,K4)
          IF(K1.EQ.'M') CALL WMGRMD(K2,K3,K4)
-         IF(K1.EQ.'S'.AND.MODELG.EQ.4) CALL WMGRMS
+         IF(K1.EQ.'S'.AND.(MODELG.EQ.4.OR.MODELG.EQ.6)) CALL WMGRMS
       ELSE
          WRITE(6,*) '## UNDEFINED CONTROL CHARACTER: K1=',K1
       END IF
@@ -944,19 +944,10 @@ C
 C
       CALL MOVE(XPOS,YPOS)
 C
-      IF(MODELP.EQ.0) THEN
-        CALL TEXT('Wave Guide',10)
-      ELSE IF (MODELP.EQ.1) THEN
-         CALL TEXT('MHD',3) 
-      ELSE IF (MODELP.EQ.2) THEN
-         CALL TEXT('COLD',4) 
-      ELSE IF (MODELP.EQ.3) THEN
-         CALL TEXT('HOT1',4) 
-      ELSE IF (MODELP.EQ.4) THEN
-         CALL TEXT('HOT2',4) 
-      ELSE IF (MODELP.EQ.5) THEN
-         CALL TEXT('HOT3',4) 
-      END IF
+      CALL TEXT('MODELP=',7)
+      DO NS=1,NSMAX
+        CALL NUMBI(MODELP(NS),'(I3)',3)
+      ENDDO
 C
 C     ****** DEVICE PARAMETERS ******
 C

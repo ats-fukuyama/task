@@ -20,7 +20,7 @@ C
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ',
-     &      'G/GRAPH T/TAE W/WRITE Q/QUIT')
+     &      'G/GRAPH T/TAE S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
          CALL MPBCIA(MODE)
@@ -78,6 +78,12 @@ C
 C
 C        *** FILE OUTPUT ***
 C
+         ELSE IF (KID.EQ.'S') THEN
+            IF(MYRANK.EQ.0) THEN
+               CALL WMSAVE
+            ENDIF
+            CALL MPSYNC
+            KID=' '
          ELSE IF (KID.EQ.'W') THEN
             IF(MYRANK.EQ.0) THEN
                IF(NFILEINI.EQ.0) THEN
