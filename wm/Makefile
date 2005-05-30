@@ -1,7 +1,7 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmexec.f wmprof.f wmdisp.f \

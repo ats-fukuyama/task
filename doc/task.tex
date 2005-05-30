@@ -6,7 +6,7 @@
 
 \begin{document}
 \begin{flushright}
-2005/01/31
+2005/05/10
 \end{flushright}
 
 \begin{center}
@@ -143,8 +143,33 @@ CVS サーバーに account を有する場合には，修正したファイルを upload す
 \item
 \tline{cp ../arch/XXXX-XXXX/Makefile.arch .}：必要な設定ファイルをコピー
 する．
+\begin{itemize}
+\item
+linux-g77: intel86系 Linux において g77, gcc を利用してコンパイル．
+\item
+linux-pgf: intel86系 Linux において PGI 製 pgf77, gcc を利用してコンパイル．
+\item
+linux-pgf: intel86系 Linux において Intel 製 ifort, icc を利用してコンパイル．
+\item
+macosx-g77: Mac OSX において g77, gcc を利用してコンパイル．
+\item
+macosx-xlf: Mac OSX において IBM/Absoft 製 xlf, xlc を利用してコンパイル．
+\item
+sx-nifs: NIFS 汎用計算機 において sxf90, sxcc を利用してコンパイル．
+\item
+hp-nifs: NIFS Application server において f90, cc を利用してコンパイル．
+\end{itemize}
+
 \item
 Makefile.arch の中の directory BINPATH, LIBPATH を適切に設定する．
+\begin{itemize}
+\item
+/usr/local が利用できる場合には，\ttype{/usr/local/bin}, \ttype{/usr/local/lib}
+を利用
+\item
+/usr/local が利用できない場合には \ttype{\$HOME/bin},\ttype{\$HOME/lib} を利用
+\end{itemize}
+
 \item
 \tline{make}：ライブラリを作成する．
 \item
@@ -159,10 +184,16 @@ LIBPATH を \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
 を実行しておく．これらの操作には root 権限が必要．
 \item
 環境変数 \ttype{LD\underline{ }LIBRARY\underline{ }PATH} に LIBPATH を
-含める．
+含める．\\
+\qquad　例：
+\ttype{export LD\underline{ }LIBRARY\underline{ }PATH=/usr/local/lib}
 \end{itemize}
 \item
-\tline{cd test}
+\tline{cd test}：テストプログラムを作成する場合には
+\item
+環境変数 \ttype{LD\underline{ }LIBRARY\underline{ }PATH} に \ttype{../lib} を
+含める．\\
+\qquad\ttype{export LD\underline{ }LIBRARY\underline{ }PATH=../lib}
 \item
 \tline{make}
 \item
@@ -210,6 +241,34 @@ LIBPATH を \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
 
 \end{enumerate}
 
+\subsection{コードの各プログラムの入力}
+\begin{verbatim}
+入力行の解釈
+　　１．行中に "=" を含む場合は namelist 変数の入力
+　　２．先頭の１文字が英字の場合はコマンドの入力
+　　３．それ以外は要求されている変数の入力
+
+namelist 変数の入力
+　　・すべての namelist 変数はファイル xxinit.f のサブルーチン XXINIT で
+　　　初期化されている．
+　　・実行時のディレクトリにファイル xxparm があれば，namelist 入力として読み込まれる．
+　　・入力行が "=" を含む場合は，先頭に " &xx"，末尾に " &end" を付加し，
+　　　namelist 入力として読み込まれる．
+　　・コマンド "P" を入力して，namelist 入力を行うことも可能．
+
+コマンド入力
+　　・先頭の１文字が英字の入力行はコマンドの入力
+　　・コマンドの種類を表す英字は大文字と小文字を区別しない．
+
+　　Ｐ：namelist 変数の入力
+　　Ｖ：namelist 変数等の表示
+　　Ｒ：プログラムの実行開始
+　　Ｃ：プログラムの実行継続
+　　Ｇ：計算結果の図形表示
+　　Ｓ：計算結果の保存
+　　Ｌ：計算結果の読込
+　　Ｑ：実行の終了
+\end{verbatim}
 
 \section{コンパイル・パラメータ}
 
@@ -236,6 +295,53 @@ XXcomn.inc の中で配列の大きさを指定するパラメータが設定されており，それ
 \compileParm{NGYM}{I}{101}{Maximum number of graphic y mesh}
 \end{tabbing}
 
+\title{eqcom1.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRGM}{I}{131}{Maximum number of R mesh (display)}
+\compileParm{NZGM}{I}{131}{Maximum number of Z mesh (display)}
+\compileParm{NPSM}{I}{131}{Maximum number of psi mesh (display)}
+\end{tabbing}
+
+\title{eqcom2.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NSGM}{I}{64}{Maximum number of radial mesh (solver)}
+\compileParm{NTGM}{I}{64}{Maximum number of poloidal mesh (solver)}
+\compileParm{NUGM}{I}{128}{Maximum number of poloidal mesh of radial boundary (solver)}
+\end{tabbing}
+
+\title{eqcom3.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{201}{Maximum number of radial mesh (interpolation)}
+\compileParm{NTHM}{I}{129}{Maximum number of poloidal mesh (interpolation)}
+\compileParm{NSUM}{I}{1025}{Maximum number of poloidal mesh of radial boundary (interpolation)}
+\compileParm{NNM}{I}{1000}{Maximum number of poloidal mesh to follow
+  field line}
+\end{tabbing}
+
+\title{eqcom4.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NTRM}{I}{200}{Maximum number of radial mesh (interpolation)}
+\end{tabbing}
+
+\title{trcom0.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{80}{Maximum number of radial mesh}
+\compileParm{NTM}{I}{10001}{Maximum number of time mesh for global quantities}
+\compileParm{NGM}{I}{1001}{Maximum number of time mesh for profiles}
+\compileParm{NSM}{I}{4}{Maximum number of particle species (bulk ions and electrons)}
+\compileParm{NSZM}{I}{2}{Maximum number of impurity species}
+\compileParm{N0M}{I}{2}{Maximum number of neutral species}
+\compileParm{NFM}{I}{2}{Maximum number of fast ion species}
+\compileParm{NCGM}{I}{22}{Maximum number of profiles}
+\compileParm{NCTM}{I}{100}{Maximum number of global quantities}
+\compileParm{NTUM}{I}{1001}{Maximum number of time mesh in UFILE}
+\end{tabbing}
+
 \title{wrcom1.inc}
 \begin{tabbing}
 \compileParmLine
@@ -248,6 +354,23 @@ XXcomn.inc の中で配列の大きさを指定するパラメータが設定されており，それ
 power deposition}
 \end{tabbing}
 
+\title{wmcomm.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NRM}{I}{201}{Maximum number of radial mesh}
+\compileParm{NDPM}{I}{2}{Maximum power of 2 for toroidal mode number}
+\compileParm{MDPM}{I}{4}{Maximum power of 2 for poloidal mode number}
+\compileParm{NAM}{I}{4}{Maximum number of antennas}
+\compileParm{NSUM}{I}{2049}{Maximum number of poloidal mesh on radial boundary}
+\compileParm{NGZM}{I}{401}{Maximum number of graphic mesh}
+\compileParm{NTHGM}{I}{64}{Maximum number of poloidal mesh for graphics}
+\end{tabbing}
+
+\title{vmcomm.inc}
+\begin{center}
+Under reorganization
+\end{center}
+
 \title{fpcom1.inc}
 \begin{tabbing}
 \compileParmLine
@@ -259,6 +382,961 @@ power deposition}
 \compileParm{NCRM}{I}{5}{Maximum number of cyclotron harmonics}
 \compileParm{NLM}{I}{13}{Maximum number of Legendre harmonics}
 \end{tabbing}
+
+\title{dpcom1.inc}
+\begin{tabbing}
+\compileParmLine
+\compileParm{NHM}{I}{100}{Maximum number of cyclotron harmonics}
+\compileParm{NXM}{I}{1001}{Maximum number of one-dimensional graphic mesh}
+\compileParm{NPM}{I}{100}{Maximum number of momentum amplitude mesh}
+\compileParm{NTHM}{I}{100}{Maximum number of pitch angle mesh}
+\compileParm{NRM}{I}{25}{Maximum number of radial mesh}
+\compileParm{NGXM}{I}{101}{Maximum number of x-mesh for two-dimensional graphics}
+\compileParm{NGYM}{I}{1011}{Maximum number of y-mesh for two-dimensional graphics}
+\end{tabbing}
+
+\section{pl コード}
+\begin{verbatim}
+C
+C     ======( PHYSICAL CONSTANTS )======
+C
+C        PI    : Pi
+C        AEE   : Elementaty charge
+C        AME   : Electron mass
+C        AMP   : Proton mass
+C        VC    : Speed of light in vacuum
+C        RMU0  : Permeability of free space
+C        EPS0  : Permittivity of free space
+C        CI    : Imaginary unit
+C
+      PI    = 2.D0*ACOS(0.D0)
+      AEE   = 1.6021892  D-19
+      AME   = 9.109534   D-31
+      AMP   = 1.6726485  D-27
+      VC    = 2.99792458 D  8
+      RMU0  = 4.D0*PI*1.D-7
+      EPS0  = 1.D0/(VC*VC*RMU0)
+      CI    = (0.D0,1.D0)
+C
+C     ======( DEVICE PARAMETERS )======
+C
+C        RR    : Plasma major radius                             (m)
+C        RA    : Plasma minor radius                             (m)
+C        RB    : Wall minor radius                               (m)
+C        RKAP  : Plasma shape elongation
+C        RDEL  : Plasma shape triangularity *
+C        BB    : Magnetic field at center                        (T)
+C        Q0    : Safety factor at center
+C        QA    : Safety factor on plasma surface
+C        RIP   : Plasma current                                 (MA)
+C        PROFJ : Curren density profile parameter (power of (1 - rho^2))
+C
+      RR    = 3.D0
+      RA    = 1.D0
+      RB    = 1.2D0
+      RKAP  = 1.D0
+      RDLT  = 0.D0
+C
+      BB    = 3.D0
+      Q0    = 1.D0
+      QA    = 3.D0
+      RIP   = 3.D0
+      PROFJ = 2.D0
+C
+C     ======( PLASMA PARAMETERS )======
+C
+C        NSMAX : Number of particle species
+C        PA    : Mass number
+C        PZ    : Charge number
+C        PN    : Density at center                     (1.0E20/m**3)
+C        PNS   : Density on plasma surface             (1.0E20/m**3)
+C        PZCL  : Ratio of collision frequency to wave frequency
+C        PTPR  : Parallel temperature at center                (keV)
+C        PTPP  : Perpendicular temperature at center           (keV)
+C        PTS   : Temperature on surface                        (keV)
+C        PU    : Toroidal rotation velocity at center          (m/s)
+C        PUS   : Toroidal rotation velocity on surface         (m/s)
+C        PNITB : Density increment at ITB              (1.0E20/Mm*3)
+C        PTITB : Temperature increment at ITB                  (keV)
+C        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
+C
+      NSMAX = MIN(2,NSM)
+C
+         PA(1)   = AME/AMP
+         PZ(1)   =-1.0D0
+         PN(1)   = 1.0D0
+         PNS(1)  = 0.0D0
+         PZCL(1) = 0.00D0
+         PTPR(1) = 5.0D0
+         PTPP(1) = 5.0D0
+         PTS(1)  = 0.05D0
+         PU(1)   = 0.D0
+         PUS(1)  = 0.D0
+         PNITB(1)= 0.D0
+         PTITB(1)= 0.D0
+         PUITB(1)= 0.D0
+C
+      IF(NSM.GE.2) THEN
+         PA(2)   = 1.0D0
+         PZ(2)   = 1.0D0
+         PN(2)   = 1.0D0
+         PNS(2)  = 0.0D0
+         PZCL(2) = 0.00D0
+         PTPR(2) = 5.0D0
+         PTPP(2) = 5.0D0
+         PTS(2)  = 0.05D0
+         PU(2)   = 0.D0
+         PUS(2)  = 0.D0
+         PNITB(2)= 0.D0
+         PTITB(2)= 0.D0
+         PUITB(2)= 0.D0
+      ENDIF
+C
+      DO NS=3,NSM
+         PA(NS)   = 1.0D0
+         PZ(NS)   = 1.0D0
+         PN(NS)   = 0.0D0
+         PNS(NS)  = 0.0D0
+         PZCL(NS) = 0.0D0
+         PTPR(NS) = 5.0D0
+         PTPP(NS) = 5.0D0
+         PTS(NS)  = 0.0D0
+         PU(NS)   = 0.D0
+         PUS(NS)  = 0.D0
+         PNITB(NS)= 0.D0
+         PTITB(NS)= 0.D0
+         PUITB(NS)= 0.D0
+      ENDDO
+C
+C     ======( PROFILE PARAMETERS )======
+C
+C
+C        PROFN1: Density profile parameter (power of rho)
+C        PROFN2: Density profile parameter (power of (1 - rho^PROFN1))
+C        PROFT1: Temperature profile parameter (power of rho)
+C        PROFT2: Temperature profile parameter (power of (1 - rho^PROFN1))
+C        PROFU1: Rotation profile parameter (power of rho)
+C        PROFU2: Rotation profile parameter (power of (1 - rho^PROFN1))
+C
+      PROFN1= 2.D0
+      PROFN2= 0.5D0
+      PROFT1= 2.D0
+      PROFT2= 1.D0
+      PROFU1= 2.D0
+      PROFU2= 1.D0
+C
+C     ======( MODEL PARAMETERS )======
+C
+C        MODELG: Control plasma geometry model
+C                   0: Slab geometry
+C                   1: Cylindrical geometry
+C                   2: Toroidal geometry
+C                   3: TASK/EQ output geometry
+C                   4: VMEC output geometry
+C                   5: EQDSK output geometry
+C                   6: Boozer output geometry
+C        MODELN: Control plasma profile
+C                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS
+C                   1: PT calculated from TASK/EQ pressure profile
+C                   2: PN*PT proportional to TASK/EQ pressure profile
+C                   8: Read from file by means of WMDPRF routine (DIII-D)
+C                   9: Read from file by means of WMXPRF routine (JT-60)
+C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
+C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
+C                   1: Given current profile (RIP,PROFJ)
+C
+      MODELG= 2
+      MODELN= 0
+      MODELQ= 0
+C
+C        RHOMIN: rho at minimum q (0 for positive shear)
+C        QMIN  : q minimum for reversed shear
+C        RHOITB: rho at ITB (0 for no ITB)
+C        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
+C
+      RHOMIN = 0.D0
+      QMIN   = 1.5D0
+      RHOITB = 0.D0
+      RHOEDG = 1.D0
+C
+C     ======( GRAPHIC PARAMETERS )======
+C
+C        RHOGMN: minimum rho in radial profile
+C        RHOGMX: maximum rho in radial profile
+C
+      RHOGMN = 0.D0
+      RHOGMX = 1.D0
+C
+C     ======( MODEL PARAMETERS )======
+C
+C        KNAMEQ: Filename of equilibrium data
+C        KNAMWR: Filename of ray tracing data
+C        KNAMWM: Filename of full wave data
+C        KNAMFP: Filename of Fokker-Planck data
+C        KNAMFO: Filename of File output
+C        KNAMPF: Filename of profile data
+C
+      KNAMEQ = 'eqdata'
+      KNAMWR = 'wrdata'
+      KNAMWM = 'wmdata'
+      KNAMFP = 'fpdata'
+      KNAMFO = 'fodata'
+      KNAMPF = 'pfdata'
+\end{verbatim}
+
+
+\section{EQ コード}
+\begin{verbatim}
+C
+C     *** CONSTANTS ****
+C
+C        PI    : Pi
+C        RMU0  : Permeability of free space
+C        AMP   : Proton mass
+C        AEE   : Electron charge
+C
+      PI     = 2.D0*ASIN(1.D0)
+      RMU0   = 4.D0*PI*1.D-7
+      AMP    = 1.6726231D-27
+      AEE    = 1.60217733D-19
+C
+C     *** CONFIGURATION PARAMETERS ***
+C
+C        RR    : Plasma major radius                             (m)
+C        RA    : Plasma minor radius                             (m)
+C        RB    : Wall minor radius                               (m)
+C        RKAP  : Plasma shape elongation
+C        RDLT  : Plasma shape triangularity 
+C        BB    : Magnetic field at center                        (T)
+C        RIP   : Plasma current                                 (MA)
+C
+      RR     = 3.D0
+      RA     = 1.D0
+      RB     = RA*1.1D0
+      RKAP   = 1.6D0
+      RDLT   = 0.25D0
+      BB     = 3.D0
+      RIP    = 3.D0
+C
+C     *** PROFILE PARAMETERS ***
+C
+C        PP0   : Plasma pressure (main component)              (MPa)
+C        PP1   : Plasma pressure (sub component)               (MPa)
+C        PP2   : Plasma pressure (increment within ITB)        (MPa)
+C        PROFP0: Pressure profile parameter
+C        PROFP1: Pressure profile parameter
+C        PROFP2: Pressure profile parameter
+C
+C        PPSI=PP0*(1.D0-PSIN**PROFR0)**PROFP0
+C    &       +PP1*(1.D0-PSIN**PROFR1)**PROFP1
+C    &       +PP2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFP2
+C
+C        The third term exists for RHO < RHOITB
+C
+      PP0    = 0.001D0
+      PP1    = 0.0D0
+      PP2    = 0.0D0
+      PROFP0 = 1.5D0
+      PROFP1 = 1.5D0
+      PROFP2 = 2.0D0
+C
+C        PJ0   : Current density at R=RR (main component) : Fixed to 1
+C        PJ1   : Current density at R=RR (sub component)       (arb)
+C        PJ2   : Current density at R=RR (sub component)       (arb)
+C        PROFJ0: Current density profile parameter
+C        PROFJ1: Current density profile parameter
+C        PROFJ2: Current density profile parameter
+C
+C      HJPSI=-PJ0*(1.D0-PSIN**PROFR0)**PROFJ0
+C     &                *PSIN**(PROFR0-1.D0)
+C     &      -PJ1*(1.D0-PSIN**PROFR1)**PROFJ1
+C     &                *PSIN**(PROFR1-1.D0)
+C     &      -PJ2*(1.D0-PSIN**PROFR2)**PROFJ2
+C     &                *PSIN**(PROFR2-1.D0)
+C
+C        The third term exists for RHO < RHOITB
+C
+      PJ0    = 1.00D0
+      PJ1    = 0.0D0
+      PJ2    = 0.0D0
+      PROFJ0 = 1.5D0
+      PROFJ1 = 1.5D0
+      PROFJ2 = 1.5D0
+C
+C        FF0   : Current density at R=RR (main component) : Fixed to 1
+C        FF1   : Current density at R=RR (sub component)       (arb)
+C        FF2   : Current density at R=RR (sub component)       (arb)
+C        PROFF0: Current density profile parameter
+C        PROFF1: Current density profile parameter
+C        PROFF2: Current density profile parameter
+C
+C      FPSI=BB*RR
+C     &      +FF0*(1.D0-PSIN**PROFR0)**PROFF0
+C     &      +FF1*(1.D0-PSIN**PROFR1)**PROFF1
+C     &      +FF2*(1.D0-PSIN**PROFR2)**PROFF2
+C
+C        The third term exists for RHO < RHOITB
+C
+      FF0    = 1.0D0
+      FF1    = 0.0D0
+      FF2    = 0.0D0
+      PROFF0 = 1.5D0
+      PROFF1 = 1.5D0
+      PROFF2 = 1.5D0
+C
+C        QQ0   : Safety factor on axis for QQ1=QQ2=0
+C        QQS   : Safety factor on surface
+C        QQ0   : Safety factor 
+C        QQ1   : Safety factor (sub component)
+C        QQ2   : Safety factor (increment within ITB)
+C        PROFQ0: Safety factor profile parameter
+C        PROFQ1: Safety factor profile parameter
+C        PROFP2: Pressure profile parameter
+C
+C        QPSI=QQS
+C    &       +(QQ0-QQS)*(1.D0-PSIN**PROFR0)**PROFQ0
+C    &       +QQ1*(1.D0-PSIN**PROFR1)**PROFQ1
+C    &       +QQ2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFQ2
+C
+C        The third term exists for RHO < RHOITB
+C
+      QQ0    = 1.D0
+      QQS    = 3.D0
+      QQ1    = 0.0D0
+      QQ2    = 0.0D0
+      PROFQ0 = 1.0D0
+      PROFQ1 = 1.0D0
+      PROFQ2 = 1.0D0
+C
+C        PT0   : Plasma temperature (main component)           (keV)
+C        PT1   : Plasma temperature (sub component)            (keV)
+C        PT2   : Plasma temperature (increment within ITB)     (keV)
+C        PTS   : Plasma temperature (at surface)               (keV)
+C        PROFT0: Temperature profile parameter
+C        PROFT1: Temperature profile parameter
+C        PROFT2: Temperature profile parameter
+C
+C        TPSI=PTS+(PT0-PTS)*(1.D0-PSIN**PROFR0)**PROFT0
+C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFT1
+C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFT2
+C    &       +PTS
+C
+C        The third term exits for RHO < RHOITB
+C
+      PT0    = 1.0D0
+      PT1    = 0.0D0
+      PT2    = 0.0D0
+      PTS    = 0.05D0
+      PROFT0 = 1.5D0
+      PROFT1 = 1.5D0
+      PROFT2 = 2.0D0
+C
+C        PV0   : Toroidal rotation (main component)              (m/s)
+C        PV1   : Toroidal rotation (sub component)               (m/s)
+C        PV2   : Toroidal rotation (increment within ITB)        (m/s)
+C        PROFV0: Velocity profile parameter
+C        PROFV1: Velocity profile parameter
+C        PROFV2: Velocity profile parameter
+C
+C        PVSI=PV0*(1.D0-PSIN**PROFR0)**PROFV0
+C    &       +PV1*(1.D0-PSIN**PROFR1)**PROFV1
+C    &       +PV2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFV2
+C
+C        The third term exits for RHO < RHOITB
+C
+      PV0    = 0.0D0
+      PV1    = 0.0D0
+      PV2    = 0.0D0
+      PROFV0 = 1.5D0
+      PROFV1 = 1.5D0
+      PROFV2 = 2.0D0
+C
+C        PN0 : Plasma number density(constant)
+C
+      PN0    = 1.D20
+C
+C        PROFR0: Profile parameter
+C        PROFR1: Profile parameter
+C        PROFR2: Profile parameter
+C        RHOITB: Normalized radius SQRT(PSI/PSIA) at ITB
+C
+      PROFR0 = 1.D0
+      PROFR1 = 2.D0
+      PROFR2 = 2.D0
+      RHOITB = 0.5D0
+C
+C        OTC   : Constant OMEGA**2/TPSI
+C        HM    : Constant                                       (Am)
+C
+      OTC = 0.15D0
+      HM  = 1.D6
+C
+C     *** MESH PARAMETERS ***
+C
+C        NSGMAX: Number of radial mesh points for Grad-Shafranov eq.
+C        NTGMAX: Number of poloidal mesh points for Grad-Shafranov eq.
+C        NUGMAX: Number of radial mesh points for flux-average quantities
+C        NRGMAX: Number of horizontal mesh points in R-Z plane
+C        NZGMAX: Number of vertical mesh points in R-Z plane
+C        NPSMAX: Number of flux surfaces
+C        NRMAX : Number of radial mesh points for flux coordinates
+C        NTHMAX: Number of poloidal mesh points for flux coordinates
+C        NSUMAX: Number of boundary points
+C
+      NSGMAX = 32
+      NTGMAX = 32
+      NUGMAX = 32
+C
+      NRGMAX = 32
+      NZGMAX = 32
+      NPSMAX = 21
+C
+      NRMAX  = 50
+      NTHMAX = 64
+      NSUMAX = 65
+C
+C     *** CONTROL PARAMETERS ***
+C
+C        EPSEQ : Convergence criterion for equilibrium
+C
+      EPSEQ  = 1.D-6
+C
+C        MDLEQF : Profile parameter
+C            0: given analytic profile  P,Jtoroidal,T,Vph
+C            1: given analytic profile  P,F,T,Vph
+C            2: given analytic profile  P,Jparallel,T,Vph
+C            3: given analytic profile  P,q,T,Vph
+C            5: given spline profile  P,Jtoroial,T,Vph
+C            6: given spline profile  P,F,T,Vph
+C            7: given spline profile  P,Jparapllel,T,Vph
+C            8: given spline profile  P,q,T,Vph
+C
+      MDLEQF = 0
+C
+C        MDLEQC : Poloidal coordinate parameter
+C            0: Poloidal length coordinate
+C            1: Boozer coordinate
+C
+      MDLEQC = 0
+C
+C        NPRINT: Level print out
+C
+      NPRINT= 0
+C
+C     *** FILE NAME ***
+C
+C        KNAMEQ: Filename of equilibrium data
+C
+      KNAMEQ = 'eqdata'
+\end{verbatim}
+
+\section{WR コード}
+\begin{verbatim}
+C
+C     *** CONSTANTS ****
+C
+C        PI    : Pi
+C        AEE   : Elementaty charge
+C        AME   : Electron mass
+C        AMM   : Proton mass
+C        VC    : Speed of light in vacuum
+C        RMU0  : Permeability of free space
+C        EPS0  : Permittivity of free space
+C        VOID  : 0.D0
+C
+      PI      = ASIN(1.D0)*2.D0
+      AEE     = 1.60217733D-19
+      AME     = 9.1093897D-31
+      AMM     = 1.6726231D-27
+      VC      = 2.99792458D8
+      RMU0    = 4.D0*PI*1.D-7
+      EPS0    = 1.D0/(VC*VC*RMU0)
+      RKEV    = AEE*1.D3
+      VOID    = 0.D0
+C
+C     ==== DEVICE PARAMETERS ====
+C
+C        RR     : PLASMA MAJOR RADIUS (M)
+C        RA     : PLASMA MINOR RADIUS (M)
+C        RKAP   : ELIPTICITY OF POLOIDAL CROSS SECTION
+C        RDLT   : TRIANGULARITY OF POLOIDAL CROSS SECTION
+C        BB     : TOROIDAL MAGNETIC FIELD ON PLASMA AXIS (T)
+C        RIPS   : INITIAL VALUE OF PLASMA CURRENT (MA)
+C        RIPE   : FINAL VALUE OF PLASMA CURRENT (MA)
+C        RIPSS  : VALUE OF PLASMA CURRENT FOR INITIAL CONVERGENCE
+C        RHOA   : EDGE OF CALCULATE REGION (NORMALIZED SMALL RADIUS)
+C
+      RR      = 3.0D0
+      RA      = 1.2D0
+      RKAP    = 1.5D0
+      RDLT    = 0.0D0
+      BB      = 3.D0
+      RIPS    = 3.D0
+      RIPE    = 3.D0
+      RIPSS   = 3.D0
+      RHOA    = 1.D0
+C
+C     ==== PLASMA PARAMETERS ====
+C
+C        NSMAX  : NUMBER OF MAIN PARTICLE SPECIES (NS=1:ELECTRON)
+C        NSZMAX : NUMBER OF IMPURITIES SPECIES
+C        NSNMAX : NUMBER OF NEUTRAL SPECIES
+C
+C        PA(NS) : ATOMIC NUMBER
+C        PZ(NS) : CHARGE NUMBER
+C        PN(NS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
+C        PNS(NS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)
+C        PT(NS) : INITIAL TEMPERATURE ON AXIS (KEV)
+C        PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)
+C
+      NSMAX=2
+      NSZMAX=0  ! the number of impurities
+      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
+C
+      PA(1)   = AME/AMM
+      PZ(1)   =-1.D0
+      PN(1)   = 0.5D0
+      PT(1)   = 1.5D0
+      PTS(1)  = 0.05D0
+      PNS(1)  = 0.05D0
+C
+      PA(2)   = 2.D0
+      PZ(2)   = 1.D0
+      PN(2)   = 0.5D0-2.D-7
+      PT(2)   = 1.5D0
+      PTS(2)  = 0.05D0
+      PNS(2)  = 0.05D0-2.D-8
+C
+      PA(3)   = 3.D0
+      PZ(3)   = 1.D0
+      PN(3)   = 1.D-7
+      PT(3)   = 1.5D0
+      PTS(3)  = 0.05D0
+      PNS(3)  = 1.D-8
+C
+      PA(4)   = 4.D0
+      PZ(4)   = 2.D0
+      PN(4)   = 1.D-7
+      PT(4)   = 1.5D0
+      PTS(4)  = 0.05D0
+      PNS(4)  = 1.D-8
+C
+      PA(5)   = 12.D0
+      PZ(5)   = 2.D0
+      PN(5)   = VOID
+      PT(5)   = 0.D0
+      PTS(5)  = 0.D0
+      PNS(5)  = VOID
+C
+      PA(6)   = 12.D0
+      PZ(6)   = 4.D0
+      PN(6)   = VOID
+      PT(6)   = 0.D0
+      PTS(6)  = 0.D0
+      PNS(6)  = VOID
+C
+      PA(7)   = 2.D0
+      PZ(7)   = 0.D0
+      PN(7)   = 1.D-15
+      PT(7)   = 0.D0
+      PTS(7)  = 0.D0
+      PNS(7)  = 2.D-4
+C
+      PA(8)   = 2.D0
+      PZ(8)   = 0.D0
+      PN(8)   = 1.D-15
+      PT(8)   = 0.D0
+      PTS(8)  = 0.D0
+      PNS(8)  = 1.D-15
+C
+C     ==== IMPURITY PARAMETERS ====
+C
+C        PNC    : CARBON DENSITY FACTOR
+C        PNFE   : IRON DENSITY FACTOR
+C                      COMPARED WITH ITER PHYSICS DESIGN GUIDELINE
+C        PNNU   : NEUTRAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
+C        PNNUS  :                        ON SURFACE (1.E20 M**-3)
+C
+      PNC     = 0.D0
+      PNFE    = 0.D0
+      PNNU    = 0.D0
+      PNNUS   = 0.D0
+C
+C     ==== PROFILE PARAMETERS ====
+C
+C        PROFN*: PROFILE PARAMETER OF INITIAL DENSITY
+C        PROFT*: PROFILE PARAMETER OF INITIAL TEMPERATURE
+C        PROFU*: PROFILE PARAMETER OF INITIAL NEUTRAL DENSITY
+C        PROFJ*: PROFILE PARAMETER OF INITIAL CURRENT DENSITY
+C                    (X0-XS)(1-RHO**PROFX1)**PROFX2+XS
+C
+C        ALP   : ADDITIONAL PARAMETERS
+C           ALP(1): RADIUS REDUCTION FACTOR
+C           ALP(2): MASS WEIGHTING FACTOR FOR NC
+C           ALP(3): CHARGE WEIGHTING FACTOR FOR NC
+C
+      PROFN1 = 2.D0
+      PROFN2 = 0.5D0
+      PROFT1 = 2.D0
+      PROFT2 = 1.D0
+      PROFU1 =12.D0
+      PROFU2 = 1.D0
+      PROFJ1 =-2.D0
+      PROFJ2 = 1.D0
+C
+      ALP(1) = 1.0D0
+      ALP(2) = 0.D0
+      ALP(3) = 0.D0
+C
+C     ==== TRANSPORT PARAMETERS ====
+C
+C        AV0    : INWARD PARTICLE PINCH FACTOR
+C        AD0    : PARTICLE DIFFUSION FACTOR
+C        CNC    : COEFFICIENT FOR NEOCLASICAL DIFFUSION
+C        CDW(8) : COEFFICIENTS FOR DW MODEL
+C
+      AV0    = 0.5D0
+      AD0    = 0.5D0
+C
+      CNC    = 1.D0
+      CDW(1) = 0.04D0
+      CDW(2) = 0.04D0
+      CDW(3) = 0.04D0
+      CDW(4) = 0.04D0
+      CDW(5) = 0.04D0
+      CDW(6) = 0.04D0
+      CDW(7) = 0.04D0
+      CDW(8) = 0.04D0
+C
+C     ==== TRANSPORT MODEL ====
+C
+C        MDLKAI: TURBULENT TRANSPORT MODEL
+C
+C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
+C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
+C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
+C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
+C        ***** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL *****
+C        *****       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC *****
+C
+C           *****  MDLKAI.EQ. 0   : CONSTANT *****
+C           *****  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2) *****
+C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2) *****
+C           *****  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C *****
+C                                                                  
+C           *****  MDLKAI.EQ. 10  : etac=1 *****
+C           *****  MDLKAI.EQ. 11  : etac=1 1/(1+exp) *****
+C           *****  MDLKAI.EQ. 12  : etac=1 1/(1+exp) *q *****
+C           *****  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2) *****
+C           *****  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp) *****
+C           *****  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln) *****
+C                                                                  
+C           *****  MDLKAI.EQ. 20  : Rebu-Lalla model *****
+C                                                                  
+C           *****  MDLKAI.EQ. 30  : CDBM 1/(1+s) *****
+C           *****  MDLKAI.EQ. 31  : CDBM F(s,alpha,kappaq) *****
+C           *****  MDLKAI.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 33  : CDBM F(s,0,kappaq) *****
+C           *****  MDLKAI.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5) *****
+C           *****  MDLKAI.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5) *****
+C           *****  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2) *****
+C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
+C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
+C
+C           *****  MDLKAI.EQ. 60  : GLF23 model *****
+C           *****  MDLKAI.EQ. 61  : GLF23 (stability enhanced version) *****
+C           *****  MDLKAI.EQ. 62  : IFS/PPPL model *****
+C           *****  MDLKAI.EQ. 63  : Weiland model *****
+C           *****  MDLKAI.EQ. 64  : Bohm/Gyro-Bohm model *****
+C
+C        MDLETA: RESISTIVITY MODEL
+C                   0: CLASSICAL 
+C                   1: NEOCLASSICAL
+C        MDLAD : PARTICLE DIFFUSION MODEL
+C                   0: NO PARTICL TRANSPORT 
+C                   1: CONSTANT D
+C        MDLAVK: HEAT PINCH MODEL
+C                   0: NO HEAT PINCH
+C        MDLJBS: BOOTSTRAP CURRENT MODEL
+C        MDLKNS: NEOCLASSICAL TRANSPORT MODEL
+C
+      MDLKAI = 31
+      MDLETA = 3
+      MDLAD  = 3
+      MDLAVK = 3
+      MDLJBS = 5
+      MDLKNC = 1
+C
+C        MDLWLD : Weiland model mode selector
+C            0    : using effective transport coefficients
+C            else : using transport coefficients' vectors
+C
+      MDLWLD=0
+C
+C        MDDW : mode selector for anomalous particle transport coefficient.
+C            you must NOT modify this parameter.
+C            0    : if MDDW=0 from start to finish when you choose
+C                   a certain transport model (MDLKAI),
+C                   you could control a ratio of anomalous particle
+C                   transport to total particle transport to manipulate
+C                   the factor of AD0.
+C            else : this is because you chose MDLKAI=60, 61, or 63
+C                   which assign the transport models that can calculate
+C                   an anomalous particle transport coefficient
+C                   on their own.
+      MDDW=0
+C
+C     ==== Semi-Empirical Parameter for Anomalous Transport ====
+C
+      CHP    = 0.D0
+      CK0    = 12.D0 ! for electron
+      CK1    = 12.D0 ! for ions
+      CWEB   = 0.D0  ! for omega ExB
+      CALF   = 1.D0  ! for s-alpha
+      CKALFA = 0.D0
+      CKBETA = 0.D0
+      CKGUMA = 0.D0
+C
+C     ==== CONTROL PARAMETERS ====
+C
+C        DT     : SIZE OF TIME STEP
+C        NRMAX  : NUMBER OF RADIAL MESH POINTS
+C        NTMAX  : NUMBER OF TIME STEP
+C        NTSTEP : INTERVAL OF SNAP DATA PRINT
+C        NGRSTP : INTERVAL OF RADIAL PROFILE SAVE
+C        NGTSTP : INTERVAL OF TIME EVOLUTION SAVE
+C        NGPST  : ???
+C        TSST   : ???
+C
+      DT     = 0.01D0 
+      NRMAX  = 50
+      NTMAX  = 100
+      NTSTEP = 10
+      NGRSTP = 100
+      NGTSTP = 2
+      NGPST  = 4
+      TSST   = 1.D9
+C
+C     ==== Convergence Parameter ====
+C
+C        EPSLTR : CONVERGENCE CRITERION OF ITERATION
+C        LMAXTR : MAXIMUM COUNT OF ITERATION
+C
+      EPSLTR = 0.001D0
+C      EPSLTR = 1.D99
+      LMAXTR = 10
+C
+C     ==== SAWTOOTH PARAMETERS ====
+C
+C        TPRST  : SAWTOOTH PERIOD (S)
+C        MDLST  : SAWTOOTH MODEL TYPE
+C                    0:OFF
+C                    1:ON
+C        IZERO  : SAWTOOTH CRASH TYPE
+C
+      TPRST  = 0.1D0
+      MDLST  = 0
+      IZERO  = 3
+C
+C     ==== FUSION REACTION PARAMETERS ====
+C
+C        MDLNF  : FUSION REACTION MODEL TYPE
+C                    0:OFF
+C                    1:ON
+C
+      MDLNF  = 0
+C
+C     ==== NBI HEATING PARAMETERS ====
+C        PNBTOT : NBI TOTAL INPUT POWER (MW)
+C        PNBR0  : RADIAL POSITION OF NBI POWER DEPOSITION (M)
+C        PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)
+C        PNBENG : NBI BEAM ENERGY (keV)
+C        PNBRTG : TANGENTIAL RADIUS OF NBI BEAM (M)
+C        PNBCD  : CURRENT DRIVE FACTOR
+C        MDLNB  : NBI MODEL TYPE
+C                    0:OFF
+C                    1:GAUSSIAN
+C                    2:PENCIL BEAM
+C
+      PNBTOT = 0.D0
+      PNBR0  = 0.D0
+      PNBRW  = 0.5D0
+      PNBENG = 80.D0
+      PNBRTG = 3.D0
+      PNBCD  = 1.D0
+      MDLNB  = 1
+C
+C     ==== ECRF PARAMETERS ====
+C
+C        PECTOT : ECRF INPUT POWER (MW)
+C        PECR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PECRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PECTOE : POWER PARTITION TO ELECTRON
+C        PECNPR : PARALLEL REFRACTIVE INDEX
+C        PECCD  : CURRENT DRIVE FACTOR
+C        MDLEC  : ECRF MODEL
+C
+      PECTOT = 0.D0
+      PECR0  = 0.D0
+      PECRW  = 0.2D0
+      PECTOE = 1.D0
+      PECNPR = 0.D0
+      PECCD  = 0.D0
+      MDLEC  = 0
+C
+C     ==== LHRF PARAMETERS ====
+C
+C        PLHTOT : LHRF INPUT POWER (MW)
+C        PLHR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PLHRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PLHTOE : POWER PARTITION TO ELECTRON
+C        PLHNPR : PARALLEL REFRACTIVE INDEX
+C        PLHCD  : CURRENT DRIVE FACTOR
+C        MDLLH  : LHRF MODEL
+C
+      PLHTOT = 0.D0
+      PLHR0  = 0.D0
+      PLHRW  = 0.2D0
+      PLHTOE = 1.D0
+      PLHNPR = 2.D0
+      MDLLH  = 0
+C
+C     ==== ICRF PARAMETERS ====
+C
+C        PICTOT : ICRF INPUT POWER (MW)
+C        PICR0  : RADIAL POSITION OF POWER DEPOSITION (M)
+C        PICRW  : RADIAL WIDTH OF POWER DEPOSITION (M)
+C        PICTOE : POWER PARTITION TO ELECTRON
+C        PICNPR : PARALLEL REFRACTIVE INDEX
+C        PICCD  : CURRENT DRIVE FACTOR
+C        MDLIC  : ICRF MODEL
+C
+      PICTOT = 0.D0
+      PICR0  = 0.D0
+      PICRW  = 0.5D0
+      PICTOE = 0.5D0
+      PICNPR = 2.D0
+      PICCD  = 0.D0
+      MDLIC  = 0
+C
+C     ==== CURRENT DRIVE PARAMETERS ====
+C
+C        PBSCD : BOOTSTRAP CURRENT DRIVE FACTOR
+C        MDLCD : CURRENT DRIVE OPERATION MODEL
+C                  0: TOTAL PLASMA CURRENT FIXED
+C                  1: TOTAL PLASMA CURRENT VARIABLE
+C
+      PBSCD  = 1.D0
+      MDLCD  = 0
+C
+C     ==== PELLET INJECTION PARAMETERS ====
+C
+C        MDLPEL : PELLET INJECTION MODEL TYPE
+C                    0:OFF  1:GAUSSIAN  2:NAKAMURA  3:HO
+C        PELTOT : TOTAL NUMBER OF PARTICLES IN PELLET
+C        PELR0  : RADIAL POSITION OF PELLET DEPOSITION (M)
+C        PELRW  : RADIAL WIDTH OF PELLET DEPOSITION (M)
+C        PELRAD : RADIUS OF PELLET (M)
+C        PELVEL : PELLET INJECTION VELOCITY (M/S)
+C        PELTIM : TIME FOR PELLET TO BE INJECTED
+C        PELPAT : PARTICLE RATIO IN PELLET'
+C
+      MDLPEL = 1
+      PELTOT = 0.D0
+      PELR0  = 0.D0
+      PELRW  = 0.5D0
+      PELRAD = 0.D0
+      PELVEL = 0.D0
+      PELTIM = -10.D0
+C
+      DO NS=1,NSMAX
+         PELPAT(NS) = 1.0D0
+      ENDDO
+C
+C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
+C        KUFDEV : DEVICE NAME
+C        KUFDCG : DISCHARGE NUMBER
+C
+      KUFDEV='jet'
+      KUFDCG='19649'
+C
+C     ==== LOG FILE NAME ====
+C        KFNLOG : LOG FILE NAME
+C
+      KFNLOG='trf.log'
+C
+C     ==== INTERACTION WITH EQ ====
+C
+C        MODELG: 0 : TR ONLY
+C                3 : USING GEOMETRIC FACTORS FROM EQ FOR INITIAL PROFILE
+C        MODELQ: 0 : TR ONLY
+C                3 : TR/EQ COUPLED
+C        NTEQIT: STEP INTERVAL OF EQ CALCULATION
+C
+      MODELG=0
+      MODELQ=0
+      NTEQIT=10
+C
+C     ==== INPUT FROM UFILE ====
+C
+C        MDLUF :
+C           0 : not used
+C           1 : time evolution
+C           2 : steady state
+C           3 : compared with TOPICS
+C
+      MDLUF=0
+C
+C     ==== IMPURITY TREATMENT ====
+C
+C        MDNI  :
+C           0 : NSMAX=2, ne=ni
+C           1 : calculate nimp and zeff profiles from NE, ZIMP and NM1
+C           2 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
+C           3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+C
+      MDNI=0
+C
+C     ==== INITIAL PROFILE SWITCH ====
+C
+C        MODEP : initial profile selector for steady-state simulation
+C
+      MODEP=3
+C
+C     ==== INITIAL CURRENT PROFILE SWITCH ====
+C
+C        MDLJQ : 
+C
+C           0 : create AJ(NR) profile from experimental Q profile
+C           1 : create QP(NR) profile from experimental CURTOT profile
+C
+      MDLJQ=0
+C
+C     *** Eqs. Selection Parameter ***
+C
+      MDLEQB=1  ! 0/1 for B_theta
+      MDLEQN=0  ! 0/1 for density
+      MDLEQT=1  ! 0/1 for heat
+      MDLEQU=0  ! 0/1 for rotation
+      MDLEQZ=0  ! 0/1 for impurity
+      MDLEQ0=0  ! 0/1 for neutral
+      MDLEQE=0  ! 0/1 for electron density
+C
+      MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
+C
+C     *** NCLASS SWITCH ***
+C        0    : off
+C        else : on
+      MDNCLS=0
+C
+C     *** MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ***
+C        0    : off
+C        else : multiplyer for TAUK (which is the required time of
+C               averaging magnetic surface)
+      MDTC=0
+\end{verbatim}
 
 
 \section{WR コード}
@@ -724,4 +1802,310 @@ MMM\=MMMMMMM\=\kill
 \> TQ   \>安全係数の時間依存性\\
 \> TE   \>トロイダル電界の時間依存性\\ 
 \end{tabbing}   
+
+\section{WM コード}
+
+\subsection{利用説明}
+
+\begin{verbatim}
+コマンド入力
+
+　　Ｐ：namelist 変数の入力
+　　Ｖ：namelist 変数等の表示
+　　Ｗ：アンテナ励起による波動伝播の計算
+　　Ａ：与えられた複素周波数に対する振幅の計算
+　　Ｆ：振幅パラメータの実周波数依存性の計算
+　　Ｃ：振幅パラメータの複素周波数平面における等高線表示
+　　Ｅ：与えられた複素周波数から出発して固有周波数の計算
+　　Ｓ：固有周波数のパラメータ依存性の計算
+　　Ｇ：固有関数の図形表示
+　　Ｑ：実行の終了
+
+　　コードにおける振幅パラメータの定義：
+　　　　プラズマ中の電子密度に比例する分布をもつ励起電流に対して，
+　　　　電界振幅の絶対値の自乗を空間積分した値の逆数
+
+　　コードにおける固有周波数の定義：
+　　　　複素周波数平面において振幅が極小をもち，
+　　　　極大値の逆数が EPSNW よりも小さい周波数
+
+図形指定コマンド入力
+
+    ABC/DEF/GHI は A,B,C の中から１文字，D,E,F の中から１文字，
+　　G,H,I の中から１文字の計３文字を順に並べた入力を表す．
+　　大文字と小文字は区別しない．
+
+　　注）現在，電流密度分布は正しく計算されていない．
+
+　　電磁界の径方向分布
+　　　　R/EB/ATMN
+　　　　　　R: 径方向分布
+　　　　　　E: 波動電界と吸収パワー密度
+　　　　　　B: 波動磁界と駆動電流密度
+　　　　　　A: ポロイダル角・トロイダル角指定（パワーは角度積分値）
+　　　　　　T: ポロイダル角・トロイダル角指定（パワーは角度指定）
+　　　　　　M: ポロイダルモード・トロイダルモード指定
+　　　　　　N: 複数ポロイダルモード・単一トロイダルモード指定
+
+　　　　例）REN は波動電界と吸収パワー密度の径方向分布を，
+　　　　　　複数のポロイダルモード成分を重ねて表示する．
+
+　　電磁界の２次元分布
+　　　　CPM/EB/RTZ/RIA
+　　　　　　C: 円形断面等高線表示
+　　　　　　P: ポロイダル断面等高線表示
+　　　　　　M: ポロイダルモード数・径方向面等高線表示
+　　　　　　E: 波動電界
+　　　　　　B: 波動磁界
+　　　　　　R: 径方向成分
+　　　　　　T: ポロイダル成分
+　　　　　　Z: トロイダル成分
+　　　　　　R: 電磁界の実数成分（励起電流と同位相の成分）
+　　　　　　I: 電磁界の虚数成分（励起電流と位相が 90 度遅れた成分）
+　　　　　　A: 電磁界の絶対値
+
+　　吸収パワー密度の２次元分布
+　　　　RCPM/P/123
+　　　　　　R: 径方向分布
+　　　　　　C: 円形断面等高線表示
+　　　　　　P: ポロイダル断面等高線表示
+　　　　　　M: ポロイダルモード数・径方向面等高線表示
+　　　　　　P: 吸収パワー密度
+　　　　　　1: 粒子種１＝電子
+　　　　　　2: 粒子種２＝通常は多数イオン
+　　　　　　3: 粒子種３＝通常は少数イオン
+
+　　駆動電流密度の２次元分布
+　　　　CP/J
+　　　　　　C: 円形断面等高線表示
+　　　　　　P: ポロイダル断面等高線表示
+
+　　プラズマの空間分布
+　　　　P/F/TPQB
+　　　　　　T: 温度分布
+　　　　　　P: 圧力分布
+　　　　　　Q: 安全係数
+　　　　　　B: 磁界強度
+
+　　測度テンソル成分の径方向分布
+　　　　P/G
+
+　　ヘリカル系における磁気面
+　　　　S
+
+　　２次元表示の種類設定
+　　　　G/1234
+　　　　　　1: 等高線表示
+　　　　　　2: 塗り分け表示
+　　　　　　3: 鳥瞰図格子表示
+　　　　　　4: 鳥瞰図等高線表示
+
+　　図形表示の終了
+　　　　X
+\end{verbatim}
+
+\subsection{入力パラメータ}
+
+\begin{verbatim}
+C
+C     **** ALPHA PARTICLE PARAMETERS ****
+C
+C        PNA   : Alpha density at center               (1.0E20/Mm*3)
+C        PNAL  : Density scale length                            (m)
+C        PTA   : Effective temperature                         (keV)
+C
+      PNA  = 0.02D0
+      PNAL = 0.5D0
+      PTA  = 3.5D3
+C
+C     **** ZEFF PARAMETERS ****
+C
+C        ZEFF  : Effective Z (sum n Z^2 / sum n Z)
+C
+         ZEFF  = 2.D0
+C
+C     *** WAVE PARAMETER ***
+C
+C     CRF   : Wave frequency                            (MHz)
+C     RD    : Antenna minor radius                      (m)
+C     BETAJ : Antenna current profile parameter
+C     NTH0  : Central value of poloidal mode number
+C     NPH0  : Central value of toroidal mode number
+C     NHC   : Number of helical coils
+C     PRFIN : Input Power (0 for given antenna current) (W)
+C
+      CRF    = (50.0D0,0.D0)
+      RD     = 1.1D0
+      BETAJ  = 0.D0
+      NTH0   = 0
+      NPH0   = 8
+      NHC    = 10
+      PRFIN  = 0.D0
+C
+C     *** ANTENNA PARAMETERS ***
+C
+C        NAMAX : Number of antennae
+C        AJ    : Antenna current density                       (A/m)
+C        APH   : Antenna phase                              (degree)
+C        THJ1  : Start poloidal angle of antenna            (degree)
+C        THJ2  : End poloidal angle of antenna              (degree)
+C        PHJ1  : Start toroidal angle of antenna            (degree)
+C        PHJ2  : End toroidal angle of antenna              (degree)
+C
+      NAMAX=1
+      DO NA=1,NAM
+         AJ(NA)   = 1.D0
+         APH(NA)  = 0.D0
+         THJ1(NA) =-45.D0
+         THJ2(NA) = 45.D0
+         PHJ1(NA) = 0.D0
+         PHJ2(NA) = 0.D0
+      ENDDO
+C
+C     *** MESH PARAMETERS ***
+C
+C        NRMAX : Number of radial mesh points
+C        NTHMAX: Number of poloidal mesh points
+C        NPHMAX : Number of toroidal mesh points
+C
+      NRMAX   = 50
+      NTHMAX  = 1
+      NPHMAX  = 1
+C
+C     *** CONTROL PARAMETERS ***
+C
+C        NPRINT: Control print output
+C                   0: No print out
+C                   1: Minimum print out (without input data)
+C                   2: Minimum print out (with input data)
+C                   3: Standard print out
+C                   4: More print out
+C        NGRAPH: Control graphic output
+C                   0: No graphic out
+C                   1: Standard graphic out (2D: Coutour)
+C                   2: Standard graphic out (2D: Paint)
+C                   3: Standard graphic out (2D: Bird's eye)
+C        MODELJ: Control antenna current model
+C                   0: Real antenna
+C                   1: Real antenna
+C                   2: Poloidal current
+C                   3: Toroidal current
+C                  2X: Vacuum eigen mode, poloidal current
+C                  3X: Vacuum eigen mode, toroidal current
+C                   0: Vacuum
+C                   -1: MHD plasma
+C                   -2: Cold plasma
+C                   -3: Hot plasma (No FLR)
+C                   -4: Hot plasma (Cold FLR)
+C                   -5: Hot plasma (FLR)
+C                   8: TASK/DP (No FLR)
+C                   9: TAKS/DP (Cold FLR)
+C        MODELA: Control alpha particle contribution
+C                   0: No alpha effect
+C                   1: Precession of alpha particles
+C                   2: Precession of electrons
+C                   3: Precession of both alpha particles and electrons
+C                   4: Calculate alpha particle density using slowing down
+C        MODELK: Control mode number cutoff
+C                   0: No cutoff
+C                   1: With cutoff (this should not be used)
+C        MODELM: Control matrix solver
+C                   0: BANDCD
+C                   1: BCGCDB
+C                   2: CGSCDB
+C                   3: BCGSTAB
+C                   4: BANDCDM
+C                   5: BCGCDBM
+C                   6: CGSCDBM
+C                   7: BSTABCDBM
+C                   8: BANDCDBM
+C                   9: BCGCDBMA
+C                  10: CGSCDBMA
+C                  11: BSTABCDBMA
+C                  12: BANDCDB
+C        MODELW: Control writting a data of absorped power
+C                   0: Not writting
+C                   1: Writting
+C
+C        RHOMIN: rho at minimum q for reversed shear
+C        QMIN  : q minimum for reversed shear
+C        RHOITB: rho at ITB
+C
+      NPRINT = 2
+      NGRAPH = 1
+      MODELJ = 0
+      MODELA = 0
+      MODELK = 0
+      MODELM = 2
+      MODELW = 0
+C
+C     *** EIGEN VALUE PARAMETERS ***
+C
+C        FRMIN : Minimum real part of frequency in amplitude scan
+C        FRMAX : Maximum real part of frequency in amplitude scan
+C        FIMIN : Minimum imag part of frequency in amplitude scan
+C        FIMAX : Maximum imag part of frequency in amplitude scan
+C        FI0   : Imag part of frequency in 1D amplitude scan
+C
+C        NGFMAX: Number of real freq mesh in 1D amplitude scan
+C        NGXMAX: Number of real freq mesh in 2D amplitude scan
+C        NGYMAX: Number of imag freq mesh in 2D amplitude scan
+C
+C        SCMIN : Minimum value in parameter scan
+C        SCMAX : Maximum value in parameter scan
+C        NSCMAX: Number of mesh in parameter scan
+C
+C        LISTEG: Listing in parameter scan
+C
+C        FRINI : Initial real part of frequency in Newton method
+C        FIINI : Initial imag part of frequency in Newton method
+C
+C        DLTNW : Step size in evaluating derivatives in Newton method
+C        EPSNW : Convergence criterion in Newton method
+C        LMAXNW: Maximum iteration count in Newton method
+C        LISTNW: Listing in Newton method
+C        MODENW: Type of Newton method
+C
+C        NCONT : Number of contour lines
+C        ILN1  : Line type of lower contours
+C        IBL1  : Line boldness of lower contours
+C        ICL1  : Line color of lower contours
+C        ILN2  : Line type of higher contours
+C        IBL2  : Line boldness of higher contours
+C        ICL2  : Line color of higher contours
+C
+      FRMIN = 0.1D0
+      FRMAX = 1.D0
+      FIMIN =-0.1D0
+      FIMAX = 0.1D0
+      FI0   = 0.D0
+C
+      FRINI = DBLE(CRF)
+      FIINI = DIMAG(CRF)
+C
+      NGFMAX= 11
+      NGXMAX= 11
+      NGYMAX= 11
+C
+      SCMIN = 0.1D0
+      SCMAX = 1.D0
+      NSCMAX= 11
+C
+      LISTEG= 1
+C
+      DLTNW = 1.D-6
+      EPSNW = 1.D-6
+      LMAXNW= 10
+      LISTNW= 1
+      MODENW= 0
+C
+C     *** ALFVEN FREQUENCY PARAMETERS ***
+C
+C        WAEMIN : Minimum frequency in Alfven frequency scan
+C        WAEMAX : Maximum frequency in Alfven frequency scan
+C
+      WAEMIN = 0.001D0
+      WAEMAX = 0.200D0
+\end{verbatim}
+
 \end{document}
