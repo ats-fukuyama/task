@@ -114,13 +114,18 @@ C
       k_v=1
       k_order=2
       k_potato=1
-      IF(MDLEQZ.EQ.0) THEN
-         m_i=NSMAX
+      IF(NSMAX.EQ.1) THEN
+         NSLMAX=2 ! for single species simulation without ZEFF,NM,NIMP
       ELSE
-         m_i=NSMAX+NSZMAX
+         NSLMAX=NSMAX
+      ENDIF
+      IF(MDLEQZ.EQ.0) THEN
+         m_i=NSLMAX
+      ELSE
+         m_i=NSLMAX+NSZMAX
       ENDIF
       PZMAX=0.D0
-      DO NS=1,NSMAX
+      DO NS=1,NSLMAX
          IF(PZ(NS).GE.PZMAX) PZMAX=PZ(NS)
       ENDDO
       IF(MDLEQZ.NE.0) THEN
@@ -133,12 +138,12 @@ C
       c_potb=SNGL(RKAP*BB/(2.D0*Q0**2))
       c_potl=SNGL(Q0*RR)
 C
-      DO NS=1,NSMAX
+      DO NS=1,NSLMAX
          amu_i(NS)=SNGL(PA(NS))
       ENDDO
       IF(MDLEQZ.NE.0) THEN
          DO NSZ=1,NSZMAX
-            amu_i(NSMAX+NSZ)=SNGL(PA(NSM+NSZ))
+            amu_i(NSLMAX+NSZ)=SNGL(PA(NSM+NSZ))
          ENDDO
       ENDIF
 C
@@ -171,7 +176,7 @@ C
          ENDIF
          p_ngrth=SNGL(BP(NR)/(BB*EPS*RR))
          IF(NR.EQ.NRMAX) THEN
-            DO NS=1,NSMAX
+            DO NS=1,NSLMAX
                temp_i(NS)=SNGL(PTS(NS))
                grt_i(NS)=SNGL(2.D0*(PTS(NS)-RT(NR,NS))/DR)
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
@@ -185,7 +190,7 @@ C
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
                   NS =NSM+NSZ
-                  NSN=NSMAX+NSZ
+                  NSN=NSLMAX+NSZ
                   temp_i(NSN)=SNGL(PTS(NS))
                   grt_i(NSN)=SNGL(2.D0*(PTS(NS)-RN(NR,NS))/DR)
                   den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
@@ -200,7 +205,7 @@ C
             p_eb=SNGL(FEDG(RG(NR),RM(NR-1),RM(NR),ETA(NR-1)*AJOH(NR-1),
      &                ETA(NR)*AJOH(NR))*BB)
          ELSE
-            DO NS=1,NSMAX
+            DO NS=1,NSLMAX
                temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
                grt_i(NS)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
@@ -215,7 +220,7 @@ C
             IF(MDLEQZ.NE.0) THEN
                DO NSZ=1,NSZMAX
                   NS =NSM+NSZ
-                  NSN=NSMAX+NSZ
+                  NSN=NSLMAX+NSZ
                   temp_i(NSN)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
                   grt_i(NSN)=SNGL((RT(NR+1,NS)-RT(NR,NS))/DR)
                   den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(0.5D0*(RN(NR+1,NS)
@@ -283,7 +288,7 @@ C
             CJBST(NR,NS)=DBLE(bsjbt_s(NS))
             ADNCS(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
             AVNCS(NR,NS)=DBLE(vn_s(NS))/AR1RHO(NR)
-            DO NS1=1,NSMAX
+            DO NS1=1,NSLMAX
                AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
                AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
                ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
@@ -299,12 +304,12 @@ C
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
                NS =NSM+NSZ
-               NSN=NSMAX+NSZ
+               NSN=NSLMAX+NSZ
                CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
                CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
                ADNCS(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
                AVNCS(NR,NS)=DBLE(vn_s(NSN))/AR1RHO(NR)
-               DO NS1=1,NSMAX
+               DO NS1=1,NSLMAX
                   AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
                   AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
                   ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)

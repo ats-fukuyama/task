@@ -54,6 +54,7 @@ C
          CALL PLDATA_SETN(NRMAX,NSMAX)
          CALL PLDATA_CLEAR
          CALL TR_EQS_SELECT(0)
+         write(6,*) 'A',NSMAX
          IF(MDLUF.EQ.1) THEN
             IF(INIT.EQ.2.AND.NT.NE.0) THEN
                NT=0

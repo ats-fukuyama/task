@@ -1317,10 +1317,10 @@ C
          ENDDO
          ENDIF
 C
-         RIP   = RIPU(NTSL)
-         RIPS  = RIPU(NTSL)
-         RIPSS = RIPU(NTSL)
-         RIPE  = RIPU(NTSL)
+         RIP   = RIPU(1)
+         RIPS  = RIPU(1)
+         RIPSS = RIPU(1)
+         RIPE  = RIPU(1)
       ELSEIF(MDLUF.EQ.2) THEN
          IF(MDLJQ.EQ.0) THEN
             NR=1
