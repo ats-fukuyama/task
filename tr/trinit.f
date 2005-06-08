@@ -919,6 +919,15 @@ C
       DO NR=1,NRMAX
          RG(NR) = DBLE(NR)*DR
          RM(NR) =(DBLE(NR)-0.5D0)*DR
+         IF(MDVTOR.NE.0) THEN
+            VTOR(NR)=0.D0
+         ELSE
+            VTOR(NR)=VTORU(1,NR)
+         ENDIF
+         VPAR(NR)=0.D0
+         VPRP(NR)=0.D0
+         VPOL(NR)=0.D0
+         WROT(NR)=0.D0
 C
          IF(MDLUF.EQ.1) THEN ! *** MDLUF ***
             IF(MDNI.EQ.0) THEN

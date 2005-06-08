@@ -309,16 +309,30 @@ C
      &            '@PZC,PZFE  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(ANC(NR))
+         GYR(NR,1) = GUCLIP(VTOR(NR))
+         GYR(NR,2) = GUCLIP(VPAR(NR))
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@ANC [10$+20$=/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &            '@V$-tor$=, V$-para$= [m/s]  vs r@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(ANFE(NR))
+         GYR(NR,1) = GUCLIP(VPOL(NR))
+         GYR(NR,2) = GUCLIP(VPRP(NR))
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@ANFE [10$+20$=/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &            '@V$-pol$=, V$-perp$= [m/s]  vs r@',2+INQ)
+C
+c$$$      DO NR=1,NRMAX
+c$$$         GYR(NR,1) = GUCLIP(ANC(NR))
+c$$$      ENDDO
+c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
+c$$$     &            '@ANC [10$+20$=/m$+3$=]  vs r@',2+INQ)
+c$$$C
+c$$$      DO NR=1,NRMAX
+c$$$         GYR(NR,1) = GUCLIP(ANFE(NR))
+c$$$      ENDDO
+c$$$      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
+c$$$     &            '@ANFE [10$+20$=/m$+3$=]  vs r@',2+INQ)
 C
       CALL TRGRTM
       CALL PAGEE

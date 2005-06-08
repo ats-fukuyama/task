@@ -47,8 +47,8 @@ C
       ELSEIF(MDLKAI.LT.40) THEN
          KGR1='/NST$+2$= vs r/'
          KGR2='/OmegaST vs r/'
-         KGR3='@lambda vs r@'
-         KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
+         KGR3='/V$-ExB$=/'!'@lambda vs r@'
+         KGR4='/E$-r$=/'!'@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
       ELSEIF(MDLKAI.LT.50) THEN
          KGR1='/NST$+2$= vs r/'
          KGR2='/OmegaST vs r/'
@@ -61,9 +61,9 @@ C
          KGR4='@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
       ELSEIF(MDLKAI.LT.70) THEN
          KGR1='/V$-ExB$=/'
-         KGR2='/GROWTH RATE/'
-         KGR3='/ExB SHEARING RATE with SHEAR/'
-         KGR4='/ExB SHEARING RATE without SHEAR/'
+         KGR2='/E$-r$=/'
+         KGR3='/GROWTH RATE/'
+         KGR4='/ExB SHEARING RATE/'
       ELSE
          KGR1='//'
          KGR2='//'
@@ -621,12 +621,12 @@ C
             VGR2(NR,1)=RNST2
             VGR2(NR,2)=OMEGASS
             VGR2(NR,3)=0.D0
-            VGR3(NR,1)=SLAMDA
+            VGR3(NR,1)=VEXB(NR)!SLAMDA
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=RLAMDA
-            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
-            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+            VGR4(NR,1)=ER(NR)!RLAMDA
+            VGR4(NR,2)=0.D0!1.D0/(1.D0+OMEGASS**2)
+            VGR4(NR,3)=0.D0!1.D0/(1.D0+RG1*WE1*WE1)
 C
          ELSEIF(MDLKAI.LT.51) THEN
 C
@@ -785,13 +785,13 @@ C
             VGR1(NR,2)=S
             VGR1(NR,3)=ALFA
             VGR2(NR,1)=VEXB(NR)
-            VGR2(NR,2)=AGMP(NR)
+            VGR2(NR,2)=ER(NR)
             VGR2(NR,3)=0.D0
-            VGR3(NR,1)=AGME(NR)
+            VGR3(NR,1)=AGMP(NR)
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=WEXB(NR)
-            VGR4(NR,2)=0.D0
+            VGR4(NR,1)=AGME(NR)
+            VGR4(NR,2)=WEXB(NR)
             VGR4(NR,3)=0.D0
             IF(MDLKAI.EQ.64) THEN
                DPERHO=DPE/RJCB(NR)
@@ -891,12 +891,12 @@ C
          zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
          zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
          DO jm=0,jmaxm
-            angrotp_exp(jm)=VROT(jm+1) ! exp. toroidal ang. vel. [1/s]
-            egamma_exp(jm)=AGME(jm+1)  ! exp. ExB shearing rate
+            angrotp_exp(jm)=WROT(jm+1) ! exp. toroidal ang. vel. [1/s]
+            egamma_exp(jm)=0.D0!AGME(jm+1)  ! exp. ExB shearing rate
             rgamma_p_exp(jm)=0.D0      ! exp. para. vel. shearing rate
-            vphi_m(jm)=VTOR(jm+1)    ! toroidal velosity [m/s]
-            vpar_m(jm)=0.D0          ! parallel velosity [m/s]
-            vper_m(jm)=0.D0          ! perpendicular velosity [m/s]
+            vphi_m(jm)=VTOR(jm+1)      ! toroidal velocity [m/s]
+            vpar_m(jm)=VPAR(jm+1)      ! parallel velocity [m/s]
+            vper_m(jm)=VPRP(jm+1)      ! perpendicular velocity [m/s]
          ENDDO
 C
          DO jm=0,jmaxm

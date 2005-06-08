@@ -107,7 +107,11 @@ C
 !       =1 errors only
 !       =2 errors and results 
 !       =else no output
+!  k_v-option for neoclassical v_tor,v_pol,v_para,v_perp
+!       =1 output
+!       =else no output
       k_out=1
+      k_v=1
       k_order=2
       k_potato=1
       IF(MDLEQZ.EQ.0) THEN
@@ -156,9 +160,7 @@ C
             ENDDO   
          ENDIF
          p_ft=SNGL(FTPF(MDLTPF,EPS))
-C         p_grbm2=SNGL(AR2RHOG(NR)/BB**2)
-C         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
-         p_grbm2=SNGL(AR2RHOG(NR))/p_b2
+         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grphi=ER(NR)
          IF(NR.EQ.1) THEN
             p_gr2phi=0.0
@@ -314,6 +316,27 @@ C
                ENDDO
                AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
                AVNCES(NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+            ENDDO
+         ENDIF
+C
+C     /* neoclassical bulk ion toroidal and poloidal velocities */
+C     
+         IF(k_v.ne.0) THEN
+            btor=bt0/(1.0+p_eps)
+            bpol=btor/p_fhat
+            btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
+            DO i=1,m_s
+               im=jm_s(i)
+               iz=jz_s(i)
+               uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
+               IF(im.eq.PA(2).and.iz.eq.PZ(2)) then
+!     Poloidal
+                  VPOL(NR)=DBLE(uthai*bpol)
+!     Parallel
+                  VPAR(NR)=DBLE(bpol/btot*VPOL(NR)+btor/btot*VTOR(NR))
+!     Perpendicular
+                  VPRP(NR)=DBLE(btor/btot*VPOL(NR)-bpol/btot*VTOR(NR))
+               ENDIF
             ENDDO
          ENDIF
 C

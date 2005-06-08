@@ -584,7 +584,10 @@ C
       PN(2) =RNU(1,1,2)
       PN(3) =RNU(1,1,3)-1.D-7
       PN(4) =1.D-7
-      IF(PTMP1.LE.1.D-3) PTMP1=1.D-3
+      IF(PTMP1.LE.1.D-3) THEN
+         PNS(1)=1.D-2
+         PTMP1=1.D-2-1.D-3
+      ENDIF
       PNS(2)=PTMP1
       PNS(3)=(PNS(1)-PZ(2)*PNS(2))/PZ(3)-1.D-8
       PNS(4)=1.D-8
@@ -720,7 +723,7 @@ C
          PICU(1,NR,2)=0.D0
          PECU(1,NR  )=0.D0
          POHU(1,NR  )=0.D0
-         VROTU(1,NR )=0.D0
+         WROTU(1,NR )=0.D0
          VTORU(1,NR )=0.D0
       ENDDO
       KFID='QICRHE'
@@ -808,11 +811,11 @@ C
       KFID='VROT'
       CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,1,IERR)
       DO NR=1,NRMAX
-         VROTU(1,NR)=FAS(NR)
+         WROTU(1,NR)=FAS(NR)
       ENDDO
 C
       KFID='VTOR'
-      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,1,IERR)
+      CALL UF2DS(KFID,DR,TMU,FAS,AMP,NRMAX,0,1,MDVTOR)
       DO NR=1,NRMAX
          VTORU(1,NR)=FAS(NR)
       ENDDO
@@ -1426,7 +1429,6 @@ C            DSRHOU(NTX,NR)=DVRHOU(NTX,NR)/(2.D0*PI*RMJRHOU(NTX,NR))
       ENDDO
 C
       IF(NTAMAX.LT.NTAMAX1) NTAMAX=NTAMAX1
-      STOP
       RETURN
       END
 C
@@ -1809,7 +1811,7 @@ C
       SUBROUTINE UF2DS(KFID,DR,TL,FOUT,AMP,NRMAX,NSW,ID,IERR)
 C
       INCLUDE 'trcom0.inc'
-      COMMON /TRUFL1/ KUFDEV,KUFDCG ! only if jet,35156,35171
+      COMMON /TRUFL1/ KUFDEV,KUFDCG ! only for 35156,35171 in JET
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
       DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU),FOUT(NRMP)
       DIMENSION U(4,NRMU)
@@ -1823,7 +1825,8 @@ C
             F2(NTX,1)=FCTR(RL(2),RL(3),F2(NTX,2),F2(NTX,3))
          ENDDO
       ENDIF
-      CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,ID,IERR)
+      IERRP=IERR
+      CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,ID,IERRP)
       IF(NRLMAX.LE.1) RETURN
       DO NRL=1,NRMAX
          IF(NSW.EQ.0) THEN
@@ -1831,8 +1834,8 @@ C
          ELSEIF(NSW.EQ.1) THEN
             RSL= DBLE(NRL)       *DR
          ENDIF
-         CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
-         IF(IERR.NE.0)
+         CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERRS)
+         IF(IERRS.NE.0)
      &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          FOUT(NRL)=F0*AMP
       ENDDO
@@ -2498,8 +2501,8 @@ C
          PEX(NR,2)=PNBU(1,NR,2)
          PRF(NR,1)=PICU(1,NR,1)+PECU(1,NR)
          PRF(NR,2)=PICU(1,NR,2)
-         VROT(NR) =VROTU(1,NR)
-         VTOR(NR) =VTORU(1,NR)
+         WROT(NR) =WROTU(1,NR)
+         IF(MDVTOR.EQ.0) VTOR(NR) =VTORU(1,NR)
          TTRHO(NR)=TTRHOU(1,NR)
          DVRHO(NR)=DVRHOU(1,NR)
          DSRHO(NR)=DSRHOU(1,NR)

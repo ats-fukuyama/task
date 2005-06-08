@@ -16,7 +16,7 @@ C
 C     *** RATIO AND MEAN SQUARE DEVIATION ***
 C
       MODE=1
-      NT=1
+      NTL=1
       WSIM=0.D0
       WEXP=0.D0
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
@@ -25,35 +25,35 @@ C
          DO NR=1,NRHO09
             TESIML=RT(NR,1)
             TISIML=RT(NR,2)
-            TEEXPL=RTU(NT,NR,1)
-            TIEXPL=RTU(NT,NR,2)
+            TEEXPL=RTU(NTL,NR,1)
+            TIEXPL=RTU(NTL,NR,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU(NT,NR,1)*TEEXPL
-     &                       +RNU(NT,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RNU(NTL,NR,1)*TEEXPL
+     &                       +RNU(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          NRHO09=INT(0.9*NRMAX)
          DO NR=1,NRHO09
             TESIML=RT(NR,1)-RT(NRHO09,1)
             TISIML=RT(NR,2)-RT(NRHO09,2)
-            TEEXPL=RTU(NT,NR,1)-RTU(NT,NRHO09,1)
-            TIEXPL=RTU(NT,NR,2)-RTU(NT,NRHO09,2)
+            TEEXPL=RTU(NTL,NR,1)-RTU(NTL,NRHO09,1)
+            TIEXPL=RTU(NTL,NR,2)-RTU(NTL,NRHO09,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU(NT,NR,1)*TEEXPL
-     &                       +RNU(NT,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RNU(NTL,NR,1)*TEEXPL
+     &                       +RNU(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
          ENDDO
       ELSE
          DO NR=1,NRMAX
             TESIML=RT(NR,1)
             TISIML=RT(NR,2)
-            TEEXPL=RTU(NT,NR,1)
-            TIEXPL=RTU(NT,NR,2)
+            TEEXPL=RTU(NTL,NR,1)
+            TIEXPL=RTU(NTL,NR,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU(NT,NR,1)*TEEXPL
-     &                       +RNU(NT,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RNU(NTL,NR,1)*TEEXPL
+     &                       +RNU(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
          ENDDO
       ENDIF
       WTO1=WSIM/WEXP-1.D0
@@ -70,12 +70,12 @@ C
       DO NR=1,NRMAX
          RP=DBLE(NR-1)*DR
          IF(RP.GE.0.2D0.AND.RP.LE.0.9D0) THEN
-            RNUME=RNUME+RTU(NT,NR,1)**2
-            RNUMI=RNUMI+RTU(NT,NR,2)**2
-            RDESE=RDESE+(RT(NR,1)-RTU(NT,NR,1))**2
-            RDESI=RDESI+(RT(NR,2)-RTU(NT,NR,2))**2
-            RDEOE=RDEOE+(RT(NR,1)-RTU(NT,NR,1))
-            RDEOI=RDEOI+(RT(NR,2)-RTU(NT,NR,2))
+            RNUME=RNUME+RTU(NTL,NR,1)**2
+            RNUMI=RNUMI+RTU(NTL,NR,2)**2
+            RDESE=RDESE+(RT(NR,1)-RTU(NTL,NR,1))**2
+            RDESI=RDESI+(RT(NR,2)-RTU(NTL,NR,2))**2
+            RDEOE=RDEOE+(RT(NR,1)-RTU(NTL,NR,1))
+            RDEOI=RDEOI+(RT(NR,2)-RTU(NTL,NR,2))
          ENDIF
       ENDDO
 C

@@ -71,14 +71,23 @@ C
       DO NR=1,NRMAX
          DRL=RJCB(NR)/DR
          IF(NR.EQ.NRMAX) THEN
+            VTORL = VTOR(NR)
+            VPOLL = VPOL(NR)
             DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
-            ER(NR)=DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+            ER(NR) = DPD*RKEV/(PZ(2)*AEE*PNSS(2))+VTORL*BP(NR)-VPOLL*BB
          ELSE
+            VTORL = 0.5D0*(VTOR(NR+1)+VTOR(NR))
+            VPOLL = 0.5D0*(VPOL(NR+1)+VPOL(NR))
             DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
      &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
-            ER(NR)=DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+            ER(NR) = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+     &              +VTORL*BP(NR)-VPOLL*BB
          ENDIF
+C         write(6,'(2I3,4F15.7)') NT,NR,DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR
+C     &        +1,2)+RN(NR,2))),VTORL*BP(NR),VPOLL*BB,ER(NR)
       ENDDO
+C
+C     *****
 C
       IF(T.LT.PELTIM+0.5D0*DT.AND.
      &   T.GE.PELTIM-0.5D0*DT) THEN
