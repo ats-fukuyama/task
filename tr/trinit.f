@@ -1899,23 +1899,31 @@ C
       ENDIF
       NSSMAX=NSMAX
       CALL CHECK_IMPURITY(MDSLCT)
-      IF(MDLUF.NE.0.AND.MDSLCT.EQ.0) THEN
-C     i.e. UFILES are used, but files concerning impurities don't exist.
-         IF(NSMAX.EQ.1) THEN
-            INS=1
-            NSMAX=2
-         ELSEIF(NSMAX.EQ.2) THEN
+      IF(MDLUF.NE.0) THEN
+         IF(MDSLCT.EQ.0) THEN
+            IF(NSMAX.EQ.1) THEN
+               INS=1
+               NSMAX=2
+            ENDIF
+         ELSE
+            IF(NSMAX.EQ.1) INS=2
             NSMAX=3
             PA(3)=12.D0
 C            PZ(3)=6.D0
          ENDIF
       ENDIF
+c$$$      IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
+c$$$         IF(NSMAX.EQ.1) INS=1
+c$$$         NSMAX=3
+c$$$         PA(3)=12.D0
+c$$$         NSLMAX=NSMAX
+c$$$C         PZ(3)=6.D0
+c$$$      ENDIF
       IF(NSMAX.EQ.1) THEN
          NSLMAX=2
       ELSE
          NSLMAX=NSMAX
       ENDIF
-      writE(6,*) INS
 C
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX
