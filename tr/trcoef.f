@@ -510,13 +510,9 @@ C
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.31) THEN
-C               ALFA=ALFA/SQRT(RKAP)**3
                ALFAL=ALFA*CALF
-C               S=S*SQRT(RKAP)
-C               QL=QL/RKAP
                FS=TRCOFS(S,ALFAL,RKCV)
-C               IF(NR.GE.NRMAX-1)
-C     &              write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
+C               FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN
@@ -1298,8 +1294,8 @@ C     AKLD : heat flux coefficient for density gradient
 C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
-               DO NS1=1,NSMAX
+            DO NS=1,NSLMAX
+               DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      AKLP(NR,NS,NS1)= CDH*  AKDW(NR,NS)
      &                               +CNH*( AKNCT(NR,NS,NS1)
@@ -1316,8 +1312,8 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
-               DO NS1=1,NSMAX
+            DO NS=1,NSLMAX
+               DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      AKLP(NR,NS,NS1)= CDH*AKDWP(NR,NS,NS1)
      &                               +CNH*AKNC(NR,NS)
@@ -1331,8 +1327,8 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
-               DO NS1=1,NSMAX
+            DO NS=1,NSLMAX
+               DO NS1=1,NSLMAX
                   AKLP(NR,NS,NS1)= CDH*  AKDWP(NR,NS,NS1)
      &                            +CNH*( AKNCT(NR,NS,NS1)
      &                                  +AKNCP(NR,NS,NS1))
@@ -1713,10 +1709,10 @@ C     ADLD : particle flux coefficient for density gradient
 C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
+            DO NS=1,NSLMAX
                AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
                IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
-               DO NS1=1,NSMAX
+               DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CDP*  ADDW(NR,NS)
      &                               +CNP*(-ADNCT(NR,NS,NS1))
@@ -1732,9 +1728,9 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
+            DO NS=1,NSLMAX
                AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AV(NR,NS)
-               DO NS1=1,NSMAX
+               DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
      &                               +CNP*ADNC(NR,NS)
@@ -1748,9 +1744,9 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
-            DO NS=1,NSMAX
+            DO NS=1,NSLMAX
                AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
-               DO NS1=1,NSMAX
+               DO NS1=1,NSLMAX
                   ADLD(NR,NS,NS1)= CDP*  ADDWD(NR,NS,NS1)
      &                            +CNP*(-ADNCT(NR,NS,NS1))
                   ADLP(NR,NS,NS1)= CDP*  ADDWP(NR,NS,NS1)
@@ -1886,7 +1882,7 @@ C
 C     *** NCLASS***
 C
       IF(MDNCLS.NE.0) THEN
-         DO NS=1,NSMAX
+         DO NS=1,NSLMAX
          DO NR=1,NRMAX
             AVK(NR,NS)=AVKNCS(NR,NS)
          ENDDO

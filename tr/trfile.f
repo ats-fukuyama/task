@@ -269,25 +269,18 @@ C
 C
 C     ***********************************************************
 C
-C           CONTROL ROUTINE FOR UFILE READING
+C           INTERFACE FOR READING UFILE
 C
 C     ***********************************************************
 C
-      SUBROUTINE TR_UFILE_CONTROL(NSW)
+      SUBROUTINE UFILE_INTERFACE
 C
       INCLUDE 'trcomm.inc'
       CHARACTER KDIRX*80
-      CHARACTER KDIRR2*80
-      CHARACTER KFILE*80,KFID*20
       COMMON /TRUFC1/ KDIRX
       COMMON /TRUFC2/ IKNDEV,IKNDCG
-      COMMON /TRUFC3/ NM2CHK
-      LOGICAL DIR,LEX
+      LOGICAL DIR
 C
-      NRAMAX=INT(RHOA*NRMAX)
-      DR = 1.D0/DBLE(NRMAX)
-C
-      IF(NSW.NE.0) THEN
       CALL KTRIM(KUFDEV,IKNDEV)
       CALL KTRIM(KUFDCG,IKNDCG)
 C
@@ -301,6 +294,26 @@ C     &                          //KUFDCG(1:IKNDCG)//'/in/'
      &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
          STOP
       ENDIF
+C
+ 9000 RETURN
+      END
+C
+C     ***********************************************************
+C
+C           CHECKING WHETHER IMPURITY EXISTS
+C
+C     ***********************************************************
+C
+      SUBROUTINE CHECK_IMPURITY(MDSLCT)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER KDIRX*80
+      CHARACTER KDIRR2*80
+      CHARACTER KFILE*80,KFID*20
+      COMMON /TRUFC1/ KDIRX
+      COMMON /TRUFC2/ IKNDEV,IKNDCG
+      COMMON /TRUFC3/ NM2CHK
+      LOGICAL LEX
 C
       CALL KTRIM(KDIRX,IKDIRX)
       KDIRR2=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)
@@ -333,46 +346,65 @@ C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) MDSLCT=MDSLCT+4
 C
-      IF(MDSLCT.EQ.0) THEN
-         MDNI=0
-         NEQL=0
-         DO NEQ=1,NEQMAX
-            IF(NST(NEQ).NE.0) NEQL=NEQL+1
-         ENDDO
-         IF(NEQL.EQ.1) THEN
-            NSMAX=1
-         ELSE
-            NSMAX=2
+ 9000 RETURN
+      END
+C
+C     ***********************************************************
+C
+C           CONTROL ROUTINE FOR UFILE READING
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_UFILE_CONTROL(NSW)
+C
+      INCLUDE 'trcomm.inc'
+C
+      NRAMAX=INT(RHOA*NRMAX)
+      DR = 1.D0/DBLE(NRMAX)
+C
+      IF(NSW.NE.0) THEN
+         CALL CHECK_IMPURITY(MDSLCT)
+C
+         IF(MDSLCT.EQ.0) THEN
+            MDNI=0
+            NEQL=0
+            DO NEQ=1,NEQMAX
+               IF(NST(NEQ).NE.0) NEQL=NEQL+1
+            ENDDO
+            IF(NEQL.EQ.1) THEN
+               NSMAX=1
+            ELSE
+               NSMAX=2
+            ENDIF
+         ELSEIF(MDSLCT.EQ.1) THEN
+            IF(MDNI.EQ.2.OR.MDNI.EQ.3) MDNI=1
+         ELSEIF(MDSLCT.EQ.2) THEN
+            IF(MDNI.EQ.1.OR.MDNI.EQ.3) MDNI=2
+         ELSEIF(MDSLCT.EQ.3) THEN
+            IF(MDNI.EQ.3) MDNI=1
+         ELSEIF(MDSLCT.EQ.4) THEN
+            IF(MDNI.EQ.1.OR.MDNI.EQ.2) MDNI=3
+         ELSEIF(MDSLCT.EQ.5) THEN
+            IF(MDNI.EQ.2) MDNI=1
+         ELSEIF(MDSLCT.EQ.6) THEN
+            IF(MDNI.EQ.1) MDNI=3
          ENDIF
-      ELSEIF(MDSLCT.EQ.1) THEN
-         IF(MDNI.EQ.2.OR.MDNI.EQ.3) MDNI=1
-      ELSEIF(MDSLCT.EQ.2) THEN
-         IF(MDNI.EQ.1.OR.MDNI.EQ.3) MDNI=2
-      ELSEIF(MDSLCT.EQ.3) THEN
-         IF(MDNI.EQ.3) MDNI=1
-      ELSEIF(MDSLCT.EQ.4) THEN
-         IF(MDNI.EQ.1.OR.MDNI.EQ.2) MDNI=3
-      ELSEIF(MDSLCT.EQ.5) THEN
-         IF(MDNI.EQ.2) MDNI=1
-      ELSEIF(MDSLCT.EQ.6) THEN
-         IF(MDNI.EQ.1) MDNI=3
-      ENDIF
 C
-      IF(MDLFLX.NE.0) THEN
-         CNP=0.D0
-         CDP=0.D0
-         AD0=0.D0
-      ENDIF
+         IF(MDLFLX.NE.0) THEN
+            CNP=0.D0
+            CDP=0.D0
+            AD0=0.D0
+         ENDIF
 C
-      WRITE(6,'(A7,A8,A6,A15)') 'DEVICE=',KUFDEV,'SHOT#=',KUFDCG
+         WRITE(6,'(A7,A8,A6,A15)') 'DEVICE=',KUFDEV,'SHOT#=',KUFDCG
 C
-      IF(NSW.EQ.1) THEN
-         CALL TR_TIME_UFILE
-      ELSEIF(NSW.EQ.2) THEN
-         CALL TR_STEADY_UFILE
-      ELSEIF(NSW.EQ.3) THEN
-         CALL TR_TIME_UFILE_TOPICS
-      ENDIF
+         IF(NSW.EQ.1) THEN
+            CALL TR_TIME_UFILE
+         ELSEIF(NSW.EQ.2) THEN
+            CALL TR_STEADY_UFILE
+         ELSEIF(NSW.EQ.3) THEN
+            CALL TR_TIME_UFILE_TOPICS
+         ENDIF
       ENDIF
 C
       NROMAX = NRMAX
@@ -2203,11 +2235,11 @@ C
                CALL LAGLANGE(TSL,RTDL ,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
                RT(NR,2)=RTDL
             ELSEIF(MDLEOI.EQ.2) THEN
-               CALL LAGLANGE(TSL,RTDL ,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
-               RT(NR,1)=RTDL
+               CALL LAGLANGE(TSL,RTEL ,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+               RT(NR,1)=RTEL
             ENDIF
             CALL LAGLANGE(TSL,RTIL ,TMU,RTU(1,NR,3),NTXMAX,NTUM,IERR)
-            RT(NR,3)=RTIL
+            IF(INS.EQ.2) RT(NR,3)=RTIL
          ENDIF
          CALL LAGLANGE(TSL,QPL ,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
          QP(NR)=QPL
@@ -2495,7 +2527,7 @@ C
             ELSEIF(MDLEOI.EQ.2) THEN
                RT(NR,1)=RTU(1,NR,1)
             ENDIF
-            RT(NR,3)=RTU(1,NR,3)
+            IF(INS.EQ.2) RT(NR,3)=RTU(1,NR,3)
          ENDIF
          PEX(NR,1)=PNBU(1,NR,1)
          PEX(NR,2)=PNBU(1,NR,2)

@@ -526,7 +526,13 @@ C
 C     *** NCLASS SWITCH ***
 C        0    : off
 C        else : on
+C        NSLMAX : the number of species for NCLASS
+C                 this parameter is of advantage when you'd like to 
+C                 solve only one particle but the other particle
+C                 effects are included in the calculation.
+C                 i.e. NSLMAX never be less than 2.
       MDNCLS=0
+      NSLMAX=NSMAX
 C
 C     *** MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ***
 C        0    : off
@@ -882,7 +888,6 @@ C
 C
       INCLUDE 'trcomm.inc'
       COMMON /TMSLC2/ NTAMAX
-      DIMENSION TMP(NRM)
 C
 C     ZEFF=1
 C
@@ -1893,12 +1898,24 @@ C
          ENDIF
       ENDIF
       NSSMAX=NSMAX
-      IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
-         IF(NSMAX.EQ.1) INS=1
-         NSMAX=3
-         PA(3)=12.D0
-C         PZ(3)=6.D0
+      CALL CHECK_IMPURITY(MDSLCT)
+      IF(MDLUF.NE.0.AND.MDSLCT.EQ.0) THEN
+C     i.e. UFILES are used, but files concerning impurities don't exist.
+         IF(NSMAX.EQ.1) THEN
+            INS=1
+            NSMAX=2
+         ELSEIF(NSMAX.EQ.2) THEN
+            NSMAX=3
+            PA(3)=12.D0
+C            PZ(3)=6.D0
+         ENDIF
       ENDIF
+      IF(NSMAX.EQ.1) THEN
+         NSLMAX=2
+      ELSE
+         NSLMAX=NSMAX
+      ENDIF
+      writE(6,*) INS
 C
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX

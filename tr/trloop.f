@@ -574,7 +574,7 @@ C
       NR=NRMAX
       NSW=3
       CALL TR_COEF_DECIDE(NR,NSW,DV53)
-C     
+C
       DO NV=1,NEQMAX
       DO NW=1,NEQMAX
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
@@ -1202,16 +1202,16 @@ C
             ELSEIF(NSVN.EQ.2) THEN
                IF(NSW.EQ.2.OR.NSW.NE.NI.AND.NRJ.NE.0) THEN
                   IF(MDLFLX.EQ.0) THEN
-                  VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*DV23
+                     VV(NEQ,NEQ  ,NMK,NSW)= FA(NI,NSW)*DV23
      &                    *( AVK(NRJ,NSSN)+AV(NRJ,NSSN)*CC
      &                      +RQFLS(NRJ,5,NSSN)   /RPV(NRJ,NSSN)
      &                      +RGFLS(NRJ,5,NSSN)*CC/RNV(NRJ,NSSN))
                   ELSE
-                  VV(NEQ,NEQ  ,NMK,NSW)= DV23*(FA(NI,NSW)
+                     VV(NEQ,NEQ  ,NMK,NSW)= DV23*(FA(NI,NSW)
      &                    *( AVK(NRJ,NSSN)
-     &                      +RQFLS(NRJ,5,NSSN)   / RPV(NRJ,NSSN)
-     &                      +RGFLS(NRJ,5,NSSN)*CC/ RNV(NRJ,NSSN))
-     &                     +(RGFLX(NRJ,NSSN)  *CC/(RNV(NRJ,NSSN)*DR)))
+     &                    +RQFLS(NRJ,5,NSSN)   / RPV(NRJ,NSSN)
+     &                    +RGFLS(NRJ,5,NSSN)*CC/ RNV(NRJ,NSSN))
+     &                    +(RGFLX(NRJ,NSSN)  *CC/(RNV(NRJ,NSSN)*DR)))
                   ENDIF
                   DO NEQ1=1,NEQLMAX
                      NSSN1=NSS(NEQ1)

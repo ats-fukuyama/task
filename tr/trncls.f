@@ -114,11 +114,6 @@ C
       k_v=1
       k_order=2
       k_potato=1
-      IF(NSMAX.EQ.1) THEN
-         NSLMAX=2 ! for single species simulation without ZEFF,NM,NIMP
-      ELSE
-         NSLMAX=NSMAX
-      ENDIF
       IF(MDLEQZ.EQ.0) THEN
          m_i=NSLMAX
       ELSE
