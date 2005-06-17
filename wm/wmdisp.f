@@ -44,7 +44,7 @@ C
      &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
      &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
      &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
-      IF(NR.EQ.2) STOP
+C      IF(NR.EQ.2) STOP
 C
       RETURN
       END
@@ -405,9 +405,21 @@ C            IF(NR.EQ.10.AND.MD.EQ.0.AND.ND.EQ.0) WRITE(6,*) NTH,RKPR
             CKPP=RKPP
             CALL DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
 C
-C      IF(NR.EQ.1) THEN
-C         WRITE(6,*) 'CPERP,CPERM,CPARA:',CPERP,CPERM,CPARA
-C         WRITE(6,*) 'UXX2,UYY2:',UXX2,UYY2
+C      IF(NR.EQ.1.AND.
+C     &   MD.EQ.0.AND.
+C     &   ND.EQ.0.AND.
+C     &   NTH.EQ.1.AND.
+C     &   NPH.EQ.1) THEN
+C         WRITE(6,'(A,2I5,1PE12.4)') 
+C     &        'NS,MODELP,PSIN',NS,MODELP(NS),PSIN
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CW,R,P=',CW,CKPR,CKRR
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CDTNS1=',CDTNS(1,1),CDTNS(1,2),CDTNS(1,3)
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CDTNS2=',CDTNS(2,1),CDTNS(2,2),CDTNS(2,3)
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CDTNS3=',CDTNS(3,1),CDTNS(3,2),CDTNS(3,3)
 C      ENDIF
 C
             CPERM=CDTNS(2,2)-CDTNS(1,1)

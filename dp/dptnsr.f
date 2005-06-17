@@ -73,7 +73,7 @@ C
             CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP1)
          ENDIF
 C
-         IF(ID2.EQ.2.OR.ID2.eq.3) THEN
+         IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
             CLDISP(1)=DBLE(CLDISP1(1))+CI*DIMAG(CLDISP(1))
             CLDISP(2)=DBLE(CLDISP1(2))+CI*DIMAG(CLDISP(2))
             CLDISP(3)=DBLE(CLDISP1(3))+CI*DIMAG(CLDISP(3))
@@ -82,6 +82,14 @@ C
             CLDISP(6)=CI*DIMAG(CLDISP1(6))+DBLE(CLDISP(6))
          ENDIF
       ENDIF
+C         WRITE(6,'(A,3I5,1PE12.4)') 
+C     &        'NS,ID1,ID2,RN =',NS,ID1,ID2,RN(NS)
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CW,R,P=',CW,CKPR,CKRR
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CLDISP=',CLDISP(1),CLDISP(2),CLDISP(3)
+C         WRITE(6,'(A,1P6E12.4)') 
+C     &        'CLDISP=',CLDISP(4),CLDISP(5),CLDISP(6)
       RETURN
       END
 C
@@ -265,6 +273,10 @@ C
       WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
       WTPX=SQRT(WTPR/WTPP)
       CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+      CALAM(0)=1.D0
+      CALAM(1)=0.D0
+      CALAM(2)=0.D0
+      CALAM(3)=0.D0
 C
       CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
       CGZ(-1)= (1.D0+CWC)*CPR
@@ -308,6 +320,13 @@ C
       CLDISP(4)=CLDISP(4)-CWP*   CK*CBLAM*CFFP
       CLDISP(5)=CLDISP(5)+CWP*CI*   CDLAM*CFWP
       CLDISP(6)=CLDISP(6)+CWP*CI*CK*CDLAM*CFFP
+C
+C      WRITE(6,'(A,1P6E12.4)')
+C     &     'CWP,CWC,CBLAM=',CWP,CWC,CBLAM
+C      WRITE(6,'(A,1P6E12.4)')
+C     &     'CLAM,CDLAM,CBLAM=',CLAM,CDLAM,CBLAM
+C      WRITE(6,'(A,1P6E12.4)')
+C     &     'CGZ,CZ,CDZ=',CGZ(0),CZ(0),CDZ(0)
 C
       RETURN
       END

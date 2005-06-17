@@ -946,7 +946,7 @@ C
 C
       CALL TEXT('MODELP=',7)
       DO NS=1,NSMAX
-        CALL NUMBI(MODELP(NS),'(I3)',3)
+        CALL NUMBI(MODELP(NS),'(I1)',1)
       ENDDO
 C
 C     ****** DEVICE PARAMETERS ******
