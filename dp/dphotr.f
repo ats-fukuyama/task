@@ -38,8 +38,6 @@ C
 C
       DIMENSION CLDISP(6)
 C
-      DATA CI/(0.D0,1.D0)/
-C
       NCMIN = NDISP1(NS)
       NCMAX = NDISP2(NS)
       NHMAX=MAX(ABS(NCMIN),ABS(NCMAX),2)+5

@@ -39,11 +39,13 @@ C
          ENDIF
       ENDIF
 C
+      IF(NR.EQ.1) THEN
       WRITE(6,*) 'WMDISP: NR,NS=',NR,NS
       WRITE(6,'(1P6E12.4)') 
      &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
      &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
      &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
+      ENDIF
 C      IF(NR.EQ.2) STOP
 C
       RETURN
@@ -111,6 +113,7 @@ C
      &             +2.D0*MM*NN*RG23(NTH,NPH,NR)*XRHO(NR)
      &             +     NN*NN*RG33(NTH,NPH,NR)
                IF(RKPP2.GT.0.D0) THEN
+                  RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
                   IF(RKT2.GT.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
@@ -126,6 +129,7 @@ C
                   UYY2= RKR2/RKPP2
                ELSE
                   RKPP2=0.D0
+                  RKPP=0.D0
                   RKT2=0.D0
                   RKR2=0.D0
                   UXX2=0.D0
@@ -133,6 +137,7 @@ C
                ENDIF
             ELSE
                RKPP2=0.D0
+               RKPP=0.D0
                RKT2=0.D0
                RKR2=0.D0
                UXX2=0.D0
@@ -324,19 +329,19 @@ C
 C
       PSIN=XRHO(NR)**2
       CALL PLPROF(PSIN)
-      IF(NR.EQ.1) THEN
-         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
-         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
-         WRITE(6,*) 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
-         WRITE(6,*) 'RU  :',RU(1)  ,RU(2)  ,RU(3)
-      ENDIF
+C      IF(NR.EQ.1) THEN
+C         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
+C         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
+C         WRITE(6,*) 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
+C         WRITE(6,*) 'RU  :',RU(1)  ,RU(2)  ,RU(3)
+C      ENDIF
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
-            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
-         ENDIF
+C         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
+C            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
+C         ENDIF
 C
          DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
@@ -363,11 +368,11 @@ C
                ENDDO
                RNPP2=((DTT-RNPR**2)**2-DTX**2)/(DTT-RNPR**2)
                RKPP2=RNPP2*WW*WW/(VC*VC)
-               RKPP=SQRT(RKPP2)
                RKX2=     MM*MM*RG22(NTH,NPH,NR)*XRHO(NR)**2
      &             +2.D0*MM*NN*RG23(NTH,NPH,NR)*XRHO(NR)
      &             +     NN*NN*RG33(NTH,NPH,NR)
                IF(RKPP2.GT.0.D0) THEN
+                  RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
                   IF(RKT2.GT.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
@@ -398,9 +403,10 @@ C
                UYY2=0.D0
             ENDIF
 C
-            RKPP=0.D0
-C            RKPR=1.D0
-C            IF(NR.EQ.10.AND.MD.EQ.0.AND.ND.EQ.0) WRITE(6,*) NTH,RKPR
+C            RKPP=0.D0
+C            UXX2=0.D0
+C            UYY2=0.D0
+C
             CKPR=RKPR
             CKPP=RKPP
             CALL DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
