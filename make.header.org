@@ -5,7 +5,7 @@
 ## set "OBJLA ="
 ## comment the line "OBJLA =....", if exists, in the section you have chosen
 ## delete wmtae.f from SRCX in wm/Makefile
-## and comment out CALL WMTAE in wm/wmmain.f
+## and comment out CALL WMTAE in wm/wmmenu.f
 
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 #OBJLA =
