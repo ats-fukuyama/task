@@ -101,42 +101,20 @@ C
          RHOL=SQRT(PSIN)
       ENDIF
 C
+C
       IF(MODELN.EQ.0) THEN
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
-               RN(NS)  =PNS(NS)
+               RN(NS)  =0.D0
                RTPR(NS)=PTS(NS)
                RTPP(NS)=PTS(NS)
                RU(NS)  =PUS(NS)
                RZCL(NS)=PZCL(NS)
             ENDDO
          ELSE
-            IF(RHOL.LE.RHOEDG) THEN
-               FACTN=(1.D0-RHOL**PROFN1)**PROFN2
-               FACTT=(1.D0-RHOL**PROFT1)**PROFT2
-               FACTU=(1.D0-RHOL**PROFU1)**PROFU2
-            ELSE
-               FNX=(1.D0-RHOEDG**PROFN1)**PROFN2
-               DFNX=-PROFN1*PROFN2*RHOEDG**(PROFN1-1.D0)
-     &             *(1.D0-RHOEDG**PROFN1)**(PROFN2-1.D0)
-               AN= 3*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
-               BN=-2*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
-               FACTN=AN*(1-RHOL)**2+BN*(1-RHOL)**3
-C
-               FTX=(1.D0-RHOEDG**PROFT1)**PROFT2
-               DFTX=-PROFT1*PROFT2*RHOEDG**(PROFT1-1.D0)
-     &             *(1.D0-RHOEDG**PROFT1)**(PROFT2-1.D0)
-               AT= 3*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
-               BT=-2*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
-               FACTT=AT*(1-RHOL)**2+BT*(1-RHOL)**3
-C
-               FUX=(1.D0-RHOEDG**PROFU1)**PROFU2
-               DFUX=-PROFU1*PROFU2*RHOEDG**(PROFU1-1.D0)
-     &             *(1.D0-RHOEDG**PROFU1)**(PROFU2-1.D0)
-               AU= 3*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
-               BU=-2*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
-               FACTU=AU*(1-RHOL)**2+BU*(1-RHOL)**3
-            ENDIF
+            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
 C
             DO NS=1,NSMAX
                RN(NS)  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
@@ -208,6 +186,59 @@ C
                RTPP(NS)=PTPP(NS)*FACT
                RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
+            ENDDO
+         ENDIF
+C
+      ELSEIF(MODELN.EQ.3) THEN
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =PNS(NS)
+               RTPR(NS)=PTS(NS)
+               RTPP(NS)=PTS(NS)
+               RU(NS)  =PUS(NS)
+               RZCL(NS)=PZCL(NS)
+            ENDDO
+         ELSE
+            IF(RHOL.LE.RHOEDG) THEN
+               FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+               FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+               FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            ELSE
+               FNX=(1.D0-RHOEDG**PROFN1)**PROFN2
+               DFNX=-PROFN1*PROFN2*RHOEDG**(PROFN1-1.D0)
+     &             *(1.D0-RHOEDG**PROFN1)**(PROFN2-1.D0)
+               AN= 3*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
+               BN=-2*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
+               FACTN=AN*(1-RHOL)**2+BN*(1-RHOL)**3
+C
+               FTX=(1.D0-RHOEDG**PROFT1)**PROFT2
+               DFTX=-PROFT1*PROFT2*RHOEDG**(PROFT1-1.D0)
+     &             *(1.D0-RHOEDG**PROFT1)**(PROFT2-1.D0)
+               AT= 3*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
+               BT=-2*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
+               FACTT=AT*(1-RHOL)**2+BT*(1-RHOL)**3
+C
+               FUX=(1.D0-RHOEDG**PROFU1)**PROFU2
+               DFUX=-PROFU1*PROFU2*RHOEDG**(PROFU1-1.D0)
+     &             *(1.D0-RHOEDG**PROFU1)**(PROFU2-1.D0)
+               AU= 3*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
+               BU=-2*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
+               FACTU=AU*(1-RHOL)**2+BU*(1-RHOL)**3
+            ENDIF
+C
+            DO NS=1,NSMAX
+               RN(NS)  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+               RTPR(NS)=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+               RTPP(NS)=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
+               RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               RZCL(NS)=PZCL(NS)
+               IF(RHOL.LT.RHOITB) THEN
+                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
+                  RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
+                  RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
+                  RU(NS)  =RU(NS)  +PUITB(NS)*FACTITB
+               ENDIF
             ENDDO
          ENDIF
 C
