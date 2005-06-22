@@ -1,3 +1,29 @@
+2005/06/22
+        This version interacts with PL and DP modules
+        Default plasma parameters are defined in plinit.f.
+        They are different from those defined in wminit.f.
+        Parameters should be set in wmparm to reproduce old calculation
+        Sample wmparm file to reproduce old version is in/wmparm.old
+
+        Definition of MODELP was changed.
+        MODELP(NS) controls dielectric tensor for species NS.
+        The definition of the value of new MODELP differs from the old one.
+        Calculation for Old values can be reproduced by negative values. 
+                             Old MODELP          New MODELP
+           Old cold              2                    -2
+           Old without FLR       3                    -3
+           Old with FW FLR       4                    -4
+           New cold                                    1
+           New without FLR                             4
+           New with FW FLR                             5
+           New arbitrary f                             7
+
+        For MODELG=6 (3D boozer coordinates), RR is given from the 
+        equilirium data.  BB determines the magnetic field at the 
+        magnetic axis R=RR.  
+        
+
+
 2004/06/10 V3.51
         CEFLD, CEFLDK normalization error corrected
 2003/10/22 V3.50

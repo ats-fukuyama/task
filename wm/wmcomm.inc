@@ -9,8 +9,8 @@ C
       include '../dp/dpcom1.inc'
 C
       PARAMETER (NRM=201)
-      PARAMETER (NDPM=0)
-      PARAMETER (MDPM=5)
+      PARAMETER (NDPM=2)
+      PARAMETER (MDPM=3)
       PARAMETER (NAM=4)
       PARAMETER (NSUM=2049)
       PARAMETER (NGZM=401)

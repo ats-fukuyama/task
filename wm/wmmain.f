@@ -25,7 +25,7 @@ C
       ENDIF
 C
       IF(MYRANK.EQ.0) THEN
-         WRITE(6,*) '##### /TASK/WM  04/11/08 #####'
+         WRITE(6,*) '##### /TASK/WM  05/06/22 #####'
          CALL GSOPEN
       ENDIF
       CALL MPSYNC

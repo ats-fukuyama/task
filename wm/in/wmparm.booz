@@ -1,0 +1,23 @@
+ &wm
+   MODELG=6
+   KNAMEQ='lhd/dia11.m08n06.F2.4840_L.asc'
+   modelm=2
+   NPHMAX=4
+   NTHMAX=8
+   NRMAX=100
+   NTH0=0
+   NPH0=8
+   RF=50.0
+   NSMAX=3
+   PA(2)=2.D0 PZ(2)=1.D0
+   PA(3)=1.D0 PZ(2)=1.D0
+   PN= 0.2356,0.2000,0.0356
+   PNS=0.05,0.045,0.005
+   PROFN2=0.5
+   PTPR=4.1,3.7,3.7
+   PTPP=4.1,3.7,3.7
+   PTS= 0.8,0.4,0.4
+   MODELP=4,4,4
+   PROFT2=2.0
+ &end
+   
