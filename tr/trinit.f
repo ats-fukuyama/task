@@ -1886,6 +1886,11 @@ C
       COMMON /TRINS1/ INS
       SAVE NSSMAX
 C
+C     If INS is zero, all particles designated by NSMAX are fully 
+C     calculated. If INS=1, we handle only electrons and bulk ions
+C     IF INS=2, three species are employed in the simulation but
+C     just one of them is calculated.
+C
       NSCMAX=NSMAX+NSZMAX ! the number of charged particles
       NSTMAX=NSMAX+NSZMAX+NSNMAX ! the number of all particles
 C
@@ -1912,18 +1917,13 @@ C
 C            PZ(3)=6.D0
          ENDIF
       ENDIF
-c$$$      IF((MDLUF.NE.0.AND.MDNI.NE.0).AND.(NSMAX.EQ.1.OR.NSMAX.EQ.2)) THEN
-c$$$         IF(NSMAX.EQ.1) INS=1
-c$$$         NSMAX=3
-c$$$         PA(3)=12.D0
-c$$$         NSLMAX=NSMAX
-c$$$C         PZ(3)=6.D0
-c$$$      ENDIF
+C     *** for NCLASS ***
       IF(NSMAX.EQ.1) THEN
          NSLMAX=2
       ELSE
          NSLMAX=NSMAX
       ENDIF
+C     ***
 C
       IF(MDLEQT.EQ.0) THEN
          NEQMAX=MDLEQB+(MDLEQN+MDLEQT+MDLEQU)*NSMAX
