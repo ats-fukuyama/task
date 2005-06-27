@@ -96,7 +96,17 @@ C
             CDENX= RGM-CKPRW*PG(NP)*TCSM(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP)**2
      &                             +(DELPL*DGT1(NP,NTH)*DELTH)**2)
-            PAI1  = NC*ADJ(NCD)/X
+            IF(X.EQ.0.D0) THEN
+               IF(NCD.EQ.0) THEN
+                  PAI1=0.D0
+               ELSEIF(NCD.EQ.1) THEN
+                  PAI1=0.5D0*NC
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*ADJD(NCD)
             PAI3  = ADJ(NCD)/TTNM(NTH)
 C
@@ -152,7 +162,17 @@ C
             CDENX = RGM-CKPRW*PM(NP)*TCSG(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP)**2
      &                             +(DELPL*DGT2(NP,NTH)*DELTH)**2)
-            PAI1  = NC*ADJ(NCD)/X
+            IF(X.EQ.0.D0) THEN
+               IF(NCD.EQ.0) THEN
+                  PAI1=0.D0
+               ELSEIF(NCD.EQ.1) THEN
+                  PAI1=0.5D0*NC
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*ADJD(NCD)
             PAI3  = ADJ(NCD)/TTNG(NTH)
             CSM11 = CSM11 + PAI1* PAI1*CDEN
@@ -284,7 +304,17 @@ C
 C
             CPART31= DFP3*(RGM-NC*CWC)**3
 C
-            PAI1  = NC*ADJ(NCD)/X
+            IF(X.EQ.0.D0) THEN
+               IF(NCD.EQ.0) THEN
+                  PAI1=0.D0
+               ELSEIF(NCD.EQ.1) THEN
+                  PAI1=0.5D0*NC
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*ADJD(NCD)
             PAI3  = ADJ(NCD)/TTNM(NTH)
 C
@@ -355,7 +385,17 @@ C
             CPART411=RGM-CWC*NC
             CPART41= DFT4*CPART411*CPART411
      &              *(TCSG(NTH)-CPART411/(RGM*TCSG(NTH)))
-            PAI1  = NC*ADJ(NCD)/X
+            IF(X.EQ.0.D0) THEN
+               IF(NCD.EQ.0) THEN
+                  PAI1=0.D0
+               ELSEIF(NCD.EQ.1) THEN
+                  PAI1=0.5D0*NC
+               ELSE
+                  PAI1=0.D0
+               ENDIF
+            ELSE
+               PAI1  = NC*ADJ(NCD)/X
+            ENDIF
             CPAI2 = CI*ADJD(NCD)
             PAI3  = ADJ(NCD)/TTNG(NTH)
 C

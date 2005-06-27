@@ -38,28 +38,28 @@ C
          ELSE IF(ID1.EQ.7) THEN
             IF(MODELV.EQ.0) THEN
                CALL DPFMFL(NS)
-               IF(ID2.EQ.2) THEN
+               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
                   CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.1) THEN
                CALL DPFPFL(NS)
-               IF(ID2.EQ.2) THEN
+               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
                   CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.2) THEN
                CALL DPFMFL(NS)
-               IF(ID2.EQ.2) THEN
+               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
                   CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.3) THEN
                CALL DPFPFL(NS)
-               IF(ID2.EQ.2) THEN
+               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
                   CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
