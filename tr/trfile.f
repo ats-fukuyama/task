@@ -1586,7 +1586,6 @@ C
          ENDDO
       ENDDO
 C
-      AMP=1.D6
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
             PICU(NTX,NR,1)=0.D0
@@ -1622,7 +1621,6 @@ C      KFID='QICRHI'
          ENDDO
       ENDDO
 C
-      AMP=1.D0
       KFID='QECH'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,FAT,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,IERR)
