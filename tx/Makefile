@@ -19,13 +19,14 @@ txlib.a: $(OBJS)
 
 $(PROG): txmain.o $(LIBS)
 	(cd ../lib; make tasklib.a)
-	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+#	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	rm -f *.o ./*~ ./#* a.out core
+	rm -f *.o ./*~ ./#* a.out core *.a
 
 veryclean: clean
 	rm -f $(PROG)

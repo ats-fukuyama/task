@@ -9,7 +9,7 @@ C             DEVELOPED BY Y. FUJI AND A. FUKUYAMA
 C
 C                     DEPARTMENT OF NUCLEAR ENGINEERING
 C                      GRADUATE SCHOOL OF ENGINEERING
-C                              KYOT UNIVERSITY
+C                              KYOTO UNIVERSITY
 C                              KYOTO 606-8501
 C
 C        ***********************************************************

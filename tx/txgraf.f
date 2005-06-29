@@ -504,7 +504,7 @@ C
       ENDIF
 C
       CALL PAGES
-      CALL SETCHH(0.3, 0.0)
+      CALL SETCHS(0.3, 0.0)
       CALL SETLIN(0, 1, 7)
 C
       CALL MOVE(2.0,17.7)
@@ -790,7 +790,7 @@ C
       ENDIF
 C
       CALL PAGES
-      CALL SETCHH(0.3, 0.0)
+      CALL SETCHS(0.3, 0.0)
       CALL SETLIN(0, 1, 7)
 C
       CALL MOVE(2.0,17.7)
@@ -1061,7 +1061,7 @@ C
       ENDIF
 C
       CALL PAGES
-      CALL SETCHH(0.3, 0.0)
+      CALL SETCHS(0.3, 0.0)
       CALL SETLIN(0, 1, 7)
 C
       CALL MOVE(2.0,17.7)
@@ -1394,7 +1394,7 @@ C
 C
       CALL INQFNT(IFNT)
       CALL SETFNT(32)
-      CALL SETCHH(0.3, 0.0)
+      CALL SETCHS(0.3, 0.0)
       CALL SETLIN(0, 1, 7)
 C
       GXM = 13.0 + 1.0
