@@ -663,14 +663,6 @@ C
 C
 C     *** Bootstrap Current and Neoclassical Resistivity ***
 C
-      CALL OLDTRAJBS
-      DO NR=1,NRMAX
-         GJB(NR,6)=GUCLIP(AJBS(NR)*1.D-6)
-      ENDDO
-      CALL TRAJBSO
-      DO NR=1,NRMAX
-         GJB(NR,5)=GUCLIP(AJBS(NR)*1.D-6)
-      ENDDO
       CALL TRAJBS
       DO NR=1,NRMAX
          GJB(NR,1)=GUCLIP(AJBS(NR)*1.D-6)
@@ -887,6 +879,7 @@ C
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
      &            '@IP(TR),IP(XP) [MA]  vs t@',2+INQ)
 C
+      CALL TRGRTM
       CALL PAGEE
 C
       RETURN
@@ -954,6 +947,7 @@ C
          CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
+         CALL TRGRTM
          CALL PAGEE
       ELSEIF(MDLUF.EQ.2) THEN
          CALL PAGES
@@ -999,6 +993,7 @@ C
          CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &               '@BP(TR),BP(XP) [T] vs r@',2+INQ)
 C
+         CALL TRGRTM
          CALL PAGEE
       ELSEIF(MDLUF.EQ.3) THEN
          CALL PAGES
@@ -1046,6 +1041,7 @@ C
             CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &                  '@QP(TR),QP(XP)  vs r@',2+INQ)
          ENDIF
+         CALL TRGRTM
          CALL PAGEE
       ELSE
          RETURN
@@ -1108,6 +1104,7 @@ C
          CALL TRGR1DE( 3.0,12.0, 2.0, 8.0,GRM,GYR,GRE(1,2),GER,NRMP,
      &                NRMAX,NREMAX(2),2,
      &                '@NE(XP),NE(TR) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+         CALL TRGRTM
          CALL PAGEE
       ENDIF
 C
@@ -1160,7 +1157,16 @@ C
       ENDIF
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &            '@ZEFF(TR),ZEFF(XP) [keV]  vs r@',2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1) = GUCLIP(RN(NR,2))
+         CALL LAGLANGE(TSL,RNL,TMU,RNU(1,NR,4),NTXMAX,NTUM,IERR)
+         GYR(NR,2) = GUCLIP(RNL)
+      ENDDO
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &     '@NI(TR), NI(XP) [10$+20$/=m$+3$=]  vs r@',2+INQ)
       CALL PAGEE
-C     
+      CALL TRGRTM
+C
       RETURN
       END

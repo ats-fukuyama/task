@@ -236,7 +236,7 @@ C           *****  MDLKAI.EQ. 64  : Bohm/Gyro-Bohm model *****
 C
 C        MDLETA: RESISTIVITY MODEL
 C                   0: CLASSICAL 
-C                   1: NEOCLASSICAL
+C                   else: NEOCLASSICAL
 C        MDLAD : PARTICLE DIFFUSION MODEL
 C                   0: NO PARTICL TRANSPORT 
 C                   1: CONSTANT D
@@ -889,14 +889,12 @@ C
       INCLUDE 'trcomm.inc'
       COMMON /TMSLC2/ NTAMAX
 C
-C     ZEFF=1
-C
 C      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
 C      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
 C      DATA RK22,RA22,RB22,RC22/2.55D0,0.45D0,0.43D0,0.43D0/
 C      DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
 C      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
-      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
+C      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 C      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 C
       FACTJ   = 1.D0
@@ -1126,27 +1124,27 @@ C
             SEX(NR,4)=0.D0
             RNF(NR,1) = RNFU(1,NR)
          ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
-c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-c$$$            RN(NR,1) = RNU(1,NR,1)
-c$$$            RN(NR,2) = RNU(1,NR,2)
-c$$$            RN(NR,3) = RNU(1,NR,3)
-c$$$            RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
-c$$$            RT(NR,1) = RTU(1,NR,1)
-c$$$            RT(NR,2) = RTU(1,NR,2)
-c$$$            RT(NR,3) = RTU(1,NR,3)
-c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-c$$$            RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
-c$$$     &                 +RTU(1,NRMAX,2)
-C
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
-            DO NS=1,NSM
-               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
-            ENDDO
-C
+            RN(NR,1) = RNU(1,NR,1)
+            RN(NR,2) = RNU(1,NR,2)
+            RN(NR,3) = RNU(1,NR,3)
+            RN(NR,4) = (PN(4)-PNS(4))*PROF+PNS(4)
+            RT(NR,1) = RTU(1,NR,1)
+            RT(NR,2) = RTU(1,NR,2)
+            RT(NR,3) = RTU(1,NR,3)
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
-            DO NS=1,NSM
-               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
-            ENDDO
+            RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
+     &                 +RTU(1,NRMAX,2)
+C
+c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
+c$$$            DO NS=1,NSM
+c$$$               RN(NR,NS) = (PN(NS)-PNS(NS))*PROF+PNS(NS)
+c$$$            ENDDO
+c$$$C
+c$$$            PROF   = (1.D0-(ALP(1)*RM(NR))**PROFT1)**PROFT2
+c$$$            DO NS=1,NSM
+c$$$               RT(NR,NS) = (PT(NS)-PTS(NS))*PROF+PTS(NS)
+c$$$            ENDDO
 C
             PEX(NR,1) = PNBU(1,NR,1)
             PEX(NR,2) = PNBU(1,NR,2)
@@ -1479,127 +1477,13 @@ C
      &              /(4.D0*PI**2*RDP(NR))
          ENDDO
       ENDIF
-C      Q0=(4.D0*QP(1)-QP(2))/3.D0
+      Q0=(4.D0*QP(1)-QP(2))/3.D0
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C
       IF(PROFJ1.LE.0.D0.OR.MDNCLS.EQ.1) THEN
          CALL TRZEFF
-         DO NR=1,NRMAX
-            IF(NR.EQ.1) THEN
-               EPS=0.5D0*              EPSRHO(NR)
-            ELSE
-               EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-            ENDIF
-            EPSS=SQRT(EPS)**3
-C
-C        ****** CLASSICAL RESISTIVITY (Spitzer) ******
-C
-            ANE=RN(NR,1)
-            TEL =ABS(RT(NR,1))
-            ZEFFL=ZEFF(NR)
-C
-            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &           /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-            TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-C
-            ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
-     &              *(0.29D0+0.46D0/(1.08D0+ZEFFL))
-C
-C        ****** NEOCLASSICAL RESISTIVITY (Hinton, Hazeltine) ******
-C
-            IF(MDLETA.EQ.1) THEN
-               IF(NR.EQ.1) THEN
-                  Q0=(4.D0*QP(1)-QP(2))/3.D0
-                  QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ELSE
-                  QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ENDIF
-               VTE=SQRT(TEL*RKEV/AME)
-               RNUE=QL*RR/(TAUE*VTE*EPSS)
-               RK33E=RK33/(1.D0+RA33*SQRT(ABS(RNUE))+RB33*RNUE)
-     &                   /(1.D0+RC33*RNUE*EPSS)
-C
-               FT     = 1.D0-SQRT(EPS)*RK33E
-               ETA(NR)= ETA(NR)/FT
-C     
-C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Hawryluk) ******
-C
-            ELSEIF(MDLETA.EQ.2) THEN
-               IF(NR.EQ.1) THEN
-                  Q0=(4.D0*QP(1)-QP(2))/3.D0
-                  QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ELSE
-                  QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ENDIF
-               ZEFFL=ZEFF(NR)
-C               VTE=1.33D+7*DSQRT(TEL)
-               VTE=SQRT(ABS(TEL)*RKEV/AME)
-               FT=FTPF(MDLTPF,EPS)
-               rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(TEL)
-               TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
-     &             *(TEL*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
-               RNUSE=RR*QL/(VTE*TAUE*EPSS)
-               PHI=FT/(1.D0+(0.58D0+0.2D0*ZEFFL)*RNUSE)                
-               ETAS=1.65D-9*rLnLam/(ABS(TEL)**1.5D0)
-               CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
-C
-               ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
-     &                           /((1.D0-PHI)*(1.D0-CH*PHI)
-     &                           *(1.D0+0.47D0*(ZEFFL-1.D0)))
-C
-C        ****** NEOCLASSICAL RESISTIVITY (Sauter)  ******
-C
-            ELSEIF(MDLETA.EQ.3) THEN
-               IF(NR.EQ.1) THEN
-                  Q0=(4.D0*QP(1)-QP(2))/3.D0
-                  QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ELSE
-                  QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ENDIF
-               ZEFFL=ZEFF(NR)
-               rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/(TEL*1.D3))
-               RNZ=0.58D0+0.74D0/(0.76D0+ZEFFL)
-               SGMSPTZ=1.9012D4*(TEL*1.D3)**1.5D0/(ZEFFL*RNZ*rLnLame)
-               FT=FTPF(MDLTPF,EPS)
-               RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
-     &             /((TEL*1.D3)**2*EPSS)
-               F33TEFF=FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE)
-     &                +0.45D0*(1.D0-FT)*RNUE/ZEFFL**1.5D0)
-               ETA(NR)=1.D0/(SGMSPTZ*F33(F33TEFF,ZEFFL))
-C
-C        ****** NEOCLASSICAL RESISTIVITY (Hirshman, Sigmar)  ******
-C
-            ELSEIF(MDLETA.EQ.4) THEN
-               IF(NR.EQ.1) THEN
-                  Q0=(4.D0*QP(1)-QP(2))/3.D0
-                  QL= 0.25D0*(3.D0*Q0+QP(NR))
-               ELSE
-                  QL= 0.5D0*(QP(NR-1)+QP(NR))
-               ENDIF
-               ZEFFL=ZEFF(NR)
-               ANE  =RN(NR,1)
-               TEL  =ABS(RT(NR,1))
-C
-               COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &              /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-               TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-C
-C     p1157 (7.36)
-               ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
-     &              *( (1.D0+1.198D0*ZEFFL+0.222D0*ZEFFL**2)
-     &                /(1.D0+2.966D0*ZEFFL+0.753D0*ZEFFL**2))
-C
-               FT=FTPF(MDLTPF,EPS)
-               XI=0.58D0+0.2D0*ZEFFL
-               CR=0.56D0/ZEFFL*(3.D0-ZEFFL)/(3.D0+ZEFFL)
-C     RNUE expressions is given by the paper by Hirshman, Hawryluk.
-               RNUE=SQRT(2.D0)/EPSS*RR*QL/SQRT(2.D0*TEL*RKEV/AME)/TAUE
-C     p1158 (7.41)
-               ETA(NR)=ETA(NR)/(1.D0-FT/(1.D0+ZI*RNUE))
-     &                        /(1.D0-CR*FT/(1.D0+XI*RNUE))
-            ENDIF
-         ENDDO
+         CALL TRCFET
          IF(PROFJ1.GT.0.D0.AND.MDNCLS.EQ.1) GOTO 2000
 C
          DO NR=1,NRMAX
@@ -1642,7 +1526,6 @@ C
             QP(NR)   =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
      &               /(4.D0*PI**2*RDP(NR))
          ENDDO
-         Q0=(4.D0*QP(1)-QP(2))/3.D0
       ENDIF
  2000 CONTINUE
       SUM=0.D0
@@ -2251,8 +2134,8 @@ C
                ARRHO(NR)=ARRHOU(1,NR)
                AR1RHO(NR)=AR1RHOU(1,NR)
                AR2RHO(NR)=AR2RHOU(1,NR)
-               RJCB(NR)=1.D0/(RKAPS*RA)
-C               RJCB(NR)=AR1RHOU(1,NR)
+               RJCB(NR)=RJCBU(1,NR)
+C               RJCB(NR)=1.D0/(RKAPS*RA)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
                EKAP(NR)=RKAP

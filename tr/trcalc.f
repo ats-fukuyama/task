@@ -134,9 +134,9 @@ C
          CALL TRAJBS_NCLASS
       ELSE
          IF(MDLJBS.EQ.1) THEN
-            CALL OLDTRAJBS
+            CALL TRAJBS
          ELSEIF(MDLJBS.EQ.2) THEN
-            CALL TRAJBSO
+            CALL TRAJBS
          ELSEIF(MDLJBS.EQ.3) THEN
             CALL TRAJBS
          ELSEIF(MDLJBS.EQ.4) THEN
@@ -929,7 +929,7 @@ C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
 C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
 C         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)
-C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
+C     &             *(ABS(TE)*RKEV)**1.5D0/(ANI*1.D20
 C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
 C         RNUE=QL*RR/(TAUE*VTE*EPSS)
@@ -1048,7 +1048,7 @@ C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
 C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
 C         TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)
-C     &             *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20
+C     &             *(ABS(TE)*RKEV)**1.5D0/(ANI*1.D20
 C     &             *ZEFFL**2*AEE**4*rLnLam)
 C
 C         RNUE=QL*RR/(TAUE*VTE*EPSS)
@@ -1132,9 +1132,9 @@ C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
          ANE=0.5D0*(RN(NR+1,1)+RN(NR,1))
-C         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
-C         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
-C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
+         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
+         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
+         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
          TEL=ABS(0.5D0*(RT(NR+1,1)+RT(NR,1)))
          TDL=ABS(0.5D0*(RT(NR+1,2)+RT(NR,2)))
          TTL=ABS(0.5D0*(RT(NR+1,3)+RT(NR,3)))
@@ -1145,12 +1145,10 @@ C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
          PAL=0.5D0*(RN(NR+1,4)*RT(NR+1,4)+RN(NR,4)*RT(NR,4))
          ZEFFL=0.5D0*(ZEFF(NR+1)+ZEFF(NR))
 C
-         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-         TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
-         TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/PZ(3)**2
-         TAUA = COEF*SQRT(AMA)*(TAL*RKEV)**1.5D0/PZ(4)**2
+         TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
 C
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)
@@ -1236,9 +1234,9 @@ C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
          ANE=PNSS(1)
-C         ANDX=0.5D0*(RN(NR+1,2)+RN(NR,2))
-C         ANT =0.5D0*(RN(NR+1,3)+RN(NR,3))
-C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
+         ANDX=PNSS(2)
+C         ANT =PNSS(3)
+C         ANA =PNSS(4)
          TEL=ABS(PTS(1))
          TDL=ABS(PTS(2))
          TTL=ABS(PTS(3))
@@ -1249,12 +1247,10 @@ C         ANA =0.5D0*(RN(NR+1,4)+RN(NR,4))
          PAL=PNSS(4)*PTS(4)
          ZEFFL=2.D0*ZEFF(NR-1)-ZEFF(NR-2)
 C
-         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-         TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
-         TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/PZ(3)**2
-         TAUA = COEF*SQRT(AMA)*(TAL*RKEV)**1.5D0/PZ(4)**2
+         TAUE = FTAUE(ANE,ANDX,TEL,ZEFFL)
+         TAUD = FTAUI(ANE,ANDX,TDL,PZ(2),PA(2))
+         TAUT = FTAUI(ANE,ANT ,TTL,PZ(3),PA(3))
+         TAUA = FTAUI(ANE,ANA ,TAL,PZ(4),PA(4))
 C
          VTE=SQRT(TEL*RKEV/AME)
          VTD=SQRT(TDL*RKEV/AMD)
@@ -1339,272 +1335,6 @@ C
       DO NR=2,NRMAX
          AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
       ENDDO
-C
-      RETURN
-      END
-C
-C     ***********************************************************
-C
-C           BOOTSTRAP CURRENT (KEPT ON 96/08/13)
-C
-C     ***********************************************************
-C
-      SUBROUTINE TRAJBSO
-C
-      INCLUDE 'trcomm.inc'
-C
-C     ZEFF=1
-C
-C      DATA RK11,RA11,RB11,RC11/1.04D0,2.01D0,1.53D0,0.89D0/
-C      DATA RK12,RA12,RB12,RC12/1.20D0,0.76D0,0.67D0,0.56D0/
-C      DATA RK22,RA22,RB22,RC22/2.55D0,0.45D0,0.43D0,0.43D0/
-      DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
-      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
-C      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
-C      DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
-C
-      IF(PBSCD.LE.0.D0) RETURN
-C
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
-C
-      DO 100 NR=1,NRMAX
-C
-         EPS=RA*RM(NR)/RR
-         EPSS=SQRT(EPS)**3
-         ANE=RN(NR,1)
-         TEL=ABS(RT(NR,1))
-         TDL=ABS(RT(NR,2))
-         TTL=ABS(RT(NR,3))
-         TAL=ABS(RT(NR,4))
-         PEL=RN(NR,1)*RT(NR,1)
-         PDL=RN(NR,2)*RT(NR,2)
-         PTL=RN(NR,3)*RT(NR,3)
-         PAL=RN(NR,4)*RT(NR,4)
-         ZEFFL=ZEFF(NR)
-C
-         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-         TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/PZ(2)**2
-         TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/PZ(3)**2
-         TAUA = COEF*SQRT(AMA)*(TAL*RKEV)**1.5D0/PZ(4)**2
-C
-         VTE=SQRT(TEL*RKEV/AME)
-         VTD=SQRT(TDL*RKEV/AMD)
-         VTT=SQRT(TTL*RKEV/AMT)
-         VTA=SQRT(TAL*RKEV/AMA)
-C
-         RNUE=ABS(QP(NR))*RR/(TAUE*VTE*EPSS)
-         RNUD=ABS(QP(NR))*RR/(TAUD*VTD*EPSS)
-         RNUT=ABS(QP(NR))*RR/(TAUT*VTT*EPSS)
-         RNUA=ABS(QP(NR))*RR/(TAUA*VTA*EPSS)
-C
-C         RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
-C     &              +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
-C         RK12E=RK12*(1.D0/(1.D0+RA12*SQRT(RNUE)+RB12*RNUE)
-C     &              +(EPSS*RC12)**2/RB12*RNUE/(1.D0+RC12*RNUE*EPSS))
-C         RK22E=RK22*(1.D0/(1.D0+RA22*SQRT(RNUE)+RB22*RNUE)
-C     &              +(EPSS*RC22)**2/RB22*RNUE/(1.D0+RC22*RNUE*EPSS))
-         RK13E=RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)
-     &             /(1.D0+RC13*RNUE*EPSS)
-         RK23E=RK23/(1.D0+RA23*SQRT(RNUE)+RB23*RNUE)
-     &             /(1.D0+RC23*RNUE*EPSS)
-C         RK33E=RK33/(1.D0+RA33*SQRT(RNUE)+RB33*RNUE)
-C     &             /(1.D0+RC33*RNUE*EPSS)
-C
-C         RK2D =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUD)+RB2 *RNUD)
-C     &              +(EPSS*RC2 )**2/RB2 *RNUD/(1.D0+RC2 *RNUD*EPSS))
-C         RK2T =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUT)+RB2 *RNUT)
-C     &              +(EPSS*RC2 )**2/RB2 *RNUT/(1.D0+RC2 *RNUT*EPSS))
-C         RK2A =RK2 *(1.D0/(1.D0+RA2 *SQRT(RNUA)+RB2 *RNUA)
-C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
-         RK3D=((1.17D0-0.35D0*SQRT(RNUD))
-     &        /(1.D0+0.7D0*SQRT(RNUD))
-     &         -2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
-         RK3T=((1.17D0-0.35D0*SQRT(RNUT))
-     &        /(1.D0+0.7D0*SQRT(RNUT))
-     &         -2.1D0*(RNUT*EPSS)**2)/(1.D0+(RNUT*EPSS)**2)
-         RK3A=((1.17D0-0.35D0*SQRT(RNUA))
-     &        /(1.D0+0.7D0*SQRT(RNUA))
-     &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
-C
-         IF(NR.EQ.1) THEN
-            DRL=RJCB(NR)/(2.D0*DR)
-            DTE=(RT(2,1)-RT(1,1))*DRL
-            DTD=(RT(2,2)-RT(1,2))*DRL
-            DTT=(RT(2,3)-RT(1,3))*DRL
-            DTA=(RT(2,4)-RT(1,4))*DRL
-            DPE=(RN(2,1)*RT(2,1)-RN(1,1)*RT(1,1))*DRL
-            DPD=(RN(2,2)*RT(2,2)-RN(1,2)*RT(1,2))*DRL
-            DPT=(RN(2,3)*RT(2,3)-RN(1,3)*RT(1,3))*DRL
-            DPA=(RN(2,4)*RT(2,4)-RN(1,4)*RT(1,4))*DRL
-            BPL=0.5D0*BP(NR)
-         ELSEIF(NR.EQ.NRMAX) THEN
-            DRL=RJCB(NR)/DR
-            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
-            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
-            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))*DRL
-            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))*DRL
-            DPE=(PNSS(1)*PTS(1) 
-     &           -0.5D0*(RN(NR,1)*RT(NR,1)+RN(NR-1,1)*RT(NR-1,1)))*DRL
-            DPD=(PNSS(2)*PTS(2) 
-     &           -0.5D0*(RN(NR,2)*RT(NR,2)+RN(NR-1,2)*RT(NR-1,2)))*DRL
-            DPT=(PNSS(3)*PTS(3) 
-     &           -0.5D0*(RN(NR,3)*RT(NR,3)+RN(NR-1,3)*RT(NR-1,3)))*DRL
-            DPA=(PNSS(4)*PTS(4) 
-     &           -0.5D0*(RN(NR,4)*RT(NR,4)+RN(NR-1,4)*RT(NR-1,4)))*DRL
-            BPL=0.5D0*(BP(NR-1)+BP(NR))
-         ELSE
-            DRL=RJCB(NR)/(2.D0*DR)
-            DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
-            DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
-            DTT=(RT(NR+1,3)-RT(NR-1,3))*DRL
-            DTA=(RT(NR+1,4)-RT(NR-1,4))*DRL
-            DPE=(RN(NR+1,1)*RT(NR+1,1)-RN(NR-1,1)*RT(NR-1,1))*DRL
-            DPD=(RN(NR+1,2)*RT(NR+1,2)-RN(NR-1,2)*RT(NR-1,2))*DRL
-            DPT=(RN(NR+1,3)*RT(NR+1,3)-RN(NR-1,3)*RT(NR-1,3))*DRL
-            DPA=(RN(NR+1,4)*RT(NR+1,4)-RN(NR-1,4)*RT(NR-1,4))*DRL
-            BPL=0.5D0*(BP(NR-1)+BP(NR))
-         ENDIF
-C
-         FACT=1.D0/(1.D0+(RNUE*EPS)**2)
-         A=                   DPE/PEL-    2.5D0*DTE/TEL
-     &    +(PDL/PEL)*(DPD/PDL-RK3D*FACT*DTD/TDL)
-     &    +(PTL/PEL)*(DPT/PTL-RK3T*FACT*DTT/TTL)
-     &    +(PAL/PEL)*(DPA/PAL-RK3A*FACT*DTA/TAL)
-         AJBS(NR)=-PBSCD*SQRT(EPS)*RN(NR,1)*1.D20*RT(NR,1)*RKEV/BPL
-     &            *(RK13E*A+RK23E*DTE/TEL)
-C         IF(NR.EQ.NRMAX) THEN
-C            WRITE(6,'(1P6E12.4)') DN,DTE,ANE,PNSS(1),TE,PTS(1)
-C            WRITE(6,'(1P6E12.4)') RK13E*(RN(NR,1)*RT(NR,1)
-C     &                   +RN(NR,2)*RT(NR,2)
-C     &                   +RN(NR,3)*RT(NR,3)
-C     &                   +RN(NR,4)*RT(NR,4)
-C     &                   +RW(NR,1)
-C     &                   +RW(NR,2)         )*DN/ANE,
-C     &            +(RK23E-1.5D0*RK13E)*RN(NR,1)*DTE,
-C     &            +RK13D*(RK23D-1.5D0)*RN(NR,2)*DTD,
-C     &            BPL,AJBS(NR-1),AJBS(NR)
-C         ENDIF
-  100 CONTINUE
-C
-      RETURN
-      END
-C
-C     ***********************************************************
-C
-C           BOOTSTRAP CURRENT (OLD VERSION)
-C
-C     ***********************************************************
-C
-      SUBROUTINE OLDTRAJBS
-C
-      INCLUDE 'trcomm.inc'
-C
-      IF(PBSCD.LE.0.D0) RETURN
-C
-      AMD=PA(2)*AMM
-      AMT=PA(3)*AMM
-      AMA=PA(4)*AMM
-C
-      DO 100 NR=1,NRMAX
-C
-         ANE=RN(NR,1)
-         TEL=ABS(RT(NR,1))
-         TDL=ABS(RT(NR,2))
-         TTL=ABS(RT(NR,3))
-         TAL=ABS(RT(NR,4))
-         ZEFFL=ZEFF(NR)
-C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2/(1.D20*AEE**4*15.D0)
-         TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/ANE
-         TAUD = COEF*SQRT(AMD)*(TDL*RKEV)**1.5D0/ANE
-         TAUT = COEF*SQRT(AMT)*(TTL*RKEV)**1.5D0/ANE
-         TAUA = COEF*SQRT(AMA)*(TAL*RKEV)**1.5D0/ANE
-         TAUBE = TAUE*2.0D0/(1.D0+ZEFFL)
-         TAUBD = TAUD/ZEFFL
-         TAUBT = TAUT/ZEFFL
-         TAUBA = TAUA/ZEFFL
-C
-C         COEF=6.D0*EPS0**2*(PI*RKEV)**1.5D0
-C     &       /(ANE*1.D20*ZEFF(NR)*AEE**4*15.D0)
-C         TAUBE=     COEF*TEL**1.5D0*SQRT(AME)
-C         TAUBD=2.D0*COEF*TDL**1.5D0*SQRT(AMD)/PZ(2)**2
-C         TAUBT=2.D0*COEF*TTL**1.5D0*SQRT(AMT)/PZ(3)**2
-C         TAUBA=2.D0*COEF*TAl**1.5D0*SQRT(AMA)/PZ(4)**2
-C
-         VTE=SQRT(TEL*RKEV/AME)
-         VTD=SQRT(TDL*RKEV/AMD)
-         VTT=SQRT(TTL*RKEV/AMT)
-         VTA=SQRT(TAL*RKEV/AMA)
-C
-         EPS=EPSRHO(NR)
-         RNUES=QP(NR)*RR/(TAUBE*VTE*EPS**1.5D0)
-         RNUDS=QP(NR)*RR/(TAUBD*VTD*EPS**1.5D0)
-         RNUTS=QP(NR)*RR/(TAUBT*VTT*EPS**1.5D0)
-         RNUAS=QP(NR)*RR/(TAUBA*VTA*EPS**1.5D0)
-C
-         RK13E=2.44D0/(1.D0+0.85D0*RNUES)
-         RK13D=2.44D0/(1.D0+0.85D0*RNUDS)
-         RK13T=2.44D0/(1.D0+0.85D0*RNUTS)
-         RK13A=2.44D0/(1.D0+0.85D0*RNUAS)
-         RK23E=4.35D0/(1.D0+0.40D0*RNUES)
-         RK23D=(1.33D0+3.D0*RNUDS)/(1.D0+RNUDS)
-         RK23T=(1.33D0+3.D0*RNUTS)/(1.D0+RNUTS)
-         RK23A=(1.33D0+3.D0*RNUAS)/(1.D0+RNUAS)
-C
-         IF(NR.EQ.1) THEN
-            DRL=RJCB(NR)/(2.D0*DR)
-            DN =(RN(2,1)-RN(1,1))*DRL
-            DTE=(RT(2,1)-RT(1,1))*DRL
-            DTD=(RT(2,2)-RT(1,2))*DRL
-            DTT=(RT(2,3)-RT(1,3))*DRL
-            DTA=(RT(2,4)-RT(1,4))*DRL
-            BPL=0.5D0*BP(NR)
-         ELSEIF(NR.EQ.NRMAX) THEN
-            DRL=RJCB(NR)/DR
-            DN =(PNSS(1)-0.5D0*(RN(NR,1)+RN(NR-1,1)))*DRL
-            DTE=(PTS(1) -0.5D0*(RT(NR,1)+RT(NR-1,1)))*DRL
-            DTD=(PTS(2) -0.5D0*(RT(NR,2)+RT(NR-1,2)))*DRL
-            DTT=(PTS(3) -0.5D0*(RT(NR,3)+RT(NR-1,3)))*DRL
-            DTA=(PTS(4) -0.5D0*(RT(NR,4)+RT(NR-1,4)))*DRL
-            BPL=0.5D0*(BP(NR-1)+BP(NR))
-         ELSE
-            DRL=RJCB(NR)/(2.D0*DR)
-            DN =(RN(NR+1,1)-RN(NR-1,1))*DRL
-            DTE=(RT(NR+1,1)-RT(NR-1,1))*DRL
-            DTD=(RT(NR+1,2)-RT(NR-1,2))*DRL
-            DTT=(RT(NR+1,3)-RT(NR-1,3))*DRL
-            DTA=(RT(NR+1,4)-RT(NR-1,4))*DRL
-            BPL=0.5D0*(BP(NR-1)+BP(NR))
-         ENDIF
-         AJBS(NR)=-SQRT(RM(NR))
-     &           *(RK13E*(RN(NR,1)*RT(NR,1)
-     &                   +RN(NR,2)*RT(NR,2)
-     &                   +RN(NR,3)*RT(NR,3)
-     &                   +RN(NR,4)*RT(NR,4)
-     &                   +RW(NR,1)
-     &                   +RW(NR,2)         )*DN/ANE
-     &            +(RK23E-1.5D0*RK13E)*RN(NR,1)*DTE
-     &            +RK13D*(RK23D-1.5D0)*RN(NR,2)*DTD
-     &            +RK13T*(RK23T-1.5D0)*RN(NR,3)*DTT
-     &            +RK13A*(RK23A-1.5D0)*RN(NR,4)*DTA)
-     &           *PBSCD*1.D20*RKEV/(SQRT(RR)*BPL)
-C         IF(NR.EQ.NRMAX) THEN
-C            WRITE(6,'(1P6E12.4)') DN,DTE,ANE,PNSS(1),TE,PTS(1)
-C            WRITE(6,'(1P6E12.4)') RK13E*(RN(NR,1)*RT(NR,1)
-C     &                   +RN(NR,2)*RT(NR,2)
-C     &                   +RN(NR,3)*RT(NR,3)
-C     &                   +RN(NR,4)*RT(NR,4)
-C     &                   +RW(NR,1)
-C     &                   +RW(NR,2)         )*DN/ANE,
-C     &            +(RK23E-1.5D0*RK13E)*RN(NR,1)*DTE,
-C     &            +RK13D*(RK23D-1.5D0)*RN(NR,2)*DTD,
-C     &            BPL,AJBS(NR-1),AJBS(NR)
-C         ENDIF
-  100 CONTINUE
 C
       RETURN
       END
@@ -1799,28 +1529,80 @@ C
 C
       RETURN
       END
-C     ***********************************************************
-C
-C           COULOMB LOGARITHM for electron-ion collisions
 C
 C     ***********************************************************
 C
-      FUNCTION COULOG(NS1,NS2,RN,RT)
+C           COULOMB LOGARITHM
 C
-C     RNE : electron density (10^20 /m^3)
-C     RTE : electron temperature (keV)
+C     ***********************************************************
+C
+      FUNCTION COULOG(NS1,NS2,ANEL,TL)
+C
+C     ANEL : electron density [10^20 /m^3]
+C     TL   : electron or ion temperature [keV]
 C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
-         COULOG=14.9D0-0.5D0*LOG(RN)+LOG(RT)
+         COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)
       ELSE
          IF(NS1.EQ.1.OR.NS2.EQ.1) THEN
-            COULOG=15.2D0-0.5D0*LOG(RN)+LOG(RT)
+            COULOG=15.2D0-0.5D0*LOG(ANEL)+LOG(TL)
          ELSE
-            COULOG=17.3D0-0.5D0*LOG(RN)+1.5D0*LOG(RT)
+            COULOG=17.3D0-0.5D0*LOG(ANEL)+1.5D0*LOG(TL)
          ENDIF
       ENDIF
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           COLLISION TIME 
+C
+C     ***********************************************************
+C
+C     between electrons and ions
+C
+      FUNCTION FTAUE(ANEL,ANIL,TEL,ZL)
+C
+C     ANEL : electron density [10^20 /m^3]
+C     ANIL : ion density [10^20 /m^3]
+C     TEL  : electron temperature [kev]
+C     ZL   : ion charge number
+C
+      INCLUDE 'trcomm.inc'
+C
+      COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)/(AEE**4*1.D20)
+      IF(ZL-PZ(2).LE.1.D-7) THEN
+         FTAUE = COEF*(TEL*RKEV)**1.5D0
+     &          /(ANIL*ZL**2*COULOG(1,2,ANEL,TEL))
+      ELSE
+C     If the plasma contains impurities, we need to consider the
+C     effective charge number instead of ion charge number.
+C     From the definition of Zeff=sum(n_iZ_i^2)/n_e, 
+C     n_iZ_i^2 is replaced by n_eZ_eff at the denominator of tau_e.
+         FTAUE = COEF*(TEL*RKEV)**1.5D0
+     &          /(ANEL*ZL*COULOG(1,2,ANEL,TEL))
+      ENDIF
+C
+      RETURN
+      END
+C
+C     between ions and ions
+C
+      FUNCTION FTAUI(ANEL,ANIL,TIL,ZL,PAL)
+C
+C     ANEL : electron density [10^20 /m^3]
+C     ANIL : ion density [10^20 /m^3]
+C     TIL  : ion temperature [kev]
+C     ZL   : ion charge number
+C     PAL  : ion atomic number
+C
+      INCLUDE 'trcomm.inc'
+C
+      COEF = 12.D0*PI*SQRT(PI)*EPS0**2*SQRT(PAL*AMM)/(AEE**4*1.D20)
+      FTAUI = COEF*(TIL*RKEV)**1.5D0/(ANIL*ZL**4*COULOG(2,2,ANEL,TIL))
 C
       RETURN
       END

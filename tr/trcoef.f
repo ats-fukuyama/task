@@ -286,9 +286,7 @@ C
             ENDIF
          ENDIF
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
-     &         /(1.D20*AEE**4*COULOG(1,2,ANE,TE))
-         TAUE = COEF*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0/ANDX
+         TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
          ANYUE = 0.5D0*(1.D0+ZEFFL)/TAUE
 C
          ROUS = DSQRT(ABS(TE)*RKEV/AMD)/OMEGAD
@@ -1166,16 +1164,14 @@ C
          RHOT2=2.D0*AMT*ABS(TT)*RKEV/(PZ(3)*AEE*BP(NR))**2
          RHOA2=2.D0*AMA*ABS(TA)*RKEV/(PZ(4)*AEE*BP(NR))**2
 C
-         COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &         /(ANDX*1.D20*AEE**4)
-         TAUE = COEF/SQRT(2.D0)
-     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
-         TAUD = COEF/PZ(2)**4
-     &         /COULOG(2,2,ANE,TD)*SQRT(AMD)*(ABS(TD)*RKEV)**1.5D0
-         TAUT = COEF/PZ(3)**4
-     &         /COULOG(2,2,ANE,TT)*SQRT(AMT)*(ABS(TT)*RKEV)**1.5D0
-         TAUA = COEF/PZ(4)**4
-     &         /COULOG(2,2,ANE,TA)*SQRT(AMA)*(ABS(TA)*RKEV)**1.5D0
+c$$$         TAUE = FTAUE(ANE,ANDX,TE,1.D0)
+c$$$         TAUD = FTAUI(ANE,ANDX,TD,1.D0,PA(2))
+c$$$         TAUT = FTAUI(ANE,ANT ,TT,1.D0,PA(3))
+c$$$         TAUA = FTAUI(ANE,ANA ,TA,2.D0,PA(4))
+         TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
+         TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
+         TAUT = FTAUI(ANE,ANT ,TT,PZ(3),PA(3))
+         TAUA = FTAUI(ANE,ANA ,TA,PZ(4),PA(4))
 C
          RNUE=ABS(QL)*RR/(TAUE*VTE*EPSS)
          RNUD=ABS(QL)*RR/(TAUD*VTD*EPSS)
@@ -1348,8 +1344,6 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-C     ZEFF=1
-C
       DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 C
       DO NR=1,NRMAX
@@ -1360,20 +1354,16 @@ C
          ENDIF
          EPSS=SQRT(EPS)**3
 C
-C        ****** CLASSICAL RESISTIVITY (Spitzer) ******
+C        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
 C
          ANE=RN(NR,1)
          ANI=RN(NR,2)
          TE =RT(NR,1)
          ZEFFL=ZEFF(NR)
+         TAUE = FTAUE(ANE,ANI,TE,ZEFFL)
 C
-         COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
-     &         /(ANI*1.D20*PZ(2)**2*AEE**4)
-         TAUE = COEF
-     &         /COULOG(1,2,ANE,TE)*SQRT(AME)*(ABS(TE)*RKEV)**1.5D0
-C
-         ETA(NR) = AME/(ANE*1.D20*AEE*AEE*TAUE)
-     &             *(0.29D0+0.46D0/(1.08D0+ZEFFL))
+         ETA(NR) = AME/(ANE*1.D20*AEE**2*TAUE)
+     &        *(0.29D0+0.46D0/(1.08D0+ZEFFL))
 C
 C        ****** NEOCLASSICAL RESISTIVITY (Hinton, Hazeltine) ******
 C
@@ -1401,15 +1391,13 @@ C
                QL=ABS(0.5D0*(QP(NR-1)+QP(NR)))
             ENDIF
             ZEFFL=ZEFF(NR)
-C            VTE=1.33D+7*DSQRT(ABS(TE))
             VTE=SQRT(ABS(TE)*RKEV/AME)
             FT=FTPF(MDLTPF,EPS)
-            rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
-            TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
-     &           *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
-            RNUSE=RR*QL/(VTE*TAUE*EPSS)
+            TAUEL=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)
+     &           *(TE*RKEV)**1.5D0/(ANE*1.D20*AEE**4*COULOG(1,2,ANE,TE))
+            RNUSE=RR*QL/(VTE*TAUEL*EPSS)
             PHI=FT/(1.D0+(0.58D0+0.20D0*ZEFFL)*RNUSE)
-            ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
+            ETAS=1.65D-9*COULOG(1,2,ANE,TE)/(ABS(TE)**1.5D0)
             CH=0.56D0*(3.D0-ZEFFL)/((3.D0+ZEFFL)*ZEFFL)
 C
             ETA(NR)=ETAS*ZEFFL*(1.D0+0.27D0*(ZEFFL-1.D0))
@@ -1446,17 +1434,10 @@ C
             ANE  =RN(NR,1)
             TEL  =ABS(RT(NR,1))
 C
-            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &           /(ANE*1.D20*ZEFFL*AEE**4*15.D0)
-            TAUE = COEF*SQRT(AME)*(TEL*RKEV)**1.5D0/SQRT(2.D0)
-C     p1157 (7.36) ! TAUEE?
-            ETA(NR) = AME*ZEFFL/(ANE*1.D20*AEE*AEE*TAUE)
+C     p1157 (7.36)
+            ETAS = AME/(ANE*1.D20*AEE*AEE*TAUE)
      &           *( (1.D0+1.198D0*ZEFFL+0.222D0*ZEFFL**2)
      &             /(1.D0+2.966D0*ZEFFL+0.753D0*ZEFFL**2))
-c$$$            TAUE=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*DSQRT(AME)
-c$$$     &           *(ABS(TE)*RKEV)**1.5D0/(ANE*1.D20*AEE**4*rLnLam)
-c$$$            rLnLam=15.2D0-0.5D0*DLOG(ANE)+DLOG(ABS(TE))
-c$$$            ETAS=1.65D-9*rLnLam/(ABS(TE)**1.5D0)
 C
             FT=FTPF(MDLTPF,EPS)
             XI=0.58D0+0.2D0*ZEFFL
@@ -1464,15 +1445,14 @@ C
 C     RNUE expressions is given by the paper by Hirshman, Hawryluk.
             RNUE=SQRT(2.D0)/EPSS*RR*QL/SQRT(2.D0*TEL*RKEV/AME)/TAUE
 C     p1158 (7.41)
-            ETA(NR)=ETA(NR)/(1.D0-FT/(1.D0+XI*RNUE))
+            ETA(NR)=ETAS/(1.D0-FT/(1.D0+XI*RNUE))
      &                     /(1.D0-CR*FT/(1.D0+XI*RNUE))
          ENDIF
       ENDDO
 C
-C
 C        ****** NEOCLASSICAL RESISTIVITY BY NCLASS  ******
 C
-      IF(MDNCLS.NE.0) THEN
+      IF(NT.NE.0.AND.MDNCLS.NE.0) THEN
          DO NR=1,NRMAX
             ETA(NR)=ETANC(NR)
          ENDDO
@@ -1606,9 +1586,7 @@ C
                ENDDO
             ENDIF
 C
-C            ZEFFL=ZEFF(NR)
-            COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
-     &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
+            ZEFFL = ZEFF(NR)
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1616,7 +1594,7 @@ C            ZEFFL=ZEFF(NR)
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0
+            TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
 C
@@ -1658,8 +1636,7 @@ C
                ENDDO
             ENDIF
 C
-            COEF = 6.D0*PI*SQRT(2.D0*PI)*EPS0**2
-     &            /(ANI*1.D20*PZ(2)**2*AEE**4*COULOG(1,2,ANE,TE))
+            ZEFFL = ZEFF(NR)
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1667,7 +1644,7 @@ C
             EPS   = EPSRHO(NR)
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
-            TAUE  = COEF*SQRT(AME)*(TE*RKEV)**1.5D0
+            TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RHOE2 = 2.D0*AME*TE*RKEV/(PZ(1)*AEE*BPL)**2
 C
@@ -1836,8 +1813,7 @@ C     *** Hinton & Hazeltine model ***
             ENDIF
             ANED= ANE/ANI
 C
-            COEF = 12.D0*PI*SQRT(PI)*EPS0**2
-     &            /(ANI*1.D20*PZ(2)**2*AEE**4)
+            ZEFFL = ZEFF(NR)
             BPL   = BP(NR)
             QPL   = QP(NR)
             IF(QPL.GT.100.D0) QPL=100.D0
@@ -1846,10 +1822,8 @@ C
             EPSS  = SQRT(EPS)**3
             VTE   = SQRT(TE*RKEV/AME)
             VTD   = SQRT(TD*RKEV/(PA(2)*AMM))
-            TAUE  = COEF/COULOG(1,2,ANE,TE)
-     &             *SQRT(AME)*(TE*RKEV)**1.5D0/SQRT(2.D0)
-            TAUD  = COEF/COULOG(2,2,ANE,TE)
-     &             *SQRT(PA(2)*AMM)*(TD*RKEV)**1.5D0/PZ(2)**2
+            TAUE  = FTAUE(ANE,ANI,TE,ZEFFL)
+            TAUD  = FTAUI(ANE,ANI,TD,PZ(2),PA(2))
             RNUE  = ABS(QPL)*RR/(TAUE*VTE*EPSS)
             RNUD  = ABS(QPL)*RR/(TAUD*VTD*EPSS)
 C

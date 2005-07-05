@@ -279,9 +279,6 @@ C
 C     /* Making New Physical Variables */
       CALL TRXTOA
       CALL TR_EDGE_SELECTOR(1)
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
-C      IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S
-      IF(MDLUF.EQ.2) CALL TR_UFREAD_S
 C
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) THEN
@@ -329,6 +326,15 @@ C         WRITE(6,*) "L=",L
          IF(IERR.NE.0) RETURN
       ENDIF
       IF(IDGLOB.EQ.0) CALL TRGLOB
+C
+C     *** READING DATA FROM UFILES FOR NEXT STEP ***
+C
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) CALL TR_UFREAD
+C      IF(MDLUF.EQ.2.AND.MODEP.EQ.3) CALL TR_UFREAD_S
+      IF(MDLUF.EQ.2) CALL TR_UFREAD_S
+C
+C     ***
+C
       IF(NT.LT.NTMAX) GOTO 1000
 C
  9000 IF(MDLUF.NE.1.AND.MDLUF.NE.3) RIPS=RIPE
@@ -458,7 +464,7 @@ C
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &           *AMZ(NSSN1))*DV53
-     &           *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &           *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
@@ -525,7 +531,7 @@ C
                IF(NSSN1.NE.NSSN) THEN
                   C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &                 *AMZ(NSSN1))*DV53
-     &                 *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &                 *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
                ENDIF
@@ -595,7 +601,7 @@ C
             IF(NSSN1.NE.NSSN) THEN
                C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
      &              *AMZ(NSSN1))*DV53
-     &              *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,1))
+     &              *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
             ENDIF
