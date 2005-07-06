@@ -106,7 +106,7 @@ C
       SIESUM=0.D0
       PCXSUM=0.D0
 C
-      DO 50 I=1,NRMAX
+      DO I=1,NRMAX
          EION  = 13.64D0
          PIE=PNeHI(I)*rNuION(I)*1.D20*EION*AEE
          SIE=PNeHI(I)*rNuION(I)*1.D20
@@ -118,7 +118,7 @@ C
      &             +1.5D0*PNiHI(I)*rNuiCX(I)
      &             *(PTiHI(I)-TNU))*RKEV*1.D20
          PCXSUM=PCXSUM+PCX*RHI(I)
-   50 CONTINUE
+      ENDDO
 C
 C      CALL TXSUMD(PCX,RHI,NRMAX,PCXSUM)
 C      CALL TXSUMD(PIE,RHI,NRMAX,PIESUM)
@@ -137,7 +137,7 @@ C
       AJNBT = ANBSUM*            2.D0*PI*DR*RKAP/1.D6
 C
 C      DRH=0.5D0*DR
-C      DO 70 NS=1,NSM
+C      DO NS=1,NSM
 C         VNP=AV(NRMAX,NS)
 C         DNP=AD(NRMAX,NS)
 C
@@ -156,7 +156,7 @@ C     &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
 C     &            +( VXP-DXP/DRH)*PNSS(NS)
 C     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
 C     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*RKEV*1.D14
-C   70 CONTINUE
+C      ENDDO
 C
 C      CALL TXSUMD(SIE,RHI,NRMAX,SIESUM)
 C      CALL TXSUMD(SNF,RHI,NRMAX,SNFSUM)
@@ -165,21 +165,21 @@ C      CALL TXSUMD(SNF,RHI,NRMAX,SNFSUM)
 C      SNFT = SNFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
       SNBT = SNBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
 C
-C      DO 80 NS=1,NSM
+C      DO NS=1,NSM
 C         CALL TXSUMD(SPE(1,NS),RHI,NRMAX,SPESUM)
 C         SPET(NS) = SPESUM*2.D0*PI*RR*2.D0*PI*DR
-C   80 CONTINUE
+C      ENDDO
 C
       WBULKT=0.D0
-      DO 100 NS=1,NSM
+      DO NS=1,NSM
          WBULKT=WBULKT+WST(NS)
-  100 CONTINUE
+      ENDDO
 C
       WTAILT=0.D0
-C      DO 110 NF=1,NFM
+C      DO NF=1,NFM
          NF=1
          WTAILT=WTAILT+WFT(NF)
-C  110 CONTINUE
+C      ENDDO
 C
       WPT =WBULKT+WTAILT
       PINT=PNBT+PRFT+POHT
@@ -209,11 +209,11 @@ C
       FACT=1.D0
       FACT=RKAP/FKAP**2
 C
-         DO 700 I=1,NRMAX
+         DO I=1,NRMAX
             BP(I)=BthI(I)
-  700    CONTINUE
+         ENDDO
 C
-      DO 220 I=1,NRMAX-1
+      DO I=1,NRMAX-1
          BBL  = SQRT(BthI(I)**2+BphI(I)**2)
          SUML = PNeHI(I)*PTeHI(I)*RKEV*1.D20
      &        + PNiHI(I)*PTiHI(I)*RKEV*1.D20
@@ -230,7 +230,7 @@ C
          BETAPL(I) = 2.D0*SUML*rMU0/(           BP(NRMAX)**2)*FACT
          BETAQ(I)  =-2.D0*SUP *rMU0/(PI*(R(I)*BP(I))**2)*FACT
          SUP = SUP + 0.5D0*SUPL*PI*RHI(I+1)*RHI(I+1)*DR
-  220 CONTINUE
+      ENDDO
 C
       I=NRMAX
          BBL  = SQRT(BthI(I)**2+BphI(I)**2)
@@ -242,10 +242,10 @@ C
      &          +PNES/PZ*PTia-PNiHI(I)*PTiHI(I))
      &          *RKEV*1.D20/DR*2.D0
 C
-C         DO 240 NF=1,NFM
+C         DO NF=1,NFM
 C            SUML = SUML +SNB(I)*RHI(I)*RKEV*1.D20
 C            SUPL = SUPL +(0.D0-SNB(I))*RKEV*1.D20/DR*2.D0
-C  240    CONTINUE
+C         ENDDO
 C
          SUM = SUM + SUML*2.D0*PI*RHI(I)*DR
          SUP = SUP + 0.5D0*SUPL*PI*RHI(I)*RHI(I)*DR
@@ -291,13 +291,13 @@ C
             RQ1=SQRT( (1.D0-Q(0) )/(Q(1)-Q(0)) )*DR
             GOTO 310
          ENDIF
-         DO 300 I=2,NRMAX
+         DO I=2,NRMAX
             IF(Q(I).GT.1.D0) THEN
                RQ1=(R(I)-R(I-1))*(1.D0-Q(I-1))/(Q(I)-Q(I-1))
      &             +R(I-1)
                GOTO 310
             ENDIF
-  300    CONTINUE
+         ENDDO
          RQ1=RA
   310    CONTINUE
       ENDIF
@@ -321,9 +321,9 @@ C
       DIMENSION A(NMAX),B(NMAX)
 C
       SUM=0.D0
-      DO 100 N=1,NMAX
+      DO N=1,NMAX
          SUM=SUM+A(N)*B(N)
-  100 CONTINUE
+      ENDDO
       RETURN
       END
 C
@@ -340,8 +340,8 @@ C
       DIMENSION A(NMAX),B(NMAX),C(NMAX)
 C
       SUM=0.D0
-      DO 100 N=1,NMAX
+      DO N=1,NMAX
          SUM=SUM+A(N)*B(N)*C(N)
-  100 CONTINUE
+      ENDDO
       RETURN
       END

@@ -370,9 +370,9 @@ C
 C     ***** Volume-averaged density *****
 C
       rNbar = 0.D0
-      DO 10 NR = 0, NRMAX
+      DO NR = 0, NRMAX
          rNbar = rNbar + 2 * PI * R(NR) * PNeI(NR) * 1.D20 * DR
-   10 CONTINUE
+      ENDDO
       rNbar = rNbar / (PI * RB**2)
 C
       WRITE(6,'((1H ,A,1H=,1PD9.2,3(2X,A,1H=,1PD9.2)))')
@@ -425,12 +425,12 @@ C
       NY = 100
       SUM = 0.D0
       DY = SQRT(RA*RA - D*D) / NY
-      DO 10 I = 0, NY
+      DO I = 0, NY
          Y = DY * I
          RL = SQRT(Y*Y + D*D)
          IR = NINT(RL * NRMAX / RA)
          SUM = SUM + PNeI(IR) * 1.D20 * DY
-   10 CONTINUE
+      ENDDO
       rLINEAVE = SUM / SQRT(RA*RA - D*D)
 C
       RETURN

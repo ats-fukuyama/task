@@ -57,14 +57,14 @@ C
       CHARACTER STR*(*), DELIM*1
 C
       DELIM = STR(1:1)
-      DO 10 I = 2, LEN(STR)
+      DO I = 2, LEN(STR)
          IF (STR(I:I) .EQ. DELIM) THEN
             NSTRLEN = I - 2
-            GOTO 20
+            GOTO 10
          ENDIF
-   10 CONTINUE
+      ENDDO
       NSTRLEN = LEN(STR)
-   20 CONTINUE
+   10 CONTINUE
 C
       RETURN
       END

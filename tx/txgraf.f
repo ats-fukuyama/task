@@ -105,7 +105,7 @@ C
          ENDIF
 C
       ELSE IF (KID1 .EQ. 'U') THEN
-         IF      (KID2 .EQ. 'A') THEN
+         IF (KID2 .EQ. 'A') THEN
             DO NQ = 1, NQMAX, 4
                CALL PAGES
                DO NQL=NQ,MIN(NQ+3,NQMAX)
@@ -158,7 +158,7 @@ C
   110    WRITE(6,*) '## INPUT GRAPH NUMBER'
          READ(5,'(A5)',ERR=110,END=10) STR2
          CALL TOUPPER(STR2)
-         IF      (STR2 .EQ. '     ') THEN
+         IF (STR2 .EQ. '     ') THEN
 C     For space or return only 
 C     Correspond to GMA
          ELSE IF (STR2(1:1) .EQ. 'A') THEN
