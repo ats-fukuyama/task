@@ -106,20 +106,20 @@ C
          SLTIL = 0.5D0*(RT(NR+1,2)+RT(NR,2))/((RT(NR+1,2)-RT(NR,2))*DRL)
          SLTQL = 0.5D0*(RT(NR+1,3)+RT(NR,3))/((RT(NR+1,3)-RT(NR,3))*DRL)
          SLBL  = RR
-C         ENL   =-2.D0*(SLNEL/SLBL )
-C         EIL   =       SLNIL/SLTIL
-C         EEL   =       SLNEL/SLTEL
-         ENL   = ABS(2.D0*(SLNEL/SLBL ))
-         EIL   = ABS(      SLNIL/SLTIL)
-         EEL   = ABS(      SLNEL/SLTEL)
+         ENL   =-2.D0*(SLNEL/SLBL )
+         EIL   =       SLNIL/SLTIL
+         EEL   =       SLNEL/SLTEL
+C         ENL   = ABS(2.D0*(SLNEL/SLBL ))
+C         EIL   = ABS(      SLNIL/SLTIL)
+C         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
          FTL   = FTPF(MDLTPF,EPS)
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
-C         EQL   =       SLNQL/SLTQL
-C         ENQL  =-2.D0*(SLNQL/SLBL )
-         EQL   = ABS(      SLNQL/SLTQL)
-         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
+         EQL   =       SLNQL/SLTQL
+         ENQL  =-2.D0*(SLNQL/SLBL )
+C         EQL   = ABS(      SLNQL/SLTQL)
+C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
          BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
      &          *RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
@@ -168,20 +168,20 @@ C
          SLTIL = PTS (2)/(2.D0*(PTS (2)-RT(NR,2))*DRL)
          SLTQL = PTS (3)/(2.D0*(PTS (3)-RT(NR,3))*DRL)
          SLBL  = RR
-C         ENL   =-2.D0*(SLNEL/SLBL )
-C         EIL   =       SLNIL/SLTIL
-C         EEL   =       SLNEL/SLTEL
-         ENL   = ABS(2.D0*(SLNEL/SLBL ))
-         EIL   = ABS(      SLNIL/SLTIL)
-         EEL   = ABS(      SLNEL/SLTEL)
+         ENL   =-2.D0*(SLNEL/SLBL )
+         EIL   =       SLNIL/SLTIL
+         EEL   =       SLNEL/SLTEL
+C         ENL   = ABS(2.D0*(SLNEL/SLBL ))
+C         EIL   = ABS(      SLNIL/SLTIL)
+C         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
          FTL   = FTPF(MDLTPF,EPS)
          BQL   = PNSS(3)/PNSS(1)
-C         EQL   =       SLNQL/SLTQL
-C         ENQL  =-2.D0*(SLNQL/SLBL )
-         EQL   = ABS(      SLNQL/SLTQL)
-         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
+         EQL   =       SLNQL/SLTQL
+         ENQL  =-2.D0*(SLNQL/SLBL )
+C         EQL   = ABS(      SLNQL/SLTQL)
+C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
          BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = PTS(1)
          TAUZL = PTS(1)/PTS(3)
@@ -213,6 +213,15 @@ C
 C
       INCLUDE 'trcomm.inc'
       DIMENSION CHIL(5),CHEL(5),DL(5),CHQL(5),DQL(5)
+C
+C     The diagonal value of the transport coefficient matrix 
+C     is set to be zero if it becomes negative.
+C
+      IF(DL  (3).LT.0.D0) DL  (3)=0.D0
+      IF(CHEL(2).LT.0.D0) CHEL(2)=0.D0
+      IF(CHIL(1).LT.0.D0) CHIL(1)=0.D0
+      IF(DQL (5).LT.0.D0) DQL (5)=0.D0
+      IF(CHQL(4).LT.0.D0) CHQL(4)=0.D0
 C
 C     It is assumed that De=Di in the followings.
 C

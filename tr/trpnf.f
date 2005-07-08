@@ -11,9 +11,9 @@ C
       INCLUDE 'trcomm.inc'
 C
       IF(MDLNF.EQ.0) THEN
-         DO 5 NR=1,NRMAX
+         DO NR=1,NRMAX
             TAUF(NR)=1.D0
-    5    CONTINUE
+         ENDDO
          RETURN
       ENDIF
 C
@@ -22,7 +22,7 @@ C
       AMA=PA(4)*AMM
       VF =SQRT(2.D0*3.5D3 *RKEV/AMA)
 C
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE= RN(NR,1)
          TE = RT(NR,1)
          TD = RT(NR,2)
@@ -40,9 +40,9 @@ C
          SNF(NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
          PNF(NR) = SNF(NR)*3.5D3*RKEV*1.D20
          IF(MDLNF.LE.1) SNF(NR) = 0.D0
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          ANE= RN(NR,1)
          TE = RT(NR,1)
          WF = 1.5D0*RW(NR,2)
@@ -68,7 +68,7 @@ C
          PFCL(NR,2)=(VCD3/VC3)*HYF*PFIN(NR)
          PFCL(NR,3)=(VCT3/VC3)*HYF*PFIN(NR)
          PFCL(NR,4)=(VCA3/VC3)*HYF*PFIN(NR)
-   20 CONTINUE
+      ENDDO
 C
       RETURN
       END

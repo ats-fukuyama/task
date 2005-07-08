@@ -14,7 +14,7 @@ C
 C
       IF(PLHR0.LT.0.D0) THEN
          VPHLH=VC/(PLHNPR*ABS(PLHR0))
-         DO 5 NR=NRMAX,1,-1
+         DO NR=NRMAX,1,-1
             VTE=SQRT(ABS(RT(NR,1))*RKEV/AME)
             IF(VTE.GT.VPHLH) THEN
                IF(NR.EQ.NRMAX) THEN
@@ -26,7 +26,7 @@ C
                ENDIF
                GOTO 6
             ENDIF
-    5    CONTINUE
+         ENDDO
          PLHR0L=0.D0
     6    CONTINUE
 C         WRITE(6,*) '*** PLHR0L = ',PLHR0L
@@ -38,14 +38,14 @@ C
       SUMEC = 0.D0
       SUMLH = 0.D0
       SUMIC = 0.D0
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          SUMEC = SUMEC
      &         +DEXP(-((RA*RM(NR)-PECR0 )/PECRW)**2)*DVRHO(NR)*DR
          SUMLH = SUMLH
      &         +DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)*DVRHO(NR)*DR
          SUMIC = SUMIC
      &         +DEXP(-((RA*RM(NR)-PICR0 )/PICRW)**2)*DVRHO(NR)*DR
-   10 CONTINUE
+      ENDDO
 C
       PEC0 = PECTOT*1.D6/SUMEC
       PLH0 = PLHTOT*1.D6/SUMLH
@@ -64,7 +64,7 @@ C      ELSE
 C         VPHLH=VC/PLHNPR
 C      ENDIF
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          PECL = PEC0*DEXP(-((RA*RM(NR)-PECR0)/PECRW)**2)
          PLHL = PLH0*DEXP(-((RA*RM(NR)-PLHR0L)/PLHRW)**2)
          PICL = PIC0*DEXP(-((RA*RM(NR)-PICR0)/PICRW)**2)
@@ -124,7 +124,7 @@ C
      &           *(PECCD*PECTOE*EFCDEC*PECL
      &            +PLHCD*PLHTOE*EFCDLH*PLHL
      &            +PICCD*PICTOE*EFCDIC*PICL)
-   20 CONTINUE
+      ENDDO
 C
       RETURN
       END

@@ -98,25 +98,25 @@ C
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GT,GYT,NTM,NGT,5,
      &            '@IP,IOH,INB,IRF,IBS [MA]  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,39)
          GYT(I,2)=GVT(I,40)
          GYT(I,3)=GVT(I,41)
          GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)
          GYT(I,5)=GVT(I,46)
          GYT(I,6)=GVT(I,89)+GVT(I,90)+GVT(I,91)+GVT(I,92)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,6,
      &            '@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,57)
          GYT(I,2)=GVT(I,58)
          GYT(I,3)=GVT(I,59)
          GYT(I,4)=GVT(I,60)
          GYT(I,5)=GVT(I,61)+GVT(I,62)+GVT(I,63)+GVT(I,64)
 C     &           +GVT(I,89)+GVT(I,90)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,5,
      &            '@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
 C
@@ -136,43 +136,43 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,87)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@QF  vs t@',2+INQ)
 C
-C      DO 500 I=1,NGT
+C      DO I=1,NGT
 C         GYT(I,1)=GVT(I,33)
 C         GYT(I,2)=GVT(I,31)+GVT(I,29)
 C         GYT(I,3)=GVT(I,31)
 C         GYT(I,4)=GVT(I,17)
-C  500 CONTINUE
+C      ENDDO
 C      CALL TRGR1D( 3.0,12.0,11.0,17.0,GT,GYT,NTM,NGT,4,
 C     &            '@WF,WB,WI,WE [MJ]  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I, 9)
          GYT(I,2)=GVT(I,10)
          GYT(I,3)=GVT(I,11)
          GYT(I,4)=GVT(I,12)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@TE0,TD0,TT0,TA0 [keV]  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,13)
          GYT(I,2)=GVT(I,14)
          GYT(I,3)=GVT(I,15)
          GYT(I,4)=GVT(I,16)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GT,GYT,NTM,NGT,4,
      &            '@TEAV,TDAV,TTAV,TAAV [keV]  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,1)
          GYT(I,2)=GVT(I,5)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,2,
      &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
 C
@@ -193,40 +193,40 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,33)
          GYT(I,2)=GVT(I,31)+GVT(I,29)
          GYT(I,3)=GVT(I,31)
          GYT(I,4)=GVT(I,17)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@WF,WB,WI,WE [MJ]  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,79)
          GYT(I,2)=GVT(I,80)
          GYT(I,3)=GVT(I,81)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,3,
      &            '@TAUE1,TAUE2,TAUEP [s]  vs t@',2+INQ)
 C
-C      DO 200 I=1,NGT
+C      DO I=1,NGT
 C         GYT(I,1)=GVT(I,87)
-C  200 CONTINUE
+C      ENDDO
 C      CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,1,
 C     &            '@QF  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,85)
          GYT(I,2)=GVT(I,84)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GT,GYT,NTM,NGT,2,
      &            '@BETAa,BETA0  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,83)
          GYT(I,2)=GVT(I,82)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,2,
      &            '@BETAPa,BETAP0  vs t@',2+INQ)
 C
@@ -247,27 +247,27 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,74)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@VLOOP [V]  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,75)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@ALI  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,77)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GT,GYT,NTM,NGT,1,
      &            '@Q(0)  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,76)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,1,
      &            '@RQ1 [m]  vs t@',2+INQ)
 C
@@ -298,16 +298,16 @@ C
       GD = 0.5*GW
 C      IR = INT((TSST/DT)/NGTSTP)
 C
-      DO 10 N=0,NGPST/2-1
+      DO N=0,NGPST/2-1
          K=4*N
 C
-         DO 100 I=1,NGST
+         DO I=1,NGST
             GYT(I,1) = GVT(I,K+89)
             GYT(I,2) = GVT(I,K+90)
             GYT(I,3) = GVT(I,K+91)
             GYT(I,4) = GVT(I,K+92)
 C
-  100    CONTINUE
+         ENDDO
          CALL TRGR1D(3.0,12.0,17-(N+1)*GW-N*GD,17-N*(GW+GD),
      &            GTS,GYT,NTM,
      &            NGST,M,'@TE,TD,TT,TA [keV]@',1+INQ)
@@ -318,18 +318,18 @@ C
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
          CALL TEXT('[m]',3)
 C        
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 N=NGPST/2,NGPST-1
+      DO N=NGPST/2,NGPST-1
          K=4*N
 C
-         DO 200 I=1,NGST
+         DO I=1,NGST
             GYT(I,1) = GVT(I,K+89)
             GYT(I,2) = GVT(I,K+90)
             GYT(I,3) = GVT(I,K+91)
             GYT(I,4) = GVT(I,K+92)
 C
-  200    CONTINUE
+         ENDDO
          NGPSTH=N-NGPST/2
          CALL TRGR1D(15.5,24.5,17-(NGPSTH+1)*GW-NGPSTH*GD,
      &               17-NGPSTH*(GW+GD),
@@ -342,7 +342,7 @@ C
          CALL NUMBR(REAL((IZERO-1+N*IX)*DR),'(F7.3)',7)
          CALL TEXT('[m]',3)
 C        
-   20 CONTINUE
+      ENDDO
 C
       CALL PAGEE
 C
@@ -362,85 +362,85 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I, 9)
          GYT(I,2)=GVT(I,10)
          GYT(I,3)=GVT(I,13)
          GYT(I,4)=GVT(I,14)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,34)
          GYT(I,2)=GVT(I,35)
          GYT(I,3)=GVT(I,36)
          GYT(I,4)=GVT(I,37)
          GYT(I,5)=GVT(I,38)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,5,
      &            '@IP,IOH,INB,IRF,IBS [MA]  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,39)
          GYT(I,2)=GVT(I,40)
          GYT(I,3)=GVT(I,41)
          GYT(I,4)=GVT(I,42)+GVT(I,43)+GVT(I,44)+GVT(I,45)
          GYT(I,5)=GVT(I,46)
          GYT(I,6)=GVT(I,89)+GVT(I,90)+GVT(I,91)+GVT(I,92)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,6,
      &            '@PIN,POH,PNB,PRF,PNF,PEX [MW]  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,57)
          GYT(I,2)=GVT(I,58)
          GYT(I,3)=GVT(I,59)
          GYT(I,4)=GVT(I,60)
          GYT(I,5)=GVT(I,61)+GVT(I,62)+GVT(I,63)+GVT(I,64)
 C     &           +GVT(I,89)+GVT(I,90)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,5,
      &            '@POUT,PCX,PIE,PRL,PCON [MW]  vs t@',2+INQ)
 C
-      DO 1100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,87)
- 1100 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@QF  vs t@',2+INQ)
 C
-      DO 1300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,13)
          GYT(I,2)=GVT(I,14)
          GYT(I,3)=GVT(I,15)
          GYT(I,4)=GVT(I,16)
- 1300 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,4,
      &            '@TEAV,TDAV,TTAV,TAAV [keV]  vs t@',2+INQ)
 C
-      DO 1200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I, 9)
          GYT(I,2)=GVT(I,10)
          GYT(I,3)=GVT(I,11)
          GYT(I,4)=GVT(I,12)
- 1200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,4,
      &            '@TE0,TD0,TT0,TA0 [keV]  vs t@',2+INQ)
 C
       IF(MDLNF.EQ.0) THEN
-      DO 1400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,1)
          GYT(I,2)=GVT(I,5)
- 1400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
      &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ELSE
-      DO 1410 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,1)
          GYT(I,2)=GVT(I,2)
          GYT(I,3)=GVT(I,3)
          GYT(I,4)=GVT(I,4)
- 1410 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,4,
      &            '@NE0,ND0,NT0,NA0 [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ENDIF
@@ -462,59 +462,59 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,33)
          GYT(I,2)=GVT(I,31)+GVT(I,29)
          GYT(I,3)=GVT(I,31)
          GYT(I,4)=GVT(I,17)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@WF,WB,WI,WE [MJ]  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,85)*100.0
          GYT(I,2)=GVT(I,84)*100.0
          GYT(I,3)=GVT(I,85)*100.0/(GVT(I,34)/GUCLIP(RA*BB))
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3,
      &            '@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,79)
          GYT(I,2)=GVT(I,80)
          GYT(I,3)=GVT(I,81)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,3,
      &            '@TAUE1,TAUE2,TAUEP [s]  vs t@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,83)
          GYT(I,2)=GVT(I,82)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
      &            '@BETAPa,BETAP0  vs t@',2+INQ)
 C
-      DO 1100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,74)
- 1100 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@VLOOP [V]  vs t@',2+INQ)
 C
-      DO 1300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,77)
- 1300 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 9.7,12.7,GT,GYT,NTM,NGT,1,
      &            '@Q(0)  vs t@',2+INQ)
 C
-      DO 1200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,75)
- 1200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 5.4, 8.4,GT,GYT,NTM,NGT,1,
      &            '@ALI  vs t@',2+INQ)
 C
-      DO 1400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,76)
- 1400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,1,
      &            '@RQ1 [m]  vs t@',2+INQ)
 C
@@ -536,23 +536,23 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,97)
          GYT(I,2)=GVT(I,98)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
      &            '@RR, RA [M]  vs t@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,99)
          GYT(I,2)=GVT(I,34)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
      &            '@BT, IP  vs t@',2+INQ)
 C
-      DO 1100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,100)
- 1100 CONTINUE
+      ENDDO
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@RKAP  vs t@',2+INQ)
 C
@@ -573,31 +573,31 @@ C
 C
       CALL PAGES
 C
-      DO 100 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GUCLIP(RA/RR)*GVT(I,83)
          GYT(I,2)=GVT(I,80)/GVT(I,81)
-  100 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,
      &            '@tauE/tauE89 vs eps*betap@',2+INQ)
 C
-      DO 200 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,75)
          GYT(I,2)=GVT(I,80)/GVT(I,81)
-  200 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,
      &            '@tauE/tauE89 vs li@',2+INQ)
 C
-      DO 300 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GUCLIP(RA/RR)*GVT(I,83)
          GYT(I,2)=GVT(I,38)/GVT(I,34)
-  300 CONTINUE
+      ENDDO
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,
      &            '@Ibs/Ip vs eps*betap@',2+INQ)
 C
-      DO 400 I=1,NGT
+      DO I=1,NGT
          GYT(I,1)=GVT(I,77)
          GYT(I,2)=GVT(I,80)/GVT(I,81)
-  400 CONTINUE
+      ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,
      &            '@tauE/tauE89 vs q0@',2+INQ)
 C

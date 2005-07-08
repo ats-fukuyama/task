@@ -49,16 +49,16 @@ C
       IF(PNBTOT.LE.0.D0) RETURN
 C
       SUM = 0.D0
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          SUM=SUM+DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)*DVRHO(NR)*DR
-   10 CONTINUE
+      ENDDO
 C
       PNB0=PNBTOT*1.D6/SUM
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          PNB(NR)=PNB0*DEXP(-((RA*RM(NR)-PNBR0)/PNBRW)**2)
          SNB(NR)=PNB(NR)/(PNBENG*RKEV)*1.D-20
-   20 CONTINUE
+      ENDDO
 C
       RETURN
       END
@@ -81,9 +81,9 @@ C
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
-      DO 100 NR=1,NRMAX
+      DO NR=1,NRMAX
          SNB(NR) = 0.D0
-  100 CONTINUE
+      ENDDO
 C
       NRNBMAX=10
       DO J=1,NRNBMAX

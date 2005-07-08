@@ -1127,7 +1127,7 @@ C
       AMT=PA(3)*AMM
       AMA=PA(4)*AMM
 C
-      DO 100 NR=1,NRMAX-1
+      DO NR=1,NRMAX-1
 C
          EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
@@ -1228,7 +1228,7 @@ C     &            +(RK23E-1.5D0*RK13E)*RN(NR,1)*DTE,
 C     &            +RK13D*(RK23D-1.5D0)*RN(NR,2)*DTD,
 C     &            BPL,AJBS(NR-1),AJBS(NR)
 C         ENDIF
-  100 CONTINUE
+      ENDDO
 C
       NR=NRMAX
          EPS=EPSRHO(NR)
@@ -1423,59 +1423,59 @@ C
       ENDIF
 C
       SUM=0.D0
-      DO 10 NR=1,NRMAX
+      DO NR=1,NRMAX
          SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
          IF(SUM.LT.0.D0) GOTO 1000
-   10 CONTINUE
+      ENDDO
       NR=NRMAX
 C
  1000 IZEROX=NR
 C
-      DO 20 NR=1,NRMAX
+      DO NR=1,NRMAX
          IF(QP(NR).GE.1.D0) GOTO 2000
-   20 CONTINUE
+      ENDDO
       NR=NRMAX
 C
  2000 IONE=NR
 C
       SUM = 0.D0
-      DO 30 NR=IONE,IZEROX
+      DO NR=IONE,IZEROX
          SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
-   30 CONTINUE
+      ENDDO
 C
-      DO 40 NR=1,IZEROX
+      DO NR=1,IZEROX
          QONE(NR) = 1.D0+SUM*4.D0*RG(NR)**2/RG(IZEROX)**4
-   40 CONTINUE
+      ENDDO
 C
       IF(LT.EQ.1) THEN
-         DO 70 NS=1,NSM
+         DO NS=1,NSM
             SUM1 = 0.D0
             SUM2 = 0.D0
-            DO 50 NR=1,IZEROX
+            DO NR=1,IZEROX
                SUM1 = SUM1+RN(NR,NS)          *DVRHO(NR)
                SUM2 = SUM2+RN(NR,NS)*RT(NR,NS)*DVRHO(NR)
-   50       CONTINUE
+            ENDDO
             RTN = SUM2/SUM1
 C
-            DO 60 NR=1,IZEROX
+            DO NR=1,IZEROX
                RT(NR,NS) = RTN
-   60       CONTINUE
-   70    CONTINUE
+            ENDDO
+         ENDDO
       ENDIF
 C
       IF(LN.EQ.1) THEN
-         DO 100 NS=1,NSM
+         DO NS=1,NSM
             SUM1 = 0.D0
             SUM2 = 0.D0
-            DO 80 NR=1,IZEROX
+            DO NR=1,IZEROX
                SUM1 = SUM1+          DVRHO(NR)
                SUM2 = SUM2+RN(NR,NS)*DVRHO(NR)
-   80       CONTINUE
+            ENDDO
             RNN = SUM2/SUM1
-            DO 90 NR=1,IZEROX
+            DO NR=1,IZEROX
                RN(NR,NS) = RNN
-   90       CONTINUE
-  100    CONTINUE
+            ENDDO
+         ENDDO
       ENDIF
 C
       IF(LQ.EQ.1) THEN

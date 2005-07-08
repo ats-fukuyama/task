@@ -510,7 +510,7 @@ C
             ELSEIF(MDLKAI.EQ.31) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-C               FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
+               FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN

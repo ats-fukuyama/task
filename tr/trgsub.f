@@ -107,7 +107,7 @@ C
          CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
       ENDIF
 C
-      DO 10 NG=1,NGMAX
+      DO NG=1,NGMAX
          CALL SETLIN(-1,-1,7-MOD(NG-1,6))
          IF(MOD(MODE/2,2).EQ.0) THEN
             CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,0)
@@ -119,7 +119,7 @@ C            ENDIF
          ELSE
             CALL GPLOTP(GX,GY(1,NG),1,NXMAX,1,0,0,IPAT(MOD(NG-1,6)+1))
          ENDIF
-   10 CONTINUE
+      ENDDO
 C
       CALL SETLIN(-1,-1,7)
   900 RETURN
@@ -247,7 +247,7 @@ C
          CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
       ENDIF
 C
-      DO 10 NG=1,NGMAX
+      DO NG=1,NGMAX
          CALL SETLIN(-1,-1,7-MOD(NG-1,5))
          IF(MOD(MODE/2,2).EQ.0) THEN
             CALL GPLOTP(GX(1,NG),GY(1,NG),1,NXMAX,1,0,0,0)
@@ -260,7 +260,7 @@ C            ENDIF
             CALL GPLOTP(GX(1,NG),GY(1,NG),1,NXMAX,1,
      &           0,0,IPAT(MOD(NG-1,5)+1))
          ENDIF
-   10 CONTINUE
+      ENDDO
 C
       CALL SETLIN(-1,-1,7)
   900 RETURN
@@ -388,7 +388,7 @@ C
          CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
       ENDIF
 C
-      DO 10 NG=1,NGMAX
+      DO NG=1,NGMAX
          CALL SETLIN(-1,-1,7-MOD(NG-1,5))
          IF(NG.EQ.1) THEN
             IF(MOD(MODE/2,2).EQ.0) THEN
@@ -410,7 +410,7 @@ C
      &                     IPAT(MOD(NG-1,5)+1))
             ENDIF
          ENDIF
-   10 CONTINUE
+      ENDDO
 C
       CALL SETLIN(-1,-1,7)
   900 RETURN

@@ -172,11 +172,11 @@ C
       NGST=0
       RIPS=RIPE
       GRG(1)=0.0
-      DO 800 NR=1,NRMAX
+      DO NR=1,NRMAX
          GRM(NR)  =GUCLIP(RM(NR))
          GRG(NR+1)=GUCLIP(RG(NR))
          QP(NR)   =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
-  800 CONTINUE
+      ENDDO
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
   900 RETURN
