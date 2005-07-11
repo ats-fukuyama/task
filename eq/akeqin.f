@@ -426,3 +426,19 @@ C
       ZBRENTX=B
       RETURN
       END
+C
+C     ***** GET PARAMETERS *****
+C
+      SUBROUTINE EQGETB(BB1,RR1,RIP1,RA1,RKAP1,RDEL1,RB1)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      BB1  =BB
+      RR1  =RR
+      RIP1 =RIP
+      RA1  =RA
+      RKAP1=RKAP
+      RDEL1=RDLT
+      RB1  =RB
+      RETURN
+      END

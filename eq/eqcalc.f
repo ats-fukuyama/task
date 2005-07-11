@@ -1,5 +1,24 @@
 C     $Id$
 C
+C   ************************************** 
+C   **       CALCULATE EQUILIBRIUM      **
+C   ************************************** 
+C
+      SUBROUTINE EQCALC(IERR)
+C      
+      INCLUDE '../eq/eqcomc.inc'
+C
+      IERR=0
+      CALL EQMESH
+      CALL EQPSIN
+      CALL EQDEFB
+      CALL EQLOOP(IERR)
+         IF(IERR.NE.0) RETURN
+      CALL EQTORZ
+      CALL EQCALP
+      RETURN
+      END
+C
 C   ************************************************ 
 C   **       Mesh Definition (sigma, theta)       **
 C   ************************************************ 
@@ -39,7 +58,7 @@ C
       RAXIS=RR
       ZAXIS=0.0D0
 C
-C     --- assuming circular crosssection, flat current profile ---
+C     --- assuming elliptic crosssection, flat current profile ---
 C
       PSI0=-0.5D0*RMU0*RIP*1.D6*RR
       PSITS=PI*RKAP*RA**2*BB
@@ -49,47 +68,6 @@ C
           DELPSI(NTG,NSG)=0.D0
       ENDDO
       ENDDO
-      RETURN
-      END
-C
-C   ************************************************
-C   **               Iteration Loop               **
-C   ************************************************
-C
-      SUBROUTINE EQLOOP(IERR)
-C
-      INCLUDE '../eq/eqcomc.inc'
-C
-      CALL EQDEFB
-      DO NLOOP=1,20
-         CALL EQBAND
-         CALL EQRHSV(IERR)
-         IF(IERR.NE.0) GOTO 200
-         CALL EQSOLV
-C
-         SUM0=0.D0
-         SUM1=0.D0
-         DO NSG=1,NSGMAX
-            DO NTG=1,NTGMAX
-               SUM0=SUM0+PSI(NTG,NSG)**2
-               SUM1=SUM1+DELPSI(NTG,NSG)**2
-            ENDDO
-         ENDDO
-         SUM=SQRT(SUM1/SUM0)
-C
-         IF(NPRINT.GE.1) THEN
-            WRITE(6,'(A,1P4E14.6)')
-     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
-         ENDIF
-         IF(SUM.LT.EPSEQ)GOTO 100
-      ENDDO
-C
-  100 CONTINUE 
-      IERR=0
-      RETURN
-C     
-  200 CONTINUE
-      IERR=200
       RETURN
       END
 C
@@ -104,33 +82,41 @@ C
       DIMENSION DRHOM(NTGM),DRHOG(NTGMP)
       EXTERNAL EQFBND
 C
+C     ------ Define criteria for the Brent method ------
+C
       EPSZ=1.D-8
+C
+C     ------ Define boundary radius RHOM/G ------
 C
       DO NTG=1,NTGMAX
          ZBRF=TAN(THGM(NTG))
          THDASH=ZBRENT(EQFBND,THGM(NTG)-1.0D0,THGM(NTG)+1.0D0,EPSZ)
          RHOM(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
      &                    +RKAP**2*SIN(THDASH)**2)
-      ENDDO
-      DRHOM(1)=(RHOM(2)-RHOM(NTGMAX))/(2*DTG)
-      DO NTG=2,NTGMAX-1
-         DRHOM(NTG)=(RHOM(NTG+1)-RHOM(NTG-1))/(2*DTG)
-      ENDDO
-      DRHOM(NTGMAX)=(RHOM(1)-RHOM(NTGMAX-1))/(2*DTG)
 C
-      DO NTG=1,NTGMAX
          ZBRF=TAN(THGG(NTG))
          THDASH=ZBRENT(EQFBND,THGG(NTG)-1.0D0,THGG(NTG)+1.0D0,EPSZ)
          RHOG(NTG)=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
      &                    +RKAP**2*SIN(THDASH)**2)
       ENDDO
       RHOG(NTGMAX+1)=RHOG(1)
+C
+C     ------ Define Delta theta on the boundary ------
+C
+      DRHOM(1)=(RHOM(2)-RHOM(NTGMAX))/(2*DTG)
+      DO NTG=2,NTGMAX-1
+         DRHOM(NTG)=(RHOM(NTG+1)-RHOM(NTG-1))/(2*DTG)
+      ENDDO
+      DRHOM(NTGMAX)=(RHOM(1)-RHOM(NTGMAX-1))/(2*DTG)
+C
       DRHOG(1)=(RHOG(2)-RHOG(NTGMAX))/(2*DTG)
       DO NTG=2,NTGMAX-1
          DRHOG(NTG)=(RHOG(NTG+1)-RHOG(NTG-1))/(2*DTG)
       ENDDO
       DRHOG(NTGMAX)=(RHOG(1)-RHOG(NTGMAX-1))/(2*DTG)
       DRHOG(NTGMAX+1)=DRHOG(1)
+C
+C     ------ Calculate major radius on grid points ------
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX+1
@@ -142,6 +128,8 @@ C
          RGM(NSG,NTG)=RR+SIGG(NSG)*RHOM(NTG)*COS(THGM(NTG))       
       ENDDO
       ENDDO
+C
+C     ------ Calculate factors for coefficient matrix ------
 C
       DO NSG=1,NSGMAX+1
       DO NTG=1,NTGMAX
@@ -160,6 +148,44 @@ C
       RETURN
       END
 C
+C   ************************************************
+C   **               Iteration Loop               **
+C   ************************************************
+C
+      SUBROUTINE EQLOOP(IERR)
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      IERR=0
+C
+      DO NLOOP=1,NLOOP_MAX_EQ
+         CALL EQBAND
+         CALL EQRHSV(IERR)
+         IF(IERR.NE.0) RETURN
+         CALL EQSOLV
+C
+         SUM0=0.D0
+         SUM1=0.D0
+         DO NSG=1,NSGMAX
+            DO NTG=1,NTGMAX
+               SUM0=SUM0+PSI(NTG,NSG)**2
+               SUM1=SUM1+DELPSI(NTG,NSG)**2
+            ENDDO
+         ENDDO
+         SUM=SQRT(SUM1/SUM0)
+C
+         IF(NPRINT.GE.1) THEN
+            WRITE(6,'(A,1P4E14.6)')
+     &        'SUM,RAXIS,ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+         ENDIF
+         IF(SUM.LT.EPSEQ) RETURN
+      ENDDO
+C
+      WRITE(6,*) 'XX EQLOOP: NLOOP exceeds NLOOP_MAX_EQ'
+      IERR=100
+      RETURN
+      END
+C
 C   ***********************************************
 C   **            Matrix calculation             **
 C   ***********************************************
@@ -168,13 +194,20 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
+C     ------ Define matrix length MMAX and matrix half width NBND ------
+C
       MMAX=NSGMAX*NTGMAX
       NBND=2*NTGMAX
+C
+C     ------ Initialize band matrix coefficients Q ------
+C
       DO N=1,MMAX
       DO M=1,2*NBND-1
           Q(M,N)=0.D0
       ENDDO
       ENDDO
+C
+C     ------ Calculate band matrix coefficients Q ------
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
@@ -202,6 +235,9 @@ C
      &                   -(AD(NSG,NTG+1)+AD(NSG,NTG))/(DTG*DTG)
          Q(NBND+NTGMAX,I)=  AA(NSG+1,NTG)/(DSG*DSG)
      &                   +(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
+C
+C     ------ Set periodic condition ------
+C
          IF(NTG.EQ.NTGMAX)THEN	
             Q(NBND-2*NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
      &                            /(4*DSG*DTG)
@@ -220,6 +256,8 @@ C
          ENDIF
       ENDDO
       ENDDO
+C
+C     ------ Set radial boundary condition ------
 C
       DO I=1,NTGMAX
       DO J=1,NTGMAX/2
@@ -268,6 +306,10 @@ C
          IERR=101
          RETURN
       ENDIF
+C
+C     ----- calculate PSIITB -----
+C
+      CALL EQCNVA(RHOITB**2,PSIITB)
 C
 C     ----- calculate position of magnetic axis -----
 C
@@ -326,22 +368,16 @@ C
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             CALL EQTPSI(PSIN,TPSI,DTPSI)
             CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
-            IF(JMDLEQF.EQ.0) THEN
-               FDN=-1.D0/PSI0
-            ELSE
-               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
-               FDN=-1.D0/(PSI0*RUGQL)
-            ENDIF
             PP(NTG,NSG)=PPSI
-            HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
+            HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*DPPSI
             HJT1(NTG,NSG)=-HJPSI
             HJP2A=EXP(RMM(NTG,NSG)**2*OMGPSI**2*AMP/(2.D0*TPSI))
             HJP2B=EXP(RRC**2         *OMGPSI**2*AMP/(2.D0*TPSI))
             HJP2C=HJP2A-(RRC**2/RMM(NTG,NSG)**2)*HJP2B
             HJP2D=HJP2A-(RRC**4/RMM(NTG,NSG)**4)*HJP2B
             HJP2E=-0.5D0*2.D0*PI*PPSI*RMM(NTG,NSG)**3
-            HJP2F=FDN*AMP*(2.D0*OMGPSI*DOMGPSI/TPSI
-     &           -FDN*DTPSI*OMGPSI**2/TPSI**2)
+            HJP2F=AMP*(2.D0*OMGPSI*DOMGPSI/TPSI
+     &           -DTPSI*OMGPSI**2/TPSI**2)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)+HJP2D*HJP2E*HJP2F
             HJT2(NTG,NSG)=(RRC/RMM(NTG,NSG))*HJT1(NTG,NSG)
             DVOL=SIGM(NSG)*RHOM(NTG)*RHOM(NTG)*DSG*DTG
@@ -360,15 +396,9 @@ C
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             CALL EQTPSI(PSIN,TPSI,DTPSI)
             CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
-            IF(JMDLEQF.EQ.0) THEN
-               FDN=-1.D0/PSI0
-            ELSE
-               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
-               FDN=-1.D0/(PSI0*RUGQL)
-            ENDIF
             TT(NTG,NSG)=SQRT((2.D0*PI*BB*RR)**2
      &                 +2.D0*RMU0*RRC
-     &                 *(2.D0*PI*TJ*HJPSID/FDN-RRC*PPSI
+     &                 *(2.D0*PI*TJ*HJPSID-RRC*PPSI
      &                 *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
             RHO(NTG,NSG)=(PPSI*AMP/TPSI)
      &                  *EXP(RMM(NTG,NSG)**2*OMGPSI**2*AMP/(2.D0*TPSI))
@@ -386,17 +416,11 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQFPSI(PSIN,FPSI,DFPSI)
-            IF(JMDLEQF.EQ.0) THEN
-               FDN=-1.D0/PSI0
-            ELSE
-               CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
-               FDN=-1.D0/(PSI0*RUGQL)
-            ENDIF
             PP(NTG,NSG)=PPSI
-            HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
-            HJT1(NTG,NSG)=-2.D0*PI*BB*RR       *FDN*DFPSI
+            HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*DPPSI
+            HJT1(NTG,NSG)=-2.D0*PI*BB*RR       *DFPSI
      &                                   /(RMU0*RMM(NTG,NSG))
-            HJT2(NTG,NSG)=-(FPSI-2.D0*PI*BB*RR)*FDN*DFPSI
+            HJT2(NTG,NSG)=-(FPSI-2.D0*PI*BB*RR)*DFPSI
      &                                   /(RMU0*RMM(NTG,NSG))
             HJP2(NTG,NSG)=HJP1(NTG,NSG)
      &                   *EXP(OTC*RMM(NTG,NSG)**2*AMP/2.D0)
@@ -434,13 +458,8 @@ C
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQJPSI(PSIN,HJPSID,HJPSI)
             CALL EQGPSI(PSIN,RUGQL,RUGJL,RUG1L,RUG2L,RUG3L,RUGBL)
-            IF(JMDLEQF.EQ.0) THEN
-               FDN=-1.D0/PSI0
-            ELSE
-               FDN=-1.D0/(PSI0*RUGQL)
-            ENDIF
             PP(NTG,NSG)=PPSI
-            HJP1(NTG,NSG)=2.D0*PI*RMM(NTG,NSG)*FDN*DPPSI
+            HJP1(NTG,NSG)=2.D0*PI*RMM(NTG,NSG)*DPPSI
             HJT1(NTG,NSG)=HJPSI
             HJP2C=1.D0-RR**2*RUGJL**2/(RMM(NTG,NSG)**2*RUGBL)
             HJP2(NTG,NSG)=HJP2C*HJP1(NTG,NSG)
@@ -468,16 +487,11 @@ C
             PSIN=1.D0-PSI(NTG,NSG)/PSI0
             CALL EQPPSI(PSIN,PPSI,DPPSI)
             CALL EQQPSI(PSIN,QPSI,DQPSI)
-            IF(JMDLEQF.EQ.0) THEN
-               FDN=-1.D0/PSI0
-            ELSE
-               FDN=-1.D0/(PSI0*QPSI)
-            ENDIF
             PP(NTG,NSG)=PPSI
-            HJP1(NTG,NSG)=RMM(NTG,NSG)*FDN*DPPSI
+            HJP1(NTG,NSG)=RMM(NTG,NSG)*DPPSI
             CALL FNFQT(PSIN,FQTL,DFQTL)
             TTL=QPSI/FQTL
-            DTT=FDN*(DQPSI*FQTL-QPSI*DFQTL)/FQTL**2
+            DTT=(DQPSI*FQTL-QPSI*DFQTL)/FQTL**2
             HJT1(NTG,NSG)=BB*RR*DTT/(RMU0*RMM(NTG,NSG))
             HJT2(NTG,NSG)=(TTL-BB*RR)*DTT/(RMU0*RMM(NTG,NSG))
             HJP2(NTG,NSG)=HJP1(NTG,NSG)
@@ -559,6 +573,64 @@ C
       RETURN
       END
 C
+C   ******************************************
+C   ***** Calculate Spline Coeff for Psi *****
+C   ******************************************
+C
+      SUBROUTINE EQSETF
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      DIMENSION PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM)
+      DIMENSION PSISTX(NTGPM,NSGPM)
+C
+C     ----- mesh extended in sigma (radius) and theta (periodic) -----
+C
+      SIGMX(1)=0.D0
+      DO NSG=1,NSGMAX
+         SIGMX(NSG+1)=SIGM(NSG)
+      ENDDO
+      SIGMX(NSGMAX+2)=1.D0
+C
+      THGMX(1)=0.D0
+      DO NTG=1,NTGMAX
+         THGMX(NTG+1)=THGM(NTG)
+      ENDDO
+      THGMX(NTGMAX+2)=2.D0*PI
+C
+      SUM=0.D0
+      DO NTG=1,NTGMAX
+         SUM=SUM+(9*PSI(NTG,1)-PSI(NTG,2))/8.D0
+      ENDDO
+      PSI1=SUM/NTGMAX
+      DO NTG=1,NTGMAX+2
+         PSIX(NTG,1)=PSI1
+      ENDDO
+C
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         PSIX(NTG+1,NSG+1)=PSI(NTG,NSG)
+      ENDDO
+      ENDDO
+C
+      DO NSG=1,NSGMAX
+         PSIX(       1,NSG+1)=(9*PSI(     1,NSG)-PSI(       2,NSG))
+     &                        /16.D0
+     &                       +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
+     &                        /16.D0
+         PSIX(NTGMAX+2,NSG+1)=PSIX(1,NSG+1)
+      ENDDO
+C
+      DO NTG=1,NTGMAX+2
+         PSIX(NTG,NSGMAX+2)=0.D0
+      ENDDO
+C
+      CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
+     &           NTGPM,NTGMAX+2,NSGMAX+2,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIX: IERR=',IERR
+      RETURN
+      END
+C
 C   ************************************************
 C   **          sigma,theta to R,Z                **
 C   ************************************************
@@ -608,6 +680,75 @@ C
       ENDDO
       ENDDO
 C
+      RETURN
+      END
+C
+C   ************************************************
+C   **         Boundary shape function            **
+C   ************************************************
+C
+      FUNCTION EQFBND(X)
+C      
+      INCLUDE 'eqcomc.inc'
+C
+      EQFBND=ZBRF*COS(X+RDLT*SIN(X))-RKAP*SIN(X)
+      RETURN
+      END
+C
+C   ************************************************
+C   **      CALCULATE pp,tt,temp,omega,rho        **
+C   ************************************************
+C
+      SUBROUTINE EQCALP
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      IMDLEQF=MOD(MDLEQF,5)
+      DPS=PSI0/(NPSMAX-1)
+      DO NPS=1,NPSMAX
+         PSIPS(NPS)=DPS*(NPS-1)
+         PSIN=1.D0-PSIPS(NPS)/PSI0
+         CALL EQPPSI(PSIN,PPSI,DPPSI)
+         CALL EQJPSI(PSIN,HJPSID,HJPSI)
+         CALL EQTPSI(PSIN,TPSI,DTPSI)
+         CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+C
+         IF (IMDLEQF.EQ.0) THEN
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            PPPS(NPS)=PPSI
+            OMPS(NPS)=OMGPSI
+            TTPS(NPS)=SQRT((2.D0*PI*BB*RR)**2
+     &                  +2.D0*RMU0*RRC
+     &                  *(2.D0*PI*TJ*HJPSID-RRC*PPSI
+     &                  *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
+            TEPS(NPS)=TPSI/(AEE*1.D3)
+         ELSEIF (IMDLEQF.EQ.1) THEN
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQFPSI(PSIN,FPSI,DFPSI)
+            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
+            CALL EQTPSI(PSIN,TPSI,DTPSI)
+            PPPS(NPS)=PPSI
+            TTPS(NPS)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+            OMPS(NPS)=OMGPSI
+            TEPS(NPS)=TPSI/(AEE*1.D3)
+         ELSEIF (IMDLEQF.EQ.2) THEN
+            CALL EQPPSI(PSIN,PPSI,DPPSI)
+            CALL EQJPSI(PSIN,HJPSID,HJPSI)
+            TTPS(NPS)=SQRT(BB**2*RR**2
+     &                    +2.D0*RMU0*RRC*(TJ*HJPSID-RRC*PPSI))
+            OMPS(NPS)=0.D0
+            TEPS(NPS)=0.D0
+         ELSEIF (IMDLEQF.EQ.3) THEN
+            CALL EQQPSI(PSIN,QPSI,DQPSI)
+            CALL FNFQT(PSIN,FQTL,DFQTL)
+            TTPS(NPS)=QPSI/FQTL
+            OMPS(NPS)=0.D0
+            TEPS(NPS)=0.D0
+         ENDIF
+      ENDDO
       RETURN
       END
 C
@@ -707,135 +848,6 @@ C
       RETURN
       END
 C
-C     ****** Q/T ******
-C
-      SUBROUTINE FNFQT(PSIN,FQTL,DFQTL)
-C
-      INCLUDE '../eq/eqcomq.inc'
-C
-      PSIL=SAXIS*(1.D0-PSIN)
-      CALL SPL1DD(PSIL,FQTL,DFQTL,PSQ,UFQT,NRMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX FNFQT: SPL1DD ERROR : IERR=',IERR
-      DFQTL=-SAXIS*DFQTL
-      RETURN
-      END
-C
-C   ************************************************
-C   **      CALCULATE pp,tt,temp,omega,rho        **
-C   ************************************************
-C
-      SUBROUTINE EQCALP
-C
-      INCLUDE '../eq/eqcomc.inc'
-C
-      IMDLEQF=MOD(MDLEQF,5)
-      FDN=-1.D0/PSI0
-      DPS=PSI0/(NPSMAX-1)
-      DO NPS=1,NPSMAX
-         PSIPS(NPS)=DPS*(NPS-1)
-         PSIN=1.D0-PSIPS(NPS)/PSI0
-         CALL EQPPSI(PSIN,PPSI,DPPSI)
-         CALL EQJPSI(PSIN,HJPSID,HJPSI)
-         CALL EQTPSI(PSIN,TPSI,DTPSI)
-         CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
-C
-         IF (IMDLEQF.EQ.0) THEN
-            CALL EQPPSI(PSIN,PPSI,DPPSI)
-            CALL EQJPSI(PSIN,HJPSID,HJPSI)
-            CALL EQTPSI(PSIN,TPSI,DTPSI)
-            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
-            PPPS(NPS)=PPSI
-            OMPS(NPS)=OMGPSI
-            TTPS(NPS)=SQRT((2.D0*PI*BB*RR)**2
-     &                  +2.D0*RMU0*RRC
-     &                  *(2.D0*PI*TJ*HJPSID/FDN-RRC*PPSI
-     &                  *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
-            TEPS(NPS)=TPSI/(AEE*1.D3)
-         ELSEIF (IMDLEQF.EQ.1) THEN
-            CALL EQPPSI(PSIN,PPSI,DPPSI)
-            CALL EQFPSI(PSIN,FPSI,DFPSI)
-            CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
-            CALL EQTPSI(PSIN,TPSI,DTPSI)
-            PPPS(NPS)=PPSI
-            TTPS(NPS)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
-            OMPS(NPS)=OMGPSI
-            TEPS(NPS)=TPSI/(AEE*1.D3)
-         ELSEIF (IMDLEQF.EQ.2) THEN
-            CALL EQPPSI(PSIN,PPSI,DPPSI)
-            CALL EQJPSI(PSIN,HJPSID,HJPSI)
-            TTPS(NPS)=SQRT(BB**2*RR**2
-     &                    +2.D0*RMU0*RRC*(TJ*HJPSID/FDN-RRC*PPSI))
-            OMPS(NPS)=0.D0
-            TEPS(NPS)=0.D0
-         ELSEIF (IMDLEQF.EQ.3) THEN
-            CALL EQQPSI(PSIN,QPSI,DQPSI)
-            CALL FNFQT(PSIN,FQTL,DFQTL)
-            TTPS(NPS)=QPSI/FQTL
-            OMPS(NPS)=0.D0
-            TEPS(NPS)=0.D0
-         ENDIF
-      ENDDO
-      RETURN
-      END
-C
-C   ******************************************
-C   ***** Calculate Spline Coeff for Psi *****
-C   ******************************************
-C
-      SUBROUTINE EQSETF
-C
-      INCLUDE '../eq/eqcomc.inc'
-C
-      DIMENSION PSISX(NTGPM,NSGPM),PSITX(NTGPM,NSGPM)
-      DIMENSION PSISTX(NTGPM,NSGPM)
-C
-C     ----- mesh extended in sigma (radius) and theta (periodic) -----
-C
-      SIGMX(1)=0.D0
-      DO NSG=1,NSGMAX
-         SIGMX(NSG+1)=SIGM(NSG)
-      ENDDO
-      SIGMX(NSGMAX+2)=1.D0
-C
-      THGMX(1)=0.D0
-      DO NTG=1,NTGMAX
-         THGMX(NTG+1)=THGM(NTG)
-      ENDDO
-      THGMX(NTGMAX+2)=2.D0*PI
-C
-      SUM=0.D0
-      DO NTG=1,NTGMAX
-         SUM=SUM+(9*PSI(NTG,1)-PSI(NTG,2))/8.D0
-      ENDDO
-      PSI1=SUM/NTGMAX
-      DO NTG=1,NTGMAX+2
-         PSIX(NTG,1)=PSI1
-      ENDDO
-C
-      DO NSG=1,NSGMAX
-      DO NTG=1,NTGMAX
-         PSIX(NTG+1,NSG+1)=PSI(NTG,NSG)
-      ENDDO
-      ENDDO
-C
-      DO NSG=1,NSGMAX
-         PSIX(       1,NSG+1)=(9*PSI(     1,NSG)-PSI(       2,NSG))
-     &                        /16.D0
-     &                       +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
-     &                        /16.D0
-         PSIX(NTGMAX+2,NSG+1)=PSIX(1,NSG+1)
-      ENDDO
-C
-      DO NTG=1,NTGMAX+2
-         PSIX(NTG,NSGMAX+2)=0.D0
-      ENDDO
-C
-      CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
-     &           NTGPM,NTGMAX+2,NSGMAX+2,4,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIX: IERR=',IERR
-      RETURN
-      END
-C
 C   *******************************************
 C   ***** Calculate Psi at (sigma, theta) *****
 C   *******************************************
@@ -848,42 +860,5 @@ C
      &            NTGPM,NTGMAX+2,NSGMAX+2,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX PSIF: SPL2DF ERROR : IERR=',IERR
       PSIF=PSIL
-      RETURN
-      END
-C
-C   ************************************************
-C
-      SUBROUTINE EQSAVE
-C
-      INCLUDE '../eq/eqcomc.inc'
-C
-      CALL FWOPEN(21,KNAMEQ,0,1,'EQ',IERR)
-      IF(IERR.NE.0) RETURN
-C
-      REWIND(21)
-      WRITE(21) RR,BB,RIP
-      WRITE(21) NRGMAX,NZGMAX
-      WRITE(21) (RG(NRG),NRG=1,NRGMAX)
-      WRITE(21) (ZG(NZG),NZG=1,NZGMAX)
-      WRITE(21) ((PSIRZ(NRG,NZG),NRG=1,NRGMAX),NZG=1,NZGMAX)
-      WRITE(21) NPSMAX
-      WRITE(21) (PSIPS(NPS),NPS=1,NPSMAX)
-      WRITE(21) (PPPS(NPS),NPS=1,NPSMAX)
-      WRITE(21) (TTPS(NPS),NPS=1,NPSMAX)
-      WRITE(21) (TEPS(NPS),NPS=1,NPSMAX)
-      WRITE(21) (OMPS(NPS),NPS=1,NPSMAX)
-C
-      WRITE(21) NSGMAX,NTGMAX
-      WRITE(21) RA,RKAP,RDLT,RB
-      WRITE(21) PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2
-      WRITE(21) PP0,PP1,PP2,PROFP0,PROFP1,PROFP2
-      WRITE(21) PT0,PT1,PT2,PROFT0,PROFT1,PROFT2
-      WRITE(21) PV0,PV1,PV2,PROFV0,PROFV1,PROFV2
-      WRITE(21) PROFR0,PROFR1,PROFR2
-      WRITE(21) PTS,PN0,HM
-      CLOSE(21)
-C
-      WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
-C
       RETURN
       END

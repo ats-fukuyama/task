@@ -215,9 +215,13 @@ C
 C
 C     *** CONTROL PARAMETERS ***
 C
-C        EPSEQ : Convergence criterion for equilibrium
+C        EPSEQ  : Convergence criterion for equilibrium
+C        NLOOP_MAX_EQ : Maximum iteration number of EQ
+C        NRVMAX : Number of radial mesh for Fpsi calculation
 C
       EPSEQ  = 1.D-6
+      NLOOP_MAX_EQ = 20
+      NRVMAX = 50
 C
 C        MDLEQF : Profile parameter
 C            0: given analytic profile  P,Jtoroidal,T,Vph
@@ -230,6 +234,12 @@ C            7: given spline profile  P,Jparapllel,T,Vph
 C            8: given spline profile  P,q,T,Vph
 C
       MDLEQF = 0
+C
+C        MDLEQA : Rho in P(rho), F(rho), q(rho),...
+C            0: SQRT(PSIP/PSI0)
+C            1: SQRT(PSIT/PSITS)
+C
+      MDLEQA = 0
 C
 C        MDLEQC : Poloidal coordinate parameter
 C            0: Poloidal length coordinate
@@ -296,12 +306,12 @@ C
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
-     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,
+     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,NLOOP_MAX_EQ,
      &              NSGMAX,NTGMAX,NUGMAX,
      &              NRGMAX,NZGMAX,
-     &              NPSMAX,KNAMEQ,
+     &              NPSMAX,NRVMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX,
-     &              MDLEQF,MDLEQC,NPRINT
+     &              MDLEQF,MDLEQC,MDLEQA,NPRINT
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -330,8 +340,8 @@ C
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
      &       9X,'PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
-     &       9X,'NRMAX,NTHMAX,NSUMAX,KNAMEQ'/
-     &       9X,'MDLEQF,MDLEQC,NPRINT')
+     &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,KNAMEQ'/
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLOOP_MAX_EQ')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -447,7 +457,10 @@ C
      &             'NSUMAX',NSUMAX
       WRITE(6,602) 'MDLEQF',MDLEQF,
      &             'MDLEQC',MDLEQC,
-     &             'NPRINT',NPRINT
+     &             'MDLEQA',MDLEQA
+      WRITE(6,602) 'NRVMAX',NRVMAX,
+     &             'NPRINT',NPRINT,
+     &             'NLOOPM',NLOOP_MAX_EQ
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))

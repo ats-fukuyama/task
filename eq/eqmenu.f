@@ -21,24 +21,20 @@ C
     1 CONTINUE
          IERR=0
          WRITE(6,601) 
-  601    FORMAT('## EQ MENU: R/RUN C/CONT P,V,I/PARM G/GRAPH',
-     &                  ' M/MULT S,L,K/FILE U/UFILE Q/QUIT')
+  601    FORMAT('## EQ MENU: R/RUN  C/CONT  P,V,I/PARM  G/GRAPH',
+     &                  '  M/MULT  S,L,K/FILE  Q/QUIT')
 C
          CALL TASK_KLIN(LINE,KID,MODE,EQPARM)
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'R') THEN
-         CALL EQMESH
-         CALL EQPSIN
-         CALL EQLOOP(IERR)
+         CALL EQCALC(IERR)
             IF(IERR.NE.0) GOTO 1
-         CALL EQTORZ
-         CALL EQCALP
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-         IF(IERR.NE.0) GOTO 1
+            IF(IERR.NE.0) GOTO 1
          MSTAT=1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -112,20 +108,6 @@ C
 C
          CALL EQLOAD(5,KNAMEQ1,IERR)
          IF(IERR.NE.0) GOTO 11
-         NRMAX1=NRMAX
-         NTHMAX1=NTHMAX
-         NSUMAX1=NSUMAX
-         CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-         MSTAT=2
-C
-      ELSEIF(KID.EQ.'U') THEN
-         KNAMEQ1=KNAMEQ
-   30    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ1
-         READ(5,'(A80)',ERR=30,END=9000) KNAM
-         IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
-C
-         CALL EQUFIN(KNAMEQ1,IERR)
-         IF(IERR.EQ.1) GOTO 30
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX

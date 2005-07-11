@@ -148,11 +148,6 @@ C
       CALL SPL1D(PSS,FTS,DERIVX,UFTS,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN: SPL1D FTS: IERR=',IERR
 C
-C     ***** Setup 2D mesh and initial psi *****
-C
-      CALL EQMESH
-      CALL EQPSIN
-C
       RETURN
       END
 C
@@ -320,11 +315,8 @@ C      PAUSE
 C
 C     ***** Solve GS equation for given profile *****
 C
-      CALL EQLOOP(IERR)
+      CALL EQCALC(IERR)
          IF(IERR.NE.0) GOTO 9000
-      CALL EQTORZ
-      CALL EQCALP
-C      CALL EQGOUT(1)
 C
 C     ***** Calculate eqilibrium quantities *****
 C
