@@ -13,7 +13,7 @@ C
       CALL EQPSIN
       CALL EQDEFB
       CALL EQLOOP(IERR)
-         IF(IERR.NE.0) RETURN
+C         IF(IERR.NE.0) RETURN
       CALL EQTORZ
       CALL EQCALP
       RETURN
@@ -26,8 +26,6 @@ C
       SUBROUTINE EQMESH
 C      
       INCLUDE '../eq/eqcomc.inc'
-C
-      EXTERNAL EQFBND
 C
       DSG=1.D0/NSGMAX
       DTG=2.D0*PI/NTGMAX 
@@ -145,6 +143,15 @@ C
          AD(NSG,NTG)=1/(RMG(NSG,NTG)*SIGM(NSG))
       ENDDO
       ENDDO
+C
+C      DO NSG=1,2
+C         DO NTG=1,NTGMAX
+C            WRITE(6,'(2I5,1P4E12.4)') NSG,NTG,AA(NSG,NTG),AB(NSG,NTG),
+C     &                                       AC(NSG,NTG),AD(NSG,NTG)
+C         ENDDO
+C      ENDDO
+C      PAUSE
+
       RETURN
       END
 C
@@ -253,6 +260,14 @@ C
      &                        +  AD(NSG,NTG+1)/(DTG*DTG)
             Q(NBND+NTGMAX+1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
      &                          /(4*DSG*DTG)
+         ENDIF
+         IF(NSG.EQ.1) THEN
+            WRITE(6,'(2I5,1P3E12.4)') NSG,NTG,
+     &      Q(NBND         -1,I),Q(NBND+NTGMAX,I),Q(NBND+2*NTGMAX,I)
+         ENDIF
+         IF(NSG.EQ.2) THEN
+            WRITE(6,'(2I5,1P3E12.4)') NSG,NTG,
+     &      Q(NBND-NTGMAX,I),Q(NBND         -1,I),Q(NBND+NTGMAX,I)
          ENDIF
       ENDDO
       ENDDO
@@ -547,11 +562,23 @@ C
 C
       DO NSG=1,NSGMAX
          I=(NSG-1)*NTGMAX
-      DO NTG=1,NTGMAX
-         FJT(I+NTG)=2.D0*PI*RMU0*HJT(NTG,NSG)
-     &              *SIGM(NSG)*RHOM(NTG)*RHOM(NTG)
+         DO NTG=1,NTGMAX
+            FJT(I+NTG)=2.D0*PI*RMU0*HJT(NTG,NSG)
+     &                 *SIGM(NSG)*RHOM(NTG)*RHOM(NTG)
+         ENDDO
       ENDDO
+C
+C      DO NSG=1,2
+C         DO NTG=1,NTGMAX
+C            WRITE(6,'(2I5,1PE12.4)') NSG,NTG,HJT(NSG,NTG)
+C         ENDDO
+C      ENDDO
+C      PAUSE
+C
+      DO I=1,3
+         WRITE(6,'(1p5E12.4)') FJT(I),(Q(J,I),J=1,4*NTGMAX-1)
       ENDDO
+      pause
 C
       CALL BANDRD(Q,FJT,NTGMAX*NSGMAX,4*NTGMAX-1,MWM,IERR)
          IF(IERR.NE.0) THEN

@@ -236,7 +236,7 @@ C
       MDLEQF = 0
 C
 C        MDLEQA : Rho in P(rho), F(rho), q(rho),...
-C            0: SQRT(PSIP/PSI0)
+C            0: SQRT(-PSIP/PSI0)
 C            1: SQRT(PSIT/PSITS)
 C
       MDLEQA = 0

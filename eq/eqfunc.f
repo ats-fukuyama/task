@@ -1,3 +1,4 @@
+C     $Id$
 C
 C   *************************************
 C   *****  Argument Psi conversion  *****
@@ -177,19 +178,21 @@ C
      &      -PJ2*FPOW(1.D0-ARG2,PROFJ2+1.D0)
      &                /(PROFR2*(PROFJ2+1.D0))
          F = PJ0*FPOW(1.D0-ARG0,PROFJ0)
-     &          *FPOW(PSIN,PROFR0-1.D0)
+     &          *FPOW(PSIL,PROFR0-1.D0)
      &      +PJ1*FPOW(1.D0-ARG1,PROFJ1)
-     &          *FPOW(PSIN,PROFR1-1.D0)
+     &          *FPOW(PSIL,PROFR1-1.D0)
      &      +PJ2*FPOW(1.D0-ARG2,PROFJ2)
-     &          *FPOW(PSIN,PROFR2-1.D0)
+     &          *FPOW(PSIL,PROFR2-1.D0)
       ELSE
          CALL SPL1DI(PSIL,FD,PSITRX,UJPSI,UJPSI0,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQJPSI: SPL1DI : IERR=',IERR
-         CALL SPL1DF(PSIN,F,PSITRX,UJPSI,NTRMAX+2,IERR)
+         CALL SPL1DF(PSIL,F,PSITRX,UJPSI,NTRMAX+2,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQJPSI: SPL1DF : IERR=',IERR
       ENDIF
 C
-      HJPSID= FD*1.D6
+      CALL EQFDPP(PSIN,FDN)
+C
+      HJPSID= FD*1.D6/FDN
       HJPSI =  F*1.D6
       RETURN
       END
