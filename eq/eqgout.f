@@ -6,6 +6,8 @@ C   ************************************************
 C
       SUBROUTINE EQGOUT(MODE)
 C
+      INCLUDE 'eqcomc.inc'
+C
       CHARACTER KSTR*2,K1*1,K2*1
 C
     1 IF(MODE.EQ.1) THEN

@@ -261,14 +261,6 @@ C
             Q(NBND+NTGMAX+1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
      &                          /(4*DSG*DTG)
          ENDIF
-         IF(NSG.EQ.1) THEN
-            WRITE(6,'(2I5,1P3E12.4)') NSG,NTG,
-     &      Q(NBND         -1,I),Q(NBND+NTGMAX,I),Q(NBND+2*NTGMAX,I)
-         ENDIF
-         IF(NSG.EQ.2) THEN
-            WRITE(6,'(2I5,1P3E12.4)') NSG,NTG,
-     &      Q(NBND-NTGMAX,I),Q(NBND         -1,I),Q(NBND+NTGMAX,I)
-         ENDIF
       ENDDO
       ENDDO
 C
@@ -419,6 +411,17 @@ C
      &                  *EXP(RMM(NTG,NSG)**2*OMGPSI**2*AMP/(2.D0*TPSI))
          ENDDO
          ENDDO
+C         DO NSG=1,3
+C            DO NTG=1,NTGMAX
+C               WRITE(6,'(2I5,1P3E12.4)')
+C     &              NSG,NTG,RMM(NTG,NSG),ZMM(NTG,NSG),PSI(NTG,NSG)
+C               WRITE(6,'(2I5,1P3E12.4)')
+C     &              NSG,NTG,HJP1(NTG,NSG),HJT1(NTG,NSG),PP(NTG,NSG)
+C               WRITE(6,'(2I5,1P3E12.4)')
+C     &              NSG,NTG,HJP2(NTG,NSG),HJT2(NTG,NSG),TT(NTG,NSG)
+C            ENDDO
+C         ENDDO
+C         PAUSE
 C
 C     ----- Given pressure and poloidal current profiles -----
 C
@@ -575,22 +578,30 @@ C         ENDDO
 C      ENDDO
 C      PAUSE
 C
-      DO I=1,3
-         WRITE(6,'(1p5E12.4)') FJT(I),(Q(J,I),J=1,4*NTGMAX-1)
-      ENDDO
-      pause
+C      DO I=1,3
+C         WRITE(6,'(1p5E12.4)') FJT(I),(Q(J,I),J=1,4*NTGMAX-1)
+C      ENDDO
+C      pause
 C
       CALL BANDRD(Q,FJT,NTGMAX*NSGMAX,4*NTGMAX-1,MWM,IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX EQSOLV: BANDRD ERROR: IERR = ',IERR
          ENDIF
 C
-       DO NSG=1,NSGMAX
-          I=(NSG-1)*NTGMAX
-          DO NTG=1,NTGMAX
-             PSI(NTG,NSG)=FJT(I+NTG)
-          ENDDO
-       ENDDO
+C      WRITE(6,'(1p5E12.4)') (FJT(I),I=1,2*NTGMAX)
+C      pause
+C
+      DO NSG=1,NSGMAX
+         I=(NSG-1)*NTGMAX
+         DO NTG=1,NTGMAX
+            PSI(NTG,NSG)=FJT(I+NTG)
+         ENDDO
+      ENDDO
+C      WRITE(6,'(1p5E12.4)') (PSI(I,1),I=1,NTGMAX)
+C      WRITE(6,'(1p5E12.4)') (PSI(I,2),I=1,NTGMAX)
+C      WRITE(6,'(1p5E12.4)') (PSI(I,3),I=1,NTGMAX)
+C      WRITE(6,'(1p5E12.4)') (PSI(I,4),I=1,NTGMAX)
+C      pause
 C     
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
