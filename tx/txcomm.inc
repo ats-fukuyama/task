@@ -1,26 +1,89 @@
 !     $Id$
-!
+
       IMPLICIT NONE
-      INTEGER :: NRM, NQM, NCM, NGRM, NGTM, NGVM, NGYRM, NGYTM, NGYVM, NGPRM, NGPTM, NGPVM
-      INTEGER :: NSM, NFM
-      INTEGER :: LQm1, LQm2, LQm3, LQm4, LQm5
-      INTEGER :: LQe1, LQe2, LQe3, LQe4, LQe5
-      INTEGER :: LQi1, LQi2, LQi3, LQi4, LQi5
-      INTEGER :: LQb1,       LQb3, LQb4
-      INTEGER :: LQn1, LQn2
+
+      INTEGER, PARAMETER :: NRM=100, NQM=20, NCM=19, NGRM=20, NGTM=1000,
+     &                      NGVM=1000, NGYRM=36, NGYTM=39, NGYVM=43, 
+     &                      NGPRM=13, NGPTM=13, NGPVM=7
+      INTEGER, PARAMETER :: NSM=2, NFM=2
+      INTEGER, PARAMETER :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,
+     &                      LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,
+     &                      LQi1=11, LQi2=12, LQi3=13, LQi4=14, LQi5=15,
+     &                      LQb1=16,          LQb3=17, LQb4=18,
+     &                      LQn1=19, LQn2=20
       
-      PARAMETER (NRM = 100, NQM = 20, NCM = 19, 
-     &           NGRM = 20, NGTM = 1000,  NGVM = 1000, 
-     &           NGYRM = 36, NGYTM = 39,  NGYVM = 43, 
-     &           NGPRM = 13, NGPTM = 13,  NGPVM = 7)
-      PARAMETER (NSM=2, NFM=2)
+      REAL(8) :: RA, RB, RR, BB
+      REAL(8) :: PA, PZ, Zeff
+      REAL(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ
+      REAL(8) :: De0, Di0, rMue0, rMui0, WPM0
+      REAL(8) :: Chie0, Chii0
+      REAL(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
+      REAL(8) :: FSCX, FSLC, FSNC, FSLP, FSION, FSD0
+      REAL(8) :: rLn, rLT
+      REAL(8) :: Eb, RNB, PNBH, PNBCD, rNRF, RRF, PRFH
+      REAL(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
+      REAL(8) :: DLT, DT, EPS
+      INTEGER :: ICMAX
+      INTEGER :: NRMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP
+      REAL(8) :: DelR, DelN
+      REAL(8) :: rG1, EpsH, FSHL
+      INTEGER :: NCPHI
+      REAL(8) :: rIPs, rIPe, Q0, QA
 
-      PARAMETER (LQm1=1, LQm2=2, LQm3=3, LQm4=4, LQm5=5)
-      PARAMETER (LQe1=6, LQe2=7, LQe3=8, LQe4=9, LQe5=10)
-      PARAMETER (LQi1=11,LQi2=12,LQi3=13,LQi4=14,LQi5=15)
-      PARAMETER (LQb1=16,        LQb3=17,LQb4=18)
-      PARAMETER (LQn1=19,LQn2=20)
-
+      REAL(8), DIMENSION(0:NCM,NQM,0:NRM) :: ALC, BLC, CLC
+      REAL(8), DIMENSION(NCM,NQM,0:NRM)   :: PLC
+      INTEGER, DIMENSION(0:NCM,NQM,0:NRM) :: NLC
+      INTEGER, DIMENSION(NQM)             :: NLCMAX
+      REAL(8) :: DR, TIME, TMAX
+      INTEGER :: NT, NQMAX, IERR
+      REAL(8) :: AMi, AMb, Vb, Bthb
+      REAL(8) :: rIP
+      REAL(8), DIMENSION(0:NRM) :: rNuION, D01, D02, rNu0e, rNu0i, 
+     &                             rNuL, rNuiCX, rNuei, rNuii, rNuTei,
+     &                             rNube, rNubi, rNueNC, rNuiNC,
+     &                             rNueHL, rNuiHL, FWthe, FWthi, WPM,
+     &                             rMue, rMui, Chie, Chii, PNB, SNB,
+     &                             rNuB, PRFe, PRFi, PBIN, PBCL, De,
+     &                             Di, rG1h2, FCDBM, SiLC, SiLCth,
+     &                             SiLCph, S, Alpha, rKappa, AJ, AJOH,
+     &                             POH, AJV, AJRF, AJNB, AJBS
+      REAL(8) :: UHth, UHph
+      REAL(8) :: AEE, AME, AMP, VC, PI, rMU0, EPS0, rKEV
+      REAL(8), DIMENSION(NSM) :: ANS0, TS0, ANSAV, TSAV, WST
+      REAL(8), DIMENSION(NFM) :: ANF0, TF0, ANFAV, TFAV, WFT
+      REAL(8) :: WBULKT, WTAILT, WPT
+      REAL(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
+      REAL(8) :: PINT, POHT, PNBT, PRFT, PNFT
+      REAL(8) :: PBINT, PFINT, POUT, PCXT, PIET, PRLT, SINT, SIET
+      REAL(8) :: SNBT, SNFT, SOUT
+      REAL(8), DIMENSION(NSM) :: PBCLT, PFCLT, PLT, SPET, SLT
+      REAL(8) :: VLOOP, ALI, RQ1, RPE, ZEFF0, QF
+      REAL(8) :: WPDOT, TAUE1, TAUE2, TAUEP
+      REAL(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0
+      REAL(8) :: TPRE, WPPRE
+      REAL(8), DIMENSION(4*NQM-1,NQM*(NRM+1)) :: BA
+      REAL(8), DIMENSION(NQM*(NRM+1)) :: BX
+      REAL(8), DIMENSION(NQM,0:NRM) :: X, XN
+      INTEGER :: NGR, NGT, NGVV
+      REAL, DIMENSION(0:NRM,2) :: GX
+      REAL, DIMENSION(0:NRM,0:NGRM,NGYRM) :: GY
+      REAL, DIMENSION(0:NGRM) :: GT
+      REAL, DIMENSION(0:NGTM) :: GTX
+      REAL, DIMENSION(0:NGTM,NGYTM) :: GTY
+      INTEGER :: MODEG, MODEAV, MODEL
+      REAL, DIMENSION(NGYRM) :: gDIV
+      REAL, DIMENSION(0:NGVM) :: GVX
+      REAL, DIMENSION(0:NGVM,NGYVM) :: GVY
+      REAL(8), DIMENSION(0:NRM) :: R, RHI, ErI, ErHI, EthI, EthHI,
+     &                             EphHI, EphI, BthI, BthHI, BphHI,
+     &                             BphI, PNeHI, PNeI, UerI, UerHI,
+     &                             UethI, UethHI, UephI, UephHI, PTeHI,
+     &                             PTeI, PNiHI, PNiI, UirI, UirHI,
+     &                             UithI, UithHI, UiphI, UiphHI, PTiHI,
+     &                             PTiI, PNbHI, PNbI, UbthI, UbthHI,
+     &                             UbphI, UbphHI, PN01HI, PN02HI, Q, QHI
+      CHARACTER(20) :: SLID
+      
       COMMON /TXPRM1/ RA,RB,RR,BB
       COMMON /TXPRM2/ PA,PZ,Zeff
       COMMON /TXPRM3/ PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -37,70 +100,70 @@
       COMMON /TXPRME/ rG1,EpsH,FSHL,NCPHI
       COMMON /TXPRMF/ rIPs,rIPe,Q0,QA
 
-      COMMON /TXABC1/ ALC(0:NCM,NQM,0:NRM),BLC(0:NCM,NQM,0:NRM)
-      COMMON /TXABC2/ CLC(0:NCM,NQM,0:NRM),PLC(NCM,NQM,0:NRM)
-      COMMON /TXABC3/ NLC(0:NCM,NQM,0:NRM),NLCMAX(NQM)
+      COMMON /TXABC1/ ALC,BLC
+      COMMON /TXABC2/ CLC,PLC
+      COMMON /TXABC3/ NLC,NLCMAX
       COMMON /TXCAL1/ DR,TIME,TMAX,NT,NQMAX,IERR
       COMMON /TXCAL2/ AMi,AMb,Vb,Bthb
       COMMON /TXCAL3/ rIP
-      COMMON /TXCEF1/ rNuION(0:NRM),D01(0:NRM),D02(0:NRM)
-      COMMON /TXCEF2/ rNu0e(0:NRM),rNu0i(0:NRM)
-      COMMON /TXCEF3/ rNuL(0:NRM),rNuiCX(0:NRM)
-      COMMON /TXCEF4/ rNuei(0:NRM),rNuii(0:NRM),rNuTei(0:NRM)
-      COMMON /TXCEF5/ rNube(0:NRM),rNubi(0:NRM)
-      COMMON /TXCEF6/ rNueNC(0:NRM),rNuiNC(0:NRM)
-      COMMON /TXCEF7/ rNueHL(0:NRM),rNuiHL(0:NRM),UHth,UHph
-      COMMON /TXCEF8/ FWthe(0:NRM),FWthi(0:NRM),WPM(0:NRM)
-      COMMON /TXCEF9/ rMue(0:NRM),rMui(0:NRM)
-      COMMON /TXCEFA/ Chie(0:NRM),Chii(0:NRM)
-      COMMON /TXCEFB/ PNB(0:NRM),SNB(0:NRM),rNuB(0:NRM)
-      COMMON /TXCEFC/ PRFe(0:NRM),PRFi(0:NRM),PBIN(0:NRM),PBCL(0:NRM)
-      COMMON /TXCEFD/ De(0:NRM),Di(0:NRM),rG1h2(0:NRM),FCDBM(0:NRM)
-      COMMON /TXCEFE/ SiLC(0:NRM),SiLCth(0:NRM),SiLCph(0:NRM)
-      COMMON /TXCEFF/ S(0:NRM), Alpha(0:NRM), rKappa(0:NRM)
-      COMMON /TXCEFG/ AJ(0:NRM),AJOH(0:NRM),POH(0:NRM),AJV(0:NRM)
-      COMMON /TXCEFH/ AJRF(0:NRM),AJNB(0:NRM),AJBS(0:NRM)
+      COMMON /TXCEF1/ rNuION,D01,D02
+      COMMON /TXCEF2/ rNu0e,rNu0i
+      COMMON /TXCEF3/ rNuL,rNuiCX
+      COMMON /TXCEF4/ rNuei,rNuii,rNuTei
+      COMMON /TXCEF5/ rNube,rNubi
+      COMMON /TXCEF6/ rNueNC,rNuiNC
+      COMMON /TXCEF7/ rNueHL,rNuiHL,UHth,UHph
+      COMMON /TXCEF8/ FWthe,FWthi,WPM
+      COMMON /TXCEF9/ rMue,rMui
+      COMMON /TXCEFA/ Chie,Chii
+      COMMON /TXCEFB/ PNB,SNB,rNuB
+      COMMON /TXCEFC/ PRFe,PRFi,PBIN,PBCL
+      COMMON /TXCEFD/ De,Di,rG1h2,FCDBM
+      COMMON /TXCEFE/ SiLC,SiLCth,SiLCph
+      COMMON /TXCEFF/ S, Alpha, rKappa
+      COMMON /TXCEFG/ AJ,AJOH,POH,AJV
+      COMMON /TXCEFH/ AJRF,AJNB,AJBS
       COMMON /TXCNS1/ AEE,AME,AMP,VC,PI,rMU0,EPS0,rKEV
-      COMMON /TXGLB1/ ANS0(NSM),TS0(NSM),ANSAV(NSM),TSAV(NSM),WST(NSM)
-      COMMON /TXGLB2/ ANF0(NFM),TF0(NFM),ANFAV(NFM),TFAV(NFM),WFT(NFM)
+      COMMON /TXGLB1/ ANS0,TS0,ANSAV,TSAV,WST
+      COMMON /TXGLB2/ ANF0,TF0,ANFAV,TFAV,WFT
       COMMON /TXGLB3/ WBULKT,WTAILT,WPT
       COMMON /TXGLB4/ AJT,AJOHT,AJNBT,AJRFT,AJBST
       COMMON /TXGLB5/ PINT,POHT,PNBT,PRFT,PNFT
-      COMMON /TXGLB6/ PBINT,PBCLT(NSM),PFINT,PFCLT(NSM)
-      COMMON /TXGLB7/ POUT,PCXT,PIET,PRLT,PLT(NSM)
-      COMMON /TXGLB8/ SINT,SIET,SNBT,SNFT,SPET(NSM),SOUT,SLT(NSM)
+      COMMON /TXGLB6/ PBINT,PBCLT,PFINT,PFCLT
+      COMMON /TXGLB7/ POUT,PCXT,PIET,PRLT,PLT
+      COMMON /TXGLB8/ SINT,SIET,SNBT,SNFT,SPET,SOUT,SLT
       COMMON /TXGLB9/ VLOOP,ALI,RQ1,RPE,ZEFF0,QF
       COMMON /TXGLBA/ WPDOT,TAUE1,TAUE2,TAUEP
       COMMON /TXGLBB/ BETAP0,BETAPA,BETA0,BETAA,BETAQ0
       COMMON /TXGLBB/ TPRE,WPPRE
-      COMMON /TXMTX1/ BA(4*NQM-1,NQM*(NRM+1)),BX(NQM*(NRM+1))
-      COMMON /TXSTP1/ X(NQM,0:NRM),XN(NQM,0:NRM)
+      COMMON /TXMTX1/ BA,BX
+      COMMON /TXSTP1/ X,XN
       COMMON /TXVAG1/ NGR,NGT,NGVV
-      COMMON /TXVAG4/ GX(0:NRM,2)
-      COMMON /TXVAG5/ GY(0:NRM,0:NGRM,NGYRM),GT(0:NGRM)
-      COMMON /TXVAG6/ GTX(0:NGTM),GTY(0:NGTM,NGYTM)
-      COMMON /TXVAG7/ MODEG,gDIV(NGYRM),MODEAV,MODEL
-      COMMON /TXVAG8/ GVX(0:NGVM),GVY(0:NGVM,NGYVM)
-      COMMON /TXVAR0/ R(0:NRM),RHI(0:NRM)
-      COMMON /TXVAR1/ ErI(0:NRM),ErHI(0:NRM)
-      COMMON /TXVAR2/ EthI(0:NRM),EthHI(0:NRM)
-      COMMON /TXVAR3/ EphHI(0:NRM),EphI(0:NRM)
-      COMMON /TXVAR4/ BthI(0:NRM),BthHI(0:NRM)
-      COMMON /TXVAR5/ BphHI(0:NRM),BphI(0:NRM)
-      COMMON /TXVAR6/ PNeHI(0:NRM),PNeI(0:NRM)
-      COMMON /TXVAR7/ UerI(0:NRM),UerHI(0:NRM)
-      COMMON /TXVAR8/ UethI(0:NRM),UethHI(0:NRM)
-      COMMON /TXVAR9/ UephI(0:NRM),UephHI(0:NRM)
-      COMMON /TXVARA/ PTeHI(0:NRM),PTeI(0:NRM)
-      COMMON /TXVARB/ PNiHI(0:NRM),PNiI(0:NRM)
-      COMMON /TXVARC/ UirI(0:NRM),UirHI(0:NRM)
-      COMMON /TXVARD/ UithI(0:NRM),UithHI(0:NRM)
-      COMMON /TXVARE/ UiphI(0:NRM),UiphHI(0:NRM)
-      COMMON /TXVARF/ PTiHI(0:NRM),PTiI(0:NRM)
-      COMMON /TXVAS0/ PNbHI(0:NRM),PNbI(0:NRM)
-      COMMON /TXVAS1/ UbthI(0:NRM),UbthHI(0:NRM)
-      COMMON /TXVAS2/ UbphI(0:NRM),UbphHI(0:NRM)
-      COMMON /TXVAS3/ PN01HI(0:NRM),PN02HI(0:NRM)
-      COMMON /TXVAS4/ Q(0:NRM),QHI(0:NRM)
+      COMMON /TXVAG4/ GX
+      COMMON /TXVAG5/ GY,GT
+      COMMON /TXVAG6/ GTX,GTY
+      COMMON /TXVAG7/ MODEG,gDIV,MODEAV,MODEL
+      COMMON /TXVAG8/ GVX,GVY
+      COMMON /TXVAR0/ R,RHI
+      COMMON /TXVAR1/ ErI,ErHI
+      COMMON /TXVAR2/ EthI,EthHI
+      COMMON /TXVAR3/ EphHI,EphI
+      COMMON /TXVAR4/ BthI,BthHI
+      COMMON /TXVAR5/ BphHI,BphI
+      COMMON /TXVAR6/ PNeHI,PNeI
+      COMMON /TXVAR7/ UerI,UerHI
+      COMMON /TXVAR8/ UethI,UethHI
+      COMMON /TXVAR9/ UephI,UephHI
+      COMMON /TXVARA/ PTeHI,PTeI
+      COMMON /TXVARB/ PNiHI,PNiI
+      COMMON /TXVARC/ UirI,UirHI
+      COMMON /TXVARD/ UithI,UithHI
+      COMMON /TXVARE/ UiphI,UiphHI
+      COMMON /TXVARF/ PTiHI,PTiI
+      COMMON /TXVAS0/ PNbHI,PNbI
+      COMMON /TXVAS1/ UbthI,UbthHI
+      COMMON /TXVAS2/ UbphI,UbphHI
+      COMMON /TXVAS3/ PN01HI,PN02HI
+      COMMON /TXVAS4/ Q,QHI
       COMMON /TXVER1/ SLID
-      CHARACTER SLID*20
+      

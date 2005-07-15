@@ -1,33 +1,34 @@
-C
-C     ***************************************************************
-C
-C        Command loop
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Command loop
+!
+!     ***************************************************************
+!
       SUBROUTINE TXMENU
-C
+
       INCLUDE 'txcomm.inc'
-C
-      CHARACTER LINE*80,KID*1,KID2*1
-C
+
+      INTEGER :: ICONT, MODE, I
+      CHARACTER(80) :: LINE, KID*1, KID2*1
+
       IERR=0
       ICONT = 0
-C
-C     *** MENU ***
-C
+
+!     *** MENU ***
+
     1 CONTINUE
-C
+
       WRITE(6,'(3(A,1PD12.4))')
      &   ' ## TIME=',TIME,'  DT=',DT,'  TMAX =',TMAX
       WRITE(6,*) '## INPUT: ',
      &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH '//
      &   'S:SAVE  L:LOAD  I,N,Bn: Q:QUIT'
       CALL GUFLSH
-C
+
       CALL TXKLIN(LINE,KID,MODE)
       IF(MODE.NE.1) GOTO 1
-C
+
   100 IF      (KID .EQ. 'R') THEN
          TIME = 0.D0
          TPRE = 0.D0
@@ -87,26 +88,26 @@ C
          WRITE(6,*) 'XX Unknown command'
       ENDIF
       GOTO 1
-C
+
  9000 RETURN
       END
-C
-C     ***** INPUT KID or LINE *****
-C                   MODE=0: LINE INPUT 
-C                        1: KID INPUT
-C                        2: PARM INPUT
-C                        3: NEW PROMPT
-C
+
+!     ***** INPUT KID or LINE *****
+!                   MODE=0: LINE INPUT 
+!                        1: KID INPUT
+!                        2: PARM INPUT
+!                        3: NEW PROMPT
+
       SUBROUTINE TXKLIN(LINE,KID,MODE)
-C
+
       CHARACTER LINE*80,KID*1
-C
-C     ----- read line input input -----
-C
+
+!     ----- read line input input -----
+
       READ(5,'(A80)',ERR=2,END=3) LINE
-C
-C     ----- parameter input -----
-C
+
+!     ----- parameter input -----
+
       ID=0
       DO I=1,80
          IF(LINE(I:I).EQ.'=') ID=1
@@ -117,30 +118,30 @@ C
          MODE=2
          RETURN
       ENDIF
-C
-C     ----- command input -----
-C
+
+!     ----- command input -----
+
       KID=LINE(1:1)
       CALL GUCPTL(KID)
       IF(KID.GE.'A'.AND.KID.LE.'Z') THEN
          MODE=1
          RETURN
       ENDIF
-C
-C     ----- line input -----
-C
+
+!     ----- line input -----
+
       KID=' '
       MODE=0
       RETURN
-C
-C     ----- input error -----
-C
+
+!     ----- input error -----
+
     2 WRITE(6,*) 'XX INPUT ERROR !'
       MODE=3
       RETURN
-C
-C     ----- input end -----
-C
+
+!     ----- input end -----
+
     3 KID='Q'
       MODE=1
       RETURN

@@ -1,427 +1,428 @@
-C     $Id$
-C
-C     ***************************************************************
-C
-C        Calculate ALC, BLC, CLC, PLC
-C
-C     ***************************************************************
-C
+!     $Id$
+!
+!     ***************************************************************
+!
+!        Calculate ALC, BLC, CLC, PLC
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCALA
-C
+
       INCLUDE 'txcomm.inc'
-C
-      DO NR = 0, NRMAX
-         DO NQ = 1, NQMAX
-            DO NC = 0, NCM
-                ALC(NC,NQ,NR) = 0.D0
-                BLC(NC,NQ,NR) = 0.D0
-                CLC(NC,NQ,NR) = 0.D0
-                NLC(NC,NQ,NR) = 1
-            ENDDO
-         ENDDO
-      ENDDO
-C
-      DO NR = 0, NRMAX
-         DO NQ = 1, NQMAX
-            DO NC = 1, NCM
-               PLC(NC,NQ,NR) = 0.D0
-            ENDDO
-         ENDDO
-      ENDDO
-C
-      DO NQ = 1, NQMAX
-         NLCMAX(NQ) = 0
-      ENDDO
-C
-C     Maxwell
-C
+
+      ALC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
+      BLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
+      CLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
+      NLC(0:NCM,1:NQMAX,0:NRMAX) = 1
+      PLC(1:NCM,1:NQMAX,0:NRMAX) = 0.D0
+      NLCMAX(1:NQM) = 0.D0
+
+!     Maxwell
+
       CALL LQm1CC
       CALL LQm2CC
       CALL LQm3CC
       CALL LQm4CC
       CALL LQm5CC
-C
-C     Electron
-C
+
+!     Electron
+
       CALL LQe1CC
       CALL LQe2CC
       CALL LQe3CC
       CALL LQe4CC
       CALL LQe5CC
-C
-C     Ion
-C
+
+!     Ion
+
       CALL LQi1CC
       CALL LQi2CC
       CALL LQi3CC
       CALL LQi4CC
       CALL LQi5CC
-C
-C     Beam
-C
+
+!     Beam
+
       CALL LQb1CC
       CALL LQb3CC
       CALL LQb4CC
-C
-C     Neutral
-C
+
+!     Neutral
+
       CALL LQn1CC
       CALL LQn2CC
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Poisson Equation  (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Poisson Equation  (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQm1CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Er(0) = 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: FACTOR
+! Er(0) = 0
+
       NR = 0
           BLC(1,LQm1,NR) = 1.D0
           NLC(1,LQm1,NR) = LQm1
-C
+
       FACTOR = EPS0 / (AEE * 1.D20)
-C
-CCC      DO NR = 1, NRMAX-1
+
+!!!      DO NR = 1, NRMAX-1
       DO NR = 1, NRMAX
           BLC(1,LQm1,NR) =  FACTOR * R(NR  ) / (DR * RHI(NR-1))
           CLC(1,LQm1,NR) = -FACTOR * R(NR-1) / (DR * RHI(NR-1))
           NLC(1,LQm1,NR) = LQm1
-C
+!
           CLC(2,LQm1,NR) = 1.D0
           NLC(2,LQm1,NR) = LQe1
-C
+!
           CLC(3,LQm1,NR) = - PZ
           NLC(3,LQm1,NR) = LQi1
-C
+!
           CLC(4,LQm1,NR) = - PZ
           NLC(4,LQm1,NR) = LQb1
       ENDDO
-CCC
-CCC      NR = NRMAX
-CCC          BLC(1,LQm1,NR) = 1.D0
-CCC          NLC(1,LQm1,NR) = LQm1
-C
+!!!
+!!!      NR = NRMAX
+!!!          BLC(1,LQm1,NR) = 1.D0
+!!!          NLC(1,LQm1,NR) = LQm1
+!
       NLCMAX(LQm1) = 4
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ampere's Law: Eth (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ampere's Law: Eth (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQm2CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Etheta(0) : 0
-C
+      
+      INTEGER :: NR
+! Etheta(0) : 0
+
       NR = 0
           BLC(1,LQm2,NR) = 1.D0
           NLC(1,LQm2,NR) = LQm2
-C
+
       DO NR = 1, NRMAX - 1
           BLC(0,LQm2,NR) = 1.D0 / (VC**2 * DT)
           NLC(0,LQm2,NR) = LQm2
-C
-C rot Bphi
-C
+
+! rot Bphi
+
           BLC(1,LQm2,NR) = - 1.D0 / DR
           CLC(1,LQm2,NR) =   1.D0 / DR
           NLC(1,LQm2,NR) = LQm5
-C
-C Electron current
-C
+
+! Electron current
+
           BLC(2,LQm2,NR) =   rMU0 *      AEE * 1.D20 
           NLC(2,LQm2,NR) = LQe3
-C
-C Ion current
-C
+
+! Ion current
+
           BLC(3,LQm2,NR) = - rMU0 * PZ * AEE * 1.D20
           NLC(3,LQm2,NR) = LQi3
-C
-C Beam ion current
-C
+
+! Beam ion current
+
           BLC(4,LQm2,NR) = - rMU0 * PZ * AEE * 1.D20
           NLC(4,LQm2,NR) = LQb3
       ENDDO
-C
-C Etheta(NRMAX) : r * Etheta = const.
-C
+
+! Etheta(NRMAX) : r * Etheta = const.
+
       NR = NRMAX
           BLC(1,LQm2,NR) = R(NR)
           CLC(1,LQm2,NR) =-R(NR-1)
           NLC(1,LQm2,NR) = LQm2
-C
+
       NLCMAX(LQm2) = 4
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ampere's Law: Ephi (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ampere's Law: Ephi (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQm3CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+      
+      INTEGER :: NR
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQm3,NR) = 1.D0 / (VC**2 * DT)
           NLC(0,LQm3,NR) = LQm3
-C
-C rot Btheta
-C
+
+! rot Btheta
+
           ALC(1,LQm3,NR) =   R(NR+1) / (DR * RHI(NR))
           BLC(1,LQm3,NR) = - R(NR  ) / (DR * RHI(NR))
           NLC(1,LQm3,NR) = LQm4
-C
-C Electron current
-C
+
+! Electron current
+
           BLC(2,LQm3,NR) =   rMU0 *      AEE * 1.D20
           NLC(2,LQm3,NR) = LQe4
-C
-C Ion current
-C
+
+! Ion current
+
           BLC(3,LQm3,NR) = - rMU0 * PZ * AEE * 1.D20
           NLC(3,LQm3,NR) = LQi4
-C
-C Beam ion current
-C
+
+! Beam ion current
+
           BLC(4,LQm3,NR) = - rMU0 * PZ * AEE * 1.D20
           NLC(4,LQm3,NR) = LQb4
-C
-C Virtual current for helical sysytem
-C
+
+! Virtual current for helical sysytem
+
           PLC(5,LQm3,NR) = - rMU0 * AJV(NR)
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQm3,NR) = 1.D0
           NLC(1,LQm3,NR) = LQm3
-C
+
       NLCMAX(LQm3) = 5
       RETURN
       END
-C
-C     **************************************************************
-C
-C        Faraday's Law : Btheta (NR)
-C
-C     ***************************************************************
-C
+!
+!     **************************************************************
+!
+!        Faraday's Law : Btheta (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQm4CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Btheta(0) : 0
-C
+      
+      INTEGER :: NR
+
+! Btheta(0) : 0
+
       NR = 0
           BLC(1,LQm4,NR) = 1.D0
           NLC(1,LQm4,NR) = LQm4
-C
+
       DO NR = 1, NRMAX - 1
           BLC(0,LQm4,NR) = 1.D0 / DT
           NLC(0,LQm4,NR) = LQm4
-C
-C rot Ephi
-C
+
+! rot Ephi
+
           BLC(1,LQm4,NR) =   1.D0 / DR
           CLC(1,LQm4,NR) = - 1.D0 / DR
           NLC(1,LQm4,NR) = LQm3
       ENDDO
-C
-C Btheta(NRMAX) : fixed
-C
+
+! Btheta(NRMAX) : fixed
+
       NR = NRMAX
           BLC(1,LQm4,NR) = 1.D0
           NLC(1,LQm4,NR) = LQm4
-C
+
           PLC(2,LQm4,NR) = - Bthb
-C
+
       NLCMAX(LQm4) = 2
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Fraday's Law : Bphi (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Fraday's Law : Bphi (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQm5CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+      
+      INTEGER :: NR
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQm5,NR) = 1.D0 / DT
           NLC(0,LQm5,NR) = LQm5
-C
-C rot Etheta
-C
+
+! rot Etheta
+
           ALC(1,LQm5,NR) = - R(NR+1) / (DR * RHI(NR))
           BLC(1,LQm5,NR) =   R(NR  ) / (DR * RHI(NR))
           NLC(1,LQm5,NR) = LQm2
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQm5,NR) = 1.D0
           NLC(1,LQm5,NR) = LQm5
-C
+
       NLCMAX(LQm5) = 1
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Electron Density Equation (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Electron Density Equation (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQe1CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQe1,NR) = 1.D0 / DT
           NLC(0,LQe1,NR) = LQe1
-C
-C Convection
-C
+
+! Convection
+
           ALC(1,LQe1,NR) = - R(NR+1) / (RHI(NR) * DR)
           BLC(1,LQe1,NR) = + R(NR  ) / (RHI(NR) * DR)
           NLC(1,LQe1,NR) = LQe2
-C
-C Ionization of n01 and n02
-C
+
+! Ionization of n01 and n02
+
           BLC(2,LQe1,NR) = rNuION(NR) 
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQe1,NR) = LQn1
-C
+
           BLC(3,LQe1,NR) = rNuION(NR) 
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(3,LQe1,NR) = LQn2
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           BLC(4,LQe1,NR) = - rNuL(NR)
           NLC(4,LQe1,NR) = LQe1
-C
+
           PLC(5,LQe1,NR) =   rNuL(NR) * PNeDIV
-C
+
       ENDDO
-C
-C     OUT OF REGION
-C
+
+!     OUT OF REGION
+
       NR = NRMAX
           BLC(1,LQe1,NR) = 1.D0
           NLC(1,LQe1,NR) = LQe1
-C
+
       NLCMAX(LQe1) = 5
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Electron Radial Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Electron Radial Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQe2CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ns*Usr(0) : fixed
-C
+
+      INTEGER :: NR
+
+! Ns*Usr(0) : fixed
+
       NR = 0
           BLC(1,LQe2,NR) = 1.D0
           NLC(1,LQe2,NR) = LQe2
-C
+
       DO NR = 1, NRMAX-1
           BLC(0,LQe2,NR) = 1.D0 / DT
           NLC(0,LQe2,NR) = LQe2
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQe2,NR) = - RHI(NR  ) * UerHI(NR  ) / (2 * R(NR) * DR)
           BLC(1,LQe2,NR) = - RHI(NR  ) * UerHI(NR  ) / (2 * R(NR) * DR)
      &                     + RHI(NR-1) * UerHI(NR-1) / (2 * R(NR) * DR)
           CLC(1,LQe2,NR) = + RHI(NR-1) * UerHI(NR-1) / (2 * R(NR) * DR)
           NLC(1,LQe2,NR) = LQe2
-C
-C Nonlinear centrifugal force
-C
+
+! Nonlinear centrifugal force
+
           BLC(2,LQe2,NR) = UethI(NR) / R(NR)
           NLC(2,LQe2,NR) = LQe3
-C
-C Pressure gradient force
-C
+
+! Pressure gradient force
+
           BLC(3,LQe2,NR) = - rKeV / (AME * DR)
           CLC(3,LQe2,NR) = + rKeV / (AME * DR)
           NLC(3,LQe2,NR) = LQe5
-C
-C Radial E force
-C
+
+! Radial E force
+
           BLC(4,LQe2,NR) = - PNeI(NR) * (AEE/AME)
           NLC(4,LQe2,NR) = LQm1
-C
-C v x B force
-C
+
+! v x B force
+
           BLC(5,LQe2,NR) = - BphI(NR) * (AEE/AME)
           NLC(5,LQe2,NR) = LQe3
-C
+
           BLC(6,LQe2,NR) =   BthI(NR) * (AEE/AME) / 2
           CLC(6,LQe2,NR) =   BthI(NR) * (AEE/AME) / 2
           NLC(6,LQe2,NR) = LQe4
-C
+
       ENDDO
-C
-C Ns*Usr(NRMAX) : fixed or finite gradient
-C
+
+! Ns*Usr(NRMAX) : fixed or finite gradient
+
       NR = NRMAX
           BLC(1,LQe2,NR) = 1.D0
           NLC(1,LQe2,NR) = LQe2
-C
+
       NLCMAX(LQe2) = 6
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Electron Poloidal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Electron Poloidal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQe3CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ns*UsTheta(0) : 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, TMP, FWthiL,
+     &           rNuLL, rNu0eL, rNueHLL
+
+! Ns*UsTheta(0) : 0
+
       NR = 0
           BLC(1,LQe3,NR) = 1.D0
           NLC(1,LQe3,NR) = LQe3
-C
+
       DO NR = 1, NRMAX - 1
           BLC(0,LQe3,NR) = 1.D0 / DT
           NLC(0,LQe3,NR) = LQe3
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  )
      &                       / (2 * R(NR)**2 * DR)
           BLC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  )
@@ -431,9 +432,9 @@ C
           CLC(1,LQe3,NR) = + RHI(NR-1)**2 * UerHI(NR-1)
      &                       / (2 * R(NR)**2 * DR)
           NLC(1,LQe3,NR) = LQe3
-C
-C Viscosity force
-C
+
+! Viscosity force
+
          IF (NR .EQ. 1) THEN
              ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  )
      &                       / (PNeI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
@@ -450,123 +451,126 @@ C
      &                       / (PNeI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
          ENDIF
           NLC(2,LQe3,NR) = LQe3
-C
-C Poloidal E force
-C
+
+! Poloidal E force
+
           BLC(3,LQe3,NR) = - PNeI(NR) * (AEE/AME)
           NLC(3,LQe3,NR) = LQm2
-C
-C v x B force
-C
+
+! v x B force
+
           BLC(4,LQe3,NR) = BphI(NR) * (AEE/AME)
           NLC(4,LQe3,NR) = LQe2
-C
-C Neoclassical viscosity force
-C
+
+! Neoclassical viscosity force
+
           rNueNCL = 0.5D0 * (rNueNC(NR) + rNueNC(NR-1))
           BLC(5,LQe3,NR) = - rNueNCL
           NLC(5,LQe3,NR) = LQe3
-C
-C Collisional friction force with ions
-C
+
+! Collisional friction force with ions
+
           rNueiL = 0.5D0 * (rNuei(NR) + rNuei(NR-1))
           BLC(6,LQe3,NR) = - rNueiL
           NLC(6,LQe3,NR) = LQe3
-C
+
           BLC(7,LQe3,NR) = + rNueiL * PNeI(NR) / PNiI(NR)
           NLC(7,LQe3,NR) = LQi3
-C
-C Collisional friction with beam ions
-C
+
+! Collisional friction with beam ions
+
           rNubeL = 0.5D0 * (rNube(NR) + rNube(NR-1))
           BLC(8,LQe3,NR) = - (AMB/AME) * rNubeL * PNbI(NR) / PNeI(NR)
           NLC(8,LQe3,NR) = LQe3
-C
+
           BLC(9,LQe3,NR) =   (AMB/AME) * rNubeL
           NLC(9,LQe3,NR) = LQb3
-C
-C Wave interaction force (electron driven)
-C
-         FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-           WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
+
+! Wave interaction force (electron driven)
+
+          FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
+          WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
           BLC(10,LQe3,NR) = - FWtheL / AME
           NLC(10,LQe3,NR) = LQe3
-C
-         TMP =   FWtheL * WPML * R(NR) / AME
+
+          TMP =   FWtheL * WPML * R(NR) / AME
           BLC(11,LQe3,NR) = TMP / 2
           CLC(11,LQe3,NR) = TMP / 2
           NLC(11,LQe3,NR) = LQe1
-C
-C Wave interaction force (NRon driven)
-C
-         FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
+
+! Wave interaction force (NRon driven)
+
+          FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
           BLC(12,LQe3,NR) =   FWthiL / AME
           NLC(12,LQe3,NR) = LQi3
-C
-         TMP = - FWthiL * WPML * R(NR) / AME
+
+          TMP = - FWthiL * WPML * R(NR) / AME
           BLC(13,LQe3,NR) = TMP / 2
           CLC(13,LQe3,NR) = TMP / 2
           NLC(13,LQe3,NR) = LQi1
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           rNuLL = 0.5D0 * (rNuL(NR) + rNuL(NR-1))
           BLC(14,LQe3,NR) = - 2.D0 * rNuLL
           NLC(14,LQe3,NR) = LQe3
-C
-C Collisional friction force with neutrals
-C
+
+! Collisional friction force with neutrals
+
           rNu0eL = 0.5D0 * (rNu0e(NR) + rNu0e(NR-1))
           BLC(15,LQe3,NR) = - rNu0eL
           NLC(15,LQe3,NR) = LQe3
-C
-C Helical Neoclassical viscosity force
-C
+
+! Helical Neoclassical viscosity force
+
           rNueHLL =rNueHL(NR)
           BLC(16,LQe3,NR) = - rNueHLL*(1.D0-UHth*UHth)
           NLC(16,LQe3,NR) = LQe3
           BLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2
           CLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2
           NLC(17,LQe3,NR) = LQe4
-C
+
       ENDDO
-C
-C Ns*UsTheta(NRMAX) : 0
-C
+
+! Ns*UsTheta(NRMAX) : 0
+
       NR = NRMAX
           BLC(1,LQe3,NR) = 1
           NLC(1,LQe3,NR) = LQe3
-C
+
       NLCMAX(LQe3) = 17
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Electron Toroidal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Electron Toroidal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQe4CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Uephi(0)' : 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: rMueP, rMueM, rNueHLL
+
+! Uephi(0)' : 0
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQe4,NR) = 1.D0 / DT
           NLC(0,LQe4,NR) = LQe4
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQe4,NR) = - R(NR+1) * UerI(NR+1) / (2 * RHI(NR) * DR)
           BLC(1,LQe4,NR) = - R(NR+1) * UerI(NR+1) / (2 * RHI(NR) * DR)
      &                    + R(NR  ) * UerI(NR  ) / (2 * RHI(NR) * DR)
           CLC(1,LQe4,NR) = + R(NR  ) * UerI(NR  ) / (2 * RHI(NR) * DR)
           NLC(1,LQe4,NR) = LQe4
-C
-C Viscosity force
-C
+
+! Viscosity force
+
          IF(NR.EQ.0) THEN
              rMueP = 0.5D0*(rMue(NR) + rMue(NR+1))
              rMueM =        rMue(NR)
@@ -602,94 +606,97 @@ C
      &                    / (PNeHI(NR-1) * RHI(NR) * DR**2)
           ENDIF
           NLC(2,LQe4,NR) = LQe4
-C
-C Toroidal E force
-C
+
+! Toroidal E force
+
           BLC(3,LQe4,NR) = - PNeHI(NR  ) * (AEE/AME)
           NLC(3,LQe4,NR) = LQm3
-C
-C v x B force
-C
+
+! v x B force
+
           ALC(4,LQe4,NR) = - BthI(NR+1) * (AEE/AME) / 2
           BLC(4,LQe4,NR) = - BthI(NR  ) * (AEE/AME) / 2
           NLC(4,LQe4,NR) = LQe2
-C
-C Collisional friction with bulk ions
-C
+
+! Collisional friction with bulk ions
+
           BLC(5,LQe4,NR) = - rNuei(NR)
           NLC(5,LQe4,NR) = LQe4
-C
+
           BLC(6,LQe4,NR) = + rNuei(NR) * PNeI(NR) / PNiI(NR)
           NLC(6,LQe4,NR) = LQi4
-C
-C Collisional friction with beam ions
-C
+
+! Collisional friction with beam ions
+
           BLC(7,LQe4,NR) = - (AMB/AME) * rNube(NR) * PNbI(NR) / PNeI(NR)
           NLC(7,LQe4,NR) = LQe4
-C
+
           BLC(8,LQe4,NR) =   (AMB/AME) * rNube(NR)
           NLC(8,LQe4,NR) = LQb4
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           BLC(9,LQe4,NR) = - 2.D0 * rNuL(NR)
           NLC(9,LQe4,NR) = LQe4
-C
-C Collisional friction force with neutrals
-C
+
+! Collisional friction force with neutrals
+
           BLC(10,LQe4,NR) = - rNu0e(NR)
           NLC(10,LQe4,NR) = LQe4
-C
-C Helical Neoclassical viscosity force
-C
+
+! Helical Neoclassical viscosity force
+
           rNueHLL = 0.5D0 * (rNueHL(NR) + rNueHL(NR+1))
           ALC(11,LQe4,NR) =   rNueHL(NR+1)*UHth*UHph/2
           BLC(11,LQe4,NR) =   rNueHL(NR  )*UHth*UHph/2
           NLC(11,LQe4,NR) = LQe3
           BLC(12,LQe4,NR) = - rNueHLL*(1.D0-UHph*UHph)
           NLC(12,LQe4,NR) = LQe4
-C
+
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQe4,NR) = 1.D0
           NLC(1,LQe4,NR) = LQe4
-C
+
       NLCMAX(LQe4) = 12
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Electron Energy Transport: Te (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Electron Energy Transport: Te (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQe5CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Fixed Temperature
-C
+
+      INTEGER :: NR
+      REAL(8) :: ChieLP, ChieLM
+
+! Fixed Temperature
+
       IF (ABS(Chie0) .EQ. 0.D0) THEN
          DO NR = 0, NRMAX
              BLC(0,LQe5,NR) = 1.D0
              NLC(0,LQe5,NR) = LQe5
          ENDDO
-C
+
          NLCMAX(LQe5) = 0
       ELSE
-C
-C Temperature evolution
-C
+
+! Temperature evolution
+
          DO NR = 0, NRMAX - 1
              BLC(0,LQe5,NR) = 1.5D0 / DT
              NLC(0,LQe5,NR) = LQe5
-C
-C Convection transport
-C
+
+! Convection transport
+
             IF (NR.EQ.0) THEN
                ALC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
      &                            / (2 * RHI(NR) * DR)
@@ -715,9 +722,9 @@ C
      &                            / (2 * RHI(NR) * DR)
             ENDIF
              NLC(1,LQe5,NR) = LQe5
-C
-C Conduction transport
-C
+
+! Conduction transport
+
             IF (NR.EQ.0) THEN
                ChieLP = 0.5D0 * (Chie(NR) + Chie(NR+1))
                 ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
@@ -748,206 +755,214 @@ C
      &                          / (RHI(NR) * PNeHI(NR-1))
             ENDIF
              NLC(2,LQe5,NR) = LQe5
-C
-C Joule heating
-C
+
+! Joule heating
+
              ALC(3,LQe5,NR) = - AEE * EthI(NR+1) / (2 * rKeV)
              BLC(3,LQe5,NR) = - AEE * EthI(NR  ) / (2 * rKeV)
              NLC(3,LQe5,NR) = LQe3
-C
+
              BLC(4,LQe5,NR) = - AEE * EphHI(NR) / rKeV
              NLC(4,LQe5,NR) = LQe4
-C
-C Collisional transfer with ions
-C
+
+! Collisional transfer with ions
+
              BLC(5,LQe5,NR) = - rNuTei(NR)
              NLC(5,LQe5,NR) = LQe5
-C
+
              BLC(6,LQe5,NR) =   rNuTei(NR) * (PNeHI(NR)/PNiHI(NR))
              NLC(6,LQe5,NR) = LQi5
-C
-C Collisional heating with beam
-C
+
+! Collisional heating with beam
+
              BLC(7,LQe5,NR) = - AMb * Vb * rNube(NR) / (2 * rKeV)
      &                       * (PNbHI(NR) / PNeHI(NR))
              NLC(7,LQe5,NR) = LQe4
-C
+
              BLC(8,LQe5,NR) =   AMb * Vb * rNube(NR) / (2 * rKeV)
              NLC(8,LQe5,NR) = LQb4
-C
-C Loss to diverter
-C
+
+! Loss to diverter
+
              BLC(9,LQe5,NR) = - 2.5D0 * rNuL(NR)
              NLC(9,LQe5,NR) = LQe5
-C
+
              PLC(10,LQe5,NR) =  2.5D0 * rNuL(NR) * PNeHI(NR) * PTeDIV
-C
-C Direct heating (RF)
-C
+
+! Direct heating (RF)
+
              PLC(11,LQe5,NR) =  PRFe(NR) / (1.D20 * rKeV)
          ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
          NR = NRMAX
              BLC(1,LQe5,NR) = 1.D0
              NLC(1,LQe5,NR) = LQe5
-C
+
          NLCMAX(LQe5) = 11
       ENDIF
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ion Density Equation (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ion Density Equation (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQi1CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQi1,NR) = 1.D0 / DT
           NLC(0,LQi1,NR) = LQi1
-C
-C Convection
-C
+
+! Convection
+
           ALC(1,LQi1,NR) = - R(NR+1) / (RHI(NR) * DR)
           BLC(1,LQi1,NR) = + R(NR  ) / (RHI(NR) * DR)
           NLC(1,LQi1,NR) = LQi2
-C
-C Ionization of n01 and n02
-C
+
+! Ionization of n01 and n02
+
           BLC(2,LQi1,NR) = rNuION(NR) / PZ
      &                   * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQi1,NR) = LQn1
-C
+
           BLC(3,LQi1,NR) = rNuION(NR) / PZ
      &                   * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(3,LQi1,NR) = LQn2
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           BLC(4,LQi1,NR) = - rNuL(NR) / PZ
           NLC(4,LQi1,NR) = LQe1
-C
+
           PLC(5,LQi1,NR) =   rNuL(NR) * PNeDIV / PZ
-C
-C Particle source from beam ion
-C
+
+! Particle source from beam ion
+
           BLC(6,LQi1,NR) = rNuB(NR)
           NLC(6,LQi1,NR) = LQb1
-C
-C NBI kick up ions
-C
+
+! NBI kick up ions
+
          PLC(7,LQi1,NR) = - SNB(NR)
-C
-C Loss cone loss
-C
+
+! Loss cone loss
+
          PLC(8,LQi1,NR) = SiLC(NR)
-C
+
       ENDDO
-C
-C     OUT OF REGION
-C
+
+!     OUT OF REGION
+
       NR = NRMAX
           BLC(1,LQi1,NR) = 1.D0
           NLC(1,LQi1,NR) = LQi1
-C
+
       NLCMAX(LQi1) = 8
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ion Radial Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ion Radial Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQi2CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ns*Usr(0) : fixed
-C
+
+      INTEGER :: NR
+
+! Ns*Usr(0) : fixed
+
       NR = 0
           BLC(1,LQi2,NR) = 1.D0
           NLC(1,LQi2,NR) = LQi2
-C
+
       DO NR = 1, NRMAX-1
-C
+
           BLC(0,LQi2,NR) = 1.D0 / DT
           NLC(0,LQi2,NR) = LQi2
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQi2,NR) = - RHI(NR  ) * UirHI(NR  ) / (2 * R(NR) * DR)
           BLC(1,LQi2,NR) = - RHI(NR  ) * UirHI(NR  ) / (2 * R(NR) * DR)
      &                    + RHI(NR-1) * UirHI(NR-1) / (2 * R(NR) * DR)
           CLC(1,LQi2,NR) = + RHI(NR-1) * UirHI(NR-1) / (2 * R(NR) * DR)
           NLC(1,LQi2,NR) = LQi2
-C
-C Nonlinear centrifugal force
-C
+
+! Nonlinear centrifugal force
+
           BLC(2,LQi2,NR) = UithI(NR) / R(NR)
           NLC(2,LQi2,NR) = LQi3
-C
-C Pressure gradient force
-C
+
+! Pressure gradient force
+
           BLC(3,LQi2,NR) = - rKEV / (AMI * DR)
           CLC(3,LQi2,NR) = + rKEV / (AMI * DR)
           NLC(3,LQi2,NR) = LQi5
-C
-C Radial E force
-C
+
+! Radial E force
+
           BLC(4,LQi2,NR) =   PZ * PNiI(NR) * (AEE/AMI)
           NLC(4,LQi2,NR) = LQm1
-C
-C v x B force
-C
+
+! v x B force
+
           BLC(5,LQi2,NR) =   PZ * BphI(NR) * (AEE/AMI)
           NLC(5,LQi2,NR) = LQi3
-C
+
           BLC(6,LQi2,NR) = - PZ * BthI(NR) * (AEE/AMI) / 2
           CLC(6,LQi2,NR) = - PZ * BthI(NR) * (AEE/AMI) / 2
           NLC(6,LQi2,NR) = LQi4
       ENDDO
-C
-C Ns*Usr(NRMAX) : fixed or finite gradient
-C
+
+! Ns*Usr(NRMAX) : fixed or finite gradient
+
       NR = NRMAX
           BLC(1,LQi2,NR) = 1.D0
           NLC(1,LQi2,NR) = LQi2
-C
+
       NLCMAX(LQi2) = 6
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ion Poloidal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ion Poloidal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQi3CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ni*UiTheta(0) : 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, TMP, FWthiL,
+     &           rNuLL, rNu0iL, rNuiCXL, SiLCthL, rNuiHLL
+
+! Ni*UiTheta(0) : 0
+
       NR = 0
           BLC(1,LQi3,NR) = 1.D0
           NLC(1,LQi3,NR) = LQi3
-C
+
       DO NR = 1, NRMAX - 1
-C
+
           BLC(0,LQi3,NR) = 1.D0 / DT
           NLC(0,LQi3,NR) = LQi3
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  )
      &                    / (2 * R(NR)**2 * DR)
           BLC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  )
@@ -957,9 +972,9 @@ C
           CLC(1,LQi3,NR) = + RHI(NR-1)**2 * UirHI(NR-1)
      &                    / (2 * R(NR)**2 * DR)
           NLC(1,LQi3,NR) = LQi3
-C
-C Viscosity force
-C
+
+! Viscosity force
+
          IF (NR .EQ. 1) THEN
              ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  )
      &                      / (PNiI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
@@ -976,89 +991,89 @@ C
      &                      / (PNiI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
          ENDIF
           NLC(2,LQi3,NR) = LQi3
-C
-C Poroidal E force
-C
+
+! Poroidal E force
+
           BLC(3,LQi3,NR) = PZ * PNiI(NR  ) * (AEE/AMI)
           NLC(3,LQi3,NR) = LQm2
-C
-C v x B force
-C
+
+! v x B force
+
           BLC(4,LQi3,NR) = - PZ * BphI(NR) * (AEE/AMI)
           NLC(4,LQi3,NR) = LQi2
-C
-C Neoclassical viscosity force
-C
+
+! Neoclassical viscosity force
+
           rNuiNCL = 0.5D0 * (rNuiNC(NR) + rNuiNC(NR-1))
           BLC(5,LQi3,NR) = - rNuiNCL
           NLC(5,LQi3,NR) = LQi3
-C
-C Collisional friction force
-C
+
+! Collisional friction force
+
           rNueiL = 0.5D0 * (rNuei(NR) + rNuei(NR-1))
           BLC(6,LQi3,NR) = - (AME/AMI) * rNueiL * PNeI(NR) / PNiI(NR)
           NLC(6,LQi3,NR) = LQi3
-C
+
           BLC(7,LQi3,NR) =   (AME/AMI) * rNueiL
           NLC(7,LQi3,NR) = LQe3
-C
-C Collisional friction with beam ions
-C
+
+! Collisional friction with beam ions
+
           rNubiL = 0.5D0 * (rNubi(NR) + rNubi(NR-1))
           BLC(8,LQi3,NR) = - (AMB/AMI) * rNubiL * PNbI(NR) / PNiI(NR)
           NLC(8,LQi3,NR) = LQi3
-C
+
           BLC(9,LQi3,NR) =   (AMB/AMI) * rNubiL
           NLC(9,LQi3,NR) = LQb3
-C
-C Wave interaction force (electron driven)
-C
-         FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-           WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
+
+! Wave interaction force (electron driven)
+
+          FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
+          WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
           BLC(10,LQi3,NR) = FWtheL / AMI
           NLC(10,LQi3,NR) = LQe3
-C
-         TMP = - FWtheL * WPML * R(NR) / AMI
+
+          TMP = - FWtheL * WPML * R(NR) / AMI
           BLC(11,LQi3,NR) = TMP / 2
           CLC(11,LQi3,NR) = TMP / 2
           NLC(11,LQi3,NR) = LQe1
-C
-C Wave interaction force (NRon driven)
-C
-         FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
+
+! Wave interaction force (NRon driven)
+
+          FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
           BLC(12,LQi3,NR) = - FWthiL / AMI
           NLC(12,LQi3,NR) = LQi3
-C
-         TMP = FWthiL * WPML * R(NR) / AMI
+
+          TMP = FWthiL * WPML * R(NR) / AMI
           BLC(13,LQi3,NR) = TMP / 2
           CLC(13,LQi3,NR) = TMP / 2
           NLC(13,LQi3,NR) = LQi1
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           rNuLL = 0.5D0 * (rNuL(NR) + rNuL(NR-1))
           BLC(14,LQi3,NR) = - 2.D0 * rNuLL
           NLC(14,LQi3,NR) = LQi3
-C
-C Collisional friction force with neutrals
-C
+
+! Collisional friction force with neutrals
+
           rNu0iL = 0.5D0 * (rNu0i(NR) + rNu0i(NR-1))
           BLC(15,LQi3,NR) = - rNu0iL
           NLC(15,LQi3,NR) = LQi3
-C
-C Charge exchange force
-C
+
+! Charge exchange force
+
           rNuiCXL = 0.5D0 * (rNuiCX(NR) + rNuiCX(NR-1))
           BLC(16,LQi3,NR) = - rNuiCXL
           NLC(16,LQi3,NR) = LQi3
-C
-C Loss cone loss
-C
+
+! Loss cone loss
+
           SiLCthL = 0.5D0 * (SiLCth(NR) + SiLCth(NR-1))
           PLC(17,LQi3,NR) = + SiLCthL
-C
-C Helical Neoclassical viscosity force
-C
+
+! Helical Neoclassical viscosity force
+
           rNuiHLL = rNuiHL(NR)
           BLC(18,LQi3,NR) = - rNuiHLL*(1.D0-UHth*UHth)
           NLC(18,LQi3,NR) = LQi3
@@ -1066,43 +1081,46 @@ C
           CLC(19,LQi3,NR) =   0.5D0*rNuiHLL*UHph*UHth
           NLC(19,LQi3,NR) = LQi4
       ENDDO
-C
-C Ns*UsTheta(NRMAX) : 0
-C
+
+! Ns*UsTheta(NRMAX) : 0
+
       NR = NRMAX
           BLC(1,LQi3,NR) = 1.D0
           NLC(1,LQi3,NR) = LQi3
-C
+
       NLCMAX(LQi3) = 19
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ion Toroidal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ion Toroidal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQi4CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Uiphi'(0) : 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: rMuiP, rMuiM, rNuiHLL
+
+! Uiphi'(0) : 0
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQi4,NR) = 1.D0 / DT
           NLC(0,LQi4,NR) = LQi4
-C
-C Nonlinear term
-C
+
+! Nonlinear term
+
           ALC(1,LQi4,NR) = - R(NR+1) * UirI(NR+1) / (2 * RHI(NR) * DR)
           BLC(1,LQi4,NR) = - R(NR+1) * UirI(NR+1) / (2 * RHI(NR) * DR)
      &                     + R(NR  ) * UirI(NR  ) / (2 * RHI(NR) * DR)
           CLC(1,LQi4,NR) = + R(NR  ) * UirI(NR  ) / (2 * RHI(NR) * DR)
           NLC(1,LQi4,NR) = LQi4
-C
-C Viscosity force
-C
+
+! Viscosity force
+
           IF(NR.EQ.0) THEN
              rMuiP = 0.5D0*(rMui(NR) + rMui(NR+1))
              rMuiM =        rMui(NR)
@@ -1138,102 +1156,105 @@ C
      &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
           ENDIF
           NLC(2,LQi4,NR) = LQi4
-C
-C Toroidal E force
-C
+
+! Toroidal E force
+
           BLC(3,LQi4,NR) = PZ * PNiHI(NR  ) * (AEE/AMI)
           NLC(3,LQi4,NR) = LQm3
-C
-C v x B force
-C
+
+! v x B force
+
           ALC(4,LQi4,NR) = PZ * BthI(NR+1) * (AEE/AMI) / 2
           BLC(4,LQi4,NR) = PZ * BthI(NR  ) * (AEE/AMI) / 2 
           NLC(4,LQi4,NR) = LQi2
-C
-C Collisional friction with bulk ions
-C
+
+! Collisional friction with bulk ions
+
           BLC(5,LQi4,NR) = - (AME/AMI) * rNuei(NR) * PNeI(NR) / PNiI(NR)
           NLC(5,LQi4,NR) = LQi4
-C
+
           BLC(6,LQi4,NR) =   (AME/AMI) * rNuei(NR)
           NLC(6,LQi4,NR) = LQe4
-C
-C Collisional friction with beam ions
-C
+
+! Collisional friction with beam ions
+
           BLC(7,LQi4,NR) = - (AMB/AMI) * rNubi(NR) * PNbI(NR) / PNiI(NR)
           NLC(7,LQi4,NR) = LQi4
-C
+
           BLC(8,LQi4,NR) =   (AMB/AMI) * rNubi(NR)
           NLC(8,LQi4,NR) = LQb4
-C
-C Loss to divertor
-C
+
+! Loss to divertor
+
           BLC(9,LQi4,NR) = - 2.D0 * rNuL(NR)
           NLC(9,LQi4,NR) = LQi4
-C
-C Collisional friction force with neutrals
-C
+
+! Collisional friction force with neutrals
+
           BLC(10,LQi4,NR) = - rNu0i(NR)
           NLC(10,LQi4,NR) = LQi4
-C
-C Charge exchange force
-C
+
+! Charge exchange force
+
           BLC(11,LQi4,NR) = - rNuiCX(NR)
           NLC(11,LQi4,NR) = LQi4
-C
-C Loss conde loss
-C
+
+! Loss conde loss
+
           PLC(12,LQi4,NR) = SiLCph(NR)
-C
-C Helical Neoclassical viscosity force
-C
+
+! Helical Neoclassical viscosity force
+
           rNuiHLL = 0.5D0 * (rNuiHL(NR) + rNuiHL(NR+1))
           ALC(13,LQi4,NR) =   rNuiHL(NR+1)*UHth*UHph/2
           BLC(13,LQi4,NR) =   rNuiHL(NR  )*UHth*UHph/2
           NLC(13,LQi4,NR) = LQi3
           BLC(14,LQi4,NR) = - rNuiHLL*(1.D0-UHph*UHph)
           NLC(14,LQi4,NR) = LQi4
-C
+
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQi4,NR) = 1.D0
           NLC(1,LQi4,NR) = LQi4
-C
+
       NLCMAX(LQi4) = 14
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Ion Energy Transport: Ti (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Ion Energy Transport: Ti (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQi5CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Fixed temperature
-C
+
+      INTEGER :: NR
+      REAL(8) :: ChiiLP, ChiiLM
+
+! Fixed temperature
+
       IF (ABS(Chii0) .EQ. 0.D0) THEN
          DO NR = 0, NRMAX
              BLC(0,LQi5,NR) = 1.D0
              NLC(0,LQi5,NR) = LQi5
          ENDDO
          NLCMAX(LQi5) = 0
-C
-C Temperature evolution
-C
+
+! Temperature evolution
+
       ELSE
          DO NR = 0, NRMAX-1
              BLC(0,LQi5,NR) = 1.5D0 / DT
              NLC(0,LQi5,NR) = LQi5
-C
-C Convection transport
-C
+
+! Convection transport
+
             IF (NR.EQ.0) THEN
                ALC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
      &                            / (2 * RHI(NR) * DR)
@@ -1259,9 +1280,9 @@ C
      &                            / (2 * RHI(NR) * DR)
             ENDIF
              NLC(1,LQi5,NR) = LQi5
-C
-C Conduction transport
-C
+
+! Conduction transport
+
             IF (NR.EQ.0) THEN
                ChiiLP = 0.5D0 * (Chii(NR) + Chii(NR+1))
                 ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
@@ -1292,149 +1313,156 @@ C
      &                          / (RHI(NR) * PNiHI(NR-1))
             ENDIF
              NLC(2,LQi5,NR) = LQi5
-C
-C Joule heating
-C
+
+! Joule heating
+
              ALC(3,LQi5,NR) =   PZ * AEE * EthI(NR+1) / (2 * rKeV)
              BLC(3,LQi5,NR) =   PZ * AEE * EthI(NR  ) / (2 * rKeV)
              NLC(3,LQi5,NR) = LQi3
-C
+
              BLC(4,LQi5,NR) =   PZ * AEE * EphHI(NR) / rKeV
              NLC(4,LQi5,NR) = LQi4
-C
-C Collisional transfer with electrons
-C
+
+! Collisional transfer with electrons
+
              BLC(5,LQi5,NR) = - rNuTei(NR) * PNeHI(NR) / PNiHI(NR)
              NLC(5,LQi5,NR) = LQi5
-C
+
              BLC(6,LQi5,NR) =   rNuTei(NR)
              NLC(6,LQi5,NR) = LQe5
-C
-C Collisional heating with beam
-C
+
+! Collisional heating with beam
+
              BLC(7,LQi5,NR) = - AMb * Vb * rNubi(NR) / (2 * rKeV)
      &                       * (PNbHI(NR) / PNiHI(NR))
              NLC(7,LQi5,NR) = LQi4
-C
+
              BLC(8,LQi5,NR) =   AMb * Vb * rNubi(NR) / (2 * rKeV)
              NLC(8,LQi5,NR) = LQb4
-C
-C Loss to diverter
-C
+
+! Loss to diverter
+
              BLC(9,LQi5,NR) = - 2.5D0 * rNuL(NR)
              NLC(9,LQi5,NR) = LQi5
-C
+
              PLC(10,LQi5,NR) =  2.5D0 * rNuL(NR) * PNiHI(NR) * PTiDIV
-C
-C Direct heating (RF)
-C
+
+! Direct heating (RF)
+
              PLC(11,LQi5,NR) =  PRFi(NR) / (1.D20 * rKeV)
          ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
          NR = NRMAX
              BLC(1,LQi5,NR) = 1.D0
              NLC(1,LQi5,NR) = LQi5
-C
+
          NLCMAX(LQi5) = 11
       ENDIF
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Beam Ion Density (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Beam Ion Density (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQb1CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+
       DO NR = 0, NRMAX - 1
           BLC(0,LQb1,NR) = 1.D0 / DT
           NLC(0,LQb1,NR) = LQb1
-C
-C NBI particle source
-C
+
+! NBI particle source
+
           PLC(1,LQb1,NR) = SNB(NR)
-C
-C Relaxation to thermal ions
-C
+
+! Relaxation to thermal ions
+
           BLC(2,LQb1,NR) = - rNuB(NR)
           NLC(2,LQb1,NR) = LQb1
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQb1,NR) = 1.D0
           NLC(1,LQb1,NR) = LQb1
-C
+
       NLCMAX(LQb1) = 2
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Beam Ion Poloidal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Beam Ion Poloidal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQb3CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ubth(0) : 0
-C
+
+      INTEGER :: NR
+
+! Ubth(0) : 0
+
       NR = 0
           BLC(1,LQb3,NR) = 1.D0
           NLC(1,LQb3,NR) = LQb3
-C
+
       DO NR = 1, NRMAX-1
-C
-C Nonlinear centrifugal force
-C
+
+! Nonlinear centrifugal force
+
           BLC(1,LQb3,NR) = UbthI(NR) / R(NR)
           NLC(1,LQb3,NR) = LQb3
-C
-C Radial E force
-C
+
+! Radial E force
+
           BLC(2,LQb3,NR) = PZ * PNbI(NR) * (AEE/AMB)
           NLC(2,LQb3,NR) = LQm1
-C
-C v x B force
-C
+
+! v x B force
+
           BLC(3,LQb3,NR) = PZ * BphI(NR) * (AEE/AMB)
           NLC(3,LQb3,NR) = LQb3
-C
+
           BLC(4,LQb3,NR) = - PZ * BthI(NR) * (AEE/AMB)
           NLC(4,LQb3,NR) = LQb4
       ENDDO
-C
-C Ubth(NRMAX) : 0
-C
+
+! Ubth(NRMAX) : 0
+
       NR = NRMAX
           BLC(1,LQb3,NR) = 1.D0
           NLC(1,LQb3,NR) = LQb3
-C
+
       NLCMAX(LQb3) = 4
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Beam Ion Toroildal Flow (NR)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Beam Ion Toroildal Flow (NR)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQb4CC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C Ubphi'(0) : 0
-C
+
+      INTEGER :: NR
+      REAL(8) :: SNBL
+
+! Ubphi'(0) : 0
+
       NR = 0
           IF (PNbI(0)*PNbI(1) .EQ. 0.D0) THEN
              ALC(1,LQb4,NR) = -1.D0
@@ -1444,59 +1472,62 @@ C
              BLC(1,LQb4,NR) =  1.D0 / PNbI(NR  )
           ENDIF
           NLC(1,LQb4,NR) = LQb4
-C
+
       DO NR = 1, NRMAX - 1
           BLC(0,LQb4,NR) = 1.D0 / DT
           NLC(0,LQb4,NR) = LQb4
-C
-C Collisional friction with electrons
-C
+
+! Collisional friction with electrons
+
           BLC(1,LQb4,NR) = - rNube(NR)
           NLC(1,LQb4,NR) = LQb4
-C
+
           BLC(2,LQb4,NR) =   rNube(NR) * PNbI(NR) / PNeI(NR)
           NLC(2,LQb4,NR) = LQe4
-C
-C Collisional friction with ions
-C
+
+! Collisional friction with ions
+
           BLC(3,LQb4,NR) = - rNubi(NR)
           NLC(3,LQb4,NR) = LQb4
-C
+
           BLC(4,LQb4,NR) =   rNubi(NR)
           NLC(4,LQb4,NR) = LQi4
-C
-C NBI momentum source
-C
+
+! NBI momentum source
+
          SNBL = 0.5D0 * (SNB(NR) + SNB(NR-1))
          PLC(5,LQb4,NR) = PNBCD * Vb * SNBL
       ENDDO
-C
-C Ubphi(NRMAX) : 0
-C
+
+! Ubphi(NRMAX) : 0
+
       NR = NRMAX
           BLC(1,LQb4,NR) = 1.D0
           NLC(1,LQb4,NR) = LQb4
-C
+
       NLCMAX(LQb4) = 5
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Slow Neutral Transport: n01 (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Slow Neutral Transport: n01 (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQn1CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+      REAL(8) :: D0LP, D0LM, rNuiCXL
+
       DO NR = 0, NRMAX-1
           BLC(0,LQn1,NR) = 1.D0 / DT
           NLC(0,LQn1,NR) = LQn1
-C
-C  Diffusion of neutrals
-C
+
+!  Diffusion of neutrals
+
          IF (NR.EQ.0) THEN
              D0LP = 0.5D0 * (D01(NR) + D01(NR+1))
              ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR*DR)
@@ -1516,15 +1547,15 @@ C
              CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR*DR)
          ENDIF
           NLC(1,LQn1,NR) = LQn1
-C
-C Ionization
-C
+
+! Ionization
+
           BLC(2,LQn1,NR) = - rNuION(NR) / PZ
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQn1,NR) = LQn1
-C
-C Generation of fast neutrals by charge exchange
-C
+
+! Generation of fast neutrals by charge exchange
+
          IF(NR.NE.0) THEN
              rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
      &                 + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2
@@ -1533,43 +1564,46 @@ C
          ENDIF
           BLC(3,LQn1,NR) = - rNuiCXL*PNiHI(NR)
           NLC(3,LQn1,NR) = LQn1
-C
-C Recycling from divertor
-C
+
+! Recycling from divertor
+
           BLC(4,LQn1,NR) =   rGamm0 * rNuL(NR) / PZ
           NLC(4,LQn1,NR) = LQe1
-C
+
           PLC(5,LQn1,NR) = - rGamm0 * rNuL(NR) * PneDIV / PZ
-C
+
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQn1,NR) = 1.D0
           NLC(1,LQn1,NR) = LQn1
-C
+
       NLCMAX(LQn1) = 5
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Fast Neutral Transport: n02 (HI)
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Fast Neutral Transport: n02 (HI)
+!
+!     ***************************************************************
+!
       SUBROUTINE LQn2CC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+      REAL(8) :: D0LP, D0LM, rNuiCXL
+
       DO NR = 0, NRMAX-1
           BLC(0,LQn2,NR) = 1.D0 / DT
           NLC(0,LQn2,NR) = LQn2
-C
-C  Diffusion of neutrals
-C
+
+!  Diffusion of neutrals
+
          IF (NR.EQ.0) THEN
              D0LP = 0.5D0 * (D02(NR) + D02(NR+1))
              ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR*DR)
@@ -1587,15 +1621,15 @@ C
              CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR*DR)
          ENDIF
           NLC(1,LQn2,NR) = LQn2
-C
-C Ionization
-C
+
+! Ionization
+
           BLC(2,LQn2,NR) = - rNuION(NR) / PZ
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQn2,NR) = LQn2
-C
-C Generation of fast neutrals by charge exchange
-C
+
+! Generation of fast neutrals by charge exchange
+
          IF(NR.NE.0) THEN
              rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
      &                 + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2
@@ -1604,20 +1638,20 @@ C
          ENDIF
           BLC(3,LQn2,NR) = rNuiCXL * PNiHI(NR)
           NLC(3,LQn2,NR) = LQn1
-C
-C NBI particle source
-C
+
+! NBI particle source
+
           PLC(4,LQn2,NR) = SNB(NR)
-C
+
       ENDDO
-C
-C Out of region
-C
+
+! Out of region
+
       NR = NRMAX
           BLC(1,LQn2,NR) = 1.D0
           NLC(1,LQn2,NR) = LQn2
-C
+
       NLCMAX(LQn2) = 4
-C
+
       RETURN
       END

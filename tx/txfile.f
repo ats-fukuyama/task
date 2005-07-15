@@ -1,20 +1,21 @@
-C     $Id$
-C
-C     ***************************************************************
-C
-C        Save transport data
-C
-C     ***************************************************************
-C
+!     $Id$
+!
+!     ***************************************************************
+!
+!        Save transport data
+!
+!     ***************************************************************
+!
       SUBROUTINE TXSAVE
-C
+
       INCLUDE 'txcomm.inc'
-C
-      CHARACTER TXFNAM*100, STR*1, RCSId*100
-      LOGICAL LEX
-C
+
+      INTEGER :: IST, NQ, NR, I, IGYT, IGYV
+      CHARACTER(100) :: TXFNAM, STR*1, RCSId
+      LOGICAL :: LEX
+
       RCSId = ' '
-C
+
    10 CONTINUE
       WRITE(6,*) '# INPUT : SAVE FILE NAME'
       CALL GUFLSH
@@ -42,11 +43,11 @@ C
          WRITE(6,*) 'XX  NEW FILE OPEN ERROR !, IOSTAT = ', IST
          GOTO 10
       ENDIF
-C
+
    40 CONTINUE
       WRITE(21) SLID
       WRITE(21) RCSId
-C
+
       WRITE(21) RA,RB,RR,BB
       WRITE(21) PA,PZ,Zeff
       WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -61,37 +62,38 @@ C
       WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
       WRITE(21) rG1
       WRITE(21) rIPs,rIPe
-C
+
       WRITE(21) DR,TIME,TMAX,NT,NQMAX,IERR
       WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
-C
+
       WRITE(21) NGT,NGYTM,NGYVM
       WRITE(21) (GTX(I), I=0, NGT)
       WRITE(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYTM)
       WRITE(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
       CLOSE(21)
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
-C
+
    50 CONTINUE
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Load transport data
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Load transport data
+!
+!     ***************************************************************
+!
       SUBROUTINE TXLOAD
-C
+
       INCLUDE 'txcomm.inc'
-C
-      CHARACTER TXFNAM*100, LOADSLID*8, RCSId*100
-      LOGICAL LEX
-C
-C tmp : NGYT
-C
+
+      INTEGER :: IST, NQ, NR, NGYT, NGYV, I, IGYT, IGYV
+      CHARACTER(100) ::  TXFNAM, LOADSLID*8, RCSId
+      LOGICAL :: LEX
+
+! tmp : NGYT
+
    10 CONTINUE
       WRITE(6,*) '# INPUT : LOAD FILE NAME'
       CALL GUFLSH
@@ -109,12 +111,12 @@ C
          WRITE(6,*) 'XX  FILE (', TXFNAM, ') DOES NOT EXIST !'
          GOTO 10
       ENDIF
-C
+
    30 CONTINUE
       READ(21,ERR=80) LOADSLID
-C      IF(LOADSLID(1:5).EQ.'tx210') THEN
+!      IF(LOADSLID(1:5).EQ.'tx210') THEN
          READ(21) RCSId
-C
+
          READ(21) RA,RB,RR,BB
          READ(21) PA,PZ,Zeff
          READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -129,18 +131,18 @@ C
          READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
          READ(21) rG1
          READ(21) rIPs,rIPe
-C
+
          READ(21) DR,TIME,TMAX,NT,NQMAX,IERR
          READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
-C
+
          READ(21) NGT,NGYT,NGYV
          READ(21) (GTX(I), I=0, NGT)
          READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYT)
          READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
-C      ENDIF
+!      ENDIF
       CLOSE(21)
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-C
+
       IF (NQMAX .EQ. 16) THEN
          DO NR = 0, NRMAX - 1
             X(LQm5,NR) = BB
@@ -151,12 +153,12 @@ C
             X(LQb3,NR) = 0
          ENDDO
       ENDIF
-C
+
       NGT=-1
       NGR=-1
       NGVV=-1
       rIP=rIPs
-C
+
       CALL TXCALM
       CALL TXPRFG
       CALL TXCALV(X)
@@ -168,30 +170,31 @@ C
       CALL TXSTGR
       CALL TXWDAT
       CALL TXWDAT2
-C
+
    50 CONTINUE
       RETURN
-C
+
    80 WRITE(6,*) 'XX READ ERROR in TXLOAD !'
       CLOSE(21)
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Save graphic data
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Save graphic data
+!
+!     ***************************************************************
+!
       SUBROUTINE TXGSAV
-C
+
       INCLUDE 'txcomm.inc'
-C
-      CHARACTER TXFNAM*100, STR*1, RCSId*100
-      LOGICAL LEX
-C
+
+      INTEGER :: IST, NQ, NR, IGR, I, IGYR, IGYT, IGYV
+      CHARACTER(100) :: TXFNAM, STR*1, RCSId
+      LOGICAL :: LEX
+
       RCSId = ' '
-C
+
    10 CONTINUE
       WRITE(6,*) '# INPUT : SAVE FILE NAME'
       CALL GUFLSH
@@ -219,11 +222,11 @@ C
          WRITE(6,*) 'XX  NEW FILE OPEN ERROR !, IOSTAT = ', IST
          GOTO 10
       ENDIF
-C
+
    40 CONTINUE
       WRITE(21) SLID
       WRITE(21) RCSId
-C
+
       WRITE(21) RA,RB,RR,BB
       WRITE(21) PA,PZ,Zeff
       WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -238,10 +241,10 @@ C
       WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
       WRITE(21) rG1
       WRITE(21) rIPs,rIPe
-C
+
       WRITE(21) DR,TIME,TMAX,NT,NQMAX,IERR
       WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
-C
+
       WRITE(21) NGR,NGYRM
       WRITE(21) NGT,NGYTM
       WRITE(21) NGVV,NGYVM
@@ -252,27 +255,28 @@ C
       WRITE(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
       CLOSE(21)
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
-C
+
    50 CONTINUE
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Load graphic data
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Load graphic data
+!
+!     ***************************************************************
+!
       SUBROUTINE TXGLOD
-C
+
       INCLUDE 'txcomm.inc'
-C
-      CHARACTER TXFNAM*100, LOADSLID*8, RCSId*100
-      LOGICAL LEX
-C
-C tmp : NGYT
-C
+
+      INTEGER :: IST, NQ, NR, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV
+      CHARACTER(100) :: TXFNAM, LOADSLID*8, RCSId
+      LOGICAL :: LEX
+
+! tmp : NGYT
+
    10 CONTINUE
       WRITE(6,*) '# INPUT : LOAD FILE NAME'
       CALL GUFLSH
@@ -290,12 +294,12 @@ C
          WRITE(6,*) 'XX  FILE (', TXFNAM, ') DOES NOT EXIST !'
          GOTO 10
       ENDIF
-C
+
    30 CONTINUE
       READ(21,ERR=80) LOADSLID
-C      IF(LOADSLID(1:5).EQ.'tx210') THEN
+!      IF(LOADSLID(1:5).EQ.'tx210') THEN
          READ(21) RCSId
-C
+
          READ(21) RA,RB,RR,BB
          READ(21) PA,PZ,Zeff
          READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -310,10 +314,10 @@ C
          READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
          READ(21) rG1
          READ(21) rIPs,rIPe
-C
+
          READ(21) DR,TIME,TMAX,NT,NQMAX,IERR
          READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
-C
+
          READ(21) NGR,NGYR
          READ(21) NGT,NGYT
          READ(21) NGVV,NGYV
@@ -323,10 +327,10 @@ C
          READ(21) (GTX(I), I=0, NGT)
          READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYT)
          READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
-C      ENDIF
+!      ENDIF
       CLOSE(21)
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-C
+
       IF (NQMAX .EQ. 16) THEN
          DO NR = 0, NRMAX - 1
             X(LQm5,NR) = BB
@@ -337,7 +341,7 @@ C
             X(LQb3,NR) = 0
          ENDDO
       ENDIF
-C
+
       CALL TXCALM
       CALL TXPRFG
       CALL TXCALV(X)
@@ -345,10 +349,10 @@ C
       CALL TXGLOB
       CALL TXWDAT
       CALL TXWDAT2
-C
+
    50 CONTINUE
       RETURN
-C
+
    80 WRITE(6,*) 'XX READ ERROR in TXGLOD !'
       CLOSE(21)
       RETURN

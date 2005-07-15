@@ -1,40 +1,44 @@
-C     $Id$
-C
-C     ***************************************************************
-C
-C        MAIN ROUTINE
-C
-C     ***************************************************************
-C
+!     $Id$
+!
+!     ***************************************************************
+!
+!        MAIN ROUTINE
+!
+!     ***************************************************************
+!
       SUBROUTINE TXEXEC
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, iRTIME1, iRTIME2,
+     &           iRTIME3, NSTR1, NSTR2, NSTR3
+      REAL :: gCTIME1, gCTIME2, gCTIME3
+
       CHARACTER STR1*10, STR2*10, STR3*10
-C
+
       IF (IERR .NE. 0) THEN
          WRITE(6,*) '### ERROR(TXEXEC) : Error should be cleared.'
          RETURN
       ENDIF
-C
+
       CALL GUDATE(NDY,NDM,NDD,NTH,NTM,NTS)
       iRTIME1 = NTH * 60 * 60 + NTM * 60 + NTS
       CALL GUTIME(gCTIME1)
-C
-C     ***** Core of simulation *****
-C
+!
+!     ***** Core of simulation *****
+!
       WRITE(6,*) 'Calculating'
       CALL TXLOOP
-C
-C     ******************************
-C
+!
+!     ******************************
+!
       CALL GUDATE(NDY,NDM,NDD,NTH,NTM,NTS)
       iRTIME2 = NTH * 60 * 60 + NTM * 60 + NTS
       CALL GUTIME(gCTIME2)
       iRTIME3 = iRTIME2 - iRTIME1
       if (iRTIME3 .LT. 0) iRTIME3 = iRTIME3 + 24 * 60 * 60
       gCTIME3 = gCTIME2 - gCTIME1
-C
+
       NSTR1 = 0
       CALL APRTOS(STR1, NSTR1, gCTIME3, 'F2')
       IF (iRTIME3 .EQ. 0) THEN
@@ -49,26 +53,29 @@ C
      &              'CPU = ', STR1(1:NSTR1), '(sec)   ', 
      &              '(', STR2(1:NSTR2), '% - ', STR3(1:NSTR3), '%)'
       ENDIF
-C
-C     ***** Print simulation results *****
-C
+!
+!     ***** Print simulation results *****
+!
       CALL TXWDAT
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Core routine of simulation
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Core routine of simulation
+!
+!     ***************************************************************
+!
       SUBROUTINE TXLOOP
-C
+
       INCLUDE 'txcomm.inc'
-C
-      DIMENSION XP(NQM,0:NRM)
-C
+
+      INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP,
+     &           NRAVM
+      REAL(8) :: TIME0, DIP, SUM, AVM, ERR1, AV
+      REAL(8), DIMENSION(NQM,0:NRM) :: XP
+
       IF (MODEAV. EQ. 0) THEN
          IDIV = NTMAX + 1
       ELSE
@@ -76,35 +83,35 @@ C
       ENDIF
       TIME0 = TIME
       DIP=(rIPe-rIPs)/NTMAX
-C
+
       DO NTDO = 1, NTMAX
          NT = NTDO
          TIME = TIME0 + DT*NT
          rIP  = rIPs  + DIP*NT
-C
+
          DO NR = 0, NRMAX
             DO NQ = 1, NQMAX
                XN(NQ,NR) = X(NQ,NR)
             ENDDO
          ENDDO
-C
+
          IC = 0
-C
+
    10    CONTINUE
          IC = IC + 1
-C
+
          DO NR = 0, NRMAX
             DO NQ = 1, NQMAX
                XP(NQ,NR) = XN(NQ,NR)
             ENDDO
          ENDDO
-C
+
          CALL TXCALV(XP)
          CALL TXCALC
          CALL TXCALA
          CALL TXCALB
          CALL TXGLOB
-C
+
          CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
          IF (IERR .EQ. 30000) THEN
            WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ', 
@@ -117,13 +124,13 @@ C
             ENDDO
             GOTO 180
          ENDIF
-C
+
          DO NR = 0, NRMAX
             DO NQ = 1, NQMAX
                XN(NQ,NR) = BX(NQMAX * NR + NQ)
             ENDDO
          ENDDO
-C
+
          CALL TXCHEK(NT,IC,XN,IERR)
          IF (IERR.NE.0) THEN
             DO NR = 0, NRMAX
@@ -134,9 +141,9 @@ C
             CALL TXCALV(X)
             GOTO 180
          ENDIF
-C
+
          IF (IC .GE. ICMAX) GOTO 150
-C
+
          DO NQ = 1, NQMAX
             SUM = 0.D0
             AVM = 0.D0
@@ -175,67 +182,65 @@ C
                ENDDO
             ENDIF
          ENDDO
-C
+
   150    CONTINUE
-C
+
          DO NR = 0, NRMAX
             DO NQ = 1, NQMAX
                X(NQ,NR) = XN(NQ,NR)
             ENDDO
          ENDDO
-C
+
          CALL TXCALV(X)
          CALL TXCALC
-C
+
          IF ((MOD(NT, NTSTEP) .EQ. 0) .AND.
      &       (NT .NE. NTMAX)) THEN
             WRITE(6,601) NT,TIME,IC
   601       FORMAT(1H ,'NT =',I4,'   T =',1PD9.2,'   IC =',I3)
          ENDIF
-C
+
   180    IF (MOD(NT, NGRSTP) .EQ. 0) THEN
             CALL TXSTGR
          ENDIF
-C
+
          IF (MOD(NT, NGTSTP) .EQ. 0) THEN
             CALL TXSTGT(SNGL(TIME))
          ENDIF
-C
+
          IF (MOD(NT, NGVSTP) .EQ. 0) THEN
             CALL TXGLOB
             CALL TXSTGV(SNGL(TIME))
          ENDIF
-C
+
          IF (IERR .NE. 0) GOTO 190
       ENDDO
-C
+
   190 CONTINUE
       rIPs=rIPe
-C
-C         DO I=0,1
+
+!         DO I=0,1
       WRITE(6,602) NT,TIME,IC
   602 FORMAT(1H ,'NT =',I4,'   T =',1PD9.2,'   IC =',I3)
-C         ENDDO
-C
+!         ENDDO
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Calculate BA, BX
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Calculate BA, BX
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCALB
-C
+
       INCLUDE 'txcomm.inc'
-C
-      DO I = 1, NQMAX * 4 - 1
-         DO J = 1, NQMAX * (NRMAX + 1)
-            BA(I,J) = 0.D0
-         ENDDO
-      ENDDO
-C
+
+      INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
+
+      BA(1:NQMAX*4-1,1:NQMAX*(NRMAX+1)) = 0.D0
+
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
             NC = 0
@@ -252,7 +257,7 @@ C
      &       = BA(IA,J) + ALC(NC,NQ,NR)
             ENDDO
       ENDDO
-C
+
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
             DO NC = 1, NLCMAX(NQ)
@@ -270,13 +275,13 @@ C
             ENDDO
          ENDDO
       ENDDO
-C
+
       DO NQ = 1, NQMAX
          DO NR = 0, NRMAX
             BX(NQMAX * NR + NQ) = 0.D0
          ENDDO
       ENDDO
-C
+
       NC = 0
          NR = 0
             DO NQ = 1, NQMAX
@@ -285,7 +290,7 @@ C
      &       = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  )
      &                             + ALC(NC,NQ,NR) * X(NC1,NR+1)
             ENDDO
-C
+
          DO NR = 1, NRMAX - 1
             DO NQ = 1, NQMAX
                NC1 = NLC(NC,NQ,NR)
@@ -295,7 +300,7 @@ C
      &                             + ALC(NC,NQ,NR) * X(NC1,NR+1)
             ENDDO
          ENDDO
-C
+
          NR = NRMAX
             DO NQ = 1, NQMAX
                NC1 = NLC(NC,NQ,NR)
@@ -303,7 +308,7 @@ C
      &       = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1)
      &                             + BLC(NC,NQ,NR) * X(NC1,NR  )
             ENDDO
-C
+
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
             DO NC = 1, NLCMAX(NQ)
@@ -312,24 +317,25 @@ C
             ENDDO
          ENDDO
       ENDDO
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Check negative density of temperature
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Check negative density of temperature
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCHEK(NTL,IC,XL,IER)
-C
+
       INCLUDE 'txcomm.inc'
-C
-      DIMENSION XL(NQM,0:NRM)
-C
+
+      INTEGER :: NTL, IC, IER, NR
+      REAL(8), DIMENSION(NQM,0:NRM) :: XL
+
       IER = 0
-C
+
       DO NR = 0, NRMAX
          IF (XL(LQe1,NR).LT.0.D0 .OR. XL(LQi1,NR).LT.0.D0) THEN
             WRITE(6,*) '### ERROR(TXLOOP) : ', 
@@ -341,7 +347,7 @@ C
             RETURN
          ENDIF
       ENDDO
-C
+
       DO NR = 0, NRMAX
          IF (XL(LQe5,NR).LT.0.D0 .OR. XL(LQi5,NR).LT.0.D0) THEN
             WRITE(6,*) '### ERROR(TXLOOP) : ', 
@@ -353,28 +359,31 @@ C
             RETURN
          ENDIF
       ENDDO
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Write Data
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Write Data
+!
+!     ***************************************************************
+!
       SUBROUTINE TXWDAT
-C
+
       INCLUDE 'txcomm.inc'
-C
-C     ***** Volume-averaged density *****
-C
-      rNbar = 0.D0
+
+      INTEGER :: NR
+      REAL(8) :: rNbar = 0.D0, rLINEAVE
+
+
+!     ***** Volume-averaged density *****
+
       DO NR = 0, NRMAX
          rNbar = rNbar + 2 * PI * R(NR) * PNeI(NR) * 1.D20 * DR
       ENDDO
       rNbar = rNbar / (PI * RB**2)
-C
+
       WRITE(6,'((1H ,A,1H=,1PD9.2,3(2X,A,1H=,1PD9.2)))')
      &     'Ne(0)',    PNeI(0), 
      &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeI(0)) / 1.D3, 
@@ -386,17 +395,18 @@ C
      &     '    PF',   PNeI(0) * 1.D20 / rNbar
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Write Data 2
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Write Data 2
+!
+!     ***************************************************************
+!
       SUBROUTINE TXWDAT2
-C
+
       INCLUDE 'txcomm.inc'
-C
+      
+      REAL :: gPNeMIN, gPNeMAX, gNB0MIN, gNB0MAX, gUiphMIN, gUiphMAX
       CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
       CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
       CALL GMNMX1(GTY(0,11), 1, NGT + 1, 1, gUiphMIN, gUiphMAX)
@@ -407,23 +417,26 @@ C
      &     'MIN(Ne(0))',     gPNeMIN / 1.E20, 
      &     'MIN(NB(0))',     gNB0MIN / 1.E20, 
      &     'MIN(UiPhi(0))', gUiphMIN / 1.E3
-C
+
       RETURN
       END
-C
-C     ***********************************************************
-C
-C        LINE AVERAGE OF rN
-C
-C     ***********************************************************
-C
-      REAL*8 FUNCTION rLINEAVE(Rho)
-C
+!
+!     ***********************************************************
+!
+!        LINE AVERAGE OF rN
+!
+!     ***********************************************************
+!
+      FUNCTION rLINEAVE(Rho)
+
       INCLUDE 'txcomm.inc'
-C
+      
+      INTEGER :: I, IR, NY = 100
+      REAL(8), INTENT(IN) :: Rho
+      REAL(8), INTENT(OUT) :: rLINEAVE
+      REAL(8) :: D, SUM = 0.D0, DY, Y, RL
+
       D = Rho * RA
-      NY = 100
-      SUM = 0.D0
       DY = SQRT(RA*RA - D*D) / NY
       DO I = 0, NY
          Y = DY * I
@@ -432,6 +445,6 @@ C
          SUM = SUM + PNeI(IR) * 1.D20 * DY
       ENDDO
       rLINEAVE = SUM / SQRT(RA*RA - D*D)
-C
+
       RETURN
       END

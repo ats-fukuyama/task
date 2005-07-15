@@ -1,51 +1,54 @@
-C     $Id$
-C
-C     ***************************************************************
-C
-C        Calculate mesh, etc.
-C
-C     ***************************************************************
-C
+!     $Id$
+!
+!     ***************************************************************
+!
+!        Calculate mesh, etc.
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCALM
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR
+
       AMi = PA * AMP
       AMb = AMi
       DR = RB / NRMAX
       NQMAX = NQM
       UHth=1.D0/SQRT(1.D0+DBLE(NCPHI)*2)
       UHph=DBLE(NCPHI)*UHth
-C
-C  Integer mesh
-C
+
+!  Integer mesh
+
       DO NR = 0, NRMAX
          R(NR) = NR * DR
       ENDDO
-C
-C  Half integer mesh
-C
+
+!  Half integer mesh
+
       DO NR = 0, NRMAX
          RHI(NR) = (NR + 0.5D0) * DR
       ENDDO
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Calculate variables
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Calculate variables
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCALV(XL)
-C
+
       INCLUDE 'txcomm.inc'
-C
-      DIMENSION XL(NQM,0:NRM)
-C
-C Half Integer Variables
-C
+
+      INTEGER :: NR
+      REAL(8), DIMENSION(NQM,0:NRM) :: XL
+
+! Half Integer Variables
+
       DO NR = 0, NRMAX - 1
          EphHI(NR)  = XL(LQm3,NR)
          BphHI(NR)  = XL(LQm5,NR)
@@ -64,9 +67,9 @@ C
          PN01HI(NR) = XL(LQn1,NR)
          PN02HI(NR) = XL(LQn2,NR)
       ENDDO
-C
-C Interpolation to Integer Variables
-C
+
+! Interpolation to Integer Variables
+
       DO NR = 1, NRMAX - 1
          PNeI(NR) = (PNeHI(NR-1) + PNeHI(NR)) / 2
          UephI(NR)= (UephHI(NR-1)+ UephHI(NR))/ 2
@@ -78,12 +81,12 @@ C
          PTiI(NR) = (PTiHI(NR-1) + PTiHI(NR)) / 2
          BphI(NR) = (BphHI(NR-1) + BphHI(NR)) / 2
       ENDDO
-C
-C Extraporation for central value
-C
-C     f'(0) = 0, F(0)=f(0.5*DR), F(1)=f(1.5DR)
-C     then f(0) = (9*F(0)-F(1))/8
-C
+
+! Extraporation for central value
+
+!     f'(0) = 0, F(0)=f(0.5*DR), F(1)=f(1.5DR)
+!     then f(0) = (9*F(0)-F(1))/8
+
       PNeI(0) = (9.D0 * PNeHI(0) - PNeHI(1)) / 8.D0
       UephI(0)= (9.D0 * UephHI(0)- UephHI(1))/ 8.D0
       PNiI(0) = (9.D0 * PNiHI(0) - PNiHI(1)) / 8.D0
@@ -93,12 +96,12 @@ C
       PTeI(0) = (9.D0 * PTeHI(0) - PTeHI(1)) / 8.D0
       PTiI(0) = (9.D0 * PTiHI(0) - PTiHI(1)) / 8.D0
       BphI(0) = (9.D0 * BphHI(0) - BphHI(1)) / 8.D0
-C
-C Extraporation for boundary value
-C
-C     f'(RB) = 0, F(NR-2)=f(RB-1.5*DR), F(NR-1)=f(RB-0.5DR)
-C     then f(RB) = (9*F(NR-1)-F(NR-2))/8
-C
+
+! Extraporation for boundary value
+
+!     f'(RB) = 0, F(NR-2)=f(RB-1.5*DR), F(NR-1)=f(RB-0.5DR)
+!     then f(RB) = (9*F(NR-1)-F(NR-2))/8
+
       PNeI(NRMAX) = (9.D0 * PNeHI(NRMAX-1) - PNeHI(NRMAX-2)) / 8.D0
       UephI(NRMAX)= 0.D0
       PNiI(NRMAX) = (9.D0 * PNiHI(NRMAX-1) - PNiHI(NRMAX-2)) / 8.D0
@@ -108,9 +111,9 @@ C
       PTeI(NRMAX) = (9.D0 * PTeHI(NRMAX-1) - PTeHI(NRMAX-2)) / 8.D0
       PTiI(NRMAX) = (9.D0 * PTiHI(NRMAX-1) - PTiHI(NRMAX-2)) / 8.D0
       BphI(NRMAX) = (9.D0 * BphHI(NRMAX-1) - BphHI(NRMAX-2)) / 8.D0
-C
-C Integer Variables
-C
+
+! Integer Variables
+
       DO NR = 0, NRMAX
          ErI(NR)  = XL(LQm1,NR)
          EthI(NR) = XL(LQm2,NR)
@@ -125,9 +128,9 @@ C
             UbthI(NR) = XL(LQb3,NR)/PNbI(NR)
          ENDIF
       ENDDO
-C
-C Interpolartion to Half-Integer Variables
-C
+
+! Interpolartion to Half-Integer Variables
+
       DO NR = 0, NRMAX - 1
           ErHI(NR) = (  ErI(NR) +   ErI(NR+1)) / 2
          EthHI(NR) = ( EthI(NR) +  EthI(NR+1)) / 2
@@ -139,36 +142,46 @@ C
         UbthHI(NR) = (UbthI(NR) + UbthI(NR+1)) / 2
            QHI(NR) = ABS(RHI(NR) * BphHI(NR) / (RR * BthHI(NR)))
       ENDDO
-C
+
       DO NR = 1, NRMAX
          Q(NR) = ABS(R(NR) * BphI(NR) / (RR * BthI(NR)))
       ENDDO
       Q(0) = (4 * Q(1) - Q(2)) / 3.D0
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Calculate coefficients
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Calculate coefficients
+!
+!     ***************************************************************
+!
       SUBROUTINE TXCALC
-C
+
       INCLUDE 'txcomm.inc'
-C
-C     *** Constants ***
-C
-C     Neutral corsssection
-C
+
+      INTEGER :: NR, NP, NR1
+      REAL(8) :: Sigma0, RL, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti, 
+     &           rLnLam, EION, XXX, SiV, ScxV, Wte, Wti, EpsL,
+     &           rNuAsE, rNuAsI, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM,
+     &           rGIC, rH, DErDr, BB1, BB2, Beta1, Beta2, DBetaDr,
+     &           DCDBM, DeL, ETA, AJPH, AJTH, BN, AJPARA, EPARA, Vcr, Y,
+     &           Ubst, Cs, RhoIT, ExpArg, AiP, EXPV, Uith, Uiph,DISTAN,
+     &           SiLCL, SiLCthL, SiLCphL
+    
+
+!     *** Constants ***
+
+!     Neutral corsssection
+
       Sigma0 = 8.8D-21
-C
-C     NBI beam velocity
-C
+
+!     NBI beam velocity
+
       Vb =  SQRT(2 * Eb * rKEV / AMb)
-C
-C     Poloidal magnetic field on wall
-C
+
+!     Poloidal magnetic field on wall
+
       IF(FSHL.EQ.0.D0) THEN
          Bthb = rMU0 * rIP * 1.D6 / (2.D0 * PI * RB)
       ELSE
@@ -176,9 +189,9 @@ C
          QL=(Q0-QA)*(1-(RL/RA)**2)+QA
          Bthb = BB*RL/(QL*RR)
       ENDIF
-C
-C     *** Normalization factor for heating profile ***
-C
+
+!     *** Normalization factor for heating profile ***
+
       SL = 0.D0
       DO NR = 0, NRMAX - 1
          IF (RHI(NR) .LT. RA) THEN
@@ -187,9 +200,9 @@ C
      &                * (1 - (RHI(NR) / RA)** 4)
          ENDIF
       ENDDO
-C
+
       PNB0 = PNBH * 1.D6 / (2 * Pi * RR * SL)
-C
+
       SL = 0.D0
       DO NR = 0, NRMAX - 1
          IF (RHI(NR) .LT. RA) THEN
@@ -198,52 +211,52 @@ C
      &                * (1 - (RHI(NR) / RA)** 4)
          ENDIF
       ENDDO
-C
+
       PRFe0 = 0.5D0 * PRFH * 1.D6 / (2 * Pi * RR * SL)
       PRFi0 = 0.5D0 * PRFH * 1.D6 / (2 * Pi * RR * SL)
-C
-C     ***** Half Integer Mesh *****
-C
+
+!     ***** Half Integer Mesh *****
+
       DO NR = 0, NRMAX-1
-C
+
          Vte = SQRT(2 * ABS(PTeHI(NR)) * rKeV / AME)
          Vti = SQRT(2 * ABS(PTiHI(NR)) * rKeV / AMI)
          rLnLam = + 15 - LOG(ABS(PNeHI(NR))) / 2 + LOG(ABS(PTeHI(NR)))
-C
-C     *** Ionization frequency ***
-C
+
+!     *** Ionization frequency ***
+
          EION = 13.64D0
          XXX = MAX(PTeHI(NR) * 1.D3 / EION, 1.D-2)
          SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX)
      &              / (EION**1.5D0 * (6.D0 + XXX))
          rNuION(NR) = FSION * SiV * (PN01HI(NR) + PN02HI(NR)) * 1.D20
-C
-C     *** Slow neutral diffusion coefficient ***
-C
+
+!     *** Slow neutral diffusion coefficient ***
+
          D01(NR) = FSD0 * V0**2
      &         / (Sigma0 * (PN01HI(NR) * V0
      &         + (PNiHI(NR) + PN02HI(NR)) * Vti) * 1.D20)
-C
-C     *** Fast neutral diffusion coefficient ***
-C
+
+!     *** Fast neutral diffusion coefficient ***
+
          D02(NR) = FSD0 * Vti**2
      &         / (Sigma0 * (PNiHI(NR)
      &         + PN01HI(NR) + PN02HI(NR)) * Vti * 1.D20)
-C
-C     *** Charge exchange frequency ***
-C
+
+!     *** Charge exchange frequency ***
+
          XXX = LOG10(MAX(PTiHI(NR) * 1.D3, 50.D0))
          ScxV = 1.57D-16 * SQRT(PTiHI(NR) * 1.D3)
      &          * (XXX * XXX - 14.63D0 * XXX + 53.65D0)
          rNuiCX(NR) = FSCX * ScxV * (PN01HI(NR) + PN02HI(NR)) * 1.D20
-C
-C     *** Collision frequency (with neutral) ***
-C
+
+!     *** Collision frequency (with neutral) ***
+
          rNu0e(NR) = (PN01HI(NR) + PN02HI(NR)) * 1.D20 * Sigma0 * Vte
          rNu0i(NR) = (PN01HI(NR) + PN02HI(NR)) * 1.D20 * Sigma0 * Vti
-C
-C     *** Collision frequency (momentum-transfer) ***
-C
+
+!     *** Collision frequency (momentum-transfer) ***
+
          rNuei(NR) = PNeHI(NR) * 1.D20 * Zeff  * AEE**4 * rLnLam
      &              / (3 * (2 * PI)**1.5D0
      &                   * EPS0**2 * SQRT(AME)
@@ -256,10 +269,10 @@ C
      &               / (3 * SQRT(2 * PI) * PI * EPS0**2 * AME * AMI
      &                  * (  ABS(MAX(PTeHI(NR),PTeDIV)) * rKeV / AME
      &                     + ABS(PTiHI(NR)) * rKeV / AMI)**1.5D0)
-CCC     &                  * (  ABS(PTeHI(NR)) * rKeV / AME
-C
-C     *** Toroidal Neoclassical viscosity ***
-C
+!!!     &                  * (  ABS(PTeHI(NR)) * rKeV / AME
+
+!     *** Toroidal Neoclassical viscosity ***
+
          Wte = Vte / (QHI(NR) * RR)
          Wti = Vti / (QHI(NR) * RR)
          EpsL = RHI(NR) / RR
@@ -270,16 +283,16 @@ C
      &               * Wte * 1.78D0 * rNuAsE / (1 + 1.78D0 * rNuAsE)
          rNuiNC(NR) = FSNC * SQRT(PI) * QHI(NR)**2
      &               * Wti * 1.78D0 * rNuAsI / (1 + 1.78D0 * rNuAsI)
-C     &               * (1 + EpsL**1.5D0 * rNuAsI)
-C     &               / (1 + 1.44D0
-C     &                      * ((EpsL**1.5D0 * rNuAsI)**2
-C     &                         + ( ErHI(NR)
-C     &                             / ( Vti * BthHI(NR)) )**2))
-CC     &                         + ( ErHI(NR) * BBL
-CC     &                             / ( Vti * BthHI(NR)**2) )**2))
-C
-C     *** Helical Neoclassical viscosity ***
-C
+!     &               * (1 + EpsL**1.5D0 * rNuAsI)
+!     &               / (1 + 1.44D0
+!     &                      * ((EpsL**1.5D0 * rNuAsI)**2
+!     &                         + ( ErHI(NR)
+!     &                             / ( Vti * BthHI(NR)) )**2))
+!!     &                         + ( ErHI(NR) * BBL
+!!     &                             / ( Vti * BthHI(NR)**2) )**2))
+
+!     *** Helical Neoclassical viscosity ***
+
          Wte = Vte * NCphi / RR
          Wti = Vti * NCphi / RR
          EpsL = EpsH * RHI(NR) / RA
@@ -289,20 +302,20 @@ C
      &               * Wte * 1.78D0 * rNuAsE / (1 + 1.78D0 * rNuAsE)
          rNuiHL(NR) = FSHL * SQRT(PI)
      &               * Wti * 1.78D0 * rNuAsI / (1 + 1.78D0 * rNuAsI)
-C         WRITE(6,'(I5,1P4E12.4)') 
-C     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
-C         rNueHL(NR) = 0.D0
-C         rNuiHL(NR) = 0.D0
-C     &               * (1 + EpsL**1.5D0 * rNuAsI)
-C     &               / (1 + 1.44D0
-C     &                      * ((EpsL**1.5D0 * rNuAsI)**2
-C     &                         + ( ErHI(NR)
-C     &                             / ( Vti * BthHI(NR)) )**2))
-CC     &                         + ( ErHI(NR) * BBL
-CC     &                             / ( Vti * BthHI(NR)**2) )**2))
-C
-C     *** Wave-particle interaction ***
-C
+!         WRITE(6,'(I5,1P4E12.4)') 
+!     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
+!         rNueHL(NR) = 0.D0
+!         rNuiHL(NR) = 0.D0
+!     &               * (1 + EpsL**1.5D0 * rNuAsI)
+!     &               / (1 + 1.44D0
+!     &                      * ((EpsL**1.5D0 * rNuAsI)**2
+!     &                         + ( ErHI(NR)
+!     &                             / ( Vti * BthHI(NR)) )**2))
+!!     &                         + ( ErHI(NR) * BBL
+!!     &                             / ( Vti * BthHI(NR)**2) )**2))
+
+!     *** Wave-particle interaction ***
+
          IF (ABS(FSCDBM) .GT. 0.D0) THEN
             Va = SQRT(BBL**2 / (rMU0 * PNiHI(NR) * 1.D20 * AMI))
             Wpe2 = PNeHI(NR) * 1.D20 * AEE**2 / (AME * EPS0)
@@ -349,15 +362,15 @@ C
             rG1h2(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
             DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0
      &              * VC**2 / Wpe2 * Va / (QHI(NR) * RR)
-C            write(6,*)DCDBM
-C            DCDBM = MAX(DCDBM,1.D-05)
+!            write(6,*)DCDBM
+!            DCDBM = MAX(DCDBM,1.D-05)
          ELSE
             rG1h2(NR)  = 0.D0
             FCDBM(NR)  = 0.D0
             S(NR)      = 0.D0
             Alpha(NR)  = 0.D0
             rKappa(NR) = 0.D0
-            DCDBM     = 0.D0
+            DCDBM      = 0.D0
          ENDIF
          IF (RHI(NR) .LT. RA) THEN
             DeL = FSDFIX * (1 + (PROFD -1) * (RHI(NR) / RA)**2)
@@ -373,15 +386,15 @@ C            DCDBM = MAX(DCDBM,1.D-05)
          rMui(NR) = rMui0 * DeL
          Chie(NR) = Chie0 * DeL
          Chii(NR) = Chii0 * DeL
-C
+
          WPM(NR) = WPM0 * PTeHI(NR) * rKeV / (RA**2 * AEE * BphHI(NR))
          FWthe(NR) = AEE**2         * BphHI(NR)**2 * De(NR)
      &            / (PTeHI(NR) * rKeV)
          FWthi(NR) = AEE**2 * PZ**2 * BphHI(NR)**2 * Di(NR)
      &            / (PTiHI(NR) * rKeV)
-C
-C     *** Heating profile ***
-C
+
+!     *** Heating profile ***
+
          IF (RHI(NR) .LT. RA) THEN
             PNB(NR) = PNB0 * EXP(- RHI(NR)**2 / RNB**2)
      &                    * (1 - (RHI(NR) / RA)** 4)
@@ -396,29 +409,29 @@ C
             PRFe(NR)=0.D0
             PRFi(NR)=0.D0
          ENDIF
-C
-C     Current
-C
+
+!     Current
+
          ETA=AME*rNuei(NR)/(PNeHI(NR)*1.D20*AEE**2)
-C
+
          AJPH  = -      AEE * PNeHI(NR) * 1.D20 * UephHI(NR)
      &           + PZ * AEE * PNiHI(NR) * 1.D20 * UiphHI(NR)
      &           + PZ * AEE * PNbHI(NR) * 1.D20 * UbphHI(NR)
          AJTH  = -      AEE * PNeHI(NR) * 1.D20 * UethHI(NR)
      &           + PZ * AEE * PNiHI(NR) * 1.D20 * UithHI(NR)
      &           + PZ * AEE * PNbHI(NR) * 1.D20 * UbthHI(NR)
-C
+
          BN=SQRT(BthHI(NR)**2+BphHI(NR)**2)
          AJPARA=(BthHI(NR)*AJTH     + BphHI(NR)*AJPH    )/BN
          EPARA =(BthHI(NR)*EthHI(NR) + BphHI(NR)*EphHI(NR))/BN
          AJ(NR)   = AJPARA
          AJOH(NR) = EPARA/ETA
-C         POH(NR)  = EPARA*AJPARA
+!         POH(NR)  = EPARA*AJPARA
          POH(NR)  = EthHI(NR)*AJTH + EphHI(NR)*AJPH    
          AJNB(NR) = PZ * AEE * PNbHI(NR) * 1.D20 * UbphI(NR)
-C
-C     *** Collision frequency (momentum-transfer with beam) ***
-C
+
+!     *** Collision frequency (momentum-transfer with beam) ***
+
          Vcr = (3 * SQRT(PI / 2) * PNiHI(NR) * PZ**2 / PNeHI(NR)
      &          * AME / AMI
      &          * (ABS(PTeHI(NR)) * rKeV / AME)**1.5D0
@@ -444,24 +457,24 @@ C
          ELSE
             rNuB(NR) = 0.D0
          ENDIF
-C
-C     *** Loss to divertor ***
-C
+
+!     *** Loss to divertor ***
+
          IF (RHI(NR) .GT. RA) THEN
             Cs = SQRT(PTeHI(NR) * rKeV / AMI)
-CCCC            rNuL(NR) = FSLP * Cs / (2 * PI * QHI(NR) * RR
-CCCC     &                        * LOG(0.3D0 / (RHI(NR) - RA)))
+!!!!            rNuL(NR) = FSLP * Cs / (2 * PI * QHI(NR) * RR
+!!!!     &                        * LOG(0.3D0 / (RHI(NR) - RA)))
             rNuL(NR) = FSLP * Cs
      &              / (2 * PI * QHI(NR) * RR
      &                 * (1.D0 + LOG(1.D0 + rLT / (RHI(NR) - RA))))
          ELSE
             rNuL(NR) = 0.D0
          ENDIF
-C
+
       ENDDO
-C
-C     ***** Ion Orbit Loss *****
-C
+
+!     ***** Ion Orbit Loss *****
+
       DO NR = 0, NRMAX - 1
          SiLC(NR)   = 0.D0
          SiLCth(NR) = 0.D0

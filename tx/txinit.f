@@ -1,277 +1,279 @@
-C     $Id$
-C
-C     ***************************************************************
-C
-C        Set constants and initial parameters
-C
-C     ***************************************************************
-C
+!     $Id$
+!
+!     ***************************************************************
+!
+!        Set constants and initial parameters
+!
+!     ***************************************************************
+!
       SUBROUTINE TXINIT
-C
+
       INCLUDE 'txcomm.inc'
-C
-C     ***** Version ID *****
-C     SLID is used to identify data file.
+
+      INTEGER :: I
+
+!     ***** Version ID *****
+!     SLID is used to identify data file.
       SLID = 'tx211.00'
-C
-C     ***** Physical constants *****
-C
-C     Electron charge (C)
+
+!     ***** Physical constants *****
+
+!     Electron charge (C)
       AEE  = 1.60217733D-19
-C
-C     Electron mass (kg)
+
+!     Electron mass (kg)
       AME  = 9.1093897D-31
-C
-C     Proton mass (kg)
+
+!     Proton mass (kg)
       AMP  = 1.6726231D-27
-C
-C     Light velocity (m/s)
+
+!     Light velocity (m/s)
       VC   = 2.99792458D8
-C
-C     Pi
+
+!     Pi
       PI   = 2 * ASIN(1.D0)
-C
-C     mu0 (H/m)
+
+!     mu0 (H/m)
       rMU0 = 4 * PI * 1.D-7
-C
-C     epsilon0 (F/m)
+
+!     epsilon0 (F/m)
       EPS0 = 1.D0 / (rMU0 * VC**2)
-C
-C     Conversion factor from keV to joule
+
+!     Conversion factor from keV to joule
       rKEV = 1.D3 * AEE
-C
-C     ***** Configuration parameters *****
-C
-C     Plasma minor radius (m)
+
+!     ***** Configuration parameters *****
+
+!     Plasma minor radius (m)
       RA = 0.35D0
-C
-C     Wall radius (m)
+
+!     Wall radius (m)
       RB = 0.4D0
-C
-C     Plasma major radius (m)
+
+!     Plasma major radius (m)
       RR = 1.3D0
-C
-C     Toroidal magnetic field (T)
+
+!     Toroidal magnetic field (T)
       BB = 1.3D0
-C
-C     Plasma current start (MA)
+
+!     Plasma current start (MA)
       rIPs= 0.150D0
-C
-C     Plasma current end (MA)
+
+!     Plasma current end (MA)
       rIPe= 0.150D0
-C
-C     ***** Plasma components *****
-C
-C     Atomic number of ion
+
+!     ***** Plasma components *****
+
+!     Atomic number of ion
       PA = 1.D0
-C
-C     Charge number of ion
+
+!     Charge number of ion
       PZ = 1.D0
-C
-C     Effective charge
+
+!     Effective charge
       Zeff = 2.D0
-C
-C     ***** Initial plasma parameters *****
-C
-C     Initial electron density at r = 0 (10^20 m^-3)
+
+!     ***** Initial plasma parameters *****
+
+!     Initial electron density at r = 0 (10^20 m^-3)
       PN0 = 0.4D0
-C
-C     Initial electron density at r = a (10^20 m^-3)
+
+!     Initial electron density at r = a (10^20 m^-3)
       PNa = 0.05D0
-C
-C     Initial electron temperature at r = 0 (keV)
+
+!     Initial electron temperature at r = 0 (keV)
       PTe0 = 700.D-3
-C
-C     Initial electron temperature at r = a (keV)
+
+!     Initial electron temperature at r = a (keV)
       PTea =  50.D-3
-C
-C     Initial ion temperature  at r = 0 (keV)
+
+!     Initial ion temperature  at r = 0 (keV)
       PTi0 = 700.D-3
-C
-C     Initial ion temperature  at r = a (keV)
+
+!     Initial ion temperature  at r = a (keV)
       PTia =  50.D-3
-C
-C     Initail current profile parameter
+
+!     Initail current profile parameter
       PROFJ = 2.D0
-C
-C     ***** Particle diffusivity and viscosity parameters *****
-C
-C     Electron-driven diffusion parameter
+
+!     ***** Particle diffusivity and viscosity parameters *****
+
+!     Electron-driven diffusion parameter
       De0 = 0.D0
-C
-C     Ion-driven diffusion parameter
+
+!     Ion-driven diffusion parameter
       Di0 = 1.D0
-C
-C     Electron viscosity parameter
+
+!     Electron viscosity parameter
       rMue0 = 3.D0
-C
-C     Ion viscosity parameter
+
+!     Ion viscosity parameter
       rMui0 = 3.D0
-C
-C     Drift frequency parameter (omega/omega*e)
+
+!     Drift frequency parameter (omega/omega*e)
       WPM0 = 0.D0
-C
-C    ***** Thermal diffusivity parameters *****
-C
-C     Electron thermal diffusivity parameter (Chie/D)
-C       0 for fixed temperature profiel
+
+!    ***** Thermal diffusivity parameters *****
+
+!     Electron thermal diffusivity parameter (Chie/D)
+!       0 for fixed temperature profiel
       Chie0 = 0.D0
-C
-C     Ion thermal diffusivity parameter (Chie/D)
-C       0 for fixed temperature profiel
+
+!     Ion thermal diffusivity parameter (Chie/D)
+!       0 for fixed temperature profiel
       Chii0 = 0.D0
-C
-C     ***** Turbulent transport control parameters *****
-C
-C     Fixed transport coefficient parameter
+
+!     ***** Turbulent transport control parameters *****
+
+!     Fixed transport coefficient parameter
       FSDFIX = 1.0D0
-C
-C     CDBM transport coefficient parameter
-C       (Current diffusive ballooning mode)
+
+!     CDBM transport coefficient parameter
+!       (Current diffusive ballooning mode)
       FSCDBM = 0.D0
-C
-C     Bohm transport coefficient parameter in SOL
+
+!     Bohm transport coefficient parameter in SOL
       FSBOHM = 0.D0
-C
-C     Pseud-classical transport coefficient parameter in SOL
+
+!     Pseud-classical transport coefficient parameter in SOL
       FSPSCL = 0.D0
-C
-C     Diffusion coefficient profile parameter (D(r=a)/D(r=0))
+
+!     Diffusion coefficient profile parameter (D(r=a)/D(r=0))
       PROFD = 10.D0
-C
-C     ***** Other transport parameters *****
-C
-C     Charge exchange parameter
+
+!     ***** Other transport parameters *****
+
+!     Charge exchange parameter
       FSCX = 1.D0
-C
-C     Orbit loss parameter
-CCCC      FSLC = 1.D0
+
+!     Orbit loss parameter
+!!!!      FSLC = 1.D0
       FSLC = 0.D0
-C
-C     Toroidal Neoclassical viscosity parameter
+
+!     Toroidal Neoclassical viscosity parameter
       FSNC = 1.D0
-C
-C     Helical Neoclassical viscosity parameter
+
+!     Helical Neoclassical viscosity parameter
       FSHL = 0.D0
-C
-C     Particle loss to divertor parameter
+
+!     Particle loss to divertor parameter
       FSLP = 1.D0
-C
-C     Ionization parameter
+
+!     Ionization parameter
       FSION = 1.D0
-C
-C     Neutral diffusion factor
+
+!     Neutral diffusion factor
       FSD0 = 1.D0
-C
-C     Factor of E x B rotation shear
+
+!     Factor of E x B rotation shear
       rG1 = 24.D0
-C
-C     ***** initial parameters *****
-C
-C     Initial Density scale length in SOL (m)
+
+!     ***** initial parameters *****
+
+!     Initial Density scale length in SOL (m)
       rLn = 0.03D0
-C
-C     Initail Temperature scale length in SOL (m)
+
+!     Initail Temperature scale length in SOL (m)
       rLT = 0.030D0
-C
-C     ***** Heating parameters *****
-C
-C     NBIl beam energy (keV)
+
+!     ***** Heating parameters *****
+
+!     NBIl beam energy (keV)
       Eb = 32
-C
-C     Heating radius of NBI heating (m)
+
+!     Heating radius of NBI heating (m)
       RNB = 0.175D0
-C
-C     NBI input power (MW)
+
+!     NBI input power (MW)
       PNBH = 0.D0
-C
-C     NBI current drive parameter
+
+!     NBI current drive parameter
       PNBCD= 0.D0
-C
-C     Refractive index of RF waves
+
+!     Refractive index of RF waves
       rNRF = 0.D0
-C
-C     Heating radius of RF heating (m)
+
+!     Heating radius of RF heating (m)
       RRF = 0.175D0
-C
-C     RF input power (MW)
+
+!     RF input power (MW)
       PRFH = 0.D0
-C
-C     ***** Neutral parameters *****
-C
-C     Initial Neutral density (10^20 m^-3)
+
+!     ***** Neutral parameters *****
+
+!     Initial Neutral density (10^20 m^-3)
       PN0s = 1.D-8
-C
-C     Neutral thermal velocity (m/s)
+
+!     Neutral thermal velocity (m/s)
       V0 = 1.5D3
-C
-C     Recycling rate in SOL
+
+!     Recycling rate in SOL
       rGamm0 = 0.8D0
-C
-C     Gas-puff particle flux (10^20 1/s)
+
+!     Gas-puff particle flux (10^20 1/s)
       rGASPF = 0.1D0
-C
-C     Electron density in diverter region (Minimum density in SOL)
+
+!     Electron density in diverter region (Minimum density in SOL)
       PNeDIV = 1.D-2
-C
-C     Electron temperature in diverter region (Minimum Te in SOL)
+
+!     Electron temperature in diverter region (Minimum Te in SOL)
       PTeDIV = 1.D-2
-C
-C     Ion temperature in diverter region (Minimum Ti in SOL)
+
+!     Ion temperature in diverter region (Minimum Ti in SOL)
       PTiDIV = 1.D-2
-C
-C     ***** Numerical paramters *****
-C
-C     Implicitness parameter (Not used now)
+
+!     ***** Numerical paramters *****
+
+!     Implicitness parameter (Not used now)
       DLT = 1.0D0
-C
-C     Time step size(s)
-CCCC      DT = 1.D-4
+
+!     Time step size(s)
+!!!!      DT = 1.D-4
       DT = 1.D-3
-C
-C     Convergence parameter
+
+!     Convergence parameter
       EPS = 1.D99
-C
-C     Iteration
+
+!     Iteration
       ICMAX=2
-C
-C     ***** Mesh number parameters *****
-C
-C     Radial step number
+
+!     ***** Mesh number parameters *****
+
+!     Radial step number
       NRMAX = 40
-C
-C     Number of time step
+
+!     Number of time step
       NTMAX = 10
-C
-C     Time step interval between print output
+
+!     Time step interval between print output
       NTSTEP = 10
-C
-C     Time step interval between lines in f(r) graph
+
+!     Time step interval between lines in f(r) graph
       NGRSTP = 1
-C
-C     Time step interval between points in f(t) graph
+
+!     Time step interval between points in f(t) graph
       NGTSTP = 1
-C
-C     Time step interval between points in f(t) graph
+
+!     Time step interval between points in f(t) graph
       NGVSTP = 1
-C
-C     Mode of Graph
-C     1 : for Display
-C     2 : for Print Out
+
+!     Mode of Graph
+!     1 : for Display
+!     2 : for Print Out
       MODEG = 2
-C
-C     MODE of Graph Line
-C     0 : Change Line Color (Last Color Fixed)
-C     1 : Change Line Color and Style
-C     2 : Change Line Color, Style and Mark
-C     3 : Change Line Color, Style and Mark (With Legend)
+
+!     MODE of Graph Line
+!     0 : Change Line Color (Last Color Fixed)
+!     1 : Change Line Color and Style
+!     2 : Change Line Color, Style and Mark
+!     3 : Change Line Color, Style and Mark (With Legend)
       MODEl=1
-C
-C     Mode of AV
-C     0 : OFF
-C     n : Number of Display
+
+!     Mode of AV
+!     0 : OFF
+!     n : Number of Display
       MODEAV = 0
-C
+
       DO I = 1, NGYRM
          gDIV(I) = 1.E0
       ENDDO
@@ -284,38 +286,38 @@ C
       gDIV(9)  = 1.E3
       gDIV(16) = 1.E14
       gDIV(18) = 1.E6
-C
-C     Radius where density increase by command DEL
+
+!     Radius where density increase by command DEL
       DelR = 0.175D0
-C
-C     Amount of increase of density by command DEL
+
+!     Amount of increase of density by command DEL
       DelN = 5.D-1
-C
-C     Helical ripple amplitude at r=a, Bhelical/Btoroidal, linear to r/a
+
+!     Helical ripple amplitude at r=a, Bhelical/Btoroidal, linear to r/a
       EpsH = 0.1D0
-C
-C     Helical pitch number
+
+!     Helical pitch number
       NCphi = 10
-C
-C     Safety factor for helical
+
+!     Safety factor for helical
       Q0 = 3.D0
       QA = 2.D0
-C
+
       NGR=-1
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Change input parameters
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Change input parameters
+!
+!     ***************************************************************
+!
       SUBROUTINE TXPARM(KID)
-C
+
       INCLUDE 'txcomm.inc'
-C
+
       NAMELIST /TX/
      & RA,RB,RR,BB,
      & PA,PZ,Zeff,
@@ -334,25 +336,26 @@ C
      & rIPs,rIPe,
      & MODEG, gDIV, MODEAV, MODEl,
      & FSHL,EpsH, NCphi
-C
-      LOGICAL LEX
-      CHARACTER KPNAME*80,KLINE*80,KNAME*90,KID*1
-C
+
+      INTEGER :: MODE, IST, KL
+      LOGICAL :: LEX
+      CHARACTER(80) :: KPNAME, KLINE, KNAME*90, KID*1
+
       MODE=0
     1    CONTINUE
          WRITE(6,*) '# INPUT &TX :'
          READ(5,TX,ERR=2,END=3)
          KID=' '
          GOTO 4
-C
+
     2    CALL TXPLST
       GOTO 1
-C
+
     3 KID='Q'
     4 GOTO 3000
-C
+
       ENTRY TXPARL(KLINE)
-C
+
       MODE=1
       KNAME=' &TX '//KLINE//' &END'
       WRITE(7,'(A90)') KNAME
@@ -363,25 +366,25 @@ C
     8 CALL TXPLST
     9 REWIND(7)
       GOTO 3000
-C
+
       ENTRY TXPARF(KPNAME)
-C
+
       MODE=2
       INQUIRE(FILE=KPNAME,EXIST=LEX)
       IF(.NOT.LEX) RETURN
-C
+
       OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
       READ(25,TX,IOSTAT=IST,ERR=9800,END=9900)
       CALL KTRIM(KPNAME,KL)
       WRITE(6,*) 
      &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
-C
+
  3000 IERR=0
-C
-C     ERROR CHECK
-C
+
+!     ERROR CHECK
+
       IF(IERR.NE.0.AND.MODE.EQ.0) GOTO 1
-C
+
       RETURN
 
  9100 WRITE(6,*) 'XX PARM FILE OPEN ERROR : IOSTAT = ',IST
@@ -392,14 +395,14 @@ C
       RETURN
 
       END
-C
-C     ***** INPUT PARAMETER LIST *****
-C
+
+!     ***** INPUT PARAMETER LIST *****
+
       SUBROUTINE TXPLST
-C
+
       WRITE(6,601)
       RETURN
-C
+
   601 FORMAT(' ','# &TX : RA,RB,RR,BB,PA,PZ,Zeff,'/
      &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/
      &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/
@@ -417,17 +420,17 @@ C
      &       ' ',8X,'MODEG, gDIV, MODEAV, MODEl,'/
      &       ' ',8X,'FSHL,EpsH, NCphi')
       END
-C
-C     ***************************************************************
-C
-C        View input parameters
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        View input parameters
+!
+!     ***************************************************************
+!
       SUBROUTINE TXVIEW
-C
+
       INCLUDE 'txcomm.inc'
-C
+
       WRITE(6,'((1H ,A6,2H =,1PD9.2,3(2X,A6,2H =,1PD9.2)))')
      &   'RA    ', RA    ,  'RB    ', RB    , 
      &   'RR    ', RR    ,  'BB    ', BB    , 
@@ -466,33 +469,36 @@ C
      &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,
      &   'MODEG ', MODEG ,  'MODEAV', MODEAV,
      &   'MODEl ', MODEl ,  'NCPHI ', NCPHI
-C
+
       RETURN
       END
-C
-C     ***************************************************************
-C
-C        Initialize profiles
-C
-C     ***************************************************************
-C
+!
+!     ***************************************************************
+!
+!        Initialize profiles
+!
+!     ***************************************************************
+!
       SUBROUTINE TXPROF
-C
+
       INCLUDE 'txcomm.inc'
-C
+
+      INTEGER :: NR, NQ
+      REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP
+
       CALL TXCALM
       CALL TXPRFG
-C
-C  Initialize variable vector
-C
+
+!  Initialize variable vector
+
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
             X(NQ,NR) = 0
          ENDDO
       ENDDO
-C
-C  Half integer mesh variables
-C
+
+!  Half integer mesh variables
+
       DO NR = 0, NRMAX - 1
          RL=RHI(NR)
          IF (RL .LT. RA) THEN
@@ -505,15 +511,15 @@ C
          ELSE
             X(LQe1,NR)  = PNa * EXP(-(RL-RA) / rLn)
             X(LQi1,NR)  = X(LQe1,NR) / PZ
-CCCC            X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
-CCCC            X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
+!!!!            X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
+!!!!            X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
             X(LQe5,NR) = PTea*X(LQe1,NR)
             X(LQi5,NR) = PTia*X(LQi1,NR)
          ENDIF
          X(LQn1,NR) = PN0s
          X(LQn2,NR) = 0.D0
          X(LQm5,NR) = BB
-C
+
          IF((1.D0-(RHI(NR)/RA)**PROFJ).LE.0.D0) THEN
             PROF=0.D0    
          ELSE             
@@ -528,9 +534,9 @@ C
             AJOH(NR)= 0.D0
          ENDIF
       ENDDO
-C
-C Integer mesh variables
-C
+
+! Integer mesh variables
+
       IF(FSHL.EQ.0.D0) THEN
          X(LQm4,0) = 0.D0
          DO NR = 1, NRMAX
@@ -551,7 +557,7 @@ C
             X(LQm4,NR) = BB*RL/(QL*RR)
          ENDDO
       ENDIF
-C
+
       IF(FSHL.EQ.0.D0) THEN
          DO NR=0,NRMAX
             AJV(NR)=0.D0
@@ -566,7 +572,7 @@ C
             AJV(NR)=(RIP2-RIP1)/(2.D0*PI*RL*DR)
          ENDDO
       ENDIF
-C
+
       DO NR = 0, NRMAX - 1
          RL=RHI(NR)
          IF (RL .LT. RA) THEN
@@ -588,13 +594,13 @@ C
             X(LQm3,NR) = 0.D0
          ENDIF
       ENDDO
-C
+
       TIME=0.D0
       NGT=-1
       NGR=-1
       NGVV=-1
       rIP=rIPs
-C
+
       CALL TXCALV(X)
       CALL TXCALC
       CALL TXCALA
@@ -602,6 +608,6 @@ C
       CALL TXSTGT(SNGL(TIME))
       CALL TXSTGV(SNGL(TIME))
       CALL TXSTGR
-C
+
       RETURN
       END
