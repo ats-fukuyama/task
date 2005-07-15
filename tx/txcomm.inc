@@ -1,18 +1,26 @@
-C     $Id$
-C
-      IMPLICIT REAL*8(A-F, H, O-Z)
+!     $Id$
+!
+      IMPLICIT NONE
+      INTEGER :: NRM, NQM, NCM, NGRM, NGTM, NGVM, NGYRM, NGYTM, NGYVM, NGPRM, NGPTM, NGPVM
+      INTEGER :: NSM, NFM
+      INTEGER :: LQm1, LQm2, LQm3, LQm4, LQm5
+      INTEGER :: LQe1, LQe2, LQe3, LQe4, LQe5
+      INTEGER :: LQi1, LQi2, LQi3, LQi4, LQi5
+      INTEGER :: LQb1,       LQb3, LQb4
+      INTEGER :: LQn1, LQn2
+      
       PARAMETER (NRM = 100, NQM = 20, NCM = 19, 
      &           NGRM = 20, NGTM = 1000,  NGVM = 1000, 
      &           NGYRM = 36, NGYTM = 39,  NGYVM = 43, 
      &           NGPRM = 13, NGPTM = 13,  NGPVM = 7)
       PARAMETER (NSM=2, NFM=2)
-C
+
       PARAMETER (LQm1=1, LQm2=2, LQm3=3, LQm4=4, LQm5=5)
       PARAMETER (LQe1=6, LQe2=7, LQe3=8, LQe4=9, LQe5=10)
       PARAMETER (LQi1=11,LQi2=12,LQi3=13,LQi4=14,LQi5=15)
       PARAMETER (LQb1=16,        LQb3=17,LQb4=18)
       PARAMETER (LQn1=19,LQn2=20)
-C
+
       COMMON /TXPRM1/ RA,RB,RR,BB
       COMMON /TXPRM2/ PA,PZ,Zeff
       COMMON /TXPRM3/ PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
@@ -28,7 +36,7 @@ C
       COMMON /TXPRMD/ DelR,DelN
       COMMON /TXPRME/ rG1,EpsH,FSHL,NCPHI
       COMMON /TXPRMF/ rIPs,rIPe,Q0,QA
-C
+
       COMMON /TXABC1/ ALC(0:NCM,NQM,0:NRM),BLC(0:NCM,NQM,0:NRM)
       COMMON /TXABC2/ CLC(0:NCM,NQM,0:NRM),PLC(NCM,NQM,0:NRM)
       COMMON /TXABC3/ NLC(0:NCM,NQM,0:NRM),NLCMAX(NQM)
@@ -96,7 +104,3 @@ C
       COMMON /TXVAS4/ Q(0:NRM),QHI(0:NRM)
       COMMON /TXVER1/ SLID
       CHARACTER SLID*20
-
-
-
-

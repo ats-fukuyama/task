@@ -316,14 +316,17 @@ C     ********************************************************
 C
       SUBROUTINE TXSUMD(A,B,NMAX,SUM)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      DIMENSION A(NMAX),B(NMAX)
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NMAX
+      REAL(8), DIMENSION(NMAX), INTENT(IN) :: A, B
+      REAL(8), INTENT(OUT) :: SUM
+      INTEGER :: N
 C
       SUM=0.D0
       DO N=1,NMAX
          SUM=SUM+A(N)*B(N)
       ENDDO
+C
       RETURN
       END
 C
@@ -335,9 +338,11 @@ C     ********************************************************
 C
       SUBROUTINE TXSUMT(A,B,C,NMAX,SUM)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      DIMENSION A(NMAX),B(NMAX),C(NMAX)
+      IMPLICIT NONE
+      INTEGER, INTENT(IN) :: NMAX
+      REAL(8), DIMENSION(NMAX), INTENT(IN) :: A, B, C
+      REAL(8), INTENT(OUT) :: SUM
+      INTEGER :: N
 C
       SUM=0.D0
       DO N=1,NMAX

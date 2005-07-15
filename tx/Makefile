@@ -7,7 +7,7 @@ SRCS = txmenu.f txinit.f txexec.f txcalv.f txcala.f \
        txfile.f txrslt.f txgraf.f txlib.f
 OBJS = $(SRCS:.f=.o)
 PROG = tx
-LIBS=txlib.a ../lib/tasklib.a
+LIBS = txlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -17,8 +17,10 @@ all: $(PROG)
 txlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o txlib.a $(OBJS)
 
+../lib/tasklib.a:
+	(cd ../lib; make)
+
 $(PROG): txmain.o $(LIBS)
-	(cd ../lib; make tasklib.a)
 #	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
