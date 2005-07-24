@@ -59,13 +59,29 @@ C
 C     --- assuming elliptic crosssection, flat current profile ---
 C
       PSI0=-0.5D0*RMU0*RIP*1.D6*RR
-      PSITS=PI*RKAP*RA**2*BB
+      PSIPA=-PSI0
+      PSITA=PI*RKAP*RA**2*BB
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
           PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
           DELPSI(NTG,NSG)=0.D0
       ENDDO
       ENDDO
+C
+      DRHO=1.D0/(NRVMAX-1)
+      DO NRV=1,NRVMAX
+         RHOL=(NRV-1)*DRHO
+         PSIPNV(NRV)=RHOL*RHOL
+         PSIPV(NRV)=PSIPA*RHOL*RHOL
+         PSITV(NRV)=PSITA*RHOL*RHOL
+         QPV(NRV)=PSITA/PSIPA
+      ENDDO
+C
+      CALL SPL1D(PSIPNV,PSITV,DERIV,UPSITV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSITV: IERR=',IERR
+      CALL SPL1D(PSIPNV,QPV,DERIV,UQPV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPV: IERR=',IERR
+C
       RETURN
       END
 C
@@ -121,9 +137,17 @@ C
          RMG(NSG,NTG)=RR+SIGM(NSG)*RHOG(NTG)*COS(THGG(NTG))
       ENDDO
       ENDDO
+C
       DO NSG=1,NSGMAX+1
       DO NTG=1,NTGMAX
          RGM(NSG,NTG)=RR+SIGG(NSG)*RHOM(NTG)*COS(THGM(NTG))       
+      ENDDO
+      ENDDO
+C
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+         RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
+         ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
       ENDDO
       ENDDO
 C
@@ -165,7 +189,7 @@ C
 C
       IERR=0
 C
-      DO NLOOP=1,NLOOP_MAX_EQ
+      DO NLOOP=1,NLPMAX
          CALL EQBAND
          CALL EQRHSV(IERR)
          IF(IERR.NE.0) RETURN
@@ -188,7 +212,7 @@ C
          IF(SUM.LT.EPSEQ) RETURN
       ENDDO
 C
-      WRITE(6,*) 'XX EQLOOP: NLOOP exceeds NLOOP_MAX_EQ'
+      WRITE(6,*) 'XX EQLOOP: NLOOP exceeds NLPMAX'
       IERR=100
       RETURN
       END
@@ -295,67 +319,16 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
-      EXTERNAL EQPSID
-C
       IERR=0
 C
 C     ----- calculate PSIRZ(R,Z) from PSI(sigma, theta) -----
 C
       CALL EQTORZ
 C
-C     ----- calculate spline coef for psi(R,Z) -----
+C     ----- calculate flux average from PSIRZ(R,Z) -----
 C
-      CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,URZ,
-     &           NRGM,NRGMAX,NZGMAX,0,0,IER)
-      IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX EQRHSV: SPL2D for PSIRZ: IER=',IER
-         IERR=101
-         RETURN
-      ENDIF
-C
-C     ----- calculate PSIITB -----
-C
-      CALL EQCNVA(RHOITB**2,PSIITB)
-C
-C     ----- calculate position of magnetic axis -----
-C
-      DELT=1.D-8
-      EPS=1.D-4
-      ILMAX=40
-      LIST=0
-      RINIT=RAXIS
-      ZINIT=ZAXIS
-      RSAVE=RAXIS
-      ZSAVE=ZAXIS
-      CALL NEWTN(EQPSID,RINIT,ZINIT,RAXIS,ZAXIS,
-     &           DELT,EPS,ILMAX,LIST,IER)
-      IF(IER.NE.0) THEN
-         WRITE(6,'(A,I5,1P2E12.4)')
-     &        'XX EQRHSV: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
-         RAXIS=RSAVE
-         ZAXIS=ZSAVE
-      ENDIF
-      IF(RAXIS.LE.RR+RB.AND.
-     &   RAXIS.GE.RR-RB.AND.
-     &   ZAXIS.LE.RKAP*RB.AND.
-     &   ZAXIS.GE.-RKAP*RB) THEN
-         PSI0=PSIG(RAXIS,ZAXIS)
-         SAXIS=PSIG(RAXIS,ZAXIS)
-      ELSE
-         WRITE(6,'(A)') 'XX EQRHSV: AXIS OUT OF PLASMA:'
-         IERR=102
-         RETURN
-      ENDIF
-C
-C     ----- calculate R(sigma, theta) and Z(sigma,theta) -----
-C
-      DO NSG=1,NSGMAX
-      DO NTG=1,NTGMAX
-         RMM(NTG,NSG)=RR+SIGM(NSG)*RHOM(NTG)*COS(THGM(NTG))
-         ZMM(NTG,NSG)=   SIGM(NSG)*RHOM(NTG)*SIN(THGM(NTG))
-      ENDDO
-      ENDDO
+      CALL EQCALV(IERR)
+      IF(IERR.NE.0) RETURN
 C
 C     ----- calculate right hand side vector -----
 C
@@ -746,10 +719,6 @@ C
       DO NPS=1,NPSMAX
          PSIPS(NPS)=DPS*(NPS-1)
          PSIN=1.D0-PSIPS(NPS)/PSI0
-         CALL EQPPSI(PSIN,PPSI,DPPSI)
-         CALL EQJPSI(PSIN,HJPSID,HJPSI)
-         CALL EQTPSI(PSIN,TPSI,DTPSI)
-         CALL EQOPSI(PSIN,OMGPSI,DOMGPSI)
 C
          IF (IMDLEQF.EQ.0) THEN
             CALL EQPPSI(PSIN,PPSI,DPPSI)
@@ -810,7 +779,7 @@ C
          PQL=0.5D0*(PQLP+PQLN)
          HJL=0.5D0*(HJLP+HJLN)
          VA= 0.5D0*RMU*(PLP-PLN)/(BB**2*RG5)
-         VB=-RMU*HJL*PSITS*(PSINP-PSINN)/(PQL*BB*RG5)
+         VB=-RMU*HJL*PSITA*(PSINP-PSINN)/(PQL*BB*RG5)
          TTH(NU-1)=((1.D0+VA)*TTH(NR)-VB)/(1.D0-VA)
       ENDDO
       RETURN
@@ -826,63 +795,6 @@ C
       CALL EQJPSI(PSIN,HJL,DHJPSI)
       PQL=FNQPS(PSIN)
       RG5=FNG5S(PSIN)
-      RETURN
-      END
-C
-C     ***** CALCULATE Q *****
-C
-      SUBROUTINE EQPSIQ
-C
-      INCLUDE '../eq/eqcomq.inc'
-C
-      DIMENSION XA(NNM),YA(2,NNM)
-      DIMENSION DERIV(NPSM)
-      EXTERNAL PSIAX,EQDERV
-C
-      REDGE=ZBRENT(PSIAX,RR,RR+RB,1.D-8)
-      DR=(REDGE-RAXIS)/(NRMAX-1)
-      NMAX=200
-      IF(NMAX.GT.NNM) NMAX=NNM
-C
-      PSQ(1)=PSIG(RAXIS,ZAXIS)
-C
-      DO NR=2,NRMAX
-         RINIT=RAXIS+DR*(NR-1)
-         ZINIT=ZAXIS
-         PSQ(NR)=PSIG(RINIT,ZINIT)
-C
-         CALL EQMAGS(RINIT,ZINIT,NMAX,XA,YA,NA,IERR)
-C
-         SUML=0.D0
-         SUMV=0.D0
-         SUMQ=0.D0
-         SUMR1=0.D0
-         SUMR2=0.D0
-         SUMR3=0.D0
-         DO N=2,NA
-            CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
-            R=YA(1,N)
-            H=XA(N)-XA(N-1)
-            BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
-C
-            SUMV=SUMV+H*R/BPRL
-            SUMQ=SUMQ+H/(BPRL*R)
-            SUMR1=SUMR1+H*R
-            SUMR2=SUMR2+H*R*BPRL
-            SUMR3=SUMR3+H*BPRL/R
-         ENDDO
-         FVT(NR)=SUMV/(2.D0*PI)
-         FQT(NR)=SUMQ/(2.D0*PI)
-         AVR1(NR)=SUMR1/SUMV
-         AVR2(NR)=SUMR2/SUMV
-C         WRITE(6,*) NR,PSQ(NR),FQT(NR)
-      ENDDO
-C
-      FQT(1)=FQT(2)-(FQT(3)-FQT(2))*(PSQ(2)-PSQ(1))/(PSQ(3)-PSQ(2))
-      WRITE(6,'(1P3E12.4)') FQT(1),FQT(2),FQT(NRMAX)
-C
-      CALL SPL1D(PSQ,FQT,DERIV,UFQT,NRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for FQT: IERR=',IERR
       RETURN
       END
 C

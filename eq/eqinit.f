@@ -200,6 +200,8 @@ C        NPSMAX: Number of flux surfaces
 C        NRMAX : Number of radial mesh points for flux coordinates
 C        NTHMAX: Number of poloidal mesh points for flux coordinates
 C        NSUMAX: Number of boundary points
+C        NRVMAX: Number of radial mesh of surface averate
+C        NTVMAX: Number of poloidal mesh for surface averate
 C
       NSGMAX = 32
       NTGMAX = 32
@@ -213,15 +215,16 @@ C
       NTHMAX = 64
       NSUMAX = 65
 C
+      NRVMAX = 50
+      NTVMAX = 200
+C
 C     *** CONTROL PARAMETERS ***
 C
 C        EPSEQ  : Convergence criterion for equilibrium
-C        NLOOP_MAX_EQ : Maximum iteration number of EQ
-C        NRVMAX : Number of radial mesh for Fpsi calculation
+C        NLPMAX : Maximum iteration number of EQ
 C
       EPSEQ  = 1.D-6
-      NLOOP_MAX_EQ = 20
-      NRVMAX = 50
+      NLPMAX = 20
 C
 C        MDLEQF : Profile parameter
 C            0: given analytic profile  P,Jtoroidal,T,Vph
@@ -236,8 +239,8 @@ C
       MDLEQF = 0
 C
 C        MDLEQA : Rho in P(rho), F(rho), q(rho),...
-C            0: SQRT(-PSIP/PSI0)
-C            1: SQRT(PSIT/PSITS)
+C            0: SQRT(PSIP/PSIPA)
+C            1: SQRT(PSIT/PSITA)
 C
       MDLEQA = 0
 C
@@ -306,10 +309,10 @@ C
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
-     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,NLOOP_MAX_EQ,
+     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,
      &              NRGMAX,NZGMAX,
-     &              NPSMAX,NRVMAX,KNAMEQ,
+     &              NPSMAX,NRVMAX,NTVMAX,KNAMEQ,
      &              NRMAX,NTHMAX,NSUMAX,
      &              MDLEQF,MDLEQC,MDLEQA,NPRINT
 C
@@ -340,8 +343,8 @@ C
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
      &       9X,'PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
-     &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,KNAMEQ'/
-     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLOOP_MAX_EQ')
+     &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX,KNAMEQ'/
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -389,6 +392,14 @@ C
       IF(NSUMAX.GT.NSUM) THEN
          WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NSUMAX.GT.NSUM: ',NSUMAX,NSUM
          IERR=8
+      ENDIF
+      IF(NRVMAX.GT.NRVM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NRVMAX.GT.NRVM: ',NRVMAX,NRVM
+         IERR=9
+      ENDIF
+      IF(NTVMAX.GT.NTVM) THEN
+         WRITE(6,'(A,I8,I8)') 'XX EQCHEK: NTVMAX.GT.NTVM: ',NTVMAX,NTVM
+         IERR=10
       ENDIF
       RETURN
       END
@@ -450,7 +461,9 @@ C
      &             'NTGMAX',NTGMAX,
      &             'NUGMAX',NUGMAX
       WRITE(6,602) 'NRGMAX',NRGMAX,
-     &             'NZGMAX',NZGMAX
+     &             'NZGMAX',NZGMAX,
+     &             'NRVMAX',NRVMAX,
+     &             'NTVMAX',NTVMAX
       WRITE(6,602) 'NRMAX ',NRMAX,
      &             'NTHMAX',NTHMAX,
      &             'NPSMAX',NPSMAX,
@@ -458,9 +471,8 @@ C
       WRITE(6,602) 'MDLEQF',MDLEQF,
      &             'MDLEQC',MDLEQC,
      &             'MDLEQA',MDLEQA
-      WRITE(6,602) 'NRVMAX',NRVMAX,
-     &             'NPRINT',NPRINT,
-     &             'NLOOPM',NLOOP_MAX_EQ
+      WRITE(6,602) 'NPRINT',NPRINT,
+     &             'NLPMAX',NLPMAX
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))

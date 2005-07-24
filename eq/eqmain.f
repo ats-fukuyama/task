@@ -7,7 +7,7 @@ C   sigma  : normalized radial coordinate [0,1]
 C   theta  : periodic poloidal coodinated [0,2*Pi)
 C   PSI(sigma,theta) : poloidal magnetic flux
 C                      PSI0 at (0,theta), 0 at (1,theta)
-C   PSITS  : initial toroidal magnetic flux on surface
+C   PSITA  : toroidal magnetic flux on surface R=RA
 C   PSIRZ(R,Z)       : poloidal magnetic flux
 C                      PSI0 at (Raxis,Zaxis), 0 on surface
 C
@@ -15,7 +15,7 @@ C   ************************************************
 C
       INCLUDE 'eqcomc.inc'
 C
-      WRITE(6,*) '## TASK/EQ 2004/12/10'
+      WRITE(6,*) '## TASK/EQ 2005/07/24'
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C

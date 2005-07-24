@@ -86,7 +86,7 @@ C
     2 X=X+TT*DX
       Y=Y+TT*DY
       CALL SUB(X,   Y,   SN,GN)
-      IF(LIST.GT.0) WRITE(6,600) DX,DY
+      IF(LIST.GT.0) WRITE(6,602) DX,DY
       IF(LIST.GT.0) WRITE(6,600) X,Y,SN,GN
       IF(LIST.GT.0) CALL GUFLSH
       DFN=SQRT(SN*SN+GN*GN)
@@ -121,6 +121,7 @@ C
       RETURN
   600 FORMAT(" ",6X,'X,Y,FX,FY = ',1P4E15.7)
   601 FORMAT(" ",6X,'FXX,YY,XY = ',1P4E15.7)
+  602 FORMAT(" ",6X,'DX,DY     = ',1P2E15.7)
       END
 C
 C   ***************************************

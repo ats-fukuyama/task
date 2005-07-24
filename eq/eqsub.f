@@ -1,5 +1,64 @@
 C     $Id$
 C
+C     ***** CALCULATE MAGNETIC AXIS AND EDGE *****
+C
+      SUBROUTINE EQCALX(IERR)
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
+      EXTERNAL EQPSID,PSIZ0
+C
+      IERR=0
+C
+C     ----- calculate spline coef for psi(R,Z) -----
+C
+      CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,URZ,
+     &           NRGM,NRGMAX,NZGMAX,0,0,IER)
+      IF(IERR.NE.0) THEN
+         WRITE(6,*) 'XX EQCALX: SPL2D for PSIRZ: IER=',IER
+         IERR=101
+         RETURN
+      ENDIF
+C
+C     ----- calculate position of magnetic axis -----
+C
+      DELT=1.D-8
+      EPS=1.D-4
+      ILMAX=40
+      LIST=0
+      RINIT=RAXIS
+      ZINIT=ZAXIS
+      RSAVE=RAXIS
+      ZSAVE=ZAXIS
+      CALL NEWTN(EQPSID,RINIT,ZINIT,RAXIS,ZAXIS,
+     &           DELT,EPS,ILMAX,LIST,IER)
+      IF(IER.NE.0) THEN
+         WRITE(6,'(A,I5,1P2E12.4)')
+     &        'XX EQCALX: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
+         WRITE(6,'(A)') 'XX EQCALX: AXIS NOT FOUND:'
+         IERR=102
+         RETURN
+      ENDIF
+      IF(RAXIS.LE.RR+RB.AND.
+     &   RAXIS.GE.RR-RB.AND.
+     &   ZAXIS.LE.RKAP*RB.AND.
+     &   ZAXIS.GE.-RKAP*RB) THEN
+         PSI0=PSIG(RAXIS,ZAXIS)
+         PSIPA=-PSI0
+      ELSE
+         WRITE(6,'(A)') 'XX EQCALX: AXIS OUT OF PLASMA:'
+         IERR=103
+         RETURN
+      ENDIF
+C
+C     ----- calculate outer plasma surface -----
+C
+      REDGE=ZBRENT(PSIZ0,RR,RR+RB,1.D-8)
+C
+      RETURN
+      END
+C
 C     ***** INTEGRATE ALONG THE MAGNETIC FIELD LINE *****
 C
       SUBROUTINE EQMAGS(RINIT,ZINIT,NMAX,XA,YA,N,IERR)
@@ -32,9 +91,9 @@ C
          CALL EQDERV(X,Y,DYDX)
          CALL EQRK4(X,Y,DYDX,YOUT,H,NEQ,EQDERV)
          IF(IMODE.EQ.0) THEN
-            IF((YOUT(2)-ZINIT)*SAXIS.GT.0.D0) IMODE=1
+            IF((YOUT(2)-ZINIT)*PSI0.GT.0.D0) IMODE=1
          ELSE
-            IF((YOUT(2)-ZINIT)*SAXIS.LT.0.D0) GOTO 1000
+            IF((YOUT(2)-ZINIT)*PSI0.LT.0.D0) GOTO 1000
          ENDIF
          X=X+H
          Y(1)=YOUT(1)
@@ -60,7 +119,7 @@ C
       DO I=1,11
          CALL EQDERV(X,Y,DYDX)
          CALL EQRK4(X,Y,DYDX,YOUT,H,NEQ,EQDERV)
-         IF((YOUT(2)-ZINIT)*SAXIS.LT.0.D0) GOTO 2000
+         IF((YOUT(2)-ZINIT)*PSI0.LT.0.D0) GOTO 2000
          X=X+H
          Y(1)=YOUT(1)
          Y(2)=YOUT(2)
@@ -102,11 +161,11 @@ C      WRITE(6,'(1P5E12.4)') X,Y(1),Y(2),DYDX(1),DYDX(2)
 C
 C     ***** INTERPOLATE FUNCTION OF PSI(R,ZAXIS) *****
 C
-      FUNCTION PSIAX(R)
+      FUNCTION PSIZ0(R)
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      PSIAX=PSIG(R,ZAXIS)
+      PSIZ0=PSIG(R,ZAXIS)
       RETURN
       END
 C

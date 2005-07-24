@@ -63,8 +63,8 @@ C
       IF(MDLEQA.EQ.0) THEN
          FDN=-1.D0/PSI0
       ELSE
-         CALL EQQPSI(PSIN,QPSI,DQPSI)
-         FDN=QPSI/PSITS
+         QPVL=EQQPV(PSIN)
+         FDN=QPVL/PSITA
       ENDIF
       RETURN
       END
@@ -145,11 +145,8 @@ C
          IF(IERR.NE.0) WRITE(6,*) 'XX EQQPSI: SPL1DD : IERR=',IERR
       ENDIF
 C
-      IF(MDLEQA.EQ.0) THEN
-         FDN=-1.D0/PSI0
-      ELSE
-         FDN=    F/PSITS
-      ENDIF
+      CALL EQFDPP(PSIN,FDN)
+C
       QPSI  =      F
       DQPSI = FDN*DF
       RETURN
@@ -280,9 +277,9 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      PSIL=SAXIS*(1.D0-PSIN)
+      PSIL=PSI0*(1.D0-PSIN)
       CALL SPL1DD(PSIL,FQTL,DFQTL,PSQ,UFQT,NRMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX FNFQT: SPL1DD ERROR : IERR=',IERR
-      DFQTL=-SAXIS*DFQTL
+      DFQTL=-PSI0*DFQTL
       RETURN
       END

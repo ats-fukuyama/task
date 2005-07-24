@@ -123,15 +123,16 @@ c
       DO NZG=1,NZGMAX
          ZG(NZG)=zmid-0.5D0*zdim+DZ*(NZG-1)
       ENDDO
-      read (neqdsk,2020) RAXIS,ZAXIS,SAXIS,SBNDY,BB
+      read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIS,BB
 C
-      SAXIS=2.D0*PI*SAXIS
-      SBNDY=2.D0*PI*SBNDY
+      PSI0=2.D0*PI*PSI0
+      PSIS=2.D0*PI*PSIS
 C
-      DPS=(SAXIS-SBNDY)/(NPSMAX-1)
-      SAXIS=SAXIS-SBNDY
+      DPS=(PSI0-PSIS)/(NPSMAX-1)
+      PSI0=PSI0-PSIS
+      PSIPA=-PSI0
       DO NPS=1,NPSMAX
-         PSIPS(NPS)=SAXIS-DPS*(NPS-1)
+         PSIPS(NPS)=PSI0-DPS*(NPS-1)
       ENDDO
       read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
       RIP=RIP/1.D6
@@ -166,7 +167,7 @@ C
       CLOSE(neqdsk)
 C
 C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
-C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,SAXIS,SBNDY
+C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIS
 C      WRITE(6,'(1P4E12.4)') RG(1),RG(2),RG(NRGMAX-1),RG(NRGMAX)
 C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
 C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
@@ -174,7 +175,7 @@ C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
 C
       DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-SBNDY
+            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSIS
          ENDDO
       ENDDO
       DO i=1,NPSMAX
