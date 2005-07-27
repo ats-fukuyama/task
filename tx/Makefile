@@ -3,13 +3,15 @@ include ../make.header
 
 FFLAGS = $(OFLAGS)
 
-SRCS = txmenu.f txinit.f txexec.f txcalv.f txcala.f \
-       txfile.f txrslt.f txgraf.f txlib.f
-OBJS = $(SRCS:.f=.o)
+SRCS = txmenu.f90 txinit.f90 txexec.f90 txcalv.f90 txcala.f90 \
+       txfile.f90 txrslt.f90 txgraf.f90 txlib.f90
+OBJS = $(SRCS:.f90=.o)
 PROG = tx
 LIBS = txlib.a ../lib/tasklib.a
 
-.f.o :
+.SUFFIXES: .f90
+
+.f90.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
 all: $(PROG)
@@ -37,20 +39,20 @@ new :
 	mkdir ../txnew
 	cp -f Makefile ../txnew
 	cp -f HISTORY ../txnew
-	cp -f *.f ../txnew
+	cp -f *.f90 ../txnew
 	cp -f *.inc ../txnew
 	-mkdir ../txnew/doc
 	-cp -f doc/* ../txnew/doc
 	-mkdir ../txnew/in
 	-cp -f in/* ../txnew/in
 
-txmain.o: txmain.f txcomm.inc
-txmenu.o: txmenu.f txcomm.inc
-txinit.o: txinit.f txcomm.inc
-txexec.o: txexec.f txcomm.inc
-txcalv.o: txcalv.f txcomm.inc
-txcala.o: txcala.f txcomm.inc
-txfile.o: txfile.f txcomm.inc
-txrslt.o: txrslt.f txcomm.inc
-txgraf.o: txgraf.f txcomm.inc
-txlib.o: txlib.f
+txmain.o: txmain.f90 txcomm.inc
+txmenu.o: txmenu.f90 txcomm.inc
+txinit.o: txinit.f90 txcomm.inc
+txexec.o: txexec.f90 txcomm.inc
+txcalv.o: txcalv.f90 txcomm.inc
+txcala.o: txcala.f90 txcomm.inc
+txfile.o: txfile.f90 txcomm.inc
+txrslt.o: txrslt.f90 txcomm.inc
+txgraf.o: txgraf.f90 txcomm.inc
+txlib.o: txlib.f90

@@ -8,15 +8,15 @@
 !
       SUBROUTINE TXGLOB
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, PI, rMU0, rKEV
       INCLUDE 'txcomm.inc'
 
       INTEGER :: I, NS, NF
-      REAL(8) :: RKAP, FKAP, RNSUM, RTSUM, ANFSUM, RWSUM, POHSUM,
-     &           PNBSUM, PNFSUM, PRFeSUM, PRFiSUM, PRFeTOT, PRFiTOT, 
-     &           EION, PIE, SIE, TNU, PCX,
-     &           AJTSUM, AOHSUM, ANBSUM, SNBSUM,  FACT,
+      REAL(8) :: RKAP, FKAP, RNSUM, RTSUM, ANFSUM, RWSUM, POHSUM, &
+     &           PNBSUM, PNFSUM, PRFeSUM, PRFiSUM, PRFeTOT, PRFiTOT,  &
+     &           EION, PIE, SIE, TNU, PCX, &
+     &           AJTSUM, AOHSUM, ANBSUM, SNBSUM,  FACT, &
      &           BBL, SUML, SUPL, PNES, PAI
 !      REAL(8) :: PIESUM = 0.D0, SIESUM = 0.D0, PCXSUM = 0.D0,
 !     &           SUM = 0.D0, SUP = 0.D0, SUL = 0.D0
@@ -63,7 +63,7 @@
          ANFSUM=DOT_PRODUCT(PNbHI(0:NRMAX),RHI(0:NRMAX))
 !         CALL TXSUMD(SNB,RHI,NRMAX,RWSUM)
          RWSUM =DOT_PRODUCT(SNB(0:NRMAX),RHI(0:NRMAX))
-         WFT(1) = 0.5D0*AMi*RWSUM**2.D0*1.5D0
+         WFT(1) = 0.5D0*AMi*RWSUM**2.D0*1.5D0 &
      &           *2.D0*PI*RR*2.D0*PI*DR*RKAP*RKEV*1.D14
          ANFAV(1) = ANFSUM*2.D0*PI*DR/(PI*RA*RA)
          ANF0(1)  = PNbI(0)
@@ -73,8 +73,7 @@
             TFAV(1)  = 0.D0
          ENDIF
          IF(ANF0(1).GT.0.D0) THEN
-            TF0(1)  = (9.D0*SNB(1)-SNB(2))/8.D0
-     &                 /ANF0(1)
+            TF0(1)  = (9.D0*SNB(1)-SNB(2))/8.D0/ANF0(1)
          ELSE
             TF0(1)  = 0.D0
          ENDIF
@@ -135,8 +134,8 @@
          SIESUM=SIESUM+SIE*RHI(I)
 
          TNU=0.D0
-         PCX=(-1.5D0*PNeHI(I)*rNuION(I)*TNU/1.D20
-     &             +1.5D0*PNiHI(I)*rNuiCX(I)
+         PCX=(-1.5D0*PNeHI(I)*rNuION(I)*TNU/1.D20 &
+     &             +1.5D0*PNiHI(I)*rNuiCX(I) &
      &             *(PTiHI(I)-TNU))*RKEV*1.D20
          PCXSUM=PCXSUM+PCX*RHI(I)
       ENDDO
@@ -181,7 +180,7 @@
 !     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
 !     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*RKEV*1.D14
 !      ENDDO
-C
+!
 !!      CALL TXSUMD(SIE,RHI,NRMAX,SIESUM)
 !!      CALL TXSUMD(SNF,RHI,NRMAX,SNFSUM)
 !      CALL TXSUMD(SNB,RHI,NRMAX,SNBSUM)
@@ -241,10 +240,10 @@ C
 
       DO I=1,NRMAX-1
          BBL  = SQRT(BthI(I)**2+BphI(I)**2)
-         SUML = PNeHI(I)*PTeHI(I)*RKEV*1.D20
+         SUML = PNeHI(I)*PTeHI(I)*RKEV*1.D20 &
      &        + PNiHI(I)*PTiHI(I)*RKEV*1.D20
-         SUPL = (PNeHI(I+1)*PTeHI(I+1)-PNeHI(I  )*PTeHI(I  )
-     &          +PNiHI(I+1)*PTiHI(I+1)-PNiHI(I  )*PTiHI(I  ))
+         SUPL = (PNeHI(I+1)*PTeHI(I+1)-PNeHI(I  )*PTeHI(I  ) &
+     &          +PNiHI(I+1)*PTiHI(I+1)-PNiHI(I  )*PTiHI(I  )) &
      &          *RKEV*1.D20/DR
 
          SUM = SUM + SUML*2.D0*PI*RHI(I)*DR
@@ -260,12 +259,12 @@ C
 
       I=NRMAX
          BBL  = SQRT(BthI(I)**2+BphI(I)**2)
-         SUML =(PNeHI(I)*PTeHI(I)
-     &         +PNiHI(I)*PTiHI(I))
+         SUML =(PNeHI(I)*PTeHI(I) &
+     &         +PNiHI(I)*PTiHI(I)) &
      &         *RHI(I)*RKEV*1.D20
          PNES = PNa * EXP(-(RB-RA) / rLn)
-         SUPL = (PNES*PTea-PNeHI(I)*PTeHI(I)
-     &          +PNES/PZ*PTia-PNiHI(I)*PTiHI(I))
+         SUPL = (PNES*PTea-PNeHI(I)*PTeHI(I) &
+     &          +PNES/PZ*PTia-PNiHI(I)*PTiHI(I)) &
      &          *RKEV*1.D20/DR*2.D0
 
 !         DO NF=1,NFM
@@ -299,13 +298,13 @@ C
          TAUEP=0.D0
          QF=0.D0
       ELSE
-      TAUEP=4.8D-2*(rIP**0.85D0)
-     &            *(RR**1.2D0)
-     &            *(RA**0.3D0)
-     &            *(RKAP**0.5D0)
-     &            *(ANSAV(1)**0.1D0)
-     &            *(BB**0.2D0)
-     &            *(PAI**0.5D0)
+      TAUEP=4.8D-2*(rIP**0.85D0) &
+     &            *(RR**1.2D0) &
+     &            *(RA**0.3D0) &
+     &            *(RKAP**0.5D0) &
+     &            *(ANSAV(1)**0.1D0) &
+     &            *(BB**0.2D0) &
+     &            *(PAI**0.5D0) &
      &            *(PINT**(-0.5D0))
          QF=5.D0*PNFT/PINT
       ENDIF
@@ -319,8 +318,7 @@ C
          ENDIF
          DO I=2,NRMAX
             IF(Q(I).GT.1.D0) THEN
-               RQ1=(R(I)-R(I-1))*(1.D0-Q(I-1))/(Q(I)-Q(I-1))
-     &             +R(I-1)
+               RQ1=(R(I)-R(I-1))*(1.D0-Q(I-1))/(Q(I)-Q(I-1))+R(I-1)
                GOTO 310
             ENDIF
          ENDDO

@@ -16,7 +16,7 @@
 
 !     *** MENU ***
 
-   10 WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B,C: ',
+   10 WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B,C: ', &
      &           'S,L,M:file I:init X:exit'
       READ(5,'(A5)',ERR=50,END=9000) STR
 
@@ -268,7 +268,7 @@
 
       DO NR = 0, NRMAX - 1
          GY(NR,NGR,1)  = SNGL(PNeHI(NR) * 1.D20)
-         GY(NR,NGR,2)  = SNGL((PZ * PNiHI(NR) + PZ * PNbHI(NR)
+         GY(NR,NGR,2)  = SNGL((PZ * PNiHI(NR) + PZ * PNbHI(NR) &
      &                         -    PNeHI(NR)) * 1.D20)
          GY(NR,NGR,5)  = SNGL(UephHI(NR))
          GY(NR,NGR,8)  = SNGL(UiphHI(NR))
@@ -279,8 +279,8 @@
          GY(NR,NGR,15) = SNGL(PTiHI(NR))
          GY(NR,NGR,16) = SNGL((PN01HI(NR) + PN02HI(NR)) * 1.D20)
          GY(NR,NGR,18) = SNGL(BphHI(NR))
-         GY(NR,NGR,21) = SNGL(-      AEE * PNeHI(NR) * UephHI(NR)*1.D20
-     &                        + PZ * AEE * PNiHI(NR) * UiphHI(NR)*1.D20
+         GY(NR,NGR,21) = SNGL(-      AEE * PNeHI(NR) * UephHI(NR)*1.D20 &
+     &                        + PZ * AEE * PNiHI(NR) * UiphHI(NR)*1.D20 &
      &                        + PZ * AEE * PNbHI(NR) * UbphHI(NR)*1.D20)
          GY(NR,NGR,22) = SNGL(-      AEE * PNeHI(NR) * UephHI(NR)*1.D20)
          GY(NR,NGR,23) = SNGL(  PZ * AEE * PNiHI(NR) * UiphHI(NR)*1.D20)
@@ -295,13 +295,13 @@
          Bth = BthI(NR)
          Bph = BphI(NR)
          BBL = SQRT(Bph**2 + Bth*2)
-         GY(NR,NGR,25) = SNGL(+ Bph * UethI(NR) / BBL
+         GY(NR,NGR,25) = SNGL(+ Bph * UethI(NR) / BBL &
      &                        - Bth * UephI(NR) / BBL)
-         GY(NR,NGR,26) = SNGL(+ Bth * UethI(NR) / BBL
+         GY(NR,NGR,26) = SNGL(+ Bth * UethI(NR) / BBL &
      &                        + Bph * UephI(NR) / BBL)
-         GY(NR,NGR,27) = SNGL(+ Bph * UithI(NR) / BBL
+         GY(NR,NGR,27) = SNGL(+ Bph * UithI(NR) / BBL &
      &                        - Bth * UiphI(NR) / BBL)
-         GY(NR,NGR,28) = SNGL(+ Bth * UithI(NR) / BBL
+         GY(NR,NGR,28) = SNGL(+ Bth * UithI(NR) / BBL &
      &                        + Bph * UiphI(NR) / BBL)
       ENDDO
 
@@ -331,7 +331,7 @@
 !
       SUBROUTINE TXSTGT(GTIME)
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, PI
       INCLUDE 'txcomm.inc'
 
@@ -349,7 +349,7 @@
       GTY(NGT,2) = SNGL(rLINEAVE(0.D0))
       GTY(NGT,3) = SNGL(rLINEAVE(0.24D0))
       GTY(NGT,4) = SNGL(rLINEAVE(0.6D0))
-      GTY(NGT,5) = SNGL((PZ * PNiHI(0) + PZ * PNbHI(0)
+      GTY(NGT,5) = SNGL((PZ * PNiHI(0) + PZ * PNbHI(0) &
      &                                 - PNeHI(0)) * 1.D20)
       GTY(NGT,6)  = SNGL(UerI(NRMAX/2))
       GTY(NGT,7)  = SNGL(UethI(NRMAX/2))
@@ -367,8 +367,8 @@
       GTY(NGT,19) = SNGL((PN01HI(0) + PN02HI(0)) * 1.D20)
 
       GTY(NGT,20) = SNGL(Q(0))
-      GTY(NGT,21) = SNGL((-      AEE * PNeI(0) * UephI(0)
-     &                    + PZ * AEE * PNiI(0) * UiphI(0)
+      GTY(NGT,21) = SNGL((-      AEE * PNeI(0) * UephI(0) &
+     &                    + PZ * AEE * PNiI(0) * UiphI(0) &
      &                    + PZ * AEE * PNbI(0) * UbphI(0)) * 1.D20)
       GTY(NGT,22) = SNGL(-      AEE * PNeI(0) * UephI(0) * 1.D20)
       GTY(NGT,23) = SNGL(  PZ * AEE * PNiI(0) * UiphI(0) * 1.D20)
@@ -377,13 +377,13 @@
       Bth = BthHI(NRMAX/2)
       Bph = BphHI(NRMAX/2)
       BBL = SQRT(Bph**2 + Bth**2)
-      GTY(NGT,25) = SNGL((+ Bph * UethI(NRMAX/2)
+      GTY(NGT,25) = SNGL((+ Bph * UethI(NRMAX/2) &
      &                    - Bth * UephI(NRMAX/2)) / BBL)
-      GTY(NGT,26) = SNGL((+ Bth * UethI(NRMAX/2)
+      GTY(NGT,26) = SNGL((+ Bth * UethI(NRMAX/2) &
      &                    + Bph * UephI(NRMAX/2)) / BBL)
-      GTY(NGT,27) = SNGL((+ Bph * UithI(NRMAX/2)
+      GTY(NGT,27) = SNGL((+ Bph * UithI(NRMAX/2) &
      &                    - Bth * UiphI(NRMAX/2)) / BBL)
-      GTY(NGT,28) = SNGL((+ Bth * UithI(NRMAX/2)
+      GTY(NGT,28) = SNGL((+ Bth * UithI(NRMAX/2) &
      &                    + Bph * UiphI(NRMAX/2)) / BBL)
       GTY(NGT,29) = SNGL(Di(NRMAX/2)+De(NRMAX/2))
       GTY(NGT,30) = SNGL(rG1h2(NRMAX/2))
@@ -499,7 +499,7 @@
       REAL(8), DIMENSION(0:NRM,0:NGRM) :: GYL
       CHARACTER(40) :: STR
 
-      IF (NGYR. EQ. 0) THEN
+      IF (NGYR .EQ. 0) THEN
          CALL PAGES
          CALL PAGEE
          RETURN
@@ -776,7 +776,7 @@
       GPXY(3) = 10.5 -  8.5 * REAL(K/2)
       GPXY(4) = 17.0 -  8.5 * REAL(K/2)
       GXMAX=REAL(RB/RA)
-      CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX1+1, NGMAX+1,
+      CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX1+1, NGMAX+1, &
      &            0.0, GXMAX, STR, MODE, IND)
 
       RETURN
@@ -1300,7 +1300,7 @@
       GPXY(2) = 12.5 + 12.5 * MOD(K,2)
       GPXY(3) = 10.5 -  8.5 * REAL(K/2)
       GPXY(4) = 17.0 -  8.5 * REAL(K/2)
-      CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG,
+      CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG, &
      &            GTXL(0), GTXL(NGTL), STR, MODE, IND)
 
       RETURN
@@ -1326,7 +1326,7 @@
       GPXY(2) = 12.0 + 12.0 * MOD(K,2)
       GPXY(3) = 14.0 -  4.3 * REAL(K/2)
       GPXY(4) = 17.0 -  4.3 * REAL(K/2)
-      CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG,
+      CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG, &
      &            GTXL(0), GTXL(NGTL), STR, 1, IND)
 
       RETURN
@@ -1352,23 +1352,23 @@
       CHARACTER(80), DIMENSION(NQM) :: STRGQ
       CHARACTER(80) :: STR
 
-      DATA STRGQ /
-     &     '@E$-r$=@','@E$-$#q$#$=@','@E$-$#f$#$=@',
-     &                '@B$-$#q$#$=@','@B$-$#f$#$=@', 
-     &     '@n$-e$=@','@n$-e$= u$-er$=@',
-     &     '@n$-e$=u$-e$#q$#$=@','@n$-e$#f$#$=@','@T$-e$=@',
-     &     '@n$-i$=@','@n$-i$= u$-ir$=@',
-     &     '@n$-i$=u$-i$#q$#$=@','@n$-i$#f$#$=@','@T$-i$=@',
-     &     '@n$-b$=@',
-     &     '@n$-b$=u$-b$#q$#$=@','@n$-b$#f$#$=@',
+      DATA STRGQ / &
+     &     '@E$-r$=@','@E$-$#q$#$=@','@E$-$#f$#$=@', &
+     &                '@B$-$#q$#$=@','@B$-$#f$#$=@',  &
+     &     '@n$-e$=@','@n$-e$= u$-er$=@', &
+     &     '@n$-e$=u$-e$#q$#$=@','@n$-e$#f$#$=@','@T$-e$=@', &
+     &     '@n$-i$=@','@n$-i$= u$-ir$=@', &
+     &     '@n$-i$=u$-i$#q$#$=@','@n$-i$#f$#$=@','@T$-i$=@', &
+     &     '@n$-b$=@', &
+     &     '@n$-b$=u$-b$#q$#$=@','@n$-b$#f$#$=@', &
      &     '@Slow n$-0$=@', '@Fast n$-0$=@'/
 !
 !        1 : Equation is integer mesh.
 !        2 : Equation is half integer mesh.
       DATA IHIGQ/2,1,2,1,2, 2,1,1,2,2, 2,1,1,2,2, 2,1,1, 2,2/
-      DATA GPXYA/ 2.5, 9.5,10.5,17.0,
-     &            2.5, 9.5, 1.5, 8.0,
-     &           15.0,22.0,10.5,17.0,
+      DATA GPXYA/ 2.5, 9.5,10.5,17.0, &
+     &            2.5, 9.5, 1.5, 8.0, &
+     &           15.0,22.0,10.5,17.0, &
      &           15.0,22.0, 1.5, 8.0/
 
       GPXY(1) = GPXYA(1,ID)
@@ -1379,20 +1379,20 @@
       DO NC = 1, NLCMAX(NQ)
          NR = 0
             NC1 = NLC(NC,NQ,NR)
-            GQY(NR,NC) = SNGL(+ BLC(NC,NQ,NR) * X(NC1,NR  )
-     &                        + ALC(NC,NQ,NR) * X(NC1,NR+1)
+            GQY(NR,NC) = SNGL(+ BLC(NC,NQ,NR) * X(NC1,NR  ) &
+     &                        + ALC(NC,NQ,NR) * X(NC1,NR+1) &
      &                        + PLC(NC,NQ,NR))
          DO NR = 1, NRMAX - 1
             NC1 = NLC(NC,NQ,NR)
-            GQY(NR,NC) = SNGL(+ CLC(NC,NQ,NR) * X(NC1,NR-1)
-     &                        + BLC(NC,NQ,NR) * X(NC1,NR  )
-     &                        + ALC(NC,NQ,NR) * X(NC1,NR+1)
+            GQY(NR,NC) = SNGL(+ CLC(NC,NQ,NR) * X(NC1,NR-1) &
+     &                        + BLC(NC,NQ,NR) * X(NC1,NR  ) &
+     &                        + ALC(NC,NQ,NR) * X(NC1,NR+1) &
      &                        + PLC(NC,NQ,NR))
          ENDDO
          NR = NRMAX
             NC1 = NLC(NC,NQ,NR)
-            GQY(NR,NC) = SNGL(+ CLC(NC,NQ,NR) * X(NC1,NR-1)
-     &                        + BLC(NC,NQ,NR) * X(NC1,NR  )
+            GQY(NR,NC) = SNGL(+ CLC(NC,NQ,NR) * X(NC1,NR-1) &
+     &                        + BLC(NC,NQ,NR) * X(NC1,NR  ) &
      &                        + PLC(NC,NQ,NR))
       ENDDO
 
@@ -1412,8 +1412,8 @@
          IND = 0
       ENDIF
       GXMAX=REAL(RB/RA)
-      CALL TXGRAF(GPXY, GX(0,IHIGQ(NQ)), GQY,
-     &            NRM+1, NXMAX, NLCMAX(NQ),
+      CALL TXGRAF(GPXY, GX(0,IHIGQ(NQ)), GQY, &
+     &            NRM+1, NXMAX, NLCMAX(NQ), &
      &            0.0, GXMAX, '@'//STR(1:NSTR)//'@', 3, IND)
 
       RETURN
@@ -1563,7 +1563,7 @@
 !
 !     ***************************************************************
 !
-      SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX,
+      SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
      &                  GXMIN, GXMAX, STR, MODE, IND)
 
       IMPLICIT NONE
@@ -1576,8 +1576,8 @@
       CHARACTER(*), INTENT(IN) :: STR
 
       INTEGER :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
-      REAL :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP,
-     &        GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP, GYORG, 
+      REAL :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &
+     &        GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP, GYORG,  &
      &        GMRK, GCHH, GXL, GYL
       INTEGER, DIMENSION(0:4) :: NLTYPE
       DATA NLTYPE/0,2,3,4,6/
@@ -1626,7 +1626,7 @@
       IF (GSYMAX .LT. GYMAX) GSYMAX = GSYMAX + GYSTEP
       GYORG = 0.0
 
-      CALL GDEFIN(GX1, GX2, GY1, GY2, 
+      CALL GDEFIN(GX1, GX2, GY1, GY2,  &
      &            GSXMIN, GSXMAX, GSYMIN, GSYMAX)
       CALL GFRAME
       CALL GSCALE(GSXMIN, GXSTEP, 0.0, 0.0, gSLEN, IND)
@@ -1648,7 +1648,7 @@
          CALL GVALUE(GSXMIN, GXSTEP*2, 0.0, 0.0, NGV)
       ENDIF
       CALL GSCALE(0.0, 0.0, GYORG, GYSTEP, gSLEN, IND)
-      IF (GSYMIN.LT.0.0 .AND. GSYMAX.GT.0.0)
+      IF (GSYMIN.LT.0.0 .AND. GSYMAX.GT.0.0) &
      &     CALL GSCALE(0.0, 0.0, 0.0, GSYMAX-GSYMIN,  2.0, 0)
       CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGULEN(GYSTEP*2))
 

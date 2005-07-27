@@ -2,14 +2,14 @@
 
       IMPLICIT NONE
 
-      INTEGER, PARAMETER :: NRM=100, NQM=20, NCM=19, NGRM=20, NGTM=1000,
-     &                      NGVM=1000, NGYRM=36, NGYTM=39, NGYVM=43, 
+      INTEGER, PARAMETER :: NRM=100, NQM=20, NCM=19, NGRM=20, NGTM=1000,&
+     &                      NGVM=1000, NGYRM=36, NGYTM=39, NGYVM=43, &
      &                      NGPRM=13, NGPTM=13, NGPVM=7
       INTEGER, PARAMETER :: NSM=2, NFM=2
-      INTEGER, PARAMETER :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,
-     &                      LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,
-     &                      LQi1=11, LQi2=12, LQi3=13, LQi4=14, LQi5=15,
-     &                      LQb1=16,          LQb3=17, LQb4=18,
+      INTEGER, PARAMETER :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
+     &                      LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
+     &                      LQi1=11, LQi2=12, LQi3=13, LQi4=14, LQi5=15,&
+     &                      LQb1=16,          LQb3=17, LQb4=18,&
      &                      LQn1=19, LQn2=20
       
       REAL(8) :: RA, RB, RR, BB
@@ -38,14 +38,14 @@
       INTEGER :: NT, NQMAX, IERR
       REAL(8) :: AMi, AMb, Vb, Bthb
       REAL(8) :: rIP
-      REAL(8), DIMENSION(0:NRM) :: rNuION, D01, D02, rNu0e, rNu0i, 
-     &                             rNuL, rNuiCX, rNuei, rNuii, rNuTei,
-     &                             rNube, rNubi, rNueNC, rNuiNC,
-     &                             rNueHL, rNuiHL, FWthe, FWthi, WPM,
-     &                             rMue, rMui, Chie, Chii, PNB, SNB,
-     &                             rNuB, PRFe, PRFi, PBIN, PBCL, De,
-     &                             Di, rG1h2, FCDBM, SiLC, SiLCth,
-     &                             SiLCph, S, Alpha, rKappa, AJ, AJOH,
+      REAL(8), DIMENSION(0:NRM) :: rNuION, D01, D02, rNu0e, rNu0i, &
+     &                             rNuL, rNuiCX, rNuei, rNuii, rNuTei,&
+     &                             rNube, rNubi, rNueNC, rNuiNC,&
+     &                             rNueHL, rNuiHL, FWthe, FWthi, WPM,&
+     &                             rMue, rMui, Chie, Chii, PNB, SNB,&
+     &                             rNuB, PRFe, PRFi, PBIN, PBCL, De,&
+     &                             Di, rG1h2, FCDBM, SiLC, SiLCth,&
+     &                             SiLCph, S, Alpha, rKappa, AJ, AJOH,&
      &                             POH, AJV, AJRF, AJNB, AJBS
       REAL(8) :: UHth, UHph
       REAL(8), DIMENSION(NSM) :: ANS0, TS0, ANSAV, TSAV, WST
@@ -73,13 +73,13 @@
       REAL, DIMENSION(NGYRM) :: gDIV
       REAL, DIMENSION(0:NGVM) :: GVX
       REAL, DIMENSION(0:NGVM,NGYVM) :: GVY
-      REAL(8), DIMENSION(0:NRM) :: R, RHI, ErI, ErHI, EthI, EthHI,
-     &                             EphHI, EphI, BthI, BthHI, BphHI,
-     &                             BphI, PNeHI, PNeI, UerI, UerHI,
-     &                             UethI, UethHI, UephI, UephHI, PTeHI,
-     &                             PTeI, PNiHI, PNiI, UirI, UirHI,
-     &                             UithI, UithHI, UiphI, UiphHI, PTiHI,
-     &                             PTiI, PNbHI, PNbI, UbthI, UbthHI,
+      REAL(8), DIMENSION(0:NRM) :: R, RHI, ErI, ErHI, EthI, EthHI,&
+     &                             EphHI, EphI, BthI, BthHI, BphHI,&
+     &                             BphI, PNeHI, PNeI, UerI, UerHI,&
+     &                             UethI, UethHI, UephI, UephHI, PTeHI,&
+     &                             PTeI, PNiHI, PNiI, UirI, UirHI,&
+     &                             UithI, UithHI, UiphI, UiphHI, PTiHI,&
+     &                             PTiI, PNbHI, PNbI, UbthI, UbthHI,&
      &                             UbphI, UbphHI, PN01HI, PN02HI, Q, QHI
       CHARACTER(20) :: SLID
       

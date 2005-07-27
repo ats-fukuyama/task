@@ -10,7 +10,7 @@
 
       INCLUDE 'txcomm.inc'
 
-      INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, iRTIME1, iRTIME2,
+      INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, iRTIME1, iRTIME2, &
      &           iRTIME3, NSTR1, NSTR2, NSTR3
       REAL :: gCTIME1, gCTIME2, gCTIME3
 
@@ -42,15 +42,15 @@
       NSTR1 = 0
       CALL APRTOS(STR1, NSTR1, gCTIME3, 'F2')
       IF (iRTIME3 .EQ. 0) THEN
-         WRITE(6,*) 'real =', iRTIME3, '(sec)   ', 
+         WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
      &              'CPU = ', STR1(1:NSTR1), '(sec)'
       ELSE
          NSTR2 = 0
          CALL APRTOS(STR2, NSTR2, gCTIME3 / (iRTIME3 + 1) * 100, 'F1')
          NSTR3 = 0
          CALL APRTOS(STR3, NSTR3, gCTIME3 / (iRTIME3 + 0) * 100, 'F1')
-         WRITE(6,*) 'real =', iRTIME3, '(sec)   ', 
-     &              'CPU = ', STR1(1:NSTR1), '(sec)   ', 
+         WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
+     &              'CPU = ', STR1(1:NSTR1), '(sec)   ',  &
      &              '(', STR2(1:NSTR2), '% - ', STR3(1:NSTR3), '%)'
       ENDIF
 !
@@ -71,12 +71,12 @@
 
       INCLUDE 'txcomm.inc'
 
-      INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP,
+      INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, &
      &           NRAVM
       REAL(8) :: TIME0, DIP, SUM, AVM, ERR1, AV
       REAL(8), DIMENSION(NQM,0:NRM) :: XP
 
-      IF (MODEAV. EQ. 0) THEN
+      IF (MODEAV .EQ. 0) THEN
          IDIV = NTMAX + 1
       ELSE
          IDIV = NTMAX / MODEAV
@@ -114,7 +114,7 @@
 
          CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
          IF (IERR .EQ. 30000) THEN
-           WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ', 
+           WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
      &              NT, ' -', IC, ' step.'
             IERR = 1
             DO NR = 0, NRMAX
@@ -160,22 +160,22 @@
             IF (AV .GT. 0.D0) THEN
                DO NR = 0, NRMAX
                   ERR1 = MAX(ERR1, ABS(XN(NQ,NR) - XP(NQ,NR))/AV)
-                  IF (NT. EQ. IDISP. AND. NR. EQ. NRMAX) THEN
+                  IF (NT .EQ. IDISP .AND. NR .EQ. NRMAX) THEN
                      IF (NQ.EQ.1) THEN
                         WRITE(6,'((1H ,A5,A3,2H =,I3))')'#####','IC',IC
-                        WRITE(6,'((1H ,A4,2H =,1PD9.2),2X,A2,2H =,I3)')
+                        WRITE(6,'((1H ,A4,2H =,1PD9.2),2X,A2,2H =,I3)') &
      &                 'EPS   ', EPS,'NRMAX   ', NRMAX
                      ENDIF
-                     WRITE(6,'((1H ,A2,2H =,I2,2X,A2,2H =,1PD9.2,
-     &                 2X,A5,2H =,1PD9.2,A1,I2,2X,A5,2H =,1PD9.2))')
-     &               'NQ    ', NQ ,
-     &               'AV    ', AV    ,  'AVMAX ', AVM   ,':',NRAVM,
+                     WRITE(6,'((1H ,A2,2H =,I2,2X,A2,2H =,1PD9.2, &
+     &                 2X,A5,2H =,1PD9.2,A1,I2,2X,A5,2H =,1PD9.2))') &
+     &               'NQ    ', NQ , &
+     &               'AV    ', AV    ,  'AVMAX ', AVM   ,':',NRAVM, &
      &               'SCMAX ', ERR1
                      IDISP = IDIV + NT
-                     IF (NQ. EQ. NQMAX) THEN
+                     IF (NQ .EQ. NQMAX) THEN
                         GO TO 10
                      ENDIF
-                  ELSEIF (NT. NE. IDISP. AND. 
+                  ELSEIF (NT .NE. IDISP .AND.  &
      &                     ABS(XN(NQ,NR) - XP(NQ,NR))/AV .GT. EPS) THEN
                      GO TO 10
                   ENDIF
@@ -194,7 +194,7 @@
          CALL TXCALV(X)
          CALL TXCALC
 
-         IF ((MOD(NT, NTSTEP) .EQ. 0) .AND.
+         IF ((MOD(NT, NTSTEP) .EQ. 0) .AND. &
      &       (NT .NE. NTMAX)) THEN
             WRITE(6,601) NT,TIME,IC
   601       FORMAT(1H ,'NT =',I4,'   T =',1PD9.2,'   IC =',I3)
@@ -249,11 +249,11 @@
                IB = IC + NQMAX
                IA = IB + NQMAX
                J = NR * NQMAX + NQ
-               BA(IC,J)
+               BA(IC,J) &
      &       = BA(IC,J) + CLC(NC,NQ,NR)
-               BA(IB,J)
+               BA(IB,J) &
      &       = BA(IB,J) + BLC(NC,NQ,NR)
-               BA(IA,J)
+               BA(IA,J) &
      &       = BA(IA,J) + ALC(NC,NQ,NR)
             ENDDO
       ENDDO
@@ -266,11 +266,11 @@
                IB = IC + NQMAX
                IA = IB + NQMAX
                J = NR * NQMAX + NQ
-               BA(IC,J)
+               BA(IC,J) &
      &       = BA(IC,J) - CLC(NC,NQ,NR)
-               BA(IB,J)
+               BA(IB,J) &
      &       = BA(IB,J) - BLC(NC,NQ,NR)
-               BA(IA,J)
+               BA(IA,J) &
      &       = BA(IA,J) - ALC(NC,NQ,NR)
             ENDDO
          ENDDO
@@ -286,17 +286,17 @@
          NR = 0
             DO NQ = 1, NQMAX
                NC1 = NLC(NC,NQ,NR)
-               BX(NQMAX * NR + NQ)
-     &       = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  )
+               BX(NQMAX * NR + NQ) &
+     &       = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) &
      &                             + ALC(NC,NQ,NR) * X(NC1,NR+1)
             ENDDO
 
          DO NR = 1, NRMAX - 1
             DO NQ = 1, NQMAX
                NC1 = NLC(NC,NQ,NR)
-               BX(NQMAX * NR + NQ)
-     &       = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1)
-     &                             + BLC(NC,NQ,NR) * X(NC1,NR  )
+               BX(NQMAX * NR + NQ) &
+     &       = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
+     &                             + BLC(NC,NQ,NR) * X(NC1,NR  ) &
      &                             + ALC(NC,NQ,NR) * X(NC1,NR+1)
             ENDDO
          ENDDO
@@ -304,15 +304,15 @@
          NR = NRMAX
             DO NQ = 1, NQMAX
                NC1 = NLC(NC,NQ,NR)
-               BX(NQMAX * NR + NQ)
-     &       = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1)
+               BX(NQMAX * NR + NQ) &
+     &       = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
      &                             + BLC(NC,NQ,NR) * X(NC1,NR  )
             ENDDO
 
       DO NR = 0, NRMAX
          DO NQ = 1, NQMAX
             DO NC = 1, NLCMAX(NQ)
-                  BX(NQMAX * NR + NQ)
+                  BX(NQMAX * NR + NQ) &
      &          = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR)
             ENDDO
          ENDDO
@@ -338,10 +338,10 @@
 
       DO NR = 0, NRMAX
          IF (XL(LQe1,NR).LT.0.D0 .OR. XL(LQi1,NR).LT.0.D0) THEN
-            WRITE(6,*) '### ERROR(TXLOOP) : ', 
-     &           'Density become negative at ', 
+            WRITE(6,*) '### ERROR(TXLOOP) : ',  &
+     &           'Density become negative at ',  &
      &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-            WRITE(6,*) 'ne =', SNGL(XL(LQe1,NR)), 
+            WRITE(6,*) 'ne =', SNGL(XL(LQe1,NR)),  &
      &             '   nNR =', SNGL(XL(LQi1,NR))
             IER = 1
             RETURN
@@ -350,10 +350,10 @@
 
       DO NR = 0, NRMAX
          IF (XL(LQe5,NR).LT.0.D0 .OR. XL(LQi5,NR).LT.0.D0) THEN
-            WRITE(6,*) '### ERROR(TXLOOP) : ', 
-     &           'Temperature become negative at ', 
+            WRITE(6,*) '### ERROR(TXLOOP) : ',  &
+     &           'Temperature become negative at ',  &
      &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-            WRITE(6,*) 'Te =', SNGL(XL(LQe5,NR)), 
+            WRITE(6,*) 'Te =', SNGL(XL(LQe5,NR)),  &
      &              '   Ti =', SNGL(XL(LQi5,NR))
             IER = 1
             RETURN
@@ -386,14 +386,14 @@
       ENDDO
       rNbar = rNbar / (PI * RB**2)
 
-      WRITE(6,'((1H ,A,1H=,1PD9.2,3(2X,A,1H=,1PD9.2)))')
-     &     'Ne(0)',    PNeI(0), 
-     &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeI(0)) / 1.D3, 
-     &     'UiPhi(0)', (9*X(LQi4,0)-X(LQi4,1))/(8*PNiI(0)) / 1.D3, 
-     &     'N0(RB)',   (9*X(LQn1,NRMAX-1)-X(LQn1,NRMAX-2))/8 * 1.D20, 
-     &     'NB(0)',    rLINEAVE(0.D0)   / 1.D20, 
-     &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20, 
-     &     ' NB(0.6)', rLINEAVE(0.6D0)  / 1.D20, 
+      WRITE(6,'((1H ,A,1H=,1PD9.2,3(2X,A,1H=,1PD9.2)))') &
+     &     'Ne(0)',    PNeI(0),  &
+     &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeI(0)) / 1.D3,  &
+     &     'UiPhi(0)', (9*X(LQi4,0)-X(LQi4,1))/(8*PNiI(0)) / 1.D3,  &
+     &     'N0(RB)',   (9*X(LQn1,NRMAX-1)-X(LQn1,NRMAX-2))/8 * 1.D20,  &
+     &     'NB(0)',    rLINEAVE(0.D0)   / 1.D20,  &
+     &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20,  &
+     &     ' NB(0.6)', rLINEAVE(0.6D0)  / 1.D20,  &
      &     '    PF',   PNeI(0) * 1.D20 / rNbar
       RETURN
       END
@@ -412,12 +412,12 @@
       CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
       CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
       CALL GMNMX1(GTY(0,11), 1, NGT + 1, 1, gUiphMIN, gUiphMAX)
-      WRITE(6,'((1H ,A,1H=,1PD9.2,2(2X,A,1H=,1PD9.2)))')
-     &     'MAX(Ne(0))',     gPNeMAX / 1.E20, 
-     &     'MAX(NB(0))',     gNB0MAX / 1.E20, 
-     &     'MAX(UiPhi(0))', gUiphMAX / 1.E3,
-     &     'MIN(Ne(0))',     gPNeMIN / 1.E20, 
-     &     'MIN(NB(0))',     gNB0MIN / 1.E20, 
+      WRITE(6,'((1H ,A,1H=,1PD9.2,2(2X,A,1H=,1PD9.2)))') &
+     &     'MAX(Ne(0))',     gPNeMAX / 1.E20,  &
+     &     'MAX(NB(0))',     gNB0MAX / 1.E20,  &
+     &     'MAX(UiPhi(0))', gUiphMAX / 1.E3, &
+     &     'MIN(Ne(0))',     gPNeMIN / 1.E20,  &
+     &     'MIN(NB(0))',     gNB0MIN / 1.E20,  &
      &     'MIN(UiPhi(0))', gUiphMIN / 1.E3
 
       RETURN

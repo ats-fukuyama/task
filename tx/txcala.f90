@@ -63,7 +63,7 @@
 !
       SUBROUTINE LQm1CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, EPS0
       INCLUDE 'txcomm.inc'
 
@@ -112,7 +112,7 @@
 !
       SUBROUTINE LQm2CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, VC, rMU0
       INCLUDE 'txcomm.inc'
       
@@ -171,7 +171,7 @@
 !
       SUBROUTINE LQm3CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, VC, rMU0
       INCLUDE 'txcomm.inc'
       
@@ -317,11 +317,11 @@
 
 ! Ionization of n01 and n02
 
-          BLC(2,LQe1,NR) = rNuION(NR) 
+          BLC(2,LQe1,NR) = rNuION(NR)  &
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQe1,NR) = LQn1
 
-          BLC(3,LQe1,NR) = rNuION(NR) 
+          BLC(3,LQe1,NR) = rNuION(NR)  &
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(3,LQe1,NR) = LQn2
 
@@ -352,7 +352,7 @@
 !
       SUBROUTINE LQe2CC
 
-      USE physical_constants, only : AEE, AME, 
+      USE physical_constants, only : AEE, AME,  &
      &     Phys_Constants_Initialization, rKEV
       INCLUDE 'txcomm.inc'
 
@@ -373,7 +373,7 @@
 ! Nonlinear term
 
           ALC(1,LQe2,NR) = - RHI(NR  ) * UerHI(NR  ) / (2 * R(NR) * DR)
-          BLC(1,LQe2,NR) = - RHI(NR  ) * UerHI(NR  ) / (2 * R(NR) * DR)
+          BLC(1,LQe2,NR) = - RHI(NR  ) * UerHI(NR  ) / (2 * R(NR) * DR) &
      &                     + RHI(NR-1) * UerHI(NR-1) / (2 * R(NR) * DR)
           CLC(1,LQe2,NR) = + RHI(NR-1) * UerHI(NR-1) / (2 * R(NR) * DR)
           NLC(1,LQe2,NR) = LQe2
@@ -427,7 +427,7 @@
       INCLUDE 'txcomm.inc'
 
       INTEGER :: NR
-      REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, TMP, FWthiL,
+      REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, TMP, FWthiL, &
      &           rNuLL, rNu0eL, rNueHLL
 
 ! Ns*UsTheta(0) : 0
@@ -442,31 +442,31 @@
 
 ! Nonlinear term
 
-          ALC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  )
+          ALC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  ) &
      &                       / (2 * R(NR)**2 * DR)
-          BLC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  )
+          BLC(1,LQe3,NR) = - RHI(NR  )**2 * UerHI(NR  ) &
+     &                       / (2 * R(NR)**2 * DR) &
+     &                     + RHI(NR-1)**2 * UerHI(NR-1) &
      &                       / (2 * R(NR)**2 * DR)
-     &                     + RHI(NR-1)**2 * UerHI(NR-1)
-     &                       / (2 * R(NR)**2 * DR)
-          CLC(1,LQe3,NR) = + RHI(NR-1)**2 * UerHI(NR-1)
+          CLC(1,LQe3,NR) = + RHI(NR-1)**2 * UerHI(NR-1) &
      &                       / (2 * R(NR)**2 * DR)
           NLC(1,LQe3,NR) = LQe3
 
 ! Viscosity force
 
          IF (NR .EQ. 1) THEN
-             ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  )
+             ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
      &                       / (PNeI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-             BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  )
+             BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
      &                       / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
          ELSE
-             ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  )
+             ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
      &                       / (PNeI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-             BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  )
+             BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
+     &                       / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2) &
+     &                       - RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1) &
      &                       / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-     &                       - RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1)
-     &                       / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-             CLC(2,LQe3,NR) =   RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1)
+             CLC(2,LQe3,NR) =   RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1) &
      &                       / (PNeI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
          ENDIF
           NLC(2,LQe3,NR) = LQe3
@@ -584,8 +584,8 @@
 ! Nonlinear term
 
           ALC(1,LQe4,NR) = - R(NR+1) * UerI(NR+1) / (2 * RHI(NR) * DR)
-          BLC(1,LQe4,NR) = - R(NR+1) * UerI(NR+1) / (2 * RHI(NR) * DR)
-     &                    + R(NR  ) * UerI(NR  ) / (2 * RHI(NR) * DR)
+          BLC(1,LQe4,NR) = - R(NR+1) * UerI(NR+1) / (2 * RHI(NR) * DR) &
+     &                     + R(NR  ) * UerI(NR  ) / (2 * RHI(NR) * DR)
           CLC(1,LQe4,NR) = + R(NR  ) * UerI(NR  ) / (2 * RHI(NR) * DR)
           NLC(1,LQe4,NR) = LQe4
 
@@ -594,35 +594,35 @@
          IF(NR.EQ.0) THEN
              rMueP = 0.5D0*(rMue(NR) + rMue(NR+1))
              rMueM =        rMue(NR)
-             ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP
+             ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
      &                    / (PNeHI(NR+1) * RHI(NR) * DR**2)
-             BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP
-     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNeI(NR  ) * rMueM
-     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-     &                       + R(NR  ) * PNeI(NR  ) * rMueM
+             BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP &
+     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNeI(NR  ) * rMueM &
+     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
+     &                       + R(NR  ) * PNeI(NR  ) * rMueM &
      &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
           ELSEIF(NR.EQ.NRMAX-1) THEN
              rMueP =        rMue(NR)
              rMueM = 0.5D0*(rMue(NR-1) + rMue(NR))
-             BLC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP
+             BLC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
+     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR+1) * PNeI(NR+1) * rMueP &
+     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNeI(NR  ) * rMueM &
      &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR+1) * PNeI(NR+1) * rMueP
-     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNeI(NR  ) * rMueM
-     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-             CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM
+             CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM &
      &                    / (PNeHI(NR-1) * RHI(NR) * DR**2)
           ELSE
              rMueP = 0.5D0*(rMue(NR) + rMue(NR+1))
              rMueM = 0.5D0*(rMue(NR-1) + rMue(NR))
-             ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP
+             ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
      &                    / (PNeHI(NR+1) * RHI(NR) * DR**2)
-             BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP
+             BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP &
+     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNeI(NR  ) * rMueM &
      &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNeI(NR  ) * rMueM
-     &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-             CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM
+             CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM &
      &                    / (PNeHI(NR-1) * RHI(NR) * DR**2)
           ENDIF
           NLC(2,LQe4,NR) = LQe4
@@ -693,7 +693,7 @@
 !
       SUBROUTINE LQe5CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, rKEV
       INCLUDE 'txcomm.inc'
 
@@ -722,27 +722,27 @@
 ! Convection transport
 
             IF (NR.EQ.0) THEN
-               ALC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
+               ALC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
-               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
+               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
             ELSEIF (NR.EQ.NRMAX-1) THEN
-               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
+               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         - 2.5D0 * R(NR+1) * UerI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         + 2.5D0 * R(NR  ) * UerI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
-     &                         - 2.5D0 * R(NR+1) * UerI(NR+1)
-     &                            / (2 * RHI(NR) * DR)
-     &                         + 2.5D0 * R(NR  ) * UerI(NR  )
-     &                            / (2 * RHI(NR) * DR)
-               CLC(1,LQe5,NR) = + 2.5D0 * R(NR  ) * UerI(NR  )
+               CLC(1,LQe5,NR) = + 2.5D0 * R(NR  ) * UerI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
             ELSE
-               ALC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
+               ALC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
-               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1)
+               BLC(1,LQe5,NR) = - 2.5D0 * R(NR+1) * UerI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         + 2.5D0 * R(NR  ) * UerI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
-     &                         + 2.5D0 * R(NR  ) * UerI(NR  )
-     &                            / (2 * RHI(NR) * DR)
-               CLC(1,LQe5,NR) = + 2.5D0 * R(NR  ) * UerI(NR  )
+               CLC(1,LQe5,NR) = + 2.5D0 * R(NR  ) * UerI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
             ENDIF
              NLC(1,LQe5,NR) = LQe5
@@ -751,31 +751,31 @@
 
             IF (NR.EQ.0) THEN
                ChieLP = 0.5D0 * (Chie(NR) + Chie(NR+1))
-                ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
+                ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
      &                          / (RHI(NR) * PNeHI(NR+1))
-                BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
+                BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
      &                          / (RHI(NR) * PNeHI(NR))
             ELSEIF (NR.EQ.NRMAX-1) THEN
                ChieLP =          Chie(NR)
                ChieLM = 0.5D0 * (Chie(NR-1) + Chie(NR))
-                BLC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
+                BLC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+     &                          / (RHI(NR) * PNeHI(NR)) &
+     &                          - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+     &                          / (RHI(NR) * PNeHI(NR)) &
+     &                          - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
      &                          / (RHI(NR) * PNeHI(NR))
-     &                          - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
-     &                          / (RHI(NR) * PNeHI(NR))
-     &                          - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM
-     &                          / (RHI(NR) * PNeHI(NR))
-                CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM
+                CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
      &                          / (RHI(NR) * PNeHI(NR-1))
             ELSE
                ChieLP = 0.5D0 * (Chie(NR) + Chie(NR+1))
                ChieLM = 0.5D0 * (Chie(NR-1) + Chie(NR))
-                ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
+                ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
      &                          / (RHI(NR) * PNeHI(NR+1))
-                BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP
+                BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+     &                          / (RHI(NR) * PNeHI(NR)) &
+     &                          - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
      &                          / (RHI(NR) * PNeHI(NR))
-     &                          - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM
-     &                          / (RHI(NR) * PNeHI(NR))
-                CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM
+                CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
      &                          / (RHI(NR) * PNeHI(NR-1))
             ENDIF
              NLC(2,LQe5,NR) = LQe5
@@ -799,7 +799,7 @@
 
 ! Collisional heating with beam
 
-             BLC(7,LQe5,NR) = - AMb * Vb * rNube(NR) / (2 * rKeV)
+             BLC(7,LQe5,NR) = - AMb * Vb * rNube(NR) / (2 * rKeV) &
      &                       * (PNbHI(NR) / PNeHI(NR))
              NLC(7,LQe5,NR) = LQe4
 
@@ -853,11 +853,11 @@
 
 ! Ionization of n01 and n02
 
-          BLC(2,LQi1,NR) = rNuION(NR) / PZ
+          BLC(2,LQi1,NR) = rNuION(NR) / PZ &
      &                   * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQi1,NR) = LQn1
 
-          BLC(3,LQi1,NR) = rNuION(NR) / PZ
+          BLC(3,LQi1,NR) = rNuION(NR) / PZ &
      &                   * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(3,LQi1,NR) = LQn2
 
@@ -901,7 +901,7 @@
 !
       SUBROUTINE LQi2CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, rKEV
       INCLUDE 'txcomm.inc'
 
@@ -923,7 +923,7 @@
 ! Nonlinear term
 
           ALC(1,LQi2,NR) = - RHI(NR  ) * UirHI(NR  ) / (2 * R(NR) * DR)
-          BLC(1,LQi2,NR) = - RHI(NR  ) * UirHI(NR  ) / (2 * R(NR) * DR)
+          BLC(1,LQi2,NR) = - RHI(NR  ) * UirHI(NR  ) / (2 * R(NR) * DR) &
      &                    + RHI(NR-1) * UirHI(NR-1) / (2 * R(NR) * DR)
           CLC(1,LQi2,NR) = + RHI(NR-1) * UirHI(NR-1) / (2 * R(NR) * DR)
           NLC(1,LQi2,NR) = LQi2
@@ -976,7 +976,7 @@
       INCLUDE 'txcomm.inc'
 
       INTEGER :: NR
-      REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, TMP, FWthiL,
+      REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, TMP, FWthiL, &
      &           rNuLL, rNu0iL, rNuiCXL, SiLCthL, rNuiHLL
 
 ! Ni*UiTheta(0) : 0
@@ -992,31 +992,31 @@
 
 ! Nonlinear term
 
-          ALC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  )
+          ALC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  ) &
      &                    / (2 * R(NR)**2 * DR)
-          BLC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  )
+          BLC(1,LQi3,NR) = - RHI(NR  )**2 * UirHI(NR  ) &
+     &                    / (2 * R(NR)**2 * DR) &
+     &                    + RHI(NR-1)**2 * UirHI(NR-1) &
      &                    / (2 * R(NR)**2 * DR)
-     &                    + RHI(NR-1)**2 * UirHI(NR-1)
-     &                    / (2 * R(NR)**2 * DR)
-          CLC(1,LQi3,NR) = + RHI(NR-1)**2 * UirHI(NR-1)
+          CLC(1,LQi3,NR) = + RHI(NR-1)**2 * UirHI(NR-1) &
      &                    / (2 * R(NR)**2 * DR)
           NLC(1,LQi3,NR) = LQi3
 
 ! Viscosity force
 
          IF (NR .EQ. 1) THEN
-             ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  )
+             ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
      &                      / (PNiI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-             BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  )
+             BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
      &                      / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
          ELSE
-             ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  )
+             ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
      &                      / (PNiI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-             BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  )
+             BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
+     &                      / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2) &
+     &                       - RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1) &
      &                      / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-     &                       - RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1)
-     &                      / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-             CLC(2,LQi3,NR) =   RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1)
+             CLC(2,LQi3,NR) =   RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1) &
      &                      / (PNiI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
          ENDIF
           NLC(2,LQi3,NR) = LQi3
@@ -1144,7 +1144,7 @@
 ! Nonlinear term
 
           ALC(1,LQi4,NR) = - R(NR+1) * UirI(NR+1) / (2 * RHI(NR) * DR)
-          BLC(1,LQi4,NR) = - R(NR+1) * UirI(NR+1) / (2 * RHI(NR) * DR)
+          BLC(1,LQi4,NR) = - R(NR+1) * UirI(NR+1) / (2 * RHI(NR) * DR) &
      &                     + R(NR  ) * UirI(NR  ) / (2 * RHI(NR) * DR)
           CLC(1,LQi4,NR) = + R(NR  ) * UirI(NR  ) / (2 * RHI(NR) * DR)
           NLC(1,LQi4,NR) = LQi4
@@ -1154,35 +1154,35 @@
           IF(NR.EQ.0) THEN
              rMuiP = 0.5D0*(rMui(NR) + rMui(NR+1))
              rMuiM =        rMui(NR)
-             ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP
+             ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
      &                    / (PNiHI(NR+1) * RHI(NR) * DR**2)
-             BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMuiP
-     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNiI(NR  ) * rMuiM
-     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-     &                       + R(NR  ) * PNiI(NR  ) * rMuiM
+             BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMuiP &
+     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNiI(NR  ) * rMuiM &
+     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
+     &                       + R(NR  ) * PNiI(NR  ) * rMuiM &
      &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
           ELSEIF(NR.EQ.NRMAX-1) THEN
              rMuiP =        rMui(NR)
              rMuiM = 0.5D0*(rMui(NR-1) + rMui(NR))
-             BLC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP
+             BLC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
+     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR+1) * PNiI(NR+1) * rMuiP &
+     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNiI(NR  ) * rMuiM &
      &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR+1) * PNiI(NR+1) * rMuiP
-     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNiI(NR  ) * rMuiM
-     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-             CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMuiM
+             CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMuiM &
      &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
           ELSE
              rMuiP = 0.5D0*(rMui(NR) + rMui(NR+1))
              rMuiM = 0.5D0*(rMui(NR-1) + rMui(NR))
-             ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP
+             ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
      &                    / (PNiHI(NR+1) * RHI(NR) * DR**2)
-             BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR  ) * rMuiP
+             BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR  ) * rMuiP &
+     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
+     &                       - R(NR  ) * PNiI(NR-1) * rMuiM &
      &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-     &                       - R(NR  ) * PNiI(NR-1) * rMuiM
-     &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-             CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR-1) * rMuiM
+             CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR-1) * rMuiM &
      &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
           ENDIF
           NLC(2,LQi4,NR) = LQi4
@@ -1262,7 +1262,7 @@
 !
       SUBROUTINE LQi5CC
 
-      USE physical_constants, only : AEE, 
+      USE physical_constants, only : AEE,  &
      &     Phys_Constants_Initialization, rKEV
       INCLUDE 'txcomm.inc'
 
@@ -1290,27 +1290,27 @@
 ! Convection transport
 
             IF (NR.EQ.0) THEN
-               ALC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
+               ALC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
-               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
+               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
             ELSEIF (NR.EQ.NRMAX-1) THEN
-               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
+               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         - 2.5D0 * R(NR+1) * UirI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         + 2.5D0 * R(NR  ) * UirI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
-     &                         - 2.5D0 * R(NR+1) * UirI(NR+1)
-     &                            / (2 * RHI(NR) * DR)
-     &                         + 2.5D0 * R(NR  ) * UirI(NR  )
-     &                            / (2 * RHI(NR) * DR)
-               CLC(1,LQi5,NR) = + 2.5D0 * R(NR  ) * UirI(NR  )
+               CLC(1,LQi5,NR) = + 2.5D0 * R(NR  ) * UirI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
             ELSE
-               ALC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
+               ALC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1) &
      &                            / (2 * RHI(NR) * DR)
-               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1)
+               BLC(1,LQi5,NR) = - 2.5D0 * R(NR+1) * UirI(NR+1) &
+     &                            / (2 * RHI(NR) * DR) &
+     &                         + 2.5D0 * R(NR  ) * UirI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
-     &                         + 2.5D0 * R(NR  ) * UirI(NR  )
-     &                            / (2 * RHI(NR) * DR)
-               CLC(1,LQi5,NR) = + 2.5D0 * R(NR  ) * UirI(NR  )
+               CLC(1,LQi5,NR) = + 2.5D0 * R(NR  ) * UirI(NR  ) &
      &                            / (2 * RHI(NR) * DR)
             ENDIF
              NLC(1,LQi5,NR) = LQi5
@@ -1319,31 +1319,31 @@
 
             IF (NR.EQ.0) THEN
                ChiiLP = 0.5D0 * (Chii(NR) + Chii(NR+1))
-                ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
+                ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
      &                          / (RHI(NR) * PNiHI(NR+1))
-                BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
+                BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
      &                          / (RHI(NR) * PNiHI(NR))
             ELSEIF (NR.EQ.NRMAX-1) THEN
                ChiiLP =          Chii(NR) 
                ChiiLM = 0.5D0 * (Chii(NR-1) + Chii(NR))
-                BLC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
+                BLC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+     &                          / (RHI(NR) * PNiHI(NR)) &
+     &                          - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+     &                          / (RHI(NR) * PNiHI(NR)) &
+     &                          - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
      &                          / (RHI(NR) * PNiHI(NR))
-     &                          - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
-     &                          / (RHI(NR) * PNiHI(NR))
-     &                          - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM
-     &                          / (RHI(NR) * PNiHI(NR))
-                CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM
+                CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
      &                          / (RHI(NR) * PNiHI(NR-1))
             ELSE
                ChiiLP = 0.5D0 * (Chii(NR) + Chii(NR+1))
                ChiiLM = 0.5D0 * (Chii(NR-1) + Chii(NR))
-                ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
+                ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
      &                          / (RHI(NR) * PNiHI(NR+1))
-                BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP
+                BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+     &                          / (RHI(NR) * PNiHI(NR)) &
+     &                          - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
      &                          / (RHI(NR) * PNiHI(NR))
-     &                          - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM
-     &                          / (RHI(NR) * PNiHI(NR))
-                CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM
+                CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
      &                          / (RHI(NR) * PNiHI(NR-1))
             ENDIF
              NLC(2,LQi5,NR) = LQi5
@@ -1367,7 +1367,7 @@
 
 ! Collisional heating with beam
 
-             BLC(7,LQi5,NR) = - AMb * Vb * rNubi(NR) / (2 * rKeV)
+             BLC(7,LQi5,NR) = - AMb * Vb * rNubi(NR) / (2 * rKeV) &
      &                       * (PNbHI(NR) / PNiHI(NR))
              NLC(7,LQi5,NR) = LQi4
 
@@ -1571,28 +1571,28 @@
              D0LM = 0.5D0 * (D01(NR-1) + D01(NR))
              BLC(1,LQn1,NR) = - D0LM * R(NR  ) / (RHI(NR)*DR*DR)
              CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR*DR)
-             PLC(1,LQn1,NR) =          R(NR+1) / (RHI(NR)*DR)
+             PLC(1,LQn1,NR) =          R(NR+1) / (RHI(NR)*DR) &
      &                     * rGASPF
          ELSE
              D0LP = 0.5D0 * (D01(NR) + D01(NR+1))
              D0LM = 0.5D0 * (D01(NR-1) + D01(NR))
              ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR*DR)
-             BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR*DR)
-     &                       - D0LM * R(NR  ) / (RHI(NR)*DR*DR)
+             BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR*DR) &
+     &                        - D0LM * R(NR  ) / (RHI(NR)*DR*DR)
              CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR*DR)
          ENDIF
           NLC(1,LQn1,NR) = LQn1
 
 ! Ionization
 
-          BLC(2,LQn1,NR) = - rNuION(NR) / PZ
+          BLC(2,LQn1,NR) = - rNuION(NR) / PZ &
      &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQn1,NR) = LQn1
 
 ! Generation of fast neutrals by charge exchange
 
          IF(NR.NE.0) THEN
-             rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
+             rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  )) &
      &                 + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2
          ELSE
              rNuiCXL =   rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
@@ -1651,22 +1651,22 @@
              D0LP = 0.5D0 * (D02(NR) + D02(NR+1))
              D0LM = 0.5D0 * (D02(NR-1) + D02(NR))
              ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR*DR)
-             BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR*DR)
-     &                       - D0LM * R(NR  ) / (RHI(NR)*DR*DR)
+             BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR*DR) &
+     &                        - D0LM * R(NR  ) / (RHI(NR)*DR*DR)
              CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR*DR)
          ENDIF
           NLC(1,LQn2,NR) = LQn2
 
 ! Ionization
 
-          BLC(2,LQn2,NR) = - rNuION(NR) / PZ
-     &                    * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
+          BLC(2,LQn2,NR) = - rNuION(NR) / PZ &
+     &                     * PNeHI(NR) / (PN01HI(NR) + PN02HI(NR))
           NLC(2,LQn2,NR) = LQn2
 
 ! Generation of fast neutrals by charge exchange
 
          IF(NR.NE.0) THEN
-             rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
+             rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  )) &
      &                 + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2
          ELSE
              rNuiCXL =   rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))

@@ -22,12 +22,12 @@
       READ(*,'(A100)',END=50) TXFNAM
       INQUIRE(FILE=TXFNAM,EXIST=LEX)
       IF (LEX) THEN
-         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ', 
+         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',  &
      &              'ARE YOU SURE {Y/N} ?'
          CALL GUFLSH
          READ(*,'(A1)') STR
          IF (STR.NE.'Y' .AND. STR.NE.'y') GOTO 10
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR OUTPUT.'
          GOTO 40
@@ -35,7 +35,7 @@
          WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
          GOTO 10
       ELSE
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',ERR=30, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',ERR=30,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# NEW FILE (', TXFNAM, ') IS CREATED FOR OUTPUT.'
          GOTO 40
@@ -100,7 +100,7 @@
       READ(*,'(A100)',END=50) TXFNAM
       INQUIRE(FILE=TXFNAM,EXIST=LEX)
       IF (LEX) THEN
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR INPUT.'
          GOTO 30
@@ -201,12 +201,12 @@
       READ(*,'(A100)',END=50) TXFNAM
       INQUIRE(FILE=TXFNAM,EXIST=LEX)
       IF (LEX) THEN
-         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ', 
+         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',  &
      &              'ARE YOU SURE {Y/N} ?'
          CALL GUFLSH
          READ(*,'(A1)') STR
          IF (STR.NE.'Y' .AND. STR.NE.'y') GOTO 10
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR OUTPUT.'
          GOTO 40
@@ -214,7 +214,7 @@
          WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
          GOTO 10
       ELSE
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',ERR=30, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',ERR=30,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# NEW FILE (', TXFNAM, ') IS CREATED FOR OUTPUT.'
          GOTO 40
@@ -283,7 +283,7 @@
       READ(*,'(A100)',END=50) TXFNAM
       INQUIRE(FILE=TXFNAM,EXIST=LEX)
       IF (LEX) THEN
-         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20, 
+         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',ERR=20,  &
      &        FORM='UNFORMATTED')
          WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR INPUT.'
          GOTO 30
@@ -322,7 +322,7 @@
          READ(21) NGT,NGYT
          READ(21) NGVV,NGYV
          READ(21) (GT(IGR), IGR=0, NGR)
-         READ(21) (((GY(I,IGR,IGYR), I=0, NRMAX), IGR=0, NGR),
+         READ(21) (((GY(I,IGR,IGYR), I=0, NRMAX), IGR=0, NGR), &
      &                               IGYR=1, NGYR)
          READ(21) (GTX(I), I=0, NGT)
          READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYT)

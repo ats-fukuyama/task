@@ -22,7 +22,7 @@
             NSTR1 = 0
             CALL APITOS(STR1, NSTR1, I)
             NSTR = NSTRLEN(STR)
-            WRITE(6,*) '### ERROR(CHKNEG) : ', STR(2:NSTR+1),
+            WRITE(6,*) '### ERROR(CHKNEG) : ', STR(2:NSTR+1), &
      &                 '(', STR1(1:NSTR1), ') is', SNGL(XL(I))
             XL(I) = XLNEG
          END IF
@@ -199,7 +199,7 @@
          IF (FORM(1:1) .EQ. 'F') THEN
             WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
             WRITE(KVALUE,KFORM) D
-         ELSE IF (FORM(1:1).EQ.'D' .OR. FORM(1:1).EQ.'E'
+         ELSE IF (FORM(1:1).EQ.'D' .OR. FORM(1:1).EQ.'E' &
      &            .OR. FORM(1:1).EQ.'G') THEN
             WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
             WRITE(KVALUE,KFORM) D

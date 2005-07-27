@@ -19,10 +19,10 @@
 
     1 CONTINUE
 
-      WRITE(6,'(3(A,1PD12.4))')
+      WRITE(6,'(3(A,1PD12.4))') &
      &   ' ## TIME=',TIME,'  DT=',DT,'  TMAX =',TMAX
-      WRITE(6,*) '## INPUT: ',
-     &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH '//
+      WRITE(6,*) '## INPUT: ', &
+     &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH '// &
      &   'S:SAVE  L:LOAD  I,N,Bn: Q:QUIT'
       CALL GUFLSH
 

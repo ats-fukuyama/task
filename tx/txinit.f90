@@ -329,23 +329,23 @@
 
       INCLUDE 'txcomm.inc'
 
-      NAMELIST /TX/
-     & RA,RB,RR,BB,
-     & PA,PZ,Zeff,
-     & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,
-     & De0,Di0,rMue0,rMui0,WPM0,
-     & Chie0,Chii0,
-     & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,
-     & FSCX,FSLC,FSNC,FSLP,FSION,FSD0,
-     & rLn,rLT,
-     & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,
-     & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,
-     & DLT,DT,EPS,ICMAX,
-     & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,
-     & DelR,DelN,
-     & rG1,EpsH,FSHL,NCPHI,Q0,QA,
-     & rIPs,rIPe,
-     & MODEG, gDIV, MODEAV, MODEl,
+      NAMELIST /TX/ &
+     & RA,RB,RR,BB, &
+     & PA,PZ,Zeff, &
+     & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+     & De0,Di0,rMue0,rMui0,WPM0, &
+     & Chie0,Chii0, &
+     & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
+     & FSCX,FSLC,FSNC,FSLP,FSION,FSD0, &
+     & rLn,rLT, &
+     & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
+     & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+     & DLT,DT,EPS,ICMAX, &
+     & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
+     & DelR,DelN, &
+     & rG1,EpsH,FSHL,NCPHI,Q0,QA, &
+     & rIPs,rIPe, &
+     & MODEG, gDIV, MODEAV, MODEl, &
      & FSHL,EpsH, NCphi
 
       INTEGER :: MODE, IST, KL
@@ -387,7 +387,7 @@
       OPEN(25,FILE=KPNAME,IOSTAT=IST,STATUS='OLD',ERR=9100)
       READ(25,TX,IOSTAT=IST,ERR=9800,END=9900)
       CALL KTRIM(KPNAME,KL)
-      WRITE(6,*) 
+      WRITE(6,*) &
      &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
 
  3000 IERR=0
@@ -414,21 +414,21 @@
       WRITE(6,601)
       RETURN
 
-  601 FORMAT(' ','# &TX : RA,RB,RR,BB,PA,PZ,Zeff,'/
-     &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/
-     &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/
-     &       ' ',8X,'Chie0,Chii0,'/
-     &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/
-     &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSION,FSD0,'/
-     &       ' ',8X,'rLn,rLT,'/
-     &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/
-     &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/
-     &       ' ',8X,'DLT,DT,EPS,ICMAX,'/
-     &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/
-     &       ' ',8X,'DelR,DelN,'/
-     &       ' ',8X,'rG1,EpsH,FSHL,NCPHI,Q0,QA,'/
-     &       ' ',8X,'rIPs,rIPe,'/
-     &       ' ',8X,'MODEG, gDIV, MODEAV, MODEl,'/
+  601 FORMAT(' ','# &TX : RA,RB,RR,BB,PA,PZ,Zeff,'/ &
+     &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/ &
+     &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/ &
+     &       ' ',8X,'Chie0,Chii0,'/ &
+     &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
+     &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSION,FSD0,'/ &
+     &       ' ',8X,'rLn,rLT,'/ &
+     &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
+     &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
+     &       ' ',8X,'DLT,DT,EPS,ICMAX,'/ &
+     &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
+     &       ' ',8X,'DelR,DelN,'/ &
+     &       ' ',8X,'rG1,EpsH,FSHL,NCPHI,Q0,QA,'/ &
+     &       ' ',8X,'rIPs,rIPe,'/ &
+     &       ' ',8X,'MODEG, gDIV, MODEAV, MODEl,'/ &
      &       ' ',8X,'FSHL,EpsH, NCphi')
       END
 !
@@ -442,43 +442,43 @@
 
       INCLUDE 'txcomm.inc'
 
-      WRITE(6,'((1H ,A6,2H =,1PD9.2,3(2X,A6,2H =,1PD9.2)))')
-     &   'RA    ', RA    ,  'RB    ', RB    , 
-     &   'RR    ', RR    ,  'BB    ', BB    , 
-     &   'PA    ', PA    ,  'PZ    ', PZ    , 
-     &   'PN0   ', PN0   ,  'PNa   ', PNa   , 
-     &   'PTe0  ', PTe0  ,  'PTea  ', PTea  , 
-     &   'PTi0  ', PTi0  ,  'PTia  ', PTia  , 
-     &   'rIP   ', rIP   ,  'Zeff  ', Zeff  , 
-     &   'PROFJ ', PROFJ ,
-     &   'De0   ', De0   ,  'Di0   ', Di0   , 
-     &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 , 
-     &   'WPM0  ', WPM0  ,  'PROFD ', PROFD , 
-     &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 , 
-     &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM, 
-     &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL, 
-     &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  , 
-     &   'FSNC  ', FSNC  ,  'FSLP  ', FSLP  , 
-     &   'FSION ', FSION ,  'FSD0  ', FSD0  , 
-     &   'rLn   ', rLn   ,  'rLT   ', rLT   , 
-     &   'Eb    ', Eb    ,  'RNB   ', RNB   , 
-     &   'PNBH  ', PNBH  ,  'rNRF  ', rNRF  , 
-     &   'RRF   ', RRF   ,  'PRFH  ', PRFH  , 
-     &   'rGamm0', rGamm0,  'V0    ', V0    , 
-     &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV, 
-     &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV, 
-     &   'PN0s  ', PN0s  ,  'DLT   ', DLT   , 
-     &   'EPS   ', EPS   ,  'DT    ', DT    ,
-     &   'rG1   ', rG1   ,  'Zeff  ', Zeff  , 
-     &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,
-     &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,
+      WRITE(6,'((1H ,A6,2H =,1PD9.2,3(2X,A6,2H =,1PD9.2)))') &
+     &   'RA    ', RA    ,  'RB    ', RB    ,  &
+     &   'RR    ', RR    ,  'BB    ', BB    ,  &
+     &   'PA    ', PA    ,  'PZ    ', PZ    ,  &
+     &   'PN0   ', PN0   ,  'PNa   ', PNa   ,  &
+     &   'PTe0  ', PTe0  ,  'PTea  ', PTea  ,  &
+     &   'PTi0  ', PTi0  ,  'PTia  ', PTia  ,  &
+     &   'rIP   ', rIP   ,  'Zeff  ', Zeff  ,  &
+     &   'PROFJ ', PROFJ , &
+     &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
+     &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
+     &   'WPM0  ', WPM0  ,  'PROFD ', PROFD ,  &
+     &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
+     &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
+     &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
+     &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  ,  &
+     &   'FSNC  ', FSNC  ,  'FSLP  ', FSLP  ,  &
+     &   'FSION ', FSION ,  'FSD0  ', FSD0  ,  &
+     &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
+     &   'Eb    ', Eb    ,  'RNB   ', RNB   ,  &
+     &   'PNBH  ', PNBH  ,  'rNRF  ', rNRF  ,  &
+     &   'RRF   ', RRF   ,  'PRFH  ', PRFH  ,  &
+     &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
+     &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
+     &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
+     &   'PN0s  ', PN0s  ,  'DLT   ', DLT   ,  &
+     &   'EPS   ', EPS   ,  'DT    ', DT    ,  &
+     &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
+     &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
+     &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
      &   'Q0    ', Q0    ,  'QA    ', QA
-      WRITE(6,'((1H ,A6,2H =,I5,3(6X,A6,2H =,I5)))')
-     &   'NRMAX ', NRMAX , 
-     &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP, 
-     &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP, 
-     &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,
-     &   'MODEG ', MODEG ,  'MODEAV', MODEAV,
+      WRITE(6,'((1H ,A6,2H =,I5,3(6X,A6,2H =,I5)))') &
+     &   'NRMAX ', NRMAX ,  &
+     &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP,  &
+     &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP,  &
+     &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
+     &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
      &   'MODEl ', MODEl ,  'NCPHI ', NCPHI
 
       RETURN
@@ -492,7 +492,7 @@
 !
       SUBROUTINE TXPROF
 
-      USE physical_constants, only : AEE, AME,
+      USE physical_constants, only : AEE, AME, &
      &     Phys_Constants_Initialization, PI, rMU0, EPS0, rKEV
       INCLUDE 'txcomm.inc'
 
@@ -541,7 +541,7 @@
             PROF= (1.D0-(RHI(NR)/RA)**PROFJ)
          ENDIF             
          IF(FSHL.EQ.0.D0) THEN
-            X(LQe4,NR) = - rIps * 1.D6 / (AEE * PI * RA**2 * 1.D20)
+            X(LQe4,NR) = - rIps * 1.D6 / (AEE * PI * RA**2 * 1.D20) &
      &                     * (PROFJ + 1) * PROF**PROFJ
             AJOH(NR)= PROF
          ELSE
@@ -558,7 +558,7 @@
             RL=R(NR)
             IF (RL .LT. RA) THEN
                PROF = 1.D0 - (RL / RA)**2
-               X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
+               X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL) &
      &              * (1 - PROF**(PROFJ+1))
             ELSE
                X(LQm4,NR) = rMU0 * rIps * 1.D6 / (2 * PI * RL)
@@ -598,9 +598,9 @@
          PNeHI(NR)=X(LQe1,NR)
          PTeHI(NR)=X(LQe5,NR)
          rLnLam = + 15 - LOG(ABS(PNeHI(NR))) / 2 + LOG(ABS(PTeHI(NR)))
-         ETA =  SQRT(AME) * Zeff  * AEE**2 * rLnLam
-     &              / (3 * (2 * PI)**1.5D0
-     &                   * EPS0**2
+         ETA =  SQRT(AME) * Zeff  * AEE**2 * rLnLam &
+     &              / (3 * (2 * PI)**1.5D0 &
+     &                   * EPS0**2 &
      &                   * (ABS(PTeHI(NR)) * rKeV)**1.5D0)
          rJP = rIps * 1.D6 / (PI * RA**2) * (PROFJ + 1) * PROF
          IF(FSHL.EQ.0.D0) THEN
