@@ -28,7 +28,7 @@ check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	rm -f *.o ./*~ ./#* a.out core *.a
+	rm -f *.o ./*~ ./#* a.out core *.a *.mod
 
 veryclean: clean
 	rm -f $(PROG)
