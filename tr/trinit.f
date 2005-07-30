@@ -466,7 +466,11 @@ C
       MODELQ=0
       NTEQIT=10
 C
-C     ==== INPUT FROM UFILE ====
+C     ==== INPUT FROM EXPERIMENTAL DATA ====
+C
+C        MDLXP :
+C           0 : from ufiles
+C        else : MDSplus
 C
 C        MDLUF :
 C           0 : not used
@@ -474,6 +478,7 @@ C           1 : time evolution
 C           2 : steady state
 C           3 : compared with TOPICS
 C
+      MDLXP=0
       MDLUF=0
 C
 C     ==== IMPURITY TREATMENT ====
@@ -604,7 +609,7 @@ C
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,
      &              MDLST,MDLNF,IZERO,MODELG,MODELQ,NTEQIT,
-     &              MDLUF,MDNCLS,MDLWLD,MDLFLX,
+     &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -654,7 +659,7 @@ C
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
      &       ' ',8X,'PELTIM,PELPAT,MODELG,MODELQ,NTEQIT'/
-     &       ' ',8X,'MDLUF,MDNCLS,MDLWLD,MDLFLX'/
+     &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')

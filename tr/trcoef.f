@@ -1909,15 +1909,15 @@ C
 C
       IF(ALFA.GE.0.D0) THEN
 C        SA=S-ALFA
-C        SA=S-(1.D0-(2*ALFA)/(1+3*(ALFA)**2))*ALFA
-         SA=S-(1.D0-(2*ALFA)/(1+6*ALFA))*ALFA
+C        SA=S-(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA
+         SA=S-(1.D0-(2.D0*ALFA)/(1+6.D0*ALFA))*ALFA
          IF(SA.GE.0.D0) THEN
            FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
-     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1+RKCV)
+     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)
      &                      +2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
          ELSE
             FS1=((1.D0+RKCV)**2.5D0)/SQRT(2.D0*(1.D0-2.D0*SA)
-     &                       *(1.D0-2.D0*SA+3.D0*SA*SA*(1+RKCV)))
+     &                       *(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
          ENDIF
          IF(RKCV.GT.0.D0) THEN
             FS2=SQRT(RKCV/EPSA)**3/(S*S)
@@ -1926,15 +1926,15 @@ C        SA=S-(1.D0-(2*ALFA)/(1+3*(ALFA)**2))*ALFA
          ENDIF
       ELSE
 C        SA=ALFA-S
-C        SA=(1.D0-(2*ALFA)/(1+3*(ALFA)**2))*ALFA-S
-         SA=(1.D0-(2*ALFA)/(1+6*ALFA))*ALFA-S
+C        SA=(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA-S
+         SA=(1.D0-(2.D0*ALFA)/(1.D0+6.D0*ALFA))*ALFA-S
          IF(SA.GE.0.D0) THEN
             FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
-     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1+RKCV)
+     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)
      &                      +2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
          ELSE
             FS1=((1.D0+RKCV)**2.5D0)/SQRT(2.D0*(1.D0-2.D0*SA)
-     &                       *(1.D0-2.D0*SA+3.D0*SA*SA*(1+RKCV)))
+     &                       *(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
          ENDIF
          IF(RKCV.LT.0.D0) THEN
             FS2=SQRT(-RKCV/EPSA)**3/(S*S)

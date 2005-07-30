@@ -302,14 +302,21 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      DO NR=1,NRMAX
-         TE =RT(NR,1)
-         ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
-     &             +PZ(3)  *PZ(3)  *RN(NR,3)
-     &             +PZ(4)  *PZ(4)  *RN(NR,4)
-     &             +TRZEC(TE)**2   *ANC (NR)
-     &             +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
-      ENDDO
+      IF(MDLUF.EQ.0) THEN
+         DO NR=1,NRMAX
+            TE =RT(NR,1)
+            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
+     &                +PZ(3)  *PZ(3)  *RN(NR,3)
+     &                +PZ(4)  *PZ(4)  *RN(NR,4)
+     &                +TRZEC(TE)**2   *ANC (NR)
+     &                +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
+     &                +PZ(3)  *PZ(3)  *RN(NR,3))/RN(NR,1)
+         END DO
+      ENDIF
 C     
       RETURN
       END

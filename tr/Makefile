@@ -60,9 +60,9 @@ libs:
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)
-	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) -lMdsLib
 tr3: trmain.o $(LIBS3)
-	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS)
+	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) -lMdsLib
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
