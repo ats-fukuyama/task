@@ -5,7 +5,8 @@ LFLAGS = $(OFLAGS)
 
 SRCS = libdsp.f libode.f librkf.f libspl.f libbrn.f libgut.f libbnd.f \
        libpcg.f libde.f libfp.f libbes.f librk.f libkio.f \
-       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f ufile.f
+       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f ufile.f \
+       mdsplus.f
 
 OBJS = $(SRCS:.f=.o)
 
@@ -14,7 +15,7 @@ OBJS = $(SRCS:.f=.o)
 
 all : tasklib.a
 
-tasklib.a: $(OBJS)
+tasklib.a: $(OBJS) mdslib.inc
 	$(LD) $(LDFLAGS) -o tasklib.a $(OBJS)
 
 testspl : testspl.o libspl.o ../grf/libgrf.o
@@ -36,3 +37,4 @@ clean:
 
 veryclean: clean
 
+mdsplus.o  : mdsplus.f mdslib.inc
