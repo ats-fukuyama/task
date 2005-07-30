@@ -28,12 +28,12 @@ C
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'R') THEN
+         MSTAT=1
          CALL EQCALC(IERR)
-C            IF(IERR.NE.0) GOTO 1
+            IF(IERR.NE.0) GOTO 1
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
-         MSTAT=1
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
             IF(IERR.NE.0) GOTO 1
          MSTAT=1
