@@ -26,18 +26,13 @@ C
          PSITN=EQPSITN(PSIPN)
          PSITL=PSITA*PSITN
          RMINL=SQRT(PSITL/(BB*PI))
-         IF(MDLEQA.EQ.0) THEN
-            PSIN=PSIPN
-         ELSE
-            PSIN=PSITN
-         ENDIF
-         CALL EQFPSI(PSIN,FIPL,DFIPL)
+         CALL EQFPSI(PSIPN,FIPL,DFIPL)
+         CALL EQQPSI(PSIPN,QPSL,DQPSL)
          PSIPV(NRV)=PSIPL
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
          SUMV=0.D0
-         SUMQP=0.D0
          SUMAVBB2=0.D0
          SUMAVIR2=0.D0
          SUMAVRR2=0.D0
@@ -50,21 +45,32 @@ C
             B2L=BPL**2+BTL**2
 C
             SUMV    =SUMV    +H/BPL
-            SUMQP   =SUMQP   +H/(BPL*R*R)
             SUMAVBB2=SUMAVBB2+H*B2L/BPL
             SUMAVIR2=SUMAVIR2+H/(BPL*R*R)
             SUMAVRR2=SUMAVRR2+H*BPL
          ENDDO
-         QPV(NRV)=FIPL*SUMQP/(4.D0*PI**2)
+         RSV(NRV)=RMINL
          AVBB2(NRV)=SUMAVBB2/(BB**2*SUMV)
          AVIR2(NRV)=SUMAVIR2*RR**2/SUMV
-         AVRR2(NRV)=SUMAVRR2*QPV(NRV)**2/(RMINL**2*BB**2)
+         IF(MOD(MDLEQF,5).EQ.4) THEN
+            FACTOR=FIPL*SUMAVIR2/(4.D0*PI**2*QPSL)
+            QPV(NRV)=QPSL
+C            WRITE(6,'(A,1PE12.4)') 'FACTOR=',FACTOR
+         ELSE
+            FACTOR=1.D0
+            QPV(NRV)=FIPL*SUMAVIR2/(4.D0*PI**2)
+         ENDIF
+         VPV(NRV)=2.D0*PI*RSV(NRV)*BB*SUMV/QPV(NRV)
+         AVRR2(NRV)=SUMAVRR2*QPV(NRV)**2/(RSV(NRV)**2*BB**2*SUMV)
+     &              *FACTOR
       ENDDO
 C
       QPV(1)  =(4*QPV(2)  -QPV(3)  )/3.D0
       AVBB2(1)=(4*AVBB2(2)-AVBB2(3))/3.D0
       AVIR2(1)=(4*AVIR2(2)-AVIR2(3))/3.D0
       AVRR2(1)=(4*AVRR2(2)-AVRR2(3))/3.D0
+      VPV(1)  =0.D0
+      RSV(1)  =0.D0
 C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
@@ -83,12 +89,6 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSITV: IERR=',IERR
       CALL SPL1D(PSIPNV,QPV,DERIV,UQPV,NRVMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPV: IERR=',IERR
-      CALL SPL1D(PSIPNV,AVBB2,DERIV,UAVBB2,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVBB2: IERR=',IERR
-      CALL SPL1D(PSIPNV,AVIR2,DERIV,UAVIR2,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVIR2: IERR=',IERR
-      CALL SPL1D(PSIPNV,AVRR2,DERIV,UAVRR2,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVRR2: IERR=',IERR
 C
 C     ----- calculate PSIITB -----
 C
@@ -102,7 +102,7 @@ C     *************************************
 C
       FUNCTION EQPSITN(PSIPNL)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DF(PSIPNL,PSITL,PSIPNV,UPSITV,NRVMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX EQPSITN: SPL1DF: PSITL: IERR=',IERR
@@ -116,28 +116,11 @@ C     *************************************
 C
       FUNCTION EQQPV(PSIPNL)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DF(PSIPNL,QPVL,PSIPNV,UQPV,NRVMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX EQQPV: SPL1DF: QPVL: IERR=',IERR
       EQQPV=QPVL
-      RETURN
-      END
-C
-C     **************************************
-C        Calculate bounce-averaged metric
-C     **************************************
-C
-      SUBROUTINE EQAVMT(PSIPNL,AVBB2L,AVIR2L,AVRR2L)
-C
-      INCLUDE 'eqcomc.inc'
-C
-      CALL SPL1DF(PSIPNL,AVBB2L,PSIPNV,UAVBB2,NRVMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX EQAVMT: SPL1DF: AVBB2: IERR=',IERR
-      CALL SPL1DF(PSIPNL,AVIR2L,PSIPNV,UAVIR2,NRVMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX EQAVMT: SPL1DF: AVIR2: IERR=',IERR
-      CALL SPL1DF(PSIPNL,AVRR2L,PSIPNV,UAVRR2,NRVMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX EQAVMT: SPL1DF: AVRR2: IERR=',IERR
       RETURN
       END
 C
@@ -147,7 +130,7 @@ C     ****************************
 C
       SUBROUTINE EQIPJP
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
 C
       FIPV(NRVMAX)=2.D0*PI*BB*RR
@@ -177,10 +160,10 @@ C
 C      DO NRV=1,NRVMAX
 C         WRITE(6,'(A,I5,1P2E12.4)') 'NRV:',NRV,PSIPV(NRV),FIPV(NRV)
 C      ENDDO
-         WRITE(6,'(A,1P2E12.4)') 'FIPV:',FIPV(1),FIPV(NRVMAX)
+C         WRITE(6,'(A,1P2E12.4)') 'FIPV:',FIPV(1),FIPV(NRVMAX)
 C
       CALL SPL1D(PSIPNV,FIPV,DERIV,UFIPV,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVRR2: IERR=',IERR
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for FIPV: IERR=',IERR
       END
 C
 C     ****************************
@@ -189,9 +172,49 @@ C     ****************************
 C
       SUBROUTINE EQIPQP
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
+      DIMENSION DERIV(NRVM)
 C
-      RETURN
+      FIPV(NRVMAX)=2.D0*PI*BB*RR
+C
+      DO NRV=NRVMAX,2,-1
+         PSIPL=PSIPV(NRV)
+         PSIPNL=PSIPL/PSIPA
+         CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+         CALL EQQPSI(PSIPNL,QPSI,DQPSI)
+         PSIPLP=PSIPL
+         XP=RSV(NRV)/QPSI
+         ALP=4.D0*PI**2*BB**2*RR**2*XP/(AVIR2(NRV)*VPV(NRV))
+         BLP=4.D0*PI**2*RMU0*RR**2*DPPSI/AVIR2(NRV)
+         FLP=VPV(NRV)*AVRR2(NRV)*XP
+C
+         PSIPL=PSIPV(NRV-1)
+         PSIPNL=PSIPL/PSIPA
+         CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+         CALL EQQPSI(PSIPNL,QPSI,DQPSI)
+         PSIPLM=PSIPL
+         XM=RSV(NRV-1)/QPSI
+         IF(NRV.EQ.2) THEN
+            ALM=4.D0*PI**2*BB**2*RR**2*XP/(AVIR2(NRV-1)*VPV(NRV))
+         ELSE
+            ALM=4.D0*PI**2*BB**2*RR**2*XM/(AVIR2(NRV-1)*VPV(NRV-1))
+         ENDIF
+         BLM=4.D0*PI**2*RMU0*RR**2*DPPSI/AVIR2(NRV-1)
+         FLM=VPV(NRV-1)*AVRR2(NRV-1)*XM
+C
+         YP=0.5D0*FIPV(NRV)**2
+         YM=YP+0.5D0*(BLP+BLM)*(PSIPLP-PSIPLM)
+     &        +0.5D0*(ALP+ALM)*(FLP-FLM)
+         FIPV(NRV-1)=SQRT(2.D0*YM)
+      ENDDO
+C
+C      DO NRV=1,NRVMAX
+C         WRITE(6,'(A,I5,1P2E12.4)') 'NRV:',NRV,PSIPV(NRV),FIPV(NRV)
+C      ENDDO
+C         WRITE(6,'(A,1P2E12.4)') 'FIPV:',FIPV(1),FIPV(NRVMAX)
+C
+      CALL SPL1D(PSIPNV,FIPV,DERIV,UFIPV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for FIPV: IERR=',IERR
       END
 C
 C     **************************************
@@ -200,7 +223,7 @@ C     **************************************
 C
       SUBROUTINE EQFIPV(PSIPNL,FIPL,DFIPL)
 C
-      INCLUDE 'eqcomc.inc'
+      INCLUDE '../eq/eqcomc.inc'
 C
       CALL SPL1DD(PSIPNL,FIPL,DFIPL,PSIPNV,UFIPV,NRVMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX EQFIPV: SPL1DD: FIPL: IERR=',IERR

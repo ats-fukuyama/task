@@ -227,14 +227,16 @@ C
       NLPMAX = 20
 C
 C        MDLEQF : Profile parameter
-C            0: given analytic profile  P,Jtoroidal,T,Vph
-C            1: given analytic profile  P,F,T,Vph
-C            2: given analytic profile  P,Jparallel,T,Vph
-C            3: given analytic profile  P,q,T,Vph
-C            5: given spline profile  P,Jtoroial,T,Vph
-C            6: given spline profile  P,F,T,Vph
-C            7: given spline profile  P,Jparapllel,T,Vph
-C            8: given spline profile  P,q,T,Vph
+C            0: given analytic profile  P,Jtoroidal,T,Vph + Ip
+C            1: given analytic profile  P,F               + Ip
+C            2: given analytic profile  P,Jparallel       + Ip
+C            3: given analytic profile  P,Jparallel
+C            4: given analytic profile  P,q
+C            5: given spline profile    P,Jtoroial,T,Vph  + Ip
+C            6: given spline profile    P,F               + Ip
+C            7: given spline profile    P,Jparapllel      + Ip
+C            8: given spline profile    P,Jparapllel
+C            9: given spline profile    P,q
 C
       MDLEQF = 0
 C

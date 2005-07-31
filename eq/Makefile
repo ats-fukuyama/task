@@ -63,11 +63,11 @@ eqinit.o: eqinit.f eqcom1.inc
 eqcalc.o: eqcalc.f eqcom1.inc eqcom2.inc
 eqcalq.o: eqcalq.f eqcom1.inc eqcom3.inc
 eqcalv.o: eqcalv.f eqcom1.inc eqcom2.inc
-eqsub.o: eqsub.f eqcom1.inc eqcom3.inc
-eqgout.o: eqgout.f eqcom1.inc eqcom2.inc eqcom3.inc
+eqsub.o: eqsub.f eqcom1.inc eqcom2.inc
 eqfunc.o: eqfunc.f eqcom1.inc eqcom2.inc eqcom4.inc
-eqsplf.o: eqsplf.f eqcom1.inc eqcom2.inc eqcom4.inc
+eqsplf.o: eqsplf.f eqcom1.inc eqcom3.inc
 eqfile.o: eqfile.f eqcom1.inc eqcom2.inc
+eqgout.o: eqgout.f eqcom1.inc eqcom2.inc eqcom3.inc
 trtest.o: trtest.f
 treqin.o: treqin.f eqcom1.inc eqcom3.inc eqcom4.inc
 pltest.o: pltest.f

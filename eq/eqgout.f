@@ -111,7 +111,6 @@ C
          XAX(NX)=RMG(NSG,NTGX)
          RPSI(NX)=PSI(NTGX,NSG)
          RHJT(NX)=HJT(NTGX,NSG)
-C         RHJP(NX)=HJP1(NTGX,NSG)
          RHJP(NX)=HJP2(NTGX,NSG)
          RPP(NX)=PP(NTGX,NSG)
          RTT(NX)=TT(NTGX,NSG)
@@ -122,7 +121,6 @@ C         RHJP(NX)=HJP1(NTGX,NSG)
          XAX(NX)=RMG(NSG,NTGX)
          RPSI(NX)=PSI(NTGX,NSG)
          RHJT(NX)=HJT(NTGX,NSG)
-C         RHJP(NX)=HJP1(NTGX,NSG)
          RHJP(NX)=HJP2(NTGX,NSG)
          RPP(NX)=PP(NTGX,NSG)
          RTT(NX)=TT(NTGX,NSG)
@@ -142,13 +140,8 @@ C
       KSTR='/PSI(X)/'
       CALL EQGR1D(GX1,GX2,GY1,GY2,GX,GYPS(1,1),NXM,2*NSGMAX,1,KSTR,0)
       KSTR='/-HJT(X)/'
-      IF (MDLEQF.EQ.0.OR.MDLEQF.EQ.2) THEN
-         CALL EQGR1D(GX3,GX4,GY3,GY4,
-     &               GX,GYJT(1,1),NXM,2*NSGMAX,3,KSTR,0)
-      ELSEIF (MDLEQF.EQ.1) THEN
-         CALL EQGR1D(GX3,GX4,GY3,GY4,
-     &               GX,GYJT(1,1),NXM,2*NSGMAX,1,KSTR,0)
-      ENDIF
+      CALL EQGR1D(GX3,GX4,GY3,GY4,
+     &            GX,GYJT(1,1),NXM,2*NSGMAX,3,KSTR,0)
       KSTR='/PP(X)/'
       CALL EQGR1D(GX5,GX6,GY5,GY6,GX,GYPP(1,1),NXM,2*NSGMAX,1,KSTR,0)
       KSTR='/TT(X)/'
@@ -285,7 +278,7 @@ C
 C
       INCLUDE 'eqcomq.inc'
 C
-      DIMENSION GX(NRM),GY(NRM,2)
+      DIMENSION GX(NRM),GY(NRM,4)
 C
       IF(MODE.EQ.0) THEN
          DO NR=1,NRMAX
@@ -342,8 +335,10 @@ C
       DO NR=1,NRMAX
          GY(NR,1)=GUCLIP(RRMIN(NR))
          GY(NR,2)=GUCLIP(RRMAX(NR))
+         GY(NR,3)=GUCLIP(ZZMIN(NR))
+         GY(NR,4)=GUCLIP(ZZMAX(NR))
       ENDDO
-      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,'@RRMIN/MAX@',0)
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,4,'@RRMIN/MAX@',0)
 C
       DO NR=1,NRMAX
          GY(NR,1)=GUCLIP(BBMIN(NR))
@@ -357,20 +352,48 @@ C
       CALL SETCHS(0.35,0.0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVBR(NR))
+         GY(NR,1)=GUCLIP(AVERHR(NR))
       ENDDO
-      CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVBR@',0)
+      CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVERHR@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVRR(NR))
+         GY(NR,1)=GUCLIP(AVEIR2(NR))
       ENDDO
-      CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVRR@',0)
+      CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEIR2@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVR1(NR))
-         GY(NR,2)=GUCLIP(AVR2(NR))
+         GY(NR,1)=GUCLIP(AVERH1(NR))
+         GY(NR,2)=GUCLIP(AVERH2(NR))
       ENDDO
-      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,'@AVR1,AVR2@',0)
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,
+     &            '@AVERH1,AVERH2@',0)
+C
+      DO NR=1,NRMAX
+         GY(NR,1)=GUCLIP(AVERHB(NR))
+      ENDDO
+      CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@AVERHB@',0)
+C
+      CALL PAGEE
+C
+      CALL PAGES
+      CALL SETCHS(0.35,0.0)
+C
+      DO NR=1,NRMAX
+         GY(NR,1)=GUCLIP(AVEBB2(NR))
+      ENDDO
+      CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEBB2@',0)
+C
+      DO NR=1,NRMAX
+         GY(NR,1)=GUCLIP(AVEIB2(NR))
+      ENDDO
+      CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEIB2@',0)
+C
+      DO NR=1,NRMAX
+         GY(NR,1)=GUCLIP(AVEJPR(NR))*1.D-6
+         GY(NR,2)=GUCLIP(AVEJTR(NR))*1.D-6
+      ENDDO
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,
+     &                                           '@AVEJPR,AVEJTR@',0)
 C
       DO NR=1,NRMAX
          GY(NR,1)=GUCLIP(FTS(NR))
@@ -848,8 +871,8 @@ C
       YPOS=YPOS-DELY
 C
       CALL MOVE(XPOS,YPOS)
-      CALL TEXT('RIP   :',7)
-      CALL NUMBD(RIP,'(1PE11.3)',11)
+      CALL TEXT('RIPX  :',7)
+      CALL NUMBD(RIPX,'(1PE11.3)',11)
       YPOS=YPOS-DELY
 C
       CALL MOVE(XPOS,YPOS)

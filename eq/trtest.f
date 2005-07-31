@@ -6,23 +6,23 @@ C
       DIMENSION PRHO(NTRM),HJRHO(NTRM)
       DIMENSION VTRHO(NTRM),TRHO(NTRM)
       DIMENSION QRHO(NTRM),TTRHO(NTRM),DVRHO(NTRM),DSRHO(NTRM)
-      DIMENSION ABRHO(NTRM),ARRHO(NTRM)
-      DIMENSION AR1RHO(NTRM),AR2RHO(NTRM)
-      DIMENSION EPSRHO(NTRM)
+      DIMENSION ARHRRHO(NTRM),AIR2RHO(NTRM),ARH1RHO(NTRM)
+      DIMENSION ARH2RHO(NTRM),ABB2RHO(NTRM),AIB2RHO(NTRM)
+      DIMENSION ARHBRHO(NTRM),EPSRHO(NTRM),RMJRHO(NTRM)
+      DIMENSION RMNRHO(NTRM),RKAPRHO(NTRM)
 C
 C      PI     = 2.D0*ASIN(1.D0)
 C      RMU0   = 4.D0*PI*1.D-7
-      AEE    = 1.60219D-19
+       AEE    = 1.60219D-19
 C
       CALL GSOPEN
 C
-    1 NTRMAX= 50
+      NTRMAX= 50
       RR    = 3.D0
       RA    = 1.D0
       RKAP  = 1.6D0
       RDLT  = 0.25D0
       BB    = 3.D0
-      RIP   = 3.D0
       PN0   = 0.05D0
       PT0   = 0.6D0
       PROFJ1= 2
@@ -31,29 +31,25 @@ C
       DRHO=1.D0/NTRMAX
       DO NTR=1,NTRMAX
          RHOTR(NTR)= DRHO*(DBLE(NTR)-0.5D0)
-         HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
       ENDDO
 C
-      MDLUF=0
-      CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
-     &            NTRMAX,RHOTR,HJRHO,QRHO,MDLUF,IERR)
+      CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
 C
-C      WRITE(6,'(A,I5,1P3E12.4)') 
-C     &     ('NTR,RHOTR,HJRHO,QRHO=',
-C     &       NTR,RHOTR(NTR),HJRHO(NTR),QRHO(NTR),
-C     &                           NTR=1,NTRMAX)
-C
+      DRHO=1.D0/NTRMAX
       P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
       DO NTR=1,NTRMAX
+         RHOTR(NTR)= DRHO*(DBLE(NTR)-0.5D0)
          PRHO(NTR)=P0*(1.D0-RHOTR(NTR)**2)**1.5D0
          HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
          VTRHO(NTR)=0.D0
          TRHO(NTR)=PT0*(1.D0-RHOTR(NTR)**2)
       ENDDO
 C
-      CALL TREQEX(RIP,NTRMAX,PRHO,HJRHO,VTRHO,TRHO,
-     &            QRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,
-     &            EPSRHO,MDLUF,IERR)
+      CALL TREQEX(NTRMAX,RHOTR,PRHO,HJRHO,VTRHO,TRHO,
+     &            QRHO,TTRHO,DVRHO,DSRHO,
+     &            ARHRRHO,AIR2RHO,ARH1RHO,ARH2RHO,
+     &            ABB2RHO,AIB2RHO,ARHBRHO,
+     &            EPSRHO,RMJRHO,RMNRHO,RKAPRHO,IERR)
 C
       CALL EQGOUT(1)
 C
@@ -65,11 +61,18 @@ C
      &             DVRHO(NTR),DSRHO(NTR),EPSRHO(NTR)
       ENDDO
       WRITE(6,*) 'NTR ','RHO         ','<Vrho^2/R^2>','<1/R^2>     ',
-     &                  '<Vrho>      ','<Vrho^2>    '
+     &                  '<Vrho>      ','<Vrho^2>    ','<B^2>       '
       DO NTR=1,NTRMAX
-         WRITE(6,'(I5,1P5E12.4)') 
-     &         NTR,RHOTR(NTR),ABRHO(NTR),ARRHO(NTR),
-     &             AR1RHO(NTR),AR2RHO(NTR)
+         WRITE(6,'(I5,1P6E12.4)') 
+     &         NTR,RHOTR(NTR),ARHRRHO(NTR),AIR2RHO(NTR),
+     &             ARH1RHO(NTR),ARH2RHO(NTR),ABB2RHO(NTR)
+      ENDDO
+      WRITE(6,*) 'NTR ','RHO         ','<1/B^2>     ','<Vrho^2/B^2>',
+     &                  'Rmaj        ','Rmin        ','Rkap        '
+      DO NTR=1,NTRMAX
+         WRITE(6,'(I5,1P6E12.4)') 
+     &         NTR,RHOTR(NTR),AIB2RHO(NTR),ARHBRHO(NTR),
+     &             RMJRHO(NTR),RMNRHO(NTR),RKAPRHO(NTR)
       ENDDO
 C
       CALL GSCLOS

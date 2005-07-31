@@ -41,7 +41,7 @@ C     ***** LOAD EQUILIBRIUM DATA *****
 C
       SUBROUTINE EQLOAD(MODELG,KNAMEQ1,IERR)
 C
-      INCLUDE '../eq/eqcomq.inc'
+      INCLUDE '../eq/eqcomc.inc'
       CHARACTER KNAMEQ1*80
 C
       PI=2.D0*ASIN(1.D0)
