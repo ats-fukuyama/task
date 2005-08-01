@@ -26,8 +26,12 @@ C
          PSITN=EQPSITN(PSIPN)
          PSITL=PSITA*PSITN
          RMINL=SQRT(PSITL/(BB*PI))
-         CALL EQFPSI(PSIPN,FIPL,DFIPL)
-         CALL EQQPSI(PSIPN,QPSL,DQPSL)
+         FIPL=EQTTV(PSIPN)
+         IF(MOD(MDLEQF,5).EQ.4) THEN
+            CALL EQQPSI(PSIPN,QPSL,DQPSL)
+         ELSE
+            QPSL=EQQPV(PSIPN)
+         ENDIF
          PSIPV(NRV)=PSIPL
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
@@ -85,11 +89,6 @@ C
          PSIPNV(NRV)=PSIPV(NRV)/PSIPA
       ENDDO
 C
-      CALL SPL1D(PSIPNV,PSITV,DERIV,UPSITV,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSITV: IERR=',IERR
-      CALL SPL1D(PSIPNV,QPV,DERIV,UQPV,NRVMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPV: IERR=',IERR
-C
 C     ----- calculate PSIITB -----
 C
       CALL EQCNVA(RHOITB**2,PSIITB)
@@ -121,6 +120,20 @@ C
       CALL SPL1DF(PSIPNL,QPVL,PSIPNV,UQPV,NRVMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX EQQPV: SPL1DF: QPVL: IERR=',IERR
       EQQPV=QPVL
+      RETURN
+      END
+C
+C     *************************************
+C        Calculate TTV 
+C     *************************************
+C
+      FUNCTION EQTTV(PSIPNL)
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      CALL SPL1DF(PSIPNL,TTVL,PSIPNV,UTTV,NRVMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX EQQPV: SPL1DF: TTVL: IERR=',IERR
+      EQTTV=TTVL
       RETURN
       END
 C

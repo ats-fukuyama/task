@@ -41,7 +41,7 @@ C
       MDLEQF = 8
       MDLEQA = 2
       NPRINT = 1
-      NLPMAX = 1
+      NLPMAX = 20
 C
       RR     = RR1
       RA     = RA1
