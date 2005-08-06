@@ -145,8 +145,10 @@ C
       DO NR=1,NRMAX
          EPS=EPSRHO(NR)
 C
-         p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
-         p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
+!         p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
+         p_b2=SNGL(ABB2RHO(NR))
+!         p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
+         p_bm2=SNGL(AIB2RHO(NR))
          p_fhat=SNGL(TTRHOG(NR)/RDP(NR))
          DO i=1,3
             p_fm(i)=0.0
@@ -160,7 +162,8 @@ C
             ENDDO   
          ENDIF
          p_ft=SNGL(FTPF(MDLTPF,EPS))
-         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
+!         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
+         p_grbm2=SNGL(ARHBRHO(NR))
          p_grphi=ER(NR)
          IF(NR.EQ.1) THEN
             p_gr2phi=0.0

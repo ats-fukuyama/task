@@ -47,7 +47,7 @@ C
          DO NR=1,NRMAX
 C            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
 C            QP(NR)=FACTQ(NR)*QL
-            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
+CCC            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
          ENDDO
       ELSE
          IF(MDLUF.NE.1) THEN

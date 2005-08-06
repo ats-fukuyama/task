@@ -14,6 +14,7 @@ C
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       DIMENSION XX(MLM),YY(2,NRM),ZZ(NSM,NRM)
+      DIMENSION IPIV(MLM)
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
@@ -65,12 +66,40 @@ C     /* Matrix Producer */
       CALL TRMTRX(NEQRMAX)
 C
 C     /* Matrix Solver */
-      MWRMAX=4*NEQRMAX-1
-      CALL BANDRD(AX,X,NEQRMAX*NRMAX,MWRMAX,MWM,IERR)
-      IF(IERR.EQ.30000) THEN
-         WRITE(6,*) 'XX ERROR IN TRLOOP : MATRIX AA IS SINGULAR ',
-     &              ' AT ',NT,' STEP.'
-         GOTO 9000
+      IF(MDLPCK.EQ.0) THEN
+         MWRMAX=4*NEQRMAX-1
+         CALL BANDRD(AX,X,NEQRMAX*NRMAX,MWRMAX,LDAB,IERR)
+         IF(IERR.EQ.30000) THEN
+            WRITE(6,*) 'XX ERROR IN TRLOOP : MATRIX AA IS SINGULAR ',
+     &                 ' AT ',NT,' STEP.'
+            GOTO 9000
+         ENDIF
+      ELSEIF(MDLPCK.EQ.1) THEN
+         M=NEQRMAX*NRMAX
+         N=NEQRMAX*NRMAX
+         KL=2*NEQRMAX-1
+         KU=2*NEQRMAX-1
+         NRHS=1
+         LDB=MLM
+         CALL DGBTRF(M,N,KL,KU,AX,LDAB,IPIV,INFO)
+         IF(INFO.NE.0) THEN
+            WRITE(6,*) 'XX ERROR IN TRLOOP : DGBTRF, INFO = ',INFO
+            GOTO 9000
+         ENDIF
+         CALL DGBTRS('N',N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
+         IF(INFO.NE.0) THEN
+            WRITE(6,*) 'XX ERROR IN TRLOOP : DGBTRS, INFO = ',INFO
+         ENDIF
+      ELSE
+         N=NEQRMAX*NRMAX
+         KL=2*NEQRMAX-1
+         KU=2*NEQRMAX-1
+         NRHS=1
+         LDB=MLM
+         CALL DGBSV(N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
+         IF(INFO.NE.0) THEN
+            WRITE(6,*) 'XX ERROR IN TRLOOP : DGBSV, INFO = ',INFO
+         ENDIF
       ENDIF
 C     
       DO J=1,NFM
@@ -643,10 +672,11 @@ C
 C
 C     ***** Band Matrix *****
 C
-      DO NR=1,NRMAX
-         CALL TR_BAND_GEN(NR,NEQRMAX,ADV)
-      ENDDO
-C
+      CALL TR_BAND_GEN(NEQRMAX,ADV)
+      IF(MDLPCK.NE.0) THEN
+         CALL TR_BAND_LAPACK(A,B,C,AX,NRMAX,NEQRMAX,NVM,NRM,LDAB,MLM)
+      ENDIF
+C     
 C     ***** RHS Vector Reduce *****
 C
       DO NR=1,NRMAX
@@ -664,12 +694,22 @@ C
       NEQ=1
       NSVN=NSV(NEQ)
       IF(NSVN.EQ.0) THEN
-         MV=NEQRMAX*(NRMAX-1)+NEQ
-         DO MW=1,MWMAX
-            AX(MW,MV)=0.D0
-         ENDDO
-         AX(2*NEQRMAX,MV)=RD(NEQ,NRMAX)
-         X(MV)=RDPS
+         MVV=NEQRMAX*(NRMAX-1)+NEQ
+         IF(MDLPCK.EQ.0) THEN
+            DO MW=1,MWRMAX
+               AX(MW,MVV)=0.D0
+            ENDDO
+            AX(2*NEQRMAX,MVV)=RD(NEQ,NRMAX)
+         ELSE
+            KL=2*NEQRMAX-1
+            DO MW=3*NEQRMAX,NEQRMAX+1,-1
+               DO MV=NEQRMAX*NRMAX-2*NEQRMAX+KL,NEQRMAX*NRMAX
+                  AX(MW,MV)=0.D0
+               ENDDO
+            ENDDO
+            AX(2*NEQRMAX+KL,MVV)=RD(NEQ,NRMAX)
+         ENDIF
+         X(MVV)=RDPS
       ENDIF
 C
       RETURN
@@ -681,13 +721,15 @@ C           BAND MATRIX GENERATOR
 C
 C     ***********************************************************
 C
-      SUBROUTINE TR_BAND_GEN(NR,NEQRMAX,ADV)
+      SUBROUTINE TR_BAND_GEN(NEQRMAX,ADV)
 C
       INCLUDE 'trcomm.inc'
 C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
       COMMON /TRLCL3/ RD(NEQM,NRM)
       COMMON /TRLCL4/ PPA(NEQM,NRM),PPB(NEQM,NRM),PPC(NEQM,NRM)
+C
+      DO NR=1,NRMAX
 C
       DO NV=1,NEQMAX
       DO NW=1,NEQMAX
@@ -713,14 +755,60 @@ C
          CALL TR_BANDREDUCE(C(1,1,NR),XV(1,NR+1),PPC(1,NR),NEQRMAX)
       ENDIF
 C
-      DO NV=1,NEQRMAX
-      DO NW=1,NEQRMAX
-         AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
-         AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
-         AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
-      ENDDO
+      IF(MDLPCK.EQ.0) THEN
+         DO NV=1,NEQRMAX
+         DO NW=1,NEQRMAX
+            AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
+            AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
+            AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
+         ENDDO
+         ENDDO
+      ENDIF
+C
       ENDDO
 C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           ADDITIONAL BAND MATRIX GENERATOR FOR LAPACK
+C
+C     ***********************************************************
+C
+      SUBROUTINE TR_BAND_LAPACK(A,B,C,AX,NRMAX,NEQRMAX,
+     &                          NVM,NRM,LDAB,MLM)
+C
+      IMPLICIT NONE
+      INTEGER NR, NEQRMAX, NRMAX, NVM, NRM, LDAB, MLM, NV, NW, KL
+      REAL*8 A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
+      REAL*8 AX(LDAB,MLM)
+C
+      KL=2*NEQRMAX-1
+      NR=1
+      DO NV=1,NEQRMAX
+      DO NW=1,NEQRMAX
+         AX(3*NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = A(NW,NV,NR+1)
+         AX(2*NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = B(NW,NV,NR  )
+      ENDDO
+      ENDDO
+      DO NR=2,NRMAX-1
+      DO NV=1,NEQRMAX
+      DO NW=1,NEQRMAX
+         AX(3*NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = A(NW,NV,NR+1)
+         AX(2*NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = B(NW,NV,NR  )
+         AX(  NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = C(NW,NV,NR-1)
+      ENDDO
+      ENDDO
+      ENDDO
+      NR=NRMAX
+      DO NV=1,NEQRMAX
+      DO NW=1,NEQRMAX
+         AX(2*NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = B(NW,NV,NR  )
+         AX(  NEQRMAX+NW-NV+KL,NEQRMAX*(NR-1)+NV) = C(NW,NV,NR-1)
+      ENDDO
+      ENDDO
+C     
       RETURN
       END
 C

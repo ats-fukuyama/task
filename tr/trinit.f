@@ -515,7 +515,7 @@ C           1 : use FLUX term made from source files
 C
       MDLFLX=0
 C
-C     *** Eqs. Selection Parameter ***
+C     ==== Eqs. Selection Parameter ====
 C
       MDLEQB=1  ! 0/1 for B_theta
       MDLEQN=0  ! 0/1 for density
@@ -528,7 +528,8 @@ C                 0: electron only, 1: both, 2: ion only
 C
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
 C
-C     *** NCLASS SWITCH ***
+C     ==== NCLASS SWITCH ====
+C
 C        0    : off
 C        else : on
 C        NSLMAX : the number of species for NCLASS
@@ -539,11 +540,19 @@ C                 i.e. NSLMAX never be less than 2.
       MDNCLS=0
       NSLMAX=NSMAX
 C
-C     *** MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ***
+C     ==== MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ====
 C        0    : off
 C        else : multiplyer for TAUK (which is the required time of
 C               averaging magnetic surface)
       MDTC=0
+C
+C     ==== LAPACK ====
+C
+C        0    : off (using BANDRD for band matrix solver)
+C        1    : on  (using DGBTRF and DGBTRS for band matrix solver)
+C        else : on  (using DGBSV for band matrix solver)
+C
+      MDLPCK=0
 C
 C     ====== INTIALIZE ======
 C
@@ -603,7 +612,7 @@ C
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,
-     &              CWEB,CALF,
+     &              CWEB,CALF,CNB,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
@@ -619,7 +628,7 @@ C
      &              PELTIM,PELPAT,KFNLOG,
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX,
-     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB
+     &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
 C
       IF(NID.LT.0) THEN
          WRITE(-NID,TR,IOSTAT=IST,ERR=9800)
@@ -648,7 +657,7 @@ C
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
-     &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW'/
+     &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW,CNB'/
      &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC,MDLTPF'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
@@ -662,7 +671,7 @@ C
      &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
-     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,CNB')
+     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -1538,32 +1547,16 @@ C
          SUM=SUM+RDP(NR)*DR
          RPSI(NR)=SUM
          BPRHO(NR)=BP(NR)
-         QRHO(NR)=QP(NR)
       ENDDO
-C
-      IF(MODELQ.EQ.3) THEN
-         DO NR=1,NRMAX
-            RHOTR(NR)=RM(NR)
-            AJ(NR)   =AJOH(NR)
-            HJRHO(NR)=AJ(NR)*1.D-6
-         ENDDO
-         CALL TREQIN(RR,RA,RKAP,RDLT,BB,RIP,
-     &               NRMAX,RHOTR,HJRHO,QRHO,MDLUF,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
-C
-         DO NR=1,NRMAX
-C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,R,AJ,E,Q,QP=',
-C     &           NR,RHOTR(NR),AJ(NR),ETA(NR),QRHO(NR),QP(NR)
-C            WRITE(6,'(A,I3,1P5E12.4)') 'NR,A,K,RDLT,B,I=',
-C     &           NR,RA,RKAP,RDLT,BB,RIP
-            QP(NR)=-QRHO(NR+1)
-         ENDDO
-         Q0=(4.D0*QP(1)-QP(2))/3.D0
-      ENDIF
 C
       DRIP  = (RIPSS-RIPS)/1.D1
  1000 RIP   = RIPSS
+C
       IF(MODELQ.EQ.3) THEN
+C     *** giving initial profiles to TASK/EQ ***
+         CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
+C     ***
 C         CALL TRCONV(L,IERR)
 C         WRITE(6,*) "L=",L
          CALL TRSETG
@@ -1613,11 +1606,11 @@ C
          ENDDO
          HJRHO(NR)=AJ(NR)*1.D-6 !*FACTJ
          VTRHO(NR)=0.D0
+         RHOTR(NR)=RM(NR)
 C         WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,P/HJ/T/VTRHO=',NR,PRHO(NR),
 C     &           HJRHO(NR),TRHO(NR),VTRHO(NR)
       ENDDO
-C      PAUSE
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,2I5,1P4E12.4)')
@@ -1625,10 +1618,25 @@ C     &           'NR,I/RM/J/V/T=',NR,NRMAX,RIP,
 C     &           HJRHO(NR),VTRHO(NR),TRHO(NR)
 C      ENDDO
 C
-      CALL TREQEX(RIP,NRMAX,PRHO,HJRHO,VTRHO,TRHO,
+      CALL TREQEX(NRMAX,RHOTR,PRHO,HJRHO,VTRHO,TRHO,
      &            QRHO,TTRHO,DVRHO,DSRHO,
      &            ABRHO,ARRHO,AR1RHO,AR2RHO,
-     &            EPSRHO,MDLUF,IERR)
+     &            ABB2RHO,AIB2RHO,ARHBRHO,
+     &            EPSRHO,RMJRHO,RMNRHO,EKAP,IERR)
+      DO NR=1,NRMAX
+         TTRHO(NR)  =TTRHO(NR)/(2.D0*PI)
+         ARRHO(NR)  =ARRHO(NR)/RR**2
+         ABB2RHO(NR)=ABB2RHO(NR)*BB**2
+         AIB2RHO(NR)=AIB2RHO(NR)/BB**2
+C         write(6,'(I3,3F15.7)') NR,TTRHO(NR),BB*RR
+      ENDDO
+      CALL TRGFRG
+C
+      DO NR=1,NRMAX
+         RDPORG=RDP(NR)
+         RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
+     &          /(4.D0*PI**2*QRHO(NR))
+      ENDDO
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P4E12.4)')
@@ -1638,68 +1646,55 @@ C         WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
 C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
 C      ENDDO
-C      PAUSE
 C
-C      DO NR=1,NRMAX
-C         BPNR=RA*RHOTR(NR)*TTRHO(NR)*ARRHO(NR)/QRHO(NR)
-C         write(6,*) NR,BPNR,BP(NR)
-C         BP(NR)=BPNR
-C      ENDDO
 C
-      RKAPS=SQRT(RKAP)
-      DO NR=1,NRMAX
-         BPRHO(NR)=RKAPS*RA*RG(NR)*BB/(RR*QRHO(NR))
-      ENDDO
-C
-      NR=1
-         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
-         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
-         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
-         FACTORP=0.5D0*(FACTOR2+FACTOR3)
-         AJ(NR)= FACTOR0*FACTORP*BPRHO(NR)/DR/AR1RHO(NR)
-C         BPRHO(NR)= AJ(NR)*DR*AR1RHO(NR)/(FACTOR0*FACTORP)
-      DO NR=2,NRMAX-1
-         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
-         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
-         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
-         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
-         FACTORM=0.5D0*(FACTOR1+FACTOR2)
-         FACTORP=0.5D0*(FACTOR2+FACTOR3)
-         AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
-     &          /DR/AR1RHO(NR)
-C         BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
-C     &            /FACTORP
-      ENDDO
-      NR=NRMAX
-         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
-         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
-         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
-         FACTORM=0.5D0*(FACTOR1+FACTOR2)
-         FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
-         AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
-     &          /DR/AR1RHO(NR)
-C         BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
-C     &            /FACTORP
-C
-c$$$      CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
-c$$$      AJT=AJTSUM*DR/1.D6
-c$$$C      write(6,*) RIP,AJT,AJT/RIP
-c$$$      FACTJ=RIP/AJT
-C     
-      DO NR=1,NRMAX
-         BP(NR)=BPRHO(NR)!*FACTJ
-         AJ(NR)=AJ(NR)   !*FACTJ
-C     HJRHO(NR)=AJ(NR)*1.D-6
-      ENDDO
-c$$$      BPSEQ=BP(NRMAX)
-c$$$      RIPEQ=RIP
-C
-c$$$      DO NR=1,NRMAX
-c$$$         QL=RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
-c$$$         FACTQ(NR)=QRHO(NR)/QL
+c$$$      NR=1
+c$$$         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
+c$$$         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+c$$$         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+c$$$         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+c$$$         AJ(NR)= FACTOR0*FACTORP*BPRHO(NR)/DR/AR1RHO(NR)
+c$$$C         BPRHO(NR)= AJ(NR)*DR*AR1RHO(NR)/(FACTOR0*FACTORP)
+c$$$      DO NR=2,NRMAX-1
+c$$$         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
+c$$$         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+c$$$         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+c$$$         FACTOR3=DVRHO(NR+1)*ABRHO(NR+1)
+c$$$         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+c$$$         FACTORP=0.5D0*(FACTOR2+FACTOR3)
+c$$$         AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
+c$$$     &          /DR/AR1RHO(NR)
+c$$$C         BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
+c$$$C     &            /FACTORP
 c$$$      ENDDO
-C
-      CALL TRGFRG
+c$$$      NR=NRMAX
+c$$$         FACTOR0=RR*RR/(RMU0*DVRHO(NR))
+c$$$         FACTOR1=DVRHO(NR-1)*ABRHO(NR-1)
+c$$$         FACTOR2=DVRHO(NR  )*ABRHO(NR  )
+c$$$         FACTORM=0.5D0*(FACTOR1+FACTOR2)
+c$$$         FACTORP=(3.D0*FACTOR2-FACTOR1)/2.D0
+c$$$         AJ(NR)= FACTOR0*(FACTORP*BPRHO(NR)-FACTORM*BPRHO(NR-1))
+c$$$     &          /DR/AR1RHO(NR)
+c$$$C         BPRHO(NR)=(AJ(NR)*DR*AR1RHO(NR)/FACTOR0+FACTORM*BPRHO(NR-1))
+c$$$C     &            /FACTORP
+c$$$C
+c$$$c$$$      CALL TRSUMD(AJ  ,DSRHO,NRMAX,AJTSUM)
+c$$$c$$$      AJT=AJTSUM*DR/1.D6
+c$$$c$$$C      write(6,*) RIP,AJT,AJT/RIP
+c$$$c$$$      FACTJ=RIP/AJT
+c$$$C     
+c$$$      DO NR=1,NRMAX
+c$$$         BP(NR)=BPRHO(NR)!*FACTJ
+c$$$         AJ(NR)=AJ(NR)   !*FACTJ
+c$$$C     HJRHO(NR)=AJ(NR)*1.D-6
+c$$$      ENDDO
+c$$$c$$$      BPSEQ=BP(NRMAX)
+c$$$c$$$      RIPEQ=RIP
+c$$$C
+c$$$c$$$      DO NR=1,NRMAX
+c$$$c$$$         QL=RKAPS*RA*RG(NR)*BB/(RR*BP(NR))
+c$$$c$$$         FACTQ(NR)=QRHO(NR)/QL
+c$$$c$$$      ENDDO
 C
       RETURN
       END
@@ -2143,7 +2138,11 @@ C
 C               RJCB(NR)=1.D0/(RKAPS*RA)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
+C
                EKAP(NR)=RKAP
+               ABB2RHO(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+               AIB2RHO(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+               ARHBRHO(NR)=AR2RHO(NR)*AIB2RHO(NR)
             ENDDO
             CALL FLUX
          ELSE
@@ -2165,10 +2164,12 @@ C     &                         NRMAX,NRM)
                AR1RHO(NR)=1.D0/(RKAPS*RA)
                AR2RHO(NR)=1.D0/(RKAPS*RA)**2
                RJCB(NR)=1.D0/(RKAPS*RA)
-C
                EKAP(NR)=RKAP
                RMJRHO(NR)=RR
                RMNRHO(NR)=RA*RM(NR)
+               ABB2RHO(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+               AIB2RHO(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+               ARHBRHO(NR)=AR2RHO(NR)*AIB2RHO(NR)
             ENDDO
          ELSE
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
