@@ -696,7 +696,7 @@ C
       IF(NSVN.EQ.0) THEN
          MVV=NEQRMAX*(NRMAX-1)+NEQ
          IF(MDLPCK.EQ.0) THEN
-            DO MW=1,MWRMAX
+            DO MW=1,MWMAX
                AX(MW,MVV)=0.D0
             ENDDO
             AX(2*NEQRMAX,MVV)=RD(NEQ,NRMAX)
