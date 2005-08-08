@@ -814,10 +814,10 @@ C
       INCLUDE '../eq/eqcomc.inc'
 C
       IMDLEQF=MOD(MDLEQF,5)
-      DPS=PSI0/(NPSMAX-1)
+      DPS=PSIPA/(NPSMAX-1)
       DO NPS=1,NPSMAX
          PSIPS(NPS)=DPS*(NPS-1)
-         PSIN=1.D0-PSIPS(NPS)/PSI0
+         PSIN=PSIPS(NPS)/PSIPA
 C
          IF (IMDLEQF.EQ.0) THEN
             CALL EQPPSI(PSIN,PPSI,DPPSI)

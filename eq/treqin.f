@@ -69,7 +69,7 @@ C
 C     output:
 C
 C     QRHO(NTRMAX)   : Safety factor
-C     TTRHO(NTRMAX)  : Bphi R
+C     TTRHO(NTRMAX)  : 2 pi Bphi R
 C     DVRHO(NTRMAX)  : dV/drho
 C     DSRHO(NTRMAX)  : dS/drho
 C     ARHRRHO(NTRMAX): <|nabla rho|^2/R^2>
@@ -209,12 +209,12 @@ C
 C        <<< DVRHO >>>
          CALL SPL1DF(RHOTL,VPL,RHOT,UVPS,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF VPL: IERR=',IERR
-         DVRHO(NTR)=VPL
+         DVRHO(NTR)=2.D0*PSITA*RHOTL*VPL/QPL
 C
 C        <<< DSRHO >>>
          CALL SPL1DF(RHOTL,SPL,RHOT,USPS,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1DF SPL: IERR=',IERR
-         DSRHO(NTR)=SPL
+         DSRHO(NTR)=2.D0*PSITA*RHOTL*SPL/QPL
 C
 C        <<< ARHRRHO >>>
          CALL SPL1DF(RHOTL,ARHR,RHOT,UAVERHR,NRMAX,IERR)
