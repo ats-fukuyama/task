@@ -306,7 +306,7 @@ C
       INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-         RS=RSROHN(RHON)
+         RS=RSRHON(RHON)
          BMINT= BB
          CALL GETQP(RHON,QL)
          BMINP= RS*BMINT/(RR*QL)
