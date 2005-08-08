@@ -107,29 +107,29 @@ C     ----- SET NUMBER OF DIVISION for integration -----
 C
       IF(NTVMAX.GT.NTVM) NTVMAX=NTVM
 C
-C     ----- CALCULATE PSI,PPS,TTS,FTS and RPS, ZPS on magnetic surfaces -----
+C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on magnetic surfaces -----
 C
       NR=1
       DO NTH=1,NTHMAX+1
          RPS(NTH,NR)=RAXIS
          ZPS(NTH,NR)=ZAXIS
       ENDDO
-      PSS(1)=PSIG(RAXIS,ZAXIS)
-      PPS(1)=PPFUNC(PSS(1))
-      TTS(1)=TTFUNC(PSS(1))
+      PSIP(1)=PSIG(RAXIS,ZAXIS)-PSI0
+      PPS(1)=PPFUNC(PSIP(1))
+      TTS(1)=TTFUNC(PSIP(1))
 C
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
-C     &        PSS(NR),PPS(NR),TTS(NR)
+C     &        PSIP(NR),PPS(NR),TTS(NR)
 C
       DO NR=2,NRPMAX
          RINIT=RAXIS+DR*(NR-1)
          ZINIT=ZAXIS
-         PSS(NR)=PSIG(RINIT,ZINIT)
-         PPS(NR)=PPFUNC(PSS(NR))
-         TTS(NR)=TTFUNC(PSS(NR))
+         PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
+         PPS(NR)=PPFUNC(PSIP(NR))
+         TTS(NR)=TTFUNC(PSIP(NR))
 C
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
-C     &        PSS(NR),PPS(NR),TTS(NR)
+C     &        PSIP(NR),PPS(NR),TTS(NR)
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
@@ -268,14 +268,22 @@ C
 C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
-      FTS(1)=0.D0
+      PSIT(1)=0.D0
       DO NR=2,NRPMAX
-         FTS(NR)=FTS(NR-1)
-     &           +0.5D0*(QPS(NR)+QPS(NR-1))*(PSS(NR)-PSS(NR-1))
+         PSIT(NR)=PSIT(NR-1)
+     &           +0.5D0*(QPS(NR)+QPS(NR-1))*(PSIP(NR)-PSIP(NR-1))
       ENDDO
-      RHOT(1)=0.D0
+      PSITA=PSIT(NRPMAX)
+C
+      RST(1)=0.D0
       DO NR=2,NRPMAX
-         RST(NR)=SQRT(FTS(NR)/(PI*BB))
+         RST(NR)=SQRT(PSIT(NR)/(PI*BB))
+      ENDDO
+      RSTA=RST(NRPMAX)
+C
+      RHOT(1)=0.D0
+      DO NR=2,NRMAX
+         RHOT(NR)=SQRT(PSIT(NR)/PSITA)
       ENDDO
 C
 C     ----- CALCULATE EDGE VALUE -----
@@ -306,8 +314,6 @@ C
       SPSA=SUMS
       VPSA=SUMV*2.D0*PI
       QPSA=SUMQ*TTSA/(2.D0*PI)
-      FTSA=FTS(NRPMAX)
-      RSTA=RST(NRPMAX)
 C
       DO NR=2,NRPMAX
          AVERHR(NR)=AVERHR(NR)*QPS(NR)**2/(RST(NR)**2*BB**2)/RSTA**2
@@ -317,9 +323,9 @@ C
          AVEBB2(NR)=AVEBB2(NR)/BB**2
          AVEIB2(NR)=AVEIB2(NR)*BB**2
          AVERHB(NR)=AVERHB(NR)*QPS(NR)**2/(RST(NR)**2*RR**2)/RSTA**2
-         DPPSL=DPPFUNC(PSS(NR))
-         DTTSL=DTTFUNC(PSS(NR))
-         TTSL= TTFUNC(PSS(NR))
+         DPPSL=DPPFUNC(PSIP(NR))
+         DTTSL=DTTFUNC(PSIP(NR))
+         TTSL= TTFUNC(PSIP(NR))
          AVEJPR(NR)=-(TTSL*DPPSL/BB+AVEBB2(NR)*BB*DTTSL/RMU0)
          AVEJTR(NR)=-(2.D0*PI*RR*DPPSL
      &               +AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR))
@@ -372,7 +378,7 @@ C
       DO NR=NRPMAX+1,NRMAX
          RL=REDGE+DR*(NR-NRPMAX)
          ZL=ZAXIS
-         PSS(NR)=PSIG(RL,ZL)
+         PSIP(NR)=PSIG(RL,ZL)-PSI0
          PPS(NR)=0.D0
          TTS(NR)=2.D0*PI*BB*RR
 C
@@ -381,7 +387,7 @@ C
          VPS(NR)= VPS(NRPMAX)*FACTOR**2
          QPS(NR)= QPS(NRPMAX)*FACTOR**2
          RLEN(NR)=RLEN(NRPMAX)*FACTOR
-         FTS(NR)= FTS(NRPMAX)*FACTOR**2
+         PSIT(NR)= PSIT(NRPMAX)*FACTOR**2
          AVERHR(NR)=AVERHR(NRPMAX)
          AVEIR2(NR)=AVEIR2(NRPMAX)
          AVERH1(NR)=AVERH1(NRPMAX)
@@ -413,7 +419,7 @@ C            ZPS(NTH,NR)=ZPS(NTH,NRPMAX)+FACTOR*DELZ
          BBMIN(NR)=BBMIN(NRPMAX)/FACTOR
          BBMAX(NR)=BBMAX(NRPMAX)*FACTOR
       ENDDO
-      FTSB=FTS(NRMAX)
+      PSITB=PSIT(NRMAX)
 C
 C      ----- CALCULATE PLASMA SURFACE -----
 C
@@ -453,14 +459,10 @@ C
       IERR=0
       DTH=2*PI/NTHMAX
 C
-      DO NR=1,NRMAX
-         RHOT(NR)=SQRT(FTS(NR)/FTSA)
-      ENDDO
-C
-      CALL SPL1D(PSS,FTS,DERIV,UFTS,NRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for FTS: IERR=',IERR
-      CALL SPL1D(FTS,PSS,DERIV,UFTT,NRMAX,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSS: IERR=',IERR
+      CALL SPL1D(PSIP,PSIT,DERIV,UPSIT,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSIT: IERR=',IERR
+      CALL SPL1D(PSIT,PSIP,DERIV,UPSIP,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSIP: IERR=',IERR
 C
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,PPS,DERIV,UPPS,NRMAX,1,IERR)
@@ -544,8 +546,8 @@ C
      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
             CALL SPL2DD(THITL,RHOTL,ZPSL,DZCHIL,DZRHOL,
      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-            DRPSI(NTH,NR)=DRRHOL/(2.D0*FTSA)
-            DZPSI(NTH,NR)=DZRHOL/(2.D0*FTSA)
+            DRPSI(NTH,NR)=DRRHOL/(2.D0*PSITA)
+            DZPSI(NTH,NR)=DZRHOL/(2.D0*PSITA)
             DRCHI(NTH,NR)=DRCHIL
             DZCHI(NTH,NR)=DZCHIL
 C
@@ -583,9 +585,10 @@ C
       DO NDP=1,NDPMAX-1
          PSIL=PSI0+DELPS*NDP
          PSIN=1.D0-PSIL/PSI0
-         PPSL=FNPPS(PSIN)
-         VPSL=FNVPS(PSIN)
-         SPSL=FNSPS(PSIN)
+         RHON=FNRHON(PSIN)
+         PPSL=FNPPS(RHON)
+         VPSL=FNVPS(RHON)
+         SPSL=FNSPS(RHON)
          SUMV =SUMV +VPSL*DELPS
          SUMS =SUMS +SPSL*DELPS
          SUMPV=SUMPV+PPSL*VPSL*DELPS
@@ -639,7 +642,8 @@ C
       NMAX=200
       IF(NMAX.GT.NTVM) NMAX=NTVM
 C
-C     ----- CALCULATE PSI,PPS,TTS,FTS and RPS, ZPS on magnetic surfaces -----
+C     ----- CALCULATE PSIP, PSIT, PPS, TTS, RPS and ZPS -----
+C     -----              on magnetic surfaces           -----
 C
       CALL EQMAGS(RINIT,ZINIT,NMAX,XA,YA,NA,IERR)
 C
@@ -680,7 +684,6 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-C      write(6,*) PSIL
       CALL SPL1DF(PSIL,PPL,PSIPS,UPPPS,NPSMAX,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX PPFUNC: SPL1DF ERROR : IERR=',IERR
@@ -696,7 +699,6 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-C      write(6,*) PSIL
       CALL SPL1DF(PSIL,TTL,PSIPS,UTTPS,NPSMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TTFUNC: SPL1DF ERROR : IERR=',IERR
       TTFUNC=TTL
@@ -709,7 +711,6 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-C      write(6,*) PSIL
       CALL SPL1DD(PSIL,PPL,DPPL,PSIPS,UPPPS,NPSMAX,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX PPFUNC: SPL1DF ERROR : IERR=',IERR
@@ -725,7 +726,6 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-C      write(6,*) PSIL
       CALL SPL1DD(PSIL,TTL,DTTL,PSIPS,UTTPS,NPSMAX,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TTFUNC: SPL1DF ERROR : IERR=',IERR
       DTTFUNC=DTTL

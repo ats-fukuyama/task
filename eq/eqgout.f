@@ -282,7 +282,7 @@ C
 C
       IF(MODE.EQ.0) THEN
          DO NR=1,NRMAX
-            GX(NR)=GUCLIP(PSS(NR)-PSI0)
+            GX(NR)=GUCLIP(PSIP(NR)-PSI0)
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          DO NR=1,NRMAX
@@ -605,10 +605,10 @@ C
          ELSEIF(IND.EQ.7) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               GF(NR,NTH)=GUCLIP(PSS(NR))
+               GF(NR,NTH)=GUCLIP(PSIP(NR))
             ENDDO
             ENDDO
-            KTITL='/PSS/'
+            KTITL='/PSIP/'
          ELSEIF(IND.EQ.8) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX

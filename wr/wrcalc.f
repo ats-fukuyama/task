@@ -196,8 +196,8 @@ C         WRITE(25,'(1P8E9.1)') XE,(Y(I),I=1,7)
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.(RB/RA)**2) THEN
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -263,8 +263,8 @@ C     &           '    KPHI=',YN(6,IT),' POWER=',YN(8,IT), '  Y(7)=',Y7
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.(RB/RA)**2) THEN
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -331,8 +331,8 @@ C
             NIT = IT
             GOTO 11
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.(RB/RA)**2) THEN
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -758,7 +758,7 @@ C
       Y=RAYS(2,NIT,NRAY)
       Z=RAYS(3,NIT,NRAY)
 C
-      CALL PLMAG(X,Y,Z,PSIN)
+      CALL PLMAG(X,Y,Z,RHON)
 C
       RKX=RAYS(4,NIT,NRAY)
       RKY=RAYS(5,NIT,NRAY)
@@ -797,15 +797,13 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN1)
-            RHO1=SQRT(PSIN1)
-	    NRS1=INT(RHO1/DRHO)+1
+            CALL PLMAG(XL,YL,ZL,RHON1)
+	    NRS1=INT(RHON1/DRHO)+1
             XL=RAYS(1,IT+1,NRAY)
             YL=RAYS(2,IT+1,NRAY)
             ZL=RAYS(3,IT+1,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN2)
-            RHO2=SQRT(PSIN2)
-            NRS2=INT(RHO2/DRHO)+1
+            CALL PLMAG(XL,YL,ZL,RHON1)
+            NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
                PWRRAY(NRS1,NRAY)

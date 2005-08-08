@@ -2,16 +2,15 @@ C     $Id$
 C
 C     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 C
-      SUBROUTINE PLMAG(X,Y,Z,PSIN)
+      SUBROUTINE PLMAG(X,Y,Z,RHON)
 C
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
       IF(MODELG.EQ.0) THEN
          RS   = X-RR
-         RHOL = RS/RA
-         PSIN = RHOL**2
-         CALL PLQPRF(PSIN,QL)
+         RHON = RS/RA
+         CALL PLQPRF(RHON,QL)
          IF(RS.LE.0.D0) QL=-QL
          BT   = BB
          BP   = RS*BT/(RR*QL)
@@ -21,8 +20,7 @@ C
 C
       ELSEIF(MODELG.EQ.1) THEN
          RS =SQRT((X-RR)**2+Z**2)
-         RHOL=RS/RA
-         PSIN=RHOL**2
+         RHON=RS/RA
          IF(RS.LE.0.D0) THEN
             BX   = 0.D0
             BY   = BB
@@ -41,8 +39,7 @@ C
       ELSEIF(MODELG.EQ.2) THEN
          RL=SQRT(X**2+Y**2)
          RS =SQRT((RL-RR)**2+Z**2)
-         RHOL=RS/RA
-         PSIN=RHOL**2
+         RHON=RS/RA
          IF(RS.LE.0.D0) THEN
             BT   = BB
             BR   = 0.D0
@@ -64,8 +61,8 @@ C
       ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          RL=SQRT(X**2+Y**2)
          PP=0.D0
-         CALL GETRZ(RL,Z,PP,BR,BZ,BT,PSIN)
-C         WRITE(6,'(1P6E12.4)') RL,ZZ,BR,BZ,BT,PSIN
+         CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
+C         WRITE(6,'(1P6E12.4)') RL,ZZ,BR,BZ,BT,RHON
          RCOST=X/RL
          RSINT=Y/RL
          BX = BR*RCOST-BT*RSINT
@@ -89,18 +86,17 @@ C
 C
 C     ****** CALCULATE PLASMA PROFILE ******
 C
-      SUBROUTINE PLPROF(PSIN)
+      SUBROUTINE PLPROF(RHON)
 C
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
 C
-      IF(PSIN.LE.0.D0) THEN
+      IF(RHON.LE.0.D0) THEN
          RHOL=0.D0
       ELSE
-         RHOL=SQRT(PSIN)
+         RHOL=RHON
       ENDIF
-C
 C
       IF(MODELN.EQ.0) THEN
          IF(RHOL.GE.1.D0) THEN
@@ -258,15 +254,14 @@ C
 C
 C     ****** CALCULATE Q PROFILE ******
 C
-      SUBROUTINE PLQPRF(PSIN,QL)
+      SUBROUTINE PLQPRF(RHON,QL)
 C
       INCLUDE '../pl/plcomm.inc'
 C
-      IF(PSIN.LE.0.D0) THEN
+      IF(RHON.LE.0.D0) THEN
          RHOL=0.D0
       ELSE
-         RHOL=SQRT(PSIN)
-      ENDIF
+         RHOL=RHON
 C
       IF(MODELG.LE.2) THEN
          IF(MODELQ.EQ.0) THEN
@@ -298,33 +293,33 @@ C
             ENDIF
          ENDIF
       ELSE
-         CALL GETQP(RHOL**2,QL)
+         CALL GETQP(RHOL,QL)
       ENDIF
       RETURN
       END
 C
 C     ****** CALCULATE BMIN ON MAG SURFACE ******
 C
-      SUBROUTINE PLBMIN(PSIN,BMINL)
+      SUBROUTINE PLBMIN(RHON,BMINL)
 C
       INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-         RS=RSPSIN(PSIN)
+         RS=RSROHN(RHON)
          BMINT= BB
-         CALL GETQP(PSIN,QL)
+         CALL GETQP(RHON,QL)
          BMINP= RS*BMINT/(RR*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
       ELSEIF(MODELG.EQ.2) THEN
-         RS=RSPSIN(PSIN)
+         RS=RSRHON(RHON)
          BMINT= BB/(1+RS/RR)
-         CALL GETQP(PSIN,QL)
+         CALL GETQP(RHON,QL)
          BMINP= RS*BMINT/((RR+RS)*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
       ELSEIF(MODELG.EQ.3) THEN
-         CALL GETRMX(PSIN,RRMAXL)
+         CALL GETRMX(RHON,RRMAXL)
          BTL=BB*RR/RRMAXL
-         CALL PLQPRF(PSIN,QL)
+         CALL PLQPRF(RHON,QL)
          BPL=RS*BTL/(RR*QL)
          BMINL=SQRT(BTL**2+BPL**2)
       ENDIF
@@ -333,7 +328,7 @@ C
 C
 C     ****** CALCULATE RRMIN AND RRMAX ON MAG SURFACE ******
 C
-      SUBROUTINE PLRRMX(PSIN,RRMINL,RRMAXL)
+      SUBROUTINE PLRRMX(RHON,RRMINL,RRMAXL)
 C
       INCLUDE '../pl/plcomm.inc'
 C
@@ -341,19 +336,19 @@ C
          RRMINL=RR
          RRMAXL=RR
       ELSEIF(MODELG.EQ.2) THEN
-         RS=RSPSIN(PSIN)
+         RS=RSRHON(RHON)
          RRMINL=RR-RS
          RRMAXL=RR+RS
       ELSEIF(MODELG.EQ.3) THEN
-         CALL GETRMN(PSIN,RRMINL)
-         CALL GETRMX(PSIN,RRMAXL)
+         CALL GETRMN(RHON,RRMINL)
+         CALL GETRMX(RHON,RRMAXL)
       ENDIF
       RETURN
       END
 C
 C     ***** AVERAGE MINOR RADIUS FOR PARABOLIC Q PROFILE *****
 C
-      FUNCTION RSPSIN(PSIN)
+      FUNCTION RSRHON(RHON)
 C
       INCLUDE '../pl/plcomm.inc'
 C
@@ -361,14 +356,13 @@ C
          IF(PSIN.LE.0.D0) THEN
            RHOL=0.D0
          ELSE
-           RHOL=SQRT(PSIN)
+           RHOL=RHON
          ENDIF
-         RSPSIN=RHOL*RA
+         RSRHON=RHOL*RA
       ELSEIF(MODELG.EQ.3) THEN
-         PSINT=PSIN
-         CALL GETRMN(PSINT,RRMINL)
-         CALL GETRMX(PSINT,RRMAXL)
-         RSPSIN=0.5D0*(RRMAXL-RRMINL)
+         CALL GETRMN(RHON,RRMINL)
+         CALL GETRMX(RHON,RRMAXL)
+         RSRHON=0.5D0*(RRMAXL-RRMINL)
       ENDIF
       RETURN
       END

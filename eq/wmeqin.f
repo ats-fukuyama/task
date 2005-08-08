@@ -8,7 +8,7 @@ C
       DIMENSION PSIPS1(NRMAX1)
 C
       DO NR=1,NRMAX1
-         PSIPS1(NR)=PSS(NR)
+         PSIPS1(NR)=PSIP(NR)
       ENDDO
       RETURN
       END

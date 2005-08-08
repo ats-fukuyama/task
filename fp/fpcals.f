@@ -405,8 +405,7 @@ C
               IF(ARG.LT.15.D0) THEN
                FACTOR=EXP(-ARG)
 C               WRITE(25,*) 'NAV,NCR,DELR2,ARG=',NAV,NCR,DELR2,ARG
-C               CALL PLMAG(X,Y,Z,PSIR)
-C               RHOR=SQRT(PSIR) 
+C               CALL PLMAG(X,Y,Z,RHON)
 C               WRITE(6,*) RHOR,RM(NR)
                CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
                CEX=CECR(1,NCR,NR,NRAY)*FACTOR
@@ -512,7 +511,7 @@ C
       DIMENSION RJ(0:NJMAX),DRJ(0:NJMAX)
       DATA CI/(0.D0,1.D0)/   
 C
-      CALL PLMAG(RX,RY,RZ,PSIL)
+      CALL PLMAG(RX,RY,RZ,RHON)
 C
       RW     =2.D0*PI*RFDW*1.D6
       RWC    =AEFP*BABS/AMFP

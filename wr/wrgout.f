@@ -102,8 +102,8 @@ C
             ZL=DBLE(GCY(NGY))
             DO NGX=1,NGXL
                RL=DBLE(GCX(NGX))
-               CALL PLMAG(RL,0.D0,ZL,PSIN)
-               GCF(NGX,NGY)=GUCLIP(PSIN)
+               CALL PLMAG(RL,0.D0,ZL,RHON)
+               GCF(NGX,NGY)=GUCLIP(RHON)
             ENDDO
          ENDDO
          CALL CONTP2(GCF,GCX,GCY,NGXL,NGXL,NGYL,
@@ -140,15 +140,13 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN1)
-            RHO1=SQRT(PSIN1)
-	    NRS1=INT(RHO1/DRHO)+1
+            CALL PLMAG(XL,YL,ZL,RHON1)
+	    NRS1=INT(RHON1/DRHO)+1
             XL=RAYS(1,IT+1,NRAY)
             YL=RAYS(2,IT+1,NRAY)
             ZL=RAYS(3,IT+1,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN2)
-            RHO2=SQRT(PSIN2)
-            NRS2=INT(RHO2/DRHO)+1
+            CALL PLMAG(XL,YL,ZL,RHON2)
+            NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
@@ -292,9 +290,8 @@ C         DO IT=0,NITMAX(NRAY)
 C            XL=RAYS(1,IT,NRAY)
 C            YL=RAYS(2,IT,NRAY)
 C            ZL=RAYS(3,IT,NRAY)
-C            CALL PLMAG(XL,YL,ZL,PSIN)
-C            RHO=SQRT(PSIN)
-C	    GUX(IT+1)=GUCLIP(RHO)
+C            CALL PLMAG(XL,YL,ZL,RHON)
+C	    GUX(IT+1)=GUCLIP(RHON)
 C            GUY(IT+1)=GUCLIP(RAYS(7,IT,NRAY))
 C         ENDDO
 C         CALL SETLIN(0,0,7-MOD(NRAY-1,5))
@@ -379,10 +376,9 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN)
-            RHO=SQRT(PSIN)
+            CALL PLMAG(XL,YL,ZL,RHON)
             CALL WRCALK(IT,NRAY,RKPARA,RKPERP)
-            GKX( IT+1,NRAY)=GUCLIP(RHO)
+            GKX( IT+1,NRAY)=GUCLIP(RHON)
             GKY1(IT+1,NRAY)=GUCLIP(RKPARA*VC
      &                             /(2*PI*RAYIN(1,NRAY)*1.D6))
             GKY2(IT+1,NRAY)=GUCLIP(RKPERP)
@@ -461,9 +457,8 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN)
-            RHO=SQRT(PSIN)
-            GKX( IT+1,NRAY)=GUCLIP(RHO)
+            CALL PLMAG(XL,YL,ZL,RHON)
+            GKX( IT+1,NRAY)=GUCLIP(RHON)
          ENDDO
       ENDDO
       CALL GQSCAL(0.0,1.0,GXMIN,GXMAX,GXSTEP)
@@ -633,10 +628,8 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN)
-            RHO=SQRT(PSIN)
-C            WRITE(6,'(A,I5,1P5E12.4)') '!!',IT,XL,YL,ZL,PSIN,RHO
-            GKX( IT+1,NRAY)=GUCLIP(RHO)
+            CALL PLMAG(XL,YL,ZL,RHON)
+            GKX( IT+1,NRAY)=GUCLIP(RHON)
 C            GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO
@@ -767,22 +760,20 @@ C
          DO IT=0,NITMAX(NRAY)-1
             RLA =SQRT(RAYS(1,IT,NRAY)**2+RAYS(2,IT,NRAY)**2)
             ZLA =RAYS(3,IT,NRAY)
-            CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,PSIN1)
+            CALL GETRZ(RLA,ZLA,PHIL,BR,BZ,BPHI,RHON1)
 C            XL=RAYS(1,IT,NRAY)
 C            YL=RAYS(2,IT,NRAY)
 C            ZL=RAYS(3,IT,NRAY)
-C            CALL PLMAG(XL,YL,ZL,PSIN1)
-            RHO1=SQRT(PSIN1)
-	    NRS1=INT(RHO1/DRHO)+1
+C            CALL PLMAG(XL,YL,ZL,RHON1)
+	    NRS1=INT(RHON1/DRHO)+1
             RLAD=SQRT(RAYS(1,IT+1,NRAY)**2+RAYS(2,IT+1,NRAY)**2)
             ZLAD=RAYS(3,IT+1,NRAY)
-            CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,PSIN2)            
+            CALL GETRZ(RLAD,ZLAD,PHIL,BR,BZ,BPHI,RHON2)            
 C            XL=RAYS(1,IT+1,NRAY)
 C            YL=RAYS(2,IT+1,NRAY)
 C            ZL=RAYS(3,IT+1,NRAY)
-C            CALL PLMAG(XL,YL,ZL,PSIN2)
-            RHO2=SQRT(PSIN2)
-            NRS2=INT(RHO2/DRHO)+1
+C            CALL PLMAG(XL,YL,ZL,RHON2)
+            NRS2=INT(RHON2/DRHO)+1
             NDR=ABS(NRS2-NRS1)
 C
             IF(NDR.EQ.0) THEN
@@ -1172,9 +1163,8 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN)
-            RHO=SQRT(PSIN)
-            GRX(IT+1,NRAY)=GUCLIP(RHO)
+            CALL PLMAG(XL,YL,ZL,RHON)
+            GRX(IT+1,NRAY)=GUCLIP(RHON)
          ENDDO
          CALL GMNMX1(GRX(1,1),1,NITMAX(1),1,GXMIN1,GXMAX1)
          CALL GMNMX1(GRX(1,NRAY),1,NITMAX(NRAY),1,GXMIN,GXMAX)
@@ -1243,7 +1233,7 @@ C
             XL=RAYS(1,IT,NRAY)
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
-            CALL PLMAG(XL,YL,ZL,PSIN)
+            CALL PLMAG(XL,YL,ZL,RHON)
             GKX( IT+1,NRAY)=GUCLIP(RAYB(0,IT))
          ENDDO
       ENDDO

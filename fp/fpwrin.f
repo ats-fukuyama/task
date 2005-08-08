@@ -81,8 +81,8 @@ C
          NITMX=NITMAX(NRAY)
          DO NIT=0,NITMX
             CALL PLMAG(RXS(NIT,NRAY),RYS(NIT,NRAY),RZS(NIT,NRAY),
-     &                 PSIL)
-            PSIX(NIT,NRAY)=PSIL
+     &                 RHON)
+            PSIX(NIT,NRAY)=RHON**2
             SI(NIT,NRAY)=RAYS(0,NIT,NRAY)
          ENDDO
 C

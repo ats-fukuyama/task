@@ -50,8 +50,8 @@ C
          CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
          CKPR=MAX(RKZ0,1.D-4)
          CKPP=RKX0
-         CALL PLMAG(RL,0.D0,0.D0,PSIN)
-         CALL PLPROF(PSIN)
+         CALL PLMAG(RL,0.D0,0.D0,RHON)
+         CALL PLPROF(RHON)
          MODELP(1)=4
          CALL DPTENS(CW,CKPR,CKPP,1,CD4)
          MODELP(1)=5

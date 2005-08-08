@@ -194,7 +194,7 @@ C
       DIMENSION RUM(3,3),VS(3,3),VP(3,3)
 C
       RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
-      CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
+      CALL PLMAG(Y(1),Y(2),Y(3),RHON)
 C
       RKNX=Y(4)/RKABS
       RKNY=Y(5)/RKABS
@@ -278,7 +278,7 @@ C
       DIMENSION RUM(3,3),VS(3,3),VP(3,3),WS(3,3),WP(3,3)
 C
       RKABS=SQRT(Y(4)**2+Y(5)**2+Y(6)**2)
-      CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
+      CALL PLMAG(Y(1),Y(2),Y(3),RHON)
 C
       RKNX=Y(4)/RKABS
       RKNY=Y(5)/RKABS
@@ -544,9 +544,9 @@ C
             WRITE(6,*) '--- Absorbed ---'
             GOTO 10
          ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-C         IF(PSIN.GT.(RB/RA)**2) THEN
-          IF(PSIN.GT.4.D0) THEN
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+C         IF(RHON.GT.RB/RA) THEN
+          IF(PSIN.GT.2.D0) THEN
             NIT = IT
             WRITE(6,*) '--- Out of bounds ---'
             GOTO 10
