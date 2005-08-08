@@ -282,15 +282,15 @@ C
 C
       IF(MODE.EQ.0) THEN
          DO NR=1,NRMAX
-            GX(NR)=GUCLIP(PSIP(NR)-PSI0)
+            GX(NR)=GUCLIP(PSIP(NR))
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          DO NR=1,NRMAX
-            GX(NR)=GUCLIP(SQRT(FTS(NR)/FTSA))
+            GX(NR)=GUCLIP(RHOT(NR))
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NR=1,NRMAX
-            GX(NR)=GUCLIP(FTS(NR))
+            GX(NR)=GUCLIP(PSIT(NR))
          ENDDO
       ENDIF
 
@@ -396,9 +396,9 @@ C
      &                                           '@AVEJPR,AVEJTR@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(FTS(NR))
+         GY(NR,1)=GUCLIP(PSIT(NR))
       ENDDO
-      CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@FTS@',0)
+      CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@PSIT@',0)
 C
       CALL PAGEE
 C
