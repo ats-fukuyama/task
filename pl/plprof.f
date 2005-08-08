@@ -262,6 +262,7 @@ C
          RHOL=0.D0
       ELSE
          RHOL=RHON
+      ENDIF
 C
       IF(MODELG.LE.2) THEN
          IF(MODELQ.EQ.0) THEN
