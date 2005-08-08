@@ -25,9 +25,11 @@ C
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH')
       CALL PLINIT
+      CALL EQINIT
       CALL DPINIT
       CALL WRINIT
       CALL PLPARM(1,'plparm',IERR)
+      CALL EQPARM(1,'eqparm',IERR)
       CALL DPPARM(1,'dpparm',IERR)
       CALL WRPARM(1,'wrparm',IERR)
 C

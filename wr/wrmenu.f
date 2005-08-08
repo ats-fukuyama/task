@@ -18,7 +18,7 @@ C
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'P') THEN
-         CALL WRPARM(0,'EQ',IERR)
+         CALL WRPARM(0,'WR',IERR)
       ELSEIF(KID.EQ.'V') THEN
          CALL PLVIEW
          CALL DPVIEW

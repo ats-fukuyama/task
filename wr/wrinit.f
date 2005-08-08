@@ -193,7 +193,6 @@ C
          IF(INITEQ.EQ.0) THEN
             CALL EQLOAD(3,KNAMEQ,IERR)
             IF(IERR.EQ.0) THEN
-               CALL EQSETP
                CALL EQCALQ(51,64,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
             ENDIF
