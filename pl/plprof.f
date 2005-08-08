@@ -26,7 +26,7 @@ C
             BY   = BB
             BZ   = 0.D0
          ELSE
-            CALL PLQPRF(PSIN,QL)
+            CALL PLQPRF(RHON,QL)
             RSINT= Z/RS
             RCOST= (X-RR)/RS
             BT   = BB
@@ -45,7 +45,7 @@ C
             BR   = 0.D0
             BZ   = 0.D0
          ELSE
-            CALL PLQPRF(PSIN,QL)
+            CALL PLQPRF(RHON,QL)
             RSINP= Z/RS
             RCOSP= (RL-RR)/RS
             BT   = BB/(1.D0+RS*RCOSP/RR)

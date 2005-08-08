@@ -70,8 +70,8 @@ C     ----- set profile data -----
 C
       DO NR=1,NRMAX
 C
-         PSIL=RM(NR)**2
-         CALL PLPROF(PSIL)
+         RHON=RM(NR)
+         CALL PLPROF(RHON)
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
@@ -117,9 +117,9 @@ C
 C     ----- set poloidal magneticl field -----
 C
       DO NR=1,NRMAX+1
-         PSIL=RG(NR)**2
-         CALL FPSETB(PSIL,0.5D0*PI,BT,BP(NR))
-         EPSR(NR)=RSPSIN(PSIL)/RR
+         RHON=RG(NR)
+         CALL FPSETB(RHON,0.5D0*PI,BT,BP(NR))
+         EPSR(NR)=RSRHON(RHON)/RR
       ENDDO
 C
 C     ----- set parallel current density -----
@@ -323,14 +323,14 @@ C
 C
       IF(NR.EQ.0) THEN
          RL=RM(1)-DELR
-         PSIN=RL**2
-         CALL PLPROF(PSIN)
+         RHON=RL
+         CALL PLPROF(RHON)
          RNFPL=RN(NSFP)/RNFP0
          RTFPL=RTPR(NSFP)/RTFP0
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
-         PSIN=RL**2
-         CALL PLPROF(PSIN)
+         RHON=RL
+         CALL PLPROF(RHON)
          RNFPL=RN(NSFP)/RNFP0
          RTFPL=RTPR(NSFP)/RTFP0
       ELSE

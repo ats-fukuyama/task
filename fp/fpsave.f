@@ -27,7 +27,7 @@ C
 C
          RTT(NR,NTG1) = RWS(NR)*1.D6/(1.5D0*RNS(NR)*1.D20*AEE*1.D3)
          RET(NR,NTG1) = E1(NR)
-         RS=RSPSIN(RM(NR)*RM(NR))
+         RS=RSRHON(RM(NR))
          RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
  1000 CONTINUE
 C
@@ -59,12 +59,12 @@ C
       PECT(NTG2)=0.D0
 C
       DO 1000 NR=1,NRMAX
-         PSIL=RM(NR)**2
-         PSI1=RG(NR)**2
-         PSI2=RG(NR+1)**2
-         FACT=2.D0*PI*RSPSIN(PSIL)*(RSPSIN(PSI2)-RSPSIN(PSI1))
-C         WRITE(6,'(I3,1P6E12.5)') NR,PSIL,PSI1,PSI2,
-C     &                      RSPSIN(PSIL),RSPSIN(PSI1),RSPSIN(PSI2)
+         RHOL=RM(NR)
+         RHOL1=RG(NR)
+         RHOL2=RG(NR+1)
+         FACT=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
+C         WRITE(6,'(I3,1P6E12.5)') NR,RHOL,RHOL1,RHOL2,
+C     &                      RSRHON(RHOL),RSRHON(RHOL1),RSRHON(RHOL2)
          PNT(NTG2) =PNT(NTG2) +RNS(NR)*FACT
          PIT(NTG2) =PIT(NTG2) +RJS(NR)*FACT
          PWT(NTG2) =PWT(NTG2) +RWS(NR)*FACT
@@ -86,7 +86,7 @@ C
       PFWT(NTG2)=PFWT(NTG2)*2*PI*RR
       PECT(NTG2)=PECT(NTG2)*2*PI*RR
       PTT(NTG2) =PWT(NTG2)*1.D6/(1.5D0*PNT(NTG2)*1.D20*AEE*1.D3)
-      RS=RSPSIN(RM(1)*RM(1))
+      RS=RSRHON(RM(1))
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
 C

@@ -114,23 +114,23 @@ C
 C
          DO NR=1,NRMAX+1
             RHOL=DRHO*(NR-1)
-            PSILN=RHOL**2
-            XRHO(NR)=SQRT(PSILN)
+            XRHO(NR)=RHOL
 C
             IF(NR.EQ.1) THEN
                XR(NR)=0.D0
-            ELSEIF(PSILN.LT.1.D0) THEN
-               XR(NR)=RA*SQRT((2.D0*Q0*PSILN+(QA-Q0)*PSILN**2)/(Q0+QA))
+            ELSEIF(RHOL.LT.1.D0) THEN
+               XR(NR)=RA*SQRT((2.D0*Q0*RHOL**2+(QA-Q0)*RHOL**4)
+     &                        /(Q0+QA))
             ELSE
-               XR(NR)=RA*SQRT((Q0+QA*PSILN**2)/(Q0+QA))
+               XR(NR)=RA*SQRT((Q0+QA*RHOL**4)/(Q0+QA))
             ENDIF
 C
 C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
 C
-            IF(PSILN.LT.1.D0) THEN
-               QPS(NR)=Q0+(QA-Q0)*PSILN
+            IF(RHOL.LT.1.D0) THEN
+               QPS(NR)=Q0+(QA-Q0)*RHOL**2
             ELSE
-               QPS(NR)=QA*PSILN
+               QPS(NR)=QA*RHOL**2
             ENDIF
          ENDDO
 C

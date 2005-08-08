@@ -132,8 +132,8 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DO 10 NR=1,NRMAX+1
-         PSIN=RG(NR)**2
-         CALL PLPROF(PSIN)
+         RHON=RG(NR)
+         CALL PLPROF(RHON)
          RTFPL=RTPR(NSFP)/RTFP0
          FACTR=-2.D0*RG(NR)/RA
       DO 10 NP=1,NPMAX

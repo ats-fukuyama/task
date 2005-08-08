@@ -26,6 +26,7 @@ C
          BR=-PSIZ/RP
          BZ= PSIR/RP
       ENDIF
+      RHON=FNRHON(PSIN)
 C
       RETURN
       END

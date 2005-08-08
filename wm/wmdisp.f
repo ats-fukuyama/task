@@ -327,8 +327,8 @@ C
       CW=2*PI*CRF*1.D6
       WW=DBLE(CW)
 C
-      PSIN=XRHO(NR)**2
-      CALL PLPROF(PSIN)
+      RHON=XRHO(NR)
+      CALL PLPROF(RHON)
 C      IF(NR.EQ.1) THEN
 C         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
 C         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
@@ -409,7 +409,7 @@ C            UYY2=0.D0
 C
             CKPR=RKPR
             CKPP=RKPP
-            CALL DPCALC(CW,CKPR,CKPP,PSIN,NS,CDTNS)
+            CALL DPCALC(CW,CKPR,CKPP,RHON,NS,CDTNS)
 C
 C      IF(NR.EQ.1.AND.
 C     &   MD.EQ.0.AND.
@@ -417,7 +417,7 @@ C     &   ND.EQ.0.AND.
 C     &   NTH.EQ.1.AND.
 C     &   NPH.EQ.1) THEN
 C         WRITE(6,'(A,2I5,1PE12.4)') 
-C     &        'NS,MODELP,PSIN',NS,MODELP(NS),PSIN
+C     &        'NS,MODELP,RHON',NS,MODELP(NS),RHON
 C         WRITE(6,'(A,1P6E12.4)') 
 C     &        'CW,R,P=',CW,CKPR,CKRR
 C         WRITE(6,'(A,1P6E12.4)') 
