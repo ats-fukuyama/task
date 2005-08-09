@@ -197,7 +197,7 @@ C
             BMAX=MAX(BMAX,B)
          ENDDO
 C
-         SPS(NR)=SUMS
+         SPS(NR)=SUMS/(2.D0*PI)
          VPS(NR)=SUMV
          QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
          RLEN(NR)=XA(NA)
