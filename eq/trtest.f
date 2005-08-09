@@ -53,21 +53,21 @@ C
 C
       CALL EQGOUT(1)
 C
-      WRITE(6,*) 'NTR ','RHO         ','q           ','F=BR        ',
+      WRITE(6,*) 'NTR ','RHO         ','q           ','2*Pi*B*R    ',
      &                  'dV/drho     ','dS/drho     ','<r/R>       '
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P6E12.4)') 
      &         NTR,RHOTR(NTR),QRHO(NTR),TTRHO(NTR),
      &             DVRHO(NTR),DSRHO(NTR),EPSRHO(NTR)
       ENDDO
-      WRITE(6,*) 'NTR ','RHO         ','<Vrho^2/R^2>','<1/R^2>     ',
-     &                  '<Vrho>      ','<Vrho^2>    ','<B^2>       '
+      WRITE(6,*) 'NTR ','RHO         ','<Vrho^2/R^2>','<R_0^2/R^2> ',
+     &                  '<Vrho>      ','<Vrho^2>    ','<B^2/B_0^2> '
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P6E12.4)') 
      &         NTR,RHOTR(NTR),ARHRRHO(NTR),AIR2RHO(NTR),
      &             ARH1RHO(NTR),ARH2RHO(NTR),ABB2RHO(NTR)
       ENDDO
-      WRITE(6,*) 'NTR ','RHO         ','<1/B^2>     ','<Vrho^2/B^2>',
+      WRITE(6,*) 'NTR ','RHO         ','<B_0^2/B^2> ','<Vrho^2/B^2>',
      &                  'Rmaj        ','Rmin        ','Rkap        '
       DO NTR=1,NTRMAX
          WRITE(6,'(I5,1P6E12.4)') 
