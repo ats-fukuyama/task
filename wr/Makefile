@@ -1,7 +1,7 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 

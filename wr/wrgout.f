@@ -151,26 +151,28 @@ C
             IF(NDR.EQ.0) THEN
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)+GUCLIP(RAYS(8,IT+1,NRAY))
             ELSE IF(NRS1.LT.NRS2) THEN
-               SDR=(RHO2-RHO1)/DRHO
+               SDR=(RHON2-RHON1)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((DBLE(NRS1)-RHO1/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS1)-RHON1/DRHO)*DELP)
                DO NR=NRS1+1,NRS2-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GUCLIP((RHO2/DRHO-DBLE(NRS2-1))*DELP)
+     &                       +GUCLIP((RHON2/DRHO-DBLE(NRS2-1))*DELP)
             ELSE
-               SDR=(RHO1-RHO2)/DRHO
+               SDR=(RHON1-RHON2)/DRHO
                DELP=RAYS(8,IT+1,NRAY)/SDR
                GPY(NRS2,NRAY)=GPY(NRS2,NRAY)
-     &                       +GUCLIP((DBLE(NRS2)-RHO2/DRHO)*DELP)
+     &                       +GUCLIP((DBLE(NRS2)-RHON2/DRHO)*DELP)
                DO NR=NRS2+1,NRS1-1
                   GPY(NR,NRAY)=GPY(NR,NRAY)+GUCLIP(DELP)
                ENDDO
                GPY(NRS1,NRAY)=GPY(NRS1,NRAY)
-     &                       +GUCLIP((RHO1/DRHO-DBLE(NRS1-1))*DELP)
+     &                       +GUCLIP((RHON1/DRHO-DBLE(NRS1-1))*DELP)
             ENDIF
+C            WRITE(6,'(3I5,1P5E12.4))') 
+C     &           IT,NRS1,NRS2,RHON1,RHON2,SDR,DELP,RAYS(8,IT+1,NRAY)
          ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NRZ,GPY(NRZ,NRAY),NRZ=1,NRZMAX)
       ENDDO

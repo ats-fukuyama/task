@@ -32,6 +32,8 @@ C
       CALL EQPARM(1,'eqparm',IERR)
       CALL DPPARM(1,'dpparm',IERR)
       CALL WRPARM(1,'wrparm',IERR)
+      CALL PLDATA_SETN(NRZMAX,NSMAX)
+      CALL PLDATA_CLEAR
 C
       CALL WRMENU
 C
