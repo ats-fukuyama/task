@@ -2,7 +2,7 @@ C     $Id$
 C
 C****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 C
-      SUBROUTINE DPFMFL(NS)
+      SUBROUTINE DPFMFL(NS,ID)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -13,23 +13,27 @@ C
       NTHMAX=100
       PMAX=10.D0
 C
+      RN0 = RN(NS)
+      TPR = RTPR(NS)
+      TPP = RTPP(NS)
+      RT0 = (TPR+2.D0*TPP)/3.D0
       RNE0 = RN(NS)
-      TE0  = RTPR(NS)
-      PTH0 = SQRT(TE0*1.D3*AEE*AMP*PA(NS))
+      TE0  = RT0
+      PTH0 = SQRT(RT0*1.D3*AEE*AMP*PA(NS))
 C
       PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
 C
       DELP=PMAX/NPMAX
       DELTH=PI/NTHMAX
 C
-      DO 10 NP=1,NPMAX
+      DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
          PG(NP)=DELP* NP
          RGMM(NP)=SQRT(1+PTH0W*PM(NP)**2) 
          RGMG(NP)=SQRT(1+PTH0W*PG(NP)**2)
-   10 CONTINUE
+      ENDDO
 C
-      DO 20 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          THM=DELTH*(NTH-0.5D0)
          THG=DELTH* NTH
          TSNM(NTH) = SIN(THM)
@@ -38,15 +42,46 @@ C
          TCSG(NTH) = COS(THG)
          TTNM(NTH) = TAN(THM)
          TTNG(NTH) = TAN(THG)
-   20 CONTINUE
+      ENDDO
 C
-      FACT = 1.D0/SQRT(2.D0*PI)**3
-      DO 100 NP=1,NPMAX
-         PML=PM(NP)
-         EX =PML*PML/2.D0
-      DO 100 NTH=1,NTHMAX
-         FM(NP,NTH) = FACT * EXP(-EX)
-  100 CONTINUE
+      IF(ID.EQ.0) THEN
+         FACT = 1.D0/SQRT(2.D0*PI)**3
+         SUM=0.D0
+         DO NP=1,NPMAX
+            PML=PM(NP)
+            EX =PML*PML/2.D0
+            DO NTH=1,NTHMAX
+               FM(NP,NTH) = FACT * EXP(-EX)
+               SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+            ENDDO
+         ENDDO
+         SUM=SUM*2.D0*PI*DELP*DELTH
+C         WRITE(6,*) 'SUM=',SUM
+      ELSE
+         TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
+         SUM=0.D0
+         DO NP=1,NPMAX
+            PML=PM(NP)
+            DO NTH=1,NTHMAX
+               PPP=PML*TSNM(NTH)
+               PPR=PML*TCSM(NTH)
+               EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP)
+     &           -SQRT(1.D0/TN00**2)
+               FM(NP,NTH) = EXP(-EX)
+               SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+            ENDDO
+         ENDDO
+         SUM=SUM*2.D0*PI*DELP*DELTH
+C         WRITE(6,*) 'SUM=',SUM
+         FACTOR=1.D0/SUM
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               FM(NP,NTH) = FACTOR*FM(NP,NTH)
+            ENDDO
+         ENDDO
+      ENDIF
       RETURN
       END                     
 C

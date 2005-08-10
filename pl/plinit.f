@@ -191,6 +191,9 @@ C
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
 C
+      NRMAXPL= 100
+      NSMAXPL= NSMAX
+C
       IDEBUG = 0
 C
       RETURN

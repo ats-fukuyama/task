@@ -37,7 +37,7 @@ C
             CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.7) THEN
             IF(MODELV.EQ.0) THEN
-               CALL DPFMFL(NS)
+               CALL DPFMFL(NS,0)
                IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
@@ -51,7 +51,7 @@ C
                   CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
                ENDIF
             ELSE IF(MODELV.EQ.2) THEN
-               CALL DPFMFL(NS)
+               CALL DPFMFL(NS,1)
                IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                   CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
                ELSE
