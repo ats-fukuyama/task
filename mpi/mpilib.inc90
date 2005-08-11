@@ -1,0 +1,4 @@
+!     $Id$
+!
+      include '../mpi/mpif.inc90'
+      include '../mpi/mpicom.inc90'
