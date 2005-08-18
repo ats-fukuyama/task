@@ -2,12 +2,13 @@ C     $Id$
 C
 C     ***** GET PARAMETERS *****
 C
-      SUBROUTINE EQGETP(PSIPS1,NRMAX1)
+      SUBROUTINE EQGETP(RHOT1,PSIPS1,NRMAX1)
 C
       INCLUDE '../eq/eqcomq.inc'
-      DIMENSION PSIPS1(NRMAX1)
+      DIMENSION RHOT1(NRMAX1),PSIPS1(NRMAX1)
 C
       DO NR=1,NRMAX1
+         RHOT1(NR) =RHOT(NR)
          PSIPS1(NR)=PSIP(NR)
       ENDDO
       RETURN
@@ -22,7 +23,7 @@ C
       DO NR=1,NRMAX1
       DO NTH=1,NTHMAX1
          RPS1  (NTH,NR)=RPS  (NTH,NR)
-         DRPSI1(NTH,NR)=DRPSI(NTH,NR)
+         DRPSI1(NTH,NR)=DRPSI(NTH,NR)*2.D0*PI
          DRCHI1(NTH,NR)=DRCHI(NTH,NR)
 C         IF(NR.LE.3) THEN
 C            WRITE(6,'(2I5,1P3E12.4)') 
@@ -42,7 +43,7 @@ C
       DO NR=1,NRMAX1
       DO NTH=1,NTHMAX1
          ZPS1  (NTH,NR)=ZPS  (NTH,NR)
-         DZPSI1(NTH,NR)=DZPSI(NTH,NR)
+         DZPSI1(NTH,NR)=DZPSI(NTH,NR)*2.D0*PI
          DZCHI1(NTH,NR)=DZCHI(NTH,NR)
       ENDDO
       ENDDO

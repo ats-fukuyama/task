@@ -561,7 +561,8 @@ C
          IF(IND.EQ.1) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
+C               R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
+               R2=RHOT(NR)**2
                GF(NR,NTH)=GUCLIP(DRPSI(NTH,NR)*R2)
             ENDDO
             ENDDO
@@ -569,7 +570,8 @@ C
          ELSEIF(IND.EQ.2) THEN
             DO NR=1,NRMAX
             DO NTH=1,NTHMAX
-               R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
+C               R2=(RPS(NTH,NR)-RAXIS)**2+(ZPS(NTH,NR)-ZAXIS)**2
+               R2=RHOT(NR)**2
                GF(NR,NTH)=GUCLIP(DZPSI(NTH,NR)*R2)
             ENDDO
             ENDDO

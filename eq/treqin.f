@@ -65,6 +65,10 @@ C     PRHO(NTRMAX)   : Pressure                                 (MPa)
 C     HJRHO(NTRMAX)  : Plasma current density                (MA/m^2)
 C     VTRHO(NTRMAX)  : Toroidal rotation velocity               (m/s)
 C     TRHO(NTRMAX)   : Temperature                              (keV)
+C     RIP1           : Total toroidal current                    (MA)
+C                         if RIP1=0 then plasma current density is 
+C                         directly used, otherwise plasma current 
+C                         density is renormalized
 C
 C     output:
 C
@@ -83,14 +87,17 @@ C     EPSRHO(NTRMAX) : (Bmax-Bmin)/(Bmax+Bmin)
 C     RMJRHO(NTRMAX) : (Rmax+Rmin)/2
 C     RMNRHO(NTRMAX) : (Rmax-Rmin)/2
 C     RKAPRHO(NTRMAX): (Zmax-Zmin)/(Rmax-Rmin)
+C     RSA            : Minor radius defined by troidal flux
+C     DPSIPDRHOA     : dPsip/drho at rho=1
 C     IERR           : Error indicator
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQEX(NTRMAX1,RHOTR1,PRHO,HJRHO,VTRHO,TRHO,
+      SUBROUTINE TREQEX(NTRMAX1,RHOTR1,PRHO,HJRHO,VTRHO,TRHO,RIP1,
      &                  QRHO,TTRHO,DVRHO,DSRHO,ARHRRHO,AIR2RHO,
      &                  ARH1RHO,ARH2RHO,ABB2RHO,AIB2RHO,ARHBRHO,
-     &                  EPSRHO,RMJRHO,RMNRHO,RKAPRHO,IERR)
+     &                  EPSRHO,RMJRHO,RMNRHO,RKAPRHO,RSA,DPSIPDRHOA,
+     &                  IERR)
 C              
       INCLUDE 'eqcomq.inc'
       INCLUDE 'eqcom4.inc'
@@ -180,8 +187,16 @@ C
 C
 C     ***** Solve GS equation for given profile *****
 C
-      CALL EQCALC(IERR)
-         IF(IERR.NE.0) GOTO 9000
+      IF(RIP1.EQ.0.D0) THEN
+         MDLEQF=8
+         CALL EQCALC(IERR)
+            IF(IERR.NE.0) GOTO 9000
+      ELSE
+         MLEQF=7
+         RIP=RIP1
+         CALL EQCALC(IERR)
+            IF(IERR.NE.0) GOTO 9000
+      ENDIF
 C
 C     ***** Calculate eqilibrium quantities *****
 C
@@ -293,5 +308,8 @@ C
          RMNRHO(NTR)=0.5D0*(RRMAXL-RRMINL)
          RKAPRHO(NTR)=(ZZMAXL-ZZMINL)/(RRMAXL-RRMINL)
       ENDDO
+C
+      RSA=SQRT(PSITA/(PI*BB))
+      DPSIPDRHOA=FNDPSIP(1.D0)
  9000 RETURN
       END
