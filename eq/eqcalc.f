@@ -721,10 +721,12 @@ C
          SIGL=SQRT((RG(NRG)-RR)**2+ZG(NZG)**2)/RHOL
          IF(SIGL.LT.1.D0) THEN
             PSIRZ(NRG,NZG)=PSIF(SIGL,THL)
+            HJTRZ(NRG,NZG)=HJTF(SIGL,THL)
          ELSE
             PSI1=PSIF(SIG1,THL)
             PSI2=PSIF(SIG2,THL)
             PSIRZ(NRG,NZG)=PSI2+(PSI1-PSI2)*(SIGL-SIG2)/(SIG1-SIG2)
+            HJTRZ(NRG,NZG)=0.D0
          ENDIF
       ENDDO
       ENDDO
@@ -757,34 +759,48 @@ C
       ENDDO
       THGMX(NTGMAX+2)=2.D0*PI
 C
-      SUM=0.D0
+      SUMPSI=0.D0
+      SUMHJT=0.D0
       DO NTG=1,NTGMAX
-         SUM=SUM+(9*PSI(NTG,1)-PSI(NTG,2))/8.D0
+         SUMPSI=SUMPSI+(9*PSI(NTG,1)-PSI(NTG,2))/8.D0
+         SUMHJT=SUMHJT+(9*HJT(NTG,1)-HJT(NTG,2))/8.D0
       ENDDO
-      PSI1=SUM/NTGMAX
+      PSIL=SUMPSI/NTGMAX
+      HJTL=SUMHJT/NTGMAX
       DO NTG=1,NTGMAX+2
-         PSIX(NTG,1)=PSI1
+         PSIST(NTG,1)=PSIL
+         HJTST(NTG,1)=HJTL
       ENDDO
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
-         PSIX(NTG+1,NSG+1)=PSI(NTG,NSG)
+         PSIST(NTG+1,NSG+1)=PSI(NTG,NSG)
+         HJTST(NTG+1,NSG+1)=HJT(NTG,NSG)
       ENDDO
       ENDDO
 C
       DO NSG=1,NSGMAX
-         PSIX(       1,NSG+1)=(9*PSI(     1,NSG)-PSI(       2,NSG))
-     &                        /16.D0
-     &                       +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
-     &                        /16.D0
-         PSIX(NTGMAX+2,NSG+1)=PSIX(1,NSG+1)
+         PSIST(       1,NSG+1)=(9*PSI(     1,NSG)-PSI(       2,NSG))
+     &                         /16.D0
+     &                        +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
+     &                         /16.D0
+         PSIST(NTGMAX+2,NSG+1)=PSIST(1,NSG+1)
+         HJTST(       1,NSG+1)=(9*HJT(     1,NSG)-HJT(       2,NSG))
+     &                         /16.D0
+     &                        +(9*HJT(NTGMAX,NSG)-HJT(NTGMAX-1,NSG))
+     &                         /16.D0
+         HJTST(NTGMAX+2,NSG+1)=HJTST(1,NSG+1)
       ENDDO
 C
       DO NTG=1,NTGMAX+2
-         PSIX(NTG,NSGMAX+2)=0.D0
+         PSIST(NTG,NSGMAX+2)=0.D0
+         HJTST(NTG,NSGMAX+2)=0.D0
       ENDDO
 C
-      CALL SPL2D(THGMX,SIGMX,PSIX,PSITX,PSISX,PSISTX,U,
+      CALL SPL2D(THGMX,SIGMX,PSIST,PSITX,PSISX,PSISTX,UPSIST,
+     &           NTGPM,NTGMAX+2,NSGMAX+2,4,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIX: IERR=',IERR
+      CALL SPL2D(THGMX,SIGMX,HJTST,PSITX,PSISX,PSISTX,UHJTST,
      &           NTGPM,NTGMAX+2,NSGMAX+2,4,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for PSIX: IERR=',IERR
       RETURN
@@ -798,10 +814,25 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,U,
+      CALL SPL2DF(RTHG,RSIG,PSIL,THGMX,SIGMX,UPSIST,
      &            NTGPM,NTGMAX+2,NSGMAX+2,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX PSIF: SPL2DF ERROR : IERR=',IERR
       PSIF=PSIL
+      RETURN
+      END
+C
+C   *******************************************
+C   ***** Calculate Hjt at (sigma, theta) *****
+C   *******************************************
+C
+      FUNCTION HJTF(RSIG,RTHG)
+C
+      INCLUDE '../eq/eqcomc.inc'
+C
+      CALL SPL2DF(RTHG,RSIG,HJTL,THGMX,SIGMX,UHJTST,
+     &            NTGPM,NTGMAX+2,NSGMAX+2,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX HJTF: SPL2DF ERROR : IERR=',IERR
+      HJTF=HJTL
       RETURN
       END
 C

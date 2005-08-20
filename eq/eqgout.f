@@ -389,8 +389,8 @@ C
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEIB2@',0)
 C
       DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEJPR(NR))*1.D-6
-         GY(NR,2)=GUCLIP(AVEJTR(NR))*1.D-6
+         GY(NR,1)=GUCLIP(AVEJPR(NR))*1.E-6
+         GY(NR,2)=GUCLIP(AVEJTR(NR))*1.E-6
       ENDDO
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,
      &                                           '@AVEJPR,AVEJTR@',0)

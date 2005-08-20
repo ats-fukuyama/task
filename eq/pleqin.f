@@ -13,7 +13,7 @@ C
       INCLUDE '../eq/eqcomq.inc'
 C
       CALL SPL2DD(RP,ZP,PSI,PSIR,PSIZ,
-     &            RG,ZG,URZ,NRGM,NRGMAX,NZGMAX,IERR)
+     &            RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
 C
       PSIN=1.D0-PSI/PSI0
       IF(PSIN.LE.0.D0) THEN
