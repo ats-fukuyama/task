@@ -192,7 +192,7 @@ C
          CALL EQCALC(IERR)
             IF(IERR.NE.0) GOTO 9000
       ELSE
-         MLEQF=7
+         MDLEQF=7
          RIP=RIP1
          CALL EQCALC(IERR)
             IF(IERR.NE.0) GOTO 9000
