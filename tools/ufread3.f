@@ -1,0 +1,276 @@
+      PROGRAM UFILE_READER_WITH_GSGL
+      IMPLICIT REAL*8(A-F,H,O-Z)
+      PARAMETER (NRM=100,NTM=2001)
+      DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM)
+      DIMENSION GT(NTM),GR(NRM),GF1(NTM),GF2(NRM,NTM)
+      COMMON /TRKID1/ KDIRR1,KDIRR2
+      CHARACTER KXNDEV*80,KXNDCG*80
+      CHARACTER KDIRR1*80,KDIRR2*80
+      CHARACTER KDIRX*80
+      CHARACTER KFID*80,KFIDX*80,KVAR*80
+      CHARACTER KFIDCK*90
+      LOGICAL LEX
+C
+      CALL GSOPEN
+C
+      KXNDEV='jt60u'
+      KXNDCG='29728'
+      NDIM=2
+C
+    1 WRITE(6,*) '# DEVICE NAME ?'
+      READ(5,'(A40)',ERR=1,END=9000) KXNDEV
+    2 WRITE(6,*) '# DISCHARGE NUMBER ?'
+      READ(5,'(A40)',ERR=2,END=1) KXNDCG
+C
+      CALL KTRIM(KXNDEV,IKNDEV)
+      CALL KTRIM(KXNDCG,IKNDCG)
+C
+      KDIRX='data/'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/in/'
+      CALL KTRIM(KDIRX,IKDIRX)
+      INQUIRE(FILE=KDIRX,EXIST=LEX,ERR=9000)
+      IF(LEX.EQV..FALSE.) THEN
+         WRITE(6,600) 'XX: DIRECTORY DOES NOT EXIST! ',KDIRX
+         GOTO 1
+      ENDIF
+ 600  FORMAT(' ',A31,A)
+C
+      KDIRR1=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
+     &       //'1d'//KXNDCG(1:IKNDCG)//'.'
+      KDIRR2=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
+     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
+C
+    5 WRITE(6,*) 'INPUT DIM'
+      READ(5,*,ERR=5,END=9000) NDIM
+      IF(NDIM.LE.0) GOTO 9000
+    6 WRITE(6,*) 'INPUT FILEID'
+      READ(5,'(A80)',ERR=6,END=5) KFID
+      CALL KTRIM(KDIRR1,IKDIRR1)
+      CALL KTRIM(KDIRR2,IKDIRR2)
+      CALL KTRIM(KFID,IKFID)
+      IF(NDIM.EQ.1) THEN
+         KFIDCK=KDIRR1(1:IKDIRR1)//KFID(1:IKFID)
+      ELSEIF(NDIM.EQ.2) THEN
+         KFIDCK=KDIRR2(1:IKDIRR2)//KFID(1:IKFID)
+      ELSE
+         GOTO 100
+      ENDIF
+      INQUIRE(FILE=KFIDCK,EXIST=LEX,ERR=9000)
+      IF(LEX.EQV..FALSE.) THEN
+         WRITE(6,610) 'XX: FILE DOES NOT EXIST! ',KFIDCK
+         GOTO 5
+      ENDIF
+ 610  FORMAT (' ',A25,A)
+C
+ 100  IF(NDIM.EQ.1) THEN
+         CALL TRXR1D(KDIRR1,KFID,T,F1,NTM,NTXMAX,1)
+      ELSE IF(NDIM.EQ.2) THEN
+         CALL TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,1)
+      ELSE IF(NDIM.EQ.3) THEN
+         CALL TRXR1D(KDIRR1,KFID,T,F1,NTM,NTXMAX,1)
+    7    WRITE(6,*) '# INPUT T'
+         READ(5,*,ERR=7,END=5) TL
+         IF(TL.LT.0.0) GOTO 5
+         CALL TRXT1D(TL,FL,T,F1,NTM,NTXMAX)
+         WRITE(6,'(1PE12.4)') FL
+         GOTO 7
+      ELSE IF(NDIM.EQ.4) THEN
+         CALL TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,1)
+    8    WRITE(6,*) '# INPUT T,R'
+         READ(5,*,ERR=8,END=5) TL,RL
+         IF(TL.LT.0.0) GOTO 5
+         CALL TRXT2D(TL,RL,FL,T,R,F2,NRM,NTM,NRXMAX,NTXMAX)
+         WRITE(6,'(1PE12.4)') FL
+         GOTO 8
+      ENDIF
+C      write(6,*) NDIM,NRM,NTM,NRXMAX,NTXMAX
+C     
+      GX1=3.0
+      GX2=18.0
+      GY1=2.0
+      GY2=17.0
+C
+C      WRITE(6,*) NRXMAX,NTXMAX
+C      WRITE(6,'(1P6E12.4)') (R(NRX),NRX=1,NRXMAX)
+C      WRITE(6,'(1P6E12.4)') (T(NTX),NTX=1,NTXMAX)
+C      WRITE(6,'(1P6E12.4)') ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
+C
+      CALL PAGES
+      IF(NDIM.EQ.1) THEN
+         DO 5000 NTX=1,NTXMAX
+            GT(NTX)=GUCLIP(T(NTX))
+            GF1(NTX)=GUCLIP(F1(NTX))
+ 5000    CONTINUE
+         CALL KTRIM(KFID,KL)
+         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
+     &            //KFID(1:KL)//'@'
+         CALL TRGR1D(GX1,GX2,GY1,GY2,
+     &               GT,GF1,NTM,NTXMAX,1,KFIDX,2)
+      ELSE
+C
+         DO NTX=1,NTXMAX
+            GT(NTX)=GUCLIP(T(NTX))
+         ENDDO
+C
+         DO NRX=1,NRXMAX
+            GR(NRX)=GUCLIP(R(NRX))
+            DO NTX=1,NTXMAX
+               IF(KFID.EQ.'TE'.OR.KFID.EQ.'TI') THEN
+                  FACT=1.D-3
+               ELSE
+                  FACT=1.D0
+               ENDIF
+               GF2(NRX,NTX)=GUCLIP(F2(NRX,NTX)*FACT)
+            ENDDO
+         ENDDO
+C         write(6,'(1P6E12.4)') ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
+C         STOP
+C
+         CALL KTRIM(KFID,KL)
+         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
+     &            //KFID(1:KL)//'@'
+         IF (NTXMAX.EQ.1) THEN
+            CALL TRGR1D(GX1,GX2,GY1,GY2,
+     &           GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
+         ELSE
+            CALL GSGLENABLELIGHTING
+            KVAR='@'//KFID(1:KL)//'@'
+            CALL GRAPH3(GX1,GX2,GY1,GY2,GT,
+     &           GR,GF2,NTM,NRM,NRXMAX,NTXMAX,KFIDX,KVAR,2)
+         ENDIF
+      ENDIF
+      CALL PAGEE
+      GOTO 5
+C
+ 9000 CALL GSCLOS
+      STOP
+      END
+C
+C
+C     *** 3D GRAPHICS SUBROUTINE ***
+C
+      SUBROUTINE GRAPH3(GX1,GX2,GY1,GY2,GT,GX,GY,
+     &     NTM,NXM,NXMAX,NGMAX,STR,KV,MODE)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      DIMENSION GX(NXM),GY(NXM,NGMAX),GT(NTM)
+      CHARACTER STR*80,KT*80,KDL*1,KV*80
+      EXTERNAL R2G2B
+C
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(0,0,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.80) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+C
+    2 CALL MOVE(GX1,GY2+0.2)
+      CALL TEXT(KT,I-2)
+C
+      CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.E-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+C
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GYMAX=0.0
+         ENDIF
+      ENDIF
+C
+      CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.E-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+C
+C      GXMIN=GX(1)
+C      GXMAX=GX(NXMAX)
+C
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+C
+C      DO NG=1, NGMAX
+C         GT(NG)=REAL(NG)
+C      ENDDO
+C
+      IF(MOD(MODE,2).EQ.0) THEN
+         IF(GYMIN.GE.0.0) THEN
+            GSYMIN=0.0
+         ELSEIF(GYMAX.LE.0.0) THEN
+            GSYMAX=0.0
+         ENDIF
+      ENDIF
+      GYMIN=GSYMIN
+      GYMAX=GSYMAX
+      IF(MOD(MODE/4,2).EQ.1) THEN
+         CALL CHMODE
+         WRITE(6,*) '## TRGR : XMIN,XMAX,YMIN,YMAX = ',
+     &              GXMIN,GXMAX,GYMIN,GYMAX
+         READ(5,*) GXMIN,GXMAX,GYMIN,GYMAX
+         CALL GRMODE
+      ENDIF
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+      CALL GQSCAL(GT(1),GT(NGMAX),GSTMIN,GSTMAX,GSTEPT)
+C      write(6,*) gt(1),gt(ngmax),gstept
+C
+      GXL=10.0*1.5
+      GYL=20.0*1.5
+      GZL=10.0*1.5
+      CALL GDEFIN3D(GXL,GYL,GZL,GSXMIN,GSXMAX,GT(1),GT(NGMAX),
+     &     GSYMIN,GSYMAX)
+      GPHI=-20.0
+      GTHETA=60.0
+      GRADIUS=15.0
+      GOX=0.5*(GSXMIN+GSXMAX)
+      GOY=0.5*(GT(1)+GT(NGMAX))
+      GOZ=0.5*(GSYMIN+GSYMAX)
+      CALL GVIEW3D(GPHI,GTHETA,GRADIUS,GOX,GOY,GOZ)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(0,0,4)
+C
+      CALL GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
+      CALL GSCALE3DY(GT(1),GSTEPT,0.3,0)
+      CALL GSCALE3DZ(GSYMIN,GSTEPY,0.3,10)
+      CALL GVALUE3DX(GSXMIN,GSTEPX,1,1)
+      CALL GVALUE3DY(GT(1),GSTEPT,1,1)
+      CALL GVALUE3DZ(GSYMIN,GSTEPY,11,-2)
+C
+      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, -1.0, 0.0, 0.0)
+      CALL GTEXTX3D(GSXMAX+0.15*(GSXMAX-GSXMIN),
+     &              0.5*(GT(1)+GT(NGMAX)),
+     &              GSYMIN,
+     &              '@TIME (sec)@',
+     &              2)
+      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, -1.0, 0.0, 0.0)
+      CALL GTEXTX3D(0.5*(GSXMIN+GSXMAX),
+     &              GT(1)+0.1*(GT(1)-GT(NGMAX)),
+     &              GSYMIN,
+     &              '@RHO@',
+     &              2)
+      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+      CALL GTEXTX3D(GSXMIN,
+     &              GT(1)+0.05*(GT(1)-GT(NGMAX)),
+     &              GSYMAX+0.1*(GSYMAX-GSYMIN),
+     &              KV,
+     &              2)
+C
+      CALL PERS3D1(GY,NXM,NXMAX,NGMAX,-27,R2G2B)
+      CALL GAxis3D(0)
+      CALL GDrawBack3D(0.5, 0.5, 0.5)
+C      DO NG=1,NGMAX
+C         DO NX=1,NXMAX-1
+C            CALL MOVE3D(GX(NX),GT(NG),GY(NX,NG))
+C            CALL DRAW3D(GX(NX+1),GT(NG),GY(NX+1,NG))
+C         ENDDO
+C      ENDDO
+C
+      CALL SETLIN(0,0,4)
+      RETURN
+      END
