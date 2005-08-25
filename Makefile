@@ -22,6 +22,7 @@ clean:
 	(cd tr; make clean)
 	(cd tx; make clean)
 	(cd tot; make clean)
+	(cd tools; make clean)
 	rm -f core a.out *.o ./*~
 
 veryclean: clean
@@ -37,6 +38,7 @@ veryclean: clean
 	(cd tr; make veryclean)
 	(cd tx; make veryclean)
 	(cd tot; make veryclean)
+	(cd tools; make veryclean)
 
 new:
 	-mkdir ../tasknew
@@ -66,3 +68,5 @@ new:
 	mv txnew ../tasknew/tx
 	(cd tot; make new)
 	mv totnew ../tasknew/tot
+	(cd tools; make new)
+	mv toolsnew ../tasknew/tools
