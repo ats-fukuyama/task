@@ -54,13 +54,13 @@ C
       END
 C
 C   *******************************************
-C   **    EQ interface for TR     **
+C   **    EQ execution interface for TR     **
 C   *******************************************
 C
 C     input:
 C
-C     NTRMAX         : Maximum array number
-C     RHOTR(NTRMAX)  : Normarized radius
+C     NTRMAX1        : Maximum array number
+C     RHOTR1(NTRMAX) : Normarized radius
 C     PRHO(NTRMAX)   : Pressure                                 (MPa)
 C     HJRHO(NTRMAX)  : Plasma current density                (MA/m^2)
 C     VTRHO(NTRMAX)  : Toroidal rotation velocity               (m/s)
@@ -69,6 +69,144 @@ C     RIP1           : Total toroidal current                    (MA)
 C                         if RIP1=0 then plasma current density is 
 C                         directly used, otherwise plasma current 
 C                         density is renormalized
+C     ICONT          : 0 : Initialize psi
+C                      1 : Previous psi
+C
+C     output:
+C
+C     RSA            : Minor radius defined by troidal flux
+C     DPSIPDRHOA     : dPsip/drho at rho=1
+C     IERR           : Error indicator
+C
+C   ***************************************************************
+C
+      SUBROUTINE TREQEX(NTRMAX1,RHOTR1,PRHO,HJRHO,VTRHO,TRHO,RIP1,ICONT,
+     &                  RSA,DPSIPDRHOA,IERR)
+C              
+      INCLUDE 'eqcomq.inc'
+      INCLUDE 'eqcom4.inc'
+C
+      DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
+      DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
+      DIMENSION RHOTR1(NTRMAX1)
+      DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
+C
+      IERR=0
+C
+      DO NTR=1,NTRMAX1
+         RHOTR(NTR)=RHOTR1(NTR)
+      ENDDO
+C
+      ID=0
+      IF(RHOTR1(1).NE.0.D0) ID=ID+1
+      IF(RHOTR1(NTRMAX1).NE.1.D0) ID=ID+2
+C
+      IF(ID.EQ.0.OR.ID.EQ.2) THEN
+         NTRMAX = NTRMAX1
+         DO NTR=1,NTRMAX
+            PSITRX(NTR)=RHOTR(NTR)**2
+         ENDDO
+      ELSEIF(ID.EQ.1.OR.ID.EQ.3) THEN
+         NTRMAX=NTRMAX+1
+         PSITRX(1)=0.D0
+         DO NTR=2,NTRMAX
+            PSITRX(NTR)=RHOTR(NTR-1)**2
+         ENDDO
+      ENDIF
+      IF(ID.EQ.2.OR.ID.EQ.3) THEN
+         NTRMAX=NTRMAX+1
+         PSITRX(NTRMAX)=1.D0
+      ENDIF
+C
+C     *** Calculate SPLINE coefficients for PPSI, JPSI, VTPSI, TPSI ***
+C
+C     <<< PRHO >>>
+      CALL TRISPL(PRHO,WORK,NTRMAX,ID)
+      CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX,MOD(ID,2),IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D PRHO: IERR=',IERR
+C
+C     <<< HJRHO >>>
+      CALL TRISPL(HJRHO,WORK,NTRMAX,ID)
+      CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX,MOD(ID,2),IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D HJRHO: IERR=',IERR
+C
+C     <<< VTRHO >>>
+      CALL TRISPL(VRHO,WORK,NTRMAX,ID)
+      CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX,MOD(ID,2),IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D VTRHO: IERR=',IERR
+C
+C     <<< TRHO >>>
+      CALL TRISPL(TRHO,WORK,NTRMAX,ID)
+      CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX,MOD(ID,2),IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D TRHO: IERR=',IERR
+C
+C     <<< HJPSID >>>
+      DO NTR=1,NTRMAX
+         UJPSI0(NTR)=0.D0
+      ENDDO
+      UJPSIX(1)=0.D0
+      DO NTR=2,NTRMAX
+         PSIL=PSITRX(NTR)
+         CALL SPL1DF(PSIL,HJPSIL,PSITRX,UJPSI,NTRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQEX: SPL1DF HJPSIL: IERR=',IERR
+         CALL SPL1DI(PSIL,HJPSID,PSITRX,UJPSI,UJPSI0,NTRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQEX: SPL1DI HJPSID: IERR=',IERR
+         UJPSIX(NTR)=HJPSID
+      ENDDO
+C
+      DO NTR=NTRMAX-1,1,-1
+         UJPSI0(NTR)=UJPSI0(NTR+1)-UJPSIX(NTR+1)
+      ENDDO
+C
+C     ***** Solve GS equation for given profile *****
+C
+      IF(RIP1.EQ.0.D0) THEN
+         MDLEQF=8
+      ELSE
+         MDLEQF=7
+         RIP=RIP1
+      ENDIF
+C
+      IF(ICONT.EQ.0) THEN
+         CALL EQCALC(IERR)
+         IF(IERR.NE.0) GOTO 9000
+      ELSE
+         CALL EQLOOP(IERR)
+         IF(IERR.NE.0) GOTO 9000
+         CALL EQTORZ
+         CALL EQCALP
+      ENDIF
+C
+C     ***** Calculate eqilibrium quantities *****
+C
+      NRMAX1=NRMAX
+      NTHMAX1=64
+      CALL EQCALQ(NRMAX1,NTHMAX1,0,IERR)
+C
+      IF(RIP1.NE.0.D0) THEN
+         DO NTR=1,NTRMAX1
+            RHOTRL=RHOTR1(NTR)
+            CALL SPL1DF(RHOTRL,AJPRL,RHOT,UAVEJPR,NRMAX,IERR)
+C            WRITE(6,*) NTR,AJPRL,HJRHO(NTR)
+            HJRHO(NTR)=AJPRL
+         ENDDO
+      ENDIF
+C
+      RSA=SQRT(PSITA/(PI*BB))
+      DPSIPDRHOA=FNDPSIP(1.D0)
+ 9000 RETURN
+      END
+C
+C   *******************************************
+C   **    EQ data interface for TR     **
+C   *******************************************
+C
+C     input:
+C
+C     NTRMAX1        : Maximum array number
+C     RHOTR1(NTRMAX1): Normarized radius
 C
 C     output:
 C
@@ -87,23 +225,19 @@ C     EPSRHO(NTRMAX) : (Bmax-Bmin)/(Bmax+Bmin)
 C     RMJRHO(NTRMAX) : (Rmax+Rmin)/2
 C     RMNRHO(NTRMAX) : (Rmax-Rmin)/2
 C     RKAPRHO(NTRMAX): (Zmax-Zmin)/(Rmax-Rmin)
-C     RSA            : Minor radius defined by troidal flux
-C     DPSIPDRHOA     : dPsip/drho at rho=1
 C     IERR           : Error indicator
 C
 C   ***************************************************************
 C
-      SUBROUTINE TREQEX(NTRMAX1,RHOTR1,PRHO,HJRHO,VTRHO,TRHO,RIP1,
+      SUBROUTINE TREQGET(NTRMAX1,RHOTR1,
      &                  QRHO,TTRHO,DVRHO,DSRHO,ARHRRHO,AIR2RHO,
      &                  ARH1RHO,ARH2RHO,ABB2RHO,AIB2RHO,ARHBRHO,
-     &                  EPSRHO,RMJRHO,RMNRHO,RKAPRHO,RSA,DPSIPDRHOA,
+     &                  EPSRHO,RMJRHO,RMNRHO,RKAPRHO,
      &                  IERR)
 C              
       INCLUDE 'eqcomq.inc'
       INCLUDE 'eqcom4.inc'
 C
-      DIMENSION PRHO(NTRMAX1),HJRHO(NTRMAX1)
-      DIMENSION VTRHO(NTRMAX1),TRHO(NTRMAX1)
       DIMENSION QRHO(NTRMAX1),TTRHO(NTRMAX1)
       DIMENSION DVRHO(NTRMAX1),DSRHO(NTRMAX1)
       DIMENSION ARHRRHO(NTRMAX1),AIR2RHO(NTRMAX1)
@@ -115,101 +249,13 @@ C
       DIMENSION WORK(NTRM+2),DERIV(NTRM+2),UJPSIX(NTRM+2)
 C
       IERR=0
-      NTRMAX = NTRMAX1
-C
-      DO NTR=1,NTRMAX
-         RHOTR(NTR)=RHOTR1(NTR)
-      ENDDO
-      
-      PSITRX(1)=0.D0
-      DO NTR=2,NTRMAX+1
-         PSITRX(NTR)=RHOTR(NTR-1)**2
-      ENDDO
-      PSITRX(NTRMAX+2)=1.D0
-C
-C     *** Calculate SPLINE coefficients for PPSI, JPSI, VTPSI, TPSI ***
-C
-C     <<< PRHO >>>
-      WORK(1)=(9.D0*PRHO(1)-PRHO(2))/8.D0
-      DO NTR=1,NTRMAX
-         WORK(NTR+1)=PRHO(NTR)
-      ENDDO
-      WORK(NTRMAX+2)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UPPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D PRHO: IERR=',IERR
-C
-C     <<< HJRHO >>>
-      WORK(1)=(9.D0*HJRHO(1)-HJRHO(2))/8.D0
-      DO NTR=1,NTRMAX
-         WORK(NTR+1)=HJRHO(NTR)
-      ENDDO
-      WORK(NTRMAX+2)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UJPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D HJRHO: IERR=',IERR
-C
-C     <<< VTRHO >>>
-      WORK(1)=(9.D0*VTRHO(1)-VTRHO(2))/8.D0
-      DO NTR=1,NTRMAX
-         WORK(NTR+1)=VTRHO(NTR)
-      ENDDO
-      WORK(NTRMAX+2)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UVTPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D VTRHO: IERR=',IERR
-C
-C     <<< TRHO >>>
-      WORK(1)=(9.D0*TRHO(1)-TRHO(2))/8.D0
-      DO NTR=1,NTRMAX
-         WORK(NTR+1)=TRHO(NTR)
-      ENDDO
-      WORK(NTRMAX+2)=0.D0
-      CALL SPL1D(PSITRX,WORK,DERIV,UTPSI,NTRMAX+2,0,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D TRHO: IERR=',IERR
-C
-C     <<< HJPSID >>>
-      DO NTR=1,NTRMAX+2
-         UJPSI0(NTR)=0.D0
-      ENDDO
-      UJPSIX(1)=0.D0
-      DO NTR=2,NTRMAX+2
-         PSIL=PSITRX(NTR)
-         CALL SPL1DF(PSIL,HJPSIL,PSITRX,UJPSI,NTRMAX+2,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX TREQEX: SPL1DF HJPSIL: IERR=',IERR
-         CALL SPL1DI(PSIL,HJPSID,PSITRX,UJPSI,UJPSI0,NTRMAX+2,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX TREQEX: SPL1DI HJPSID: IERR=',IERR
-         UJPSIX(NTR)=HJPSID
-      ENDDO
-C
-      DO NTR=NTRMAX+1,1,-1
-         UJPSI0(NTR)=UJPSI0(NTR+1)-UJPSIX(NTR+1)
-      ENDDO
-C
-C     ***** Solve GS equation for given profile *****
-C
-      IF(RIP1.EQ.0.D0) THEN
-         MDLEQF=8
-         CALL EQCALC(IERR)
-            IF(IERR.NE.0) GOTO 9000
-      ELSE
-         MDLEQF=7
-         RIP=RIP1
-         CALL EQCALC(IERR)
-            IF(IERR.NE.0) GOTO 9000
-      ENDIF
-C
-C     ***** Calculate eqilibrium quantities *****
-C
-      NRMAX1=NRMAX
-      NTHMAX1=64
-      CALL EQCALQ(NRMAX1,NTHMAX1,0,IERR)
 C
 C     ***** Calculate Q, DVRHO and others at given radial position *****
 C
-      DO NTR=1,NTRMAX
+      DO NTR=1,NTRMAX1
 C
 C        <<< RHOT >>>
-         RHOTL=RHOTR(NTR)
+         RHOTL=RHOTR1(NTR)
 C
 C        <<< QRHO >>>
          CALL SPL1DF(RHOTL,QPL,RHOT,UQPS,NRMAX,IERR)
@@ -309,7 +355,35 @@ C
          RKAPRHO(NTR)=(ZZMAXL-ZZMINL)/(RRMAXL-RRMINL)
       ENDDO
 C
-      RSA=SQRT(PSITA/(PI*BB))
-      DPSIPDRHOA=FNDPSIP(1.D0)
  9000 RETURN
+      END
+C
+      SUBROUTINE TRISPL(YIN,YOUT,NTRMAX,ID)
+C
+      IMPLICIT NONE
+      INTEGER NTRMAX,ID,NTR
+      REAL*8 YIN(NTRMAX),YOUT(NTRMAX)
+C
+      IF(ID.EQ.0) THEN
+         DO NTR=1,NTRMAX
+            YOUT(NTR)=YIN(NTR)
+         ENDDO
+      ELSEIF(ID.EQ.1) THEN
+         YOUT(1)=(9.D0*YIN(1)-YIN(2))/8.D0
+         DO NTR=2,NTRMAX
+            YOUT(NTR)=YIN(NTR-1)
+         ENDDO
+      ELSEIF(ID.EQ.2) THEN
+         DO NTR=1,NTRMAX-1
+            YOUT(NTR)=YIN(NTR)
+         ENDDO
+         YOUT(NTRMAX)=0.D0
+      ELSEIF(ID.EQ.3) THEN
+         YOUT(1)=(9.D0*YIN(1)-YIN(2))/8.D0
+         DO NTR=2,NTRMAX-1
+            YOUT(NTR)=YIN(NTR-1)
+         ENDDO
+         YOUT(NTRMAX)=0.D0
+      ENDIF
+      RETURN
       END
