@@ -16,7 +16,7 @@ all : ufread ufread3 guiread
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
-../lib/libmds.a:
+../lib/mdslib.a:
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
