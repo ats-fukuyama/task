@@ -12,12 +12,12 @@ C
 C 
       CALL GUTIME(TIME1)
 C
-      IF(INTYPE.EQ.0) THEN
+      IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) 
      &   '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
          WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
-      ELSEIF(INTYPE.EQ.1.OR.INTYPE.EQ.2) THEN
+      ELSEIF(MDLWRI.EQ.1.OR.MDLWRI.EQ.2) THEN
          IF(ABS(RNZI).GT.1.D0) THEN
             ANGZ=0.D0
             ANGPH=0.D0
@@ -34,30 +34,43 @@ C
                ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
             ENDIF
          ENDIF
-         IF(INTYPE.EQ.1) THEN
+         IF(MDLWRI.EQ.1) THEN
             WRITE(6,*) 
      &      '# default values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
             WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                         RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
-         ELSEIF(INTYPE.EQ.2) THEN
+         ELSEIF(MDLWRI.EQ.2) THEN
             WRITE(6,*) 
      &      '# default values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH,UU'
             WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                         RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
          ENDIF
       ENDIF
+c
+c     --- eliminate disp factor for same z/a species ---
+C
+      DO NS=1,NSMAX
+         NSDP(NS)=1
+         DO NSS=1,NS-1
+            ZA1=PZ(NS)/PA(NS)
+            ZA2=PZ(NSS)/PA(NSS)
+            IF(ABS(ZA1-ZA2).LE.1.D-8) NSDP(NS)=0
+         ENDDO
+      ENDDO
+C
+C     --- Each ray tracing ---
 C
       DO NRAY=1,NRAYMX
 C
     1    WRITE(6,*) '# NRAY = ',NRAY
-         IF(INTYPE.EQ.0) THEN
+         IF(MDLWRI.EQ.0) THEN
             READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
             WRITE(6,*) 
      &      '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
             WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
-         ELSEIF(INTYPE.EQ.1) THEN
+         ELSEIF(MDLWRI.EQ.1) THEN
             READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
             WRITE(6,*) 
@@ -70,7 +83,7 @@ C
             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
             IF(ANGZ.LT.0.D0) RNZI=-RNZI
             IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-         ELSEIF(INTYPE.EQ.2) THEN
+         ELSEIF(MDLWRI.EQ.2) THEN
             READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
             WRITE(6,*) 
@@ -81,7 +94,7 @@ C
             SINT2=SIN(ANGPH*PI/180.D0)**2
             RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
             RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-            WRITE(6,*) 'XX INTYPE=2 IS NOT SUPPORTED YET.'
+            WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
             GOTO 1
          ENDIF
 C
@@ -91,7 +104,7 @@ C
          RAYIN(4,NRAY)=PHII
          RAYIN(5,NRAY)=RKR0
 C     
-         IF(INTYPE.EQ.0)THEN
+         IF(MDLWRI.EQ.0)THEN
             RAYIN(6,NRAY)=RNZI
             RAYIN(7,NRAY)=RNPHII
          ELSE
@@ -125,14 +138,12 @@ C
             Y(6)= RKZI
          ENDIF
          Y(7)= UUI
-         IF(IQTYPE.EQ.0) THEN
+         IF(MDLWRQ.EQ.0) THEN
             CALL WRRKFT(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
-         ELSEIF(IQTYPE.EQ.1) THEN
-            CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
-         ELSEIF(IQTYPE.EQ.2) THEN
-            CALL WRRKFT_RKF(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSEIF(MDLWRQ.EQ.1) THEN
+            CALL WRSYMP(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSE
-            WRITE(6,*) 'XX WRCALC: unknown IQTYPE =', IQTYPE
+            WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
          ENDIF
          CALL WRCALE(RAYS(0,0,NRAY),NITMAX(NRAY),NRAY)
          WRITE(6,'(A,F8.4)') 
@@ -146,136 +157,6 @@ C
       WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
 C
  9000 RETURN
-      END
-C
-C************************************************************************
-C
-      SUBROUTINE WRRKFT_ODE(Y,YN,NIT)
-C
-      INCLUDE 'wrcomm.inc'      
-C
-      PARAMETER (NMAX=50,KMAXX=200)
-      COMMON /DPODE1/ kmax,kount,dxsav,xp(KMAXX),yp(NMAX,KMAXX)
-      EXTERNAL WRFDRV,BSSTEP,RKQS
-      DIMENSION Y(NEQ),YN(0:NEQ,0:NITM)
-C
-      X0 = 0.D0
-      XE = DELS     
-      ITMAX=INT(SMAX/DELS)
-      H1=DELS
-      HMIN=DELRAY
-      KMAX=0
-C
-      IT=0
-      YN(0,IT)=X0
-      DO I=1,7
-         YN(I,IT)=Y(I)
-      ENDDO
-      YN(8,IT)=0.D0
-C
-      DO 10 IT = 1,ITMAX
-         Y7=Y(7)
-         CALL ODEINT(Y,7,X0,XE,EPSRAY,H1,HMIN,NOK,NBAD,WRFDRV,
-     &               BSSTEP)
-C     &               RKQS)
-         YN(0,IT)=XE
-         DO I=1,7
-            YN(I,IT)=Y(I)
-         ENDDO
-         Y(8)=Y7-Y(7)
-         YN(8,IT)=Y(8)
-         WRITE(6,6001) XE,SQRT(Y(1)**2+Y(2)**2),ATAN2(Y(2),Y(1)),Y(3),
-     &                 ( Y(4)*Y(1)+Y(5)*Y(2))/SQRT(Y(1)**2+Y(2)**2),
-     &                 -Y(4)*Y(2)+Y(5)*Y(1),
-     &                 Y(7),NBAD
- 6001    FORMAT(1P7E11.3,I2)
-C         WRITE(25,'(1P8E9.1)') XE,(Y(I),I=1,7)
-         X0=XE
-         XE=X0+DELS
-         IF(Y(7).LT.UUMIN) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
- 10   CONTINUE
-      NIT=ITMAX
-C     
- 11   IF(YN(7,NIT).LT.0.D0) THEN
-         YN(7,NIT)=0.D0
-      ENDIF
-C
-      RETURN
-      END
-C
-C************************************************************************
-C
-      SUBROUTINE WRRKFT_RKF(Y,YN,NIT)
-C
-      INCLUDE 'wrcomm.inc'      
-C
-      EXTERNAL WRFDRV
-      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),ESTERR(NEQ),WORK1(NEQ),
-     &           WORK2(NEQ),WORK3(NEQ),WORK4(NEQ,11)
-C
-      RELERR = EPSRAY
-      ABSERR = EPSRAY
-      X0 = 0.D0
-      XE = DELS     
-      INIT = 1
-      ITMAX=INT(SMAX/DELS)
-      IT=0
-      YN(0,IT)=X0
-      DO I=1,7
-         YN(I,IT)=Y(I)
-      ENDDO
-      YN(8,IT)=0.D0
-C
-      DO 10 IT = 1,ITMAX
-         Y7=Y(7)
-         CALL RKF(7,WRFDRV,X0,XE,Y,INIT,RELERR,ABSERR,YM,
-     &            ESTERR,NDE,IER,WORK0,WORK1,WORK2,WORK3,WORK4)
-         IF (IER .NE. 0) THEN
-            WRITE(6,*) 'XX RKF ERROR'
-            RETURN
-         ENDIF
-C         WRITE(6,'(A,1P7E9.1)') 'ESTERR=',ESTERR
-         YN(0,IT)=XE
-         DO I=1,7
-            YN(I,IT)=YM(I)
-         ENDDO
-         YN(8,IT)=Y7-YM(7)
-         WRITE(6,6001) X0,YN(1,IT),YN(2,IT),YN(3,IT),YN(4,IT),
-     &                    YN(7,IT),YN(8,IT)
- 6001    FORMAT(1H ,1P7E11.3)
-C     &           '    Z=',YN(2,IT),'    PHI=',YN(3,IT),'    R=',YN(1,IT),
-C     &           '    KR=',YN(4,IT),'    KZ=',YN(5,IT),
-C     &           '    KPHI=',YN(6,IT),' POWER=',YN(8,IT), '  Y(7)=',Y7 
-         DO I=1,7
-            Y(I)=YN(I,IT)
-         ENDDO
-         X0=XE
-         XE=X0+DELS
-         IF(Y(7).LT.UUMIN) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
- 10   CONTINUE
-      NIT=ITMAX
-C     
- 11   IF(YN(7,NIT).LT.0.D0) THEN
-         YN(7,NIT)=0.D0
-      ENDIF
-C
-      RETURN
       END
 C
 C************************************************************************
@@ -337,6 +218,75 @@ C
             GOTO 11
          ENDIF         
  10   CONTINUE
+      NIT=ITMAX
+C     
+ 11   IF(YN(7,NIT).LT.0.D0) THEN
+         YN(7,NIT)=0.D0
+      ENDIF
+C
+      RETURN
+      END
+C
+C************************************************************************
+C
+      SUBROUTINE WRSYMP(Y,YN,NIT)
+C
+      INCLUDE 'wrcomm.inc'      
+C
+      EXTERNAL WRFDRV,WRFDRVR
+      DIMENSION Y(NEQ),F(NEQ),YN(0:NEQ,0:NITM)
+C
+      ITMAX=INT(SMAX/DELS)
+      NLPMAX=10
+      EPS=1.D-6
+C
+      IT=0
+      X=0.D0
+      YN(0,IT)=X
+      DO I=1,7
+         YN(I,IT)=Y(I)
+      ENDDO
+      YN(8,IT)=0.D0
+C
+      DO IT = 1,ITMAX
+         Y7=Y(7)
+         CALL SYMPLECTIC(Y,DELS,WRFDRVR,6,NLPMAX,EPS,NLP,ERROR,IERR)
+         CALL WRFDRV(0.D0,Y,F)
+         X=X+DELS
+C
+         YN(0,IT)=X
+         DO I=1,6
+            YN(I,IT)=Y(I)
+         ENDDO
+         Y(7)=Y(7)+F(7)*DELS
+         YN(7,IT)=Y(7)
+         YN(8,IT)=-F(7)*DELS
+C
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+            RL  =Y(1)
+            PHIL=ASIN(Y(2)/(2.D0*PI*RR))
+            ZL  =Y(3)
+            RKRL=Y(4)
+         ELSE
+            RL  =SQRT(Y(1)**2+Y(2)**2)
+            PHIL=ATAN2(Y(2),Y(1))
+            ZL  =Y(3)
+            RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
+         ENDIF
+C
+         WRITE(6,6001) X,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
+ 6001    FORMAT(1P7E11.3)
+C
+         IF(Y(7).LT.UUMIN) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+      ENDDO
       NIT=ITMAX
 C     
  11   IF(YN(7,NIT).LT.0.D0) THEN
@@ -422,6 +372,70 @@ C
 C      WRITE(6,'(A,1P6E12.4)') 'XY:',X,Y(1),Y(4),Y(5),Y(6),Y(7)
 C      WRITE(6,'(A,1P6E12.4)') 'F :',F(1),F(2),F(3),F(4),F(5),F(6)
 C      CALL GUFLSH
+      RETURN
+      END
+C
+C************************************************************************
+C
+      SUBROUTINE WRFDRVR(Y,F) 
+C
+      INCLUDE 'wrcomm.inc'      
+C
+      DIMENSION Y(6),F(6)
+C
+      VV=DELDER
+      TT=DELDER
+C
+      XP=Y(1)
+      YP=Y(2)
+      ZP=Y(3)
+      RKXP=Y(4)
+      RKYP=Y(5)
+      RKZP=Y(6)
+      OMG=2.D6*PI*RF
+      ROMG=MAX(ABS(OMG)*VV,TT)
+      RXP=MAX(ABS(XP)*VV,TT)
+      RYP=MAX(ABS(YP)*VV,TT)
+      RZP=MAX(ABS(ZP)*VV,TT)
+      RRKXP=MAX(ABS(RKXP)*VV,TT)
+      RRKYP=MAX(ABS(RKYP)*VV,TT)
+      RRKZP=MAX(ABS(RKZP)*VV,TT)
+C
+      DOMG=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG+ROMG)
+     &     -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP,OMG-ROMG))/(2.D0*ROMG)
+      DXP =(DISPXR(XP+RXP,YP,ZP,RKXP,RKYP,RKZP,OMG)
+     &     -DISPXR(XP-RXP,YP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RXP)
+      DYP =(DISPXR(XP,YP+RYP,ZP,RKXP,RKYP,RKZP,OMG)
+     &     -DISPXR(XP,YP-RYP,ZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RYP)
+      DZP =(DISPXR(XP,YP,ZP+RZP,RKXP,RKYP,RKZP,OMG)
+     &     -DISPXR(XP,YP,ZP-RZP,RKXP,RKYP,RKZP,OMG))/(2.D0*RZP)
+      DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG)
+     &     -DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
+      DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG)
+     &     -DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
+      DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG)
+     &     -DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
+C
+      IF(DOMG.GT.0.D0) THEN
+         DS= SQRT(DKXP**2+DKYP**2+DKZP**2)
+      ELSE
+         DS=-SQRT(DKXP**2+DKYP**2+DKZP**2)
+      ENDIF
+C
+      VX   =-DKXP/DS
+      VY   =-DKYP/DS
+      VZ   =-DKZP/DS
+C
+      VKX  = DXP/DS
+      VKY  = DYP/DS
+      VKZ  = DZP/DS
+C
+      F(1)=VX
+      F(2)=VY
+      F(3)=VZ
+      F(4)=VKX
+      F(5)=VKY
+      F(6)=VKZ
       RETURN
       END
 C
@@ -527,13 +541,16 @@ C
          IF(MODELP(NS).GE.50.AND.MODELP(NS).LT.60) MODELP(NS)=5
       ENDDO
 C
-      CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
-C      CF=CFDISPR(CRF,CKX,CKY,CKZ,X,Y,Z)
+C      CF=CFDISP(CRF,CKX,CKY,CKZ,X,Y,Z)
+      CF=CFDISPR(CRF,CKX,CKY,CKZ,X,Y,Z)
 C
       CWW=2.D0*PI*1.D6*CRF
-      DO NS=1,NSMAX
-         CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
-         CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+C      DO NS=1,NSMAX
+      DO NS=1,1
+         IF(NSDP(NS).EQ.1) THEN
+            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+         ENDIF
       ENDDO
 C
       DO NS=1,NSMAX
@@ -563,8 +580,10 @@ C
 C
       CWW=2.D0*PI*1.D6*CRF
       DO NS=1,NSMAX
-         CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
-         CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+         IF(NSDP(NS).EQ.1) THEN
+            CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS))
+            CF=CF*(CWW-ABS(CWC))/(CWW+ABS(CWC))
+         ENDIF
       ENDDO
 C
       DISPXI=DIMAG(CF)

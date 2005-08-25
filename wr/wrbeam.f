@@ -12,14 +12,14 @@ C
 C 
       CALL GUTIME(TIME1)
 C
-      IF(INTYPE.EQ.0) THEN
+      IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
          WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
          WRITE(6,'(1PE12.4,0P6F10.3)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
          WRITE(6,'(12X,1P5E12.4)') 
      &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
-      ELSEIF(INTYPE.EQ.1.OR.INTYPE.EQ.2) THEN
+      ELSEIF(MDLWRI.EQ.1.OR.MDLWRI.EQ.2) THEN
          IF(ABS(RNZI).GT.1.D0) THEN
             ANGZ=0.D0
             ANGPH=0.D0
@@ -36,7 +36,7 @@ C
                ANGPH=ASIN(RNPHII/SQRT(1.D0-RNZI**2))*180.D0/PI
             ENDIF
          ENDIF
-         IF(INTYPE.EQ.1) THEN
+         IF(MDLWRI.EQ.1) THEN
             WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
             WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,',
      &                 'UU'
@@ -44,7 +44,7 @@ C
      &                         RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
             WRITE(6,'(12X,1P5E12.4)') 
      &                         RCURVA,RCURVB,RBRADA,RBRADB,UUI
-         ELSEIF(INTYPE.EQ.2) THEN
+         ELSEIF(MDLWRI.EQ.2) THEN
             WRITE(6,*) '# default values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
             WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,',
      &                 'UU'
@@ -58,7 +58,7 @@ C
       DO NRAY=1,NRAYMX
 C
  1       WRITE(6,*) '# NRAY=' ,NRAY
-      IF(INTYPE.EQ.0) THEN
+      IF(MDLWRI.EQ.0) THEN
          READ(5,*,ERR=1,END=9000) 
      &                   RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,
      &                   RCURVA,RCURVB,RBRADA,RBRADB,UUI
@@ -68,7 +68,7 @@ C
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
          WRITE(6,'(12X,1P5E12.4)') 
      &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
-      ELSEIF(INTYPE.EQ.1) THEN
+      ELSEIF(MDLWRI.EQ.1) THEN
          READ(5,*,ERR=1,END=9000) 
      &                   RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,
      &                   RCURVA,RCURVB,RBRADA,RBRADB,UUI
@@ -84,7 +84,7 @@ C
          RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
          IF(ANGZ.LT.0.D0) RNZI=-RNZI
          IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-      ELSEIF(INTYPE.EQ.2) THEN
+      ELSEIF(MDLWRI.EQ.2) THEN
          READ(5,*,ERR=1,END=9000) 
      &                     RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
          WRITE(6,*) '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
@@ -97,7 +97,7 @@ C
          SINT2=SIN(ANGPH*PI/180.D0)**2
          RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
          RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-         WRITE(6,*) 'XX INTYPE=2 IS NOT SUPPORTED YET.'
+         WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
          GOTO 1
       ENDIF
 C
@@ -107,7 +107,7 @@ C
       RAYIN(4,NRAY)=PHII
       RAYIN(5,NRAY)=RKR0
 C     
-      IF(INTYPE.EQ.0)THEN
+      IF(MDLWRI.EQ.0)THEN
          RAYIN(6,NRAY)=RNZI
          RAYIN(7,NRAY)=RNPHII
       ELSE
@@ -459,7 +459,6 @@ C
       RETURN
       END
 C
-C***********************************************************************
 C************************************************************************
 C
       SUBROUTINE WRRKFTB(Y,YN,NIT)

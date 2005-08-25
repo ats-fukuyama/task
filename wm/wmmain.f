@@ -31,11 +31,13 @@ C
       CALL MPSYNC
 C
       CALL PLINIT
+      CALL EQINIT
       CALL DPINIT
       CALL WMINIT
       IF(MYRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH')
          CALL PLPARM(1,'plparm',IERR)
+         CALL EQPARM(1,'eqparm',IERR)
          CALL DPPARM(1,'dpparm',IERR)
          CALL WMPARM(1,'wmparm',IERR)
       ENDIF

@@ -142,25 +142,29 @@ C
          ENDIF
          DRHOPM=DRHOM+DRHOP
 C
+         DPSIPDRHOMH=2.D0*PSIA*XRHOMH
+         DPSIPDRHOPH=2.D0*PSIA*XRHOPH
+         DPSIPDRHOC =2.D0*PSIA*XRHOC
+C
          FMHM=0.5D0
          FMHC=0.5D0
          FPHC=0.5D0
          FPHP=0.5D0
-         DFMHM=-1.0D0/DRHOM   /(2.D0*PSIA*XRHOMH)
-         DFMHC= 1.0D0/DRHOM   /(2.D0*PSIA*XRHOMH)
+         DFMHM=-1.0D0/DRHOM   /DPSIPDRHOMH
+         DFMHC= 1.0D0/DRHOM   /DPSIPDRHOMH
 C
-         DFCM=  -DRHOP       /(DRHOM*DRHOPM)/(2.D0*PSIA*XRHOC)
-         DFCC=  (DRHOP-DRHOM)/(DRHOP*DRHOM )/(2.D0*PSIA*XRHOC)
-         DFCP=   DRHOM       /(DRHOP*DRHOPM)/(2.D0*PSIA*XRHOC)
-         DDFMHM= 2.D0/(DRHOM*DRHOPM)/(4.D0*PSIA**2*XRHOC*XRHOMH)
-         DDFMHC=-2.D0/(DRHOM*DRHOPM)/(4.D0*PSIA**2*XRHOC*XRHOMH)
-         DDFPHC=-2.D0/(DRHOP*DRHOPM)/(4.D0*PSIA**2*XRHOC*XRHOPH)
-         DDFPHP= 2.D0/(DRHOP*DRHOPM)/(4.D0*PSIA**2*XRHOC*XRHOPH)
+         DFCM=  -DRHOP       /(DRHOM*DRHOPM)/DPSIPDRHOC
+         DFCC=  (DRHOP-DRHOM)/(DRHOP*DRHOM )/DPSIPDRHOC
+         DFCP=   DRHOM       /(DRHOP*DRHOPM)/DPSIPDRHOC
+         DDFMHM= 2.D0/(DRHOM*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOMH)
+         DDFMHC=-2.D0/(DRHOM*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOMH)
+         DDFPHC=-2.D0/(DRHOP*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOPH)
+         DDFPHP= 2.D0/(DRHOP*DRHOPM)/(DPSIPDRHOC*DPSIPDRHOPH)
 C
          FCMH  = DRHOP/DRHOPM
          FCPH  = DRHOM/DRHOPM
-         DFCMH =-2.D0 /DRHOPM /(2.D0*PSIA*XRHOC)
-         DFCPH = 2.D0 /DRHOPM /(2.D0*PSIA*XRHOC)
+         DFCMH =-2.D0 /DRHOPM /DPSIPDRHOC
+         DFCPH = 2.D0 /DRHOPM /DPSIPDRHOC
 C
          FACT1M=XRHOMH/XRHOM
          FACT1C=XRHOMH/XRHOC
@@ -532,6 +536,8 @@ C
                   XRHO1=XRHO(NRANT)
                   XRHO2=XRHO(NRANT+1)
                   DRHO=XRHO2-XRHO1
+                  XRHOC=0.5D0*(XRHO2+XRHO1)
+                  DPSIPDRHOC=2.D0*PSIA*XRHOC
                   FACTM=(XRHO2-RD/RA)/DRHO
                   FACTP=(RD/RA-XRHO1)/DRHO
 C
@@ -541,16 +547,16 @@ C
                   DO MD=MDMIN,MDMAX
                      MDX=MD-MDMIN+1
                      MM=NTH0+MD
-                     CJTHM=CC*CJANT(2,MDX,NDX)*FACTM
-     &                                        /(2.D0*PSIA*DRHO*DPH)
-                     CJPHM=CC*CJANT(3,MDX,NDX)*FACTM
-     &                                        /(2.D0*PSIA*DRHO*DTH)
+                     CJTHM=CC*CJANT(2,MDX,NDX)*FACTM*XRHOC
+     &                                        /(DPSIPDRHOC*DRHO*DPH)
+                     CJPHM=CC*CJANT(3,MDX,NDX)*FACTM*XRHOC
+     &                                        /(DPSIPDRHOC*DRHO*DTH)
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)
-     &                                         *2.D0*PSIA*DRHO
-                     CJTHP=CC*CJANT(2,MDX,NDX)*FACTP
-     &                                        /(2.D0*PSIA*DRHO*DPH)
-                     CJPHP=CC*CJANT(3,MDX,NDX)*FACTP
-     &                                        /(2.D0*PSIA*DRHO*DTH)
+     &                                         *DPSIPDRHOC*DRHO/XRHOC
+                     CJTHP=CC*CJANT(2,MDX,NDX)*FACTP*XRHOC
+     &                                        /(DPSIPDRHOC*DRHO*DPH)
+                     CJPHP=CC*CJANT(3,MDX,NDX)*FACTP*XRHOC
+     &                                        /(DPSIPDRHOC*DRHO*DTH)
                      CFVP(NDX,MDX,1)=0.D0
                      CFVP(NDX,MDX,2)=0.D0
                      CFVP(NDX,MDX,3)=0.D0
@@ -575,6 +581,8 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                      XRHO2=2*XRHO(NR+1)-XRHO(NR)
                   ENDIF
                   DRHO=XRHO2-XRHO1
+                  XRHOC=0.5D0*(XRHO2+XRHO1)
+                  DPSIPDRHOC=2.D0*PSIA*XRHOC
 C
                   DO ND=NDMIN,NDMAX
                      NDX=ND-NDMIN+1
@@ -582,9 +590,12 @@ C
                   DO MD=MDMIN,MDMAX
                      MDX=MD-MDMIN+1
                      MM=NTH0+MD
-                     CJTHM=CC*CJANT(2,MDX,NDX)/(2.D0*PSIA*DRHO*DPH)
-                     CJPHM=CC*CJANT(3,MDX,NDX)/(2.D0*PSIA*DRHO*DTH)
-                     CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*2.D0*PSIA*DRHO
+                     CJTHM=CC*CJANT(2,MDX,NDX)*XRHOC
+     &                             /(DPSIPDRHOC*DRHO*DPH)
+                     CJPHM=CC*CJANT(3,MDX,NDX)*XRHOC
+     &                             /(DPSIPDRHOC*DRHO*DTH)
+                     CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO
+     &                             /XRHOC
                      CFVP(NDX,MDX,1)=CJR
 C                     WRITE(6,*) 'CFVP(',NDX,MDX,1,')',CFVP(NDX,MDX,1)
 C                     WRITE(6,*) 'CFVP(',NDX,MDX,2,')',CFVP(NDX,MDX,2)
@@ -603,6 +614,8 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                XRHO2=2*XRHO(NR+1)-XRHO(NR)
             ENDIF
             DRHO=XRHO2-XRHO1
+            XRHOC=0.5D0*(XRHO2+XRHO1)
+            DPSIPDRHOC=2.D0*PSIA*XRHOC
 C
             CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
@@ -614,9 +627,9 @@ C
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
                MM=NTH0+MD
-               CJTHM=RJFACT/(2.D0*PSIA*DRHO*DPH)
-               CJPHM=RJFACT/(2.D0*PSIA*DRHO*DTH)
-               CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*2.D0*PSIA*DRHO
+               CJTHM=RJFACT*XRHOC/(DPSIPDRHOC*DRHO*DPH)
+               CJPHM=RJFACT*XRHOC/(DPSIPDRHOC*DRHO*DTH)
+               CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO/XRHOC
 C               CFVP(NDX,MDX,1)=CJR
                CFVP(NDX,MDX,1)=0.D0
                CFVP(NDX,MDX,2)=CJTHM
