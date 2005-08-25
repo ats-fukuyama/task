@@ -10,13 +10,14 @@
       CHARACTER KFID*80,KFIDX*80,KVAR*80
       CHARACTER KFIDCK*90
       LOGICAL LEX
+      COMMON /DIR/ KDIR
 C
       CALL GSOPEN
 C
       KXNDEV='jt60u'
       KXNDCG='29728'
       KDIR  ='data'
-      CALL parameter_read(KDIR)
+      CALL parameter_read
       NDIM=2
 C
     1 WRITE(6,*) '# DEVICE NAME ?'
@@ -151,12 +152,13 @@ C
 C
 C     *** READING PARAMETER FILE ***
 C
-      SUBROUTINE parameter_read(DIR)
+      SUBROUTINE parameter_read
 C
       IMPLICIT NONE
       INTEGER IDOPEN, IST1, IST2, KL
       LOGICAL LEX
       CHARACTER*80 LINE, DIR
+      COMMON /DIR/ DIR
       NAMELIST /UFPARM/ DIR
 C
       IDOPEN=25
