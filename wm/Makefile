@@ -66,10 +66,10 @@ libs:
 	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
-	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
+	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpiwm : wmmain.o $(LIBM)
-	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(OBJLA)
+	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
 
 check : 
 	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less

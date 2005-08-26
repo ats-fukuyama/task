@@ -4,6 +4,8 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
+#FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)
+
 SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f trmdlt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
@@ -62,7 +64,7 @@ libs:
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)
-	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MDSLIB) $(OBJLA)
+	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA)
 tr3: trmain.o $(LIBS3)
 	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA)
 

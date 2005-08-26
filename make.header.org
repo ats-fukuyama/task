@@ -20,7 +20,7 @@ MFC = mpif77
 ## ftnchek options
 FCKFLAGS = -array=0 -usage=no-com-block-unused
 
-FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
+GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for g77
@@ -38,7 +38,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 
 ## for pgf77
-#FLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
+#GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf77
 #OFLAGS = -O3 -fastsse -tp p7
 #DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
@@ -49,16 +49,18 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
 ## for pgf95
-#FLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
+#GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf95
 #OFLAGS = -O3 -fastsse -tp p7
 #DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
 #FC = pgf95
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
+#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
 ## for Intel fortran compiler 
-#FLIBS=-L /usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
+#GFLIBS=-L /usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #OFLAGS = -tpp7 -O3 -prefetch -xW
 #OFLAGS = -tpp7 -O3 -prefetch -w90 -w95
 #DFLAGS = -g -C -w90 -w95
@@ -69,7 +71,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 
 ## for macosx-g77
-#FLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -L/usr/lib -lcc_dynamic 
+#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -L/usr/lib -lcc_dynamic 
 #OFLAGS = -O -I.
 #DFLAGS = -g -fbounds-check -I.
 #FC = g77
@@ -77,7 +79,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 
 ## for macosx-xlf
-#FLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
+#GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
 #OFLAGS = -O -qmaxmem=-1
 #DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
 #FC = xlf
@@ -94,7 +96,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 
 ## for macosx-absoft
-#FLIBS=-L/usr/local/lib/absoft -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 
+#GFLIBS=-L/usr/local/lib/absoft -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 
 #OFLAGS = -f -N15 -s -O
 #DFLAGS = -f -N15 -s -g
 #FC = f77
@@ -104,7 +106,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 
 ## for nifs-sx
-#FLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
+#GFLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
 #OFLAGS =
 #DFLAGS =
 #FC = sxf90
@@ -114,7 +116,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 
 # for ITBL
-#FLIBS=/srfs/home1/g5/jz245/lib/libg3d.so /srfs/home1/g5/jz245/lib/libgsp.so \
+#GFLIBS=/srfs/home1/g5/jz245/lib/libg3d.so /srfs/home1/g5/jz245/lib/libgsp.so \
 #/srfs/home1/g5/jz245/lib/libgdp.so /usr/X/lib/libX11.so -lm
 #OFLAGS = -O
 #DFLAGS = -g
@@ -125,7 +127,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /srfs/home1/g5/jz245/lib/lapack.a /srfs/home1/g5/jz245/lib/blas.a
 
 # for Solaris
-#FLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so /usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so
+#GFLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so /usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so
 #OFLAGS = -O
 #DFLAGS = -g
 #FC=f77
@@ -133,7 +135,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 
 # for HPUX
-#FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
+#GFLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
 #/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl
 #OFLAGS = +T -K +O2
 #DFLAGS = +T -K -g -C
@@ -142,7 +144,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 
 # for DEC OS
-#FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
+#GFLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
 #        -lX11
 ##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
 #OFLAGS = -O -fpe1
@@ -160,3 +162,4 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## if you have lapack library
 #OBJLA = /usr/lib/libcxml.so
 
+FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)

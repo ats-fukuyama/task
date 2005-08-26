@@ -75,10 +75,10 @@ libs:
 	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
-	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MDSLIB) $(OBJLA)
+	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpitot : main.o $(LIBM)
-	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(MDSLIB) $(OBJLA)
+	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
 
 xtot :
 	(cd ../pl; make pllib.a)
