@@ -2,7 +2,6 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
-MDSPLUS = mdsplus.f
 
 SRCS = libdsp.f libsympl.f libspl.f libbrn.f libgut.f libbnd.f \
        libpcg.f libde.f libfp.f libbes.f librk.f libkio.f \

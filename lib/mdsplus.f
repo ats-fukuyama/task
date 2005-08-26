@@ -1,3 +1,4 @@
+C     $Id$
 C     Fortran MDSplus access to International Profile Database.
 C     Making connection to server
       subroutine IPDB_OPEN(kdev, kdcg)
