@@ -3,6 +3,8 @@ include ../make.header
 #FFLAGS = $(DFLAGS)
 FFLAGS = $(OFLAGS)
 
+MDSLIB=-lMdsLib
+
 URSRCS=ufread.f ufsub.f
 UR3SRCS=ufread3.f ufsub.f
 GUISRCS=guiread.f ufsub.f
@@ -20,13 +22,13 @@ all : ufread ufread3 guiread
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
-	$(FC) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(FLIBS) $(MDSLIB)
+	$(FC) $(UROBJS) $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MDSLIB)
 
 ufread3 : $(UR3OBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB)
+	-$(FC) $(UR3OBJS) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB)
 
 guiread : $(GUIOBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB)
+	-$(FC) $(GUIOBJS) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB)
 
 check :
 	ftnchek $(GUISRCS) | less
