@@ -20,13 +20,13 @@ all : ufread ufread3 guiread
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
-	$(FC) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(FLIBS) -lMdsLib
+	$(FC) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(FLIBS) $(MDSLIB)
 
 ufread3 : $(UR3OBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) -lMdsLib
+	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB)
 
 guiread : $(GUIOBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) -lMdsLib
+	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB)
 
 check :
 	ftnchek $(GUISRCS) | less

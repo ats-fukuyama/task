@@ -81,12 +81,12 @@ C     /* Matrix Solver */
          KU=2*NEQRMAX-1
          NRHS=1
          LDB=MLM
-         CALL DGBTRF(M,N,KL,KU,AX,LDAB,IPIV,INFO)
+         CALL LAPACK_DGBTRF(M,N,KL,KU,AX,LDAB,IPIV,INFO)
          IF(INFO.NE.0) THEN
             WRITE(6,*) 'XX ERROR IN TRLOOP : DGBTRF, INFO = ',INFO
             GOTO 9000
          ENDIF
-         CALL DGBTRS('N',N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
+         CALL LAPACK_DGBTRS('N',N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
          IF(INFO.NE.0) THEN
             WRITE(6,*) 'XX ERROR IN TRLOOP : DGBTRS, INFO = ',INFO
          ENDIF
@@ -96,7 +96,7 @@ C     /* Matrix Solver */
          KU=2*NEQRMAX-1
          NRHS=1
          LDB=MLM
-         CALL DGBSV(N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
+         CALL LAPACK_DGBSV(N,KL,KU,NRHS,AX,LDAB,IPIV,X,LDB,INFO)
          IF(INFO.NE.0) THEN
             WRITE(6,*) 'XX ERROR IN TRLOOP : DGBSV, INFO = ',INFO
          ENDIF

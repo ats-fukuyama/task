@@ -51,6 +51,8 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
 	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
 	(cd ../lib; make)
+../lib/mdslib.a:
+	(cd ../lib; make)
 
 libs:
 	(cd ../pl; make pllib.a)
@@ -60,9 +62,9 @@ libs:
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)
-	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) -lMdsLib $(OBJLA)
+	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MDSLIB) $(OBJLA)
 tr3: trmain.o $(LIBS3)
-	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) -lMdsLib $(OBJLA)
+	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less

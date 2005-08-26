@@ -5,7 +5,8 @@ LFLAGS = $(OFLAGS)
 
 SRCS = libdsp.f libsympl.f libspl.f libbrn.f libgut.f libbnd.f \
        libpcg.f libde.f libfp.f libbes.f librk.f libkio.f \
-       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f ufile.f
+       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f ufile.f \
+       $(LAPACK)
 
 OBJS = $(SRCS:.f=.o)
 OBJMDS = $(MDSPLUS:.f=.o)

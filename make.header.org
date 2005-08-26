@@ -1,22 +1,18 @@
 ### $Id$ ###
-##
-## LAPACK library
-## If you don't have LAPACK library, 
-## set "OBJLA ="
-## comment the line "OBJLA =....", if exists, in the section you have chosen
-## delete wmtae.f from SRCX in wm/Makefile
-## and comment out CALL WMTAE in wm/wmmenu.f
 
-OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
-#OBJLA =
-
-## lapack
+## if you have lapack library
 #LAPACK = lapack.f
+#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+## else
 LAPACK = nolapack.f
+OBJLA =
 
-## mdsplus
+## if you have mdslib
 #MDSPLUS = mdsplus.f
+#MDSLIB = -lMdsLib
+## else
 MDSPLUS = nomdsplus.f
+MDSLIB =
 
 ## mpi compile command
 MFC = mpif77
@@ -49,6 +45,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = pgf77
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
 ## for pgf95
@@ -68,6 +65,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = ifc
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 
 ## for macosx-g77
@@ -85,6 +83,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = xlf
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 
 ## for macosx-f2c
@@ -96,13 +95,13 @@ GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for macosx-absoft
 #FLIBS=-L/usr/local/lib/absoft -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 
-#OBJLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 #OFLAGS = -f -N15 -s -O
 #DFLAGS = -f -N15 -s -g
 #FC = f77
 #LD=ld
 #LDFLAGS=-r
-#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+## if you have lapack library
+#OBJLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 
 ## for nifs-sx
 #FLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
@@ -111,6 +110,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = sxf90
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 
 # for ITBL
@@ -121,6 +121,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /srfs/home1/g5/jz245/lib/lapack.a /srfs/home1/g5/jz245/lib/blas.a
 
 # for Solaris
@@ -130,7 +131,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
-#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 # for HPUX
 #FLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
@@ -140,7 +140,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC=f77
 #LD=ld
 #LDFLAGS=-r
-#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 # for DEC OS
 #FLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
@@ -151,7 +150,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = f77
 #LD=ld
 #LDFLAGS=-r
-#OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 
 ## for Linux-alpha-compaq
 #OFLAGS = -fast
@@ -159,5 +157,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FC = fort
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
 #OBJLA = /usr/lib/libcxml.so
 

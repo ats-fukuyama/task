@@ -12,7 +12,7 @@ LIB0 = ../eq/eqlib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
-       ../lib/tasklib.a 
+       ../lib/tasklib.a ../lib/mdslib.a
 LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
@@ -49,6 +49,8 @@ all : tot
 	(cd ../mtx; make mpimtxlib.a)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
+../lib/mdslib.a:
+	(cd ../lib; make mdslib.a)
 ../mpi/nompilib.o:
 	(cd ../mpi; make nompilib.o)
 ../mpi/mpilib.o:
