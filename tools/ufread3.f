@@ -28,6 +28,7 @@ C
       CALL KTRIM(KXNDEV,IKNDEV)
       CALL KTRIM(KXNDCG,IKNDCG)
       CALL KTRIM(KDIR  ,IKDIR )
+      CALL TOLOWER(KXNDEV)
 C
       KDIRX=KDIR(1:IKDIR)//'/'//KXNDEV(1:IKNDEV)//'/'
      &    //KXNDCG(1:IKNDCG)//'/in/'
@@ -45,13 +46,18 @@ C
      &       //'2d'//KXNDCG(1:IKNDCG)//'.'
 C
     5 WRITE(6,*) 'INPUT DIM'
-      READ(5,*,ERR=5,END=9000) NDIM
+      READ(5,'(I1)',ERR=5,END=9000) NDIM
       IF(NDIM.LE.0) GOTO 9000
     6 WRITE(6,*) 'INPUT FILEID'
       READ(5,'(A80)',ERR=6,END=5) KFID
       CALL KTRIM(KDIRR1,IKDIRR1)
       CALL KTRIM(KDIRR2,IKDIRR2)
       CALL KTRIM(KFID,IKFID)
+C     converting lower case to upper case
+      DO I=1,IKFID
+         CALL GUCPTL(KFID(I:I))
+      ENDDO
+C
       IF(NDIM.EQ.1) THEN
          KFIDCK=KDIRR1(1:IKDIRR1)//KFID(1:IKFID)
       ELSEIF(NDIM.EQ.2) THEN
@@ -311,5 +317,30 @@ C         ENDDO
 C      ENDDO
 C
       CALL SETLIN(0,0,4)
+      RETURN
+      END
+C
+C     ***************************************************************
+C
+C        Convert Strings to Lower Case
+C
+C     ***************************************************************
+C
+      SUBROUTINE TOLOWER(KTEXT)
+C
+      IMPLICIT NONE
+      CHARACTER KTEXT*(*)
+C
+      INTEGER NCHAR, I, ID
+      INTEGER IASC(256)
+C
+      NCHAR = LEN(KTEXT)
+      CALL CHRASC(KTEXT, IASC, NCHAR)
+      DO I = 1, NCHAR
+         ID = IASC(I)
+         IF(ID .GE. 65 .AND. ID .LE. 90) IASC(I) = ID + 32
+      END DO
+      CALL ASCCHR(IASC, KTEXT, NCHAR)
+C
       RETURN
       END
