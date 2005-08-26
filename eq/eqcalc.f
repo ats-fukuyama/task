@@ -52,6 +52,7 @@ C
       SUBROUTINE EQPSIN
 C
       INCLUDE '../eq/eqcomc.inc'
+      DIMENSION DERIV(NRVM)
 C
       RAXIS=RR
       ZAXIS=0.0D0
@@ -344,6 +345,7 @@ C
       SUBROUTINE EQRHSV(IERR)
 C
       INCLUDE '../eq/eqcomc.inc'
+      DIMENSION DERIV(NRVM)
 C
       IERR=0
 C
