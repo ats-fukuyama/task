@@ -25,8 +25,8 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
-LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
-LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
+LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@

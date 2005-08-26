@@ -10,6 +10,14 @@
 OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
 #OBJLA =
 
+## lapack
+#LAPACK = lapack.f
+LAPACK = nolapack.f
+
+## mdsplus
+#MDSPLUS = mdsplus.f
+MDSPLUS = nomdsplus.f
+
 ## mpi compile command
 MFC = mpif77
 
