@@ -7,8 +7,6 @@ C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
-      IF(MODELV.EQ.1) RETURN
-C
       NPMAX=100
       NTHMAX=100
       PMAX=10.D0
@@ -57,6 +55,7 @@ C
          ENDDO
          SUM=SUM*2.D0*PI*DELP*DELTH
 C         WRITE(6,*) 'SUM=',SUM
+C         WRITE(6,*) 'FM(10,10)=',FM(10,10)
       ELSE
          TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
@@ -81,6 +80,7 @@ C         WRITE(6,*) 'SUM=',SUM
                FM(NP,NTH) = FACTOR*FM(NP,NTH)
             ENDDO
          ENDDO
+C         WRITE(6,*) 'FM(10,10)=',FM(10,10)
       ENDIF
       RETURN
       END                     

@@ -65,20 +65,21 @@ C
          MODELP(1)= 5
          NDISP1(1)=-2
          NDISP2(1)= 2
+         modelv(1)= 0
 C
       IF(NSM.GE.2) THEN
          MODELP(2)=0
          NDISP1(2)=-2
          NDISP2(2)= 2
+         MODELV(2)= 0
       ENDIF
 C
       DO NS=3,NSM
          MODELP(NS)=0
          NDISP1(NS)=-2
          NDISP2(NS)= 2
+         modelv(NS)= 0
       ENDDO
-C
-      MODELV = 0
 C
       RF0    = 160.D3
       RFI0   =   0.D0
@@ -213,14 +214,16 @@ C
          INITEQ=0
       ENDIF
 C
-      IF(MODELV.EQ.1.OR.MODELV.EQ.3) THEN
-         IF(INITFP.EQ.0) THEN
-            CALL DPLDFP
-            INITFP=1
+      DO NS=1,NSMAX
+         IF(MODELV(NS).EQ.1.OR.MODELV(NS).EQ.3) THEN
+            IF(INITFP.EQ.0) THEN
+               CALL DPLDFP
+               INITFP=1
+            ENDIF
+         ELSE
+            INITFP=0
          ENDIF
-      ELSE
-         INITFP=0
-      ENDIF
+      ENDDO
 C
       RETURN
       END
@@ -233,14 +236,13 @@ C
 C
       WRITE(6,100)
       DO I=1,NSMAX
-        WRITE(6,110) I,MODELP(I),NDISP1(I),NDISP2(I)
+        WRITE(6,110) I,MODELP(I),MODELP(NS),NDISP1(I),NDISP2(I)
       ENDDO
 C
-      WRITE(6,602) 'MODELV',MODELV
       RETURN
 C
-  100 FORMAT(1H ,'NS    MODELP  NDISP1  NDISP2')
-  110 FORMAT(1H ,I2,' ',3I8)                               
+  100 FORMAT(1H ,'NS    MODELP  MODELV  NDISP1  NDISP2')
+  110 FORMAT(1H ,I2,' ',4I8)                               
 C  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
 C     &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
   602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  :

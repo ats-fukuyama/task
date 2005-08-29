@@ -201,14 +201,16 @@ C
          INITEQ=0
       ENDIF
 C
-      IF(MODELV.EQ.1) THEN
-         IF(INITFP.EQ.0) THEN
-            CALL DPLDFP
-            INITFP=1
+      DO NS=1,NSMAX
+         IF(MODELV(NS).EQ.1) THEN
+            IF(INITFP.EQ.0) THEN
+               CALL DPLDFP
+               INITFP=1
+            ENDIF
+         ELSE
+            INITFP=0
          ENDIF
-      ELSE
-         INITFP=0
-      ENDIF
+      ENDDO
 C
       RETURN
       END
