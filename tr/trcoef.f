@@ -930,7 +930,7 @@ C
             shat_exp(jm) =S_AR(jm+1)    ! magnetic shear
             alpha_exp(jm)=ALFA_AR(jm+1) ! MHD alpha
 C            write(6,'(I3,3F15.7)') jm,rho(jm),q_exp(jm),shat_exp(jm)
-            elong_exp(jm)=EKAP(jm+1)    ! local elongation
+            elong_exp(jm)=RKPRHOG(jm+1)    ! local elongation
          ENDDO
 C         stop
 C
@@ -1099,7 +1099,7 @@ C
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
          CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                       S_AR,EPSRHO,EKAP,RT,BB,AMM,AME,
+     &                       S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63) THEN

@@ -124,7 +124,7 @@ C
      &          'PREE','PRLE','PRIE','PREI','PRLI','PRII',
      &          'AJEC','AJLH','AJIC',
      &          'NFST','NIMP','BP  ','PSI',
-     &          'RMJ ','RMN ','VOL ','EKAP','DLT ','GRH1','GRH2',
+     &          'RMJ ','RMN ','VOL ','LKAP','DLT ','GRH1','GRH2',
      &          'AKTE','AKTI','PE','PI'/
 C      SAVE KVP
 C

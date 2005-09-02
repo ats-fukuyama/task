@@ -1431,7 +1431,7 @@ C
 C
       SUM=0.D0
       DO NR=1,NRMAX
-         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
+         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHOG(NR)*DR
          IF(SUM.LT.0.D0) GOTO 1000
       ENDDO
       NR=NRMAX
@@ -1447,7 +1447,7 @@ C
 C
       SUM = 0.D0
       DO NR=IONE,IZEROX
-         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHO(NR)*DR
+         SUM = SUM+(1.D0/ABS(QP(NR))-1.D0)*DSRHOG(NR)*DR
       ENDDO
 C
       DO NR=1,IZEROX

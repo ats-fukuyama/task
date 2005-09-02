@@ -939,7 +939,7 @@ C
       KFID='KAPPAR'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
       DO NR=1,NRMAX
-         EKAPU(1,NR)=FAS(NR)
+         RKPRHOU(1,NR)=FAS(NR)
       ENDDO
 C
       KFID='GRHO1'
@@ -1477,11 +1477,11 @@ C
       ENDIF
 C
       KFID='KAPPAR'
-      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,EKAPU,AMP,
+      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RKPRHOU,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
       IF(MDKAPPA.NE.0.AND.KUFDEV.EQ.'jt60u') THEN
          DO NTX=1,NTXMAX
-            RKAPU(NTX)=EKAPU(NTX,NRMAX)
+            RKAPU(NTX)=RKPRHOU(NTX,NRMAX)
          ENDDO
       ENDIF
 C
@@ -1809,7 +1809,7 @@ C
       DO NR=1,NRMAX
          RG(NR)    =DBLE(NR)*DR
          EPSRHO(NR)=RA*RG(NR)/RR
-         EKAP(NR)=RKAP
+         RKPRHOG(NR)=RKAP
       ENDDO
 C
 C     *** 1D VALUE ***
@@ -2454,7 +2454,7 @@ C
          RJCB(NR)=RJCBL
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
-         EKAP(NR)=RKAP
+         RKPRHOG(NR)=RKAP
          CALL LAGLANGE(TSL,PBML,TMU,PBMU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RNFL,TMU,RNFU(1,NR),NTXMAX,NTUM,IERR)
          PBM(NR)=PBML
@@ -2551,7 +2551,7 @@ C         QP(NR)=QPL
          RJCB(NR)=RJCBL
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
-         EKAP(NR)=RKAP
+         RKPRHOG(NR)=RKAP
       ENDDO
       ENDIF
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -2713,7 +2713,7 @@ C
          RJCB(NR)=RJCBU(1,NR)
          RMJRHO(NR)=RMJRHOU(1,NR)
          RMNRHO(NR)=RMNRHOU(1,NR)
-         EKAP(NR)=RKAP
+         RKPRHOG(NR)=RKAP
          RNF(NR,1)=RNFU(1,NR)
       ENDDO
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0

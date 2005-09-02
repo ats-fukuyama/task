@@ -639,7 +639,7 @@ C
 C     ***********************************************************
 C
       SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                          S_AR,EPSRHO,EKAP,RT,BB,AMM,AME,
+     &                          S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
      &                          PNSS,PTS,RNFL,RNFEDG,MDLUF,NSMAX,
      &                          AR1RHOG,AR2RHOG,AKDW)
 C
@@ -647,7 +647,7 @@ C
 C
       INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
       REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),QP(NRM),S_AR(NRM),
-     &       EPSRHO(NRM),EKAP(NRM),RT(NRM,NSM),BB,AMM,AME,
+     &       EPSRHO(NRM),RKPRHOG(NRM),RT(NRM,NSM),BB,AMM,AME,
      &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
      &       AR1RHOG(NRM),AR2RHOG(NRM),AKDW(NRM,NSTM)
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
@@ -695,7 +695,7 @@ C
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
-         zkappa = SNGL(EKAP(NR))
+         zkappa = SNGL(RKPRHOG(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
      &                 /RT(NR,1)**1.5D0)
 C         gnu    = 2.1*rmajor*ne19/(tekev**1.5 * tikev**0.5)
@@ -739,7 +739,7 @@ C
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
-         zkappa = SNGL(EKAP(NR))
+         zkappa = SNGL(RKPRHOG(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
      &                 /RT(NR,1)**1.5D0)
          gtau   = SNGL(PTS(2)/PTS(1))
