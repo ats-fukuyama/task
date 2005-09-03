@@ -6,8 +6,8 @@ FFLAGS = $(OFLAGS)
 
 #FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)
 
-SRCS=trmenu.f trinit.f trgout.f trfile.f trloop.f trrslt.f trmdlt.f \
-     trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f \
+SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f\
+     trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f  trmdlt.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
      glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f \
      tritg.f itg/weiland.f
@@ -99,6 +99,7 @@ new :
 trmain.o : trmain.f trcomm.inc trcom0.inc 
 trmenu.o : trmenu.f trcomm.inc trcom0.inc 
 trinit.o : trinit.f trcomm.inc trcom0.inc
+trprof.o : trprof.f trcomm.inc trcom0.inc
 trfile.o : trfile.f trcomm.inc trcom0.inc
 trloop.o : trloop.f trcomm.inc trcom0.inc
 trrslt.o : trrslt.f trcomm.inc trcom0.inc
