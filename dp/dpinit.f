@@ -235,8 +235,8 @@ C
       INCLUDE 'dpcomm.inc'
 C
       WRITE(6,100)
-      DO I=1,NSMAX
-        WRITE(6,110) I,MODELP(I),MODELP(NS),NDISP1(I),NDISP2(I)
+      DO NS=1,NSMAX
+        WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS)
       ENDDO
 C
       RETURN

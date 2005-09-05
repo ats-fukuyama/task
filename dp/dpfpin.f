@@ -11,15 +11,20 @@ C
       NTHMAX=100
       PMAX=10.D0
 C
+      PN0 = RN(NS)
+      PT0 = (RTPR(NS)+2*RTPP(NS))/3.D0
+      PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+C
       RN0 = RN(NS)
       TPR = RTPR(NS)
       TPP = RTPP(NS)
       RT0 = (TPR+2.D0*TPP)/3.D0
-      RNE0 = RN(NS)
-      TE0  = RT0
-      PTH0 = SQRT(RT0*1.D3*AEE*AMP*PA(NS))
 C
-      PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
+      IF(ID.EQ.0) THEN
+         PTH0W=0.D0
+      ELSE
+         PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
+      ENDIF
 C
       DELP=PMAX/NPMAX
       DELTH=PI/NTHMAX
@@ -95,8 +100,8 @@ C
       DIMENSION THT(NTHM+2),FPT(NTHM+2),FPX(NTHM+2)
       DIMENSION U2(4,NTHM+2)
 C
-      RNE0  =FPDATA(1)
-      TE0   =FPDATA(2)
+      PN0   =FPDATA(1)
+      PT0   =FPDATA(2)
       PTH0  =FPDATA(3)
       DELR  =FPDATA(4)
       DELP  =FPDATA(5)
@@ -188,14 +193,14 @@ C        GOTO 1
 C        GOTO 1
       ENDIF
 C
-   30 READ(21) RNE0,TE0,PTH0
+   30 READ(21) PN0,PT0,PTH0
       READ(21) DELR,DELP,DELTH
       READ(21) NRMAX,NPMAX,NTHMAX
       READ(21) (((FP(NTH,NP,NR),NTH=1,NTHMAX),NP=1,NPMAX),NR=1,NRMAX)
       CLOSE(21)
 C
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-      WRITE(6,*) 'RNE0,TE0,PTH0 =',RNE0,TE0,PTH0
+      WRITE(6,*) 'PN0,PT0,PTH0 =',PN0,PT0,PTH0
       WRITE(6,*) 'DELR,DELP,DELTH =',DELR,DELP,DELTH
       WRITE(6,*) 'NRMAX,NPMAX,NTHMAX =',NRMAX,NPMAX,NTHMAX
 C
@@ -225,8 +230,8 @@ C
          ENDDO
       ENDDO
 C
-      FPDATA(1)=RNE0
-      FPDATA(2)=TE0
+      FPDATA(1)=PN0
+      FPDATA(2)=PT0
       FPDATA(3)=PTH0
       FPDATA(4)=DELR
       FPDATA(5)=DELP

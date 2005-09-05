@@ -93,6 +93,13 @@ C
 C
       IERR=0
 C
+      IF(RIP1.EQ.0.D0) THEN
+         MDLEQF=8
+      ELSE
+         MDLEQF=7
+         RIP=RIP1
+      ENDIF
+C
       DO NTR=1,NTRMAX1
          RHOTR(NTR)=RHOTR1(NTR)
       ENDDO
@@ -162,12 +169,6 @@ C
 C
 C     ***** Solve GS equation for given profile *****
 C
-      IF(RIP1.EQ.0.D0) THEN
-         MDLEQF=8
-      ELSE
-         MDLEQF=7
-         RIP=RIP1
-      ENDIF
 C
       IF(ICONT.EQ.0) THEN
          CALL EQCALC(IERR)

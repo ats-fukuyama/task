@@ -60,7 +60,7 @@ libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
-	(cd ../eq; make pleqin.o)
+		(cd ../eq; make pleqin.o)
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)

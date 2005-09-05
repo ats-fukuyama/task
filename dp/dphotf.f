@@ -16,9 +16,9 @@ C
 C
       CALL DPHOTFR(CW,CKPR,CKPP,NS,CLDISP1)
       CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP2)
-      DO 100 I=1,6
+      DO I=1,6
          CLDISP(I)=CLDISP1(I)+CLDISP2(I)
-  100 CONTINUE
+      ENDDO
       RETURN
       END
 C
@@ -39,31 +39,34 @@ C
       RGM   = 1.D0
       DELPL =0.5D0
 C
-      CWP=RNE0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
       WCM=BABS*PZ(NS)*AEE
       CKPRW= CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 C
-      DO 50 NTH=1,NTHMAX
-      DO 50 NP=1,NPMAX-1
+      DO NTH=1,NTHMAX
+      DO NP=1,NPMAX-1
          DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
-   50 CONTINUE 
-      DO 60 NP=1,NPMAX
-      DO 60 NTH=1,NTHMAX-1
+      ENDDO
+      ENDDO
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX-1
          DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
-   60 CONTINUE
+      ENDDO
+      ENDDO
 C
 C***********DGP1,DGP2,DGT1,DGT2************
 C
-      DO 65 NP=1,NPMAX
-         DO 65 NTH=1,NTHMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
          DGT1(NP,NTH)= DKPRW*PG(NP)*TSNM(NTH)
          DGT2(NP,NTH)= DKPRW*PM(NP)*TSNG(NTH)
-   65 CONTINUE 
+      ENDDO
+      ENDDO
 C
 C*****************PRINCIPAL VALUE***********************
 C
@@ -79,8 +82,8 @@ C
       CINTG132 = (0.D0,0.D0)
       CINTG133 = (0.D0,0.D0)
 C
-      DO 120 NP=1,NPMAX-1
-      DO 120 NTH=1,NTHMAX
+      DO NP=1,NPMAX-1
+      DO NTH=1,NTHMAX
          CSM11 = (0.D0,0.D0)
          CSM12 = (0.D0,0.D0)
          CSM13 = (0.D0,0.D0)
@@ -91,7 +94,7 @@ C
          X = DKPP*PTH0*PG(NP)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
-         DO 110 NC=NCMIN,NCMAX
+         DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
             CDENX= RGM-CKPRW*PG(NP)*TCSM(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP)**2
@@ -116,7 +119,7 @@ C
             CSM22 = CSM22 + DCONJG(CPAI2)*CPAI2*CDEN
             CSM23 = CSM23 + DCONJG(CPAI2)* PAI3*CDEN
             CSM33 = CSM33 + PAI3* PAI3*CDEN
-  110    CONTINUE
+         ENDDO
 C
          PART1= DFP(NP,NTH)*PG(NP)*PG(NP)*PG(NP)
      &                     *TSNM(NTH)*TSNM(NTH)*TSNM(NTH)
@@ -131,7 +134,8 @@ C
          CINTG131= CINTG131 + CSM13*PART1
          CINTG132= CINTG132 - CSM23*PART1
          CINTG133= CINTG133 + CSM33*PART1
-  120 CONTINUE 
+      ENDDO
+      ENDDO
 C
 C*************SUM2********************
 C
@@ -145,8 +149,8 @@ C
       CINTG232 = (0.D0,0.D0)
       CINTG233 = (0.D0,0.D0)
 C
-      DO 140 NP=1,NPMAX
-      DO 140 NTH=1,NTHMAX-1
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX-1
          CSM11 = (0.D0,0.D0)
          CSM12 = (0.D0,0.D0)
          CSM13 = (0.D0,0.D0)
@@ -157,7 +161,7 @@ C
          X = DKPP*PTH0*PM(NP)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
-         DO 130 NC=NCMIN,NCMAX
+         DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
             CDENX = RGM-CKPRW*PM(NP)*TCSG(NTH)-NC*CWC
             CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP)**2
@@ -181,7 +185,7 @@ C
             CSM22 = CSM22 + DCONJG(CPAI2)*CPAI2*CDEN
             CSM23 = CSM23 + DCONJG(CPAI2)* PAI3*CDEN
             CSM33 = CSM33 + PAI3* PAI3*CDEN
-  130    CONTINUE
+         ENDDO
 C 
          CPART2= DFT(NP,NTH)*PM(NP)*PM(NP)
      &                      *TSNG(NTH)*TSNG(NTH)
@@ -200,7 +204,8 @@ C
      &                      - PM(NP)*PM(NP)*TCSG(NTH)
      &                        *DFT(NP,NTH)/RGM
      &                        *DELTH*DELP
-  140 CONTINUE 
+      ENDDO
+      ENDDO
 C
          FACT=2.D0*PI*DBLE(CWP)
 C
@@ -228,31 +233,34 @@ C
       NCMAX = NDISP2(NS)
       RGM   = 1.D0
 C
-      CWP=RNE0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWP=PN0*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
       WCM=BABS*PZ(NS)*AEE
       CKPRW=CKPR*PTH0/(AMP*PA(NS)*CW)
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 C
-      DO 50 NTH=1,NTHMAX
-      DO 50 NP=1,NPMAX-1
+      DO NTH=1,NTHMAX
+      DO NP=1,NPMAX-1
          DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
-   50 CONTINUE 
-      DO 60 NP=1,NPMAX
-      DO 60 NTH=1,NTHMAX-1
+      ENDDO
+      ENDDO
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX-1
          DFT(NP,NTH) = (FM(NP,NTH+1) - FM(NP,NTH))/DELTH
-   60 CONTINUE
+      ENDDO
+      ENDDO
 C
 C***********DGP1,DGP2,DGT1,DGT2************
 C
-      DO 65 NP=1,NPMAX
-         DO 65 NTH=1,NTHMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
          DGT1(NP,NTH)= DKPRW*PG(NP)*TSNM(NTH)
          DGT2(NP,NTH)= DKPRW*PM(NP)*TSNG(NTH)
-   65 CONTINUE 
+      ENDDO
+      ENDDO
 C
 C
 C***************SINGULAR POINT***************************
@@ -270,7 +278,7 @@ C
       CINTG332 = (0.D0,0.D0)
       CINTG333 = (0.D0,0.D0)
 C
-      DO 300 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
 C               
          CSM11 = (0.D0,0.D0)
          CSM12 = (0.D0,0.D0)
@@ -279,14 +287,13 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C               
-         DO 310 NC=NCMIN,NCMAX
+         DO NC=NCMIN,NCMAX
 C
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSM(NTH)))
             IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP*NPMAX) GOTO 310
             NP = INT(PNEAR/DELP)
-            IF (NP.LT.0.OR.NP.GE.NPMAX) THEN
-               GOTO 310
-            ELSEIF (NP.EQ.0) THEN
+            IF (NP.LT.0.OR.NP.GE.NPMAX) GOTO 310
+            IF (NP.EQ.0) THEN
                DIF = PNEAR/DELP
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP.EQ.NPMAX-1) THEN
@@ -325,6 +332,7 @@ C
             CSM23 = CSM23 + DCONJG(CPAI2)* PAI3*CPART31
             CSM33 = CSM33 + PAI3* PAI3*CPART31
   310    CONTINUE 
+         ENDDO
          CPART32= -CI*PI*ABS(1.D0/(CKPRW*TCSM(NTH)))
      &           *(TTNM(NTH)/CKPRW)**3*DELTH
 C              
@@ -337,7 +345,7 @@ C
          CINTG331 = CINTG331 + CSM13*CPART32
          CINTG332 = CINTG332 - CSM23*CPART32
          CINTG333 = CINTG333 + CSM33*CPART32
-  300 CONTINUE
+      ENDDO
 C
 C*****************SUM4************************
 C 
@@ -351,7 +359,7 @@ C
       CINTG432 = (0.D0,0.D0)
       CINTG433 = (0.D0,0.D0)
 C
-      DO 400 NTH=1,NTHMAX-1
+      DO NTH=1,NTHMAX-1
 C               
          CSM11 = (0.D0,0.D0)
          CSM12 = (0.D0,0.D0)
@@ -360,14 +368,14 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C               
-         DO 410 NC=NCMIN,NCMAX
+         DO NC=NCMIN,NCMAX
 C               
+            IF(NTH*2.EQ.NTHMAX) GOTO 410
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSG(NTH)))
             IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP*NPMAX) GOTO 410
             NP = INT(PNEAR/DELP+0.5D0)
-            IF(NP.LT.0.OR.NP.GE.NPMAX) THEN
-               GOTO 410
-            ELSE IF (NP.EQ.0) THEN
+            IF(NP.LT.0.OR.NP.GE.NPMAX) GOTO 410
+            IF (NP.EQ.0) THEN
                DIF = (PNEAR - PM(1))/DELP
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSEIF(NP.EQ.NPMAX-1) THEN
@@ -406,6 +414,7 @@ C
             CSM23 = CSM23 + DCONJG(CPAI2)*PAI3*CPART41
             CSM33 = CSM33 + PAI3*PAI3*CPART41
   410    CONTINUE 
+         ENDDO
 C
          CPART42= -CI*PI*ABS(1.D0/(CKPRW*TCSG(NTH)))
      &           *(TTNG(NTH)/CKPRW)**2*DELTH
@@ -419,7 +428,7 @@ C
          CINTG431 = CINTG431 + CSM13*CPART42
          CINTG432 = CINTG432 - CSM23*CPART42
          CINTG433 = CINTG433 + CSM33*CPART42
-  400 CONTINUE
+      ENDDO
 C
       FACT=2.D0*PI*DBLE(CWP)
 C
