@@ -43,7 +43,7 @@ C
       DO NTR=1,NTRMAX
          RHOTR(NTR)= DRHO*(DBLE(NTR)-0.5D0)
          PRHO(NTR)=P0*(1.D0-RHOTR(NTR)**2)**1.5D0
-         HJRHO(NTR)= (1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
+         HJRHO(NTR)= 1.D6*(1.D0-RHOTR(NTR)**PROFJ1)**PROFJ2
          VTRHO(NTR)=0.D0
          TRHO(NTR)=PT0*(1.D0-RHOTR(NTR)**2)
       ENDDO

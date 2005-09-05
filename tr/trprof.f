@@ -704,7 +704,7 @@ C
          DO NS=2,NSM
             TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(NR,1)
          ENDDO
-         HJRHO(NR)=AJ(NR)*1.D-6 !*FACTJ
+         HJRHO(NR)=AJ(NR)       !*FACTJ
          VTRHO(NR)=0.D0
          RHOTR(NR)=RM(NR)
 C         WRITE(6,'(A,I5,1P4E12.4)')
@@ -738,6 +738,10 @@ C
             AJ(NR)=HJRHO(NR)
          ENDDO
       ENDIF
+         DO NR=1,NRMAX
+            WRITE(6,'(I5,1P3E12.4)')
+     &           NR,RM(NR),AJ(NR),HJRHO(NR)
+         ENDDO
 C
 C     *** Providing geometric quantities on half mesh ***
       CALL TREQGET(NRMAX,RM,
@@ -795,7 +799,7 @@ C
          AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
       ENDDO
       DO NR=1,NRMAX
-         write(6,*) RM(NR),QP(NR)
+C         write(6,*) RM(NR),QP(NR)
          QP(NR)=2.D0*PI*BB*(RSA/SQRT(2.D0*PI))**2*RG(NR)/RDP(NR)
       ENDDO
       CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM)
@@ -816,10 +820,10 @@ C
       NR=NRMAX
       RIPSUM2=RR/RMU0*DVRHOG(NR)*ABRHOG(NR)*RDP(NR)
       write(6,*) RIPSUM1/(2.D0*PI*RR)*1.D-6,RIPSUM2/(2.D0*PI*RR)*1.D-6
-      DO NR=1,NRMAX
-         write(6,*) NR,DSRHO(NR),DVRHO(NR)/(2.D0*PI*RR)
-      ENDDO
-      STOP
+C      DO NR=1,NRMAX
+C         write(6,*) NR,DSRHO(NR),DVRHO(NR)/(2.D0*PI*RR)
+C      ENDDO
+C      STOP
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P4E12.4)')

@@ -182,6 +182,8 @@ C
      &          *FPOW(PSIL,PROFR1-1.D0)
      &      +PJ2*FPOW(1.D0-ARG2,PROFJ2)
      &          *FPOW(PSIL,PROFR2-1.D0)
+         FD=FD*1.D6
+         F =F *1.D6
       ELSE
          CALL SPL1DI(PSIL,FD,PSITRX,UJPSI,UJPSI0,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQJPSI: SPL1DI : IERR=',IERR
@@ -191,8 +193,8 @@ C
 C
       CALL EQFDPP(PSIN,FDN)
 C
-      HJPSID= FD*1.D6/FDN
-      HJPSI =  F*1.D6
+      HJPSID= FD/FDN
+      HJPSI =  F
 C      WRITE(6,'(1P4E12.4)') PSIN,PSIL,HJPSI,HJPSID
       RETURN
       END
