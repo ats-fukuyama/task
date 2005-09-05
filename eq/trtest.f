@@ -26,7 +26,8 @@ C
       PN0   = 0.05D0
       PT0   = 0.6D0
       PROFJ1= 2
-      PROFJ2= 2.5D0
+C      PROFJ2= 2.5D0
+      PROFJ2= 4.0D0
 C
       RIP1  = 3.D0
 C

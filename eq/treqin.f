@@ -114,7 +114,7 @@ C
             PSITRX(NTR)=RHOTR(NTR)**2
          ENDDO
       ELSEIF(ID.EQ.1.OR.ID.EQ.3) THEN
-         NTRMAX=NTRMAX+1
+         NTRMAX=NTRMAX1+1
          PSITRX(1)=0.D0
          DO NTR=2,NTRMAX
             PSITRX(NTR)=RHOTR(NTR-1)**2
