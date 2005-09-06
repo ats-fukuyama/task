@@ -377,9 +377,10 @@ C
          GYT(I,3)=GVT(I,36)
          GYT(I,4)=GVT(I,37)
          GYT(I,5)=GVT(I,38)
+         GYT(I,6)=GVT(I,101)
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,5,
-     &            '@IP,IOH,INB,IRF,IBS [MA]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,6,
+     &            '@IPPRL,IOH,INB,IRF,IBS,IP [MA]  vs t@',2+INQ)
 C
       DO I=1,NGT
          GYT(I,1)=GVT(I,39)

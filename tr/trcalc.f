@@ -43,13 +43,7 @@ C         AJNB(NR)=0.D0
       ENDDO
       ENDDO
 C
-      IF(MODELQ.EQ.3) THEN
-         DO NR=1,NRMAX
-C            QL=RKAPS*RG(NR)*RA*BB/(RR*BP(NR))
-C            QP(NR)=FACTQ(NR)*QL
-CCC            QP(NR)=QRHO(NR)*BPRHO(NR)/BP(NR)
-         ENDDO
-      ELSE
+      IF(MODELG.NE.3) THEN
          IF(MDLUF.NE.1) THEN
             DO NR=1,NRMAX
                QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
@@ -1486,19 +1480,11 @@ C
       ENDIF
 C
       IF(LQ.EQ.1) THEN
-         IF(MODELQ.EQ.3) THEN
-            DO NR=1,IZEROX
-               QP(NR) = 1.D0/QONE(NR)
-               BP(NR) = BPRHO(NR)*QRHO(NR)/QP(NR)
-C               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
-            ENDDO
-         ELSE
-            RKAPS=SQRT(RKAP)
-            DO NR=1,IZEROX
-               QP(NR) = 1.D0/QONE(NR)
-               BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
-            ENDDO
-         ENDIF
+         RKAPS=SQRT(RKAP)
+         DO NR=1,IZEROX
+            QP(NR) = 1.D0/QONE(NR)
+            BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
+         ENDDO
       ENDIF
 C
          WRITE(6,602) RM(IONE),RM(IZEROX),RTN,RNN

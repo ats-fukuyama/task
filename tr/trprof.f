@@ -649,7 +649,7 @@ C
       DRIP  = (RIPSS-RIPS)/1.D1
  1000 RIP   = RIPSS
 C
-      IF(MODELQ.EQ.3) THEN
+      IF(MODELG.EQ.9) THEN
 C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
@@ -667,14 +667,14 @@ C
          GRG(NR+1)=GUCLIP(RG(NR))
       ENDDO
 C
-      IF(MODELQ.NE.0) THEN
-         RIPSS=RIPSS-DRIP
-C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
-C     &        ,RIPE
-         IF(DRIP.NE.0.AND.ABS(RIPSS-RIPS).LT.1.D-10) THEN
-            GOTO 1000
-         ENDIF
-      ENDIF
+c$$$      IF(MODELQ.NE.0) THEN
+c$$$         RIPSS=RIPSS-DRIP
+c$$$C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
+c$$$C     &        ,RIPE
+c$$$         IF(DRIP.NE.0.AND.ABS(RIPSS-RIPS).LT.1.D-10) THEN
+c$$$            GOTO 1000
+c$$$         ENDIF
+c$$$      ENDIF
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
@@ -707,16 +707,7 @@ C
          HJRHO(NR)=AJ(NR)
          VTRHO(NR)=0.D0
          RHOTR(NR)=RM(NR)
-C         WRITE(6,'(A,I5,1P4E12.4)')
-C     &           'NR,P/HJ/T/VTRHO=',NR,PRHO(NR),
-C     &           HJRHO(NR),TRHO(NR),VTRHO(NR)
       ENDDO
-C
-C      DO NR=1,NRMAX
-C         WRITE(6,'(A,2I5,1P4E12.4)')
-C     &           'NR,I/RM/J/V/T=',NR,NRMAX,RIP,
-C     &           HJRHO(NR),VTRHO(NR),TRHO(NR)
-C      ENDDO
 C
       IF(ID.EQ.0) THEN
          ICONT=0
@@ -762,7 +753,6 @@ C     *** Adjust system of unit ***
          ARRHOG(NR)  =ARRHOG(NR)/RR**2
          ABB2RHOG(NR)=ABB2RHOG(NR)*BB**2
          AIB2RHOG(NR)=AIB2RHOG(NR)/BB**2
-C         write(6,'(I3,3F15.7)') NR,TTRHO(NR),BB*RR
       ENDDO
 C
 c$$$      DO NR=1,NRMAX
@@ -797,28 +787,19 @@ C
       DO NR=1,NRMAX
 C         write(6,*) RM(NR),QP(NR)
          QP(NR)=2.D0*PI*BB*(RSA/SQRT(2.D0*PI))**2*RG(NR)/RDP(NR)
-         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
+c$$$         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
       ENDDO
-      CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM)
-      AJT   = AJTSUM*DR/1.D6
-      write(6,*) "Parallel current =",AJT
-      CALL TRSUMD(AJTOR,DSRHO,NRMAX,AJTTSUM)
-      AJTT   = AJTTSUM*DR/1.D6
-      write(6,*) "Toroidal current =",AJTT
-      NR=NRMAX
-      write(6,*) "Current from RDP =",
-     &     DVRHOG(NR)*ABRHOG(NR)*RDP(NR)/(2.D0*PI*RMU0)*1.D-6
+c$$$      CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM)
+c$$$      AJT   = AJTSUM*DR/1.D6
+c$$$      write(6,*) "Parallel current =",AJT
+c$$$      CALL TRSUMD(AJTOR,DSRHO,NRMAX,AJTTSUM)
+c$$$      AJTT   = AJTTSUM*DR/1.D6
+c$$$      write(6,*) "Toroidal current =",AJTT
+c$$$      NR=NRMAX
+c$$$      write(6,*) "Current from RDP =",
+c$$$     &     DVRHOG(NR)*ABRHOG(NR)*RDP(NR)/(2.D0*PI*RMU0)*1.D-6
 c$$$      write(6,*) "Current from RDPA=",
 c$$$     &     DVRHOG(NR)*ABRHOG(NR)*RDPA/(2.D0*PI*RMU0)*1.D-6
-C
-C      DO NR=1,NRMAX
-C         WRITE(6,'(A,I5,1P4E12.4)')
-C     &           'NR,Q/TT/DV/AB=',NR,QRHO(NR),
-C     &           TTRHO(NR),DVRHO(NR),ABRHO(NR)
-C         WRITE(6,'(A,I5,1P4E12.4)')
-C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
-C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
-C      ENDDO
 C
       RETURN
       END
@@ -893,7 +874,7 @@ C
 C
       RKAPS=SQRT(RKAP)
       IF(MDLUF.NE.0) THEN
-         IF(MODELG.EQ.0) THEN
+         IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
             DO NR=1,NRMAX
                EPSRHO(NR)=RA*RG(NR)/RR
 C
@@ -914,13 +895,13 @@ C
                ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
             ENDDO
             CALL FLUX
-         ELSE
+         ELSEIF(MODELG.EQ.5) THEN
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
 C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHOG,
 C     &                         NRMAX,NRM)
          ENDIF
       ELSE
-         IF(MODELG.EQ.0) THEN
+         IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
             DO NR=1,NRMAX
                EPSRHO(NR)=RA*RG(NR)/RR
                BPRHO(NR)=BP(NR)
@@ -939,7 +920,7 @@ C     &                         NRMAX,NRM)
                AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
                ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
             ENDDO
-         ELSE
+         ELSEIF(MODELG.EQ.5) THEN
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
 C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHOG,
 C     &                         NRMAX,NRM)

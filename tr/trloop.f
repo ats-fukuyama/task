@@ -331,6 +331,8 @@ C
          CALL TRCFDW_AKDW
       ENDIF
 C
+C     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
+C
       IDGLOB=0
       IF(MOD(NT,NTSTEP).EQ.0) THEN
          IF(IDGLOB.EQ.0) CALL TRGLOB
@@ -348,12 +350,18 @@ C
          IDGLOB=1
          CALL TRATOG
       ENDIF
-      IF(MODELQ.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
-C         CALL TRCONV(L,1,IERR)
-C         WRITE(6,*) "L=",L
-         CALL TRSETG(1)
-         IF(IERR.NE.0) RETURN
+C
+C     *** SET GEOMETRY VIA TASK/EQ ***
+C
+      IF(MODELG.EQ.9.AND.NTEQIT.NE.0) THEN
+         IF(MOD(NT,NTEQIT).EQ.0) THEN
+C            CALL TRCONV(L,1,IERR)
+C            WRITE(6,*) "L=",L
+C            IF(IERR.NE.0) RETURN
+            CALL TRSETG(1)
+         ENDIF
       ENDIF
+C
       IF(IDGLOB.EQ.0) CALL TRGLOB
 C
 C     *** READING DATA FROM UFILES FOR NEXT STEP ***
@@ -413,9 +421,6 @@ C
      &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
       ENDIF
-C      IF(MODELQ.EQ.3) THEN
-C         BPS=BPSEQ*RIP/RIPEQ
-C      ENDIF
 C
       COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)
 C
