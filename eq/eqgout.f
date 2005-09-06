@@ -111,7 +111,7 @@ C
          XAX(NX)=RMG(NSG,NTGX)
          RPSI(NX)=PSI(NTGX,NSG)
          RHJT(NX)=HJT(NTGX,NSG)
-         RHJP(NX)=HJP2(NTGX,NSG)
+         RHJP(NX)=HJP(NTGX,NSG)
          RPP(NX)=PP(NTGX,NSG)
          RTT(NX)=TT(NTGX,NSG)
       ENDDO
@@ -121,7 +121,7 @@ C
          XAX(NX)=RMG(NSG,NTGX)
          RPSI(NX)=PSI(NTGX,NSG)
          RHJT(NX)=HJT(NTGX,NSG)
-         RHJP(NX)=HJP2(NTGX,NSG)
+         RHJP(NX)=HJP(NTGX,NSG)
          RPP(NX)=PP(NTGX,NSG)
          RTT(NX)=TT(NTGX,NSG)
       ENDDO

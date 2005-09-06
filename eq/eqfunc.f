@@ -6,21 +6,21 @@ C   *************************************
 C
 C     ---- PSIN is converted to PSIPN or PSITN ----
 C
-      SUBROUTINE EQCNVA(PSIN,PSIL)
+      SUBROUTINE EQCNVA(PSIPNL,PSINL)
 C
       INCLUDE 'eqcomc.inc'
 C
-      IF(PSIN.LE.0.D0) THEN
-         PSIL=0.D0
-      ELSEIF(PSIN.GE.1.D0) THEN
-         PSIL=1.D0
+      IF(PSIPNL.LE.0.D0) THEN
+         PSINL=0.D0
+      ELSEIF(PSIPNL.GE.1.D0) THEN
+         PSINL=1.D0
       ELSE
          IF(MDLEQA.EQ.0) THEN
-            PSIL=PSIN
+            PSINL=PSIPNL
          ELSE
-            PSIL=EQPSITN(PSIN)
-            IF(PSIL.LE.0.D0) PSIL=0.D0
-            IF(PSIL.GE.1.D0) PSIL=1.D0
+            PSINL=EQPSITN(PSIPNL)
+            IF(PSINL.LE.0.D0) PSINL=0.D0
+            IF(PSINL.GE.1.D0) PSINL=1.D0
          ENDIF
       ENDIF
       RETURN
@@ -30,25 +30,25 @@ C   ****************************************
 C   *****  Calculate Profile Function  *****
 C   ****************************************
 C
-      SUBROUTINE EQFUNC(PSIL,F,DF,F0,FS,F1,F2,PSIITB,
+      SUBROUTINE EQFUNC(PSINL,F,DF,F0,FS,F1,F2,PSIITB,
      &                  PROFR0,PROFR1,PROFR2,PROFF0,PROFF1,PROFF2)
 C
       IMPLICIT REAL*8 (A-H,O-Z)
 C
-      ARG0=FPOW(PSIL,PROFR0)
-      ARG1=FPOW(PSIL,PROFR1)
+      ARG0=FPOW(PSINL,PROFR0)
+      ARG1=FPOW(PSINL,PROFR1)
       F = FS
      &  + (F0-FS)       *FPOW(1.D0-ARG0,PROFF0)
      &  + F1            *FPOW(1.D0-ARG1,PROFF1)
       DF=-(F0-FS)*PROFF0*FPOW(1.D0-ARG0,PROFF0-1.D0)
-     &           *PROFR0*FPOW(     PSIL,PROFR0-1.D0)
+     &           *PROFR0*FPOW(     PSINL,PROFR0-1.D0)
      &   -F1     *PROFF1*FPOW(1.D0-ARG1,PROFF1-1.D0)
-     &           *PROFR1*FPOW(     PSIL,PROFR1-1.D0)
-      IF(PSIL.LT.PSIITB) THEN
-         ARG2=FPOW(PSIL/PSIITB,PROFR2)
+     &           *PROFR1*FPOW(     PSINL,PROFR1-1.D0)
+      IF(PSINL.LT.PSIITB) THEN
+         ARG2=FPOW(PSINL/PSIITB,PROFR2)
          F = F +F2       *FPOW(1.D0-ARG2,  PROFF2)
          DF= DF-F2*PROFF2*FPOW(1.D0-ARG2,  PROFF2-1.D0)
-     &            *PROFR2*FPOW(PSIL/PSIITB,PROFR2-1.D0)
+     &            *PROFR2*FPOW(PSINL/PSIITB,PROFR2-1.D0)
      &            /PSIITB
       ENDIF
       RETURN
@@ -58,14 +58,14 @@ C   **************************************************
 C   *****  Calculate factor for Psip derivative  *****
 C   **************************************************
 C
-      SUBROUTINE EQFDPP(PSIN,FDN)
+      SUBROUTINE EQFDPP(PSIPNL,FDN)
 C
       INCLUDE 'eqcomc.inc'
 C
       IF(MDLEQA.EQ.0) THEN
-         FDN=-1.D0/PSI0
+         FDN=1.D0/PSIPA
       ELSE
-         QPVL=EQQPV(PSIN)
+         QPVL=EQQPV(PSIPNL)
          FDN=QPVL/PSITA
       ENDIF
       RETURN
@@ -76,23 +76,26 @@ C   ** Plasma pressure                            **
 C   **                  P(psin)                   **
 C   ************************************************
 C
-      SUBROUTINE EQPPSI(PSIN,PPSI,DPPSI)
+      SUBROUTINE EQPPSI(PSIPNL,PPSI,DPPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
-         CALL EQFUNC(PSIL,F,DF,PP0,0.D0,PP1,PP2,PSIITB,
+         CALL EQCNVA(PSIPNL,PSINL)
+         CALL EQFUNC(PSINL,F,DF,PP0,0.D0,PP1,PP2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFP0,PROFP1,PROFP2)
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DD(PSIL,F,DF,PSITRX,UPPSI,NTRMAX,IERR)
+         IF(PSIPNL.LT.0.D0) PSIPNL=0.D0
+         IF(PSIPNL.GT.1.D0) PSIPNL=1.D0
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DD(PSITNL,F,DF,PSITRX,UPPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQPPSI: SPL1DD : IERR=',IERR
          IF(F.LT.0.D0) F=0.D0
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
-C
-      CALL EQFDPP(PSIN,FDN)
 C
       PPSI  =      F*1.D6
       DPPSI = FDN*DF*1.D6
@@ -104,23 +107,24 @@ C   ** Poloidal currenet                          **
 C   **                  F(psin)=2*PI*B*R          **
 C   ************************************************
 C
-      SUBROUTINE EQFPSI(PSIN,FPSI,DFPSI)
+      SUBROUTINE EQFPSI(PSIPNL,FPSI,DFPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
+         CALL EQCNVA(PSIPNL,PSINL)
          FS=2.D0*PI*BB*RR
-         CALL EQFUNC(PSIL,F,DF,FF0+FS,FS,FF1,FF2,PSIITB,
+         CALL EQFUNC(PSINL,F,DF,FF0+FS,FS,FF1,FF2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFF0,PROFF1,PROFF2)
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DD(PSIL,F,DF,PSITRX,UFPSI,NTRMAX,IERR)
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DD(PSITNL,F,DF,PSITRX,UFPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQFPSI: SPL1DD : IERR=',IERR
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
-C
-      CALL EQFDPP(PSIN,FDN)
 C
       FPSI  =      F
       DFPSI = FDN*DF
@@ -132,22 +136,23 @@ C   ** Safety factor                              **
 C   **                 Q(psin)                    **
 C   ************************************************
 C
-      SUBROUTINE EQQPSI(PSIN,QPSI,DQPSI)
+      SUBROUTINE EQQPSI(PSIPNL,QPSI,DQPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
-         CALL EQFUNC(PSIL,F,DF,QQ0,QQS,QQ1,QQ2,PSIITB,
+         CALL EQCNVA(PSIPNL,PSINL)
+         CALL EQFUNC(PSINL,F,DF,QQ0,QQS,QQ1,QQ2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFQ0,PROFQ1,PROFQ2)
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DD(PSIL,F,DF,QSITRX,UQPSI,NTRMAX,IERR)
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DD(PSITNL,F,DF,QSITRX,UQPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQQPSI: SPL1DD : IERR=',IERR
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
-C
-      CALL EQFDPP(PSIN,FDN)
 C
       QPSI  =      F
       DQPSI = FDN*DF
@@ -159,17 +164,16 @@ C   ** Plasma current density                     **
 C   **                  J(psin)                   **
 C   ************************************************
 C
-      SUBROUTINE EQJPSI(PSIN,HJPSID,HJPSI)
+      SUBROUTINE EQJPSI(PSIPNL,HJPSID,HJPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
-         ARG0=FPOW(PSIL,PROFR0)
-         ARG1=FPOW(PSIL,PROFR1)
-         ARG2=FPOW(PSIL,PROFR2)
+         CALL EQCNVA(PSIPNL,PSINL)
+         ARG0=FPOW(PSINL,PROFR0)
+         ARG1=FPOW(PSINL,PROFR1)
+         ARG2=FPOW(PSINL,PROFR2)
          FD=-PJ0*FPOW(1.D0-ARG0,PROFJ0+1.D0)
      &                /(PROFR0*(PROFJ0+1.D0))
      &      -PJ1*FPOW(1.D0-ARG1,PROFJ1+1.D0)
@@ -177,25 +181,27 @@ C
      &      -PJ2*FPOW(1.D0-ARG2,PROFJ2+1.D0)
      &                /(PROFR2*(PROFJ2+1.D0))
          F = PJ0*FPOW(1.D0-ARG0,PROFJ0)
-     &          *FPOW(PSIL,PROFR0-1.D0)
+     &          *FPOW(PSINL,PROFR0-1.D0)
      &      +PJ1*FPOW(1.D0-ARG1,PROFJ1)
-     &          *FPOW(PSIL,PROFR1-1.D0)
+     &          *FPOW(PSINL,PROFR1-1.D0)
      &      +PJ2*FPOW(1.D0-ARG2,PROFJ2)
-     &          *FPOW(PSIL,PROFR2-1.D0)
+     &          *FPOW(PSINL,PROFR2-1.D0)
          FD=FD*1.D6
          F =F *1.D6
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DI(PSIL,FD,PSITRX,UJPSI,UJPSI0,NTRMAX,IERR)
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DI(PSITNL,FD,PSITRX,UJPSI,UJPSI0,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQJPSI: SPL1DI : IERR=',IERR
-         CALL SPL1DF(PSIL,F,PSITRX,UJPSI,NTRMAX,IERR)
+         CALL SPL1DF(PSITNL,F,PSITRX,UJPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQJPSI: SPL1DF : IERR=',IERR
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
-C
-      CALL EQFDPP(PSIN,FDN)
 C
       HJPSID= FD/FDN
       HJPSI =  F
-C      WRITE(6,'(1P4E12.4)') PSIN,PSIL,HJPSI,HJPSID
+C      WRITE(6,'(1P4E12.4)') PSIPNL,PSINL,HJPSI,HJPSID
       RETURN
       END
 C
@@ -204,22 +210,23 @@ C   ** Plasma tempertature                        **
 C   **                  T(psin)                   **
 C   ************************************************
 C
-      SUBROUTINE EQTPSI(PSIN,TPSI,DTPSI)
+      SUBROUTINE EQTPSI(PSIPNL,TPSI,DTPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
-         CALL EQFUNC(PSIL,F,DF,PT0,PTS,PT1,PT2,PSIITB,
+         CALL EQCNVA(PSIPNL,PSINL)
+         CALL EQFUNC(PSINL,F,DF,PT0,PTS,PT1,PT2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFT0,PROFT1,PROFT2)
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DD(PSIN,F,DF,PSITRX,UTPSI,NTRMAX,IERR)
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DD(PSITNL,F,DF,PSITRX,UTPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQTPSI: SPL1DD : IERR=',IERR
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
-C
-      CALL EQFDPP(PSIN,FDN)
 C
       TPSI=      F*1.D3*AEE
       DTPSI=FDN*DF*1.D3*AEE
@@ -231,24 +238,25 @@ C   ** Toroidal rotation angular velocisty        **
 C   **               OPSI(psin)                   **
 C   ************************************************
 C
-      SUBROUTINE EQOPSI(PSIN,OMGPSI,DOMGPSI)
+      SUBROUTINE EQOPSI(PSIPNL,OMGPSI,DOMGPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      CALL EQCNVA(PSIN,PSIL)
-C
       IF(MDLEQF.LT.5) THEN
-         CALL EQFUNC(PSIL,F,DF,PV0,0.D0,PV1,PV2,PSIITB,
+         CALL EQCNVA(PSIPNL,PSINL)
+         CALL EQFUNC(PSINL,F,DF,PV0,0.D0,PV1,PV2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFV0,PROFV1,PROFV2)
+         CALL EQFDPP(PSIPNL,FDN)
       ELSE
-         CALL SPL1DD(PSIN,F,DF,PSITRX,UVTPSI,NTRMAX,IERR)
+         PSITNL=EQPSITN(PSIPNL)
+         CALL SPL1DD(PSITNL,F,DF,PSITRX,UVTPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQOPSI: SPL1DD : IERR=',IERR
+         QPVL=EQQPV(PSIPNL)
+         FDN=QPVL/PSITA
       ENDIF
 C
-      CALL EQFDPP(PSIN,FDN)
-C
-      OMGPSI=  F/RAXIS
-      DOMGPSI=DF/RAXIS
+      OMGPSI=      F/RAXIS
+      DOMGPSI=FDN*DF/RAXIS
       RETURN
       END

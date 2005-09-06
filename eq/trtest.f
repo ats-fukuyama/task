@@ -23,13 +23,16 @@ C
       RKAP  = 1.6D0
       RDLT  = 0.25D0
       BB    = 3.D0
-      PN0   = 0.05D0
-      PT0   = 0.6D0
+C      PN0   = 0.05D0
+      PN0   = 0.5D0
+C      PT0   = 0.6D0
+      PT0   = 0.8D0
       PROFJ1= 2
 C      PROFJ2= 2.5D0
       PROFJ2= 4.0D0
 C
-      RIP1  = 3.D0
+C      RIP1  = 3.D0
+      RIP1  = 1.D0
 C
       DRHO=1.D0/NTRMAX
       DO NTR=1,NTRMAX
