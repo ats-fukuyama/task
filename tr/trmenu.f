@@ -82,7 +82,7 @@ C
          INIT=2
          NTMOLD=NTMAX
       ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
-         CALL TRCONV(L,IERR)
+         CALL TRCONV(L,0,IERR)
 C   
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
          IF(MDLUF.EQ.1) THEN

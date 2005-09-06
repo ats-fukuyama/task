@@ -349,9 +349,9 @@ C
          CALL TRATOG
       ENDIF
       IF(MODELQ.EQ.3.AND.MOD(NT,NTEQIT).EQ.0) THEN
-C         CALL TRCONV(L,IERR)
+C         CALL TRCONV(L,1,IERR)
 C         WRITE(6,*) "L=",L
-         CALL TRSETG
+         CALL TRSETG(1)
          IF(IERR.NE.0) RETURN
       ENDIF
       IF(IDGLOB.EQ.0) CALL TRGLOB

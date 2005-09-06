@@ -10,8 +10,6 @@ C
       INCLUDE 'trcomm.inc'
       COMMON /TMSLC2/ NTAMAX
 C
-      FACTJ   = 1.D0
-C
       T     = 0.D0
       TPRE  = 0.D0
       TST   = 0.D0
@@ -656,9 +654,9 @@ C     *** giving initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     ***
-C         CALL TRCONV(L,IERR)
+C         CALL TRCONV(L,0,IERR)
 C         WRITE(6,*) "L=",L
-         CALL TRSETG
+         CALL TRSETG(0)
       ENDIF
 C
       GRG(1)=0.0
@@ -686,7 +684,7 @@ C           SET GEOMETRICAL FACTOR VIA TASK/EQ
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRSETG
+      SUBROUTINE TRSETG(ID)
 C
       INCLUDE 'trcomm.inc'
       DIMENSION DUMMY(NRM)
@@ -704,7 +702,7 @@ C
          DO NS=2,NSM
             TRHO(NR)=TRHO(NR)+RT(NR,NS)*RN(NR,NS)/RN(NR,1)
          ENDDO
-         HJRHO(NR)=AJ(NR)       !*FACTJ
+         HJRHO(NR)=AJ(NR)
          VTRHO(NR)=0.D0
          RHOTR(NR)=RM(NR)
 C         WRITE(6,'(A,I5,1P4E12.4)')
@@ -718,7 +716,7 @@ C     &           'NR,I/RM/J/V/T=',NR,NRMAX,RIP,
 C     &           HJRHO(NR),VTRHO(NR),TRHO(NR)
 C      ENDDO
 C
-      IF(NT.EQ.0) THEN
+      IF(ID.EQ.0) THEN
          ICONT=0
          SRIP=RIPS
       ELSE
@@ -738,10 +736,6 @@ C
             AJ(NR)=HJRHO(NR)
          ENDDO
       ENDIF
-         DO NR=1,NRMAX
-            WRITE(6,'(I5,1P3E12.4)')
-     &           NR,RM(NR),AJ(NR),HJRHO(NR)
-         ENDDO
 C
 C     *** Providing geometric quantities on half mesh ***
       CALL TREQGET(NRMAX,RM,
@@ -813,17 +807,6 @@ C         write(6,*) RM(NR),QP(NR)
      &     DVRHOG(NR)*ABRHOG(NR)*RDP(NR)/(2.D0*PI*RMU0)*1.D-6
       write(6,*) "Current from RDPA=",
      &     DVRHOG(NR)*ABRHOG(NR)*RDPA/(2.D0*PI*RMU0)*1.D-6
-      RIPSUM1=0.D0
-      DO NR=1,NRMAX
-         RIPSUM1=RIPSUM1+DVRHO(NR)*AJTOR(NR)*DR
-      ENDDO
-      NR=NRMAX
-      RIPSUM2=RR/RMU0*DVRHOG(NR)*ABRHOG(NR)*RDP(NR)
-      write(6,*) RIPSUM1/(2.D0*PI*RR)*1.D-6,RIPSUM2/(2.D0*PI*RR)*1.D-6
-C      DO NR=1,NRMAX
-C         write(6,*) NR,DSRHO(NR),DVRHO(NR)/(2.D0*PI*RR)
-C      ENDDO
-C      STOP
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P4E12.4)')
@@ -834,7 +817,6 @@ C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
 C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
 C      ENDDO
 C
-
 c$$$      DO NR=1,NRMAX
 c$$$         write(6,'(I3,3F20.10)') NR,AJ(NR),AJTOR(NR)
 c$$$      ENDDO
@@ -854,7 +836,7 @@ C           CONVERGENCE TEST
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRCONV(L,IERR)
+      SUBROUTINE TRCONV(L,ID,IERR)
 C
       INCLUDE 'trcomm.inc'
       DIMENSION AJOLD(NRM),AJDLT(NRM)
@@ -870,7 +852,7 @@ C
          IERR=1
          RETURN
       ENDIF
-      CALL TRSETG
+      CALL TRSETG(ID)
       DO NR=1,NRMAX
          AJDLT(NR)=AJ(NR)-AJOLD(NR)
       ENDDO
