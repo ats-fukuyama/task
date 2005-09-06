@@ -650,10 +650,12 @@ C
  1000 RIP   = RIPSS
 C
       IF(MODELQ.EQ.3) THEN
-C     *** giving initial profiles to TASK/EQ ***
+C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
-C     ***
+C     *** Contorol output display from TASK/EQ ***
+         CALL EQPARM(2,'NPRINT=0',IERR)
+C
 C         CALL TRCONV(L,0,IERR)
 C         WRITE(6,*) "L=",L
          CALL TRSETG(0)
@@ -687,7 +689,7 @@ C
       SUBROUTINE TRSETG(ID)
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION DUMMY(NRM)
+      DIMENSION DUMMY(NRM),DSRHO(NRM)
 C
       DO NR=1,NRMAX
          PRHO(NR)=0.D0
@@ -724,7 +726,7 @@ C
          SRIP=0.D0
       ENDIF
 C
-C     *** Excuting TASK/EQ ***
+C     *** Excute TASK/EQ ***
       CALL TREQEX (NRMAX,RM,PRHO,HJRHO,VTRHO,TRHO,SRIP,ICONT,
      &             RSA,RDPA,IERR)
 C     
@@ -737,21 +739,21 @@ C
          ENDDO
       ENDIF
 C
-C     *** Providing geometric quantities on half mesh ***
+C     *** Provide geometric quantities on half mesh ***
       CALL TREQGET(NRMAX,RM,
-     &             DUMMY,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+     &             DUMMY,TTRHO,DVRHO,DUMMY,ABRHO,ARRHO,
      &             AR1RHO,AR2RHO,DUMMY,DUMMY,DUMMY,
      &             DUMMY,RMJRHO,RMNRHO,DUMMY,
      &             IERR)
 C
-C     *** Providing geometric quantities on grid mesh ***
+C     *** Provide geometric quantities on grid mesh ***
       CALL TREQGET(NRMAX,RG,
-     &             QRHO,TTRHOG,DVRHOG,DSRHOG,ABRHOG,ARRHOG,
+     &             QRHO,TTRHOG,DVRHOG,DUMMY,ABRHOG,ARRHOG,
      &             AR1RHOG,AR2RHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,
      &             EPSRHO,RMJRHOG,RMNRHOG,RKPRHOG,
      &             IERR)
 C
-C     *** Adjusting system of unit ***
+C     *** Adjust system of unit ***
       RDPA=RDPA/(2.D0*PI)
       DO NR=1,NRMAX
          TTRHO(NR)   =TTRHO(NR)/(2.D0*PI)
@@ -795,6 +797,7 @@ C
       DO NR=1,NRMAX
 C         write(6,*) RM(NR),QP(NR)
          QP(NR)=2.D0*PI*BB*(RSA/SQRT(2.D0*PI))**2*RG(NR)/RDP(NR)
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
       ENDDO
       CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM)
       AJT   = AJTSUM*DR/1.D6
@@ -805,8 +808,8 @@ C         write(6,*) RM(NR),QP(NR)
       NR=NRMAX
       write(6,*) "Current from RDP =",
      &     DVRHOG(NR)*ABRHOG(NR)*RDP(NR)/(2.D0*PI*RMU0)*1.D-6
-      write(6,*) "Current from RDPA=",
-     &     DVRHOG(NR)*ABRHOG(NR)*RDPA/(2.D0*PI*RMU0)*1.D-6
+c$$$      write(6,*) "Current from RDPA=",
+c$$$     &     DVRHOG(NR)*ABRHOG(NR)*RDPA/(2.D0*PI*RMU0)*1.D-6
 C
 C      DO NR=1,NRMAX
 C         WRITE(6,'(A,I5,1P4E12.4)')
@@ -816,16 +819,6 @@ C         WRITE(6,'(A,I5,1P4E12.4)')
 C     &           'NR,Q/TT/AB/EP=',NR,QRHO(NR),
 C     &           TTRHO(NR),ABRHO(NR),EPSRHO(NR)
 C      ENDDO
-C
-c$$$      DO NR=1,NRMAX
-c$$$         write(6,'(I3,3F20.10)') NR,AJ(NR),AJTOR(NR)
-c$$$      ENDDO
-c$$$C
-c$$$      CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM )
-c$$$      CALL TRSUMD(AJTOR,DSRHO,NRMAX,AJTTSUM)
-c$$$      AJT=AJTSUM*DR/1.D6
-c$$$      AJTT=AJTTSUM*DR/1.D6
-c$$$      write(6,'(A,I3,2F20.10)') 'NT=',NT,AJT,AJTT
 C
       RETURN
       END
@@ -906,7 +899,6 @@ C
 C
                TTRHO(NR)=TTRHOU(1,NR)
                DVRHO(NR)=DVRHOU(1,NR)
-               DSRHO(NR)=DSRHOU(1,NR)
                ABRHO(NR)=ABRHOU(1,NR)
                ARRHO(NR)=ARRHOU(1,NR)
                AR1RHO(NR)=AR1RHOU(1,NR)
@@ -923,7 +915,7 @@ C
             ENDDO
             CALL FLUX
          ELSE
-C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
 C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHOG,
 C     &                         NRMAX,NRM)
          ENDIF
@@ -935,7 +927,6 @@ C     &                         NRMAX,NRM)
                QRHO(NR)=QP(NR)
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-               DSRHO(NR)=2.D0*PI*RKAP*RA*RA*RM(NR)
                ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
                ARRHO(NR)=1.D0/RR**2
                AR1RHO(NR)=1.D0/(RKAPS*RA)
@@ -949,7 +940,7 @@ C     &                         NRMAX,NRM)
                ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
             ENDDO
          ELSE
-C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,DSRHO,ABRHO,ARRHO,
+C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
 C     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHOG,
 C     &                         NRMAX,NRM)
          ENDIF
@@ -975,7 +966,6 @@ C
          RMNRHOG(NR)=0.5D0*(RMNRHO(NR)+RMNRHO(NR+1))
          TTRHOG (NR)=0.5D0*(TTRHO (NR)+TTRHO (NR+1))
          DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
-         DSRHOG (NR)=0.5D0*(DSRHO (NR)+DSRHO (NR+1))
          ARRHOG (NR)=0.5D0*(ARRHO (NR)+ARRHO (NR+1))
          ABRHOG (NR)=0.5D0*(ABRHO (NR)+ABRHO (NR+1))
       ENDDO
@@ -990,7 +980,6 @@ C
          RMNRHOG(NR)=FEDG(RGL,RML,RML1,RMNRHO(NR),RMNRHO(NR-1))
          TTRHOG (NR)=FEDG(RGL,RML,RML1,TTRHO (NR),TTRHO (NR-1))
          DVRHOG (NR)=FEDG(RGL,RML,RML1,DVRHO (NR),DVRHO (NR-1))
-         DSRHOG (NR)=FEDG(RGL,RML,RML1,DSRHO (NR),DSRHO (NR-1))
          ARRHOG (NR)=FEDG(RGL,RML,RML1,ARRHO (NR),ARRHO (NR-1))
          ABRHOG (NR)=FEDG(RGL,RML,RML1,ABRHO (NR),ABRHO (NR-1))
 C

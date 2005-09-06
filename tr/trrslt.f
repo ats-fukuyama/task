@@ -9,6 +9,7 @@ C
       SUBROUTINE TRGLOB
 C
       INCLUDE 'trcomm.inc'
+      DIMENSION DSRHO(NRM)
 C
 C      IF (MODELQ.EQ.3) THEN
 C         RKAP=1.D0
@@ -18,6 +19,7 @@ C
       VOL=0.D0
       DO NR=1,NRMAX
          VOL=VOL+DVRHO(NR)*DR
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
       ENDDO
 C
       DO NS=1,NSM

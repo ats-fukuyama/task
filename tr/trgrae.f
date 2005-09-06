@@ -60,7 +60,7 @@ C
      &            '@DVRHO vs RHO@',2+INQ)
 C
       DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(DSRHO(NR))
+         GYR(NR,1) = GUCLIP(DVRHO(NR)/(2.D0*PI*RR))
       ENDDO
 C
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
