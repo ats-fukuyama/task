@@ -691,6 +691,17 @@ C
       INCLUDE 'trcomm.inc'
       DIMENSION DUMMY(NRM),DSRHO(NRM)
 C
+      IF(IREAD.NE.0) THEN
+C     *** Give initial profiles to TASK/EQ ***
+         CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
+C     *** Contorol output display from TASK/EQ ***
+         CALL EQPARM(2,'NPRINT=0',IERR)
+         CALL EQMESH
+         CALL EQDEFB
+         IREAD=0
+      ENDIF
+C
       DO NR=1,NRMAX
          PRHO(NR)=0.D0
          TRHO(NR)=0.D0
@@ -720,6 +731,8 @@ C
 C     *** Excute TASK/EQ ***
       CALL TREQEX (NRMAX,RM,PRHO,HJRHO,VTRHO,TRHO,SRIP,ICONT,
      &             RSA,RDPA,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: IERR=',IERR
+      IF(IERR.NE.0) STOP
 C     
 C     Initially(NT=0), current density as an input quantity is modified
 C     in order to keep total plasma current constant.
@@ -729,13 +742,14 @@ C
             AJ(NR)=HJRHO(NR)
          ENDDO
       ENDIF
-C
+C     
 C     *** Provide geometric quantities on half mesh ***
       CALL TREQGET(NRMAX,RM,
      &             DUMMY,TTRHO,DVRHO,DUMMY,ABRHO,ARRHO,
      &             AR1RHO,AR2RHO,DUMMY,DUMMY,DUMMY,
      &             DUMMY,RMJRHO,RMNRHO,DUMMY,
      &             IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET1: IERR=',IERR
 C
 C     *** Provide geometric quantities on grid mesh ***
       CALL TREQGET(NRMAX,RG,
@@ -743,6 +757,7 @@ C     *** Provide geometric quantities on grid mesh ***
      &             AR1RHOG,AR2RHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,
      &             EPSRHO,RMJRHOG,RMNRHOG,RKPRHOG,
      &             IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET2: IERR=',IERR
 C
 C     *** Adjust system of unit ***
       RDPA=RDPA/(2.D0*PI)

@@ -561,6 +561,7 @@ C
       TIME_INT=0.D0
       CNB=1.D0
       SUMPBM=0.D0
+      IREAD=0
 C
       RETURN
       END
