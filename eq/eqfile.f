@@ -2,11 +2,11 @@ C     $Id$
 C
 C     ***** SAVE TASK/EQ DATA *****
 C
-      SUBROUTINE EQSAVE
+      SUBROUTINE EQSAVE(MODEP)
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      CALL FWOPEN(21,KNAMEQ,0,1,'EQ',IERR)
+      CALL FWOPEN(21,KNAMEQ,0,MODEP,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 C
       REWIND(21)

@@ -83,7 +83,7 @@ C
          ENDDO
 C
       ELSEIF(KID.EQ.'S') THEN
-         CALL EQSAVE
+         CALL EQSAVE(1)
 C
       ELSEIF(KID.EQ.'L') THEN
          KNAMEQ1=KNAMEQ
