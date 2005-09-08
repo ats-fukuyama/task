@@ -74,6 +74,7 @@ C                      1 : Previous psi
 C
 C     output:
 C
+C     HJRHO(NTRMAX)  : Plasma current density if RIP1 /= 0   (MA/m^2)
 C     RSA            : Minor radius defined by troidal flux
 C     DPSIPDRHOA     : dPsip/drho at rho=1
 C     IERR           : Error indicator

@@ -172,7 +172,7 @@ C
       DO NTG=1,NTGMAX
          AA(NSG,NTG)=SIGG(NSG)/RGM(NSG,NTG)
      &              +(DRHOM(NTG)*DRHOM(NTG)*SIGG(NSG))
-     &              /(RGM(NSG,NTG)*RHOM(NTG)*RHOM(NTG))  
+     &              /(RGM(NSG,NTG)*RHOM(NTG)*RHOM(NTG))
          AB(NSG,NTG)=-DRHOM(NTG)/(RGM(NSG,NTG)*RHOM(NTG))
       ENDDO
       ENDDO
