@@ -34,7 +34,7 @@ new :
 	cp -f *.f ../libnew
 
 check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek $(SRCS) $(MDSPLUS) | less
 
 clean:
 	-rm -f core a.out *.o *.a ./*~ ./#*

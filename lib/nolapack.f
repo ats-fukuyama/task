@@ -34,7 +34,7 @@ C
 C
       SUBROUTINE LAPACK_DSTEBZ(KCH1,KCH2,MMMAX,VL,VU,IMIN,IMAX,EPSEG,
      &                         DM,EM,INMAX,NSPLIT,W,
-     &               IBLOCK,ISPLIT,WORK,IWORK,INFO)
+     &                         IBLOCK,ISPLIT,WORK,IWORK,INFO)
 C
       CHARACTER KCH1*(*),KCH2*(*)
       DIMENSION DM(*),EM(*),IBLOCK(*),ISPLIT(*)
