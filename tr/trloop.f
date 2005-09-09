@@ -358,7 +358,8 @@ C
 C            CALL TRCONV(L,1,IERR)
 C            WRITE(6,*) "L=",L
 C            IF(IERR.NE.0) RETURN
-            CALL TRSETG(1)
+            CALL TRSETG(1,IERR)
+            IF(IERR.NE.0) RETURN
          ENDIF
       ENDIF
 C

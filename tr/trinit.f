@@ -232,7 +232,8 @@ C           *****  MDLKAI.EQ. 60  : GLF23 model *****
 C           *****  MDLKAI.EQ. 61  : GLF23 (stability enhanced version) *****
 C           *****  MDLKAI.EQ. 62  : IFS/PPPL model *****
 C           *****  MDLKAI.EQ. 63  : Weiland model *****
-C           *****  MDLKAI.EQ. 64  : Bohm/Gyro-Bohm model *****
+C           *****  MDLKAI.EQ. 64  : Modified Weiland model *****
+C           *****  MDLKAI.EQ. 65  : Bohm/Gyro-Bohm model *****
 C
 C        MDLETA: RESISTIVITY MODEL
 C                   0: CLASSICAL 

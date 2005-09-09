@@ -787,7 +787,7 @@ C
             VGR4(NR,1)=AGME(NR)
             VGR4(NR,2)=WEXB(NR)
             VGR4(NR,3)=0.D0
-            IF(MDLKAI.EQ.64) THEN
+            IF(MDLKAI.EQ.65) THEN
                DPERHO=DPE/RJCB(NR)
                DTERHO=DTE/RJCB(NR)
                NR08=INT(0.8D0*NRMAX)
@@ -1102,7 +1102,7 @@ C
      &                       S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
-      ELSEIF(MDLKAI.EQ.63) THEN
+      ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
          CALL TR_WEILAND
       ENDIF
 C

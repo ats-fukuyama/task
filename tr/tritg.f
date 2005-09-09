@@ -99,27 +99,22 @@ C
       DO NR=1,NRMAX-1
          DRL   = RJCB(NR)/DR
          EPS   = EPSRHO(NR)
-         SLNEL = 0.5D0*(RN(NR+1,1)+RN(NR,1))/((RN(NR+1,1)-RN(NR,1))*DRL)
-         SLNIL = 0.5D0*(RN(NR+1,2)+RN(NR,2))/((RN(NR+1,2)-RN(NR,2))*DRL)
-         SLNQL = 0.5D0*(RN(NR+1,3)+RN(NR,3))/((RN(NR+1,3)-RN(NR,3))*DRL)
-         SLTEL = 0.5D0*(RT(NR+1,1)+RT(NR,1))/((RT(NR+1,1)-RT(NR,1))*DRL)
-         SLTIL = 0.5D0*(RT(NR+1,2)+RT(NR,2))/((RT(NR+1,2)-RT(NR,2))*DRL)
-         SLTQL = 0.5D0*(RT(NR+1,3)+RT(NR,3))/((RT(NR+1,3)-RT(NR,3))*DRL)
+         SLNEL =-0.5D0*(RN(NR+1,1)+RN(NR,1))/((RN(NR+1,1)-RN(NR,1))*DRL)
+         SLNIL =-0.5D0*(RN(NR+1,2)+RN(NR,2))/((RN(NR+1,2)-RN(NR,2))*DRL)
+         SLNQL =-0.5D0*(RN(NR+1,3)+RN(NR,3))/((RN(NR+1,3)-RN(NR,3))*DRL)
+         SLTEL =-0.5D0*(RT(NR+1,1)+RT(NR,1))/((RT(NR+1,1)-RT(NR,1))*DRL)
+         SLTIL =-0.5D0*(RT(NR+1,2)+RT(NR,2))/((RT(NR+1,2)-RT(NR,2))*DRL)
+         SLTQL =-0.5D0*(RT(NR+1,3)+RT(NR,3))/((RT(NR+1,3)-RT(NR,3))*DRL)
          SLBL  = RR
-         ENL   =-2.D0*(SLNEL/SLBL )
+         ENL   = 2.D0*(SLNEL/SLBL )
          EIL   =       SLNIL/SLTIL
          EEL   =       SLNEL/SLTEL
-C         ENL   = ABS(2.D0*(SLNEL/SLBL ))
-C         EIL   = ABS(      SLNIL/SLTIL)
-C         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,2)+RT(NR,2))
          FLL   = 1.D-1
          FTL   = FTPF(MDLTPF,EPS)
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
          EQL   =       SLNQL/SLTQL
-         ENQL  =-2.D0*(SLNQL/SLBL )
-C         EQL   = ABS(      SLNQL/SLTQL)
-C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
+         ENQL  = 2.D0*(SLNQL/SLBL )
          BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))
      &          *RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
@@ -135,6 +130,11 @@ C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
+         IF(MDLKAI.EQ.64) THEN
+            SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
+            FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
+            FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
+         ENDIF
 C
 C         COEF = PZ(2)**2*AEE**4*1.D20
 C     &         /(6.D0*PI*SQRT(2.D0*PI)*EPS0**2*SQRT(AME)*RKEV**1.5D0)
@@ -161,27 +161,22 @@ C
       NR=NRMAX
          DRL   = RJCB(NR)/DR
          EPS   = EPSRHO(NR)
-         SLNEL = PNSS(1)/(2.D0*(PNSS(1)-RN(NR,1))*DRL)
-         SLNIL = PNSS(2)/(2.D0*(PNSS(2)-RN(NR,2))*DRL)
-         SLNQL = PNSS(3)/(2.D0*(PNSS(3)-RN(NR,3))*DRL)
-         SLTEL = PTS (1)/(2.D0*(PTS (1)-RT(NR,1))*DRL)
-         SLTIL = PTS (2)/(2.D0*(PTS (2)-RT(NR,2))*DRL)
-         SLTQL = PTS (3)/(2.D0*(PTS (3)-RT(NR,3))*DRL)
+         SLNEL =-PNSS(1)/(2.D0*(PNSS(1)-RN(NR,1))*DRL)
+         SLNIL =-PNSS(2)/(2.D0*(PNSS(2)-RN(NR,2))*DRL)
+         SLNQL =-PNSS(3)/(2.D0*(PNSS(3)-RN(NR,3))*DRL)
+         SLTEL =-PTS (1)/(2.D0*(PTS (1)-RT(NR,1))*DRL)
+         SLTIL =-PTS (2)/(2.D0*(PTS (2)-RT(NR,2))*DRL)
+         SLTQL =-PTS (3)/(2.D0*(PTS (3)-RT(NR,3))*DRL)
          SLBL  = RR
-         ENL   =-2.D0*(SLNEL/SLBL )
+         ENL   = 2.D0*(SLNEL/SLBL )
          EIL   =       SLNIL/SLTIL
          EEL   =       SLNEL/SLTEL
-C         ENL   = ABS(2.D0*(SLNEL/SLBL ))
-C         EIL   = ABS(      SLNIL/SLTIL)
-C         EEL   = ABS(      SLNEL/SLTEL)
          TAUL  = PTS(1)/PTS(2)
          FLL   = 1.D-1
          FTL   = FTPF(MDLTPF,EPS)
          BQL   = PNSS(3)/PNSS(1)
          EQL   =       SLNQL/SLTQL
-         ENQL  =-2.D0*(SLNQL/SLBL )
-C         EQL   = ABS(      SLNQL/SLTQL)
-C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
+         ENQL  = 2.D0*(SLNQL/SLBL )
          BETAEL= PNSS(1)*PTS(1)*RKEV*1.D20/(BB**2/(2.D0*RMU0))
          TEL   = PTS(1)
          TAUZL = PTS(1)/PTS(3)
@@ -192,6 +187,11 @@ C         ENQL  = ABS(2.D0*(SLNQL/SLBL ))
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
          WEXBL = WEXB(NR)
+         IF(MDLKAI.EQ.64) THEN
+            SHAT  = SQRT(2.D0*SL-1.D0+RKAP**2*(SL-1.D0)**2)
+            FLS   = (0.7D0+2.4D0/(7.14D0*QL*SHAT+0.1D0))*FLL
+            FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
+         ENDIF
 C
          CALL TR_WEILAND_BRIDGE
      &     (ENL,EIL,EEL,TAUL,FLL,FTL,

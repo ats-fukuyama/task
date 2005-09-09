@@ -654,11 +654,15 @@ C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     *** Contorol output display from TASK/EQ ***
-         CALL EQPARM(2,'NPRINT=0',IERR)
+         CALL EQPARM(2,'NPRINT=1',IERR)
 C
 C         CALL TRCONV(L,0,IERR)
 C         WRITE(6,*) "L=",L
-         CALL TRSETG(0)
+         CALL TRSETG(0,IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX TRPROF INITIAL EQUILIBRIUM FAILED : IERR = ',
+     &                  IERR
+         ENDIF
       ENDIF
 C
       GRG(1)=0.0
@@ -686,7 +690,7 @@ C           SET GEOMETRICAL FACTOR VIA TASK/EQ
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRSETG(ID)
+      SUBROUTINE TRSETG(ID,IERR)
 C
       INCLUDE 'trcomm.inc'
       DIMENSION DUMMY(NRM),DSRHO(NRM)
@@ -696,9 +700,7 @@ C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     *** Contorol output display from TASK/EQ ***
-         CALL EQPARM(2,'NPRINT=0',IERR)
-         CALL EQMESH
-         CALL EQDEFB
+         CALL EQPARM(2,'NPRINT=1',IERR)
          IREAD=0
       ENDIF
 C
@@ -731,8 +733,10 @@ C
 C     *** Excute TASK/EQ ***
       CALL TREQEX (NRMAX,RM,PRHO,HJRHO,VTRHO,TRHO,SRIP,ICONT,
      &             RSA,RDPA,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: IERR=',IERR
-      IF(IERR.NE.0) STOP
+      IF(IERR.NE.0) THEN
+         WRITE(6,*) 'XX TREQEX: IERR=',IERR
+         RETURN
+      ENDIF
 C     
 C     Initially(NT=0), current density as an input quantity is modified
 C     in order to keep total plasma current constant.
@@ -841,7 +845,8 @@ C
          IERR=1
          RETURN
       ENDIF
-      CALL TRSETG(ID)
+      CALL TRSETG(ID,IERR)
+      IF(IERR.NE.0) RETURN
       DO NR=1,NRMAX
          AJDLT(NR)=AJ(NR)-AJOLD(NR)
       ENDDO

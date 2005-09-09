@@ -222,7 +222,7 @@ C
             WRITE(6,*) 'XX FILE (',EQFNAM,') NOT FOUND'
             GOTO 2
          ENDIF
- 32      CALL EQLOAD(3,EQFNAM,IERR)
+ 32      CALL EQLOAD(9,EQFNAM,IERR)
          IF(IERR.NE.0) 
      &        WRITE(6,*) 'XX TRLOAD: EQLOAD ERROR: IERR=',IERR
       ENDIF
