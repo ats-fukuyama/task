@@ -83,7 +83,7 @@ C
          ENDDO
 C
       ELSEIF(KID.EQ.'S') THEN
-         CALL EQSAVE(1)
+         CALL EQSAVE(5)
 C
       ELSEIF(KID.EQ.'L') THEN
          KNAMEQ1=KNAMEQ
@@ -92,7 +92,7 @@ C
          READ(5,'(A80)',ERR=10,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
-         CALL EQLOAD(3,KNAMEQ1,IERR)
+         CALL EQLOAD(3,KNAMEQ1,0,IERR)
          IF(IERR.EQ.1) GOTO 10
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
@@ -107,7 +107,7 @@ C
          READ(5,'(A80)',ERR=11,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ1=KNAM
 C
-         CALL EQLOAD(5,KNAMEQ1,IERR)
+         CALL EQLOAD(5,KNAMEQ1,0,IERR)
          IF(IERR.NE.0) GOTO 11
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX

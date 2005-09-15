@@ -114,21 +114,7 @@ C
 C
       DO 100 N=1,NAVMAX
          ETAL=DELH*(N-0.5D0)
-         CALL FPSETB(RHOL,ETAL,B0TH,B0PH)
-C
-         IF(MODELA.EQ.0) THEN
-            PSI=1.D0
-            PSIN=RSIN
-            PCOS=RCOS
-         ELSE
-            PSI=SQRT((B0TH**2+B0PH**2)/BMIN**2)
-            PSIN=SQRT(PSI)*RSIN
-            IF (RCOS.GT.0.0D0) THEN
-               PCOS= SQRT(1.D0-PSI*RSIN**2)
-            ELSE
-               PCOS=-SQRT(1.D0-PSI*RSIN**2)
-            END IF
-         ENDIF
+         CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
          CALL FPWAVV(RHOL,ETAL,PSIN,PCOS,P,DWPPL,DWPTL,DWTPL,DWTTL)
 C
 C         RVPARA=RCOS/PCOS
@@ -258,7 +244,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       IF(MODELG.EQ.2) THEN
-         RS=RHOL*RA
+         RS=RSRHON(RHOL)
          X=RS*COS(ETAL)
          BTL=BB/(1.D0+X/RR)
          CALL PLQPRF(RHOL,QL)

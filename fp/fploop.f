@@ -13,7 +13,7 @@ C
 C     ----- exec EQ -----
 C
       IF(MODELG.EQ.3) THEN
-         CALL EQLOAD(3,KNAMEQ,IERR)
+         CALL EQLOAD(3,KNAMEQ,0,IERR)
          IF(IERR.EQ.0) THEN
             CALL EQSETP
             CALL EQCALQ(51,64,64,IERR)
@@ -108,9 +108,9 @@ C
             ENDIF
             FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
             RNUD(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(VTFP0*PTFP0**2)
+     &                 /(SQRT(2.D0)*VTFD(NR,NS)*PTFP0**2)
             RNUF(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(AMFD*VTFP0**2*PTFP0)
+     &                 /(2*AMFD*VTFD(NR,NS)**2*PTFP0)
          ENDDO
       ENDDO
 C

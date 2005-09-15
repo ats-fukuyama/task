@@ -103,11 +103,14 @@ C        NFL    : FILE DEVICE NUMBER
 C        KNAMFL : FILE NAME
 C        MODEF  : 0 : UNFORMATTED
 C                 1 : FORMATTED
-C        MODEP  : 0 : WITHOUT PROMPT
-C                 1 : WITH FILE NAME INPUT
-C                 2 : ASK NEW NAME, IF FILE EXISTS
-C                 3 : CONFIRM, IF FILE EXISTS
-C                 4 : ERROR, IF FILE EXISTS
+C        MODEP  : 0 : WITHOUT PROMPT, ALWAYS OVERWRITE
+C                 1 : WITHOUT PROMPT, CONFIRM, IF FILE EXISTS
+C                 2 : WITHOUT PROMPT, ASK NEW NAME, IF FILE EXISTS
+C                 3 : WITHOUT PROMPT, ERROR, IF FILE EXISTS
+C                 4 : WITH FILE NAME INPUT, ALWAYS OVERWRITE
+C                 5 : WITH FILE NAME INPUT, CONFIRM, IF FILE EXISTS
+C                 6 : WITH FILE NAME INPUT, ASK NEW NAME, IF FILE EXISTS
+C                 7 : WITH FILE NAME INPUT, ERROR, IF FILE EXISTS
 C
 C     OUTPUT:
 C        IERR   : ERROR CODE
@@ -129,9 +132,9 @@ C
       KNAM=KNAMFL
       CALL KTRIM(KNAM,KL)
 C
- 1000 IF(MODEPI.EQ.0) THEN
+ 1000 IF(MODEPI.LE.3) THEN
          IF(KL.EQ.0) GOTO 9008
-      ELSEIF(MODEPI.EQ.1) THEN
+      ELSE
     1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',KNAM(1:KL)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
@@ -143,27 +146,24 @@ C
       CALL KTRIM(KNAM,KL)
 C
       IF(LEX) THEN
-         IF(MODEPI.EQ.1) THEN
+         MODEPII=MOD(MODEPI,4)
+         IF(MODEPII.EQ.0) THEN
     2       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
-     &                 ') IS GOING TO BE OVERWRITTEN'
-            WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
-            READ(5,'(A1)',ERR=2,END=9001) KID
-            CALL GUCPTL(KID)
-            IF(KID.EQ.'N') GOTO 1000
-         ELSEIF(MODEPI.EQ.2) THEN
-            MODEPI=1
-            GOTO 1000
-         ELSEIF(MODEPI.EQ.3) THEN
+     &                 ') WILL BE OVERWRITTEN'
+         ELSEIF(MODEPII.EQ.1) THEN
     3       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
      &                 ') IS GOING TO BE OVERWRITTEN'
             WRITE(6,*) '  ARE YOU SURE ? (Y/N)'
             READ(5,'(A1)',ERR=3,END=9001) KID
             CALL GUCPTL(KID)
             IF(KID.EQ.'N') GOTO 9007
-         ELSEIF(MODEPI.EQ.4) THEN
+         ELSEIF(MODEPII.EQ.2) THEN
+            MODEPI=1
+            GOTO 1000
+         ELSEIF(MODEPII.EQ.3) THEN
             WRITE(6,*) 'XX FWOPEN: FILE ALREADY EXISTS.'
             GOTO 9007
-         ELSEIF(MODEPI.NE.0) THEN
+         ELSE
             WRITE(6,*) 'XX FWOPEN: UNKNOWN MODEP : MODEP=',MODEP
             GOTO 9003
          ENDIF

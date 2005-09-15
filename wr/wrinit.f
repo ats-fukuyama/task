@@ -190,7 +190,7 @@ C
 C
       IF(MODELG.EQ.3) THEN
          IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(3,KNAMEQ,IERR)
+            CALL EQLOAD(3,KNAMEQ,0,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQCALQ(51,64,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)

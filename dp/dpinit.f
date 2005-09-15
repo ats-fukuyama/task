@@ -202,7 +202,7 @@ C
 C
       IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
          IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(MODELG,KNAMEQ,IERR)
+            CALL EQLOAD(MODELG,KNAMEQ,0,IERR)
             IF(IERR.EQ.0) THEN
                CALL EQSETP
                CALL EQCALQ(51,32,64,IERR)
@@ -215,7 +215,8 @@ C
       ENDIF
 C
       DO NS=1,NSMAX
-         IF(MODELV(NS).EQ.1.OR.MODELV(NS).EQ.3) THEN
+         IF((MODELP(NS).EQ.7).AND.
+     &      (MODELV(NS).EQ.1.OR.MODELV(NS).EQ.3)) THEN
             IF(INITFP.EQ.0) THEN
                CALL DPLDFP
                INITFP=1

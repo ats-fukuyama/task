@@ -277,10 +277,9 @@ C
                IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_L(NR,NS)
                ENDIF
-C
             ELSEIF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
-            ELSE
+            ELSEIF(MODELC.EQ.1) THEN
                IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_NL(NR,NS)
                ELSE
@@ -361,18 +360,19 @@ C
             IF(NP.EQ.1) THEN
                DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
      &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
+               DCPPL=0.D0
                FCPPL=0.D0
             ELSE
                PFPL=PG(NP)*PTFP0
                VFPL=PFPL/AMFP
                V=VFPL/VTFP0
                U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
-               DCPPL= 0.5D0*RNUDL/V   *(ERF0(U)/U**2-ERF1(U)/U)
-               FCPPL=-      RNUFL/V**2*(ERF0(U)-U*ERF1(U))
+               DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
+               FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
             ENDIF
             DO NTH=1,NTHMAX
-               DCPP(NTH,NP,NR)=DCPPL
-               FCPP(NTH,NP,NR)=FCPPL
+               DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DCPPL
+               FCPP(NTH,NP,NR)=FCPP(NTH,NP,NR)+FCPPL
             ENDDO
          ENDDO
 C
@@ -381,13 +381,15 @@ C
             VFPL=PFPL/AMFP
             V=VFPL/VTFP0
             U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
-            DCTTL= 0.25D0*RNUDL/V 
+C            DCTTL= 0.25D0*RNUDL/V 
+C     &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
+            DCTTL= 0.25D0*RNUDL/U
      &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
-            IF(NS.EQ.1.AND.MODELC.LT.0) THEN
-               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
+            IF(NS.EQ.NSFP.AND.MODELC.LT.0) THEN
+               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/U
             ENDIF
             DO NTH=1,NTHMAX+1
-               DCTT(NTH,NP,NR)=DCTTL
+               DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
             ENDDO
          ENDDO
 C
@@ -406,13 +408,15 @@ C
                PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
                PNFDL=PFDL/PTFDL
                PNFD=PNFDL
-               TMC2FD=PTFDL**2/(AMFD*VC)**2
+               TMC2FD=(PTFDL/(AMFD*VC))**2
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
+               WRITE(6,'(I5,1P5E12.4)') NR,PNFD,PTFDL,AMFD,VC,TMC2FD
                DCPPL= 4.D0*PI*RNUDL*VTFP0/3.D0
      &              *(RINT1*VTFDL**2/(RINT0*VTFPL**3)
      &               +RINT2/(RINT0*VTFDL))
+               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
                CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
                CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
                CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
@@ -422,8 +426,8 @@ C
      &               +2.D0*RINT6*VTFPL   /(RINT0*VC**2))
             ENDIF
             DO NTH=1,NTHMAX
-               DCPP(NTH,NP,NR)=DCPPL
-               FCPP(NTH,NP,NR)=FCPPL
+               DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DCPPL
+               FCPP(NTH,NP,NR)=FCPP(NTH,NP,NR)+FCPPL
             ENDDO
          ENDDO
 C
@@ -443,13 +447,13 @@ C
      &           *(1.5D0*RINT3*VTFPL**2/(RINT0*VTFPL**3)
      &            -0.5D0*RINT1*VTFDL**2/(RINT0*VTFPL**3)
      &            +RINT2/(RINT0*VTFDL))
-            IF(NS.EQ.1.AND.MODELC.LT.0) THEN
+            IF(MODELC.EQ.-1) THEN
                V=VFPL/VTFP0
                DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
             ENDIF
 C
             DO NTH=1,NTHMAX+1
-               DCTT(NTH,NP,NR)=DCTTL
+               DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
             ENDDO
          ENDDO
       ENDIF
@@ -577,6 +581,7 @@ C
       COMMON /FPFNV1/ PNFD,TMC2FD
 C
       EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD))/TMC2FD
+      WRITE(6,'(A,1P3E12.4)') 'FPRMXW: ',PN,TMC2FD,EX
       IF (EX.LT.-100.D0)THEN
          FPRMXW=0.D0
       ELSE

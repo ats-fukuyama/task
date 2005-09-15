@@ -451,9 +451,14 @@ C
       KUFDEV=''
       KUFDCG=''
 C
-C     ==== LOG FILE NAME ====
+C     ==== FILE NAME ====
+C
+C        KNAMEQ: Filename of equilibrium data
+C        KNAMTR: Filename of transport data
 C        KFNLOG : LOG FILE NAME
 C
+      KNAMEQ='eqdata'
+      KNAMTR='trdata'
       KFNLOG='trf.log'
 C
 C     ==== INTERACTION WITH EQ ====
@@ -628,7 +633,7 @@ C
      &              PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC,
      &              PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD,
      &              PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL,
-     &              PELTIM,PELPAT,KFNLOG,
+     &              PELTIM,PELPAT,KNAMEQ,KNAMTR,KFNLOG,
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE,
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX,
      &              KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
@@ -661,7 +666,7 @@ C
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
      &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW,CNB'/
-     &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,KFNLOG,MDLKNC,MDLTPF'/
+     &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,MDLKNC,MDLTPF'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
      &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
@@ -674,7 +679,8 @@ C
      &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
-     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK')
+     &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/
+     &       ' ',8X,'KNAMEQ,KNAMTR,KFNLOG')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****

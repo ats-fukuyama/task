@@ -143,6 +143,7 @@ C     MODELR: 0 without relativistic effect
 C             1 with relativistic effect
 C     MODELC: 0 for linear collision operator
 C             1 for nonlinear collision operator
+C            -1 for linear collision operator with ion scattering
 C     MODELW: 0 for given diffusion coefficient model
 C             1 for given wave electric field model
 C             2 for wave electric field calculated by WR(without beam radius)
@@ -378,9 +379,9 @@ C
 C
       IF(MODELC.EQ.0)THEN
          WRITE(6,*) 'MAXWELLIAN COLLISION OPERATOR'
-      ELSE IF(MODELC.GE.1)THEN
+      ELSE IF(MODELC.EQ.1)THEN
          WRITE(6,*) 'NONLINEAR COLLISION OPERATOR'
-      ELSE IF(MODELC.EQ.11)THEN
+      ELSE IF(MODELC.EQ.-1)THEN
          WRITE(6,*) 'LINEAR COLLISION OPERATOR WITH ION SCATTERING'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELC: MODELC =',MODELC

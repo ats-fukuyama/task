@@ -94,6 +94,8 @@ C
 C
       IF(RHON.LE.0.D0) THEN
          RHOL=0.D0
+      ELSEIF(RHON.GE.1.D0) THEN
+         RHOL=1.D0
       ELSE
          RHOL=RHON
       ENDIF
@@ -314,7 +316,7 @@ C
       ELSEIF(MODELG.EQ.2) THEN
          RS=RSRHON(RHON)
          BMINT= BB/(1+RS/RR)
-         CALL GETQP(RHON,QL)
+         CALL PLQPRF(RHON,QL)
          BMINP= RS*BMINT/((RR+RS)*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
       ELSEIF(MODELG.EQ.3) THEN
@@ -354,7 +356,7 @@ C
       INCLUDE '../pl/plcomm.inc'
 C
       IF(MODELG.LT.3) THEN
-         IF(PSIN.LE.0.D0) THEN
+         IF(RHON.LE.0.D0) THEN
            RHOL=0.D0
          ELSE
            RHOL=RHON

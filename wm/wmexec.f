@@ -8,6 +8,9 @@ C
 C
       IERR=0
       MODEEG=0
+C
+      CALL DPCHEK(IERR)
+      IF(IERR.NE.0) RETURN
       CALL WMSETG(IERR)
       IF(IERR.NE.0) RETURN
       CALL WMSETJ(IERR)
