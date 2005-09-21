@@ -181,9 +181,14 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: PHI: IEER=',IERR
 C
       DO NR=1,NRMAX+1
-         CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U6,NSRMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 
-     &        'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
+         IF(XRHO(NR).GT.1.D0) THEN
+            PSIPS(NR)=0.D0
+         ELSE
+            CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U6,NSRMAX,IERR)
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
+            ENDIF         
+         ENDIF         
       ENDDO
 C     
 C      ***** SPLINE RMNC(S),ZMNS(S) DRMNC(S) DZMNS(S) *****
@@ -204,30 +209,32 @@ C         ENDIF
          IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: YZBS: IEER=',IERR
 C
          DO NR=1,NRMAX+1
-            CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
-     &                  XS,U1(1,1,MN),NSRMAX,IERR)
-            IF(IERR.NE.0) THEN
-               WRITE(6,*) 'XX WMHCRZ: SPL1DD: SRMNC: IEER=',IERR
-               WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
-            ENDIF
-C
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
+            IF(XRHO(NR).GT.1.D0) THEN
                DRMNC(MN,NR)=(YRBS(NSRMAX)-YRBS(NSRMAX-1))
      &                     /(XS(NSRMAX)-XS(NSRMAX-1))
                SRMNC(MN,NR)=YRBS(NSRMAX)
      &                     +DRMNC(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+            ELSE
+               CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
+     &                     XS,U1(1,1,MN),NSRMAX,IERR)
+               IF(IERR.NE.0) THEN
+                  WRITE(6,*) 'XX WMHCRZ: SPL1DD: SRMNC: IEER=',IERR
+C                 WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
+               ENDIF
             ENDIF
-            CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
-     &                  XS,U2(1,1,MN),NSRMAX,IERR)
-            IF(IERR.NE.0) THEN
-               WRITE(6,*) 'XX WMHCRZ: SPL1DD: SSMNC: IEER=',IERR
-               WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
-            ENDIF
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
+C
+            IF(XRHO(NR).GT.1.D0) THEN
                DZMNS(MN,NR)=(YZBS(NSRMAX)-YZBS(NSRMAX-1))
      &                     /(XS(NSRMAX)-XS(NSRMAX-1))
                SZMNS(MN,NR)=YZBS(NSRMAX)
      &                     +DZMNS(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+            ELSE
+               CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
+     &                     XS,U2(1,1,MN),NSRMAX,IERR)
+               IF(IERR.NE.0) THEN
+                  WRITE(6,*) 'XX WMHCRZ: SPL1DD: SSMNC: IEER=',IERR
+C                  WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
+               ENDIF
             ENDIF
          ENDDO
       ENDDO
