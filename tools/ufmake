@@ -1,0 +1,119 @@
+#! /usr/bin/perl
+# This program is written by HONDA Mitsuru.
+# convert UFILE to a set of data which can be used in TASK/TR
+
+$check=0;
+
+#remembering original directory
+$dir_org=`pwd`;
+chomp($dir_org);
+
+#input
+print "# Input DEVICE name\n";
+$device = <STDIN>;
+print "# Input Shot Number\n";
+$shot = <STDIN>;
+chomp($device);
+chomp($shot);
+$dir_ufile = "profiledb\/profile_data\/";
+unless ($device) {
+    if ($dir_org =~ /.*$dir_ufile(.*)\//) {
+	$device = $1;
+    } else {
+	print "## ERROR! : Input DEVICE name.\n";
+	$device = <STDIN>;
+    }
+    chomp($device);
+}
+if ($shot =~ /\D{2,}/) {
+    print "## ERROR! : Shot Number can accept digits only or one character.\n";
+    die "Aborting.\n";
+}
+
+# moving "decive" directory
+#use Cwd;
+#$dir_to=Cwd::getcwd();
+$dir_to =`pwd`;
+unless ($dir_to =~ /.*$dir_ufile$device/) {
+    $dir_to = "/home/honda/profiledb/profile_data/".$device;
+    chomp($dir_to);
+    if (-d $dir_to) {
+	chdir($dir_to);
+    }else{
+	print "## ERROR! : The directory you direct does not exist.\n";
+	die "Aborting.\n";
+    }
+}
+
+# getting shot number from original directory if one didn't input it.
+unless ($shot) {
+    if ($dir_org =~ /.*$dir_ufile$device\/(.*)/) {
+	$shot = $1;
+    } else {
+	die "## ERROR! : Input shot number.\n";
+    }
+}
+
+# moving "shot number" directory
+chomp($dir_to);
+unless ($dir_to =~ /.*$device\/$shot/) {
+    $dir_to .= "/".$shot;
+    chomp($dir_to);
+}
+if (-d $dir_to) {
+    chdir($dir_to);
+}else{
+    print "## ERROR! : The directory you direct does not exist.\n";
+    chdir($dir_org);
+    die "Aborting.\n";
+}
+
+# for the ufile in the itb working database
+@files = glob("*.dat");
+foreach $file (@files) {
+    if ($file =~ /itb_(.*)/) {
+	system("cp $file $1");
+    }
+}
+
+$all = $dir_to."/".$device."*";
+system("chmod 644 $all");
+#chmod(0644,$all);
+
+# making "in" directory if necessary
+chomp($dir_to);
+$dir_in = $dir_to."/in";
+if (-d $dir_in) {
+    chomp($dir_in);
+    chdir($dir_in);
+    if (glob("*")) {
+	print "Files have already existed. Do you want to delete all files?[yn]\n";
+	$yon = <STDIN>;
+	chop($yon);
+	if ($yon eq 'Y' or $yon eq 'y') {
+	    unlink(<*.dat>,<*.bin>);
+	} elsif ($yon eq 'N' or $yon eq'n') {
+	    die "Exit.\n";
+	} else {
+	    die "Please input correct letter!\n";
+	}
+	chdir("..");
+    } else {
+	chdir("..");
+    }
+}else{
+    print "Creating \"in\" directory...\n";
+    mkdir($dir_in,0755);
+}
+
+#usplit
+$file1d = $device."_".$shot."_1d.dat";
+$file2d = $device."_".$shot."_2d.dat";
+system("/bin/echo \"$file1d\" | usplit");
+system("/bin/echo \"$file2d\" | usplit");
+$file1dall = $device."1d".$shot.".*";
+$file2dall = $device."2d".$shot.".*";
+system("mv $file1dall $file2dall $dir_in");
+chdir($dir_org);
+print "Successfully ended.\n";
+

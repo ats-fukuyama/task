@@ -1,0 +1,70 @@
+#! /usr/bin/perl
+# This program is written by HONDA Mitsuru.
+# combine ufiles into single file
+
+@files = glob("*");
+unless (@files) { die "No files exist!\n"; }
+
+# main
+$check1d=0;
+$check2d=0;
+foreach (@files) {
+    if (/(.*)1d(.+)\..*/) {
+	open (CUR1D,"$_");
+	$new1dfile = $1.'_'.$2.'_'.'1d.dat';
+	if ($check1d == 0) {
+	    unless ( -e $new1dfile ) {
+		open (OUT1D,">$new1dfile"); 
+		$check1d=1;
+	    } else {
+		print "$new1dfile has already existed.\n";
+		print "Overwrite $new1dfile? [yn]\n";
+		$str1d = <STDIN>;
+		chop($str1d);
+		if ($str1d eq 'Y' or $str1d eq 'y') {
+		    unlink $new1dfile;
+		    open (OUT1D,">$new1dfile"); 
+		    $check1d=1;
+		} elsif ($str1d eq 'N' or $str1d eq'n') {
+		    die "Aborting.\n";
+		} else {
+		    die "Please input correct letter!\n";
+		}
+	    }
+	}
+	while(<CUR1D>) { print OUT1D; }
+	print OUT1D "****************************************\n";
+	print OUT1D "****************************************\n";
+	close (CUR1D);
+    } elsif (/(.*)2d(.+)\..*/) {
+	open (CUR2D,"$_");
+	$new2dfile = $1.'_'.$2.'_'.'2d.dat';
+	if ($check2d == 0) {
+	    unless ( -e $new2dfile ) {
+		open (OUT2D,">$new2dfile");
+		$check2d=1;
+	    } else {
+		print "$new2dfile has already existed.\n";
+		print "Overwrite $new2dfile? [yn]\n";
+		$str2d = <STDIN>;
+		chop($str2d);
+		if ($str2d eq 'Y' or $str2d eq 'y') {
+		    unlink $new2dfile;
+		    open (OUT2D,">$new2dfile"); 
+		    $check2d=1;
+		} elsif ($str2d eq 'N' or $str2d eq'n') {
+		    die "Aborting.\n";
+		} else {
+		    die "Please input correct letter!\n";
+		}
+	    }
+	}
+	while(<CUR2D>) { print OUT2D; }
+	print OUT2D "****************************************\n";
+	print OUT2D "****************************************\n";
+	close (CUR2D);
+    }
+}
+
+close (OUT1D);
+close (OUT2D);
