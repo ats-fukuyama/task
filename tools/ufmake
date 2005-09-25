@@ -9,48 +9,55 @@ $dir_org=`pwd`;
 chomp($dir_org);
 
 #input
-print "# Input DEVICE name\n";
-$device = <STDIN>;
-print "# Input Shot Number\n";
-$shot = <STDIN>;
-chomp($device);
-chomp($shot);
-$dir_ufile = "profiledb\/profile_data\/";
-unless ($device) {
-    if ($dir_org =~ /.*$dir_ufile(.*)\//) {
-	$device = $1;
-    } else {
-	print "## ERROR! : Input DEVICE name.\n";
-	$device = <STDIN>;
-    }
+while (1) {
+    print "# Input DEVICE name\n";
+    $device = <STDIN>;
+    print "# Input Shot Number\n";
+    $shot = <STDIN>;
     chomp($device);
-}
-if ($shot =~ /\D{2,}/) {
-    print "## ERROR! : Shot Number can accept digits only or one character.\n";
-    die "Aborting.\n";
-}
-
-# moving "decive" directory
-#use Cwd;
-#$dir_to=Cwd::getcwd();
-$dir_to =`pwd`;
-unless ($dir_to =~ /.*$dir_ufile$device/) {
-    $dir_to = "/home/honda/profiledb/profile_data/".$device;
-    chomp($dir_to);
-    if (-d $dir_to) {
-	chdir($dir_to);
-    }else{
-	print "## ERROR! : The directory you direct does not exist.\n";
+    chomp($shot);
+    $dir_ufile = "profiledb\/profile_data\/";
+    unless ($device) {
+	if ($dir_org =~ /.*$dir_ufile(.*)\//) {
+	    $device = $1;
+	} else {
+	    next;
+	}
+	chomp($device);
+    }
+    if ($shot =~ /\D{2,}/) {
+	print "## ERROR! : Shot Number can accept digits only or one character.\n";
 	die "Aborting.\n";
     }
-}
+
+# moving "device" directory
+#use Cwd;
+#$dir_to=Cwd::getcwd();
+    $dir_to =`pwd`;
+    unless ($dir_to =~ /.*$dir_ufile$device/) {
+	$dir_to = "/home/honda/profiledb/profile_data/".$device;
+	chomp($dir_to);
+	if (-d $dir_to) {
+	    chdir($dir_to);
+	}else{
+	    print "## ERROR! : The directory you direct does not exist.\n";
+	    die "Aborting.\n";
+	}
+    }
 
 # getting shot number from original directory if one didn't input it.
-unless ($shot) {
-    if ($dir_org =~ /.*$dir_ufile$device\/(.*)/) {
-	$shot = $1;
-    } else {
-	die "## ERROR! : Input shot number.\n";
+    unless ($shot) {
+	if ($dir_org =~ /.*$dir_ufile$device\/(.*)/) {
+	    $shot = $1;
+	} else {
+	    die "## ERROR! : Input shot number.\n";
+	}
+    }
+
+# validity check
+    if ($device =~ /\w+/ and $shot =~ /\w+/) {
+	print "$device,$shot";
+	last;
     }
 }
 
