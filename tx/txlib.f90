@@ -57,7 +57,7 @@
 !
 !     ***************************************************************
 !
-      REAL(8) FUNCTION NSTRLEN(STR)
+      INTEGER FUNCTION NSTRLEN(STR)
 
       IMPLICIT NONE
       CHARACTER(*), INTENT(IN) :: STR
@@ -93,7 +93,7 @@
       IMPLICIT NONE
       INTEGER, INTENT(IN) :: I
       INTEGER, INTENT(INOUT) :: NSTR
-      CHARACTER(*), INTENT(OUT) :: STR
+      CHARACTER(*), INTENT(INOUT) :: STR
 
       INTEGER :: J, NSTRI
       CHARACTER(25) :: KVALUE
@@ -126,7 +126,7 @@
       IMPLICIT NONE
       INTEGER, INTENT(INOUT) :: NSTR
       CHARACTER(*), INTENT(IN) :: TX
-      CHARACTER(*), INTENT(OUT) :: STR
+      CHARACTER(*), INTENT(INOUT) :: STR
 
       INTEGER :: NTX, NSTRLEN
 
@@ -154,7 +154,7 @@
       INTEGER, INTENT(IN) :: NINSTR
       CHARACTER(*), INTENT(IN) :: INSTR
       INTEGER, INTENT(INOUT) :: NSTR
-      CHARACTER(*), INTENT(OUT) :: STR
+      CHARACTER(*), INTENT(INOUT) :: STR
 
       STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
       NSTR = NSTR + NINSTR
@@ -179,7 +179,7 @@
       REAL(8), INTENT(IN) :: D
       CHARACTER(*), INTENT(IN) :: FORM
       INTEGER, INTENT(INOUT) :: NSTR
-      CHARACTER(*), INTENT(OUT) :: STR
+      CHARACTER(*), INTENT(INOUT) :: STR
 
       INTEGER(1) :: IND
       INTEGER :: L, IS, IE, NSTRD
@@ -261,7 +261,7 @@
       REAL, INTENT(IN) :: GR
       CHARACTER(*), INTENT(IN) :: FORM
       INTEGER, INTENT(INOUT) :: NSTR
-      CHARACTER(*), INTENT(OUT) :: STR
+      CHARACTER(*), INTENT(INOUT) :: STR
 
       REAL(8) :: D
 
