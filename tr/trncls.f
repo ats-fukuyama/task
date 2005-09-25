@@ -439,6 +439,9 @@ C
           ELSEIF(iflag.eq.5) THEN
             label='ERROR:NCLASS-inversion of flow matrix failed'
             CALL WRITE_LINE(nout,label,0,0)
+          ELSEIF(iflag.eq.6) THEN
+            label='ERROR:NCLASS-trapped fraction must be 0.0<p_ft<1.0'
+            CALL WRITE_LINE(nout,label,0,0)
           ENDIF
         ENDIF
         STOP

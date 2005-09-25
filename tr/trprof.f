@@ -655,6 +655,7 @@ C     *** Give initial profiles to TASK/EQ ***
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     *** Contorol output display from TASK/EQ ***
          CALL EQPARM(2,'NPRINT=1',IERR)
+         CALL EQPARM(2,'NPSMAX=50',IERR)
 C
 C         CALL TRCONV(L,0,IERR)
 C         WRITE(6,*) "L=",L
@@ -735,13 +736,25 @@ C     *** Excute TASK/EQ ***
      &             RSA,RDPA,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX TREQEX: IERR=',IERR
+         WRITE(6,'5(A3,F10.5,1X)')
+     &     'RR=',RR,'RA=',RA,'KP=',RKAP,'DL=',RDLT,'BB=',BB
+         WRITE(6,*) '**PRHO**'
+         WRITE(6,*) (PRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '**HJRHO**'
+         WRITE(6,*) (HJRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '**VTRHO**'
+         WRITE(6,*) (VTRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '**TRHO**'
+         WRITE(6,*) (TRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) 'SRIP=',SRIP
+         WRITE(6,*) 'ICONT=',ICONT
          RETURN
       ENDIF
 C     
 C     Initially(NT=0), current density as an input quantity is modified
 C     in order to keep total plasma current constant.
 C
-      IF(NT.EQ.0) THEN
+      IF(ID.EQ.0) THEN
          DO NR=1,NRMAX
             AJ(NR)=HJRHO(NR)
          ENDDO
