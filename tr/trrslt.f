@@ -626,13 +626,14 @@ C
          GVR(NR,NGR,18)  = GUCLIP(VGR1(NR,1))
          GVR(NR,NGR,19)  = GUCLIP(VGR1(NR,3))
 C         GVR(NR,NGR,19)  = GUCLIP(VGR3(NR,1))
-         GVR(NR,NGR,20)  = GUCLIP(AK(NR,2))
+         GVR(NR,NGR,20)  = GUCLIP(AK(NR,1))
+         GVR(NR,NGR,21)  = GUCLIP(AK(NR,2))
 C         GVR(NR,NGR,17)  = GUCLIP(RW(NR,1)*1.D-6*1.5D0)
 C         GVR(NR,NGR,18)  = GUCLIP(RW(NR,2)*1.D-6*1.5D0)
 C         GVR(NR,NGR,19)  = GUCLIP(PNB(NR)*1.D-6)
 C         GVR(NR,NGR,20)  = GUCLIP(PNF(NR)*1.D-6)
-         GVR(NR,NGR,21)  = GUCLIP(BP(NR))
-         GVR(NR,NGR,22)  = GUCLIP(RPSI(NR))
+         GVR(NR,NGR,22)  = GUCLIP(BP(NR))
+         GVR(NR,NGR,23)  = GUCLIP(RPSI(NR))
       ENDDO
          GVR(1,NGR, 9)  = GUCLIP(Q0)
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -966,6 +967,7 @@ C
       INCLUDE 'trcomm.inc'
 C
     1 WRITE(6,*) '## INPUT MODE : 1:GVT(NT)  2:GVR(NR)  3:GVR(NG)'
+      WRITE(6,*) '                NOW NGR=',NGR
       READ(5,*,END=9000,ERR=1) NID
       IF(NID.EQ.0) GOTO 9000
 C
@@ -978,19 +980,31 @@ C
          ENDDO
          GOTO 10
       ELSEIF(NID.EQ.2) THEN
-   20    WRITE(6,*) '## INPUT NID,NG,NRMIN,NRMAX,NRSTEP'
-         READ(5,*,END=1,ERR=20) MID,NG,MRMIN,MRMAX,MRSTEP
+   20    WRITE(6,*) '## INPUT NID,NG,NRMIN,NRMAX,NRSTEP,G or H(1 or 2)'
+         READ(5,*,END=1,ERR=20) MID,NG,MRMIN,MRMAX,MRSTEP,MGH
          IF(MID.EQ.0) GOTO 1
          DO NR=MRMIN,MRMAX,MRSTEP
-            WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+            IF(MGH.EQ.1) THEN
+               WRITE(6,602) NG,NR,GRG(NR+1),GVR(NR,NG,MID)
+            ELSEIF(MGH.EQ.2) THEN
+               WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+            ELSE
+               GOTO 1
+            ENDIF
          ENDDO
          GOTO 20
       ELSEIF(NID.EQ.3) THEN
-   30    WRITE(6,*) '## INPUT NID,NR,NGMIN,NGMAX,NGSTEP'
-         READ(5,*,END=1,ERR=30) MID,NR,MGMIN,MGMAX,MGSTEP
+   30    WRITE(6,*) '## INPUT NID,NR,NGMIN,NGMAX,NGSTEP,G or H(1 or 2)'
+         READ(5,*,END=1,ERR=30) MID,NR,MGMIN,MGMAX,MGSTEP,MGH
          IF(MID.EQ.0) GOTO 1
          DO NG=MGMIN,MGMAX,MGSTEP
-            WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+            IF(MGH.EQ.1) THEN
+               WRITE(6,602) NG,NR,GRG(NR+1),GVR(NR,NG,MID)
+            ELSEIF(MGH.EQ.2) THEN
+               WRITE(6,602) NG,NR,GRM(NR),GVR(NR,NG,MID)
+            ELSE
+               GOTO 1
+            ENDIF
          ENDDO
          GOTO 30
       ENDIF
