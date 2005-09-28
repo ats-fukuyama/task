@@ -45,6 +45,7 @@ C
          CALL TRVIEW(1)
 C
       ELSE IF(KID.EQ.'L') THEN
+C         write(6,*) "PASS"
          CALL TRLOAD
          CALL PLDATA_SETN(NRMAX,NSMAX)
          CALL PLDATA_CLEAR
