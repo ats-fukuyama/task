@@ -1376,7 +1376,11 @@ C
       DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR)+AJRF(NR)+AJBS(NR))
          EZOH(NR) = ETA(NR)*AJOH(NR)
-         POH(NR)  = EZOH(NR)*AJOH(NR)
+         IF(KUFDEV.EQ.'lhd') THEN
+            POH(NR)  = 0.D0
+         ELSE
+            POH(NR)  = EZOH(NR)*AJOH(NR)
+         ENDIF
       ENDDO
 C
       RETURN

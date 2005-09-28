@@ -736,18 +736,18 @@ C     *** Excute TASK/EQ ***
      &             RSA,RDPA,IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX TREQEX: IERR=',IERR
-         WRITE(6,'5(A3,F10.5,1X)')
-     &     'RR=',RR,'RA=',RA,'KP=',RKAP,'DL=',RDLT,'BB=',BB
-         WRITE(6,*) '**PRHO**'
-         WRITE(6,*) (PRHO(NR),NR=1,NRMAX)
-         WRITE(6,*) '**HJRHO**'
-         WRITE(6,*) (HJRHO(NR),NR=1,NRMAX)
-         WRITE(6,*) '**VTRHO**'
-         WRITE(6,*) (VTRHO(NR),NR=1,NRMAX)
-         WRITE(6,*) '**TRHO**'
-         WRITE(6,*) (TRHO(NR),NR=1,NRMAX)
-         WRITE(6,*) 'SRIP=',SRIP
-         WRITE(6,*) 'ICONT=',ICONT
+         WRITE(6,*) '&TRDATA'
+         WRITE(6,*) '  RR=',RR
+         WRITE(6,*) '  RA=',RA
+         WRITE(6,*) '  RKAP=',RKAP
+         WRITE(6,*) '  RDLT=',RDLT
+         WRITE(6,*) '  BB=',BB
+         WRITE(6,*) '  RIP1=',RIPS
+         WRITE(6,*) '  PRHO=',(PRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '  HJRHO=',(HJRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '  VTRHO=',(VTRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '  TRHO=',(TRHO(NR),NR=1,NRMAX)
+         WRITE(6,*) '&END'
          RETURN
       ENDIF
 C     
