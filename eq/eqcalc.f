@@ -657,7 +657,6 @@ C
 C      DO I=1,3
 C         WRITE(6,'(1p5E12.4)') FJT(I),(Q(J,I),J=1,4*NTGMAX-1)
 C      ENDDO
-C      pause
 C
       CALL BANDRD(Q,FJT,NTGMAX*NSGMAX,4*NTGMAX-1,MWM,IERR)
          IF(IERR.NE.0) THEN
@@ -665,7 +664,6 @@ C
          ENDIF
 C
 C      WRITE(6,'(1p5E12.4)') (FJT(I),I=1,2*NTGMAX)
-C      pause
 C
       DO NSG=1,NSGMAX
          I=(NSG-1)*NTGMAX
@@ -677,7 +675,6 @@ C      WRITE(6,'(1p5E12.4)') (PSI(I,1),I=1,NTGMAX)
 C      WRITE(6,'(1p5E12.4)') (PSI(I,2),I=1,NTGMAX)
 C      WRITE(6,'(1p5E12.4)') (PSI(I,3),I=1,NTGMAX)
 C      WRITE(6,'(1p5E12.4)') (PSI(I,4),I=1,NTGMAX)
-C      pause
 C     
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
