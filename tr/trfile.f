@@ -167,7 +167,7 @@ C
       Q0  = (4.D0*QP(1) -QP(2) )/3.D0
 C
       IF(MODELG.EQ.9) THEN
-         CALL EQLOAD(9,KNAMEQ,1,IERR)
+         CALL EQLOAD(MODELG,KNAMEQ,1,IERR)
          IF(IERR.NE.0) 
      &        WRITE(6,*) 'XX TRLOAD: EQLOAD ERROR: IERR=',IERR
       ENDIF

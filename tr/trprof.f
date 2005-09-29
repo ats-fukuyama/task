@@ -702,6 +702,7 @@ C     *** Give initial profiles to TASK/EQ ***
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     *** Contorol output display from TASK/EQ ***
          CALL EQPARM(2,'NPRINT=1',IERR)
+         CALL EQPARM(2,'NPSMAX=50',IERR)
          IREAD=0
       ENDIF
 C
