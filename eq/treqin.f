@@ -179,13 +179,18 @@ C      ENDDO
 C
 C     ***** Solve GS equation for given profile *****
 C
-C
       IF(ICONT.EQ.0) THEN
          CALL EQCALC(IERR)
-         IF(IERR.NE.0) GOTO 9000
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX TREQEX: EQLOOP -> EQCALC: IERR=',IERR
+            GOTO 9000
+         ENDIF
       ELSE
          CALL EQLOOP(IERR)
-         IF(IERR.NE.0) GOTO 9000
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX TREQEX: EQLOOP: IERR=',IERR
+            GOTO 9000
+         ENDIF
          CALL EQTORZ
          CALL EQCALP
       ENDIF
@@ -273,7 +278,6 @@ C
 C        <<< RHOT >>>
          RHOTL=RHOTR1(NTR)
 C
-C        <<< QRHO >>>
          CALL SPL1DF(RHOTL,QPL,RHOT,UQPS,NRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET: SPL1DF QPL: IERR=',IERR
          QRHO(NTR)=QPL
