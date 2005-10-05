@@ -362,7 +362,9 @@ C
                RRSTAR = RR
                FDREV  = 1.D0
                HETA   = 1.D0
-            ELSEIF(MDLKAI.EQ.11.OR.MDLKAI.EQ.12.OR.MDLKAI.EQ.13) THEN
+            ELSEIF(MDLKAI.EQ.11.OR.
+     &             MDLKAI.EQ.12.OR.
+     &             MDLKAI.EQ.13) THEN
                ETAC   = 1.D0
                RRSTAR = RR
                FDREV  = 1.D0
@@ -391,7 +393,8 @@ CCCCCC            ARG = 6.D0*(ETAI(NR)-ETAC(NR))*RA/CLN(NR)
                ELSE
                   HETA = 1.D0/(1.D0+EXP(-ARG))
                ENDIF
-            ELSEIF(MDLKAI.EQ.15) THEN
+            ELSEIF(MDLKAI.EQ.15.OR.
+     &             MDLKAI.EQ.16) THEN
                ETAC    = 1.D0
                RRSTAX  = ABS(RR*(1.D0-(2.D0+1.D0   /QL**2)*EPS)
      &                   /(1.D0-(2.D0+RKAP**2/QL**2)*EPS))
@@ -414,12 +417,35 @@ CCCCCC            ARG = 6.D0*(ETAI(NR)-ETAC(NR))*RA/CLN(NR)
                FDREV  = 1.D0
                HETA   = 1.D0
             ENDIF
+            IF(MDLKAI.EQ.16) THEN
+               DEDW = CK0*2.5D0*OMEGAS/PPK**2
+     &               *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)
+     &                +OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
+               RGL   = 2.5D0*OMEGAS*HETA
+     &               *SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
+               AMD=PA(2)*AMM
+               TAUD = FTAUI(ANE,ANDX,TD,PZ(2),PA(2))
+               RNUZ= 1.D0/(TAUD*SQRT(EPS))
+               XCHI1=SQRT(RNUZ)/(SQRT(RNUZ)+SQRT(RGL))
+               XXH=2.D0/(1.D0+PPK**2)
+               RGLC=OMEGAS/(2*SQRT(2.D0)*XXH)
+               XXA=XXH*PPK**2/4.D0
+               IF(RGL.GT.RGLC) THEN
+                  XCHI2=XXA*(SQRT(1.D0+(2.D0/XXA)*(RGL-RGLC)/RGL)
+     &                       -1.D0)
+               ELSE
+                  XCHI2=0.D0
+               ENDIF
+               XCHI0=SQRT(XCHI1**2+XCHI2**2)
+               DIDW = CK1*XCHI0*RGL/PPK**2
+            ELSE
             DEDW = CK0*2.5D0*OMEGAS/PPK**2
      &            *(SQRT(EPS)*MIN(FDREV,EPS*OMEGAS/ANYUE)
      &             +OMEGAS/OMEGATT*MAX(1.D0,ANYUE/OMEGATT))
 C
             DIDW = CK1*2.5D0*OMEGAS/PPK**2*HETA
      &            *SQRT(2.D0*ABS(TI)*ABS(ETAI)*ABS(CLN)/(TE*RRSTAR))
+            ENDIF
 C
             AKDW(NR,1) = CDW(1)*DEDW+CDW(2)*DIDW
             AKDW(NR,2) = CDW(3)*DEDW+CDW(4)*DIDW

@@ -624,7 +624,7 @@ C
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
-     &              TPRST,
+     &              TPRST,CDW,
      &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,
      &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
