@@ -55,7 +55,7 @@ C
       integer status
       character cresult*25
 C     
-      integer nptsx,nptsy,ierror/0/,ittyrd/5/,ittywr/6/
+      integer nptsx,nptsy,ierror,ittyrd,ittywr
       integer lenstr
       parameter (lenstr=30)
       character*40 server
@@ -63,7 +63,7 @@ C
       character*40 signal
       character*80 errmsg
       integer ishot, irank
-      integer ianswer, iretlen/0/, L
+      integer ianswer, iretlen, L
       character*(lenstr) xlab, ylab
       integer MAXPTS,  idate, iudate, ish
       parameter (MAXPTS=81920)
@@ -73,7 +73,11 @@ C
       integer ikdev, ikdcg, ikfid, ntm, ntmax, ierr
       real*8 t(ntm), val(ntm)
       common /IPDB2/ tree, ishot
-C     
+C
+      ierror=0
+      ittyrd=5
+      ittywr=6
+      iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
 c$$$      call ktrim(kdev,ikdev)
 c$$$      tree   = kdev(1:ikdev)//char(0)
@@ -191,7 +195,7 @@ C     write (6,*) ' Y array: ',(y(L),L=1,nptsy)
 
       else
 
-         write(ittywr,'('' Not prepared for rank ='',I)') irank
+         write(ittywr,'('' Not prepared for rank ='',I2)') irank
          stop
 
       endif
@@ -211,7 +215,7 @@ C
       integer status
       character cresult*25
 C     
-      integer nptsx,nptsy,nptsz,ierror/0/,ittyrd/5/,ittywr/6/
+      integer nptsx,nptsy,nptsz,ierror,ittyrd,ittywr
       integer lenstr
       parameter (lenstr=30)
       character*40 server
@@ -219,7 +223,7 @@ C
       character*40 signal
       character*80 errmsg
       integer ishot, irank
-      integer ianswer, iretlen/0/, L,LL
+      integer ianswer, iretlen, L,LL
       character*(lenstr) xlab, ylab, zlab
       integer MAXPTS,  idate, iudate, ish
       parameter (MAXPTS=81920)
@@ -232,6 +236,10 @@ C
       real*8 fctr, fedg
       common /IPDB2/ tree, ishot
 C
+      ierror=0
+      ittyrd=5
+      ittywr=6
+      iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
 c$$$      call ktrim(kdev,ikdev)
 c$$$      tree   = kdev(1:ikdev)//char(0)
@@ -443,7 +451,7 @@ C
 
       else
 
-         write(ittywr,'('' Not prepared for rank ='',I)') irank
+         write(ittywr,'('' Not prepared for rank ='',I2)') irank
          stop
 
       endif
@@ -462,7 +470,7 @@ C
       integer status
       character cresult*25
 C     
-      integer nptsx,nptsy,nptsz,ierror/0/,ittyrd/5/,ittywr/6/
+      integer nptsx,nptsy,nptsz,ierror,ittyrd,ittywr
       integer lenstr
       parameter (lenstr=30)
       character*40 server
@@ -470,7 +478,7 @@ C
       character*40 signal
       character*80 errmsg
       integer ishot, irank
-      integer ianswer, iretlen/0/, L,LL
+      integer ianswer, iretlen, L,LL
       character*(lenstr) xlab, ylab, zlab
       integer MAXPTS,  idate, iudate, ish
       parameter (MAXPTS=81920)
@@ -481,6 +489,10 @@ C
       real*8 t(ntm), r(nrm), val(ntm,nrm)
       common /IPDB2/ tree, ishot
 C
+      ierror=0
+      ittyrd=5
+      ittywr=6
+      iretlen=0
 c$$$      server = 'tokamak-profiledb.ukaea.org.uk'//CHAR(0)
 c$$$      call ktrim(kdev,ikdev)
 c$$$      tree   = kdev(1:ikdev)//char(0)
@@ -647,7 +659,7 @@ C
 
       else
 
-         write(ittywr,'('' Not prepared for rank ='',I)') irank
+         write(ittywr,'('' Not prepared for rank ='',I2)') irank
          stop
 
       endif
