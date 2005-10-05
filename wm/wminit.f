@@ -203,6 +203,7 @@ C        WAEMAX : Maximum frequency in Alfven frequency scan
 C
       WAEMIN = 0.001D0
       WAEMAX = 0.200D0
+      KNAMEQ_SAVE=''
 C
       RETURN
       END
