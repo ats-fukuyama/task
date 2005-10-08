@@ -108,19 +108,12 @@ C                   0: No cutoff
 C                   1: With cutoff (this should not be used)
 C        MODELM: Control matrix solver
 C                   0: BANDCD
-C                   1: BCGCDB
-C                   2: CGSCDB
-C                   3: BCGSTAB
-C                   4: BANDCDM
-C                   5: BCGCDBM
-C                   6: CGSCDBM
-C                   7: BSTABCDBM
-C                   8: BANDCDBM
-C                   9: BCGCDBMA
-C                  10: CGSCDBMA
-C                  11: BSTABCDBMA
-C                  12: BANDCDB
-C        MODELW: Control writting a data of absorped power
+C                   1: BANDCDB
+C                   2: BCGSTAB
+C                   8: BANDCDM
+C                   9: BANDCDBM
+C                  10: BSTABCDBM
+C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
 C

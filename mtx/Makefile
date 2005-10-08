@@ -4,13 +4,11 @@ include ../make.header
 LFLAGS = $(OFLAGS)
 
 SRCN = bandcd.f  mtxset.f precndcb.f \
-       bcgcdb.f cgscdb.f bstabcdb.f \
+       bstabcdb.f \
        bandcdb.f
 
 SRCM = bandcdm.f bandcdbm.f \
-       bcgcdbm.f bcgcdbma.f \
-       cgscdbm.f cgscdbma.f \
-       bstabcdbm.f bstabcdbma.f \
+       bstabcdbm.f \
        precndcbm.f mpisrrc.f
 
 OBJN = $(SRCN:.f=.o)

@@ -12,7 +12,7 @@ LIBS = txlib.a ../lib/tasklib.a
 .SUFFIXES: .f90
 
 .f90.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(F95) $(FFLAGS) -c $< -o $@
 
 all: $(PROG)
 
@@ -23,8 +23,8 @@ txlib.a: $(OBJS)
 	(cd ../lib; make)
 
 $(PROG): txmain.o $(LIBS)
-#	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-	$(FC) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+#	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less

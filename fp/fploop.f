@@ -184,7 +184,7 @@ C
             THETA(NR)=THETA0*RTFP(NR)
             Z=1.D0/THETA(NR)
 C            IF(Z.LE.100.D0) THEN
-               DKBSR(NR)=DKBES(2,Z)
+               DKBSR(NR)=BESKN(2,Z)
 C            ELSE
 C               DKBSR(NR)=SQRT(0.5D0*PI/Z)*(1.D0+15.D0/(8.D0*Z))
 C            ENDIF
@@ -354,7 +354,7 @@ C
          IF(NR.EQ.0.OR.NR.EQ.NRMAX+1) THEN
             THETAL=THETA0*RTFPL
             Z=1.D0/THETAL
-            DKBSL=DKBES(2,Z)
+            DKBSL=BESKN(2,Z)
          ELSE
             THETAL=THETA(NR)
             DKBSL=DKBSR(NR)

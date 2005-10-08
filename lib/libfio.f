@@ -148,7 +148,7 @@ C
       IF(LEX) THEN
          MODEPII=MOD(MODEPI,4)
          IF(MODEPII.EQ.0) THEN
-    2       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
+            WRITE(6,*) '# OLD FILE (',KNAM(1:KL),
      &                 ') WILL BE OVERWRITTEN'
          ELSEIF(MODEPII.EQ.1) THEN
     3       WRITE(6,*) '# OLD FILE (',KNAM(1:KL),

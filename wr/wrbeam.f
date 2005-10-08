@@ -496,7 +496,7 @@ C         WRITE(6,6003) RCA,RCB,RBA,RBB,RTH
 C
       DO IT = 1,ITMAX
          YPRE=Y(19)
-         CALL RK(NBEQ,WRFDRVB,X0,XE,1,Y,YM,WORK)
+         CALL ODERK(NBEQ,WRFDRVB,X0,XE,1,Y,YM,WORK)
          YN(0,IT)=XE
          DO I=1,19
            YN(I,IT)=YM(I)

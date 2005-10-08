@@ -50,46 +50,33 @@ C     ######## SELECTION OF SOLUTION METHOD ########
 C
       IF(MODELM.EQ.0.AND.MYRANK.EQ.0) THEN
          CALL BANDCD(CEM,CFV,MSIZ,2*MBND-1,MBNDM,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) THEN
+         IF(IERR.NE.0) THEN
             WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
          ENDIF
       ENDIF
 C
       IF(MODELM.EQ.1.AND.MYRANK.EQ.0) THEN
-         CALL BCGCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &               EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,TEMP1,
-     &               TEMP2,NM,NBSIZ,IERR)
-         IF(MYRANK.EQ.0.AND.ITR.GT.3) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.2.AND.MYRANK.EQ.0) THEN
-         CALL CGSCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &               EPS,ITR,X,D,P,Q,R,R0,E,H,W,TEMP1,TEMP2,
-     &               NM,NBSIZ,IERR)
-         IF(MYRANK.EQ.0.AND.ITR.GT.3) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.3.AND.MYRANK.EQ.0) THEN
-         CALL BSTABCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,
-     &                 TEMP1,TEMP2,NM,NBSIZ,IERR)
-         IF(MYRANK.EQ.0.AND.ITR.GT.3) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.12) THEN
          CALL BANDCDB(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,
      &        NBSIZM,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
      &        NBSIZ,IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XXX BANDCDB PIVOT ERROR: IERR=',IERR
+         ENDIF
       ENDIF
 C
-         IF(MYRANK.EQ.0) THEN
-            DO I=1,MSIZ
-               CFVG(I)=CFV(I)
-            ENDDO
-         ENDIF
+      IF(MODELM.EQ.2.AND.MYRANK.EQ.0) THEN
+         CALL BSTABCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
+     &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,
+     &                 TEMP1,TEMP2,NM,NBSIZ,IERR)
+         IF(ITR.GT.3) 
+     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
+      ENDIF
+C
+      IF(MYRANK.EQ.0) THEN
+         DO I=1,MSIZ
+            CFVG(I)=CFV(I)
+         ENDDO
+      ENDIF
 C
       RETURN
       END

@@ -67,22 +67,12 @@ C
       ENDIF
 C
       IF(MODELM.EQ.1.AND.MYRANK.EQ.0) THEN
-         CALL BCGCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &               EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,TEMP1,
-     &               TEMP2,NM,NBSIZ,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
+         CALL BANDCDB(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,
+     &        NBSIZM,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
+     &        NBSIZ,IERR)
       ENDIF
 C
       IF(MODELM.EQ.2.AND.MYRANK.EQ.0) THEN
-         CALL CGSCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &               EPS,ITR,X,D,P,Q,R,R0,E,H,W,TEMP1,TEMP2,
-     &               NM,NBSIZ,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.3.AND.MYRANK.EQ.0) THEN
          CALL BSTABCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
      &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,
      &                 TEMP1,TEMP2,NM,NBSIZ,IERR)
@@ -90,7 +80,7 @@ C
      &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
       ENDIF
 C
-      IF(MODELM.EQ.4) THEN
+      IF(MODELM.EQ.8) THEN
          CALL BANDCDM(CEM,CFV,MSIZ,2*MBND-1,MBNDM,
      &                F,NFST,NEND,IERR)
          IF(IERR.NE.0.AND.MYRANK.EQ.0) THEN
@@ -98,31 +88,7 @@ C
          ENDIF
       ENDIF
 C
-      IF(MODELM.EQ.5) THEN
-         CALL BCGCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,F,TEMP1,TEMP2,
-     &                NM,NBSIZ,NFST,NEND,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.6) THEN
-         CALL CGSCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                EPS,ITR,X,D,P,Q,R,R0,E,H,W,F,TEMP1,TEMP2,
-     &                NM,NBSIZ,NFST,NEND,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.7) THEN
-         CALL BSTABCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &        EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,F,TEMP1,TEMP2,
-     &        NM,NBSIZ,NFST,NEND,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.8) THEN
+      IF(MODELM.EQ.9) THEN
          LG=18*MDSIZ*NDSIZ
          NG=2*NPROCS*NBSIZ
          CALL BANDCDBM(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,AG,LG,NG,XG,
@@ -132,37 +98,15 @@ C
      &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
       ENDIF
 C
-      IF(MODELM.EQ.9) THEN
-         CALL BCGCDBMA(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,F,TEMP1,TEMP2,
-     &                 NM,NBSIZ,NFST,NEND,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
       IF(MODELM.EQ.10) THEN
-         CALL CGSCDBMA(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &                 EPS,ITR,X,D,P,Q,R,R0,E,H,W,F,TEMP1,TEMP2,
-     &                 NM,NBSIZ,NFST,NEND,IERR)
+         CALL BSTABCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
+     &        EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,F,TEMP1,TEMP2,
+     &        NM,NBSIZ,NFST,NEND,IERR)
          IF(IERR.NE.0.AND.MYRANK.EQ.0) 
      &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
       ENDIF
 C
-      IF(MODELM.EQ.11) THEN
-         CALL BSTABCDBMA(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
-     &          EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,F,TEMP1,TEMP2,
-     &          NM,NBSIZ,NFST,NEND,IERR)
-         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
-     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
-      ENDIF
-C
-      IF(MODELM.EQ.12) THEN
-         CALL BANDCDB(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,
-     &        NBSIZM,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-     &        NBSIZ,IERR)
-      ENDIF
-C
-      IF(MODELM.GE.4.AND.MODELM.NE.12) THEN
+      IF(MODELM.GE.8) THEN
          CALL MPGTCV(CFV,IEND-ISTA+1,CFVG,NVTOT,MSIZM)
       ELSE
          IF(MYRANK.EQ.0) THEN

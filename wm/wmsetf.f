@@ -462,7 +462,7 @@ C
       DATA NS/0/
 C
       IF(N.NE.1) THEN
-         LP=NINT(LOG(DBLE(N))/LOG(2.D0))
+C         LP=NINT(LOG(DBLE(N))/LOG(2.D0))
          IF(N.EQ.NS) THEN
             IND=0
          ELSE
@@ -470,7 +470,7 @@ C
             NS=N
          ENDIF
          IF(KEY.EQ.0) THEN
-            CALL FFT2L(CA,CT,CFFT,LFFT,N/2,IND,KEY+1,LP)
+            CALL FFT2L(CA,CT,RFFT,LFFT,N,IND,KEY)
             DO I=1,N
                IX=I+N/2-1
                IF(IX.GT.N) IX=IX-N
@@ -482,7 +482,7 @@ C
                IF(IX.GT.N) IX=IX-N
                CT(I)=CA(IX)
             ENDDO
-            CALL FFT2L(CT,CA,CFFT,LFFT,N/2,IND,KEY+1,LP)
+            CALL FFT2L(CT,CA,RFFT,LFFT,N,IND,KEY)
          ENDIF
       ENDIF
 C

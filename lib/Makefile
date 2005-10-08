@@ -2,10 +2,11 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
+FFLAGS = $(OFLAGS)
 
 SRCS = libdsp.f libsympl.f libspl.f libbrn.f libgut.f libbnd.f \
-       libpcg.f libde.f libfp.f libbes.f librk.f libkio.f \
-       libfft.f libinv.f libchar.f libfio.f libspl2.f libgrf.f ufile.f \
+       libpcg.f libde.f libspf.f libfp.f libbes.f librk.f libkio.f \
+       libfft.f libinv.f libchar.f libfio.f libgrf.f ufile.f \
        $(LAPACK)
 
 OBJS = $(SRCS:.f=.o)
@@ -27,6 +28,12 @@ testspl : testspl.o libspl.o ../grf/libgrf.o
 
 testgrf : testgrf.o $(OBJS)
 	$(FC) -o $@ testgrf.o $(FFLAGS) $(OBJS) $(FLIBS)
+
+testbes : testbes.o $(OBJS)
+	$(FC) -o $@ testbes.o $(FFLAGS) $(OBJS) $(FLIBS)
+
+testfft : testfft.o $(OBJS)
+	$(FC) -o $@ testfft.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 new :
 	mkdir ../libnew

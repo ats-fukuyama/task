@@ -180,7 +180,7 @@ C
 C
       DO 10 IT = 1,ITMAX
          Y7=Y(7)
-         CALL RK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+         CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 C
          YN(0,IT)=XE
          DO I=1,7
