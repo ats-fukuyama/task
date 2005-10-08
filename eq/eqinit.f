@@ -4,19 +4,8 @@ C     ****** DEFAULT PARAMETERS ******
 C
       SUBROUTINE EQINIT
 C
-      INCLUDE 'eqcomm.inc'
-C
-C     *** CONSTANTS ****
-C
-C        PI    : Pi
-C        RMU0  : Permeability of free space
-C        AMP   : Proton mass
-C        AEE   : Electron charge
-C
-      PI     = 2.D0*ASIN(1.D0)
-      RMU0   = 4.D0*PI*1.D-7
-      AMP    = 1.6726231D-27
-      AEE    = 1.60217733D-19
+      INCLUDE '../eq/eqcomm.inc'
+      INCLUDE '../pl/plcnst.inc'
 C
 C     *** CONFIGURATION PARAMETERS ***
 C
@@ -262,6 +251,8 @@ C        KNAMEQ: Filename of equilibrium data
 C
       KNAMEQ = 'eqdata'
 C
+      CALL EQ_SET_PLPARM
+C
       RETURN
       END
 C
@@ -286,6 +277,7 @@ C
       CHARACTER KIN*(*)
       EXTERNAL EQNLIN,EQPLST
 C
+      CALL EQ_GET_PLPARM
     1 CALL TASK_PARM(MODE,'EQ',KIN,EQNLIN,EQPLST,IERR)
       IF(IERR.NE.0) RETURN
 C
@@ -293,6 +285,7 @@ C
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C
+      CALL EQ_SET_PLPARM
       RETURN
       END
 C

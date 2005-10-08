@@ -3,7 +3,7 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = plmenu.f plinit.f plprof.f pldata.f
+SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f
 
 OBJS = $(SRCS:.f=.o) 
 
@@ -43,9 +43,9 @@ new:
 	cp -f *.f ../plnew
 	cp -f *.inc ../plnew
 
-plmain.o: plmain.f plcomm.inc plcom1.inc
-plmenu.o: plmenu.f plcomm.inc plcom1.inc
-plinit.o: plinit.f plcomm.inc plcom1.inc
-plprof.o: plprof.f plcomm.inc plcom1.inc plcom2.inc
-pldata.o: pldata.f plcomd.inc plcom3.inc
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+plmain.o: plmain.f plcomm.inc plcom0.inc plcom1.inc
+plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
+plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
+plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc
+plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc
+pldata.o: pldata.f plcomd.inc plcom0.inc plcom3.inc

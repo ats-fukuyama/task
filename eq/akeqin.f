@@ -116,7 +116,7 @@ C
 C
       EPSZ=1.D-8
       BETAIN=ATAN2((Z-ZAXIS)/RKAP,R-RAXIS)
-      BETA=ZBRENTX(FNBETA,BETAIN-1.5D0,BETAIN+1.5D0,EPSZ)
+      BETA=ZBRENT(FNBETA,BETAIN-1.5D0,BETAIN+1.5D0,EPSZ)
       IF(BETA.LT.0.D0)    BETA=BETA+2.D0*PI
       IF(BETA.GT.2.D0*PI) BETA=BETA-2.D0*PI
       RETURN
@@ -344,125 +344,5 @@ C
 C      WRITE(6,'(A,1P4E12.4)') 'RP,ZP,PSIL,TTL=',RP,ZP,PSIL,TTL
 C      WRITE(6,'(A,1P4E12.4)') 'BR,BZ,BT,BTOT=',BR,BZ,BT,BTOT
 C      WRITE(6,'(A,1P3E12.4)') 'AJR,AJZ,AJT  =',AJR,AJZ,AJT
-      RETURN
-      END
-C
-C     ***** GET MAGNETIC AXIS *****
-C
-      SUBROUTINE GETAXS(RAXIS1,ZAXIS1)
-C
-      INCLUDE '../eq/eqcomq.inc'
-C
-      RAXIS1=RAXIS
-      ZAXIS1=ZAXIS
-      RETURN
-      END
-C
-C     ***** GET PLASMA BOUNDARY POSITION *****
-C
-      SUBROUTINE GETRSU(RSU1,ZSU1,N,NSUMAX1)
-C
-      INCLUDE '../eq/eqcomq.inc'
-      DIMENSION RSU1(N),ZSU1(N)
-C
-      NSUMAX1=NSUMAX
-      DO NSU=1,MIN(N,NSUMAX)
-         RSU1(NSU)=RSU(NSU)
-         ZSU1(NSU)=ZSU(NSU)
-      ENDDO
-      RETURN
-      END
-C
-      FUNCTION ZBRENTX(FUNC,X1,X2,TOL)
-C
-      INTEGER ITMAX
-      REAL*8 ZBRENTX,TOL,X1,X2,FUNC,EPS
-      EXTERNAL FUNC
-      PARAMETER (ITMAX=100,EPS=1.D-15)
-      INTEGER ITER
-      REAL*8 A,B,C,D,E,FA,FB,FC,P,Q,R,S,TOL1,XM
-      A=X1
-      B=X2
-      FA=FUNC(A)
-      FB=FUNC(B)
-      IF((FA.GT.0..AND.FB.GT.0.).OR.(FA.LT.0..AND.FB.LT.0.)) THEN
-         WRITE(6,'(A,1P3E12.4)') 'XX ZBRENT: ROOT MUST BE BETWEEN',X1,X2
-         ZBRENTX=A
-         RETURN
-      ENDIF
-      C=B
-      FC=FB
-      DO 11 ITER=1,ITMAX
-        IF((FB.GT.0..AND.FC.GT.0.).OR.(FB.LT.0..AND.FC.LT.0.))THEN
-          C=A
-          FC=FA
-          D=B-A
-          E=D
-        ENDIF
-        IF(ABS(FC).LT.ABS(FB)) THEN
-          A=B
-          B=C
-          C=A
-          FA=FB
-          FB=FC
-          FC=FA
-        ENDIF
-        TOL1=2.D0*EPS*ABS(B)+0.5D0*TOL
-        XM=0.5D0*(C-B)
-        IF(ABS(XM).LE.TOL1 .OR. FB.EQ.0.D0)THEN
-          ZBRENTX=B
-          RETURN
-        ENDIF
-        IF(ABS(E).GE.TOL1 .AND. ABS(FA).GT.ABS(FB)) THEN
-          S=FB/FA
-          IF(A.EQ.C) THEN
-            P=2.D0*XM*S
-            Q=1.D0-S
-          ELSE
-            Q=FA/FC
-            R=FB/FC
-            P=S*(2.D0*XM*Q*(Q-R)-(B-A)*(R-1.D0))
-            Q=(Q-1.D0)*(R-1.D0)*(S-1.D0)
-          ENDIF
-          IF(P.GT.0.D0) Q=-Q
-          P=ABS(P)
-          IF(2.D0*P .LT. MIN(3.D0*XM*Q-ABS(TOL1*Q),ABS(E*Q))) THEN
-            E=D
-            D=P/Q
-          ELSE
-            D=XM
-            E=D
-          ENDIF
-        ELSE
-          D=XM
-          E=D
-        ENDIF
-        A=B
-        FA=FB
-        IF(ABS(D) .GT. TOL1) THEN
-          B=B+D
-        ELSE
-          B=B+SIGN(TOL1,XM)
-        ENDIF
-        FB=FUNC(B)
-11    CONTINUE
-      WRITE(6,*) 'ZBRENT EXCEEDING MAXIMUM ITERATIONS'
-      ZBRENTX=B
-      RETURN
-      END
-C
-C     ***** GET PARAMETERS *****
-C
-      SUBROUTINE EQGETB(BB1,RR1,RIP1,RA1,RKAP1,RDEL1,RB1)
-C
-      INCLUDE '../eq/eqcomq.inc'
-C
-      BB1  =BB
-      RR1  =RR
-      RIP1 =RIP
-      RA1  =RA
-      RKAP1=RKAP
-      RDEL1=RDLT
-      RB1  =RB
       RETURN
       END
