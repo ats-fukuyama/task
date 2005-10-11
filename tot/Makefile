@@ -8,7 +8,7 @@ SRCS = main.f
 OBJS = $(SRCS:.f=.o)
 
 LIB0 = ../eq/eqlib.a \
-       ../eq/pleqin.o ../pl/pllib.a \
+       ../pl/pllib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
@@ -25,8 +25,6 @@ all : tot
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../eq/treqin.o:
 	(cd ../eq; make treqin.o)
 ../eq/wmeqin.o:
@@ -59,7 +57,6 @@ all : tot
 libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make pleqin.o)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)
 	(cd ../tr; make tr2lib.a)
@@ -82,7 +79,7 @@ mpitot : main.o $(LIBM)
 
 xtot :
 	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a pleqin.o treqin.o wmeqin.o)
+	(cd ../eq; make eqlib.a treqin.o wmeqin.o)
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)

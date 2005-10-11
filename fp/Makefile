@@ -1,14 +1,14 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
        fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = fplib.a ../pl/pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
+LIBS = fplib.a ../pl/pllib.a ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -22,15 +22,12 @@ fplib.a: $(OBJS)
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 
 libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make pleqin.o)
 	(cd ../lib; make tasklib.a)
 
 fp : fpmain.o $(LIBS)

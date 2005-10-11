@@ -8,7 +8,7 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = dplib.a ../pl/pllib.a  ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
+LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -22,19 +22,15 @@ dplib.a: $(OBJS)
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make pleqin.o)
 	(cd ../lib; make tasklib.a)
 
 dp : dpmain.o $(LIBS)
 	(cd ../pl; make pllib.a)
-	(cd ../eq; make eqlib.a pleqin.o)
 	(cd ../lib; make tasklib.a)
 	$(FC) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
@@ -63,4 +59,3 @@ dptnsr.o: dptnsr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
 dpfpin.o: dpfpin.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
 dphotf.o: dphotf.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
 dphotr.o: dphotr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-../eq/pleqin.o: ../eq/pleqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

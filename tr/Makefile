@@ -27,8 +27,8 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
-LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
-LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
@@ -49,8 +49,6 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
 	(cd ../eq; make treqin.o)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
 	(cd ../lib; make)
 ../lib/mdslib.a:
@@ -60,7 +58,6 @@ libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
-		(cd ../eq; make pleqin.o)
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)

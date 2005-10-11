@@ -7,19 +7,16 @@ SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = pllib.a ../eq/pleqin.o ../eq/eqlib.a ../lib/tasklib.a
+LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
 all : pl
 
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
-	(cd ../eq; make pleqin.o)
 	(cd ../lib; make tasklib.a)
 
 pllib.a: $(OBJS)

@@ -4,6 +4,110 @@ C     **************************
 C        EXECUTE TIME ADVANCE
 C     **************************
 C
+      SUBROUTINE FPEXECX(IERR)
+C
+      INCLUDE 'fpcomm.inc'
+      DIMENSION AAM(4*NTHM-1,NTHM*NPM)
+C
+      DO NR=1,NRMAX
+C
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            NMA(NTH,NP,1)=NTH+NTHMAX*(NP-1)
+         ENDDO
+         ENDDO
+         NMMAX=NTHMAX*NPMAX
+         NWMAX=4*NTHMAX-1
+         NWCEN=2*NTHMAX
+         DO NM=1,NMMAX
+            DO NL=1,NWMAX
+               AAM(NL,NM)=0.D0
+            ENDDO
+         ENDDO
+C
+         IF(MODELA.EQ.0) THEN
+            NLMAX=0
+            DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               CALL FPSETM(NTH,NP,NR,NL)
+               NLMAX=MAX(NLMAX,NL)
+            ENDDO
+            ENDDO
+         ELSE
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX/2
+                  CALL FPSETM(NTH,NP,NR,NL)
+                  NLMAX=MAX(NLMAX,NL)
+               ENDDO
+               DO NTH=ITU(NR)+1,NTHMAX
+                  CALL FPSETM(NTH,NP,NR,NL)
+                  NLMAX=MAX(NLMAX,NL)
+               ENDDO
+            ENDDO
+         ENDIF
+C
+         IF(MODELA.EQ.0) THEN
+            DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,1)
+               AAM(NWCEN,NM)=1.D0-RIMPL*DELT*DL(NM)
+               FM(NM)=F(NTH,NP,NR)
+               BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM)
+     &               +DELT*SP(NTH,NP,NR)
+            ENDDO
+            ENDDO
+         ELSE
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX/2
+                  NM=NMA(NTH,NP,1)
+                  AAM(NWCEN,NM)= RLAMDA(NTH,NR)-RIMPL       *DELT*DL(NM)
+                  FM(NM)=F(NTH,NP,NR)
+                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))
+     &                   *FM(NM)
+     &                  +DELT*SP(NTH,NP,NR)
+               ENDDO
+               DO NTH=NTHMAX/2+1,ITU(NR)
+                  NM=NMA(NTH,NP,1)
+                  AAM(NWCEN,NM)=1.D0
+                  FM(NM)=F(NTH,NP,NR)
+                  BM(NM)=0.D0
+               ENDDO
+               DO NTH=ITU(NR)+1,NTHMAX
+                  NM=NMA(NTH,NP,1)
+                  AAM(NWCEN,NM)= RLAMDA(NTH,NR)-RIMPL       *DELT*DL(NM)
+                  FM(NM)=F(NTH,NP,NR)
+                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))
+     &                   *FM(NM)
+     &                  +DELT*SP(NTH,NP,NR)
+               ENDDO
+            ENDDO
+         ENDIF     
+C
+         DO NM=1,NMMAX
+         DO NL=1,NLMAX
+            IF(LL(NM,NL).NE.0) THEN
+               NP=(LL(NM,NL)-1)/NTHMAX+1
+               NTH=MOD(LL(NM,NL)-1,NTHMAX)+1
+               NLL=NTH+NTHMAX*(NP-1)-NM+NWCEN
+               AAM(NLL,NM)=-RIMPL*DELT*AL(NM,NL)
+               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
+            ENDIF
+         ENDDO
+         ENDDO
+C
+         CALL BANDRD(AAM,BM,4*NTHM-1,NWMAX,NMMAX,IERR)
+C
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            NM=NMA(NTH,NP,1)
+            F1(NTH,NP,NR)=BM(NM)
+         ENDDO
+         ENDDO
+      ENDDO
+C
+      RETURN
+      END
+C
       SUBROUTINE FPEXEC(NOCONV)
 C
       INCLUDE 'fpcomm.inc'

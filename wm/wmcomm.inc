@@ -6,6 +6,6 @@ C
 C     
       include '../mpi/mpicom.inc'
       include '../pl/plcom0.inc'
-      include '../dp/dpcom0.inc'
+      include '../dp/dpcom1.inc'
       include '../wm/wmcom0.inc'
       include '../wm/wmcom1.inc'

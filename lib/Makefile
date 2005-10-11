@@ -4,9 +4,17 @@ include ../make.header
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
-SRCS = libdsp.f libsympl.f libspl.f libbrn.f libgut.f libbnd.f \
-       libpcg.f libde.f libspf.f libfp.f libbes.f librk.f libkio.f \
-       libfft.f libinv.f libchar.f libfio.f libgrf.f ufile.f \
+SRCS = libspf.f libbes.f \
+       libbrn.f \
+       libinv.f libbnd.f \
+       librk.f libsympl.f libde.f \
+       libfft.f libspl.f \
+       libdsp.f \
+       libpcg.f \
+       libfp.f libeq.f \
+       libgut.f libgrf.f \
+       libchar.f libkio.f \
+       libfio.f ufile.f \
        $(LAPACK)
 
 OBJS = $(SRCS:.f=.o)

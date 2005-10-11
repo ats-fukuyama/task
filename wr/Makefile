@@ -7,7 +7,7 @@ SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = wrlib.a ../dp/dplib.a ../pl/pllib.a ../eq/pleqin.o ../eq/eqlib.a \
+LIBS = wrlib.a ../dp/dplib.a ../pl/pllib.a ../eq/eqlib.a \
        ../lib/tasklib.a
 
 .f.o :
@@ -22,8 +22,6 @@ wrlib.a: $(OBJS)
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../dp/dplib.a:
 	(cd ../dp; make dplib.a)
 ../lib/tasklib.a:
@@ -31,7 +29,6 @@ wrlib.a: $(OBJS)
 libs:
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
-	(cd ../eq; make pleqin.o)
 	(cd ../dp; make dplib.a)
 	(cd ../lib; make tasklib.a)
 

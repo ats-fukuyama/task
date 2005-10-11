@@ -15,7 +15,7 @@ SRCM = $(SRC0) wmsolv.f
 OBJS = $(SRCS:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
-LIB0 = ../eq/wmeqin.o ../eq/eqlib.a ../eq/pleqin.o \
+LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
        ../pl/pllib.a ../dp/dplib.a ../lib/tasklib.a
 
 LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
@@ -39,8 +39,6 @@ mpiwmlib.a: $(OBJM)
 	(cd ../eq; make eqlib.a)
 ../eq/wmeqin.o:
 	(cd ../eq; make wmeqin.o)
-../eq/pleqin.o:
-	(cd ../eq; make pleqin.o)
 ../mpi/nompilib.o:
 	(cd ../mpi; make nompilib.o)
 ../mpi/mpilib.o:
@@ -56,7 +54,6 @@ libs:
 	(cd ../dp; make dplib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make wmeqin.o)
-	(cd ../eq; make pleqin.o)
 	(cd ../pl; make pllib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../mpi; make nompilib.o)
