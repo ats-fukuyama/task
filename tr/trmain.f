@@ -6,7 +6,7 @@ C     *  RADIAL TRANSPORT IN A TOKAMAK                              *
 C     *                                                             *
 C     *  PROGRAMMED BY                                              *
 C     *                                                             *
-C     *        A. FUKUYAMA                                          *
+C     *        A. FUKUYAMA and M. HONDA                             *
 C     *        DEPARTMENT OF NUCLEAR ENGINEERING                    *
 C     *        GRADUATE SCHOOL OF ENGINEERING                       *
 C     *        KYOTO UNIVERSITY                                     *

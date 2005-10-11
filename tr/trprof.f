@@ -743,7 +743,7 @@ C     *** Excute TASK/EQ ***
          WRITE(6,*) '  RKAP=',RKAP
          WRITE(6,*) '  RDLT=',RDLT
          WRITE(6,*) '  BB=',BB
-         WRITE(6,*) '  RIP1=',RIPS
+         WRITE(6,*) '  RIP=',RIPS
          WRITE(6,*) '  PRHO=',(PRHO(NR),NR=1,NRMAX)
          WRITE(6,*) '  HJRHO=',(HJRHO(NR),NR=1,NRMAX)
          WRITE(6,*) '  VTRHO=',(VTRHO(NR),NR=1,NRMAX)
