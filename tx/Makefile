@@ -24,11 +24,11 @@ txlib.a: $(OBJS)
 	(cd ../lib; make)
 
 $(PROG): txmain.o $(LIBS)
-#	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+#	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek $(F95KFLAGS) $(SRCS) | less
 
 clean:
 	rm -f *.o ./*~ ./#* a.out core *.a *.mod

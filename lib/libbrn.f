@@ -1,7 +1,7 @@
 C     $Id$
 C############################################################
 C
-C          ブレント法のサブルーチンプログラム
+C          BRENT METHOD
 C
 C############################################################
 C
@@ -20,91 +20,92 @@ C
       EPS2 = EPS**2
       IERR = 0
 C
-      DO 10 I=1,N
+      DO I=1,N
          F(I)=FUNC(N,X,I)
-   10 CONTINUE
+      ENDDO
       FNORM=0.D0
-      DO 11 I=1,N
+      DO I=1,N
          FNORM=FNORM+F(I)**2
-   11 CONTINUE
+      ENDDO
       IF (FNORM.LT.EPS2) RETURN
 C
   100 M=M+1
-      DO 15 I=1,N
+      DO I=1,N
          Y(I)=X(I)
-   15 CONTINUE
-      DO 50 I=1,N
-      DO 50 J=1,N
+      ENDDO
+      DO I=1,N
+      DO J=1,N
          Q(I,J)=0.D0
          IF (I.EQ.J) Q(I,J)=Q(I,J)+1
-   50 CONTINUE
-      DO 60 K=1,N
+      ENDDO
+      ENDDO
+      DO K=1,N
          FF=FUNC(N,Y,K)
          DELH=0.D0
-         DO 61 I=1,N
+         DO I=1,N
             DELH=DELH+Y(I)**2
-   61    CONTINUE
+         ENDDO
          DELH=SQRT(DELH)
          IF (DELH.LE.(1.D-8)) DELH=1.D0
          DELH=1.D-8*DELH
-         DO 62 I=K,N
-            DO 63 J=1,N
+         DO I=K,N
+            DO J=1,N
                W1(J)=Y(J)+DELH*Q(J,I)
-   63       CONTINUE
+            ENDDO
             W2(I)=(FUNC(N,W1,K)-FF)/DELH
-   62    CONTINUE
+         ENDDO
          ANORM=0.D0
-         DO 64 I=K,N
+         DO I=K,N
             ANORM=ANORM+W2(I)**2
-   64    CONTINUE
+         ENDDO
          ANORM=SQRT(ANORM)
          IF (ANORM.LT.(1.D-50)) GO TO 9003
          ALPHA=(ANORM*(ANORM+W2(K)))/2.D0
          ALPHA=SQRT(ABS(ALPHA))
          W1(K)=ALPHA/ANORM
-         DO 65 I=K+1,N
+         DO I=K+1,N
             W1(I)=W2(I)/(2.D0*ALPHA)
-   65    CONTINUE
+         ENDDO
          SIGMA=W2(K)-2.D0*W1(K)*ALPHA
-         DO 66 I=1,K-1
+         DO I=1,K-1
             QSUM=0.D0
-            DO 68 L=K,N
+            DO L=K,N
                QSUM=QSUM+Q(I,L)*W1(L)
-   68       CONTINUE
-            DO 67 J=K,N
+            ENDDO
+            DO J=K,N
                Q(I,J)=Q(I,J)-2.D0*W1(J)*QSUM
-   67       CONTINUE
-   66    CONTINUE
-         DO 71 I=K,N
+            ENDDO
+         ENDDO
+         DO I=K,N
             QSUM=0.D0
-            DO 73 L=K,N
+            DO L=K,N
                QSUM=QSUM+Q(I,L)*W1(L)
-   73       CONTINUE
-            DO 72 J=K,N
+            ENDDO
+            DO J=K,N
                Q(I,J)=Q(I,J)-2.D0*W1(J)*QSUM
-   72       CONTINUE
-   71    CONTINUE
-         DO 75 I=1,N
+            ENDDO
+         ENDDo
+         DO I=1,N
             Y(I)=Y(I)-(FF/SIGMA)*Q(I,K)
-   75    CONTINUE
-   60 CONTINUE
+         ENDDO
+      ENDDO
 C
-      DO 80 I=1,N
+      DO I=1,N
          Y(I)=Y(I)-X(I)
-   80 CONTINUE
+      ENDDO
       T=1
       IC=1
  1000 CONTINUE
-         DO 81 I=1,N
+         DO I=1,N
             W1(I)=X(I)+T*Y(I)
-   81    CONTINUE
-         DO 82 I=1,N
+         ENDDO
+         DO I=1,N
             W2(I)=FUNC(N,W1,I)
-   82    CONTINUE
+         ENDDO
          FNORMN=0.D0
-         DO 83 I=1,N
+         DO I=1,N
             FNORMN=FNORMN+W2(I)**2
-   83    CONTINUE
+         ENDDO
          IF (FNORMN.LT.(((1.D0-T/2.D0)**2)*FNORM)) GO TO 1100
          IF (IC.EQ.30) GO TO 1200
          T=T/2.D0
@@ -115,9 +116,9 @@ C
       GO TO 1300
  1200 IC2=IC2+1
       IF (IC2.GE.3) GO TO 9002
- 1300 DO 84 I=1,N
+ 1300 DO I=1,N
          X(I)=W1(I)
-   84 CONTINUE
+      ENDDO
       FNORM=FNORMN
       IF (FNORM.LT.EPS2) RETURN
       IF (M.GE.MMAX) GO TO 9001
@@ -132,12 +133,12 @@ C
  9003 WRITE(6,103)
       IERR=3
       RETURN
-  101 FORMAT(' FAILED TO CONVERGW(CASE1)')
-  102 FORMAT(' FAILED TO CONVERGW(CASE2)')
-  103 FORMAT(' FAILED TO CONVERGW(CASE3)')
+  101 FORMAT(' FAILED TO CONVERGE (CASE1)')
+  102 FORMAT(' FAILED TO CONVERGE (CASE2)')
+  103 FORMAT(' FAILED TO CONVERGE (CASE3)')
       END
 C   ***********************************************
-C   **               ブレント法                  **
+C   **               BRENT METHOD                **
 C   ***********************************************
 C
       FUNCTION ZBRENT(FUNC,X1,X2,TOL)

@@ -15,12 +15,6 @@ C
          ID1=MOD(MODELP(NS),10)
          ID2=MODELP(NS)/10
 C
-         IF(ID2.EQ.2) THEN
-            CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP1)
-         ELSEIF(ID2.EQ.3) THEN
-            CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP1)
-         ENDIF
-C
          IF(ID1.EQ.0) THEN
             CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.1) THEN
