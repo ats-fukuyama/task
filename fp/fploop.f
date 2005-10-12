@@ -500,8 +500,8 @@ C
 C
          IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF
 C
-C         CALL FPEXECX(IERR)
-         CALL FPEXEC(IERR)
+         CALL FPEXECX(IERR)
+C         CALL FPEXEC(IERR)
          IF(IERR.NE.0) GOTO 250
 C
          IF(MODELE.NE.0) THEN

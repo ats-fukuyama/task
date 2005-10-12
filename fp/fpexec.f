@@ -25,8 +25,8 @@ C
             ENDDO
          ENDDO
 C
+         NLMAX=0
          IF(MODELA.EQ.0) THEN
-            NLMAX=0
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
                CALL FPSETM(NTH,NP,NR,NL)
@@ -67,8 +67,10 @@ C
      &                  +DELT*SP(NTH,NP,NR)
                ENDDO
                DO NTH=NTHMAX/2+1,ITU(NR)
+                  NTHS=NTHMAX+1-NTH
                   NM=NMA(NTH,NP,1)
                   AAM(NWCEN,NM)=1.D0
+                  AAM(NWCEN+NTHS-NTH,NM)=-1.D0
                   FM(NM)=F(NTH,NP,NR)
                   BM(NM)=0.D0
                ENDDO
@@ -95,7 +97,7 @@ C
          ENDDO
          ENDDO
 C
-         CALL BANDRD(AAM,BM,4*NTHM-1,NWMAX,NMMAX,IERR)
+         CALL BANDRD(AAM,BM,NMMAX,NWMAX,4*NTHM-1,IERR)
 C
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
