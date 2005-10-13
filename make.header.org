@@ -41,7 +41,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf77
 #OFLAGS = -O3 -fastsse -tp p7
-#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp -fastsse
 #FC = pgf77
 #LD=ld
 #LDFLAGS=-r
@@ -52,7 +52,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf95
 #OFLAGS = -O3 -fastsse -tp p7
-#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp -fastsse
 #F95 = pgf95
 #FC  = pgf77
 #LD=ld

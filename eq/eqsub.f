@@ -54,7 +54,7 @@ C
 C
 C     ----- calculate outer plasma surface -----
 C
-      REDGE=ZBRENT(PSIZ0,RR,RR+RB,1.D-8)
+      REDGE=FBRENT(PSIZ0,RR,RR+RB,1.D-8)
 C
       RETURN
       END

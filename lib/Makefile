@@ -43,6 +43,9 @@ testbes : testbes.o $(OBJS)
 testfft : testfft.o $(OBJS)
 	$(FC) -o $@ testfft.o $(FFLAGS) $(OBJS) $(FLIBS)
 
+testbrn : testbrn.o $(OBJS)
+	$(FC) -o $@ testbrn.o $(FFLAGS) $(OBJS) $(FLIBS)
+
 new :
 	mkdir ../libnew
 	cp -f Makefile ../libnew

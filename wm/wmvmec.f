@@ -167,6 +167,7 @@ C
          XRHO(NR)=DRHO*(NR-1)
          XR(NR)  =RB*XRHO(NR)
       ENDDO
+      write(6,*) 'RA,RB,DRHO=',RA,RB,DRHO
 C
       RETURN
       END
@@ -190,6 +191,9 @@ C
             CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U6,NSRMAX,IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
+               WRITE(6,'(A,I5,1P3E12.4)') 
+     &                    '   NR,XRHO(NR),XS(1),XS(NRMAX)=',
+     &                        NR,XRHO(NR),XS(1),XS(NRMAX)
             ENDIF         
          ENDIF         
       ENDDO

@@ -17,8 +17,11 @@ C
 C
       IF(ISW.EQ.1) THEN
     2    WRITE(6,*) ' INPUT : RF1,RF2,NXMAX'
-         READ(5,*,ERR=2,END=1) RF1,RF2,NXMAX
-         IF(NXMAX.GT.NXM) GOTO 2
+         NXMAX1=NXMAX
+         READ(5,*,ERR=2,END=1) RF1,RF2,NXMAX1
+         IF(NXMAX1.GT.NXM) GOTO 2
+         IF(NXMAX1.EQ.0) GOTO 1
+         NXMAX=NXMAX1
          DRF=(RF2-RF1)/NXMAX
          DO 10 NX=1,NXMAX
             CRF=DCMPLX(RF1,RFI0)+DRF*(NX-1)
@@ -31,8 +34,11 @@ C
    10    CONTINUE
       ELSEIF(ISW.EQ.2) THEN
   102    WRITE(6,*) ' INPUT : RFI1,RFI2,NXMAX'
-         READ(5,*,ERR=102,END=1) RFI1,RFI2,NXMAX
-         IF(NXMAX.GT.NXM) GOTO 102
+         NXMAX1=NXMAX
+         READ(5,*,ERR=102,END=1) RFI1,RFI2,NXMAX1
+         IF(NXMAX1.GT.NXM) GOTO 102
+         IF(NXMAX1.EQ.0) GOTO 1
+         NXMAX=NXMAX1
          DRFI=(RFI2-RFI1)/NXMAX
          DO 110 NX=1,NXMAX
             CRF=DCMPLX(RF0,RFI1)+DCMPLX(0.D0,DRFI)*(NX-1)
@@ -45,8 +51,11 @@ C
   110    CONTINUE
       ELSEIF(ISW.EQ.3) THEN
   202    WRITE(6,*) ' INPUT : RKX1,RKX2,NXMAX,RF0,RX0,RNPHII'
-         READ(5,*,ERR=202,END=1) RKX1,RKX2,NXMAX,RF0,RX0,RNPHII
-         IF(NXMAX.GT.NXM) GOTO 202
+         NXMAX1=NXMAX
+         READ(5,*,ERR=202,END=1) RKX1,RKX2,NXMAX1,RF0,RX0,RNPHII
+         IF(NXMAX1.GT.NXM) GOTO 202
+         IF(NXMAX1.EQ.0) GOTO 1
+         NXMAX=NXMAX1
          DKX=(RKX2-RKX1)/NXMAX
          DO 210 NX=1,NXMAX
             CRF=DCMPLX(RF0,RFI0)
@@ -62,8 +71,11 @@ C            write(6,*)crf,ckx,cky,ckz,rx0,ry0,rz0,CD
   210    CONTINUE
       ELSEIF(ISW.EQ.4) THEN
   302    WRITE(6,*) ' INPUT : RKY1,RKY2,NXMAX'
-         READ(5,*,ERR=302,END=1) RKY1,RKY2,NXMAX
-         IF(NXMAX.GT.NXM) GOTO 302
+         NXMAX1=NXMAX
+         READ(5,*,ERR=302,END=1) RKY1,RKY2,NXMAX1
+         IF(NXMAX1.GT.NXM) GOTO 302
+         IF(NXMAX1.EQ.0) GOTO 1
+         NXMAX=NXMAX1
          DKY=(RKY2-RKY1)/NXMAX
          DO 310 NX=1,NXMAX
             CRF=DCMPLX(RF0,RFI0)
@@ -76,8 +88,11 @@ C            write(6,*)crf,ckx,cky,ckz,rx0,ry0,rz0,CD
   310    CONTINUE
       ELSEIF(ISW.EQ.5) THEN
   402    WRITE(6,*) ' INPUT : RKZ1,RKZ2,NXMAX'
-         READ(5,*,ERR=402,END=1) RKZ1,RKZ2,NXMAX
-         IF(NXMAX.GT.NXM) GOTO 402
+         NXMAX1=NXMAX
+         READ(5,*,ERR=402,END=1) RKZ1,RKZ2,NXMAX1
+         IF(NXMAX1.GT.NXM) GOTO 402
+         IF(NXMAX1.EQ.0) GOTO 1
+         NXMAX=NXMAX1
          DKZ=(RKZ2-RKZ1)/NXMAX
          DO 410 NX=1,NXMAX
             CRF=DCMPLX(RF0,RFI0)
@@ -344,22 +359,18 @@ C
 C
       EXTERNAL DPFUNC1
 C
-      DIMENSION X(2),F(2),Y(2),W1(2),W2(2),Q(2,2)
+      PARAMETER (NBRM=2,LWA=NBRM*(NBRM+3))
+      DIMENSION X(NBRM),F(NBRM),WA(LWA)
 C
       M = LMAXRT
-      N = 2
+      N = NBRM
       X(1)=DBLE(CX)
       X(2)=DIMAG(CX)
 C
-      CALL BRENT(N,X,DPFUNC1,EPSRT,M,Q,F,Y,W1,W2,IERR)
-      IF(IERR.NE.0) THEN
+      CALL FBRENTN(DPFUNC1,N,X,F,EPSRT,INFO,WA,LWA)
+      IF(INFO.GE.1.AND.INFO.LE.3) THEN
          X(1)=RF0
          X(2)=RFI0
-         CALL BRENT(N,X,DPFUNC1,EPSRT,M,Q,F,Y,W1,W2,IERR)
-         IF(IERR.NE.0) THEN
-            X(1)=RF0
-            X(2)=RFI0
-         ENDIF
       ENDIF
 C
       CX=DCMPLX(X(1),X(2))
@@ -370,20 +381,20 @@ C     *******************************
 C           Determinant Function
 C     *******************************
 C
-      FUNCTION DPFUNC1(N,X,I)
+      SUBROUTINE DPFUNC1(N,X,F,I)
 C
       INCLUDE 'dpcomm.inc'
 C
-      DIMENSION X(N)
+      DIMENSION X(N),F(N)
 C
       CRF=DCMPLX(X(1),X(2))
       CFUNC=CFDISP(CRF,CKX0,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
       IF(I.EQ.1)THEN
-         DPFUNC1=DBLE(CFUNC)
+         F(1)=DBLE(CFUNC)
       ELSE
-         DPFUNC1=DIMAG(CFUNC)
+         F(2)=DIMAG(CFUNC)
       END IF
-      IF(ILIST.NE.0) WRITE(6,*) X(1),X(2),I,DPFUNC1
+      IF(ILIST.NE.0) WRITE(6,'(1P3E12.4,I5)') X(1),X(2),F(I),I
       RETURN
       END
 C
@@ -397,7 +408,8 @@ C
 C
       EXTERNAL DPFUNC2
 C
-      DIMENSION X(2),F(2),Y(2),W1(2),W2(2),Q(2,2)
+      PARAMETER (NBRM=2,LWA=NBRM*(NBRM+3))
+      DIMENSION X(NBRM),F(NBRM),WA(LWA)
 C
       EPS  = 1.D2
       M    = 100
@@ -405,15 +417,10 @@ C
       X(1)=DBLE(CX)
       X(2)=DIMAG(CX)
 C
-      CALL BRENT(N,X,DPFUNC2,EPS,M,Q,F,Y,W1,W2,IERR)
-      IF(IERR.NE.0) THEN
+      CALL FBRENTN(DPFUNC2,N,X,F,EPS,INFO,WA,LWA)
+      IF(INFO.GE.1.AND.INFO.LE.3) THEN
          X(1)=RKX0
          X(2)=0.D0
-         CALL BRENT(N,X,DPFUNC2,EPS,M,Q,F,Y,W1,W2,IERR)
-         IF(IERR.NE.0) THEN
-            X(1)=RKX0
-            X(2)=0.D0
-         ENDIF
       ENDIF
 C
       CX=DCMPLX(X(1),X(2))
@@ -424,20 +431,20 @@ C     *******************************
 C           Determinant Function
 C     *******************************
 C
-      FUNCTION DPFUNC2(N,X,I)
+      SUBROUTINE DPFUNC2(N,X,F,I)
 C
       INCLUDE 'dpcomm.inc'
 C
-      DIMENSION X(N)
+      DIMENSION X(N),F(N)
 C
       CKX=DCMPLX(X(1),X(2))
       CFUNC2=CFDISP(CRF0,CKX,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
       IF(I.EQ.1)THEN
-         DPFUNC2=DBLE(CFUNC2)
+         F(1)=DBLE(CFUNC2)
       ELSE
-         DPFUNC2=DIMAG(CFUNC2)
+         F(2)=DIMAG(CFUNC2)
       END IF
-      IF(ILIST.NE.0) WRITE(6,*) X(1),X(2),I,DPFUNC2
+      IF(ILIST.NE.0) WRITE(6,'(1P3E12.4,I5)') X(1),X(2),F(I),I
       RETURN
       END
 C
@@ -451,7 +458,8 @@ C
 C
       EXTERNAL DPFUNC3
 C
-      DIMENSION X(2),F(2),Y(2),W1(2),W2(2),Q(2,2)
+      PARAMETER (NBRM=2,LWA=NBRM*(NBRM+3))
+      DIMENSION X(NBRM),F(NBRM),WA(LWA)
 C
       EPS  = 1.D2
       M    = 100
@@ -459,15 +467,10 @@ C
       X(1)=DBLE(SQRT(CX))
       X(2)=DIMAG(SQRT(CX))
 C
-      CALL BRENT(N,X,DPFUNC3,EPS,M,Q,F,Y,W1,W2,IERR)
-      IF(IERR.NE.0) THEN
+      CALL FBRENTN(DPFUNC3,N,X,F,EPS,INFO,WA,LWA)
+      IF(INFO.GE.1.AND.INFO.LE.3) THEN
          X(1)=RKX0**2
          X(2)=0.D0
-         CALL BRENT(N,X,DPFUNC3,EPS,M,Q,F,Y,W1,W2,IERR)
-         IF(IERR.NE.0) THEN
-            X(1)=RKX0**2
-            X(2)=0.D0
-         ENDIF
       ENDIF
 C
       CX=DCMPLX(X(1),X(2))**2
@@ -478,20 +481,20 @@ C     *******************************
 C           Determinant Function
 C     *******************************
 C
-      FUNCTION DPFUNC3(N,X,I)
+      SUBROUTINE DPFUNC3(N,X,F,I)
 C
       INCLUDE 'dpcomm.inc'
 C
-      DIMENSION X(N)
+      DIMENSION X(N),F(N)
 C
       CKX=DCMPLX(X(1),X(2))
       CFUNC3=CFDISP(CRF0,CKX,CKY0,CKZ0,XPOS0,YPOS0,ZPOS0)
       IF(I.EQ.1)THEN
-         DPFUNC3=DBLE(CFUNC3)
+         F(1)=DBLE(CFUNC3)
       ELSE
-         DPFUNC3=DIMAG(CFUNC3)
+         F(2)=DIMAG(CFUNC3)
       END IF
-      IF(ILIST.NE.0) WRITE(6,*) X(1),X(2),I,DPFUNC3
+      IF(ILIST.NE.0) WRITE(6,'(1P3E12.4,I5)') X(1),X(2),F(I),I
       RETURN
       END
 C
