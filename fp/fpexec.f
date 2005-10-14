@@ -4,7 +4,7 @@ C     **************************
 C        EXECUTE TIME ADVANCE
 C     **************************
 C
-      SUBROUTINE FPEXECX(IERR)
+      SUBROUTINE FPEXEC(IERR)
 C
       INCLUDE 'fpcomm.inc'
       DIMENSION AAM(4*NTHM-1,NTHM*NPM)
@@ -103,133 +103,6 @@ C
          DO NTH=1,NTHMAX
             NM=NMA(NTH,NP,1)
             F1(NTH,NP,NR)=BM(NM)
-         ENDDO
-         ENDDO
-      ENDDO
-C
-      RETURN
-      END
-C
-      SUBROUTINE FPEXEC(NOCONV)
-C
-      INCLUDE 'fpcomm.inc'
-      DIMENSION EPS(2)
-C
-      DO NR=1,NRMAX
-C
-         IF(MODELA.EQ.0) THEN
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NMA(NTH,NP,1)=NTH+NTHMAX*(NP-1)
-            ENDDO
-            ENDDO
-            NMMAX=NTHMAX*NPMAX
-         ELSE
-            NM=0
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX/2
-                  NM=NM+1
-                  NMA(NTH,NP,1)=NM
-               ENDDO
-               DO NTH=ITU(NR)+1,NTHMAX
-                  NM=NM+1
-                  NMA(NTH,NP,1)=NM
-               ENDDO
-               DO NTH=NTHMAX/2+1,ITU(NR)
-                  NMA(NTH,NP,1)=NMA(NTHMAX-NTH+1,NP,1)
-               ENDDO
-            ENDDO
-            NMMAX=NM
-         ENDIF
-C
-         IF(MODELA.EQ.0) THEN
-            NLMAX=0
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               CALL FPSETM(NTH,NP,NR,NL)
-               NLMAX=MAX(NLMAX,NL)
-            ENDDO
-            ENDDO
-         ELSE
-            NLMAX=0
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX/2
-                  CALL FPSETM(NTH,NP,NR,NL)
-                  NLMAX=MAX(NLMAX,NL)
-               ENDDO
-               DO NTH=ITU(NR)+1,NTHMAX
-                  CALL FPSETM(NTH,NP,NR,NL)
-                  NLMAX=MAX(NLMAX,NL)
-               ENDDO
-            ENDDO
-         ENDIF
-C
-         NOCONV=0
-         IF(MODELA.EQ.0) THEN
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,1)
-               DM(NM)=1.D0-RIMPL*DELT*DL(NM)
-               FM(NM)=F(NTH,NP,NR)
-               BM(NM)=(1.D0+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM)
-     &               +DELT*SP(NTH,NP,NR)
-            ENDDO
-            ENDDO
-         ELSE
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX/2
-                  NM=NMA(NTH,NP,1)
-                  DM(NM)= RLAMDA(NTH,NR)-RIMPL       *DELT*DL(NM)
-                  FM(NM)=F(NTH,NP,NR)
-                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))
-     &                   *FM(NM)
-     &                  +DELT*SP(NTH,NP,NR)
-               ENDDO
-               DO NTH=ITU(NR)+1,NTHMAX
-                  NM=NMA(NTH,NP,1)
-                  DM(NM)= RLAMDA(NTH,NR)-RIMPL       *DELT*DL(NM)
-                  FM(NM)=F(NTH,NP,NR)
-                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))
-     &                   *FM(NM)
-     &                  +DELT*SP(NTH,NP,NR)
-               ENDDO
-            ENDDO
-         ENDIF     
-C
-         DO NM=1,NMMAX
-         DO NL=1,NLMAX
-            LM(NM,NL)=LL(NM,NL)
-            IF(LL(NM,NL).EQ.0) THEN
-               AM(NM,NL)=0.D0
-            ELSE
-               AM(NM,NL)=-RIMPL*DELT*AL(NM,NL)
-               BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
-            ENDIF
-         ENDDO
-         ENDDO
-C
-         EPS(1)=EPSM
-         PARM=0.D0
-         ITR=0
-C
-C         WRITE(6,*) 'PCGPME : NMMAX = ',NMMAX,'   NLMAX = ',NLMAX
-         CALL PCGPME(AM,NLMAX,NMM,LM,DM,NMMAX,NMM2,BM,FM,EPS,PARM,
-     &               ITR,WK1,WK2,IER)
-C
-         IF(IER.NE.0) THEN
-            WRITE(6,*) 'XX PCGPME ERROR: IER = ',IER
-            IF(IER.EQ.3000) THEN
-               NOCONV=1
-            ENDIF
-         ENDIF
-         IF(EPS(1).GT.EPSM) THEN
-            WRITE(6,*) 'PCGPME : ITR = ',ITR,'   ERROR = ',EPS(1)
-         ENDIF
-C
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            NM=NMA(NTH,NP,1)
-            F1(NTH,NP,NR)=FM(NM)
          ENDDO
          ENDDO
       ENDDO
