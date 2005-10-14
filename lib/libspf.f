@@ -535,7 +535,7 @@ CS    ALGAMA = RES
 C ---------- Last line of DLGAMA ----------
       END
 C
-      SUBROUTINE CALERF(ARG,RESULT,JJINT)
+      SUBROUTINE CALERF(ARG,RESULT,ID)
 C------------------------------------------------------------------
 C
 C This packet evaluates  erf(x),  erfc(x),  and  exp(x*x)*erfc(x)
@@ -555,12 +555,12 @@ C   all computations within the packet being concentrated in this
 C   routine.  The function subprograms invoke  CALERF  with the
 C   statement
 C
-C          CALL CALERF(ARG,RESULT,JJINT)
+C          CALL CALERF(ARG,RESULT,ID)
 C
 C   where the parameter usage is as follows
 C
 C      Function                     Parameters for CALERF
-C       call              ARG                  Result          JJINT
+C       call              ARG                  Result          ID
 C
 C     ERF(ARG)      ANY REAL ARGUMENT         ERF(ARG)          0
 C     ERFC(ARG)     ABS(ARG) .LT. XBIG        ERFC(ARG)         1
@@ -652,7 +652,7 @@ C
 C  Latest modification: March 19, 1990
 C
 C------------------------------------------------------------------
-      INTEGER I,JJINT
+      INTEGER I,ID
 CS    REAL
       DOUBLE PRECISION
      1     A,ARG,B,C,D,DEL,FOUR,HALF,P,ONE,Q,RESULT,SIXTEN,SQRPI,
@@ -740,8 +740,8 @@ C------------------------------------------------------------------
                XDEN = (XDEN + B(I)) * YSQ
    20       CONTINUE
             RESULT = X * (XNUM + A(4)) / (XDEN + B(4))
-            IF (JJINT .NE. 0) RESULT = ONE - RESULT
-            IF (JJINT .EQ. 2) RESULT = EXP(YSQ) * RESULT
+            IF (ID .NE. 0) RESULT = ONE - RESULT
+            IF (ID .EQ. 2) RESULT = EXP(YSQ) * RESULT
             GO TO 800
 C------------------------------------------------------------------
 C  Evaluate  erfc  for 0.46875 <= |X| <= 4.0
@@ -754,7 +754,7 @@ C------------------------------------------------------------------
                XDEN = (XDEN + D(I)) * Y
   120       CONTINUE
             RESULT = (XNUM + C(8)) / (XDEN + D(8))
-            IF (JJINT .NE. 2) THEN
+            IF (ID .NE. 2) THEN
                YSQ = AINT(Y*SIXTEN)/SIXTEN
                DEL = (Y-YSQ)*(Y+YSQ)
                RESULT = EXP(-YSQ*YSQ) * EXP(-DEL) * RESULT
@@ -765,7 +765,7 @@ C------------------------------------------------------------------
          ELSE
             RESULT = ZERO
             IF (Y .GE. XBIG) THEN
-               IF ((JJINT .NE. 2) .OR. (Y .GE. XMAX)) GO TO 300
+               IF ((ID .NE. 2) .OR. (Y .GE. XMAX)) GO TO 300
                IF (Y .GE. XHUGE) THEN
                   RESULT = SQRPI / Y
                   GO TO 300
@@ -780,7 +780,7 @@ C------------------------------------------------------------------
   240       CONTINUE
             RESULT = YSQ *(XNUM + P(5)) / (XDEN + Q(5))
             RESULT = (SQRPI -  RESULT) / Y
-            IF (JJINT .NE. 2) THEN
+            IF (ID .NE. 2) THEN
                YSQ = AINT(Y*SIXTEN)/SIXTEN
                DEL = (Y-YSQ)*(Y+YSQ)
                RESULT = EXP(-YSQ*YSQ) * EXP(-DEL) * RESULT
@@ -789,10 +789,10 @@ C------------------------------------------------------------------
 C------------------------------------------------------------------
 C  Fix up for negative argument, erf, etc.
 C------------------------------------------------------------------
-  300 IF (JJINT .EQ. 0) THEN
+  300 IF (ID .EQ. 0) THEN
             RESULT = (HALF - RESULT) + HALF
             IF (X .LT. ZERO) RESULT = -RESULT
-         ELSE IF (JJINT .EQ. 1) THEN
+         ELSE IF (ID .EQ. 1) THEN
             IF (X .LT. ZERO) RESULT = TWO - RESULT
          ELSE
             IF (X .LT. ZERO) THEN
@@ -820,12 +820,12 @@ C
 C   Author/date: W. J. Cody, January 8, 1985
 C
 C--------------------------------------------------------------------
-      INTEGER JJINT
+      INTEGER ID
 CS    REAL             X, RESULT
       DOUBLE PRECISION X, RESULT
 C------------------------------------------------------------------
-      JJINT = 0
-      CALL CALERF(X,RESULT,JJINT)
+      ID = 0
+      CALL CALERF(X,RESULT,ID)
 CS    ERF = RESULT
       DERF = RESULT
       RETURN
@@ -842,12 +842,12 @@ C
 C   Author/date: W. J. Cody, January 8, 1985
 C
 C--------------------------------------------------------------------
-      INTEGER JJINT
+      INTEGER ID
 CS    REAL             X, RESULT
       DOUBLE PRECISION X, RESULT
 C------------------------------------------------------------------
-      JJINT = 1
-      CALL CALERF(X,RESULT,JJINT)
+      ID = 1
+      CALL CALERF(X,RESULT,ID)
 CS    ERFC = RESULT
       DERFC = RESULT
       RETURN
@@ -864,12 +864,12 @@ C
 C   Author/date: W. J. Cody, March 30, 1987
 C
 C------------------------------------------------------------------
-      INTEGER JJINT
+      INTEGER ID
 CS    REAL             X, RESULT
       DOUBLE PRECISION X, RESULT
 C------------------------------------------------------------------
-      JJINT = 2
-      CALL CALERF(X,RESULT,JJINT)
+      ID = 2
+      CALL CALERF(X,RESULT,ID)
 CS    ERFCX = RESULT
       DERFCX = RESULT
       RETURN
