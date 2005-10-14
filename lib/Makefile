@@ -10,7 +10,6 @@ SRCS = libspf.f libbes.f \
        librk.f libsympl.f libde.f \
        libfft.f libspl.f \
        libdsp.f \
-       libpcg.f \
        libfp.f libeq.f \
        libgut.f libgrf.f \
        libchar.f libkio.f \
