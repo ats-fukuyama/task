@@ -2121,7 +2121,7 @@ C--------------------------------------------------------------------
 C---------- Last line of RKBESL ----------
       END
 C
-      SUBROUTINE CALJY0(ARG,RESULT,JINT)
+      SUBROUTINE CALJY0(ARG,RESULT,JJINT)
 C---------------------------------------------------------------------
 C
 C This packet computes zero-order Bessel functions of the first and
@@ -2140,11 +2140,11 @@ C   respectively.  The routine  CALJY0  is intended for internal packet
 C   use only, all computations within the packet being concentrated in
 C   this one routine.  The function subprograms invoke  CALJY0  with
 C   the statement
-C           CALL CALJY0(ARG,RESULT,JINT),
+C           CALL CALJY0(ARG,RESULT,JJINT),
 C   where the parameter usage is as follows:
 C
 C      Function                  Parameters for CALJY0
-C       call              ARG             RESULT          JINT
+C       call              ARG             RESULT          JJINT
 C
 C     BESJ0(ARG)     |ARG| .LE. XMAX       J0(ARG)          0
 C     BESY0(ARG)   0 .LT. ARG .LE. XMAX    Y0(ARG)          1
@@ -2211,7 +2211,7 @@ C          Argonne National Laboratory
 C          Argonne, IL 60439
 C
 C--------------------------------------------------------------------
-      INTEGER I,JINT
+      INTEGER I,JJINT
 CS    REAL
       DOUBLE PRECISION
      1       ARG,AX,CONS,DOWN,EIGHT,FIVE5,FOUR,ONE,ONEOV8,PI2,PJ0,
@@ -2397,7 +2397,7 @@ C-------------------------------------------------------------------
 C  Check for error conditions
 C-------------------------------------------------------------------
       AX = ABS(ARG)
-      IF ((JINT .EQ. 1) .AND. (ARG .LE. ZERO)) THEN
+      IF ((JJINT .EQ. 1) .AND. (ARG .LE. ZERO)) THEN
             RESULT = -XINF
             GO TO 2000
          ELSE IF (AX .GT. XMAX) THEN
@@ -2406,7 +2406,7 @@ C-------------------------------------------------------------------
       END IF
       IF (AX .GT. EIGHT) GO TO 800
       IF (AX .LE. XSMALL) THEN
-         IF (JINT .EQ. 0) THEN
+         IF (JJINT .EQ. 0) THEN
                RESULT = ONE
             ELSE
                RESULT = PI2 * (LOG(AX) + CONS)
@@ -2437,7 +2437,7 @@ C-------------------------------------------------------------------
             PROD = (AX + XJ1) * ((AX - XJ11/TWO56) - XJ12)
       END IF
       RESULT = PROD * XNUM / XDEN
-      IF (JINT .EQ. 0) GO TO 2000
+      IF (JJINT .EQ. 0) GO TO 2000
 C-------------------------------------------------------------------
 C  Calculate Y0.  First find  RESJ = pi/2 ln(x/xn) J0(x),
 C    where xn is a zero of Y0
@@ -2514,7 +2514,7 @@ C-------------------------------------------------------------------
   850 CONTINUE
       R0 = XNUM / XDEN
       R1 = UP / DOWN
-      IF (JINT .EQ. 0) THEN
+      IF (JJINT .EQ. 0) THEN
             RESULT = SQRT(PI2/AX) * (R0*COS(W) - Z*R1*SIN(W))
          ELSE
             RESULT = SQRT(PI2/AX) * (R0*SIN(W) + Z*R1*COS(W))
@@ -2532,12 +2532,12 @@ C   of the first kind of order zero for arguments  |X| <= XMAX
 C   (see comments heading CALJY0).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL  X, RESULT
       DOUBLE PRECISION  X, RESULT
 C--------------------------------------------------------------------
-      JINT=0
-      CALL CALJY0(X,RESULT,JINT)
+      JJINT=0
+      CALL CALJY0(X,RESULT,JJINT)
       BESJ0 = RESULT
       RETURN
 C---------- Last line of BESJ0 ----------
@@ -2552,18 +2552,18 @@ C   of the second kind of order zero for arguments 0 < X <= XMAX
 C   (see comments heading CALJY0).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL  X, RESULT
       DOUBLE PRECISION  X, RESULT
 C--------------------------------------------------------------------
-      JINT=1
-      CALL CALJY0(X,RESULT,JINT)
+      JJINT=1
+      CALL CALJY0(X,RESULT,JJINT)
       BESY0 = RESULT
       RETURN
 C---------- Last line of BESY0 ----------
       END
 C
-      SUBROUTINE CALJY1(ARG,RESULT,JINT)
+      SUBROUTINE CALJY1(ARG,RESULT,JJINT)
 C---------------------------------------------------------------------
 C
 C This packet computes first-order Bessel functions of the first and
@@ -2582,11 +2582,11 @@ C   respectively.  The routine  CALJY1  is intended for internal packet
 C   use only, all computations within the packet being concentrated in
 C   this one routine.  The function subprograms invoke  CALJY1  with
 C   the statement
-C           CALL CALJY1(ARG,RESULT,JINT),
+C           CALL CALJY1(ARG,RESULT,JJINT),
 C   where the parameter usage is as follows:
 C
 C      Function                  Parameters for CALJY1
-C       call              ARG             RESULT          JINT
+C       call              ARG             RESULT          JJINT
 C
 C     BESJ1(ARG)     |ARG| .LE. XMAX       J1(ARG)          0
 C     BESY1(ARG)   0 .LT. ARG .LE. XMAX    Y1(ARG)          1
@@ -2653,7 +2653,7 @@ C
 C  Latest modification: November 10, 1987
 C
 C--------------------------------------------------------------------
-      INTEGER I,JINT
+      INTEGER I,JJINT
       DIMENSION PJ0(7),PJ1(8),PLG(4),PY0(7),PY1(9),P0(6),P1(6),
      1          QJ0(5),QJ1(7),QLG(4),QY0(6),QY1(8),Q0(6),Q1(6)
 CS    REAL
@@ -2820,7 +2820,7 @@ C-------------------------------------------------------------------
 C  Check for error conditions
 C-------------------------------------------------------------------
       AX = ABS(ARG)
-      IF ((JINT .EQ. 1) .AND. ((ARG .LE. ZERO) .OR.
+      IF ((JJINT .EQ. 1) .AND. ((ARG .LE. ZERO) .OR.
      1   ((ARG .LT. HALF) .AND. (AX*XINF .LT. PI2)))) THEN
             RESULT = -XINF
             GO TO 2000
@@ -2831,7 +2831,7 @@ C-------------------------------------------------------------------
       IF (AX .GT. EIGHT) THEN
             GO TO 800
          ELSE IF (AX .LE. XSMALL) THEN
-            IF (JINT .EQ. 0) THEN
+            IF (JJINT .EQ. 0) THEN
                   RESULT = ARG * HALF
                ELSE
                   RESULT = -PI2 / AX
@@ -2863,7 +2863,7 @@ C-------------------------------------------------------------------
             PROD = ARG * ((AX - XJ11/TWO56) - XJ12) * (AX + XJ1)
       END IF
       RESULT = PROD * (XNUM / XDEN)
-      IF (JINT .EQ. 0) GO TO 2000
+      IF (JJINT .EQ. 0) GO TO 2000
 C-------------------------------------------------------------------
 C  Calculate Y1.  First find  RESJ = pi/2 ln(x/xn) J1(x),
 C    where xn is a zero of Y1
@@ -2929,12 +2929,12 @@ C-------------------------------------------------------------------
   850 CONTINUE
       R0 = XNUM / XDEN
       R1 = UP / DOWN
-      IF (JINT .EQ. 0) THEN
+      IF (JJINT .EQ. 0) THEN
             RESULT = (RTPI2/SQRT(AX)) * (R0*COS(W) - Z*R1*SIN(W))
          ELSE
             RESULT = (RTPI2/SQRT(AX)) * (R0*SIN(W) + Z*R1*COS(W))
       END IF
-      IF ((JINT .EQ. 0) .AND. (ARG .LT. ZERO)) RESULT = -RESULT
+      IF ((JJINT .EQ. 0) .AND. (ARG .LT. ZERO)) RESULT = -RESULT
  2000 RETURN
 C---------- Last card of CALJY1 ----------
       END
@@ -2947,13 +2947,13 @@ C   of the first kind of order zero for arguments  |X| <= XMAX
 C   (see comments heading CALJY1).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL
       DOUBLE PRECISION
      1   BESJ1,RESULT,X
 C--------------------------------------------------------------------
-      JINT=0
-      CALL CALJY1(X,RESULT,JINT)
+      JJINT=0
+      CALL CALJY1(X,RESULT,JJINT)
       BESJ1 = RESULT
       RETURN
 C---------- Last card of BESJ1 ----------
@@ -2967,19 +2967,19 @@ C   of the second kind of order zero for arguments 0 < X <= XMAX
 C   (see comments heading CALJY1).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL
       DOUBLE PRECISION
      1   BESY1,RESULT,X
 C--------------------------------------------------------------------
-      JINT=1
-      CALL CALJY1(X,RESULT,JINT)
+      JJINT=1
+      CALL CALJY1(X,RESULT,JJINT)
       BESY1 = RESULT
       RETURN
 C---------- Last card of BESY1 ----------
       END
 C
-      SUBROUTINE CALCI0(ARG,RESULT,JINT)
+      SUBROUTINE CALCI0(ARG,RESULT,JJINT)
 C--------------------------------------------------------------------
 C
 C This packet computes modified Bessel functions of the first kind
@@ -2997,11 +2997,11 @@ C   EXP(-ABS(X))*I0(X), respectively.  The routine CALCI0 is
 C   intended for internal packet use only, all computations within
 C   the packet being concentrated in this routine.  The function
 C   subprograms invoke CALCI0 with the statement
-C          CALL CALCI0(ARG,RESULT,JINT)
+C          CALL CALCI0(ARG,RESULT,JJINT)
 C   where the parameter usage is as follows
 C
 C      Function                     Parameters for CALCI0
-C       Call              ARG                  RESULT          JINT
+C       Call              ARG                  RESULT          JJINT
 C
 C     BESI0(ARG)    ABS(ARG) .LE. XMAX        I0(ARG)           1
 C     BESEI0(ARG)    any real ARG        EXP(-ABS(ARG))*I0(ARG) 2
@@ -3087,7 +3087,7 @@ C
 C  Latest modification: June 7, 1988
 C
 C--------------------------------------------------------------------
-      INTEGER I,JINT
+      INTEGER I,JJINT
 CS    REAL
       DOUBLE PRECISION
      1       A,ARG,B,EXP40,FORTY,ONE,ONE5,P,PP,Q,QQ,RESULT,
@@ -3167,9 +3167,9 @@ C--------------------------------------------------------------------
             XX = XX - TWO25
             SUMQ = ((((XX+Q(1))*XX+Q(2))*XX+Q(3))*XX+Q(4))*XX+Q(5)
             RESULT = SUMP / SUMQ
-            IF (JINT .EQ. 2) RESULT = RESULT * EXP(-X)
+            IF (JJINT .EQ. 2) RESULT = RESULT * EXP(-X)
          ELSE IF (X .GE. ONE5) THEN
-            IF ((JINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
+            IF ((JJINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
                   RESULT = XINF
                ELSE
 C--------------------------------------------------------------------
@@ -3181,7 +3181,7 @@ C--------------------------------------------------------------------
                   SUMQ = ((((((XX+QQ(1))*XX+QQ(2))*XX+QQ(3))*XX+
      1                   QQ(4))*XX+QQ(5))*XX+QQ(6))*XX+QQ(7)
                   RESULT = SUMP / SUMQ
-                  IF (JINT .EQ. 2) THEN
+                  IF (JJINT .EQ. 2) THEN
                         RESULT = (RESULT - PP(1)) / SQRT(X)
                      ELSE
 C--------------------------------------------------------------------
@@ -3215,13 +3215,13 @@ C   modified Bessel functions of the first kind of order zero for
 C   arguments ABS(ARG) .LE. XMAX  (see comments heading CALCI0).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL  
       DOUBLE PRECISION  
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT=1
-      CALL CALCI0(X,RESULT,JINT)
+      JJINT=1
+      CALL CALCI0(X,RESULT,JJINT)
       BESI0=RESULT
       RETURN
 C---------- Last line of BESI0 ----------
@@ -3239,19 +3239,19 @@ C   exponential function, ABS is the absolute value, and X
 C   is any argument.
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL  
       DOUBLE PRECISION  
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT=2
-      CALL CALCI0(X,RESULT,JINT)
+      JJINT=2
+      CALL CALCI0(X,RESULT,JJINT)
       BESEI0=RESULT
       RETURN
 C---------- Last line of BESEI0 ----------
       END
 C
-      SUBROUTINE CALCI1(ARG,RESULT,JINT)
+      SUBROUTINE CALCI1(ARG,RESULT,JJINT)
 C--------------------------------------------------------------------
 C
 C This packet computes modified Bessel functioons of the first kind
@@ -3269,11 +3269,11 @@ C   EXP(-ABS(X))*I1(X), respectively.  The routine CALCI1 is
 C   intended for internal packet use only, all computations within
 C   the packet being concentrated in this routine.  The function
 C   subprograms invoke CALCI1 with the statement
-C          CALL CALCI1(ARG,RESULT,JINT)
+C          CALL CALCI1(ARG,RESULT,JJINT)
 C   where the parameter usage is as follows
 C
 C      Function                     Parameters for CALCI1
-C       Call              ARG                  RESULT          JINT
+C       Call              ARG                  RESULT          JJINT
 C
 C     BESI1(ARG)    ABS(ARG) .LE. XMAX        I1(ARG)           1
 C     BESEI1(ARG)    any real ARG        EXP(-ABS(ARG))*I1(ARG) 2
@@ -3358,7 +3358,7 @@ C
 C  Latest modification: May 31, 1989
 C
 C--------------------------------------------------------------------
-      INTEGER J,JINT
+      INTEGER J,JJINT
 CS    REAL
       DOUBLE PRECISION
      1    A,ARG,B,EXP40,FORTY,HALF,ONE,ONE5,P,PBAR,PP,Q,QQ,REC15,
@@ -3442,8 +3442,8 @@ C--------------------------------------------------------------------
             SUMQ = ((((XX+Q(1))*XX+Q(2))*XX+Q(3))*XX+Q(4))
      1           *XX+Q(5)
             RESULT = (SUMP / SUMQ) * X
-            IF (JINT .EQ. 2) RESULT = RESULT * EXP(-X)
-         ELSE IF ((JINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
+            IF (JJINT .EQ. 2) RESULT = RESULT * EXP(-X)
+         ELSE IF ((JJINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
                   RESULT = XINF
          ELSE
 C--------------------------------------------------------------------
@@ -3455,7 +3455,7 @@ C--------------------------------------------------------------------
             SUMQ = (((((XX+QQ(1))*XX+QQ(2))*XX+QQ(3))*XX+
      1           QQ(4))*XX+QQ(5))*XX+QQ(6)
             RESULT = SUMP / SUMQ
-            IF (JINT .NE. 1) THEN
+            IF (JJINT .NE. 1) THEN
                   RESULT = (RESULT + PBAR) / SQRT(X)
                ELSE
 C--------------------------------------------------------------------
@@ -3490,13 +3490,13 @@ C   modified Bessel functions of the first kind of order one for
 C   arguments ABS(ARG) .LE. XMAX  (see comments heading CALCI1).
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL
       DOUBLE PRECISION
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT=1
-      CALL CALCI1(X,RESULT,JINT)
+      JJINT=1
+      CALL CALCI1(X,RESULT,JJINT)
       BESI1=RESULT
       RETURN
 C---------- Last line of BESI1 ----------
@@ -3514,19 +3514,19 @@ C   exponential function, ABS is the absolute value, and X
 C   is any argument.
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL
       DOUBLE PRECISION
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT=2
-      CALL CALCI1(X,RESULT,JINT)
+      JJINT=2
+      CALL CALCI1(X,RESULT,JJINT)
       BESEI1=RESULT
       RETURN
 C---------- Last line of BESEI1 ----------
       END
 C
-      SUBROUTINE CALCK0(ARG,RESULT,JINT)
+      SUBROUTINE CALCK0(ARG,RESULT,JJINT)
 C--------------------------------------------------------------------
 C
 C This packet computes modified Bessel functions of the second kind
@@ -3544,11 +3544,11 @@ C   EXP(X)*K0(X), respectively.  The routine CALCK0 is
 C   intended for internal packet use only, all computations within
 C   the packet being concentrated in this routine.  The function
 C   subprograms invoke CALCK0 with the statement
-C          CALL CALCK0(ARG,RESULT,JINT)
+C          CALL CALCK0(ARG,RESULT,JJINT)
 C   where the parameter usage is as follows
 C
 C      Function                     Parameters for CALCK0
-C       Call              ARG                  RESULT          JINT
+C       Call              ARG                  RESULT          JJINT
 C
 C     BESK0(ARG)   0 .LT. ARG .LE. XMAX       K0(ARG)           1
 C     BESEK0(ARG)     0 .LT. ARG           EXP(ARG)*K0(ARG)     2
@@ -3636,7 +3636,7 @@ C           Argonne National Laboratory
 C           Argonne, IL 60439
 C
 C--------------------------------------------------------------------
-      INTEGER I,JINT
+      INTEGER I,JJINT
 CS    REAL  
       DOUBLE PRECISION
      1    ARG,F,G,ONE,P,PP,Q,QQ,RESULT,SUMF,SUMG,SUMP,SUMQ,TEMP,
@@ -3719,9 +3719,9 @@ C--------------------------------------------------------------------
                         SUMF = ((F(1)*XX + F(2))*XX + F(3))*XX + F(4)
                         SUMG = ((XX + G(1))*XX + G(2))*XX + G(3)
                         RESULT = SUMP/SUMQ - XX*SUMF*TEMP/SUMG - TEMP
-                        IF (JINT .EQ. 2) RESULT = RESULT * EXP(X)
+                        IF (JJINT .EQ. 2) RESULT = RESULT * EXP(X)
                   END IF
-               ELSE IF ((JINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
+               ELSE IF ((JJINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
 C--------------------------------------------------------------------
 C     Error return for ARG .GT. XMAX
 C--------------------------------------------------------------------
@@ -3741,7 +3741,7 @@ C--------------------------------------------------------------------
   140             CONTINUE
                   SUMQ = SUMQ + QQ(10)
                   RESULT = SUMP / SUMQ / SQRT(X)
-                  IF (JINT .EQ. 1) RESULT = RESULT * EXP(-X)
+                  IF (JJINT .EQ. 1) RESULT = RESULT * EXP(-X)
             END IF
          ELSE
 C--------------------------------------------------------------------
@@ -3771,13 +3771,13 @@ C
 C  Latest Modification: January 19, 1988
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL 
       DOUBLE PRECISION
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT = 1
-      CALL CALCK0(X,RESULT,JINT)
+      JJINT = 1
+      CALL CALCK0(X,RESULT,JJINT)
       BESK0 = RESULT
       RETURN
 C---------- Last line of BESK0 ----------
@@ -3798,19 +3798,19 @@ C
 C  Latest Modification: January 19, 1988
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL 
       DOUBLE PRECISION 
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT = 2
-      CALL CALCK0(X,RESULT,JINT)
+      JJINT = 2
+      CALL CALCK0(X,RESULT,JJINT)
       BESEK0 = RESULT
       RETURN
 C---------- Last line of BESEK0 ----------
       END
 C
-      SUBROUTINE CALCK1(ARG,RESULT,JINT)
+      SUBROUTINE CALCK1(ARG,RESULT,JJINT)
 C--------------------------------------------------------------------
 C
 C This packet computes modified Bessel functions of the second kind
@@ -3828,11 +3828,11 @@ C   EXP(X)*K1(X), respectively.  The routine CALCK1 is intended
 C   for internal packet use only, all computations within the
 C   packet being concentrated in this routine.  The function
 C   subprograms invoke CALCK1 with the statement
-C          CALL CALCK1(ARG,RESULT,JINT)
+C          CALL CALCK1(ARG,RESULT,JJINT)
 C   where the parameter usage is as follows
 C
 C      Function                      Parameters for CALCK1
-C        Call             ARG                  RESULT          JINT
+C        Call             ARG                  RESULT          JJINT
 C
 C     BESK1(ARG)  XLEAST .LT. ARG .LT. XMAX    K1(ARG)          1
 C     BESEK1(ARG)     XLEAST .LT. ARG       EXP(ARG)*K1(ARG)    2
@@ -3922,7 +3922,7 @@ C
 C  Latest modification: January 28, 1988
 C
 C--------------------------------------------------------------------
-      INTEGER I,JINT
+      INTEGER I,JJINT
 CS    REAL 
       DOUBLE PRECISION 
      1    ARG,F,G,ONE,P,PP,Q,QQ,RESULT,SUMF,SUMG,
@@ -4013,9 +4013,9 @@ C--------------------------------------------------------------------
      1                   + F(5)
                   SUMG = ((XX + G(1))*XX + G(2))*XX + G(3)
                   RESULT = (XX * LOG(X) * SUMF/SUMG + SUMP/SUMQ) / X
-                  IF (JINT .EQ. 2) RESULT = RESULT * EXP(X)
+                  IF (JJINT .EQ. 2) RESULT = RESULT * EXP(X)
             END IF
-         ELSE IF ((JINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
+         ELSE IF ((JJINT .EQ. 1) .AND. (X .GT. XMAX)) THEN
 C--------------------------------------------------------------------
 C  Error return for  ARG  .GT. XMAX
 C--------------------------------------------------------------------
@@ -4035,7 +4035,7 @@ C--------------------------------------------------------------------
   140       CONTINUE
             SUMQ = SUMQ + QQ(9)
             RESULT = SUMP / SUMQ / SQRT(X)
-            IF (JINT .EQ. 1) RESULT = RESULT * EXP(-X)
+            IF (JJINT .EQ. 1) RESULT = RESULT * EXP(-X)
       END IF
       RETURN
 C---------- Last line of CALCK1 ----------
@@ -4051,13 +4051,13 @@ C   modified Bessel function of the second kind of order one
 C   for arguments  XLEAST .LE. ARG .LE. XMAX.
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL 
       DOUBLE PRECISION  
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT = 1
-      CALL CALCK1(X,RESULT,JINT)
+      JJINT = 1
+      CALL CALCK1(X,RESULT,JJINT)
       BESK1 = RESULT
       RETURN
 C---------- Last line of BESK1 ----------
@@ -4074,13 +4074,13 @@ C   multiplied by the exponential function, for arguments
 C   XLEAST .LE. ARG .LE. XMAX.
 C
 C--------------------------------------------------------------------
-      INTEGER JINT
+      INTEGER JJINT
 CS    REAL
       DOUBLE PRECISION  
      1    X, RESULT
 C--------------------------------------------------------------------
-      JINT = 2
-      CALL CALCK1(X,RESULT,JINT)
+      JJINT = 2
+      CALL CALCK1(X,RESULT,JJINT)
       BESEK1 = RESULT
       RETURN
 C---------- Last line of BESEK1 ----------
