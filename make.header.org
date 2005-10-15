@@ -16,6 +16,8 @@ MDSLIB =
 
 ## mpi compile command
 MFC = mpif77
+MF77 = mpif77
+MF90 = mpif90
 
 ## ftnchek options
 FCKFLAGS = -array=0 -usage=no-com-block-unused
