@@ -50,6 +50,18 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
+## for pgf90
+#GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-pgf90
+#OFLAGS = -O3 -fastsse -tp p7
+#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp -fastsse
+#F90 = pgf90
+#FC  = pgf77
+#LD=ld
+#LDFLAGS=-r
+## if you have lapack library
+#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
+
 ## for pgf95
 #GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf95
