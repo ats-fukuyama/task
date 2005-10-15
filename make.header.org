@@ -95,9 +95,11 @@ GLLIBS=-L/usr/local/lib -lgsgl
 
 ## for macosx-xlf
 #GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl-xlf
 #OFLAGS = -O -qmaxmem=-1
 #DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
 #FC = xlf
+#F90 = xlf90 -qsuffix=f=f90 -qsuffix=cpp=F90
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
