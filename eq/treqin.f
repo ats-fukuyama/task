@@ -50,6 +50,8 @@ C
       RDLT   = RDLT1
       BB     = BB1
 C
+      CALL EQ_SET_PLPARM
+C
       RETURN
       END
 C
@@ -182,7 +184,7 @@ C
       IF(ICONT.EQ.0) THEN
          CALL EQCALC(IERR)
          IF(IERR.NE.0) THEN
-            WRITE(6,*) 'XX TREQEX: EQLOOP -> EQCALC: IERR=',IERR
+            WRITE(6,*) 'XX TREQEX: EQCALC: IERR=',IERR
             GOTO 9000
          ENDIF
       ELSE
@@ -201,16 +203,13 @@ C
       NTHMAX1=64
       CALL EQCALQ(NRMAX1,NTHMAX1,0,IERR)
 C
-C      IF(RIP1.NE.0.D0) THEN
-         DO NTR=1,NTRMAX1
-            RHOTRL=RHOTR1(NTR)
-            CALL SPL1DF(RHOTRL,AJPRL,RHOT,UAVEJPR,NRMAX,IERR)
-            IF(IERR.NE.0) WRITE(6,*) 
-     &           'XX TREQEX: SPL1DF AJPRL: IERR=',IERR
-C            WRITE(6,*) NTR,AJPRL,HJRHO(NTR)
-            HJRHO(NTR)=AJPRL
-         ENDDO
-C      ENDIF
+      DO NTR=1,NTRMAX1
+         RHOTRL=RHOTR1(NTR)
+         CALL SPL1DF(RHOTRL,AJPRL,RHOT,UAVEJPR,NRMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 
+     &        'XX TREQEX: SPL1DF AJPRL: IERR=',IERR
+         HJRHO(NTR)=AJPRL
+      ENDDO
 C
       RSA=SQRT(PSITA/(PI*BB))
       DPSIPDRHOA=FNDPSIP(1.D0)

@@ -19,6 +19,7 @@ C      RMU0   = 4.D0*PI*1.D-7
        AEE    = 1.60219D-19
 C
       CALL GSOPEN
+      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C
       NTRMAX= 50
       RR    = 3.D0
@@ -65,8 +66,10 @@ C     *** FOR INITIAL PROFILE ************
 C     ************************************
       CALL EQPARM(2,'NPRINT=1',IERR)
       CALL EQPARM(2,'NPSMAX=50',IERR)
+      CALL EQPARM(2,'EPSEQ=1.D-5',IERR)
 C
       CALL PARM_READ(RR,RA,RKAP,RDLT,BB,RIP,PRHO,HJRHO,VTRHO,TRHO)
+      CALL EQ_SET_PLPARM
 C     *** FOR PREVAILING GEOMETRIC QUANTITIES THROUGH COMMON BLOCKS ***
       CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
 C     *****************************************************************
@@ -78,12 +81,15 @@ C
      &        WRITE(6,*) 'XX TRTEST: EQLOAD ERROR: IERR=',IERR
          ICONT=1
          RIP=0.D0
+         CALL EQGOUT(1)
       ENDIF
 C
       CALL TREQEX(NTRMAX,RHOTR,PRHO,HJRHO,VTRHO,TRHO,RIP,ICONT,
      &            RSA,DPSIPDRHOA,IERR)
 C
       CALL EQVIEW
+C
+      IF(IERR.EQ.0) THEN
 C
       CALL TREQGET(NTRMAX,RHOTR,
      &             QRHO,TTRHO,DVRHO,DSRHO,
@@ -92,6 +98,8 @@ C
      &             EPSRHO,RMJRHO,RMNRHO,RKAPRHO,IERR)
 C
       WRITE(6,*) 'RSA,DPSIPDRHOA=',RSA,DPSIPDRHOA
+C
+      ENDIF
 C
       CALL EQGOUT(1)
 C

@@ -127,7 +127,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OFLAGS =
 #DFLAGS =
 #FC = sxf90
-#LD=ld
+#LD=sxld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a

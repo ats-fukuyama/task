@@ -242,6 +242,9 @@ C
       MDLEQC = 0
 C
 C        NPRINT: Level print out
+C            0: no print
+C            1: print first and last loop
+C            2: print all loop
 C
       NPRINT= 0
 C
@@ -297,7 +300,6 @@ C
 C
       NAMELIST /EQ/ RR,BB,RIP,
      &              RA,RKAP,RDLT,RB,
-     &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              FF0,FF1,FF2,PROFF0,PROFF1,PROFF2,
      &              QQ0,QQ1,QQ2,PROFQ0,PROFQ1,PROFQ2,QQS,
