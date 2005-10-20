@@ -240,7 +240,7 @@ C
             RETURN
          ELSE
             IF((NPRINT.EQ.1.AND.NLOOP.EQ.1).OR.
-     &          NPRINT.GE.2.) THEN
+     &          NPRINT.GE.2) THEN
                WRITE(6,'(A,1P4E14.6)')
      &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
             ENDIF
