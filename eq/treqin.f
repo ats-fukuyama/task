@@ -41,7 +41,8 @@ C
       MDLEQF = 8
       MDLEQA = 2
       NPRINT = 1
-      NLPMAX = 20
+C      NLPMAX = 20
+      NLPMAX = 40
 C
       RR     = RR1
       RA     = RA1
@@ -191,10 +192,15 @@ C
          CALL EQLOOP(IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX TREQEX: EQLOOP: IERR=',IERR
-            GOTO 9000
+            CALL EQCALC(IERR)
+            IF(IERR.NE.0) THEN
+               WRITE(6,*) 'XX TREQEX: EQCALC: IERR=',IERR
+               GOTO 9000
+            ENDIF
+         ELSE
+            CALL EQTORZ
+            CALL EQCALP
          ENDIF
-         CALL EQTORZ
-         CALL EQCALP
       ENDIF
 C
 C     ***** Calculate eqilibrium quantities *****
