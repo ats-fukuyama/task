@@ -654,8 +654,10 @@ C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
 C     *** Contorol output display from TASK/EQ ***
-         CALL EQPARM(2,'NPRINT=1',IERR)
-         CALL EQPARM(2,'NPSMAX=50',IERR)
+CCC         CALL EQPARM(2,'EPSEQ=1.D-4',IERR)
+CCC         CALL EQPARM(2,'NPRINT=1',IERR)
+         CALL EQPARM(2,'NPRINT=0',IERR)
+         CALL EQPARM(2,'NPSMAX=100',IERR)
 C
 C         CALL TRCONV(L,0,IERR)
 C         WRITE(6,*) "L=",L
@@ -700,9 +702,11 @@ C
 C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
-C     *** Contorol output display from TASK/EQ ***
-         CALL EQPARM(2,'NPRINT=1',IERR)
-         CALL EQPARM(2,'NPSMAX=50',IERR)
+C     *** Control output display from TASK/EQ ***
+CCC         CALL EQPARM(2,'EPSEQ=1.D-4',IERR)
+CCC         CALL EQPARM(2,'NPRINT=1',IERR)
+         CALL EQPARM(2,'NPRINT=0',IERR)
+         CALL EQPARM(2,'NPSMAX=100',IERR)
          IREAD=0
       ENDIF
 C

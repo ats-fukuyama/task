@@ -269,6 +269,7 @@ C
 C     ***********************************************************
 C
 C           SUBPROGRAM FOR 1D PROFILE
+C                   DRAW RADIAL PROFILE WITH ERROR BARS
 C
 C                   MODE =  0  : Y=0 INCLUDED
 C                          +1  : USING YMIN/YMAX
@@ -415,6 +416,140 @@ C
       CALL SETLIN(-1,-1,7)
   900 RETURN
       END
+C
+C     ***********************************************************
+C
+C           SUBPROGRAM FOR 1D PROFILE
+C                   DRAW EVOLUTION CONTOUR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGR1DC(GX1,GX2,GY1,GY2,GT,GX,GF,NTM,NTMAX,NXM,NXMAX,
+     &                   STR,KA)
+C
+      IMPLICIT REAL*8 (A-F,H,O-Z)
+C
+      PARAMETER (NRGBA=5)
+      PARAMETER (NSTEPM=101)
+      DIMENSION GT(NTM),GX(NXM),GF(NTM,NXMAX),IPAT(6)
+      CHARACTER STR*(*),KT*80,KDL*1
+      DIMENSION GRGBA(3,NRGBA),GLA(NRGBA)
+      DIMENSION GDLF(NSTEPM),GDLE(NSTEPM),GRGBL(3,0:NSTEPM)
+      DIMENSION KA(8,NTM,NXM)
+      DATA IPAT/0,2,3,4,6,7/
+      DATA GRGBA/0.0,0.0,1.0,
+     &           0.0,1.0,1.0,
+     &           1.0,1.0,1.0,
+     &           1.0,1.0,0.0,
+     &           1.0,0.0,0.0/
+      DATA GLA/0.0,0.40,0.5,0.60,1.0/
+C
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+      KDL=STR(1:1)
+      I=2
+    1 IF(STR(I:I).EQ.KDL.OR.I.EQ.LEN(STR)) GOTO 2
+         KT(I-1:I-1)=STR(I:I)
+         I=I+1
+      GOTO 1
+C
+    2 CALL MOVE(GX1,GY2+0.3)
+      CALL TEXT(KT,I-2)
+C
+      CALL GMNMX1(GT,1,NTMAX,1,GXMIN,GXMAX)
+      IF(ABS(GXMAX-GXMIN).LT.1.D-6) THEN
+         GXMIN=GXMIN-0.999E-6
+         GXMAX=GXMAX+1.000E-6
+      ENDIF
+C
+      CALL GMNMX1(GX,1,NXMAX,1,GYMIN,GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
+         GYMIN=GYMIN-0.999E-6
+         GYMAX=GYMAX+1.000E-6
+      ENDIF
+C
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+C
+      IF(GXMIN*GXMAX.LE.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LE.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+C
+      CALL GDEFIN(GX1,GX2,GY1,GY2,GSXMIN,GSXMAX,GSYMIN,GSYMAX)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(-1,-1,7)
+      CALL GFRAME
+C
+      ISTEPF=40
+      ISTEPE=20
+C
+      CALL GMNMX2(GF,NTM,1,NTMAX,1,1,NXMAX,1,GFMIN,GFMAX)
+      GZA=GFMAX-GFMIN
+      GDZ=GZA/ISTEPF
+      DO I=1,ISTEPF
+         GDLF(I)=GDZ*(I-0.5)+GFMIN
+      ENDDO
+      GDZ=GZA/ISTEPE
+      DO I=1,ISTEPE
+         GDLE(I)=GDZ*(I-0.5)+GFMIN
+      ENDDO
+C
+      DO I=0,ISTEPF
+         GFACT=REAL(I)/REAL(ISTEPF)
+C         CALL GUSRGB(GFACT,GRGBL(1,I),NRGBA,GLA,GRGBA)
+         CALL R2G2B(GFACT,GRGBL(1,I))
+      ENDDO
+C
+      CALL SETLIN(-1,-1,7)
+      CALL CONTF1(GF,NTM,NTMAX,NXMAX,GDLF,GRGBL,ISTEPF,0)
+CCC      CALL CONTE1(GF,NTM,NTMAX,NXMAX,GDLE,ISTEPE,0,0,KA)
+      CALL SETLNW(0.01)
+      CALL CONTP1(GF,NTM,NTMAX,NXMAX,GDLE(1),GDLE(2)-GDLE(1),ISTEPE,0,0
+     &           ,KA)
+C
+      CALL GSCALE(GXORG,GSTEPX,0.0,0.0,0.1,9)
+      CALL GVALUE(GXORG,2*GSTEPX,0.0,0.0,NGULEN(2*GSTEPX))
+      CALL GSCALE(0.0,0.0,GYORG,GSTEPY,0.1,9)
+      CALL GVALUE(0.0,0.0,GYORG,2*GSTEPY,NGULEN(2*GSTEPY))
+C
+      CALL SETLIN(-1,-1,7)
+      RETURN
+      END
+C
+C     *****************************
+C
+C     INTERPORATE RGB
+C
+C     *****************************
+C
+      SUBROUTINE GUSRGB(GL,GRGBL,NRGB,GLA,GRGBLA)
+C
+      DIMENSION GRGBL(3),GLA(NRGB),GRGBLA(3,NRGB)
+C
+      DO NDO=2,NRGB
+         N=NDO
+         IF(GLA(N).GT.GL) GOTO 9
+      ENDDO
+    9 CONTINUE
+C
+      GFACT=(GL-GLA(N-1))/(GLA(N)-GLA(N-1))
+      GRGBL(1)=GRGBLA(1,N-1)*(1.0-GFACT)+GRGBLA(1,N)*GFACT
+      GRGBL(2)=GRGBLA(2,N-1)*(1.0-GFACT)+GRGBLA(2,N)*GFACT
+      GRGBL(3)=GRGBLA(3,N-1)*(1.0-GFACT)+GRGBLA(3,N)*GFACT
+C
+      RETURN
+      END
+C
 C
 C     ***********************************************************
 C

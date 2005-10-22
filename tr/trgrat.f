@@ -18,6 +18,7 @@ C
       IF(K2.EQ.'6') CALL TRGRT6(INQ)
       IF(K2.EQ.'7') CALL TRGRT7(INQ)
       IF(K2.EQ.'8') CALL TRGRT8(INQ)
+      IF(K2.EQ.'9') CALL TRGRT9(INQ)
       RETURN
       END
 C  
@@ -524,7 +525,6 @@ C
       RETURN
       END
 C
-C
 C     ***********************************************************
 C
 C           GRAPHIC : TIME DEPENDENCE : RR,RA,RKAP,IP,BB
@@ -556,6 +556,88 @@ C
       ENDDO
       CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
      &            '@RKAP  vs t@',2+INQ)
+C
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           GRAPHIC : EVOLUTION CONTOUR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRT9(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      DIMENSION GYL(NTM,NRM),KATR(8,NTM,NRM)
+C
+      CALL PAGES
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I, 1)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@TE [keV]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I, 2)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@TD [keV]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I, 5)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC( 3.0,12.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@NE [10$+20$=/m$+3$=]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,31)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@VLOOP [V]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I, 9) * 1.E-6
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@AJ [MA]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,13) * 1.E-6
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@AJBS [MA]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = (G3D(NR,I,11) + G3D(NR,I,12)) * 1.E-6
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@AJCD [MA]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,27) - 1.0
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@QP  vs t@',KATR)
 C
       CALL PAGEE
 C

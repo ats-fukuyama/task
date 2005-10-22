@@ -311,6 +311,12 @@ C
      &                +PZ(3)  *PZ(3)  *RN(NR,3))/RN(NR,1)
          END DO
       ENDIF
+C
+      DO NR=1,NRMAX
+         TE=RT(NR,1)
+         PZC(NR)=TRZEC(TE)
+         PZFE(NR)=TRZEFE(TE)
+      ENDDO
 C     
       RETURN
       END
@@ -478,8 +484,10 @@ C               PRL(NR)=PRLL
             ANT =RN(NR,3)
             ANHE=RN(NR,4)
             TE  =RT(NR,1)
+C     Radiation loss caused by impurities
             PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
             PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
+C     Bremsstrahlung
             PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
             PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
             PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
