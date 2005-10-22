@@ -83,27 +83,29 @@ clean:
 veryclean: clean
 	rm -f wm
 
-wmmain.o : wmmain.f wmcomm.inc
-wmmenu.o : wmmenu.f wmcomm.inc
-wmeign.o : wmeign.f wmcomm.inc
-wminit.o : wminit.f wmcomm.inc
-wmintf.o : wmintf.f wmcomm.inc ../pl/plcom0.inc
-wmsetg.o : wmsetg.f wmcomm.inc
-wmvmec.o : wmvmec.f wmcomm.inc vmcomm.inc
-wmexec.o : wmexec.f wmcomm.inc
-wmprof.o : wmprof.f wmcomm.inc wmxprf.inc
-wmsolv.o : wmsolv.f wmcomm.inc
-nowmsolv.o : nowmsolv.f wmcomm.inc
-wmsetm.o : wmsetm.f wmcomm.inc
-wmsetf.o : wmsetf.f wmcomm.inc
-wmdisp.o : wmdisp.f wmcomm.inc
-wmtae.o : wmtae.f wmcomm.inc
-wmdprf.o : wmdprf.f wmcomm.inc
-wmxprf.o : wmxprf.f wmcomm.inc wmxprf.inc
-wmpout.o : wmpout.f wmcomm.inc
-wmgout.o : wmgout.f wmcomm.inc
-wmvout.o : wmvout.f wmcomm.inc vmcomm.inc
-wmgsub.o : wmgsub.f wmcomm.inc
-wmdout.o : wmdout.f wmcomm.inc	
-wmbooz.o : wmbooz.f wmcomm.inc vmcomm.inc
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../pl/plcom0.inc ../dp/dpcom1.inc
+
+wmmain.o : wmmain.f $(WMCOMM)
+wmmenu.o : wmmenu.f $(WMCOMM)
+wmeign.o : wmeign.f $(WMCOMM)
+wminit.o : wminit.f $(WMCOMM) ../pl/plcnst.inc
+wmintf.o : wmintf.f $(WMCOMM)
+wmsetg.o : wmsetg.f $(WMCOMM)
+wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
+wmexec.o : wmexec.f $(WMCOMM)
+wmprof.o : wmprof.f $(WMCOMM) wmxprf.inc
+wmsolv.o : wmsolv.f $(WMCOMM)
+nowmsolv.o : nowmsolv.f $(WMCOMM)
+wmsetm.o : wmsetm.f $(WMCOMM)
+wmsetf.o : wmsetf.f $(WMCOMM)
+wmdisp.o : wmdisp.f $(WMCOMM)
+wmtae.o : wmtae.f $(WMCOMM)
+wmdprf.o : wmdprf.f $(WMCOMM)
+wmxprf.o : wmxprf.f $(WMCOMM) wmxprf.inc
+wmpout.o : wmpout.f $(WMCOMM)
+wmgout.o : wmgout.f $(WMCOMM)
+wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
+wmgsub.o : wmgsub.f $(WMCOMM)
+wmdout.o : wmdout.f $(WMCOMM)	
+wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc

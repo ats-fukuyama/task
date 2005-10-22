@@ -64,7 +64,7 @@ C
 C     *** FOR INITIAL PROFILE ************
       CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
 C     ************************************
-      CALL EQPARM(2,'NPRINT=1',IERR)
+      CALL EQPARM(2,'NPRINT=2',IERR)
       CALL EQPARM(2,'NRGMAX=64',IERR)
       CALL EQPARM(2,'NZGMAX=64',IERR)
       CALL EQPARM(2,'NPSMAX=50',IERR)
@@ -78,14 +78,11 @@ C     *** FOR PREVAILING GEOMETRIC QUANTITIES THROUGH COMMON BLOCKS ***
 C     *****************************************************************
 C
       IF(KIN.EQ.'L') THEN
-         KNAMEQ='testeq1'
+         KNAMEQ='testeq'
          CALL EQLOAD(9,KNAMEQ,1,IERR)
          IF(IERR.NE.0) 
      &        WRITE(6,*) 'XX TRTEST: EQLOAD ERROR: IERR=',IERR
-         CALL EQPARM(2,'NPRINT=1',IERR)
-         CALL EQPARM(2,'NRGMAX=64',IERR)
-         CALL EQPARM(2,'NZGMAX=64',IERR)
-         CALL EQPARM(2,'NPSMAX=50',IERR)
+         CALL EQPARM(2,'NPRINT=2',IERR)
          ICONT=1
          RIP1=0.D0
          CALL EQGOUT(1)

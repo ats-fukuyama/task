@@ -4,7 +4,12 @@ C     ****** INITIALIZE CONSTANTS & PARAMETERS ******
 C
       SUBROUTINE WMINIT
 C
-      INCLUDE 'wmcomm.inc'
+      INCLUDE '../wm/wmcomm.inc'
+      INCLUDE '../pl/plcnst.inc'
+C
+C     **** PLINIT DEFINES DEFAULT PARAMETERS ****
+C
+      CALL WM_GET_PLPARM
 C
 C     **** ALPHA PARTICLE PARAMETERS ****
 C
