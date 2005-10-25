@@ -7,7 +7,8 @@ C
       SUBROUTINE FFT2L ( A , B , WORK , IWORK , N , IND , KEY )
 C
       COMPLEX*16 A(N),B(N)
-      DIMENSION  WORK(N), IWORK(N)
+      REAL*8 WORK(N)
+      DIMENSION IWORK(N)
 C
       IF(N.EQ.1) THEN
          B(1)=A(1)

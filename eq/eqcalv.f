@@ -32,7 +32,7 @@ C         ENDIF
          RMINL=SQRT(ABS(PSITL/(BB*PI)))
          FIPL=EQTTV(PSIPN)
          IF(MOD(MDLEQF,5).EQ.4) THEN
-            CALL EQQPSI(PSIPN,QPSL,DQPSL)
+            CALL EQQPSI(PSIPN,QPSL)
          ELSE
             QPSL=EQQPV(PSIPN)
          ENDIF
