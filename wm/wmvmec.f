@@ -143,7 +143,7 @@ c
 C
 C     ----- Setup normalized radius for file data -----
 C
-         phi(1) = 0.0d0
+      phi(1) = 0.0d0
       PSIA =-PHI(NSRMAX)
       DO NSR=1,NSRMAX
          S=-PHI(NSR)/PSIA
@@ -391,8 +391,8 @@ C
                BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
                BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
             ELSE
-               CALL SPL1DF(XRHO(NR),BSTHL,XS,U1(1,1,MN),NSRMAX,IERR)
-               CALL SPL1DF(XRHO(NR),BSPHL,XS,U2(1,1,MN),NSRMAX,IERR)
+               CALL SPL1DF(XRHO(NR),BSTHL,XS,U3(1,1,MN),NSRMAX,IERR)
+               CALL SPL1DF(XRHO(NR),BSPHL,XS,U4(1,1,MN),NSRMAX,IERR)
             ENDIF
             BSTH(MN,NR)=BSTHL
             BSPH(MN,NR)=BSPHL
@@ -424,12 +424,12 @@ C
       ENDDO
       ENDDO
 C
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
+C      DO NPH=1,NPHMAX
+C      DO NTH=1,NTHMAX
 C         BFLD(2,NTH,NPH,1)=(4*BFLD(2,NTH,NPH,2)-BFLD(2,NTH,NPH,3))/3
 C         BFLD(3,NTH,NPH,1)=(4*BFLD(3,NTH,NPH,2)-BFLD(3,NTH,NPH,3))/3
-      ENDDO
-      ENDDO
+C      ENDDO
+C      ENDDO
 C     
 C    ***************************************
 C
@@ -508,7 +508,8 @@ C
      &                      /(XS(NSRMAX)-XS(NSRMAX-1))
      &                      *(XRHO(NR)-XS(NSRMAX))
          ENDIF
-         QPS(NR)=2.D0*PI/RIOTASL
+C         QPS(NR)=2.D0*PI/RIOTASL
+         QPS(NR)=1.D0/RIOTASL
       ENDDO                     
 C
 C     ***** COMPUTE R,Z MAGNETIC AXES *****
@@ -544,8 +545,8 @@ C
             BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHOL-XS(NSRMAX))
             BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHOL-XS(NSRMAX))
          ELSE
-            CALL SPL1DF(XRHOL,BSTHL,XS,U1(1,1,MN),NSRMAX,IERR)
-            CALL SPL1DF(XRHOL,BSPHL,XS,U2(1,1,MN),NSRMAX,IERR)
+            CALL SPL1DF(XRHOL,BSTHL,XS,U3(1,1,MN),NSRMAX,IERR)
+            CALL SPL1DF(XRHOL,BSPHL,XS,U4(1,1,MN),NSRMAX,IERR)
          ENDIF
 C
 C      ***** CULCULATE MAGNETIC FIELD *****
@@ -565,7 +566,8 @@ C
       ELSE
          CALL SPL1DF(XRHOL,RIOTASL,XS,U5,NSRMAX,IERR)
       ENDIF
-      QPSL=2.D0*PI/RIOTASL
+C      QPSL=2.D0*PI/RIOTASL
+      QPSL=1.D0/RIOTASL
 C
       RETURN
       END

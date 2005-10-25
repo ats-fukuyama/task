@@ -19,7 +19,9 @@ C
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C
+      CALL PLINIT
       CALL EQINIT
+      CALL PLPARM(1,'plparm',IERR)
       CALL EQPARM(1,'eqparm',IERR)
 C
       CALL EQMENU

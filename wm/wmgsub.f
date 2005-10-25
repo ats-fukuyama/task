@@ -412,7 +412,7 @@ C
             IF(NTHGS.EQ.1) THEN
                FACT=0.D0
             ELSE
-               FACT=DBLE(NTHG-1)/DBLE(NTHGS-1)
+               FACT=DBLE(NTHG-1)/DBLE(NTHGS)
             ENDIF
             VAL=(1.D0-FACT)*BPST(NTH,NPH,NR)+FACT*BPST(NTHP,NPH,NR)
             GBY(NR,NTHL)=GUCLIP(VAL)
@@ -485,8 +485,10 @@ C
          GRS(NSU)=GUCLIP(RSU(NSU,NPH))
          GZS(NSU)=GUCLIP(ZSU(NSU,NPH))
       ENDDO
+      GRS(NSUMAX+1)=GUCLIP(RSU(1,NPH))
+      GZS(NSUMAX+1)=GUCLIP(ZSU(1,NPH))
       CALL SETLIN(-1,-1,4)
-      CALL GPLOTP(GRS,GZS,1,NSUMAX,1,0,0,0)
+      CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
       IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
          NPHD=NPH
@@ -1243,30 +1245,6 @@ C
       ENDDO
 C
       CALL SETRGB(RS,GS,BS)
-      RETURN
-      END
-C
-C     *****************************
-C
-C     INTERPORATE RGB
-C
-C     *****************************
-C
-      SUBROUTINE GUSRGB(GL,GRGBL,NRGB,GLA,GRGBLA)
-C
-      DIMENSION GRGBL(3),GLA(NRGB),GRGBLA(3,NRGB)
-C
-      DO NDO=2,NRGB
-         N=NDO
-         IF(GLA(N).GT.GL) GOTO 9
-      ENDDO
-    9 CONTINUE
-C
-      GFACT=(GL-GLA(N-1))/(GLA(N)-GLA(N-1))
-      GRGBL(1)=GRGBLA(1,N-1)*(1.0-GFACT)+GRGBLA(1,N)*GFACT
-      GRGBL(2)=GRGBLA(2,N-1)*(1.0-GFACT)+GRGBLA(2,N)*GFACT
-      GRGBL(3)=GRGBLA(3,N-1)*(1.0-GFACT)+GRGBLA(3,N)*GFACT
-C
       RETURN
       END
 C

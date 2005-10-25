@@ -34,6 +34,7 @@ C
          CA(MB)=CEMP(MB,NKXD,MLXD,ICOMP)
       ENDDO
       CB=CFVP(NKXD,MLXD,ICOMP)
+C      WRITE(6,*) NR,NKXD,MLXD,ICOMP,CB
 C
       RETURN
       END
@@ -619,7 +620,7 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
 C
             CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
-            RJFACT=RN(1)*1.D-20*RT/(AEE*1.D3)
+            RJFACT=RN(1)*RT
             RJFACT=RJFACT*XRHO(NR+1)
             DO ND=NDMIN,NDMAX
                NDX=ND-NDMIN+1

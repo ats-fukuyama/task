@@ -51,8 +51,6 @@ C
       RDLT   = RDLT1
       BB     = BB1
 C
-      CALL EQ_SET_PLPARM
-C
       RETURN
       END
 C

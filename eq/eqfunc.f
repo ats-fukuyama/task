@@ -136,26 +136,25 @@ C   ** Safety factor                              **
 C   **                 Q(psin)                    **
 C   ************************************************
 C
-      SUBROUTINE EQQPSI(PSIPNL,QPSI,DQPSI)
+      SUBROUTINE EQQPSI(PSIPNL,QPSI)
 C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
       IF(MDLEQF.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
-         CALL EQFUNC(PSINL,F,DF,QQ0,QQS,QQ1,QQ2,PSIITB,
-     &               PROFR0,PROFR1,PROFR2,PROFQ0,PROFQ1,PROFQ2)
-         CALL EQFDPP(PSIPNL,FDN)
+         RHON=SQRT(PSINL)
+         MODELGS=MODELG
+         MODELG=0
+         CALL PLQPRF(RHON,F)
+         MODELG=MODELGS
       ELSE
          PSITNL=EQPSITN(PSIPNL)
          CALL SPL1DD(PSITNL,F,DF,QSITRX,UQPSI,NTRMAX,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX EQQPSI: SPL1DD : IERR=',IERR
-         QPVL=EQQPV(PSIPNL)
-         FDN=QPVL/PSITA
       ENDIF
 C
       QPSI  =      F
-      DQPSI = FDN*DF
       RETURN
       END
 C
@@ -218,7 +217,7 @@ C
 C
       IF(MDLEQF.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
-         CALL EQFUNC(PSINL,F,DF,PT0,PTS,PT1,PT2,PSIITB,
+         CALL EQFUNC(PSINL,F,DF,PT0,PTSEQ,PT1,PT2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFT0,PROFT1,PROFT2)
          CALL EQFDPP(PSIPNL,FDN)
       ELSE

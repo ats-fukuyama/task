@@ -5,25 +5,6 @@ C
       SUBROUTINE EQINIT
 C
       INCLUDE '../eq/eqcomm.inc'
-      INCLUDE '../pl/plcnst.inc'
-C
-C     *** CONFIGURATION PARAMETERS ***
-C
-C        RR    : Plasma major radius                             (m)
-C        RA    : Plasma minor radius                             (m)
-C        RB    : Wall minor radius                               (m)
-C        RKAP  : Plasma shape elongation
-C        RDLT  : Plasma shape triangularity 
-C        BB    : Magnetic field at center                        (T)
-C        RIP   : Plasma current                                 (MA)
-C
-      RR     = 3.D0
-      RA     = 1.D0
-      RB     = RA*1.1D0
-      RKAP   = 1.6D0
-      RDLT   = 0.25D0
-      BB     = 3.D0
-      RIP    = 3.D0
 C
 C     *** PROFILE PARAMETERS ***
 C
@@ -91,49 +72,25 @@ C
       PROFF1 = 1.5D0
       PROFF2 = 1.5D0
 C
-C        QQ0   : Safety factor on axis for QQ1=QQ2=0
-C        QQS   : Safety factor on surface
-C        QQ0   : Safety factor 
-C        QQ1   : Safety factor (sub component)
-C        QQ2   : Safety factor (increment within ITB)
-C        PROFQ0: Safety factor profile parameter
-C        PROFQ1: Safety factor profile parameter
-C        PROFP2: Pressure profile parameter
-C
-C        QPSI=QQS
-C    &       +(QQ0-QQS)*(1.D0-PSIN**PROFR0)**PROFQ0
-C    &       +QQ1*(1.D0-PSIN**PROFR1)**PROFQ1
-C    &       +QQ2*(1.D0-(PSIN/PSIITB)**PROFR2)**PROFQ2
-C
-C        The third term exists for RHO < RHOITB
-C
-      QQ0    = 1.D0
-      QQS    = 3.D0
-      QQ1    = 0.0D0
-      QQ2    = 0.0D0
-      PROFQ0 = 1.0D0
-      PROFQ1 = 1.0D0
-      PROFQ2 = 1.0D0
-C
 C        PT0   : Plasma temperature (main component)           (keV)
 C        PT1   : Plasma temperature (sub component)            (keV)
 C        PT2   : Plasma temperature (increment within ITB)     (keV)
-C        PTS   : Plasma temperature (at surface)               (keV)
+C        PTSEQ : Plasma temperature (at surface)               (keV)
 C        PROFT0: Temperature profile parameter
 C        PROFT1: Temperature profile parameter
 C        PROFT2: Temperature profile parameter
 C
-C        TPSI=PTS+(PT0-PTS)*(1.D0-PSIN**PROFR0)**PROFT0
+C        TPSI=PTSEQ+(PT0-PTSEQ)*(1.D0-PSIN**PROFR0)**PROFT0
 C    &       +PT1*(1.D0-PSIN**PROFR1)**PROFT1
 C    &       +PT2*(1.D0-PSIN/PSIITB)**PROFR2)**PROFT2
-C    &       +PTS
+C    &       +PTSEQ
 C
 C        The third term exits for RHO < RHOITB
 C
       PT0    = 1.0D0
       PT1    = 0.0D0
       PT2    = 0.0D0
-      PTS    = 0.05D0
+      PTSEQ  = 0.05D0
       PROFT0 = 1.5D0
       PROFT1 = 1.5D0
       PROFT2 = 2.0D0
@@ -158,9 +115,9 @@ C
       PROFV1 = 1.5D0
       PROFV2 = 2.0D0
 C
-C        PN0 : Plasma number density(constant)
+C        PN0EQ : Plasma number density(constant)
 C
-      PN0    = 1.D20
+      PN0EQ  = 1.D20
 C
 C        PROFR0: Profile parameter
 C        PROFR1: Profile parameter
@@ -248,14 +205,6 @@ C            2: print all loop
 C
       NPRINT= 0
 C
-C     *** FILE NAME ***
-C
-C        KNAMEQ: Filename of equilibrium data
-C
-      KNAMEQ = 'eqdata'
-C
-      CALL EQ_SET_PLPARM
-C
       RETURN
       END
 C
@@ -280,7 +229,6 @@ C
       CHARACTER KIN*(*)
       EXTERNAL EQNLIN,EQPLST
 C
-      CALL EQ_GET_PLPARM
     1 CALL TASK_PARM(MODE,'EQ',KIN,EQNLIN,EQPLST,IERR)
       IF(IERR.NE.0) RETURN
 C
@@ -288,7 +236,6 @@ C
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C
-      CALL EQ_SET_PLPARM
       RETURN
       END
 C
@@ -298,18 +245,17 @@ C
 C
       INCLUDE 'eqcomm.inc'
 C
-      NAMELIST /EQ/ RR,BB,RIP,
-     &              RA,RKAP,RDLT,RB,
+      NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
+     &              RHOMIN,QMIN,MODELQ,RHOITB,IDEBUG,KNAMEQ,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              FF0,FF1,FF2,PROFF0,PROFF1,PROFF2,
-     &              QQ0,QQ1,QQ2,PROFQ0,PROFQ1,PROFQ2,QQS,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
-     &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS,
-     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,
-     &              PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,NLPMAX,
+     &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ,
+     &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,
+     &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,
      &              NRGMAX,NZGMAX,
-     &              NPSMAX,NRVMAX,NTVMAX,KNAMEQ,
+     &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
      &              MDLEQF,MDLEQC,MDLEQA,NPRINT
 C
@@ -330,17 +276,17 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &EQ : RR,BB,RIP,RA,RKAP,RDLT,RB'/
+  601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ'/
+     &       9X,'RHOMIN,QMIN,MODELQ,RHOITB,IDEBUG,KNAMEQ'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
      &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
-     &       9X,'QQ0,QQ1,QQ2,PROFQ0,PROFQ1,PROFQ2,QQS'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
-     &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTS'/
-     &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,HM'/
-     &       9X,'PROFR0,PROFR1,PROFR2,RHOITB,EPSEQ,'/
+     &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ'/
+     &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,HM'/
+     &       9X,'PROFR0,PROFR1,PROFR2,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
-     &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX,KNAMEQ'/
+     &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
      &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX')
       END
 C
@@ -408,13 +354,17 @@ C
       INCLUDE 'eqcomm.inc'
 C
       WRITE(6,601) 'RR    ',RR,
-     &             'BB    ',BB,
-     &             'RIP   ',RIP,
-     &             'EPSEQ ',EPSEQ
-      WRITE(6,601) 'RA    ',RA,
+     &             'RA    ',RA,
      &             'RKAP  ',RKAP,
-     &             'RDLT  ',RDLT,
-     &             'RB    ',RB
+     &             'RDLT  ',RDLT
+      WRITE(6,601) 'BB    ',BB,
+     &             'RIP   ',RIP,
+     &             'Q0    ',Q0,
+     &             'QA    ',QA
+      WRITE(6,601) 'RHOMIN',RHOMIN,
+     &             'QMIN  ',QMIN,
+     &             'RB    ',RB,
+     &             'PROFJ ',PROFJ
       WRITE(6,601) 'PP0   ',PP0,
      &             'PROFP0',PROFP0,
      &             'PJ0   ',PJ0,
@@ -424,17 +374,11 @@ C
      &             'PJ1   ',PJ1,
      &             'PROFJ1',PROFJ1
       WRITE(6,601) 'FF0   ',FF0,
-     &             'PROFF0',PROFF0,
-     &             'QQ0   ',QQ0,
-     &             'PROFQ0',PROFQ0
+     &             'PROFF0',PROFF0
       WRITE(6,601) 'FF1   ',FF1,
-     &             'PROFF1',PROFF1,
-     &             'QQ1   ',QQ1,
-     &             'PROFQ1',PROFQ1
+     &             'PROFF1',PROFF1
       WRITE(6,601) 'FF2   ',FF2,
-     &             'PROFF2',PROFF2,
-     &             'QQ2   ',QQ2,
-     &             'PROFQ2',PROFQ2
+     &             'PROFF2',PROFF2
       WRITE(6,601) 'PT0   ',PT0,
      &             'PROFT0',PROFT0,
      &             'PV0   ',PV0,
@@ -447,9 +391,9 @@ C
      &             'PROFT2',PROFT2,
      &             'PV2   ',PV2,
      &             'PROFV2',PROFV2
-      WRITE(6,601) 'PTS   ',PTS,
-     &             'QQS   ',QQS,
-     &             'PN0   ',PN0
+      WRITE(6,601) 'PTSEQ ',PTSEQ,
+     &             'PN0EQ ',PN0EQ,
+     &             'EPSEQ ',EPSEQ
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
      &             'PROFR2',PROFR2,
@@ -467,7 +411,8 @@ C
      &             'NSUMAX',NSUMAX
       WRITE(6,602) 'MDLEQF',MDLEQF,
      &             'MDLEQC',MDLEQC,
-     &             'MDLEQA',MDLEQA
+     &             'MDLEQA',MDLEQA,
+     &             'MODELQ',MODELQ
       WRITE(6,602) 'NPRINT',NPRINT,
      &             'NLPMAX',NLPMAX
 C

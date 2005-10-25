@@ -22,6 +22,30 @@ C
       RETURN
       END
 C
+C     *****************************
+C
+C     INTERPORATE RGB
+C
+C     *****************************
+C
+      SUBROUTINE GUSRGB(GL,GRGBL,NRGB,GLA,GRGBLA)
+C
+      DIMENSION GRGBL(3),GLA(NRGB),GRGBLA(3,NRGB)
+C
+      DO NDO=2,NRGB
+         N=NDO
+         IF(GLA(N).GT.GL) GOTO 9
+      ENDDO
+    9 CONTINUE
+C
+      GFACT=(GL-GLA(N-1))/(GLA(N)-GLA(N-1))
+      GRGBL(1)=GRGBLA(1,N-1)*(1.0-GFACT)+GRGBLA(1,N)*GFACT
+      GRGBL(2)=GRGBLA(2,N-1)*(1.0-GFACT)+GRGBLA(2,N)*GFACT
+      GRGBL(3)=GRGBLA(3,N-1)*(1.0-GFACT)+GRGBLA(3,N)*GFACT
+C
+      RETURN
+      END
+C
 C     ****** CONTOUR PLOT : XY, VARIABLE POSITION, PATTERN ******
 C
       SUBROUTINE CONTR5(Z,X,Y,NXA,NXMAX,NYMAX,
@@ -232,65 +256,6 @@ C
       ENDIF
       XT=XS
       YT=YS
-      RETURN
-      END
-C
-C
-C
-      SUBROUTINE GSGL_CONTF5 (Z,X,Y,NXA,NXMAX,NYMAX,IPRD,RGBFUNC)
-      IMPLICIT NONE
-      INTEGER NXA,NXMAX,NYMAX,IPRD,I,J
-      REAL Z(NXA,*),X(NXA,*),Y(NXA,*)
-      REAL Z2(1001,2),X2(1001,2),Y2(1001,2)
-      REAL Z3(2,1001),X3(2,1001),Y3(2,1001)
-      REAL XL3, YL3, ZL3, ZMIN, ZMAX
-      REAL OX, OY, OZ
-      REAL VX(3),VY(3),VZ(3)
-      DATA VX/1.0,0.0,0.0/, VY/0.0,1.0,0.0/, VZ/.0,0.0,1.0/
-      REAL PXMIN,PXMAX,PYMIN,PYMAX,GXMIN,GXMAX,GYMIN,GYMAX,DZ
-      EXTERNAL RGBFUNC
-C      
-      CALL GMNMX2(Z, NXA, 1, NXMAX, 1, 1, NYMAX, 1, ZMIN, ZMAX)
-      IF (ZMIN.GT.ZMAX) RETURN
-      IF (ABS(ZMAX-ZMIN).LT.1.E-20) RETURN
-      CALL INQGDEFIN(PXMIN,PXMAX,PYMIN,PYMAX,GXMIN,GXMAX,GYMIN,GYMAX)
-      XL3 = PXMAX - PXMIN
-      YL3 = PYMAX - PYMIN
-      ZL3 = 10.0
-      OX = GXMIN + (25.6 * 0.5 - PXMIN) / XL3 * (GXMAX - GXMIN)
-      OY = GYMIN + (19.0 * 0.5 - PYMIN) / YL3 * (GYMAX - GYMIN)
-      OZ = (ZMIN + ZMAX) * 0.5
-C
-      DZ = (ZMAX-ZMIN) * 1.E-3
-      CALL GDEFIN3D(XL3,YL3,ZL3,GXMIN,GXMAX,GYMIN,GYMAX,ZMIN-DZ,ZMAX+DZ)
-      CALL SETPROJECTIONTYPE (0)
-      CALL SET3DCOORD_CAUT1 (OX,OY,OZ,20.0,VX,VY,VZ)
-      CALL PERS3D5 (Z,X,Y,NXA,NXMAX,NYMAX,4,RGBFUNC)
-C
-      IF ((IPRD.EQ.1.OR.IPRD.EQ.3).AND.NYMAX.LE.1001) THEN
-         DO I=1,NYMAX
-            Z3(1,I) = Z(NXMAX,I)
-            X3(1,I) = X(NXMAX,I)
-            Y3(1,I) = Y(NXMAX,I)
-            Z3(2,I) = Z(1,I)
-            X3(2,I) = X(1,I)
-            Y3(2,I) = Y(1,I)
-         ENDDO
-         CALL PERS3D5(Z3,X3,Y3,2,2,NYMAX,4,RGBFUNC)
-      ENDIF
-      IF ((IPRD.EQ.2.OR.IPRD.EQ.3).AND.NXMAX.LE.1001) THEN
-         DO I=1,NXMAX
-            Z2(I,1) = Z(I,NYMAX)
-            X2(I,1) = X(I,NYMAX)
-            Y2(I,1) = Y(I,NYMAX)
-            Z2(I,2) = Z(I,1)
-            X2(I,2) = X(I,1)
-            Y2(I,2) = Y(I,1)
-         ENDDO
-         CALL PERS3D5(Z2,X2,Y2,1001,NXMAX,2,4,RGBFUNC)
-      ENDIF         
-C
-      CALL GFRAME()
       RETURN
       END
 

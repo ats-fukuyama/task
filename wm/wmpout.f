@@ -727,14 +727,14 @@ C
          ENDDO
          ENDDO
          CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
-         VTE=SQRT(RTPR(1)/(PA(1)*AMP))
+         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
          WW=DBLE(CW)
          IF(RN(1).LE.0.D0) THEN
             RLNLMD=15.D0
          ELSE
             RT=(RTPR(1)+2*RTPP(1))/3.D0
-            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(1)/1.D20)
-     &           + 2.30D0*LOG10(RT/(AEE*1.D3))
+            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(1))
+     &           + 2.30D0*LOG10(RT)
          ENDIF
          DO ND=NDMIN,NDMAX
             NDX=ND-NDMIN+1

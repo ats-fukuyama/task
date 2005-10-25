@@ -5,11 +5,6 @@ C
       SUBROUTINE WMINIT
 C
       INCLUDE '../wm/wmcomm.inc'
-      INCLUDE '../pl/plcnst.inc'
-C
-C     **** PLINIT DEFINES DEFAULT PARAMETERS ****
-C
-      CALL WM_GET_PLPARM
 C
 C     **** ALPHA PARTICLE PARAMETERS ****
 C
@@ -23,9 +18,9 @@ C
 C
 C     **** ZEFF PARAMETERS ****
 C
-C        ZEFF  : Effective Z (sum n Z^2 / sum n Z)
+C     ZEFF  : Effective Z (sum n Z^2 / sum n Z)
 C
-         ZEFF  = 2.D0
+      ZEFF  = 2.D0
 C
 C     *** WAVE PARAMETER ***
 C
@@ -114,17 +109,13 @@ C                   1: With cutoff (this should not be used)
 C        MODELM: Control matrix solver
 C                   0: BANDCD
 C                   1: BANDCDB
-C                   2: BCGSTAB
+C                   2: BSTABCDB
 C                   8: BANDCDM
 C                   9: BANDCDBM
 C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
-C
-C        RHOMIN: rho at minimum q for reversed shear
-C        QMIN  : q minimum for reversed shear
-C        RHOITB: rho at ITB
 C
       NPRINT = 2
       NGRAPH = 1
@@ -201,7 +192,7 @@ C        WAEMAX : Maximum frequency in Alfven frequency scan
 C
       WAEMIN = 0.001D0
       WAEMAX = 0.200D0
-      KNAMEQ_SAVE=''
+      KNAMEQ_SAVE=' '
 C
       RETURN
       END
@@ -229,7 +220,6 @@ C
       EXTERNAL WMNLIN,WMPLST
       CHARACTER KIN*(*)
 C
-      CALL WM_GET_PLPARM
     1 CALL TASK_PARM(MODE,'WM',KIN,WMNLIN,WMPLST,IERR)
       IF(IERR.NE.0) RETURN
 C
@@ -237,7 +227,6 @@ C
       IF(MODE.EQ.0.AND.IERR.NE.0) GOTO 1
       IF(IERR.NE.0) IERR=IERR+100
 C
-      CALL WM_SET_PLPARM
       RETURN
       END
 C
@@ -392,8 +381,6 @@ C
          WRITE(6,*) '##',MODELJ,': VACUUM EIGEN MODE ##'
       END IF
 C
-      WRITE(6,'(A,(10I5))') 'MODELP=',(MODELP(NS),NS=1,NSMAX)
-C
       IF(MODELN.EQ.8) THEN
          WRITE(6,*) '## 8: READ PROFILE DATA : WMDPRF ##'
       ELSEIF(MODELN.EQ.9) THEN
@@ -420,32 +407,17 @@ C
       IF(MODELM.EQ.0) THEN
          WRITE(6,*) '## 0: BANDCD ##'
       ELSE IF(MODELM.EQ.1) THEN
-         WRITE(6,*) '## 1: BCGCDB ##'
+         WRITE(6,*) '## 1: BANDCDB'
       ELSE IF(MODELM.EQ.2) THEN
-         WRITE(6,*) '## 2: CGSCDB ##'
-      ELSE IF(MODELM.EQ.3) THEN
-         WRITE(6,*) '## 3: BSTABCDB ##'
-      ELSE IF(MODELM.EQ.4) THEN
-         WRITE(6,*) '## 4: BANDCDM ##'
-      ELSE IF(MODELM.EQ.5) THEN
-         WRITE(6,*) '## 5: BCGCDBM ##'
-      ELSE IF(MODELM.EQ.6) THEN
-         WRITE(6,*) '## 6: CGSCDBM ##'
-      ELSE IF(MODELM.EQ.7) THEN
-         WRITE(6,*) '## 7: BSTABCDBM ##'
+         WRITE(6,*) '## 2: BSTABCDB ##'
       ELSE IF(MODELM.EQ.8) THEN
-         WRITE(6,*) '## 8: BANDCDBM ##'
+         WRITE(6,*) '## 8: BANDCDM ##'
       ELSE IF(MODELM.EQ.9) THEN
-         WRITE(6,*) '## 9: BCGCDBMA ##'
+         WRITE(6,*) '## 9: BANDCDBM ##'
       ELSE IF(MODELM.EQ.10) THEN
-         WRITE(6,*) '## 10: CGSCDBMA ##'
-      ELSE IF(MODELM.EQ.11) THEN
-         WRITE(6,*) '## 11: BSTABCDBMA ##'
-      ELSE IF(MODELM.EQ.12) THEN
-         WRITE(6,*) '## 12: BANDCDB'
+         WRITE(6,*) '## 10: BSTABCDBM ##'
       ENDIF
 C
-C      IF(MODELW.EQ.0) THEN
 C         WRITE(6,*) '## 0: NOT WRITTING PABS. DATA ##'
 C      ELSE IF(MODELW.EQ.1) THEN
 C         WRITE(6,*) '## 1: WRITTING PABS. DATA ##'
@@ -471,20 +443,15 @@ C
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC
 C
-C         WRITE(6,691)
-C         DO NS=1,NSMAX
-C            WRITE(6,610) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PZCL(NS)
-C         ENDDO
-C
-         WRITE(6,692)
-         DO NS=1,NSMAX
-            WRITE(6,611) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),
-     &                      PTPR(NS),PTPP(NS),PTS(NS)
-         ENDDO
-         DO NS=1,NSMAX
-            WRITE(6,612) NS,PU(NS),PUS(NS),
-     &                   PNITB(NS),PTITB(NS),PUITB(NS)
-         ENDDO
+      WRITE(6,692)
+      DO NS=1,NSMAX
+         WRITE(6,611) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),
+     &                   PTPR(NS),PTPP(NS),PTS(NS)
+      ENDDO
+      DO NS=1,NSMAX
+         WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),
+     &                   PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
+      ENDDO
 C
       WRITE(6,693)
       DO NA=1,NAMAX
@@ -499,12 +466,10 @@ C
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
-  612 FORMAT(' ',I1,22X,5(1PE11.3))
-C  691 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
-C     &                      8X,'PZCL')
+  612 FORMAT(' ',I1,2X,4I5,5(1PE11.3))
   692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
-     &       ' ','        ',11X,    9X,'PU',9X,'PUS',
+     &       ' ','      MP   MV  ND1  ND2 ',4X,'PU',9X,'PUS',
      &                      7X,'PNITB',6X,'PTITB',5X,'PUITB')
   693 FORMAT(' ','NA    AJ',9X,'APH',8X,'THJ1',7X,'THJ2',
      &                      7X,'PHJ1',7X,'PHJ2')

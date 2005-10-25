@@ -102,7 +102,7 @@ C
                DO NSS=1,NSMAX
                   AM=PA(NSS)*AMP
                   AE=PZ(NSS)*AEE
-                  WP=AE*AE*RN(NSS)/(AM*EPS0)
+                  WP=AE*AE*RN(NSS)*1.D20/(AM*EPS0)
                   WC=AE*BABS/AM
                   DTT=DTT-WP/(WW*WW-WC*WC)
                   DTX=DTX-WP*WC/((WW*WW-WC*WC)*WW)
@@ -149,7 +149,7 @@ C
             IF(MODELP(NS).EQ.-1) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
-               CWP=AE*AE*RN(NS)/(AM*EPS0)
+               CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
                CWC=AE*BABS/AM
                IF(NS.EQ.1) THEN
                   CPERP=(0.D0,0.D0)
@@ -163,7 +163,7 @@ C
             ELSE IF(MODELP(NS).EQ.-2) THEN
                CWN=CW-RU(NS)* RKPR+CI*PZCL(NS)*WW
                CWU=CW-RU(NS)* RKPR
-               CWP=AE*AE*RN(NS)/(AM*EPS0)
+               CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0)
                CWC=AE*BABS/AM
                CPERP=-   CWP*CWU*CWN/(CW*CW*(CWN**2-CWC**2))
                CCROS= CI*CWP*CWC*CWU/(CW*CW*(CWN**2-CWC**2))
@@ -175,8 +175,8 @@ C
 C               WRITE(6,*) NR,NS,CPERP,CPARA
             ELSE IF(MODELP(NS).EQ.-3) THEN
                RT=(RTPR(NS)+2*RTPP(NS))/3.D0
-               RKTPR=ABS(RKPR)*SQRT(2.D0*RT*AEE/AM)
-               CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
+               RKTPR=ABS(RKPR)*SQRT(2.D0*RT*AEE*1.D3/AM)
+               CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
                CWC=AE*BABS/AM
                CGZ0=(CW       -RKPR*RU(NS))/RKTPR
                CPERP=0.D0
@@ -198,10 +198,10 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                ENDDO
                CPERM=(0.D0,0.D0)
             ELSE IF(MODELP(NS).EQ.-4) THEN
-               CWP=AE*AE*RN(NS)/(AM*EPS0*CW*CW)
+               CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
                RWC=AE*BABS/AM
-               RKTPR=ABS(RKPR)*SQRT(2.D0*RTPR(NS)*AEE/AM)
-               RKTPP=RTPP(NS)*AEE/(AM*RWC*RWC)
+               RKTPR=ABS(RKPR)*SQRT(2.D0*RTPR(NS)*AEE*1.D3/AM)
+               RKTPP=RTPP(NS)*AEE*1.D3/(AM*RWC*RWC)
                CWC=DCMPLX(RWC,0.D0)
                CGZ0=(CW       -RKPR*RU(NS))/RKTPR
                CPERP1= 0.D0
@@ -361,7 +361,7 @@ C
                DO NSS=1,NSMAX
                   AM=PA(NSS)*AMP
                   AE=PZ(NSS)*AEE
-                  WP=AE*AE*RN(NSS)/(AM*EPS0)
+                  WP=AE*AE*RN(NSS)*1.D20/(AM*EPS0)
                   WC=AE*BABS/AM
                   DTT=DTT-WP/(WW*WW-WC*WC)
                   DTX=DTX-WP*WC/((WW*WW-WC*WC)*WW)
@@ -588,7 +588,7 @@ C
       AM=AME
       AE=-AEE
       VTE=SQRT(2.D0*RTE/AM)
-      WP2=AE*AE*RNE/(AM*EPS0)
+      WP2=AE*AE*RNE*1.D20/(AM*EPS0)
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX

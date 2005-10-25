@@ -61,7 +61,7 @@ C     --- assuming elliptic crosssection, flat current profile ---
 C
       IF(MOD(MDLEQF,5).EQ.4) THEN
          PSITA=PI*RKAP*RA**2*BB
-         PSIPA=PSITA/QQS
+         PSIPA=PSITA/QA
          PSI0=-PSIPA
       ELSE
          PSI0=-0.5D0*RMU0*RIP*1.D6*RR

@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 
 SRCS = eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqsub.f eqfunc.f \
-       eqsplf.f eqfile.f eqgout.f eqgsub.f eqintf.f
+       eqintf.f eqsplf.f eqfile.f eqgout.f eqgsub.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f
@@ -57,19 +57,21 @@ new:
 	cp -f *.f ../eqnew
 	cp -f *.inc ../eqnew
 
-eqmain.o: eqmain.f eqcom0.inc eqcom1.inc
-eqinit.o: eqinit.f eqcom0.inc eqcom1.inc
-eqcalc.o: eqcalc.f eqcom0.inc eqcom1.inc eqcom2.inc
-eqcalq.o: eqcalq.f eqcom0.inc eqcom1.inc eqcom3.inc
-eqcalv.o: eqcalv.f eqcom0.inc eqcom1.inc eqcom2.inc
-eqsub.o: eqsub.f eqcom0.inc eqcom1.inc eqcom2.inc
-eqfunc.o: eqfunc.f eqcom0.inc eqcom1.inc eqcom2.inc eqcom4.inc
-eqsplf.o: eqsplf.f eqcom0.inc eqcom1.inc eqcom3.inc
-eqfile.o: eqfile.f eqcom0.inc eqcom1.inc eqcom2.inc
-eqgout.o: eqgout.f eqcom0.inc eqcom1.inc eqcom2.inc eqcom3.inc
-eqintf.o: eqintf.f eqcom0.inc eqcom1.inc eqcom3.inc ../pl/plcom0.inc
+EQCOMM = ../pl/plcom0.inc ../pl/plcom1.inc eqcom0.inc eqcom1.inc
+
+eqmain.o: eqmain.f $(EQCOMM)
+eqinit.o: eqinit.f $(EQCOMM)
+eqcalc.o: eqcalc.f $(EQCOMM)
+eqcalq.o: eqcalq.f $(EQCOMM) eqcom3.inc
+eqcalv.o: eqcalv.f $(EQCOMM) eqcom2.inc
+eqsub.o: eqsub.f   $(EQCOMM) eqcom2.inc
+eqfunc.o: eqfunc.f $(EQCOMM) eqcom2.inc eqcom4.inc
+eqsplf.o: eqsplf.f $(EQCOMM) eqcom3.inc
+eqfile.o: eqfile.f $(EQCOMM) eqcom2.inc
+eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
+eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 trtest.o: trtest.f
-treqin.o: treqin.f eqcom1.inc eqcom3.inc eqcom4.inc
+treqin.o: treqin.f $(EQCOMM) eqcom3.inc eqcom4.inc
 pltest.o: pltest.f
 aktest.o: aktest.f
-akeqin.o: akeqin.f eqcom1.inc eqcom3.inc
+akeqin.o: akeqin.f $(EQCOMM) eqcom3.inc

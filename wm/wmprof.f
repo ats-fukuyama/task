@@ -17,8 +17,8 @@ C
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)  =0.D0
-               RTPR(NS)=PTS(NS)*AEE*1.D3
-               RTPP(NS)=PTS(NS)*AEE*1.D3
+               RTPR(NS)=PTS(NS)
+               RTPP(NS)=PTS(NS)
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
@@ -26,15 +26,15 @@ C
             FACTT=(1.D0-RHOL**PROFT1)**PROFT2
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
-               RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))*1.D20
-               RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
-               RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
+               RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
+               RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
+               RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                IF(RHOL.LT.RHOITB) THEN
                   FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
-                  RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB*1.D20
-                  RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB*AEE*1.D3
-                  RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB*AEE*1.D3
+                  RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
+                  RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
+                  RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
                   RU(NS)  =RU(NS)  +PUITB(NS)*FACTITB
                ENDIF
             ENDDO
@@ -44,16 +44,16 @@ C
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)  =0.D0
-               RTPR(NS)=RTPRF(NRMAX+1,NS)*AEE*1.D3
-               RTPP(NS)=RTPRF(NRMAX+1,NS)*AEE*1.D3
+               RTPR(NS)=RTPRF(NRMAX+1,NS)
+               RTPP(NS)=RTPRF(NRMAX+1,NS)
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
-               RN(NS)  = RNPRF(NR,NS)*1.D20
-               RTPR(NS)= RTPRF(NR,NS)*AEE*1.D3
-               RTPP(NS)= RTPRF(NR,NS)*AEE*1.D3
+               RN(NS)  = RNPRF(NR,NS)
+               RTPR(NS)= RTPRF(NR,NS)
+               RTPP(NS)= RTPRF(NR,NS)
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
          ENDIF
@@ -63,11 +63,11 @@ C
             DO NS=1,NSMAX
                RN(NS)  =0.D0
                IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
-                  RTPR(NS)=PT60(NRMAX+1,NS)*AEE
-                  RTPP(NS)=PT60(NRMAX+1,NS)*AEE
+                  RTPR(NS)=PT60(NRMAX+1,NS)*1.D-3
+                  RTPP(NS)=PT60(NRMAX+1,NS)*1.D-3
                ELSE
-                  RTPR(NS)=PTS(NS)*AEE*1.D3
-                  RTPP(NS)=PTS(NS)*AEE*1.D3
+                  RTPR(NS)=PTS(NS)
+                  RTPP(NS)=PTS(NS)
                ENDIF
                RU(NS)  =PUS(NS)
             ENDDO
@@ -77,13 +77,13 @@ C
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
                IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
-                  RN(NS)  = PN60(NR,NS)
-                  RTPR(NS)= PT60(NR,NS)*AEE
-                  RTPP(NS)= PT60(NR,NS)*AEE
+                  RN(NS)  = PN60(NR,NS)*1.D-20
+                  RTPR(NS)= PT60(NR,NS)*1.D-3
+                  RTPP(NS)= PT60(NR,NS)*1.D-3
                ELSE
-                  RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))*1.D20
-                  RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
-                  RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))*AEE*1.D3
+                  RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
+                  RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
+                  RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
                ENDIF
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
@@ -93,16 +93,16 @@ C
             CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
                RN(NS)  =0.D0
-               RTPR(NS)=RTPL(NS)*AEE*1.D3
-               RTPP(NS)=RTPL(NS)*AEE*1.D3
+               RTPR(NS)=RTPL(NS)
+               RTPP(NS)=RTPL(NS)
                RU(NS)  =PUS(NS)
             ENDDO
          ELSE
             CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX
-               RN(NS)  =RNPL(NS)*1.D20
-               RTPR(NS)=RTPL(NS)*AEE*1.D3
-               RTPP(NS)=RTPL(NS)*AEE*1.D3
+               RN(NS)  =RNPL(NS)
+               RTPR(NS)=RTPL(NS)
+               RTPP(NS)=RTPL(NS)
                RU(NS)  =RUPL(NS)
             ENDDO
          ENDIF

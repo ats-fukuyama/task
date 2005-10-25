@@ -69,10 +69,8 @@ C     ************************************
       CALL EQPARM(2,'NZGMAX=64',IERR)
       CALL EQPARM(2,'NPSMAX=50',IERR)
 C      CALL EQPARM(2,'EPSEQ=1.D-5',IERR)
-      CALL EQ_SET_PLPARM
 C
       CALL PARM_READ(RR,RA,RKAP,RDLT,BB,RIP,PRHO,HJRHO,VTRHO,TRHO)
-      CALL EQ_SET_PLPARM
 C     *** FOR PREVAILING GEOMETRIC QUANTITIES THROUGH COMMON BLOCKS ***
       CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
 C     *****************************************************************
