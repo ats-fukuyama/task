@@ -89,7 +89,6 @@ wmmain.o : wmmain.f $(WMCOMM)
 wmmenu.o : wmmenu.f $(WMCOMM)
 wmeign.o : wmeign.f $(WMCOMM)
 wminit.o : wminit.f $(WMCOMM) ../pl/plcnst.inc
-wmintf.o : wmintf.f $(WMCOMM)
 wmsetg.o : wmsetg.f $(WMCOMM)
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmexec.o : wmexec.f $(WMCOMM)
