@@ -27,10 +27,8 @@ C
       RKAP  = 1.6D0
       RDLT  = 0.25D0
       BB    = 3.D0
-C      PN0   = 0.05D0
-      PN0   = 0.5D0
-C      PT0   = 0.6D0
-      PT0   = 0.8D0
+      PN0EQ = 0.5D0
+      PT0 = 0.8D0
       PROFJ1= 2
 C      PROFJ2= 2.5D0
       PROFJ2= 4.0D0
@@ -39,7 +37,7 @@ C      RIP  = 3.D0
       RIP  = 1.D0
 C
       DRHO=1.D0/NTRMAX
-      P0=2*PN0*1.D20*PT0*1.D3*AEE/1.D6
+      P0=2*PN0EQ*1.D20*PT0*1.D3*AEE/1.D6
       DO NTR=1,NTRMAX
          RHOTR(NTR)= DRHO*(DBLE(NTR)-0.5D0)
          PRHO(NTR)=P0*(1.D0-RHOTR(NTR)**2)**1.5D0
