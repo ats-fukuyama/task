@@ -6,7 +6,7 @@ C
      &                  ALPMAX,RAXIS1,ZAXIS1,IERR)
 C
       INCLUDE '../eq/eqcomq.inc'
-      CHARACTER KNAMEQ1*80,KPNAME*80
+      CHARACTER KNAMEQ1*80
       SAVE INIT
       DATA INIT/0/
 C
