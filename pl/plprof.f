@@ -143,23 +143,20 @@ C
             FACTN=(1.D0-RHOL**PROFN1)**PROFN2
             FACTT=(1.D0-RHOL**PROFT1)**PROFT2
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+C
             DO NS=1,NSMAX
-               RN(NS)  =PN(NS)  *FACTN
-               RTPR(NS)=PTPR(NS)*FACTT
-               RTPP(NS)=PTPP(NS)*FACTT
+               RN(NS)  =(PN(NS)  -PNS(NS))*FACTN+PNS(NS)
+               RTPR(NS)=(PTPR(NS)-PTS(NS))*FACTT+PTS(NS)
+               RTPP(NS)=(PTPP(NS)-PTS(NS))*FACTT+PTS(NS)
                RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
-            ENDDO
-            PTOT=0.D0
-            DO NS=1,NSMAX
-               PTOT=PTOT+RN(NS)*(RTPR(NS)+RTPP(NS)*2)/3
-            ENDDO
-            PTOT=PTOT*1.D20*1.D3/AEE
-            CALL GETPP(PSIN,PL)
-            FACT=PL/PTOT
-            DO NS=1,NSMAX
-               RTPR(NS)=FACT*RTPR(NS)
-               RTPP(NS)=FACT*RTPP(NS)
+               IF(RHOL.LT.RHOITB) THEN
+                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
+                  RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
+                  RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
+                  RU(NS)  =RU(NS)  +PUITB(NS)*FACTITB
+               ENDIF
             ENDDO
          ENDIF
 C

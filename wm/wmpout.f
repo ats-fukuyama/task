@@ -276,6 +276,12 @@ C
          XRHOM=       XRHO(NR-1)
          XRHOMH=0.5D0*(XRHO(NR-1)+XRHO(NR))
          XRHOC=       XRHO(NR)
+         IF(MODELG.EQ.3) THEN
+            QPMH=0.5D0*(QPS(NR-1)+QPS(NR))
+            DPSIPDRHOMH=2.D0*PSITA*XRHOMH/QPMH
+         ELSE
+            DPSIPDRHOMH=2.D0*PSIPA*XRHOMH
+         ENDIF
 C
          DRHOM=XRHO(NR)-XRHO(NR-1)
 C
@@ -292,11 +298,11 @@ C
             CBFLD2=-(CI/CW)
      &            *(CI*NN*CEFLDK(1,MDX,NDX,NR)
      &             -(CEFLDK(3,MDX,NDX,NR  )
-     &              -CEFLDK(3,MDX,NDX,NR-1))/(2.D0*PSIA*XRHOMH*DRHOM)
+     &              -CEFLDK(3,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM)
      &             )*XRHOM
             CBFLD3=-(CI/CW)
      &            *((CEFLDK(2,MDX,NDX,NR  )
-     &              -CEFLDK(2,MDX,NDX,NR-1))/(2.D0*PSIA*XRHOMH*DRHOM)
+     &              -CEFLDK(2,MDX,NDX,NR-1))/(DPSIPDRHOMH*DRHOM)
      &            -CI*MM*CEFLDK(1,MDX,NDX,NR))
 C
             CBFLDK(1,MDX,NDX,NR)=VC*CBFLD1
@@ -463,6 +469,16 @@ C
                DRHOP=XRHO(NR+2)-XRHO(NR+1)
             ENDIF
 C
+            IF(MODELG.EQ.3) THEN
+               QPMH=0.5D0*(QPS(NR)+QPS(NR+1))
+               QPC=QPS(NR+1)
+               DPSIPDRHOMH=2.D0*PSITA*XRHOMH/QPMH
+               DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
+            ELSE
+               DPSIPDRHOMH=2.D0*PSIPA*XRHOMH
+               DPSIPDRHOC =2.D0*PSIPA*XRHOC
+            ENDIF
+C
             DRHOPM= 0.5D0*(DRHOM+DRHOP)
 C
             FMHM=0.5D0
@@ -520,18 +536,31 @@ C               FACT3M=XRHOMH/XRHOM
                FACT3C=XRHOMH/XRHOC
                FACT3P=XRHOPH/XRHOC
 C
-               CDV11M=CHERMIT(CDV(1,1,1),CDW(1,1,1))
-               CDV11C=CHERMIT(CDV(1,1,2),CDW(1,1,2))
-               CDV12M=CHERMIT(CDV(1,2,1),CDW(2,1,1))
-               CDV12C=CHERMIT(CDV(1,2,2),CDW(2,1,2))
-               CDV13M=CHERMIT(CDV(1,3,1),CDW(3,1,1))
-               CDV13C=CHERMIT(CDV(1,3,2),CDW(3,1,2))
-               CDV21C=CHERMIT(CDV(2,1,2),CDW(1,2,2))
-               CDV22C=CHERMIT(CDV(2,2,2),CDW(2,2,2))
-               CDV23C=CHERMIT(CDV(2,3,2),CDW(3,2,2))
-               CDV31C=CHERMIT(CDV(3,1,2),CDW(1,3,2))
-               CDV32C=CHERMIT(CDV(3,2,2),CDW(2,3,2))
-               CDV33C=CHERMIT(CDV(3,3,2),CDW(3,3,2))
+C               CDV11M=CHERMIT(CDV(1,1,1),CDW(1,1,1))
+C               CDV11C=CHERMIT(CDV(1,1,2),CDW(1,1,2))
+C               CDV12M=CHERMIT(CDV(1,2,1),CDW(2,1,1))
+C               CDV12C=CHERMIT(CDV(1,2,2),CDW(2,1,2))
+C               CDV13M=CHERMIT(CDV(1,3,1),CDW(3,1,1))
+C               CDV13C=CHERMIT(CDV(1,3,2),CDW(3,1,2))
+C               CDV21C=CHERMIT(CDV(2,1,2),CDW(1,2,2))
+C               CDV22C=CHERMIT(CDV(2,2,2),CDW(2,2,2))
+C               CDV23C=CHERMIT(CDV(2,3,2),CDW(3,2,2))
+C               CDV31C=CHERMIT(CDV(3,1,2),CDW(1,3,2))
+C               CDV32C=CHERMIT(CDV(3,2,2),CDW(2,3,2))
+C               CDV33C=CHERMIT(CDV(3,3,2),CDW(3,3,2))
+C
+               CDV11M=CDV(1,1,1)
+               CDV11C=CDV(1,1,2)
+               CDV12M=CDV(1,2,1)
+               CDV12C=CDV(1,2,2)
+               CDV13M=CDV(1,3,1)
+               CDV13C=CDV(1,3,2)
+               CDV21C=CDV(2,1,2)
+               CDV22C=CDV(2,2,2)
+               CDV23C=CDV(2,3,2)
+               CDV31C=CDV(3,1,2)
+               CDV32C=CDV(3,2,2)
+               CDV33C=CDV(3,3,2)
 C
 C     --- R COMPONENT OF MAXWELL EQUATION ---
 C
@@ -580,14 +609,14 @@ C
      &             +CPM11
      &             +CPM12
      &             +CPM13
-     &             )*2.D0*PSIA*XRHOMH*DRHOM
+     &             )*DPSIPDRHOMH*DRHOM
 C
                CPABSC=CI*EPS0*(VC*VC/CW)
      &            *(0
      &             +CPC11
      &             +CPC12
      &             +CPC13
-     &             )*2.D0*PSIA*XRHOMH*DRHOM
+     &             )*DPSIPDRHOMH*DRHOM
      &            +CI*EPS0*(VC*VC/CW)
      &            *(
      &             +CPC22
@@ -598,7 +627,7 @@ C
      &             +CPC31
      &             +CPP21
      &             +CPP31
-     &             )*2.D0*PSIA*XRHOC*DRHOPM
+     &             )*DPSIPDRHOC*DRHOPM
 C
                CPABS(LLX,MDX,KKX,NDX,NS,NR)
      &        =CPABS(LLX,MDX,KKX,NDX,NS,NR)
@@ -828,7 +857,12 @@ C
          DRHO=0.5D0*(XRHO(NR+1)-XRHO(NR-1))
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
-            DSSS=2.D0*PSIA*XRHO(NR)*DRHO*RJ(NTH,NPH,NR)
+            IF(MODELG.EQ.3) THEN
+               DPSIPDRHO=2.D0*PSITA*XRHO(NR)/QPS(NR)
+            ELSE
+               DPSIPDRHO=2.D0*PSIPA*XRHO(NR)
+            ENDIF
+            DSSS=DPSIPDRHO*DRHO*RJ(NTH,NPH,NR)
             DSS(NTH,NPH,NR)=1.D0/DSSS
             DS(NR)=DS(NR)+DSSS*DTH*DPH
          ENDDO

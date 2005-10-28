@@ -144,9 +144,9 @@ C
 C     ----- Setup normalized radius for file data -----
 C
       phi(1) = 0.0d0
-      PSIA =-PHI(NSRMAX)
+      PSIPA =-PHI(NSRMAX)
       DO NSR=1,NSRMAX
-         S=-PHI(NSR)/PSIA
+         S=-PHI(NSR)/PSIPA
          IF(S.LT.0.D0) THEN
             XS(NSR)=0.D0
          ELSE
@@ -179,18 +179,18 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
-C      ***** SPLINE PSIPS *****
+C      ***** SPLINE PSIP *****
 C
       CALL SPL1D(XS,PHI,FX6,U6,NSRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: PHI: IEER=',IERR
 C
       DO NR=1,NRMAX+1
          IF(XRHO(NR).GT.1.D0) THEN
-            PSIPS(NR)=0.D0
+            PSIP(NR)=0.D0
          ELSE
-            CALL SPL1DF(XRHO(NR),PSIPS(NR),XS,U6,NSRMAX,IERR)
+            CALL SPL1DF(XRHO(NR),PSIP(NR),XS,U6,NSRMAX,IERR)
             IF(IERR.NE.0) THEN
-               WRITE(6,*) 'XX WMHCRZ: SPL1DF: PSIPS: IEER=',IERR
+               WRITE(6,*) 'XX WMHCRZ: SPL1DF: PSIP: IEER=',IERR
                WRITE(6,'(A,I5,1P3E12.4)') 
      &                    '   NR,XRHO(NR),XS(1),XS(NRMAX)=',
      &                        NR,XRHO(NR),XS(1),XS(NRMAX)
@@ -305,8 +305,8 @@ C
          ZPST(  NTH,NPH,NR)=ZPSS
 C
          IF(NR.NE.1) THEN
-            DRS=DRS/(2.D0*PSIA*XRHO(NR))
-            DZS=DZS/(2.D0*PSIA*XRHO(NR))
+            DRS=DRS/(2.D0*PSIPA*XRHO(NR))
+            DZS=DZS/(2.D0*PSIPA*XRHO(NR))
             RG11(NTH,NPH,NR)=(DRS *DRS +DZS *DZS )*XRHO(NR)**2
             RG12(NTH,NPH,NR)=(DRS *DRTH+DZS *DZTH)
             RG13(NTH,NPH,NR)=(DRS *DRPH+DZS *DZPH)*XRHO(NR)

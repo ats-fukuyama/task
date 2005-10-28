@@ -150,7 +150,7 @@ C
             ENDIF
          ELSE IF (K2.EQ.'F') THEN
             IF(NG3.EQ.1) THEN
-               GY(NR,NTH) =GUCLIP(PSIPS(NR))
+               GY(NR,NTH) =GUCLIP(PSIP(NR))
             ELSEIF(NG3.EQ.2) THEN
                GY(NR,NTH) =GUCLIP(BPST(NTH,NPH,NR))
             ELSEIF(NG3.EQ.3) THEN
@@ -332,7 +332,7 @@ C
          ENDDO
          CALL WMGGR(GY,NTHMAX,RTITL(7),GP(1,3))
          DO NR=1,NRMAX+1
-            GY(NR,1)=GUCLIP(PSIPS(NR))
+            GY(NR,1)=GUCLIP(PSIP(NR))
          ENDDO
          CALL WMGGR(GY,1,RTITL(8),GP(1,4))
          CALL WMGPRM('C',K3,0,0,0,0)

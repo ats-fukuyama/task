@@ -108,9 +108,9 @@ C
      &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
-         PSIA=RA*RA*BB/(Q0+QA)
-         PSIB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIA
-         DRHO=SQRT(PSIB/PSIA)/NRMAX
+         PSIPA=RA*RA*BB/(Q0+QA)
+         PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
+         DRHO=SQRT(PSIPB/PSIPA)/NRMAX
 C
          DO NR=1,NRMAX+1
             RHOL=DRHO*(NR-1)
@@ -270,7 +270,7 @@ C
      &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
          ENDIF
 C
-         PSIA=RA*RA*BB/(Q0+QA)
+         PSIPA=RA*RA*BB/(Q0+QA)
          DRHO=(RB/RA)/NRMAX
 C
          DO NR=1,NRMAX+1
@@ -301,7 +301,7 @@ C
          DTH=2.D0*PI/NTHMAX
          DTHG=2.D0*PI/NTHGM
          DO NR=1,NRMAX+1
-            RSD=RA/(2.D0*PSIA)
+            RSD=RA/(2.D0*PSIPA)
             DO NTH=1,NTHMAX
                RCOS=COS(DTH*(NTH-1))
                RSIN=SIN(DTH*(NTH-1))
@@ -453,14 +453,14 @@ C
 C
 C         WRITE(6,'(1P6E12.4)') BB,RR,RIP,RA,RKAP,RB
 C
-         CALL EQGETP(RHOT,PSIPS,NRMAX+1)
+         CALL EQGETP(RHOT,PSIP,NRMAX+1)
          CALL EQGETR(RPS,DRPSI,DRCHI,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETZ(ZPS,DZPSI,DZCHI,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETBB(BPR,BPZ,BPT,BTP,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETQ(PPS,QPS,RBPS,VPS,RLEN,NRMAX+1)
          CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
          CALL EQGETF(RGMIN,RGMAX,ZGMIN,ZGMAX)
-         CALL EQGETA(RAXIS,ZAXIS,SAXIS,Q0,QA)
+         CALL EQGETA(RAXIS,ZAXIS,PSIPA,PSITA,Q0,QA)
 C
 C         WRITE(6,'(1P5E12.4)') (RPS(NTH,NRMAX+1),NTH=1,NTHMAX)
 C
@@ -477,7 +477,7 @@ C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
       CALL MPBCDA(RDLT)
       CALL MPBCDA(RB)
       CALL MPBCDN(RHOT,NRMAX+1)
-      CALL MPBCDN(PSIPS,NRMAX+1)
+      CALL MPBCDN(PSIP,NRMAX+1)
       CALL MPBCDN(RPS,NTHM*(NRMAX+1))
       CALL MPBCDN(DRPSI,NTHM*(NRMAX+1))
       CALL MPBCDN(DRCHI,NTHM*(NRMAX+1))
@@ -501,11 +501,10 @@ C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
       CALL MPBCDA(ZGMAX)
       CALL MPBCDA(RAXIS)
       CALL MPBCDA(ZAXIS)
-      CALL MPBCDA(SAXIS)
+      CALL MPBCDA(PSIPA)
+      CALL MPBCDA(PSITA)
       CALL MPBCDA(Q0)
       CALL MPBCDA(QA)
-C
-C      WRITE(6,'(1P5E12.4)') RAXIS,ZAXIS,SAXIS,Q0,QA
 C
          IF(RD.LE.RA.OR.RD.GE.RB) THEN
             IF(MYRANK.EQ.0) WRITE(6,*) 'XX WMXRZF: RD = (RA+RB)/2'
@@ -519,10 +518,7 @@ C
             RMAX=MAX(RMAX,RSU(NSU,1))
          ENDDO
 C
-         PSIA=-SAXIS
-C
          DO NR=1,NRMAX+1
-C            ARG=(PSIPS(NR)-SAXIS)/PSIA
             ARG=RHOT(NR)
             IF(ARG.LE.0.D0) THEN
                XRHO(NR)=0.D0
@@ -531,6 +527,9 @@ C            ARG=(PSIPS(NR)-SAXIS)/PSIA
             ENDIF
             XR(NR)=RA*XRHO(NR)
          ENDDO
+C
+C         WRITE(6,'(I5,1P5E12.4)') (NR,XRHO(NR),RHOT(NR),PSIP(NR),
+C     &                     PSITA*RHOT(NR)**2,QPS(NR),NR=1,NRMAX+1)
 C
          DO NR=1,NRMAX+1
          DO NPH=1,NPHMAX
@@ -557,19 +556,18 @@ C
      &                        -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
 C
 C            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI)
 C
             BPTL=(BPR(NTH,NR)*DZPSI(NTH,NR)
      &           -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR)
      &           /SQRT(RG11(NTH,NPH,NR))
      &           /SQRT(RG22(NTH,NPH,NR))
-C     &           /RPS(NTH,NR)
             BFLD(2,NTH,NPH,NR)=BPTL
             BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+C
 C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
-C     &           RBPS(NR)/RPS(NTH,NR)**2,
-C     &           BPTL,BPTL*RJ(NTH,NPH,NR)
-C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
+C     &           RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI),
+C     &           BPTL,BTP(NTH,NR)/RPS(NTH,NR)
 C
 C            IF((NR.EQ.2).OR.(NR.EQ.3)) THEN
 C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH

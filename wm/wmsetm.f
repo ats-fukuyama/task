@@ -143,9 +143,22 @@ C
          ENDIF
          DRHOPM=DRHOM+DRHOP
 C
-         DPSIPDRHOMH=2.D0*PSIA*XRHOMH
-         DPSIPDRHOPH=2.D0*PSIA*XRHOPH
-         DPSIPDRHOC =2.D0*PSIA*XRHOC
+         IF(MODELG.EQ.3) THEN
+            QPMH=0.5D0*(QPS(NR)+QPS(NR+1))
+            QPC=QPS(NR+1)
+            IF(NR.EQ.NRMAX) THEN
+               QPPH=QPS(NR+1)
+            ELSE
+               QPPH=0.5D0*(QPS(NR+1)+QPS(NR+2))
+            ENDIF
+            DPSIPDRHOMH=2.D0*PSITA*XRHOMH/QPMH
+            DPSIPDRHOPH=2.D0*PSITA*XRHOPH/QPPH
+            DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
+         ELSE
+            DPSIPDRHOMH=2.D0*PSIPA*XRHOMH
+            DPSIPDRHOPH=2.D0*PSIPA*XRHOPH
+            DPSIPDRHOC =2.D0*PSIPA*XRHOC
+         ENDIF
 C
          FMHM=0.5D0
          FMHC=0.5D0
@@ -538,7 +551,14 @@ C
                   XRHO2=XRHO(NRANT+1)
                   DRHO=XRHO2-XRHO1
                   XRHOC=0.5D0*(XRHO2+XRHO1)
-                  DPSIPDRHOC=2.D0*PSIA*XRHOC
+C
+                  IF(MODELG.EQ.3) THEN
+                     QPC=0.5D0*(QPS(NRANT)+QPS(NRANT+1))
+                     DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
+                  ELSE
+                     DPSIPDRHOC =2.D0*PSIPA*XRHOC
+                  ENDIF
+C
                   FACTM=(XRHO2-RD/RA)/DRHO
                   FACTP=(RD/RA-XRHO1)/DRHO
 C
@@ -583,7 +603,17 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                   ENDIF
                   DRHO=XRHO2-XRHO1
                   XRHOC=0.5D0*(XRHO2+XRHO1)
-                  DPSIPDRHOC=2.D0*PSIA*XRHOC
+C
+                  IF(MODELG.EQ.3) THEN
+                     IF(NR.LT.NRMAX) THEN
+                        QPC=0.5D0*(QPS(NR+1)+QPS(NR+2))
+                     ELSE
+                        QPC=0.5D0*(3*QPS(NR+1)-QPS(NR))
+                     ENDIF
+                     DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
+                  ELSE
+                     DPSIPDRHOC =2.D0*PSIPA*XRHOC
+                  ENDIF
 C
                   DO ND=NDMIN,NDMAX
                      NDX=ND-NDMIN+1
@@ -616,7 +646,17 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
             ENDIF
             DRHO=XRHO2-XRHO1
             XRHOC=0.5D0*(XRHO2+XRHO1)
-            DPSIPDRHOC=2.D0*PSIA*XRHOC
+C
+            IF(MODELG.EQ.3) THEN
+               IF(NR.LT.NRMAX) THEN
+                  QPC=0.5D0*(QPS(NR+1)+QPS(NR+2))
+               ELSE
+                  QPC=0.5D0*(3*QPS(NR+1)-QPS(NR))
+               ENDIF
+               DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
+            ELSE
+               DPSIPDRHOC =2.D0*PSIPA*XRHOC
+            ENDIF
 C
             CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))

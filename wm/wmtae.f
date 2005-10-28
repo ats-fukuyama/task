@@ -40,9 +40,32 @@ C
             NRMAXP=NR-1
             GOTO 1000
          ENDIF
-         CALL WMCMAG(NR,1,1,BABS,BSUPTH,BSUPPH)
-         CALL WMCMAG(NR,NTHMAX/2+1,1,BABS1,BSUPTH,BSUPPH)
-         WRITE(6,'(I5,1P4E12.4)') NR,BABS,BABS1,BSUPPH/BSUPTH,QPS(NR)
+C
+         RIOTA_AV=0.D0
+         BABS_AV=0.D0
+         DO NPH=1,NPHMAX
+            DO NTH=1,NTHMAX
+               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+               RIOTA_AV=RIOTA_AV+BSUPPH/BSUPTH
+               BABS_AV=BABS_AV+BABS
+            ENDDO
+         ENDDO
+         RIOTA_AV=RIOTA_AV/(NTHMAX*NPHMAX)
+         BABS_AV=BABS_AV/(NTHMAX*NPHMAX)
+C
+         WRITE(6,'(I5,1P3E12.4)') NR,BABS_AV,RIOTA_AV,QPS(NR)
+C
+         RIOTAL=QPS(NR)
+C
+         DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+            VALF=BABS/SQRT(RMU0*RHOM)
+            CWALF(NTH,NPH)=BABS**2/(VALF**2*BSUPTH**2)
+         ENDDO
+         ENDDO
+C
+         CALL WMSUBF(CWALF,CWALFK)
 C
          DO ND=NDMIN,MAX(NDMIN,NDMAX-1)
             NDX=ND-NDMIN+1
@@ -50,21 +73,8 @@ C
          DO MD=MDMIN,MAX(MDMIN,MDMAX-1)
             MDX=MD-MDMIN+1
             MM=NTH0+MD
-C
-            CALL WMCMAG(NR,1,1,BABS,BSUPTH,BSUPPH)
-C            RKTH=MM*BSUPTH/BABS
-C            RKPH=NN*BSUPPH/BABS
-            RKPR1=MM+NN*BSUPPH/BSUPTH
-C
-            DO NPH=1,NPHMAX
-            DO NTH=1,NTHMAX
-               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-               VALF=BABS/SQRT(RMU0*RHOM)
-               CWALF(NTH,NPH)=BABS**2/(VALF**2*BSUPTH**2)
-            ENDDO
-            ENDDO
-C
-            CALL WMSUBF(CWALF,CWALFK)
+               
+            RKPR1=MM+NN*RIOTAL
 C
             NW=MAX(1,MDSIZ-1)*(NDX-1)+(MDX-1)+1
             NW0=MAX(1,MDSIZ-1)*(-NDMIN)+(-MDMIN)+1
@@ -75,15 +85,12 @@ C
                MDX1=MD1-MDMIN+1
                MM1=MM+MD1
 C
-               CALL WMCMAG(NR,1,1,BABS,BSUPTH,BSUPPH)
-               RKPR2=MM1+NN1*BSUPPH/BSUPTH
+               RKPR2=MM1+NN1*RIOTAL
+C
                NW1=MAX(1,MDSIZ-1)*(NDX1-1)+(MDX1-1)+1
                NW1=NW1-NW0+1
                IF(NW1.GE.1.AND.NW1.LE.MHMAX+1) THEN
                   FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
-C                  IF(NR.EQ.NRMAX-5) 
-C    &                 WRITE(6,'(2I5,1P2E12.4)') NW1,NW,FM(NW1,NW)
-C                  WRITE(6,'(2I5,1P2E12.4)') ND1,MD1,CWALFK(MDX1,NDX1)
                ENDIF
             ENDDO
             ENDDO

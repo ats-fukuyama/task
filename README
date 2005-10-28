@@ -1,0 +1,167 @@
+### $Id$ ###
+*********************************************************
+***** TASK : Transport Analyzing System for tokamaK *****
+*********************************************************
+
+System Requirements:
+       UNIX or UNIX-like system (including Linux, MacOSX)
+       Fortran77 compiler (g77, pgf77, ifort, xlf, ...)
+       X-Window library
+       GSAF graphic library
+          usually distributed with TASK
+          http://p-grp.nucleng.kyoto-u.ac.jp/~fukuyama/gsaf/
+
+Optional Libraries:
+          Lapack    Linear algebra library 
+                        http://www.netlib.org/
+          MPI       Parallel processing library
+                        for example, MPICH implementation
+                        http://www-unix.mcs.anl.gov/mpi/mpich/
+          MDSplus   Scientific data base library
+                        http://www.mdsplus.org/
+
+Present modules:
+    pl: Module interface library
+    eq: 2D equilibrium module (fixed boundary)
+    tr: 1D transport module (diffusive transport)
+    wr: 3D ray tracing module
+    wm: 3D full wave module
+    dp: Wave dispersion module
+    fp: 3D Fokker Planck module (*)
+    tot: all-in-one program
+    lib: common libraries
+    mtx: common matrix libraries
+    mpi: interface 
+    TOOLS: various tools to handle ufile
+
+    (*) Under reconstruction at present.  
+        Several limitations in the function.
+
+Install: 
+    0: Install GSAF graphic library, Before installing TASK
+    1: Expand tar.gz file
+          tar xvzf taskXXX.tar.gz               [gnu tar]
+          gzcat taskXXX.tar.gz | tar xvf -      [tar]
+    2: Move to task directory
+          mv task
+    3: Create make.header
+          cp make.header.org make.header
+    4: Edit make.header
+          Remove "#" of the first column of section
+          appropriate for your system.
+          Set the location of graphic libraries.
+          If you have Lapack library, change "#"s.
+          If you have MDSplus library, change "#"s.
+    5: Move to appropriate module directory
+          cd eq [for example]
+    6: Make a module
+          make
+    7: Execute the module
+          ./eq [for example]
+
+Update:
+    If you change a source file in the present module, 
+        "make" again.
+    If you change a source file in the other module, 
+        you may need to "make libs"
+    If you change settings in a Makefile or make.header, 
+        you need to "make clean" and "make" again.
+
+Standard input command:
+    V: view input parameters
+    R: run the calculation
+    C: continue the calculation
+    G: graphic mode
+         commands in graphic mode (see documents of the module)
+         X: exit graphic command
+    S: save present calculation data
+    L: load saved calculation data
+    Q: quit execution
+
+Input parameters:
+    1. Definitions and default values of input parameters are
+       described in XXinit.f.  Most of common input parameters 
+       are given in pl/plinit.f.  We do not recommend you to 
+       modify XXinit.f.  You had better to use XXparm file 
+       described in the next item instead.
+    2. You can set standard input parameters in a text file 
+       XXparm located at the working directory.  The format
+       of XXparm file is the fortran namelist input.
+    3. You can change the input parameters on the input command 
+       line.  A input line including a character "=", e.g. 
+       "RR=6.2" is recognized as a part of namelist input.
+
+Compile parameters:
+       The size of arrays are usually defined in XXcom0.inc.
+       For large scale calculation, you may need to increase 
+       the numbers in XXcom0.inc and "make" again.
+
+Agreement: 
+
+Users of TASK codes and modules must acknowledge the TASK system and any
+modifications made when publishing or presenting results. 
+
+TASK system has been developed by A. Fukuyama, Kyoto University.  
+
+The following components may be copyrighted by the original authors.
+
+   NCLASS:   Neoclassical transport model
+             W.A. Houlberg (ORNL)           imported from NTCC
+   GLF23:    Turbulent transport model
+             J.E. Kinsey (Lehigh U) et al.  imported from NTCC
+   IFS/PPPL  Turbulent transport model
+             A.J. Redd (Lehigh U) et al.    imported from NTCC
+      NTCC: National Transport Code Collaboration
+            http://w3.pppl.gov/ntcc/
+            see agreement: http://w3.pppl.gov/ntcc/downloads.html
+
+   Weiland:  Turbulent transport model
+             J. Weiland (Chermers U)        courtesy by the author
+
+   DSPFNV:   Plasma dispersion function
+             T. Watanabe (formerly NIFS)    courtesy by the author
+
+   FFT:      Fast Fourier transform
+             T. Ooura (Kyoto U)
+             http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html
+
+   Bessel functions:    netlib
+   Gamma functions:     netlib
+   Error functions:     netlib
+   Brent method:        netlib
+   BSTAB matrix solver: netlib
+             netlib: http://www.netlib.org/
+
+Acknowledgments: 
+
+   Part of the TASK system has been developed, updated and maintained
+   by the graduate and under-graduate students in Department of
+   Electrical and Electronic Engineering, Okayama University, and
+   Department of Nuclear Engineering, Kyoto University.  Many
+   comments, questions and informations from the users of TASK system
+   are greatly appreciated.  The development of TASK system is a part
+   of activities of Burning Plasma Simulation Initiative (BPSI:
+   http://bpsi.nucleng.kyoto-u.ac.jp/bpsi/).  
+
+Declarations: 
+   
+TASK system is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; The license may be relaxed in future
+without notice in advance. 
+
+TASK system is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+
+UPDATE:
+
+The newest version of TASK system is available from
+        http://bpsi.nucleng.kyoto-u.ac.jp/task/
+
+Your comments as well as bug information on TASK system should be mailed to
+	task@p-grp.nucleng.kyoto-u.ac.jp
+
+----------------------------------------------------------------------

@@ -198,21 +198,7 @@ C
 C
       INCLUDE 'dpcomm.inc'
 
-      DATA INITEQ,INITFP/0,0/
-C
-      IF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
-         IF(INITEQ.EQ.0) THEN
-            CALL EQLOAD(MODELG,KNAMEQ,0,IERR)
-            IF(IERR.EQ.0) THEN
-               CALL EQSETP
-               CALL EQCALQ(51,32,64,IERR)
-               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDEL,RB)
-            ENDIF
-            INITEQ=1
-         ENDIF
-      ELSE
-         INITEQ=0
-      ENDIF
+      DATA INITFP/0/
 C
       DO NS=1,NSMAX
          IF((MODELP(NS).EQ.7).AND.

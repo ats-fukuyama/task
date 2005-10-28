@@ -296,10 +296,10 @@ C
          XSHRHO(NSR)=SQRT(XSH(NSR))
       ENDDO
 C
-C      ***** PSIPS (normalized) *****
+C      ***** PSIP (normalized) *****
 C
       DO NR=1,NRMAX+1
-         PSIPS(NR)=XRHO(NR)**2
+         PSIP(NR)=XRHO(NR)**2
       ENDDO
 C     
 C      ***** SPLINE BBOZH(S),RBOZH(S),ZBOZH(S),PBOZH(S) *****
@@ -371,7 +371,7 @@ C      ***** CULCULATE METRIC TENSOR AND JACOBIAN*****
 C 
       DTH=2.D0*PI/NTHMAX
       DPH=2.D0*PI/(NHC*NPHMAX)
-      PSIA=1.D0
+      PSIPA=1.D0
 C
       DO NR=1,NRMAX+1
       DO NPH=1,NPHMAX
@@ -420,9 +420,9 @@ C
          PPST(  NTH,NPH,NR)=PPSS
 C
          IF(NR.NE.1) THEN
-            DRS=DRS/(2.D0*PSIA*XRHO(NR))
-            DZS=DZS/(2.D0*PSIA*XRHO(NR))
-            DPS=DPS/(2.D0*PSIA*XRHO(NR))
+            DRS=DRS/(2.D0*PSIPA*XRHO(NR))
+            DZS=DZS/(2.D0*PSIPA*XRHO(NR))
+            DPS=DPS/(2.D0*PSIPA*XRHO(NR))
             RG11(NTH,NPH,NR)=DRS *DRS +DZS *DZS +DPS *DPS *RPSS**2
             RG12(NTH,NPH,NR)=DRS *DRTH+DZS *DZTH+DPS *DPTH*RPSS**2
             RG13(NTH,NPH,NR)=DRS *DRPH+DZS *DZPH+DPS *DPPH*RPSS**2

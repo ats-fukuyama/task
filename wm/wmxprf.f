@@ -15,7 +15,7 @@ C                  vacuum vessel
 C         KNAMEQ : file name of eq data
 C         ZEFF   : effective charge number
 C         XRHO   : ro data of the calculated point ( sub. WMXRZF )
-C         PSIPS  : psi data of the calculated point ( sub. EQGETP )
+C         PSIP   : psi data of the calculated point ( sub. EQGETP )
 C
 C     Output
 C       wmcomm.inc
@@ -135,7 +135,7 @@ C
       IF (IRC.NE.0) GO TO 9999
 C
 C----  Set profile data at the point calculated in wm-code.
-C----    PSIPS : psi value at the point ( calculated at subroutine eqpsic )
+C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
 C
       DO NR=1,NRMAX1
         IF (XRHO(NR).GT.1.0D0) THEN
@@ -146,7 +146,7 @@ C
              PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
           ENDDO
         ELSE
-          PSIL=PSIPS(NR)
+          PSIL=PSIP(NR)
           CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFNE,NPRF,IRC)
           PN60(NR,1)=PPL*PNS(1)
           CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTE,NPRF,IRC)
@@ -186,11 +186,11 @@ C----  Debug write
 C
 C     WRITE(6,8000)
 C     DO 8010 N=1,NRMAX1
-C       WRITE(6,'(I3,1P7E10.3)') N, XRHO(N), PSIPS(N), PRFPSI(N)
+C       WRITE(6,'(I3,1P7E10.3)') N, XRHO(N), PSIP(N), PRFPSI(N)
 C    >                                     , PRFNE(N), PNE(N)
 C    >                                     , PRFTI(N), PTI(N)
 C8010 CONTINUE
-C8000 FORMAT(' N ',3X,'XRHO',6X,'PSIPS',4X,'PRFPSI',5X
+C8000 FORMAT(' N ',3X,'XRHO',6X,'PSIP ',4X,'PRFPSI',5X
 C    >      ,'PRFNE',6X,'PNE',6X,'PRFTI',6X,'PTI')
 C
       NRMAXSV=NRMAX
