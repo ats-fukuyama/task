@@ -18,6 +18,7 @@ MDSLIB =
 MFC = mpif77
 MF77 = mpif77
 MF90 = mpif90
+MF95 = mpif90
 
 ## ftnchek options
 FCKFLAGS = -array=0 -usage=no-com-block-unused
@@ -100,6 +101,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
 #FC = xlf
 #F90 = xlf90 -qsuffix=f=f90 -qsuffix=cpp=F90
+#F95 = xlf95 -qsuffix=f=f90 -qsuffix=cpp=F90
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
