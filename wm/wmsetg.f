@@ -544,8 +544,10 @@ C
          DO NTH=1,NTHMAX
          DO NPH=1,NPHMAX
             RG11(NTH,NPH,NR)= (DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2)
+     &                       *(2.D0*PI)**2
             RG12(NTH,NPH,NR)= (DRPSI(NTH,NR)*DRCHI(NTH,NR)
      &                        +DZPSI(NTH,NR)*DZCHI(NTH,NR))/XRHO(NR)
+     &                       * 2.D0*PI
             RG13(NTH,NPH,NR)=0.D0
             RG22(NTH,NPH,NR)= (DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2)
      &                        /(XRHO(NR)*XRHO(NR))
@@ -554,20 +556,23 @@ C
             RJ  (NTH,NPH,NR)= RPS(NTH,NR)
      &                      *( DRPSI(NTH,NR)*DZCHI(NTH,NR)
      &                        -DRCHI(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
+     &                       * 2.D0*PI
 C
-C            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI)
+            BFLD(2,NTH,NPH,NR)=2.D0*PI/RJ(NTH,NPH,NR)
+            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+     &                        /(2.D0*PI)
 C
             BPTL=(BPR(NTH,NR)*DZPSI(NTH,NR)
      &           -BPZ(NTH,NR)*DRPSI(NTH,NR))/XRHO(NR)
      &           /SQRT(RG11(NTH,NPH,NR))
      &           /SQRT(RG22(NTH,NPH,NR))
-            BFLD(2,NTH,NPH,NR)=BPTL
-            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+     &                       * 2.D0*PI
+C            BFLD(2,NTH,NPH,NR)=BPTL
+C            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
 C
-C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
-C     &           RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI),
-C     &           BPTL,BTP(NTH,NR)/RPS(NTH,NR)
+            WRITE(6,'(2I5,1P4E12.4)') NR,NTH,2.D0*PI/RJ(NTH,NPH,NR),
+     &           RBPS(NR)/RPS(NTH,NR)**2/(2.D0*PI),
+     &           BPTL,BTP(NTH,NR)/RPS(NTH,NR)
 C
 C            IF((NR.EQ.2).OR.(NR.EQ.3)) THEN
 C            WRITE(6,*) 'NR,NTH,NPH=',NR,NTH,NPH
@@ -593,12 +598,13 @@ C
             RG33(NTH,NPH,NR)= RPST(NTH,NPH,NR)**2
             RJ  (NTH,NPH,NR)= RJ(NTH,NPH,2)
             BPTL=0.D0
-C            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-C            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
-C            BPT=(BPR(NTH,NR)*DRPSI(NTH,NR)
-C     &          +BPZ(NTH,NR)*DZPSI(NTH,NR))/XRHO(NR)
-            BFLD(2,NTH,NPH,NR)=BFLD(2,NTH,NPH,2)
-            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
+C
+            BFLD(2,NTH,NPH,NR)=2.D0*PI/RJ(NTH,NPH,NR)
+            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RPS(NTH,NR)**2
+     &                        /(2.D0*PI)
+C
+C            BFLD(2,NTH,NPH,NR)=BFLD(2,NTH,NPH,2)
+C            BFLD(3,NTH,NPH,NR)=BTP(NTH,NR)/RPS(NTH,NR)
 C            WRITE(6,'(2I3,1P4E12.4)') NTH,NR,1.D0/RJ(NTH,NPH,NR),
 C     &           RBPS(NR)/RPS(NTH,NR)**2,
 C     &           BPTL,BPTL*RJ(NTH,NPH,NR)
@@ -624,6 +630,10 @@ C
      &            +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH*XRHO(NR)
      &            +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
          BPST(NTH,NPH,NR)=BABS
+         BABS1=SQRT(BPT(NTH,NR)**2+BTP(NTH,NR)**2)
+         IF(NTH.EQ.1) THEN
+            WRITE(6,'(I5,1P4E12.4)') NR,BABS,BABS1,BSUPTH,BSUPPH
+         ENDIF
       ENDDO
       ENDDO
       ENDDO

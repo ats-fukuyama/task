@@ -329,19 +329,19 @@ C
 C
       RHON=XRHO(NR)
       CALL PLPROF(RHON)
-C      IF(NR.EQ.1) THEN
-C         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
-C         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
-C         WRITE(6,*) 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
-C         WRITE(6,*) 'RU  :',RU(1)  ,RU(2)  ,RU(3)
-C      ENDIF
+      IF(NR.EQ.10) THEN
+         WRITE(6,'(A,1P3E12.4)') 'RN  :',RN(1),RN(2),RN(3)
+         WRITE(6,'(A,1P3E12.4)') 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
+         WRITE(6,'(A,1P3E12.4)') 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
+         WRITE(6,'(A,1P3E12.4)') 'RU  :',RU(1)  ,RU(2)  ,RU(3)
+      ENDIF
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-C         IF(NR.EQ.1.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
-C            WRITE(6,*) 'BABS:',BABS,BSUPTH,BSUPPH
-C         ENDIF
+         IF(NR.EQ.10.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
+            WRITE(6,'(A,1P3E12.4)') 'BABS:',BABS,BSUPTH,BSUPPH
+         ENDIF
 C
          DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
