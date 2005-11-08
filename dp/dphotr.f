@@ -98,7 +98,7 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/ABS(WCM)
+         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
@@ -161,7 +161,7 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/ABS(WCM)
+         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
@@ -312,7 +312,7 @@ C
             ENDIF
 C
             NCD = ABS(NC)
-            X = DKPP*PTH0*PNEAR1*TSNM(NTH)/ABS(WCM)
+            X = DKPP*PTH0*PNEAR1*TSNM(NTH)/WCM
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
@@ -364,7 +364,7 @@ C
             ENDIF
 C
             NCD = ABS(NC)
-            X = DKPP*PTH0*PNEAR2*TSNM(NTH)/ABS(WCM)
+            X = DKPP*PTH0*PNEAR2*TSNM(NTH)/WCM
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             RGM=SQRT(1+PTH0W*PNEAR2**2) 
@@ -458,7 +458,7 @@ C
             ENDIF
 C
             NCD=ABS(NC)
-            X = DKPP*PTH0*PNEAR1*TSNG(NTH)/ABS(WCM)
+            X = DKPP*PTH0*PNEAR1*TSNG(NTH)/WCM
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             RGM=SQRT(1+PTH0W*PNEAR1**2) 
@@ -510,7 +510,7 @@ C
             ENDIF
 C
             NCD=ABS(NC)
-            X = DKPP*PTH0*PNEAR2*TSNG(NTH)/ABS(WCM)
+            X = DKPP*PTH0*PNEAR2*TSNG(NTH)/WCM
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             RGM=SQRT(1+PTH0W*PNEAR2**2) 

@@ -3,16 +3,17 @@ C
 C     ****** LIBRARY OF BESSEL FUNCTIONS *****
 C
       DOUBLE PRECISION FUNCTION BESJN(N,X)
-      REAL*8 X,BJ(101),ALPHA,BESJ0,BESJ1
+      REAL*8 X,XX,BJ(101),ALPHA,BESJ0,BESJ1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESJN=BESJ0(X)
+         BESJN=BESJ0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESJN=BESJ1(X)
+         BESJN=BESJ1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DJBESL(X,ALPHA,NN+1,BJ,NCALC)
+         CALL DJBESL(XX,ALPHA,NN+1,BJ,NCALC)
          IF(NCALC.LT.0) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
 C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
          BESJN=BJ(NN+1)
@@ -20,21 +21,23 @@ C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
          WRITE(6,*) 'XX BESJN: ABS(N).GT.100: N=',N
          BESJN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESJN=-BESJN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESJN=-BESJN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESJN=-BESJN
       RETURN
       END
 C
       DOUBLE PRECISION FUNCTION BESYN(N,X)
-      REAL*8 X,BY(101),ALPHA,BESY0,BESY1
+      REAL*8 X,XX,BY(101),ALPHA,BESY0,BESY1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESYN=BESY0(X)
+         BESYN=BESY0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESYN=BESY1(X)
+         BESYN=BESY1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DYBESL(X,ALPHA,NN+1,BY,NCALC)
+         CALL DYBESL(XX,ALPHA,NN+1,BY,NCALC)
          IF(NCALC.LT.0) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
 C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
          BESYN=BY(NN+1)
@@ -42,21 +45,23 @@ C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
          WRITE(6,*) 'XX BESYN: ABS(N).GT.100: N=',N
          BESYN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESYN=-BESYN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESYN=-BESYN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESYN=-BESYN
       RETURN
       END
 C
       DOUBLE PRECISION FUNCTION BESIN(N,X)
-      REAL*8 X,BI(101),ALPHA,BESI0,BESI1
+      REAL*8 X,XX,BI(101),ALPHA,BESI0,BESI1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESIN=BESI0(X)
+         BESIN=BESI0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESIN=BESI1(X)
+         BESIN=BESI1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DIBESL(X,ALPHA,NN+1,1,BI,NCALC)
+         CALL DIBESL(XX,ALPHA,NN+1,1,BI,NCALC)
          IF(NCALC.LT.0) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
 C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
          BESIN=BI(NN+1)
@@ -64,21 +69,23 @@ C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
          WRITE(6,*) 'XX BESIN: ABS(N).GT.100: N=',N
          BESIN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESIN=-BESIN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESIN=-BESIN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESIN=-BESIN
       RETURN
       END
 C
       DOUBLE PRECISION FUNCTION BESKN(N,X)
-      REAL*8 X,BK(101),ALPHA,BESK0,BESK1
+      REAL*8 X,XX,BK(101),ALPHA,BESK0,BESK1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESKN=BESK0(X)
+         BESKN=BESK0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESKN=BESK1(X)
+         BESKN=BESK1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DKBESL(X,ALPHA,NN+1,1,BK,NCALC)
+         CALL DKBESL(XX,ALPHA,NN+1,1,BK,NCALC)
          IF(NCALC.LT.0) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
 C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
          BESKN=BK(NN+1)
@@ -86,62 +93,68 @@ C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
          WRITE(6,*) 'XX BESKN: ABS(N).GT.100: N=',N
          BESKN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESKN=-BESKN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESKN=-BESKN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESKN=-BESKN
       RETURN
       END
 C
       DOUBLE PRECISION FUNCTION BESEIN(N,X)
-      REAL*8 X,BI(101),ALPHA,BESEI0,BESEI1
+      REAL*8 X,XX,BI(101),ALPHA,BESEI0,BESEI1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESEIN=BESEI0(X)
+         BESEIN=BESEI0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESEIN=BESEI1(X)
+         BESEIN=BESEI1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DIBESL(X,ALPHA,NN+1,2,BI,NCALC)
+         CALL DIBESL(XX,ALPHA,NN+1,2,BI,NCALC)
          IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESEIN: NCALC=',NCALC
          BESEIN=BI(NN+1)
       ELSE
          WRITE(6,*) 'XX BESEIN: ABS(N).GT.100: N=',N
          BESEIN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESEIN=-BESEIN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESEIN=-BESEIN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESEIN=-BESEIN
       RETURN
       END
 C
       DOUBLE PRECISION FUNCTION BESEKN(N,X)
-      REAL*8 X,BK(101),ALPHA,BESEK0,BESEK1
+      REAL*8 X,XX,BK(101),ALPHA,BESEK0,BESEK1
       DATA ALPHA/0.D0/
 C
       NN=ABS(N)
+      XX=ABS(X)
       IF(NN.EQ.0) THEN
-         BESEKN=BESEK0(X)
+         BESEKN=BESEK0(XX)
       ELSEIF(NN.EQ.1) THEN
-         BESEKN=BESEK1(X)
+         BESEKN=BESEK1(XX)
       ELSEIF(NN.LE.100) THEN
-         CALL DKBESL(X,ALPHA,NN+1,2,BK,NCALC)
+         CALL DKBESL(XX,ALPHA,NN+1,2,BK,NCALC)
          IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESEKN: NCALC=',NCALC
          BESEKN=BK(NN+1)
       ELSE
          WRITE(6,*) 'XX BESEKN: ABS(N).GT.100: N=',N
          BESEKN=0.D0
       ENDIF
-      IF(N.LT.0.D0.AND.MOD(NN,2).EQ.1) BESEKN=-BESEKN
+      IF(N.LT.0.AND.MOD(NN,2).EQ.1) BESEKN=-BESEKN
+      IF(X.LT.0.D0.AND.MOD(NN,2).EQ.1) BESEKN=-BESEKN
       RETURN
       END
 C
       SUBROUTINE BESJNV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DJBESL(X,ALPHA,N+1,V,NCALC)
+      CALL DJBESL(XX,ALPHA,N+1,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESJNV: NCALC=',NCALC
          WRITE(6,*) 'XX BESJNV: N,X=',N,X
@@ -152,19 +165,25 @@ C         WRITE(6,*) 'XX BESJNV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
       SUBROUTINE BESYNV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DYBESL(X,ALPHA,N+1,V,NCALC)
+      CALL DYBESL(XX,ALPHA,N+1,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESYNV: NCALC=',NCALC
          WRITE(6,*) 'XX BESYNV: N,X=',N,X
@@ -175,19 +194,25 @@ C         WRITE(6,*) 'XX BESYNV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
       SUBROUTINE BESINV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DIBESL(X,ALPHA,N+1,1,V,NCALC)
+      CALL DIBESL(XX,ALPHA,N+1,1,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESINV: NCALC=',NCALC
          WRITE(6,*) 'XX BESINV: N,X=',N,X
@@ -198,19 +223,25 @@ C         WRITE(6,*) 'XX BESINV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
       SUBROUTINE BESKNV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DKBESL(X,ALPHA,N+1,1,V,NCALC)
+      CALL DKBESL(XX,ALPHA,N+1,1,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESKNV: NCALC=',NCALC
          WRITE(6,*) 'XX BESKNV: N,X=',N,X
@@ -221,19 +252,25 @@ C         WRITE(6,*) 'XX BESKNV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
       SUBROUTINE BESEINV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DIBESL(X,ALPHA,N+1,2,V,NCALC)
+      CALL DIBESL(XX,ALPHA,N+1,2,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESEINV: NCALC=',NCALC
          WRITE(6,*) 'XX BESEINV: N,X=',N,X
@@ -244,19 +281,25 @@ C         WRITE(6,*) 'XX BESEINV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
       SUBROUTINE BESEKNV(N,X,V,IERR)
-      REAL*8 X,V(0:N),ALPHA
+      REAL*8 X,XX,V(0:N),ALPHA
       DATA ALPHA/0.D0/
 C
       IF(N.LT.0) THEN
          IERR=1
          RETURN
       ENDIF
+      XX=ABS(X)
 C         
-      CALL DKBESL(X,ALPHA,N+1,2,V,NCALC)
+      CALL DKBESL(XX,ALPHA,N+1,2,V,NCALC)
       IF(NCALC.LT.0) THEN
          WRITE(6,*) 'XX BESEKNV: NCALC=',NCALC
          WRITE(6,*) 'XX BESEKNV: N,X=',N,X
@@ -267,6 +310,11 @@ C         WRITE(6,*) 'XX BESEKNV: NCALC,N=',NCALC,N
       ELSE
          IERR=0
       ENDIF
+      IF(X.LT.0.D0) THEN
+         DO I=1,N+1
+            IF(MOD(I,2).EQ.1) V(I)=-V(I)
+         ENDDO
+      ENDIF 
       RETURN
       END
 C
