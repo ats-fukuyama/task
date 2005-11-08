@@ -91,7 +91,7 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/WCM
+         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/ABS(WCM)
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
@@ -158,7 +158,7 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/WCM
+         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/ABS(WCM)
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
@@ -306,7 +306,7 @@ C
 C
             NCD = ABS(NC)
 C
-            X = DKPP*PTH0*PNEAR*TSNM(NTH)/WCM
+            X = DKPP*PTH0*PNEAR*TSNM(NTH)/ABS(WCM)
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             CPART31= DFP3*(RGM-NC*CWC)**3
@@ -387,7 +387,7 @@ C
             ENDIF
 C
             NCD=ABS(NC)
-            X = DKPP*PTH0*PNEAR*TSNG(NTH)/WCM
+            X = DKPP*PTH0*PNEAR*TSNG(NTH)/ABS(WCM)
             CALL BESSJN(X,MAX(NCD,2)+5,ADJ,ADJD)
 C
             CPART411=RGM-CWC*NC

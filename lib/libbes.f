@@ -12,9 +12,10 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESJN=BESJ1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DJBESL(X,ALPHA,N+1,BJ,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
-         BESJN=BJ(N+1)
+         CALL DJBESL(X,ALPHA,NN+1,BJ,NCALC)
+         IF(NCALC.LT.0) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
+C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESJN: NCALC=',NCALC
+         BESJN=BJ(NN+1)
       ELSE
          WRITE(6,*) 'XX BESJN: ABS(N).GT.100: N=',N
          BESJN=0.D0
@@ -33,9 +34,10 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESYN=BESY1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DYBESL(X,ALPHA,N+1,BY,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
-         BESYN=BY(N+1)
+         CALL DYBESL(X,ALPHA,NN+1,BY,NCALC)
+         IF(NCALC.LT.0) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
+C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESYN: NCALC=',NCALC
+         BESYN=BY(NN+1)
       ELSE
          WRITE(6,*) 'XX BESYN: ABS(N).GT.100: N=',N
          BESYN=0.D0
@@ -54,9 +56,10 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESIN=BESI1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DIBESL(X,ALPHA,N+1,1,BI,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
-         BESIN=BI(N+1)
+         CALL DIBESL(X,ALPHA,NN+1,1,BI,NCALC)
+         IF(NCALC.LT.0) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
+C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESIN: NCALC=',NCALC
+         BESIN=BI(NN+1)
       ELSE
          WRITE(6,*) 'XX BESIN: ABS(N).GT.100: N=',N
          BESIN=0.D0
@@ -75,9 +78,10 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESKN=BESK1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DKBESL(X,ALPHA,N+1,1,BK,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
-         BESKN=BK(N+1)
+         CALL DKBESL(X,ALPHA,NN+1,1,BK,NCALC)
+         IF(NCALC.LT.0) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
+C         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESKN: NCALC=',NCALC
+         BESKN=BK(NN+1)
       ELSE
          WRITE(6,*) 'XX BESKN: ABS(N).GT.100: N=',N
          BESKN=0.D0
@@ -96,9 +100,9 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESEIN=BESEI1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DIBESL(X,ALPHA,N+1,2,BI,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESEIN: NCALC=',NCALC
-         BESEIN=BI(N+1)
+         CALL DIBESL(X,ALPHA,NN+1,2,BI,NCALC)
+         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESEIN: NCALC=',NCALC
+         BESEIN=BI(NN+1)
       ELSE
          WRITE(6,*) 'XX BESEIN: ABS(N).GT.100: N=',N
          BESEIN=0.D0
@@ -117,9 +121,9 @@ C
       ELSEIF(NN.EQ.1) THEN
          BESEKN=BESEK1(X)
       ELSEIF(NN.LE.100) THEN
-         CALL DKBESL(X,ALPHA,N+1,2,BK,NCALC)
-         IF(NCALC.LT.N+1) WRITE(6,*) 'XX BESEKN: NCALC=',NCALC
-         BESEKN=BK(N+1)
+         CALL DKBESL(X,ALPHA,NN+1,2,BK,NCALC)
+         IF(NCALC.LT.NN+1) WRITE(6,*) 'XX BESEKN: NCALC=',NCALC
+         BESEKN=BK(NN+1)
       ELSE
          WRITE(6,*) 'XX BESEKN: ABS(N).GT.100: N=',N
          BESEKN=0.D0
@@ -138,8 +142,12 @@ C
       ENDIF
 C         
       CALL DJBESL(X,ALPHA,N+1,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESJNV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESJNV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESJNV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESJNV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
@@ -157,8 +165,12 @@ C
       ENDIF
 C         
       CALL DYBESL(X,ALPHA,N+1,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESYNV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESYNV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESYNV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESYNV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
@@ -176,8 +188,12 @@ C
       ENDIF
 C         
       CALL DIBESL(X,ALPHA,N+1,1,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESINV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESINV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESINV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESINV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
@@ -195,8 +211,12 @@ C
       ENDIF
 C         
       CALL DKBESL(X,ALPHA,N+1,1,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESKNV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESKNV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESKNV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESKNV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
@@ -214,8 +234,12 @@ C
       ENDIF
 C         
       CALL DIBESL(X,ALPHA,N+1,2,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESEINV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESEINV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESEINV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESEINV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
@@ -233,8 +257,12 @@ C
       ENDIF
 C         
       CALL DKBESL(X,ALPHA,N+1,2,V,NCALC)
-      IF(NCALC.LT.N+1) THEN
-         WRITE(6,*) 'XX BESEKNV: NCALC,N=',NCALC,N
+      IF(NCALC.LT.0) THEN
+         WRITE(6,*) 'XX BESEKNV: NCALC=',NCALC
+         WRITE(6,*) 'XX BESEKNV: N,X=',N,X
+         IERR=100+ABS(NCALC)
+      ELSEIF(NCALC.LT.N+1) THEN
+C         WRITE(6,*) 'XX BESEKNV: NCALC,N=',NCALC,N
          IERR=10+NCALC
       ELSE
          IERR=0
