@@ -857,9 +857,15 @@ C     INPUTS
          ENDIF
          iglf=1          ! 0 for original model, 1 for retuned model
          jshoot=0        ! 0 for time-dep code, 1 for shooting code
-C     if jshoot=0, maximum argument of array is important.
+C     In case of jshoot=0,
+C        maximum argument of array is important;
+C        values of zeroth argument are not important, but avoiding
+C        Inf error due to logarithm calculation some finite values 
+C        need to be stored;
+C        NR=1 to NRMAX corresponds to jm=1 to jmaxm in callglf2d.f.
+C     
          jmm=0           ! jmm=0 does full grid from jm=1,jmaxm-1
-         jmaxm=NRMAX-1   ! maximum num. of grid points
+         jmaxm=NRMAX     ! maximum num. of grid points
          itport_pt(1)=MDLEQN  ! density transport
          IF(MDLEQT.NE.0) THEN
             IF(NSMAX.EQ.1) THEN
@@ -885,85 +891,84 @@ C     if jshoot=0, maximum argument of array is important.
          itport_pt(5)=0  ! v_theta transport
          irotstab=1      ! 1 uses internally computed ExB shear
 C
-         DO jm=0,jmaxm-1
-            te_m(jm) =0.5D0*(RT(jm+2,1)+RT(jm+1,1))        ! Te [keV]
-            ti_m(jm) =0.5D0*(RT(jm+2,2)+RT(jm+1,2))        ! Ti [keV]
-            rne_m(jm)=0.5D0*(RN(jm+2,1)+RN(jm+1,1))*1.D1   ! Ne [^-19]
-            rni_m(jm)=0.5D0*(RN(jm+2,2)+RN(jm+1,2))*1.D1   ! Ni [^-19]
-            rns_m(jm)=0.5D0*(RNF(jm+2,1)+RNF(jm+1,1))*1.D1 ! Nf [^-19]
+         DO jm=1,jmaxm
+            te_m(jm) =RT (jm,1)        ! Te [keV] ! halfmesh
+            ti_m(jm) =RT (jm,2)        ! Ti [keV]
+            rne_m(jm)=RN (jm,1)*10.D0  ! Ne [^19m^-3]
+            rni_m(jm)=RN (jm,2)*10.D0  ! Ni [^19m^-3]
+            rns_m(jm)=RNF(jm,1)*10.D0  ! Nf [^19m^-3]
          ENDDO
-         jm=jmaxm
-            te_m(jm) =PTS(1)
-            ti_m(jm) =PTS(2)
-            rne_m(jm)=PNSS(1)*1.D1
-            rni_m(jm)=PNSS(2)*1.D1
-            rns_m(jm)=FEDG(RG(jm+1),RG(jm),RG(jm-1),
-     &                     RNF(jm,1),RNF(jm-1,1))*1.D1
 C     
-         igrad=0         ! compute gradients (1=input gradients)
          IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
             idengrad=3   ! compute simple dilution (3=actual dilution)
          ELSE
             idengrad=2
          ENDIF
-         zpte_in=0.D0    ! 1/Lte (necessary if igrad and jmm != 0)
-         zpti_in=0.D0    ! 1/Lti (necessary if igrad and jmm != 0)
-         zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
-         zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
-         DO jm=0,jmaxm
-            angrotp_exp(jm)=WROT(jm+1) ! exp. toroidal ang. vel. [1/s]
-            egamma_exp(jm)=0.D0!AGME(jm+1)  ! exp. ExB shearing rate
-            rgamma_p_exp(jm)=0.D0      ! exp. para. vel. shearing rate
-            vphi_m(jm)=VTOR(jm+1)      ! toroidal velocity [m/s]
-            vpar_m(jm)=VPAR(jm+1)      ! parallel velocity [m/s]
-            vper_m(jm)=VPRP(jm+1)      ! perpendicular velocity [m/s]
+         DO jm=1,jmaxm
+            angrotp_exp(jm) =WROT(jm) ! exp. toroidal ang. vel. [1/s]
+            egamma_exp(jm)  =0.D0 !AGME(jm+1)  ! exp. ExB shearing rate
+            rgamma_p_exp(jm)=0.D0     ! exp. para. vel. shearing rate
+            vphi_m(jm)      =VTOR(jm) ! toroidal velocity [m/s]
+            vpar_m(jm)      =VPAR(jm) ! parallel velocity [m/s]
+            vper_m(jm)      =VPRP(jm) ! perpendicular velocity [m/s]
          ENDDO
 C
-         DO jm=0,jmaxm
-            zeff_exp(jm)=ZEFF(jm+1)  ! effective charge
+         DO jm=1,jmaxm
+            zeff_exp(jm)=ZEFF(jm)  ! effective charge
          ENDDO
 C
          bt_exp=BB      ! toroidal field [T]
          nbt_flag=1     ! >0 for Beff, Bt otherwise
 C
 C     normalized flux surface; 0 < rho < 1.
-         DO jm=0,jmaxm
-            rho(jm)=EPSRHO(jm+1)*RR/RA ! norm. toroidal flux surf. label
+         DO jm=1,jmaxm
+            rho(jm)=RM(jm) ! norm. toroidal flux surf. label
          ENDDO
 C
          IF(PHIA.EQ.0) THEN
-            arho_exp=rho(jmaxm)*RA ! rho at last closed flux surface [m]
+            arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
          ELSE
             arho_exp=SQRT(PHIA/(PI*bt_exp))
          ENDIF
 C
-         DO jm=0,jmaxm
-            rgradrho_exp(jm)  =AR1RHOG(jm+1)*arho_exp
-            rgradrhosq_exp(jm)=AR2RHOG(jm+1)*arho_exp**2
-            rmin_exp(jm)      =RMNRHOG(jm+1) ! local minor radius [m]
-            rmaj_exp(jm)      =RMJRHOG(jm+1) ! local major radius [m]
+         DO jm=1,jmaxm
+            rgradrho_exp(jm)  =AR1RHO(jm)*arho_exp
+            rgradrhosq_exp(jm)=AR2RHO(jm)*arho_exp**2
+            rmin_exp(jm)      =RMNRHO(jm) ! local minor radius [m]
+            rmaj_exp(jm)      =RMJRHO(jm) ! local major radius [m]
          ENDDO
          rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
 C
          zimp_exp=PZ(3)         ! Zimp; finite data is necessary
          amassimp_exp=PA(3)     ! Aimp; finite data is necessary
 C
-         DO jm=0,jmaxm
-            q_exp(jm)=QP(jm+1)  ! safety factor
+         q_exp(1)=FCTR(RG(1),RG(2),QP(1),QP(2))
+         DO jm=2,jmaxm
+            q_exp(jm)=0.5D0*(QP(jm-1)+QP(jm))  ! safety factor
          ENDDO
 C
-         DO jm=0,jmaxm
-            shat_exp(jm) =S_AR(jm+1)    ! magnetic shear
-            alpha_exp(jm)=ALFA_AR(jm+1) ! MHD alpha
+         shat_exp(1) =FCTR(RG(1),RG(2),S_AR(1),S_AR(2))
+         alpha_exp(1)=FCTR(RG(1),RG(2),ALFA_AR(1),ALFA_AR(2))
+         elong_exp(1)=RKPRHO(1)
+         DO jm=2,jmaxm
+            shat_exp(jm) =S_AR(jm)    ! magnetic shear
+            alpha_exp(jm)=ALFA_AR(jm) ! MHD alpha
 C            write(6,'(I3,3F15.7)') jm,rho(jm),q_exp(jm),shat_exp(jm)
-            elong_exp(jm)=RKPRHOG(jm+1)    ! local elongation
+            elong_exp(jm)=RKPRHO(jm)    ! local elongation
          ENDDO
-C         stop
 C
          amassgas_exp=PA(2) ! atomic num. of working gas
          alpha_e=1.D0  ! ExB shear stabilization (0=off,>0=on)
          x_alpha=1.D0  ! alpha stabilization (0=off,>0=on)
          i_delay=0     ! default(usually recommended)
+C
+         IF(MDLKAI.EQ.60) THEN
+C
+         igrad=0         ! compute gradients (1=input gradients)
+         zpte_in=0.D0    ! 1/Lte (necessary if igrad and jmm != 0)
+         zpti_in=0.D0    ! 1/Lti (necessary if igrad and jmm != 0)
+         zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
+         zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
 C
          call callglf2d( leigen, nroot, iglf
      & , jshoot, jmm, jmaxm, itport_pt
@@ -980,8 +985,7 @@ C
      & , exch_m, egamma_m, egamma_d, rgamma_p_m
      & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
 C
-      IF(MDLKAI.EQ.60) THEN
-         NR=1
+         DO NR=1,NRMAX-1
             AKDW(NR,1)=chie_m(NR)
             AKDW(NR,2)=chii_m(NR)
             AKDW(NR,3)=chii_m(NR)
@@ -990,7 +994,8 @@ C
             ADDW(NR,2)=diff_m(NR)
             ADDW(NR,3)=diff_m(NR)
             ADDW(NR,4)=diff_m(NR)
-         DO NR=2,NRMAX-1
+         ENDDO
+         NR=NRMAX
             AKDW(NR,1)=chie_m(NR-1)
             AKDW(NR,2)=chii_m(NR-1)
             AKDW(NR,3)=chii_m(NR-1)
@@ -999,52 +1004,31 @@ C
             ADDW(NR,2)=diff_m(NR-1)
             ADDW(NR,3)=diff_m(NR-1)
             ADDW(NR,4)=diff_m(NR-1)
+C
+         DO NR=1,NRMAX
+            DO NS=1,4
+               IF(AKDW(NR,NS).LT.0.D0) THEN
+                  AKDW(NR,NS)=0.D0
+               ENDIF
+            ENDDO
          ENDDO
-         NR=NRMAX
-            AKDW(NR,1)=chie_m(NR-2)
-            AKDW(NR,2)=chii_m(NR-2)
-            AKDW(NR,3)=chii_m(NR-2)
-            AKDW(NR,4)=chii_m(NR-2)
-            ADDW(NR,1)=diff_m(NR-2)
-            ADDW(NR,2)=diff_m(NR-2)
-            ADDW(NR,3)=diff_m(NR-2)
-            ADDW(NR,4)=diff_m(NR-2)
 C
-      DO NR=1,NRMAX
-         DO NS=1,4
-            IF(AKDW(NR,NS).LT.0.D0) THEN
-               AKDW(NR,NS)=0.D0
-            ENDIF
-         ENDDO
-      ENDDO
+         ELSEIF(MDLKAI.EQ.61) THEN
 C
-      ELSEIF(MDLKAI.EQ.61) THEN
+         igrad=1         ! compute gradients (1=input gradients)
+         deltat=0.03D0
+         do j=1,jmaxm-1
+            zpte_m(j)=-(LOG(RT(j+1,1))-LOG(RT(j,1)))/DR ! grid
+            zpti_m(j)=-(LOG(RT(j+1,2))-LOG(RT(j,2)))/DR ! grid
+            zpne_m(j)=-(LOG(RN(j+1,1))-LOG(RN(j,1)))/DR ! grid
+            zpni_m(j)=-(LOG(RN(j+1,2))-LOG(RN(j,2)))/DR ! grid
+            zpte_in=zpte_m(j)
+            zpti_in=zpti_m(j)
+            zpne_in=zpne_m(j)
+            zpni_in=zpni_m(j)
 C
-      do jm=0,jmaxm
-         diff_st(jm)=diff_m(jm)
-         chie_st(jm)=chie_m(jm)
-         chii_st(jm)=chii_m(jm)
-      enddo
-C
-      epsilon  = 1.D-10
-      do j=1,jmaxm
-        drho=rho(j-1)-rho(j)+epsilon
-        zpte_m(j)=-(log(te_m(j-1))-log(te_m(j)))/drho
-        zpti_m(j)=-(log(ti_m(j-1))-log(ti_m(j)))/drho
-        zpne_m(j)=-(log(rne_m(j-1))-log(rne_m(j)))/drho
-        zpni_m(j)=-(log(rni_m(j-1))-log(rni_m(j)))/drho
-      enddo
-C
-      igrad=1
-      deltat=0.03D0
-      do j=1,jmaxm-1
-         jmm=j
-         zpte_in=zpte_m(j)*(1.D0+deltat)
-         zpti_in=zpti_m(j)*(1.D0+deltat)
-         zpne_in=zpne_m(j)*(1.D0+deltat)
-         zpni_in=zpni_m(j)*(1.D0+deltat)
-C
-         call callglf2d( leigen, nroot, iglf
+            jmm=j
+            call callglf2d( leigen, nroot, iglf
      & , jshoot, jmm, jmaxm, itport_pt
      & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
      & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
@@ -1059,66 +1043,132 @@ C
      & , exch_m, egamma_m, egamma_d, rgamma_p_m
      & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
 C
-         diff_mn(j)=diffnem
-         chie_mn(j)=chietem
-         chii_mn(j)=chiitim
-C         write(6,*) jmm,j,chiitim,chii_st(j)
-      enddo
+            qe0(j)=chietem*zpte_in
+            qi0(j)=chiitim*zpti_in
+            qn0(j)=diffnem*zpni_in
 C
-      DO NR=2,NRMAX-1
-         zpte_inv=(1.D0+deltat)*zpte_m(NR-1)
-         zpti_inv=(1.D0+deltat)*zpti_m(NR-1)
-         zpne_inv=(1.D0+deltat)*zpne_m(NR-1)
-         zpni_inv=(1.D0+deltat)*zpni_m(NR-1)
-         AKDW(NR,1)=(chie_mn(NR-1)*zpte_inv-chie_st(NR-1)*zpte_m(NR-1))
-     &             /(zpte_inv-zpte_m(NR-1))
-         AKDW(NR,2)=(chii_mn(NR-1)*zpti_inv-chii_st(NR-1)*zpti_m(NR-1))
-     &             /(zpti_inv-zpti_m(NR-1))
-         AKDW(NR,3)=AKDW(NR,2)
-         AKDW(NR,4)=AKDW(NR,2)
-C         write(6,'(I3,3F15.7)') NR,chie_mn(NR-1)*zpte_inv,
-C     &        chie_st(NR-1)*zpte_m(NR-1),zpte_inv-zpte_m(NR-1)
-         AVK(NR,1)=(chie_st(NR-1)-AKDW(NR,1))*zpte_m(NR-1)
-         AVK(NR,2)=(chii_st(NR-1)-AKDW(NR,2))*zpti_m(NR-1)
-         AVK(NR,3)=AVK(NR,2)
-         AVK(NR,4)=AVK(NR,2)
-         ADDW(NR,1)=diff_m(NR-1)
-         ADDW(NR,2)=diff_m(NR-1)
-         ADDW(NR,3)=diff_m(NR-1)
-         ADDW(NR,4)=diff_m(NR-1)
-      ENDDO
-      NR=1
-         AKDW(NR,1)=AKDW(NR+1,1)
-         AKDW(NR,2)=AKDW(NR+1,2)
-         AKDW(NR,3)=AKDW(NR+1,3)
-         AKDW(NR,4)=AKDW(NR+1,4)
-         ADDW(NR,1)=ADDW(NR+1,1)
-         ADDW(NR,2)=ADDW(NR+1,2)
-         ADDW(NR,3)=ADDW(NR+1,3)
-         ADDW(NR,4)=ADDW(NR+1,4)
-      NR=NRMAX
-         AKDW(NR,1)=AKDW(NR-1,1)
-         AKDW(NR,2)=AKDW(NR-1,2)
-         AKDW(NR,3)=AKDW(NR-1,3)
-         AKDW(NR,4)=AKDW(NR-1,4)
-         ADDW(NR,1)=ADDW(NR-1,1)
-         ADDW(NR,2)=ADDW(NR-1,2)
-         ADDW(NR,3)=ADDW(NR-1,3)
-         ADDW(NR,4)=ADDW(NR-1,4)
+C     1/Lt1=1/Lt0+DELTAt*1/Lt0
 C
-      DO NR=1,NRMAX
-C         write(6,*) NR,AKDW(NR,1),AKDW(NR,2)
-         DO NS=1,4
-            IF(AKDW(NR,NS).LT.0.D0) THEN
-               AKDW(NR,NS)=0.D0
-               IF(NS.EQ.1) THEN
-                  AVK(NR,NS)=chie_st(NR-1)*zpte_m(NR-1)
-               ELSE
-                  AVK(NR,NS)=chii_st(NR-1)*zpti_m(NR-1)
-               ENDIF
+            zpte_in=zpte_m(j)*(1.D0+deltat)
+            zpti_in=zpti_m(j)*(1.D0+deltat)
+            zpne_in=zpne_m(j)*(1.D0+deltat)
+            zpni_in=zpni_m(j)*(1.D0+deltat)
+C
+            call callglf2d( leigen, nroot, iglf
+     & , jshoot, jmm, jmaxm, itport_pt
+     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
+     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
+     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
+     & , zeff_exp, bt_exp, nbt_flag, rho
+     & , arho_exp, rgradrho_exp, rgradrhosq_exp
+     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
+     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
+     & , alpha_e, x_alpha, i_delay
+     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
+     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
+     & , exch_m, egamma_m, egamma_d, rgamma_p_m
+     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
+C
+            qe=chietem*zpte_in
+            qi=chiitim*zpti_in
+            qn=diffnem*zpni_in
+C
+            chien(j)=(qe-qe0(j))/(zpni_in-zpni_m(j))
+            chiee(j)=(qe-qe0(j))/(zpte_in-zpte_m(j))
+            chiei(j)=(qe-qe0(j))/(zpti_in-zpti_m(j))
+            chiin(j)=(qi-qi0(j))/(zpni_in-zpni_m(j))
+            chiie(j)=(qi-qi0(j))/(zpte_in-zpte_m(j))
+            chiii(j)=(qi-qi0(j))/(zpti_in-zpti_m(j))
+            ddnn (j)=(qn-qn0(j))/(zpni_in-zpni_m(j))
+            ddne (j)=(qn-qn0(j))/(zpte_in-zpte_m(j))
+            ddni (j)=(qn-qn0(j))/(zpti_in-zpti_m(j))
+C            write(6,'(I3,3F15.7)') j,qe,qe0(j),qe-qe0(j)
+c            write(6,'(I3,3F15.7)') j,qi,qi0(j),qi-qi0(j)
+C            write(6,'(I3,3F15.7)')j,qi-qi0(j),zpni_in-zpni_m(j),chiin(j)
+C            write(6,'(I3,3F15.7)') j,chiin(j),chiie(j),chiii(j)
+C
+            AKDW (j,1)=chiee(j)
+            AKDWP(j,1,1)=chiee(j)
+            AVKDW(j,1)=(qe0(j)/zpte_m(j)-chiee(j))*zpte_m(j)
+            IF(chiee(j).LT.0.D0) THEN
+               AKDW(j,1)=0.D0
+               AKDWP(j,1,1)=0.D0
+               AVKDW(j,1)=qe0(j)
             ENDIF
+            DO NS=2,NSM
+               AKDW (j,NS)=chiii(j)
+               AKDWP(j,NS,NS)=chiii(j)
+               AVKDW(j,NS)=(qi0(j)/zpti_m(j)-chiii(j))*zpti_m(j)
+               IF(chiii(j).LT.0.D0) THEN
+                  AKDW (j,NS)=0.D0
+                  AKDWP(j,NS,NS)=0.D0
+                  AVKDW(j,NS)=qi0(j)
+               ENDIF
+               write(6,*) j,AVKDW(j,NS)
+            ENDDO
+         enddo
+c         stop
+         qe0(jmaxm)=qe0(jmaxm-1)
+         qi0(jmaxm)=qi0(jmaxm-1)
+         qn0(jmaxm)=qn0(jmaxm-1)
+C
+C     Let AVDW enable by turning on CNP for anomalous particle convection
+         CNP=1.D0
+C
+         MODE=0
+         IF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX-1
+            ADDWD(NR,1,1)=ddnn (NR)
+            ADDWP(NR,1,1)=ddne (NR)
+            AKDWD(NR,1,1)=chien(NR)
+            AKDWP(NR,1,1)=chiee(NR)
+            ADDWD(NR,2,1)=ddnn (NR)
+            ADDWP(NR,2,1)=ddni (NR)
+            AKDWD(NR,2,1)=chien(NR)
+            AKDWP(NR,2,1)=chiei(NR)
+            DO NS1=2,NSM
+               ADDWD(NR,1,NS1)=ddnn (NR)
+               ADDWP(NR,1,NS1)=ddne (NR)
+               AKDWD(NR,1,NS1)=chiin(NR)
+               AKDWP(NR,1,NS1)=chiie(NR)
+               DO NS=2,NSM
+                  ADDWD(NR,NS,NS1)=ddnn (NR)
+                  ADDWP(NR,NS,NS1)=ddni (NR)
+                  AKDWD(NR,NS,NS1)=chiin(NR)
+                  AKDWP(NR,NS,NS1)=chiii(NR)
+               ENDDO
+            ENDDO
+            ADDW(NR,1)=ADDWD(NR,1,1)
+            AKDW(NR,1)=AKDWP(NR,1,1)
+            DO NS=2,NSM
+               ADDW(NR,NS)=ADDWD(NR,NS,NS)
+               AKDW(NR,NS)=AKDWP(NR,NS,NS)
+            ENDDO
          ENDDO
-      ENDDO
+         NR=NRMAX
+         DO NS=1,NSM
+            DO NS1=1,NSM
+               ADDWD(NR,NS,NS1)=A DDWD(NR-1,NS,NS1)
+               ADDWP(NR,NS,NS1)=ADDWP(NR-1,NS,NS1)
+               AKDWD(NR,NS,NS1)=AKDWD(NR-1,NS,NS1)
+               AKDWP(NR,NS,NS1)=AKDWP(NR-1,NS,NS1)
+            ENDDO
+            ADDW(NR,NS)=ADDWD(NR,NS,NS)
+            AKDW(NR,NS)=AKDWP(NR,NS,NS)
+         ENDDO
+C
+         DO NR=1,NRMAX
+            DO NS=1,NSM
+               AVKDW(NR,NS)=qe0(NR)+AKDWD(NR,2,NS)*zpni_m(NR)
+     &                             +AKDWP(NR,1,NS)*zpte_m(NR)
+     &                             +AKDWP(NR,2,NS)*zpti_m(NR)
+               AVDW (NR,NS)=qn0(NR)+ADDWD(NR,2, 2)*zpni_m(NR)
+     &                             +ADDWP(NR,1, 2)*zpte_m(NR)
+     &                             +ADDWP(NR,2, 2)*zpti_m(NR)
+            ENDDO
+         ENDDO
+         ENDIF
+C
       ENDIF
 C
       ELSEIF(MDLKAI.EQ.62) THEN
@@ -1801,6 +1851,8 @@ C
 C
 C        ****** AVK : HEAT PINCH ******
 C
+C     --- NEOCLASSICAL PART ---
+C
       IF(MDLKAI.NE.61) THEN
       IF(MDLAVK.EQ.0) THEN
          DO NS=1,NSM
@@ -1885,6 +1937,16 @@ C
          DO NS=1,NSLMAX
          DO NR=1,NRMAX
             AVK(NR,NS)=AVKNCS(NR,NS)
+         ENDDO
+         ENDDO
+      ENDIF
+C
+C     --- ANOMALOUS PART ---
+C
+      IF(MDLKAI.EQ.61) THEN
+         DO NR=1,NRMAX
+         DO NS=1,NSLMAX
+            AVK(NR,NS)=AVK(NR,NS)+AVKDW(NR,NS)
          ENDDO
          ENDDO
       ENDIF

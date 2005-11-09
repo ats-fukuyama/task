@@ -1077,8 +1077,16 @@ C
  600  FORMAT(' ',5(' ',A))
  610  FORMAT(' ',5I4)
 C
+C     CHECK WHETHER TURBULENT TRANSPORT MODEL HAS OFF-DIAGONAL PARTS
+C
+      IF(MDLKAI.EQ.61.OR.(MDLKAI.EQ.63.AND.MDLWLD.EQ.1)) THEN
+         MDANOM=1
+      ELSE
+         MDANOM=0
+      ENDIF
+C
 C     |-----------------------|
-C     |MDDIAG |NCLASS |Weiland|
+C     |MDDIAG |NCLASS |MDANOM |
 C     |-------|-------|-------|
 C     |   0   |   *   |   *   |
 C     |   1   |   o   |   *   |
@@ -1087,12 +1095,8 @@ C     |   3   |   o   |   o   |
 C     |-----------------------|
 C
       IF(MDNCLS.EQ.0) THEN
-         IF(MDLKAI.EQ.63) THEN
-            IF(MDLWLD.EQ.0) THEN
-               MDDIAG=0
-            ELSE
-               MDDIAG=2
-            ENDIF
+         IF(MDANOM.EQ.1) THEN
+            MDDIAG=2
          ELSE
             MDDIAG=0
          ENDIF
@@ -1105,12 +1109,8 @@ C
             ENDDO
          ENDDO
       ELSE
-         IF(MDLKAI.EQ.63) THEN
-            IF(MDLWLD.EQ.0) THEN
-               MDDIAG=1
-            ELSE
-               MDDIAG=3
-            ENDIF
+         IF(MDANOM.EQ.1) THEN
+            MDDIAG=3
          ELSE
             MDDIAG=1
          ENDIF
