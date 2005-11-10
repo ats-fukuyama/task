@@ -431,18 +431,10 @@ C
 C
       PARAMETER (NRGBA=5)
       PARAMETER (NSTEPM=101)
-      DIMENSION GT(NTM),GX(NXM),GF(NTM,NXMAX),IPAT(6)
+      DIMENSION GT(NTM),GX(NXM),GF(NTM,NXMAX)
       CHARACTER STR*(*),KT*80,KDL*1
-      DIMENSION GRGBA(3,NRGBA),GLA(NRGBA)
       DIMENSION GDLF(NSTEPM),GDLE(NSTEPM),GRGBL(3,0:NSTEPM)
       DIMENSION KA(8,NTM,NXM)
-      DATA IPAT/0,2,3,4,6,7/
-      DATA GRGBA/0.0,0.0,1.0,
-     &           0.0,1.0,1.0,
-     &           1.0,1.0,1.0,
-     &           1.0,1.0,0.0,
-     &           1.0,0.0,0.0/
-      DATA GLA/0.0,0.40,0.5,0.60,1.0/
 C
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
@@ -506,7 +498,6 @@ C
 C
       DO I=0,ISTEPF
          GFACT=REAL(I)/REAL(ISTEPF)
-C         CALL GUSRGB(GFACT,GRGBL(1,I),NRGBA,GLA,GRGBA)
          CALL R2G2B(GFACT,GRGBL(1,I))
       ENDDO
 C
@@ -764,7 +755,7 @@ C
       INCLUDE 'trcomm.inc'
       DIMENSION RGFLSUM(NRMP,NSM),RQFLSUM(NRMP,NSM)
       DIMENSION RNN(NRM,NSM),DNN(NRM,NSM),DTN(NRM,NSM)
-      DIMENSION AKNCG(NRM,NSM),ADNCG(NRM,NSM)
+      DIMENSION AKNCL(NRM,NSM),ADNCL(NRM,NSM)
       DIMENSION AJBSSTCK(NRM),ETASTCK(NRM)
 C
       DO NR=1,NRMAX
@@ -818,8 +809,8 @@ C
       IF(MODE.EQ.0) THEN
          DO NR=1,NRMAX
             DO NS=1,2
-               AKNCG(NR,NS)=AKNCP(NR,NS,NS)+AKNCT(NR,NS,NS)
-               ADNCG(NR,NS)=ADNCS(NR,NS)
+               AKNCL(NR,NS)=AKNCP(NR,NS,NS)+AKNCT(NR,NS,NS)
+               ADNCL(NR,NS)=ADNC(NR,NS)
             ENDDO
          ENDDO
       ELSE
@@ -848,8 +839,8 @@ C
          ENDDO
          DO NR=1,NRMAX
             DO NS=1,NSMAX
-               ADNCG(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
-               AKNCG(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
+               ADNCL(NR,NS)=-RGFLSUM(NR,NS)/DNN(NR,NS)
+               AKNCL(NR,NS)=-RQFLSUM(NR,NS)/(RNN(NR,NS)*DTN(NR,NS))
             ENDDO
          ENDDO
       ENDIF
@@ -866,17 +857,17 @@ C
       ENDDO
       MDLKNC=MDLKNCSTCK
       DO NR=1,NRMAX
-         GAD(NR+1,1) = GUCLIP(ADNCG(NR,1))
-         GAD(NR+1,2) = GUCLIP(ADNCG(NR,2))
-         GAK(NR+1,1) = GUCLIP(AKNCG(NR,1))
-         GAK(NR+1,2) = GUCLIP(AKNCG(NR,2))
+         GAD(NR+1,1) = GUCLIP(ADNCL(NR,1))
+         GAD(NR+1,2) = GUCLIP(ADNCL(NR,2))
+         GAK(NR+1,1) = GUCLIP(AKNCL(NR,1))
+         GAK(NR+1,2) = GUCLIP(AKNCL(NR,2))
          GAD(NR+1,3) = GUCLIP(ADNC(NR,1))
          GAD(NR+1,4) = GUCLIP(ADNC(NR,2))
       ENDDO
-         GAD(1,1) = GUCLIP(ADNCG(1,1))
-         GAD(1,2) = GUCLIP(ADNCG(1,2))
-         GAK(1,1) = GUCLIP(AKNCG(1,1))
-         GAK(1,2) = GUCLIP(AKNCG(1,2))
+         GAD(1,1) = GUCLIP(ADNCL(1,1))
+         GAD(1,2) = GUCLIP(ADNCL(1,2))
+         GAK(1,1) = GUCLIP(AKNCL(1,1))
+         GAK(1,2) = GUCLIP(AKNCL(1,2))
          GAD(1,3) = GUCLIP(ADNC(1,1))
          GAD(1,4) = GUCLIP(ADNC(1,2))
 C

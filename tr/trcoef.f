@@ -22,7 +22,7 @@ C
       SUBROUTINE TRCFDW
 C
       INCLUDE 'trcomm.inc'
-      INCLUDE 'trglf.inc'
+      DIMENSION S_HM(NRM),ALFA_AR(NRM)
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -798,9 +798,16 @@ C
             RG1=CWEB
             WE1=0.D0
 C
-            S_AR(NR)    = S
+            IF(NR.EQ.1) THEN
+               DRL=RJCB(NR)/DR
+               S_HM(NR) = RM(NR)*RA/(0.5D0*(QP(NR)+Q0))
+     &                   *(QP(NR)-Q0)*DRL
+            ELSE
+               DRL=RJCB(NR)/DR
+               S_HM(NR) = RM(NR)*RA/(0.5D0*(QP(NR)+QP(NR-1)))
+     &                   *(QP(NR)-QP(NR-1))*DRL
+            ENDIF
             ALFA_AR(NR) = ALFA
-            RKCV_AR(NR) = RKCV
 C
             VGR1(NR,2)=S
             VGR1(NR,3)=ALFA
@@ -846,331 +853,7 @@ C     &                /(PZ(2)*RA*BB)
       ENDDO
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
-C
-         MDDW=1
-C     INPUTS
-         leigen=1        ! 1 for tomsqz, 0 for cgg solver
-         IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-            nroot=12   ! num. of equations, 8 for default, 12 for imp.
-         ELSE
-            nroot=8
-         ENDIF
-         iglf=1          ! 0 for original model, 1 for retuned model
-         jshoot=0        ! 0 for time-dep code, 1 for shooting code
-C     In case of jshoot=0,
-C        maximum argument of array is important;
-C        values of zeroth argument are not important, but avoiding
-C        Inf error due to logarithm calculation some finite values 
-C        need to be stored;
-C        NR=1 to NRMAX corresponds to jm=1 to jmaxm in callglf2d.f.
-C     
-         jmm=0           ! jmm=0 does full grid from jm=1,jmaxm-1
-         jmaxm=NRMAX     ! maximum num. of grid points
-         itport_pt(1)=MDLEQN  ! density transport
-         IF(MDLEQT.NE.0) THEN
-            IF(NSMAX.EQ.1) THEN
-               IF(MDLEOI.EQ.1) THEN
-                  itport_pt(2)=MDLEQT ! electron transport
-                  itport_pt(3)=0      ! ion transport
-               ELSEIF(MDLEOI.EQ.2) THEN
-                  itport_pt(2)=0
-                  itport_pt(3)=MDLEQT
-               ELSE
-                  itport_pt(2)=MDLEQT ! i.e. itport_pt(2)=1
-                  itport_pt(3)=MDLEQT ! i.e. itport_pt(3)=1
-               ENDIF
-            ELSE
-               itport_pt(2)=MDLEQT ! i.e. itport_pt(2)=1
-               itport_pt(3)=MDLEQT ! i.e. itport_pt(3)=1
-            ENDIF
-         ELSE
-            itport_pt(2)=MDLEQT
-            itport_pt(3)=MDLEQT   
-         ENDIF
-         itport_pt(4)=0  ! v_phi transport
-         itport_pt(5)=0  ! v_theta transport
-         irotstab=1      ! 1 uses internally computed ExB shear
-C
-         DO jm=1,jmaxm
-            te_m(jm) =RT (jm,1)        ! Te [keV] ! halfmesh
-            ti_m(jm) =RT (jm,2)        ! Ti [keV]
-            rne_m(jm)=RN (jm,1)*10.D0  ! Ne [^19m^-3]
-            rni_m(jm)=RN (jm,2)*10.D0  ! Ni [^19m^-3]
-            rns_m(jm)=RNF(jm,1)*10.D0  ! Nf [^19m^-3]
-         ENDDO
-C     
-         IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-            idengrad=3   ! compute simple dilution (3=actual dilution)
-         ELSE
-            idengrad=2
-         ENDIF
-         DO jm=1,jmaxm
-            angrotp_exp(jm) =WROT(jm) ! exp. toroidal ang. vel. [1/s]
-            egamma_exp(jm)  =0.D0 !AGME(jm+1)  ! exp. ExB shearing rate
-            rgamma_p_exp(jm)=0.D0     ! exp. para. vel. shearing rate
-            vphi_m(jm)      =VTOR(jm) ! toroidal velocity [m/s]
-            vpar_m(jm)      =VPAR(jm) ! parallel velocity [m/s]
-            vper_m(jm)      =VPRP(jm) ! perpendicular velocity [m/s]
-         ENDDO
-C
-         DO jm=1,jmaxm
-            zeff_exp(jm)=ZEFF(jm)  ! effective charge
-         ENDDO
-C
-         bt_exp=BB      ! toroidal field [T]
-         nbt_flag=1     ! >0 for Beff, Bt otherwise
-C
-C     normalized flux surface; 0 < rho < 1.
-         DO jm=1,jmaxm
-            rho(jm)=RM(jm) ! norm. toroidal flux surf. label
-         ENDDO
-C
-         IF(PHIA.EQ.0) THEN
-            arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
-         ELSE
-            arho_exp=SQRT(PHIA/(PI*bt_exp))
-         ENDIF
-C
-         DO jm=1,jmaxm
-            rgradrho_exp(jm)  =AR1RHO(jm)*arho_exp
-            rgradrhosq_exp(jm)=AR2RHO(jm)*arho_exp**2
-            rmin_exp(jm)      =RMNRHO(jm) ! local minor radius [m]
-            rmaj_exp(jm)      =RMJRHO(jm) ! local major radius [m]
-         ENDDO
-         rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
-C
-         zimp_exp=PZ(3)         ! Zimp; finite data is necessary
-         amassimp_exp=PA(3)     ! Aimp; finite data is necessary
-C
-         q_exp(1)=FCTR(RG(1),RG(2),QP(1),QP(2))
-         DO jm=2,jmaxm
-            q_exp(jm)=0.5D0*(QP(jm-1)+QP(jm))  ! safety factor
-         ENDDO
-C
-         shat_exp(1) =FCTR(RG(1),RG(2),S_AR(1),S_AR(2))
-         alpha_exp(1)=FCTR(RG(1),RG(2),ALFA_AR(1),ALFA_AR(2))
-         elong_exp(1)=RKPRHO(1)
-         DO jm=2,jmaxm
-            shat_exp(jm) =S_AR(jm)    ! magnetic shear
-            alpha_exp(jm)=ALFA_AR(jm) ! MHD alpha
-C            write(6,'(I3,3F15.7)') jm,rho(jm),q_exp(jm),shat_exp(jm)
-            elong_exp(jm)=RKPRHO(jm)    ! local elongation
-         ENDDO
-C
-         amassgas_exp=PA(2) ! atomic num. of working gas
-         alpha_e=1.D0  ! ExB shear stabilization (0=off,>0=on)
-         x_alpha=1.D0  ! alpha stabilization (0=off,>0=on)
-         i_delay=0     ! default(usually recommended)
-C
-         IF(MDLKAI.EQ.60) THEN
-C
-         igrad=0         ! compute gradients (1=input gradients)
-         zpte_in=0.D0    ! 1/Lte (necessary if igrad and jmm != 0)
-         zpti_in=0.D0    ! 1/Lti (necessary if igrad and jmm != 0)
-         zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
-         zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
-C
-         call callglf2d( leigen, nroot, iglf
-     & , jshoot, jmm, jmaxm, itport_pt
-     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
-     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
-     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
-     & , zeff_exp, bt_exp, nbt_flag, rho
-     & , arho_exp, rgradrho_exp, rgradrhosq_exp
-     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
-     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
-     & , alpha_e, x_alpha, i_delay
-     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
-     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
-     & , exch_m, egamma_m, egamma_d, rgamma_p_m
-     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
-C
-         DO NR=1,NRMAX-1
-            AKDW(NR,1)=chie_m(NR)
-            AKDW(NR,2)=chii_m(NR)
-            AKDW(NR,3)=chii_m(NR)
-            AKDW(NR,4)=chii_m(NR)
-            ADDW(NR,1)=diff_m(NR)
-            ADDW(NR,2)=diff_m(NR)
-            ADDW(NR,3)=diff_m(NR)
-            ADDW(NR,4)=diff_m(NR)
-         ENDDO
-         NR=NRMAX
-            AKDW(NR,1)=chie_m(NR-1)
-            AKDW(NR,2)=chii_m(NR-1)
-            AKDW(NR,3)=chii_m(NR-1)
-            AKDW(NR,4)=chii_m(NR-1)
-            ADDW(NR,1)=diff_m(NR-1)
-            ADDW(NR,2)=diff_m(NR-1)
-            ADDW(NR,3)=diff_m(NR-1)
-            ADDW(NR,4)=diff_m(NR-1)
-C
-         DO NR=1,NRMAX
-            DO NS=1,4
-               IF(AKDW(NR,NS).LT.0.D0) THEN
-                  AKDW(NR,NS)=0.D0
-               ENDIF
-            ENDDO
-         ENDDO
-C
-         ELSEIF(MDLKAI.EQ.61) THEN
-C
-         igrad=1         ! compute gradients (1=input gradients)
-         deltat=0.03D0
-         do j=1,jmaxm-1
-            zpte_m(j)=-(LOG(RT(j+1,1))-LOG(RT(j,1)))/DR ! grid
-            zpti_m(j)=-(LOG(RT(j+1,2))-LOG(RT(j,2)))/DR ! grid
-            zpne_m(j)=-(LOG(RN(j+1,1))-LOG(RN(j,1)))/DR ! grid
-            zpni_m(j)=-(LOG(RN(j+1,2))-LOG(RN(j,2)))/DR ! grid
-            zpte_in=zpte_m(j)
-            zpti_in=zpti_m(j)
-            zpne_in=zpne_m(j)
-            zpni_in=zpni_m(j)
-C
-            jmm=j
-            call callglf2d( leigen, nroot, iglf
-     & , jshoot, jmm, jmaxm, itport_pt
-     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
-     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
-     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
-     & , zeff_exp, bt_exp, nbt_flag, rho
-     & , arho_exp, rgradrho_exp, rgradrhosq_exp
-     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
-     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
-     & , alpha_e, x_alpha, i_delay
-     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
-     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
-     & , exch_m, egamma_m, egamma_d, rgamma_p_m
-     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
-C
-            qe0(j)=chietem*zpte_in
-            qi0(j)=chiitim*zpti_in
-            qn0(j)=diffnem*zpni_in
-C
-C     1/Lt1=1/Lt0+DELTAt*1/Lt0
-C
-            zpte_in=zpte_m(j)*(1.D0+deltat)
-            zpti_in=zpti_m(j)*(1.D0+deltat)
-            zpne_in=zpne_m(j)*(1.D0+deltat)
-            zpni_in=zpni_m(j)*(1.D0+deltat)
-C
-            call callglf2d( leigen, nroot, iglf
-     & , jshoot, jmm, jmaxm, itport_pt
-     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m
-     & , igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in
-     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m
-     & , zeff_exp, bt_exp, nbt_flag, rho
-     & , arho_exp, rgradrho_exp, rgradrhosq_exp
-     & , rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp
-     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp
-     & , alpha_e, x_alpha, i_delay
-     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm
-     & , exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m
-     & , exch_m, egamma_m, egamma_d, rgamma_p_m
-     & , anrate_m, anrate2_m, anfreq_m, anfreq2_m )
-C
-            qe=chietem*zpte_in
-            qi=chiitim*zpti_in
-            qn=diffnem*zpni_in
-C
-            chien(j)=(qe-qe0(j))/(zpni_in-zpni_m(j))
-            chiee(j)=(qe-qe0(j))/(zpte_in-zpte_m(j))
-            chiei(j)=(qe-qe0(j))/(zpti_in-zpti_m(j))
-            chiin(j)=(qi-qi0(j))/(zpni_in-zpni_m(j))
-            chiie(j)=(qi-qi0(j))/(zpte_in-zpte_m(j))
-            chiii(j)=(qi-qi0(j))/(zpti_in-zpti_m(j))
-            ddnn (j)=(qn-qn0(j))/(zpni_in-zpni_m(j))
-            ddne (j)=(qn-qn0(j))/(zpte_in-zpte_m(j))
-            ddni (j)=(qn-qn0(j))/(zpti_in-zpti_m(j))
-C            write(6,'(I3,3F15.7)') j,qe,qe0(j),qe-qe0(j)
-c            write(6,'(I3,3F15.7)') j,qi,qi0(j),qi-qi0(j)
-C            write(6,'(I3,3F15.7)')j,qi-qi0(j),zpni_in-zpni_m(j),chiin(j)
-C            write(6,'(I3,3F15.7)') j,chiin(j),chiie(j),chiii(j)
-C
-            AKDW (j,1)=chiee(j)
-            AKDWP(j,1,1)=chiee(j)
-            AVKDW(j,1)=(qe0(j)/zpte_m(j)-chiee(j))*zpte_m(j)
-            IF(chiee(j).LT.0.D0) THEN
-               AKDW(j,1)=0.D0
-               AKDWP(j,1,1)=0.D0
-               AVKDW(j,1)=qe0(j)
-            ENDIF
-            DO NS=2,NSM
-               AKDW (j,NS)=chiii(j)
-               AKDWP(j,NS,NS)=chiii(j)
-               AVKDW(j,NS)=(qi0(j)/zpti_m(j)-chiii(j))*zpti_m(j)
-               IF(chiii(j).LT.0.D0) THEN
-                  AKDW (j,NS)=0.D0
-                  AKDWP(j,NS,NS)=0.D0
-                  AVKDW(j,NS)=qi0(j)
-               ENDIF
-               write(6,*) j,AVKDW(j,NS)
-            ENDDO
-         enddo
-c         stop
-         qe0(jmaxm)=qe0(jmaxm-1)
-         qi0(jmaxm)=qi0(jmaxm-1)
-         qn0(jmaxm)=qn0(jmaxm-1)
-C
-C     Let AVDW enable by turning on CNP for anomalous particle convection
-         CNP=1.D0
-C
-         MODE=0
-         IF(MODE.EQ.1) THEN
-         DO NR=1,NRMAX-1
-            ADDWD(NR,1,1)=ddnn (NR)
-            ADDWP(NR,1,1)=ddne (NR)
-            AKDWD(NR,1,1)=chien(NR)
-            AKDWP(NR,1,1)=chiee(NR)
-            ADDWD(NR,2,1)=ddnn (NR)
-            ADDWP(NR,2,1)=ddni (NR)
-            AKDWD(NR,2,1)=chien(NR)
-            AKDWP(NR,2,1)=chiei(NR)
-            DO NS1=2,NSM
-               ADDWD(NR,1,NS1)=ddnn (NR)
-               ADDWP(NR,1,NS1)=ddne (NR)
-               AKDWD(NR,1,NS1)=chiin(NR)
-               AKDWP(NR,1,NS1)=chiie(NR)
-               DO NS=2,NSM
-                  ADDWD(NR,NS,NS1)=ddnn (NR)
-                  ADDWP(NR,NS,NS1)=ddni (NR)
-                  AKDWD(NR,NS,NS1)=chiin(NR)
-                  AKDWP(NR,NS,NS1)=chiii(NR)
-               ENDDO
-            ENDDO
-            ADDW(NR,1)=ADDWD(NR,1,1)
-            AKDW(NR,1)=AKDWP(NR,1,1)
-            DO NS=2,NSM
-               ADDW(NR,NS)=ADDWD(NR,NS,NS)
-               AKDW(NR,NS)=AKDWP(NR,NS,NS)
-            ENDDO
-         ENDDO
-         NR=NRMAX
-         DO NS=1,NSM
-            DO NS1=1,NSM
-               ADDWD(NR,NS,NS1)=A DDWD(NR-1,NS,NS1)
-               ADDWP(NR,NS,NS1)=ADDWP(NR-1,NS,NS1)
-               AKDWD(NR,NS,NS1)=AKDWD(NR-1,NS,NS1)
-               AKDWP(NR,NS,NS1)=AKDWP(NR-1,NS,NS1)
-            ENDDO
-            ADDW(NR,NS)=ADDWD(NR,NS,NS)
-            AKDW(NR,NS)=AKDWP(NR,NS,NS)
-         ENDDO
-C
-         DO NR=1,NRMAX
-            DO NS=1,NSM
-               AVKDW(NR,NS)=qe0(NR)+AKDWD(NR,2,NS)*zpni_m(NR)
-     &                             +AKDWP(NR,1,NS)*zpte_m(NR)
-     &                             +AKDWP(NR,2,NS)*zpti_m(NR)
-               AVDW (NR,NS)=qn0(NR)+ADDWD(NR,2, 2)*zpni_m(NR)
-     &                             +ADDWP(NR,1, 2)*zpte_m(NR)
-     &                             +ADDWP(NR,2, 2)*zpti_m(NR)
-            ENDDO
-         ENDDO
-         ENDIF
-C
-      ENDIF
-C
+         CALL GLF23_DRIVER(S_AR,ALFA_AR)
       ELSEIF(MDLKAI.EQ.62) THEN
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
@@ -1179,7 +862,7 @@ C
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
-         CALL TR_WEILAND
+         CALL WEILAND_DRIVER
       ENDIF
 C
       RETURN
@@ -1553,15 +1236,10 @@ C
 C        ****** AD : PARTICLE DIFFUSION ******
 C        ****** AV : PARTICLE PINCH ******
 C
-      IF(MDLAD.EQ.0) THEN
-         DO NS=1,NSM
-         DO NR=1,NRMAX
-            ADNC(NR,NS)=0.D0
-            AD(NR,NS)=0.D0
-            AV(NR,NS)=0.D0
-         ENDDO
-         ENDDO
-      ELSEIF(MDLAD.EQ.1) THEN
+      IF(MDNCLS.EQ.0) THEN
+C     NCLASS has already calculated neoclassical particle pinch(AVNC)
+C     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
+      IF(MDLAD.EQ.1) THEN
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
                ANE =PNSS(1)
@@ -1580,9 +1258,6 @@ C
             ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
      &                  +PZ(3)*ANT *AD(NR,3)
      &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
-            DO NS=1,NSM
-               AD(NR,NS) = CNP*ADNC(NR,NS)
-            ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
@@ -1597,8 +1272,9 @@ C
             DPROF  =-PROFN1*RX**(PROFN1-1.D0)*PROF2
 C
             DO NS=1,NSM
+               AD  (NR,NS) = CNP*ADNC(NR,NS)
                AVNC(NR,NS) = AD(NR,NS)*DPROF/PROF
-               AV(NR,NS)   = CNP*AVNC(NR,NS)
+               AVDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.2) THEN
@@ -1620,9 +1296,6 @@ C
             ADNC(NR,1) =(PZ(2)*ANDX*AD(NR,2)
      &                  +PZ(3)*ANT *AD(NR,3)
      &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
-            DO NS=1,NSM
-               AD(NR,NS) = CNP*ADNC(NR,NS)
-            ENDDO
 C
             RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
             PROF0 = 1.D0-RX**PROFN1
@@ -1638,8 +1311,9 @@ C
      &                *(PN(1)-PNSS(1))*ALP(1)/RA *1.5D0
 C
             DO NS=1,NSM
+               AD  (NR,NS) = CNP*ADNC(NR,NS)
                AVNC(NR,NS) = AD(NR,NS)*DPROF/PROF
-               AV(NR,NS)   = CNP*AVNC(NR,NS)
+               AVDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSEIF(MDLAD.EQ.3) THEN
@@ -1678,17 +1352,15 @@ C
      &             /(1.D0+RC13*RNUE*EPSS)
 C
             H     = BB/(BB+BPL)
-            DO NS=1,NSM
-               AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
-            ENDDO
 C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
             DO NS=1,NSM
+               AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
-               AD(NR,NS)   = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
-               AV(NR,NS)   = CNP*AVNC(NR,NS)
+               AD  (NR,NS) = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
+               AVDW(NR,NS) = 0.D0
             ENDDO
 C
          ENDDO
@@ -1728,32 +1400,38 @@ C
      &             /(1.D0+RC13*RNUE*EPSS)
 C
             H     = BB/(BB+BPL)
-            DO NS=1,NSM
-               AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
-            ENDDO
 C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
             DO NS=1,NSM
+               AVNC(NR,NS) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            ENDDO
-C
-            DO NS=1,NSM
-               AD(NR,NS)   = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
+               AD  (NR,NS) = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
                AVDW(NR,NS) =-AV0*ADDW(NR,NS)*RR*EPS/RA**2
-               AV(NR,NS)   = CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
             ENDDO
          ENDDO
       ELSE
-         WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
+         IF(MDLAD.NE.0) WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
          DO NS=1,NSM
          DO NR=1,NRMAX
-            AD(NR,NS)=0.D0
-            AV(NR,NS)=0.D0
+            AD  (NR,NS)=0.D0
+            AV  (NR,NS)=0.D0
+            ADNC(NR,NS)=0.D0
+            AVNC(NR,NS)=0.D0
+            AVDW(NR,NS)=0.D0
          ENDDO
          ENDDO
       ENDIF
+      ENDIF
+C
+C     ***** NET PARTICLE PINCH *****
+C
+      DO NS=1,NSLMAX
+         DO NR=1,NRMAX
+            AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
+         ENDDO
+      ENDDO
 C
 C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 C
@@ -1763,7 +1441,6 @@ C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSLMAX
-               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
                IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1782,7 +1459,6 @@ C
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
             DO NS=1,NSLMAX
-               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AV(NR,NS)
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
                      ADLD(NR,NS,NS1)= CDP*ADDWD(NR,NS,NS1)
@@ -1798,7 +1474,6 @@ C
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
             DO NS=1,NSLMAX
-               AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNCES(NR,NS)
                DO NS1=1,NSLMAX
                   ADLD(NR,NS,NS1)= CDP*  ADDWD(NR,NS,NS1)
      &                            +CNP*(-ADNCT(NR,NS,NS1))
@@ -1853,18 +1528,14 @@ C        ****** AVK : HEAT PINCH ******
 C
 C     --- NEOCLASSICAL PART ---
 C
-      IF(MDLKAI.NE.61) THEN
-      IF(MDLAVK.EQ.0) THEN
-         DO NS=1,NSM
-         DO NR=1,NRMAX
-            AVK(NR,NS)=0.D0
-         ENDDO
-         ENDDO
-      ELSEIF(MDLAVK.EQ.1) THEN
+      IF(MDNCLS.EQ.0) THEN
+C     NCLASS has already calculated neoclassical heat pinch(AVKNC)
+C     beforehand if MDNCLS=1 so that MDLAVK becomes no longer valid.
+      IF(MDLAVK.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSM
                AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*CHP
-               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
+               AVKDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
@@ -1872,7 +1543,7 @@ C
             DO NS=1,NSM
                AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)
      &                       /(ANE*1.D20*TE*RKEV)
-               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
+               AVKDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSEIF(MDLAVK.EQ.3) THEN
@@ -1918,38 +1589,28 @@ C
             DO NS=2,NSM
                AVKNC(NR,NS) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))
      &                       *RK13E*SQRT(EPS)*EZOHL/BPL/H*ANED
-               AVK(NR,NS)   = CNH*AVKNC(NR,NS)
+               AVKDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSE
-         WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
+         IF(MDLAVK.NE.0) WRITE(6,*) 'XX INVALID MDLAVK : ',MDLAVK
          DO NS=1,NSM
          DO NR=1,NRMAX
-            AVK(NR,NS)=0.D0
+            AVKNC(NR,NS)=0.D0
+            AVKDW(NR,NS)=0.D0
+            AVK  (NR,NS)=0.D0
          ENDDO
          ENDDO
       ENDIF
       ENDIF
 C
-C     *** NCLASS***
+C     ***** NET HEAT PINCH *****
 C
-      IF(MDNCLS.NE.0) THEN
+      DO NR=1,NRMAX
          DO NS=1,NSLMAX
-         DO NR=1,NRMAX
-            AVK(NR,NS)=AVKNCS(NR,NS)
+            AVK(NR,NS)=CDH*AVKDW(NR,NS)+CNH*AVKNC(NR,NS)
          ENDDO
-         ENDDO
-      ENDIF
-C
-C     --- ANOMALOUS PART ---
-C
-      IF(MDLKAI.EQ.61) THEN
-         DO NR=1,NRMAX
-         DO NS=1,NSLMAX
-            AVK(NR,NS)=AVK(NR,NS)+AVKDW(NR,NS)
-         ENDDO
-         ENDDO
-      ENDIF
+      ENDDO
 C
       RETURN
       END

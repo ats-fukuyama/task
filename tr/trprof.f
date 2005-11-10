@@ -696,7 +696,7 @@ C
       SUBROUTINE TRSETG(ID,IERR)
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION DUMMY(NRM),DSRHO(NRM)
+      DIMENSION DUMMY(NRM)!,DSRHO(NRM)
 C
       IF(IREAD.NE.0) THEN
 C     *** Give initial profiles to TASK/EQ ***
@@ -927,10 +927,6 @@ C               RJCB(NR)=1.D0/(RKAPS*RA)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
                RKPRHO(NR)=RKPRHOU(1,NR)
-C
-               ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
-               AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
-               ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
             ENDDO
             CALL FLUX
          ELSEIF(MODELG.EQ.5) THEN
@@ -954,9 +950,6 @@ C     &                         NRMAX,NRM)
                RMJRHO(NR)=RR
                RMNRHO(NR)=RA*RM(NR)
                RKPRHO(NR)=RKAP
-               ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
-               AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
-               ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
             ENDDO
          ELSEIF(MODELG.EQ.5) THEN
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
@@ -988,6 +981,10 @@ C
          DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
          ARRHOG (NR)=0.5D0*(ARRHO (NR)+ARRHO (NR+1))
          ABRHOG (NR)=0.5D0*(ABRHO (NR)+ABRHO (NR+1))
+C
+         ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+         AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+         ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
       ENDDO
       NR=NRMAX
          RGL=RG(NR)
@@ -1003,6 +1000,10 @@ C
          DVRHOG (NR)=FEDG(RGL,RML,RML1,DVRHO (NR),DVRHO (NR-1))
          ARRHOG (NR)=FEDG(RGL,RML,RML1,ARRHO (NR),ARRHO (NR-1))
          ABRHOG (NR)=FEDG(RGL,RML,RML1,ABRHO (NR),ABRHO (NR-1))
+C
+         ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+         AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+         ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
 C
       RETURN
       END

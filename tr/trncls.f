@@ -281,11 +281,15 @@ C
          ETANC(NR) =DBLE(p_etap)
          AJEXNC(NR)=DBLE(p_exjb)/BB
 C
+C     ADNCG : Diagonal diffusivity for graphic use only
+C     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
+C             for graphic use only
+C
          DO NS=1,NSM
             CJBSP(NR,NS)=DBLE(bsjbp_s(NS))
             CJBST(NR,NS)=DBLE(bsjbt_s(NS))
-            ADNCS(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
-            AVNCS(NR,NS)=DBLE(vn_s(NS))/AR1RHO(NR)
+            ADNCG(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
+            AVNCG(NR,NS)=DBLE(vn_s(NS)+veb_s(NS))/AR1RHO(NR)
             DO NS1=1,NSLMAX
                AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
                AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
@@ -296,8 +300,8 @@ C
                RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
                RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
             ENDDO
-            AVKNCS(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-            AVNCES(NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
+            AVKNC(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
+            AVNC (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
          ENDDO
          IF(MDLEQZ.NE.0) THEN
             DO NSZ=1,NSZMAX
@@ -305,8 +309,8 @@ C
                NSN=NSLMAX+NSZ
                CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
                CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
-               ADNCS(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
-               AVNCS(NR,NS)=DBLE(vn_s(NSN))/AR1RHO(NR)
+               ADNCG(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
+               AVNCG(NR,NS)=DBLE(vn_s(NSN)+veb_s(NSN))/AR1RHO(NR)
                DO NS1=1,NSLMAX
                   AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
                   AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
@@ -317,8 +321,8 @@ C
                   RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
                   RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
                ENDDO
-               AVKNCS(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-               AVNCES(NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
+               AVKNC(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
+               AVNC (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
             ENDDO
          ENDIF
 C
@@ -377,11 +381,11 @@ C
      #               j,                       jm,
      #               jza,                     k,
      #               k_out,                   l,
-     #               nin,                     nout
+     #               nout
       INTEGER        idum(8)
       REAL           a0,                      bt0,
      #               bpol,                    btor,
-     #               btot,                    ds,
+     #               btot,
      #               e0,                      p_eps,
      #               p_q,                     ppr,
      #               q0,                      r0,

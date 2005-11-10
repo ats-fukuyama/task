@@ -680,7 +680,6 @@ C
       INCLUDE 'trcomm.inc'
       DIMENSION RGFLSUM(NRMP,NSM)
       DIMENSION DNN(NRM,NSM)
-      DIMENSION ADNCG(NRMP,NSM)
 C
       CALL PAGES
 C
@@ -693,13 +692,7 @@ C
          ENDDO
       ELSE
          MODE=0
-         IF(MODE.EQ.0) THEN
-            DO NR=1,NRMAX
-               DO NS=1,NSMAX
-                  ADNCG(NR,NS)=ADNCS(NR,NS)
-               ENDDO
-            ENDDO
-         ELSE
+         IF(MODE.NE.0) THEN
             DO NR=1,NRMAX
                DO NS=1,NSMAX
                   RGFLSUM(NR,NS)=0.D0
@@ -724,8 +717,8 @@ C
             ENDDO
          ENDIF
 C     
-         DO NS=1,NSMAX
          DO NR=1,NRMAX
+         DO NS=1,NSMAX
             GYR(NR+1,NS) = GUCLIP(CNP*ADNCG(NR,NS)+CDP*ADDW(NR,NS))
          ENDDO
             GYR(1,NS) = GUCLIP(CNP*ADNCG(2,NS)+CDP*ADDW(2,NS))
@@ -744,7 +737,7 @@ C
       ELSE
          DO NS=1,NSMAX
             DO NR=1,NRMAX
-               GYR(NR+1,NS) = GUCLIP(AV(NR,NS)+CNP*AVNCS(NR,NS))
+               GYR(NR+1,NS) = GUCLIP(AV(NR,NS)+AVNCG(NR,NS))
             ENDDO
             GYR(1,NS) = 0.0
          ENDDO

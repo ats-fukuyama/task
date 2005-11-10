@@ -1515,10 +1515,7 @@ C
       INTEGER ID
       REAL*8 FTPF,EPS,PI,FTU,FTL
 C
-      IF(ID.EQ.0) THEN
-         FTPF=1.D0-(1.D0-EPS)**2.D0
-     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
-      ELSEIF(ID.EQ.1) THEN
+      IF(ID.EQ.1) THEN
          FTPF=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPS*1.5D0)/SQRT(1-EPS**2)
       ELSEIF(ID.EQ.2) THEN
          FTPF=1.46D0*SQRT(EPS)

@@ -195,58 +195,82 @@ C     ==== TRANSPORT MODEL ====
 C
 C        MDLKAI: TURBULENT TRANSPORT MODEL
 C
-C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
-C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
-C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
-C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
-C        ***** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL *****
-C        *****       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC *****
+C   *************************************************************
+C   ***  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL       ***
+C   *** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL     ***
+C   *** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL                 ***
+C   *** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL ***
+C   *** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL      ***
+C   ***       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC         ***
+C   *************************************************************
 C
-C           *****  MDLKAI.EQ. 0   : CONSTANT *****
-C           *****  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2) *****
-C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2) *****
-C           *****  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C *****
-C                                                                  
-C           *****  MDLKAI.EQ. 10  : etac=1 *****
-C           *****  MDLKAI.EQ. 11  : etac=1 1/(1+exp) *****
-C           *****  MDLKAI.EQ. 12  : etac=1 1/(1+exp) *q *****
-C           *****  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2) *****
-C           *****  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp) *****
-C           *****  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln) *****
-C                                                                  
-C           *****  MDLKAI.EQ. 20  : Rebu-Lalla model *****
-C                                                                  
-C           *****  MDLKAI.EQ. 30  : CDBM 1/(1+s) *****
-C           *****  MDLKAI.EQ. 31  : CDBM F(s,alpha,kappaq) *****
-C           *****  MDLKAI.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2) *****
-C           *****  MDLKAI.EQ. 33  : CDBM F(s,0,kappaq) *****
-C           *****  MDLKAI.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2) *****
-C           *****  MDLKAI.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5) *****
-C           *****  MDLKAI.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2) *****
-C           *****  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5) *****
-C           *****  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2) *****
-C           *****  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R) *****
-C           *****  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) *****
+C      ***  MDLKAI.EQ. 0   : CONSTANT                              ***
+C      ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2)                  ***
+C      ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2)     ***
+C      ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C            ***
 C
-C           *****  MDLKAI.EQ. 60  : GLF23 model *****
-C           *****  MDLKAI.EQ. 61  : GLF23 (stability enhanced version) *****
-C           *****  MDLKAI.EQ. 62  : IFS/PPPL model *****
-C           *****  MDLKAI.EQ. 63  : Weiland model *****
-C           *****  MDLKAI.EQ. 64  : Modified Weiland model *****
-C           *****  MDLKAI.EQ. 65  : Bohm/Gyro-Bohm model *****
+C      ***  MDLKAI.EQ. 10  : etac=1                                ***
+C      ***  MDLKAI.EQ. 11  : etac=1 1/(1+exp)                      ***
+C      ***  MDLKAI.EQ. 12  : etac=1 1/(1+exp) *q                   ***
+C      ***  MDLKAI.EQ. 13  : etac=1 1/(1+exp) *(1+q^2)             ***
+C      ***  MDLKAI.EQ. 14  : etac=1+2.5*(Ln/RR-0.2) 1/(1+exp)      ***
+C      ***  MDLKAI.EQ. 15  : etac=1 1/(1+exp) func(q,eps,Ln)       ***
 C
-C        MDLETA: RESISTIVITY MODEL
-C                   0: CLASSICAL 
-C                   else: NEOCLASSICAL
-C        MDLAD : PARTICLE DIFFUSION MODEL
-C                   0: NO PARTICL TRANSPORT 
-C                   1: CONSTANT D
-C        MDLAVK: HEAT PINCH MODEL
-C                   0: NO HEAT PINCH
-C        MDLJBS: BOOTSTRAP CURRENT MODEL
-C        MDLKNS: NEOCLASSICAL TRANSPORT MODEL
-C                0    : Hinton and Hazeltin
-C                else : Chang and Hinton
+C      ***  MDLKAI.EQ. 20  : Rebu-Lalla model                      ***
+C
+C      ***  MDLKAI.EQ. 30  : CDBM 1/(1+s)                          ***
+C      ***  MDLKAI.EQ. 31  : CDBM F(s,alpha,kappaq)                ***
+C      ***  MDLKAI.EQ. 32  : CDBM F(s,alpha,kappaq)/(1+WE1^2)      ***
+C      ***  MDLKAI.EQ. 33  : CDBM F(s,0,kappaq)                    ***
+C      ***  MDLKAI.EQ. 34  : CDBM F(s,0,kappaq)/(1+WE1^2)          ***
+C      ***  MDLKAI.EQ. 35  : CDBM (s-alpha)^2/(1+s^2.5)            ***
+C      ***  MDLKAI.EQ. 36  : CDBM (s-alpha)^2/(1+s^2.5)/(1+WE1^2)  ***
+C      ***  MDLKAI.EQ. 37  : CDBM s^2/(1+s^2.5)                    ***
+C      ***  MDLKAI.EQ. 38  : CDBM s^2/(1+s^2.5)/(1+WE1^2)          ***
+C      ***  MDLKAI.EQ. 39  : CDBM F2(s,alpha,kappaq,a/R)           ***
+C      ***  MDLKAI.EQ. 40  : CDBM F3(s,alpha,kappaq,a/R)/(1+WS1^2) ***
+C
+C      ***  MDLKAI.EQ. 60  : GLF23 model                           ***
+C      ***  MDLKAI.EQ. 61  : GLF23 (stability enhanced version)    ***
+C      ***  MDLKAI.EQ. 62  : IFS/PPPL model                        ***
+C      ***  MDLKAI.EQ. 63  : Weiland model                         ***
+C      ***  MDLKAI.EQ. 64  : Modified Weiland model                ***
+C      ***  MDLKAI.EQ. 65  : Bohm/Gyro-Bohm model                  ***
+C
+C     +++++ WARNING +++++++++++++++++++++++++++++++++++++++++++
+C     +  Parameters below are valid only if MDNCLS /= 0,      +
+C     +  that is, one do not use NCLASS,                      +
+C     +  otherwise NCLASS automatically calculates all        +
+C     +  variables in the following:                          +
+C     +                                                       +
+C     +    MDLETA: RESISTIVITY MODEL                          +
+C     +               1: Hinton and Hazeltine                 +
+C     +               2: Hirshman, Hawryluk                   +
+C     +               3: Sauter                               +
+C     +               4: Hirshman, Sigmar                     +
+C     +               else: CLASSICAL                         +
+C     +    MDLAD : PARTICLE DIFFUSION MODEL                   +
+C     +               1: CONSTANT D                           +
+C     +               2: TURBULENT EFFECT                     +
+C     +               3: Hinton and Hazeltine                 +
+C     +               4: Hinton and Hazeltine w/ TURBULENT    +
+C     +               else: NO PARTICLE TRANSPORT             +
+C     +    MDLAVK: HEAT PINCH MODEL                           +
+C     +               1: Arbitrary amplitude                  +
+C     +               2: Arbitrary amplitude w/ pressure dep. +
+C     +               3: Hinton and Hazeltine                 +
+C     +               else: NO HEAT PINCH                     +
+C     +    MDLJBS: BOOTSTRAP CURRENT MODEL                    +
+C     +               1-3: Hinton and Hazeltine               +
+C     +               4: Hirshman, Sigmar                     +
+C     +               5: Sauter                               +
+C     +               else: Hinton and Hazeltine              +
+C     +    MDLKNS: NEOCLASSICAL TRANSPORT MODEL               +
+C     +            0    : Hinton and Hazeltine                +
+C     +            else : Chang and Hinton                    +
+C     +                                                       +
+C     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+C
 C        MDLTPF: TRAPPED PARTICLE FRACTION MODEL
 C
       MDLKAI = 31
@@ -259,7 +283,7 @@ C
 C
 C        MDLWLD : Weiland model mode selector
 C            0    : using effective transport coefficients
-C            else : using transport coefficients' vectors
+C            else : using transport coefficients' matrices
 C
       MDLWLD=0
 C

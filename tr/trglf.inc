@@ -20,7 +20,6 @@ C     Outputs
       DIMENSION anfreq_m(0:NGLF),anfreq2_m(0:NGLF)
 C
 C     Auxiliaries
-      DIMENSION S_AR(NRM),ALFA_AR(NRM),RKCV_AR(NRM)
       DIMENSION zpte_m(0:NGLF),zpti_m(0:NGLF),zpne_m(0:NGLF),
      &          zpni_m(0:NGLF)
       DIMENSION qe0(0:NGLF),qi0(0:NGLF),qn0(0:NGLF)
