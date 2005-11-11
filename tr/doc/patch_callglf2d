@@ -1,0 +1,26 @@
+--- /home/honda/code/glf23_v1.61/callglf2d.f	2003-10-21 17:03:01.000000000 +0900
++++ callglf2d.f	2005-11-11 13:05:18.000000000 +0900
+@@ -145,16 +145,16 @@
+ c internal arrays (which can be converted to externals)
+  
+       double precision zpte_in, zpti_in, zpne_in, zpni_in,
+-     >  zpte_m(0:jmaxm),zpti_m(0:jmaxm),
+-     >  zpne_m(0:jmaxm),zpni_m(0:jmaxm),
+-     >  drhodr(0:jmaxm),drhodrrrho(0:jmaxm),geofac(0:jmaxm),
+-     >  rhosda_m(0:jmaxm),csda_m(0:jmaxm),cgyrobohm_m(0:jmaxm),
+-     >  betae_m(0:jmaxm),xnu_m(0:jmaxm),
+-     >  alpha_m(0:jmaxm),vstarp_m(0:jmaxm)
++     >  zpte_m(0:100),zpti_m(0:100),
++     >  zpne_m(0:100),zpni_m(0:100),
++     >  drhodr(0:100),drhodrrrho(0:100),geofac(0:100),
++     >  rhosda_m(0:100),csda_m(0:100),cgyrobohm_m(0:100),
++     >  betae_m(0:100),xnu_m(0:100),
++     >  alpha_m(0:100),vstarp_m(0:100)
+  
+ c working arrays and variables
+  
+-      double precision ve(0:jmaxm),vpar(0:jmaxm)
++      double precision ve(0:100),vpar(0:100)
+ c     real*8 vmode(0:jmaxm)
+ c     real*8 kevdsecpmw
+  
