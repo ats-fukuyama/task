@@ -1,6 +1,6 @@
 C     $Id$
 C
-      INCLUDE 'trcom0.inc'
+      INCLUDE '../tr/trcom0.inc'
 C
 C     ****** CONSTANTS ******
 C

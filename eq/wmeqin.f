@@ -23,7 +23,7 @@ C
       DO NR=1,NRMAX1
       DO NTH=1,NTHMAX1
          RPS1  (NTH,NR)=RPS  (NTH,NR)
-         DRPSI1(NTH,NR)=DRPSI(NTH,NR)*2.D0*PI
+         DRPSI1(NTH,NR)=DRPSI(NTH,NR)
          DRCHI1(NTH,NR)=DRCHI(NTH,NR)
 C         IF(NR.LE.3) THEN
 C            WRITE(6,'(2I5,1P3E12.4)') 
@@ -43,7 +43,7 @@ C
       DO NR=1,NRMAX1
       DO NTH=1,NTHMAX1
          ZPS1  (NTH,NR)=ZPS  (NTH,NR)
-         DZPSI1(NTH,NR)=DZPSI(NTH,NR)*2.D0*PI
+         DZPSI1(NTH,NR)=DZPSI(NTH,NR)
          DZCHI1(NTH,NR)=DZCHI(NTH,NR)
       ENDDO
       ENDDO

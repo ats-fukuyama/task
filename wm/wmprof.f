@@ -40,7 +40,7 @@ C
             ENDDO
          ENDIF
 C
-      ELSEIF(MODELN.EQ.8) THEN
+      ELSEIF(MODELN.EQ.7) THEN
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)  =0.D0
@@ -58,7 +58,7 @@ C
             ENDDO
          ENDIF
 C
-      ELSEIF(MODELN.EQ.9) THEN
+      ELSEIF(MODELN.EQ.8) THEN
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)  =0.D0
@@ -88,7 +88,7 @@ C
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
          ENDIF
-      ELSEIF(MODELN.EQ.10) THEN
+      ELSEIF(MODELN.EQ.9) THEN
          IF(RHOL.GE.1.D0) THEN
             CALL PLDATA_GETPL(1.D0,RNPL,RTPL,RUPL)
             DO NS=1,NSMAX

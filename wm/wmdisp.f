@@ -31,6 +31,8 @@ C
          CALL WMTNAX(NR)
       ELSEIF((MOD(MODELA/2,2).EQ.1).AND.(NS.EQ.1)) THEN
          CALL WMTNEX(NR)
+      ELSEIF(NS.EQ.5.OR.NS.EQ.6) THEN
+         CALL WMTNDK(NR,NS)
       ELSE
          IF(MODELP(NS).LT.0) THEN
             CALL WMTNSX(NR,NS)
@@ -68,11 +70,10 @@ C
 C
       CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 C
-C      IF(NR.EQ.1) THEN
-C         WRITE(6,*) 'RN  :',RN(1),RN(2),RN(3)
-C         WRITE(6,*) 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
-C         WRITE(6,*) 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
-C         WRITE(6,*) 'RU  :',RU(1)  ,RU(2)  ,RU(3)
+C      IF(NS.EQ.1.AND.NR.EQ.1) THEN
+C         WRITE(6,'(A,1P6E12.4)') 'RN  :',(RN(NS1),NS1=1,NSMAX)
+C         WRITE(6,'(A,1P6E12.4)') 'RTPR:',(RTPR(NS1),NS1=1,NSMAX)
+C         WRITE(6,'(A,1P6E12.4)') 'RTPP:',(RTPP(NS1),NS1=1,NSMAX)
 C      ENDIF
 C
       DO NPH=1,NPHMAX
@@ -113,7 +114,7 @@ C
      &             +2.D0*MM*NN*RG23(NTH,NPH,NR)*XRHO(NR)
      &             +     NN*NN*RG33(NTH,NPH,NR)
                IF(RKPP2.GT.0.D0) THEN
-                  RKPP=SQRT(RKPP2)
+C                  RKPP=SQRT(RKPP2)
                   RKT2=RKX2-RKPR**2
                   IF(RKT2.GT.0.D0) THEN
                      IF(RKT2.LE.RKPP2) THEN
@@ -329,19 +330,26 @@ C
 C
       RHON=XRHO(NR)
       CALL PLPROF(RHON)
-      IF(NR.EQ.10) THEN
-         WRITE(6,'(A,1P3E12.4)') 'RN  :',RN(1),RN(2),RN(3)
-         WRITE(6,'(A,1P3E12.4)') 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
-         WRITE(6,'(A,1P3E12.4)') 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
-         WRITE(6,'(A,1P3E12.4)') 'RU  :',RU(1)  ,RU(2)  ,RU(3)
-      ENDIF
+C
+C      IF(NS.EQ.1.AND.NR.EQ.1) THEN
+C         WRITE(6,'(A,1P6E12.4)') 'RN  :',(RN(NS1),NS1=1,NSMAX)
+C         WRITE(6,'(A,1P6E12.4)') 'RTPR:',(RTPR(NS1),NS1=1,NSMAX)
+C         WRITE(6,'(A,1P6E12.4)') 'RTPP:',(RTPP(NS1),NS1=1,NSMAX)
+C      ENDIF
+C
+C      IF(NR.EQ.10) THEN
+C         WRITE(6,'(A,1P3E12.4)') 'RN  :',RN(1),RN(2),RN(3)
+C         WRITE(6,'(A,1P3E12.4)') 'RTPR:',RTPR(1),RTPR(2),RTPR(3)
+C         WRITE(6,'(A,1P3E12.4)') 'RTPP:',RTPP(1),RTPP(2),RTPP(3)
+C         WRITE(6,'(A,1P3E12.4)') 'RU  :',RU(1)  ,RU(2)  ,RU(3)
+C      ENDIF
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-         IF(NR.EQ.10.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
-            WRITE(6,'(A,1P3E12.4)') 'BABS:',BABS,BSUPTH,BSUPPH
-         ENDIF
+C         IF(NR.EQ.10.AND.NTH.EQ.1.AND.NPH.EQ.1) THEN
+C            WRITE(6,'(A,1P3E12.4)') 'BABS:',BABS,BSUPTH,BSUPPH
+C         ENDIF
 C
          DO ND=-NDSIZX,NDSIZX
             NN=NPH0+NHC*ND
@@ -594,7 +602,7 @@ C
       DO NTH=1,NTHMAX
          CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
          ANGTH=(NTH-1)*2.D0*PI/NTHMAX
-         ANGPH=(NPH-1)*2.D0*PI/NPHMAX
+C         ANGPH=(NPH-1)*2.D0*PI/NPHMAX
          WC=AE*BABS/AM
          RHOE=VTE/WC
          RHOR=RHOE/RR
@@ -616,6 +624,101 @@ C
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
 C
             CX=CW/(ABS(RKPR)*VTE)
+            IF(ABS(CX).GT.5.D0) THEN
+               CEX=(0.D0,0.D0)
+            ELSE
+               CEX=CX*EXP(-CX*CX)
+            ENDIF
+            CPM=CFN*COEF*RHOR*RHOR*CEX*CX*(1.D0+2.D0*CX*CX+CX*CX*CX*CX)
+            CQM=CFN*COEF*RHOR     *CEX*CX*CX*(1.D0+2.D0*CX*CX)
+            CRM=CFN*COEF          *CEX*CX*CX*CX*2.D0
+C
+C            CTNSR(1,1,MD,ND,NTH,NPH)=CPM*COS(ANGTH)**2
+C            CTNSR(1,2,MD,ND,NTH,NPH)=CPM*COS(ANGTH)*SIN(ANGTH)
+C            CTNSR(1,3,MD,ND,NTH,NPH)=CQM*COS(ANGTH)
+C            CTNSR(2,1,MD,ND,NTH,NPH)=CPM*COS(ANGTH)*SIN(ANGTH)
+C            CTNSR(2,2,MD,ND,NTH,NPH)=CPM*SIN(ANGTH)**2
+C            CTNSR(2,3,MD,ND,NTH,NPH)=CQM*SIN(ANGTH)
+C            CTNSR(3,1,MD,ND,NTH,NPH)=CQM*COS(ANGTH)
+C            CTNSR(3,2,MD,ND,NTH,NPH)=CQM*SIN(ANGTH)
+C            CTNSR(3,3,MD,ND,NTH,NPH)=CRM
+C
+            CTNSR(1,1,MD,ND,NTH,NPH)
+     &     =CTNSR(1,1,MD,ND,NTH,NPH)+CPM*COS(ANGTH)**2
+            CTNSR(1,2,MD,ND,NTH,NPH)
+     &     =CTNSR(1,2,MD,ND,NTH,NPH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(1,3,MD,ND,NTH,NPH)
+     &     =CTNSR(1,3,MD,ND,NTH,NPH)+CQM*COS(ANGTH)
+            CTNSR(2,1,MD,ND,NTH,NPH)
+     &     =CTNSR(2,1,MD,ND,NTH,NPH)+CPM*COS(ANGTH)*SIN(ANGTH)
+            CTNSR(2,2,MD,ND,NTH,NPH)
+     &     =CTNSR(2,2,MD,ND,NTH,NPH)+CPM*SIN(ANGTH)**2
+            CTNSR(2,3,MD,ND,NTH,NPH)
+     &     =CTNSR(2,3,MD,ND,NTH,NPH)+CQM*SIN(ANGTH)
+            CTNSR(3,1,MD,ND,NTH,NPH)
+     &     =CTNSR(3,1,MD,ND,NTH,NPH)+CQM*COS(ANGTH)
+            CTNSR(3,2,MD,ND,NTH,NPH)
+     &     =CTNSR(3,2,MD,ND,NTH,NPH)+CQM*SIN(ANGTH)
+            CTNSR(3,3,MD,ND,NTH,NPH)
+     &     =CTNSR(3,3,MD,ND,NTH,NPH)+CRM
+         ENDDO
+         ENDDO
+      ENDDO
+      ENDDO
+      RETURN
+      END
+C
+C     ****** CALCULATE MAGNETIC DRIFT DIELECTRIC TENSOR ******
+C
+      SUBROUTINE WMTNDK(NR,NS)
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+C
+      CW=2*PI*CRF*1.D6
+C
+      RHON=XRHO(NR)
+      CALL PLPROF(RHON+0.01D0)
+      RNAP=RN(NS)*1.D20
+      RTAP=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
+      CALL PLPROF(RHON)
+      RNA=RN(NS)*1.D20
+      RTA=(RTPR(NS)+RTPP(NS))/3.D0*1.D3*AEE
+      DRN=(RNAP-RNA)/(0.01D0*RA*RNA)
+C      WRITE(6,'(I5,1P3E12.4)') NR,RNA,RTA,DRN
+C
+      XL=RHON*RA
+      AM=PA(NS)*AMP
+      AE=PZ(NS)*AEE
+      VTA=SQRT(2.D0*RTA/AM)
+      WP2=AE*AE*RNA/(AM*EPS0)
+C
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+         ANGTH=(NTH-1)*2.D0*PI/NTHMAX
+C         ANGPH=(NPH-1)*2.D0*PI/NPHMAX
+         WC=AE*BABS/AM
+         RHOA=VTA/WC
+         RHOR=RHOA/RR
+         COEF=CI*WP2*SQRT(PI)/(CW*CW)
+         IF(NR.EQ.1) THEN
+            CWAST=0.D0
+         ELSE
+            CWAST=RTA*DRN/(BABS*CW*AE*XL)
+         ENDIF
+C
+         DO ND=-NDSIZX,NDSIZX
+            NN=NPH0+NHC*ND
+         DO MD=-MDSIZX,MDSIZX
+            MM=NTH0+MD
+            CFN=1.D0-CWAST*MM
+            RKTH=MM*BSUPTH/BABS
+            RKPH=NN*BSUPPH/BABS
+            RKPR=RKTH+RKPH
+            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
+C
+            CX=CW/(ABS(RKPR)*VTA)
             IF(ABS(CX).GT.5.D0) THEN
                CEX=(0.D0,0.D0)
             ELSE

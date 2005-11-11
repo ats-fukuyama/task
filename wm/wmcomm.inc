@@ -1,6 +1,6 @@
 C     $Id$
 C
-C     INCLUDE 'wmcomm.h'
+C     INCLUDE '../wm/wmcomm.h'
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
 C     

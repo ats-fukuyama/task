@@ -7,7 +7,7 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmexec.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f wmfout.f \
-       wmtae.f
+       wmtae.f wmtrfile.f
 
 SRCS = $(SRC0) nowmsolv.f 
 SRCM = $(SRC0) wmsolv.f 
@@ -83,7 +83,7 @@ clean:
 veryclean: clean
 	rm -f wm
 
-WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../pl/plcom0.inc ../dp/dpcom1.inc
+WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../pl/plcom0.inc ../pl/plcom1.inc ../dp/dpcom1.inc
 
 wmmain.o : wmmain.f $(WMCOMM)
 wmmenu.o : wmmenu.f $(WMCOMM)
@@ -108,3 +108,4 @@ wmgsub.o : wmgsub.f $(WMCOMM)
 wmdout.o : wmdout.f $(WMCOMM)	
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc

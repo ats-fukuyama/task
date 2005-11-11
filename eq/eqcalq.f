@@ -569,14 +569,19 @@ C
             DRCHI(NTH,NR)=DRCHIL
             DZCHI(NTH,NR)=DZCHIL
 C
+C            IF(NTH.EQ.1) WRITE(6,'(I5,1P4E12.4)')
+C     &           NR,DRRHOL,DRPSI(NTH,NR),QPSL,PSITA
+C
             CALL EQPSID(RPSL,ZPSL,DPSIDR,DPSIDZ)
             BPR(NTH,NR)= DPSIDZ/(2.D0*PI*RPSL)
             BPZ(NTH,NR)=-DPSIDR/(2.D0*PI*RPSL)
             BPT(NTH,NR)=SQRT(BPR(NTH,NR)**2+BPZ(NTH,NR)**2)
             BTP(NTH,NR)= TTS(NR)/(2.D0*PI*RPSL)
-C            WRITE(6,'(2I3,1P6E12.4)') 
+C
+C            IF(NTH.EQ.1) WRITE(6,'(2I3,1P6E12.4)') 
 C     &           NTH,NR,RPSL,ZPSL,
 C     &           BPR(NTH,NR),BPZ(NTH,NR),BPT(NTH,NR),BTP(NTH,NR)
+C
          ENDDO
       ENDDO
 C

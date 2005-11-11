@@ -237,7 +237,7 @@ C
             ENDDO
          ENDIF
 C
-      ELSEIF(MODELN.EQ.10) THEN
+      ELSEIF(MODELN.EQ.9) THEN
          CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
          DO NS=1,NSMAX
             RN(NS)  =RNPL(NS)
@@ -246,6 +246,10 @@ C
             RU(NS)  =RUPL(NS)
             RZCL(NS)=0.D0
          ENDDO
+         IF(NSMAX.EQ.6) THEN
+            RN(2)=RN(2)-RN(5)
+            RN(4)=RN(4)-RN(6)
+         ENDIF
       ENDIF
 C
       RETURN
