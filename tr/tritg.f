@@ -5,7 +5,7 @@ C            GLF23 Model
 C
 C     ***********************************************************
 C
-      SUBROUTINE GLF23_DRIVER(S_AR,ALFA_AR)
+      SUBROUTINE GLF23_DRIVER(S_HM,ALFA_AR)
 C
 C   *************************************************************
 C     In case of jmm=0, zeroth arguments of
@@ -122,10 +122,10 @@ C
          arho_exp=SQRT(PHIA/(PI*bt_exp))
       ENDIF
 C
-C      rgradrho_exp(0)  =AR1RHO(1)*arho_exp
-C      rgradrhosq_exp(0)=AR2RHO(1)*arho_exp**2
+      rgradrho_exp(0)  =AR1RHO(1)*arho_exp
+      rgradrhosq_exp(0)=AR2RHO(1)*arho_exp**2
       rmin_exp(0)=0.D0
-C      rmaj_exp(0)=RMJRHO(1)
+      rmaj_exp(0)=RMJRHO(1)
       DO jm=1,jmaxm
          rgradrho_exp(jm)  =AR1RHO(jm)*arho_exp
          rgradrhosq_exp(jm)=AR2RHO(jm)*arho_exp**2
@@ -137,18 +137,18 @@ C
       zimp_exp=PZ(3)         ! Zimp; finite data is necessary
       amassimp_exp=PA(3)     ! Aimp; finite data is necessary
 C
+      q_exp(0)=Q0
       q_exp(1)=0.5D0*(Q0+QP(1))
-C      q_exp(0)=Q0
       DO jm=2,jmaxm
          q_exp(jm)=0.5D0*(QP(jm-1)+QP(jm))  ! safety factor
       ENDDO
 C
+      shat_exp (0)=0.D0
+      alpha_exp(0)=0.D0
+      elong_exp(0)=RKPRHO(1)
       shat_exp (1)=S_HM(1)
       alpha_exp(1)=FCTR(RG(1),RG(2),ALFA_AR(1),ALFA_AR(2))
       elong_exp(1)=RKPRHO(1)
-C      shat_exp (0)=0.D0
-C      alpha_exp(0)=0.D0
-C      elong_exp(0)=RKPRHO(1)
       DO jm=2,jmaxm
          shat_exp (jm)=S_HM(jm) ! magnetic shear
          alpha_exp(jm)=0.5D0*(ALFA_AR(jm-1)+ALFA_AR(jm)) ! MHD alpha
@@ -193,6 +193,7 @@ C
             ADDW(NR,2)=diff_m(NR)
             ADDW(NR,3)=diff_m(NR)
             ADDW(NR,4)=diff_m(NR)
+C            write(6,*) "chii_m(",NR,")=",chii_m(NR)
          ENDDO
          NR=NRMAX
             AKDW(NR,1)=chie_m(NR-1)
@@ -203,6 +204,7 @@ C
             ADDW(NR,2)=diff_m(NR-1)
             ADDW(NR,3)=diff_m(NR-1)
             ADDW(NR,4)=diff_m(NR-1)
+C            write(6,*) "chii_m(",NR,")=",chii_m(NR)
 C
          DO NR=1,NRMAX
             DO NS=1,4

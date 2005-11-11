@@ -22,7 +22,7 @@ C
       SUBROUTINE TRCFDW
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION S_HM(NRM),ALFA_AR(NRM)
+      DIMENSION S_AR(NRM),S_HM(NRM),ALFA_AR(NRM)
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -806,7 +806,11 @@ C
                DRL=RJCB(NR)/DR
                S_HM(NR) = RM(NR)*RA/(0.5D0*(QP(NR)+QP(NR-1)))
      &                   *(QP(NR)-QP(NR-1))*DRL
+c$$$               S_HM(NR) = RM(NR)/(0.5D0*(QP(NR)+QP(NR-1)))
+c$$$     &                   *(QP(NR)-QP(NR-1))/DR
+C               write(6,*) NR,RM(NR),S_HM(NR)
             ENDIF
+            S_AR(NR)    = S
             ALFA_AR(NR) = ALFA
 C
             VGR1(NR,2)=S
@@ -853,7 +857,7 @@ C     &                /(PZ(2)*RA*BB)
       ENDDO
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
-         CALL GLF23_DRIVER(S_AR,ALFA_AR)
+         CALL GLF23_DRIVER(S_HM,ALFA_AR)
       ELSEIF(MDLKAI.EQ.62) THEN
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)

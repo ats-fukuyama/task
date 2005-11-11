@@ -405,7 +405,7 @@ C
       MDKAPPA=0
       MDPHIA=0
 C
-      NTSLS=0
+      NTSS=0
 C
 C     *** 1D VALUE ***
 C
@@ -906,21 +906,21 @@ C
 C
       IF(TMU(2).EQ.0.D0) THEN
          DO NTX1=1,NTXMAX1
-            IF(TMU1(NTX1)-TMU(1).LE.1.D-5) NTSLS=NTX1
+            IF(TMU1(NTX1)-TMU(1).LE.1.D-5) NTSS=NTX1
          ENDDO
-         IF(NTSLS.EQ.0) NTSLS=1
+         IF(NTSS.EQ.0) NTSS=1
       ENDIF
 C
 C     *** GEOMETRY FACTORS ***
 C
       KFID='RMAJOR'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
-      IF(TMU(2).EQ.0.D0) NTSL=NTSLS
+      IF(TMU(2).EQ.0.D0) NTS=NTSS
       DO NR=1,NRMAX
          RMJRHOU(1,NR)=FAS(NR)
 C         ARRHOU(1,NR)=1.D0/RMJRHOU(1,NR)**2
-         ARRHOU(1,NR)=1.D0/RRU(NTSL)**2
-         TTRHOU(1,NR)=BBU(NTSL)*RRU(NTSL)
+         ARRHOU(1,NR)=1.D0/RRU(NTS)**2
+         TTRHOU(1,NR)=BBU(NTS)*RRU(NTS)
       ENDDO
 C
       KFID='RMINOR'
@@ -958,7 +958,6 @@ c$$$      ENDIF
 C
       KFID='SURF'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,0,MDLXP,IERR)
-      IF(TMU(2).EQ.0.D0) NTSL=NTSLS
       DO NR=1,NRMAX
          DVRHOU(1,NR)=FAS(NR)/AR1RHOU(1,NR)
       ENDDO
@@ -966,17 +965,17 @@ C
       KFID='VOLUME'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,0,MDLXP,IERR)
       DO NR=1,NRMAX
-         RJCBU(1,NR)=SQRT(2.D0*PI*PI*RRU(NTSL)/FAS(NRMAX))
+         RJCBU(1,NR)=SQRT(2.D0*PI*PI*RRU(NTS)/FAS(NRMAX))
       ENDDO
 C
 C     *****
 C
-      RR   = RRU(NTSL)
-      RA   = RAU(NTSL)
-      RIPS = RIPU(NTSL)
-      BB   = BBU(NTSL)
-      RKAP = RKAPU(NTSL)
-      PHIA = PHIAU(NTSL)
+      RR   = RRU(NTS)
+      RA   = RAU(NTS)
+      RIPS = RIPU(NTS)
+      BB   = BBU(NTS)
+      RKAP = RKAPU(NTS)
+      PHIA = PHIAU(NTS)
 C
 c$$$      IF(NTXMAX1.EQ.0) THEN
 c$$$         NTXMAX1=NTXMAX
@@ -2665,11 +2664,11 @@ C
       INCLUDE 'trcomm.inc'
       COMMON /TRINS1/ INS
 C
-      RKAP=RKAPU(NTSL)
-      RR=RRU(NTSL)
-      RA=RAU(NTSL)
-      BB=BBU(NTSL)
-      PHIA=PHIAU(NTSL)
+      RKAP=RKAPU(NTS)
+      RR=RRU(NTS)
+      RA=RAU(NTS)
+      BB=BBU(NTS)
+      PHIA=PHIAU(NTS)
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       DO NR=1,NRMAX

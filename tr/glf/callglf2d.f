@@ -145,16 +145,16 @@ c external arrays
 c internal arrays (which can be converted to externals)
  
       double precision zpte_in, zpti_in, zpne_in, zpni_in,
-     >  zpte_m(0:jmaxm),zpti_m(0:jmaxm),
-     >  zpne_m(0:jmaxm),zpni_m(0:jmaxm),
-     >  drhodr(0:jmaxm),drhodrrrho(0:jmaxm),geofac(0:jmaxm),
-     >  rhosda_m(0:jmaxm),csda_m(0:jmaxm),cgyrobohm_m(0:jmaxm),
-     >  betae_m(0:jmaxm),xnu_m(0:jmaxm),
-     >  alpha_m(0:jmaxm),vstarp_m(0:jmaxm)
+     >  zpte_m(0:100),zpti_m(0:100),
+     >  zpne_m(0:100),zpni_m(0:100),
+     >  drhodr(0:100),drhodrrrho(0:100),geofac(0:100),
+     >  rhosda_m(0:100),csda_m(0:100),cgyrobohm_m(0:100),
+     >  betae_m(0:100),xnu_m(0:100),
+     >  alpha_m(0:100),vstarp_m(0:100)
  
 c working arrays and variables
  
-      double precision ve(0:jmaxm),vpar(0:jmaxm)
+      double precision ve(0:100),vpar(0:100)
 c     real*8 vmode(0:jmaxm)
 c     real*8 kevdsecpmw
  
@@ -509,6 +509,7 @@ c forward is implicit and backward is already updated
        nim=(ni_m(jm+1-jshoot)+ni_m(jm))/2.D0
        nsm=(ns_m(jm+1-jshoot)+ns_m(jm))/2.D0
        zeffm=(zeff_exp(jm+1-jshoot)+zeff_exp(jm))/2.D0
+ 
        betae_m(jm) = 400.D0*nem*tem/(1.D5*bt_exp**2)
 c      betai_m(jm) = 400.*nim*tim/(1.e5*bt_exp**2)
  
@@ -523,6 +524,7 @@ crew          vnewk3x=vnewk3x/2.
 crew  10/25/95 fixed zeff+1 factor: zeff col with ions;1 col with elecs.
        zeff_e=0.D0
        xnu_m(jm) = xnu_m(jm)*(zeff_exp(jm)+zeff_e)
+ 
  
 c      vnewstare_m(jm)=zeff_exp(jm) *2.91e-6*nem*1.e13*15./
 c    >  (tem*1.e3)**2*rmaj_exp(jm)*100.*q_exp(jm)
@@ -593,7 +595,7 @@ c
         zpne_m(j)=-(dlog(ne_m(j-1))-dlog(ne_m(j)))/drho
         zpni_m(j)=-(dlog(ni_m(j-1))-dlog(ni_m(j)))/drho
       enddo
-
+ 
         zpmte=zpte_m(jm+1-jshoot)
         zpmti=zpti_m(jm+1-jshoot)
         zpmne=zpne_m(jm+1-jshoot)
