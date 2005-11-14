@@ -1,3 +1,9 @@
+2005/11/14   V0.91 released
+             wm/wmsetg.f eq/wmeqin.f corrected
+             wm/wmtrfile.f added for wm-tr interface (MODELN=9 added)
+             gyrokinetic dielectric tensor updated in wm/wmdisp.f
+             CONTF5 removed from lib/libgut.f due to double definition
+
 2005/11/08   Update lib/libbes.f for Bessel fns with negative N and X
 
 2005/10/28   First prerelease of open version V0.90

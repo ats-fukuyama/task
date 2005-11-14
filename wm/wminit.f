@@ -122,7 +122,7 @@ C
       MODELJ = 0
       MODELA = 0
       MODELK = 0
-      MODELM = 2
+      MODELM = 0
       MODELW = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
