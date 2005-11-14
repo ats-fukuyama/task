@@ -21,21 +21,24 @@ Optional Libraries:
                         http://www.mdsplus.org/
 
 Present modules:
-    pl: Module interface library
+    pl: Module interface library (*)
     eq: 2D equilibrium module (fixed boundary)
-    tr: 1D transport module (diffusive transport)
+    tr: 1D transport module (diffusive transport) (**)
     wr: 3D ray tracing module
     wm: 3D full wave module
     dp: Wave dispersion module
-    fp: 3D Fokker Planck module (*)
+    fp: 3D Fokker Planck module (***)
     tot: all-in-one program
     lib: common libraries
     mtx: common matrix libraries
     mpi: interface 
     TOOLS: various tools to handle ufile
 
-    (*) Under reconstruction at present.  
-        Several limitations in the function.
+    (*)   Module interfaces are not completed in the present version.
+    (**)  NCLASS, GLF23, IFS/PPPL, Weiland routines are not 
+          included in the present version.
+    (***) Under reconstruction at present.  
+          Several limitations in the function.
 
 Install: 
     0: Install GSAF graphic library, Before installing TASK
@@ -43,7 +46,7 @@ Install:
           tar xvzf taskXXX.tar.gz               [gnu tar]
           gzcat taskXXX.tar.gz | tar xvf -      [tar]
     2: Move to task directory
-          mv task
+          cd task
     3: Create make.header
           cp make.header.org make.header
     4: Edit make.header
@@ -63,7 +66,7 @@ Update:
     If you change a source file in the present module, 
         "make" again.
     If you change a source file in the other module, 
-        you may need to "make libs"
+        you need to "make libs"
     If you change settings in a Makefile or make.header, 
         you need to "make clean" and "make" again.
 
@@ -89,7 +92,7 @@ Input parameters:
        of XXparm file is the fortran namelist input.
     3. You can change the input parameters on the input command 
        line.  A input line including a character "=", e.g. 
-       "RR=6.2" is recognized as a part of namelist input.
+       "RR=6.2", is recognized as a part of namelist input.
 
 Compile parameters:
        The size of arrays are usually defined in XXcom0.inc.
@@ -98,28 +101,30 @@ Compile parameters:
 
 Agreement: 
 
-Users of TASK codes and modules must acknowledge the TASK system and any
-modifications made when publishing or presenting results. 
+TASK code was originally developed by A. Fukuyama, Department of
+Nuclear Engineering, Graduate School of Engineering, Kyoto University.
 
-TASK system has been developed by A. Fukuyama, Kyoto University.  
+Users of TASK codes and modules must acknowledge the TASK system and any
+modifications made when publishing or presenting results.  If you use the transport models, NCLASS, GLF23, IFS/PPPL, you must ackowledge also NTCC.  
 
 The following components may be copyrighted by the original authors.
+(*): not included in the present version
 
-   NCLASS:   Neoclassical transport model
+  *NCLASS:   Neoclassical transport model
              W.A. Houlberg (ORNL)           imported from NTCC
-   GLF23:    Turbulent transport model
+  *GLF23:    Turbulent transport model
              J.E. Kinsey (Lehigh U) et al.  imported from NTCC
-   IFS/PPPL  Turbulent transport model
+  *IFS/PPPL  Turbulent transport model
              A.J. Redd (Lehigh U) et al.    imported from NTCC
       NTCC: National Transport Code Collaboration
             http://w3.pppl.gov/ntcc/
             see agreement: http://w3.pppl.gov/ntcc/downloads.html
 
-   Weiland:  Turbulent transport model
-             J. Weiland (Chermers U)        courtesy by the author
+  *Weiland:  Turbulent transport model
+             J. Weiland (Chermers U)        by courtesy of the author
 
    DSPFNV:   Plasma dispersion function
-             T. Watanabe (formerly NIFS)    courtesy by the author
+             T. Watanabe (formerly NIFS)    by courtesy of the author
 
    FFT:      Fast Fourier transform
              T. Ooura (Kyoto U)
