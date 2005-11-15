@@ -220,31 +220,6 @@ C
  9000 RETURN
       END
 C
-C     *****
-C
-C     *** Extrapolate center value assuming
-C         that the gradient is zero at the center (rho=0) ***
-C
-      FUNCTION FCTR(R1,R2,F1,F2)
-C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      FCTR = (R2**2*F1-R1**2*F2)/(R2**2-R1**2)
-C
-      RETURN
-      END
-C
-C     *** Extrapolate edge (rho=1) or arbitrary values ***
-C
-      FUNCTION FEDG(R0,R1,R2,F1,F2)
-C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      FEDG = ((R2-R0)*F1-(R1-R0)*F2)/(R2-R1)
-C
-      RETURN
-      END
-C
 C     ***********************************************************
 C
 C           WRONG DATA CORRECT
