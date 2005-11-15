@@ -14,6 +14,7 @@ SRCS = libspf.f libbes.f \
        libgut.f libgrf.f \
        libchar.f libkio.f \
        libfio.f ufile.f \
+       liblgr.f \
        $(LAPACK)
 
 OBJS = $(SRCS:.f=.o)
