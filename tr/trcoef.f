@@ -90,18 +90,16 @@ C
          ELSE
             PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
          ENDIF
-      ENDDO
-C
-C     /* Calculate ExB velocity in advance 
-C        for ExB shearing rate calculation */
-      DO NR=1,NRMAX
-         CVE=1.D0
-         VEXB(NR)= -CVE*ER(NR)/BB
+C     Calculate ExB velocity in advance 
+C                            for ExB shearing rate calculation
+         VEXB(NR)= ER(NR)/BB
       ENDDO
 C
       DO NR=1,NRMAX
+C     characteristic time of temporal change of transport coefficients
          TAUK(NR)=QP(NR)*RR/SQRT(RT(NR,2)*RKEV/(PA(2)*AMM))*DBLE(MDTC)
-         DRL=RJCB(NR)/DR
+C         DRL=RJCB(NR)/DR
+         DRL=1.D0/(DR*RA)
          EPS=EPSRHO(NR)
          RNTP=0.D0
          RNP =0.D0
@@ -153,6 +151,7 @@ C
             TI  = RNTP/RNP
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ELSE
+C     density and temperature for each species on grid
             ANE    = 0.5D0*(RN(NR+1,1)+RN(NR  ,1))
             ANDX   = 0.5D0*(RN(NR+1,2)+RN(NR  ,2))
             ANT    = 0.5D0*(RN(NR+1,3)+RN(NR  ,3))
@@ -162,33 +161,43 @@ C
             TT     = 0.5D0*(RT(NR+1,3)+RT(NR  ,3))
             TA     = 0.5D0*(RT(NR+1,4)+RT(NR  ,4))
 C
+C     incremental presssure and density for ion species
             DO NS=2,NSM
                RNTP=RNTP+RN(NR+1,NS)*RT(NR+1,NS)
                RNP =RNP +RN(NR+1,NS)
                RNTM=RNTM+RN(NR  ,NS)*RT(NR  ,NS)
                RNM =RNM +RN(NR  ,NS)
             ENDDO
+C     incremental presssure and density for fast particles
             RNTP= RNTP+RW(NR+1,1)+RW(NR+1,2)
             RNTM= RNTM+RW(NR  ,1)+RW(NR  ,2)
+C     incremental presssure and density for electron
             RPP = RNTP+RN(NR+1,1)*RT(NR+1,1)+PADD(NR+1)
             RPM = RNTM+RN(NR  ,1)*RT(NR  ,1)+PADD(NR  )
+C     electron pressure
             RPEP= RN(NR+1,1)*RT(NR+1,1)
             RPEM= RN(NR  ,1)*RT(NR  ,1)
 C
+C     gradients of temperature, density and pressure for electron
             DTE = (RT(NR+1,1)-RT(NR  ,1))*DRL
             DNE = (RN(NR+1,1)-RN(NR  ,1))*DRL
             DPE = (RN(NR+1,1)*RT(NR+1,1)-RN(NR,1)*RT(NR,1))*DRL
+C     gradients of temperature and density for ion
             DTD = (RT(NR+1,2)-RT(NR  ,2))*DRL
             DND = (RN(NR+1,2)-RN(NR  ,2))*DRL
+C     effective charge number and parallel electric field on grid
             ZEFFL  = 0.5D0*(ZEFF(NR+1)+ZEFF(NR))
             EZOHL  = 0.5D0*(EZOH(NR+1)+EZOH(NR))
 C
+C     pressure gradient on grid
             DPP = (RPP-RPM)*DRL
 C
+C     effective ion temperature and its gradient on grid
             TI  = 0.5D0*(RNTP/RNP+RNTM/RNM)
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ENDIF
 C
+C     second derivative of effective pressure
          RPI4=0.D0
          RPI3=0.D0
          RPI2=0.D0
@@ -235,17 +244,15 @@ C
          RPIP=0.5D0*(RPI3+RPI4)
          DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 C
-         IF(NR.EQ.1) THEN
-            DQ = (QP(NR+1)-QP(NR))/1.5D0*DRL
-         ELSEIF(NR.EQ.NRMAX) THEN
-            DQ = (QP(NR)-QP(NR-1))*DRL
-         ELSE
-            DQ = (QP(NR+1)-QP(NR-1))/2.D0*DRL
-         ENDIF
+C     safety factor and its gradient on grid
+         DQ = DERIV3P(NR,RHOG,QP,NRMAX,NRM)
+C         if(nr.eq.1) write(6,*) DQ,(QP(NR+1)-QP(NR))/1.D0*DRL
          QL = QP(NR)
 C
+C     sound speed for electron
          VTE = SQRT(ABS(TE*RKEV/AME))
 C
+C     characteristic length of ion temperature
          IF(ABS(DTI).GT.1.D-32) THEN
             CLT=TI/DTI 
          ELSE
@@ -256,6 +263,7 @@ C
             ENDIF
          ENDIF
 C
+C     characteristic length of electron density
          IF(ABS(DNE).GT.1.D-32) THEN
             CLN=ANE/DNE
          ELSE
@@ -266,6 +274,7 @@ C
             ENDIF
          ENDIF
 C
+C     characteristic length of electron pressure
          IF(ABS(RPEP-RPEM).GT.1.D-32) THEN
             CLPE=0.5D0*(RPEP+RPEM)/(RPEP-RPEM)/DRL
          ELSE
@@ -276,6 +285,7 @@ C
             ENDIF
          ENDIF
 C
+C     ???
          IF(ABS(DQ).GT.1.D-32) THEN
             CLS=QL*QL/(DQ*EPS)
          ELSE
@@ -286,6 +296,7 @@ C
             ENDIF
          ENDIF
 C
+C     collision time between electrons and ions
          TAUE = FTAUE(ANE,ANDX,TE,ZEFFL)
          ANYUE = 0.5D0*(1.D0+ZEFFL)/TAUE
 C
@@ -294,45 +305,52 @@ C
          OMEGAS  = PPK*TE*RKEV/(AEE*BB*ABS(CLN))
          OMEGATT = DSQRT(2.D0)*VTE/(RR*QL)
 C
-         S=RR*EPS*DQ/QL
-         IF(NR.EQ.1) THEN
-            DVE = (VEXB(NR+1)-VEXB(NR))/1.5D0*DRL
-         ELSEIF(NR.EQ.NRMAX) THEN
-            DVE = (VEXB(NR)-VEXB(NR-1))*DRL
-         ELSE
-            DVE = (VEXB(NR+1)-VEXB(NR-1))/2.D0*DRL
-         ENDIF
-         AGME(NR) = (S-1.D0)*VEXB(NR)/(EPS*RR)+DVE
-         AGMP(NR) = QP(NR)/EPS*AGME(NR)
+C     Alfven wave velocity
+         PNI=ANDX+ANT+ANA
+         AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
+         VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
+C     magnetic shear
+         S=RHOG(NR)/QL*DQ
+C     pressure gradient for MHD instability
+c$$$         IF(NR.NE.NRMAX) THEN
+c$$$            RPP = RN(NR+1,2)*RT(NR+1,2)+RN(NR+1,1)*RT(NR+1,1)
+c$$$            RPM = RN(NR  ,2)*RT(NR  ,2)+RN(NR  ,1)*RT(NR  ,1)
+c$$$         ELSE
+c$$$            RPP = 2.D0*(PNSS(2)*PTS(2)+PNSS(1)*PTS(1))
+c$$$            RPM = 2.D0*(RN(NR  ,2)*RT(NR  ,2)+RN(NR  ,1)*RT(NR  ,1))
+c$$$         ENDIF
+c$$$         DPP = (RPP-RPM)/(DR*RA)
+         ALFA=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
 C
-         IF(NR.EQ.1) THEN
-            DER = (ER(NR+1)/BP(NR+1)-ER(NR)/BP(NR))/RR/1.5D0*DRL
-         ELSEIF(NR.EQ.NRMAX) THEN
-            DER = (ER(NR)/BP(NR)-ER(NR-1)/BP(NR-1))/RR*DRL
-         ELSE
-            DER = (ER(NR+1)/BP(NR+1)-ER(NR-1)/BP(NR-1))/RR/2.D0*DRL
-         ENDIF
-         WEXB(NR)=RR*BP(NR)/BB*DER
+C     rotational shear
+C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
+         DVE = DERIV3P(NR,RHOG,VEXB,NRMAX,NRM)
+         WEXB(NR) = (S-1.D0)*VEXB(NR)/RHOG(NR)+DVE
+         AGMP(NR) = QP(NR)/EPS*WEXB(NR)
 C
-C        *****  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL *****
-C        ***** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL *****
-C        ***** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL *****
-C        ***** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL *****
-C        ***** 40.GE.MDLKAI.LT.50 : DRIFT ALFVEN BALLOONING MODEL ****
-C        *****       MDLKAI.GE.60 : ITG AND BOHM/GYROBOHM MODELS *****
+C   *************************************************************
+C   ***  0.GE.MDLKAI.LT.10 : CONSTANT COEFFICIENT MODEL       ***
+C   *** 10.GE.MDLKAI.LT.20 : DRIFT WAVE (+ITG +ETG) MODEL     ***
+C   *** 20.GE.MDLKAI.LT.30 : REBU-LALLA MODEL                 ***
+C   *** 30.GE.MDLKAI.LT.40 : CURRENT-DIFFUSIVITY DRIVEN MODEL ***
+C   *** 40.GE.MDLKAI.LT.60 : DRIFT WAVE BALLOONING MODEL      ***
+C   ***       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC         ***
+C   *************************************************************
 C                                                                  
          IF(MDLKAI.LT.10) THEN
-C           *****  MDLKAI.EQ. 0   : CONSTANT *****
-C           *****  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2) *****
-C           *****  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) *****
-C           *****  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C *****
+C   *********************************************************
+C   ***  MDLKAI.EQ. 0   : CONSTANT                        ***
+C   ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2)             ***
+C   ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) ***
+C   ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C      ***
+C   *********************************************************
 C
             IF(MDLKAI.EQ.0) THEN
                AKDWL=1.D0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=1.D0/(1.D0-CKALFA*(RR*EPS/RA)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=1.D0/(1.D0-CKALFA*(RR*EPS/RA)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
@@ -510,16 +528,8 @@ C
 C
          ELSEIF(MDLKAI.LT.41) THEN
 C
-            PNI=ANDX+ANT+ANA
-            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
-C
-            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
-            S=RR*EPS*DQ/QL
-C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
-            ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
@@ -650,16 +660,8 @@ C
 C
          ELSEIF(MDLKAI.LT.51) THEN
 C
-            PNI=ANDX+ANT+ANA
-            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
-C
-            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
-            S=RR*EPS*DQ/QL
-C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
-            ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
@@ -779,16 +781,9 @@ C
             VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
 C
          ELSEIF(MDLKAI.GE.60) THEN
-            PNI=ANDX+ANT+ANA
-            AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
 C
-            VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
-            S=RR*EPS*DQ/QL
-C            IF (NR.LE.2) write(6,'(I3,3F15.10)') NR,EPS,DQ,QL
             DELTA2=VC**2/WPE2
-            DBDR=DPP*1.D20*RKEV*RA/(BB**2/(2*RMU0))
-            ALFA=-QL*QL*DBDR*RR/RA
             RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
@@ -804,11 +799,8 @@ C
      &                   *(QP(NR)-Q0)*DRL
             ELSE
                DRL=RJCB(NR)/DR
-               S_HM(NR) = RM(NR)*RA/(0.5D0*(QP(NR)+QP(NR-1)))
-     &                   *(QP(NR)-QP(NR-1))*DRL
-c$$$               S_HM(NR) = RM(NR)/(0.5D0*(QP(NR)+QP(NR-1)))
-c$$$     &                   *(QP(NR)-QP(NR-1))/DR
-C               write(6,*) NR,RM(NR),S_HM(NR)
+               S_HM(NR) = RM(NR)/(0.5D0*(QP(NR)+QP(NR-1)))
+     &                   *(QP(NR)-QP(NR-1))/DR
             ENDIF
             S_AR(NR)    = S
             ALFA_AR(NR) = ALFA
@@ -821,7 +813,7 @@ C
             VGR3(NR,1)=AGMP(NR)
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=AGME(NR)
+            VGR4(NR,1)=WEXB(NR)
             VGR4(NR,2)=WEXB(NR)
             VGR4(NR,3)=0.D0
             IF(MDLKAI.EQ.65) THEN
@@ -838,14 +830,14 @@ C     &                /(PZ(2)*RA*BB)
                ALNI  = ABS(DND/ANDX)
                ALTI  = ABS(DTD/TD)
                AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
-               AGME(NR)=0.D0
-               AKDW(NR,1) = 8.D-5  *CHIB*FBHM(AGME(NR),AGITG,S)
+               WEXB(NR)=0.D0
+               AKDW(NR,1) = 8.D-5  *CHIB*FBHM(WEXB(NR),AGITG,S)
      &                     +7.D-2  *CHIGB
-               AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(AGME(NR),AGITG,S)
+               AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(WEXB(NR),AGITG,S)
      &                     +1.75D-2*CHIGB
                AKDW(NR,3) = AKDW(NR,2)
                AKDW(NR,4) = AKDW(NR,2)
-               VGR1(NR,1) = FBHM(AGME(NR),AGITG,S)
+               VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S)
             ENDIF
          ELSE                                           
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
@@ -855,9 +847,11 @@ C     &                /(PZ(2)*RA*BB)
             AKDW(NR,4)=0.D0
          ENDIF
       ENDDO
+C      STOP
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM,ALFA_AR)
+         STOP
       ELSEIF(MDLKAI.EQ.62) THEN
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
@@ -866,7 +860,7 @@ C
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
-         CALL WEILAND_DRIVER
+         CALL WEILAND_DRIVER(S_AR,ALFA_AR)
       ENDIF
 C
       RETURN
@@ -1110,11 +1104,7 @@ C
       DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
 C
       DO NR=1,NRMAX
-         IF(NR.EQ.1) THEN
-            EPS=0.5D0*              EPSRHO(NR)
-         ELSE
-            EPS=0.5D0*(EPSRHO(NR-1)+EPSRHO(NR))
-         ENDIF
+         EPS=EPSRHO(NR)
          EPSS=SQRT(EPS)**3
 C
 C        ****** CLASSICAL RESISTIVITY (Spitzer) from JAERI Report ******
@@ -1263,7 +1253,7 @@ C     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
      &                  +PZ(3)*ANT *AD(NR,3)
      &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
-            RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
+            RX   = ALP(1)*RHOG(NR)
             PROF0 = 1.D0-RX**PROFN1
             IF(PROF0.LE.0.D0) THEN
                PROF1=0.D0
@@ -1301,7 +1291,7 @@ C
      &                  +PZ(3)*ANT *AD(NR,3)
      &                  +PZ(4)*ANA *AD(NR,4))/(ANDX+ANT+ANA)
 C
-            RX   = ALP(1)*(RR*EPSRHO(NR)/RA)
+            RX   = ALP(1)*RHOG(NR)
             PROF0 = 1.D0-RX**PROFN1
             IF(PROF0.LE.0.D0) THEN
                PROF1=0.D0
@@ -1412,7 +1402,7 @@ C
                AVNC(NR,NS) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
                AD  (NR,NS) = CDP*ADDW(NR,NS)+CNP*ADNC(NR,NS)
-               AVDW(NR,NS) =-AV0*ADDW(NR,NS)*RR*EPS/RA**2
+               AVDW(NR,NS) =-AV0*ADDW(NR,NS)*RHOG(NR)/RA
             ENDDO
          ENDDO
       ELSE
@@ -1538,14 +1528,14 @@ C     beforehand if MDNCLS=1 so that MDLAVK becomes no longer valid.
       IF(MDLAVK.EQ.1) THEN
          DO NR=1,NRMAX
             DO NS=1,NSM
-               AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*CHP
+               AVKNC(NR,NS) =-RHOG(NR)*CHP
                AVKDW(NR,NS) = 0.D0
             ENDDO
          ENDDO
       ELSEIF(MDLAVK.EQ.2) THEN
          DO NR=1,NRMAX
             DO NS=1,NSM
-               AVKNC(NR,NS) =-(RR*EPSRHO(NR)/RA)*(CHP*1.D6)
+               AVKNC(NR,NS) =-RHOG(NR)*(CHP*1.D6)
      &                       /(ANE*1.D20*TE*RKEV)
                AVKDW(NR,NS) = 0.D0
             ENDDO
@@ -1773,11 +1763,12 @@ C
 C
 C     *** for Mixed Bohm/gyro-Bohm model ***
 C
-      FUNCTION FBHM(AGME,AGITG,S)
+      FUNCTION FBHM(WEXB,AGITG,S)
 C
-      REAL*8 AGME,AGITG,S,FBHM
+      IMPLICIT NONE
+      REAL*8 WEXB,AGITG,S,FBHM
 C
-      FBHM=1.D0/(1.D0+EXP(20.D0*(0.05D0+AGME/AGITG-S)))
+      FBHM=1.D0/(1.D0+EXP(20.D0*(0.05D0+WEXB/AGITG-S)))
 C
       RETURN
       END

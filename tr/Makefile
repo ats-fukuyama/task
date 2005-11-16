@@ -4,8 +4,6 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-#FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)
-
 SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f\
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f  trmdlt.f \
      trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
@@ -44,15 +42,15 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
 	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
 
 ../pl/pllib.a:
-	(cd ../pl; make pllib.a)
+	(cd ../pl; make pllib.a FC="$(FC)" FFLAGS="$(FFLAGS)")
 ../eq/eqlib.a:
-	(cd ../eq; make eqlib.a)
+	(cd ../eq; make eqlib.a FC="$(FC)" FFLAGS="$(FFLAGS)")
 ../eq/treqin.o:
-	(cd ../eq; make treqin.o)
+	(cd ../eq; make treqin.o FC="$(FC)" FFLAGS="$(FFLAGS)")
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 ../lib/mdslib.a:
-	(cd ../lib; make)
+	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
 libs:
 	(cd ../pl; make pllib.a)
@@ -73,6 +71,11 @@ clean :
 
 veryclean : clean
 	rm -f tr2 tr3
+
+distclean: clean
+	cd ../pl && make clean
+	cd ../eq && make clean
+	cd ../lib && make clean
 
 new :
 	-mkdir ../trnew

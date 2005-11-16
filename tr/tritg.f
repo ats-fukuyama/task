@@ -8,15 +8,18 @@ C
       SUBROUTINE GLF23_DRIVER(S_HM,ALFA_AR)
 C
 C   *************************************************************
-C     In case of jmm=0, zeroth arguments of
-C         te_m, ti_m, ne_m, ni_m
-C         angrotp_exp, egamma_exp, rgamma_p_exp
-C         vphi_m, vpar_m, vper_m and zeff_exp
-C     require finite values unless they are originally zero,
+C     In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
+C         te_m, ti_m, ne_m and ni_m
+C     require finite values
 C     typically the same ones as first arguments,
 C     and those of
 C         rho and rmin_exp
-C     require zero.
+C     require zero avoiding numerical error due to the absence
+C     of the value. However, the value calculated by using
+C     zeroth value of rmin_exp are not used in this case.
+C
+C     Input parameters except pressure gradients : half grid
+C     Output transport coefficients              : grid
 C   *************************************************************
 C
       INCLUDE 'trcomm.inc'
@@ -86,25 +89,15 @@ C
       ELSE
          idengrad=2
       ENDIF
-      jm=0
-         angrotp_exp(jm) =WROT(jm+1)
-         egamma_exp(jm)  =0.D0
-         rgamma_p_exp(jm)=0.D0
-         vphi_m(jm)      =VTOR(jm+1)
-         vpar_m(jm)      =VPAR(jm+1)
-         vper_m(jm)      =VPRP(jm+1)
       DO jm=1,jmaxm
          angrotp_exp(jm) =WROT(jm) ! exp. toroidal ang. vel. [1/s]
-         egamma_exp(jm)  =0.D0 !AGME(jm+1)  ! exp. ExB shearing rate
+         egamma_exp(jm)  =0.D0     ! WEXB(jm) ! exp. ExB shearing rate
+                                   ! this is not needed if irotstab!=0
          rgamma_p_exp(jm)=0.D0     ! exp. para. vel. shearing rate
          vphi_m(jm)      =VTOR(jm) ! toroidal velocity [m/s]
          vpar_m(jm)      =VPAR(jm) ! parallel velocity [m/s]
          vper_m(jm)      =VPRP(jm) ! perpendicular velocity [m/s]
-      ENDDO
-C
-      zeff_exp(0)=ZEFF(1)
-      DO jm=1,jmaxm
-         zeff_exp(jm)=ZEFF(jm)  ! effective charge
+         zeff_exp(jm)    =ZEFF(jm) ! effective charge
       ENDDO
 C
       bt_exp=BB      ! toroidal field [T]
@@ -116,49 +109,52 @@ C     normalized flux surface; 0 < rho < 1.
          rho(jm)=RM(jm) ! norm. toroidal flux surf. label
       ENDDO
 C
-      IF(PHIA.EQ.0) THEN
+      IF(PHIA.EQ.0.D0) THEN
          arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
       ELSE
          arho_exp=SQRT(PHIA/(PI*bt_exp))
       ENDIF
 C
-      rgradrho_exp(0)  =AR1RHO(1)*arho_exp
-      rgradrhosq_exp(0)=AR2RHO(1)*arho_exp**2
       rmin_exp(0)=0.D0
-      rmaj_exp(0)=RMJRHO(1)
-      DO jm=1,jmaxm
+      rmin_exp(1)=FEDG(RM(1),RG(1),RG(2),RMNRHO(1),RMNRHO(2))
+      rmaj_exp(1)=FEDG(RM(1),RG(1),RG(2),RMJRHO(1),RMJRHO(2))
+      rgradrho_exp(1)  =AR1RHO(1)*arho_exp
+      rgradrhosq_exp(1)=AR2RHO(1)*arho_exp**2
+      DO jm=2,jmaxm
          rgradrho_exp(jm)  =AR1RHO(jm)*arho_exp
          rgradrhosq_exp(jm)=AR2RHO(jm)*arho_exp**2
-         rmin_exp(jm)      =RMNRHO(jm) ! local minor radius [m]
-         rmaj_exp(jm)      =RMJRHO(jm) ! local major radius [m]
+         rmin_exp(jm)      =0.5D0*(RMNRHO(jm-1)+RMNRHO(jm))
+                                       ! local minor radius [m]
+         rmaj_exp(jm)      =0.5D0*(RMJRHO(jm-1)+RMJRHO(jm))
+                                       ! local major radius [m]
       ENDDO
       rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
 C
       zimp_exp=PZ(3)         ! Zimp; finite data is necessary
       amassimp_exp=PA(3)     ! Aimp; finite data is necessary
 C
-      q_exp(0)=Q0
       q_exp(1)=0.5D0*(Q0+QP(1))
       DO jm=2,jmaxm
          q_exp(jm)=0.5D0*(QP(jm-1)+QP(jm))  ! safety factor
       ENDDO
 C
-      shat_exp (0)=0.D0
-      alpha_exp(0)=0.D0
-      elong_exp(0)=RKPRHO(1)
       shat_exp (1)=S_HM(1)
       alpha_exp(1)=FCTR(RG(1),RG(2),ALFA_AR(1),ALFA_AR(2))
       elong_exp(1)=RKPRHO(1)
       DO jm=2,jmaxm
-         shat_exp (jm)=S_HM(jm) ! magnetic shear
+         shat_exp (jm)=S_HM(jm)      ! magnetic shear
          alpha_exp(jm)=0.5D0*(ALFA_AR(jm-1)+ALFA_AR(jm)) ! MHD alpha
          elong_exp(jm)=RKPRHO(jm)    ! local elongation
       ENDDO
 C
       amassgas_exp=PA(2) ! atomic num. of working gas
-      alpha_e=1.D0  ! ExB shear stabilization (0=off,>0=on)
-      x_alpha=1.D0  ! alpha stabilization (0=off,>0=on)
-      i_delay=0     ! default(usually recommended)
+      alpha_e=1.D0       ! ExB shear stabilization (0=off,>0=on)
+      x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
+      i_delay=0          ! default(usually recommended)
+C
+      DO j=1,jmaxm
+         write(6,*) j,VEXB(j)
+      ENDDO
 C
       IF(MDLKAI.EQ.60) THEN
 C     +++ Normal type +++
@@ -385,7 +381,7 @@ C            Weiland Model
 C
 C     ***********************************************************
 C
-      SUBROUTINE WEILAND_DRIVER
+      SUBROUTINE WEILAND_DRIVER(S_AR,ALFA_AR)
 C
 C***********************************************************************
 C  <INPUT>
@@ -456,8 +452,9 @@ C
 C***********************************************************************
 C
       INCLUDE 'trcomm.inc'
-
+C
       DIMENSION CHIL(5),CHEL(5),DL(5),CHQL(5),DQL(5)
+      DIMENSION S_AR(NRM),ALFA_AR(NRM)
 C
       MDDW=1
       IF(NT.EQ.0) THEN
@@ -501,12 +498,7 @@ C
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
          TAUZL = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,3)+RT(NR,3))
          QL    = QP(NR)
-         IF(NR.EQ.1) THEN
-            DQ = (QP(NR+1)-QP(NR))/1.5D0*DRL
-         ELSE
-            DQ = (QP(NR+1)-QP(NR-1))/2.D0*DRL
-         ENDIF
-         SL    = RR*EPS*DQ/QL
+         SL    = S_AR(NR)
          RNL   = 0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
@@ -562,8 +554,7 @@ C
          TEL   = PTS(1)
          TAUZL = PTS(1)/PTS(3)
          QL    = QP(NR)
-         DQ    = (QP(NR)-QP(NR-1))*DRL
-         SL    = RR*EPS*DQ/QL
+         SL    = S_AR(NR)
          RNL   = PNSS(1)*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))

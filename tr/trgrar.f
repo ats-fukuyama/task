@@ -716,11 +716,11 @@ C
                ENDDO
             ENDDO
          ENDIF
-C     
-         DO NR=1,NRMAX
+C
          DO NS=1,NSMAX
-            GYR(NR+1,NS) = GUCLIP(CNP*ADNCG(NR,NS)+CDP*ADDW(NR,NS))
-         ENDDO
+            DO NR=1,NRMAX
+               GYR(NR+1,NS) = GUCLIP(CNP*ADNCG(NR,NS)+CDP*ADDW(NR,NS))
+            ENDDO
             GYR(1,NS) = GUCLIP(CNP*ADNCG(2,NS)+CDP*ADDW(2,NS))
          ENDDO
       ENDIF

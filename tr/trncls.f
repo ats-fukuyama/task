@@ -86,8 +86,9 @@ C
      #               e0,                      p_eps,
      #               p_q,                     q0l,
      #               r0
+      DIMENSION EROPSI(NRM)
 C
-C     /* Initialization */
+C     *** Initialization ***
       DO I=1,mx_mi
          amu_i(I)=0.0
          grt_i(I)=0.0
@@ -143,11 +144,13 @@ C
       ENDIF
 C
       DO NR=1,NRMAX
+         EROPSI(NR)=ER(NR)/RDP(NR)
+      ENDDO
+C
+      DO NR=1,NRMAX
          EPS=EPSRHO(NR)
 C
-!         p_b2=SNGL(BB**2*(1.D0+0.5D0*EPS**2))
          p_b2=SNGL(ABB2RHOG(NR))
-!         p_bm2=SNGL((1.D0+1.5D0*EPS**2)/BB**2)
          p_bm2=SNGL(AIB2RHOG(NR))
          p_fhat=SNGL(TTRHOG(NR)/RDP(NR))
          DO i=1,3
@@ -162,17 +165,10 @@ C
             ENDDO   
          ENDIF
          p_ft=SNGL(FTPF(MDLTPF,EPS))
-!         p_grbm2=SNGL(AR2RHOG(NR))*p_bm2
          p_grbm2=SNGL(ARHBRHOG(NR))
          p_grphi=ER(NR)
-         IF(NR.EQ.1) THEN
-            p_gr2phi=0.0
-         ELSE
-            p_gr2phi=SNGL(0.5D0*(RDP(NR)+RDP(NR-1))
-     &                         *( ER(NR  )/RDP(NR  )
-     &                           -ER(NR-1)/RDP(NR-1))/DR)
-         ENDIF
-         p_ngrth=SNGL(BP(NR)/(BB*EPS*RR))
+         p_gr2phi=SNGL(RDP(NR)*DERIV3P(NR,RG,EROPSI,NRMAX,NRM))
+         p_ngrth=SNGL(BP(NR)/(BB*RHOG(NR)))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSLMAX
                temp_i(NS)=SNGL(PTS(NS))

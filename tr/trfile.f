@@ -42,7 +42,8 @@ C
       WRITE(21) DVRHO,TTRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,RMJRHO,RMNRHO,
      &          RKPRHO,RJCB,EPSRHO
       WRITE(21) DVRHOG,TTRHOG,ABRHOG,ARRHOG,AR1RHOG,AR2RHOG,
-     &          RMJRHOG,RMNRHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,RKPRHOG
+     &          ABB2RHOG,AIB2RHOG,ARHBRHOG,RKPRHOG
+      WRITE(21) RHOM,RHOG
       CLOSE(21)
 C
       WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED TO THE FILE.'
@@ -148,7 +149,8 @@ C
       READ(21) DVRHO,TTRHO,ABRHO,ARRHO,AR1RHO,AR2RHO,RMJRHO,RMNRHO,
      &         RKPRHO,RJCB,EPSRHO
       READ(21) DVRHOG,TTRHOG,ABRHOG,ARRHOG,AR1RHOG,AR2RHOG,
-     &         RMJRHOG,RMNRHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,RKPRHOG
+     &         ABB2RHOG,AIB2RHOG,ARHBRHOG,RKPRHOG
+      READ(21) RHOM,RHOG
       CLOSE(21)
 C
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
@@ -405,7 +407,7 @@ C
       MDKAPPA=0
       MDPHIA=0
 C
-      NTSS=0
+      NTS=0
 C
 C     *** 1D VALUE ***
 C
@@ -793,7 +795,6 @@ C
          PECU(1,NR  )=0.D0
          POHU(1,NR  )=0.D0
          WROTU(1,NR )=0.D0
-         VTORU(1,NR )=0.D0
       ENDDO
       KFID='QICRHE'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
@@ -883,13 +884,6 @@ C
          WROTU(1,NR)=FAS(NR)
       ENDDO
 C
-      KFID='VTOR'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,
-     &           MDVTOR)
-      DO NR=1,NRMAX
-         VTORU(1,NR)=FAS(NR)
-      ENDDO
-C
 C     *****
 C
       MDSUM=MDRGEO+MDAMIN+MDIP+MDBT+MDKAPPA+MDPHIA
@@ -904,18 +898,37 @@ C
          ENDDO
       ENDIF
 C
+C     *** in case of discharge with only one time slice ****
+C     *     obtain time point designated by 2d ufiles      *
+C     *     from time data array attained by 1d ufiles     *
+C     *** in case of discharge with mulitple time slices ***
+C     *     obtain time point designated by user           *
+C     *     from time data array attained by 2d ufiles     *
+C     ******************************************************
+C
       IF(TMU(2).EQ.0.D0) THEN
-         DO NTX1=1,NTXMAX1
-            IF(TMU1(NTX1)-TMU(1).LE.1.D-5) NTSS=NTX1
+         DT_MIN=ABS(TMU1(1)-TMU(1))
+         DO NTX1=2,NTXMAX1
+            IF(DT_MIN.GT.ABS(TMU1(NTX1)-TMU(1))) THEN
+               DT_MIN=ABS(TMU1(NTX1)-TMU(1))
+               NTS=NTX1
+            ENDIF
          ENDDO
-         IF(NTSS.EQ.0) NTSS=1
+         IF(NTS.EQ.0) NTS=1
+      ELSE
+         DT_MIN=ABS(TMU(1)-TIME_INT)
+         DO NTX=2,NTUM
+            IF(DT_MIN.GT.ABS(TMU(NTX)-TIME_INT)) THEN
+               DT_MIN=ABS(TMU(NTX)-TIME_INT)
+               NTS=NTX
+            ENDIF
+         ENDDO
       ENDIF
 C
 C     *** GEOMETRY FACTORS ***
 C
       KFID='RMAJOR'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
-      IF(TMU(2).EQ.0.D0) NTS=NTSS
+      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,1,1,MDLXP,IERR)
       DO NR=1,NRMAX
          RMJRHOU(1,NR)=FAS(NR)
 C         ARRHOU(1,NR)=1.D0/RMJRHOU(1,NR)**2
@@ -924,7 +937,7 @@ C         ARRHOU(1,NR)=1.D0/RMJRHOU(1,NR)**2
       ENDDO
 C
       KFID='RMINOR'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,0,MDLXP,IERR)
+      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,1,0,MDLXP,IERR)
       DO NR=1,NRMAX
          RMNRHOU(1,NR)=FAS(NR)
       ENDDO
@@ -965,8 +978,11 @@ C
       KFID='VOLUME'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,0,MDLXP,IERR)
       DO NR=1,NRMAX
-         RJCBU(1,NR)=SQRT(2.D0*PI*PI*RRU(NTS)/FAS(NRMAX))
+         RJCBU(1,NR)=SQRT(2.D0*PI**2*RRU(NTS)/FAS(NRMAX))
       ENDDO
+CCC      write(6,*) NTS,PHIAU(NTS),BBU(NTS)*FAS(NRMAX)/(2.D0*PI
+CCC     &     *RMJRHOU(1,NRMAX))
+C      STOP
 C
 C     *****
 C
@@ -1444,7 +1460,7 @@ C     *** GEOMETRY FACTORS ***
 C
       KFID='RMAJOR'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RMJRHOU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
+     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,ICK,MDLXP,IERR)
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
 C            ARRHOU(NTX,NR)=1.D0/RMJRHOU(NTX,NR)**2
@@ -1459,7 +1475,7 @@ C            ARRHOU(NTX,NR)=(1.D0+1.5D0*EPS**2)/RRU(NTX)**2
 C
       KFID='RMINOR'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RMNRHOU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,ICK,MDLXP,IERR)
+     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,0,ICK,MDLXP,IERR)
       IF(MDAMIN.NE.0) THEN
          DO NTX=1,NTXMAX
             RAU(NTX)=RMNRHOU(NTX,NRMAX)
@@ -1478,11 +1494,6 @@ C
       KFID='GRHO1'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,AR1RHOU,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
-      IF(IERR.NE.0) THEN
-         DO NTX=1,NTXMAX
-            AR1RHOU(NTX,NR)=1.D0/RMNRHOU(NTX,NRMAX)
-         ENDDO
-      ENDIF
 C
       KFID='GRHO2'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,AR2RHOU,AMP,
@@ -1490,10 +1501,6 @@ C
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
             ABRHOU(NTX,NR)=AR2RHOU(NTX,NR)*ARRHOU(NTX,NR)
-            IF(IERR.NE.0) THEN
-               AR2RHOU(NTX,NR)=1.D0/RMNRHOU(NTX,NRMAX)**2
-               ABRHOU(NTX,NR)=AR2RHOU(NTX,NR)*ARRHOU(NTX,NR)
-            ENDIF
          ENDDO
       ENDDO
 C
@@ -1532,7 +1539,7 @@ C
       COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
       COMMON /TMSLC2/ NTAMAX
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
-      DIMENSION FAT(NTUM,NRMP),TMP(NTUM),PV(NTUM),PVA(NTUM)
+      DIMENSION FAT(NTUM,NRMP),VOL(NTUM),PV(NTUM),PVA(NTUM)
       CHARACTER KFID*10
 C
       ICK=0
@@ -1569,9 +1576,9 @@ C
       MDKAPPA=IERR
 C
       KFID='VOL'
-      CALL UF1D(KFID,KUFDEV,KUFDCG,DT,TMU1,TMP,
+      CALL UF1D(KFID,KUFDEV,KUFDCG,DT,TMU1,VOL,
      &          NTAMAX1,NTXMAX1,TMUMAX,ICK,MDLXP,IERR)
-      MDKAPPA=IERR
+      MDVOL=IERR
 C
 C     *** 2D VALUE ***
 C
@@ -1748,11 +1755,11 @@ C     *** GEOMETRY FACTORS ***
 C
       KFID='RMAJOR'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RMJRHOU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
+     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,ICK,MDLXP,IERR)
 C
       KFID='RMINOR'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RMNRHOU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,ICK,MDLXP,IERR)
+     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,0,ICK,MDLXP,IERR)
 C
       KFID='GRHO1'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,AR1RHOU,AMP,
@@ -1790,9 +1797,8 @@ C
 C
       DO NR=1,NRMAX
          RG(NR)    =DBLE(NR)*DR
-         EPSRHO(NR)=RA*RG(NR)/RR
+         EPSRHO(NR)=RMNRHOU(1,NR)/RMJRHOU(1,NR)
          RKPRHO (NR)=RKAP
-         RKPRHOG(NR)=RKAP
       ENDDO
 C
 C     *** 1D VALUE ***
@@ -1806,13 +1812,14 @@ C
             IF(MDIP.NE.0)    RIPU(NTX)=RIPS
             IF(MDBT.NE.0)    BBU(NTX)=BB
             IF(MDKAPPA.NE.0) RKAPU(NTX)=RKAP
+            IF(MDVOL.NE.0)   VOL(NTX)=PI*RKAP*RA**2*2.D0*PI*RR
             TMU1(NTX)=TMU(NTX)
          ENDDO
       ENDIF
 C
       DO NTX=1,NTXMAX1
          DO NR=1,NRMAX
-            RJCBU(NTX,NR)=SQRT(2.D0*PI*PI*RRU(NTX)/TMP(NTX))
+            RJCBU(NTX,NR)=SQRT(2.D0*PI*PI*RRU(NTX)/VOL(NTX))
          ENDDO
       ENDDO
 
@@ -2374,7 +2381,7 @@ C
       CALL LAGLANGE(TSL,PNBI,TMU1,PNBIU,NTXMAX1,NTUM,IERR)
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
-      IF(MDLUF.EQ.1) THEN
+      IF(MDLUF.EQ.1) THEN ! *** MDLUF ***
       DO NR=1,NRMAX
          IF(MDLEQN.EQ.0) THEN
             CALL LAGLANGE(TSL,RNEL ,TMU,RNU(1,NR,1),NTXMAX,NTUM,IERR)
@@ -2424,6 +2431,7 @@ C
          CALL LAGLANGE(TSL,PECL ,TMU,PECU(1,NR  ),NTXMAX,NTUM,IERR)
          PRF(NR,1)=PICEL+PECL
          PRF(NR,2)=PICDL
+         CALL LAGLANGE(TSL,WROTL,TMU,WROTU  (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,TTRL ,TMU,TTRHOU (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,DVRL ,TMU,DVRHOU (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,ABRL ,TMU,ABRHOU (1,NR),NTXMAX,NTUM,IERR)
@@ -2434,6 +2442,8 @@ C
          CALL LAGLANGE(TSL,RMNRL,TMU,RMNRHOU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RJCBL,TMU,RJCBU  (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RKAPL,TMU,RKPRHOU(1,NR),NTXMAX,NTUM,IERR)
+         WROT(NR)=WROTL
+         VTOR(NR)=WROTL*RMJRL
          TTRHO(NR)=TTRL
          DVRHO(NR)=DVRL
          ABRHO(NR)=ABRL
@@ -2441,6 +2451,8 @@ C
          AR1RHO(NR)=AR1RL
          AR2RHO(NR)=AR2RL
          RJCB(NR)=RJCBL
+         RHOM(NR)=RM(NR)/RJCBL
+         RHOG(NR)=RG(NR)/RJCBL
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
          RKPRHO(NR)=RKAPL
@@ -2489,7 +2501,7 @@ C
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
       ENDIF
-      ELSEIF(MDLUF.EQ.3) THEN
+      ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
       DO NR=1,NRMAX
          CALL LAGLANGE(TSL,RNEL ,TMU,RNU(1,NR,1),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RNDL ,TMU,RNU(1,NR,2),NTXMAX,NTUM,IERR)
@@ -2537,11 +2549,13 @@ C         QP(NR)=QPL
          AR1RHO(NR)=AR1RL
          AR2RHO(NR)=AR2RL
          RJCB(NR)=RJCBL
+         RHOM(NR)=RM(NR)/RJCB(NR)
+         RHOG(NR)=RG(NR)/RJCB(NR)
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
          RKPRHO(NR)=RKAPL
       ENDDO
-      ENDIF
+      ENDIF ! *** MDLUF ***
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
       CALL TRGFRG
 C
@@ -2690,7 +2704,7 @@ C
          PRF(NR,1)=PICU(1,NR,1)+PECU(1,NR)
          PRF(NR,2)=PICU(1,NR,2)
          WROT(NR) =WROTU(1,NR)
-         IF(MDVTOR.EQ.0) VTOR(NR) =VTORU(1,NR)
+         VTOR(NR) =WROTU(1,NR)*RMJRHOU(1,NR)
          TTRHO(NR)=TTRHOU(1,NR)
          DVRHO(NR)=DVRHOU(1,NR)
          ABRHO(NR)=ABRHOU(1,NR)
@@ -2698,6 +2712,8 @@ C
          AR1RHO(NR)=AR1RHOU(1,NR)
          AR2RHO(NR)=AR2RHOU(1,NR)
          RJCB(NR)=RJCBU(1,NR)
+         RHOM(NR)=RM(NR)/RJCB(NR)
+         RHOG(NR)=RG(NR)/RJCB(NR)
          RMJRHO(NR)=RMJRHOU(1,NR)
          RMNRHO(NR)=RMNRHOU(1,NR)
          RKPRHO(NR)=RKPRHOU(1,NR)
@@ -2792,165 +2808,4 @@ C
       ENDIF
 C
       RETURN
-      END
-C
-C   *******************************************
-C   **    LAGRANGEAN INTERPOLATION METHOD    **
-C   *******************************************
-C
-C     input:
-C
-C     SLT     : Interesting Time
-C     T(NTM)  : Total Time Data
-C     F1(NTM) : Functional Values
-C     NTMAX   : Maximum Number of the Time Mesh from UFILE
-C     NTM     : Maximum Array Width for Time
-C
-C     output:
-C
-C     FOUT    : Interpolated Value
-C     IERR    : Error Indicator
-C     
-C     ***********************************************************
-C
-      SUBROUTINE LAGLANGE(SLT,FOUT,T,F1,NTMAX,NTM,IERR)
-C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      COMMON /COMEPS/ EPS,IERRL
-      DIMENSION T(NTM),F1(NTM)
-C
-C      M=5
-      M=1
-      EPS=1.D-5
-C
-      FOUT=FITLAG(SLT,T,F1,M,NTMAX,NTM)
-      IERR=IERRL
-C
-      RETURN
-      END
-C
-      FUNCTION FITLAG(X,A,F,M,N,NTM)
-****************************************************
-*                                                  *
-*     Compute iterated Lagrange interpolation      *
-*     at X based on data given in A(I) and F(I)    *
-*                                                  *
-*     ==== input data for arguments  ====          *
-*                                                  *
-*     N...total number of data (A(I),F(I)) given   *
-*         in the table                             *
-*     A(I)...I-th sampling point                   *
-*            A(I) must be given in ascending       *
-*            order with respect to I               *
-*     F(I)...data at I-th point, i.e. FUNC(A(I))   *
-*     M...number of sampling points used in both   *
-*         sides of X for interpolation             *
-*         M must be less than or equal to 5        *
-*                                                  *
-*     ==== input data for common block ====        *
-*                                                  *
-*     EPS...absolute error tolerance               *
-*                                                  *
-*     ==== output data for common block ====       *
-*                                                  *
-*     IERR...if IERR = 0 then converged            *
-*            if IERR = 1 then not converged        *
-*                                                  *
-*     ==== work arrays ====                        *
-*                                                  *
-*     B(J)...A(I) - X                              *
-*     V(I,J)...triangular table for interpolation  *
-*                                                  *
-****************************************************
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-      DIMENSION V(10,10),B(10)
-C
-      COMMON /COMEPS/ EPS,IERR
-      DIMENSION A(NTM),F(NTM)
-C
-      IF(M.GT.5) STOP 'M MUST BE LESS THAN 6.'
-C
-      M2=2*M
-C
-C     ---- find the nearest sampling point to x ----
-C                 by bisection method
-C
-      IS=1
-      IB=N
-C
- 1    CONTINUE
-C
-      IM=(IS+IB)/2
-      IF(X.LT.A(IM)) THEN
-         IB=IM
-      ELSEIF(X.GT.A(IM)) THEN
-         IS=IM
-      ELSE
-         FITLAG=F(IM)
-         IERR=0
-         RETURN
-      ENDIF
-C
-      IF(IS.LT.IB-1) GOTO 1
-C
-C     ---- set sampling points to use ----
-C
-      IL=IS-M+1
-      IR=IB+M-1
-      IF(IL.LT.1) THEN
-         IL=1
-      ELSEIF(IR.GT.N) THEN
-         IL=N-M2+1
-      ENDIF
-C
-      DO I=1,M2
-         B(I)=A(I+IL-1)-X
-         V(1,I)=F(I+IL-1)
-      ENDDO
-C
-C     ---- sort ABS(B(I)) in ascending order ----
-C
-      DO I=2,M2
-         K=I-1
-         DO J=1,M2
-            IF(ABS(B(J)).LT.ABS(B(K))) K=J
-         ENDDO
-         IF(K.NE.I-1) THEN
-            BV=B(K)
-            B(K)=B(I-1)
-            B(I-1)=BV
-            VV=V(1,K)
-            V(1,K)=V(1,I-1)
-            V(1,I-1)=VV
-         ENDIF
-      ENDDO
-C
-C     ---- compute iterated interpolation ----
-C
-      DO I=2,M2
-C
-         DO J=2,I
-C            write(6,*) I,J-1,B(I),B(J-1)
-            V(J,I)=(V(J-1,J-1)*B(I)
-     &            - V(J-1,I  )*B(J-1))/(B(I)-B(J-1))
-         ENDDO
-C
-         IF(ABS(V(I,I)-V(I-1,I-1)).LE.EPS) THEN
-C
-C     ---- converged ----
-C
-            FITLAG=V(I,I)
-            IERR=0
-            RETURN
-         ENDIF
-C
-      ENDDO
-C
-C     ---- not converged ----
-C
-      FITLAG=V(M2,M2)
-      IERR=1
-      RETURN
-C
       END

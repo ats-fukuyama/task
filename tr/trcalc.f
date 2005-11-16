@@ -1384,6 +1384,7 @@ C
       DO NR=1,NRMAX
          AJOH(NR) = AJ(NR)-(AJNB(NR)+AJRF(NR)+AJBS(NR))
          EZOH(NR) = ETA(NR)*AJOH(NR)
+C         write(6,'(I3,3F17.7)') NR,AJ(NR),AJBS(NR)
          IF(KUFDEV.EQ.'lhd') THEN
             POH(NR)  = 0.D0
          ELSE

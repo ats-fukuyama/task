@@ -33,11 +33,7 @@ C
       DO NR=1,NRMAX
          RG(NR) = DBLE(NR)*DR
          RM(NR) =(DBLE(NR)-0.5D0)*DR
-         IF(MDVTOR.NE.0) THEN
-            VTOR(NR)=0.D0
-         ELSE
-            VTOR(NR)=VTORU(1,NR)
-         ENDIF
+         VTOR(NR)=0.D0
          VPAR(NR)=0.D0
          VPRP(NR)=0.D0
          VPOL(NR)=0.D0
@@ -101,6 +97,8 @@ C
 C
             PBM(NR)   = PBMU(1,NR)
             RNF(NR,1) = RNFU(1,NR)
+            WROT(NR)  = WROTU(1,NR)
+            VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
          ELSEIF(MDLUF.EQ.2) THEN ! *** MDLUF ***
             IF(MDNI.EQ.0) THEN !!!
             IF(MODEP.EQ.1) THEN
@@ -233,7 +231,9 @@ C
             SEX(NR,2)=SNBU(1,NR,2)+SWLU(1,NR)
             SEX(NR,3)=0.D0
             SEX(NR,4)=0.D0
-            RNF(NR,1) = RNFU(1,NR)
+            RNF(NR,1)=RNFU(1,NR)
+            WROT(NR) =WROTU(1,NR)
+            VTOR(NR) =WROTU(1,NR)*RMJRHOU(1,NR)
          ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             RN(NR,1) = RNU(1,NR,1)
@@ -265,6 +265,8 @@ C
             PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
+            WROT(NR)  = WROTU(1,NR)
+            VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
          ELSE ! *** MDLUF ***
             PROF   = (1.D0-(ALP(1)*RM(NR))**PROFN1)**PROFN2
             DO NS=1,NSM
@@ -769,7 +771,7 @@ C     *** Provide geometric quantities on half mesh ***
       CALL TREQGET(NRMAX,RM,
      &             DUMMY,TTRHO,DVRHO,DUMMY,ABRHO,ARRHO,
      &             AR1RHO,AR2RHO,DUMMY,DUMMY,DUMMY,
-     &             DUMMY,RMJRHO,RMNRHO,RKPRHO,
+     &             DUMMY,DUMMY,DUMMY,RKPRHO,
      &             IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET1: IERR=',IERR
 C
@@ -777,7 +779,7 @@ C     *** Provide geometric quantities on grid mesh ***
       CALL TREQGET(NRMAX,RG,
      &             QRHO,TTRHOG,DVRHOG,DUMMY,ABRHOG,ARRHOG,
      &             AR1RHOG,AR2RHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,
-     &             EPSRHO,RMJRHOG,RMNRHOG,RKPRHOG,
+     &             EPSRHO,RMNRHO,RMNRHO,RKPRHOG,
      &             IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET2: IERR=',IERR
 C
@@ -914,8 +916,6 @@ C
       IF(MDLUF.NE.0) THEN
          IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
             DO NR=1,NRMAX
-               EPSRHO(NR)=RA*RG(NR)/RR
-C
                TTRHO(NR)=TTRHOU(1,NR)
                DVRHO(NR)=DVRHOU(1,NR)
                ABRHO(NR)=ABRHOU(1,NR)
@@ -923,10 +923,12 @@ C
                AR1RHO(NR)=AR1RHOU(1,NR)
                AR2RHO(NR)=AR2RHOU(1,NR)
                RJCB(NR)=RJCBU(1,NR)
-C               RJCB(NR)=1.D0/(RKAPS*RA)
+               RHOM(NR)=RM(NR)/RJCBU(1,NR)
+               RHOG(NR)=RG(NR)/RJCBU(1,NR)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
                RKPRHO(NR)=RKPRHOU(1,NR)
+               EPSRHO(NR)=RMNRHOU(1,NR)/RMJRHOU(1,NR)
             ENDDO
             CALL FLUX
          ELSEIF(MODELG.EQ.5) THEN
@@ -937,9 +939,9 @@ C     &                         NRMAX,NRM)
       ELSE
          IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
             DO NR=1,NRMAX
-               EPSRHO(NR)=RA*RG(NR)/RR
                BPRHO(NR)=BP(NR)
                QRHO(NR)=QP(NR)
+C
                TTRHO(NR)=BB*RR
                DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
                ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
@@ -947,9 +949,12 @@ C     &                         NRMAX,NRM)
                AR1RHO(NR)=1.D0/(RKAPS*RA)
                AR2RHO(NR)=1.D0/(RKAPS*RA)**2
                RJCB(NR)=1.D0/(RKAPS*RA)
+               RHOM(NR)=RM(NR)/RJCB(NR)
+               RHOG(NR)=RG(NR)/RJCB(NR)
                RMJRHO(NR)=RR
-               RMNRHO(NR)=RA*RM(NR)
+               RMNRHO(NR)=RA*RG(NR)
                RKPRHO(NR)=RKAP
+               EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
             ENDDO
          ELSEIF(MODELG.EQ.5) THEN
 C            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
@@ -974,8 +979,6 @@ C
       DO NR=1,NRMAX-1
          AR1RHOG(NR)=0.5D0*(AR1RHO(NR)+AR1RHO(NR+1))
          AR2RHOG(NR)=0.5D0*(AR2RHO(NR)+AR2RHO(NR+1))
-         RMJRHOG(NR)=0.5D0*(RMJRHO(NR)+RMJRHO(NR+1))
-         RMNRHOG(NR)=0.5D0*(RMNRHO(NR)+RMNRHO(NR+1))
          RKPRHOG(NR)=0.5D0*(RKPRHO(NR)+RKPRHO(NR+1))
          TTRHOG (NR)=0.5D0*(TTRHO (NR)+TTRHO (NR+1))
          DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
@@ -993,8 +996,6 @@ C
 C
          AR1RHOG(NR)=FEDG(RGL,RML,RML1,AR1RHO(NR),AR1RHO(NR-1))
          AR2RHOG(NR)=FEDG(RGL,RML,RML1,AR2RHO(NR),AR2RHO(NR-1))
-         RMJRHOG(NR)=FEDG(RGL,RML,RML1,RMJRHO(NR),RMJRHO(NR-1))
-         RMNRHOG(NR)=FEDG(RGL,RML,RML1,RMNRHO(NR),RMNRHO(NR-1))
          RKPRHOG(NR)=FEDG(RGL,RML,RML1,RKPRHO(NR),RKPRHO(NR-1))
          TTRHOG (NR)=FEDG(RGL,RML,RML1,TTRHO (NR),TTRHO (NR-1))
          DVRHOG (NR)=FEDG(RGL,RML,RML1,DVRHO (NR),DVRHO (NR-1))
