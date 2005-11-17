@@ -160,8 +160,38 @@ C
 C
       END
 C
-C     *** Extrapolate center value assuming
-C         that the gradient is zero at the center (rho=0) ***
+C     ****************************************************
+C     **  Derivative calculated from adjacent 2 points  **
+C     ****************************************************
+C     -- This formulation has a second-order accuracy. --
+C
+      FUNCTION DERIV3P(NR,R,F,NRMAX,NRM)
+C
+      IMPLICIT NONE
+      INTEGER NR,NRMAX,NRM
+      REAL*8 DERIV3P,R(NRM),F(NRM)
+      REAL*8 DLT,DLT1,DLT2
+C
+      IF(NR.EQ.1) THEN
+         DLT=R(NR+1)-R(NR)
+         DERIV3P = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
+      ELSEIF(NR.EQ.NRMAX) THEN
+         DLT=R(NR-1)-R(NR)
+         DERIV3P = (-3.D0*F(NR)+4.D0*F(NR-1)-F(NR-2))/(2.D0*DLT)
+      ELSE
+         DLT1=R(NR-1)-R(NR)
+         DLT2=R(NR+1)-R(NR)
+         DERIV3P = (DLT2**2*F(NR-1)-DLT1**2*F(NR+1))
+     &            /(DLT1*DLT2*(DLT2-DLT1))
+     &            -(DLT2+DLT1)*F(NR)/(DLT1*DLT2)
+      ENDIF
+C
+      RETURN
+      END
+C
+C     *** Extrapolate center value ***************************
+C     *  assuming the gradient is zero at the center (rho=0) *
+C     ********************************************************
 C
       FUNCTION FCTR(R1,R2,F1,F2)
 C
@@ -174,6 +204,8 @@ C
       END
 C
 C     *** Extrapolate edge (rho=1) or arbitrary values ***
+C     *  assuming the linear function                    *
+C     ****************************************************
 C
       FUNCTION FEDG(R0,R1,R2,F1,F2)
 C
@@ -184,4 +216,3 @@ C
 C
       RETURN
       END
-C
