@@ -1,3 +1,7 @@
+2004/11/17   V0.92
+             eq/eqcom3.inc corrected
+             tr updated
+
 2005/11/14   V0.91
              wm/wmsetg.f eq/wmeqin.f corrected
              wm/wmtrfile.f added for wm-tr interface (MODELN=9 added)
