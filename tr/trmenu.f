@@ -28,7 +28,7 @@ C
      &                      'D/DATA  H/HELP  Q/QUIT')
       ELSE
          WRITE(6,603)
-  603    FORMAT('## TR MENU: C/CONT  E/EQ  G/GRAPH  W/WRITE  ',
+  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W/WRITE  ',
      &                      'S/SAVE  O/UFILEOUT  M/MDLTST'/
      &          '            P,V,U/PARM  R/RUN  L/LOAD  ',
      &                      'D/DATA  H/HELP  Q/QUIT')
@@ -81,8 +81,6 @@ C
 C
          INIT=2
          NTMOLD=NTMAX
-      ELSE IF(KID.EQ.'E'.AND.INIT.EQ.2) THEN
-         CALL TRCONV(L,0,IERR)
 C   
       ELSE IF(KID.EQ.'C'.AND.INIT.EQ.2) THEN
          IF(MDLUF.EQ.1) THEN

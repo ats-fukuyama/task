@@ -19,7 +19,7 @@ C
       WRITE(21) NSS,NSV,NNS,NST,NEQMAX
       WRITE(21) NRMAX,NRAMAX,NROMAX,DT,NGPST,TSST
       WRITE(21) NTMAX,NTSTEP,NGTSTP,NGRSTP
-      WRITE(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPSS,RIPE,RHOA,PHIA
+      WRITE(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA,PHIA
       WRITE(21) PA,PZ,PN,PNS,PT,PTS,NSMAX,NSZMAX,NSNMAX
       WRITE(21) PNC,PNFE,PNNU,PNNUS
       WRITE(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2,
@@ -27,7 +27,7 @@ C
       WRITE(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF
       WRITE(21) TPRST,MDLST,MDLNF,IZERO
       WRITE(21) MODELG,NTEQIT
-      WRITE(21) MDLXP,MDLUF,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX
+      WRITE(21) MDLXP,MDLUF,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX,MDLER
       WRITE(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
       WRITE(21) PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB
       WRITE(21) PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC
@@ -126,7 +126,7 @@ C
       READ(21) NSS,NSV,NNS,NST,NEQMAX
       READ(21) NRMAX,NRAMAX,NROMAX,DT,NGPST,TSST
       READ(21) NTMAX,NTSTEP,NGTSTP,NGRSTP
-      READ(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPSS,RIPE,RHOA,PHIA
+      READ(21) RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA,PHIA
       READ(21) PA,PZ,PN,PNS,PT,PTS,NSMAX,NSZMAX,NSNMAX
       READ(21) PNC,PNFE,PNNU,PNNUS
       READ(21) PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,PROFJ1,PROFJ2,
@@ -134,7 +134,7 @@ C
       READ(21) MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF
       READ(21) TPRST,MDLST,MDLNF,IZERO
       READ(21) MODELG,NTEQIT
-      READ(21) MDLXP,MDLUF,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX
+      READ(21) MDLXP,MDLUF,MDNCLS,MDLWLD,MDDIAG,MDDW,MDLFLX,MDLER
       READ(21) KUFDEV,KUFDCG,TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK
       READ(21) PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB
       READ(21) PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC
@@ -289,24 +289,23 @@ C
       IF(MDNI.LT.0.OR.MDNI.GT.3) MDNI=0
       MDSLCT=0
 C
-      KFID='NM2'
-      KFILE=KDIRR2(1:KL2)//KFID
-      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
-      IF((LEX.EQV..TRUE.).AND.
-     &   (KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d')) THEN
-         MDSLCT=MDSLCT+1
-         NM2CHK=1
-      ELSE
-         NM2CHK=0
-         KFID='NM1'
-         KFILE=KDIRR2(1:KL2)//KFID
-         INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
-         IF(LEX) MDSLCT=MDSLCT+1
-      ENDIF
       KFID='ZEFFR'
       KFILE=KDIRR2(1:KL2)//KFID
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
-      IF(LEX) MDSLCT=MDSLCT+2
+      IF(LEX) MDSLCT=MDSLCT+1
+      KFID='NM1'
+      KFILE=KDIRR2(1:KL2)//KFID
+      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
+      IF(LEX) THEN
+         NM2CHK=0
+         MDSLCT=MDSLCT+2
+         IF(KUFDEV.EQ.'tftr'.OR.KUFDEV.EQ.'d3d') THEN
+            KFID='NM2'
+            KFILE=KDIRR2(1:KL2)//KFID
+            INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
+            IF(LEX) NM2CHK=1
+         ENDIF
+      ENDIF
       KFID='NIMP'
       KFILE=KDIRR2(1:KL2)//KFID
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
@@ -322,6 +321,21 @@ C
 C     ***********************************************************
 C
       SUBROUTINE TR_UFILE_CONTROL(NSW)
+C
+C     MDNI is a parameter that can control which data is used 
+C     to determine bulk density, impurity density or effective
+C     charge number among those data.
+C     If all the data above do not exist, MDNI is set to zero
+C     automatically regardless of original MDNI.
+C           0 : NSMAX=2, ne=ni
+C           1 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
+C           2 : calculate nimp and zeff profiles from NE, ZIMP and NM1
+C           3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+C
+C     For the time being, we deal with transport calculation with 
+C     three particles so that densities of 4th argument requires only
+C     finite small values and their values can be ignored in the context
+C     of charge neutrality.
 C
       INCLUDE 'trcomm.inc'
 C
@@ -353,7 +367,7 @@ C
          ELSEIF(MDSLCT.EQ.5) THEN
             IF(MDNI.EQ.2) MDNI=1
          ELSEIF(MDSLCT.EQ.6) THEN
-            IF(MDNI.EQ.1) MDNI=3
+            IF(MDNI.EQ.1) MDNI=2
          ENDIF
 C
          IF(MDLFLX.NE.0) THEN
@@ -398,6 +412,7 @@ C
      &                RNEXEU(NTUM,NRMU)
       COMMON /TRUFC1/ KDIRX
       DIMENSION RUF(NRMU),F1(NTUM),FAS(NRMP)
+      DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU)
       CHARACTER KFID*10,KDIRX*80
 C
       MDRGEO=0
@@ -597,18 +612,21 @@ C
       DO NR=1,NRMAX
          RNU(1,NR,1)=FAS(NR)
          RNU(1,NR,2)=FAS(NR)
+         RNU_ORG(1,NR,1)=FAS(NR)
+         ZEFFU(1,NR)=1.D0     ! in case of MDNI=0
+         ZEFFU_ORG(1,NR)=1.D0 ! in case of MDNI=0
       ENDDO
       PN(1)  =RNU(1,1,1)
-      PN(2)  =RNU(1,1,2)-2.D-7
+      PN(2)  =RNU(1,1,2)
       PN(3)  =1.D-7
       PN(4)  =1.D-7
       PNS(1) =PTMP1
-      PNS(2) =PNS(1)-2.D-8
+      PNS(2) =PNS(1)
       PNS(3) =1.D-8
       PNS(4) =1.D-8
       IF(RHOA.NE.1.D0) THEN
          PNSA(1)=PTMP2
-         PNSA(2)=PNSA(1)-2.D-8
+         PNSA(2)=PNSA(1)
          PNSA(3)=1.D-8
          PNSA(4)=1.D-8
       ENDIF
@@ -636,89 +654,131 @@ C
      &                  RUF,TMU,RNEXEU,NRFMAX,NTXMAX,IERR)
       ENDIF
 C
-      IF(MDNI.EQ.1) THEN !!!
-      IF(NM2CHK.EQ.1) THEN
-         KFID='NM2'
-      ELSE
-         KFID='NM1'
-      ENDIF
-      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PTMP1,PTMP2,FAS,AMP,RHOA,
-     &            NRAMAX,NRMAX,MDLXP,IERR)
-      DO NR=1,NRMAX
-         RNU(1,NR,2)=FAS(NR)
-         RNU(1,NR,3)=(RNU(1,NR,1)-PZ(2)*RNU(1,NR,2))/PZ(3)-1.D-7
-         ZEFFU(1,NR)=(PZ(2)**2*RNU(1,NR,2)+PZ(3)**2*RNU(1,NR,3))
-     &              / RNU(1,NR,1)
-      ENDDO
-      PN(2) =RNU(1,1,2)
-      PN(3) =RNU(1,1,3)-1.D-7
-      PN(4) =1.D-7
-      IF(PTMP1.LE.1.D-3) THEN
-         PNS(1)=1.D-2
-         PTMP1=1.D-2-1.D-3
-      ENDIF
-      PNS(2)=PTMP1
-      PNS(3)=(PNS(1)-PZ(2)*PNS(2))/PZ(3)-1.D-8
-      PNS(4)=1.D-8
-      IF(RHOA.NE.1.D0) THEN
-         PNSA(2)=PTMP2
-         PNSA(3)=(PNSA(1)-PZ(2)*PNSA(2))/PZ(3)-1.D-8
-         PNSA(4)=1.D-8
-      ENDIF
-C
-      ELSEIF(MDNI.EQ.2) THEN !!!
-C
-      AMP=1.D0
-      KFID='ZEFFR'
-      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PTMP1,PTMP2,FAS,AMP,RHOA,
-     &            NRAMAX,NRMAX,MDLXP,IERR)
-      DO NR=1,NRMAX
-         ZEFFU(1,NR)=FAS(NR)
-         RNU(1,NR,2)=(PZ(3)-FAS(NR))/(PZ(2)*(PZ(3)-PZ(2)))*RNU(1,NR,1)
-         RNU(1,NR,3)=(PZ(2)-FAS(NR))/(PZ(3)*(PZ(2)-PZ(3)))*RNU(1,NR,1)
-      ENDDO
-      PN(2)=RNU(1,1,2)
-      PN(3)=RNU(1,1,3)-1.D-7
-      PN(4)=1.D-7
-      PNS(2)=(PZ(3)-PTMP1)/(PZ(2)*(PZ(3)-PZ(2)))*PNS(1)
-      PNS(3)=(PZ(2)-PTMP1)/(PZ(3)*(PZ(2)-PZ(3)))*PNS(1)-1.D-8
-      PNS(4)=1.D-8
-      IF(RHOA.NE.1.D0) THEN
-         PNSA(2)=(PZ(3)-PTMP2)/(PZ(2)*(PZ(3)-PZ(2)))*PNSA(1)
-         PNSA(3)=(PZ(2)-PTMP2)/(PZ(3)*(PZ(2)-PZ(3)))*PNSA(1)-1.D-8
-         PNSA(4)=1.D-8
-      ENDIF
-C
-      ELSEIF(MDNI.EQ.3) THEN !!!
-C
-      KFID='NIMP'
-      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PTMP1,PTMP2,FAS,AMP,RHOA,
-     &            NRAMAX,NRMAX,MDLXP,IERR)
-      DO NR=1,NRMAX
-         RNU(1,NR,2)=(RNU(1,NR,1)-PZ(3)*FAS(NR))/PZ(2)
-         RNU(1,NR,3)=FAS(NR)
-         ZEFFU(1,NR)=PZ(2)+PZ(3)*(PZ(3)-PZ(2))*(FAS(NR)/RNU(1,NR,1))
-      ENDDO
-      PNS(2)=(PNS(1)-PZ(3)*PTMP1)/PZ(2)
-      PNS(3)=PTMP1-1.D-8
-      PNS(4)=1.D-8
-      IF(RHOA.NE.1.D0) THEN
-         PNSA(2)=(PNSA(1)-PZ(3)*PTMP2)/PZ(2)
-         PNSA(3)=PTMP2-1.D-8
-         PNSA(4)=1.D-8
-      ENDIF
-      ENDIF !!!
-C
-      DO NR=1,NRMAX
-         RNFU(1,NR)=0.D0
-         PBMU(1,NR)=0.D0
-      ENDDO
-      AMP=1.D-20
       KFID='NFAST'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
+      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNF1,PNF2,FAS,AMP,RHOA,
+     &            NRMAX,NRMAX,MDLXP,IERR)
       DO NR=1,NRMAX
          IF(IERR.EQ.0.AND.FAS(NR).LE.0.D0) FAS(NR)=1.D-10
          RNFU(1,NR)=FAS(NR)
+      ENDDO
+C
+      KFID='NM1'
+      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM1,PNM2,FAS,AMP,RHOA,
+     &            NRAMAX,NRMAX,MDLXP,IERR)
+      DO NR=1,NRMAX
+         IF(NM2CHK.EQ.0) THEN
+            IF(MDNI.NE.0) RNU(1,NR,2)=FAS(NR)
+            RNU_ORG(1,NR,2)=FAS(NR)
+         ELSE
+            RNU_ORG(1,NR,4)=FAS(NR)
+         ENDIF
+      ENDDO
+C
+      IF(NM2CHK.EQ.1) THEN
+         KFID='NM2'
+         CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM3,PNM4,FAS,AMP,RHOA,
+     &               NRAMAX,NRMAX,MDLXP,IERR)
+         DO NR=1,NRMAX
+            IF(MDNI.NE.0) RNU(1,NR,2)=FAS(NR)+RNU_ORG(1,NR,4)
+            RNU_ORG(1,NR,2)=FAS(NR)
+         ENDDO
+         PNM1=PNM1+PNM3
+         PNM2=PNM2+PNM4
+      ELSE
+         DO NR=1,NRMAX
+            RNU_ORG(1,NR,4)=0.D0
+         ENDDO
+      ENDIF
+C
+      AMP=1.D0
+      KFID='ZEFFR'
+      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PZEF1,PZEF2,FAS,AMP,RHOA,
+     &            NRAMAX,NRMAX,MDLXP,IERR)
+      DO NR=1,NRMAX
+         IF(MDNI.NE.0) ZEFFU(1,NR)=FAS(NR)
+         ZEFFU_ORG(1,NR)=FAS(NR)
+      ENDDO
+C
+      AMP=1.D-20
+      KFID='NIMP'
+      CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNIMP1,PNIMP2,FAS,AMP,RHOA,
+     &            NRAMAX,NRMAX,MDLXP,IERR)
+      DO NR=1,NRMAX
+         IF(MDNI.NE.0) RNU(1,NR,3)=FAS(NR)
+         RNU_ORG(1,NR,3)=FAS(NR)
+      ENDDO
+C
+      IF(MDNI.EQ.1) THEN ! ** MDNI **
+C
+      DO NR=1,NRMAX
+         RNU(1,NR,2)=( (PZ(3)-ZEFFU(1,NR))*RNU(1,NR,1)
+     &                -(PZ(3)-PZ(2))*PZ(2)*RNFU(1,NR))
+     &                /(PZ(2)*(PZ(3)-PZ(2)))
+         RNU(1,NR,3)=(PZ(2)-ZEFFU(1,NR))/(PZ(3)*(PZ(2)-PZ(3)))
+     &               *RNU(1,NR,1)
+      ENDDO
+      PN(2)=RNU(1,1,2)
+      PN(3)=RNU(1,1,3)
+      PN(4)=1.D-7
+      PNS(2)=( (PZ(3)-PZEF1)*PNS(1)-(PZ(3)-PZ(2))*PZ(2)*PNF1)
+     &        /(PZ(2)*(PZ(3)-PZ(2)))
+      PNS(3)=(PZ(2)-PZEF1)/(PZ(3)*(PZ(2)-PZ(3)))*PNS(1)
+      PNS(4)=1.D-8
+      IF(RHOA.NE.1.D0) THEN
+         PNSA(2)=( (PZ(3)-PZEF2)*PNS(1)-(PZ(3)-PZ(2))*PZ(2)*PNF2)
+     &            /(PZ(2)*(PZ(3)-PZ(2)))
+         PNSA(3)=(PZ(2)-PZEF2)/(PZ(3)*(PZ(2)-PZ(3)))*PNSA(1)
+         PNSA(4)=1.D-8
+      ENDIF
+C
+      ELSEIF(MDNI.EQ.2) THEN ! ** MDNI **
+C
+      DO NR=1,NRMAX
+         RNU(1,NR,3)=(RNU(1,NR,1)-( RNU(1,NR,2)+RNFU(1,NR))*PZ(2))
+     &              / PZ(3)
+         ZEFFU(1,NR)=PZ(2)*(PZ(2)-PZ(3))*(RNU(1,NR,2)+RNFU(1,NR))
+     &              / RNU(1,NR,1)+PZ(3)
+      ENDDO
+      PN(2) =RNU(1,1,2)
+      PN(3) =RNU(1,1,3)
+      PN(4) =1.D-7
+      IF(PNM1.LE.1.D-3) THEN
+         PNS(1)=1.D-2
+         PNM1=1.D-2-1.D-3
+      ENDIF
+      PNS(2)=PNM1
+      PNS(3)=(PNS(1)-(PNM1+PNF1)*PZ(2))/PZ(3)
+      PNS(4)=1.D-8
+      IF(RHOA.NE.1.D0) THEN
+         PNSA(2)=PNM2
+         PNSA(3)=(PNSA(1)-(PNM2+PNF2)*PZ(2))/PZ(3)
+         PNSA(4)=1.D-8
+      ENDIF
+C
+      ELSEIF(MDNI.EQ.3) THEN ! ** MDNI **
+C
+      DO NR=1,NRMAX
+         RNU(1,NR,2)=(RNU(1,NR,1)-PZ(2)*RNFU(1,NR)-PZ(3)*RNU(1,NR,3))
+     &              /PZ(2)
+         ZEFFU(1,NR)=PZ(2)+PZ(3)*(PZ(3)-PZ(2))*(RNU(1,NR,3)/RNU(1,NR,1))
+      ENDDO
+      PNS(2)=(PNS(1)-PZ(2)*RNF1-PZ(3)*PNIMP1)/PZ(2)
+      PNS(3)=PNIMP1
+      PNS(4)=1.D-8
+      IF(RHOA.NE.1.D0) THEN
+         PNSA(2)=(PNSA(1)-PZ(2)*RNF2-PZ(3)*PNIMP2)/PZ(2)
+         PNSA(3)=PNIMP2
+         PNSA(4)=1.D-8
+      ENDIF
+C
+      ENDIF ! ** MDNI **
+C
+C     check whether density developed is appropriate (positive) or not
+      DO NR=1,NRMAX
+         IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
+            WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
+            STOP
+         ENDIF
       ENDDO
 C
       AMP=1.D0
@@ -741,14 +801,6 @@ c$$$     &                     QPU(1,NR-1),QPU(1,NR-2))
 c$$$         ENDDO
 c$$$         WRITE(6,*) KFID,'IS MODIFIED.'
 c$$$      ENDIF
-C
-      IF(MDNI.NE.2) THEN
-      KFID='ZEFFR'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,1,1,MDLXP,IERR)
-      DO NR=1,NRMAX
-         ZEFFU(1,NR)=FAS(NR)
-      ENDDO
-      ENDIF
 C
       KFID='CURTOT'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
@@ -879,7 +931,7 @@ C
 C
       AMP=1.D0
       KFID='VROT'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
+      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,1,1,MDLXP,IERR)
       DO NR=1,NRMAX
          WROTU(1,NR)=FAS(NR)
       ENDDO
@@ -923,6 +975,7 @@ C
                NTS=NTX
             ENDIF
          ENDDO
+         IF(NTS.EQ.0) NTS=1
       ENDIF
 C
 C     *** GEOMETRY FACTORS ***
@@ -976,22 +1029,21 @@ C
       ENDDO
 C
       KFID='VOLUME'
-      CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,0,MDLXP,IERR)
-      DO NR=1,NRMAX
-         RJCBU(1,NR)=SQRT(2.D0*PI**2*RRU(NTS)/FAS(NRMAX))
+      CALL UFREAD2_TIME(KDIRX,KUFDEV,KUFDCG,KFID,RL,TL,F2,
+     &                  NRLMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
+      DO NTX=1,NTXMAX
+         VOLAU(NTX)=F2(NTX,NRLMAX)
       ENDDO
-CCC      write(6,*) NTS,PHIAU(NTS),BBU(NTS)*FAS(NRMAX)/(2.D0*PI
-CCC     &     *RMJRHOU(1,NRMAX))
-C      STOP
 C
 C     *****
 C
-      RR   = RRU(NTS)
-      RA   = RAU(NTS)
-      RIPS = RIPU(NTS)
-      BB   = BBU(NTS)
-      RKAP = RKAPU(NTS)
-      PHIA = PHIAU(NTS)
+      RR    = RRU(NTS)
+      RA    = RAU(NTS)
+      RIPS  = RIPU(NTS)
+      RIPE  = RIPU(NTS)
+      BB    = BBU(NTS)
+      RKAP  = RKAPU(NTS)
+      PHIA  = PHIAU(NTS)
 C
 c$$$      IF(NTXMAX1.EQ.0) THEN
 c$$$         NTXMAX1=NTXMAX
@@ -1039,8 +1091,11 @@ C
       COMMON /TMSLC2/ NTAMAX
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
       COMMON /TRUFC3/ NM2CHK
+      COMMON /TRUFC1/ KDIRX
       DIMENSION FAT(NTUM,NRMP),PV(NTUM),PVA(NTUM)
-      CHARACTER KFID*10
+      DIMENSION PV2(NTUM),PV2A(NTUM),ZEV(NTUM),ZEVA(NTUM)
+      DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU)
+      CHARACTER KFID*10,KDIRX*80
 C
       ICK=0
       TMUMAX=0.D0
@@ -1124,6 +1179,14 @@ C
          IERR=0
       ENDIF
 C
+      RR    = RRU(1)
+      RA    = RAU(1)
+      RIPS  = RIPU(1)
+      RIPE  = RIPU(1)
+      BB    = BBU(1)
+      RKAP  = RKAPU(1)
+      PHIA  = PHIAU(1)
+C
 C     *** 2D VALUE ***
 C
       AMP=1.D-3
@@ -1151,25 +1214,23 @@ C
       KFID='TI'
       CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
      &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
-      DO NR=1,NRMAX
-         DO NS=2,3
+      DO NS=2,NSM
+         DO NR=1,NRMAX
             DO NTX=1,NTXMAX
                RTU(NTX,NR,NS)=FAT(NTX,NR)
             ENDDO
             RT(NR,NS)=RTU(1,NR,NS)
          ENDDO
+         DO NTX=1,NTXMAX
+            PTSU(NTX,NS)=PV(NTX)
+         ENDDO     
+         PTS (NS)=PTSU(1,NS)
       ENDDO
       PT(2)=RT(1,2)
       PT(3)=RT(1,3)
       PT(4)=RT(1,2)
-      DO NS=2,4
-         DO NTX=1,NTXMAX
-            PTSU (NTX,NS)=PV(NTX)
-         ENDDO
-         PTS (NS)=PTSU(1,NS)
-      ENDDO
       IF(RHOA.NE.1.D0) THEN
-         DO NS=2,4
+         DO NS=2,NSM
             DO NTX=1,NTXMAX
                PTSUA(NTX,NS)=PVA(NTX)
             ENDDO
@@ -1184,21 +1245,22 @@ C
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
             RNU(NTX,NR,1)=FAT(NTX,NR)
-            RNU(NTX,NR,2)=FAT(NTX,NR)-2.D-7
+            RNU(NTX,NR,2)=FAT(NTX,NR)
             RNU(NTX,NR,3)=1.D-7
             RNU(NTX,NR,4)=1.D-7
+            RNU_ORG(NTX,NR,1)=FAT(NTX,NR)
+            ZEFFU(NTX,NR)=1.D0     ! in case of MDNI=0
+            ZEFFU_ORG(NTX,NR)=1.D0 ! in case of MDNI=0
          ENDDO
-      ENDDO
-      PN(1)=RNU(1,1,1)
-      PN(2)=RNU(1,1,2)-2.D-7
-      PN(3)=1.D-7
-      PN(4)=1.D-7
-      DO NTX=1,NTXMAX
          PNSU(NTX,1)=PV(NTX)
-         PNSU(NTX,2)=PV(NTX)-2.D-8
+         PNSU(NTX,2)=PV(NTX)
          PNSU(NTX,3)=1.D-8
          PNSU(NTX,4)=1.D-8
       ENDDO
+      PN(1)=RNU(1,1,1)
+      PN(2)=RNU(1,1,2)
+      PN(3)=1.D-7
+      PN(4)=1.D-7
       PNS(1)=PNSU(1,1)
       PNS(2)=PNSU(1,2)
       PNS(3)=PNSU(1,3)
@@ -1206,7 +1268,7 @@ C
       IF(RHOA.NE.1.D0) THEN
          DO NTX=1,NTXMAX
             PNSUA(NTX,1)=PVA(NTX)
-            PNSUA(NTX,2)=PVA(NTX)-2.D-8
+            PNSUA(NTX,2)=PVA(NTX)
             PNSUA(NTX,3)=1.D-8
             PNSUA(NTX,4)=1.D-8
          ENDDO
@@ -1216,113 +1278,185 @@ C
          PNSA(4)=PNSUA(1,4)
       ENDIF
 C
-      IF(MDNI.EQ.1) THEN !!!
-      IF(NM2CHK.EQ.1) THEN
-         KFID='NM2'
-      ELSE
-         KFID='NM1'
-      ENDIF
-      CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
+      KFID='NFAST'
+      CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PNFU,PNFUA,TMU,FAT,AMP,
      &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
-            RNU(NTX,NR,2)=FAT(NTX,NR)
-            RNU(NTX,NR,3)=(RNU(NTX,NR,1)-PZ(2)*RNU(NTX,NR,2))/PZ(3) 
-            ZEFFU(NTX,NR)=(PZ(2)**2*RNU(NTX,NR,2)
-     &                    +PZ(3)**2*RNU(NTX,NR,3))/RNU(NTX,NR,1)
+            IF(IERR.EQ.0.AND.FAT(NTX,NR).LE.0.D0) FAT(NTX,NR)=1.D-10
+            RNFU(NTX,NR)=FAT(NTX,NR)
          ENDDO
       ENDDO
-      PN(2)=RNU(1,1,2)
-      PN(3)=RNU(1,1,3)-1.D-7
-      PN(4)=1.D-7
-      DO NTX=1,NTXMAX
-         PNSU(NTX,2)=PV(NTX)
-         PNSU(NTX,3)=(PNSU(NTX,1)-PZ(2)*PNSU(NTX,2))/PZ(3)-1.D-8
-         PNSU(NTX,4)=1.D-8
-      ENDDO
-      PNS(2)=PNSU(1,2)
-      PNS(3)=PNSU(1,3)
-      PNS(4)=PNSU(1,4)
-      IF(RHOA.NE.1.D0) THEN
-         DO NTX=1,NTXMAX
-            PNSUA(NTX,2)=PVA(NTX)
-            PNSUA(NTX,3)=(PNSUA(NTX,1)-PZ(2)*PNSUA(NTX,2))/PZ(3)-1.D-8
-            PNSUA(NTX,4)=1.D-8
-         ENDDO
-         PNSA(2)=PNSUA(1,2)
-         PNSA(3)=PNSUA(1,3)
-         PNSA(4)=PNSUA(1,4)
-      ENDIF
 C
-      ELSEIF(MDNI.EQ.2) THEN !!!
+      KFID='NM1'
+      CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
+     &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
+      DO NTX=1,NTXMAX
+         IF(NM2CHK.EQ.0) THEN
+            IF(MDNI.NE.0) THEN
+               DO NR=1,NRMAX
+                  RNU(NTX,NR,2)=FAT(NTX,NR)
+                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+               ENDDO
+               PNSU(NTX,2)=PV(NTX)
+               IF(RHOA.NE.1.D0) PNSUA(NTX,2)=PVA(NTX)
+            ELSE
+               DO NR=1,NRMAX
+                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+               ENDDO
+            ENDIF
+         ELSE
+            DO NR=1,NRMAX
+               RNU_ORG(NTX,NR,4)=FAT(NTX,NR)
+            ENDDO
+         ENDIF
+      ENDDO
+C
+      IF(NM2CHK.EQ.1) THEN
+         KFID='NM2'
+         CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV2,PV2A,TMU,FAT,AMP,
+     &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
+         DO NTX=1,NTXMAX
+            IF(MDNI.NE.0) THEN
+               DO NR=1,NRMAX
+                  RNU(NTX,NR,2)=FAT(NTX,NR)+RNU_ORG(NTX,NR,4)
+                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+               ENDDO
+               PNSU(NTX,2)=PV(NTX)+PV2(NTX)
+               IF(RHOA.NE.1.D0) PNSUA(NTX,2)=PVA(NTX)+PV2A(NTX)
+            ELSE
+               DO NR=1,NRMAX
+                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+               ENDDO
+            ENDIF
+         ENDDO
+      ELSE
+         DO NTX=1,NTXMAX
+            DO NR=1,NRMAX
+               RNU_ORG(NTX,NR,4)=0.D0
+            ENDDO
+         ENDDO
+      ENDIF
 C
       AMP=1.D0
       KFID='ZEFFR'
-      CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
+      CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,ZEV,ZEVA,TMU,FAT,AMP,
      &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
-            ZEFFU(NTX,NR)=FAT(NTX,NR)
-            RNU(NTX,NR,2)=(PZ(3)-FAT(NTX,NR))/(PZ(2)*(PZ(3)-PZ(2)))
-     &                   *RNU(NTX,NR,1)
-            RNU(NTX,NR,3)=(PZ(2)-FAT(NTX,NR))/(PZ(3)*(PZ(2)-PZ(3)))
-     &                   *RNU(NTX,NR,1)
-            IF(RNU(NTX,NR,3).LT.0.D0) STOP 'NIMP IS BELOW ZERO.'
+            IF(MDNI.NE.0) ZEFFU(NTX,NR)=FAT(NTX,NR)
+            ZEFFU_ORG(NTX,NR)=FAT(NTX,NR)
          ENDDO
       ENDDO
-      PN(2)=RNU(1,1,2)
-      PN(3)=RNU(1,1,3)-1.D-7
-      PN(4)=1.D-7
-      DO NTX=1,NTXMAX
-         PNSU(NTX,2)=(PZ(3)-PV(NTX))/(PZ(2)*(PZ(3)-PZ(2)))*PNSU(NTX,1)
-         PNSU(NTX,3)=(PZ(2)-PV(NTX))/(PZ(3)*(PZ(2)-PZ(3)))*PNSU(NTX,1)
-     &              -1.D-8
-         PNSU(NTX,4)=1.D-8
-      ENDDO
-      PNS(2)=PNSU(1,2)
-      PNS(3)=PNSU(1,3)
-      PNS(4)=PNSU(1,4)
-      IF(RHOA.NE.1.D0) THEN
-         DO NTX=1,NTXMAX
-            PNSUA(NTX,2)=(PZ(3)-PVA(NTX))/(PZ(2)*(PZ(3)-PZ(2)))
-     &                  *PNSUA(NTX,1)
-            PNSUA(NTX,3)=(PZ(2)-PVA(NTX))/(PZ(3)*(PZ(2)-PZ(3)))
-     &                  *PNSUA(NTX,1)-1.D-8
-            PNSUA(NTX,4)=1.D-8
-         ENDDO
-         PNSA(2)=PNSUA(1,2)
-         PNSA(3)=PNSUA(1,3)
-         PNSA(4)=PNSUA(1,4)
-      ENDIF
 C
-      ELSEIF(MDNI.EQ.3) THEN !!!
-C
+      AMP=1.D-20
       KFID='NIMP'
       CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
      &          NTAMAX,NTXMAX,RHOA,NRAMAX,NRMAX,TMUMAX,0,ICK,MDLXP,IERR)
       DO NTX=1,NTXMAX
-         DO NR=1,NRMAX
-            RNU(NTX,NR,2)=(RNU(NTX,NR,1)-PZ(3)*FAT(NTX,NR))/PZ(2)
-            RNU(NTX,NR,3)=FAT(NTX,NR)-1.D-7
-            ZEFFU(NTX,NR)=PZ(2)+PZ(3)
-     &                  *(PZ(3)-PZ(2))*(FAT(NTX,NR)/RNU(NTX,NR,1))
-         ENDDO
+         IF(MDNI.NE.0) THEN
+            DO NR=1,NRMAX
+               RNU(NTX,NR,3)=FAT(NTX,NR)
+               RNU_ORG(NTX,NR,3)=FAT(NTX,NR)
+            ENDDO
+            PNSU(NTX,3)=PV(NTX)
+            IF(RHOA.NE.1.D0) PNSUA(NTX,3)=PVA(NTX)
+         ELSE
+            DO NR=1,NRMAX
+               RNU_ORG(NTX,NR,3)=FAT(NTX,NR)
+            ENDDO
+         ENDIF
       ENDDO
-      PN(2)=RNU(1,1,2)
-      PN(3)=RNU(1,1,3)-1.D-7
-      PN(4)=1.D-7
+C
+      IF(MDNI.EQ.1) THEN  ! ** MDNI **
+C
       DO NTX=1,NTXMAX
-         PNSU(NTX,2)=(PNSU(NTX,1)-PZ(3)*PV(NTX))/PZ(2)
-         PNSU(NTX,3)=PV(NTX)-1.D-8
+         DO NR=1,NRMAX
+            RNU(NTX,NR,2)=( (PZ(3)-ZEFFU(NTX,NR))*RNU(NTX,NR,1)
+     &                     -(PZ(3)-PZ(2))*PZ(2)*RNFU(NTX,NR))
+     &                     /(PZ(2)*(PZ(3)-PZ(2)))   
+            RNU(NTX,NR,3)=(PZ(2)-ZEFFU(NTX,NR))/(PZ(3)*(PZ(2)-PZ(3)))
+     &                    *RNU(NTX,NR,1)
+         ENDDO
+         PNSU(NTX,2)=( (PZ(3)-ZEV(NTX))*PNSU(NTX,1)
+     &                -(PZ(3)-PZ(2))*PZ(2)*PNFU(NTX))
+     &                /(PZ(2)*(PZ(3)-PZ(2)))
+         PNSU(NTX,3)=(PZ(2)-ZEV(NTX))/(PZ(3)*(PZ(2)-PZ(3)))*PNSU(NTX,1)
          PNSU(NTX,4)=1.D-8
       ENDDO
+      PN(2)=RNU(1,1,2)
+      PN(3)=RNU(1,1,3)
+      PN(4)=1.D-7
       PNS(2)=PNSU(1,2)
       PNS(3)=PNSU(1,3)
       PNS(4)=PNSU(1,4)
       IF(RHOA.NE.1.D0) THEN
          DO NTX=1,NTXMAX
-            PNSUA(NTX,2)=(PNSUA(NTX,1)-PZ(3)*PVA(NTX))/PZ(2)
-            PNSUA(NTX,3)=PVA(NTX)-1.D-8
+            PNSUA(NTX,2)=( (PZ(3)-ZEVA(NTX))*PNSUA(NTX,1)
+     &                    -(PZ(3)-PZ(2))*PZ(2)*PNFUA(NTX))
+     &                    /(PZ(2)*(PZ(3)-PZ(2)))
+            PNSUA(NTX,3)=(PZ(2)-ZEVA(NTX))/(PZ(3)*(PZ(2)-PZ(3)))
+     &                  *PNSUA(NTX,1)
+            PNSUA(NTX,4)=1.D-8
+         ENDDO
+         PNSA(2)=PNSUA(1,2)
+         PNSA(3)=PNSUA(1,3)
+         PNSA(4)=PNSUA(1,4)
+      ENDIF
+C
+      ELSEIF(MDNI.EQ.2) THEN  ! ** MDNI **
+C
+      DO NTX=1,NTXMAX
+         DO NR=1,NRMAX
+            RNU(NTX,NR,3)=(RNU(NTX,NR,1)-(RNU(NTX,NR,2)+RNFU(NTX,NR))
+     &                   * PZ(2))/PZ(3) 
+            ZEFFU(NTX,NR)=PZ(2)*(PZ(2)-PZ(3))
+     &                   *(RNU(NTX,NR,2)+RNFU(NTX,NR))
+     &                   / RNU(NTX,NR,1)+PZ(3)
+         ENDDO
+         PNSU(NTX,3)=(PNSU(NTX,1)-(PNSU(NTX,2)+PNFU(NTX))*PZ(2))/PZ(3)
+         PNSU(NTX,4)=1.D-8
+      ENDDO
+      PN(2)=RNU(1,1,2)
+      PN(3)=RNU(1,1,3)
+      PN(4)=1.D-7
+      PNS(2)=PNSU(1,2)
+      PNS(3)=PNSU(1,3)
+      PNS(4)=PNSU(1,4)
+      IF(RHOA.NE.1.D0) THEN
+         DO NTX=1,NTXMAX
+            PNSUA(NTX,3)=(PNSUA(NTX,1)-(PNSUA(NTX,2)+PNFUA(NTX))*PZ(2))
+     &                  /PZ(3)
+            PNSUA(NTX,4)=1.D-8
+         ENDDO
+         PNSA(2)=PNSUA(1,2)
+         PNSA(3)=PNSUA(1,3)
+         PNSA(4)=PNSUA(1,4)
+      ENDIF
+C
+      ELSEIF(MDNI.EQ.3) THEN  ! ** MDNI **
+C
+      DO NTX=1,NTXMAX
+         DO NR=1,NRMAX
+            RNU(NTX,NR,2)=( RNU(NTX,NR,1)-PZ(2)*RNFU(NTX,NR)
+     &                     -PZ(3)*RNU(NTX,NR,3))/PZ(2)
+            ZEFFU(NTX,NR)=PZ(2)+PZ(3)*(PZ(3)-PZ(2))
+     &                   *(RNU(NTX,NR,3)/RNU(NTX,NR,1))
+         ENDDO
+         PNSU(NTX,2)=(PNSU(NTX,1)-PZ(2)*PNFU(NTX)
+     &                           -PZ(3)*PNSU(NTX,3))/PZ(2)
+         PNSU(NTX,4)=1.D-8
+      ENDDO
+      PN(2)=RNU(1,1,2)
+      PN(3)=RNU(1,1,3)
+      PN(4)=1.D-7
+      PNS(2)=PNSU(1,2)
+      PNS(3)=PNSU(1,3)
+      PNS(4)=PNSU(1,4)
+      IF(RHOA.NE.1.D0) THEN
+         DO NTX=1,NTXMAX
+            PNSUA(NTX,2)=(PNSUA(NTX,1)-PZ(2)*PNFUA(NTX)
+     &                                -PZ(3)*PNSUA(NTX,3))/PZ(2)
             PNSUA(NTX,4)=1.D-8
          ENDDO
          PNSA(2)=PNSUA(1,2)
@@ -1331,10 +1465,17 @@ C
       ENDIF
       ENDIF !!!
 C
-      AMP=1.D-20
-      KFID='NFAST'
-      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,RNFU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
+C     check whether density developed is appropriate (positive) or not
+      DO NTX=1,NTXMAX
+         DO NR=1,NRMAX
+            IF(RNU(NTX,NR,2).LE.0.D0.OR.RNU(NTX,NR,3).LE.0.D0) THEN
+               WRITE(6,*)
+     &              'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
+               STOP
+            ENDIF
+         ENDDO
+      ENDDO
+C
       AMP=1.D0
       KFID='PBEAM'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,PBMU,AMP,
@@ -1343,11 +1484,6 @@ C
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,QPU ,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,ICK,MDLXP,IERR)
       IF(IERR.NE.0) MDLJQ=0
-      IF(MDNI.NE.2) THEN
-      KFID='ZEFFR'
-      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,ZEFFU,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,ICK,MDLXP,IERR)
-      ENDIF
       KFID='CURTOT'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,AJU ,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
@@ -1439,6 +1575,10 @@ C
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,POHU,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
 C
+      KFID='VROT'
+      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,WROTU,AMP,
+     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,1,1,ICK,MDLXP,IERR)
+C
 C     *****
 C
       MDSUM=MDRGEO+MDAMIN+MDIP+MDBT+MDKAPPA+MDPHIA+MDPNBI
@@ -1514,12 +1654,10 @@ C
       ENDDO
 C
       KFID='VOLUME'
-      CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,FAT,AMP,
-     &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,ICK,MDLXP,IERR)
+      CALL UFREAD2_TIME(KDIRX,KUFDEV,KUFDCG,KFID,RL,TL,F2,
+     &                  NRLMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
       DO NTX=1,NTXMAX
-         DO NR=1,NRMAX
-            RJCBU(NTX,NR)=SQRT(2.D0*PI*PI*RRU(NTX)/FAT(NTX,NRMAX))
-         ENDDO
+         VOLAU(NTX)=F2(NTX,NRLMAX)
       ENDDO
 C
       IF(NTAMAX.LT.NTAMAX1) NTAMAX=NTAMAX1
@@ -1540,10 +1678,19 @@ C
       COMMON /TMSLC2/ NTAMAX
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
       DIMENSION FAT(NTUM,NRMP),VOL(NTUM),PV(NTUM),PVA(NTUM)
+      DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU)
       CHARACTER KFID*10
 C
       ICK=0
       TMUMAX=0.D0
+C
+      MDRGEO=0
+      MDAMIN=0
+      MDIP=0
+      MDBT=0
+      MDKAPPA=0
+      MDVOL=0
+      MDPHIA=0
 C
 C     *** 1D VALUE ***
 C
@@ -1579,6 +1726,14 @@ C
       CALL UF1D(KFID,KUFDEV,KUFDCG,DT,TMU1,VOL,
      &          NTAMAX1,NTXMAX1,TMUMAX,ICK,MDLXP,IERR)
       MDVOL=IERR
+C
+      RR    = RRU(1)
+      RA    = RAU(1)
+      RIPS  = RIPU(1)
+      RIPE  = RIPU(1)
+      BB    = BBU(1)
+      RKAP  = RKAPU(1)
+      PHIA  = 0.D0
 C
 C     *** 2D VALUE ***
 C
@@ -1769,6 +1924,13 @@ C
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,AR2RHOU,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,1,ICK,MDLXP,IERR)
 C
+      KFID='VOLUME'
+      CALL UFREAD2_TIME(KDIRX,KUFDEV,KUFDCG,KFID,RL,TL,F2,
+     &                  NRLMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
+      DO NTX=1,NTXMAX
+         VOLAU(NTX)=F2(NTX,NRLMAX)
+      ENDDO
+C
       KFID='VRO'
       CALL UF2DT(KFID,KUFDEV,KUFDCG,DR,DT,TMU,DVRHOU,AMP,
      &           NTAMAX,NTXMAX,NRMAX,TMUMAX,0,0,ICK,MDLXP,IERR)
@@ -1817,12 +1979,6 @@ C
          ENDDO
       ENDIF
 C
-      DO NTX=1,NTXMAX1
-         DO NR=1,NRMAX
-            RJCBU(NTX,NR)=SQRT(2.D0*PI*PI*RRU(NTX)/VOL(NTX))
-         ENDDO
-      ENDDO
-
 C     ***
 C
       RETURN
@@ -1892,7 +2048,37 @@ C
       RETURN
       END
 C
-C     *** FOR GRAPHIC ROUTINE ***
+C     *** ROUTINE FOR TEXT ***
+C
+      SUBROUTINE UF1DT(KFID,KUFDEV,KUFDCG,NTS,FOUT,AMP,MDLXP,IERR)
+C
+      INCLUDE 'trcom0.inc'
+      CHARACTER KUFDEV*80,KUFDCG*80
+      DIMENSION TL(NTUM),F1(NTUM)
+      COMMON /TRUFC1/ KDIRX
+      CHARACTER KFID*10,KDIRX*80
+C
+      IF(MDLXP.EQ.0) THEN
+         CALL UFREAD_TIME(KDIRX,KUFDEV,KUFDCG,KFID,TL,F1,
+     &                    NTXMAX,NTUM,MDCHK,IERR)
+      ELSE
+         CALL IPDB_MDS1(KUFDEV,KUFDCG,KFID,NTUM,TL,F1,NTXMAX,IERR)
+      ENDIF
+      IF(IERR.NE.0) THEN
+         WRITE(6,*) 'XX UF1DG:',KFID,'UFILE HAS AN ERROR!'
+         RETURN
+      ENDIF
+C
+      IF(IERR.EQ.1) THEN
+         FOUT=0.D0
+      ELSE
+         FOUT=F1(NTS)*AMP
+      ENDIF
+C
+      RETURN
+      END
+C
+C     *** ROUTINE FOR GRAPHIC ***
 C
       SUBROUTINE UF1DG(KFID,KUFDEV,KUFDCG,GTL,TL,FOUT,AMP,NINMAX,MDLXP,
      &                 IERR)
@@ -1994,7 +2180,14 @@ C
       ENDIF
       IERRP=IERR
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,ID,IERRP)
-      IF(NRLMAX.LE.1) RETURN
+C
+      IF(NRLMAX.LE.1) THEN
+         DO NRL=1,NRMAX
+            FOUT(NRL)=0.D0
+         ENDDO
+         IERR=1
+         RETURN
+      ENDIF
 C
       DO NRL=1,NRMAX
          IF(NSW.EQ.0) THEN
@@ -2052,7 +2245,15 @@ C
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,1,IERR)
-      IF(NRLMAX.LE.1) RETURN
+C
+      IF(NRLMAX.LE.1) THEN
+         DO NRL=1,NRMAX
+            FOUT(NRL)=0.D0
+         ENDDO
+         RETURN
+         IERR=1
+      ENDIF
+C
       DO NRL=1,NRMAX
          RMN=(DBLE(NRL)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RL,U,NRLMAX,IERR)
@@ -2280,9 +2481,9 @@ C
 C
       IF(IERR.EQ.1) THEN
          DO NRF=1,NRMU
-         DO NA=1,4
-            U(NA,NRF)=0.D0
-         ENDDO
+            DO NA=1,4
+               U(NA,NRF)=0.D0
+            ENDDO
          ENDDO
          IF(KFID.EQ.'CURTOT'.AND.IERR.NE.0) MDLJQ=1
          IERR=0
@@ -2380,6 +2581,9 @@ C
       CALL LAGLANGE(TSL,PHIA,TMU1,PHIAU,NTXMAX1,NTUM,IERR)
       CALL LAGLANGE(TSL,PNBI,TMU1,PNBIU,NTXMAX1,NTUM,IERR)
 C
+      CALL LAGLANGE(TSL,VOLM,TMU,VOLAU,NTXMAX,NTUM,IERR)
+      CALL LAGLANGE(TSL,RMJRXL,TMU,RMJRHOU(1,NRMAX),NTXMAX,NTUM,IERR)
+C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(MDLUF.EQ.1) THEN ! *** MDLUF ***
       DO NR=1,NRMAX
@@ -2440,7 +2644,6 @@ C
          CALL LAGLANGE(TSL,AR2RL,TMU,AR2RHOU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RMJRL,TMU,RMJRHOU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RMNRL,TMU,RMNRHOU(1,NR),NTXMAX,NTUM,IERR)
-         CALL LAGLANGE(TSL,RJCBL,TMU,RJCBU  (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RKAPL,TMU,RKPRHOU(1,NR),NTXMAX,NTUM,IERR)
          WROT(NR)=WROTL
          VTOR(NR)=WROTL*RMJRL
@@ -2450,12 +2653,20 @@ C
          ARRHO(NR)=ARRL
          AR1RHO(NR)=AR1RL
          AR2RHO(NR)=AR2RL
-         RJCB(NR)=RJCBL
-         RHOM(NR)=RM(NR)/RJCBL
-         RHOG(NR)=RG(NR)/RJCBL
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
          RKPRHO(NR)=RKAPL
+         IF(MDPHIA.EQ.0) THEN
+            RHO_A=SQRT(PHIA/(PI*BB))
+            RJCB(NR)=1.D0/RHO_A
+            RHOM(NR)=RM(NR)*RHO_A
+            RHOG(NR)=RG(NR)*RHO_A
+         ELSE
+            RHO_A=SQRT(VOLM/(2.D0*PI**2*RMJRXL))
+            RJCB(NR)=1.D0/RHO_A
+            RHOM(NR)=RM(NR)/RJCB(NR)
+            RHOG(NR)=RG(NR)/RJCB(NR)
+         ENDIF
          CALL LAGLANGE(TSL,PBML,TMU,PBMU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RNFL,TMU,RNFU(1,NR),NTXMAX,NTUM,IERR)
          PBM(NR)=PBML
@@ -2540,7 +2751,6 @@ C         QP(NR)=QPL
          CALL LAGLANGE(TSL,AR2RL,TMU,AR2RHOU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RMJRL,TMU,RMJRHOU(1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RMNRL,TMU,RMNRHOU(1,NR),NTXMAX,NTUM,IERR)
-         CALL LAGLANGE(TSL,RJCBL,TMU,RJCBU  (1,NR),NTXMAX,NTUM,IERR)
          CALL LAGLANGE(TSL,RKAPL,TMU,RKPRHOU(1,NR),NTXMAX,NTUM,IERR)
          TTRHO(NR)=TTRL
          DVRHO(NR)=DVRL
@@ -2548,12 +2758,20 @@ C         QP(NR)=QPL
          ARRHO(NR)=ARRL
          AR1RHO(NR)=AR1RL
          AR2RHO(NR)=AR2RL
-         RJCB(NR)=RJCBL
-         RHOM(NR)=RM(NR)/RJCB(NR)
-         RHOG(NR)=RG(NR)/RJCB(NR)
          RMJRHO(NR)=RMJRL
          RMNRHO(NR)=RMNRL
          RKPRHO(NR)=RKAPL
+         IF(MDPHIA.EQ.0) THEN
+            RHO_A=SQRT(PHIA/(PI*BB))
+            RJCB(NR)=1.D0/RHO_A
+            RHOM(NR)=RM(NR)*RHO_A
+            RHOG(NR)=RG(NR)*RHO_A
+         ELSE
+            RHO_A=SQRT(VOLM/(2.D0*PI**2*RMJRXL))
+            RJCB(NR)=1.D0/RHO_A
+            RHOM(NR)=RM(NR)/RJCB(NR)
+            RHOG(NR)=RG(NR)/RJCB(NR)
+         ENDIF
       ENDDO
       ENDIF ! *** MDLUF ***
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
@@ -2685,6 +2903,8 @@ C
       PHIA=PHIAU(NTS)
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
+      VOLM=VOLAU(1)
+      RMJRXL=RMJRHOU(1,NRMAX)
       DO NR=1,NRMAX
          IF(MDLEQN.EQ.0) THEN
             RN(NR,1)=RNU(1,NR,1)
@@ -2711,12 +2931,20 @@ C
          ARRHO(NR)=ARRHOU(1,NR)
          AR1RHO(NR)=AR1RHOU(1,NR)
          AR2RHO(NR)=AR2RHOU(1,NR)
-         RJCB(NR)=RJCBU(1,NR)
-         RHOM(NR)=RM(NR)/RJCB(NR)
-         RHOG(NR)=RG(NR)/RJCB(NR)
          RMJRHO(NR)=RMJRHOU(1,NR)
          RMNRHO(NR)=RMNRHOU(1,NR)
          RKPRHO(NR)=RKPRHOU(1,NR)
+         IF(MDPHIA.EQ.0) THEN
+            RHOA=SQRT(PHIA/(PI*BB))
+            RJCB(NR)=1.D0/RHOA
+            RHOM(NR)=RM(NR)*RHOA
+            RHOG(NR)=RG(NR)*RHOA
+         ELSE
+            RHOA=SQRT(VOLM/(2.D0*PI**2*RMJRXL))
+            RJCB(NR)=1.D0/RHOA
+            RHOM(NR)=RM(NR)/RJCB(NR)
+            RHOG(NR)=RG(NR)/RJCB(NR)
+         ENDIF
          RNF(NR,1)=RNFU(1,NR)
       ENDDO
 C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0

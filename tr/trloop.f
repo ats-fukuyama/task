@@ -355,9 +355,6 @@ C     *** SET GEOMETRY VIA TASK/EQ ***
 C
       IF(MODELG.EQ.9.AND.NTEQIT.NE.0) THEN
          IF(MOD(NT,NTEQIT).EQ.0) THEN
-C            CALL TRCONV(L,1,IERR)
-C            WRITE(6,*) "L=",L
-C            IF(IERR.NE.0) RETURN
             CALL TRSETG(1,IERR)
             IF(IERR.NE.0) RETURN
          ENDIF

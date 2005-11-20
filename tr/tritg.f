@@ -89,15 +89,32 @@ C
       ELSE
          idengrad=2
       ENDIF
-      DO jm=1,jmaxm
-         angrotp_exp(jm) =WROT(jm) ! exp. toroidal ang. vel. [1/s]
-         egamma_exp(jm)  =0.D0     ! WEXB(jm) ! exp. ExB shearing rate
-                                   ! this is not needed if irotstab!=0
-         rgamma_p_exp(jm)=0.D0     ! exp. para. vel. shearing rate
-         vphi_m(jm)      =VTOR(jm) ! toroidal velocity [m/s]
-         vpar_m(jm)      =VPAR(jm) ! parallel velocity [m/s]
-         vper_m(jm)      =VPRP(jm) ! perpendicular velocity [m/s]
-         zeff_exp(jm)    =ZEFF(jm) ! effective charge
+C
+      jm=1
+         angrotp_exp(jm)  =FCTR(RG(jm),RG(jm+1),WROT(jm),WROT(jm+1))
+         egamma_exp(jm)  = FCTR(RG(jm),RG(jm+1),WEXB(jm),WEXB(jm+1))
+         rgamma_p_exp(jm)= 0.D0
+         vphi_m(jm)      = FCTR(RG(jm),RG(jm+1),VTOR(jm),VTOR(jm+1))
+         vpar_m(jm)      = FCTR(RG(jm),RG(jm+1),VPAR(jm),VPAR(jm+1))
+         vper_m(jm)      = FCTR(RG(jm),RG(jm+1),VPAR(jm),VPAR(jm+1))
+         zeff_exp(jm)    = ZEFF(jm)
+      DO jm=2,jmaxm
+C     exp. toroidal ang. vel. [1/s]
+         angrotp_exp(jm) = 0.5D0*(WROT(jm-1)+WROT(jm))
+C     exp. ExB shearing rate: valid if irotstab=0
+         egamma_exp(jm)  = 0.5D0*(WEXB(jm-1)+WEXB(jm))
+C     exp. para. vel. shearing rate
+C       : valid if itport_pt(4)=-1 or irotstab=0
+         rgamma_p_exp(jm)= 0.D0
+C     toroidal velocity [m/s]
+C       : valid if finite itport_pt(4) and itport_pt(5)=0
+         vphi_m(jm)      = 0.5D0*(VTOR(jm-1)+VTOR(jm))
+C     parallel velocity [m/s]: valid if finite itport_pt(4&5)
+         vpar_m(jm)      = 0.5D0*(VPAR(jm-1)+VPAR(jm))
+C     perpendicular velocity [m/s]: valid if finite itport_pt(5)
+         vper_m(jm)      = 0.5D0*(VPRP(jm-1)+VPRP(jm))
+C     effective charge
+         zeff_exp(jm)    = ZEFF(jm)
       ENDDO
 C
       bt_exp=BB      ! toroidal field [T]
@@ -151,10 +168,6 @@ C
       alpha_e=1.D0       ! ExB shear stabilization (0=off,>0=on)
       x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
       i_delay=0          ! default(usually recommended)
-C
-      DO j=1,jmaxm
-         write(6,*) j,VEXB(j)
-      ENDDO
 C
       IF(MDLKAI.EQ.60) THEN
 C     +++ Normal type +++

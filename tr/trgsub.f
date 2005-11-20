@@ -910,7 +910,108 @@ C
       DIMENSION PICRH(NTUM),PNBI(NTUM)
       CHARACTER KFID*10
 C
-      IF(MDLUF.EQ.0.OR.MDLUF.EQ.2) RETURN
+      IF(MDLUF.EQ.0) RETURN
+C
+      IF(MDLUF.EQ.2) THEN
+         AMP=1.D-3
+         KFID='TE0'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,ATE0 ,AMP,MDLXP,IERR)
+         KFID='TI0'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,ATI0 ,AMP,MDLXP,IERR)
+         AMP=1.D-6
+         KFID='WTOT'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,AWTOT,AMP,MDLXP,IERR)
+         KFID='IBOOT'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,ARIBS,AMP,MDLXP,IERR)
+         KFID='IP'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,ARIPL,AMP,MDLXP,IERR)
+         KFID='PICRH'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,AICRH,AMP,MDLXP,IERR)
+         KFID='PNBI'
+         CALL UF1DT(KFID,KUFDEV,KUFDCG,NTS,ANBI ,AMP,MDLXP,IERR)
+C
+         CALL PAGES
+         CALL SETLIN(0,0,7)
+         CALL SETCHS(0.3,0.0)
+C         CALL SETFNT(32)
+         CALL GTEXT( 2.0, 17.0, '< CALCULATED >', 14, 0)
+         CALL GTEXT(12.0, 17.0, '< EXPERIMENT >', 14, 0)
+C
+         CALL MOVE(12.0, 16.0)
+         CALL TEXT('Te0 =', 5)
+         CALL NUMBD(ATE0,'(1F7.3)',7)
+         CALL TEXT('[keV]', 5)
+C
+         CALL MOVE(12.0, 15.0)
+         CALL TEXT('Ti0 =', 5)
+         CALL NUMBD(ATI0,'(1F7.3)',7)
+         CALL TEXT('[keV]', 5)
+C
+         CALL MOVE(12.0, 14.0)
+         CALL TEXT('Wtot=', 5)
+         CALL NUMBD(AWTOT,'(1F7.3)',7)
+         CALL TEXT('[MJ]', 4)
+C
+         CALL MOVE(12.0, 13.0)
+         CALL TEXT('IBS =', 5)
+         CALL NUMBD(ARIBS,'(1F7.3)',7)
+         CALL TEXT('[MA]', 4)
+C
+         CALL MOVE(12.0, 12.0)
+         CALL TEXT('IP  =', 5)
+         CALL NUMBD(ARIPL,'(1F7.3)',7)
+         CALL TEXT('[MA]', 4)
+C
+         CALL MOVE(12.0, 11.0)
+         CALL TEXT('PICH=', 5)
+         CALL NUMBD(AICRH,'(1F7.3)',7)
+         CALL TEXT('[MW]', 4)
+C
+         CALL MOVE(12.0, 10.0)
+         CALL TEXT('PNBI=', 5)
+         CALL NUMBD(ANBI,'(1F7.3)',7)
+         CALL TEXT('[MW]', 4)
+C
+C     ++++++++++++++++++++++++++++++++++++++
+C
+         CALL MOVE( 2.0, 16.0)
+         CALL TEXT('Te0 =', 5)
+         CALL NUMBD(TS0(1),'(1F7.3)',7)
+         CALL TEXT('[keV]', 5)
+C
+         CALL MOVE( 2.0, 15.0)
+         CALL TEXT('Ti0 =', 5)
+         CALL NUMBD(TS0(2),'(1F7.3)',7)
+         CALL TEXT('[keV]', 5)
+C
+         CALL MOVE( 2.0, 14.0)
+         CALL TEXT('Wtot=', 5)
+         CALL NUMBD(WPT,'(1F7.3)',7)
+         CALL TEXT('[MJ]', 4)
+C
+         CALL MOVE( 2.0, 13.0)
+         CALL TEXT('IBS =', 5)
+         CALL NUMBD(AJBST,'(1F7.3)',7)
+         CALL TEXT('[MA]', 4)
+C
+         CALL MOVE( 2.0, 12.0)
+         CALL TEXT('IP  =', 5)
+         CALL NUMBD(AJT,'(1F7.3)',7)
+         CALL TEXT('[MA]', 4)
+C
+         CALL MOVE( 2.0, 11.0)
+         CALL TEXT('PICH=', 5)
+         CALL NUMBD(PRFST,'(1F7.3)',7)
+         CALL TEXT('[MW]', 4)
+C
+         CALL MOVE( 2.0, 10.0)
+         CALL TEXT('PNBI=', 5)
+         CALL NUMBD(PEXST,'(1F7.3)',7)
+         CALL TEXT('[MW]', 4)
+C
+         CALL TRGRTM
+         CALL PAGEE
+      ELSE
       ICK=2
       TMUMAX=0.D0
 C
@@ -991,6 +1092,7 @@ C
 C
       CALL TRGRTM
       CALL PAGEE
+      ENDIF
 C
       RETURN
       END
@@ -1236,13 +1338,13 @@ C
       IF(MDLUF.EQ.0) RETURN
 C
       CALL PAGES
+      TSL=DT*DBLE(NT)
       IF(MDLUF.EQ.2) THEN
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
             GYR(NR,2) = GUCLIP(POHU(1,NR)*1.D-6)
          ENDDO
       ELSE
-         TSL=DT*DBLE(NT)
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
             CALL LAGLANGE(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
@@ -1255,26 +1357,49 @@ C
       IF(MDLUF.EQ.2) THEN
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(ZEFF(NR))
-            GYR(NR,2) = GUCLIP(ZEFFU(1,NR))
+            GYR(NR,2) = GUCLIP(ZEFFU_ORG(1,NR))
          ENDDO
       ELSE
-         TSL=DT*DBLE(NT)
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(ZEFF(NR))
-            CALL LAGLANGE(TSL,RTL,TMU,ZEFFU(1,NR),NTXMAX,NTUM,IERR)
+            CALL LAGLANGE(TSL,RTL,TMU,ZEFFU_ORG(1,NR),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
          ENDDO
       ENDIF
       CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
      &            '@ZEFF(TR),ZEFF(XP) [keV]  vs r@',2+INQ)
 C
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(RN(NR,2))
-         CALL LAGLANGE(TSL,RNL,TMU,RNU(1,NR,4),NTXMAX,NTUM,IERR)
-         GYR(NR,2) = GUCLIP(RNL)
-      ENDDO
+      IF(MDLUF.EQ.2) THEN
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RN(NR,2))
+            GYR(NR,2) = GUCLIP(RNU_ORG(1,NR,2)+RNU_ORG(1,NR,4))
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RN(NR,2))
+            CALL LAGLANGE(TSL,RN2L,TMU,RNU_ORG(1,NR,2),NTXMAX,NTUM,IERR)
+            CALL LAGLANGE(TSL,RN4L,TMU,RNU_ORG(1,NR,4),NTXMAX,NTUM,IERR)
+            GYR(NR,2) = GUCLIP(RN2L+RN4L)
+         ENDDO
+      ENDIF
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
-     &     '@NI(TR), NI(XP) [10$+20$/=m$+3$=]  vs r@',2+INQ)
+     &     '@NI(TR), NI(XP) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+C
+      IF(MDLUF.EQ.2) THEN
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RN(NR,3))
+            GYR(NR,2) = GUCLIP(RNU_ORG(1,NR,3))
+         ENDDO
+      ELSE
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(RN(NR,3))
+            CALL LAGLANGE(TSL,RNL,TMU,RNU_ORG(1,NR,3),NTXMAX,NTUM,IERR)
+            GYR(NR,2) = GUCLIP(RNL)
+         ENDDO
+      ENDIF
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
+     &     '@Nimp(TR), Nimp(XP) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+C
       CALL PAGEE
       CALL TRGRTM
 C

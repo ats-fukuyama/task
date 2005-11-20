@@ -21,10 +21,6 @@ C
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
-         RR=RRU(1)
-         RA=RAU(1)
-         RKAP=RKAPU(1)
-         BB=BBU(1)
       ENDIF
 C
       CALL TR_EDGE_DETERMINER(0)
@@ -432,11 +428,6 @@ C
             AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
          ENDIF
-C
-         RIP   = RIPU(1)
-         RIPS  = RIPU(1)
-         RIPSS = RIPU(1)
-         RIPE  = RIPU(1)
       ELSEIF(MDLUF.EQ.2) THEN
          IF(MDLJQ.EQ.0) THEN
             NR=1
@@ -511,11 +502,6 @@ C
                AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             ENDDO
          ENDIF
-C
-C         RIP   = 2.D0*PI*RA*RKAPS*BP(NRMAX)/RMU0*1.D-6
-         RIP   = RIPS
-         RIPSS = RIP
-         RIPE  = RIP
       ELSEIF(MDLUF.EQ.3) THEN
          DO NR=1,NRMAX
             AJOH(NR)=AJU(1,NR)
@@ -648,9 +634,6 @@ C
          BPRHO(NR)=BP(NR)
       ENDDO
 C
-      DRIP  = (RIPSS-RIPS)/1.D1
- 1000 RIP   = RIPSS
-C
       IF(MODELG.EQ.9) THEN
 C     *** Give initial profiles to TASK/EQ ***
          CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
@@ -661,8 +644,6 @@ CCC         CALL EQPARM(2,'NPRINT=1',IERR)
          CALL EQPARM(2,'NPRINT=0',IERR)
          CALL EQPARM(2,'NPSMAX=100',IERR)
 C
-C         CALL TRCONV(L,0,IERR)
-C         WRITE(6,*) "L=",L
          CALL TRSETG(0,IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX TRPROF INITIAL EQUILIBRIUM FAILED : IERR = ',
@@ -675,15 +656,6 @@ C
          GRM(NR)  =GUCLIP(RM(NR))
          GRG(NR+1)=GUCLIP(RG(NR))
       ENDDO
-C
-c$$$      IF(MODELQ.NE.0) THEN
-c$$$         RIPSS=RIPSS-DRIP
-c$$$C         write(6,'(A,1P4E12.5)') "RIP,RIPSS,RIPS,RIPE= ",RIP,RIPSS,RIPS
-c$$$C     &        ,RIPE
-c$$$         IF(DRIP.NE.0.AND.ABS(RIPSS-RIPS).LT.1.D-10) THEN
-c$$$            GOTO 1000
-c$$$         ENDIF
-c$$$      ENDIF
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
@@ -843,46 +815,6 @@ C
       RETURN
       END
 C
-C     ***********************************************************
-C
-C           CONVERGENCE TEST
-C
-C     ***********************************************************
-C
-      SUBROUTINE TRCONV(L,ID,IERR)
-C
-      INCLUDE 'trcomm.inc'
-      DIMENSION AJOLD(NRM),AJDLT(NRM)
-C
-      IERR=0
-      L=0
-      DO NR=1,NRMAX
-         AJOLD(NR)=0.D0
-      ENDDO
- 100  L=L+1
-      IF (L.GT.10) THEN
-         WRITE(6,*) 'XX ITERATION IS TOO MUCH! (OVER 10)'
-         IERR=1
-         RETURN
-      ENDIF
-      CALL TRSETG(ID,IERR)
-      IF(IERR.NE.0) RETURN
-      DO NR=1,NRMAX
-         AJDLT(NR)=AJ(NR)-AJOLD(NR)
-      ENDDO
-      CALL TRSUMJ(AJDLT,RHOTR,NRMAX,SUMJDLT)
-      CALL TRSUMJ(AJ   ,RHOTR,NRMAX,SUMJNOW)
-      CONV=SQRT((SUMJDLT/DBLE(NRMAX))/(SUMJNOW/DBLE(NRMAX)))
-      IF(CONV.GT.1.D-5) THEN
-         DO NR=1,NRMAX
-            AJOLD(NR)=AJ(NR)
-         ENDDO
-         GOTO 100
-      ENDIF
-C
-      RETURN
-      END
-C
 C     ********************************************************
 C
 C           RADIAL INTEGRATION ONLY FOR J CONVERGENCE
@@ -922,13 +854,23 @@ C
                ARRHO(NR)=ARRHOU(1,NR)
                AR1RHO(NR)=AR1RHOU(1,NR)
                AR2RHO(NR)=AR2RHOU(1,NR)
-               RJCB(NR)=RJCBU(1,NR)
-               RHOM(NR)=RM(NR)/RJCBU(1,NR)
-               RHOG(NR)=RG(NR)/RJCBU(1,NR)
                RMJRHO(NR)=RMJRHOU(1,NR)
                RMNRHO(NR)=RMNRHOU(1,NR)
                RKPRHO(NR)=RKPRHOU(1,NR)
-               EPSRHO(NR)=RMNRHOU(1,NR)/RMJRHOU(1,NR)
+               IF(MDPHIA.EQ.0) THEN
+C     define rho_a from phi_a data
+                  RHO_A=SQRT(PHIA/(PI*BB))
+                  RJCB(NR)=1.D0/RHO_A
+                  RHOM(NR)=RM(NR)*RHO_A
+                  RHOG(NR)=RG(NR)*RHO_A
+               ELSE
+C     define rho_a from volume data at ideal LCFS
+                  RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
+                  RJCB(NR)=1.D0/RHO_A
+                  RHOM(NR)=RM(NR)/RJCB(NR)
+                  RHOG(NR)=RG(NR)/RJCB(NR)
+               ENDIF
+               EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
             ENDDO
             CALL FLUX
          ELSEIF(MODELG.EQ.5) THEN
@@ -948,12 +890,12 @@ C
                ARRHO(NR)=1.D0/RR**2
                AR1RHO(NR)=1.D0/(RKAPS*RA)
                AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-               RJCB(NR)=1.D0/(RKAPS*RA)
-               RHOM(NR)=RM(NR)/RJCB(NR)
-               RHOG(NR)=RG(NR)/RJCB(NR)
                RMJRHO(NR)=RR
                RMNRHO(NR)=RA*RG(NR)
                RKPRHO(NR)=RKAP
+               RJCB(NR)=1.D0/(RKAPS*RA)
+               RHOM(NR)=RM(NR)/RJCB(NR)
+               RHOG(NR)=RG(NR)/RJCB(NR)
                EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
             ENDDO
          ELSEIF(MODELG.EQ.5) THEN

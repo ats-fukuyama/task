@@ -40,7 +40,6 @@ C        RDLT   : TRIANGULARITY OF POLOIDAL CROSS SECTION
 C        BB     : TOROIDAL MAGNETIC FIELD ON PLASMA AXIS (T)
 C        RIPS   : INITIAL VALUE OF PLASMA CURRENT (MA)
 C        RIPE   : FINAL VALUE OF PLASMA CURRENT (MA)
-C        RIPSS  : VALUE OF PLASMA CURRENT FOR INITIAL CONVERGENCE
 C        RHOA   : EDGE OF CALCULATE REGION (NORMALIZED SMALL RADIUS)
 C
       RR      = 3.0D0
@@ -50,7 +49,6 @@ C
       BB      = 3.D0
       RIPS    = 3.D0
       RIPE    = 3.D0
-      RIPSS   = 3.D0
       RHOA    = 1.D0
 C
 C     ==== PLASMA PARAMETERS ====
@@ -287,7 +285,7 @@ C            else : using transport coefficients' matrices
 C
       MDLWLD=0
 C
-C        MDDW : mode selector for anomalous particle transport coefficient.
+C        MDDW : mode selector for anom. particle transport coefficient
 C            you must NOT modify this parameter.
 C            0    : if MDDW=0 from start to finish when you choose
 C                   a certain transport model (MDLKAI),
@@ -555,9 +553,18 @@ C
       MDLEQZ=0  ! 0/1 for impurity
       MDLEQ0=0  ! 0/1 for neutral
       MDLEQE=0  ! 0/1/2 for electron density
-C                 0: electron only, 1: both, 2: ion only
-C
+C               ! 0: electron only, 1: both, 2: ion only
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
+C
+C     ==== RADIAL ELECTRIC FIELD SWITCH ====
+C
+C        0: depend on only pressure gradient
+C        1: depend on "0" + toroidal velocity
+C        2: depend on "1" + poloidal velocity
+C        3: simple circular formula for real geometory
+C           (R. Waltz et al, PoP 4 2482 (1997)
+C
+      MDLER=3
 C
 C     ==== NCLASS SWITCH ====
 C
@@ -571,7 +578,7 @@ C                 i.e. NSLMAX never be less than 2.
       MDNCLS=0
       NSLMAX=NSMAX
 C
-C     ==== MODERATE TIME EVOLUTION FOR ANOMALOUS TRANSPORT COEFFICIENTS ====
+C     ==== MODERATE TIME EVOLUTION FOR ANOM. TRANSPORT COEFFICIENTS ====
 C        0    : off
 C        else : multiplyer for TAUK (which is the required time of
 C               averaging magnetic surface)
@@ -640,7 +647,7 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA,
+      NAMELIST /TR/ RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA,
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,
@@ -650,7 +657,7 @@ C
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,CDW,
      &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,
-     &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,
+     &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -684,7 +691,7 @@ C
       WRITE(6,601)
       RETURN
 C
-  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RIPSS,RHOA'/
+  601 FORMAT(' ','# &TR : RR,RA,RKAP,RDLT,BB,RIPS,RIPE,RHOA'/
      &       ' ',8X,'(PA,PZ,PN,PNS,PT,PTS:NSM)'/
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
@@ -700,7 +707,7 @@ C
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
      &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT'/
-     &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX'/
+     &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/
@@ -760,7 +767,6 @@ C
      &             'RDLT  ',RDLT
       WRITE(6,601) 'RIPS  ',RIPS,
      &             'RIPE  ',RIPE,
-     &             'RIPSS ',RIPSS,
      &             'BB    ',BB
 C
       WRITE(6,611)
@@ -813,6 +819,7 @@ C
      &             'RHOA  ',RHOA
 C
       WRITE(6,602) 'MDLWLD',MDLWLD,
+     &             'MDLER ',MDLER,
      &             'MODELG',MODELG,
      &             'NTEQIT',NTEQIT
 C
@@ -1156,6 +1163,7 @@ C
       REM=AME/AMM
       IF(NS.LE.NSMAX) THEN
          IF(ABS(PA(NS)-REM).LE.1.D-10) THEN
+C     electron
             NEQ=NEQ+1
             NSS(NEQ)=1
             NSV(NEQ)=NSW
@@ -1184,10 +1192,14 @@ C
                   NNS(1)=3
                ENDIF
             ENDIF
-         ELSEIF(PA(NS).EQ.1.D0.OR.PA(NS).EQ.2.D0) THEN
-            IF(PA(NS).EQ.1) INDH=1
+         ELSEIF(PA(NS).EQ.1.D0.OR.ABS(PA(NS)-2.D0).LT.0.5D0) THEN
+C     regard the particle whose mass is 1.0 as HYDROGEN
+C     regard the particle whose mass is between 1.5 and 2.5 as DEUTERIUM
+C     If bulk particle is hydrogen, INDH=1
+            IF(PA(NS).EQ.1.D0) INDH=1
             NEQ=NEQ+1
-            IF(INDH.EQ.1.AND.PA(NS).EQ.2.D0) THEN
+C     If plasma is composed of hydrogen and deuterium, INDHD=1
+            IF(INDH.EQ.1.AND.ABS(PA(NS)-2.D0).LT.0.5D0) THEN
                NSS(NEQ)=3
                INDHD=1
             ELSE
@@ -1209,7 +1221,8 @@ C
                ENDDO
  200           CONTINUE
             ENDIF
-         ELSEIF(PA(NS).EQ.3.D0) THEN
+         ELSEIF(ABS(PA(NS)-3.D0).LT.0.5D0) THEN
+C     regard the particle whose mass is between 2.5 and 3.5 as TRITIUM
             NEQ=NEQ+1
             IF(INDHD.EQ.1) THEN
                NSS(NEQ)=4
@@ -1232,7 +1245,8 @@ C
                ENDDO
  300           CONTINUE
             ENDIF
-         ELSEIF(PA(NS).EQ.4.D0) THEN
+         ELSEIF(ABS(PA(NS)-4.D0).LT.0.5D0) THEN
+C     regard the particle whose mass is between 3.5 and 4.5 as HELIUM
             NEQ=NEQ+1
             NSS(NEQ)=4
             NSV(NEQ)=NSW
@@ -1251,7 +1265,8 @@ C
                ENDDO
  400           CONTINUE
             ENDIF
-         ELSEIF(PA(NS).EQ.12.D0.AND.NSMAX.EQ.3) THEN
+         ELSEIF(ABS(PA(NS)-12.D0).LT.2.D0.AND.NSMAX.EQ.3) THEN
+C     regard the particle whose mass is between 10.0 and 14.0 as CARBON
             NEQ=NEQ+1
             NSS(NEQ)=3
             NSV(NEQ)=NSW

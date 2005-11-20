@@ -65,20 +65,40 @@ C
       DO NR=1,NRMAX
          DRL=RJCB(NR)/DR
          IF(NR.EQ.NRMAX) THEN
-            VTORL = VTOR(NR)
-            VPOLL = VPOL(NR)
             DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
-            ER(NR) = DPD*RKEV/(PZ(2)*AEE*PNSS(2))+VTORL*BP(NR)-VPOLL*BB
+            TERM_DP = DPD*RKEV/(PZ(2)*AEE*PNSS(2))
          ELSE
-            VTORL = 0.5D0*(VTOR(NR+1)+VTOR(NR))
-            VPOLL = 0.5D0*(VPOL(NR+1)+VPOL(NR))
             DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
      &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
-            ER(NR) = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
-     &              +VTORL*BP(NR)-VPOLL*BB
+            TERM_DP = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
          ENDIF
-C         write(6,'(2I3,4F15.7)') NT,NR,DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR
-C     &        +1,2)+RN(NR,2))),VTORL*BP(NR),VPOLL*BB,ER(NR)
+         IF(MDLER.EQ.0) THEN
+            ER(NR) = TERM_DP
+         ELSEIF(MDLER.EQ.1) THEN
+            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)
+         ELSEIF(MDLER.EQ.2) THEN
+            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)-VPOL(NR)*BB
+         ELSEIF(MDLER.EQ.3) THEN
+            EPS = EPSRHO(NR)
+            F_UNTRAP = 1.D0-1.46D0*SQRT(EPS)+0.46D0*EPS**1.5D0
+            ALPHA_NEO = 1.D0-0.8839D0*F_UNTRAP
+     &                 /(0.3477D0+0.4058D0*F_UNTRAP)
+            IF(NR.EQ.NRMAX) THEN
+               TEL = PTS(1)
+               TIL = PTS(2)
+               RLNI = -(LOG(2.D0*PNSS(2)-RN(NR,2))-LOG(RN(NR,2)))*DRL
+               RLTI = -(LOG(2.D0*PTS (2)-RT(NR,2))-LOG(RT(NR,2)))*DRL
+            ELSE
+               TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
+               TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
+               RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
+               RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
+            ENDIF
+            RHO_S = 4.57D-3*SQRT(PA(2)*TIL)/(PZ(2)*BB)
+            CS = SQRT(TEL*RKEV/(PA(2)*AMM))
+            ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)
+     &                   -EPS/QP(NR)*VTOR(NR))
+         ENDIF
       ENDDO
 C
 C     *****
@@ -306,10 +326,13 @@ C
      &                +TRZEFE(TE)**2  *ANFE(NR))/RN(NR,1)
          ENDDO
       ELSE
-         DO NR=1,NRMAX
-            ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
-     &                +PZ(3)  *PZ(3)  *RN(NR,3))/RN(NR,1)
-         END DO
+         IF(MDLEQN.EQ.0) THEN ! fixed density
+            DO NR=1,NRMAX
+               ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2)
+     &                   +PZ(3)  *PZ(3)  *RN(NR,3)
+     &                   +PZ(2)  *PZ(2)  *RNF(NR,1))/RN(NR,1)
+            ENDDO
+         ENDIF
       ENDIF
 C
       DO NR=1,NRMAX

@@ -92,7 +92,7 @@ C
          ENDIF
 C     Calculate ExB velocity in advance 
 C                            for ExB shearing rate calculation
-         VEXB(NR)= ER(NR)/BB
+         VEXB(NR)= -ER(NR)/BB
       ENDDO
 C
       DO NR=1,NRMAX
@@ -246,7 +246,6 @@ C     second derivative of effective pressure
 C
 C     safety factor and its gradient on grid
          DQ = DERIV3P(NR,RHOG,QP,NRMAX,NRM)
-C         if(nr.eq.1) write(6,*) DQ,(QP(NR+1)-QP(NR))/1.D0*DRL
          QL = QP(NR)
 C
 C     sound speed for electron
@@ -326,6 +325,7 @@ C     rotational shear
 C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
          DVE = DERIV3P(NR,RHOG,VEXB,NRMAX,NRM)
          WEXB(NR) = (S-1.D0)*VEXB(NR)/RHOG(NR)+DVE
+C     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
 C
 C   *************************************************************
@@ -847,11 +847,9 @@ C     &                /(PZ(2)*RA*BB)
             AKDW(NR,4)=0.D0
          ENDIF
       ENDDO
-C      STOP
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM,ALFA_AR)
-         STOP
       ELSEIF(MDLKAI.EQ.62) THEN
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)

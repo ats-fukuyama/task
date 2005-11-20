@@ -684,7 +684,6 @@ cx        angrotp_exp(j)=corot*angrotp_exp(j)
      > (zpni_m(j)+alpha_neo*zpti_m(j))*vstar_sign*pgeo_local
      > -rho(j)*rdrho_local*
      >  arho_exp/rmajor_exp/q_exp(j)*rmajor_exp*angrotp_exp(j)
-        write(6,*) j,ve(j)
 
         vpar(j)=rmajor_exp*angrotp_exp(j)-vstar_sign*
      > (ti_m(j)/te_m(j))*csda_m(j)*arho_exp*rhosda_m(j)*pgeo_local*
