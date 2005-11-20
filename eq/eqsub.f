@@ -2,7 +2,7 @@ C     $Id$
 C
 C     ***** CALCULATE MAGNETIC AXIS AND EDGE *****
 C
-      SUBROUTINE EQCALX(IERR)
+      SUBROUTINE EQAXIS(IERR)
 C
       INCLUDE '../eq/eqcomc.inc'
 C
@@ -16,7 +16,7 @@ C
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IER)
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX EQCALX: SPL2D for PSIRZ: IER=',IER
+         WRITE(6,*) 'XX EQAXIS: SPL2D for PSIRZ: IER=',IER
          IERR=101
          RETURN
       ENDIF
@@ -35,8 +35,8 @@ C
      &           DELT,EPS,ILMAX,LIST,IER)
       IF(IER.NE.0) THEN
          WRITE(6,'(A,I5,1P2E12.4)')
-     &        'XX EQCALX: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
-         WRITE(6,'(A)') 'XX EQCALX: AXIS NOT FOUND:'
+     &        'XX EQAXIS: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
+         WRITE(6,'(A)') 'XX EQAXIS: AXIS NOT FOUND:'
          IERR=102
          RETURN
       ENDIF
@@ -47,7 +47,7 @@ C
          PSI0=PSIG(RAXIS,ZAXIS)
          PSIPA=-PSI0
       ELSE
-         WRITE(6,'(A)') 'XX EQCALX: AXIS OUT OF PLASMA:'
+         WRITE(6,'(A)') 'XX EQAXIS: AXIS OUT OF PLASMA:'
          IERR=103
          RETURN
       ENDIF

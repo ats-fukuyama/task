@@ -23,6 +23,7 @@ C
       CALL EQINIT
       CALL PLPARM(1,'plparm',IERR)
       CALL EQPARM(1,'eqparm',IERR)
+      CALl EQTABL
 C
       CALL EQMENU
 C

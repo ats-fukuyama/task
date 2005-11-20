@@ -11,7 +11,7 @@ C
 C
       IERR=0
 C
-      CALL EQCALX(IERR)
+      CALL EQAXIS(IERR)
       IF(IERR.NE.0) RETURN
 C
       DR=(REDGE-RAXIS)/(NRVMAX-1)

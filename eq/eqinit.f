@@ -153,8 +153,8 @@ C
       NTGMAX = 32
       NUGMAX = 32
 C
-      NRGMAX = 32
-      NZGMAX = 32
+      NRGMAX = 33
+      NZGMAX = 33
       NPSMAX = 21
 C
       NRMAX  = 50
@@ -184,6 +184,8 @@ C            7: given spline profile    P,Jparapllel      + Ip
 C            8: given spline profile    P,Jparapllel
 C            9: given spline profile    P,q
 C
+C           10: Free boundary
+C
       MDLEQF = 0
 C
 C        MDLEQA : Rho in P(rho), F(rho), q(rho),...
@@ -205,6 +207,38 @@ C            2: print all loop
 C
       NPRINT= 0
 C
+C        RGMIN: Minimum R of coputation region [m]
+C        RGMAX: Maxmum  R of coputation region [m]
+C        ZGMIN: Minimum Z of coputation region [m]
+C        ZGMAX: Maxmum  Z of coputation region [m]
+C
+      RGMIN = 1.5D0
+      RGMAX = 4.5D0
+      ZGMIN =-2.0D0
+      ZGMAX = 2.0D0
+C
+C        PSIB(0:5): Multipole moments of poloidal flux PSIRZ on boundary
+C
+      PSIB(0) = -0.2D0
+      PSIB(1) =  0.01D0
+      PSIB(2) =  0.D0
+      PSIB(3) =  0.D0
+      PSIB(4) =  0.D0
+      PSIB(5) =  0.D0
+C
+C        NPFCNAX : Number of poloidal field coils (PFXs)
+C        RIPFC(NPFC) : PFC coil current    [MA]
+C        RPFC(NPFC)  : PFC coil position R [m]
+C        ZPFC(NPFC)  : PFC coil position Z [m]
+C        WPFC(NPFC)  : PFC coil width      [m]
+C
+      NPFCMAX = 0
+      DO NPFC=1,NPFCM
+         RIPFC(NPFC) = 0.D0
+         RPFC(NPFC)  = 3.D0
+         ZPFC(NPFC)  =-1.75D0
+         WPFC(NPFC)  = 0.75D0
+      ENDDO
       RETURN
       END
 C
@@ -254,10 +288,11 @@ C
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,
      &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,
-     &              NRGMAX,NZGMAX,
+     &              NRGMAX,NZGMAX,RGMIN,RGMAX,RZMIN,RZMAX,
      &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
-     &              MDLEQF,MDLEQC,MDLEQA,NPRINT
+     &              MDLEQF,MDLEQC,MDLEQA,NPRINT,
+     &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -287,7 +322,9 @@ C
      &       9X,'PROFR0,PROFR1,PROFR2,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
-     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX')
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX'/
+     &       9X,'RGMIN,RGMAX,RZMIN,RZMAX'/
+     &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -365,6 +402,10 @@ C
      &             'QMIN  ',QMIN,
      &             'RB    ',RB,
      &             'PROFJ ',PROFJ
+      WRITE(6,601) 'RGMIN ',RGMIN,
+     &             'RGMAX ',RGMAX,
+     &             'ZGMIN ',ZGMIN,
+     &             'ZGMAX ',ZGMAX
       WRITE(6,601) 'PP0   ',PP0,
      &             'PROFP0',PROFP0,
      &             'PJ0   ',PJ0,
@@ -398,6 +439,12 @@ C
      &             'PROFR1',PROFR1,
      &             'PROFR2',PROFR2,
      &             'RHOITB',RHOITB
+      IF(MDLEQF.GT.10.AND.MDLEQF.LT.19) THEN
+         DO NPFC=1,NPFCMAX
+            WRITE(6,603) 
+     &           NPFC,RIPFC(NPFC),RPFC(NPFC),ZPFC(NPFC),WPFC(NPFC)
+         ENDDO
+      ENDIF
       WRITE(6,602) 'NSGMAX',NSGMAX,
      &             'NTGMAX',NTGMAX,
      &             'NUGMAX',NUGMAX
@@ -419,4 +466,5 @@ C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))
   602 FORMAT(4(A6,'=',I7:6X))
+  603 FORMAT(4(A6,'=',I7:6X))
       END

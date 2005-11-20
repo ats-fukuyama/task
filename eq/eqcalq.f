@@ -61,10 +61,10 @@ C
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for HJTRZ: IERR=',IERR
 C
-C      DO NPS=1,NPSMAX
-C         WRITE(6,'(A,I5,1P3E12.4)') 'NPS:',NPS,PSIPS(NPS),
-C     &                             PPPS(NPS),TTPS(NPS)
-C      ENDDO
+      DO NPS=1,NPSMAX
+         WRITE(6,'(A,I5,1P3E12.4)') 'NPS:',NPS,PSIPS(NPS),
+     &                             PPPS(NPS),TTPS(NPS)
+      ENDDO
 C
       CALL SPL1D(PSIPS,PPPS,  DERIV,UPPPS, NPSMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPPS: IERR=',IERR
@@ -93,7 +93,7 @@ C
 C
       IERR=0
 C
-      CALL EQCALX(IERR)
+      CALL EQAXIS(IERR)
       IF(IERR.NE.0) RETURN
 C
 C     ----- SET DR, DTH -----
