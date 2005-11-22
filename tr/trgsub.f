@@ -1115,7 +1115,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,1))
-            CALL LAGLANGE(TSL,RTL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
          ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1123,7 +1123,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
-            CALL LAGLANGE(TSL,RTL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
           ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1132,7 +1132,7 @@ C
          IF(MDLJQ.NE.1) THEN
             DO NR=1,NRMAX
                GYR(NR+1,1) = GUCLIP(QP(NR))
-               CALL LAGLANGE(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
                GYR(NR+1,2) = GUCLIP(QPL)
             ENDDO
             GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
@@ -1142,7 +1142,7 @@ C
          ELSE
             DO NR=1,NRMAX
                GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
-               CALL LAGLANGE(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
                GYR(NR,2) = GUCLIP(AJL*1.D-6)
             ENDDO
             CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1151,7 +1151,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR+1,1) = GUCLIP(BP(NR))
-            CALL LAGLANGE(TSL,BPL,TMU,BPU(1,NR),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,BPL,TMU,BPU(1,NR),NTXMAX,NTUM,IERR)
             GYR(NR+1,2) = GUCLIP(BPL)
          ENDDO
          GYR(1,1) = 0.0
@@ -1212,7 +1212,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,1))
-            CALL LAGLANGE(TSL,RTL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
          ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1220,7 +1220,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RT(NR,2))
-            CALL LAGLANGE(TSL,RTL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
          ENDDO
          CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1228,7 +1228,7 @@ C
 C
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(AJ(NR)    *1.D-6)
-            CALL LAGLANGE(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(AJL*1.D-6)
          ENDDO
          CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1237,7 +1237,7 @@ C
          IF(KUFDEV.EQ.'X'.AND.KUFDCG.EQ.'14') THEN
             DO NR=1,NRMAX
                GYR(NR,1) = GUCLIP(AJBS(NR)    *1.D-6)
-               CALL LAGLANGE(TSL,AJL,TMU,AJBSU(1,NR),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,AJL,TMU,AJBSU(1,NR),NTXMAX,NTUM,IERR)
                GYR(NR,2) = GUCLIP(AJL*1.D-6)
             ENDDO
             CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
@@ -1245,7 +1245,7 @@ C
          ELSE
             DO NR=1,NRMAX
                GYR(NR+1,1) = GUCLIP(QP(NR))
-               CALL LAGLANGE(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
+               CALL TIMESPL(TSL,QPL,TMU,QPU(1,NR),NTXMAX,NTUM,IERR)
                GYR(NR+1,2) = GUCLIP(QPL)
             ENDDO
             GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
@@ -1347,7 +1347,7 @@ C
       ELSE
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(POH(NR)*1.D-6)
-            CALL LAGLANGE(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,POHU(1,NR),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL*1.D-6)
          ENDDO
       ENDIF
@@ -1362,7 +1362,7 @@ C
       ELSE
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(ZEFF(NR))
-            CALL LAGLANGE(TSL,RTL,TMU,ZEFFU_ORG(1,NR),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RTL,TMU,ZEFFU_ORG(1,NR),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RTL)
          ENDDO
       ENDIF
@@ -1377,8 +1377,8 @@ C
       ELSE
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RN(NR,2))
-            CALL LAGLANGE(TSL,RN2L,TMU,RNU_ORG(1,NR,2),NTXMAX,NTUM,IERR)
-            CALL LAGLANGE(TSL,RN4L,TMU,RNU_ORG(1,NR,4),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RN2L,TMU,RNU_ORG(1,NR,2),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RN4L,TMU,RNU_ORG(1,NR,4),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RN2L+RN4L)
          ENDDO
       ENDIF
@@ -1393,7 +1393,7 @@ C
       ELSE
          DO NR=1,NRMAX
             GYR(NR,1) = GUCLIP(RN(NR,3))
-            CALL LAGLANGE(TSL,RNL,TMU,RNU_ORG(1,NR,3),NTXMAX,NTUM,IERR)
+            CALL TIMESPL(TSL,RNL,TMU,RNU_ORG(1,NR,3),NTXMAX,NTUM,IERR)
             GYR(NR,2) = GUCLIP(RNL)
          ENDDO
       ENDIF

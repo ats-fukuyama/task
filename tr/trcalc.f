@@ -465,7 +465,7 @@ C
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             DO NR=1,NRMAX
-C               CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
+C               CALL TIMESPL(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
 C               PRL(NR)=PRLL
                PRL(NR)=PRLU(1,NR)
             ENDDO
@@ -473,7 +473,7 @@ C               PRL(NR)=PRLL
             TSL=DT*DBLE(NT)
             IF(KUFDEV.EQ.'X') THEN
                DO NR=1,NRMAX
-                  CALL LAGLANGE(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,
+                  CALL TIMESPL(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,
      &                          IERR)
                   PRL(NR)=PRLL
                ENDDO
