@@ -1,4 +1,61 @@
 C
+C     ********************************************
+C     **  Time splitting through interpolation  **
+C     ********************************************
+C
+      SUBROUTINE TIMESPL(T,F,TA,FA,NTMAX,NTM,IERR)
+C
+C     You can choose interpolation method;
+C        either spline, aitken-neville or laglange method.
+C     From the aspect of trade-off between accuracy and expended time,
+C        we recommend you use Aitken-Neville method.
+C
+C     <input>
+C        T     : designated time
+C        TA    : time array
+C        FA    : fuction value array
+C        NTMAX : maximum number
+C        NTM   : maximum number of array
+C     <output>
+C        F     : function value for designated time
+C        IERR  : error indicator
+C
+      IMPLICIT NONE
+      INTEGER NTMAX,NTM,IERR
+      REAL*8 T,F,TA(NTM),FA(NTM)
+      INTEGER NT,ID,MODE,SPL,AIT,LAG
+      REAL*8 DERIV4,FXA(NTM),U(4,NTM)
+C
+      SPL=0
+      AIT=1
+      LAG=2
+      MODE=AIT
+C
+      IF(MODE.EQ.0) THEN
+C     calculate first derivative
+         DO NT=1,NTMAX-3
+            FXA(NT)=DERIV4(FA(NT),FA(NT+1),FA(NT+2),FA(NT+3),
+     &                     TA(NT),TA(NT+1),TA(NT+2),TA(NT+3))
+         ENDDO
+         DO NT=NTMAX-2,NTMAX
+            FXA(NT)=DERIV4(FA(NT),FA(NT-1),FA(NT-2),FA(NT-3),
+     &                     TA(NT),TA(NT-1),TA(NT-2),TA(NT-3))
+         ENDDO
+         CALL SPL1D(TA,FA,FXA,U,NTMAX,ID,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TIMESPL: SPL1D ERROR',IERR
+C
+         CALL SPL1DF(T,F,TA,U,NTMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX TIMESPL: SPL1DF ERROR',IERR
+      ELSEIF(MODE.EQ.1) THEN
+         CALL AITKEN(T,F,TA,FA,4,NTMAX)
+      ELSEIF(MODE.EQ.2) THEN
+         CALL LAGLANGE(T,F,TA,FA,NTMAX,NTM,IERR)
+C         IF(IERR.NE.0) WRITE(6,*) 'XX TIMESPL: LAGLANGE ERROR',IERR
+      ENDIF
+C
+      RETURN
+      END
+C
 C   *******************************************
 C   **    LAGRANGEAN INTERPOLATION METHOD    **
 C   *******************************************
@@ -158,6 +215,93 @@ C
       IERR=1
       RETURN
 C
+      END
+C
+C     *****************************************************
+C     **  Aitken-Neville iterated linear interpolations  **
+C     *****************************************************
+C
+      SUBROUTINE AITKEN(X0,F0,XI,F,M,N)
+C
+C     <input>
+C        X0    : designated point
+C        XI(N) : data point array
+C        F(N)  : data array
+C        M     : order (up to 10)
+C        N     : maximum array argument
+C     <output>
+C        F0    : interpolated value
+C
+      IMPLICIT NONE
+      INTEGER I, I1, J, K, KPM, L, M, M1, M2, N, NP1MM
+      REAL*8 X0, X1, F0, XI(N), F(N) 
+      REAL*8 X(10), Y(10), VAL(10,10)
+C
+      X1 = XI(1)
+      M2 = (M + 1)/2
+      DO I = 1, N
+         IF(XI(I).GE.X0) THEN
+            K=I-1
+            GOTO 10
+         ENDIF
+      ENDDO
+ 10   IF (K .GT. M2) THEN
+         IF (N .GT. K + M2) THEN
+            L = M2
+         ELSE
+            L = M + 1 - N + K
+         ENDIF
+      ELSE
+         L = K
+      ENDIF
+      M1 = M + 1
+      DO I = 1, M1
+         I1 = I + K - L
+         Y(I) = F(I1)
+         X(I) = XI(I1)
+      ENDDO
+C
+      DO J = 1, M
+         VAL(1,J) = (Y(J) * (X0 - X(J+1)) - Y(J+1) * (X0 - X(J)))
+     &             /(X(J) - X(J+1))
+      ENDDO
+      DO I = 2, M
+         NP1MM = M + 1 - I
+         DO K = 1, NP1MM
+            KPM = K + I
+            VAL(I,K) = (VAL(I-1,K) * (X0 - X(KPM)) - VAL(I-1,K+1)
+     &                * (X0 - X(K))) / (X(K) - X(KPM))
+         ENDDO
+      ENDDO
+      F0 = VAL(M,1)
+C
+      RETURN
+      END
+C
+C     ****************************************************
+C     **  Derivative calculated from adjacent 3 points  **
+C     ****************************************************
+C     -- This formulation has a third-order accuracy. --
+C
+      FUNCTION DERIV4(F0,F1,F2,F3,X0,X1,X2,X3)
+C
+      IMPLICIT NONE
+      REAL*8 DERIV4,F0,F1,F2,F3,X0,X1,X2,X3
+      REAL*8 DX1,DX2,DX3
+C
+      DX1 = X1 - X0
+      DX2 = X2 - X0
+      DX3 = X3 - X0
+C
+      DERIV4 = - F1 * DX2**2 * DX3**2 * (DX2 - DX3)
+     &         - F2 * DX3**2 * DX1**2 * (DX3 - DX1)
+     &         - F3 * DX1**2 * DX2**2 * (DX1 - DX2)
+     &         - F0 * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1)
+     &              * (DX1 * DX2 + DX2 * DX3 + DX3 * DX1)
+      DERIV4 = DERIV4 / (DX1 * DX2 * DX3
+     &                * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1))
+C
+      RETURN
       END
 C
 C     ****************************************************
