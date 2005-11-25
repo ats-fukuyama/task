@@ -1495,13 +1495,13 @@ C
       DO NR=1,NRMAX
          ER_ORG(NR)=ER(NR)
       ENDDO
-      DO MDLER=0,3
+      DO MDLER=1,4
          CALL TRERAD
          DO NR=1,NRMAX
-            GYR(NR,MDLER+1)=GUCLIP(ER(NR))
+            GYR(NR,MDLER)=GUCLIP(ER(NR))
          ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,24.0, 1.1,17.0,GRG,GYR,NRM,NRMAX,4,
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRM,NRMAX,4,
      &            '@ER  vs r@',2+INQ)
 C
       MDLER=MDLER_ORG
