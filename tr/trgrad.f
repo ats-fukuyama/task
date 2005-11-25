@@ -30,7 +30,7 @@ C
       IF (IERR.EQ.1) GOTO 100
 C
  200  CALL TRGRTD(STRL,KVL,NMB)
-      IF(NMB.GE.61) NMB=60
+      IF(NMB.GE.62) NMB=61
       CALL TRGRUR(G3D(1,1,NMB),STRL,KVL,INQ)
 C
  100  RETURN
@@ -46,7 +46,7 @@ C
 C
       INCLUDE 'trcomm.inc'
       CHARACTER STRL*80,KVL*80
-      CHARACTER STR0(60)*80,KV0(60)*80
+      CHARACTER STR0(61)*80,KV0(61)*80
 C
       DATA STR0/'@TE [keV] vs t@','@TD [keV] vs t@',
      &          '@TT [keV] vs t@','@TA [keV] vs t@',
@@ -79,7 +79,7 @@ C
      &          '@GRHO1 vs t@','@GRHO2 vs t@',
      &          '@AKDWE vs t@','@AKDWI vs t@',
      &          '@PE [MPa] vs t@','@PI [MPa] vs t@',
-     &          '@VTOR [m/s] vs t@'/
+     &          '@VTOR [m/s] vs t@','@VPOL [m/s] vs t@'/
 C
       DATA KV0 /'@TE@','@TD@','@TT@','@TA@',
      &          '@NE@','@ND@','@NT@','@NA@',
@@ -95,7 +95,7 @@ C
      &          '@NFAST@','@NIMP@','@BPOL@','@PSI@',
      &          '@RMAJOR@','@RMINOR@','@VOLUME@','@KAPPAR@',
      &          '@DELTAR@','@GRHO1@','@GRHO2@',
-     &          '@AKTBE@','@AKTBI@','@PE@','@PI@','@VTOR@'/
+     &          '@AKTBE@','@AKTBI@','@PE@','@PI@','@VTOR@','@VPOL@'/
       SAVE STR0, KV0
 C
       STRL=STR0(NMB)
@@ -112,7 +112,7 @@ C     **************************************************************
 C
       SUBROUTINE GETVPL(KVPL,NP)
 C
-      CHARACTER KVPL*4,KVP(60)*4
+      CHARACTER KVPL*4,KVP(61)*4
 C
       DATA KVP /'TE  ','TD  ','TT  ','TA  ',
      &          'NE  ','ND  ','NT  ','NA  ',
@@ -126,7 +126,7 @@ C
      &          'AJEC','AJLH','AJIC',
      &          'NFST','NIMP','BP  ','PSI',
      &          'RMJ ','RMN ','VOL ','LKAP','DLT ','GRH1','GRH2',
-     &          'AKTE','AKTI','PE','PI','VTOR'/
+     &          'AKTE','AKTI','PE','PI','VTOR','VPOL'/
 C      SAVE KVP
 C
       KVPL=KVP(NP)
@@ -144,7 +144,7 @@ C
       CHARACTER KK*4,KVPL*4
 C
       IERR=0
-      DO NP=1,60
+      DO NP=1,61
          CALL GETVPL(KVPL,NP)
          IF (KK.EQ.KVPL) THEN
             NMB=NP
@@ -164,9 +164,9 @@ C     **************************************************************
 C
       SUBROUTINE VIEW3DLIST
 C
-      CHARACTER KVP(60)*4
+      CHARACTER KVP(61)*4
 C
-      DO I=1,60
+      DO I=1,61
          CALL GETVPL(KVP(I),I)
       ENDDO
       WRITE(6,700)
@@ -182,6 +182,7 @@ C
       WRITE(6,800) (KVP(I),I=46,50)
       WRITE(6,810) (KVP(I),I=51,55)
       WRITE(6,820) (KVP(I),I=56,60)
+      WRITE(6,830) (KVP(I),I=61,61)
 C
  700  FORMAT(' ',
      &       '# 3D GRAPHICS LIST (EACH ONE IS CONSIST OF 4 LETTERS)')
@@ -197,6 +198,7 @@ C
  800  FORMAT(' ','46-50: ',4(A4,', '),A4)
  810  FORMAT(' ','51-55: ',4(A4,', '),A4)
  820  FORMAT(' ','56-60: ',4(A4,', '),A4)
+ 830  FORMAT(' ','61-61: ',1(A4,', '),A4)
 C
       RETURN
       END

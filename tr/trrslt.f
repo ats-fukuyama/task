@@ -582,7 +582,9 @@ C
          G3D(NR,NGT,57) = GUCLIP(AKDW(NR,2))
          G3D(NR,NGT,58) = GUCLIP(RN(NR,1)*RT(NR,1))
          G3D(NR,NGT,59) = GUCLIP(RN(NR,2)*RT(NR,2))
+C
          G3D(NR,NGT,60) = GUCLIP(VTOR(NR))
+         G3D(NR,NGT,61) = GUCLIP(VPOL(NR))
 C
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
