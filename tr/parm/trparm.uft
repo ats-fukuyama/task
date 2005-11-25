@@ -13,13 +13,11 @@
    KUFDCG='79169'
    PROFJ1=2.0
    RHOA=1.0
-   MDNI=3
+   MDNI=1
    PROFN1=1
    PROFN2=1.5
    PROFT1=1
    PROFT2=1.5
    MDLEOI=1
    MDLKAI=31
-   CK0=12
-   CK1=12
  &end

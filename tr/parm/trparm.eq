@@ -1,10 +1,11 @@
  &tr
    NGRSTP=50
+   NGTSTP=2
    MDNCLS=1
    NTMAX=100
    MDLEQB=1
-   MDLEQN=1
-   MDLEQ0=1
+   MDLEQN=0
+   MDLEQ0=0
    MDLJBS=5
    MDLETA=3
    MDLAD=3
@@ -15,4 +16,6 @@
    AD0=0.1
    MDLUF=0
    PROFJ1=-2.0
+   MODELG=9
+   NTEQIT=10
  &end

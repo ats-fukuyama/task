@@ -13,7 +13,7 @@
    KUFDCG='82188'
    TIME_INT=3.775
    MODEP=2
-   MDNI=3
+   MDNI=1
    RHOA=0.9
    PROFN1=1
    PROFN2=1.5

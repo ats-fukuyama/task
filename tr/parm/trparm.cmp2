@@ -21,7 +21,6 @@
    RA=0.8
    RKAP=1.0
    RIPS=1.0
-   RIPSS=1.0
    RIPE=1.0
    BB=4.0
    PN(1)=0.3

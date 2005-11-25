@@ -7,6 +7,7 @@
    MDLEQB=0
    NSMAX=2
    MDLKAI=63
+   MDCD05=0
    MDLWLD=1
    MDNCLS=1
    MDLFLX=1
@@ -17,7 +18,7 @@
    TIME_INT=0.0
    MDTC=0
    MODEP=2
-   MDNI=3
+   MDNI=1
    RHOA=0.9
    MDLJQ=0
    PA(3)=12
