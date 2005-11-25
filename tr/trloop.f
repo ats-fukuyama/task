@@ -18,6 +18,7 @@ C
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
+         DIP=0.D0
       ELSE
          NT=0
          RIP=RIPS
@@ -275,11 +276,25 @@ C
       VSEC=VSEC+VLOOP*DT
       IF(Q0.LT.1.D0) TST=TST+DT
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+C     calculate plasma current at next time from interpolating data
          TSL=DT*DBLE(NT)
          CALL TIMESPL(TSL,RIP,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-      ELSE
-         RIP=RIP+DIP
+         IF(MDLEQB.NE.0) THEN
+C     calculate poloidal flux (derivative) of uncalculated region
+C     i.e. rho < rhoa
+            IF(RHOA.NE.1.D0) NRMAX=NROMAX
+            DO NR=NRAMAX+1,NRMAX
+               CALL TIMESPL(TSL,AJL,TMU,AJU  (1,NR),NTXMAX,NTUM,IERR)
+               AJ(NR)=AJL
+               FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
+               FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
+               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
+               RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
+            ENDDO
+            IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+         ENDIF
       ENDIF
+      RIP=RIP+DIP
 C      write(6,'(A,1P3E12.5)') "RIP,RIPE,DIP=",RIP,RIPE,DIP
 C
 C     /* Making new XV(NEQ,NR) and YV(NF,NR) */
@@ -372,7 +387,12 @@ C     ***
 C
       IF(NT.LT.NTMAX) GOTO 1000
 C
- 9000 IF(MDLUF.NE.1.AND.MDLUF.NE.3) RIPS=RIPE
+ 9000 IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         RIPS=RIP
+         RIPE=RIP
+      ELSE
+         RIPS=RIPE
+      ENDIF
       RETURN
       END
 C
@@ -406,18 +426,8 @@ C
          RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
          RDPS=RDPA-4.D0*PI*PI*RMU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ENDIF
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         IF(NT.EQ.0) THEN
-            TSL=DT*DBLE(1)
-            CALL TIMESPL(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-            RDPS=2.D0*PI*RMU0*RIPL*1.D6
-     &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
-         ELSE
-            TSL=DT*DBLE(NT)
-            CALL TIMESPL(TSL,RIPL,TMU1,RIPU,NTXMAX1,NTUM,IERR)
-            RDPS=2.D0*PI*RMU0*RIPL*1.D6
-     &           /(DVRHOG(NRMAX)*ABRHOG(NRMAX))
-         ENDIF
+      IF(MDLUF.NE.0) THEN
+         RDPS=2.D0*PI*RMU0*RIPA*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
       ENDIF
 C
       COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)

@@ -8,6 +8,7 @@ C
       SUBROUTINE TRPROF
 C
       INCLUDE 'trcomm.inc'
+      DIMENSION DSRHO(NRM)
       COMMON /TMSLC2/ NTAMAX
 C
       T     = 0.D0
@@ -366,7 +367,7 @@ C
 C     *** THIS MODEL ASSUMES GIVEN JZ PROFILE ***
 C
       IF(MDLUF.EQ.1) THEN
-         IF(MDLJQ.EQ.0) THEN
+         IF(MDLJQ.EQ.0) THEN ! *** MDLJQ ***
          NR=1
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
@@ -398,7 +399,7 @@ C
          DO NR=1,NRMAX
             QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
          ENDDO
-         ELSEIF(MDLJQ.EQ.1) THEN
+         ELSE ! *** MDLJQ ***
          DO NR=1,NRMAX
             QP(NR) =QPU(1,NR)
             RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
@@ -427,9 +428,9 @@ C
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
-         ENDIF
+         ENDIF ! *** MDLJQ ***
       ELSEIF(MDLUF.EQ.2) THEN
-         IF(MDLJQ.EQ.0) THEN
+         IF(MDLJQ.EQ.0) THEN  ! *** MDLJQ ***
             NR=1
             AJ(NR)=AJU(1,NR)
             AJNB(NR)=AJNBU(1,NR)
@@ -472,7 +473,7 @@ C
             QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
          ENDDO
 C
-         ELSE
+         ELSE ! *** MDLJQ ***
 C
          DO NR=1,NRMAX
             QP(NR) =QPU(1,NR)
@@ -501,7 +502,9 @@ C
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
                AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
             ENDDO
-         ENDIF
+         ENDIF ! *** MDLJQ ***
+         RIPA=DVRHOG(NRAMAX)*ABRHOG(NRAMAX)*RDP(NRAMAX)*1.D-6
+     &       /(2.D0*PI*RMU0)
       ELSEIF(MDLUF.EQ.3) THEN
          DO NR=1,NRMAX
             AJOH(NR)=AJU(1,NR)
@@ -577,6 +580,18 @@ C
          ENDDO
       ENDIF
       Q0=(4.D0*QP(1)-QP(2))/3.D0
+C
+C     calculate plasma current inside the calucated region (rho <= rhoa)
+C     necessary for MDLEQB = 1 and MDLUF /= 0
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         VOL=0.D0
+         DO NR=1,NRAMAX
+            VOL=VOL+DVRHO(NR)*DR
+            DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+         ENDDO
+         CALL TRSUMD(AJ   ,DSRHO,NRAMAX,AJTSUM )
+         RIPA=AJTSUM*DR/1.D6
+      ENDIF
 C
 C     *** THIS MODEL ASSUMES CONSTANT EZ ***
 C

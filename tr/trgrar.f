@@ -425,6 +425,7 @@ c$$$      CALL TEXT('PELRAD=',7)
 c$$$      CALL NUMBD(PELRAD,'(1PE10.3)',10)
 c$$$      CALL TEXT('[m]',3)
 C
+      CALL TRGRTM
       CALL PAGEE
 C
       RETURN

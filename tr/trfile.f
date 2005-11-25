@@ -1554,7 +1554,7 @@ C
             IF(FAT(NTX,NR).LT.0.D0) THEN
                PICU(NTX,NR,1)=0.D0
             ELSE
-               PICU(NTX,NR,1)=FAT(NTX,NR)
+               PICU(NTX,NR,1)=FAT(NTX,NR)!*5.D0
             ENDIF
          ENDDO
       ENDDO
@@ -1567,7 +1567,7 @@ C
             IF(FAT(NTX,NR).LT.0.D0) THEN
                PICU(NTX,NR,2)=0.D0
             ELSE
-               PICU(NTX,NR,2)=FAT(NTX,NR)
+               PICU(NTX,NR,2)=FAT(NTX,NR)!*5.D0
             ENDIF
          ENDDO
       ENDDO
@@ -2585,6 +2585,7 @@ C
       SUBROUTINE TR_UFREAD
 C
       INCLUDE 'trcomm.inc'
+      DIMENSION DSRHO(NRM),AJTMP(NRM)
       COMMON /TRINS1/ INS
       COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
       COMMON /TMSLC2/ NTAMAX
@@ -2691,7 +2692,8 @@ C
          RNF(NR,1)=RNFL
       ENDDO
       CALL TRGFRG
-      IF(MDLJQ.EQ.0) THEN
+      IF(MDLEQB.EQ.0) THEN ! *** MDLEQB ***
+      IF(MDLJQ.EQ.0) THEN ! *** MDLJQ ***
          NR=1
             CALL TIMESPL(TSL,AJL  ,TMU,AJU  (1,NR),NTXMAX,NTUM,IERR)
             CALL TIMESPL(TSL,AJNBL,TMU,AJNBU(1,NR),NTXMAX,NTUM,IERR)
@@ -2724,12 +2726,31 @@ C
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
-      ELSE
+      ELSE ! *** MDLJQ ***
          DO NR=1,NRMAX
             RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
             BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
-      ENDIF
+      ENDIF ! *** MDLJQ ***
+      ELSE ! *** MDLEQB ***
+C     boundary condition for polidal flux at rhoa defined by exp. data
+         VOL=0.D0
+         DO NR=1,NRAMAX
+            CALL TIMESPL(TSL,AJL ,TMU,AJU  (1,NR),NTXMAX,NTUM,IERR)
+            VOL=VOL+DVRHO(NR)*DR
+            DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+            AJTMP(NR)=AJL
+         ENDDO
+         CALL TRSUMD(AJTMP,DSRHO,NRAMAX,AJTSUM)
+         RIPA=AJTSUM*DR/1.D6
+C
+         DO NR=1,NRMAX
+            CALL TIMESPL(TSL,AJNBL,TMU,AJNBU(1,NR),NTXMAX,NTUM,IERR)
+            AJNB(NR)=AJNBL
+            BP(NR)=AR1RHOG(NR)*RDP(NR)/RR
+            QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
+         ENDDO
+      ENDIF ! *** MDLEQB ***
       ELSEIF(MDLUF.EQ.3) THEN ! *** MDLUF ***
       DO NR=1,NRMAX
          CALL TIMESPL(TSL,RNEL ,TMU,RNU(1,NR,1),NTXMAX,NTUM,IERR)

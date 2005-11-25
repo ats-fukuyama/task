@@ -546,7 +546,8 @@ C
             ELSEIF(MDLKAI.EQ.31) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-C               FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
+               IF(MDCD05.NE.0) 
+     &              FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN
@@ -555,8 +556,13 @@ C               FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
                DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
                DELTAE=SQRT(DELTA2)
                SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+CC               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+               WE1=-QL*RR/(SL*VA)*DVE
+C               write(6,*) NR!,WE1
+C     &             ,SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
+               IF(MDCD05.NE.0) 
+     &              FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.33) THEN
@@ -847,6 +853,7 @@ C     &                /(PZ(2)*RA*BB)
             AKDW(NR,4)=0.D0
          ENDIF
       ENDDO
+C      STOP
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM,ALFA_AR)
@@ -1770,3 +1777,27 @@ C
 C
       RETURN
       END
+c$$$C
+c$$$C     ***********
+c$$$C
+c$$$      FUNCTION fg1(s,a)
+c$$$      IMPLICIT NONE
+c$$$      REAL*8 fg1, s, a, c, f
+c$$$C
+c$$$      c = 3.d0 * (s - a)**2 / (0.5d0 + a - s)
+c$$$C
+c$$$      if(c.lt.-1.d0) then
+c$$$         write(6,*) 'XX FUNCTION FG1: ERROR'
+c$$$         stop
+c$$$      endif
+c$$$      f =(1.d0 + 2.d0 * a - 2.d0 * s) * sqrt(2.d0 + c)
+c$$$C
+c$$$      fg1 =(9.d0 / 8.d0 * (1.d0 + 4.d0 / (3.d0 * a * f))**2
+c$$$     &    + 2.5d1 * (s - a)**2 / (4.d0 * (1.d0 + 2.d0 * a - 2.d0 * s))
+c$$$     &    * sqrt((2.d0 + c) / (1.d0 + c)) 
+c$$$     &    * (1.d0 + 4.d0 / (3.d0 * a * f))
+c$$$     &    * (1.d0 + 4.d0 / (5.d0 * a * f))) * a / f**2
+c$$$C
+c$$$      RETURN
+c$$$      END
+      

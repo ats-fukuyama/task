@@ -42,9 +42,16 @@ C         AJNB(NR)=0.D0
          PFCL(NR,NS)=0.D0
       ENDDO
       ENDDO
+c$$$      DO I=0,5
+c$$$         DO NR=1,NRMAX
+c$$$            EPS=EPSRHO(NR)
+c$$$            write(6,*) RG(NR),FTPF(I,EPS)
+c$$$         ENDDO
+c$$$      ENDDO
+c$$$      STOP
 C
       IF(MODELG.NE.3) THEN
-         IF(MDLUF.NE.1) THEN
+         IF(MDLEQB.NE.0) THEN
             DO NR=1,NRMAX
                QP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
      &               /(4.D0*PI**2*RDP(NR))
@@ -55,53 +62,7 @@ C
 C
 C     *** RADIAL ELECTRIC FIELD ***
 C
-      DO NR=1,NRMAX
-         IF(SUMPBM.EQ.0.D0) THEN
-            PADD(NR)=0.D0
-         ELSE
-            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
-         ENDIF
-      ENDDO
-      DO NR=1,NRMAX
-         DRL=RJCB(NR)/DR
-         IF(NR.EQ.NRMAX) THEN
-            DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
-            TERM_DP = DPD*RKEV/(PZ(2)*AEE*PNSS(2))
-         ELSE
-            DPD =(  RN(NR+1,2)*RT(NR+1,2)+PADD(NR+1)
-     &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
-            TERM_DP = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
-         ENDIF
-         IF(MDLER.EQ.0) THEN
-            ER(NR) = TERM_DP
-         ELSEIF(MDLER.EQ.1) THEN
-            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)
-         ELSEIF(MDLER.EQ.2) THEN
-            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)-VPOL(NR)*BB
-         ELSEIF(MDLER.EQ.3) THEN
-            EPS = EPSRHO(NR)
-            F_UNTRAP = 1.D0-1.46D0*SQRT(EPS)+0.46D0*EPS**1.5D0
-            ALPHA_NEO = 1.D0-0.8839D0*F_UNTRAP
-     &                 /(0.3477D0+0.4058D0*F_UNTRAP)
-            IF(NR.EQ.NRMAX) THEN
-               TEL = PTS(1)
-               TIL = PTS(2)
-               RLNI = -(LOG(2.D0*PNSS(2)-RN(NR,2))-LOG(RN(NR,2)))*DRL
-               RLTI = -(LOG(2.D0*PTS (2)-RT(NR,2))-LOG(RT(NR,2)))*DRL
-            ELSE
-               TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
-               TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
-               RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
-               RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
-            ENDIF
-            RHO_S = 4.57D-3*SQRT(PA(2)*TIL)/(PZ(2)*BB)
-            CS = SQRT(TEL*RKEV/(PA(2)*AMM))
-            ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)
-     &                   -EPS/QP(NR)*VTOR(NR))
-         ENDIF
-      ENDDO
-C
-C     *****
+      CALL TRERAD
 C
       IF(T.LT.PELTIM+0.5D0*DT.AND.
      &   T.GE.PELTIM-0.5D0*DT) THEN
@@ -199,6 +160,71 @@ C
       ENDDO
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           RADIAL ELECTRIC FIELD
+C
+C     **********************************************************
+C
+      SUBROUTINE TRERAD
+C
+      INCLUDE 'trcomm.inc'
+C
+      DO NR=1,NRMAX
+         IF(SUMPBM.EQ.0.D0) THEN
+            PADD(NR)=0.D0
+         ELSE
+            PADD(NR)=PBM(NR)*1.D-20/RKEV-RNF(NR,1)*RT(NR,2)
+         ENDIF
+      ENDDO
+      DO NR=1,NRMAX
+         DRL=RJCB(NR)/DR
+         IF(NR.EQ.NRMAX) THEN
+            DPD = 2.D0*(PNSS(2)*PTS(2)-(RN(NR,2)*RT(NR,2)-PADD(NR)))*DRL
+            TERM_DP = DPD*RKEV/(PZ(2)*AEE*PNSS(2))
+         ELSE
+            DPD =(  RN(NR+1,2)*RT(NR+1,2)-PADD(NR+1)
+     &            -(RN(NR  ,2)*RT(NR  ,2)-PADD(NR  )))*DRL
+            TERM_DP = DPD*RKEV/(PZ(2)*AEE*0.5D0*(RN(NR+1,2)+RN(NR,2)))
+         ENDIF
+         IF(MDLER.EQ.0) THEN
+C     pressure gradient only
+            ER(NR) = TERM_DP
+         ELSEIF(MDLER.EQ.1) THEN
+C     nabla p + toroidal rotation
+            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)
+         ELSEIF(MDLER.EQ.2) THEN
+C     nabla p + V_tor + poloidal rotation
+            ER(NR) = TERM_DP+VTOR(NR)*BP(NR)-VPOL(NR)*BB
+         ELSEIF(MDLER.EQ.3) THEN
+C     Waltz definition
+            EPS = EPSRHO(NR)
+            F_UNTRAP = 1.D0-1.46D0*SQRT(EPS)+0.46D0*EPS**1.5D0
+            ALPHA_NEO = 1.D0-0.8839D0*F_UNTRAP
+     &                 /(0.3477D0+0.4058D0*F_UNTRAP)
+            IF(NR.EQ.NRMAX) THEN
+               TEL = PTS(1)
+               TIL = PTS(2)
+               RLNI = -DERIV3(PNSS(2),RN(NR,2),RN(NR-1,2),
+     &                        RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
+               RLTI = -DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                        RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
+            ELSE
+               TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
+               TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
+               RLNI = -(LOG(RN(NR+1,2))-LOG(RN(NR,2)))*DRL
+               RLTI = -(LOG(RT(NR+1,2))-LOG(RT(NR,2)))*DRL
+            ENDIF
+            CS = SQRT(TEL*RKEV/(PA(2)*AMM))
+            RHO_S = CS*PA(2)*AMM/(PZ(2)*AEE*BB)
+            ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)
+     &                   -EPS/QP(NR)*VTOR(NR))
+         ENDIF
+      ENDDO
 C
       RETURN
       END
@@ -1381,7 +1407,7 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      IF(MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
+      IF(MDLEQB.EQ.1.OR.MDLJQ.EQ.1.OR.(MDLUF.EQ.0.OR.MDLUF.EQ.3)) THEN
       NR=1
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
@@ -1516,10 +1542,10 @@ C
       ENDIF
 C
       IF(LQ.EQ.1) THEN
-         RKAPS=SQRT(RKAP)
          DO NR=1,IZEROX
             QP(NR) = 1.D0/QONE(NR)
-            BP(NR) = RKAPS*RA*RG(NR)*BB/(RR*QP(NR))
+            RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))
+            BP(NR) =AR1RHOG(NR)*RDP(NR)/RR
          ENDDO
       ENDIF
 C
@@ -1536,22 +1562,130 @@ C     ***********************************************************
 C
       FUNCTION FTPF(ID,EPS)
 C
-      INTEGER ID
-      REAL*8 FTPF,EPS,PI,FTU,FTL
+      IMPLICIT NONE
+      INTEGER ID,IMAX,N,IERR
+      PARAMETER (IMAX=20)
+      REAL*8 FTPF,EPS,PI,FTUL,FTLL,EPSC,S,OMEGA
+      REAL*8 TABLE(IMAX,IMAX)
+      EXTERNAL FTU,FTL
 C
       IF(ID.EQ.1) THEN
-         FTPF=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPS*1.5D0)/SQRT(1-EPS**2)
+C  Y. R. Lin-Liu and R. L. Miller, PoP 2 1666 (1995), eqs(7)(13)(18)(19)
+         PI=3.14159265358979323846D0
+         EPSC=1.D-9
+         FTUL=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPS**1.5D0)/SQRT(1-EPS**2
+     &        )
+         CALL RMBRG(0.D0,2.D0*PI,EPSC,S,IMAX,N,IERR,TABLE,EPS,FTL)
+         FTLL=1.D0-(1.D0-EPS)**1.5D0/SQRT(1.D0+EPS)*(S/(2.D0*PI))
+         OMEGA=(3.D0*SQRT(2.D0)/2.D0*0.69D0-3.D0*SQRT(2.D0)/PI)
+     &        /(1.5D0-3.D0*SQRT(2.D0)/PI)
+         FTPF=OMEGA*FTUL+(1.D0-OMEGA)*FTLL
       ELSEIF(ID.EQ.2) THEN
-         FTPF=1.46D0*SQRT(EPS)
-      ELSEIF(ID.EQ.3) THEN
-         PI=ASIN(1.D0)*2.D0
-         FTU=1.5D0*SQRT(EPS)
-         FTL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
-         FTPF=0.75D0*FTU+0.25D0*FTL
-      ELSE
+C  S. P. Hirshman et al., NF 17 611 (1977)
          FTPF=1.D0-(1.D0-EPS)**2.D0
-     &         /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+     &        /(DSQRT(1.D0-EPS**2)*(1.D0+1.46D0*DSQRT(EPS)))
+      ELSEIF(ID.EQ.3) THEN
+C  Y. R. Lin-Liu and R. L. Miller, PoP 2 1666 (1995), eqs(16)(17)(18)
+         PI=3.14159265358979323846D0
+         FTUL=1.5D0*SQRT(EPS)
+         FTLL=3.D0*SQRT(2.D0)/PI*SQRT(EPS)
+         FTPF=0.75D0*FTUL+0.25D0*FTLL
+      ELSEIF(ID.EQ.4) THEN
+C  M. N. Rosenbluth et al., PoF 15 116 (1972)
+         FTPF=1.46D0*SQRT(EPS)
+      ELSE
+C  Y. B. Kim et al., PoF B 3 2050 (1991) eq(C18), default
+         FTPF=1.46D0*SQRT(EPS)-0.46D0*(EPS)**1.5D0
       ENDIF
+C
+      RETURN
+      END
+C
+C     *********************************************
+C
+C           FUNCTION FOR ROMBERG INTEGRATION
+C
+C     *********************************************
+C
+      FUNCTION FTU(X,EPS)
+C
+      IMPLICIT NONE
+      REAL*8 FTU, X, EPS
+C
+      FTU = X/SQRT(1.D0-X*(1.D0-EPS))
+C
+      RETURN
+      END
+C
+      FUNCTION FTL(X,EPS)
+C    
+      IMPLICIT NONE
+      REAL*8 FTL, X, EPS
+      REAL*8 H
+C
+      H = (1.D0 - EPS) / (1.D0 + EPS * COS(X))
+      FTL = (1.D0 - SQRT(1.D0 - H) * (1.D0 + 0.5D0 * H)) / H**2
+C
+      RETURN
+      END
+C      
+C     *********************************************
+C
+C           ROMBERG INTEGRATION METHOD     
+C
+C     *********************************************
+C
+      SUBROUTINE RMBRG(A,B,EPS,S,IMAX,N,IERR,T,ARG,F)
+C
+C     <input>
+C        A     : lower bound
+C        B     : upper bound
+C        EPS   : stopping criterion
+C        IMAX  : maximum division number
+C        F     : formula of integrand
+C     <output>
+C        S     : integration value
+C        N     : division number
+C        IERR  : error indicator
+C        T     : Romberg T table
+C
+      IMPLICIT NONE
+      INTEGER IMAX,N,IERR,K,N2,I,J
+      REAL*8 A,B,EPS,S,S1,H,Y1,Y2,F,X,ARG
+      REAL*8 T(IMAX,IMAX)
+      EXTERNAL F
+C
+      DO K=1,IMAX
+         N=2**(K-1)
+         N2=N/2
+         H=(B-A)/N
+         Y1=0
+         IF(N.EQ.1) THEN
+            Y2=(F(A,ARG)+F(B,ARG))/2
+         ELSE
+            DO I=1,N2
+               X=A+(2*I-1)*H
+               Y1=Y1+F(X,ARG)
+            ENDDO
+            Y2=Y2+Y1
+            Y1=0.D0
+         ENDIF
+         S=H*Y2
+         T(K,1)=S
+         IF(K.LE.1) GOTO 10
+         DO J=2,K
+            T(K,J)=T(K,J-1)+(T(K,J-1)-T(K-1,J-1))/(4**(J-1)-1)
+         ENDDO
+         S=T(K,K)
+         S1=T(K,K-1)
+         IF(ABS(S-S1).LT.EPS) THEN
+            IERR=0
+            IMAX=K
+            RETURN
+         ENDIF
+ 10      CONTINUE
+      ENDDO
+      IERR=1
 C
       RETURN
       END

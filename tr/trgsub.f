@@ -746,6 +746,8 @@ C
       IF(K2.EQ.'3') CALL TRCMP3(INQ)
       IF(K2.EQ.'4') CALL TRCMP4(INQ)
       IF(K2.EQ.'5') CALL TRCMP5(INQ)
+      IF(K2.EQ.'6') CALL TRCMP6(INQ)
+      IF(K2.EQ.'7') CALL TRCMP7(INQ)
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
@@ -896,11 +898,11 @@ C
       RETURN
       END
 C
-C     **********************************************
+C     ****************************************
 C
-C        COMPARE WITH UFILE DATA (TIME EVOLUTION)
+C        COMPARE WITH UFILE DATA (TEMPORAL)
 C
-C     **********************************************
+C     ****************************************
 C
       SUBROUTINE TRCMP2(INQ)
 C
@@ -909,6 +911,7 @@ C
       DIMENSION TE0(NTUM),TI0(NTUM),WTOT(NTUM),RIBS(NTUM),RIPL(NTUM)
       DIMENSION PICRH(NTUM),PNBI(NTUM)
       CHARACTER KFID*10
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       IF(MDLUF.EQ.0) RETURN
 C
@@ -1042,15 +1045,25 @@ C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG, 9)
          GYT(NG,2)=GUCLIP(TE0(NG))
+         TSL=DBLE(GT(NG))
+         NR=NRMAX/2
+         CALL TIMESPL(TSL,PTE,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+         GYT(NG,3)=G3D(NR,NG,1)
+         GYT(NG,4)=GUCLIP(PTE)
       ENDDO
-      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@TE0(TR),TE0(XP) [keV]  vs t@',2+INQ)
 C
       DO NG=1,NGT
          GYT(NG,1)=GVT(NG,10)
          GYT(NG,2)=GUCLIP(TI0(NG))
+         TSL=DBLE(GT(NG))
+         NR=NRMAX/2
+         CALL TIMESPL(TSL,PTI,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+         GYT(NG,3)=G3D(NR,NG,2)
+         GYT(NG,4)=GUCLIP(PTI)
       ENDDO
-      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,2,
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,4,
      &            '@TI0(TR),TI0(XP) [keV]  vs t@',2+INQ)
 C
       DO NG=1,NGT
@@ -1399,6 +1412,102 @@ C
       ENDIF
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,2,
      &     '@Nimp(TR), Nimp(XP) [10$+20$=/m$+3$=]  vs r@',2+INQ)
+C
+      CALL PAGEE
+      CALL TRGRTM
+C
+      RETURN
+      END
+C
+C     ****************************************************
+C
+C        COMPARE WITH UFILE DATA (TEMPORAL; TEMPERATURE)
+C
+C     ****************************************************
+C
+      SUBROUTINE TRCMP6(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER KFID*10
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
+C
+      IF(MDLUF.EQ.0) RETURN
+C
+      CALL PAGES
+C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG, 9)
+         TSL=DBLE(GT(NG))
+         NR=1
+         CALL TIMESPL(TSL,PTE,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+         GYT(NG,2)=GUCLIP(PTE)
+         NR=INT(0.3D0*NRMAX)
+         CALL TIMESPL(TSL,PTE,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+         GYT(NG,3)=G3D(NR,NG,1)
+         GYT(NG,4)=GUCLIP(PTE)
+         NR=INT(0.6D0*NRMAX)
+         CALL TIMESPL(TSL,PTE,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+         GYT(NG,5)=G3D(NR,NG,1)
+         GYT(NG,6)=GUCLIP(PTE)
+      ENDDO
+      CALL TRGR1D( 3.0,24.0, 9.7,17.0,GT,GYT,NTM,NGT,6,
+     &            '@TE0(TR),TE0(XP) [keV]  vs t@',2+INQ)
+C
+      DO NG=1,NGT
+         GYT(NG,1)=GVT(NG,10)
+         TSL=DBLE(GT(NG))
+         NR=1
+         CALL TIMESPL(TSL,PTI,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+         GYT(NG,2)=GUCLIP(PTI)
+         NR=INT(0.3D0*NRMAX)
+         CALL TIMESPL(TSL,PTI,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+         GYT(NG,3)=G3D(NR,NG,2)
+         GYT(NG,4)=GUCLIP(PTI)
+         NR=INT(0.6D0*NRMAX)
+         CALL TIMESPL(TSL,PTI,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+         GYT(NG,5)=G3D(NR,NG,2)
+         GYT(NG,6)=GUCLIP(PTI)
+      ENDDO
+      CALL TRGR1D( 3.0,24.0, 1.1, 8.4,GT,GYT,NTM,NGT,6,
+     &            '@TI0(TR),TI0(XP) [keV]  vs t@',2+INQ)
+C
+      CALL TRGRTM
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C     ****************************************************
+C
+C        COMPARE WITH RADIAL ELECTRIC FIELD MODELS
+C
+C     ****************************************************
+C
+      SUBROUTINE TRCMP7(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      DIMENSION ER_ORG(NRM)
+C
+      CALL PAGES
+C
+      MDLER_ORG=MDLER
+      DO NR=1,NRMAX
+         ER_ORG(NR)=ER(NR)
+      ENDDO
+      DO MDLER=0,3
+         CALL TRERAD
+         DO NR=1,NRMAX
+            GYR(NR,MDLER+1)=GUCLIP(ER(NR))
+         ENDDO
+      ENDDO
+      CALL TRGR1D( 3.0,24.0, 1.1,17.0,GRG,GYR,NRM,NRMAX,4,
+     &            '@ER  vs r@',2+INQ)
+C
+      MDLER=MDLER_ORG
+      DO NR=1,NRMAX
+         ER(NR)=ER_ORG(NR)
+      ENDDO
 C
       CALL PAGEE
       CALL TRGRTM

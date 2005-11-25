@@ -16,7 +16,7 @@ C
       VOL=0.D0
       DO NR=1,NRMAX
          VOL=VOL+DVRHO(NR)*DR
-         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
       ENDDO
 C
       DO NS=1,NSM
@@ -582,6 +582,7 @@ C
          G3D(NR,NGT,57) = GUCLIP(AKDW(NR,2))
          G3D(NR,NGT,58) = GUCLIP(RN(NR,1)*RT(NR,1))
          G3D(NR,NGT,59) = GUCLIP(RN(NR,2)*RT(NR,2))
+         G3D(NR,NGT,60) = GUCLIP(VTOR(NR))
 C
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX

@@ -19,6 +19,7 @@ C        AMM   : Proton mass
 C        VC    : Speed of light in vacuum
 C        RMU0  : Permeability of free space
 C        EPS0  : Permittivity of free space
+C        RKEV  : Factor ([keV] -> [J])
 C        VOID  : 0.D0
 C
       PI      = ASIN(1.D0)*2.D0
@@ -264,12 +265,17 @@ C     +               4: Hirshman, Sigmar                     +
 C     +               5: Sauter                               +
 C     +               else: Hinton and Hazeltine              +
 C     +    MDLKNS: NEOCLASSICAL TRANSPORT MODEL               +
-C     +            0    : Hinton and Hazeltine                +
-C     +            else : Chang and Hinton                    +
+C     +               0    : Hinton and Hazeltine             +
+C     +               else : Chang and Hinton                 +
 C     +                                                       +
 C     +++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 C
 C        MDLTPF: TRAPPED PARTICLE FRACTION MODEL
+C                   1: Y. R. Lin-Liu and R. L. Miller (numerical)
+C                   2: S. P. Hirshman et al.
+C                   3: Y. R. Lin-Liu and R. L. Miller (analytic)
+C                   4: C  M. N. Rosenbluth et al.
+C                   else: Y. B. Kim et al. (default)
 C
       MDLKAI = 31
       MDLETA = 3
@@ -284,6 +290,12 @@ C            0    : using effective transport coefficients
 C            else : using transport coefficients' matrices
 C
       MDLWLD=0
+C
+C        MDCD05 : choose either original CDBM or CDBM05 model
+C            0    : original CDBM model
+C            else : CDBM05 model with the elongation effect
+C
+      MDCD05=0
 C
 C        MDDW : mode selector for anom. particle transport coefficient
 C            you must NOT modify this parameter.
@@ -657,7 +669,7 @@ C
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,CDW,
      &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,
-     &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,
+     &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
@@ -707,7 +719,7 @@ C
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
      &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT'/
-     &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER'/
+     &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
      &       ' ',8X,'TIME_INT,MODEP,MDNI,MDLJQ,MDTC,MDLPCK'/
@@ -823,7 +835,8 @@ C
      &             'MODELG',MODELG,
      &             'NTEQIT',NTEQIT
 C
-      WRITE(6,601) 'CK0   ',CK0,
+      WRITE(6,603) 'MDCD05',MDCD05,
+     &             'CK0   ',CK0,
      &             'CK1   ',CK1
 C
       WRITE(6,601) 'CNP   ',CNP,

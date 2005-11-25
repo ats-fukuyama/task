@@ -279,7 +279,8 @@ C
 C
 C     ***********************************************************
 C
-C           GRAPHIC : TIME DEPENDENCE : TRANSIENT
+C           GRAPHIC : TIME DEPENDENCE : RR,RA,RKAP,IP,BB
+C                     TIME DEPENDENCE : TRANSIENT
 C
 C     ***********************************************************
 C
@@ -287,7 +288,33 @@ C
 C
       INCLUDE 'trcomm.inc'
 C
-      IF(NGST.EQ.0) RETURN
+      IF(NGST.EQ.0) THEN
+C
+      CALL PAGES
+C
+      DO I=1,NGT
+         GYT(I,1)=GVT(I,97)
+         GYT(I,2)=GVT(I,98)
+      ENDDO
+      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
+     &            '@RR, RA [M]  vs t@',2+INQ)
+C
+      DO I=1,NGT
+         GYT(I,1)=GVT(I,99)
+         GYT(I,2)=GVT(I,34)
+      ENDDO
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
+     &            '@BT, IP  vs t@',2+INQ)
+C
+      DO I=1,NGT
+         GYT(I,1)=GVT(I,100)
+      ENDDO
+      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
+     &            '@RKAP  vs t@',2+INQ)
+C
+      CALL PAGEE
+C
+      ELSE
 C
     1 WRITE(6,*) ' CHOSE ONE (TE=1,TD=2,TT=3,TA=4) '
       READ(5,*,ERR=1,END=900) M
@@ -346,6 +373,8 @@ C
       ENDDO
 C
       CALL PAGEE
+C
+      ENDIF
 C
   900 RETURN
       END
@@ -527,51 +556,16 @@ C
 C
 C     ***********************************************************
 C
-C           GRAPHIC : TIME DEPENDENCE : RR,RA,RKAP,IP,BB
+C           GRAPHIC : TEMPORAL CONTOUR
 C
 C     ***********************************************************
 C
       SUBROUTINE TRGRT8(INQ)
 C
       INCLUDE 'trcomm.inc'
-C
-      CALL PAGES
-C
-      DO I=1,NGT
-         GYT(I,1)=GVT(I,97)
-         GYT(I,2)=GVT(I,98)
-      ENDDO
-      CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,2,
-     &            '@RR, RA [M]  vs t@',2+INQ)
-C
-      DO I=1,NGT
-         GYT(I,1)=GVT(I,99)
-         GYT(I,2)=GVT(I,34)
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,
-     &            '@BT, IP  vs t@',2+INQ)
-C
-      DO I=1,NGT
-         GYT(I,1)=GVT(I,100)
-      ENDDO
-      CALL TRGR1D(15.0,24.0,14.0,17.0,GT,GYT,NTM,NGT,1,
-     &            '@RKAP  vs t@',2+INQ)
-C
-      CALL PAGEE
-C
-      RETURN
-      END
-C
-C     ***********************************************************
-C
-C           GRAPHIC : EVOLUTION CONTOUR
-C
-C     ***********************************************************
-C
-      SUBROUTINE TRGRT9(INQ)
-C
-      INCLUDE 'trcomm.inc'
       DIMENSION GYL(NTM,NRM),KATR(8,NTM,NRM)
+      COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
+      COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
       CALL PAGES
 C
@@ -601,26 +595,38 @@ C
 C
       DO I=1,NGT
          DO NR=1,NRMAX
-            GYL(I,NR) = G3D(NR,I,31)
-         ENDDO
-      ENDDO
-      CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
-     &            '@VLOOP [V]  vs t@',KATR)
-C
-      DO I=1,NGT
-         DO NR=1,NRMAX
             GYL(I,NR) = G3D(NR,I, 9) * 1.E-6
          ENDDO
       ENDDO
-      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+      CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@AJ [MA]  vs t@',KATR)
+C
+      DO I=1,NGT
+         TSL = DBLE(GT(I))
+         DO NR=1,NRMAX
+            CALL TIMESPL(TSL,RTEL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+            GYL(I,NR) = GUCLIP(RTEL)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@TE [keV] (XP) vs t@',KATR)
+C
+      DO I=1,NGT
+         TSL = DBLE(GT(I))
+         DO NR=1,NRMAX
+            CALL TIMESPL(TSL,RTDL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+            GYL(I,NR) = GUCLIP(RTDL)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@TD [keV] (XP) vs t@',KATR)
 C
       DO I=1,NGT
          DO NR=1,NRMAX
             GYL(I,NR) = G3D(NR,I,13) * 1.E-6
          ENDDO
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+      CALL TRGR1DC(15.0,24.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@AJBS [MA]  vs t@',KATR)
 C
       DO I=1,NGT
@@ -628,16 +634,42 @@ C
             GYL(I,NR) = (G3D(NR,I,11) + G3D(NR,I,12)) * 1.E-6
          ENDDO
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 5.4, 8.4,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+      CALL TRGR1DC(15.0,24.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@AJCD [MA]  vs t@',KATR)
+C
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C     ***********************************************************
+C
+C           GRAPHIC : TEMPORAL CONTOUR
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRT9(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      DIMENSION GYL(NTM,NRM),KATR(8,NTM,NRM)
+C
+      CALL PAGES
 C
       DO I=1,NGT
          DO NR=1,NRMAX
-            GYL(I,NR) = G3D(NR,I,27) - 1.0
+            GYL(I,NR) = G3D(NR,I,27)
          ENDDO
       ENDDO
-      CALL TRGR1DC(15.0,24.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@QP  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,31)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@VLOOP [V]  vs t@',KATR)
 C
       CALL PAGEE
 C
