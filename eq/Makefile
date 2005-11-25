@@ -73,6 +73,7 @@ eqintf.o: eqintf.f $(EQCOMM) eqcom2.inc
 eqgout.o: eqgout.f $(EQCOMM) eqcom2.inc eqcom3.inc
 trtest.o: trtest.f
 treqin.o: treqin.f $(EQCOMM) eqcom3.inc eqcom4.inc
+wmeqin.o: wmeqin.f $(EQCOMM) eqcom3.inc
 pltest.o: pltest.f
 aktest.o: aktest.f
 akeqin.o: akeqin.f $(EQCOMM) eqcom3.inc
