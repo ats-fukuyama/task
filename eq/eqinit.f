@@ -211,11 +211,15 @@ C        RGMIN: Minimum R of coputation region [m]
 C        RGMAX: Maxmum  R of coputation region [m]
 C        ZGMIN: Minimum Z of coputation region [m]
 C        ZGMAX: Maxmum  Z of coputation region [m]
+C        ZLIMP: Position of upper X points
+C        ZLIMM: Position of lower X points
 C
       RGMIN = 1.5D0
       RGMAX = 4.5D0
       ZGMIN =-2.0D0
       ZGMAX = 2.0D0
+      ZLIMM =-2.5D0
+      ZLIMP = 2.5D0
 C
 C        PSIB(0:5): Multipole moments of poloidal flux PSIRZ on boundary
 C
@@ -288,7 +292,7 @@ C
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,
      &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,
-     &              NRGMAX,NZGMAX,RGMIN,RGMAX,RZMIN,RZMAX,
+     &              NRGMAX,NZGMAX,RGMIN,RGMAX,ZGMIN,ZGMAX,ZLIMP,ZLIMM,
      &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
      &              MDLEQF,MDLEQC,MDLEQA,NPRINT,
@@ -323,7 +327,7 @@ C
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
      &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX'/
-     &       9X,'RGMIN,RGMAX,RZMIN,RZMAX'/
+     &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
      &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
       END
 C
@@ -406,6 +410,8 @@ C
      &             'RGMAX ',RGMAX,
      &             'ZGMIN ',ZGMIN,
      &             'ZGMAX ',ZGMAX
+      WRITE(6,601) 'ZLIMP ',ZLIMP,
+     &             'ZLIMM ',ZLIMM
       WRITE(6,601) 'PP0   ',PP0,
      &             'PROFP0',PROFP0,
      &             'PJ0   ',PJ0,

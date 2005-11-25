@@ -40,6 +40,9 @@ C
          IERR=102
          RETURN
       ENDIF
+C
+C      WRITE(6,*) RAXIS,ZAXIS,PSIG(RAXIS,ZAXIS)
+C
       IF(RAXIS.LE.RR+RB.AND.
      &   RAXIS.GE.RR-RB.AND.
      &   ZAXIS.LE.RKAP*RB.AND.
@@ -54,7 +57,9 @@ C
 C
 C     ----- calculate outer plasma surface -----
 C
-      REDGE=FBRENT(PSIZ0,RR,RR+RB,1.D-8)
+      RMAX=MAX(RR+RB,RGMAX)
+      REDGE=FBRENT(PSIZ0,RR,RMAX,1.D-8)
+C      WRITE(6,*) REDGE,PSIG(REDGE,ZAXIS)
 C
       RETURN
       END
