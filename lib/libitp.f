@@ -305,6 +305,26 @@ C
       END
 C
 C     ****************************************************
+C     **  Derivative calculated from adjacent 3 points  **
+C     ****************************************************
+C     -- This formulation has a third-order accuracy. --
+C
+      FUNCTION DERIV3(f0, f1, f2, x10, x11, x12)
+C
+      IMPLICIT NONE
+      REAL*8 DERIV3, f0, f1, f2, x10, x11, x12
+      REAL*8 dx11, dx12
+C
+      dx11 = x11 - x10
+      dx12 = x12 - x10
+      DERIV3 = (dx12**2 * f1 - dx11**2 * f2)
+     &            / (dx11 * dx12 * (dx12 - dx11))
+     &            - (dx12 + dx11) / (dx11 * dx12) * f0
+C
+      RETURN
+      END
+C
+C     ****************************************************
 C     **  Derivative calculated from adjacent 2 points  **
 C     ****************************************************
 C     -- This formulation has a second-order accuracy. --
