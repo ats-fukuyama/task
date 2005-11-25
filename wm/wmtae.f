@@ -41,17 +41,17 @@ C
             GOTO 1000
          ENDIF
 C
-         RIOTA_AV=0.D0
-         BABS_AV=0.D0
-         DO NPH=1,NPHMAX
-            DO NTH=1,NTHMAX
-               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-               RIOTA_AV=RIOTA_AV+BSUPPH/BSUPTH
-               BABS_AV=BABS_AV+BABS
-            ENDDO
-         ENDDO
-         RIOTA_AV=RIOTA_AV/(NTHMAX*NPHMAX)
-         BABS_AV=BABS_AV/(NTHMAX*NPHMAX)
+C         RIOTA_AV=0.D0
+C         BABS_AV=0.D0
+C         DO NPH=1,NPHMAX
+C            DO NTH=1,NTHMAX
+C               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+C               RIOTA_AV=RIOTA_AV+BSUPPH/BSUPTH
+C               BABS_AV=BABS_AV+BABS
+C            ENDDO
+C         ENDDO
+C         RIOTA_AV=RIOTA_AV/(NTHMAX*NPHMAX)
+C         BABS_AV=BABS_AV/(NTHMAX*NPHMAX)
 C
 C         WRITE(6,'(I5,1P3E12.4)') NR,BABS_AV,RIOTA_AV,QPS(NR)
 C
@@ -61,7 +61,8 @@ C
          DO NTH=1,NTHMAX
             CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
             VALF=BABS/SQRT(RMU0*RHOM)
-            CWALF(NTH,NPH)=BABS**2/(VALF**2*BSUPTH**2)
+C            CWALF(NTH,NPH)=BABS**2/(VALF**2*BSUPTH**2)
+            CWALF(NTH,NPH)=RPS(NTH,NR)**2/VALF**2
          ENDDO
          ENDDO
 C
@@ -91,6 +92,7 @@ C
                NW1=NW1-NW0+1
                IF(NW1.GE.1.AND.NW1.LE.MHMAX+1) THEN
                   FM(NW1,NW)=DBLE(CWALFK(MDX1,NDX1))/(RKPR1*RKPR2)
+     &                      *RIOTAL**2
                ENDIF
             ENDDO
             ENDDO
