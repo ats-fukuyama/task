@@ -197,52 +197,52 @@ C     effective ion temperature and its gradient on grid
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ENDIF
 C
-C     second derivative of effective pressure
-         RPI4=0.D0
-         RPI3=0.D0
-         RPI2=0.D0
-         RPI1=0.D0
-         IF(NR.LE.1) THEN
-            DO NS=2,NSM
-               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
-            ENDDO
-            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)+PADD(NR  )
-         ELSE
-            DO NS=2,NSM
-               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
-            ENDDO
-            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)+PADD(NR-1)
-         ENDIF
-            DO NS=2,NSM
-               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
-         IF(NR.GE.NRMAX-1) THEN
-            DO NS=2,NSM
-               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
-         ELSE
-            DO NS=2,NSM
-               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
-         ENDIF
-         IF(NR.GE.NRMAX-2) THEN
-            DO NS=2,NSM
-               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
-         ELSE
-            DO NS=2,NSM
-               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
-            ENDDO
-            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
-         ENDIF
-         RPIM=0.5D0*(RPI1+RPI2)
-         RPI0=0.5D0*(RPI2+RPI3)
-         RPIP=0.5D0*(RPI3+RPI4)
-         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
+c$$$C     second derivative of effective pressure for old version WE1
+c$$$         RPI4=0.D0
+c$$$         RPI3=0.D0
+c$$$         RPI2=0.D0
+c$$$         RPI1=0.D0
+c$$$         IF(NR.LE.1) THEN
+c$$$            DO NS=2,NSM
+c$$$               RPI4=RPI4+RN(NR,  NS)*RT(NR,  NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR,  1)+RW(NR,  2)+PADD(NR  )
+c$$$         ELSE
+c$$$            DO NS=2,NSM
+c$$$               RPI4=RPI4+RN(NR-1,NS)*RT(NR-1,NS)
+c$$$            ENDDO
+c$$$            RPI4=RPI4+RW(NR-1,1)+RW(NR-1,2)+PADD(NR-1)
+c$$$         ENDIF
+c$$$            DO NS=2,NSM
+c$$$               RPI3=RPI3+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI3=RPI3+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
+c$$$         IF(NR.GE.NRMAX-1) THEN
+c$$$            DO NS=2,NSM
+c$$$               RPI2=RPI2+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
+c$$$         ELSE
+c$$$            DO NS=2,NSM
+c$$$               RPI2=RPI2+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI2=RPI2+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
+c$$$         ENDIF
+c$$$         IF(NR.GE.NRMAX-2) THEN
+c$$$            DO NS=2,NSM
+c$$$               RPI1=RPI1+RN(NR  ,NS)*RT(NR  ,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR  ,1)+RW(NR  ,2)+PADD(NR  )
+c$$$         ELSE
+c$$$            DO NS=2,NSM
+c$$$               RPI1=RPI1+RN(NR+1,NS)*RT(NR+1,NS)
+c$$$            ENDDO
+c$$$            RPI1=RPI1+RW(NR+1,1)+RW(NR+1,2)+PADD(NR+1)
+c$$$         ENDIF
+c$$$         RPIM=0.5D0*(RPI1+RPI2)
+c$$$         RPI0=0.5D0*(RPI2+RPI3)
+c$$$         RPIP=0.5D0*(RPI3+RPI4)
+c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 C
 C     safety factor and its gradient on grid
          DQ = DERIV3P(NR,RHOG,QP,NRMAX,NRM)
@@ -311,14 +311,6 @@ C     Alfven wave velocity
 C     magnetic shear
          S=RHOG(NR)/QL*DQ
 C     pressure gradient for MHD instability
-c$$$         IF(NR.NE.NRMAX) THEN
-c$$$            RPP = RN(NR+1,2)*RT(NR+1,2)+RN(NR+1,1)*RT(NR+1,1)
-c$$$            RPM = RN(NR  ,2)*RT(NR  ,2)+RN(NR  ,1)*RT(NR  ,1)
-c$$$         ELSE
-c$$$            RPP = 2.D0*(PNSS(2)*PTS(2)+PNSS(1)*PTS(1))
-c$$$            RPM = 2.D0*(RN(NR  ,2)*RT(NR  ,2)+RN(NR  ,1)*RT(NR  ,1))
-c$$$         ENDIF
-c$$$         DPP = (RPP-RPM)/(DR*RA)
          ALFA=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
 C
 C     rotational shear
@@ -536,8 +528,15 @@ C
             OMEGASS=0.D0
             SLAMDA=0.D0
             RLAMDA=0.D0
-            RG1=CWEB
-            WE1=0.D0
+C
+            IF(MOD(MDLKAI,2).EQ.0) THEN
+               RG1=CWEB
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=-QL*RR/(SL*VA)*DVE
+C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
+C               DELTAE=SQRT(DELTA2)
+C               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+            ENDIF
 C
             IF(MDLKAI.EQ.30) THEN
                FS=1.D0/(1.7D0+SQRT(6.D0)*S)
@@ -553,13 +552,6 @@ C
             ELSEIF(MDLKAI.EQ.32) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-CC               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
-               WE1=-QL*RR/(SL*VA)*DVE
-C               write(6,*) NR!,WE1
-C     &             ,SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                IF(MDCD05.NE.0) 
      &              FS=FS*(2.D0*SQRT(RKAP)/(1.D0+RKAP**2))**1.5D0
@@ -571,10 +563,6 @@ C     &             ,SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.34) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -586,10 +574,6 @@ C     &             ,SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
             ELSEIF(MDLKAI.EQ.36) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -599,10 +583,6 @@ C     &             ,SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.38) THEN
                FS=TRCOFSS(S,0.D0)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -630,10 +610,6 @@ c$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
 c$$$               TAUAP=(QL*RR)/VA
 c$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
 c$$$C
-c$$$c$$$               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-c$$$c$$$               DELTAE=SQRT(DELTA2)
-c$$$c$$$               SL=SQRT(S**2+0.1D0**2)
-c$$$c$$$               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
 c$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
 c$$$C
 c$$$               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -674,8 +650,16 @@ C
             OMEGASS=0.D0
             SLAMDA=0.D0
             RLAMDA=0.D0
-            RG1=CWEB
-            WE1=0.D0
+C
+            IF(MOD(MDLKAI,2).EQ.0) THEN
+               RG1=CWEB
+               SL=SQRT(S**2+0.1D0**2)
+               WE1=-QL*RR/(SL*VA)*DVE
+C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
+C               DELTAE=SQRT(DELTA2)
+C               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
+            ENDIF
+C
             F=VTE/VA
 C     
             IF(MDLKAI.EQ.40) THEN
@@ -691,10 +675,6 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.42) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
@@ -704,10 +684,6 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.44) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
@@ -719,10 +695,6 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.46) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
@@ -732,10 +704,6 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.48) THEN
                FS=TRCOFSS(S,0.D0)
-               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-               DELTAE=SQRT(DELTA2)
-               SL=SQRT(S**2+0.1D0**2)
-               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
                FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
@@ -796,8 +764,6 @@ C
             OMEGASS=0.D0
             SLAMDA=0.D0
             RLAMDA=0.D0
-            RG1=CWEB
-            WE1=0.D0
 C
             IF(NR.EQ.1) THEN
                DRL=RJCB(NR)/DR
