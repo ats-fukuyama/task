@@ -717,6 +717,7 @@ C
          RNU_ORG(1,NR,3)=FAS(NR)
       ENDDO
 C
+ 100  CONTINUE
       IF(MDNI.EQ.1) THEN ! ** MDNI **
 C
       DO NR=1,NRMAX
@@ -782,13 +783,20 @@ C
 C
       ENDIF ! ** MDNI **
 C
+      IF(MDNI.NE.0) THEN
 C     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
             WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
-            STOP
+            MDNI=MDNI+1
+            IF(MDNI.LE.3) THEN
+               GOTO 100
+            ELSE
+               STOP
+            ENDIF
          ENDIF
       ENDDO
+      ENDIF
 C
       AMP=1.D0
       KFID='PBEAM'
@@ -1484,6 +1492,7 @@ C
       ENDIF !!!
 C
 C     check whether density developed is appropriate (positive) or not
+      IF(MDNI.NE.0) THEN
       DO NTX=1,NTXMAX
          DO NR=1,NRMAX
             IF(RNU(NTX,NR,2).LE.0.D0.OR.RNU(NTX,NR,3).LE.0.D0) THEN
@@ -1493,6 +1502,7 @@ C     check whether density developed is appropriate (positive) or not
             ENDIF
          ENDDO
       ENDDO
+      ENDIF
 C
       AMP=1.D0
       KFID='PBEAM'

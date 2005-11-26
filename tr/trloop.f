@@ -861,7 +861,7 @@ C
                NNSN=NNSN-LOOP
                NNSOLD=NNSN
             ELSE
-               STOP 'ERROR'
+               STOP 'XX TR_BANDREDUCE: ERROR'
             ENDIF
          ENDIF
          LOOP=LOOP+1
@@ -1453,7 +1453,7 @@ C
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
                ELSE
-                  STOP 'ERROR: must be NSSV=0 if NSSN=0'
+                  STOP 'XX TR_COEF_DECIDE: must be NSSV=0 if NSSN=0'
                ENDIF
             ENDIF
 C
@@ -1515,7 +1515,7 @@ C     *
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
                ELSE
-                  STOP 'ERROR: must be NSSV=0 if NSSN=0'
+                  STOP 'XX TR_COEF_DECIDE: must be NSSV=0 if NSSN=0'
                ENDIF
             ENDIF
 C     *
@@ -1541,7 +1541,7 @@ C
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
                ELSE
-                  STOP 'ERROR: must be NSSV=0 if NSSN=0'
+                  STOP 'XX TR_COEF_DECIDE: must be NSSV=0 if NSSN=0'
                ENDIF
             ENDIF
          ENDIF

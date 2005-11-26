@@ -444,6 +444,7 @@ C
             CALL WRITE_LINE(nout,label,0,0)
           ENDIF
         ENDIF
+        WRITE(6,*) 'XX NCLASS_CHECK: non zero iflag',iflag
         STOP
       ENDIF
 !Check for optional output

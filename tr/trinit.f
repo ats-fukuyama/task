@@ -1004,7 +1004,8 @@ C
       ENDIF
 C
       IF(MDLEQN.EQ.0.AND.(MDLEQE.EQ.1.OR.MDLEQE.EQ.2)) THEN
-         WRITE(6,*) "ERROR! : MDLEQE can be 1 or 2 when MDLEQN is 1."
+         WRITE(6,*)
+     &       'XX TR_EQS_SELECT : MDLEQE can be 1 or 2 when MDLEQN is 1.'
          STOP
       ENDIF
 C
