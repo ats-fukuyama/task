@@ -60,7 +60,7 @@ C
 C
  100  CONTINUE
 C     *** FOR INITIAL PROFILE ************
-C      CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
+      CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
 C     ************************************
 C
       CALL PARM_READ(RR,RA,RKAP,RDLT,BB,RIP,PRHO,HJRHO,VTRHO,TRHO)
@@ -71,6 +71,7 @@ C     *****************************************************************
       CALL EQPARM(2,'NRGMAX=129',IERR)
       CALL EQPARM(2,'NZGMAX=129',IERR)
       CALL EQPARM(2,'NPSMAX=50',IERR)
+      CALL EQPARM(2,'NLPMAX=20',IERR)
 C      CALL EQPARM(2,'EPSEQ=1.D-5',IERR)
 C
       IF(KIN.EQ.'L') THEN

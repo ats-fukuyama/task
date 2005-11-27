@@ -85,7 +85,8 @@ C
       PSITV(1)=0.D0
       DO NRV=2,NRVMAX
          PSITV(NRV)=PSITV(NRV-1)
-     &        +0.5D0*(QPV(NRV)+QPV(NRV-1))*(PSIPV(NRV)-PSIPV(NRV-1))
+     &        +0.5D0*QPV(NRV)*QPV(NRV-1)/(QPV(NRV)+QPV(NRV-1))
+     &              *(PSIPV(NRV)-PSIPV(NRV-1))
       ENDDO
       PSITA=PSITV(NRVMAX)
 C
@@ -101,13 +102,13 @@ C
       CALL EQCNVA(RHOITB**2,PSIITB)
 C
 C      DO NR=1,11
-C         PSIPNL=0.01*(NR-1)
+C         PSIPNL=0.002*(NR-1)
 C         CALL EQPPSI(PSIPNL,PPSIL,DPPSIL)
+C         PSITNL=EQPSITN(PSIPNL)
 C         QPVL=EQQPV(PSIPNL)
 C         WRITE(6,'(I5,1P6E12.4)') 
 C     &        NR,PSIPNL,PSITNL,PPSIL,DPPSIL
 C      ENDDO
-C      STOP
       RETURN
       END
 C
