@@ -187,7 +187,7 @@ C
          CALL EQCALC(IERR)
          IF(IERR.NE.0) THEN
             WRITE(6,*) 'XX TREQEX: EQCALC: IERR=',IERR
-            GOTO 9000
+C            GOTO 9000
          ENDIF
       ELSE
          CALL EQLOOP(IERR)
@@ -196,13 +196,12 @@ C
             CALL EQCALC(IERR)
             IF(IERR.NE.0) THEN
                WRITE(6,*) 'XX TREQEX: EQCALC: IERR=',IERR
-               GOTO 9000
+C               GOTO 9000
             ENDIF
-         ELSE
-            CALL EQTORZ
-            CALL EQCALP
          ENDIF
       ENDIF
+      CALL EQTORZ
+      CALL EQCALP
 C
 C     ***** Calculate eqilibrium quantities *****
 C

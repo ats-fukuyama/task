@@ -280,6 +280,7 @@ C
      &                 *(PSIP(NR)-PSIP(NR-1))
       ENDDO
       PSITA=PSIT(NRPMAX)
+      PSIPA=PSIP(NRPMAX)
 C
       RST(1)=0.D0
       DO NR=2,NRPMAX

@@ -89,6 +89,7 @@ C
      &              *(PSIPV(NRV)-PSIPV(NRV-1))
       ENDDO
       PSITA=PSITV(NRVMAX)
+      PSIPA=PSIPV(NRVMAX)
 C
       DO NRV=1,NRVMAX
          PSIPNV(NRV)=PSIPV(NRV)/PSIPA
