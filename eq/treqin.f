@@ -134,6 +134,12 @@ C     <<< PRHO >>>
       CALL TRISPL(PSITRX,PRHO,WORK1,NTRMAX,ID)
       CALL SPL1D(PSITRX,WORK1,DERIV,UPPSI,NTRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX TREQEX: SPL1D PRHO: IERR=',IERR
+C      DO NR=1,8
+C         CALL SPL1DD(PSITRX(NR),PPSL,DPPSL,PSITRX,UPPSI,NTRMAX,IERR)
+C         WRITE(6,'(A,I5,1P4E12.4)') 'NR,PSI,pp,PP,DPP=',
+C     &        NR,PSITRX(NR),WORK1(NR),PPSL,DPPSL
+C      ENDDO
+C      STOP
 C
 C     <<< HJRHO >>>
       CALL TRISPL(PSITRX,HJRHO,WORK2,NTRMAX,ID)
@@ -383,12 +389,19 @@ C
       IMPLICIT NONE
       INTEGER NTRMAX,ID,NTR
       REAL*8 XOUT(NTRMAX),YIN(NTRMAX),YOUT(NTRMAX)
+      REAL*8 DY,DDY
 C
       IF(ID.EQ.0) THEN
          DO NTR=1,NTRMAX
             YOUT(NTR)=YIN(NTR)
          ENDDO
       ELSEIF(ID.EQ.1) THEN
+C         DDY=((YIN(3)-YIN(1))/(XOUT(4)-XOUT(2))
+C     &       -(YIN(2)-YIN(1))/(XOUT(3)-XOUT(2)))
+C     &       /(XOUT(4)-XOUT(3))
+C         DY=(YIN(2)-YIN(1))/(XOUT(3)-XOUT(2))
+C     &     +DDY*(XOUT(3)+XOUT(2))
+C         YOUT(1)=YIN(1)-DY*XOUT(2)-DDY*XOUT(2)**2
          YOUT(1)=(YIN(1)*XOUT(3)-YIN(2)*XOUT(2))/(XOUT(3)-XOUT(2))
          DO NTR=2,NTRMAX
             YOUT(NTR)=YIN(NTR-1)
@@ -401,6 +414,12 @@ C
      &                -YOUT(NTRMAX-2)*(XOUT(NTRMAX)-XOUT(NTRMAX-1)))
      &               /(XOUT(NTRMAX-1)-XOUT(NTRMAX-2))
       ELSEIF(ID.EQ.3) THEN
+C         DDY=((YIN(3)-YIN(1))/(XOUT(4)-XOUT(2))
+C     &       -(YIN(2)-YIN(1))/(XOUT(3)-XOUT(2)))
+C     &       /(XOUT(4)-XOUT(3))
+C         DY=(YIN(2)-YIN(1))/(XOUT(3)-XOUT(2))
+C     &     +DDY*(XOUT(3)+XOUT(2))
+C         YOUT(1)=YIN(1)-DY*XOUT(2)-DDY*XOUT(2)**2
          YOUT(1)=(YIN(1)*XOUT(3)-YIN(2)*XOUT(2))/(XOUT(3)-XOUT(2))
          DO NTR=2,NTRMAX-1
             YOUT(NTR)=YIN(NTR-1)

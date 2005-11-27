@@ -505,11 +505,6 @@ C         ENDDO
             CALL EQFIPV(PSIPNL,FPSI,DFPSI)
             PP(NTG,NSG)=PPSI
             HJP(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*DPPSI
-C            IF(NTG.EQ.1.OR.NTG.EQ.NTGMAX/2+1) THEN
-C               WRITE(6,'(A,I5,1P4E12.4)') 
-C     &              'NSG,PSIPNL,RMM,DPPSI,HJP=',
-C     &               NSG,PSIPNL,RMM(NTG,NSG),DPPSI,HJP(NTG,NSG)
-C            ENDIF
             HJP1(NTG,NSG)=-2.D0*PI*RMM(NTG,NSG)*DPPSI
             HJT1(NTG,NSG)=-2.D0*PI*BB*RR       *DFPSI
      &                              /(2.D0*PI*RMU0*RMM(NTG,NSG))
@@ -548,11 +543,12 @@ C     ----- Given pressure and parallel current profiles -----
 C
       ELSEIF(IMDLEQF.EQ.3) THEN
          CALL EQIPJP
-C         DO NR=0,20
-C            PSIPNL=1.D-4*NR
+C         DO NR=1,50
+C            PSIPNL=0.002D0*(NR-1)
 C            CALL EQPPSI(PSIPNL,PPSI,DPPSI)
-C            WRITE(6,'(A,I5,1P3E12.4)') 'NR,PSIPNL,PPSI,DPPSI=',
-C     &           NR,PSIPNL,PPSI,DPPSI
+C            CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+C            WRITE(6,'(A,I5,1P5E12.4)') 'PSI,PP,FFF=',
+C     &           NR,PSIPNL,PPSI,DPPSI,FPSI,DFPSI
 C         ENDDO
          FJP=0.D0
          FJT=0.D0
