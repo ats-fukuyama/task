@@ -666,7 +666,7 @@ C
             GYL(I,NR) = G3D(NR,I,27)
          ENDDO
       ENDDO
-      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+      CALL TRGR1DC( 3.0,12.0,14.0,17.0,GT,GRG,GYL,NTM,NGT,NRM,NRMAX,
      &            '@QP  vs t@',KATR)
 C
       DO I=1,NGT
@@ -676,6 +676,23 @@ C
       ENDDO
       CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@VLOOP [V]  vs t@',KATR)
+C
+      DO I=1,NGT
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,60)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC( 3.0,12.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@VTOR [m/s]  vs t@',KATR)
+C
+      DO I=1,NGT
+         TSL = DBLE(GT(I))
+         DO NR=1,NRMAX
+            GYL(I,NR) = G3D(NR,I,63)
+         ENDDO
+      ENDDO
+      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &            '@ER [V/m] vs t@',KATR)
 C
       CALL PAGEE
 C

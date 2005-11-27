@@ -587,6 +587,7 @@ C
          G3D(NR,NGT,61) = GUCLIP(VPOL(NR))
 C
          G3D(NR,NGT,62) = GUCLIP(SALPHA(NR))
+         G3D(NR,NGT,63) = GUCLIP(ER(NR))
 C
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
