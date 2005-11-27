@@ -615,6 +615,7 @@ C
          RNU(1,NR,1)=FAS(NR)
          RNU(1,NR,2)=FAS(NR)
          RNU_ORG(1,NR,1)=FAS(NR)
+         RNU_ORG(1,NR,2)=FAS(NR)
          ZEFFU(1,NR)=1.D0     ! in case of MDNI=0
          ZEFFU_ORG(1,NR)=1.D0 ! in case of MDNI=0
       ENDDO
@@ -670,7 +671,7 @@ C
       DO NR=1,NRMAX
          IF(NMCHK.EQ.0) THEN
             IF(MDNI.NE.0) RNU(1,NR,2)=FAS(NR)
-            RNU_ORG(1,NR,2)=FAS(NR)
+            IF(IERR.EQ.0) RNU_ORG(1,NR,2)=FAS(NR)
             RNU_ORG(1,NR,4)=0.D0
          ELSE
             RNU_ORG(1,NR,4)=FAS(NR)
@@ -1266,6 +1267,7 @@ C
             RNU(NTX,NR,3)=1.D-7
             RNU(NTX,NR,4)=1.D-7
             RNU_ORG(NTX,NR,1)=FAT(NTX,NR)
+            RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
             ZEFFU(NTX,NR)=1.D0     ! in case of MDNI=0
             ZEFFU_ORG(NTX,NR)=1.D0 ! in case of MDNI=0
          ENDDO
@@ -1313,14 +1315,14 @@ C
             IF(MDNI.NE.0) THEN
                DO NR=1,NRMAX
                   RNU(NTX,NR,2)=FAT(NTX,NR)
-                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+                  IF(IERR.EQ.0) RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
                   RNU_ORG(NTX,NR,4)=0.D0
                ENDDO
                PNSU(NTX,2)=PV(NTX)
                IF(RHOA.NE.1.D0) PNSUA(NTX,2)=PVA(NTX)
             ELSE
                DO NR=1,NRMAX
-                  RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
+                  IF(IERR.EQ.0) RNU_ORG(NTX,NR,2)=FAT(NTX,NR)
                ENDDO
             ENDIF
          ELSE
@@ -2209,11 +2211,12 @@ C
       IERRP=IERR
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,ID,IERRP)
 C
-      IF(NRLMAX.LE.1) THEN
+      IF(IERRP.NE.0.AND.NRLMAX.LE.1) THEN
          DO NRL=1,NRMAX
             FOUT(NRL)=0.D0
          ENDDO
          IERR=1
+         IF(IERRP.LT.0) IERR=IERRP
          RETURN
       ENDIF
 C
@@ -2273,6 +2276,7 @@ C
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,1,IERR)
+      IF(IERR.LT.0) RETURN
 C
       IF(NRLMAX.LE.1) THEN
          DO NRL=1,NRMAX
@@ -2349,13 +2353,13 @@ C
          CALL IPDB_MDS2(KUFDEV,KUFDCG,KFID,NRMU,NTUM,
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
-      IF(NRLMAX.LE.1) RETURN
-      IF(IERR.NE.0) THEN
+      IF(IERR.NE.0.AND.NRLMAX.LE.1) THEN
          DO NTX=1,NTUM
             DO NRX=1,NRMP
                FOUT(NTX,NRX)=0.D0
             ENDDO
          ENDDO
+         IF(NRLMAX.LE.1) IERR=1
          RETURN
       ENDIF
       DERIV(1)=0.D0
@@ -2422,13 +2426,13 @@ C
          CALL IPDB_MDS2(KUFDEV,KUFDCG,KFID,NRMU,NTUM,
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
-      IF(NRLMAX.LE.1) RETURN
-      IF(IERR.NE.0) THEN
+      IF(IERR.NE.0.AND.NRLMAX.LE.1) THEN
          DO NTX=1,NTUM
             DO NRX=1,NRMP
                FOUT(NTX,NRX)=0.D0
             ENDDO
          ENDDO
+         IF(NRLMAX.LE.1) IERR=1
          RETURN
       ENDIF
 C
@@ -2500,6 +2504,8 @@ C     this checks its value consistent with the range of time.
 C     One of the main function in this section is to make "Spline Array"
 C     in order to interpolate various profiles radially.
 C
+C     IERR: negative value means "no data file".
+C
       SUBROUTINE PRETREAT0(KFID,RL,TL,F2,U,NRFMAX,NTXMAX,ID,IERR)
 C
       INCLUDE 'trcomm.inc'
@@ -2514,7 +2520,7 @@ C
             ENDDO
          ENDDO
          IF(KFID.EQ.'CURTOT'.AND.IERR.NE.0) MDLJQ=1
-         IERR=0
+         IERR=-1
          RETURN
       ENDIF
 C
