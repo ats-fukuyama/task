@@ -1279,8 +1279,8 @@ C     regard the particle whose mass is between 3.5 and 4.5 as HELIUM
                ENDDO
  400           CONTINUE
             ENDIF
-         ELSEIF(ABS(PA(NS)-12.D0).LT.2.D0.AND.NSMAX.EQ.3) THEN
-C     regard the particle whose mass is between 10.0 and 14.0 as CARBON
+         ELSEIF(ABS(PA(NS)-12.D0).LT.3.D0.AND.NSMAX.EQ.3) THEN
+C     regard the particle whose mass is between 9.0 and 15.0 as CARBON
             NEQ=NEQ+1
             NSS(NEQ)=3
             NSV(NEQ)=NSW
