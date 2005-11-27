@@ -788,6 +788,7 @@ C
 C     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
+            write(6,*) MDNI,NR,RNU(1,NR,2),RNU(1,NR,3)
             WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
             MDNI=MDNI+1
             IF(MDNI.LE.3) THEN
@@ -2275,15 +2276,16 @@ C
          CALL IPDB_MDS2(KUFDEV,KUFDCG,KFID,NRMU,NTUM,
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
-      CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,1,IERR)
-      IF(IERR.LT.0) RETURN
+      IERRP=IERR
+      CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,1,IERRP)
 C
-      IF(NRLMAX.LE.1) THEN
+      IF(IERRP.NE.0.OR.NRLMAX.LE.1) THEN
          DO NRL=1,NRMAX
             FOUT(NRL)=0.D0
          ENDDO
          RETURN
          IERR=1
+         IF(IERR.LT.0) IERR=IERRP
       ENDIF
 C
       DO NRL=1,NRMAX
