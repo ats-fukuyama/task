@@ -665,6 +665,7 @@ C
          RNFU(1,NR)=FAS(NR)
       ENDDO
 C
+ 100  CONTINUE
       KFID='NM1'
       CALL UF2DSP(KFID,KUFDEV,KUFDCG,DR,PNM1,PNM2,FAS,AMP,RHOA,
      &            NRAMAX,NRMAX,MDLXP,IERR)
@@ -718,7 +719,6 @@ C
          RNU_ORG(1,NR,3)=FAS(NR)
       ENDDO
 C
- 100  CONTINUE
       IF(MDNI.EQ.1) THEN ! ** MDNI **
 C
       DO NR=1,NRMAX
@@ -788,7 +788,6 @@ C
 C     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
-            write(6,*) MDNI,NR,RNU(1,NR,2),RNU(1,NR,3)
             WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
             MDNI=MDNI+1
             IF(MDNI.LE.3) THEN
