@@ -8,7 +8,10 @@ C     ***********************************************************
 C
       SUBROUTINE TRGRT0(K2,INQ)
 C
+      INCLUDE 'trcomm.inc'
       CHARACTER K2*1
+C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
       IF(K2.EQ.'1') CALL TRGRT1(INQ)
       IF(K2.EQ.'2') CALL TRGRT2(INQ)
@@ -19,6 +22,9 @@ C
       IF(K2.EQ.'7') CALL TRGRT7(INQ)
       IF(K2.EQ.'8') CALL TRGRT8(INQ)
       IF(K2.EQ.'9') CALL TRGRT9(INQ)
+C
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+C
       RETURN
       END
 C  

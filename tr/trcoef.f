@@ -312,6 +312,7 @@ C     magnetic shear
          S=RHOG(NR)/QL*DQ
 C     pressure gradient for MHD instability
          ALFA=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
+         SALPHA(NR) = S-ALFA
 C
 C     rotational shear
 C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
