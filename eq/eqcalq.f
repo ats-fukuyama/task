@@ -276,7 +276,7 @@ C
       PSIT(1)=0.D0
       DO NR=2,NRPMAX
          PSIT(NR)=PSIT(NR-1)
-     &           +0.5D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
+     &           +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
      &                 *(PSIP(NR)-PSIP(NR-1))
       ENDDO
       PSITA=PSIT(NRPMAX)

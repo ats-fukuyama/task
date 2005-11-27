@@ -85,7 +85,7 @@ C
       PSITV(1)=0.D0
       DO NRV=2,NRVMAX
          PSITV(NRV)=PSITV(NRV-1)
-     &        +0.5D0*QPV(NRV)*QPV(NRV-1)/(QPV(NRV)+QPV(NRV-1))
+     &        +2.0D0*QPV(NRV)*QPV(NRV-1)/(QPV(NRV)+QPV(NRV-1))
      &              *(PSIPV(NRV)-PSIPV(NRV-1))
       ENDDO
       PSITA=PSITV(NRVMAX)
