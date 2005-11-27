@@ -100,14 +100,14 @@ C     ----- calculate PSIITB -----
 C
       CALL EQCNVA(RHOITB**2,PSIITB)
 C
-      DO NR=1,11
-         PSIPNL=0.01*(NR-1)
-         CALL EQPPSI(PSIPNL,PPSIL,DPPSIL)
-         QPVL=EQQPV(PSIPNL)
-         WRITE(6,'(I5,1P6E12.4)') 
-     &        NR,PSIPNL,PSITNL,PPSIL,DPPSIL
-      ENDDO
-      STOP
+C      DO NR=1,11
+C         PSIPNL=0.01*(NR-1)
+C         CALL EQPPSI(PSIPNL,PPSIL,DPPSIL)
+C         QPVL=EQQPV(PSIPNL)
+C         WRITE(6,'(I5,1P6E12.4)') 
+C     &        NR,PSIPNL,PSITNL,PPSIL,DPPSIL
+C      ENDDO
+C      STOP
       RETURN
       END
 C

@@ -26,7 +26,7 @@ C
       DELT=1.D-8
       EPS=1.D-4
       ILMAX=40
-      LIST=1
+      LIST=0
       RINIT=RAXIS
       ZINIT=ZAXIS
       RSAVE=RAXIS
