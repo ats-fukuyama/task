@@ -20,7 +20,6 @@ C
          IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
          DIP=0.D0
       ELSE
-         NT=0
          RIP=RIPS
          IF(NTMAX.NE.0) DIP=(RIPE-RIPS)/DBLE(NTMAX)
       ENDIF
@@ -274,7 +273,11 @@ C
  4000 NT=NT+1
       T=T+DT
       VSEC=VSEC+VLOOP*DT
+C
+C     /* Sawtooth oscillation trigger */
+      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
       IF(Q0.LT.1.D0) TST=TST+DT
+C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
 C     calculate plasma current at next time from interpolating data
          TSL=DT*DBLE(NT)
@@ -324,7 +327,9 @@ C     /* Making New Physical Variables */
       CALL TRXTOA
       CALL TR_EDGE_SELECTOR(1)
 C
+C     /* Check negative temperature */
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
+C     /* In case of negative temperature */
       IF(ICHCK.EQ.1) THEN
          CALL TRGLOB
          CALL TRATOT

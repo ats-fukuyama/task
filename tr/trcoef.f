@@ -137,12 +137,19 @@ C
             RNTM= 0.5D0*RNTM
             RNM = 0.5D0*RNM
             RPM = 0.5D0*RPM
-C 
-            DTE = 2.D0*(PTS(1) -RT(NR,1))*DRL
-            DNE = 2.D0*(PNSS(1)-RN(NR,1))*DRL
-            DPE = 2.D0*(PNSS(1)*PTS(1)-RN(NR,1)*RT(NR,1))*DRL
-            DTD = 2.D0*(PTS(2) -RT(NR,2))*DRL
-            DND = 2.D0*(PNSS(2)-RN(NR,2))*DRL
+C
+            DTE=DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
+     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DNE=DERIV3(PTS(1),RN(NR,1),RN(NR-1,1),
+     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DPE=DERIV3(PNSS(1)*PTS(1),
+     &                 RN(NR,1)*RT(NR,1),
+     &                 RN(NR-1,1)*RT(NR-1,1),
+     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DTD=DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DND=DERIV3(PTS(2),RN(NR,2),RN(NR-1,2),
+     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
             ZEFFL=ZEFF(NR)
             EZOHL=EZOH(NR)
 C
@@ -827,8 +834,8 @@ C
       ELSEIF(MDLKAI.EQ.62) THEN
          RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
      &         /PNSS(1)
-         CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                       S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
+         CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,
+     &                       QP,S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
      &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN

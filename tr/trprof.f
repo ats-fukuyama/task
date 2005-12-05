@@ -11,6 +11,7 @@ C
       DIMENSION DSRHO(NRM)
       COMMON /TMSLC2/ NTAMAX
 C
+      NT    = 0
       T     = 0.D0
       TPRE  = 0.D0
       TST   = 0.D0
@@ -579,7 +580,8 @@ C
      &              /(4.D0*PI**2*RDP(NR))
          ENDDO
       ENDIF
-      Q0=(4.D0*QP(1)-QP(2))/3.D0
+C     *** calculate q_axis ***
+      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
 C
 C     calculate plasma current inside the calucated region (rho <= rhoa)
 C     necessary for MDLEQB = 1 and MDLUF /= 0

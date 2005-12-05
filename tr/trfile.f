@@ -166,7 +166,8 @@ C
          GRG(NR+1)=GUCLIP(RG(NR))
          QP(NR)   =TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*RDP(NR))
       ENDDO
-      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
+C     *** calculate q_axis ***
+      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
 C
       IF(MODELG.EQ.9) THEN
          CALL EQLOAD(MODELG,KNAMEQ,1,IERR)
@@ -1709,7 +1710,7 @@ C
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
       DIMENSION FAT(NTUM,NRMP),VOL(NTUM),PV(NTUM),PVA(NTUM)
       DIMENSION RL(NRMU),TL(NTUM),F2(NTUM,NRMU)
-      CHARACTER KFID*10
+      CHARACTER KFID*10,KDIRX*80
 C
       ICK=0
       TMUMAX=0.D0
@@ -2840,7 +2841,6 @@ C         IF(PECL.LT.0.D0) PECL=0.D0
          ENDIF
       ENDDO
       ENDIF ! *** MDLUF ***
-C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
       CALL TRGFRG
 C
       IF(MDLUF.EQ.1) THEN
@@ -3013,7 +3013,6 @@ C
          ENDIF
          RNF(NR,1)=RNFU(1,NR)
       ENDDO
-C      Q0  = (4.D0*QP(1) -QP(2) )/3.D0
       CALL TRGFRG
       DO NR=1,NRMAX
          RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)/(4.D0*PI**2*QP(NR))

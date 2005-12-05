@@ -172,11 +172,14 @@ C
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSLMAX
                temp_i(NS)=SNGL(PTS(NS))
-               grt_i(NS)=SNGL(2.D0*(PTS(NS)-RT(NR,NS))/DR)
+               grt_i(NS)=SNGL(DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+     &                               RG(NR),RM(NR),RM(NR-1)))
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                grp_iz(NS,INT(ABS(PZ(NS))))
-     &              =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &              /DR)*1.E20
+     &              =SNGL(DERIV3(PNSS(NS)*PTS(NS),
+     &                           RN(NR  ,NS)*RT(NR  ,NS),
+     &                           RN(NR+1,NS)*RT(NR+1,NS),
+     &                           RG(NR),RM(NR),RM(NR-1)))*1.E20
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
                ENDDO
@@ -186,11 +189,14 @@ C
                   NS =NSM+NSZ
                   NSN=NSLMAX+NSZ
                   temp_i(NSN)=SNGL(PTS(NS))
-                  grt_i(NSN)=SNGL(2.D0*(PTS(NS)-RN(NR,NS))/DR)
+                  grt_i(NSN)=SNGL(DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+     &                               RG(NR),RM(NR),RM(NR-1)))
                   den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                   grp_iz(NSN,INT(ABS(PZ(NS))))
-     &                 =SNGL(2.D0*(PNSS(NS)*PTS(NS)-RN(NR,NS)*RT(NR,NS))
-     &                 /DR)*1.E20
+     &                 =SNGL(DERIV3(PNSS(NS)*PTS(NS),
+     &                              RN(NR  ,NS)*RT(NR  ,NS),
+     &                              RN(NR+1,NS)*RT(NR+1,NS),
+     &                              RG(NR),RM(NR),RM(NR-1)))*1.E20
                   DO NA=1,3
                      fex_iz(NA,NSN,INT(ABS(PZ(NS))))=0.0
                   ENDDO

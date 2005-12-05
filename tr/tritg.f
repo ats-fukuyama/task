@@ -545,14 +545,19 @@ C         if(nr.eq.4) write(6,'(I4,5F15.7)') NT,DL(3),CHQL(4)
       ENDDO
 C
       NR=NRMAX
-         DRL   = RJCB(NR)/DR
          EPS   = EPSRHO(NR)
-         SLNEL =-PNSS(1)/(2.D0*(PNSS(1)-RN(NR,1))*DRL)
-         SLNIL =-PNSS(2)/(2.D0*(PNSS(2)-RN(NR,2))*DRL)
-         SLNQL =-PNSS(3)/(2.D0*(PNSS(3)-RN(NR,3))*DRL)
-         SLTEL =-PTS (1)/(2.D0*(PTS (1)-RT(NR,1))*DRL)
-         SLTIL =-PTS (2)/(2.D0*(PTS (2)-RT(NR,2))*DRL)
-         SLTQL =-PTS (3)/(2.D0*(PTS (3)-RT(NR,3))*DRL)
+         SLNEL =-PNSS(1)/DERIV3(PNSS(1),RN(NR,1),RN(NR-1,1),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLNIL =-PNSS(2)/DERIV3(PNSS(2),RN(NR,2),RN(NR-1,2),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLNQL =-PNSS(3)/DERIV3(PNSS(3),RN(NR,3),RN(NR-1,3),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTEL =-PTS (1)/DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTIL =-PTS (2)/DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTQL =-PTS (3)/DERIV3(PTS(3),RT(NR,3),RT(NR-1,3),
+     &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
          SLBL  = RR
          ENL   = 2.D0*(SLNEL/SLBL )
          EIL   =       SLNIL/SLTIL
@@ -1022,18 +1027,20 @@ C            IFS/PPPL Model
 C
 C     ***********************************************************
 C
-      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,QP,
-     &                          S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
-     &                          PNSS,PTS,RNFL,RNFEDG,MDLUF,NSMAX,
-     &                          AR1RHOG,AR2RHOG,AKDW)
+      SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,
+     &                          RHOG,RHOM,QP,S_AR,EPSRHO,RKPRHOG,RT,BB,
+     &                          AMM,AME,PNSS,PTS,RNFL,RNFEDG,MDLUF,
+     &                          NSMAX,AR1RHOG,AR2RHOG,AKDW)
 C
       IMPLICIT NONE
 C
       INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
-      REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),QP(NRM),S_AR(NRM),
+      REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),RHOG(NRM),RHOM(NRM),
+     &       QP(NRM),S_AR(NRM),
      &       EPSRHO(NRM),RKPRHOG(NRM),RT(NRM,NSM),BB,AMM,AME,
      &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
      &       AR1RHOG(NRM),AR2RHOG(NRM),AKDW(NRM,NSTM)
+      REAL*8 DERIV3
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
       parameter (ipin=7,iptmp=8,ipout=9,screen=6)
       real znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps,
@@ -1118,8 +1125,10 @@ C
             zncne  = 0.0
          ENDIF
          znbne  = SNGL(RNFEDG)
-         zrlt   =-SNGL(RR/PTS(2)*2.D0*(PTS (2)-RT(NR,2))/DR*RJCB(NR))
-         zrln   =-SNGL(RR/PTS(1)*2.D0*(PNSS(1)-RN(NR,1))/DR*RJCB(NR))
+         zrlt   =-SNGL(RR/PTS(2)*DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                                  RHOG(NR),RHOM(NR),RHOM(NR-1)))
+         zrln   =-SNGL(RR/PTS(1)*DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
+     &                                  RHOG(NR),RHOM(NR),RHOM(NR-1)))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))
