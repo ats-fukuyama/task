@@ -607,25 +607,27 @@ C
       CALL TRGR1DC( 3.0,12.0, 1.1, 4.1,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
      &            '@AJ [MA]  vs t@',KATR)
 C
-      DO I=1,NGT
-         TSL = DBLE(GT(I))
-         DO NR=1,NRMAX
-            CALL TIMESPL(TSL,RTEL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
-            GYL(I,NR) = GUCLIP(RTEL)
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         DO I=1,NGT
+            TSL = DBLE(GT(I))
+            DO NR=1,NRMAX
+               CALL TIMESPL(TSL,RTEL,TMU,RTU(1,NR,1),NTXMAX,NTUM,IERR)
+               GYL(I,NR) = GUCLIP(RTEL)
+            ENDDO
          ENDDO
-      ENDDO
-      CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
-     &            '@TE [keV] (XP) vs t@',KATR)
+         CALL TRGR1DC(15.0,24.0,14.0,17.0,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &                '@TE [keV] (XP) vs t@',KATR)
 C
-      DO I=1,NGT
-         TSL = DBLE(GT(I))
-         DO NR=1,NRMAX
-            CALL TIMESPL(TSL,RTDL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
-            GYL(I,NR) = GUCLIP(RTDL)
+         DO I=1,NGT
+            TSL = DBLE(GT(I))
+            DO NR=1,NRMAX
+               CALL TIMESPL(TSL,RTDL,TMU,RTU(1,NR,2),NTXMAX,NTUM,IERR)
+               GYL(I,NR) = GUCLIP(RTDL)
+            ENDDO
          ENDDO
-      ENDDO
-      CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
-     &            '@TD [keV] (XP) vs t@',KATR)
+         CALL TRGR1DC(15.0,24.0, 9.7,12.7,GT,GRM,GYL,NTM,NGT,NRM,NRMAX,
+     &                '@TD [keV] (XP) vs t@',KATR)
+      ENDIF
 C
       DO I=1,NGT
          DO NR=1,NRMAX

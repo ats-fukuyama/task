@@ -61,7 +61,6 @@ C
          WRITE(K5,'(I3)') 100+NTM1
          WRITE(K6,'(I3)') 100+NTS1
          WRITE(16,1670) K1(2:3),K2(2:3),K3(2:3),K4(2:3),K5(2:3),K6(2:3),
-     &                  TRFNAM,
      &                  RIPS,RIPE,PN(1),PN(2),BB,PICTOT,PLHTOT,PLHNPR
  1670    FORMAT(' '/
      &          ' ','## DATE: ',
@@ -774,11 +773,11 @@ C
      &              /PZ(2)
          ZEFFU(1,NR)=PZ(2)+PZ(3)*(PZ(3)-PZ(2))*(RNU(1,NR,3)/RNU(1,NR,1))
       ENDDO
-      PNS(2)=(PNS(1)-PZ(2)*RNF1-PZ(3)*PNIMP1)/PZ(2)
+      PNS(2)=(PNS(1)-PZ(2)*PNF1-PZ(3)*PNIMP1)/PZ(2)
       PNS(3)=PNIMP1
       PNS(4)=1.D-8
       IF(RHOA.NE.1.D0) THEN
-         PNSA(2)=(PNSA(1)-PZ(2)*RNF2-PZ(3)*PNIMP2)/PZ(2)
+         PNSA(2)=(PNSA(1)-PZ(2)*PNF2-PZ(3)*PNIMP2)/PZ(2)
          PNSA(3)=PNIMP2
          PNSA(4)=1.D-8
       ENDIF
