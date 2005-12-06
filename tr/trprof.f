@@ -98,7 +98,7 @@ C
             WROT(NR)  = WROTU(1,NR)
             VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
          ELSEIF(MDLUF.EQ.2) THEN ! *** MDLUF ***
-            IF(MDNI.EQ.0) THEN !!!
+            IF(MDNI.EQ.0) THEN ! ** MDNI **
             IF(MODEP.EQ.1) THEN
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
                   PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
@@ -160,7 +160,7 @@ C
                RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
      &                    +RTU(1,NRMAX,2)
             ENDIF
-            ELSE !!!
+            ELSE ! ** MDNI **
             IF(MODEP.EQ.1) THEN
                IF(RHOA.EQ.1.D0.OR.(RHOA.NE.1.D0.AND.NR.LE.NRAMAX)) THEN
                   PROF   = (1.D0-(ALP(1)*RM(NR)/RHOA)**PROFN1)**PROFN2
@@ -218,7 +218,7 @@ C
                RT(NR,4) = (RTU(1,NR,2)-RTU(1,NRMAX,2))*PROF
      &                    +RTU(1,NRMAX,2)
             ENDIF
-            ENDIF !!!
+            ENDIF ! ** MDNI **
 C
             PEX(NR,1)=PNBU(1,NR,1)
             PEX(NR,2)=PNBU(1,NR,2)
@@ -581,7 +581,7 @@ C
          ENDDO
       ENDIF
 C     *** calculate q_axis ***
-      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
+      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 C
 C     calculate plasma current inside the calucated region (rho <= rhoa)
 C     necessary for MDLEQB = 1 and MDLUF /= 0
@@ -953,13 +953,13 @@ C
          RML=RM(NR)
          RML1=RM(NR-1)
 C
-         AR1RHOG(NR)=FEDG(RGL,RML,RML1,AR1RHO(NR),AR1RHO(NR-1))
-         AR2RHOG(NR)=FEDG(RGL,RML,RML1,AR2RHO(NR),AR2RHO(NR-1))
-         RKPRHOG(NR)=FEDG(RGL,RML,RML1,RKPRHO(NR),RKPRHO(NR-1))
-         TTRHOG (NR)=FEDG(RGL,RML,RML1,TTRHO (NR),TTRHO (NR-1))
-         DVRHOG (NR)=FEDG(RGL,RML,RML1,DVRHO (NR),DVRHO (NR-1))
-         ARRHOG (NR)=FEDG(RGL,RML,RML1,ARRHO (NR),ARRHO (NR-1))
-         ABRHOG (NR)=FEDG(RGL,RML,RML1,ABRHO (NR),ABRHO (NR-1))
+         CALL AITKEN(RGL,AR1RHOG(NR),RM,AR1RHO,2,NRMAX)
+         CALL AITKEN(RGL,AR2RHOG(NR),RM,AR2RHO,2,NRMAX)
+         CALL AITKEN(RGL,RKPRHOG(NR),RM,RKPRHO,2,NRMAX)
+         CALL AITKEN(RGL,TTRHOG (NR),RM,TTRHO ,2,NRMAX)
+         CALL AITKEN(RGL,DVRHOG (NR),RM,DVRHO ,2,NRMAX)
+         CALL AITKEN(RGL,ARRHOG (NR),RM,ARRHO ,2,NRMAX)
+         CALL AITKEN(RGL,ABRHOG (NR),RM,ABRHO ,2,NRMAX)
 C
          ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
          AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2

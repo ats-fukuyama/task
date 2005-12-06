@@ -1,3 +1,14 @@
+2005/12/06
+	The accuracy of the derivatives and the extrapolations are
+          improved to include the Aitken-Neville method for inter- and
+          extrapolation and the formula having the second-order accuracy
+	  applied not only to the simple boundary conditions but also
+          to the coefficients of the band matrix.
+	The model of trapped partcle fraction is fixed, which is Kim
+          model.
+	The model of radial electric field is fixed, which is Waltz
+          model.
+
 2004/12/10
 	TASK/TR can implement one dimensional modelling tests of
 	  the mean and the mean square deviations of the predictions

@@ -275,7 +275,7 @@ C
       VSEC=VSEC+VLOOP*DT
 C
 C     /* Sawtooth oscillation trigger */
-      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
+      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
       IF(Q0.LT.1.D0) TST=TST+DT
 C
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
@@ -631,9 +631,9 @@ C
       DO NV=1,NEQMAX
       DO NW=1,NEQMAX
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
+     &                                      +DI(NV,NW,2,NSW)/3.D0
          B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW)
-     &                -0.0D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
-     &                                      -DI(NV,NW,2,NSW)
+     &                                      -DI(NV,NW,2,NSW)*3.D0
          C(NV,NW,NR) =-0.0D0
       ENDDO
       ENDDO
@@ -1163,6 +1163,7 @@ C
       DV23=DVRHO(NR)**(2.D0/3.D0)
       DV53=DVRHO(NR)**(5.D0/3.D0)
       CC=1.5D0
+      C83=8.D0/3.D0
 C
       DO NEQ=1,NEQMAX  ! *** NEQ ***
 C
@@ -1183,31 +1184,45 @@ C
          ENDIF
 C     
 C     /* Coefficients of main variables */
-C     
-         DO NF=1,4
-            NRF=NR+(NF-2)
-            IF(NRF.EQ.0.OR.NRF.GT.NRMAX) THEN
-               FCB(NF)=0.D0
-            ELSE
-               FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
+C
+         IF(NSVN.EQ.0) THEN ! for mag. diff. eq.
+            IF(NSW.NE.3) THEN ! NR/=NRMAX
+               DO NF=1,4
+                  NRF=NR+(NF-2)
+                  IF(NRF.EQ.0.OR.NRF.GT.NRMAX) THEN
+                     FCB(NF)=0.D0
+                  ELSE
+                     FCB(NF)=DVRHO(NRF)*ABRHO(NRF)/TTRHO(NRF)
+                  ENDIF
+               ENDDO
+            ELSE ! NR=NRMAX
+               DO NF=1,4
+                  FCB(NF)=0.D0
+               ENDDO
             ENDIF
-         ENDDO
-         IF(NR.EQ.NRMAX-1) FCB(4)=2.D0*FCB(3)-FCB(2)
+            IF(NR.EQ.NRMAX-1) FCB(4)=AITKEN2P(RM(NR+1)+DR,
+     &                         DVRHO(NR+1)*ABRHO(NR+1)/TTRHO(NR+1),
+     &                         DVRHO(NR  )*ABRHO(NR  )/TTRHO(NR  ),
+     &                         DVRHO(NR-1)*ABRHO(NR-1)/TTRHO(NR-1),
+     &                         RM(NR+1),RM(NR),RM(NR-1))
+         ENDIF
 C     
-         DO NMK=1,3
-            IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
-               FA(NMK,NSW)=DVRHO(NR+(NMK-2))*AR1RHO(NR+(NMK-2))/DR
-               FB(NMK,NSW)=DVRHO(NR+(NMK-2))*AR2RHO(NR+(NMK-2))/(DR*DR)
-            ELSE
-               FA(NMK,NSW)=0.D0
-               FB(NMK,NSW)=0.D0
-            ENDIF
-            IF(NSW.NE.3) THEN
+         IF(NSVN.NE.0) THEN ! for no mag. diff. eqs.
+            DO NMK=1,3
+               IF (NSW.EQ.2.OR.NSW.NE.NMK) THEN
+                  NMKL=NMK-2
+                  FA(NMK,NSW)=DVRHO(NR+NMKL)*AR1RHO(NR+NMKL)/DR
+                  FB(NMK,NSW)=DVRHO(NR+NMKL)*AR2RHO(NR+NMKL)/(DR*DR)
+               ELSE
+                  FA(NMK,NSW)=0.D0
+                  FB(NMK,NSW)=0.D0
+               ENDIF
+            ENDDO
+         ELSE ! for mag. diff. eq.
+            DO NMK=1,3
                FC(NMK,NSW)=0.5D0*(FCB(NMK)+FCB(NMK+1))/(DR*DR)
-            ELSE
-               FC(NMK,NSW)=0.D0
-            ENDIF
-         ENDDO
+            ENDDO
+         ENDIF
 C     
          SIG(1)= 2.D0
          SIG(2)= 2.D0
@@ -1429,7 +1444,7 @@ C
       ENDIF
 C
 C     /* Coefficients of source term */
-C     
+C
       DO NEQ=1,NEQMAX
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
@@ -1442,18 +1457,18 @@ C
                D(NEQ,NR) = VOID
             ELSEIF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
                D(NEQ,NR) = SSIN(NR,NSSN)*DV11
-     &                 +(-VI(NEQ,NEQ,2,NSW)+DI(NEQ,NEQ,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))
      &                 *PNSS(NSSN)
             ELSE
                IF(NSVN.EQ.1) THEN
                   D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11
-     &                 +(-VI(NEQ,NEQ,2,NSW)+DI(NEQ,NEQ,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))
      &                 *PNSS(NSSN)
                ELSEIF(NSVN.EQ.2) THEN
                   D(NEQ,NR) = (PIN(NR,NSSN)/(RKEV*1.D20)  )*DV53
-     &                 +(-VI(NEQ,NEQ-1,2,NSW)+DI(NEQ,NEQ-1,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ-1,2,NSW)+C83*DI(NEQ,NEQ-1,2,NSW))
      &                 *PNSS(NSSN)
-     &                 +(-VI(NEQ,NEQ  ,2,NSW)+DI(NEQ,NEQ  ,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ  ,2,NSW)+C83*DI(NEQ,NEQ  ,2,NSW))
      &                 *PNSS(NSSN)*PTS(NSSN)
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
@@ -1478,11 +1493,11 @@ C     *
                   NSVN1=NSV(NEQ1)
                   IF(NSVN1.EQ.1) THEN
                      D(NEQ,NR) = D(NEQ,NR)
-     &                    +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                    *PNSS(NSSN1)
                   ELSEIF(NSVN1.EQ.2) THEN
                      D(NEQ,NR) = D(NEQ,NR)
-     &                    +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                    *PNSS(NSSN1)*PTS(NSSN1)
                   ENDIF
                ENDDO
@@ -1494,11 +1509,11 @@ C     *
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
                         D(NEQ,NR) = D(NEQ,NR)
-     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                 *PNSS(NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         D(NEQ,NR) = D(NEQ,NR)
-     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                 *PNSS(NSSN1)*PTS(NSSN1)
                      ENDIF
                   ENDDO
@@ -1509,11 +1524,11 @@ C     *
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
                         D(NEQ,NR) = D(NEQ,NR)
-     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                 *PNSS(NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         D(NEQ,NR) = D(NEQ,NR)
-     &                 +(-VI(NEQ,NEQ1,2,NSW)+DI(NEQ,NEQ1,2,NSW)*2.D0)
+     &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                 *PNSS(NSSN1)*PTS(NSSN1)
                      ENDIF
                   ENDDO
@@ -1579,7 +1594,7 @@ C
      &                              *PNSS(NSSN1)
                   ENDIF
                ENDDO
-               D(NEQ,NR) = D(NEQ,NR)+(-VISUMN+DISUMN*2.D0)
+               D(NEQ,NR) = D(NEQ,NR)+(-VISUMN+C83*DISUMN)
                IND=IND+1
             ELSEIF(NSSN.EQ.1.AND.NSVN.EQ.2) THEN
                D(NEQ,NR) = 0.D0
@@ -1599,8 +1614,8 @@ C
      &                                *PNSS(NSSN1)*PTS(NSSN1) 
                   ENDIF
                ENDDO
-               D(NEQ,NR) = D(NEQ,NR)+(-VISUMT1+DISUMT1*2.D0)
-     &                              +(-VISUMT2+DISUMT2*2.D0)
+               D(NEQ,NR) = D(NEQ,NR)+(-VISUMT1+C83*DISUMT1)
+     &                              +(-VISUMT2+C83*DISUMT2)
                IND=IND+1
             ENDIF
            IF(IND.EQ.2) GOTO 2000

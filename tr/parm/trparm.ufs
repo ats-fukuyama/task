@@ -6,18 +6,17 @@
    DT=1.D-2
    MDLEQB=0
    NSMAX=2
+   MDLEOI=0
    MDLKAI=31
    PROFJ1=2.0
    MDLUF=2
    KUFDEV='d3d'
-   KUFDCG='82188'
-   TIME_INT=3.775
+   KUFDCG='78106'
+   TIME_INT=2.35
    MODEP=2
    MDNI=1
    RHOA=0.9
-   PROFN1=1
-   PROFN2=1.5
-   PROFT1=1
-   PROFT2=1.5
    MDLJQ=0
+   PA(3)=12
+   PZ(3)=6
  &end

@@ -138,18 +138,18 @@ C
             RNM = 0.5D0*RNM
             RPM = 0.5D0*RPM
 C
-            DTE=DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
-     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
-            DNE=DERIV3(PTS(1),RN(NR,1),RN(NR-1,1),
-     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
-            DPE=DERIV3(PNSS(1)*PTS(1),
-     &                 RN(NR,1)*RT(NR,1),
-     &                 RN(NR-1,1)*RT(NR-1,1),
-     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
-            DTD=DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
-     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
-            DND=DERIV3(PTS(2),RN(NR,2),RN(NR-1,2),
-     &                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DTE=DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
+     &                  RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DNE=DERIV3P(PTS(1),RN(NR,1),RN(NR-1,1),
+     &                  RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DPE=DERIV3P(PNSS(1)*PTS(1),
+     &                  RN(NR,1)*RT(NR,1),
+     &                  RN(NR-1,1)*RT(NR-1,1),
+     &                  RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DTD=DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                  RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DND=DERIV3P(PTS(2),RN(NR,2),RN(NR-1,2),
+     &                  RHOG(NR),RHOM(NR),RHOM(NR-1))
             ZEFFL=ZEFF(NR)
             EZOHL=EZOH(NR)
 C
@@ -252,7 +252,7 @@ c$$$         RPIP=0.5D0*(RPI3+RPI4)
 c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 C
 C     safety factor and its gradient on grid
-         DQ = DERIV3P(NR,RHOG,QP,NRMAX,NRM)
+         DQ = DERIV3(NR,RHOG,QP,NRMAX,NRM)
          QL = QP(NR)
 C
 C     sound speed for electron
@@ -323,7 +323,7 @@ C     pressure gradient for MHD instability
 C
 C     rotational shear
 C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
-         DVE = DERIV3P(NR,RHOG,VEXB,NRMAX,NRM)
+         DVE = DERIV3(NR,RHOG,VEXB,NRMAX,NRM)
          WEXB(NR) = (S-1.D0)*VEXB(NR)/RHOG(NR)+DVE
 C     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
@@ -832,11 +832,11 @@ C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
          CALL GLF23_DRIVER(S_HM,ALFA_AR)
       ELSEIF(MDLKAI.EQ.62) THEN
-         RNFEDG=FEDG(RG(NR),RG(NR-1),RG(NR-2),RNF(NR-1,1),RNF(NR-2,1))
-     &         /PNSS(1)
+         CALL AITKEN(1.D0,RBEEDG,RM,RNF(1,1),2,NRMAX)
+         RBEEDG=RBEEDG/PNSS(1)
          CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,
      &                       QP,S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
-     &                       PNSS,PTS,RNF(1,1),RNFEDG,MDLUF,NSMAX,
+     &                       PNSS,PTS,RNF(1,1),RBEEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
          CALL WEILAND_DRIVER(S_AR,ALFA_AR)

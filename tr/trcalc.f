@@ -42,13 +42,6 @@ C         AJNB(NR)=0.D0
          PFCL(NR,NS)=0.D0
       ENDDO
       ENDDO
-c$$$      DO I=0,5
-c$$$         DO NR=1,NRMAX
-c$$$            EPS=EPSRHO(NR)
-c$$$            write(6,*) RG(NR),FTPF(I,EPS)
-c$$$         ENDDO
-c$$$      ENDDO
-c$$$      STOP
 C
       IF(MODELG.NE.3) THEN
          IF(MDLEQB.NE.0) THEN
@@ -59,7 +52,7 @@ C
          ENDIF
       ENDIF
 C     calculate q_axis
-      CALL AITKEN(0.D0,Q0,RG,QP,4,NRMAX)
+      Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 C
 C     *** RADIAL ELECTRIC FIELD ***
 C
@@ -185,10 +178,10 @@ C
       DO NR=1,NRMAX
          DRL=RJCB(NR)/DR
          IF(NR.EQ.NRMAX) THEN
-            DPD = DERIV3(PNSS(2)*PTS(2),
-     &                   RN(NR  ,2)*RT(NR  ,2)-PADD(NR  ),
-     &                   RN(NR-1,2)*RT(NR-1,2)-PADD(NR-1),
-     &                   RHOG(NR),RHOM(NR),RHOM(NR-1))
+            DPD = DERIV3P(PNSS(2)*PTS(2),
+     &                    RN(NR  ,2)*RT(NR  ,2)-PADD(NR  ),
+     &                    RN(NR-1,2)*RT(NR-1,2)-PADD(NR-1),
+     &                    RHOG(NR),RHOM(NR),RHOM(NR-1))
             TERM_DP = DPD*RKEV/(PZ(2)*AEE*PNSS(2))
          ELSE
             DPD =(  RN(NR+1,2)*RT(NR+1,2)-PADD(NR+1)
@@ -213,10 +206,10 @@ C     Waltz definition
             IF(NR.EQ.NRMAX) THEN
                TEL = PTS(1)
                TIL = PTS(2)
-               RLNI = -DERIV3(PNSS(2),RN(NR,2),RN(NR-1,2),
-     &                        RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
-               RLTI = -DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
-     &                        RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
+               RLNI = -DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2),
+     &                         RHOG(NR),RHOM(NR),RHOM(NR-1))/PNSS(2)
+               RLTI = -DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                         RHOG(NR),RHOM(NR),RHOM(NR-1))/PTS(2)
             ELSE
                TEL = 0.5D0*(RT(NR,1)+RT(NR+1,1))
                TIL = 0.5D0*(RT(NR,2)+RT(NR+1,2))
@@ -633,12 +626,12 @@ C
          DO NS=1,NSMAX
             RTNW=PTS(NS)
             RPNW=PNSS(NS)*PTS(NS)
-            DRTNW=DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
-     &                   RG(NR),RM(NR),RM(NR-1))
-            DRPNW=DERIV3(PNSS(NS)*PTS(NS),
-     &                   RN(NR  ,NS)*RT(NR  ,NS),
-     &                   RN(NR-1,NS)*RT(NR-1,NS),
-     &                   RG(NR),RM(NR),RM(NR-1))
+            DRTNW=DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+     &                    RG(NR),RM(NR),RM(NR-1))
+            DRPNW=DERIV3P(PNSS(NS)*PTS(NS),
+     &                    RN(NR  ,NS)*RT(NR  ,NS),
+     &                    RN(NR-1,NS)*RT(NR-1,NS),
+     &                    RG(NR),RM(NR),RM(NR-1))
             SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
      &             +CJBSP(NR,NS)*DRPNW/RPNW
          ENDDO
@@ -824,12 +817,12 @@ C
          ANE=PNSS(1)
          TE =PTS(1)
          PE =PNSS(1)*PTS(1)
-         DTE=DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPE=DERIV3(PNSS(1)*PTS(1),
-     &              RN(NR,1)*RT(NR,1),
-     &              RN(NR-1,1)*RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTE=DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPE=DERIV3P(PNSS(1)*PTS(1),
+     &               RN(NR,1)*RT(NR,1),
+     &               RN(NR-1,1)*RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
 C     
          rLnLame=31.3D0-LOG(SQRT(ANE*1.D20)/ABS(TE*1.D3))
          RNUE=6.921D-18*QL*RR*ANE*1.D20*ZEFFL*rLnLame
@@ -1112,12 +1105,12 @@ C     ***** VTE  is the electron velocity (VTe) *****
 C
          TE =PTS(1)
          PE =PNSS(1)*PTS(1)
-         DTE=DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPE=DERIV3(PNSS(1)*PTS(1),
-     &              RN(NR,1)*RT(NR,1),
-     &              RN(NR-1,1)*RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTE=DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPE=DERIV3P(PNSS(1)*PTS(1),
+     &               RN(NR,1)*RT(NR,1),
+     &               RN(NR-1,1)*RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
 C         VTE=SQRT(ABS(TE)*RKEV/AME)
 C
 C         rLnLam=15.2D0-DLOG(ANE)*0.5D0+DLOG(ABS(TE))
@@ -1363,30 +1356,30 @@ C     &              +(EPSS*RC2 )**2/RB2 *RNUA/(1.D0+RC2 *RNUA*EPSS))
      &         -2.1D0*(RNUA*EPSS)**2)/(1.D0+(RNUA*EPSS)**2)
 C
          DRL=RJCB(NR)/DR
-         DTE=DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DTD=DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DTT=DERIV3(PTS(3),RT(NR,3),RT(NR-1,3),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DTA=DERIV3(PTS(4),RT(NR,4),RT(NR-1,4),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPE=DERIV3(PNSS(1)*PTS(1),
-     &              RN(NR,1)*RT(NR,1),
-     &              RN(NR-1,1)*RT(NR-1,1),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPD=DERIV3(PNSS(2)*PTS(2),
-     &              RN(NR,2)*RT(NR,2),
-     &              RN(NR-1,2)*RT(NR-1,2),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPT=DERIV3(PNSS(3)*PTS(3),
-     &              RN(NR,3)*RT(NR,3),
-     &              RN(NR-1,3)*RT(NR-1,3),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
-         DPA=DERIV3(PNSS(4)*PTS(4),
-     &              RN(NR,4)*RT(NR,4),
-     &              RN(NR-1,4)*RT(NR-1,4),
-     &              RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTE=DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTD=DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTT=DERIV3P(PTS(3),RT(NR,3),RT(NR-1,3),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DTA=DERIV3P(PTS(4),RT(NR,4),RT(NR-1,4),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPE=DERIV3P(PNSS(1)*PTS(1),
+     &               RN(NR,1)*RT(NR,1),
+     &               RN(NR-1,1)*RT(NR-1,1),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPD=DERIV3P(PNSS(2)*PTS(2),
+     &               RN(NR,2)*RT(NR,2),
+     &               RN(NR-1,2)*RT(NR-1,2),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPT=DERIV3P(PNSS(3)*PTS(3),
+     &               RN(NR,3)*RT(NR,3),
+     &               RN(NR-1,3)*RT(NR-1,3),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
+         DPA=DERIV3P(PNSS(4)*PTS(4),
+     &               RN(NR,4)*RT(NR,4),
+     &               RN(NR-1,4)*RT(NR-1,4),
+     &               RHOG(NR),RHOM(NR),RHOM(NR-1))
          BPL=BP(NR)
 C
          FACT=1.D0/(1.D0+(RNUE*EPS)**2)

@@ -556,7 +556,7 @@ C
       NR=NRMAX
       DO NS=1,NSMAX
          RNN(NR,NS)=PNSS(NS)
-         DTN(NR,NS)=DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+         DTN(NR,NS)=DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS),
      &                     RHOG(NR),RHOM(NR),RHOM(NR-1))*RKEV
       ENDDO
       DO NR=1,NRMAX
@@ -716,7 +716,7 @@ C
             ENDDO
             NR=NRMAX
             DO NS=1,NSMAX
-               DNN(NR,NS)=DERIV3(PNSS(NS),RN(NR,NS),RN(NR-1,NS),
+               DNN(NR,NS)=DERIV3P(PNSS(NS),RN(NR,NS),RN(NR-1,NS),
      &                           RHOG(NR),RHOM(NR),RHOM(NR-1))
             ENDDO
             DO NR=1,NRMAX

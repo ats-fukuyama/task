@@ -133,8 +133,8 @@ C
       ENDIF
 C
       rmin_exp(0)=0.D0
-      rmin_exp(1)=FEDG(RM(1),RG(1),RG(2),RMNRHO(1),RMNRHO(2))
-      rmaj_exp(1)=FEDG(RM(1),RG(1),RG(2),RMJRHO(1),RMJRHO(2))
+      CALL AITKEN(RM(1),rmin_exp(1),RG,RMNRHO,1,NRMAX)
+      CALL AITKEN(RM(1),rmaj_exp(1),RG,RMJRHO,1,NRMAX)
       rgradrho_exp(1)  =AR1RHO(1)*arho_exp
       rgradrhosq_exp(1)=AR2RHO(1)*arho_exp**2
       DO jm=2,jmaxm
@@ -546,17 +546,17 @@ C         if(nr.eq.4) write(6,'(I4,5F15.7)') NT,DL(3),CHQL(4)
 C
       NR=NRMAX
          EPS   = EPSRHO(NR)
-         SLNEL =-PNSS(1)/DERIV3(PNSS(1),RN(NR,1),RN(NR-1,1),
+         SLNEL =-PNSS(1)/DERIV3P(PNSS(1),RN(NR,1),RN(NR-1,1),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLNIL =-PNSS(2)/DERIV3(PNSS(2),RN(NR,2),RN(NR-1,2),
+         SLNIL =-PNSS(2)/DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLNQL =-PNSS(3)/DERIV3(PNSS(3),RN(NR,3),RN(NR-1,3),
+         SLNQL =-PNSS(3)/DERIV3P(PNSS(3),RN(NR,3),RN(NR-1,3),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTEL =-PTS (1)/DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
+         SLTEL =-PTS (1)/DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTIL =-PTS (2)/DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
+         SLTIL =-PTS (2)/DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTQL =-PTS (3)/DERIV3(PTS(3),RT(NR,3),RT(NR-1,3),
+         SLTQL =-PTS (3)/DERIV3P(PTS(3),RT(NR,3),RT(NR-1,3),
      &                          RHOG(NR),RHOM(NR),RHOM(NR-1))
          SLBL  = RR
          ENL   = 2.D0*(SLNEL/SLBL )
@@ -1029,7 +1029,7 @@ C     ***********************************************************
 C
       SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,
      &                          RHOG,RHOM,QP,S_AR,EPSRHO,RKPRHOG,RT,BB,
-     &                          AMM,AME,PNSS,PTS,RNFL,RNFEDG,MDLUF,
+     &                          AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,
      &                          NSMAX,AR1RHOG,AR2RHOG,AKDW)
 C
       IMPLICIT NONE
@@ -1038,9 +1038,9 @@ C
       REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),RHOG(NRM),RHOM(NRM),
      &       QP(NRM),S_AR(NRM),
      &       EPSRHO(NRM),RKPRHOG(NRM),RT(NRM,NSM),BB,AMM,AME,
-     &       PNSS(NSM),PTS(NSM),RNFL(NRM),RNFEDG,
+     &       PNSS(NSM),PTS(NSM),RNFL(NRM),RBEEDG,
      &       AR1RHOG(NRM),AR2RHOG(NRM),AKDW(NRM,NSTM)
-      REAL*8 DERIV3
+      REAL*8 DERIV3P
       integer switches(32), ipin, ipout, iptmp, screen, ii, ierr
       parameter (ipin=7,iptmp=8,ipout=9,screen=6)
       real znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps,
@@ -1048,8 +1048,6 @@ C
      &       chii, chie, zkappa, btesla, gtau, omegaexb,
      &       zchiicyc, zchii1, zchii2, zchie1, zchie2,
      &       zrlt1, zrlt2
-C
-      EXTERNAL FEDG
 C
       ierr=0
 C
@@ -1124,11 +1122,11 @@ C
          ELSE
             zncne  = 0.0
          ENDIF
-         znbne  = SNGL(RNFEDG)
-         zrlt   =-SNGL(RR/PTS(2)*DERIV3(PTS(2),RT(NR,2),RT(NR-1,2),
-     &                                  RHOG(NR),RHOM(NR),RHOM(NR-1)))
-         zrln   =-SNGL(RR/PTS(1)*DERIV3(PTS(1),RT(NR,1),RT(NR-1,1),
-     &                                  RHOG(NR),RHOM(NR),RHOM(NR-1)))
+         znbne  = SNGL(RBEEDG)
+         zrlt   =-SNGL(RR/PTS(2)*DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),
+     &                                   RHOG(NR),RHOM(NR),RHOM(NR-1)))
+         zrln   =-SNGL(RR/PTS(1)*DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
+     &                                   RHOG(NR),RHOM(NR),RHOM(NR-1)))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S_AR(NR))
          zeps   = SNGL(EPSRHO(NR))

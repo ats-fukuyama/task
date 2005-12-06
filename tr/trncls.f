@@ -167,16 +167,16 @@ C
          p_ft=SNGL(FTPF(MDLTPF,EPS))
          p_grbm2=SNGL(ARHBRHOG(NR))
          p_grphi=ER(NR)
-         p_gr2phi=SNGL(RDP(NR)*DERIV3P(NR,RG,EROPSI,NRMAX,NRM))
+         p_gr2phi=SNGL(RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,NRM))
          p_ngrth=SNGL(BP(NR)/(BB*RHOG(NR)))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSLMAX
                temp_i(NS)=SNGL(PTS(NS))
-               grt_i(NS)=SNGL(DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+               grt_i(NS)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS),
      &                               RG(NR),RM(NR),RM(NR-1)))
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                grp_iz(NS,INT(ABS(PZ(NS))))
-     &              =SNGL(DERIV3(PNSS(NS)*PTS(NS),
+     &              =SNGL(DERIV3P(PNSS(NS)*PTS(NS),
      &                           RN(NR  ,NS)*RT(NR  ,NS),
      &                           RN(NR+1,NS)*RT(NR+1,NS),
      &                           RG(NR),RM(NR),RM(NR-1)))*1.E20
@@ -189,11 +189,11 @@ C
                   NS =NSM+NSZ
                   NSN=NSLMAX+NSZ
                   temp_i(NSN)=SNGL(PTS(NS))
-                  grt_i(NSN)=SNGL(DERIV3(PTS(NS),RT(NR,NS),RT(NR-1,NS),
+                  grt_i(NSN)=SNGL(DERIV3P(PTS(NS),RT(NR,NS),RT(NR-1,NS),
      &                               RG(NR),RM(NR),RM(NR-1)))
                   den_iz(NSN,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                   grp_iz(NSN,INT(ABS(PZ(NS))))
-     &                 =SNGL(DERIV3(PNSS(NS)*PTS(NS),
+     &                 =SNGL(DERIV3P(PNSS(NS)*PTS(NS),
      &                              RN(NR  ,NS)*RT(NR  ,NS),
      &                              RN(NR+1,NS)*RT(NR+1,NS),
      &                              RG(NR),RM(NR),RM(NR-1)))*1.E20
@@ -202,8 +202,9 @@ C
                   ENDDO
                ENDDO
             ENDIF
-            p_eb=SNGL(FEDG(RG(NR),RM(NR-1),RM(NR),ETA(NR-1)*AJOH(NR-1),
-     &                ETA(NR)*AJOH(NR))*BB)
+            p_eb=SNGL(AITKEN2P(RG(NR),ETA(NR)*AJOH(NR),
+     &                ETA(NR-1)*AJOH(NR-1),ETA(NR-2)*AJOH(NR-2),
+     &                RM(NR),RM(NR-1),RM(NR-2))*BB)
          ELSE
             DO NS=1,NSLMAX
                temp_i(NS)=SNGL(0.5D0*(RT(NR+1,NS)+RT(NR,NS)))
