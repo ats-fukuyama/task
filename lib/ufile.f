@@ -151,7 +151,7 @@ C
 C     *****
 C       For interpolation, center and/or edge value is added
 C       if necessary. The variables with center value having to
-C       be zero such as BPOL, RMINOR and SURF were beforehand 
+C       be zero such as BPOL, RMINOR, SURF and VOLUME were beforehand 
 C       manupulated and thus in this section MD=4 will be selected.
 C     *****
 C
@@ -159,8 +159,9 @@ C
       IF(RUF(1).NE.0.D0.AND.RUF(NRFMAX).NE.1.D0) THEN
          DO NTX=1,NTXMAX
             F2CTR(NTX)=FCTR(RUF(1),RUF(2),F2(NTX,1),F2(NTX,2))
-            F2EDG(NTX)=FEDG(1.D0,RUF(NRFMAX-1),RUF(NRFMAX),
-     &                      F2(NTX,NRFMAX-1),F2(NTX,NRFMAX))
+            F2EDG(NTX)=AITKEN2P(1.D0,F2(NTX,NRFMAX),F2(NTX,NRFMAX-1),
+     &                          F2(NTX,NRFMAX-2),RUF(NRFMAX),
+     &                          RUF(NRFMAX-1),RUF(NRFMAX-2))
          ENDDO
          MD=1
       ELSEIF(RUF(1).NE.0.D0.AND.RUF(NRFMAX).EQ.1.D0) THEN
@@ -170,8 +171,9 @@ C
          MD=2
       ELSEIF(RUF(1).EQ.0.D0.AND.RUF(NRFMAX).NE.1.D0) THEN
          DO NTX=1,NTXMAX
-            F2EDG(NTX)=FEDG(1.D0,RUF(NRFMAX-1),RUF(NRFMAX),
-     &                      F2(NTX,NRFMAX-1),F2(NTX,NRFMAX))
+            F2EDG(NTX)=AITKEN2P(1.D0,F2(NTX,NRFMAX),F2(NTX,NRFMAX-1),
+     &                          F2(NTX,NRFMAX-2),RUF(NRFMAX),
+     &                          RUF(NRFMAX-1),RUF(NRFMAX-2))
          ENDDO
          MD=3
       ELSEIF(RUF(1).EQ.0.D0.AND.RUF(NRFMAX).EQ.1.D0) THEN
@@ -595,6 +597,7 @@ C
       IF(MODE.EQ.0) THEN
          OPEN(15,FILE=KFILEB,IOSTAT=IST,FORM='UNFORMATTED',
      &        STATUS='NEW',ERR=8010)
+         write(6,*) 
          WRITE(15) NRXMAX,NTXMAX
          WRITE(15) (R(NRX),NRX=1,NRXMAX)
          WRITE(15) (T(NTX),NTX=1,NTXMAX)

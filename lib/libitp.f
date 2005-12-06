@@ -24,7 +24,7 @@ C
       INTEGER NTMAX,NTM,IERR
       REAL*8 T,F,TA(NTM),FA(NTM)
       INTEGER NT,ID,MODE,SPL,AIT,LAG
-      REAL*8 DERIV4,FXA(NTM),U(4,NTM)
+      REAL*8 DERIV4P,FXA(NTM),U(4,NTM)
 C
       SPL=0
       AIT=1
@@ -34,12 +34,12 @@ C
       IF(MODE.EQ.0) THEN
 C     calculate first derivative
          DO NT=1,NTMAX-3
-            FXA(NT)=DERIV4(FA(NT),FA(NT+1),FA(NT+2),FA(NT+3),
-     &                     TA(NT),TA(NT+1),TA(NT+2),TA(NT+3))
+            FXA(NT)=DERIV4P(FA(NT),FA(NT+1),FA(NT+2),FA(NT+3),
+     &                      TA(NT),TA(NT+1),TA(NT+2),TA(NT+3))
          ENDDO
          DO NT=NTMAX-2,NTMAX
-            FXA(NT)=DERIV4(FA(NT),FA(NT-1),FA(NT-2),FA(NT-3),
-     &                     TA(NT),TA(NT-1),TA(NT-2),TA(NT-3))
+            FXA(NT)=DERIV4P(FA(NT),FA(NT-1),FA(NT-2),FA(NT-3),
+     &                      TA(NT),TA(NT-1),TA(NT-2),TA(NT-3))
          ENDDO
          CALL SPL1D(TA,FA,FXA,U,NTMAX,ID,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX TIMESPL: SPL1D ERROR',IERR
@@ -221,6 +221,78 @@ C     *****************************************************
 C     **  Aitken-Neville iterated linear interpolations  **
 C     *****************************************************
 C
+      FUNCTION AITKEN2P(X0,F1,F2,F3,X1,X2,X3)
+C
+      IMPLICIT NONE
+      INTEGER I,J,K,M,KPM,NP1MM
+      REAL*8 AITKEN2P,X0,F1,F2,F3,X1,X2,X3
+      REAL*8 X(3), Y(3), VAL(3,3)
+C
+      M=2
+      Y(1)=F3
+      Y(2)=F2
+      Y(3)=F1
+      X(1)=X3
+      X(2)=X2
+      X(3)=X1
+C
+      DO J = 1, M
+         VAL(1,J) = (Y(J) * (X0 - X(J+1)) - Y(J+1) * (X0 - X(J)))
+     &             /(X(J) - X(J+1))
+      ENDDO
+      DO I = 2, M
+         NP1MM = M + 1 - I
+         DO K = 1, NP1MM
+            KPM = K + I
+            VAL(I,K) = (VAL(I-1,K) * (X0 - X(KPM)) - VAL(I-1,K+1)
+     &                * (X0 - X(K))) / (X(K) - X(KPM))
+         ENDDO
+      ENDDO
+      AITKEN2P = VAL(M,1)
+C
+      RETURN
+      END
+C
+C     ***
+C
+      FUNCTION AITKEN4P(X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5)
+C
+      IMPLICIT NONE
+      INTEGER I,J,K,M,KPM,NP1MM
+      REAL*8 AITKEN4P,X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5
+      REAL*8 X(5), Y(5), VAL(5,5)
+C
+      M=4
+      Y(1)=F5
+      Y(2)=F4
+      Y(3)=F3
+      Y(4)=F2
+      Y(5)=F1
+      X(1)=X5
+      X(2)=X4
+      X(3)=X3
+      X(4)=X2
+      X(5)=X1
+C
+      DO J = 1, M
+         VAL(1,J) = (Y(J) * (X0 - X(J+1)) - Y(J+1) * (X0 - X(J)))
+     &             /(X(J) - X(J+1))
+      ENDDO
+      DO I = 2, M
+         NP1MM = M + 1 - I
+         DO K = 1, NP1MM
+            KPM = K + I
+            VAL(I,K) = (VAL(I-1,K) * (X0 - X(KPM)) - VAL(I-1,K+1)
+     &                * (X0 - X(K))) / (X(K) - X(KPM))
+         ENDDO
+      ENDDO
+      AITKEN4P = VAL(M,1)
+C
+      RETURN
+      END
+C
+C     ***
+C
       SUBROUTINE AITKEN(X0,F0,XI,F,M,N)
 C
 C     <input>
@@ -234,17 +306,26 @@ C        F0    : interpolated value
 C
       IMPLICIT NONE
       INTEGER I, I1, J, K, KPM, L, M, M1, M2, N, NP1MM
-      REAL*8 X0, X1, F0, XI(N), F(N) 
-      REAL*8 X(10), Y(10), VAL(10,10)
+      REAL*8 X0, X1, F0, XI(N), F(N)
+      REAL*8 X(10), Y(10), VAL(10,10), XMIN, XMAX
 C
       X1 = XI(1)
+      XMIN = X1
+      XMAX = X1
       M2 = (M + 1)/2
       DO I = 1, N
+         IF(XI(I).LE.XMIN) XMIN=XI(I)
+         IF(XI(I).GE.XMAX) XMAX=XI(I)
          IF(XI(I).GE.X0) THEN
             K=I-1
             GOTO 10
          ENDIF
       ENDDO
+      IF(X0.LT.XMIN) THEN
+         K = 0
+      ELSEIF(X0.GT.XMAX) THEN
+         K = N
+      ENDIF
  10   IF (K .GT. M2) THEN
          IF (N .GT. K + M2) THEN
             L = M2
@@ -283,23 +364,23 @@ C     **  Derivative calculated from adjacent 3 points  **
 C     ****************************************************
 C     -- This formulation has a third-order accuracy. --
 C
-      FUNCTION DERIV4(F0,F1,F2,F3,X0,X1,X2,X3)
+      FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
 C
       IMPLICIT NONE
-      REAL*8 DERIV4,F0,F1,F2,F3,X0,X1,X2,X3
+      REAL*8 DERIV4P,F0,F1,F2,F3,X0,X1,X2,X3
       REAL*8 DX1,DX2,DX3
 C
       DX1 = X1 - X0
       DX2 = X2 - X0
       DX3 = X3 - X0
 C
-      DERIV4 = - F1 * DX2**2 * DX3**2 * (DX2 - DX3)
-     &         - F2 * DX3**2 * DX1**2 * (DX3 - DX1)
-     &         - F3 * DX1**2 * DX2**2 * (DX1 - DX2)
-     &         - F0 * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1)
+      DERIV4P = - F1 * DX2**2 * DX3**2 * (DX2 - DX3)
+     &          - F2 * DX3**2 * DX1**2 * (DX3 - DX1)
+     &          - F3 * DX1**2 * DX2**2 * (DX1 - DX2)
+     &          - F0 * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1)
      &              * (DX1 * DX2 + DX2 * DX3 + DX3 * DX1)
-      DERIV4 = DERIV4 / (DX1 * DX2 * DX3
-     &                * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1))
+      DERIV4P = DERIV4P / (DX1 * DX2 * DX3
+     &                  * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1))
 C
       RETURN
       END
@@ -307,17 +388,17 @@ C
 C     ****************************************************
 C     **  Derivative calculated from adjacent 3 points  **
 C     ****************************************************
-C     -- This formulation has a third-order accuracy. --
+C     -- This formulation has a second-order accuracy. --
 C
-      FUNCTION DERIV3(f0, f1, f2, x10, x11, x12)
+      FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)
 C
       IMPLICIT NONE
-      REAL*8 DERIV3, f0, f1, f2, x10, x11, x12
+      REAL*8 DERIV3P, f0, f1, f2, x10, x11, x12
       REAL*8 dx11, dx12
 C
       dx11 = x11 - x10
       dx12 = x12 - x10
-      DERIV3 = (dx12**2 * f1 - dx11**2 * f2)
+      DERIV3P = (dx12**2 * f1 - dx11**2 * f2)
      &            / (dx11 * dx12 * (dx12 - dx11))
      &            - (dx12 + dx11) / (dx11 * dx12) * f0
 C
@@ -329,23 +410,23 @@ C     **  Derivative calculated from adjacent 2 points  **
 C     ****************************************************
 C     -- This formulation has a second-order accuracy. --
 C
-      FUNCTION DERIV3P(NR,R,F,NRMAX,NRM)
+      FUNCTION DERIV3(NR,R,F,NRMAX,NRM)
 C
       IMPLICIT NONE
       INTEGER NR,NRMAX,NRM
-      REAL*8 DERIV3P,R(NRM),F(NRM)
+      REAL*8 DERIV3,R(NRM),F(NRM)
       REAL*8 DLT,DLT1,DLT2
 C
       IF(NR.EQ.1) THEN
          DLT=R(NR+1)-R(NR)
-         DERIV3P = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
+         DERIV3 = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
       ELSEIF(NR.EQ.NRMAX) THEN
          DLT=R(NR-1)-R(NR)
-         DERIV3P = (-3.D0*F(NR)+4.D0*F(NR-1)-F(NR-2))/(2.D0*DLT)
+         DERIV3 = (-3.D0*F(NR)+4.D0*F(NR-1)-F(NR-2))/(2.D0*DLT)
       ELSE
          DLT1=R(NR-1)-R(NR)
          DLT2=R(NR+1)-R(NR)
-         DERIV3P = (DLT2**2*F(NR-1)-DLT1**2*F(NR+1))
+         DERIV3 = (DLT2**2*F(NR-1)-DLT1**2*F(NR+1))
      &            /(DLT1*DLT2*(DLT2-DLT1))
      &            -(DLT2+DLT1)*F(NR)/(DLT1*DLT2)
       ENDIF
@@ -363,20 +444,6 @@ C
       REAL*8 FCTR,R1,R2,F1,F2
 C
       FCTR = (R2**2*F1-R1**2*F2)/(R2**2-R1**2)
-C
-      RETURN
-      END
-C
-C     *** Extrapolate edge (rho=1) or arbitrary values ***
-C     *  assuming the linear function                    *
-C     ****************************************************
-C
-      FUNCTION FEDG(R0,R1,R2,F1,F2)
-C
-      IMPLICIT NONE
-      REAL*8 FEDG,R0,R1,R2,F1,F2
-C
-      FEDG = ((R2-R0)*F1-(R1-R0)*F2)/(R2-R1)
 C
       RETURN
       END

@@ -233,7 +233,7 @@ C
       integer ikdev, ikdcg, ikfid, nrm, ntm, ntmax, nrmax, ierr, md
       real*8 t(ntm), r(nrm), val(ntm,nrm)
       real*8 valctr(ntm), valedg(ntm)
-      real*8 fctr, fedg
+      real*8 fctr, aitken2p
       common /IPDB2/ tree, ishot
 C
       ierror=0
@@ -392,8 +392,8 @@ C
          IF(r(1).NE.0.D0.AND.r(nrmax).NE.1.D0) THEN
             DO L=1,ntmax
                valctr(L)=FCTR(r(1),r(2),val(L,1),val(L,2))
-               valedg(L)=FEDG(1.D0,r(nrmax-1),r(nrmax),
-     &              val(L,nrmax-1),val(L,nrmax))
+               valedg(L)=AITKEN2P(1.D0,val(L,nrmax),val(L,nrmax-1),
+     &                   val(L,nrmax-2),r(nrmax),r(nrmax-1),r(nrmax-2))
             ENDDO
             MD=1
          ELSEIF(r(1).NE.0.D0.AND.r(nrmax).EQ.1.D0) THEN
@@ -403,8 +403,8 @@ C
             MD=2
          ELSEIF(r(1).EQ.0.D0.AND.r(nrmax).NE.1.D0) THEN
             DO L=1,ntmax
-               valedg(L)=FEDG(1.D0,r(nrmax-1),r(nrmax),
-     &              val(L,nrmax-1),val(L,nrmax))
+               valedg(L)=AITKEN2P(1.D0,val(L,nrmax),val(L,nrmax-1),
+     &                   val(L,nrmax-2),r(nrmax),r(nrmax-1),r(nrmax-2))
             ENDDO
             MD=3
          ELSEIF(r(1).EQ.0.D0.AND.r(nrmax).EQ.1.D0) THEN
