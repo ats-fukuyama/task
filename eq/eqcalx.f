@@ -377,7 +377,7 @@ C     **********************************
 C     *     Calulate FEM RHS vector    *
 C     **********************************
 C
-      SUBROUTINE EQCALFVB
+      SUBROUTINE EQCALFVB(ID)
 C
       INCLUDE '../eq/eqcomx.inc'
 C
