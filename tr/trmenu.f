@@ -86,6 +86,8 @@ C
          IF(MDLUF.EQ.1) THEN
             NT=NTMOLD
             NTMAX=NTMAX_SAVE+NTMOLD
+         ELSE
+            NT=0
          ENDIF
          CALL TRLOOP
          NTMOLD=NTMAX
