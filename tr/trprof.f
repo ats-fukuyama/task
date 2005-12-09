@@ -832,25 +832,6 @@ C
       RETURN
       END
 C
-C     ********************************************************
-C
-C           RADIAL INTEGRATION ONLY FOR J CONVERGENCE
-C
-C     ********************************************************
-C
-      SUBROUTINE TRSUMJ(A,B,NMAX,SUM)
-C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      DIMENSION A(NMAX),B(NMAX)
-C
-      SUM=0.D0
-      DO N=1,NMAX
-         SUM=SUM+A(N)**2*B(N)
-      ENDDO
-      RETURN
-      END
-C
 C     ***********************************************************
 C
 C           SET GEOMETRIC FACTOR AT HALF MESH
@@ -950,8 +931,6 @@ C
       ENDDO
       NR=NRMAX
          RGL=RG(NR)
-         RML=RM(NR)
-         RML1=RM(NR-1)
 C
          CALL AITKEN(RGL,AR1RHOG(NR),RM,AR1RHO,2,NRMAX)
          CALL AITKEN(RGL,AR2RHOG(NR),RM,AR2RHO,2,NRMAX)

@@ -179,9 +179,10 @@ C
       DO I=1,NGT
          GYT(I,1)=GVT(I,1)
          GYT(I,2)=GVT(I,5)
+         GYT(I,3)=GVT(I,104)
       ENDDO
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,2,
-     &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GT,GYT,NTM,NGT,3,
+     &            '@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
 C
       CALL PAGEE
 C
@@ -213,10 +214,13 @@ C
          GYT(I,1)=GVT(I,79)
          GYT(I,2)=GVT(I,80)
          GYT(I,3)=GVT(I,81)
+         GYT(I,4)=GVT(I,102)
+         GYT(I,5)=GVT(I,103)
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,3,
-     &            '@TAUE1,TAUE2,TAUEP [s]  vs t@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GT,GYT,NTM,NGT,5,
+     &            '@TAUE1,TAUE2,TAUE89,TAUE98 [s], H98Y2  vs t@',2+INQ)
 C
+
 C      DO I=1,NGT
 C         GYT(I,1)=GVT(I,87)
 C      ENDDO
@@ -468,9 +472,10 @@ C
       DO I=1,NGT
          GYT(I,1)=GVT(I,1)
          GYT(I,2)=GVT(I,5)
+         GYT(I,3)=GVT(I,104)
       ENDDO
-      CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,2,
-     &            '@NE0,<NE> [10$+20$=/m$+3$=]  vs t@',2+INQ)
+      CALL TRGR1D(15.0,24.0, 1.1, 4.1,GT,GYT,NTM,NGT,3,
+     &            '@NE0,<NE>,<NEL> [10$+20$=/m$+3$=]  vs t@',2+INQ)
       ELSE
       DO I=1,NGT
          GYT(I,1)=GVT(I,1)
@@ -520,9 +525,11 @@ C
          GYT(I,1)=GVT(I,79)
          GYT(I,2)=GVT(I,80)
          GYT(I,3)=GVT(I,81)
+         GYT(I,4)=GVT(I,102)
+         GYT(I,5)=GVT(I,103)
       ENDDO
-      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,3,
-     &            '@TAUE1,TAUE2,TAUEP [s]  vs t@',2+INQ)
+      CALL TRGR1D( 3.0,12.0, 5.4, 8.4,GT,GYT,NTM,NGT,5,
+     &            '@TAUE1,TAUE2,TAUE89,TAUE98 [s], H98Y2  vs t@',2+INQ)
 C
       DO I=1,NGT
          GYT(I,1)=GVT(I,83)

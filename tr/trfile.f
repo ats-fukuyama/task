@@ -71,11 +71,11 @@ C
      &          ' ',3X,'BB    =',1PD10.3,'  PICTOT=',1PD10.3,
      &               '  PLHTOT=',1PD10.3,'  PLHNPR=',1PD10.3)
          WRITE(16,1671) T,
-     &                WPT,TAUE1,TAUE2,TAUEP,
+     &                WPT,TAUE1,TAUE2,TAUE89,
      &                BETAP0,BETAPA,BETA0,BETAA
  1671    FORMAT(' ','# TIME : ',F7.3,' SEC'/
      &          ' ',3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
-     &               '  TAUED =',1PD10.3,'  TAUEP =',1PD10.3/
+     &               '  TAUED =',1PD10.3,'  TAUE89=',1PD10.3/
      &          ' ',3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C

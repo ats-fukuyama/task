@@ -418,21 +418,24 @@ C
       COMMON /TMSLC1/ TMU(NTUM),TMU1(NTUM)
       COMMON /TMSLC3/ NTXMAX,NTXMAX1
 C
-      IF(MDLCD.EQ.0) THEN
-         RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
-      ELSE
-         NEQ=1
-         NSVN=NSS(NEQ)
-         IF(NSVN.EQ.0) THEN
-            RDPA=XV(NEQ,NRMAX)
+      IF(MDLEQB.NE.0) THEN
+         IF(MDLCD.EQ.0) THEN
+            RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ELSE
-            RDPA=0.D0
+            NEQ=1
+            NSVN=NSS(NEQ)
+            IF(NSVN.EQ.0) THEN
+               RDPA=XV(NEQ,NRMAX)
+            ELSE
+               RDPA=0.D0
+            ENDIF
+            RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
+            RDPS= RDPA
+     &           -4.D0*PI*PI*RMU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ENDIF
-         RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
-         RDPS=RDPA-4.D0*PI*PI*RMU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
-      ENDIF
-      IF(MDLUF.NE.0) THEN
-         RDPS=2.D0*PI*RMU0*RIPA*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         IF(MDLUF.NE.0) THEN
+            RDPS=2.D0*PI*RMU0*RIPA*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+         ENDIF
       ENDIF
 C
       COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)
@@ -478,15 +481,18 @@ C
       ENDDO
       ENDDO
 C
-C      FADV=0.5D0
-      FADV=1.0D0
+C     FADV = 0.D0  : Explicit scheme
+C            0.5D0 : Crank-Nicolson scheme
+C            1.D0  : Full implicit scheme
+C
+      FADV=1.D0
 C
       PRV=(1.D0-FADV)*DT
       ADV=FADV*DT
 C
-C          /----------\
+C          +----------+
 C    ***   |   NR=1   |   ***
-C          \----------/
+C          +----------+
 C
       NR=1
       NSW=1
@@ -551,9 +557,9 @@ C
          ENDDO
       ENDIF
 C
-C          /---------------------\
+C          +---------------------+
 C    ***   |   NR=2 to NRMAX-1   |   ***
-C          \---------------------/
+C          +---------------------+
 C
       NSW=2
       DO NR=2,NRMAX-1
@@ -620,9 +626,9 @@ C
 C 
       ENDDO
 C
-C          /--------------\
+C          +--------------+
 C    ***   |   NR=NRMAX   |   ***
-C          \--------------/
+C          +--------------+
 C
       NR=NRMAX
       NSW=3
@@ -709,25 +715,27 @@ C
 C
 C     ***** Surface Boundary Condition for Bp *****
 C
-      NEQ=1
-      NSVN=NSV(NEQ)
-      IF(NSVN.EQ.0) THEN
-         MVV=NEQRMAX*(NRMAX-1)+NEQ
-         IF(MDLPCK.EQ.0) THEN
-            DO MW=1,MWMAX
-               AX(MW,MVV)=0.D0
-            ENDDO
-            AX(2*NEQRMAX,MVV)=RD(NEQ,NRMAX)
-         ELSE
-            KL=2*NEQRMAX-1
-            DO MW=3*NEQRMAX,NEQRMAX+1,-1
-               DO MV=NEQRMAX*NRMAX-2*NEQRMAX+KL,NEQRMAX*NRMAX
-                  AX(MW,MV)=0.D0
+      IF(MDLEQB.NE.0) THEN
+         NEQ=1
+         NSVN=NSV(NEQ)
+         IF(NSVN.EQ.0) THEN
+            MVV=NEQRMAX*(NRMAX-1)+NEQ
+            IF(MDLPCK.EQ.0) THEN
+               DO MW=1,MWMAX
+                  AX(MW,MVV)=0.D0
                ENDDO
-            ENDDO
-            AX(2*NEQRMAX+KL,MVV)=RD(NEQ,NRMAX)
+               AX(2*NEQRMAX,MVV)=RD(NEQ,NRMAX)
+            ELSE
+               KL=2*NEQRMAX-1
+               DO MW=3*NEQRMAX,NEQRMAX+1,-1
+                  DO MV=NEQRMAX*NRMAX-2*NEQRMAX+KL,NEQRMAX*NRMAX
+                     AX(MW,MV)=0.D0
+                  ENDDO
+               ENDDO
+               AX(2*NEQRMAX+KL,MVV)=RD(NEQ,NRMAX)
+            ENDIF
+            X(MVV)=RDPS
          ENDIF
-         X(MVV)=RDPS
       ENDIF
 C
       RETURN

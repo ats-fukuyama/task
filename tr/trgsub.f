@@ -699,8 +699,10 @@ C           CEILING FUNCTION FOR LOG10 PLOT
 C
 C     ***********************************************************
 C
-      FUNCTION GLOG(X,XMIN,XMAX)
+      REAL FUNCTION GLOG(X,XMIN,XMAX)
 C
+      IMPLICIT NONE
+      REAL GUCLIP
       REAL*8 X,XMIN,XMAX,PLOG
 C
       GLOG=GUCLIP(PLOG(X,XMIN,XMAX))

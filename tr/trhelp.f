@@ -8,6 +8,7 @@ C     ***********************************************************
 C
       SUBROUTINE TRHELP(KID)
 C
+      IMPLICIT NONE
       CHARACTER KID*1
 C
       IF(KID.EQ.'M') CALL TRHLPM
@@ -25,6 +26,8 @@ C     ***********************************************************
 C
       SUBROUTINE TRHLPM
 C
+      IMPLICIT NONE
+      INTEGER IEND
       CHARACTER KID*1
 C
     1 WRITE(6,601)
@@ -63,6 +66,9 @@ C
 C     ***********************************************************
 C
       SUBROUTINE TRHLPG
+C
+      IMPLICIT NONE
+      INTEGER IEND
 C
       WRITE(6,601)
   601 FORMAT(
@@ -114,6 +120,8 @@ C     ***********************************************************
 C
       SUBROUTINE TRHLPW
 C
+      IMPLICIT NONE
+C
       WRITE(6,601)
   601 FORMAT(
      &' ','          ***  TR INFORMATION  ***'/
@@ -136,6 +144,9 @@ C
 C     ***********************************************************
 C
       SUBROUTINE TRHLPP
+C
+      IMPLICIT NONE
+      INTEGER IEND
 C
       WRITE(6,601)
   601 FORMAT(
@@ -280,6 +291,8 @@ C     ***********************************************************
 C
       SUBROUTINE TRHLPQ(IEND)
 C
+      IMPLICIT NONE
+      INTEGER IEND
       CHARACTER KID*1
 C
       IEND=0

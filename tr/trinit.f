@@ -378,6 +378,8 @@ C        PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)
 C        PNBENG : NBI BEAM ENERGY (keV)
 C        PNBRTG : TANGENTIAL RADIUS OF NBI BEAM (M)
 C        PNBCD  : CURRENT DRIVE FACTOR
+C                 0: off
+C                 0 to 1: ratio of v_parallel to v
 C        MDLNB  : NBI MODEL TYPE
 C                    0:OFF
 C                    1:GAUSSIAN

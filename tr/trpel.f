@@ -89,7 +89,8 @@ C
      &           +ANFE(NR)*PZFE(NR)**2/52.D0
      &           +ANC (NR)*PZC(NR) **2/12.D0))**(1.D0/3.D0)
 C
-      TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
+      TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0
+     &      /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
 C
       ANFAST=(SNB(NR)*LOG(1.D0+(VB/VCR)**3)
      &       +SNF(NR)*LOG(1.D0+(VF/VCR)**3))*TAUS/3.D0

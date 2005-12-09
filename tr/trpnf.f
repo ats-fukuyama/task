@@ -34,7 +34,8 @@ C
      &           +PZC(NR) *PZC(NR) *ANC(NR) /12.D0
      &           +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
          EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
-         TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
+         TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0
+     &        /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
          PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG*RKEV)
          SSB = SIGMAB(PNBENG,EC,TT,PTNT)
          SNF(NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
@@ -54,7 +55,8 @@ C
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYF=HY(VF/VCR)
-         TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0/(PZ(4)**2*ANE*15.D0)
+         TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0
+     &         /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
          TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF
      &             /(3.D0*(1.D0-HYF)*3.5D3)
@@ -79,9 +81,11 @@ C           REACTION CROSS SECTION (MAXELLIAN)
 C
 C     ***********************************************************
 C
-      FUNCTION SIGMAM(TD,TT)
+      REAL*8 FUNCTION SIGMAM(TD,TT)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
+      REAL*8 TD,TT
+      REAL*8 TI,H,ARG
 C
       TI = (3.D0*ABS(TD)+2.D0*ABS(TT))/5.D0
       H  = TI/37.D0
@@ -102,7 +106,7 @@ C      REACTION RATE : TAIL
 C
 C     ***********************************************************
 C
-      FUNCTION SIGMAB(EB,EC,TI,PTNT)
+      REAL*8 FUNCTION SIGMAB(EB,EC,TI,PTNT)
 C
 C      APPROXIMATE FORMULA OF FUSION REACTION RATE
 C         FOR SLOWING DOWN ION DISTRIBUTION
@@ -113,7 +117,10 @@ C      EC   : CRITICAL ENERGY (KEV)
 C      TI   : TRITIUM TEMPERATURE (KEV)
 C      PTNT : PB * TAUS / (ND * EB)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
+      REAL*8 EB,EC,TI,PTNT
+      REAL*8 SIGMBS
+      REAL*8 XB,XC,AG1,AG2,AG3,AL1,AL2,AL3,X1,X2,X3,X4,SA
 C
       XB=SQRT(EB/127.D0)
       XC=SQRT(EC/127.D0)
@@ -153,9 +160,11 @@ C
       RETURN
       END
 C
-      FUNCTION SIGMBS(XX,RGG,RGL,XC)
+      REAL*8 FUNCTION SIGMBS(XX,RGG,RGL,XC)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
+      REAL*8 XX,RGG,RGL,XC
+      REAL*8 X
 C
       X=XX/XC
       SIGMBS=((RGG-0.97D0*RGL)/3.D0+XC*RGL/6.D0)*LOG(X*X*X+1.D0)

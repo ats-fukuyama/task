@@ -232,9 +232,13 @@ C           CALCULATE Z-C
 C
 C     **********************************************************
 C
-      FUNCTION TRZEC(TE)
+      REAL*8 FUNCTION TRZEC(TE)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
+      REAL*8 TE,TEL
+      REAL*8 BC00,BC01,BC02,BC03,BC04,BC05,BC10,BC11,BC12,BC13,BC14,BC15
+      REAL*8 BC20,BC21,BC22,BC23,BC24,BC25,BC30,BC31,BC32,BC33,BC34,BC35
+      REAL*8 BC40,BC41,BC42,BC43,BC44,BC45
 C
       DATA BC00,BC01,BC02,BC03,BC04,BC05/
      &     2.093736D+03, 5.153766D+03, 5.042105D+03,
@@ -287,9 +291,12 @@ C           CALCULATE Z-FE
 C
 C     ***********************************************************
 C
-      FUNCTION TRZEFE(TE)
+      REAL*8 FUNCTION TRZEFE(TE)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
+      REAL*8 TE,TEL
+      REAL*8 BF10,BF11,BF12,BF13,BF14,BF15,BF20,BF21,BF22,BF23,BF24,BF25
+      REAL*8 BF30,BF31,BF32,BF33,BF34,BF35,BF40,BF41,BF42,BF43,BF44,BF45
 C
       DATA BF10,BF11,BF12,BF13,BF14,BF15/
      &     8.778318D+00,-5.581412D+01,-1.225124D+02,
@@ -373,9 +380,13 @@ C           RADIATION POWER - C
 C
 C     ***********************************************************
 C
-      FUNCTION TRRPC(TE)
+      REAL*8 FUNCTION TRRPC(TE)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
+      REAL*8 TE,TEL,ARG
+      REAL*8 AC00,AC01,AC02,AC03,AC04,AC05,AC10,AC11,AC12,AC13,AC14,AC15
+      REAL*8 AC20,AC21,AC22,AC23,AC24,AC25,AC30,AC31,AC32,AC33,AC34,AC35
+      REAL*8 AC40,AC41,AC42,AC43,AC44,AC45
 C
       DATA AC00,AC01,AC02,AC03,AC04,AC05/
      &     1.965300D+03, 4.572039D+03, 4.159590D+03,
@@ -428,9 +439,12 @@ C           RADIATION POWER - FE
 C
 C     ***********************************************************
 C
-      FUNCTION TRRPFE(TE)
+      REAL*8 FUNCTION TRRPFE(TE)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
+      REAL*8 TE,TEL,ARG
+      REAL*8 AF10,AF11,AF12,AF13,AF14,AF15,AF20,AF21,AF22,AF23,AF24,AF25
+      REAL*8 AF30,AF31,AF32,AF33,AF34,AF35,AF40,AF41,AF42,AF43,AF44,AF45
 C
       DATA AF10,AF11,AF12,AF13,AF14,AF15/
      &    -2.752599D+01,-3.908228D+01,-6.469423D+01,
@@ -578,9 +592,10 @@ C
       RETURN
       END
 C
-      FUNCTION FKN(X)
+      REAL*8 FUNCTION FKN(X)
 C
-      IMPLICIT REAL*8 (A-H,O-Z)
+      IMPLICIT NONE
+      REAL*8 X,GAMMA
 C
       GAMMA=0.577215664901532D0
       FKN=-(LOG10(X)+GAMMA-X+X**2/4.D0-X**3/1.8D1)
@@ -604,7 +619,7 @@ C
       NSW=1
       IF(NSW.EQ.0) THEN
          DO NR=1,NRMAX
-            AJBS(NR)=PBSCD*AJBSNC(NR)
+            AJBSL(NR)=PBSCD*AJBSNC(NR)
          ENDDO
       ELSE
          DO NR=1,NRMAX-1
@@ -636,12 +651,12 @@ C
      &             +CJBSP(NR,NS)*DRPNW/RPNW
          ENDDO
          AJBSL(NR)=-PBSCD*SUM/BB
-C     
-         AJBS(1)=0.5D0*AJBSL(1)
-         DO NR=2,NRMAX
-            AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
-         ENDDO
       ENDIF
+C     
+      AJBS(1)=0.5D0*AJBSL(1)
+      DO NR=2,NRMAX
+         AJBS(NR)=0.5D0*(AJBSL(NR)+AJBSL(NR-1))
+      ENDDO
 C
       RETURN
       END
@@ -871,18 +886,20 @@ C     *********************
 C     *  Fitting Function *
 C     *********************
 C
-      FUNCTION F33(X,Z)
+      REAL*8 FUNCTION F33(X,Z)
 C
-      REAL*8 F33,X,Z
+      IMPLICIT NONE
+      REAL*8 X,Z
 C
       F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
 C
       RETURN
       END
 C
-      FUNCTION F31(X,Z)
+      REAL*8 FUNCTION F31(X,Z)
 C
-      REAL*8 F31,X,Z
+      IMPLICIT NONE
+      REAL*8 X,Z
 C
       F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2
      &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
@@ -890,9 +907,10 @@ C
       RETURN
       END
 C
-      FUNCTION F32EE(X,Z)
+      REAL*8 FUNCTION F32EE(X,Z)
 C
-      REAL*8 F32EE,X,Z
+      IMPLICIT NONE
+      REAL*8 X,Z
 C
       F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4)
      &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4))
@@ -901,9 +919,10 @@ C
       RETURN
       END
 C
-      FUNCTION F32EI(X,Z)
+      REAL*8 FUNCTION F32EI(X,Z)
 C
-      REAL*8 F32EI,X,Z
+      IMPLICIT NONE
+      REAL*8 X,Z
 C
       F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4)
      &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4))
@@ -1585,12 +1604,12 @@ C           TRAPPED PARTICLE FRACTION
 C
 C     ***********************************************************
 C
-      FUNCTION FTPF(ID,EPS)
+      REAL*8 FUNCTION FTPF(ID,EPS)
 C
       IMPLICIT NONE
       INTEGER ID,IMAX,N,IERR
       PARAMETER (IMAX=20)
-      REAL*8 FTPF,EPS,PI,FTUL,FTLL,EPSC,S,OMEGA
+      REAL*8 EPS,PI,FTUL,FTLL,EPSC,S,OMEGA
       REAL*8 TABLE(IMAX,IMAX)
       EXTERNAL FTU,FTL
 C
@@ -1632,20 +1651,20 @@ C           FUNCTION FOR ROMBERG INTEGRATION
 C
 C     *********************************************
 C
-      FUNCTION FTU(X,EPS)
+      REAL*8 FUNCTION FTU(X,EPS)
 C
       IMPLICIT NONE
-      REAL*8 FTU, X, EPS
+      REAL*8 X, EPS
 C
       FTU = X/SQRT(1.D0-X*(1.D0-EPS))
 C
       RETURN
       END
 C
-      FUNCTION FTL(X,EPS)
+      REAL*8 FUNCTION FTL(X,EPS)
 C    
       IMPLICIT NONE
-      REAL*8 FTL, X, EPS
+      REAL*8 X, EPS
       REAL*8 H
 C
       H = (1.D0 - EPS) / (1.D0 + EPS * COS(X))
@@ -1721,12 +1740,15 @@ C           COULOMB LOGARITHM
 C
 C     ***********************************************************
 C
-      FUNCTION COULOG(NS1,NS2,ANEL,TL)
+      REAL*8 FUNCTION COULOG(NS1,NS2,ANEL,TL)
 C
 C     ANEL : electron density [10^20 /m^3]
 C     TL   : electron or ion temperature [keV]
+C            in case of ion-ion collision, TL becomes ion temp.
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
+      INTEGER NS1,NS2
+      REAL*8 ANEL,TL
 C
       IF(NS1.EQ.1.AND.NS2.EQ.1) THEN
          COULOG=14.9D0-0.5D0*LOG(ANEL)+LOG(TL)

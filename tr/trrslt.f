@@ -9,75 +9,148 @@ C
       SUBROUTINE TRGLOB
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION DSRHO(NRM)!,FACT(NRM)
+      DIMENSION DSRHO(NRM)
 C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
+C     *** Local beta ***
+C        BETA  : toroidal beta
+C        BETAL : volume-averaged toroidal beta
+C        BETAP : poloidal beta
+C        BETAPL: volume-averaged poloidal beta
+C        BETAQ : toroidal beta for reaction rate
+C               (ref. TOKAMAKS 3rd, p115)
+C
+      SUM=0.D0
+      SUP=0.D0
       VOL=0.D0
-      DO NR=1,NRMAX
-         VOL=VOL+DVRHO(NR)*DR
+      DO NR=1,NRMAX-1
+         SUML=0.D0
+         DO NS=1,NSM
+            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
+         ENDDO
+         DO NF=1,NFM
+            SUML = SUML +RW(NR,NF)*RKEV*1.D20
+         ENDDO
+C
          DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+         VOL = VOL +         DVRHO(NR)*DR
+         SUM = SUM + SUML   *DVRHO(NR)*DR
+         SUP = SUP + SUML**2*DVRHO(NR)*DR
+         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
       ENDDO
 C
+      NR=NRMAX
+         SUML=0.D0
+         DO NS=1,NSM
+            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
+         ENDDO
+         DO NF=1,NFM
+            SUML = SUML +RW(NR,NF)*RKEV*1.D20
+         ENDDO
+C
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+         VOL = VOL +         DVRHO(NR)*DR
+         SUM = SUM + SUML   *DVRHO(NR)*DR
+         SUP = SUP + SUML**2*DVRHO(NR)*DR
+         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
+         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
+         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
+         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
+         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
+C
+      BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
+      BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
+      BETAQ0=(4.D0*BETAQ(1) -BETAQ(2) )/3.D0
+C
+C     *** Global beta ***
+C        BETAPA: poloidal beta at separatrix
+C        BETAA : toroidal beta at separatrix
+C        BETAN : normalized toroidal beta (Troyon beta)
+C
+      BETAPA=BETAP(NRMAX)
+      BETAA =BETA(NRMAX)
+      BETAN =BETAA*1.D2/(RIP/(RA*BB))
+C
+C     *** Volume-averaged density and temperature ***
+C     *** Central density and temperature         ***
+C     *** Stored energy                           ***
+C
+C     +++ for electron and bulk ions +++
       DO NS=1,NSM
          CALL TRSUMD(RN(1,NS),DVRHO,NRMAX,RNSUM)
          CALL TRSUMT(RT(1,NS),RN(1,NS),DVRHO,NRMAX,RTSUM)
          ANSAV(NS) = RNSUM*DR/VOL
-         ANS0(NS) = (9.D0*RN(1,NS)-RN(2,NS))/8.D0
+         ANS0(NS) = FCTR(RM(1),RM(2),RN(1,NS),RN(2,NS))
          IF(RNSUM.GT.0.D0) THEN
             TSAV(NS) = RTSUM/RNSUM
          ELSE
             TSAV(NS) = 0.D0
          ENDIF
-         TS0(NS) = (9.D0*RT(1,NS)-RT(2,NS))/8.D0
+         TS0(NS) = FCTR(RM(1),RM(2),RT(1,NS),RT(2,NS))
          WST(NS) = 1.5D0*RTSUM*DR*RKEV*1.D14
       ENDDO
 C
+C     +++ for fast particles +++
       IF(MDLUF.NE.0) THEN
          CALL TRSUMD(RNF(1,1),DVRHO,NRMAX,ANFSUM)
          CALL TRSUMT(RNF(1,1),RT(1,2),DVRHO,NRMAX,RNTSUM)
          CALL TRSUMD(PBM,DVRHO,NRMAX,RWSUM)
          NF=1
-         WFT(NF) = RWSUM*DR*1.D-6-1.5D0*RNTSUM*DR*RKEV*1.D14
-         ANFAV(NF) = ANFSUM*DR/VOL
-         ANF0(NF)  = (9.D0*RNF(1,1)-RNF(2,1))/8.D0
-         IF(ANFSUM.GT.0.D0) THEN
-            TFAV(NF)  = RWSUM/(RKEV*1.D20)/ANFSUM
-         ELSE
-            TFAV(NF)  = 0.D0
-         ENDIF
-         IF(RNF(1,1).GT.0.D0) THEN
-            TF0(NF)  = (9.D0*PBM(1)-PBM(2))/8.D0/(RKEV*1.D20)
-     &                 /ANF0(NF)
-         ELSE
-            TF0(NF)  = 0.D0
-         ENDIF
+            WFT(NF) = RWSUM*DR*1.D-6-1.5D0*RNTSUM*DR*RKEV*1.D14
+            ANFAV(NF) = ANFSUM*DR/VOL
+            ANF0(NF)  = FCTR(RM(1),RM(2),RNF(1,1),RNF(2,1))
+            IF(ANFSUM.GT.0.D0) THEN
+               TFAV(NF)  = RWSUM/(RKEV*1.D20)/ANFSUM
+            ELSE
+               TFAV(NF)  = 0.D0
+            ENDIF
+            IF(RNF(1,1).GT.0.D0) THEN
+               TF0(NF)  = FCTR(RM(1),RM(2),PBM(1),PBM(2))/(RKEV*1.D20)
+     &                   /ANF0(NF)
+            ELSE
+               TF0(NF)  = 0.D0
+            ENDIF
          NF=2
-         WFT(NF) = 0.D0
-         ANFAV(NF) = 0.D0
-         ANF0(NF)  = 0.D0
-         TFAV(NF)  = 0.D0
-         TF0(NF)   = 0.D0
-      ELSE
-      DO NF=1,NFM
-         CALL TRSUMD(RNF(1,NF),DVRHO,NRMAX,ANFSUM)
-         CALL TRSUMD(RW(1,NF),DVRHO,NRMAX,RWSUM)
-         WFT(NF) = 1.5D0*RWSUM*DR*RKEV*1.D14
-         ANFAV(NF) = ANFSUM*DR/VOL
-         ANF0(NF)  = (9.D0*RNF(1,NF)-RNF(2,NF))/8.D0
-         IF(ANFSUM.GT.0.D0) THEN
-            TFAV(NF)  = RWSUM/ANFSUM
-         ELSE
+            WFT(NF) = 0.D0
+            ANFAV(NF) = 0.D0
+            ANF0(NF)  = 0.D0
             TFAV(NF)  = 0.D0
-         ENDIF
-         IF(RNF(1,NF).GT.0.D0) THEN
-            TF0(NF)  = (9.D0*RW(1,NF)-RW(2,NF))/8.D0
-     &                 /ANF0(NF)
-         ELSE
-            TF0(NF)  = 0.D0
-         ENDIF
-      ENDDO
+            TF0(NF)   = 0.D0
+      ELSE
+         DO NF=1,NFM
+            CALL TRSUMD(RNF(1,NF),DVRHO,NRMAX,ANFSUM)
+            CALL TRSUMD(RW(1,NF),DVRHO,NRMAX,RWSUM)
+            WFT(NF) = 1.5D0*RWSUM*DR*RKEV*1.D14
+            ANFAV(NF) = ANFSUM*DR/VOL
+            ANF0(NF)  = FCTR(RM(1),RM(2),RNF(1,NF),RNF(2,NF))
+            IF(ANFSUM.GT.0.D0) THEN
+               TFAV(NF)  = RWSUM/ANFSUM
+            ELSE
+               TFAV(NF)  = 0.D0
+            ENDIF
+            IF(RNF(1,NF).GT.0.D0) THEN
+               TF0(NF)  = FCTR(RM(1),RM(2),RW(1,NF),RW(2,NF))/ANF0(NF)
+            ELSE
+               TF0(NF)  = 0.D0
+            ENDIF
+         ENDDO
       ENDIF
+C
+C     *** Line-averaged densities ***
+C
+      DO NS=1,NSM
+         ANLAV(NS)=0.D0
+         DO NR=1,NRMAX
+            ANLAV(NS)=ANLAV(NS)+RN(NR,NS)*DR
+         ENDDO
+      ENDDO
+C
+C     *** Ohmic, NBI and fusion powers ***
 C
       CALL TRSUMD(POH,DVRHO,NRMAX,POHSUM)
       CALL TRSUMD(PNB,DVRHO,NRMAX,PNBSUM)
@@ -85,10 +158,15 @@ C
       POHT = POHSUM*DR/1.D6
       PNBT = PNBSUM*DR/1.D6
       PNFT = PNFSUM*DR/1.D6
+C
+C     *** External power typically for NBI from exp. data ***
+C
       DO NS=1,NSM
          CALL TRSUMD(PEX(1,NS),DVRHO,NRMAX,PEXSUM)
          PEXT(NS) = PEXSUM*DR/1.D6
       ENDDO
+C
+C     *** RF power ***
 C
       DO NS=1,NSM
          CALL TRSUMD(PRFV(1,NS,1),DVRHO,NRMAX,PRFV1SUM)
@@ -101,6 +179,8 @@ C
          PRFT (NS  ) = PRFSUM  *DR/1.D6
       ENDDO
 C
+C     *** Total NBI power distributed on electrons and bulk ions ***
+C
       CALL TRSUMD(PBIN,DVRHO,NRMAX,PBSUM)
       PBINT = PBSUM*DR/1.D6
       DO NS=1,NSM
@@ -108,13 +188,17 @@ C
          PBCLT(NS) = PBSUM*DR/1.D6
       ENDDO
 C
+C     *** Total RF power distributed on electrons and bulk ions ***
+C
       CALL TRSUMD(PFIN,DVRHO,NRMAX,PFSUM)
       PFINT = PFSUM*DR/1.D6
       DO NS=1,NSM
          CALL TRSUMD(PFCL(1,NS),DVRHO,NRMAX,PFSUM)
          PFCLT(NS) = PFSUM*DR/1.D6
       ENDDO
-C     
+C
+C     *** Radiation, charge exchange and ionization losses ***
+C
       CALL TRSUMD(PRL,DVRHO,NRMAX,PRLSUM)
       CALL TRSUMD(PCX,DVRHO,NRMAX,PCXSUM)
       CALL TRSUMD(PIE,DVRHO,NRMAX,PIESUM)
@@ -122,21 +206,14 @@ C
       PCXT = PCXSUM*DR/1.D6
       PIET = PIESUM*DR/1.D6
 C
+C     *** Current densities ***
+C
       CALL TRSUMD(AJNB,DSRHO,NRMAX,ANBSUM)
       CALL TRSUMD(AJRFV(1,1),DSRHO,NRMAX,ARF1SUM)
       CALL TRSUMD(AJRFV(1,2),DSRHO,NRMAX,ARF2SUM)
       CALL TRSUMD(AJRFV(1,3),DSRHO,NRMAX,ARF3SUM)
       CALL TRSUMD(AJRF,DSRHO,NRMAX,ARFSUM)
       CALL TRSUMD(AJBS,DSRHO,NRMAX,ABSSUM)
-c$$$      DO NR=1,NRMAX
-c$$$         FACT(NR)=BB/(BB+BP(NR))
-c$$$      ENDDO
-c$$$      CALL TRSUMT(AJNB,DSRHO,FACT,NRMAX,ANBSUM)
-c$$$      CALL TRSUMT(AJRFV(1,1),DSRHO,FACT,NRMAX,ARF1SUM)
-c$$$      CALL TRSUMT(AJRFV(1,2),DSRHO,FACT,NRMAX,ARF2SUM)
-c$$$      CALL TRSUMT(AJRFV(1,3),DSRHO,FACT,NRMAX,ARF3SUM)
-c$$$      CALL TRSUMT(AJRF,DSRHO,FACT,NRMAX,ARFSUM)
-c$$$      CALL TRSUMT(AJBS,DSRHO,FACT,NRMAX,ABSSUM)
       AJNBT = ANBSUM*DR/1.D6
       AJRFVT(1) = ARF1SUM*DR/1.D6
       AJRFVT(2) = ARF2SUM*DR/1.D6
@@ -147,11 +224,13 @@ C
       CALL TRSUMD(AJ   ,DSRHO,NRMAX,AJTSUM )
       CALL TRSUMD(AJTOR,DSRHO,NRMAX,AJTTSUM)
       CALL TRSUMD(AJOH ,DSRHO,NRMAX,AOHSUM )
-c$$$      CALL TRSUMT(AJOH,DSRHO,FACT,NRMAX,AOHSUM)
 C
       AJT    = AJTSUM *DR/1.D6
       AJTTOR = AJTTSUM*DR/1.D6
       AJOHT  = AOHSUM *DR/1.D6
+C
+C     *** Output source and power ***
+C        evaluate output power using flux at NR=NRMAX
 C
       IF(RHOA.EQ.1.D0) THEN
          NRL=NRMAX
@@ -164,6 +243,7 @@ C
       NRMAX=NROMAX
       NMK=2
       DRH=DR/DVRHO(NRL)**(2.D0/3.D0)
+      C83=8.D0/3.D0
       DO NEQ=1,NEQMAX
          NSSN=NSS(NEQ)
          NSVN=NSV(NEQ)
@@ -172,14 +252,17 @@ C
             NSSN1=NSS(NW)
             NSVN1=NSV(NW)
             IF(NSVN1.EQ.1) THEN
-               SUM=SUM+  DD(NEQ,NW,NMK,NSW)*2.D0 *DRH *RN(NRL,NSSN1)
+               SUM=SUM+(-DD(NEQ,NW,NMK,NSW)/3.D0)*DRH *RN(NRL-1,NSSN1)
+     &                +  DD(NEQ,NW,NMK,NSW)*3.D0 *DRH *RN(NRL  ,NSSN1)
      &                +( VV(NEQ,NW,NMK,NSW)      *DRH
-     &                  -DD(NEQ,NW,NMK,NSW)*2.D0)*DRH *PNSS(NSSN1)
+     &                  -DD(NEQ,NW,NMK,NSW)*C83 )*DRH *PNSS(NSSN1)
             ELSEIF(NSVN1.EQ.2) THEN
-               SUM=SUM+  DD(NEQ,NW,NMK,NSW)*2.D0 *DRH *RN(NRL,NSSN1)
-     &                                                *RT(NRL,NSSN1)
+               SUM=SUM+(-DD(NEQ,NW,NMK,NSW)/3.D0)*DRH *RN(NRL-1,NSSN1)
+     &                                                *RT(NRL-1,NSSN1)
+     &                +  DD(NEQ,NW,NMK,NSW)*3.D0 *DRH *RN(NRL  ,NSSN1)
+     &                                                *RT(NRL  ,NSSN1)
      &                +( VV(NEQ,NW,NMK,NSW)      *DRH
-     &                  -DD(NEQ,NW,NMK,NSW)*2.D0 *DRH)*PNSS(NSSN1)
+     &                  -DD(NEQ,NW,NMK,NSW)*C83  *DRH)*PNSS(NSSN1)
      &                                                *PTS (NSSN1)
             ENDIF
          ENDDO
@@ -190,6 +273,8 @@ C
          ENDIF
       ENDDO
 C
+C     *** Ionization, fusion and NBI fuelling ***
+C
       CALL TRSUMD(SIE,DVRHO,NRMAX,SIESUM)
       CALL TRSUMD(SNF,DVRHO,NRMAX,SNFSUM)
       CALL TRSUMD(SNB,DVRHO,NRMAX,SNBSUM)
@@ -197,10 +282,14 @@ C
       SNFT = SNFSUM*DR
       SNBT = SNBSUM*DR
 C
+C     *** Pellet injection fuelling ***
+C
       DO NS=1,NSM
          CALL TRSUMD(SPE(1,NS),DVRHO,NRMAX,SPESUM)
          SPET(NS) = SPESUM*DR/RKAP
       ENDDO
+C
+C     *** Input and output sources and powers ***
 C
       WBULKT=0.D0
       PEXST =0.D0
@@ -225,6 +314,10 @@ C
       SINT=SIET+SNBT
       SOUT=SLST
 C
+C     *** Energy confinement times ***
+C        TAUE1: steady state
+C        TAUE2: transient
+C
       IF(ABS(T-TPRE).LE.1.D-70) THEN
          WPDOT=0.D0
       ELSE
@@ -236,55 +329,8 @@ C
       TAUE1=WPT/PINT
       TAUE2=WPT/(PINT-WPDOT)
 C
-      SUM=0.D0
-      SUP=0.D0
-      VOL=0.D0
-      DO NR=1,NRMAX-1
-         SUML=0.D0
-         DO NS=1,NSM
-            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
-         ENDDO
-         DO NF=1,NFM
-            SUML = SUML +RW(NR,NF)*RKEV*1.D20
-         ENDDO
-C
-         VOL = VOL +         DVRHO(NR)*DR
-         SUM = SUM + SUML   *DVRHO(NR)*DR
-         SUP = SUP + SUML**2*DVRHO(NR)*DR
-         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
-         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
-         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
-         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
-         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
-      ENDDO
-C
-
-      NR=NRMAX
-         SUML=0.D0
-         DO NS=1,NSM
-            SUML = SUML +RN(NR,NS)*RT(NR,NS)*RKEV*1.D20
-         ENDDO
-         DO NF=1,NFM
-            SUML = SUML +RW(NR,NF)*RKEV*1.D20
-         ENDDO
-C
-         VOL = VOL +         DVRHO(NR)*DR
-         SUM = SUM + SUML   *DVRHO(NR)*DR
-         SUP = SUP + SUML**2*DVRHO(NR)*DR
-         BETA(NR)   = 2.D0*RMU0*SUM      /(     VOL *BB**2)
-         BETAL(NR)  = 2.D0*RMU0*SUML     /(          BB**2)
-         BETAP(NR)  = 2.D0*RMU0*SUM      /(     VOL *BP(NRMAX)**2)
-         BETAPL(NR) = 2.D0*RMU0*SUML     /(          BP(NRMAX)**2)
-         BETAQ(NR)  = 2.D0*RMU0*SQRT(SUP)/(SQRT(VOL)*BB**2)
-C
-      BETA0 =(4.D0*BETA(1)  -BETA(2)  )/3.D0
-      BETAP0=(4.D0*BETAPL(1)-BETAPL(2))/3.D0
-      BETAQ0=(4.D0*BETAQ(1) -BETAQ(2) )/3.D0
-C
-      BETAPA=BETAP(NRMAX)
-      BETAA =BETA(NRMAX)
-      BETAN =BETAA*1.D2/(RIP/(RA*BB))
-C
+C     *** Inductance and one-turn voltage ***
+C     
       WPOL=0.D0
       DO NR=1,NRMAX
          WPOL=WPOL+DVRHOG(NR)*ABRHOG(NR)*RDP(NR)**2*DR/(2.D0*RMU0)
@@ -293,18 +339,38 @@ C
 C
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 C
-      PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
+C     *** Confinement scalings (TOKAMAKS 3rd p183,184) ***
+C        TAUE89: ITER89-P L-mode scaling
+C        TAUE98: IPB98(y,2) H-mode scaling with ELMs
+C        H98Y2: H-mode factor
 C
-      TAUEP=4.8D-2*(RIP**0.85D0)
-     &            *(RR**1.2D0)
-     &            *(RA**0.3D0)
-     &            *(RKAP**0.5D0)
-     &            *(ANSAV(1)**0.1D0)
-     &            *(BB**0.2D0)
-     &            *(PAI**0.5D0)
-     &            *(PINT**(-0.5D0))
+C     volume-averaged isotopic mass number
+      PAI = (PA(2)*ANSAV(2)+PA(3)*ANSAV(3)+PA(4)*ANSAV(4))
+     &     /(ANSAV(2)+ANSAV(3)+ANSAV(4))
+C
+      TAUE89=4.8D-2*(RIP**0.85D0)
+     &             *(RR**1.2D0)
+     &             *(RA**0.3D0)
+     &             *(RKAP**0.5D0)
+     &             *(ANLAV(1)**0.1D0)
+     &             *(BB**0.2D0)
+     &             *(PAI**0.5D0)
+     &             *(PINT**(-0.5D0))
+      TAUE98=0.145D0*(RIP**0.93D0)
+     &              *(RR**1.39D0)
+     &              *(RA**0.58D0)
+     &              *(RKAP**0.78D0)
+     &              *(ANLAV(1)**0.41D0)
+     &              *(BB**0.15D0)
+     &              *(PAI**0.19D0)
+     &              *(PINT**(-0.69D0))
+      H98Y2=TAUE2/TAUE98
+C
+C     *** Fusion production rate ***
 C
       QF=5.D0*PNFT/(POHT+PNBT+PRFST+PEXST)
+C
+C     *** Distance of q=1 surface from magnetic axis ***
 C
       IF(Q0.GE.1.D0) THEN
          RQ1=0.D0
@@ -324,6 +390,8 @@ C
   310    CONTINUE
       ENDIF
 C
+C     *** Effective charge number at axis ***
+C
       ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
 C
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -338,9 +406,9 @@ C     ********************************************************
 C
       SUBROUTINE TRSUMD(A,B,NMAX,SUM)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      DIMENSION A(NMAX),B(NMAX)
+      IMPLICIT NONE
+      INTEGER N,NMAX
+      REAL*8 SUM,A(NMAX),B(NMAX)
 C
       SUM=0.D0
       DO N=1,NMAX
@@ -357,9 +425,9 @@ C     ********************************************************
 C
       SUBROUTINE TRSUMT(A,B,C,NMAX,SUM)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
-C
-      DIMENSION A(NMAX),B(NMAX),C(NMAX)
+      IMPLICIT NONE
+      INTEGER N,NMAX
+      REAL*8 SUM,A(NMAX),B(NMAX),C(NMAX)
 C
       SUM=0.D0
       DO N=1,NMAX
@@ -475,7 +543,7 @@ C
       GVT(NGT,78) = GUCLIP(WPDOT)
       GVT(NGT,79) = GUCLIP(TAUE1)
       GVT(NGT,80) = GUCLIP(TAUE2)
-      GVT(NGT,81) = GUCLIP(TAUEP)
+      GVT(NGT,81) = GUCLIP(TAUE89)
 C
       GVT(NGT,82) = GUCLIP(BETAP0)
       GVT(NGT,83) = GUCLIP(BETAPA)
@@ -500,6 +568,13 @@ C
       GVT(NGT,99) = GUCLIP(BB)
       GVT(NGT,100)= GUCLIP(RKAP)
       GVT(NGT,101)= GUCLIP(AJTTOR)
+C
+      GVT(NGT,102)= GUCLIP(TAUE98)
+      GVT(NGT,103)= GUCLIP(H98Y2)
+      GVT(NGT,104)= GUCLIP(ANLAV(1))
+      GVT(NGT,105)= GUCLIP(ANLAV(2))
+      GVT(NGT,106)= GUCLIP(ANLAV(3))
+      GVT(NGT,107)= GUCLIP(ANLAV(4))
 C
 C     *** FOR 3D ***
 C
@@ -666,14 +741,16 @@ C
       ELSEIF(KID.EQ.'1') THEN
          WRITE(6,601) T,
      &                WPT,WBULKT,WTAILT,WPDOT,
-     &                TAUE1,TAUE2,TAUEP,QF,
+     &                TAUE1,TAUE2,TAUE89,TAUE98,
+     &                QF,
      &                BETAP0,BETAPA,BETA0,BETAA,
      &                Q0,RQ1,ZEFF0,BETAN
   601    FORMAT(' ','# TIME : ',F7.3,' SEC'/
      &          ' ',3X,'WPT   =',1PD10.3,'  WBULKT=',1PD10.3,
      &               '  WTAILT=',1PD10.3,'  WPDOT =',1PD10.3/
      &          ' ',3X,'TAUE1 =',1PD10.3,'  TAUE2 =',1PD10.3,
-     &               '  TAUEP =',1PD10.3,'  QF    =',1PD10.3/
+     &               '  TAUE89=',1PD10.3,'  TAUE98=',1PD10.3/
+     &          ' ',3X,'QF    =',1PD10.3/
      &          ' ',3X,'BETAP0=',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3/
      &          ' ',3X,'Q0    =',1PD10.3,'  RQ1   =',1PD10.3,
@@ -839,7 +916,7 @@ C         CALL TRMXMN(77,'   Q0  ')
 C         CALL TRMXMN(78,' WPDOT ')
 C         CALL TRMXMN(79,' TAUE1 ')
 C         CALL TRMXMN(80,' TAUE2 ')
-C         CALL TRMXMN(81,' TAUEP ')
+C         CALL TRMXMN(81,' TAUE89')
 C         CALL TRMXMN(82,' BETAP0')
          CALL TRMXMN(83,' BETAPA')
 C         CALL TRMXMN(84,' BETA0 ')
@@ -858,19 +935,19 @@ C
       ENDIF
 C
       IF(KID.EQ.'6') THEN
-         WRITE(6,651)T,TAUE1,TAUE2,TAUEP,PINT
+         WRITE(6,651)T,TAUE1,TAUE2,TAUE89,PINT
  651     FORMAT(' ','# TIME : ',F7.3,' SEC'/
      &          ' ',3X,'TAUE1 =',1PD10.3,'  TAUE2 =',1PD10.3,
-     &              '  TAUEP =',1PD10.3,'  PINT  =',1PD10.3)
+     &               '  TAUE89=',1PD10.3,'  PINT  =',1PD10.3)
       ENDIF
 C
       IF(KID.EQ.'7'.OR.KID.EQ.'8') THEN
          WRITE(6,671) T,
-     &                WPT,TAUE1,TAUE2,TAUEP,
+     &                WPT,TAUE1,TAUE2,TAUE89,
      &                BETAN,BETAPA,BETA0,BETAA
   671    FORMAT(' ','# TIME : ',F7.3,' SEC'/
      &          ' ',3X,'WPT   =',1PD10.3,'  TAUE1 =',1PD10.3,
-     &               '  TAUE2 =',1PD10.3,'  TAUEP =',1PD10.3/
+     &               '  TAUE2 =',1PD10.3,'  TAUE89=',1PD10.3/
      &          ' ',3X,'BETAN =',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C
@@ -922,11 +999,11 @@ C
      &          ' ',3X,'BB    =',1PD10.3,'  PICTOT=',1PD10.3,
      &               '  PLHTOT=',1PD10.3,'  PLHNPR=',1PD10.3)
          WRITE(16,1671) T,
-     &                WPT,TAUE1,TAUE2,TAUEP,
+     &                WPT,TAUE1,TAUE2,TAUE89,
      &                BETAN,BETAPA,BETA0,BETAA
  1671    FORMAT(' ','# TIME : ',F7.3,' SEC'/
      &          ' ',3X,'WPT   =',1PD10.3,'  TAUE  =',1PD10.3,
-     &               '  TAUED =',1PD10.3,'  TAUEP =',1PD10.3/
+     &               '  TAUED =',1PD10.3,'  TAUE89=',1PD10.3/
      &          ' ',3X,'BETAN =',1PD10.3,'  BETAPA=',1PD10.3,
      &               '  BETA0 =',1PD10.3,'  BETAA =',1PD10.3)
 C
@@ -1076,7 +1153,6 @@ C
       SUBROUTINE TRXOUT
 C
       INCLUDE 'trcomm.inc'
-C      INCLUDE 'trxcom.f'
 C
       COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
       COMMON /TRKID2/ KDIRW1,KDIRW2
@@ -1516,8 +1592,9 @@ C     *****
 C
       SUBROUTINE TRXW1D(KFID,GT,GF,NTM,NTXMAX)
 C
-      IMPLICIT REAL*8(A-F,H,O-Z)
-      DIMENSION GT(NTM),GF(NTM)
+      IMPLICIT NONE
+      INTEGER NTM,NTXMAX,KL1,IST,NTX
+      REAL GT(NTM),GF(NTM)
       COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
       COMMON /TRKID2/ KDIRW1,KDIRW2
       CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80,CDATE*9
@@ -1563,8 +1640,9 @@ C     *****
 C
       SUBROUTINE TRXW2D(KFID,GT,GR,GF,NRM,NTM,NRXMAX,NTXMAX)
 C
-      IMPLICIT REAL*8(A-F,H,O-Z)
-      DIMENSION GT(NTM),GR(NRM),GF(NRM,NTM)
+      IMPLICIT NONE
+      INTEGER NRM,NTM,NRXMAX,NTXMAX,KL2,IST,NRX,NTX
+      REAL GT(NTM),GR(NRM),GF(NRM,NTM)
       COMMON /TRXDT1/ KXNDEV,KXNDCG,KXNID
       COMMON /TRKID2/ KDIRW1,KDIRW2
       CHARACTER KXNDEV*80,KXNDCG*80,KXNID*80,CDATE*9
@@ -1617,7 +1695,8 @@ C     *****
 C
       SUBROUTINE GET_DATE(CDATE)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
+      INTEGER I,NDY,NDM,NDD,NTIH,NTIM,NTIS
       CHARACTER CDD*2,CDM*3,CDY*2,CDATE*9,CDATA(12)*3
       DATA (CDATA(I),I=1,12)
      &     /'Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep',

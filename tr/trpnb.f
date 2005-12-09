@@ -279,11 +279,14 @@ C
       SUBROUTINE TRBSCS(ANEX,TEX,EB,ANCX,ANFEX,ANOX,
      &                  PZCX,PZFEX,PZOX,SGM)
 C
-      IMPLICIT REAL*8 (A-F,H,O-Z)
+      IMPLICIT NONE
 C
 C     "C" DENOTES CARBON, "F" IRON, AND "O" OXIGEN.
 C
-      DIMENSION A(2,3,2),C(3,2,2),F(3,2,2),O(3,2,2)
+      REAL*8 ANEX,TEX,EB,ANCX,ANFEX,ANOX,PZCX,PZFEX,PZOX,SGM
+      INTEGER I,J,K
+      REAL*8 S1,S2,S3,S4
+      REAL*8 A(2,3,2),C(3,2,2),F(3,2,2),O(3,2,2)
 C
       DATA A/ 4.40D+00, 2.30D-01, 7.46D-02, 3.16D-03,
      &       -2.55D-03, 1.32D-03,-2.49D-02,-1.15D-02,
@@ -347,6 +350,7 @@ C
       AMT=AMM*PA(3)
       AMA=AMM*PA(4)
       AMB=AMM*PA(2)
+      PAB=PA(2)
       PZB=PZ(2)
       VB=SQRT(2.D0*PNBENG*RKEV/AMB)
 C
@@ -366,7 +370,8 @@ C
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYB  = HY(VB/VCR)
-         TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
+         TAUS = 0.2D0*PAB*ABS(TE)**1.5D0
+     &         /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
          TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
          ENDIF
       ENDDO
@@ -387,7 +392,8 @@ C
          VC3  = VCD3+VCT3+VCA3
          VCR  = VC3**(1.D0/3.D0)
          HYB  = HY(VB/VCR)
-         TAUS = 0.2D0*PA(2)*ABS(TE)**1.5D0/(PZ(2)**2*ANE*15.D0)
+         TAUS = 0.2D0*PAB*ABS(TE)**1.5D0
+     &         /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
          TAUB(NR) = 0.5D0*TAUS*(1.D0-HYB)
          RNF(NR,1)= 2.D0*LOG(1.D0+(VB/VCR)**3)*WB
      &             /(3.D0*(1.D0-HYB)*PNBENG)
@@ -407,31 +413,35 @@ C
 C
       IF(PNBCD.LE.0.D0) RETURN
 C
+C     D. R .Mikkelsen and C. E. Singer, J. Plasma Phys. 4 237 (1983)
+C        xi_0 corresponds to PNBCD
+C        H(r)*P_b/V_p corresponds to PBIN(NR)
+C     
       TAUS0=6.D0*PI*SQRT(2.D0*PI)*EPS0**2*AMB*AME
-     &     /(1.D20*AEE**4*PZB**2*15.D0)
+     &     /(1.D20*AEE**4*PZB**2*COULOG(1,2,ANE,TE))
       DO NR=1,NRMAX
          ANE=RN(NR,1)
          TE =RT(NR,1)
          EPS = EPSRHO(NR)
          VE  = SQRT(ABS(TE)*RKEV/AME)
-       IF(ANE.EQ.0.D0) THEN
-          TAUS=0.D0
-          ZEFFM=0.D0
-          XB=0.D0
-          AJNB(NR)=0.D0
-       ELSE
+         IF(ANE.EQ.0.D0) THEN
+            TAUS=0.D0
+            ZEFFM=0.D0
+            XB=0.D0
+            AJNB(NR)=0.D0
+         ELSE
          TAUS=TAUS0*VE**3/ANE
          ZEFFM = (PZ(2)  *PZ(2)  *RN(NR,2)/PA(2)
      &           +PZ(3)  *PZ(3)  *RN(NR,3)/PA(3)
      &           +PZ(4)  *PZ(4)  *RN(NR,3)/PA(4)
      &           +PZC(NR) *PZC(NR) *ANC(NR)/12.D0
      &           +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
-         EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
+         EC  = 14.8D0*TE*PAB*ZEFFM**(2.D0/3.D0)
          VCR = VB*SQRT(ABS(EC)/PNBENG)
          P2  = (1.55D0+0.85D0/ZEFF(NR))*SQRT(EPS)
      &        -(0.2D0+1.55D0/ZEFF(NR))*EPS
          XB  = VB/VCR
-         ZN  = 0.8D0*ZEFF(NR)/PA(2)
+         ZN  = 0.8D0*ZEFF(NR)/PAB
          P3  = XB*XB/(4.D0+3.D0*ZN+XB*XB*(XB+1.39D0+0.61D0*ZN**0.7D0))
 C
          AJNB(NR) = PNBCD*2.D0*AEE*PZB*TAUS/(AMB*VCR)
