@@ -19,10 +19,10 @@ C
       NTL=1
       WSIM=0.D0
       WEXP=0.D0
-      WSIME=0.D0
-      WEXPE=0.D0
-      WSIMI=0.D0
-      WEXPI=0.D0
+c$$$      WSIME=0.D0
+c$$$      WEXPE=0.D0
+c$$$      WSIMI=0.D0
+c$$$      WEXPI=0.D0
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(MODE.EQ.0) THEN
          NRHO09=INT(0.9*NRMAX)
@@ -33,8 +33,8 @@ C
             TIEXPL=RTU(NTL,NR,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU_ORG(NTL,NR,1)*TEEXPL
-     &                       +RNU_ORG(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
+     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          NRHO09=INT(0.9*NRMAX)
@@ -45,12 +45,12 @@ C
             TIEXPL=RTU(NTL,NR,2)-RTU(NTL,NRHO09,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU_ORG(NTL,NR,1)*TEEXPL
-     &                       +RNU_ORG(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
+     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
 CCC            WSIME=WSIME+1.5D0*RN(NR,1)*TESIML*DVRHO(NR)*DR
 CCC            WSIMI=WSIMI+1.5D0*RN(NR,2)*TISIML*DVRHO(NR)*DR
-CCC            WEXPE=WEXPE+1.5D0*RNU_ORG(NTL,NR,1)*TEEXPL*DVRHO(NR)*DR
-CCC            WEXPI=WEXPI+1.5D0*RNU_ORG(NTL,NR,2)*TIEXPL*DVRHO(NR)*DR
+CCC            WEXPE=WEXPE+1.5D0*RN(NR,1)*TEEXPL*DVRHO(NR)*DR
+CCC            WEXPI=WEXPI+1.5D0*RN(NR,2)*TIEXPL*DVRHO(NR)*DR
          ENDDO
       ELSE
          DO NR=1,NRMAX
@@ -60,8 +60,8 @@ CCC            WEXPI=WEXPI+1.5D0*RNU_ORG(NTL,NR,2)*TIEXPL*DVRHO(NR)*DR
             TIEXPL=RTU(NTL,NR,2)
             WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
      &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RNU_ORG(NTL,NR,1)*TEEXPL
-     &                       +RNU_ORG(NTL,NR,2)*TIEXPL)*DVRHO(NR)*DR
+            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
+     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
          ENDDO
       ENDIF
       WTO1=WSIM/WEXP-1.D0
