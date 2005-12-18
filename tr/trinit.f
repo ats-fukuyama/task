@@ -784,12 +784,12 @@ C
      &             'BB    ',BB
 C
       WRITE(6,611)
-  611 FORMAT(' ','NS',2X,'PA           PZ    PN(E20)  PNS(E20) ',
-     &                   'PT(KEV)  PTS(KEV)  PELPAT')
+  611 FORMAT(' ','NS',2X,'PA           PZ      PN(E20)  PNS(E20) ',
+     &                   'PT(KEV)  PTS(KEV) PELPAT')
       DO NS=1,NSMAX
          WRITE(6,612) NS,PA(NS),PZ(NS),PN(NS),PNS(NS),PT(NS),PTS(NS),
      &                PELPAT(NS)
-  612    FORMAT(' ',I2,1PD12.4,0P,F6.1,5F9.4)
+  612    FORMAT(' ',I2,1PD12.4,0P,F8.3,5F9.4)
       ENDDO
 C
       WRITE(6,601) 'PNC   ',PNC,
@@ -985,7 +985,7 @@ C
          ELSE
             IF(NSMAX.EQ.1) INS=2
             NSMAX=3
-            PA(3)=12.D0
+C            PA(3)=12.D0
 C            PZ(3)=6.D0
          ENDIF
       ENDIF
