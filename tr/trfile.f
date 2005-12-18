@@ -1009,7 +1009,11 @@ C
       KFID='KAPPAR'
       CALL UF2DS(KFID,KUFDEV,KUFDCG,DR,TMU,FAS,AMP,NRMAX,0,1,MDLXP,IERR)
       DO NR=1,NRMAX
-         RKPRHOU(1,NR)=FAS(NR)
+         IF(IERR.EQ.0) THEN
+            RKPRHOU(1,NR)=FAS(NR)
+         ELSE
+            RKPRHOU(1,NR)=RKAPU(NTS)
+         ENDIF
       ENDDO
 C
       KFID='GRHO1'
