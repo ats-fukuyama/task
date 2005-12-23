@@ -1759,27 +1759,3 @@ C
 C
       RETURN
       END
-c$$$C
-c$$$C     ***********
-c$$$C
-c$$$      FUNCTION fg1(s,a)
-c$$$      IMPLICIT NONE
-c$$$      REAL*8 fg1, s, a, c, f
-c$$$C
-c$$$      c = 3.d0 * (s - a)**2 / (0.5d0 + a - s)
-c$$$C
-c$$$      if(c.lt.-1.d0) then
-c$$$         write(6,*) 'XX FUNCTION FG1: ERROR'
-c$$$         stop
-c$$$      endif
-c$$$      f =(1.d0 + 2.d0 * a - 2.d0 * s) * sqrt(2.d0 + c)
-c$$$C
-c$$$      fg1 =(9.d0 / 8.d0 * (1.d0 + 4.d0 / (3.d0 * a * f))**2
-c$$$     &    + 2.5d1 * (s - a)**2 / (4.d0 * (1.d0 + 2.d0 * a - 2.d0 * s))
-c$$$     &    * sqrt((2.d0 + c) / (1.d0 + c)) 
-c$$$     &    * (1.d0 + 4.d0 / (3.d0 * a * f))
-c$$$     &    * (1.d0 + 4.d0 / (5.d0 * a * f))) * a / f**2
-c$$$C
-c$$$      RETURN
-c$$$      END
-      

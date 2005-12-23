@@ -535,6 +535,8 @@ C
      &      SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST,
      &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 C
+C         write(6,'(I3,5F15.7)') NR,CHIL(2),CHEL(2),DL(2),CHQL(2),DQL(2)
+C
          CALL WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,
      &                        SCHI,SCHE,SD,SCHQ,SDQ)
 C       write(6,'(I3,5F15.7)') NR,CHEL(1),CHEL(2),CHEL(3),CHEL(4),CHEL(5)

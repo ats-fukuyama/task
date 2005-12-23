@@ -674,7 +674,7 @@ C
          GRG(NR+1)=GUCLIP(RG(NR))
       ENDDO
 C
-      IF(RHOA.NE.1.D0) NRMAX=NROMAX
+C      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       RETURN
       END
 C
@@ -954,6 +954,9 @@ C
 C     ***********************************************************
 C
       SUBROUTINE TR_EDGE_SELECTOR(NSW)
+C
+C        NSW = 0: store edge value; substitute rhoa value 
+C              1: restore original edge value
 C
       INCLUDE 'trcomm.inc'
       DIMENSION PNSSO(NSTM),PTSO(NSTM),PNSSAO(NSTM),PTSAO(NSTM)

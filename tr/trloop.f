@@ -60,7 +60,7 @@ C     /* Stored Variables for Convergence Check */
       ENDIF
 C
  2000 CONTINUE
-      CALL TR_EDGE_SELECTOR(0)
+C      CALL TR_EDGE_SELECTOR(0)
 C
 C     /* Matrix Producer */
       CALL TRMTRX(NEQRMAX)
@@ -265,7 +265,7 @@ C
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
 C
-      CALL TR_EDGE_SELECTOR(1)
+C      CALL TR_EDGE_SELECTOR(1)
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       GOTO 2000
@@ -325,7 +325,7 @@ C
 C
 C     /* Making New Physical Variables */
       CALL TRXTOA
-      CALL TR_EDGE_SELECTOR(1)
+C      CALL TR_EDGE_SELECTOR(1)
 C
 C     /* Check negative temperature */
       IF(ICHCK.EQ.0) CALL TRCHCK(ICHCK)
@@ -1344,8 +1344,8 @@ C
                   ELSE
                      VV(NEQ,NEQ  ,NMK,NSW)= DV23*(FA(NI,NSW)
      &                    *( AVK(NRJ,NSSN)
-     &                    +RQFLS(NRJ,5,NSSN)   / RPV(NRJ,NSSN)
-     &                    +RGFLS(NRJ,5,NSSN)*CC/ RNV(NRJ,NSSN))
+     &                    + RQFLS(NRJ,5,NSSN)   / RPV(NRJ,NSSN)
+     &                    + RGFLS(NRJ,5,NSSN)*CC/ RNV(NRJ,NSSN))
      &                    +(RGFLX(NRJ,NSSN)  *CC/(RNV(NRJ,NSSN)*DR)))
                   ENDIF
                   DO NEQ1=1,NEQLMAX
@@ -1353,16 +1353,16 @@ C
                      NSVN1=NSV(NEQ1)
                      IF(NSVN1.EQ.1) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
-     &                       * RPV(NRJ,NSSN)
+     &                       *  RPV(NRJ,NSSN)
      &                       *( AKLD(NRJ,NSSN1,NSSN)
      &                         +ADLD(NRJ,NSSN1,NSSN)*CC)
-     &                       / RNV(NRJ,NSSN1)
+     &                       /  RNV(NRJ,NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         DD(NEQ,NEQ1,NMK,NSW)= FB(NI,NSW)*DV23
-     &                       * RPV(NRJ,NSSN)
+     &                       *  RPV(NRJ,NSSN)
      &                       *( AKLP(NRJ,NSSN1,NSSN)
      &                         +ADLP(NRJ,NSSN1,NSSN)*CC)
-     &                       / RPV(NRJ,NSSN1)
+     &                       /  RPV(NRJ,NSSN1)
                      ENDIF
                   ENDDO
                ENDIF
@@ -1466,18 +1466,18 @@ C
             ELSEIF(NSSN.EQ.7.OR.NSSN.EQ.8) THEN
                D(NEQ,NR) = SSIN(NR,NSSN)*DV11
      &                 +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))
-     &                 *PNSS(NSSN)
+     &                 *RNV(NR,NSSN)
             ELSE
                IF(NSVN.EQ.1) THEN
                   D(NEQ,NR) = (SSIN(NR,NSSN)+SPE(NR,NSSN)/DT)*DV11
      &                 +(-VI(NEQ,NEQ,2,NSW)+C83*DI(NEQ,NEQ,2,NSW))
-     &                 *PNSS(NSSN)
+     &                 *RNV(NR,NSSN)
                ELSEIF(NSVN.EQ.2) THEN
                   D(NEQ,NR) = (PIN(NR,NSSN)/(RKEV*1.D20)  )*DV53
      &                 +(-VI(NEQ,NEQ-1,2,NSW)+C83*DI(NEQ,NEQ-1,2,NSW))
-     &                 *PNSS(NSSN)
+     &                 *RNV(NR,NSSN)
      &                 +(-VI(NEQ,NEQ  ,2,NSW)+C83*DI(NEQ,NEQ  ,2,NSW))
-     &                 *PNSS(NSSN)*PTS(NSSN)
+     &                 *RPV(NR,NSSN)
                ELSEIF(NSVN.EQ.3) THEN
                   D(NEQ,NR) = VOID
                ELSE
@@ -1502,11 +1502,11 @@ C     *
                   IF(NSVN1.EQ.1) THEN
                      D(NEQ,NR) = D(NEQ,NR)
      &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                    *PNSS(NSSN1)
+     &                    *RNV(NR,NSSN1)
                   ELSEIF(NSVN1.EQ.2) THEN
                      D(NEQ,NR) = D(NEQ,NR)
      &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                    *PNSS(NSSN1)*PTS(NSSN1)
+     &                    *RPV(NR,NSSN1)
                   ENDIF
                ENDDO
             ELSE
@@ -1518,11 +1518,11 @@ C     *
                      IF(NSVN1.EQ.1) THEN
                         D(NEQ,NR) = D(NEQ,NR)
      &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                 *PNSS(NSSN1)
+     &                 *RNV(NR,NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         D(NEQ,NR) = D(NEQ,NR)
      &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                 *PNSS(NSSN1)*PTS(NSSN1)
+     &                 *RPV(NR,NSSN1)
                      ENDIF
                   ENDDO
                ELSEIF(NSVN.EQ.2) THEN
@@ -1533,11 +1533,11 @@ C     *
                      IF(NSVN1.EQ.1) THEN
                         D(NEQ,NR) = D(NEQ,NR)
      &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                 *PNSS(NSSN1)
+     &                 *RNV(NR,NSSN1)
                      ELSEIF(NSVN1.EQ.2) THEN
                         D(NEQ,NR) = D(NEQ,NR)
      &                 +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                 *PNSS(NSSN1)*PTS(NSSN1)
+     &                 *RPV(NR,NSSN1)
                      ENDIF
                   ENDDO
                ELSEIF(NSVN.EQ.3) THEN
@@ -1597,9 +1597,9 @@ C
                      D(NEQ,NR) = D(NEQ,NR)+PZ(NSSN1)
      &                          *(SSIN(NR,NSSN1)+SPE(NR,NSSN1)/DT)*DV11
                      VISUMN = VISUMN+PZ(NSSN1)*VI(NEQ1,NEQ1,2,NSW)
-     &                              *PNSS(NSSN1)
+     &                              *RNV(NR,NSSN1)
                      DISUMN = DISUMN+PZ(NSSN1)*DI(NEQ1,NEQ1,2,NSW)
-     &                              *PNSS(NSSN1)
+     &                              *RNV(NR,NSSN1)
                   ENDIF
                ENDDO
                D(NEQ,NR) = D(NEQ,NR)+(-VISUMN+C83*DISUMN)
@@ -1613,13 +1613,13 @@ C
                      D(NEQ,NR) = D(NEQ,NR)+PZ(NSSN1)
      &                          *(PIN(NR,NSSN1)/(RKEV*1.D20)  )*DV53
                      VISUMT1 = VISUMT1+PZ(NSSN1)*VI(NEQ1,NEQ1-1,2,NSW)
-     &                                *PNSS(NSSN1)
+     &                                *RNV(NR,NSSN1)
                      DISUMT1 = DISUMT1+PZ(NSSN1)*DI(NEQ1,NEQ1-1,2,NSW)
-     &                                *PNSS(NSSN1)
+     &                                *RNV(NR,NSSN1)
                      VISUMT2 = VISUMT2+PZ(NSSN1)*VI(NEQ1,NEQ1  ,2,NSW)
-     &                                *PNSS(NSSN1)*PTS(NSSN1) 
+     &                                *RPV(NR,NSSN1)
                      DISUMT2 = DISUMT2+PZ(NSSN1)*DI(NEQ1,NEQ1  ,2,NSW)
-     &                                *PNSS(NSSN1)*PTS(NSSN1) 
+     &                                *RPV(NR,NSSN1)
                   ENDIF
                ENDDO
                D(NEQ,NR) = D(NEQ,NR)+(-VISUMT1+C83*DISUMT1)
@@ -1732,18 +1732,22 @@ C
       RETURN
       END
 C
-C     ***********************************************************
+C     ***************************************************************
 C
-C           LOCAL VARIABLES FOR DENSITY, TEMPERATURE, PRESSURE
+C           LOCAL VARIABLES FOR N, T AND P ON GRID
 C
-C     ***********************************************************
+C     **************************************************************
 C
       FUNCTION RNV(NR,NS)
 C
       INCLUDE 'trcomm.inc'
 C
       IF(NR.EQ.NRMAX) THEN
-         RNV=PNSS(NS)
+         IF(RHOA.EQ.1.D0) THEN
+            RNV=PNSS(NS)
+         ELSE
+            RNV=PNSSA(NS)
+         ENDIF
       ELSEIF(NR.NE.0.AND.NR.NE.NRMAX) THEN
          RNV=0.5D0*(RN(NR,NS)+RN(NR+1,NS))
       ENDIF
@@ -1756,7 +1760,11 @@ C
       INCLUDE 'trcomm.inc'
 C
       IF(NR.EQ.NRMAX) THEN
-         RTV=PTS(NS)
+         IF(RHOA.EQ.1.D0) THEN
+            RTV=PTS(NS)
+         ELSE
+            RTV=PTSA(NS)
+         ENDIF
       ELSEIF(NR.NE.0.AND.NR.NE.NRMAX) THEN
          RTV=0.5D0*(RT(NR,NS)+RT(NR+1,NS))
       ENDIF
@@ -1769,7 +1777,11 @@ C
       INCLUDE 'trcomm.inc'
 C
       IF(NR.EQ.NRMAX) THEN
-         RPV=PNSS(NS)*PTS(NS)
+         IF(RHOA.EQ.1.D0) THEN
+            RPV=PNSS(NS)*PTS(NS)
+         ELSE
+            RPV=PNSSA(NS)*PTSA(NS)
+         ENDIF
       ELSEIF(NR.NE.0.AND.NR.NE.NRMAX) THEN
          RPV=0.5D0*(RN(NR,NS)*RT(NR,NS)+RN(NR+1,NS)*RT(NR+1,NS))
       ENDIF
