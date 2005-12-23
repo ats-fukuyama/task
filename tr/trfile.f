@@ -736,7 +736,7 @@ C
       PNS(3)=(PZ(2)-PZEF1)/(PZ(3)*(PZ(2)-PZ(3)))*PNS(1)
       PNS(4)=1.D-8
       IF(RHOA.NE.1.D0) THEN
-         PNSA(2)=( (PZ(3)-PZEF2)*PNS(1)-(PZ(3)-PZ(2))*PZ(2)*PNF2)
+         PNSA(2)=( (PZ(3)-PZEF2)*PNSA(1)-(PZ(3)-PZ(2))*PZ(2)*PNF2)
      &            /(PZ(2)*(PZ(3)-PZ(2)))
          PNSA(3)=(PZ(2)-PZEF2)/(PZ(3)*(PZ(2)-PZ(3)))*PNSA(1)
          PNSA(4)=1.D-8
