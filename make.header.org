@@ -182,3 +182,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/lib/libcxml.so
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)
+
+#Local Variables:
+#mode: makefile
+#End:
