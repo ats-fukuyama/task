@@ -148,6 +148,18 @@ C
       RETURN
       END
 C
+      SUBROUTINE MPBCLA(L)
+C
+      include '../mpi/mpilib.inc'
+      LOGICAL L
+C
+      call mpi_barrier(mpi_comm_world,ierr)
+      call mpi_bcast(L,1,mpi_logical,
+     &               0,mpi_comm_world,ierr)
+C
+      RETURN
+      END
+C
       SUBROUTINE MPBCCA(C)
 C
       include '../mpi/mpilib.inc'
@@ -171,17 +183,25 @@ C
       if(myrank.eq.0)then
          do irank=1,nprocs-1
             call MPSETI(NDTMP,irank,ista,iend)
-            call mpi_irecv(dtmp(ista),iend-ista+1,mpi_double_precision,
-     &                     irank,0,mpi_comm_world,ireq(irank),ierr)
+            if (ista.le.iend) then
+               call mpi_irecv(dtmp(ista),iend-ista+1,
+     &              mpi_double_precision,
+     &              irank,0,mpi_comm_world,ireq(irank),ierr)
+            endif
          enddo
          do irank=1,nprocs-1
-            call mpi_wait(ireq(irank),istatus,ierr)
+            call MPSETI(NDTMP,irank,ista,iend)
+            if (ista.le.iend) then
+               call mpi_wait(ireq(irank),istatus,ierr)
+            endif
          enddo
       else
          call MPSETI(NDTMP,myrank,ista,iend)
-         call mpi_isend(dtmp(ista),iend-ista+1,mpi_double_precision,
-     &                  0,0,mpi_comm_world,ireq1,ierr)
-         call mpi_wait(ireq1,istatus,ierr)
+         if (ista.le.iend) then
+            call mpi_isend(dtmp(ista),iend-ista+1,mpi_double_precision,
+     &           0,0,mpi_comm_world,ireq1,ierr)
+            call mpi_wait(ireq1,istatus,ierr)
+         endif
       endif
 C
       call mpi_barrier(mpi_comm_world,ierr)

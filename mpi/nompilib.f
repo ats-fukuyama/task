@@ -63,6 +63,11 @@ C
       RETURN
       END
 C
+      SUBROUTINE MPBCLA(L)
+      LOGICAL L
+      RETURN
+      END
+C
       SUBROUTINE MPBCCA(C)
       COMPLEX*16 C
       RETURN
