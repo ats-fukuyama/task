@@ -19,10 +19,10 @@ C
       NTL=1
       WSIM=0.D0
       WEXP=0.D0
-c$$$      WSIME=0.D0
-c$$$      WEXPE=0.D0
-c$$$      WSIMI=0.D0
-c$$$      WEXPI=0.D0
+CCC      WSIME=0.D0
+CCC      WEXPE=0.D0
+CCC      WSIMI=0.D0
+CCC      WEXPI=0.D0
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(MODE.EQ.0) THEN
          NRHO09=INT(0.9*NRMAX)
@@ -119,6 +119,8 @@ C
       WRITE(21,610) 'SHOT  = ',KUFDCG
       WRITE(21,620) 'AVERW =' ,WTO1
       WRITE(21,620) 'RW    =' ,WTO2
+CCC      WRITE(21,620) 'AVERW =' ,WEXP*RKEV*1.D20*1.D-6
+CCC      WRITE(21,620) 'RW    =' ,WSIM*RKEV*1.D20*1.D-6
 CCC      WRITE(21,620) 'AVERW =' ,WTO2E
 CCC      WRITE(21,620) 'RW    =' ,WTO2I
       WRITE(21,620) 'STDE  =' ,STDE

@@ -649,6 +649,7 @@ C
      &                    RG(NR),RM(NR),RM(NR-1))
             SUM=SUM+CJBST(NR,NS)*DRTNW/RTNW
      &             +CJBSP(NR,NS)*DRPNW/RPNW
+CCC            if(ns.eq.3) write(6,*) NR,PNSS(NS),PTS(NS)
          ENDDO
          AJBSL(NR)=-PBSCD*SUM/BB
       ENDIF

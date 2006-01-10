@@ -783,6 +783,7 @@ C
       ENDIF
 C
       ENDIF ! ** MDNI **
+      IF(PNS(3).LE.1.D-8) PNS(3)=1.D-8
 C
       IF(MDNI.NE.0) THEN
 C     check whether density developed is appropriate (positive) or not
@@ -2989,13 +2990,13 @@ C
          RMNRHO(NR)=RMNRHOU(1,NR)
          RKPRHO(NR)=RKPRHOU(1,NR)
          IF(MDPHIA.EQ.0) THEN
-            RHOA=SQRT(PHIA/(PI*BB))
-            RJCB(NR)=1.D0/RHOA
-            RHOM(NR)=RM(NR)*RHOA
-            RHOG(NR)=RG(NR)*RHOA
+            RHO_A=SQRT(PHIA/(PI*BB))
+            RJCB(NR)=1.D0/RHO_A
+            RHOM(NR)=RM(NR)*RHO_A
+            RHOG(NR)=RG(NR)*RHO_A
          ELSE
-            RHOA=SQRT(VOLM/(2.D0*PI**2*RMJRXL))
-            RJCB(NR)=1.D0/RHOA
+            RHO_A=SQRT(VOLM/(2.D0*PI**2*RMJRXL))
+            RJCB(NR)=1.D0/RHO_A
             RHOM(NR)=RM(NR)/RJCB(NR)
             RHOG(NR)=RG(NR)/RJCB(NR)
          ENDIF
