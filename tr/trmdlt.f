@@ -15,59 +15,56 @@ C
 C
 C     *** RATIO AND MEAN SQUARE DEVIATION ***
 C
+CCC      IF(MDLUF.EQ.2) THEN
+         NTL=1
+CCC      ENDIF
       MODE=1
-      NTL=1
       WSIM=0.D0
       WEXP=0.D0
-CCC      WSIME=0.D0
-CCC      WEXPE=0.D0
-CCC      WSIMI=0.D0
-CCC      WEXPI=0.D0
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IF(MODE.EQ.0) THEN
          NRHO09=INT(0.9*NRMAX)
-         DO NR=1,NRHO09
-            TESIML=RT(NR,1)
-            TISIML=RT(NR,2)
-            TEEXPL=RTU(NTL,NR,1)
-            TIEXPL=RTU(NTL,NR,2)
-            WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
-     &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
-     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
+         RTE09 =0.5D0*(RTU(NTL,NRHO09,1)+RTU(NTL,NRHO09+1,1))
+         RTI09 =0.5D0*(RTU(NTL,NRHO09,2)+RTU(NTL,NRHO09+1,2))
+         DO NR=1,NRMAX
+            IF(RG(NR).GE.0.2D0.AND.RG(NR).LE.0.9D0) THEN
+               RNESIM= 0.5D0*(RN(NR,1)+RN(NR+1,1))
+               RNISIM= 0.5D0*(RN(NR,2)+RN(NR+1,2))
+               RNEEXP= 0.5D0*(RN(NR,1)+RN(NR+1,1))
+               RNIEXP= 0.5D0*(RN(NR,2)+RN(NR+1,2))
+               TESIM = 0.5D0*(RT(NR,1)+RT(NR+1,1))-RTE09
+               TISIM = 0.5D0*(RT(NR,2)+RT(NR+1,2))-RTI09
+               TEEXP = 0.5D0*(RTU(NTL,NR,1)+RTU(NTL,NR+1,1))-RTE09
+               TIEXP = 0.5D0*(RTU(NTL,NR,2)+RTU(NTL,NR+1,2))-RTI09
+               WSIM=WSIM+1.5D0*( RNESIM*TESIM
+     &                          +RNISIM*TISIM)*DVRHO(NR)*DR
+               WEXP=WEXP+1.5D0*( RNEEXP*TEEXP
+     &                          +RNIEXP*TIEXP)*DVRHO(NR)*DR
+            ENDIF
          ENDDO
       ELSEIF(MODE.EQ.1) THEN
          NRHO09=INT(0.9*NRMAX)
-         DO NR=1,NRHO09
-            TESIML=RT(NR,1)-RT(NRHO09,1)
-            TISIML=RT(NR,2)-RT(NRHO09,2)
-            TEEXPL=RTU(NTL,NR,1)-RTU(NTL,NRHO09,1)
-            TIEXPL=RTU(NTL,NR,2)-RTU(NTL,NRHO09,2)
-            WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
-     &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
-     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
-CCC            WSIME=WSIME+1.5D0*RN(NR,1)*TESIML*DVRHO(NR)*DR
-CCC            WSIMI=WSIMI+1.5D0*RN(NR,2)*TISIML*DVRHO(NR)*DR
-CCC            WEXPE=WEXPE+1.5D0*RN(NR,1)*TEEXPL*DVRHO(NR)*DR
-CCC            WEXPI=WEXPI+1.5D0*RN(NR,2)*TIEXPL*DVRHO(NR)*DR
-         ENDDO
-      ELSE
+         RTE09 =0.5D0*(RTU(NTL,NRHO09,1)+RTU(NTL,NRHO09+1,1))
+         RTI09 =0.5D0*(RTU(NTL,NRHO09,2)+RTU(NTL,NRHO09+1,2))
          DO NR=1,NRMAX
-            TESIML=RT(NR,1)
-            TISIML=RT(NR,2)
-            TEEXPL=RTU(NTL,NR,1)
-            TIEXPL=RTU(NTL,NR,2)
-            WSIM=WSIM+1.5D0*( RN(NR,1)*TESIML
-     &                       +RN(NR,2)*TISIML)*DVRHO(NR)*DR
-            WEXP=WEXP+1.5D0*( RN(NR,1)*TEEXPL
-     &                       +RN(NR,2)*TIEXPL)*DVRHO(NR)*DR
+            IF(RG(NR).LE.0.9D0) THEN
+               RNESIM= 0.5D0*(RN(NR,1)+RN(NR+1,1))
+               RNISIM= 0.5D0*(RN(NR,2)+RN(NR+1,2))
+               RNEEXP= 0.5D0*(RN(NR,1)+RN(NR+1,1))
+               RNIEXP= 0.5D0*(RN(NR,2)+RN(NR+1,2))
+               TESIM = 0.5D0*(RT(NR,1)+RT(NR+1,1))-RTE09
+               TISIM = 0.5D0*(RT(NR,2)+RT(NR+1,2))-RTI09
+               TEEXP = 0.5D0*(RTU(NTL,NR,1)+RTU(NTL,NR+1,1))-RTE09
+               TIEXP = 0.5D0*(RTU(NTL,NR,2)+RTU(NTL,NR+1,2))-RTI09
+               WSIM=WSIM+1.5D0*( RNESIM*TESIM
+     &                          +RNISIM*TISIM)*DVRHO(NR)*DR
+               WEXP=WEXP+1.5D0*( RNEEXP*TEEXP
+     &                          +RNIEXP*TIEXP)*DVRHO(NR)*DR
+            ENDIF
          ENDDO
       ENDIF
       WTO1=WSIM/WEXP-1.D0
       WTO2=(WSIM/WEXP-1.D0)**2
-CCC      WTO2E=(WSIME/WEXPE-1.D0)**2
-CCC      WTO2I=(WSIMI/WEXPI-1.D0)**2
 C
 C     *** STANDARD DEVIATION AND OFFSET ***
 C
@@ -78,14 +75,17 @@ C
       RDEOE=0.D0
       RDEOI=0.D0
       DO NR=1,NRMAX
-         RP=DBLE(NR-1)*DR
-         IF(RP.GE.0.2D0.AND.RP.LE.0.9D0) THEN
-            RNUME=RNUME+RTU(NTL,NR,1)**2
-            RNUMI=RNUMI+RTU(NTL,NR,2)**2
-            RDESE=RDESE+(RT(NR,1)-RTU(NTL,NR,1))**2
-            RDESI=RDESI+(RT(NR,2)-RTU(NTL,NR,2))**2
-            RDEOE=RDEOE+(RT(NR,1)-RTU(NTL,NR,1))
-            RDEOI=RDEOI+(RT(NR,2)-RTU(NTL,NR,2))
+         IF(RG(NR).GE.0.2D0.AND.RG(NR).LE.0.9D0) THEN
+            TESIM=0.5D0*(RT(NR,1)+RT(NR+1,1))
+            TISIM=0.5D0*(RT(NR,2)+RT(NR+1,2))
+            TEEXP=0.5D0*(RTU(NTL,NR,1)+RTU(NTL,NR+1,1))
+            TIEXP=0.5D0*(RTU(NTL,NR,2)+RTU(NTL,NR+1,2))
+            RNUME=RNUME+TEEXP**2
+            RNUMI=RNUMI+TIEXP**2
+            RDESE=RDESE+(TESIM-TEEXP)**2
+            RDESI=RDESI+(TISIM-TIEXP)**2
+            RDEOE=RDEOE+(TESIM-TEEXP)
+            RDEOI=RDEOI+(TISIM-TIEXP)
          ENDIF
       ENDDO
 C
@@ -121,8 +121,6 @@ C
       WRITE(21,620) 'RW    =' ,WTO2
 CCC      WRITE(21,620) 'AVERW =' ,WEXP*RKEV*1.D20*1.D-6
 CCC      WRITE(21,620) 'RW    =' ,WSIM*RKEV*1.D20*1.D-6
-CCC      WRITE(21,620) 'AVERW =' ,WTO2E
-CCC      WRITE(21,620) 'RW    =' ,WTO2I
       WRITE(21,620) 'STDE  =' ,STDE
       WRITE(21,620) 'STDI  =' ,STDI
       WRITE(21,620) 'OFFE  =' ,OFFE
