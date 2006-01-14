@@ -4,14 +4,14 @@
 
 *** GUIREAD ***
 
-    This program is a GUI-based reader for ufiles and files provided by
+    This program is a GUI-based reader for ufiles and data provided by
     mdsplus.
     It requires GSGL (GSAF/OpenGL) libraries (v0.4.10 or more), and
     mdsplus libraries if one would like to obtain data from mdsplus
-    server. Note that one can complile this program without mdsplus
-    libraries.
-    Firstly this program reads "guiparm" file existing the same 
-    directory. "Guiparm" file has information about 
+    server. Note that mdsplus libraries are not indispensable for
+    compliling this program.
+    In the first place, this program reads "guiparm" file existing
+    the same directory. "Guiparm" file contains information about 
 	       DIR (CHAR) : directory where ufiles are stored
 			    The standard directory is "./data".
 	       DEV (CHAR) : device(tokamak) name (ex. 'jt60u')
@@ -25,15 +25,16 @@
 				profile at an arbitrary time, one should
 				input the finite value, otherwise one
 				should input zero.
+    and one do not need to define all the parameters.
     This file need not be necessary. Appropriate values are
     automatically set as a default.
 
-    If one read 2-D profile ufiles with time evolution, one can see 3-D
-    view graph. If one'd like to check the radial profile at an
-    arbitrary time within the available range of time, one should input
-    the value in the box "SLICE=" and then push "DRAW" so that the
-    radial profile at user-established time will appear. 
-    Setting "SLICE=0.0", original 3-D view will be shown.
+    If one read 2-D profile ufiles with time evolution, 3-D view graph
+    will appear. If one'd like to know how the radial profile is 
+    at an arbitrary time within the available range of time, 
+    one should input the value in the box "SLICE=" and then push "DRAW",
+    so that the radial profile at user-established time will appear. 
+    To see original 3-D type graph, please set "SLICE=0.0" and "DRAW".
     One can also rotate, scale and translate the figure and switch the
     lighting with right-clicking or selecting from the menu bar.
 
