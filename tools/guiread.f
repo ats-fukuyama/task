@@ -228,31 +228,29 @@ C
       CALL GUILABEL (0.5, 17.0, W, 1.0, '@DEVICE = @', 0)
       CALL GUILINEEDIT (0.6+W, 17.0, 2.0, 1.0, 10, KDEV, IKDEV, SETDEV)
 C
-      CALL INQLABELSIZE ('@SHOT NO. = @', W, H)
-      CALL GUILABEL (5.0, 17.0, W, 1.0, '@SHOT NO. = @', 0)
+      CALL INQLABELSIZE ('@SHOT = @', W, H)
+      CALL GUILABEL (5.0, 17.0, W, 1.0, '@SHOT = @', 0)
       CALL GUISPINBUTTONI (5.1+W, 17.0, 3.0, 1.0, SNUM, 0, 200000,
      &     SETNUM)
 C
       CALL INQLABELSIZE ('@DIM. = @', W, H)
-      CALL GUILABEL (11.0, 17.0, W, 1.0, '@DIM. = @', 0)
-      CALL GUISPINBUTTONI (11.1+W, 17.0, 1.0, 1.0, NDIM, 1, 2,
+      CALL GUILABEL (10.2, 17.0, W, 1.0, '@DIM. = @', 0)
+      CALL GUISPINBUTTONI (10.3+W, 17.0, 1.0, 1.0, NDIM, 1, 2,
      &     SETDIM)
 C 
-      CALL INQLABELSIZE ('@FILE ID = @', W, H)
-      CALL GUILABEL (14.0, 17.0, W, 1.0, '@FILE ID = @', 0)
-      CALL GUILINEEDIT (14.1+W, 17.0, 3.0, 1.0, 6, KFID, IKFID, SETID)
+      CALL INQLABELSIZE ('@FILE = @', W, H)
+      CALL GUILABEL (13.1, 17.0, W, 1.0, '@FILE = @', 0)
+      CALL GUILINEEDIT (13.2+W, 17.0, 3.0, 1.0, 6, KFID, IKFID, SETID)
 C
-      CALL INQLABELSIZE ('@FROM @', W, H)
-      CALL GUILABEL (21.0, 3.5, W, 1.0, '@FROM @', 0)
-      CALL GUICOMBOBOX (21.1+W, 3.5, 2.5, 1.0, 2, CHOICE, 1, SETMODE)
+      CALL GUICOMBOBOX (18.1, 17.0, 2.5, 1.0, 2, CHOICE, 1, SETMODE)
 C
       CALL INQLABELSIZE ('@SLICE = @', W, H)
       CALL GUILABEL (21.0, 0.5, W, 1.0, '@SLICE = @', 0)
       CALL GUISPINBUTTONF (21.1+W, 0.5, 2.5, 1.0, STIME, 0.0, 100.0, 3,
      &                     SETSTIME)
 C
-      CALL GUIBUTTON (20.0, 17.0, 2.0, 1.0, '@DRAW@', CLICKED)
-      CALL GUIBUTTON (22.0, 17.0, 2.0, 1.0, '@END@', END_MAIN)
+      CALL GUIBUTTON (21.0, 17.0, 2.0, 1.0, '@DRAW@', CLICKED)
+      CALL GUIBUTTON (23.0, 17.0, 2.0, 1.0, '@END@', END_MAIN)
 C
       RETURN
       END
@@ -377,15 +375,16 @@ C
       IMPLICIT NONE
       INTEGER NRM,NTM
       PARAMETER (NRM=100,NTM=2001)
-      INTEGER MDS,NTX,NTXMAX,NRX,NRXMAX,NTSL,IERR,NTXMAX1
+      INTEGER MDS,NTX,NTXMAX,NRX,NRXMAX,NTSL,IERR,NTXMAX1,NRL,NRLMAX,NL
       INTEGER IDM,IKDEV,IKDCG,IKFID
-      REAL GX1,GX2,GY1,GY2,GUCLIP,STIME
+      REAL GX1,GX2,GY1,GY2,GUCLIP,STIME,FCTR,AITKEN2P
       REAL*8 FACT
-      CHARACTER KDEV*80,KDCG*80,KFID*80,KTIME*12
+      CHARACTER KDEV*80,KDCG*80,KFID*80,KTIME*12,KVAL*80
       CHARACTER KFIDX*80,KVAR*80
       CHARACTER KDIRR1*80,KDIRR2*80
       CHARACTER KERR*100
       REAL*8 T(NTM),R(NRM),F1(NTM),F2(NRM,NTM),F3(NTM,NRM)
+      REAL*8 RL(NRM),FL(NRM),RP,FP
       REAL GT(NTM),GR(NRM),GF1(NTM),GF2(NRM,NTM)
       COMMON /MDSPLUS/ MDS
       COMMON /KID1/ KDEV,KDCG,KFID
@@ -421,16 +420,17 @@ C
          GOTO 9000
       ENDIF
 C
-      GX1=3.0
-      GX2=18.0
+      GX1=2.5
+      GX2=17.0
       GY1=1.5
       GY2=16.5
 C
+C     *** F-t graph ***
       IF(IDM.EQ.1) THEN
-         DO 5000 NTX=1,NTXMAX
+         DO NTX=1,NTXMAX
             GT(NTX)=GUCLIP(T(NTX))
             GF1(NTX)=GUCLIP(F1(NTX))
- 5000    CONTINUE
+         ENDDO
          CALL KTRIM(KDEV,IKDEV)
          CALL KTRIM(KDCG,IKDCG)
          CALL KTRIM(KFID,IKFID)
@@ -450,6 +450,7 @@ C
 C
          NTXMAX1=NTXMAX
          IF(NTSL.EQ.0) THEN
+C     *** F-t-r graph ***
             DO NRX=1,NRXMAX
                GR(NRX)=GUCLIP(R(NRX))
                DO NTX=1,NTXMAX
@@ -462,8 +463,12 @@ C
                ENDDO
             ENDDO
          ELSE
+C     *** F-r graph ***
+            NRLMAX=NRXMAX
             DO NRX=1,NRXMAX
                NTXMAX=1
+               RL(NRX)=R(NRX)
+               FL(NRX)=F2(NRX,NTSL)
                GR(NRX)=GUCLIP(R(NRX))
                IF(KFID.EQ.'TE'.OR.KFID.EQ.'TI') THEN
                   FACT=1.D-3
@@ -472,6 +477,22 @@ C
                ENDIF
                GF2(NRX,1)=GUCLIP(F2(NRX,NTSL)*FACT)
             ENDDO
+            IF(RL(1).NE.0.D0) THEN
+               DO NRL=NRLMAX,1,-1
+                  RL(NRL+1)=RL(NRL)
+                  FL(NRL+1)=FL(NRL)
+               ENDDO
+               RL(1)=0.D0
+               FL(1)=FCTR(RL(2),RL(3),FL(2),FL(3))
+               NRLMAX=NRLMAX+1
+            ENDIF
+            IF(RL(NRLMAX).NE.1.D0) THEN
+               RL(NRLMAX+1)=1.D0
+               FL(NRLMAX+1)=AITKEN2P(1.D0,FL(NRLMAX),FL(NRLMAX-1),
+     &                               FL(NRLMAX-2),RL(NRLMAX),
+     &                               RL(NRLMAX-1),RL(NRLMAX-2))
+               NRLMAX=NRLMAX+1
+            ENDIF
          ENDIF
 C
          CALL KTRIM(KDEV,IKDEV)
@@ -482,10 +503,20 @@ C     &            //KFID(1:IKFID)//'@'
          KFIDX=' '
          IF (NTXMAX.EQ.1) THEN
             CALL TRGR1D(GX1,GX2,GY1,GY2,
-     &           GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
+     &                  GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
+            WRITE(KVAL,'(A26)') '@** INTERPOLATED VALUE **@'
+            CALL GTEXTX(18.0,15.0,KVAL,0)
+            WRITE(KVAL,'(A21)') '@RHO           VALUE@'
+            CALL GTEXTX(18.5,14.3,KVAL,0)
+            DO NL=1,11
+               RP=(NL-1)*0.1D0
+               CALL AITKEN(RP,FP,RL,FL,2,NRLMAX)
+               WRITE(KVAL,'(A1,F6.4,A3,F15.7,A1)') '@',RP,'   ',FP,'@'
+               CALL GTEXTX(18.0,14.0-0.5*SNGL(NL),KVAL,0)
+            ENDDO
             IF(NTXMAX1.NE.1.AND.NTSL.NE.1) THEN
                WRITE(KTIME,'(A5,F6.3,A1)') '@t = ',STIME,'@'
-               CALL GTEXTX (21.2, 2.0, KTIME, 0)
+               CALL GTEXTX(21.2, 2.0, KTIME, 0)
             ENDIF
          ELSE IF(NTXMAX.GT.1) THEN
             CALL GSGLENABLELIGHTING
