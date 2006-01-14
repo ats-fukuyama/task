@@ -512,7 +512,7 @@ C     &            //KFID(1:IKFID)//'@'
                RP=(NL-1)*0.1D0
                CALL AITKEN(RP,FP,RL,FL,2,NRLMAX)
                WRITE(KVAL,'(A1,F6.4,A3,F15.7,A1)') '@',RP,'   ',FP,'@'
-               CALL GTEXTX(18.0,14.0-0.5*SNGL(NL),KVAL,0)
+               CALL GTEXTX(18.0,14.0-0.6*SNGL(NL),KVAL,0)
             ENDDO
             IF(NTXMAX1.NE.1.AND.NTSL.NE.1) THEN
                WRITE(KTIME,'(A5,F6.3,A1)') '@t = ',STIME,'@'
