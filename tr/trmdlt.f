@@ -18,7 +18,7 @@ C
 CCC      IF(MDLUF.EQ.2) THEN
          NTL=1
 CCC      ENDIF
-      MODE=1
+      MODE=0
       WSIM=0.D0
       WEXP=0.D0
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
