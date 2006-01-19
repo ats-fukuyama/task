@@ -360,38 +360,25 @@ C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
      &            '@PIN [MW/m$+3$=]  vs r@',2+INQ)
 C
-c$$$      DO NS=1,NSM
-c$$$      DO NR=1,NRMAX
-c$$$C         GYR(NR,NS) = GUCLIP(SSIN(NR,NS))
-c$$$      ENDDO
-c$$$      ENDDO
-c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-c$$$     &            '@SSIN [/sm$+3$=]  vs r@',2+INQ)
-C
-c$$$      NS=1
-c$$$      DO NR=1,NRMAX
-c$$$         GYR(NR,NS) = GUCLIP(SIE(NR))
-c$$$      ENDDO
-c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
-c$$$     &            '@SIE [10$+20$=/sm$+3$=]  vs r@',2+INQ)
-C
-c$$$      DO NS=1,NSMAX
-c$$$      DO NR=1,NRMAX
-c$$$         GYR(NR,NS) = GUCLIP(SEX(NR,NS))
-c$$$      ENDDO
-c$$$      ENDDO
-c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
-c$$$     &            '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
-C
-      DO NR=1,NRMAX
-         GYR(NR,1) = GUCLIP(SEX(NR,1))
-         GYR(NR,2) = GUCLIP(SEX(NR,2))
-         GYR(NR,3) = GUCLIP(SNBU(1,NR,1))
-         GYR(NR,4) = GUCLIP(SNBU(1,NR,2))
-         GYR(NR,5) = GUCLIP(SWLU(1,NR))
-      ENDDO
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,5,
-     &            '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
+      IF(MDLUF.NE.0) THEN
+         DO NR=1,NRMAX
+            GYR(NR,1) = GUCLIP(SEX(NR,1))
+            GYR(NR,2) = GUCLIP(SEX(NR,2))
+            GYR(NR,3) = GUCLIP(SNBU(1,NR,1))
+            GYR(NR,4) = GUCLIP(SNBU(1,NR,2))
+            GYR(NR,5) = GUCLIP(SWLU(1,NR))
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,5,
+     &               '@SEX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
+      ELSE
+         DO NS=1,NSM
+            DO NR=1,NRMAX
+               GYR(NR,NS) = GUCLIP(SSIN(NR,NS))
+            ENDDO
+         ENDDO
+         CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,NSM,
+     &               '@SSIN [/sm$+3$=]  vs r@',2+INQ)
+      ENDIF
 C
 c$$$      DO NS=1,NSM
 c$$$      DO NR=1,NRMAX
@@ -401,16 +388,15 @@ c$$$      ENDDO
 c$$$      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM,
 c$$$     &            '@SPE [/m$+3$=]  vs r@',2+INQ)
 C
-      NS=1
       DO NR=1,NRMAX
-         GYR(NR,NS) = GUCLIP(SCX(NR))
+         GYR(NR,1) = GUCLIP(SCX(NR))
+         GYR(NR,2) = GUCLIP(SIE(NR))
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,1,
-     &            '@SCX [10$+20$=/sm$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,
+     &            '@SCX, SIE [10$+20$=/sm$+3$=]  vs r@',2+INQ)
 C
-      NS=1
       DO NR=1,NRMAX
-         GYR(NR,NS) = GUCLIP(RPSI(NR))
+         GYR(NR,1) = GUCLIP(RPSI(NR))
       ENDDO
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,1,
      &            '@PSI [Wb]  vs r@',2+INQ)

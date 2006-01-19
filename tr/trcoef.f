@@ -45,10 +45,10 @@ C
          KGR3='/CLN,CLT  vs r/'
          KGR4='/CLS  vs r/'
       ELSEIF(MDLKAI.LT.40) THEN
-         KGR1='/NST$+2$= vs r/'
-         KGR2='/OmegaST vs r/'
-         KGR3='/V$-ExB$=/'!'@lambda vs r@'
-         KGR4='/E$-r$=/'!'@Lambda,1/(1+OmgST$+2$=),1/(1+G*WE1$+2$=)vs r@'
+         KGR1='/E$-r$=/'!'/NST$+2$= vs r/'
+         KGR2='/V$-ExB$=/'!'/OmegaST vs r/'
+         KGR3='@1/(1+G*WE1$+2$=)vs r@'!'@lambda vs r@'
+         KGR4='@Lambda,1/(1+OmgST$+2$=)@'
       ELSEIF(MDLKAI.LT.50) THEN
          KGR1='/NST$+2$= vs r/'
          KGR2='/OmegaST vs r/'
@@ -638,15 +638,15 @@ C
             VGR1(NR,1)=FS
             VGR1(NR,2)=S
             VGR1(NR,3)=ALFA
-            VGR2(NR,1)=RNST2
-            VGR2(NR,2)=OMEGASS
+            VGR2(NR,1)=ER(NR)!RNST2
+            VGR2(NR,2)=VEXB(NR)!OMEGASS
             VGR2(NR,3)=0.D0
-            VGR3(NR,1)=VEXB(NR)!SLAMDA
+            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=ER(NR)!RLAMDA
-            VGR4(NR,2)=0.D0!1.D0/(1.D0+OMEGASS**2)
-            VGR4(NR,3)=0.D0!1.D0/(1.D0+RG1*WE1*WE1)
+            VGR4(NR,1)=RLAMDA
+            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
+            VGR4(NR,3)=0.D0
 C
          ELSEIF(MDLKAI.LT.51) THEN
 C
@@ -1031,6 +1031,7 @@ C     AKLD : heat flux coefficient for density gradient
 C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1049,6 +1050,7 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1064,6 +1066,7 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   AKLP(NR,NS,NS1)= CDH*  AKDWP(NR,NS,NS1)
@@ -1075,6 +1078,7 @@ C
             ENDDO
          ENDDO
       ENDIF
+      IF(MDEDGE.EQ.1) CDH=CDHSV
 C     
       RETURN
       END
@@ -1386,7 +1390,7 @@ C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=0.D0
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSM
                AVNC(NR,NS) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
@@ -1407,11 +1411,13 @@ C
          ENDDO
       ENDIF
       ENDIF
+      IF(MDEDGE.EQ.1) CDP=CDPSV
 C
 C     ***** NET PARTICLE PINCH *****
 C
       DO NS=1,NSLMAX
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
          ENDDO
       ENDDO
@@ -1424,6 +1430,7 @@ C     ADLD : particle flux coefficient for density gradient
 C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                IF(MDDW.EQ.0) ADDW(NR,NS) = AD0*AKDW(NR,NS)
                DO NS1=1,NSLMAX
@@ -1442,6 +1449,7 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.2) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
@@ -1457,6 +1465,7 @@ C
          ENDDO
       ELSEIF(MDDIAG.EQ.3) THEN
          DO NR=1,NRMAX
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   ADLD(NR,NS,NS1)= CDP*  ADDWD(NR,NS,NS1)
@@ -1468,6 +1477,7 @@ C
             ENDDO
          ENDDO
       ENDIF
+      IF(MDEDGE.EQ.1) CDP=CDPSV
 C
 C     /* for nuetral deuterium */
 C

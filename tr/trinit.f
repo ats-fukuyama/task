@@ -67,7 +67,7 @@ C        PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)
 C
       NSMAX=2
       NSZMAX=0  ! the number of impurities
-      NSNMAX=0  ! the number of neutrals, 0 or 2 fixed
+      NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
 C
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -957,8 +957,6 @@ C
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
   605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  :
      &        2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
-  606 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1PE11.3:
-     &        2X,A6,'=',1PE11.3 :2X,A6,'=',I7)
       END
 C
 C     ***********************************************************
@@ -1180,7 +1178,7 @@ C
 C
 C     *** GRID POINT OF EDGE REGION ***
 C
-      NREDGE=INT(0.95*NRMAX)
+      NREDGE=NINT(0.95*NRMAX)
 C
       RETURN
       END
