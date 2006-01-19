@@ -859,6 +859,8 @@ C      DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
 C      DATA RK33,RA33,RB33,RC33/1.83D0,0.68D0,0.32D0,0.66D0/
       DATA RK2 ,RA2 ,RB2 ,RC2 /0.66D0,1.03D0,0.31D0,0.74D0/
 C
+      SAVE CDHSV
+C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
       AMA=PA(4)*AMM
@@ -1013,11 +1015,14 @@ C     Limit of neoclassical diffusivity
 C
       ENTRY TRCFDW_AKDW
 C
+      IF(MDEDGE.EQ.1) CDHSV=CDH
       DO NR=1,NRMAX
+         IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
          DO NS=1,NSM
             AK(NR,NS) = CDH*AKDW(NR,NS)+CNH*AKNC(NR,NS)
          ENDDO
       ENDDO
+      IF(MDEDGE.EQ.1) CDH=CDHSV
 C
 C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 C
@@ -1206,12 +1211,15 @@ C
       DATA RK13,RA13,RB13,RC13/2.30D0,1.02D0,1.07D0,1.07D0/
       DATA RK23,RA23,RB23,RC23/4.19D0,0.57D0,0.61D0,0.61D0/
 C
+      SAVE CDPSV
+C
 C        ****** AD : PARTICLE DIFFUSION ******
 C        ****** AV : PARTICLE PINCH ******
 C
       IF(MDNCLS.EQ.0) THEN
 C     NCLASS has already calculated neoclassical particle pinch(AVNC)
 C     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
+      IF(MDEDGE.EQ.1) CDPSV=CDP
       IF(MDLAD.EQ.1) THEN
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
@@ -1329,6 +1337,7 @@ C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             DO NS=1,NSM
                AVNC(NR,NS) = -(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
@@ -1377,6 +1386,7 @@ C
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)
      &           +(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 C
+            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=0.D0
             DO NS=1,NSM
                AVNC(NR,NS) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
                ADNC(NR,NS) = SQRT(EPS)*RHOE2/TAUE*RK11E
@@ -1405,6 +1415,7 @@ C
             AV(NR,NS)=CDP*AVDW(NR,NS)+CNP*AVNC(NR,NS)
          ENDDO
       ENDDO
+      IF(MDEDGE.EQ.1) CDP=CDPSV
 C
 C     ***** OFF-DIAGONAL TRANSPORT COEFFICIENTS *****
 C

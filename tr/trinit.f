@@ -382,8 +382,10 @@ C                 0: off
 C                 0 to 1: ratio of v_parallel to v
 C        MDLNB  : NBI MODEL TYPE
 C                    0:OFF
-C                    1:GAUSSIAN
-C                    2:PENCIL BEAM
+C                    1:GAUSSIAN (NO PARTICLE SOURCE)
+C                    2:GAUSSIAN
+C                    3:PENCIL BEAM (NO PARTICLE SOURCE)
+C                    4:PENCIL BEAM
 C
       PNBTOT = 0.D0
       PNBR0  = 0.D0
@@ -479,6 +481,14 @@ C
       DO NS=1,NSMAX
          PELPAT(NS) = 1.0D0
       ENDDO
+C
+C     ==== EDGE MODEL ====
+C
+C        0 : off
+C        1 : simple edge model (set to zero outside NREDGE)
+C
+      MDEDGE=0
+      CSUPRS=0.D0
 C
 C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
 C        KUFDEV : DEVICE NAME
@@ -665,12 +675,12 @@ C
      &              PA,PZ,PN,PNS,PT,PTS,PNC,PNFE,PNNU,PNNUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              PROFJ1,PROFJ2,ALP,AD0,AV0,CNP,CNH,CDP,CDH,CDW,
-     &              CWEB,CALF,CNB,
+     &              CWEB,CALF,CNB,CSPRS,
      &              MDLKAI,MDLETA,MDLAD,MDLAVK,MDLJBS,MDLKNC,MDLTPF,
      &              DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST,
      &              EPSLTR,LMAXTR,CHP,CK0,CK1,CKALFA,CKBETA,CKGUMA,
      &              TPRST,CDW,
-     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,
+     &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,
      &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05,
      &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
@@ -710,7 +720,7 @@ C
      &       ' ',8X,'PNC,PNFE,PNNU,PNNUS'/
      &       ' ',8X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2'/
      &       ' ',8X,'PROFJ1,PROFJ2,ALP'/
-     &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW,CNB'/
+     &       ' ',8X,'CK0,CK1,CNP,CNH,CDP,CDH,CDW,CNB,CSPRS'/
      &       ' ',8X,'CWEB,CALF,CKALFA,CKBETA,MDLKNC,MDLTPF'/
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
@@ -720,7 +730,7 @@ C
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT'/
+     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDEDGE'/
      &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDEV,KUFDCG'/
@@ -841,6 +851,9 @@ C
      &             'CK0   ',CK0,
      &             'CK1   ',CK1
 C
+      WRITE(6,603) 'MDEDGE',MDEDGE,
+     &             'CSPRS ',CSPRS
+C
       WRITE(6,601) 'CNP   ',CNP,
      &             'CNH   ',CNH,
      &             'CDP   ',CDP,
@@ -944,6 +957,8 @@ C
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
   605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  :
      &        2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
+  606 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',1PE11.3:
+     &        2X,A6,'=',1PE11.3 :2X,A6,'=',I7)
       END
 C
 C     ***********************************************************
@@ -1162,6 +1177,10 @@ C
             MDDIAG=1
          ENDIF
       ENDIF
+C
+C     *** GRID POINT OF EDGE REGION ***
+C
+      NREDGE=INT(0.95*NRMAX)
 C
       RETURN
       END

@@ -91,11 +91,14 @@ C
          RWD=PNBRW*DBLE(J-1)/(RA*DBLE(NRNBMAX-1))
          RDD=AR(J)
          CALL TRNBPB(PNBRTG,RWD,RDD)
+C         write(6,*) PNBRTG,RWD,RDD
       ENDDO
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
+C         write(6,*) NR,SNB(NR)
       ENDDO
+      STOP
       RETURN
       END
 C
@@ -111,8 +114,7 @@ C
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
-      XL = SQRT((RR+RA)**2-R0**2)
-     &    *(1.D0-RWD*RWD/((RR+RA)**2-R0**2))
+      XL = SQRT((RR+RA)**2-R0**2)*(1.D0-RWD**2/((RR+RA)**2-R0**2))
       ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
       IB=INT(RWD/DR)+1
       I=NRMAX-IB+1
@@ -126,7 +128,7 @@ C
          IM=1-I+IB
       ENDIF
 C
-C      WRITE(6,*) IB,I,IM,SUML,DL
+C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
 C
@@ -230,8 +232,7 @@ C               DL = 2.D0*SQRT((RR+SQRT(RM(IM-1)-RM(IB)**2))**2-R0**2)
 C            ENDIF
 C         ENDIF
 C
-      CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,
-     &            ZCX,ZFX,ZOX,SGM)
+      CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 C
       P1=DEX*SGM*ANL*DL
       IF(P1.LT.0.D0) P1=0.D0
@@ -243,11 +244,9 @@ C
       ENDIF
 C
 C      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
-      IF(IM.GT.1) 
-     &     SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
+      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
       SNB(IM) = SNB(IM)+0.5D0*P1/(DVRHO(IM)*DR)
-      IF(IM.LE.NRMAX) 
-     &     SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
+      IF(IM.LT.NRMAX) SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
 C
       IF(KL.EQ.0) RETURN
       ANL=ANL-P1
@@ -263,7 +262,7 @@ C
          IM=1-I+IB
       ENDIF
 C
-C      WRITE(6,*) IB,I,IM,SUML,DL
+      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.NRMAX) RETURN
       GOTO 10
@@ -279,18 +278,36 @@ C
       SUBROUTINE TRBSCS(ANEX,TEX,EB,ANCX,ANFEX,ANOX,
      &                  PZCX,PZFEX,PZOX,SGM)
 C
+C     R.K. Janev, C.D. BOLEY and D.E. Post, Nucl. Fusion 29 (1989) 2125
+C     < Input >
+C        ANEX  : ELECTRON DENSITY
+C        TEX   : ELECTRON TEMPERATURE
+C        EB    : BEAM ENERGY
+C        ANCX  : CARBON DENSITY
+C        ANFEX : IRON DENSITY
+C        ANOX  : OXIGEN DENSITY
+C        PZCX  : CARBON CHARGE NUMBER
+C        PZFEX : IRON CHARGE NUMBER
+C        PZOX  : OXIGEN CHARGE NUMBER
+C     < Output >
+C        SGM   : BEAM STOPPING CROSS-SECTION
+C
+C     NOTE: "C" DENOTES CARBON, "F" IRON AND "O" OXIGEN.
+C
       IMPLICIT NONE
-C
-C     "C" DENOTES CARBON, "F" IRON, AND "O" OXIGEN.
-C
       REAL*8 ANEX,TEX,EB,ANCX,ANFEX,ANOX,PZCX,PZFEX,PZOX,SGM
       INTEGER I,J,K
       REAL*8 S1,S2,S3,S4
       REAL*8 A(2,3,2),C(3,2,2),F(3,2,2),O(3,2,2)
 C
-      DATA A/ 4.40D+00, 2.30D-01, 7.46D-02, 3.16D-03,
-     &       -2.55D-03, 1.32D-03,-2.49D-02,-1.15D-02,
-     &        2.27D-03,-2.78D-05,-6.20D-04, 3.38D-05/
+C     DATA FORMAT FOR A           DATA FORMAT FOR B
+C         111  211  121  221          111  211  311  121
+C         131  231  112  212          221  321  112  212
+C         122  222  132  232          312  122  222  322
+C
+      DATA A/ 4.40D+00, 2.30D-01, 7.46D-02,-2.55D-03,
+     &        3.16D-03, 1.32D-03,-2.49D-02,-1.15D-02,
+     &        2.27D-03,-6.20D-04,-2.78D-05, 3.38D-05/
 C
       DATA C/-1.49D+00, 5.18D-01,-3.36D-02,-1.19D-01,
      &        2.92D-02,-1.79D-03,-1.54D-02, 7.18D-03,
@@ -331,7 +348,7 @@ C
 C
       SGM=EXP(S1)/EB*(1.D0+(ANCX *PZCX *(PZCX -1.D0)*S2
      &                     +ANFEX*PZFEX*(PZFEX-1.D0)*S3
-     &                     +ANOX *ANOX *(PZOX -1.D0)*S4)/ANEX)
+     &                     +ANOX *PZOX *(PZOX -1.D0)*S4)/ANEX)
 C
       RETURN
       END
