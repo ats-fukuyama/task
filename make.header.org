@@ -180,3 +180,5 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /usr/lib/libcxml.so
+
+FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)
