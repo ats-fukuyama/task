@@ -1220,10 +1220,10 @@ C
 C        ****** AD : PARTICLE DIFFUSION ******
 C        ****** AV : PARTICLE PINCH ******
 C
+      IF(MDEDGE.EQ.1) CDPSV=CDP
       IF(MDNCLS.EQ.0) THEN
 C     NCLASS has already calculated neoclassical particle pinch(AVNC)
 C     beforehand if MDNCLS=1 so that MDLAD becomes no longer valid.
-      IF(MDEDGE.EQ.1) CDPSV=CDP
       IF(MDLAD.EQ.1) THEN
          DO NR=1,NRMAX
             IF(NR.EQ.NRMAX) THEN
