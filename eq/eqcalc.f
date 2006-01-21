@@ -745,17 +745,19 @@ C
 C
       DO NRG=1,NRGMAX
       DO NZG=1,NZGMAX
-         IF(RG(NRG)-RR.EQ.0.D0) THEN
-            THL=2.D0*PI*(NZG-1)/NZGMAX
+         IF((RG(NRG)-RR.EQ.0.D0).AND.
+     &      (ZG(NZG).EQ.0.D0)) THEN
+            RHOL=0.D0
+            SIGL=0.D0
          ELSE
             THL=ATAN2(ZG(NZG),RG(NRG)-RR)
+            IF(THL.LT.0.D0) THL=THL+2.D0*PI
+            ZBRF=TAN(THL)
+            THDASH=FBRENT(EQFBND,THL-1.0D0,THL+1.0D0,EPSZ)
+            RHOL=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
+     &                  +RKAP**2*SIN(THDASH)**2)
+            SIGL=SQRT((RG(NRG)-RR)**2+ZG(NZG)**2)/RHOL
          ENDIF
-         IF(THL.LT.0.D0) THL=THL+2.D0*PI
-         ZBRF=TAN(THL)
-         THDASH=FBRENT(EQFBND,THL-1.0D0,THL+1.0D0,EPSZ)
-         RHOL=RA*SQRT(COS(THDASH+RDLT*SIN(THDASH))**2
-     &               +RKAP**2*SIN(THDASH)**2)
-         SIGL=SQRT((RG(NRG)-RR)**2+ZG(NZG)**2)/RHOL
          IF(SIGL.LT.1.D0) THEN
             PSIRZ(NRG,NZG)=PSIF(SIGL,THL)
             HJTRZ(NRG,NZG)=HJTF(SIGL,THL)
