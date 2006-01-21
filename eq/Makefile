@@ -27,7 +27,7 @@ libs:
 	(cd ../pl; make pllib.a)
 
 eq : eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FC) eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FC) eqmain.o $(OBJS) ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a
 	$(FC) $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a
