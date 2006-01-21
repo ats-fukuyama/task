@@ -745,7 +745,11 @@ C
 C
       DO NRG=1,NRGMAX
       DO NZG=1,NZGMAX
-         THL=ATAN2(ZG(NZG),RG(NRG)-RR)
+         IF(RG(NRG)-RR.EQ.0.D0) THEN
+            THL=2.D0*PI*(NZG-1)/NZGMAX
+         ELSE
+            THL=ATAN2(ZG(NZG),RG(NRG)-RR)
+         ENDIF
          IF(THL.LT.0.D0) THL=THL+2.D0*PI
          ZBRF=TAN(THL)
          THDASH=FBRENT(EQFBND,THL-1.0D0,THL+1.0D0,EPSZ)
