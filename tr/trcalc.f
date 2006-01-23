@@ -565,7 +565,6 @@ C         SIONS  = 1.76D-13/SQRT(TE*1.D3)*FKN(EION/(TE*1.D3))
          TN    = MAX(TE*1.D3/EION,1.D-2)
          SION  = 1.D-11*SQRT(TN)*EXP(-1.D0/TN)
      &          /(EION**1.5D0*(6.D0+TN))
-C         PIE(NR) =0.D0
          PIE(NR) = ANE*ANNU(NR)*SION*1.D40*EION*AEE
          SIE(NR) = ANE*ANNU(NR)*SION*1.D20
          TSIE(NR)= ANE         *SION*1.D20
@@ -586,7 +585,6 @@ C
          TSCX(NR)=ANDX         *SCH*1.D20
 C
          PCX(NR)=1.5D0*ANDX*ANNU(NR)*SCH*(TD-TNU)*RKEV*1.D40
-C         PCX(NR)=0.D0
       ENDDO
 C
       RETURN

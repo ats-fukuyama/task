@@ -1508,14 +1508,11 @@ C     *
                DO NEQ1=1,NEQMAX
                   NSSN1=NSS(NEQ1)
                   NSVN1=NSV(NEQ1)
+C                  IF((NSSN1.EQ.7.OR.NSSN1.EQ.8).AND.NSVN1.EQ.1) THEN
                   IF(NSVN1.EQ.1) THEN
                      D(NEQ,NR) = D(NEQ,NR)
      &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
      &                    *RNV(NR,NSSN1)
-                  ELSEIF(NSVN1.EQ.2) THEN
-                     D(NEQ,NR) = D(NEQ,NR)
-     &                    +(-VI(NEQ,NEQ1,2,NSW)+C83*DI(NEQ,NEQ1,2,NSW))
-     &                    *RPV(NR,NSSN1)
                   ENDIF
                ENDDO
             ELSE
