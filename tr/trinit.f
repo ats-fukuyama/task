@@ -377,8 +377,12 @@ C
 C        PNBTOT : NBI TOTAL INPUT POWER (MW)
 C        PNBR0  : RADIAL POSITION OF NBI POWER DEPOSITION (M)
 C        PNBRW  : RADIAL WIDTH OF NBI POWER DEPOSITION (M)
+C                 VALID FOR MDLNB=1 or 2
+C        PNBVY  : VERTICAL POSITION OF NBI (M)
+C                 VALID FOR MDLNB=3 or 4
 C        PNBENG : NBI BEAM ENERGY (keV)
 C        PNBRTG : TANGENTIAL RADIUS OF NBI BEAM (M)
+C                 VALID FOR MDLNB=3 or 4
 C        PNBCD  : CURRENT DRIVE FACTOR
 C                 0: off
 C                 0 to 1: ratio of v_parallel to v
@@ -392,6 +396,7 @@ C
       PNBTOT = 0.D0
       PNBR0  = 0.D0
       PNBRW  = 0.5D0
+      PNBVY  = 0.D0
       PNBENG = 80.D0
       PNBRTG = 3.D0
       PNBCD  = 1.D0
@@ -684,7 +689,7 @@ C
      &              TPRST,CDW,
      &              MDLST,MDLNF,IZERO,MODELG,NTEQIT,MDEDGE,
      &              MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05,
-     &              PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,MDLNB,
+     &              PNBTOT,PNBR0,PNBRW,PNBVY,PNBENG,PNBRTG,MDLNB,
      &              PECTOT,PECR0,PECRW,PECTOE,PECNPR,MDLEC,
      &              PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,MDLLH,
      &              PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC,
@@ -727,7 +732,8 @@ C
      &       ' ',8X,'AD0,CHP,MDLAD,MDLAVK,CKGUMA,MDLKAI,MDLETA,MDLJBS'/
      &       ' ',8X,'DT,NRMAX,NTMAX,NTSTEP,NGTSTP,NGRSTP,NGPST,TSST'/
      &       ' ',8X,'EPSLTR,LMAXTR,PRST,MDLST,MDLNF,IZERO,PBSCD,MDLCD'/
-     &       ' ',8X,'PNBTOT,PNBR0,PNBRW,PNBENG,PNBRTG,PNBCD,MDLNB'/
+     &       ' ',8X,'PNBTOT,PNBR0,PNBRW,PNBVY,PNBENG,PNBRTG,PNBCD,MDLNB'
+     &       /
      &       ' ',8X,'PECTOT,PECR0,PECRW,PECTOE,PECNPR,PECCD,MDLEC'/
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/
@@ -904,7 +910,8 @@ C
      &                'PNBENG',PNBENG
          WRITE(6,603) 'MDLNB ',MDLNB,
      &                'PNBRTG',PNBRTG,
-     &                'PNBCD ',PNBCD
+     &                'PNBCD ',PNBCD,
+     &                'PNBVY ',PNBVY
       ENDIF
 C
       IF((PECTOT.GT.0.D0).OR.(ID.EQ.1)) THEN

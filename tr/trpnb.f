@@ -75,10 +75,7 @@ C
 C
       DIMENSION AR(10)
       DATA AR/0.02D0,0.06D0,0.12D0,0.14D0,0.16D0,
-     &        0.16D0,0.14D0,0.12D0,0.08D0,0.02D0/
-C      DIMENSION AP(10)
-C      DATA AP/0.0D0,1.0D0,2.0D0,3.0D0,4.0D0,
-C     &        5.0D0,6.0D0,7.0D0,8.0D0,9.0D0/
+     &        0.16D0,0.14D0,0.12D0,0.06D0,0.02D0/
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
@@ -87,18 +84,20 @@ C
       ENDDO
 C
       NRNBMAX=10
+      VY=PNBVY/RA
+      DRTG=(PNBRTG-(RR-RA))/(NRNBMAX/2)
       DO J=1,NRNBMAX
-         RWD=PNBRW*DBLE(J-1)/(RA*DBLE(NRNBMAX-1))
          RDD=AR(J)
-         CALL TRNBPB(PNBRTG,RWD,RDD)
-C         write(6,*) PNBRTG,RWD,RDD
+         RTG=(RR-RA)+((J-1)+0.5D0)*DRTG
+         CALL TRNBPB(RTG,VY,RDD)
       ENDDO
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
-C         write(6,*) NR,SNB(NR)
       ENDDO
-      STOP
+C      CALL TRSUMD(PNB,DVRHO,NRMAX,PNBSUM)
+C      write(6,*) PNBSUM*DR*1.D-6
+C      STOP
       RETURN
       END
 C
@@ -108,41 +107,61 @@ C           NEUTRAL BEAM CALCULATION
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRNBPB(R0,RWD,RDD)
+      SUBROUTINE TRNBPB(R0,VY,RDD)
+C
+C     R0  : tangential radius of NBI beam (m)
+C     VY  : vertical position of NBI (set to zero at mid-plane)
+C     RDD : NBI deposition rate
 C
       INCLUDE 'trcomm.inc'
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
-      XL = SQRT((RR+RA)**2-R0**2)*(1.D0-RWD**2/((RR+RA)**2-R0**2))
+C  XL : maximum distance from injection to wall
+      XL=2.D0*SQRT((RR+RA)**2-R0**2)
+C  ANL : number of slowing down particles per time
       ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
-      IB=INT(RWD/DR)+1
+C  IB : radial grid point of NB deposition position
+      IB=INT(VY/DR)+1
+C  I : radial grid point of NB
       I=NRMAX-IB+1
 C
+C  SUML : total distance in direction of NB
       SUML=0.D0
-      DL=XL
+C  ANL0 : stored ANL for truncation of calculation
+      ANL0=ANL
+C  DL : arbitrary minute length in direction of NB
+      DL=XL/1000
+C  COST : cosine between mid-plane and NB
+      COST=SQRT((RR+RA)**2-R0**2)/(RR+RA)
 C
+C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
          IM=I+IB-1
       ELSE
-         IM=1-I+IB
+         IF(ABS(I).LE.50) THEN
+            IM=-I+IB-1
+         ELSEIF(ABS(I).LE.100) THEN
+            IM=I-IB+1+2*NRMAX
+         ELSE
+            IM=-I+IB-1-2*NRMAX 
+         ENDIF
       ENDIF
 C
 C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
 C
+      P1L = 0.D0
       IF(I.GT.0) THEN
-         IF(IM.GT.IB) THEN
-            RND=RR+RA*SQRT(RM(IM)**2-RM(IB)**2)
-         ELSE
-            RND=RR+RA*RM(IM)
-         ENDIF
+         RADIUS1 = RR+RA-(1.D0-RG(IM))*RA
+      ELSEIF(I.EQ.0) THEN
+         RADIUS1 = RR
       ELSE
-         IF(IM.GT.IB) THEN
-            RND=RR-RA*SQRT(RM(IM)**2-RM(IB)**2)
+         IF(ABS(I).LE.100) THEN
+            RADIUS1 = RR-RG(IM-2)*RA
          ELSE
-            RND=RR-RA*RM(IM)
+            RADIUS1 = RR+RG(IM)*RA
          ENDIF
       ENDIF
 C
@@ -155,116 +174,73 @@ C
       ZFX = PZFE(IM)
       ZOX = 8.D0
 C
-      IF(RND-R0.GT.0.D0) THEN
-         IF(I.GT.0) THEN
-            IF(IM.LE.NRMAX-1) THEN
-               DRR1=RM(IM+1)**2-RM(IB)**2
-               DRR2=RM(IM  )**2-RM(IB)**2
-               IF(DRR1.LT.0.D0) DRR1=0.D0
-               IF(DRR2.LT.0.D0) DRR2=0.D0
-               DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
-               DRM2=(RR+RA*SQRT(DRR2))**2-R0**2
-               IF(DRM1.LT.0.D0) DRM1=0.D0
-               IF(DRM2.LT.0.D0) DRM2=0.D0
-               DL = SQRT(DRM1)-SQRT(DRM2)
-            ELSE
-               DL=0.D0
-            ENDIF
-         ELSE
-            IF(IM.GE.2) THEN
-               DRR1=RM(IM-1)**2-RM(IB)**2
-               DRR2=RM(IM  )**2-RM(IB)**2
-               IF(DRR1.LT.0.D0) DRR1=0.D0
-               IF(DRR2.LT.0.D0) DRR2=0.D0
-               DRM1=(RR-RA*SQRT(DRR1))**2-R0**2
-               DRM2=(RR-RA*SQRT(DRR2))**2-R0**2
-               IF(DRM1.LT.0.D0) DRM1=0.D0
-               IF(DRM2.LT.0.D0) DRM2=0.D0
-               DL = SQRT(DRM1)-SQRT(DRM2)
-            ELSE
-               DL=0.D0
-            ENDIF
-         ENDIF
-      ELSE
-         IF(I.GT.0) THEN
-            DRR1=RM(IM+1)**2-RM(IB)**2
-            IF(DRR1.LT.0.D0) DRR1=0.D0
-            DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
-            IF(DRM1.LT.0.D0) DRM1=0.D0
-            DL = 2.D0*SQRT(DRM1)
-         ELSE
-            DRR1=RM(IM)**2-RM(IB)**2
-            IF(DRR1.LT.0.D0) DRR1=0.D0
-            DRM1=(RR+RA*SQRT(DRR1))**2-R0**2
-            IF(DRM1.LT.0.D0) DRM1=0.D0
-            DL = 2.D0*SQRT(DRM1)
-         ENDIF
-      ENDIF
-C
-C
-C
-C      IF(RND-R0.GT.0.D0) THEN
-C         IF(I.GT.0) THEN
-C            IF(IM.NE.IB) THEN
-C               DL = SQRT((RR+SQRT(RM(IM+1)**2-RM(IB)**2))**2-R0**2)
-C     &             -SQRT((RR+SQRT(RM(IM  )**2-RM(IB)**2))**2-R0**2)
-C            ELSE
-C               DL = SQRT((RR+SQRT(RM(IM+1)**2-RM(IB)**2))**2-R0**2)
-C     &             -SQRT( RR                             **2-R0**2)
-C            ENDIF
-C         ELSE
-C            IF(IM.NE.IB.AND.IM-1.NE.IB) THEN
-C               DL = SQRT((RR-SQRT(RM(IM-1)**2-RM(IB)**2))**2-R0**2)
-C     &             -SQRT((RR-SQRT(RM(IM  )**2-RM(IB)**2))**2-R0**2)
-C            ELSEIF(IM.NE.IB) THEN
-C               DL = SQRT((RR-SQRT(RM(IM-1)**2-RM(IB)**2))**2-R0**2)
-C     &             -SQRT( RR                             **2-R0**2)
-C         ELSE
-C               DL =-SQRT( RR                             **2-R0**2)
-C     &             -SQRT((RR-SQRT(RM(IM  )**2-RM(IB)**2))**2-R0**2)
-C               ENDIF
-C            ENDIF
-C         ELSE
-C            IF(I.GT.0) THEN
-C               DL = 2.D0*SQRT((RR+SQRT(RM(IM+1)-RM(IB)**2))**2-R0**2)
-C            ELSE
-C               DL = 2.D0*SQRT((RR+SQRT(RM(IM-1)-RM(IB)**2))**2-R0**2)
-C            ENDIF
-C         ENDIF
-C
-      CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
+C  Accumulate P1 inside one grid
+ 20   CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 C
       P1=DEX*SGM*ANL*DL
       IF(P1.LT.0.D0) P1=0.D0
-      IF(P1.LE.ANL) THEN
+      IF(ANL.GT.ANL0*1.D-3) THEN
          KL=1
       ELSE
          P1=ANL
          KL=0
       ENDIF
 C
+      SUML=SUML+DL
+      IF(KL.EQ.1) THEN
+         RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
+C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
+C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
+C      write(6,'(2I4,4F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
+C     &     RADIUS1,RADIUS2,SUML
+         IF(RADIUS2-R0.GT.1.D-6) THEN
+            IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
+               P1L=P1L+P1
+               GOTO 20
+            ELSE
+               P1=P1L
+               SUML=SUML-DL
+            ENDIF
+         ELSE
+            IF(I.GT.0) THEN
+               I=-3*NRMAX+(NRMAX-ABS(I))
+            ELSE
+               I=-NRMAX-(NRMAX-ABS(I))
+            ENDIF
+            GOTO 10
+         ENDIF
+      ENDIF
+C
 C      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
-      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
-      SNB(IM) = SNB(IM)+0.5D0*P1/(DVRHO(IM)*DR)
-      IF(IM.LT.NRMAX) SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
+      IF(IM.GT.1) 
+     &     SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
+           SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
+      IF(IM.LT.NRMAX)
+     &     SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
 C
       IF(KL.EQ.0) RETURN
       ANL=ANL-P1
 C
-      SUML = SUML+DL
-C
       ENDIF
-      IF(SUML.GE.XL) I=I+1
-      IF(SUML.LT.XL) I=I-1
+C
+      IF(SUML.LT.XL) THEN
+         I=I-1
+      ELSE
+         RETURN
+      ENDIF
       IF(I.GT.0) THEN
          IM=I+IB-1
       ELSE
-         IM=1-I+IB
+         IF(ABS(I).LE.50) THEN
+            IM=-I+IB-1
+         ELSE
+            IM=-I-NRMAX+IB-1-NRMAX
+         ENDIF
       ENDIF
 C
-      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
+C      WRITE(6,'(3(1X,I3),4F15.7)') IB,I,IM,SUML,DL,ANL,P1
 C
-      IF(IM.GE.NRMAX) RETURN
+      IF(IM.GT.NRMAX) RETURN
       GOTO 10
 C
       END
