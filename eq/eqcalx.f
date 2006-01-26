@@ -5,6 +5,8 @@ C
       SUBROUTINE EQCALX(ID,IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
+      PARAMETER (NIM=1001)
+      DIMENSION GX(NIM),GY(NIM,3)
 C
       IERR=0
 C
@@ -55,25 +57,31 @@ C
          ENDDO
          ENDDO
 C
-         DO I=1,21
-            R=2.9D0+0.01D0*(I-1)
+         NIMAX=81
+         DO I=1,NIMAX
+            R=2.8D0+0.01D0*(I-1)
             Z=0.D0
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
             WRITE(6,'(A,1P4E12.4)') 
      &           'R,PSI,DR,DZ=',R,PSIL,DPSIDR,DPSIDZ
+            GX(I)=GUCLIP(R)
+            GY(I,1)=GUCLIP(PSIL)
+            GY(I,2)=GUCLIP(DPSIDR)
+            GY(I,3)=GUCLIP(DPSIDZ)
          ENDDO
 C
-         DO I=1,11
-            X=0.1D0*(I-1)
-            WRITE(6,'(A,1P5E12.4)') 
-     &           'R,H0,H1,DH0,DH1=',X,HRMT0(X),HRMT1(X),
-     &                                DHRMT0(X),DHRMT1(X)
-         ENDDO
+         CALL PAGES
+         CALL GRF1D(1,GX,GY(1,1),NIM,NIMAX,1,'@PSI vs R@',0)
+         CALL GRF1D(2,GX,GY(1,2),NIM,NIMAX,1,'@DPSIDR vs R@',0)
+         CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs R@',0)
+         CALL PAGEE
 C
-         DO I=1,21
+         CALL EQGRAX
+C
+         DO I=1,41
             R=3.D0
-            Z=-0.1D0+0.01D0*(I-1)
+            Z=-0.2D0+0.01D0*(I-1)
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
             WRITE(6,'(A,1P4E12.4)') 
@@ -124,8 +132,8 @@ C
          CALL EQFPSI(PSIPNL,FPSI,DFPSI)
          PPPS(NPS)=PPSI
          TTPS(NPS)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
-         WRITE(6,'(I5,1P5E12.4)')
-     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
+C         WRITE(6,'(I5,1P5E12.4)')
+C     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
       ENDDO
 C
       CALL EQGOUT(1)
@@ -178,23 +186,23 @@ C
       RK(1,2,2,1)= 3.D0/5.D0
       RK(1,2,2,2)= 3.D0/5.D0
 c
-      RK(2,1,1,1)= 1.D0/70.D0
-      RK(2,1,1,2)=-4.D0/35.D0
-      RK(2,1,2,1)=-4.D0/35.D0
-      RK(2,1,2,2)= 1.D0/70.D0
-      RK(2,2,1,1)=-1.D0/70.D0
-      RK(2,2,1,2)= 4.D0/35.D0
-      RK(2,2,2,1)= 4.D0/35.D0
-      RK(2,2,2,2)=-1.D0/70.D0
+      RK(2,1,1,1)=-1.D0/70.D0
+      RK(2,1,1,2)= 4.D0/35.D0
+      RK(2,1,2,1)= 4.D0/35.D0
+      RK(2,1,2,2)=-1.D0/70.D0
+      RK(2,2,1,1)= 1.D0/70.D0
+      RK(2,2,1,2)=-4.D0/35.D0
+      RK(2,2,2,1)=-4.D0/35.D0
+      RK(2,2,2,2)= 1.D0/70.D0
 c
-      RK(3,1,1,1)= 1.D0/70.D0
-      RK(3,1,1,2)=-4.D0/35.D0
-      RK(3,1,2,1)=-1.D0/70.D0
-      RK(3,1,2,2)= 4.D0/35.D0
-      RK(3,2,1,1)=-4.D0/35.D0
-      RK(3,2,1,2)= 1.D0/70.D0
-      RK(3,2,2,1)= 4.D0/35.D0
-      RK(3,2,2,2)=-1.D0/70.D0
+      RK(3,1,1,1)=-1.D0/70.D0
+      RK(3,1,1,2)= 4.D0/35.D0
+      RK(3,1,2,1)= 1.D0/70.D0
+      RK(3,1,2,2)=-4.D0/35.D0
+      RK(3,2,1,1)= 4.D0/35.D0
+      RK(3,2,1,2)=-1.D0/70.D0
+      RK(3,2,2,1)=-4.D0/35.D0
+      RK(3,2,2,2)= 1.D0/70.D0
 c
       RK(4,1,1,1)= 43.D0/420.D0
       RK(4,1,1,2)= 13.D0/420.D0
@@ -202,17 +210,17 @@ c
       RK(4,1,2,2)=-1.D0/60.D0
       RK(4,2,1,1)=-1.D0/60.D0
       RK(4,2,1,2)=-1.D0/60.D0
-      RK(4,2,2,1)=13.D0/420.D0
-      RK(4,2,2,2)=43.D0/420.D0
+      RK(4,2,2,1)= 13.D0/420.D0
+      RK(4,2,2,2)= 43.D0/420.D0
 C
-      RKK(1,1,1,1)=-9.D0/70.D0
-      RKK(1,1,1,2)= 9.D0/70.D0
-      RKK(1,1,2,1)= 9.D0/70.D0
-      RKK(1,1,2,2)=-9.D0/70.D0
-      RKK(1,2,1,1)= 9.D0/70.D0
-      RKK(1,2,1,2)=-9.D0/70.D0
-      RKK(1,2,2,1)=-9.D0/70.D0
-      RKK(1,2,2,2)= 9.D0/70.D0
+      RKK(1,1,1,1)= 9.D0/70.D0
+      RKK(1,1,1,2)=-9.D0/70.D0
+      RKK(1,1,2,1)=-9.D0/70.D0
+      RKK(1,1,2,2)= 9.D0/70.D0
+      RKK(1,2,1,1)=-9.D0/70.D0
+      RKK(1,2,1,2)= 9.D0/70.D0
+      RKK(1,2,2,1)= 9.D0/70.D0
+      RKK(1,2,2,2)=-9.D0/70.D0
 c
       RKK(2,1,1,1)= 1.D0/140.D0
       RKK(2,1,1,2)=-3.D0/140.D0
@@ -232,41 +240,41 @@ c
       RKK(3,2,2,1)=-3.D0/140.D0
       RKK(3,2,2,2)= 1.D0/140.D0
 c
-      RKK(4,1,1,1)=-1.D0/120.D0
-      RKK(4,1,1,2)= 1.D0/1680.D0
-      RKK(4,1,2,1)= 1.D0/840.D0
-      RKK(4,1,2,2)=-1.D0/840.D0
-      RKK(4,2,1,1)= 1.D0/840.D0
-      RKK(4,2,1,2)=-1.D0/840.D0
-      RKK(4,2,2,1)=-1.D0/168.D0
-      RKK(4,2,2,2)= 1.D0/120.D0
+      RKK(4,1,1,1)= 1.D0/120.D0
+      RKK(4,1,1,2)=-1.D0/168.D0
+      RKK(4,1,2,1)=-1.D0/840.D0
+      RKK(4,1,2,2)= 1.D0/840.D0
+      RKK(4,2,1,1)=-1.D0/840.D0
+      RKK(4,2,1,2)= 1.D0/840.D0
+      RKK(4,2,2,1)= 1.D0/168.D0
+      RKK(4,2,2,2)=-1.D0/120.D0
 C
       RL(1,1,1,1)= 43.D0/140.D0
-      RL(1,1,1,2)= 9.D0/140.D0
-      RL(1,1,2,1)= 9.D0/140.D0
-      RL(1,1,2,2)= 9.D0/140.D0
-      RL(1,2,1,1)= 9.D0/140.D0
-      RL(1,2,1,2)= 9.D0/140.D0
-      RL(1,2,2,1)= 9.D0/140.D0
+      RL(1,1,1,2)=  9.D0/140.D0
+      RL(1,1,2,1)=  9.D0/140.D0
+      RL(1,1,2,2)=  9.D0/140.D0
+      RL(1,2,1,1)=  9.D0/140.D0
+      RL(1,2,1,2)=  9.D0/140.D0
+      RL(1,2,2,1)=  9.D0/140.D0
       RL(1,2,2,2)= 43.D0/140.D0
 c
-      RL(2,1,1,1)=-97.D0/2520.D0
-      RL(2,1,1,2)=-1.D0/72.D0
-      RL(2,1,2,1)=43.D0/2520.D0
-      RL(2,1,2,2)= 1.D0/72.D0
-      RL(2,2,1,1)=-1.D0/72.D0
-      RL(2,2,1,2)=-43.D0/2520.D0
-      RL(2,2,2,1)= 1.D0/72.D0
-      RL(2,2,2,2)=97.D0/2520.D0
+      RL(2,1,1,1)= 97.D0/2520.D0
+      RL(2,1,1,2)=  1.D0/72.D0
+      RL(2,1,2,1)=-43.D0/2520.D0
+      RL(2,1,2,2)=- 1.D0/72.D0
+      RL(2,2,1,1)=  1.D0/72.D0
+      RL(2,2,1,2)= 43.D0/2520.D0
+      RL(2,2,2,1)=- 1.D0/72.D0
+      RL(2,2,2,2)=-97.D0/2520.D0
 c
-      RL(3,1,1,1)= -97.D0/2520.D0
-      RL(3,1,1,2)=-1.D0/72.D0
-      RL(3,1,2,1)=-1.D0/72.D0
-      RL(3,1,2,2)=-43.D0/2520.D0
-      RL(3,2,1,1)=43.D0/2520.D0
-      RL(3,2,1,2)= 1.D0/72.D0
-      RL(3,2,2,1)= 1.D0/72.D0
-      RL(3,2,2,2)=97.D0/2520.D0
+      RL(3,1,1,1)= 97.D0/2520.D0
+      RL(3,1,1,2)=  1.D0/72.D0
+      RL(3,1,2,1)=  1.D0/72.D0
+      RL(3,1,2,2)= 43.D0/2520.D0
+      RL(3,2,1,1)=-43.D0/2520.D0
+      RL(3,2,1,2)=- 1.D0/72.D0
+      RL(3,2,2,1)=- 1.D0/72.D0
+      RL(3,2,2,2)=-97.D0/2520.D0
 C
       RL(4,1,1,1)= 2.D0/315.D0
       RL(4,1,1,2)= 1.D0/315.D0
@@ -277,20 +285,20 @@ C
       RL(4,2,2,1)= 1.D0/315.D0
       RL(4,2,2,2)= 2.D0/315.D0
 C
-      RLL(1,1,1,1)=-97.D0/2520.D0
-      RLL(1,1,1,2)= 43.D0/2520.D0
-      RLL(1,1,2,1)=-1.D0/72.D0
-      RLL(1,1,2,2)= 1.D0/72.D0
-      RLL(1,2,1,1)=-1.D0/72.D0
-      RLL(1,2,1,2)= 1.D0/72.D0
-      RLL(1,2,2,1)=-43.D0/2520.D0
-      RLL(1,2,2,2)= 97.D0/2520.D0
+      RLL(1,1,1,1)= 97.D0/2520.D0
+      RLL(1,1,1,2)=-43.D0/2520.D0
+      RLL(1,1,2,1)=  1.D0/72.D0
+      RLL(1,1,2,2)=- 1.D0/72.D0
+      RLL(1,2,1,1)=  1.D0/72.D0
+      RLL(1,2,1,2)=- 1.D0/72.D0
+      RLL(1,2,2,1)= 43.D0/2520.D0
+      RLL(1,2,2,2)=-97.D0/2520.D0
 C
       RLL(2,1,1,1)= 2.D0/315.D0
       RLL(2,1,1,2)=-1.D0/280.D0
-      RLL(2,1,2,1)= -1.D0/280.D0
-      RLL(2,1,2,2)=1.D0/350.D0
-      RLL(2,2,1,1)= 1.D0/350.D0
+      RLL(2,1,2,1)=-1.D0/280.D0
+      RLL(2,1,2,2)= 1.D0/315.D0
+      RLL(2,2,1,1)= 1.D0/315.D0
       RLL(2,2,1,2)=-1.D0/280.D0
       RLL(2,2,2,1)=-1.D0/280.D0
       RLL(2,2,2,2)= 2.D0/315.D0
@@ -300,31 +308,31 @@ C
       RLL(3,1,2,1)= 1.D0/315.D0
       RLL(3,1,2,2)=-1.D0/280.D0
       RLL(3,2,1,1)=-1.D0/280.D0
-      RLL(3,2,1,2)= 1.D0/3150.D0
+      RLL(3,2,1,2)= 1.D0/315.D0
       RLL(3,2,2,1)=-1.D0/280.D0
       RLL(3,2,2,2)= 2.D0/315.D0
 C
-      RLL(4,1,1,1)=-1.D0/840.D0
-      RLL(4,1,1,2)= 1.D0/1260.D0
-      RLL(4,1,2,1)= 1.D0/1260.D0
-      RLL(4,1,2,2)=-1.D0/1260.D0
-      RLL(4,2,1,1)= 1.D0/1260.D0
-      RLL(4,2,1,2)=-1.D0/1260.D0
-      RLL(4,2,2,1)=-1.D0/1260.D0
-      RLL(4,2,2,2)= 1.D0/840.D0
+      RLL(4,1,1,1)= 1.D0/840.D0
+      RLL(4,1,1,2)=-1.D0/1260.D0
+      RLL(4,1,2,1)=-1.D0/1260.D0
+      RLL(4,1,2,2)= 1.D0/1260.D0
+      RLL(4,2,1,1)=-1.D0/1260.D0
+      RLL(4,2,1,2)= 1.D0/1260.D0
+      RLL(4,2,2,1)= 1.D0/1260.D0
+      RLL(4,2,2,2)=-1.D0/840.D0
 C
       RM(1,1,1)= 13.D0/ 35.D0
       RM(1,1,2)=  9.D0/ 70.D0
       RM(1,2,1)=  9.D0/ 70.D0
       RM(1,2,2)= 13.D0/ 35.D0
-      RM(2,1,1)=-11.D0/210.D0
-      RM(2,1,2)= 13.D0/420.D0
-      RM(2,2,1)=-13.D0/420.D0
-      RM(2,2,2)= 11.D0/210.D0
-      RM(3,1,1)=-11.D0/210.D0
-      RM(3,1,2)=-13.D0/420.D0
-      RM(3,2,1)= 13.D0/420.D0
-      RM(3,2,2)= 11.D0/210.D0
+      RM(2,1,1)= 11.D0/210.D0
+      RM(2,1,2)=-13.D0/420.D0
+      RM(2,2,1)= 13.D0/420.D0
+      RM(2,2,2)=-11.D0/210.D0
+      RM(3,1,1)= 11.D0/210.D0
+      RM(3,1,2)= 13.D0/420.D0
+      RM(3,2,1)=-13.D0/420.D0
+      RM(3,2,2)=-11.D0/210.D0
       RM(4,1,1)=  1.D0/105.D0
       RM(4,1,2)=- 1.D0/140.D0
       RM(4,2,1)=- 1.D0/140.D0
@@ -334,18 +342,19 @@ C
       RN(1,1,2)=-6.D0/ 5.D0
       RN(1,2,1)=-6.D0/ 5.D0
       RN(1,2,2)= 6.D0/ 5.D0
-      RN(2,1,1)=-1.D0/10.D0
-      RN(2,1,2)=-1.D0/10.D0
-      RN(2,2,1)= 1.D0/10.D0
-      RN(2,2,2)= 1.D0/10.D0
-      RN(3,1,1)=-1.D0/10.D0
-      RN(3,1,2)= 1.D0/10.D0
-      RN(3,2,1)=-1.D0/10.D0
-      RN(3,2,2)= 1.D0/10.D0
+      RN(2,1,1)= 1.D0/10.D0
+      RN(2,1,2)= 1.D0/10.D0
+      RN(2,2,1)=-1.D0/10.D0
+      RN(2,2,2)=-1.D0/10.D0
+      RN(3,1,1)= 1.D0/10.D0
+      RN(3,1,2)=-1.D0/10.D0
+      RN(3,2,1)= 1.D0/10.D0
+      RN(3,2,2)=-1.D0/10.D0
       RN(4,1,1)= 2.D0/15.D0
       RN(4,1,2)=-1.D0/30.D0
       RN(4,2,1)=-1.D0/30.D0
       RN(4,2,2)= 2.D0/15.D0
+C
       RETURN
       END
 C
@@ -416,9 +425,6 @@ C
 C
       DIMENSION FACTK(4),FACTL(4),FACTM(4),FACTN(4)
 C
-      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
-      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
-C
       DO N=1,MLMAX
       DO M=1,MWMAX
          FMA(M,N)=0
@@ -427,25 +433,25 @@ C
 C
       DO NZG=1,NZGMAX-1
       DO NRG=1,NRGMAX-1
-         DRG=RG(NRG)-RG(NRG+1)
-         FACTK(1)=1.D0/DRG**2
-         FACTK(2)=1.D0/DRG
-         FACTK(3)=1.D0/DRG
-         FACTK(4)=1.D0
-         FACTL(1)=1.D0
-         FACTL(2)=1.D0*DRG
-         FACTL(3)=1.D0*DRG
-         FACTL(4)=1.D0*DRG**2
+         DRG=RG(NRG+1)-RG(NRG)
+         FACTK(1)=1.D0/DRG
+         FACTK(2)=1.D0
+         FACTK(3)=1.D0
+         FACTK(4)=DRG
+         FACTL(1)=DRG
+         FACTL(2)=DRG**2
+         FACTL(3)=DRG**2
+         FACTL(4)=DRG**3
 C
-         DZG=ZG(NZG)-ZG(NZG+1)
-         FACTM(1)=1.D0
-         FACTM(2)=1.D0*DZG
-         FACTM(3)=1.D0*DZG
-         FACTM(4)=1.D0*DZG**2
-         FACTN(1)=1.D0/DZG**2
-         FACTN(2)=1.D0/DZG
-         FACTN(3)=1.D0/DZG
-         FACTN(4)=1.D0
+         DZG=ZG(NZG+1)-ZG(NZG)
+         FACTM(1)=DZG
+         FACTM(2)=DZG**2
+         FACTM(3)=DZG**2
+         FACTM(4)=DZG**3
+         FACTN(1)=1.D0/DZG
+         FACTN(2)=1.D0
+         FACTN(3)=1.D0
+         FACTN(4)=DZG
 C
          DO I1=1,2
          DO I2=1,2
@@ -463,11 +469,11 @@ C
             N1=N1A(K,L)
             FMA(NBND+M-N,N)=FMA(NBND+M-N,N)
      &                     +(RK(K1,I1,I2,I3)/RG(NRG+I3-1)
-     &                      -RKK(K1,I1,I2,I3)/RG(NRG+I3-1)**2)
+     &                      -RKK(K1,I1,I2,I3)*DRG/RG(NRG+I3-1)**2)
      &                                   *FACTK(K1)
      &                      *RM(M1,J1,J2)*FACTM(M1)
      &                     +(RL(L1,I1,I2,I3)/RG(NRG+I3-1)
-     &                      -RLL(L1,I1,I2,I3)/RG(NRG+I3-1)**2)
+     &                      -RLL(L1,I1,I2,I3)*DRG/RG(NRG+I3-1)**2)
      &                                   *FACTL(L1)
      &                      *RN(N1,J1,J2)*FACTN(N1) 
          ENDDO
@@ -525,9 +531,6 @@ C
       DIMENSION RJ(4),PSIBRZ(4)
       DIMENSION HJ0(NRGM,NZGM),HJ1(NRGM,NZGM),HJ2(NRGM,NZGM)
 C
-      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
-      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
-C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
         FJRZ(NRG,NZG)=0.D0
@@ -546,11 +549,13 @@ C
       ENDDO
       ENDDO
 C
+      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
+      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
       FJ0=0.D0
       FJ1=0.D0
       FJ2=0.D0
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
+      DO NZG=1,NZGMAX-1
+      DO NRG=1,NRGMAX-1
          IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
      &        ZG(NZG).LE.ZLIMP.AND.
      &        ZG(NZG).GE.ZLIMM) THEN
@@ -599,6 +604,9 @@ C
          ENDIF
       ENDDO
       ENDDO
+C
+      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
+      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
 C
       DO NPFC=1,NPFCMAX
          NZC=INT((ZPFC(NPFC)-ZGMIN)/DZG)+1
@@ -649,17 +657,17 @@ C
 C
       DO NZG=1,NZGMAX-1
       DO NRG=1,NRGMAX-1
-         DRG=RG(NRG)-RG(NRG+1)
-         FACTH(1)=1.D0
-         FACTH(2)=1.D0*DRG
-         FACTH(3)=1.D0*DRG
-         FACTH(4)=1.D0*DRG**2
+         DRG=RG(NRG+1)-RG(NRG)
+         FACTH(1)=DRG
+         FACTH(2)=DRG**2
+         FACTH(3)=DRG**2
+         FACTH(4)=DRG**3
 C
-         DZG=ZG(NZG)-ZG(NZG+1)
-         FACTM(1)=1.D0
-         FACTM(2)=1.D0*DZG
-         FACTM(3)=1.D0*DZG
-         FACTM(4)=1.D0*DZG**2
+         DZG=ZG(NZG+1)-ZG(NZG)
+         FACTM(1)=DZG
+         FACTM(2)=DZG**2
+         FACTM(3)=DZG**2
+         FACTM(4)=DZG**3
 C
          DO I1=1,2
          DO I2=1,2
@@ -840,7 +848,7 @@ C
       DELT=1.D-8
       EPS=1.D-4
       ILMAX=40
-      LIST=1
+      LIST=0
       RINIT=RAXIS
       ZINIT=ZAXIS
       RSAVE=RAXIS
@@ -945,18 +953,20 @@ C
  5008 CONTINUE
       IF(NZG.LT.2)     NZG=2
 C
-      DRG=(RG(NRG)-R)/(RG(NRG)-RG(NRG-1))
-      DZG=(ZG(NZG)-Z)/(ZG(NZG)-ZG(NZG-1))
+      DRG=RG(NRG)-RG(NRG-1)
+      DZG=ZG(NZG)-ZG(NZG-1)
+      VRG=(R-RG(NRG-1))/DRG
+      VZG=(Z-ZG(NZG-1))/DZG
 C
-      HR0=HRMT0(DRG)
-      HZ0=HRMT0(DZG)
-      HR1=HRMT1(DRG)
-      HZ1=HRMT1(DZG)
+      HR0= HRMT0(1.D0-VRG)
+      HZ0= HRMT0(1.D0-VZG)
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
 C
-      HR0C=HRMT0(1.D0-DRG)
-      HZ0C=HRMT0(1.D0-DZG)
-      HR1C=HRMT1(1.D0-DRG)
-      HZ1C=HRMT1(1.D0-DZG)
+      HR0C= HRMT0(VRG)
+      HZ0C= HRMT0(VZG)
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
 C
       PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
@@ -1040,33 +1050,36 @@ C
 C      WRITE(6,'(A,2I5,1P4E12.4)') 'NRG,NZG,RG,ZG=',NRG,NZG,
 C     &     RG(NRG-1),RG(NRG),ZG(NZG-1),ZG(NZG)
 C
-      DRG=(RG(NRG)-R)/(RG(NRG)-RG(NRG-1))
-      DZG=(ZG(NZG)-Z)/(ZG(NZG)-ZG(NZG-1))
+C
+      DRG=RG(NRG)-RG(NRG-1)
+      DZG=ZG(NZG)-ZG(NZG-1)
+      VRG=(R-RG(NRG-1))/DRG
+      VZG=(Z-ZG(NZG-1))/DZG
 C
 C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
-      HR0=HRMT0(DRG)
-      HZ0=HRMT0(DZG)
-      HR1=HRMT1(DRG)
-      HZ1=HRMT1(DZG)
+      HR0= HRMT0(1.D0-VRG)
+      HZ0= HRMT0(1.D0-VZG)
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
 C      WRITE(6,'(A,1P4E12.4)') 'HR0...=',HR0,HZ0,HR1,HZ1
 C
-      HR0C=HRMT0(1.D0-DRG)
-      HZ0C=HRMT0(1.D0-DZG)
-      HR1C=HRMT1(1.D0-DRG)
-      HZ1C=HRMT1(1.D0-DZG)
+      HR0C= HRMT0(VRG)
+      HZ0C= HRMT0(VZG)
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
 C      WRITE(6,'(A,1P4E12.4)') 'HR0C..=',HR0C,HZ0C,HR1C,HZ1C
 C
-      DHR0=-DHRMT0(DRG)/(RG(NRG)-RG(NRG-1))
-      DHZ0=-DHRMT0(DZG)/(ZG(NZG)-ZG(NZG-1))
-      DHR1=-DHRMT1(DRG)/(RG(NRG)-RG(NRG-1))
-      DHZ1=-DHRMT1(DZG)/(ZG(NZG)-ZG(NZG-1))
+      DHR0=-DHRMT0(1.D0-VRG)/DRG
+      DHZ0=-DHRMT0(1.D0-VZG)/DZG
+      DHR1= DHRMT1(1.D0-VRG)
+      DHZ1= DHRMT1(1.D0-VZG)
 C      WRITE(6,'(A,1P4E12.4)') 'DHR0..=',DHR0,DHZ0,DHR1,DHZ1
 C
-      DHR0C=DHRMT0(1.D0-DRG)/(RG(NRG)-RG(NRG-1))
-      DHZ0C=DHRMT0(1.D0-DZG)/(ZG(NZG)-ZG(NZG-1))
-      DHR1C=DHRMT1(1.D0-DRG)/(RG(NRG)-RG(NRG-1))
-      DHZ1C=DHRMT1(1.D0-DZG)/(ZG(NZG)-ZG(NZG-1))
+      DHR0C= DHRMT0(VRG)/DRG
+      DHZ0C= DHRMT0(VZG)/DZG
+      DHR1C= DHRMT1(VRG)
+      DHZ1C= DHRMT1(VZG)
 C      WRITE(6,'(A,1P4E12.4)') 'DHR0C.=',DHR0C,DHZ0C,DHR1C,DHZ1C
 C
       DPSIDR=UPSIX(1,NRG-1,NZG-1)*DHR0 *HZ0
@@ -1131,5 +1144,270 @@ C
       IMPLICIT NONE
       REAL*8 DHRMT1,X
       DHRMT1=X*(3.D0*X-2.D0)
+      RETURN
+      END
+C
+C********************************************
+C*         graphic  OUTPUT             *
+C********************************************
+C
+      SUBROUTINE EQGRAX
+C
+      INCLUDE '../eq/eqcomx.inc'
+C
+      DIMENSION DPSIR(NRGM,NZGM),DPSIZ(NRGM,NZGM),DPSIRZ(NRGM,NZGM)
+      DIMENSION DFJR(NRGM,NZGM),DFJZ(NRGM,NZGM),DFJRZ(NRGM,NZGM)
+      DIMENSION U(4,4,NRGM,NZGM)
+      DIMENSION RSPL(4*NRGM),ZSPL(4*NZGM)
+      DIMENSION PSISPL(4*NRGM,4*NZGM),FJSPL(4*NRGM,4*NZGM)
+      DIMENSION GR(4*NRGM),GZ(4*NZGM),GF(4*NRGM,4*NZGM)
+      DIMENSION KA(8,4*NRGM,4*NZGM)
+C
+      GX1=2.0
+      GX2=17.0
+      GY1=2.0
+      GY2=17.0
+C
+      DO NZ=1,NZGMAX
+      DO NR=1,NRGMAX
+         DPSIR(NR,NZ)=0.D0
+         DPSIZ(NR,NZ)=0.D0
+         DPSIRZ(NR,NZ)=0.D0
+      ENDDO
+      ENDDO
+C
+      CALL SPL2D(RG,ZG,PSIX,DPSIR,DPSIZ,DPSIRZ,U,
+     &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
+      DRSPL=(RG(2)-RG(1))/4.D0
+      DO NR=1,4*NRGMAX-3
+         RSPL(NR)=RG(1)+DRSPL*(NR-1)
+      ENDDO
+      DZSPL=(ZG(2)-ZG(1))/4.D0
+      DO NZ=1,4*NZGMAX-3
+         ZSPL(NZ)=ZG(1)+DZSPL*(NZ-1)
+      ENDDO
+      DO NZ=1,4*NZGMAX-3
+      DO NR=1,4*NRGMAX-3
+         CALL SPL2DF(RSPL(NR),ZSPL(NZ),PSISPL(NR,NZ),
+     &               RG,ZG,U,NRGM,NRGMAX,NZGMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX:',IERR,NR,NZ
+      ENDDO
+      ENDDO
+C
+      DO NR=1,4*NRGMAX-3
+         GR(NR)=GUCLIP(RSPL(NR))
+      ENDDO
+      DO NZ=1,4*NZGMAX-3
+         GZ(NZ)=GUCLIP(ZSPL(NZ))
+      ENDDO
+C
+      DO NZ=1,4*NZGMAX-3
+      DO NR=1,4*NRGMAX-3
+         GF(NR,NZ)=GUCLIP(PSISPL(NR,NZ))
+      ENDDO
+      ENDDO
+C
+      CALL PAGES
+      CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
+     &            4*NRGM,4*NRGMAX-3,4*NZGMAX-3,KA,'/PSISPL(R,Z)/')
+      CALL PAGEE
+C
+      DO NZ=1,NZGMAX
+      DO NR=1,NRGMAX
+         DFJR(NR,NZ)=0.D0
+         DFJZ(NR,NZ)=0.D0
+         DFJRZ(NR,NZ)=0.D0
+      ENDDO
+      ENDDO
+      CALL SPL2D(RG,ZG,HJTRZ,DFJR,DFJZ,DFJRZ,U,
+     &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
+      DO NZ=1,4*NZGMAX-3
+      DO NR=1,4*NRGMAX-3
+         CALL SPL2DF(RSPL(NR),ZSPL(NZ),FJSPL(NR,NZ),
+     &               RG,ZG,U,NRGM,NRGMAX,NZGMAX,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX:',IERR,NR,NZ
+      ENDDO
+      ENDDO
+C
+      DO NZ=1,4*NZGMAX-3
+      DO NR=1,4*NRGMAX-3
+         IF(PSISPL(NR,NZ).GT.0.D0.AND.
+     &      ZSPL(NZ).GT.ZLIMM.AND.
+     &      ZSPL(NZ).LE.ZLIMP) THEN
+            GF(NR,NZ)=GUCLIP(FJSPL(NR,NZ))
+         ELSE
+            GF(NR,NZ)=-1.E-4
+         ENDIF
+      ENDDO
+      ENDDO
+C
+      CALL PAGES
+      CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
+     &            4*NRGM,4*NRGMAX-3,4*NZGMAX-3,KA,'/FJSPL(R,Z)/')
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C     ****** CONTOUR PLOT ******
+C
+      SUBROUTINE GSUB2D(GX1,GX2,GY1,GY2,GX,GY,GF,
+     &                  NXM,NXMAX,NYMAX,KA,KTITLE)
+C
+      DIMENSION GX(NXM),GY(NYMAX),GF(NXM,NYMAX)
+      DIMENSION KA(8,NXM,NYMAX)
+      CHARACTER KTITLE*(*)
+C
+      CALL GMNMX2(GF,NXM,1,NXMAX,1,1,NYMAX,1,GFMIN,GFMAX)
+      CALL GQSCAL(GFMIN,GFMAX,GFPMIN,GFPMAX,GFSTEP)
+      CALL GQSCAL(GX(1),GX(NXMAX),GXMIN,GXMAX,GXSTEP)
+      CALL GQSCAL(GY(1),GY(NYMAX),GYMIN,GYMAX,GYSTEP)
+      IF(GX(1)*GX(NXMAX).LT.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GX(1)
+      ENDIF
+      IF(GY(1)*GY(NYMAX).LT.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GX(1)
+      ENDIF
+      GFSTEP=0.5*GFSTEP
+C
+      GXP=GX2-GX1
+      GYP=GY2-GY1
+      GXLEN=GX(NXMAX)-GX(1)
+      GYLEN=GY(NYMAX)-GY(1)
+      IF(GXLEN*GYP.GT.GYLEN*GXP) THEN
+         GYP=GXP*GYLEN/GXLEN
+      ELSE
+         GXP=GYP*GXLEN/GYLEN
+      ENDIF
+C
+      CALL SETLIN(-1,-1,4)
+      CALL SETCHS(0.3,0.0)
+      CALL MOVE(GX1,GY2+0.2)
+      CALL TEXTX(KTITLE)
+C
+      CALL GDEFIN(GX1,GX1+GXP,GY1,GY1+GYP,
+     &            GX(1),GX(NXMAX),GY(1),GY(NYMAX))
+      CALL GFRAME
+      CALL GSCALE(GXORG,GXSTEP,0.0,0.0,0.2,9)
+      CALL GSCALE(0.0,0.0,GYORG,GYSTEP,0.2,9)
+      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,2)
+      CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,2)
+C
+      CALL SETLIN(-1,-1,7)
+      IF(GFMIN*GFMAX.LE.0.0) THEN
+      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX,0.0,GFMAX-GFMIN,1,
+     &            0,4,KA)
+      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFSTEP, GFSTEP,20,
+     &            0,0,KA)
+      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX,-GFSTEP,-GFSTEP,20,
+     &            0,2,KA)
+      ELSEIF(GFMIN.GT.0.0) THEN
+      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFPMIN, GFSTEP,20,
+     &            0,0,KA)
+      ELSE
+      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFPMIN, GFSTEP,20,
+     &            0,2,KA)
+      ENDIF
+C
+      CALL EQGPRX(GX2,GY2,GFMIN,GFMAX,GFSTEP)
+C
+      RETURN
+      END
+C
+C     ****** DRAW PARM ******
+C
+      SUBROUTINE EQGPRX(GX2,GY2,GFMIN,GFMAX,GFSTEP)
+C
+      INCLUDE '../eq/eqcomx.inc'
+C
+      CALL SETLIN(-1,-1,4)
+      CALL MOVE(GX2+0.5,GY2-0.3)
+      CALL TEXTX('/MAX =/')
+      CALL NUMBR(GFMAX,'(1PE12.4)',12)
+      CALL MOVE(GX2+0.5,GY2-0.8)
+      CALL TEXTX('/MIN =/')
+      CALL NUMBR(GFMIN,'(1PE12.4)',12)
+      CALL MOVE(GX2+0.5,GY2-1.3)
+      CALL TEXTX('/STEP=/')
+      CALL NUMBR(GFSTEP,'(1PE12.4)',12)
+C
+      CALL MOVE(17.5,15.0)
+      CALL TEXT('PSIB(0)=',8)
+      CALL NUMBD(PSIB(0),  '(1PE11.3)',11)
+      CALL MOVE(17.5,14.5)
+      CALL TEXT('PSIN(1)=',8)
+      CALL NUMBD(PSIB(1),  '(1PE11.3)',11)
+      CALL MOVE(17.5,14.0)
+      CALL TEXT('PSIB(2)=',8)
+      CALL NUMBD(PSIB(2),  '(1PE11.3)',11)
+      CALL MOVE(17.5,13.5)
+      CALL TEXT('PSIB(3)=',8)
+      CALL NUMBD(PSIB(3),  '(1PE11.3)',11)
+      CALL MOVE(17.5,13.0)
+      CALL TEXT('PSIB(4)=',8)
+      CALL NUMBD(PSIB(4),  '(1PE11.3)',11)
+      CALL MOVE(17.5,12.5)
+      CALL TEXT('PSIB(5)=',8)
+      CALL NUMBD(PSIB(5),  '(1PE11.3)',11)
+C
+      CALL MOVE(17.5,12.0)
+      CALL TEXT('NRGMAX = ',9)
+      CALL NUMBI(NRGMAX,    '(I2)',2)
+      CALL MOVE(17.5,11.5)
+      CALL TEXT('NZGMAX = ',9)
+      CALL NUMBI(NZGMAX,    '(I2)',2)
+      CALL MOVE(17.5,11.0)
+      CALL TEXT('RR     =',8)
+      CALL NUMBD(RR,       '(1PE11.3)',11)
+      CALL MOVE(17.5,10.5)
+      CALL TEXT('RA     =',8)
+      CALL NUMBD(RA,       '(1PE11.3)',11)
+      CALL MOVE(17.5,10.0)
+      CALL TEXT('RKAP   =',8)
+      CALL NUMBD(RKAP,     '(1PE11.3)',11)
+      CALL MOVE(17.5,9.5)
+      CALL TEXT('RDLT   =',8)
+      CALL NUMBD(RDLT,     '(1PE11.3)',11)
+      CALL MOVE(17.5,9.0)
+      CALL TEXT('RIP    =',8)
+      CALL NUMBD(RIP,      '(1PE11.3)',11)
+      CALL MOVE(17.5,8.5)
+      CALL TEXT('BB     =',8)
+      CALL NUMBD(BB,       '(1PE11.3)',11)
+      CALL MOVE(17.5,8.0)
+      CALL TEXT('P0     =',8)
+      CALL NUMBD(P0,       '(1PE11.3)',11)
+      CALL MOVE(17.5,7.5)
+      CALL TEXT('P1     =',8)
+      CALL NUMBD(P1,       '(1PE11.3)',11)
+      CALL MOVE(17.5,7.0)
+      CALL TEXT('PROFP0 =',8)
+      CALL NUMBD(PROFP0,   '(1PE11.3)',11)
+      CALL MOVE(17.5,6.5)
+      CALL TEXT('PROFP1 =',8)
+      CALL NUMBD(PROFP1,   '(1PE11.3)',11)
+      CALL MOVE(17.5,6.0)
+      CALL TEXT('PROFT  =',8)
+      CALL NUMBD(PROFT,    '(1PE11.3)',11)
+      CALL MOVE(17.5,5.5)
+      CALL TEXT('RMIN   =',8)
+      CALL NUMBD(RMIN,     '(1PE11.3)',11)
+      CALL MOVE(17.5,5.0)
+      CALL TEXT('RMAX   =',8)
+      CALL NUMBD(RMAX,     '(1PE11.3)',11)
+      CALL MOVE(17.5,4.5)
+      CALL TEXT('ZMIN   =',8)
+      CALL NUMBD(ZMIN,     '(1PE11.3)',11)
+      CALL MOVE(17.5,4.0)
+      CALL TEXT('ZMAX   =',8)
+      CALL NUMBD(ZMAX,     '(1PE11.3)',11)
+      CALL MOVE(17.5,3.5)
+      CALL TEXT('EPS    =',8)
+      CALL NUMBD(EPS,      '(1PE11.3)',11)
+C
       RETURN
       END
