@@ -811,3 +811,189 @@ C
 C
       RETURN
       END
+C  
+C     ***********************************************************
+C
+C           GRAPHIC : CONTROL ROUTINE
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRN0(K2,INQ)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER K2*1
+C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
+C
+      IF(K2.EQ.'1') CALL TRGRN1(INQ)
+      IF(K2.EQ.'2') CALL TRGRN2(INQ)
+      IF(K2.EQ.'3') CALL TRGRN3(INQ)
+C
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
+C
+      RETURN
+      END
+C  
+C     ***********************************************************
+C
+C           GRAPHIC : RADIAL PROFILE : NBI chords part 1
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRN1(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER KFID*40,KRTG*5
+C
+      CALL PAGES
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,1)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,1)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,1)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,1)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(1)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,2)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,2)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,2)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,2)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(2)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,3)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,3)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,3)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,3)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(3)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,4)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,4)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,4)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,4)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(4)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      CALL TRGRTM
+      CALL PAGEE
+      RETURN
+      END
+C  
+C     ***********************************************************
+C
+C           GRAPHIC : RADIAL PROFILE : NBI chords part 2
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRN2(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER KFID*40,KRTG*5
+C
+      CALL PAGES
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,5)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,5)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,5)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,5)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(5)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,6)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,6)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,6)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,6)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(6)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,7)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,7)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,7)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,7)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(7)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,8)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,8)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,8)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,8)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(8)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      CALL TRGRTM
+      CALL PAGEE
+      RETURN
+      END
+C  
+C     ***********************************************************
+C
+C           GRAPHIC : RADIAL PROFILE : NBI chords part 3
+C
+C     ***********************************************************
+C
+      SUBROUTINE TRGRN3(INQ)
+C
+      INCLUDE 'trcomm.inc'
+      CHARACTER KFID*40,KRTG*5
+C
+      CALL PAGES
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,9)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,9)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,9)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,9)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(9)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      DO NR=1,NRMAX
+         GYR(NR,1)=GPNB(NR        ,10)*1.E-6
+         GYR(NR,2)=GPNB(NR+  NRMAX,10)*1.E-6
+         GYR(NR,3)=GPNB(NR+2*NRMAX,10)*1.E-6
+         GYR(NR,4)=GPNB(NR+3*NRMAX,10)*1.E-6
+      ENDDO
+      WRITE(KRTG,'(F5.3)') RTG(10)
+      KFID='@PNB [MW/m$+3$=] vs r, RTG='//KRTG//' m@'
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4,
+     &     KFID,2+INQ)
+C
+      CALL TRGRTM
+      CALL PAGEE
+      RETURN
+      END

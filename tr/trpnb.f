@@ -81,23 +81,36 @@ C
 C
       DO NR=1,NRMAX
          SNB(NR) = 0.D0
+         DO J=1,10
+            GPNB(NR        ,J)=0.0
+            GPNB(NR+  NRMAX,J)=0.0
+            GPNB(NR+2*NRMAX,J)=0.0
+            GPNB(NR+3*NRMAX,J)=0.0
+         ENDDO
       ENDDO
 C
       NRNBMAX=10
       VY=PNBVY/RA
       DRTG=(PNBRTG-(RR-RA))/(NRNBMAX/2)
       DO J=1,NRNBMAX
+C      DO J=1,1
          RDD=AR(J)
-         RTG=(RR-RA)+((J-1)+0.5D0)*DRTG
-         CALL TRNBPB(RTG,VY,RDD)
+C         RDD=1.D0
+         DRTG=2.D0*PNBRW/NRNBMAX
+         RTG(J)=PNBRTG-PNBRW+0.5D0*DRTG+DRTG*(J-1)
+         CALL TRNBPB(J,RTG(J),VY,RDD)
+c$$$         DO NR=1,NRMAX
+c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
+c$$$         ENDDO
+c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
+c$$$         write(6,*) PNBTOT*DR*1.D-6
+C         STOP
       ENDDO
+C      STOP
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
       ENDDO
-C      CALL TRSUMD(PNB,DVRHO,NRMAX,PNBSUM)
-C      write(6,*) PNBSUM*DR*1.D-6
-C      STOP
       RETURN
       END
 C
@@ -107,11 +120,17 @@ C           NEUTRAL BEAM CALCULATION
 C
 C     ***********************************************************
 C
-      SUBROUTINE TRNBPB(R0,VY,RDD)
+      SUBROUTINE TRNBPB(J,R0,VY,RDD)
 C
+C     J   : J-th NBI
 C     R0  : tangential radius of NBI beam (m)
 C     VY  : vertical position of NBI (set to zero at mid-plane)
 C     RDD : NBI deposition rate
+C
+C     KL  : judging condition parameter
+C           0 : beam energy has decreased at stopping condition
+C           1 : beam energy has not decreased at stopping condition yet
+C           2 : median center of beam line
 C
       INCLUDE 'trcomm.inc'
 C
@@ -142,9 +161,10 @@ C  IM : radial grid point turned back at magnetic axis
          IF(ABS(I).LE.50) THEN
             IM=-I+IB-1
          ELSEIF(ABS(I).LE.100) THEN
-            IM=I-IB+1+2*NRMAX
+C            IM=I-IB+1+2*NRMAX
+            IM=I-IB+2+2*NRMAX
          ELSE
-            IM=-I+IB-1-2*NRMAX 
+            IM=-I+IB-1-2*NRMAX
          ENDIF
       ENDIF
 C
@@ -159,7 +179,7 @@ C
          RADIUS1 = RR
       ELSE
          IF(ABS(I).LE.100) THEN
-            RADIUS1 = RR-RG(IM-2)*RA
+            RADIUS1 = RR-RG(IM-1)*RA
          ELSE
             RADIUS1 = RR+RG(IM)*RA
          ENDIF
@@ -191,8 +211,8 @@ C
          RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
 C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
 C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
-C      write(6,'(2I4,4F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
-C     &     RADIUS1,RADIUS2,SUML
+C      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
+C     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
          IF(RADIUS2-R0.GT.1.D-6) THEN
             IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
                P1L=P1L+P1
@@ -202,24 +222,46 @@ C     &     RADIUS1,RADIUS2,SUML
                SUML=SUML-DL
             ENDIF
          ELSE
-            IF(I.GT.0) THEN
-               I=-3*NRMAX+(NRMAX-ABS(I))
-            ELSE
-               I=-NRMAX-(NRMAX-ABS(I))
-            ENDIF
-            GOTO 10
+            P1=P1L
+            KL=2
          ENDIF
       ENDIF
 C
-C      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
-      IF(IM.GT.1) 
-     &     SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
-           SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
-      IF(IM.LT.NRMAX)
-     &     SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
+      SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
+c$$$      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
+c$$$      IF(IM.GT.1.AND.IM.LT.NRMAX) THEN
+c$$$         SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
+c$$$      ELSEIF(IM.EQ.1.OR.IM.EQ.NRMAX) THEN
+c$$$         SNB(IM  ) = SNB(IM  )+       P1/(DVRHO(IM  )*DR)
+c$$$      ENDIF
+c$$$      IF(IM.LT.NRMAX) SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
 C
+C  for graphics
+      IF(I.GT.0) THEN
+         GPNB(IM        ,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+C         write(6,'(A,3I5,2F15.7)') "MODE1",J,I,IM,GPNB(IM,J),P1
+      ELSEIF(I.LE.-1.AND.I.GE.-NRMAX) THEN
+         GPNB(IM+  NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+C         write(6,'(A,3I5,2F15.7)') "MODE2",J,I,IM,GPNB(IM+  NRMAX,J),P1
+      ELSEIF(I.LE.-NRMAX-1.AND.I.GE.-2*NRMAX) THEN
+         GPNB(IM+2*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+C         write(6,'(A,3I5,2F15.7)') "MODE3",J,I,IM,GPNB(IM+2*NRMAX,J),P1
+      ELSE
+         GPNB(IM+3*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
+C         write(6,'(A,3I5,2F15.7)') "MODE4",J,I,IM,GPNB(IM+3*NRMAX,J),P1
+      ENDIF
+C
+C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       IF(KL.EQ.0) RETURN
       ANL=ANL-P1
+      IF(KL.EQ.2) THEN
+         IF(I.GT.0) THEN
+            I=-3*NRMAX+(NRMAX-ABS(I))
+         ELSE
+            I=-NRMAX-(NRMAX-ABS(I))-1
+         ENDIF
+         GOTO 10
+      ENDIF
 C
       ENDIF
 C
@@ -231,10 +273,10 @@ C
       IF(I.GT.0) THEN
          IM=I+IB-1
       ELSE
-         IF(ABS(I).LE.50) THEN
+         IF(ABS(I).LE.NRMAX) THEN
             IM=-I+IB-1
          ELSE
-            IM=-I-NRMAX+IB-1-NRMAX
+            IM=-I-IB-1-2*NRMAX
          ENDIF
       ENDIF
 C
