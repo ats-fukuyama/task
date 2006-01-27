@@ -153,6 +153,8 @@ C  DL : arbitrary minute length in direction of NB
       DL=XL/1000
 C  COST : cosine between mid-plane and NB
       COST=SQRT((RR+RA)**2-R0**2)/(RR+RA)
+C  IDL : serial number of DL
+      IDL=0
 C
 C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
@@ -161,7 +163,6 @@ C  IM : radial grid point turned back at magnetic axis
          IF(ABS(I).LE.50) THEN
             IM=-I+IB-1
          ELSEIF(ABS(I).LE.100) THEN
-C            IM=I-IB+1+2*NRMAX
             IM=I-IB+2+2*NRMAX
          ELSE
             IM=-I+IB-1-2*NRMAX
@@ -172,17 +173,22 @@ C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
 C
+      P1  = 0.D0
       P1L = 0.D0
       IF(I.GT.0) THEN
-         RADIUS1 = RR+RA-(1.D0-RG(IM))*RA
+         RADIUS1 = RR+RG(IM)*RA
       ELSEIF(I.EQ.0) THEN
          RADIUS1 = RR
       ELSE
          IF(ABS(I).LE.100) THEN
-            RADIUS1 = RR-RG(IM-1)*RA
+            RADIUS1 = RR+(DR-RG(IM))*RA
          ELSE
             RADIUS1 = RR+RG(IM)*RA
          ENDIF
+      ENDIF
+      IF(I.EQ.-3*NRMAX) THEN
+         NLMAX(J)=IDL
+         RETURN
       ENDIF
 C
       DEX = RN(IM,1)
@@ -195,9 +201,14 @@ C
       ZOX = 8.D0
 C
 C  Accumulate P1 inside one grid
- 20   CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
+ 20   IDL=IDL+1
+      GBL (IDL)  =GUCLIP(SUML)
+      GBAN(IDL,J)=GUCLIP(ANL-P1L)
+C
+      CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 C
       P1=DEX*SGM*ANL*DL
+      GBP1(IDL,J)=GUCLIP(P1)
       IF(P1.LT.0.D0) P1=0.D0
       IF(ANL.GT.ANL0*1.D-3) THEN
          KL=1
@@ -208,17 +219,23 @@ C
 C
       SUML=SUML+DL
       IF(KL.EQ.1) THEN
+         RADIUSG=SQRT((SUML-DL)**2+(RR+RA)*(RR+RA-2.D0*(SUML-DL)*COST))
+         GBR (IDL,J)=GUCLIP(RADIUSG)
+         GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RA))
          RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
 C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
 C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
 C      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
 C     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
+C         write(6,'(3I4,5F13.7)') I,IM,IDL,GBL(IDL),GBR(IDL,J),
+C     &        GBP1(IDL,J),GBAN(IDL,J)
          IF(RADIUS2-R0.GT.1.D-6) THEN
             IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
                P1L=P1L+P1
                GOTO 20
             ELSE
                P1=P1L
+               IDL=IDL-1
                SUML=SUML-DL
             ENDIF
          ELSE
@@ -252,7 +269,10 @@ C         write(6,'(A,3I5,2F15.7)') "MODE4",J,I,IM,GPNB(IM+3*NRMAX,J),P1
       ENDIF
 C
 C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
-      IF(KL.EQ.0) RETURN
+      IF(KL.EQ.0) THEN
+         NLMAX(J)=IDL
+         RETURN
+      ENDIF
       ANL=ANL-P1
       IF(KL.EQ.2) THEN
          IF(I.GT.0) THEN
@@ -268,21 +288,12 @@ C
       IF(SUML.LT.XL) THEN
          I=I-1
       ELSE
+         NLMAX(J)=IDL
          RETURN
-      ENDIF
-      IF(I.GT.0) THEN
-         IM=I+IB-1
-      ELSE
-         IF(ABS(I).LE.NRMAX) THEN
-            IM=-I+IB-1
-         ELSE
-            IM=-I-IB-1-2*NRMAX
-         ENDIF
       ENDIF
 C
 C      WRITE(6,'(3(1X,I3),4F15.7)') IB,I,IM,SUML,DL,ANL,P1
 C
-      IF(IM.GT.NRMAX) RETURN
       GOTO 10
 C
       END

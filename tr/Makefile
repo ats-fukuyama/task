@@ -1,14 +1,14 @@
 ## $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
-SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f\
+SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f  trmdlt.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgsub.f trhelp.f \
-     glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f \
-     tritg.f itg/weiland.f
+     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgram.f trgsub.f \
+     trhelp.f glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
+     itg/ifspppl_model.f tritg.f itg/weiland.f
 SRCF=glf/glf2d.F glf/r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
@@ -117,9 +117,9 @@ trgrat.o : trgrat.f trcomm.inc trcom0.inc
 trgrap.o : trgrap.f trcomm.inc trcom0.inc
 trgrae.o : trgrae.f trcomm.inc trcom0.inc
 trgrad.o : trgrad.f trcomm.inc trcom0.inc
+trgram.o : trgram.f trcomm.inc trcom0.inc
 trgsub.o : trgsub.f trcomm.inc trcom0.inc
 trhelp.o : trhelp.f trcomm.inc trcom0.inc
-trgrad.o : trgrad.f trcomm.inc trcom0.inc
 trg2d.o  : trg2d.f  trcomm.inc trcom0.inc
 trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
