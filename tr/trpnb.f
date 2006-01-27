@@ -173,7 +173,6 @@ C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
 C
-      P1  = 0.D0
       P1L = 0.D0
       IF(I.GT.0) THEN
          RADIUS1 = RR+RG(IM)*RA
@@ -203,7 +202,7 @@ C
 C  Accumulate P1 inside one grid
  20   IDL=IDL+1
       GBL (IDL)  =GUCLIP(SUML)
-      GBAN(IDL,J)=GUCLIP(ANL-P1L)
+      GBAN(IDL,J)=GUCLIP(ANL)
 C
       CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 C
@@ -227,18 +226,23 @@ C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
 C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
 C      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
 C     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
-C         write(6,'(3I4,5F13.7)') I,IM,IDL,GBL(IDL),GBR(IDL,J),
-C     &        GBP1(IDL,J),GBAN(IDL,J)
+C         write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1L,DR*RA-ABS(RADIUS1
+C     &        -RADIUS2),RADIUS2-R0
          IF(RADIUS2-R0.GT.1.D-6) THEN
             IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
+C  inside the grid
+               ANL=ANL-P1
                P1L=P1L+P1
                GOTO 20
             ELSE
+C  run off the grid
                P1=P1L
                IDL=IDL-1
                SUML=SUML-DL
             ENDIF
          ELSE
+C  innermost grid
+            ANL=ANL-P1
             P1=P1L
             KL=2
          ENDIF
@@ -256,24 +260,19 @@ C
 C  for graphics
       IF(I.GT.0) THEN
          GPNB(IM        ,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-C         write(6,'(A,3I5,2F15.7)') "MODE1",J,I,IM,GPNB(IM,J),P1
       ELSEIF(I.LE.-1.AND.I.GE.-NRMAX) THEN
          GPNB(IM+  NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-C         write(6,'(A,3I5,2F15.7)') "MODE2",J,I,IM,GPNB(IM+  NRMAX,J),P1
       ELSEIF(I.LE.-NRMAX-1.AND.I.GE.-2*NRMAX) THEN
          GPNB(IM+2*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-C         write(6,'(A,3I5,2F15.7)') "MODE3",J,I,IM,GPNB(IM+2*NRMAX,J),P1
       ELSE
          GPNB(IM+3*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-C         write(6,'(A,3I5,2F15.7)') "MODE4",J,I,IM,GPNB(IM+3*NRMAX,J),P1
       ENDIF
 C
 C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       IF(KL.EQ.0) THEN
-         NLMAX(J)=IDL
+         NLMAX(J)=IDL-1
          RETURN
       ENDIF
-      ANL=ANL-P1
       IF(KL.EQ.2) THEN
          IF(I.GT.0) THEN
             I=-3*NRMAX+(NRMAX-ABS(I))
@@ -288,7 +287,7 @@ C
       IF(SUML.LT.XL) THEN
          I=I-1
       ELSE
-         NLMAX(J)=IDL
+         NLMAX(J)=IDL-1
          RETURN
       ENDIF
 C
