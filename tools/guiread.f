@@ -449,16 +449,18 @@ C
          ENDDO
 C
          NTXMAX1=NTXMAX
+         IF(KFID(1:1).EQ.'T') THEN
+            FACT=1.D-3
+         ELSEIF(KFID(1:1).EQ.'N') THEN
+            FACT=1.D-19
+         ELSE
+            FACT=1.D0
+         ENDIF
          IF(NTSL.EQ.0) THEN
 C     *** F-t-r graph ***
             DO NRX=1,NRXMAX
                GR(NRX)=GUCLIP(R(NRX))
                DO NTX=1,NTXMAX
-                  IF(KFID.EQ.'TE'.OR.KFID.EQ.'TI') THEN
-                     FACT=1.D-3
-                  ELSE
-                     FACT=1.D0
-                  ENDIF
                   GF2(NRX,NTX)=GUCLIP(F2(NRX,NTX)*FACT)
                ENDDO
             ENDDO
@@ -470,17 +472,12 @@ C     *** F-r graph ***
                RL(NRX)=R(NRX)
                FL(NRX)=F2(NRX,NTSL)
                GR(NRX)=GUCLIP(R(NRX))
-               IF(KFID.EQ.'TE'.OR.KFID.EQ.'TI') THEN
-                  FACT=1.D-3
-               ELSE
-                  FACT=1.D0
-               ENDIF
                GF2(NRX,1)=GUCLIP(F2(NRX,NTSL)*FACT)
             ENDDO
             IF(RL(1).NE.0.D0) THEN
                DO NRL=NRLMAX,1,-1
                   RL(NRL+1)=RL(NRL)
-                  FL(NRL+1)=FL(NRL)
+                  FL(NRL+1)=FL(NRL)*FACT
                ENDDO
                RL(1)=0.D0
                FL(1)=FCTR(RL(2),RL(3),FL(2),FL(3))
@@ -490,7 +487,7 @@ C     *** F-r graph ***
                RL(NRLMAX+1)=1.D0
                FL(NRLMAX+1)=AITKEN2P(1.D0,FL(NRLMAX),FL(NRLMAX-1),
      &                               FL(NRLMAX-2),RL(NRLMAX),
-     &                               RL(NRLMAX-1),RL(NRLMAX-2))
+     &                               RL(NRLMAX-1),RL(NRLMAX-2))*FACT
                NRLMAX=NRLMAX+1
             ENDIF
          ENDIF
