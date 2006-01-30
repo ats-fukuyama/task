@@ -104,9 +104,7 @@ c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
 c$$$         ENDDO
 c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
 c$$$         write(6,*) PNBTOT*DR*1.D-6
-C         STOP
       ENDDO
-C      STOP
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
@@ -138,7 +136,9 @@ C
 C
 C  XL : maximum distance from injection to wall
       XL=2.D0*SQRT((RR+RA)**2-R0**2)
-C  ANL : number of slowing down particles per time
+C  ANL : beam intensity [num/s]
+C        (the number of beam particles per unit length
+C         divided by thier velocity)
       ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
 C  IB : radial grid point of NB deposition position
       IB=INT(VY/DR)+1
@@ -173,7 +173,7 @@ C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
       IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
 C
-      P1L = 0.D0
+      P1SUM = 0.D0
       IF(I.GT.0) THEN
          RADIUS1 = RR+RG(IM)*RA
       ELSEIF(I.EQ.0) THEN
@@ -190,10 +190,10 @@ C
          RETURN
       ENDIF
 C
-      DEX = RN(IM,1)
+      DEX = RN(IM,1)*1.D1
       TEX = RT(IM,1)
-      DCX = ANC(IM)
-      DFX = ANFE(IM)
+      DCX = ANC(IM)*1.D1
+      DFX = ANFE(IM)*1.D1
       DOX = 0.D0
       ZCX = PZC(IM)
       ZFX = PZFE(IM)
@@ -206,7 +206,7 @@ C  Accumulate P1 inside one grid
 C
       CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 C
-      P1=DEX*SGM*ANL*DL
+      P1=(DEX*0.1D0)*SGM*ANL*DL
       GBP1(IDL,J)=GUCLIP(P1)
       IF(P1.LT.0.D0) P1=0.D0
       IF(ANL.GT.ANL0*1.D-3) THEN
@@ -226,24 +226,24 @@ C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
 C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
 C      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
 C     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
-C         write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1L,DR*RA-ABS(RADIUS1
+C         write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DR*RA-ABS(RADIUS1
 C     &        -RADIUS2),RADIUS2-R0
          IF(RADIUS2-R0.GT.1.D-6) THEN
             IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
 C  inside the grid
                ANL=ANL-P1
-               P1L=P1L+P1
+               P1SUM=P1SUM+P1
                GOTO 20
             ELSE
 C  run off the grid
-               P1=P1L
+               P1=P1SUM
                IDL=IDL-1
                SUML=SUML-DL
             ENDIF
          ELSE
 C  innermost grid
             ANL=ANL-P1
-            P1=P1L
+            P1=P1SUM
             KL=2
          ENDIF
       ENDIF
@@ -275,9 +275,9 @@ C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       ENDIF
       IF(KL.EQ.2) THEN
          IF(I.GT.0) THEN
-            I=-3*NRMAX+(NRMAX-ABS(I))
+            I=-2*NRMAX-ABS(I)
          ELSE
-            I=-NRMAX-(NRMAX-ABS(I))-1
+            I=-2*NRMAX+ABS(I)-1
          ENDIF
          GOTO 10
       ENDIF
@@ -308,17 +308,17 @@ C
 C
 C     R.K. Janev, C.D. BOLEY and D.E. Post, Nucl. Fusion 29 (1989) 2125
 C     < Input >
-C        ANEX  : ELECTRON DENSITY
-C        TEX   : ELECTRON TEMPERATURE
-C        EB    : BEAM ENERGY
-C        ANCX  : CARBON DENSITY
-C        ANFEX : IRON DENSITY
-C        ANOX  : OXIGEN DENSITY
+C        ANEX  : ELECTRON DENSITY     [10^19]
+C        TEX   : ELECTRON TEMPERATURE [keV]
+C        EB    : BEAM ENERGY          [keV/u]
+C        ANCX  : CARBON DENSITY       [10^19]
+C        ANFEX : IRON DENSITY         [10^19]
+C        ANOX  : OXIGEN DENSITY       [10^19]
 C        PZCX  : CARBON CHARGE NUMBER
 C        PZFEX : IRON CHARGE NUMBER
 C        PZOX  : OXIGEN CHARGE NUMBER
 C     < Output >
-C        SGM   : BEAM STOPPING CROSS-SECTION
+C        SGM   : BEAM STOPPING CROSS-SECTION [10^-20 m^2]
 C
 C     NOTE: "C" DENOTES CARBON, "F" IRON AND "O" OXIGEN.
 C
