@@ -104,7 +104,8 @@ c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
 c$$$         ENDDO
 c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
 c$$$         write(6,*) PNBTOT*DR*1.D-6
-         STOP
+         write(6,*) "************************************************"
+C         if(j.eq.6) STOP
       ENDDO
 C      STOP
 C
@@ -161,7 +162,7 @@ C
 C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
          IM=I+IB-1
-         write(6,*) "PART1",I,IM,IB
+C         write(6,*) "PART1",I,IM,IB
       ELSE
          IF(ABS(I).LE.50) THEN
             IM=-I+IB-1
@@ -170,28 +171,30 @@ C  IM : radial grid point turned back at magnetic axis
          ELSE
             IM=-I+IB-1-2*NRMAX
          ENDIF
-         write(6,*) "PART2",I,IM,IB
-         if(i.lt.-150) stop
+C         write(6,*) "PART2",I,IM,IB
+C         if(i.lt.-150) stop
       ENDIF
 C
 C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
-      IF(I.NE.0.AND.(IM.GE.1.AND.IM.LE.NRMAX)) THEN
+C      IF(I.NE.0.AND.(IM.GE.1.AND.IM.LE.NRMAX)) THEN
+      IF(I.NE.0.AND.(IM.GE.IB.AND.IM.LE.NRMAX)) THEN
 C
       P1SUM = 0.D0
       IF(I.GT.0) THEN
          RADIUS1 = RR+RG(IM)*RA
-C      ELSEIF(I.EQ.0) THEN
-C         RADIUS1 = RR
       ELSE
          IF(ABS(I).LE.100) THEN
-            RADIUS1 = RR+(DR-RG(IM))*RA 
+C            RADIUS1 = RR+(DR-RG(IM))*RA 
+            RADIUS1 = (RR+2*(RG(IB)-DR)*RA)+(DR-RG(IM))*RA
         ELSE
             RADIUS1 = RR+RG(IM)*RA
+C            RADIUS1 = (RR+2*(RG(IB)-DR)*RA)+RG(IM)*RA
          ENDIF
       ENDIF
       IF(I.EQ.-3*NRMAX) THEN
          NLMAX(J)=IDL
+C         write(6,*) "RETURN1"
          RETURN
       ENDIF
 C
@@ -247,7 +250,6 @@ C  run off the grid
             ENDIF
          ELSE
 C  innermost grid
-            write(6,*) "PASS"
             ANL=ANL-P1
             P1=P1SUM
             KL=2
@@ -277,13 +279,14 @@ C
 C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       IF(KL.EQ.0) THEN
          NLMAX(J)=IDL-1
+C         write(6,*) "RETURN2"
          RETURN
       ENDIF
       IF(KL.EQ.2) THEN
          IF(I.GT.0) THEN
-            I=-2*NRMAX-ABS(I)
+            I=-2*(NRMAX-IB+1)-ABS(I)
          ELSE
-            I=-2*NRMAX+ABS(I)-1
+            I=-2*(NRMAX-IB+1)+ABS(I)-1
          ENDIF
          GOTO 10
       ENDIF
@@ -292,9 +295,9 @@ C
 C
       IF(SUML.LT.XL) THEN
          I=I-1
-C         IF(I.EQ.0) I=I-1
       ELSE
          NLMAX(J)=IDL-1
+C         write(6,*) "RETURN3"
          RETURN
       ENDIF
 C
