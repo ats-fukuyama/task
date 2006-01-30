@@ -104,7 +104,9 @@ c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
 c$$$         ENDDO
 c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
 c$$$         write(6,*) PNBTOT*DR*1.D-6
+         STOP
       ENDDO
+C      STOP
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
@@ -159,6 +161,7 @@ C
 C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
          IM=I+IB-1
+         write(6,*) "PART1",I,IM,IB
       ELSE
          IF(ABS(I).LE.50) THEN
             IM=-I+IB-1
@@ -167,21 +170,23 @@ C  IM : radial grid point turned back at magnetic axis
          ELSE
             IM=-I+IB-1-2*NRMAX
          ENDIF
+         write(6,*) "PART2",I,IM,IB
+         if(i.lt.-150) stop
       ENDIF
 C
 C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
 C
-      IF(IM.GE.1.AND.IM.LE.NRMAX) THEN
+      IF(I.NE.0.AND.(IM.GE.1.AND.IM.LE.NRMAX)) THEN
 C
       P1SUM = 0.D0
       IF(I.GT.0) THEN
          RADIUS1 = RR+RG(IM)*RA
-      ELSEIF(I.EQ.0) THEN
-         RADIUS1 = RR
+C      ELSEIF(I.EQ.0) THEN
+C         RADIUS1 = RR
       ELSE
          IF(ABS(I).LE.100) THEN
-            RADIUS1 = RR+(DR-RG(IM))*RA
-         ELSE
+            RADIUS1 = RR+(DR-RG(IM))*RA 
+        ELSE
             RADIUS1 = RR+RG(IM)*RA
          ENDIF
       ENDIF
@@ -224,8 +229,8 @@ C
          RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
 C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
 C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
-C      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
-C     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
+      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
+     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
 C         write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DR*RA-ABS(RADIUS1
 C     &        -RADIUS2),RADIUS2-R0
          IF(RADIUS2-R0.GT.1.D-6) THEN
@@ -242,6 +247,7 @@ C  run off the grid
             ENDIF
          ELSE
 C  innermost grid
+            write(6,*) "PASS"
             ANL=ANL-P1
             P1=P1SUM
             KL=2
@@ -286,6 +292,7 @@ C
 C
       IF(SUML.LT.XL) THEN
          I=I-1
+C         IF(I.EQ.0) I=I-1
       ELSE
          NLMAX(J)=IDL-1
          RETURN
