@@ -104,10 +104,7 @@ c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
 c$$$         ENDDO
 c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
 c$$$         write(6,*) PNBTOT*DR*1.D-6
-         write(6,*) "************************************************"
-C         if(j.eq.6) STOP
       ENDDO
-C      STOP
 C
       DO NR=1,NRMAX
          PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
@@ -162,7 +159,6 @@ C
 C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
          IM=I+IB-1
-C         write(6,*) "PART1",I,IM,IB
       ELSE
          IF(ABS(I).LE.50) THEN
             IM=-I+IB-1
@@ -171,8 +167,6 @@ C         write(6,*) "PART1",I,IM,IB
          ELSE
             IM=-I+IB-1-2*NRMAX
          ENDIF
-C         write(6,*) "PART2",I,IM,IB
-C         if(i.lt.-150) stop
       ENDIF
 C
 C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
@@ -185,16 +179,13 @@ C
          RADIUS1 = RR+RG(IM)*RA
       ELSE
          IF(ABS(I).LE.100) THEN
-C            RADIUS1 = RR+(DR-RG(IM))*RA 
             RADIUS1 = (RR+2*(RG(IB)-DR)*RA)+(DR-RG(IM))*RA
         ELSE
             RADIUS1 = RR+RG(IM)*RA
-C            RADIUS1 = (RR+2*(RG(IB)-DR)*RA)+RG(IM)*RA
          ENDIF
       ENDIF
       IF(I.EQ.-3*NRMAX) THEN
          NLMAX(J)=IDL
-C         write(6,*) "RETURN1"
          RETURN
       ENDIF
 C
@@ -208,7 +199,8 @@ C
       ZOX = 8.D0
 C
 C  Accumulate P1 inside one grid
- 20   IDL=IDL+1
+ 20   IF(SUML+DL.GE.XL) DL=XL-SUML
+      IDL=IDL+1
       GBL (IDL)  =GUCLIP(SUML)
       GBAN(IDL,J)=GUCLIP(ANL)
 C
@@ -225,34 +217,37 @@ C
       ENDIF
 C
       SUML=SUML+DL
-      IF(KL.EQ.1) THEN
-         RADIUSG=SQRT((SUML-DL)**2+(RR+RA)*(RR+RA-2.D0*(SUML-DL)*COST))
-         GBR (IDL,J)=GUCLIP(RADIUSG)
-         GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RA))
-         RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
-C      write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
-C     &     -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
-      write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
-     &     RADIUS1,RADIUS2,RADIUS2-R0,SUML
-C         write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DR*RA-ABS(RADIUS1
-C     &        -RADIUS2),RADIUS2-R0
-         IF(RADIUS2-R0.GT.1.D-6) THEN
-            IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
+      IF(SUML.LT.XL) THEN
+         IF(KL.EQ.1) THEN
+            RADIUSG=SQRT( (SUML-DL)**2
+     &                   +(RR+RA)*(RR+RA-2.D0*(SUML-DL)*COST))
+            GBR (IDL,J)=GUCLIP(RADIUSG)
+            GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RA))
+            RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
+C            write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
+C     &           -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
+C            write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
+C     &           RADIUS1,RADIUS2,RADIUS2-R0,SUML
+C            write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DR*RA-ABS(RADIUS1
+C     &           -RADIUS2),RADIUS2-R0
+            IF(RADIUS2-R0.GT.1.D-6) THEN
+               IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
 C  inside the grid
-               ANL=ANL-P1
-               P1SUM=P1SUM+P1
-               GOTO 20
-            ELSE
+                  ANL=ANL-P1
+                  P1SUM=P1SUM+P1
+                  GOTO 20
+               ELSE
 C  run off the grid
-               P1=P1SUM
-               IDL=IDL-1
-               SUML=SUML-DL
-            ENDIF
-         ELSE
+                  P1=P1SUM
+                  IDL=IDL-1
+                  SUML=SUML-DL
+               ENDIF
+            ELSE
 C  innermost grid
-            ANL=ANL-P1
-            P1=P1SUM
-            KL=2
+               ANL=ANL-P1
+               P1=P1SUM
+               KL=2
+            ENDIF
          ENDIF
       ENDIF
 C
@@ -279,12 +274,11 @@ C
 C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       IF(KL.EQ.0) THEN
          NLMAX(J)=IDL-1
-C         write(6,*) "RETURN2"
          RETURN
       ENDIF
       IF(KL.EQ.2) THEN
          IF(I.GT.0) THEN
-            I=-2*(NRMAX-IB+1)-ABS(I)
+            I=-2*NRMAX-ABS(I)
          ELSE
             I=-2*(NRMAX-IB+1)+ABS(I)-1
          ENDIF
@@ -297,11 +291,8 @@ C
          I=I-1
       ELSE
          NLMAX(J)=IDL-1
-C         write(6,*) "RETURN3"
          RETURN
       ENDIF
-C
-C      WRITE(6,'(3(1X,I3),4F15.7)') IB,I,IM,SUML,DL,ANL,P1
 C
       GOTO 10
 C
