@@ -22,19 +22,19 @@ SUBROUTINE TXCALM
 !   Number of equations
   NQMAX = NQM
 !   ???
-  UHth  = 1.D0/SQRT(1.D0+DBLE(NCphi)*2)
-  UHph  = DBLE(NCphi)*UHth
+  UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
+  UHph  = DBLE(NCphi) * UHth
 
   !  Integer mesh
 
   DO NR = 0, NRMAX
-     R(NR) = NR * DR
+     R(NR) = DBLE(NR) * DR
   END DO
 
   !  Half integer mesh
 
   DO NR = 0, NRMAX
-     RHI(NR) = (NR + 0.5D0) * DR
+     RHI(NR) = (DBLE(NR) + 0.5D0) * DR
   END DO
 
   RETURN
@@ -55,38 +55,36 @@ SUBROUTINE TXCALV(XL)
 
   ! Half integer variables
 
+  EphHI(0:NRMAX-1)  = XL(LQm3,0:NRMAX-1)
+  BphHI(0:NRMAX-1)  = XL(LQm5,0:NRMAX-1)
+  PNeHI(0:NRMAX-1)  = XL(LQe1,0:NRMAX-1)
+  UephHI(0:NRMAX-1) = XL(LQe4,0:NRMAX-1)/PNeHI(0:NRMAX-1)
+  PTeHI(0:NRMAX-1)  = XL(LQe5,0:NRMAX-1)/PNeHI(0:NRMAX-1)
+  PNiHI(0:NRMAX-1)  = XL(LQi1,0:NRMAX-1)
+  UiphHI(0:NRMAX-1) = XL(LQi4,0:NRMAX-1)/PNiHI(0:NRMAX-1)
+  PTiHI(0:NRMAX-1)  = XL(LQi5,0:NRMAX-1)/PNiHI(0:NRMAX-1)
+  PNbHI(0:NRMAX-1)  = XL(LQb1,0:NRMAX-1)
   DO NR = 0, NRMAX - 1
-     EphHI(NR)  = XL(LQm3,NR)
-     BphHI(NR)  = XL(LQm5,NR)
-     PNeHI(NR)  = XL(LQe1,NR)
-     UephHI(NR) = XL(LQe4,NR)/PNeHI(NR)
-     PTeHI(NR)  = XL(LQe5,NR)/PNeHI(NR)
-     PNiHI(NR)  = XL(LQi1,NR)
-     UiphHI(NR) = XL(LQi4,NR)/PNiHI(NR)
-     PTiHI(NR)  = XL(LQi5,NR)/PNiHI(NR)
-     PNbHI(NR)  = XL(LQb1,NR)
      IF(PNbHI(NR) <= 0.D0) THEN
         UbphHI(NR)=0.D0
      ELSE
         UbphHI(NR) = XL(LQb4,NR)/PNbHI(NR)
      END IF
-     PN01HI(NR) = XL(LQn1,NR)
-     PN02HI(NR) = XL(LQn2,NR)
   END DO
+  PN01HI(0:NRMAX-1) = XL(LQn1,0:NRMAX-1)
+  PN02HI(0:NRMAX-1) = XL(LQn2,0:NRMAX-1)
 
   ! Interpolation to integer variables
 
-  DO NR = 1, NRMAX - 1
-     BphI(NR) = 0.5D0 * (BphHI(NR-1) + BphHI(NR))
-     PNeI(NR) = 0.5D0 * (PNeHI(NR-1) + PNeHI(NR))
-     UephI(NR)= 0.5D0 * (UephHI(NR-1)+ UephHI(NR))
-     PTeI(NR) = 0.5D0 * (PTeHI(NR-1) + PTeHI(NR))
-     PNiI(NR) = 0.5D0 * (PNiHI(NR-1) + PNiHI(NR))
-     UiphI(NR)= 0.5D0 * (UiphHI(NR-1)+ UiphHI(NR))
-     PTiI(NR) = 0.5D0 * (PTiHI(NR-1) + PTiHI(NR))
-     PNbI(NR) = 0.5D0 * (PNbHI(NR-1) + PNbHI(NR))
-     UbphI(NR)= 0.5D0 * (UbphHI(NR-1)+ UbphHI(NR))
-  END DO
+  BphI(1:NRMAX-1) = 0.5D0 * (BphHI(0:NRMAX-2) + BphHI(1:NRMAX-1))
+  PNeI(1:NRMAX-1) = 0.5D0 * (PNeHI(0:NRMAX-2) + PNeHI(1:NRMAX-1))
+  UephI(1:NRMAX-1)= 0.5D0 * (UephHI(0:NRMAX-2)+ UephHI(1:NRMAX-1))
+  PTeI(1:NRMAX-1) = 0.5D0 * (PTeHI(0:NRMAX-2) + PTeHI(1:NRMAX-1))
+  PNiI(1:NRMAX-1) = 0.5D0 * (PNiHI(0:NRMAX-2) + PNiHI(1:NRMAX-1))
+  UiphI(1:NRMAX-1)= 0.5D0 * (UiphHI(0:NRMAX-2)+ UiphHI(1:NRMAX-1))
+  PTiI(1:NRMAX-1) = 0.5D0 * (PTiHI(0:NRMAX-2) + PTiHI(1:NRMAX-1))
+  PNbI(1:NRMAX-1) = 0.5D0 * (PNbHI(0:NRMAX-2) + PNbHI(1:NRMAX-1))
+  UbphI(1:NRMAX-1)= 0.5D0 * (UbphHI(0:NRMAX-2)+ UbphHI(1:NRMAX-1))
 
   ! Extraporation for central value
 
@@ -120,15 +118,15 @@ SUBROUTINE TXCALV(XL)
 
   ! Integer variables
 
+  ErI(0:NRMAX)  = XL(LQm1,0:NRMAX)
+  EthI(0:NRMAX) = XL(LQm2,0:NRMAX)
+  BthI(0:NRMAX) = XL(LQm4,0:NRMAX)
+  UerI(0:NRMAX) = XL(LQe2,0:NRMAX)/PNeI(0:NRMAX)
+  UethI(0:NRMAX)= XL(LQe3,0:NRMAX)/PNeI(0:NRMAX)
+  UirI(0:NRMAX) = XL(LQi2,0:NRMAX)/PNiI(0:NRMAX)
+  UithI(0:NRMAX)= XL(LQi3,0:NRMAX)/PNiI(0:NRMAX)
   DO NR = 0, NRMAX
-     ErI(NR)  = XL(LQm1,NR)
-     EthI(NR) = XL(LQm2,NR)
-     BthI(NR) = XL(LQm4,NR)
-     UerI(NR) = XL(LQe2,NR)/PNeI(NR)
-     UethI(NR)= XL(LQe3,NR)/PNeI(NR)
-     UirI(NR) = XL(LQi2,NR)/PNiI(NR)
-     UithI(NR)= XL(LQi3,NR)/PNiI(NR)
-     IF (ABS(PNbI(NR)) < 1.D-30) THEN
+     IF (ABS(PNbHI(NR)) < 1.D-30) THEN
         UbthI(NR) = 0.D0
      ELSE
         UbthI(NR) = XL(LQb3,NR)/PNbI(NR)
@@ -137,21 +135,18 @@ SUBROUTINE TXCALV(XL)
 
   ! Interpolartion to half-integer variables
 
-  DO NR = 0, NRMAX - 1
-     ErHI(NR)  = 0.5D0 * (  ErI(NR) +   ErI(NR+1))
-     EthHI(NR) = 0.5D0 * ( EthI(NR) +  EthI(NR+1))
-     BthHI(NR) = 0.5D0 * ( BthI(NR) +  BthI(NR+1))
-     UerHI(NR) = 0.5D0 * ( UerI(NR) +  UerI(NR+1))
-     UethHI(NR)= 0.5D0 * (UethI(NR) + UethI(NR+1))
-     UirHI(NR) = 0.5D0 * ( UirI(NR) +  UirI(NR+1))
-     UithHI(NR)= 0.5D0 * (UithI(NR) + UithI(NR+1))
-     UbthHI(NR)= 0.5D0 * (UbthI(NR) + UbthI(NR+1))
-     QHI(NR)   = ABS(RHI(NR) * BphHI(NR) / (RR * BthHI(NR)))
-  END DO
+  ErHI(0:NRMAX-1)  = 0.5D0 * (  ErI(0:NRMAX-1) +   ErI(1:NRMAX))
+  EthHI(0:NRMAX-1) = 0.5D0 * ( EthI(0:NRMAX-1) +  EthI(1:NRMAX))
+  BthHI(0:NRMAX-1) = 0.5D0 * ( BthI(0:NRMAX-1) +  BthI(1:NRMAX))
+  UerHI(0:NRMAX-1) = 0.5D0 * ( UerI(0:NRMAX-1) +  UerI(1:NRMAX))
+  UethHI(0:NRMAX-1)= 0.5D0 * (UethI(0:NRMAX-1) + UethI(1:NRMAX))
+  UirHI(0:NRMAX-1) = 0.5D0 * ( UirI(0:NRMAX-1) +  UirI(1:NRMAX))
+  UithHI(0:NRMAX-1)= 0.5D0 * (UithI(0:NRMAX-1) + UithI(1:NRMAX))
+  UbthHI(0:NRMAX-1)= 0.5D0 * (UbthI(0:NRMAX-1) + UbthI(1:NRMAX))
+  QHI(0:NRMAX-1)   = ABS(RHI(0:NRMAX-1) * BphHI(0:NRMAX-1) &
+       &                / (RR * BthHI(0:NRMAX-1)))
 
-  DO NR = 1, NRMAX
-     Q(NR) = ABS(R(NR) * BphI(NR) / (RR * BthI(NR)))
-  END DO
+  Q(1:NRMAX) = ABS(R(1:NRMAX) * BphI(1:NRMAX) / (RR * BthI(1:NRMAX)))
   Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
   RETURN
 END SUBROUTINE TXCALV
@@ -196,12 +191,26 @@ SUBROUTINE TXCALC
   END IF
 
   !     *** Normalization factor for heating profile ***
+  !
+  !    SL is a normalization factor for a given heating profile.
+  !    It is assumed that the heating profile has a shape of 
+  !    exp(-r^2/r_NB^2)*(1-(r/a)^4), in order to renormalize the
+  !    heating profile we therefore need to integrate that profile with 
+  !    maximum value of unity at axis in advance and calculate the 
+  !    normalized factor (i.e. PNB0) which allows an integration
+  !    value of renormalized profile to equal designated value (i.e. PNBH).
+  !    The factor (1-(r/a)^4), which is an arbitrary function, is
+  !    required to damp the profile of exp(-r^2/r_NB^2) rapidly
+  !    because if this factor is not imposed unrealistically large current
+  !    driven by NBI is generated near the edge where electron and bulk ion
+  !    density are dilute although in this case fast ion density from 
+  !    NBI is relatively large.
+  !
   !  For NBI heating
   SL = 0.D0
   DO NR = 0, NRMAX - 1
      IF (RHI(NR) < RA) THEN
-        SL = SL + 2.D0 * PI * RHI(NR) * DR &
-             &  * EXP(- (RHI(NR) / RNB)**2) &
+        SL = SL + 2.D0 * PI * RHI(NR) * DR * EXP(- (RHI(NR) / RNB)**2) &
              &  * (1.D0 - (RHI(NR) / RA)** 4)
      END IF
   END DO
@@ -212,8 +221,7 @@ SUBROUTINE TXCALC
   SL = 0.D0
   DO NR = 0, NRMAX - 1
      IF (RHI(NR) < RA) THEN
-        SL = SL + 2.D0 * PI * RHI(NR) * DR &
-             &  * EXP(- (RHI(NR) / RRF)**2) &
+        SL = SL + 2.D0 * PI * RHI(NR) * DR * EXP(- (RHI(NR) / RRF)**2) &
              &  * (1.D0 - (RHI(NR) / RA)** 4)
      END IF
   END DO
@@ -223,7 +231,7 @@ SUBROUTINE TXCALC
 
   !     ***** Half integer mesh *****
 
-  DO NR = 0, NRMAX-1
+  L_NR: DO NR = 0, NRMAX-1
 
      Vte = SQRT(2.D0 * ABS(PTeHI(NR)) * rKeV / AME)
      Vti = SQRT(2.D0 * ABS(PTiHI(NR)) * rKeV / AMI)
@@ -392,7 +400,7 @@ SUBROUTINE TXCALC
      END IF
 
      IF (RHI(NR) < RA) THEN
-        DeL = FSDFIX * (1 + (PROFD -1) * (RHI(NR) / RA)**2) &
+        DeL = FSDFIX * (1.D0 + (PROFD -1) * (RHI(NR) / RA)**2) &
              &            + FSCDBM * DCDBM
      ELSE
         DeL = FSDFIX * PROFD &
@@ -420,13 +428,10 @@ SUBROUTINE TXCALC
      !     *** Heating profile ***
 
      IF (RHI(NR) < RA) THEN
-        PNB(NR) = PNB0 * EXP(- RHI(NR)**2 / RNB**2) &
-             &                    * (1 - (RHI(NR) / RA)** 4)
+        PNB(NR) = PNB0  * EXP(- RHI(NR)**2 / RNB**2) * (1 - (RHI(NR) / RA)** 4)
         SNB(NR) = PNB(NR) / (Eb * rKEV * 1.D20)
-        PRFe(NR)= PRFe0 * EXP(- RHI(NR)**2 / RRF**2) &
-             &                     * (1 - (RHI(NR) / RA)** 4)
-        PRFi(NR)= PRFi0 * EXP(- RHI(NR)**2 / RRF**2) &
-             &                     * (1 - (RHI(NR) / RA)** 4)
+        PRFe(NR)= PRFe0 * EXP(- RHI(NR)**2 / RRF**2) * (1 - (RHI(NR) / RA)** 4)
+        PRFi(NR)= PRFi0 * EXP(- RHI(NR)**2 / RRF**2) * (1 - (RHI(NR) / RA)** 4)
      ELSE
         PNB(NR) =0.D0
         SNB(NR) =0.D0
@@ -500,15 +505,13 @@ SUBROUTINE TXCALC
         rNuL(NR) = 0.D0
      END IF
 
-  END DO
+  END DO L_NR
 
   !     ***** Ion Orbit Loss *****
 
-  DO NR = 0, NRMAX - 1
-     SiLC(NR)   = 0.D0
-     SiLCth(NR) = 0.D0
-     SiLCph(NR) = 0.D0
-  END DO
+  SiLC(0:NRMAX-1)   = 0.D0
+  SiLCth(0:NRMAX-1) = 0.D0
+  SiLCph(0:NRMAX-1) = 0.D0
   IF (ABS(FSLC) > 0.D0) THEN
      NP = NINT(RA / DR)
      DO NR = 1, NP - 1
@@ -534,11 +537,9 @@ SUBROUTINE TXCALC
            SiLCph(NR1) = SiLCph(NR1) + SiLCphL * RHI(NR) / RHI(NR1)
         END DO
      END DO
-     DO NR = 0, NRMAX - 1
-        SiLC(NR)   = FSLC * SiLC(NR)
-        SiLCth(NR) = FSLC * SiLCth(NR)
-        SiLCph(NR) = FSLC * SiLCph(NR)
-     END DO
+     SiLC(0:NRMAX-1)   = FSLC * SiLC(0:NRMAX-1)
+     SiLCth(0:NRMAX-1) = FSLC * SiLCth(0:NRMAX-1)
+     SiLCph(0:NRMAX-1) = FSLC * SiLCph(0:NRMAX-1)
   END IF
   RETURN
 END SUBROUTINE TXCALC

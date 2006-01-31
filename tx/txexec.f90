@@ -80,12 +80,12 @@ SUBROUTINE TXLOOP
   ELSE
      IDIV = NTMAX / MODEAV
   END IF
-  TIME0 = TIME
+  TIME0 = T_TX
   DIP=(rIPe-rIPs)/NTMAX
 
   L_NTDO:DO NTDO = 1, NTMAX
      NT = NTDO
-     TIME = TIME0 + DT*NT
+     T_TX = TIME0 + DT*NT
      rIP  = rIPs  + DIP*NT
 
      ! Create new X = XN
@@ -118,11 +118,16 @@ SUBROUTINE TXLOOP
         END DO
 
         ! Check negative density or temperature in variable matrix
-        CALL TXCHEK(NT,IC,XN,IERR)
+        CALL TXCHCK(NT,IC,XN,IERR)
         IF (IERR /= 0) THEN
            X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
            CALL TXCALV(X)
-           GOTO 180
+           CALL TXCALC
+           CALL TXGLOB
+           CALL TXSTGT(SNGL(T_TX))
+           CALL TXSTGV(SNGL(T_TX))
+           CALL TXSTGR
+           RETURN
         END IF
 
         L_NQ:DO NQ = 1, NQMAX
@@ -147,12 +152,12 @@ SUBROUTINE TXLOOP
               ! Show results
               IF (NT == IDISP .AND. NR == NRMAX) THEN
                  IF (NQ == 1) THEN
-                    WRITE(6,'((1H ,A5,A3,2H =,I3))')'#####','IC',IC
-                    WRITE(6,'((1H ,A4,2H =,1PD9.2),2X,A2,2H =,I3)') &
+                    WRITE(6,'((1X,A5,A3," =",I3))')'#####','IC',IC
+                    WRITE(6,'((1X,A4," =",1PD9.2),2X,A2," =",I3)') &
                          & 'EPS   ', EPS,'NRMAX   ', NRMAX
                  END IF
-                 WRITE(6,'((1H ,A2,2H =,I2,2X,A2,2H =,1PD9.2, &
-                      & 2X,A5,2H =,1PD9.2,A1,I2,2X,A5,2H =,1PD9.2))') &
+                 WRITE(6,'((1X,A2," =",I2,2X,A2," =",1PD9.2, &
+                      & 2X,A5," =",1PD9.2,A1,I2,2X,A5," =",1PD9.2))') &
                       & 'NQ    ', NQ , &
                       & 'AV    ', AV    ,  'AVMAX ', AVM   ,':',NRAVM, &
                       & 'SCMAX ', ERR1
@@ -170,21 +175,24 @@ SUBROUTINE TXLOOP
 
      ! Calculation fully converged
      X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
+     DO I=1,NRMAX
+!        write(6,*) I,X(LQm1,I)
+     END DO
 
      ! Calculate mesh and coefficients at the next step
      CALL TXCALV(X)
      CALL TXCALC
 
      IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
-          & WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,TIME,IC
+          & WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
 
 180  IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
 
-     IF (MOD(NT, NGTSTP) == 0) CALL TXSTGT(SNGL(TIME))
+     IF (MOD(NT, NGTSTP) == 0) CALL TXSTGT(SNGL(T_TX))
 
      IF (MOD(NT, NGVSTP) == 0) THEN
         CALL TXGLOB
-        CALL TXSTGV(SNGL(TIME))
+        CALL TXSTGV(SNGL(T_TX))
      END IF
 
      IF (IERR /= 0) EXIT L_NTDO
@@ -194,7 +202,7 @@ SUBROUTINE TXLOOP
   rIPs=rIPe
 
 !   DO I=0,1
-  WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,TIME,IC
+  WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
 !   END DO
 
   RETURN
@@ -315,7 +323,7 @@ END SUBROUTINE TXCALB
 !
 !***************************************************************
 
-SUBROUTINE TXCHEK(NTL,IC,XL,IER)
+SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
   INCLUDE 'txcomm.inc'
 
@@ -349,7 +357,7 @@ SUBROUTINE TXCHEK(NTL,IC,XL,IER)
   END DO
 
   RETURN
-END SUBROUTINE TXCHEK
+END SUBROUTINE TXCHCK
 
 !***************************************************************
 !
@@ -370,7 +378,7 @@ SUBROUTINE TXWDAT
   rNbar = 2.D0 * PI * SUM(R(0:NRMAX) * PNeI(0:NRMAX)) * 1.D20 * DR
   rNbar = rNbar / (PI * RB**2)
 
-  WRITE(6,'((1H ,A,1H=,1PD9.2,3(2X,A,1H=,1PD9.2)))') &
+  WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
        &     'Ne(0)',    PNeI(0),  &
        &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeI(0)) / 1.D3,  &
        &     'UiPhi(0)', (9*X(LQi4,0)-X(LQi4,1))/(8*PNiI(0)) / 1.D3,  &
@@ -379,6 +387,9 @@ SUBROUTINE TXWDAT
        &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20,  &
        &     ' NB(0.6)', rLINEAVE(0.6D0)  / 1.D20,  &
        &     '    PF',   PNeI(0) * 1.D20 / rNbar
+  WRITE(6,'(1X,A," =",1PD9.2,2X,A,"=",1PD9.2)') &
+       &     'Te(0)',    PTeI(0),  &
+       &     'Ti(0)   ', PTiI(0)
   RETURN
 END SUBROUTINE TXWDAT
 
@@ -396,7 +407,7 @@ SUBROUTINE TXWDAT2
   CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
   CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
   CALL GMNMX1(GTY(0,11), 1, NGT + 1, 1, gUiphMIN, gUiphMAX)
-  WRITE(6,'((1H ,A,1H=,1PD9.2,2(2X,A,1H=,1PD9.2)))') &
+  WRITE(6,'((1X,A,"=",1PD9.2,2(2X,A,"=",1PD9.2)))') &
        &     'MAX(Ne(0))',     gPNeMAX / 1.E20,  &
        &     'MAX(NB(0))',     gNB0MAX / 1.E20,  &
        &     'MAX(UiPhi(0))', gUiphMAX / 1.E3, &

@@ -21,7 +21,7 @@ txlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o txlib.a $(OBJS)
 
 ../lib/tasklib.a:
-	(cd ../lib; make)
+	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
 $(PROG): txmain.o $(LIBS)
 #	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
@@ -35,6 +35,9 @@ clean:
 
 veryclean: clean
 	rm -f $(PROG)
+
+distclean: clean
+	cd ../lib && make clean
 
 new :
 	mkdir ../txnew

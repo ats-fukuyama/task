@@ -86,8 +86,8 @@ SUBROUTINE LQm1CC
      NLC(1,LQm1,NR) = LQm1
 
   FACTOR = EPS0 / (AEE * 1.D20)
-  DO NR = 1, NRMAX-1
-!!!  DO NR = 1, NRMAX
+!!!  DO NR = 1, NRMAX-1
+  DO NR = 1, NRMAX
      BLC(1,LQm1,NR) =  FACTOR * R(NR  ) / (DR * RHI(NR-1))
      CLC(1,LQm1,NR) = -FACTOR * R(NR-1) / (DR * RHI(NR-1))
      NLC(1,LQm1,NR) = LQm1
@@ -102,12 +102,12 @@ SUBROUTINE LQm1CC
      NLC(4,LQm1,NR) = LQb1
   END DO
 
-  NR = NRMAX
-     BLC(1,LQm1,NR) = 1.D0
-     NLC(1,LQm1,NR) = LQm1
+!!$  NR = NRMAX
+!!$     BLC(1,LQm1,NR) = 1.D0
+!!$     NLC(1,LQm1,NR) = LQm1
 
   NLCMAX(LQm1) = 4
-  RETURN
+ RETURN
 END SUBROUTINE LQm1CC
 
 !***************************************************************
@@ -372,7 +372,7 @@ SUBROUTINE LQe1CC
      ! Convection
 
      ALC(1,LQe1,NR) = - R(NR+1) / (RHI(NR) * DR)
-     BLC(1,LQe1,NR) = + R(NR  ) / (RHI(NR) * DR)
+     BLC(1,LQe1,NR) =   R(NR  ) / (RHI(NR) * DR)
      NLC(1,LQe1,NR) = LQe2
 
      ! Ionization of n01 and n02
@@ -446,16 +446,16 @@ SUBROUTINE LQe2CC
 
      ! Radial E force
 
-     BLC(4,LQe2,NR) = - PNeI(NR) * (AEE/AME)
+     BLC(4,LQe2,NR) = - PNeI(NR) * (AEE / AME)
      NLC(4,LQe2,NR) = LQm1
 
      ! v x B force
 
-     BLC(5,LQe2,NR) = - BphI(NR) * (AEE/AME)
+     BLC(5,LQe2,NR) = - BphI(NR) * (AEE / AME)
      NLC(5,LQe2,NR) = LQe3
 
-     BLC(6,LQe2,NR) =   BthI(NR) * (AEE/AME) / 2.D0
-     CLC(6,LQe2,NR) =   BthI(NR) * (AEE/AME) / 2.D0
+     BLC(6,LQe2,NR) =   0.5D0 * BthI(NR) * (AEE / AME)
+     CLC(6,LQe2,NR) =   0.5D0 * BthI(NR) * (AEE / AME)
      NLC(6,LQe2,NR) = LQe4
 
   END DO
@@ -482,7 +482,7 @@ SUBROUTINE LQe3CC
   INCLUDE 'txcomm.inc'
 
   INTEGER :: NR
-  REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, TMP, FWthiL, &
+  REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, FWthiL, &
        &     rNuLL, rNu0eL, rNueHLL
 
 ! Ns*UsTheta(0) : 0
@@ -524,12 +524,12 @@ SUBROUTINE LQe3CC
 
      ! Poloidal E force
 
-     BLC(3,LQe3,NR) = - PNeI(NR) * (AEE/AME)
+     BLC(3,LQe3,NR) = - PNeI(NR) * (AEE / AME)
      NLC(3,LQe3,NR) = LQm2
 
      ! v x B force
 
-     BLC(4,LQe3,NR) = BphI(NR) * (AEE/AME)
+     BLC(4,LQe3,NR) = BphI(NR) * (AEE / AME)
      NLC(4,LQe3,NR) = LQe2
 
      ! Neoclassical viscosity force
@@ -550,22 +550,20 @@ SUBROUTINE LQe3CC
      ! Collisional friction with beam ions
 
      rNubeL = 0.5D0 * (rNube(NR) + rNube(NR-1))
-     BLC(8,LQe3,NR) = - (AMB/AME) * rNubeL * PNbI(NR) / PNeI(NR)
+     BLC(8,LQe3,NR) = - (AMB / AME) * rNubeL * PNbI(NR) / PNeI(NR)
      NLC(8,LQe3,NR) = LQe3
 
-     BLC(9,LQe3,NR) =   (AMB/AME) * rNubeL
+     BLC(9,LQe3,NR) =   (AMB / AME) * rNubeL
      NLC(9,LQe3,NR) = LQb3
 
      ! Wave interaction force (electron driven)
 
      FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-     WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
      BLC(10,LQe3,NR) = - FWtheL / AME
      NLC(10,LQe3,NR) = LQe3
 
-     TMP =   FWtheL * WPML * R(NR) / AME
-     BLC(11,LQe3,NR) = TMP / 2.D0
-     CLC(11,LQe3,NR) = TMP / 2.D0
+     WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
+     BLC(11,LQe3,NR) = FWtheL * WPML * R(NR) / AME
      NLC(11,LQe3,NR) = LQe1
 
      ! Wave interaction force (NRon driven)
@@ -574,9 +572,7 @@ SUBROUTINE LQe3CC
      BLC(12,LQe3,NR) =   FWthiL / AME
      NLC(12,LQe3,NR) = LQi3
 
-     TMP = - FWthiL * WPML * R(NR) / AME
-     BLC(13,LQe3,NR) = TMP / 2.D0
-     CLC(13,LQe3,NR) = TMP / 2.D0
+     BLC(13,LQe3,NR) = - FWthiL * WPML * R(NR) / AME
      NLC(13,LQe3,NR) = LQi1
 
      ! Loss to divertor
@@ -594,10 +590,11 @@ SUBROUTINE LQe3CC
      ! Helical neoclassical viscosity force
 
      rNueHLL =rNueHL(NR)
-     BLC(16,LQe3,NR) = - rNueHLL*(1.D0-UHth*UHth)
+     BLC(16,LQe3,NR) = - rNueHLL * (1.D0 - UHth * UHth)
      NLC(16,LQe3,NR) = LQe3
-     BLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2.D0
-     CLC(17,LQe3,NR) =   rNueHLL*UHph*UHth/2.D0
+
+     BLC(17,LQe3,NR) =   rNueHLL * UHph * UHth / 2.D0
+     CLC(17,LQe3,NR) =   rNueHLL * UHph * UHth / 2.D0
      NLC(17,LQe3,NR) = LQe4
 
   END DO
@@ -680,13 +677,13 @@ SUBROUTINE LQe4CC
 
      ! Toroidal E force
 
-     BLC(3,LQe4,NR) = - PNeHI(NR  ) * (AEE/AME)
+     BLC(3,LQe4,NR) = - PNeHI(NR  ) * (AEE / AME)
      NLC(3,LQe4,NR) = LQm3
 
      ! v x B force
 
-     ALC(4,LQe4,NR) = - BthI(NR+1) * (AEE/AME) / 2.D0
-     BLC(4,LQe4,NR) = - BthI(NR  ) * (AEE/AME) / 2.D0
+     ALC(4,LQe4,NR) = - 0.5D0 * BthI(NR+1) * (AEE / AME)
+     BLC(4,LQe4,NR) = - 0.5D0 * BthI(NR  ) * (AEE / AME)
      NLC(4,LQe4,NR) = LQe2
 
      ! Collisional friction with bulk ions
@@ -694,15 +691,15 @@ SUBROUTINE LQe4CC
      BLC(5,LQe4,NR) = - rNuei(NR)
      NLC(5,LQe4,NR) = LQe4
 
-     BLC(6,LQe4,NR) = + rNuei(NR) * PNeI(NR) / PNiI(NR)
+     BLC(6,LQe4,NR) = + rNuei(NR) * PNeHI(NR) / PNiHI(NR)
      NLC(6,LQe4,NR) = LQi4
 
      ! Collisional friction with beam ions
 
-     BLC(7,LQe4,NR) = - (AMB/AME) * rNube(NR) * PNbI(NR) / PNeI(NR)
+     BLC(7,LQe4,NR) = - (AMB / AME) * rNube(NR) * PNbHI(NR) / PNeHI(NR)
      NLC(7,LQe4,NR) = LQe4
 
-     BLC(8,LQe4,NR) =   (AMB/AME) * rNube(NR)
+     BLC(8,LQe4,NR) =   (AMB / AME) * rNube(NR)
      NLC(8,LQe4,NR) = LQb4
 
      ! Loss to divertor
@@ -718,10 +715,11 @@ SUBROUTINE LQe4CC
      ! Helical neoclassical viscosity force
 
      rNueHLL = 0.5D0 * (rNueHL(NR) + rNueHL(NR+1))
-     ALC(11,LQe4,NR) =   rNueHL(NR+1)*UHth*UHph/2.D0
-     BLC(11,LQe4,NR) =   rNueHL(NR  )*UHth*UHph/2.D0
+     ALC(11,LQe4,NR) =   rNueHL(NR+1) * UHth * UHph / 2.D0
+     BLC(11,LQe4,NR) =   rNueHL(NR  ) * UHth * UHph / 2.D0
      NLC(11,LQe4,NR) = LQe3
-     BLC(12,LQe4,NR) = - rNueHLL*(1.D0-UHph*UHph)
+
+     BLC(12,LQe4,NR) = - rNueHLL * (1.D0 - UHph * UHph)
      NLC(12,LQe4,NR) = LQe4
 
   END DO
@@ -829,8 +827,8 @@ SUBROUTINE LQe5CC
 
         ! Joule heating
 
-        ALC(3,LQe5,NR) = - AEE * EthI(NR+1) / (2.D0 * rKeV)
-        BLC(3,LQe5,NR) = - AEE * EthI(NR  ) / (2.D0 * rKeV)
+        ALC(3,LQe5,NR) = - 0.5D0 * AEE * EthI(NR+1) / rKeV
+        BLC(3,LQe5,NR) = - 0.5D0 * AEE * EthI(NR  ) / rKeV
         NLC(3,LQe5,NR) = LQe3
 
         BLC(4,LQe5,NR) = - AEE * EphHI(NR) / rKeV
@@ -841,16 +839,16 @@ SUBROUTINE LQe5CC
         BLC(5,LQe5,NR) = - rNuTei(NR)
         NLC(5,LQe5,NR) = LQe5
 
-        BLC(6,LQe5,NR) =   rNuTei(NR) * (PNeHI(NR)/PNiHI(NR))
+        BLC(6,LQe5,NR) =   rNuTei(NR) * (PNeHI(NR) / PNiHI(NR))
         NLC(6,LQe5,NR) = LQi5
 
         ! Collisional heating with beam
 
-        BLC(7,LQe5,NR) = - AMb * Vb * rNube(NR) / (2.D0 * rKeV) &
+        BLC(7,LQe5,NR) = - 0.5D0 * AMb * (PNBCD * Vb) * rNube(NR) / rKeV &
              &                       * (PNbHI(NR) / PNeHI(NR))
         NLC(7,LQe5,NR) = LQe4
 
-        BLC(8,LQe5,NR) =   AMb * Vb * rNube(NR) / (2.D0 * rKeV)
+        BLC(8,LQe5,NR) =   0.5D0 * AMb * (PNBCD * Vb) * rNube(NR) / rKeV
         NLC(8,LQe5,NR) = LQb4
 
         ! Loss to diverter
@@ -985,16 +983,16 @@ SUBROUTINE LQi2CC
 
      ! Radial E force
 
-     BLC(4,LQi2,NR) =   PZ * PNiI(NR) * (AEE/AMI)
+     BLC(4,LQi2,NR) =   PZ * PNiI(NR) * (AEE / AMI)
      NLC(4,LQi2,NR) = LQm1
 
      ! v x B force
 
-     BLC(5,LQi2,NR) =   PZ * BphI(NR) * (AEE/AMI)
+     BLC(5,LQi2,NR) =   PZ * BphI(NR) * (AEE / AMI)
      NLC(5,LQi2,NR) = LQi3
 
-     BLC(6,LQi2,NR) = - PZ * BthI(NR) * (AEE/AMI) / 2.D0
-     CLC(6,LQi2,NR) = - PZ * BthI(NR) * (AEE/AMI) / 2.D0
+     BLC(6,LQi2,NR) = - 0.5D0 * PZ * BthI(NR) * (AEE / AMI)
+     CLC(6,LQi2,NR) = - 0.5D0 * PZ * BthI(NR) * (AEE / AMI)
      NLC(6,LQi2,NR) = LQi4
   END DO
 
@@ -1020,7 +1018,7 @@ SUBROUTINE LQi3CC
   INCLUDE 'txcomm.inc'
 
   INTEGER :: NR
-  REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, TMP, FWthiL, &
+  REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, FWthiL, &
        &     rNuLL, rNu0iL, rNuiCXL, SiLCthL, rNuiHLL
 
 ! Ni*UiTheta(0) : 0
@@ -1063,12 +1061,12 @@ SUBROUTINE LQi3CC
 
      ! Poroidal E force
 
-     BLC(3,LQi3,NR) = PZ * PNiI(NR  ) * (AEE/AMI)
+     BLC(3,LQi3,NR) = PZ * PNiI(NR  ) * (AEE / AMI)
      NLC(3,LQi3,NR) = LQm2
 
      ! v x B force
 
-     BLC(4,LQi3,NR) = - PZ * BphI(NR) * (AEE/AMI)
+     BLC(4,LQi3,NR) = - PZ * BphI(NR) * (AEE / AMI)
      NLC(4,LQi3,NR) = LQi2
 
      ! Neoclassical viscosity force
@@ -1080,31 +1078,29 @@ SUBROUTINE LQi3CC
      ! Collisional friction force
 
      rNueiL = 0.5D0 * (rNuei(NR) + rNuei(NR-1))
-     BLC(6,LQi3,NR) = - (AME/AMI) * rNueiL * PNeI(NR) / PNiI(NR)
+     BLC(6,LQi3,NR) = - (AME  /AMI) * rNueiL * PNeI(NR) / PNiI(NR)
      NLC(6,LQi3,NR) = LQi3
 
-     BLC(7,LQi3,NR) =   (AME/AMI) * rNueiL
+     BLC(7,LQi3,NR) =   (AME / AMI) * rNueiL
      NLC(7,LQi3,NR) = LQe3
 
      ! Collisional friction with beam ions
 
      rNubiL = 0.5D0 * (rNubi(NR) + rNubi(NR-1))
-     BLC(8,LQi3,NR) = - (AMB/AMI) * rNubiL * PNbI(NR) / PNiI(NR)
+     BLC(8,LQi3,NR) = - (AMB / AMI) * rNubiL * PNbI(NR) / PNiI(NR)
      NLC(8,LQi3,NR) = LQi3
 
-     BLC(9,LQi3,NR) =   (AMB/AMI) * rNubiL
+     BLC(9,LQi3,NR) =   (AMB / AMI) * rNubiL
      NLC(9,LQi3,NR) = LQb3
 
      ! Wave interaction force (electron driven)
 
      FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-     WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
      BLC(10,LQi3,NR) = FWtheL / AMI
      NLC(10,LQi3,NR) = LQe3
 
-     TMP = - FWtheL * WPML * R(NR) / AMI
-     BLC(11,LQi3,NR) = TMP / 2.D0
-     CLC(11,LQi3,NR) = TMP / 2.D0
+     WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
+     BLC(11,LQi3,NR) = - FWtheL * WPML * R(NR) / AMI
      NLC(11,LQi3,NR) = LQe1
 
      ! Wave interaction force (NRon driven)
@@ -1113,9 +1109,7 @@ SUBROUTINE LQi3CC
      BLC(12,LQi3,NR) = - FWthiL / AMI
      NLC(12,LQi3,NR) = LQi3
 
-     TMP = FWthiL * WPML * R(NR) / AMI
-     BLC(13,LQi3,NR) = TMP / 2.D0
-     CLC(13,LQi3,NR) = TMP / 2.D0
+     BLC(13,LQi3,NR) = FWthiL * WPML * R(NR) / AMI
      NLC(13,LQi3,NR) = LQi1
 
      ! Loss to divertor
@@ -1144,10 +1138,11 @@ SUBROUTINE LQi3CC
      ! Helical Neoclassical viscosity force
 
      rNuiHLL = rNuiHL(NR)
-     BLC(18,LQi3,NR) = - rNuiHLL*(1.D0-UHth*UHth)
+     BLC(18,LQi3,NR) = - rNuiHLL * (1.D0 - UHth * UHth)
      NLC(18,LQi3,NR) = LQi3
-     BLC(19,LQi3,NR) =   0.5D0*rNuiHLL*UHph*UHth
-     CLC(19,LQi3,NR) =   0.5D0*rNuiHLL*UHph*UHth
+
+     BLC(19,LQi3,NR) =   0.5D0 * rNuiHLL * UHph * UHth
+     CLC(19,LQi3,NR) =   0.5D0 * rNuiHLL * UHph * UHth
      NLC(19,LQi3,NR) = LQi4
   END DO
 
@@ -1218,40 +1213,40 @@ SUBROUTINE LQi4CC
         rMuiM = 0.5D0*(rMui(NR-1) + rMui(NR))
         ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
              &                    / (PNiHI(NR+1) * RHI(NR) * DR**2)
-        BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR  ) * rMuiP &
+        BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMuiP &
              &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
-             &           - R(NR  ) * PNiI(NR-1) * rMuiM &
+             &           - R(NR  ) * PNiI(NR  ) * rMuiM &
              &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-        CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR-1) * rMuiM &
+        CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMuiM &
              &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
      END IF
      NLC(2,LQi4,NR) = LQi4
 
      ! Toroidal E force
 
-     BLC(3,LQi4,NR) = PZ * PNiHI(NR  ) * (AEE/AMI)
+     BLC(3,LQi4,NR) = PZ * PNiHI(NR  ) * (AEE / AMI)
      NLC(3,LQi4,NR) = LQm3
 
      ! v x B force
 
-     ALC(4,LQi4,NR) = PZ * BthI(NR+1) * (AEE/AMI) / 2.D0
-     BLC(4,LQi4,NR) = PZ * BthI(NR  ) * (AEE/AMI) / 2.D0
+     ALC(4,LQi4,NR) = 0.5D0 * PZ * BthI(NR+1) * (AEE / AMI)
+     BLC(4,LQi4,NR) = 0.5D0 * PZ * BthI(NR  ) * (AEE / AMI)
      NLC(4,LQi4,NR) = LQi2
 
      ! Collisional friction with bulk ions
 
-     BLC(5,LQi4,NR) = - (AME/AMI) * rNuei(NR) * PNeI(NR) / PNiI(NR)
+     BLC(5,LQi4,NR) = - (AME / AMI) * rNuei(NR) * PNeHI(NR) / PNiHI(NR)
      NLC(5,LQi4,NR) = LQi4
 
-     BLC(6,LQi4,NR) =   (AME/AMI) * rNuei(NR)
+     BLC(6,LQi4,NR) =   (AME / AMI) * rNuei(NR)
      NLC(6,LQi4,NR) = LQe4
 
      ! Collisional friction with beam ions
 
-     BLC(7,LQi4,NR) = - (AMB/AMI) * rNubi(NR) * PNbI(NR) / PNiI(NR)
+     BLC(7,LQi4,NR) = - (AMB / AMI) * rNubi(NR) * PNbHI(NR) / PNiHI(NR)
      NLC(7,LQi4,NR) = LQi4
 
-     BLC(8,LQi4,NR) =   (AMB/AMI) * rNubi(NR)
+     BLC(8,LQi4,NR) =   (AMB / AMI) * rNubi(NR)
      NLC(8,LQi4,NR) = LQb4
 
      ! Loss to divertor
@@ -1276,10 +1271,11 @@ SUBROUTINE LQi4CC
      ! Helical Neoclassical viscosity force
 
      rNuiHLL = 0.5D0 * (rNuiHL(NR) + rNuiHL(NR+1))
-     ALC(13,LQi4,NR) =   rNuiHL(NR+1)*UHth*UHph/2.D0
-     BLC(13,LQi4,NR) =   rNuiHL(NR  )*UHth*UHph/2.D0
+     ALC(13,LQi4,NR) =   rNuiHL(NR+1) * UHth * UHph / 2.D0
+     BLC(13,LQi4,NR) =   rNuiHL(NR  ) * UHth * UHph / 2.D0
      NLC(13,LQi4,NR) = LQi3
-     BLC(14,LQi4,NR) = - rNuiHLL*(1.D0-UHph*UHph)
+
+     BLC(14,LQi4,NR) = - rNuiHLL * (1.D0 - UHph * UHph)
      NLC(14,LQi4,NR) = LQi4
 
   END DO
@@ -1387,8 +1383,8 @@ SUBROUTINE LQi5CC
 
         ! Joule heating
 
-        ALC(3,LQi5,NR) =   PZ * AEE * EthI(NR+1) / (2.D0 * rKeV)
-        BLC(3,LQi5,NR) =   PZ * AEE * EthI(NR  ) / (2.D0 * rKeV)
+        ALC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthI(NR+1) / rKeV
+        BLC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthI(NR  ) / rKeV
         NLC(3,LQi5,NR) = LQi3
 
         BLC(4,LQi5,NR) =   PZ * AEE * EphHI(NR) / rKeV
@@ -1404,11 +1400,11 @@ SUBROUTINE LQi5CC
 
         ! Collisional heating with beam
 
-        BLC(7,LQi5,NR) = - AMb * Vb * rNubi(NR) / (2.D0 * rKeV) &
+        BLC(7,LQi5,NR) = - 0.5D0 * AMb * (PNBCD * Vb) * rNubi(NR) / rKeV &
              &                       * (PNbHI(NR) / PNiHI(NR))
         NLC(7,LQi5,NR) = LQi4
 
-        BLC(8,LQi5,NR) =   AMb * Vb * rNubi(NR) / (2.D0 * rKeV)
+        BLC(8,LQi5,NR) =   0.5D0 * AMb * (PNBCD * Vb) * rNubi(NR) / rKeV
         NLC(8,LQi5,NR) = LQb4
 
         ! Loss to diverter
@@ -1475,7 +1471,7 @@ END SUBROUTINE LQb1CC
 !   Beam Ion Poloidal Flow (NR)
 !
 !***************************************************************
-!
+
 SUBROUTINE LQb3CC
 
   USE physical_constants, only : AEE
@@ -1490,6 +1486,8 @@ SUBROUTINE LQb3CC
      NLC(1,LQb3,NR) = LQb3
 
   DO NR = 1, NRMAX-1
+     BLC(0,LQb3,NR) = 1.D0 / DT
+     NLC(0,LQb3,NR) = LQb3
 
      ! Nonlinear centrifugal force
 
@@ -1498,15 +1496,16 @@ SUBROUTINE LQb3CC
 
      ! Radial E force
 
-     BLC(2,LQb3,NR) = PZ * PNbI(NR) * (AEE/AMB)
+     BLC(2,LQb3,NR) = PZ * PNbI(NR) * (AEE / AMB)
      NLC(2,LQb3,NR) = LQm1
 
      ! v x B force
 
-     BLC(3,LQb3,NR) = PZ * BphI(NR) * (AEE/AMB)
+     BLC(3,LQb3,NR) = PZ * BphI(NR) * (AEE / AMB)
      NLC(3,LQb3,NR) = LQb3
 
-     BLC(4,LQb3,NR) = - PZ * BthI(NR) * (AEE/AMB)
+     BLC(4,LQb3,NR) = - 0.5D0 * PZ * BthI(NR) * (AEE / AMB)
+     CLC(4,LQb3,NR) = - 0.5D0 * PZ * BthI(NR) * (AEE / AMB)
      NLC(4,LQb3,NR) = LQb4
   END DO
 
@@ -1533,13 +1532,19 @@ SUBROUTINE LQb4CC
   INTEGER :: NR
   REAL(8) :: SNBL
 
-  ! Ubphi'(0) : 0
+  ! - UbPhi(0)' : 0
+  ! Discrete points of this equation are on the HALF MESH.
+  ! In order to define the derivative at RHI(0), we use Nb * UbPhi at R(0) and
+  !   R(1) on the GRID MESH so that we should divide them by Nb on the mesh
+  !   in the case of NBI heating.
 
   NR = 0
   IF (PNbI(0)*PNbI(1) == 0.D0) THEN
+     ! NBI off
      ALC(1,LQb4,NR) = -1.D0
      BLC(1,LQb4,NR) =  1.D0
   ELSE
+     ! NBI on
      ALC(1,LQb4,NR) = -1.D0 / PNbI(NR+1)
      BLC(1,LQb4,NR) =  1.D0 / PNbI(NR  )
   END IF
@@ -1554,7 +1559,7 @@ SUBROUTINE LQb4CC
      BLC(1,LQb4,NR) = - rNube(NR)
      NLC(1,LQb4,NR) = LQb4
 
-     BLC(2,LQb4,NR) =   rNube(NR) * PNbI(NR) / PNeI(NR)
+     BLC(2,LQb4,NR) =   rNube(NR) * PNbHI(NR) / PNeHI(NR)
      NLC(2,LQb4,NR) = LQe4
 
      ! Collisional friction with ions
@@ -1562,13 +1567,12 @@ SUBROUTINE LQb4CC
      BLC(3,LQb4,NR) = - rNubi(NR)
      NLC(3,LQb4,NR) = LQb4
 
-     BLC(4,LQb4,NR) =   rNubi(NR) * PNbI(NR) / PNiI(NR)
+     BLC(4,LQb4,NR) =   rNubi(NR) * PNbHI(NR) / PNiHI(NR)
      NLC(4,LQb4,NR) = LQi4
 
      ! NBI momentum source
 
-     SNBL = 0.5D0 * (SNB(NR) + SNB(NR-1))
-     PLC(5,LQb4,NR) = PNBCD * Vb * SNBL
+     PLC(5,LQb4,NR) = (PNBCD * Vb) * SNB(NR)
   END DO
 
   ! Ubphi(NRMAX) : 0
@@ -1592,7 +1596,7 @@ SUBROUTINE LQn1CC
   INCLUDE 'txcomm.inc'
 
   INTEGER :: NR
-  REAL(8) :: D0LP, D0LM, rNuiCXL
+  REAL(8) :: D0LP, D0LM
 
   DO NR = 0, NRMAX-1
      BLC(0,LQn1,NR) = 1.D0 / DT
@@ -1602,20 +1606,20 @@ SUBROUTINE LQn1CC
 
      IF (NR == 0) THEN
         D0LP = 0.5D0 * (D01(NR) + D01(NR+1))
-        ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR**2)
-        BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR**2)
+        ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR) * DR**2)
+        BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR) * DR**2)
      ELSEIF (NR == NRMAX-1) THEN
         D0LM = 0.5D0 * (D01(NR-1) + D01(NR))
-        BLC(1,LQn1,NR) = - D0LM * R(NR  ) / (RHI(NR)*DR**2)
-        CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR**2)
-        PLC(1,LQn1,NR) =          R(NR+1) / (RHI(NR)*DR)   * rGASPF
+        BLC(1,LQn1,NR) = - D0LM * R(NR  ) / (RHI(NR) * DR**2)
+        CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR) * DR**2)
+        PLC(1,LQn1,NR) =          R(NR+1) / (RHI(NR) * DR)   * rGASPF
      ELSE
         D0LP = 0.5D0 * (D01(NR) + D01(NR+1))
         D0LM = 0.5D0 * (D01(NR-1) + D01(NR))
-        ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR**2)
-        BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR**2) &
-             &           - D0LM * R(NR  ) / (RHI(NR)*DR**2)
-        CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR**2)
+        ALC(1,LQn1,NR) =   D0LP * R(NR+1) / (RHI(NR) * DR**2)
+        BLC(1,LQn1,NR) = - D0LP * R(NR+1) / (RHI(NR) * DR**2) &
+             &           - D0LM * R(NR  ) / (RHI(NR) * DR**2)
+        CLC(1,LQn1,NR) =   D0LM * R(NR  ) / (RHI(NR) * DR**2)
      END IF
      NLC(1,LQn1,NR) = LQn1
 
@@ -1627,13 +1631,8 @@ SUBROUTINE LQn1CC
 
      ! Generation of fast neutrals by charge exchange
 
-!!$     IF(NR /= 0) THEN
-!!$        rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  )) &
-!!$             &    + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2.D0
-!!$     ELSE
-     rNuiCXL =   rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
-!!$     END IF
-     BLC(3,LQn1,NR) = - rNuiCXL*PNiHI(NR)
+     BLC(3,LQn1,NR) = - rNuiCX(NR) &
+          &           * PNiHI(NR) / (PN01HI(NR) + PN02HI(NR))
      NLC(3,LQn1,NR) = LQn1
 
      ! Recycling from divertor
@@ -1667,7 +1666,7 @@ SUBROUTINE LQn2CC
   INCLUDE 'txcomm.inc'
 
   INTEGER :: NR
-  REAL(8) :: D0LP, D0LM, rNuiCXL
+  REAL(8) :: D0LP, D0LM
 
   DO NR = 0, NRMAX-1
      BLC(0,LQn2,NR) = 1.D0 / DT
@@ -1677,19 +1676,19 @@ SUBROUTINE LQn2CC
 
      IF (NR == 0) THEN
         D0LP = 0.5D0 * (D02(NR) + D02(NR+1))
-        ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR**2)
-        BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR**2)
+        ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR) * DR**2)
+        BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR) * DR**2)
      ELSEIF (NR == NRMAX-1) THEN
         D0LM = 0.5D0 * (D02(NR-1) + D02(NR))
-        BLC(1,LQn2,NR) = - D0LM * R(NR  ) / (RHI(NR)*DR**2)
-        CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR**2)
+        BLC(1,LQn2,NR) = - D0LM * R(NR  ) / (RHI(NR) * DR**2)
+        CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR) * DR**2)
      ELSE
         D0LP = 0.5D0 * (D02(NR) + D02(NR+1))
         D0LM = 0.5D0 * (D02(NR-1) + D02(NR))
-        ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR)*DR**2)
-        BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR)*DR**2) &
-             &           - D0LM * R(NR  ) / (RHI(NR)*DR**2)
-        CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR)*DR**2)
+        ALC(1,LQn2,NR) =   D0LP * R(NR+1) / (RHI(NR) * DR**2)
+        BLC(1,LQn2,NR) = - D0LP * R(NR+1) / (RHI(NR) * DR**2) &
+             &           - D0LM * R(NR  ) / (RHI(NR) * DR**2)
+        CLC(1,LQn2,NR) =   D0LM * R(NR  ) / (RHI(NR) * DR**2)
      END IF
      NLC(1,LQn2,NR) = LQn2
 
@@ -1701,13 +1700,8 @@ SUBROUTINE LQn2CC
 
      ! Generation of fast neutrals by charge exchange
 
-!!$     IF(NR /= 0) THEN
-!!$        rNuiCXL = ( rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  )) &
-!!$             &    + rNuiCX(NR-1)/(PN01HI(NR-1) + PN02HI(NR-1)))/2.D0
-!!$     ELSE
-     rNuiCXL =   rNuiCX(NR  )/(PN01HI(NR  ) + PN02HI(NR  ))
-!!$     END IF
-     BLC(3,LQn2,NR) = rNuiCXL * PNiHI(NR)
+     BLC(3,LQn2,NR) =   rNuiCX(NR) &
+          &           * PNiHI(NR) / (PN01HI(NR) + PN02HI(NR))
      NLC(3,LQn2,NR) = LQn1
 
      ! NBI particle source

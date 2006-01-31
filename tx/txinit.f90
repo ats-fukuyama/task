@@ -42,12 +42,6 @@ SUBROUTINE TXINIT
 
   INCLUDE 'txcomm.inc'
 
-  INTEGER :: I
-
-!   ***** Version ID *****
-!   SLID is used to identify data file.
-  SLID = 'tx211.00'
-
 !   ***** Configuration parameters *****
 
 !   Plasma minor radius (m)
@@ -108,7 +102,7 @@ SUBROUTINE TXINIT
   De0 = 0.D0
 
 !   Ion-driven diffusion parameter
-  Di0 = 1.D0
+  Di0 = 0.2D0
 
 !   Electron viscosity parameter
   rMue0 = 3.D0
@@ -132,7 +126,8 @@ SUBROUTINE TXINIT
 !   ***** Turbulent transport control parameters *****
 
 !   Fixed transport coefficient parameter
-  FSDFIX = 1.0D0
+!   Suitable between 0.01 and 0.05
+  FSDFIX = 0.05D0
 
 !   CDBM transport coefficient parameter
 !     (Current diffusive ballooning mode)
@@ -238,15 +233,15 @@ SUBROUTINE TXINIT
   DT = 1.D-3
 
 !   Convergence parameter
-  EPS = 1.D99
+  EPS = 1.D-2
 
 !   Iteration
-  ICMAX=2
+  ICMAX=10
 
 !   ***** Mesh number parameters *****
 
 !   Radial step number
-  NRMAX = 40
+  NRMAX = 50
 
 !   Number of time step
   NTMAX = 10
@@ -280,9 +275,10 @@ SUBROUTINE TXINIT
 !   n : Number of Display
   MODEAV = 0
 
-  DO I = 1, NGYRM
-     gDIV(I) = 1.E0
-  END DO
+!   Multiplication factor for graphic in the radial direction
+!   default : 1.0
+!
+  gDIV(1:NGYRM) = 1.0
   gDIV(1)  = 1.E20
   gDIV(2)  = 1.E14
   gDIV(4)  = 1.E3
@@ -290,8 +286,20 @@ SUBROUTINE TXINIT
   gDIV(7)  = 1.E3
   gDIV(8)  = 1.E3
   gDIV(9)  = 1.E3
+  gDIV(12) = 1.E18
+  gDIV(13) = 1.E3
   gDIV(16) = 1.E14
   gDIV(18) = 1.E6
+  gDIV(21) = 1.E6
+  gDIV(22) = 1.E6
+  gDIV(23) = 1.E3
+  gDIV(24) = 1.E3
+  gDIV(25) = 1.E3
+  gDIV(26) = 1.E3
+  gDIV(27) = 1.E3
+  gDIV(28) = 1.E3
+  gDIV(35) = 1.E14
+  gDIV(36) = 1.E14
 
 !   Radius where density increase by command DEL
   DelR = 0.175D0
@@ -442,7 +450,7 @@ SUBROUTINE TXVIEW
 
   INCLUDE 'txcomm.inc'
 
-  WRITE(6,'((1H ,A6,2H =,1PD9.2,3(2X,A6,2H =,1PD9.2)))') &
+  WRITE(6,'((1X,A6," =",1PD9.2,3(2X,A6," =",1PD9.2)))') &
        &   'RA    ', RA    ,  'RB    ', RB    ,  &
        &   'RR    ', RR    ,  'BB    ', BB    ,  &
        &   'PA    ', PA    ,  'PZ    ', PZ    ,  &
@@ -473,7 +481,7 @@ SUBROUTINE TXVIEW
        &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
        &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
        &   'Q0    ', Q0    ,  'QA    ', QA
-  WRITE(6,'((1H ,A6,2H =,I5,3(6X,A6,2H =,I5)))') &
+  WRITE(6,'((" ",A6," =",I5,3(6X,A6," =",I5)))') &
        &   'NRMAX ', NRMAX ,  &
        &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP,  &
        &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP,  &
@@ -581,9 +589,7 @@ SUBROUTINE TXPROF
   END IF
 
   IF(FSHL == 0.D0) THEN
-     DO NR=0,NRMAX
-        AJV(NR)=0.D0
-     END DO
+     AJV(0:NRMAX)=0.D0
   ELSE
      DO NR=0,NRMAX
         RL=R(NR)
@@ -623,7 +629,7 @@ SUBROUTINE TXPROF
      END IF
   END DO
 
-  TIME=0.D0
+  T_TX=0.D0
   NGT=-1
   NGR=-1
   NGVV=-1
@@ -641,17 +647,17 @@ SUBROUTINE TXPROF
 
 !  CALL TXCALA
 
-!  Calculate global quantities for showing status
+!  Calculate global quantities for storing and showing initial status
 
-!  CALL TXGLOB
+  CALL TXGLOB
 
 !  Store center or edge values of variables for showing time-evolution graph
 
-  CALL TXSTGT(SNGL(TIME))
+  CALL TXSTGT(SNGL(T_TX))
 
 !  Store global quantities for showing time-evolution graph
 
-  CALL TXSTGV(SNGL(TIME))
+  CALL TXSTGV(SNGL(T_TX))
 
 !  Store profile data for showing graph
 

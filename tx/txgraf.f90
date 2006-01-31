@@ -39,12 +39,12 @@ SUBROUTINE TXGOUT
         CALL TXGLOD
 
      ELSE IF (KID1 == 'I') THEN
-        TIME = 0.D0
+        T_TX = 0.D0
         TPRE = 0.D0
         NGT = -1
         NGVV = -1
-        CALL TXSTGT(SNGL(TIME))
-        CALL TXSTGV(SNGL(TIME))
+        CALL TXSTGT(SNGL(T_TX))
+        CALL TXSTGV(SNGL(T_TX))
 
      ELSE IF (KID1 == 'R') THEN
         READ(STR(2:5),*,IOSTAT=IST) NGPR
@@ -144,9 +144,10 @@ SUBROUTINE TXGOUT
            END IF
            IF (NQ >= 1 .AND. NQ <= NQMAX) THEN
               CALL PAGES
-              DO NQL=NQ,MIN(NQ+3,NQMAX)
-                 CALL TXGRFQ(NQL,NQL-NQ+1)
-              END DO
+!!$              DO NQL=NQ,MIN(NQ+3,NQMAX)
+!!$                 CALL TXGRFQ(NQL,NQL-NQ+1)
+!!$              END DO
+              CALL TXGRFQ(NQ,5)
               CALL PAGEE
            END IF
         END IF
@@ -259,6 +260,9 @@ SUBROUTINE TXPRFG
   INCLUDE 'txcomm.inc'
   INTEGER :: NR
 
+  !  GX(NR,1) : Integer
+  !  GX(NR,2) : Half integer
+
   DO NR = 0, NRMAX
      GX(NR,1) = SNGL(R(NR) / RA)
   END DO
@@ -267,6 +271,7 @@ SUBROUTINE TXPRFG
      GX(NR,2) = SNGL(RHI(NR) / RA)
   END DO
   GX(NRMAX,2) = SNGL(RB/RA)
+
   RETURN
 END SUBROUTINE TXPRFG
 
@@ -286,77 +291,73 @@ SUBROUTINE TXSTGR
 
   IF (NGR < NGRM) NGR = NGR + 1
 
-  GT(NGR) = SNGL(TIME)
+  GT(NGR) = SNGL(T_TX)
 
   ! Integer
 
-  DO NR = 0, NRMAX
-     GY(NR,NGR,3)  = SNGL(UerI(NR))
-     GY(NR,NGR,4)  = SNGL(UethI(NR))
-     GY(NR,NGR,6)  = SNGL(UirI(NR))
-     GY(NR,NGR,7)  = SNGL(UithI(NR))
-     GY(NR,NGR,9)  = SNGL(ErI(NR))
-     GY(NR,NGR,10) = SNGL(BthI(NR))
-     GY(NR,NGR,17) = SNGL(EthI(NR))
-     GY(NR,NGR,19) = SNGL(UbthI(NR))
-     GY(NR,NGR,20) = SNGL(Q(NR))
-  END DO
+  GY(0:NRMAX,NGR,3)  = SNGL(UerI(0:NRMAX))
+  GY(0:NRMAX,NGR,4)  = SNGL(UethI(0:NRMAX))
+  GY(0:NRMAX,NGR,6)  = SNGL(UirI(0:NRMAX))
+  GY(0:NRMAX,NGR,7)  = SNGL(UithI(0:NRMAX))
+  GY(0:NRMAX,NGR,9)  = SNGL(ErI(0:NRMAX))
+  GY(0:NRMAX,NGR,10) = SNGL(BthI(0:NRMAX))
+  GY(0:NRMAX,NGR,17) = SNGL(EthI(0:NRMAX))
+  GY(0:NRMAX,NGR,19) = SNGL(UbthI(0:NRMAX))
+  GY(0:NRMAX,NGR,20) = SNGL(Q(0:NRMAX))
 
   ! Half Integer
 
-  DO NR = 0, NRMAX - 1
-     GY(NR,NGR,1)  = SNGL(PNeHI(NR) * 1.D20)
-     GY(NR,NGR,2)  = SNGL((PZ * PNiHI(NR) + PZ * PNbHI(NR) - PNeHI(NR))&
-     &                    * 1.D20)
-     GY(NR,NGR,5)  = SNGL(UephHI(NR))
-     GY(NR,NGR,8)  = SNGL(UiphHI(NR))
-     GY(NR,NGR,11) = SNGL(EphHI(NR))
-     GY(NR,NGR,12) = SNGL(PNbHI(NR) * 1.D20)
-     GY(NR,NGR,13) = SNGL(UbphHI(NR))
-     GY(NR,NGR,14) = SNGL(PTeHI(NR))
-     GY(NR,NGR,15) = SNGL(PTiHI(NR))
-     GY(NR,NGR,16) = SNGL((PN01HI(NR) + PN02HI(NR)) * 1.D20)
-     GY(NR,NGR,18) = SNGL(BphHI(NR))
-     GY(NR,NGR,21) = SNGL(-      AEE * PNeHI(NR) * UephHI(NR)*1.D20 &
-          &               + PZ * AEE * PNiHI(NR) * UiphHI(NR)*1.D20 &
-          &               + PZ * AEE * PNbHI(NR) * UbphHI(NR)*1.D20)
-     GY(NR,NGR,22) = SNGL(-      AEE * PNeHI(NR) * UephHI(NR)*1.D20)
-     GY(NR,NGR,23) = SNGL(  PZ * AEE * PNiHI(NR) * UiphHI(NR)*1.D20)
-     GY(NR,NGR,24) = SNGL(  PZ * AEE * PNbHI(NR) * UbphHI(NR)*1.D20)
-     GY(NR,NGR,35) = SNGL(PN01HI(NR) * 1.D20)
-     GY(NR,NGR,36) = SNGL(PN02HI(NR) * 1.D20)
-  END DO
+  GY(0:NRMAX-1,NGR,1)  = SNGL(PNeHI(0:NRMAX-1)*1.D20)
+  GY(0:NRMAX-1,NGR,2)  = SNGL(( PZ*PNiHI(0:NRMAX-1)+PZ * PNbHI(0:NRMAX-1)&
+       &                       -PNeHI(0:NRMAX-1))* 1.D20)
+  GY(0:NRMAX-1,NGR,5)  = SNGL(UephHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,8)  = SNGL(UiphHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,11) = SNGL(EphHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,12) = SNGL(PNbHI(0:NRMAX-1) * 1.D20)
+  GY(0:NRMAX-1,NGR,13) = SNGL(UbphHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,14) = SNGL(PTeHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,15) = SNGL(PTiHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,16) = SNGL((PN01HI(0:NRMAX-1)+PN02HI(0:NRMAX-1))*1.D20)
+  GY(0:NRMAX-1,NGR,18) = SNGL(BphHI(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,21) = SNGL((-   AEE*PNeHI(0:NRMAX-1)*UephHI(0:NRMAX-1) &
+       &                       +PZ*AEE*PNiHI(0:NRMAX-1)*UiphHI(0:NRMAX-1) &
+       &                       +PZ*AEE*PNbHI(0:NRMAX-1)*UbphHI(0:NRMAX-1))&
+       &                      *1.D20)
+  GY(0:NRMAX-1,NGR,22) = SNGL( -   AEE*PNeHI(0:NRMAX-1)*UephHI(0:NRMAX-1)*1.D20)
+  GY(0:NRMAX-1,NGR,23) = SNGL(  PZ*AEE*PNiHI(0:NRMAX-1)*UiphHI(0:NRMAX-1)*1.D20)
+  GY(0:NRMAX-1,NGR,24) = SNGL(  PZ*AEE*PNbHI(0:NRMAX-1)*UbphHI(0:NRMAX-1)*1.D20)
+  GY(0:NRMAX-1,NGR,35) = SNGL(PN01HI(0:NRMAX-1)*1.D20)
+  GY(0:NRMAX-1,NGR,36) = SNGL(PN02HI(0:NRMAX-1)*1.D20)
 
   ! Integer
 
-  DO NR = 0, NRMAX
-     Bth = BthI(NR)
-     Bph = BphI(NR)
-     BBL = SQRT(Bph**2 + Bth*2)
-     GY(NR,NGR,25) = SNGL(+ Bph * UethI(NR) / BBL &
-          &               - Bth * UephI(NR) / BBL)
-     GY(NR,NGR,26) = SNGL(+ Bth * UethI(NR) / BBL &
-          &               + Bph * UephI(NR) / BBL)
-     GY(NR,NGR,27) = SNGL(+ Bph * UithI(NR) / BBL &
-          &               - Bth * UiphI(NR) / BBL)
-     GY(NR,NGR,28) = SNGL(+ Bth * UithI(NR) / BBL &
-          &               + Bph * UiphI(NR) / BBL)
-  END DO
+  GY(0:NRMAX,NGR,25) = SNGL(( BphI(0:NRMAX)*UethI(0:NRMAX) &
+       &                     -BthI(0:NRMAX)*UephI(0:NRMAX)) &
+       &                    /SQRT(BphI(0:NRMAX)**2 + BthI(0:NRMAX)*2))
+  GY(0:NRMAX,NGR,26) = SNGL(( BthI(0:NRMAX)*UethI(0:NRMAX) &
+       &                     +BphI(0:NRMAX)*UephI(0:NRMAX)) &
+       &                    /SQRT(BphI(0:NRMAX)**2 + BthI(0:NRMAX)*2))
+  GY(0:NRMAX,NGR,27) = SNGL(( BphI(0:NRMAX)*UithI(0:NRMAX) &
+       &                     -BthI(0:NRMAX)*UiphI(0:NRMAX)) &
+       &                    /SQRT(BphI(0:NRMAX)**2 + BthI(0:NRMAX)*2))
+  GY(0:NRMAX,NGR,28) = SNGL(( BthI(0:NRMAX)*UithI(0:NRMAX) &
+       &                     +BphI(0:NRMAX)*UiphI(0:NRMAX)) &
+       &                    /SQRT(BphI(0:NRMAX)**2 + BthI(0:NRMAX)*2))
 
   ! Half Integer
 
+  GY(0:NRMAX-1,NGR,29) = SNGL(Di(0:NRMAX-1)+De(0:NRMAX-1))
   DO NR = 0, NRMAX - 1
-     GY(NR,NGR,29) = SNGL(Di(NR)+De(NR))
      IF (rG1h2(NR) > 3.D0) THEN
         GY(NR,NGR,30) = 3.0
      ELSE
         GY(NR,NGR,30) = SNGL(rG1h2(NR))
      END IF
-     GY(NR,NGR,31) = SNGL(FCDBM(NR))
-     GY(NR,NGR,32) = SNGL(S(NR))
-     GY(NR,NGR,33) = SNGL(Alpha(NR))
-     GY(NR,NGR,34) = SNGL(rKappa(NR))
   END DO
+  GY(0:NRMAX-1,NGR,31) = SNGL(FCDBM(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,32) = SNGL(S(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,33) = SNGL(Alpha(0:NRMAX-1))
+  GY(0:NRMAX-1,NGR,34) = SNGL(rKappa(0:NRMAX-1))
 
   RETURN
 END SUBROUTINE TXSTGR
@@ -530,8 +531,7 @@ SUBROUTINE TXGRFR(NGYR,MODE)
   INCLUDE 'txcomm.inc'
 
   INTEGER, INTENT(IN) :: NGYR, MODE
-  INTEGER :: IND, nr
-  REAL :: gDIVL
+  INTEGER :: IND
   REAL(8), DIMENSION(0:NRM,0:NGRM) :: GYL
   CHARACTER(40) :: STR
 
@@ -571,33 +571,15 @@ SUBROUTINE TXGRFR(NGYR,MODE)
 
   IF (NGYR == 1) THEN
      STR = '@n$-e$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(1)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,1), GYL, NRM+1, NRMAX, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(1))
      CALL TXGRFRX(0, GX(0,2), GYL, NRMAX-1, NGR, STR, MODE, IND)
 
      STR = '@Z*n$-i$=+Z*n$-b$=-n$-e$=@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(2)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,2), GYL, NRM+1, NRMAX, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,2), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(2))
      CALL TXGRFRX(1, GX(0,2), GYL, NRMAX-1, NGR, STR, MODE, IND)
 
      STR = '@E$-r$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(9)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,9), GYL, NRM+1, NRMAX+1, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,9), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(9))
      CALL TXGRFRX(2, GX(0,1), GYL, NRMAX, NGR, STR, MODE, IND)
 
      CALL TXWPGR
@@ -607,50 +589,26 @@ SUBROUTINE TXGRFR(NGYR,MODE)
      CALL TXGRFRX(0, GX(0,1), GY(0,0,3), NRMAX, NGR, STR, MODE, IND)
 
      STR = '@u$-e$#q$#$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(4)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,4), GYL, NRM+1, NRMAX+1, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,4), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(4))
      CALL TXGRFRX(1, GX(0,1), GYL, NRMAX, NGR, STR, MODE, IND)
 
      STR = '@u$-e$#f$#$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(5)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,5), GYL, NRM+1, NRMAX, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,5), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(5))
      CALL TXGRFRX(2, GX(0,2), GYL, NRMAX-1, NGR, STR, MODE, IND)
 
      CALL TXWPGR
 
   ELSEIF (NGYR == 3) THEN
      STR = '@u$-ir$=(r)@'
-     STR = '@Uir(r)@'
+!     STR = '@Uir(r)@'
      CALL TXGRFRX(0, GX(0,1), GY(0,0,6), NRMAX, NGR, STR, MODE, IND)
 
      STR = '@u$-i$#q$#$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(7)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,7), GYL, NRM+1, NRMAX+1, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,7), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(7))
      CALL TXGRFRX(1, GX(0,1), GYL, NRMAX, NGR, STR, MODE, IND)
 
      STR = '@u$-i$#f$#$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(8)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GY(0,0,8), GYL, NRM+1, NRMAX, NGR+1, gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,8), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(8))
      CALL TXGRFRX(2, GX(0,2), GYL, NRMAX-1, NGR, STR, MODE, IND)
 
      CALL TXWPGR
@@ -663,44 +621,66 @@ SUBROUTINE TXGRFR(NGYR,MODE)
      CALL TXGRFRX(1,GX(0,2),GY(0,0,11),NRMAX-1,NGR,STR,MODE,IND)
 
      STR = '@j$-$#f$#$=(r)@'
-     CALL TXGRFRX(2,GX(0,2),GY(0,0,21),NRMAX-1,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,21), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(21))
+     CALL TXGRFRX(2,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
 
      CALL TXWPGR
 
   ELSEIF (NGYR == 5) THEN
      STR = '@n$-b$=(r)@'
-     CALL TXGRFRX(0,GX(0,2),GY(0,0,12),NRMAX-1,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,12), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(12))
+     CALL TXGRFRX(0,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
+
      STR = '@u$-b$#f$#$=(r)@'
-     CALL TXGRFRX(1,GX(0,1),GY(0,0,13),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,13), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(13))
+     CALL TXGRFRX(1,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@B$-$#q$#$=(r)@'
      CALL TXGRFRX(2,GX(0,1),GY(0,0,10),NRMAX  ,NGR,STR,MODE,IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYR == 6) THEN
      STR = '@j$-e$#f$#$=(r)@'
-     CALL TXGRFRX(0,GX(0,1),GY(0,0,22),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,22), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(22))
+     CALL TXGRFRX(0,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@j$-i$#f$#$=(r)@'
-     CALL TXGRFRX(1,GX(0,1),GY(0,0,23),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,23), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(23))
+     CALL TXGRFRX(1,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@j$-b$#f$#$=(r)@'
-     CALL TXGRFRX(2,GX(0,1),GY(0,0,24),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,24), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(24))
+     CALL TXGRFRX(2,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYR == 7) THEN
      STR = '@u$-er$=(r)@'
      CALL TXGRFRX(0,GX(0,1),GY(0,0,3),NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@u$-e$#$/136$#$=(r)@'
-     CALL TXGRFRX(1,GX(0,1),GY(0,0,25),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,25), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(25))
+     CALL TXGRFRX(1,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@u$-e//$=(r)@'
-     CALL TXGRFRX(2,GX(0,1),GY(0,0,26),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,26), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(26))
+     CALL TXGRFRX(2,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYR == 8) THEN
      STR = '@u$-ir$=(r)@'
      CALL TXGRFRX(0,GX(0,1),GY(0,0,6),NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@u$-i$#$/136$#$=(r)@'
-     CALL TXGRFRX(1,GX(0,1),GY(0,0,27),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,27), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(27))
+     CALL TXGRFRX(1,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      STR = '@u$-i//$=(r)@'
-     CALL TXGRFRX(2,GX(0,1),GY(0,0,28),NRMAX  ,NGR,STR,MODE,IND)
+     CALL APPROPGY(MODEG, GY(0,0,28), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(28))
+     CALL TXGRFRX(2,GX(0,1),GYL,NRMAX  ,NGR,STR,MODE,IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYR == 9) THEN
@@ -720,13 +700,7 @@ SUBROUTINE TXGRFR(NGYR,MODE)
      CALL TXGRFRX(1,GX(0,2),GY(0,0,15),NRMAX-1,NGR,STR,MODE,IND)
 
      STR = '@N$-0$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(16)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR,gDIVL)
-     CALL DIVGY(GY(0,0,16),GYL,NRM+1,NRMAX,NGR+1,gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(16))
      CALL TXGRFRX(2,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
 
      CALL TXWPGR
@@ -745,40 +719,23 @@ SUBROUTINE TXGRFR(NGYR,MODE)
      CALL TXGRFRX(0,GX(0,1),GY(0,0,17),NRMAX  ,NGR,STR,MODE,IND)
      STR = '@B$-$#f$#$=(r)@'
      CALL TXGRFRX(1,GX(0,2),GY(0,0,18),NRMAX-1,NGR,STR,MODE,IND)
-     STR = '@U$-b$#q$#$=(r)@'
+     STR = '@u$-b$#q$#$=(r)@'
      CALL TXGRFRX(2,GX(0,1),GY(0,0,19),NRMAX  ,NGR,STR,MODE,IND)
      CALL TXWPGR
 
   ELSEIF (NGYR == 13) THEN
      STR = '@SLOW N$-0$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(16)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR,gDIVL)
-     CALL DIVGY(GY(0,0,35),GYL,NRM+1,NRMAX,NGR+1,gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,35), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(35))
      CALL TXGRFRX(0,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
 
-     STR = '@FAST N$-0$+(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(16)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR,gDIVL)
-     CALL DIVGY(GY(0,0,36),GYL,NRM+1,NRMAX,NGR+1,gDIVL)
+     STR = '@FAST N$-0$=(r)@'
+     CALL APPROPGY(MODEG, GY(0,0,36), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(36))
      CALL TXGRFRX(1,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
 
      STR = '@TOTAL N$-0$=(r)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(16)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR,gDIVL)
-     CALL DIVGY(GY(0,0,16),GYL,NRM+1,NRMAX,NGR+1,gDIVL)
+     CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRM+1, NRMAX, NGR+1, gDIV(16))
      CALL TXGRFRX(2,GX(0,2),GYL,NRMAX-1,NGR,STR,MODE,IND)
+
      CALL TXWPGR
 
   ELSE
@@ -864,33 +821,15 @@ SUBROUTINE TXGRFT(NGYT,MODE)
 
   IF (NGYT == 1) THEN
      STR = '@Ne(0),LAVE(0),(0.24),(0.6)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(1)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,1), GTYL, NGTM+1, NGT+1, 4, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,1), GTYL, STR, NGTM+1, NGT+1, 4, gDIV(1))
      CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 4, STR,MODE, IND)
 
      STR = '@Z*Ni+Z*Nb-Ne(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(5-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,5), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,5), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(5-3))
      CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@Er(b/2)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(12-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,12), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,12), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(12-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
@@ -900,23 +839,11 @@ SUBROUTINE TXGRFT(NGYT,MODE)
      CALL TXGRFTX(0, GTX, GTY(0,6), NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@UeTheta(b/2)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(7-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,7), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,7), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(7-3))
      CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@UePhi(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(8-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,8), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,8), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(8-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
@@ -926,23 +853,11 @@ SUBROUTINE TXGRFT(NGYT,MODE)
      CALL TXGRFTX(0, GTX, GTY(0,9), NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@UiTheta(b/2)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(10-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,10), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,10), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(10-3))
      CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@UiPhi(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(11-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,11), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,11), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(11-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
@@ -955,51 +870,66 @@ SUBROUTINE TXGRFT(NGYT,MODE)
      CALL TXGRFTX(1, GTX, GTY(0,14), NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@Jphi(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(21-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,21), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,21), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(21-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
 
   ELSEIF (NGYT == 5) THEN
      STR = '@Nb(0)@'
-     CALL TXGRFTX(0, GTX, GTY(0,15), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,15), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(15-3))
+     CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@UbPhi(0)@'
-     CALL TXGRFTX(1, GTX, GTY(0,16), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,16), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(16-3))
+     CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@Bth(b/2)@'
      CALL TXGRFTX(2, GTX, GTY(0,13), NGTM, NGT, 1, STR,MODE, IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYT == 6) THEN
      STR = '@JePhi(0)@'
-     CALL TXGRFTX(0, GTX, GTY(0,22), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,22), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(22))
+     CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@JiPhi(0)@'
-     CALL TXGRFTX(1, GTX, GTY(0,23), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,23), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(23))
+     CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@JbPhi(0)@'
-     CALL TXGRFTX(2, GTX, GTY(0,24), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,24), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(24))
+     CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYT == 7) THEN
      STR = '@Uer(b/2)@'
      CALL TXGRFTX(0, GTX, GTY(0,6), NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@UePerp(b/2)@'
-     CALL TXGRFTX(1, GTX, GTY(0,25), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,25), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(25))
+     CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@UePara(b/2)@'
-     CALL TXGRFTX(2, GTX, GTY(0,26), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,26), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(26))
+     CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYT == 8) THEN
      STR = '@Uir(b/2)@'
      CALL TXGRFTX(0, GTX, GTY(0,9), NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@UiPerp(b/2)@'
-     CALL TXGRFTX(1, GTX, GTY(0,27), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,27), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(27))
+     CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      STR = '@UiPara(b/2)@'
-     CALL TXGRFTX(2, GTX, GTY(0,28), NGTM, NGT, 1, STR,MODE, IND)
+     CALL APPROPGY(MODEG, GTY(0,28), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(28))
+     CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
+
      CALL TXWPGR
 
   ELSEIF (NGYT == 9) THEN
@@ -1019,13 +949,7 @@ SUBROUTINE TXGRFT(NGYT,MODE)
      CALL TXGRFTX(1, GTX, GTY(0,18), NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@N0(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(19-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,19), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,19), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(19-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
@@ -1051,35 +975,16 @@ SUBROUTINE TXGRFT(NGYT,MODE)
      CALL TXWPGR
 
   ELSEIF (NGYT == 13) THEN
-
      STR = '@SLOW N0(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(19-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,38), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,38), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(38-3))
      CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@FAST N0(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(19-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,39), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,39), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(39-3))
      CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      STR = '@TOTAL N0(0)@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(19-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GTY(0,19), GTYL, NGTM+1, NGT+1, 1, gDIVL)
+     CALL APPROPGY(MODEG, GTY(0,19), GTYL, STR, NGTM+1, NGT+1, 1, gDIV(19-3))
      CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
 
      CALL TXWPGR
@@ -1138,75 +1043,42 @@ SUBROUTINE TXGRFV(NGYV,MODE)
 
   IF (NGYV == 1) THEN
      STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
-     gDIVL=1.E0
-     CALL DIVGY(GVY(0,1), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFTX(0, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
+     CALL TXGRFTX(0, GVX, GVY(0,1), NGVM, NGVV, 4, STR, MODE, IND)
 
      STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
-     gDIVL = 1.E0
-     CALL DIVGY(GVY(0,5), GVYL, NGVM+1, NGVV+1, 5, gDIVL)
-     CALL TXGRFTX(1, GVX, GVYL, NGVM, NGVV, 5, STR, MODE, IND)
+     CALL TXGRFTX(1, GVX, GVY(0,5), NGVM, NGVV, 5, STR, MODE, IND)
 
      STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
-     gDIVL = 1.E0
-     CALL DIVGY(GVY(0,10), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFTX(2, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
+     CALL TXGRFTX(2, GVX, GVY(0,10), NGVM, NGVV, 4, STR, MODE, IND)
 
      STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(12-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL DIVGY(GVY(0,15), GVYL, NGVM+1, NGVV+1, 5, gDIVL)
-     CALL TXGRFTX(3, GVX, GVYL, NGVM, NGVV, 5, STR, MODE, IND)
+     CALL TXGRFTX(3, GVX, GVY(0,15), NGVM, NGVV, 5, STR, MODE, IND)
 
   ELSEIF (NGYV == 2) THEN
      STR = '@QF vs t@'
      CALL TXGRFTX(0, GVX, GVY(0,20), NGVM, NGVV, 1, STR, MODE, IND)
 
      STR = '@Te0,Ti0 [keV] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,21), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFTX(1, GVX, GVYL, NGVM, NGVV, 2, STR, MODE, IND)
+     CALL TXGRFTX(1, GVX, GVY(0,21), NGVM, NGVV, 2, STR, MODE, IND)
 
      STR = '@<Te>,<Ti> [keV] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,23), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFTX(2, GVX, GVYL, NGVM, NGVV, 2, STR, MODE, IND)
+     CALL TXGRFTX(2, GVX, GVY(0,23), NGVM, NGVV, 2, STR, MODE, IND)
 
      STR = '@Ne0,Ni0,<Ne>,<Ni> [10^20/m^3] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,25), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFTX(3, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
+     CALL TXGRFTX(3, GVX, GVY(0,25), NGVM, NGVV, 4, STR, MODE, IND)
 
   ELSEIF (NGYV == 3) THEN
      STR = '@WF,WB,Wi,We [MJ] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,29), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFTX(0, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
+     CALL TXGRFTX(0, GVX, GVY(0,29), NGVM, NGVV, 4, STR, MODE, IND)
 
      STR = '@TAUE1,TAUE2,TAUEP [s] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,33), GVYL, NGVM+1, NGVV+1, 3, gDIVL)
-     CALL TXGRFTX(1, GVX, GVYL, NGVM, NGVV, 3, STR, MODE, IND)
+     CALL TXGRFTX(1, GVX, GVY(0,33), NGVM, NGVV, 3, STR, MODE, IND)
 
      STR = '@BETAa,BETA0 vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,36), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFTX(2, GVX, GVYL, NGVM, NGVV, 2, STR, MODE, IND)
+     CALL TXGRFTX(2, GVX, GVY(0,36), NGVM, NGVV, 2, STR, MODE, IND)
 
      STR = '@BETAPa,BETAP0 vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,38), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFTX(3, GVX, GVYL, NGVM, NGVV, 2, STR, MODE, IND)
+     CALL TXGRFTX(3, GVX, GVY(0,38), NGVM, NGVV, 2, STR, MODE, IND)
 
   ELSEIF (NGYV == 4) THEN
      STR = '@VLOOP [V]@'
@@ -1226,74 +1098,41 @@ SUBROUTINE TXGRFV(NGYV,MODE)
 
   ELSEIF (NGYV == 6) THEN
      STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
-     gDIVL=1.E0
-     CALL DIVGY(GVY(0,1), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 4, STR, IND)
+     CALL TXGRFVX(0, GVX, GVY(0,1), NGVM, NGVV, 4, STR, IND)
 
      STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
-     gDIVL = 1.E0
-     CALL DIVGY(GVY(0,5), GVYL, NGVM+1, NGVV+1, 5, gDIVL)
-     CALL TXGRFVX(4, GVX, GVYL, NGVM, NGVV, 5, STR, IND)
+     CALL TXGRFVX(4, GVX, GVY(0,5), NGVM, NGVV, 5, STR, IND)
 
      STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
-     gDIVL = 1.E0
-     CALL DIVGY(GVY(0,10), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 4, STR, IND)
+     CALL TXGRFVX(2, GVX, GVY(0,10), NGVM, NGVV, 4, STR, IND)
 
      STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
-     IF (MODEG == 2) THEN
-        gDIVL = gDIV(12-3)
-     ELSE
-        gDIVL = 1.E0
-     END IF
-     CALL DIVGY(GVY(0,15), GVYL, NGVM+1, NGVV+1, 5, gDIVL)
-     CALL TXGRFVX(6, GVX, GVYL, NGVM, NGVV, 5, STR, IND)
+     CALL TXGRFVX(6, GVX, GVY(0,15), NGVM, NGVV, 5, STR, IND)
 
      STR = '@QF vs t@'
      CALL TXGRFVX(1, GVX, GVY(0,20), NGVM, NGVV, 1, STR, IND)
 
      STR = '@Te0,Ti0 [keV] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,21), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFVX(5, GVX, GVYL, NGVM, NGVV, 2, STR, IND)
+     CALL TXGRFVX(5, GVX, GVY(0,21), NGVM, NGVV, 2, STR, IND)
 
      STR = '@<Te>,<Ti> [keV] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,23), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFVX(3, GVX, GVYL, NGVM, NGVV, 2, STR, IND)
+     CALL TXGRFVX(3, GVX, GVY(0,23), NGVM, NGVV, 2, STR, IND)
 
      STR = '@Ne0,Ni0,<Ne>,<Ni> [10~20/m^3] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,25), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFVX(7, GVX, GVYL, NGVM, NGVV, 4, STR, IND)
+     CALL TXGRFVX(7, GVX, GVY(0,25), NGVM, NGVV, 4, STR, IND)
 
   ELSEIF (NGYV == 7) THEN
      STR = '@WF,WB,Wi,We [MJ] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,29), GVYL, NGVM+1, NGVV+1, 4, gDIVL)
-     CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 4, STR, IND)
+     CALL TXGRFVX(0, GVX, GVY(0,29), NGVM, NGVV, 4, STR, IND)
 
      STR = '@TAUE1,TAUE2,TAUEP [e] vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,33), GVYL, NGVM+1, NGVV+1, 3, gDIVL)
-     CALL TXGRFVX(4, GVX, GVYL, NGVM, NGVV, 3, STR, IND)
+     CALL TXGRFVX(4, GVX, GVY(0,33), NGVM, NGVV, 3, STR, IND)
 
      STR = '@BETAa,BETA0 vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,36), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 2, STR, IND)
+     CALL TXGRFVX(2, GVX, GVY(0,36), NGVM, NGVV, 2, STR, IND)
 
      STR = '@BETAPa,BETAP0 vs t@'
-     gDIVL = 1.E0
-!     CALL APPDIV(STR, gDIVL)
-     CALL DIVGY(GVY(0,38), GVYL, NGVM+1, NGVV+1, 2, gDIVL)
-     CALL TXGRFVX(6, GVX, GVYL, NGVM, NGVV, 2, STR, IND)
+     CALL TXGRFVX(6, GVX, GVY(0,38), NGVM, NGVV, 2, STR, IND)
 
      STR = '@VLOOP [V]@'
      CALL TXGRFVX(1, GVX, GVY(0,40), NGVM, NGVV, 1, STR, IND)
@@ -1384,28 +1223,30 @@ SUBROUTINE TXGRFQ(NQ,ID)
   REAL :: GXMAX
   REAL, DIMENSION(0:NRM,NCM) :: GQY
   REAL, DIMENSION(4) :: GPXY
-  REAL, DIMENSION(4,4) :: GPXYA
+  REAL, DIMENSION(4,5) :: GPXYA
   CHARACTER(80), DIMENSION(NQM) :: STRGQ
   CHARACTER(80) :: STR
 
-  DATA STRGQ / &
-       &     'E$-r$=','E$-$#q$#$=','E$-$#f$#$=', &
-       &                'B$-$#q$#$=','B$-$#f$#$=',  &
-       &     'n$-e$=','n$-e$= u$-er$=', &
-       &     'n$-e$=u$-e$#q$#$=','n$-e$#f$#$=','T$-e$=', &
-       &     'n$-i$=','n$-i$= u$-ir$=', &
-       &     'n$-i$=u$-i$#q$#$=','n$-i$#f$#$=','T$-i$=', &
-       &     'n$-b$=', &
-       &     'n$-b$=u$-b$#q$#$=','n$-b$#f$#$=', &
-       &     'Slow n$-0$=', 'Fast n$-0$='/
-  !
+  !        Title
+  DATA STRGQ /'E$-r$=','E$-$#q$#$=','E$-$#f$#$=','B$-$#q$#$=','B$-$#f$#$=',  &
+       &      'n$-e$=','n$-e$=u$-er$=', &
+       &      'n$-e$=u$-e$#q$#$=','n$-e$=u$-e$#f$#$=','n$-e$=T$-e$=', &
+       &      'n$-i$=','n$-i$=u$-ir$=', &
+       &      'n$-i$=u$-i$#q$#$=','n$-i$=u$-i$#f$#$=','n$-i$=T$-i$=', &
+       &      'n$-b$=', &
+       &      'n$-b$=u$-b$#q$#$=','n$-b$=u$-b$#f$#$=', &
+       &      'Slow n$-0$=', 'Fast n$-0$='/
+
   !        1 : Equation is integer mesh.
   !        2 : Equation is half integer mesh.
-  DATA IHIGQ/2,1,2,1,2, 2,1,1,2,2, 2,1,1,2,2, 2,1,1, 2,2/
-  DATA GPXYA/ 2.5, 9.5,10.5,17.0, &
-       &            2.5, 9.5, 1.5, 8.0, &
-       &           15.0,22.0,10.5,17.0, &
-       &           15.0,22.0, 1.5, 8.0/
+  DATA IHIGQ/2,1,2,1,2, 2,1,1,2,2, 2,1,1,2,2, 2,1,2, 2,2/
+
+  !        Graph coordinate
+  DATA GPXYA/ 2.5, 9.5, 10.5,17.0, &
+       &      2.5, 9.5,  1.5, 8.0, &
+       &      15.0,22.0,10.5,17.0, &
+       &      15.0,22.0, 1.5, 8.0, &
+       &      2.5 ,22.0, 1.5,17.5/
 
   GPXY(1) = GPXYA(1,ID)
   GPXY(2) = GPXYA(2,ID)
@@ -1448,8 +1289,7 @@ SUBROUTINE TXGRFQ(NQ,ID)
      IND = 0
   END IF
   GXMAX=REAL(RB/RA)
-  CALL TXGRAF(GPXY, GX(0,IHIGQ(NQ)), GQY, &
-       &      NRM+1, NXMAX, NLCMAX(NQ), &
+  CALL TXGRAF(GPXY, GX(0,IHIGQ(NQ)), GQY, NRM+1, NXMAX, NLCMAX(NQ), &
        &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 3, IND)
 
   RETURN
@@ -1595,7 +1435,7 @@ END SUBROUTINE TXWPSS
 
 !***************************************************************
 !
-!   Write graph
+!   Draw graph
 !
 !***************************************************************
 
@@ -1662,8 +1502,7 @@ SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
   IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP
   GYORG = 0.0
 
-  CALL GDEFIN(GX1, GX2, GY1, GY2,  &
-       &            GSXMIN, GSXMAX, GSYMIN, GSYMAX)
+  CALL GDEFIN(GX1, GX2, GY1, GY2, GSXMIN, GSXMAX, GSYMIN, GSYMAX)
   CALL GFRAME
   CALL GSCALE(GSXMIN, GXSTEP, 0.0, 0.0, gSLEN, IND)
   IF (GXSTEP < 0.01) THEN
@@ -1733,16 +1572,16 @@ SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
            ICL = 7 - MOD(NG - 1, 5)
            CALL SETLIN(0, 1, ICL)
            IPAT = (NG - 1) / 5
-           CALL MOVEPT(GXL + GCHH * 3, GYL + GCHH / 2, IPAT)
-           CALL DRAWPT(GXL + GCHH * 7, GYL + GCHH / 2)
+           CALL MOVEPT(GXL + GCHH * 3.0, GYL + GCHH / 2.0, IPAT)
+           CALL DRAWPT(GXL + GCHH * 7.0, GYL + GCHH / 2.0)
            CALL MOVE(GXL, GYL)
            CALL NUMBI(NG, '(I2)', 2)
            IMRK = MOD(NG - 1, 5) + 1
            IF (IMRK /= 0) THEN
               CALL SETMKS(IMRK, GMRK)
-              CALL MARK(GXL + GCHH * 5, GYL + GCHH / 2)
+              CALL MARK(GXL + GCHH * 5.0, GYL + GCHH / 2.0)
            END IF
-           GYL = GYL - GCHH * 2
+           GYL = GYL - GCHH * 2.0
         END DO
      END IF
      ! End of Legend
@@ -1758,47 +1597,37 @@ END SUBROUTINE TXGRAF
 
 !***************************************************************
 !
-!    Divide GY, GTY by gDIV
+!   Appropriate GY and STR for graphic routine
 !
 !***************************************************************
 
-SUBROUTINE DIVGY(GIN, GOUT, NXM, NXMAX, NYMAX, gDIVL)
-
-  INCLUDE 'txcomm.inc'
-
-  INTEGER, INTENT(IN) :: NXM, NXMAX, NYMAX
-  REAL, INTENT(IN) :: gDIVL
-  REAL, DIMENSION(NXM,NYMAX), INTENT(IN) :: GIN
-  REAL, DIMENSION(NXM,NYMAX), INTENT(OUT) :: GOUT
-  INTEGER :: IX, IY
-
-  DO IY = 1, NYMAX
-     DO IX = 1, NXMAX
-        GOUT(IX,IY) = GIN(IX,IY) / gDIVL
-     END DO
-  END DO
-
-  RETURN 
-END SUBROUTINE DIVGY
-
-!***************************************************************
-!
-!   Append gDIV to STRX
-!
-!***************************************************************
-
-SUBROUTINE APPDIV(STRX, gDIVL)
+SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV)
 
   IMPLICIT NONE
-  REAL, INTENT(IN) :: gDIVL
-  CHARACTER(*), INTENT(INOUT) :: STRX
-  INTEGER :: NSTRX
+  INTEGER, INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
+  REAL, INTENT(IN) :: gDIV
+  REAL, DIMENSION(NXM,NYMAX),INTENT(IN)  :: GIN
+  REAL, DIMENSION(NXM,NYMAX),INTENT(OUT) :: GOUT
+  CHARACTER(*), INTENT(INOUT) :: STR
 
-  IF (gDIVL == 1.E0) RETURN
-  NSTRX = LEN_TRIM(STRX)+1
-  CALL APSTOS(STRX, NSTRX, ' [', 2)
-  CALL APRTOS(STRX, NSTRX, gDIVL, 'E0')
-  CALL APSTOS(STRX, NSTRX, ']@', 2)
+  INTEGER :: NSTR, POSAT
+  REAL :: gDIVL
+
+  gDIVL = 1.0
+  IF(MODE == 2) gDIVL = gDIV
+
+  ! Append gDIV to string for showing multiplication factor
+  IF (gDIVL /= 1.0) THEN
+     POSAT = INDEX(STR,'@',.TRUE.)
+     IF (POSAT /= 0) STR = STR(1:POSAT-1)
+     NSTR = LEN_TRIM(STR)+1
+     CALL APSTOS(STR, NSTR, ' [', 2)
+     CALL APRTOS(STR, NSTR, gDIVL, 'E0')
+     CALL APSTOS(STR, NSTR, ']@', 2)
+  END IF
+
+  GOUT(1:NXMAX,1:NYMAX) = GIN(1:NXMAX,1:NYMAX) / gDIVL
 
   RETURN
-END SUBROUTINE APPDIV
+END SUBROUTINE APPROPGY
+  
