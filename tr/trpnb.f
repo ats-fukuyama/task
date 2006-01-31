@@ -217,6 +217,7 @@ C
       ENDIF
 C
       SUML=SUML+DL
+C  inside the torus
       IF(SUML.LT.XL) THEN
          IF(KL.EQ.1) THEN
             RADIUSG=SQRT( (SUML-DL)**2
@@ -251,6 +252,7 @@ C  innermost grid
          ENDIF
       ENDIF
 C
+C  NB source flux
       SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
 c$$$      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
 c$$$      IF(IM.GT.1.AND.IM.LT.NRMAX) THEN
@@ -273,10 +275,12 @@ C  for graphics
 C
 C      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
       IF(KL.EQ.0) THEN
+C  below the lower limits of intensity
          NLMAX(J)=IDL-1
          RETURN
       ENDIF
       IF(KL.EQ.2) THEN
+C  inversion of the label number because of innermost grid
          IF(I.GT.0) THEN
             I=-2*NRMAX-ABS(I)
          ELSE
@@ -288,8 +292,10 @@ C
       ENDIF
 C
       IF(SUML.LT.XL) THEN
+C  inside the torus
          I=I-1
       ELSE
+C  outside the torus
          NLMAX(J)=IDL-1
          RETURN
       ENDIF
