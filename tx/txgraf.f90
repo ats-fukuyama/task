@@ -7,7 +7,8 @@
 !***************************************************************
 
 SUBROUTINE TXGOUT
-
+  use libraries, only : TOUPPER
+  use file_io, only : TXLOAD, TXGSAV, TXGLOD
   INCLUDE 'txcomm.inc'
 
   INTEGER :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST
@@ -371,11 +372,12 @@ END SUBROUTINE TXSTGR
 SUBROUTINE TXSTGT(GTIME)
 
   USE physical_constants, only : AEE, PI
+  use sub_main, only : rLINEAVE
   INCLUDE 'txcomm.inc'
 
   REAL, INTENT(IN) :: GTIME
   INTEGER :: NR
-  REAL(8) :: rLINEAVE, Bth, Bph, BBL, SUM1, SUM2, DELS
+  REAL(8) :: Bth, Bph, BBL, SUM1, SUM2, DELS
 
   IF (NGT < NGTM) NGT=NGT+1
 
@@ -1214,7 +1216,7 @@ END SUBROUTINE TXGRFVX
 !***************************************************************
 
 SUBROUTINE TXGRFQ(NQ,ID)
-
+  use libraries, only : APITOS, APTTOS
   INCLUDE 'txcomm.inc'
 
   INTEGER, INTENT(IN) :: NQ, ID
@@ -1602,6 +1604,7 @@ END SUBROUTINE TXGRAF
 !***************************************************************
 
 SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV)
+  use libraries, only : APSTOS, APRTOS
 
   IMPLICIT NONE
   INTEGER, INTENT(IN) :: MODE, NXM, NXMAX, NYMAX

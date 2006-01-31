@@ -4,8 +4,8 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-SRCS = txmenu.f90 txinit.f90 txexec.f90 txcalv.f90 txcala.f90 \
-       txfile.f90 txrslt.f90 txgraf.f90 txlib.f90
+SRCS = txcnst.f90 txlib.f90 txrslt.f90 txcalv.f90 txcala.f90 txexec.f90 \
+       txinit.f90 txfile.f90 txmenu.f90 txmain.f90 txgraf.f90 
 OBJS = $(SRCS:.f90=.o)
 PROG = tx
 LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
@@ -23,9 +23,9 @@ txlib.a: $(OBJS)
 ../lib/tasklib.a:
 	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
-$(PROG): txmain.o $(LIBS)
-#	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-	$(F95) txmain.o $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+$(PROG): $(LIBS)
+#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less

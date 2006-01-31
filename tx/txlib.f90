@@ -1,24 +1,25 @@
 !     $Id$
-
+module libraries
+contains
 !***************************************************************
 !
 !   For no '*** MATH LIBRARY ERROR 14: DEXP(X) UNDERFLOW'
 !
 !***************************************************************
 
-REAL(8) FUNCTION EXPV(X)
+  REAL(8) FUNCTION EXPV(X)
 
-  IMPLICIT NONE
-  REAL(8), INTENT(IN) :: X
+    IMPLICIT NONE
+    REAL(8), INTENT(IN) :: X
 
-  IF (X < -708) THEN
-     EXPV = 0.D0
-  ELSE
-     EXPV = EXP(X)
-  END IF
+    IF (X < -708) THEN
+       EXPV = 0.D0
+    ELSE
+       EXPV = EXP(X)
+    END IF
 
-  RETURN
-END FUNCTION EXPV
+    RETURN
+  END FUNCTION EXPV
 
 !***************************************************************
 !
@@ -30,26 +31,26 @@ END FUNCTION EXPV
 !
 !***************************************************************
 
-SUBROUTINE APITOS(STR, NSTR, I)
+  SUBROUTINE APITOS(STR, NSTR, I)
 
-  IMPLICIT NONE
-  INTEGER, INTENT(IN) :: I
-  INTEGER, INTENT(INOUT) :: NSTR
-  CHARACTER(*), INTENT(INOUT) :: STR
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: I
+    INTEGER, INTENT(INOUT) :: NSTR
+    CHARACTER(*), INTENT(INOUT) :: STR
 
-  INTEGER :: J, NSTRI
-  CHARACTER(25) :: KVALUE
+    INTEGER :: J, NSTRI
+    CHARACTER(25) :: KVALUE
 
-  WRITE(KVALUE,'(I25)') I
-  DO J = 1, 25
-     IF (KVALUE(J:J) /= ' ') EXIT
-  END DO
-  NSTRI = 25 - J + 1
-  STR(NSTR+1:NSTR+NSTRI) = KVALUE(J:25)
-  NSTR = NSTR + NSTRI
+    WRITE(KVALUE,'(I25)') I
+    DO J = 1, 25
+       IF (KVALUE(J:J) /= ' ') EXIT
+    END DO
+    NSTRI = 25 - J + 1
+    STR(NSTR+1:NSTR+NSTRI) = KVALUE(J:25)
+    NSTR = NSTR + NSTRI
 
-  RETURN
-END SUBROUTINE APITOS
+    RETURN
+  END SUBROUTINE APITOS
 
 !***************************************************************
 !
@@ -62,21 +63,21 @@ END SUBROUTINE APITOS
 !
 !***************************************************************
 
-SUBROUTINE APTTOS(STR, NSTR, TX)
+  SUBROUTINE APTTOS(STR, NSTR, TX)
 
-  IMPLICIT NONE
-  INTEGER, INTENT(INOUT) :: NSTR
-  CHARACTER(*), INTENT(IN) :: TX
-  CHARACTER(*), INTENT(INOUT) :: STR
+    IMPLICIT NONE
+    INTEGER, INTENT(INOUT) :: NSTR
+    CHARACTER(*), INTENT(IN) :: TX
+    CHARACTER(*), INTENT(INOUT) :: STR
 
-  INTEGER :: NTX
+    INTEGER :: NTX
 
-  NTX = LEN_TRIM(TX)
-  STR(NSTR+1:NSTR+NTX) = TX(1:NTX)
-  NSTR = NSTR + NTX
+    NTX = LEN_TRIM(TX)
+    STR(NSTR+1:NSTR+NTX) = TX(1:NTX)
+    NSTR = NSTR + NTX
 
-  RETURN
-END SUBROUTINE APTTOS
+    RETURN
+  END SUBROUTINE APTTOS
 
 !***************************************************************
 !
@@ -89,19 +90,19 @@ END SUBROUTINE APTTOS
 !
 !***************************************************************
 
-SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
+  SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
-  IMPLICIT NONE
-  INTEGER, INTENT(IN) :: NINSTR
-  CHARACTER(*), INTENT(IN) :: INSTR
-  INTEGER, INTENT(INOUT) :: NSTR
-  CHARACTER(*), INTENT(INOUT) :: STR
+    IMPLICIT NONE
+    INTEGER, INTENT(IN) :: NINSTR
+    CHARACTER(*), INTENT(IN) :: INSTR
+    INTEGER, INTENT(INOUT) :: NSTR
+    CHARACTER(*), INTENT(INOUT) :: STR
 
-  STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
-  NSTR = NSTR + NINSTR
+    STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
+    NSTR = NSTR + NINSTR
 
-  RETURN
-END SUBROUTINE APSTOS
+    RETURN
+  END SUBROUTINE APSTOS
 
 !***************************************************************
 !
@@ -114,81 +115,81 @@ END SUBROUTINE APSTOS
 !
 !***************************************************************
 
-SUBROUTINE APDTOS(STR, NSTR, D, FORM)
+  SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
-  IMPLICIT NONE
-  REAL(8), INTENT(IN) :: D
-  CHARACTER(*), INTENT(IN) :: FORM
-  INTEGER, INTENT(INOUT) :: NSTR
-  CHARACTER(*), INTENT(INOUT) :: STR
+    IMPLICIT NONE
+    REAL(8), INTENT(IN) :: D
+    CHARACTER(*), INTENT(IN) :: FORM
+    INTEGER, INTENT(INOUT) :: NSTR
+    CHARACTER(*), INTENT(INOUT) :: STR
 
-  INTEGER(1) :: IND
-  INTEGER :: L, IS, IE, NSTRD, IST
-  CHARACTER(10) :: KFORM, KVALUE*25
+    INTEGER(1) :: IND
+    INTEGER :: L, IS, IE, NSTRD, IST
+    CHARACTER(10) :: KFORM, KVALUE*25
 
-  L = LEN(FORM)
-  IF      (L == 0) THEN
-     WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-     NSTRD = 0
-     RETURN
-  ELSE IF (L == 1) THEN
-     IF (FORM(1:1) == '*') THEN
-        WRITE(KVALUE,*) SNGL(D)
-     ELSE
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-        NSTRD = 0
-        RETURN
-     END IF
-  ELSE
-     READ(FORM(2:2),'(I1)',IOSTAT=IST) IND
-     IF (IST > 0) THEN
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-        NSTRD = 0
-        RETURN
-     END IF
-     IF (FORM(1:1) == 'F') THEN
-        WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
-        WRITE(KVALUE,KFORM) D
-     ELSE IF (FORM(1:1) == 'D' .OR. FORM(1:1) == 'E' &
-          &            .OR. FORM(1:1) == 'G') THEN
-        WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
-        WRITE(KVALUE,KFORM) D
-     ELSE
-        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-        NSTRD = 0
-        RETURN
-     END IF
-  END IF
+    L = LEN(FORM)
+    IF      (L == 0) THEN
+       WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+       NSTRD = 0
+       RETURN
+    ELSE IF (L == 1) THEN
+       IF (FORM(1:1) == '*') THEN
+          WRITE(KVALUE,*) SNGL(D)
+       ELSE
+          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+          NSTRD = 0
+          RETURN
+       END IF
+    ELSE
+       READ(FORM(2:2),'(I1)',IOSTAT=IST) IND
+       IF (IST > 0) THEN
+          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+          NSTRD = 0
+          RETURN
+       END IF
+       IF (FORM(1:1) == 'F') THEN
+          WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
+          WRITE(KVALUE,KFORM) D
+       ELSE IF (FORM(1:1) == 'D' .OR. FORM(1:1) == 'E' &
+            &            .OR. FORM(1:1) == 'G') THEN
+          WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
+          WRITE(KVALUE,KFORM) D
+       ELSE
+          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+          NSTRD = 0
+          RETURN
+       END IF
+    END IF
 
-  DO IS = 1, 25
-     IF (KVALUE(IS:IS) /= ' ') EXIT
-  END DO
-     
-  IE = IS
-20 CONTINUE
-  IE = IE + 1
-  IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) GOTO 20
-  IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
+    DO IS = 1, 25
+       IF (KVALUE(IS:IS) /= ' ') EXIT
+    END DO
 
-  IF (KVALUE(IS:IS) == '-') THEN
-     IF (IS > 1 .AND. KVALUE(IS+1:IS+1) == '.') THEN
-        KVALUE(IS-1:IS-1) = '-'
-        KVALUE(IS  :IS  ) = '0'
-        IS = IS - 1
-     END IF
-  ELSE IF (KVALUE(IS:IS) == '.') THEN
-     IF (IS > 1) THEN
-        KVALUE(IS-1:IS-1) = '0'
-        IS = IS - 1
-     END IF
-  END IF
+    IE = IS
+20  CONTINUE
+    IE = IE + 1
+    IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) GOTO 20
+    IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
 
-  NSTRD = IE - IS
-  STR(NSTR+1:NSTR+NSTRD) = KVALUE(IS:IE-1)
-  NSTR = NSTR + NSTRD
+    IF (KVALUE(IS:IS) == '-') THEN
+       IF (IS > 1 .AND. KVALUE(IS+1:IS+1) == '.') THEN
+          KVALUE(IS-1:IS-1) = '-'
+          KVALUE(IS  :IS  ) = '0'
+          IS = IS - 1
+       END IF
+    ELSE IF (KVALUE(IS:IS) == '.') THEN
+       IF (IS > 1) THEN
+          KVALUE(IS-1:IS-1) = '0'
+          IS = IS - 1
+       END IF
+    END IF
 
-  RETURN
-END SUBROUTINE APDTOS
+    NSTRD = IE - IS
+    STR(NSTR+1:NSTR+NSTRD) = KVALUE(IS:IE-1)
+    NSTR = NSTR + NSTRD
+
+    RETURN
+  END SUBROUTINE APDTOS
 
 !***************************************************************
 !
@@ -201,21 +202,21 @@ END SUBROUTINE APDTOS
 !
 !***************************************************************
 
-SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
+  SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
-  IMPLICIT NONE
-  REAL, INTENT(IN) :: GR
-  CHARACTER(*), INTENT(IN) :: FORM
-  INTEGER, INTENT(INOUT) :: NSTR
-  CHARACTER(*), INTENT(INOUT) :: STR
+    IMPLICIT NONE
+    REAL, INTENT(IN) :: GR
+    CHARACTER(*), INTENT(IN) :: FORM
+    INTEGER, INTENT(INOUT) :: NSTR
+    CHARACTER(*), INTENT(INOUT) :: STR
 
-  REAL(8) :: D
+    REAL(8) :: D
 
-  D = DBLE(GR)
-  CALL APDTOS(STR, NSTR, D, FORM)
+    D = DBLE(GR)
+    CALL APDTOS(STR, NSTR, D, FORM)
 
-  RETURN
-END SUBROUTINE APRTOS
+    RETURN
+  END SUBROUTINE APRTOS
 
 !***************************************************************
 !
@@ -223,22 +224,22 @@ END SUBROUTINE APRTOS
 !
 !***************************************************************
 
-SUBROUTINE TOUPPER(KTEXT)
+  SUBROUTINE TOUPPER(KTEXT)
 
-  IMPLICIT NONE
-  CHARACTER(*), INTENT(INOUT) ::  KTEXT
+    IMPLICIT NONE
+    CHARACTER(*), INTENT(INOUT) ::  KTEXT
 
-  INTEGER :: NCHAR, I, ID
+    INTEGER :: NCHAR, I, ID
 
-  NCHAR = LEN(KTEXT)
-  DO I = 1, NCHAR
-     ID=IACHAR(KTEXT(I:I))
-     IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
-     KTEXT(I:I)=ACHAR(ID)
-  END DO
+    NCHAR = LEN(KTEXT)
+    DO I = 1, NCHAR
+       ID=IACHAR(KTEXT(I:I))
+       IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
+       KTEXT(I:I)=ACHAR(ID)
+    END DO
 
-  RETURN
-END SUBROUTINE TOUPPER
+    RETURN
+  END SUBROUTINE TOUPPER
 
 !***************************************************************
 !
@@ -250,15 +251,16 @@ END SUBROUTINE TOUPPER
 ! Should work with all Fortran90 systems.
 ! Note that TIME has to be default real kind (F95 standard allows any kind).
 
-SUBROUTINE CPU_TIME(TIME)
-  REAL, INTENT(OUT) :: TIME
+  SUBROUTINE CPU_TIME(TIME)
+    REAL, INTENT(OUT) :: TIME
 
-  INTEGER :: COUNT, COUNT_RATE
+    INTEGER :: COUNT, COUNT_RATE
 
-  CALL SYSTEM_CLOCK(COUNT,COUNT_RATE)
-  IF (COUNT_RATE /= 0) THEN
-     TIME = REAL(COUNT)/COUNT_RATE
-  ELSE
-     TIME = -1
-  END IF
-END SUBROUTINE CPU_TIME
+    CALL SYSTEM_CLOCK(COUNT,COUNT_RATE)
+    IF (COUNT_RATE /= 0) THEN
+       TIME = REAL(COUNT)/COUNT_RATE
+    ELSE
+       TIME = -1
+    END IF
+  END SUBROUTINE CPU_TIME
+end module libraries

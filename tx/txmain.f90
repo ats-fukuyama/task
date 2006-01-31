@@ -42,6 +42,9 @@
 !   G35 = Slow N0   G36 = Fast N0             half integer
 
 PROGRAM TASK_TX
+  
+  use menu
+  use init_prof
 
   INCLUDE 'txcomm.inc'
   CHARACTER(80) :: KPNAME
