@@ -500,8 +500,8 @@ C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
 C        KUFDEV : DEVICE NAME
 C        KUFDCG : DISCHARGE NUMBER
 C
-      KUFDEV=''
-      KUFDCG=''
+      KUFDEV=' '
+      KUFDCG=' '
 C
 C     ==== FILE NAME ====
 C
