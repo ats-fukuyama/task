@@ -865,7 +865,7 @@ C
       DO NR=1,NRMAXPL
          PWR(NR,1)=0.D0
          DO NRAY=1,NRAYMX
-            PWR(NR,1)=PWR(NR,1)+RAYIN(8,NRAY)*PWRRAY(NR,NRAY)
+            PWR(NR,1)=PWR(NR,1)+PWRRAY(NR,NRAY)
          ENDDO
       ENDDO
 C      WRITE(6,'(1P5E12.4)') (PWR(NR,1),NR=1,NRMAXPL)
