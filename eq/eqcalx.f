@@ -77,16 +77,26 @@ C
          CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs R@',0)
          CALL PAGEE
 C
-         CALL EQGRAX
-C
-         DO I=1,41
+         DO I=1,NIMAX
             R=3.D0
             Z=-0.2D0+0.01D0*(I-1)
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
             WRITE(6,'(A,1P4E12.4)') 
      &           'Z,PSI,DR,DZ=',Z,PSIL,DPSIDR,DPSIDZ
+            GX(I)=GUCLIP(Z)
+            GY(I,1)=GUCLIP(PSIL)
+            GY(I,2)=GUCLIP(DPSIDR)
+            GY(I,3)=GUCLIP(DPSIDZ)
          ENDDO
+C
+         CALL PAGES
+         CALL GRF1D(1,GX,GY(1,1),NIM,NIMAX,1,'@PSI vs Z@',0)
+         CALL GRF1D(2,GX,GY(1,2),NIM,NIMAX,1,'@DPSIDR vs Z@',0)
+         CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs Z@',0)
+         CALL PAGEE
+C
+         CALL EQGRAX
 C
 C         DO I=1,10
 C            READ(5,*) R,Z
@@ -398,6 +408,7 @@ C
          RHON2=((RG(NRG)-RR)**2+(ZG(NZG)/RKAP)**2)/RA**2
          PSIX(NRG,NZG)=PSI0*(1-RHON2)
          DELPSIX(NRG,NZG)=0.D0
+         HJTRZ(NRG,NZG)=0.D0
       ENDDO
       ENDDO
 C
@@ -886,11 +897,15 @@ C
       RETURN
       END
 C
+C     ---- calculate Psi(R,Z=0) -----
+C
       FUNCTION PSIXZ0(R)
       INCLUDE '../eq/eqcomx.inc'
       PSIXZ0=PSIXH(R,0.D0)
       RETURN
       END
+C
+C     ---- calculate Psi(R,Z) -----
 C
       FUNCTION PSIXH(R,Z)
 C
@@ -899,59 +914,8 @@ C
       IERR=0
       PSIXH=0.D0
 C
-      IF(RG(NRGMAX).EQ.RG(1)) THEN
-         IERR=9
-         RETURN
-      ENDIF
-      IF(ZG(NZGMAX).EQ.ZG(1)) THEN
-         IERR=8
-         RETURN
-      ENDIF
-C
-      FRG=1.D0/(RG(NRGMAX)-RG(1))
-      NRG=NINT((R-RG(1))*FRG*(NRGMAX-1))+1
-      IF(NRG.LT.1) THEN
-         IERR=1
-         NRG=2
-      ENDIF
-      IF(NRG.GT.NRGMAX) THEN
-         IERR=2
-         NRG=NRGMAX
-      ENDIF
-      FZG=1.D0/(ZG(NZGMAX)-ZG(1))
-      NZG=NINT((Z-ZG(1))*FZG*(NZGMAX-1))+1
-      IF(NZG.LT.1) THEN
-         IERR=3
-         NZG=2
-      ENDIF
-      IF(NZG.GT.NZGMAX) THEN
-         IERR=4
-         NZG=NZGMAX
-      ENDIF
-C
- 5001 IF(NRG.GE.NRGMAX) GOTO 5002
-      IF((R-RG(NRG  ))*FRG.LE.0.D0) GOTO 5002
-         NRG=NRG+1
-         GOTO 5001
- 5002 CONTINUE
- 5003 IF(NRG.LE.2) GOTO 5004
-      IF((R-RG(NRG-1))*FRG.GE.0.D0) GOTO 5004
-         NRG=NRG-1
-         GOTO 5003
- 5004 CONTINUE
-      IF(NRG.LT.2)     NRG=2
-C
- 5005 IF(NZG.GE.NZGMAX) GOTO 5006
-      IF((Z-ZG(NZG  ))*FZG.LE.0.D0) GOTO 5006
-         NZG=NZG+1
-         GOTO 5005
- 5006 CONTINUE
- 5007 IF(NZG.LE.2) GOTO 5008
-      IF((Z-ZG(NZG-1))*FZG.GE.0.D0) GOTO 5008
-         NZG=NZG-1
-         GOTO 5007
- 5008 CONTINUE
-      IF(NZG.LT.2)     NZG=2
+      CALL EQNRZX(R,Z,NRG,NZG,IERR)
+      IF(IERR.NE.0) RETURN
 C
       DRG=RG(NRG)-RG(NRG-1)
       DZG=ZG(NZG)-ZG(NZG-1)
@@ -960,13 +924,21 @@ C
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-      HR1=-HRMT1(1.D0-VRG)*DRG
-      HZ1=-HRMT1(1.D0-VZG)*DZG
+C      HR1=-HRMT1(1.D0-VRG)*DRG
+C      HZ1=-HRMT1(1.D0-VZG)*DZG
+C      HR1=0.D0
+C      HZ1=0.D0
+      HR1=HRMT1(1.D0-VRG)*DRG
+      HZ1=HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-      HR1C= HRMT1(VRG)*DRG
-      HZ1C= HRMT1(VZG)*DZG
+C      HR1C= HRMT1(VRG)*DRG
+C      HZ1C= HRMT1(VZG)*DZG
+C      HR1C=0.D0
+C      HZ1C=0.D0
+      HR1C=-HRMT1(VRG)*DRG
+      HZ1C=-HRMT1(VZG)*DZG
 C
       PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
@@ -988,68 +960,16 @@ C
       RETURN
       END
 C
+C     ---- calculate Psi(R,Z) and its derivatives -----
+C
       SUBROUTINE PSIXHD(R,Z,DPSIDR,DPSIDZ)
 C
       INCLUDE '../eq/eqcomx.inc'
 C
       IERR=0
-      IF(RG(NRGMAX).EQ.RG(1)) THEN
-         IERR=9
-         RETURN
-      ENDIF
-      IF(ZG(NZGMAX).EQ.ZG(1)) THEN
-         IERR=8
-         RETURN
-      ENDIF
 C
-      FRG=1.D0/(RG(NRGMAX)-RG(1))
-      NRG=NINT((R-RG(1))*FRG*(NRGMAX-1))+1
-      IF(NRG.LT.1) THEN
-         IERR=1
-         NRG=2
-      ENDIF
-      IF(NRG.GT.NRGMAX) THEN
-         IERR=2
-         NRG=NRGMAX
-      ENDIF
-      FZG=1.D0/(ZG(NZGMAX)-ZG(1))
-      NZG=NINT((Z-ZG(1))*FZG*(NZGMAX-1))+1
-      IF(NZG.LT.1) THEN
-         IERR=3
-         NZG=2
-      ENDIF
-      IF(NZG.GT.NZGMAX) THEN
-         IERR=4
-         NZG=NZGMAX
-      ENDIF
-C
- 5001 IF(NRG.GE.NRGMAX) GOTO 5002
-      IF((R-RG(NRG  ))*FRG.LE.0.D0) GOTO 5002
-         NRG=NRG+1
-         GOTO 5001
- 5002 CONTINUE
- 5003 IF(NRG.LE.2) GOTO 5004
-      IF((R-RG(NRG-1))*FRG.GE.0.D0) GOTO 5004
-         NRG=NRG-1
-         GOTO 5003
- 5004 CONTINUE
-      IF(NRG.LT.2)     NRG=2
-C
- 5005 IF(NZG.GE.NZGMAX) GOTO 5006
-      IF((Z-ZG(NZG  ))*FZG.LE.0.D0) GOTO 5006
-         NZG=NZG+1
-         GOTO 5005
- 5006 CONTINUE
- 5007 IF(NZG.LE.2) GOTO 5008
-      IF((Z-ZG(NZG-1))*FZG.GE.0.D0) GOTO 5008
-         NZG=NZG-1
-         GOTO 5007
- 5008 CONTINUE
-      IF(NZG.LT.2)     NZG=2
-C
-C      WRITE(6,'(A,2I5,1P4E12.4)') 'NRG,NZG,RG,ZG=',NRG,NZG,
-C     &     RG(NRG-1),RG(NRG),ZG(NZG-1),ZG(NZG)
-C
+      CALL EQNRZX(R,Z,NRG,NZG,IERR)
+      IF(IERR.NE.0) RETURN
 C
       DRG=RG(NRG)-RG(NRG-1)
       DZG=ZG(NZG)-ZG(NZG-1)
@@ -1060,27 +980,39 @@ C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-      HR1=-HRMT1(1.D0-VRG)*DRG
-      HZ1=-HRMT1(1.D0-VZG)*DZG
-C      WRITE(6,'(A,1P4E12.4)') 'HR0...=',HR0,HZ0,HR1,HZ1
+C      HR1=-HRMT1(1.D0-VRG)*DRG
+C      HZ1=-HRMT1(1.D0-VZG)*DZG
+      HR1=0.D0
+      HZ1=0.D0
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-      HR1C= HRMT1(VRG)*DRG
-      HZ1C= HRMT1(VZG)*DZG
-C      WRITE(6,'(A,1P4E12.4)') 'HR0C..=',HR0C,HZ0C,HR1C,HZ1C
+C      HR1C= HRMT1(VRG)*DRG
+C      HZ1C= HRMT1(VZG)*DZG
+      HR1C= 0.D0
+      HZ1C= 0.D0
 C
       DHR0=-DHRMT0(1.D0-VRG)/DRG
       DHZ0=-DHRMT0(1.D0-VZG)/DZG
-      DHR1= DHRMT1(1.D0-VRG)
-      DHZ1= DHRMT1(1.D0-VZG)
-C      WRITE(6,'(A,1P4E12.4)') 'DHR0..=',DHR0,DHZ0,DHR1,DHZ1
+C      DHR1= DHRMT1(1.D0-VRG)
+C      DHZ1= DHRMT1(1.D0-VZG)
+      DHR1= 0.D0
+      DHZ1= 0.D0
 C
       DHR0C= DHRMT0(VRG)/DRG
       DHZ0C= DHRMT0(VZG)/DZG
-      DHR1C= DHRMT1(VRG)
-      DHZ1C= DHRMT1(VZG)
-C      WRITE(6,'(A,1P4E12.4)') 'DHR0C.=',DHR0C,DHZ0C,DHR1C,DHZ1C
+C      DHR1C= DHRMT1(VRG)
+C      DHZ1C= DHRMT1(VZG)
+      DHR1C= 0.D0
+      DHZ1C= 0.D0
+C
+      WRITE(6,'(A:1P4E12.4)')
+     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)
+      WRITE(6,'(A:1P4E12.4)')
+     &     'H:',HR0,DHZ0,HR0C,DHZ0C
+      WRITE(6,'(A:1P4E12.4)')
+     &     'U:',UPSIX(1,NRG-1,NZG-1),UPSIX(1,NRG,NZG-1),
+     &          UPSIX(1,NRG-1,NZG),UPSIX(1,NRG,NZG)
 C
       DPSIDR=UPSIX(1,NRG-1,NZG-1)*DHR0 *HZ0
      &      +UPSIX(2,NRG-1,NZG-1)*DHR0 *HZ1
@@ -1116,6 +1048,73 @@ C
      &      +UPSIX(3,NRG  ,NZG  )*HR1C*DHZ0C
      &      +UPSIX(4,NRG  ,NZG  )*HR1C*DHZ1C
 C
+      RETURN
+      END
+C
+C     ---- calculate NRZ and NGZ for (R,Z) -----
+C
+      SUBROUTINE EQNRZX(R,Z,NRG,NZG,IERR)
+C
+      INCLUDE '../eq/eqcomx.inc'
+C
+      IERR=0
+C
+      IF(RG(NRGMAX).EQ.RG(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      IF(ZG(NZGMAX).EQ.ZG(1)) THEN
+         IERR=8
+         RETURN
+      ENDIF
+C
+      FRG=1.D0/(RG(NRGMAX)-RG(1))
+      NRG=NINT((R-RG(1))*FRG*(NRGMAX-1))+1
+      IF(NRG.LT.1) THEN
+         IERR=1
+         NRG=2
+      ENDIF
+      IF(NRG.GT.NRGMAX) THEN
+         IERR=2
+         NRG=NRGMAX
+      ENDIF
+      FZG=1.D0/(ZG(NZGMAX)-ZG(1))
+      NZG=NINT((Z-ZG(1))*FZG*(NZGMAX-1))+1
+      IF(NZG.LT.1) THEN
+         IERR=3
+         NZG=2
+      ENDIF
+      IF(NZG.GT.NZGMAX) THEN
+         IERR=4
+         NZG=NZGMAX
+      ENDIF
+C
+ 5001 IF(NRG.GE.NRGMAX) GOTO 5002
+      IF((R-RG(NRG  ))*FRG.LE.0.D0) GOTO 5002
+         NRG=NRG+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NRG.LE.2) GOTO 5004
+      IF((R-RG(NRG-1))*FRG.GE.0.D0) GOTO 5004
+         NRG=NRG-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NRG.LT.2)     NRG=2
+C
+ 5005 IF(NZG.GE.NZGMAX) GOTO 5006
+      IF((Z-ZG(NZG  ))*FZG.LE.0.D0) GOTO 5006
+         NZG=NZG+1
+         GOTO 5005
+ 5006 CONTINUE
+ 5007 IF(NZG.LE.2) GOTO 5008
+      IF((Z-ZG(NZG-1))*FZG.GE.0.D0) GOTO 5008
+         NZG=NZG-1
+         GOTO 5007
+ 5008 CONTINUE
+      IF(NZG.LT.2)     NZG=2
+C
+C      WRITE(6,'(A,1P,E12.4,I5,2E12.4)') 'R:',R,NRG,RG(NRG-1),RG(NRG)
+C      WRITE(6,'(A,1P,E12.4,I5,2E12.4)') 'Z:',Z,NZG,ZG(NZG-1),ZG(NZG)
       RETURN
       END
 C
