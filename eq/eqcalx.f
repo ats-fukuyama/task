@@ -107,13 +107,23 @@ C         ENDDO
 C
          CALL EQAXISX(IERR)
 C
-         PSI0=PSIX(1,1)
+         PSIMIN=PSIX(1,1)
+         PSIMAX=PSIX(1,1)
          DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
-            PSI0=MIN(PSI0,PSIX(NRG,NZG))
+            PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
+            PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
          ENDDO
          ENDDO
-         PSIPA=-PSI0
+         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
+         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
+         IF(RIP.GT.0.D0) THEN
+            PSI0=PSIMIN
+            PSIPA=-PSIMIN
+         ELSE
+            PSI0=PSIMAX
+            PSIPA=-PSIMAX
+         ENDIF
 C
          DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
@@ -924,21 +934,21 @@ C
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-C      HR1=-HRMT1(1.D0-VRG)*DRG
-C      HZ1=-HRMT1(1.D0-VZG)*DZG
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
 C      HR1=0.D0
 C      HZ1=0.D0
-      HR1=HRMT1(1.D0-VRG)*DRG
-      HZ1=HRMT1(1.D0-VZG)*DZG
+C      HR1=HRMT1(1.D0-VRG)*DRG
+C      HZ1=HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-C      HR1C= HRMT1(VRG)*DRG
-C      HZ1C= HRMT1(VZG)*DZG
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
 C      HR1C=0.D0
 C      HZ1C=0.D0
-      HR1C=-HRMT1(VRG)*DRG
-      HZ1C=-HRMT1(VZG)*DZG
+C      HR1C=-HRMT1(VRG)*DRG
+C      HZ1C=-HRMT1(VZG)*DZG
 C
       PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
@@ -980,39 +990,39 @@ C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-C      HR1=-HRMT1(1.D0-VRG)*DRG
-C      HZ1=-HRMT1(1.D0-VZG)*DZG
-      HR1=0.D0
-      HZ1=0.D0
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
+C      HR1=0.D0
+C      HZ1=0.D0
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-C      HR1C= HRMT1(VRG)*DRG
-C      HZ1C= HRMT1(VZG)*DZG
-      HR1C= 0.D0
-      HZ1C= 0.D0
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
+C      HR1C= 0.D0
+C      HZ1C= 0.D0
 C
       DHR0=-DHRMT0(1.D0-VRG)/DRG
       DHZ0=-DHRMT0(1.D0-VZG)/DZG
-C      DHR1= DHRMT1(1.D0-VRG)
-C      DHZ1= DHRMT1(1.D0-VZG)
-      DHR1= 0.D0
-      DHZ1= 0.D0
+      DHR1= DHRMT1(1.D0-VRG)
+      DHZ1= DHRMT1(1.D0-VZG)
+C      DHR1= 0.D0
+C      DHZ1= 0.D0
 C
       DHR0C= DHRMT0(VRG)/DRG
       DHZ0C= DHRMT0(VZG)/DZG
-C      DHR1C= DHRMT1(VRG)
-C      DHZ1C= DHRMT1(VZG)
-      DHR1C= 0.D0
-      DHZ1C= 0.D0
+      DHR1C= DHRMT1(VRG)
+      DHZ1C= DHRMT1(VZG)
+C      DHR1C= 0.D0
+C      DHZ1C= 0.D0
 C
-      WRITE(6,'(A:1P4E12.4)')
-     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)
-      WRITE(6,'(A:1P4E12.4)')
-     &     'H:',HR0,DHZ0,HR0C,DHZ0C
-      WRITE(6,'(A:1P4E12.4)')
-     &     'U:',UPSIX(1,NRG-1,NZG-1),UPSIX(1,NRG,NZG-1),
-     &          UPSIX(1,NRG-1,NZG),UPSIX(1,NRG,NZG)
+C      WRITE(6,'(A:1P4E12.4)')
+C     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)
+C      WRITE(6,'(A:1P4E12.4)')
+C     &     'H:',HR0,DHZ0,HR0C,DHZ0C
+C      WRITE(6,'(A:1P4E12.4)')
+C     &     'U:',UPSIX(1,NRG-1,NZG-1),UPSIX(1,NRG,NZG-1),
+C     &          UPSIX(1,NRG-1,NZG),UPSIX(1,NRG,NZG)
 C
       DPSIDR=UPSIX(1,NRG-1,NZG-1)*DHR0 *HZ0
      &      +UPSIX(2,NRG-1,NZG-1)*DHR0 *HZ1
