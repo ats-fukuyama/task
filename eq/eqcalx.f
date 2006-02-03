@@ -63,8 +63,8 @@ C
             Z=0.D0
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
-            WRITE(6,'(A,1P4E12.4)') 
-     &           'R,PSI,DR,DZ=',R,PSIL,DPSIDR,DPSIDZ
+C            WRITE(6,'(A,1P4E12.4)') 
+C     &           'R,PSI,DR,DZ=',R,PSIL,DPSIDR,DPSIDZ
             GX(I)=GUCLIP(R)
             GY(I,1)=GUCLIP(PSIL)
             GY(I,2)=GUCLIP(DPSIDR)
@@ -82,8 +82,8 @@ C
             Z=-0.2D0+0.01D0*(I-1)
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
-            WRITE(6,'(A,1P4E12.4)') 
-     &           'Z,PSI,DR,DZ=',Z,PSIL,DPSIDR,DPSIDZ
+C            WRITE(6,'(A,1P4E12.4)') 
+C     &           'Z,PSI,DR,DZ=',Z,PSIL,DPSIDR,DPSIDZ
             GX(I)=GUCLIP(Z)
             GY(I,1)=GUCLIP(PSIL)
             GY(I,2)=GUCLIP(DPSIDR)
@@ -142,6 +142,7 @@ C
          IF(SUM.LT.EPSEQ) GOTO 1000
       ENDDO
       WRITE(6,*) 'XX NO CONVERGENCE IN EQCALX'
+      IERR=1
 C
  1000 CONTINUE
       DPS=1.D0/(NPSMAX-1)
@@ -489,11 +490,11 @@ C
             L1=L1A(K,L)
             N1=N1A(K,L)
             FMA(NBND+M-N,N)=FMA(NBND+M-N,N)
-     &                     +(RK(K1,I1,I2,I3)/RG(NRG+I3-1)
+     &                     -(RK(K1,I1,I2,I3)/RG(NRG+I3-1)
      &                      -RKK(K1,I1,I2,I3)*DRG/RG(NRG+I3-1)**2)
      &                                   *FACTK(K1)
      &                      *RM(M1,J1,J2)*FACTM(M1)
-     &                     +(RL(L1,I1,I2,I3)/RG(NRG+I3-1)
+     &                     -(RL(L1,I1,I2,I3)/RG(NRG+I3-1)
      &                      -RLL(L1,I1,I2,I3)*DRG/RG(NRG+I3-1)**2)
      &                                   *FACTL(L1)
      &                      *RN(N1,J1,J2)*FACTN(N1) 
@@ -934,21 +935,17 @@ C
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-      HR1=-HRMT1(1.D0-VRG)*DRG
-      HZ1=-HRMT1(1.D0-VZG)*DZG
-C      HR1=0.D0
-C      HZ1=0.D0
-C      HR1=HRMT1(1.D0-VRG)*DRG
-C      HZ1=HRMT1(1.D0-VZG)*DZG
+C      HR1=-HRMT1(1.D0-VRG)*DRG
+C      HZ1=-HRMT1(1.D0-VZG)*DZG
+      HR1=HRMT1(1.D0-VRG)*DRG
+      HZ1=HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-      HR1C= HRMT1(VRG)*DRG
-      HZ1C= HRMT1(VZG)*DZG
-C      HR1C=0.D0
-C      HZ1C=0.D0
-C      HR1C=-HRMT1(VRG)*DRG
-C      HZ1C=-HRMT1(VZG)*DZG
+C      HR1C= HRMT1(VRG)*DRG
+C      HZ1C= HRMT1(VZG)*DZG
+      HR1C=-HRMT1(VRG)*DRG
+      HZ1C=-HRMT1(VZG)*DZG
 C
       PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
@@ -990,31 +987,31 @@ C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-      HR1=-HRMT1(1.D0-VRG)*DRG
-      HZ1=-HRMT1(1.D0-VZG)*DZG
-C      HR1=0.D0
-C      HZ1=0.D0
+C      HR1=-HRMT1(1.D0-VRG)*DRG
+C      HZ1=-HRMT1(1.D0-VZG)*DZG
+      HR1=HRMT1(1.D0-VRG)*DRG
+      HZ1=HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-      HR1C= HRMT1(VRG)*DRG
-      HZ1C= HRMT1(VZG)*DZG
-C      HR1C= 0.D0
-C      HZ1C= 0.D0
+C      HR1C= HRMT1(VRG)*DRG
+C      HZ1C= HRMT1(VZG)*DZG
+      HR1C=-HRMT1(VRG)*DRG
+      HZ1C=-HRMT1(VZG)*DZG
 C
       DHR0=-DHRMT0(1.D0-VRG)/DRG
       DHZ0=-DHRMT0(1.D0-VZG)/DZG
-      DHR1= DHRMT1(1.D0-VRG)
-      DHZ1= DHRMT1(1.D0-VZG)
-C      DHR1= 0.D0
-C      DHZ1= 0.D0
+C      DHR1= DHRMT1(1.D0-VRG)
+C      DHZ1= DHRMT1(1.D0-VZG)
+      DHR1=-DHRMT1(1.D0-VRG)
+      DHZ1=-DHRMT1(1.D0-VZG)
 C
       DHR0C= DHRMT0(VRG)/DRG
       DHZ0C= DHRMT0(VZG)/DZG
-      DHR1C= DHRMT1(VRG)
-      DHZ1C= DHRMT1(VZG)
-C      DHR1C= 0.D0
-C      DHZ1C= 0.D0
+C      DHR1C= DHRMT1(VRG)
+C      DHZ1C= DHRMT1(VZG)
+      DHR1C=-DHRMT1(VRG)
+      DHZ1C=-DHRMT1(VZG)
 C
 C      WRITE(6,'(A:1P4E12.4)')
 C     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)
@@ -1240,13 +1237,13 @@ C
 C
       DO NZ=1,4*NZGMAX-3
       DO NR=1,4*NRGMAX-3
-         IF(PSISPL(NR,NZ).GT.0.D0.AND.
-     &      ZSPL(NZ).GT.ZLIMM.AND.
-     &      ZSPL(NZ).LE.ZLIMP) THEN
+C         IF(PSISPL(NR,NZ).GT.0.D0.AND.
+C     &      ZSPL(NZ).GT.ZLIMM.AND.
+C     &      ZSPL(NZ).LE.ZLIMP) THEN
             GF(NR,NZ)=GUCLIP(FJSPL(NR,NZ))
-         ELSE
-            GF(NR,NZ)=-1.E-4
-         ENDIF
+C         ELSE
+C            GF(NR,NZ)=-1.E-4
+C         ENDIF
       ENDDO
       ENDDO
 C

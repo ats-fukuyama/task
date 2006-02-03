@@ -223,8 +223,8 @@ C
 C
 C        PSIB(0:5): Multipole moments of poloidal flux PSIRZ on boundary
 C
-      PSIB(0) =  0.2D0
-      PSIB(1) = -0.01D0
+      PSIB(0) =  1.0D0
+      PSIB(1) =  0.0D0
       PSIB(2) =  0.D0
       PSIB(3) =  0.D0
       PSIB(4) =  0.D0
@@ -445,9 +445,13 @@ C
      &             'PROFR1',PROFR1,
      &             'PROFR2',PROFR2,
      &             'RHOITB',RHOITB
-      IF(MDLEQF.GT.10.AND.MDLEQF.LT.19) THEN
+      IF(MDLEQF.GE.10.AND.MDLEQF.LT.20) THEN
+         WRITE(6,601) 'PSIB:0',PSIB(0),
+     &                'PSIB:1',PSIB(1),
+     &                'PSIB:2',PSIB(2),
+     &                'PSIB:3',PSIB(3)
          DO NPFC=1,NPFCMAX
-            WRITE(6,603) 
+            WRITE(6,604) 
      &           NPFC,RIPFC(NPFC),RPFC(NPFC),ZPFC(NPFC),WPFC(NPFC)
          ENDDO
       ENDIF
@@ -473,4 +477,6 @@ C
   601 FORMAT(4(A6,'=',1PE11.2:2X))
   602 FORMAT(4(A6,'=',I7:6X))
   603 FORMAT(4(A6,'=',I7:6X))
+  604 FORMAT(' NPFC ','RIPFC',6X,'RPFC',7X,'ZPFC',7X,'WPFC'/
+     &       (I6,1PE11.2))
       END
