@@ -20,7 +20,7 @@ C
          ZG(NZG)=ZGMIN+DZG*(NZG-1)
       ENDDO
 C
-      IF(ID.EQ.0) CALL EQPSIX
+      IF(ID.EQ.0) CALL EQPSIX_INIT
 C
       MWMAX=8*(NRGMAX+2)-1
       MLMAX=4*NRGMAX*NZGMAX
@@ -28,7 +28,7 @@ C
 C
       DO NLOOP=1,NLPMAX
          CALL EQCALFMA
-         CALL EQCALFVB(ID)
+         CALL EQCALFVB
 C
          DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
@@ -62,8 +62,8 @@ C
          DO I=1,NIMAX
             R=1.5D0+0.01D0*(I-1)
             Z=0.D0
-            PSIL=PSIXH(R,Z)
-            CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
+            PSIL=PSIXF(R,Z)
+            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ)
 C            WRITE(6,'(A,1P4E12.4)') 
 C     &           'R,PSI,DR,DZ=',R,PSIL,DPSIDR,DPSIDZ
             GX(I)=GUCLIP(R)
@@ -81,8 +81,8 @@ C
          DO I=1,NIMAX
             R=3.D0
             Z=-1.5D0+0.01D0*(I-1)
-            PSIL=PSIXH(R,Z)
-            CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
+            PSIL=PSIXF(R,Z)
+            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ)
 C            WRITE(6,'(A,1P4E12.4)') 
 C     &           'Z,PSI,DR,DZ=',Z,PSIL,DPSIDR,DPSIDZ
             GX(I)=GUCLIP(Z)
@@ -97,18 +97,18 @@ C
          CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs Z@',0)
          CALL PAGEE
 C
-         CALL EQGRAX
+C         CALL EQGRAX
 C
 C         DO I=1,10
 C            READ(5,*) R,Z
-C            CALL PSIXHD(R,Z,D1,D2)
+C            CALL EQPSIX(R,Z,D1,D2)
 C            WRITE(6,'(A,1P5E12.4)') 'R,Z,PSI,DR,DZ=',
-C     &           R,Z,PSIXH(R,Z),D1,D2
+C     &           R,Z,PSIXF(R,Z),D1,D2
 C         ENDDO
 C
          ENDIF
 C
-         CALL EQAXISX(IERR)
+         CALL EQAXIS(IERR)
 C
          PSIMIN=PSIX(1,1)
          PSIMAX=PSIX(1,1)
@@ -134,6 +134,8 @@ C
             HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
          ENDDO
          ENDDO
+C
+         CALL EQCALR(RRR,RRA,RRK,RRD)
 C
          SUM0=0.D0
          SUM1=0.D0
@@ -180,7 +182,7 @@ C         WRITE(6,'(I5,1P5E12.4)')
 C     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
       ENDDO
 C
-      CALL EQGRAX
+C      CALL EQGRAX
 C
       RETURN
       END
@@ -406,7 +408,7 @@ C   ************************************************
 C   **              Initial Psi                 **
 C   ************************************************
 C
-      SUBROUTINE EQPSIX
+      SUBROUTINE EQPSIX_INIT
 C
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION DERIV(NRVM)
@@ -572,7 +574,7 @@ C     **********************************
 C     *     Calulate FEM RHS vector    *
 C     **********************************
 C
-      SUBROUTINE EQCALFVB(ID)
+      SUBROUTINE EQCALFVB
 C
       INCLUDE '../eq/eqcomx.inc'
 C
@@ -883,56 +885,46 @@ C
       RETURN
       END
 C
-C     ***** CALCULATE MAGNETIC AXIS AND EDGE *****
+C  ************** RMAX,RMIN at PSI=0,RR,RDLT,RKAP **********************
 C
-      SUBROUTINE EQAXISX(IERR)
+      SUBROUTINE EQCALR(RRR,RRA,RRK,RRD)
 C
-      INCLUDE '../eq/eqcomc.inc'
+      INCLUDE '../eq/eqcomq.inc'
+      DIMENSION XA(NTVM),YA(2,NTVM)
 C
-      EXTERNAL PSIXHD,PSIXZ0
-C
-      IERR=0
-C
-C     ----- calculate position of magnetic axis -----
-C
-      DELT=1.D-8
-      EPS=1.D-4
-      ILMAX=40
-      LIST=0
-      RINIT=RAXIS
+      RINIT=REDGE
       ZINIT=ZAXIS
-      RSAVE=RAXIS
-      ZSAVE=ZAXIS
-      CALL NEWTN(PSIXHD,RINIT,ZINIT,RAXIS,ZAXIS,
-     &           DELT,EPS,ILMAX,LIST,IER)
-      IF(IER.NE.0) THEN
-         WRITE(6,'(A,I5,1P2E12.4)')
-     &        'XX EQAXISX: NEWTN ERROR: IER=',IER,RSAVE,ZSAVE
-         WRITE(6,'(A)') 'XX EQAXISX: AXIS NOT FOUND:'
-         IERR=102
-         RETURN
-      ENDIF
 C
-C      WRITE(6,*) RAXIS,ZAXIS,PSIXH(RAXIS,ZAXIS)
+      NUMT=0
+      NUMB=0
+      RMIN=RINIT
+      RMAX=RINIT
+      ZMIN=ZINIT
+      ZMAX=ZINIT
 C
-      IF(RAXIS.LE.RR+RB.AND.
-     &   RAXIS.GE.RR-RB.AND.
-     &   ZAXIS.LE.RKAP*RB.AND.
-     &   ZAXIS.GE.-RKAP*RB) THEN
-         PSI0=PSIXH(RAXIS,ZAXIS)
-         PSIPA=-PSI0
-      ELSE
-         WRITE(6,'(A)') 'XX EQAXIS: AXIS OUT OF PLASMA:'
-         IERR=103
-         RETURN
-      ENDIF
+      CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
-C     ----- calculate outer plasma surface -----
+      DO N=2,NA
+         H=XA(N)-XA(N-1)
+         R=YA(1,N)
+         Z=YA(2,N)
 C
-      RMAX=MAX(RR+RB,RGMAX)
-      REDGE=FBRENT(PSIXZ0,RR-0.5D0*RA,RMAX,1.D-8)
+         IF(Z.GE.ZMAX) NUMT=N
+         IF(Z.LE.ZMIN) NUMB=N
+         RMIN=MIN(RMIN,R)
+         RMAX=MAX(RMAX,R)
+         ZMIN=MIN(ZMIN,Z)
+         ZMAX=MAX(ZMAX,Z)
+      ENDDO
+      RRR=0.5D0*(RMIN+RMAX)
+      RRA=0.5D0*(RMAX-RMIN)            
+      RRK=(ZMAX-ZMIN)/(RMAX-RMIN)
+      RRD=RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB))
 C
-C      WRITE(6,*) REDGE,PSIXH(REDGE,ZAXIS)
+      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX
+      WRITE(6,'(A,1PE12.4,A,E12.4)') 'ZMIN=',ZMIN,'  ZMAX=',ZMAX
+      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RRR =',RRR, '  RRA =',RRA
+      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RRK =',RRK, '  RRD =',RRD
 C
       RETURN
       END
@@ -941,18 +933,18 @@ C     ---- calculate Psi(R,Z=0) -----
 C
       FUNCTION PSIXZ0(R)
       INCLUDE '../eq/eqcomx.inc'
-      PSIXZ0=PSIXH(R,ZAXIS)
+      PSIXZ0=PSIXF(R,ZAXIS)
       RETURN
       END
 C
 C     ---- calculate Psi(R,Z) -----
 C
-      FUNCTION PSIXH(R,Z)
+      FUNCTION PSIXF(R,Z)
 C
       INCLUDE '../eq/eqcomx.inc'
 C
       IERR=0
-      PSIXH=0.D0
+      PSIXF=0.D0
 C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
       IF(IERR.NE.0) RETURN
@@ -972,7 +964,7 @@ C
       HR1C= HRMT1(VRG)*DRG
       HZ1C= HRMT1(VZG)*DZG
 C
-      PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
+      PSIXF=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
      &     +UPSIX(3,NRG-1,NZG-1)*HR1 *HZ0
      &     +UPSIX(4,NRG-1,NZG-1)*HR1 *HZ1
@@ -994,7 +986,7 @@ C
 C
 C     ---- calculate Psi(R,Z) and its derivatives -----
 C
-      SUBROUTINE PSIXHD(R,Z,DPSIDR,DPSIDZ)
+      SUBROUTINE EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
 C

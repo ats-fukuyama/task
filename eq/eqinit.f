@@ -476,7 +476,7 @@ C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))
   602 FORMAT(4(A6,'=',I7:6X))
-  603 FORMAT(4(A6,'=',I7:6X))
+C  603 FORMAT(4(A6,'=',I7:6X))
   604 FORMAT(' NPFC ','RIPFC',6X,'RPFC',7X,'ZPFC',7X,'WPFC'/
      &       (I6,1PE11.2))
       END

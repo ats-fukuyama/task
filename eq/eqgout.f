@@ -13,6 +13,9 @@ C
     1 IF(MODE.EQ.1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
      &                             'S,S1,S2,SR,ST,SD,SB M A X/EXIT'
+      ELSEIF(MODE.EQ.2) THEN
+        WRITE(6,*) ' ## INPUT KID : C ',
+     &                             'S,S1,S2,SR,ST,SD,SB M A X/EXIT'
       ELSE
         WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB X/EXIT'
       ENDIF
@@ -31,6 +34,8 @@ C
             ELSEIF(K2.EQ.'2') THEN
                CALL EQGC2D
             ENDIF
+         ELSEIF(MODE.EQ.2) THEN
+            CALL EQGRAX
          ELSE
             WRITE(6,*) 'XX: EQGOUT: NO DATA CREATED!'
          ENDIF

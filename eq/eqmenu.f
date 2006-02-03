@@ -44,7 +44,6 @@ C
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
             IF(IERR.NE.0) GOTO 1
-         MSTAT=1
 C
       ELSEIF(KID.EQ.'C') THEN
          IF(MSTAT.GE.1) THEN 

@@ -13,12 +13,14 @@ C
 C
 C     ----- calculate spline coef for psi(R,Z) -----
 C
-      CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
-     &           NRGM,NRGMAX,NZGMAX,0,0,IER)
-      IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX EQAXIS: SPL2D for PSIRZ: IER=',IER
-         IERR=101
-         RETURN
+      IF(MDLEQF.LT.10) THEN
+         CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
+     &              NRGM,NRGMAX,NZGMAX,0,0,IER)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX EQAXIS: SPL2D for PSIRZ: IER=',IER
+            IERR=101
+            RETURN
+         ENDIF
       ENDIF
 C
 C     ----- calculate position of magnetic axis -----
@@ -154,11 +156,7 @@ C
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION Y(2),DYDX(2)
 C
-      IF(MDLEQF.LT.10) THEN
-         CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)
-      ELSE
-         CALL PSIXHD(Y(1),Y(2),PSIRL,PSIZL)
-      ENDIF
+      CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)
 C
       PSID=SQRT(PSIRL**2+PSIZL**2)
 C
@@ -177,7 +175,7 @@ C
       IF(MDLEQF.LT.10) THEN
          PSIZ0=PSIG(R,ZAXIS)
       ELSE
-         PSIZ0=PSIXH(R,ZAXIS)
+         PSIZ0=PSIXF(R,ZAXIS)
       ENDIF
       RETURN
       END
@@ -193,7 +191,7 @@ C
          IF(IERR.NE.0) 
      &        WRITE(6,*) 'XX PSIG: SPL2DF ERROR : IERR=',IERR
       ELSE
-         PSIL=PSIXH(R,Z)
+         PSIL=PSIXF(R,Z)
       ENDIF
       PSIG=PSIL
       RETURN
@@ -205,9 +203,19 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      CALL SPL2DD(R,Z,PSIL,DPSIDR,DPSIDZ,
-     &            RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX EQPSID: SPL2DD ERROR : IERR=',IERR
-      IF(IERR.NE.0) WRITE(6,'(A,1P2E12.4)') '   R,Z=',R,Z
+      IF(MDLEQF.LT.10) THEN
+         CALL SPL2DD(R,Z,PSIL,DPSIDR,DPSIDZ,
+     &               RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX EQPSID: SPL2DD ERROR : IERR=',IERR
+            WRITE(6,'(A,1P2E12.4)') '   R,Z=',R,Z
+         ENDIF
+      ELSE
+         CALL EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX EQPSID: EQPSIX ERROR : IERR=',IERR
+            WRITE(6,'(A,1P2E12.4)') '   R,Z=',R,Z
+         ENDIF
+      ENDIF
       RETURN
       END
