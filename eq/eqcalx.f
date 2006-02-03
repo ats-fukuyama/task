@@ -57,9 +57,10 @@ C
          ENDDO
          ENDDO
 C
-         NIMAX=81
+         IF(IDEBUG.EQ.1) THEN
+         NIMAX=301
          DO I=1,NIMAX
-            R=2.8D0+0.01D0*(I-1)
+            R=1.5D0+0.01D0*(I-1)
             Z=0.D0
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
@@ -79,7 +80,7 @@ C
 C
          DO I=1,NIMAX
             R=3.D0
-            Z=-0.2D0+0.01D0*(I-1)
+            Z=-1.5D0+0.01D0*(I-1)
             PSIL=PSIXH(R,Z)
             CALL PSIXHD(R,Z,DPSIDR,DPSIDZ)
 C            WRITE(6,'(A,1P4E12.4)') 
@@ -105,6 +106,8 @@ C            WRITE(6,'(A,1P5E12.4)') 'R,Z,PSI,DR,DZ=',
 C     &           R,Z,PSIXH(R,Z),D1,D2
 C         ENDDO
 C
+         ENDIF
+C
          CALL EQAXISX(IERR)
 C
          PSIMIN=PSIX(1,1)
@@ -115,8 +118,8 @@ C
             PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
          ENDDO
          ENDDO
-         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
-         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
+C         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
+C         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
          IF(RIP.GT.0.D0) THEN
             PSI0=PSIMIN
             PSIPA=-PSIMIN
@@ -132,17 +135,37 @@ C
          ENDDO
          ENDDO
 C
-         SUM=0.D0
+         SUM0=0.D0
+         SUM1=0.D0
          DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
-            SUM=SUM+DELPSIX(NRG,NZG)**2
+            SUM0=SUM0+PSIX(NRG,NZG)**2
+            SUM1=SUM1+DELPSIX(NRG,NZG)**2
          ENDDO
          ENDDO
-         WRITE(6,*) 'SUM=',SUM
-         IF(SUM.LT.EPSEQ) GOTO 1000
+         SUM=SQRT(SUM1/SUM0)
+C
+         IF(SUM.LT.EPSEQ) THEN
+            IF(NPRINT.GE.1) THEN
+               WRITE(6,'(A,1P4E14.6,I5)')
+     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+            ENDIF
+            GOTO 1000
+         ELSE
+            IF((NPRINT.EQ.1.AND.NLOOP.EQ.1).OR.
+     &          NPRINT.GE.2) THEN
+               WRITE(6,'(A,1P4E14.6)')
+     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+            ENDIF
+         ENDIF
       ENDDO
-      WRITE(6,*) 'XX NO CONVERGENCE IN EQCALX'
-      IERR=1
+C
+      IF(NPRINT.GE.1) THEN
+         WRITE(6,'(A,1P4E14.6,I5)')
+     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+      ENDIF
+      WRITE(6,*) 'XX EQCALX: NLOOP exceeds NLPMAX'
+      IERR=100
 C
  1000 CONTINUE
       DPS=1.D0/(NPSMAX-1)
@@ -157,7 +180,7 @@ C         WRITE(6,'(I5,1P5E12.4)')
 C     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
       ENDDO
 C
-      CALL EQGOUT(1)
+      CALL EQGRAX
 C
       RETURN
       END
@@ -475,20 +498,24 @@ C
          FACTN(3)=1.D0
          FACTN(4)=DZG
 C
-         DO I1=1,2
-         DO I2=1,2
-         DO I3=1,2
-         DO J1=1,2
-         DO J2=1,2
          DO K=1,4
          DO L=1,4
+C            K1=K1A(K,L)
+C            M1=M1A(K,L)
+C            L1=L1A(K,L)
+C            N1=N1A(K,L)
+            K1=K1A(L,K)
+            M1=M1A(L,K)
+            L1=L1A(L,K)
+            N1=N1A(L,K)
+         DO I1=1,2
+         DO I2=1,2
+         DO J1=1,2
+         DO J2=1,2
             N=4*((NZG-1)*NRGMAX+NRG-1)+K+4*(I1-1)+4*NRGMAX*(J1-1)
             M=4*((NZG-1)*NRGMAX+NRG-1)+L+4*(I2-1)+4*NRGMAX*(J2-1)
+         DO I3=1,2
 C
-            K1=K1A(K,L)
-            M1=M1A(K,L)
-            L1=L1A(K,L)
-            N1=N1A(K,L)
             FMA(NBND+M-N,N)=FMA(NBND+M-N,N)
      &                     -(RK(K1,I1,I2,I3)/RG(NRG+I3-1)
      &                      -RKK(K1,I1,I2,I3)*DRG/RG(NRG+I3-1)**2)
@@ -609,7 +636,8 @@ C
          TJ=(-FJ1-SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
      &         /(2.D0*FJ2)
       ENDIF
-      WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
+C
+C      WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
@@ -885,7 +913,7 @@ C
          RETURN
       ENDIF
 C
-      WRITE(6,*) RAXIS,ZAXIS,PSIXH(RAXIS,ZAXIS)
+C      WRITE(6,*) RAXIS,ZAXIS,PSIXH(RAXIS,ZAXIS)
 C
       IF(RAXIS.LE.RR+RB.AND.
      &   RAXIS.GE.RR-RB.AND.
@@ -903,7 +931,8 @@ C     ----- calculate outer plasma surface -----
 C
       RMAX=MAX(RR+RB,RGMAX)
       REDGE=FBRENT(PSIXZ0,RR-0.5D0*RA,RMAX,1.D-8)
-      WRITE(6,*) REDGE,PSIG(REDGE,ZAXIS)
+C
+C      WRITE(6,*) REDGE,PSIXH(REDGE,ZAXIS)
 C
       RETURN
       END
@@ -912,7 +941,7 @@ C     ---- calculate Psi(R,Z=0) -----
 C
       FUNCTION PSIXZ0(R)
       INCLUDE '../eq/eqcomx.inc'
-      PSIXZ0=PSIXH(R,0.D0)
+      PSIXZ0=PSIXH(R,ZAXIS)
       RETURN
       END
 C
@@ -935,17 +964,13 @@ C
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-C      HR1=-HRMT1(1.D0-VRG)*DRG
-C      HZ1=-HRMT1(1.D0-VZG)*DZG
-      HR1=HRMT1(1.D0-VRG)*DRG
-      HZ1=HRMT1(1.D0-VZG)*DZG
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-C      HR1C= HRMT1(VRG)*DRG
-C      HZ1C= HRMT1(VZG)*DZG
-      HR1C=-HRMT1(VRG)*DRG
-      HZ1C=-HRMT1(VZG)*DZG
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
 C
       PSIXH=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
      &     +UPSIX(2,NRG-1,NZG-1)*HR0 *HZ1
@@ -987,31 +1012,23 @@ C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
-C      HR1=-HRMT1(1.D0-VRG)*DRG
-C      HZ1=-HRMT1(1.D0-VZG)*DZG
-      HR1=HRMT1(1.D0-VRG)*DRG
-      HZ1=HRMT1(1.D0-VZG)*DZG
+      HR1=-HRMT1(1.D0-VRG)*DRG
+      HZ1=-HRMT1(1.D0-VZG)*DZG
 C
       HR0C= HRMT0(VRG)
       HZ0C= HRMT0(VZG)
-C      HR1C= HRMT1(VRG)*DRG
-C      HZ1C= HRMT1(VZG)*DZG
-      HR1C=-HRMT1(VRG)*DRG
-      HZ1C=-HRMT1(VZG)*DZG
+      HR1C= HRMT1(VRG)*DRG
+      HZ1C= HRMT1(VZG)*DZG
 C
       DHR0=-DHRMT0(1.D0-VRG)/DRG
       DHZ0=-DHRMT0(1.D0-VZG)/DZG
-C      DHR1= DHRMT1(1.D0-VRG)
-C      DHZ1= DHRMT1(1.D0-VZG)
-      DHR1=-DHRMT1(1.D0-VRG)
-      DHZ1=-DHRMT1(1.D0-VZG)
+      DHR1= DHRMT1(1.D0-VRG)
+      DHZ1= DHRMT1(1.D0-VZG)
 C
       DHR0C= DHRMT0(VRG)/DRG
       DHZ0C= DHRMT0(VZG)/DZG
-C      DHR1C= DHRMT1(VRG)
-C      DHZ1C= DHRMT1(VZG)
-      DHR1C=-DHRMT1(VRG)
-      DHZ1C=-DHRMT1(VZG)
+      DHR1C= DHRMT1(VRG)
+      DHZ1C= DHRMT1(VZG)
 C
 C      WRITE(6,'(A:1P4E12.4)')
 C     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)

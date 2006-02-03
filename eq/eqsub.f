@@ -154,7 +154,11 @@ C
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION Y(2),DYDX(2)
 C
-      CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)
+      IF(MDLEQF.LT.10) THEN
+         CALL EQPSID(Y(1),Y(2),PSIRL,PSIZL)
+      ELSE
+         CALL PSIXHD(Y(1),Y(2),PSIRL,PSIZL)
+      ENDIF
 C
       PSID=SQRT(PSIRL**2+PSIZL**2)
 C
@@ -170,7 +174,11 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      PSIZ0=PSIG(R,ZAXIS)
+      IF(MDLEQF.LT.10) THEN
+         PSIZ0=PSIG(R,ZAXIS)
+      ELSE
+         PSIZ0=PSIXH(R,ZAXIS)
+      ENDIF
       RETURN
       END
 C
@@ -180,8 +188,13 @@ C
 C
       INCLUDE '../eq/eqcomc.inc'
 C
-      CALL SPL2DF(R,Z,PSIL,RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX PSIG: SPL2DF ERROR : IERR=',IERR
+      IF(MDLEQF.LT.10) THEN
+         CALL SPL2DF(R,Z,PSIL,RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
+         IF(IERR.NE.0) 
+     &        WRITE(6,*) 'XX PSIG: SPL2DF ERROR : IERR=',IERR
+      ELSE
+         PSIL=PSIXH(R,Z)
+      ENDIF
       PSIG=PSIL
       RETURN
       END

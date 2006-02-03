@@ -247,12 +247,13 @@ C
          ENDIF
       ENDDO
 C
-            IF(NPRINT.GE.1) THEN
-               WRITE(6,'(A,1P4E14.6,I5)')
+      IF(NPRINT.GE.1) THEN
+         WRITE(6,'(A,1P4E14.6,I5)')
      &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
-            ENDIF
+      ENDIF
       WRITE(6,*) 'XX EQLOOP: NLOOP exceeds NLPMAX'
       IERR=100
+C
       RETURN
       END
 C
