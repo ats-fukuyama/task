@@ -921,10 +921,10 @@ C
       RRK=(ZMAX-ZMIN)/(RMAX-RMIN)
       RRD=RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB))
 C
-      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX
-      WRITE(6,'(A,1PE12.4,A,E12.4)') 'ZMIN=',ZMIN,'  ZMAX=',ZMAX
-      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RRR =',RRR, '  RRA =',RRA
-      WRITE(6,'(A,1PE12.4,A,E12.4)') 'RRK =',RRK, '  RRD =',RRD
+      WRITE(6,'4(A,1PE12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX,
+     &                        'ZMIN=',ZMIN,'  ZMAX=',ZMAX
+      WRITE(6,'4(A,1PE12.4)') 'RRR =',RRR, '  RRA =',RRA,
+     &                        'RRK =',RRK, '  RRD =',RRD
 C
       RETURN
       END
@@ -947,7 +947,7 @@ C
       PSIXF=0.D0
 C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
-      IF(IERR.NE.0) RETURN
+      IF(IERR.NE.0.AND.IERR.NE.2.AND.IERR.NE.4) RETURN
 C
       DRG=RG(NRG)-RG(NRG-1)
       DZG=ZG(NZG)-ZG(NZG-1)
@@ -993,7 +993,7 @@ C
       IERR=0
 C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
-      IF(IERR.NE.0) RETURN
+      IF(IERR.NE.0.AND.IERR.NE.2.AND.IERR.NE.4) RETURN
 C
       DRG=RG(NRG)-RG(NRG-1)
       DZG=ZG(NZG)-ZG(NZG-1)
