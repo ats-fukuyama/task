@@ -7,6 +7,7 @@ C
       INCLUDE '../eq/eqcomx.inc'
       PARAMETER (NIM=1001)
       DIMENSION GX(NIM),GY(NIM,3)
+      DIMENSION PSIBL(4),RSLT(4)
 C
       IERR=0
 C
@@ -21,6 +22,59 @@ C
       ENDDO
 C
       IF(ID.EQ.0) CALL EQPSIX_INIT
+C
+      DO I=1,4
+         PSIBL(I)=PSIB(I-1)
+      ENDDO
+C
+      CALL EQCALX_SUB(PSIBL,RSLT,4)
+C
+      RRR=RSLT(1)
+      RRA=RSLT(2)
+      RRK=RSLT(3)
+      RRD=RSLT(4)
+C
+      DPS=1.D0/(NPSMAX-1)
+      DO NPS=1,NPSMAX
+         PSIPNL=DPS*(NPS-1)
+         PSIPS(NPS)=PSIPA*PSIPNL
+         CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+         CALL EQFPSI(PSIPNL,FPSI,DFPSI)
+         PPPS(NPS)=PPSI
+         TTPS(NPS)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+C         WRITE(6,'(I5,1P5E12.4)')
+C     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
+      ENDDO
+C
+C      CALL EQGRAX
+C
+      RETURN
+      END
+C
+C     ****** FREE BOUNDARY EQUILIBRIUM SOLVER ******
+C
+      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,N)
+C
+      INCLUDE '../eq/eqcomx.inc'
+      PARAMETER (NIM=1001)
+      DIMENSION GX(NIM),GY(NIM,3)
+      DIMENSION PSIBL(N),RSLT(N)
+C
+      IERR=0
+C
+      DO I=1,4
+         PSIB(I-1)=PSIBL(I)
+      ENDDO
+C
+      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
+      DO NRG=1,NRGMAX
+         RG(NRG)=RGMIN+DRG*(NRG-1)
+      ENDDO
+C
+      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
+      DO NZG=1,NZGMAX
+         ZG(NZG)=ZGMIN+DZG*(NZG-1)
+      ENDDO
 C
       MWMAX=8*(NRGMAX+2)-1
       MLMAX=4*NRGMAX*NZGMAX
@@ -170,19 +224,10 @@ C
       IERR=100
 C
  1000 CONTINUE
-      DPS=1.D0/(NPSMAX-1)
-      DO NPS=1,NPSMAX
-         PSIPNL=DPS*(NPS-1)
-         PSIPS(NPS)=PSIPA*PSIPNL
-         CALL EQPPSI(PSIPNL,PPSI,DPPSI)
-         CALL EQFPSI(PSIPNL,FPSI,DFPSI)
-         PPPS(NPS)=PPSI
-         TTPS(NPS)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
-C         WRITE(6,'(I5,1P5E12.4)')
-C     &        NPS,PSIPNL,PPSI,FPSI,PPPS(NPS),TTPS(NPS)
-      ENDDO
-C
-C      CALL EQGRAX
+      RSLT(1)=RRR
+      RSLT(2)=RRA
+      RSLT(3)=RRK
+      RSLT(4)=RRD
 C
       RETURN
       END
