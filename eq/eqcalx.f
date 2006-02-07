@@ -7,7 +7,8 @@ C
       INCLUDE '../eq/eqcomx.inc'
       PARAMETER (NIM=1001)
       DIMENSION GX(NIM),GY(NIM,3)
-      DIMENSION PSIBL(4),RSLT(4)
+      DIMENSION PSIBL(4),RSLT(4),PSIBLX(4)
+      EXTERNAL EQCALX_SUB,EQCALX_LOOP,FUNC
 C
       IERR=0
 C
@@ -21,18 +22,36 @@ C
          ZG(NZG)=ZGMIN+DZG*(NZG-1)
       ENDDO
 C
+      MWMAX=8*(NRGMAX+2)-1
+      MLMAX=4*NRGMAX*NZGMAX
+      NBND=4*(NRGMAX+2)
+C
       IF(ID.EQ.0) CALL EQPSIX_INIT
 C
       DO I=1,4
          PSIBL(I)=PSIB(I-1)
       ENDDO
 C
-      CALL EQCALX_SUB(PSIBL,RSLT,4)
+      IF(MDLEQX.EQ.0) THEN
 C
-      RRR=RSLT(1)
-      RRA=RSLT(2)
-      RRK=RSLT(3)
-      RRD=RSLT(4)
+         CALL EQCALX_LOOP(PSIBL,RSLT,4)
+C
+      ELSEIF(MDLEQX.EQ.1) THEN
+C
+         CALL NEWTON4(4,PSIBL,EQCALX_LOOP,IERR,ICOUNT,PSIBLX)
+C
+      ELSEIF(MDLEQX.EQ.2) THEN
+C
+         CALL NEWTON4(4,PSIBL,EQCALX_SUB,IERR,ICOUNT,PSIBLX)
+C
+      ELSE
+         WRITE(6,*) 'XX EQCALX: UNKNOWN MDLEQX:', MDLEQX
+      ENDIF
+C
+      RRR=RR+RSLT(1)
+      RRA=RA+RSLT(2)
+      RRK=RKAP+RSLT(3)
+      RRD=RDLT+RSLT(4)
 C
       DPS=1.D0/(NPSMAX-1)
       DO NPS=1,NPSMAX
@@ -53,63 +72,16 @@ C
 C
 C     ****** FREE BOUNDARY EQUILIBRIUM SOLVER ******
 C
-      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,N)
+      SUBROUTINE EQCALX_LOOP(PSIBL,RSLT,N)
 C
       INCLUDE '../eq/eqcomx.inc'
       PARAMETER (NIM=1001)
       DIMENSION GX(NIM),GY(NIM,3)
       DIMENSION PSIBL(N),RSLT(N)
 C
-      IERR=0
-C
-      DO I=1,4
-         PSIB(I-1)=PSIBL(I)
-      ENDDO
-C
-      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
-      DO NRG=1,NRGMAX
-         RG(NRG)=RGMIN+DRG*(NRG-1)
-      ENDDO
-C
-      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
-      DO NZG=1,NZGMAX
-         ZG(NZG)=ZGMIN+DZG*(NZG-1)
-      ENDDO
-C
-      MWMAX=8*(NRGMAX+2)-1
-      MLMAX=4*NRGMAX*NZGMAX
-      NBND=4*(NRGMAX+2)
-C
       DO NLOOP=1,NLPMAX
-         CALL EQCALFMA
-         CALL EQCALFVB
 C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIXOLD(NRG,NZG)=PSIX(NRG,NZG)
-         ENDDO
-         ENDDO
-C
-         CALL BANDRD(FMA,FVB,MLMAX,MWMAX,MWM,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
-C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            N=4*((NZG-1)*NRGMAX+NRG-1)+1
-            PSIX(NRG,NZG)=FVB(N)
-            UPSIX(1,NRG,NZG)=FVB(N)
-            UPSIX(2,NRG,NZG)=FVB(N+1)
-            UPSIX(3,NRG,NZG)=FVB(N+2)
-            UPSIX(4,NRG,NZG)=FVB(N+3)
-         ENDDO
-         ENDDO
-C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            DELPSIX(NRG,NZG)=PSIX(NRG,NZG)-PSIXOLD(NRG,NZG)
-            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
-         ENDDO
-         ENDDO
+         CALL EQCALX_SUB(PSIBL,RSLT,N)
 C
          IF(IDEBUG.EQ.1) THEN
          NIMAX=301
@@ -117,9 +89,7 @@ C
             R=1.5D0+0.01D0*(I-1)
             Z=0.D0
             PSIL=PSIXF(R,Z)
-            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ)
-C            WRITE(6,'(A,1P4E12.4)') 
-C     &           'R,PSI,DR,DZ=',R,PSIL,DPSIDR,DPSIDZ
+            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
             GX(I)=GUCLIP(R)
             GY(I,1)=GUCLIP(PSIL)
             GY(I,2)=GUCLIP(DPSIDR)
@@ -136,9 +106,7 @@ C
             R=3.D0
             Z=-1.5D0+0.01D0*(I-1)
             PSIL=PSIXF(R,Z)
-            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ)
-C            WRITE(6,'(A,1P4E12.4)') 
-C     &           'Z,PSI,DR,DZ=',Z,PSIL,DPSIDR,DPSIDZ
+            CALL EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
             GX(I)=GUCLIP(Z)
             GY(I,1)=GUCLIP(PSIL)
             GY(I,2)=GUCLIP(DPSIDR)
@@ -151,45 +119,9 @@ C
          CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs Z@',0)
          CALL PAGEE
 C
-C         CALL EQGRAX
-C
-C         DO I=1,10
-C            READ(5,*) R,Z
-C            CALL EQPSIX(R,Z,D1,D2)
-C            WRITE(6,'(A,1P5E12.4)') 'R,Z,PSI,DR,DZ=',
-C     &           R,Z,PSIXF(R,Z),D1,D2
-C         ENDDO
+         CALL EQGRAX
 C
          ENDIF
-C
-         CALL EQAXIS(IERR)
-C
-         PSIMIN=PSIX(1,1)
-         PSIMAX=PSIX(1,1)
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
-            PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
-         ENDDO
-         ENDDO
-C         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
-C         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
-         IF(RIP.GT.0.D0) THEN
-            PSI0=PSIMIN
-            PSIPA=-PSIMIN
-         ELSE
-            PSI0=PSIMAX
-            PSIPA=-PSIMAX
-         ENDIF
-C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=PSIX(NRG,NZG)-PSI0
-            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
-         ENDDO
-         ENDDO
-C
-         CALL EQCALR(RRR,RRA,RRK,RRD)
 C
          SUM0=0.D0
          SUM1=0.D0
@@ -224,10 +156,86 @@ C
       IERR=100
 C
  1000 CONTINUE
-      RSLT(1)=RRR
-      RSLT(2)=RRA
-      RSLT(3)=RRK
-      RSLT(4)=RRD
+C
+      RETURN
+      END
+C
+C     ****** FREE BOUNDARY EQUILIBRIUM SOLVER ******
+C
+      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,N)
+C
+      INCLUDE '../eq/eqcomx.inc'
+      DIMENSION PSIBL(N),RSLT(N)
+C
+      DO I=1,N
+         PSIB(I-1)=PSIBL(I)
+      ENDDO
+      WRITE(6,'4(A,1PE12.4)') 'PSIB=',PSIB(0),'      =',PSIB(1),
+     &                        '      =',PSIB(2),'      =',PSIB(3)
+C
+         CALL EQCALFMA
+         CALL EQCALFVB
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIXOLD(NRG,NZG)=PSIX(NRG,NZG)
+         ENDDO
+         ENDDO
+C
+         CALL BANDRD(FMA,FVB,MLMAX,MWMAX,MWM,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            L=4*((NZG-1)*NRGMAX+NRG-1)+1
+            PSIX(NRG,NZG)=FVB(L)
+            UPSIX(1,NRG,NZG)=FVB(L)
+            UPSIX(2,NRG,NZG)=FVB(L+1)
+            UPSIX(3,NRG,NZG)=FVB(L+2)
+            UPSIX(4,NRG,NZG)=FVB(L+3)
+         ENDDO
+         ENDDO
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            DELPSIX(NRG,NZG)=PSIX(NRG,NZG)-PSIXOLD(NRG,NZG)
+            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
+         ENDDO
+         ENDDO
+C
+         CALL EQAXIS(IERR)
+C
+         PSIMIN=PSIX(1,1)
+         PSIMAX=PSIX(1,1)
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
+            PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
+         ENDDO
+         ENDDO
+C         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
+C         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
+         IF(RIP.GT.0.D0) THEN
+            PSI0=PSIMIN
+            PSIPA=-PSIMIN
+         ELSE
+            PSI0=PSIMAX
+            PSIPA=-PSIMAX
+         ENDIF
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIRZ(NRG,NZG)=PSIX(NRG,NZG)-PSI0
+            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
+         ENDDO
+         ENDDO
+C
+         CALL EQCALR(RRR,RRA,RRK,RRD)
+C
+         RSLT(1)=RRR-RR
+         RSLT(2)=RRA-RA
+         RSLT(3)=RRK-RKAP
+         RSLT(4)=RRD-RDLT
 C
       RETURN
       END
@@ -966,10 +974,12 @@ C
       RRK=(ZMAX-ZMIN)/(RMAX-RMIN)
       RRD=RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB))
 C
-      WRITE(6,'4(A,1PE12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX,
-     &                        'ZMIN=',ZMIN,'  ZMAX=',ZMAX
+C      WRITE(6,'4(A,1PE12.4)') 'PSIB=',PSIB(0),'      =',PSIB(1),
+C     &                        '      =',PSIB(2),'      =',PSIB(3)
+C      WRITE(6,'4(A,1PE12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX,
+C     &                        '  ZMIN=',ZMIN,'  ZMAX=',ZMAX
       WRITE(6,'4(A,1PE12.4)') 'RRR =',RRR, '  RRA =',RRA,
-     &                        'RRK =',RRK, '  RRD =',RRD
+     &                        '  RRK =',RRK, '  RRD =',RRD
 C
       RETURN
       END
@@ -1038,7 +1048,7 @@ C
       IERR=0
 C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
-      IF(IERR.NE.0.AND.IERR.NE.2.AND.IERR.NE.4) RETURN
+      IF(IERR.GT.4) RETURN
 C
       DRG=RG(NRG)-RG(NRG-1)
       DZG=ZG(NZG)-ZG(NZG-1)
@@ -1108,6 +1118,8 @@ C
      &      +UPSIX(2,NRG  ,NZG  )*HR0C*DHZ1C
      &      +UPSIX(3,NRG  ,NZG  )*HR1C*DHZ0C
      &      +UPSIX(4,NRG  ,NZG  )*HR1C*DHZ1C
+C
+      IERR=0
 C
       RETURN
       END

@@ -200,6 +200,13 @@ C            1: Boozer coordinate
 C
       MDLEQC = 0
 C
+C        MDLEQX : Free boundary calculation
+C            0: Given PSIB and RIPFC
+C            1: PSIB adjusted after loop for given RR,RA,RKAP,RDLT
+C            2: PSIB adjusted eqch loop for given RR,RA,RKAP,RDLT
+C
+      MDLEQX = 0
+C
 C        NPRINT: Level print out
 C            0: no print
 C            1: print first and last loop
@@ -295,7 +302,7 @@ C
      &              NRGMAX,NZGMAX,RGMIN,RGMAX,ZGMIN,ZGMAX,ZLIMP,ZLIMM,
      &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
-     &              MDLEQF,MDLEQC,MDLEQA,NPRINT,
+     &              MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT,
      &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
@@ -326,7 +333,7 @@ C
      &       9X,'PROFR0,PROFR1,PROFR2,EPSEQ,'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
-     &       9X,'MDLEQF,MDLEQC,MDLEQA,NPRINT,NLPMAX'/
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT,NLPMAX'/
      &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
      &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
       END
@@ -470,7 +477,8 @@ C
      &             'MDLEQC',MDLEQC,
      &             'MDLEQA',MDLEQA,
      &             'MODELQ',MODELQ
-      WRITE(6,602) 'NPRINT',NPRINT,
+      WRITE(6,602) 'MDLEQX',MDLEQX,
+     &             'NPRINT',NPRINT,
      &             'NLPMAX',NLPMAX
 C
       RETURN

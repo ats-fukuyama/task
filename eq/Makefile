@@ -1,10 +1,11 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
-       eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f eqgout.f eqgsub.f
+       eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f eqgout.f eqgsub.f \
+       newton.f invematrix.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f
@@ -77,3 +78,5 @@ wmeqin.o: wmeqin.f $(EQCOMM) eqcom3.inc
 pltest.o: pltest.f
 aktest.o: aktest.f
 akeqin.o: akeqin.f $(EQCOMM) eqcom3.inc
+newton.o: newton.f
+invematrix.o: invematrix.f
