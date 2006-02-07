@@ -351,16 +351,18 @@ C     ----- CALCULATE PLASMA SURFACE -----
 C
       CALL EQCALF(REDGE,ZAXIS,NTHMAX,RSU,ZSU,IERR)
 C
-      RGMIN=RSU(1)
-      RGMAX=RSU(1)
-      ZGMIN=ZSU(1)
-      ZGMAX=ZSU(1)
-      DO NTH=2,NTHMAX
-         RGMIN=MIN(RGMIN,RSU(NTH))
-         RGMAX=MAX(RGMAX,RSU(NTH))
-         ZGMIN=MIN(ZGMIN,ZSU(NTH))
-         ZGMAX=MAX(ZGMAX,ZSU(NTH))
-      ENDDO
+      IF(MDLEQF.LT.10) THEN
+         RGMIN=RSU(1)
+         RGMAX=RSU(1)
+         ZGMIN=ZSU(1)
+         ZGMAX=ZSU(1)
+         DO NTH=2,NTHMAX
+            RGMIN=MIN(RGMIN,RSU(NTH))
+            RGMAX=MAX(RGMAX,RSU(NTH))
+            ZGMIN=MIN(ZGMIN,ZSU(NTH))
+            ZGMAX=MAX(ZGMAX,ZSU(NTH))
+         ENDDO
+      ENDIF
       DO NTH=1,NTHMAX
          RSW(NTH)=RSU(NTH)
          ZSW(NTH)=ZSU(NTH)
@@ -627,16 +629,18 @@ C
          ZSW(NSU)=       ZSU(NSU)       *FACTOR
       ENDDO
 C
-      RGMIN=RSW(1)
-      RGMAX=RSW(1)
-      ZGMIN=ZSW(1)
-      ZGMAX=ZSW(1)
-      DO NSU=2,NSUMAX
-         RGMIN=MIN(RGMIN,RSW(NSU))
-         RGMAX=MAX(RGMAX,RSW(NSU))
-         ZGMIN=MIN(ZGMIN,ZSW(NSU))
-         ZGMAX=MAX(ZGMAX,ZSW(NSU))
-      ENDDO
+      IF(MDLEQF.LT.10) THEN
+         RGMIN=RSW(1)
+         RGMAX=RSW(1)
+         ZGMIN=ZSW(1)
+         ZGMAX=ZSW(1)
+         DO NSU=2,NSUMAX
+            RGMIN=MIN(RGMIN,RSW(NSU))
+            RGMAX=MAX(RGMAX,RSW(NSU))
+            ZGMIN=MIN(ZGMIN,ZSW(NSU))
+            ZGMAX=MAX(ZGMAX,ZSW(NSU))
+         ENDDO
+      ENDIF
 C
       RETURN
       END

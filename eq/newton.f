@@ -18,7 +18,8 @@ C
       EXTERNAL SUB
       INTRINSIC ABS
 C
-      TOL=5.D-7
+C      TOL=5.D-7
+      TOL=1.D-4
       MAXITS=100
       DFDXMIN=1.D0
       M=N

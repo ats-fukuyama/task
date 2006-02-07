@@ -592,23 +592,25 @@ C
 C
       DO NZG=1,NZGMAX,NZGMAX-1
       DO NRG=1,NRGMAX
-         K=1
+      DO K=1,1
          N=4*((NZG-1)*NRGMAX+NRG-1)+K
          DO MW=1,MWMAX
             FMA(MW,N)=0.D0
          ENDDO
          FMA(NBND,N)=1.D0
+      ENDDO
       ENDDO
       ENDDO
 C
       DO NRG=1,NRGMAX,NRGMAX-1
-      DO NZG=2,NZGMAX-1
-         K=1
+      DO NZG=1,NZGMAX
+      DO K=1,1
          N=4*((NZG-1)*NRGMAX+NRG-1)+K
          DO MW=1,MWMAX
             FMA(MW,N)=0.D0
          ENDDO
          FMA(NBND,N)=1.D0
+      ENDDO
       ENDDO
       ENDDO
 C
@@ -820,20 +822,22 @@ C
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
-         K=1
+      DO K=1,1
          N=4*((NZG-1)*NRGMAX+NRG-1)+K
          FVB(N)=PSIBRZ(K)
+      ENDDO
       ENDDO
       ENDDO
 C
-      DO  NRG=1,NRGMAX,NRGMAX-1
-      DO NZG=2,NZGMAX-1
+      DO NRG=1,NRGMAX,NRGMAX-1
+      DO NZG=1,NZGMAX
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
-         K=1
+      DO K=1,1
          N=4*((NZG-1)*NRGMAX+NRG-1)+K
          FVB(N)=PSIBRZ(K)
+      ENDDO
       ENDDO
       ENDDO
       RETURN
@@ -918,7 +922,7 @@ C
      &           -12.D0*(2.D0*R**2-R02)*R**2*Z**5
      &           +10.D0*(2.D0*R**2-R02)*(R**2-R02)*R**2*Z**3
      &           -2.5D0*(R**2-R02)**3*R**2*Z)/R05
-      PSIV(1,5)= (64.D0/7.D0*R*Z**7
+      PSIV(4,5)= (64.D0/7.D0*R*Z**7
      &           -48.D0*R**3*Z**5
      &           -24.D0*R*(2.D0*R**2-R02)*Z**5
      &           +20.D0*R**3*(4.D0*R**2-3.D0*R02)*Z**3
