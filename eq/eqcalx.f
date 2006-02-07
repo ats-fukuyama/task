@@ -170,7 +170,7 @@ C
       DO I=1,N
          PSIB(I-1)=PSIBL(I)
       ENDDO
-      WRITE(6,'4(A,1PE12.4)') 'PSIB=',PSIB(0),'      =',PSIB(1),
+      WRITE(6,'(4(A,1PE12.4))') 'PSIB=',PSIB(0),'      =',PSIB(1),
      &                        '      =',PSIB(2),'      =',PSIB(3)
 C
          CALL EQCALFMA
@@ -658,8 +658,8 @@ C
       FJ0=0.D0
       FJ1=0.D0
       FJ2=0.D0
-      DO NZG=1,NZGMAX-1
-      DO NRG=1,NRGMAX-1
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
          IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
      &        ZG(NZG).LE.ZLIMP.AND.
      &        ZG(NZG).GE.ZLIMM) THEN
@@ -798,8 +798,10 @@ C
             DO L=1,4
                N=4*((NZG-1)*NRGMAX+NRG-1)+K+4*(I1-1)+4*NRGMAX*(J1-1)
 C
-               K1=K1A(K,L)
-               M1=M1A(K,L)
+C               K1=K1A(K,L)
+C               M1=M1A(K,L)
+               K1=K1A(L,K)
+               M1=M1A(L,K)
                FVB(N)=FVB(N)+RM(K1,I1,I2)*FACTH(K1)
      &                      *RM(M1,J1,J2)*FACTM(M1)*RMU0*1.D6*RJ(L)
             ENDDO
@@ -974,11 +976,11 @@ C
       RRK=(ZMAX-ZMIN)/(RMAX-RMIN)
       RRD=RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB))
 C
-C      WRITE(6,'4(A,1PE12.4)') 'PSIB=',PSIB(0),'      =',PSIB(1),
+C      WRITE(6,'(4(A,1PE12.4))') 'PSIB=',PSIB(0),'      =',PSIB(1),
 C     &                        '      =',PSIB(2),'      =',PSIB(3)
-C      WRITE(6,'4(A,1PE12.4)') 'RMIN=',RMIN,'  RMAX=',RMAX,
+C      WRITE(6,'(4(A,1PE12.4))') 'RMIN=',RMIN,'  RMAX=',RMAX,
 C     &                        '  ZMIN=',ZMIN,'  ZMAX=',ZMAX
-      WRITE(6,'4(A,1PE12.4)') 'RRR =',RRR, '  RRA =',RRA,
+      WRITE(6,'(4(A,1PE12.4))') 'RRR =',RRR, '  RRA =',RRA,
      &                        '  RRK =',RRK, '  RRD =',RRD
 C
       RETURN
