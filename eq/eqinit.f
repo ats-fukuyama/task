@@ -168,9 +168,15 @@ C     *** CONTROL PARAMETERS ***
 C
 C        EPSEQ  : Convergence criterion for equilibrium
 C        NLPMAX : Maximum iteration number of EQ
+C        EPSNW  : Convergence criterion for newton method
+C        DELNW  : Increment for ferivative in newton method
+C        NLPNW  : Maximum iteration number in newton method
 C
       EPSEQ  = 1.D-6
       NLPMAX = 20
+      EPSNW  = 1.D-2
+      DELNW  = 1.D-2
+      NLPNW  = 20
 C
 C        MDLEQF : Profile parameter
 C            0: given analytic profile  P,Jtoroidal,T,Vph + Ip
@@ -298,7 +304,7 @@ C
      &              PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ,
      &              PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,
      &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
-     &              NSGMAX,NTGMAX,NUGMAX,
+     &              NSGMAX,NTGMAX,NUGMAX,EPSNW,DELNW,NLPNW,
      &              NRGMAX,NZGMAX,RGMIN,RGMAX,ZGMIN,ZGMAX,ZLIMP,ZLIMM,
      &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
@@ -330,10 +336,11 @@ C
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PT0,PT1,PT2,PROFT0,PROFT1,PROFT2,PTSEQ'/
      &       9X,'PV0,PV1,PV2,PROFV0,PROFV1,PROFV2,PN0EQ,HM'/
-     &       9X,'PROFR0,PROFR1,PROFR2,EPSEQ,'/
+     &       9X,'PROFR0,PROFR1,PROFR2'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
-     &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT,NLPMAX'/
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT'/
+     &       9X,'EPSEQ,NLPMAX,EPSNW,DELNW,NLPNW'/
      &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
      &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
       END
@@ -446,12 +453,14 @@ C
      &             'PV2   ',PV2,
      &             'PROFV2',PROFV2
       WRITE(6,601) 'PTSEQ ',PTSEQ,
-     &             'PN0EQ ',PN0EQ,
-     &             'EPSEQ ',EPSEQ
+     &             'PN0EQ ',PN0EQ
       WRITE(6,601) 'PROFR0',PROFR0,
      &             'PROFR1',PROFR1,
      &             'PROFR2',PROFR2,
      &             'RHOITB',RHOITB
+      WRITE(6,601) 'EPSEQ ',EPSEQ,
+     &             'EPSNW ',EPSNW,
+     &             'DELNW ',DELNW
       IF(MDLEQF.GE.10.AND.MDLEQF.LT.20) THEN
          WRITE(6,601) 'PSIB:0',PSIB(0),
      &                'PSIB:1',PSIB(1),
@@ -479,7 +488,8 @@ C
      &             'MODELQ',MODELQ
       WRITE(6,602) 'MDLEQX',MDLEQX,
      &             'NPRINT',NPRINT,
-     &             'NLPMAX',NLPMAX
+     &             'NLPMAX',NLPMAX,
+     &             'NLPNW ',NLPNW
 C
       RETURN
   601 FORMAT(4(A6,'=',1PE11.2:2X))

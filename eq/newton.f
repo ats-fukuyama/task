@@ -1,5 +1,5 @@
 C
-      SUBROUTINE NEWTON4(N,X0,SUB,STATUS,COUNT,XLAST)
+      SUBROUTINE NEWTON4(N,X0,XLAST,SUB,STATUS,COUNT,DD,TOL,MAXITS)
 C
 C      NEED  SUBROUTINE SUB(X(N),FX(N),N)
 C      NEED  M=N
@@ -8,7 +8,7 @@ C
       INTEGER M,N,STATUS,COUNT
       INTEGER MAXITS,ITRATE,SOLVED,LIMIT,FLAT,I,J,TOLCT,NWEQM,NWEQM2
       PARAMETER (NWEQM=4,NWEQM2=2*NWEQM)
-      REAL*8 TINY,TOL,DFDXMIN
+      REAL*8 TINY,TOL,DFDXMIN,SUM,DD,DDTEMP
       REAL*8 X0(NWEQM),OLDX(NWEQM),NEWX(NWEQM),XLAST(NWEQM)
       REAL*8 DFDX(NWEQM,NWEQM),INDFDX(NWEQM,NWEQM)
       REAL*8 DX(NWEQM),FX(NWEQM),WORK(NWEQM,NWEQM2)
@@ -19,8 +19,10 @@ C
       INTRINSIC ABS
 C
 C      TOL=5.D-7
-      TOL=1.D-4
-      MAXITS=100
+C      TOL=1.D-4
+C      MAXITS=100
+C
+      SUM=1.D0
       DFDXMIN=1.D0
       M=N
 C
@@ -33,7 +35,8 @@ C
 C
 C        WRITE(*,*) 'QQQQQ',NEWX(1),NEWX(2),NEWX(3),NEWX(4)
 C
-         CALL NEWTON_SUB(N,NWEQM,NEWX,DFDX,SUB,WORKS)
+         DDTEMP=DD
+         CALL NEWTON_SUB(N,NWEQM,NEWX,DFDX,SUB,DDTEMP,WORKS)
          DO I=1,4
          DO J=1,4
             WRITE(*,*) 'DDDDDDDD',DFDX(I,J)
@@ -75,11 +78,13 @@ C
                NEWX(I)=OLDX(I)+DX(I)
             END DO
 C
-            TOLCT=0
+            SUM=0.D0
             DO I=1,M
-               IF (ABS(DX(I)).LE.ABS(OLDX(I))*TOL) TOLCT=TOLCT+1
+               SUM=SUM+(DX(I)/MAX(ABS(OLDX(I)),1.D0))**2
             END DO
-            IF (ABS(TOLCT-M).LE.TOL) STATUS=SOLVED
+            SUM=SQRT(SUM/FLOAT(M))
+            WRITE(6,'(A,1PE12.4)') '** NEWTON4: SUM=',SUM
+            IF (SUM.LE.TOL) STATUS=SOLVED
          END IF
          IF (STATUS.NE.ITRATE) GO TO 11
       END DO
@@ -93,7 +98,7 @@ C
       END
 c
 c************************************************************
-      SUBROUTINE NEWTON_SUB(N,NM,X,DFDX,SUB,WORKS)
+      SUBROUTINE NEWTON_SUB(N,NM,X,DFDX,SUB,DD,WORKS)
 C
       IMPLICIT NONE
       INTEGER I,J,M,N,NM
@@ -106,7 +111,7 @@ C     WORKS(I,1) = XNEW(I)
 C     WORKS(I,2) = RESULT0(I)
 C     WORKS(I,3) = RESULT(I)
 C
-      DD=1.D-2
+C      DD=1.D-2
 C
       CALL SUB(X,WORKS(1,2),N)
       DO J=1,N
