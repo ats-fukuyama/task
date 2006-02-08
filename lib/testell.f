@@ -1,0 +1,31 @@
+      IMPLICIT NONE
+      INTEGER NEM
+      PARAMETER (NEM=101)
+      REAL*8 RK,PHI,DPHI,PI,F1,F2
+      REAL*8 ELLFC,ELLEC,ELLF,ELLE
+      REAL*8 FC(NEM),EC(NEM),F(NEM),E(NEM)
+      INTEGER N,NMAX,IERR
+C
+      RK=0.D0
+      NMAX=19
+C
+    1 WRITE(6,*) '## input RK, NMAX:'
+      READ(5,*,END=9000,ERR=1) RK,NMAX
+C
+      PI=2.D0*ASIN(1.D0)
+      DPHI=0.5D0*PI/(NMAX-1)
+C
+      F1=ELLFC(RK,IERR)
+      F2=ELLEC(RK,IERR)
+      WRITE(6,'(5X,1P3E12.4)') RK,F1,F2
+C
+      DO N=1,NMAX
+         PHI=DPHI*(N-1)
+         F1=ELLF(PHI,RK,IERR)
+         F2=ELLE(PHI,RK,IERR)
+         WRITE(6,'(I5,1P3E12.4)') N,PHI,F1,F2
+      ENDDO
+      GOTO 1
+C
+ 9000 STOP
+      END

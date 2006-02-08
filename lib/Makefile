@@ -4,7 +4,7 @@ include ../make.header
 LFLAGS = $(OFLAGS)
 FFLAGS = $(OFLAGS)
 
-SRCS = libspf.f libbes.f \
+SRCS = libspf.f libbes.f libell.f \
        libbrn.f \
        libinv.f libbnd.f \
        librk.f libsympl.f libde.f \
@@ -45,6 +45,9 @@ testfft : testfft.o $(OBJS)
 
 testbrn : testbrn.o $(OBJS)
 	$(FC) -o $@ testbrn.o $(FFLAGS) $(OBJS) $(FLIBS)
+
+testell : testell.o $(OBJS)
+	$(FC) -o $@ testell.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 new :
 	mkdir ../libnew
