@@ -104,6 +104,7 @@ c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
 c$$$         ENDDO
 c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
 c$$$         write(6,*) PNBTOT*DR*1.D-6
+c         stop
       ENDDO
 C
       DO NR=1,NRMAX
@@ -169,11 +170,11 @@ C  IM : radial grid point turned back at magnetic axis
          IM=I+IB-1
       ELSE
          IF(ABS(I).LE.NRMAX) THEN
-            IM=-I+IB-1
+            IM=IB+ABS(I)-1
          ELSEIF(ABS(I).LE.2*NRMAX) THEN
-            IM=I-IB+2+2*NRMAX
+            IM=IB-ABS(I)+2*NRMAX
          ELSE
-            IM=-I+IB-1-2*NRMAX
+            IM=IB+ABS(I)-2*NRMAX-1
          ENDIF
       ENDIF
 C
@@ -192,7 +193,7 @@ C
          IF(ABS(I).LE.NRMAX) THEN
             RADIUS1 = RR-SQRT(RG2)
          ELSEIF(ABS(I).LE.2*NRMAX) THEN
-            RADIUS1 = RR-SQRT(RG1)
+            RADIUS1 = RR-SQRT(RG2)
          ELSE
             RADIUS1 = RR+SQRT(RG1)
          ENDIF
@@ -246,7 +247,7 @@ C     &           RADIUS1,RADIUS2,RADIUS2-R0,SUML
 C            write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DRG-ABS(RADIUS1
 C     &           -RADIUS2),RADIUS2-R0
 C            write(6,'(2I4,5F13.7)') I,IM,DRG-ABS(RADIUS1-RADIUS2),
-C     &           RADIUS1,RADIUS2,XL,SUML
+C     &           RADIUS1,RADIUS2,SUML,RADIUS2-R0
             IF(RADIUS2-R0.GT.1.D-6) THEN
                IF(DRG-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
 C  inside the grid
@@ -301,6 +302,7 @@ C  inversion of the label number because of innermost grid
             I=-2*NRMAX-ABS(I)
          ELSE
             I=-2*(NRMAX-IB+1)+ABS(I)-1
+            IF(ABS(I).LT.NRMAX) I=I-NRMAX
          ENDIF
          GOTO 10
       ENDIF
