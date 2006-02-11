@@ -90,14 +90,14 @@ C
       ENDDO
 C
       NRNBMAX=10
-      VY=PNBVY/RA
-      DRTG=(PNBRTG-(RR-RA))/(NRNBMAX/2)
+      VY=PNBVY
+      DRTG=2.D0*PNBRW/NRNBMAX
       DO J=1,NRNBMAX
 C      DO J=1,1
          RDD=AR(J)
 C         RDD=1.D0
-         DRTG=2.D0*PNBRW/NRNBMAX
          RTG(J)=PNBRTG-PNBRW+0.5D0*DRTG+DRTG*(J-1)
+C         RTG(J)=PNBRTG
          CALL TRNBPB(J,RTG(J),VY,RDD)
 c$$$         DO NR=1,NRMAX
 c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
@@ -122,7 +122,7 @@ C
 C
 C     J   : J-th NBI
 C     R0  : tangential radius of NBI beam (m)
-C     VY  : vertical position of NBI (set to zero at mid-plane)
+C     VY  : vertical position of NBI (m)
 C     RDD : NBI deposition rate
 C
 C     KL  : judging condition parameter
@@ -134,14 +134,22 @@ C
 C
       IF(PNBTOT.LE.0.D0) RETURN
 C
-C  XL : maximum distance from injection to wall
-      XL=2.D0*SQRT((RR+RA)**2-R0**2)
+C  COSTV : cosine between midplane and vertical position of NB
+      COSTV=SQRT(RA**2-VY**2)/RA
+C  RAL : minor radius on the plane of vertical position of NB
+      RAL=RA*COSTV
+C  XL : maximum distance from injection point to wall
+      IF(R0.GE.RR-RAL) THEN
+         XL=2.D0*SQRT((RR+RAL)**2-R0**2)
+      ELSE
+         XL=SQRT((RR+RAL)**2-R0**2)-SQRT((RR-RAL)**2-R0**2)
+      ENDIF
 C  ANL : beam intensity [num/s]
 C        (the number of beam particles per unit length
 C         divided by thier velocity)
       ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
 C  IB : radial grid point of NB deposition position
-      IB=INT(VY/DR)+1
+      IB=INT(VY/(DR*RA))+1
 C  I : radial grid point of NB
       I=NRMAX-IB+1
 C
@@ -151,8 +159,8 @@ C  ANL0 : stored ANL for truncation of calculation
       ANL0=ANL
 C  DL : arbitrary minute length in direction of NB
       DL=XL/1000
-C  COST : cosine between mid-plane and NB
-      COST=SQRT((RR+RA)**2-R0**2)/(RR+RA)
+C  COST : cosine between midplane and NB chord
+      COST=SQRT((RR+RAL)**2-R0**2)/(RR+RAL)
 C  IDL : serial number of DL
       IDL=0
 C
@@ -160,28 +168,33 @@ C  IM : radial grid point turned back at magnetic axis
    10 IF(I.GT.0) THEN
          IM=I+IB-1
       ELSE
-         IF(ABS(I).LE.50) THEN
+         IF(ABS(I).LE.NRMAX) THEN
             IM=-I+IB-1
-         ELSEIF(ABS(I).LE.100) THEN
+         ELSEIF(ABS(I).LE.2*NRMAX) THEN
             IM=I-IB+2+2*NRMAX
          ELSE
             IM=-I+IB-1-2*NRMAX
          ENDIF
       ENDIF
 C
-C      WRITE(6,'(3(1X,I3),2F15.7)') IB,I,IM,SUML,DL
+C      WRITE(6,'(3(1X,I4),2F15.7)') IB,I,IM,SUML,DL
 C
 C      IF(I.NE.0.AND.(IM.GE.1.AND.IM.LE.NRMAX)) THEN
       IF(I.NE.0.AND.(IM.GE.IB.AND.IM.LE.NRMAX)) THEN
 C
       P1SUM = 0.D0
+      RG1=(RG(IM  )*RA)**2-VY**2
+      RG2=(RG(IM-1)*RA)**2-VY**2
+      IF(RG2.LT.0.D0) RG2=0.D0
       IF(I.GT.0) THEN
-         RADIUS1 = RR+RG(IM)*RA
+         RADIUS1 = RR+SQRT(RG1)
       ELSE
-         IF(ABS(I).LE.100) THEN
-            RADIUS1 = (RR+2*(RG(IB)-DR)*RA)+(DR-RG(IM))*RA
-        ELSE
-            RADIUS1 = RR+RG(IM)*RA
+         IF(ABS(I).LE.NRMAX) THEN
+            RADIUS1 = RR-SQRT(RG2)
+         ELSEIF(ABS(I).LE.2*NRMAX) THEN
+            RADIUS1 = RR-SQRT(RG1)
+         ELSE
+            RADIUS1 = RR+SQRT(RG1)
          ENDIF
       ENDIF
       IF(I.EQ.-3*NRMAX) THEN
@@ -220,19 +233,22 @@ C
 C  inside the torus
       IF(SUML.LT.XL) THEN
          IF(KL.EQ.1) THEN
+            DRG=SQRT(RG1)-SQRT(RG2)
             RADIUSG=SQRT( (SUML-DL)**2
-     &                   +(RR+RA)*(RR+RA-2.D0*(SUML-DL)*COST))
+     &                   +(RR+RAL)*(RR+RAL-2.D0*(SUML-DL)*COST))
             GBR (IDL,J)=GUCLIP(RADIUSG)
-            GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RA))
-            RADIUS2=SQRT(SUML**2+(RR+RA)*(RR+RA-2.D0*SUML*COST))
-C            write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DR*RA
+            GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RAL))
+            RADIUS2=SQRT(SUML**2+(RR+RAL)*(RR+RAL-2.D0*SUML*COST))
+C            write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DRG
 C     &           -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
-C            write(6,'(2I4,5F13.7)') I,IM,DR*RA-ABS(RADIUS1-RADIUS2),
+C            write(6,'(2I4,5F13.7)') I,IM,DRG-ABS(RADIUS1-RADIUS2),
 C     &           RADIUS1,RADIUS2,RADIUS2-R0,SUML
-C            write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DR*RA-ABS(RADIUS1
+C            write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DRG-ABS(RADIUS1
 C     &           -RADIUS2),RADIUS2-R0
+C            write(6,'(2I4,5F13.7)') I,IM,DRG-ABS(RADIUS1-RADIUS2),
+C     &           RADIUS1,RADIUS2,XL,SUML
             IF(RADIUS2-R0.GT.1.D-6) THEN
-               IF(DR*RA-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
+               IF(DRG-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
 C  inside the grid
                   ANL=ANL-P1
                   P1SUM=P1SUM+P1
@@ -291,7 +307,7 @@ C  inversion of the label number because of innermost grid
 C
       ENDIF
 C
-      IF(SUML.LT.XL) THEN
+      IF(XL-(SUML+DL).GT.1.D-6) THEN
 C  inside the torus
          I=I-1
       ELSE
