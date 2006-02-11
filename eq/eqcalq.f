@@ -99,13 +99,12 @@ C
 C     ----- SET DR, DTH -----
 C
       IF(NSUMAX.EQ.0) THEN
-         DR=(REDGE-RAXIS)/(NRMAX-1)
          NRPMAX=NRMAX
       ELSE
-         DR=RB/(NRMAX-1)
-         NRPMAX=NINT(RA/DR)+1
-         DR=(REDGE-RAXIS)/(NRPMAX-1)
+         DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
+         NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       ENDIF
+      DR=(REDGE-RAXIS)/(NRPMAX-1)
       DTH=2*PI/NTHMAX
 C
 C     ----- SET NUMBER OF DIVISION for integration -----
@@ -386,10 +385,10 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
+      DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
+      NRPMAX=NINT((REDGE-RAXIS)/DR)+1
+      DR=(RB-RA)/(NRMAX-NRPMAX)
       IF(MDLEQF.LT.10) THEN
-         DR=RB/(NRMAX-1)
-         NRPMAX=NINT(RA/DR)+1
-         DR=(RR+RB-REDGE)/(NRMAX-NRPMAX)
          DO NR=NRPMAX+1,NRMAX
             RL=REDGE+DR*(NR-NRPMAX)
             ZL=ZAXIS
@@ -438,9 +437,7 @@ C
 C
 C     ****** Free boundary without X point ******
 C
-         DR=RB/(NRMAX-1)
-         NRPMAX=NINT(RA/DR)+1
-         DR=(RR+RB-REDGE)/(NRMAX-NRPMAX)
+         DR=(RB-RA)/(NRMAX-NRPMAX)
          DTH=2*PI/NTHMAX
 C
 C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on mag surfaces -----

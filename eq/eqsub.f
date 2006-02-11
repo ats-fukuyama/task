@@ -60,8 +60,11 @@ C
 C     ----- calculate outer plasma surface -----
 C
       RMAX=MAX(RR+RB,RGMAX)
-      REDGE=FBRENT(PSIZ0,RR,RMAX,1.D-8)
-C      WRITE(6,*) REDGE,PSIG(REDGE,ZAXIS)
+      IF(PSIZ0(RR)*PSIZ0(RMAX).GE.0.D0) THEN
+         REDGE=RMAX
+      ELSE
+         REDGE=FBRENT(PSIZ0,RR,RMAX,1.D-8)
+      ENDIF
 C
       RETURN
       END

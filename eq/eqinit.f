@@ -236,8 +236,8 @@ C
 C
 C        PSIB(0:5): Multipole moments of poloidal flux PSIRZ on boundary
 C
-      PSIB(0) =  1.0D0
-      PSIB(1) =  0.0D0
+      PSIB(0) =  2.0D0
+      PSIB(1) =  0.5D0
       PSIB(2) =  0.D0
       PSIB(3) =  0.D0
       PSIB(4) =  0.D0

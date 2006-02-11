@@ -13,7 +13,7 @@ C
       REAL*8 DFDX(NWEQM,NWEQM),INDFDX(NWEQM,NWEQM)
       REAL*8 DX(NWEQM),FX(NWEQM),WORK(NWEQM,NWEQM2)
       REAL*8 WORKS(NWEQM,3)
-      PARAMETER (TINY=1E-10)
+      PARAMETER (TINY=1D-10)
       PARAMETER (ITRATE=-1,SOLVED=0,LIMIT=1,FLAT=2)
       EXTERNAL SUB
       INTRINSIC ABS
@@ -82,7 +82,7 @@ C
             DO I=1,M
                SUM=SUM+(DX(I)/MAX(ABS(OLDX(I)),1.D0))**2
             END DO
-            SUM=SQRT(SUM/FLOAT(M))
+            SUM=SQRT(SUM/DFLOAT(M))
             WRITE(6,'(A,1PE12.4)') '** NEWTON4: SUM=',SUM
             IF (SUM.LE.TOL) STATUS=SOLVED
          END IF

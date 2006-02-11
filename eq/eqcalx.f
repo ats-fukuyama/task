@@ -5,8 +5,6 @@ C
       SUBROUTINE EQCALX(ID,IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
-      PARAMETER (NIM=1001)
-      DIMENSION GX(NIM),GY(NIM,3)
       DIMENSION PSIBL(4),RSLT(4),PSIBLX(4)
       EXTERNAL EQCALX_SUB,EQCALX_LOOP,FUNC
 C
@@ -27,6 +25,7 @@ C
       NBND=4*(NRGMAX+2)
 C
       IF(ID.EQ.0) CALL EQPSIX_INIT
+      CALL EQCALFMA
 C
       DO I=1,4
          PSIBL(I)=PSIB(I-1)
@@ -50,11 +49,6 @@ C
          WRITE(6,*) 'XX EQCALX: UNKNOWN MDLEQX:', MDLEQX
       ENDIF
 C
-      RRR=RR+RSLT(1)
-      RRA=RA+RSLT(2)
-      RRK=RKAP+RSLT(3)
-      RRD=RDLT+RSLT(4)
-C
       DPS=1.D0/(NPSMAX-1)
       DO NPS=1,NPSMAX
          PSIPNL=DPS*(NPS-1)
@@ -74,14 +68,14 @@ C
 C
 C     ****** SOLVER LOOP ******
 C
-      SUBROUTINE EQCALX_LOOP(PSIBL,RSLT,N)
+      SUBROUTINE EQCALX_LOOP(PSIBL,RSLT,NEQ)
 C
       INCLUDE '../eq/eqcomx.inc'
-      DIMENSION PSIBL(N),RSLT(N)
+      DIMENSION PSIBL(NEQ),RSLT(NEQ)
 C
       DO NLOOP=1,NLPMAX
 C
-         CALL EQCALX_SUB(PSIBL,RSLT,N)
+         CALL EQCALX_SUB(PSIBL,RSLT,NEQ)
 C
          SUM0=0.D0
          SUM1=0.D0
@@ -122,85 +116,91 @@ C
 C
 C     ****** CORE SOLVER ******
 C
-      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,N)
+      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,NEQ)
 C
       INCLUDE '../eq/eqcomx.inc'
-      DIMENSION PSIBL(N),RSLT(N)
+      DIMENSION PSIBL(NEQ),RSLT(NEQ)
+      DIMENSION FMAX(MWM,MLM)
 C
-      DO I=1,N
+      DO I=1,NEQ
          PSIB(I-1)=PSIBL(I)
       ENDDO
       WRITE(6,'(4(A,1PE12.4))') 'PSIB=',PSIB(0),'      =',PSIB(1),
      &                        '      =',PSIB(2),'      =',PSIB(3)
 C
-         CALL EQCALFMA
-         CALL EQCALFVB
+      DO ML=1,MLMAX
+      DO MW=1,MWMAX
+         FMAX(MW,ML)=FMA(MW,ML)
+      ENDDO
+      ENDDO
 C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIXOLD(NRG,NZG)=PSIX(NRG,NZG)
-         ENDDO
-         ENDDO
+      CALL EQCALFVB
 C
-         CALL BANDRD(FMA,FVB,MLMAX,MWMAX,MWM,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         PSIXOLD(NRG,NZG)=PSIX(NRG,NZG)
+      ENDDO
+      ENDDO
 C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            L=4*((NZG-1)*NRGMAX+NRG-1)+1
-            PSIX(NRG,NZG)=FVB(L)
-            UPSIX(1,NRG,NZG)=FVB(L)
-            UPSIX(2,NRG,NZG)=FVB(L+1)
-            UPSIX(3,NRG,NZG)=FVB(L+2)
-            UPSIX(4,NRG,NZG)=FVB(L+3)
-         ENDDO
-         ENDDO
+      CALL BANDRD(FMAX,FVB,MLMAX,MWMAX,MWM,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
 C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            DELPSIX(NRG,NZG)=PSIX(NRG,NZG)-PSIXOLD(NRG,NZG)
-            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
-         ENDDO
-         ENDDO
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         L=4*((NZG-1)*NRGMAX+NRG-1)+1
+         PSIX(NRG,NZG)=FVB(L)
+         UPSIX(1,NRG,NZG)=FVB(L)
+         UPSIX(2,NRG,NZG)=FVB(L+1)
+         UPSIX(3,NRG,NZG)=FVB(L+2)
+         UPSIX(4,NRG,NZG)=FVB(L+3)
+      ENDDO
+      ENDDO
 C
-         IF(IDEBUG.EQ.1) THEN
-            CALL EQGX1D
-            CALL EQGX2D
-         ENDIF
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         DELPSIX(NRG,NZG)=PSIX(NRG,NZG)-PSIXOLD(NRG,NZG)
+         HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
+      ENDDO
+      ENDDO
 C
-         CALL EQAXIS(IERR)
+      IF(IDEBUG.EQ.1) THEN
+         CALL EQGX1D
+         CALL EQGX2D
+      ENDIF
 C
-         PSIMIN=PSIX(1,1)
-         PSIMAX=PSIX(1,1)
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
-            PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
-         ENDDO
-         ENDDO
-C         WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
-C         WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
-         IF(RIP.GT.0.D0) THEN
-            PSI0=PSIMIN
-            PSIPA=-PSIMIN
-         ELSE
-            PSI0=PSIMAX
-            PSIPA=-PSIMAX
-         ENDIF
+      CALL EQAXIS(IERR)
 C
-         DO NZG=1,NZGMAX
-         DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=PSIX(NRG,NZG)-PSI0
-            HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
-         ENDDO
-         ENDDO
+      PSIMIN=PSIX(1,1)
+      PSIMAX=PSIX(1,1)
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
+         PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
+      ENDDO
+      ENDDO
+C      WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
+C      WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
+      IF(RIP.GT.0.D0) THEN
+         PSI0=PSIMIN
+         PSIPA=-PSIMIN
+      ELSE
+         PSI0=PSIMAX
+         PSIPA=-PSIMAX
+      ENDIF
 C
-         CALL EQCALR(RRR,RRA,RRK,RRD)
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         PSIRZ(NRG,NZG)=PSIX(NRG,NZG)-PSI0
+         HJTRZ(NRG,NZG)=FJRZ(NRG,NZG)
+      ENDDO
+      ENDDO
 C
-         RSLT(1)=RRR-RR
-         RSLT(2)=RRA-RA
-         RSLT(3)=RRK-RKAP
-         RSLT(4)=RRD-RDLT
+      CALL EQCALR(RRR,RRA,RRK,RRD)
+C
+      RSLT(1)=RRR-RR
+      RSLT(2)=RRA-RA
+      RSLT(3)=RRK-RKAP
+      RSLT(4)=RRD-RDLT
 C
       RETURN
       END
@@ -540,28 +540,68 @@ C
       ENDDO
       ENDDO
 C
-      DO NZG=1,NZGMAX,NZGMAX-1
-      DO NRG=1,NRGMAX
-      DO K=1,1
-         N=4*((NZG-1)*NRGMAX+NRG-1)+K
-         DO MW=1,MWMAX
-            FMA(MW,N)=0.D0
-         ENDDO
-         FMA(NBND,N)=1.D0
-      ENDDO
-      ENDDO
-      ENDDO
+C     ----- SET BOUNDARY ARRAY -----
 C
-      DO NRG=1,NRGMAX,NRGMAX-1
-      DO NZG=1,NZGMAX
-      DO K=1,1
-         N=4*((NZG-1)*NRGMAX+NRG-1)+K
-         DO MW=1,MWMAX
-            FMA(MW,N)=0.D0
+      NBA=0
+      DO NRG=1,NRGMAX-1
+         NBA=NBA+1
+         NRGB(NBA)=NRG
+         NZGB(NBA)=1
+      ENDDO
+      DO NZG=1,NZGMAX-1
+         NBA=NBA+1
+         NRGB(NBA)=NRGMAX
+         NZGB(NBA)=NZG
+      ENDDO
+      DO NRG=NRGMAX,2,-1
+         NBA=NBA+1
+         NRGB(NBA)=NRG
+         NZGB(NBA)=NZGMAX
+      ENDDO
+      DO NZG=NZGMAX,2,-1
+         NBA=NBA+1
+         NRGB(NBA)=1
+         NZGB(NBA)=NZG
+      ENDDO
+      NBAMAX=NBA
+C
+C     ----- SET BOUNDARY CONDITION AND PLASMA CURRENT FACTOR -----
+C
+      DR=1.D-6
+      DZ=1.D-6
+      DO NBA=1,NBAMAX
+         NRG=NRGB(NBA)
+         NZG=NZGB(NBA)
+         DO K=1,1
+            N=4*((NZG-1)*NRGMAX+NRG-1)+K
+            DO MW=1,MWMAX
+               FMA(MW,N)=0.D0
+            ENDDO
+            FMA(NBND,N)=1.D0
          ENDDO
-         FMA(NBND,N)=1.D0
-      ENDDO
-      ENDDO
+C
+         R1=RG(NRG)
+         Z1=ZG(NZG)
+         DO NZG2=2,NZGMAX-1
+         DO NRG2=2,NRGMAX-1
+            R2=RG(NRG2)
+            Z2=ZG(NZG2)
+            DRG=0.5D0*(RG(NRG2+1)-RG(NRG2-1))
+            DZG=0.5D0*(ZG(NZG2+1)-ZG(NZG2-1))
+            F00=RGSGRF(R1,Z1,R2,Z2)
+            FPP=RGSGRF(R1+DR,Z1+DZ,R2,Z2)
+            FMP=RGSGRF(R1-DR,Z1+DZ,R2,Z2)
+            FPM=RGSGRF(R1+DR,Z1-DZ,R2,Z2)
+            FMM=RGSGRF(R1-DR,Z1-DZ,R2,Z2)
+            FDR=((FPP+FPM)-(FMP+FMM))/(4.D0*DR)
+            FDZ=((FPP+FMP)-(FPM+FMM))/(4.D0*DZ)
+            FRZ=((FPP+FMM)-(FPM+FMP))/(4.D0*DR*DZ)
+            PSIBGR(NRG2,NZG2,NBA,1)=DRG*DZG*F00
+            PSIBGR(NRG2,NZG2,NBA,2)=DRG*DZG*FDR
+            PSIBGR(NRG2,NZG2,NBA,3)=DRG*DZG*FDZ
+            PSIBGR(NRG2,NZG2,NBA,4)=DRG*DZG*FRZ
+         ENDDO
+         ENDDO
       ENDDO
 C
 C      OPEN(16,FILE='eqxdata',FORM='FORMATTED')
@@ -584,7 +624,7 @@ C
       INCLUDE '../eq/eqcomx.inc'
 C
       DIMENSION FACTM(4),FACTH(4)
-      DIMENSION RJ(4),PSIBRZ(4)
+      DIMENSION RJ(4),PSIBRZ(4),SUM(4)
       DIMENSION HJ0(NRGM,NZGM),HJ1(NRGM,NZGM),HJ2(NRGM,NZGM)
 C
       DO NZG=1,NZGMAX
@@ -643,6 +683,8 @@ C
          TJ=(-FJ1-SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
      &         /(2.D0*FJ2)
       ENDIF
+      RIPX=RIP
+
 C
 C      WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
 C
@@ -756,30 +798,24 @@ C
       ENDDO
       ENDDO
 C
-C      WRITE(6,*) (FVB(ML),ML=1,MLMAX)
+C     ----- SET BOUNDARY CONDITION -----
 C
-      DO NZG=1,NZGMAX,NZGMAX-1
-      DO NRG=1,NRGMAX
+      DO NBA=1,NBAMAX
+         NRG=NRGB(NBA)
+         NZG=NZGB(NBA)
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
-      DO K=1,1
-         N=4*((NZG-1)*NRGMAX+NRG-1)+K
-         FVB(N)=PSIBRZ(K)
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      DO NRG=1,NRGMAX,NRGMAX-1
-      DO NZG=1,NZGMAX
-         R1=RG(NRG)
-         Z1=ZG(NZG)
-         CALL EQPSIB(R1,Z1,PSIBRZ)
-      DO K=1,1
-         N=4*((NZG-1)*NRGMAX+NRG-1)+K
-         FVB(N)=PSIBRZ(K)
-      ENDDO
-      ENDDO
+         DO K=1,1
+            SUM(K)=PSIBRZ(K)
+            DO NZG2=2,NZGMAX-1
+            DO NRG2=2,NRGMAX-1
+               SUM(K)=SUM(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
+            ENDDO
+            ENDDO
+            N=4*((NZG-1)*NRGMAX+NRG-1)+K
+            FVB(N)=SUM(K)
+         ENDDO
       ENDDO
       RETURN
       END
@@ -905,7 +941,6 @@ C
       CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
       DO N=2,NA
-         H=XA(N)-XA(N-1)
          R=YA(1,N)
          Z=YA(2,N)
 C
@@ -1164,315 +1199,42 @@ C
       RETURN
       END
 C
-C********************************************
-C*         graphic  OUTPUT             *
-C********************************************
+C     ****** PSI generated by current FJRZ ******
 C
-      SUBROUTINE EQGX2D
+      FUNCTION EQPSIV(R1,Z1)
 C
       INCLUDE '../eq/eqcomx.inc'
 C
-      DIMENSION DPSIR(NRGM,NZGM),DPSIZ(NRGM,NZGM),DPSIRZ(NRGM,NZGM)
-      DIMENSION DFJR(NRGM,NZGM),DFJZ(NRGM,NZGM),DFJRZ(NRGM,NZGM)
-      DIMENSION U(4,4,NRGM,NZGM)
-      DIMENSION RSPL(4*NRGM),ZSPL(4*NZGM)
-      DIMENSION PSISPL(4*NRGM,4*NZGM),FJSPL(4*NRGM,4*NZGM)
-      DIMENSION GR(4*NRGM),GZ(4*NZGM),GF(4*NRGM,4*NZGM)
-      DIMENSION KA(8,4*NRGM,4*NZGM)
-C
-      GX1=2.0
-      GX2=17.0
-      GY1=2.0
-      GY2=17.0
-C
-      DO NZ=1,NZGMAX
-      DO NR=1,NRGMAX
-         DPSIR(NR,NZ)=0.D0
-         DPSIZ(NR,NZ)=0.D0
-         DPSIRZ(NR,NZ)=0.D0
+      SUM=0.D0
+      DO NZG=2,NZGMAX-1
+      DO NRG=2,NRGMAX-1
+         R2=RG(NRG)
+         Z2=ZG(NZG)
+         DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+         DZG=0.5D0*(ZG(NZG+1)-ZG(NZG-1))
+         SUM=SUM
+     &       -DRG*DZG*FJRZ(NRG,NZG)*RGSGRF(R1,Z1,R2,Z2)
       ENDDO
       ENDDO
-C
-      CALL SPL2D(RG,ZG,PSIX,DPSIR,DPSIZ,DPSIRZ,U,
-     &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
-      DRSPL=(RG(2)-RG(1))/4.D0
-      DO NR=1,4*NRGMAX-3
-         RSPL(NR)=RG(1)+DRSPL*(NR-1)
-      ENDDO
-      DZSPL=(ZG(2)-ZG(1))/4.D0
-      DO NZ=1,4*NZGMAX-3
-         ZSPL(NZ)=ZG(1)+DZSPL*(NZ-1)
-      ENDDO
-      DO NZ=1,4*NZGMAX-3
-      DO NR=1,4*NRGMAX-3
-         CALL SPL2DF(RSPL(NR),ZSPL(NZ),PSISPL(NR,NZ),
-     &               RG,ZG,U,NRGM,NRGMAX,NZGMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX:',IERR,NR,NZ
-      ENDDO
-      ENDDO
-C
-      DO NR=1,4*NRGMAX-3
-         GR(NR)=GUCLIP(RSPL(NR))
-      ENDDO
-      DO NZ=1,4*NZGMAX-3
-         GZ(NZ)=GUCLIP(ZSPL(NZ))
-      ENDDO
-C
-      DO NZ=1,4*NZGMAX-3
-      DO NR=1,4*NRGMAX-3
-         GF(NR,NZ)=GUCLIP(PSISPL(NR,NZ))
-      ENDDO
-      ENDDO
-C
-      CALL PAGES
-      CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
-     &            4*NRGM,4*NRGMAX-3,4*NZGMAX-3,KA,'/PSISPL(R,Z)/')
-      CALL PAGEE
-C
-      DO NZ=1,NZGMAX
-      DO NR=1,NRGMAX
-         DFJR(NR,NZ)=0.D0
-         DFJZ(NR,NZ)=0.D0
-         DFJRZ(NR,NZ)=0.D0
-      ENDDO
-      ENDDO
-      CALL SPL2D(RG,ZG,HJTRZ,DFJR,DFJZ,DFJRZ,U,
-     &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
-      DO NZ=1,4*NZGMAX-3
-      DO NR=1,4*NRGMAX-3
-         CALL SPL2DF(RSPL(NR),ZSPL(NZ),FJSPL(NR,NZ),
-     &               RG,ZG,U,NRGM,NRGMAX,NZGMAX,IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX:',IERR,NR,NZ
-      ENDDO
-      ENDDO
-C
-      DO NZ=1,4*NZGMAX-3
-      DO NR=1,4*NRGMAX-3
-C         IF(PSISPL(NR,NZ).GT.0.D0.AND.
-C     &      ZSPL(NZ).GT.ZLIMM.AND.
-C     &      ZSPL(NZ).LE.ZLIMP) THEN
-            GF(NR,NZ)=GUCLIP(FJSPL(NR,NZ))
-C         ELSE
-C            GF(NR,NZ)=-1.E-4
-C         ENDIF
-      ENDDO
-      ENDDO
-C
-      CALL PAGES
-      CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
-     &            4*NRGM,4*NRGMAX-3,4*NZGMAX-3,KA,'/FJSPL(R,Z)/')
-      CALL PAGEE
-C
+      EQPSIV=SUM
       RETURN
       END
 C
-C     ****** CONTOUR PLOT ******
+C     ***** Green function of Grad-Shafranov equation *****
 C
-      SUBROUTINE GSUB2D(GX1,GX2,GY1,GY2,GX,GY,GF,
-     &                  NXM,NXMAX,NYMAX,KA,KTITLE)
+      FUNCTION RGSGRF(R1,Z1,R2,Z2)
 C
-      DIMENSION GX(NXM),GY(NYMAX),GF(NXM,NYMAX)
-      DIMENSION KA(8,NXM,NYMAX)
-      CHARACTER KTITLE*(*)
+      IMPLICIT NONE
+      REAL*8 RGSGRF,R1,Z1,R2,Z2
+      REAL*8 PI,RK,ELLFC,ELLEC
+      INTEGER IERR1,IERR2
+      DATA PI/3.14159265358979D0/
 C
-      CALL GMNMX2(GF,NXM,1,NXMAX,1,1,NYMAX,1,GFMIN,GFMAX)
-      CALL GQSCAL(GFMIN,GFMAX,GFPMIN,GFPMAX,GFSTEP)
-      CALL GQSCAL(GX(1),GX(NXMAX),GXMIN,GXMAX,GXSTEP)
-      CALL GQSCAL(GY(1),GY(NYMAX),GYMIN,GYMAX,GYSTEP)
-      IF(GX(1)*GX(NXMAX).LT.0.0) THEN
-         GXORG=0.0
-      ELSE
-         GXORG=GX(1)
-      ENDIF
-      IF(GY(1)*GY(NYMAX).LT.0.0) THEN
-         GYORG=0.0
-      ELSE
-         GYORG=GX(1)
-      ENDIF
-      GFSTEP=0.5*GFSTEP
+      RK=4.D0*R1*R2/((R1+R2)**2+(Z1-Z2)**2)
 C
-      GXP=GX2-GX1
-      GYP=GY2-GY1
-      GXLEN=GX(NXMAX)-GX(1)
-      GYLEN=GY(NYMAX)-GY(1)
-      IF(GXLEN*GYP.GT.GYLEN*GXP) THEN
-         GYP=GXP*GYLEN/GXLEN
-      ELSE
-         GXP=GYP*GXLEN/GYLEN
-      ENDIF
-C
-      CALL SETLIN(-1,-1,4)
-      CALL SETCHS(0.3,0.0)
-      CALL MOVE(GX1,GY2+0.2)
-      CALL TEXTX(KTITLE)
-C
-      CALL GDEFIN(GX1,GX1+GXP,GY1,GY1+GYP,
-     &            GX(1),GX(NXMAX),GY(1),GY(NYMAX))
-      CALL GFRAME
-      CALL GSCALE(GXORG,GXSTEP,0.0,0.0,0.2,9)
-      CALL GSCALE(0.0,0.0,GYORG,GYSTEP,0.2,9)
-      CALL GVALUE(GXORG,2*GXSTEP,0.0,0.0,2)
-      CALL GVALUE(0.0,0.0,GYORG,2*GYSTEP,2)
-C
-      CALL SETLIN(-1,-1,7)
-      IF(GFMIN*GFMAX.LE.0.0) THEN
-      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX,0.0,GFMAX-GFMIN,1,
-     &            0,4,KA)
-      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFSTEP, GFSTEP,20,
-     &            0,0,KA)
-      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX,-GFSTEP,-GFSTEP,20,
-     &            0,2,KA)
-      ELSEIF(GFMIN.GT.0.0) THEN
-      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFPMIN, GFSTEP,20,
-     &            0,0,KA)
-      ELSE
-      CALL CONTQ2(GF,GX,GY,NXM,NXMAX,NYMAX, GFPMIN, GFSTEP,20,
-     &            0,2,KA)
-      ENDIF
-C
-      CALL EQGPRX(GX2,GY2,GFMIN,GFMAX,GFSTEP)
-C
-      RETURN
-      END
-C
-C     ****** DRAW PARM ******
-C
-      SUBROUTINE EQGPRX(GX2,GY2,GFMIN,GFMAX,GFSTEP)
-C
-      INCLUDE '../eq/eqcomx.inc'
-C
-      CALL SETLIN(-1,-1,4)
-      CALL MOVE(GX2+0.5,GY2-0.3)
-      CALL TEXTX('/MAX =/')
-      CALL NUMBR(GFMAX,'(1PE12.4)',12)
-      CALL MOVE(GX2+0.5,GY2-0.8)
-      CALL TEXTX('/MIN =/')
-      CALL NUMBR(GFMIN,'(1PE12.4)',12)
-      CALL MOVE(GX2+0.5,GY2-1.3)
-      CALL TEXTX('/STEP=/')
-      CALL NUMBR(GFSTEP,'(1PE12.4)',12)
-C
-      CALL MOVE(17.5,15.0)
-      CALL TEXT('PSIB(0)=',8)
-      CALL NUMBD(PSIB(0),  '(1PE11.3)',11)
-      CALL MOVE(17.5,14.5)
-      CALL TEXT('PSIN(1)=',8)
-      CALL NUMBD(PSIB(1),  '(1PE11.3)',11)
-      CALL MOVE(17.5,14.0)
-      CALL TEXT('PSIB(2)=',8)
-      CALL NUMBD(PSIB(2),  '(1PE11.3)',11)
-      CALL MOVE(17.5,13.5)
-      CALL TEXT('PSIB(3)=',8)
-      CALL NUMBD(PSIB(3),  '(1PE11.3)',11)
-      CALL MOVE(17.5,13.0)
-      CALL TEXT('PSIB(4)=',8)
-      CALL NUMBD(PSIB(4),  '(1PE11.3)',11)
-      CALL MOVE(17.5,12.5)
-      CALL TEXT('PSIB(5)=',8)
-      CALL NUMBD(PSIB(5),  '(1PE11.3)',11)
-C
-      CALL MOVE(17.5,12.0)
-      CALL TEXT('NRGMAX = ',9)
-      CALL NUMBI(NRGMAX,    '(I2)',2)
-      CALL MOVE(17.5,11.5)
-      CALL TEXT('NZGMAX = ',9)
-      CALL NUMBI(NZGMAX,    '(I2)',2)
-      CALL MOVE(17.5,11.0)
-      CALL TEXT('RR     =',8)
-      CALL NUMBD(RR,       '(1PE11.3)',11)
-      CALL MOVE(17.5,10.5)
-      CALL TEXT('RA     =',8)
-      CALL NUMBD(RA,       '(1PE11.3)',11)
-      CALL MOVE(17.5,10.0)
-      CALL TEXT('RKAP   =',8)
-      CALL NUMBD(RKAP,     '(1PE11.3)',11)
-      CALL MOVE(17.5,9.5)
-      CALL TEXT('RDLT   =',8)
-      CALL NUMBD(RDLT,     '(1PE11.3)',11)
-      CALL MOVE(17.5,9.0)
-      CALL TEXT('RIP    =',8)
-      CALL NUMBD(RIP,      '(1PE11.3)',11)
-      CALL MOVE(17.5,8.5)
-      CALL TEXT('BB     =',8)
-      CALL NUMBD(BB,       '(1PE11.3)',11)
-      CALL MOVE(17.5,8.0)
-      CALL TEXT('P0     =',8)
-      CALL NUMBD(P0,       '(1PE11.3)',11)
-      CALL MOVE(17.5,7.5)
-      CALL TEXT('P1     =',8)
-      CALL NUMBD(P1,       '(1PE11.3)',11)
-      CALL MOVE(17.5,7.0)
-      CALL TEXT('PROFP0 =',8)
-      CALL NUMBD(PROFP0,   '(1PE11.3)',11)
-      CALL MOVE(17.5,6.5)
-      CALL TEXT('PROFP1 =',8)
-      CALL NUMBD(PROFP1,   '(1PE11.3)',11)
-      CALL MOVE(17.5,6.0)
-      CALL TEXT('PROFT  =',8)
-      CALL NUMBD(PROFT,    '(1PE11.3)',11)
-      CALL MOVE(17.5,5.5)
-      CALL TEXT('RMIN   =',8)
-      CALL NUMBD(RMIN,     '(1PE11.3)',11)
-      CALL MOVE(17.5,5.0)
-      CALL TEXT('RMAX   =',8)
-      CALL NUMBD(RMAX,     '(1PE11.3)',11)
-      CALL MOVE(17.5,4.5)
-      CALL TEXT('ZMIN   =',8)
-      CALL NUMBD(ZMIN,     '(1PE11.3)',11)
-      CALL MOVE(17.5,4.0)
-      CALL TEXT('ZMAX   =',8)
-      CALL NUMBD(ZMAX,     '(1PE11.3)',11)
-      CALL MOVE(17.5,3.5)
-      CALL TEXT('EPS    =',8)
-      CALL NUMBD(EPS,      '(1PE11.3)',11)
-C
-      RETURN
-      END
-C
-C     ****** CORE SOLVER ******
-C
-      SUBROUTINE EQGX1D
-C
-      INCLUDE '../eq/eqcomx.inc'
-      PARAMETER (NIM=301)
-      DIMENSION GX(NIM),GY(NIM,3)
-C
-      NIMAX=301
-      DRG=(RGMAX-RGMIN)/(NIMAX-1)
-      DO I=1,NIMAX
-         R=RGMIN+DRG*(I-1)
-         Z=0.D0
-         PSIL=PSIXF(R,Z)
-         CALL EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
-         GX(I)=GUCLIP(R)
-         GY(I,1)=GUCLIP(PSIL)
-         GY(I,2)=GUCLIP(DPSIDR)
-         GY(I,3)=GUCLIP(DPSIDZ)
-      ENDDO
-C
-      CALL PAGES
-      CALL GRF1D(1,GX,GY(1,1),NIM,NIMAX,1,'@PSI vs R@',0)
-      CALL GRF1D(2,GX,GY(1,2),NIM,NIMAX,1,'@DPSIDR vs R@',0)
-      CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs R@',0)
-      CALL PAGEE
-C
-      DZG=(ZGMAX-ZGMIN)/(NIMAX-1)
-      DO I=1,NIMAX
-         R=RR
-         Z=ZGMIN+DZG*(I-1)
-         PSIL=PSIXF(R,Z)
-         CALL EQPSIX(R,Z,DPSIDR,DPSIDZ,IERR)
-         GX(I)=GUCLIP(Z)
-         GY(I,1)=GUCLIP(PSIL)
-         GY(I,2)=GUCLIP(DPSIDR)
-         GY(I,3)=GUCLIP(DPSIDZ)
-      ENDDO
-C     
-      CALL PAGES
-      CALL GRF1D(1,GX,GY(1,1),NIM,NIMAX,1,'@PSI vs Z@',0)
-      CALL GRF1D(2,GX,GY(1,2),NIM,NIMAX,1,'@DPSIDR vs Z@',0)
-      CALL GRF1D(3,GX,GY(1,3),NIM,NIMAX,1,'@DPSIDZ vs Z@',0)
-      CALL PAGEE
-C
+      RGSGRF=SQRT(R1*R2)/(2.D0*PI*RK)
+     &      *((2.D0-RK*RK)*ELLFC(RK,IERR1)-2.D0*ELLEC(RK,IERR2))
+      IF(IERR1.NE.0) WRITE(6,*) 'XX RGSGRF: ELLFC: IERR1=',IERR1
+      IF(IERR2.NE.0) WRITE(6,*) 'XX RGSGRF: ELLFC: IERR2=',IERR1
       RETURN
       END
