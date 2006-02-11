@@ -1,0 +1,20 @@
+ &eq
+ MDLEQF=10
+ MDLEQX=0
+ NLPMAX=30
+ NPRINT=2
+ EPSEQ=1.D-5
+ RKAP=1.2
+ PSIB(0)=0.0
+ PSIB(1)=0.0
+ RGMIN= 1.5
+ RGMAX= 4.5
+ ZGMIN=-2.0
+ ZGMAX= 2.0
+ NPFCMAX = 7
+ RIPFC(1)=-0.5,-0.5,-0.4,-0.4,-1.8,-1.8,-1.8
+ RPFC(1)=  4.4, 4.4 ,3.0, 3.0, 1.8, 1.8, 1.8
+ ZPFC(1)=  0.8,-0.8,1.8,-1.8,0.9,-0.9, 0.0
+ NLPMAX=1
+ IDEBUG=1
+ &end

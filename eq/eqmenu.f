@@ -43,6 +43,7 @@ C
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         NRMAX=NRMAX1
             IF(IERR.NE.0) GOTO 1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -65,6 +66,7 @@ C
             NTHMAX1=NTHMAX
             NSUMAX1=NSUMAX
             CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+            NRMAX=NRMAX1
             IF(IERR.NE.0) GOTO 1
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
@@ -113,6 +115,7 @@ C
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         NRMAX=NRMAX1
          MSTAT=2
 C
       ELSEIF(KID.EQ.'K') THEN
@@ -128,6 +131,7 @@ C
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         NRMAX=NRMAX1
          MSTAT=2
 C
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

@@ -243,7 +243,7 @@ C
       PSIB(4) =  0.D0
       PSIB(5) =  0.D0
 C
-C        NPFCNAX : Number of poloidal field coils (PFXs)
+C        NPFCMAX : Number of poloidal field coils (PFXs)
 C        RIPFC(NPFC) : PFC coil current    [MA]
 C        RPFC(NPFC)  : PFC coil position R [m]
 C        ZPFC(NPFC)  : PFC coil position Z [m]
@@ -466,10 +466,9 @@ C
      &                'PSIB:1',PSIB(1),
      &                'PSIB:2',PSIB(2),
      &                'PSIB:3',PSIB(3)
-         DO NPFC=1,NPFCMAX
-            WRITE(6,604) 
-     &           NPFC,RIPFC(NPFC),RPFC(NPFC),ZPFC(NPFC),WPFC(NPFC)
-         ENDDO
+         WRITE(6,604) 
+     &        (NPFC,RIPFC(NPFC),RPFC(NPFC),ZPFC(NPFC),WPFC(NPFC),
+     &         NPFC=1,NPFCMAX)
       ENDIF
       WRITE(6,602) 'NSGMAX',NSGMAX,
      &             'NTGMAX',NTGMAX,
@@ -495,6 +494,6 @@ C
   601 FORMAT(4(A6,'=',1PE11.2:2X))
   602 FORMAT(4(A6,'=',I7:6X))
 C  603 FORMAT(4(A6,'=',I7:6X))
-  604 FORMAT(' NPFC ','RIPFC',6X,'RPFC',7X,'ZPFC',7X,'WPFC'/
-     &       (I6,1PE11.2))
+  604 FORMAT(' NPFC ','RIPFC ',6X,'RPFC  ',6X,'ZPFC  ',6X,'WPFC'/
+     &       (I6,1P4E12.4))
       END

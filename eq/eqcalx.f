@@ -572,13 +572,23 @@ C
       DO NBA=1,NBAMAX
          NRG=NRGB(NBA)
          NZG=NZGB(NBA)
-         DO K=1,1
+         IF(NRG.EQ.1.OR.NRG.EQ.NRGMAX) THEN
+         DO K=1,3,2
             N=4*((NZG-1)*NRGMAX+NRG-1)+K
             DO MW=1,MWMAX
                FMA(MW,N)=0.D0
             ENDDO
             FMA(NBND,N)=1.D0
          ENDDO
+         ELSE
+         DO K=1,2
+            N=4*((NZG-1)*NRGMAX+NRG-1)+K
+            DO MW=1,MWMAX
+               FMA(MW,N)=0.D0
+            ENDDO
+            FMA(NBND,N)=1.D0
+         ENDDO
+         ENDIF
 C
          R1=RG(NRG)
          Z1=ZG(NZG)
@@ -710,7 +720,7 @@ C
       DO NPFC=1,NPFCMAX
          RIPFCL=RIPFC(NPFC)
          RPFCL=RPFC(NPFC)
-         ZPFCL=RPFC(NPFC)
+         ZPFCL=ZPFC(NPFC)
          NRC=INT((RPFCL-RGMIN)/DRG)+1
          NZC=INT((ZPFCL-ZGMIN)/DZG)+1
          IF(NZC.GE.1.AND.NZC.LT.NZGMAX.AND.
@@ -721,13 +731,17 @@ C
             FACTZC=1.D0-FACTZ
 C
             FJRZ(NRC  ,NZC  )=FJRZ(NRC  ,NZC  )
-     &                       +FACTRC*FACTZC*RIPFCL/(DRG*DZG)
+     &                       +2.D0*PI*RMU0*FACTRC*FACTZC
+     &                        *RIPFCL*1.D6/(DRG*DZG)
             FJRZ(NRC+1,NZC  )=FJRZ(NRC+1,NZC  )
-     &                       +FACTR *FACTZC*RIPFCL/(DRG*DZG)
+     &                       +2.D0*PI*RMU0*FACTR *FACTZC
+     &                        *RIPFCL*1.D6/(DRG*DZG)
             FJRZ(NRC  ,NZC+1)=FJRZ(NRC  ,NZC+1)
-     &                       +FACTRC*FACTZ *RIPFCL/(DRG*DZG)
+     &                       +2.D0*PI*RMU0*FACTRC*FACTZ 
+     &                        *RIPFCL*1.D6/(DRG*DZG)
             FJRZ(NRC+1,NZC+1)=FJRZ(NRC+1,NZC+1)
-     &                       +FACTR *FACTZ *RIPFCL/(DRG*DZG)
+     &                       +2.D0*PI*RMU0*FACTR *FACTZ 
+     &                        *RIPFCL*1.D6/(DRG*DZG)
          ELSE
             WRITE(6,*) 'XX (PFC) OUT OF REGION: ZPFC=',ZPFCL
             WRITE(6,*) 'XX (PFC) OUT OF REGION: RPFC=',RPFCL
@@ -806,7 +820,8 @@ C
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
-         DO K=1,1
+         IF(NRG.EQ.1.OR.NRG.EQ.NRGMAX) THEN
+         DO K=1,3,2
             SUM(K)=PSIBRZ(K)
             DO NZG2=2,NZGMAX-1
             DO NRG2=2,NRGMAX-1
@@ -816,6 +831,18 @@ C
             N=4*((NZG-1)*NRGMAX+NRG-1)+K
             FVB(N)=SUM(K)
          ENDDO
+         ELSE
+         DO K=1,2
+            SUM(K)=PSIBRZ(K)
+            DO NZG2=2,NZGMAX-1
+            DO NRG2=2,NRGMAX-1
+               SUM(K)=SUM(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
+            ENDDO
+            ENDDO
+            N=4*((NZG-1)*NRGMAX+NRG-1)+K
+            FVB(N)=SUM(K)
+         ENDDO
+         ENDIF
       ENDDO
       RETURN
       END

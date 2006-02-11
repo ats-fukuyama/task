@@ -453,6 +453,10 @@ C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
 C     &        PSIP(NR),PPS(NR),TTS(NR)
 C
             CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
+            IF(IERR.NE.0) THEN
+               NRMAX=NR-1
+               GOTO 1000
+            ENDIF
 C
             SUMS=0.D0
             SUMV=0.D0
@@ -576,6 +580,7 @@ C
                ENDDO
             ENDIF
          ENDDO
+ 1000    CONTINUE
 C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
