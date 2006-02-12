@@ -5,8 +5,9 @@ C      NEED  SUBROUTINE SUB(X(N),FX(N),N)
 C      NEED  M=N
 C
       IMPLICIT NONE
-      INTEGER M,N,STATUS,COUNT
-      INTEGER MAXITS,ITRATE,SOLVED,LIMIT,FLAT,I,J,TOLCT,NWEQM,NWEQM2
+      INTEGER M,N,STATUS,COUNT,IERR
+      INTEGER MAXITS,ITRATE,SOLVED,LIMIT,FLAT,ERROR
+      INTEGER I,J,NWEQM,NWEQM2
       PARAMETER (NWEQM=4,NWEQM2=2*NWEQM)
       REAL*8 TINY,TOL,DFDXMIN,SUM,DD,DDTEMP
       REAL*8 X0(NWEQM),OLDX(NWEQM),NEWX(NWEQM),XLAST(NWEQM)
@@ -14,7 +15,7 @@ C
       REAL*8 DX(NWEQM),FX(NWEQM),WORK(NWEQM,NWEQM2)
       REAL*8 WORKS(NWEQM,3)
       PARAMETER (TINY=1D-10)
-      PARAMETER (ITRATE=-1,SOLVED=0,LIMIT=1,FLAT=2)
+      PARAMETER (ITRATE=-1,SOLVED=0,LIMIT=1,FLAT=2,ERROR=3)
       EXTERNAL SUB
       INTRINSIC ABS
 C
@@ -36,7 +37,12 @@ C
 C        WRITE(*,*) 'QQQQQ',NEWX(1),NEWX(2),NEWX(3),NEWX(4)
 C
          DDTEMP=DD
-         CALL NEWTON_SUB(N,NWEQM,NEWX,DFDX,SUB,DDTEMP,WORKS)
+         CALL NEWTON_SUB(N,NWEQM,NEWX,DFDX,SUB,DDTEMP,WORKS,IERR)
+         IF(IERR.NE.0) THEN
+            STATUS=ERROR
+            GOTO 11
+         ENDIF
+C
          DO I=1,4
          DO J=1,4
             WRITE(*,*) 'DDDDDDDD',DFDX(I,J)
@@ -63,7 +69,11 @@ C          {perform Newton algorithm}
             DO I=1,M
                OLDX(I)=NEWX(I)
             END DO
-            CALL SUB(OLDX,FX,N)
+            CALL SUB(OLDX,FX,N,IERR)
+            IF(IERR.NE.0) THEN
+               STATUS=ERROR
+               GOTO 11
+            ENDIF
 C
             WRITE(*,*) 'BBBBB',FX(1)
             DO I=1,M
@@ -98,10 +108,10 @@ C
       END
 c
 c************************************************************
-      SUBROUTINE NEWTON_SUB(N,NM,X,DFDX,SUB,DD,WORKS)
+      SUBROUTINE NEWTON_SUB(N,NM,X,DFDX,SUB,DD,WORKS,IERR)
 C
       IMPLICIT NONE
-      INTEGER I,J,M,N,NM
+      INTEGER I,J,N,NM,IERR
       REAL*8 X(N),DFDX(NM,N)
       REAL*8 WORKS(NM,3)
       REAL*8 DD
@@ -113,13 +123,15 @@ C     WORKS(I,3) = RESULT(I)
 C
 C      DD=1.D-2
 C
-      CALL SUB(X,WORKS(1,2),N)
+      CALL SUB(X,WORKS(1,2),N,IERR)
+      IF(IERR.NE.0) RETURN
       DO J=1,N
          DO I=1,N
             WORKS(I,1)=X(I)
          ENDDO
          WORKS(J,1)=X(J)+DD
-         CALL SUB(WORKS(1,1),WORKS(1,3),N)
+         CALL SUB(WORKS(1,1),WORKS(1,3),N,IERR)
+         IF(IERR.NE.0) RETURN
          WORKS(J,1)=X(J)
          DO I=1,N
             DFDX(I,J)=(WORKS(I,3)-WORKS(I,2))/DD
@@ -131,10 +143,10 @@ C
 
 C
 C******************************************************
-      SUBROUTINE FUNC(X,F,N)
+      SUBROUTINE TESTSUB(X,F,N,IERR)
 C
       IMPLICIT NONE
-      INTEGER N
+      INTEGER N,IERR
       REAL*8 X,F
       DIMENSION X(4),F(4)
 C
@@ -145,5 +157,6 @@ C
 C
       WRITE(6,'(A,1P4E12.4)') 'X:',X(1),X(2),X(3),X(4)
       WRITE(6,'(A,1P4E12.4)') 'F:',F(1),F(2),F(3),F(4)
+      IERR=0
       RETURN
       END

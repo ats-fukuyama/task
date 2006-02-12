@@ -33,7 +33,7 @@ C
 C
       IF(MDLEQX.EQ.0) THEN
 C
-         CALL EQCALX_LOOP(PSIBL,RSLT,4)
+         CALL EQCALX_LOOP(PSIBL,RSLT,4,IERR)
 C
       ELSEIF(MDLEQX.EQ.1) THEN
 C
@@ -68,14 +68,15 @@ C
 C
 C     ****** SOLVER LOOP ******
 C
-      SUBROUTINE EQCALX_LOOP(PSIBL,RSLT,NEQ)
+      SUBROUTINE EQCALX_LOOP(PSIBL,RSLT,NEQ,IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION PSIBL(NEQ),RSLT(NEQ)
 C
       DO NLOOP=1,NLPMAX
 C
-         CALL EQCALX_SUB(PSIBL,RSLT,NEQ)
+         CALL EQCALX_SUB(PSIBL,RSLT,NEQ,IERR)
+         IF(IERR.NE.0) RETURN
 C
          SUM0=0.D0
          SUM1=0.D0
@@ -107,7 +108,7 @@ C
      &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
       ENDIF
       WRITE(6,*) 'XX EQCALX: NLOOP exceeds NLPMAX'
-      IERR=100
+      IERR=10
 C
  1000 CONTINUE
 C
@@ -116,11 +117,13 @@ C
 C
 C     ****** CORE SOLVER ******
 C
-      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,NEQ)
+      SUBROUTINE EQCALX_SUB(PSIBL,RSLT,NEQ,IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION PSIBL(NEQ),RSLT(NEQ)
       DIMENSION FMAX(MWM,MLM)
+C
+      IERR=0
 C
       DO I=1,NEQ
          PSIB(I-1)=PSIBL(I)
@@ -163,29 +166,18 @@ C
       ENDDO
       ENDDO
 C
+      CALL EQAXIS(IERR)
+C
+      IF(PSI0*RIP.GE.0.D0) THEN
+         WRITE(6,*) 
+     &        'XX EQCALX_SUB: Invaild sign of PSI0: no plasma region'
+         WRITE(6,'(A,1P4E12.4)') 'RIP,PSI0,AXIS=',RIP,PSI0,RAXIS,ZAXIS
+         IERR=100
+      ENDIF
+C
       IF(IDEBUG.EQ.1) THEN
          CALL EQGX1D
          CALL EQGX2D
-      ENDIF
-C
-      CALL EQAXIS(IERR)
-C
-      PSIMIN=PSIX(1,1)
-      PSIMAX=PSIX(1,1)
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
-         PSIMIN=MIN(PSIMIN,PSIX(NRG,NZG))
-         PSIMAX=MAX(PSIMAX,PSIX(NRG,NZG))
-      ENDDO
-      ENDDO
-C      WRITE(6,'(A,1PE12.4)') 'PSIMIN=',PSIMIN
-C      WRITE(6,'(A,1PE12.4)') 'PSIMAX=',PSIMAX
-      IF(RIP.GT.0.D0) THEN
-         PSI0=PSIMIN
-         PSIPA=-PSIMIN
-      ELSE
-         PSI0=PSIMAX
-         PSIPA=-PSIMAX
       ENDIF
 C
       DO NZG=1,NZGMAX
@@ -479,6 +471,35 @@ C
       INCLUDE '../eq/eqcomx.inc'
 C
       DIMENSION FACTK(4),FACTL(4),FACTM(4),FACTN(4)
+      DIMENSION RG_SAVE(NRGM),ZG_SAVE(NRGM)
+      SAVE NRGMAX_SAVE,NZGMAX_SAVE,RG_SAVE,ZG_SAVE,INIT
+      DATA INIT/0/
+C
+      IF(INIT.EQ.1) THEN
+         IF(NRGMAX.NE.NRGMAX_SAVE) INIT=0
+         IF(NZGMAX.NE.NZGMAX_SAVE) INIT=0
+      ENDIF
+      IF(INIT.EQ.1) THEN
+         DO NRG=1,NRGMAX
+            IF(RG(NRG).NE.RG_SAVE(NRG)) INIT=0
+         ENDDO
+         DO NZG=1,NZGMAX
+            IF(ZG(NZG).NE.ZG_SAVE(NZG)) INIT=0
+         ENDDO
+      ENDIF
+      IF(INIT.EQ.1) RETURN
+C
+      IF(INIT.EQ.0) THEN
+         NRGMAX_SAVE=NRGMAX
+         NZGMAX_SAVE=NZGMAX
+         DO NRG=1,NRGMAX
+            RG_SAVE(NRG)=RG(NRG)
+         ENDDO
+         DO NZG=1,NZGMAX
+            ZG_SAVE(NZG)=ZG(NZG)
+         ENDDO
+         INIT=1
+      ENDIF
 C
       DO N=1,MLMAX
       DO M=1,MWMAX
@@ -624,7 +645,6 @@ C
       RETURN
       END
 C
-C
 C     **********************************
 C     *     Calulate FEM RHS vector    *
 C     **********************************
@@ -639,12 +659,6 @@ C
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
-        FJRZ(NRG,NZG)=0.D0
-      ENDDO
-      ENDDO
-C
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
          IF(PSIX(NRG,NZG)*PSI0.GT.0.D0) THEN
             PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
             CALL EQPPSI(PSIPNL,PPSI,DPPSI)
@@ -655,11 +669,8 @@ C
       ENDDO
       ENDDO
 C
-      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
-      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
-      FJ0=0.D0
-      FJ1=0.D0
-      FJ2=0.D0
+C     ----- Plasma current -----
+C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
          IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
@@ -678,13 +689,26 @@ C
             HJ1(NRG,NZG)=0.D0
             HJ2(NRG,NZG)=0.D0
          ENDIF
+      ENDDO
+      ENDDO
 C
+C     ----- Integrate plasma current -----
+C
+      FJ0=0.D0
+      FJ1=0.D0
+      FJ2=0.D0
+      DO NZG=2,NZGMAX-1
+      DO NRG=2,NRGMAX-1
+         DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+         DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
          DVOL=DRG*DZG
          FJ0=FJ0+HJ0(NRG,NZG)*DVOL
          FJ1=FJ1+HJ1(NRG,NZG)*DVOL
          FJ2=FJ2+HJ2(NRG,NZG)*DVOL
       ENDDO
       ENDDO
+C
+C     ----- Adjust plasma current -----
 C
       IF(FJ1.GT.0.D0) THEN
          TJ=(-FJ1+SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
@@ -700,8 +724,9 @@ C      WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
-         FJRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)+TJ*HJ1(NRG,NZG)
+         FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)+TJ*HJ1(NRG,NZG)
      &                                        +TJ*TJ*HJ2(NRG,NZG))
+         FJRZ(NRG,NZG)=FJPRZ(NRG,NZG)
          IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
      &        ZG(NZG).LE.ZLIMP.AND.
      &        ZG(NZG).GE.ZLIMM) THEN
@@ -714,17 +739,17 @@ C
       ENDDO
       ENDDO
 C
-      DRG=(RGMAX-RGMIN)/(NRGMAX-1)
-      DZG=(ZGMAX-ZGMIN)/(NZGMAX-1)
+C     ----- Poloidal Field Coil current -----
 C
       DO NPFC=1,NPFCMAX
          RIPFCL=RIPFC(NPFC)
          RPFCL=RPFC(NPFC)
          ZPFCL=ZPFC(NPFC)
-         NRC=INT((RPFCL-RGMIN)/DRG)+1
-         NZC=INT((ZPFCL-ZGMIN)/DZG)+1
+         CALL EQNRZX(RPFCL,ZPFCL,NRC,NZC,IERR)
          IF(NZC.GE.1.AND.NZC.LT.NZGMAX.AND.
      &      NRC.GE.1.AND.NRC.LT.NRGMAX) THEN
+            DRG=RG(NRC+1)-RG(NRC)
+            DZG=ZG(NZC+1)-ZG(NZC)
             FACTR=(RPFCL-RG(NRC))/DRG
             FACTZ=(ZPFCL-ZG(NZC))/DZG
             FACTRC=1.D0-FACTR
@@ -747,6 +772,8 @@ C
             WRITE(6,*) 'XX (PFC) OUT OF REGION: RPFC=',RPFCL
          ENDIF
       ENDDO
+C
+C     ----- Set RHS vector FVB -----
 C
       DO N=1,MLMAX
          FVB(N)=0
@@ -1011,10 +1038,10 @@ C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
       IF(IERR.NE.0.AND.IERR.NE.2.AND.IERR.NE.4) RETURN
 C
-      DRG=RG(NRG)-RG(NRG-1)
-      DZG=ZG(NZG)-ZG(NZG-1)
-      VRG=(R-RG(NRG-1))/DRG
-      VZG=(Z-ZG(NZG-1))/DZG
+      DRG=RG(NRG+1)-RG(NRG)
+      DZG=ZG(NZG+1)-ZG(NZG)
+      VRG=(R-RG(NRG))/DRG
+      VZG=(Z-ZG(NZG))/DZG
 C
       HR0= HRMT0(1.D0-VRG)
       HZ0= HRMT0(1.D0-VZG)
@@ -1026,22 +1053,22 @@ C
       HR1C= HRMT1(VRG)*DRG
       HZ1C= HRMT1(VZG)*DZG
 C
-      PSIXF=UPSIX(1,NRG-1,NZG-1)*HR0 *HZ0
-     &     +UPSIX(2,NRG-1,NZG-1)*HR1 *HZ0
-     &     +UPSIX(3,NRG-1,NZG-1)*HR0 *HZ1
-     &     +UPSIX(4,NRG-1,NZG-1)*HR1 *HZ1
-     &     +UPSIX(1,NRG  ,NZG-1)*HR0C*HZ0
-     &     +UPSIX(2,NRG  ,NZG-1)*HR1C*HZ0
-     &     +UPSIX(3,NRG  ,NZG-1)*HR0C*HZ1
-     &     +UPSIX(4,NRG  ,NZG-1)*HR1C*HZ1
-     &     +UPSIX(1,NRG-1,NZG  )*HR0 *HZ0C
-     &     +UPSIX(2,NRG-1,NZG  )*HR1 *HZ0C
-     &     +UPSIX(3,NRG-1,NZG  )*HR0 *HZ1C
-     &     +UPSIX(4,NRG-1,NZG  )*HR1 *HZ1C
-     &     +UPSIX(1,NRG  ,NZG  )*HR0C*HZ0C
-     &     +UPSIX(2,NRG  ,NZG  )*HR1C*HZ0C
-     &     +UPSIX(3,NRG  ,NZG  )*HR0C*HZ1C
-     &     +UPSIX(4,NRG  ,NZG  )*HR1C*HZ1C
+      PSIXF=UPSIX(1,NRG  ,NZG  )*HR0 *HZ0
+     &     +UPSIX(2,NRG  ,NZG  )*HR1 *HZ0
+     &     +UPSIX(3,NRG  ,NZG  )*HR0 *HZ1
+     &     +UPSIX(4,NRG  ,NZG  )*HR1 *HZ1
+     &     +UPSIX(1,NRG+1,NZG  )*HR0C*HZ0
+     &     +UPSIX(2,NRG+1,NZG  )*HR1C*HZ0
+     &     +UPSIX(3,NRG+1,NZG  )*HR0C*HZ1
+     &     +UPSIX(4,NRG+1,NZG  )*HR1C*HZ1
+     &     +UPSIX(1,NRG  ,NZG+1)*HR0 *HZ0C
+     &     +UPSIX(2,NRG  ,NZG+1)*HR1 *HZ0C
+     &     +UPSIX(3,NRG  ,NZG+1)*HR0 *HZ1C
+     &     +UPSIX(4,NRG  ,NZG+1)*HR1 *HZ1C
+     &     +UPSIX(1,NRG+1,NZG+1)*HR0C*HZ0C
+     &     +UPSIX(2,NRG+1,NZG+1)*HR1C*HZ0C
+     &     +UPSIX(3,NRG+1,NZG+1)*HR0C*HZ1C
+     &     +UPSIX(4,NRG+1,NZG+1)*HR1C*HZ1C
 C
       RETURN
       END
@@ -1057,10 +1084,10 @@ C
       CALL EQNRZX(R,Z,NRG,NZG,IERR)
       IF(IERR.GT.4) RETURN
 C
-      DRG=RG(NRG)-RG(NRG-1)
-      DZG=ZG(NZG)-ZG(NZG-1)
-      VRG=(R-RG(NRG-1))/DRG
-      VZG=(Z-ZG(NZG-1))/DZG
+      DRG=RG(NRG+1)-RG(NRG  )
+      DZG=ZG(NZG+1)-ZG(NZG  )
+      VRG=(R-RG(NRG  ))/DRG
+      VZG=(Z-ZG(NZG  ))/DZG
 C
 C      WRITE(6,'(A,1P2E12.4)') 'DRG,DZG=',DRG,DZG
 C
@@ -1089,42 +1116,42 @@ C     &     'V:',VZG,DHRMT0(1.D0-VRG),DHRMT0(VRG)
 C      WRITE(6,'(A:1P4E12.4)')
 C     &     'H:',HR0,DHZ0,HR0C,DHZ0C
 C      WRITE(6,'(A:1P4E12.4)')
-C     &     'U:',UPSIX(1,NRG-1,NZG-1),UPSIX(1,NRG,NZG-1),
-C     &          UPSIX(1,NRG-1,NZG),UPSIX(1,NRG,NZG)
+C     &     'U:',UPSIX(1,NRG  ,NZG  ),UPSIX(1,NRG+1,NZG  ),
+C     &          UPSIX(1,NRG  ,NZG+1),UPSIX(1,NRG+1,NZG+1)
 C
-      DPSIDR=UPSIX(1,NRG-1,NZG-1)*DHR0 *HZ0
-     &      +UPSIX(2,NRG-1,NZG-1)*DHR1 *HZ0
-     &      +UPSIX(3,NRG-1,NZG-1)*DHR0 *HZ1
-     &      +UPSIX(4,NRG-1,NZG-1)*DHR1 *HZ1
-     &      +UPSIX(1,NRG  ,NZG-1)*DHR0C*HZ0
-     &      +UPSIX(2,NRG  ,NZG-1)*DHR1C*HZ0
-     &      +UPSIX(3,NRG  ,NZG-1)*DHR0C*HZ1
-     &      +UPSIX(4,NRG  ,NZG-1)*DHR1C*HZ1
-     &      +UPSIX(1,NRG-1,NZG  )*DHR0 *HZ0C
-     &      +UPSIX(2,NRG-1,NZG  )*DHR1 *HZ0C
-     &      +UPSIX(3,NRG-1,NZG  )*DHR0 *HZ1C
-     &      +UPSIX(4,NRG-1,NZG  )*DHR1 *HZ1C
-     &      +UPSIX(1,NRG  ,NZG  )*DHR0C*HZ0C
-     &      +UPSIX(2,NRG  ,NZG  )*DHR1C*HZ0C
-     &      +UPSIX(3,NRG  ,NZG  )*DHR0C*HZ1C
-     &      +UPSIX(4,NRG  ,NZG  )*DHR1C*HZ1C
+      DPSIDR=UPSIX(1,NRG  ,NZG  )*DHR0 *HZ0
+     &      +UPSIX(2,NRG  ,NZG  )*DHR1 *HZ0
+     &      +UPSIX(3,NRG  ,NZG  )*DHR0 *HZ1
+     &      +UPSIX(4,NRG  ,NZG  )*DHR1 *HZ1
+     &      +UPSIX(1,NRG+1,NZG  )*DHR0C*HZ0
+     &      +UPSIX(2,NRG+1,NZG  )*DHR1C*HZ0
+     &      +UPSIX(3,NRG+1,NZG  )*DHR0C*HZ1
+     &      +UPSIX(4,NRG+1,NZG  )*DHR1C*HZ1
+     &      +UPSIX(1,NRG  ,NZG+1)*DHR0 *HZ0C
+     &      +UPSIX(2,NRG  ,NZG+1)*DHR1 *HZ0C
+     &      +UPSIX(3,NRG  ,NZG+1)*DHR0 *HZ1C
+     &      +UPSIX(4,NRG  ,NZG+1)*DHR1 *HZ1C
+     &      +UPSIX(1,NRG+1,NZG+1)*DHR0C*HZ0C
+     &      +UPSIX(2,NRG+1,NZG+1)*DHR1C*HZ0C
+     &      +UPSIX(3,NRG+1,NZG+1)*DHR0C*HZ1C
+     &      +UPSIX(4,NRG+1,NZG+1)*DHR1C*HZ1C
 C
-      DPSIDZ=UPSIX(1,NRG-1,NZG-1)*HR0 *DHZ0
-     &      +UPSIX(2,NRG-1,NZG-1)*HR1 *DHZ0
-     &      +UPSIX(3,NRG-1,NZG-1)*HR0 *DHZ1
-     &      +UPSIX(4,NRG-1,NZG-1)*HR1 *DHZ1
-     &      +UPSIX(1,NRG  ,NZG-1)*HR0C*DHZ0
-     &      +UPSIX(2,NRG  ,NZG-1)*HR1C*DHZ0
-     &      +UPSIX(3,NRG  ,NZG-1)*HR0C*DHZ1
-     &      +UPSIX(4,NRG  ,NZG-1)*HR1C*DHZ1
-     &      +UPSIX(1,NRG-1,NZG  )*HR0 *DHZ0C
-     &      +UPSIX(2,NRG-1,NZG  )*HR1 *DHZ0C
-     &      +UPSIX(3,NRG-1,NZG  )*HR0 *DHZ1C
-     &      +UPSIX(4,NRG-1,NZG  )*HR1 *DHZ1C
-     &      +UPSIX(1,NRG  ,NZG  )*HR0C*DHZ0C
-     &      +UPSIX(2,NRG  ,NZG  )*HR1C*DHZ0C
-     &      +UPSIX(3,NRG  ,NZG  )*HR0C*DHZ1C
-     &      +UPSIX(4,NRG  ,NZG  )*HR1C*DHZ1C
+      DPSIDZ=UPSIX(1,NRG  ,NZG  )*HR0 *DHZ0
+     &      +UPSIX(2,NRG  ,NZG  )*HR1 *DHZ0
+     &      +UPSIX(3,NRG  ,NZG  )*HR0 *DHZ1
+     &      +UPSIX(4,NRG  ,NZG  )*HR1 *DHZ1
+     &      +UPSIX(1,NRG+1,NZG  )*HR0C*DHZ0
+     &      +UPSIX(2,NRG+1,NZG  )*HR1C*DHZ0
+     &      +UPSIX(3,NRG+1,NZG  )*HR0C*DHZ1
+     &      +UPSIX(4,NRG+1,NZG  )*HR1C*DHZ1
+     &      +UPSIX(1,NRG  ,NZG+1)*HR0 *DHZ0C
+     &      +UPSIX(2,NRG  ,NZG+1)*HR1 *DHZ0C
+     &      +UPSIX(3,NRG  ,NZG+1)*HR0 *DHZ1C
+     &      +UPSIX(4,NRG  ,NZG+1)*HR1 *DHZ1C
+     &      +UPSIX(1,NRG+1,NZG+1)*HR0C*DHZ0C
+     &      +UPSIX(2,NRG+1,NZG+1)*HR1C*DHZ0C
+     &      +UPSIX(3,NRG+1,NZG+1)*HR0C*DHZ1C
+     &      +UPSIX(4,NRG+1,NZG+1)*HR1C*DHZ1C
 C
       IERR=0
 C
@@ -1152,46 +1179,46 @@ C
       NRG=NINT((R-RG(1))*FRG*(NRGMAX-1))+1
       IF(NRG.LT.1) THEN
          IERR=1
-         NRG=2
+         NRG=1
       ENDIF
-      IF(NRG.GT.NRGMAX) THEN
+      IF(NRG.GT.NRGMAX-1) THEN
          IERR=2
-         NRG=NRGMAX
+         NRG=NRGMAX-1
       ENDIF
       FZG=1.D0/(ZG(NZGMAX)-ZG(1))
       NZG=NINT((Z-ZG(1))*FZG*(NZGMAX-1))+1
       IF(NZG.LT.1) THEN
          IERR=3
-         NZG=2
+         NZG=1
       ENDIF
-      IF(NZG.GT.NZGMAX) THEN
+      IF(NZG.GT.NZGMAX-1) THEN
          IERR=4
-         NZG=NZGMAX
+         NZG=NZGMAX-1
       ENDIF
 C
- 5001 IF(NRG.GE.NRGMAX) GOTO 5002
-      IF((R-RG(NRG  ))*FRG.LE.0.D0) GOTO 5002
+ 5001 IF(NRG.GE.NRGMAX-1) GOTO 5002
+      IF((R-RG(NRG+1))*FRG.LE.0.D0) GOTO 5002
          NRG=NRG+1
          GOTO 5001
  5002 CONTINUE
- 5003 IF(NRG.LE.2) GOTO 5004
-      IF((R-RG(NRG-1))*FRG.GE.0.D0) GOTO 5004
+ 5003 IF(NRG.LE.1) GOTO 5004
+      IF((R-RG(NRG  ))*FRG.GE.0.D0) GOTO 5004
          NRG=NRG-1
          GOTO 5003
  5004 CONTINUE
-      IF(NRG.LT.2)     NRG=2
+      IF(NRG.LT.1)     NRG=1
 C
- 5005 IF(NZG.GE.NZGMAX) GOTO 5006
-      IF((Z-ZG(NZG  ))*FZG.LE.0.D0) GOTO 5006
+ 5005 IF(NZG.GE.NZGMAX-1) GOTO 5006
+      IF((Z-ZG(NZG+1))*FZG.LE.0.D0) GOTO 5006
          NZG=NZG+1
          GOTO 5005
  5006 CONTINUE
- 5007 IF(NZG.LE.2) GOTO 5008
-      IF((Z-ZG(NZG-1))*FZG.GE.0.D0) GOTO 5008
+ 5007 IF(NZG.LE.1) GOTO 5008
+      IF((Z-ZG(NZG  ))*FZG.GE.0.D0) GOTO 5008
          NZG=NZG-1
          GOTO 5007
  5008 CONTINUE
-      IF(NZG.LT.2)     NZG=2
+      IF(NZG.LT.1)     NZG=1
 C
 C      WRITE(6,'(A,1P,E12.4,I5,2E12.4)') 'R:',R,NRG,RG(NRG-1),RG(NRG)
 C      WRITE(6,'(A,1P,E12.4,I5,2E12.4)') 'Z:',Z,NZG,ZG(NZG-1),ZG(NZG)

@@ -45,10 +45,21 @@ C
 C
 C      WRITE(6,*) RAXIS,ZAXIS,PSIG(RAXIS,ZAXIS)
 C
-      IF(RAXIS.LE.RR+RB.AND.
-     &   RAXIS.GE.RR-RB.AND.
-     &   ZAXIS.LE.RKAP*RB.AND.
-     &   ZAXIS.GE.-RKAP*RB) THEN
+      IF(MDLEQF.LT.10) THEN
+         RMAX=RR+RB
+         RMIN=RR-RB
+         ZMAX= RKAP*RB
+         ZMIN=-RKAP*RB
+      ELSE
+         RMAX=RGMAX
+         RMIN=RGMIN
+         ZMAX=ZGMAX
+         ZMIN=ZGMIN
+      ENDIF
+      IF(RAXIS.LE.RMAX.AND.
+     &   RAXIS.GE.RMIN.AND.
+     &   ZAXIS.LE.ZMAX.AND.
+     &   ZAXIS.GE.ZMIN) THEN
          PSI0=PSIG(RAXIS,ZAXIS)
          PSIPA=-PSI0
       ELSE
@@ -59,7 +70,6 @@ C
 C
 C     ----- calculate outer plasma surface -----
 C
-      RMAX=MAX(RR+RB,RGMAX)
       IF(PSIZ0(RR)*PSIZ0(RMAX).GE.0.D0) THEN
          REDGE=RMAX
       ELSE

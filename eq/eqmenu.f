@@ -28,22 +28,26 @@ C
       IF(MODE.NE.1) GOTO 1
 C
       IF(KID.EQ.'R') THEN
+         MSTAT=0
          IF(MDLEQF.LT.10) THEN
             CALL EQCALC(IERR)
             MSTAT=1
          ELSEIF(MDLEQF.LT.20) THEN
             CALL EQCALX(0,IERR)
+            IF(IERR.EQ.100) THEN
+               MSTAT=-1
+               GOTO 1
+            ENDIF
             MSTAT=2
          ELSE
             WRITE(6,*) 'XX UNDEFINED MDLEQF: ',MDLEQF
             GOTO 1
          ENDIF
-            IF(IERR.NE.0) GOTO 1
+C
          NRMAX1=NRMAX
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-         NRMAX=NRMAX1
             IF(IERR.NE.0) GOTO 1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -52,21 +56,25 @@ C
             READ(5,*,ERR=101,END=1) PP0,PP1,PP2,PJ0,PJ1,PJ2,RIP,HM
             IF(MDLEQF.LT.10) THEN
                CALL EQLOOP(IERR)
-                  IF(IERR.NE.0) GOTO 1
                CALL EQTORZ
                CALL EQCALP
+               MSTAT=1
             ELSEIF(MDLEQF.LT.20) THEN
                CALL EQCALX(1,IERR)
-                  IF(IERR.NE.0) GOTO 1
+                  IF(IERR.EQ.100) THEN
+                     MSTAT=-1
+                     GOTO 1
+                  ENDIF
+               MSTAT=2
             ELSE
                WRITE(6,*) 'XX UNDEFINED MDLEQF: ',MDLEQF
                GOTO 1
             ENDIF
+C
             NRMAX1=NRMAX
             NTHMAX1=NTHMAX
             NSUMAX1=NSUMAX
             CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-            NRMAX=NRMAX1
             IF(IERR.NE.0) GOTO 1
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
@@ -115,7 +123,6 @@ C
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-         NRMAX=NRMAX1
          MSTAT=2
 C
       ELSEIF(KID.EQ.'K') THEN
@@ -131,7 +138,6 @@ C
          NTHMAX1=NTHMAX
          NSUMAX1=NSUMAX
          CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
-         NRMAX=NRMAX1
          MSTAT=2
 C
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

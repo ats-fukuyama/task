@@ -148,10 +148,10 @@ C
          SUMAVIB2=0.D0
          SUMAVRHB=0.D0
 C
-         RMIN=RINIT
-         RMAX=RINIT
-         ZMIN=ZINIT
-         ZMAX=ZINIT
+         RMIN=RAXIS
+         RMAX=RAXIS
+         ZMIN=ZAXIS
+         ZMAX=ZAXIS
          BMIN=ABS(2.D0*BB)
          BMAX=0.D0
 C
@@ -410,10 +410,10 @@ C
             AVEIB2(NR)=AVEIB2(NRPMAX)
             AVERHB(NR)=AVERHB(NRPMAX)
 C
-            RMIN=RR
-            RMAX=RR
-            ZMIN=0.D0
-            ZMAX=0.D0
+            RMIN=RAXIS
+            RMAX=RAXIS
+            ZMIN=ZAXIS
+            ZMAX=ZAXIS
             DO NTH=1,NTHMAX+1
                RPS(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
                ZPS(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
@@ -443,6 +443,33 @@ C
 C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on mag surfaces -----
 C
          DO NR=NRPMAX+1,NRMAX
+            PSIP(NR)=PSIP(NRPMAX)
+            PPS(NR)=0.D0
+            TTS(NR)=2.D0*PI*BB*RR
+            SPS(NR)=SPS(NRPMAX)
+            VPS(NR)=VPS(NRPMAX)
+            QPS(NR)=QPS(NRPMAX)
+            RLEN(NR)=RLEN(NRPMAX)
+            RRMIN(NR)=RRMIN(NRPMAX)
+            RRMAX(NR)=RRMAX(NRPMAX)
+            ZZMIN(NR)=ZZMIN(NRPMAX)
+            ZZMAX(NR)=ZZMAX(NRPMAX)
+            BBMIN(NR)=BBMIN(NRPMAX)
+            BBMAX(NR)=BBMAX(NRPMAX)
+            AVERHR(NR)=AVERHR(NRPMAX)
+            AVEIR2(NR)=AVEIR2(NRPMAX)
+            AVERH1(NR)=AVERH1(NRPMAX)
+            AVERH2(NR)=AVERH2(NRPMAX)
+            AVEBB2(NR)=AVEBB2(NRPMAX)
+            AVEIB2(NR)=AVEIB2(NRPMAX)
+            AVERHB(NR)=AVERHB(NRPMAX)
+            DO NTH=1,NTHMAX+1
+               RPS(NTH,NR)=RPS(NTH,NRPMAX)
+               ZPS(NTH,NR)=ZPS(NTH,NRPMAX)
+            ENDDO
+         ENDDO
+C
+         DO NR=NRPMAX+1,NRMAX
             RINIT=REDGE+DR*(NR-NRPMAX)
             ZINIT=ZAXIS
             PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
@@ -453,10 +480,7 @@ C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
 C     &        PSIP(NR),PPS(NR),TTS(NR)
 C
             CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
-            IF(IERR.NE.0) THEN
-               NRMAX=NR-1
-               GOTO 1000
-            ENDIF
+            IF(IERR.NE.0) GOTO 1000
 C
             SUMS=0.D0
             SUMV=0.D0
@@ -469,10 +493,10 @@ C
             SUMAVIB2=0.D0
             SUMAVRHB=0.D0
 C
-            RMIN=RINIT
-            RMAX=RINIT
-            ZMIN=ZINIT
-            ZMAX=ZINIT
+            RMIN=RAXIS
+            RMAX=RAXIS
+            ZMIN=ZAXIS
+            ZMAX=ZAXIS
             BMIN=ABS(2.D0*BB)
             BMAX=0.D0
 C

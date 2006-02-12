@@ -53,7 +53,7 @@ C
       END DO
       END DO
 C
- 2000 FORMAT(1X,100F7.2)
+C 2000 FORMAT(1X,100F7.2)
 C      DO I=1,NDIM
 C            WRITE(*,2000) (WORK(I,J),J=NDIM+1,DIM*2)
 C      END DO

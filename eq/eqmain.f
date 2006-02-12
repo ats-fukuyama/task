@@ -15,7 +15,7 @@ C   ************************************************
 C
       INCLUDE 'eqcomc.inc'
 C
-      WRITE(6,*) '## TASK/EQ 2005/07/24'
+      WRITE(6,*) '## TASK/EQ 2006/02/12'
       CALL GSOPEN
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C

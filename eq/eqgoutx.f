@@ -43,6 +43,7 @@ C
      &            4*NRGM,4*NRGMAX,4*NZGMAX,KA,'/PSIXF(R,Z)/')
       CALL PAGEE
 C
+      IF(IDEBUG.EQ.1) THEN
       DO NZ=1,4*NZGMAX
       DO NR=1,4*NRGMAX
          CALL EQPSIX(RSPL(NR),ZSPL(NZ),DPSIDR,DPSIDZ,IERR)
@@ -66,6 +67,7 @@ C
       CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
      &            4*NRGM,4*NRGMAX,4*NZGMAX,KA,'/DPSIDZ(R,Z)/')
       CALL PAGEE
+      ENDIF
 C
       DO NR=1,NRGMAX
          GR(NR)=GUCLIP(RG(NR))
@@ -76,13 +78,24 @@ C
 C
       DO NZ=1,NZGMAX
       DO NR=1,NRGMAX
-         GF(NR,NZ)=GUCLIP(HJTRZ(NR,NZ))
+         GF(NR,NZ)=GUCLIP(FJRZ(NR,NZ))
       ENDDO
       ENDDO
 C
       CALL PAGES
       CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
-     &            4*NRGM,NRGMAX,NZGMAX,KA,'/FJTRZ(R,Z)/')
+     &            4*NRGM,NRGMAX,NZGMAX,KA,'/FJRZ(R,Z)/')
+      CALL PAGEE
+C
+      DO NZ=1,NZGMAX
+      DO NR=1,NRGMAX
+         GF(NR,NZ)=GUCLIP(FJPRZ(NR,NZ))
+      ENDDO
+      ENDDO
+C
+      CALL PAGES
+      CALL GSUB2D(GX1,GX2,GY1,GY2,GR,GZ,GF,
+     &            4*NRGM,NRGMAX,NZGMAX,KA,'/FJPRZ(R,Z)/')
       CALL PAGEE
 C
       RETURN
