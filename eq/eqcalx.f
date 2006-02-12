@@ -847,6 +847,7 @@ C
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
+C
          IF(NRG.EQ.1.OR.NRG.EQ.NRGMAX) THEN
          DO K=1,3,2
             SUM(K)=PSIBRZ(K)
