@@ -90,21 +90,15 @@ C
       ENDDO
 C
       NRNBMAX=10
-      VY=PNBVY
       DRTG=2.D0*PNBRW/NRNBMAX
-      DO J=1,NRNBMAX
-C      DO J=1,1
-         RDD=AR(J)
-C         RDD=1.D0
-         RTG(J)=PNBRTG-PNBRW+0.5D0*DRTG+DRTG*(J-1)
-C         RTG(J)=PNBRTG
-         CALL TRNBPB(J,RTG(J),VY,RDD)
-c$$$         DO NR=1,NRMAX
-c$$$            PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
-c$$$         ENDDO
-c$$$         CALL TRSUMD(PNB,DVRHO,NRMAX,PNBTOT)
-c$$$         write(6,*) PNBTOT*DR*1.D-6
-c         stop
+      DVY =2.D0*PNBVW/NRNBMAX
+      DO I=1,NRNBMAX
+         DO J=1,NRNBMAX
+            RDD=AR(J)*AR(I)
+            RTG(J)=PNBRTG-PNBRW+0.5D0*DRTG+DRTG*(J-1)
+            VY    =PNBVY -PNBVW+0.5D0*DVY +DVY *(I-1)
+            CALL TRNBPB(J,RTG(J),VY,RDD)
+         ENDDO
       ENDDO
 C
       DO NR=1,NRMAX
