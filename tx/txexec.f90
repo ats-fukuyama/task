@@ -215,7 +215,7 @@ contains
     use coefficients, only : TXCALA
     INCLUDE 'txcomm.inc'
 
-    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM
+    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM,nl,nll
     REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV
     REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP
 
@@ -244,8 +244,12 @@ contains
           CALL TXCALA
           CALL TXCALB
           CALL TXGLOB
-
+!          DO I=1,4*NQMAX-1
+!             write(6,*) I,BA(I,LQe2)
+!          ENDDO
+!          write(6,*) BX(LQe2)
           CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
+!          write(6,*) "PASS2",NT,BX(LQe2),BX(LQi2)
           IF (IERR == 30000) THEN
              WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
                   &              NT, ' -', IC, ' step.'
@@ -319,9 +323,6 @@ contains
 
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
-       DO I=1,NRMAX
-          !        write(6,*) I,X(LQm1,I)
-       END DO
 
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
@@ -380,7 +381,7 @@ contains
     !   certain variable in certain term in certain equation.
     !***************************************************************
 
-    ! Time derivative
+    ! Time derivative (NC=0)
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           NC = 0
@@ -389,14 +390,13 @@ contains
           IB = IC + NQMAX
           IA = IB + NQMAX
           J = NR * NQMAX + NQ
-        !if(nr < 3) write(6,'(7I5,F26.19)') NR,NQ,NC1,IC,IB,IA,J,BLC(NC,NQ,NR)
           BA(IC,J) = BA(IC,J) + CLC(NC,NQ,NR)
           BA(IB,J) = BA(IB,J) + BLC(NC,NQ,NR)
           BA(IA,J) = BA(IA,J) + ALC(NC,NQ,NR)
        END DO
     END DO
-    !  STOP
 
+    ! *** NC /= 0 ***
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           DO NC = 1, NLCMAX(NQ)
@@ -405,14 +405,18 @@ contains
              IB = IC + NQMAX
              IA = IB + NQMAX
              J = NR * NQMAX + NQ
-             !           if(NR < 3) write(6,'(8I5)') NR,NQ,NC,NC1,IC,IB,IA,J
              BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR)
              BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR)
              BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR)
+!!$             if(nr == 0.and.nc==1) then
+!!$                if(nq == LQe2.or.nq == LQi2) then
+!!$                   BA(IB,J)=1.754279d0*BA(IB,J)
+!!$                   write(6,*) BA(IB,J)
+!!$                end if
+!!$             end if
           END DO
        END DO
     END DO
-    !  STOP
 
     ! *** Right-hand-side vector ***
 

@@ -25,7 +25,6 @@ contains
     BLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
     CLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
     NLC(0:NCM,1:NQMAX,0:NRMAX) = 1
-    !  NLC(0:NCM,1:NQMAX,0:NRMAX) = 0
     PLC(1:NCM,1:NQMAX,0:NRMAX) = 0.D0
     NLCMAX(1:NQMAX) = 0
 
@@ -376,6 +375,11 @@ contains
        ALC(1,LQe1,NR) = - R(NR+1) / (RHI(NR) * DR)
        BLC(1,LQe1,NR) =   R(NR  ) / (RHI(NR) * DR)
        NLC(1,LQe1,NR) = LQe2
+!       ALC(1,LQe1,NR) = - R(NR+1) * UerI(NR+1) / (2.D0 * RHI(NR) * DR)
+!       BLC(1,LQe1,NR) = - R(NR+1) * UerI(NR+1) / (2.D0 * RHI(NR) * DR) &
+!            &           + R(NR  ) * UerI(NR  ) / (2.D0 * RHI(NR) * DR)
+!       CLC(1,LQe1,NR) =   R(NR  ) * UerI(NR  ) / (2.D0 * RHI(NR) * DR)
+!       NLC(1,LQe1,NR) = LQe1
 
        ! Ionization of n01 and n02
 
@@ -420,7 +424,8 @@ contains
     ! Ns*Usr(0) : fixed
 
     NR = 0
-    BLC(1,LQe2,NR) = 1.D0
+!    BLC(1,LQe2,NR) = 1.D0
+    BLC(1,LQe2,NR) = 2.D0
     NLC(1,LQe2,NR) = LQe2
 
     DO NR = 1, NRMAX-1
@@ -604,7 +609,7 @@ contains
     ! Ns*UsTheta(NRMAX) : 0
 
     NR = NRMAX
-    BLC(1,LQe3,NR) = 1
+    BLC(1,LQe3,NR) = 1.D0
     NLC(1,LQe3,NR) = LQe3
 
     NLCMAX(LQe3) = 17
@@ -684,8 +689,8 @@ contains
 
        ! v x B force
 
-       ALC(4,LQe4,NR) = - 0.5D0 * BthI(NR+1) * (AEE / AME)
-       BLC(4,LQe4,NR) = - 0.5D0 * BthI(NR  ) * (AEE / AME)
+       ALC(4,LQe4,NR) = - 0.5D0 * BthHI(NR) * (AEE / AME)
+       BLC(4,LQe4,NR) = - 0.5D0 * BthHI(NR) * (AEE / AME)
        NLC(4,LQe4,NR) = LQe2
 
        ! Collisional friction with bulk ions
@@ -829,8 +834,8 @@ contains
 
           ! Joule heating
 
-          ALC(3,LQe5,NR) = - 0.5D0 * AEE * EthI(NR+1) / rKeV
-          BLC(3,LQe5,NR) = - 0.5D0 * AEE * EthI(NR  ) / rKeV
+          ALC(3,LQe5,NR) = - 0.5D0 * AEE * EthHI(NR) / rKeV
+          BLC(3,LQe5,NR) = - 0.5D0 * AEE * EthHI(NR) / rKeV
           NLC(3,LQe5,NR) = LQe3
 
           BLC(4,LQe5,NR) = - AEE * EphHI(NR) / rKeV
@@ -897,6 +902,11 @@ contains
        ALC(1,LQi1,NR) = - R(NR+1) / (RHI(NR) * DR)
        BLC(1,LQi1,NR) = + R(NR  ) / (RHI(NR) * DR)
        NLC(1,LQi1,NR) = LQi2
+!       ALC(1,LQi1,NR) = - R(NR+1) * UirI(NR+1) / (2.D0 * RHI(NR) * DR)
+!       BLC(1,LQi1,NR) = - R(NR+1) * UirI(NR+1) / (2.D0 * RHI(NR) * DR) &
+!            &           + R(NR  ) * UirI(NR  ) / (2.D0 * RHI(NR) * DR)
+!       CLC(1,LQi1,NR) =   R(NR  ) * UirI(NR  ) / (2.D0 * RHI(NR) * DR)
+!       NLC(1,LQi1,NR) = LQi1
 
        ! Ionization of n01 and n02
 
@@ -956,7 +966,8 @@ contains
     ! Ns*Usr(0) : fixed
 
     NR = 0
-    BLC(1,LQi2,NR) = 1.D0
+!    BLC(1,LQi2,NR) = 1.D0
+    BLC(1,LQi2,NR) = 2.D0
     NLC(1,LQi2,NR) = LQi2
 
     DO NR = 1, NRMAX-1
@@ -1231,8 +1242,8 @@ contains
 
        ! v x B force
 
-       ALC(4,LQi4,NR) = 0.5D0 * PZ * BthI(NR+1) * (AEE / AMI)
-       BLC(4,LQi4,NR) = 0.5D0 * PZ * BthI(NR  ) * (AEE / AMI)
+       ALC(4,LQi4,NR) = 0.5D0 * PZ * BthHI(NR) * (AEE / AMI)
+       BLC(4,LQi4,NR) = 0.5D0 * PZ * BthHI(NR) * (AEE / AMI)
        NLC(4,LQi4,NR) = LQi2
 
        ! Collisional friction with bulk ions
@@ -1385,8 +1396,8 @@ contains
 
           ! Joule heating
 
-          ALC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthI(NR+1) / rKeV
-          BLC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthI(NR  ) / rKeV
+          ALC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthHI(NR) / rKeV
+          BLC(3,LQi5,NR) =   0.5D0 * PZ * AEE * EthHI(NR) / rKeV
           NLC(3,LQi5,NR) = LQi3
 
           BLC(4,LQi5,NR) =   PZ * AEE * EphHI(NR) / rKeV
