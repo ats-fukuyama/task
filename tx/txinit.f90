@@ -313,6 +313,7 @@ contains
     DR    = RB / NRMAX
     !   Number of equations
     NQMAX = NQM
+!    NQMAX = 1
     !   ???
     UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
     UHph  = DBLE(NCphi) * UHth

@@ -86,20 +86,21 @@ contains
     BLC(1,LQm1,NR) = 1.D0
     NLC(1,LQm1,NR) = LQm1
 
-    FACTOR = EPS0 / (AEE * 1.D20)
-!!!  DO NR = 1, NRMAX-1
+    FACTOR = 1.D0 / (AEE * 1.D20)
+!    FACTOR = EPS0 / (AEE * 1.D20)
+!!!    DO NR = 1, NRMAX-1
     DO NR = 1, NRMAX
        BLC(1,LQm1,NR) =  FACTOR * R(NR  ) / (DR * RHI(NR-1))
        CLC(1,LQm1,NR) = -FACTOR * R(NR-1) / (DR * RHI(NR-1))
        NLC(1,LQm1,NR) = LQm1
 
-       CLC(2,LQm1,NR) = 1.D0
+       CLC(2,LQm1,NR) = 1.D0 / EPS0
        NLC(2,LQm1,NR) = LQe1
 
-       CLC(3,LQm1,NR) = - PZ
+       CLC(3,LQm1,NR) = - PZ / EPS0
        NLC(3,LQm1,NR) = LQi1
 
-       CLC(4,LQm1,NR) = - PZ
+       CLC(4,LQm1,NR) = - PZ / EPS0
        NLC(4,LQm1,NR) = LQb1
     END DO
 
@@ -424,8 +425,8 @@ contains
     ! Ns*Usr(0) : fixed
 
     NR = 0
-!    BLC(1,LQe2,NR) = 1.D0
-    BLC(1,LQe2,NR) = 2.D0
+    BLC(1,LQe2,NR) = 1.D0
+!    BLC(1,LQe2,NR) = 2.D0
     NLC(1,LQe2,NR) = LQe2
 
     DO NR = 1, NRMAX-1
@@ -966,8 +967,8 @@ contains
     ! Ns*Usr(0) : fixed
 
     NR = 0
-!    BLC(1,LQi2,NR) = 1.D0
-    BLC(1,LQi2,NR) = 2.D0
+    BLC(1,LQi2,NR) = 1.D0
+!    BLC(1,LQi2,NR) = 2.D0
     NLC(1,LQi2,NR) = LQi2
 
     DO NR = 1, NRMAX-1

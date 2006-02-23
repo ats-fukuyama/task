@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCS = txcnst.f90 txlib.f90 txrslt.f90 txcalv.f90 txcala.f90 txexec.f90 \
        txinit.f90 txfile.f90 txmenu.f90 txmain.f90 txgraf.f90 
@@ -23,8 +23,11 @@ txlib.a: $(OBJS)
 ../lib/tasklib.a:
 	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
+libs:
+	(cd ../lib; make)
+
 $(PROG): $(LIBS)
-#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
 	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)

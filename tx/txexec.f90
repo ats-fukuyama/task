@@ -244,12 +244,7 @@ contains
           CALL TXCALA
           CALL TXCALB
           CALL TXGLOB
-!          DO I=1,4*NQMAX-1
-!             write(6,*) I,BA(I,LQe2)
-!          ENDDO
-!          write(6,*) BX(LQe2)
           CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
-!          write(6,*) "PASS2",NT,BX(LQe2),BX(LQi2)
           IF (IERR == 30000) THEN
              WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
                   &              NT, ' -', IC, ' step.'
@@ -408,12 +403,6 @@ contains
              BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR)
              BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR)
              BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR)
-!!$             if(nr == 0.and.nc==1) then
-!!$                if(nq == LQe2.or.nq == LQi2) then
-!!$                   BA(IB,J)=1.754279d0*BA(IB,J)
-!!$                   write(6,*) BA(IB,J)
-!!$                end if
-!!$             end if
           END DO
        END DO
     END DO
