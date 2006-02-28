@@ -410,14 +410,20 @@ C     **  Derivative calculated from adjacent 2 points  **
 C     ****************************************************
 C     -- This formulation has a second-order accuracy. --
 C
-      FUNCTION DERIV3(NR,R,F,NRMAX,NRM)
+      FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
 C
       IMPLICIT NONE
-      INTEGER NR,NRMAX,NRM
-      REAL*8 DERIV3,R(NRM),F(NRM)
+      INTEGER NR,NRMAX,NRM,ID,NRS
+      REAL*8 DERIV3,R(0:NRM),F(0:NRM)
       REAL*8 DLT,DLT1,DLT2
 C
-      IF(NR.EQ.1) THEN
+      IF(ID.EQ.0) THEN
+         NRS=0
+      ELSE
+         NRS=1
+      ENDIF
+C
+      IF(NR.EQ.NRS) THEN
          DLT=R(NR+1)-R(NR)
          DERIV3 = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
       ELSEIF(NR.EQ.NRMAX) THEN
