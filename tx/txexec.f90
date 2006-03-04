@@ -262,6 +262,8 @@ contains
 
           ! Check negative density or temperature in variable matrix
           CALL TXCHCK(NT,IC,XN,IERR)
+!          IERR = 1
+!          write(6,*) IC
           IF (IERR /= 0) THEN
              X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
              CALL TXCALV(X)

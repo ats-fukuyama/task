@@ -1273,6 +1273,8 @@ SUBROUTINE TXGRFQ(NQ,ID)
      GQY(NR,NC) = SNGL(+ CLC(NC,NQ,NR) * X(NC1,NR-1) &
           &            + BLC(NC,NQ,NR) * X(NC1,NR  ) &
           &            + PLC(NC,NQ,NR))
+     NR=NRMAX-1
+     write(6,'(I3,3F20.10)') NC,CLC(NC,NQ,NR) * X(NC1,NR-1),BLC(NC,NQ,NR) * X(NC1,NR  ),PLC(NC,NQ,NR)
   END DO
 
   NSTR = 0

@@ -82,6 +82,12 @@ contains
 
     ErI(0:NRMAX)  = XL(LQm1,0:NRMAX)
     EthI(0:NRMAX) = XL(LQm2,0:NRMAX)
+!    do nr=0,nrmax
+!       write(6,'(I3,4F18.10)') nr,XL(LQm1,NR),XL(LQe1,NR),XL(LQi1,NR),XL(LQb1,NR)
+!       write(6,'(I3,3F18.10)') nr,XL(LQe2,NR),XL(LQn1,NR),XL(LQn2,NR)
+!       write(6,'(I3,2F18.10)') nr,XL(LQe5,NR),XL(LQi5,NR)
+!       write(6,'(I3,2F18.10)') nr,XL(LQm2,NR),XL(LQm5,NR)
+!    end do
     BthI(0:NRMAX) = XL(LQm4,0:NRMAX)
     UerI(0:NRMAX) = XL(LQe2,0:NRMAX)/PNeI(0:NRMAX)
     UethI(0:NRMAX)= XL(LQe3,0:NRMAX)/PNeI(0:NRMAX)

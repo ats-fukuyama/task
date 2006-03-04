@@ -86,21 +86,20 @@ contains
     BLC(1,LQm1,NR) = 1.D0
     NLC(1,LQm1,NR) = LQm1
 
-    FACTOR = 1.D0 / (AEE * 1.D20)
-!    FACTOR = EPS0 / (AEE * 1.D20)
+    FACTOR = EPS0 / (AEE * 1.D20)
 !!!    DO NR = 1, NRMAX-1
     DO NR = 1, NRMAX
        BLC(1,LQm1,NR) =  FACTOR * R(NR  ) / (DR * RHI(NR-1))
        CLC(1,LQm1,NR) = -FACTOR * R(NR-1) / (DR * RHI(NR-1))
        NLC(1,LQm1,NR) = LQm1
 
-       CLC(2,LQm1,NR) = 1.D0 / EPS0
+       CLC(2,LQm1,NR) = 1.D0
        NLC(2,LQm1,NR) = LQe1
 
-       CLC(3,LQm1,NR) = - PZ / EPS0
+       CLC(3,LQm1,NR) = - PZ
        NLC(3,LQm1,NR) = LQi1
 
-       CLC(4,LQm1,NR) = - PZ / EPS0
+       CLC(4,LQm1,NR) = - PZ
        NLC(4,LQm1,NR) = LQb1
     END DO
 
@@ -399,7 +398,7 @@ contains
 
     END DO
 
-    !     OUT OF REGION
+    !     Out of region
 
     NR = NRMAX
     BLC(1,LQe1,NR) = 1.D0
@@ -941,7 +940,7 @@ contains
 
     END DO
 
-    !     OUT OF REGION
+    !     Out of region
 
     NR = NRMAX
     BLC(1,LQi1,NR) = 1.D0
@@ -1589,7 +1588,8 @@ contains
        PLC(5,LQb4,NR) = (PNBCD * Vb) * SNB(NR)
     END DO
 
-    ! Ubphi(NRMAX) : 0
+!    ! Ubphi(NRMAX) : 0
+    ! Out of region
 
     NR = NRMAX
     BLC(1,LQb4,NR) = 1.D0

@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 SRCS = txcnst.f90 txlib.f90 txrslt.f90 txcalv.f90 txcala.f90 txexec.f90 \
        txinit.f90 txfile.f90 txmenu.f90 txmain.f90 txgraf.f90 
