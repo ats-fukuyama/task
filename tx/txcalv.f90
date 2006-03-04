@@ -296,29 +296,33 @@ contains
        !!     &                         + ( ErHI(NR) * BBL
        !!     &                             / ( Vti * BthHI(NR)**2) )**2))
 
-       !     *** Wave-particle interaction ***
+       !     *** Current Diffusive Ballooning Mode (Integer) ***
 
+       IF (NR >= 1) THEN
        IF (ABS(FSCDBM) > 0.D0) THEN
+          BBL = SQRT(BphI(NR  )**2 + BthI(NR  )**2)
           ! Alfven velocity
-          Va = SQRT(BBL**2 / (rMU0 * PNiHI(NR) * 1.D20 * AMI))
+          Va = SQRT(BBL**2 / (rMU0 * PNiI(NR) * 1.D20 * AMI))
           ! Squared plasma frequency
-          Wpe2 = PNeHI(NR) * 1.D20 * AEE**2 / (AME * EPS0)
+          Wpe2 = PNeI(NR) * 1.D20 * AEE**2 / (AME * EPS0)
           ! Arbitrary coefficient for CDBM model
           rGC = 8.D0
-          dQdr = (Q(NR+1) - Q(NR)) / DR
+          ! safety factor gradient
+          dQdr = (QHI(NR) - QHI(NR-1)) / DR
           ! Magnetic shear
-          S(NR) = RHI(NR) / QHI(NR) * dQdr
-          BB1 = SQRT(BphI(NR  )**2 + BthI(NR  )**2)
-          BB2 = SQRT(BphI(NR+1)**2 + BthI(NR+1)**2)
-          Beta1 = (  PNeI(NR  ) * 1.D20 * PTeI(NR  ) * rKeV &
-               &   + PNiI(NR  ) * 1.D20 * PTiI(NR  ) * rKeV) &
+          S(NR) = R(NR) / Q(NR) * dQdr
+          ! Beta gradient
+          BB1 = SQRT(BphHI(NR-1)**2 + BthHI(NR-1)**2)
+          BB2 = SQRT(BphHI(NR  )**2 + BthHI(NR  )**2)
+          Beta1 = (  PNeHI(NR-1) * 1.D20 * PTeHI(NR-1) * rKeV &
+               &   + PNiHI(NR-1) * 1.D20 * PTiHI(NR-1) * rKeV) &
                &  / (BB1**2 / (2.D0 * rMU0))
-          Beta2 = (  PNeI(NR+1) * 1.D20 * PTeI(NR+1) * rKeV &
-               &   + PNiI(NR+1) * 1.D20 * PTiI(NR+1) * rKeV) &
+          Beta2 = (  PNeHI(NR  ) * 1.D20 * PTeHI(NR  ) * rKeV &
+               &   + PNiHI(NR  ) * 1.D20 * PTiHI(NR  ) * rKeV) &
                &  / (BB2**2 / (2.D0 * rMU0))
           dBetadr = (Beta2 - Beta1) / DR
           ! Normalized pressure gradient
-          Alpha(NR) = - QHI(NR)**2 * RR * dBetadr
+          Alpha(NR) = - Q(NR)**2 * RR * dBetadr
           ! s-alpha parameter
           IF (Alpha(NR) > 0.D0) THEN
              SP = S(NR) - Alpha(NR)
@@ -335,7 +339,7 @@ contains
                   &                 + 3.D0 * SP**2 + 2.D0 * SP**3))
           END IF
           ! Magnetic curvature
-          rKappa(NR) = - RHI(NR) / RR * (1.D0 - 1.D0 / QHI(NR)**2)
+          rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
           ! Fitting function: F for interchange instability
           If (Alpha(NR) * rKappa(NR) < 0.D0) THEN
              rGIC = 0.D0
@@ -348,15 +352,15 @@ contains
           IF(NR == 0) THEN
              rH=0.D0
           ELSE
-             dErdr = (  ErI(NR+1) / (R(NR+1) * BB2) &
-                  &   - ErI(NR)   / (R(NR)   * BB1)) / DR
-             rH = QHI(NR) * RR * RHI(NR) *  dErdr / (Va * S(NR))
+             dErdr = (  ErHI(NR  ) / (RHI(NR  ) * BB2) &
+                  &   - ErHI(NR-1) / (RHI(NR-1) * BB1)) / DR
+             rH = Q(NR) * RR * R(NR) *  dErdr / (Va * S(NR))
           END IF
           ! Coefficient of fitting formula
           rG1h2(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
           ! Turbulent transport coefficient calculated by CDBM model
           DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
-               &              * VC**2 / Wpe2 * Va / (QHI(NR) * RR)
+               &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
           !write(6,*)DCDBM
           !DCDBM = MAX(DCDBM,1.D-05)
        ELSE
@@ -368,12 +372,12 @@ contains
           DCDBM      = 0.D0
        END IF
 
-       IF (RHI(NR) < RA) THEN
-          DeL = FSDFIX * (1.D0 + (PROFD -1) * (RHI(NR) / RA)**2) &
+       IF (R(NR) < RA) THEN
+          DeL = FSDFIX * (1.D0 + (PROFD -1) * (R(NR) / RA)**2) &
                &            + FSCDBM * DCDBM
        ELSE
           DeL = FSDFIX * PROFD &
-               &       + FSBOHM * PTeHI(NR) * rKEV / (16.D0 * AEE * BBL) &
+               &       + FSBOHM * PTeI(NR) * rKEV / (16.D0 * AEE * BBL) &
                &       + FSPSCL
        END IF
        ! Particle diffusivity
@@ -386,13 +390,17 @@ contains
        Chie(NR) = Chie0 * DeL
        Chii(NR) = Chii0 * DeL
 
-       ! <omega/m> on half mesh
-       WPM(NR) = WPM0 * PTeHI(NR) * rKeV / (RA**2 * AEE * BphHI(NR))
-       ! Force induced by drift wave (eq.(8),(13)) on half mesh
-       FWthe(NR) = AEE**2         * BphHI(NR)**2 * De(NR) &
-            &            / (PTeHI(NR) * rKeV)
-       FWthi(NR) = AEE**2 * PZ**2 * BphHI(NR)**2 * Di(NR) &
-            &            / (PTiHI(NR) * rKeV)
+       !     *** Wave-particle interaction (Integer) ***
+
+       ! <omega/m> on mesh
+       WPM(NR) = WPM0 * PTeI(NR) * rKeV / (RA**2 * AEE * BphI(NR))
+       ! Force induced by drift wave (eq.(8),(13)) on mesh
+       FWthe(NR) = AEE**2         * BphI(NR)**2 * De(NR) &
+            &            / (PTeI(NR) * rKeV)
+       FWthi(NR) = AEE**2 * PZ**2 * BphI(NR)**2 * Di(NR) &
+            &            / (PTiI(NR) * rKeV)
+
+       END IF
 
        !     *** Heating profile ***
 
@@ -442,7 +450,7 @@ contains
        Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiHI(NR) * PZ**2 / PNeHI(NR) &
             &   * AME / AMI &
             &   * (ABS(PTeHI(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
-       Y = Vb / Vcr
+       Y = PNBCD * Vb / Vcr
        IF (Y > 0.D0) THEN
           Ubst = 3.D0 / LOG(1.D0 + Y**3) * Vb
        ELSE
@@ -475,6 +483,11 @@ contains
        END IF
 
     END DO L_NR
+
+    NR = 0
+    S(NR) = 0.D0
+    Alpha(NR) = 0.D0
+    rKappa(NR) = 0.D0
 
     !     ***** Ion Orbit Loss *****
 

@@ -489,8 +489,7 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: rNueNCL, rNueiL, rNubeL, FWtheL, WPML, FWthiL, &
-         &     rNuLL, rNu0eL, rNueHLL
+    REAL(8) :: rNueNCL, rNueiL, rNubeL, rNuLL, rNu0eL, rNueHLL, rMueP, rMueM
 
     ! Ns*UsTheta(0) : 0
 
@@ -513,18 +512,21 @@ contains
        ! Viscosity force
 
        IF (NR == 1) THEN
-          ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
+          rMueP = 0.5D0 * (rMue(NR) + rMue(NR+1))
+          ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMueP &
                &           / (PNeI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-          BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
+          BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMueP &
                &           / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
        ELSE
-          ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
+          rMueP = 0.5D0 * (rMue(NR  ) + rMue(NR+1))
+          rMueM = 0.5D0 * (rMue(NR-1) + rMue(NR  ))
+          ALC(2,LQe3,NR) =   RHI(NR  )**3 * PNeHI(NR  ) * rMueP &
                &           / (PNeI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-          BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMue(NR  ) &
+          BLC(2,LQe3,NR) = - RHI(NR  )**3 * PNeHI(NR  ) * rMueP &
                &           / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2) &
-               &           - RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1) &
+               &           - RHI(NR-1)**3 * PNeHI(NR-1) * rMueM &
                &           / (PNeI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-          CLC(2,LQe3,NR) =   RHI(NR-1)**3 * PNeHI(NR-1) * rMue(NR-1) &
+          CLC(2,LQe3,NR) =   RHI(NR-1)**3 * PNeHI(NR-1) * rMueM &
                &           / (PNeI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
        END IF
        NLC(2,LQe3,NR) = LQe3
@@ -565,21 +567,18 @@ contains
 
        ! Wave interaction force (electron driven)
 
-       FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-       BLC(10,LQe3,NR) = - FWtheL / AME
+       BLC(10,LQe3,NR) = - FWthe(NR) / AME
        NLC(10,LQe3,NR) = LQe3
 
-       WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
-       BLC(11,LQe3,NR) = FWtheL * WPML * R(NR) / AME
+       BLC(11,LQe3,NR) = FWthe(NR) * WPM(NR) * R(NR) / AME
        NLC(11,LQe3,NR) = LQe1
 
        ! Wave interaction force (NRon driven)
 
-       FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
-       BLC(12,LQe3,NR) =   FWthiL / AME
+       BLC(12,LQe3,NR) =   FWthi(NR) / AME
        NLC(12,LQe3,NR) = LQi3
 
-       BLC(13,LQe3,NR) = - FWthiL * WPML * R(NR) / AME
+       BLC(13,LQe3,NR) = - FWthi(NR) * WPM(NR) * R(NR) / AME
        NLC(13,LQe3,NR) = LQi1
 
        ! Loss to divertor
@@ -628,7 +627,7 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: rMueP, rMueM, rNueHLL
+    REAL(8) :: rNueHLL, rMueP, rMueM
 
     ! Uephi(0)' : 0
 
@@ -647,37 +646,33 @@ contains
        ! Viscosity force
 
        IF (NR == 0) THEN
-          rMueP = 0.5D0*(rMue(NR) + rMue(NR+1))
-          rMueM =        rMue(NR)
-          ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
+          rMueM = rMue(NR+1)
+          ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMue(NR+1) &
                &                    / (PNeHI(NR+1) * RHI(NR) * DR**2)
-          BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP &
+          BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMue(NR+1) &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
                &           - R(NR  ) * PNeI(NR  ) * rMueM &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
                &           + R(NR  ) * PNeI(NR  ) * rMueM &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
        ELSEIF (NR == NRMAX-1) THEN
-          rMueP =        rMue(NR)
-          rMueM = 0.5D0*(rMue(NR-1) + rMue(NR))
+          rMueP = rMue(NR)
           BLC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
                &           - R(NR+1) * PNeI(NR+1) * rMueP &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
-               &           - R(NR  ) * PNeI(NR  ) * rMueM &
+               &           - R(NR  ) * PNeI(NR  ) * rMue(NR  ) &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-          CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM &
+          CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMue(NR  ) &
                &                    / (PNeHI(NR-1) * RHI(NR) * DR**2)
        ELSE
-          rMueP = 0.5D0*(rMue(NR) + rMue(NR+1))
-          rMueM = 0.5D0*(rMue(NR-1) + rMue(NR))
-          ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMueP &
+          ALC(2,LQe4,NR) =   R(NR+1) * PNeI(NR+1) * rMue(NR+1) &
                &                    / (PNeHI(NR+1) * RHI(NR) * DR**2)
-          BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMueP &
+          BLC(2,LQe4,NR) = - R(NR+1) * PNeI(NR+1) * rMue(NR+1) &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2) &
-               &           - R(NR  ) * PNeI(NR  ) * rMueM &
+               &           - R(NR  ) * PNeI(NR  ) * rMue(NR) &
                &                    / (PNeHI(NR  ) * RHI(NR) * DR**2)
-          CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMueM &
+          CLC(2,LQe4,NR) =   R(NR  ) * PNeI(NR  ) * rMue(NR) &
                &                    / (PNeHI(NR-1) * RHI(NR) * DR**2)
        END IF
        NLC(2,LQe4,NR) = LQe4
@@ -753,7 +748,7 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: ChieLP, ChieLM
+    REAL(8) :: ChieP
 
     ! Fixed Temperature
 
@@ -802,32 +797,28 @@ contains
           ! Conduction transport
 
           IF (NR == 0) THEN
-             ChieLP = 0.5D0 * (Chie(NR) + Chie(NR+1))
-             ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+             ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * Chie(NR+1) &
                   &                          / (RHI(NR) * PNeHI(NR+1) * DR**2)
-             BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+             BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * Chie(NR+1) &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2)
           ELSEIF (NR == NRMAX-1) THEN
-             ChieLP =          Chie(NR)
-             ChieLM = 0.5D0 * (Chie(NR-1) + Chie(NR))
-             BLC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+             ChieP = Chie(NR)
+             BLC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieP &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+                  &           - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieP &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
+                  &           - 1.5D0 * R(NR  ) * PNeI(NR  ) * Chie(NR  ) &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2)
-             CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
+             CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * Chie(NR  ) &
                   &                          / (RHI(NR) * PNeHI(NR-1) * DR**2)
           ELSE
-             ChieLP = 0.5D0 * (Chie(NR) + Chie(NR+1))
-             ChieLM = 0.5D0 * (Chie(NR-1) + Chie(NR))
-             ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+             ALC(2,LQe5,NR) = + 1.5D0 * R(NR+1) * PNeI(NR+1) * Chie(NR+1) &
                   &                          / (RHI(NR) * PNeHI(NR+1) * DR**2)
-             BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * ChieLP &
+             BLC(2,LQe5,NR) = - 1.5D0 * R(NR+1) * PNeI(NR+1) * Chie(NR+1) &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
+                  &           - 1.5D0 * R(NR  ) * PNeI(NR  ) * Chie(NR  ) &
                   &                          / (RHI(NR) * PNeHI(NR) * DR**2)
-             CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * ChieLM &
+             CLC(2,LQe5,NR) = + 1.5D0 * R(NR  ) * PNeI(NR  ) * Chie(NR  ) &
                   &                          / (RHI(NR) * PNeHI(NR-1) * DR**2)
           END IF
           NLC(2,LQe5,NR) = LQe5
@@ -1031,8 +1022,8 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: rNuiNCL, rNueiL, rNubiL, FWtheL, WPML, FWthiL, &
-         &     rNuLL, rNu0iL, rNuiCXL, SiLCthL, rNuiHLL
+    REAL(8) :: rNuiNCL, rNueiL, rNubiL, &
+         &     rNuLL, rNu0iL, rNuiCXL, SiLCthL, rNuiHLL, rMuiP, rMuiM
 
     ! Ni*UiTheta(0) : 0
 
@@ -1056,18 +1047,21 @@ contains
        ! Viscosity force
 
        IF (NR == 1) THEN
-          ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
+          rMuiP = 0.5D0 * (rMui(NR) + rMui(NR+1))
+          ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMuiP &
                &           / (PNiI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-          BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
+          BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMuiP &
                &           / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
        ELSE
-          ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
+          rMuiP = 0.5D0 * (rMui(NR  ) + rMui(NR+1))
+          rMuiM = 0.5D0 * (rMui(NR-1) + rMui(NR  ))
+          ALC(2,LQi3,NR) =   RHI(NR  )**3 * PNiHI(NR  ) * rMuiP &
                &           / (PNiI(NR+1) * R(NR+1) * R(NR)**2 * DR**2)
-          BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMui(NR  ) &
+          BLC(2,LQi3,NR) = - RHI(NR  )**3 * PNiHI(NR  ) * rMuiP &
                &           / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2) &
-               &           - RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1) &
+               &           - RHI(NR-1)**3 * PNiHI(NR-1) * rMuiM &
                &           / (PNiI(NR  ) * R(NR  ) * R(NR)**2 * DR**2)
-          CLC(2,LQi3,NR) =   RHI(NR-1)**3 * PNiHI(NR-1) * rMui(NR-1) &
+          CLC(2,LQi3,NR) =   RHI(NR-1)**3 * PNiHI(NR-1) * rMuiM &
                &           / (PNiI(NR-1) * R(NR-1) * R(NR)**2 * DR**2)
        END IF
        NLC(2,LQi3,NR) = LQi3
@@ -1108,21 +1102,18 @@ contains
 
        ! Wave interaction force (electron driven)
 
-       FWtheL = 0.5D0 * (FWthe(NR) + FWthe(NR-1))
-       BLC(10,LQi3,NR) = FWtheL / AMI
+       BLC(10,LQi3,NR) = FWthe(NR) / AMI
        NLC(10,LQi3,NR) = LQe3
 
-       WPML = 0.5D0 * (  WPM(NR) +   WPM(NR-1))
-       BLC(11,LQi3,NR) = - FWtheL * WPML * R(NR) / AMI
+       BLC(11,LQi3,NR) = - FWthe(NR) * WPM(NR) * R(NR) / AMI
        NLC(11,LQi3,NR) = LQe1
 
        ! Wave interaction force (NRon driven)
 
-       FWthiL = 0.5D0 * (FWthi(NR) + FWthi(NR-1))
-       BLC(12,LQi3,NR) = - FWthiL / AMI
+       BLC(12,LQi3,NR) = - FWthi(NR) / AMI
        NLC(12,LQi3,NR) = LQi3
 
-       BLC(13,LQi3,NR) = FWthiL * WPML * R(NR) / AMI
+       BLC(13,LQi3,NR) = FWthi(NR) * WPM(NR) * R(NR) / AMI
        NLC(13,LQi3,NR) = LQi1
 
        ! Loss to divertor
@@ -1181,7 +1172,7 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: rMuiP, rMuiM, rNuiHLL
+    REAL(8) :: rNuiHLL, rMuiM, rMuiP
 
     ! Uiphi'(0) : 0
 
@@ -1200,37 +1191,33 @@ contains
        ! Viscosity force
 
        IF(NR == 0) THEN
-          rMuiP = 0.5D0*(rMui(NR) + rMui(NR+1))
-          rMuiM =        rMui(NR)
-          ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
+          rMuiM = rMui(NR+1)
+          ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMui(NR+1) &
                &                    / (PNiHI(NR+1) * RHI(NR) * DR**2)
-          BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMuiP &
+          BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMui(NR+1) &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
                &           - R(NR  ) * PNiI(NR  ) * rMuiM &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
                &           + R(NR  ) * PNiI(NR  ) * rMuiM &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
        ELSEIF(NR == NRMAX-1) THEN
-          rMuiP =        rMui(NR)
-          rMuiM = 0.5D0*(rMui(NR-1) + rMui(NR))
+          rMuiP = rMui(NR)
           BLC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
                &           - R(NR+1) * PNiI(NR+1) * rMuiP &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
-               &           - R(NR  ) * PNiI(NR  ) * rMuiM &
+               &           - R(NR  ) * PNiI(NR  ) * rMui(NR  ) &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-          CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMuiM &
+          CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMui(NR  ) &
                &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
        ELSE
-          rMuiP = 0.5D0*(rMui(NR) + rMui(NR+1))
-          rMuiM = 0.5D0*(rMui(NR-1) + rMui(NR))
-          ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMuiP &
+          ALC(2,LQi4,NR) =   R(NR+1) * PNiI(NR+1) * rMui(NR+1) &
                &                    / (PNiHI(NR+1) * RHI(NR) * DR**2)
-          BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMuiP &
+          BLC(2,LQi4,NR) = - R(NR+1) * PNiI(NR+1) * rMui(NR+1) &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2) &
-               &           - R(NR  ) * PNiI(NR  ) * rMuiM &
+               &           - R(NR  ) * PNiI(NR  ) * rMui(NR  ) &
                &                    / (PNiHI(NR  ) * RHI(NR) * DR**2)
-          CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMuiM &
+          CLC(2,LQi4,NR) =   R(NR  ) * PNiI(NR  ) * rMui(NR  ) &
                &                    / (PNiHI(NR-1) * RHI(NR) * DR**2)
        END IF
        NLC(2,LQi4,NR) = LQi4
@@ -1315,7 +1302,7 @@ contains
     INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
-    REAL(8) :: ChiiLP, ChiiLM
+    REAL(8) :: ChiiP
 
     ! Fixed temperature
 
@@ -1364,32 +1351,28 @@ contains
           ! Conduction transport
 
           IF (NR == 0) THEN
-             ChiiLP = 0.5D0 * (Chii(NR) + Chii(NR+1))
-             ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+             ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * Chii(NR+1) &
                   &                          / (RHI(NR) * PNiHI(NR+1) * DR**2)
-             BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+             BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * Chii(NR+1) &
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2)
           ELSEIF (NR == NRMAX-1) THEN
-             ChiiLP =          Chii(NR) 
-             ChiiLM = 0.5D0 * (Chii(NR-1) + Chii(NR))
-             BLC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+             ChiiP = Chii(NR)
+             BLC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiP&
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+                  &           - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiP &
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
+                  &           - 1.5D0 * R(NR  ) * PNiI(NR  ) * Chii(NR  ) &
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2)
-             CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
+             CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * Chii(NR  ) &
                   &                          / (RHI(NR) * PNiHI(NR-1) * DR**2)
           ELSE
-             ChiiLP = 0.5D0 * (Chii(NR) + Chii(NR+1))
-             ChiiLM = 0.5D0 * (Chii(NR-1) + Chii(NR))
-             ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+             ALC(2,LQi5,NR) = + 1.5D0 * R(NR+1) * PNiI(NR+1) * Chii(NR+1) &
                   &                          / (RHI(NR) * PNiHI(NR+1) * DR**2)
-             BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * ChiiLP &
+             BLC(2,LQi5,NR) = - 1.5D0 * R(NR+1) * PNiI(NR+1) * Chii(NR+1) &
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2) &
-                  &           - 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
+                  &           - 1.5D0 * R(NR  ) * PNiI(NR  ) * Chii(NR  ) &
                   &                          / (RHI(NR) * PNiHI(NR) * DR**2)
-             CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * ChiiLM &
+             CLC(2,LQi5,NR) = + 1.5D0 * R(NR  ) * PNiI(NR  ) * Chii(NR  ) &
                   &                          / (RHI(NR) * PNiHI(NR-1) * DR**2)
           END IF
           NLC(2,LQi5,NR) = LQi5
