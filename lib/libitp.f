@@ -412,18 +412,20 @@ C     -- This formulation has a second-order accuracy. --
 C
       FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
 C
+C     ID = 0 : NR = 0 to NRMAX 
+C          ==> NR = 1 to NRMAX+1
+C
       IMPLICIT NONE
       INTEGER NR,NRMAX,NRM,ID,NRS
-      REAL*8 DERIV3,R(0:NRM),F(0:NRM)
+      REAL*8 DERIV3,R(NRM),F(NRM)
       REAL*8 DLT,DLT1,DLT2
 C
       IF(ID.EQ.0) THEN
-         NRS=0
-      ELSE
-         NRS=1
+         NR=NR+1
+         NRMAX=NRMAX+1
       ENDIF
 C
-      IF(NR.EQ.NRS) THEN
+      IF(NR.EQ.1) THEN
          DLT=R(NR+1)-R(NR)
          DERIV3 = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
       ELSEIF(NR.EQ.NRMAX) THEN
