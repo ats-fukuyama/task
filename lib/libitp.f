@@ -416,27 +416,30 @@ C     ID = 0 : NR = 0 to NRMAX
 C          ==> NR = 1 to NRMAX+1
 C
       IMPLICIT NONE
-      INTEGER NR,NRMAX,NRM,ID,NRS
+      INTEGER NR,NRMAX,NRM,ID,NRL,NRLMAX
       REAL*8 DERIV3,R(NRM),F(NRM)
       REAL*8 DLT,DLT1,DLT2
 C
       IF(ID.EQ.0) THEN
-         NR=NR+1
-         NRMAX=NRMAX+1
+         NRL=NR+1
+         NRLMAX=NRMAX+1
+      ELSE
+         NRL=NR
+         NRLMAX=NRMAX
       ENDIF
 C
-      IF(NR.EQ.1) THEN
-         DLT=R(NR+1)-R(NR)
-         DERIV3 = (-3.D0*F(NR)+4.D0*F(NR+1)-F(NR+2))/(2.D0*DLT)
-      ELSEIF(NR.EQ.NRMAX) THEN
-         DLT=R(NR-1)-R(NR)
-         DERIV3 = (-3.D0*F(NR)+4.D0*F(NR-1)-F(NR-2))/(2.D0*DLT)
+      IF(NRL.EQ.1) THEN
+         DLT=R(NRL+1)-R(NRL)
+         DERIV3 = (-3.D0*F(NRL)+4.D0*F(NRL+1)-F(NRL+2))/(2.D0*DLT)
+      ELSEIF(NRL.EQ.NRLMAX) THEN
+         DLT=R(NRL-1)-R(NRL)
+         DERIV3 = (-3.D0*F(NRL)+4.D0*F(NRL-1)-F(NRL-2))/(2.D0*DLT)
       ELSE
-         DLT1=R(NR-1)-R(NR)
-         DLT2=R(NR+1)-R(NR)
-         DERIV3 = (DLT2**2*F(NR-1)-DLT1**2*F(NR+1))
+         DLT1=R(NRL-1)-R(NRL)
+         DLT2=R(NRL+1)-R(NRL)
+         DERIV3 = (DLT2**2*F(NRL-1)-DLT1**2*F(NRL+1))
      &            /(DLT1*DLT2*(DLT2-DLT1))
-     &            -(DLT2+DLT1)*F(NR)/(DLT1*DLT2)
+     &            -(DLT2+DLT1)*F(NRL)/(DLT1*DLT2)
       ENDIF
 C
       RETURN
