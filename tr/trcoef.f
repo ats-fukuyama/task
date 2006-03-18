@@ -7,8 +7,6 @@ C     ***********************************************************
 C
       SUBROUTINE TRCOEF
 C
-      INCLUDE 'trcomm.inc'
-C
       CALL TRCFDW
       CALL TRCFNC
       CALL TRCFET
@@ -45,10 +43,11 @@ C
          KGR3='/CLN,CLT  vs r/'
          KGR4='/CLS  vs r/'
       ELSEIF(MDLKAI.LT.40) THEN
-         KGR1='/E$-r$=/'!'/NST$+2$= vs r/'
-         KGR2='/V$-ExB$=/'!'/OmegaST vs r/'
-         KGR3='@1/(1+G*WE1$+2$=)vs r@'!'@lambda vs r@'
-         KGR4='@Lambda,1/(1+OmgST$+2$=)@'
+         KGR1='/E$-r$=  vs r/'!'/NST$+2$= vs r/'
+         KGR2='/V$-ExB$=  vs r/'!'/OmegaST vs r/'
+C         KGR3='@1/(1+G*WE1$+2$=)  vs r@'!'@lambda vs r@'
+         KGR3='@exp(-beta*WE1$+gamma$=)  vs r@'!'@lambda vs r@'
+         KGR4='@Lambda,1/(1+OmgST$+2$=)  vs r@'
       ELSEIF(MDLKAI.LT.50) THEN
          KGR1='/NST$+2$= vs r/'
          KGR2='/OmegaST vs r/'
@@ -252,7 +251,7 @@ c$$$         RPIP=0.5D0*(RPI3+RPI4)
 c$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 C
 C     safety factor and its gradient on grid
-         DQ = DERIV3(NR,RHOG,QP,NRMAX,NRM)
+         DQ = DERIV3(NR,RHOG,QP,NRMAX,NRM,1)
          QL = QP(NR)
 C
 C     sound speed for electron
@@ -323,7 +322,7 @@ C     pressure gradient for MHD instability
 C
 C     rotational shear
 C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
-         DVE = DERIV3(NR,RHOG,VEXB,NRMAX,NRM)
+         DVE = DERIV3(NR,RHOG,VEXB,NRMAX,NRM,1)
          WEXB(NR) = (S-1.D0)*VEXB(NR)/RHOG(NR)+DVE
 C     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
@@ -538,9 +537,9 @@ C
             RLAMDA=0.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
-               RG1=CWEB
                SL=SQRT(S**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
+               RG1=CWEB*FEXB(ABS(WE1),S)
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 C               DELTAE=SQRT(DELTA2)
 C               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -560,7 +559,8 @@ C
             ELSEIF(MDLKAI.EQ.32) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                IF(MDCD05.NE.0) 
      &         FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
@@ -571,7 +571,8 @@ C
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.34) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.35) THEN
@@ -582,7 +583,8 @@ C
             ELSEIF(MDLKAI.EQ.36) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.37) THEN
@@ -591,7 +593,8 @@ C
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.38) THEN
                FS=TRCOFSS(S,0.D0)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.39) THEN
@@ -641,7 +644,8 @@ C
             VGR2(NR,1)=ER(NR)!RNST2
             VGR2(NR,2)=VEXB(NR)!OMEGASS
             VGR2(NR,3)=0.D0
-            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
+C            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
+            VGR3(NR,1)=RG1!SLAMDA
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=RLAMDA
@@ -660,7 +664,7 @@ C
             RLAMDA=0.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
-               RG1=CWEB
+               RG1=CWEB*FEXB(ABS(WE1),S)
                SL=SQRT(S**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
@@ -683,7 +687,8 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.42) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFS(S,ALFAL,RKCV)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.43) THEN
@@ -692,7 +697,8 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.44) THEN
                FS=TRCOFS(S,0.D0,RKCV)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.45) THEN
@@ -703,7 +709,8 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
             ELSEIF(MDLKAI.EQ.46) THEN
                ALFAL=ALFA*CALF
                FS=TRCOFSS(S,ALFAL)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.47) THEN
@@ -712,7 +719,8 @@ C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.48) THEN
                FS=TRCOFSS(S,0.D0)
-               FS=FS/(1.D0+RG1*WE1*WE1)
+C               FS=FS/(1.D0+RG1*WE1*WE1)
+               FS=FS*RG1
                AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
                AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.49) THEN
@@ -760,7 +768,8 @@ C
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=RLAMDA
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
-            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+C            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
+            VGR4(NR,3)=RG1
 C
          ELSEIF(MDLKAI.GE.60) THEN
 C
@@ -1780,4 +1789,20 @@ C
 C
       RETURN
       END
+C
+C     *** ExB shearing effect for CDBM model ***
+C
+      REAL*8 FUNCTION FEXB(X,S)
+C
+      IMPLICIT NONE
+      REAL*8 X,S,BETA,GAMMA
+C
+      BETA=40.3062D0-32.2547D0/(1.D0+EXP(-(S-0.0919562D0)/0.158887D0))
+      GAMMA = (2.32384D0-2.39813D0*S+2.0237D0*S**2)
+     &       /(1.38279D0-1.45583D0*S+2.03291D0*S**2)
+      FEXB=EXP(-BETA*X**GAMMA)
+C
+      RETURN
+      END
 
+      

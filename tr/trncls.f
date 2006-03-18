@@ -167,7 +167,7 @@ C
          p_ft=SNGL(FTPF(MDLTPF,EPS))
          p_grbm2=SNGL(ARHBRHOG(NR))
          p_grphi=ER(NR)
-         p_gr2phi=SNGL(RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,NRM))
+         p_gr2phi=SNGL(RDP(NR)*DERIV3(NR,RG,EROPSI,NRMAX,NRM,1))
          p_ngrth=SNGL(BP(NR)/(BB*RHOG(NR)))
          IF(NR.EQ.NRMAX) THEN
             DO NS=1,NSLMAX
