@@ -453,7 +453,7 @@ C
       ENDDO
       DO NS=1,NSMAX
          WRITE(6,612) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS),
-     &                   PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
+     &          PZCL(NS),PU(NS),PUS(NS),PNITB(NS),PTITB(NS),PUITB(NS)
       ENDDO
 C
       WRITE(6,693)
@@ -469,11 +469,11 @@ C
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
   610 FORMAT(' ',I1,6(1PE11.3))
   611 FORMAT(' ',I1,7(1PE11.3))
-  612 FORMAT(' ',I1,2X,4I5,5(1PE11.3))
+  612 FORMAT(' ',I1,3I3,I2,6(1PE11.3))
   692 FORMAT(' ','NS    PA',9X,'PZ',9X,'PN',9X,'PNS',
      &                      8X,'PTPR',7X,'PTPP',7X,'PTS'/
-     &       ' ','      MP   MV  ND1  ND2 ',4X,'PU',9X,'PUS',
-     &                      7X,'PNITB',6X,'PTITB',5X,'PUITB')
+     &       ' ','  MP MV ND1 ND2',2X,'PZCL',7X,'PU',9X,'PUS',
+     &                      8X,'PNITB',6X,'PTITB',6X,'PUITB')
   693 FORMAT(' ','NA    AJ',9X,'APH',8X,'THJ1',7X,'THJ2',
      &                      7X,'PHJ1',7X,'PHJ2')
       END
