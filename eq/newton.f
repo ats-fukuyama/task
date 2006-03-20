@@ -140,23 +140,3 @@ C
       END DO 
       RETURN
       END
-
-C
-C******************************************************
-      SUBROUTINE TESTSUB(X,F,N,IERR)
-C
-      IMPLICIT NONE
-      INTEGER N,IERR
-      REAL*8 X,F
-      DIMENSION X(4),F(4)
-C
-      F(1)=X(1)**2+2*X(2)-5*X(1)+1
-      F(2)=3*X(2)**2-4*X(1)**2+X(2)-2
-      F(3)=X(3)**2+2*X(4)-5*X(3)+1
-      F(4)=3*X(4)**2-4*X(3)**2+X(4)-2
-C
-      WRITE(6,'(A,1P4E12.4)') 'X:',X(1),X(2),X(3),X(4)
-      WRITE(6,'(A,1P4E12.4)') 'F:',F(1),F(2),F(3),F(4)
-      IERR=0
-      RETURN
-      END
