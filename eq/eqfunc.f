@@ -143,7 +143,8 @@ C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      IF(MDLEQF.LT.5) THEN
+      MDLEQFL=MOD(MDLEQF,10)
+      IF(MDLEQFL.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
          RHON=SQRT(PSINL)
          MODELGS=MODELG
@@ -170,7 +171,8 @@ C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      IF(MDLEQF.LT.5) THEN
+      MDLEQFL=MOD(MDLEQF,10)
+      IF(MDLEQFL.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
          ARG0=FPOW(PSINL,PROFR0)
          ARG1=FPOW(PSINL,PROFR1)
@@ -216,7 +218,8 @@ C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      IF(MDLEQF.LT.5) THEN
+      MDLEQFL=MOD(MDLEQF,10)
+      IF(MDLEQFL.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
          CALL EQFUNC(PSINL,F,DF,PT0,PTSEQ,PT1,PT2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFT0,PROFT1,PROFT2)
@@ -244,7 +247,8 @@ C
       INCLUDE 'eqcomc.inc'
       INCLUDE 'eqcom4.inc'
 C
-      IF(MDLEQF.LT.5) THEN
+      MDLEQFL=MOD(MDLEQF,10)
+      IF(MDLEQFL.LT.5) THEN
          CALL EQCNVA(PSIPNL,PSINL)
          CALL EQFUNC(PSINL,F,DF,PV0,0.D0,PV1,PV2,PSIITB,
      &               PROFR0,PROFR1,PROFR2,PROFV0,PROFV1,PROFV2)

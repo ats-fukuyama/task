@@ -6,7 +6,7 @@ C
 C
       INCLUDE '../eq/eqcomx.inc'
       DIMENSION PSIBL(4),RSLT(4),PSIBLX(4)
-      EXTERNAL EQCALX_SUB,EQCALX_LOOP,FUNC
+      EXTERNAL EQCALX_SUB,EQCALX_LOOP
 C
       IERR=0
 C
@@ -137,7 +137,8 @@ C
       ENDDO
       ENDDO
 C
-      CALL EQCALFVB
+      CALL EQCALFVB(IERR)
+      IF(IERR.NE.0) RETURN
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
@@ -146,7 +147,10 @@ C
       ENDDO
 C
       CALL BANDRD(FMAX,FVB,MLMAX,MWMAX,MWM,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
+      IF(IERR.NE.0) THEN
+         WRITE(6,*) 'BANDRD ERROR: IERR =',IERR
+         RETURN
+      ENDIF
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
@@ -443,8 +447,40 @@ C
       DO NRG=1,NRGMAX
          RHON2=((RG(NRG)-RR)**2+(ZG(NZG)/RKAP)**2)/RA**2
          PSIX(NRG,NZG)=PSI0*(1-RHON2)
-         DELPSIX(NRG,NZG)=0.D0
          HJTRZ(NRG,NZG)=0.D0
+      ENDDO
+      ENDDO
+C
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         UPSIX(1,NRG,NZG)=PSIX(NRG,NZG)
+         IF(NRG.EQ.1) THEN
+            NRGP=NRG+1
+            NRGN=NRG
+         ELSEIF(NRG.EQ.NRGMAX) THEN
+            NRGP=NRG
+            NRGN=NRG-1
+         ELSE
+            NRGP=NRG+1
+            NRGN=NRG-1
+         ENDIF
+         IF(NZG.EQ.1) THEN
+            NZGP=NZG+1
+            NZGN=NZG
+         ELSEIF(NZG.EQ.NZGMAX) THEN
+            NZGP=NZG
+            NZGN=NZG-1
+         ELSE
+            NZGP=NZG+1
+            NZGN=NZG-1
+         ENDIF
+         UPSIX(2,NRG,NZG)=(PSIX(NRGP,NZG)-PSIX(NRGN,NZG))
+     &                   /(RG(NRGP)-RG(NRGN))
+         UPSIX(3,NRG,NZG)=(PSIX(NRG,NZGP)-PSIX(NRG,NZGN))
+     &                   /(ZG(NZGP)-ZG(NZGN))
+         UPSIX(4,NRG,NZG)=(PSIX(NRGP,NZGP)-PSIX(NRGP,NZGN)
+     &                    -PSIX(NRGN,NZGP)+PSIX(NRGN,NZGN))
+     &                   /(RG(NRGP)-RG(NRGN))/(ZG(NZGP)-ZG(NZGN))
       ENDDO
       ENDDO
 C
@@ -649,93 +685,23 @@ C     **********************************
 C     *     Calulate FEM RHS vector    *
 C     **********************************
 C
-      SUBROUTINE EQCALFVB
+      SUBROUTINE EQCALFVB(IERR)
 C
       INCLUDE '../eq/eqcomx.inc'
 C
       DIMENSION FACTM(4),FACTH(4)
       DIMENSION RJ(4),PSIBRZ(4),SUM(4)
-      DIMENSION HJ0(NRGM,NZGM),HJ1(NRGM,NZGM),HJ2(NRGM,NZGM)
 C
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
-         IF(PSIX(NRG,NZG)*PSI0.GT.0.D0) THEN
-            PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
-            CALL EQPPSI(PSIPNL,PPSI,DPPSI)
-            PPRZ(NRG,NZG)=PPSI
-         ELSE
-            PPRZ(NRG,NZG)=0.D0
-         ENDIF
-      ENDDO
-      ENDDO
+      IERR=0
 C
 C     ----- Plasma current -----
 C
-      DO NZG=1,NZGMAX
-      DO NRG=1,NRGMAX
-         IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
-     &        ZG(NZG).LE.ZLIMP.AND.
-     &        ZG(NZG).GE.ZLIMM) THEN
-            PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
-            CALL EQPPSI(PSIPNL,PPSI,DPPSI)
-            CALL EQFPSI(PSIPNL,FPSI,DFPSI)
-            HJ0(NRG,NZG)=-2.D0*PI*RG(NRG)*DPPSI
-            HJ1(NRG,NZG)=-2.D0*PI*BB*RR*DFPSI
-     &                              /(2.D0*PI*RMU0*RG(NRG))
-            HJ2(NRG,NZG)=-(FPSI-2.D0*PI*BB*RR)*DFPSI
-     &                              /(2.D0*PI*RMU0*RG(NRG))
-         ELSE
-            HJ0(NRG,NZG)=0.D0
-            HJ1(NRG,NZG)=0.D0
-            HJ2(NRG,NZG)=0.D0
-         ENDIF
-      ENDDO
-      ENDDO
-C
-C     ----- Integrate plasma current -----
-C
-      FJ0=0.D0
-      FJ1=0.D0
-      FJ2=0.D0
-      DO NZG=2,NZGMAX-1
-      DO NRG=2,NRGMAX-1
-         DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
-         DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
-         DVOL=DRG*DZG
-         FJ0=FJ0+HJ0(NRG,NZG)*DVOL
-         FJ1=FJ1+HJ1(NRG,NZG)*DVOL
-         FJ2=FJ2+HJ2(NRG,NZG)*DVOL
-      ENDDO
-      ENDDO
-C
-C     ----- Adjust plasma current -----
-C
-      IF(FJ1.GT.0.D0) THEN
-         TJ=(-FJ1+SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
-     &         /(2.D0*FJ2)
-      ELSE
-         TJ=(-FJ1-SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
-     &         /(2.D0*FJ2)
-      ENDIF
-      RIPX=RIP
-
-C
-C      WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
+      CALL EQRJPX(IERR)
+      IF(IERR.NE.0) RETURN
 C
       DO NZG=1,NZGMAX
       DO NRG=1,NRGMAX
-         FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)+TJ*HJ1(NRG,NZG)
-     &                                        +TJ*TJ*HJ2(NRG,NZG))
          FJRZ(NRG,NZG)=FJPRZ(NRG,NZG)
-         IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
-     &        ZG(NZG).LE.ZLIMP.AND.
-     &        ZG(NZG).GE.ZLIMM) THEN
-            PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
-            CALL EQFPSI(PSIPNL,FPSI,DFPSI)
-            TTRZ(NRG,NZG)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
-         ELSE
-            TTRZ(NRG,NZG)=2.D0*PI*BB*RR
-         ENDIF
       ENDDO
       ENDDO
 C
@@ -847,7 +813,6 @@ C
          R1=RG(NRG)
          Z1=ZG(NZG)
          CALL EQPSIB(R1,Z1,PSIBRZ)
-C
          IF(NRG.EQ.1.OR.NRG.EQ.NRGMAX) THEN
          DO K=1,3,2
             SUM(K)=PSIBRZ(K)
@@ -872,6 +837,320 @@ C
          ENDDO
          ENDIF
       ENDDO
+      RETURN
+      END
+C
+C     **********************************
+C     *     Calulate plasma current    *
+C     **********************************
+C
+      SUBROUTINE EQRJPX(IERR)
+C
+      INCLUDE '../eq/eqcomx.inc'
+C
+      DIMENSION HJ0(NRGM,NZGM),HJ1(NRGM,NZGM),HJ2(NRGM,NZGM)
+C
+C     ----- calculate flux average from PSIRZ(R,Z) -----
+C
+      IERR=0
+      CALL EQCALV(IERR)
+      IF(IERR.NE.0) RETURN
+C
+      IMDLEQF=MOD(MDLEQF,5)
+C
+      IF(IMDLEQF.EQ.0) THEN
+         RRC=RAXIS
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQJPSI(PSIPNL,HJPSID,HJPSI)
+               HJ0(NRG,NZG)=-2.D0*PI*RG(NRG)*DPPSI
+               HJ1(NRG,NZG)=(1.D0-RRC**2/RG(NRG)**2)*HJ0(NRG,NZG)
+               HJ2(NRG,NZG)=-(RRC/RG(NRG))*HJPSI
+            ELSE
+               HJ0(NRG,NZG)=0.D0
+               HJ1(NRG,NZG)=0.D0
+               HJ2(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C        ----- Integrate plasma current -----
+C
+         FJ0=0.D0
+         FJ1=0.D0
+         FJ2=0.D0
+         DO NZG=2,NZGMAX-1
+         DO NRG=2,NRGMAX-1
+            DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+            DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
+            DVOL=DRG*DZG
+            FJ0=FJ0+HJ0(NRG,NZG)*DVOL
+            FJ1=FJ1+HJ1(NRG,NZG)*DVOL
+            FJ2=FJ2+HJ2(NRG,NZG)*DVOL
+         ENDDO
+         ENDDO
+         TJ=(RIP*1.D6-FJ1)/FJ2
+         RIPX=RIP
+C
+         DO NRG=1,NRGMAX
+         DO NZG=1,NZGMAX
+            FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ1(NRG,NZG)+TJ*HJ2(NRG,NZG))
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQJPSI(PSIPNL,HJPSID,HJPSI)
+               TTRZ(NRG,NZG)=SQRT((2.D0*PI*BB*RR)**2
+     &                           +2.D0*RMU0*RRC
+     &                           *(2.D0*PI*TJ*HJPSID-RRC*PPSI))
+               PPRZ(NRG,NZG)=PPSI
+            ELSE
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR
+               PPRZ(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C     ----- Given pressure and poloidal current profiles -----
+C
+      ELSEIF(IMDLEQF.EQ.1) THEN
+
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQFPSI(PSIPNL,FPSI,DFPSI)
+               HJ0(NRG,NZG)=-2.D0*PI*RG(NRG)*DPPSI
+               HJ1(NRG,NZG)=-2.D0*PI*BB*RR*DFPSI
+     &                              /(2.D0*PI*RMU0*RG(NRG))
+               HJ2(NRG,NZG)=-(FPSI-2.D0*PI*BB*RR)*DFPSI
+     &                              /(2.D0*PI*RMU0*RG(NRG))
+            ELSE
+               HJ0(NRG,NZG)=0.D0
+               HJ1(NRG,NZG)=0.D0
+               HJ2(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C        ----- Integrate plasma current -----
+C
+         FJ0=0.D0
+         FJ1=0.D0
+         FJ2=0.D0
+         DO NZG=2,NZGMAX-1
+         DO NRG=2,NRGMAX-1
+            DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+            DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
+            DVOL=DRG*DZG
+            FJ0=FJ0+HJ0(NRG,NZG)*DVOL
+            FJ1=FJ1+HJ1(NRG,NZG)*DVOL
+            FJ2=FJ2+HJ2(NRG,NZG)*DVOL
+         ENDDO
+         ENDDO
+C
+C        ----- Adjust plasma current -----
+C
+         IF(FJ1.GT.0.D0) THEN
+            TJ=(-FJ1+SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
+     &         /(2.D0*FJ2)
+         ELSE
+            TJ=(-FJ1-SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
+     &         /(2.D0*FJ2)
+         ENDIF
+         RIPX=RIP
+C
+C         WRITE(6,'(A,1P4E12.4)') 'FJ0,FJ1,FJ2,TJ=',FJ0,FJ1,FJ2,TJ
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)
+     &                                  +TJ*HJ1(NRG,NZG)
+     &                                  +TJ*TJ*HJ2(NRG,NZG))
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQFPSI(PSIPNL,FPSI,DFPSI)
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               PPRZ(NRG,NZG)=PPSI
+            ELSE
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR
+               PPRZ(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C     ----- Given pressure and parallel current profiles -----
+C
+      ELSEIF(IMDLEQF.EQ.2) THEN
+         CALL EQIPJP
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+               HJ0(NRG,NZG)=-2.D0*PI*RG(NRG)*DPPSI
+               HJ1(NRG,NZG)=-2.D0*PI*BB*RR       *DFPSI
+     &                              /(2.D0*PI*RMU0*RG(NRG))
+               HJ2(NRG,NZG)=-(FPSI-2.D0*PI*BB*RR)*DFPSI
+     &                              /(2.D0*PI*RMU0*RG(NRG))
+            ELSE
+               HJ0(NRG,NZG)=0.D0
+               HJ1(NRG,NZG)=0.D0
+               HJ2(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C        ----- Integrate plasma current -----
+C
+         FJ0=0.D0
+         FJ1=0.D0
+         FJ2=0.D0
+         DO NZG=2,NZGMAX-1
+         DO NRG=2,NRGMAX-1
+            DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+            DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
+            DVOL=DRG*DZG
+            FJ0=FJ0+HJ0(NRG,NZG)*DVOL
+            FJ1=FJ1+HJ1(NRG,NZG)*DVOL
+            FJ2=FJ2+HJ2(NRG,NZG)*DVOL
+         ENDDO
+         ENDDO
+C
+         IF(FJ1.GT.0.D0) THEN
+            TJ=(-FJ1+SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
+     &         /(2.D0*FJ2)
+         ELSE
+            TJ=(-FJ1-SQRT(FJ1**2+4.D0*FJ2*(RIP*1.D6-FJ0)))
+     &         /(2.D0*FJ2)
+         ENDIF
+         RIPX=RIP
+C
+         DO NRG=1,NRGMAX
+         DO NZG=1,NZGMAX
+            FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)
+     &                                  +TJ*HJ1(NRG,NZG)
+     &                                  +TJ*TJ*HJ2(NRG,NZG))
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQFPSI(PSIPNL,FPSI,DFPSI)
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+               PPRZ(NRG,NZG)=PPSI
+            ELSE
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR
+               PPRZ(NRG,NZG)=0.D0
+            ENDIF
+         ENDDO
+         ENDDO
+C
+C     ----- Given pressure and parallel current profiles -----
+C     ----- Given pressure and safety factor profiles ------
+C
+      ELSEIF(IMDLEQF.EQ.3.OR.IMDLEQF.EQ.4) THEN
+         IF(IMDLEQF.EQ.3) THEN
+            CALL EQIPJP
+         ELSE
+            CALL EQIPQP
+         ENDIF
+C
+         DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            IF(PSIX(NRG,NZG)*PSI0.GT.0.D0.AND.
+     &           ZG(NZG).LE.ZLIMP.AND.
+     &           ZG(NZG).GE.ZLIMM) THEN
+               PSIPNL=1.D0-PSIX(NRG,NZG)/PSI0
+               CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+               CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+               HJ0(NRG,NZG)=-2.D0*PI*RG(NRG)*DPPSI
+               HJ1(NRG,NZG)=-FPSI*DFPSI/(2.D0*PI*RMU0*RG(NRG))
+               TTRZ(NRG,NZG)=FPSI
+               PPRZ(NRG,NZG)=PPSI
+            ELSE
+               HJ0(NRG,NZG)=0.D0
+               HJ1(NRG,NZG)=0.D0
+               TTRZ(NRG,NZG)=2.D0*PI*BB*RR
+               PPRZ(NRG,NZG)=0.D0
+            ENDIF
+            FJPRZ(NRG,NZG)=2.D0*PI*RMU0*(HJ0(NRG,NZG)+HJ1(NRG,NZG))
+         ENDDO
+         ENDDO
+C
+C           ----- Integrate plasma current -----
+C
+         FJ0=0.D0
+         FJ1=0.D0
+         DO NZG=2,NZGMAX-1
+         DO NRG=2,NRGMAX-1
+            DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
+            DZG=0.5D0*(ZG(NRG+1)-ZG(NRG-1))
+            DVOL=DRG*DZG
+            FJ0=FJ0+HJ0(NRG,NZG)*DVOL
+            FJ1=FJ1+HJ1(NRG,NZG)*DVOL
+         ENDDO
+         ENDDO
+         RIPX=(FJ0+FJ1)*1.D-6
+C
+C         WRITE(6,'(A,1P3E12.4)') 'RIPX=',RIPX,FJP*1.D-6,FJT*1.D-6
+C
+      ENDIF
+C
+C     ----- CALCULATE POLOIDAL CURRENT -----
+C
+      IMDLEQF=MOD(MDLEQF,5)
+      DO NRV=1,NRVMAX
+         PSIPNL=PSIPNV(NRV)
+         IF (IMDLEQF.EQ.0) THEN
+            CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+            CALL EQJPSI(PSIPNL,HJPSID,HJPSI)
+            CALL EQTPSI(PSIPNL,TPSI,DTPSI)
+            CALL EQOPSI(PSIPNL,OMGPSI,DOMGPSI)
+            TTVL=SQRT((2.D0*PI*BB*RR)**2
+     &                  +2.D0*RMU0*RRC
+     &                  *(2.D0*PI*TJ*HJPSID-RRC*PPSI
+     &                  *EXP(RRC**2*OMGPSI**2*AMP/(2.D0*TPSI))))
+         ELSEIF (IMDLEQF.EQ.1) THEN
+            CALL EQPPSI(PSIPNL,PPSI,DPPSI)
+            CALL EQFPSI(PSIPNL,FPSI,DFPSI)
+            TTVL=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+         ELSEIF (IMDLEQF.EQ.2) THEN
+            CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+            TTVL=2.D0*PI*BB*RR+TJ*(FPSI-2.D0*PI*BB*RR)
+         ELSEIF (IMDLEQF.EQ.3) THEN
+            CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+            TTVL=FPSI
+         ELSEIF (IMDLEQF.EQ.4) THEN
+            CALL EQFIPV(PSIPNL,FPSI,DFPSI)
+            TTVL=FPSI
+         ENDIF
+         TTV(NRV)=TTVL
+      ENDDO
+C
+      CALL SPL1D(PSIPNV,PSITV,DERIV,UPSITV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSITV: IERR=',IERR
+      CALL SPL1D(PSIPNV,QPV,DERIV,UQPV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPV: IERR=',IERR
+      CALL SPL1D(PSIPNV,TTV,DERIV,UTTV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTV: IERR=',IERR
+C
       RETURN
       END
 C
@@ -1009,7 +1288,11 @@ C
       RRR=0.5D0*(RMIN+RMAX)
       RRA=0.5D0*(RMAX-RMIN)            
       RRK=(ZMAX-ZMIN)/(RMAX-RMIN)
-      RRD=(RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB)))/RRA
+      IF(NUMT.EQ.0.OR.NUMB.EQ.0) THEN
+         RRD=0.D0
+      ELSE
+         RRD=(RRR-0.5D0*(YA(1,NUMT)+YA(1,NUMB)))/RRA
+      ENDIF
 C
 C      WRITE(6,'(4(A,1PE12.4))') 'RMIN=',RMIN,'  RMAX=',RMAX,
 C     &                        '  ZMIN=',ZMIN,'  ZMAX=',ZMAX
