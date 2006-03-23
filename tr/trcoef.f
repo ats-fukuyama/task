@@ -539,7 +539,7 @@ C
             IF(MOD(MDLKAI,2).EQ.0) THEN
                SL=SQRT(S**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
-               RG1=CWEB*FEXB(ABS(WE1),S)
+               RG1=CWEB*FEXB(ABS(WE1),S,ALFA)
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 C               DELTAE=SQRT(DELTA2)
 C               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
@@ -664,7 +664,7 @@ C
             RLAMDA=0.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
-               RG1=CWEB*FEXB(ABS(WE1),S)
+               RG1=CWEB*FEXB(ABS(WE1),S,ALFA)
                SL=SQRT(S**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
@@ -1792,14 +1792,26 @@ C
 C
 C     *** ExB shearing effect for CDBM model ***
 C
-      REAL*8 FUNCTION FEXB(X,S)
+      REAL*8 FUNCTION FEXB(X,S,ALPHA)
 C
       IMPLICIT NONE
-      REAL*8 X,S,BETA,GAMMA
+      REAL*8 X,S,ALPHA,BETA,GAMMA,ALPHAL,A
 C
-      BETA=40.3062D0-32.2547D0/(1.D0+EXP(-(S-0.0919562D0)/0.158887D0))
-      GAMMA = (2.32384D0-2.39813D0*S+2.0237D0*S**2)
-     &       /(1.38279D0-1.45583D0*S+2.03291D0*S**2)
+      IF(ABS(ALPHA).LT.1.D-3) THEN
+         ALPHAL=1.D-3
+      ELSE
+         ALPHAL=ABS(ALPHA)
+      ENDIF
+      BETA=0.5D0*ALPHAL**(-0.602D0)
+     &    *(13.018D0-22.28915D0*S+17.018D0*S**2)
+     &    /(1.D0-0.277584D0*S+1.42913D0*S**2)
+C
+      A=-10.D0/3.D0*ALPHA+16.D0/3.D0
+      IF(S.LT.0.D0) THEN
+         GAMMA = 1.D0/(1.1D0*SQRT(1.D0-S-2.D0*S**2-3.D0*S**3))+0.75D0
+      ELSE
+         GAMMA = (1.D0-0.5D0*S)/(1.1D0-2.D0*S+A*S**2+4.D0*S**3)+0.75D0
+      ENDIF
       FEXB=EXP(-BETA*X**GAMMA)
 C
       RETURN

@@ -317,7 +317,7 @@ C
       CHP    = 0.D0
       CK0    = 12.D0 ! for electron
       CK1    = 12.D0 ! for ions
-      CWEB   = 0.D0  ! for omega ExB
+      CWEB   = 1.D0  ! for omega ExB
       CALF   = 1.D0  ! for s-alpha
       CKALFA = 0.D0
       CKBETA = 0.D0
