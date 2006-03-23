@@ -535,6 +535,7 @@ C
             OMEGASS=0.D0
             SLAMDA=0.D0
             RLAMDA=0.D0
+            RG1=1.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
                SL=SQRT(S**2+0.1D0**2)
