@@ -120,10 +120,10 @@ C
 C
       PA(8)   = 2.D0
       PZ(8)   = 0.D0
-      PN(8)   = 1.D-15
+      PN(8)   = 0.D0
       PT(8)   = 0.D0
       PTS(8)  = 0.D0
-      PNS(8)  = 1.D-15
+      PNS(8)  = 0.D0
 C
 C     ==== IMPURITY PARAMETERS ====
 C

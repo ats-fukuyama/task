@@ -1673,25 +1673,28 @@ C
          DO NV=1,NEQMAX
             NSSV=NSS(NV)
             NSVV=NSV(NV)
+C     *** electron density ***
             IF(NSSV.EQ.1.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7) THEN
+                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
+C     *** deuterium density ***
             ELSEIF(NSSV.EQ.2.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7) THEN
+                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
      &                                      *TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
+C     *** tritium density ***
             ELSEIF(NSSV.EQ.3.AND.NSVV.EQ.1) THEN
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NSSW.EQ.7) THEN
+                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
      &                                      *TSIE(NR)*DVRHO(NR)
                   ENDIF
@@ -1699,7 +1702,7 @@ C
             ELSE
                DO NW=1,NEQMAX
                   NSSW=NSS(NW)
-                  IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
+                  IF(NV.EQ.NW.AND.(NSSW.EQ.7.OR.NSSW.EQ.8)) THEN
                      B(NV,NW,NR)=B(NV,NW,NR)-TSIE(NR)*DVRHO(NR)
                   ENDIF
                ENDDO
