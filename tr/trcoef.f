@@ -647,7 +647,7 @@ C
             VGR2(NR,3)=0.D0
 C            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
             VGR3(NR,1)=RG1!SLAMDA
-            VGR3(NR,2)=0.D0
+            VGR3(NR,2)=ABS(WE1)
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=RLAMDA
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
@@ -1029,7 +1029,8 @@ C
       DO NR=1,NRMAX
          IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
          DO NS=1,NSM
-            AK(NR,NS) = CDH*AKDW(NR,NS)+CNH*AKNC(NR,NS)
+            AKDW(NR,NS) = CDH*AKDW(NR,NS)
+            AK(NR,NS) = AKDW(NR,NS)+CNH*AKNC(NR,NS)
          ENDDO
       ENDDO
       IF(MDEDGE.EQ.1) CDH=CDHSV
@@ -1041,14 +1042,13 @@ C     AKLD : heat flux coefficient for density gradient
 C
       IF(MDDIAG.EQ.1) THEN
          DO NR=1,NRMAX
-            IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDH=CSPRS
             DO NS=1,NSLMAX
                DO NS1=1,NSLMAX
                   IF(NS.EQ.NS1) THEN
-                     AKLP(NR,NS,NS1)= CDH*  AKDW(NR,NS)
+                     AKLP(NR,NS,NS1)= AKDW(NR,NS)
      &                               +CNH*( AKNCT(NR,NS,NS1)
      &                                     +AKNCP(NR,NS,NS1))
-                     AKLD(NR,NS,NS1)= CDH*(-AKDW(NR,NS))
+                     AKLD(NR,NS,NS1)=-AKDW(NR,NS)
      &                               +CNH*(-AKNCT(NR,NS,NS1))
                   ELSE
                      AKLP(NR,NS,NS1)= CNH*( AKNCT(NR,NS,NS1)
@@ -1612,6 +1612,7 @@ C     ***** NET HEAT PINCH *****
 C
       DO NR=1,NRMAX
          DO NS=1,NSLMAX
+            AVKDW(NR,NS)=CDH*AVKDW(NR,NS)
             AVK(NR,NS)=CDH*AVKDW(NR,NS)+CNH*AVKNC(NR,NS)
          ENDDO
       ENDDO

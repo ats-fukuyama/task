@@ -497,7 +497,7 @@ C        0 : off
 C        1 : simple edge model (set to zero outside NREDGE)
 C
       MDEDGE=0
-      CSUPRS=0.D0
+      CSPRS=0.D0
 C
 C     ==== DEVICE NAME AND SHOT NUMBER IN UFILE DATA ====
 C        KUFDEV : DEVICE NAME
@@ -1191,7 +1191,8 @@ C
 C
 C     *** GRID POINT OF EDGE REGION ***
 C
-      NREDGE=NINT(0.95*NRMAX)
+C      NREDGE=NINT(0.95*NRMAX)
+      NREDGE=NINT(0.93*NRMAX)
 C
       RETURN
       END
