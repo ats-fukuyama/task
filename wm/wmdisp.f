@@ -41,13 +41,13 @@ C
          ENDIF
       ENDIF
 C
-      IF(NR.EQ.1) THEN
-      WRITE(6,*) 'WMDISP: NR,NS=',NR,NS
-      WRITE(6,'(1P6E12.4)') 
-     &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
-     &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
-     &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
-      ENDIF
+C      IF(NR.EQ.1) THEN
+C      WRITE(6,*) 'WMDISP: NR,NS=',NR,NS
+C      WRITE(6,'(1P6E12.4)') 
+C     &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
+C     &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
+C     &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
+C      ENDIF
 C      IF(NR.EQ.2) STOP
 C
       RETURN

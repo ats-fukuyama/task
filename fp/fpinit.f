@@ -151,7 +151,7 @@ C             3 for wave electric field calcurated by WR(with  beam radius)
 C
       MODELE= 0
       MODELA= 1
-      MODELR= 1
+      MODELR= 0
       MODELC= 1
       MODELW= 0
 C
