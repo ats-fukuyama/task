@@ -536,31 +536,18 @@ C               FACT3M=XRHOMH/XRHOM
                FACT3C=XRHOMH/XRHOC
                FACT3P=XRHOPH/XRHOC
 C
-C               CDV11M=CHERMIT(CDV(1,1,1),CDW(1,1,1))
-C               CDV11C=CHERMIT(CDV(1,1,2),CDW(1,1,2))
-C               CDV12M=CHERMIT(CDV(1,2,1),CDW(2,1,1))
-C               CDV12C=CHERMIT(CDV(1,2,2),CDW(2,1,2))
-C               CDV13M=CHERMIT(CDV(1,3,1),CDW(3,1,1))
-C               CDV13C=CHERMIT(CDV(1,3,2),CDW(3,1,2))
-C               CDV21C=CHERMIT(CDV(2,1,2),CDW(1,2,2))
-C               CDV22C=CHERMIT(CDV(2,2,2),CDW(2,2,2))
-C               CDV23C=CHERMIT(CDV(2,3,2),CDW(3,2,2))
-C               CDV31C=CHERMIT(CDV(3,1,2),CDW(1,3,2))
-C               CDV32C=CHERMIT(CDV(3,2,2),CDW(2,3,2))
-C               CDV33C=CHERMIT(CDV(3,3,2),CDW(3,3,2))
-C
-               CDV11M=CDV(1,1,1)
-               CDV11C=CDV(1,1,2)
-               CDV12M=CDV(1,2,1)
-               CDV12C=CDV(1,2,2)
-               CDV13M=CDV(1,3,1)
-               CDV13C=CDV(1,3,2)
-               CDV21C=CDV(2,1,2)
-               CDV22C=CDV(2,2,2)
-               CDV23C=CDV(2,3,2)
-               CDV31C=CDV(3,1,2)
-               CDV32C=CDV(3,2,2)
-               CDV33C=CDV(3,3,2)
+               CDV11M=CHERMIT(CDV(1,1,1),CDW(1,1,1))
+               CDV11C=CHERMIT(CDV(1,1,2),CDW(1,1,2))
+               CDV12M=CHERMIT(CDV(1,2,1),CDW(2,1,1))
+               CDV12C=CHERMIT(CDV(1,2,2),CDW(2,1,2))
+               CDV13M=CHERMIT(CDV(1,3,1),CDW(3,1,1))
+               CDV13C=CHERMIT(CDV(1,3,2),CDW(3,1,2))
+               CDV21C=CHERMIT(CDV(2,1,2),CDW(1,2,2))
+               CDV22C=CHERMIT(CDV(2,2,2),CDW(2,2,2))
+               CDV23C=CHERMIT(CDV(2,3,2),CDW(3,2,2))
+               CDV31C=CHERMIT(CDV(3,1,2),CDW(1,3,2))
+               CDV32C=CHERMIT(CDV(3,2,2),CDW(2,3,2))
+               CDV33C=CHERMIT(CDV(3,3,2),CDW(3,3,2))
 C
 C     --- R COMPONENT OF MAXWELL EQUATION ---
 C
