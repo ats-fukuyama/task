@@ -1,4 +1,9 @@
-2004/11/25   V0.92
+2006/04/01   V0.93
+             Various update
+             Release for fortran77
+             Following release require fortran95 compiler
+
+2005/11/25   V0.92
              wm/wmtae.f corrected
              eq: fixed boundary on the way
              eq/Makefile corrected
