@@ -487,25 +487,29 @@ C
             FCMH  = DRHOM/(2.D0*DRHOPM)
             FCPH  = DRHOP/(2.D0*DRHOPM)
 C
-C        ND : (n - n0) / Np
-C        KD : n'              = (k - n) / Np
-C        NN : n               = n0 +  ND       * Np
-C        NK : k = n + n' * Np = n0 + (ND + KD) * Np
+C        ND : (n - n0) / Np                NDMIN -> NDMAX
+C        NC : (n' - n0) / Np               NDMIN -> NDMAX
+C        NK : (n + k - n0) / Np            NDMIN -> NDMAX
 C
-C        MD : m - m0
-C        LD : m'              = l - m
-C        MM : m               = m0 +  MD
-C        ML : l = m + m'      = m0 + (MD + LD)
+C        KD : (NK - ND) / Np : k           -KDISZ -> KDSIZ
+C        KK : (NK - NC) / Np : k + n - n'  -KDISZ -> KDSIZ
+C
+C        MD : m - m0                  MDMIN -> MDMAX
+C        MC : m' - m0                 MDMIN -> MDMAX
+C        ML : m + l - m0              MDMIN -> MDMAX
+C        
+C        LD : ML - MD : l             -LDISZ -> LDSIZ
+C        LL : ML - MC : l + m - m'    -LDISZ -> LDSIZ
 C
             DO ND=NDMIN,NDMAX
                NDX=ND-NDMIN+1
+            DO NC=NDMIN,NDMAX
+               NCX=NC-NDMIN+1
             DO NK=NDMIN,NDMAX
-               NKX=NK-NDMIN+1
-            DO KK=KDMIN,KDMAX
-               KKX=KK-KDMIN+1
-               KD=NK-ND
-               KX1=MOD( KD+KK-KDMIN+4*KDSIZ,KDSIZ)+1
-               NX1=MOD( NK   -NDMIN+4*NDSIZ,NDSIZ)+1
+               KDX=MOD(NK-ND-KDMIN+2*KDSIZ,KDSIZ)+1
+               KD=KDX+KDMIN-1
+               KKX=MOD(NK-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+               KK=KKX+KDMIN-1
 C
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
@@ -520,8 +524,8 @@ C
                DO K=1,2
                DO J=1,3
                DO I=1,3
-                  CDV(I,J,K)=CGD(I,J,LDX,MDX,KX1,NX1,K)
-                  CDW(I,J,K)=CGD(I,J,LDX,MDX,KX1,NX1,K)
+                  CDV(I,J,K)=CGD(I,J,LDX,MDX,KDX,NDX,K)
+                  CDW(I,J,K)=CGD(I,J,LDX,MDX,KDX,NDX,K)
                ENDDO
                ENDDO
                ENDDO
@@ -549,6 +553,19 @@ C
                CDV32C=CHERMIT(CDV(3,2,2),CDW(2,3,2))
                CDV33C=CHERMIT(CDV(3,3,2),CDW(3,3,2))
 C
+C               CDV11M=CDV(1,1,1)
+C               CDV11C=CDV(1,1,2)
+C               CDV12M=CDV(1,2,1)
+C               CDV12C=CDV(1,2,2)
+C               CDV13M=CDV(1,3,1)
+C               CDV13C=CDV(1,3,2)
+C               CDV21C=CDV(2,1,2)
+C               CDV22C=CDV(2,2,2)
+C               CDV23C=CDV(2,3,2)
+C               CDV31C=CDV(3,1,2)
+C               CDV32C=CDV(3,2,2)
+C               CDV33C=CDV(3,3,2)
+C
 C     --- R COMPONENT OF MAXWELL EQUATION ---
 C
                CEMM11=0.5D0*CDV11M*FACT1M /XRHOMH/XRHOMH
@@ -572,63 +589,73 @@ C
                CEMC32=      CDV32C        *XRHOC
                CEMC33=      CDV33C
 C
-               CCE1=DCONJG(CEFLDK(1,MCX,NKX,NR+1))
-               CCE2=DCONJG(CEFLDK(2,MCX,NKX,NR+1))
-               CCE3=DCONJG(CEFLDK(3,MCX,NKX,NR+1))
+               CCE1=CEFLDK(1,MCX,NCX,NR+1)
+               CCE2=CEFLDK(2,MCX,NCX,NR+1)
+               CCE3=CEFLDK(3,MCX,NCX,NR+1)
 C
-               CPM11=CCE1*CEMM11*CEFLDK(1,MDX,NDX,NR+1)
-               CPC11=CCE1*CEMC11*CEFLDK(1,MDX,NDX,NR+1)
-               CPM12=CCE1*CEMM12*CEFLDK(2,MDX,NDX,NR)
-               CPC12=CCE1*CEMC12*CEFLDK(2,MDX,NDX,NR+1)
-               CPM13=CCE1*CEMM13*CEFLDK(3,MDX,NDX,NR)
-               CPC13=CCE1*CEMC13*CEFLDK(3,MDX,NDX,NR+1)
-               CPC21=CCE2*CEMC21*CEFLDK(1,MDX,NDX,NR+1)
-               CPP21=CCE2*CEMP21*CEFLDK(1,MDX,NDX,NRPP)
-               CPC22=CCE2*CEMC22*CEFLDK(2,MDX,NDX,NR+1)
-               CPC23=CCE2*CEMC23*CEFLDK(3,MDX,NDX,NR+1)
-               CPC31=CCE3*CEMC31*CEFLDK(1,MDX,NDX,NR+1)
-               CPP31=CCE3*CEMP31*CEFLDK(1,MDX,NDX,NRPP)
-               CPC32=CCE3*CEMC32*CEFLDK(2,MDX,NDX,NR+1)
-               CPC33=CCE3*CEMC33*CEFLDK(3,MDX,NDX,NR+1)
+               CJM1=CEMM11*CEFLDK(1,MDX,NDX,NR+1)
+     &             +CEMM12*CEFLDK(2,MDX,NDX,NR)
+     &             +CEMM13*CEFLDK(3,MDX,NDX,NR)
+               CJC1=CEMC11*CEFLDK(1,MDX,NDX,NR+1)
+     &             +CEMC12*CEFLDK(2,MDX,NDX,NR+1)
+     &             +CEMC13*CEFLDK(3,MDX,NDX,NR+1)
+               CJC2=CEMC21*CEFLDK(1,MDX,NDX,NR+1)
+     &             +CEMC22*CEFLDK(2,MDX,NDX,NR+1)
+     &             +CEMC23*CEFLDK(3,MDX,NDX,NR+1)
+               CJC3=CEMC31*CEFLDK(1,MDX,NDX,NR+1)
+     &             +CEMC32*CEFLDK(2,MDX,NDX,NR+1)
+     &             +CEMC33*CEFLDK(3,MDX,NDX,NR+1)
+               CJP2=CEMP21*CEFLDK(1,MDX,NDX,NRPP)
+               CJP3=CEMP31*CEFLDK(1,MDX,NDX,NRPP)
+C
+               CPM1=DCONJG(CCE1)*CJM1
+               CPC1=DCONJG(CCE1)*CJC1
+               CPC2=DCONJG(CCE2)*CJC2
+               CPC3=DCONJG(CCE3)*CJC3
+               CPP2=DCONJG(CCE2)*CJP2
+               CPP3=DCONJG(CCE3)*CJP3
 C     
-               CPABSM=CI*EPS0*(VC*VC/CW)
-     &            *(0
-     &             +CPM11
-     &             +CPM12
-     &             +CPM13
-     &             )*DPSIPDRHOMH*DRHOM
+               CPABSM=CI*EPS0*(VC*VC/CW)*CPM1
+     &               *DPSIPDRHOMH*DRHOM
 C
-               CPABSC=CI*EPS0*(VC*VC/CW)
-     &            *(0
-     &             +CPC11
-     &             +CPC12
-     &             +CPC13
-     &             )*DPSIPDRHOMH*DRHOM
-     &            +CI*EPS0*(VC*VC/CW)
-     &            *(
-     &             +CPC22
-     &             +CPC33
-     &             +CPC23
-     &             +CPC32
-     &             +CPC21
-     &             +CPC31
-     &             +CPP21
-     &             +CPP31
-     &             )*DPSIPDRHOC*DRHOPM
+               CPABSC=CI*EPS0*(VC*VC/CW)*CPC1
+     &               *DPSIPDRHOMH*DRHOM
+     &               +CI*EPS0*(VC*VC/CW)*(CPC2+CPC3+CPP2+CPP3)
+     &               *DPSIPDRHOC*DRHOPM
 C
                CPABS(LLX,MDX,KKX,NDX,NS,NR)
      &        =CPABS(LLX,MDX,KKX,NDX,NS,NR)
      &        +0.5D0*CPABSM
-C               CPABS(LLX,MLX,KKX,NKX,NS,NR)
-C     &        =CPABS(LLX,MLX,KKX,NKX,NS,NR)
-C     &        +0.5D0*CPABSM
 C
                CPABS(LLX,MDX,KKX,NDX,NS,NR+1)
      &        =CPABS(LLX,MDX,KKX,NDX,NS,NR+1)
      &        +0.5D0*CPABSC
-C               CPABS(LLX,MLX,KKX,NKX,NS,NR+1)
-C     &        =CPABS(LLX,MLX,KKX,NKX,NS,NR+1)
-C     &        +0.5D0*CPABSC
+C
+C               KKY=MOD(NC-NK-KDMIN+2*KDSIZ,KDSIZ)+1
+C               LLY=MOD(MC-ML-LDMIN+2*LDSIZ,LDSIZ)+1
+C
+C               CPM1=CCE1*DCONJG(CJM1)
+C               CPC1=CCE1*DCONJG(CJC1)
+C               CPC2=CCE2*DCONJG(CJC2)
+C               CPC3=CCE3*DCONJG(CJC3)
+C               CPP2=CCE2*DCONJG(CJP2)
+C               CPP3=CCE3*DCONJG(CJP3)
+C     
+C               CPABSM=CI*EPS0*(VC*VC/CW)*CPM1
+C     &                *DPSIPDRHOMH*DRHOM
+C
+C               CPABSC=CI*EPS0*(VC*VC/CW)*CPC1
+C     &                *DPSIPDRHOMH*DRHOM
+C     &               +CI*EPS0*(VC*VC/CW)*(CPC2+CPC3+CPP2+CPP3)
+C     &                *DPSIPDRHOC*DRHOPM
+C
+C               CPABS(LLY,MDX,KKY,NDX,NS,NR)
+C     &        =CPABS(LLY,MDX,KKY,NDX,NS,NR)
+C     &        -0.5D0*CPABSM
+C
+C               CPABS(LLY,MDX,KKY,NDX,NS,NR+1)
+C     &        =CPABS(LLY,MDX,KKY,NDX,NS,NR+1)
+C     &        -0.5D0*CPABSC
 C
             ENDDO
             ENDDO
@@ -651,14 +678,12 @@ C
       MN=0
       DO NR=NRS,NRE
       DO NS=1,NSMAX
-      DO NKX=1,NDSIZ
-      DO KDX=1,KDSIZ
-      DO MLX=1,MDSIZ
-      DO LDX=1,LDSIZ
+      DO NDX=1,NDSIZ
+      DO KKX=1,KDSIZ
+      DO MDX=1,MDSIZ
+      DO LLX=1,LDSIZ
          MN=MN+1
-         CFB(MN)=CPABS(LDX,MLX,KDX,NKX,NS,NR)
-C         if(myrank.eq.0) write(23,*) nr,ns,CPABS(MLX,LDX,NKX,KDX,NS,NR)
-C         if(myrank.eq.1) write(24,*) nr,ns,CPABS(MLX,LDX,NKX,KDX,NS,NR)
+         CFB(MN)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
       ENDDO
       ENDDO
       ENDDO
@@ -672,14 +697,12 @@ C
          MN=0
          DO NR=1,NRMAX
          DO NS=1,NSMAX
-         DO NKX=1,NDSIZ
-         DO KDX=1,KDSIZ
-         DO MLX=1,MDSIZ
-         DO LDX=1,LDSIZ
+         DO NDX=1,NDSIZ
+         DO KKX=1,KDSIZ
+         DO MDX=1,MDSIZ
+         DO LLX=1,LDSIZ
             MN=MN+1
-            CPABS(LDX,MLX,KDX,NKX,NS,NR)=CFA(MN)
-C            if(myrank.eq.0) write(21,*) nr,ns,
-C     &           CPABS(MLX,LDX,NKX,KDX,NS,NR)
+            CPABS(LLX,MDX,KKX,NDX,NS,NR)=CFA(MN)
          ENDDO
          ENDDO
          ENDDO

@@ -944,9 +944,9 @@ C
 C
       CALL MOVE(XPOS,YPOS)
 C
-      CALL TEXT('MODELP=',7)
+      CALL TEXT('MP=',3)
       DO NS=1,NSMAX
-        CALL NUMBI(MODELP(NS),'(I1)',1)
+        CALL NUMBI(MODELP(NS),'(I3)',3)
       ENDDO
 C
 C     ****** DEVICE PARAMETERS ******
