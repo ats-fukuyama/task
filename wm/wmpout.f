@@ -509,19 +509,19 @@ C
 C
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
+            DO MC=MDMIN,MDMAX
+               MCX=MC-MDMIN+1
             DO ML=MDMIN,MDMAX
-               MLX=ML-MDMIN+1
-            DO LL=LDMIN,LDMAX
-               LLX=LL-LDMIN+1
-               LD= ML-MD
-               LX1=MOD( LD+LL-LDMIN+4*LDSIZ,LDSIZ)+1
-               MX1=MOD( ML   -MDMIN+4*MDSIZ,MDSIZ)+1
+               LDX=MOD(ML-MD-LDMIN+2*LDSIZ,LDSIZ)+1
+               LD=LDX+LDMIN-1
+               LLX=MOD(ML-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+               LL=LLX+LDMIN-1
 C
                DO K=1,2
                DO J=1,3
                DO I=1,3
-                  CDV(I,J,K)=CGD(I,J,LX1,MX1,KX1,NX1,K)
-                  CDW(I,J,K)=CGD(I,J,LX1,MX1,KX1,NX1,K)
+                  CDV(I,J,K)=CGD(I,J,LDX,MDX,KX1,NX1,K)
+                  CDW(I,J,K)=CGD(I,J,LDX,MDX,KX1,NX1,K)
                ENDDO
                ENDDO
                ENDDO
@@ -572,9 +572,9 @@ C
                CEMC32=      CDV32C        *XRHOC
                CEMC33=      CDV33C
 C
-               CCE1=DCONJG(CEFLDK(1,MLX,NKX,NR+1))
-               CCE2=DCONJG(CEFLDK(2,MLX,NKX,NR+1))
-               CCE3=DCONJG(CEFLDK(3,MLX,NKX,NR+1))
+               CCE1=DCONJG(CEFLDK(1,MCX,NKX,NR+1))
+               CCE2=DCONJG(CEFLDK(2,MCX,NKX,NR+1))
+               CCE3=DCONJG(CEFLDK(3,MCX,NKX,NR+1))
 C
                CPM11=CCE1*CEMM11*CEFLDK(1,MDX,NDX,NR+1)
                CPC11=CCE1*CEMC11*CEFLDK(1,MDX,NDX,NR+1)
