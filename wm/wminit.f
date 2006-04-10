@@ -70,6 +70,13 @@ C
       NTHMAX  = 1
       NPHMAX  = 1
 C
+      DO NS=1,NSM
+         DO NR=1,NRM
+            MODELPR(NR,NS)=0
+            MODELVR(NR,NS)=0
+         ENDDO
+      ENDDO
+C
 C     *** CONTROL PARAMETERS ***
 C
 C        NPRINT: Control print output
@@ -251,7 +258,7 @@ C
      &              RHOMIN,QMIN,RHOEDG,
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWR,KNAMFP,KNAMFO,KNAMPF,
-     &              WAEMIN,WAEMAX,PRFIN
+     &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -281,7 +288,7 @@ C
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELM,MODELW,KNAMEQ,KNAMTR,KNAMPF,'/
-     &       9X,'NPRINT,NGRAPH,PRFIN,'/
+     &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
      &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,'/

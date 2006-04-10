@@ -681,11 +681,13 @@ C              NYMAX     : NUMBER OF VARIABLES (<NMAX=10001)
 C              IDX       : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
 C                          1 : DERIVATIVE FX(1) IS GIVEN
 C                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
-C                          3 : DERIVATIVES FX(1) AXD FX(NXMAX) ARE GIVEN
+C                          3 : DERIVATIVES FX(1) AND FX(NXMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NXMAX)
 C              IDY       : 0 : SECOND DERIVATIVES = 0 AT Y(1) AND Y(NYMAX)
 C                          1 : DERIVATIVE FY(1) IS GIVEN
 C                          2 : DERIVATIVE FY(NYMAX) IS GIVEN
-C                          3 : DERIVATIVES FY(1) AXD FY(NYMAX) ARE GIVEN
+C                          3 : DERIVATIVES FY(1) AND FY(NYMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NYMAX)
 C      OUTPUT: U(4,4,NXM,NYMAX): SPLINE COEFICIENTS
 C              FX(NXM,NYMAX) : ESTIMATED DERIVATIVES
 C              FY(NXM,NYMAX) : ESTIMATED DERIVATIVES
@@ -1192,6 +1194,651 @@ C
 C
       DIMENSION X(NXMAX),Y(NYMAX)
       DIMENSION U(4,4,NXM,NYMAX)
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      IF(Y(NYMAX).EQ.Y(1)) THEN
+         IERR=8
+         RETURN
+      ENDIF
+      FX=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FX*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+      FY=1.D0/(Y(NYMAX)-Y(1))
+      NY=NINT((Y0-Y(1))*FY*(NYMAX-1))+1
+      IF(NY.LT.1) THEN
+         IERR=3
+         NY=2
+      ENDIF
+      IF(NY.GT.NYMAX) THEN
+         IERR=4
+         NY=NYMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FX.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FX.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+ 5005 IF(NY.GE.NYMAX) GOTO 5006
+      IF((Y0-Y(NY  ))*FY.LE.0.D0) GOTO 5006
+         NY=NY+1
+         GOTO 5005
+ 5006 CONTINUE
+ 5007 IF(NY.LE.2) GOTO 5008
+      IF((Y0-Y(NY-1))*FY.GE.0.D0) GOTO 5008
+         NY=NY-1
+         GOTO 5007
+ 5008 CONTINUE
+      IF(NY.LT.2)     NY=2
+C
+      DX=X0-X(NX-1)
+      DY=Y0-Y(NY-1)
+C
+C      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
+C     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
+C     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
+C     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
+C     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+C
+      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
+      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
+      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
+      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+      F0= ((F4*DX+F3)*DX+F2)*DX+F1
+C
+C      FX0=(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &    +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)
+C     &   +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &    +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*2
+C     &   +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &    +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*3
+C
+      FX0= (3*F4*DX+2*F3)*DX+F2
+C
+C      FY0=                   +U(1,2,NX,NY)
+C     &    +U(1,3,NX,NY)*DY*2 +U(1,4,NX,NY)*DY*DY*3
+C     &   +(                  +U(2,2,NX,NY)
+C     &    +U(2,3,NX,NY)*DY*2 +U(2,4,NX,NY)*DY*DY*3 )*DX
+C     &   +(                  +U(3,2,NX,NY)
+C     &    +U(3,3,NX,NY)*DY*2 +U(3,4,NX,NY)*DY*DY*3 )*DX*DX
+C     &   +(                  +U(4,2,NX,NY)
+C     &    +U(4,3,NX,NY)*DY*2 +U(4,4,NX,NY)*DY*DY*3 )*DX*DX*DX
+C
+      FY4= (3*U(4,4,NX,NY) *DY     +2*U(4,3,NX,NY))*DY
+     &       +U(4,2,NX,NY)
+      FY3= (3*U(3,4,NX,NY) *DY     +2*U(3,3,NX,NY))*DY
+     &       +U(3,2,NX,NY)
+      FY2= (3*U(2,4,NX,NY) *DY     +2*U(2,3,NX,NY))*DY
+     &       +U(2,2,NX,NY)
+      FY1= (3*U(1,4,NX,NY) *DY     +2*U(1,3,NX,NY))*DY
+     &       +U(1,2,NX,NY)
+      FY0= ((FY4*DX+FY3)*DX+FY2)*DX+FY1
+      IERR=0
+      RETURN
+      END
+C
+C     ****** Two-Dimensional Spline Interpolation ******
+C       **** Calculation of coefficients ****
+C
+      SUBROUTINE CSPL2D(X,Y,F,FX,FY,FXY,U,NXM,NXMAX,NYMAX,
+     &                 IDX,IDY,IERR)
+C      INPUT : X(NXMAX)        : COORDINATES
+C              Y(NYMAX)        : COORDINATES
+C              F(NXM,NYMAX)  : VALUE
+C              FX(NXM,NYMAX) : EDGE DERIVATIVES FOR IDX != 0
+C              FY(NXM,NYMAX) : EDGE DERIVATIVES FOR IDY != 0
+C              FXY(NXM,NYMAX): CORNER DERIVATIVES FOR IDY OR IDY != 0
+C              NXM       : ARRAY SIZE
+C              NXMAX     : NUMBER OF VARIABLES (<NMAX=10001)
+C              NYMAX     : NUMBER OF VARIABLES (<NMAX=10001)
+C              IDX       : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
+C                          1 : DERIVATIVE FX(1) IS GIVEN
+C                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
+C                          3 : DERIVATIVES FX(1) AND FX(NXMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NXMAX)
+C              IDY       : 0 : SECOND DERIVATIVES = 0 AT Y(1) AND Y(NYMAX)
+C                          1 : DERIVATIVE FY(1) IS GIVEN
+C                          2 : DERIVATIVE FY(NYMAX) IS GIVEN
+C                          3 : DERIVATIVES FY(1) AND FY(NYMAX) ARE GIVEN
+C                          4 : PERIODIC FUNCTION: F(1)=F(NYMAX)
+C      OUTPUT: U(4,4,NXM,NYMAX): SPLINE COEFICIENTS
+C              FX(NXM,NYMAX) : ESTIMATED DERIVATIVES
+C              FY(NXM,NYMAX) : ESTIMATED DERIVATIVES
+C              FXY(NXM,NYMAX): ESTIMATED DERIVATIVES
+C              IERR          : ERROR INDICATOR
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+      PARAMETER (NMAX=1001)
+C
+      DIMENSION X(NXMAX),Y(NYMAX)
+      COMPLEX*16 F(NXM,NYMAX),U(4,4,NXM,NYMAX)
+      COMPLEX*16 FX(NXM,NYMAX),FY(NXM,NYMAX),FXY(NXM,NYMAX)
+      COMPLEX*16 UX(4,NMAX),UY(4,NMAX),UX0(4,NMAX),UY0(4,NMAX)
+      COMPLEX*16 BX(NMAX)
+      COMPLEX*16 V13,V23,V33,V43,V14,V24,V34,V44
+      COMPLEX*16 T11,T21,T31,T41,T12,T22,T32,T42
+      COMPLEX*16 T13,T23,T33,T43,T14,T24,T34,T44
+C
+      IF(NXMAX.GT.NMAX) GOTO 9001
+      IF(NYMAX.GT.NMAX) GOTO 9002
+C
+      IDX1=MOD(IDX,2)
+      IDX2=MOD(IDX/2,2)
+      IDY1=MOD(IDY,2)
+      IDY2=MOD(IDY/2,2)
+C
+C     --- calculate UX ---
+C
+      IF(IDX.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         UX(1,1)=DXP
+         UX(2,1)=2.D0*(DXP+DXM)
+         UX(3,1)=DXM
+      ELSE
+         IF(IDX1.EQ.0) THEN
+            DXP=X(2)-X(1)
+            UX(1,1)=0.D0
+            UX(2,1)=2.D0*DXP
+            UX(3,1)=DXP
+         ELSE
+            UX(1,1)=0.D0
+            UX(2,1)=1.D0
+            UX(3,1)=0.D0
+         ENDIF
+      ENDIF
+      DO NX=2,NXMAX-1
+         DXM=X(NX)-X(NX-1)
+         DXP=X(NX+1)-X(NX)
+         UX(1,NX)=DXP
+         UX(2,NX)=2.D0*(DXP+DXM)
+         UX(3,NX)=DXM
+      ENDDO
+      IF(IDX.EQ.4) THEN
+         DXM=X(NXMAX)-X(NXMAX-1)
+         DXP=X(2)-X(1)
+         UX(1,NXMAX)=DXP
+         UX(2,NXMAX)=2.D0*(DXP+DXM)
+         UX(3,NXMAX)=DXM
+      ELSE
+         IF(IDX2.EQ.0) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            UX(1,NXMAX)=DXM
+            UX(2,NXMAX)=2.D0*DXM
+            UX(3,NXMAX)=0.D0
+         ELSE
+            UX(1,NXMAX)=0.D0
+            UX(2,NXMAX)=1.D0
+            UX(3,NXMAX)=0.D0
+         ENDIF
+      ENDIF
+      DO NX=1,NXMAX
+         UX0(1,NX)=UX(1,NX)
+         UX0(2,NX)=UX(2,NX)
+         UX0(3,NX)=UX(3,NX)
+      ENDDO
+C
+C     --- calculate UY ---
+C
+      IF(IDY.EQ.4) THEN
+         DYM=Y(NYMAX)-Y(NYMAX-1)
+         DYP=Y(2)-Y(1)
+         UY(1,1)=DYP
+         UY(2,1)=2.D0*(DYP+DYM)
+         UY(3,1)=DYM
+      ELSE
+         IF(IDY1.EQ.0) THEN
+            DYP=Y(2)-Y(1)
+            UY(1,1)=0.D0
+            UY(2,1)=2.D0*DYP
+            UY(3,1)=DYP
+         ELSE
+            UY(1,1)=0.D0
+            UY(2,1)=1.D0
+            UY(3,1)=0.D0
+         ENDIF
+      ENDIF
+      DO NY=2,NYMAX-1
+         DYM=Y(NY)-Y(NY-1)
+         DYP=Y(NY+1)-Y(NY)
+         UY(1,NY)=DYP
+         UY(2,NY)=2.D0*(DYP+DYM)
+         UY(3,NY)=DYM
+      ENDDO
+      IF(IDY.EQ.4) THEN
+         DYM=Y(NYMAX)-Y(NYMAX-1)
+         DYP=Y(2)-Y(1)
+         UY(1,NYMAX)=DYP
+         UY(2,NYMAX)=2.D0*(DYP+DYM)
+         UY(3,NYMAX)=DYM
+      ELSE
+         IF(IDY2.EQ.0) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            UY(1,NYMAX)=DYM
+            UY(2,NYMAX)=2.D0*DYM
+            UY(3,NYMAX)=0.D0
+         ELSE
+            UY(1,NYMAX)=0.D0
+            UY(2,NYMAX)=1.D0
+            UY(3,NYMAX)=0.D0
+         ENDIF
+      ENDIF
+      DO NY=1,NYMAX
+         UY0(1,NY)=UY(1,NY)
+         UY0(2,NY)=UY(2,NY)
+         UY0(3,NY)=UY(3,NY)
+      ENDDO
+C
+C     --- calculate FX ---
+C
+      DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            UX(1,NX)=UX0(1,NX)
+            UX(2,NX)=UX0(2,NX)
+            UX(3,NX)=UX0(3,NX)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(1)=3.D0*(DXM*(F(    2,NY)-F(      1,NY))/DXP
+     &                 +DXP*(F(NXMAX,NY)-F(NXMAX-1,NY))/DXM)
+         ELSE
+            IF(IDX1.EQ.0) THEN
+               BX(1)=3.D0*(F(2,NY)-F(1,NY))
+            ELSE
+               BX(1)=FX(1,NY)
+            ENDIF
+         ENDIF
+         DO NX=2,NXMAX-1
+            DXM=X(NX)-X(NX-1)
+            DXP=X(NX+1)-X(NX)
+            BX(NX)=3.D0*(DXM*(F(NX+1,NY)-F(NX,  NY))/DXP
+     &                  +DXP*(F(NX,  NY)-F(NX-1,NY))/DXM)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(NXMAX)=3.D0*(DXM*(F(    2,NY)-F(      1,NY))/DXP
+     &                     +DXP*(F(NXMAX,NY)-F(NXMAX-1,NY))/DXM)
+         ELSE
+            IF(IDX2.EQ.0) THEN
+               BX(NXMAX)=3.D0*(F(NXMAX,NY)-F(NXMAX-1,NY))
+            ELSE
+               BX(NXMAX)=FX(NXMAX,NY)
+            ENDIF
+         ENDIF
+C
+         IF(IDX.EQ.4) THEN
+            CALL TDMPCDX(UX,BX,NXMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9003
+            BX(NXMAX)=BX(1)
+         ELSE
+            CALL TDMSCDX(UX,BX,NXMAX,IERR)
+            IF(IERR.NE.0) GOTO 9004
+         ENDIF
+         DO NX=1,NXMAX
+            FX(NX,NY)=BX(NX)
+         ENDDO
+      ENDDO
+C
+C     --- calculate FY ---
+C
+      DO NX=1,NXMAX
+         DO NY=1,NYMAX
+            UY(1,NY)=UY0(1,NY)
+            UY(2,NY)=UY0(2,NY)
+            UY(3,NY)=UY0(3,NY)
+         ENDDO
+         IF(IDY.EQ.4) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            DYP=Y(2)-Y(1)
+            BX(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP
+     &                 +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
+         ELSE
+            IF(IDY1.EQ.0) THEN
+               BX(1)=3.D0*(F(NX,2)-F(NX,1))
+            ELSE
+               BX(1)=FY(NX,1)
+            ENDIF
+         ENDIF
+         DO NY=2,NYMAX-1
+            DYM=Y(NY)-Y(NY-1)
+            DYP=Y(NY+1)-Y(NY)
+            BX(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP
+     &                  +DYP*(F(NX,NY  )-F(NX,NY-1))/DYM)
+         ENDDO
+         IF(IDY.EQ.4) THEN
+            DYM=Y(NYMAX)-Y(NYMAX-1)
+            DYP=Y(2)-Y(1)
+            BX(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP
+     &                     +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
+         ELSE
+            IF(IDY2.EQ.0) THEN
+               BX(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
+            ELSE
+               BX(NYMAX)=FY(NX,NYMAX)
+            ENDIF
+         ENDIF
+C
+         IF(IDY.EQ.4) THEN
+            CALL TDMPCDX(UY,BX,NYMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9005
+            BX(NYMAX)=BX(1)
+         ELSE
+            CALL TDMSCDX(UY,BX,NYMAX,IERR)
+            IF(IERR.NE.0) GOTO 9006
+         ENDIF
+         DO NY=1,NYMAX
+            FY(NX,NY)=BX(NY)
+         ENDDO
+      ENDDO
+C
+C     --- calculate FXY ---
+C
+      DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            UX(1,NX)=UX0(1,NX)
+            UX(2,NX)=UX0(2,NX)
+            UX(3,NX)=UX0(3,NX)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(1)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                 +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
+         ELSE
+            IF(IDX1.EQ.0) THEN
+               BX(1)=3.D0*(FY(2,NY)-FY(1,NY))
+            ELSE
+               BX(1)=FXY(1,NY)
+            ENDIF
+         ENDIF
+         DO NX=2,NXMAX-1
+            DXM=X(NX)-X(NX-1)
+            DXP=X(NX+1)-X(NX)
+            BX(NX)=3.D0*(DXM*(FY(NX+1,NY)-FY(NX,  NY))/DXP
+     &                  +DXP*(FY(NX,  NY)-FY(NX-1,NY))/DXM)
+         ENDDO
+         IF(IDX.EQ.4) THEN
+            DXM=X(NXMAX)-X(NXMAX-1)
+            DXP=X(2)-X(1)
+            BX(NXMAX)=3.D0*(DXM*(FY(    2,NY)-FY(      1,NY))/DXP
+     &                     +DXP*(FY(NXMAX,NY)-FY(NXMAX-1,NY))/DXM)
+         ELSE
+            IF(IDX2.EQ.0) THEN
+               BX(NXMAX)=3.D0*(FY(NXMAX,NY)-FY(NXMAX-1,NY))
+            ELSE
+               BX(NXMAX)=FXY(NXMAX,NY)
+            ENDIF
+         ENDIF
+C
+         IF(IDX.EQ.4) THEN
+            CALL TDMPCDX(UX,BX,NXMAX-1,IERR)
+            IF(IERR.NE.0) GOTO 9007
+            BX(NXMAX)=BX(1)
+         ELSE
+            CALL TDMSCDX(UX,BX,NXMAX,IERR)
+            IF(IERR.NE.0) GOTO 9008
+         ENDIF
+         DO NX=1,NXMAX
+            FXY(NX,NY)=BX(NX)
+         ENDDO
+      ENDDO
+C
+C     --- calculate spline coefficients ---
+C
+      DO NX=2,NXMAX
+      DO NY=2,NYMAX
+         DX=X(NX)-X(NX-1)
+         DY=Y(NY)-Y(NY-1)
+C
+         DY1=1.D0/DY
+         DY2=DY1*DY1
+         DY3=DY2*DY1
+         V13=-3.D0*DY2
+         V23=-2.D0*DY1
+         V33= 3.D0*DY2
+         V43=-1.D0*DY1
+         V14= 2.D0*DY3
+         V24=      DY2
+         V34=-2.D0*DY3
+         V44=      DY2
+C
+         T11=  F(NX-1,NY-1)
+         T12=                    FY(NX-1,NY-1)
+         T13=  F(NX-1,NY-1)*V13+ FY(NX-1,NY-1)*V23
+     &       + F(NX-1,NY  )*V33+ FY(NX-1,NY  )*V43
+         T14=  F(NX-1,NY-1)*V14+ FY(NX-1,NY-1)*V24
+     &       + F(NX-1,NY  )*V34+ FY(NX-1,NY  )*V44
+         T21= FX(NX-1,NY-1)
+         T22=                   FXY(NX-1,NY-1)
+         T23= FX(NX-1,NY-1)*V13+FXY(NX-1,NY-1)*V23
+     &       +FX(NX-1,NY  )*V33+FXY(NX-1,NY  )*V43
+         T24= FX(NX-1,NY-1)*V14+FXY(NX-1,NY-1)*V24
+     &       +FX(NX-1,NY  )*V34+FXY(NX-1,NY  )*V44
+         T31=  F(NX,  NY-1)
+         T32=                    FY(NX,  NY-1)
+         T33=  F(NX,  NY-1)*V13+ FY(NX,  NY-1)*V23
+     &       + F(NX,  NY  )*V33+ FY(NX,  NY  )*V43
+         T34=  F(NX,  NY-1)*V14+ FY(NX,  NY-1)*V24
+     &       + F(NX,  NY  )*V34+ FY(NX,  NY  )*V44
+         T41= FX(NX,  NY-1)
+         T42=                   FXY(NX,  NY-1)
+         T43= FX(NX,  NY-1)*V13+FXY(NX,  NY-1)*V23
+     &       +FX(NX,  NY  )*V33+FXY(NX,  NY  )*V43
+         T44= FX(NX,  NY-1)*V14+FXY(NX,  NY-1)*V24
+     &       +FX(NX,  NY  )*V34+FXY(NX,  NY  )*V44
+C
+         DX1=1.D0/DX
+         DX2=DX1*DX1
+         DX3=DX2*DX1
+         V31=-3.D0*DX2
+         V32=-2.D0*DX1
+         V33= 3.D0*DX2
+         V34=-1.D0*DX1
+         V41= 2.D0*DX3
+         V42=      DX2
+         V43=-2.D0*DX3
+         V44=      DX2
+C
+         U(1,1,NX,NY)=    T11
+         U(2,1,NX,NY)=            T21
+         U(3,1,NX,NY)=V31*T11+V32*T21+V33*T31+V34*T41
+         U(4,1,NX,NY)=V41*T11+V42*T21+V43*T31+V44*T41
+         U(1,2,NX,NY)=    T12
+         U(2,2,NX,NY)=            T22
+         U(3,2,NX,NY)=V31*T12+V32*T22+V33*T32+V34*T42
+         U(4,2,NX,NY)=V41*T12+V42*T22+V43*T32+V44*T42
+         U(1,3,NX,NY)=    T13
+         U(2,3,NX,NY)=            T23
+         U(3,3,NX,NY)=V31*T13+V32*T23+V33*T33+V34*T43
+         U(4,3,NX,NY)=V41*T13+V42*T23+V43*T33+V44*T43
+         U(1,4,NX,NY)=    T14
+         U(2,4,NX,NY)=            T24
+         U(3,4,NX,NY)=V31*T14+V32*T24+V33*T34+V34*T44
+         U(4,4,NX,NY)=V41*T14+V42*T24+V43*T34+V44*T44
+      ENDDO
+      ENDDO
+      IERR=0
+      RETURN
+C
+ 9001 WRITE(6,*) 'XX CSPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+      IERR=1
+      RETURN
+ 9002 WRITE(6,*) 'XX CSPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+      IERR=2
+      RETURN
+ 9003 WRITE(6,*) 'XX CSPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=3
+      RETURN
+ 9004 WRITE(6,*) 'XX CSPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=4
+      RETURN
+ 9005 WRITE(6,*) 'XX CSPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=5
+      RETURN
+ 9006 WRITE(6,*) 'XX CSPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=6
+      RETURN
+ 9007 WRITE(6,*) 'XX CSPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=7
+      RETURN
+ 9008 WRITE(6,*) 'XX SPL2D: TDMSCDX ERROR: IERR=',IERR
+      IERR=8
+      RETURN
+      END
+C
+C     ****** Two-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE CSPL2DF(X0,Y0,F0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX),Y(NYMAX)
+      COMPLEX*16 F0,U(4,4,NXM,NYMAX)
+      COMPLEX*16 F1,F2,F3,F4
+C
+      IERR=0
+      IF(X(NXMAX).EQ.X(1)) THEN
+         IERR=9
+         RETURN
+      ENDIF
+      IF(Y(NYMAX).EQ.Y(1)) THEN
+         IERR=8
+         RETURN
+      ENDIF
+      FX=1.D0/(X(NXMAX)-X(1))
+      NX=NINT((X0-X(1))*FX*(NXMAX-1))+1
+      IF(NX.LT.1) THEN
+         IERR=1
+         NX=2
+      ENDIF
+      IF(NX.GT.NXMAX) THEN
+         IERR=2
+         NX=NXMAX
+      ENDIF
+      FY=1.D0/(Y(NYMAX)-Y(1))
+      NY=NINT((Y0-Y(1))*FY*(NYMAX-1))+1
+      IF(NY.LT.1) THEN
+         IERR=3
+         NY=2
+      ENDIF
+      IF(NY.GT.NYMAX) THEN
+         IERR=4
+         NY=NYMAX
+      ENDIF
+C
+ 5001 IF(NX.GE.NXMAX) GOTO 5002
+      IF((X0-X(NX  ))*FX.LE.0.D0) GOTO 5002
+         NX=NX+1
+         GOTO 5001
+ 5002 CONTINUE
+ 5003 IF(NX.LE.2) GOTO 5004
+      IF((X0-X(NX-1))*FX.GE.0.D0) GOTO 5004
+         NX=NX-1
+         GOTO 5003
+ 5004 CONTINUE
+      IF(NX.LT.2)     NX=2
+C
+ 5005 IF(NY.GE.NYMAX) GOTO 5006
+      IF((Y0-Y(NY  ))*FY.LE.0.D0) GOTO 5006
+         NY=NY+1
+         GOTO 5005
+ 5006 CONTINUE
+ 5007 IF(NY.LE.2) GOTO 5008
+      IF((Y0-Y(NY-1))*FY.GE.0.D0) GOTO 5008
+         NY=NY-1
+         GOTO 5007
+ 5008 CONTINUE
+      IF(NY.LT.2)     NY=2
+C
+      DX=X0-X(NX-1)
+      DY=Y0-Y(NY-1)
+C
+C      WRITE(6,'(2I5,1P2E12.4)') NX,NY,X0,Y0
+C      IF(NX.EQ.33 .AND. NY.EQ.18) THEN
+C         WRITE(6,'(1P4E12.4)') X0,Y0,DX,DY
+C         WRITE(6,'(1P4E12.4)') U(1,1,NX,NY),U(1,2,NX,NY),
+C     &                         U(1,3,NX,NY),U(1,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(2,1,NX,NY),U(2,2,NX,NY),
+C     &                         U(2,3,NX,NY),U(2,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(3,1,NX,NY),U(3,2,NX,NY),
+C     &                         U(3,3,NX,NY),U(3,4,NX,NY)
+C         WRITE(6,'(1P4E12.4)') U(4,1,NX,NY),U(4,2,NX,NY),
+C     &                         U(4,3,NX,NY),U(4,4,NX,NY)
+C         CALL GUFLSH
+C      ENDIF
+C
+C      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
+C     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
+C     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
+C     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
+C     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
+C     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
+C     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
+C     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+C
+      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
+      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
+      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
+      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+      F0= ((F4*DX+F3)*DX+F2)*DX+F1
+C
+C      F0=((( ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
+C     &        +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)    )*DX
+C     &      +((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
+C     &        +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)    )*DX
+C     &      +((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
+C     &        +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)    )*DX
+C     &      +((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
+C     &        +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+C
+      IERR=0
+      RETURN
+      END
+C
+C     ****** Two-Dimensional Spline Interpolation ******
+C       **** Calculation of interpolation  ****
+C
+      SUBROUTINE CSPL2DD(X0,Y0,F0,FX0,FY0,X,Y,U,NXM,NXMAX,NYMAX,IERR)
+C
+      IMPLICIT REAL*8 (A-H,O-Z)
+C
+      DIMENSION X(NXMAX),Y(NYMAX)
+      COMPLEX*16 U(4,4,NXM,NYMAX)
+      COMPLEX*16 F0,FX0,FY0
+      COMPLEX*16 F1,F2,F3,F4,FY1,FY2,FY3,FY4
+      REAL*8 FX,FY
 C
       IERR=0
       IF(X(NXMAX).EQ.X(1)) THEN

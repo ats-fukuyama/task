@@ -10,9 +10,9 @@ C                 3 : RESISTIVE MHD MODEL
 C                 4 : KINETIC MODEL WITHOUT FLR
 C                 5 : KINETIC MODEL WITH FLR
 C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS
-C                 7 : KINETIC NUMERICAL MODEL
-C                 8 : GYROKINETIC MODEL (coming)
-C                 9 : GYROKINETIC NUMERICAL MODEL (coming)
+C                 7 : GYROKINETIC MODEL (coming)
+C                 8 : NUMERICAL MODEL
+C                 9 : LOCAL MODEL (MODELP locally specified by MODELPR)
 C                -1 : (WM) MHD plasma
 C                -2 : (WM) Cold plasma
 C                -3 : (WM) Hot plasma (No FLR)
@@ -35,11 +35,16 @@ C             30-39 : PROPAGATION  = KINETIC
 C                     POLARIZATION = KINETIC
 C                     ABSORPTION   = GIVEN MODEL
 C
-C     MODELV : VELOCITY DISTRIBUTION MODEL
-C              0 : ANALYTIC MAXWELLIAN DISTRIBUTION
-C              1 : READ FPDATA DISTRIBUTION
-C              2 : ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
-C              3 : READ FPDATA DISTRIBUTION (RELATIVISTIC)
+C     MODELV : NUMERICAL MODEL (*: not yet implemented)
+C              0 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              1 : KINETIC: READ FPDATA DISTRIBUTION
+C              2 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
+C              3 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
+C              4*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              5*: GYROKINETIC: READ FPDATA DISTRIBUTION
+C              6*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (REL.)
+C              7*: GYROKINETIC: READ FPDATA DISTRIBUTION (REL.)
+C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER (VALID ONLY FOR MODELP>=5)
 C     NDISP2: MAXMUM  HARMONIC NUMBER (VALID ONLY FOR MODELP>=5)
@@ -200,9 +205,14 @@ C
 
       DATA INITFP/0/
 C
+      write(6,*) '----- DPCHEK -----'
       DO NS=1,NSMAX
-         IF((MODELP(NS).EQ.7).AND.
+         IND=0
+         IF(MODELP(NS).EQ.8) IND=1
+         IF(MODELP(NS).EQ.9) IND=1
+         IF((IND.EQ.1).AND.
      &      (MODELV(NS).EQ.1.OR.MODELV(NS).EQ.3)) THEN
+            write(6,*) '----- DPLDFP -----'
             IF(INITFP.EQ.0) THEN
                CALL DPLDFP
                INITFP=1

@@ -13,7 +13,7 @@ C
          IERR=0
          WRITE(6,601)
   601    FORMAT('## FP MENU: R:RUN C:CONT P,V:PARAM G,F:GRAPH',
-     &                     ' I:RESET W:WRITE Y:COEF Q:QUIT')
+     &                     ' I:RESET L,S:FILE Y:COEF Q:QUIT')
 C
          CALL TASK_KLIN(LINE,KID,MODE,FPPARM)
       IF(MODE.NE.1) GOTO 1
@@ -42,7 +42,11 @@ C
          CALL FPGRAF
       ELSEIF (KID.EQ.'F') THEN
          CALL FPFOUT
-      ELSEIF (KID.EQ.'W') THEN
+      ELSEIF (KID.EQ.'L') THEN
+         CALL FPWMREAD(IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX FPWMREAD: IERR=',IERR
+         CALL FPWMCHEK
+      ELSEIF (KID.EQ.'S') THEN
          CALL FPSGLB
          CALL FPWRIT
       ELSEIF (KID.EQ.'Y') THEN

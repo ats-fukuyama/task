@@ -24,6 +24,8 @@ C
          CALL FPCALS
       ELSEIF(MODELW.EQ.3) THEN
          CALL FPCALS
+      ELSEIF(MODELW.EQ.4) THEN
+         CALL FPCALV
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW
       ENDIF

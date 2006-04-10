@@ -29,7 +29,7 @@ C
             CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
          ELSE IF(ID1.EQ.6) THEN
             CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.7) THEN
+         ELSE IF(ID1.EQ.8) THEN
             IF(MODELV(NS).EQ.0) THEN
                CALL DPFMFL(NS,0)
                IF(ID2.EQ.2.OR.ID2.EQ.3) THEN

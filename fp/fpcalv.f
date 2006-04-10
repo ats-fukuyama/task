@@ -162,6 +162,7 @@ C
       RKPARA =(B0TH*RKTH+B0PH*RKPH)/SQRT(B2)
       RKPERP =(B0PH*RKTH-B0TH*RKPH)/SQRT(B2)
       RWC    =AEFP*SQRT(B2)/AMFP
+C      WRITE(6,'(1P4E12.4)') RW,RWC,RKPARA,RKPERP
 C 
       DWC11=0.D0
       DWC12=0.D0
@@ -268,22 +269,34 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      Y=RHOL*RA*SIN(ETAL)
+      IF(MODELW.EQ.1) THEN
+         Y=RHOL*RA*SIN(ETAL)
 C
-      ARG=(Y-REWY)**2/DREWY**2
-      IF(ARG.GT.100.D0) THEN
-         FACT=0.D0
+         ARG=(Y-REWY)**2/DREWY**2
+         IF(ARG.GT.100.D0) THEN
+            FACT=0.D0
+         ELSE
+            FACT=EXP(-ARG)
+         ENDIF
+C
+         CER= CEWR*FACT
+         CETH=CEWTH*FACT
+         CEPH=CEWPH*FACT
+C
+         RKR= RKWR
+         RKTH=RKWTH
+         RKPH=RKWPH
       ELSE
-         FACT=EXP(-ARG)
+C
+         CALL FPWMGET(RHOL,ETAL,CEWR1,CEWTH1,CEWPH1,
+     &                          CKWR1,CKWTH1,CKWPH1,IERR)
+         CER =PWAVE*CEWR1
+         CETH=PWAVE*CEWTH1
+         CEPH=PWAVE*CEWPH1
+         RKR = DBLE(CKWR1)
+         RKTH= DBLE(CKWTH1)
+         RKPH= DBLE(CKWPH1)
       ENDIF
-C
-      CER= CEWR*FACT
-      CETH=CEWTH*FACT
-      CEPH=CEWPH*FACT
-C
-      RKR= RKWR
-      RKTH=RKWTH
-      RKPH=RKWPH
 C
       RETURN
       END

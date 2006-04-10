@@ -137,8 +137,8 @@ C
       ELSE
     1    WRITE(6,*) '#',KPR,'> INPUT : SAVE FILE NAME : ',KNAM(1:KL)
          READ(5,'(A80)',ERR=1,END=9001) KNAM
-         IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
          IF(KNAM(1:2).EQ.'  ') GOTO 9002
+         IF(KNAM(1:2).NE.'/ ') KNAMFL=KNAM
       ENDIF
 C
       INQUIRE(FILE=KNAMFL,EXIST=LEX,ERR=9004)

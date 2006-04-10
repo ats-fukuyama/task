@@ -47,6 +47,10 @@ C
          CALL FPLDWR(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
+      IF(MODELW.EQ.4) THEN
+         CALL FPWMREAD(IERR)
+         IF(IERR.NE.0) RETURN
+      ENDIF
 C
 C     ----- set parameters for target species -----
 C
@@ -557,7 +561,7 @@ C
             CALL FPWRIT
          ENDIF
 C
-         IF(NOCONV.NE.0) GOTO 1100
+         IF(IERR.NE.0) GOTO 1100
       ENDDO
  1100 CONTINUE
 C

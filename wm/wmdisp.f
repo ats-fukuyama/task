@@ -36,6 +36,31 @@ C
       ELSE
          IF(MODELP(NS).LT.0) THEN
             CALL WMTNSX(NR,NS)
+         ELSEIF(MODELP(NS).EQ.8) THEN
+            IF(MODELV(NS).EQ.9) THEN
+               MODELVS=MODELV(NS)
+               MODELV(NS)=MODELVR(NR,NS)
+               CALL WMDPIN(NR,NS)
+               MODELV(NS)=MODELVS
+            ELSE
+               CALL WMDPIN(NR,NS)
+            ENDIF
+         ELSEIF(MODELP(NS).EQ.9) THEN
+            MODELPS=MODELP(NS)
+            MODELP(NS)=MODELPR(NR,NS)
+            IF(MODELP(NS).EQ.8) THEN
+               IF(MODELV(NS).EQ.9) THEN
+                  MODELVS=MODELV(NS)
+                  MODELV(NS)=MODELVR(NR,NS)
+                  CALL WMDPIN(NR,NS)
+                  MODELV(NS)=MODELVS
+               ELSE
+                  CALL WMDPIN(NR,NS)
+               ENDIF
+            ELSE
+               CALL WMDPIN(NR,NS)
+            ENDIF
+            MODELP(NS)=MODELPS
          ELSE
             CALL WMDPIN(NR,NS)
          ENDIF

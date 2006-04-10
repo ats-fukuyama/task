@@ -147,7 +147,8 @@ C            -1 for linear collision operator with ion scattering
 C     MODELW: 0 for given diffusion coefficient model
 C             1 for given wave electric field model
 C             2 for wave electric field calculated by WR(without beam radius)
-C             3 for wave electric field calcurated by WR(with  beam radius)
+C             3 for wave electric field calculated by WR(with  beam radius)
+C             4 for wave electric field calculated by WM
 C
       MODELE= 0
       MODELA= 1
@@ -393,6 +394,10 @@ C
          WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
       ELSE IF(MODELW.EQ.2)THEN
          WRITE(6,*) 'RAY TRACING WAVE DATA'
+      ELSE IF(MODELW.EQ.3)THEN
+         WRITE(6,*) 'BEAM TRACING WAVE DATA'
+      ELSE IF(MODELW.EQ.4)THEN
+         WRITE(6,*) 'FULL WAVE DATA'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELW: MODELW =',MODELW
       END IF

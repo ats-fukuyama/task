@@ -4,7 +4,8 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 
 SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
-       fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f
+       fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f \
+       fpwmin.f
 
 OBJS = $(SRCS:.f=.o)
 

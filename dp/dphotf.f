@@ -46,6 +46,14 @@ C
       DKPRW=DBLE(CKPRW)
       DKPP=DBLE(CKPP)
 C
+C      SUM=0.D0
+C      DO NTH=1,NTHMAX
+C      DO NP=1,NPMAX
+C         SUM=SUM+FM(NP,NTH)
+C      ENDDO
+C      ENDDO
+C      WRITE(6,*) '-- dphotf.f: SUM,WP=',SUM,DBLE(CWP)
+C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
          DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
