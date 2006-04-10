@@ -1150,6 +1150,19 @@ C
  600  FORMAT(' ',5(' ',A))
  610  FORMAT(' ',5I4)
 C
+C     *** EQUATION SELECTOR ***
+C
+C     Format : NEA(species,equation) for all equations
+C
+      DO NEQ=1,NEQMAX
+         DO NEQ1=1,NEQMAX
+            NEA(NEQ,NEQ1)=0
+         ENDDO
+      ENDDO
+      DO NEQ=1,NEQMAX
+         NEA(NSS(NEQ),NSV(NEQ))=NEQ
+      ENDDO
+C
 C     CHECK WHETHER TURBULENT TRANSPORT MODEL HAS OFF-DIAGONAL PARTS
 C
       IF(MDLKAI.EQ.61.OR.(MDLKAI.EQ.63.AND.MDLWLD.EQ.1)) THEN
@@ -1191,7 +1204,6 @@ C
 C
 C     *** GRID POINT OF EDGE REGION ***
 C
-C      NREDGE=NINT(0.95*NRMAX)
       NREDGE=NINT(0.93*NRMAX)
 C
       RETURN

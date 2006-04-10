@@ -260,6 +260,7 @@ C
          RW(NR,1)  = 0.5D0*(YV(1,NR)+Y(1,NR))
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
       ENDDO
+C
 C      write(6,*) L,XV(2,1)/RN(1,1),X(1)/RN(1,1)
 C
       CALL TRCHCK(ICHCK)
@@ -423,8 +424,7 @@ C
             RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
          ELSE
             NEQ=1
-            NSVN=NSS(NEQ)
-            IF(NSVN.EQ.0) THEN
+            IF(NSS(NEQ).EQ.0) THEN
                RDPA=XV(NEQ,NRMAX)
             ELSE
                RDPA=0.D0
@@ -507,22 +507,17 @@ C
       ENDDO
       ENDDO
 C
-      DO NEQ =1,NEQMAX
-      DO NEQ1=1,NEQMAX
-         NSVN1=NSV(NEQ1)
-         NSVN =NSV(NEQ )
-         IF(NSVN1.EQ.2.AND.NSVN.EQ.2) THEN
-            NSSN1=NSS(NEQ1)
-            NSSN =NSS(NEQ )
-            IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &           *AMZ(NSSN1))*DV53
-     &           *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
-               B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
-               B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
+      DO NS=1,NSMAX
+         NEQ=NEA(NS,2)
+         DO NS1=1,NSMAX
+            IF(NS1.NE.NS) THEN
+               NEQ1=NEA(NS1,2)
+               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53
+     &                *COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+               B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
+               B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
             ENDIF
-         ENDIF
-      ENDDO
+         ENDDO
       ENDDO
 C
       CALL TR_IONIZATION(NR)
@@ -574,22 +569,17 @@ C
          ENDDO
          ENDDO
 C
-         DO NEQ =1,NEQMAX
-         DO NEQ1=1,NEQMAX
-            NSVN1=NSV(NEQ1)
-            NSVN =NSV(NEQ )
-            IF(NSVN1.EQ.2.AND.NSVN.EQ.2) THEN
-               NSSN1=NSS(NEQ1)
-               NSSN =NSS(NEQ )
-               IF(NSSN1.NE.NSSN) THEN
-                  C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &                 *AMZ(NSSN1))*DV53
-     &                 *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
-                  B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
-                  B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
+         DO NS=1,NSMAX
+            NEQ=NEA(NS,2)
+            DO NS1=1,NSMAX
+               IF(NS1.NE.NS) THEN
+                  NEQ1=NEA(NS1,2)
+                  C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))
+     &                 *DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+                  B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
+                  B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
                ENDIF
-            ENDIF
-         ENDDO
+            ENDDO
          ENDDO
 C
          CALL TR_IONIZATION(NR)
@@ -644,22 +634,17 @@ C
       ENDDO
       ENDDO
 C
-      DO NEQ =1,NEQMAX
-      DO NEQ1=1,NEQMAX
-         NSVN1=NSV(NEQ1)
-         NSVN =NSV(NEQ )
-         IF(NSVN1.EQ.2.AND.NSVN.EQ.2) THEN
-            NSSN1=NSS(NEQ1)
-            NSSN =NSS(NEQ )
-            IF(NSSN1.NE.NSSN) THEN
-               C1=COEF/((RTM(NSSN)+RTM(NSSN1))**1.5D0*AMZ(NSSN)
-     &              *AMZ(NSSN1))*DV53
-     &              *COULOG(NSSN,NSSN1,RN(NR,1),RT(NR,NSSN))
-               B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NSSN1)*C1
-               B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NSSN )*C1
+      DO NS=1,NSMAX
+         NEQ=NEA(NS,2)
+         DO NS1=1,NSMAX
+            IF(NS1.NE.NS) THEN
+               NEQ1=NEA(NS1,2)
+               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))
+     &              *DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+               B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
+               B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
             ENDIF
-         ENDIF
-      ENDDO
+         ENDDO
       ENDDO
 C
       CALL TR_IONIZATION(NR)
@@ -716,9 +701,7 @@ C
 C     ***** Surface Boundary Condition for Bp *****
 C
       IF(MDLEQB.NE.0) THEN
-         NEQ=1
-         NSVN=NSV(NEQ)
-         IF(NSVN.EQ.0) THEN
+         IF(NEA(0,0).EQ.1) THEN
             MVV=NEQRMAX*(NRMAX-1)+NEQ
             IF(MDLPCK.EQ.0) THEN
                DO MW=1,MWMAX
@@ -1107,10 +1090,9 @@ C
 C
       ICHCK = 0
       DO NEQ=1,NEQMAX
-         NSSN=NSS(NEQ)
-         IF(NSSN.NE.0) THEN
+         IF(NSV(NEQ).EQ.2) THEN
             DO NR=1,NRMAX
-               IF(RT(NR,NSSN).LT.0.D0) GOTO 100
+               IF(RT(NR,NSS(NEQ)).LT.0.D0) GOTO 100
             ENDDO
          ENDIF
       ENDDO
@@ -1670,43 +1652,30 @@ C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
 C
       IF(MDLEQ0.EQ.1) THEN
-         DO NV=1,NEQMAX
-            NSSV=NSS(NV)
-            NSVV=NSV(NV)
 C     *** electron density ***
-            IF(NSSV.EQ.1.AND.NSVV.EQ.1) THEN
-               DO NW=1,NEQMAX
-                  NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
-                  ENDIF
-               ENDDO
+         NV=NEA(1,1)
+         DO NS=7,8
+            NW=NEA(NS,1)
+            B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
+         ENDDO
 C     *** deuterium density ***
-            ELSEIF(NSSV.EQ.2.AND.NSVV.EQ.1) THEN
-               DO NW=1,NEQMAX
-                  NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
-     &                                      *TSIE(NR)*DVRHO(NR)
-                  ENDIF
-               ENDDO
+         NV=NEA(2,1)
+         DO NS=7,8
+            NW=NEA(NS,1)
+            B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
+     &                             *TSIE(NR)*DVRHO(NR)
+         ENDDO
 C     *** tritium density ***
-            ELSEIF(NSSV.EQ.3.AND.NSVV.EQ.1) THEN
-               DO NW=1,NEQMAX
-                  NSSW=NSS(NW)
-                  IF(NSSW.EQ.7.OR.NSSW.EQ.8) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
-     &                                      *TSIE(NR)*DVRHO(NR)
-                  ENDIF
-               ENDDO
-            ELSE
-               DO NW=1,NEQMAX
-                  NSSW=NSS(NW)
-                  IF(NV.EQ.NW.AND.(NSSW.EQ.7.OR.NSSW.EQ.8)) THEN
-                     B(NV,NW,NR)=B(NV,NW,NR)-TSIE(NR)*DVRHO(NR)
-                  ENDIF
-               ENDDO
-            ENDIF
+         NV=NEA(3,1)
+         DO NS=7,8
+            NW=NEA(NS,1)
+            B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
+     &                             *TSIE(NR)*DVRHO(NR)
+         ENDDO
+C     *** neutrals ***
+         DO NS=7,8
+            NEQ=NEA(NS,1)
+            B(NEQ,NEQ,NR)=B(NEQ,NEQ,NR)-TSIE(NR)*DVRHO(NR)
          ENDDO
       ENDIF
 C
@@ -1725,17 +1694,11 @@ C
       COMMON /TRLCL1/ A(NVM,NVM,NRM),B(NVM,NVM,NRM),C(NVM,NVM,NRM)
 C
       IF(MDLEQ0.EQ.1) THEN
-         DO NV=1,NEQMAX
-            NSSV=NSS(NV)
-            DO NW=1,NEQMAX
-               NSSW=NSS(NW)
-               IF(NV.EQ.NW.AND.NSSW.EQ.7) THEN
-                  B(NV,NW,NR)=B(NV,NW,NR)-TSCX(NR)*DVRHO(NR)
-               ELSEIF(NSSV.EQ.8.AND.NSSW.EQ.7) THEN
-                  B(NV,NW,NR)=B(NV,NW,NR)+TSCX(NR)*DVRHO(NR)
-               ENDIF
-            ENDDO
-         ENDDO
+         NEQ=NEA(7,1)
+         B(NEQ,NEQ,NR)=B(NEQ,NEQ,NR)-TSCX(NR)*DVRHO(NR)
+         NV=NEA(8,1)
+         NW=NEA(7,1)
+         B(NV,NW,NR)=B(NV,NW,NR)+TSCX(NR)*DVRHO(NR)
       ENDIF
 C
       RETURN
