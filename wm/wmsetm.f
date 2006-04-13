@@ -52,7 +52,7 @@ C
       DIMENSION CGC11(MDM,NDM),CGC12(MDM,NDM),CGC13(MDM,NDM)
       DIMENSION CGPH22(MDM,NDM),CGPH23(MDM,NDM),CGPH33(MDM,NDM)
       DIMENSION CGP12(MDM,NDM),CGP13(MDM,NDM)
-      DIMENSION CDVM(3,3),CDVC(3,3),CDVP(3,3)
+      DIMENSION CDVM(3,3),CDVC(3,3)
 C
          IF(NR.EQ.NBST) THEN
 C
@@ -182,13 +182,13 @@ C
 C
          FACT1M=XRHOMH/XRHOM
          FACT1C=XRHOMH/XRHOC
-         FACT1P=XRHOPH/XRHOC
+C         FACT1P=XRHOPH/XRHOC
 C
-         FACT2M=XRHOMH/XRHOM
+C         FACT2M=XRHOMH/XRHOM
          FACT2C=XRHOMH/XRHOC
          FACT2P=XRHOPH/XRHOC
 C
-         FACT3M=XRHOMH/XRHOM
+C         FACT3M=XRHOMH/XRHOM
          FACT3C=XRHOMH/XRHOC
          FACT3P=XRHOPH/XRHOC
 C
@@ -240,52 +240,50 @@ C               WRITE(6,'(1P6E12.4)')
 C     &                 CGF33(1,1,1),CGF33(1,1,2),CGF33(1,1,3)
 C            ENDIF
 C
-C        ND : (n - n0) / Np
-C        KD : n'              = (k - n) / Np
-C        NN : n               = n0 +  ND       * Np
-C        NK : k = n + n' * Np = n0 + (ND + KD) * Np
 C
-C        MD : m - m0
-C        LD : m'              = l - m
-C        MM : m               = m0 +  MD
-C        ML : l = m + m'      = m0 + (MD + LD)
+C        ND : (n  - n0) / Np            NDMIN -> NDMAX
+C        NC : (n' - n0) / Np            NDMIN -> NDMAX
+C        KK : (ND - NC) / Np : n - n'  -KDISZ -> KDSIZ
+C
+C        MD : m - m0                    MDMIN -> MDMAX
+C        MC : m' - m0                   MDMIN -> MDMAX
+C        LL : MD - MC :  m - m'        -LDISZ -> LDSIZ
 C
          DO LBAND=1,2*MBND-1
-         DO NKX=1,NDSIZ
-         DO MLX=1,MDSIZ
-            CEMP(LBAND,NKX,MLX,1)=0.D0
-            CEMP(LBAND,NKX,MLX,2)=0.D0
-            CEMP(LBAND,NKX,MLX,3)=0.D0
+         DO NCX=1,NDSIZ
+         DO MCX=1,MDSIZ
+            CEMP(LBAND,NCX,MCX,1)=0.D0
+            CEMP(LBAND,NCX,MCX,2)=0.D0
+            CEMP(LBAND,NCX,MCX,3)=0.D0
          ENDDO
          ENDDO
          ENDDO
 C
          DO ND=NDMIN,NDMAX
             NDX=ND-NDMIN+1
-         DO NKD=NDMIN,NDMAX
-            NKX=NKD-NDMIN+1
-            KD=NKD-ND
-            IF(MODELK.EQ.0.OR.
-     &         (KD.GE.KDMIN.AND.KD.LE.KDMAX)) THEN
-            KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1
+         DO NC=NDMIN,NDMAX
+            NCX=NC-NDMIN+1
+            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+            KK=KKX+KDMIN-1
+C
             NN=NPH0+NHC*ND
-            NK=NPH0+NHC*NKD
+            NK=NPH0+NHC*NC
+C
          DO MD=MDMIN,MDMAX
             MDX=MD-MDMIN+1
-         DO MLD=MDMIN,MDMAX
-            MLX=MLD-MDMIN+1
-            LD=MLD-MD
-            IF(MODELK.EQ.0.OR.
-     &         (LD.GE.LDMIN.AND.LD.LE.LDMAX)) THEN
-            LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1
+         DO MC=MDMIN,MDMAX
+            MCX=MC-MDMIN+1
+            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+            LL=LLX+LDMIN-1
+C
             MM=NTH0+MD
-            ML=NTH0+MLD
+            ML=NTH0+MC
 C
             DO J=1,3
             DO I=1,3
-               CDVM(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,1)
-               CDVC(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,2)
-               CDVP(I,J)=CGD(I,J,LDX,MLX,KDX,NKX,3)
+               CDVM(I,J)=CGD(I,J,LLX,MCX,KKX,NCX,1)
+               CDVC(I,J)=CGD(I,J,LLX,MCX,KKX,NCX,2)
+C               CDVP(I,J)=CGD(I,J,LLX,MCX,KKX,NCX,3)
             ENDDO
             ENDDO
 C
@@ -301,218 +299,216 @@ C
 C
 C     --- R COMPONENT OF MAXWELL EQUATION ---
 C
-            LBND=MBND-3*KD*MDSIZ-3*LD-1
+            LBND=MBND-3*KK*MDSIZ-3*LL-1
 C
-            CEMP(LBND+1    ,NKX,MLX,1)
-     &                         =CEMP(LBND+1   ,NKX,MLX,1)
+            CEMP(LBND+1    ,NCX,MCX,1)
+     &                         =CEMP(LBND+1   ,NCX,MCX,1)
      &                         +(
-     &                         -ML*NN*CGMH23(LDX,KDX)
-     &                         +ML*MM*CGMH33(LDX,KDX)
-     &                         +NK*NN*CGMH22(LDX,KDX)
-     &                         -NK*MM*CGMH23(LDX,KDX)
+     &                         -ML*NN*CGMH23(LLX,KKX)
+     &                         +ML*MM*CGMH33(LLX,KKX)
+     &                         +NK*NN*CGMH22(LLX,KKX)
+     &                         -NK*MM*CGMH23(LLX,KKX)
      &                         +0.5D0*CDVM(1,1)*FACT1M
      &                         +0.5D0*CDVC(1,1)*FACT1C
      &                          )/XRHOMH
 C
-            CEMP(LBND+2-ID,NKX,MLX,1)
-     &                         =CEMP(LBND+2-ID,NKX,MLX,1)
+            CEMP(LBND+2-ID,NCX,MCX,1)
+     &                         =CEMP(LBND+2-ID,NCX,MCX,1)
      &                         +(
-     &                         +ML*NN*CGMH13(LDX,KDX)*FMHM
-     &                         -NK*NN*CGMH12(LDX,KDX)*FMHM
-     &                         +CI*ML*CGMH33(LDX,KDX)*DFMHM
-     &                         -CI*NK*CGMH23(LDX,KDX)*DFMHM
+     &                         +ML*NN*CGMH13(LLX,KKX)*FMHM
+     &                         -NK*NN*CGMH12(LLX,KKX)*FMHM
+     &                         +CI*ML*CGMH33(LLX,KKX)*DFMHM
+     &                         -CI*NK*CGMH23(LLX,KKX)*DFMHM
      &                         +CDVM(1,2)*FMHM
      &                          )*XRHOM
 C
-            CEMP(LBND+2   ,NKX,MLX,1)
-     &                         =CEMP(LBND+2   ,NKX,MLX,1)
+            CEMP(LBND+2   ,NCX,MCX,1)
+     &                         =CEMP(LBND+2   ,NCX,MCX,1)
      &                         +(
-     &                         +ML*NN*CGMH13(LDX,KDX)*FMHC
-     &                         -NK*NN*CGMH12(LDX,KDX)*FMHC
-     &                         +CI*ML*CGMH33(LDX,KDX)*DFMHC
-     &                         -CI*NK*CGMH23(LDX,KDX)*DFMHC
+     &                         +ML*NN*CGMH13(LLX,KKX)*FMHC
+     &                         -NK*NN*CGMH12(LLX,KKX)*FMHC
+     &                         +CI*ML*CGMH33(LLX,KKX)*DFMHC
+     &                         -CI*NK*CGMH23(LLX,KKX)*DFMHC
      &                         +CDVC(1,2)*FMHC
      &                          )*XRHOC
 C
-            CEMP(LBND+3-ID,NKX,MLX,1)
-     &                         =CEMP(LBND+3-ID,NKX,MLX,1)
+            CEMP(LBND+3-ID,NCX,MCX,1)
+     &                         =CEMP(LBND+3-ID,NCX,MCX,1)
      &                         +(
-     &                         -ML*MM*CGMH13(LDX,KDX)*FMHM
-     &                         +NK*MM*CGMH12(LDX,KDX)*FMHM
-     &                         -CI*ML*CGMH23(LDX,KDX)*DFMHM
-     &                         +CI*NK*CGMH22(LDX,KDX)*DFMHM
+     &                         -ML*MM*CGMH13(LLX,KKX)*FMHM
+     &                         +NK*MM*CGMH12(LLX,KKX)*FMHM
+     &                         -CI*ML*CGMH23(LLX,KKX)*DFMHM
+     &                         +CI*NK*CGMH22(LLX,KKX)*DFMHM
      &                         +CDVM(1,3)*FMHM
      &                          )
 C
-            CEMP(LBND+3   ,NKX,MLX,1)
-     &                         =CEMP(LBND+3   ,NKX,MLX,1)
+            CEMP(LBND+3   ,NCX,MCX,1)
+     &                         =CEMP(LBND+3   ,NCX,MCX,1)
      &                         +(
-     &                         -ML*MM*CGMH13(LDX,KDX)*FMHC
-     &                         +NK*MM*CGMH12(LDX,KDX)*FMHC
-     &                         -CI*ML*CGMH23(LDX,KDX)*DFMHC
-     &                         +CI*NK*CGMH22(LDX,KDX)*DFMHC
+     &                         -ML*MM*CGMH13(LLX,KKX)*FMHC
+     &                         +NK*MM*CGMH12(LLX,KKX)*FMHC
+     &                         -CI*ML*CGMH23(LLX,KKX)*DFMHC
+     &                         +CI*NK*CGMH22(LLX,KKX)*DFMHC
      &                         +CDVC(1,3)*FMHC
      &                          )
 C
 C     --- THETA COMPONENT OF MAXWELL EQUATION ---
 C
-            LBND=MBND-3*KD*MDSIZ-3*LD-2
+            LBND=MBND-3*KK*MDSIZ-3*LL-2
 C
-            CEMP(LBND+1   ,NKX,MLX,2)
-     &                         =CEMP(LBND+1   ,NKX,MLX,2)
+            CEMP(LBND+1   ,NCX,MCX,2)
+     &                         =CEMP(LBND+1   ,NCX,MCX,2)
      &                         +(
-     &                         -NK*NN*CGC12(LDX,KDX)*FCMH
-     &                         +NK*MM*CGC13(LDX,KDX)*FCMH
-     &                         -CI*NN*CGMH23(LDX,KDX)*DFCMH
-     &                         +CI*MM*CGMH33(LDX,KDX)*DFCMH
+     &                         -NK*NN*CGC12(LLX,KKX)*FCMH
+     &                         +NK*MM*CGC13(LLX,KKX)*FCMH
+     &                         -CI*NN*CGMH23(LLX,KKX)*DFCMH
+     &                         +CI*MM*CGMH33(LLX,KKX)*DFCMH
      &                         +CDVC(2,1)*FCMH*FACT2C
      &                          )/XRHOMH
 C
-            CEMP(LBND+1+ID,NKX,MLX,2)
-     &                         =CEMP(LBND+1+ID,NKX,MLX,2)
+            CEMP(LBND+1+ID,NCX,MCX,2)
+     &                         =CEMP(LBND+1+ID,NCX,MCX,2)
      &                         +(
-     &                         -NK*NN*CGC12(LDX,KDX)*FCPH
-     &                         +NK*MM*CGC13(LDX,KDX)*FCPH
-     &                         -CI*NN*CGPH23(LDX,KDX)*DFCPH
-     &                         +CI*MM*CGPH33(LDX,KDX)*DFCPH
+     &                         -NK*NN*CGC12(LLX,KKX)*FCPH
+     &                         +NK*MM*CGC13(LLX,KKX)*FCPH
+     &                         -CI*NN*CGPH23(LLX,KKX)*DFCPH
+     &                         +CI*MM*CGPH33(LLX,KKX)*DFCPH
      &                         +CDVC(2,1)*FCPH*FACT2P
      &                          )/XRHOPH
 C
-            CEMP(LBND+2-ID,NKX,MLX,2)
-     &                         =CEMP(LBND+2-ID,NKX,MLX,2)
+            CEMP(LBND+2-ID,NCX,MCX,2)
+     &                         =CEMP(LBND+2-ID,NCX,MCX,2)
      &                         +(
-     &                         +CI*NK*CGC13(LDX,KDX)*DFCM
-     &                         +CI*NN*CGM13(LDX,KDX)*DFCM
-     &                         -      CGMH33(LDX,KDX)*DDFMHM
+     &                         +CI*NK*CGC13(LLX,KKX)*DFCM
+     &                         +CI*NN*CGM13(LLX,KKX)*DFCM
+     &                         -      CGMH33(LLX,KKX)*DDFMHM
      &                          )*XRHOM
 C
-            CEMP(LBND+2   ,NKX,MLX,2)
-     &                         =CEMP(LBND+2   ,NKX,MLX,2)
+            CEMP(LBND+2   ,NCX,MCX,2)
+     &                         =CEMP(LBND+2   ,NCX,MCX,2)
      &                         +(
-     &                         +NK*NN*CGC11(LDX,KDX)
-     &                         +CI*NK*CGC13(LDX,KDX)*DFCC
-     &                         +CI*NN*CGC13(LDX,KDX)*DFCC
-     &                         -      CGMH33(LDX,KDX)*DDFMHC
-     &                         -      CGPH33(LDX,KDX)*DDFPHC
+     &                         +NK*NN*CGC11(LLX,KKX)
+     &                         +CI*NK*CGC13(LLX,KKX)*DFCC
+     &                         +CI*NN*CGC13(LLX,KKX)*DFCC
+     &                         -      CGMH33(LLX,KKX)*DDFMHC
+     &                         -      CGPH33(LLX,KKX)*DDFPHC
      &                         +CDVC(2,2)
      &                          )*XRHOC
 C
-            CEMP(LBND+2+ID,NKX,MLX,2)
-     &                         =CEMP(LBND+2+ID,NKX,MLX,2)
+            CEMP(LBND+2+ID,NCX,MCX,2)
+     &                         =CEMP(LBND+2+ID,NCX,MCX,2)
      &                         +(
-     &                         +CI*NK*CGC13(LDX,KDX)*DFCP
-     &                         +CI*NN*CGP13(LDX,KDX)*DFCP
-     &                         -      CGPH33(LDX,KDX)*DDFPHP
+     &                         +CI*NK*CGC13(LLX,KKX)*DFCP
+     &                         +CI*NN*CGP13(LLX,KKX)*DFCP
+     &                         -      CGPH33(LLX,KKX)*DDFPHP
      &                          )*XRHOP
 C
-            CEMP(LBND+3-ID,NKX,MLX,2)
-     &                         =CEMP(LBND+3-ID,NKX,MLX,2)
+            CEMP(LBND+3-ID,NCX,MCX,2)
+     &                         =CEMP(LBND+3-ID,NCX,MCX,2)
      &                         +(
-     &                         -CI*NK*CGC12(LDX,KDX)*DFCM
-     &                         -CI*MM*CGM13(LDX,KDX)*DFCM
-     &                         +      CGMH23(LDX,KDX)*DDFMHM
+     &                         -CI*NK*CGC12(LLX,KKX)*DFCM
+     &                         -CI*MM*CGM13(LLX,KKX)*DFCM
+     &                         +      CGMH23(LLX,KKX)*DDFMHM
      &                          )
 C
-            CEMP(LBND+3   ,NKX,MLX,2)
-     &                         =CEMP(LBND+3   ,NKX,MLX,2)
+            CEMP(LBND+3   ,NCX,MCX,2)
+     &                         =CEMP(LBND+3   ,NCX,MCX,2)
      &                         +(
-     &                         -NK*MM*CGC11(LDX,KDX)
-     &                         -CI*NK*CGC12(LDX,KDX)*DFCC
-     &                         -CI*MM*CGC13(LDX,KDX)*DFCC
-     &                         +      CGMH23(LDX,KDX)*DDFMHC
-     &                         +      CGPH23(LDX,KDX)*DDFPHC
+     &                         -NK*MM*CGC11(LLX,KKX)
+     &                         -CI*NK*CGC12(LLX,KKX)*DFCC
+     &                         -CI*MM*CGC13(LLX,KKX)*DFCC
+     &                         +      CGMH23(LLX,KKX)*DDFMHC
+     &                         +      CGPH23(LLX,KKX)*DDFPHC
      &                         +CDVC(2,3)
      &                          )
 C
-            CEMP(LBND+3+ID,NKX,MLX,2)
-     &                         =CEMP(LBND+3+ID,NKX,MLX,2)
+            CEMP(LBND+3+ID,NCX,MCX,2)
+     &                         =CEMP(LBND+3+ID,NCX,MCX,2)
      &                         +(
-     &                         -CI*NK*CGC12(LDX,KDX)*DFCP
-     &                         -CI*MM*CGP13(LDX,KDX)*DFCP
-     &                         +      CGPH23(LDX,KDX)*DDFPHP
+     &                         -CI*NK*CGC12(LLX,KKX)*DFCP
+     &                         -CI*MM*CGP13(LLX,KKX)*DFCP
+     &                         +      CGPH23(LLX,KKX)*DDFPHP
      &                          )
 C
 C     --- PHI COMPONENT OF MAXWELL EQUATION ---
 C
-            LBND=MBND-3*KD*MDSIZ-3*LD-3
+            LBND=MBND-3*KK*MDSIZ-3*LL-3
 C
-            CEMP(LBND+1   ,NKX,MLX,3)
-     &                         =CEMP(LBND+1   ,NKX,MLX,3)
+            CEMP(LBND+1   ,NCX,MCX,3)
+     &                         =CEMP(LBND+1   ,NCX,MCX,3)
      &                         +(
-     &                         +ML*NN*CGC12(LDX,KDX)*FCMH
-     &                         -ML*MM*CGC13(LDX,KDX)*FCMH
-     &                         +CI*NN*CGMH22(LDX,KDX)*DFCMH
-     &                         -CI*MM*CGMH23(LDX,KDX)*DFCMH
+     &                         +ML*NN*CGC12(LLX,KKX)*FCMH
+     &                         -ML*MM*CGC13(LLX,KKX)*FCMH
+     &                         +CI*NN*CGMH22(LLX,KKX)*DFCMH
+     &                         -CI*MM*CGMH23(LLX,KKX)*DFCMH
      &                         +CDVC(3,1)*FCMH*FACT3C
      &                          )/XRHOMH
 C
-            CEMP(LBND+1+ID,NKX,MLX,3)
-     &                         =CEMP(LBND+1+ID,NKX,MLX,3)
+            CEMP(LBND+1+ID,NCX,MCX,3)
+     &                         =CEMP(LBND+1+ID,NCX,MCX,3)
      &                         +(
-     &                         +ML*NN*CGC12(LDX,KDX)*FCPH
-     &                         -ML*MM*CGC13(LDX,KDX)*FCPH
-     &                         +CI*NN*CGPH22(LDX,KDX)*DFCPH
-     &                         -CI*MM*CGPH23(LDX,KDX)*DFCPH
+     &                         +ML*NN*CGC12(LLX,KKX)*FCPH
+     &                         -ML*MM*CGC13(LLX,KKX)*FCPH
+     &                         +CI*NN*CGPH22(LLX,KKX)*DFCPH
+     &                         -CI*MM*CGPH23(LLX,KKX)*DFCPH
      &                         +CDVC(3,1)*FCPH*FACT3P
      &                          )/XRHOPH
 C
-            CEMP(LBND+2-ID,NKX,MLX,3)
-     &                         =CEMP(LBND+2-ID,NKX,MLX,3)
+            CEMP(LBND+2-ID,NCX,MCX,3)
+     &                         =CEMP(LBND+2-ID,NCX,MCX,3)
      &                         +(
-     &                         -CI*ML*CGC13(LDX,KDX)*DFCM
-     &                         -CI*NN*CGM12(LDX,KDX)*DFCM
-     &                         +      CGMH23(LDX,KDX)*DDFMHM
+     &                         -CI*ML*CGC13(LLX,KKX)*DFCM
+     &                         -CI*NN*CGM12(LLX,KKX)*DFCM
+     &                         +      CGMH23(LLX,KKX)*DDFMHM
      &                          )*XRHOM
 C
-            CEMP(LBND+2   ,NKX,MLX,3)
-     &                         =CEMP(LBND+2   ,NKX,MLX,3)
+            CEMP(LBND+2   ,NCX,MCX,3)
+     &                         =CEMP(LBND+2   ,NCX,MCX,3)
      &                         +(
-     &                         -ML*NN*CGC11(LDX,KDX)
-     &                         -CI*ML*CGC13(LDX,KDX)*DFCC
-     &                         -CI*NN*CGC12(LDX,KDX)*DFCC
-     &                         +      CGMH23(LDX,KDX)*DDFMHC
-     &                         +      CGPH23(LDX,KDX)*DDFPHC
+     &                         -ML*NN*CGC11(LLX,KKX)
+     &                         -CI*ML*CGC13(LLX,KKX)*DFCC
+     &                         -CI*NN*CGC12(LLX,KKX)*DFCC
+     &                         +      CGMH23(LLX,KKX)*DDFMHC
+     &                         +      CGPH23(LLX,KKX)*DDFPHC
      &                         +CDVC(3,2)
      &                          )*XRHOC
 C
-            CEMP(LBND+2+ID,NKX,MLX,3)
-     &                         =CEMP(LBND+2+ID,NKX,MLX,3)
+            CEMP(LBND+2+ID,NCX,MCX,3)
+     &                         =CEMP(LBND+2+ID,NCX,MCX,3)
      &                         +(
-     &                         -CI*ML*CGC13(LDX,KDX)*DFCP
-     &                         -CI*NN*CGP12(LDX,KDX)*DFCP
-     &                         +      CGPH23(LDX,KDX)*DDFPHP
+     &                         -CI*ML*CGC13(LLX,KKX)*DFCP
+     &                         -CI*NN*CGP12(LLX,KKX)*DFCP
+     &                         +      CGPH23(LLX,KKX)*DDFPHP
      &                          )*XRHOP
 C
-            CEMP(LBND+3-ID,NKX,MLX,3)
-     &                         =CEMP(LBND+3-ID,NKX,MLX,3)
+            CEMP(LBND+3-ID,NCX,MCX,3)
+     &                         =CEMP(LBND+3-ID,NCX,MCX,3)
      &                         +(
-     &                         +CI*ML*CGC12(LDX,KDX)*DFCM
-     &                         +CI*MM*CGM12(LDX,KDX)*DFCM
-     &                         -      CGMH22(LDX,KDX)*DDFMHM
+     &                         +CI*ML*CGC12(LLX,KKX)*DFCM
+     &                         +CI*MM*CGM12(LLX,KKX)*DFCM
+     &                         -      CGMH22(LLX,KKX)*DDFMHM
      &                          )
 C
-            CEMP(LBND+3   ,NKX,MLX,3)
-     &                         =CEMP(LBND+3   ,NKX,MLX,3)
+            CEMP(LBND+3   ,NCX,MCX,3)
+     &                         =CEMP(LBND+3   ,NCX,MCX,3)
      &                         +(
-     &                         +ML*MM*CGC11(LDX,KDX)
-     &                         +CI*ML*CGC12(LDX,KDX)*DFCC
-     &                         +CI*MM*CGC12(LDX,KDX)*DFCC
-     &                         -      CGMH22(LDX,KDX)*DDFMHC
-     &                         -      CGPH22(LDX,KDX)*DDFPHC
+     &                         +ML*MM*CGC11(LLX,KKX)
+     &                         +CI*ML*CGC12(LLX,KKX)*DFCC
+     &                         +CI*MM*CGC12(LLX,KKX)*DFCC
+     &                         -      CGMH22(LLX,KKX)*DDFMHC
+     &                         -      CGPH22(LLX,KKX)*DDFPHC
      &                         +CDVC(3,3)
      &                          )
 C
-            CEMP(LBND+3+ID,NKX,MLX,3)
-     &                         =CEMP(LBND+3+ID,NKX,MLX,3)
+            CEMP(LBND+3+ID,NCX,MCX,3)
+     &                         =CEMP(LBND+3+ID,NCX,MCX,3)
      &                         +(
-     &                         +CI*ML*CGC12(LDX,KDX)*DFCP
-     &                         +CI*MM*CGP12(LDX,KDX)*DFCP
-     &                         -      CGPH22(LDX,KDX)*DDFPHP
+     &                         +CI*ML*CGC12(LLX,KKX)*DFCP
+     &                         +CI*MM*CGP12(LLX,KKX)*DFCP
+     &                         -      CGPH22(LLX,KKX)*DDFPHP
      &                          )
-            ENDIF
          ENDDO
          ENDDO
-            ENDIF
          ENDDO
          ENDDO
       RETURN
@@ -699,93 +695,89 @@ C        ****** R=0 ******
 C
          IF(NR.EQ.1) THEN
             ID=3*MDSIZ*NDSIZ         
-            DO ND=NDMIN,NDMAX
-               NDX=ND-NDMIN+1
-            DO NKD=NDMIN,NDMAX
-               NKX=NKD-NDMIN+1
-               KD=NKD-ND
-               IF(MODELK.EQ.0.OR.
-     &              (KD.GE.KDMIN.AND.KD.LE.KDMAX)) THEN
-C                  KDX=MOD(KD-KDMIN+2*KDSIZ,KDSIZ)+1
-            DO MD=MDMIN,MDMAX
-               MDX=MD-MDMIN+1
-            DO MLD=MDMIN,MDMAX
-               MLX=MLD-MDMIN+1
-               LD=MLD-MD
-               IF(MODELK.EQ.0.OR.
-     &              (LD.GE.LDMIN.AND.LD.LE.LDMAX)) THEN
-C                  LDX=MOD(LD-LDMIN+2*LDSIZ,LDSIZ)+1
-                  MM=NTH0+MD
+         DO ND=NDMIN,NDMAX
+            NDX=ND-NDMIN+1
+         DO NC=NDMIN,NDMAX
+            NCX=NC-NDMIN+1
+            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+            KK=KKX+KDMIN-1
+C
+         DO MD=MDMIN,MDMAX
+            MDX=MD-MDMIN+1
+         DO MC=MDMIN,MDMAX
+            MCX=MC-MDMIN+1
+            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+            LL=LLX+LDMIN-1
+C
+            MM=NTH0+MD
 C
 C        ****** EPH'(0) = 0 FOR MM.EQ.0 ******
 C
                   IF(MM.EQ.0) THEN
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-1
+                     LBND=MBND-3*KK*MDSIZ-3*LL-1
 C
-                     CEMP(LBND   +3,NKX,MLX,1)
-     &                               =CEMP(LBND   +3,NKX,MLX,1)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,1)*A1
-                     CEMP(LBND+ID+3,NKX,MLX,1)
-     &                               =CEMP(LBND+ID+3,NKX,MLX,1)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,1)*A2
-                     CEMP(LBND-ID+3,NKX,MLX,1)=0.D0
+                     CEMP(LBND   +3,NCX,MCX,1)
+     &                               =CEMP(LBND   +3,NCX,MCX,1)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,1)*A1
+                     CEMP(LBND+ID+3,NCX,MCX,1)
+     &                               =CEMP(LBND+ID+3,NCX,MCX,1)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,1)*A2
+                     CEMP(LBND-ID+3,NCX,MCX,1)=0.D0
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-2
+                     LBND=MBND-3*KK*MDSIZ-3*LL-2
 C
-                     CEMP(LBND   +3,NKX,MLX,2)
-     &                               =CEMP(LBND   +3,NKX,MLX,2)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,2)*A1
-                     CEMP(LBND+ID+3,NKX,MLX,2)
-     &                               =CEMP(LBND+ID+3,NKX,MLX,2)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,2)*A2
-                     CEMP(LBND-ID+3,NKX,MLX,2)=0.D0
+                     CEMP(LBND   +3,NCX,MCX,2)
+     &                               =CEMP(LBND   +3,NCX,MCX,2)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,2)*A1
+                     CEMP(LBND+ID+3,NCX,MCX,2)
+     &                               =CEMP(LBND+ID+3,NCX,MCX,2)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,2)*A2
+                     CEMP(LBND-ID+3,NCX,MCX,2)=0.D0
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-3
+                     LBND=MBND-3*KK*MDSIZ-3*LL-3
 C
-                     CEMP(LBND   +3,NKX,MLX,3)
-     &                               =CEMP(LBND   +3,NKX,MLX,3)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,3)*A1
-                     CEMP(LBND+ID+3,NKX,MLX,3)
-     &                               =CEMP(LBND+ID+3,NKX,MLX,3)
-     &                               +CEMP(LBND-ID+3,NKX,MLX,3)*A2
-                     CEMP(LBND-ID+3,NKX,MLX,3)=0.D0
+                     CEMP(LBND   +3,NCX,MCX,3)
+     &                               =CEMP(LBND   +3,NCX,MCX,3)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,3)*A1
+                     CEMP(LBND+ID+3,NCX,MCX,3)
+     &                               =CEMP(LBND+ID+3,NCX,MCX,3)
+     &                               +CEMP(LBND-ID+3,NCX,MCX,3)*A2
+                     CEMP(LBND-ID+3,NCX,MCX,3)=0.D0
 C
 C        ****** ETH'(0) = 0 FOR ABS(MM).EQ.1 ******
 C
                   ELSEIF(ABS(MM).EQ.1) THEN
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-1
+                     LBND=MBND-3*KK*MDSIZ-3*LL-1
 C
-                     CEMP(LBND   +2,NKX,MLX,1)
-     &                               =CEMP(LBND   +2,NKX,MLX,1)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,1)*A1
-                     CEMP(LBND+ID+2,NKX,MLX,1)
-     &                               =CEMP(LBND+ID+2,NKX,MLX,1)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,1)*A2
+                     CEMP(LBND   +2,NCX,MCX,1)
+     &                               =CEMP(LBND   +2,NCX,MCX,1)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,1)*A1
+                     CEMP(LBND+ID+2,NCX,MCX,1)
+     &                               =CEMP(LBND+ID+2,NCX,MCX,1)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,1)*A2
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-2
+                     LBND=MBND-3*KK*MDSIZ-3*LL-2
 C
-                     CEMP(LBND   +2,NKX,MLX,2)
-     &                               =CEMP(LBND   +2,NKX,MLX,2)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,2)*A1
-                     CEMP(LBND+ID+2,NKX,MLX,2)
-     &                               =CEMP(LBND+ID+2,NKX,MLX,2)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,2)*A2
+                     CEMP(LBND   +2,NCX,MCX,2)
+     &                               =CEMP(LBND   +2,NCX,MCX,2)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,2)*A1
+                     CEMP(LBND+ID+2,NCX,MCX,2)
+     &                               =CEMP(LBND+ID+2,NCX,MCX,2)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,2)*A2
 C
-                     LBND=MBND-3*KD*MDSIZ-3*LD-3
+                     LBND=MBND-3*KK*MDSIZ-3*LL-3
 C
-                     CEMP(LBND   +2,NKX,MLX,3)
-     &                               =CEMP(LBND   +2,NKX,MLX,3)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,3)*A1
-                     CEMP(LBND+ID+2,NKX,MLX,3)
-     &                               =CEMP(LBND+ID+2,NKX,MLX,3)
-     &                               +CEMP(LBND-ID+2,NKX,MLX,3)*A2
+                     CEMP(LBND   +2,NCX,MCX,3)
+     &                               =CEMP(LBND   +2,NCX,MCX,3)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,3)*A1
+                     CEMP(LBND+ID+2,NCX,MCX,3)
+     &                               =CEMP(LBND+ID+2,NCX,MCX,3)
+     &                               +CEMP(LBND-ID+2,NCX,MCX,3)*A2
                   ENDIF
-               ENDIF
-            ENDDO
-            ENDDO
-               ENDIF
+               ENDDO
+               ENDDO
             ENDDO
             ENDDO
          ENDIF

@@ -27,8 +27,8 @@ libs:
 	(cd ../lib; make)
 
 $(PROG): $(LIBS)
-#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
-	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
+#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less

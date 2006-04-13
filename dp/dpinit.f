@@ -205,7 +205,6 @@ C
 
       DATA INITFP/0/
 C
-      write(6,*) '----- DPCHEK -----'
       DO NS=1,NSMAX
          IND=0
          IF(MODELP(NS).EQ.8) IND=1

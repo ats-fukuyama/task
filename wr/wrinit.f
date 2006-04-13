@@ -194,8 +194,11 @@ C
             IF(IERR.EQ.0) THEN
                CALL EQCALQ(51,64,64,IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+               INITEQ=1
+            ELSE
+               WRITE(6,*) 'XX EQLOAD: IERR=',IERR
+               INITEQ=0
             ENDIF
-            INITEQ=1
          ENDIF
       ELSE
          INITEQ=0
