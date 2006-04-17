@@ -6,7 +6,7 @@
 
 \begin{document}
 \begin{flushright}
-2005/05/10
+2006/04/17
 \end{flushright}
 
 \begin{center}
@@ -91,7 +91,7 @@ MPI ライブラリを用いた並列分散処理
 
 \subsection{TASK コードの入手}
 
-TASK コードは次のいずれかの方法で入手することができる．現在の所，
+TASK コードは次のいずれかの方法で入手することができる．
 \begin{enumerate}
 \item
 TASK と GSAF の最新ソースファイルは，CVS サーバーから以下の手順で
@@ -101,7 +101,7 @@ fukuyama@nucleng.kyoto-u.ac.jp まで問い合わせること．なお，この方法では
 
 \tline{export CVS\underline{ }RSH=ssh} \\
 \tline{export
-  CVSROOT=:pserver:anonymous@p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs} \\
+  CVSROOT=:pserver:anonymous@p-grp.nucleng.kyoto-u.ac.jp:/home/fukuyama/cvs} \\
 \tline{cvs login} \\
 \tline{password: XXXXXXXX} \\
 \tline{cvs co task} \\
@@ -109,28 +109,54 @@ fukuyama@nucleng.kyoto-u.ac.jp まで問い合わせること．なお，この方法では
 
 \item
 CVS サーバーに account を有する場合には，修正したファイルを upload す
-ることができる．この場合の手順は
+ることができる．この場合の download 手順は
 
 \tline{export CVS\underline{ }RSH=ssh} \\
-\tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp/home/fukuyama/cvs} \\
+\tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp:/home/fukuyama/cvs} \\
 \tline{cvs co task} \\
 \tline{cvs co gsaf}
 
 \item
-圧縮されたファイルツリー task-YYMMDD.tar.gz ファイルは
+圧縮されたファイルツリー taskXXX.tar.gz ファイルは
 
-\tline{http://bpsi.nucleng.kyoto-u.ac.jp/taks/}
+\tline{http://bpsi.nucleng.kyoto-u.ac.jp/task/}
 
-から入手できる予定である．ただし，最新のファイルツリーである保証はない．
-得られた task.tar.gz は gnu tar の場合
+から入手できる．最新のファイルツリーである保証はないが，比較的安定なバー
+ジョンである．得られた task.tar.gz は gnu tar の場合
 
-\tline{tar xvzf task.tar.gz}
+\tline{tar xvzf taskXXX.tar.gz}
 
 で，あるいは通常の tar の場合
 
-\tline{gzcat task.tar.gz | tar xvf}
+\tline{gzcat taskXXX.tar.gz | tar xvf}
 
 等によって解凍することができる．
+\end{enumerate}
+
+\subsection{TASK コードの更新}
+
+CVS を利用している場合には，次のいずれかの方法で TASK コードを最新バー
+ジョンに更新することができる．ただし，最新バージョンにはバグが含まれて
+いる可能性もあるので，注意すること．
+\begin{enumerate}
+\item
+pserver を利用して download した場合：task ディレクトリにおいて
+
+\tline{export CVS\underline{ }RSH=ssh} \\
+\tline{cvs login} \\
+\tline{password: XXXXXXXX} \\
+\tline{cvs update -Pd}
+
+を実行する．
+
+\item
+CVS サーバーに account を有する場合：task ディレクトリにおいて
+
+\tline{export CVS\underline{ }RSH=ssh} \\
+\tline{cvs update -Pd}
+
+を実行する．
+
 \end{enumerate}
 
 \subsection{コードのコンパイル}
@@ -209,8 +235,16 @@ LIBPATH を \ttype{/etc/ld.so.conf} に登録し，\ttype{ldconfig}
 更する．基本的には，利用するコンパイラに関連した script 行のコメント文
 字 \# を削除する．
 
-次に利用するコードのディレクトリに移動し，\ttype{make} と入力すれば，
-コンパイルリンクが実行される．
+次に利用するコードのディレクトリに移動し，
+
+\ttype{make libs} 
+\ttype{make} 
+
+と入力すれば，コンパイルリンクが実行される．
+
+原則的に，task ディレクトリで update した場合や他のサブディレクトリの
+ファイルを修正した場合には，\ttype{make libs} が必要であり，現在のサブ
+ディレクトリ内のファイルだけを修正した場合には \ttype{make} だけでよい．
 
 \subsection{コードの各プログラムの起動}
 
