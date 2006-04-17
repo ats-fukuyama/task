@@ -986,6 +986,8 @@ C
             IF(XR(NRI)/RD.LT.1.D0) NRANT=NRI
          ENDDO
 C
+         DTH=2.D0*PI/DBLE(NTHMAX)
+         DPH=2.D0*PI/DBLE(NPHMAX)
          CPRAD=(0.D0,0.D0)
 C
          DO NR=NRANT-1,NRMAX
@@ -994,9 +996,9 @@ C
 C
             DO MDX=1,MDSIZ
                DO NDX=1,NDSIZ
-                  CCE1=CEFLDK(1,MDX,NDX,NR)
-                  CCE2=CEFLDK(2,MDX,NDX,NR)
-                  CCE3=CEFLDK(3,MDX,NDX,NR)
+                  CCE1=CEFLDK(1,MDX,NDX,NR+1)
+                  CCE2=CEFLDK(2,MDX,NDX,NR+1)
+                  CCE3=CEFLDK(3,MDX,NDX,NR+1)
                   CPRAD=CPRAD+DCONJG(CCE1)*CFVP(NDX,MDX,1)
      &                       +DCONJG(CCE2)*CFVP(NDX,MDX,2)
      &                       +DCONJG(CCE3)*CFVP(NDX,MDX,3)
@@ -1007,7 +1009,7 @@ C
          CPRAD=0.D0
       ENDIF
 C
-      WRITE(6,'(A,1P2E12.4)') '# CPRAD=',CPRAD
+C      WRITE(6,'(A,1P2E12.4)') '# CPRAD=',CPRAD
 C
       RETURN
       END
