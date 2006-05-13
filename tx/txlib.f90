@@ -1,5 +1,9 @@
 !     $Id$
 module libraries
+  implicit none
+  private
+  public :: EXPV, APITOS, APTTOS, APSTOS, APRTOS, TOUPPER
+
 contains
 !***************************************************************
 !
@@ -9,10 +13,9 @@ contains
 
   REAL(8) FUNCTION EXPV(X)
 
-    IMPLICIT NONE
     REAL(8), INTENT(IN) :: X
 
-    IF (X < -708) THEN
+    IF (X < -708.D0) THEN
        EXPV = 0.D0
     ELSE
        EXPV = EXP(X)
@@ -33,13 +36,12 @@ contains
 
   SUBROUTINE APITOS(STR, NSTR, I)
 
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: I
     INTEGER, INTENT(INOUT) :: NSTR
-    CHARACTER(*), INTENT(INOUT) :: STR
+    character(len=*), INTENT(INOUT) :: STR
 
     INTEGER :: J, NSTRI
-    CHARACTER(25) :: KVALUE
+    character(len=25) :: KVALUE
 
     WRITE(KVALUE,'(I25)') I
     DO J = 1, 25
@@ -65,10 +67,9 @@ contains
 
   SUBROUTINE APTTOS(STR, NSTR, TX)
 
-    IMPLICIT NONE
     INTEGER, INTENT(INOUT) :: NSTR
-    CHARACTER(*), INTENT(IN) :: TX
-    CHARACTER(*), INTENT(INOUT) :: STR
+    character(len=*), INTENT(IN) :: TX
+    character(len=*), INTENT(INOUT) :: STR
 
     INTEGER :: NTX
 
@@ -92,11 +93,10 @@ contains
 
   SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
-    IMPLICIT NONE
     INTEGER, INTENT(IN) :: NINSTR
-    CHARACTER(*), INTENT(IN) :: INSTR
+    character(len=*), INTENT(IN) :: INSTR
     INTEGER, INTENT(INOUT) :: NSTR
-    CHARACTER(*), INTENT(INOUT) :: STR
+    character(len=*), INTENT(INOUT) :: STR
 
     STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
     NSTR = NSTR + NINSTR
@@ -117,15 +117,15 @@ contains
 
   SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
-    IMPLICIT NONE
     REAL(8), INTENT(IN) :: D
-    CHARACTER(*), INTENT(IN) :: FORM
+    character(len=*), INTENT(IN) :: FORM
     INTEGER, INTENT(INOUT) :: NSTR
-    CHARACTER(*), INTENT(INOUT) :: STR
+    character(len=*), INTENT(INOUT) :: STR
 
     INTEGER(1) :: IND
     INTEGER :: L, IS, IE, NSTRD, IST
-    CHARACTER(10) :: KFORM, KVALUE*25
+    character(len=10) :: KFORM
+    character(len=25) :: KVALUE
 
     L = LEN(FORM)
     IF      (L == 0) THEN
@@ -166,9 +166,14 @@ contains
     END DO
 
     IE = IS
-20  CONTINUE
-    IE = IE + 1
-    IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) GOTO 20
+    DO
+       IE = IE + 1
+       IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) THEN
+          CYCLE
+       ELSE
+          EXIT
+       END IF
+    END DO
     IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
 
     IF (KVALUE(IS:IS) == '-') THEN
@@ -204,11 +209,10 @@ contains
 
   SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
-    IMPLICIT NONE
     REAL, INTENT(IN) :: GR
-    CHARACTER(*), INTENT(IN) :: FORM
+    character(len=*), INTENT(IN) :: FORM
     INTEGER, INTENT(INOUT) :: NSTR
-    CHARACTER(*), INTENT(INOUT) :: STR
+    character(len=*), INTENT(INOUT) :: STR
 
     REAL(8) :: D
 
@@ -226,8 +230,7 @@ contains
 
   SUBROUTINE TOUPPER(KTEXT)
 
-    IMPLICIT NONE
-    CHARACTER(*), INTENT(INOUT) ::  KTEXT
+    character(len=*), INTENT(INOUT) ::  KTEXT
 
     INTEGER :: NCHAR, I, ID
 
@@ -241,26 +244,148 @@ contains
     RETURN
   END SUBROUTINE TOUPPER
 
-!***************************************************************
-!
-!   CPU used time
-!
-!***************************************************************
-
-! Not really cpu time but wallclock time.
-! Should work with all Fortran90 systems.
-! Note that TIME has to be default real kind (F95 standard allows any kind).
-
-  SUBROUTINE CPU_TIME(TIME)
-    REAL, INTENT(OUT) :: TIME
-
-    INTEGER :: COUNT, COUNT_RATE
-
-    CALL SYSTEM_CLOCK(COUNT,COUNT_RATE)
-    IF (COUNT_RATE /= 0) THEN
-       TIME = REAL(COUNT)/COUNT_RATE
-    ELSE
-       TIME = -1
-    END IF
-  END SUBROUTINE CPU_TIME
 end module libraries
+
+!*****************************************************************
+
+module core_module
+  use commons, only : nrmax, h
+  implicit none
+  public
+
+contains
+
+  function fem_integral(id,ne,a,actr) result(x)
+!-------------------------------------------------------
+!
+!   Calculate "\int_{r_i}^{r_{i+1}} function(r) dr"
+!      dr : mesh interval
+!      a  : coefficient vector
+!      u  : variable vector
+!      w  : weighting vector
+!
+!   function(r) is classified as follows:
+!      id = 0  : a * w
+!      id = 1  : u * w
+!      id = 2  : a * u * w
+!      id = 3  :(a * u)'* w
+!      id = 4  : u'* w
+!      id = 5  : a * u'* w
+!      id = 6  : a'* u * w
+!      id = 7  : a'* u'* w
+!      id = 8  : u * w'
+!      id = 9  : a * u * w'
+!      id = 10 :(a * u)'* w'
+!      id = 11 : u'* w'
+!      id = 12 : a * u'* w'
+!      id = 13 : a'* u * w'
+!      id = 14 : a'* u'* w'
+!
+!   where ' means the derivative of r
+!
+!  < input >
+!     id       : mode select
+!     ne       : current number of elements
+!     nnode    : maximum of nodes
+!     a(nnode) : coefficient vector, optional
+!     actr     : element averaged value, optional
+!  < output >
+!     x(4)     : matrix of integrated values
+!
+!-------------------------------------------------------
+    integer, intent(in) :: id, ne
+    real(8), intent(in), dimension(0:nrmax), optional  :: a
+    real(8), intent(in), optional :: actr
+    integer :: node1, node2
+    real(8) :: x(1:4), a1, a2
+    
+    node1 = ne-1  ; node2 = ne
+    a1 = a(node1) ; a2 = a(node2)
+    if(ne == 1.and.present(actr)) then
+       a1 = actr
+       a2 = actr
+    end if
+
+    select case(id)
+    case(0)
+       x(1) = h(ne) / 3.d0 * a1
+       x(2) = h(ne) / 6.d0 * a2
+       x(3) = h(ne) / 6.d0 * a1
+       x(4) = h(ne) / 3.d0 * a2
+    case(1)
+       x(1) = h(ne) / 3.d0
+       x(2) = h(ne) / 6.d0
+       x(3) = h(ne) / 6.d0
+       x(4) = h(ne) / 3.d0
+    case(2)
+       x(1) = ( 3.d0 * a1 +        a2) * h(ne) / 12.d0
+       x(2) = (        a1 +        a2) * h(ne) / 12.d0
+       x(3) = (        a1 +        a2) * h(ne) / 12.d0
+       x(4) = (        a1 + 3.d0 * a2) * h(ne) / 12.d0
+    case(3)
+       x(1) = (-4.d0 * a1 +        a2) / 6.d0
+       x(2) = (        a1 + 2.d0 * a2) / 6.d0
+       x(3) = (-2.d0 * a1 -        a2) / 6.d0
+       x(4) = (-       a1 + 4.d0 * a2) / 6.d0
+    case(4)
+       x(1) = -0.5d0
+       x(2) =  0.5d0
+       x(3) = -0.5d0
+       x(4) =  0.5d0
+    case(5)
+       x(1) = (-2.d0 * a1 -        a2) / 6.d0
+       x(2) = ( 2.d0 * a1 +        a2) / 6.d0
+       x(3) = (-       a1 - 2.d0 * a2) / 6.d0
+       x(4) = (        a1 + 2.d0 * a2) / 6.d0
+    case(6)
+       x(1) = (-a1 + a2) / 3.d0
+       x(2) = (-a1 + a2) / 6.d0
+       x(3) = (-a1 + a2) / 6.d0
+       x(4) = (-a1 + a2) / 3.d0
+    case(7)
+       x(1) = ( a1 - a2) / (2.d0 * h(ne))
+       x(2) = ( a1 - a2) / (2.d0 * h(ne))
+       x(3) = (-a1 + a2) / (2.d0 * h(ne))
+       x(4) = (-a1 + a2) / (2.d0 * h(ne))
+    case(8)
+       x(1) =-0.5d0
+       x(2) =-0.5d0
+       x(3) = 0.5d0
+       x(4) = 0.5d0
+    case(9)
+       x(1) = (-2.d0 * a1 -        a2) / 6.d0
+       x(2) = (-       a1 - 2.d0 * a2) / 6.d0
+       x(3) = ( 2.d0 * a1 +        a2) / 6.d0
+       x(4) = (        a1 + 2.d0 * a2) / 6.d0
+    case(10)
+       x(1) = a1 / h(ne)
+       x(2) =-a2 / h(ne)
+       x(3) =-a1 / h(ne)
+       x(4) = a2 / h(ne)
+    case(11)
+       x(1) = 1.d0 / h(ne)**2
+       x(2) =-1.d0 / h(ne)**2
+       x(3) =-1.d0 / h(ne)**2
+       x(4) = 1.d0 / h(ne)**2
+    case(12)
+       x(1) = ( a1 + a2) / (2.d0 * h(ne))
+       x(2) = (-a1 - a2) / (2.d0 * h(ne))
+       x(3) = (-a1 - a2) / (2.d0 * h(ne))
+       x(4) = ( a1 + a2) / (2.d0 * h(ne))
+    case(13)
+       x(1) = ( a1 - a2) / (2.d0 * h(ne))
+       x(2) = ( a1 - a2) / (2.d0 * h(ne))
+       x(3) = (-a1 + a2) / (2.d0 * h(ne))
+       x(4) = (-a1 + a2) / (2.d0 * h(ne))
+    case(14)
+       x(1) = (-a1 + a2) / h(ne)**3
+       x(2) = ( a1 - a2) / h(ne)**3
+       x(3) = ( a1 - a2) / h(ne)**3
+       x(4) = (-a1 + a2) / h(ne)**3
+    case default
+       stop 'XX falut ID in fem_integral'
+    end select
+
+  end function fem_integral
+end module core_module
+

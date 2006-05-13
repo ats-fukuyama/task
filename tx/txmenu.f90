@@ -6,19 +6,24 @@
 
 module menu
   use libraries, only : TOUPPER
-  use init_prof
-  use parameters
-  use file_io, only : TXSAVE, TXLOAD
-  use main, only : TXEXEC
-  use variables
+  use parameter_control
+  implicit none
+  private
+  public :: TXMENU
+
 contains
 
   SUBROUTINE TXMENU
 
-    INCLUDE 'txcomm.inc'
-
+    use commons
+    use main, only : TXEXEC
+    use graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
+    use file_io, only : TXSAVE, TXLOAD
+    use variables, only : TXCALV
+    use init_prof, only : TXPROF, TXINIT
     INTEGER :: ICONT, MODE, I
-    CHARACTER(80) :: LINE, KID*1, KID2*1
+    character(len=80) :: LINE
+    character(len=1)  :: KID, KID2
 
     IERR = 0
     ICONT = 0
@@ -36,64 +41,75 @@ contains
        CALL TXKLIN(LINE,KID,MODE)
        IF(MODE /= 1) CYCLE
 
-       IF      (KID == 'R') THEN
+       SELECT CASE(KID)
+       CASE('R')
           T_TX = 0.D0
           TPRE = 0.D0
           IERR = 0
           ICONT = 1
           CALL TXPROF
+          CALL TX_GRAPH_SAVE
           CALL TXEXEC
           TMAX=T_TX+DT*NTMAX
-       ELSE IF (KID == 'C') THEN
+       CASE('C')
           IF (ICONT == 0) THEN
              WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
              CYCLE
-          ENDIF
+          END IF
           NGR=-1
           CALL TXSTGR
           CALL TXEXEC
           TMAX=T_TX+DT*NTMAX
-       ELSE IF (KID == 'P') THEN
+       CASE('P')
           CALL TXPARM(KID)
           IF(KID == 'Q') EXIT
-       ELSE IF (KID == 'V') THEN
+       CASE('V')
           CALL TXVIEW
-       ELSE IF (KID == 'I') THEN
+       CASE('I')
           CALL TXINIT
-       ELSE IF (KID == 'Q') THEN
+       CASE('Q')
           EXIT
-       ELSE IF (KID == 'S') THEN
+       CASE('S')
           CALL TXSAVE
-       ELSE IF (KID == 'L') THEN
+       CASE('L')
           CALL TXLOAD
           IERR = 0
           NGR = -1
           ICONT = 1
-          CALL TXSTGR
-       ELSE IF (KID == 'G') THEN
+          CALL TX_GRAPH_SAVE
+       CASE('G')
           CALL TXGOUT
-       ELSE IF (KID == 'N') THEN
-          I = NINT((DelR / DR) - 0.5D0)
+       CASE('N')
+          IF(IDVD == 0) THEN
+             I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
+          ELSE
+             IF(DelR <= RC) THEN
+                I = NINT((DelR / (RC / NRCMAX)) - 0.5D0)
+             ELSE
+                I = NINT((DelR / ((RB - RC) / (NRMAX - NRCMAX))) - 0.5D0)
+             END IF
+          END IF
           X(I,1) = X(I,1) + DelN
           X(I,2) = X(I,2) + DelN
           CALL TXCALV(X)
-       ELSE IF (KID == 'B') THEN
+       CASE('B')
           KID2=LINE(2:2)
           CALL TOUPPER(KID2)
-          IF      (KID2 == 'P') THEN
+          SELECT CASE(KID2)
+          CASE('P')
              PNBCD =  1.D0
-          ELSE IF (KID2 == '0') THEN
+          CASE('0')
              PNBCD =  0.D0
-          ELSE IF (KID2 == 'M') THEN
+          CASE('M')
              PNBCD = -1.D0
-          ELSE
+          CASE DEFAULT
              WRITE(6,*) 'XX Unknown beam command'
-          ENDIF
-       ELSE IF (KID == '#') THEN
+          END SELECT
+       CASE('#')
           CONTINUE
-       ELSE
+       CASE DEFAULT
           WRITE(6,*) 'XX Unknown command'
-       ENDIF
+       END SELECT
     END DO
 
     RETURN
@@ -108,7 +124,8 @@ contains
   SUBROUTINE TXKLIN(LINE,KID,MODE)
 
     INTEGER :: ID, I, MODE, IST
-    CHARACTER LINE*80,KID*1
+    character(len=80) :: LINE
+    character(len=1)  :: KID
 
     !  ----- read line input input -----
 
@@ -120,13 +137,13 @@ contains
        ID=0
        DO I=1,80
           IF(LINE(I:I) == '=') ID=1
-       ENDDO
+       END DO
        IF(ID == 1) THEN
           CALL TXPARL(LINE)
           KID=' '
           MODE=2
           RETURN
-       ENDIF
+       END IF
 
        !  ----- command input -----
 
@@ -135,7 +152,7 @@ contains
        IF(KID >= 'A'.AND.KID <= 'Z') THEN
           MODE=1
           RETURN
-       ENDIF
+       END IF
 
        !  ----- line input -----
 
@@ -156,7 +173,7 @@ contains
        WRITE(6,*) 'XX INPUT ERROR !'
        MODE=3
 
-    ENDIF
+    END IF
 
     RETURN
   END SUBROUTINE TXKLIN

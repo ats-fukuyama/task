@@ -43,11 +43,12 @@
 
 PROGRAM TASK_TX
   
-  use menu
-  use init_prof
-
-  INCLUDE 'txcomm.inc'
-  CHARACTER(80) :: KPNAME
+  use menu, only : TXMENU
+  use init_prof, only : TXINIT
+  use commons, only : SLID
+  use parameter_control, only : TXPARF
+  implicit none
+  character(len=80) :: KPNAME
 
   CALL GSOPEN
   OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')

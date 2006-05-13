@@ -1,5 +1,9 @@
 !     $Id$
 module init_prof
+  use commons
+  implicit none
+  public
+
 contains
 
 !***************************************************************
@@ -10,8 +14,6 @@ contains
 
   SUBROUTINE TXINIT
 
-    INCLUDE 'txcomm.inc'
-
     !   ***** Configuration parameters *****
 
     !   Plasma minor radius (m)
@@ -19,6 +21,9 @@ contains
 
     !   Wall radius (m)
     RB = 0.4D0
+
+    !   Partition radius (m) available if NRCMAX /= 0
+    RC = 0.D0
 
     !   Plasma major radius (m)
     RR = 1.3D0
@@ -206,12 +211,21 @@ contains
     EPS = 1.D-2
 
     !   Iteration
-    ICMAX=10
+    ICMAX = 10
 
     !   ***** Mesh number parameters *****
 
-    !   Radial step number
-    NRMAX = 50
+    !   Number of nodes
+    !     NRCMAX: first section (mainly core or whole region)
+    !             No partitioning is carried out if NRCMAX=0 regardless of any RC values.
+    NRCMAX = 0
+    NRMAX  = 50
+
+    !   Whether partitioning or not
+    IDVD  = 0
+
+    !   Number of elements
+    NEMAX = NRMAX
 
     !   Number of time step
     NTMAX = 10
@@ -270,6 +284,17 @@ contains
     gDIV(28) = 1.E3
     gDIV(35) = 1.E14
     gDIV(36) = 1.E14
+    gDIV(37) = 1.E20
+    gDIV(38) = 1.E20
+    gDIV(39) = 1.E23
+    gDIV(40) = 1.E23
+    gDIV(41) = 1.E20
+    gDIV(42) = 1.E20
+    gDIV(43) = 1.E20
+    gDIV(44) = 1.E20
+    gDIV(45) = 1.E20
+    gDIV(46) = 1.E23
+    gDIV(47) = 1.E23
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -301,9 +326,9 @@ contains
   SUBROUTINE TXCALM
 
     USE physical_constants, only : AMP
-    INCLUDE 'txcomm.inc'
 
     INTEGER :: NR
+    real(8) :: DR1, DR2
 
     !   Ion mass number
     AMi   = PA * AMP
@@ -311,24 +336,35 @@ contains
     AMb   = AMi
     !   Radial step width
     DR    = RB / NRMAX
+    IF(NRCMAX /= 0.AND.RC /= 0) THEN
+       DR1   = RC / NRCMAX
+       DR2   =(RB - RC) / (NRMAX - NRCMAX)
+       IDVD  = 1
+    END IF
     !   Number of equations
     NQMAX = NQM
-!    NQMAX = 1
-    !   ???
+    !   Helical system
     UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
     UHph  = DBLE(NCphi) * UHth
 
-    !  Integer mesh
+    !  Mesh
 
-    DO NR = 0, NRMAX
-       R(NR) = DBLE(NR) * DR
-    END DO
+    IF(IDVD == 0) THEN
+       DO NR = 0, NRMAX
+          R(NR) = DBLE(NR) * DR
+       END DO
+    ELSE
+       DO NR = 0, NRCMAX
+          R(NR) = DBLE(NR) * DR1
+       END DO
+       DO NR = 1, NRMAX - NRCMAX
+          R(NR+NRCMAX) = RC + DBLE(NR) * DR2
+       END DO
+    END IF
 
-    !  Half integer mesh
+    !  Mesh interval
 
-    DO NR = 0, NRMAX
-       RHI(NR) = (DBLE(NR) + 0.5D0) * DR
-    END DO
+    H(1:NEMAX) = R(1:NRMAX) - R(0:NRMAX-1)
 
     RETURN
   END SUBROUTINE TXCALM
@@ -344,27 +380,26 @@ contains
     USE physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKEV
     use results
     use variables
-    INCLUDE 'txcomm.inc'
 
     INTEGER :: NR, NQ
-    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP
+    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP, DERIV3
+    real(8), dimension(:), allocatable :: AJPHL, TMP
+
+    NEMAX = NRMAX
 
     !  Define basic quantities like mass of particles, mesh, etc.
 
     CALL TXCALM
 
-    !  Define radial coordinate for graph
-
-    CALL TXPRFG
-
     !  Initialize variable vector
 
     X(1:NQMAX,0:NRMAX) = 0.D0
 
-    !  Half integer mesh variables
+    !  Variables
 
-    DO NR = 0, NRMAX - 1
-       RL=RHI(NR)
+    allocate(AJPHL(0:NRMAX))
+    DO NR = 0, NRMAX
+       RL=R(NR)
        IF (RL < RA) THEN
           PROF  = 1.D0 - (RL / RA)**2
           PROFT = PROF**2
@@ -373,9 +408,9 @@ contains
           ! Ni
           X(LQi1,NR)  = X(LQe1,NR) / PZ
           ! Ne*Te
-          X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea)*X(LQe1,NR)
+          X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea) * X(LQe1,NR)
           ! Ni*Ti
-          X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia)*X(LQi1,NR)
+          X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
           X(LQe1,NR)  = PNa * EXP(-(RL-RA) / rLn)
           X(LQi1,NR)  = X(LQe1,NR) / PZ
@@ -391,15 +426,15 @@ contains
        ! Bphi
        X(LQm5,NR) = BB
 
-       IF((1.D0-(RHI(NR)/RA)**PROFJ) <= 0.D0) THEN
+       IF((1.D0-(R(NR)/RA)**PROFJ) <= 0.D0) THEN
           PROF=0.D0    
        ELSE             
-          PROF= (1.D0-(RHI(NR)/RA)**PROFJ)
+          PROF= (1.D0-(R(NR)/RA)**PROFJ)
        END IF
        IF(FSHL == 0.D0) THEN
           ! Ne*UePhi
-          X(LQe4,NR) = - rIPs * 1.D6 / (AEE * PI * RA**2 * 1.D20) &
-               &                     * (PROFJ + 1) * PROF**PROFJ
+          AJPHL(NR) = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
+          X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
           AJOH(NR)= PROF
        ELSE
           X(LQe4,NR) = 0.D0
@@ -407,7 +442,7 @@ contains
        END IF
     END DO
 
-    ! Integer mesh variables
+    ! Poloidal magnetic field
 
     IF(FSHL == 0.D0) THEN
        X(LQm4,0) = 0.D0
@@ -416,61 +451,61 @@ contains
           IF (RL < RA) THEN
              PROF = 1.D0 - (RL / RA)**2
              ! Btheta
-             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2 * PI * RL) &
-                  &              * (1 - PROF**(PROFJ+1))
+             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) &
+                  &              * (1.D0 - PROF**(PROFJ+1))
           ELSE
-             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2 * PI * RL)
+             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
           END IF
        END DO
     ELSE
        X(LQm4,0) = 0.D0
        DO NR = 1, NRMAX
           RL=R(NR)
-          QL=(Q0-QA)*(1-(RL/RA)**2)+QA
+          QL=(Q0-QA)*(1.D0-(RL/RA)**2)+QA
           X(LQm4,NR) = BB*RL/(QL*RR)
        END DO
     END IF
 
+    ! Poloidal current density (Virtual current for helical system)
+
+    allocate(TMP(0:NRMAX))
     IF(FSHL == 0.D0) THEN
        AJV(0:NRMAX)=0.D0
     ELSE
-       DO NR=0,NRMAX
-          RL=R(NR)
-          RIP1=2.D0*PI*RL*X(LQm4,NR)/rMU0
-          RL=R(NR+1)
-          RIP2=2.D0*PI*RL*X(LQm4,NR+1)/rMU0
-          RL=RHI(NR)
-          ! Poloidal current density
-          AJV(NR)=(RIP2-RIP1)/(2.D0*PI*RL*DR)
+       TMP(0:NRMAX) = R(0:NRMAX) * X(LQm4,0:NRMAX)
+       DO NR = 0, NRMAX
+          dRIP = DERIV3(NR,R,TMP,NRMAX,NRM,0) * 2.D0 * PI / rMU0
+          AJV(NR)=dRIP/(2.D0*PI*R(NR))
        END DO
     END IF
+    deallocate(TMP)
 
-    DO NR = 0, NRMAX - 1
-       RL=RHI(NR)
+    ! Toroidal electric field
+
+    DO NR = 0, NRMAX
+       RL=R(NR)
        IF (RL < RA) THEN
           PROF = (1.D0 - (RL / RA)**2)**PROFJ
        ELSE
           PROF = 0.D0
        END IF
-       ! Ne on Half Integer Mesh
-       PNeHI(NR)=X(LQe1,NR)
-       ! Te on Half Integer Mesh
-       PTeHI(NR)=X(LQe5,NR)
+       ! Ne on Integer Mesh
+       PNeV(NR)=X(LQe1,NR)
+       ! Te on Integer Mesh
+       PTeV(NR)=X(LQe5,NR)/X(LQe1,NR)
        ! Coulomb logarithm
-       rLnLam = 15.D0 - LOG(ABS(PNeHI(NR))) / 2.D0 + LOG(ABS(PTeHI(NR)))
+       rLnLam = 15.D0 - 0.5D0 * LOG(ABS(PNeV(NR))) + LOG(ABS(PTeV(NR)))
        ! Resistivity
-       ETA =  SQRT(AME) * Zeff  * AEE**2 * rLnLam &
-            &           / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 &
-            &                   * (ABS(PTeHI(NR)) * rKeV)**1.5D0)
-       ! Jphi
-       rJP = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF
+       ETA =  0.51D0 * SQRT(AME) * AEE**2 * rLnLam &
+            &           / (3.D0 * EPS0**2 * (2.D0 * PI * ABS(PTeV(NR)) * rKeV)**1.5D0)
        IF(FSHL == 0.D0) THEN
           ! Ephi
-          X(LQm3,NR) = ETA * rJP
+          X(LQm3,NR) = ETA *  AJPHL(NR)
        ELSE
           X(LQm3,NR) = 0.D0
        END IF
     END DO
+    deallocate(AJPHL)
 
     T_TX=0.D0
     NGT=-1
@@ -494,24 +529,34 @@ contains
 
     CALL TXGLOB
 
-    !  Store center or edge values of variables for showing time-evolution graph
-
-    CALL TXSTGT(SNGL(T_TX))
-
-    !  Store global quantities for showing time-evolution graph
-
-    CALL TXSTGV(SNGL(T_TX))
-
-    !  Store profile data for showing graph
-
-    CALL TXSTGR
-
     RETURN
   END SUBROUTINE TXPROF
 
 end module init_prof
 
-module parameters
+module parameter_control
+  use commons
+  implicit none
+  public
+  NAMELIST /TX/ &
+       & RA,RB,RC,RR,BB, &
+       & PA,PZ,Zeff, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+       & De0,Di0,rMue0,rMui0,WPM0, &
+       & Chie0,Chii0, &
+       & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
+       & FSCX,FSLC,FSNC,FSLP,FSION,FSD0, &
+       & rLn,rLT, &
+       & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
+       & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+       & DLT,DT,EPS,ICMAX, &
+       & NRMAX,NRCMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
+       & DelR,DelN, &
+       & rG1,EpsH,FSHL,NCphi,Q0,QA, &
+       & rIPs,rIPe, &
+       & MODEG, gDIV, MODEAV, MODEl
+  private :: TXPLST
+
 contains
 !***************************************************************
 !
@@ -521,47 +566,35 @@ contains
 
   SUBROUTINE TXPARM(KID)
 
-    INCLUDE 'txcomm.inc'
-
-    NAMELIST /TX/ &
-         & RA,RB,RR,BB, &
-         & PA,PZ,Zeff, &
-         & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-         & De0,Di0,rMue0,rMui0,WPM0, &
-         & Chie0,Chii0, &
-         & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
-         & FSCX,FSLC,FSNC,FSLP,FSION,FSD0, &
-         & rLn,rLT, &
-         & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
-         & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-         & DLT,DT,EPS,ICMAX, &
-         & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
-         & DelR,DelN, &
-         & rG1,EpsH,FSHL,NCphi,Q0,QA, &
-         & rIPs,rIPe, &
-         & MODEG, gDIV, MODEAV, MODEl
-
-    INTEGER :: MODE, IST, KL
+    INTEGER :: IST
     LOGICAL :: LEX
-    CHARACTER(80) :: KPNAME, KLINE, KNAME*90, KID*1
+    character(len=*)  :: KID
 
-    MODE=0
-1   CONTINUE
-    WRITE(6,*) '# INPUT &TX :'
-    READ(5,TX,IOSTAT=IST)
-    IF(IST > 0) THEN
-       CALL TXPLST
-       GO TO 1
-    ELSE IF(IST < 0) THEN
-       KID='Q'
-    ELSE
-       KID=' '
-    END IF
-    GOTO 3000
+    DO 
+       WRITE(6,*) '# INPUT &TX :'
+       READ(5,TX,IOSTAT=IST)
+       IF(IST > 0) THEN
+          CALL TXPLST
+          CYCLE
+       ELSE IF(IST < 0) THEN
+          KID='Q'
+          EXIT
+       ELSE
+          KID=' '
+          EXIT
+       END IF
+    END DO
+    IERR=0
 
-    ENTRY TXPARL(KLINE)
+  END SUBROUTINE TXPARM
 
-    MODE=1
+  SUBROUTINE TXPARL(KLINE)
+
+    integer :: IST
+    logical :: LEX
+    character(len=*) :: KLINE
+    character(len=90) :: KNAME
+
     KNAME=' &TX '//KLINE//' &END'
     WRITE(7,'(A90)') KNAME
     REWIND(7)
@@ -572,11 +605,16 @@ contains
        WRITE(6,'(A)') ' ## PARM INPUT ACCEPTED.'
     END IF
     REWIND(7)
-    GOTO 3000
+    IERR=0
 
-    ENTRY TXPARF(KPNAME)
+  END SUBROUTINE TXPARL
 
-    MODE=2
+  SUBROUTINE TXPARF(KPNAME)
+
+    integer :: IST, KL
+    logical :: LEX
+    character(len=*) :: KPNAME
+
     INQUIRE(FILE=KPNAME,EXIST=LEX)
     IF(.NOT.LEX) RETURN
 
@@ -596,16 +634,9 @@ contains
     CALL KTRIM(KPNAME,KL)
     WRITE(6,*) &
          &     '## FILE (',KPNAME(1:KL),') IS ASSIGNED FOR PARM INPUT'
+    IERR=0
 
-3000 IERR=0
-
-    !    ERROR CHECK
-
-    IF(IERR /= 0.AND.MODE == 0) GO TO 1
-
-    RETURN
-
-  END SUBROUTINE TXPARM
+  END SUBROUTINE TXPARF
 
   !***** INPUT PARAMETER LIST *****
 
@@ -614,7 +645,7 @@ contains
     WRITE(6,601)
     RETURN
 
-601 FORMAT(' ','# &TX : RA,RB,RR,BB,PA,PZ,Zeff,'/ &
+601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/ &
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
@@ -624,7 +655,7 @@ contains
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'DLT,DT,EPS,ICMAX,'/ &
-         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
+         &       ' ',8X,'NRMAX,NRCMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
@@ -638,8 +669,6 @@ contains
 !***************************************************************
 
   SUBROUTINE TXVIEW
-
-    INCLUDE 'txcomm.inc'
 
     WRITE(6,'((1X,A6," =",1PD9.2,3(2X,A6," =",1PD9.2)))') &
          &   'RA    ', RA    ,  'RB    ', RB    ,  &
@@ -682,4 +711,4 @@ contains
 
     RETURN
   END SUBROUTINE TXVIEW
-end module parameters
+end module parameter_control

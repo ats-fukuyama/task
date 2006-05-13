@@ -1,142 +1,10 @@
 !     $Id$
-module sub_main
-contains
-
-!***************************************************************
-!
-!   Check negative density or temperature
-!
-!***************************************************************
-
-  SUBROUTINE TXCHCK(NTL,IC,XL,IER)
-
-    INCLUDE 'txcomm.inc'
-
-    INTEGER :: NTL, IC, IER, NR
-    REAL(8), DIMENSION(NQM,0:NRM) :: XL
-
-    IER = 0
-
-    DO NR = 0, NRMAX
-       IF (XL(LQe1,NR) < 0.D0 .OR. XL(LQi1,NR) < 0.D0) THEN
-          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
-               &           'Density become negative at ',  &
-               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-          WRITE(6,*) 'ne =', SNGL(XL(LQe1,NR)),  &
-               &             '   nNR =', SNGL(XL(LQi1,NR))
-          IER = 1
-          RETURN
-       END IF
-    END DO
-
-    DO NR = 0, NRMAX
-       IF (XL(LQe5,NR) < 0.D0 .OR. XL(LQi5,NR) < 0.D0) THEN
-          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
-               &           'Temperature become negative at ',  &
-               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-          WRITE(6,*) 'Te =', SNGL(XL(LQe5,NR)),  &
-               &              '   Ti =', SNGL(XL(LQi5,NR))
-          IER = 1
-          RETURN
-       END IF
-    END DO
-
-    RETURN
-  END SUBROUTINE TXCHCK
-
-!***********************************************************
-!
-!  LINE AVERAGE OF rN
-!
-!***********************************************************
-
-  REAL(8) FUNCTION rLINEAVE(Rho)
-
-    INCLUDE 'txcomm.inc'
-
-    INTEGER :: I, IR, NY = 100
-    REAL(8), INTENT(IN) :: Rho
-    REAL(8) :: D, DY, Y, RL, SUML
-
-    SUML = 0.D0
-    D = Rho * RA
-    DY = SQRT(RA*RA - D*D) / NY
-    DO I = 0, NY
-       Y = DY * I
-       RL = SQRT(Y*Y + D*D)
-       IR = NINT(RL * NRMAX / RA)
-       SUML = SUML + PNeI(IR) * 1.D20 * DY
-    END DO
-    rLINEAVE = SUML / SQRT(RA**2 - D**2)
-
-    RETURN
-  END FUNCTION rLINEAVE
-end module sub_main
-
-!***************************************************************
-!
-!   Write Data
-!
-!***************************************************************
-
-module output_console
-contains
-
-  SUBROUTINE TXWDAT
-    use sub_main, only : rLINEAVE
-    USE physical_constants, only : PI
-    INCLUDE 'txcomm.inc'
-
-    INTEGER :: NR
-    REAL(8) :: rNbar
-
-    !     ***** Volume-averaged density *****
-
-    rNbar = 2.D0 * PI * SUM(R(0:NRMAX) * PNeI(0:NRMAX)) * 1.D20 * DR
-    rNbar = rNbar / (PI * RB**2)
-
-    WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
-         &     'Ne(0)',    PNeI(0),  &
-         &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeI(0)) / 1.D3,  &
-         &     'UiPhi(0)', (9*X(LQi4,0)-X(LQi4,1))/(8*PNiI(0)) / 1.D3,  &
-         &     'N0(RB)',   (9*X(LQn1,NRMAX-1)-X(LQn1,NRMAX-2))/8 * 1.D20,&
-         &     'NB(0)',    rLINEAVE(0.D0)   / 1.D20,  &
-         &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20,  &
-         &     ' NB(0.6)', rLINEAVE(0.6D0)  / 1.D20,  &
-         &     '    PF',   PNeI(0) * 1.D20 / rNbar
-    WRITE(6,'(1X,A," =",1PD9.2,2X,A,"=",1PD9.2)') &
-         &     'Te(0)',    PTeI(0),  &
-         &     'Ti(0)   ', PTiI(0)
-    RETURN
-  END SUBROUTINE TXWDAT
-
-!***************************************************************
-!
-!   Write Data 2
-!
-!***************************************************************
-
-  SUBROUTINE TXWDAT2
-
-    INCLUDE 'txcomm.inc'
-
-    REAL :: gPNeMIN, gPNeMAX, gNB0MIN, gNB0MAX, gUiphMIN, gUiphMAX
-    CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
-    CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
-    CALL GMNMX1(GTY(0,11), 1, NGT + 1, 1, gUiphMIN, gUiphMAX)
-    WRITE(6,'((1X,A,"=",1PD9.2,2(2X,A,"=",1PD9.2)))') &
-         &     'MAX(Ne(0))',     gPNeMAX / 1.E20,  &
-         &     'MAX(NB(0))',     gNB0MAX / 1.E20,  &
-         &     'MAX(UiPhi(0))', gUiphMAX / 1.E3, &
-         &     'MIN(Ne(0))',     gPNeMIN / 1.E20,  &
-         &     'MIN(NB(0))',     gNB0MIN / 1.E20,  &
-         &     'MIN(UiPhi(0))', gUiphMIN / 1.E3
-
-    RETURN
-  END SUBROUTINE TXWDAT2
-end module output_console
-
 module main
+  use commons
+  implicit none
+  private
+  public :: TXEXEC
+
 contains
 
 !***************************************************************
@@ -146,16 +14,15 @@ contains
 !***************************************************************
 
   SUBROUTINE TXEXEC
-    use libraries, only : CPU_TIME, APRTOS
+    use libraries, only : APRTOS
     use results
     use output_console, only : TXWDAT
-    INCLUDE 'txcomm.inc'
 
     INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, iRTIME1, iRTIME2, &
          &     iRTIME3, NSTR1, NSTR2, NSTR3
     REAL :: gCTIME1, gCTIME2, gCTIME3
-    CHARACTER :: STR1*10, STR2*10, STR3*10
-    INTEGER, DIMENSION(8) :: TIMES
+    character(len=10) :: STR1, STR2, STR3
+    INTEGER, DIMENSION(1:8) :: TIMES
 
     IF (IERR /= 0) THEN
        WRITE(6,*) '### ERROR(TXEXEC) : Error should be cleared.'
@@ -210,13 +77,12 @@ contains
 
   SUBROUTINE TXLOOP
     use results
-    use sub_main, only : TXCHCK
     use variables
     use coefficients, only : TXCALA
-    INCLUDE 'txcomm.inc'
+    use graphic, only : TXSTGT, TXSTGV, TXSTGR
 
-    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM,nl,nll
-    REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV
+    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM
+    REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV, FCTR
     REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP
 
     IF (MODEAV == 0) THEN
@@ -259,11 +125,11 @@ contains
                 XN(NQ,NR) = BX(NQMAX * NR + NQ)
              END DO
           END DO
+          ! Avoid negative value of N01
+          WHERE(XN(19,0:NRMAX) < 0.D0) XN(19,0:NRMAX) = 0.D0
 
           ! Check negative density or temperature in variable matrix
           CALL TXCHCK(NT,IC,XN,IERR)
-!          IERR = 1
-!          write(6,*) IC
           IF (IERR /= 0) THEN
              X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
              CALL TXCALV(X)
@@ -274,6 +140,8 @@ contains
              CALL TXSTGR
              RETURN
           END IF
+
+!          IF(IC == 1) EXIT L_IC
 
           L_NQ:DO NQ = 1, NQMAX
              ! Calculate maximum root-mean-square X and grid point at that time
@@ -360,8 +228,6 @@ contains
 
   SUBROUTINE TXCALB
 
-    INCLUDE 'txcomm.inc'
-
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
 
     !  NR : number of radial mesh 
@@ -382,7 +248,8 @@ contains
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           NC = 0
-          NC1 = NLC(NC,NQ,NR)
+          NC1 = NLCR(NC,NQ,NR)
+          IF(NC1 == 0) CYCLE
           IC = NQMAX + (NC1 - 1) - (NQ - 1)
           IB = IC + NQMAX
           IA = IB + NQMAX
@@ -397,7 +264,8 @@ contains
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           DO NC = 1, NLCMAX(NQ)
-             NC1 = NLC(NC,NQ,NR)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 == 0) CYCLE
              IC = NQMAX + (NC1 - 1) - (NQ - 1)
              IB = IC + NQMAX
              IA = IB + NQMAX
@@ -413,14 +281,11 @@ contains
 
     BX(1:NQMAX*(NRMAX+1)) = 0.D0
 
-    ! Note that ALC and CLC are actually meaningless because they are null.
-    ! All we have to handle is only BLC(NC,NQ,NR) * X(NC1,NR).
-
     ! In the case of NC=0 i.e. time derivative term effects in any equations
     NC = 0
     NR = 0
     DO NQ = 1, NQMAX
-       NC1 = NLC(NC,NQ,NR)
+       NC1 = NLCR(NC,NQ,NR)
        BX(NQMAX * NR + NQ) &
             & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) &
             &                       + ALC(NC,NQ,NR) * X(NC1,NR+1)
@@ -428,7 +293,7 @@ contains
 
     DO NR = 1, NRMAX - 1
        DO NQ = 1, NQMAX
-          NC1 = NLC(NC,NQ,NR)
+          NC1 = NLCR(NC,NQ,NR)
           BX(NQMAX * NR + NQ) &
                &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
                &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) &
@@ -438,7 +303,7 @@ contains
 
     NR = NRMAX
     DO NQ = 1, NQMAX
-       NC1 = NLC(NC,NQ,NR)
+       NC1 = NLCR(NC,NQ,NR)
        BX(NQMAX * NR + NQ) &
             & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
             &                       + BLC(NC,NQ,NR) * X(NC1,NR  )
@@ -455,5 +320,43 @@ contains
 
     RETURN
   END SUBROUTINE TXCALB
+
+!***************************************************************
+!
+!   Check negative density or temperature
+!
+!***************************************************************
+
+  SUBROUTINE TXCHCK(NTL,IC,XL,IER)
+
+    INTEGER :: NTL, IC, IER, NR
+    REAL(8), DIMENSION(NQM,0:NRM) :: XL
+
+    IER = 0
+
+    DO NR = 0, NRMAX
+       IF (XL(LQe1,NR) < 0.D0 .OR. XL(LQi1,NR) < 0.D0) THEN
+          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
+               &           'Density becomes negative at ',  &
+               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
+          WRITE(6,*) 'ne =', SNGL(XL(LQe1,NR)), '   ni =', SNGL(XL(LQi1,NR))
+          IER = 1
+          RETURN
+       END IF
+    END DO
+
+    DO NR = 0, NRMAX
+       IF (XL(LQe5,NR) < 0.D0 .OR. XL(LQi5,NR) < 0.D0) THEN
+          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
+               &           'Temperature becomes negative at ',  &
+               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
+          WRITE(6,*) 'Te =', SNGL(XL(LQe5,NR)), '   Ti =', SNGL(XL(LQi5,NR))
+          IER = 1
+          RETURN
+       END IF
+    END DO
+
+    RETURN
+  END SUBROUTINE TXCHCK
 end module main
 

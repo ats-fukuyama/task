@@ -4,8 +4,8 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-SRCS = txcnst.f90 txlib.f90 txrslt.f90 txcalv.f90 txcala.f90 txexec.f90 \
-       txinit.f90 txfile.f90 txmenu.f90 txmain.f90 txgraf.f90 
+SRCS = txcnst.f90 txcomm.f90 txlib.f90 txrslt.f90 txcalv.f90 txcala.f90 txinit.f90 \
+       txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 txmain.f90
 OBJS = $(SRCS:.f90=.o)
 PROG = tx
 LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
@@ -24,11 +24,11 @@ txlib.a: $(OBJS)
 	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
 libs:
-	(cd ../lib; make)
+	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
 
 $(PROG): $(LIBS)
-	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
-#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+#	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
+	$(F95) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
@@ -53,13 +53,12 @@ new :
 	-mkdir ../txnew/in
 	-cp -f in/* ../txnew/in
 
-txmain.o: txmain.f90 txcomm.inc
-txmenu.o: txmenu.f90 txcomm.inc
-txinit.o: txinit.f90 txcomm.inc
-txexec.o: txexec.f90 txcomm.inc
-txcalv.o: txcalv.f90 txcomm.inc
-txcala.o: txcala.f90 txcomm.inc
-txfile.o: txfile.f90 txcomm.inc
-txrslt.o: txrslt.f90 txcomm.inc
-txgraf.o: txgraf.f90 txcomm.inc
-txlib.o: txlib.f90
+txmain.o: txmain.f90 txcomm.f90
+txmenu.o: txmenu.f90 txcomm.f90
+txinit.o: txinit.f90 txcomm.f90
+txexec.o: txexec.f90 txcomm.f90
+txcalv.o: txcalv.f90 txcomm.f90
+txcala.o: txcala.f90 txcomm.f90
+txfile.o: txfile.f90 txcomm.f90
+txrslt.o: txrslt.f90 txcomm.f90
+txgraf.o: txgraf.f90 txcomm.f90

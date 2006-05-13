@@ -1,6 +1,9 @@
 !     $Id$
-
 module results
+  use commons
+  implicit none
+  public
+
 contains
 !***********************************************************
 !
@@ -10,8 +13,7 @@ contains
 
   SUBROUTINE TXGLOB
 
-    USE physical_constants, only : AEE, PI, rMU0, rKEV
-    INCLUDE 'txcomm.inc'
+    use physical_constants, only : AEE, PI, rMU0, rKEV
 
     INTEGER :: I, NS, NF
     REAL(8) :: RKAP, FKAP, RNSUM, RTSUM, ANFSUM, RWSUM, POHSUM, &
@@ -30,36 +32,36 @@ contains
     RKAP=1.D0
     FKAP=1.D0
 
-    RNSUM=SUM(PNeHI(0:NRMAX)*RHI(0:NRMAX))
-    RTSUM=SUM(PTeHI(0:NRMAX)*PNeHI(0:NRMAX)*RHI(0:NRMAX))
+    RNSUM=SUM(PNeV(0:NRMAX)*R(0:NRMAX))
+    RTSUM=SUM(PTeV(0:NRMAX)*PNeV(0:NRMAX)*R(0:NRMAX))
     ANSAV(1) = RNSUM*2.D0*PI*DR/(PI*RA*RA)
-    ANS0(1)  = PNeI(0)
+    ANS0(1)  = PNeV(0)
     IF(RNSUM > 0.D0) THEN
        TSAV(1) = RTSUM/RNSUM
     ELSE
        TSAV(1)=0.D0
     END IF
-    TS0(1) = PTeI(0)
+    TS0(1) = PTeV(0)
     WST(1) = RTSUM*1.5D0*2.D0*PI*RR*2.D0*PI*DR*RKEV*1.D14
 
-    RNSUM=SUM(PNiHI(0:NRMAX)*RHI(0:NRMAX))
-    RTSUM=SUM(PTiHI(0:NRMAX)*PNeHI(0:NRMAX)*RHI(0:NRMAX))
+    RNSUM=SUM(PNiV(0:NRMAX)*R(0:NRMAX))
+    RTSUM=SUM(PTiV(0:NRMAX)*PNeV(0:NRMAX)*R(0:NRMAX))
     ANSAV(2) = RNSUM*2.D0*PI*DR/(PI*RA*RA)
-    ANS0(2)  = PNiI(0)
+    ANS0(2)  = PNiV(0)
     IF(RNSUM > 0.D0) THEN
        TSAV(2) = RTSUM/RNSUM
     ELSE
        TSAV(2)=0.D0
     END IF
-    TS0(2) = PTiI(0)
+    TS0(2) = PTiV(0)
     WST(2) = RTSUM*1.5D0*2.D0*PI*RR*2.D0*PI*DR*RKEV*1.D14
 
-    ANFSUM=SUM(PNbHI(0:NRMAX)*RHI(0:NRMAX))
-    RWSUM =SUM(SNB(0:NRMAX)*RHI(0:NRMAX))
+    ANFSUM=SUM(PNbV(0:NRMAX)*R(0:NRMAX))
+    RWSUM =SUM(SNB(0:NRMAX)*R(0:NRMAX))
     WFT(1) = 0.5D0*AMi*RWSUM**2.D0*1.5D0 &
          &           *2.D0*PI*RR*2.D0*PI*DR*RKAP*RKEV*1.D14
     ANFAV(1) = ANFSUM*2.D0*PI*DR/(PI*RA*RA)
-    ANF0(1)  = PNbI(0)
+    ANF0(1)  = PNbV(0)
     IF(ANFSUM > 0.D0) THEN
        TFAV(1)  = RWSUM/ANFSUM
     ELSE
@@ -73,40 +75,33 @@ contains
 
     !     Input powers
 
-    POHSUM=SUM(POH(0:NRMAX)*RHI(0:NRMAX))
-    PNBSUM=SUM(PNB(0:NRMAX)*RHI(0:NRMAX))
-    !!  RNFSUM=SUM(PNF(0:NRMAX)*RHI(0:NRMAX))
+    POHSUM=SUM(POH(0:NRMAX)*R(0:NRMAX))
+    PNBSUM=SUM(PNB(0:NRMAX)*R(0:NRMAX))
+    !!  RNFSUM=SUM(PNF(0:NRMAX)*R(0:NRMAX))
     PNFSUM=0.D0
     POHT = POHSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     PNBT = PNBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     PNFT = PNFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
 
-    PRFeSUM=SUM(PRFe(0:NRMAX)*RHI(0:NRMAX))
-    PRFiSUM=SUM(PRFi(0:NRMAX)*RHI(0:NRMAX))
+    PRFeSUM=SUM(PRFe(0:NRMAX)*R(0:NRMAX))
+    PRFiSUM=SUM(PRFi(0:NRMAX)*R(0:NRMAX))
     PRFeTOT=PRFeSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     PRFiTOT=PRFiSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     PRFT=PRFeTOT+PRFiTOT
 
     !      DO NS=1,NSM
-    !        PRFSUM=SUM(PRF(0:NRMAX)*RHI(0:NRMAX))
+    !        PRFSUM=SUM(PRF(0:NRMAX)*R(0:NRMAX))
     !        PRFT = PRFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     !      END DO
 
-    !      PBSUM=SUM(PBIN(0:NRMAX)*RHI(0:NRMAX))
-    !      PBINT = PBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
-    !      DO NS=1,NSM
-    !        CALL TXSUMD(PBCL,RHI,NRMAX,PBSUM)
-    !        PBCLT = PBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
-    !      END DO
-
-    !      PFSUM=SUM(PFIN(0:NRMAX)*RHI(0:NRMAX))
+    !      PFSUM=SUM(PFIN(0:NRMAX)*R(0:NRMAX))
     !      PFINT = PFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     !      DO NS=1,NSM
-    !        CALL TXSUMD(PFCL(1,NS),RHI,NRMAX,PFSUM)
+    !        CALL TXSUMD(PFCL(1,NS),R,NRMAX,PFSUM)
     !        PFCLT(NS) = PFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
     !      END DO
 
-    !      PRLSUM=SUM(PRL(0:NRMAX)*RHI(0:NRMAX))
+    !      PRLSUM=SUM(PRL(0:NRMAX)*R(0:NRMAX))
 
     !     Output powers
 
@@ -116,15 +111,15 @@ contains
 
     DO I=1,NRMAX
        EION  = 13.64D0
-       PIE=PNeHI(I)*rNuION(I)*1.D20*EION*AEE
-       SIE=PNeHI(I)*rNuION(I)*1.D20
-       PIESUM=PIESUM+PIE*RHI(I)
-       SIESUM=SIESUM+SIE*RHI(I)
+       PIE=PNeV(I)*rNuION(I)*1.D20*EION*AEE
+       SIE=PNeV(I)*rNuION(I)*1.D20
+       PIESUM=PIESUM+PIE*R(I)
+       SIESUM=SIESUM+SIE*R(I)
 
        TNU=0.D0
-       PCX=(-1.5D0*PNeHI(I)*rNuION(I)*TNU/1.D20 &
-            &+1.5D0*PNiHI(I)*rNuiCX(I)*(PTiHI(I)-TNU))*RKEV*1.D20
-       PCXSUM=PCXSUM+PCX*RHI(I)
+       PCX=(-1.5D0*PNeV(I)*rNuION(I)*TNU/1.D20 &
+            &+1.5D0*PNiV(I)*rNuiCX(I)*(PTiV(I)-TNU))*RKEV*1.D20
+       PCXSUM=PCXSUM+PCX*R(I)
     END DO
 
     !      PRLT = PRLSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP/1.D6
@@ -133,9 +128,9 @@ contains
 
     !     Currents
 
-    AJTSUM=SUM(AJ  (0:NRMAX)*RHI(0:NRMAX))
-    AOHSUM=SUM(AJOH(0:NRMAX)*RHI(0:NRMAX))
-    ANBSUM=SUM(AJNB(0:NRMAX)*RHI(0:NRMAX))
+    AJTSUM=SUM(AJ  (0:NRMAX)*R(0:NRMAX))
+    AOHSUM=SUM(AJOH(0:NRMAX)*R(0:NRMAX))
+    ANBSUM=SUM(AJNB(0:NRMAX)*R(0:NRMAX))
 
     AJT   = AJTSUM*            2.D0*PI*DR*RKAP/1.D6
     AJOHT = AOHSUM*            2.D0*PI*DR*RKAP/1.D6
@@ -163,16 +158,16 @@ contains
     !     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*RKEV*1.D14
     !      END DO
     !
-    !!      CALL TXSUMD(SIE,RHI,NRMAX,SIESUM)
-    !!      CALL TXSUMD(SNF,RHI,NRMAX,SNFSUM)
-    SNBSUM=SUM(SNB(0:NRMAX)*RHI(0:NRMAX))
+    !!      CALL TXSUMD(SIE,R,NRMAX,SIESUM)
+    !!      CALL TXSUMD(SNF,R,NRMAX,SNFSUM)
+    SNBSUM=SUM(SNB(0:NRMAX)*R(0:NRMAX))
 
     !      SIET = SIESUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
     !      SNFT = SNFSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
     SNBT = SNBSUM*2.D0*PI*RR*2.D0*PI*DR*RKAP
 
     !      DO NS=1,NSM
-    !         CALL TXSUMD(SPE(1,NS),RHI,NRMAX,SPESUM)
+    !         CALL TXSUMD(SPE(1,NS),R,NRMAX,SPESUM)
     !         SPET(NS) = SPESUM*2.D0*PI*RR*2.D0*PI*DR
     !      END DO
 
@@ -207,40 +202,40 @@ contains
     FACT=1.D0
     FACT=RKAP/FKAP**2
 
-    BP(1:NRMAX)=BthI(1:NRMAX)
+    BP(1:NRMAX)=BthV(1:NRMAX)
 
     DO I=1,NRMAX-1
-       BBL   = SQRT(BthI(I)**2+BphI(I)**2)
-       SUMML = PNeHI(I)*PTeHI(I)*RKEV*1.D20+PNiHI(I)*PTiHI(I)*RKEV*1.D20
-       SUMPL = (PNeHI(I+1)*PTeHI(I+1)-PNeHI(I  )*PTeHI(I  ) &
-            & +PNiHI(I+1)*PTiHI(I+1)-PNiHI(I  )*PTiHI(I  )) &
+       BBL   = SQRT(BthV(I)**2+BphV(I)**2)
+       SUMML = PNeV(I)*PTeV(I)*RKEV*1.D20+PNiV(I)*PTiV(I)*RKEV*1.D20
+       SUMPL = (PNeV(I+1)*PTeV(I+1)-PNeV(I  )*PTeV(I  ) &
+            & +PNiV(I+1)*PTiV(I+1)-PNiV(I  )*PTiV(I  )) &
             & *RKEV*1.D20/DR
 
-       SUMM = SUMM + SUMML*2.D0*PI*RHI(I)*DR
-       SUMP = SUMP + 0.5D0*SUMPL*PI*RHI(I)*RHI(I)*DR
+       SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR
+       SUMP = SUMP + 0.5D0*SUMPL*PI*R(I)*R(I)*DR
        SUML = SUML + BP(I)**2*R(I)
        BETA(I)   = 2.D0*SUMM *rMU0/(PI*(R(I)*BBL)**2)
        BETAL(I)  = 2.D0*SUMML*rMU0/(           BBL **2)
        BETAP(I)  = 2.D0*SUMM *rMU0/(PI*(R(I)*BP(NRMAX))**2)*FACT
        BETAPL(I) = 2.D0*SUMML*rMU0/(           BP(NRMAX)**2)*FACT
        BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BP(I))**2)*FACT
-       SUMP = SUMP + 0.5D0*SUMPL*PI*RHI(I+1)*RHI(I+1)*DR
+       SUMP = SUMP + 0.5D0*SUMPL*PI*R(I+1)*R(I+1)*DR
     END DO
 
     I=NRMAX
-    BBL  = SQRT(BthI(I)**2+BphI(I)**2)
-    SUMML =(PNeHI(I)*PTeHI(I)+PNiHI(I)*PTiHI(I))*RHI(I)*RKEV*1.D20
+    BBL  = SQRT(BthV(I)**2+BphV(I)**2)
+    SUMML =(PNeV(I)*PTeV(I)+PNiV(I)*PTiV(I))*R(I)*RKEV*1.D20
     PNES = PNa * EXP(-(RB-RA) / rLn)
-    SUMPL = (PNES*PTea-PNeHI(I)*PTeHI(I)+PNES/PZ*PTia-PNiHI(I)*PTiHI(I)) &
+    SUMPL = (PNES*PTea-PNeV(I)*PTeV(I)+PNES/PZ*PTia-PNiV(I)*PTiV(I)) &
          & *RKEV*1.D20/DR*2.D0
 
     !  DO NF=1,NFM
-    !     SUMML = SUMML +SNB(I)*RHI(I)*RKEV*1.D20
+    !     SUMML = SUMML +SNB(I)*R(I)*RKEV*1.D20
     !     SUMPL = SUMPL +(0.D0-SNB(I))*RKEV*1.D20/DR*2.D0
     !  END DO
 
-    SUMM = SUMM + SUMML*2.D0*PI*RHI(I)*DR
-    SUMP = SUMP + 0.5D0*SUMPL*PI*RHI(I)*RHI(I)*DR
+    SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR
+    SUMP = SUMP + 0.5D0*SUMPL*PI*R(I)*R(I)*DR
     SUML = SUML + 0.5D0*BP(I)**2*R(I)
     BETA(I)   = 2.D0*SUMM *rMU0/(PI*(R(I)*BBL)**2)
     BETAL(I)  = 2.D0*SUMML*rMU0/(           BBL **2)
@@ -256,7 +251,7 @@ contains
     BETAA =BETA(NRMAX)
 
     ALI=8.D0*PI**2*DR*SUML*FKAP**2/((rMU0*rIp*1.D6)**2)
-    VLOOP = EphHI(NRMAX-1)*2*PI*RR
+    VLOOP = EphV(NRMAX)*2*PI*RR
 
     !  PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))
     PAI=PA
@@ -279,18 +274,20 @@ contains
     IF(Q(0) >= 1.D0) THEN
        RQ1=0.D0
     ELSE
-       IF(Q(1) > 1.D0) THEN
-          RQ1=SQRT( (1.D0-Q(0) )/(Q(1)-Q(0)) )*DR
-          GOTO 310
-       END IF
-       DO I=2,NRMAX
-          IF(Q(I) > 1.D0) THEN
-             RQ1=(R(I)-R(I-1))*(1.D0-Q(I-1))/(Q(I)-Q(I-1))+R(I-1)
-             GOTO 310
+       OUTER:DO 
+          IF(Q(1) > 1.D0) THEN
+             RQ1=SQRT( (1.D0-Q(0) )/(Q(1)-Q(0)) )*DR
+             EXIT OUTER
           END IF
-       END DO
-       RQ1=RA
-310    CONTINUE
+          DO I=2,NRMAX
+             IF(Q(I) > 1.D0) THEN
+                RQ1=(R(I)-R(I-1))*(1.D0-Q(I-1))/(Q(I)-Q(I-1))+R(I-1)
+                EXIT OUTER
+             END IF
+          END DO
+          RQ1=RA
+          EXIT OUTER
+       END DO OUTER
     END IF
 
     !  ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
@@ -300,25 +297,3 @@ contains
   END SUBROUTINE TXGLOB
 
 end module results
-
-!********************************************************
-!
-!      RADIAL INTEGRATION  (DOUBLE VARIABLES)
-!
-!********************************************************
-
-!!$      SUBROUTINE TXSUMD(A,B,NMAX,SUM)
-!!$
-!!$      IMPLICIT NONE
-!!$      INTEGER, INTENT(IN) :: NMAX
-!!$      REAL(8), DIMENSION(NMAX), INTENT(IN) :: A, B
-!!$      REAL(8), INTENT(OUT) :: SUM
-!!$      INTEGER :: N
-!!$
-!!$      SUM = 0.D0
-!!$      DO N=1,NMAX
-!!$         SUM=SUM+A(N)*B(N)
-!!$      END DO
-!!$
-!!$      RETURN
-!!$      END
