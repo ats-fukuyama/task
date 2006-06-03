@@ -70,7 +70,7 @@ contains
              CALL TXGRFR(-5,MODE)
           ELSE
              READ(STR(2:5),*,IOSTAT=IST) NGPR
-             IF (IST < 0) THEN
+             IF (IST /= 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
                 CYCLE
              END IF
@@ -437,6 +437,10 @@ contains
     GY(0:NRMAX,NGR,75) = SNGL(PRFi(0:NRMAX))
     GY(0:NRMAX,NGR,76) = SNGL(PRFe(0:NRMAX))
 
+    GY(0:NRMAX,NGR,77) = SNGL(PIE(0:NRMAX))
+    GY(0:NRMAX,NGR,78) = SNGL(PCX(0:NRMAX))
+    GY(0:NRMAX,NGR,79) = SNGL(POH(0:NRMAX))
+
     RETURN
   END SUBROUTINE TXSTGR
 
@@ -451,20 +455,20 @@ contains
     use commons
     use physical_constants, only : AEE, PI
     use output_console, only : rLINEAVE
+    use libraries, only : VALINT_SUB
 
     REAL, INTENT(IN) :: GTIME
-    INTEGER :: NR
-    REAL(8) :: BthL, BphL, BBL, SUM1, SUM2, DELS
+    REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
 
     IF (NGT < NGTM) NGT=NGT+1
 
     GTX(NGT) = GTIME
 
-    GTY(NGT,1) = SNGL(PNeV(0) * 1.D20)
-    GTY(NGT,2) = SNGL(rLINEAVE(0.D0))
-    GTY(NGT,3) = SNGL(rLINEAVE(0.24D0))
-    GTY(NGT,4) = SNGL(rLINEAVE(0.6D0))
-    GTY(NGT,5) = SNGL((PZ * PNiV(0) + PZ * PNbV(0) - PNeV(0)) * 1.D20)
+    GTY(NGT,1)  = SNGL(PNeV(0) * 1.D20)
+    GTY(NGT,2)  = SNGL(rLINEAVE(0.D0))
+    GTY(NGT,3)  = SNGL(rLINEAVE(0.24D0))
+    GTY(NGT,4)  = SNGL(rLINEAVE(0.6D0))
+    GTY(NGT,5)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) - PNeV(0)) * 1.D20)
     GTY(NGT,6)  = SNGL(UerV(NRMAX/2))
     GTY(NGT,7)  = SNGL(UethV(NRMAX/2))
     GTY(NGT,8)  = SNGL(UephV(0))
@@ -510,25 +514,17 @@ contains
     GTY(NGT,38) = SNGL(PN01V(0) * 1.D20)
     GTY(NGT,39) = SNGL(PN02V(0) * 1.D20)
 
-    SUM1=0.D0
-    SUM2=0.D0
-    DO NR=0,NRMAX-1
-       IF(R(NR) <= RA) THEN
-          IF(R(NR+1) <= RA) THEN
-             DELS=2.D0*PI*RR*2.D0*PI*R(NR)*DR
-          ELSE
-             DELS=2.D0*PI*RR*2.D0*PI*R(NR)*(RA-R(NR))
-          END IF
-          SUM1=SUM1+           PNeV(NR)*DELS
-          SUM2=SUM2+rNuION(NR)*PNeV(NR)*DELS
-       END IF
-    END DO
-    GTY(NGT,35) = SNGL(SUM1)
-    GTY(NGT,36) = SNGL(SUM2)
-    IF(NGT == 0.OR.ABS(SUM2) <= 0.D0) THEN
+    CALL VALINT_SUB(PNeV,NRA,PNESUM1)
+    PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
+    CALL VALINT_SUB(PNeV(0:NRMAX)*rNuION(0:NRMAX),NRA,PNESUM2)
+    PNESUM2 = 2.D0*PI*RR*2.D0*PI*(PNESUM2 + PNeV(NRA)*rNuION(NRA)*R(NRA)*(RA-R(NRA)))
+
+    GTY(NGT,35) = SNGL(PNESUM1)
+    GTY(NGT,36) = SNGL(PNESUM2)
+    IF(NGT == 0.OR.ABS(PNESUM2) <= 0.D0) THEN
        GTY(NGT,37) = 0.0
     ELSE
-       GTY(NGT,37) = SNGL(SUM1/SUM2)
+       GTY(NGT,37) = SNGL(PNESUM1/PNESUM2)
     END IF
 
     RETURN
@@ -549,12 +545,12 @@ contains
 
     GVX(NGVV) = GTIME
 
-    GVY(NGVV,1) = SNGL(TS0(1))
-    GVY(NGVV,2) = SNGL(TS0(2))
-    GVY(NGVV,3) = SNGL(TSAV(1))
-    GVY(NGVV,4) = SNGL(TSAV(2))
-    GVY(NGVV,5) = SNGL(PINT)
-    GVY(NGVV,6) = SNGL(POHT)
+    GVY(NGVV,1)  = SNGL(TS0(1))
+    GVY(NGVV,2)  = SNGL(TS0(2))
+    GVY(NGVV,3)  = SNGL(TSAV(1))
+    GVY(NGVV,4)  = SNGL(TSAV(2))
+    GVY(NGVV,5)  = SNGL(PINT)
+    GVY(NGVV,6)  = SNGL(POHT)
     GVY(NGVV,7)  = SNGL(PNBT)
     GVY(NGVV,8)  = SNGL(PRFT)
 
@@ -609,13 +605,17 @@ contains
     use commons
     INTEGER, INTENT(IN) :: MODE
     INTEGER, INTENT(IN) :: NGYRIN
-    INTEGER :: IND, NG, NR, NGYR
+    INTEGER :: IND, NG, NR, NGYR, NE
     REAL(4), DIMENSION(0:NRM,0:NGRM) :: GYL
     character(len=40) :: STR
+    character(len=1) :: KSTR
+    character(len=3) :: KEND
+    real, dimension(4) :: GPX, GPY
+    real :: GPXL, FACT
 
     NGYR = NGYRIN
 
-    IF (NGYR == 0) NGYR = -1
+!    IF (NGYR == 0) NGYR = -1
 
     IF (NGR <= -1) THEN
        WRITE(6,*) 'G', NGYR, ' has no data'
@@ -648,6 +648,25 @@ contains
     CALL NUMBI(NGRSTP,'(I4)',4)
 
     SELECT CASE(NGYR)
+    CASE(0)
+       ! Draw frame
+       GPX(1) =  2.0 ; GPY(1) =  1.5
+       GPX(2) =  2.0 ; GPY(2) = 17.0
+       GPX(3) = 24.0 ; GPY(3) = 17.0
+       GPX(4) = 24.0 ; GPY(4) =  1.5
+       CALL LINES2D(GPX,GPY,4)
+       ! Draw lines
+       FACT = (GPX(4) - GPX(1)) / R(NRMAX)
+       GPXL = GPX(1)
+       DO NE = 1, NEMAX-1
+          GPXL = GPXL + REAL(H(NE)) * FACT
+          CALL LINE2D(GPXL,1.5,GPXL,17.0)
+       END DO
+       WRITE(KSTR,'(I1)') 0
+       WRITE(KEND,'(I3)') NRMAX
+       CALL GTEXT2D(GPX(1),GPY(1)-0.5,KSTR,1,2)
+       CALL GTEXT2D(GPX(4),GPY(4)-0.5,KEND,3,2)
+
     CASE(1) 
        STR = '@n$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRM, NRMAX, NGR, gDIV(1))
@@ -798,7 +817,8 @@ contains
        STR = '@B$-$#f$#$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,18),NRMAX,NGR,STR,MODE,IND)
        STR = '@u$-b$#q$#$=(r)@'
-       CALL TXGRFRX(2,GX,GY(0,0,19),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,19), GYL, STR, NRM, NRMAX, NGR, gDIV(19))
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
        CALL TXWPGR
 
     CASE(13)
@@ -812,6 +832,19 @@ contains
 
        STR = '@TOTAL N$-0$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRM, NRMAX, NGR, gDIV(16))
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       CALL TXWPGR
+
+    CASE(14)
+       STR = '@PIE(r)@'
+       CALL TXGRFRX(0,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@PCX(r)@'
+       CALL TXGRFRX(1,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@POH(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,79), GYL, STR, NRM, NRMAX, NGR, gDIV(79))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        CALL TXWPGR
@@ -1661,7 +1694,7 @@ contains
        NR = 0
        NC1 = NLCR(NC,NQ,NR)
        IF(NC1 == 0) THEN
-          GQY(0:NRMAX,NC) = SNGL(PLC(NC,NQ,0:NRMAX))
+          GQY(NR,NC) = SNGL(PLC(NC,NQ,NR))
        ELSE
           GQY(NR,NC) = SNGL(  BLC(NC,NQ,NR) * X(NC1,NR  ) &
                &            + ALC(NC,NQ,NR) * X(NC1,NR+1) &
@@ -1670,7 +1703,7 @@ contains
        DO NR = 1, NRMAX - 1
           NC1 = NLCR(NC,NQ,NR)
           IF(NC1 == 0) THEN
-             GQY(0:NRMAX,NC) = SNGL(PLC(NC,NQ,0:NRMAX))
+             GQY(NR,NC) = SNGL(PLC(NC,NQ,NR))
           ELSE
              GQY(NR,NC) = SNGL(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
                   &            + BLC(NC,NQ,NR) * X(NC1,NR  ) &
@@ -1682,7 +1715,7 @@ contains
        NR = NRMAX
        NC1 = NLCR(NC,NQ,NR)
        IF(NC1 == 0) THEN
-          GQY(0:NRMAX,NC) = SNGL(PLC(NC,NQ,0:NRMAX))
+          GQY(NR,NC) = SNGL(PLC(NC,NQ,NR))
        ELSE
           GQY(NR,NC) = SNGL(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
                &            + BLC(NC,NQ,NR) * X(NC1,NR  ) &

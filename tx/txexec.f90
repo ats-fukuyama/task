@@ -111,9 +111,9 @@ contains
           CALL TXCALB
           CALL TXGLOB
           CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
-          IF (IERR == 30000) THEN
-             WRITE(6,*) '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
-                  &              NT, ' -', IC, ' step.'
+          IF (IERR >= 30000) THEN
+             WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
+                  &              NT, ' -', IC, ' step. IERR=',IERR
              IERR = 1
              XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
              GOTO 180
@@ -125,7 +125,8 @@ contains
                 XN(NQ,NR) = BX(NQMAX * NR + NQ)
              END DO
           END DO
-          ! Avoid negative value of N01
+          ! Avoid negative value
+          WHERE(XN(16,0:NRMAX) < 0.D0) XN(16,0:NRMAX) = 0.D0
           WHERE(XN(19,0:NRMAX) < 0.D0) XN(19,0:NRMAX) = 0.D0
 
           ! Check negative density or temperature in variable matrix
@@ -276,6 +277,8 @@ contains
           END DO
        END DO
     END DO
+
+!    BA(40,4) =-1.D0 / 0.15D0!6.6667D0
 
     ! *** Right-hand-side vector ***
 

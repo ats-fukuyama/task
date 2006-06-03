@@ -2,9 +2,9 @@ module commons
   implicit none
   public
 
-  integer, parameter :: NRM=100, NEM=NRM, NQM=20, NCM=26, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=76, NGYTM=39, &
-       &                NGYVM=43, NGPRM=13, NGPTM=13, NGPVM=7
+  integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=21, NGRM=20, &
+       &                NGTM=1000, NGVM=1000, NGYRM=79, NGYTM=39, &
+       &                NGYVM=43, NGPRM=14, NGPTM=13, NGPVM=7
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
@@ -46,7 +46,7 @@ module commons
   integer :: ICMAX
 
   ! Mesh parameters
-  integer :: NRMAX, NRCMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP
+  integer :: NRMAX, NRCMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA
 
   ! Parameters for parameter survey
   real(8) :: DelR, DelN
@@ -61,8 +61,8 @@ module commons
 
   ! Configuration parameters
   integer :: NT, NQMAX, IERR, IDVD
-  real(8) :: DR, T_TX, TMAX
-  real(8) :: AMi, AMb, Vb
+  real(8) :: T_TX, TMAX
+  real(8) :: AMI, AMB, Vb
   real(8) :: rIP, Bthb
   real(8) :: UHth, UHph
   real(8), dimension(0:NRM) :: R
@@ -73,6 +73,9 @@ module commons
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
        &                       PNbV, UbthV, UbphV, PN01V, PN02V
+
+  ! Derivative
+  real(8), dimension(0:NRM) :: RdBthV
 
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNuL, rNuiCX, &
@@ -86,6 +89,7 @@ module commons
 
   ! Sources and sinks
   real(8), dimension(0:NRM) :: PNB, SNB, PRFe, PRFi, POH, SiLC, SiLCth, SiLCph
+  real(8), dimension(0:NRM) :: PIE, PCX, SIE
 
   ! Safety factor, currents
   real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS

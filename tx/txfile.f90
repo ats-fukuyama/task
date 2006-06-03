@@ -14,13 +14,14 @@ contains
 
   SUBROUTINE TXWDAT
     use physical_constants, only : PI
+    use libraries, only : VALINT
 
     INTEGER :: NR
     REAL(8) :: rNbar
 
     !     ***** Volume-averaged density *****
 
-    rNbar = 2.D0 * PI * SUM(R(0:NRMAX) * PNeV(0:NRMAX)) * 1.D20 * DR
+    rNbar = 2.D0 * PI * VALINT(PNeV) * 1.D20
     rNbar = rNbar / (PI * RB**2)
 
     WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
@@ -160,7 +161,7 @@ contains
     WRITE(21) rG1
     WRITE(21) rIPs,rIPe
 
-    WRITE(21) DR,T_TX,TMAX,NT,NQMAX,IERR
+    WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
     WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     WRITE(21) NGT,NGYTM,NGYVM
@@ -236,7 +237,7 @@ contains
     READ(21) rG1
     READ(21) rIPs,rIPe
 
-    READ(21) DR,T_TX,TMAX,NT,NQMAX,IERR
+    READ(21) T_TX,TMAX,NT,NQMAX,IERR
     READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     READ(21) NGT,NGYT,NGYV
@@ -335,7 +336,7 @@ contains
     WRITE(21) rG1
     WRITE(21) rIPs,rIPe
 
-    WRITE(21) DR,T_TX,TMAX,NT,NQMAX,IERR
+    WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
     WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     WRITE(21) NGR,NGYRM
@@ -414,7 +415,7 @@ contains
     READ(21) rG1
     READ(21) rIPs,rIPe
 
-    READ(21) DR,T_TX,TMAX,NT,NQMAX,IERR
+    READ(21) T_TX,TMAX,NT,NQMAX,IERR
     READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     READ(21) NGR,NGYR

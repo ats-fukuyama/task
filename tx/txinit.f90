@@ -274,6 +274,7 @@ contains
     gDIV(13) = 1.E3
     gDIV(16) = 1.E14
     gDIV(18) = 1.E6
+    gDIV(19) = 1.E6
     gDIV(21) = 1.E6
     gDIV(22) = 1.E6
     gDIV(23) = 1.E3
@@ -295,6 +296,7 @@ contains
     gDIV(45) = 1.E20
     gDIV(46) = 1.E23
     gDIV(47) = 1.E23
+    gDIV(79) = 1.E6
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -328,15 +330,16 @@ contains
     USE physical_constants, only : AMP
 
     INTEGER :: NR
-    real(8) :: DR1, DR2
+    real(8) :: DR, DR1, DR2
 
     !   Ion mass number
-    AMi   = PA * AMP
+    AMI   = PA * AMP
     !   Beam ion mass number
-    AMb   = AMi
+    AMB   = AMI
     !   Radial step width
     DR    = RB / NRMAX
     IF(NRCMAX /= 0.AND.RC /= 0) THEN
+       IF(NRCMAX > NRMAX) STOP 'XX TXCALM: NRCMAX must be smaller than NRMAX!'
        DR1   = RC / NRCMAX
        DR2   =(RB - RC) / (NRMAX - NRCMAX)
        IDVD  = 1
@@ -362,6 +365,15 @@ contains
        END DO
     END IF
 
+    !  Maximum NR till RA
+
+    DO NR = 0, NRMAX-1
+       IF(R(NR) <= RA.AND.R(NR+1) >= RA) THEN
+          NRA = NR
+          EXIT
+       END IF
+    END DO
+
     !  Mesh interval
 
     H(1:NEMAX) = R(1:NRMAX) - R(0:NRMAX-1)
@@ -377,13 +389,17 @@ contains
 
   SUBROUTINE TXPROF
 
-    USE physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKEV
+    use physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKEV
     use results
     use variables
+    use libraries, only : F33, VALINT_SUB
 
     INTEGER :: NR, NQ
-    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP, DERIV3
-    real(8), dimension(:), allocatable :: AJPHL, TMP
+    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
+    REAL(8) :: EpsL, rLnLame, RNZ, SGMSPTZ, FT, RNUE, F33TEFF
+    REAL(8) :: ALP, dPe, dPi, VALE, VALI, BINCA
+    REAL(8) :: DERIV3, FCTR ! External functions
+    real(8), dimension(:), allocatable :: AJPHL, TMP, BINC
 
     NEMAX = NRMAX
 
@@ -412,7 +428,7 @@ contains
           ! Ni*Ti
           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
-          X(LQe1,NR)  = PNa * EXP(-(RL-RA) / rLn)
+          X(LQe1,NR)  = PNa * EXP(-(RL-RA) / rLn)!(RL - RB)**2 + PNa - (RA - RB)**2
           X(LQi1,NR)  = X(LQe1,NR) / PZ
 !!!!        X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
 !!!!        X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
@@ -427,9 +443,9 @@ contains
        X(LQm5,NR) = BB
 
        IF((1.D0-(R(NR)/RA)**PROFJ) <= 0.D0) THEN
-          PROF=0.D0    
+          PROF= 0.D0    
        ELSE             
-          PROF= (1.D0-(R(NR)/RA)**PROFJ)
+          PROF= 1.D0-(R(NR)/RA)**PROFJ
        END IF
        IF(FSHL == 0.D0) THEN
           ! Ne*UePhi
@@ -445,26 +461,34 @@ contains
     ! Poloidal magnetic field
 
     IF(FSHL == 0.D0) THEN
-       X(LQm4,0) = 0.D0
+       BthV(0) = 0.D0
        DO NR = 1, NRMAX
           RL=R(NR)
           IF (RL < RA) THEN
              PROF = 1.D0 - (RL / RA)**2
              ! Btheta
-             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) &
+             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) &
                   &              * (1.D0 - PROF**(PROFJ+1))
           ELSE
-             X(LQm4,NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
+             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
           END IF
        END DO
     ELSE
-       X(LQm4,0) = 0.D0
+       BthV(0) = 0.D0
        DO NR = 1, NRMAX
           RL=R(NR)
           QL=(Q0-QA)*(1.D0-(RL/RA)**2)+QA
-          X(LQm4,NR) = BB*RL/(QL*RR)
+          BthV(NR) = BB*RL/(QL*RR)
        END DO
     END IF
+    DO NR = 0, NRMAX
+       RL=R(NR)
+       IF (RL < RA) THEN
+          X(LQm4,NR) = - rMu0 * AEE * X(LQe4,NR) * 1.D20
+       ELSE
+          X(LQm4,NR) =0.D0
+       END IF
+    END DO
 
     ! Poloidal current density (Virtual current for helical system)
 
@@ -493,11 +517,21 @@ contains
        PNeV(NR)=X(LQe1,NR)
        ! Te on Integer Mesh
        PTeV(NR)=X(LQe5,NR)/X(LQe1,NR)
-       ! Coulomb logarithm
-       rLnLam = 15.D0 - 0.5D0 * LOG(ABS(PNeV(NR))) + LOG(ABS(PTeV(NR)))
-       ! Resistivity
-       ETA =  0.51D0 * SQRT(AME) * AEE**2 * rLnLam &
-            &           / (3.D0 * EPS0**2 * (2.D0 * PI * ABS(PTeV(NR)) * rKeV)**1.5D0)
+       ! Neoclassical resistivity by Sauter et al.
+       EpsL    = R(NR) / RR        ! Inverse aspect ratio
+       rLnLame = 31.3D0-LOG(SQRT(PNeV(NR)*1.D20)/ABS(PTeV(NR)*1.D3)) ! Coulomb logarithm
+       RNZ     = 0.58D0+0.74D0/(0.76D0+Zeff)
+       SGMSPTZ = 1.9012D4*(PTeV(NR)*1.D3)**1.5D0/(Zeff*RNZ*rLnLame) ! Spitzer resistivity
+       FT      = 1.46D0*SQRT(EpsL)-0.46D0*(EpsL)**1.5D0 ! Trapped particle fraction
+       IF(NR == 0) THEN
+          F33TEFF = 0.D0
+       ELSE
+          RNUE    = 6.921D-18*ABS(Q(NR))*RR*PNeV(NR)*1.D20 &
+               &   *Zeff*rLnLame/((PTeV(NR)*1.D3)**2*SQRT(EpsL)**3)
+          F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE) &
+               &   +0.45D0*(1.D0-FT)*RNUE/Zeff**1.5D0)
+       END IF
+       ETA     = 1.D0/(SGMSPTZ*F33(F33TEFF,Zeff))
        IF(FSHL == 0.D0) THEN
           ! Ephi
           X(LQm3,NR) = ETA *  AJPHL(NR)
@@ -513,13 +547,64 @@ contains
     NGVV=-1
     rIP=rIPs
 
-    !  Define physical variables from X on half and integer mesh
+    !  Define physical variables from X
 
     CALL TXCALV(X)
 
     !  Calculate various physical quantities
 
     CALL TXCALC
+
+    !  Initial condition Part II
+
+    DO NR = 0, NRMAX
+       dPe = DERIV3(NR,R,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKEV
+       dPi = DERIV3(NR,R,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKEV
+       ALP = PZ * (AME / AMI) * (rNueNC(NR) / rNuiNC(NR))
+       IF(NR /= 0) THEN
+          X(LQe3,NR) =(- PNiV(NR) * dPe - PNeV(NR) * dPi &
+               &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
+               &       - AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
+               &     / ( AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP) * R(NR))
+          X(LQi3,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
+               &       - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
+               &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
+               &     * ALP / (AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP) * R(NR))
+       END IF
+       X(LQm2,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
+            &       - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
+            &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
+            &     * rNueNC(NR) * AME &
+            &     / (AEE**2 * PNiV(NR) * PNeV(NR) * BphV(NR) * (1.D0 + ALP))
+       X(LQm1,NR) =(- PNiV(NR) * dPe * ALP + PNeV(NR) * dPi &
+            &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR) &
+            &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) * ALP) &
+            &     / ( AEE * PNeV(NR) * PNiV(NR) * (1.D0 + ALP))
+!       write(6,'(I3,4F18.10)') NR,X(LQe3,NR),X(LQi3,NR),X(LQm3,NR),X(LQm1,NR)
+    END DO
+    X(LQe3,0) = FCTR(R(1),R(2),X(LQe3,1),X(LQe3,2))
+    X(LQi3,0) = FCTR(R(1),R(2),X(LQi3,1),X(LQi3,2))
+
+    allocate(BINC(0:NRMAX))
+    DO NR = 0, NRMAX
+       CALL VALINT_SUB(X(LQe3,0:NRMAX),NR,VALE)
+       CALL VALINT_SUB(X(LQi3,0:NRMAX),NR,VALI)
+       BINC(NR) = rMU0 * AEE * ( VALE * 1.D20 - PZ * VALI * 1.D20)
+    END DO
+    BINCA = BINC(NRMAX)
+    BINC(0:NRMAX) = BINC(0:NRMAX) - BINCA
+    X(LQm5,0:NRMAX) = BB + BINC(0:NRMAX)
+    deallocate(BINC)
+
+    X(LQe2,0:NRMAX) =((        X(LQm5,0:NRMAX) * De(0:NRMAX) / PTeV(0:NRMAX) / rKEV) &
+         &          * (X(LQe3,0:NRMAX) - WPM(0:NRMAX) * R(0:NRMAX) * PNeV(0:NRMAX)) &
+         &          - (PZ**2 * X(LQm5,0:NRMAX) * Di(0:NRMAX) / PTiV(0:NRMAX) / rKEV) &
+         &          * (X(LQi3,0:NRMAX) - WPM(0:NRMAX) * R(0:NRMAX) * PNiV(0:NRMAX))) * AEE
+    X(LQi2,0:NRMAX) = X(LQe2,0:NRMAX) / PZ
+    X(LQm3,0:NRMAX) = X(LQm3,0:NRMAX) - BthV(0:NRMAX) * (X(LQe2,0:NRMAX) / PNeV(0:NRMAX) &
+         &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
+
+    CALL TXCALV(X)
 
     !  Calculate coefficient matrices for differential equations
 

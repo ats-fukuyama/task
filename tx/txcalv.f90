@@ -14,22 +14,28 @@ contains
 
   SUBROUTINE TXCALV(XL)
 
+    use libraries, only : VALINT_SUB, DERIV3SB
     REAL(8), DIMENSION(NQM,0:NRMAX), INTENT(INOUT) :: XL
     INTEGER :: NR
+    real(8) :: SUML
 
     ErV  (0:NRMAX) = XL(LQm1,0:NRMAX)
     EthV (0:NRMAX) = XL(LQm2,0:NRMAX)
     EphV (0:NRMAX) = XL(LQm3,0:NRMAX)
-    BthV (0:NRMAX) = XL(LQm4,0:NRMAX)
+    BthV (0)       = 0.D0
+    DO NR = 1, NRMAX
+       CALL VALINT_SUB(XL(LQm4,0:NRMAX),NR,SUML)
+       BthV(NR) = SUML / R(NR)
+    END DO
     BphV (0:NRMAX) = XL(LQm5,0:NRMAX)
     PNeV (0:NRMAX) = XL(LQe1,0:NRMAX)
     UerV (0:NRMAX) = XL(LQe2,0:NRMAX)/PNeV(0:NRMAX)
-    UethV(0:NRMAX) = XL(LQe3,0:NRMAX)/PNeV(0:NRMAX)
+    UethV(0:NRMAX) = XL(LQe3,0:NRMAX)/PNeV(0:NRMAX)*R(0:NRMAX)
     UephV(0:NRMAX) = XL(LQe4,0:NRMAX)/PNeV(0:NRMAX)
     PTeV (0:NRMAX) = XL(LQe5,0:NRMAX)/PNeV(0:NRMAX)
     PNiV (0:NRMAX) = XL(LQi1,0:NRMAX)
     UirV (0:NRMAX) = XL(LQi2,0:NRMAX)/PNiV(0:NRMAX)
-    UithV(0:NRMAX) = XL(LQi3,0:NRMAX)/PNiV(0:NRMAX)
+    UithV(0:NRMAX) = XL(LQi3,0:NRMAX)/PNiV(0:NRMAX)*R(0:NRMAX)
     UiphV(0:NRMAX) = XL(LQi4,0:NRMAX)/PNiV(0:NRMAX)
     PTiV (0:NRMAX) = XL(LQi5,0:NRMAX)/PNiV(0:NRMAX)
     PNbV (0:NRMAX) = XL(LQb1,0:NRMAX)
@@ -38,19 +44,21 @@ contains
           UbthV(NR) = 0.D0
           UbphV(NR) = 0.D0
        ELSE
-          UbthV(NR) = XL(LQb3,NR)/PNbV(NR)
+          UbthV(NR) = XL(LQb3,NR)/PNbV(NR)*R(NR)
           UbphV(NR) = XL(LQb4,NR)/PNbV(NR)
        END IF
     END DO
     PN01V(0:NRMAX) = XL(LQn1,0:NRMAX)
     PN02V(0:NRMAX) = XL(LQn2,0:NRMAX)
-!    do nr=0,nrmax
-!       write(6,'(I3,4F18.10)') nr,XL(LQm1,NR),XL(LQe1,NR),XL(LQi1,NR),XL(LQb1,NR)
+    do nr=0,nrmax
+!       write(6,'(I3,4F18.10)') nr,XL(LQm1,NR),XL(LQm3,NR),XL(LQe3,NR),XL(LQe3,NR)
 !       write(6,'(I3,2F20.10)') nr,XL(LQe4,NR),UephV(NR)
 !       write(6,'(I3,3F18.10)') nr,XL(LQi1,NR),XL(LQi4,NR),UiphV(NR)
 !       write(6,'(I3,3F18.10)') nr,XL(LQm2,NR),XL(LQm3,NR),XL(LQm4,NR)
 !       write(6,'(I3,2F18.10)') nr,XL(LQe1,NR),XL(LQi1,NR)
-!    end do
+    end do
+
+    RdBthV(0:NRMAX) = XL(LQm4,0:NRMAX) * R(0:NRMAX) - BthV(0:NRMAX)
 
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
@@ -67,7 +75,7 @@ contains
   SUBROUTINE TXCALC
 
     USE physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKEV
-    use libraries, only : EXPV
+    use libraries, only : EXPV, VALINT_SUB
 
     INTEGER :: NR, NP, NR1
     REAL(8) :: Sigma0, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti,  &
@@ -75,10 +83,10 @@ contains
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
          &     rGIC, rH, dErdr, dBetadr, &
          &     DCDBM, DeL, ETA, AJPH, AJTH, BN, AJPARA, EPARA, Vcr, Y, &
-         &     Ubst, Cs, RhoIT, ExpArg, AiP, UithL, UiphL,DISTAN, &
+         &     Ubst, Cs, RhoIT, ExpArg, AiP, DISTAN, &
          &     SiLCL, SiLCthL, SiLCphL
     real(8) :: DERIV3
-    real(8), dimension(:), allocatable :: Beta, Vexbr
+    real(8), dimension(0:NRMAX) :: Beta, Vexbr, SL1, SL2
 
     !     *** Constants ***
 
@@ -88,7 +96,7 @@ contains
 
     !     NBI beam velocity
 
-    Vb =  SQRT(2.D0 * Eb * rKEV / AMb)
+    Vb =  SQRT(2.D0 * Eb * rKEV / AMB)
 
     !     Poloidal magnetic field on wall
 
@@ -114,35 +122,24 @@ contains
     !    driven by NBI is generated near the edge where electron and bulk ion
     !    density are dilute although in this case fast ion density from 
     !    NBI is relatively large.
-    !
+
     !  For NBI heating
-    SL = 0.D0
-    DO NR = 0, NRMAX
-       IF (R(NR) < RA) THEN
-          SL = SL + 2.D0 * PI * R(NR) * DR * EXP(- (R(NR) / RNB)**2) &
-               &  * (1.D0 - (R(NR) / RA)** 4)
-       END IF
-    END DO
+    SL1(0:NRA) = EXP(- (R(0:NRA) / RNB)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+    CALL VALINT_SUB(SL1,NRA,SL)
+    SL = 2.D0 * PI * SL
 
     PNB0 = PNBH * 1.D6 / (2.D0 * Pi * RR * SL)
 
     !  For RF heating
-    SL = 0.D0
-    DO NR = 0, NRMAX
-       IF (R(NR) < RA) THEN
-          SL = SL + 2.D0 * PI * R(NR) * DR * EXP(- (R(NR) / RRF)**2) &
-               &  * (1.D0 - (R(NR) / RA)** 4)
-       END IF
-    END DO
+    SL2(0:NRA) = EXP(- (R(0:NRA) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+    CALL VALINT_SUB(SL2,NRA,SL)
+    SL = 2.D0 * PI * SL
 
     PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
     PRFi0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
 
-    allocate(Beta(0:NRMAX))
     Beta(0:NRMAX) = (PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)) &
-         &        * 1.D20 * rKeV &
-         &        /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
-    allocate(Vexbr(1:NRMAX))
+         &        * 1.D20 * rKeV /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
@@ -380,8 +377,7 @@ contains
        !     *** Collision frequency (momentum transfer with beam) ***
        ! reference : 92/04/02, 92/04/21
 
-       Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) &
-            &   * AME / AMI &
+       Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) * AME / AMI &
             &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
        Y = PNBCD * Vb / Vcr
        IF (Y > 0.D0) THEN
@@ -390,11 +386,11 @@ contains
           Ubst = 0.D0
        END IF
        rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
-            &     / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 * AMb * AME &
+            &     / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 * AMB * AME &
             &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
        rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rLnLam &
-            &     / (4.D0 * PI * EPS0**2 * AMb) &
-            &     * (1.D0 / AMb + 1.D0 / AMI) &
+            &     / (4.D0 * PI * EPS0**2 * AMB) &
+            &     * (1.D0 / AMB + 1.D0 / AMI) &
             &     * 1.D0 / ( Ubst**3 + 9.D0 * SQRT(3.D0 * PI) / 4.D0 &
             &     * (ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
        IF (Y > 0.D0) THEN
@@ -412,53 +408,43 @@ contains
           rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
                &              * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) &
                &              * (R(NR) - RA) / rLT
-!          write(6,'(I4,4F15.7)') NR,R(NR)/RA,Cs / (2.D0 * PI * Q(NR) * RR),1.D0 / (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA))),rNuL(NR)
        ELSE
           rNuL(NR) = 0.D0
        END IF
 
     END DO L_NR
-!    write(6,*) "****************************"
 
     !     ***** Ion Orbit Loss *****
 
-    SiLC(0:NRMAX)   = 0.D0
+    SiLC  (0:NRMAX) = 0.D0
     SiLCth(0:NRMAX) = 0.D0
     SiLCph(0:NRMAX) = 0.D0
     IF (ABS(FSLC) > 0.D0) THEN
-       NP = NINT(RA / DR)
-!       DO NR = 1, NP - 1
-       DO NR = 1, NP
+       DO NR = 1, NRA
           EpsL = R(NR) / RR
           Vti = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
           RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
           RhoIT = MIN(RhoIT,0.1D0)
           rNuAsI_inv = EpsL**1.5D0 * Vti / rNuii(NR) * Q(NR) * RR
           ExpArg = 2.D0 * EpsL / Vti**2 * (ErV(NR) / BthV(NR))**2
-          AiP = rNuii(NR) * SQRT(EpsL) * rNuAsI_inv / (1.D0 + rNuAsI_inv) &
-            & * EXPV(- ExpArg)
-          UithL = 0.5D0*(UithV(NR)+UithV(NR+1))
-          UiphL = 0.5D0*(UiphV(NR)+UiphV(NR+1))
-!          DO NR1 = NP, NRMAX - 1
-          DO NR1 = NP, NRMAX
+          AiP = rNuii(NR) * SQRT(EpsL) * rNuAsI_inv / (1.D0 + rNuAsI_inv) * EXPV(- ExpArg)
+          DO NR1 = NRA, NRMAX
              DISTAN = (R(NR1) - R(NR)) / RhoIT
              SiLCL = AiP * EXPV( - DISTAN**2) * PNiV(NR)
              SiLC(NR) = SiLC(NR) - SiLCL
              SiLC(NR1) = SiLC(NR1) + SiLCL * R(NR) / R(NR1)
-             SiLCthL = SiLCL * AMi * UithL
+             SiLCthL = SiLCL * AMI * UithV(NR)
              SiLCth(NR) = SiLCth(NR) - SiLCthL
              SiLCth(NR1) = SiLCth(NR1) + SiLCthL * R(NR) / R(NR1)
-             SiLCphL = SiLCL * AMi * UiphL
+             SiLCphL = SiLCL * AMI * UiphV(NR)
              SiLCph(NR) = SiLCph(NR) - SiLCphL
              SiLCph(NR1) = SiLCph(NR1) + SiLCphL * R(NR) / R(NR1)
           END DO
        END DO
-       SiLC(0:NRMAX)   = FSLC * SiLC(0:NRMAX)
+       SiLC  (0:NRMAX) = FSLC * SiLC  (0:NRMAX)
        SiLCth(0:NRMAX) = FSLC * SiLCth(0:NRMAX)
        SiLCph(0:NRMAX) = FSLC * SiLCph(0:NRMAX)
     END IF
-
-    deallocate(Beta,Vexbr)
 
     RETURN
   END SUBROUTINE TXCALC
