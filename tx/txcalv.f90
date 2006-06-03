@@ -420,7 +420,7 @@ contains
     SiLCth(0:NRMAX) = 0.D0
     SiLCph(0:NRMAX) = 0.D0
     IF (ABS(FSLC) > 0.D0) THEN
-       DO NR = 1, NRA
+       DO NR = 0, NRA
           EpsL = R(NR) / RR
           Vti = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
           RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
