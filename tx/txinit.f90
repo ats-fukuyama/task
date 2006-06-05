@@ -22,7 +22,7 @@ contains
     !   Wall radius (m)
     RB = 0.4D0
 
-    !   Partition radius (m) available if NRCMAX /= 0
+    !   Partition radius (m) available
     RC = 0.D0
 
     !   Plasma major radius (m)
@@ -216,13 +216,7 @@ contains
     !   ***** Mesh number parameters *****
 
     !   Number of nodes
-    !     NRCMAX: first section (mainly core or whole region)
-    !             No partitioning is carried out if NRCMAX=0 regardless of any RC values.
-    NRCMAX = 0
     NRMAX  = 50
-
-    !   Whether partitioning or not
-    IDVD  = 0
 
     !   Number of elements
     NEMAX = NRMAX
@@ -327,10 +321,11 @@ contains
 
   SUBROUTINE TXCALM
 
-    USE physical_constants, only : AMP
+    use physical_constants, only : AMP
+    use libraries, only : LORENTZ, BISECTION
 
     INTEGER :: NR
-    real(8) :: DR, DR1, DR2
+    real(8) :: DR, MAXAMP, CL, WL, RCL, VAL, RL
 
     !   Ion mass number
     AMI   = PA * AMP
@@ -338,12 +333,6 @@ contains
     AMB   = AMI
     !   Radial step width
     DR    = RB / NRMAX
-    IF(NRCMAX /= 0.AND.RC /= 0) THEN
-       IF(NRCMAX > NRMAX) STOP 'XX TXCALM: NRCMAX must be smaller than NRMAX!'
-       DR1   = RC / NRCMAX
-       DR2   =(RB - RC) / (NRMAX - NRCMAX)
-       IDVD  = 1
-    END IF
     !   Number of equations
     NQMAX = NQM
     !   Helical system
@@ -352,18 +341,17 @@ contains
 
     !  Mesh
 
-    IF(IDVD == 0) THEN
-       DO NR = 0, NRMAX
-          R(NR) = DBLE(NR) * DR
-       END DO
-    ELSE
-       DO NR = 0, NRCMAX
-          R(NR) = DBLE(NR) * DR1
-       END DO
-       DO NR = 1, NRMAX - NRCMAX
-          R(NR+NRCMAX) = RC + DBLE(NR) * DR2
-       END DO
-    END IF
+    CL  = 5.D0
+    WL  = 5.D-2
+    RCL = RC / RB
+    MAXAMP = LORENTZ(1.D0,CL,WL,RCL)
+    R(0) = 0.D0
+    DO NR = 1, NRMAX-1
+       RL = DBLE(NR) / DBLE(NRMAX)
+       CALL BISECTION(LORENTZ,CL,WL,RCL,MAXAMP,RL,R(NR))
+    END DO
+    R(NRMAX) = 1.D0
+    R(0:NRMAX) = R(0:NRMAX) * RB
 
     !  Maximum NR till RA
 
@@ -392,7 +380,7 @@ contains
     use physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKEV
     use results
     use variables
-    use libraries, only : F33, VALINT_SUB
+    use libraries, only : F33, INTG_P
 
     INTEGER :: NR, NQ
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
@@ -586,9 +574,10 @@ contains
     X(LQi3,0) = FCTR(R(1),R(2),X(LQi3,1),X(LQi3,2))
 
     allocate(BINC(0:NRMAX))
+    VALE = 0.D0 ; VALI = 0.D0
     DO NR = 0, NRMAX
-       CALL VALINT_SUB(X(LQe3,0:NRMAX),NR,VALE)
-       CALL VALINT_SUB(X(LQi3,0:NRMAX),NR,VALI)
+       VALE = VALE + INTG_P(X(LQe3,0:NRMAX),NR)
+       VALI = VALI + INTG_P(X(LQi3,0:NRMAX),NR)
        BINC(NR) = rMU0 * AEE * ( VALE * 1.D20 - PZ * VALI * 1.D20)
     END DO
     BINCA = BINC(NRMAX)
@@ -596,11 +585,13 @@ contains
     X(LQm5,0:NRMAX) = BB + BINC(0:NRMAX)
     deallocate(BINC)
 
-    X(LQe2,0:NRMAX) =((        X(LQm5,0:NRMAX) * De(0:NRMAX) / PTeV(0:NRMAX) / rKEV) &
-         &          * (X(LQe3,0:NRMAX) - WPM(0:NRMAX) * R(0:NRMAX) * PNeV(0:NRMAX)) &
-         &          - (PZ**2 * X(LQm5,0:NRMAX) * Di(0:NRMAX) / PTiV(0:NRMAX) / rKEV) &
-         &          * (X(LQi3,0:NRMAX) - WPM(0:NRMAX) * R(0:NRMAX) * PNiV(0:NRMAX))) * AEE
-    X(LQi2,0:NRMAX) = X(LQe2,0:NRMAX) / PZ
+    X(LQe2,1:NRMAX) =((        X(LQm5,1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKEV) &
+         &          * (X(LQe3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNeV(1:NRMAX)) &
+         &          - (PZ**2 * X(LQm5,1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKEV) &
+         &          * (X(LQi3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNiV(1:NRMAX))) * AEE
+    X(LQi2,1:NRMAX) = X(LQe2,1:NRMAX) / PZ
+    X(LQe2,0) = 0.D0
+    X(LQi2,0) = 0.D0
     X(LQm3,0:NRMAX) = X(LQm3,0:NRMAX) - BthV(0:NRMAX) * (X(LQe2,0:NRMAX) / PNeV(0:NRMAX) &
          &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
 
@@ -635,7 +626,7 @@ module parameter_control
        & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & DLT,DT,EPS,ICMAX, &
-       & NRMAX,NRCMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
+       & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
@@ -740,7 +731,7 @@ contains
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'DLT,DT,EPS,ICMAX,'/ &
-         &       ' ',8X,'NRMAX,NRCMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
+         &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &

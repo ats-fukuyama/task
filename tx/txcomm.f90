@@ -46,7 +46,7 @@ module commons
   integer :: ICMAX
 
   ! Mesh parameters
-  integer :: NRMAX, NRCMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA
+  integer :: NRMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA
 
   ! Parameters for parameter survey
   real(8) :: DelR, DelN
@@ -60,7 +60,7 @@ module commons
   !**********************************!
 
   ! Configuration parameters
-  integer :: NT, NQMAX, IERR, IDVD
+  integer :: NT, NQMAX, IERR
   real(8) :: T_TX, TMAX
   real(8) :: AMI, AMB, Vb
   real(8) :: rIP, Bthb

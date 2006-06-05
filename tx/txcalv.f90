@@ -14,7 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL)
 
-    use libraries, only : VALINT_SUB, DERIV3SB
+    use libraries, only : INTG_P, DERIV3SB
     REAL(8), DIMENSION(NQM,0:NRMAX), INTENT(INOUT) :: XL
     INTEGER :: NR
     real(8) :: SUML
@@ -23,8 +23,9 @@ contains
     EthV (0:NRMAX) = XL(LQm2,0:NRMAX)
     EphV (0:NRMAX) = XL(LQm3,0:NRMAX)
     BthV (0)       = 0.D0
+    SUML = 0.D0
     DO NR = 1, NRMAX
-       CALL VALINT_SUB(XL(LQm4,0:NRMAX),NR,SUML)
+       SUML = SUML + INTG_P(XL(LQm4,0:NRMAX),NR)
        BthV(NR) = SUML / R(NR)
     END DO
     BphV (0:NRMAX) = XL(LQm5,0:NRMAX)

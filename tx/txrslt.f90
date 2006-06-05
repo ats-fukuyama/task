@@ -14,7 +14,7 @@ contains
   SUBROUTINE TXGLOB
 
     use physical_constants, only : AEE, PI, rMU0, rKEV
-    use libraries, only : VALINT, VALINT_SUB
+    use libraries, only : INTG_F, INTG_P
 
     INTEGER :: I, NS, NF, NR
     REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
@@ -35,8 +35,8 @@ contains
     RKAP = 1.D0
     FKAP = 1.D0
 
-    RNINT = VALINT(PNeV)
-    RPEINT = VALINT(PTeV(0:NRMAX)*PNeV(0:NRMAX))
+    RNINT = INTG_F(PNeV)
+    RPEINT = INTG_F(PTeV(0:NRMAX)*PNeV(0:NRMAX))
     ANSAV(1) = RNINT*2.D0*PI/(PI*RA*RA)
     ANS0(1)  = PNeV(0)
     IF(RNINT > 0.D0) THEN
@@ -47,8 +47,8 @@ contains
     TS0(1) = PTeV(0)
     WST(1) = RPEINT*1.5D0*2.D0*PI*RR*2.D0*PI*RKEV*1.D14
 
-    RNINT = VALINT(PNiV)
-    RPIINT = VALINT(PTiV(0:NRMAX)*PNiV(0:NRMAX))
+    RNINT = INTG_F(PNiV)
+    RPIINT = INTG_F(PTiV(0:NRMAX)*PNiV(0:NRMAX))
     ANSAV(2) = RNINT*2.D0*PI/(PI*RA*RA)
     ANS0(2)  = PNiV(0)
     IF(RNINT > 0.D0) THEN
@@ -59,8 +59,8 @@ contains
     TS0(2) = PTiV(0)
     WST(2) = RPIINT*1.5D0*2.D0*PI*RR*2.D0*PI*RKEV*1.D14
 
-    ANFINT = VALINT(PNbV)
-    RWINT  = VALINT(SNB)
+    ANFINT = INTG_F(PNbV)
+    RWINT  = INTG_F(SNB)
     WFT(1) = 0.5D0*AMI*RWINT**2.D0*1.5D0*2.D0*PI*RR*2.D0*PI*RKAP*RKEV*1.D14
     ANFAV(1) = ANFINT*2.D0*PI/(PI*RA*RA)
     ANF0(1)  = PNbV(0)
@@ -77,24 +77,24 @@ contains
 
     !     Input powers
 
-    POHINT = VALINT(POH)
-    PNBINT = VALINT(PNB)
-    !!  RNFINT = VALINT(PNF)
+    POHINT = INTG_F(POH)
+    PNBINT = INTG_F(PNB)
+    !!  RNFINT = INTG_F(PNF)
     PNFINT = 0.D0
     POHT = POHINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     PNBT = PNBINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     PNFT = PNFINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
 
-    PRFeINT = VALINT(PRFe)
-    PRFiINT = VALINT(PRFi)
+    PRFeINT = INTG_F(PRFe)
+    PRFiINT = INTG_F(PRFi)
     PRFeTOT = PRFeINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     PRFiTOT = PRFiINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     PRFT    = PRFeTOT+PRFiTOT
 
-    !      PFINT = VALINT(PFIN)
+    !      PFINT = INTG_F(PFIN)
     !      PFINT = PFINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     !      DO NS=1,NSM
-    !        PFINT = VALINT(PFCL(0:NRMAX,NS))
+    !        PFINT = INTG_F(PFCL(0:NRMAX,NS))
     !        PFCLT(NS) = PFINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     !      END DO
 
@@ -105,10 +105,10 @@ contains
     SIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
     PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*RKEV
 
-!    PRLINT=VALINT(PRL)
-    PIEINT=VALINT(PIE)
-    SIEINT=VALINT(SIE)
-    PCXINT=VALINT(PCX)
+!    PRLINT=INTG_F(PRL)
+    PIEINT=INTG_F(PIE)
+    SIEINT=INTG_F(SIE)
+    PCXINT=INTG_F(PCX)
 
 !    PRLT = PRLINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
     PCXT = PCXINT*2.D0*PI*RR*2.D0*PI*RKAP/1.D6
@@ -116,9 +116,9 @@ contains
 
     !     Currents
 
-    AJTINT=VALINT(AJ  )
-    AOHINT=VALINT(AJOH)
-    ANBINT=VALINT(AJNB)
+    AJTINT=INTG_F(AJ  )
+    AOHINT=INTG_F(AJOH)
+    ANBINT=INTG_F(AJNB)
 
     AJT   = AJTINT*          2.D0*PI*RKAP/1.D6
     AJOHT = AOHINT*          2.D0*PI*RKAP/1.D6
@@ -148,14 +148,14 @@ contains
     !
     !!      CALL TXSUMD(SIE,R,NRMAX,SIEINT)
     !!      CALL TXSUMD(SNF,R,NRMAX,SNFINT)
-    SNBINT = VALINT(SNB)
+    SNBINT = INTG_F(SNB)
 
     !      SIET = SIEINT*2.D0*PI*RR*2.D0*PI*DR*RKAP
     !      SNFT = SNFINT*2.D0*PI*RR*2.D0*PI*DR*RKAP
     SNBT = SNBINT*2.D0*PI*RR*2.D0*PI*RKAP
 
     !      DO NS=1,NSM
-    !         SPEINT = VALINT(SPE(0:NRMAX,NS))
+    !         SPEINT = INTG_F(SPE(0:NRMAX,NS))
     !         SPET(NS) = SPEINT*2.D0*PI*RR*2.D0*PI*RKAP
     !      END DO
 
@@ -192,10 +192,11 @@ contains
     DO NR = 0, NRMAX
        dBetadr(NR) = DERIV3(NR,R,Betadef,NRMAX,NRM,0)
     END DO
+    RPEINT = 0.D0 ; RPIINT = 0.D0 ; dBetaSUM = 0.D0
     DO NR = 1, NRMAX
-       CALL VALINT_SUB(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR,RPEINT)
-       CALL VALINT_SUB(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR,RPIINT)
-       CALL VALINT_SUB(dBetadr,NR,dBetaSUM)
+       RPEINT = RPEINT + INTG_P(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR)
+       RPIINT = RPIINT + INTG_P(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR)
+       dBetaSUM = dBetaSUM + INTG_P(dBetadr,NR)
        RPINT =(RPEINT + RPIINT)*RKEV*1.D20
        SUMM  = 2.D0*PI*RPINT
        SUMP  = PI*R(NR)**2*dBetaSUM
@@ -257,7 +258,7 @@ contains
     BETAPA = BETAP(NRMAX)
     BETAA  = BETA(NRMAX)
 
-    BPINT = 0.5D0 * VALINT(BthV(0:NRMAX)**2)
+    BPINT = 0.5D0 * INTG_F(BthV(0:NRMAX)**2)
     ALI   = 8.D0*PI**2*BPINT*FKAP**2/((rMU0*rIp*1.D6)**2)
     VLOOP = EphV(NRMAX)*2.D0*PI*RR
 

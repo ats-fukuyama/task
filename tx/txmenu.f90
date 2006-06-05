@@ -80,15 +80,7 @@ contains
        CASE('G')
           CALL TXGOUT
        CASE('N')
-          IF(IDVD == 0) THEN
-             I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
-          ELSE
-             IF(DelR <= RC) THEN
-                I = NINT((DelR / (RC / NRCMAX)) - 0.5D0)
-             ELSE
-                I = NINT((DelR / ((RB - RC) / (NRMAX - NRCMAX))) - 0.5D0)
-             END IF
-          END IF
+          I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
           X(I,1) = X(I,1) + DelN
           X(I,2) = X(I,2) + DelN
           CALL TXCALV(X)

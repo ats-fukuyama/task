@@ -255,8 +255,8 @@ end module core_module
 module libraries
   implicit none
   private
-  public :: EXPV, APITOS, APTTOS, APSTOS, APRTOS, TOUPPER, DERIV3SB, VALINT, VALINT_SUB, &
-            F33
+  public :: EXPV, APITOS, APTTOS, APSTOS, APRTOS, TOUPPER, DERIV3SB, &
+            F33, INTG_F, VALINT_SUB, INTG_P, LORENTZ, BISECTION
 
 contains
 !***************************************************************
@@ -524,7 +524,7 @@ contains
 !
 !***************************************************************
 
-  REAL(8) FUNCTION VALINT(X)
+  REAL(8) FUNCTION INTG_F(X)
 
     ! Calculate \int_0^b (r * X) dr
 
@@ -538,9 +538,28 @@ contains
     DO NE = 1, NEMAX
        SUML = SUML + SUM(fem_integral(15,NE,X))
     END DO
-    VALINT = SUML
+    INTG_F = SUML
     
-  END FUNCTION VALINT
+  END FUNCTION INTG_F
+
+  REAL(8) FUNCTION INTG_P(X,NR)
+
+    ! Calculate \int (r * X) dr at one mesh
+
+    use commons, only : NRMAX
+    use core_module, only : fem_integral
+    integer, intent(in) :: NR
+    real(8), dimension(0:NRMAX), intent(in) :: X
+    integer :: NE
+
+    IF(NR == 0) THEN
+       INTG_P = 0.D0
+    ELSE
+       NE = NR
+       INTG_P = SUM(fem_integral(15,NE,X))
+    END IF
+    
+  END FUNCTION INTG_P
 
   SUBROUTINE VALINT_SUB(X,NRLMAX,VAL)
 
@@ -576,6 +595,57 @@ contains
     F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
 
   END FUNCTION F33
+
+!***************************************************************
+!
+!   Mesh generating function
+!
+!***************************************************************
+
+! This function is the function made by integration of the Lorentz function
+!   R  : radial coordinate
+!   C  : amplitude factor
+!   W  : width of flat region around R=RC
+!   RC : canter radial point of fine mesh region
+
+  REAL(8) FUNCTION LORENTZ(R,C,W,RC,AMP)
+    real(8), intent(in) :: r, c, w, rc
+    real(8), intent(in), optional :: AMP
+
+    LORENTZ = R + C * (W * ATAN((R - RC) / W) + W * ATAN(RC / W))
+    if(present(amp)) LORENTZ = LORENTZ / AMP
+
+  END FUNCTION LORENTZ
+
+!***************************************************************
+!
+!   Bisection method for solving the equation
+!
+!***************************************************************
+
+  SUBROUTINE BISECTION(f,cl,w,rc,amp,s,val)
+    real(8), external :: f
+    real(8), intent(in) :: cl, w, rc, amp, s
+    real(8), intent(out) :: val
+    integer :: i, n
+    real(8) :: a, b, c, eps, fa, fc
+
+    a = 0.d0 ; b= 1.d0
+    eps = 1.d-5
+    n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
+    fa = f(a,cl,w,rc,amp) - s
+    do i = 1, n
+       c = 0.5d0 * (a + b)
+       fc = f(c,cl,w,rc,amp) - s
+       if(fa * fc < 0.d0) then
+          b = c
+       else
+          a = c
+       end if
+    end do
+    val = c
+
+  END SUBROUTINE BISECTION
 
 end module libraries
 
