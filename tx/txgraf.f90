@@ -796,9 +796,8 @@ contains
        STR = '@T$-i$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@N$-0$=(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRM, NRMAX, NGR, gDIV(16))
-       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       STR = '@Chi$-e$=(r)@'
+       CALL TXGRFRX(2,GX,GY(0,0,60),NRMAX,NGR,STR,MODE,IND)
 
        CALL TXWPGR
 

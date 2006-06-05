@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=21, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=79, NGYTM=39, &
+       &                NGTM=1000, NGVM=1000, NGYRM=80, NGYTM=39, &
        &                NGYVM=43, NGPRM=14, NGPTM=13, NGPVM=7
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
