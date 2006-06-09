@@ -593,10 +593,7 @@ contains
          &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
 
     CALL TXCALV(X)
-
-    !  Calculate coefficient matrices for differential equations
-
-    !  CALL TXCALA
+    CALL TXCALC
 
     !  Calculate global quantities for storing and showing initial status
 
