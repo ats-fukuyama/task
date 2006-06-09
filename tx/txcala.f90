@@ -437,17 +437,18 @@ contains
     use physical_constants, only : AEE, AME, rKEV
 
     INTEGER :: NE
-    REAL(8), DIMENSION(0:NRMAX) :: TMP1, TMP2, TMP3, TMP4, TMP5, TMP6, TMP7, TMP8, TMP9
+    REAL(8), DIMENSION(0:NRMAX) :: TMP1, TMP2, TMP3, TMP4, TMP5, TMP6, TMP7, TMP8, TMP9, TMP
 
     TMP1(0:NRMAX) = rMue (0:NRMAX) * UethV(0:NRMAX)
     TMP2(0:NRMAX) = rNuei(0:NRMAX) * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     TMP3(0:NRMAX) = rNube(0:NRMAX) * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     TMP4(0:NRMAX) = FWthe(0:NRMAX) * WPM(0:NRMAX)
     TMP5(0:NRMAX) = FWthi(0:NRMAX) * WPM(0:NRMAX)
-    TMP6(0:NRMAX) = WWthe(0:NRMAX) * PNeV(0:NRMAX) /(PTeV(0:NRMAX) * rKEV)
-    TMP7(0:NRMAX) = WDthe(0:NRMAX)                 /(PTeV(0:NRMAX) * rKEV)
-    TMP8(0:NRMAX) = WWthi(0:NRMAX) * PNiV(0:NRMAX) /(PTiV(0:NRMAX) * rKEV)
-    TMP9(0:NRMAX) = WDthi(0:NRMAX)                 /(PTiV(0:NRMAX) * rKEV)
+!!$    TMP6(0:NRMAX) = WWthe(0:NRMAX) * PNeV(0:NRMAX) /(PTeV(0:NRMAX) * rKEV)
+!!$    TMP7(0:NRMAX) = WDthe(0:NRMAX)                 /(PTeV(0:NRMAX) * rKEV)
+!!$    TMP8(0:NRMAX) = WWthi(0:NRMAX) * PNiV(0:NRMAX) /(PTiV(0:NRMAX) * rKEV)
+!!$    TMP9(0:NRMAX) = WDthi(0:NRMAX)                 /(PTiV(0:NRMAX) * rKEV)
+    TMP(0:NRMAX) = FWthi(0:NRMAX) * PNiV(0:NRMAX) / PNeV(0:NRMAX)
 
     ! Ns*UsTheta(0) : 0
 
@@ -502,19 +503,25 @@ contains
 
        ! Wave interaction force (electron driven)
 
-       ELM(1:4,11,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,FWthe)
-       NLC(11,LQe3) = LQe3
-
-       ELM(1:4,12,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,TMP4)
-       NLC(12,LQe3) = LQe1
+!!$       ELM(1:4,11,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,FWthe)
+!!$       NLC(11,LQe3) = LQe3
+!!$
+!!$       ELM(1:4,12,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,TMP4)
+!!$       NLC(12,LQe3) = LQe1
 
        ! Wave interaction force (NRon driven)
+
+!!$       ELM(1:4,13,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,FWthi)
+!!$       NLC(13,LQe3) = LQi3
+!!$
+!!$       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP5)
+!!$       NLC(14,LQe3) = LQi1
 
        ELM(1:4,13,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,FWthi)
        NLC(13,LQe3) = LQi3
 
-       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP5)
-       NLC(14,LQe3) = LQi1
+       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP)
+       NLC(14,LQe3) = LQe3
 
        ! Loss to divertor
 
@@ -874,17 +881,18 @@ contains
     use physical_constants, only : AEE, AME, rKEV
 
     INTEGER :: NE
-    REAL(8), DIMENSION(0:NRMAX) :: TMP1, TMP2, TMP3, TMP4, TMP5, TMP6, TMP7, TMP8, TMP9
+    REAL(8), DIMENSION(0:NRMAX) :: TMP1, TMP2, TMP3, TMP4, TMP5, TMP6, TMP7, TMP8, TMP9, TMP
 
     TMP1(0:NRMAX) = rMui (0:NRMAX) * UithV(0:NRMAX)
     TMP2(0:NRMAX) = rNuei(0:NRMAX) * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     TMP3(0:NRMAX) = rNubi(0:NRMAX) * PNbV(0:NRMAX) / PNiV(0:NRMAX)
     TMP4(0:NRMAX) = FWthe(0:NRMAX) * WPM(0:NRMAX) 
     TMP5(0:NRMAX) = FWthi(0:NRMAX) * WPM(0:NRMAX)
-    TMP6(0:NRMAX) = WWthe(0:NRMAX) * PNeV(0:NRMAX) /(PTeV(0:NRMAX) * rKEV)
-    TMP7(0:NRMAX) = WDthe(0:NRMAX)                 /(PTeV(0:NRMAX) * rKEV)
-    TMP8(0:NRMAX) = WWthi(0:NRMAX) * PNiV(0:NRMAX) /(PTiV(0:NRMAX) * rKEV)
-    TMP9(0:NRMAX) = WDthi(0:NRMAX)                 /(PTiV(0:NRMAX) * rKEV)
+!!$    TMP6(0:NRMAX) = WWthe(0:NRMAX) * PNeV(0:NRMAX) /(PTeV(0:NRMAX) * rKEV)
+!!$    TMP7(0:NRMAX) = WDthe(0:NRMAX)                 /(PTeV(0:NRMAX) * rKEV)
+!!$    TMP8(0:NRMAX) = WWthi(0:NRMAX) * PNiV(0:NRMAX) /(PTiV(0:NRMAX) * rKEV)
+!!$    TMP9(0:NRMAX) = WDthi(0:NRMAX)                 /(PTiV(0:NRMAX) * rKEV)
+    TMP (0:NRMAX) = FWthi(0:NRMAX) * PNiV(0:NRMAX) / PNeV(0:NRMAX)
 
     ! Ni*UiTheta(0) : 0
 
@@ -939,19 +947,25 @@ contains
 
        ! Wave interaction force (electron driven)
 
-       ELM(1:4,11,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,FWthe)
-       NLC(11,LQi3) = LQe3
-
-       ELM(1:4,12,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,TMP4)
-       NLC(12,LQi3) = LQe1
+!!$       ELM(1:4,11,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,FWthe)
+!!$       NLC(11,LQi3) = LQe3
+!!$
+!!$       ELM(1:4,12,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,TMP4)
+!!$       NLC(12,LQi3) = LQe1
 
        ! Wave interaction force (NRon driven)
+
+!!$       ELM(1:4,13,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,FWthi)
+!!$       NLC(13,LQi3) = LQi3
+!!$
+!!$       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP5)
+!!$       NLC(14,LQi3) = LQi1
 
        ELM(1:4,13,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,FWthi)
        NLC(13,LQi3) = LQi3
 
-       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP5)
-       NLC(14,LQi3) = LQi1
+       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP)
+       NLC(14,LQi3) = LQe3
 
        ! Loss to divertor
 

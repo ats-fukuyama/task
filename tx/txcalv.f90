@@ -298,7 +298,7 @@ contains
 !       if(nr >= 35.and.nr<=45) write(6,'(5F15.7)') R(NR)/RA,FCDBM(NR),VC**2 / Wpe2* Va / (Q(NR) * RR),DeL
 !       if(nr >= 35.and.nr<=45) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,VC**2 / Wpe2 * Va / (Q(NR) * RR),DeL
 !       if(nr >= 35.and.nr<=42) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,Va / (Q(NR) * RR),DeL
-       IF(DeL >= 5.D0) DeL = 5.D0
+!!!       IF(DeL >= 5.D0) DeL = 5.D0
        ! Particle diffusivity
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
