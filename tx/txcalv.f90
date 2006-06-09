@@ -18,6 +18,7 @@ contains
     REAL(8), DIMENSION(NQM,0:NRMAX), INTENT(INOUT) :: XL
     INTEGER :: NR
     real(8) :: SUML
+    real(8), dimension(0:NRMAX) :: dPhi
 
     ErV  (0:NRMAX) = XL(LQm1,0:NRMAX)
     EthV (0:NRMAX) = XL(LQm2,0:NRMAX)
