@@ -83,7 +83,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V3.00 [06/04/21]
+TASK/TX V3.00 [06/06/06]
 \end{center}
 
 \section{Equations}
@@ -498,23 +498,23 @@ TASK/TX V3.00 [06/04/21]
  1    & LQm1 & $\Er$        & 0      & N\\
  2    & LQm2 & $\Eth$       & 0      & N\\
  3    & LQm3 & $\Eph$       & N      & N\\
- 4    & LQm4 & $\Bth$       & 0      & $B_{\theta \r{b}}$\\
+ 4    & LQm4 & $\frac{1}{r}\frac{\partial}{\partial r}(r \Bth)$       & N      & N\\
  5    & LQm5 & $\Bph$       & N      & $B_{\phi \r{V}}$\\
  6    & LQe1 & $\ne$        & N      & N\\
  7    & LQe2 & $\ne \uer$   & 0      & N\\
- 8    & LQe3 & $\ne \ueth$  & 0      & 0\\
+ 8    & LQe3 & $\frac{\ne \ueth}{r}$  & N      & N\\
  9    & LQe4 & $\ne \ueph$  & N      & N\\
  10   & LQe5 & $\ne \Te$    & N      & N\\
  11   & LQi1 & $\ni$        & N      & N\\
  12   & LQi2 & $\ni \uir$   & 0      & N\\
- 13   & LQi3 & $\ni \uith$  & 0      & 0\\
+ 13   & LQi3 & $\frac{\ni \uith}{r}$  & N      & N\\
  14   & LQi4 & $\ni \uiph$  & N      & N\\
  15   & LQi5 & $\ni \Ti$    & N      & N\\
  16   & LQb1 & $\nb$        & N      & N\\
- 17   & LQb3 & $\nb \ubth$  & 0      & 0\\
+ 17   & LQb3 & $\frac{\nb \ubth}{r}$  & N      & N\\
  18   & LQb4 & $\nb \ubph$  & N      & N\\
  19   & LQn1 & $\nna$       & N      & N\\
- 20   & LQn2 & $\nnb$       & N      & N\\\hline
+ 20   & LQn2 & $\nnb$       & N      & \mbox{Gas Puff}\\\hline
  \multicolumn{5}{l}{0: zero imposed}\\
  \multicolumn{5}{l}{N: no condition imposed}
 \end{tabular}

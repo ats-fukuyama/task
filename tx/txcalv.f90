@@ -14,7 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL)
 
-    use libraries, only : INTG_P, DERIV3SB
+    use libraries, only : INTG_P
     REAL(8), DIMENSION(NQM,0:NRMAX), INTENT(INOUT) :: XL
     INTEGER :: NR
     real(8) :: SUML
@@ -22,13 +22,18 @@ contains
     ErV  (0:NRMAX) = XL(LQm1,0:NRMAX)
     EthV (0:NRMAX) = XL(LQm2,0:NRMAX)
     EphV (0:NRMAX) = XL(LQm3,0:NRMAX)
-    BthV (0)       = 0.D0
     SUML = 0.D0
+    BthV (0)       = 0.D0
     DO NR = 1, NRMAX
-       SUML = SUML + INTG_P(XL(LQm4,0:NRMAX),NR)
+       SUML = SUML + INTG_P(XL(LQm4,0:NRMAX),NR,0)
        BthV(NR) = SUML / R(NR)
     END DO
-    BphV (0:NRMAX) = XL(LQm5,0:NRMAX)
+    SUML = 0.D0
+    BphV (NRMAX)   = BB
+    DO NR = NRMAX - 1, 0, -1
+       SUML = SUML + INTG_P(XL(LQm5,0:NRMAX),NR,1)
+       BphV(NR) = BphV(NRMAX) - SUML
+    END DO
     PNeV (0:NRMAX) = XL(LQe1,0:NRMAX)
     UerV (0:NRMAX) = XL(LQe2,0:NRMAX)/PNeV(0:NRMAX)
     UethV(0:NRMAX) = XL(LQe3,0:NRMAX)/PNeV(0:NRMAX)*R(0:NRMAX)
@@ -51,15 +56,6 @@ contains
     END DO
     PN01V(0:NRMAX) = XL(LQn1,0:NRMAX)
     PN02V(0:NRMAX) = XL(LQn2,0:NRMAX)
-    do nr=0,nrmax
-!       write(6,'(I3,4F18.10)') nr,XL(LQm1,NR),XL(LQm3,NR),XL(LQe3,NR),XL(LQe3,NR)
-!       write(6,'(I3,2F20.10)') nr,XL(LQe4,NR),UephV(NR)
-!       write(6,'(I3,3F18.10)') nr,XL(LQi1,NR),XL(LQi4,NR),UiphV(NR)
-!       write(6,'(I3,3F18.10)') nr,XL(LQm2,NR),XL(LQm3,NR),XL(LQm4,NR)
-!       write(6,'(I3,2F18.10)') nr,XL(LQe1,NR),XL(LQi1,NR)
-    end do
-
-    RdBthV(0:NRMAX) = XL(LQm4,0:NRMAX) * R(0:NRMAX) - BthV(0:NRMAX)
 
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
@@ -76,7 +72,7 @@ contains
   SUBROUTINE TXCALC
 
     USE physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKEV
-    use libraries, only : EXPV, VALINT_SUB
+    use libraries, only : EXPV, VALINT_SUB, DERIVF, TRCOFS
 
     INTEGER :: NR, NP, NR1
     REAL(8) :: Sigma0, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti,  &
@@ -87,7 +83,7 @@ contains
          &     Ubst, Cs, RhoIT, ExpArg, AiP, DISTAN, &
          &     SiLCL, SiLCthL, SiLCphL
     real(8) :: DERIV3
-    real(8), dimension(0:NRMAX) :: Beta, Vexbr, SL1, SL2
+    real(8), dimension(0:NRMAX) :: Beta, Vexbr, SL1, SL2, TMP
 
     !     *** Constants ***
 
@@ -146,6 +142,7 @@ contains
 
     !     ***** Integer mesh *****
 
+!    write(6,*) "++++++++++++++++++++++"
     L_NR: DO NR = 0, NRMAX
 
        Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
@@ -207,10 +204,16 @@ contains
        rNuAsE_inv = EpsL**1.5D0 * Wte / rNuei(NR)
        rNuAsI_inv = EpsL**1.5D0 * Wti / rNuii(NR)
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
-            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
-       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
-            &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
+            &     * (1.78D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
+            &     / (1.D0 + SQRT(0.37D0 * rNuei(NR) / Wte) + 1.25D0 * rNuei(NR) / Wte)
+       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wti &
+            &     * (1.78D0 / (rNuAsI_inv + SQRT(3.48D0 * rNuAsI_inv) + 1.52D0)) &
+            &     / (1.D0 + SQRT(0.37D0 * rNuii(NR) / Wti) + 1.25D0 * rNuii(NR) / Wti)
+!!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
+!!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
+!!$       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
+!!$            &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
        !     &               * (1 + EpsL**1.5D0 * rNuAsI)
        !     &               / (1 + 1.44D0
        !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
@@ -243,9 +246,11 @@ contains
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-       dQdr = DERIV3(NR,R,Q,NRMAX,NRM,0)
+!       dQdr = DERIV3(NR,R,Q,NRMAX,NRM,0)
+       dQdr = DERIVF(NR,R,Q,NRMAX)
        S(NR) = R(NR) / Q(NR) * dQdr
-       dBetadr = DERIV3(NR,R,Beta,NRMAX,NRM,0)
+!       dBetadr = DERIV3(NR,R,Beta,NRMAX,NRM,0)
+       dBetadr = DERIVF(NR,R,Beta,NRMAX)
        Alpha(NR) = - Q(NR)**2 * RR * dBetadr
 
        !     *** Wave-particle interaction ***
@@ -257,35 +262,10 @@ contains
           Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
           ! Arbitrary coefficient for CDBM model
           rGC = 8.D0
-          ! s-alpha parameter
-          IF (Alpha(NR) > 0.D0) THEN
-             SP = S(NR) - Alpha(NR)
-          ELSE
-             SP = Alpha(NR) - S(NR)
-          END IF
-          ! Fitting function: F for ballooning instability
-          IF (SP < 0.D0) THEN
-             rGBM = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SP) &
-                  &             * (1.D0 - 2.D0 * SP + 3.D0 * SP**2))
-          ELSE
-             rGBM = (1.D0 + 9.D0 * SQRT(2.D0) * SP**2.5D0) &
-                  &/ (SQRT(2.D0) * (  1.D0 - 2.D0 * SP &
-                  &                 + 3.D0 * SP**2 + 2.D0 * SP**3))
-          END IF
           ! Magnetic curvature
           rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
-          ! Fitting function: F for interchange instability
-          If (Alpha(NR) * rKappa(NR) < 0.D0) THEN
-             rGIC = 0.D0
-          ELSE
-             IF(NR == 0) THEN
-                rGIC = 0.D0
-             ELSE
-                rGIC = ABS(rKappa(NR))**1.5D0 / S(NR)**2
-             END IF
-          END IF
-          ! Select larger effect between ballooning and interchange modes
-          FCDBM(NR) = MAX(rGBM, rGIC)
+          ! Calculate CDBM coefficient
+          FCDBM(NR) = TRCOFS(S(NR),Alpha(NR),rKappa(NR))
           ! ExB rotational shear
           IF(NR == 0) THEN
              rH=0.D0
@@ -294,12 +274,11 @@ contains
              rH = Q(NR) * RR * R(NR) *  dErdr / (Va * S(NR))
           END IF
           
-          ! Coefficient of fitting formula
+          ! Turbulence suppression by ExB shear
           rG1h2(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
           ! Turbulent transport coefficient calculated by CDBM model
           DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
-          !write(6,*)DCDBM
           !DCDBM = MAX(DCDBM,1.D-05)
        ELSE
           rG1h2(NR)  = 0.D0
@@ -315,6 +294,11 @@ contains
                &       + FSBOHM * PTeV(NR) * rKEV / (16.D0 * AEE * BBL) &
                &       + FSPSCL
        END IF
+!       if(nr >= 33.and.nr<=40) write(6,'(5F15.7)') R(NR)/RA,FCDBM(NR),ABS(Alpha(NR))**1.5D0,FSBOHM * PTeV(NR) * rKEV / (16.D0 * AEE * BBL),DeL
+!       if(nr >= 35.and.nr<=45) write(6,'(5F15.7)') R(NR)/RA,FCDBM(NR),VC**2 / Wpe2* Va / (Q(NR) * RR),DeL
+!       if(nr >= 35.and.nr<=45) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,VC**2 / Wpe2 * Va / (Q(NR) * RR),DeL
+!       if(nr >= 35.and.nr<=42) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,Va / (Q(NR) * RR),DeL
+       IF(DeL >= 5.D0) DeL = 5.D0
        ! Particle diffusivity
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
@@ -325,13 +309,18 @@ contains
        Chie(NR) = Chie0 * DeL
        Chii(NR) = Chii0 * DeL
 
-       ! <omega/m> on half mesh
+       ! <omega/m>
        WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
-       ! Force induced by drift wave (eq.(8),(13)) on mesh
+       ! Force induced by drift wave (eq.(8),(13))
        FWthe(NR) = AEE**2         * BphV(NR)**2 * De(NR) &
             &            / (PTeV(NR) * rKeV)
        FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) &
             &            / (PTiV(NR) * rKeV)
+       ! Work induced by drift wave
+       WWthe(NR) =      AEE * BphV(NR) * De(NR)
+       WWthi(NR) = PZ * AEE * BphV(NR) * Di(NR)
+       WDthe(NR) =      AEE * BphV(NR) *(rMue(NR) - 0.5D0 * De(NR))
+       WDthi(NR) = PZ * AEE * BphV(NR) *(rMui(NR) - 0.5D0 * Di(NR))
 
        !     *** Heating profile ***
 
@@ -407,13 +396,30 @@ contains
 !!!!        rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
 !!!!     &                  * LOG(0.3D0 / (R(NR) - RA)))
           rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-               &              * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) &
-               &              * (R(NR) - RA) / rLT
+               &              * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA))))! &
+!               &              * (R(NR) - RA) / rLT
        ELSE
           rNuL(NR) = 0.D0
        END IF
 
     END DO L_NR
+
+!!$    TMP(0:NRMAX) = Chie(0:NRMAX)
+!!$    Chie(0)         = TMP(0)
+!!$    Chie(1:NRMAX-1) = 0.5D0 * (Chie(0:NRMAX-2) + Chie(1:NRMAX-1))
+!!$    Chie(NRMAX)     = TMP(NRMAX)
+!!$    TMP(0:NRMAX) = Chii(0:NRMAX)
+!!$    Chii(0)         = TMP(0)
+!!$    Chii(1:NRMAX-1) = 0.5D0 * (Chii(0:NRMAX-2) + Chii(1:NRMAX-1))
+!!$    Chii(NRMAX)     = TMP(NRMAX)
+!!$    TMP(0:NRMAX) = rMue(0:NRMAX)
+!!$    rMue(0)         = TMP(0)
+!!$    rMue(1:NRMAX-1) = 0.5D0 * (rMue(0:NRMAX-2) + rMue(1:NRMAX-1))
+!!$    rMue(NRMAX)     = TMP(NRMAX)
+!!$    TMP(0:NRMAX) = rMui(0:NRMAX)
+!!$    rMui(0)         = TMP(0)
+!!$    rMui(1:NRMAX-1) = 0.5D0 * (rMui(0:NRMAX-2) + rMui(1:NRMAX-1))
+!!$    rMui(NRMAX)     = TMP(NRMAX)
 
     !     ***** Ion Orbit Loss *****
 
@@ -449,4 +455,5 @@ contains
 
     RETURN
   END SUBROUTINE TXCALC
+
 end module variables

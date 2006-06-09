@@ -325,7 +325,7 @@ contains
     use libraries, only : LORENTZ, BISECTION
 
     INTEGER :: NR
-    real(8) :: DR, MAXAMP, CL, WL, RCL, VAL, RL
+    real(8) :: DR, MAXAMP, CL, WL, RCL, RL
 
     !   Ion mass number
     AMI   = PA * AMP
@@ -385,9 +385,9 @@ contains
     INTEGER :: NR, NQ
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
     REAL(8) :: EpsL, rLnLame, RNZ, SGMSPTZ, FT, RNUE, F33TEFF
-    REAL(8) :: ALP, dPe, dPi, VALE, VALI, BINCA
+    REAL(8) :: ALP, dPe, dPi, SUML
     REAL(8) :: DERIV3, FCTR ! External functions
-    real(8), dimension(:), allocatable :: AJPHL, TMP, BINC
+    real(8), dimension(:), allocatable :: AJPHL, TMP
 
     NEMAX = NRMAX
 
@@ -416,7 +416,7 @@ contains
           ! Ni*Ti
           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
-          X(LQe1,NR)  = PNa * EXP(-(RL-RA) / rLn)!(RL - RB)**2 + PNa - (RA - RB)**2
+          X(LQe1,NR)  = (RL - RB)**2 + PNa - (RA - RB)**2!PNa * EXP(-(RL-RA) / rLn)!(RL - RB)**2 + PNa - (RA - RB)**2
           X(LQi1,NR)  = X(LQe1,NR) / PZ
 !!!!        X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
 !!!!        X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
@@ -428,7 +428,7 @@ contains
        ! N0_2 (fast neutrals)
        X(LQn2,NR) = 0.D0
        ! Bphi
-       X(LQm5,NR) = BB
+       X(LQm5,NR) = 0.D0
 
        IF((1.D0-(R(NR)/RA)**PROFJ) <= 0.D0) THEN
           PROF= 0.D0    
@@ -573,21 +573,18 @@ contains
     X(LQe3,0) = FCTR(R(1),R(2),X(LQe3,1),X(LQe3,2))
     X(LQi3,0) = FCTR(R(1),R(2),X(LQi3,1),X(LQi3,2))
 
-    allocate(BINC(0:NRMAX))
-    VALE = 0.D0 ; VALI = 0.D0
-    DO NR = 0, NRMAX
-       VALE = VALE + INTG_P(X(LQe3,0:NRMAX),NR)
-       VALI = VALI + INTG_P(X(LQi3,0:NRMAX),NR)
-       BINC(NR) = rMU0 * AEE * ( VALE * 1.D20 - PZ * VALI * 1.D20)
+    X(LQm5,0:NRMAX) = rMU0 * AEE * (X(LQe3,0:NRMAX) - PZ * X(LQi3,0:NRMAX)) * R(0:NRMAX) &
+         &          * 1.D20
+    SUML = 0.D0
+    BphV (NRMAX)   = BB
+    DO NR = NRMAX - 1, 0, -1
+       SUML = SUML + INTG_P(X(LQm5,0:NRMAX),NR,1)
+       BphV(NR) = BphV(NRMAX) - SUML
     END DO
-    BINCA = BINC(NRMAX)
-    BINC(0:NRMAX) = BINC(0:NRMAX) - BINCA
-    X(LQm5,0:NRMAX) = BB + BINC(0:NRMAX)
-    deallocate(BINC)
 
-    X(LQe2,1:NRMAX) =((        X(LQm5,1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKEV) &
+    X(LQe2,1:NRMAX) =((        BphV(1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKEV) &
          &          * (X(LQe3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNeV(1:NRMAX)) &
-         &          - (PZ**2 * X(LQm5,1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKEV) &
+         &          - (PZ**2 * BphV(1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKEV) &
          &          * (X(LQi3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNiV(1:NRMAX))) * AEE
     X(LQi2,1:NRMAX) = X(LQe2,1:NRMAX) / PZ
     X(LQe2,0) = 0.D0

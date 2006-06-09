@@ -194,9 +194,9 @@ contains
     END DO
     RPEINT = 0.D0 ; RPIINT = 0.D0 ; dBetaSUM = 0.D0
     DO NR = 1, NRMAX
-       RPEINT = RPEINT + INTG_P(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR)
-       RPIINT = RPIINT + INTG_P(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR)
-       dBetaSUM = dBetaSUM + INTG_P(dBetadr,NR)
+       RPEINT = RPEINT + INTG_P(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR,0)
+       RPIINT = RPIINT + INTG_P(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR,0)
+       dBetaSUM = dBetaSUM + INTG_P(dBetadr,NR,0)
        RPINT =(RPEINT + RPIINT)*RKEV*1.D20
        SUMM  = 2.D0*PI*RPINT
        SUMP  = PI*R(NR)**2*dBetaSUM

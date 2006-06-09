@@ -2,7 +2,7 @@ module commons
   implicit none
   public
 
-  integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=21, NGRM=20, &
+  integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
        &                NGTM=1000, NGVM=1000, NGYRM=80, NGYTM=39, &
        &                NGYVM=43, NGPRM=14, NGPTM=13, NGPVM=7
   integer, parameter :: NSM=2, NFM=2
@@ -74,15 +74,13 @@ module commons
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
        &                       PNbV, UbthV, UbphV, PN01V, PN02V
 
-  ! Derivative
-  real(8), dimension(0:NRM) :: RdBthV
-
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNuL, rNuiCX, &
        &                       rNuei, rNuii, rNuTei, rNube, rNubi, &
        &                       rNueNC, rNuiNC, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
-       &                       Chie, Chii, De, Di, D01, D02
+       &                       Chie, Chii, De, Di, D01, D02, &
+       &                       WWthe, WWthi, WDthe, WDthi
 
   ! CDBM
   real(8), dimension(0:NRM) :: rG1h2, FCDBM, S, Alpha, rKappa

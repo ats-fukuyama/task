@@ -186,13 +186,13 @@ contains
        x(4) = ( 2.d0*r1*a1 + r2*a1 + r1*a2 + 2.d0*r2*a2) / (6.d0 * h(ne))
     case(20)
        x(1) = (6.d0*r1*r1 + 3.d0*r1*r2 +      r2*r2) * h(ne) / 30.d0 * a1
-       x(2) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 30.d0 * a2
-       x(3) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 30.d0 * a1
+       x(2) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 60.d0 * a2
+       x(3) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 60.d0 * a1
        x(4) = (     r1*r1 + 3.d0*r1*r2 + 6.d0*r2*r2) * h(ne) / 30.d0 * a2
     case(21)
        x(1) = (6.d0*r1*r1 + 3.d0*r1*r2 +      r2*r2) * h(ne) / 30.d0
-       x(2) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 30.d0
-       x(3) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 30.d0
+       x(2) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 60.d0
+       x(3) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * h(ne) / 60.d0
        x(4) = (     r1*r1 + 3.d0*r1*r2 + 6.d0*r2*r2) * h(ne) / 30.d0
     case(22)
        x(1) = ( 10.d0*r1*r1*a1 + 4.d0*r1*r2*a1 +      r2*r2*a1 &
@@ -204,14 +204,10 @@ contains
        x(4) = (       r1*r1*a1 + 2.d0*r1*r2*a1 + 2.d0*r2*r2*a1 &
             &  +      r1*r1*a2 + 4.d0*r1*r2*a2 +10.d0*r2*r2*a2) *h(ne) / 60.d0
     case(23)
-       x(1) = (- 6.d0*r1*r1*a1 - 3.d0*r1*r2*a1 -      r2*r2*a1 &
-            &  + 6.d0*r1*r1*a2 + 3.d0*r1*r2*a2 +      r2*r2*a2) / 30.d0
-       x(2) = (- 3.d0*r1*r1*a1 - 4.d0*r1*r2*a1 - 3.d0*r2*r2*a1 &
-            &  + 3.d0*r1*r1*a2 + 4.d0*r1*r2*a2 + 3.d0*r2*r2*a2) / 60.d0
-       x(3) = (- 3.d0*r1*r1*a1 - 4.d0*r1*r2*a1 - 3.d0*r2*r2*a1 &
-            &  + 3.d0*r1*r1*a2 + 4.d0*r1*r2*a2 + 3.d0*r2*r2*a2) / 60.d0
-       x(4) = (-      r1*r1*a1 - 3.d0*r1*r2*a1 - 6.d0*r2*r2*a1 &
-            &  +      r1*r1*a2 + 3.d0*r1*r2*a2 + 6.d0*r2*r2*a2) / 30.d0
+       x(1) = (6.d0*r1*r1 + 3.d0*r1*r2 +      r2*r2) * (-a1 + a2) / 30.d0
+       x(2) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * (-a1 + a2) / 60.d0
+       x(3) = (3.d0*r1*r1 + 4.d0*r1*r2 + 3.d0*r2*r2) * (-a1 + a2) / 60.d0
+       x(4) = (     r1*r1 + 3.d0*r1*r2 + 6.d0*r2*r2) * (-a1 + a2) / 30.d0
     case(24)
        x(1) = (-12.d0*r1*r1*a1 - 6.d0*r1*r2*a1 - 2.d0*r2*r2*a1 &
             &  - 3.d0*r1*r1*a2 - 4.d0*r1*r2*a2 - 3.d0*r2*r2*a2) / 60.d0
@@ -256,7 +252,7 @@ module libraries
   implicit none
   private
   public :: EXPV, APITOS, APTTOS, APSTOS, APRTOS, TOUPPER, DERIV3SB, &
-            F33, INTG_F, VALINT_SUB, INTG_P, LORENTZ, BISECTION
+            F33, INTG_F, VALINT_SUB, INTG_P, LORENTZ, BISECTION, DERIVF, TRCOFS
 
 contains
 !***************************************************************
@@ -504,7 +500,7 @@ contains
 !
 !***************************************************************
 
-  subroutine DERIV3SB(X,R,dX,NRMAX)
+  SUBROUTINE DERIV3SB(X,R,dX,NRMAX)
     use commons, only : NRM
     integer, intent(in) :: NRMAX 
     real(8), intent(in), dimension(0:NRMAX) :: X, R
@@ -516,7 +512,25 @@ contains
        dX(NR) = DERIV3(NR,R,X,NRMAX,NRM+1,0)
     END DO
 
-  end subroutine DERIV3SB
+  END SUBROUTINE DERIV3SB
+
+  REAL(8) FUNCTION DERIVF(NR,R,X,NRMAX)
+    integer, intent(in) :: NR, NRMAX
+    real(8), dimension(0:NRMAX), intent(in) :: X, R
+    real(8) :: DR
+
+    IF(NR == 0) THEN
+       DR = R(NR+1) - R(NR)
+       DERIVF = (-3.D0 * X(NR) + 4.D0 * X(NR+1) - X(NR+2)) / (2.D0 * DR)
+    ELSEIF(NR == NRMAX) THEN
+       DR = R(NR-1) - R(NR)
+       DERIVF = (-3.D0 * X(NR) + 4.D0 * X(NR-1) - X(NR-2)) / (2.D0 * DR)
+    ELSE
+       DR = R(NR+1) - R(NR-1)
+       DERIVF = (X(NR+1) - X(NR-1)) / DR
+    END IF
+
+  END FUNCTION DERIVF
 
 !***************************************************************
 !
@@ -542,21 +556,31 @@ contains
     
   END FUNCTION INTG_F
 
-  REAL(8) FUNCTION INTG_P(X,NR)
+  REAL(8) FUNCTION INTG_P(X,NR,ID)
 
-    ! Calculate \int (r * X) dr at one mesh
+    ! Calculate \int (r * X) dr (ID == 0   ) 
+    !        or \int      X  dr (ID == else) at one mesh
 
     use commons, only : NRMAX
     use core_module, only : fem_integral
-    integer, intent(in) :: NR
+    integer, intent(in) :: NR, ID
     real(8), dimension(0:NRMAX), intent(in) :: X
     integer :: NE
 
-    IF(NR == 0) THEN
-       INTG_P = 0.D0
+    IF(ID == 0) THEN
+       IF(NR == 0) THEN
+          INTG_P = 0.D0
+       ELSE
+          NE = NR
+          INTG_P = SUM(fem_integral(15,NE,X))
+       END IF
     ELSE
-       NE = NR
-       INTG_P = SUM(fem_integral(15,NE,X))
+       IF(NR == 0) THEN
+          INTG_P = 0.D0
+       ELSE
+          NE = NR
+          INTG_P = SUM(fem_integral(0,NE,X))
+       END IF
     END IF
     
   END FUNCTION INTG_P
@@ -598,6 +622,48 @@ contains
 
 !***************************************************************
 !
+!   Coefficient function of CDBM model
+!
+!***************************************************************
+
+  REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
+
+    real(8), intent(in) :: S, ALFA, RKCV
+    real(8) :: SA, FS1, FS2
+
+    IF(ALFA > 0.D0) THEN
+       SA = S - ALFA
+       IF(SA > 0.D0) THEN
+          FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
+           &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
+       ELSE
+          FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
+       ENDIF
+       IF(RKCV > 0.D0) THEN
+          FS2 = SQRT(RKCV)**3 / S**2
+       ELSE
+          FS2 = 0.D0
+       ENDIF
+    ELSE
+       SA = ALFA - S
+       IF(SA > 0.D0) THEN
+          FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
+           &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
+       ELSE
+          FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
+       ENDIF
+       IF(RKCV < 0.D0) THEN
+          FS2 = SQRT(-RKCV)**3 / S**2
+       ELSE
+          FS2 = 0.D0
+       ENDIF
+    ENDIF
+    TRCOFS = MAX(FS1,FS2)
+
+  END FUNCTION TRCOFS
+
+!***************************************************************
+!
 !   Mesh generating function
 !
 !***************************************************************
@@ -613,6 +679,7 @@ contains
     real(8), intent(in), optional :: AMP
 
     LORENTZ = R + C * (W * ATAN((R - RC) / W) + W * ATAN(RC / W))
+!!$    LORENTZ = R
     if(present(amp)) LORENTZ = LORENTZ / AMP
 
   END FUNCTION LORENTZ
