@@ -503,25 +503,25 @@ contains
 
        ! Wave interaction force (electron driven)
 
-!!$       ELM(1:4,11,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,FWthe)
-!!$       NLC(11,LQe3) = LQe3
-!!$
-!!$       ELM(1:4,12,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,TMP4)
-!!$       NLC(12,LQe3) = LQe1
+       ELM(1:4,11,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,FWthe)
+       NLC(11,LQe3) = LQe3
+
+       ELM(1:4,12,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,TMP4)
+       NLC(12,LQe3) = LQe1
 
        ! Wave interaction force (NRon driven)
-
-!!$       ELM(1:4,13,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,FWthi)
-!!$       NLC(13,LQe3) = LQi3
-!!$
-!!$       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP5)
-!!$       NLC(14,LQe3) = LQi1
 
        ELM(1:4,13,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,FWthi)
        NLC(13,LQe3) = LQi3
 
-       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP)
-       NLC(14,LQe3) = LQe3
+       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP5)
+       NLC(14,LQe3) = LQi1
+!!$
+!!$       ELM(1:4,13,LQe3,NE) =   1.D0 / AME * fem_integral(22,NE,FWthi)
+!!$       NLC(13,LQe3) = LQi3
+!!$
+!!$       ELM(1:4,14,LQe3,NE) = - 1.D0 / AME * fem_integral(22,NE,TMP)
+!!$       NLC(14,LQe3) = LQe3
 
        ! Loss to divertor
 
@@ -947,25 +947,25 @@ contains
 
        ! Wave interaction force (electron driven)
 
-!!$       ELM(1:4,11,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,FWthe)
-!!$       NLC(11,LQi3) = LQe3
-!!$
-!!$       ELM(1:4,12,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,TMP4)
-!!$       NLC(12,LQi3) = LQe1
+       ELM(1:4,11,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,FWthe)
+       NLC(11,LQi3) = LQe3
+
+       ELM(1:4,12,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,TMP4)
+       NLC(12,LQi3) = LQe1
 
        ! Wave interaction force (NRon driven)
-
-!!$       ELM(1:4,13,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,FWthi)
-!!$       NLC(13,LQi3) = LQi3
-!!$
-!!$       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP5)
-!!$       NLC(14,LQi3) = LQi1
 
        ELM(1:4,13,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,FWthi)
        NLC(13,LQi3) = LQi3
 
-       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP)
-       NLC(14,LQi3) = LQe3
+       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP5)
+       NLC(14,LQi3) = LQi1
+!!$
+!!$       ELM(1:4,13,LQi3,NE) = - 1.D0 / AMI * fem_integral(22,NE,FWthi)
+!!$       NLC(13,LQi3) = LQi3
+!!$
+!!$       ELM(1:4,14,LQi3,NE) =   1.D0 / AMI * fem_integral(22,NE,TMP)
+!!$       NLC(14,LQi3) = LQe3
 
        ! Loss to divertor
 

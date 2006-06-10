@@ -80,7 +80,7 @@ contains
          &     rLnLam, EION, XXX, SiV, ScxV, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
          &     rGIC, rH, dErdr, dBetadr, &
-         &     DCDBM, DeL, ETA, AJPH, AJTH, BN, AJPARA, EPARA, Vcr, Y, &
+         &     DCDBM, DeL, ETA, AJPH, AJTH, BN, AJPARA, EPARA, Vcr, &
          &     Ubst, Cs, RhoIT, ExpArg, AiP, DISTAN, &
          &     SiLCL, SiLCthL, SiLCphL
     real(8) :: DERIV3
@@ -370,25 +370,15 @@ contains
 
        Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) * AME / AMI &
             &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
-       Y = PNBCD * Vb / Vcr
-       IF (Y > 0.D0) THEN
-          Ubst = 3.D0 / LOG(1.D0 + Y**3) * Vb
-       ELSE
-          Ubst = 0.D0
-       END IF
        rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
             &     / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 * AMB * AME &
             &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
        rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rLnLam &
             &     / (4.D0 * PI * EPS0**2 * AMB) &
             &     * (1.D0 / AMB + 1.D0 / AMI) &
-            &     * 1.D0 / ( Ubst**3 + 9.D0 * SQRT(3.D0 * PI) / 4.D0 &
+            &     * 1.D0 / ( ABS(UbphV(NR))**3 + 9.D0 * SQRT(3.D0 * PI) / 4.D0 &
             &     * (ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
-       IF (Y > 0.D0) THEN
-          rNuB(NR) = rNube(NR) * 3.D0 / LOG(1.D0 + Y**3)
-       ELSE
-          rNuB(NR) = 0.D0
-       END IF
+       rNuB(NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
 
        !     *** Loss to divertor ***
 
