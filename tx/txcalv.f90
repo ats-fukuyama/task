@@ -47,7 +47,7 @@ contains
     PTiV (0:NRMAX) = XL(LQi5,0:NRMAX)/PNiV(0:NRMAX)
     PNbV (0:NRMAX) = XL(LQb1,0:NRMAX)
     DO NR = 0, NRMAX
-       IF (ABS(PNbV(NR)) < 1.D-7) THEN
+       IF (ABS(PNbV(NR)) < 1.D-6) THEN
           UbthV(NR) = 0.D0
           UbphV(NR) = 0.D0
        ELSE
@@ -370,15 +370,22 @@ contains
 
        Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) * AME / AMI &
             &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
-       rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
-            &     / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 * AMB * AME &
-            &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
-       rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rLnLam &
-            &     / (4.D0 * PI * EPS0**2 * AMB) &
-            &     * (1.D0 / AMB + 1.D0 / AMI) &
-            &     * 1.D0 / ( ABS(UbphV(NR))**3 + 9.D0 * SQRT(3.D0 * PI) / 4.D0 &
-            &     * (ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
-       rNuB(NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
+       Ubst = 3.D0 / LOG(1.D0 + (Vb / Vcr)**3) * Vb
+       IF(ABS(PNbV(NR)) < 1.D-6) THEN
+          rNube(NR) = 0.D0
+          rNubi(NR) = 0.D0
+          rNuB (NR) = 0.D0
+       ELSE
+          rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+               &     / (3.D0 * (2.D0 * PI)**1.5D0 * EPS0**2 * AMB * AME &
+               &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
+          rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rLnLam &
+               &     / (4.D0 * PI * EPS0**2 * AMB) &
+               &     * (1.D0 / AMB + 1.D0 / AMI) &
+               &     * 1.D0 / ( ABS(UbphV(NR))**3 + 9.D0 * SQRT(3.D0 * PI) / 4.D0 &
+               &     * (ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
+          rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
+       END IF
 
        !     *** Loss to divertor ***
 

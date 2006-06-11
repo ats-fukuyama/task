@@ -1115,10 +1115,10 @@ contains
        STR = '@rNuiCX@'
        CALL TXGRFRXS( 4,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@rNuION@'
+       STR = '@rNuB@'
        CALL TXGRFRXS( 5,GX,GY(0,0,79),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@rNuB@'
+       STR = '@rNuION@'
        CALL TXGRFRXS( 6,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@SiLC@'
