@@ -547,9 +547,9 @@ C     ==== IMPURITY TREATMENT ====
 C
 C        MDNI  :
 C           0 : NSMAX=2, ne=ni
-C           1 : calculate nimp and zeff profiles from NE, ZIMP and NM1
-C           2 : calculate nimp and ni profiles from NE, ZIMP and ZEFFR
-C           3 : calculate zeff and ni profiles from NE, ZIMP and NIMP
+C           1 : Use exp. ZEFFR profile if available
+C           2 : Use exp. NM1 (or NM2) profile if available
+C           3 : Use exp. NIMP profile if available
 C
       MDNI=0
 C
@@ -563,8 +563,8 @@ C     ==== INITIAL CURRENT PROFILE SWITCH ====
 C
 C        MDLJQ : 
 C
-C           0 : create AJ(NR) profile from experimental Q profile
-C           1 : create QP(NR) profile from experimental CURTOT profile
+C           0 : create QP(NR) profile from experimental CURTOT profile
+C           1 : create AJ(NR) profile from experimental Q profile
 C
       MDLJQ=0
 C
@@ -588,6 +588,7 @@ C
       MDLEQE=0  ! 0/1/2 for electron density
 C               ! 0: electron only, 1: both, 2: ion only
       MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
+C               ! 0: both, 1: electron, 2: ion
 C
 C     ==== RADIAL ELECTRIC FIELD SWITCH ====
 C
