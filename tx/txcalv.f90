@@ -61,6 +61,9 @@ contains
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
 
+    UethRV(0:NRMAX) = XL(LQe3,0:NRMAX)/PNeV(0:NRMAX)
+    UithRV(0:NRMAX) = XL(LQi3,0:NRMAX)/PNiV(0:NRMAX)
+
     RETURN
   END SUBROUTINE TXCALV
 
@@ -73,18 +76,19 @@ contains
   SUBROUTINE TXCALC
 
     USE physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKEV
-    use libraries, only : EXPV, VALINT_SUB, DERIVF, TRCOFS
-
-    INTEGER :: NR, NP, NR1
+    use libraries, only : EXPV, VALINT_SUB, DERIVF, TRCOFS, F33
+    
+    INTEGER :: NR, NP, NR1, IER, Nbanana
     REAL(8) :: Sigma0, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti,  &
          &     rLnLam, EION, XXX, SiV, ScxV, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
-         &     rGIC, rH, dErdr, dBetadr, &
-         &     DCDBM, DeL, ETA, AJPH, AJTH, BN, AJPARA, EPARA, Vcr, &
-         &     Ubst, Cs, RhoIT, ExpArg, AiP, DISTAN, &
-         &     SiLCL, SiLCthL, SiLCphL
+         &     rGIC, rH, dErdr, dBetadr, PROFDL, &
+         &     DCDBM, DeL, ETA, AJPH, AJTH, AJPARA, EPARA, Vcr, &
+         &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
+         &     SiLCL, SiLCthL, SiLCphL, Wbanana, RL
+    real(8) :: rLnLame, RNZ, SGMSPTZ, FT, RNUE, F33TEFF
     real(8) :: DERIV3
-    real(8), dimension(0:NRMAX) :: Beta, Vexbr, SL1, SL2, TMP
+    real(8), dimension(0:NRMAX) :: Beta, Vexbr, SL1, SL2, TMP, DERIV
 
     !     *** Constants ***
 
@@ -140,6 +144,16 @@ contains
          &        * 1.D20 * rKeV /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
+
+    IF(PROFD == 0.AND.FSDFIX /= 0) THEN
+       PROFDL = (PTeV(NRA) * rKEV / (16.D0 * AEE * &
+            &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX
+    ELSE
+       PROFDL = PROFD
+    END IF
+
+    ! Banana width
+    Wbanana = 2.D0 * SQRT(Q0 * RR * AMI * SQRT(PTiV(0) * rKEV / AMI) / (AEE * BphV(0)))
 
     !     ***** Integer mesh *****
 
@@ -199,6 +213,7 @@ contains
 
        !     *** Toroidal neoclassical viscosity ***
 
+       IF(R(NR) < Wbanana) Nbanana = NR
        Wte = Vte / (Q(NR) * RR) ! Omega_Te
        Wti = Vti / (Q(NR) * RR) ! Omega_Ti
        EpsL = R(NR) / RR        ! Inverse aspect ratio
@@ -247,11 +262,9 @@ contains
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-!       dQdr = DERIV3(NR,R,Q,NRMAX,NRM,0)
-       dQdr = DERIVF(NR,R,Q,NRMAX)
+       dQdr = DERIV3(NR,R,Q,NRMAX,NRM,0)
        S(NR) = R(NR) / Q(NR) * dQdr
-!       dBetadr = DERIV3(NR,R,Beta,NRMAX,NRM,0)
-       dBetadr = DERIVF(NR,R,Beta,NRMAX)
+       dBetadr = DERIV3(NR,R,Beta,NRMAX,NRM,0)
        Alpha(NR) = - Q(NR)**2 * RR * dBetadr
 
        !     *** Wave-particle interaction ***
@@ -280,6 +293,7 @@ contains
           ! Turbulent transport coefficient calculated by CDBM model
           DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
+!          write(6,'(I3,3F15.7)') NR,ABS(Alpha(NR))**1.5D0,VC**2 / Wpe2 * Va / (Q(NR) * RR),Chie0*DCDBM
           !DCDBM = MAX(DCDBM,1.D-05)
        ELSE
           rG1h2(NR)  = 0.D0
@@ -287,19 +301,13 @@ contains
           DCDBM      = 0.D0
        END IF
 
-       IF (R(NR) < RA) THEN
-          DeL = FSDFIX * (1.D0 + (PROFD -1) * (R(NR) / RA)**2) &
-               &            + FSCDBM * DCDBM
-       ELSE
-          DeL = FSDFIX * PROFD &
-               &       + FSBOHM * PTeV(NR) * rKEV / (16.D0 * AEE * BBL) &
-               &       + FSPSCL
-       END IF
-!       if(nr >= 33.and.nr<=40) write(6,'(5F15.7)') R(NR)/RA,FCDBM(NR),ABS(Alpha(NR))**1.5D0,FSBOHM * PTeV(NR) * rKEV / (16.D0 * AEE * BBL),DeL
-!       if(nr >= 35.and.nr<=45) write(6,'(5F15.7)') R(NR)/RA,FCDBM(NR),VC**2 / Wpe2* Va / (Q(NR) * RR),DeL
-!       if(nr >= 35.and.nr<=45) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,VC**2 / Wpe2 * Va / (Q(NR) * RR),DeL
-!       if(nr >= 35.and.nr<=42) write(6,'(1P5E15.7)') R(NR)/RA,PNeV(NR),ABS(Alpha(NR))**1.5D0,Va / (Q(NR) * RR),DeL
-!!!       IF(DeL >= 5.D0) DeL = 5.D0
+!!$       IF (R(NR) < RA) THEN
+          DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
+!!$       ELSE
+!!$          IF(NR == NRA) DeLa = FSDFIX * PROFDL + FSCDBM * DCDBM
+!!$          DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX * PROFDL &
+!!$               &+ FSBOHM * PTeV(NR) * rKEV / (16.D0 * AEE * BBL) + FSPSCL
+!!$       END IF
        ! Particle diffusivity
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
@@ -313,10 +321,23 @@ contains
        ! <omega/m>
        WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
        ! Force induced by drift wave (eq.(8),(13))
-       FWthe(NR) = AEE**2         * BphV(NR)**2 * De(NR) &
-            &            / (PTeV(NR) * rKeV)
-       FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) &
-            &            / (PTiV(NR) * rKeV)
+       FWthe(NR) = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
+       FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
+!!$       IF(NR == NRA) THEN
+!!$          FWthea = AEE**2         * BphV(NR)**2 * De0 * DeLa / (PTeV(NR) * rKeV)
+!!$          FWthia = AEE**2 * PZ**2 * BphV(NR)**2 * Di0 * DeLa / (PTiV(NR) * rKeV)
+!!$       END IF
+!!$       IF(R(NR) < RA) THEN
+!!$          FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di0 * R(NR) &
+!!$               &            / (PTiV(NR) * rKeV)
+!!$       ELSE
+!!$          FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di0 * RA * 2.d0 &
+!!$               &            / (PTiV(NR) * rKeV)
+!!$       END IF
+!!$       IF(NR == NRA) THEN
+!!$          FWthia = AEE**2 * PZ**2 * BphV(NR)**2 * Di0 * RA * 2.d0 / (PTiV(NR) * rKeV)
+!!$       END IF
+
        ! Work induced by drift wave
        WWthe(NR) =      AEE * BphV(NR) * De(NR)
        WWthi(NR) = PZ * AEE * BphV(NR) * Di(NR)
@@ -339,8 +360,23 @@ contains
 
        !     *** Current density profile ***
 
-       ! Resistivity
-       ETA=AME*rNuei(NR)/(PNeV(NR)*1.D20*AEE**2)
+!!!       ! Resistivity
+!!!       ETA=AME*rNuei(NR)/(PNeV(NR)*1.D20*AEE**2)
+       ! Neoclassical resistivity by Sauter et al.
+       EpsL    = R(NR) / RR        ! Inverse aspect ratio
+       rLnLame = 31.3D0-LOG(SQRT(PNeV(NR)*1.D20)/ABS(PTeV(NR)*1.D3)) ! Coulomb logarithm
+       RNZ     = 0.58D0+0.74D0/(0.76D0+Zeff)
+       SGMSPTZ = 1.9012D4*(PTeV(NR)*1.D3)**1.5D0/(Zeff*RNZ*rLnLame) ! Spitzer resistivity
+       FT      = 1.46D0*SQRT(EpsL)-0.46D0*(EpsL)**1.5D0 ! Trapped particle fraction
+       IF(NR == 0) THEN
+          F33TEFF = 0.D0
+       ELSE
+          RNUE    = 6.921D-18*ABS(Q(NR))*RR*PNeV(NR)*1.D20 &
+               &   *Zeff*rLnLame/((PTeV(NR)*1.D3)**2*SQRT(EpsL)**3)
+          F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE) &
+               &   +0.45D0*(1.D0-FT)*RNUE/Zeff**1.5D0)
+       END IF
+       ETA     = 1.D0/(SGMSPTZ*F33(F33TEFF,Zeff))
        ! Poloidal current density
        AJPH  = -      AEE * PNeV(NR) * 1.D20 * UephV(NR) &
             &  + PZ * AEE * PNiV(NR) * 1.D20 * UiphV(NR) &
@@ -350,18 +386,21 @@ contains
             &  + PZ * AEE * PNiV(NR) * 1.D20 * UithV(NR) &
             &  + PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)
 
-       BN=SQRT(BthV(NR)**2+BphV(NR)**2)
+       BBL=SQRT(BthV(NR)**2+BphV(NR)**2)
        ! Parallel current density
-       AJPARA=(BthV(NR)*AJTH     + BphV(NR)*AJPH     )/BN
+       AJPARA=(BthV(NR)*AJTH     + BphV(NR)*AJPH    )/BBL
        ! Parallel electric field
-       EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR) )/BN
-       ! Total current density = parallel current density
-       AJ(NR)   = AJPARA
+       EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
+       ! Total current density = parallel current density(?)
+!       AJ(NR)   = AJPARA
+       AJ(NR)   = AJPH
        ! Ohmic current density
-       AJOH(NR) = EPARA/ETA
+       AJOH(NR) = EphV(NR) / ETA
+!       AJOH(NR) = EPARA / ETA
        ! Ohmic heating power
-       !POH(NR)  = EPARA*AJPARA
-       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
+!       POH(NR)  = EPARA*AJPARA
+!       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
+       POH(NR)  = EphV(NR) * AJPH
        ! NB induced current density
        AJNB(NR) = PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)
 
@@ -370,7 +409,6 @@ contains
 
        Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) * AME / AMI &
             &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
-       Ubst = 3.D0 / LOG(1.D0 + (Vb / Vcr)**3) * Vb
        IF(ABS(PNbV(NR)) < 1.D-6) THEN
           rNube(NR) = 0.D0
           rNubi(NR) = 0.D0
@@ -387,37 +425,37 @@ contains
           rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
        END IF
 
+       !     *** Bremsstraulung loss ***
+
+       PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
+
        !     *** Loss to divertor ***
 
        IF (R(NR) > RA) THEN
           Cs = SQRT(PTeV(NR) * rKeV / AMI)
 !!!!        rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
 !!!!     &                  * LOG(0.3D0 / (R(NR) - RA)))
-          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-               &              * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA))))! &
-!               &              * (R(NR) - RA) / rLT
+!!$          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
+!!$               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) * (R(NR) - RA) / rLT
+          RL = (R(NR) - RA) / rLT
+          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
+!          rNuL(NR) = FSLP * RL / (1.D0 + RL)
+!          rNuL(NR) = FSLP * 5.d3 * (R(NR) - RA)**2
+!          rNuL(NR) = FSLP * 1.d3 * sqrt(R(NR) - RA)
+!          rNuL1(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR) * R(NR)
        ELSE
           rNuL(NR) = 0.D0
+!          rNuL1(NR) = 0.D0
        END IF
 
     END DO L_NR
 
-!!$    TMP(0:NRMAX) = Chie(0:NRMAX)
-!!$    Chie(0)         = TMP(0)
-!!$    Chie(1:NRMAX-1) = 0.5D0 * (Chie(0:NRMAX-2) + Chie(1:NRMAX-1))
-!!$    Chie(NRMAX)     = TMP(NRMAX)
-!!$    TMP(0:NRMAX) = Chii(0:NRMAX)
-!!$    Chii(0)         = TMP(0)
-!!$    Chii(1:NRMAX-1) = 0.5D0 * (Chii(0:NRMAX-2) + Chii(1:NRMAX-1))
-!!$    Chii(NRMAX)     = TMP(NRMAX)
-!!$    TMP(0:NRMAX) = rMue(0:NRMAX)
-!!$    rMue(0)         = TMP(0)
-!!$    rMue(1:NRMAX-1) = 0.5D0 * (rMue(0:NRMAX-2) + rMue(1:NRMAX-1))
-!!$    rMue(NRMAX)     = TMP(NRMAX)
-!!$    TMP(0:NRMAX) = rMui(0:NRMAX)
-!!$    rMui(0)         = TMP(0)
-!!$    rMui(1:NRMAX-1) = 0.5D0 * (rMui(0:NRMAX-2) + rMui(1:NRMAX-1))
-!!$    rMui(NRMAX)     = TMP(NRMAX)
+    ! Truncate neoclassical viscosity inside banana width evaluated on axis
+
+    DO NR = 0, Nbanana
+       rNueNC(NR) = rNueNC(Nbanana+1)
+       rNuiNC(NR) = rNuiNC(Nbanana+1)
+    END DO
 
     !     ***** Ion Orbit Loss *****
 
@@ -453,5 +491,16 @@ contains
 
     RETURN
   END SUBROUTINE TXCALC
+
+  REAL(8) FUNCTION rNuL2(RL)
+    real(8), intent(in) :: RL
+
+    IF(RL > RA) THEN
+       rNuL2 = 1.D0 / (1.D0 + LOG(1.D0 + rLT / (RL - RA)))! * (RL - RA) / rLT
+    ELSE
+       rNuL2 = 0.D0
+    END IF
+
+  END FUNCTION rNuL2
 
 end module variables

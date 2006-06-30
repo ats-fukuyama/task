@@ -3,8 +3,8 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=89, NGYTM=39, &
-       &                NGYVM=43, NGPRM=14, NGPTM=13, NGPVM=7
+       &                NGTM=1000, NGVM=1000, NGYRM=90, NGYTM=43, &
+       &                NGYVM=49, NGPRM=14, NGPTM=7, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
@@ -46,7 +46,7 @@ module commons
   integer :: ICMAX
 
   ! Mesh parameters
-  integer :: NRMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA
+  integer :: NRMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA, NRC
 
   ! Parameters for parameter survey
   real(8) :: DelR, DelN
@@ -72,7 +72,7 @@ module commons
   real(8), dimension(0:NRM) :: ErV, EthV, EphV, BthV, BphV, &
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
-       &                       PNbV, UbthV, UbphV, PN01V, PN02V
+       &                       PNbV, UbthV, UbphV, PN01V, PN02V, UethRV, UithRV
 
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNuL, rNuiCX, &
@@ -80,14 +80,15 @@ module commons
        &                       rNueNC, rNuiNC, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
        &                       Chie, Chii, De, Di, D01, D02, &
-       &                       WWthe, WWthi, WDthe, WDthi
-
+       &                       WWthe, WWthi, WDthe, WDthi, rNuL1
+  real(8) :: FWthea, FWthia
+ 
   ! CDBM
   real(8), dimension(0:NRM) :: rG1h2, FCDBM, S, Alpha, rKappa
 
   ! Sources and sinks
   real(8), dimension(0:NRM) :: PNB, SNB, PRFe, PRFi, POH, SiLC, SiLCth, SiLCph
-  real(8), dimension(0:NRM) :: PIE, PCX, SIE
+  real(8), dimension(0:NRM) :: PIE, PCX, SIE, PBr
 
   ! Safety factor, currents
   real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS
@@ -118,7 +119,7 @@ module commons
   
   ! Graphics
   integer :: NGR, NGT, NGVV
-  integer :: MODEG, MODEAV, MODEL
+  integer :: MODEG, MODEAV, MODEGL
   real, dimension(0:NRM) :: GX
   real, dimension(0:NRM,0:NGRM,1:NGYRM) :: GY
   real, dimension(0:NGRM) :: GT

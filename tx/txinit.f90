@@ -237,16 +237,17 @@ contains
     NGVSTP = 1
 
     !   Mode of Graph
-    !   1 : for Display
-    !   2 : for Print Out
-    MODEG = 2
+    !   0 : for Display (with grid, w/o power)
+    !   1 : for Display (with grid and power)
+    !   2 : for Print Out (w/o grid, with power)
+    MODEG = 1
 
     !   MODE of Graph Line
     !   0 : Change Line Color (Last Color Fixed)
     !   1 : Change Line Color and Style
     !   2 : Change Line Color, Style and Mark
     !   3 : Change Line Color, Style and Mark (With Legend)
-    MODEL=1
+    MODEGL=1
 
     !   Mode of AV
     !   0 : OFF
@@ -290,7 +291,15 @@ contains
     gDIV(45) = 1.E20
     gDIV(46) = 1.E23
     gDIV(47) = 1.E23
-    gDIV(79) = 1.E6
+    gDIV(60) = 1.E6
+    gDIV(64) = 1.E-20
+    gDIV(65) = 1.E-20
+    gDIV(72) = 1.E3
+    gDIV(73) = 1.E6
+    gDIV(74) = 1.E6
+    gDIV(75) = 1.E6
+    gDIV(88) = 1.E3
+    gDIV(89) = 1.E6
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -324,7 +333,7 @@ contains
     use physical_constants, only : AMP
     use libraries, only : LORENTZ, BISECTION
 
-    INTEGER :: NR
+    INTEGER :: NR, NRL
     real(8) :: DR, MAXAMP, CL, WL, RCL, RL
 
     !   Ion mass number
@@ -357,7 +366,34 @@ contains
 
     DO NR = 0, NRMAX-1
        IF(R(NR) <= RA.AND.R(NR+1) >= RA) THEN
-          NRA = NR
+          NRL = NR
+          EXIT
+       END IF
+    END DO
+
+    !  Adjust RC on mesh
+
+    IF(ABS(R(NRL)-RC) < ABS(R(NRL+1)-RC)) THEN
+       NRA = NRL
+       RL = 0.5d0 * ABS(R(NRA) - RC)
+       R(NRA  ) = RC
+       R(NRA-1) = R(NRA-1) + RL
+    ELSE
+       NRA = NRL + 1
+       RL = 0.5d0 * ABS(R(NRA) - RC)
+       R(NRA  ) = RC
+       R(NRA+1) = R(NRA+1) - RL
+    END IF
+
+    !  Mesh number at the center of the core plasma
+
+    DO NR = 0, NRMAX-1
+       IF(R(NR) <= 0.5d0*RA.AND.R(NR+1) >= 0.5d0*RA) THEN
+          IF(ABS(R(NR)-0.5d0*RA) < ABS(R(NR+1)-0.5d0*RA)) THEN
+             NRC = NR
+          ELSE
+             NRC = NR + 1
+          END IF
           EXIT
        END IF
     END DO
@@ -548,7 +584,11 @@ contains
     DO NR = 0, NRMAX
        dPe = DERIV3(NR,R,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKEV
        dPi = DERIV3(NR,R,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKEV
-       ALP = PZ * (AME / AMI) * (rNueNC(NR) / rNuiNC(NR))
+       IF(rNuiNC(NR) == 0.D0) THEN
+          ALP = 0.D0
+       ELSE
+          ALP = PZ * (AME / AMI) * (rNueNC(NR) / rNuiNC(NR))
+       END IF
        IF(NR /= 0) THEN
           X(LQe3,NR) =(- PNiV(NR) * dPe - PNeV(NR) * dPi &
                &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
@@ -624,7 +664,7 @@ module parameter_control
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG, gDIV, MODEAV, MODEl
+       & MODEG, gDIV, MODEAV, MODEGL
   private :: TXPLST
 
 contains
@@ -729,7 +769,7 @@ contains
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEl,')
+         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL,')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -777,7 +817,7 @@ contains
          &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP,  &
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
-         &   'MODEl ', MODEl ,  'NCphi ', NCphi
+         &   'MODEGL', MODEGL,  'NCphi ', NCphi
 
     RETURN
   END SUBROUTINE TXVIEW

@@ -1,12 +1,12 @@
 !     $Id$
 module core_module
-  use commons, only : nrmax, h, r
+  use commons, only : nrmax, h, r, nra
   implicit none
   public
 
 contains
 
-  function fem_integral(id,ne,a,actr) result(x)
+  function fem_int(id,ne,a,b) result(x)
 !-------------------------------------------------------
 !
 !   Calculate "\int_{r_i}^{r_{i+1}} function(r) dr"
@@ -53,37 +53,24 @@ contains
 !     ne       : current number of elements
 !     nnode    : maximum of nodes
 !     a(nnode) : coefficient vector, optional
-!     actr     : element averaged value, optional
 !  < output >
 !     x(4)     : matrix of integrated values
 !
 !-------------------------------------------------------
     integer, intent(in) :: id, ne
     real(8), intent(in), dimension(0:nrmax), optional  :: a
-    real(8), intent(in), optional :: actr
+    real(8), optional :: b
     integer :: node1, node2
-    real(8) :: x(1:4), a1, a2, r1, r2
+    real(8) :: x(1:4), a1, a2, r1, r2, ac
     
     node1 = ne-1  ; node2 = ne
-    a1 = a(node1) ; a2 = a(node2)
-    r1 = r(node1) ; r2 = r(node2)
-    if(ne == 1.and.present(actr)) then
-       a1 = actr
-       a2 = actr
+    if(present(a)) then
+       a1 = a(node1) ; a2 = a(node2)
+       if(present(b).and.ne == nra) a2 = b
     end if
+    r1 = r(node1) ; r2 = r(node2)
 
-! minus sign number indicates lumped mass matrix.
     select case(id)
-    case(-2)
-       x(1) = ( 2.d0 * a1 +        a2) * h(ne) / 6.d0
-       x(2) = 0.d0
-       x(3) = 0.d0
-       x(4) = (        a1 + 2.d0 * a2) * h(ne) / 6.d0
-    case(-1)
-       x(1) = h(ne) / 2.d0
-       x(2) = 0.d0
-       x(3) = 0.d0
-       x(4) = h(ne) / 2.d0
     case(0)
        x(1) = h(ne) / 3.d0 * a1
        x(2) = h(ne) / 6.d0 * a2
@@ -240,10 +227,173 @@ contains
             &  + 3.d0*r1**3*a2 + 12.d0*r1**2*r2*a2 + 30.d0*r1*r2**2*a2 + 60.d0*r2**3*a2) &
             & / 420.d0
     case default
-       stop 'XX falut ID in fem_integral'
+       stop 'XX falut ID in fem_int'
     end select
 
-  end function fem_integral
+  end function fem_int
+
+!***************************************************************
+!
+!   Gauss - Legendre Integration Method
+!
+!***************************************************************
+
+  function gauss2_int(id,ne,f,a) result(x)
+    integer, intent(in) :: id, ne
+    real(8), intent(in), dimension(0:nrmax) :: a
+    real(8), external :: f
+    integer :: node1, node2
+    real(8) :: x(1:4), r1, r2, rxi1, rxi2, g1, g2, L11, L21, L12, L22, a1, a2
+
+    node1 = ne - 1   ; node2 = ne
+    r1    = r(node1) ; r2    = r(node2)
+    a1    = a(node1) ; a2    = a(node2)
+
+    rxi1 = 0.5d0 * h(ne) * (- 1.d0 / sqrt(3.d0)) + 0.5d0 * (r1 + r2)
+    rxi2 = 0.5d0 * h(ne) * (  1.d0 / sqrt(3.d0)) + 0.5d0 * (r1 + r2)
+    L11 = (r2 - rxi1) / h(ne) ; L21 = (rxi1 - r1) / h(ne)
+    L12 = (r2 - rxi2) / h(ne) ; L22 = (rxi2 - r1) / h(ne)
+    g1 = f(rxi1) ; g2 = f(rxi2)
+
+    select case(id)
+    case(0)
+       x(1) = 0.5d0 * h(ne) * a1 * (g1*L11*L11 + g2*L12*L12)
+       x(2) = 0.5d0 * h(ne) * a2 * (g1*L11*L21 + g2*L12*L22)
+       x(3) = 0.5d0 * h(ne) * a1 * (g1*L11*L21 + g2*L12*L22)
+       x(4) = 0.5d0 * h(ne) * a2 * (g1*L11*L21 + g2*L22*L22)
+    case default
+       x(1) = 0.5d0 * h(ne) * (  a1*(g1*L11*L11*L11 + g2*L12*L12*L12) &
+            &                  + a2*(g1*L11*L11*L21 + g2*L12*L12*L22))
+       x(2) = 0.5d0 * h(ne) * (  a1*(g1*L11*L11*L21 + g2*L12*L12*L22) &
+            &                  + a2*(g1*L11*L21*L21 + g2*L12*L22*L22))
+       x(3) = 0.5d0 * h(ne) * (  a1*(g1*L11*L11*L21 + g2*L12*L12*L22) &
+            &                  + a2*(g1*L11*L21*L21 + g2*L12*L22*L22))
+       x(4) = 0.5d0 * h(ne) * (  a1*(g1*L11*L21*L21 + g2*L12*L22*L22) &
+            &                  + a2*(g1*L21*L21*L21 + g2*L22*L22*L22))
+    end select
+   
+  end function gauss2_int
+
+  function gauss3_int(id,ne,f,a) result(x)
+    integer, intent(in) :: id, ne
+    real(8), intent(in), dimension(0:nrmax) :: a
+    real(8), external :: f
+    integer :: node1, node2
+    real(8) :: x(1:4), r1, r2, rxi1, rxi2, rxi3, g1, g2, g3, L11, L21, L12, L22, L13, L23
+    real(8) :: a1, a2
+
+    node1 = ne - 1   ; node2 = ne
+    r1    = r(node1) ; r2    = r(node2)
+    a1    = a(node1) ; a2    = a(node2)
+
+    rxi1 = 0.5d0 * h(ne) * (- sqrt(0.6d0)) + 0.5d0 * (r1 + r2)
+    rxi2 =                                   0.5d0 * (r1 + r2)
+    rxi3 = 0.5d0 * h(ne) * (  sqrt(0.6d0)) + 0.5d0 * (r1 + r2)
+    L11 = (r2 - rxi1) / h(ne) ; L21 = (rxi1 - r1) / h(ne)
+    L12 = (r2 - rxi2) / h(ne) ; L22 = (rxi2 - r1) / h(ne)
+    L13 = (r2 - rxi3) / h(ne) ; L23 = (rxi3 - r1) / h(ne)
+    g1 = f(rxi1) ; g2 = f(rxi2) ; g3 = f(rxi3)
+
+    select case(id)
+    case(0)
+       x(1) = 0.5d0 * h(ne) * a1*(  5.d0 / 9.d0 * g1*L11*L11  &
+            &                     + 8.d0 / 9.d0 * g2*L12*L12  &
+            &                     + 5.d0 / 9.d0 * g3*L13*L13)
+       x(2) = 0.5d0 * h(ne) * a2*(  5.d0 / 9.d0 * g1*L11*L21  &
+            &                     + 8.d0 / 9.d0 * g2*L12*L22  &
+            &                     + 5.d0 / 9.d0 * g3*L13*L23)
+       x(3) = 0.5d0 * h(ne) * a1*(  5.d0 / 9.d0 * g1*L11*L21  &
+            &                     + 8.d0 / 9.d0 * g2*L12*L22  &
+            &                     + 5.d0 / 9.d0 * g3*L13*L23)
+       x(4) = 0.5d0 * h(ne) * a2*(  5.d0 / 9.d0 * g1*L21*L21  &
+            &                     + 8.d0 / 9.d0 * g2*L22*L22  &
+            &                     + 5.d0 / 9.d0 * g3*L23*L23)
+    case default
+       x(1) = 0.5d0 * h(ne) * (  a1*(  5.d0 / 9.d0 * g1*L11*L11*L11  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L12*L12  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L13*L13) &
+            &                  + a2*(  5.d0 / 9.d0 * g1*L11*L11*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L12*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L13*L23))
+       x(2) = 0.5d0 * h(ne) * (  a1*(  5.d0 / 9.d0 * g1*L11*L11*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L12*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L13*L23) &
+            &                  + a2*(  5.d0 / 9.d0 * g1*L11*L21*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L22*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L23*L23))
+       x(3) = 0.5d0 * h(ne) * (  a1*(  5.d0 / 9.d0 * g1*L11*L11*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L12*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L13*L23) &
+            &                  + a2*(  5.d0 / 9.d0 * g1*L11*L21*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L22*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L23*L23))
+       x(4) = 0.5d0 * h(ne) * (  a1*(  5.d0 / 9.d0 * g1*L11*L21*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L12*L22*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L13*L23*L23) &
+            &                  + a2*(  5.d0 / 9.d0 * g1*L21*L21*L21  &
+            &                        + 8.d0 / 9.d0 * g2*L22*L22*L22  &
+            &                        + 5.d0 / 9.d0 * g3*L23*L23*L23))
+    end select
+   
+  end function gauss3_int
+
+  function gauss4_int(id,ne,f,a) result(x)
+    integer, intent(in) :: id, ne
+    real(8), intent(in), dimension(0:nrmax) :: a
+    real(8), external :: f
+    integer :: node1, node2
+    real(8) :: x(1:4), r1, r2, rxi1, rxi2, rxi3, rxi4, g1, g2, g3, g4
+    real(8) :: a1, a2, L11, L21, L12, L22, L13, L23, L14, L24
+    real(8) :: c1, c2, c3, c4, w1, w2
+    data w1, w2 /0.652145154862546d0, 0.347854845137454d0/
+    data c1, c2, c3, c4 /-0.861136311594053d0, -0.339981043584856d0, &
+         &                0.339981043584856d0,  0.861136311594053d0/
+
+    node1 = ne - 1   ; node2 = ne
+    r1    = r(node1) ; r2    = r(node2)
+    a1    = a(node1) ; a2    = a(node2)
+
+    rxi1 = 0.5d0 * h(ne) * c1 + 0.5d0 * (r1 + r2)
+    rxi2 = 0.5d0 * h(ne) * c2 + 0.5d0 * (r1 + r2)
+    rxi3 = 0.5d0 * h(ne) * c3 + 0.5d0 * (r1 + r2)
+    rxi4 = 0.5d0 * h(ne) * c4 + 0.5d0 * (r1 + r2)
+    L11 = (r2 - rxi1) / h(ne) ; L21 = (rxi1 - r1) / h(ne)
+    L12 = (r2 - rxi2) / h(ne) ; L22 = (rxi2 - r1) / h(ne)
+    L13 = (r2 - rxi3) / h(ne) ; L23 = (rxi3 - r1) / h(ne)
+    L14 = (r2 - rxi4) / h(ne) ; L24 = (rxi4 - r1) / h(ne)
+    g1 = f(rxi1) ; g2 = f(rxi2) ; g3 = f(rxi3) ; g4 = f(rxi4)
+
+    select case(id)
+    case(0)
+       x(1) = 0.5d0 * h(ne) * a1*(  w2 * g1*L11*L11 + w1 * g2*L12*L12  &
+            &                     + w1 * g3*L13*L13 + w2 * g4*L14*L14)
+       x(2) = 0.5d0 * h(ne) * a2*(  w2 * g1*L11*L21 + w1 * g2*L12*L22  &
+            &                     + w1 * g3*L13*L23 + w2 * g4*L14*L24)
+       x(3) = 0.5d0 * h(ne) * a1*(  w2 * g1*L11*L21 + w1 * g2*L12*L22  &
+            &                     + w1 * g3*L13*L23 + w2 * g4*L14*L24)
+       x(4) = 0.5d0 * h(ne) * a2*(  w2 * g1*L21*L21 + w1 * g2*L22*L22  &
+            &                     + w1 * g3*L23*L23 + w2 * g4*L24*L24)
+    case default
+       x(1) = 0.5d0 * h(ne) * (  a1*(  w2 * g1*L11*L11*L11 + w1 * g2*L12*L12*L12  &
+            &                        + w1 * g3*L13*L13*L13 + w2 * g4*L14*L14*L14) &
+            &                  + a2*(  w2 * g1*L11*L11*L21 + w1 * g2*L12*L12*L22  &
+            &                        + w1 * g3*L13*L13*L23 + w2 * g4*L14*L14*L24))
+       x(2) = 0.5d0 * h(ne) * (  a1*(  w2 * g1*L11*L11*L21 + w1 * g2*L12*L12*L22  &
+            &                        + w1 * g3*L13*L13*L23 + w2 * g4*L14*L14*L24) &
+            &                  + a2*(  w2 * g1*L11*L21*L21 + w1 * g2*L12*L22*L22  &
+            &                        + w1 * g3*L13*L23*L23 + w2 * g4*L14*L24*L24))
+       x(3) = 0.5d0 * h(ne) * (  a1*(  w2 * g1*L11*L11*L21 + w1 * g2*L12*L12*L22  &
+            &                        + w1 * g3*L13*L13*L23 + w2 * g4*L14*L14*L24) &
+            &                  + a2*(  w2 * g1*L11*L21*L21 + w1 * g2*L12*L22*L22  &
+            &                        + w1 * g3*L13*L23*L23 + w2 * g4*L14*L24*L24))
+       x(4) = 0.5d0 * h(ne) * (  a1*(  w2 * g1*L11*L21*L21 + w1 * g2*L12*L22*L22  &
+            &                        + w1 * g3*L13*L23*L23 + w2 * g4*L14*L24*L24) &
+            &                  + a2*(  w2 * g1*L21*L21*L21 + w1 * g2*L22*L22*L22  &
+            &                        + w1 * g3*L23*L23*L23 + w2 * g4*L24*L24*L24))
+    end select
+
+  end function gauss4_int
+
 end module core_module
 
 !*****************************************************************
@@ -294,11 +444,9 @@ contains
     character(len=25) :: KVALUE
 
     WRITE(KVALUE,'(I25)') I
-    DO J = 1, 25
-       IF (KVALUE(J:J) /= ' ') EXIT
-    END DO
-    NSTRI = 25 - J + 1
-    STR(NSTR+1:NSTR+NSTRI) = KVALUE(J:25)
+    J = index(KVALUE,' ',.true.)
+    NSTRI = 25 - J
+    STR(NSTR+1:NSTR+NSTRI) = KVALUE(J+1:25)
     NSTR = NSTR + NSTRI
 
     RETURN
@@ -411,10 +559,7 @@ contains
        END IF
     END IF
 
-    DO IS = 1, 25
-       IF (KVALUE(IS:IS) /= ' ') EXIT
-    END DO
-
+    IS = index(KVALUE,' ',.true.) + 1
     IE = IS
     DO
        IE = IE + 1
@@ -543,14 +688,14 @@ contains
     ! Calculate \int_0^b (r * X) dr
 
     use commons, only : NRMAX, NEMAX
-    use core_module, only : fem_integral
+    use core_module, only : fem_int
     real(8), dimension(0:NRMAX), intent(in) :: X
     integer :: NE
     real(8) :: SUML
 
     SUML = 0.D0
     DO NE = 1, NEMAX
-       SUML = SUML + SUM(fem_integral(15,NE,X))
+       SUML = SUML + SUM(fem_int(15,NE,X))
     END DO
     INTG_F = SUML
     
@@ -562,7 +707,7 @@ contains
     !        or \int      X  dr (ID == else) at one mesh
 
     use commons, only : NRMAX
-    use core_module, only : fem_integral
+    use core_module, only : fem_int
     integer, intent(in) :: NR, ID
     real(8), dimension(0:NRMAX), intent(in) :: X
     integer :: NE
@@ -572,14 +717,14 @@ contains
           INTG_P = 0.D0
        ELSE
           NE = NR
-          INTG_P = SUM(fem_integral(15,NE,X))
+          INTG_P = SUM(fem_int(15,NE,X))
        END IF
     ELSE
        IF(NR == 0) THEN
           INTG_P = 0.D0
        ELSE
           NE = NR
-          INTG_P = SUM(fem_integral(0,NE,X))
+          INTG_P = SUM(fem_int(0,NE,X))
        END IF
     END IF
     
@@ -590,7 +735,7 @@ contains
     ! Calculate \int_0^r (r * X) dr
 
     use commons, only : NRMAX
-    use core_module, only : fem_integral
+    use core_module, only : fem_int
     integer, intent(in) :: NRLMAX
     real(8), dimension(0:NRMAX), intent(in) :: X
     real(8), intent(out) :: VAL
@@ -600,7 +745,7 @@ contains
     NEMAX = NRLMAX
     SUML = 0.D0
     DO NE = 1, NEMAX
-       SUML = SUML + SUM(fem_integral(15,NE,X))
+       SUML = SUML + SUM(fem_int(15,NE,X))
     END DO
     VAL = SUML
     

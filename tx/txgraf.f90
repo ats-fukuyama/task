@@ -3,7 +3,7 @@
 module graphic
   implicit none
   private
-  real :: GXM,GYM,GYS
+  real :: GXM, GYM, GYS
   integer :: NP
   public :: TXGOUT, TX_GRAPH_SAVE, TXSTGR, TXSTGT, TXSTGV
 
@@ -26,6 +26,7 @@ contains
 
     !     *** MENU ***
 
+    MODE = MODEGL
     OUTER : DO
        WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B,C: ', &
             &           'S,L,M:file I:init X:exit'
@@ -59,48 +60,41 @@ contains
           CALL TXSTGV(SNGL(T_TX))
 
        CASE('R')
-          IF (KID2 == 'A') THEN
-             MODE=MODEL
+          SELECT CASE(KID2)
+          CASE('A')
              CALL TXGRFR(-1,MODE)
-          ELSEIF (KID2 == 'B') THEN
-             MODE=MODEL
+          CASE('B')
              CALL TXGRFR(-3,MODE)
-          ELSEIF (KID2 == 'C') THEN
-             MODE=MODEL
+          CASE('C')
              CALL TXGRFR(-5,MODE)
-          ELSE
+          CASE DEFAULT
              READ(STR(2:5),*,IOSTAT=IST) NGPR
              IF (IST /= 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
                 CYCLE
              END IF
              IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
-                MODE=MODEL
                 CALL TXGRFR(NGPR,MODE)
              END IF
-          END IF
+          END SELECT
 
-       CASE('T')
+       CASE('V')
           SELECT CASE(KID2)
           CASE('A')
-             DO NGPT = 1, NGPTM
-                MODE=MODEL
-                CALL TXGRFT(NGPT,MODE)
+             DO NGPT = 1, NGPVM
+                CALL TXGRFV(NGPT,MODE)
              END DO
           CASE('B')
              DO NGPT = 1, 6
-                MODE=MODEL
-                CALL TXGRFT(NGPT,MODE)
+                CALL TXGRFV(NGPT,MODE)
              END DO
              DO NGPT = 9, 10
-                MODE=MODEL
-                CALL TXGRFT(NGPT,MODE)
+                CALL TXGRFV(NGPT,MODE)
              END DO
 
           CASE('C')
              DO NGPT = 1, 5
-                MODE=MODEL
-                CALL TXGRFT(NGPT,MODE)
+                CALL TXGRFV(NGPT,MODE)
              END DO
 
           CASE DEFAULT
@@ -109,34 +103,29 @@ contains
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
                 CYCLE
              END IF
-             IF (NGPT >= 1 .AND. NGPT <= NGPTM) THEN
-                MODE=MODEL
-                CALL TXGRFT(NGPT,MODE)
+             IF (NGPT >= 1 .AND. NGPT <= NGPVM) THEN
+                CALL TXGRFV(NGPT,MODE)
              END IF
           END SELECT
 
-       CASE('V')
+       CASE('T')
           SELECT CASE(KID2)
           CASE('A')
-             DO NGPV = 1, NGPVM
-                MODE=MODEL
-                CALL TXGRFV(NGPV,MODE)
+             DO NGPV = 1, NGPTM
+                CALL TXGRFT(NGPV,MODE)
              END DO
 
           CASE('B')
              DO NGPV = 1, 6
-                MODE=MODEL
-                CALL TXGRFV(NGPV,MODE)
+                CALL TXGRFT(NGPV,MODE)
              END DO
              DO NGPV = 9, 10
-                MODE=MODEL
-                CALL TXGRFV(NGPV,MODE)
+                CALL TXGRFT(NGPV,MODE)
              END DO
 
           CASE('C')
              DO NGPV = 1, 5
-                MODE=MODEL
-                CALL TXGRFV(NGPV,MODE)
+                CALL TXGRFT(NGPV,MODE)
              END DO
 
           CASE DEFAULT
@@ -145,9 +134,8 @@ contains
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
                 CYCLE
              END IF
-             IF (NGPV >= 1 .AND. NGPV <= NGPVM) THEN
-                MODE=MODEL
-                CALL TXGRFV(NGPV,MODE)
+             IF (NGPV >= 1 .AND. NGPV <= NGPTM) THEN
+                CALL TXGRFT(NGPV,MODE)
              END IF
           END SELECT
 
@@ -179,23 +167,19 @@ contains
 
        CASE('A')
           DO NGPR = 1, NGPRM
-             MODE=MODEL
              CALL TXGRFR(NGPR,MODE)
           END DO
 
        CASE('B')
           DO NGPR = 1, 6
-             MODE=MODEL
              CALL TXGRFR(NGPR,MODE)
           END DO
           DO NGPR = 9, 10
-             MODE=MODEL
              CALL TXGRFR(NGPR,MODE)
           END DO
 
        CASE('C')
           DO NGPR = 1, 5
-             MODE=MODEL
              CALL TXGRFR(NGPR,MODE)
           END DO
 
@@ -233,23 +217,19 @@ contains
              !     Correspond to GMA
           ELSE IF (STR2(1:1) == 'A') THEN
              DO I = 1, NGPRM
-                MODE=MODEL
                 CALL TXGRFR(I,MODE)
              END DO
              !     Correspond to GMB
           ELSE IF (STR2(1:1) == 'B') THEN
              DO I = 1, 6
-                MODE=MODEL
                 CALL TXGRFR(I,MODE)
              END DO
              DO I = 9, 10
-                MODE=MODEL
                 CALL TXGRFR(I,MODE)
              END DO
              !     Correspond to GMC
           ELSE IF (STR2(1:1) == 'C') THEN
              DO I = 1, 5
-                MODE=MODEL
                 CALL TXGRFR(I,MODE)
              END DO
           ELSE
@@ -258,7 +238,6 @@ contains
              IF      (NGPR == 0) THEN
                 CYCLE
              ELSE IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
-                MODE=MODEL
                 CALL TXGRFR(NGPR,MODE)
              END IF
           END IF
@@ -412,8 +391,8 @@ contains
     GY(0:NRMAX,NGR,53) = SNGL(X(LQb1,0:NRMAX)*1.D20)
     GY(0:NRMAX,NGR,54) = SNGL(X(LQb3,0:NRMAX)*1.D20)
     GY(0:NRMAX,NGR,55) = SNGL(X(LQb4,0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,56) = SNGL(X(LQn1,0:NRMAX)*1.D14)
-    GY(0:NRMAX,NGR,57) = SNGL(X(LQn2,0:NRMAX)*1.D14)
+    GY(0:NRMAX,NGR,56) = SNGL(X(LQn1,0:NRMAX)*1.D20)
+    GY(0:NRMAX,NGR,57) = SNGL(X(LQn2,0:NRMAX)*1.D20)
 
     !  Coefficients
 
@@ -450,95 +429,10 @@ contains
     GY(0:NRMAX,NGR,87) = SNGL(PIE(0:NRMAX))
     GY(0:NRMAX,NGR,88) = SNGL(PCX(0:NRMAX))
     GY(0:NRMAX,NGR,89) = SNGL(POH(0:NRMAX))
+    GY(0:NRMAX,NGR,90) = SNGL(PBr(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
-
-  !***************************************************************
-  !
-  !   Store GTY
-  !
-  !***************************************************************
-
-  SUBROUTINE TXSTGT(GTIME)
-
-    use commons
-    use physical_constants, only : AEE, PI
-    use output_console, only : rLINEAVE
-    use libraries, only : VALINT_SUB
-
-    REAL, INTENT(IN) :: GTIME
-    REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
-
-    IF (NGT < NGTM) NGT=NGT+1
-
-    GTX(NGT) = GTIME
-
-    GTY(NGT,1)  = SNGL(PNeV(0) * 1.D20)
-    GTY(NGT,2)  = SNGL(rLINEAVE(0.D0))
-    GTY(NGT,3)  = SNGL(rLINEAVE(0.24D0))
-    GTY(NGT,4)  = SNGL(rLINEAVE(0.6D0))
-    GTY(NGT,5)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) - PNeV(0)) * 1.D20)
-    GTY(NGT,6)  = SNGL(UerV(NRMAX/2))
-    GTY(NGT,7)  = SNGL(UethV(NRMAX/2))
-    GTY(NGT,8)  = SNGL(UephV(0))
-    GTY(NGT,9)  = SNGL(UirV(NRMAX/2))
-    GTY(NGT,10) = SNGL(UithV(NRMAX/2))
-    GTY(NGT,11) = SNGL(UiphV(0))
-    GTY(NGT,12) = SNGL(ErV(NRMAX/2))
-    GTY(NGT,13) = SNGL(BthV(NRMAX/2))
-    GTY(NGT,14) = SNGL(EphV(NRMAX))
-    GTY(NGT,15) = SNGL(PNbV(0) * 1.D20)
-    GTY(NGT,16) = SNGL(UbphV(0))
-    GTY(NGT,17) = SNGL(PTeV(0))
-    GTY(NGT,18) = SNGL(PTiV(0))
-    GTY(NGT,19) = SNGL((PN01V(0) + PN02V(0)) * 1.D20)
-
-    GTY(NGT,20) = SNGL(Q(0))
-    GTY(NGT,21) = SNGL((-      AEE * PNeV(0) * UephV(0) &
-         &              + PZ * AEE * PNiV(0) * UiphV(0) &
-         &              + PZ * AEE * PNbV(0) * UbphV(0)) * 1.D20)
-    GTY(NGT,22) = SNGL(-      AEE * PNeV(0) * UephV(0) * 1.D20)
-    GTY(NGT,23) = SNGL(  PZ * AEE * PNiV(0) * UiphV(0) * 1.D20)
-    GTY(NGT,24) = SNGL(  PZ * AEE * PNbV(0) * UbphV(0) * 1.D20)
-
-    BthL = BthV(NRMAX/2)
-    BphL = BphV(NRMAX/2)
-    BBL = SQRT(BphL**2 + BthL**2)
-    GTY(NGT,25) = SNGL((+ BphL * UethV(NRMAX/2) &
-         &              - BthL * UephV(NRMAX/2)) / BBL)
-    GTY(NGT,26) = SNGL((+ BthL * UethV(NRMAX/2) &
-         &              + BphL * UephV(NRMAX/2)) / BBL)
-    GTY(NGT,27) = SNGL((+ BphL * UithV(NRMAX/2) &
-         &              - BthL * UiphV(NRMAX/2)) / BBL)
-    GTY(NGT,28) = SNGL((+ BthL * UithV(NRMAX/2) &
-         &              + BphL * UiphV(NRMAX/2)) / BBL)
-    GTY(NGT,29) = SNGL(Di(NRMAX/2)+De(NRMAX/2))
-    GTY(NGT,30) = SNGL(rG1h2(NRMAX/2))
-    GTY(NGT,31) = SNGL(FCDBM(NRMAX/2))
-    GTY(NGT,32) = SNGL(S(NRMAX/2))
-    GTY(NGT,33) = SNGL(Alpha(NRMAX/2))
-    GTY(NGT,34) = SNGL(rKappa(NRMAX/2))
-
-    !  GTY(NGT,19) = SNGL((PN01V(0) + PN02V(0)) * 1.D20)
-    GTY(NGT,38) = SNGL(PN01V(0) * 1.D20)
-    GTY(NGT,39) = SNGL(PN02V(0) * 1.D20)
-
-    CALL VALINT_SUB(PNeV,NRA,PNESUM1)
-    PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
-    CALL VALINT_SUB(PNeV(0:NRMAX)*rNuION(0:NRMAX),NRA,PNESUM2)
-    PNESUM2 = 2.D0*PI*RR*2.D0*PI*(PNESUM2 + PNeV(NRA)*rNuION(NRA)*R(NRA)*(RA-R(NRA)))
-
-    GTY(NGT,35) = SNGL(PNESUM1)
-    GTY(NGT,36) = SNGL(PNESUM2)
-    IF(NGT == 0.OR.ABS(PNESUM2) <= 0.D0) THEN
-       GTY(NGT,37) = 0.0
-    ELSE
-       GTY(NGT,37) = SNGL(PNESUM1/PNESUM2)
-    END IF
-
-    RETURN
-  END SUBROUTINE TXSTGT
 
   !***************************************************************
   !
@@ -549,60 +443,152 @@ contains
   SUBROUTINE TXSTGV(GTIME)
 
     use commons
+    use physical_constants, only : AEE, PI
+    use output_console, only : rLINEAVE
+    use libraries, only : VALINT_SUB
+
     REAL, INTENT(IN) :: GTIME
+    REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
 
     IF (NGVV < NGVM) NGVV=NGVV+1
 
     GVX(NGVV) = GTIME
 
-    GVY(NGVV,1)  = SNGL(TS0(1))
-    GVY(NGVV,2)  = SNGL(TS0(2))
-    GVY(NGVV,3)  = SNGL(TSAV(1))
-    GVY(NGVV,4)  = SNGL(TSAV(2))
-    GVY(NGVV,5)  = SNGL(PINT)
-    GVY(NGVV,6)  = SNGL(POHT)
-    GVY(NGVV,7)  = SNGL(PNBT)
-    GVY(NGVV,8)  = SNGL(PRFT)
+    GVY(NGVV,1)  = SNGL(PNeV(0) * 1.D20)
+    GVY(NGVV,2)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) - PNeV(0)) * 1.D20)
+    GVY(NGVV,3)  = SNGL(UerV(NRC))
+    GVY(NGVV,4)  = SNGL(UethV(NRC))
+    GVY(NGVV,5)  = SNGL(UephV(0))
+    GVY(NGVV,6)  = SNGL(UirV(NRC))
+    GVY(NGVV,7)  = SNGL(UithV(NRC))
+    GVY(NGVV,8)  = SNGL(UiphV(0))
+    GVY(NGVV,9)  = SNGL(ErV(NRC))
+    GVY(NGVV,10) = SNGL(BthV(NRC))
+    GVY(NGVV,11) = SNGL(EphV(NRMAX))
+    GVY(NGVV,12) = SNGL(PNbV(0) * 1.D20)
+    GVY(NGVV,13) = SNGL(UbphV(0))
+    GVY(NGVV,14) = SNGL(PTeV(0))
+    GVY(NGVV,15) = SNGL(PTiV(0))
+    GVY(NGVV,16) = SNGL((PN01V(0) + PN02V(0)) * 1.D20)
+    GVY(NGVV,17) = SNGL(EthV(NRC))
+    GVY(NGVV,18) = SNGL(BphV(0))
+    GVY(NGVV,19) = SNGL(UbthV(NRC))
+    GVY(NGVV,20) = SNGL(Q(0))
 
-    GVY(NGVV,10) = SNGL(AJT)
-    GVY(NGVV,11) = SNGL(AJOHT)
-    GVY(NGVV,12) = SNGL(AJNBT)
-    GVY(NGVV,13) = SNGL(AJOHT+AJNBT)
-    !  GVY(NGVV,14) = SNGL(AJBST)
-    GVY(NGVV,15) = SNGL(POUT)
-    GVY(NGVV,16) = SNGL(PCXT)
-    GVY(NGVV,17) = SNGL(PIET)
-    !  GVY(NGVV,18) = SNGL(PRLT)
-    !  GVY(NGVV,19) = SNGL(PCONT)
-    GVY(NGVV,20) = SNGL(QF)
-    GVY(NGVV,21) = SNGL(TS0(1))
-    GVY(NGVV,22) = SNGL(TS0(2))
-    GVY(NGVV,23) = SNGL(TSAV(1))
-    GVY(NGVV,24) = SNGL(TSAV(2))
-    GVY(NGVV,25) = SNGL(ANS0(1))
-    GVY(NGVV,26) = SNGL(ANS0(2))
-    GVY(NGVV,27) = SNGL(ANSAV(1))
-    GVY(NGVV,28) = SNGL(ANSAV(2))
-    GVY(NGVV,29) = SNGL(WST(1))
-    GVY(NGVV,30) = SNGL(WST(2))
+    GVY(NGVV,21) = SNGL((-      AEE * PNeV(0) * UephV(0) &
+         &               + PZ * AEE * PNiV(0) * UiphV(0) &
+         &               + PZ * AEE * PNbV(0) * UbphV(0)) * 1.D20)
+    GVY(NGVV,22) = SNGL( -      AEE * PNeV(0) * UephV(0)  * 1.D20)
+    GVY(NGVV,23) = SNGL(   PZ * AEE * PNiV(0) * UiphV(0)  * 1.D20)
+    GVY(NGVV,24) = SNGL(   PZ * AEE * PNbV(0) * UbphV(0)  * 1.D20)
 
-    GVY(NGVV,31) = SNGL(WST(1))
-    GVY(NGVV,32) = SNGL(WST(2))
+    BthL = BthV(NRC)
+    BphL = BphV(NRC)
+    BBL = SQRT(BphL**2 + BthL**2)
+    GVY(NGVV,25) = SNGL((+ BphL * UethV(NRC) - BthL * UephV(NRC)) / BBL)
+    GVY(NGVV,26) = SNGL((+ BthL * UethV(NRC) + BphL * UephV(NRC)) / BBL)
+    GVY(NGVV,27) = SNGL((+ BphL * UithV(NRC) - BthL * UiphV(NRC)) / BBL)
+    GVY(NGVV,28) = SNGL((+ BthL * UithV(NRC) + BphL * UiphV(NRC)) / BBL)
+    GVY(NGVV,29) = SNGL(Di(NRC)+De(NRC))
+    GVY(NGVV,30) = SNGL(rG1h2(NRC))
+    GVY(NGVV,31) = SNGL(FCDBM(NRC))
+    GVY(NGVV,32) = SNGL(S(NRC))
+    GVY(NGVV,33) = SNGL(Alpha(NRC))
+    GVY(NGVV,34) = SNGL(rKappa(NRC))
+    GVY(NGVV,35) = SNGL(PN01V(0) * 1.D20)
+    GVY(NGVV,36) = SNGL(PN02V(0) * 1.D20)
+    GVY(NGVV,37) = SNGL(PNiV (0) * 1.D20)
 
-    GVY(NGVV,33) = SNGL(TAUE1)
-    GVY(NGVV,34) = SNGL(TAUE2)
-    GVY(NGVV,35) = SNGL(TAUEP)
-    GVY(NGVV,36) = SNGL(BETAA)
-    GVY(NGVV,37) = SNGL(BETA0)
-    GVY(NGVV,38) = SNGL(BETAPA)
-    GVY(NGVV,39) = SNGL(BETAP0)
-    GVY(NGVV,40) = SNGL(VLOOP)
-    GVY(NGVV,41) = SNGL(ALI)
-    GVY(NGVV,42) = SNGL(Q(0))
-    GVY(NGVV,43) = SNGL(RQ1)
+    GVY(NGVV,38)  = SNGL(rLINEAVE(0.D0))
+    GVY(NGVV,39)  = SNGL(rLINEAVE(0.24D0))
+    GVY(NGVV,40)  = SNGL(rLINEAVE(0.6D0))
+
+    CALL VALINT_SUB(PNeV,NRA,PNESUM1)
+    PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
+    CALL VALINT_SUB(PNeV(0:NRMAX)*rNuION(0:NRMAX),NRA,PNESUM2)
+    PNESUM2 = 2.D0*PI*RR*2.D0*PI*(PNESUM2 + PNeV(NRA)*rNuION(NRA)*R(NRA)*(RA-R(NRA)))
+
+    GVY(NGVV,41) = SNGL(PNESUM1)
+    GVY(NGVV,42) = SNGL(PNESUM2)
+    IF(NGVV == 0.OR.ABS(PNESUM2) <= 0.D0) THEN
+       GVY(NGVV,43) = 0.0
+    ELSE
+       GVY(NGVV,43) = SNGL(PNESUM1/PNESUM2)
+    END IF
+
+    GVY(NGVV,44) = SNGL(Chie(NRC))
+    GVY(NGVV,45) = SNGL(Chii(NRC))
+    GVY(NGVV,46) = SNGL(PIE(NRC))
+    GVY(NGVV,47) = SNGL(PCX(NRC))
+    GVY(NGVV,48) = SNGL(POH(NRC))
+    GVY(NGVV,49) = SNGL(PBr(NRC))
 
     RETURN
   END SUBROUTINE TXSTGV
+
+  !***************************************************************
+  !
+  !   Store GTY
+  !
+  !***************************************************************
+
+  SUBROUTINE TXSTGT(GTIME)
+
+    use commons
+    REAL, INTENT(IN) :: GTIME
+
+    IF (NGT < NGTM) NGT=NGT+1
+
+    GTX(NGT) = GTIME
+
+    GTY(NGT,1)  = SNGL(TS0(1))
+    GTY(NGT,2)  = SNGL(TS0(2))
+    GTY(NGT,3)  = SNGL(TSAV(1))
+    GTY(NGT,4)  = SNGL(TSAV(2))
+    GTY(NGT,5)  = SNGL(PINT)
+    GTY(NGT,6)  = SNGL(POHT)
+    GTY(NGT,7)  = SNGL(PNBT)
+    GTY(NGT,8)  = SNGL(PRFT)
+
+    GTY(NGT,10) = SNGL(AJT)
+    GTY(NGT,11) = SNGL(AJOHT)
+    GTY(NGT,12) = SNGL(AJNBT)
+    GTY(NGT,13) = SNGL(AJOHT+AJNBT)
+    !  GTY(NGT,14) = SNGL(AJBST)
+    GTY(NGT,15) = SNGL(POUT)
+    GTY(NGT,16) = SNGL(PCXT)
+    GTY(NGT,17) = SNGL(PIET)
+    !  GTY(NGT,18) = SNGL(PRLT)
+    !  GTY(NGT,19) = SNGL(PCONT)
+    GTY(NGT,20) = SNGL(QF)
+    GTY(NGT,21) = SNGL(TS0(1))
+    GTY(NGT,22) = SNGL(TS0(2))
+    GTY(NGT,23) = SNGL(TSAV(1))
+    GTY(NGT,24) = SNGL(TSAV(2))
+    GTY(NGT,25) = SNGL(ANS0(1))
+    GTY(NGT,26) = SNGL(ANS0(2))
+    GTY(NGT,27) = SNGL(ANSAV(1))
+    GTY(NGT,28) = SNGL(ANSAV(2))
+    GTY(NGT,29) = SNGL(WST(1))
+    GTY(NGT,30) = SNGL(WST(2))
+
+    GTY(NGT,31) = SNGL(WST(1))
+    GTY(NGT,32) = SNGL(WST(2))
+
+    GTY(NGT,33) = SNGL(TAUE1)
+    GTY(NGT,34) = SNGL(TAUE2)
+    GTY(NGT,35) = SNGL(TAUEP)
+    GTY(NGT,36) = SNGL(BETAA) * 100.0
+    GTY(NGT,37) = SNGL(BETA0) * 100.0
+    GTY(NGT,38) = SNGL(BETAPA)
+    GTY(NGT,39) = SNGL(BETAP0)
+    GTY(NGT,40) = SNGL(VLOOP)
+    GTY(NGT,41) = SNGL(ALI)
+    GTY(NGT,42) = SNGL(Q(0))
+    GTY(NGT,43) = SNGL(RQ1)
+
+    RETURN
+  END SUBROUTINE TXSTGT
 
   !***************************************************************
   !
@@ -624,8 +610,6 @@ contains
     real :: GPXL, FACT
 
     NGYR = NGYRIN
-
-!    IF (NGYR == 0) NGYR = -1
 
     IF (NGR <= -1) THEN
        WRITE(6,*) 'G', NGYR, ' has no data'
@@ -670,7 +654,9 @@ contains
        GPXL = GPX(1)
        DO NE = 1, NEMAX-1
           GPXL = GPXL + REAL(H(NE)) * FACT
+          IF(NE == NRA) CALL SETLIN(-1,-1,6)
           CALL LINE2D(GPXL,1.5,GPXL,17.0)
+          IF(NE == NRA) CALL SETLIN(-1,-1,7)
        END DO
        WRITE(KSTR,'(I1)') 0
        WRITE(KEND,'(I3)') NRMAX
@@ -806,13 +792,13 @@ contains
        STR = '@T$-i$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@Chi$-e$=(r)@'
+       STR = '@$#c$#$-e$=(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,70),NRMAX,NGR,STR,MODE,IND)
 
        CALL TXWPGR
 
     CASE(11)
-       STR = '@S(r)@'
+       STR = '@s(r)@'
        CALL TXGRFRX(0,GX,GY(0,0,32),NRMAX,NGR,STR,MODE,IND)
        STR = '@$#a$#(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,33),NRMAX,NGR,STR,MODE,IND)
@@ -850,13 +836,16 @@ contains
        CALL TXGRFRX(0,GX,GY(0,0,87),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@PCX(r)@'
-       CALL TXGRFRX(1,GX,GY(0,0,88),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,88), GYL, STR, NRM, NRMAX, NGR, gDIV(88))
+       CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@POH(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,89), GYL, STR, NRM, NRMAX, NGR, gDIV(79))
+       CALL APPROPGY(MODEG, GY(0,0,89), GYL, STR, NRM, NRMAX, NGR, gDIV(89))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@PBr(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,90),NRMAX,NGR,STR,MODE,IND)
+       !CALL TXWPGR
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
@@ -1058,7 +1047,8 @@ contains
        CALL TXGRFRXS( 1,GX,GY(0,0,59),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuei@'
-       CALL TXGRFRXS( 2,GX,GY(0,0,60),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,60), GYL, STR, NRM, NRMAX, NGR, gDIV(60))
+       CALL TXGRFRXS( 2,GX,GYL      ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuL@'
        CALL TXGRFRXS( 3,GX,GY(0,0,61),NRMAX,NGR,STR,MODE,IND)
@@ -1070,10 +1060,12 @@ contains
        CALL TXGRFRXS( 5,GX,GY(0,0,63),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@FWthe@'
-       CALL TXGRFRXS( 6,GX,GY(0,0,64),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,64), GYL, STR, NRM, NRMAX, NGR, gDIV(64))
+       CALL TXGRFRXS( 6,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@FWthi@'
-       CALL TXGRFRXS( 7,GX,GY(0,0,65),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,65), GYL, STR, NRM, NRMAX, NGR, gDIV(65))
+       CALL TXGRFRXS( 7,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@WPM@'
        CALL TXGRFRXS( 8,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
@@ -1087,24 +1079,28 @@ contains
        STR = '@rNu0i@'
        CALL TXGRFRXS(11,GX,GY(0,0,69),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@Chie@'
+       STR = '@$#c$#$-e$=@'
        CALL TXGRFRXS(12,GX,GY(0,0,70),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@Chii@'
+       STR = '@$#c$#$-i$=@'
        CALL TXGRFRXS(13,GX,GY(0,0,71),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@D01@'
-       CALL TXGRFRXS(14,GX,GY(0,0,72),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,72), GYL, STR, NRM, NRMAX, NGR, gDIV(72))
+       CALL TXGRFRXS(14,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@D02@'
-       CALL TXGRFRXS(15,GX,GY(0,0,73),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,73), GYL, STR, NRM, NRMAX, NGR, gDIV(73))
+       CALL TXGRFRXS(15,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
     CASE(-6)
        STR = '@rNueNC@'
-       CALL TXGRFRXS( 0,GX,GY(0,0,74),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,74), GYL, STR, NRM, NRMAX, NGR, gDIV(74))
+       CALL TXGRFRXS( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuiNC@'
-       CALL TXGRFRXS( 1,GX,GY(0,0,75),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,75), GYL, STR, NRM, NRMAX, NGR, gDIV(75))
+       CALL TXGRFRXS( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNueHL@'
        CALL TXGRFRXS( 2,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
@@ -1147,23 +1143,17 @@ contains
 
     SELECT CASE(NGYR)
     CASE(-1)
-       NGYR = -2
-       CYCLE
+       NGYR = -2  ; CYCLE
     CASE(-2)
-       NGYR = 0
-       EXIT
+       NGYR =  0  ; EXIT
     CASE(-3)
-       NGYR = -4
-       CYCLE
+       NGYR = -4  ; CYCLE
     CASE(-4)
-       NGYR = 0
-       EXIT
+       NGYR =  0  ; EXIT
     CASE(-5)
-       NGYR = -6
-       CYCLE
+       NGYR = -6  ; CYCLE
     CASE(-6)
-       NGYR = 0
-       EXIT
+       NGYR =  0  ; EXIT
     CASE DEFAULT
        EXIT
     END SELECT
@@ -1179,12 +1169,12 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX1, NGMAX, STR, MODE, IND)
+  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND)
 
-    use commons, only : RA, RB, NRM
-    INTEGER, INTENT(IN) :: K, NRMAX1, NGMAX, MODE, IND
+    use commons, only : NRM, RA, RB
+    INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL, DIMENSION(0:NRM), INTENT(IN) :: GXL
-    REAL, DIMENSION(0:NRM,0:NGMAX), INTENT(IN) :: GYL
+    REAL, DIMENSION(0:NRM,1:NGMAX+1), INTENT(IN) :: GYL
     character(len=*), INTENT(IN) :: STR
     REAL :: GXMAX
     REAL, DIMENSION(4) :: GPXY
@@ -1194,8 +1184,9 @@ contains
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     GXMAX=REAL(RB/RA)
-    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX1+1, NGMAX+1, &
-         &            0.0, GXMAX, STR, MODE, IND)
+
+    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX+1, &
+         &            0.0, GXMAX, STR, 0.3, MODE, IND)
 
     RETURN
   END SUBROUTINE TXGRFRX
@@ -1206,12 +1197,12 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX1, NGMAX, STR, MODE, IND)
+  SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND)
 
-    use commons, only : RA, RB, NRM
-    INTEGER, INTENT(IN) :: K, NRMAX1, NGMAX, MODE, IND
+    use commons, only : NRM, RA, RB
+    INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL, DIMENSION(0:NRM), INTENT(IN) :: GXL
-    REAL, DIMENSION(0:NRM,0:NGMAX), INTENT(IN) :: GYL
+    REAL, DIMENSION(0:NRM,1:NGMAX+1), INTENT(IN) :: GYL
     character(len=*), INTENT(IN) :: STR
     REAL :: GXMAX
     REAL, DIMENSION(4) :: GPXY
@@ -1221,233 +1212,11 @@ contains
     GPXY(3) = 13.75 - 4.25 * REAL(K/4)
     GPXY(4) = 17.0  - 4.25 * REAL(K/4)
     GXMAX=REAL(RB/RA)
-    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX1+1, NGMAX+1, &
-         &            0.0, GXMAX, STR, MODE, IND)
+    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX+1, &
+         &            0.0, GXMAX, STR, 0.26, MODE, IND)
 
     RETURN
   END SUBROUTINE TXGRFRXS
-
-  !***************************************************************
-  !
-  !   Write graph of GTX, GTY
-  !
-  !***************************************************************
-
-  SUBROUTINE TXGRFT(NGYT,MODE)
-
-    use commons
-    INTEGER, INTENT(IN) :: NGYT, MODE
-    INTEGER :: IND
-    REAL :: gDIVL
-    character(len=40) ::  STR
-    REAL, DIMENSION(0:NGTM,NGYTM) :: GTYL
-
-    IF (NGT <= 1) THEN
-       WRITE(6,*) 'GT', NGYT, ' has no data'
-       RETURN
-    END IF
-
-    IF (MODEG == 2) THEN
-       IND = 9
-    ELSE
-       IND = 0
-    END IF
-
-    CALL PAGES
-    CALL SETCHS(0.3, 0.0)
-    CALL SETLIN(0, 1, 7)
-
-    CALL MOVE(2.0,17.7)
-    CALL TEXT('[GT', 3)
-    CALL NUMBI(NGYT, '(I2)', 2)
-    CALL TEXT(']  ', 3)
-    CALL TEXT('FROM', 4)
-    CALL NUMBR(GTX(0), '(1PE9.2)', 9)
-    CALL TEXT(' TO', 3)
-    CALL NUMBR(GTX(NGT), '(1PE9.2)', 9)
-    CALL TEXT('  DT =', 6)
-    CALL NUMBD(DT, '(1PD9.2)', 9)
-    CALL TEXT('  NGTSTP = ', 11)
-    CALL NUMBI(NGTSTP,'(I4)',4)
-
-    SELECT CASE(NGYT)
-    CASE(1)
-       STR = '@Ne(0),LAVE(0),(0.24),(0.6)@'
-       CALL APPROPGY(MODEG, GTY(0,1), GTYL, STR, NGTM, NGT, 4, gDIV(1))
-       CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 4, STR,MODE, IND)
-
-       STR = '@Z*Ni+Z*Nb-Ne(0)@'
-       CALL APPROPGY(MODEG, GTY(0,5), GTYL, STR, NGTM, NGT, 1, gDIV(5-3))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@Er(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,12), GTYL, STR, NGTM, NGT, 1, gDIV(12-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(2)
-       STR = '@Uer(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,6), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UeTheta(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,7), GTYL, STR, NGTM, NGT, 1, gDIV(7-3))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UePhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,8), GTYL, STR, NGTM, NGT, 1, gDIV(8-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(3)
-       STR = '@Uir(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,9), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UiTheta(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,10), GTYL, STR, NGTM, NGT, 1, gDIV(10-3))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UiPhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,11), GTYL, STR, NGTM, NGT, 1, gDIV(11-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(4)
-       STR = '@Q(0)@'
-       CALL TXGRFTX(0, GTX, GTY(0,20), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@Ephi(b)@'
-       CALL TXGRFTX(1, GTX, GTY(0,14), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@Jphi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,21), GTYL, STR, NGTM, NGT, 1, gDIV(21-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(5)
-       STR = '@Nb(0)@'
-       CALL APPROPGY(MODEG, GTY(0,15), GTYL, STR, NGTM, NGT, 1, gDIV(15-3))
-       CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UbPhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,16), GTYL, STR, NGTM, NGT, 1, gDIV(16-3))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@Bth(b/2)@'
-       CALL TXGRFTX(2, GTX, GTY(0,13), NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(6)
-       STR = '@JePhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,22), GTYL, STR, NGTM, NGT, 1, gDIV(22))
-       CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@JiPhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,23), GTYL, STR, NGTM, NGT, 1, gDIV(23))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@JbPhi(0)@'
-       CALL APPROPGY(MODEG, GTY(0,24), GTYL, STR, NGTM, NGT, 1, gDIV(24))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(7)
-       STR = '@Uer(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,6), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UePerp(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,25), GTYL, STR, NGTM, NGT, 1, gDIV(25))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UePara(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,26), GTYL, STR, NGTM, NGT, 1, gDIV(26))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(8)
-       STR = '@Uir(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,9), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UiPerp(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,27), GTYL, STR, NGTM, NGT, 1, gDIV(27))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@UiPara(b/2)@'
-       CALL APPROPGY(MODEG, GTY(0,28), GTYL, STR, NGTM, NGT, 1, gDIV(28))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(9)
-       STR = '@Di(b/2)+De(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,29), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@rG1h2(b/2)@'
-       CALL TXGRFTX(1, GTX, GTY(0,30), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@FCDBM(b/2)@'
-       CALL TXGRFTX(2, GTX, GTY(0,31), NGTM, NGT, 1, STR,MODE, IND)
-       CALL TXWPGR
-
-    CASE(10)
-       STR = '@Te(0)@'
-       CALL TXGRFTX(0, GTX, GTY(0,17), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@Ti(0)@'
-       CALL TXGRFTX(1, GTX, GTY(0,18), NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@N0(0)@'
-       CALL APPROPGY(MODEG, GTY(0,19), GTYL, STR, NGTM, NGT, 1, gDIV(19-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-
-    CASE(11)
-       STR = '@S(b/2)@'
-       CALL TXGRFTX(0, GTX, GTY(0,32), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@Alpha(b/2)@'
-       CALL TXGRFTX(1, GTX, GTY(0,33), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@rKappa(b/2)@'
-       CALL TXGRFTX(2, GTX, GTY(0,34), NGTM, NGT, 1, STR,MODE, IND)
-       CALL TXWPGR
-
-       CALL TXWPGR
-
-    CASE(12)
-       STR = '@Ne:total@'
-       CALL TXGRFTX(0, GTX, GTY(0,35), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@Gamma:total@'
-       CALL TXGRFTX(1, GTX, GTY(0,36), NGTM, NGT, 1, STR,MODE, IND)
-       STR = '@taup@'
-       CALL TXGRFTX(2, GTX, GTY(0,37), NGTM, NGT, 1, STR,MODE, IND)
-       CALL TXWPGR
-
-    CASE(13)
-       STR = '@SLOW N0(0)@'
-       CALL APPROPGY(MODEG, GTY(0,38), GTYL, STR, NGTM, NGT, 1, gDIV(38-3))
-       CALL TXGRFTX(0, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@FAST N0(0)@'
-       CALL APPROPGY(MODEG, GTY(0,39), GTYL, STR, NGTM, NGT, 1, gDIV(39-3))
-       CALL TXGRFTX(1, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       STR = '@TOTAL N0(0)@'
-       CALL APPROPGY(MODEG, GTY(0,19), GTYL, STR, NGTM, NGT, 1, gDIV(19-3))
-       CALL TXGRFTX(2, GTX, GTYL, NGTM, NGT, 1, STR,MODE, IND)
-
-       CALL TXWPGR
-    CASE DEFAULT
-       WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT
-    END SELECT
-
-    CALL PAGEE
-
-    RETURN
-  END SUBROUTINE TXGRFT
 
   !***************************************************************
   !
@@ -1462,7 +1231,7 @@ contains
     INTEGER :: IND
     REAL :: gDIVL
     character(len=40) ::  STR
-    REAL, DIMENSION(0:NGVM,NGYVM) :: GVYL
+    REAL, DIMENSION(0:NGVM,1:4) :: GVYL
 
     IF (NGVV <= 1) THEN
        WRITE(6,*) 'GV', NGYV, ' has no data'
@@ -1494,130 +1263,380 @@ contains
 
     SELECT CASE(NGYV)
     CASE(1)
-       STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
-       CALL TXGRFTX(0, GVX, GVY(0,1), NGVM, NGVV, 4, STR, MODE, IND)
+       STR = '@n$-e$=(0),LAVE(0),(0.24),(0.6)@'
+       CALL APPROPGY(MODEG, GVY(0,38), GVYL, STR, NGVM, NGVV, 3, gDIV(1), GVY(0, 1), 1)
+       CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
 
-       STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
-       CALL TXGRFTX(1, GVX, GVY(0,5), NGVM, NGVV, 5, STR, MODE, IND)
+       STR = '@Z*n$-i$=+Z*n$-b$=-n$-e$=@'
+       CALL APPROPGY(MODEG, GVY(0, 2), GVYL, STR, NGVM, NGVV, 1, gDIV(2))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
-       CALL TXGRFTX(2, GVX, GVY(0,10), NGVM, NGVV, 4, STR, MODE, IND)
+       STR = '@E$-r$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0, 9), GVYL, STR, NGVM, NGVV, 1, gDIV(9))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
-       CALL TXGRFTX(3, GVX, GVY(0,15), NGVM, NGVV, 5, STR, MODE, IND)
+       CALL TXWPGR
 
     CASE(2)
-       STR = '@QF vs t@'
-       CALL TXGRFTX(0, GVX, GVY(0,20), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@u$-er$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0, 3), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@Te0,Ti0 [keV] vs t@'
-       CALL TXGRFTX(1, GVX, GVY(0,21), NGVM, NGVV, 2, STR, MODE, IND)
+       STR = '@u$-e$#q$#$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0, 4), GVYL, STR, NGVM, NGVV, 1, gDIV(4))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@<Te>,<Ti> [keV] vs t@'
-       CALL TXGRFTX(2, GVX, GVY(0,23), NGVM, NGVV, 2, STR, MODE, IND)
+       STR = '@u$-e$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0, 5), GVYL, STR, NGVM, NGVV, 1, gDIV(5))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@Ne0,Ni0,<Ne>,<Ni> [10^20/m^3] vs t@'
-       CALL TXGRFTX(3, GVX, GVY(0,25), NGVM, NGVV, 4, STR, MODE, IND)
+       CALL TXWPGR
 
     CASE(3)
-       STR = '@WF,WB,Wi,We [MJ] vs t@'
-       CALL TXGRFTX(0, GVX, GVY(0,29), NGVM, NGVV, 4, STR, MODE, IND)
+       STR = '@u$-ir$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0, 6), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@TAUE1,TAUE2,TAUEP [s] vs t@'
-       CALL TXGRFTX(1, GVX, GVY(0,33), NGVM, NGVV, 3, STR, MODE, IND)
+       STR = '@u$-i$#q$#$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0, 7), GVYL, STR, NGVM, NGVV, 1, gDIV(7))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@BETAa,BETA0 vs t@'
-       CALL TXGRFTX(2, GVX, GVY(0,36), NGVM, NGVV, 2, STR, MODE, IND)
+       STR = '@u$-i$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0, 8), GVYL, STR, NGVM, NGVV, 1, gDIV(8))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@BETAPa,BETAP0 vs t@'
-       CALL TXGRFTX(3, GVX, GVY(0,38), NGVM, NGVV, 2, STR, MODE, IND)
+       CALL TXWPGR
 
     CASE(4)
-       STR = '@VLOOP [V]@'
-       CALL TXGRFTX(0, GVX, GVY(0,40), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@q(0)@'
+       CALL TXGRFVX(0, GVX, GVY(0,20), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@ALI@'
-       CALL TXGRFTX(1, GVX, GVY(0,41), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@E$-$#f$#$=(b)@'
+       CALL TXGRFVX(1, GVX, GVY(0,11), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@Q(0)@'
-       CALL TXGRFTX(2, GVX, GVY(0,42), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@j$-$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,21), GVYL, STR, NGVM, NGVV, 1, gDIV(21))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@RQ1 [m]@'
-       CALL TXGRFTX(3, GVX, GVY(0,43), NGVM, NGVV, 1, STR, MODE, IND)
+       CALL TXWPGR
 
     CASE(5)
-       GOTO 100
+       STR = '@n$-b$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,12), GVYL, STR, NGVM, NGVV, 1, gDIV(12))
+       CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@u$-b$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,13), GVYL, STR, NGVM, NGVV, 1, gDIV(13))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@B$-$#q$#$=(a/2)@'
+       CALL TXGRFVX(2, GVX, GVY(0,10), NGVM, NGVV, 1, STR, MODE, IND)
+
+       CALL TXWPGR
 
     CASE(6)
-       STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
-       CALL TXGRFVX(0, GVX, GVY(0,1), NGVM, NGVV, 4, STR, IND)
+       STR = '@j$-e$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,22), GVYL, STR, NGVM, NGVV, 1, gDIV(22))
+       CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
-       CALL TXGRFVX(4, GVX, GVY(0,5), NGVM, NGVV, 5, STR, IND)
+       STR = '@j$-i$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,23), GVYL, STR, NGVM, NGVV, 1, gDIV(23))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
-       CALL TXGRFVX(2, GVX, GVY(0,10), NGVM, NGVV, 4, STR, IND)
+       STR = '@j$-b$#f$#$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,24), GVYL, STR, NGVM, NGVV, 1, gDIV(24))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
-       CALL TXGRFVX(6, GVX, GVY(0,15), NGVM, NGVV, 5, STR, IND)
-
-       STR = '@QF vs t@'
-       CALL TXGRFVX(1, GVX, GVY(0,20), NGVM, NGVV, 1, STR, IND)
-
-       STR = '@Te0,Ti0 [keV] vs t@'
-       CALL TXGRFVX(5, GVX, GVY(0,21), NGVM, NGVV, 2, STR, IND)
-
-       STR = '@<Te>,<Ti> [keV] vs t@'
-       CALL TXGRFVX(3, GVX, GVY(0,23), NGVM, NGVV, 2, STR, IND)
-
-       STR = '@Ne0,Ni0,<Ne>,<Ni> [10~20/m^3] vs t@'
-       CALL TXGRFVX(7, GVX, GVY(0,25), NGVM, NGVV, 4, STR, IND)
+       CALL TXWPGR
 
     CASE(7)
-       STR = '@WF,WB,Wi,We [MJ] vs t@'
-       CALL TXGRFVX(0, GVX, GVY(0,29), NGVM, NGVV, 4, STR, IND)
+       STR = '@u$-er$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0, 3), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@TAUE1,TAUE2,TAUEP [e] vs t@'
-       CALL TXGRFVX(4, GVX, GVY(0,33), NGVM, NGVV, 3, STR, IND)
+       STR = '@u$-e$#$/136$#$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0,25), GVYL, STR, NGVM, NGVV, 1, gDIV(25))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@BETAa,BETA0 vs t@'
-       CALL TXGRFVX(2, GVX, GVY(0,36), NGVM, NGVV, 2, STR, IND)
+       STR = '@u$-e//$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0,26), GVYL, STR, NGVM, NGVV, 1, gDIV(26))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@BETAPa,BETAP0 vs t@'
-       CALL TXGRFVX(6, GVX, GVY(0,38), NGVM, NGVV, 2, STR, IND)
+       CALL TXWPGR
 
-       STR = '@VLOOP [V]@'
-       CALL TXGRFVX(1, GVX, GVY(0,40), NGVM, NGVV, 1, STR, IND)
+    CASE(8)
+       STR = '@u$-ir$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0, 6), NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@ALI@'
-       CALL TXGRFVX(5, GVX, GVY(0,41), NGVM, NGVV, 1, STR, IND)
+       STR = '@u$-i$#$/136$#$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0,27), GVYL, STR, NGVM, NGVV, 1, gDIV(27))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@Q(0)@'
-       CALL TXGRFVX(3, GVX, GVY(0,42), NGVM, NGVV, 1, STR, IND)
+       STR = '@u$-i//$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0,28), GVYL, STR, NGVM, NGVV, 1, gDIV(28))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@RQ1 [m]@'
-       CALL TXGRFVX(7, GVX, GVY(0,43), NGVM, NGVV, 1, STR, IND)
+       CALL TXWPGR
+
+    CASE(9)
+       STR = '@D$-i$=(a/2)+D$-e$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0,29), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@G$-1$=h$+2$=(a/2)@'
+       CALL TXGRFVX(1, GVX, GVY(0,30), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@F$-CDBM$=(a/2)@'
+       CALL TXGRFVX(2, GVX, GVY(0,31), NGVM, NGVV, 1, STR, MODE, IND)
+       CALL TXWPGR
+
+    CASE(10)
+       STR = '@T$-e$=(0)@'
+       CALL TXGRFVX(0, GVX, GVY(0,14), NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@T$-i$=(0)@'
+       CALL TXGRFVX(1, GVX, GVY(0,14), NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@$#c$#$-e$=(0)@'
+       CALL TXGRFVX(2, GVX, GVY(0,44), NGVM, NGVV, 1, STR, MODE, IND)
+
+       CALL TXWPGR
+
+    CASE(11)
+       STR = '@s(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0,32), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@$#a$#(a/2)@'
+       CALL TXGRFVX(1, GVX, GVY(0,33), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@$#k$#(a/2)@'
+       CALL TXGRFVX(2, GVX, GVY(0,34), NGVM, NGVV, 1, STR, MODE, IND)
+       CALL TXWPGR
+
+       CALL TXWPGR
+
+    CASE(12)
+       STR = '@E$-$#q$#$=(a/2)@'
+       CALL TXGRFVX(0, GVX, GVY(0,17), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@B$-$#f$#$=(0)@'
+       CALL TXGRFVX(1, GVX, GVY(0,18), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@u$-b$#q$#$=(a/2)@'
+       CALL APPROPGY(MODEG, GVY(0,19), GVYL, STR, NGVM, NGVV, 1, gDIV(19))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+       CALL TXWPGR
+
+       CALL TXWPGR
+
+    CASE(13)
+       STR = '@SLOW N$-0$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,35), GVYL, STR, NGVM, NGVV, 1, gDIV(35))
+       CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@FAST N$-0$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,36), GVYL, STR, NGVM, NGVV, 1, gDIV(36))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@TOTAL N$-0$=(0)@'
+       CALL APPROPGY(MODEG, GVY(0,16), GVYL, STR, NGVM, NGVV, 1, gDIV(16))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       CALL TXWPGR
+
+    CASE(14)
+       STR = '@PIE(r)@'
+       CALL TXGRFVX(0, GVX, GVY(0,46), NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@PCX(r)@'
+       CALL APPROPGY(MODEG, GVY(0,47), GVYL, STR, NGVM, NGVV, 1, gDIV(88))
+       CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@POH(r)@'
+       CALL APPROPGY(MODEG, GVY(0,48), GVYL, STR, NGVM, NGVV, 1, gDIV(89))
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
+
+       STR = '@PBr(r)@'
+       CALL TXGRFVX(3, GVX, GVY(0,49), NGVM, NGVV, 1, STR, MODE, IND)
+       !CALL TXWPGR
+
+    CASE(15)
+       STR = '@n$-e$=:total@'
+       CALL TXGRFVX(0, GVX, GVY(0,41), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@$#g$#:total@'
+       CALL TXGRFVX(1, GVX, GVY(0,42), NGVM, NGVV, 1, STR, MODE, IND)
+       STR = '@$#t$#$-p$=@'
+       CALL TXGRFVX(2, GVX, GVY(0,43), NGVM, NGVV, 1, STR, MODE, IND)
+       CALL TXWPGR
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYV: NGYV = ',NGYV
     END SELECT
 
-100 CALL PAGEE
+    CALL PAGEE
 
     RETURN
   END SUBROUTINE TXGRFV
 
   !***************************************************************
   !
-  !   SLAVE ROUTINE TO Write graph of GTX, GTY
+  !   Write graph of GTX, GTY
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFTX(K, GTXL, GTYL, NGTLM, NGTL, NG, STR, MODE, IND)
+  SUBROUTINE TXGRFT(NGYT,MODE)
 
-    INTEGER, INTENT(IN) :: K ,NGTLM, NGTL, NG
-    REAL, DIMENSION(0:NGTLM), INTENT(IN) :: GTXL
-    REAL, DIMENSION(0:NGTLM,NG), INTENT(IN) :: GTYL
+    use commons
+    INTEGER, INTENT(IN) :: NGYT, MODE
+    INTEGER :: IND
+    REAL :: gDIVL
+    character(len=50) ::  STR
+    REAL, DIMENSION(0:NGTM,1:NGYTM) :: GTYL
+
+    IF (NGT <= 1) THEN
+       WRITE(6,*) 'GT', NGYT, ' has no data'
+       RETURN
+    END IF
+
+    IF (MODEG == 2) THEN
+       IND = 9
+    ELSE
+       IND = 0
+    END IF
+
+    CALL PAGES
+    CALL SETCHS(0.3, 0.0)
+    CALL SETLIN(0, 1, 7)
+
+    CALL MOVE(2.0,17.7)
+    CALL TEXT('[GT', 3)
+    CALL NUMBI(NGYT, '(I2)', 2)
+    CALL TEXT(']  ', 3)
+    CALL TEXT('FROM', 4)
+    CALL NUMBR(GTX(0), '(1PE9.2)', 9)
+    CALL TEXT(' TO', 3)
+    CALL NUMBR(GTX(NGT), '(1PE9.2)', 9)
+    CALL TEXT('  DT =', 6)
+    CALL NUMBD(DT, '(1PD9.2)', 9)
+    CALL TEXT('  NGTSTP = ', 11)
+    CALL NUMBI(NGTSTP,'(I4)',4)
+
+    SELECT CASE(NGYT)
+    CASE(1)
+       STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
+       CALL TXGRFVX(0, GTX, GTY(0,1), NGTM, NGT, 4, STR, MODE, IND)
+
+       STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
+       CALL TXGRFVX(1, GTX, GTY(0,5), NGTM, NGT, 5, STR, MODE, IND)
+
+       STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
+       CALL TXGRFVX(2, GTX, GTY(0,10), NGTM, NGT, 4, STR, MODE, IND)
+
+       STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
+       CALL TXGRFVX(3, GTX, GTY(0,15), NGTM, NGT, 5, STR, MODE, IND)
+
+    CASE(2)
+       STR = '@QF vs t@'
+       CALL TXGRFVX(0, GTX, GTY(0,20), NGTM, NGT, 1, STR, MODE, IND)
+
+       STR = '@Te0,Ti0 [keV] vs t@'
+       CALL TXGRFVX(1, GTX, GTY(0,21), NGTM, NGT, 2, STR, MODE, IND)
+
+       STR = '@<Te>,<Ti> [keV] vs t@'
+       CALL TXGRFVX(2, GTX, GTY(0,23), NGTM, NGT, 2, STR, MODE, IND)
+
+       STR = '@Ne0,Ni0,<Ne>,<Ni> [10$+20$=/m$+3$=] vs t@'
+       CALL TXGRFVX(3, GTX, GTY(0,25), NGTM, NGT, 4, STR, MODE, IND)
+
+    CASE(3)
+       STR = '@WF,WB,Wi,We [MJ] vs t@'
+       CALL TXGRFVX(0, GTX, GTY(0,29), NGTM, NGT, 4, STR, MODE, IND)
+
+       STR = '@TAUE1,TAUE2,TAUEP [s] vs t@'
+       CALL TXGRFVX(1, GTX, GTY(0,33), NGTM, NGT, 3, STR, MODE, IND)
+
+       STR = '@BETAa,BETA0 [%] vs t@'
+       CALL TXGRFVX(2, GTX, GTY(0,36), NGTM, NGT, 2, STR, MODE, IND)
+
+       STR = '@BETAPa,BETAP0 vs t@'
+       CALL TXGRFVX(3, GTX, GTY(0,38), NGTM, NGT, 2, STR, MODE, IND)
+
+    CASE(4)
+       STR = '@VLOOP [V]@'
+       CALL TXGRFVX(0, GTX, GTY(0,40), NGTM, NGT, 1, STR, MODE, IND)
+
+       STR = '@ALI@'
+       CALL TXGRFVX(1, GTX, GTY(0,41), NGTM, NGT, 1, STR, MODE, IND)
+
+       STR = '@Q(0)@'
+       CALL TXGRFVX(2, GTX, GTY(0,42), NGTM, NGT, 1, STR, MODE, IND)
+
+       STR = '@RQ1 [m]@'
+       CALL TXGRFVX(3, GTX, GTY(0,43), NGTM, NGT, 1, STR, MODE, IND)
+
+    CASE(5)
+       ! Do nothing.
+
+    CASE(6)
+       STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
+       CALL TXGRFTX(0, GTX, GTY(0, 1), NGTM, NGT, 4, STR, IND)
+
+       STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
+       CALL TXGRFTX(2, GTX, GTY(0,10), NGTM, NGT, 4, STR, IND)
+
+       STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
+       CALL TXGRFTX(4, GTX, GTY(0, 5), NGTM, NGT, 5, STR, IND)
+
+       STR = '@POUT,PCX,PIE,PRL,PCON [MW] vs t@'
+       CALL TXGRFTX(6, GTX, GTY(0,15), NGTM, NGT, 5, STR, IND)
+
+       STR = '@QF vs t@'
+       CALL TXGRFTX(1, GTX, GTY(0,20), NGTM, NGT, 1, STR, IND)
+
+       STR = '@<Te>,<Ti> [keV] vs t@'
+       CALL TXGRFTX(3, GTX, GTY(0,23), NGTM, NGT, 2, STR, IND)
+
+       STR = '@Te0,Ti0 [keV] vs t@'
+       CALL TXGRFTX(5, GTX, GTY(0,21), NGTM, NGT, 2, STR, IND)
+
+       STR = '@Ne0,Ni0,<Ne>,<Ni> [10$+20$=/m$+3$=] vs t@'
+       CALL TXGRFTX(7, GTX, GTY(0,25), NGTM, NGT, 4, STR, IND)
+
+    CASE(7)
+       STR = '@WF,WB,Wi,We [MJ] vs t@'
+       CALL TXGRFTX(0, GTX, GTY(0,29), NGTM, NGT, 4, STR, IND)
+
+       STR = '@BETAa,BETA0 [%] vs t@'
+       CALL TXGRFTX(2, GTX, GTY(0,36), NGTM, NGT, 2, STR, IND)
+
+       STR = '@TAUE1,TAUE2,TAUEP [s] vs t@'
+       CALL TXGRFTX(4, GTX, GTY(0,33), NGTM, NGT, 3, STR, IND)
+
+       STR = '@BETAPa,BETAP0 vs t@'
+       CALL TXGRFTX(6, GTX, GTY(0,38), NGTM, NGT, 2, STR, IND)
+
+       STR = '@VLOOP [V]@'
+       CALL TXGRFTX(1, GTX, GTY(0,40), NGTM, NGT, 1, STR, IND)
+
+       STR = '@Q(0)@'
+       CALL TXGRFTX(3, GTX, GTY(0,42), NGTM, NGT, 1, STR, IND)
+
+       STR = '@ALI@'
+       CALL TXGRFTX(5, GTX, GTY(0,41), NGTM, NGT, 1, STR, IND)
+
+       STR = '@RQ1 [m]@'
+       CALL TXGRFTX(7, GTX, GTY(0,43), NGTM, NGT, 1, STR, IND)
+
+    CASE DEFAULT
+       WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT
+    END SELECT
+
+    CALL PAGEE
+
+    RETURN
+  END SUBROUTINE TXGRFT
+
+  !***************************************************************
+  !
+  !   SLAVE ROUTINE TO Write graph of GVX, GVY
+  !
+  !***************************************************************
+
+  SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, MODE, IND)
+
+    INTEGER, INTENT(IN) :: K, NGTM, NGTL, NG
+    REAL, DIMENSION(0:NGTM), INTENT(IN) :: GTXL
+    REAL, DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
     character(len=*), INTENT(IN) ::  STR
     INTEGER :: MODE, IND
     REAL, DIMENSION(4) :: GPXY
@@ -1626,23 +1645,23 @@ contains
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
-    CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG, &
-         &            GTXL(0), GTXL(NGTL), STR, MODE, IND)
+    CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
+         &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND)
 
     RETURN
-  END SUBROUTINE TXGRFTX
+  END SUBROUTINE TXGRFVX
 
   !***************************************************************
   !
-  !   SLAVE ROUTINE TO Write graph of GVX, GVY
+  !   SLAVE ROUTINE TO Write graph of GTX, GTY
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTLM, NGTL, NG, STR, IND)
+  SUBROUTINE TXGRFTX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, IND)
 
-    INTEGER, INTENT(IN) :: K ,NGTLM, NGTL, NG
-    REAL, DIMENSION(0:NGTLM), INTENT(IN) :: GTXL
-    REAL, DIMENSION(0:NGTLM,NG), INTENT(IN) :: GTYL
+    INTEGER, INTENT(IN) :: K, NGTM, NGTL, NG
+    REAL, DIMENSION(0:NGTM), INTENT(IN) :: GTXL
+    REAL, DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
     character(len=*), INTENT(IN) ::  STR
     INTEGER :: IND
     REAL, DIMENSION(4) :: GPXY
@@ -1651,11 +1670,11 @@ contains
     GPXY(2) = 12.0 + 12.0 * MOD(K,2)
     GPXY(3) = 14.0 -  4.3 * REAL(K/2)
     GPXY(4) = 17.0 -  4.3 * REAL(K/2)
-    CALL TXGRAF(GPXY, GTXL, GTYL, NGTLM+1, NGTL+1, NG, &
-         &            GTXL(0), GTXL(NGTL), STR, 1, IND)
+    CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
+         &            GTXL(0), GTXL(NGTL), STR, 0.3, 1, IND)
 
     RETURN
-  END SUBROUTINE TXGRFVX
+  END SUBROUTINE TXGRFTX
 
   !***************************************************************
   !
@@ -1744,7 +1763,7 @@ contains
     END IF
     GXMAX=REAL(RB/RA)
     CALL TXGRAF(GPXY, GX, GQY, NRM+1, NRMAX+1, NLCMAX(NQ), &
-         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 3, IND)
+         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 3, IND)
 
     RETURN
   END SUBROUTINE TXGRFQ
@@ -1761,7 +1780,8 @@ contains
     INTEGER :: IFNT
 
     CALL INQFNT(IFNT)
-    CALL SETFNT(32)
+!    CALL SETFNT(32)
+    CALL SETFNT(0)
     CALL SETCHS(0.3, 0.0)
     CALL SETLIN(0, 1, 7)
 
@@ -1876,13 +1896,13 @@ contains
   !***************************************************************
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
-       &                  GXMIN, GXMAX, STR, MODE, IND)
+       &                  GXMIN, GXMAX, STR, FONT, MODE, IND)
 
-    INTEGER, INTENT(IN) :: NXM, NXMAX, NGMAX ,MODE, IND
-    REAL, INTENT(IN) :: GXMIN, GXMAX
+    INTEGER, INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
+    REAL, INTENT(IN) :: GXMIN, GXMAX, FONT
     REAL, DIMENSION(4), INTENT(IN) :: GPXY
-    REAL, DIMENSION(NXMAX), INTENT(IN) :: GX
-    REAL, DIMENSION(NXM,NGMAX), INTENT(IN) :: GY
+    REAL, DIMENSION(1:NXMAX), INTENT(IN) :: GX
+    REAL, DIMENSION(1:NXM,1:NGMAX), INTENT(IN) :: GY
     character(len=*), INTENT(IN) :: STR
 
     INTEGER :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
@@ -1911,23 +1931,21 @@ contains
     END IF
 
     CALL SETFNT(32)
-    CALL SETCHS(0.3, 0.0)
+    CALL SETCHS(FONT, 0.0)
     CALL SETLIN(0, 0, 7)
     CALL GTEXTX(GX1,GY2+0.2,STR,0)
 
     CALL SETFNT(44)
-    CALL SETCHS(0.3, 0.0)
+    CALL SETCHS(FONT, 0.0)
     CALL SETLIN(0, 0, 7)
-    CALL SETLNW(0.017)
+    CALL SETLNW(0.035)
 
     CALL GQSCAL(GXMIN, GXMAX, GSXMIN, GSXMAX, GXSTEP)
     GSXMIN = GXMIN
     GSXMAX = GXMAX
     CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
     IF (GYMAX > 0.0) THEN
-       IF (GYMIN > 0.0) THEN
-          GYMIN=0.0
-       END IF
+       IF (GYMIN > 0.0) GYMIN=0.0
     ELSE
        GYMAX=0.0
     END IF
@@ -1938,6 +1956,7 @@ contains
 
     CALL GDEFIN(GX1, GX2, GY1, GY2, GSXMIN, GSXMAX, GSYMIN, GSYMAX)
     CALL GFRAME
+    CALL SETLNW( 0.017)
     CALL GSCALE(GSXMIN, GXSTEP, 0.0, 0.0, gSLEN, IND)
     IF (GXSTEP < 0.01) THEN
        NGV=NGULEN(GXSTEP*5)
@@ -1957,6 +1976,7 @@ contains
        CALL GVALUE(GSXMIN, GXSTEP*2, 0.0, 0.0, NGV)
     END IF
     CALL GSCALE(0.0, 0.0, GYORG, GYSTEP, gSLEN, IND)
+    CALL SETLNW(-0.017)
     IF (GSYMIN < 0.0 .AND. GSYMAX > 0.0) &
          &     CALL GSCALE(0.0, 0.0, 0.0, GSYMAX-GSYMIN,  2.0, 0)
     CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGULEN(GYSTEP*2))
@@ -2035,20 +2055,22 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV)
+  SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV, GIN1, NYMAX1)
     use libraries, only : APSTOS, APRTOS
 
     INTEGER, INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
+    INTEGER, INTENT(IN), optional :: NYMAX1
     REAL, INTENT(IN) :: gDIV
     REAL, DIMENSION(0:NXM,0:NYMAX),INTENT(IN)  :: GIN
-    REAL, DIMENSION(0:NXM,0:NYMAX),INTENT(OUT) :: GOUT
+    REAL, DIMENSION(0:NXM,0:NYMAX+NYMAX1-1),INTENT(OUT) :: GOUT
+    REAL, DIMENSION(0:NXM,0:NYMAX1-1),INTENT(IN), optional :: GIN1
     character(len=*), INTENT(INOUT) :: STR
 
     INTEGER :: NSTR, POSAT
     REAL :: gDIVL
 
     gDIVL = 1.0
-    IF(MODE == 2) gDIVL = gDIV
+    IF(MODE /= 0) gDIVL = gDIV
 
     ! Append gDIV to string for showing multiplication factor
     IF (gDIVL /= 1.0) THEN
@@ -2060,7 +2082,12 @@ contains
        CALL APSTOS(STR, NSTR, ']@', 2)
     END IF
 
-    GOUT(0:NXMAX,0:NYMAX) = GIN(0:NXMAX,0:NYMAX) / gDIVL
+    if(present(GIN1).and.present(NYMAX1)) then
+       GOUT(0:NXMAX,0:NYMAX1-1) = GIN1(0:NXMAX,0:NYMAX1-1) / gDIVL
+       GOUT(0:NXMAX,NYMAX1:NYMAX1+NYMAX-1) = GIN(0:NXMAX,0:NYMAX) / gDIVL
+    else
+       GOUT(0:NXMAX,0:NYMAX) = GIN(0:NXMAX,0:NYMAX) / gDIVL
+    end if
 
     RETURN
   END SUBROUTINE APPROPGY

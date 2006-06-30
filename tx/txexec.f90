@@ -91,7 +91,7 @@ contains
        IDIV = NTMAX / MODEAV
     END IF
     TIME0 = T_TX
-    DIP=(rIPe-rIPs)/NTMAX
+    DIP = (rIPe - rIPs) / NTMAX
 
     L_NTDO:DO NTDO = 1, NTMAX
        NT = NTDO
@@ -155,14 +155,14 @@ contains
              END DO
 
              ! Calculate root-mean-square X over the profile
-             ERR1 = 0.D0
-             IDISP= IDIV
-             SUML=SUM(XN(NQ,0:NRMAX)**2)
-             AV = SQRT(SUML)/NRMAX
+             ERR1  = 0.D0
+             IDISP = IDIV
+             SUML  = SUM(XN(NQ,0:NRMAX)**2)
+             AV    = SQRT(SUML) / NRMAX
              IF (AV == 0.D0) CYCLE L_NQ
              L_NR:DO NR = 0, NRMAX
                 ! Maximum relative error over the profile
-                ERR1 = MAX(ERR1, ABS(XN(NQ,NR) - XP(NQ,NR))/AV)
+                ERR1 = MAX(ERR1, ABS(XN(NQ,NR) - XP(NQ,NR)) / AV)
                 ! Show results
                 IF (NT == IDISP .AND. NR == NRMAX) THEN
                    IF (NQ == 1) THEN
@@ -178,7 +178,7 @@ contains
                    IDISP = IDIV + NT
                    IF (NQ == NQMAX) CYCLE L_IC
                 ELSEIF (NT /= IDISP .AND.  &
-                     & ABS(XN(NQ,NR) - XP(NQ,NR))/AV > EPS) THEN
+                     & ABS(XN(NQ,NR) - XP(NQ,NR)) / AV > EPS) THEN
                    CYCLE L_IC
                 END IF
              END DO L_NR
@@ -199,22 +199,20 @@ contains
 
 180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
 
-       IF (MOD(NT, NGTSTP) == 0) CALL TXSTGT(SNGL(T_TX))
-
-       IF (MOD(NT, NGVSTP) == 0) THEN
+       IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB
-          CALL TXSTGV(SNGL(T_TX))
+          CALL TXSTGT(SNGL(T_TX))
        END IF
+
+       IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(SNGL(T_TX))
 
        IF (IERR /= 0) EXIT L_NTDO
 
     END DO L_NTDO
 
-    rIPs=rIPe
+    rIPs = rIPe
 
-    !   DO I=0,1
     WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
-    !   END DO
 
     RETURN
   END SUBROUTINE TXLOOP
