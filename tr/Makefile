@@ -31,7 +31,8 @@ LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../li
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-all: tr2 tr3
+#all: tr2 tr3
+all: tr2
 
 tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) \
           trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
