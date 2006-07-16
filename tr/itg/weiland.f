@@ -676,8 +676,8 @@ c
       WZ1=-E1+SQRT(E1*E1-E)
       WZ2=-E1-SQRT(E1*E1-E)
       WZ=WZ1
-      IF(IMAG(WZ2).GT.IMAG(WZ1)) WZ=WZ2
-      WZI=IMAG(WZ)
+      IF(DIMAG(WZ2).GT.DIMAG(WZ1)) WZ=WZ2
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI)
 C      WRITE(*,10021)EI,E,EN,ENI,GM,BTA,GAV,FTRT,H2
 10021 FORMAT(' EI=',G11.4,' E=',2G11.4,' EN=',G11.4,' ENI=',G11.4,
@@ -1017,7 +1017,7 @@ c -- If there is no unstable mode only average WZ is used--
       IF(IM.GE.1) GO TO 10025
 c      WZ=(WZ+WZP)/2.
       IF(ITERA.GT.1) GO TO 20019
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI)
       WZA=WZ
       WZ=(WZ+WZP)/2.
@@ -1043,9 +1043,9 @@ c      CTEST=ABS((WS-WZ)/WS)
       IF(CTEST.LE.TOL) ITS=1
       IF(ITS.EQ.1) GO TO 00083
 c-----
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(ITERA.GT.1) GO TO 10011
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI)
       WZA=WZ
 c -- In the first iteration we only use average
@@ -1089,9 +1089,9 @@ c     We have now obtained WZ by Mullers method
 c------------------------------------------------------------
 00083 CONTINUE
 c -- THE NEW WZ HAS BEEN OBTAINED
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI) !! WZI always larger than 0.01
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI) !! May  sometimes  be necessary  
       IF(ABS(WZ).GT.1000.) WZ=WZ*1000./ABS(WZ)  !! NEW 01.03.08
       WZJ(IK)=WZ
@@ -1148,7 +1148,7 @@ C----WHEN THE ITERATIONS DO NOT CONVERGE WE USE THE FIRST AVERAGE--
       IF(WZR.LT.-10.) WZ=WZ-WZR-10.
       IF(WZI.GT.10.) WZ=WZ+IU*(10.-WZI)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI)
-      WZI=IMAG(WZ)
+      WZI=DIMAG(WZ)
       IF(WZI.LT.0.01) WZ=WZ+IU*(0.01-WZI)
 C
       WZJ(IK)=WZ

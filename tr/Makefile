@@ -126,6 +126,7 @@ trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
 trmdlt.o : trmdlt.f trcomm.inc trcom0.inc
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
+	$(FC) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.F
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
 	$(FC) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
@@ -136,6 +137,7 @@ trncls.o : trncls.f trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
+	$(FC) $(FFLAGS) -c -o nclass/nclass_mod.o -Inclass nclass/nclass_mod.f
 itg/ifspppl_model.o : itg/ifspppl_model.f
 itg/weiland.o: itg/weiland.f
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc \
