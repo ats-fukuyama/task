@@ -1002,7 +1002,7 @@ C
          ENDIF
       ENDIF
       NSSMAX=NSMAX
-      CALL CHECK_IMPURITY(MDSLCT)
+C      CALL CHECK_IMPURITY(MDSLCT)
       IF(MDLUF.NE.0) THEN
          IF(MDSLCT.EQ.0) THEN
             IF(NSMAX.EQ.1) THEN
@@ -1155,8 +1155,10 @@ C     *** EQUATION SELECTOR ***
 C
 C     Format : NEA(species,equation) for all equations
 C
-      DO NEQ=1,NEQMAX
-         DO NEQ1=1,NEQMAX
+C      DO NEQ=1,NEQMAX
+C         DO NEQ1=1,NEQMAX
+      DO NEQ=0,NEQMAX-1
+         DO NEQ1=0,3
             NEA(NEQ,NEQ1)=0
          ENDDO
       ENDDO
