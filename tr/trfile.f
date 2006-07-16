@@ -2273,8 +2273,8 @@ C
             FOUT(NRL)=0.D0
          ENDDO
          RETURN
-         IERR=1
-         IF(IERR.LT.0) IERR=IERRP
+C         IERR=1
+C         IF(IERR.LT.0) IERR=IERRP
       ENDIF
 C
       DO NRL=1,NRMAX
