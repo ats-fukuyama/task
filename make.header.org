@@ -86,6 +86,15 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=ld
 #LDFLAGS=-r
 
+## for macosx-gfortran
+#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
+#OFLAGS = -g -O3 -I.
+#DFLAGS = -g -fbounds-check -I.
+#FC =gfortran
+#F95=gfortran
+#LD=ld
+#LDFLAGS=-r
+
 ## for macosx-xlf
 #GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-xlf
