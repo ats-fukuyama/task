@@ -221,11 +221,11 @@ C     *****************************************************
 C     **  Aitken-Neville iterated linear interpolations  **
 C     *****************************************************
 C
-      FUNCTION AITKEN2P(X0,F1,F2,F3,X1,X2,X3)
+      REAL*8 FUNCTION AITKEN2P(X0,F1,F2,F3,X1,X2,X3)
 C
       IMPLICIT NONE
       INTEGER I,J,K,M,KPM,NP1MM
-      REAL*8 AITKEN2P,X0,F1,F2,F3,X1,X2,X3
+      REAL*8 X0,F1,F2,F3,X1,X2,X3
       REAL*8 X(3), Y(3), VAL(3,3)
 C
       M=2
@@ -255,11 +255,11 @@ C
 C
 C     ***
 C
-      FUNCTION AITKEN4P(X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5)
+      REAL*8 FUNCTION AITKEN4P(X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5)
 C
       IMPLICIT NONE
       INTEGER I,J,K,M,KPM,NP1MM
-      REAL*8 AITKEN4P,X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5
+      REAL*8 X0,F1,F2,F3,F4,F5,X1,X2,X3,X4,X5
       REAL*8 X(5), Y(5), VAL(5,5)
 C
       M=4
@@ -364,10 +364,10 @@ C     **  Derivative calculated from adjacent 3 points  **
 C     ****************************************************
 C     -- This formulation has a third-order accuracy. --
 C
-      FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
+      REAL*8 FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
 C
       IMPLICIT NONE
-      REAL*8 DERIV4P,F0,F1,F2,F3,X0,X1,X2,X3
+      REAL*8 F0,F1,F2,F3,X0,X1,X2,X3
       REAL*8 DX1,DX2,DX3
 C
       DX1 = X1 - X0
@@ -390,10 +390,10 @@ C     **  Derivative calculated from adjacent 3 points  **
 C     ****************************************************
 C     -- This formulation has a second-order accuracy. --
 C
-      FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)
+      REAL*8 FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)
 C
       IMPLICIT NONE
-      REAL*8 DERIV3P, f0, f1, f2, x10, x11, x12
+      REAL*8 f0, f1, f2, x10, x11, x12
       REAL*8 dx11, dx12
 C
       dx11 = x11 - x10
@@ -405,19 +405,16 @@ C
       RETURN
       END
 C
-C     ****************************************************
-C     **  Derivative calculated from adjacent 2 points  **
-C     ****************************************************
-C     -- This formulation has a second-order accuracy. --
+C     ** Array input version **
 C
-      FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
+      REAL*8 FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
 C
-C     ID = 0 : NR = 0 to NRMAX 
-C          ==> NR = 1 to NRMAX+1
+C     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
+C          else : NR = 1 to NRMAX
 C
       IMPLICIT NONE
-      INTEGER NR,NRMAX,NRM,ID,NRL,NRLMAX
-      REAL*8 DERIV3,R(NRM),F(NRM)
+      INTEGER NR,NRMAX,NRM,ID,NRL,NRLMAX,NR0,NR1,NR2
+      REAL*8 R(NRM),F(NRM)
       REAL*8 DLT,DLT1,DLT2
 C
       IF(ID.EQ.0) THEN
@@ -429,18 +426,24 @@ C
       ENDIF
 C
       IF(NRL.EQ.1) THEN
-         DLT=R(NRL+1)-R(NRL)
-         DERIV3 = (-3.D0*F(NRL)+4.D0*F(NRL+1)-F(NRL+2))/(2.D0*DLT)
+         NR0 = NRL
+         NR1 = NRL+1
+         NR2 = NRL+2
       ELSEIF(NRL.EQ.NRLMAX) THEN
-         DLT=R(NRL-1)-R(NRL)
-         DERIV3 = (-3.D0*F(NRL)+4.D0*F(NRL-1)-F(NRL-2))/(2.D0*DLT)
+         NR0 = NRL
+         NR1 = NRL-1
+         NR2 = NRL-2
       ELSE
-         DLT1=R(NRL-1)-R(NRL)
-         DLT2=R(NRL+1)-R(NRL)
-         DERIV3 = (DLT2**2*F(NRL-1)-DLT1**2*F(NRL+1))
-     &            /(DLT1*DLT2*(DLT2-DLT1))
-     &            -(DLT2+DLT1)*F(NRL)/(DLT1*DLT2)
+         NR0 = NRL
+         NR1 = NRL-1
+         NR2 = NRL+2
       ENDIF
+
+      DLT1=R(NR1)-R(NR0)
+      DLT2=R(NR2)-R(NR0)
+      DERIV3 = (DLT2**2*F(NR1)-DLT1**2*F(NR2))
+     &       /(DLT1*DLT2*(DLT2-DLT1))
+     &       -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
 C
       RETURN
       END
@@ -449,10 +452,10 @@ C     *** Extrapolate center value ***************************
 C     *  assuming the gradient is zero at the center (rho=0) *
 C     ********************************************************
 C
-      FUNCTION FCTR(R1,R2,F1,F2)
+      REAL*8 FUNCTION FCTR(R1,R2,F1,F2)
 C
       IMPLICIT NONE
-      REAL*8 FCTR,R1,R2,F1,F2
+      REAL*8 R1,R2,F1,F2
 C
       FCTR = (R2**2*F1-R1**2*F2)/(R2**2-R1**2)
 C
