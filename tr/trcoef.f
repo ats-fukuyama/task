@@ -1,3 +1,4 @@
+
 C     $Id$
 C     ***********************************************************
 C
@@ -20,7 +21,7 @@ C
       SUBROUTINE TRCFDW
 C
       INCLUDE 'trcomm.inc'
-      DIMENSION S_AR(NRM),S_HM(NRM),ALFA_AR(NRM)
+      DIMENSION S_HM(NRM)
 C
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -315,15 +316,16 @@ C     Alfven wave velocity
          AMI=(AMD*ANDX+AMT*ANT+AMA*ANA)/PNI
          VA=SQRT(BB**2/(RMU0*ANE*1.D20*AMI))
 C     magnetic shear
-         S=RHOG(NR)/QL*DQ
+         S(NR)=RHOG(NR)/QL*DQ
 C     pressure gradient for MHD instability
-         ALFA=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
-         SALPHA(NR) = S-ALFA
+         ALPHA(NR)=-2.D0*RMU0*QL**2*RR/BB**2*(DPP*1.D20*RKEV)
+C     magnetic curvature
+         RKCV(NR)=-EPS*(1.D0-1.D0/(QL*QL))
 C
 C     rotational shear
 C        omega(or gamma)_e=r/q d(q v_exb/r)/dr
          DVE = DERIV3(NR,RHOG,VEXB,NRMAX,NRM,1)
-         WEXB(NR) = (S-1.D0)*VEXB(NR)/RHOG(NR)+DVE
+         WEXB(NR) = (S(NR)-1.D0)*VEXB(NR)/RHOG(NR)+DVE
 C     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
 C
@@ -347,9 +349,9 @@ C
             IF(MDLKAI.EQ.0) THEN
                AKDWL=1.D0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
+               AKDWL=1.D0/(1.D0-CKALPHA*RHOG(NR)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
+               AKDWL=1.D0/(1.D0-CKALPHA*RHOG(NR)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
@@ -529,7 +531,6 @@ C
 C
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
-            RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
             OMEGASS=0.D0
@@ -538,71 +539,71 @@ C
             RG1=1.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
-               SL=SQRT(S**2+0.1D0**2)
+               SL=SQRT(S(NR)**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
-               RG1=CWEB*FEXB(ABS(WE1),S,ALFA)
+               RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 C               DELTAE=SQRT(DELTA2)
 C               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
             ENDIF
 C
             IF(MDLKAI.EQ.30) THEN
-               FS=1.D0/(1.7D0+SQRT(6.D0)*S)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               FS=1.D0/(1.7D0+SQRT(6.D0)*S(NR))
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.31) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFS(S,ALFAL,RKCV)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
                IF(MDCD05.NE.0) 
      &         FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.32) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFS(S,ALFAL,RKCV)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
                IF(MDCD05.NE.0) 
      &         FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.33) THEN
-               FS=TRCOFS(S,0.D0,RKCV)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.34) THEN
-               FS=TRCOFS(S,0.D0,RKCV)
+               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.35) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSS(S,ALFAL)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSS(S(NR),ALPHAL)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.36) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSS(S,ALFAL)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSS(S(NR),ALPHAL)
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.37) THEN
-               FS=TRCOFSS(S,0.D0)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               FS=TRCOFSS(S(NR),0.D0)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.38) THEN
-               FS=TRCOFSS(S,0.D0)
+               FS=TRCOFSS(S(NR),0.D0)
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.39) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSX(S,ALFAL,RKCV,RA/RR)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSX(S,ALPHAL,RKCV(NR),RA/RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
 C
 c$$$            ELSEIF(MDLKAI.EQ.40) THEN
 c$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
@@ -611,28 +612,28 @@ c$$$               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
 c$$$               VTI=SQRT(ABS(PTI*RKEV/AMI))
 c$$$               RHOI=VTI/WCI
 c$$$C
-c$$$               FS=TRCOFT(S,ALFA,RKCV,RA/RR)
-c$$$               SA=S-ALFA
+c$$$               FS=TRCOFT(S(NR),ALPHA(NR),RKCV(NR),RA/RR)
+c$$$               SA=S(NR)-ALPHA(NR)
 c$$$               RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
-c$$$               RKPP2=RNST2/(FS*ABS(ALFA)*DELTA2)
+c$$$               RKPP2=RNST2/(FS*ABS(ALPHA(NR))*DELTA2)
 c$$$C
 c$$$               SLAMDA=RKPP2*RHOI**2
 c$$$               RLAMDA=RLAMBDA(SLAMDA)
 c$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
 c$$$               TAUAP=(QL*RR)/VA
-c$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
+c$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALPHA(NR)))
 c$$$C
 c$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
 c$$$C
-c$$$               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+c$$$               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
 c$$$     &               /(RLAMDA*(1.D0+OMEGASS**2))
-c$$$               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+c$$$               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
 c$$$     &               /(1.D0+OMEGASS**2)
             ELSE                                           
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                FS=1.D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**3*DELTA2*VA/(QL*RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ENDIF
             AKDW(NR,1)=AKDWEL
             AKDW(NR,2)=AKDWIL
@@ -640,8 +641,8 @@ c$$$     &               /(1.D0+OMEGASS**2)
             AKDW(NR,4)=AKDWIL
 C
             VGR1(NR,1)=FS
-            VGR1(NR,2)=S
-            VGR1(NR,3)=ALFA
+            VGR1(NR,2)=S(NR)
+            VGR1(NR,3)=ALPHA(NR)
             VGR2(NR,1)=ER(NR)!RNST2
             VGR2(NR,2)=VEXB(NR)!OMEGASS
             VGR2(NR,3)=0.D0
@@ -657,7 +658,6 @@ C
 C
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
-            RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
             OMEGASS=0.D0
@@ -665,8 +665,8 @@ C
             RLAMDA=0.D0
 C
             IF(MOD(MDLKAI,2).EQ.0) THEN
-               RG1=CWEB*FEXB(ABS(WE1),S,ALFA)
-               SL=SQRT(S**2+0.1D0**2)
+               RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
+               SL=SQRT(S(NR)**2+0.1D0**2)
                WE1=-QL*RR/(SL*VA)*DVE
 C               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
 C               DELTAE=SQRT(DELTA2)
@@ -676,59 +676,59 @@ C
             F=VTE/VA
 C     
             IF(MDLKAI.EQ.40) THEN
-               FS=1.D0/(1.7D0+SQRT(6.D0)*S)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               FS=1.D0/(1.7D0+SQRT(6.D0)*S(NR))
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.41) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFS(S,ALFAL,RKCV)
-C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S,ALFA,RKCV,FS
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
+C               IF (NR.LE.2) write(6,'(I5,4F15.10)') NR,S(NR),ALPHA(NR),RKCV(NR),FS
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.42) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFS(S,ALFAL,RKCV)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.43) THEN
-               FS=TRCOFS(S,0.D0,RKCV)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.44) THEN
-               FS=TRCOFS(S,0.D0,RKCV)
+               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.45) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSS(S,ALFAL)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSS(S(NR),ALPHAL)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.46) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSS(S,ALFAL)
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSS(S(NR),ALPHAL)
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.47) THEN
-               FS=TRCOFSS(S,0.D0)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               FS=TRCOFSS(S(NR),0.D0)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.48) THEN
-               FS=TRCOFSS(S,0.D0)
+               FS=TRCOFSS(S(NR),0.D0)
 C               FS=FS/(1.D0+RG1*WE1*WE1)
                FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
             ELSEIF(MDLKAI.EQ.49) THEN
-               ALFAL=ALFA*CALF
-               FS=TRCOFSX(S,ALFAL,RKCV,RA/RR)
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)*F
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFSX(S(NR),ALPHAL,RKCV(NR),RA/RR)
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)*F
 C
             ELSEIF(MDLKAI.EQ.50) THEN
                AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
@@ -737,19 +737,20 @@ C
                VTI=SQRT(ABS(PTI*RKEV/AMI))
                RHOI=VTI/WCI
 C
-               FS=TRCOFT(S,ALFA,RKCV,RA/RR)
-               SA=S-ALFA
+               ALPHAL=ALPHA(NR)*CALF
+               FS=TRCOFT(S(NR),ALPHAL,RKCV(NR),RA/RR)
+               SA=S(NR)-ALPHA(NR)
                RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
-               RKPP2=RNST2/(FS*ABS(ALFA)*DELTA2)
+               RKPP2=RNST2/(FS*ABS(ALPHA(NR))*DELTA2)
 C
                SLAMDA=RKPP2*RHOI**2
                RLAMDA=RLAMBDA(SLAMDA)
                OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
                TAUAP=(QL*RR)/VA
-               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALFA))
-               AKDWEL=CK0*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
+               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALPHA(NR)))
+               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)
      &               /(RLAMDA*(1.D0+OMEGASS**2))
-               AKDWIL=CK1*FS*SQRT(ABS(ALFA))**2*DELTA2*VA/(QL*RR)
+               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**2*DELTA2*VA/(QL*RR)
      &               /(1.D0+OMEGASS**2)
             ENDIF
 C
@@ -759,8 +760,8 @@ C
             AKDW(NR,4)=AKDWIL
 C
             VGR1(NR,1)=FS
-            VGR1(NR,2)=S
-            VGR1(NR,3)=ALFA
+            VGR1(NR,2)=S(NR)
+            VGR1(NR,3)=ALPHA(NR)
             VGR2(NR,1)=RNST2
             VGR2(NR,2)=OMEGASS
             VGR2(NR,3)=0.D0
@@ -776,7 +777,6 @@ C
 C
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
-            RKCV=-EPS*(1.D0-1.D0/(QL*QL))
 C
             RNST2=0.D0
             OMEGASS=0.D0
@@ -792,11 +792,9 @@ C
                S_HM(NR) = RM(NR)/(0.5D0*(QP(NR)+QP(NR-1)))
      &                   *(QP(NR)-QP(NR-1))/DR
             ENDIF
-            S_AR(NR)    = S
-            ALFA_AR(NR) = ALFA
 C
-            VGR1(NR,2)=S
-            VGR1(NR,3)=ALFA
+            VGR1(NR,2)=S(NR)
+            VGR1(NR,3)=ALPHA(NR)
             VGR2(NR,1)=VEXB(NR)
             VGR2(NR,2)=ER(NR)
             VGR2(NR,3)=0.D0
@@ -840,16 +838,16 @@ C     &                /(PZ(2)*RA*BB)
 C      STOP
 C
       IF(MDLKAI.EQ.60.OR.MDLKAI.EQ.61) THEN
-         CALL GLF23_DRIVER(S_HM,ALFA_AR)
+         CALL GLF23_DRIVER(S_HM)
       ELSEIF(MDLKAI.EQ.62) THEN
          CALL AITKEN(1.D0,RBEEDG,RM,RNF(1,1),2,NRMAX)
          RBEEDG=RBEEDG/PNSS(1)
          CALL IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,
-     &                       QP,S_AR,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
+     &                       QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,
      &                       PNSS,PTS,RNF(1,1),RBEEDG,MDLUF,NSMAX,
      &                       AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
-         CALL WEILAND_DRIVER(S_AR,ALFA_AR)
+         CALL WEILAND_DRIVER
       ENDIF
 C
       RETURN
@@ -968,14 +966,14 @@ C
          DELDA=0.D0
 C
          IF(MDLUF.EQ.0) THEN
-            RALFA=ZEFFL-1.D0
+            RALPHA=ZEFFL-1.D0
          ELSE
-            RALFA=PZ(3)**2*ANT/(PZ(2)**2*ANDX)
+            RALPHA=PZ(3)**2*ANT/(PZ(2)**2*ANDX)
          ENDIF
 C
-         RMUSD=RNUD*(1.D0+1.54D0*RALFA)
-         RMUST=RNUT*(1.D0+1.54D0*RALFA)
-         RMUSA=RNUA*(1.D0+1.54D0*RALFA)
+         RMUSD=RNUD*(1.D0+1.54D0*RALPHA)
+         RMUST=RNUT*(1.D0+1.54D0*RALPHA)
+         RMUSA=RNUA*(1.D0+1.54D0*RALPHA)
 C
          F1=(1.D0+1.5D0*(EPS**2+EPS*DELDA)
      &      +3.D0/8.D0*EPS**3*DELDA)
@@ -983,27 +981,27 @@ C
          F2=DSQRT(1.D0-EPS**2)*(1.D0+0.5D0*EPS*DELDA)
      &         /(1.D0+DELDA/EPS*(DSQRT(1.D0-EPS**2)-1.D0))
 C
-         TERM1D=(0.66D0*(1.D0+1.54D0*RALFA)
-     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
+         TERM1D=(0.66D0*(1.D0+1.54D0*RALPHA)
+     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALPHA))*F1
      &       /(1.D0+1.03D0*DSQRT(RMUSD)+0.31D0*RMUSD)
-         TERM1T=(0.66D0*(1.D0+1.54D0*RALFA)
-     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
+         TERM1T=(0.66D0*(1.D0+1.54D0*RALPHA)
+     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALPHA))*F1
      &       /(1.D0+1.03D0*DSQRT(RMUST)+0.31D0*RMUST)
-         TERM1A=(0.66D0*(1.D0+1.54D0*RALFA)
-     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALFA))*F1
+         TERM1A=(0.66D0*(1.D0+1.54D0*RALPHA)
+     &       +(1.88D0*DSQRT(EPS)-1.54D0*EPS)*(1.D0+3.75D0*RALPHA))*F1
      &       /(1.D0+1.03D0*DSQRT(RMUSA)+0.31D0*RMUSA)
 C
          TERM2D=0.583D0*RMUSD*EPS/(1.D0+0.74D0*RMUSD*EPSS)
-     &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
-     &       /(1.D0+1.79D0*RALFA))
+     &       *(1.D0+(1.33D0*RALPHA*(1.D0+0.6D0*RALPHA))
+     &       /(1.D0+1.79D0*RALPHA))
      &       *(F1-F2)
          TERM2T=0.583D0*RMUST*EPS/(1.D0+0.74D0*RMUST*EPSS)
-     &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
-     &       /(1.D0+1.79D0*RALFA))
+     &       *(1.D0+(1.33D0*RALPHA*(1.D0+0.6D0*RALPHA))
+     &       /(1.D0+1.79D0*RALPHA))
      &       *(F1-F2)
          TERM2A=0.583D0*RMUSA*EPS/(1.D0+0.74D0*RMUSA*EPSS)
-     &       *(1.D0+(1.33D0*RALFA*(1.D0+0.6D0*RALFA))
-     &       /(1.D0+1.79D0*RALFA))
+     &       *(1.D0+(1.33D0*RALPHA*(1.D0+0.6D0*RALPHA))
+     &       /(1.D0+1.79D0*RALPHA))
      &       *(F1-F2)
 C
          AKNC(NR,1)=0.D0
@@ -1619,14 +1617,14 @@ C
       RETURN
       END
 C
-      REAL*8 FUNCTION TRCOFS(S,ALFA,RKCV)
+      REAL*8 FUNCTION TRCOFS(S,ALPHA,RKCV)
 C
       IMPLICIT NONE
-      REAL*8 S,ALFA,RKCV
+      REAL*8 S,ALPHA,RKCV
       REAL*8 SA,FS1,FS2
 C
-      IF(ALFA.GE.0.D0) THEN
-         SA=S-ALFA
+      IF(ALPHA.GE.0.D0) THEN
+         SA=S-ALPHA
          IF(SA.GE.0.D0) THEN
             FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
@@ -1640,7 +1638,7 @@ C
             FS2=0.D0
          ENDIF
       ELSE
-         SA=ALFA-S
+         SA=ALPHA-S
          IF(SA.GE.0.D0) THEN
             FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
@@ -1658,16 +1656,16 @@ C
       RETURN
       END
 C
-      REAL*8 FUNCTION TRCOFSX(S,ALFA,RKCV,EPSA)
+      REAL*8 FUNCTION TRCOFSX(S,ALPHA,RKCV,EPSA)
 C
       IMPLICIT NONE
-      REAL*8 S,ALFA,RKCV,EPSA
+      REAL*8 S,ALPHA,RKCV,EPSA
       REAL*8 SA,FS1,FS2
 C
-      IF(ALFA.GE.0.D0) THEN
-C        SA=S-ALFA
-C        SA=S-(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA
-         SA=S-(1.D0-(2.D0*ALFA)/(1+6.D0*ALFA))*ALFA
+      IF(ALPHA.GE.0.D0) THEN
+C        SA=S-ALPHA
+C        SA=S-(1.D0-(2.D0*ALPHA)/(1+3.D0*(ALPHA)**2))*ALPHA
+         SA=S-(1.D0-(2.D0*ALPHA)/(1+6.D0*ALPHA))*ALPHA
          IF(SA.GE.0.D0) THEN
            FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)
@@ -1682,9 +1680,9 @@ C        SA=S-(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA
             FS2=0.D0
          ENDIF
       ELSE
-C        SA=ALFA-S
-C        SA=(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA-S
-         SA=(1.D0-(2.D0*ALFA)/(1.D0+6.D0*ALFA))*ALFA-S
+C        SA=ALPHA-S
+C        SA=(1.D0-(2.D0*ALPHA)/(1+3.D0*(ALPHA)**2))*ALPHA-S
+         SA=(1.D0-(2.D0*ALPHA)/(1.D0+6.D0*ALPHA))*ALPHA-S
          IF(SA.GE.0.D0) THEN
             FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)
@@ -1703,26 +1701,26 @@ C        SA=(1.D0-(2.D0*ALFA)/(1+3.D0*(ALFA)**2))*ALFA-S
       RETURN
       END
 C
-      REAL*8 FUNCTION TRCOFSS(S,ALFA)
+      REAL*8 FUNCTION TRCOFSS(S,ALPHA)
 C
       IMPLICIT NONE
-      REAL*8 S,ALFA
+      REAL*8 S,ALPHA
       REAL*8 SA,FS1
 C
-      SA=S-ALFA
+      SA=S-ALPHA
       FS1=2.D0*SA**2/(1.D0+(2.D0/9.D0)*SQRT(ABS(SA))**5)
       TRCOFSS=FS1
       RETURN
       END
 C
-      REAL*8 FUNCTION TRCOFT(S,ALFA,RKCV,EPSA)
+      REAL*8 FUNCTION TRCOFT(S,ALPHA,RKCV,EPSA)
 C
       IMPLICIT NONE
-      REAL*8 S,ALFA,RKCV,EPSA
+      REAL*8 S,ALPHA,RKCV,EPSA
       REAL*8 SA,FS1,FS2
 C
-      IF(ALFA.GE.0.D0) THEN
-         SA=S-ALFA
+      IF(ALPHA.GE.0.D0) THEN
+         SA=S-ALPHA
          IF(SA.GE.0.D0) THEN
             FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
@@ -1736,7 +1734,7 @@ C
             FS2=0.D0
          ENDIF
       ELSE
-         SA=ALFA-S
+         SA=ALPHA-S
          IF(SA.GE.0.D0) THEN
             FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)
      &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))

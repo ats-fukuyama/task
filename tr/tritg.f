@@ -5,7 +5,7 @@ C            GLF23 Model
 C
 C     ***********************************************************
 C
-      SUBROUTINE GLF23_DRIVER(S_HM,ALFA_AR)
+      SUBROUTINE GLF23_DRIVER(S_HM)
 C
 C   *************************************************************
 C     In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
@@ -24,7 +24,7 @@ C   *************************************************************
 C
       INCLUDE 'trcomm.inc'
       INCLUDE 'trglf.inc'
-      DIMENSION S_HM(NRM),ALFA_AR(NRM)
+      DIMENSION S_HM(NRM)
 C
       MDDW=1
 C     INPUTS
@@ -156,11 +156,11 @@ C
       ENDDO
 C
       shat_exp (1)=S_HM(1)
-      alpha_exp(1)=FCTR(RG(1),RG(2),ALFA_AR(1),ALFA_AR(2))
+      alpha_exp(1)=FCTR(RG(1),RG(2),ALPHA(1),ALPHA(2))
       elong_exp(1)=RKPRHO(1)
       DO jm=2,jmaxm
          shat_exp (jm)=S_HM(jm)      ! magnetic shear
-         alpha_exp(jm)=0.5D0*(ALFA_AR(jm-1)+ALFA_AR(jm)) ! MHD alpha
+         alpha_exp(jm)=0.5D0*(ALPHA(jm-1)+ALPHA(jm)) ! MHD alpha
          elong_exp(jm)=RKPRHO(jm)    ! local elongation
       ENDDO
 C
@@ -394,7 +394,7 @@ C            Weiland Model
 C
 C     ***********************************************************
 C
-      SUBROUTINE WEILAND_DRIVER(S_AR,ALFA_AR)
+      SUBROUTINE WEILAND_DRIVER
 C
 C***********************************************************************
 C  <INPUT>
@@ -467,7 +467,6 @@ C
       INCLUDE 'trcomm.inc'
 C
       DIMENSION CHIL(5),CHEL(5),DL(5),CHQL(5),DQL(5)
-      DIMENSION S_AR(NRM),ALFA_AR(NRM)
 C
       MDDW=1
       IF(NT.EQ.0) THEN
@@ -511,7 +510,7 @@ C
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
          TAUZL = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,3)+RT(NR,3))
          QL    = QP(NR)
-         SL    = S_AR(NR)
+         SL    = S(NR)
          RNL   = 0.5D0*(RN(NR+1,1)+RN(NR,1))*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
@@ -574,7 +573,7 @@ C
          TEL   = PTS(1)
          TAUZL = PTS(1)/PTS(3)
          QL    = QP(NR)
-         SL    = S_AR(NR)
+         SL    = S(NR)
          RNL   = PNSS(1)*1.D1
 C
          RGKL  = AR1RHOG(NR)/(RA*AR2RHOG(NR))
@@ -1030,7 +1029,7 @@ C
 C     ***********************************************************
 C
       SUBROUTINE IFSPPPL_DRIVER(NRM,NSM,NSTM,NRMAX,RN,RR,DR,RJCB,
-     &                          RHOG,RHOM,QP,S_AR,EPSRHO,RKPRHOG,RT,BB,
+     &                          RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RT,BB,
      &                          AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,
      &                          NSMAX,AR1RHOG,AR2RHOG,AKDW)
 C
@@ -1038,7 +1037,7 @@ C
 C
       INTEGER NRM,NSM,NSTM,NRMAX,NR,MDLUF,NSMAX
       REAL*8 RN(NRM,NSM),RR,DR,RJCB(NRM),RHOG(NRM),RHOM(NRM),
-     &       QP(NRM),S_AR(NRM),
+     &       QP(NRM),S(NRM),
      &       EPSRHO(NRM),RKPRHOG(NRM),RT(NRM,NSM),BB,AMM,AME,
      &       PNSS(NSM),PTS(NSM),RNFL(NRM),RBEEDG,
      &       AR1RHOG(NRM),AR2RHOG(NRM),AKDW(NRM,NSTM)
@@ -1084,7 +1083,7 @@ C
          zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*
      &                           (RN(NR+1,1)-RN(NR,1))/DR*RJCB(NR))
          zq     = SNGL(QP(NR))
-         zshat  = SNGL(S_AR(NR))
+         zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
@@ -1130,7 +1129,7 @@ C
          zrln   =-SNGL(RR/PTS(1)*DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),
      &                                   RHOG(NR),RHOM(NR),RHOM(NR-1)))
          zq     = SNGL(QP(NR))
-         zshat  = SNGL(S_AR(NR))
+         zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
          zkappa = SNGL(RKPRHOG(NR))
          gnu    = SNGL((AME/AMM)*1.5625D-15*RN(NR,2)*1D20
