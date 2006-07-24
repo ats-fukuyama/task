@@ -349,9 +349,9 @@ C
             IF(MDLKAI.EQ.0) THEN
                AKDWL=1.D0
             ELSEIF(MDLKAI.EQ.1) THEN
-               AKDWL=1.D0/(1.D0-CKALPHA*RHOG(NR)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
             ELSEIF(MDLKAI.EQ.2) THEN
-               AKDWL=1.D0/(1.D0-CKALPHA*RHOG(NR)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
@@ -601,7 +601,7 @@ C               FS=FS/(1.D0+RG1*WE1*WE1)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             ELSEIF(MDLKAI.EQ.39) THEN
                ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFSX(S,ALPHAL,RKCV(NR),RA/RR)
+               FS=TRCOFSX(S(NR),ALPHAL,RKCV(NR),RA/RR)
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
 C
@@ -819,13 +819,13 @@ C     &                /(PZ(2)*RA*BB)
                ALTI  = ABS(DTD/TD)
                AGITG = 0.1D0*CS/RA*SQRT(RA*ALNI+RA*ALTI)*SQRT(TD/TE)
                WEXB(NR)=0.D0
-               AKDW(NR,1) = 8.D-5  *CHIB*FBHM(WEXB(NR),AGITG,S)
+               AKDW(NR,1) = 8.D-5  *CHIB*FBHM(WEXB(NR),AGITG,S(NR))
      &                     +7.D-2  *CHIGB
-               AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(WEXB(NR),AGITG,S)
+               AKDW(NR,2) = 1.6D-4 *CHIB*FBHM(WEXB(NR),AGITG,S(NR))
      &                     +1.75D-2*CHIGB
                AKDW(NR,3) = AKDW(NR,2)
                AKDW(NR,4) = AKDW(NR,2)
-               VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S)
+               VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S(NR))
             ENDIF
          ELSE                                           
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
