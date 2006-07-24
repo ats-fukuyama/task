@@ -5,11 +5,22 @@ C           LOCATING UFILE DIRECTORY
 C
 C     ***********************************************************
 C
-      SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,IKNDEV,IKNDCG)
+      SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,IKNDEV,IKNDCG,MODE)
 C
+      INTEGER MODE
       CHARACTER KDIRX*80
       CHARACTER KUFDEV*80,KUFDCG*80
+      COMMON /UFMODE/ MODEL
       LOGICAL DIR
+C
+C     MODE is the parameter which determines how to handle exp. files.
+C     MODE = 0 : Binary files are loaded if available, or ASCII files
+C                are loaded and aftermath binary files are created.
+C            1 : Only binary files are loaded.
+C         else : Only ASCII files are loaded and binary files are NOT
+C                created.
+C
+      MODEL = MODE
 C
       CALL KTRIM(KUFDEV,IKNDEV)
       CALL KTRIM(KUFDCG,IKNDCG)
@@ -56,6 +67,7 @@ C
      &                       TT,F1,NTXMAX,NTUM,MDCHK,IERR)
 C
       IMPLICIT REAL*8(A-H,O-Z)
+      COMMON /UFMODE/ MODEL
       DIMENSION TT(NTUM),F1(NTUM)
       CHARACTER KDIRX*80
       CHARACTER KDIRR1*80
@@ -77,7 +89,7 @@ C
 C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000) 
       IF(LEX) THEN
-         CALL TRXR1D(KDIRR1,KFID,TT,F1,NTUM,NTXMAX,0)
+         CALL TRXR1D(KDIRR1,KFID,TT,F1,NTUM,NTXMAX,MODEL)
          MDCHK=1
          IERR=0
       ELSE
@@ -96,6 +108,7 @@ C
      &                        NRFMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
 C
       IMPLICIT REAL*8(A-H,O-Z)
+      COMMON /UFMODE/ MODEL
       DIMENSION RUF(NRMU),TMU(NTUM),F2I(NRMU,NTUM),F2(NTUM,NRMU)
       DIMENSION F2CTR(NTUM),F2EDG(NTUM)
       CHARACTER KDIRX*80
@@ -119,7 +132,8 @@ C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN
          NRFMAX=NRMU
-         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2I,NRMU,NTUM,NRFMAX,NTXMAX,0)
+         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2I,NRMU,NTUM,NRFMAX,NTXMAX, 
+     &               MODEL)
          IF(NRFMAX.EQ.1) THEN
             WRITE(6,*) '## ',KFID,
      &           'HAS NOT BEEN READ DUE TO A SINGLE RADIAL POINT.'
@@ -256,6 +270,7 @@ C
      &                         NRFMAX,NTXMAX,NRMU,NTUM,MDCHK,IERR)
 C
       IMPLICIT REAL*8(A-H,O-Z)
+      COMMON /UFMODE/ MODEL
       DIMENSION RUF(NRMU),TMU(NTUM),F2I(NRMU,NTUM),F2(NTUM,NRMU)
       CHARACTER KDIRX*80
       CHARACTER KDIRR2*80
@@ -278,7 +293,8 @@ C
       INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX) THEN
          NRFMAX=NRMU           ! equal to NRMU
-         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2I,NRMU,NTUM,NRFMAX,NTXMAX,0)
+         CALL TRXR2D(KDIRR2,KFID,TMU,RUF,F2I,NRMU,NTUM,NRFMAX,NTXMAX,
+     &               MODEL)
          MDCHK=1
          IERR=0
          DO NTX=1,NTXMAX
