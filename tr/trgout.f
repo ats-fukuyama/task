@@ -16,8 +16,8 @@ C
       ENDIF
 C
   1   CONTINUE
-         WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G7, P1-P5, Z1, Y1,',
-     &                        ' A1-A2, E1-E9, D1-D59, M1-M5'
+         WRITE(6,*) '# SELECT : R1-R9, T1-T9, G1-G7, Z1, Y1,',
+     &                        ' A1-A2, E1-E9, D1-D63, M1-M5'
          WRITE(6,*) '           N1-N6, S/SAVE  L/LOAD  H/HELP  ',
      &              'C/CLEAR  I/INQ  X/EXIT'
          READ(5,'(A5)',ERR=1,END=9000) KIG
@@ -58,8 +58,6 @@ C
             CALL TRGRX0(K2,INQG)
          ELSEIF(K1.EQ.'G') THEN
             CALL TRGRG0(K2,INQG)
-         ELSEIF(K1.EQ.'P') THEN
-            CALL TRGRP0(K2,INQG)
          ELSEIF(K1.EQ.'A') THEN
             CALL TRGRA0(K2,INQG)
          ELSEIF(K1.EQ.'E') THEN

@@ -6,7 +6,7 @@ FFLAGS = $(OFLAGS)
 
 SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f  trmdlt.f \
-     trgrar.f trgrat.f trgrap.f trgrae.f trgrad.f trgram.f trgsub.f \
+     trgrar.f trgrat.f trgrag.f trgrae.f trgrad.f trgram.f trgsub.f \
      trhelp.f glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
      itg/ifspppl_model.f tritg.f itg/weiland.f
 SRCF=glf/glf2d.F glf/r8tomsqz.F
@@ -31,7 +31,8 @@ LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../li
 .f.o :
 	$(FC) $(FFLAGS) -c $< -o $@
 
-all: tr2 tr3
+#all: tr2 tr3
+all: tr2
 
 tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) \
           trcomm.inc trcom0.inc $(INCNC) $(INCGLF)
@@ -114,7 +115,7 @@ trpel.o  : trpel.f  trcomm.inc trcom0.inc
 trgout.o : trgout.f trcomm.inc trcom0.inc
 trgrar.o : trgrar.f trcomm.inc trcom0.inc
 trgrat.o : trgrat.f trcomm.inc trcom0.inc
-trgrap.o : trgrap.f trcomm.inc trcom0.inc
+trgrag.o : trgrag.f trcomm.inc trcom0.inc
 trgrae.o : trgrae.f trcomm.inc trcom0.inc
 trgrad.o : trgrad.f trcomm.inc trcom0.inc
 trgram.o : trgram.f trcomm.inc trcom0.inc
