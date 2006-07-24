@@ -425,7 +425,7 @@ C
       KFILEB=KFILE(1:KL2)//'.bin'
 C
       INQUIRE(FILE=KFILEB,EXIST=LEX,ERR=9000)
-      IF(LEX) THEN
+      IF(LEX.AND.MODE.EQ.0) THEN
          MODE=1
       ENDIF
 C
@@ -534,7 +534,7 @@ C
       KFILEB=KFILE(1:KL2)//'.bin'
 C
       INQUIRE(FILE=KFILEB,EXIST=LEX,ERR=9000)
-      IF(LEX) THEN
+      IF(LEX.AND.MODE.EQ.0) THEN
          MODE=1
       ENDIF
 C
