@@ -1287,7 +1287,7 @@ C
          PNSA(3)=PNSUA(1,3)
          PNSA(4)=PNSUA(1,4)
       ENDIF
-      write(6,*) 'NFAST=',IERR
+      write(6,*) 'NE=',IERR
 C
       KFID='NFAST'
       CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PNFU,PNFUA,TMU,FAT,AMP,
