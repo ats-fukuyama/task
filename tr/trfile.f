@@ -790,6 +790,7 @@ C     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
             WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
+     &                ,MDNI
             MDNI=MDNI+1
             IF(MDNI.LE.3) THEN
                GOTO 100
@@ -1489,7 +1490,7 @@ C     check whether density developed is appropriate (positive) or not
          DO NR=1,NRMAX
             IF(RNU(NTX,NR,2).LE.0.D0.OR.RNU(NTX,NR,3).LE.0.D0) THEN
                WRITE(6,*)
-     &              'XX TR_TIME_UFILE: WRONG MDNI: DENSITY NEGATIVE'
+     &             'XX TR_TIME_UFILE: WRONG MDNI: DENSITY NEGATIVE',MDNI
                WRITE(6,'(2(A5,I4),2(A7,F15.7))') " NTX=",NTX,", NR=",NR,
      &              ", RNU2=",RNU(NTX,NR,2),", RNU3=",RNU(NTX,NR,3)
                STOP
