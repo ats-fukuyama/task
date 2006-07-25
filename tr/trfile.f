@@ -1396,7 +1396,7 @@ C
      &                     /(PZ(2)*(PZ(3)-PZ(2)))   
             RNU(NTX,NR,3)=(PZ(2)-ZEFFU(NTX,NR))/(PZ(3)*(PZ(2)-PZ(3)))
      &                    *RNU(NTX,NR,1)
-            IF(NTX.EQ.1) WRITE(6,'(I3,2F8.4,2F15.10,1PE15.7)') NR,PZ(2),
+            IF(NTX.EQ.1) WRITE(6,'(I3,2F8.4,3(1PE15.7))') NR,PZ(2),
      &           PZ(3),ZEFFU(NTX,NR),RNU(NTX,NR,1),RNFU(NTX,NR)
          ENDDO
          PNSU(NTX,2)=( (PZ(3)-ZEV(NTX))*PNSU(NTX,1)

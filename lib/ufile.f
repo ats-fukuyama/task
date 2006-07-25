@@ -429,7 +429,6 @@ C
          MODE=1
       ENDIF
 C
- 600  FORMAT(' ',A,A,A,I3,A)
       IF(MODE.EQ.1) THEN
          OPEN(15,FILE=KFILEB,IOSTAT=IST,FORM='UNFORMATTED',
      &        STATUS='OLD',ERR=8)
@@ -438,18 +437,18 @@ C
          READ(15) (F1(NTX),NTX=1,NTXMAX)
          CLOSE(15)
          KFIDB=KFID//'.bin'
-         WRITE(6,600) ' - READ FILE :',KFIDB,'(',NTXMAX,')'
+         WRITE(6,"(' ',3A,I3,A)") ' - READ FILE :',KFIDB,'(',NTXMAX,')'
          GOTO 9000
       ENDIF
 C
     8 OPEN(15,FILE=KFILE,IOSTAT=IST,FORM='FORMATTED',
-     &     STATUS='OLD',ERR=10)
-      GOTO 100
-C
-   10 CONTINUE
-      WRITE(6,*) 'XX NOT FOUND :',KFILE(1:45)
-      NTXMAX=0
-      GOTO 8010
+     &     STATUS='OLD')
+      IF(IST.GT.0) THEN
+         WRITE(6,*) 'XX NOT FOUND :',KFILE(1:45)
+         NTXMAX=0
+         WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
+         RETURN
+      ENDIF
 C
   100 CONTINUE
          READ(15,'(A80)',ERR=8000,END=9000) KKLINE
@@ -480,21 +479,26 @@ C
       BACKSPACE 15
 C
       CALL NDINIT(NDPOS)
-      DO 1010 NTX=1,NTXMAX
+      DO NTX=1,NTXMAX
          CALL NDREAD(NDPOS,15,T(NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
- 1010 CONTINUE
-      DO 1020 NTX=1,NTXMAX
+      ENDDO
+      DO NTX=1,NTXMAX
          CALL NDREAD(NDPOS,15,F1(NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
- 1020 CONTINUE
+      ENDDO
 C
       CLOSE(15)
-      WRITE(6,600) ' - READ FILE :',KFILE(1:55),'(',NTXMAX,')'
+      WRITE(6,"(' ',3A,I3,A)") ' - READ ASCII FILE :',
+     &                         KFID,'(',NTXMAX,')'
 C
       IF(MODE.EQ.0) THEN
          OPEN(15,FILE=KFILEB,IOSTAT=IST,FORM='UNFORMATTED',
-     &        STATUS='NEW',ERR=8010)
+     &        STATUS='NEW')
+         IF(IST.GT.0) THEN
+            WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
+            RETURN
+         ENDIF     
          WRITE(15) NTXMAX
          WRITE(15) (T(NT),NT=1,NTXMAX)
          WRITE(15) (F1(NT),NT=1,NTXMAX)
@@ -505,8 +509,6 @@ C
  9000 RETURN
 C
  8000 WRITE(6,*) 'XX FILE READ ERROR'
-      RETURN
- 8010 WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
       RETURN
       END
 C
@@ -538,7 +540,6 @@ C
          MODE=1
       ENDIF
 C
- 600  FORMAT(' ',A,A,A,I3,A,I3,A)
       IF(MODE.EQ.1) THEN
          OPEN(15,FILE=KFILEB,IOSTAT=IST,FORM='UNFORMATTED',
      &        STATUS='OLD',ERR=8)
@@ -548,19 +549,19 @@ C
          READ(15) ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
          CLOSE(15)
          KFIDB=KFID//'.bin'
-         WRITE(6,600) ' - READ FILE :',KFIDB,
+         WRITE(6,"(' ',3A,2(I3,A))") ' - READ FILE :',KFIDB,
      &                '(',NRXMAX,',',NTXMAX,')'
          GOTO 9000
       ENDIF
 C
     8 OPEN(15,FILE=KFILE,IOSTAT=IST,FORM='FORMATTED',
-     &     STATUS='OLD',ERR=10)
-      GOTO 100
-C
-   10 CONTINUE
-      WRITE(6,*) 'XX NOT FOUND :',KFILE(1:55)
-      NTXMAX=0
-      GOTO 8010
+     &     STATUS='OLD')
+      IF(IST.GT.0) THEN
+         WRITE(6,*) 'XX NOT FOUND :',KFILE(1:55)
+         NTXMAX=0
+         WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
+         RETURN
+      ENDIF
 C
   100 CONTINUE
          READ(15,'(A80)',ERR=8000,END=9000) KKLINE
@@ -591,28 +592,35 @@ C
       BACKSPACE 15
 C
       CALL NDINIT(NDPOS)
-      DO 1030 NRX=1,NRXMAX
+      DO NRX=1,NRXMAX
          CALL NDREAD(NDPOS,15,R(NRX),IERR)
+         IF(KFID.EQ.'NE') write(6,*) NRX,R(NRX)
          IF(IERR.NE.0) GOTO 8000
- 1030 CONTINUE
-      DO 1040 NTX=1,NTXMAX
+      ENDDO
+      DO NTX=1,NTXMAX
          CALL NDREAD(NDPOS,15,T(NTX),IERR)
+         IF(KFID.EQ.'NE') write(6,*) NTX,T(NTX)
          IF(IERR.NE.0) GOTO 8000
- 1040 CONTINUE
+      ENDDO
       DO NTX=1,NTXMAX
       DO NRX=1,NRXMAX
          CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR)
+         IF(KFID.EQ.'NE'.AND.NTX.LE.3) write(6,*) NTX,NRX,F2(NRX,NTX)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       ENDDO
 C
       CLOSE(15)
-      WRITE(6,600) ' - READ FILE :',KFILE(1:55),
+      WRITE(6,"(' ',3A,2(I3,A))") ' - READ ASCII FILE :',KFID,
      &             '(',NRXMAX,',',NTXMAX,')'
 C
       IF(MODE.EQ.0) THEN
          OPEN(15,FILE=KFILEB,IOSTAT=IST,FORM='UNFORMATTED',
-     &        STATUS='NEW',ERR=8010)
+     &        STATUS='NEW')
+         IF(IST.GT.0) THEN
+            WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
+            RETURN
+         ENDIF
          write(6,*) 
          WRITE(15) NRXMAX,NTXMAX
          WRITE(15) (R(NRX),NRX=1,NRXMAX)
@@ -643,7 +651,5 @@ C
       RETURN
 C
  8000 WRITE(6,*) 'XX FILE READ ERROR'
-      RETURN
- 8010 WRITE(6,*) 'XX FILE OPEN ERROR: STATUS = ',IST
       RETURN
       END
