@@ -1287,7 +1287,6 @@ C
          PNSA(3)=PNSUA(1,3)
          PNSA(4)=PNSUA(1,4)
       ENDIF
-      write(6,*) 'NE=',IERR
 C
       KFID='NFAST'
       CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PNFU,PNFUA,TMU,FAT,AMP,
@@ -1298,7 +1297,6 @@ C
             RNFU(NTX,NR)=FAT(NTX,NR)
          ENDDO
       ENDDO
-      write(6,*) 'NFAST=',IERR
 C
       KFID='NM1'
       CALL UF2DTP(KFID,KUFDEV,KUFDCG,DR,DT,PV,PVA,TMU,FAT,AMP,
@@ -1369,7 +1367,6 @@ C
             ZEFFU_ORG(NTX,NR)=FAT(NTX,NR)
          ENDDO
       ENDDO
-      write(6,*) 'ZEFFR=',IERR
 C
       AMP=1.D-20
       KFID='NIMP'
@@ -1399,6 +1396,8 @@ C
      &                     /(PZ(2)*(PZ(3)-PZ(2)))   
             RNU(NTX,NR,3)=(PZ(2)-ZEFFU(NTX,NR))/(PZ(3)*(PZ(2)-PZ(3)))
      &                    *RNU(NTX,NR,1)
+            IF(NTX.EQ.1) WRITE(6,'(I3,2F8.4,2F15.10,1PE15.7)') NR,PZ(2),
+     &           PZ(3),ZEFFU(NTX,NR),RNU(NTX,NR,1),RNFU(NTX,NR)
          ENDDO
          PNSU(NTX,2)=( (PZ(3)-ZEV(NTX))*PNSU(NTX,1)
      &                -(PZ(3)-PZ(2))*PZ(2)*PNFU(NTX))
