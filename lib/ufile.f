@@ -593,16 +593,21 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NRX=1,NRXMAX
-         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
-     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
-            CALL NDREAD(NDPOS,15,R(NRX),IERR,1)
-         ELSE
+c$$$         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
+c$$$     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
+c$$$            CALL NDREAD(NDPOS,15,R(NRX),IERR,1)
+c$$$         ELSE
             CALL NDREAD(NDPOS,15,R(NRX),IERR,0)
-         ENDIF
+c$$$         ENDIF
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
+         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
+     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
+            CALL NDREAD(NDPOS,15,T(NTX),IERR,1)
+         ELSE
+            CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
+         ENDIF
 !         IF(KFID.EQ.'NE') write(6,*) NTX,T(NTX)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
