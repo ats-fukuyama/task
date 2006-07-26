@@ -593,7 +593,8 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NRX=1,NRXMAX
-         IF(KFID.EQ.'NE') THEN
+         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
+     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
             CALL NDREAD(NDPOS,15,R(NRX),IERR,1)
          ELSE
             CALL NDREAD(NDPOS,15,R(NRX),IERR,0)
