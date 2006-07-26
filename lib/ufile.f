@@ -350,7 +350,7 @@ C
 C
 C     ***** READING UFILE *****
 C
-      SUBROUTINE NDREAD(NDPOS,IRD,XD,IERR)
+      SUBROUTINE NDREAD(NDPOS,IRD,XD,IERR,ID)
 C
       PARAMETER (NLENM=80)
       REAL*8 XD
@@ -385,7 +385,7 @@ C
             NDPOS2=NDPOS
             NUMD=LINE(NDPOS1:NDPOS2)
             READ(NUMD,*,ERR=100) XD
-C            WRITE(6,*) NDPOS1,NDPOS2,XD
+            IF(ID.EQ.1) WRITE(6,*) NDPOS1,NDPOS2,XD
             IERR=0
             RETURN
          ENDIF
@@ -480,11 +480,11 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,T(NTX),IERR)
+         CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,F1(NTX),IERR)
+         CALL NDREAD(NDPOS,15,F1(NTX),IERR,0)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
 C
@@ -593,19 +593,22 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NRX=1,NRXMAX
-         CALL NDREAD(NDPOS,15,R(NRX),IERR)
-         IF(KFID.EQ.'NE') write(6,*) NRX,R(NRX)
+         IF(KFID.EQ.'NE') THEN
+            CALL NDREAD(NDPOS,15,R(NRX),IERR,1)
+         ELSE
+            CALL NDREAD(NDPOS,15,R(NRX),IERR,0)
+         ENDIF
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,T(NTX),IERR)
-         IF(KFID.EQ.'NE') write(6,*) NTX,T(NTX)
+         CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
+!         IF(KFID.EQ.'NE') write(6,*) NTX,T(NTX)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
       DO NRX=1,NRXMAX
-         CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR)
-         IF(KFID.EQ.'NE'.AND.NTX.LE.3) write(6,*) NTX,NRX,F2(NRX,NTX)
+         CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR,0)
+!         IF(KFID.EQ.'NE'.AND.NTX.LE.3) write(6,*) NTX,NRX,F2(NRX,NTX)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       ENDDO
