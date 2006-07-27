@@ -233,6 +233,16 @@ C
          ENDDO
       ENDIF
 C
+      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
+     &     KFID.EQ.'NIMP') THEN
+         WRITE(6,*) "KFID=",KFID
+         DO NTX=1,3
+            DO NRX=1,NRFMAX
+               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,F2(NTX,NRX)
+            ENDDO
+         ENDDO
+      ENDIF
+C
  9000 RETURN
       END
 C
@@ -350,7 +360,7 @@ C
 C
 C     ***** READING UFILE *****
 C
-      SUBROUTINE NDREAD(NDPOS,IRD,XD,IERR,ID)
+      SUBROUTINE NDREAD(NDPOS,IRD,XD,IERR)
 C
       PARAMETER (NLENM=80)
       REAL*8 XD
@@ -386,7 +396,6 @@ C
             NDPOS2=NDPOS
             NUMD=LINE(NDPOS1:NDPOS2)
             READ(NUMD,*,ERR=100) XD
-            IF(ID.EQ.1) WRITE(6,'(2I4,1PE15.7)') NDPOS1,NDPOS2,XD
             IERR=0
             RETURN
          ENDIF
@@ -481,11 +490,11 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
+         CALL NDREAD(NDPOS,15,T(NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
-         CALL NDREAD(NDPOS,15,F1(NTX),IERR,0)
+         CALL NDREAD(NDPOS,15,F1(NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
 C
@@ -594,32 +603,16 @@ C
 C
       CALL NDINIT(NDPOS)
       DO NRX=1,NRXMAX
-c$$$         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
-c$$$     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
-c$$$            CALL NDREAD(NDPOS,15,R(NRX),IERR,1)
-c$$$         ELSE
-            CALL NDREAD(NDPOS,15,R(NRX),IERR,0)
-c$$$         ENDIF
+         CALL NDREAD(NDPOS,15,R(NRX),IERR)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
-c$$$         IF(KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
-c$$$     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR') THEN
-c$$$            CALL NDREAD(NDPOS,15,T(NTX),IERR,1)
-c$$$         ELSE
-            CALL NDREAD(NDPOS,15,T(NTX),IERR,0)
-c$$$         ENDIF
+         CALL NDREAD(NDPOS,15,T(NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       DO NTX=1,NTXMAX
       DO NRX=1,NRXMAX
-         IF((KFID.EQ.'NE'.OR.KFID.EQ.'TE'.OR.KFID.EQ.'TI'.OR.
-     &        KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR').AND.NTX.LE.2) THEN
-            CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR,1)
-         ELSE
-            CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR,0)
-         ENDIF
-!         IF(KFID.EQ.'NE'.AND.NTX.LE.3) write(6,*) NTX,NRX,F2(NRX,NTX)
+         CALL NDREAD(NDPOS,15,F2(NRX,NTX),IERR)
          IF(IERR.NE.0) GOTO 8000
       ENDDO
       ENDDO
