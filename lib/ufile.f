@@ -233,16 +233,6 @@ C
          ENDDO
       ENDIF
 C
-      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
-     &     KFID.EQ.'NIMP') THEN
-         WRITE(6,*) "KFID=",KFID
-         DO NTX=1,3
-            DO NRX=1,NRFMAX
-               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,F2(NTX,NRX)
-            ENDDO
-         ENDDO
-      ENDIF
-C
  9000 RETURN
       END
 C

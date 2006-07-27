@@ -2431,6 +2431,15 @@ C
          IF(NRLMAX.LE.1) IERR=1
          RETURN
       ENDIF
+      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
+     &     KFID.EQ.'NIMP') THEN
+         WRITE(6,*) "KFID=",KFID
+         DO NTX=1,3
+            DO NRX=1,NRLMAX
+               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,F2(NTX,NRX)
+            ENDDO
+         ENDDO
+      ENDIF
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2481,6 +2490,15 @@ C         if(kfid.eq.'TI') write(6,*) ntx,pv(ntx)
             PVA(NTX)=F0*AMP
          ENDIF
       ENDDO
+      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
+     &     KFID.EQ.'NIMP') THEN
+         WRITE(6,*) "KFID=",KFID
+         DO NTX=1,3
+            DO NRX=1,NRLMAX
+               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,FOUT(NTX,NRX)
+            ENDDO
+         ENDDO
+      ENDIF
 C
  600  FORMAT(' ',A18,A10,A7,I2)      
       RETURN
