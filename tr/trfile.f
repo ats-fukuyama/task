@@ -2053,6 +2053,8 @@ C
          RETURN
       ENDIF
 C
+C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
       ENDDO
@@ -2125,6 +2127,8 @@ C
          RETURN
       ENDIF
 C
+C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
       ENDDO
@@ -2166,7 +2170,7 @@ C     DR          : Radial Step Width
 C     AMP         : Amplitude Factor of FOUT
 C     NRMAX       : Radial Node Number
 C     NSW         : Mesh Selector (0:RM, 1:RG)
-C     ID          : Boundary Condition in the center of edge for Spline
+C     ID          : Boundary Condition in the center and/or edge for Spline
 C     MDLXP       : Select UFILE or MDSplus
 C
 C     output:
@@ -2206,6 +2210,8 @@ C
       IERRP=IERR
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,ID,IERRP)
 C
+C     Error check in case of a single radial point
+C
       IF(IERRP.NE.0.AND.NRLMAX.LE.1) THEN
          DO NRL=1,NRMAX
             FOUT(NRL)=0.D0
@@ -2214,6 +2220,8 @@ C
          IF(IERRP.LT.0) IERR=IERRP
          RETURN
       ENDIF
+C
+C     Calculate values suitable for arbitrary radial mesh using spline
 C
       DO NRL=1,NRMAX
          IF(NSW.EQ.0) THEN
@@ -2273,6 +2281,8 @@ C
       IERRP=IERR
       CALL PRETREAT0(KFID,RL,TL,F2,U,NRLMAX,NTXMAX,1,IERRP)
 C
+C     Error check in case of a single radial point
+C
       IF(IERRP.NE.0.OR.NRLMAX.LE.1) THEN
          DO NRL=1,NRMAX
             FOUT(NRL)=0.D0
@@ -2282,6 +2292,8 @@ C         IERR=1
 C         IF(IERR.LT.0) IERR=IERRP
       ENDIF
 C
+C     Calculate values suitable for arbitrary radial mesh using spline
+C
       DO NRL=1,NRMAX
          RMN=(DBLE(NRL)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RL,U,NRLMAX,IERR)
@@ -2289,6 +2301,8 @@ C
      &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          FOUT(NRL)=F0*AMP
       ENDDO
+C
+C     Edge values
 C
       RGN=DBLE(NRMAX)*DR
       CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
@@ -2318,7 +2332,7 @@ C     AMP         : Amplitude Factor of FOUT
 C     NRMAX       : Radial Node Number
 C     TLMAX       : Maximum Time
 C     NSW         : Mesh Selector (0:RM, 1:RG)
-C     ID          : Boundary Condition in the center of edge for Spline
+C     ID          : Boundary Condition in the center and/or edge for Spline
 C     ICK         : Check Indicator
 C     MDLXP       : Select UFILE or MDSplus
 C
@@ -2349,6 +2363,9 @@ C
          CALL IPDB_MDS2(KUFDEV,KUFDCG,KFID,NRMU,NTUM,
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
+C
+C     Error check in case of a single radial point
+C
       IF(IERR.NE.0.AND.NRLMAX.LE.1) THEN
          DO NTX=1,NTUM
             DO NRX=1,NRMP
@@ -2360,6 +2377,8 @@ C
       ENDIF
       DERIV(1)=0.D0
       DERIV(NRLMAX)=0.D0
+C
+C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2377,6 +2396,8 @@ C
       TLMAX=TL(NTXMAX)
       NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
       IF(ICK.NE.2) ICK=1
+C
+C     Calculate values suitable for arbitrary radial mesh using spline
 C
       DO NTX=1,NTXMAX
          DO NRL=1,NRLMAX
@@ -2422,6 +2443,14 @@ C
          CALL IPDB_MDS2(KUFDEV,KUFDCG,KFID,NRMU,NTUM,
      &                  RL,TL,F2,NRLMAX,NTXMAX,IERR)
       ENDIF
+C
+C     All the variables which this subroutine should handle
+C        have a derivative of zero on-axis.
+C
+      DERIV(1)=0.D0
+C
+C     Error check in case of a single radial point
+C
       IF(IERR.NE.0.AND.NRLMAX.LE.1) THEN
          DO NTX=1,NTUM
             DO NRX=1,NRMP
@@ -2431,15 +2460,8 @@ C
          IF(NRLMAX.LE.1) IERR=1
          RETURN
       ENDIF
-      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
-     &     KFID.EQ.'NIMP') THEN
-         WRITE(6,*) "KFID=",KFID
-         DO NTX=1,3
-            DO NRX=1,NRLMAX
-               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,F2(NTX,NRX)
-            ENDDO
-         ENDDO
-      ENDIF
+C
+C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2458,8 +2480,9 @@ C            STOP
       NTLMAX=INT(DINT(TL(NTXMAX)*1.D2)*1.D-2/DT)
       IF(ICK.NE.2) ICK=1
 C
+C     Calculate values suitable for arbitrary radial mesh using spline
+C
       DO NTX=1,NTXMAX
-C         if(kfid.eq.'TI') write(6,*) ntx,f2(ntx,nrlmax)
          DO NRL=1,NRLMAX
             TMP0(NRL)=F2(NTX,NRL)
          ENDDO
@@ -2476,12 +2499,13 @@ C         if(kfid.eq.'TI') write(6,*) ntx,f2(ntx,nrlmax)
             FOUT(NTX,NRL)=F0*AMP
          ENDDO
 C
+C     Edge values
+C
          RGN=DBLE(NRMAX)*DR
          CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
      &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
          PV(NTX)=F0*AMP
-C         if(kfid.eq.'TI') write(6,*) ntx,pv(ntx)
          IF(RHOA.NE.1.D0) THEN
             RGN=DBLE(NRAMAX)*DR
             CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
@@ -2490,6 +2514,7 @@ C         if(kfid.eq.'TI') write(6,*) ntx,pv(ntx)
             PVA(NTX)=F0*AMP
          ENDIF
       ENDDO
+C
       IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
      &     KFID.EQ.'NIMP') THEN
          WRITE(6,*) "KFID=",KFID
