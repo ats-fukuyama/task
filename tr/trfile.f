@@ -789,8 +789,9 @@ C
 C     check whether density developed is appropriate (positive) or not
       DO NR=1,NRMAX
          IF(RNU(1,NR,2).LE.0.D0.OR.RNU(1,NR,3).LE.0.D0) THEN
-            WRITE(6,*)'XX TR_STEADY_UFILE: WRONG MDNI: DENSITY NEGATIVE'
-     &                ,MDNI
+            WRITE(6,*)
+     &           'XX TR_STEADY_UFILE: DENSITY NEGATIVE: WRONG MDNI=',
+     &           MDNI
             MDNI=MDNI+1
             IF(MDNI.LE.3) THEN
                GOTO 100
@@ -1396,8 +1397,6 @@ C
      &                     /(PZ(2)*(PZ(3)-PZ(2)))   
             RNU(NTX,NR,3)=(PZ(2)-ZEFFU(NTX,NR))/(PZ(3)*(PZ(2)-PZ(3)))
      &                    *RNU(NTX,NR,1)
-            IF(NTX.EQ.1) WRITE(6,'(I3,2F8.4,3(1PE15.7))') NR,PZ(2),
-     &           PZ(3),ZEFFU(NTX,NR),RNU(NTX,NR,1),RNFU(NTX,NR)
          ENDDO
          PNSU(NTX,2)=( (PZ(3)-ZEV(NTX))*PNSU(NTX,1)
      &                -(PZ(3)-PZ(2))*PZ(2)*PNFU(NTX))
@@ -1492,9 +1491,7 @@ C     check whether density developed is appropriate (positive) or not
          DO NR=1,NRMAX
             IF(RNU(NTX,NR,2).LE.0.D0.OR.RNU(NTX,NR,3).LE.0.D0) THEN
                WRITE(6,*)
-     &             'XX TR_TIME_UFILE: WRONG MDNI: DENSITY NEGATIVE',MDNI
-               WRITE(6,'(2(A5,I4),2(A7,F15.7))') " NTX=",NTX,", NR=",NR,
-     &              ", RNU2=",RNU(NTX,NR,2),", RNU3=",RNU(NTX,NR,3)
+     &            'XX TR_TIME_UFILE: DENSITY NEGATIVE: WRONG MDNI=',MDNI
                STOP
             ENDIF
          ENDDO
@@ -2049,11 +2046,11 @@ C
          CALL IPDB_MDS1(KUFDEV,KUFDCG,KFID,NTUM,TL,F1,NTXMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX UF1D:',KFID,'UFILE HAS AN ERROR!'
+         WRITE(6,'(A13,A10,A14)') '## UF1D: NO "',KFID,'" FILE EXISTS.'
          RETURN
       ENDIF
 C
-C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C     Time mesh normalization (from t=a to t=b -> t=0 to t=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2062,7 +2059,7 @@ C
       IF(ICK.NE.0) THEN
          IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
          IF(TLMAX.NE.TL(NTXMAX)) THEN
-            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) 'XX UF1D:',KFID,'UFILE HAS AN ERROR!'
             WRITE(6,*) TLMAX,TL(NTXMAX)
             STOP
          ENDIF
@@ -2092,7 +2089,7 @@ C
          CALL IPDB_MDS1(KUFDEV,KUFDCG,KFID,NTUM,TL,F1,NTXMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX UF1DG:',KFID,'UFILE HAS AN ERROR!'
+         WRITE(6,'(A14,A10,A14)') '## UF1DG: NO "',KFID,'" FILE EXISTS.'
          RETURN
       ENDIF
 C
@@ -2123,11 +2120,11 @@ C
          CALL IPDB_MDS1(KUFDEV,KUFDCG,KFID,NTUM,TL,F1,NTXMAX,IERR)
       ENDIF
       IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX UF1DG:',KFID,'UFILE HAS AN ERROR!'
+         WRITE(6,'(A14,A10,A14)') '## UF1DG: NO "',KFID,'" FILE EXISTS.'
          RETURN
       ENDIF
 C
-C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C     Time mesh normalization (from t=a to t=b -> t=0 to t=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2137,7 +2134,7 @@ C
          TLN=DBLE(GTL(NIN))
          CALL TIMESPL(TLN,F0,TL,F1,NTXMAX,NTUM,IERRL)
 C         IF(IERRL.NE.0) 
-C     &        WRITE(6,600) "XX TRFILE: LAGLAN ",KFID,": IERR=",IERR
+C     &        WRITE(6,600) "XX UF1DG: TIMESPL ",KFID,": IERR=",IERR
          FOUT(NIN)=F0
       ENDDO
 C     
@@ -2231,11 +2228,11 @@ C
          ENDIF
          CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERRS)
          IF(IERRS.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERRS=",IERRS
+     &        WRITE(6,600) "XX UF2DS: SPL1DF ",KFID,": IERRS=",IERRS
          FOUT(NRL)=F0*AMP
       ENDDO
 C
- 600  FORMAT(' ',A18,A10,A7,I2)
+ 600  FORMAT(' ',A17,A10,A7,I2)
       RETURN
       END
 C
@@ -2298,7 +2295,7 @@ C
          RMN=(DBLE(NRL)-0.5D0)*DR
          CALL SPL1DF(RMN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX UF2DSP: SPL1DF ",KFID,": IERR=",IERR
          FOUT(NRL)=F0*AMP
       ENDDO
 C
@@ -2307,13 +2304,13 @@ C
       RGN=DBLE(NRMAX)*DR
       CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
       IF(IERR.NE.0)
-     &     WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &     WRITE(6,600) "XX UF2DSP: SPL1DF ",KFID,": IERR=",IERR
       PV=F0*AMP
       IF(RHOA.NE.1.D0) THEN
          RGN=DBLE(NRAMAX)*DR
          CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX UF2DSP: SPL1DF ",KFID,": IERR=",IERR
          PVA=F0*AMP
       ENDIF
 C
@@ -2378,7 +2375,7 @@ C
       DERIV(1)=0.D0
       DERIV(NRLMAX)=0.D0
 C
-C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C     Time mesh normalization (from t=a to t=b -> t=0 to t=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2387,7 +2384,7 @@ C
       IF(ICK.NE.0) THEN
          IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
          IF(TLMAX.NE.TL(NTXMAX)) THEN
-            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) 'XX UF2DT:',KFID,'UFILE HAS AN ERROR!'
             WRITE(6,*) TLMAX,TL(NTXMAX)
             STOP
          ENDIF
@@ -2412,12 +2409,12 @@ C
             ENDIF
             CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX UF2DT: SPL1DF ",KFID,": IERR=",IERR
             FOUT(NTX,NRL)=F0*AMP
          ENDDO
       ENDDO
 C
- 600  FORMAT(' ',A18,A10,A7,I2)      
+ 600  FORMAT(' ',A17,A10,A7,I2)      
       RETURN
       END
 C
@@ -2461,7 +2458,7 @@ C
          RETURN
       ENDIF
 C
-C     Time mesh normalization (from t=a to t=b -> t=0 to r=b-a)
+C     Time mesh normalization (from t=a to t=b -> t=0 to t=b-a)
 C
       DO NTX=2,NTXMAX
          TL(NTX)=(TL(NTX)-TL(1))
@@ -2470,7 +2467,7 @@ C
       IF(ICK.NE.0) THEN
          IF(ICK.EQ.2.AND.TLMAX.EQ.0.D0) GOTO 1000
          IF(TLMAX.NE.TL(NTXMAX)) THEN
-            WRITE(6,*) 'XX TRFILE:',KFID,'UFILE HAS AN ERROR!'
+            WRITE(6,*) 'XX UF2DTP:',KFID,'UFILE HAS AN ERROR!'
             WRITE(6,*) TLMAX,TL(NTXMAX)
 C            STOP
          ENDIF
@@ -2495,7 +2492,7 @@ C
             ENDIF
             CALL SPL1DF(RSL,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX UF2DTP: SPL1DF ",KFID,": IERR=",IERR
             FOUT(NTX,NRL)=F0*AMP
          ENDDO
 C
@@ -2504,26 +2501,16 @@ C
          RGN=DBLE(NRMAX)*DR
          CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
          IF(IERR.NE.0)
-     &        WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &        WRITE(6,600) "XX UF2DTP: SPL1DF ",KFID,": IERR=",IERR
          PV(NTX)=F0*AMP
          IF(RHOA.NE.1.D0) THEN
             RGN=DBLE(NRAMAX)*DR
             CALL SPL1DF(RGN,F0,RL,U,NRLMAX,IERR)
             IF(IERR.NE.0)
-     &           WRITE(6,600) "XX TRFILE: SPL1DF ",KFID,": IERR=",IERR
+     &           WRITE(6,600) "XX UF2DTP: SPL1DF ",KFID,": IERR=",IERR
             PVA(NTX)=F0*AMP
          ENDIF
       ENDDO
-C
-      IF(KFID.EQ.'NE'.OR.KFID.EQ.'NFAST'.OR.KFID.EQ.'ZEFFR'.OR.
-     &     KFID.EQ.'NIMP') THEN
-         WRITE(6,*) "KFID=",KFID
-         DO NTX=1,3
-            DO NRX=1,NRLMAX
-               WRITE(6,'(2I4,1PE15.7)') NTX,NRX,FOUT(NTX,NRX)
-            ENDDO
-         ENDDO
-      ENDIF
 C
  600  FORMAT(' ',A18,A10,A7,I2)      
       RETURN
@@ -2625,7 +2612,7 @@ C
       ENDDO
       CALL SPL1D(RL,TMP,DERIV,U,NRFMAX,ID,IERR)
       IF(IERR.NE.0)
-     &     WRITE(6,*) 'XX TRFILE: SPL1D',KFID,': IERR=',IERR
+     &     WRITE(6,*) 'XX PRETREAT0: SPL1D',KFID,': IERR=',IERR
 C
       RETURN
  500  FORMAT(' ',A,F9.5,A,F9.5)

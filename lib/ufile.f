@@ -142,7 +142,7 @@ C
                   F2(NTA,NRF)=0.D0
                ENDDO
             ENDDO
-            IERR=1
+            IERR=2
             GOTO 9000
          ENDIF
          MDCHK=1
@@ -193,7 +193,7 @@ C
       ELSEIF(RUF(1).EQ.0.D0.AND.RUF(NRFMAX).EQ.1.D0) THEN
          MD=4
       ELSE
-         STOP 'XX UFILE: TRXR2D: ERROR'
+         STOP 'XX UFREAD2_TIME: TRXR2D: ERROR'
       ENDIF
 C
       CALL DATA_ERROR_CORRECT(KUFDEV,KUFDCG,KFID,RUF,F2,
