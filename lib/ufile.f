@@ -8,10 +8,10 @@ C
       SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,IKNDEV,IKNDCG,MODE)
 C
       INTEGER MODE
-      CHARACTER KDIRX*80
+      CHARACTER KDIRX*80,KFILE*100
       CHARACTER KUFDEV*80,KUFDCG*80
       COMMON /UFMODE/ MODEL
-      LOGICAL DIR
+      LOGICAL DIR,FILE
 C
 C     MODE is the parameter which determines how to handle exp. files.
 C     MODE = 0 : Binary files are loaded if available, or ASCII files
@@ -27,11 +27,24 @@ C
 C
       KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/'
      &                          //KUFDCG(1:IKNDCG)//'/in/'
+C
+      CALL KTRIM(KDIRX,IKDIRX)
+      KFILE=KDIRX(1:IKDIRX)//KUFDEV(1:IKNDEV)//'2d'//KUFDCG(1:IKNDCG)//
+     &      '.NE'
       INQUIRE(FILE=KDIRX,EXIST=DIR,ERR=9000)
-      IF(DIR.NEQV..TRUE.) THEN
-         WRITE(6,'(A25,A34,A17)') 
-     &        '## DESIGNATED DIRECTORY( ',KDIRX,' ) DOES NOT EXIST!'
-         STOP
+      IF(DIR.EQV..FALSE.) THEN
+C
+C     ifort compiler cannot recognize whether the directory exists or
+C     not (always says "FALSE"), so that NE ufile must be checked in
+C     case of using ifort because it is the most possible existence file
+C     in a set of ufiles.
+C
+         INQUIRE(FILE=KFILE,EXIST=FILE,ERR=9000)
+         IF(FILE.EQV..FALSE.) THEN
+            WRITE(6,'(A)') '## DESIGNATED DIRECTORY DOES NOT EXIST!'
+            WRITE(6,'(A7,A80)') '   ==> ',KDIRX
+            STOP
+         ENDIF
       ENDIF
 C
  9000 RETURN
