@@ -436,7 +436,7 @@ C
       ELSE
          NR0 = NRL
          NR1 = NRL-1
-         NR2 = NRL+2
+         NR2 = NRL+1
       ENDIF
 
       DLT1=R(NR1)-R(NR0)
