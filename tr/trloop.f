@@ -1433,14 +1433,6 @@ C
       ENDDO
       ENDIF
 C
-      DO NV=1,NEQMAX
-      DO NW=1,NEQMAX
-      DO NO=1,2
-C         if(nr.eq.45)write(6,*) NV,NW,NO,VV(NV,NW,NO,NSW) !+VV(NV,NW,NO+2,NSW))
-C         DI(NV,NW,NO,NSW)=0.5D0*(DD(NV,NW,NO,NSW)+DD(NV,NW,NO+2,NSW))
-      ENDDO
-      ENDDO
-      ENDDO
 C
 C     /* Coefficients of source term */
 C
