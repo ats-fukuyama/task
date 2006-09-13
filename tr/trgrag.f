@@ -230,11 +230,11 @@ C
       CALL PAGES
 C
       CALL TRGR1D( 3.0,12.0,11.0,17.0,
-     &            GRG,GVR(1,1,21),NRMP,NRMAX,NGR,
+     &            GRG,GVR(1,1,22),NRMP,NRMAX,NGR,
      &            '@BP vs r@',0+INQ)
 C
       CALL TRGR1D(15.5,24.5,11.0,17.0,
-     &            GRM,GVR(1,1,22),NRMP,NRMAX,NGR,
+     &            GRM,GVR(1,1,23),NRMP,NRMAX,NGR,
      &            '@PSI vs r@',0+INQ)
 C
 c$$$      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,

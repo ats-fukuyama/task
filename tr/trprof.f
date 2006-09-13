@@ -541,7 +541,7 @@ C
                PROF=0.D0    
             ELSE             
                PROF= (1.D0-RM(NR)**ABS(PROFJ1))**ABS(PROFJ2)
-            ENDIF             
+            ENDIF
             AJOH(NR)= PROF
             AJ(NR)  = PROF
          ENDDO
