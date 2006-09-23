@@ -22,7 +22,9 @@ LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
 
 all : wm
 
@@ -63,7 +65,7 @@ libs:
 	(cd ../lib; make tasklib.a)
 
 wm : wmmain.o $(LIBS)
-	$(FC) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) wmmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpiwm : wmmain.o $(LIBM)
 	$(MFC) wmmain.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)

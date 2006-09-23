@@ -26,41 +26,23 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
-## for g77
-#OFLAGS = -O3
-#DFLAGS = -g -fbounds-check -Wunused
-#FC = g77
-#LD=ld
-#LDFLAGS=-r
-
 ## for g95
 #GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl
 #OFLAGS = -O3
 #DFLAGS = -g -fbounds-check -Wunused
-#FC = g95
-#F95 = g95
+#FCFIXED= g95
+#FCFREE = g95
 #LD=ld
 #LDFLAGS=-r
-
-## for pgf77
-#GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
-#GLLIBS=-L/usr/local/lib -lgsgl-pgf77
-#OFLAGS = -O3 -fastsse -tp p7
-#DFLAGS = -g -Mbounds -Minform=inform -Ktrap=fp
-#FC = pgf77
-#LD=ld
-#LDFLAGS=-r
-## if you have lapack library
-#OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
 ## for pgf95
 #GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-pgf95
 #OFLAGS = -O3 -fastsse -tp p7
 #DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
-#F95 = pgf95
-#FC  = pgf77
+#FCFIXED = pgf95
+#FCFREE  = pgf95
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -70,9 +52,9 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -tpp7 -O3 -prefetch -xW
-#OFLAGS = -tpp7 -O3 -prefetch -w90 -w95
 #DFLAGS = -g -CB -w90 -w95 -traceback
-#FC = ifort
+#FCFIXED = ifort
+#FCFREE  = ifort
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -83,7 +65,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GLLIBS=-L/home/j024/lib -lgsgl-ifc64
 #OFLAGS = -O3
 #DFLAGS = -g -CB -w90 -w95 -traceback
-#FC = ifort
+#FCFIXED = ifort
+#FCFREE = ifort
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -94,54 +77,41 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -g -vec-info0 -O3 
 #DFLAGS = -g -vec-info0 -CB -traceback
-#FC = ifort
+#FCFIXED = ifort
+#FCFREE = ifort
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
-
-## for macosx-g77
-#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -L/usr/lib -lcc_dynamic 
-#OFLAGS = -O -I.
-#DFLAGS = -g -fbounds-check -I.
-#FC = g77
-#LD=ld
-#LDFLAGS=-r
+#OBJLA = -L /Library/Frameworks/Intel_MKL.framework/Libraries/32 -lmkl_lapack64 -lmkl -lguide -lpthread
 
 ## for macosx-gfortran
 #GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
 #OFLAGS = -g -O3 -I.
 #DFLAGS = -g -fbounds-check -I.
-#FC =gfortran
-#F95=gfortran
+#FCFIXED = gfortran
+#FCFREE = gfortran
 #LD=ld
 #LDFLAGS=-r
 
 ## for macosx-xlf
 #GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-xlf
-#OFLAGS = -O -qmaxmem=-1
+#OFLAGS = -O3 -qmaxmem=-1
 #DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
-#FC = xlf
-#F90 = xlf90 -qsuffix=f=f90 -qsuffix=cpp=F90
-#F95 = xlf95 -qsuffix=f=f90 -qsuffix=cpp=F90
+#FCFIXED = xlf95 -qfixed
+#FCFREE  = xlf95 -qsuffix=f=f90 -qsuffix=cpp=F90
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 
-## for macosx-f2c
-#OFLAGS = -O
-#DFLAGS = -g
-#FC = fort77
-#LD=ld
-#LDFLAGS=-r
-
 ## for macosx-absoft
 #GFLIBS=-L/usr/local/lib/absoft -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 
 #OFLAGS = -f -N15 -s -O
 #DFLAGS = -f -N15 -s -g
-#FC = f77
+#FCFIXED = f95
+#FCFREE  = f95
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -151,57 +121,11 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/home/j024/lib -lg3d -lgsp -lgdum
 #OFLAGS =
 #DFLAGS =
-#FC = sxf90
+#FCFIXED = sxf90
+#FCFREE  = sxf90
 #LD=sxld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
-
-# for ITBL
-#GFLIBS=/srfs/home1/g5/jz245/lib/libg3d.so /srfs/home1/g5/jz245/lib/libgsp.so \
-#/srfs/home1/g5/jz245/lib/libgdp.so /usr/X/lib/libX11.so -lm
-#OFLAGS = -O
-#DFLAGS = -g
-#FC=f77
-#LD=ld
-#LDFLAGS=-r
-## if you have lapack library
-#OBJLA = /srfs/home1/g5/jz245/lib/lapack.a /srfs/home1/g5/jz245/lib/blas.a
-
-# for Solaris
-#GFLIBS=/usr/local/lib/libg3d.so /usr/local/lib/libgsp.so /usr/local/lib/libgdp.so /usr/openwin/lib/libX11.so
-#OFLAGS = -O
-#DFLAGS = -g
-#FC=f77
-#LD=ld
-#LDFLAGS=-r
-
-# for HPUX
-#GFLIBS=/usr/local/lib/libg3d.sl /usr/local/lib/libgsp.sl \
-#/usr/local/lib/libgdp.sl /usr/lib/X11R5/libX11.sl
-#OFLAGS = +T -K +O2
-#DFLAGS = +T -K -g -C
-#FC=f77
-#LD=ld
-#LDFLAGS=-r
-
-# for DEC OS
-#GFLIBS= $(HOME)/lib/libg3d.a $(HOME)/lib/libgsp.a $(HOME)/lib/libgdp.a \
-#        -lX11
-##      /usr/lib/libX11.a /usr/lib/libdnet_stub.a /usr/lib/libm.a
-#OFLAGS = -O -fpe1
-#DFLAGS = -g -fpe1
-#FC = f77
-#LD=ld
-#LDFLAGS=-r
-
-## for Linux-alpha-compaq
-#OFLAGS = -fast
-#DFLAGS = -g -check overflow -check bounds
-#FC = fort
-#LD=ld
-#LDFLAGS=-r
-## if you have lapack library
-#OBJLA = /usr/lib/libcxml.so
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)

@@ -21,7 +21,9 @@ OBJS = $(SRCS:.f=.o)
 OBJMDS = $(MDSPLUS:.f=.o)
 
 .f.o :
-	$(FC) $(LFLAGS) -c $< -o $@
+	$(FCFIXED) $(LFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(LFLAGS) -c $< -o $@
 
 all : tasklib.a mdslib.a
 
@@ -32,22 +34,22 @@ mdslib.a: $(OBJMDS) mdslib.inc
 	$(LD) $(LDFLAGS) -o mdslib.a $(OBJMDS)
 
 testspl : testspl.o libspl.o ../grf/libgrf.o
-	$(FC) -o $@ testspl.o $(FFLAGS) libspl.o ../grf/libgrf.o $(FLIBS)
+	$(FCFIXED) -o $@ testspl.o $(FFLAGS) libspl.o ../grf/libgrf.o $(FLIBS)
 
 testgrf : testgrf.o $(OBJS)
-	$(FC) -o $@ testgrf.o $(FFLAGS) $(OBJS) $(FLIBS)
+	$(FCFIXED) -o $@ testgrf.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 testbes : testbes.o $(OBJS)
-	$(FC) -o $@ testbes.o $(FFLAGS) $(OBJS) $(FLIBS)
+	$(FCFIXED) -o $@ testbes.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 testfft : testfft.o $(OBJS)
-	$(FC) -o $@ testfft.o $(FFLAGS) $(OBJS) $(FLIBS)
+	$(FCFIXED) -o $@ testfft.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 testbrn : testbrn.o $(OBJS)
-	$(FC) -o $@ testbrn.o $(FFLAGS) $(OBJS) $(FLIBS)
+	$(FCFIXED) -o $@ testbrn.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 testell : testell.o $(OBJS)
-	$(FC) -o $@ testell.o $(FFLAGS) $(OBJS) $(FLIBS)
+	$(FCFIXED) -o $@ testell.o $(FFLAGS) $(OBJS) $(FLIBS)
 
 new :
 	mkdir ../libnew

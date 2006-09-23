@@ -17,7 +17,9 @@ OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
 .f.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
 
 all : eq
 
@@ -29,13 +31,13 @@ libs:
 	(cd ../pl; make pllib.a)
 
 eq : eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FC) eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FC) $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FC) $(OBJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 ak : $(OBJA) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FC) $(OBJA) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJA) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less

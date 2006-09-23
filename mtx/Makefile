@@ -15,7 +15,9 @@ OBJN = $(SRCN:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
 .f.o :
-	$(FC) $(LFLAGS) -c $< -o $@
+	$(FCFIXED) $(LFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(LFLAGS) -c $< -o $@
 
 all : mtxlib.a mpimtxlib.a
 mtxlib.a : $(OBJN)

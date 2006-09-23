@@ -7,7 +7,7 @@ FFLAGS = $(OFLAGS)
 SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f \
      trcalc.f trcoef.f trpnb.f trprf.f trpnf.f trpel.f  trmdlt.f \
      trgrar.f trgrat.f trgrag.f trgrae.f trgrad.f trgram.f trgsub.f \
-     trhelp.f glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
+     trhelp.f glf/callglf2d.f \
      itg/ifspppl_model.f tritg.f itg/weiland.f
 SRCF=glf/glf2d.F glf/r8tomsqz.F
 SRC2D=trg2d.f
@@ -29,7 +29,9 @@ LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../li
 LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
 
 #all: tr2 tr3
 all: tr2
@@ -43,15 +45,15 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) \
 	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
 
 ../pl/pllib.a:
-	(cd ../pl; make pllib.a FC="$(FC)" FFLAGS="$(FFLAGS)")
+	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
-	(cd ../eq; make eqlib.a FC="$(FC)" FFLAGS="$(FFLAGS)")
+	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
-	(cd ../eq; make treqin.o FC="$(FC)" FFLAGS="$(FFLAGS)")
+	(cd ../eq; make treqin.o)
 ../lib/tasklib.a:
-	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
+	(cd ../lib; make)
 ../lib/mdslib.a:
-	(cd ../lib; make FC="$(FC)" FFLAGS="$(FFLAGS)" LFLAGS="$(FFLAGS)")
+	(cd ../lib; make)
 
 libs:
 	(cd ../pl; make pllib.a)
@@ -60,9 +62,9 @@ libs:
 	(cd ../lib; make)
 
 tr2: trmain.o $(LIBS2)
-	$(FC) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA)
+	$(FCFIXED) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA)
 tr3: trmain.o $(LIBS3)
-	$(FC) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	$(FCFIXED) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
@@ -126,18 +128,16 @@ trg3d.o  : trg3d.f  trcomm.inc trcom0.inc
 tritg.o  : tritg.f  trcomm.inc trcom0.inc
 trmdlt.o : trmdlt.f trcomm.inc trcom0.inc
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
-	$(FC) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.f
+	$(FCFIXED) $(FFLAGS) -c -o glf/callglf2d.o -Iglf glf/callglf2d.f
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
-	$(FC) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
+	$(FCFIXED) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
 glf/r8tomsqz.o : glf/r8tomsqz.F glf/f77_dcomplx.h
-	$(FC) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
-glf/zgeev.o  : glf/zgeev.f
-glf/blas_zgeev.o : glf/blas_zgeev.f
+	$(FCFIXED) $(FFLAGS) -c -o glf/r8tomsqz.o glf/r8tomsqz.F
 trncls.o : trncls.f trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
            nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-	$(FC) $(FFLAGS) -c -o nclass/nclass_mod.o -Inclass nclass/nclass_mod.f
+	$(FCFIXED) $(FFLAGS) -c -o nclass/nclass_mod.o -Inclass nclass/nclass_mod.f
 itg/ifspppl_model.o : itg/ifspppl_model.f
 itg/weiland.o: itg/weiland.f
 ../eq/treqin.o: ../eq/treqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc \

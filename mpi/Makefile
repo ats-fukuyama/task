@@ -9,6 +9,11 @@ SRCM = mpilib.f
 OBJN = $(SRCN:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
+
 all : $(OBJN) $(OBJM)
 
 check : 

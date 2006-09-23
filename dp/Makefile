@@ -11,7 +11,9 @@ OBJS = $(SRCS:.f=.o)
 LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
 
 all : dp
 
@@ -32,7 +34,7 @@ libs:
 dp : dpmain.o $(LIBS)
 	(cd ../pl; make pllib.a)
 	(cd ../lib; make tasklib.a)
-	$(FC) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) dpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less

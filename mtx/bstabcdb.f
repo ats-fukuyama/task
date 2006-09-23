@@ -37,7 +37,7 @@ C
       COMPLEX * 16 TEMP1,TEMP2
       REAL    *  8 EPS
       REAL    *  8 RESID,TOL,RHOTOL,OMEGATOL
-      REAL    *  8 BNRM2,DNRM2
+      REAL    *  8 BNRM2,DNORM2
 C
       DIMENSION A(LA,N),B(N)
       DIMENSION X(N),D(LD,N)
@@ -108,13 +108,13 @@ C
          R(I)=B(I)-R(I)
       ENDDO
 C
-      IF(DNRM2(N,R,1).LE.TOL) GO TO 900
+      IF(DNORM2(N,R,1).LE.TOL) GO TO 900
 C
       DO I=1,N
          RT(I)=R(I)
       ENDDO
 C
-      BNRM2 = DNRM2(N,B,1)
+      BNRM2 = DNORM2(N,B,1)
       IF(BNRM2.EQ.0.D0) BNRM2 = 1.D0
 C
       ITER = 0
@@ -175,11 +175,11 @@ C
          S(I)=R(I)
       ENDDO
 C
-      IF(DNRM2(N,S,1).LE.TOL) THEN
+      IF(DNORM2(N,S,1).LE.TOL) THEN
          DO I=1,N
             X(I)=X(I)+ALPHA*PH(I)
          ENDDO
-         RESID=DNRM2(N,S,1)/BNRM2
+         RESID=DNORM2(N,S,1)/BNRM2
          GO TO 900
       ELSE
 C
@@ -286,14 +286,14 @@ C
 C
       COMPLEX * 16 R(N),B(N)
       REAL    *  8 RESID,TOL
-      REAL    *  8 DNRM2,BNRM2
+      REAL    *  8 DNORM2,BNRM2
 C
       IF(IERR.EQ.-1) THEN
-         BNRM2 = DNRM2(N,B,1)
+         BNRM2 = DNORM2(N,B,1)
          IF(BNRM2.EQ.0.D0) BNRM2=1.D0 
       ENDIF
 C
-      RESID = DNRM2(N,R,1)/BNRM2
+      RESID = DNORM2(N,R,1)/BNRM2
 C
       IERR = 0
       IF(RESID.LE.TOL) IERR = 1
@@ -303,18 +303,18 @@ C
 C
 C     ######## CALCULATE NORM ########
 C
-      FUNCTION DNRM2(N,DX,INC)
+      FUNCTION DNORM2(N,DX,INC)
 C
       COMPLEX * 16 DX(N)
       REAL    *  8 CUTLO,CUTHI,HITEST,SUM,XMAX
-      REAL    *  8 DNRM2
+      REAL    *  8 DNORM2
       REAL    *  8 ZERO,ONE
 C
       DATA ZERO,ONE /0.D0,1.D0/
       DATA CUTLO,CUTHI /8.232D-11, 1.304D19/
 C
       IF(N.LE.0.AND.INC.LE.0) THEN
-         DNRM2=0.D0
+         DNORM2=0.D0
          RETURN
       ENDIF
 C
@@ -400,7 +400,7 @@ C
          SUM = SUM + DX(I)*DCONJG(DX(I))
          I = I + INC
    95 CONTINUE
-      DNRM2 = DSQRT( SUM )
+      DNORM2 = DSQRT( SUM )
       GO TO 300
 C
   200 CONTINUE
@@ -413,7 +413,7 @@ C     END OF MAIN LOOP.
 C     
 C     COMPUTE SQUARE ROOT AND ADJUST FOR SCALING.
 C
-      DNRM2 = XMAX * DSQRT(SUM)
+      DNORM2 = XMAX * DSQRT(SUM)
   300 CONTINUE
 
       RETURN

@@ -1,3 +1,7 @@
+2006/09/23   V1.00
+             Upgraded to Fortran95 based
+             you have to update make.header from make.header.org
+
 2006/09/23   V0.96
 
 2006/07/24   V0.95

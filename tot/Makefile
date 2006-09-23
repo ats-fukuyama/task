@@ -17,7 +17,9 @@ LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FC) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
 
 all : tot
 
@@ -72,7 +74,7 @@ libs:
 	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
-	$(FC) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 mpitot : main.o $(LIBM)
 	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
