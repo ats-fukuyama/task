@@ -26,6 +26,15 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
+## for fortran
+#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
+#OFLAGS = -g -O3 -I.
+#DFLAGS = -g -fbounds-check -I.
+#FCFIXED = gfortran
+#FCFREE = gfortran
+#LD=ld
+#LDFLAGS=-r
+
 ## for g95
 #GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl
@@ -35,6 +44,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FCFREE = g95
 #LD=ld
 #LDFLAGS=-r
+## if you have lapack library
+#OBJLA = /usr/local/lib/lapack-g95.a /usr/local/lib/blas-g95.a
 
 ## for pgf95
 #GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
@@ -51,8 +62,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for Intel fortran compiler 
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
-#OFLAGS = -tpp7 -O3 -prefetch -xW
-#DFLAGS = -g -CB -w90 -w95 -traceback
+#OFLAGS = -tpp7 -O3 -prefetch -xW -vec-report0
+#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0
 #FCFIXED = ifort
 #FCFREE  = ifort
 #LD=ld
@@ -63,8 +74,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for Intel fortran compiler on IA64
 #GFLIBS=-L/home/j024/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/home/j024/lib -lgsgl-ifc64
-#OFLAGS = -O3
-#DFLAGS = -g -CB -w90 -w95 -traceback
+#OFLAGS = -O3 -vec-report0
+#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0
 #FCFIXED = ifort
 #FCFREE = ifort
 #LD=ld
@@ -75,8 +86,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## for Mac OSX Intel fortran compiler 
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
-#OFLAGS = -g -vec-info0 -O3 
-#DFLAGS = -g -vec-info0 -CB -traceback
+#OFLAGS = -g -vec-report0 -O3 
+#DFLAGS = -g -vec-report0 -CB -traceback
 #FCFIXED = ifort
 #FCFREE = ifort
 #LD=ld
