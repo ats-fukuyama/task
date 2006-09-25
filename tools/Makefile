@@ -14,6 +14,11 @@ SPLOBJ=$(SPLSRC:.f=.o)
 
 LIBS=../lib/tasklib.a ../lib/mdslib.a $(OBJLA)
 
+.f.o :
+	$(FCFIXED) $(FFLAGS) -c $< -o $@
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
+
 all : ufread ufread3 guiread usplit
 
 ../lib/tasklib.a:
@@ -22,16 +27,16 @@ all : ufread ufread3 guiread usplit
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
-	$(FC) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(OBJLA)
+	$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(OBJLA)
 
 ufread3 : $(UR3OBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
 
 guiread : $(GUIOBJS) $(LIBS)
-	-$(FC) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
 
 usplit : $(SPLOBJ)
-	-$(FC) -o $@ $(FFLAGS) $(SPLOBJ)
+	-$(FCFIXED) -o $@ $(FFLAGS) $(SPLOBJ)
 
 check :
 	ftnchek $(URSRCS) | less
@@ -44,6 +49,9 @@ clean :
 
 veryclean : clean
 	rm -f ufread ufread3 guiread usplit
+
+distclean: clean
+	cd ../lib && make clean
 
 new:
 	-mkdir ../toolsnew
