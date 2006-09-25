@@ -266,7 +266,7 @@ C     +               1-3: Hinton and Hazeltine               +
 C     +               4: Hirshman, Sigmar                     +
 C     +               5: Sauter                               +
 C     +               else: Hinton and Hazeltine              +
-C     +    MDLKNS: NEOCLASSICAL TRANSPORT MODEL               +
+C     +    MDLKNC: NEOCLASSICAL TRANSPORT MODEL               +
 C     +               0    : Hinton and Hazeltine             +
 C     +               else : Chang and Hinton                 +
 C     +                                                       +

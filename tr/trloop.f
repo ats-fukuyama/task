@@ -1650,20 +1650,29 @@ C     *** electron density ***
             NW=NEA(NS,1)
             B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
          ENDDO
+         IF(NSMAX.EQ.2) THEN
 C     *** deuterium density ***
-         NV=NEA(2,1)
-         DO NS=7,8
-            NW=NEA(NS,1)
-            B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
-     &                             *TSIE(NR)*DVRHO(NR)
-         ENDDO
+            NV=NEA(2,1)
+            DO NS=7,8
+               NW=NEA(NS,1)
+               B(NV,NW,NR)=B(NV,NW,NR)+TSIE(NR)*DVRHO(NR)
+            ENDDO
+         ELSE
+C     *** deuterium density ***
+            NV=NEA(2,1)
+            DO NS=7,8
+               NW=NEA(NS,1)
+               B(NV,NW,NR)=B(NV,NW,NR)+(PN(2)/(PN(2)+PN(3)))
+     &                                *TSIE(NR)*DVRHO(NR)
+            ENDDO
 C     *** tritium density ***
-         NV=NEA(3,1)
-         DO NS=7,8
-            NW=NEA(NS,1)
-            B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
-     &                             *TSIE(NR)*DVRHO(NR)
-         ENDDO
+            NV=NEA(3,1)
+            DO NS=7,8
+               NW=NEA(NS,1)
+               B(NV,NW,NR)=B(NV,NW,NR)+(PN(3)/(PN(2)+PN(3)))
+     &                                *TSIE(NR)*DVRHO(NR)
+            ENDDO
+         ENDIF
 C     *** neutrals ***
          DO NS=7,8
             NEQ=NEA(NS,1)

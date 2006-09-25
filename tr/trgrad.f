@@ -23,6 +23,7 @@ C
       ELSE
          NMB=I2*10+I3
       ENDIF
+      IF(NT.LT.NGTSTP) RETURN
       GOTO 200
 C
  600  KK=K2//K3

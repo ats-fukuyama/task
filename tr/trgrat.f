@@ -11,6 +11,7 @@ C
       INCLUDE 'trcomm.inc'
       CHARACTER K2*1
 C
+      IF(NT.LT.NGTSTP) RETURN
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 C
       IF(K2.EQ.'1') CALL TRGRT1(INQ)

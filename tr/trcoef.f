@@ -344,6 +344,7 @@ C   ***  MDLKAI.EQ. 0   : CONSTANT                        ***
 C   ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2)             ***
 C   ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) ***
 C   ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C      ***
+C   ***  MDLKAI.EQ. 4   : PROP. TO CUBIC FUNC.            ***
 C   *********************************************************
 C
             IF(MDLKAI.EQ.0) THEN
@@ -355,6 +356,12 @@ C
      &                  *(ABS(DTI)*RA)**CKBETA
             ELSEIF(MDLKAI.EQ.3) THEN
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
+            ELSEIF(MDLKAI.EQ.4) THEN
+               FSDFIX=0.1D0
+               BPA=AR1RHOG(NRMAX)*RDPS/RR
+               PROFDL=(PTS(1)*RKEV/(16.D0*AEE*SQRT(BB**2+BPA**2)))
+     &               /FSDFIX
+               AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**3)
             ELSE                                           
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
