@@ -85,6 +85,10 @@ contains
     !   Ion viscosity parameter
     rMui0 = 3.D0
 
+    !   Wave-particle interaction parameter
+    WPE0 = 0.D0
+    WPI0 = 1.D0
+
     !   Drift frequency parameter (omega/omega*e)
     WPM0 = 0.D0
 
@@ -254,6 +258,16 @@ contains
     !   n : Number of Display
     MODEAV = 0
 
+    !   Mode of LAPACK
+    !   0    : Use BANDRD
+    !   else : Use LAPACK_DGBSV
+    MDLPCK = 0
+
+    !   Mode of Wave-particle interaction model
+    !   0    : Non-ambipolar model
+    !   1    : Shaing model
+    MDLWTB = 0
+
     !   Multiplication factor for graphic in the radial direction
     !   default : 1.0
     !
@@ -269,7 +283,7 @@ contains
     gDIV(13) = 1.E3
     gDIV(16) = 1.E14
     gDIV(18) = 1.E6
-    gDIV(19) = 1.E6
+    gDIV(19) = 1.E3
     gDIV(21) = 1.E6
     gDIV(22) = 1.E6
     gDIV(23) = 1.E3
@@ -279,7 +293,7 @@ contains
     gDIV(27) = 1.E3
     gDIV(28) = 1.E3
     gDIV(35) = 1.E14
-    gDIV(36) = 1.E14
+    gDIV(36) = 1.E10
     gDIV(37) = 1.E20
     gDIV(38) = 1.E20
     gDIV(39) = 1.E23
@@ -331,10 +345,10 @@ contains
   SUBROUTINE TXCALM
 
     use physical_constants, only : AMP
-    use libraries, only : LORENTZ, BISECTION
+    use libraries, only : LORENTZ, LORENTZ_PART, BISECTION
 
-    INTEGER :: NR, NRL
-    real(8) :: DR, MAXAMP, CL, WL, RCL, RL
+    INTEGER :: NR, NRL, NR_RC_NEAR
+    real(8) :: DR, MAXAMP, CL, WL, RL, RCL, CLNEW
 
     !   Ion mass number
     AMI   = PA * AMP
@@ -350,17 +364,42 @@ contains
 
     !  Mesh
 
-    CL  = 5.D0
+!!$    CL  = 4.5D0
+!!$    WL  = 5.D-2
+!!$    MAXAMP = LORENTZ(RB,CL,WL,RC)
+!!$    R(0) = 0.D0
+!!$    DO NR = 1, NRMAX - 1
+!!$       RL = DBLE(NR) / DBLE(NRMAX)
+!!$       CALL BISECTION(LORENTZ,CL,WL,RC,MAXAMP,RL,RB,R(NR))
+!!$    END DO
+!!$    R(NRMAX) = RB
+
+    !  As a trial, generate mesh using given CL and WL and seek the position in the
+    !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
+    CL  = 30.D0
     WL  = 5.D-2
-    RCL = RC / RB
-    MAXAMP = LORENTZ(1.D0,CL,WL,RCL)
+    MAXAMP = LORENTZ(RB,CL,WL,RC) / RB
+    NR_RC_NEAR = 0
     R(0) = 0.D0
-    DO NR = 1, NRMAX-1
-       RL = DBLE(NR) / DBLE(NRMAX)
-       CALL BISECTION(LORENTZ,CL,WL,RCL,MAXAMP,RL,R(NR))
+    DO NR = 1, NRMAX - 1
+       RL = DBLE(NR) / DBLE(NRMAX) * RB
+       CALL BISECTION(LORENTZ,CL,WL,RC,MAXAMP,RL,RB,R(NR))
+       IF(ABS(R(NR)-RC) <= ABS(R(NR)-R(NR_RC_NEAR))) NR_RC_NEAR = NR
     END DO
-    R(NRMAX) = 1.D0
-    R(0:NRMAX) = R(0:NRMAX) * RB
+    R(NRMAX) = RB
+
+    !  Construct new CL value that separatrix is just on mesh.
+    !  New CL is chosen in order not to be settle so far from given CL.
+    !  The mesh finally obtained is well-defined.
+    RCL = DBLE(NR_RC_NEAR) / DBLE(NRMAX) * RB
+    CLNEW = (RC - RCL) / (RCL * LORENTZ_PART(RB,WL,RC) / RB - LORENTZ_PART(RC,WL,RC))
+    MAXAMP = LORENTZ(RB,CLNEW,WL,RC) / RB
+    R(0) = 0.D0
+    DO NR = 1, NRMAX - 1
+       RL = DBLE(NR) / DBLE(NRMAX) * RB
+       CALL BISECTION(LORENTZ,CLNEW,WL,RC,MAXAMP,RL,RB,R(NR))
+    END DO
+    R(NRMAX) = RB
 
     !  Maximum NR till RA
 
@@ -398,9 +437,14 @@ contains
        END IF
     END DO
 
+    !  Mesh coordinate
+
+    PSI(0:NRMAX) = R(0:NRMAX)**2
+
     !  Mesh interval
 
-    H(1:NEMAX) = R(1:NRMAX) - R(0:NRMAX-1)
+    H   (1:NEMAX) = R  (1:NRMAX) - R  (0:NRMAX-1)
+    HPSI(1:NEMAX) = PSI(1:NRMAX) - PSI(0:NRMAX-1)
 
     RETURN
   END SUBROUTINE TXCALM
@@ -413,17 +457,19 @@ contains
 
   SUBROUTINE TXPROF
 
-    use physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKEV
+    use physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKeV
     use results
     use variables
-    use libraries, only : F33, INTG_P
+    use libraries, only : INTG_P, INTDERIV3, INTDERIV4
 
-    INTEGER :: NR, NQ
+    INTEGER :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
-    REAL(8) :: EpsL, rLnLame, RNZ, SGMSPTZ, FT, RNUE, F33TEFF
-    REAL(8) :: ALP, dPe, dPi, SUML
+    REAL(8) :: EpsL, FT, Vte, Wte, rNuAse_inv, PHI, ETAS, CR
+    REAL(8) :: ALP, dPe, dPi, SUML, DPSI
+    REAL(8) :: DR1, DR2, DR3, DENOM
     REAL(8) :: DERIV3, FCTR ! External functions
-    real(8), dimension(:), allocatable :: AJPHL, TMP
+    real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
+    real(8), dimension(:,:), allocatable :: CMTX
 
     NEMAX = NRMAX
 
@@ -452,24 +498,55 @@ contains
           ! Ni*Ti
           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
-          X(LQe1,NR)  = (RL - RB)**2 + PNa - (RA - RB)**2!PNa * EXP(-(RL-RA) / rLn)!(RL - RB)**2 + PNa - (RA - RB)**2
+          X(LQe1,NR)  = (PNa - PNeDIV) * (RL - RB)**2 / (RA - RB)**2 + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
           X(LQi1,NR)  = X(LQe1,NR) / PZ
 !!!!        X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
 !!!!        X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
-          X(LQe5,NR) = PTea*X(LQe1,NR)
-          X(LQi5,NR) = PTia*X(LQi1,NR)
+          X(LQe5,NR) = ((PTea - PTeDIV) * (RL - RB)**2 / (RA - RB)**2 + PTeDIV)*X(LQe1,NR)!PTea*X(LQe1,NR)
+          X(LQi5,NR) = ((PTia - PTiDIV) * (RL - RB)**2 / (RA - RB)**2 + PTiDIV)*X(LQi1,NR)!PTia*X(LQi1,NR)
        END IF
        ! N0_1 (slow neutrals)
        X(LQn1,NR) = PN0s
        ! N0_2 (fast neutrals)
        X(LQn2,NR) = 0.D0
        ! Bphi
-       X(LQm5,NR) = 0.D0
+       X(LQm5,NR) = 0.5D0 * PSI(NR) * BB
+    END DO
 
-       IF((1.D0-(R(NR)/RA)**PROFJ) <= 0.D0) THEN
+    ! Poloidal magnetic field
+
+    IF(FSHL == 0.D0) THEN
+       BthV(0) = 0.D0
+       DO NR = 1, NRMAX
+          RL = R(NR)
+          IF(RL < RA) THEN
+             PROF = 1.D0 - (RL / RA)**2
+             ! Btheta
+             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) * (1.D0 - PROF**(PROFJ+1))
+          ELSE
+             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
+          END IF
+       END DO
+    ELSE
+       BthV(0) = 0.D0
+       DO NR = 1, NRMAX
+          RL = R(NR)
+          QL = (Q0 - QA) * (1.D0 - (RL / RA)**2) + QA
+          BthV(NR) = BB * RL / (QL * RR)
+       END DO
+    END IF
+    Bthb = BthV(NRMAX)
+
+    ! Toroidal electron current
+
+    DO NR = 0, NRMAX
+!!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,NRM,0)
+!!$       X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
+
+       IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
           PROF= 0.D0    
        ELSE             
-          PROF= 1.D0-(R(NR)/RA)**PROFJ
+          PROF= 1.D0-(R(NR)/RA)**2
        END IF
        IF(FSHL == 0.D0) THEN
           ! Ne*UePhi
@@ -482,35 +559,48 @@ contains
        END IF
     END DO
 
-    ! Poloidal magnetic field
+    ! Inverse matrix of derivative formula for integration
 
-    IF(FSHL == 0.D0) THEN
-       BthV(0) = 0.D0
-       DO NR = 1, NRMAX
-          RL=R(NR)
-          IF (RL < RA) THEN
-             PROF = 1.D0 - (RL / RA)**2
-             ! Btheta
-             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) &
-                  &              * (1.D0 - PROF**(PROFJ+1))
-          ELSE
-             BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
-          END IF
-       END DO
-    ELSE
-       BthV(0) = 0.D0
-       DO NR = 1, NRMAX
-          RL=R(NR)
-          QL=(Q0-QA)*(1.D0-(RL/RA)**2)+QA
-          BthV(NR) = BB*RL/(QL*RR)
-       END DO
-    END IF
-    DO NR = 0, NRMAX
-       RL=R(NR)
-       IF (RL < RA) THEN
-          X(LQm4,NR) = - rMu0 * AEE * X(LQe4,NR) * 1.D20
+    allocate(CMTX(1:NRMAX,1:NRMAX),RHSV(1:NRMAX))
+    CMTX(:,:) = 0.D0
+    DO NR = 1, NRMAX
+       IF(NR == 1) THEN
+          DR1 = PSI(NR-1) - PSI(NR)
+          DR2 = PSI(NR+1) - PSI(NR)
+          CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+          CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+       ELSEIF(NR == NRMAX) THEN
+          DR1 = PSI(NR-1) - PSI(NR)
+          DR2 = PSI(NR-2) - PSI(NR)
+          CMTX(NR,NR-2) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+          CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+          CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
        ELSE
-          X(LQm4,NR) =0.D0
+          DR1 = PSI(NR-1) - PSI(NR)
+          DR2 = PSI(NR+1) - PSI(NR)
+          CMTX(NR,NR-1) =   DR2**2 / (DR1 * DR2 * (DR2 - DR1))
+          CMTX(NR,NR  ) = - (DR1 + DR2) / (DR1 * DR2)
+          CMTX(NR,NR+1) = - DR1**2 / (DR1 * DR2 * (DR2 - DR1))
+       END IF
+    END DO
+    CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
+
+!!$    ! Numerical solution for AphV
+!!$
+!!$    RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
+!!$    X(LQm4,0) = 0.D0
+!!$    X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
+!!$
+    ! Analytic solution for AphV
+
+    DO NR = 0, NRMAX
+       IF(R(NR) < RA) THEN
+          X(LQm4,NR) = - rMU0 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
+               & *(3.d0*PSI(NR)-1.5D0*PSI(NR)**2/RA**2+PSI(NR)**3/(3.D0*RA**4))
+       ELSE
+          X(LQm4,NR) = - rMU0 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
+               & *(3.d0*RA**2-1.5D0*RA**2+RA**2/3.D0) &
+               & - rMU0 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
        END IF
     END DO
 
@@ -520,15 +610,18 @@ contains
     IF(FSHL == 0.D0) THEN
        AJV(0:NRMAX)=0.D0
     ELSE
-       TMP(0:NRMAX) = R(0:NRMAX) * X(LQm4,0:NRMAX)
+       TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
        DO NR = 0, NRMAX
           dRIP = DERIV3(NR,R,TMP,NRMAX,NRM,0) * 2.D0 * PI / rMU0
-          AJV(NR)=dRIP/(2.D0*PI*R(NR))
+          AJV(NR)=dRIP / (2.D0 * PI * R(NR))
        END DO
     END IF
     deallocate(TMP)
 
     ! Toroidal electric field
+
+    Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
+    Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
 
     DO NR = 0, NRMAX
        RL=R(NR)
@@ -537,28 +630,27 @@ contains
        ELSE
           PROF = 0.D0
        END IF
-       ! Ne on Integer Mesh
        PNeV(NR)=X(LQe1,NR)
-       ! Te on Integer Mesh
+       PNiV(NR)=X(LQi1,NR)
        PTeV(NR)=X(LQe5,NR)/X(LQe1,NR)
-       ! Neoclassical resistivity by Sauter et al.
+       ! Neoclassical resistivity by Hirshman, Hawryluk and Birge
        EpsL    = R(NR) / RR        ! Inverse aspect ratio
-       rLnLame = 31.3D0-LOG(SQRT(PNeV(NR)*1.D20)/ABS(PTeV(NR)*1.D3)) ! Coulomb logarithm
-       RNZ     = 0.58D0+0.74D0/(0.76D0+Zeff)
-       SGMSPTZ = 1.9012D4*(PTeV(NR)*1.D3)**1.5D0/(Zeff*RNZ*rLnLame) ! Spitzer resistivity
-       FT      = 1.46D0*SQRT(EpsL)-0.46D0*(EpsL)**1.5D0 ! Trapped particle fraction
-       IF(NR == 0) THEN
-          F33TEFF = 0.D0
-       ELSE
-          RNUE    = 6.921D-18*ABS(Q(NR))*RR*PNeV(NR)*1.D20 &
-               &   *Zeff*rLnLame/((PTeV(NR)*1.D3)**2*SQRT(EpsL)**3)
-          F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(RNUE) &
-               &   +0.45D0*(1.D0-FT)*RNUE/Zeff**1.5D0)
-       END IF
-       ETA     = 1.D0/(SGMSPTZ*F33(F33TEFF,Zeff))
+       FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0 ! Trapped particle fraction
+       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
+       Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
+       rLnLam = 15.D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
+       rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+            &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
+            &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
+       rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
+       PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+       ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2) ! Spitzer resistivity
+       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
+       ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+            &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        IF(FSHL == 0.D0) THEN
-          ! Ephi
-          X(LQm3,NR) = ETA *  AJPHL(NR)
+          ! Aphi'
+          X(LQm3,NR) = - ETA *  AJPHL(NR)
        ELSE
           X(LQm3,NR) = 0.D0
        END IF
@@ -582,55 +674,63 @@ contains
     !  Initial condition Part II
 
     DO NR = 0, NRMAX
-       dPe = DERIV3(NR,R,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKEV
-       dPi = DERIV3(NR,R,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKEV
+       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKeV
+       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKeV
        IF(rNuiNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE
           ALP = PZ * (AME / AMI) * (rNueNC(NR) / rNuiNC(NR))
        END IF
-       IF(NR /= 0) THEN
-          X(LQe3,NR) =(- PNiV(NR) * dPe - PNeV(NR) * dPi &
-               &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
-               &       - AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
-               &     / ( AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP) * R(NR))
-          X(LQi3,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
-               &       - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
-               &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
-               &     * ALP / (AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP) * R(NR))
-       END IF
-       X(LQm2,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
+       X(LQe3,NR) =(- PNiV(NR) * dPe - PNeV(NR) * dPi &
+            &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
+            &       - AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
+            &     / ( AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
+       X(LQi3,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
             &       - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
             &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
-            &     * rNueNC(NR) * AME &
-            &     / (AEE**2 * PNiV(NR) * PNeV(NR) * BphV(NR) * (1.D0 + ALP))
-       X(LQm1,NR) =(- PNiV(NR) * dPe * ALP + PNeV(NR) * dPi &
-            &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR) &
-            &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) * ALP) &
-            &     / ( AEE * PNeV(NR) * PNiV(NR) * (1.D0 + ALP))
+            &     * ALP / (AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
+       X(LQm2,NR) =- (  PNiV(NR) * dPe + PNeV(NR) * dPi &
+            &         - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
+            &         + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) * rNueNC(NR) * AME &
+            &       / ( AEE**2 * PNiV(NR) * PNeV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
+       ErV   (NR) =  (- PNiV(NR) * dPe * ALP + PNeV(NR) * dPi &
+            &         + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR) &
+            &         + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) * ALP) &
+            &       / ( AEE * PNeV(NR) * PNiV(NR) * (1.D0 + ALP))
 !       write(6,'(I3,4F18.10)') NR,X(LQe3,NR),X(LQi3,NR),X(LQm3,NR),X(LQm1,NR)
     END DO
-    X(LQe3,0) = FCTR(R(1),R(2),X(LQe3,1),X(LQe3,2))
-    X(LQi3,0) = FCTR(R(1),R(2),X(LQi3,1),X(LQi3,2))
 
-    X(LQm5,0:NRMAX) = rMU0 * AEE * (X(LQe3,0:NRMAX) - PZ * X(LQi3,0:NRMAX)) * R(0:NRMAX) &
-         &          * 1.D20
-    SUML = 0.D0
-    BphV (NRMAX)   = BB
-    DO NR = NRMAX - 1, 0, -1
-       SUML = SUML + INTG_P(X(LQm5,0:NRMAX),NR,1)
-       BphV(NR) = BphV(NRMAX) - SUML
-    END DO
+    ! Scalar potential
 
-    X(LQe2,1:NRMAX) =((        BphV(1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKEV) &
-         &          * (X(LQe3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNeV(1:NRMAX)) &
-         &          - (PZ**2 * BphV(1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKEV) &
-         &          * (X(LQi3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNiV(1:NRMAX))) * AEE
-    X(LQi2,1:NRMAX) = X(LQe2,1:NRMAX) / PZ
-    X(LQe2,0) = 0.D0
-    X(LQi2,0) = 0.D0
-    X(LQm3,0:NRMAX) = X(LQm3,0:NRMAX) - BthV(0:NRMAX) * (X(LQe2,0:NRMAX) / PNeV(0:NRMAX) &
-         &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
+    allocate(TMP(0:NRMAX))
+    ! TMP(0) is an arbitrary value (INTDERIV3 does not require the value at axis node
+    !                               in case of (LAST ARGUMENT)=1.)
+    TMP(1:NRMAX) = - 0.5D0 * ErV(1:NRMAX) / R(1:NRMAX)
+    TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+    CALL INTDERIV3(TMP,PSI,X(LQm1,0:NRMAX),0.D0,NRMAX,1)
+
+    ! AthV
+
+    TMP(1:NRMAX) = 0.5D0 * rMU0 * AEE * (X(LQe3,1:NRMAX) - PZ * X(LQi3,1:NRMAX)) * 1.D20 &
+         &       / PSI(1:NRMAX)
+    TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+    CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
+    RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
+    X(LQm5,0) = 0.D0
+    X(LQm5,1:NRMAX) = matmul(CMTX,RHSV)
+    deallocate(CMTX,RHSV,TMP)
+
+    !  Comment in the following
+
+!!$    X(LQe2,1:NRMAX) =((        BphV(1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKeV) &
+!!$         &          * (X(LQe3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNeV(1:NRMAX)) &
+!!$         &          - (PZ**2 * BphV(1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKeV) &
+!!$         &          * (X(LQi3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNiV(1:NRMAX))) * AEE
+!!$    X(LQi2,1:NRMAX) = X(LQe2,1:NRMAX) / PZ
+!!$    X(LQe2,0) = 0.D0
+!!$    X(LQi2,0) = 0.D0
+!!$    X(LQm3,0:NRMAX) = X(LQm3,0:NRMAX) - BthV(0:NRMAX) * (X(LQe2,0:NRMAX) / PNeV(0:NRMAX) &
+!!$         &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
 
     CALL TXCALV(X)
     CALL TXCALC
@@ -652,7 +752,7 @@ module parameter_control
        & RA,RB,RC,RR,BB, &
        & PA,PZ,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       & De0,Di0,rMue0,rMui0,WPM0, &
+       & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
        & FSCX,FSLC,FSNC,FSLP,FSION,FSD0, &
@@ -664,7 +764,7 @@ module parameter_control
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG, gDIV, MODEAV, MODEGL
+       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB
   private :: TXPLST
 
 contains
@@ -757,7 +857,7 @@ contains
 
 601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/ &
-         &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,'/ &
+         &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
          &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSION,FSD0,'/ &
@@ -769,7 +869,7 @@ contains
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL,')
+         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -791,7 +891,8 @@ contains
          &   'PROFJ ', PROFJ , &
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
-         &   'WPM0  ', WPM0  ,  'PROFD ', PROFD ,  &
+         &   'WPM0  ', WPM0  ,  'WPE0  ', WPE0  ,  &
+         &   'WPI0  ', WPI0  ,  'PROFD ', PROFD ,  &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
          &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
          &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
@@ -817,7 +918,8 @@ contains
          &   'NGRSTP', NGRSTP,  'NGTSTP', NGTSTP,  &
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
-         &   'MODEGL', MODEGL,  'NCphi ', NCphi
+         &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
+         &   'MDLWTB', MDLWTB,  'NCphi ', NCphi
 
     RETURN
   END SUBROUTINE TXVIEW

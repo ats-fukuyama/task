@@ -2,6 +2,9 @@
 module main
   use commons
   implicit none
+  real(8), dimension(1:4*NQM-1,1:NQM*(NRM+1)) :: BA
+  real(8), dimension(1:6*NQM-2,1:NQM*(NRM+1)) :: BL
+  real(8), dimension(1:NQM*(NRM+1)) :: BX
   private
   public :: TXEXEC
 
@@ -82,7 +85,8 @@ contains
     use graphic, only : TXSTGT, TXSTGV, TXSTGR
 
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM
-    REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV, FCTR
+    INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
+    REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV
     REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP
 
     IF (MODEAV == 0) THEN
@@ -91,7 +95,7 @@ contains
        IDIV = NTMAX / MODEAV
     END IF
     TIME0 = T_TX
-    DIP = (rIPe - rIPs) / NTMAX
+    IF(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
 
     L_NTDO:DO NTDO = 1, NTMAX
        NT = NTDO
@@ -110,13 +114,25 @@ contains
           CALL TXCALA
           CALL TXCALB
           CALL TXGLOB
-          CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
-          IF (IERR >= 30000) THEN
-             WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
-                  &              NT, ' -', IC, ' step. IERR=',IERR
-             IERR = 1
-             XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
-             GOTO 180
+          IF(MDLPCK == 0) THEN
+             CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
+             IF (IERR >= 30000) THEN
+                WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
+                     &              NT, ' -', IC, ' step. IERR=',IERR
+                IERR = 1
+                XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
+                GOTO 180
+             END IF
+          ELSE
+             CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, &
+                  &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR)
+             IF(IERR /= 0) THEN
+                WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGBSV, IERR = ',  &
+                     &              NT, ' -', IC, ' step. IERR=',IERR
+                IERR = 1
+                XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
+                GOTO 180
+             ENDIF
           END IF
 
           ! Copy calculated variables' vector to variable matrix
@@ -179,6 +195,7 @@ contains
                    IF (NQ == NQMAX) CYCLE L_IC
                 ELSEIF (NT /= IDISP .AND.  &
                      & ABS(XN(NQ,NR) - XP(NQ,NR)) / AV > EPS) THEN
+!                   write(6,'(3I3,4F15.7)') IC,NQ,NR,XN(NQ,NR),XP(NQ,NR),AV,ABS(XN(NQ,NR) - XP(NQ,NR)) / AV
                    CYCLE L_IC
                 END IF
              END DO L_NR
@@ -228,13 +245,12 @@ contains
   SUBROUTINE TXCALB
 
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
+    INTEGER :: JA, JB, JC, KL
 
     !  NR : number of radial mesh 
     !  NQ : number of equation
 
     ! *** Left-hand-side coefficient matrix ***
-
-    BA(1:NQMAX*4-1,1:NQMAX*(NRMAX+1)) = 0.D0
 
     !***************************************************************
     !   ALC, BLC and CLC are NQMAX x max(NLCMAX) on each NR,
@@ -243,40 +259,102 @@ contains
     !   certain variable in certain term in certain equation.
     !***************************************************************
 
-    ! Time derivative (NC=0)
-    DO NR = 0, NRMAX
-       DO NQ = 1, NQMAX
-          NC = 0
-          NC1 = NLCR(NC,NQ,NR)
-          IF(NC1 == 0) CYCLE
-          IC = NQMAX + (NC1 - 1) - (NQ - 1)
-          IB = IC + NQMAX
-          IA = IB + NQMAX
-          J = NR * NQMAX + NQ
-          BA(IC,J) = BA(IC,J) + CLC(NC,NQ,NR)
-          BA(IB,J) = BA(IB,J) + BLC(NC,NQ,NR)
-          BA(IA,J) = BA(IA,J) + ALC(NC,NQ,NR)
-       END DO
-    END DO
+    IF(MDLPCK == 0) THEN
+       BA(1:NQMAX*4-1,1:NQMAX*(NRMAX+1)) = 0.D0
 
-    ! *** NC /= 0 ***
-    DO NR = 0, NRMAX
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
+       ! Time derivative (NC=0)
+       DO NR = 0, NRMAX
+          DO NQ = 1, NQMAX
+             NC = 0
              NC1 = NLCR(NC,NQ,NR)
              IF(NC1 == 0) CYCLE
              IC = NQMAX + (NC1 - 1) - (NQ - 1)
              IB = IC + NQMAX
              IA = IB + NQMAX
              J = NR * NQMAX + NQ
-             BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR)
-             BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR)
-             BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR)
+             BA(IC,J) = BA(IC,J) + CLC(NC,NQ,NR)
+             BA(IB,J) = BA(IB,J) + BLC(NC,NQ,NR)
+             BA(IA,J) = BA(IA,J) + ALC(NC,NQ,NR)
           END DO
        END DO
-    END DO
 
-!    BA(40,4) =-1.D0 / 0.15D0!6.6667D0
+       ! *** NC /= 0 ***
+       DO NR = 0, NRMAX
+          DO NQ = 1, NQMAX
+             DO NC = 1, NLCMAX(NQ)
+                NC1 = NLCR(NC,NQ,NR)
+                IF(NC1 == 0) CYCLE
+                IC = NQMAX + (NC1 - 1) - (NQ - 1)
+                IB = IC + NQMAX
+                IA = IB + NQMAX
+                J = NR * NQMAX + NQ
+                BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR)
+                BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR)
+                BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR)
+             END DO
+          END DO
+       END DO
+
+    ELSE
+       BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)) = 0.D0
+       KL = 2 * NQMAX - 1
+
+       ! Time derivative (NC=0)
+       NC = 0
+       DO NR = 0, NRMAX
+          DO NQ = 1, NQMAX
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL
+                IB = IA + NQMAX
+                IC = IB + NQMAX
+                JA =(NR + 1) * NQMAX + NC1
+                JB = NR      * NQMAX + NC1
+                JC =(NR - 1) * NQMAX + NC1
+                IF(NR == 0) THEN
+                   BL(IA,JA) = BL(IA,JA) + ALC(NC,NQ,NR)
+                   BL(IB,JB) = BL(IB,JB) + BLC(NC,NQ,NR)
+                ELSEIF(NR == NRMAX) THEN
+                   BL(IB,JB) = BL(IB,JB) + BLC(NC,NQ,NR)
+                   BL(IC,JC) = BL(IC,JC) + CLC(NC,NQ,NR)
+                ELSE
+                   BL(IA,JA) = BL(IA,JA) + ALC(NC,NQ,NR)
+                   BL(IB,JB) = BL(IB,JB) + BLC(NC,NQ,NR)
+                   BL(IC,JC) = BL(IC,JC) + CLC(NC,NQ,NR)
+                END IF
+             END IF
+          END DO
+       END DO
+
+       ! *** NC /= 0 ***
+       DO NR = 0, NRMAX
+          DO NQ = 1, NQMAX
+             DO NC = 1, NLCMAX(NQ)
+                NC1 = NLCR(NC,NQ,NR)
+                IF(NC1 /= 0) THEN
+                   IA = NQMAX - (NC1 - 1) + (NQ - 1) + KL
+                   IB = IA + NQMAX
+                   IC = IB + NQMAX
+                   JA =(NR + 1) * NQMAX + NC1
+                   JB = NR      * NQMAX + NC1
+                   JC =(NR - 1) * NQMAX + NC1
+                   IF(NR == 0) THEN
+                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR)
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
+                   ELSEIF(NR == NRMAX) THEN
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
+                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR)
+                   ELSE
+                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR)
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
+                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR)
+                   END IF
+                END IF
+             END DO
+          END DO
+       END DO
+
+    END IF
 
     ! *** Right-hand-side vector ***
 
@@ -337,10 +415,10 @@ contains
 
     DO NR = 0, NRMAX
        IF (XL(LQe1,NR) < 0.D0 .OR. XL(LQi1,NR) < 0.D0) THEN
-          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
-               &           'Density becomes negative at ',  &
-               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-          WRITE(6,*) 'ne =', SNGL(XL(LQe1,NR)), '   ni =', SNGL(XL(LQi1,NR))
+          WRITE(6,'(2A,I4,2(A,I4),A)') '### ERROR(TXLOOP) : Negative density at ', &
+               &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
+          WRITE(6,'(20X,2(A,1PE15.7))') 'ne =', SNGL(XL(LQe1,NR)), &
+               &           ',   ni =', SNGL(XL(LQi1,NR))
           IER = 1
           RETURN
        END IF
@@ -348,10 +426,10 @@ contains
 
     DO NR = 0, NRMAX
        IF (XL(LQe5,NR) < 0.D0 .OR. XL(LQi5,NR) < 0.D0) THEN
-          WRITE(6,*) '### ERROR(TXLOOP) : ',  &
-               &           'Temperature becomes negative at ',  &
-               &           'NR =', NR, ', ', NTL, ' -', IC, ' step.'
-          WRITE(6,*) 'Te =', SNGL(XL(LQe5,NR)), '   Ti =', SNGL(XL(LQi5,NR))
+          WRITE(6,'(2A,I4,2(A,I4),A)') '### ERROR(TXLOOP) : Negative temperature at ', &
+               &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
+          WRITE(6,'(20X,2(A,1PE15.7))') 'Te =', SNGL(XL(LQe5,NR)), &
+               &           ',   Ti =', SNGL(XL(LQi5,NR))
           IER = 1
           RETURN
        END IF

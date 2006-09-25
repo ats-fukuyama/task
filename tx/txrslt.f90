@@ -13,7 +13,7 @@ contains
 
   SUBROUTINE TXGLOB
 
-    use physical_constants, only : AEE, PI, rMU0, rKEV
+    use physical_constants, only : AEE, PI, rMU0, rKeV
     use libraries, only : INTG_F, INTG_P
 
     INTEGER :: I, NS, NF, NR

@@ -28,7 +28,7 @@ module physical_constants
   real(8), parameter :: EPS0 = 1.D0 / (rMU0 * VC**2)
 
   !   Conversion factor from keV to joule
-  real(8), parameter :: rKEV = 1.D3 * AEE
+  real(8), parameter :: rKeV = 1.D3 * AEE
   
 end module physical_constants
 

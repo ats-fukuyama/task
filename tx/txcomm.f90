@@ -3,8 +3,8 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=90, NGYTM=43, &
-       &                NGYVM=49, NGPRM=14, NGPTM=7, NGPVM=15
+       &                NGTM=1000, NGVM=1000, NGYRM=91, NGYTM=43, &
+       &                NGYVM=49, NGPRM=15, NGPTM=7, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
@@ -26,7 +26,7 @@ module commons
   real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ
 
   ! Diffusivities and viscosities
-  real(8) :: De0, Di0, rMue0, rMui0, WPM0, Chie0, Chii0
+  real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, WPM0, WPE0, WPI0
 
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
@@ -65,22 +65,23 @@ module commons
   real(8) :: AMI, AMB, Vb
   real(8) :: rIP, Bthb
   real(8) :: UHth, UHph
-  real(8), dimension(0:NRM) :: R
-  real(8), dimension(0:NEM) :: H
+  real(8), dimension(0:NRM) :: R, PSI
+  real(8), dimension(0:NEM) :: H, HPSI
   
   ! Variables
   real(8), dimension(0:NRM) :: ErV, EthV, EphV, BthV, BphV, &
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
-       &                       PNbV, UbthV, UbphV, PN01V, PN02V, UethRV, UithRV
+       &                       PNbV, UbthV, UbphV, PN01V, PN02V, AphV
 
   ! Coefficients
-  real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNuL, rNuiCX, &
+  real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
        &                       rNuei, rNuii, rNuTei, rNube, rNubi, &
        &                       rNueNC, rNuiNC, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
        &                       Chie, Chii, De, Di, D01, D02, &
-       &                       WWthe, WWthi, WDthe, WDthi, rNuL1
+       &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
+       &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi
   real(8) :: FWthea, FWthia
  
   ! CDBM
@@ -113,8 +114,6 @@ module commons
   integer, dimension(0:NCM,1:NQM)       :: NLC
   integer, dimension(0:NCM,1:NQM,0:NRM) :: NLCR
   integer, dimension(1:NQM)             :: NLCMAX
-  real(8), dimension(1:4*NQM-1,1:NQM*(NRM+1)) :: BA
-  real(8), dimension(1:NQM*(NRM+1)) :: BX
   real(8), dimension(1:NQM,0:NRM) :: X
   
   ! Graphics
@@ -129,7 +128,13 @@ module commons
   real, dimension(0:NGVM) :: GVX
   real, dimension(0:NGVM,1:NGYVM) :: GVY
 
+  !  Transport model
+  integer :: MDLWTB
+
   ! I/O
   character(len=20) :: SLID
+
+  ! LAPACK
+  integer :: MDLPCK
 
 end module commons
