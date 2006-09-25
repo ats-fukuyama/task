@@ -359,9 +359,9 @@ C
       RETURN
       END
 C
-C     ****************************************************
-C     **  Derivative calculated from adjacent 3 points  **
-C     ****************************************************
+C     *******************************************
+C     **  Derivative calculated from 4 points  **
+C     *******************************************
 C     -- This formulation has a third-order accuracy. --
 C
       REAL*8 FUNCTION DERIV4P(F0,F1,F2,F3,X0,X1,X2,X3)
@@ -385,9 +385,66 @@ C
       RETURN
       END
 C
-C     ****************************************************
-C     **  Derivative calculated from adjacent 3 points  **
-C     ****************************************************
+C     ** Array input version **
+C
+      REAL*8 FUNCTION DERIV4(NR,R,F,NRMAX,NRM,ID)
+C
+C     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
+C          else : NR = 1 to NRMAX
+C
+      IMPLICIT NONE
+      INTEGER NR,NRMAX,NRM,ID,NRL,NRLMAX,NR0,NR1,NR2,NR3
+      REAL*8 R(NRM),F(NRM)
+      REAL*8 DX1,DX2,DX3
+C
+      IF(ID.EQ.0) THEN
+         NRL=NR+1
+         NRLMAX=NRMAX+1
+      ELSE
+         NRL=NR
+         NRLMAX=NRMAX
+      ENDIF
+C
+      IF(NRL.EQ.1) THEN
+         NR0 = NRL
+         NR1 = NRL+1
+         NR2 = NRL+2
+         NR3 = NRL+3
+      ELSEIF(NRL.EQ.2) THEN
+         NR0 = NRL
+         NR1 = NRL-1
+         NR2 = NRL+1
+         NR3 = NRL+2
+      ELSEIF(NRL.EQ.NRLMAX) THEN
+         NR0 = NRL
+         NR1 = NRL-1
+         NR2 = NRL-2
+         NR3 = NRL-3
+      ELSE
+         NR0 = NRL
+         NR1 = NRL-2
+         NR2 = NRL-1
+         NR3 = NRL+1
+      ENDIF
+
+      DX1 = R(NR1) - R(NR0)
+      DX2 = R(NR2) - R(NR0)
+      DX3 = R(NR3) - R(NR0)
+C
+      DERIV4 = - F(NR1) * DX2**2 * DX3**2 * (DX2 - DX3)
+     &         - F(NR2) * DX3**2 * DX1**2 * (DX3 - DX1)
+     &         - F(NR3) * DX1**2 * DX2**2 * (DX1 - DX2)
+     &         - F(NR0) * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1)
+     &                  * (DX1 * DX2 + DX2 * DX3 + DX3 * DX1)
+      DERIV4 = DERIV4 / (DX1 * DX2 * DX3
+     &                * (DX1 - DX2) * (DX2 - DX3) * (DX3 - DX1))
+C
+      RETURN
+      END
+C
+C     *******************************************
+C     **  Derivative calculated from 3 points  **
+C     *******************************************
 C     -- This formulation has a second-order accuracy. --
 C
       REAL*8 FUNCTION DERIV3P(f0, f1, f2, x10, x11, x12)

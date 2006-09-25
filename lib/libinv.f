@@ -6,10 +6,10 @@ C
 C
       REAL*8 A(NA,NA),W
       REAL*8 P,EPS
-      DIMENSION  NM(64)
+      DIMENSION  NM(128)
       DATA EPS/1.D-14/
 C
-      IF(N.GT.64) GOTO 999
+      IF(N.GT.128) GOTO 999
 C
       DO 10 NN=1,N
          NM(NN)=NN
@@ -72,7 +72,7 @@ C
   900 ILL=900
       RETURN
 C
-  999 WRITE(6,*) 'XX INVMRD: N.GT.64: N=',N
+  999 WRITE(6,*) 'XX INVMRD: N.GT.128: N=',N
       ILL=999
       RETURN
       END
