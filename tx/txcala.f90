@@ -603,37 +603,37 @@ contains
 
           ! Wave interaction force (electron driven)
 
-          ELM(1:4,10,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WNthe)
+          ELM(1:4,10,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WNthe)
           NLC(10,LQe3) = LQe1
 
-          ELM(1:4,11,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WEMthe)
+          ELM(1:4,11,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WEMthe)
           NLC(11,LQe3) = LQm1
 
-          ELM(1:4,12,LQe3,NE) =   2.D0 / AME * fem_int(15,NE,WWthe)
+          ELM(1:4,12,LQe3,NE) = - 2.D0 / AME * fem_int(15,NE,WWthe)
           NLC(12,LQe3) = LQe1
 
-          ELM(1:4,13,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WT1the)
+          ELM(1:4,13,LQe3,NE) = - 2.D0 / AME * rKeV * fem_int(17,NE,WT1the)
           NLC(13,LQe3) = LQe5
 
-          ELM(1:4,14,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WT2the)
+          ELM(1:4,14,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WT2the)
           NLC(14,LQe3) = LQe1
 
           ! Wave interaction force (ion driven)
 
-          ELM(1:4,15,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WNthi)
+          ELM(1:4,15,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WNthi)
           NLC(15,LQe3) = LQi1
 
-          ELM(1:4,16,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WEMthi)
-          NLC(16,LQe3) = LQm1
+!!$          ELM(1:4,16,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WEMthi)
+!!$          NLC(16,LQe3) = LQm1
+!!$
+!!$          ELM(1:4,17,LQe3,NE) =   1.D0 / AME * fem_int(15,NE,WWthi)
+!!$          NLC(17,LQe3) = LQi1
 
-          ELM(1:4,17,LQe3,NE) = - 1.D0 / AME * fem_int(15,NE,WWthi)
-          NLC(17,LQe3) = LQi1
-
-          ELM(1:4,18,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WT1thi)
+          ELM(1:4,18,LQe3,NE) =   2.D0 / AME * rKeV * fem_int(17,NE,WT1thi)
           NLC(18,LQe3) = LQi5
 
-          ELM(1:4,19,LQe3,NE) =   2.D0 / AME * fem_int(17,NE,WT2thi)
-          NLC(19,LQe3) = LQi1
+!!$          ELM(1:4,19,LQe3,NE) = - 2.D0 / AME * fem_int(17,NE,WT2thi)
+!!$          NLC(19,LQe3) = LQi1
 
           N = 6
        END IF
@@ -1107,37 +1107,37 @@ contains
 
           ! Wave interaction force (electron driven)
 
-          ELM(1:4,10,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WNthe)
+          ELM(1:4,10,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WNthe)
           NLC(10,LQi3) = LQe1
 
-          ELM(1:4,11,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WEMthe)
+          ELM(1:4,11,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WEMthe)
           NLC(11,LQi3) = LQm1
 
-          ELM(1:4,12,LQi3,NE) = - 2.D0 / AMI * fem_int(15,NE,WWthe)
+          ELM(1:4,12,LQi3,NE) =   2.D0 / AMI * fem_int(15,NE,WWthe)
           NLC(12,LQi3) = LQe1
 
-          ELM(1:4,13,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WT1the)
+          ELM(1:4,13,LQi3,NE) =   2.D0 / AMI * rKeV * fem_int(17,NE,WT1the)
           NLC(13,LQi3) = LQe5
 
-          ELM(1:4,14,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WT2the)
+          ELM(1:4,14,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WT2the)
           NLC(14,LQi3) = LQe1
 
           ! Wave interaction force (ion driven)
 
-          ELM(1:4,15,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WNthi)
+          ELM(1:4,15,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WNthi)
           NLC(15,LQi3) = LQi1
 
-          ELM(1:4,16,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WEMthi)
-          NLC(16,LQi3) = LQm1
+!!$          ELM(1:4,16,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WEMthi)
+!!$          NLC(16,LQi3) = LQm1
+!!$
+!!$          ELM(1:4,17,LQi3,NE) = - 2.D0 / AMI * fem_int(15,NE,WWthi)
+!!$          NLC(17,LQi3) = LQi1
 
-          ELM(1:4,17,LQi3,NE) =   2.D0 / AMI * fem_int(15,NE,WWthi)
-          NLC(17,LQi3) = LQi1
-
-          ELM(1:4,18,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WT1thi)
+          ELM(1:4,18,LQi3,NE) = - 2.D0 / AMI * rKeV * fem_int(17,NE,WT1thi)
           NLC(18,LQi3) = LQi5
 
-          ELM(1:4,19,LQi3,NE) = - 2.D0 / AMI * fem_int(17,NE,WT2thi)
-          NLC(19,LQi3) = LQi1
+!!$          ELM(1:4,19,LQi3,NE) =   2.D0 / AMI * fem_int(17,NE,WT2thi)
+!!$          NLC(19,LQi3) = LQi1
 
           N = 6
        END IF

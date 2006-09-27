@@ -87,7 +87,7 @@ contains
          &     rGIC, rH, dErdr, dpdr, PROFDL, &
          &     DCDBM, DeL, ETA, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
-         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA
+         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA
     real(8) :: FT, PHI, ETAS, CR
     real(8) :: DERIV3
     real(8), dimension(0:NRMAX) :: p, Vexbr, SL1, SL2
@@ -157,6 +157,12 @@ contains
     ! Banana width
     Wbane = (Q0 * SQRT(RR * AME * PTeV(0) * rKeV) / (AEE * BphV(0)))**(2.D0/3.D0)
     Wbani = (Q0 * SQRT(RR * AMI * PTiV(0) * rKeV) / (PZ * AEE * BphV(0)))**(2.D0/3.D0)
+
+    ! Banana width at separatrix
+!    PTiVA = PTiV(NRA)
+    PTiVA = 0.5D0 * PTiV(0)
+    DBW = 3.D0 * SQRT(PTiVA * rKEV * AMI) * Q(NRA) / (PZ * AEE * BphV(NRA)) &
+         & / SQRT(R(NRA) / RR)
 
     !  Coefficients
 
@@ -461,31 +467,21 @@ contains
 
        !     *** Loss to divertor ***
 
-       IF (R(NR) > RA) THEN
+       IF (R(NR) + DBW > RA) THEN
           Cs = SQRT(PTeV(NR) * rKeV / AMI)
-!!!!        rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-!!!!     &                  * LOG(0.3D0 / (R(NR) - RA)))
 !!$          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
 !!$               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) * (R(NR) - RA) / rLT
-          RL = (R(NR) - RA) / 0.05d0
-!          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
+          RL = (R(NR) - RA + DBW) / DBW
           rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) &
+               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA + DBW)))) &
                &          * RL**2 / (1.D0 + RL**2)
+!          write(6,*) R(NR),rNuL(NR)
 !!$          rNuL(NR) = FSLP * 3.d4 * (R(NR) - RA)**2
-!          rNuL(NR) = FSLP * 1.d3 * sqrt(R(NR) - RA)
        ELSE
           rNuL(NR) = 0.D0
        END IF
-!       write(6,*) R(NR),rNuL(NR)
 
-!!$       IF(NR==NRA) then
-!!$          Cs = SQRT(PTeV(NR) * rKeV / AMI)
-!!$          write(6,*) SQRT(2.D0*PI*Q(NR)*RR/Cs*DeL)
-!!$       END IF
-    
     END DO L_NR
-!    write(6,*) SQRT(PTiV(NRA)*rKeV/AMI)*AMI*Q(NRA)/(PZ*AEE*BphV(NRA)*SQRT(R(NRA)/RR)),H(NRA)
 
     ! Truncate neoclassical viscosity inside banana width evaluated on axis
 
