@@ -23,7 +23,7 @@ contains
     RB = 0.4D0
 
     !   Partition radius (m) available
-    RC = 0.D0
+    RC = RA
 
     !   Plasma major radius (m)
     RR = 1.3D0
@@ -268,6 +268,11 @@ contains
     !   1    : Shaing model
     MDLWTB = 0
 
+    !   Mode of neoclassical resistivity model
+    !   0    : original model
+    !   1    : Hirshman, Hawryluk and Birge model
+    MDLETA = 0
+
     !   Multiplication factor for graphic in the radial direction
     !   default : 1.0
     !
@@ -464,8 +469,8 @@ contains
 
     INTEGER :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
-    REAL(8) :: EpsL, FT, Vte, Wte, rNuAse_inv, PHI, ETAS, CR
-    REAL(8) :: ALP, dPe, dPi, SUML, DPSI
+    REAL(8) :: EpsL, FT, Vte, Vti, Wte, Wti, rNuAse_inv, rNuAsi_inv,PHI, ETAS, CR, BBL
+    REAL(8) :: ALP, dPe, dPi, SUML, DPSI, ALFA
     REAL(8) :: DR1, DR2, DR3, DENOM
     REAL(8) :: DERIV3, FCTR ! External functions
     real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
@@ -511,6 +516,7 @@ contains
        X(LQn2,NR) = 0.D0
        ! Bphi
        X(LQm5,NR) = 0.5D0 * PSI(NR) * BB
+       BphV(NR)   = BB
     END DO
 
     ! Poloidal magnetic field
@@ -554,6 +560,7 @@ contains
           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
           AJOH(NR)= PROF
        ELSE
+          AJPHL(NR) = 0.D0
           X(LQe4,NR) = 0.D0
           AJOH(NR)= 0.D0
        END IF
@@ -633,21 +640,51 @@ contains
        PNeV(NR)=X(LQe1,NR)
        PNiV(NR)=X(LQi1,NR)
        PTeV(NR)=X(LQe5,NR)/X(LQe1,NR)
-       ! Neoclassical resistivity by Hirshman, Hawryluk and Birge
-       EpsL    = R(NR) / RR        ! Inverse aspect ratio
-       FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0 ! Trapped particle fraction
-       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
-       Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
+       ! Coulomb logarithm
        rLnLam = 15.D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
+       ! Collisional frequency between electrons and ions
        rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
             &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
+       ! Thermal speed
+       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
+       Vti = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMI)
+       ! Transit frequency
+       Wte = Vte / (Q(NR) * RR)
+       Wti = Vti / (Q(NR) * RR)
+       ! Inverse aspect ratio
+       EpsL = R(NR) / RR
        rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
-       PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-       ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2) ! Spitzer resistivity
-       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-       ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
-            &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
+       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
+       ! Neoclassical viscosity
+       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
+            &     * (1.78D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
+            &     / (1.D0 + SQRT(0.37D0 * rNuei(NR) / Wte) + 1.25D0 * rNuei(NR) / Wte)
+       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wti &
+            &     * (1.78D0 / (rNuAsI_inv + SQRT(3.48D0 * rNuAsI_inv) + 1.52D0)) &
+            &     / (1.D0 + SQRT(0.37D0 * rNuii(NR) / Wti) + 1.25D0 * rNuii(NR) / Wti)
+       IF(MDLETA == 0) THEN
+          ! +++ Original model +++
+          ALFA =  (rNueNC(NR)+rNuei(NR)) &
+               & /(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
+               & *(BthV(NR)/BphV(NR))**2
+          ETA  =   0.51D0*AME*(1.D0+ALFA) &
+               & *(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
+               & /(PNeV(NR)*1.D20*AEE**2)
+       ELSE
+          ! +++ Hirshman, Hawryluk and Birge model +++
+          ! Inverse aspect ratio
+          EpsL    = R(NR) / RR
+          ! Trapped particle fraction
+          FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
+          PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+          ! Spitzer resistivity
+          ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+          CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
+          ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+               &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       END IF
        IF(FSHL == 0.D0) THEN
           ! Aphi'
           X(LQm3,NR) = - ETA *  AJPHL(NR)
@@ -764,7 +801,7 @@ module parameter_control
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB
+       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, MDLETA
   private :: TXPLST
 
 contains
@@ -869,7 +906,8 @@ contains
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB')
+         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL, MDLPCK,'/ &
+         &       ' ',8X,'MDLWTB')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -919,7 +957,8 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
-         &   'MDLWTB', MDLWTB,  'NCphi ', NCphi
+         &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
+         &   'NCphi ', NCphi
 
     RETURN
   END SUBROUTINE TXVIEW

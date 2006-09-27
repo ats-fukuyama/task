@@ -129,7 +129,7 @@ module commons
   real, dimension(0:NGVM,1:NGYVM) :: GVY
 
   !  Transport model
-  integer :: MDLWTB
+  integer :: MDLWTB, MDLETA
 
   ! I/O
   character(len=20) :: SLID

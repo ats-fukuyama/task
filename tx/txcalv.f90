@@ -87,7 +87,7 @@ contains
          &     rGIC, rH, dErdr, dpdr, PROFDL, &
          &     DCDBM, DeL, ETA, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
-         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, ETA2
+         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA
     real(8) :: FT, PHI, ETAS, CR
     real(8) :: DERIV3
     real(8), dimension(0:NRMAX) :: p, Vexbr, SL1, SL2
@@ -246,18 +246,27 @@ contains
 
        !     *** Resistivity ***
 
-       ! Neoclassical resistivity by Hirshman, Hawryluk and Birge
-       EpsL    = R(NR) / RR        ! Inverse aspect ratio
-       FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0 ! Trapped particle fraction
-       PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-       ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2) ! Spitzer resistivity
-       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-       ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
-            &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
-
-!!$       ALFA = (rNueNC(NR)+rNuei(NR))/(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR)))*(BthV(NR)/BphV(NR))**2
-!!$       ETA2  = 0.51D0*AME*(1.D0+ALFA)*(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR)))/(PNeV(NR)*1.D20*AEE**2)
-!!$       write(6,*) R(NR)/RA,ETAS!ETA2
+       IF(MDLETA == 0) THEN
+          ! +++ Original model +++
+          ALFA =  (rNueNC(NR)+rNuei(NR)) &
+               & /(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
+               & *(BthV(NR)/BphV(NR))**2
+          ETA  =   0.51D0*AME*(1.D0+ALFA) &
+               & *(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
+               & /(PNeV(NR)*1.D20*AEE**2)
+       ELSE
+          ! +++ Hirshman, Hawryluk and Birge model +++
+          ! Inverse aspect ratio
+          EpsL    = R(NR) / RR
+          ! Trapped particle fraction
+          FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
+          PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+          ! Spitzer resistivity
+          ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+          CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
+          ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+               &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       END IF
 
        !     *** Helical neoclassical viscosity ***
 
@@ -459,9 +468,10 @@ contains
 !!$          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
 !!$               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) * (R(NR) - RA) / rLT
           RL = (R(NR) - RA) / 0.05d0
-          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
-!          write(6,*) R(NR),FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-!               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA))))
+!          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
+          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
+               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA)))) &
+               &          * RL**2 / (1.D0 + RL**2)
 !!$          rNuL(NR) = FSLP * 3.d4 * (R(NR) - RA)**2
 !          rNuL(NR) = FSLP * 1.d3 * sqrt(R(NR) - RA)
        ELSE
@@ -475,7 +485,7 @@ contains
 !!$       END IF
     
     END DO L_NR
-!    write(6,*) SQRT(PTiV(NRA)*rKeV/AMI)*AMI*Q(NRA)/(PZ*AEE*BphV(NRA)*SQRT(R(NRA)/RR)),HPSI(NRA)
+!    write(6,*) SQRT(PTiV(NRA)*rKeV/AMI)*AMI*Q(NRA)/(PZ*AEE*BphV(NRA)*SQRT(R(NRA)/RR)),H(NRA)
 
     ! Truncate neoclassical viscosity inside banana width evaluated on axis
 
