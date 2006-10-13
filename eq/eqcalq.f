@@ -389,10 +389,13 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
+      DR=(REDGE-RAXIS)/(NRPMAX-1)
+      REDGEM=REDGE-DR
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       DR=(RB-RA)/(NRMAX-NRPMAX)
       IF(MDLEQF.LT.10) THEN
+C         REDGEM=RA-RA/(NRPMAX-1)
          DO NR=NRPMAX+1,NRMAX
             RL=REDGE+DR*(NR-NRPMAX)
             ZL=ZAXIS
@@ -400,6 +403,7 @@ C
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
+C            FACTOR=(RL-REDGE)/(REDGE-REDGEM)
             FACTOR=(RL-RAXIS)/(REDGE-RAXIS)
             SPS(NR)= SPS(NRPMAX)*FACTOR**2
             VPS(NR)= VPS(NRPMAX)*FACTOR**2
@@ -419,6 +423,10 @@ C
             ZMIN=ZAXIS
             ZMAX=ZAXIS
             DO NTH=1,NTHMAX+1
+C               RPS(NTH,NR)=RPS(NTH,NRPMAX)
+C     &                    +(RPS(NTH,NRPMAX)-RPS(NTH,NRPMAX-1))*FACTOR
+C               ZPS(NTH,NR)=ZPS(NTH,NRPMAX)       *FACTOR
+C     &                    +(ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1))*FACTOR
                RPS(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
                ZPS(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
                RMIN=MIN(RMIN,RPS(NTH,NR))

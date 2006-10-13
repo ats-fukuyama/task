@@ -378,9 +378,9 @@ C
       END IF
 C
       IF(MODELJ.EQ.0) THEN
-         WRITE(6,*) '## 0: REAL ANTENNA ##'
+         WRITE(6,*) '## 0: REAL poloidal ANTENNA ##'
       ELSE IF(MODELJ.EQ.1) THEN 
-         WRITE(6,*) '## 1: REAL ANTENNA ##'
+         WRITE(6,*) '## 1: REAL toroidal ANTENNA ##'
       ELSE IF(MODELJ.EQ.2) THEN 
          WRITE(6,*) '## 2: POLOIDAL MODE ##'
       ELSE IF(MODELJ.EQ.3) THEN 
