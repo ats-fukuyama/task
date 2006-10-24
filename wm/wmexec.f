@@ -80,10 +80,11 @@ C
       ENDDO
       ENDDO
 C
+      MODELWG=0
       IF(MODELJ.EQ.0) THEN
          CALL WMCANT
       ELSEIF(MODELJ.EQ.1) THEN
-         CALL WMCANTZ
+         MODELWG=1
       ELSEIF(MODELJ.EQ.2) THEN
          CJANT(2,1,1)= 1.D0
       ELSEIF(MODELJ.EQ.3) THEN
@@ -95,12 +96,12 @@ C
          IF(NMODE.LT.1.OR.NMODE.GT.3) GOTO 9000
          IF(IMODE.LT.2.OR.IMODE.GT.3) GOTO 9000
          RF =0.5D0*VC/PI
-     &      *SQRT((NPH0/RR)**2+(RHO(NTH0,NMODE,IMODE)/RB)**2)
-     &      *1.D-6
+     &            *SQRT((NPH0/RR)**2+(RHO(NTH0,NMODE,IMODE)/RB)**2)
+     &            *1.D-6
          RFI=0.D0
          CRF=DCMPLX(RF,RFI)
          CJANT(IMODE,1,1)=(1.D0,0.D0)
-      END IF
+      ENDIF
 C
       IERR=0
       RETURN
@@ -150,8 +151,9 @@ C
             CJMM=(EXP(-CI*(MM-BETAJ)*TH2)-EXP(-CI*(MM-BETAJ)*TH1))
      &           /(MM-BETAJ)
          ENDIF
-         CJT(MDX,NDX,NA)=0.D0
-         CJZ(MDX,NDX,NA)=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
+         CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
+         CJT(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG/360.D0)
+         CJZ(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG/360.D0)
       ENDDO
       ENDDO
       ENDDO
@@ -175,9 +177,9 @@ C
       RETURN
       END
 C
-C     ****** CALCULATE ANTENNA CURRENT ******
+C     ****** CALCULATE WAVEGUIDE FIELD ******
 C
-      SUBROUTINE WMCANTZ
+      SUBROUTINE WMCWGF
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -187,8 +189,14 @@ C
       DO NA=1,NAMAX
          TH1=THJ1(NA)*PI/180.D0
          TH2=THJ2(NA)*PI/180.D0
-         PH1=PHJ1(NA)*PI/180.D0
-         PH2=PHJ2(NA)*PI/180.D0
+         WGH=RB*ABS(TH2-TH1)
+         TH0=0.5D0*(TH1+TH2)
+         RKWG=PI/WGH
+         DO ND=NDMIN,NDMAX
+            NDX=ND-NDMIN+1
+            NN=NPH0+NHC*ND
+            RKPHI=NN/(RR+RB*COS(TH0))
+         ENDDO
 C
          CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
 C   
@@ -215,8 +223,9 @@ C
             CJMM=(EXP(-CI*(MM-BETAJ)*TH2)-EXP(-CI*(MM-BETAJ)*TH1))
      &           /(MM-BETAJ)
          ENDIF
-         CJT(MDX,NDX,NA)=   CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
-         CJZ(MDX,NDX,NA)=0.D0
+         CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
+         CJT(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG/360.D0)
+         CJZ(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG/360.D0)
       ENDDO
       ENDDO
       ENDDO
@@ -239,4 +248,3 @@ C
 C
       RETURN
       END
-

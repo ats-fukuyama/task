@@ -523,15 +523,20 @@ C
       DIMENSION CFVP(NDM,MDM,3)
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
 C
-         DO MDX=1,MDSIZ
-            DO NDX=1,NDSIZ
-               CFVP(NDX,MDX,1)=0.D0
-               CFVP(NDX,MDX,2)=0.D0
-               CFVP(NDX,MDX,3)=0.D0
-            ENDDO
-         ENDDO
+C     ----- Clear CFVP -----
 C
-         IF(MODEEG.EQ.0) THEN
+      DO MDX=1,MDSIZ
+         DO NDX=1,NDSIZ
+            CFVP(NDX,MDX,1)=0.D0
+            CFVP(NDX,MDX,2)=0.D0
+            CFVP(NDX,MDX,3)=0.D0
+         ENDDO
+      ENDDO
+C
+C     ***** Set Antenna Current *****
+C
+      IF(MODEEG.EQ.0) THEN
+         IF(MODEWG.EQ.0) THEN
             DO NRI=1,NRMAX 
                IF(XR(NRI)/RD.LT.1.D0) NRANT=NRI
             ENDDO
@@ -541,6 +546,8 @@ C
                CC=CI*CW*RMU0
                DPH=2.D0*PI/NPHMAX
                DTH=2.D0*PI/NTHMAX
+C
+C              ----- Anteanna current on theta-phi plane -----
 C
                IF(NR+1.EQ.NRANT.OR.NR+1.EQ.NRANT+1) THEN
                   XRHO1=XRHO(NRANT)
@@ -591,6 +598,9 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                   ENDDO
                   ENDDO
                ELSE
+C
+C              ----- Anteanna current in radial direction -----
+C
                   XRHO1=XRHO(NR+1)
                   IF(NR.LT.NRMAX) THEN
                      XRHO2=XRHO(NR+2)
@@ -631,7 +641,12 @@ C                     WRITE(6,*) 'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                   ENDDO
                ENDIF
             ENDIF
-         ELSE
+         ENDIF
+C
+C        ***** Bulk excitation for eigenmode analysis *****
+C
+      ELSE
+C
             DPH=2.D0*PI/NPHMAX
             DTH=2.D0*PI/NTHMAX
             XRHO1=XRHO(NR+1)
@@ -673,7 +688,7 @@ C               CFVP(NDX,MDX,1)=CJR
                CFVP(NDX,MDX,3)=CJPHM
             ENDDO
             ENDDO
-         ENDIF
+      ENDIF
 C
       RETURN
       END
@@ -782,7 +797,7 @@ C
             ENDDO
          ENDIF
 C
-C        ****** ETH = 0, EPH =0 AT R=RA ******
+C        ****** ETH = 0, EPH =0 AT R=RB ******
 C
          IF(NR.EQ.NRMAX) THEN
 C

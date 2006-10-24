@@ -91,12 +91,15 @@ C                   1: Standard graphic out (2D: Coutour)
 C                   2: Standard graphic out (2D: Paint)
 C                   3: Standard graphic out (2D: Bird's eye)
 C        MODELJ: Control antenna current model
-C                   0: Real antenna
-C                   1: Real antenna
+C                   0: Loop antenna
+C                   1: Waveguide
 C                   2: Poloidal current
 C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
+C
+C        ANTANG: Antenna angle: 0 : theta direction (degree)
+C        MWGMAX: Antenna angle: 0 : theta direction (degree)
 C
 C        MODELP: Extra control of plasma response model
 C                   -1: MHD plasma
@@ -128,6 +131,8 @@ C
       NGRAPH = 1
       MODELJ = 0
       MODELA = 0
+      ANTANG = 0.D0
+      MWGMAX = 2
       MODELK = 0
       MODELM = 0
       MODELW = 0
@@ -251,7 +256,7 @@ C
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELM,MODELW,MODELV,
+     &              MODELM,MODELW,MODELV,ANTANG,MWGMAX,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -283,8 +288,8 @@ C
   601 FORMAT(' ','# &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDLT,'/
      &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
-     &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
-     &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,'/
+     &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,ANTANG,'/
+     &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELM,MODELW,KNAMEQ,KNAMTR,KNAMPF,'/
@@ -350,6 +355,12 @@ C
          IERR=1
       ENDIF
 C
+      IF(MODELJ.LT.0) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL MODELJ'
+         WRITE(6,*) '                  MODELJ =',MODELJ
+         IERR=1
+      ENDIF
+C
       RETURN
       END
 C
@@ -378,9 +389,9 @@ C
       END IF
 C
       IF(MODELJ.EQ.0) THEN
-         WRITE(6,*) '## 0: REAL poloidal ANTENNA ##'
+         WRITE(6,*) '## 0: Loop antenna ##'
       ELSE IF(MODELJ.EQ.1) THEN 
-         WRITE(6,*) '## 1: REAL toroidal ANTENNA ##'
+         WRITE(6,*) '## 1: Waveguide ##'
       ELSE IF(MODELJ.EQ.2) THEN 
          WRITE(6,*) '## 2: POLOIDAL MODE ##'
       ELSE IF(MODELJ.EQ.3) THEN 
@@ -448,10 +459,11 @@ C
       WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
+      WRITE(6,601) 'ANTANG',ANTANG
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
      &             'NPHMAX',NPHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
-     &             'NHC   ',NHC
+     &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
 C
       WRITE(6,692)
       DO NS=1,NSMAX
