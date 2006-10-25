@@ -2,7 +2,7 @@
 !
 !***********************************************************
 !
-!               TOKAMAK TRANSPORT SIMULATION
+!             TOKAMAK TRANSPORT SIMULATION CODE
 !    INCLUDING RADIAL ELECTRIC FIELD AND PLASMA ROTATION
 !
 !     DEVELOPED BY Y. FUJI, M. HONDA AND A. FUKUYAMA
@@ -14,23 +14,23 @@
 !
 !***********************************************************
 !
-!   Varibles                                  Boundary Cond.
-!                                              axis   edge
-!   X1  = Er                                            0      N
-!   X2  = r * Etheta                                    0      N 
-!   X3  = Ephi                                          N      N
-!   X4  = 1 / r d/dr(r * Btheta)                        N      N
-!   X5  = Bphi                                          N      BB
-!   X6  = Ne                 X11  = Ni                  N      N
-!   X7  = Ne * Uer           X12  = Ni * Uir            0      N
-!   X8  = Ne * UeTheta / r   X13  = Ni * UiTheta / r    N      N
-!   X9  = Ne * UePhi         X14  = Ni * UiPhi          N      N
+!   Varibles                                          Boundary Cond.
+!                                                      axis   edge
+!   X1  = phi                                           N      0
+!   X2  = r * Atheta'                                   0      D 
+!   X3  = Aphi'                                         N      D
+!   X4  = Aphi                                          *      *
+!   X5  = r * Atheta                                    *      *
+!   X6  = Ne                 X11  = Ni                  *      *
+!   X7  = r * Ne * Uer       X12  = r * Ni * Uir        0      0
+!   X8  = r * Ne * UeTheta   X13  = r * Ni * UiTheta    0      0
+!   X9  = Ne * UePhi         X14  = Ni * UiPhi          N      0
 !   X10 = Ne * Te            X15  = Ni * Ti             N      N
-!   X16 = Nb                                            N      N
-!   X17 = Nb * UbTheta / r                              N      N
-!   X18 = Nb * UbPhi                                    N      N
-!   X19 = Slow n01                                      N      N
-!   X20 = Fast n02                                      N      N
+!   X16 = Nb                                            *      *
+!   X17 = r * Nb * UbTheta                              *      *
+!   X18 = Nb * UbPhi                                    *      *
+!   X19 = Slow neutral                                  N      D
+!   X20 = Fast neutral                                  N      0
 !
 !   G16 = Total n0                        
 !   G20 = Q                               
@@ -58,7 +58,7 @@ PROGRAM TASK_TX
   !     ***** Version ID *****
   !     SLID is used to identify data file.
   SLID = 'tx400.0'
-  WRITE(6,*) '######## TASK/TX V4.00.00 06/09/04 ########'
+  WRITE(6,*) '######## TASK/TX V4.00.00 06/10/21 ########'
 
   CALL TXINIT
   KPNAME='txparm'

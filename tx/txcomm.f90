@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=91, NGYTM=43, &
+       &                NGTM=1000, NGVM=1000, NGYRM=93, NGYTM=43, &
        &                NGYVM=49, NGPRM=15, NGPTM=7, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -30,7 +30,7 @@ module commons
 
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSION, FSD0, rG1
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
@@ -42,7 +42,7 @@ module commons
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
 
   ! Numerical parameters
-  real(8) :: DLT, DT, EPS
+  real(8) :: DLT, DT, EPS, ADV
   integer :: ICMAX
 
   ! Mesh parameters
@@ -72,16 +72,20 @@ module commons
   real(8), dimension(0:NRM) :: ErV, EthV, EphV, BthV, BphV, &
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
-       &                       PNbV, UbthV, UbphV, PN01V, PN02V, AphV
+       &                       PNbV, UbthV, UbphV, PN01V, PN02V, &
+       &                       AphV, Phi, RAthV
+
+  real(8), dimension(0:NRM) :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
 
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
        &                       rNuei, rNuii, rNuTei, rNube, rNubi, &
        &                       rNueNC, rNuiNC, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
-       &                       Chie, Chii, De, Di, D01, D02, &
+       &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
-       &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi
+       &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
+       &                       FWthphe, FWthphi
   real(8) :: FWthea, FWthia
  
   ! CDBM
@@ -91,8 +95,9 @@ module commons
   real(8), dimension(0:NRM) :: PNB, SNB, PRFe, PRFi, POH, SiLC, SiLCth, SiLCph
   real(8), dimension(0:NRM) :: PIE, PCX, SIE, PBr
 
-  ! Safety factor, currents
-  real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS
+  ! Safety factor, currents, resistivity
+  real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS, AJBS1, AJBS2, &
+       &                       ETA, ETA1, ETA2
 
   ! Global parameters for display
   real(8), dimension(1:NSM) :: ANS0, TS0, ANSAV, TSAV, WST
@@ -129,7 +134,7 @@ module commons
   real, dimension(0:NGVM,1:NGYVM) :: GVY
 
   !  Transport model
-  integer :: MDLWTB, MDLETA
+  integer :: MDLWTB, MDLETA, MDFIXT
 
   ! I/O
   character(len=20) :: SLID

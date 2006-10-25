@@ -136,8 +136,12 @@ contains
     !   Helical neoclassical viscosity parameter
     FSHL = 0.D0
 
-    !   Particle loss to divertor parameter
-    FSLP = 1.D0
+    !   Particle loss to divertor parameter (default = 0.3)
+    FSLP = 0.3D0
+
+    !   Heat loss to divertor parameter (default = 1.0)
+    FSLTE = 1.D0
+    FSLTI = 1.D0
 
     !   Ionization parameter
     FSION = 1.D0
@@ -190,7 +194,7 @@ contains
     !   Recycling rate in SOL
     rGamm0 = 0.8D0
 
-    !   Gas-puff particle flux (10^20 1/s)
+    !   Gas-puff particle flux (10^20 m^-2 1/s)
     rGASPF = 0.1D0
 
     !   Electron density in diverter region (Minimum density in SOL)
@@ -216,6 +220,14 @@ contains
 
     !   Iteration
     ICMAX = 10
+
+    !   Time-advancing method
+    !     ADV = 0     : Explicit scheme
+    !           0.5   : Crank-Nicolson scheme
+    !           2/3   : Galerkin scheme
+    !           0.878 : Liniger scheme
+    !           1     : Implicit scheme
+    ADV = 1.D0
 
     !   ***** Mesh number parameters *****
 
@@ -249,8 +261,9 @@ contains
     !   MODE of Graph Line
     !   0 : Change Line Color (Last Color Fixed)
     !   1 : Change Line Color and Style
-    !   2 : Change Line Color, Style and Mark
-    !   3 : Change Line Color, Style and Mark (With Legend)
+    !   2 : Change Line Color and Style (With Legend)
+    !   3 : Change Line Color, Style and Mark
+    !   4 : Change Line Color, Style and Mark (With Legend)
     MODEGL=1
 
     !   Mode of AV
@@ -272,6 +285,11 @@ contains
     !   0    : original model
     !   1    : Hirshman, Hawryluk and Birge model
     MDLETA = 0
+
+    !   Mode of fixed temperature profile
+    !   0    : not fixed
+    !   1    : fixed
+    MDFIXT = 0
 
     !   Multiplication factor for graphic in the radial direction
     !   default : 1.0
@@ -308,7 +326,7 @@ contains
     gDIV(43) = 1.E20
     gDIV(44) = 1.E20
     gDIV(45) = 1.E20
-    gDIV(46) = 1.E23
+    gDIV(46) = 1.E20
     gDIV(47) = 1.E23
     gDIV(60) = 1.E6
     gDIV(64) = 1.E-20
@@ -465,13 +483,11 @@ contains
     use physical_constants, only : AEE, AME, PI, rMU0, EPS0, rKeV
     use results
     use variables
-    use libraries, only : INTG_P, INTDERIV3, INTDERIV4
+    use libraries, only : INTG_P, DERIVS, INTDERIV3
 
     INTEGER :: NR, NQ, I, IER
-    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, rLnLam, ETA, rJP, dRIP
-    REAL(8) :: EpsL, FT, Vte, Vti, Wte, Wti, rNuAse_inv, rNuAsi_inv,PHI, ETAS, CR, BBL
-    REAL(8) :: ALP, dPe, dPi, SUML, DPSI, ALFA
-    REAL(8) :: DR1, DR2, DR3, DENOM
+    REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
+    REAL(8) :: ALP, dPe, dPi, DR1, DR2
     REAL(8) :: DERIV3, FCTR ! External functions
     real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
     real(8), dimension(:,:), allocatable :: CMTX
@@ -495,20 +511,25 @@ contains
           PROF  = 1.D0 - (RL / RA)**2
           PROFT = PROF**2
           ! Ne
-          X(LQe1,NR)  = (PN0 - PNa) * PROF + PNa
+          X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
           ! Ni
-          X(LQi1,NR)  = X(LQe1,NR) / PZ
+          X(LQi1,NR) = X(LQe1,NR) / PZ
           ! Ne*Te
           X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea) * X(LQe1,NR)
           ! Ni*Ti
           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
-          X(LQe1,NR)  = (PNa - PNeDIV) * (RL - RB)**2 / (RA - RB)**2 + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
-          X(LQi1,NR)  = X(LQe1,NR) / PZ
-!!!!        X(LQe5,NR) = PTea * EXP(-(RL-RA) / rLT)
-!!!!        X(LQi5,NR) = PTia * EXP(-(RL-RA) / rLT)
-          X(LQe5,NR) = ((PTea - PTeDIV) * (RL - RB)**2 / (RA - RB)**2 + PTeDIV)*X(LQe1,NR)!PTea*X(LQe1,NR)
-          X(LQi5,NR) = ((PTia - PTiDIV) * (RL - RB)**2 / (RA - RB)**2 + PTiDIV)*X(LQi1,NR)!PTia*X(LQi1,NR)
+          SSN = 2.D0 * (RB - RA) * (PN0 - PNa) / (RA * (PNa - PNeDIV))
+          X(LQe1,NR) = (PNa - PNeDIV) * ((RB - RL) / (RB - RA))**SSN + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
+          X(LQi1,NR) = X(LQe1,NR) / PZ
+          SSPe = 2.D0 * (RB - RA) * (PN0 - PNa)       * PTea &
+               & / (RA * (PNa*PTea - PNeDIV*PTeDIV))
+          SSPi = 2.D0 * (RB - RA) *((PN0 - PNa) / PZ) * PTia &
+               & / (RA * (PNa*PTia - PNeDIV*PTiDIV) / PZ)
+          X(LQe5,NR) = ((PNa*PTea - PNeDIV*PTeDIV)      * ((RB - RL) / (RB - RA))**SSPe) &
+               &     + PNeDIV*PTeDIV!PTea*X(LQe1,NR)
+          X(LQi5,NR) = ((PNa*PTia - PNeDIV*PTiDIV) / PZ * ((RB - RL) / (RB - RA))**SSPi) &
+               &     + PNeDIV*PTiDIV / PZ!PTia*X(LQi1,NR)
        END IF
        ! N0_1 (slow neutrals)
        X(LQn1,NR) = PN0s
@@ -517,7 +538,11 @@ contains
        ! Bphi
        X(LQm5,NR) = 0.5D0 * PSI(NR) * BB
        BphV(NR)   = BB
+       ! Fixed densities to keep them constant during iterations
+       PNeV_FIX(NR) = X(LQe1,NR)
+       PTeV_FIX(NR) = X(LQe5,NR) / X(LQe1,NR)
     END DO
+    CALL DERIVS(PSI,X(LQe1,0:NRMAX),dPNeV_FIX,NRMAX)
 
     ! Poloidal magnetic field
 
@@ -565,6 +590,7 @@ contains
           AJOH(NR)= 0.D0
        END IF
     END DO
+    deallocate(AJPHL)
 
     ! Inverse matrix of derivative formula for integration
 
@@ -597,7 +623,7 @@ contains
 !!$    RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
 !!$    X(LQm4,0) = 0.D0
 !!$    X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
-!!$
+
     ! Analytic solution for AphV
 
     DO NR = 0, NRMAX
@@ -630,70 +656,6 @@ contains
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
 
-    DO NR = 0, NRMAX
-       RL=R(NR)
-       IF (RL < RA) THEN
-          PROF = (1.D0 - (RL / RA)**2)**PROFJ
-       ELSE
-          PROF = 0.D0
-       END IF
-       PNeV(NR)=X(LQe1,NR)
-       PNiV(NR)=X(LQi1,NR)
-       PTeV(NR)=X(LQe5,NR)/X(LQe1,NR)
-       ! Coulomb logarithm
-       rLnLam = 15.D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
-       ! Collisional frequency between electrons and ions
-       rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
-            &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
-            &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
-       ! Thermal speed
-       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
-       Vti = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMI)
-       ! Transit frequency
-       Wte = Vte / (Q(NR) * RR)
-       Wti = Vti / (Q(NR) * RR)
-       ! Inverse aspect ratio
-       EpsL = R(NR) / RR
-       rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
-       rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
-       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-       ! Neoclassical viscosity
-       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
-            &     * (1.78D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
-            &     / (1.D0 + SQRT(0.37D0 * rNuei(NR) / Wte) + 1.25D0 * rNuei(NR) / Wte)
-       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wti &
-            &     * (1.78D0 / (rNuAsI_inv + SQRT(3.48D0 * rNuAsI_inv) + 1.52D0)) &
-            &     / (1.D0 + SQRT(0.37D0 * rNuii(NR) / Wti) + 1.25D0 * rNuii(NR) / Wti)
-       IF(MDLETA == 0) THEN
-          ! +++ Original model +++
-          ALFA =  (rNueNC(NR)+rNuei(NR)) &
-               & /(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
-               & *(BthV(NR)/BphV(NR))**2
-          ETA  =   0.51D0*AME*(1.D0+ALFA) &
-               & *(rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))) &
-               & /(PNeV(NR)*1.D20*AEE**2)
-       ELSE
-          ! +++ Hirshman, Hawryluk and Birge model +++
-          ! Inverse aspect ratio
-          EpsL    = R(NR) / RR
-          ! Trapped particle fraction
-          FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
-          PHI  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-          ! Spitzer resistivity
-          ETAS = 0.51D0 * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-          CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-          ETA  = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
-               &  /((1.D0 - PHI) * (1.D0 - CR * PHI) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
-       END IF
-       IF(FSHL == 0.D0) THEN
-          ! Aphi'
-          X(LQm3,NR) = - ETA *  AJPHL(NR)
-       ELSE
-          X(LQm3,NR) = 0.D0
-       END IF
-    END DO
-    deallocate(AJPHL)
-
     T_TX=0.D0
     NGT=-1
     NGR=-1
@@ -713,28 +675,23 @@ contains
     DO NR = 0, NRMAX
        dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKeV
        dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKeV
-       IF(rNuiNC(NR) == 0.D0) THEN
+       IF(rNueNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE
-          ALP = PZ * (AME / AMI) * (rNueNC(NR) / rNuiNC(NR))
+          ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
        END IF
-       X(LQe3,NR) =(- PNiV(NR) * dPe - PNeV(NR) * dPi &
-            &       + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
-            &       - AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
-            &     / ( AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
-       X(LQi3,NR) =(  PNiV(NR) * dPe + PNeV(NR) * dPi &
-            &       - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
-            &       + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) &
-            &     * ALP / (AEE * PNiV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
-       X(LQm2,NR) =- (  PNiV(NR) * dPe + PNeV(NR) * dPi &
-            &         - AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) &
-            &         + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR)) * rNueNC(NR) * AME &
-            &       / ( AEE**2 * PNiV(NR) * PNeV(NR) * BphV(NR) * (1.D0 + ALP)) * R(NR)
-       ErV   (NR) =  (- PNiV(NR) * dPe * ALP + PNeV(NR) * dPi &
-            &         + AEE * PNeV(NR) * BthV(NR) * X(LQi4,NR) &
-            &         + AEE * PNiV(NR) * BthV(NR) * X(LQe4,NR) * ALP) &
-            &       / ( AEE * PNeV(NR) * PNiV(NR) * (1.D0 + ALP))
-!       write(6,'(I3,4F18.10)') NR,X(LQe3,NR),X(LQi3,NR),X(LQm3,NR),X(LQm1,NR)
+       X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) + (dPe + dPi) / (AEE * BphV(NR)))&
+            &     / (PZ + ALP) * R(NR)
+       X(LQe3,NR) =- ALP * X(LQi3,NR)
+       ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
+            &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
+            &      + dPi / (PZ * AEE * PNiV(NR))
+       X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
+       X(LQi2,NR) = X(LQe2,NR) / PZ
+       X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
+            &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
+            &     +(dPe + dPi) / (AEE * BphV(NR)))) &
+            &     + AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR)
     END DO
 
     ! Scalar potential
@@ -756,18 +713,6 @@ contains
     X(LQm5,0) = 0.D0
     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV)
     deallocate(CMTX,RHSV,TMP)
-
-    !  Comment in the following
-
-!!$    X(LQe2,1:NRMAX) =((        BphV(1:NRMAX) * De(1:NRMAX) / PTeV(1:NRMAX) / rKeV) &
-!!$         &          * (X(LQe3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNeV(1:NRMAX)) &
-!!$         &          - (PZ**2 * BphV(1:NRMAX) * Di(1:NRMAX) / PTiV(1:NRMAX) / rKeV) &
-!!$         &          * (X(LQi3,1:NRMAX) - WPM(1:NRMAX) * R(1:NRMAX) * PNiV(1:NRMAX))) * AEE
-!!$    X(LQi2,1:NRMAX) = X(LQe2,1:NRMAX) / PZ
-!!$    X(LQe2,0) = 0.D0
-!!$    X(LQi2,0) = 0.D0
-!!$    X(LQm3,0:NRMAX) = X(LQm3,0:NRMAX) - BthV(0:NRMAX) * (X(LQe2,0:NRMAX) / PNeV(0:NRMAX) &
-!!$         &                                              +X(LQi2,0:NRMAX) / PNiV(0:NRMAX))
 
     CALL TXCALV(X)
     CALL TXCALC
@@ -792,16 +737,17 @@ module parameter_control
        & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
-       & FSCX,FSLC,FSNC,FSLP,FSION,FSD0, &
+       & FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0, &
        & rLn,rLT, &
        & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DLT,DT,EPS,ICMAX, &
+       & DLT,DT,EPS,ICMAX,ADV, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, MDLETA
+       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, &
+       & MDLETA, MDFIXT
   private :: TXPLST
 
 contains
@@ -897,11 +843,11 @@ contains
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSION,FSD0,'/ &
+         &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'DLT,DT,EPS,ICMAX,'/ &
+         &       ' ',8X,'DLT,DT,EPS,ICMAX,ADV,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
@@ -936,6 +882,7 @@ contains
          &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
          &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  ,  &
          &   'FSNC  ', FSNC  ,  'FSLP  ', FSLP  ,  &
+         &   'FSLTE ', FSLTE ,  'FSLTI ', FSLTI ,  &
          &   'FSION ', FSION ,  'FSD0  ', FSD0  ,  &
          &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
          &   'Eb    ', Eb    ,  'RNB   ', RNB   ,  &
@@ -958,7 +905,7 @@ contains
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
-         &   'NCphi ', NCphi
+         &   'MDFIXT', MDFIXT,  'NCphi ', NCphi
 
     RETURN
   END SUBROUTINE TXVIEW

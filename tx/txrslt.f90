@@ -13,8 +13,8 @@ contains
 
   SUBROUTINE TXGLOB
 
-    use physical_constants, only : AEE, PI, rMU0, rKeV
-    use libraries, only : INTG_F, INTG_P
+    use physical_constants, only : AEE, PI, rMU0, rKeV, AME
+    use libraries, only : INTG_F, INTG_P, DERIVS
 
     INTEGER :: I, NS, NF, NR
     REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
@@ -22,9 +22,11 @@ contains
          &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
          &     BBL, SUMML, SUMPL, PNES, PAI
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
-    REAL(8), DIMENSION(NRMAX) :: BP, BETA, BETAP
-    REAL(8), DIMENSION(NRMAX) :: BETAL, BETAPL, BETAQ
-    real(8), dimension(0:NRMAX) :: Betadef, dBetadr
+    REAL(8) :: EPS, FT, DDX, RL31, RL32, DDD, dPTeV, dPTiV, PPe, PPi, dPPeV, dPPiV, &
+         &     dPPV, ALFA, ALFABP, rNuBAR
+    REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP
+    REAL(8), DIMENSION(1:NRMAX) :: BETAL, BETAPL, BETAQ
+    real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP
     real(8) :: dBetaSUM, BPINT
     real(8) :: DERIV3
 
@@ -45,7 +47,7 @@ contains
        TSAV(1)=0.D0
     END IF
     TS0(1) = PTeV(0)
-    WST(1) = RPEINT*1.5D0*2.D0*PI*RR*2.D0*PI*RKEV*1.D14
+    WST(1) = RPEINT*1.5D0*2.D0*PI*RR*2.D0*PI*rKeV*1.D14
 
     RNINT = INTG_F(PNiV)
     RPIINT = INTG_F(PTiV(0:NRMAX)*PNiV(0:NRMAX))
@@ -57,11 +59,11 @@ contains
        TSAV(2)=0.D0
     END IF
     TS0(2) = PTiV(0)
-    WST(2) = RPIINT*1.5D0*2.D0*PI*RR*2.D0*PI*RKEV*1.D14
+    WST(2) = RPIINT*1.5D0*2.D0*PI*RR*2.D0*PI*rKeV*1.D14
 
     ANFINT = INTG_F(PNbV)
     RWINT  = INTG_F(SNB)
-    WFT(1) = 0.5D0*AMI*RWINT**2.D0*1.5D0*2.D0*PI*RR*2.D0*PI*RKAP*RKEV*1.D14
+    WFT(1) = 0.5D0*AMI*RWINT**2.D0*1.5D0*2.D0*PI*RR*2.D0*PI*RKAP*rKeV*1.D14
     ANFAV(1) = ANFINT*2.D0*PI/(PI*RA*RA)
     ANF0(1)  = PNbV(0)
     IF(ANFINT > 0.D0) THEN
@@ -103,7 +105,7 @@ contains
     EION  = 13.64D0
     PIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20*EION*AEE
     SIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
-    PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*RKEV
+    PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*rKeV
 
 !    PRLINT=INTG_F(PRL)
     PIEINT=INTG_F(PIE)
@@ -124,6 +126,41 @@ contains
     AJOHT = AOHINT*          2.D0*PI*RKAP/1.D6
     AJNBT = ANBINT*          2.D0*PI*RKAP/1.D6
 
+    !     Bootstrap currents
+
+    PP(0:NRMAX) = PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)
+    DO NR = 0, NRMAX
+       ! +++ Original model +++
+       dPPV = DERIV3(NR,R,PP,NRMAX,NRM,0)
+       rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
+       ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
+       ALFABP = (1.D0+rNueNC(NR)/rNuBAR)*BthV(NR)/(BphV(NR))**2
+       AJBS1(NR) =- ALFABP / (1.D0 + ALFA) * dPPV * 1.D20 * rKeV
+       ! +++ Hirshman model +++
+       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0)
+       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0)
+       PPe   = PNeV(NR) * PTeV(NR)
+       PPi   = PNiV(NR) * PTiV(NR)
+       dPPeV = DERIV3(NR,R,PNeV(0:NRMAX)*PTeV(0:NRMAX),NRMAX,NRM,0)
+       dPPiV = DERIV3(NR,R,PNiV(0:NRMAX)*PTiV(0:NRMAX),NRMAX,NRM,0)
+       EPS  = R(NR) / RR
+       FT   =(1.46D0 * SQRT(EPS) + 2.4D0 * EPS) / (1.D0 - EPS)**1.5D0
+       DDX  = 1.414D0 * PZ + PZ**2 + FT * (0.754D0 + 2.657D0 * PZ &
+            &        + 2.D0 * PZ**2) + FT**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
+       RL31 = FT * ( 0.754D0 + 2.21D0 * PZ + PZ**2 + FT * (0.348D0 + 1.243D0 &
+            &            * PZ + PZ**2)) / DDX
+       RL32 =-FT * (0.884D0 + 2.074D0 * PZ) / DDX
+       DDD  =-1.172D0 / (1.D0 + 0.462D0 * FT)
+       IF(NR == 0) THEN
+          AJBS2(NR) = 0.D0
+       ELSE
+          AJBS2(NR) =- (PPe * 1.D20 * rKeV) &
+               &    * (RL31 * ((dPPeV / PPe) + (PTiV(NR) / (PZ * PTeV(NR))) &
+               &    * ((dPPiV / PPi) + DDD * (dPTiV / PTiV(NR)))) &
+               &    + RL32 * (dPTeV / PTeV(NR))) / (RA * BthV(NR))
+       END IF
+    END DO
+
     !      DRH=0.5D0*DR
     !      DO NS=1,NSM
     !         VNP=AV(NRMAX,NS)
@@ -143,7 +180,7 @@ contains
     !     &            +(     DTP/DRH)*RN(NRMAX,NS)*RT(NRMAX,NS)*1.5D0
     !     &            +( VXP-DXP/DRH)*PNSS(NS)
     !     &            +( VTP-DTP/DRH)*PNSS(NS)*PTS(NS)*1.5D0)
-    !     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*RKEV*1.D14
+    !     &            *2.D0*PI*RR*2.D0*PI*RA*FKAP*rKeV*1.D14
     !      END DO
     !
     !!      CALL TXSUMD(SIE,R,NRMAX,SIEINT)
@@ -189,15 +226,13 @@ contains
 
     Betadef(0:NRMAX) = (PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)) &
          &        * 1.D20 * rKeV /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
-    DO NR = 0, NRMAX
-       dBetadr(NR) = DERIV3(NR,R,Betadef,NRMAX,NRM,0)
-    END DO
+    CALL DERIVS(R,Betadef,dBetadr,NRMAX)
     RPEINT = 0.D0 ; RPIINT = 0.D0 ; dBetaSUM = 0.D0
     DO NR = 1, NRMAX
        RPEINT = RPEINT + INTG_P(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR,0)
        RPIINT = RPIINT + INTG_P(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR,0)
        dBetaSUM = dBetaSUM + INTG_P(dBetadr,NR,0)
-       RPINT =(RPEINT + RPIINT)*RKEV*1.D20
+       RPINT =(RPEINT + RPIINT)*rKeV*1.D20
        SUMM  = 2.D0*PI*RPINT
        SUMP  = PI*R(NR)**2*dBetaSUM
        BBL   = BthV(NR)**2 + BphV(NR)**2
@@ -214,10 +249,10 @@ contains
 !!$    BP(1:NRMAX) = BthV(1:NRMAX)
 !!$    DO I=1,NRMAX-1
 !!$       BBL   = SQRT(BthV(I)**2+BphV(I)**2)
-!!$       SUMML = PNeV(I)*PTeV(I)*RKEV*1.D20+PNiV(I)*PTiV(I)*RKEV*1.D20
+!!$       SUMML = PNeV(I)*PTeV(I)*rKeV*1.D20+PNiV(I)*PTiV(I)*rKeV*1.D20
 !!$       SUMPL = (PNeV(I+1)*PTeV(I+1)-PNeV(I  )*PTeV(I  ) &
 !!$            & +PNiV(I+1)*PTiV(I+1)-PNiV(I  )*PTiV(I  )) &
-!!$            & *RKEV*1.D20/DR
+!!$            & *rKeV*1.D20/DR
 !!$
 !!$       SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR
 !!$       SUMP = SUMP + 0.5D0*SUMPL*PI*R(I)*R(I)*DR
@@ -232,14 +267,14 @@ contains
 !!$
 !!$    I=NRMAX
 !!$    BBL  = SQRT(BthV(I)**2+BphV(I)**2)
-!!$    SUMML =(PNeV(I)*PTeV(I)+PNiV(I)*PTiV(I))*R(I)*RKEV*1.D20
+!!$    SUMML =(PNeV(I)*PTeV(I)+PNiV(I)*PTiV(I))*R(I)*rKeV*1.D20
 !!$    PNES = PNa * EXP(-(RB-RA) / rLn)
 !!$    SUMPL = (PNES*PTea-PNeV(I)*PTeV(I)+PNES/PZ*PTia-PNiV(I)*PTiV(I)) &
-!!$         & *RKEV*1.D20/DR*2.D0
+!!$         & *rKeV*1.D20/DR*2.D0
 !!$
 !!$    !  DO NF=1,NFM
-!!$    !     SUMML = SUMML +SNB(I)*R(I)*RKEV*1.D20
-!!$    !     SUMPL = SUMPL +(0.D0-SNB(I))*RKEV*1.D20/DR*2.D0
+!!$    !     SUMML = SUMML +SNB(I)*R(I)*rKeV*1.D20
+!!$    !     SUMPL = SUMPL +(0.D0-SNB(I))*rKeV*1.D20/DR*2.D0
 !!$    !  END DO
 !!$
 !!$    SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR

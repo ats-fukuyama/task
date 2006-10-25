@@ -17,7 +17,7 @@ contains
 !***************************************************************
 
   SUBROUTINE TXEXEC
-    use libraries, only : APRTOS
+    use libraries, only : APTOS
     use results
     use output_console, only : TXWDAT
 
@@ -51,15 +51,15 @@ contains
     gCTIME3 = gCTIME2-gCTIME1
 
     NSTR1 = 0
-    CALL APRTOS(STR1, NSTR1, gCTIME3, 'F2')
+    CALL APTOS(STR1, NSTR1, gCTIME3, 'F2')
     IF (iRTIME3 == 0) THEN
        WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
             &              'CPU = ', STR1(1:NSTR1), '(sec)'
     ELSE
        NSTR2 = 0
-       CALL APRTOS(STR2, NSTR2, gCTIME3 / (iRTIME3 + 1) * 100, 'F1')
+       CALL APTOS(STR2, NSTR2, gCTIME3 / (iRTIME3 + 1) * 100, 'F1')
        NSTR3 = 0
-       CALL APRTOS(STR3, NSTR3, gCTIME3 / (iRTIME3 + 0) * 100, 'F1')
+       CALL APTOS(STR3, NSTR3, gCTIME3 / (iRTIME3 + 0) * 100, 'F1')
        WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
             &     'CPU = ', STR1(1:NSTR1), '(sec)   ',  &
             &     '(', STR2(1:NSTR2), '% - ', STR3(1:NSTR3), '%)'
@@ -84,7 +84,7 @@ contains
     use coefficients, only : TXCALA
     use graphic, only : TXSTGT, TXSTGV, TXSTGR
 
-    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM
+    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV
     REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP
@@ -109,7 +109,12 @@ contains
           ! Save past X = XP
           XP(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 
-          CALL TXCALV(XP)
+          CALL TXCALV(XP,ID)
+          IF(IC == 1) THEN
+             PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
+             PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
+          END IF
+
           CALL TXCALC
           CALL TXCALA
           CALL TXCALB
@@ -142,8 +147,20 @@ contains
              END DO
           END DO
           ! Avoid negative value
-          WHERE(XN(16,0:NRMAX) < 0.D0) XN(16,0:NRMAX) = 0.D0
-          WHERE(XN(19,0:NRMAX) < 0.D0) XN(19,0:NRMAX) = 0.D0
+!!$          CALL MINUS_GOES_ZERO(XN(LQb1,0:NRMAX),0)
+          CALL MINUS_GOES_ZERO(XN(LQn1,0:NRMAX),1)
+          ! In the case of NBI off after NBI on
+!!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(LQb1,0:NRMAX),ID)
+!!$          IF(ID == 1) THEN
+!!$             X (LQb1,0:NRMAX) = 0.D0
+!!$             XP(LQb1,0:NRMAX) = 0.D0
+!!$             X (LQb3,0:NRMAX) = 0.D0
+!!$             XP(LQb3,0:NRMAX) = 0.D0
+!!$             XN(LQb3,0:NRMAX) = 0.D0
+!!$             X (LQb4,0:NRMAX) = 0.D0
+!!$             XP(LQb4,0:NRMAX) = 0.D0
+!!$             XN(LQb4,0:NRMAX) = 0.D0
+!!$          END IF
 
           ! Check negative density or temperature in variable matrix
           CALL TXCHCK(NT,IC,XN,IERR)
@@ -214,7 +231,9 @@ contains
        IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
             & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
 
-180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
+180    IF (MOD(NT, NGRSTP) == 0) then
+          CALL TXSTGR
+       end IF
 
        IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB
@@ -288,9 +307,9 @@ contains
                 IB = IC + NQMAX
                 IA = IB + NQMAX
                 J = NR * NQMAX + NQ
-                BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR)
-                BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR)
-                BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR)
+                BA(IC,J) = BA(IC,J) - CLC(NC,NQ,NR) * ADV
+                BA(IB,J) = BA(IB,J) - BLC(NC,NQ,NR) * ADV
+                BA(IA,J) = BA(IA,J) - ALC(NC,NQ,NR) * ADV
              END DO
           END DO
        END DO
@@ -339,15 +358,15 @@ contains
                    JB = NR      * NQMAX + NC1
                    JC =(NR - 1) * NQMAX + NC1
                    IF(NR == 0) THEN
-                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR)
-                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
+                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR) * ADV
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR) * ADV
                    ELSEIF(NR == NRMAX) THEN
-                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
-                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR)
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR) * ADV
+                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR) * ADV
                    ELSE
-                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR)
-                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR)
-                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR)
+                      BL(IA,JA) = BL(IA,JA) - ALC(NC,NQ,NR) * ADV
+                      BL(IB,JB) = BL(IB,JB) - BLC(NC,NQ,NR) * ADV
+                      BL(IC,JC) = BL(IC,JC) - CLC(NC,NQ,NR) * ADV
                    END IF
                 END IF
              END DO
@@ -397,6 +416,45 @@ contains
        END DO
     END DO
 
+    ! Numerical scheme
+    NR = 0
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  BLC(NC,NQ,NR) * X(NC1,NR  ) &
+                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+
+    DO NR = 1, NRMAX-1
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+                     &                + BLC(NC,NQ,NR) * X(NC1,NR  ) &
+                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+    END DO
+
+    NR = NRMAX
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+                     &                + BLC(NC,NQ,NR) * X(NC1,NR  )) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+
     RETURN
   END SUBROUTINE TXCALB
 
@@ -437,5 +495,59 @@ contains
 
     RETURN
   END SUBROUTINE TXCHCK
+
+!***************************************************************
+!
+!   Negative value forced to be set to zero for densities
+!
+!***************************************************************
+
+  SUBROUTINE MINUS_GOES_ZERO(XL,ID)
+    
+    integer, intent(in) :: ID
+    real(8), dimension(0:NRM), intent(inout) :: XL
+    integer :: NR, NZERO
+
+    IF(ID == 0) THEN
+       IF(MINVAL(XL(0:NRMAX)) < 0.D0) THEN
+          DO NR = 0, NRMAX
+             IF(XL(NR) <= 0.D0) THEN
+                NZERO = NR
+                EXIT
+             END IF
+          END DO
+
+          XL(NZERO:NRMAX) = 0.D0
+       END IF
+    ELSE
+       IF(MINVAL(XL(0:NRMAX)) < 0.D0) THEN
+          DO NR = NRMAX, 0, -1
+             IF(XL(NR) <= 0.D0) THEN
+                NZERO = NR
+                EXIT
+             END IF
+          END DO
+
+          XL(0:NZERO) = 0.D0
+       END IF
+    END IF
+
+  END SUBROUTINE MINUS_GOES_ZERO
+
+  SUBROUTINE THRESHOLD(XL,ID)
+
+    real(8), dimension(0:NRM), intent(inout) :: XL
+    integer, intent(out) :: ID
+    integer :: NR, NRL
+
+    ID = 0
+    NRL = 0.5 * NRA
+    IF(MINVAL(XL(0:NRL)) < 1.D-8 .AND. MAXVAL(XL(0:NRL)) > 0.D0) THEN
+       XL(0:NRMAX) = 0.D0
+       ID = 1
+    END IF
+
+  END SUBROUTINE THRESHOLD
+
 end module main
 

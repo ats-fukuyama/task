@@ -1,6 +1,6 @@
 !     $Id$
 module core_module
-  use commons, only : nrmax, h, r, nra, psi, hpsi
+  use commons, only : nrmax, h, r, nra, psi, hpsi, nemax
   implicit none
   public
 
@@ -63,6 +63,9 @@ contains
 !      id = 40 : psi * a'* b * u * w'
 !      id = 41 : psi * a * b * u'* w'
 !      id = 42 :(psi * a * b * u)'* w'
+!      id = 43 : psi * a * b * (u / b)'* w'
+!
+!      id = 44 : a * b * w
 !
 !   where ' means the derivative of psi
 !
@@ -376,11 +379,59 @@ contains
           &  +(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
           & / (12.d0 * hp) &
           &  -(     p1*a1 + p2*a1 + p1*a2 + 3.d0*p2*a2) * (b1 - b2) / (12.d0 * hp)
+    case(43)
+       x(1) = (b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
+          & / (12.d0 * b1 * hp)
+       x(2) =-(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
+          & / (12.d0 * b2 * hp)
+       x(3) =-(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
+          & / (12.d0 * b1 * hp)
+       x(4) = (b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
+          & / (12.d0 * b2 * hp)
+    case(44)
+       x(1) = ( 3.d0 * a1 +        a2) * hp / 12.d0 * b1
+       x(2) = (        a1 +        a2) * hp / 12.d0 * b2
+       x(3) = (        a1 +        a2) * hp / 12.d0 * b1
+       x(4) = (        a1 + 3.d0 * a2) * hp / 12.d0 * b2
     case default
        stop 'XX falut ID in fem_int'
     end select
 
   end function fem_int
+
+  function lump_int(id,ne,a) result(x)
+
+    integer, intent(in) :: id, ne
+    real(8), intent(in), dimension(0:nrmax), optional  :: a
+    integer :: node1, node2
+    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, hp
+    
+    node1 = ne-1  ; node2 = ne
+    if(present(a)) then
+       a1 = a(node1) ; a2 = a(node2)
+    end if
+    r1 = r(node1) ; r2 = r(node2)
+    p1 = psi(node1) ; p2 = psi(node2) ; hp = hpsi(ne)
+
+    select case(id)
+    case(1)
+       x(1) = 0.5d0 * hp
+       x(2) = 0.d0
+       x(3) = 0.d0
+       x(4) = 0.5d0 * hp
+    case(2)
+       x(1) = ( 2.d0 * a1 +        a2) * hp / 6.d0
+       x(2) = 0.d0
+       x(3) = 0.d0
+       x(4) = (        a1 + 2.d0 * a2) * hp / 6.d0
+    case(8)
+       x(1) =-1.d0 * hp
+       x(2) = 0.d0
+       x(3) = 0.d0
+       x(4) = 1.d0 * hp
+    end select
+
+  end function lump_int
 
 end module core_module
 
@@ -389,9 +440,15 @@ end module core_module
 module libraries
   implicit none
   private
-  public :: EXPV, APITOS, APTTOS, APSTOS, APRTOS, TOUPPER, TRCOFS, DERIVF, &
-       &    LORENTZ, LORENTZ_PART, BISECTION, VALINT_SUB, INTG_F, INTG_P, &
-       &    INTDERIV3, INTDERIV4
+  public :: EXPV, APTOS, TOUPPER, TRCOFS, DERIVS, DERIVF, INTDERIV3, &
+       &    LORENTZ, LORENTZ_PART, BISECTION, VALINT_SUB, INTG_F, INTG_P
+
+  interface APTOS
+     module procedure APITOS
+     module procedure APSTOS
+     module procedure APRTOS
+     module procedure APDTOS
+  end interface
 
 contains
 !***************************************************************
@@ -425,9 +482,9 @@ contains
 
   SUBROUTINE APITOS(STR, NSTR, I)
 
-    INTEGER, INTENT(IN) :: I
-    INTEGER, INTENT(INOUT) :: NSTR
     character(len=*), INTENT(INOUT) :: STR
+    INTEGER,          INTENT(INOUT) :: NSTR
+    INTEGER,          INTENT(IN)    :: I
 
     INTEGER :: J, NSTRI
     character(len=25) :: KVALUE
@@ -443,32 +500,6 @@ contains
 
 !***************************************************************
 !
-!  SUBROUTINE APpend Text TO Strings
-!     INPUT  : STR, NSTR, TX
-!              STR(NSTR(original+1):NSTR(return))
-!              NSTR : Number of STR. First, NSTR = 0.
-!              TX : Delimited text
-!     OUTPUT : STR, NSTR
-!
-!***************************************************************
-
-  SUBROUTINE APTTOS(STR, NSTR, TX)
-
-    INTEGER, INTENT(INOUT) :: NSTR
-    character(len=*), INTENT(IN) :: TX
-    character(len=*), INTENT(INOUT) :: STR
-
-    INTEGER :: NTX
-
-    NTX = LEN_TRIM(TX)
-    STR(NSTR+1:NSTR+NTX) = TX(1:NTX)
-    NSTR = NSTR + NTX
-
-    RETURN
-  END SUBROUTINE APTTOS
-
-!***************************************************************
-!
 !  SUBROUTINE APpend Strings TO Strings
 !     INPUT  : STR, NSTR, INSTR, NINSTR
 !              STR(NSTR(original+1):NSTR(return))
@@ -480,10 +511,10 @@ contains
 
   SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
-    INTEGER, INTENT(IN) :: NINSTR
-    character(len=*), INTENT(IN) :: INSTR
-    INTEGER, INTENT(INOUT) :: NSTR
     character(len=*), INTENT(INOUT) :: STR
+    INTEGER,          INTENT(INOUT) :: NSTR
+    character(len=*), INTENT(IN)    :: INSTR
+    INTEGER,          INTENT(IN)    :: NINSTR
 
     STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
     NSTR = NSTR + NINSTR
@@ -504,10 +535,10 @@ contains
 
   SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
-    REAL(8), INTENT(IN) :: D
-    character(len=*), INTENT(IN) :: FORM
-    INTEGER, INTENT(INOUT) :: NSTR
     character(len=*), INTENT(INOUT) :: STR
+    INTEGER,          INTENT(INOUT) :: NSTR
+    REAL(8),          INTENT(IN)    :: D
+    character(len=*), INTENT(IN)    :: FORM
 
     INTEGER(1) :: IND
     INTEGER :: L, IS, IE, NSTRD, IST
@@ -593,10 +624,10 @@ contains
 
   SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
-    REAL, INTENT(IN) :: GR
-    character(len=*), INTENT(IN) :: FORM
-    INTEGER, INTENT(INOUT) :: NSTR
     character(len=*), INTENT(INOUT) :: STR
+    INTEGER,          INTENT(INOUT) :: NSTR
+    REAL,             INTENT(IN)    :: GR
+    character(len=*), INTENT(IN)    :: FORM
 
     REAL(8) :: D
 
@@ -633,6 +664,33 @@ contains
 !   Derivative
 !
 !***************************************************************
+
+  SUBROUTINE DERIVS(R,F,G,NRMAX)
+
+    real(8), dimension(0:NRMAX), intent(in)  :: R, F
+    real(8), dimension(0:NRMAX), intent(out) :: G
+    integer, intent(in) :: NRMAX
+    integer :: NR
+    real(8) :: DR1, DR2
+
+    NR = 0
+       DR1 = R(NR+1) - R(NR)
+       DR2 = R(NR+2) - R(NR)
+       G(NR) = (DR2**2 * F(NR+1) - DR1**2 * F(NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+    DO NR = 1, NRMAX - 1
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR+1) - R(NR)
+       G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+    END DO
+    NR = NRMAX
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR-2) - R(NR)
+       G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+
+  END SUBROUTINE DERIVS
 
   REAL(8) FUNCTION DERIVF(NR,R,F,NRMAX,ID)
     integer, intent(in) :: NR, NRMAX, ID
@@ -837,110 +895,6 @@ contains
 
   END SUBROUTINE INTDERIV3
 
-  SUBROUTINE INTDERIV4(X,R,intX,FVAL,NRMAX)
-    integer, intent(in) :: NRMAX
-    real(8), intent(in) :: FVAL
-    real(8), intent(in), dimension(0:NRMAX) :: X, R
-    real(8), intent(out), dimension(0:NRMAX) :: intX
-    integer :: NR, IER
-    real(8) :: DR1, DR2, DR3, DENOM, FCTR
-    real(8), dimension(:,:), allocatable :: CMTX
-
-    allocate(CMTX(1:NRMAX,1:NRMAX))
-    DO NR = 1, NRMAX
-       IF(NR == 1) THEN
-          DR1 = R(NR+1) - R(NR)
-          DR2 = R(NR+2) - R(NR)
-          DR3 = R(NR+3) - R(NR)
-          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-          CMTX(NR,NR+1) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-          CMTX(NR,NR+2) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-          CMTX(NR,NR+3) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-       ELSEIF(NR == 2) THEN
-          DR1 = R(NR-1) - R(NR)
-          DR2 = R(NR+1) - R(NR)
-          DR3 = R(NR+2) - R(NR)
-          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-          CMTX(NR,NR-1) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-          CMTX(NR,NR+1) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-          CMTX(NR,NR+2) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-       ELSEIF(NR == NRMAX) THEN
-          DR1 = R(NR-3) - R(NR)
-          DR2 = R(NR-2) - R(NR)
-          DR3 = R(NR-1) - R(NR)
-          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-          CMTX(NR,NR-3) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-          CMTX(NR,NR-2) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-          CMTX(NR,NR-1) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-       ELSE
-          DR1 = R(NR-2) - R(NR)
-          DR2 = R(NR-1) - R(NR)
-          DR3 = R(NR+1) - R(NR)
-          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-          CMTX(NR,NR-2) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-          CMTX(NR,NR-1) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-          CMTX(NR,NR+1) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-       END IF
-    END DO
-    CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
-    IF(IER /= 0) STOP 'ERROR OCCURED AT INVMRD'
-    intX(1:NRMAX) = matmul(CMTX,X(1:NRMAX))
-    intX(1:NRMAX) = intX(1:NRMAX) - intX(NRMAX) + FVAL
-    intX(0) = FCTR(R(1),R(2),intX(1),intX(2))
-    deallocate(CMTX)
-
-!!$    allocate(CMTX(0:NRMAX,0:NRMAX))
-!!$    DO NR = 0, NRMAX
-!!$       IF(NR == 0) THEN
-!!$          DR1 = R(NR+1) - R(NR)
-!!$          DR2 = R(NR+2) - R(NR)
-!!$          DR3 = R(NR+3) - R(NR)
-!!$          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-!!$          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-!!$          CMTX(NR,NR+1) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-!!$          CMTX(NR,NR+2) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-!!$          CMTX(NR,NR+3) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-!!$       ELSEIF(NR == 1) THEN
-!!$          DR1 = R(NR-1) - R(NR)
-!!$          DR2 = R(NR+1) - R(NR)
-!!$          DR3 = R(NR+2) - R(NR)
-!!$          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-!!$          CMTX(NR,NR-1) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-!!$          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-!!$          CMTX(NR,NR+1) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-!!$          CMTX(NR,NR+2) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-!!$       ELSEIF(NR == NRMAX) THEN
-!!$          DR1 = R(NR-3) - R(NR)
-!!$          DR2 = R(NR-2) - R(NR)
-!!$          DR3 = R(NR-1) - R(NR)
-!!$          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-!!$          CMTX(NR,NR-3) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-!!$          CMTX(NR,NR-2) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-!!$          CMTX(NR,NR-1) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-!!$          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-!!$       ELSE
-!!$          DR1 = R(NR-2) - R(NR)
-!!$          DR2 = R(NR-1) - R(NR)
-!!$          DR3 = R(NR+1) - R(NR)
-!!$          DENOM = DR1 * DR2 * DR3 * (DR1 - DR2) * (DR2 - DR3) * (DR3 - DR1)
-!!$          CMTX(NR,NR-2) = - DR2**2 * DR3**2 * (DR2 - DR3) / DENOM
-!!$          CMTX(NR,NR-1) = - DR3**2 * DR1**2 * (DR3 - DR1) / DENOM
-!!$          CMTX(NR,NR  ) = - (DR1 * DR2 + DR2 * DR3 + DR3 * DR1) / (DR1 * DR2 * DR3)
-!!$          CMTX(NR,NR+1) = - DR1**2 * DR2**2 * (DR1 - DR2) / DENOM
-!!$       END IF
-!!$    END DO
-!!$    CALL INVMRD(CMTX,NRMAX+1,NRMAX+1,IER)
-!!$    IF(IER /= 0) STOP 'ERROR OCCURED AT INVMRD'
-!!$    intX(0:NRMAX) = matmul(CMTX,X)
-!!$    intX(0:NRMAX) = intX(0:NRMAX) - intX(NRMAX) + FVAL
-!!$    deallocate(CMTX)
-
-  END SUBROUTINE INTDERIV4
-
 !***************************************************************
 !
 !   Coefficient function of CDBM model
@@ -1000,7 +954,6 @@ contains
     real(8), intent(in), optional :: AMP
 
     LORENTZ = R + C * (W * ATAN((R - RC) / W) + W * ATAN(RC / W))
-!!$    LORENTZ = R
     if(present(amp)) LORENTZ = LORENTZ / AMP
 
   END FUNCTION LORENTZ

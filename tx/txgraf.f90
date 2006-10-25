@@ -7,6 +7,12 @@ module graphic
   integer :: NP
   public :: TXGOUT, TX_GRAPH_SAVE, TXSTGR, TXSTGT, TXSTGV
 
+  interface TXWPS
+     module procedure TXWPSD
+     module procedure TXWPSI
+     module procedure TXWPSS
+  end interface
+
 contains
   
   !***************************************************************
@@ -28,7 +34,7 @@ contains
 
     MODE = MODEGL
     OUTER : DO
-       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B,C: ', &
+       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: C: A,B: ', &
             &           'S,L,M:file I:init X:exit'
        READ(5,'(A5)',IOSTAT=IST) STR
        IF (IST > 0) THEN
@@ -92,11 +98,6 @@ contains
                 CALL TXGRFV(NGPT,MODE)
              END DO
 
-          CASE('C')
-             DO NGPT = 1, 5
-                CALL TXGRFV(NGPT,MODE)
-             END DO
-
           CASE DEFAULT
              READ(STR(2:5),*,IOSTAT=IST) NGPT
              IF (IST < 0) THEN
@@ -120,11 +121,6 @@ contains
                 CALL TXGRFT(NGPV,MODE)
              END DO
              DO NGPV = 9, 10
-                CALL TXGRFT(NGPV,MODE)
-             END DO
-
-          CASE('C')
-             DO NGPV = 1, 5
                 CALL TXGRFT(NGPV,MODE)
              END DO
 
@@ -179,9 +175,7 @@ contains
           END DO
 
        CASE('C')
-          DO NGPR = 1, 5
-             CALL TXGRFR(NGPR,MODE)
-          END DO
+          CALL TXGRCP(MODE)
 
        CASE('M')
           DO
@@ -431,6 +425,9 @@ contains
     GY(0:NRMAX,NGR,89) = SNGL(PCX(0:NRMAX))
     GY(0:NRMAX,NGR,90) = SNGL(POH(0:NRMAX))
     GY(0:NRMAX,NGR,91) = SNGL(PBr(0:NRMAX))
+
+    GY(0:NRMAX,NGR,92) = SNGL(rNuLTe(0:NRMAX))
+    GY(0:NRMAX,NGR,93) = SNGL(rNuLTi(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -892,10 +889,28 @@ contains
        !CALL TXWPGR
 
     CASE(15)
+       DO NR = 0, NRMAX
+          IF(GX(NR) >= 0.95) EXIT
+       END DO
+       NR = NR - 1
+
        STR = '@n$-e$=(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRM, NRMAX, NGR, gDIV(1))
-       GYMAX = 0.1 * MAXVAL(GYL)
-       CALL TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX)
+       CALL APPROPGY(MODEG, GY(NR:NRMAX,0,1), GYL, STR, NRM, NRMAX-NR, NGR, gDIV(1))
+       GYMAX = MAXVAL(GYL(0,0:NGR))
+       CALL TXGRFRX(0, GX(NR:NRMAX), GYL, NRMAX-NR, NGR, STR, MODE, IND, &
+            &       GX(NR), GYMAX)
+
+       STR = '@T$-e$=(r)@'
+       CALL APPROPGY(MODEG, GY(NR:NRMAX,0,14), GYL, STR, NRM, NRMAX-NR, NGR, gDIV(14))
+       GYMAX = MAXVAL(GYL(0,0:NGR))
+       CALL TXGRFRX(1, GX(NR:NRMAX), GYL, NRMAX-NR, NGR, STR, MODE, IND, &
+            &       GX(NR), GYMAX)
+
+       STR = '@T$-i$=(r)@'
+       CALL APPROPGY(MODEG, GY(NR:NRMAX,0,15), GYL, STR, NRM, NRMAX-NR, NGR, gDIV(15))
+       GYMAX = MAXVAL(GYL(0,0:NGR))
+       CALL TXGRFRX(2, GX(NR:NRMAX), GYL, NRMAX-NR, NGR, STR, MODE, IND, &
+            &       GX(NR), GYMAX)
 
        CALL TXWPGR
     CASE(-1)
@@ -1110,84 +1125,90 @@ contains
        STR = '@rNuL@'
        CALL TXGRFRXS( 5,GX,GY(0,0,61),NRMAX,NGR,STR,MODE,IND)
 
+       STR = '@rNuLTe@'
+       CALL TXGRFRXS( 6,GX,GY(0,0,92),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@rNuLTi@'
+       CALL TXGRFRXS( 7,GX,GY(0,0,93),NRMAX,NGR,STR,MODE,IND)
+
        STR = '@FWthe@'
        CALL APPROPGY(MODEG, GY(0,0,64), GYL, STR, NRM, NRMAX, NGR, gDIV(64))
-       CALL TXGRFRXS( 6,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 8,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@FWthi@'
        CALL APPROPGY(MODEG, GY(0,0,65), GYL, STR, NRM, NRMAX, NGR, gDIV(65))
-       CALL TXGRFRXS( 7,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 9,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@WPM@'
-       CALL TXGRFRXS( 8,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(10,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuTei@'
-       CALL TXGRFRXS( 9,GX,GY(0,0,67),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(11,GX,GY(0,0,67),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNu0e@'
-       CALL TXGRFRXS(10,GX,GY(0,0,68),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(12,GX,GY(0,0,68),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNu0i@'
-       CALL TXGRFRXS(11,GX,GY(0,0,69),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(13,GX,GY(0,0,69),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@D01@'
        CALL APPROPGY(MODEG, GY(0,0,72), GYL, STR, NRM, NRMAX, NGR, gDIV(72))
-       CALL TXGRFRXS(12,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(14,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@D02@'
        CALL APPROPGY(MODEG, GY(0,0,73), GYL, STR, NRM, NRMAX, NGR, gDIV(73))
-       CALL TXGRFRXS(13,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@rNueNC@'
-       CALL APPROPGY(MODEG, GY(0,0,74), GYL, STR, NRM, NRMAX, NGR, gDIV(74))
-       CALL TXGRFRXS(14,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@rNuiNC@'
-       CALL APPROPGY(MODEG, GY(0,0,75), GYL, STR, NRM, NRMAX, NGR, gDIV(75))
        CALL TXGRFRXS(15,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
     CASE(-6)
+       STR = '@rNueNC@'
+       CALL APPROPGY(MODEG, GY(0,0,74), GYL, STR, NRM, NRMAX, NGR, gDIV(74))
+       CALL TXGRFRXS( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@rNuiNC@'
+       CALL APPROPGY(MODEG, GY(0,0,75), GYL, STR, NRM, NRMAX, NGR, gDIV(75))
+       CALL TXGRFRXS( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
        STR = '@rNuiCX@'
-       CALL TXGRFRXS( 0,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 2,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuION@'
-       CALL TXGRFRXS( 1,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
+       CALL TXGRFRXS( 3,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@rNu0b@'
-       CALL TXGRFRXS( 2,GX,GY(0,0,87),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 4,GX,GY(0,0,87),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@SNB@'
-       CALL TXGRFRXS( 3,GX,GY(0,0,84),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 5,GX,GY(0,0,84),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNube@'
-       CALL TXGRFRXS( 4,GX,GY(0,0,62),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 6,GX,GY(0,0,62),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNubi@'
-       CALL TXGRFRXS( 5,GX,GY(0,0,63),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 7,GX,GY(0,0,63),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuB@'
-       CALL TXGRFRXS( 6,GX,GY(0,0,79),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 8,GX,GY(0,0,79),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@SiLC@'
-       CALL TXGRFRXS( 7,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 9,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@SiLCth@'
-       CALL TXGRFRXS( 8,GX,GY(0,0,82),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(10,GX,GY(0,0,82),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@SiLCph@'
-       CALL TXGRFRXS( 9,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)     
+       CALL TXGRFRXS(11,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@PRFe@'
-       CALL TXGRFRXS(10,GX,GY(0,0,85),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(12,GX,GY(0,0,85),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@PRFi@'
-       CALL TXGRFRXS(11,GX,GY(0,0,86),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(13,GX,GY(0,0,86),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNueHL@'
-       CALL TXGRFRXS(12,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
+       CALL TXGRFRXS(14,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@rNuiHL@'
-       CALL TXGRFRXS(13,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(15,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYR: NGYR = ',NGYR
@@ -1217,21 +1238,81 @@ contains
     RETURN
   END SUBROUTINE TXGRFR
 
+
+  !***************************************************************
+  !
+  !   Comparison with radial profiles at one slice time
+  !
+  !***************************************************************
+
+  SUBROUTINE TXGRCP(MODE)
+
+    use commons
+    integer, intent(in) :: MODE
+    character(len=50) :: STR
+    integer :: IND, IFNT, NR
+    real, dimension(0:NRM,1:2) :: GYL, GYL2
+
+    IF (MODEG == 2) THEN
+       IND = 9
+    ELSE
+       IND = 0
+    END IF
+
+    CALL PAGES
+    CALL SETCHS(0.3, 0.0)
+    CALL SETLIN(0, 1, 7)
+    CALL INQFNT(IFNT)
+
+    CALL MOVE(2.0,17.7)
+    CALL TEXT('[G', 2)
+    CALL NUMBI(1, '(I2)', 2)
+    CALL TEXT(']  ', 3)
+    CALL TEXT('FROM', 4)
+    CALL NUMBR(GT(0), '(1PE9.2)', 9)
+    CALL TEXT(' TO', 3)
+    CALL NUMBR(GT(NGR), '(1PE9.2)', 9)
+    CALL TEXT('  DT =', 6)
+    CALL NUMBD(DT, '(1PD9.2)', 9)
+    CALL TEXT('  NGRSTP = ', 11)
+    CALL NUMBI(NGRSTP,'(I4)',4)
+
+    DO NR = 0, NRMAX
+       GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
+       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
+    END DO
+
+    STR = '@LOG: ETA@'
+    CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
+
+    GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
+    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
+
+    STR = '@AJBS@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 1, gDIV(22))
+    CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
+
+    CALL PAGEE
+
+  END SUBROUTINE TXGRCP
+
   !***************************************************************
   !
   !   SLAVE ROUTINE TO Write graph of GX, GY
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GYMAX)
+  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GXMIN, GYMAX, ILOGIN)
 
     use commons, only : NRM, RA, RB
     INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL, DIMENSION(0:NRM), INTENT(IN) :: GXL
     REAL, DIMENSION(0:NRM,1:NGMAX+1), INTENT(IN) :: GYL
-    real, intent(in), optional :: GYMAX
+    real, intent(in), optional :: GXMIN, GYMAX
+    integer, intent(in), optional :: ILOGIN
     character(len=*), INTENT(IN) :: STR
-    REAL :: GXMAX
+    integer :: ILOG
+    REAL :: GXMAX, GXMINL
     REAL, DIMENSION(4) :: GPXY
 
     GPXY(1) =  3.0 + 12.5 * MOD(K,2)
@@ -1240,12 +1321,23 @@ contains
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     GXMAX=REAL(RB/RA)
 
+    IF(PRESENT(GXMIN)) THEN
+       GXMINL = GXMIN
+    ELSE
+       GXMINL = 0.0
+    END IF
+    IF(PRESENT(ILOGIN)) THEN
+       ILOG = ILOGIN
+    ELSE
+       ILOG = 0
+    END IF
+
     IF(PRESENT(GYMAX)) THEN
        CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX+1, &
-            &            0.0, GXMAX, STR, 0.3, MODE, IND, GYMAX)
+            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG, GYMAX)
     ELSE
        CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX+1, &
-            &            0.0, GXMAX, STR, 0.3, MODE, IND)
+            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG)
     END IF
 
     RETURN
@@ -1257,13 +1349,15 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND)
+  SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, ILOGIN)
 
     use commons, only : NRM, RA, RB
     INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL, DIMENSION(0:NRM), INTENT(IN) :: GXL
     REAL, DIMENSION(0:NRM,1:NGMAX+1), INTENT(IN) :: GYL
     character(len=*), INTENT(IN) :: STR
+    integer, intent(in), optional :: ILOGIN
+    integer :: ILOG
     REAL :: GXMAX
     REAL, DIMENSION(4) :: GPXY
 
@@ -1272,11 +1366,55 @@ contains
     GPXY(3) = 13.75 - 4.25 * REAL(K/4)
     GPXY(4) = 17.0  - 4.25 * REAL(K/4)
     GXMAX=REAL(RB/RA)
+
+    IF(PRESENT(ILOGIN)) THEN
+       ILOG = ILOGIN
+    ELSE
+       ILOG = 0
+    END IF
+
     CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX+1, &
-         &            0.0, GXMAX, STR, 0.26, MODE, IND)
+         &            0.0, GXMAX, STR, 0.26, MODE, IND, ILOG)
 
     RETURN
   END SUBROUTINE TXGRFRXS
+
+
+  !***************************************************************
+  !
+  !   SLAVE ROUTINE TO Write graph of GX, GY at one slice time
+  !
+  !***************************************************************
+
+  SUBROUTINE TXGRFRS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, ILOGIN)
+
+    use commons, only : NRM, RA, RB
+    INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
+    REAL, DIMENSION(0:NRM), INTENT(IN) :: GXL
+    REAL, DIMENSION(0:NRM,1:NGMAX), INTENT(IN) :: GYL
+    character(len=*), INTENT(IN) :: STR
+    integer, intent(in), optional :: ILOGIN
+    integer :: ILOG
+    REAL :: GXMAX
+    REAL, DIMENSION(4) :: GPXY
+
+    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
+    GPXY(2) = 12.5 + 12.5 * MOD(K,2)
+    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
+    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
+    GXMAX=REAL(RB/RA)
+
+    IF(PRESENT(ILOGIN)) THEN
+       ILOG = ILOGIN
+    ELSE
+       ILOG = 0
+    END IF
+
+    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, 2, &
+         &            0.0, GXMAX, STR, 0.3, MODE, IND, ILOG)
+
+    RETURN
+  END SUBROUTINE TXGRFRS
 
   !***************************************************************
   !
@@ -1706,7 +1844,7 @@ contains
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
-         &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND)
+         &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND, 0)
 
     RETURN
   END SUBROUTINE TXGRFVX
@@ -1731,7 +1869,7 @@ contains
     GPXY(3) = 14.0 -  4.3 * REAL(K/2)
     GPXY(4) = 17.0 -  4.3 * REAL(K/2)
     CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
-         &            GTXL(0), GTXL(NGTL), STR, 0.3, 1, IND)
+         &            GTXL(0), GTXL(NGTL), STR, 0.3, 1, IND, 0)
 
     RETURN
   END SUBROUTINE TXGRFTX
@@ -1745,7 +1883,7 @@ contains
   SUBROUTINE TXGRFQ(NQ,ID)
 
     use commons
-    use libraries, only : APITOS, APTTOS
+    use libraries, only : APTOS
 
     INTEGER, INTENT(IN) :: NQ, ID
     INTEGER :: NR, NC, NC1, NSTR, IND
@@ -1815,9 +1953,9 @@ contains
     GQY(25:NRMAX,1:NLCMAX(NQ))=100.0*GQY(25:NRMAX,1:NLCMAX(NQ))
 
     NSTR = 0
-    CALL APITOS(STR, NSTR, NQ)
-    CALL APTTOS(STR, NSTR, ': ')
-    CALL APTTOS(STR, NSTR, STRGQ(NQ))
+    CALL APTOS(STR,NSTR,NQ)
+    CALL APTOS(STR,NSTR, ': ',2)
+    CALL APTOS(STR, NSTR, STRGQ(NQ), LEN_TRIM(STRGQ(NQ)))
 
     IF (MODEG == 2) THEN
        IND = 9
@@ -1826,7 +1964,8 @@ contains
     END IF
     GXMAX=REAL(RB/RA)
     CALL TXGRAF(GPXY, GX, GQY, NRM+1, NRMAX+1, NLCMAX(NQ), &
-         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 3, IND)
+         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
+!         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
 
     RETURN
   END SUBROUTINE TXGRFQ
@@ -1853,44 +1992,44 @@ contains
     GYS =  0.5
     NP  = 0
 
-    CALL TXWPSS('+'//SLID//'+')
-    CALL TXWPSD('@PNBCD @', PNBCD)
-    CALL TXWPSI('@NRMAX @', NRMAX)
+    CALL TXWPS('+'//SLID//'+')
+    CALL TXWPS('@PNBCD @', PNBCD)
+    CALL TXWPS('@NRMAX @', NRMAX)
 
     NP = NP + 1
-    CALL TXWPSD('@BB    @', BB)
-    CALL TXWPSD('@rIp   @', rIp)
-    CALL TXWPSD('@FSDFIX@', FSDFIX)
-    CALL TXWPSD('@FSCDBM@', FSCDBM)
-    CALL TXWPSD('@FSBOHM@', FSBOHM)
-    CALL TXWPSD('@FSPSCL@', FSPSCL)
-    CALL TXWPSD('@PROFD @', PROFD)
-    CALL TXWPSD('@FSCX  @', FSCX)
-    CALL TXWPSD('@FSLC  @', FSLC)
-    CALL TXWPSD('@FSNC  @', FSNC)
-    CALL TXWPSD('@FSLP  @', FSLP)
-    CALL TXWPSD('@FSION @', FSION)
-    CALL TXWPSD('@FSD0  @', FSD0)
+    CALL TXWPS('@BB    @', BB)
+    CALL TXWPS('@rIp   @', rIp)
+    CALL TXWPS('@FSDFIX@', FSDFIX)
+    CALL TXWPS('@FSCDBM@', FSCDBM)
+    CALL TXWPS('@FSBOHM@', FSBOHM)
+    CALL TXWPS('@FSPSCL@', FSPSCL)
+    CALL TXWPS('@PROFD @', PROFD)
+    CALL TXWPS('@FSCX  @', FSCX)
+    CALL TXWPS('@FSLC  @', FSLC)
+    CALL TXWPS('@FSNC  @', FSNC)
+    CALL TXWPS('@FSLP  @', FSLP)
+    CALL TXWPS('@FSION @', FSION)
+    CALL TXWPS('@FSD0  @', FSD0)
 
     GXM = GXM + 0.35 * 17
     NP = 0
-    CALL TXWPSD('@PNBH  @', PNBH)
-    CALL TXWPSD('@PRFH  @', PRFH)
-    CALL TXWPSD('@De0   @', De0)
-    CALL TXWPSD('@Di0   @', Di0)
-    CALL TXWPSD('@rMue0 @', rMue0)
-    CALL TXWPSD('@rMui0 @', rMui0)
-    CALL TXWPSD('@Chie0 @', Chie0)
-    CALL TXWPSD('@Chii0 @', Chii0)
-    CALL TXWPSD('@WPM0  @', WPM0)
-    CALL TXWPSD('@PTe0  @', PTe0)
-    CALL TXWPSD('@PTea  @', PTea)
-    CALL TXWPSD('@PTi0  @', PTi0)
-    CALL TXWPSD('@PTia  @', PTia)
-    CALL TXWPSD('@V0    @', V0)
-    CALL TXWPSD('@rGamm0@', rGamm0)
-    CALL TXWPSD('@rGASPF@', rGASPF)
-    CALL TXWPSD('@Zeff  @', Zeff)
+    CALL TXWPS('@PNBH  @', PNBH)
+    CALL TXWPS('@PRFH  @', PRFH)
+    CALL TXWPS('@De0   @', De0)
+    CALL TXWPS('@Di0   @', Di0)
+    CALL TXWPS('@rMue0 @', rMue0)
+    CALL TXWPS('@rMui0 @', rMui0)
+    CALL TXWPS('@Chie0 @', Chie0)
+    CALL TXWPS('@Chii0 @', Chii0)
+    CALL TXWPS('@WPM0  @', WPM0)
+    CALL TXWPS('@PTe0  @', PTe0)
+    CALL TXWPS('@PTea  @', PTea)
+    CALL TXWPS('@PTi0  @', PTi0)
+    CALL TXWPS('@PTia  @', PTia)
+    CALL TXWPS('@V0    @', V0)
+    CALL TXWPS('@rGamm0@', rGamm0)
+    CALL TXWPS('@rGASPF@', rGASPF)
+    CALL TXWPS('@Zeff  @', Zeff)
 
     CALL SETFNT(IFNT)
     RETURN
@@ -1959,13 +2098,14 @@ contains
   !***************************************************************
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
-       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, GYMAX_IN)
+       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, GYMAX_IN)
 
     INTEGER, INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
     REAL, INTENT(IN) :: GXMIN, GXMAX, FONT
     REAL, DIMENSION(4), INTENT(IN) :: GPXY
     REAL, DIMENSION(1:NXMAX), INTENT(IN) :: GX
     REAL, DIMENSION(1:NXM,1:NGMAX), INTENT(IN) :: GY
+    integer, intent(in) :: ILOG
     REAL, INTENT(IN), OPTIONAL :: GYMAX_IN
     character(len=*), INTENT(IN) :: STR
 
@@ -1976,7 +2116,7 @@ contains
     INTEGER, DIMENSION(0:4) :: NLTYPE
     DATA NLTYPE/0,2,3,4,6/
 
-    IF (MODE < 0 .OR. MODE > 3) THEN
+    IF (MODE < 0 .OR. MODE > 4) THEN
        WRITE(6,*) '### ERROR(TXGRAF) : MODE = ', MODE
        RETURN
     END IF
@@ -2008,16 +2148,22 @@ contains
     GSXMIN = GXMIN
     GSXMAX = GXMAX
     CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
-    IF (GYMAX > 0.0) THEN
-       IF (GYMIN > 0.0) GYMIN=0.0
-    ELSE
-       GYMAX=0.0
+    IF(ILOG == 0) THEN
+       IF (GYMAX > 0.0) THEN
+          IF (GYMIN > 0.0) GYMIN=0.0
+       ELSE
+          GYMAX=0.0
+       END IF
     END IF
     IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
     CALL GQSCAL(GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP)
     IF (GSYMIN > GYMIN) GSYMIN = GSYMIN - GYSTEP
     IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP
-    GYORG = 0.0
+    IF(GYMIN * GYMAX <= 0.0) THEN
+       GYORG = 0.0
+    ELSE
+       GYORG = GSYMIN
+    ENDIF
 
     CALL GDEFIN(GX1, GX2, GY1, GY2, GSXMIN, GSXMAX, GSYMIN, GSYMAX)
     CALL GFRAME
@@ -2040,15 +2186,27 @@ contains
        END IF
        CALL GVALUE(GSXMIN, GXSTEP*2, 0.0, 0.0, NGV)
     END IF
-    CALL GSCALE(0.0, 0.0, GYORG, GYSTEP, gSLEN, IND)
-    CALL SETLNW(-0.017)
-    IF (GSYMIN < 0.0 .AND. GSYMAX > 0.0) &
-         &     CALL GSCALE(0.0, 0.0, 0.0, GSYMAX-GSYMIN,  2.0, 0)
-    CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGULEN(GYSTEP*2))
+
+    ! Semi-Log or not
+
+    IF(ILOG == 0) THEN
+       CALL GSCALE(0.0, 0.0, GYORG, GYSTEP, gSLEN, IND)
+       CALL SETLNW(-0.017)
+       IF (GSYMIN < 0.0 .AND. GSYMAX > 0.0) &
+            &     CALL GSCALE(0.0, 0.0, 0.0, GSYMAX-GSYMIN,  2.0, 0)
+       CALL GVALUE(0.0,0.0,GYORG,GYSTEP*2,NGULEN(GYSTEP*2))
+    ELSE
+       CALL GSCALL(0.0, 0.0, GYORG, 4, gSLEN, IND)
+       CALL SETLNW(-0.017)
+       IF (GSYMIN < 0.0 .AND. GSYMAX > 0.0) &
+            &     CALL GSCALL(0.0, 0.0, 0.0, 3,  2.0, 0)
+       CALL GVALUL(0.0,0.0,GYORG,1,NGULEN(GYSTEP*2))
+    END IF
 
     ! MODE = 0: Change Line Color (Last Color Fixed)
 
-    IF (MODE == 0) THEN
+    SELECT CASE(MODE)
+    CASE (0)
        DO NG = 1, NGMAX
           ICL = 7 - MOD(NGMAX - NG, 5)
           CALL SETLIN(0, 1, ICL)
@@ -2056,20 +2214,48 @@ contains
        END DO
 
        ! MODE = 1: Change Line Color and Style
+       ! MODE = 2: Change Line Color and Style (With Legend)
 
-    ELSE IF (MODE == 1) THEN
-       !     IF (MODE == 0.OR.MODE == 1) THEN
-       DO NG = 1, NGMAX
-          ICL  = 7 - MOD(NG-1, 5)
-          IPAT = NLTYPE(MOD(NG-1, 5))
-          CALL SETLIN(0, 1, ICL)
-          CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, 0, IPAT)
-       END DO
+    CASE (1:2)
+       IF (MODE == 1) THEN
+          DO NG = 1, NGMAX
+             ICL  = 7 - MOD(NG-1, 5)
+             IPAT = NLTYPE(MOD(NG-1, 5))
+             CALL SETLIN(0, 1, ICL)
+             CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, 0, IPAT)
+          END DO
+       ELSE
+          DO NG = 1, NGMAX
+             ICL = 7 - MOD(NG - 1, 5)
+             ISTEP = NXMAX / 10
+             IPAT  = (NG - 1) / 5
+             CALL SETLIN(0, 1, ICL)
+             CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, ISTEP, IPAT)
+          END DO
+       END IF
+       ! Legend
+       IF (MODE == 2) THEN
+          CALL SETCHS(0.25,0.0)
+          GCHH = 0.25
+          GXL = GX2 + GCHH
+          GYL = GY2 - GCHH
+          DO NG = 1, NGMAX
+             ICL = 7 - MOD(NG - 1, 5)
+             CALL SETLIN(0, 1, ICL)
+             IPAT = (NG - 1) / 5
+             CALL MOVEPT(GXL + GCHH * 3.0, GYL + GCHH / 2.0, IPAT)
+             CALL DRAWPT(GXL + GCHH * 7.0, GYL + GCHH / 2.0)
+             CALL MOVE(GXL, GYL)
+             CALL NUMBI(NG, '(I2)', 2)
+             GYL = GYL - GCHH * 2.0
+          END DO
+       END IF
+       ! End of Legend
 
-       ! MODE = 2: Change Line Color, Style and Mark
-       ! MODE = 3: Change Line Color, Style and Mark (With Legend)
+       ! MODE = 3: Change Line Color, Style and Mark
+       ! MODE = 4: Change Line Color, Style and Mark (With Legend)
 
-    ELSE IF (MODE == 2 .OR. MODE == 3) THEN
+    CASE (3:4)
        IMRK = 0
        GMRK = 0.3
        CALL SETMKS(IMRK, GMRK)
@@ -2082,7 +2268,7 @@ contains
           CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, -IMRK, ISTEP, IPAT)
        END DO
        ! Legend
-       IF (MODE == 3) THEN
+       IF (MODE == 4) THEN
           CALL SETCHS(0.25,0.0)
           GCHH = 0.25
           GXL = GX2 + GCHH
@@ -2107,7 +2293,7 @@ contains
        IMRK = 0
        GMRK = 0.2
        CALL SETMKS(IMRK, GMRK)
-    END IF
+    END SELECT
 
     CALL SETFNT(IFNT)
 
@@ -2121,7 +2307,7 @@ contains
   !***************************************************************
 
   SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV, GIN1)
-    use libraries, only : APSTOS, APRTOS
+    use libraries, only : APTOS
 
     INTEGER, INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
     REAL, INTENT(IN) :: gDIV
@@ -2141,9 +2327,9 @@ contains
        POSAT = INDEX(STR,'@',.TRUE.)
        IF (POSAT /= 0) STR = STR(1:POSAT-1)
        NSTR = LEN_TRIM(STR)+1
-       CALL APSTOS(STR, NSTR, ' [', 2)
-       CALL APRTOS(STR, NSTR, gDIVL, 'E0')
-       CALL APSTOS(STR, NSTR, ']@', 2)
+       CALL APTOS(STR, NSTR, ' [', 2)
+       CALL APTOS(STR, NSTR, gDIVL, 'E0')
+       CALL APTOS(STR, NSTR, ']@', 2)
     END IF
 
     if(present(GIN1)) then
@@ -2155,5 +2341,23 @@ contains
 
     RETURN
   END SUBROUTINE APPROPGY
+
+  !***********************************************************
+  !
+  !   CEILING FUNCTION FOR LOG10 PLOT
+  !
+  !***********************************************************
+
+  REAL FUNCTION GLOG(X,XMIN,XMAX)
+
+    implicit none
+    real GUCLIP
+    real(8), intent(in) :: X, XMIN, XMAX
+    real(8) :: PLOG
+
+    GLOG = GUCLIP(PLOG(X,XMIN,XMAX))
+
+    RETURN
+  END FUNCTION GLOG
 
 end module graphic

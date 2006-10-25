@@ -21,7 +21,7 @@ contains
     use file_io, only : TXSAVE, TXLOAD
     use variables, only : TXCALV
     use init_prof, only : TXPROF, TXINIT
-    INTEGER :: ICONT, MODE, I
+    INTEGER :: ICONT, MODE, I, IST
     character(len=80) :: LINE
     character(len=1)  :: KID, KID2
 
@@ -43,6 +43,13 @@ contains
 
        SELECT CASE(KID)
        CASE('R')
+          IF (ICONT /= 0) THEN
+             WRITE(6,*) '# Would you like to restart? [y/N]'
+             READ(5,'(A1)',IOSTAT=IST) KID
+             IF(IST /= 0) CYCLE
+             CALL TOUPPER(KID)
+             IF(KID /= 'Y') CYCLE
+          END IF
           T_TX = 0.D0
           TPRE = 0.D0
           IERR = 0
