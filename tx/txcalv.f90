@@ -565,8 +565,8 @@ contains
 !###########################
 !!$    DO NR = 0, NRA
 !!$       RL = (R(NR) - RA) / DBW
-!!$       rNueNC(NR) = FSNC * 2.D7 * RL**2 / (1.D0 + RL**2)
-!!$       rNuiNC(NR) = FSNC * 4.D5 * RL**2 / (1.D0 + RL**2)
+!!$       rNueNC(NR) = FSNC * 5.D6 * RL**2 / (1.D0 + RL**2)
+!!$       rNuiNC(NR) = FSNC * 1.5D5 * RL**2 / (1.D0 + RL**2)
 !!$    END DO
 !###########################
 

@@ -12,10 +12,12 @@ contains
 !   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
 !      dpsi : mesh interval
 !      a    : coefficient vector
+!      b    : coefficient vector
 !      u    : variable vector
 !      w    : weighting vector
 !
 !   function(r) is classified as follows:
+!      id = -1 : a * w'
 !      id = 0  : a * w
 !      id = 1  : u * w
 !      id = 2  : a * u * w
@@ -66,6 +68,8 @@ contains
 !      id = 43 : psi * a * b * (u / b)'* w'
 !
 !      id = 44 : a * b * w
+!      id = 45 :(psi * a * b'* u)'* w'
+!      id = 46 :(psi * a * b'* u)'* w'
 !
 !   where ' means the derivative of psi
 !
@@ -324,26 +328,14 @@ contains
        x(4) = (  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
             &  + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) / 60.d0
     case(39)
-       x(1) = ( 12.d0*a1*b1 + 3.d0*a2*b1 + 3.d0*a1*b2 + 2.d0*a2*b2) * hp / 60.d0 &
-            &+( 12.d0*p1*b1 + 3.d0*p2*b1 + 3.d0*p1*b2 + 2.d0*p2*b2) * (-a1+a2) / 60.d0 &
-            &+( 12.d0*p1*a1 + 3.d0*p2*a1 + 3.d0*p1*a2 + 2.d0*p2*a2) * (-b1+b2) / 60.d0 &
-            &-( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
-            &  + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) / 60.d0
-       x(2) = (  3.d0*a1*b1 + 2.d0*a2*b1 + 2.d0*a1*b2 + 3.d0*a2*b2) * hp / 60.d0 &
-            &+(  3.d0*p1*b1 + 2.d0*p2*b1 + 2.d0*p1*b2 + 3.d0*p2*b2) * (-a1+a2) / 60.d0 &
-            &+(  3.d0*p1*a1 + 2.d0*p2*a1 + 2.d0*p1*a2 + 3.d0*p2*a2) * (-b1+b2) / 60.d0 &
-            &+( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
-            &  + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) / 60.d0
-       x(3) = (  3.d0*a1*b1 + 2.d0*a2*b1 + 2.d0*a1*b2 + 3.d0*a2*b2) * hp / 60.d0 &
-            &+(  3.d0*p1*b1 + 2.d0*p2*b1 + 2.d0*p1*b2 + 3.d0*p2*b2) * (-a1+a2) / 60.d0 &
-            &+(  3.d0*p1*a1 + 2.d0*p2*a1 + 2.d0*p1*a2 + 3.d0*p2*a2) * (-b1+b2) / 60.d0 &
-            &-(  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
-            &  + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) / 60.d0
-       x(4) = (  2.d0*a1*b1 + 3.d0*a2*b1 + 3.d0*a1*b2 +12.d0*a2*b2) * hp / 60.d0 &
-            &+(  2.d0*p1*b1 + 3.d0*p2*b1 + 3.d0*p1*b2 +12.d0*p2*b2) * (-a1+a2) / 60.d0 &
-            &+(  2.d0*p1*a1 + 3.d0*p2*a1 + 3.d0*p1*a2 +12.d0*p2*a2) * (-b1+b2) / 60.d0 &
-            &+(  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
-            &  + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) / 60.d0
+       x(1) = (-48.d0*a1*b1*p1+3.d0*a2*b1*p1+3.d0*a1*b2*p1+ 2.d0*a2*b2*p1 &
+            &  + 3.d0*a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+ 3.d0*a2*b2*p2) / 60.d0
+       x(2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
+            &  + 2.d0*a1*b1*p2+3.d0*a2*b1*p2+3.d0*a1*b2*p2+12.d0*a2*b2*p2) / 60.d0
+       x(3) = (-12.d0*a1*b1*p1-3.d0*a2*b1*p1-3.d0*a1*b2*p1- 2.d0*a2*b2*p1 &
+            &  - 3.d0*a1*b1*p2-2.d0*a2*b1*p2-2.d0*a1*b2*p2- 3.d0*a2*b2*p2) / 60.d0
+       x(4) = (- 3.d0*a1*b1*p1-2.d0*a2*b1*p1-2.d0*a1*b2*p1- 3.d0*a2*b2*p1 &
+            &  - 2.d0*a1*b1*p2-3.d0*a2*b1*p2-3.d0*a1*b2*p2+48.d0*a2*b2*p2) / 60.d0
     case(40)
        x(1) = (3.d0*p1*b1+p2*b1+p1*b2+     p2*b2) * (a1-a2) / (12.d0 * hp)
        x(2) =-(3.d0*p1*b1+p2*b1+p1*b2+     p2*b2) * (a1-a2) / (12.d0 * hp)
@@ -359,26 +351,10 @@ contains
        x(4) = (b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
           & / (12.d0 * hp)
     case(42)
-       x(1) = (-3.d0*a1*b1 -      a1*b2 -      a2*b1 -      a2*b2) / 12.d0 &
-          &  +( 3.d0*p1*b1+p2*b1+p1*b2+     p2*b2) * (a1-a2) / (12.d0 * hp) &
-          &  +(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
-          & / (12.d0 * hp) &
-          &  +( 3.d0*p1*a1 + p2*a1 + p1*a2 +      p2*a2) * (b1 - b2) / (12.d0 * hp)
-       x(2) = ( 3.d0*a1*b1 +      a1*b2 +      a2*b1 +      a2*b2) / 12.d0 &
-          &  -( 3.d0*p1*b1+p2*b1+p1*b2+     p2*b2) * (a1-a2) / (12.d0 * hp) &
-          &  -(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
-          & / (12.d0 * hp) &
-          &  +(     p1*a1 + p2*a1 + p1*a2 + 3.d0*p2*a2) * (b1 - b2) / (12.d0 * hp)
-       x(3) = (-     a1*b1 -      a1*b2 -      a2*b1 - 3.d0*a2*b2) / 12.d0 &
-          &  +(     p1*b1+p2*b1+p1*b2+3.d0*p2*b2) * (a1-a2) / (12.d0 * hp) &
-          &  -(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
-          & / (12.d0 * hp) &
-          &  -( 3.d0*p1*a1 + p2*a1 + p1*a2 +      p2*a2) * (b1 - b2) / (12.d0 * hp)
-       x(4) = (      a1*b1 +      a1*b2 +      a2*b1 + 3.d0*a2*b2) / 12.d0 &
-          &  -(     p1*b1+p2*b1+p1*b2+3.d0*p2*b2) * (a1-a2) / (12.d0 * hp) &
-          &  +(b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
-          & / (12.d0 * hp) &
-          &  -(     p1*a1 + p2*a1 + p1*a2 + 3.d0*p2*a2) * (b1 - b2) / (12.d0 * hp)
+       x(1) = a1*b1*p1 / hp
+       x(2) =-a2*b2*p2 / hp
+       x(3) =-a1*b1*p1 / hp
+       x(4) = a2*b2*p2 / hp
     case(43)
        x(1) = (b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
           & / (12.d0 * b1 * hp)
@@ -393,6 +369,16 @@ contains
        x(2) = (        a1 +        a2) * hp / 12.d0 * b2
        x(3) = (        a1 +        a2) * hp / 12.d0 * b1
        x(4) = (        a1 + 3.d0 * a2) * hp / 12.d0 * b2
+    case(45)
+       x(1) = (b1-b2)*( 9.d0*a1*p1-a2*p1-a1*p2-     a2*p2)/(12.d0*hp)
+       x(2) =-(b1-b2)*(      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)/(12.d0*hp)
+       x(3) = (b1-b2)*( 3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)/(12.d0*hp)
+       x(4) =-(b1-b2)*(-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)/(12.d0*hp)
+    case(46)
+       x(1) =-a1*(b1-b2)*p1/hp**2
+       x(2) = a2*(b1-b2)*p2/hp**2
+       x(3) = a1*(b1-b2)*p1/hp**2
+       x(4) =-a2*(b1-b2)*p2/hp**2
     case default
        stop 'XX falut ID in fem_int'
     end select
