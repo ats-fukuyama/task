@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=93, NGYTM=43, &
+       &                NGTM=1000, NGVM=1000, NGYRM=95, NGYTM=43, &
        &                NGYVM=49, NGPRM=15, NGPTM=7, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -80,7 +80,7 @@ module commons
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
        &                       rNuei, rNuii, rNuTei, rNube, rNubi, &
-       &                       rNueNC, rNuiNC, rNueHL, rNuiHL, &
+       &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &

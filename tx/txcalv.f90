@@ -112,7 +112,7 @@ contains
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, KAPPA, rNuBAR
     real(8) :: FT, EFT, ETAS, CR
-    real(8) :: DERIV3
+    real(8) :: DERIV3, AITKEN4P
     real(8), dimension(0:NRMAX) :: p, Vexbr, SL1, SL2
 
     !     *** Constants ***
@@ -252,8 +252,13 @@ contains
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        Wti = Vti / (Q(NR) * RR) ! Omega_ti; transit frequency for ions
        EpsL = R(NR) / RR        ! Inverse aspect ratio
+       
        rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
        rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
+       IF(NR /= 0) THEN
+          rNuAse(NR) = 1.D0 / rNuAsE_inv
+          rNuAsi(NR) = 1.D0 / rNuAsI_inv 
+       END IF
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        IF(R(NR) < RA) THEN
           rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
@@ -416,6 +421,11 @@ contains
           DCDBM      = 0.D0
        END IF
 
+       DeL = De0
+!!$       DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+       ! Particle diffusivity
+       De(NR)   = De0   * DeL
+       Di(NR)   = Di0   * DeL
        IF (R(NR) < RA) THEN
           DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ELSE
@@ -427,10 +437,6 @@ contains
              DeL = FSPSCL
           END IF
        END IF
-!!$       DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
-       ! Particle diffusivity
-       De(NR)   = De0   * DeL
-       Di(NR)   = Di0   * DeL
        ! Viscosity
        rMue(NR) = rMue0 * DeL
        rMui(NR) = rMui0 * DeL
@@ -530,10 +536,6 @@ contains
 !       IF (R(NR) + DBW > RA) THEN
        IF (R(NR) > RA) THEN
           Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
-!!$          RL = (R(NR) - RA + DBW) / DBW
-!!$          rNuL(NR) = FSLP * Cs / (2.D0 * PI * Q(NR) * RR &
-!!$               &          * (1.D0 + LOG(1.D0 + rLT / (R(NR) - RA + DBW)))) &
-!!$               &          * RL**2 / (1.D0 + RL**2)
           RL = (R(NR) - RA) / DBW! / 2.D0
           rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
@@ -555,6 +557,11 @@ contains
 
     END DO L_NR
 
+    rNuAse(0) = AITKEN4P(PSI(0),rNuAse(1),rNuAse(2),rNuAse(3),rNuAse(4),rNuAse(5), &
+         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+    rNuAsi(0) = AITKEN4P(PSI(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),rNuAsi(4),rNuAsi(5), &
+         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+
     ! Truncate neoclassical viscosity inside banana width evaluated on axis
 
 !!$    DO NR = 0, Nbanana
@@ -567,6 +574,11 @@ contains
 !!$       RL = (R(NR) - RA) / DBW
 !!$       rNueNC(NR) = FSNC * 5.D6 * RL**2 / (1.D0 + RL**2)
 !!$       rNuiNC(NR) = FSNC * 1.5D5 * RL**2 / (1.D0 + RL**2)
+!!$    END DO
+
+!!$    DO NR=0,NRMAX
+!!$       rNueNC(NR) = 6.d6
+!!$       rNuiNC(NR) = 0.15D6
 !!$    END DO
 !###########################
 
@@ -610,7 +622,7 @@ contains
     real(8), intent(in) :: X
 
     CORR = (1.D0 + 1.198D0 * X + 0.222D0 * X**2) &
-    &     / (1.D0 + 2.966D0 * X + 0.753D0 * X**2)
+    &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2)
 
   END FUNCTION CORR
 
