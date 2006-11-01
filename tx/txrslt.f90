@@ -137,12 +137,12 @@ contains
        ALFABP = (1.D0+rNueNC(NR)/rNuBAR)*BthV(NR)/(BphV(NR))**2
        AJBS1(NR) =- ALFABP / (1.D0 + ALFA) * dPPV * 1.D20 * rKeV
        ! +++ Hirshman model +++
-       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0)
-       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0)
+       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0) * RA
+       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0) * RA
        PPe   = PNeV(NR) * PTeV(NR)
        PPi   = PNiV(NR) * PTiV(NR)
-       dPPeV = DERIV3(NR,R,PNeV(0:NRMAX)*PTeV(0:NRMAX),NRMAX,NRM,0)
-       dPPiV = DERIV3(NR,R,PNiV(0:NRMAX)*PTiV(0:NRMAX),NRMAX,NRM,0)
+       dPPeV = DERIV3(NR,R,PNeV(0:NRMAX)*PTeV(0:NRMAX),NRMAX,NRM,0) * RA
+       dPPiV = DERIV3(NR,R,PNiV(0:NRMAX)*PTiV(0:NRMAX),NRMAX,NRM,0) * RA
        EPS  = R(NR) / RR
        FT   =(1.46D0 * SQRT(EPS) + 2.4D0 * EPS) / (1.D0 - EPS)**1.5D0
        DDX  = 1.414D0 * PZ + PZ**2 + FT * (0.754D0 + 2.657D0 * PZ &

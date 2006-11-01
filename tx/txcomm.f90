@@ -79,7 +79,7 @@ module commons
 
   ! Coefficients
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
-       &                       rNuei, rNuii, rNuTei, rNube, rNubi, &
+       &                       rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, &
        &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &

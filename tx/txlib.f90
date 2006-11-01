@@ -1,6 +1,6 @@
 !     $Id$
 module core_module
-  use commons, only : nrmax, h, r, nra, psi, hpsi, nemax
+  use commons, only : nrmax, h, r, psi, hpsi
   implicit none
   public
 
@@ -17,8 +17,6 @@ contains
 !      w    : weighting vector
 !
 !   function(r) is classified as follows:
-!      id = -1 : a * w'
-!      id = 0  : a * w
 !      id = 1  : u * w
 !      id = 2  : a * u * w
 !      id = 3  :(a * u)'* w
@@ -67,9 +65,14 @@ contains
 !      id = 42 :(psi * a * b * u)'* w'
 !      id = 43 : psi * a * b * (u / b)'* w'
 !
-!      id = 44 : a * b * w
+!      id = 44 : psi * a * b * u * w
 !      id = 45 :(psi * a * b'* u)'* w'
 !      id = 46 :(psi * a * b'* u)'* w'
+!
+!      id = -1 : a * w
+!      id = -2 : a * b * w
+!      id = -8 : a * w'
+!      id = -9 : a * b * w'
 !
 !   where ' means the derivative of psi
 !
@@ -100,15 +103,26 @@ contains
 
     select case(id)
     case(-1)
-       x(1) =-0.5d0 * a1
-       x(2) =-0.5d0 * a2
-       x(3) = 0.5d0 * a1
-       x(4) = 0.5d0 * a2
-    case(0)
        x(1) = hp / 3.d0 * a1
        x(2) = hp / 6.d0 * a2
        x(3) = hp / 6.d0 * a1
        x(4) = hp / 3.d0 * a2
+    case(-2)
+       x(1) = ( 3.d0 * a1 +        a2) * hp / 12.d0 * b1
+       x(2) = (        a1 +        a2) * hp / 12.d0 * b2
+       x(3) = (        a1 +        a2) * hp / 12.d0 * b1
+       x(4) = (        a1 + 3.d0 * a2) * hp / 12.d0 * b2
+    case(-8)
+       x(1) =-0.5d0 * a1
+       x(2) =-0.5d0 * a2
+       x(3) = 0.5d0 * a1
+       x(4) = 0.5d0 * a2
+    case(-9)
+       x(1) = (-2.d0 * a1 -        a2) / 6.d0 * b1
+       x(2) = (-       a1 - 2.d0 * a2) / 6.d0 * b2
+       x(3) = ( 2.d0 * a1 +        a2) / 6.d0 * b1
+       x(4) = (        a1 + 2.d0 * a2) / 6.d0 * b2
+!   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     case(1)
        x(1) = hp / 3.d0
        x(2) = hp / 6.d0
@@ -365,10 +379,14 @@ contains
        x(4) = (b1*(3.d0*p1*a1+p2*a1+p1*a2+p2*a2)+b2*(p1*a1+p2*a1+p1*a2+3.d0*p2*a2)) &
           & / (12.d0 * b2 * hp)
     case(44)
-       x(1) = ( 3.d0 * a1 +        a2) * hp / 12.d0 * b1
-       x(2) = (        a1 +        a2) * hp / 12.d0 * b2
-       x(3) = (        a1 +        a2) * hp / 12.d0 * b1
-       x(4) = (        a1 + 3.d0 * a2) * hp / 12.d0 * b2
+       x(1) = ( 10.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+      a2*b2*p1 &
+            &  + 2.d0*a1*b1*p2+     a2*b1*p2+     a1*b2*p2+      a2*b2*p2) * hp / 60.d0
+       x(2) = (  2.d0*a1*b1*p1+     a2*b1*p1+     a1*b2*p1+      a2*b2*p1 &
+            &  +      a1*b1*p2+     a2*b1*p2+     a1*b2*p2+ 2.d0*a2*b2*p2) * hp / 60.d0
+       x(3) = (  2.d0*a1*b1*p1+     a2*b1*p1+     a1*b2*p1+      a2*b2*p1 &
+            &  +      a1*b1*p2+     a2*b1*p2+     a1*b2*p2+ 2.d0*a2*b2*p2) * hp / 60.d0
+       x(4) = (       a1*b1*p1+     a2*b1*p1+     a1*b2*p1+ 2.d0*a2*b2*p1 &
+            &  +      a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+10.d0*a2*b2*p2) * hp / 60.d0
     case(45)
        x(1) = (b1-b2)*( 9.d0*a1*p1-a2*p1-a1*p2-     a2*p2)/(12.d0*hp)
        x(2) =-(b1-b2)*(      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)/(12.d0*hp)
@@ -380,7 +398,8 @@ contains
        x(3) = a1*(b1-b2)*p1/hp**2
        x(4) =-a2*(b1-b2)*p2/hp**2
     case default
-       stop 'XX falut ID in fem_int'
+       write(6,*)  'XX falut ID in fem_int, id= ',id
+       stop
     end select
 
   end function fem_int
@@ -778,7 +797,7 @@ contains
 
     SUML = 0.D0
     DO NE = 1, NEMAX
-       SUML = SUML + 0.5D0 * SUM(fem_int(0,NE,X))
+       SUML = SUML + 0.5D0 * SUM(fem_int(-1,NE,X))
     END DO
     INTG_F = SUML
     
@@ -800,7 +819,7 @@ contains
           INTG_P = 0.D0
        ELSE
           NE = NR
-          INTG_P = 0.5D0 * SUM(fem_int(0,NE,X))
+          INTG_P = 0.5D0 * SUM(fem_int(-1,NE,X))
        END IF
     ELSEIF(ID == 1) THEN
        IF(NR == 0) THEN
@@ -828,7 +847,7 @@ contains
     NEMAX = NRLMAX
     SUML = 0.D0
     DO NE = 1, NEMAX
-       SUML = SUML + 0.5D0 * SUM(fem_int(0,NE,X))
+       SUML = SUML + 0.5D0 * SUM(fem_int(-1,NE,X))
     END DO
     VAL = SUML
     

@@ -110,8 +110,10 @@ contains
          &     rGIC, rH, dErdr, dpdr, PROFDL, &
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
-         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, KAPPA, rNuBAR
-    real(8) :: FT, EFT, ETAS, CR
+         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
+         &     KAPPA, rNuBAR, NGRADB2, K11PSe, K11Be, K11PSi, K11Bi
+    real(8) :: Ce = 0.733D0, Ci = 1.365D0
+    real(8) :: FTL, EFT, ETAS, CR
     real(8) :: DERIV3, AITKEN4P
     real(8), dimension(0:NRMAX) :: p, Vexbr, SL1, SL2
 
@@ -233,9 +235,15 @@ contains
        !     *** Collision frequency (momentum transfer) ***
 
        ! Braginskii's collision time
+       rNuee(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+            &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
+            &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
        rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
             &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
+       rNuie(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+            &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AMI) &
+            &     * (ABS(PTiV(NR)) * rKeV)**1.5D0)
        rNuii(NR) = PNiV(NR) * 1.D20 * PZ**4 * AEE**4 * rLnLam &
             &     / (12.D0 * PI * SQRT(PI) * EPS0**2 * SQRT(AMI) &
             &     * (ABS(PTiV(NR)) * rKeV)**1.5D0)
@@ -260,24 +268,47 @@ contains
           rNuAsi(NR) = 1.D0 / rNuAsI_inv 
        END IF
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-       IF(R(NR) < RA) THEN
-          rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
-               &     * (1.78D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
-               &     / (1.D0 + SQRT(0.37D0 * rNuei(NR) / Wte) + 1.25D0 * rNuei(NR) / Wte)
-          rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wti &
-               &     * (1.78D0 / (rNuAsI_inv + SQRT(3.48D0 * rNuAsI_inv) + 1.52D0)) &
-               &     / (1.D0 + SQRT(0.37D0 * rNuii(NR) / Wti) + 1.25D0 * rNuii(NR) / Wti)
-       ELSE
-          RL = (R(NR) - RA) / DBW
-          rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wte &
-               &     * (1.78D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
-               &     / (1.D0 + SQRT(0.37D0 * rNuei(NR) / Wte) + 1.25D0 * rNuei(NR) / Wte)&
-               &     * 1.D0 / (1.D0 + RL**2)
-          rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 * Wti &
-               &     * (1.78D0 / (rNuAsI_inv + SQRT(3.48D0 * rNuAsI_inv) + 1.52D0)) &
-               &     / (1.D0 + SQRT(0.37D0 * rNuii(NR) / Wti) + 1.25D0 * rNuii(NR) / Wti)&
-               &     * 1.D0 / (1.D0 + RL**2)
+!!$       IF(R(NR) < RA) THEN
+!!$          rNueNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
+!!$               &     * SQRT(PI) * Q(NR)**2 * Wte &
+!!$               &     * (1.53D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
+!!$               &     / (1.D0 + SQRT(0.37D0 * SQRT(2.D0) * rNuei(NR) / Wte) &
+!!$               &                  + 1.25D0 * SQRT(2.D0) * rNuei(NR) / Wte)
+!!$          rNuiNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
+!!$               &     * SQRT(PI) * Q(NR)**2 * Wti &
+!!$               &     * (0.53D0 / (rNuAsI_inv + SQRT(0.52D0 * rNuAsI_inv) + 0.56D0)) &
+!!$               &     / (1.D0 + SQRT(0.14D0 * SQRT(2.D0) * rNuii(NR) / Wti) &
+!!$               &                  + 0.70D0 * SQRT(2.D0) * rNuii(NR) / Wti)
+!!$       ELSE
+!!$          RL = (R(NR) - RA) / DBW
+!!$          rNueNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
+!!$               &     * SQRT(PI) * Q(NR)**2 * Wte &
+!!$               &     * (1.53D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
+!!$               &     / (1.D0 + SQRT(0.37D0 * SQRT(2.D0) * rNuei(NR) / Wte) &
+!!$               &                  + 1.25D0 * SQRT(2.D0) * rNuei(NR) / Wte) &
+!!$               &     * 1.D0 / (1.D0 + RL**2)
+!!$          rNuiNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
+!!$               &     * SQRT(PI) * Q(NR)**2 * Wti &
+!!$               &     * (0.53D0 / (rNuAsI_inv + SQRT(0.52D0 * rNuAsI_inv) + 0.56D0)) &
+!!$               &     / (1.D0 + SQRT(0.14D0 * SQRT(2.D0) * rNuii(NR) / Wti) &
+!!$               &                  + 0.70D0 * SQRT(2.D0) * rNuii(NR) / Wti) &
+!!$               &     * 1.D0 / (1.D0 + RL**2)
+!!$       END IF
+       NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) * (BphV(0) / (RR * Q(NR)))**2
+       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
+       K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
+       K11Be  = BphV(0)**2 * FTL / (1.D0 - FTL) / (3.D0 * NGRADB2) &
+            & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
+       K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
+       K11Bi  = BphV(0)**2 * FTL / (1.D0 - FTL) / (3.D0 * NGRADB2) &
+            & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
+       IF(NR /= 0) THEN
+          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
+          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
        END IF
+
 !!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
 !!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
 !!$       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
@@ -345,8 +376,8 @@ contains
        ! Inverse aspect ratio
        EpsL    = R(NR) / RR
        ! Trapped particle fraction
-       FT   = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
-       EFT  = FT * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
+       EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
        ! Spitzer resistivity
        ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
@@ -421,7 +452,7 @@ contains
           DCDBM      = 0.D0
        END IF
 
-       DeL = De0
+       DeL = 1.D0
 !!$       DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -447,10 +478,10 @@ contains
        ! <omega/m>
        WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
        ! Force induced by drift wave (e.q.(8),(13))
-       FWthe(NR) = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
-       FWthi(NR) = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
-       FWthphe(NR) = AEE**2         * BphV(NR) * De(NR) / (PTeV(NR) * rKeV)
-       FWthphi(NR) = AEE**2         * BphV(NR) * Di(NR) / (PTiV(NR) * rKeV)
+       FWthe(NR)   = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
+       FWthi(NR)   = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
+       FWthphe(NR) = AEE**2         * BphV(NR)    * De(NR) / (PTeV(NR) * rKeV)
+       FWthphi(NR) = AEE**2 * PZ**2 * BphV(NR)    * Di(NR) / (PTiV(NR) * rKeV)
 !!$       IF(NR == NRA) THEN
 !!$          FWthea = AEE**2         * BphV(NR)**2 * De0 * DeLa / (PTeV(NR) * rKeV)
 !!$          FWthia = AEE**2 * PZ**2 * BphV(NR)**2 * Di0 * DeLa / (PTiV(NR) * rKeV)
@@ -467,22 +498,24 @@ contains
 !!$       END IF
 
        ! Work induced by drift wave
-       WNthe (NR) = WPE0 *         AEE    * BphV(NR)    * De(NR)
-       WEMthe(NR) = WPE0 *         AEE**2 * BphV(NR)    * De(NR) &
-            &                       / (PTeV(NR) * rKeV)
-       WWthe (NR) = WPE0 *         AEE**2 * BphV(NR)**2 * De(NR) &
-            &            * WPM (NR) / (PTeV(NR) * rKeV)
-       WT1the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR)) &
-            &                       / (PTeV(NR) * rKeV)
-       WT2the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR))
-       WNthi (NR) = WPI0 * PZ    * AEE    * BphV(NR)    * Di(NR)
-       WEMthi(NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)    * Di(NR) &
-            &                       / (PTiV(NR) * rKeV)
-       WWthi (NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)**2 * Di(NR) &
-            &            * WPM (NR) / (PTiV(NR) * rKeV)
-       WT1thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR)) &
-            &            / (PTiV(NR) * rKeV)
-       WT2thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR))
+       IF(MDLWTB == 1) THEN
+          WNthe (NR) = WPE0 *         AEE    * BphV(NR)    * De(NR)
+          WEMthe(NR) = WPE0 *         AEE**2 * BphV(NR)    * De(NR) &
+               &                       / (PTeV(NR) * rKeV)
+          WWthe (NR) = WPE0 *         AEE**2 * BphV(NR)**2 * De(NR) &
+               &            * WPM (NR) / (PTeV(NR) * rKeV)
+          WT1the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR)) &
+               &                       / (PTeV(NR) * rKeV)
+          WT2the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR))
+          WNthi (NR) = WPI0 * PZ    * AEE    * BphV(NR)    * Di(NR)
+          WEMthi(NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)    * Di(NR) &
+               &                       / (PTiV(NR) * rKeV)
+          WWthi (NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)**2 * Di(NR) &
+               &            * WPM (NR) / (PTiV(NR) * rKeV)
+          WT1thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR)) &
+               &            / (PTiV(NR) * rKeV)
+          WT2thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR))
+       END IF
 
        !     *** Heating profile ***
 
@@ -561,6 +594,10 @@ contains
          &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
     rNuAsi(0) = AITKEN4P(PSI(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),rNuAsi(4),rNuAsi(5), &
          &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+    rNueNC(0) = AITKEN4P(PSI(0),rNueNC(1),rNueNC(2),rNueNC(3),rNueNC(4),rNueNC(5), &
+         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+    rNuiNC(0) = AITKEN4P(PSI(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),rNuiNC(4),rNuiNC(5), &
+         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
 
     ! Truncate neoclassical viscosity inside banana width evaluated on axis
 
@@ -577,8 +614,8 @@ contains
 !!$    END DO
 
 !!$    DO NR=0,NRMAX
-!!$       rNueNC(NR) = 6.d6
-!!$       rNuiNC(NR) = 0.15D6
+!!$       rNueNC(NR) = 20.d6
+!!$       rNuiNC(NR) = 1.D6
 !!$    END DO
 !###########################
 
@@ -625,5 +662,12 @@ contains
     &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2)
 
   END FUNCTION CORR
+
+  REAL(8) FUNCTION NUD(X)
+    real(8), intent(in) :: X
+
+    NUD = SQRT(1.D0 + X**2) + X**2 * LOG(X / (1.D0 + SQRT(1.D0 + X**2)))
+
+  END FUNCTION NUD
 
 end module variables
