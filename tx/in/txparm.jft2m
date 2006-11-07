@@ -4,15 +4,16 @@
      PTe0=0.5D0,PTea=5.D-2
      PTi0=0.5D0,PTia=5.D-2
      Pn0=3.D-1,Pna=5.D-2
-     De0=1.D0,Di0=0.D0
-     Chie0=5.D0,Chii0=5.D0
-     rMue0=10.D0,rMui0=10.D0
-     FSDFIX=0.1,FSCDBM=0.0
-     FSBOHM=0.0,PROFD=1.0,FSPSCL=0.1
+     De0=0.05D0,Di0=0.D0
+     Chie0=0.3D0,Chii0=0.3D0
+     rMue0=0.3D0,rMui0=0.3D0
+     FSDFIX=1.0,FSCDBM=0.0
+     FSBOHM=0.0,PROFD=10.0,FSPSCL=10.0
      PNBH=0.0,RNB=0.6D0,PNBCD=1.0
      PRFH=0.0,RRF=0.6D0
-     Zeff=1.0, rGASPF=0.05, rGamm0=0.8
-     NRMAX=50,ntmax=500,ngrstp=50,ngtstp=10
+     PA=1.0, Zeff=1.0, rGASPF=0.05, rGamm0=0.8
+     NRMAX=60,ntmax=500,ngrstp=50,ngtstp=10,ntstep=100
+     CMESH=10,WMESH=0.05
      RG1=10.0,icmax=10,modeav=0
      DT=1.D-4,MODEG=1,eps=1.D-2,MODEGL=1
      rLn=0.1D0, rLT=0.1D0, MDLPCK=1, FSNC=1.0

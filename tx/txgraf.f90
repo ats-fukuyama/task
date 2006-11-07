@@ -1259,7 +1259,7 @@ contains
     integer, intent(in) :: MODE
     character(len=50) :: STR
     integer :: IND, IFNT, NR
-    real, dimension(0:NRM,1:2) :: GYL, GYL2
+    real, dimension(0:NRM,1:3) :: GYL, GYL2
 
     IF (MODEG == 2) THEN
        IND = 9
@@ -1287,17 +1287,19 @@ contains
 
     DO NR = 0, NRMAX
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
-       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
+!       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
+       GYL(NR,2) = GLOG(ETA3(NR),1.D-10,1.D0)
     END DO
 
     STR = '@LOG: ETA@'
     CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
 
     GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
-    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
+!    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
+    GYL(0:NRMAX,2) = SNGL(AJBS3(0:NRMAX))
 
     STR = '@AJBS@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 1, gDIV(22))
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 2-1, gDIV(22))
     CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
 
     CALL PAGEE
@@ -1424,7 +1426,7 @@ contains
        ILOG = 0
     END IF
 
-    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, 2, &
+    CALL TXGRAF(GPXY, GXL, GYL, NRM+1, NRMAX+1, NGMAX, &
          &            0.0, GXMAX, STR, 0.3, MODE, IND, ILOG)
 
     RETURN

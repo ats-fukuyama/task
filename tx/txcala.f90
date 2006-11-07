@@ -895,7 +895,8 @@ contains
 
           ! Convection
 
-          ELM(1:4,1,LQe5,NE) = - 2.D0 * fem_int(5,NE,PTeV)
+!          ELM(1:4,1,LQe5,NE) = - 2.D0 * fem_int(5,NE,PTeV)
+          ELM(1:4,1,LQe5,NE) =   2.D0 * fem_int(9,NE,PTeV) + 2.D0 * fem_int(6,NE,PTeV)
           NLC(1,LQe5) = LQe2
 
           ! Ionization of n01 and n02
@@ -1462,7 +1463,8 @@ contains
 
           ! Convection
 
-          ELM(1:4,1,LQi5,NE) = - 2.D0 * fem_int(5,NE,PTiV)
+!          ELM(1:4,1,LQi5,NE) = - 2.D0 * fem_int(5,NE,PTiV)
+          ELM(1:4,1,LQi5,NE) =   2.D0 * fem_int(9,NE,PTiV) + 2.D0 * fem_int(6,NE,PTiV)
           NLC(1,LQi5) = LQi2
 
           ! Ionization of n01 and n02

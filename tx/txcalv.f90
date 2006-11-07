@@ -102,8 +102,9 @@ contains
 
     USE physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKeV
     use libraries, only : EXPV, VALINT_SUB, TRCOFS
+    use nclass_mod
     
-    INTEGER :: NR, NP, NR1, IER, Nbanana
+    INTEGER :: NR, NP, NR1, IER, NRPLTE, NRPLTI
     REAL(8) :: Sigma0, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti, Vtb, &
          &     rLnLam, EION, XXX, SiV, ScxV, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
@@ -111,10 +112,10 @@ contains
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, DeLa, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     KAPPA, rNuBAR, NGRADB2, K11PSe, K11Be, K11PSi, K11Bi
+         &     KAPPA, rNuBAR, NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: Ce = 0.733D0, Ci = 1.365D0
-    real(8) :: FTL, EFT, ETAS, CR
-    real(8) :: DERIV3, AITKEN4P
+    real(8) :: FTL, FCL, EFT, ETAS, CR
+    real(8) :: DERIV3, AITKEN2P
     real(8), dimension(0:NRMAX) :: p, Vexbr, SL1, SL2
 
     !     *** Constants ***
@@ -256,7 +257,9 @@ contains
        !     *** Toroidal neoclassical viscosity ***
        !    (Hirshman and Sigmar, Nucl. Fusion 21 (1981) 1079)
 
-!       IF(R(NR) < Wbanana) Nbanana = NR
+       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA3(NR),AJBS3(NR),IER)
+       IF(IER /= 0) IERR = IER
+
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        Wti = Vti / (Q(NR) * RR) ! Omega_ti; transit frequency for ions
        EpsL = R(NR) / RR        ! Inverse aspect ratio
@@ -265,7 +268,7 @@ contains
        rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
        IF(NR /= 0) THEN
           rNuAse(NR) = 1.D0 / rNuAsE_inv
-          rNuAsi(NR) = 1.D0 / rNuAsI_inv 
+          rNuAsi(NR) = 1.D0 / rNuAsI_inv
        END IF
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
 !!$       IF(R(NR) < RA) THEN
@@ -294,20 +297,25 @@ contains
 !!$               &                  + 0.70D0 * SQRT(2.D0) * rNuii(NR) / Wti) &
 !!$               &     * 1.D0 / (1.D0 + RL**2)
 !!$       END IF
-       NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) * (BphV(0) / (RR * Q(NR)))**2
-       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
-       K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
-       K11Be  = BphV(0)**2 * FTL / (1.D0 - FTL) / (3.D0 * NGRADB2) &
-            & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
-       K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
-       K11Bi  = BphV(0)**2 * FTL / (1.D0 - FTL) / (3.D0 * NGRADB2) &
-            & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
-       IF(NR /= 0) THEN
-          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
-          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
-       END IF
+
+!!$       IF(NR /= 0) THEN
+!!$          NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) &
+!!$               &  * (BphV(0) / (RR * Q(NR)))**2
+!!$          FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
+!!$          K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
+!!$          FCL = 1.D0 - FTL
+!!$          K11Be  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
+!!$               & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
+!!$          K11Pe  = SQRT(PI) * Q(NR) * RR * Vte / 3.D0
+!!$          K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
+!!$          K11Bi  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
+!!$               & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
+!!$          K11Pi  = SQRT(PI) * Q(NR) * RR * Vti / 3.D0
+!!$          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+!!$            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
+!!$          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+!!$            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
+!!$       END IF
 
 !!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
 !!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
@@ -371,7 +379,7 @@ contains
        rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
        ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
        ETA1(NR) = CORR(Zeff) * AME * (1.D0 + ALFA) * rNuBAR / (PNeV(NR)*1.D20 * AEE**2)
-       
+
        ! +++ Hirshman, Hawryluk and Birge model +++
        ! Inverse aspect ratio
        EpsL    = R(NR) / RR
@@ -590,21 +598,12 @@ contains
 
     END DO L_NR
 
-    rNuAse(0) = AITKEN4P(PSI(0),rNuAse(1),rNuAse(2),rNuAse(3),rNuAse(4),rNuAse(5), &
-         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
-    rNuAsi(0) = AITKEN4P(PSI(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),rNuAsi(4),rNuAsi(5), &
-         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
-    rNueNC(0) = AITKEN4P(PSI(0),rNueNC(1),rNueNC(2),rNueNC(3),rNueNC(4),rNueNC(5), &
-         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
-    rNuiNC(0) = AITKEN4P(PSI(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),rNuiNC(4),rNuiNC(5), &
-         &               PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
-
-    ! Truncate neoclassical viscosity inside banana width evaluated on axis
-
-!!$    DO NR = 0, Nbanana
-!!$       rNueNC(NR) = rNueNC(Nbanana+1)
-!!$       rNuiNC(NR) = rNuiNC(Nbanana+1)
-!!$    END DO
+    rNuAse(0) = AITKEN2P(PSI(0),rNuAse(1),rNuAse(2),rNuAse(3),PSI(1),PSI(2),PSI(3))
+    rNuAsi(0) = AITKEN2P(PSI(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),PSI(1),PSI(2),PSI(3))
+!    rNueNC(0) = AITKEN2P(PSI(0),rNueNC(1),rNueNC(2),rNueNC(3),PSI(1),PSI(2),PSI(3))
+!    rNuiNC(0) = AITKEN2P(PSI(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),PSI(1),PSI(2),PSI(3))
+    rNueNC(0) = rNueNC(1)
+    rNuiNC(0) = rNuiNC(1)
 
 !###########################
 !!$    DO NR = 0, NRA

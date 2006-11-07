@@ -42,7 +42,7 @@ module commons
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
 
   ! Numerical parameters
-  real(8) :: DLT, DT, EPS, ADV
+  real(8) :: DLT, DT, EPS, ADV, CMESH, WMESH
   integer :: ICMAX
 
   ! Mesh parameters
@@ -96,8 +96,8 @@ module commons
   real(8), dimension(0:NRM) :: PIE, PCX, SIE, PBr
 
   ! Safety factor, currents, resistivity
-  real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS, AJBS1, AJBS2, &
-       &                       ETA, ETA1, ETA2
+  real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS, AJBS1, AJBS2, AJBS3, &
+       &                       ETA, ETA1, ETA2, ETA3
 
   ! Global parameters for display
   real(8), dimension(1:NSM) :: ANS0, TS0, ANSAV, TSAV, WST

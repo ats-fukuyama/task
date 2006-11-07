@@ -231,14 +231,24 @@ contains
 
     !   ***** Mesh number parameters *****
 
+    !   Magnitude of mesh peakness
+    CMESH  = 30.D0
+
+    !   Width of mesh peakness
+    WMESH  = 5.D-2
+
     !   Number of nodes
     NRMAX  = 50
 
     !   Number of elements
     NEMAX = NRMAX
 
+    !   ***** Time parameter *****
+
     !   Number of time step
     NTMAX = 10
+
+    !   ***** Graphic parameters *****
 
     !   Time step interval between print output
     NTSTEP = 10
@@ -270,6 +280,8 @@ contains
     !   0 : OFF
     !   n : Number of Display
     MODEAV = 0
+
+    !   ***** Model parameters *****
 
     !   Mode of LAPACK
     !   0    : Use BANDRD
@@ -399,8 +411,8 @@ contains
 
     !  As a trial, generate mesh using given CL and WL and seek the position in the
     !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
-    CL  = 30.D0
-    WL  = 5.D-2
+    CL  = CMESH
+    WL  = WMESH
     MAXAMP = LORENTZ(RB,CL,WL,RC) / RB
     NR_RC_NEAR = 0
     R(0) = 0.D0
@@ -488,6 +500,7 @@ contains
     INTEGER :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
     REAL(8) :: ALP, dPe, dPi, DR1, DR2
+    REAL(8) :: EpsL, Vte, Wte, rLnLam, rNuAsE_inv, FTL, EFT, ETAS, CR
     REAL(8) :: DERIV3, FCTR ! External functions
     real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
     real(8), dimension(:,:), allocatable :: CMTX
@@ -508,6 +521,7 @@ contains
     DO NR = 0, NRMAX
        RL=R(NR)
        IF (RL < RA) THEN
+!          PROF  =(1.D0 - (RL / RA)**2)**2
           PROF  = 1.D0 - (RL / RA)**2
           PROFT = PROF**2
           ! Ne
@@ -590,7 +604,6 @@ contains
           AJOH(NR)= 0.D0
        END IF
     END DO
-    deallocate(AJPHL)
 
     ! Inverse matrix of derivative formula for integration
 
@@ -651,10 +664,42 @@ contains
     END IF
     deallocate(TMP)
 
-    ! Toroidal electric field
+    ! Toroidal electric field for initial NCLASS calculation
 
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
+
+    DO NR = 0, NRMAX
+       ! +++ Hirshman, Hawryluk and Birge model +++
+       PNeV(NR) = X(LQe1,NR)
+       PNiV(NR) = X(LQi1,NR)
+       PTeV(NR) = X(LQe5,NR) / X(LQe1,NR)
+       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
+       Wte = Vte / (Q(NR) * RR)
+       rLnLam = 15.2D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
+       rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+            &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
+            &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
+       rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
+       ! Inverse aspect ratio
+       EpsL    = R(NR) / RR
+       ! Trapped particle fraction
+       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
+       EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+       ! Spitzer resistivity
+       ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
+       ETA(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+            &  /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       IF(FSHL == 0.D0) THEN
+          ! Ephi
+          X(LQm3,NR) = - ETA(NR) *  AJPHL(NR)
+       ELSE
+          X(LQm3,NR) = 0.D0
+       END IF
+       IF(X(LQm3,NR) == 0.D0) X(LQm3,NR) = -1.D-4
+    END DO
+    deallocate(AJPHL)
 
     T_TX=0.D0
     NGT=-1
@@ -741,7 +786,7 @@ module parameter_control
        & rLn,rLT, &
        & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DLT,DT,EPS,ICMAX,ADV, &
+       & DLT,DT,EPS,ICMAX,ADV,CMESH,WMESH &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
@@ -847,7 +892,7 @@ contains
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'DLT,DT,EPS,ICMAX,ADV,'/ &
+         &       ' ',8X,'DLT,DT,EPS,ICMAX,ADV,CMESH,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
@@ -872,7 +917,8 @@ contains
          &   'PTe0  ', PTe0  ,  'PTea  ', PTea  ,  &
          &   'PTi0  ', PTi0  ,  'PTia  ', PTia  ,  &
          &   'rIP   ', rIP   ,  'Zeff  ', Zeff  ,  &
-         &   'PROFJ ', PROFJ , &
+         &   'PROFJ ', PROFJ ,  'CMESH ', CMESH ,  &
+         &   'WMESH ', WMESH ,  'ADV   ', ADV   ,  &
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
          &   'WPM0  ', WPM0  ,  'WPE0  ', WPE0  ,  &
