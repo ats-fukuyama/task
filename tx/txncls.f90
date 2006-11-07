@@ -180,8 +180,8 @@ contains
     grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0))
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1) = SNGL(RA * DERIV3(NR,R,X(LQe5,0:NRMAX),NRMAX,NRM,0)) * 1.E20
-    grp_iz(2) = SNGL(RA * DERIV3(NR,R,X(LQi5,0:NRMAX),NRMAX,NRM,0)) * 1.E20
+    grp_iz(1,1) = SNGL(RA * DERIV3(NR,R,X(LQe5,0:NRMAX),NRMAX,NRM,0)) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,X(LQi5,0:NRMAX),NRMAX,NRM,0)) * 1.E20
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
 
     CALL NCLASS( &
@@ -241,8 +241,8 @@ contains
        NueNC = 0.D0
        NuiNC = 0.D0
     ELSE
-       NueNC = p_b2 * ymu_s(1,1,1) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
-       NuiNC = p_b2 * ymu_s(1,1,2) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
+       NueNC = DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
+       NuiNC = DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
     END IF
     
 !!$    AJBSNC(NR)=DBLE(p_bsjb)/BB
