@@ -926,21 +926,21 @@ contains
        STR = '@E$-$#f$#$=(r)@'
        CALL TXGRFRXS(2,GX,GY(0,0,11),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@T$-e$=(r)@'
-       CALL TXGRFRXS(3,GX,GY(0,0,14),NRMAX,NGR,STR,MODE,IND)
+       STR = '@B$-$#q$#$=(r)@'
+       CALL TXGRFRXS(3,GX,GY(0,0,10),NRMAX  ,NGR,STR,MODE,IND)
 
        STR = '@n$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRM, NRMAX, NGR, gDIV(1))
-       CALL TXGRFRXS(4, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+       CALL TXGRFRXS(4,GX, GYL, NRMAX, NGR, STR, MODE, IND)
 
-       STR = '@B$-$#q$#$=(r)@'
-       CALL TXGRFRXS(5,GX,GY(0,0,10),NRMAX  ,NGR,STR,MODE,IND)
-
-       STR = '@B$-$#f$#$=(r)@'
-       CALL TXGRFRXS(6,GX,GY(0,0,18),NRMAX,NGR,STR,MODE,IND)
+       STR = '@T$-e$=(r)@'
+       CALL TXGRFRXS(5,GX,GY(0,0,14),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@T$-i$=(r)@'
-       CALL TXGRFRXS(7,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(6,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@B$-$#f$#$=(r)@'
+       CALL TXGRFRXS(7,GX,GY(0,0,18),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@u$-er$=(r)@'
        CALL TXGRFRXS(8, GX, GY(0,0,3), NRMAX, NGR, STR, MODE, IND)
