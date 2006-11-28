@@ -1,0 +1,13 @@
+ &tr
+   RR=0.64
+   RA=0.36
+   RKAP=1.60
+   RDLT=0.80
+   BB=0.64
+   RIPS=0.30
+   RIPE=0.30
+   PT=0.2,0.2
+   PLHR0=0.1
+   PLHRW=0.05
+   PLHCD=1.0
+ &end
