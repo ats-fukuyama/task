@@ -9,6 +9,7 @@ SRCS=trmenu.f trinit.f trprof.f trgout.f trfile.f trloop.f trrslt.f \
      trgrar.f trgrat.f trgrag.f trgrae.f trgrad.f trgram.f trgsub.f \
      trhelp.f glf/callglf2d.f \
      itg/ifspppl_model.f tritg.f itg/weiland.f
+#    trpl.f
 SRCF=glf/glf2d.F glf/r8tomsqz.F
 SRC2D=trg2d.f
 SRC3D=trg3d.f
@@ -29,9 +30,9 @@ LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../li
 LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ -I. -I../pl
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ -I. -I../pl
 
 #all: tr2 tr3
 all: tr2
