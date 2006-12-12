@@ -183,8 +183,11 @@ C                  POWER(NR,1)=PCURR(NR)
     3    IF(NTHMAX.EQ.1) THEN
             MD=0
          ELSE
-            WRITE(6,*) '## INPUT MD : ',MDMIN,'..',MDMAX-1
+            MD1=NTH0+MDMIN
+            MD2=NTH0+MDMAX-1
+            WRITE(6,*) '## INPUT MD : ',MD1,'..',MD2
             READ(5,*,ERR=3,END=9000) MD
+            MD=MD-NTH0
          END IF
          IF(MD.LT.MDMIN.OR.MD.GT.MDMAX) THEN
             WRITE(6,*) 'XX ILLEGAL MD'
