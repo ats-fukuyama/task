@@ -1,8 +1,3 @@
-0
-f
-eqjt60.gs
-c
-p
  &eq 
    RR=3.5016
    RA=0.9837
@@ -13,11 +8,5 @@ p
    RIP=1.6945
    PROFJ0=1.6
    MDLEQA=1
+   MDLEQC=1
  &end
-r
-c
- 0.0125/
-g
-s
-eqdata.jt60
-q
