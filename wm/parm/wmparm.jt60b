@@ -1,5 +1,5 @@
  &wm
-   MODELG=6
+   MODELG=3
    KNAMEQ='../eq/eqdata.jt60b'
    NSMAX=3
    PA(2)=2.D0 PZ(2)=1.D0
