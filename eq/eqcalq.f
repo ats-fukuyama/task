@@ -380,10 +380,19 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
       EXTERNAL EQDERV
+      integer np,i
+      parameter (np=3)
+      real*8 nra,rpspa,zpspa,dy,spspa,vpspa,qpspa,rlenpa,psitpa
+      real*8 averhrpa,aveir2pa,averh1pa,averh2pa,avebb2pa,aveib2pa
+      real*8 averhbpa
       DIMENSION XA(NTVM),YA(2,NTVM)
       DIMENSION XCHI0(NTVM),XCHI1(NTVM)
       DIMENSION RCHI(NTVM),ZCHI(NTVM),DXCHI(NTVM)
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
+      dimension nra(np),rpspa(np),zpspa(np),spspa(np),vpspa(np)
+      dimension qpspa(np),rlenpa(np),psitpa(np),averhrpa(np)
+      dimension aveir2pa(np),averh1pa(np),averh2pa(np),avebb2pa(np)
+      dimension aveib2pa(np),averhbpa(np)
 C
       IERR=0
 C
@@ -405,18 +414,115 @@ C         REDGEM=RA-RA/(NRPMAX-1)
 C
 C            FACTOR=(RL-REDGE)/(REDGE-REDGEM)
             FACTOR=(RL-RAXIS)/(REDGE-RAXIS)
-            SPS(NR)= SPS(NRPMAX)*FACTOR**2
-            VPS(NR)= VPS(NRPMAX)*FACTOR**2
-            QPS(NR)= QPS(NRPMAX)*FACTOR**2
-            RLEN(NR)=RLEN(NRPMAX)*FACTOR
-            PSIT(NR)= PSIT(NRPMAX)*FACTOR**2
-            AVERHR(NR)=AVERHR(NRPMAX)
-            AVEIR2(NR)=AVEIR2(NRPMAX)
-            AVERH1(NR)=AVERH1(NRPMAX)
-            AVERH2(NR)=AVERH2(NRPMAX)
-            AVEBB2(NR)=AVEBB2(NRPMAX)
-            AVEIB2(NR)=AVEIB2(NRPMAX)
-            AVERHB(NR)=AVERHB(NRPMAX)
+c            SPS(NR)= SPS(NRPMAX)*FACTOR**2
+            do i=1,np
+               nra(i)=nr-np-1+i
+               spspa(i)=sps(nr-np-1+i)
+            enddo
+c     
+            call polint(nra,spspa,np,nr,sps(nr),dy) 
+c
+c
+
+c            VPS(NR)= VPS(NRPMAX)*FACTOR**2
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  vpspa(i)=vps(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,vpspa,np,nr,vps(nr),dy)
+c
+c
+c            QPS(NR)= QPS(NRPMAX)*FACTOR**2
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  qpspa(i)=qps(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,qpspa,np,nr,qps(nr),dy)
+c
+c
+c            RLEN(NR)=RLEN(NRPMAX)*FACTOR
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  rlenpa(i)=rlen(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,rlenpa,np,nr,rlen(nr),dy)
+c
+c
+c            PSIT(NR)= PSIT(NRPMAX)*FACTOR**2
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  psitpa(i)=psit(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,psitpa,np,nr,psit(nr),dy)
+c
+c
+c            AVERHR(NR)=AVERHR(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  averhrpa(i)=averhr(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,averhrpa,np,nr,averhr(nr),dy)
+c
+c
+c            AVEIR2(NR)=AVEIR2(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  aveir2pa(i)=aveir2(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,aveir2pa,np,nr,aveir2(nr),dy)
+c
+c
+c            AVERH1(NR)=AVERH1(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  averh1pa(i)=averh1(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,averh1pa,np,nr,averh1(nr),dy)
+c
+c
+c            AVERH2(NR)=AVERH2(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  averh2pa(i)=averh2(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,averh2pa,np,nr,averh2(nr),dy)
+c
+c
+c            AVEBB2(NR)=AVEBB2(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  avebb2pa(i)=avebb2(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,avebb2pa,np,nr,avebb2(nr),dy)
+c
+c
+c            AVEIB2(NR)=AVEIB2(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  aveib2pa(i)=aveib2(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,aveib2pa,np,nr,aveib2(nr),dy)
+c
+c
+c            AVERHB(NR)=AVERHB(NRPMAX)
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  averhbpa(i)=averhb(nr-np-1+i)
+               enddo
+c
+                  call polint(nra,averhbpa,np,nr,averhb(nr),dy)
+c
+c
 C
             RMIN=RAXIS
             RMAX=RAXIS
@@ -427,8 +533,27 @@ C               RPS(NTH,NR)=RPS(NTH,NRPMAX)
 C     &                    +(RPS(NTH,NRPMAX)-RPS(NTH,NRPMAX-1))*FACTOR
 C               ZPS(NTH,NR)=ZPS(NTH,NRPMAX)       *FACTOR
 C     &                    +(ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1))*FACTOR
-               RPS(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR
-               ZPS(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR
+C               RPS(NTH,NR)=RAXIS+(RPS(NTH,NRPMAX)-RAXIS)*FACTOR !
+C               ZPS(NTH,NR)=       ZPS(NTH,NRPMAX)       *FACTOR !
+C
+C
+c
+c
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  rpspa(i)=rps(nth,nr-np-1+i)
+               enddo
+c
+                  call polint(nra,rpspa,np,nr,rps(nth,nr),dy)
+c
+                  do i=1,np
+                     nra(i)=nr-np-1+i
+                     zpspa(i)=zps(nth,nr-np-1+i)
+                  enddo
+               call polint(nra,zpspa,np,nr,zps(nth,nr),dy)
+c
+c
+C
                RMIN=MIN(RMIN,RPS(NTH,NR))
                RMAX=MAX(RMAX,RPS(NTH,NR))
                ZMIN=MIN(ZMIN,ZPS(NTH,NR))
@@ -441,6 +566,13 @@ C     &                    +(ZPS(NTH,NRPMAX)-ZPS(NTH,NRPMAX-1))*FACTOR
             BBMIN(NR)=BBMIN(NRPMAX)/FACTOR
             BBMAX(NR)=BBMAX(NRPMAX)*FACTOR
          ENDDO
+c
+c
+cc         do nr=1,nrmax
+cc            do nth=1,nthmax
+cc               print*, nr,nth,rps(nth,nr)
+cc           enddo
+cc         enddo
 C
          DO NR=NRPMAX+1,NRMAX
             RST(NR)=SQRT(PSIT(NR)/(PI*BB))
@@ -985,3 +1117,104 @@ C
       DTTFUNC=DTTL
       RETURN
       END
+C
+C
+C **********************************************
+      SUBROUTINE polint(nra,psa,n,nr,ps,dy)
+      implicitnone
+      INTEGER n,NMAX,nr
+      REAL*8 dy,nra(n),ps,psa(n)
+      PARAMETER (NMAX=10)
+      INTEGER i,m,ns
+      REAL den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
+c
+c      do i=1,n
+c         print*, i,nra(i),psa(i)
+c      enddo
+c
+      ns=1
+      dif=abs(nr-nra(1))
+      do 11 i=1,n
+        dift=abs(nr-nra(i))
+        if (dift.lt.dif) then
+          ns=i
+          dif=dift
+        endif
+        c(i)=psa(i)
+        d(i)=psa(i)
+11    continue
+      ps=psa(ns)
+      ns=ns-1
+      do 13 m=1,n-1
+        do 12 i=1,n-m
+          ho=nra(i)-nr
+          hp=nra(i+m)-nr
+          w=c(i+1)-d(i)
+          den=ho-hp
+          if(den.eq.0.)pause 'failure in polint'
+          den=w/den
+          d(i)=hp*den
+          c(i)=ho*den
+12      continue
+        if (2*ns.lt.n-m)then
+          dy=c(ns+1)
+       else
+          dy=d(ns)
+          ns=ns-1
+        endif
+        ps=ps+dy
+13    continue
+      return
+      END
+c
+c
+c ***************************************
+c      SUBROUTINE ratint(xa,ya,n,x,y,dy)
+c      INTEGER n,NMAX
+c      REAL*8 dy,x,y,xa(n),ya(n),TINY
+c      PARAMETER (NMAX=10,TINY=1.e-25)
+c      INTEGER i,m,ns
+c      REAL dd,h,hh,t,w,c(NMAX),d(NMAX)
+c
+c      do i=1,n
+c         print*,i,xa(i),ya(i)
+c      enddo
+c
+c      ns=1
+c      hh=abs(x-xa(1))
+c      do 11 i=1,n
+c        h=abs(x-xa(i))
+c        if (h.eq.0.)then
+c          y=ya(i)
+c          dy=0.0
+c          return
+c        else if (h.lt.hh) then
+c          ns=i
+c          hh=h
+c        endif
+c        c(i)=ya(i)
+c        d(i)=ya(i)+TINY
+c11    continue
+c      y=ya(ns)
+c      ns=ns-1
+c      do 13 m=1,n-1
+c        do 12 i=1,n-m
+c          w=c(i+1)-d(i)
+c          h=xa(i+m)-x
+c          t=(xa(i)-x)*d(i)/h
+c          dd=t-c(i+1)
+c          if(dd.eq.0.)pause 'failure in ratint'
+c          dd=w/dd
+c          d(i)=c(i+1)*dd
+c          c(i)=t*dd
+c12      continue
+c        if (2*ns.lt.n-m)then
+c          dy=c(ns+1)
+c        else
+c          dy=d(ns)
+c          ns=ns-1
+c        endif
+c        y=y+dy
+c13    continue
+c      return
+c      END
