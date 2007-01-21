@@ -227,13 +227,17 @@ C
             GFINF(2,NINF)=0.0
             GFINF(3,NINF)=1.E30
          ENDDO
-         DO NGX=2,NGXMAX-1
-            DO NGY=2,NGYMAX-1
+         DO NGX=1,NGXMAX
+            DO NGY=1,NGYMAX
                GAMPL=GZ(NGX,NGY)
-               IF(GZ(NGX-1,NGY).GT.GAMPL.AND.
-     &            GZ(NGX+1,NGY).GT.GAMPL.AND.
-     &            GZ(NGX,NGY-1).GT.GAMPL.AND.
-     &            GZ(NGX,NGY+1).GT.GAMPL) THEN
+               NGXN=MAX(1,NGX-1)
+               NGXP=MIN(NGXMAX,NGX+1)
+               NGYN=MAX(1,NGY-1)
+               NGYP=MIN(NGYMAX,NGY+1)
+               IF(GZ(NGXN,NGY).GE.GAMPL.AND.
+     &            GZ(NGXP,NGY).GE.GAMPL.AND.
+     &            GZ(NGX,NGYN).GE.GAMPL.AND.
+     &            GZ(NGX,NGYP).GE.GAMPL) THEN
                   DO NINF=1,NINFM
                      IF(GFINF(3,NINF).GT.GAMPL) THEN
                         DO NINF1=NINFM,NINF+1,-1
@@ -304,12 +308,23 @@ C
 C
       CALL GMNMX2(GZ,NGZM,1,NGXMAX,1,1,NGYMAX,1,GZMIN,GZMAX)
       GZLMAX=LOG10(GZMAX)
+      GZLMIN=LOG10(GZMIN)
       IF(GZLMAX.LT.0.0) THEN
-         IMAX=-INT(-GZLMAX)-1
-      ELSEIF(GZLMAX.GE.2.0) THEN
-         IMAX=2
+         IGMAX=-INT(-GZLMAX)-1
       ELSE
-         IMAX=INT(GZLMAX)
+         IGMAX=INT(GZLMAX)
+      ENDIF
+      IF(GZLMIN.LT.0.0) THEN
+         IGMIN=-INT(-GZLMIN)-1
+      ELSE
+         IGMIN=INT(GZLMIN)
+      ENDIF
+      IF(IGMAX.GT.2) THEN
+         IF(IGMIN.GT.-2) THEN
+            IGMAX=IGMIN+4
+         ELSE
+            IGMAX=2
+         ENDIF
       ENDIF
 C
       CALL PAGES
@@ -329,10 +344,10 @@ C
       IPRD=0
       GZW=GZMAX-GZMIN
 C
-C      WRITE(6,*) '2D ',GZMIN,GZMAX,IMAX,10.0**IMAX,10.0**(IMAX-4)
+C      WRITE(6,*) '2D ',GZMIN,GZMAX,IGMAX,10.0**IGMAX,10.0**(IGMAX-4)
       DO I=1,5
          CALL SETRGB(RGBS(1,I),RGBS(2,I),RGBS(3,I))
-         GL=10.0**(IMAX-I+1)
+         GL=10.0**(IGMAX-I+1)
          IF(10*GL.GT.GZMIN.AND.GL.LT.GZMAX) THEN
             GZORG=GL
             CALL SETLNW(0.035)
