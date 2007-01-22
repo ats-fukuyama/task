@@ -1,3 +1,14 @@
+2007/01/22   V1.01
+             Various bugs fixed 
+                 especially eq: (thanks to Mr. Yamamoto)
+                                psi extention to vacuum region  
+                            wm: (thanks to Mr. Yamamoto, Dr. Matsunaga)
+                                minor error in FDM 
+                                G2 graphics fixed
+                                minor graphics consistency
+                            tr: (thanks to Mr. Honda)
+                                minor bug fixed
+
 2006/09/23   V1.00
              Upgraded to Fortran95 based
              you have to update make.header from make.header.org
