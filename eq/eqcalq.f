@@ -393,6 +393,9 @@ C
       dimension qpspa(np),rlenpa(np),psitpa(np),averhrpa(np)
       dimension aveir2pa(np),averh1pa(np),averh2pa(np),avebb2pa(np)
       dimension aveib2pa(np),averhbpa(np)
+      DIMENSION THW(NTHMP)
+      DIMENSION RPSW(NTHMP),DRPSW(NTHMP),URPSW(4,NTHMP)
+      DIMENSION ZPSW(NTHMP),DZPSW(NTHMP),UZPSW(4,NTHMP)
 C
       IERR=0
 C
@@ -793,10 +796,29 @@ C
 C
 C      +++++ CALCULATE WALL DATA +++++
 C
-      FACTOR=(RB+RR-RAXIS)/(REDGE-RAXIS)
+C     FACTOR=(RB+RR-RAXIS)/(REDGE-RAXIS)
+C
+      DO NTH=1,NTHMAX
+         THW(NTH)=(NTH-1)*2*PI/NTHMAX
+         RPSW(NTH)=RPS(NTH,NRMAX)
+         ZPSW(NTH)=ZPS(NTH,NRMAX)
+         WRITE(6,'(A,I5,1P3E12.4)') 
+     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
+      ENDDO
+      NTH=NTHMAX+1
+      THW(NTH)=2*PI
+      RPSW(NTH)=RPS(1,NRMAX)
+      ZPSW(NTH)=ZPS(1,NRMAX)
+         WRITE(6,'(A,I5,1P3E12.4)') 
+     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
+      CALL SPL1D(THW,RPSW,DRPSW,URPSW,NTHMAX+1,4,IERR)
+      CALL SPL1D(THW,ZPSW,DZPSW,UZPSW,NTHMAX+1,4,IERR)
       DO NSU=1,NSUMAX+1
-         RSW(NSU)=RAXIS+(RSU(NSU)-RAXIS)*FACTOR
-         ZSW(NSU)=       ZSU(NSU)       *FACTOR
+         THWL=(NSU-1)*2*PI/NSUMAX
+         CALL SPL1DF(THWL,RSW(NSU),THW,URPSW,NTHMAX+1,IERR)
+         CALL SPL1DF(THWL,ZSW(NSU),THW,UZPSW,NTHMAX+1,IERR)
+         WRITE(6,'(A,I5,1P3E12.4)') 
+     &        'NSU: ',NSU,THWL,RSW(NSU),ZSW(NSU)
       ENDDO
 C
       IF(MDLEQF.LT.10) THEN
