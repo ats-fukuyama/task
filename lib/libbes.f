@@ -4198,7 +4198,7 @@ C                             COMPLEX ARGUMENT
 C
 C     ******************************************************************
 C
-      SUBROUTINE LAMBDA(N,CX,CALAM)
+      SUBROUTINE LAMBDA(N,CX,CALAM,IERR)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-H,O-Z)
 C
@@ -4206,12 +4206,18 @@ C
       DATA ONE/1.D0/
       DATA D55/1.D-55/
 C
+      IERR=0
       XA=ABS(CX)
       NA=ABS(N)
 C
-      IF(NA.GE.30000.OR.N.LT.0.OR.XA.GE.173.D0) THEN
+      IF(NA.GE.30000.OR.N.LT.0) THEN
          CALAM(0)=(0.D0,0.D0)
-         WRITE(6,*) 'XX LAMBDA : OUT OF RANGE : N,ABS(X) = ',N,XA
+         IERR=1
+         RETURN
+      ENDIF
+      IF(XA.GE.173.D0) THEN
+         CALAM(0)=(0.D0,0.D0)
+         IERR=2
          RETURN
       ENDIF
       IF(XA.LE.1.D-8) THEN
