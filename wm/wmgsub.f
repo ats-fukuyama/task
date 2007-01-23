@@ -1237,7 +1237,7 @@ C
       DIMENSION XA(4),YA(4),ZA(4)
       DIMENSION XG(101),YG(101)
       PARAMETER(NH=101)
-      DIMENSION XT(6,0:NH),YT(6,0:NH),JH(0:NH),HT(0:NH+1)
+      DIMENSION XT(8,0:NH),YT(8,0:NH),JH(0:NH),HT(0:NH+1)
       DIMENSION RGBS(3,0:NH)
 C
       CALL INQRGB(RS,GS,BS)
@@ -1318,6 +1318,11 @@ C
          ZA(2)=Z(II,J )
          ZA(3)=Z(II,JJ)
          ZA(4)=Z(I, JJ)
+C         WRITE(27,'(A,2I5)') 'I,J=',I,J
+C         WRITE(27,'(A,1P4E12.4)') 'XA =',XA(1),XA(2),XA(3),XA(4)
+C         WRITE(27,'(A,1P4E12.4)') 'YA =',YA(1),YA(2),YA(3),YA(4)
+C         WRITE(27,'(A,1P4E12.4)') 'ZA =',ZA(1),ZA(2),ZA(3),ZA(4)
+         
 C
          CALL CONTFX(XA,YA,ZA,4,XT,YT,JH,HT,KMAX)
 C
