@@ -34,7 +34,7 @@ libs:
 	(cd ../lib; make tasklib.a)
 
 fp : fpmain.o $(LIBS)
-	$(FC) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
