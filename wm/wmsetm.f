@@ -271,7 +271,8 @@ C
             NDX=ND-NDMIN+1
          DO NC=NDMIN,NDMAX
             NCX=NC-NDMIN+1
-            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+CXX            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+            KKX=MOD(NC-ND-KDMIN+2*KDSIZ,KDSIZ)+1
             KK=KKX+KDMIN-1
 C
             NN=NPH0+NHC*ND
@@ -281,7 +282,8 @@ C
             MDX=MD-MDMIN+1
          DO MC=MDMIN,MDMAX
             MCX=MC-MDMIN+1
-            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+CXX            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+            LLX=MOD(MC-MD-LDMIN+2*LDSIZ,LDSIZ)+1
             LL=LLX+LDMIN-1
 C
             MM=NTH0+MD
@@ -722,14 +724,16 @@ C
             NDX=ND-NDMIN+1
          DO NC=NDMIN,NDMAX
             NCX=NC-NDMIN+1
-            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+CXX            KKX=MOD(ND-NC-KDMIN+2*KDSIZ,KDSIZ)+1
+            KKX=MOD(NC-ND-KDMIN+2*KDSIZ,KDSIZ)+1
             KK=KKX+KDMIN-1
 C
          DO MD=MDMIN,MDMAX
             MDX=MD-MDMIN+1
          DO MC=MDMIN,MDMAX
             MCX=MC-MDMIN+1
-            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+CXX            LLX=MOD(MD-MC-LDMIN+2*LDSIZ,LDSIZ)+1
+            LLX=MOD(MC-MD-LDMIN+2*LDSIZ,LDSIZ)+1
             LL=LLX+LDMIN-1
 C
             MM=NTH0+MD
