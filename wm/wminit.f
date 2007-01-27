@@ -126,6 +126,9 @@ C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
+C        MDLWMX: Control procdure in wmsetm.f
+C                   0: based on 2006-01-01
+C                   1: based on 2006-06-01
 C
       NPRINT = 2
       NGRAPH = 1
@@ -136,6 +139,7 @@ C
       MODELK = 0
       MODELM = 0
       MODELW = 0
+      MDLWMX = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -263,7 +267,7 @@ C
      &              RHOMIN,QMIN,RHOEDG,
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWR,KNAMFP,KNAMFO,KNAMPF,
-     &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR
+     &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,MDLWMX
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -300,7 +304,8 @@ C
      &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'/
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
-     &       9X,'WAEMIN,WAEMAX,KNAMEQ,KNAMTR,KNAMPF')
+     &       9X,'WAEMIN,WAEMAX,KNAMEQ,KNAMTR,KNAMPF'/
+     &       9X,'MDLWMX')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -461,7 +466,7 @@ C
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,601) 'ANTANG',ANTANG
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
-     &             'NPHMAX',NPHMAX
+     &             'NPHMAX',NPHMAX,'MDLWMX',MDLWMX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
 C
