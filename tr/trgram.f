@@ -422,7 +422,7 @@ C
                GYR(NR+1,2) = GUCLIP(QPL)
             ENDDO
             GYR(1,1) = GUCLIP((4.D0*QP(1)-QP(2))/3.D0)
-            GYR(1,2) = (4.0*GYR(2,2)-GYR(3,2))/3.0
+            GYR(1,2) = GUCLIP((4.0*GYR(2,2)-GYR(3,2))/3.0)
             CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,
      &                  '@QP(TR),QP(XP) vs r@',2+INQ)
          ELSE
