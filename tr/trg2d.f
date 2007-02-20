@@ -6,41 +6,30 @@ C           GRAPHIC 3D : UNIVERSAL ROUTINE
 C
 C     **************************************************************
 C
-      SUBROUTINE TRGRUR(GVD,STR,KV,INQ)
+      SUBROUTINE TRGRUR(NMB,STR,KV,INQ)
 C
       INCLUDE 'trcomm.inc'
       CHARACTER STR*80,KV*80
       DIMENSION GVD(NRM,NTM)
-      DIMENSION GVDX(NRM,NTM)
-      DIMENSION GTX(NTM)
-      DIMENSION KA(NRM,NTM)
+      DIMENSION KA(8,NRM,NTM)
 C
-      NG=NGT
-      NSTEP=(NG-1)/100+1
-      NTLMAX=NGT/NSTEP+1
-      DO NTL=1,NTLMAX-1
-         NGTL=NSTEP*(NTL-1)+1
-         GTX(NTL)=GT(NGTL)
-         DO NR=1,NRMAX
-            GVDX(NR,NTL)=GVD(NR,NGTL)
+      DO NR=1,NRMAX
+         DO NG=1,NGT
+            GVD(NR,NG) = G3D(NR,NG,NMB)
          ENDDO
       ENDDO
-      NTL=NTLMAX
-      NGTL=NGT
-         GTX(NTL)=GT(NGTL)
-         DO NR=1,NRMAX
-            GVDX(NR,NTL)=GVD(NR,NGTL)
-         ENDDO
 C
       GX1=3.0
       GX2=20.0
       GY1=2.0
       GY2=17.0
 C
+      IF(RHOA.NE.1.D0) NRMAX=NROMAX
       CALL PAGES
-      CALL TRGR3D(GX1,GX2,GY1,GY2,GRM,GTX,GVDX,NRM,NRMAX,NTLMAX,KA,
+      CALL TRGR3D(GX1,GX2,GY1,GY2,GRM,GTR,GVD,NRM,NRMAX,NGT,KA,
      &            STR,KV,2+INQ)
       CALL PAGEE
+      IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 C
       RETURN
       END

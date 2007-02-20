@@ -774,7 +774,7 @@ C
             GYR(NR,MDLER)=GUCLIP(ER(NR))
          ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRM,NRMAX,4,
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX,4,
      &            '@ER  vs r@',2+INQ)
 C
       MDLER=MDLER_ORG

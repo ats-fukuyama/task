@@ -6,11 +6,17 @@ C           GRAPHIC 3D : UNIVERSAL ROUTINE
 C
 C     **************************************************************
 C
-      SUBROUTINE TRGRUR(GVD,STR,KV,INQ)
+      SUBROUTINE TRGRUR(NMB,STR,KV,INQ)
 C
       INCLUDE 'trcomm.inc'
       CHARACTER STR*80,KV*80
       DIMENSION GVD(NRM,NTM)
+C
+      DO NR=1,NRMAX
+         DO NG=1,NGT
+            GVD(NR,NG) = G3D(NR,NG,NMB)
+         ENDDO
+      ENDDO
 C
       GX1=3.0
       GX2=18.0
@@ -20,7 +26,7 @@ C
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       CALL PAGES
       CALL GSGLENABLELIGHTING
-      CALL TRGR3D(GX1,GX2,GY1,GY2,GRM,GT,GVD,NRM,NRMAX,NGT,
+      CALL TRGR3D(GX1,GX2,GY1,GY2,GRM,GTR,GVD,NRM,NRMAX,NGT,
      &            STR,KV,2+INQ)
       CALL PAGEE
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX

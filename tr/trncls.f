@@ -248,6 +248,10 @@ C     Output
      &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s,
      &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s,
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
+!      write(6,*) RM(NR)*RA,BB**2*ymu_s(1,1,1)
+!     &     /(RN(NR,1)*1.D20*AME*BP(NR)**2)
+!      write(6,*) RM(NR)*RA,BB**2*ymu_s(1,1,2)
+!     &     /(RN(NR,2)*1.D20*2.D0*AMM*BP(NR)**2)
 C
       IF(k_out.eq.1.or.k_out.eq.2) THEN
          p_eps = SNGL(EPS)
@@ -336,10 +340,9 @@ C
             bpol=btor/p_fhat
             btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
             DO i=1,m_s
-               im=jm_s(i)
-               iz=jz_s(i)
                uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
-               IF(im.eq.PA(2).and.iz.eq.PZ(2)) then
+               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.
+     &            iz.eq.int(PZ(2))) then
 !     Poloidal
                   VPOL(NR)=DBLE(uthai*bpol)
 !     Parallel

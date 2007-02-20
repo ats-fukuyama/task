@@ -200,7 +200,6 @@ C
      &            '@VTOR [m/s]  vs t@',KATR)
 C
       DO I=1,NGT
-         TSL = DBLE(GT(I))
          DO NR=1,NRMAX
             GYL(I,NR) = G3D(NR,I,63)
          ENDDO

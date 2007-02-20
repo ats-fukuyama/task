@@ -361,7 +361,7 @@ C
                BPA=AR1RHOG(NRMAX)*RDPS/RR
                PROFDL=(PTS(1)*RKEV/(16.D0*AEE*SQRT(BB**2+BPA**2)))
      &               /FSDFIX
-               AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**3)
+               AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**2)
             ELSE                                           
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
