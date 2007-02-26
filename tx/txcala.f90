@@ -629,7 +629,7 @@ contains
 
        ! Loss to divertor
 
-       ELM(1:4,16+N,LQe3,NE) = - fem_int(2,NE,rNuL)
+       ELM(1:4,16+N,LQe3,NE) = - 2.D0 * fem_int(2,NE,rNuL)
        NLC(16+N,LQe3) = LQe3
 
        ! Collisional friction force with neutrals
@@ -735,7 +735,7 @@ contains
 
        ! Loss to divertor
 
-       ELM(1:4,15,LQe4,NE) = - fem_int(2,NE,rNuL)
+       ELM(1:4,15,LQe4,NE) = - 2.D0 * fem_int(2,NE,rNuL)
        NLC(15,LQe4) = LQe4
 
        ! Collisional friction force with neutrals
@@ -818,7 +818,7 @@ contains
           ELM(1:4, 9,LQe5,NE) = -                  fem_int( 2,NE,rNuL)
           NLC( 9,LQe5) = LQe5
 
-          PELM(1:4,10,LQe5,NE) =          PNeDIV * fem_int(-2,NE,rNuLTe,PTeV)
+          PELM(1:4,10,LQe5,NE) =          PNeDIV * fem_int(-2,NE,rNuL,PTeV)
           NLC(10,LQe5) = 0
 
           ELM(1:4,11,LQe5,NE) = - 1.5D0          * fem_int( 2,NE,rNuLTe)
@@ -1183,7 +1183,7 @@ contains
 
        ! Loss to divertor
 
-       ELM(1:4,16+N,LQi3,NE) = - fem_int(2,NE,rNuL)
+       ELM(1:4,16+N,LQi3,NE) = - 2.D0 * fem_int(2,NE,rNuL)
        NLC(16+N,LQi3) = LQi3
 
        ! Collisional friction force with neutrals
@@ -1299,7 +1299,7 @@ contains
 
        ! Loss to divertor
 
-       ELM(1:4,15,LQi4,NE) = - fem_int(2,NE,rNuL)
+       ELM(1:4,15,LQi4,NE) = - 2.D0 * fem_int(2,NE,rNuL)
        NLC(15,LQi4) = LQi4
 
        ! Collisional friction force with neutrals
@@ -1389,10 +1389,10 @@ contains
 
           ! Loss to diverter
 
-          ELM(1:4, 9,LQi5,NE) = -                       fem_int( 2,NE,rNuLTi)
+          ELM(1:4, 9,LQi5,NE) = -         1.D0   / PZ * fem_int( 2,NE,rNuL)
           NLC( 9,LQi5) = LQi5
 
-          PELM(1:4,10,LQi5,NE) =          PNeDIV / PZ * fem_int(-2,NE,rNuLTi,PTiV)
+          PELM(1:4,10,LQi5,NE) =          PNeDIV / PZ * fem_int(-2,NE,rNuL,PTiV)
           NLC(10,LQi5) = 0
 
           ELM(1:4,11,LQi5,NE) = - 1.5D0               * fem_int( 2,NE,rNuLTi)
@@ -1557,10 +1557,10 @@ contains
        ELM(1:4,1,LQb3,NE) = - (PZ * AEE / AMB) * fem_int(2,NE,PNbV)
        NLC(1,LQb3) = LQm2
 
-       ! Neoclassical viscosity force
-
-       ELM(1:4,2,LQb3,NE) = - fem_int(2,NE,rNuiNC)
-       NLC(2,LQb3) = LQb3
+!!$       ! Neoclassical viscosity force
+!!$
+!!$       ELM(1:4,2,LQb3,NE) = - fem_int(2,NE,rNuiNC)
+!!$       NLC(2,LQb3) = LQb3
 
        ! Collisional friction force with electrons
 

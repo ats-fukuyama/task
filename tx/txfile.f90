@@ -126,7 +126,8 @@ contains
           IF (STR == 'Y') THEN
              OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
              IF (IST == 0) THEN
-                WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR OUTPUT.'
+                WRITE(6,*) '# OLD FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), &
+                     &     ' ) IS ASSIGNED FOR OUTPUT.'
                 EXIT
              ELSEIF (IST > 0) THEN
                 WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
@@ -135,7 +136,8 @@ contains
        ELSE
           OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',FORM='UNFORMATTED')
           IF (IST == 0) THEN
-             WRITE(6,*) '# NEW FILE (', TXFNAM, ') IS CREATED FOR OUTPUT.'
+             WRITE(6,*) '# NEW FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), &
+                  &     ' ) IS CREATED FOR OUTPUT.'
              EXIT
           ELSEIF (IST > 0) THEN
              WRITE(6,*) 'XX  NEW FILE OPEN ERROR !, IOSTAT = ', IST
@@ -156,7 +158,7 @@ contains
     WRITE(21) rLn,rLT
     WRITE(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
     WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    WRITE(21) DLT,DT,EPS
+    WRITE(21) DT,EPS,ADV
     WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
     WRITE(21) rG1
     WRITE(21) rIPs,rIPe
@@ -203,13 +205,14 @@ contains
        IF (LEX) THEN
           OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
           IF (IST == 0) THEN
-             WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR INPUT.'
+             WRITE(6,*) '# OLD FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),  &
+                  &     ' ) IS ASSIGNED FOR INPUT.'
              EXIT
           ELSEIF (IST > 0) THEN
              WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
           END IF
        ELSE
-          WRITE(6,*) 'XX  FILE (', TXFNAM, ') DOES NOT EXIST !'
+          WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
        END IF
     END DO
 
@@ -228,11 +231,11 @@ contains
     READ(21) De0,Di0,rMue0,rMui0,WPM0
     READ(21) Chie0,Chii0
     READ(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
-    READ(21) FSCX,FSLC,FSNC,FSLP,FSION,FSD0
+    READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0
     READ(21) rLn,rLT
     READ(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
     READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    READ(21) DLT,DT,EPS
+    READ(21) DT,EPS,ADV
     READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
     READ(21) rG1
     READ(21) rIPs,rIPe
@@ -286,7 +289,7 @@ contains
 
     RCSId = ' '
 
-    DO 
+    DO
        WRITE(6,*) '# INPUT : SAVE FILE NAME'
        CALL GUFLSH
        READ(*,'(A100)',IOSTAT=IST) TXFNAM
@@ -301,7 +304,8 @@ contains
           ELSE
              OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
              IF (IST == 0) THEN
-                WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR OUTPUT.'
+                WRITE(6,*) '# OLD FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), &
+                     &     ' ) IS ASSIGNED FOR OUTPUT.'
                 EXIT
              ELSEIF (IST > 0) THEN
                 WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
@@ -310,7 +314,8 @@ contains
        ELSE
           OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='NEW',FORM='UNFORMATTED')
           IF (IST == 0) THEN
-             WRITE(6,*) '# NEW FILE (', TXFNAM, ') IS CREATED FOR OUTPUT.'
+             WRITE(6,*) '# NEW FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), &
+                  &     ' ) IS CREATED FOR OUTPUT.'
              EXIT
           ELSEIF (IST > 0) THEN
              WRITE(6,*) 'XX  NEW FILE OPEN ERROR !, IOSTAT = ', IST
@@ -318,26 +323,26 @@ contains
        END IF
     END DO
 
-    WRITE(21) SLID
-    WRITE(21) RCSId
-
-    WRITE(21) RA,RB,RC,RR,BB
-    WRITE(21) PA,PZ,Zeff
-    WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-    WRITE(21) De0,Di0,rMue0,rMui0,WPM0
-    WRITE(21) Chie0,Chii0
-    WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
-    WRITE(21) FSCX,FSLC,FSNC,FSLP,FSION,FSD0
-    WRITE(21) rLn,rLT
-    WRITE(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
-    WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    WRITE(21) DLT,DT,EPS
-    WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-    WRITE(21) rG1
-    WRITE(21) rIPs,rIPe
-
-    WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
-    WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
+!!$    WRITE(21) SLID
+!!$    WRITE(21) RCSId
+!!$
+!!$    WRITE(21) RA,RB,RC,RR,BB
+!!$    WRITE(21) PA,PZ,Zeff
+!!$    WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+!!$    WRITE(21) De0,Di0,rMue0,rMui0,WPM0
+!!$    WRITE(21) Chie0,Chii0
+!!$    WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
+!!$    WRITE(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0
+!!$    WRITE(21) rLn,rLT
+!!$    WRITE(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
+!!$    WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
+!!$    WRITE(21) DT,EPS,ADV
+!!$    WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
+!!$    WRITE(21) rG1
+!!$    WRITE(21) rIPs,rIPe
+!!$
+!!$    WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
+!!$    WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     WRITE(21) NGR,NGYRM
     WRITE(21) NGT,NGYTM
@@ -360,6 +365,7 @@ contains
 !***************************************************************
 
   SUBROUTINE TXGLOD
+
     use results
     use output_console
     use init_prof
@@ -381,42 +387,43 @@ contains
        IF (LEX) THEN
           OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
           IF (IST == 0) THEN
-             WRITE(6,*) '# OLD FILE (', TXFNAM, ') IS ASSIGNED FOR INPUT.'
+             WRITE(6,*) '# OLD FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),&
+                  &     ' ) IS ASSIGNED FOR INPUT.'
              EXIT
           ELSEIF (IST > 0) THEN
              WRITE(6,*) 'XX  OLD FILE OPEN ERROR !, IOSTAT = ', IST
           END IF
        ELSE
-          WRITE(6,*) 'XX  FILE (', TXFNAM, ') DOES NOT EXIST !'
+          WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
        END IF
     END DO
 
-    READ(21,IOSTAT=IST) LOADSLID
-    IF (IST > 0) THEN
-       WRITE(6,*) 'XX READ ERROR in TXGLOD !'
-       CLOSE(21)
-       RETURN
-    END IF
-    !  IF(LOADSLID(1:5) == 'tx400') THEN
-    READ(21) RCSId
-
-    READ(21) RA,RB,RC,RR,BB
-    READ(21) PA,PZ,Zeff
-    READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-    READ(21) De0,Di0,rMue0,rMui0,WPM0
-    READ(21) Chie0,Chii0
-    READ(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
-    READ(21) FSCX,FSLC,FSNC,FSLP,FSION,FSD0
-    READ(21) rLn,rLT
-    READ(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
-    READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    READ(21) DLT,DT,EPS
-    READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-    READ(21) rG1
-    READ(21) rIPs,rIPe
-
-    READ(21) T_TX,TMAX,NT,NQMAX,IERR
-    READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
+!!$    READ(21,IOSTAT=IST) LOADSLID
+!!$    IF (IST > 0) THEN
+!!$       WRITE(6,*) 'XX READ ERROR in TXGLOD !'
+!!$       CLOSE(21)
+!!$       RETURN
+!!$    END IF
+!!$    !  IF(LOADSLID(1:5) == 'tx400') THEN
+!!$    READ(21) RCSId
+!!$
+!!$    READ(21) RA,RB,RC,RR,BB
+!!$    READ(21) PA,PZ,Zeff
+!!$    READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+!!$    READ(21) De0,Di0,rMue0,rMui0,WPM0
+!!$    READ(21) Chie0,Chii0
+!!$    READ(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
+!!$    READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0
+!!$    READ(21) rLn,rLT
+!!$    READ(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
+!!$    READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
+!!$    READ(21) DT,EPS,ADV
+!!$    READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
+!!$    READ(21) rG1
+!!$    READ(21) rIPs,rIPe
+!!$
+!!$    READ(21) T_TX,TMAX,NT,NQMAX,IERR
+!!$    READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
     READ(21) NGR,NGYR
     READ(21) NGT,NGYT
@@ -430,19 +437,19 @@ contains
     CLOSE(21)
     WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
-    IF (NQMAX == 16) THEN
-       X(LQm2,0:NRMAX) = 0
-       X(LQm5,0:NRMAX) = BB
-       X(LQb3,0:NRMAX) = 0
-       X(LQn2,0:NRMAX) = 0
-    END IF
-
+!!$    IF (NQMAX == 16) THEN
+!!$       X(LQm2,0:NRMAX) = 0
+!!$       X(LQm5,0:NRMAX) = BB
+!!$       X(LQb3,0:NRMAX) = 0
+!!$       X(LQn2,0:NRMAX) = 0
+!!$    END IF
+!!$
     CALL TXCALM
-    CALL TXCALV(X)
-    CALL TXCALC
-    CALL TXGLOB
-    CALL TXWDAT
-    CALL TXWDAT2
+!!$    CALL TXCALV(X)
+!!$    CALL TXCALC
+!!$    CALL TXGLOB
+!!$    CALL TXWDAT
+!!$    CALL TXWDAT2
 
     RETURN
   END SUBROUTINE TXGLOD

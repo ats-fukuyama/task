@@ -16,7 +16,7 @@ contains
 !      u    : variable vector
 !      w    : weighting vector
 !
-!   function(r) is classified as follows:
+!   function(psi) is classified as follows:
 !      id = 1  : u * w
 !      id = 2  : a * u * w
 !      id = 3  :(a * u)'* w
@@ -79,9 +79,8 @@ contains
 !  < input >
 !     id       : mode select
 !     ne       : current number of elements
-!     nnode    : maximum of nodes
-!     a(nnode) : coefficient vector, optional
-!     b(nnode) : coefficient vector, optional
+!     a(nrmax) : coefficient vector, optional
+!     b(nrmax) : coefficient vector, optional
 !  < output >
 !     x(4)     : matrix of integrated values
 !
@@ -853,7 +852,7 @@ contains
     
   END SUBROUTINE VALINT_SUB
 
-! *** Integral Method By Inversing Derivative Method ***
+! *** Integral Method By Inverting Derivative Method ***
 
 !     This formula can be used only if intX(0    ) is known of FVAL (ID = 0)
 !                                   or intX(NRMAX) is known of FVAL (ID = else).

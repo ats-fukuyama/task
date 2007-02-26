@@ -309,7 +309,7 @@ contains
 !!$             VPRP(NR)=DBLE(BphV(NR)/btot*VPOL(NR)-BthV(NR)/btot*VTOR(NR))
           ENDIF
        ENDDO
-!       IF(NT==500) write(6,*) R(NR),VPOL(NR)
+!       IF(NT==500) write(6,*) R(NR)/RA,VPOL(NR)
 !!$    ENDIF
 
     RETURN

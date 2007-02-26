@@ -26,7 +26,8 @@ contains
     use libraries, only : TOUPPER
     use file_io, only : TXLOAD, TXGSAV, TXGLOD
 
-    INTEGER :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST
+    INTEGER :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
+    real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
     character(len=5) :: STR, STR2
     character(len=1) :: KID1, KID2
 
@@ -179,7 +180,7 @@ contains
 
        CASE('M')
           DO
-             WRITE(6,*) '## Number of files :'
+             WRITE(6,*) '## Number of files (Max = 5):'
              READ(5,*,IOSTAT=IST) NGFMAX
              IF (IST > 0) THEN
                 CYCLE
@@ -189,52 +190,67 @@ contains
                 EXIT
              END IF
           END DO
-          NGR=-1
+          IF(T_TX == 0.D0) THEN
+             NGRT = 1
+          ELSE
+             NGRT = 0
+             GYL(0:NRMAX,0,1:NGYRM) = GY(0:NRMAX,NGR,1:NGYRM)
+          END IF
+          NGR=0
           DO NGF=1,NGFMAX
-             CALL TXLOAD
+             CALL TXGLOD
+             GYL(0:NRMAX,NGF-NGRT,1:NGYRM) = GY(0:NRMAX,NGR,1:NGYRM)
              CALL TX_GRAPH_SAVE
           END DO
-          DO
-             WRITE(6,*) '## INPUT GRAPH NUMBER'
-             READ(5,'(A5)',IOSTAT=IST) STR2
-             IF (IST > 0) THEN
-                CYCLE
-             ELSEIF (IST < 0) THEN
-                CYCLE OUTER
-             ELSE
+          NGR = NGFMAX-NGRT
+          GY(0:NRMAX,0:NGR,1:NGYRM) = GYL(0:NRMAX,0:NGR,1:NGYRM)
+          DO 
+             DO
+                WRITE(6,*) '## INPUT GRAPH NUMBER: A,B,RA,RB,RC,Rn,X:exit'
+                READ(5,'(A5)',IOSTAT=IST) STR2
+                IF (IST > 0) THEN
+                   CYCLE
+                ELSEIF (IST < 0) THEN
+                   CYCLE OUTER
+                ELSE
+                   EXIT
+                END IF
+             END DO
+             CALL TOUPPER(STR2)
+             IF (STR2 == '     ') THEN
+                !     For space or return only 
+                !     Correspond to GMA
+             ELSE IF (STR2(1:1) == 'A') THEN
+                DO I = 1, NGPRM
+                   CALL TXGRFR(I,MODE)
+                END DO
+                !     Correspond to GMB
+             ELSE IF (STR2(1:1) == 'B') THEN
+                DO I = 1, 6
+                   CALL TXGRFR(I,MODE)
+                END DO
+                DO I = 9, 10
+                   CALL TXGRFR(I,MODE)
+                END DO
+                !     Correspond to GMC
+             ELSE IF (STR2(1:2) == 'RA') THEN
+                CALL TXGRFR(-1,MODE)
+             ELSE IF (STR2(1:2) == 'RB') THEN
+                CALL TXGRFR(-3,MODE)
+             ELSE IF (STR2(1:2) == 'RC') THEN
+                CALL TXGRFR(-5,MODE)
+             ELSE IF (STR2(1:1) == 'X') THEN
                 EXIT
+             ELSE
+                READ(STR2,'(I5)',IOSTAT=IST) NGPR
+                IF (IST < 0) CYCLE
+                IF      (NGPR == 0) THEN
+                   CYCLE
+                ELSE IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
+                   CALL TXGRFR(NGPR,MODE)
+                END IF
              END IF
           END DO
-          CALL TOUPPER(STR2)
-          IF (STR2 == '     ') THEN
-             !     For space or return only 
-             !     Correspond to GMA
-          ELSE IF (STR2(1:1) == 'A') THEN
-             DO I = 1, NGPRM
-                CALL TXGRFR(I,MODE)
-             END DO
-             !     Correspond to GMB
-          ELSE IF (STR2(1:1) == 'B') THEN
-             DO I = 1, 6
-                CALL TXGRFR(I,MODE)
-             END DO
-             DO I = 9, 10
-                CALL TXGRFR(I,MODE)
-             END DO
-             !     Correspond to GMC
-          ELSE IF (STR2(1:1) == 'C') THEN
-             DO I = 1, 5
-                CALL TXGRFR(I,MODE)
-             END DO
-          ELSE
-             READ(STR2,'(I5)',IOSTAT=IST) NGPR
-             IF (IST < 0) CYCLE
-             IF      (NGPR == 0) THEN
-                CYCLE
-             ELSE IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
-                CALL TXGRFR(NGPR,MODE)
-             END IF
-          END IF
 
        CASE('X')
           RETURN
@@ -430,6 +446,13 @@ contains
     GY(0:NRMAX,NGR,93) = SNGL(rNuLTi(0:NRMAX))
     GY(0:NRMAX,NGR,94) = SNGL(rNuAse(0:NRMAX))
     GY(0:NRMAX,NGR,95) = SNGL(rNuASi(0:NRMAX))
+
+    GY(0:NRMAX,NGR,96) = SNGL(PNBe(0:NRMAX))
+    GY(0:NRMAX,NGR,97) = SNGL(PNBi(0:NRMAX))
+    GY(0:NRMAX,NGR,98) = SNGL(POHe(0:NRMAX))
+    GY(0:NRMAX,NGR,99) = SNGL(POHi(0:NRMAX))
+    GY(0:NRMAX,NGR,100) = SNGL(PEQe(0:NRMAX))
+    GY(0:NRMAX,NGR,101) = SNGL(PEQi(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -891,6 +914,32 @@ contains
        !CALL TXWPGR
 
     CASE(15)
+       STR = '@PNBe(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,96), GYL, STR, NRM, NRMAX, NGR, gDIV(96))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@POHe(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,98), GYL, STR, NRM, NRMAX, NGR, gDIV(98))
+       CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@PNBi(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,97), GYL, STR, NRM, NRMAX, NGR, gDIV(97))
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@POHi(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,99), GYL, STR, NRM, NRMAX, NGR, gDIV(99))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+    CASE(16)
+       STR = '@PEQe(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,100), GYL, STR, NRM, NRMAX, NGR, gDIV(100))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@PEQi(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,101), GYL, STR, NRM, NRMAX, NGR, gDIV(101))
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+    CASE(17)
        DO NR = 0, NRMAX
           IF(GX(NR) >= 0.95) EXIT
        END DO
@@ -1289,10 +1338,12 @@ contains
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
 !       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
        GYL(NR,2) = GLOG(ETA3(NR),1.D-10,1.D0)
+       write(6,*) R(NR)/RA,AJBS3(NR)/AJBS1(NR)
     END DO
 
     STR = '@LOG: ETA@'
     CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
+!!$    CALL TXGRFRS(0, GX, GYL, NRA, 2, STR, MODE, IND, 1)
 
     GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
 !    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
@@ -1301,6 +1352,8 @@ contains
     STR = '@AJBS@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 2-1, gDIV(22))
     CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
+!!$    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRA, 2-1, gDIV(22))
+!!$    CALL TXGRFRS(1, GX, GYL2, NRA, 2, STR, MODE, IND, 0)
 
     CALL PAGEE
 
@@ -1481,7 +1534,7 @@ contains
        CALL APPROPGY(MODEG, GVY(0,38), GVYL, STR, NGVM, NGVV, 3, gDIV(1), GVY(0, 1))
        CALL TXGRFVX(0, GVX, GVYL, NGVM, NGVV, 4, STR, MODE, IND)
 
-       STR = '@Z*n$-i$=+Z*n$-b$=-n$-e$=@'
+       STR = '@Z*n$-i$=+Z*n$-b$=-n$-e$=(0)@'
        CALL APPROPGY(MODEG, GVY(0, 2), GVYL, STR, NGVM, NGVV, 1, gDIV(2))
        CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 

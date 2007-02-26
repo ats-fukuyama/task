@@ -351,7 +351,8 @@ contains
                   &     * 1.D0 / ( ABS(UbphV(NR))**3 + 3.D0 * SQRT(PI) / 4.D0 &
                   &     * Vti**1.5D0)! &
 !                  &     * RL**2 / (1.D0 + RL**2)
-             rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
+!             rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
+             rNuB (NR) = rNube(NR) + rNubi(NR)
           ELSE
              rNube(NR) = 0.D0
              rNubi(NR) = 0.D0
@@ -461,6 +462,11 @@ contains
        END IF
 
        DeL = 1.D0
+!!$       IF (R(NR) < RA) THEN
+!!$          DeL = FSDFIX * (1.D0 + 4.D0 * (R(NR) / RA)**2) + FSCDBM * DCDBM
+!!$       ELSE
+!!$          DeL = 0.2D0 * FSPSCL
+!!$       END IF
 !!$       DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -568,6 +574,25 @@ contains
        ! NB induced current density
        AJNB(NR) = PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)
 
+       !     *** NBI power deposition ***
+
+       PNBe(NR) = - 0.5D0 * AMb * (PNBCD * Vb) * rNube(NR) &
+            &   * PNbV(NR) * 1.D20 * (UephV(NR) - UbphV(NR))
+       PNBi(NR) = - 0.5D0 * AMb * (PNBCD * Vb) * rNubi(NR) &
+            &   * PNbV(NR) * 1.D20 * (UiphV(NR) - UbphV(NR))
+
+       !     *** Equipartition power ***
+
+       PEQe(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTeV(NR) - PTiV(NR)) * rKeV
+       PEQi(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTiV(NR) - PTeV(NR)) * rKeV
+
+       !     *** Ohmic power from Eqautions ***
+
+       POHe(NR) = - AEE * EthV(NR) * PNeV(NR) * 1.D20 * UethV(NR) &
+            &     - AEE * EphV(NR) * PNeV(NR) * 1.D20 * UephV(NR)
+       POHi(NR) =   AEE * EthV(NR) * PNiV(NR) * 1.D20 * UithV(NR) &
+            &     + AEE * EphV(NR) * PNiV(NR) * 1.D20 * UiphV(NR)
+
        !     *** Bremsstraulung loss ***
 
        PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
@@ -576,7 +601,8 @@ contains
 
 !       IF (R(NR) + DBW > RA) THEN
        IF (R(NR) > RA) THEN
-          Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
+!          Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
+          Cs = SQRT((PZ * PTeV(NR) + 3.D0 * PTiV(NR)) * rKeV / AMI)
           RL = (R(NR) - RA) / DBW! / 2.D0
           rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)

@@ -208,9 +208,6 @@ contains
 
     !   ***** Numerical parameters *****
 
-    !   Implicitness parameter (Not used now)
-    DLT = 1.0D0
-
     !   Time step size(s)
 !!!!    DT = 1.D-4
     DT = 1.D-3
@@ -348,7 +345,12 @@ contains
     gDIV(74) = 1.E6
     gDIV(75) = 1.E6
     gDIV(88) = 1.E3
-    gDIV(89) = 1.E6
+    gDIV(96) = 1.E6
+    gDIV(97) = 1.E6
+    gDIV(98) = 1.E6
+    gDIV(99) = 1.E6
+    gDIV(100) = 1.E6
+    gDIV(101) = 1.E6
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -501,6 +503,8 @@ contains
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
     REAL(8) :: ALP, dPe, dPi, DR1, DR2
     REAL(8) :: EpsL, Vte, Wte, rLnLam, rNuAsE_inv, FTL, EFT, ETAS, CR
+    real(8) :: PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
+         &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
     REAL(8) :: DERIV3, FCTR ! External functions
     real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
     real(8), dimension(:,:), allocatable :: CMTX
@@ -518,10 +522,20 @@ contains
     !  Variables
 
     allocate(AJPHL(0:NRMAX))
+    PBA   = RB**2 - RA**2
+    dPN   = - (PN0 - PNa) / RA**2
+    CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
+    CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
+     pea  = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
+    dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
+    pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
+    Cfpe1 = - (4.D0 * pea + 3.D0 * PBA * dpea - 4.D0 * pediv) / PBA**3
+    Cfpe2 =   (3.D0 * pea + 2.D0 * PBA * dpea - 3.D0 * pediv) / PBA**4
+    Cfpi1 = - (4.D0 * pia + 3.D0 * PBA * dpia - 4.D0 * pidiv) / PBA**3
+    Cfpi2 =   (3.D0 * pia + 2.D0 * PBA * dpia - 3.D0 * pidiv) / PBA**4
     DO NR = 0, NRMAX
        RL=R(NR)
        IF (RL < RA) THEN
-!          PROF  =(1.D0 - (RL / RA)**2)**2
           PROF  = 1.D0 - (RL / RA)**2
           PROFT = PROF**2
           ! Ne
@@ -533,17 +547,24 @@ contains
           ! Ni*Ti
           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
        ELSE
-          SSN = 2.D0 * (RB - RA) * (PN0 - PNa) / (RA * (PNa - PNeDIV))
-          X(LQe1,NR) = (PNa - PNeDIV) * ((RB - RL) / (RB - RA))**SSN + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
-          X(LQi1,NR) = X(LQe1,NR) / PZ
-          SSPe = 2.D0 * (RB - RA) * (PN0 - PNa)       * PTea &
-               & / (RA * (PNa*PTea - PNeDIV*PTeDIV))
-          SSPi = 2.D0 * (RB - RA) *((PN0 - PNa) / PZ) * PTia &
-               & / (RA * (PNa*PTia - PNeDIV*PTiDIV) / PZ)
-          X(LQe5,NR) = ((PNa*PTea - PNeDIV*PTeDIV)      * ((RB - RL) / (RB - RA))**SSPe) &
-               &     + PNeDIV*PTeDIV!PTea*X(LQe1,NR)
-          X(LQi5,NR) = ((PNa*PTia - PNeDIV*PTiDIV) / PZ * ((RB - RL) / (RB - RA))**SSPi) &
-               &     + PNeDIV*PTiDIV / PZ!PTia*X(LQi1,NR)
+          X(LQe1,NR) = PNa + dPN * (RL**2 - RA**2) + CfN1 * (RL**2 - RA**2)**3 &
+               &                                   + CfN2 * (RL**2 - RA**2)**4
+          X(LQi1,NR) =  X(LQe1,NR) / PZ
+          X(LQe5,NR) = pea + dpea * (RL**2 - RA**2) + Cfpe1 * (RL**2 - RA**2)**3 &
+               &                                    + Cfpe2 * (RL**2 - RA**2)**4
+          X(LQi5,NR) = pia + dpia * (RL**2 - RA**2) + Cfpi1 * (RL**2 - RA**2)**3 &
+               &                                    + Cfpi2 * (RL**2 - RA**2)**4
+!!$          SSN = 2.D0 * (RB - RA) * (PN0 - PNa) / (RA * (PNa - PNeDIV))
+!!$          X(LQe1,NR) = (PNa - PNeDIV) * ((RB - RL) / (RB - RA))**SSN + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
+!!$          X(LQi1,NR) = X(LQe1,NR) / PZ
+!!$          SSPe = 2.D0 * (RB - RA) * (PN0 - PNa)       * PTea &
+!!$               & / (RA * (PNa*PTea - PNeDIV*PTeDIV))
+!!$          SSPi = 2.D0 * (RB - RA) *((PN0 - PNa) / PZ) * PTia &
+!!$               & / (RA * (PNa*PTia - PNeDIV*PTiDIV) / PZ)
+!!$          X(LQe5,NR) = ((PNa*PTea - PNeDIV*PTeDIV)      * ((RB - RL) / (RB - RA))**SSPe) &
+!!$               &     + PNeDIV*PTeDIV!PTea*X(LQe1,NR)
+!!$          X(LQi5,NR) = ((PNa*PTia - PNeDIV*PTiDIV) / PZ * ((RB - RL) / (RB - RA))**SSPi) &
+!!$               &     + PNeDIV*PTiDIV / PZ!PTia*X(LQi1,NR)
        END IF
        ! N0_1 (slow neutrals)
        X(LQn1,NR) = PN0s
@@ -786,7 +807,7 @@ module parameter_control
        & rLn,rLT, &
        & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DLT,DT,EPS,ICMAX,ADV,CMESH,WMESH, &
+       & DT,EPS,ICMAX,ADV,CMESH,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
@@ -892,7 +913,7 @@ contains
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'DLT,DT,EPS,ICMAX,ADV,CMESH,WMESH,'/ &
+         &       ' ',8X,'DT,EPS,ICMAX,ADV,CMESH,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
@@ -937,7 +958,7 @@ contains
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
-         &   'PN0s  ', PN0s  ,  'DLT   ', DLT   ,  &
+         &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
          &   'EPS   ', EPS   ,  'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
