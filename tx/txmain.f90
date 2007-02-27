@@ -14,7 +14,7 @@
 !
 !***********************************************************
 !
-!   Varibles                                          Boundary Cond.
+!   Variables                                         Boundary Cond.
 !                                                      axis   edge
 !   X1  = phi                                           N      0
 !   X2  = r * Atheta'                                   0      D 
