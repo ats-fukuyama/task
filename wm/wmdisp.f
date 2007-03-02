@@ -215,8 +215,10 @@ C               WRITE(6,*) NR,NS,CPERP,CPARA
                      CPERP=CPERP+   CWP*CGZ0*CZ(1)/2
                      CCROS=CCROS-CI*CWP*CGZ0*CZ(1)/2
                   ELSEIF(NC.EQ.0) THEN
-                     CADD=1+RKPR*RU(NS)/(CW-RKPR*RU(NS))
-                     CPARA=CPARA-CWP*CDZ(1)*CGZ(1)*CGZ0*CADD*CADD
+ccc                     CADD=1+RKPR*RU(NS)/(CW-RKPR*RU(NS))
+                     cadd=1+RKPR*RU(NS)*CW/(CW-RKPR*RU(NS))**2 !
+ccc                     CPARA=CPARA-CWP*CDZ(1)*CGZ(1)*CGZ0*CADD*CADD
+                     CPARA=CPARA-CWP*CDZ(1)*CGZ(1)*CGZ0*CADD
                   ELSEIF(NC.EQ.1) THEN
                      CPERP=CPERP+   CWP*CGZ0*CZ(1)/2
                      CCROS=CCROS+CI*CWP*CGZ0*CZ(1)/2

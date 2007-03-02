@@ -182,6 +182,20 @@ C         ENDIF
       ENDDO
       ENDDO
 C
+C     ------- プラズマの外側のE+,E-,Ez0にする ---------
+      DO K=1,3
+         DO NR=1,NRMAX+1
+            IF(XRHO(NR).GT.1.0D0) THEN
+               DO NTH=1,NTHMAX
+                  DO NPH=1,NPHMAX
+                     CEP(K,NTH,NPH,NR)=(0.D0,0.D0)
+                  ENDDO
+               ENDDO
+            ELSE
+            ENDIF
+         ENDDO
+      ENDDO
+C
       DO NPH=1,NPHMAX
          CEN1=0.D0
          CEN2=0.D0

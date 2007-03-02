@@ -98,9 +98,9 @@ c    h			bmn,gmn,
 c    h			bsubumn, bsubvmn, bsubsmn, bsupumn, bsupvmn
 c	 ----------------------------
                  read  (     8,722) xm(mn),xn(mn),
-     f			rmnc(mn),zmns(mn),rlmns(mn),
-     h			bmod(mn),rgmod(mn),
-     h			     d1,      d2,      d3, bsu(mn), bsv(mn)
+     f          rmnc(mn),zmns(mn),rlmns(mn),
+     h          bmod(mn),rgmod(mn),
+     h          d1,      d2,      d3, bsu(mn), bsv(mn)
 c	 ----------------------------
             enddo
          enddo
@@ -144,9 +144,11 @@ C
 C     ----- Setup normalized radius for file data -----
 C
       phi(1) = 0.0d0
-      PSIPA =-PHI(NSRMAX)
+c     PSIPA =-PHI(NSRMAX)
+      PSIPA = PHI(NSRMAX)
       DO NSR=1,NSRMAX
-         S=-PHI(NSR)/PSIPA
+c        S=-PHI(NSR)/PSIPA
+         S= PHI(NSR)/PSIPA
          IF(S.LT.0.D0) THEN
             XS(NSR)=0.D0
          ELSE
@@ -157,15 +159,17 @@ C
          ELSE
             XSH(NSR)=0.5D0*(XS(NSR)+XS(NSR-1))
          ENDIF
-C         WRITE(6,'(I5,2X,1P4E12.5)') 
-C     &           NSR,PHI(NSR),XS(NSR),PRES(NSR),riotas(nsr)
+          WRITE(6,'(I5,2X,1P4E12.5)') 
+     &           NSR,PHI(NSR),XS(NSR),PRES(NSR),riotas(nsr)
       ENDDO
 C
       RHOB=RB/RA
       DRHO=RHOB/NRMAX
+      write(6,*) 'NR,XRHO,XR'
       DO NR=1,NRMAX+1
          XRHO(NR)=DRHO*(NR-1)
          XR(NR)  =RB*XRHO(NR)
+      write(6,*) nr,xrho(nr),xr(nr)
       ENDDO
       write(6,*) 'RA,RB,DRHO=',RA,RB,DRHO
 C
@@ -178,15 +182,31 @@ C
 C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
+      integer np,i
+      parameter (np=3)
+      real*8 nra,psipa,srmnca,drmnca,szmnsa,dzmnsa
+      dimension nra(np),psipa(np),srmnca(np),drmnca(np),szmnsa(np)
+      dimension dzmnsa(np)
 C
 C      ***** SPLINE PSIP *****
 C
       CALL SPL1D(XS,PHI,FX6,U6,NSRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX WMHCRZ: SPL1D: PHI: IEER=',IERR
 C
+c      DPSIP=(PHI(NSRMAX)-PHI(NSRMAX-5))/(XS(NSRMAX)-XS(NSRMAX-5))
       DO NR=1,NRMAX+1
          IF(XRHO(NR).GT.1.D0) THEN
-            PSIP(NR)=0.D0
+c            PSIP(NR)=PHI(NSRMAX)+DPSIP*(XRHO(NR)-XS(NSRMAX))
+c
+c
+            do i=1,np
+               nra(i)=nr-np-1+i
+               psipa(i)=psip(nr-np-1+i)
+            enddo
+c     
+            call polint(nra,psipa,np,nr,psip(nr),dy) 
+c
+c
          ELSE
             CALL SPL1DF(XRHO(NR),PSIP(NR),XS,U6,NSRMAX,IERR)
             IF(IERR.NE.0) THEN
@@ -195,7 +215,7 @@ C
      &                    '   NR,XRHO(NR),XS(1),XS(NRMAX)=',
      &                        NR,XRHO(NR),XS(1),XS(NRMAX)
             ENDIF         
-         ENDIF         
+         ENDIF        
       ENDDO
 C     
 C      ***** SPLINE RMNC(S),ZMNS(S) DRMNC(S) DZMNS(S) *****
@@ -217,10 +237,26 @@ C         ENDIF
 C
          DO NR=1,NRMAX+1
             IF(XRHO(NR).GT.1.D0) THEN
-               DRMNC(MN,NR)=(YRBS(NSRMAX)-YRBS(NSRMAX-1))
-     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
-               SRMNC(MN,NR)=YRBS(NSRMAX)
-     &                     +DRMNC(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+c               DRMNC(MN,NR)=(YRBS(NSRMAX)-YRBS(NSRMAX-1))
+c     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
+c               SRMNC(MN,NR)=YRBS(NSRMAX)
+c     &                     +DRMNC(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+c
+c
+            do i=1,np
+               nra(i)=nr-np-1+i
+               drmnca(i)=drmnc(mn,nr-np-1+i)
+            enddo
+c     
+            call polint(nra,drmnca,np,nr,drmnc(mn,nr),dy) 
+c
+            do i=1,np
+               nra(i)=nr-np-1+i
+               srmnca(i)=srmnc(mn,nr-np-1+i)
+            enddo
+c     
+            call polint(nra,srmnca,np,nr,srmnc(mn,nr),dy) 
+c
             ELSE
                CALL SPL1DD(XRHO(NR),SRMNC(MN,NR),DRMNC(MN,NR),
      &                     XS,U1(1,1,MN),NSRMAX,IERR)
@@ -231,10 +267,26 @@ C                 WRITE(6,'(3I5,1P2E12.4)') MN,NR,IERR,XRHO(NR),XS(NSRMAX)
             ENDIF
 C
             IF(XRHO(NR).GT.1.D0) THEN
-               DZMNS(MN,NR)=(YZBS(NSRMAX)-YZBS(NSRMAX-1))
-     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
-               SZMNS(MN,NR)=YZBS(NSRMAX)
-     &                     +DZMNS(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+c               DZMNS(MN,NR)=(YZBS(NSRMAX)-YZBS(NSRMAX-1))
+c     &                     /(XS(NSRMAX)-XS(NSRMAX-1))
+c               SZMNS(MN,NR)=YZBS(NSRMAX)
+c     &                     +DZMNS(MN,NR)*(XRHO(NR)-XS(NSRMAX))
+c
+c
+            do i=1,np
+               nra(i)=nr-np-1+i
+               dzmnsa(i)=dzmns(mn,nr-np-1+i)
+            enddo
+c     
+            call polint(nra,dzmnsa,np,nr,dzmns(mn,nr),dy) 
+c
+            do i=1,np
+               nra(i)=nr-np-1+i
+               szmnsa(i)=szmns(mn,nr-np-1+i)
+            enddo
+c     
+            call polint(nra,szmnsa,np,nr,szmns(mn,nr),dy) 
+c
             ELSE
                CALL SPL1DD(XRHO(NR),SZMNS(MN,NR),DZMNS(MN,NR),
      &                     XS,U2(1,1,MN),NSRMAX,IERR)
@@ -340,6 +392,10 @@ C
 C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
+      integer np,i
+      real*8 nra,bstha,bspha,qpsa
+      parameter (np=3)
+      dimension nra(np),bstha(np),bspha(np),qpsa(np)
       DIMENSION BSUS(NSRM),BSVS(NSRM)
 C
       DO MN=1,MNMAX
@@ -380,24 +436,54 @@ C            FX2(1)=0.D0
             CALL SPL1D(XS,BSVS,FX4,U4(1,1,MN),NSRMAX,0,IERR)
          ENDIF
 C
-         BSTHSV(MN)=BSUS(NSRMAX)
-         BSTHSD(MN)=(BSUS(NSRMAX)-BSUS(NSRMAX-1))
-     &             /(XS(NSRMAX)  -XS(NSRMAX-1))
+         BSTHSV(MN)=BSUS(NSRMAX-1)
+         BSTHSD(MN)=(BSUS(NSRMAX-1)-BSUS(NSRMAX-5))
+     &             /(XS(NSRMAX-1)  -XS(NSRMAX-5))
+c        BSTHSD(MN)=0.0
          BSPHSV(MN)=BSVS(NSRMAX)
-         BSPHSD(MN)=(BSVS(NSRMAX)-BSVS(NSRMAX-1))
-     &             /(XS(NSRMAX)  -XS(NSRMAX-1))
+         BSPHSD(MN)=(BSVS(NSRMAX)-BSVS(NSRMAX-5))
+     &             /(XS(NSRMAX)  -XS(NSRMAX-5))
+c        BSPHSD(MN)=0.0
          DO NR=1,NRMAX+1
-            IF(XRHO(NR)-XS(NSRMAX).GT.0.D0) THEN
-               BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
-               BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
-            ELSE
+            IF((XRHO(NR)-XS(NSRMAX).LT.0.D0).and.(nr.ne.84)) THEN!
+c               BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+c               BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+c
                CALL SPL1DF(XRHO(NR),BSTHL,XS,U3(1,1,MN),NSRMAX,IERR)
                CALL SPL1DF(XRHO(NR),BSPHL,XS,U4(1,1,MN),NSRMAX,IERR)
+               else
             ENDIF
             BSTH(MN,NR)=BSTHL
             BSPH(MN,NR)=BSPHL
          ENDDO
       ENDDO
+c
+      do mn=1,mnmax
+         do nr=1,nrmax+1
+            if((xrho(nr)-xs(nsrmax).gt.0.d0).or.(nr.eq.84)) then
+c
+                  do i=1,np
+                     nra(i)=nr-np-1+i
+                     bstha(i)=bsth(mn,nr-np-1+i)
+                  enddo
+c     
+                  call polint(nra,bstha,np,nr,bsth(mn,nr),dy) 
+c     
+               do i=1,np
+                  nra(i)=nr-np-1+i
+                  bspha(i)=bsph(mn,nr-np-1+i)
+               enddo
+c     
+               call polint(nra,bspha,np,nr,bsph(mn,nr),dy) 
+c          
+            else
+            endif
+         enddo
+      enddo
+c
+c$$$      do nr=1,nrmax+1
+c$$$            print*,nr,bsth(1,nr),bsph(1,nr)
+c$$$      enddo
 C
 C      ***** CULCULATE MAGNETIC FIELD *****
 C 
@@ -503,13 +589,24 @@ C
 C
       DO NR=1,NRMAX+1
          CALL SPL1DF(XRHO(NR),RIOTASL,XS,U5,NSRMAX,IERR)
-         IF(IERR.EQ.2) THEN
-            RIOTASL=RIOTAS(NSRMAX)+(RIOTAS(NSRMAX)-RIOTAS(NSRMAX-1))
-     &                      /(XS(NSRMAX)-XS(NSRMAX-1))
-     &                      *(XRHO(NR)-XS(NSRMAX))
-         ENDIF
+c         IF(IERR.EQ.2) THEN
+c            RIOTASL=RIOTAS(NSRMAX)+(RIOTAS(NSRMAX)-RIOTAS(NSRMAX-1))
+c     &                      /(XS(NSRMAX)-XS(NSRMAX-1))
+c     &                      *(XRHO(NR)-XS(NSRMAX))
+c         ENDIF
 C         QPS(NR)=2.D0*PI/RIOTASL
-         QPS(NR)=1.D0/RIOTASL
+            IF(XRHO(NR)-XS(NSRMAX).LT.0.D0) THEN!
+               QPS(NR)=1.D0/RIOTASL
+            else
+c
+                  do i=1,np
+                     nra(i)=nr-np-1+i
+                     qpsa(i)=qps(nr-np-1+i)
+                  enddo
+c     
+                  call polint(nra,qpsa,np,nr,qps(nr),dy) 
+c     
+               endif
       ENDDO                     
 C
 C     ***** COMPUTE R,Z MAGNETIC AXES *****
@@ -599,3 +696,51 @@ C
 C
       RETURN
       END
+C **********************************************
+      SUBROUTINE polint(nra,psa,n,nr,ps,dy)
+      implicitnone
+      INTEGER n,NMAX,nr
+      REAL*8 dy,nra(n),ps,psa(n)
+      PARAMETER (NMAX=10)
+      INTEGER i,m,ns
+      REAL den,dif,dift,ho,hp,w,c(NMAX),d(NMAX)
+c
+c      do i=1,n
+c         print*, i,nra(i),psa(i)
+c      enddo
+c
+      ns=1
+      dif=abs(nr-nra(1))
+      do 11 i=1,n
+        dift=abs(nr-nra(i))
+        if (dift.lt.dif) then
+          ns=i
+          dif=dift
+        endif
+        c(i)=psa(i)
+        d(i)=psa(i)
+11    continue
+      ps=psa(ns)
+      ns=ns-1
+      do 13 m=1,n-1
+        do 12 i=1,n-m
+          ho=nra(i)-nr
+          hp=nra(i+m)-nr
+          w=c(i+1)-d(i)
+          den=ho-hp
+          if(den.eq.0.)pause 'failure in polint'
+          den=w/den
+          d(i)=hp*den
+          c(i)=ho*den
+12      continue
+        if (2*ns.lt.n-m)then
+          dy=c(ns+1)
+       else
+          dy=d(ns)
+          ns=ns-1
+        endif
+        ps=ps+dy
+13    continue
+      return
+      END
+c
