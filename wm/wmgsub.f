@@ -381,16 +381,16 @@ C
 C
       INTEGER NS
       REAL*8 RKTH,RKPH,RKPR,RNPR
-      DIMENSION GGL(NRM,NTHM),GBY(NRM,NTHGM),GNY(NRM,NTHGM)
+      DIMENSION GGL(NRM,NTHM)
+      DIMENSION GBY(NRM,NTHGM)
       DIMENSION GFL(NRM,NTHGM),GRL(NRM,NTHGM),GZL(NRM,NTHGM)
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
-      DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
-      DIMENSION UHF(NRM,NTHGM),PRCC(NRM,NTHGM),PLCC(NRM,NTHGM)
-      DIMENSION GUHF(NRM,NTHGM),GRCC(NRM,NTHGM),GLCC(NRM,NTHGM)
       DIMENSION GRS(NSUM+1),GZS(NSUM+1)
-      DIMENSION GNYN(NSM,NRM,NTHGM),AM(NSM),AE(NSM),CWP(NSM),CWC(NSM)
-      DIMENSION TIHR(NRM,NTHGM),TIHRC(NRM,NTHGM),TIHLC(NRM,NTHGM)
-      DIMENSION GTIHR(NRM,NTHGM),GTIHRC(NRM,NTHGM),GTIHLC(NRM,NTHGM)
+      DIMENSION WP(NSM),WC(NSM)
+      DIMENSION THR(NRM,NTHGM),TCO(NRM,NTHGM)
+      DIMENSION TRC(NRM,NTHGM),TLC(NRM,NTHGM)
+      DIMENSION GTHR(NRM,NTHGM),GTCO(NRM,NTHGM)
+      DIMENSION GTRC(NRM,NTHGM),GTLC(NRM,NTHGM)
       CHARACTER K2,K3
 C
       IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
@@ -437,70 +437,59 @@ C
             DO NTH=1,NTHMAX
                NTHP=NTH+1
                IF(NTHP.GT.NTHMAX) NTHP=1
-               CALL WMCMAG(NR,NTH, NPH,BABS ,BSUPTH,BSUPPH)
-               CALL WMCMAG(NR,NTHP,NPH,BABSP,BSUPTH,BSUPPH)
-               RKTH=NTH0*BSUPTH/BABS
-               RKPH=NPH0*BSUPPH/BABS
-               RKPR=RKTH+RKPH
-               RNPR=RKPR/(WF/VC)
+               CALL WMCMAG(NR,NTH, NPH,BABS, BSUPTH, BSUPPH )
+               CALL WMCMAG(NR,NTHP,NPH,BABSP,BSUPTHP,BSUPPHP)
                DO NTHG=1,NTHGS
                   NTHL=(NTH-1)*NTHGS+NTHG
                   FACT=DBLE(NTHG-1)/DBLE(NTHGS)
-                  VAL=(1.D0-FACT)*BABS+FACT*BABSP
-                  GBY(NR,NTHL)=GUCLIP(VAL)
-C                  GNY(NR,NTHL)=RN(1)/1.0D20
-                  GNY(NR,NTHL)=RN(1)
-                  DO NS=1,3
-                     GNYN(NS,NR,NTHL)=RN(NS)*1.0D20
-                     AM(NS)=PA(NS)*AMP
-                     AE(NS)=PZ(NS)*AEE
-                     CWP(NS)=(AEE**2)*GNYN(NS,NR,NTHL)
-     &                        /(AM(NS)*EPS0)
-                     CWC(NS)=AE(NS)*GBY(NR,NTHL)/AM(NS)
+                  BYL=(1.D0-FACT)*BABS  +FACT*BABSP
+                  BST=(1.D0-FACT)*BSUPTH+FACT*BSUPTHP
+                  BSP=(1.D0-FACT)*BSUPPH+FACT*BSUPPHP
+                  RKTH=NTH0*BST/BYL
+                  RKPH=NPH0*BSP/BYL
+                  RKPR=RKTH+RKPH
+                  RNPR=RKPR/(WF/VC)
+                  GBY(NR,NTHL)=GUCLIP(BYL)
+                  DO NS=1,NSMAX
+                     RNL=RN(NS)*1.0D20
+                     AM=PA(NS)*AMP
+                     AE=PZ(NS)*AEE
+                     WP(NS)=(AE**2)*RNL/(AM*EPS0)
+                     WC(NS)=AE*BYL/AM
                   ENDDO
-C                  UHF(NR,NTHL)=SQRT(100*GNY(NR,NTHL)*AEE**2/(AME*EPS0)
-C     &                            +(AEE*GBY(NR,NTHL)/AME)**2/1.0D18)
-                  UHF(NR,NTHL)=SQRT(CWP(1)+CWC(1)**2)
-                  GUHF(NR,NTHL)=GUCLIP(UHF(NR,NTHL))
-C                  PRCC(NR,NTHL)=SQRT(100*GNY(NR,NTHL)*AEE**2/(AME*EPS0)
-C     &                               +(AEE*GBY(NR,NTHL)/AME)
-C     &                               *(2.D0*PI*RF*1.D6)/1.0D18)
-                  PRCC(NR,NTHL)=SQRT(CWP(1)+CWC(1)*WF)
-                  GRCC(NR,NTHL)=GUCLIP(PRCC(NR,NTHL))
-C                  PLCC(NR,NTHL)=SQRT(100*GNY(NR,NTHL)*AEE**2/(AME*EPS0)
-C     &                 -(AEE*GBY(NR,NTHL)/AME)
-C     &                 *(2.D0*PI*RF*1.D6)/1.0D18)
-                  PLCC(NR,NTHL)=SQRT(CWP(1)-CWC(1)*WF)
-                  GLCC(NR,NTHL)=GUCLIP(PLCC(NR,NTHL))
-c$$$                  TIHR(NR,NTHL)=SQRT(
-c$$$     &                 (CWP(2)*CWC(3)**2+CWP(3)*CWC(2)**2)
-c$$$     &                 /(1.0D18*(CWP(2)+CWP(3))))
-                     TIHR(NR,NTHL)=(1-(CWC(1)/WF)**2)*(1-(CWC(2)/WF)**2)
-     &                 *(1-(CWC(3)/WF)**2)*(1-RNPR)
-     &             -(CWP(1)/WF**2)*(1-(CWC(2)/WF)**2)*(1-(CWC(3)/WF)**2)
-     &             -(CWP(2)/WF**2)*(1-(CWC(3)/WF)**2)*(1-(CWC(1)/WF)**2)
-     &             -(CWP(3)/WF**2)*(1-(CWC(1)/WF)**2)*(1-(CWC(2)/WF)**2)
-                     GTIHR(NR,NTHL)=GUCLIP(TIHR(NR,NTHL))
-c$$$                  TIHC(NR,NTHL)=((CWP(2)*CWC(3)-CWP(3)*CWC(2))
-c$$$     &                 +SQRT((CWP(2)*CWC(3)-CWP(3)*CWC(2))**2
-c$$$     &                 +4*CWP(2)*CWP(3)*CWC(2)**2))
-c$$$     &                 /(2*1.0D9*CWP(2))
-                     TIHRC(NR,NTHL)=(1+CWC(1)/WF)*(1+CWC(2)/WF)
-     &                    *(1+CWC(3)/WF)*(1-RNPR)
-     &                    -(CWP(1)/WF**2)*(1+CWC(2)/WF)*(1+CWC(3)/WF)
-     &                    -(CWP(2)/WF**2)*(1+CWC(3)/WF)*(1+CWC(1)/WF)
-     &                    -(CWP(3)/WF**2)*(1+CWC(1)/WF)*(1+CWC(2)/WF)
-                  GTIHRC(NR,NTHL)=GUCLIP(TIHRC(NR,NTHL))
-                     TIHLC(NR,NTHL)=(1-CWC(1)/WF)*(1-CWC(2)/WF)
-     &                 *(1-CWC(3)/WF)*(1-RNPR)
-     &                    -(CWP(1)/WF**2)*(1-CWC(2)/WF)*(1-CWC(3)/WF)
-     &                    -(CWP(2)/WF**2)*(1-CWC(3)/WF)*(1-CWC(1)/WF)
-     &                    -(CWP(3)/WF**2)*(1-CWC(1)/WF)*(1-CWC(2)/WF)
-                  GTIHLC(NR,NTHL)=GUCLIP(TIHLC(NR,NTHL))
+C
+                  FACTORHR=1.D0
+                  FACTORRC=1.D0
+                  FACTORLC=1.D0
+                  DO NS=1,NSMAX
+                     FACTORHR=FACTORHR*(1.D0-(WC(NS)/WF)**2)
+                     FACTORRC=FACTORRC*(1.D0+ WC(NS)/WF)
+                     FACTORLC=FACTORLC*(1.D0- WC(NS)/WF)
+                  ENDDO
+                  TCO(NR,NTHL)=1.D0
+                  THR(NR,NTHL)=FACTORHR
+                  TRC(NR,NTHL)=FACTORRC*(1.D0-RNPR**2)
+                  TLC(NR,NTHL)=FACTORLC*(1.D0-RNPR**2)
+                  DO NS=1,NSMAX
+                     TCO(NR,NTHL)=TCO(NR,NTHL)
+     &                        -(WP(NS)/WF**2)
+                     THR(NR,NTHL)=THR(NR,NTHL)
+     &                        -(WP(NS)/WF**2)/(1.D0-(WC(NS)/WF)**2)
+     &                         *FACTORHR
+                     TRC(NR,NTHL)=TRC(NR,NTHL)
+     &                        -(WP(NS)/WF**2)/(1.D0+WC(NS)/WF)
+     &                         *FACTORRC
+                     TLC(NR,NTHL)=TLC(NR,NTHL)
+     &                        -(WP(NS)/WF**2)/(1.D0-WC(NS)/WF)
+     &                         *FACTORLC
+                  ENDDO
+                  GTCO(NR,NTHL)=GUCLIP(TCO(NR,NTHL))
+                  GTHR(NR,NTHL)=GUCLIP(THR(NR,NTHL))
+                  GTRC(NR,NTHL)=GUCLIP(TRC(NR,NTHL))
+                  GTLC(NR,NTHL)=GUCLIP(TLC(NR,NTHL))
                ENDDO
             ENDDO
          ENDDO
-         close(11)
       ENDIF
 C
 C     ***** DRAW FRAME *****
@@ -533,75 +522,60 @@ C     ***** DRAW RESONANCE AND CUTOFF *****
 C
       IF(K2.EQ.'P') THEN
 C
-C     ****** DRAW PLASMA CUTOFF SURFACE ****** 
-C
-         PCOF=AME*EPS0*(2.D0*PI*RF*1.D6/AEE)**2/1.0D20
-         GPCOF=GUCLIP(PCOF)
-         CALL SETLIN(-1,2,7)
-         CALL CONTQ5(GNY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GPCOF,1.0,1,2,7,KACONT)
-C
-C     ****** DRAW RIGHT-HANDED CYCROTRON CUTOFF SURFACE ****** 
-C
-         WFSQ=2*PI*RF/1.0D3
-         GWFSQ=GUCLIP(WFSQ)
-         CALL SETLIN(0,2,4)
-         CALL CONTQ5(GRCC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GWFSQ,1.0,1,2,7,KACONT)
-C
-C     ****** DRAW LEFT-HANDED CYCROTRON CUTOFF SURFACE ****** 
-C
-         CALL SETLIN(0,2,4)
-         CALL CONTQ5(GLCC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GWFSQ,1.0,1,2,7,KACONT)
-C
-C     ****** DRAW CYCROTRON REASONANCE SURFACE ****** 
+C     ****** DRAW ELECTRON CYCROTRON REASONANCE SURFACE (yellow) ****** 
 C
          BECF=2.D0*PI*AME*RF*1.D6/AEE
          GBECF=GUCLIP(BECF)
-         CALL SETLIN(-1,2,2)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF,1.0,1,2,7,KACONT)
-         CALL SETLIN(-1,2,2)
+     &               GBECF,1.0,1,2,4,KACONT)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/2,1.0,1,2,7,KACONT)
-         CALL SETLIN(-1,2,2)
+     &               GBECF/2,1.0,1,2,6,KACONT)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/3,1.0,1,2,7,KACONT)
-         CALL SETLIN(-1,2,2)
+     &               GBECF/3,1.0,1,2,6,KACONT)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/4,1.0,1,2,7,KACONT)
+     &               GBECF/4,1.0,1,2,6,KACONT)
 C
-C     ****** DRAW UPPER HYBRID REASONANCE SURFACE ******
-C
-         CALL SETLIN(0,2,3)
-         CALL CONTQ5(GUHF,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GWFSQ,1.0,1,2,7,KACONT)
-C
-C     ****** DRAW ION CYCROTRON REASONANCE SURFACE ****** 
+C     ****** DRAW PROTON CYCROTRON REASONANCE SURFACE (yellow) ****** 
 C
          BICF=2.D0*PI*AMP*RF*1.D6/AEE
          GBICF=GUCLIP(BICF)
-         CALL SETLIN(0,2,4)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBICF,1.0,1,2,7,KACONT)
-         CALL SETLIN(0,2,4)
+     &               GBICF,1.0,1,2,4,KACONT)
+         CALL SETLIN(0,2,2)
          CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBICF/2,1.0,1,2,7,KACONT)
+     &               GBICF/2,1.0,1,2,6,KACONT)
+         CALL SETLIN(0,2,2)
+         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               GBICF/3,1.0,1,2,6,KACONT)
 C
-C     ****** DRAW TWO ION HYBRID RESONANCE AND CUT OFF SURFACE *****
-C
-         CALL SETLIN(0,2,1)
-         CALL CONTQ5(GTIHR,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,7,KACONT)
-C
-         CALL SETLIN(0,2,1)
-         CALL CONTQ5(GTIHRC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,7,KACONT)
+C     ****** DRAW CUTOFF SURFACE (light blue, long-dashed) ******
 C
          CALL SETLIN(0,2,1)
-         CALL CONTQ5(GTIHLC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,7,KACONT)
+         CALL CONTQ5(GTCO,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               0.0,1.0,1,2,3,KACONT)
+C
+C     ****** DRAW HYBRID RESONANCE SURFACE (purple, dot-dashed) ******
+C
+         CALL SETLIN(0,2,3)
+         CALL CONTQ5(GTHR,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               0.0,1.0,1,2,4,KACONT)
+C
+C     ****** DRAW RIGHT CUT OFF SURFACE (light blue, dot-dashed) ******
+C
+         CALL SETLIN(0,2,1)
+         CALL CONTQ5(GTRC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               0.0,1.0,1,2,4,KACONT)
+C
+C     ****** DRAW LEFT CUT OFF SURFACE (light blue, two-dots-dashed) ******
+C
+         CALL SETLIN(0,2,1)
+         CALL CONTQ5(GTLC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               0.0,1.0,1,2,6,KACONT)
 C
       ENDIF
 C
