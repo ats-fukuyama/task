@@ -1,23 +1,24 @@
-C     $Id$
-C
-C     ****** SIMPLE RUNGE-KUTTA METHOD ******
-C
+!     ****** SIMPLE RUNGE-KUTTA METHOD ******
+
       SUBROUTINE EQRK4(X,Y,DYDX,YOUT,H,N,DERIVS)
-C
-      IMPLICIT REAL*8(A-H,O-Z)
-      INTEGER N,NMAX
-      DIMENSION DYDX(N),Y(N),YOUT(N)
+
+      IMPLICIT NONE
+      INTEGER(4),            INTENT(IN) :: N
+      REAL(8),               INTENT(IN) :: X, H
+      REAL(8), DIMENSION(N), INTENT(IN) :: DYDX, Y
+      REAL(8), DIMENSION(N), INTENT(OUT):: YOUT
       EXTERNAL DERIVS
-      PARAMETER (NMAX=50)
-      INTEGER I
-      REAL*8 H6,HH,XH,DYM(NMAX),DYT(NMAX),YT(NMAX)
-C
+      INTEGER(4), PARAMETER    :: NMAX = 50
+      INTEGER(4)               :: I
+      REAL(8)                  :: H6, HH, XH
+      REAL(8), DIMENSION(NMAX) :: DYM, DYT, YT
+
       IF(N.GT.NMAX) THEN
          WRITE(6,*) 'XX EQRK4: N (number of eqs) .GT. NMAX:'
          WRITE(6,*) '   N,NMAX=',N,NMAX
          STOP
       ENDIF
-C
+
       HH=H*0.5D0
       H6=H/6.D0
       XH=X+HH
@@ -38,15 +39,23 @@ C
         YOUT(I)=Y(I)+H6*(DYDX(I)+DYT(I)+2.D0*DYM(I))
       ENDDO
       RETURN
-      END
-C
-C     ****** TWO-DIMENSIONAL NEWTON METHOD ******
-C
+      END SUBROUTINE EQRK4
+
+!     ****** TWO-DIMENSIONAL NEWTON METHOD ******
+
       SUBROUTINE NEWTN(SUB,X,Y,XX,YY,DELT,EPS,ILMAX,LIST,IER)
-C
-      IMPLICIT REAL*8(A-H,O-Z)
+
+      IMPLICIT NONE
+      REAL(8)   , INTENT(IN)   :: DELT, EPS
+      REAL(8)   , INTENT(INOUT):: X, Y
+      REAL(8)   , INTENT(OUT)  ::XX,YY
+      INTEGER(4), INTENT(IN)   ::ILMAX,LIST
+      INTEGER(4), INTENT(OUT)  ::IER
+      REAL(8)     :: DET, DF, DFN, DX, DY, FXX, FYY, FXY, FXY1, FXY2, G0, GN, GX, GY, &
+     &               H11, H12, H21, H22, HX, HY, S0, SN, SX, SY, TT
+      INTEGER(4)  :: ITER
       EXTERNAL SUB
-C
+
       IER=0
       ITER=0
       IF(ABS(X).GT.1.D0) THEN
@@ -79,7 +88,7 @@ C
       H12=-FXY/DET
       H21=-FXY/DET
       H22= FXX/DET
-C
+
       DX=-(H11*S0+H12*G0)
       DY=-(H21*S0+H22*G0)
       TT=1.0D0
@@ -102,37 +111,38 @@ C
          G0=GN
          DF=DFN
          ITER=ITER+1
-         IF(DF.LE.EPS) GO TO 9000
-         IF(ITER.LE.ILMAX) GO TO 1
+         IF(DF.LE.EPS) GOTO 9000
+         IF(ITER.LE.ILMAX) GOTO 1
       ENDIF
-C
+
       IER=2
-      IF(LIST.GT.0)
+      IF(LIST.GT.0) &
      &WRITE(6,*) 'XX NEWTN: LOOP COUNT EXCEEDS UPPER BOUND.'
       GOTO 9000
-C
+
  8000 IER=1
-      IF(LIST.GT.0)
+      IF(LIST.GT.0) &
      &WRITE(6,*) 'XX NEWTN: DOES NOT CONVERGE.'
       GOTO 9000
-C
+
  9000 XX=X
       YY=Y
       RETURN
   600 FORMAT(" ",6X,'X,Y,FX,FY = ',1P4E15.7)
   601 FORMAT(" ",6X,'FXX,YY,XY = ',1P4E15.7)
   602 FORMAT(" ",6X,'DX,DY     = ',1P2E15.7)
-      END
-C
-C   ***************************************
-C   **         Power function            **
-C   **    0.D0**0.D0 should be 1.D0      **
-C   ***************************************
-C
-      FUNCTION FPOW(X,Y)
-C
-      REAL*8 X,Y,FPOW
-C
+      END SUBROUTINE NEWTN
+
+!   ***************************************
+!   **         Power function            **
+!   **    0.D0**0.D0 should be 1.D0      **
+!   ***************************************
+
+      REAL(8) FUNCTION FPOW(X,Y)
+
+      IMPLICIT NONE
+      REAL(8), INTENT(IN)  :: X, Y
+
       IF(X.EQ.0.D0) THEN
          IF(Y.EQ.0.D0) THEN
             FPOW=1.D0
@@ -143,4 +153,4 @@ C
          FPOW=X**Y
       ENDIF
       RETURN
-      END
+      END FUNCTION FPOW

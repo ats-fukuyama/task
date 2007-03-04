@@ -1,24 +1,24 @@
 ### $Id$ ###
 include ../make.header
 
-LFLAGS = $(OFLAGS)
-FFLAGS = $(OFLAGS)
+LFLAGS = $(DFLAGS)
 
-SRCS = libspf.f libbes.f libell.f \
-       libbrn.f \
-       libinv.f libbnd.f \
-       librk.f libsympl.f libde.f \
-       libfft.f libspl.f \
-       libdsp.f \
-       libfp.f libeq.f \
-       libgut.f libgrf.f \
-       libchar.f libkio.f \
-       libfio.f ufile.f \
-       libitp.f \
-       $(LAPACK)
+SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
+             librk.f90 libsympl.f90 \
+             libspl.f90 libeq.f90 \
+             libgut.f90 \
+             libchar.f90 libkio.f90 \
+             libfio.f90 ufile.f90 libitp.f90
+SRCSFIXED =  libspf.f libbes.f libell.f \
+             libde.f libfft.f libdsp.f \
+             libfp.f libgrf.f $(LAPACK)
 
-OBJS = $(SRCS:.f=.o)
-OBJMDS = $(MDSPLUS:.f=.o)
+OBJSFREE  = $(SRCSFREE:.f90=.o)
+OBJSFIXED = $(SRCSFIXED:.f=.o)
+OBJSMDS = $(MDSPLUS:.f=.o)
+
+.SUFFIXES:
+.SUFFIXES: .f .f90 .o .a
 
 .f.o :
 	$(FCFIXED) $(LFLAGS) -c $< -o $@
@@ -27,41 +27,35 @@ OBJMDS = $(MDSPLUS:.f=.o)
 
 all : tasklib.a mdslib.a
 
-tasklib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o tasklib.a $(OBJS)
+tasklib.a: $(OBJSFREE) $(OBJSFIXED)
+	$(LD) $(LDFLAGS) -o tasklib.a $(OBJSFREE) $(OBJSFIXED)
 
-mdslib.a: $(OBJMDS) mdslib.inc
-	$(LD) $(LDFLAGS) -o mdslib.a $(OBJMDS)
-
-testspl : testspl.o libspl.o ../grf/libgrf.o
-	$(FCFIXED) -o $@ testspl.o $(FFLAGS) libspl.o ../grf/libgrf.o $(FLIBS)
-
-testgrf : testgrf.o $(OBJS)
-	$(FCFIXED) -o $@ testgrf.o $(FFLAGS) $(OBJS) $(FLIBS)
-
-testbes : testbes.o $(OBJS)
-	$(FCFIXED) -o $@ testbes.o $(FFLAGS) $(OBJS) $(FLIBS)
-
-testfft : testfft.o $(OBJS)
-	$(FCFIXED) -o $@ testfft.o $(FFLAGS) $(OBJS) $(FLIBS)
-
-testbrn : testbrn.o $(OBJS)
-	$(FCFIXED) -o $@ testbrn.o $(FFLAGS) $(OBJS) $(FLIBS)
-
-testell : testell.o $(OBJS)
-	$(FCFIXED) -o $@ testell.o $(FFLAGS) $(OBJS) $(FLIBS)
+mdslib.a: $(OBJSMDS)
+	$(LD) $(LDFLAGS) -o mdslib.a $(OBJSMDS)
 
 new :
 	mkdir ../libnew
 	cp -f Makefile ../libnew
+	cp -f *.f90 ../libnew
 	cp -f *.f ../libnew
 
 check :
-	ftnchek $(SRCS) $(MDSPLUS) | less
+	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
 
 clean:
-	-rm -f core a.out *.o *.a ./*~ ./#*
+	-rm -f core* a.out *.o *.mod *.a ./*~ ./#*
 
 veryclean: clean
 
-mdsplus.o  : mdsplus.f mdslib.inc
+libspl.o   : libspl.f90
+libsympl.o : libsympl.f90
+librk.o    : librk.f90
+libbrn.o   : libbrn.f90
+libfio.o   : libfio.f90
+libchar.o  : libchar.f90
+libkio.o   : libkio.f90
+libgut.o   : libgut.f90
+libbnd.o   : libbnd.f90
+libeq.o    : libeq.f90
+libitp.o   : libitp.f90
+ufile.o    : ufile.f90

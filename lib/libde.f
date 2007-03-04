@@ -213,3 +213,208 @@ C
   603 FORMAT(1H ,'# SUB DEHIFT # C or CR : CONTINUE / Q : QUIT')
     9 STOP
       END
+C
+C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
+C               FOR INTEGRAND WITH FACTOR EXP(-X)
+C                    (0, +INFINITE)
+C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+C
+C
+      SUBROUTINE DEHIFE(FUNC,CS,ES,H0,EPS,ILST)
+      IMPLICIT REAL*8(A-H,O-Z)
+      CHARACTER KL*1
+      EXTERNAL FUNC
+C
+      EPS1=EPS**0.75D0
+      H=H0
+      X=EXP(-1.D0)
+      CSI=2.D0*X*FUNC(X)
+      CS=H*CSI
+      CSP=0.D0
+      NP=0
+      NM=0
+      NPMIN=1
+      NMMIN=1
+C
+    5 IND=0
+      ATP=ABS(CSI)
+      ATM=ATP 
+      NPD=2
+      IF(NP.EQ.0) NPD=1
+      NMD=2
+      IF(NM.EQ.0) NMD=1
+C
+   10 IF(IND.NE.1) THEN
+         IF(NP.EQ.NPMIN+2) NPD=1
+         NP=NP+NPD
+         HN=DBLE(NP)*H
+         HS=EXP(-HN)
+         X=EXP( HN-HS)
+         CT=H*(1.D0+HS)*X*FUNC(X)
+         CS=CS+CT
+         AT=ATP
+         ATP=ABS(CT)/H
+         IF(NP.GE.NPMIN) THEN
+            IF(AT+ATP.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.-1) GO TO 100
+               IND=1
+            ENDIF
+         ENDIF
+      ENDIF
+C
+      IF(IND.NE.-1) THEN
+         IF(NM.EQ.NMMIN+2) NMD=1
+         NM=NM+NMD
+         HN=DBLE(NM)*H
+         HS=EXP( HN)
+         X=EXP(-HN-HS)
+         CT=H*(1.D0+HS)*X*FUNC(X)
+         CS=CS+CT
+         AT=ATM
+         ATM=ABS(CT)/H
+         IF(NM.GE.NMMIN) THEN
+            IF(AT+ATM.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.1) GO TO 100
+               IND=-1
+            ENDIF
+         ENDIF
+      ENDIF
+      GO TO 10
+C
+  100 ES=ABS(CS-CSP)
+      IF(ILST.EQ.2) THEN
+         IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
+         IF(H.LT.H0) WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+      CSP=CS
+      IF(ES.LT.EPS1*ABS(CS)) GO TO 200
+      NMAX=MAX0(NP,NM)
+      IF(NMAX.GT.1000) THEN
+  110    WRITE(6,603)
+         GOTO 9
+C         READ(5,501,END=120) KL
+C         IF(KL.EQ.'Q') GOTO 200
+C         IF(KL.NE.'C') GOTO 110
+      ENDIF
+  120 CONTINUE
+      H=0.5D0*H
+      CS=0.5D0*CS
+      NPMIN=NP*2-1
+      NMMIN=NM*2-1
+      NP=-1
+      NM=-1
+      GO TO 5
+C
+  200 IF(ILST.EQ.1) THEN
+         WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+    9 RETURN
+C
+  501 FORMAT(A1)
+  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
+  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  603 FORMAT(1H ,'# SUB DEHIFE # C or CR : CONTINUE / Q : QUIT')
+      END
+C
+C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
+C               FOR INTEGRAND WITH FACTOR EXP(-X)
+C                    (0, +INFINITE)
+C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+C
+C
+      SUBROUTINE DEHIFEC(CFUNC,CS,ES,H0,EPS,ILST)
+      IMPLICIT REAL*8(A-H,O-Z)
+      COMPLEX*16 CFUNC,CS,CSI,CSP,CT
+      CHARACTER KL*1
+      EXTERNAL CFUNC
+C
+      EPS1=EPS**0.75D0
+      H=H0
+      X=EXP(-1.D0)
+      CSI=2.D0*X*CFUNC(X)
+      CS=H*CSI
+      CSP=0.D0
+      NP=0
+      NM=0
+      NPMIN=1
+      NMMIN=1
+C
+    5 IND=0
+      ATP=ABS(CSI)
+      ATM=ATP 
+      NPD=2
+      IF(NP.EQ.0) NPD=1
+      NMD=2
+      IF(NM.EQ.0) NMD=1
+C
+   10 IF(IND.NE.1) THEN
+         IF(NP.EQ.NPMIN+2) NPD=1
+         NP=NP+NPD
+         HN=DBLE(NP)*H
+         HS=EXP(-HN)
+         X=EXP( HN-HS)
+         CT=H*(1.D0+HS)*X*CFUNC(X)
+         CS=CS+CT
+         AT=ATP
+         ATP=ABS(CT)/H
+         IF(NP.GE.NPMIN) THEN
+            IF(AT+ATP.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.-1) GO TO 100
+               IND=1
+            ENDIF
+         ENDIF
+      ENDIF
+C
+      IF(IND.NE.-1) THEN
+         IF(NM.EQ.NMMIN+2) NMD=1
+         NM=NM+NMD
+         HN=DBLE(NM)*H
+         HS=EXP( HN)
+         X=EXP(-HN-HS)
+         CT=H*(1.D0+HS)*X*CFUNC(X)
+         CS=CS+CT
+         AT=ATM
+         ATM=ABS(CT)/H
+         IF(NM.GE.NMMIN) THEN
+            IF(AT+ATM.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.1) GO TO 100
+               IND=-1
+            ENDIF
+         ENDIF
+      ENDIF
+      GO TO 10
+C
+  100 ES=ABS(CS-CSP)
+      IF(ILST.EQ.2) THEN
+         IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
+         IF(H.LT.H0) WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+      CSP=CS
+      IF(ES.LT.EPS1*ABS(CS)) GO TO 200
+      NMAX=MAX0(NP,NM)
+      IF(NMAX.GT.1000) THEN
+  110    WRITE(6,603)
+         GOTO 9
+C         READ(5,501,END=120) KL
+C         IF(KL.EQ.'Q') GOTO 200
+C         IF(KL.NE.'C') GOTO 110
+      ENDIF
+  120 CONTINUE
+      H=0.5D0*H
+      CS=0.5D0*CS
+      NPMIN=NP*2-1
+      NMMIN=NM*2-1
+      NP=-1
+      NM=-1
+      GO TO 5
+C
+  200 IF(ILST.EQ.1) THEN
+         WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+    9 RETURN
+C
+  501 FORMAT(A1)
+  601 FORMAT(1H ,1PD12.4,2I8,1P2D12.4)
+  602 FORMAT(1H ,1PD12.4,2I8,1P2D12.4,1PD12.4)
+  603 FORMAT(1H ,'# SUB DEHIFE # C or CR : CONTINUE / Q : QUIT')
+      END

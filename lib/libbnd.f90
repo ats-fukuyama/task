@@ -1,42 +1,45 @@
-C     $Id$
-C     **********************************************
-C     **     帯行列の解法(ガウス消去法)(SUB)　    **
-C     **********************************************
+!     *****************************************************
+!     **     numerical solution of band matrix (SUB)     **
+!     **          Gaussian Elimination Method            **
+!     *****************************************************
       SUBROUTINE BANDRD( A , X , N , L , LA , IERR )
-C
-C          INPUT : A(LA,N) : COEFFICIENT MATRIX 
-C                  X(N)    : RIGHT-HAND-SIDE VECTOR
-C                  N       : MATRIX SIZE
-C                  L       : BAND WIDTH (L.LE.LA)
-C                  LA      : SIZE OF ARRAY A
-C          OUTPUT: X(N)    : SOLUTION VECTOR
-C                  IERR    : ERROR CODE : 0 : NORMAL END
-C                                         10000 : L IS EVEN
-C                                         30000 : SINGULAR MATRIX
-C          NOTICE: ARRAY A AND X WILL BE DESTROYED.
-C
-      REAL * 8    A( LA , N ) , X( N ) , TEMP
-      REAL * 8    EPS , ABS1 , ABS2
-      DATA EPS/ 1.D-70 /
-C
+
+!          INPUT : A(LA,N) : COEFFICIENT MATRIX
+!                  X(N)    : RIGHT-HAND-SIDE VECTOR
+!                  N       : MATRIX SIZE
+!                  L       : BAND WIDTH (L.LE.LA)
+!                  LA      : SIZE OF ARRAY A
+!          OUTPUT: X(N)    : SOLUTION VECTOR
+!                  IERR    : ERROR CODE : 0 : NORMAL END
+!                                         10000 : L IS EVEN
+!                                         30000 : SINGULAR MATRIX
+!          NOTICE: ARRAY A AND X WILL BE DESTROYED.
+
+      IMPLICIT NONE
+      REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
+      REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
+      INTEGER(4),               INTENT(IN)    :: N, L, LA
+      INTEGER(4),               INTENT(OUT)   :: IERR
+      REAL(8)            :: ABS1, ABS2, TEMP
+      REAL(8), PARAMETER :: EPS = 1.D-70
+      INTEGER(4)         :: I, J, K, LH, LHM, NM, LHMK, NPMK, LPMI, IPIVOT, IP, JJ
+
       IF( MOD(L,2) .EQ. 0 ) GO TO 9000
       LH  = (L+1)/2
       LHM = LH-1
       NM  = N -1
-C
+
       DO K = 1 , LHM
          LHMK = LH-K
          NPMK = N+1-K
          DO I = 1 , LHMK
             LPMI = L+1-I
-            DO J = 2 , L
-               A( J-1 , K ) = A( J , K )
-            ENDDO
+            A( 1:L-1 , K ) = A( 2:L , K )
             A( L    , K    ) = 0.D0
             A( LPMI , NPMK ) = 0.D0
          ENDDO
       ENDDO
-C
+
       DO I = 1 , NM
          IPIVOT = I
          IP     = I+1
@@ -48,7 +51,7 @@ C
                 ABS2 = ABS1
             ENDIF
          ENDDO
-C
+
          IF( ABS2 .LT. EPS ) GO TO 9002
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
@@ -60,26 +63,22 @@ C
                A( J , IPIVOT ) = TEMP
             ENDDO
          END IF
-C
+
          TEMP   = 1.D0   / A( 1 , I )
          X( I ) = X( I ) * TEMP
-C
-         DO J = 2 , L
-            A( J , I ) = A( J , I ) * TEMP
-         ENDDO
-C
+
+         A( 2:L , I ) = A( 2:L , I ) * TEMP
+
          DO K = IP , LH
             TEMP   = A( 1 , K )
             X( K ) = X( K ) - X( I ) * TEMP
-            DO J = 2 , L
-               A( J-1 , K ) = A( J , K ) - A( J , I ) * TEMP
-            ENDDO
-C
+            A( 1:L-1 , K ) = A( 2:L , K ) - A( 2:L , I ) * TEMP
+
             A( L , K ) = 0.D0
          ENDDO
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
-C
+
       IF( DABS(A(1,N)) .LT. EPS ) GO TO 9002
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
@@ -92,12 +91,12 @@ C
          X( K ) = X( K ) - TEMP
          IF( JJ .LT. L ) JJ = JJ + 1
       ENDDO
-C
+
       IERR = 0
       RETURN
-C
+
  9000 IERR = 10000
       RETURN
  9002 IERR = 30000+I
       RETURN
-      END
+      END SUBROUTINE BANDRD
