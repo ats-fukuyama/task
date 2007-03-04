@@ -1,28 +1,14 @@
-C     Inputs
-      DIMENSION itport_pt(5)
-      DIMENSION te_m(0:NGLF),ti_m(0:NGLF),rne_m(0:NGLF),rni_m(0:NGLF),
-     &          rns_m(0:NGLF)
-      DIMENSION angrotp_exp(0:NGLF),egamma_exp(0:NGLF),
-     &          rgamma_p_exp(0:NGLF)
-      DIMENSION vphi_m(0:NGLF),vpar_m(0:NGLF),vper_m(0:NGLF)
-      DIMENSION zeff_exp(0:NGLF)
-      DIMENSION rho(0:NGLF),rgradrho_exp(0:NGLF),rgradrhosq_exp(0:NGLF)
-      DIMENSION rmin_exp(0:NGLF),rmaj_exp(0:NGLF)
-      DIMENSION q_exp(0:NGLF),shat_exp(0:NGLF),alpha_exp(0:NGLF),
-     &          elong_exp(0:NGLF)
-C
-C     Outputs
-      DIMENSION diff_m(0:NGLF),chie_m(0:NGLF),chii_m(0:NGLF)
-      DIMENSION etaphi_m(0:NGLF),etapar_m(0:NGLF),etaper_m(0:NGLF)
-      DIMENSION exch_m(0:NGLF)
-      DIMENSION egamma_m(0:NGLF),egamma_d(0:NGLF,10),rgamma_p_m(0:NGLF)
-      DIMENSION anrate_m(0:NGLF),anrate2_m(0:NGLF)
-      DIMENSION anfreq_m(0:NGLF),anfreq2_m(0:NGLF)
-C
-C     Auxiliaries
-      DIMENSION zpte_m(0:NGLF),zpti_m(0:NGLF),zpne_m(0:NGLF),
-     &          zpni_m(0:NGLF)
-      DIMENSION qe0(0:NGLF),qi0(0:NGLF),qn0(0:NGLF)
-      DIMENSION ddnn(0:NGLF),ddne(0:NGLF),ddni(0:NGLF)
-      DIMENSION chien(0:NGLF),chiee(0:NGLF),chiei(0:NGLF)
-      DIMENSION chiin(0:NGLF),chiie(0:NGLF),chiii(0:NGLF)
+!     Inputs
+      INTEGER(4),DIMENSION(5)  :: itport_pt
+      REAL(8),DIMENSION(0:NGLF):: te_m, ti_m, rne_m, rni_m, rns_m, angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, &
+     &                  vper_m, zeff_exp, rho, rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, q_exp, shat_exp, &
+     &                  alpha_exp, elong_exp
+
+!     Outputs
+      REAL(8),DIMENSION(0:NGLF)   :: diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m, exch_m, egamma_m, &
+     &                  rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m
+      REAL(8),DIMENSION(0:NGLF,10)::egamma_d
+
+!     Auxiliaries
+      REAL(8),DIMENSION(0:NGLF):: zpte_m, zpti_m, zpne_m, zpni_m, qe0, qi0, qn0, ddnn, ddne, ddni, chien, chiee, chiei, &
+     &                  chiin,chiie,chiii
