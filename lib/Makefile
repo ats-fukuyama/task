@@ -1,6 +1,9 @@
 ### $Id$ ###
 include ../make.header
 
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+
 LFLAGS = $(DFLAGS)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
@@ -16,9 +19,6 @@ SRCSFIXED =  libspf.f libbes.f libell.f \
 OBJSFREE  = $(SRCSFREE:.f90=.o)
 OBJSFIXED = $(SRCSFIXED:.f=.o)
 OBJSMDS = $(MDSPLUS:.f=.o)
-
-.SUFFIXES:
-.SUFFIXES: .f .f90 .o .a
 
 .f.o :
 	$(FCFIXED) $(LFLAGS) -c $< -o $@
@@ -47,15 +47,3 @@ clean:
 
 veryclean: clean
 
-libspl.o   : libspl.f90
-libsympl.o : libsympl.f90
-librk.o    : librk.f90
-libbrn.o   : libbrn.f90
-libfio.o   : libfio.f90
-libchar.o  : libchar.f90
-libkio.o   : libkio.f90
-libgut.o   : libgut.f90
-libbnd.o   : libbnd.f90
-libeq.o    : libeq.f90
-libitp.o   : libitp.f90
-ufile.o    : ufile.f90
