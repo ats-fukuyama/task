@@ -3,35 +3,37 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f
+SRCS = plcnst.f90 plcom0.f90 plcom1.f90 plcom2.f90 plcom3.f90 \
+       plmenu.f90 plinit.f90 plprof.f90 pldata.f90
 
-OBJS = $(SRCS:.f=.o) 
+OBJS = $(SRCS:.f90=.o) 
 
-LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
+LIBS = ../lib/tasklib.a ../eq/eqlib.a pllib.a
 
-.f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
-.f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+.SUFFIXES:
+.SUFFIXES: .f90 .mod .o .a
+.f90.o:
+	$(FCFREE) $(FFLAGS) -c $< -o $@ -I.
 
 all : pl
 
+../eq/eqlib.a:
+	(cd ../lib; make eqlib.a)
+
 ../lib/tasklib.a:
-	(cd ../lib; make tasklib.a)
-libs:
 	(cd ../lib; make tasklib.a)
 
 pllib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
 
-pl : plmain.o $(LIBS)
-	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+pl : $(LIBS) plmain.o
+	$(FCFREE) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	-rm -f core a.out *.o ./*~ ./#* *.a
+	-rm -f core* a.out *.o *.mod ./*~ ./#* *.a
 
 veryclean: clean
 	-rm -f pl
@@ -39,12 +41,15 @@ veryclean: clean
 new:
 	-mkdir ../plnew
 	cp -f Makefile ../plnew
-	cp -f *.f ../plnew
-	cp -f *.inc ../plnew
+	cp -f *.f90 ../plnew
 
-plmain.o: plmain.f plcomm.inc plcom0.inc plcom1.inc
-plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
-plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
-plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc
-plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc
-pldata.o: pldata.f plcomd.inc plcom0.inc plcom3.inc
+plmain.o: plmain.f90 plcom0.f90 plcom1.f90
+plmenu.o: plmenu.f90 plcom0.f90 plcom1.f90
+plinit.o: plinit.f90 plcom0.f90 plcom1.f90 plcnst.f90
+plprof.o: plprof.f90 plcom0.f90 plcom1.f90 plcom2.f90 plcnst.f90
+pldata.o: pldata.f90 plcom0.f90 plcom3.f90
+plcom0.o: plcom0.f90
+plcom1.o: plcom1.f90
+plcom2.o: plcom2.f90
+plcom3.o: plcom3.f90
+plcnst.o: plcnst.f90
