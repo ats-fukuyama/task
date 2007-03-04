@@ -8,7 +8,8 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f wmfout.f \
        wmsetm0.f wmsetm1.f wmpout0.f wmpout1.f \
-       wmtae.f wmtrfile.f
+       wmtae.f
+# wmtrfile.f
 
 SRCS = $(SRC0) nowmsolv.f 
 SRCM = $(SRC0) wmsolv.f 
