@@ -213,6 +213,10 @@ C            2: PSIB adjusted eqch loop for given RR,RA,RKAP,RDLT
 C
       MDLEQX = 0
 C
+C        MDLEQV : Order of extrapolation of psi in the vacuum region
+C
+      MDLEQV = 3
+C
 C        NPRINT: Level print out
 C            0: no print
 C            1: print first and last loop
@@ -308,7 +312,7 @@ C
      &              NRGMAX,NZGMAX,RGMIN,RGMAX,ZGMIN,ZGMAX,ZLIMP,ZLIMM,
      &              NPSMAX,NRVMAX,NTVMAX,
      &              NRMAX,NTHMAX,NSUMAX,
-     &              MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT,
+     &              MDLEQF,MDLEQC,MDLEQA,MDLEQX,MDLEQV,NPRINT,
      &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC
 C
       READ(NID,EQ,IOSTAT=IST,ERR=9800,END=9900)
@@ -340,7 +344,7 @@ C
      &       9X,'PROFR0,PROFR1,PROFR2'/
      &       9X,'NSGMAX,NTGMAX,NUGMAX,NRGMAX,NZGMAX,NPSMAX'/
      &       9X,'NRMAX,NTHMAX,NSUMAX,NRVMAX,NTVMAX'/
-     &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,NPRINT'/
+     &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,MDLEQV,NPRINT'/
      &       9X,'EPSEQ,NLPMAX,EPSNW,DELNW,NLPNW'/
      &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
      &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
@@ -487,7 +491,8 @@ C
      &             'MDLEQA',MDLEQA,
      &             'MODELQ',MODELQ
       WRITE(6,602) 'MDLEQX',MDLEQX,
-     &             'NPRINT',NPRINT,
+     &             'MDLEQV',MDLEQV
+      WRITE(6,602) 'NPRINT',NPRINT,
      &             'NLPMAX',NLPMAX,
      &             'NLPNW ',NLPNW
 C
