@@ -4,7 +4,7 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-LFLAGS = $(DFLAGS)
+LFLAGS = $(OFLAGS)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
