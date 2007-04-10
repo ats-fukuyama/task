@@ -3,15 +3,24 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
+
+EQINCLUDE= -I../../topics/src
+#EQINCLUDE= -I../eq
+#EQINCLUDE= -I../pl
+EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#EQLIBS= ../eq/eqlib.a
+#EQLIBS= ../pl/noeqlib.o
+
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  \
-      trmenu.f90 trinit.f90 trprof.f90 trgout.f90 trfile.f90 trloop.f90 trrslt.f90 \
-      trcalc.f90 trcoef.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90  trmdlt.f90 \
-      trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 trgrad.f90 trgram.f90 trgsub.f90 \
-      trhelp.f90 tritg.f90
+      trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
+      trloop.f90 trexec.f90 trcalc.f90 trcoef.f90 tritg.f90 trrslt.f90 \
+      trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
+      trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
+      trgrad.f90 trgram.f90 trgsub.f90
 SRCS= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
-      itg/ifspppl_model.f itg/weiland.f
+      itg/ifspppl_model.f itg/weiland.f trpl.f
 SRCF= glf/glf2d.F glf/r8tomsqz.F
 SRC2D=trg2d.f90
 SRC3D=trg3d.f90
@@ -28,15 +37,13 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
-LIBS2=tr2lib.a ../pl/pllib.a ../lib/tasklib.a ../eq/eqlib.a ../lib/mdslib.a
-LIBS3=tr3lib.a ../pl/pllib.a ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
-#LIBS2=tr2lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
-#LIBS3=tr3lib.a ../pl/pllib.a ../eq/treqin.o ../eq/eqlib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS2=tr2lib.a $(EQLIBS) ../lib/tasklib.a ../lib/mdslib.a
+LIBS3=tr3lib.a $(EQLIBS) ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODULE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ -I. $(EQINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODULE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ -I. $(EQINCLUDE)
 
 #all: tr2 tr3
 all: tr2
@@ -65,10 +72,10 @@ libs:
 	(cd ../eq; make treqin.o)
 
 tr2: $(LIBS2) trmain.o
-	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO)
+	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) -I. $(EQINCLUDE)
 
 tr3: $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA) -I. $(EQINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
@@ -109,6 +116,8 @@ trinit.o : trinit.f90 trcomm.f90 trcom1.f90 trcom3.f90
 trprof.o : trprof.f90 trcomm.f90 trcom1.f90
 trfile.o : trfile.f90 trcomm.f90 trcom1.f90
 trloop.o : trloop.f90 trcomm.f90 trcom1.f90
+trexec.o : trexec.f90 trcomm.f90 trcom1.f90
+trpl.o : trpl.f trcomm.f90 trcom1.f90
 trrslt.o : trrslt.f90 trcomm.f90 trcom2.f90
 trcalc.o : trcalc.f90 trcomm.f90 trcom1.f90
 trcoef.o : trcoef.f90 trcomm.f90 trglf.inc

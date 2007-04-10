@@ -94,13 +94,15 @@
             PEX(NR,2) = PNBU(1,NR,2)
             PEX(NR,3) = 0.D0
             PEX(NR,4) = 0.D0
+            SEX(NR,1:NSM) = 0.D0
             PRF(NR,1) = PICU(1,NR,1)
             PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
             PRF(NR,4) = 0.D0
 
-            PBM(NR)   = PBMU(1,NR)
             RNF(NR,1) = RNFU(1,NR)
+            RNF(NR,2:NFM) = RNFU(1,NR)
+            PBM(NR)   = PBMU(1,NR)
             WROT(NR)  = WROTU(1,NR)
             VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
          case(2)
@@ -204,7 +206,10 @@
             SEX(NR,2)=SNBU(1,NR,2)+SWLU(1,NR)
             SEX(NR,3)=0.D0
             SEX(NR,4)=0.D0
+            PRF(NR,1:NSM)=0.D0
             RNF(NR,1)=RNFU(1,NR)
+            RNF(NR,2:NFM)=0.D0
+            PBM(NR)=0.D0
             WROT(NR) =WROTU(1,NR)
             VTOR(NR) =WROTU(1,NR)*RMJRHOU(1,NR)
          case(3)
@@ -233,9 +238,13 @@
             PEX(NR,2) = PNBU(1,NR,2)
             PEX(NR,3) = 0.D0
             PEX(NR,4) = 0.D0
+            SEX(NR,1:NSM) = 0.D0
             PRF(NR,1) = PICU(1,NR,1)
             PRF(NR,2) = PICU(1,NR,2)
             PRF(NR,3) = 0.D0
+            PRF(NR,4) = 0.D0
+            RNF(NR,1:NFM) = 0.D0
+            PBM(NR)=0.D0
             PRF(NR,4) = 0.D0
             WROT(NR)  = WROTU(1,NR)
             VTOR(NR)  = WROTU(1,NR)*RMJRHOU(1,NR)
@@ -247,6 +256,12 @@
             RT(NR,1:NSM) = (PT(1:NSM)-PTS(1:NSM))*PROF+PTS(1:NSM)
 
             PEX(NR,1:NSM) = 0.D0
+            SEX(NR,1:NSM) = 0.D0
+            PRF(NR,1:NSM) = 0.D0
+            RNF(NR,1:NFM) = 0.D0
+            PBM(NR)=0.D0
+            WROT(NR)=0.D0
+            VTOR(NR)=0.D0
          end select
 
          IF(MDLEQ0.EQ.1) THEN
@@ -260,7 +275,7 @@
 
          SUMPBM=SUMPBM+PBM(NR)
       ENDDO
-      CALL PLDATA_SETR(RG,RM)
+!      CALL PLDATA_SETR(RG,RM)
       CALL TR_EDGE_DETERMINER(1)
       CALL TR_EDGE_SELECTOR(1)
 
@@ -344,7 +359,8 @@
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR)=FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          ENDDO
-         QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*RDP(1:NRMAX))
+         QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
+     &              /(4.D0*PI**2*RDP(1:NRMAX))
          ELSE ! *** MDLJQ ***
             QP(1:NRMAX) =QPU(1,1:NRMAX)
             RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*QP(1:NRMAX))
@@ -510,6 +526,9 @@
          BP(1:NRMAX)  =FACT*BP(1:NRMAX)
          QP(1:NRMAX)  =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*RDP(1:NRMAX))
       ENDIF
+!      write(6,*) 'in trprof'
+!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
+!      pause
 !     *** calculate q_axis ***
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
 
@@ -568,24 +587,6 @@
          RPSI(NR)=SUML
          BPRHO(NR)=BP(NR)
       ENDDO
-
-      IF(MODELG.EQ.9) THEN
-
-!     *** Give initial profiles to TASK/EQ ***
-!         CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
-!         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
-
-!     *** Contorol output display from TASK/EQ ***
-!CC         CALL EQPARM(2,'EPSEQ=1.D-4',IERR)
-!CC         CALL EQPARM(2,'NPRINT=1',IERR)
-!         CALL EQPARM(2,'NPRINT=0',IERR)
-!         CALL EQPARM(2,'NPSMAX=100',IERR)
-
-         CALL TRSETG(0,IERR)
-         IF(IERR.NE.0) THEN
-            WRITE(6,*) 'XX TRPROF INITIAL EQUILIBRIUM FAILED : IERR = ', IERR
-         ENDIF
-      ENDIF
 
       GRG(1)=0.0
       GRM(1:NRMAX)  =SNGL(RM(1:NRMAX))

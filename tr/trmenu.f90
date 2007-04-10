@@ -2,9 +2,14 @@
 
       SUBROUTINE TRMENU
 
-      USE TRCOMM, ONLY : KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, NT, NTMAX, NTMAX_SAVE, &
-     &                   ALLOCATE_TRCOMM
+      USE TRCOMM, ONLY : &
+           & KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, NT, &
+           & NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG
       USE TRCOM1, ONLY : KDIRX
+      use trpl_mod, only: trpl_init, trpl_set, trpl_get
+      use equnit_mod
+      use eqgout_mod
+      use eqpl_mod
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -18,15 +23,19 @@
 
     1 IF(INIT.EQ.0) THEN
          WRITE(6,601)
-  601    FORMAT('## TR MENU: P,V,U/PARM  R/RUN  L/LOAD  ','D/DATA  H/HELP  Q/QUIT')
+  601    FORMAT('## TR MENU: P,V,U/PARM  R/RUN  L/LOAD  ', &
+              & 'D/DATA  H/HELP  Q/QUIT')
       ELSEIF(INIT.EQ.1) THEN
          WRITE(6,602)
   602    FORMAT('## TR MENU: G/GRAPH  '/ &
-     &          '            P,V,U/PARM  R/RUN  L/LOAD  ','D/DATA  H/HELP  Q/QUIT')
+              & '            P,V,U/PARM  R/RUN  L/LOAD  ', &
+              & 'D/DATA  H/HELP  Q/QUIT')
       ELSE
          WRITE(6,603)
-  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W/WRITE  ','S/SAVE  O/UFILEOUT  M/MDLTST'/ &
-     &          '            P,V,U/PARM  R/RUN  L/LOAD  ','D/DATA  H/HELP  Q/QUIT')
+  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W/WRITE  ', &
+              & 'S/SAVE  O/UFILEOUT  M/MDLTST'/ &
+              & '            P,V,U/PARM  R/RUN  L/LOAD  ',&
+              & 'D/DATA  H/HELP  Q/QUIT')
       ENDIF
 
       CALL TASK_KLIN(LINE,KID,MODE,TRPARM)
@@ -41,8 +50,6 @@
 
       ELSE IF(KID.EQ.'L') THEN
          CALL TRLOAD
-         CALL PLDATA_SETN(NRMAX,NSMAX)
-         CALL PLDATA_CLEAR
          INIT=2
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL TRSAVE
@@ -51,8 +58,6 @@
          CALL ALLOCATE_TRCOMM(IERR)
            IF(IERR.NE.0) GOTO 1
          IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_OPEN(KUFDEV, KUFDCG)
-         CALL PLDATA_SETN(NRMAX,NSMAX)
-         CALL PLDATA_CLEAR
          IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,0)
          CALL TR_EQS_SELECT(0)
          IF(MDLUF.EQ.1) THEN
@@ -72,7 +77,19 @@
          ELSE
             CALL TR_UFILE_CONTROL(0)
          ENDIF
-         CALL TRPROF
+         if(modelg.eq.9) then
+            call eq_prof ! initial calculation of eq
+         endif
+         CALL TRPROF             ! initialise profile data
+         call trpl_init          ! initialize trpl
+         if(modelg.eq.9) then
+            call trpl_set(ierr)  ! set trpl with initial profile
+            call eqpl_prof(ierr) ! adjust temperature and q profile
+            call eq_calc         ! recalculate eq
+            call trpl_get(ierr)  ! 
+            call trgout
+         endif
+
          CALL TRLOOP
 
          INIT=2

@@ -263,17 +263,29 @@ c
 c
       call bpsd_get_equ1D(equ1D,ierr)
       do nr=1,equ1D%nrmax
-         tempx(nr,1)=equ1D%data(nr)%pip*rmu0/(2.d0*pi)
+         tempx(nr,1)=equ1D%data(nr)%psip
+         tempx(nr,2)=equ1D%data(nr)%psit
+         tempx(nr,3)=equ1D%data(nr)%ppp
+         tempx(nr,4)=equ1D%data(nr)%piq
+         tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2.d0*pi)
+         tempx(nr,6)=equ1D%data(nr)%pit
       enddo
-      call mesh_convert_gtom(tempx(1,1),TTRHO,nrmax)
-      TTRHOG(1:nrmax)=tempx(2:nrmax+1,1)
+      call mesh_convert_gtom(tempx(1,1),PSITRHO,nrmax)
+      call mesh_convert_gtom(tempx(1,2),PSIPRHO,nrmax)
+      call mesh_convert_gtom(tempx(1,3),PPPRHO,nrmax)
+      call mesh_convert_gtom(tempx(1,4),PIQRHO,nrmax)
+      call mesh_convert_gtom(tempx(1,5),TTRHO,nrmax)
+      call mesh_convert_gtom(tempx(1,6),PIRHO,nrmax)
+      TTRHOG(1:nrmax)=tempx(2:nrmax+1,5)
       psita=equ1D%data(equ1D%nrmax)%psit
 c
       call bpsd_get_metric1D(metric1D,ierr)
-      do nr=2,equ1D%nrmax
+      do nr=2,metric1D%nrmax
          rgl=rg(nr-1)
          dpsitdrho=2.D0*psita*rgl
          dvdrho=metric1D%data(nr)%dvpsit*dpsitdrho
+         write(26,'(I5,1P3E12.4)') 
+     &        nr,dpsitdrho,metric1D%data(nr)%dvpsit,dvdrho
          tempx(nr,1)=dvdrho
          tempx(nr,2)=metric1D%data(nr)%avegvr2/dvdrho**2
          tempx(nr,3)=metric1D%data(nr)%aver2i
@@ -301,7 +313,7 @@ c
          tempx(nr,11)=metric1D%data(nr)%avera
          tempx(nr,12)=metric1D%data(nr)%aveelip
 
-      call mesh_convert_gtom(tempx(1,1),DVRHO,nrmax)
+      call mesh_convert_gtom0(tempx(1,1),DVRHO,nrmax)
       call mesh_convert_gtom(tempx(1,2),ABRHO,nrmax)
       call mesh_convert_gtom(tempx(1,3),ARRHO,nrmax)
       call mesh_convert_gtom(tempx(1,4),AR1RHO,nrmax)
@@ -323,30 +335,38 @@ c
 
       RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)
      &            /(4.D0*PI**2*QP(1:NRMAX))
-      BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
+!      BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
 
+      do nr=1,nrmax
+         write(26,'(I5,1P5E12.4)') 
+     &        nr,qp(nr),TTRHO(nr),ARRHOG(nr),DVRHOG(nr),rdp(nr)
+      enddo
       NR=1
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
          AJOH(NR)=AJ(NR)
+         write(26,'(I5,1P5E12.4)') 
+     &        nr,dvrho(nr),factor0,0.d0,factorp,aj(nr)
       DO NR=2,NRMAX
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          AJOH(NR)=AJ(NR)
+         write(26,'(I5,1P5E12.4)') 
+     &        nr,dvrho(nr),factor0,factorm,factorp,aj(nr)
       ENDDO
-      NR=1
-         FACTOR0=RR/(RMU0*DVRHO(NR))
-         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
-         AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
-      DO NR=2,NRMAX
-         FACTOR0=RR/(RMU0*DVRHO(NR))
-         FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
-         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
-         AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
-      ENDDO
+!      NR=1
+!         FACTOR0=RR/(RMU0*DVRHO(NR))
+!         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+!         AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
+!      DO NR=2,NRMAX
+!         FACTOR0=RR/(RMU0*DVRHO(NR))
+!         FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
+!         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
+!         AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+!      ENDDO
 
 !      write(6,*) 'end of trpl_get: aj'
 !      write(6,'(1P5E12.4)') (aj(nr),nr=1,nrmax)
@@ -402,5 +422,48 @@ c
       enddo
       return
       end subroutine mesh_convert_gtom
+c
+c     ----- convert half mesh to origin + grid mesh -----
+c
+      subroutine mesh_convert_mtog0(datam,datag,nrmax)
+c
+      implicit none
+      integer nrmax
+      real*8 datam(nrmax),datag(nrmax+1)
+      integer nr
+c
+      datag(1)=0.d0
+      do nr=2,nrmax
+         datag(nr)=(datam(nr-1)+datam(nr))/2.d0
+      enddo
+      datag(nrmax+1)=(4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+      return
+      end subroutine mesh_convert_mtog0
+c
+c     ----- convert origin + grid mesh to half mesh -----
+c
+      subroutine mesh_convert_gtom0(datag,datam,nrmax)
+c
+      implicit none
+      integer nrmax
+      real*8 datag(nrmax+1),datam(nrmax)
+      real*8 c11,c12,c21,c22,det,a11,a12,a21,a22
+      integer nr,ierr
+c
+      c11= 9.d0/8.d0
+      c12=-1.d0/8.d0
+      c21= 0.5d0
+      c22= 0.5d0
+      det=c11*c22-c12*c21
+      a11= c22/det
+      a12=-c12/det
+      a21=-c21/det
+      a22= c11/det
+      datam(1)=0.5d0*datag(2)
+      do nr=2,nrmax
+         datam(nr)=2.d0*datag(nr)-datam(nr-1)
+      enddo
+      return
+      end subroutine mesh_convert_gtom0
 c
       end module trpl_mod

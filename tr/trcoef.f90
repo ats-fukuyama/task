@@ -533,6 +533,7 @@
             SLAMDA=0.D0
             RLAMDA=0.D0
             RG1=1.D0
+            WE1=0.D0
 
             IF(MOD(MDLKAI,2).EQ.0) THEN
                SL=(S(NR)**2+0.1D0**2)
@@ -1091,7 +1092,7 @@
             RNUE=ABS(QP(NR)*RR/(TAUE*VTE*EPSS))
             RK33E=RK33/(1.D0+RA33*SQRT(RNUE)+RB33*RNUE)/(1.D0+RC33*RNUE*EPSS)
 
-            H      = BB/(BB+BP(NR))
+            H      = BB/SQRT(BB**2+BP(NR)**2)
             FT     = 1.D0/H-SQRT(EPS)*RK33E
             ETA(NR)= ETA(NR)/FT
 
@@ -1292,7 +1293,7 @@
 
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)/(1.D0+RC13*RNUE*EPSS)
 
-            H     = BB/(BB+BPL)
+            H     = BB/SQRT(BB**2+BPL**2)
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
@@ -1333,7 +1334,7 @@
 
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)/(1.D0+RC13*RNUE*EPSS)
 
-            H     = BB/(BB+BPL)
+            H     = BB/SQRT(BB**2+BPL**2)
 
             RK11E=RK11*(1.D0/(1.D0+RA11*SQRT(RNUE)+RB11*RNUE)+(EPSS*RC11)**2/RB11*RNUE/(1.D0+RC11*RNUE*EPSS))
 
@@ -1502,12 +1503,14 @@
 
             RK13E = RK13/(1.D0+RA13*SQRT(RNUE)+RB13*RNUE)/(1.D0+RC13*RNUE*EPSS)
             RK23E = RK23/(1.D0+RA23*SQRT(RNUE)+RB23*RNUE)/(1.D0+RC23*RNUE*EPSS)
-            RK3D  =((1.17D0-0.35D0*SQRT(RNUD))/(1.D0+0.7D0*SQRT(RNUD))-2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
+            RK3D  =((1.17D0-0.35D0*SQRT(RNUD))/(1.D0+0.7D0*SQRT(RNUD)) &
+                 & -2.1D0*(RNUD*EPSS)**2)/(1.D0+(RNUD*EPSS)**2)
 
-            H     = BB/(BB+BPL)
+            H     = BB/SQRT(BB**2+BPL**2)
             AVKNC(NR,1) = (-RK23E+2.5D0*RK13E)*SQRT(EPS)*EZOHL/BPL/H
             AVK(NR,1)   = CNH*AVKNC(NR,1)
-            AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))*RK13E*SQRT(EPS)*EZOHL/BPL/H*ANED
+            AVKNC(NR,2:NSM) = RK3D/((1.D0+(RNUE*EPSS)**2)*PZ(2))*RK13E &
+                 & *SQRT(EPS)*EZOHL/BPL/H*ANED
             AVKDW(NR,2:NSM) = 0.D0
          ENDDO
       case default
@@ -1521,7 +1524,8 @@
 !     ***** NET HEAT PINCH *****
 
       AVKDW(1:NRMAX,1:NSLMAX)=CDH*AVKDW(1:NRMAX,1:NSLMAX)
-      AVK(1:NRMAX,1:NSLMAX)=CDH*AVKDW(1:NRMAX,1:NSLMAX)+CNH*AVKNC(1:NRMAX,1:NSLMAX)
+      AVK(1:NRMAX,1:NSLMAX)=CDH*AVKDW(1:NRMAX,1:NSLMAX) &
+           &               +CNH*AVKNC(1:NRMAX,1:NSLMAX)
 
       RETURN
       END SUBROUTINE TRCFAD
@@ -1535,7 +1539,8 @@
       IF(ALPHA.GE.0.D0) THEN
          SA=S-ALPHA
          IF(SA.GE.0.D0) THEN
-            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)/(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
+            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
+                 & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
          ELSE
             FS1=1.D0/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA))
          ENDIF
@@ -1547,7 +1552,8 @@
       ELSE
          SA=ALPHA-S
          IF(SA.GE.0.D0) THEN
-            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)/(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
+            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
+                 & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
          ELSE
             FS1=1.D0/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA))
          ENDIF
@@ -1573,9 +1579,11 @@
          SA=S-(1.D0-(2.D0*ALPHA)/(1+6.D0*ALPHA))*ALPHA
          IF(SA.GE.0.D0) THEN
            FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
-     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)+2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
+     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV) &
+     &                       +2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
          ELSE
-            FS1=((1.D0+RKCV)**2.5D0)/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
+            FS1=((1.D0+RKCV)**2.5D0)/SQRT(2.D0*(1.D0-2.D0*SA) &
+     &          *(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
          ENDIF
          IF(RKCV.GT.0.D0) THEN
             FS2=SQRT(RKCV/EPSA)**3/(S*S)
@@ -1588,9 +1596,11 @@
          SA=(1.D0-(2.D0*ALPHA)/(1.D0+6.D0*ALPHA))*ALPHA-S
          IF(SA.GE.0.D0) THEN
             FS1=((1.D0+RKCV)**2.5D0)*(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
-     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)+2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
+     &         /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV) &
+     &                       +2.0D0*SA*SA*SA*(1.D0+RKCV)**2.5D0))
          ELSE
-            FS1=((1.D0+RKCV)**2.5D0)/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
+            FS1=((1.D0+RKCV)**2.5D0) &
+            & /SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA*(1.D0+RKCV)))
          ENDIF
          IF(RKCV.LT.0.D0) THEN
             FS2=SQRT(-RKCV/EPSA)**3/(S*S)
@@ -1623,7 +1633,8 @@
       IF(ALPHA.GE.0.D0) THEN
          SA=S-ALPHA
          IF(SA.GE.0.D0) THEN
-            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)/(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
+            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
+                 & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
          ELSE
             FS1=1.D0/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA))
          ENDIF
@@ -1635,7 +1646,8 @@
       ELSE
          SA=ALPHA-S
          IF(SA.GE.0.D0) THEN
-            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0)/(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
+            FS1=(1.D0+9.0D0*SQRT(2.D0)*SA**2.5D0) &
+                 & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*SA*SA+2.0D0*SA*SA*SA))
          ELSE
             FS1=1.D0/SQRT(2.D0*(1.D0-2.D0*SA)*(1.D0-2.D0*SA+3.D0*SA*SA))
          ENDIF
@@ -1654,9 +1666,12 @@
       IMPLICIT NONE
       REAL(8):: X
       REAL(8):: AX, Y
-      REAL(8),SAVE:: P1=1.0D0, P2=3.5156229D0, P3=3.0899424D0, P4=1.2067492D0, P5=0.2659732D0, P6=0.360768D-1, P7=0.45813D-2
-      REAL(8),SAVE:: Q1=0.39894228D0,  Q2=0.1328592D-1, Q3=0.225319D-2,  Q4=-0.157565D-2, Q5=0.916281D-2, &
-     &               Q6=-0.2057706D-1, Q7=0.2635537D-1, Q8=-0.1647633D-1,Q9=0.392377D-2
+      REAL(8),SAVE:: P1=1.0D0, P2=3.5156229D0, P3=3.0899424D0, &
+           &         P4=1.2067492D0, P5=0.2659732D0, P6=0.360768D-1, &
+           &         P7=0.45813D-2
+      REAL(8),SAVE:: Q1=0.39894228D0,  Q2=0.1328592D-1, Q3=0.225319D-2, &
+           &         Q4=-0.157565D-2, Q5=0.916281D-2, Q6=-0.2057706D-1, &
+           &         Q7=0.2635537D-1, Q8=-0.1647633D-1,Q9=0.392377D-2
 
 
       AX=ABS(X)
@@ -1665,7 +1680,8 @@
         RLAMBDA=(P1+Y*(P2+Y*(P3+Y*(P4+Y*(P5+Y*(P6+Y*P7)))))) *EXP(-AX)
       ELSE
         Y=3.75D0/AX
-        RLAMBDA=(1.D0/SQRT(AX))*(Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5+Y*(Q6+Y*(Q7+Y*(Q8+Y*Q9))))))))
+        RLAMBDA=(1.D0/SQRT(AX))*(Q1+Y*(Q2+Y*(Q3+Y*(Q4+Y*(Q5 &
+        &                          +Y*(Q6+Y*(Q7+Y*(Q8+Y*Q9))))))))
       ENDIF
       RETURN
       END FUNCTION RLAMBDA
@@ -1694,7 +1710,8 @@
       ELSE
          ALPHAL=ABS(ALPHA)
       ENDIF
-      BETA=0.5D0*ALPHAL**(-0.602D0)*(13.018D0-22.28915D0*S+17.018D0*S**2)/(1.D0-0.277584D0*S+1.42913D0*S**2)
+      BETA=0.5D0*ALPHAL**(-0.602D0)*(13.018D0-22.28915D0*S+17.018D0*S**2) &
+           & /(1.D0-0.277584D0*S+1.42913D0*S**2)
 
       A=-10.D0/3.D0*ALPHA+16.D0/3.D0
       IF(S.LT.0.D0) THEN
