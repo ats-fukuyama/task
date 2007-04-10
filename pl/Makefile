@@ -3,7 +3,7 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
-SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f
+SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f pl_bpsd.f
 SRCO = noeqlib.f
 
 OBJS = $(SRCS:.f=.o) 

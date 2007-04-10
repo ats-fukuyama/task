@@ -1112,7 +1112,7 @@ c-----------------------------------------------------------------------
       subroutine spl1D_bpsd(data1D,nd,ierr)
 c-----------------------------------------------------------------------
 c
-      use libspl_mod
+!      use libspl_mod
       implicit none
       type(bpsd_1ddatax_type) :: data1D
       integer :: nd     ! position of dependent variable
@@ -1133,7 +1133,7 @@ c-----------------------------------------------------------------------
       subroutine spl1DF_bpsd(pos,val,data1D,nd,ierr)
 c-----------------------------------------------------------------------
 c
-      use libspl_mod
+!      use libspl_mod
       implicit none
       real(8) :: pos     ! value of independent variable
       real(8) :: val     ! value of dependent variable
