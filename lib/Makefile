@@ -47,3 +47,5 @@ clean:
 
 veryclean: clean
 
+#libspl.o: libspl.f90
+#	$(FCFREE) -O3 -tp p7 -c libspl.f90 -o libspl.o
