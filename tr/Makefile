@@ -3,11 +3,11 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
-EQINCLUDE= -I../../topics/src
-#EQINCLUDE= -I../eq
-#EQINCLUDE= -I../pl
+MODINCLUDE= -I. -I../pl -I../../topics/src
+#MODINCLUDE= -I. -I../pl -I../eq
+#MODINCLUDE= -I. -I../pl
 EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #EQLIBS= ../eq/eqlib.a
 #EQLIBS= ../pl/noeqlib.o
@@ -41,9 +41,9 @@ LIBS2=tr2lib.a $(EQLIBS) ../lib/tasklib.a ../lib/mdslib.a
 LIBS3=tr3lib.a $(EQLIBS) ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ -I. $(EQINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ -I. $(EQINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 
 #all: tr2 tr3
 all: tr2
@@ -72,10 +72,10 @@ libs:
 	(cd ../eq; make treqin.o)
 
 tr2: $(LIBS2) trmain.o
-	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) -I. $(EQINCLUDE)
+	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr3: $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA) -I. $(EQINCLUDE)
+	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less

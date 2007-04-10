@@ -1,0 +1,17 @@
+ &tr
+   ntmax=2
+   ntstep=1
+   ngtstp=1
+   ngrstp=1
+   dt=1.D-3
+   modelg=9
+   nteqit=1
+   nsmax=2
+   pn=1.01,1.01
+   pns=0.01,0.01
+   profn1=4
+   profn2=1
+   pt=2,2
+   pts=0.01,0.01
+   rips=0.3,ripe=0.3
+ &end
