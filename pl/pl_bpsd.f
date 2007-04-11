@@ -3,14 +3,12 @@ c=======================================================================
       module bpsd_mod
 c
       type bpsd_shot_type
-         character(len=32) :: dataName
          character(len=32) :: deviceID
          integer :: shotID
          integer :: modelID
       end type bpsd_shot_type
 c
       type bpsd_device_type
-         character(len=32) :: dataName
          real(8) :: rr     ! Geometrical major radius [m]
          real(8) :: zz     ! Geometrical vetical position [m]
          real(8) :: ra     ! Typical minor radius (Rmax-Rmin)/2 [m]
@@ -27,7 +25,6 @@ c
          real(8) :: pz0    ! Atomic number (n. of protons)
       end type bpsd_species_data
       type bpsd_species_type
-         character(len=32) :: dataName
          integer :: nsmax     ! Number of particle species
          type(bpsd_species_data), dimension(:), allocatable :: data
       end type bpsd_species_type
@@ -41,7 +38,6 @@ c
          real(8) :: pit    ! Toroidal current [A] ~2*pi*r*Bp/mu_0
       end type bpsd_equ1D_data
       type bpsd_equ1D_type
-         character(len=32) :: dataName
          real(8) :: time
          integer :: nrmax     ! Number of radial points
          real(8), dimension(:), allocatable :: s 
@@ -68,7 +64,6 @@ c
       end type bpsd_metric1D_data
 c
       type bpsd_metric1D_type
-         character(len=32) :: dataName
          real(8) :: time
          integer :: nrmax       ! Number of radial points
          real(8), dimension(:), allocatable :: s 
@@ -85,7 +80,6 @@ c
       end type bpsd_plasmaf_data
 
       type bpsd_plasmaf_type
-         character(len=32) :: dataName
          real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: nsmax     ! Number of particle species
@@ -100,6 +94,7 @@ c
          character(len=32) :: dataName
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_0ddata_type
 c
       type bpsd_1ddata_type
@@ -109,6 +104,7 @@ c
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_1ddata_type
 c
       type bpsd_2ddata_type
@@ -120,6 +116,7 @@ c
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_2ddata_type
 c
       type bpsd_3ddata_type
@@ -133,6 +130,7 @@ c
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_3ddata_type
 c
       type bpsd_shotx_type
