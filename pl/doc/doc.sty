@@ -1,0 +1,40 @@
+% $Id$
+\newcommand{\namelistlabel}[1]{\mbox{#1}\hfil}
+\newenvironment{namelist}[1]{%
+  \begin{list}{}
+     {\let\makelabel\namelistlabel
+      \settowidth{\labelwidth}{#1}
+      \setlength{\leftmargin}{1.0\labelwidth}}
+}{%
+\end{list}}
+
+\renewcommand{\title}[1]{\begin{center}\fboxsep=3mm\fbox{\textbf{#1}}\end{center}}
+
+\newcommand{\compileParmLine}
+{\texttt{XXXXXX} \= [I]  \= 100000 \= aaaaaaa\kill}
+\newcommand{\compileParm}[4]
+{\texttt{#1} \> [#2] \> \> #3 \' #4 \\}
+
+\newcommand{\derivedParmLine}
+{\texttt{XXXXXX} \= [I] \= \texttt{=XXXXXXXX} \= aaaaaaa\kill}
+\newcommand{\derivedParm}[4]
+{\texttt{#1} \> [#2] \> \ \texttt{=#3} \> #4 \\}
+
+\newcommand{\inputParmLine}
+{XXXX\= \texttt{XXXXXX(XXXXXX)} \= [I]XX \= 100000 \= aaaaaaa\kill}
+\newcommand{\inputParmBlock}[2]
+{\texttt{#1} \> \> \> \textbf{#2} \\}
+\newcommand{\inputParm}[4]
+{\> \texttt{#1} \> [#2] \> \> #3 \' #4 \\}
+\newcommand{\inputComment}[1]
+{\> \> \> \> \quad #1 \\}
+
+\newcommand{\commonVarLine}
+{XXXX\= \texttt{XXXXXX(XXXXXX)} \= [I]XX \= aaaaaaa\kill}
+\newcommand{\commonBlock}[2]
+{\texttt{#1} \> \> \> \textbf{#2} \\}
+\newcommand{\commonVar}[3]
+{\> \texttt{#1} \> [#2] \> #3 \\}
+
+\newcommand{\ttype}[1]{{\small \texttt{#1}}}
+\newcommand{\tline}[1]{\qquad{\small \texttt{#1}}}

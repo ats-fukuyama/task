@@ -83,6 +83,7 @@ c
          real(8) :: ptpp   ! Perpendicular temperature [eV]
          real(8) :: pu     ! Parallel flow velocity [m/s]
       end type bpsd_plasmaf_data
+
       type bpsd_plasmaf_type
          character(len=32) :: dataName
          real(8) :: time
@@ -96,6 +97,7 @@ c
       end type bpsd_plasmaf_type
 c
       type bpsd_0ddata_type
+         character(len=32) :: dataName
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
       end type bpsd_0ddata_type
@@ -112,24 +114,24 @@ c
       type bpsd_2ddata_type
          character(len=32) :: dataName
          real(8) :: time
-         integer :: nrmax     ! Number of radial points
          integer :: nthmax    ! Number of poloidal points
+         integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
-         real(8), dimension(:), allocatable :: s 
          real(8), dimension(:), allocatable :: th
+         real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:), allocatable :: data
       end type bpsd_2ddata_type
 c
       type bpsd_3ddata_type
          character(len=32) :: dataName
          real(8) :: time
-         integer :: nrmax     ! Number of radial points
-         integer :: nthmax    ! Number of poloidal points
          integer :: nphmax    ! Number of toroidal points
+         integer :: nthmax    ! Number of poloidal points
+         integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
-         real(8), dimension(:), allocatable :: s 
-         real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: ph
+         real(8), dimension(:), allocatable :: th
+         real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:,:), allocatable :: data
       end type bpsd_3ddata_type
 c
@@ -596,7 +598,7 @@ c
 c
       if(shot%status.eq.1) then
          write(6,*) 'XX bpsd_get_shot: no data in shot'
-         ierr=1
+         ierr=2
          return
       endif
 c
@@ -625,7 +627,7 @@ c
 c
       if(devicex%status.eq.1) then
          write(6,*) 'XX bpsd_get_device: no data in device'
-         ierr=1
+         ierr=2
          return
       endif
 c
