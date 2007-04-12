@@ -78,7 +78,6 @@ c
          real(8) :: ptpp   ! Perpendicular temperature [eV]
          real(8) :: pu     ! Parallel flow velocity [m/s]
       end type bpsd_plasmaf_data
-
       type bpsd_plasmaf_type
          real(8) :: time
          integer :: nrmax     ! Number of radial points
@@ -92,6 +91,7 @@ c
 c
       type bpsd_0ddata_type
          character(len=32) :: dataName
+         real(8) :: time
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
          character(len=32), dimension(:), allocatable :: kid
