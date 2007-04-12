@@ -192,7 +192,7 @@ c
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: ph
          real(8), dimension(:,:,:,:), allocatable :: data
-         real(8), dimension(:,:,:,:,:), allocatable :: spline
+         real(8), dimension(:,:,:,:,:,:), allocatable :: spline
          character(len=32), dimension(:), allocatable :: kid
       end type bpsd_3ddatax_type
 c

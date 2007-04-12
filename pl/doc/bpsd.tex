@@ -41,11 +41,13 @@ BPSD 標準データセットの目的は，プラズマや電磁界，装置等の状態を記述す
          real(8) :: time
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_0ddata_type
 \end{verbatim}
-dataName はデータを識別する文字列，time は秒単位の時刻，ndmax はデータ
-の個数を指定し，data はデータ値を格納する allocatable な１次元配列であ
-る．
+\tt{dataName} はデータを識別する文字列，\tt{time} は秒単位の時刻，
+\tt{ndmax} はデータの個数を指定し，\tt{data} はデータ値を格納する 
+allocatable な１次元配列 (ndmax)，\tt{kid} はデータ名称を与える文字列
+を格納する allocatable な１次元配列 (ndmax) である．．
 
 \subsubsection{１次元汎用データ型}
 \begin{verbatim}
@@ -56,12 +58,13 @@ dataName はデータを識別する文字列，time は秒単位の時刻，ndmax はデータ
          integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_1ddata_type
 \end{verbatim}
-nrmax は径方向の分割数，s は磁気軸で 0，プラズマ表面で 1 に規格化され
+\tt{nrmax} は径方向の分割数，\tt{s} は磁気軸で 0，プラズマ表面で 1 に規格化され
 たトロイダル磁束として $[0,1]$ で定義される径方向の座標を格納する 
 allocatable な１次元配列 (nrmax) である．規格化小半径 $\rho$ の２乗に
-比例し，両端点を含む．data はデータ値を格納する allocatable な２次元配
+比例し，両端点を含む．\tt{data} はデータ値を格納する allocatable な２次元配
 列 (nrmax,ndmax) である．
 
 \subsubsection{２次元汎用データ型}
@@ -75,13 +78,14 @@ allocatable な１次元配列 (nrmax) である．規格化小半径 $\rho$ の２乗に
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_2ddata_type
 \end{verbatim}
-nthmax はポロイダル方向の分割数，th は区間 $[0,2\pi)$ で定義されたポロ
-イダル座標 $\theta$ を格納する allocatable な１次元配列 (nthmax) であ
-る．$\theta$ に関する周期性を仮定し，$\theta=2\pi$ での値は $\theta=0$ 
-での値に等しいので省略する．data はデータ値を格納する allocatable な３
-次元配列 (nthmax, nrmax, ndmax) である．
+\tt{nthmax} はポロイダル方向の分割数，\tt{th} は区間 $[0,2\pi)$ で定義
+されたポロイダル座標 $\theta$ を格納する allocatable な１次元配列 
+(nthmax) である．$\theta$ に関する周期性を仮定し，$\theta=2\pi$ での値
+は $\theta=0$ での値に等しいので省略する．\tt{data} はデータ値を格納す
+る allocatable な３次元配列 (nthmax, nrmax, ndmax) である．
 
 \subsubsection{３次元汎用データ型}
 \begin{verbatim}
@@ -96,13 +100,14 @@ nthmax はポロイダル方向の分割数，th は区間 $[0,2\pi)$ で定義されたポロ
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:,:), allocatable :: data
+         character(len=32), dimension(:), allocatable :: kid
       end type bpsd_3ddata_type
 \end{verbatim}
-nphmax はトロイダル方向の分割数，ph は区間 $[0,2\pi)$ で定義されたトロ
-イダル座標 $\phi$ を格納する allocatable な１次元配列 (nphmax) である．
-$\phi$ に関する周期性を仮定し，$\phi=2\pi$ での値は $\phi=0$ での値に
-等しいので省略する．data はデータ値を格納する allocatable な４次元配列 
-(nphmax, nthmax, nrmax, ndmax) である．
+\tt{nphmax} はトロイダル方向の分割数，\tt{ph} は区間 $[0,2\pi)$ で定義
+されたトロイダル座標 $\phi$ を格納する allocatable な１次元配列 
+(nphmax) である．$\phi$ に関する周期性を仮定し，$\phi=2\pi$ での値は 
+$\phi=0$ での値に等しいので省略する．\tt{data} はデータ値を格納する 
+allocatable な４次元配列 (nphmax, nthmax, nrmax, ndmax) である．
 
 \subsection{既定データ型}
 
@@ -156,10 +161,11 @@ Subroutine: \tt{bpsd\_get\_data(var, ierr)}
 
 この subroutine には２つの使い方がある．$\tt{var\%nrmax}=0$ の場合には，
 内部データをそのまま \tt{var\%data} に代入して戻る．$\tt{var\%nrmax}
-\ne 0$ の場合には，スプライン補間によって与えられた \tt{s} 変数に対す
-るデータ値を代入して戻る．\tt{s} に対しては，両端で２階微分が０となる境界
-条件で補間する．\tt{th}, \tt{ph} に対しては，周期境界条件で補間する．
-データ配列 \tt{var\%data} が割り付けられていなければ，内部で割り付ける．
+\ne 0$ の場合には，与えられた \tt{s}, \tt{th}, \tt{ph} 変数に対するデー
+タ値をスプライン補間により求め代入して戻る．\tt{s} に対しては，両端で
+２階微分が０となる境界条件で補間する．\tt{th}, \tt{ph} に対しては，周
+期境界条件で補間する．データ配列 \tt{var\%data} が割り付けられていなけ
+れば，内部で割り付ける．
 
 \section{内部データ仕様}
 
@@ -172,11 +178,11 @@ bpsd 内部で格納されるデータ型 \tt{bpsd\_0ddatax\_type} 等には，次の変数が
              & 1 & データ値未定義 \\
              & 2 & データ変数未割付 \\
              & 3 & データ変数割付済み spline 変数未割付 \\
-             & 3 & データ変数割付済み spline 変数割付済み \\
+             & 4 & データ変数割付済み spline 変数割付済み \\
 \hline
 \end{tabular}
 \end{center}
-\tt{var\%kid} は変数内容を表す文字列である．
+\tt{var\%spline} は spline 補間の係数を保管する配列である．
 
 \section{標準データセット}
 \begin{verbatim}
