@@ -52,8 +52,12 @@ C
       CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
       IF(IERR.NE.0) STOP
 C
+ 9997 format(3(i7))
+ 9996 format(3(1pd25.16))
+ 9995 format(2(i7))
       rewind NFL
-      read(NFL,*) MNMAX, NSRMAX, nfp
+      read(NFL,9997) MNMAX, NSRMAX, nfp
+7001  format(3i4)
 C
       IERR=0
       IF(MNMAX.GT.NMNM) THEN
@@ -68,32 +72,33 @@ C
       ENDIF
       IF(IERR.NE.0) STOP
 C
-      read(NFL,*) (shalf(NSR),NSR=2,NSRMAX+1)
-      read(NFL,*) (RIOTAS(NSR),NSR=2,NSRMAX+1)
-C
-      read(NFL,*) (wjs(NSR),NSR=2,NSRMAX+1)
-      read(NFL,*) (wis(NSR),NSR=2,NSRMAX+1)
+
+      read(NFL,9996) (shalf(i),i=2,nsrmax+1)
+      read(NFL,9996) (RIOTAS(i),i=2,nsrmax+1)
+      read(NFL,9996) (wjs(i),i=2,nsrmax+1)
+      read(NFL,9996) (wis(i),i=2,nsrmax+1)
+      
 C
       DO MN=1,MNMAX
-         read(NFL,*) M,N
-         read(NFL,*,ERR=8001) (BBOZH(MN,NSR),NSR=2,NSRMAX+1)
+         read(NFL,9995) M,N
+         read(NFL,9996,ERR=8001) (BBOZH(MN,i),i=2,nsrmax+1)
          XM(MN)=DBLE(M)
          XN(MN)=DBLE(N)
       ENDDO
 C
       DO MN=1,MNMAX
-         read(NFL,*) M,N
-         read(NFL,*,ERR=8002) (RBOZH(MN,NSR),NSR=2,NSRMAX+1)
+         read(NFL,9995) M,N
+         read(NFL,9996,ERR=8001) (rbozh(MN,i),i=2,nsrmax+1)
       ENDDO
 C
       DO MN=1,MNMAX
-         read(NFL,*) M,N
-         read(NFL,*,ERR=8003) (ZBOZH(MN,NSR),NSR=2,NSRMAX+1)
+         read(NFL,9995) M,N
+         read(NFL,9996,ERR=8001) (zbozh(MN,i),i=2,nsrmax+1)
       ENDDO
 C
       DO MN=1,MNMAX
-         read(NFL,*) M,N
-         read(NFL,*,ERR=8004) (PBOZH(MN,NSR),NSR=2,NSRMAX+1)
+         read(NFL,9995) M,N
+         read(NFL,9996,ERR=8001) (pbozh(MN,i),i=2,nsrmax+1)
       ENDDO
 C
       CLOSE(NFL)
@@ -277,7 +282,12 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C
+      INTEGER I,NP
+      REAL*8 NRA,SBMNCA,SRMNCA,SZMNSA,SPMNSA,DBMNCA,DRMNCA,DZMNSA,DPMNSA
+      PARAMETER (NP=3)
       DIMENSION BSPL(NSRMP),RSPL(NSRMP),ZSPL(NSRMP),PSPL(NSRMP)
+      DIMENSION NRA(NP),SBMNCA(NP),SRMNCA(NP),SZMNSA(NP),SPMNSA(NP)
+      DIMENSION DBMNCA(NP),DRMNCA(NP),DZMNSA(NP),DPMNSA(NP)
 C
 C     ***** DEFINE XRHO, XR AND XSHRHO *****
 C
@@ -335,7 +345,7 @@ C
             IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1D: PBOZH'
          ENDIF
 C
-         DO NR=1,NRMAX+1
+         DO NR=1,NSRMAX
             CALL SPL1DD(XRHO(NR),SBMNC(MN,NR),DBMNC(MN,NR),
      &                  XSHRHO,U1(1,1,MN),NSRMAX+3,IERR)
             IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: BMNC: NR=',NR
@@ -348,6 +358,52 @@ C
             CALL SPL1DD(XRHO(NR),SPMNS(MN,NR),DPMNS(MN,NR),
      &                  XSHRHO,U4(1,1,MN),NSRMAX+3,IERR)
             IF(IERR.NE.0) WRITE(6,*) 'XX WMHBRZ: SPL1DD: PMNC: NR=',NR
+         ENDDO
+         DO NR=NSRMAX+1,NRMAX+1
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               SBMNCA(I)=SBMNC(MN,NR-2*NP-1+2*I)
+            ENDDO     
+            CALL POLINT(NRA,SBMNCA,NP,NR,SBMNC(MN,NR),DY) 
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               DBMNCA(I)=DBMNC(MN,NR-2*NP-1+2*I)
+            ENDDO     
+            CALL POLINT(NRA,DBMNCA,NP,NR,DBMNC(MN,NR),DY) 
+C     
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               SRMNCA(I)=SRMNC(MN,NR-2*NP-1+2*I)
+            ENDDO
+            CALL POLINT(NRA,SRMNCA,NP,NR,SRMNC(MN,NR),DY) 
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               DRMNCA(I)=DRMNC(MN,NR-2*NP-1+2*I)
+            ENDDO     
+            CALL POLINT(NRA,DRMNCA,NP,NR,DRMNC(MN,NR),DY) 
+C     
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               SZMNSA(I)=SZMNS(MN,NR-2*NP-1+2*I)
+            ENDDO
+            CALL POLINT(NRA,SZMNSA,NP,NR,SZMNS(MN,NR),DY) 
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               DZMNSA(I)=DZMNS(MN,NR-2*NP-1+2*I)
+            ENDDO     
+            CALL POLINT(NRA,DZMNSA,NP,NR,DZMNS(MN,NR),DY) 
+C     
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               SPMNSA(I)=SPMNS(MN,NR-2*NP-1+2*I)
+            ENDDO
+C     
+            CALL POLINT(NRA,SPMNSA,NP,NR,SPMNS(MN,NR),DY) 
+            DO I=1,NP
+               NRA(I)=NR-2*NP-1+2*I
+               DPMNSA(I)=DPMNS(MN,NR-2*NP-1+2*I)
+            ENDDO     
+            CALL POLINT(NRA,DPMNSA,NP,NR,DPMNS(MN,NR),DY) 
          ENDDO
       ENDDO
 C
@@ -444,6 +500,9 @@ C
       ENDDO
       ENDDO
       ENDDO
+      do nr=1,nrmax+1
+         print*,nr,rj(1,1,nr),drmnc(1,nr)
+      enddo
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
