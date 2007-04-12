@@ -10,7 +10,7 @@
       INTEGER(4), INTENT(OUT)  :: MODE
       CHARACTER(LEN=80),INTENT(OUT) :: LINE
       CHARACTER(LEN=1), INTENT(OUT) :: KID
-      INTEGER(4)  :: I, ID, IERR
+      INTEGER(4)  :: I, ID, IERR, IKID
       EXTERNAL XXPARM
 
       READ(5,'(A80)',ERR=2,END=3) LINE
@@ -26,7 +26,10 @@
       ENDIF
 
       KID=LINE(1:1)
-      CALL GUCPTL(KID)
+      IKID=ICHAR(KID)
+      IF(IKID.GE.97.AND.IKID.LE.122) IKID=IKID-32
+      KID=CHAR(IKID)
+
       IF((KID.GE.'A'.AND.KID.LE.'Z').OR. &
      &    KID.EQ.'?'.OR.KID.EQ.'#') THEN
          MODE=1

@@ -3,7 +3,7 @@ c            interface program of "EQ"
 c                                                         07/04/10
 c=======================================================================
       module equnit_mod
-      public eq_init, eq_prof, eq_calc, eq_gout
+      public eq_init, eq_parm, eq_prof, eq_calc, eq_gout
       private
       contains
 c=======================================================================
@@ -12,6 +12,16 @@ c-----------------------------------------------------------------------
       subroutine eq_init
       return
       end subroutine eq_init
+c=======================================================================
+c            set parameters  profile
+c-----------------------------------------------------------------------
+      subroutine eq_parm(mode,kin,ierr)
+c
+      implicit none
+      character kin*(*)
+      integer mode,ierr
+      return
+      end subroutine eq_parm
 c=======================================================================
 c            setup  profile
 c-----------------------------------------------------------------------

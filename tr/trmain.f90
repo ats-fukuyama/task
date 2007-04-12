@@ -36,7 +36,6 @@
       USE TRCOMM, ONLY : GTCPU1, NFM, NGM, NRM, NSM, NTM
       use bpsd_mod
       use equnit_mod
-      use eqinit_mod
       IMPLICIT NONE
       REAL(4)   :: GTCPU2
       INTEGER(4):: IERR
@@ -57,7 +56,7 @@
 !      call bpsd_init
       call eq_init
       CALL TRINIT
-      CALL eqparm(1,'equparm',IERR)
+      CALL eq_parm(1,'equparm',IERR)
       CALL TRPARM(1,'trparm',IERR)
 
       CALL TRMENU

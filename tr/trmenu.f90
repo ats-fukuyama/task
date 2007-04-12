@@ -8,8 +8,6 @@
       USE TRCOM1, ONLY : KDIRX
       use trpl_mod, only: trpl_init, trpl_set, trpl_get
       use equnit_mod
-      use eqgout_mod
-      use eqpl_mod
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -77,14 +75,11 @@
          ELSE
             CALL TR_UFILE_CONTROL(0)
          ENDIF
-         if(modelg.eq.9) then
-            call eq_prof ! initial calculation of eq
-         endif
          CALL TRPROF             ! initialise profile data
          call trpl_init          ! initialize trpl
+         call trpl_set(ierr)  ! set trpl with initial profile
          if(modelg.eq.9) then
-            call trpl_set(ierr)  ! set trpl with initial profile
-            call eqpl_prof(ierr) ! adjust temperature and q profile
+            call eq_prof ! initial calculation of eq
             call eq_calc         ! recalculate eq
             call trpl_get(ierr)  ! 
             call trgout

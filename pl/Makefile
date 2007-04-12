@@ -16,7 +16,7 @@ LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@
 
-all : pl  noeqlib.o
+all : pllib.a  noeqlib.o
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)

@@ -1,4 +1,4 @@
-c
+!     $Id$
       module trpl_mod
       use bpsd_mod
       type(bpsd_species_type),private,save :: species
@@ -8,29 +8,29 @@ c
       logical, private, save :: trpl_init_flag = .TRUE.
       public
       contains
-c
-c=======================================================================
+
+!=======================================================================
       subroutine trpl_init
-c=======================================================================
+!=======================================================================
       use trcomm
 ! local variables
       real(8)       qpl,rgl
       integer(4)    ns,nr,ierr
       real*8 temp(nrmp,nsm,3)
-c=======================================================================
+!=======================================================================
       if(trpl_init_flag) then
          species%nsmax=0
          plasmaf%nsmax=0
          plasmaf%nrmax=0
          trpl_init_flag=.FALSE.
       endif
-c
+
 !      write(6,*) 'top of trpl_init:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
 !      write(6,*) 'top of trpl_init:rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
-c
+
       if(species%nsmax.ne.nsmax) then
          if(allocated(species%data)) then
             deallocate(species%data)
@@ -38,14 +38,14 @@ c
          species%nsmax=nsmax
          allocate(species%data(species%nsmax))
       endif
-c
+
       do ns=1,species%nsmax
          species%data(ns)%pa=pa(ns)
          species%data(ns)%pz=pz(ns)
          species%data(ns)%pz0=pz(ns)
       enddo
       call bpsd_set_species(species,ierr)
-c
+
       if((equ1D%nrmax.ne.nrmax+1)) then
          if(allocated(equ1D%s)) then
             deallocate(equ1D%s)
@@ -57,29 +57,13 @@ c
          allocate(equ1D%s(equ1D%nrmax))
          allocate(equ1D%data(equ1D%nrmax))
       endif
-c
+
       equ1D%time=0.d0
       equ1D%s(1)=0.d0
       do nr=1,nrmax
          equ1D%s(nr+1)=rg(nr)**2
       enddo
-C       nr=1
-C          equ1D%data(nr)%psit=0.d0
-C          equ1D%data(nr)%psip=0.d0
-C          equ1D%data(nr)%ppp=0.d0
-C          equ1D%data(nr)%piq=1.d0/qp(nr)
-C          equ1D%data(nr)%pip=2.d0*pi*rr*bb/rmu0
-C          equ1D%data(nr)%pit=0.d0
-C       do nr=2,equ1D%nrmax
-C          equ1D%data(nr)%psit=pi*rg(nr-1)**2*bb
-C          equ1D%data(nr)%psip=pi*rg(nr-1)**2*bb/qp(nr-1)
-C          equ1D%data(nr)%ppp=0.d0
-C          equ1D%data(nr)%piq=1.d0/qp(nr-1)
-C          equ1D%data(nr)%pip=2.d0*pi*rr*bb/rmu0
-C          equ1D%data(nr)%pit=2.d0*pi*rg(nr-1)**2*bb/(rmu0*qp(nr-1)*rr)
-C       enddo
-C        call bpsd_set_equ1D(equ1D,ierr)
-c
+
       if((metric1D%nrmax.ne.nrmax+1)) then
          if(allocated(metric1D%s)) then
             deallocate(metric1D%s)
@@ -91,39 +75,14 @@ c
          allocate(metric1D%s(metric1D%nrmax))
          allocate(metric1D%data(metric1D%nrmax))
       endif
-c
+
       metric1D%time=0.d0
       metric1D%s(1)=0.d0
       do nr=1,nrmax
          metric1D%s(nr+1)=rg(nr)**2
       enddo
-C       do nr=1,metric1D%nrmax
-C          if(nr.eq.1) then
-C             qpl=qp(1)
-C             rgl=0.d0
-C          else
-C             qpl=qp(nr-1)
-C             rgl=rg(nr-1)
-C          endif
-C          metric1D%data(nr)%pvol=2.d0*pi*rr*pi*rgl**2
-C          metric1D%data(nr)%psur=2.d0*pi*rr*2.d0*pi*rgl
-C          metric1D%data(nr)%dvpsit=2.d0*pi*rr/bb
-C          metric1D%data(nr)%dvpsip=2.d0*pi*rr/(bb*qpl)
-C          metric1D%data(nr)%aver2=rr**2
-C          metric1D%data(nr)%aver2i=1.d0/rr**2
-C          metric1D%data(nr)%aveb2=bb**2
-C          metric1D%data(nr)%aveb2i=1.d0/bb**2
-C          metric1D%data(nr)%avegv2=(2.d0*pi*rr*2.d0*pi*rgl)**2
-C          metric1D%data(nr)%avegvr2=(2.d0*pi*2.d0*pi*rgl)**2
-C          metric1D%data(nr)%avegpp2=(2.d0*pi*rgl*bb/qpl)**2
-C          metric1D%data(nr)%averr=rr
-C          metric1D%data(nr)%avera=rgl
-C          metric1D%data(nr)%aveelip=rkap
-C          metric1D%data(nr)%avetrig=rdlt
-C       enddo
-C      call bpsd_set_metric1D(metric1D,ierr)
-c
-      if((plasmaf%nsmax.ne.nsmax).or.
+
+      if((plasmaf%nsmax.ne.nsmax).or. &
      &   (plasmaf%nrmax.ne.nrmax+1)) then
          if(allocated(plasmaf%s)) then
             deallocate(plasmaf%s)
@@ -140,7 +99,7 @@ c
          allocate(plasmaf%data(plasmaf%nrmax,plasmaf%nsmax))
          allocate(plasmaf%qinv(plasmaf%nrmax))
       endif
-c
+
       plasmaf%time=0.d0
       plasmaf%s(1)=0.d0
       do nr=1,nrmax
@@ -160,29 +119,29 @@ c
             plasmaf%data(nr,ns)%pu=temp(nr,ns,3)
          enddo
       enddo
-         QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)
+         QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
      &              /(4.D0*PI**2*RDP(1:NRMAX))
       do nr=2,plasmaf%nrmax
          plasmaf%qinv(nr)=1.d0/qp(nr-1)
       enddo
-      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2)
-     &                -plasmaf%s(2)*plasmaf%qinv(3))
+      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2) &
+     &                -plasmaf%s(2)*plasmaf%qinv(3)) &
      &               /(plasmaf%s(3)-plasmaf%s(2))
 
       call bpsd_set_plasmaf(plasmaf,ierr)
       return
       end subroutine trpl_init
-c
-c=======================================================================
+
+!=======================================================================
       subroutine trpl_set(ierr)
-c=======================================================================
+!=======================================================================
       use trcomm
       integer    ierr
 ! local variables
       integer    ns,nr
       real*8 temp(nrmp,nsm,3)
-c=======================================================================
-c
+!=======================================================================
+
 !      write(6,*) 'top of trpl_set:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
 !      write(6,*) 'top of trpl_set: rt'
@@ -205,14 +164,14 @@ c
          enddo
       enddo
 
-!      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)
+!      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
 !     &            /(4.D0*PI**2*RDP(1:NRMAX))
 
       do nr=2,plasmaf%nrmax
          plasmaf%qinv(nr)=1.d0/qp(nr-1)
       enddo
-      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2)
-     &                -plasmaf%s(2)*plasmaf%qinv(3))
+      plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2) &
+     &                -plasmaf%s(2)*plasmaf%qinv(3)) &
      &               /(plasmaf%s(3)-plasmaf%s(2))
 
 !      write(6,*) 'end of trpl_set:qp'
@@ -220,14 +179,14 @@ c
 !      write(6,*) 'end of trpl_set:rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
-c
+
       call bpsd_set_plasmaf(plasmaf,ierr)
       return
       end subroutine trpl_set
-c
-c=======================================================================
+
+!=======================================================================
       subroutine trpl_get(ierr)
-c=======================================================================
+!=======================================================================
       use trcomm
       integer    ierr
 ! local variables
@@ -241,9 +200,9 @@ c=======================================================================
 !      write(6,*) 'top of trpl_get: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
-c     
+     
       call bpsd_get_plasmaf(plasmaf,ierr)
-c
+
       do ns=1,plasmaf%nsmax
          do nr=1,plasmaf%nrmax
             temp(nr,ns,1)=plasmaf%data(nr,ns)%pn*1.d-20
@@ -254,13 +213,13 @@ c
       do nr=2,plasmaf%nrmax
          qp(nr-1)=1.d0/plasmaf%qinv(nr)
       enddo
-c
+
       do ns=1,nsmax
          call mesh_convert_gtom(temp(1,ns,1),rn(1,ns),nrmax)
          call mesh_convert_gtom(temp(1,ns,2),rt(1,ns),nrmax)
          call mesh_convert_gtom(temp(1,ns,3),ru(1,ns),nrmax)
       enddo
-c
+
       call bpsd_get_equ1D(equ1D,ierr)
       do nr=1,equ1D%nrmax
          tempx(nr,1)=equ1D%data(nr)%psip
@@ -278,13 +237,13 @@ c
       call mesh_convert_gtom(tempx(1,6),PIRHO,nrmax)
       TTRHOG(1:nrmax)=tempx(2:nrmax+1,5)
       psita=equ1D%data(equ1D%nrmax)%psit
-c
+
       call bpsd_get_metric1D(metric1D,ierr)
       do nr=2,metric1D%nrmax
          rgl=rg(nr-1)
          dpsitdrho=2.D0*psita*rgl
          dvdrho=metric1D%data(nr)%dvpsit*dpsitdrho
-         write(26,'(I5,1P3E12.4)') 
+         write(26,'(I5,1P3E12.4)')  &
      &        nr,dpsitdrho,metric1D%data(nr)%dvpsit,dvdrho
          tempx(nr,1)=dvdrho
          tempx(nr,2)=metric1D%data(nr)%avegvr2/dvdrho**2
@@ -333,12 +292,12 @@ c
       RMNRHO(1:nrmax)=tempx(2:nrmax+1,11)
       RKPRHOG(1:nrmax)=tempx(2:nrmax+1,12)
 
-      RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)
+      RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
      &            /(4.D0*PI**2*QP(1:NRMAX))
 !      BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
 
       do nr=1,nrmax
-         write(26,'(I5,1P5E12.4)') 
+         write(26,'(I5,1P5E12.4)') &
      &        nr,qp(nr),TTRHO(nr),ARRHOG(nr),DVRHOG(nr),rdp(nr)
       enddo
       NR=1
@@ -346,7 +305,7 @@ c
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
          AJOH(NR)=AJ(NR)
-         write(26,'(I5,1P5E12.4)') 
+         write(26,'(I5,1P5E12.4)') &
      &        nr,dvrho(nr),factor0,0.d0,factorp,aj(nr)
       DO NR=2,NRMAX
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
@@ -354,7 +313,7 @@ c
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          AJOH(NR)=AJ(NR)
-         write(26,'(I5,1P5E12.4)') 
+         write(26,'(I5,1P5E12.4)') &
      &        nr,dvrho(nr),factor0,factorm,factorp,aj(nr)
       ENDDO
 !      NR=1
@@ -375,19 +334,19 @@ c
 !      write(6,*) 'end of trpl_get: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
-c
+
       return
       end subroutine trpl_get
-c
-c     ----- convert half mesh to origin + grid mesh -----
-c
+
+!     ----- convert half mesh to origin + grid mesh -----
+
       subroutine mesh_convert_mtog(datam,datag,nrmax)
-c
+
       implicit none
       integer nrmax
       real*8 datam(nrmax),datag(nrmax+1)
       integer nr
-c
+
       datag(1)=(9.d0*datam(1)-datam(2))/8.d0
       do nr=2,nrmax
          datag(nr)=(datam(nr-1)+datam(nr))/2.d0
@@ -395,17 +354,17 @@ c
       datag(nrmax+1)=(4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
       return
       end subroutine mesh_convert_mtog
-c
-c     ----- convert origin + grid mesh to half mesh -----
-c
+
+!     ----- convert origin + grid mesh to half mesh -----
+
       subroutine mesh_convert_gtom(datag,datam,nrmax)
-c
+
       implicit none
       integer nrmax
       real*8 datag(nrmax+1),datam(nrmax)
       real*8 c11,c12,c21,c22,det,a11,a12,a21,a22
       integer nr,ierr
-c
+
       c11= 9.d0/8.d0
       c12=-1.d0/8.d0
       c21= 0.5d0
@@ -422,16 +381,16 @@ c
       enddo
       return
       end subroutine mesh_convert_gtom
-c
-c     ----- convert half mesh to origin + grid mesh -----
-c
+
+!     ----- convert half mesh to origin + grid mesh -----
+
       subroutine mesh_convert_mtog0(datam,datag,nrmax)
-c
+
       implicit none
       integer nrmax
       real*8 datam(nrmax),datag(nrmax+1)
       integer nr
-c
+
       datag(1)=0.d0
       do nr=2,nrmax
          datag(nr)=(datam(nr-1)+datam(nr))/2.d0
@@ -439,17 +398,17 @@ c
       datag(nrmax+1)=(4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
       return
       end subroutine mesh_convert_mtog0
-c
-c     ----- convert origin + grid mesh to half mesh -----
-c
+
+!     ----- convert origin + grid mesh to half mesh -----
+
       subroutine mesh_convert_gtom0(datag,datam,nrmax)
-c
+
       implicit none
       integer nrmax
       real*8 datag(nrmax+1),datam(nrmax)
       real*8 c11,c12,c21,c22,det,a11,a12,a21,a22
       integer nr,ierr
-c
+
       c11= 9.d0/8.d0
       c12=-1.d0/8.d0
       c21= 0.5d0
@@ -465,5 +424,5 @@ c
       enddo
       return
       end subroutine mesh_convert_gtom0
-c
+
       end module trpl_mod
