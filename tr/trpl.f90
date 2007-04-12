@@ -194,7 +194,7 @@
       real*8 temp(nrmp,nsm,3)
       real*8 tempx(nrmp,12),psita,dpsitdrho,dvdrho
       REAL(8) :: FACTOR0, FACTORM, FACTORP
-c=======================================================================
+!=======================================================================
 !      write(6,*) 'top of trpl_get: qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
 !      write(6,*) 'top of trpl_get: rt'

@@ -5,18 +5,17 @@ include ../make.header
 
 FFLAGS = $(OFLAGS)
 
-
-# with topics/equ
-MODINCLUDE= -I. -I../pl -I../../topics/src
-EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+# without eq
+MODINCLUDE= -I. -I../pl
+EQLIBS= ../pl/noeqlib.o
 
 # with task/eq
 #MODINCLUDE= -I. -I../pl -I../eq
 #EQLIBS= ../eq/eqlib.a
 
-# without eq
-#MODINCLUDE= -I. -I../pl
-#EQLIBS= ../pl/noeqlib.o
+# with topics/equ
+#MODINCLUDE= -I. -I../pl -I../../topics/src
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
@@ -59,6 +58,10 @@ tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
 
+../pl/pllib.a:
+	(cd ../pl; make pllib.a)
+../pl/noeqlib.o:
+	(cd ../pl; make noeqlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
