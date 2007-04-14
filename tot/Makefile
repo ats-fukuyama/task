@@ -5,7 +5,7 @@ FFLAGS=$(OFLAGS)
 
 # with task/eq
 MODINCLUDE= -I. -I../pl
-EQLIBS= ../eq/eqlib.a ../pl/noeqlib.o
+EQLIBS= ../eq/eqlib.a
 
 # with topics/equ
 #MODINCLUDE= -I. -I../pl -I../../topics/src
@@ -16,7 +16,7 @@ SRCS = main.f
 OBJS = $(SRCS:.f=.o)
 
 LIB0 = $(EQLIBS) \
-       ../pl/pllib.a \
+       ../pl/pllib.a ../pl/noeqlib.o \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
@@ -33,6 +33,8 @@ all : tot
 
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
+../pl/noeqlib.o:
+	(cd ../pl; make noeqlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
@@ -66,6 +68,7 @@ all : tot
 
 libs:
 	(cd ../pl; make pllib.a)
+	(cd ../pl; make noeqlib.o)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)
@@ -85,10 +88,10 @@ tot : main.o $(LIBS)
 	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 mpitot : main.o $(LIBM)
-	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
+	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 xtot :
-	(cd ../pl; make pllib.a)
+	(cd ../pl; make pllib.a noeqlib.o)
 	(cd ../eq; make eqlib.a treqin.o wmeqin.o)
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
@@ -118,5 +121,4 @@ new:
 	cp *.f ../totnew
 
 main.o: main.f ../wm/wmcomm.inc
-
 
