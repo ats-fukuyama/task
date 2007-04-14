@@ -3,11 +3,19 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
+# with task/eq
+MODINCLUDE= -I. -I../pl
+EQLIBS= ../eq/eqlib.a ../pl/noeqlib.o
+
+# with topics/equ
+#MODINCLUDE= -I. -I../pl -I../../topics/src
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+
 SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIB0 = ../eq/eqlib.a \
+LIB0 = $(EQLIBS) \
        ../pl/pllib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
@@ -17,9 +25,9 @@ LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 
 all : tot
 
@@ -74,7 +82,7 @@ libs:
 	(cd ../mpi; make mpilib.o)
 
 tot : main.o $(LIBS)
-	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) main.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 mpitot : main.o $(LIBM)
 	$(MFC) main.o $(LIBM) -o $@ $(FFLAGS) $(FLIBS)
