@@ -4,46 +4,48 @@
       DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM)
       DIMENSION GT(NTM),GR(NRM),GF1(NTM),GF2(NRM,NTM)
       COMMON /TRKID1/ KDIRR1,KDIRR2
-      CHARACTER KXNDEV*80,KXNDCG*80
+      CHARACTER KDEV*80,KDCG*80
       CHARACTER KDIRR1*80,KDIRR2*80,KDIR*80
       CHARACTER KDIRX*80
       CHARACTER KFID*80,KFIDX*80,KVAR*80
-      CHARACTER KFIDCK*90
+      CHARACTER KFIDCK*90,KFILE*110
       LOGICAL LEX
       COMMON /DIR/ KDIR
 C
       CALL GSOPEN
 C
-      KXNDEV='jt60u'
-      KXNDCG='29728'
-      KDIR  ='data'
+      KDEV='jt60u'
+      KDCG='29728'
+      KDIR='data'
       CALL parameter_read
       NDIM=2
 C
     1 WRITE(6,*) '# DEVICE NAME ?'
-      READ(5,'(A40)',ERR=1,END=9000) KXNDEV
+      READ(5,'(A40)',ERR=1,END=9000) KDEV
     2 WRITE(6,*) '# DISCHARGE NUMBER ?'
-      READ(5,'(A40)',ERR=2,END=1) KXNDCG
+      READ(5,'(A40)',ERR=2,END=1) KDCG
 C
-      CALL KTRIM(KXNDEV,IKNDEV)
-      CALL KTRIM(KXNDCG,IKNDCG)
-      CALL KTRIM(KDIR  ,IKDIR )
-      CALL TOLOWER(KXNDEV)
+      CALL KTRIM(KDEV,IKDEV)
+      CALL KTRIM(KDCG,IKDCG)
+      CALL KTRIM(KDIR,IKDIR )
+      CALL TOLOWER(KDEV)
 C
-      KDIRX=KDIR(1:IKDIR)//'/'//KXNDEV(1:IKNDEV)//'/'
-     &    //KXNDCG(1:IKNDCG)//'/in/'
+      KDIRX=KDIR(1:IKDIR)//'/'//KDEV(1:IKDEV)//'/'
+     &    //KDCG(1:IKDCG)//'/in/'
       CALL KTRIM(KDIRX,IKDIRX)
-      INQUIRE(FILE=KDIRX,EXIST=LEX,ERR=9000)
+      KFILE=KDIRX(1:IKDIRX)//KDEV(1:IKDEV)//'2d'//KDCG(1:IKDCG)//
+     &     '.NE'
+      INQUIRE(FILE=KFILE,EXIST=LEX,ERR=9000)
       IF(LEX.EQV..FALSE.) THEN
          WRITE(6,600) 'XX: DIRECTORY DOES NOT EXIST! ',KDIRX
          GOTO 1
       ENDIF
  600  FORMAT(' ',A31,A)
 C
-      KDIRR1=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
-     &       //'1d'//KXNDCG(1:IKNDCG)//'.'
-      KDIRR2=KDIRX(1:IKDIRX)//KXNDEV(1:IKNDEV)
-     &       //'2d'//KXNDCG(1:IKNDCG)//'.'
+      KDIRR1=KDIRX(1:IKDIRX)//KDEV(1:IKDEV)
+     &       //'1d'//KDCG(1:IKDCG)//'.'
+      KDIRR2=KDIRX(1:IKDIRX)//KDEV(1:IKDEV)
+     &       //'2d'//KDCG(1:IKDCG)//'.'
 C
     5 WRITE(6,*) 'INPUT DIM'
       READ(5,'(I1)',ERR=5,END=9000) NDIM
@@ -112,7 +114,7 @@ C
             GF1(NTX)=GUCLIP(F1(NTX))
  5000    CONTINUE
          CALL KTRIM(KFID,KL)
-         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
+         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
      &            //KFID(1:KL)//'@'
          CALL TRGR1D(GX1,GX2,GY1,GY2,
      &               GT,GF1,NTM,NTXMAX,1,KFIDX,2)
@@ -137,7 +139,7 @@ C         write(6,'(1P6E12.4)') ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
 C         STOP
 C
          CALL KTRIM(KFID,KL)
-         KFIDX='@'//KXNDEV(1:IKNDEV)//'/'//KXNDCG(1:IKNDCG)//'/'
+         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
      &            //KFID(1:KL)//'@'
          IF (NTXMAX.EQ.1) THEN
             CALL TRGR1D(GX1,GX2,GY1,GY2,
