@@ -198,13 +198,15 @@ C
       INTEGER MDS,IFNT,IKDEV,IKFID
       INTEGER SNUM,NDIM
       REAL W, H, STIME
-      CHARACTER CHOICE(2)*256
+      CHARACTER CHOICE(4)*256
       CHARACTER*80 KDIR,KDEV,KFID
       EXTERNAL CLICKED,SETDEV,SETNUM,SETDIM,SETID,SETMODE,SETSTIME,
      &         END_MAIN
 C
       CHOICE(1) = '@UFILE@'
-      CHOICE(2) = '@MDSPLUS@'
+      CHOICE(2) = '@MDSPLUS pr98@'
+      CHOICE(3) = '@MDSPLUS wrk@'
+      CHOICE(4) = '@MDSPLUS itb@'
 C
       MDS  = 0
       IFNT = 2
@@ -238,11 +240,11 @@ C
       CALL GUISPINBUTTONI (10.3+W, 17.0, 1.0, 1.0, NDIM, 1, 2,
      &     SETDIM)
 C 
-      CALL INQLABELSIZE ('@FILE = @', W, H)
-      CALL GUILABEL (13.1, 17.0, W, 1.0, '@FILE = @', 0)
-      CALL GUILINEEDIT (13.2+W, 17.0, 3.0, 1.0, 6, KFID, IKFID, SETID)
+      CALL INQLABELSIZE ('@ID = @', W, H)
+      CALL GUILABEL (13.1, 17.0, W, 1.0, '@ID = @', 0)
+      CALL GUILINEEDIT (13.2+W, 17.0, 2.5, 1.0, 6, KFID, IKFID, SETID)
 C
-      CALL GUICOMBOBOX (18.1, 17.0, 2.5, 1.0, 2, CHOICE, 1, SETMODE)
+      CALL GUICOMBOBOX (17.2, 17.0, 3.5, 1.0, 4, CHOICE, 1, SETMODE)
 C
       CALL INQLABELSIZE ('@SLICE = @', W, H)
       CALL GUILABEL (21.0, 0.5, W, 1.0, '@SLICE = @', 0)
@@ -312,8 +314,9 @@ C
       CHARACTER KDEV1*80,KFID1*80
       CHARACTER KDIRR1*80,KDIRR2*80
       CHARACTER KDIR*80,KDIRX*90,KFIDCK*90,KFILE*110
-      CHARACTER KERR*100
+      CHARACTER KERR*100,KADD*10
       LOGICAL LEX
+      INTEGER NSTR,NSTR1
 C
       IERR=0
       KDEV=KDEV1
@@ -324,6 +327,17 @@ C
       WRITE(KDCG,*) IDCG
       CALL KTRIM(KDCG,IKDCG)
       IF(MDS.NE.0) THEN
+         IF(MDS.EQ.1) THEN
+            KDEV='pr98_'
+         ELSEIF(MDS.EQ.2) THEN
+            KDEV=''
+         ELSEIF(MDS.EQ.3) THEN
+            KDEV='itb_'
+         ENDIF
+         CALL KTRIM(KDEV,NSTR)
+         CALL KTRIM(KDEV1,NSTR1)
+         CALL APSTOS(KDEV,NSTR,KDEV1,NSTR1)
+C
          CALL IPDB_OPEN(KDEV, KDCG)
          RETURN
       ENDIF
@@ -384,7 +398,7 @@ C
       CHARACTER KDEV*80,KDCG*80,KFID*80,KTIME*12,KVAL*80
       CHARACTER KFIDX*80,KVAR*80
       CHARACTER KDIRR1*80,KDIRR2*80
-      CHARACTER KERR*100
+      CHARACTER KERR*100,KDEVL*80
       REAL*8 T(NTM),R(NRM),F1(NTM),F2(NRM,NTM),F3(NTM,NRM)
       REAL*8 RL(NRM),FL(NRM),RP,FP
       REAL GT(NTM),GR(NRM),GF1(NTM),GF2(NRM,NTM)
@@ -650,6 +664,27 @@ C
       REAL STIME,STIME1
 C
       STIME=STIME1
+C
+      RETURN
+      END
+C
+C     *****************************************************************
+C
+C     SUBROUTINE APpend Strings TO Strings
+C        INPUT  : NSTR, INSTR, NINSTR
+C                 NSTR : Number of STR. First, NSTR = 0.
+C                 NINSTR : Number of INSTR
+C        OUTPUT : STR, NSTR
+C                 STR(NSTR(original+1):NSTR(return))
+C
+C     *****************************************************************
+C
+      SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
+      IMPLICIT REAL*8(A-F, H, O-Z)
+      CHARACTER STR*(*), INSTR*(*)
+C
+      STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
+      NSTR = NSTR + NINSTR
 C
       RETURN
       END

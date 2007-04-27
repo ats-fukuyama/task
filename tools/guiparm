@@ -1,7 +1,7 @@
  &GUIPARM
    DIR='/home/honda/profiledb/profile_data'
    DEV='jet'
-   SHOT=40542
+   SHOT=19649
    DIM=2
    ID='te'
    STIME=0.0
