@@ -27,7 +27,7 @@ all : ufread ufread3 guiread usplit
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
-	$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(OBJLA)
 
 ufread3 : $(UR3OBJS) $(LIBS)
 	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
