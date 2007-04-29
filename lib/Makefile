@@ -11,7 +11,7 @@ SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              libspl.f90 libeq.f90 \
              libgut.f90 \
              libchar.f90 libkio.f90 \
-             libfio.f90 ufile.f90 libitp.f90
+             libfio.f90 ufile.f90 libitp.f90 libfem.f90
 SRCSFIXED =  libspf.f libbes.f libell.f \
              libde.f libfft.f libdsp.f \
              libfp.f libgrf.f $(LAPACK)
