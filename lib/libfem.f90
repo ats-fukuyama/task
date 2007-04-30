@@ -26,6 +26,9 @@ contains
 !          dh1 = h'_i * h, dg1 = g'_i, dh2 =-h'_{i+1} * h, dg2 = g'_{i+1}
 !          h = r_{i+1} - r_i
 
+    implicit none
+    integer:: k,i,j
+
     table_hh(1:8,1:8)         = 0.d0
     table_hhh(1:8,1:8,1:8)     = 0.d0
 
