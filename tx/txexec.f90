@@ -86,8 +86,9 @@ contains
 
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
-    REAL(8) :: TIME0, DIP, SUML, AVM, ERR1, AV
-    REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP
+    REAL(8) :: TIME0, DIP, AVM, ERR1, AV
+    REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP, ASG
+    integer :: iasg(1:2)
 
     IF (MODEAV == 0) THEN
        IDIV = NTMAX + 1
@@ -146,10 +147,12 @@ contains
                 XN(NQ,NR) = BX(NQMAX * NR + NQ)
              END DO
           END DO
-          ! Avoid negative value
-!!$          CALL MINUS_GOES_ZERO(XN(LQb1,0:NRMAX),0)
+          ! Avoid negative values
+          CALL MINUS_GOES_ZERO(XN(LQb1,0:NRMAX),0)
           CALL MINUS_GOES_ZERO(XN(LQn1,0:NRMAX),1)
-          ! In the case of NBI off after NBI on
+          ! Ignore tiny values
+          where (abs(xn) < tiny_cap) xn = 0.d0
+!!$          ! In the case of NBI off after NBI on
 !!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(LQb1,0:NRMAX),ID)
 !!$          IF(ID == 1) THEN
 !!$             X (LQb1,0:NRMAX) = 0.D0
@@ -178,24 +181,19 @@ contains
 !          IF(IC == 1) EXIT L_IC
 
           L_NQ:DO NQ = 1, NQMAX
-             ! Calculate maximum root-mean-square X and grid point at that time
-             AVM  = 0.D0
-             DO NR = 0, NRMAX
-                IF(SQRT(XN(NQ,NR)**2) > AVM) THEN
-                   AVM = SQRT(XN(NQ,NR)**2)
-                   NRAVM= NR
-                END IF
-             END DO
+             ! Calculate maximum local root-mean-square of X and corresponding grid point
+             NRAVM = SUM(MAXLOC(SQRT(XN(NQ,0:NRMAX)**2)))-1
+             AVM   = SQRT(XN(NQ,NRAVM)**2)
 
-             ! Calculate root-mean-square X over the profile
+             ! Calculate root-mean-square X over the profile (Euclidean norm)
+             AV    = SQRT(SUM(XN(NQ,0:NRMAX)**2)) / NRMAX
+             IF (AV == 0.D0) CYCLE L_NQ
+
              ERR1  = 0.D0
              IDISP = IDIV
-             SUML  = SUM(XN(NQ,0:NRMAX)**2)
-             AV    = SQRT(SUML) / NRMAX
-             IF (AV == 0.D0) CYCLE L_NQ
+             ASG(NQ,0:NRMAX) = ABS(XN(NQ,0:NRMAX) - XP(NQ,0:NRMAX)) / AV
+
              L_NR:DO NR = 0, NRMAX
-                ! Maximum relative error over the profile
-                ERR1 = MAX(ERR1, ABS(XN(NQ,NR) - XP(NQ,NR)) / AV)
                 ! Show results
                 IF (NT == IDISP .AND. NR == NRMAX) THEN
                    IF (NQ == 1) THEN
@@ -203,6 +201,8 @@ contains
                       WRITE(6,'((1X,A4," =",1PD9.2),2X,A2," =",I3)') &
                            & 'EPS   ', EPS,'NRMAX   ', NRMAX
                    END IF
+                   ! Maximum relative error over the profile
+                   ERR1 = MAX(ERR1, ASG(NQ,NR))
                    WRITE(6,'((1X,A2," =",I2,2X,A2," =",1PD9.2, &
                         & 2X,A5," =",1PD9.2,A1,I2,2X,A5," =",1PD9.2))') &
                         & 'NQ    ', NQ , &
@@ -210,9 +210,12 @@ contains
                         & 'SCMAX ', ERR1
                    IDISP = IDIV + NT
                    IF (NQ == NQMAX) CYCLE L_IC
-                ELSEIF (NT /= IDISP .AND.  &
-                     & ABS(XN(NQ,NR) - XP(NQ,NR)) / AV > EPS) THEN
-!                   write(6,'(3I3,4F15.7)') IC,NQ,NR,XN(NQ,NR),XP(NQ,NR),AV,ABS(XN(NQ,NR) - XP(NQ,NR)) / AV
+                ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPS) THEN
+                   IF(IDIAG == 3) THEN
+                      IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
+                      WRITE(6,'(3I4,4F15.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                           &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
+                   END IF
                    CYCLE L_IC
                 END IF
              END DO L_NR
@@ -221,19 +224,35 @@ contains
           EXIT L_IC
        END DO L_IC
 
+       IF(IDIAG >= 2) THEN
+          IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
+          IF(IC-1 == ICMAX) THEN
+             WRITE(6,'(3I4,4F15.8,A3)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                  &                     XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS," *"
+          ELSE
+             WRITE(6,'(3I4,4F15.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
+          END IF
+       END IF
+
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
+!!$       do nq=1,nqmax
+!!$          write(6,'(I3,3E20.10)') nq,x(nq,1),x(nq,15),x(nq,nra)
+!!$       end do
 
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
        CALL TXCALC
 
-       IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
-            & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+       IF(IDIAG == 0 .OR. IDIAG == 2) THEN
+          IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
+               & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+       ELSE
+          IF(NT /= NTMAX) WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+       END IF
 
-180    IF (MOD(NT, NGRSTP) == 0) then
-          CALL TXSTGR
-       end IF
+180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
 
        IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB

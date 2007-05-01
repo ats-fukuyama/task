@@ -226,6 +226,9 @@ contains
     !           1     : Implicit scheme
     ADV = 1.D0
 
+    !   Lower bound of dependent variables
+    tiny_cap = 1.d-14
+
     !   ***** Mesh number parameters *****
 
     !   Magnitude of mesh peakness
@@ -277,6 +280,13 @@ contains
     !   0 : OFF
     !   n : Number of Display
     MODEAV = 0
+
+    !   Diagnostic paramter
+    !   0 : OFF
+    !   1 : debug message output (ntstep == 1)
+    !   2 : debug message output (few)
+    !   3 : debug message output (many)
+    IDIAG = 0
 
     !   ***** Model parameters *****
 
@@ -351,6 +361,8 @@ contains
     gDIV(99) = 1.E6
     gDIV(100) = 1.E6
     gDIV(101) = 1.E6
+    gDIV(102) = 1.E6
+    gDIV(103) = 1.E6
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -381,7 +393,7 @@ contains
 
   SUBROUTINE TXCALM
 
-    use physical_constants, only : AMP
+    use physical_constants, only : AMP, EPS0
     use libraries, only : LORENTZ, LORENTZ_PART, BISECTION
 
     INTEGER :: NR, NRL, NR_RC_NEAR
@@ -398,6 +410,8 @@ contains
     !   Helical system
     UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
     UHph  = DBLE(NCphi) * UHth
+
+    sqeps0 = sqrt(EPS0)
 
     !  Mesh
 
@@ -571,7 +585,7 @@ contains
        ! N0_2 (fast neutrals)
        X(LQn2,NR) = 0.D0
        ! Bphi
-       X(LQm5,NR) = 0.5D0 * PSI(NR) * BB
+       X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / sqeps0
        BphV(NR)   = BB
        ! Fixed densities to keep them constant during iterations
        PNeV_FIX(NR) = X(LQe1,NR)
@@ -777,7 +791,7 @@ contains
     CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
     RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
     X(LQm5,0) = 0.D0
-    X(LQm5,1:NRMAX) = matmul(CMTX,RHSV)
+    X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / sqeps0
     deallocate(CMTX,RHSV,TMP)
 
     CALL TXCALV(X)
@@ -807,13 +821,13 @@ module parameter_control
        & rLn,rLT, &
        & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DT,EPS,ICMAX,ADV,CMESH,WMESH, &
+       & DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, &
-       & MDLETA, MDFIXT
+       & MDLETA, MDFIXT, IDIAG
   private :: TXPLST
 
 contains
@@ -913,13 +927,13 @@ contains
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'DT,EPS,ICMAX,ADV,CMESH,WMESH,'/ &
+         &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL, MDLPCK,'/ &
-         &       ' ',8X,'MDLWTB')
+         &       ' ',8X,'MDLWTB,IDIAG')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -959,7 +973,8 @@ contains
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
          &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
-         &   'EPS   ', EPS   ,  'DT    ', DT    ,  &
+         &   'EPS   ', EPS   ,  'tiny  ', tiny_cap, &
+         &   'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
          &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
@@ -972,7 +987,8 @@ contains
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
-         &   'MDFIXT', MDFIXT,  'NCphi ', NCphi
+         &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
+         &   'IDIAG ', IDIAG
 
     RETURN
   END SUBROUTINE TXVIEW

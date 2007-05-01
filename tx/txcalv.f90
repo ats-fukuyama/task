@@ -14,6 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL,ID)
 
+    use physical_constants, only : rMU0
     use libraries, only : INTG_P
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
@@ -25,13 +26,13 @@ contains
        ErV (NR) = - 2.D0 * R(NR) * DERIV3(NR,PSI,XL(LQm1,0:NRMAX),NRMAX,NRM,0)
     END DO
     EthV (0)       =   0.D0
-    EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX)
+    EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX) / rMU0
     EphV (0:NRMAX) = - XL(LQm3,0:NRMAX)
     AphV (0:NRMAX) =   XL(LQm4,0:NRMAX)
-    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX)
+    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * sqeps0 
     DO NR = 0, NRMAX
        BthV(NR) = - 2.D0 * R(NR) * DERIV3(NR,PSI,XL(LQm4,0:NRMAX),NRMAX,NRM,0)
-       BphV(NR) =   2.D0         * DERIV3(NR,PSI,XL(LQm5,0:NRMAX),NRMAX,NRM,0)
+       BphV(NR) =   2.D0         * DERIV3(NR,PSI,XL(LQm5,0:NRMAX),NRMAX,NRM,0) * sqeps0
     END DO
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
     UerV (0)       =   0.D0
@@ -67,9 +68,10 @@ contains
           END IF
        END IF
     END DO
-    IF(PRESENT(ID).AND.ID==1) write(6,*) UbthV(0:NRMAX),UbphV(0:NRMAX)
     UbthV(NRA:NRMAX) = 0.D0
     UbphV(NRA:NRMAX) = 0.D0
+!    IF(PRESENT(ID).AND.ID==1) write(6,*) UbthV(0:NRMAX),UbphV(0:NRMAX)
+
 !!$    DO NR = 0, NRMAX
 !!$       IF (ABS(PNbV(NR)) < 1.D-6) THEN
 !!$          UbthV(NR) = 0.D0
@@ -124,7 +126,7 @@ contains
 
     Sigma0 = 8.8D-21
 
-    !     NBI beam velocity
+    !     NBI beam speed
 
     Vb =  SQRT(2.D0 * Eb * rKeV / AMB)
 
@@ -343,13 +345,12 @@ contains
              RL = (R(NR) - RA) / DBW
              rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
                   &     / (3.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * AMB * AME &
-                  &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)! &
+                  &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
 !                  &     * RL**2 / (1.D0 + RL**2)
              rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rLnLam &
                   &     / (4.D0 * PI * EPS0**2 * AMB) &
                   &     * (1.D0 / AMB + 1.D0 / AMI) &
-                  &     * 1.D0 / ( ABS(UbphV(NR))**3 + 3.D0 * SQRT(PI) / 4.D0 &
-                  &     * Vti**1.5D0)! &
+                  &     * 1.D0 / ( ABS(UbphV(NR))**3 + 3.D0 * SQRT(PI) / 4.D0 * Vti**3)
 !                  &     * RL**2 / (1.D0 + RL**2)
 !             rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
              rNuB (NR) = rNube(NR) + rNubi(NR)
@@ -373,30 +374,6 @@ contains
 !!$               &     * 1.D0 / ( ABS(UbphV(NR))**3 + 3.D0 * SQRT(PI) / 4.D0 * Vti**1.5D0)
 !!$          rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
 !!$       END IF
-
-       !     *** Resistivity ***
-
-       ! +++ Original model +++
-       rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
-       ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
-       ETA1(NR) = CORR(Zeff) * AME * (1.D0 + ALFA) * rNuBAR / (PNeV(NR)*1.D20 * AEE**2)
-
-       ! +++ Hirshman, Hawryluk and Birge model +++
-       ! Inverse aspect ratio
-       EpsL    = R(NR) / RR
-       ! Trapped particle fraction
-       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
-       EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-       ! Spitzer resistivity
-       ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-       ETA2(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
-            &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
-       IF(MDLETA == 0) THEN
-          ETA(NR) = ETA1(NR)
-       ELSE
-          ETA(NR) = ETA2(NR)
-       END IF
 
        !     *** Helical neoclassical viscosity ***
 
@@ -545,6 +522,55 @@ contains
           PRFi(NR)=0.D0
        END IF
 
+       !     *** Loss to divertor ***
+
+!       IF (R(NR) + DBW > RA) THEN
+       IF (R(NR) > RA) THEN
+!          Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
+          Cs = SQRT((PZ * PTeV(NR) + 3.D0 * PTiV(NR)) * rKeV / AMI)
+          RL = (R(NR) - RA) / DBW! / 2.D0
+          rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
+               &             * RL**2 / (1.D0 + RL**2)
+          KAPPA = (4.D0*PI*EPS0)**2/(SQRT(AME)*rLnLam*AEE**4*Zeff)*AEE**2.5D0
+          rNuLTe(NR) = FSLTE * KAPPA * (PTeV_FIX(NR)*1.D3)**2.5D0 &
+               &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
+               &             * RL**2 / (1.D0 + RL**2)
+!!$          rNuLTe(NR) = FSLTE * Cs / (2.D0 * PI * Q(NR) * RR) &
+!!$               &             * RL**2 / (1.D0 + RL**2)
+          rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
+               &             * RL**2 / (1.D0 + RL**2)
+!          write(6,*) rNuL(NR), rNuLTe(NR), rNuLTi(NR)
+!          write(6,*) (4.D0*PI*EPS0)**2/(SQRT(AME)*rLnLam*AEE**4*PZ)*AEE**2.5D0
+       ELSE
+          rNuL(NR) = 0.D0
+          rNuLTe(NR) = 0.D0
+          rNuLTi(NR) = 0.D0
+       END IF
+
+       !     *** Resistivity ***
+
+       ! +++ Original model +++
+       rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
+       ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
+       ETA1(NR) = CORR(Zeff) * AME * (1.D0 + ALFA) * rNuBAR / (PNeV(NR)*1.D20 * AEE**2)
+
+       ! +++ Hirshman, Hawryluk and Birge model +++
+       ! Inverse aspect ratio
+       EpsL    = R(NR) / RR
+       ! Trapped particle fraction
+       FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
+       EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
+       ! Spitzer resistivity
+       ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
+       ETA2(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+            &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       IF(MDLETA == 0) THEN
+          ETA(NR) = ETA1(NR)
+       ELSE
+          ETA(NR) = ETA2(NR)
+       END IF
+
        !     *** Current density profile ***
 
        ! Poloidal current density
@@ -574,6 +600,25 @@ contains
        ! NB induced current density
        AJNB(NR) = PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)
 
+       !     *** NBI beam velocity ***
+       !  To avoid "negative" heating when the direction of NBI inverted
+
+       if(nr < nra) then
+          if (UephV(NR) > UbphV(NR)) then
+             Vbedir(NR) = - Vb
+          else
+             Vbedir(NR) =   Vb
+          end if
+          if (UiphV(NR) > UbphV(NR)) then
+             Vbidir(NR) = - Vb
+          else
+             Vbidir(NR) =   Vb
+          end if
+       else
+          Vbedir(NR) = 0.d0
+          Vbidir(NR) = 0.d0
+       end if
+
        !     *** NBI power deposition ***
 
        PNBe(NR) = - 0.5D0 * AMb * (PNBCD * Vb) * rNube(NR) &
@@ -586,7 +631,7 @@ contains
        PEQe(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTeV(NR) - PTiV(NR)) * rKeV
        PEQi(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTiV(NR) - PTeV(NR)) * rKeV
 
-       !     *** Ohmic power from Eqautions ***
+       !     *** Ohmic power from Equations ***
 
        POHe(NR) = - AEE * EthV(NR) * PNeV(NR) * 1.D20 * UethV(NR) &
             &     - AEE * EphV(NR) * PNeV(NR) * 1.D20 * UephV(NR)
@@ -596,31 +641,6 @@ contains
        !     *** Bremsstraulung loss ***
 
        PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
-
-       !     *** Loss to divertor ***
-
-!       IF (R(NR) + DBW > RA) THEN
-       IF (R(NR) > RA) THEN
-!          Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
-          Cs = SQRT((PZ * PTeV(NR) + 3.D0 * PTiV(NR)) * rKeV / AMI)
-          RL = (R(NR) - RA) / DBW! / 2.D0
-          rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
-               &             * RL**2 / (1.D0 + RL**2)
-          KAPPA = (4.D0*PI*EPS0)**2/(SQRT(AME)*rLnLam*AEE**4*Zeff)*AEE**2.5D0
-          rNuLTe(NR) = FSLTE * KAPPA * (PTeV_FIX(NR)*1.D3)**2.5D0 &
-               &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
-               &             * RL**2 / (1.D0 + RL**2)
-!!$          rNuLTe(NR) = FSLTE * Cs / (2.D0 * PI * Q(NR) * RR) &
-!!$               &             * RL**2 / (1.D0 + RL**2)
-          rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
-               &             * RL**2 / (1.D0 + RL**2)
-!          write(6,*) rNuL(NR), rNuLTe(NR), rNuLTi(NR)
-!          write(6,*) (4.D0*PI*EPS0)**2/(SQRT(AME)*rLnLam*AEE**4*PZ)*AEE**2.5D0
-       ELSE
-          rNuL(NR) = 0.D0
-          rNuLTe(NR) = 0.D0
-          rNuLTi(NR) = 0.D0
-       END IF
 
     END DO L_NR
 

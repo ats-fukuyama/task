@@ -453,6 +453,8 @@ contains
     GY(0:NRMAX,NGR,99) = SNGL(POHi(0:NRMAX))
     GY(0:NRMAX,NGR,100) = SNGL(PEQe(0:NRMAX))
     GY(0:NRMAX,NGR,101) = SNGL(PEQi(0:NRMAX))
+    GY(0:NRMAX,NGR,102) = SNGL(Vbedir(0:NRMAX))
+    GY(0:NRMAX,NGR,103) = SNGL(Vbidir(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -592,8 +594,8 @@ contains
     GTY(NGT,26) = SNGL(ANS0(2))
     GTY(NGT,27) = SNGL(ANSAV(1))
     GTY(NGT,28) = SNGL(ANSAV(2))
-    GTY(NGT,29) = SNGL(WST(1))
-    GTY(NGT,30) = SNGL(WST(2))
+    GTY(NGT,29) = SNGL(WPT)
+    GTY(NGT,30) = SNGL(WBULKT)
 
     GTY(NGT,31) = SNGL(WST(1))
     GTY(NGT,32) = SNGL(WST(2))
@@ -609,6 +611,9 @@ contains
     GTY(NGT,41) = SNGL(ALI)
     GTY(NGT,42) = SNGL(Q(0))
     GTY(NGT,43) = SNGL(RQ1)
+
+    GTY(NGT,44) = SNGL(ANF0(1))  * 100.0
+    GTY(NGT,45) = SNGL(ANFAV(1)) * 100.0
 
     RETURN
   END SUBROUTINE TXSTGT
@@ -938,6 +943,14 @@ contains
        STR = '@PEQi(r)@'
        CALL APPROPGY(MODEG, GY(0,0,101), GYL, STR, NRM, NRMAX, NGR, gDIV(101))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@Vbedir(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,102), GYL, STR, NRM, NRMAX, NGR, gDIV(102))
+       CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@Vbidir(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,103), GYL, STR, NRM, NRMAX, NGR, gDIV(103))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
     CASE(17)
        DO NR = 0, NRMAX
@@ -1338,7 +1351,7 @@ contains
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
 !       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
        GYL(NR,2) = GLOG(ETA3(NR),1.D-10,1.D0)
-       write(6,*) R(NR)/RA,AJBS3(NR)/AJBS1(NR)
+!       write(6,*) R(NR)/RA,AJBS3(NR)/AJBS1(NR)
     END DO
 
     STR = '@LOG: ETA@'
@@ -1884,6 +1897,10 @@ contains
        STR = '@RQ1 [m]@'
        CALL TXGRFTX(7, GTX, GTY(0,43), NGTM, NGT, 1, STR, IND)
 
+    CASE(8)
+       STR = '@Nb0,<Nb> [10$+18$=/m$+3$=] vs t@'
+       CALL TXGRFTX(0, GTX, GTY(0,44), NGTM, NGT, 2, STR, IND)
+
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT
     END SELECT
@@ -1953,6 +1970,7 @@ contains
 
     use commons
     use libraries, only : APTOS
+    use physical_constants, only : EPS0, rMU0
 
     INTEGER, INTENT(IN) :: NQ, ID
     INTEGER :: NR, NC, NC1, NSTR, IND
@@ -2020,6 +2038,9 @@ contains
 
 !!$    GQY(0:10,1:NLCMAX(NQ))=100.0*GQY(0:10,1:NLCMAX(NQ))
 !!$    GQY(25:NRMAX,1:NLCMAX(NQ))=100.0*GQY(25:NRMAX,1:NLCMAX(NQ))
+!!$    do nc=1,nlcmax(nq)
+!!$       write(6,*) nc,gqy(15,nc),gqy(nrmax,nc)
+!!$    end do
 
     NSTR = 0
     CALL APTOS(STR,NSTR,NQ)
@@ -2238,23 +2259,25 @@ contains
     CALL GFRAME
     CALL SETLNW( 0.017)
     CALL GSCALE(GSXMIN, GXSTEP, 0.0, 0.0, gSLEN, IND)
-    IF (GXSTEP < 0.01) THEN
-       NGV=NGULEN(GXSTEP*5)
-       IF (NGV < 0) THEN
-          NGV=NGV-3200
-       ELSE
-          NGV=NGV+3200
-       END IF
-       CALL GVALUE(GSXMIN, GXSTEP*5, 0.0, 0.0, NGV)
-    ELSE
+!!$    IF (GXSTEP < 0.01) THEN
+!!$       NGV=NGULEN(GXSTEP*5)
+!!$       IF (NGV < 0) THEN
+!!$          NGV=NGV-3200
+!!$       ELSE
+!!$          NGV=NGV+3200
+!!$       END IF
+!!$       CALL GVALUE(GSXMIN, GXSTEP*5, 0.0, 0.0, NGV)
        NGV=NGULEN(GXSTEP*2)
-       IF (NGV < 0) THEN
-          NGV=NGV-3200
-       ELSE
-          NGV=NGV+3200
-       END IF
        CALL GVALUE(GSXMIN, GXSTEP*2, 0.0, 0.0, NGV)
-    END IF
+!!$    ELSE
+!!$       NGV=NGULEN(GXSTEP*2)
+!!$       IF (NGV < 0) THEN
+!!$          NGV=NGV-3200
+!!$       ELSE
+!!$          NGV=NGV+3200
+!!$       END IF
+!!$       CALL GVALUE(GSXMIN, GXSTEP*2, 0.0, 0.0, NGV)
+!!$    END IF
 
     ! Semi-Log or not
 

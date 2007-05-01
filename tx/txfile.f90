@@ -31,11 +31,12 @@ contains
          &     'N0(RB)',   (9*X(LQn1,NRMAX-1)-X(LQn1,NRMAX-2))/8 * 1.D20,&
          &     'NB(0)',    rLINEAVE(0.D0)   / 1.D20,  &
          &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20,  &
-         &     ' NB(0.6)', rLINEAVE(0.6D0)  / 1.D20,  &
-         &     '    PF',   PNeV(0) * 1.D20 / rNbar
-    WRITE(6,'(1X,A," =",1PD9.2,2X,A,"=",1PD9.2)') &
+         &     'NB(0.60)', rLINEAVE(0.6D0)  / 1.D20,  &
+         &     'PF    ', PNeV(0) * 1.D20 / rNbar
+    WRITE(6,'(1X,A," =",1PD9.2,2(2X,A,"=",1PD9.2))') &
          &     'Te(0)',    PTeV(0),  &
-         &     'Ti(0)   ', PTiV(0)
+         &     'Ti(0)   ', PTiV(0),  &
+         &     'Wst     ', WPT
     RETURN
   END SUBROUTINE TXWDAT
 
@@ -158,7 +159,7 @@ contains
     WRITE(21) rLn,rLT
     WRITE(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
     WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    WRITE(21) DT,EPS,ADV
+    WRITE(21) DT,EPS,ADV,tiny_cap
     WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
     WRITE(21) rG1
     WRITE(21) rIPs,rIPe
@@ -235,7 +236,7 @@ contains
     READ(21) rLn,rLT
     READ(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
     READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-    READ(21) DT,EPS,ADV
+    READ(21) DT,EPS,ADV,tiny_cap
     READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
     READ(21) rG1
     READ(21) rIPs,rIPe
@@ -336,7 +337,7 @@ contains
 !!$    WRITE(21) rLn,rLT
 !!$    WRITE(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
 !!$    WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-!!$    WRITE(21) DT,EPS,ADV
+!!$    WRITE(21) DT,EPS,ADV,tiny_cap
 !!$    WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
 !!$    WRITE(21) rG1
 !!$    WRITE(21) rIPs,rIPe
@@ -417,7 +418,7 @@ contains
 !!$    READ(21) rLn,rLT
 !!$    READ(21) Eb,RNB,PNBH,rNRF,RRF,PRFH,PNBCD
 !!$    READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-!!$    READ(21) DT,EPS,ADV
+!!$    READ(21) DT,EPS,ADV,tiny_cap
 !!$    READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
 !!$    READ(21) rG1
 !!$    READ(21) rIPs,rIPe

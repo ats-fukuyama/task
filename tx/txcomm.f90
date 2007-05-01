@@ -3,8 +3,8 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=101, NGYTM=43, &
-       &                NGYVM=49, NGPRM=17, NGPTM=7, NGPVM=15
+       &                NGTM=1000, NGVM=1000, NGYRM=103, NGYTM=45, &
+       &                NGYVM=49, NGPRM=17, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
@@ -42,7 +42,7 @@ module commons
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
 
   ! Numerical parameters
-  real(8) :: DT, EPS, ADV, CMESH, WMESH
+  real(8) :: DT, EPS, ADV, tiny_cap, CMESH, WMESH
   integer :: ICMAX
 
   ! Mesh parameters
@@ -62,7 +62,7 @@ module commons
   ! Configuration parameters
   integer :: NT, NQMAX, IERR
   real(8) :: T_TX, TMAX
-  real(8) :: AMI, AMB, Vb
+  real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
   real(8) :: UHth, UHph
   real(8), dimension(0:NRM) :: R, PSI
@@ -85,7 +85,7 @@ module commons
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
-       &                       FWthphe, FWthphi
+       &                       FWthphe, FWthphi, Vbedir, Vbidir
   real(8) :: FWthea, FWthia
  
   ! CDBM
@@ -138,6 +138,7 @@ module commons
   integer :: MDLWTB, MDLETA, MDFIXT
 
   ! I/O
+  integer :: IDIAG
   character(len=20) :: SLID
 
   ! LAPACK
