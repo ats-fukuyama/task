@@ -22,6 +22,32 @@ c
       deallocate(gx)
       return
       end subroutine femgr1d
+c=======================================================================
+      subroutine femgr1dc(ngp,x,y,nxmax,str)
+c
+      implicit none
+      integer ngp,nxmax,nx
+      real(8), dimension(nxmax) :: x
+      complex(8), dimension(nxmax) :: y
+      real*4, dimension(:), allocatable :: gx
+      real*4, dimension(:,:), allocatable :: gy
+      character str*(*)
+      real*4 guclip
+c
+      allocate(gx(nxmax))
+      allocate(gy(nxmax,2))
+      do nx=1,nxmax
+         gx(nx)=guclip(x(nx))
+         gy(nx,1)=guclip(real(y(nx)))
+         gy(nx,2)=guclip(imag(y(nx)))
+      end do
+c
+      call grf1d(ngp,gx,gy,nxmax,nxmax,2,str,0)
+c
+      deallocate(gy)
+      deallocate(gx)
+      return
+      end subroutine femgr1dc
 c
 c=======================================================================
       subroutine femgr2d(ngp,x,y,z,nxm,nxmax,nymax,str,ntype)
