@@ -50,7 +50,10 @@ clean:
 veryclean: clean
 
 femtest: tasklib.a femtest.o 
-	$(FCFIXED) femtest.o tasklib.a $(FFLAGS) -o $@ $(GFLIBS) $(MODINCLUDE)
+	$(FCFIXED) femtest.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+
+mmconvert: mmconvert.o
+	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@
 
 #libspl.o: libspl.f90
 #	$(FCFREE) -O3 -tp p7 -c libspl.f90 -o libspl.o
