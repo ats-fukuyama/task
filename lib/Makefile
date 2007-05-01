@@ -5,6 +5,8 @@ include ../make.header
 .SUFFIXES: .f .f90 .mod .o .a
 
 LFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
+MODINCLUDE= -I.
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
@@ -21,9 +23,9 @@ OBJSFIXED = $(SRCSFIXED:.f=.o)
 OBJSMDS = $(MDSPLUS:.f=.o)
 
 .f.o :
-	$(FCFIXED) $(LFLAGS) -c $< -o $@
+	$(FCFIXED) $(LFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(LFLAGS) -c $< -o $@
+	$(FCFREE) $(LFLAGS) -c $< -o $@ $(MODINCLUDE)
 
 all : tasklib.a mdslib.a
 
@@ -46,6 +48,9 @@ clean:
 	-rm -f core* a.out *.o *.mod *.a ./*~ ./#*
 
 veryclean: clean
+
+femtest: tasklib.a femtest.o 
+	$(FCFIXED) femtest.o tasklib.a $(FFLAGS) -o $@ $(GFLIBS) $(MODINCLUDE)
 
 #libspl.o: libspl.f90
 #	$(FCFREE) -O3 -tp p7 -c libspl.f90 -o libspl.o
