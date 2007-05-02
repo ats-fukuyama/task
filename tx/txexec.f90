@@ -5,6 +5,7 @@ module main
   real(8), dimension(1:4*NQM-1,1:NQM*(NRM+1)) :: BA
   real(8), dimension(1:6*NQM-2,1:NQM*(NRM+1)) :: BL
   real(8), dimension(1:NQM*(NRM+1)) :: BX
+  real(8), dimension(1:NQM,0:NRM), SAVE :: XOLD
   private
   public :: TXEXEC
 
@@ -97,6 +98,9 @@ contains
     END IF
     TIME0 = T_TX
     IF(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
+
+    ! Save X -> XP -> XOLD for BDF only at the beginning of the calculation
+    IF(IGBDF /= 0 .and. T_TX == 0.D0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
 
     L_NTDO:DO NTDO = 1, NTMAX
        NT = NTDO
@@ -224,6 +228,10 @@ contains
           EXIT L_IC
        END DO L_IC
 
+       ! Save past X for BDF
+       IF(IGBDF /= 0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
+
+
        IF(IDIAG >= 2) THEN
           IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
           IF(IC-1 == ICMAX) THEN
@@ -284,6 +292,9 @@ contains
 
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
     INTEGER :: JA, JB, JC, KL
+    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
+
+    IF(IGBDF /= 0) ADV = C23
 
     !  NR : number of radial mesh 
     !  NQ : number of equation
@@ -398,23 +409,40 @@ contains
 
     BX(1:NQMAX*(NRMAX+1)) = 0.D0
 
+    IF(IGBDF == 0) THEN
+       COEF1 = 1.D0
+       COEF2 = 0.D0
+       COEF3 = 1.D0
+    ELSE
+       COEF1 = C43
+       COEF2 = C13
+       COEF3 = C23
+    END IF
+
     ! In the case of NC=0 i.e. time derivative term effects in any equations
     NC = 0
     NR = 0
     DO NQ = 1, NQMAX
        NC1 = NLCR(NC,NQ,NR)
        BX(NQMAX * NR + NQ) &
-            & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) &
-            &                       + ALC(NC,NQ,NR) * X(NC1,NR+1)
+            & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+            &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+            &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+            &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+
     END DO
 
     DO NR = 1, NRMAX - 1
        DO NQ = 1, NQMAX
           NC1 = NLCR(NC,NQ,NR)
           BX(NQMAX * NR + NQ) &
-               &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
-               &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) &
-               &                          + ALC(NC,NQ,NR) * X(NC1,NR+1)
+               &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+               &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+               &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+               &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+               &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+               &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+
        END DO
     END DO
 
@@ -422,20 +450,24 @@ contains
     DO NQ = 1, NQMAX
        NC1 = NLCR(NC,NQ,NR)
        BX(NQMAX * NR + NQ) &
-            & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) &
-            &                       + BLC(NC,NQ,NR) * X(NC1,NR  )
+            & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+            &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+            &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+            &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
+
     END DO
 
     ! In the case of general term effect in any equations
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           DO NC = 1, NLCMAX(NQ)
-             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR)
+             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR) * COEF3
           END DO
        END DO
     END DO
 
     ! Numerical scheme
+    IF(IGBDF == 0) THEN
     NR = 0
        DO NQ = 1, NQMAX
           DO NC = 1, NLCMAX(NQ)
@@ -473,7 +505,7 @@ contains
              END IF
           END DO
        END DO
-
+    END IF
     RETURN
   END SUBROUTINE TXCALB
 

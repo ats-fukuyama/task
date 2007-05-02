@@ -827,7 +827,7 @@ module parameter_control
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, &
-       & MDLETA, MDFIXT, IDIAG
+       & MDLETA, MDFIXT, IDIAG, IGBDF
   private :: TXPLST
 
 contains
@@ -932,8 +932,8 @@ contains
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG, gDIV, MODEAV, MODEGL, MDLPCK,'/ &
-         &       ' ',8X,'MDLWTB,IDIAG')
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,'/ &
+         &       ' ',8X,'MDLWTB,IDIAG,IGBDF')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -988,7 +988,7 @@ contains
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
-         &   'IDIAG ', IDIAG
+         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF
 
     RETURN
   END SUBROUTINE TXVIEW

@@ -22,7 +22,6 @@ contains
 
   SUBROUTINE TXCALA
 
-    use physical_constants, only : EPS0
     INTEGER :: NE, NR, NC, NQ
 
     !*** Nodal Equation *****************************************!

@@ -55,6 +55,15 @@ module commons
   real(8) :: EpsH, FSHL, Q0, QA
   integer :: NCPHI
 
+  ! Diagnostic message
+  integer :: IDIAG
+
+  ! LAPACK
+  integer :: MDLPCK
+
+  ! Implicit Euler or Gear's backward differential formula
+  integer :: IGBDF
+
   !**********************************!
   !   INTERNAL CONTOROL PARAMETERS   !
   !**********************************!
@@ -138,10 +147,6 @@ module commons
   integer :: MDLWTB, MDLETA, MDFIXT
 
   ! I/O
-  integer :: IDIAG
   character(len=20) :: SLID
-
-  ! LAPACK
-  integer :: MDLPCK
 
 end module commons

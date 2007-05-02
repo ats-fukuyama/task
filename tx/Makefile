@@ -18,14 +18,14 @@ LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
 .SUFFIXES: .f90
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ -module mod
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ -module mod
 
 all: $(PROG)
 
 txlib.a: $(OBJNC) $(OBJS) $(INCNC)
-	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJNC)
+	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJNC) -Imod
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -41,7 +41,7 @@ check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o *.a *.mod
+	rm -f *.o ./*~ ./#* nclass/*.o *.a mod/*.mod
 
 veryclean: clean
 	rm -f $(PROG)
@@ -60,17 +60,18 @@ new :
 	-mkdir ../txnew/in
 	-cp -f in/* ../txnew/in
 
+txcala.o: txcala.f90 txcomm.f90
+txcalv.o: txcalv.f90 txcomm.f90
+txexec.o: txexec.f90 txcomm.f90
+txfile.o: txfile.f90 txcomm.f90
+txgraf.o: txgraf.f90 txcomm.f90
+txinit.o: txinit.f90 txcomm.f90
+txlib.o : txlib.f90  txcomm.f90
 txmain.o: txmain.f90 txcomm.f90
 txmenu.o: txmenu.f90 txcomm.f90
-txinit.o: txinit.f90 txcomm.f90
-txexec.o: txexec.f90 txcomm.f90
-txcalv.o: txcalv.f90 txcomm.f90
-txcala.o: txcala.f90 txcomm.f90
-txfile.o: txfile.f90 txcomm.f90
+trncls.o: txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
+          nclass/pamx_ms.inc nclass/pamx_mz.inc
 txrslt.o: txrslt.f90 txcomm.f90
-txgraf.o: txgraf.f90 txcomm.f90
-trncls.o : txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
-           nclass/pamx_ms.inc nclass/pamx_mz.inc
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-	$(FCFIXED) $(FFLAGS) -c -o nclass/nclass_mod.o -Inclass nclass/nclass_mod.f
+	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass -module mod
