@@ -14,7 +14,14 @@
 
       call gsopen
 
-      id=3
+      write(6,*) ' * id=1: Laplace eq (slab)'
+      write(6,*) ' * id=2: Laplace eq (cylinder)'
+      write(6,*) ' * id=3: Maxwell eq (slab) Linear'
+      write(6,*) ' * id=4: Maxwell eq (slab) Hermite'
+      write(6,*) ' * id=5: Maxwell eq (slab) Linear + edge 0th'
+      write(6,*) ' * *******************************'
+
+      id=5
       nrmax=11
       npow=1
       nth=0
@@ -34,12 +41,14 @@
             call fem_calc3(nrmax,npow,nth,nph,rf)
          case(4)
             call fem_calc4(nrmax,npow,nth,nph,rf)
+         case(5)
+            call fem_calc5(nrmax,npow,nth,nph,rf)
       end select
 
-!      do ml=1,mlmax
-!         write(16,'(1P6E12.4)') (fma(mw,ml),mw=1,mwmax)
-!      enddo
-!      write(16,'(1P6E12.4)') (fvb(ml),ml=1,mlmax)
+      do ml=1,mlmax
+         write(16,'(1P6E12.4)') (fma(mw,ml),mw=1,mwmax)
+      enddo
+      write(16,'(1P6E12.4)') (fvb(ml),ml=1,mlmax)
 
       do ml=1,mlmax
          fvx(ml)=fvb(ml)
@@ -105,6 +114,22 @@
          call femgr1dc(2,rho,cf2,nrmax,'@dcf2(rho)@')
          call femgr1dc(3,rho,cf3,nrmax,'@dcf3(rho)@')
          call pagee
+
+      else if(id.eq.5) then
+         do nr=1,nrmax
+            cf1(nr)=fvx(3*(nr-1)+1)
+            cf2(nr)=fvx(3*(nr-1)+2)
+            cf3(nr)=fvx(3*(nr-1)+3)
+         enddo
+         do nr=1,nrmax
+            write(6,'(I5,1P7E10.2)') nr,rho(nr),cf1(nr),cf2(nr),cf3(nr)
+         enddo
+         call pages
+         call femgr1dc(1,rho,cf1,nrmax-1,'@cf1(rho)@')
+         call femgr1dc(2,rho,cf2,nrmax,'@cf2(rho)@')
+         call femgr1dc(3,rho,cf3,nrmax,'@cf3(rho)@')
+         call pagee
+
       endif
       goto 1
 
@@ -389,6 +414,7 @@
 
       rkth=nth
       rkph=nph
+      factor=rf**2
       
       do inod=1,2
          do k=1,4
@@ -400,9 +426,8 @@
          enddo
       enddo
 
-      factor=rf**2
       do inod=1,2
-         fmc(1,1,1,inod)= factor-rkth**2+rkph**2
+         fmc(1,1,1,inod)= factor-rkth**2-rkph**2
          fmc(2,2,1,inod)= factor-rkph**2
          fmc(2,3,1,inod)= rkth*rkph
          fmc(3,2,1,inod)= rkth*rkph
@@ -441,69 +466,69 @@
 
                fma(mw  ,ml  )=fma(mw  ,ml  )
      &                       +fmd(i,j,1,k)*table_lll(k,1,1)*drho
-               fma(mw+1,ml  )=fma(mw+1,ml  )
-     &                       +fmd(i,j,1,k)*table_lll(k,2,1)*drho**2
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,1,k)*table_lll(k,2,1)*drho
 
-               fma(mw-1,ml+1)=fma(mw-1,ml+1)
-     &                       +fmd(i,j,1,k)*table_lll(k,1,2)*drho**2
-               fma(mw  ,ml+1)=fma(mw  ,ml+1)
-     &                       +fmd(i,j,1,k)*table_lll(k,2,2)*drho**3
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,1,2)*drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,2,2)*drho
 
 ! ----- dw/dx terms
 
                fma(mw  ,ml  )=fma(mw  ,ml  )
      &                       +fmd(i,j,2,k)*table_lll(k,3,1)
-               fma(mw+1,ml  )=fma(mw+1,ml  )
-     &                       +fmd(i,j,2,k)*table_lll(k,4,1)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,2,k)*table_lll(k,4,1)
 
-               fma(mw-1,ml+1)=fma(mw-1,ml+1)
-     &                       +fmd(i,j,2,k)*table_lll(k,3,2)*drho
-               fma(mw  ,ml+1)=fma(mw  ,ml+1)
-     &                       +fmd(i,j,2,k)*table_lll(k,4,2)*drho**2
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,3,2)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,4,2)
 
 ! ----- dE/dx terms
 
                fma(mw  ,ml  )=fma(mw  ,ml  )
      &                       +fmd(i,j,3,k)*table_lll(k,1,3)
-               fma(mw+1,ml  )=fma(mw+1,ml  )
-     &                       +fmd(i,j,3,k)*table_lll(k,2,3)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,3,k)*table_lll(k,2,3)
 
-               fma(mw-1,ml+1)=fma(mw-1,ml+1)
-     &                       +fmd(i,j,3,k)*table_lll(k,1,4)*drho
-               fma(mw  ,ml+1)=fma(mw  ,ml+1)
-     &                       +fmd(i,j,3,k)*table_lll(k,2,4)*drho**2
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,1,4)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,2,4)
 
 ! ----- dw/dx dE/dx terms
 
                fma(mw  ,ml  )=fma(mw  ,ml  )
      &                       +fmd(i,j,4,k)*table_lll(k,3,3)/drho
-               fma(mw+1,ml  )=fma(mw+1,ml  )
-     &                       +fmd(i,j,4,k)*table_lll(k,4,3)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,4,k)*table_lll(k,4,3)/drho
 
-               fma(mw-1,ml+1)=fma(mw-1,ml+1)
-     &                       +fmd(i,j,4,k)*table_lll(k,3,4)
-               fma(mw  ,ml+1)=fma(mw  ,ml+1)
-     &                       +fmd(i,j,4,k)*table_lll(k,4,4)*drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,3,4)/drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,4,4)/drho
                enddo
             enddo
          enddo
       enddo
 
       do mw=1,mwmax
-         fma(mw,1) = 0.d0
+!         fma(mw,1) = 0.d0
          fma(mw,2) = 0.d0
          fma(mw,3) = 0.d0
       enddo
-      fma(mc,1)=1.d0
+!      fma(mc,1)=1.d0
       fma(mc,2)=1.d0
       fma(mc,3)=1.d0
 
       do mw=1,mwmax
-         fma(mw,mlmax-2) = 0.d0
+!         fma(mw,mlmax-2) = 0.d0
          fma(mw,mlmax-1) = 0.d0
          fma(mw,mlmax  ) = 0.d0
       enddo
-      fma(mc,mlmax-2) = 1.d0
+!      fma(mc,mlmax-2) = 1.d0
       fma(mc,mlmax-1) = 1.d0
       fma(mc,mlmax  ) = 1.d0
 
@@ -567,7 +592,7 @@
 
       factor=rf**2
       do inod=1,4
-         fmc(1,1,1,inod)= factor-rkth**2+rkph**2
+         fmc(1,1,1,inod)= factor-rkth**2-rkph**2
          fmc(2,2,1,inod)= factor-rkph**2
          fmc(2,3,1,inod)= rkth*rkph
          fmc(3,2,1,inod)= rkth*rkph
@@ -763,20 +788,20 @@
       enddo
 
       do mw=1,mwmax
-         fma(mw,1) = 0.d0
+!         fma(mw,1) = 0.d0
          fma(mw,3) = 0.d0
          fma(mw,5) = 0.d0
       enddo
-      fma(mc,1)=1.d0
+!      fma(mc,1)=1.d0
       fma(mc,3)=1.d0
       fma(mc,5)=1.d0
 
       do mw=1,mwmax
-         fma(mw,mlmax-5) = 0.d0
+!         fma(mw,mlmax-5) = 0.d0
          fma(mw,mlmax-3) = 0.d0
          fma(mw,mlmax-1) = 0.d0
       enddo
-      fma(mc,mlmax-5) = 1.d0
+!      fma(mc,mlmax-5) = 1.d0
       fma(mc,mlmax-3) = 1.d0
       fma(mc,mlmax-1) = 1.d0
 
@@ -792,6 +817,457 @@
 
       return
       end subroutine fem_calc4
+
+!----- calculate coefficint matrix fma and source vector fvb -----
+
+      subroutine fem_calc5(nrmax,npow,nth,nph,rf)
+
+      use libfem_mod
+      implicit none
+      integer,intent(in):: nrmax  ! number of points including end points
+      integer,intent(in):: npow   ! power of mesh points
+      integer,intent(in):: nth    ! poloidal mode number
+      integer,intent(in):: nph    ! toroidal mode number
+      real(8),intent(in):: rf     ! wave frequency
+      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
+      real(8):: drho,rkth,rkph,factor
+      complex(8),dimension(3,3,4,2):: fmc,fmd
+      complex(8),parameter:: ci=(0.d0,1.d0)
+
+      call mesh_init(nrmax,npow)
+
+      nvmax=3
+     
+      call fem_init(nrmax,nvmax)
+
+      do ml=1,mlmax
+         fvb(ml)=0.d0
+         do mw=1,mwmax
+            fma(mw,ml)=0.d0
+         enddo
+      enddo
+      mc=(mwmax+1)/2
+
+      write(6,'(A,3I5)') 'mlmax,mwmax,mc=',mlmax,mwmax,mc
+
+      rkth=nth
+      rkph=nph
+      factor=rf**2
+      
+      do inod=1,2
+         do k=1,4
+            do j=1,3
+               do i=1,3
+                  fmc(i,j,k,inod)=0.d0
+               enddo
+            enddo
+         enddo
+      enddo
+
+      do inod=1,2
+         fmc(1,1,1,inod)= factor-rkth**2-rkph**2
+         fmc(2,2,1,inod)= factor-rkph**2
+         fmc(2,3,1,inod)= rkth*rkph
+         fmc(3,2,1,inod)= rkth*rkph
+         fmc(3,3,1,inod)= factor-rkth**2
+      
+         fmc(2,1,2,inod)= ci*rkth
+         fmc(3,1,2,inod)= ci*rkph
+
+         fmc(1,2,3,inod)=-ci*rkth
+         fmc(1,3,3,inod)=-ci*rkph
+
+         fmc(2,2,4,inod)=-1.d0
+         fmc(3,3,4,inod)=-1.d0
+      enddo
+
+      do nr=1,nrmax-1
+         drho=rho(nr+1)-rho(nr)
+
+         do k=1,4
+            do j=1,3
+               do i=1,3
+                  fmd(i,j,k,1)=fmc(i,j,k,1)
+                  fmd(i,j,k,2)=fmc(i,j,k,2)
+               enddo
+            enddo
+         enddo
+
+         do j=1,3
+            do i=1,3
+               ml=3*(nr-1)+(i-1)+1
+               mw=mc+(j-1)-(i-1)
+               
+! ***** (1,1) *****
+            if((i.eq.1).and.(j.eq.1)) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lgg(k,1,1)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lgg(k,2,1)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lgg(k,1,2)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lgg(k,2,2)/drho
+               enddo
+
+! ***** (1,*) *****
+            else if(i.eq.1) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lgl(k,1,1)*drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,1,k)*table_lgl(k,1,2)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lgl(k,2,1)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,2,k)*table_lgl(k,2,2)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lgl(k,1,3)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,3,k)*table_lgl(k,1,4)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lgl(k,2,3)/drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,4,k)*table_lgl(k,2,4)/drho
+               enddo
+
+! ***** (*,1) *****
+            else if(j.eq.1) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_llg(k,1,1)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,1,k)*table_llg(k,2,1)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_llg(k,3,1)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,2,k)*table_llg(k,4,1)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_llg(k,1,2)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,3,k)*table_llg(k,2,2)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_llg(k,3,2)/drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,4,k)*table_llg(k,4,2)/drho
+               enddo
+
+            else
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lll(k,1,1)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,1,k)*table_lll(k,2,1)*drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,1,2)*drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,2,2)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lll(k,3,1)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,2,k)*table_lll(k,4,1)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,3,2)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,4,2)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lll(k,1,3)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,3,k)*table_lll(k,2,3)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,1,4)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,2,4)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lll(k,3,3)/drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,4,k)*table_lll(k,4,3)/drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,3,4)/drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,4,4)/drho
+               enddo
+            endif
+
+            enddo
+         enddo
+      enddo
+
+      do mw=1,mwmax
+         fma(mw,2) = 0.d0
+         fma(mw,3) = 0.d0
+      enddo
+      fma(mc,2)=1.d0
+      fma(mc,3)=1.d0
+
+      do mw=1,mwmax
+         fma(mw,mlmax-2) = 0.d0
+         fma(mw,mlmax-1) = 0.d0
+         fma(mw,mlmax  ) = 0.d0
+      enddo
+      fma(mc,mlmax-2) = 1.d0
+      fma(mc,mlmax-1) = 1.d0
+      fma(mc,mlmax  ) = 1.d0
+
+
+      do nr=1,nrmax-1
+         if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
+            write(6,'A,I5,1P4E12.4') 'Antenaa:',nr,rho(nr),rho(nr+1),
+     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
+            fvb(3*(nr-1)+2)=rho(nr+1)-0.85d0
+            fvb(3* nr   +2)=0.85d0-rho(nr)
+         endif
+      enddo
+
+      return
+      end subroutine fem_calc5
+
+
+!----- calculate coefficint matrix fma and source vector fvb -----
+
+      subroutine fem_calc6(nrmax,npow,nth,nph,rf)
+
+      use libfem_mod
+      implicit none
+      integer,intent(in):: nrmax  ! number of points including end points
+      integer,intent(in):: npow   ! power of mesh points
+      integer,intent(in):: nth    ! poloidal mode number
+      integer,intent(in):: nph    ! toroidal mode number
+      real(8),intent(in):: rf     ! wave frequency
+      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod
+      real(8):: drho,rkth,rkph,factor
+      complex(8),dimension(3,3,4,2):: fmc,fmd
+      complex(8),parameter:: ci=(0.d0,1.d0)
+
+      call mesh_init(nrmax,npow)
+
+      nvmax=4
+     
+      call fem_init(nrmax,nvmax)
+
+      do ml=1,mlmax
+         fvb(ml)=0.d0
+         do mw=1,mwmax
+            fma(mw,ml)=0.d0
+         enddo
+      enddo
+      mc=(mwmax+1)/2
+
+      write(6,'(A,3I5)') 'mlmax,mwmax,mc=',mlmax,mwmax,mc
+
+      rkth=nth
+      rkph=nph
+      factor=rf**2
+      
+      do inod=1,2
+         do k=1,4
+            do j=1,3
+               do i=1,3
+                  fmc(i,j,k,inod)=0.d0
+               enddo
+            enddo
+         enddo
+      enddo
+
+      do inod=1,2
+         fmc(1,1,1,inod)= factor-rkth**2-rkph**2
+         fmc(2,2,1,inod)= factor-rkph**2
+         fmc(2,3,1,inod)= rkth*rkph
+         fmc(3,2,1,inod)= rkth*rkph
+         fmc(3,3,1,inod)= factor-rkth**2
+      
+         fmc(2,1,2,inod)= ci*rkth
+         fmc(3,1,2,inod)= ci*rkph
+
+         fmc(1,2,3,inod)=-ci*rkth
+         fmc(1,3,3,inod)=-ci*rkph
+
+         fmc(2,2,4,inod)=-1.d0
+         fmc(3,3,4,inod)=-1.d0
+      enddo
+
+      do nr=1,nrmax-1
+         drho=rho(nr+1)-rho(nr)
+
+         do k=1,4
+            do j=1,3
+               do i=1,3
+                  fmd(i,j,k,1)=fmc(i,j,k,1)
+                  fmd(i,j,k,2)=fmc(i,j,k,2)
+               enddo
+            enddo
+         enddo
+
+         do j=1,3
+            do i=1,3
+               ml=3*(nr-1)+(i-1)+1
+               mw=mc+(j-1)-(i-1)
+               
+! ***** (1,1) *****
+            if((i.eq.1).and.(j.eq.1)) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lgg(k,1,1)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lgg(k,2,1)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lgg(k,1,2)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lgg(k,2,2)/drho
+               enddo
+
+! ***** (1,*) *****
+            else if(i.eq.1) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lgl(k,1,1)*drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,1,k)*table_lgl(k,1,2)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lgl(k,2,1)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,2,k)*table_lgl(k,2,2)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lgl(k,1,3)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,3,k)*table_lgl(k,1,4)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lgl(k,2,3)/drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,4,k)*table_lgl(k,2,4)/drho
+               enddo
+
+! ***** (*,1) *****
+            else if(j.eq.1) then
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_llg(k,1,1)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,1,k)*table_llg(k,2,1)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_llg(k,3,1)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,2,k)*table_llg(k,4,1)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_llg(k,1,2)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,3,k)*table_llg(k,2,2)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_llg(k,3,2)/drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,4,k)*table_llg(k,4,2)/drho
+               enddo
+
+            else
+
+               do k=1,2
+! ----- non derivative terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,1,k)*table_lll(k,1,1)*drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,1,k)*table_lll(k,2,1)*drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,1,2)*drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,1,k)*table_lll(k,2,2)*drho
+! ----- dw/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,2,k)*table_lll(k,3,1)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,2,k)*table_lll(k,4,1)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,3,2)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,2,k)*table_lll(k,4,2)
+! ----- dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,3,k)*table_lll(k,1,3)
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,3,k)*table_lll(k,2,3)
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,1,4)
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,3,k)*table_lll(k,2,4)
+! ----- dw/dx dE/dx terms
+               fma(mw  ,ml  )=fma(mw  ,ml  )
+     &                       +fmd(i,j,4,k)*table_lll(k,3,3)/drho
+               fma(mw+3,ml  )=fma(mw+3,ml  )
+     &                       +fmd(i,j,4,k)*table_lll(k,4,3)/drho
+               fma(mw-3,ml+3)=fma(mw-3,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,3,4)/drho
+               fma(mw  ,ml+3)=fma(mw  ,ml+3)
+     &                       +fmd(i,j,4,k)*table_lll(k,4,4)/drho
+               enddo
+            endif
+
+            enddo
+         enddo
+      enddo
+
+      do mw=1,mwmax
+         fma(mw,2) = 0.d0
+         fma(mw,3) = 0.d0
+      enddo
+      fma(mc,2)=1.d0
+      fma(mc,3)=1.d0
+
+      do mw=1,mwmax
+         fma(mw,mlmax-2) = 0.d0
+         fma(mw,mlmax-1) = 0.d0
+         fma(mw,mlmax  ) = 0.d0
+      enddo
+      fma(mc,mlmax-2) = 1.d0
+      fma(mc,mlmax-1) = 1.d0
+      fma(mc,mlmax  ) = 1.d0
+
+
+      do nr=1,nrmax-1
+         if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
+            write(6,'A,I5,1P4E12.4') 'Antenaa:',nr,rho(nr),rho(nr+1),
+     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
+            fvb(3*(nr-1)+2)=rho(nr+1)-0.85d0
+            fvb(3* nr   +2)=0.85d0-rho(nr)
+         endif
+      enddo
+
+      return
+      end subroutine fem_calc6
 
       include 'femtest-sub.f'
 
