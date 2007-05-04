@@ -2,7 +2,7 @@ C     $Id$
 C
 C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
-      SUBROUTINE BANDCD( A , X , N , L , LA , IERR )
+      SUBROUTINE BANDCDNB( A , X , N , L , LA , IERR )
 C
 C     COMPLEX * 16    A( LA , N ) , X( N ) , ATMP( LMAX ) , TEMP
       COMPLEX * 16    A( LA , N ) , X( N ) , TEMP
