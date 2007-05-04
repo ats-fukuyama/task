@@ -1,14 +1,15 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
+MODINCLUDE= -I. -I../lib
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
        wmexec.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
        wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f wmfout.f \
        wmsetm0.f wmsetm1.f wmpout0.f wmpout1.f \
-       wmtae.f
+       wmtae.f wmfem.f
 # wmtrfile.f
 
 SRCS = $(SRC0) nowmsolv.f 
@@ -24,9 +25,9 @@ LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 
 all : wm
 

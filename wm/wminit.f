@@ -126,6 +126,9 @@ C                  10: BSTABCDBM
 C        MODELW: Control writing a data of absorped power
 C                   0: Not writting
 C                   1: Writting
+C        MDLWMF: Control of solver
+C                   0: original FDM
+C                   1: FEM
 C
       NPRINT = 2
       NGRAPH = 1
@@ -136,6 +139,7 @@ C
       MODELK = 0
       MODELM = 0
       MODELW = 0
+      MDLEMF = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -256,7 +260,7 @@ C
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELM,MODELW,MODELV,ANTANG,MWGMAX,
+     &              MODELM,MODELW,MODELV,MDLWMF,ANTANG,MWGMAX,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -292,7 +296,7 @@ C
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
-     &       9X,'MODELM,MODELW,KNAMEQ,KNAMTR,KNAMPF,'/
+     &       9X,'MODELM,MODELW,MDLWMF,KNAMEQ,KNAMTR,KNAMPF,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
@@ -437,6 +441,12 @@ C
          WRITE(6,*) '## 9: BANDCDBM ##'
       ELSE IF(MODELM.EQ.10) THEN
          WRITE(6,*) '## 10: BSTABCDBM ##'
+      ENDIF
+C
+      IF(MDLWMF.EQ.0) THEN
+         WRITE(6,*) '## 0: Original FDM ##'
+      ELSE IF(MDLWMF.EQ.1) THEN
+         WRITE(6,*) '## 1: FEM ##'
       ENDIF
 C
 C         WRITE(6,*) '## 0: NOT WRITTING PABS. DATA ##'

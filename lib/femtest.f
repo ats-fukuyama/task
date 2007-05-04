@@ -28,7 +28,7 @@
       write(6,*) ' * id=10: Maxwell eq (cylinder) Hermite+ quadra'
       write(6,*) ' * *******************************'
 
-      id=9
+      id=10
       nrmax=11
       npow=1
       nth=0
@@ -2267,10 +2267,15 @@ c$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
             enddo
          enddo
 
+         write(6,'(1P6E12.4)') fmd
+         pause
+
          do j=1,3
          do i=1,3
             ml=6*(nr-1)+ishift(i)+1
             mw=mc+ishift(j)-ishift(i)
+           write(6,*) 'ml,mw=',ml,mw
+            pause
             do inod=1,4
 
 ! (1,1) **********
@@ -2545,6 +2550,13 @@ c$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
                enddo
             enddo
          enddo
+         write(6,'(1P6E12.4)') (fma(mw,1),mw=1,mwmax)
+         write(6,'(1P6E12.4)') (fma(mw,2),mw=1,mwmax)
+         write(6,'(1P6E12.4)') (fma(mw,3),mw=1,mwmax)
+         write(6,'(1P6E12.4)') (fma(mw,4),mw=1,mwmax)
+         write(6,'(1P6E12.4)') (fma(mw,5),mw=1,mwmax)
+         write(6,'(1P6E12.4)') (fma(mw,6),mw=1,mwmax)
+         pause
       enddo
 
       if(nth.eq.0) then

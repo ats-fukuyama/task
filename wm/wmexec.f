@@ -5,6 +5,9 @@ C
       SUBROUTINE WMEXEC(IERR)
 C
       INCLUDE 'wmcomm.inc'
+      dimension cef(3,nthmax,nphmax,nrmax+1)
+      dimension cpp(nthmax,nphmax,nrmax+1,nsmax)
+      dimension cpa(nthmax,nphmax)
 C
       IERR=0
       MODEEG=0
@@ -16,10 +19,16 @@ C
       CALL WMSETJ(IERR)
       IF(IERR.NE.0) RETURN
 C
-      CALL WMSOLV
-      CALL WMEFLD
+      if(mdlwmf.eq.0) then
+         CALL WMSOLV
+      else
+         call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cpp,cpa)
+      endif
+      CALL WMEFLD(cef)
       CALL WMBFLD
-      CALL WMPABS
+      if(mdlwmf.eq.0) then
+         CALL WMPABS
+      endif
 C
       IF(MYRANK.EQ.0) THEN
          CALL WMPFLX
