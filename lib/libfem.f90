@@ -16,6 +16,15 @@
   real(8), dimension(1:8,1:8,1:8), save, public :: table_hgh
   real(8), dimension(1:8,1:8,1:8), save, public :: table_hhg
   real(8), dimension(1:8,1:8,1:8), save, public :: table_hgg
+  real(8), dimension(1:8,1:6), save, public :: table_hq
+  real(8), dimension(1:6,1:6), save, public :: table_qq
+  real(8), dimension(1:8,1:6,1:8), save, public :: table_hqh
+  real(8), dimension(1:8,1:8,1:6), save, public :: table_hhq
+  real(8), dimension(1:8,1:6,1:6), save, public :: table_hqq
+  real(8), dimension(1:4,1:6), save, public :: table_lq
+  real(8), dimension(1:4,1:6,1:4), save, public :: table_lql
+  real(8), dimension(1:4,1:4,1:6), save, public :: table_llq
+  real(8), dimension(1:4,1:6,1:6), save, public :: table_lqq
   integer, save, public :: table_initialize_flag = 0
   public :: table_initialize, fem_integrate
 
@@ -36,6 +45,9 @@ contains
 !           : g2=x-1/2           dg2=1
 !           : g3=(x-1/2)^2/2     dg3=(x-1/2)
 !           : g4=(x-1/2)^3/6     dg4=(x-1/2)^2/2
+!     q     : q1=(1-2x)(1-x)     dq1=-3+4x
+!           : q2=4x(1-x)         dq2=4-8x
+!           : q3=x(2x-1)         
 !
 
     implicit none
@@ -2336,6 +2348,901 @@ contains
       table_hgg(8,8,6)= 1.d0/160.d0
       table_hgg(8,8,7)= 1.d0/5376.d0
       table_hgg(8,8,8)= 1.d0/1120.d0
+
+!----------
+      table_hq(1,1)= 11.d0/60.d0
+      table_hq(1,2)= 1.d0/3.d0
+      table_hq(1,3)= -1.d0/60.d0
+      table_hq(1,4)= -9.d0/10.d0
+      table_hq(1,5)= 4.d0/5.d0
+      table_hq(1,6)= 1.d0/10.d0
+
+      table_hq(2,1)= 1.d0/60.d0
+      table_hq(2,2)= 1.d0/15.d0
+      table_hq(2,3)= 0.d0
+      table_hq(2,4)= -7.d0/60.d0
+      table_hq(2,5)= 1.d0/15.d0
+      table_hq(2,6)= 1.d0/20.d0
+
+      table_hq(3,1)= -1.d0/60.d0
+      table_hq(3,2)= 1.d0/3.d0
+      table_hq(3,3)= 11.d0/60.d0
+      table_hq(3,4)= -1.d0/10.d0
+      table_hq(3,5)= -4.d0/5.d0
+      table_hq(3,6)= 9.d0/10.d0
+
+      table_hq(4,1)= 0.d0
+      table_hq(4,2)= -1.d0/15.d0
+      table_hq(4,3)= -1.d0/60.d0
+      table_hq(4,4)= 1.d0/20.d0
+      table_hq(4,5)= 1.d0/15.d0
+      table_hq(4,6)= -7.d0/60.d0
+
+      table_hq(5,1)= -1.d0/10.d0
+      table_hq(5,2)= -4.d0/5.d0
+      table_hq(5,3)= -1.d0/10.d0
+      table_hq(5,4)= 1.d0
+      table_hq(5,5)= 0.d0
+      table_hq(5,6)= -1.d0
+
+      table_hq(6,1)= 7.d0/60.d0
+      table_hq(6,2)= -1.d0/15.d0
+      table_hq(6,3)= -1.d0/20.d0
+      table_hq(6,4)= -1.d0/3.d0
+      table_hq(6,5)= 2.d0/3.d0
+      table_hq(6,6)= -1.d0/3.d0
+
+      table_hq(7,1)= 1.d0/10.d0
+      table_hq(7,2)= 4.d0/5.d0
+      table_hq(7,3)= 1.d0/10.d0
+      table_hq(7,4)= -1.d0
+      table_hq(7,5)= 0.d0
+      table_hq(7,6)= 1.d0
+
+      table_hq(8,1)= -1.d0/20.d0
+      table_hq(8,2)= -1.d0/15.d0
+      table_hq(8,3)= 7.d0/60.d0
+      table_hq(8,4)= 1.d0/3.d0
+      table_hq(8,5)= -2.d0/3.d0
+      table_hq(8,6)= 1.d0/3.d0
+
+!-------
+      table_qq(1,1)= 2.d0/15.d0
+      table_qq(1,2)= 1.d0/15.d0
+      table_qq(1,3)= -1.d0/30.d0
+      table_qq(1,4)= -1.d0/2.d0
+      table_qq(1,5)= 2.d0/3.d0
+      table_qq(1,6)= -1.d0/6.d0
+
+      table_qq(2,1)= 1.d0/15.d0
+      table_qq(2,2)= 8.d0/15.d0
+      table_qq(2,3)= 1.d0/15.d0
+      table_qq(2,4)= -2.d0/3.d0
+      table_qq(2,5)= 0.d0
+      table_qq(2,6)= 2.d0/3.d0
+
+      table_qq(3,1)= -1.d0/30.d0
+      table_qq(3,2)= 1.d0/15.d0
+      table_qq(3,3)= 2.d0/15.d0
+      table_qq(3,4)= 1.d0/6.d0
+      table_qq(3,5)= -2.d0/3.d0
+      table_qq(3,6)= 1.d0/2.d0
+
+      table_qq(4,1)= -1.d0/2.d0
+      table_qq(4,2)= -2.d0/3.d0
+      table_qq(4,3)= 1.d0/6.d0
+      table_qq(4,4)= 7.d0/3.d0
+      table_qq(4,5)= -8.d0/3.d0
+      table_qq(4,6)= 1.d0/3.d0
+
+      table_qq(5,1)= 2.d0/3.d0
+      table_qq(5,2)= 0.d0
+      table_qq(5,3)= -2.d0/3.d0
+      table_qq(5,4)= -8.d0/3.d0
+      table_qq(5,5)= 16.d0/3.d0
+      table_qq(5,6)= -8.d0/3.d0
+
+      table_qq(6,1)= -1.d0/6.d0
+      table_qq(6,2)= 2.d0/3.d0
+      table_qq(6,3)= 1.d0/2.d0
+      table_qq(6,4)= 1.d0/3.d0
+      table_qq(6,5)= -8.d0/3.d0
+      table_qq(6,6)= 7.d0/3.d0
+
+!------
+
+      table_hqh(1,1,1)= 11.d0/63.d0
+      table_hqh(1,1,2)= 1.d0/63.d0
+      table_hqh(1,1,3)= 11.d0/1260.d0
+      table_hqh(1,1,4)= -1.d0/315.d0
+      table_hqh(1,1,5)= -4.d0/35.d0
+      table_hqh(1,1,6)= 11.d0/105.d0
+      table_hqh(1,1,7)= 4.d0/35.d0
+      table_hqh(1,1,8)= -1.d0/28.d0
+
+      table_hqh(1,2,1)= 2.d0/9.d0
+      table_hqh(1,2,2)= 5.d0/126.d0
+      table_hqh(1,2,3)= 1.d0/9.d0
+      table_hqh(1,2,4)= -17.d0/630.d0
+      table_hqh(1,2,5)= -2.d0/5.d0
+      table_hqh(1,2,6)= 1.d0/105.d0
+      table_hqh(1,2,7)= 2.d0/5.d0
+      table_hqh(1,2,8)= -8.d0/105.d0
+
+      table_hqh(1,3,1)= -8.d0/315.d0
+      table_hqh(1,3,2)= -1.d0/315.d0
+      table_hqh(1,3,3)= 11.d0/1260.d0
+      table_hqh(1,3,4)= -1.d0/1260.d0
+      table_hqh(1,3,5)= 1.d0/70.d0
+      table_hqh(1,3,6)= -1.d0/70.d0
+      table_hqh(1,3,7)= -1.d0/70.d0
+      table_hqh(1,3,8)= 1.d0/84.d0
+
+      table_hqh(1,4,1)= -27.d0/35.d0
+      table_hqh(1,4,2)= -19.d0/210.d0
+      table_hqh(1,4,3)= -9.d0/70.d0
+      table_hqh(1,4,4)= 1.d0/28.d0
+      table_hqh(1,4,5)= 53.d0/70.d0
+      table_hqh(1,4,6)= -71.d0/210.d0
+      table_hqh(1,4,7)= -53.d0/70.d0
+      table_hqh(1,4,8)= 41.d0/210.d0
+
+      table_hqh(1,5,1)= 4.d0/5.d0
+      table_hqh(1,5,2)= 8.d0/105.d0
+      table_hqh(1,5,3)= 0.d0
+      table_hqh(1,5,4)= -1.d0/105.d0
+      table_hqh(1,5,5)= -18.d0/35.d0
+      table_hqh(1,5,6)= 10.d0/21.d0
+      table_hqh(1,5,7)= 18.d0/35.d0
+      table_hqh(1,5,8)= -4.d0/21.d0
+
+      table_hqh(1,6,1)= -1.d0/35.d0
+      table_hqh(1,6,2)= 1.d0/70.d0
+      table_hqh(1,6,3)= 9.d0/70.d0
+      table_hqh(1,6,4)= -11.d0/420.d0
+      table_hqh(1,6,5)= -17.d0/70.d0
+      table_hqh(1,6,6)= -29.d0/210.d0
+      table_hqh(1,6,7)= 17.d0/70.d0
+      table_hqh(1,6,8)= -1.d0/210.d0
+
+
+      table_hqh(2,1,1)= 1.d0/63.d0
+      table_hqh(2,1,2)= 1.d0/504.d0
+      table_hqh(2,1,3)= 1.d0/1260.d0
+      table_hqh(2,1,4)= -1.d0/2520.d0
+      table_hqh(2,1,5)= -1.d0/70.d0
+      table_hqh(2,1,6)= 1.d0/140.d0
+      table_hqh(2,1,7)= 1.d0/70.d0
+      table_hqh(2,1,8)= -1.d0/210.d0
+
+      table_hqh(2,2,1)= 5.d0/126.d0
+      table_hqh(2,2,2)= 1.d0/126.d0
+      table_hqh(2,2,3)= 17.d0/630.d0
+      table_hqh(2,2,4)= -2.d0/315.d0
+      table_hqh(2,2,5)= -3.d0/35.d0
+      table_hqh(2,2,6)= -1.d0/210.d0
+      table_hqh(2,2,7)= 3.d0/35.d0
+      table_hqh(2,2,8)= -1.d0/70.d0
+
+      table_hqh(2,3,1)= -1.d0/315.d0
+      table_hqh(2,3,2)= -1.d0/2520.d0
+      table_hqh(2,3,3)= 1.d0/315.d0
+      table_hqh(2,3,4)= -1.d0/2520.d0
+      table_hqh(2,3,5)= 0.d0
+      table_hqh(2,3,6)= -1.d0/420.d0
+      table_hqh(2,3,7)= 0.d0
+      table_hqh(2,3,8)= 1.d0/420.d0
+
+      table_hqh(2,4,1)= -19.d0/210.d0
+      table_hqh(2,4,2)= -1.d0/70.d0
+      table_hqh(2,4,3)= -11.d0/420.d0
+      table_hqh(2,4,4)= 1.d0/140.d0
+      table_hqh(2,4,5)= 9.d0/70.d0
+      table_hqh(2,4,6)= -2.d0/105.d0
+      table_hqh(2,4,7)= -9.d0/70.d0
+      table_hqh(2,4,8)= 13.d0/420.d0
+
+      table_hqh(2,5,1)= 8.d0/105.d0
+      table_hqh(2,5,2)= 1.d0/105.d0
+      table_hqh(2,5,3)= -1.d0/105.d0
+      table_hqh(2,5,4)= 0.d0
+      table_hqh(2,5,5)= -2.d0/35.d0
+      table_hqh(2,5,6)= 4.d0/105.d0
+      table_hqh(2,5,7)= 2.d0/35.d0
+      table_hqh(2,5,8)= -1.d0/35.d0
+
+      table_hqh(2,6,1)= 1.d0/70.d0
+      table_hqh(2,6,2)= 1.d0/210.d0
+      table_hqh(2,6,3)= 1.d0/28.d0
+      table_hqh(2,6,4)= -1.d0/140.d0
+      table_hqh(2,6,5)= -1.d0/14.d0
+      table_hqh(2,6,6)= -2.d0/105.d0
+      table_hqh(2,6,7)= 1.d0/14.d0
+      table_hqh(2,6,8)= -1.d0/420.d0
+
+
+      table_hqh(3,1,1)= 11.d0/1260.d0
+      table_hqh(3,1,2)= 1.d0/1260.d0
+      table_hqh(3,1,3)= -8.d0/315.d0
+      table_hqh(3,1,4)= 1.d0/315.d0
+      table_hqh(3,1,5)= 1.d0/70.d0
+      table_hqh(3,1,6)= 1.d0/84.d0
+      table_hqh(3,1,7)= -1.d0/70.d0
+      table_hqh(3,1,8)= -1.d0/70.d0
+
+      table_hqh(3,2,1)= 1.d0/9.d0
+      table_hqh(3,2,2)= 17.d0/630.d0
+      table_hqh(3,2,3)= 2.d0/9.d0
+      table_hqh(3,2,4)= -5.d0/126.d0
+      table_hqh(3,2,5)= -2.d0/5.d0
+      table_hqh(3,2,6)= -8.d0/105.d0
+      table_hqh(3,2,7)= 2.d0/5.d0
+      table_hqh(3,2,8)= 1.d0/105.d0
+
+      table_hqh(3,3,1)= 11.d0/1260.d0
+      table_hqh(3,3,2)= 1.d0/315.d0
+      table_hqh(3,3,3)= 11.d0/63.d0
+      table_hqh(3,3,4)= -1.d0/63.d0
+      table_hqh(3,3,5)= -4.d0/35.d0
+      table_hqh(3,3,6)= -1.d0/28.d0
+      table_hqh(3,3,7)= 4.d0/35.d0
+      table_hqh(3,3,8)= 11.d0/105.d0
+
+      table_hqh(3,4,1)= -9.d0/70.d0
+      table_hqh(3,4,2)= -11.d0/420.d0
+      table_hqh(3,4,3)= 1.d0/35.d0
+      table_hqh(3,4,4)= 1.d0/70.d0
+      table_hqh(3,4,5)= 17.d0/70.d0
+      table_hqh(3,4,6)= 1.d0/210.d0
+      table_hqh(3,4,7)= -17.d0/70.d0
+      table_hqh(3,4,8)= 29.d0/210.d0
+
+      table_hqh(3,5,1)= 0.d0
+      table_hqh(3,5,2)= -1.d0/105.d0
+      table_hqh(3,5,3)= -4.d0/5.d0
+      table_hqh(3,5,4)= 8.d0/105.d0
+      table_hqh(3,5,5)= 18.d0/35.d0
+      table_hqh(3,5,6)= 4.d0/21.d0
+      table_hqh(3,5,7)= -18.d0/35.d0
+      table_hqh(3,5,8)= -10.d0/21.d0
+
+      table_hqh(3,6,1)= 9.d0/70.d0
+      table_hqh(3,6,2)= 1.d0/28.d0
+      table_hqh(3,6,3)= 27.d0/35.d0
+      table_hqh(3,6,4)= -19.d0/210.d0
+      table_hqh(3,6,5)= -53.d0/70.d0
+      table_hqh(3,6,6)= -41.d0/210.d0
+      table_hqh(3,6,7)= 53.d0/70.d0
+      table_hqh(3,6,8)= 71.d0/210.d0
+
+
+      table_hqh(4,1,1)= -1.d0/315.d0
+      table_hqh(4,1,2)= -1.d0/2520.d0
+      table_hqh(4,1,3)= 1.d0/315.d0
+      table_hqh(4,1,4)= -1.d0/2520.d0
+      table_hqh(4,1,5)= 0.d0
+      table_hqh(4,1,6)= -1.d0/420.d0
+      table_hqh(4,1,7)= 0.d0
+      table_hqh(4,1,8)= 1.d0/420.d0
+
+      table_hqh(4,2,1)= -17.d0/630.d0
+      table_hqh(4,2,2)= -2.d0/315.d0
+      table_hqh(4,2,3)= -5.d0/126.d0
+      table_hqh(4,2,4)= 1.d0/126.d0
+      table_hqh(4,2,5)= 3.d0/35.d0
+      table_hqh(4,2,6)= 1.d0/70.d0
+      table_hqh(4,2,7)= -3.d0/35.d0
+      table_hqh(4,2,8)= 1.d0/210.d0
+
+      table_hqh(4,3,1)= -1.d0/1260.d0
+      table_hqh(4,3,2)= -1.d0/2520.d0
+      table_hqh(4,3,3)= -1.d0/63.d0
+      table_hqh(4,3,4)= 1.d0/504.d0
+      table_hqh(4,3,5)= 1.d0/70.d0
+      table_hqh(4,3,6)= 1.d0/210.d0
+      table_hqh(4,3,7)= -1.d0/70.d0
+      table_hqh(4,3,8)= -1.d0/140.d0
+
+      table_hqh(4,4,1)= 1.d0/28.d0
+      table_hqh(4,4,2)= 1.d0/140.d0
+      table_hqh(4,4,3)= 1.d0/70.d0
+      table_hqh(4,4,4)= -1.d0/210.d0
+      table_hqh(4,4,5)= -1.d0/14.d0
+      table_hqh(4,4,6)= -1.d0/420.d0
+      table_hqh(4,4,7)= 1.d0/14.d0
+      table_hqh(4,4,8)= -2.d0/105.d0
+
+      table_hqh(4,5,1)= -1.d0/105.d0
+      table_hqh(4,5,2)= 0.d0
+      table_hqh(4,5,3)= 8.d0/105.d0
+      table_hqh(4,5,4)= -1.d0/105.d0
+      table_hqh(4,5,5)= -2.d0/35.d0
+      table_hqh(4,5,6)= -1.d0/35.d0
+      table_hqh(4,5,7)= 2.d0/35.d0
+      table_hqh(4,5,8)= 4.d0/105.d0
+
+      table_hqh(4,6,1)= -11.d0/420.d0
+      table_hqh(4,6,2)= -1.d0/140.d0
+      table_hqh(4,6,3)= -19.d0/210.d0
+      table_hqh(4,6,4)= 1.d0/70.d0
+      table_hqh(4,6,5)= 9.d0/70.d0
+      table_hqh(4,6,6)= 13.d0/420.d0
+      table_hqh(4,6,7)= -9.d0/70.d0
+      table_hqh(4,6,8)= -2.d0/105.d0
+
+
+      table_hqh(5,1,1)= -4.d0/35.d0
+      table_hqh(5,1,2)= -1.d0/70.d0
+      table_hqh(5,1,3)= 1.d0/70.d0
+      table_hqh(5,1,4)= 0.d0
+      table_hqh(5,1,5)= 3.d0/35.d0
+      table_hqh(5,1,6)= -2.d0/35.d0
+      table_hqh(5,1,7)= -3.d0/35.d0
+      table_hqh(5,1,8)= 3.d0/70.d0
+
+      table_hqh(5,2,1)= -2.d0/5.d0
+      table_hqh(5,2,2)= -3.d0/35.d0
+      table_hqh(5,2,3)= -2.d0/5.d0
+      table_hqh(5,2,4)= 3.d0/35.d0
+      table_hqh(5,2,5)= 36.d0/35.d0
+      table_hqh(5,2,6)= 4.d0/35.d0
+      table_hqh(5,2,7)= -36.d0/35.d0
+      table_hqh(5,2,8)= 4.d0/35.d0
+
+      table_hqh(5,3,1)= 1.d0/70.d0
+      table_hqh(5,3,2)= 0.d0
+      table_hqh(5,3,3)= -4.d0/35.d0
+      table_hqh(5,3,4)= 1.d0/70.d0
+      table_hqh(5,3,5)= 3.d0/35.d0
+      table_hqh(5,3,6)= 3.d0/70.d0
+      table_hqh(5,3,7)= -3.d0/35.d0
+      table_hqh(5,3,8)= -2.d0/35.d0
+
+      table_hqh(5,4,1)= 53.d0/70.d0
+      table_hqh(5,4,2)= 9.d0/70.d0
+      table_hqh(5,4,3)= 17.d0/70.d0
+      table_hqh(5,4,4)= -1.d0/14.d0
+      table_hqh(5,4,5)= -6.d0/5.d0
+      table_hqh(5,4,6)= 1.d0/10.d0
+      table_hqh(5,4,7)= 6.d0/5.d0
+      table_hqh(5,4,8)= -3.d0/10.d0
+
+      table_hqh(5,5,1)= -18.d0/35.d0
+      table_hqh(5,5,2)= -2.d0/35.d0
+      table_hqh(5,5,3)= 18.d0/35.d0
+      table_hqh(5,5,4)= -2.d0/35.d0
+      table_hqh(5,5,5)= 0.d0
+      table_hqh(5,5,6)= -2.d0/5.d0
+      table_hqh(5,5,7)= 0.d0
+      table_hqh(5,5,8)= 2.d0/5.d0
+
+      table_hqh(5,6,1)= -17.d0/70.d0
+      table_hqh(5,6,2)= -1.d0/14.d0
+      table_hqh(5,6,3)= -53.d0/70.d0
+      table_hqh(5,6,4)= 9.d0/70.d0
+      table_hqh(5,6,5)= 6.d0/5.d0
+      table_hqh(5,6,6)= 3.d0/10.d0
+      table_hqh(5,6,7)= -6.d0/5.d0
+      table_hqh(5,6,8)= -1.d0/10.d0
+
+
+      table_hqh(6,1,1)= 11.d0/105.d0
+      table_hqh(6,1,2)= 1.d0/140.d0
+      table_hqh(6,1,3)= 1.d0/84.d0
+      table_hqh(6,1,4)= -1.d0/420.d0
+      table_hqh(6,1,5)= -2.d0/35.d0
+      table_hqh(6,1,6)= 1.d0/14.d0
+      table_hqh(6,1,7)= 2.d0/35.d0
+      table_hqh(6,1,8)= -1.d0/84.d0
+
+      table_hqh(6,2,1)= 1.d0/105.d0
+      table_hqh(6,2,2)= -1.d0/210.d0
+      table_hqh(6,2,3)= -8.d0/105.d0
+      table_hqh(6,2,4)= 1.d0/70.d0
+      table_hqh(6,2,5)= 4.d0/35.d0
+      table_hqh(6,2,6)= 2.d0/35.d0
+      table_hqh(6,2,7)= -4.d0/35.d0
+      table_hqh(6,2,8)= -1.d0/105.d0
+
+      table_hqh(6,3,1)= -1.d0/70.d0
+      table_hqh(6,3,2)= -1.d0/420.d0
+      table_hqh(6,3,3)= -1.d0/28.d0
+      table_hqh(6,3,4)= 1.d0/210.d0
+      table_hqh(6,3,5)= 3.d0/70.d0
+      table_hqh(6,3,6)= 1.d0/210.d0
+      table_hqh(6,3,7)= -3.d0/70.d0
+      table_hqh(6,3,8)= -1.d0/84.d0
+
+      table_hqh(6,4,1)= -71.d0/210.d0
+      table_hqh(6,4,2)= -2.d0/105.d0
+      table_hqh(6,4,3)= 1.d0/210.d0
+      table_hqh(6,4,4)= -1.d0/420.d0
+      table_hqh(6,4,5)= 1.d0/10.d0
+      table_hqh(6,4,6)= -4.d0/15.d0
+      table_hqh(6,4,7)= -1.d0/10.d0
+      table_hqh(6,4,8)= 1.d0/30.d0
+
+      table_hqh(6,5,1)= 10.d0/21.d0
+      table_hqh(6,5,2)= 4.d0/105.d0
+      table_hqh(6,5,3)= 4.d0/21.d0
+      table_hqh(6,5,4)= -1.d0/35.d0
+      table_hqh(6,5,5)= -2.d0/5.d0
+      table_hqh(6,5,6)= 4.d0/15.d0
+      table_hqh(6,5,7)= 2.d0/5.d0
+      table_hqh(6,5,8)= 0.d0
+
+      table_hqh(6,6,1)= -29.d0/210.d0
+      table_hqh(6,6,2)= -2.d0/105.d0
+      table_hqh(6,6,3)= -41.d0/210.d0
+      table_hqh(6,6,4)= 13.d0/420.d0
+      table_hqh(6,6,5)= 3.d0/10.d0
+      table_hqh(6,6,6)= 0.d0
+      table_hqh(6,6,7)= -3.d0/10.d0
+      table_hqh(6,6,8)= -1.d0/30.d0
+
+
+      table_hqh(7,1,1)= 4.d0/35.d0
+      table_hqh(7,1,2)= 1.d0/70.d0
+      table_hqh(7,1,3)= -1.d0/70.d0
+      table_hqh(7,1,4)= 0.d0
+      table_hqh(7,1,5)= -3.d0/35.d0
+      table_hqh(7,1,6)= 2.d0/35.d0
+      table_hqh(7,1,7)= 3.d0/35.d0
+      table_hqh(7,1,8)= -3.d0/70.d0
+
+      table_hqh(7,2,1)= 2.d0/5.d0
+      table_hqh(7,2,2)= 3.d0/35.d0
+      table_hqh(7,2,3)= 2.d0/5.d0
+      table_hqh(7,2,4)= -3.d0/35.d0
+      table_hqh(7,2,5)= -36.d0/35.d0
+      table_hqh(7,2,6)= -4.d0/35.d0
+      table_hqh(7,2,7)= 36.d0/35.d0
+      table_hqh(7,2,8)= -4.d0/35.d0
+
+      table_hqh(7,3,1)= -1.d0/70.d0
+      table_hqh(7,3,2)= 0.d0
+      table_hqh(7,3,3)= 4.d0/35.d0
+      table_hqh(7,3,4)= -1.d0/70.d0
+      table_hqh(7,3,5)= -3.d0/35.d0
+      table_hqh(7,3,6)= -3.d0/70.d0
+      table_hqh(7,3,7)= 3.d0/35.d0
+      table_hqh(7,3,8)= 2.d0/35.d0
+
+      table_hqh(7,4,1)= -53.d0/70.d0
+      table_hqh(7,4,2)= -9.d0/70.d0
+      table_hqh(7,4,3)= -17.d0/70.d0
+      table_hqh(7,4,4)= 1.d0/14.d0
+      table_hqh(7,4,5)= 6.d0/5.d0
+      table_hqh(7,4,6)= -1.d0/10.d0
+      table_hqh(7,4,7)= -6.d0/5.d0
+      table_hqh(7,4,8)= 3.d0/10.d0
+
+      table_hqh(7,5,1)= 18.d0/35.d0
+      table_hqh(7,5,2)= 2.d0/35.d0
+      table_hqh(7,5,3)= -18.d0/35.d0
+      table_hqh(7,5,4)= 2.d0/35.d0
+      table_hqh(7,5,5)= 0.d0
+      table_hqh(7,5,6)= 2.d0/5.d0
+      table_hqh(7,5,7)= 0.d0
+      table_hqh(7,5,8)= -2.d0/5.d0
+
+      table_hqh(7,6,1)= 17.d0/70.d0
+      table_hqh(7,6,2)= 1.d0/14.d0
+      table_hqh(7,6,3)= 53.d0/70.d0
+      table_hqh(7,6,4)= -9.d0/70.d0
+      table_hqh(7,6,5)= -6.d0/5.d0
+      table_hqh(7,6,6)= -3.d0/10.d0
+      table_hqh(7,6,7)= 6.d0/5.d0
+      table_hqh(7,6,8)= 1.d0/10.d0
+
+
+      table_hqh(8,1,1)= -1.d0/28.d0
+      table_hqh(8,1,2)= -1.d0/210.d0
+      table_hqh(8,1,3)= -1.d0/70.d0
+      table_hqh(8,1,4)= 1.d0/420.d0
+      table_hqh(8,1,5)= 3.d0/70.d0
+      table_hqh(8,1,6)= -1.d0/84.d0
+      table_hqh(8,1,7)= -3.d0/70.d0
+      table_hqh(8,1,8)= 1.d0/210.d0
+
+      table_hqh(8,2,1)= -8.d0/105.d0
+      table_hqh(8,2,2)= -1.d0/70.d0
+      table_hqh(8,2,3)= 1.d0/105.d0
+      table_hqh(8,2,4)= 1.d0/210.d0
+      table_hqh(8,2,5)= 4.d0/35.d0
+      table_hqh(8,2,6)= -1.d0/105.d0
+      table_hqh(8,2,7)= -4.d0/35.d0
+      table_hqh(8,2,8)= 2.d0/35.d0
+
+      table_hqh(8,3,1)= 1.d0/84.d0
+      table_hqh(8,3,2)= 1.d0/420.d0
+      table_hqh(8,3,3)= 11.d0/105.d0
+      table_hqh(8,3,4)= -1.d0/140.d0
+      table_hqh(8,3,5)= -2.d0/35.d0
+      table_hqh(8,3,6)= -1.d0/84.d0
+      table_hqh(8,3,7)= 2.d0/35.d0
+      table_hqh(8,3,8)= 1.d0/14.d0
+
+      table_hqh(8,4,1)= 41.d0/210.d0
+      table_hqh(8,4,2)= 13.d0/420.d0
+      table_hqh(8,4,3)= 29.d0/210.d0
+      table_hqh(8,4,4)= -2.d0/105.d0
+      table_hqh(8,4,5)= -3.d0/10.d0
+      table_hqh(8,4,6)= 1.d0/30.d0
+      table_hqh(8,4,7)= 3.d0/10.d0
+      table_hqh(8,4,8)= 0.d0
+
+      table_hqh(8,5,1)= -4.d0/21.d0
+      table_hqh(8,5,2)= -1.d0/35.d0
+      table_hqh(8,5,3)= -10.d0/21.d0
+      table_hqh(8,5,4)= 4.d0/105.d0
+      table_hqh(8,5,5)= 2.d0/5.d0
+      table_hqh(8,5,6)= 0.d0
+      table_hqh(8,5,7)= -2.d0/5.d0
+      table_hqh(8,5,8)= -4.d0/15.d0
+
+      table_hqh(8,6,1)= -1.d0/210.d0
+      table_hqh(8,6,2)= -1.d0/420.d0
+      table_hqh(8,6,3)= 71.d0/210.d0
+      table_hqh(8,6,4)= -2.d0/105.d0
+      table_hqh(8,6,5)= -1.d0/10.d0
+      table_hqh(8,6,6)= -1.d0/30.d0
+      table_hqh(8,6,7)= 1.d0/10.d0
+      table_hqh(8,6,8)= 4.d0/15.d0
+
+!------
+      do k=1,6
+         do j=1,6
+            do i=1,8
+               table_hhq(i,k,j)=table_hqh(i,j,k)
+            enddo
+         enddo
+      enddo
+
+!------
+      table_hqq(1,1,1)= 13.d0/105.d0
+      table_hqq(1,1,2)= 8.d0/105.d0
+      table_hqq(1,1,3)= -1.d0/60.d0
+      table_hqq(1,1,4)= -13.d0/28.d0
+      table_hqq(1,1,5)= 59.d0/105.d0
+      table_hqq(1,1,6)= -41.d0/420.d0
+
+      table_hqq(1,2,1)= 8.d0/105.d0
+      table_hqq(1,2,2)= 4.d0/15.d0
+      table_hqq(1,2,3)= -1.d0/105.d0
+      table_hqq(1,2,4)= -53.d0/105.d0
+      table_hqq(1,2,5)= 12.d0/35.d0
+      table_hqq(1,2,6)= 17.d0/105.d0
+
+      table_hqq(1,3,1)= -1.d0/60.d0
+      table_hqq(1,3,2)= -1.d0/105.d0
+      table_hqq(1,3,3)= 1.d0/105.d0
+      table_hqq(1,3,4)= 29.d0/420.d0
+      table_hqq(1,3,5)= -11.d0/105.d0
+      table_hqq(1,3,6)= 1.d0/28.d0
+
+      table_hqq(1,4,1)= -13.d0/28.d0
+      table_hqq(1,4,2)= -53.d0/105.d0
+      table_hqq(1,4,3)= 29.d0/420.d0
+      table_hqq(1,4,4)= 59.d0/30.d0
+      table_hqq(1,4,5)= -32.d0/15.d0
+      table_hqq(1,4,6)= 1.d0/6.d0
+
+      table_hqq(1,5,1)= 59.d0/105.d0
+      table_hqq(1,5,2)= 12.d0/35.d0
+      table_hqq(1,5,3)= -11.d0/105.d0
+      table_hqq(1,5,4)= -32.d0/15.d0
+      table_hqq(1,5,5)= 8.d0/3.d0
+      table_hqq(1,5,6)= -8.d0/15.d0
+
+      table_hqq(1,6,1)= -41.d0/420.d0
+      table_hqq(1,6,2)= 17.d0/105.d0
+      table_hqq(1,6,3)= 1.d0/28.d0
+      table_hqq(1,6,4)= 1.d0/6.d0
+      table_hqq(1,6,5)= -8.d0/15.d0
+      table_hqq(1,6,6)= 11.d0/30.d0
+
+
+      table_hqq(2,1,1)= 1.d0/105.d0
+      table_hqq(2,1,2)= 1.d0/105.d0
+      table_hqq(2,1,3)= -1.d0/420.d0
+      table_hqq(2,1,4)= -17.d0/420.d0
+      table_hqq(2,1,5)= 1.d0/21.d0
+      table_hqq(2,1,6)= -1.d0/140.d0
+
+      table_hqq(2,2,1)= 1.d0/105.d0
+      table_hqq(2,2,2)= 2.d0/35.d0
+      table_hqq(2,2,3)= 0.d0
+      table_hqq(2,2,4)= -3.d0/35.d0
+      table_hqq(2,2,5)= 4.d0/105.d0
+      table_hqq(2,2,6)= 1.d0/21.d0
+
+      table_hqq(2,3,1)= -1.d0/420.d0
+      table_hqq(2,3,2)= 0.d0
+      table_hqq(2,3,3)= 1.d0/420.d0
+      table_hqq(2,3,4)= 1.d0/105.d0
+      table_hqq(2,3,5)= -2.d0/105.d0
+      table_hqq(2,3,6)= 1.d0/105.d0
+
+      table_hqq(2,4,1)= -17.d0/420.d0
+      table_hqq(2,4,2)= -3.d0/35.d0
+      table_hqq(2,4,3)= 1.d0/105.d0
+      table_hqq(2,4,4)= 13.d0/60.d0
+      table_hqq(2,4,5)= -1.d0/5.d0
+      table_hqq(2,4,6)= -1.d0/60.d0
+
+      table_hqq(2,5,1)= 1.d0/21.d0
+      table_hqq(2,5,2)= 4.d0/105.d0
+      table_hqq(2,5,3)= -2.d0/105.d0
+      table_hqq(2,5,4)= -1.d0/5.d0
+      table_hqq(2,5,5)= 4.d0/15.d0
+      table_hqq(2,5,6)= -1.d0/15.d0
+
+      table_hqq(2,6,1)= -1.d0/140.d0
+      table_hqq(2,6,2)= 1.d0/21.d0
+      table_hqq(2,6,3)= 1.d0/105.d0
+      table_hqq(2,6,4)= -1.d0/60.d0
+      table_hqq(2,6,5)= -1.d0/15.d0
+      table_hqq(2,6,6)= 1.d0/12.d0
+
+
+      table_hqq(3,1,1)= 1.d0/105.d0
+      table_hqq(3,1,2)= -1.d0/105.d0
+      table_hqq(3,1,3)= -1.d0/60.d0
+      table_hqq(3,1,4)= -1.d0/28.d0
+      table_hqq(3,1,5)= 11.d0/105.d0
+      table_hqq(3,1,6)= -29.d0/420.d0
+
+      table_hqq(3,2,1)= -1.d0/105.d0
+      table_hqq(3,2,2)= 4.d0/15.d0
+      table_hqq(3,2,3)= 8.d0/105.d0
+      table_hqq(3,2,4)= -17.d0/105.d0
+      table_hqq(3,2,5)= -12.d0/35.d0
+      table_hqq(3,2,6)= 53.d0/105.d0
+
+      table_hqq(3,3,1)= -1.d0/60.d0
+      table_hqq(3,3,2)= 8.d0/105.d0
+      table_hqq(3,3,3)= 13.d0/105.d0
+      table_hqq(3,3,4)= 41.d0/420.d0
+      table_hqq(3,3,5)= -59.d0/105.d0
+      table_hqq(3,3,6)= 13.d0/28.d0
+
+      table_hqq(3,4,1)= -1.d0/28.d0
+      table_hqq(3,4,2)= -17.d0/105.d0
+      table_hqq(3,4,3)= 41.d0/420.d0
+      table_hqq(3,4,4)= 11.d0/30.d0
+      table_hqq(3,4,5)= -8.d0/15.d0
+      table_hqq(3,4,6)= 1.d0/6.d0
+
+      table_hqq(3,5,1)= 11.d0/105.d0
+      table_hqq(3,5,2)= -12.d0/35.d0
+      table_hqq(3,5,3)= -59.d0/105.d0
+      table_hqq(3,5,4)= -8.d0/15.d0
+      table_hqq(3,5,5)= 8.d0/3.d0
+      table_hqq(3,5,6)= -32.d0/15.d0
+
+      table_hqq(3,6,1)= -29.d0/420.d0
+      table_hqq(3,6,2)= 53.d0/105.d0
+      table_hqq(3,6,3)= 13.d0/28.d0
+      table_hqq(3,6,4)= 1.d0/6.d0
+      table_hqq(3,6,5)= -32.d0/15.d0
+      table_hqq(3,6,6)= 59.d0/30.d0
+
+
+      table_hqq(4,1,1)= -1.d0/420.d0
+      table_hqq(4,1,2)= 0.d0
+      table_hqq(4,1,3)= 1.d0/420.d0
+      table_hqq(4,1,4)= 1.d0/105.d0
+      table_hqq(4,1,5)= -2.d0/105.d0
+      table_hqq(4,1,6)= 1.d0/105.d0
+
+      table_hqq(4,2,1)= 0.d0
+      table_hqq(4,2,2)= -2.d0/35.d0
+      table_hqq(4,2,3)= -1.d0/105.d0
+      table_hqq(4,2,4)= 1.d0/21.d0
+      table_hqq(4,2,5)= 4.d0/105.d0
+      table_hqq(4,2,6)= -3.d0/35.d0
+
+      table_hqq(4,3,1)= 1.d0/420.d0
+      table_hqq(4,3,2)= -1.d0/105.d0
+      table_hqq(4,3,3)= -1.d0/105.d0
+      table_hqq(4,3,4)= -1.d0/140.d0
+      table_hqq(4,3,5)= 1.d0/21.d0
+      table_hqq(4,3,6)= -17.d0/420.d0
+
+      table_hqq(4,4,1)= 1.d0/105.d0
+      table_hqq(4,4,2)= 1.d0/21.d0
+      table_hqq(4,4,3)= -1.d0/140.d0
+      table_hqq(4,4,4)= -1.d0/12.d0
+      table_hqq(4,4,5)= 1.d0/15.d0
+      table_hqq(4,4,6)= 1.d0/60.d0
+
+      table_hqq(4,5,1)= -2.d0/105.d0
+      table_hqq(4,5,2)= 4.d0/105.d0
+      table_hqq(4,5,3)= 1.d0/21.d0
+      table_hqq(4,5,4)= 1.d0/15.d0
+      table_hqq(4,5,5)= -4.d0/15.d0
+      table_hqq(4,5,6)= 1.d0/5.d0
+
+      table_hqq(4,6,1)= 1.d0/105.d0
+      table_hqq(4,6,2)= -3.d0/35.d0
+      table_hqq(4,6,3)= -17.d0/420.d0
+      table_hqq(4,6,4)= 1.d0/60.d0
+      table_hqq(4,6,5)= 1.d0/5.d0
+      table_hqq(4,6,6)= -13.d0/60.d0
+
+
+      table_hqq(5,1,1)= -1.d0/14.d0
+      table_hqq(5,1,2)= -2.d0/35.d0
+      table_hqq(5,1,3)= 1.d0/35.d0
+      table_hqq(5,1,4)= 3.d0/10.d0
+      table_hqq(5,1,5)= -2.d0/5.d0
+      table_hqq(5,1,6)= 1.d0/10.d0
+
+      table_hqq(5,2,1)= -2.d0/35.d0
+      table_hqq(5,2,2)= -24.d0/35.d0
+      table_hqq(5,2,3)= -2.d0/35.d0
+      table_hqq(5,2,4)= 4.d0/5.d0
+      table_hqq(5,2,5)= 0.d0
+      table_hqq(5,2,6)= -4.d0/5.d0
+
+      table_hqq(5,3,1)= 1.d0/35.d0
+      table_hqq(5,3,2)= -2.d0/35.d0
+      table_hqq(5,3,3)= -1.d0/14.d0
+      table_hqq(5,3,4)= -1.d0/10.d0
+      table_hqq(5,3,5)= 2.d0/5.d0
+      table_hqq(5,3,6)= -3.d0/10.d0
+
+      table_hqq(5,4,1)= 3.d0/10.d0
+      table_hqq(5,4,2)= 4.d0/5.d0
+      table_hqq(5,4,3)= -1.d0/10.d0
+      table_hqq(5,4,4)= -9.d0/5.d0
+      table_hqq(5,4,5)= 8.d0/5.d0
+      table_hqq(5,4,6)= 1.d0/5.d0
+
+      table_hqq(5,5,1)= -2.d0/5.d0
+      table_hqq(5,5,2)= 0.d0
+      table_hqq(5,5,3)= 2.d0/5.d0
+      table_hqq(5,5,4)= 8.d0/5.d0
+      table_hqq(5,5,5)= -16.d0/5.d0
+      table_hqq(5,5,6)= 8.d0/5.d0
+
+      table_hqq(5,6,1)= 1.d0/10.d0
+      table_hqq(5,6,2)= -4.d0/5.d0
+      table_hqq(5,6,3)= -3.d0/10.d0
+      table_hqq(5,6,4)= 1.d0/5.d0
+      table_hqq(5,6,5)= 8.d0/5.d0
+      table_hqq(5,6,6)= -9.d0/5.d0
+
+
+      table_hqq(6,1,1)= 17.d0/210.d0
+      table_hqq(6,1,2)= 4.d0/105.d0
+      table_hqq(6,1,3)= -1.d0/420.d0
+      table_hqq(6,1,4)= -17.d0/60.d0
+      table_hqq(6,1,5)= 1.d0/3.d0
+      table_hqq(6,1,6)= -1.d0/20.d0
+
+      table_hqq(6,2,1)= 4.d0/105.d0
+      table_hqq(6,2,2)= -8.d0/105.d0
+      table_hqq(6,2,3)= -1.d0/35.d0
+      table_hqq(6,2,4)= -1.d0/15.d0
+      table_hqq(6,2,5)= 4.d0/15.d0
+      table_hqq(6,2,6)= -1.d0/5.d0
+
+      table_hqq(6,3,1)= -1.d0/420.d0
+      table_hqq(6,3,2)= -1.d0/35.d0
+      table_hqq(6,3,3)= -2.d0/105.d0
+      table_hqq(6,3,4)= 1.d0/60.d0
+      table_hqq(6,3,5)= 1.d0/15.d0
+      table_hqq(6,3,6)= -1.d0/12.d0
+
+      table_hqq(6,4,1)= -17.d0/60.d0
+      table_hqq(6,4,2)= -1.d0/15.d0
+      table_hqq(6,4,3)= 1.d0/60.d0
+      table_hqq(6,4,4)= 14.d0/15.d0
+      table_hqq(6,4,5)= -6.d0/5.d0
+      table_hqq(6,4,6)= 4.d0/15.d0
+
+      table_hqq(6,5,1)= 1.d0/3.d0
+      table_hqq(6,5,2)= 4.d0/15.d0
+      table_hqq(6,5,3)= 1.d0/15.d0
+      table_hqq(6,5,4)= -6.d0/5.d0
+      table_hqq(6,5,5)= 16.d0/15.d0
+      table_hqq(6,5,6)= 2.d0/15.d0
+
+      table_hqq(6,6,1)= -1.d0/20.d0
+      table_hqq(6,6,2)= -1.d0/5.d0
+      table_hqq(6,6,3)= -1.d0/12.d0
+      table_hqq(6,6,4)= 4.d0/15.d0
+      table_hqq(6,6,5)= 2.d0/15.d0
+      table_hqq(6,6,6)= -2.d0/5.d0
+
+
+      table_hqq(7,1,1)= 1.d0/14.d0
+      table_hqq(7,1,2)= 2.d0/35.d0
+      table_hqq(7,1,3)= -1.d0/35.d0
+      table_hqq(7,1,4)= -3.d0/10.d0
+      table_hqq(7,1,5)= 2.d0/5.d0
+      table_hqq(7,1,6)= -1.d0/10.d0
+
+      table_hqq(7,2,1)= 2.d0/35.d0
+      table_hqq(7,2,2)= 24.d0/35.d0
+      table_hqq(7,2,3)= 2.d0/35.d0
+      table_hqq(7,2,4)= -4.d0/5.d0
+      table_hqq(7,2,5)= 0.d0
+      table_hqq(7,2,6)= 4.d0/5.d0
+
+      table_hqq(7,3,1)= -1.d0/35.d0
+      table_hqq(7,3,2)= 2.d0/35.d0
+      table_hqq(7,3,3)= 1.d0/14.d0
+      table_hqq(7,3,4)= 1.d0/10.d0
+      table_hqq(7,3,5)= -2.d0/5.d0
+      table_hqq(7,3,6)= 3.d0/10.d0
+
+      table_hqq(7,4,1)= -3.d0/10.d0
+      table_hqq(7,4,2)= -4.d0/5.d0
+      table_hqq(7,4,3)= 1.d0/10.d0
+      table_hqq(7,4,4)= 9.d0/5.d0
+      table_hqq(7,4,5)= -8.d0/5.d0
+      table_hqq(7,4,6)= -1.d0/5.d0
+
+      table_hqq(7,5,1)= 2.d0/5.d0
+      table_hqq(7,5,2)= 0.d0
+      table_hqq(7,5,3)= -2.d0/5.d0
+      table_hqq(7,5,4)= -8.d0/5.d0
+      table_hqq(7,5,5)= 16.d0/5.d0
+      table_hqq(7,5,6)= -8.d0/5.d0
+
+      table_hqq(7,6,1)= -1.d0/10.d0
+      table_hqq(7,6,2)= 4.d0/5.d0
+      table_hqq(7,6,3)= 3.d0/10.d0
+      table_hqq(7,6,4)= -1.d0/5.d0
+      table_hqq(7,6,5)= -8.d0/5.d0
+      table_hqq(7,6,6)= 9.d0/5.d0
+
+
+      table_hqq(8,1,1)= -2.d0/105.d0
+      table_hqq(8,1,2)= -1.d0/35.d0
+      table_hqq(8,1,3)= -1.d0/420.d0
+      table_hqq(8,1,4)= 1.d0/12.d0
+      table_hqq(8,1,5)= -1.d0/15.d0
+      table_hqq(8,1,6)= -1.d0/60.d0
+
+      table_hqq(8,2,1)= -1.d0/35.d0
+      table_hqq(8,2,2)= -8.d0/105.d0
+      table_hqq(8,2,3)= 4.d0/105.d0
+      table_hqq(8,2,4)= 1.d0/5.d0
+      table_hqq(8,2,5)= -4.d0/15.d0
+      table_hqq(8,2,6)= 1.d0/15.d0
+
+      table_hqq(8,3,1)= -1.d0/420.d0
+      table_hqq(8,3,2)= 4.d0/105.d0
+      table_hqq(8,3,3)= 17.d0/210.d0
+      table_hqq(8,3,4)= 1.d0/20.d0
+      table_hqq(8,3,5)= -1.d0/3.d0
+      table_hqq(8,3,6)= 17.d0/60.d0
+
+      table_hqq(8,4,1)= 1.d0/12.d0
+      table_hqq(8,4,2)= 1.d0/5.d0
+      table_hqq(8,4,3)= 1.d0/20.d0
+      table_hqq(8,4,4)= -2.d0/5.d0
+      table_hqq(8,4,5)= 2.d0/15.d0
+      table_hqq(8,4,6)= 4.d0/15.d0
+
+      table_hqq(8,5,1)= -1.d0/15.d0
+      table_hqq(8,5,2)= -4.d0/15.d0
+      table_hqq(8,5,3)= -1.d0/3.d0
+      table_hqq(8,5,4)= 2.d0/15.d0
+      table_hqq(8,5,5)= 16.d0/15.d0
+      table_hqq(8,5,6)= -6.d0/5.d0
+
+      table_hqq(8,6,1)= -1.d0/60.d0
+      table_hqq(8,6,2)= 1.d0/15.d0
+      table_hqq(8,6,3)= 17.d0/60.d0
+      table_hqq(8,6,4)= 4.d0/15.d0
+      table_hqq(8,6,5)= -6.d0/5.d0
+      table_hqq(8,6,6)= 14.d0/15.d0
+
 
  end subroutine table_initialize
 
