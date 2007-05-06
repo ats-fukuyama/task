@@ -2,14 +2,12 @@ C     $Id$
 C
 C     ****** CALCULATE ELECTRIC FIELD ******
 C
-      SUBROUTINE WMEFLD(cef)
+      SUBROUTINE WMEFLD
 C
       INCLUDE 'wmcomm.inc'
-      dimension cef(3,nthmax,nphmax,nrmax)
 C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
-      if(mdlwmf.eq.0) then
       DRHO1=(XRHO(2)-XRHO(1))**2
       DRHO2=(XRHO(3)-XRHO(1))**2
       A1= DRHO2/(DRHO2-DRHO1)
@@ -50,19 +48,6 @@ C
          ENDIF
       ENDDO
       ENDDO
-      else
-      do nr=1,nrmax+1
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            CEFLDK(1,MDX,NDX,NR )=cef(1,mdx,ndx,nr)
-            CEFLDK(2,MDX,NDX,NR )=cef(2,mdx,ndx,nr)
-            CEFLDK(3,MDX,NDX,NR )=cef(3,mdx,ndx,nr)
-         enddo
-         enddo
-      enddo
-      endif
 
       DO NR=2,NRMAX+1
          NRP=MIN(NR+1,NRMAX+1)

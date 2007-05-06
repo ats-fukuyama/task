@@ -1,19 +1,6 @@
 !     $Id$
 
-!---- interface for wm parameter
-
-      subroutine get_wmparm(rr_out,ra_out,rf_out,nth0_out,nph0_out)
-      
-      include '../wm/wmcomm.inc'
-      real(8),intent(out):: rr_out,ra_out,rf_out
-      integer,intent(out):: nth0_out,nph0_out
-      rr_out=rr
-      ra_out=ra
-      rf_out=real(crf)
-      nth0_out=nth0
-      nph0_out=nph0
-      return
-      end subroutine get_wmparm
+!     ***** wmfem main routine *****
 
       subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rho,cef,cpp,cpa)
 
@@ -21,17 +8,20 @@
       integer,intent(in):: nrmax,nthmax,nphmax,nsmax
       real(8),dimension(nrmax),intent(in):: rho
       complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef
-      complex(8),dimension(nthmax,nphmax,nrmax,nsmax),intent(out):: cpp
+      complex(8),dimension(nthmax,nphmax,nthmax,nphmax,nrmax,0:nsmax),
+     &     intent(out):: cpp
       complex(8),dimension(nthmax,nphmax),intent(out):: cpa
 
       integer:: nfcmax,mlmax,mwmax
       complex(8),dimension(:,:),allocatable,save:: fma
-      complex(8),dimension(:,:,:),allocatable,save:: fmpsa
+      complex(8),dimension(:,:,:),allocatable,save:: fms
       complex(8),dimension(:),allocatable,save:: fvb,fvx
 
       nfcmax=nthmax*nphmax  ! size of block matrix
       mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
       mwmax=4*6*nfcmax-1        ! width of coefficient matrix
+
+      write(6,*) 'nrmax=',nrmax
 
       call wmfem_exec
 
@@ -43,8 +33,8 @@
 
       subroutine wmfem_exec
 
-      integer:: mc,ml,mw,ierr,nr,nth,nph,ns,idx,ivec,idv
-      complex(8):: csum
+      integer:: mc,ml,mw,ierr,nr,nth,nph,ns,nr1,nth1,nph1,i,j
+      complex(8):: csum,csums
 
       mc=(mwmax+1)/2    ! diagonal position in mw
 
@@ -76,32 +66,46 @@
       do nr=1,nrmax
       do nph=1,nphmax
       do nth=1,nthmax
-         idx=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-         cef(1,nth,nph,nr)=fvx(idx+1)
-         cef(2,nth,nph,nr)=fvx(idx+3)
-         cef(3,nth,nph,nr)=fvx(idx+5)
+         ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+         cef(1,nth,nph,nr)=fvx(ml+1)
+         cef(2,nth,nph,nr)=fvx(ml+3)
+         cef(3,nth,nph,nr)=fvx(ml+5)
       enddo
       enddo
       enddo
 
 !     calculate power
 
-      do ns=1,nsmax
-      do nr=1,nrmax
+      mc=(mwmax+1)/2
+      do ns=0,nsmax
+         csums=0.d0
+      do nr=1,nrmax-1
       do nph=1,nphmax
       do nth=1,nthmax
-         idx=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-         csum=0.d0
-         do ivec=1,6
-         do mw=1,mwmax
-            idv=min(max(1,idx+ivec+mw-mc),mlmax)
-            csum=csum+fmpsa(mw,idx+ivec,ns)*fvx(idv)
+         ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+         do nph1=1,nphmax
+         do nth1=1,nthmax
+            csum=0.d0
+            do nr1=nr-1,nr+1
+               mw=mc+6*nthmax*nphmax*(nr1-nr)+6*nthmax*(nph1-nph)
+     &              +6*(nth1-nth)
+               do i=1,6
+               do j=1,6
+                  csum=csum
+     &              +conjg(fvx(ml+i))*fms(mw+j-i,ml+i,ns)*fvx(ml+j)
+               enddo
+               enddo
+            enddo
+            csums=csums+csum
+            cpp(nth,nph,nth1,nph1,nr,ns)=csum
+            write(6,'(6I5,1P2E12.4)') nth,nph,nth1,nph1,nr,ns,
+     &           cpp(nth,nph,nth1,nph1,nr,ns)
          enddo
          enddo
-         cpp(nth,nph,nr,ns)=conjg(fvx(idx+1))*csum
       enddo
       enddo
       enddo
+         write(6,'(A,I5,1P2E12.4)') 'ns,csums=',ns,csums
       enddo
 
 !     calculate antenna impedance
@@ -109,13 +113,13 @@
       do nph=1,nphmax
       do nth=1,nthmax
          cpa(nth,nph)=0.d0
-         do nr=1,nrmax
-            idx=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-            do ivec=1,6
-               cpa(nth,nph)=cpa(nth,nph)
-     &              +conjg(fvx(idx+ivec))*fvb(idx+ivec)
+         do nr=1,nrmax-1
+            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+            do i=1,6
+               cpa(nth,nph)=cpa(nth,nph)+conjg(fvx(ml+i))*fvb(ml+i)
             enddo
          enddo
+         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
       enddo
       enddo
 
@@ -135,8 +139,8 @@
       endif
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
      &   (nsmax.ne.nsmax_save)) then
-         if(allocated(fmpsa)) deallocate(fmpsa)
-         if(mlmax.ne.0) allocate(fmpsa(mwmax,mlmax,nsmax))
+         if(allocated(fms)) deallocate(fms)
+         if(mlmax.ne.0) allocate(fms(mwmax,mlmax,0:nsmax))
       endif
       if(mlmax.ne.mlmax_save) then
          if(allocated(fvb)) deallocate(fvb)
@@ -155,13 +159,24 @@
       subroutine wmfem_calculate
 
       implicit none
-      complex(8),dimension(:,:,:,:,:,:),allocatable:: fmc,fmd
+      complex(8),dimension(3,3,4,4*nfcmax,nfcmax,4):: fmc
+      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
+      complex(8),dimension(3,3,4*nfcmax,nfcmax):: fms1,fms2
+      complex(8),dimension(nphmax,nthmax,3):: fvb_nr
+      complex(8),dimension(2*nthmax,2*nphmax):: fv1,fv1f
+      real(8),dimension(4):: rhol
       complex(8):: cfactor
       real(8):: drho,rkth,rkph,rkth0,rho0
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
+      integer:: ns,nfc1,nfc2
       real(8):: rr,ra
-      complex(8):: crf
-      integer:: nth0,nph0
+      complex(8):: crf,csum,fmd1,fmd2,fmd3,fmd4
+      integer:: nth0,nph0,nthmax2,nphmax2,nfcmax4
+      integer:: nph1,nph2,nph1x,nph2x
+      integer:: nphdiff,nphave1,nphave2,nphxdiff,nphxave1,nphxave2
+      integer:: nth1,nth2,nth1x,nth2x
+      integer:: nthdiff,nthave1,nthave2,nthxdiff,nthxave1,nthxave2
+      integer:: nfcdiff,nfcave1,nfcave2,nfcave3,nfcave4
       complex(8),parameter:: ci=(0.d0,1.d0)
       integer:: id_base=1
       real(8):: angl=0.d0
@@ -170,22 +185,33 @@
 
       call get_wmparm(rr,ra,crf,nth0,nph0)
       cfactor=(2*pi*crf*1.d6)**2/vc**2
-      allocate(fmc(3,3,4,nfcmax,nfcmax,4))
-      allocate(fmd(3,3,4,nfcmax,nfcmax,4))
 
-      do ml=1,mlmax
-         fvb(ml)=0.d0
+      if(nphmax.eq.1) then   
+         nphmax2=1
+      else
+         nphmax2=2*nphmax
+      endif
+      if(nthmax.eq.1) then
+         nthmax2=1
+      else
+         nthmax2=2*nthmax
+      endif
+      nfcmax4=nphmax2*nthmax2
+
+      do ns=0,nsmax             ! loop for vacuum and plasma species
+
+         do ml=1,mlmax          ! clear fma
          do mw=1,mwmax
             fma(mw,ml)=0.d0
          enddo
-      enddo
+         enddo
 
-      do nr=1,nrmax-1
+      do nr=1,nrmax-1           ! loop for elements
          drho=rho(nr+1)-rho(nr)
 
-         do inod=1,4
-            do nf1=1,nfcmax
-               do nf2=1,nfcmax
+         do inod=1,4            ! clear fmc
+            do nf2=1,nfcmax
+               do nf1=1,4*nfcmax
                   do k=1,4
                      do j=1,3
                         do i=1,3
@@ -197,58 +223,187 @@
             enddo
          enddo
 
-         do inod=1,4
+         do inod=1,4            ! define local radius for different inod
             if(inod.eq.1) then
                if(nr.eq.1) then
-                  rho0=(8.d0*rho(nr)+rho(nr+1))/9.d0
+                  rhol(inod)=(8.d0*rho(nr)+rho(nr+1))/9.d0
                else
-                  rho0=rho(nr)
+                  rhol(inod)=rho(nr)
                endif
             elseif(inod.eq.2) then
-               rho0=(2.d0*rho(nr)+rho(nr+1))/3.d0
+               rhol(inod)=(2.d0*rho(nr)+rho(nr+1))/3.d0
             elseif(inod.eq.3) then
-               rho0=(rho(nr)+2.d0*rho(nr+1))/3.d0
+               rhol(inod)=(rho(nr)+2.d0*rho(nr+1))/3.d0
             else
-               rho0=rho(nr+1)
+               rhol(inod)=rho(nr+1)
             endif
+         enddo
             
-            do nph=1,nphmax
-            do nth=1,nthmax
-               nfc=nthmax*(nph-1)+nth
+         if(ns.eq.0) then  ! vacuum case
+            do inod=1,4
+               rho0=rhol(inod)
+               do nph=1,nphmax
+               do nth=1,nthmax
+                  nfc2=nthmax*(nph-1)+nth
+                  
+                  if(nthmax.eq.1) then
+                     rkth=nth0/(ra*rho0)
+                  else
+                     rkth=(nth-nthmax/2+nth0)/(ra*rho0)
+                  endif
+                  rkth0=1.d0/rho0
+                  if(nphmax.eq.1) then
+                     rkph=nph0/rr
+                  else
+                     rkph=(nph-nphmax/2+nph0)/rr
+                  endif
+               do nfc1=1,nfcmax4
+            fmc(1,1,1,nfc1,nfc2,inod)= rho0*(cfactor-rkph**2-rkth**2)
+            fmc(1,2,1,nfc1,nfc2,inod)= rho0*(-ci*rkth*rkth0)
+            fmc(2,1,1,nfc1,nfc2,inod)= rho0*(+ci*rkth*rkth0)
+            fmc(2,2,1,nfc1,nfc2,inod)= rho0*(cfactor-rkph**2-rkth0**2)
+            fmc(2,3,1,nfc1,nfc2,inod)= rho0*(rkth*rkph)
+            fmc(3,2,1,nfc1,nfc2,inod)= rho0*(rkth*rkph)
+            fmc(3,3,1,nfc1,nfc2,inod)= rho0*(cfactor-rkth**2)
+                  
+            fmc(2,1,2,nfc1,nfc2,inod)= rho0*( ci*rkth)/ra
+            fmc(2,2,2,nfc1,nfc2,inod)= rho0*(  -rkth0)/ra
+            fmc(3,1,2,nfc1,nfc2,inod)= rho0*( ci*rkph)/ra
+                  
+            fmc(1,2,3,nfc1,nfc2,inod)= rho0*(-ci*rkth)/ra
+            fmc(1,3,3,nfc1,nfc2,inod)= rho0*(-ci*rkph)/ra
+            fmc(2,2,3,nfc1,nfc2,inod)= rho0*(  -rkth0)/ra
+                  
+            fmc(1,1,4,nfc1,nfc2,inod)= 0.d0
+            fmc(2,2,4,nfc1,nfc2,inod)= rho0*(-1.d0)/ra**2
+            fmc(3,3,4,nfc1,nfc2,inod)= rho0*(-1.d0)/ra**2
+               enddo
+               enddo
+               enddo
+            enddo
+         else
+            call wmfem_disp(nr  ,ns,fms1)
+            call wmfem_disp(nr+1,ns,fms2)
 
-               if(nthmax.eq.1) then
-                  rkth=nth0/(ra*rho0)
-               else
-                  rkth=(nth-nthmax/2+nth0)/(ra*rho0)
-               endif
-               rkth0=1.d0/rho0
+            do nfc2=1,nfcmax
+            do nfc1=1,nfcmax4
+               do j=1,3
+               do i=1,3
+                  fmc(i,j,1,nfc1,nfc2,1)=   fms1(i,j,nfc1,nfc2)
+                  fmc(i,j,1,nfc1,nfc2,2)=(2*fms1(i,j,nfc1,nfc2)
+     &                                   +  fms2(i,j,nfc1,nfc2))/3.d0
+                  fmc(i,j,1,nfc1,nfc2,3)=(  fms1(i,j,nfc1,nfc2)
+     &                                   +2*fms2(i,j,nfc1,nfc2))/3.d0
+                  fmc(i,j,1,nfc1,nfc2,4)=   fms1(i,j,nfc1,nfc2)
+                  do inod=1,4
+                     fmc(i,j,1,nfc1,nfc2,inod)
+     &                    =cfactor*rhol(inod)
+     &                    *fmc(i,j,1,nfc1,nfc2,inod)
+                     do k=2,4
+                        fmc(i,j,k,nfc1,nfc2,inod)=0.d0
+                     enddo
+                  enddo
+               enddo
+               enddo
+            enddo
+            enddo
+         endif
+
+         do inod=1,4            ! Fourier transform
+         do k=1,4
+         do j=1,3
+         do i=1,3
+            do nfc2=1,nfcmax
+               do nph=1,nphmax2
+               do nth=1,nthmax2
+                  nfc1=nthmax2*(nph-1)+nth
+                  fv1(nth,nph)=fmc(i,j,k,nfc1,nfc2,inod)
+               enddo
+               enddo
+               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               do nph=1,nphmax2
+               do nth=1,nthmax2
+                  nfc1=nthmax2*(nph-1)+nth
+                  fmc(i,j,k,nfc1,nfc2,inod)=fv1f(nth,nph)
+               enddo
+               enddo
+            enddo
+         enddo    
+         enddo
+         enddo    
+         enddo
+
+         do nph1=1,nphmax       ! Fit to fmd and adjust m and n
+         do nth1=1,nthmax
+            nfc1=nthmax*(nph1-1)+nth1
+         do nph2=1,nphmax
+         do nth2=1,nthmax
+            nfc2=nthmax*(nph2-1)+nth2
                if(nphmax.eq.1) then
-                  rkph=nph0/rr
+                  nph1x=nph0
+                  nph2x=nph0
+                  nphdiff=0
+                  nphave1=1
+                  nphave2=1
                else
-                  rkph=(nph-nphmax/2+nph0)/rr
+                  nph1x=nph1-nphmax/2+nph0
+                  nph2x=nph2-nphmax/2+nph0
+                  nphdiff=nph1x-nph2x
+                  if(mod(nph1x+nph2x,2).eq.0) then
+                     nphxave1=(nph1x+nph2x)/2
+                     nphxave2=(nph1x+nph2x)/2
+                  else
+                     nphxave1=(nph1x+nph2x-1)/2
+                     nphxave2=(nph1x+nph2x+1)/2
+                  endif
+                  nphave1=nphxave1-nph0+nphmax/2
+                  nphave2=nphxave2-nph0+nphmax/2
                endif
-
-               fmc(1,1,1,nfc,nfc,inod)= rho0*(cfactor-rkph**2-rkth**2)
-               fmc(1,2,1,nfc,nfc,inod)= rho0*(-ci*rkth*rkth0)
-               fmc(2,1,1,nfc,nfc,inod)= rho0*(+ci*rkth*rkth0)
-               fmc(2,2,1,nfc,nfc,inod)= rho0*(cfactor-rkph**2-rkth0**2)
-               fmc(2,3,1,nfc,nfc,inod)= rho0*(rkth*rkph)
-               fmc(3,2,1,nfc,nfc,inod)= rho0*(rkth*rkph)
-               fmc(3,3,1,nfc,nfc,inod)= rho0*(cfactor-rkth**2)
-                  
-               fmc(2,1,2,nfc,nfc,inod)= rho0*( ci*rkth)/ra
-               fmc(2,2,2,nfc,nfc,inod)= rho0*(  -rkth0)/ra
-               fmc(3,1,2,nfc,nfc,inod)= rho0*( ci*rkph)/ra
-                  
-               fmc(1,2,3,nfc,nfc,inod)= rho0*(-ci*rkth)/ra
-               fmc(1,3,3,nfc,nfc,inod)= rho0*(-ci*rkph)/ra
-               fmc(2,2,3,nfc,nfc,inod)= rho0*(  -rkth0)/ra
-                  
-               fmc(1,1,4,nfc,nfc,inod)= 0.d0
-               fmc(2,2,4,nfc,nfc,inod)= rho0*(-1.d0)/ra**2
-               fmc(3,3,4,nfc,nfc,inod)= rho0*(-1.d0)/ra**2
+               if(nthmax.eq.1) then
+                  nth1x=nth0
+                  nth2x=nth0
+                  nthdiff=0
+                  nthave1=1
+                  nthave2=1
+               else
+                  nth1x=nth1-nthmax/2+nth0
+                  nth2x=nth2-nthmax/2+nth0
+                  nthdiff=nth1x-nth2x
+                  if(mod(nth1x+nth2x,2).eq.0) then
+                     nthxave1=(nth1x+nth2x)/2
+                     nthxave2=(nth1x+nth2x)/2
+                  else
+                     nthxave1=(nth1x+nth2x-1)/2
+                     nthxave2=(nth1x+nth2x+1)/2
+                  endif
+                  nthave1=nthxave1-nth0+nthmax/2
+                  nthave2=nthxave2-nth0+nthmax/2
+               endif
+               if(nfcmax4.eq.1) then
+                  nfcdiff=1
+               else
+                  nfcdiff=nthmax2*nphdiff+nthdiff+nfcmax4/2
+               endif
+               nfcave1=nthmax2*(nphave1 -1)+nthave1
+               nfcave2=nthmax2*(nphave1 -1)+nthave2
+               nfcave3=nthmax2*(nphave2 -1)+nthave1
+               nfcave4=nthmax2*(nphave2 -1)+nthave2
+               do inod=1,4
+               do k=1,4
+               do j=1,3
+               do i=1,3
+                  fmd(i,j,k,nfc1,nfc2,inod)=0.25d0*(
+     &                               fmc(i,j,k,nfcdiff,nfcave1,inod)
+     &                              +fmc(i,j,k,nfcdiff,nfcave2,inod)
+     &                              +fmc(i,j,k,nfcdiff,nfcave3,inod)
+     &                              +fmc(i,j,k,nfcdiff,nfcave4,inod))
+               enddo
+               enddo
+               enddo
+               enddo
             enddo
             enddo
+         enddo
          enddo
 
 ! ------ calculate coefficients of basis for profile from four points 
@@ -258,18 +413,16 @@
             do k=1,4
                do j=1,3
                do i=1,3
-                  fmd(i,j,k,nf1,nf2,1)=fmc(i,j,k,nf1,nf2,1)
-                  fmd(i,j,k,nf1,nf2,2)=0.5d0*(
-     &                 -11*fmc(i,j,k,nf1,nf2,1)
-     &                 +18*fmc(i,j,k,nf1,nf2,2)
-     &                 - 9*fmc(i,j,k,nf1,nf2,3)
-     &                 + 2*fmc(i,j,k,nf1,nf2,4))
-                  fmd(i,j,k,nf1,nf2,3)=fmc(i,j,k,nf1,nf2,4)
-                  fmd(i,j,k,nf1,nf2,4)=0.5d0*(
-     &                 - 2*fmc(i,j,k,nf1,nf2,1)
-     &                 + 9*fmc(i,j,k,nf1,nf2,2)
-     &                 -18*fmc(i,j,k,nf1,nf2,3)
-     &                 +11*fmc(i,j,k,nf1,nf2,4))
+                  fmd1=fmd(i,j,k,nf1,nf2,1)
+                  fmd2=fmd(i,j,k,nf1,nf2,2)
+                  fmd3=fmd(i,j,k,nf1,nf2,3)
+                  fmd4=fmd(i,j,k,nf1,nf2,4)
+                  fmd(i,j,k,nf1,nf2,1)=fmd1
+                  fmd(i,j,k,nf1,nf2,2)
+     &                 =0.5d0*(-11*fmd1+18*fmd2- 9*fmd3+ 2*fmd4)
+                  fmd(i,j,k,nf1,nf2,3)=fmd4
+                  fmd(i,j,k,nf1,nf2,4)
+     &                 =0.5d0*(- 2*fmd1+ 9*fmd2-18*fmd3+11*fmd4)
                enddo
                enddo
             enddo
@@ -282,6 +435,8 @@
             call fem_hqq(nr,fmd,nfcmax,drho)
          endif
       enddo
+
+!----- boundary conditions -----
 
       mc=(mwmax+1)/2
 
@@ -317,57 +472,80 @@
                fma(mc,ml+5)=1.d0
             endif
          enddo
-      enddo
+         enddo
 
-      nr=nrmax
-      do nph=1,nphmax
-         do nth=1,nthmax
-            nfc=nthmax*(nph-1)+nth
-            ml=6*nfcmax*(nr-1)+6*(nfc-1)
-            if(id_base.eq.0) then
-               do mw=1,mwmax
-                  fma(mw,ml+3) = 0.d0
-                  fma(mw,ml+5) = 0.d0
-               enddo
-               fma(mc,ml+3) = 1.d0
-               fma(mc,ml+5) = 1.d0
-            else
-               do mw=1,mwmax
-                  fma(mw,ml+1) = 0.d0
-                  fma(mw,ml+2) = 0.d0
-                  fma(mw,ml+3) = 0.d0
-                  fma(mw,ml+5) = 0.d0
-               enddo
-               fma(mc,ml+1) = 1.d0
-               fma(mc,ml+2) = 1.d0
-               fma(mc,ml+3) = 1.d0
-               fma(mc,ml+5) = 1.d0
-            endif
+         nr=nrmax
+         do nph=1,nphmax
+            do nth=1,nthmax
+               nfc=nthmax*(nph-1)+nth
+               ml=6*nfcmax*(nr-1)+6*(nfc-1)
+               if(id_base.eq.0) then
+                  do mw=1,mwmax
+                     fma(mw,ml+3) = 0.d0
+                     fma(mw,ml+5) = 0.d0
+                  enddo
+                  fma(mc,ml+3) = 1.d0
+                  fma(mc,ml+5) = 1.d0
+               else
+                  do mw=1,mwmax
+                     fma(mw,ml+1) = 0.d0
+                     fma(mw,ml+2) = 0.d0
+                     fma(mw,ml+3) = 0.d0
+                     fma(mw,ml+5) = 0.d0
+                  enddo
+                  fma(mc,ml+1) = 1.d0
+                  fma(mc,ml+2) = 1.d0
+                  fma(mc,ml+3) = 1.d0
+                  fma(mc,ml+5) = 1.d0
+               endif
+            enddo
+         enddo
+
+         do ml=1,mlmax
+         do mw=1,mwmax
+            fms(mw,ml,ns)=fma(mw,ml)
+         enddo
          enddo
       enddo
 
+      do ml=1,mlmax
+      do mw=1,mwmax
+         csum=0.d0
+         do ns=0,nsmax
+            csum=csum+fms(mw,ml,ns)
+         enddo
+         fma(mw,ml)=csum
+      enddo
+      enddo
+      
+      
+
 !------      fvb
 
-      do nr=1,nrmax-1
-         if((0.85d0-rho(nr))*(rho(nr+1)-0.85d0).ge.0.d0) then
-            do nph=1,nphmax
-               do nth=1,nthmax
-                  nfc=nthmax*(nph-1)+nth
-                  ml=6*nfcmax*(nr-1)+6*(nfc-1)
-                  fvb(ml+3)=(rho(nr+1)-0.85d0)*(1.d0-angl)
-                  fvb(ml+3)=(0.85d0-rho(nr)  )*(1.d0-angl)
-                  fvb(ml+5)=(rho(nr+1)-0.85d0)*angl
-                  fvb(ml+5)=(0.85d0-rho(nr)  )*angl
-               enddo
-            enddo
-         endif
+      do ml=1,mlmax
+         fvb(ml)=0.d0
       enddo
-      deallocate(fmc)
-      deallocate(fmd)
+         
+      do nr=1,nrmax-1
+         call get_wmfvb(nr,fvb_nr)
+         do nph=1,nphmax
+            do nth=1,nthmax
+               nfc=nthmax*(nph-1)+nth
+               ml=6*nfcmax*(nr-1)+6*(nfc-1)
+               fvb(ml+1)=fvb_nr(nph,nth,1)
+               fvb(ml+3)=fvb_nr(nph,nth,2)
+               fvb(ml+5)=fvb_nr(nph,nth,3)
+!               write(6,'(4I5,1P2E12.4)') nr,nph,nth,ml+1,fvb(ml+1)
+!               write(6,'(4I5,1P2E12.4)') nr,nph,nth,ml+3,fvb(ml+3)
+!               write(6,'(4I5,1P2E12.4)') nr,nph,nth,ml+5,fvb(ml+5)
+            enddo
+         enddo
+      enddo
 
 !      do ml=1,mlmax
 !         write(6,'(1P6E12.4)') (fma(mw,ml),mw=1,mwmax)
 !      enddo
+!      write(6,'(1P6E12.4)') (fvb(ml),ml=1,mlmax)
 
       return
       end subroutine wmfem_calculate
@@ -510,6 +688,21 @@
          call table_initialize
          table_initialize_flag=1
       endif
+
+c$$$      do i=1,3
+c$$$      do j=1,3
+c$$$      do k=1,4
+c$$$      do nf1=1,nfcmax
+c$$$      do nf2=1,nfcmax
+c$$$      do inod=1,4
+c$$$         write(16,'(7I5,A,1P2E12.4)') 
+c$$$     &        nr,i,j,k,nf1,nf2,inod,':',fmd(i,j,k,nf1,nf2,inod)
+c$$$      enddo
+c$$$      enddo
+c$$$      enddo
+c$$$      enddo
+c$$$      enddo
+c$$$      enddo
 
       mr=6*nfcmax  ! line interval between radial points 
       mc=(mwmax+1)/2

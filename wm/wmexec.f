@@ -6,7 +6,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
       dimension cef(3,nthmax,nphmax,nrmax+1)
-      dimension cpp(nthmax,nphmax,nrmax+1,nsmax)
+      dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,0:nsmax)
       dimension cpa(nthmax,nphmax)
 C
       IERR=0
@@ -21,13 +21,14 @@ C
 C
       if(mdlwmf.eq.0) then
          CALL WMSOLV
+         CALL WMEFLD
+         CALL WMBFLD
+         CALL WMPABS
       else
          call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cpp,cpa)
-      endif
-      CALL WMEFLD(cef)
-      CALL WMBFLD
-      if(mdlwmf.eq.0) then
-         CALL WMPABS
+         CALL WMFEM_EFLD(cef)
+         CALL WMBFLD
+         CALL WMFEM_PABS(cpp)
       endif
 C
       IF(MYRANK.EQ.0) THEN
