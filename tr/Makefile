@@ -6,12 +6,12 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 
 # without eq
-MODINCLUDE= -I. -I../pl
-EQLIBS= ../pl/noeqlib.o
+#MODINCLUDE= -I. -I../pl
+#EQLIBS= ../pl/noeqlib.o
 
 # with task/eq
 #MODINCLUDE= -I. -I../pl -I../eq
-#EQLIBS= ../eq/eqlib.a
+EQLIBS= ../eq/eqlib.a
 
 # with topics/equ
 #MODINCLUDE= -I. -I../pl -I../../topics/src

@@ -553,6 +553,7 @@
 
 !     ***** Surface Boundary Condition for Bp *****
 
+      NEQ=1
       IF(MDLEQB.NE.0) THEN
          IF(NEA(0,0).EQ.1) THEN
             MVV=NEQRMAX*(NRMAX-1)+NEQ
