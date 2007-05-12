@@ -57,10 +57,10 @@ c
          real(8) :: avegv2   ! <|gradV|^2>
          real(8) :: avegvr2  ! <|gradV|^2/R^2>
          real(8) :: avegpp2  ! <|gradPsip|^2>
-         real(8) :: averr    ! <R>
-         real(8) :: avera    ! <a>
-         real(8) :: aveelip  ! <elip>
-         real(8) :: avetrig  ! <trig>
+         real(8) :: rr       ! R
+         real(8) :: rs       ! r
+         real(8) :: elip     ! elipticity
+         real(8) :: trig     ! triangularity
       end type bpsd_metric1D_data
 c
       type bpsd_metric1D_type
@@ -260,10 +260,10 @@ c
       metric1Dx%kid( 9)='metric1D%avegv2'
       metric1Dx%kid(10)='metric1D%avegvr2'
       metric1Dx%kid(11)='metric1D%avegpp2'
-      metric1Dx%kid(12)='metric1D%averr'
-      metric1Dx%kid(13)='metric1D%avera'
-      metric1Dx%kid(14)='metric1D%aveelip'
-      metric1Dx%kid(15)='metric1D%avetrig'
+      metric1Dx%kid(12)='metric1D%rr'
+      metric1Dx%kid(13)='metric1D%rs'
+      metric1Dx%kid(14)='metric1D%elip'
+      metric1Dx%kid(15)='metric1D%trig'
 c
       speciesx%status=0
       speciesx%dataName='species'
@@ -485,10 +485,10 @@ c
          metric1Dx%data(nr, 9) = metric1D_in%data(nr)%avegv2
          metric1Dx%data(nr,10) = metric1D_in%data(nr)%avegvr2
          metric1Dx%data(nr,11) = metric1D_in%data(nr)%avegpp2
-         metric1Dx%data(nr,12) = metric1D_in%data(nr)%averr
-         metric1Dx%data(nr,13) = metric1D_in%data(nr)%avera
-         metric1Dx%data(nr,14) = metric1D_in%data(nr)%aveelip
-         metric1Dx%data(nr,15) = metric1D_in%data(nr)%avetrig
+         metric1Dx%data(nr,12) = metric1D_in%data(nr)%rr
+         metric1Dx%data(nr,13) = metric1D_in%data(nr)%rs
+         metric1Dx%data(nr,14) = metric1D_in%data(nr)%elip
+         metric1Dx%data(nr,15) = metric1D_in%data(nr)%trig
       enddo
       if(metric1Dx%status.ge.3) then
          metric1Dx%status=3
@@ -877,10 +877,10 @@ c
                metric1D_out%data(nr)%avegv2   = metric1Dx%data(nr, 9)
                metric1D_out%data(nr)%avegvr2  = metric1Dx%data(nr,10)
                metric1D_out%data(nr)%avegpp2  = metric1Dx%data(nr,11)
-               metric1D_out%data(nr)%averr    = metric1Dx%data(nr,12)
-               metric1D_out%data(nr)%avera    = metric1Dx%data(nr,13)
-               metric1D_out%data(nr)%aveelip  = metric1Dx%data(nr,14)
-               metric1D_out%data(nr)%avetrig  = metric1Dx%data(nr,15)
+               metric1D_out%data(nr)%rr       = metric1Dx%data(nr,12)
+               metric1D_out%data(nr)%rs       = metric1Dx%data(nr,13)
+               metric1D_out%data(nr)%elip     = metric1Dx%data(nr,14)
+               metric1D_out%data(nr)%trig     = metric1Dx%data(nr,15)
             enddo
             ierr=0
             return
@@ -918,10 +918,10 @@ c
          metric1D_out%data(nr)%avegv2   = v( 9)
          metric1D_out%data(nr)%avegvr2  = v(10)
          metric1D_out%data(nr)%avegpp2  = v(11)
-         metric1D_out%data(nr)%averr    = v(12)
-         metric1D_out%data(nr)%avera    = v(13)
-         metric1D_out%data(nr)%aveelip  = v(14)
-         metric1D_out%data(nr)%avetrig  = v(15)
+         metric1D_out%data(nr)%rr       = v(12)
+         metric1D_out%data(nr)%rs       = v(13)
+         metric1D_out%data(nr)%elip     = v(14)
+         metric1D_out%data(nr)%trig     = v(15)
       enddo
       ierr = 0
 c
@@ -963,15 +963,18 @@ c
          write(6,*) '---- metric1Dx%avegpp2'
          write(6,'(1P5E12.4)') 
      &        (metric1D_out%data(nr)%avegpp2,nr=1,metric1D_out%nrmax)
-         write(6,*) '---- metric1Dx%averr'
+         write(6,*) '---- metric1Dx%rr'
          write(6,'(1P5E12.4)') 
-     &        (metric1D_out%data(nr)%averr,nr=1,metric1D_out%nrmax)
-         write(6,*) '---- metric1Dx%avera'
+     &        (metric1D_out%data(nr)%rr,nr=1,metric1D_out%nrmax)
+         write(6,*) '---- metric1Dx%rs'
          write(6,'(1P5E12.4)') 
-     &        (metric1D_out%data(nr)%avera,nr=1,metric1D_out%nrmax)
-         write(6,*) '---- metric1Dx%aveelip'
+     &        (metric1D_out%data(nr)%rs,nr=1,metric1D_out%nrmax)
+         write(6,*) '---- metric1Dx%elip'
          write(6,'(1P5E12.4)') 
-     &        (metric1D_out%data(nr)%aveelip,nr=1,metric1D_out%nrmax)
+     &        (metric1D_out%data(nr)%elip,nr=1,metric1D_out%nrmax)
+         write(6,*) '---- metric1Dx%trig'
+         write(6,'(1P5E12.4)') 
+     &        (metric1D_out%data(nr)%trig,nr=1,metric1D_out%nrmax)
       endif
       return
       end subroutine bpsd_get_metric1D
