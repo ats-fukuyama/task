@@ -6,11 +6,10 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I. -I../pl -I../lib
 
-SRCS = eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
+SRCS = eqpl.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
        eqgout.f eqgoutx.f eqgsub.f \
-       newton.f invematrix.f \
-       eqpl.f
+       newton.f invematrix.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f

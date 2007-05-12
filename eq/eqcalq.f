@@ -8,6 +8,7 @@ C
       INCLUDE '../eq/eqcomq.inc'
 C
       IERR=0
+      call eqpl_init(ierr)
 C
 C     ----- CHECK NRMAX,NTHMAX,NSUMAX are not greater than *M -----
 C
@@ -142,7 +143,6 @@ C
 C
          SUMS=0.D0
          SUMV=0.D0
-         SUMQ=0.D0
          SUMAVRR2=0.D0
          SUMAVIR2=0.D0
          SUMAVBB2=0.D0
@@ -175,7 +175,6 @@ C
 C
             SUMV=SUMV+H/BPL
             SUMS=SUMS+H/(BPL*R)
-            SUMQ=SUMQ+H/(BPL*R*R)
 C
             SUMAVRR2=SUMAVRR2+H*R*R/BPL
             SUMAVIR2=SUMAVIR2+H/(BPL*R*R)
@@ -210,9 +209,10 @@ C
             BMAX=MAX(BMAX,B)
          ENDDO
 C
-         VPS(NR)=SUMV
-         SPS(NR)=SUMS/(2.D0*PI)
          QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
+         DVDPSIP(NR)=SUMV
+         DVDPSIT(NR)=SUMV/QPS(NR)
+         DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
          RLEN(NR)=XA(NA)
          RRMIN(NR)=RMIN
          RRMAX(NR)=RMAX
@@ -274,9 +274,10 @@ C
 C     +++++ SETUP AXIS DATA +++++
 C
       NR=1
-      SPS(NR)=(4*SPS(2)-SPS(3))/3.D0
-      VPS(NR)=(4*VPS(2)-VPS(3))/3.D0
       QPS(NR)=(4*QPS(2)-QPS(3))/3.D0
+      DVDPSIP(NR)=(4*DVDPSIP(2)-DVDPSIP(3))/3.D0
+      DVDPSIT(NR)=(4*DVDPSIT(2)-DVDPSIT(3))/3.D0
+      DSDPSIT(NR)=(4*DSDPSIT(2)-DSDPSIT(3))/3.D0
       RLEN(NR)=0.D0
       RRMIN(NR)=RAXIS
       RRMAX(NR)=RAXIS
@@ -294,40 +295,26 @@ C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
       PSIT(1)=0.D0
+      VPS(1)=0.D0
+      SPS(1)=0.D0
       DO NR=2,NRPMAX
          PSIT(NR)=PSIT(NR-1)
      &           +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
      &                 *(PSIP(NR)-PSIP(NR-1))
+         VPS(NR)=VPS(NR-1)
+     &           +0.5D0*(DVDPSIP(NR-1)+DVDPSIP(NR))
+     &                 *(PSIP(NR)-PSIP(NR-1))
+         SPS(NR)=SPS(NR-1)
+     &           +0.5D0*(DSDPSIT(NR-1)+DSDPSIT(NR))
+     &                 *(PSIT(NR)-PSIT(NR-1))
       ENDDO
-      DO NR=2,NRPMAX-1
-         DVDPSIT(NR)=(VPS(NR+1)-VPS(NR-1))/(PSIT(NR+1)-PSIT(NR-1))
-         DVDPSIP(NR)=(VPS(NR+1)-VPS(NR-1))/(PSIP(NR+1)-PSIP(NR-1))
-      ENDDO
-      NR=1
-         DVDPSIT(NR)=((VPS(NR+1)-VPS(NR))/(PSIT(NR+1)-PSIT(NR))**2
-     &               -(VPS(NR+2)-VPS(NR))/(PSIT(NR+2)-PSIT(NR))**2)
-     &               *(PSIT(NR+1)-PSIT(NR))*(PSIT(NR+2)-PSIT(NR))
-     &               /(PSIT(NR+2)-PSIT(NR+1))
-         DVDPSIP(NR)=((VPS(NR+1)-VPS(NR))/(PSIP(NR+1)-PSIP(NR))**2
-     &               -(VPS(NR+2)-VPS(NR))/(PSIP(NR+2)-PSIP(NR))**2)
-     &               *(PSIT(NR+1)-PSIT(NR))*(PSIP(NR+2)-PSIP(NR))
-     &               /(PSIT(NR+2)-PSIT(NR+1))
-      NR=NRPMAX
-         DVDPSIT(NR)=((VPS(NR-1)-VPS(NR))/(PSIT(NR-1)-PSIT(NR))**2
-     &               -(VPS(NR-2)-VPS(NR))/(PSIT(NR-2)-PSIT(NR))**2)
-     &               *(PSIT(NR-1)-PSIT(NR))*(PSIT(NR-2)-PSIT(NR))
-     &               /(PSIT(NR-2)-PSIT(NR-1))
-         DVDPSIP(NR)=((VPS(NR-1)-VPS(NR))/(PSIP(NR-1)-PSIP(NR))**2
-     &               -(VPS(NR-2)-VPS(NR))/(PSIP(NR-2)-PSIP(NR))**2)
-     &               *(PSIT(NR-1)-PSIT(NR))*(PSIP(NR-2)-PSIP(NR))
-     &               /(PSIT(NR-2)-PSIT(NR-1))
       PSITA=PSIT(NRPMAX)
       PSIPA=PSIP(NRPMAX)
       
       do nr=1,nrmax
-         write(6,'(I5,1P5E12.4)') 
+         write(6,'(I5,1P6E12.4)') 
      &        nr,psip(nr)/psipa,psit(nr)/psita,
-     &        vps(nr),dvdpsip(nr),dvdpsit(nr)
+     &        vps(nr),sps(nr),dvdpsip(nr),dvdpsit(nr)
       enddo
 
 C
@@ -500,6 +487,10 @@ C
             ZZMAX(NR)=ZMAX
             RZMIN(NR)=ZMINR
             RZMAX(NR)=ZMAXR
+            RRPSI(NR)=(RMAX+RMIN)/2.D0
+            RSPSI(NR)=(RMAX-RMIN)/2.D0
+            ELIPPSI(NR)=(ZMAX-ZMIN)/(2.D0*RSPSI(NR))
+            TRIGPSI(NR)=(RRPSI(NR)-(ZMAXR+ZMINR)/2.D0)/RSPSI(NR)
 
             FACTOR=(RL-RAXIS)/(REDGE-RAXIS)
             BBMIN(NR)=BBMIN(NRPMAX)/FACTOR
@@ -806,17 +797,11 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBMAX: IERR=',IERR
 C
       DERIV(1)=0.D0
-      CALL SPL1D(RHOT,AVERHR,DERIV,UAVERHR,NRMAX,1,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERHR: IERR=',IERR
+      CALL SPL1D(RHOT,AVERR2,DERIV,UAVERR2,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERRR2: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEIR2,DERIV,UAVEIR2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEIR2: IERR=',IERR
-      DERIV(1)=0.D0
-      CALL SPL1D(RHOT,AVERH1,DERIV,UAVERH1,NRMAX,1,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERH1: IERR=',IERR
-      DERIV(1)=0.D0
-      CALL SPL1D(RHOT,AVERH2,DERIV,UAVERH2,NRMAX,1,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERH2: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEBB2,DERIV,UAVEBB2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEBB2: IERR=',IERR
@@ -824,8 +809,14 @@ C
       CALL SPL1D(RHOT,AVEIB2,DERIV,UAVEIB2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEIB2: IERR=',IERR
       DERIV(1)=0.D0
-      CALL SPL1D(RHOT,AVERHB,DERIV,UAVERHB,NRMAX,1,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERHB: IERR=',IERR
+      CALL SPL1D(RHOT,AVEGV2,DERIV,UAVEGV2,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEGV2: IERR=',IERR
+      DERIV(1)=0.D0
+      CALL SPL1D(RHOT,AVEGRV2,DERIV,UAVEGR2,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEGR2: IERR=',IERR
+      DERIV(1)=0.D0
+      CALL SPL1D(RHOT,AVEGP2,DERIV,UAVEGP2,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEGP2: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEJPR,DERIV,UAVEJPR,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEJPR: IERR=',IERR
