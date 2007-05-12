@@ -1,12 +1,16 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+
+MODINCLUDE=-I. -I../pl -I../lib
 
 SRCS = eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
        eqgout.f eqgoutx.f eqgsub.f \
-       newton.f invematrix.f
+       newton.f invematrix.f \
+       eqpl.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f
@@ -17,9 +21,9 @@ OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 
 all : eq
 
