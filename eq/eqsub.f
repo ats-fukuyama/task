@@ -94,7 +94,10 @@ C
       FACT=SQRT(SQRT(2.D0))
       H=FACT*2.D0*PI*RKAP*(RINIT-RAXIS)/NMAX
       ISTEP=0
+C
 C      WRITE(6,'(I5,1P3E12.4)') 0,H,RAXIS,ZAXIS
+C      WRITE(6,'(I5,1P3E12.4)') NMAX,FACT,PI,RKAP
+C      pause
 C
   100 X=0.D0
       Y(1)=RINIT
@@ -118,7 +121,7 @@ C
          X=X+H
          Y(1)=YOUT(1)
          Y(2)=YOUT(2)
-C         WRITE(6,'(I5,1P3E12.4)') N+1,X,Y(1),Y(2)
+!         WRITE(6,'(I5,1P5E12.4)') N+1,X,Y(1),Y(2),DYDX(1),DYDX(2)
          N=N+1
          XA(N)=X
          YA(1,N)=Y(1)

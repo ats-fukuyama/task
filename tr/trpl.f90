@@ -1,6 +1,7 @@
 !     $Id$
       module trpl_mod
       use bpsd_mod
+      type(bpsd_device_type),private,save :: device
       type(bpsd_species_type),private,save :: species
       type(bpsd_equ1D_type),private,save :: equ1D
       type(bpsd_metric1D_type),private,save :: metric1D
@@ -31,6 +32,16 @@
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
+      device%rr=RR
+      device%zz=0.d0
+      device%ra=RA
+      device%rb=RB
+      device%bb=BB
+      device%ip=RIP
+      device%elip=RKAP
+      device%trig=RDLT
+      call bpsd_set_data(device,ierr)
+
       if(species%nsmax.ne.nsmax) then
          if(allocated(species%data)) then
             deallocate(species%data)
@@ -44,7 +55,7 @@
          species%data(ns)%pz=pz(ns)
          species%data(ns)%pz0=pz(ns)
       enddo
-      call bpsd_set_species(species,ierr)
+      call bpsd_set_data(species,ierr)
 
       if((equ1D%nrmax.ne.nrmax+1)) then
          if(allocated(equ1D%s)) then
@@ -128,7 +139,7 @@
      &                -plasmaf%s(2)*plasmaf%qinv(3)) &
      &               /(plasmaf%s(3)-plasmaf%s(2))
 
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_set_data(plasmaf,ierr)
       return
       end subroutine trpl_init
 
@@ -164,11 +175,11 @@
          enddo
       enddo
 
-!      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
-!     &            /(4.D0*PI**2*RDP(1:NRMAX))
+!      write(6,*) 'RDP_set:',(rdp(nr),nr=1,nrmax)
 
-      do nr=2,plasmaf%nrmax
-         plasmaf%qinv(nr)=1.d0/qp(nr-1)
+      do nr=2,nrmax
+         plasmaf%qinv(nr) &
+         & =(4.D0*PI**2*RDP(nr))/(TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr))
       enddo
       plasmaf%qinv(1)=(plasmaf%s(3)*plasmaf%qinv(2) &
      &                -plasmaf%s(2)*plasmaf%qinv(3)) &
@@ -180,7 +191,7 @@
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
-      call bpsd_set_plasmaf(plasmaf,ierr)
+      call bpsd_set_data(plasmaf,ierr)
       return
       end subroutine trpl_set
 
@@ -200,8 +211,18 @@
 !      write(6,*) 'top of trpl_get: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
-     
-      call bpsd_get_plasmaf(plasmaf,ierr)
+
+      call bpsd_get_data(device,ierr)
+
+      RR=device%rr
+      RA=device%ra
+      RB=device%rb
+      Bb=device%bb
+      RIP=device%ip
+      RKAP=device%elip
+      RDLT=device%trig
+
+      call bpsd_get_data(plasmaf,ierr)
 
       do ns=1,plasmaf%nsmax
          do nr=1,plasmaf%nrmax
@@ -213,6 +234,8 @@
       do nr=2,plasmaf%nrmax
          qp(nr-1)=1.d0/plasmaf%qinv(nr)
       enddo
+      Q0=2*qp(1)-qp(2)
+!      write(6,*) (qp(nr),nr=1,nrmax)
 
       do ns=1,nsmax
          call mesh_convert_gtom(temp(1,ns,1),rn(1,ns),nrmax)
@@ -220,13 +243,14 @@
          call mesh_convert_gtom(temp(1,ns,3),ru(1,ns),nrmax)
       enddo
 
-      call bpsd_get_equ1D(equ1D,ierr)
+      call bpsd_get_data(equ1D,ierr)
+
       do nr=1,equ1D%nrmax
          tempx(nr,1)=equ1D%data(nr)%psip
          tempx(nr,2)=equ1D%data(nr)%psit
          tempx(nr,3)=equ1D%data(nr)%ppp
          tempx(nr,4)=equ1D%data(nr)%piq
-         tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2.d0*pi)
+         tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2*pi)
          tempx(nr,6)=equ1D%data(nr)%pit
       enddo
       call mesh_convert_gtom(tempx(1,1),PSITRHO,nrmax)
@@ -235,16 +259,15 @@
       call mesh_convert_gtom(tempx(1,4),PIQRHO,nrmax)
       call mesh_convert_gtom(tempx(1,5),TTRHO,nrmax)
       call mesh_convert_gtom(tempx(1,6),PIRHO,nrmax)
+      
       TTRHOG(1:nrmax)=tempx(2:nrmax+1,5)
       psita=equ1D%data(equ1D%nrmax)%psit
 
-      call bpsd_get_metric1D(metric1D,ierr)
+      call bpsd_get_data(metric1D,ierr)
       do nr=2,metric1D%nrmax
          rgl=rg(nr-1)
          dpsitdrho=2.D0*psita*rgl
          dvdrho=metric1D%data(nr)%dvpsit*dpsitdrho
-         write(26,'(I5,1P3E12.4)')  &
-     &        nr,dpsitdrho,metric1D%data(nr)%dvpsit,dvdrho
          tempx(nr,1)=dvdrho
          tempx(nr,2)=metric1D%data(nr)%avegvr2/dvdrho**2
          tempx(nr,3)=metric1D%data(nr)%aver2i
@@ -253,10 +276,10 @@
          tempx(nr,6)=metric1D%data(nr)%aveb2
          tempx(nr,7)=metric1D%data(nr)%aveb2i
          tempx(nr,8)=metric1D%data(nr)%avegvr2/dvdrho**2
-         tempx(nr,9)=metric1D%data(nr)%avera/metric1D%data(nr)%averr
-         tempx(nr,10)=metric1D%data(nr)%averr
-         tempx(nr,11)=metric1D%data(nr)%avera
-         tempx(nr,12)=metric1D%data(nr)%aveelip
+         tempx(nr,9)=metric1D%data(nr)%rs/metric1D%data(nr)%rr
+         tempx(nr,10)=metric1D%data(nr)%rr
+         tempx(nr,11)=metric1D%data(nr)%rs
+         tempx(nr,12)=metric1D%data(nr)%elip
       enddo
       nr=1
          tempx(nr,1)=0.d0
@@ -267,10 +290,10 @@
          tempx(nr,6)=metric1D%data(nr)%aveb2
          tempx(nr,7)=metric1D%data(nr)%aveb2i
          tempx(nr,8)=tempx(2,8)
-         tempx(nr,9)=metric1D%data(nr)%avera/metric1D%data(nr)%averr
-         tempx(nr,10)=metric1D%data(nr)%averr
-         tempx(nr,11)=metric1D%data(nr)%avera
-         tempx(nr,12)=metric1D%data(nr)%aveelip
+         tempx(nr,9)=metric1D%data(nr)%rs/metric1D%data(nr)%rr
+         tempx(nr,10)=metric1D%data(nr)%rr
+         tempx(nr,11)=metric1D%data(nr)%rs
+         tempx(nr,12)=metric1D%data(nr)%elip
 
       call mesh_convert_gtom0(tempx(1,1),DVRHO,nrmax)
       call mesh_convert_gtom(tempx(1,2),ABRHO,nrmax)
@@ -280,41 +303,39 @@
       call mesh_convert_gtom(tempx(1,12),RKPRHO,nrmax)
 
       DVRHOG(1:nrmax)=tempx(2:nrmax+1,1)
-      ABRHOG(1:nrmax)=tempx(2:nrmax+1,2)
-      ARRHOG(1:nrmax)=tempx(2:nrmax+1,3)
+      ABRHOG(1:nrmax)=tempx(2:nrmax+1,2)    ! avegvr2
+      ARRHOG(1:nrmax)=tempx(2:nrmax+1,3)    ! aver2i
       AR1RHOG(1:nrmax)=tempx(2:nrmax+1,4)
       AR2RHOG(1:nrmax)=tempx(2:nrmax+1,5)
       ABB2RHOG(1:nrmax)=tempx(2:nrmax+1,6)
       AIB2RHOG(1:nrmax)=tempx(2:nrmax+1,7)
-      ARHBRHOG(1:nrmax)=tempx(2:nrmax+1,8)
+      ARHBRHOG(1:nrmax)=tempx(2:nrmax+1,8)  ! not used
       EPSRHO(1:nrmax)=tempx(2:nrmax+1,9)
       RMJRHO(1:nrmax)=tempx(2:nrmax+1,10)
       RMNRHO(1:nrmax)=tempx(2:nrmax+1,11)
       RKPRHOG(1:nrmax)=tempx(2:nrmax+1,12)
 
-      RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
-     &            /(4.D0*PI**2*QP(1:NRMAX))
+      do nr=1,nrmax
+         RDP(nr)=TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr)/(4.D0*PI**2*QP(nr))
+!         RDPX=psita*rg(nr)/(pi*qp(nr))
+!         write(6,'(A,I5,1p4E12.4)') &
+!         &   'RDP:',nr,RDP(nr),RDPX,qp(nr),1.d0/qp(nr)
+      enddo
 !      BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
 
-      do nr=1,nrmax
-         write(26,'(I5,1P5E12.4)') &
-     &        nr,qp(nr),TTRHO(nr),ARRHOG(nr),DVRHOG(nr),rdp(nr)
-      enddo
+!      write(6,*) 'RDP_get:',(rdp(nr),nr=1,nrmax)
+
       NR=1
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*FACTORP*RDP(NR)/DR
          AJOH(NR)=AJ(NR)
-         write(26,'(I5,1P5E12.4)') &
-     &        nr,dvrho(nr),factor0,0.d0,factorp,aj(nr)
       DO NR=2,NRMAX
          FACTOR0=TTRHO(NR)**2/(RMU0*BB*DVRHO(NR))
          FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
          AJOH(NR)=AJ(NR)
-         write(26,'(I5,1P5E12.4)') &
-     &        nr,dvrho(nr),factor0,factorm,factorp,aj(nr)
       ENDDO
 !      NR=1
 !         FACTOR0=RR/(RMU0*DVRHO(NR))

@@ -2,11 +2,10 @@ c
       module eqpl_mod
 c
       use bpsd_mod
-!      public eqpl_init, eqpl_prof, eqpl_get, eqpl_set
       public eqpl_init, eqpl_set
       private
 c
-      type(bpsd_device_type),private,save  :: device_eq
+      type(bpsd_device_type),private,save  :: device
       type(bpsd_equ1D_type),private,save   :: equ1D
       type(bpsd_metric1D_type),private,save:: metric1D
       type(bpsd_species_type),private,save :: species
@@ -27,18 +26,17 @@ c=======================================================================
          equ1D%nrmax=0
          metric1D%nrmax=0
          eqpl_init_flag=.FALSE.
-         bpsd_debug_flag=.FALSE.
       endif
 c
-      device_eq%rr=RR
-      device_eq%zz=0.d0
-      device_eq%ra=RA
-      device_eq%rb=RA*1.2d0
-      device_eq%bb=BB
-      device_eq%ip=RIP
-      device_eq%elip=RKAP
-      device_eq%trig=RDLT
-      call bpsd_set_data(device_eq,ierr)
+      device%rr=RR
+      device%zz=0.d0
+      device%ra=RA
+      device%rb=RB
+      device%bb=BB
+      device%ip=RIP
+      device%elip=RKAP
+      device%trig=RDLT
+      call bpsd_set_data(device,ierr)
 c
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nv) then
@@ -69,18 +67,37 @@ c         transport grid -> equilibrium grid
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       integer nr,ierr
+      real(8):: s
+      real(8),dimension(nrmax):: sa,data,diff
+      real(8),dimension(4,nrmax):: udata
+      
 ! local variables
 c=======================================================================
-c
+
+      plasmaf%nrmax=0
+      call bpsd_get_data(plasmaf,ierr)
+      do nr=1,nrmax
+         sa(nr)=psit(nr)/psit(nrmax)
+         data(nr)=1.d0/qps(nr)
+      enddo
+      call spl1d(sa,data,diff,udata,nrmax,0,ierr)
+      if(ierr.ne.0) write(6,*) 'eqpl_set: spl1d: ierr=',ierr
+      do nr=1,plasmaf%nrmax
+         call spl1df(plasmaf%s(nr),plasmaf%qinv(nr),sa,udata,nrmax,ierr)
+         if(ierr.ne.0) write(6,*) 'eqpl_set: spl1df: ierr=',ierr
+      enddo
+      call bpsd_set_data(plasmaf,ierr)
+
       do nr=1,nrmax
          equ1D%s(nr)=psit(nr)/psit(nrmax)
-         equ1D%data(nr)%psit=psit(nr)/(2.D0*cnpi)
-         equ1D%data(nr)%psip=psip(nr)*(2.D0*cnpi)
+         equ1D%data(nr)%psit=psit(nr)
+         equ1D%data(nr)%psip=psip(nr)
          equ1D%data(nr)%ppp=pps(nr)
          equ1D%data(nr)%piq=1.d0/qps(nr)
-         equ1D%data(nr)%pip=tts(nr)
+         equ1D%data(nr)%pip=tts(nr)/rmu0
          equ1D%data(nr)%pit=0.d0
       enddo
+
       call bpsd_set_equ1D(equ1D,ierr)
 c
       do nr=1,nrmax

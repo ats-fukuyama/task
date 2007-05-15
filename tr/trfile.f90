@@ -115,8 +115,6 @@
 
       CLOSE(16)
 
-!      IF(MODELG.EQ.9) CALL EQSAVE(4)
-
   900 RETURN
       END SUBROUTINE TRSAVE
 
@@ -196,12 +194,6 @@
       QP(1:NRMAX)   =TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*RDP(1:NRMAX))
 !     *** calculate q_axis ***
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
-
-!      IF(MODELG.EQ.9) THEN
-!         CALL EQLOAD(MODELG,KNAMEQ,1,IERR)
-!         IF(IERR.NE.0)
-!     &        WRITE(6,*) 'XX TRLOAD: EQLOAD ERROR: IERR=',IERR
-!      ENDIF
 
   900 RETURN
       END SUBROUTINE TRLOAD

@@ -56,7 +56,7 @@
 !      call bpsd_init
       call eq_init
       CALL TRINIT
-      CALL eq_parm(1,'equparm',IERR)
+      CALL eq_parm(1,'eqparm',IERR)
       CALL TRPARM(1,'trparm',IERR)
 
       CALL TRMENU

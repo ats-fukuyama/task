@@ -10,7 +10,7 @@ FFLAGS = $(OFLAGS)
 #EQLIBS= ../pl/noeqlib.o
 
 # with task/eq
-#MODINCLUDE= -I. -I../pl -I../eq
+MODINCLUDE= -I. -I../eq -I../pl
 EQLIBS= ../eq/eqlib.a
 
 # with topics/equ

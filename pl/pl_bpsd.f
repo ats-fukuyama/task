@@ -31,7 +31,7 @@ c
 c
       type bpsd_equ1D_data
          real(8) :: psit   ! Toroidal magnetic flux [Wb] ~pi*r^2*B
-         real(8) :: psip   ! Poloidal magnetic flux [Wb] ~2*pi*R*r*Bp
+         real(8) :: psip   ! Poloidal magnetic flux [Wb] ~pi*R*r*Bp
          real(8) :: ppp    ! Plasma pressure [Pa]
          real(8) :: piq    ! Inverse of safety factor, iota
          real(8) :: pip    ! Poloidal current [A] ~2*pi*R*B/mu_0
@@ -208,10 +208,20 @@ c
       interface bpsd_set_data
          module procedure bpsd_set_shot, 
      &                    bpsd_set_device, 
+     &                    bpsd_set_species, 
      &                    bpsd_set_equ1D, 
      &                    bpsd_set_metric1D, 
      &                    bpsd_set_plasmaf
       end interface bpsd_set_data
+c
+      interface bpsd_get_data
+         module procedure bpsd_get_shot, 
+     &                    bpsd_get_device, 
+     &                    bpsd_get_species, 
+     &                    bpsd_get_equ1D, 
+     &                    bpsd_get_metric1D, 
+     &                    bpsd_get_plasmaf
+      end interface bpsd_get_data
 c
       contains
 c

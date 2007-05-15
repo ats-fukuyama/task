@@ -25,7 +25,13 @@ C
       CALL EQLOAD(3,KNAMEQ1,0,IERR)
       IF(IERR.NE.0) RETURN
 C
-      CALL EQCALQ(NRMAX,NTHMAX,NSUMAX,IERR)
+      write(LINE,'(A,I5)') 'nrmax=',NRMAX
+      call eqparm(3,line,ierr)
+      write(LINE,'(A,I5)') 'nthmax=',NTHMAX
+      call eqparm(3,line,ierr)
+      write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+      call eqparm(3,line,ierr)
+      CALL EQCALQ(IERR)
       IF(IERR.NE.0) RETURN
       ALPMAX=FNPSIT(1.D0)
       CALL GETAXS(RAXIS1,ZAXIS1)

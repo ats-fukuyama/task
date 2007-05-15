@@ -127,6 +127,7 @@
          REWIND(7)
          IF(IERR.EQ.8.OR.IERR.EQ.9) THEN
             WRITE(6,'(A)') '## PARM INPUT ERROR.'
+            write(6,*) KNLINE
             CALL XXPLST
             IERR=6
             RETURN

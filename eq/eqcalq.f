@@ -2,36 +2,36 @@ C     $Id$
 C
 C     ***** Calculated Flux Functions from PSIRZ *****
 C
-      SUBROUTINE EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+      SUBROUTINE EQCALQ(IERR)
 C
-      use eqpl_mod
       INCLUDE '../eq/eqcomq.inc'
 C
       IERR=0
-      call eqpl_init(ierr)
 C
 C     ----- CHECK NRMAX,NTHMAX,NSUMAX are not greater than *M -----
 C
-      IF(NRMAX1.GT.NRM) THEN
+      IF(NRMAX.GT.NRM) THEN
          WRITE(6,'(A,2I5)') 
-     &        'NRMAX1.GT.NRM: NRMAX1,NRM=',NRMAX1,NRM
+     &        'NRMAX.GT.NRM: NRMAX,NRM=',NRMAX,NRM
          IERR=IERR+1
       ENDIF
-      IF(NTHMAX1.GT.NTHM) THEN
+      IF(NTHMAX.GT.NTHM) THEN
          WRITE(6,'(A,2I5)') 
-     &        'NTHMAX1.GT.NTHM: NTHMAX1,NTHM=',NTHMAX1,NTHM
+     &        'NTHMAX.GT.NTHM: NTHMAX,NTHM=',NTHMAX,NTHM
          IERR=IERR+2
       ENDIF
-      IF(NSUMAX1.GT.NSUM) THEN
+      IF(NSUMAX.GT.NSUM) THEN
          WRITE(6,'(A,2I5)') 
-     &        'NSUMAX1.GT.NSUM: NSUMAX1,NSUM=',NSUMAX1,NSUM
+     &        'NSUMAX.GT.NSUM: NSUMAX,NSUM=',NSUMAX,NSUM
          IERR=IERR+4
       ENDIF
       IF(IERR.NE.0) RETURN
 C
-      NRMAX=NRMAX1
-      NTHMAX=NTHMAX1
-      NSUMAX=NSUMAX1
+      IF(RB.LT.RA) THEN
+         WRITE(6,'(A,1P2E12.4)') 
+     &        '!! RB.LT.RA: set RB=RA: RA,RB=',RA,RB
+         RB=RA
+      ENDIF
 C
       CALL EQSETP
 C
@@ -40,8 +40,6 @@ C
       IF(NSUMAX.GT.0) CALL EQCALQV(IERR)
 C
       CALL EQSETS(IERR)
-C
-      call eqpl_set(ierr)
 C
       RETURN
       END
@@ -136,8 +134,9 @@ C
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
 C
-C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
-C     &        PSIP(NR),PPS(NR),TTS(NR)
+C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
+C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
+C         pause
 C
          CALL EQMAGS(RINIT,ZINIT,NTVMAX,XA,YA,NA,IERR)
 C
@@ -154,8 +153,6 @@ C
          RMAX=RAXIS
          ZMIN=ZAXIS
          ZMAX=ZAXIS
-         ZMINR=RAXIS
-         ZMAXR=RAXIS
          BMIN=ABS(2.D0*BB)
          BMAX=0.D0
 C
@@ -199,11 +196,11 @@ C
             RMAX=MAX(RMAX,R)
             IF(Z.LT.ZMIN) THEN
                ZMIN=Z
-               ZMINR=R
+               NZMINR=N
             ENDIF
             IF(Z.GT.ZMAX) THEN
                ZMAX=Z
-               ZMAXR=R
+               NZMAXR=N
             ENDIF
             BMIN=MIN(BMIN,B)
             BMAX=MAX(BMAX,B)
@@ -214,6 +211,17 @@ C
          DVDPSIT(NR)=SUMV/QPS(NR)
          DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
          RLEN(NR)=XA(NA)
+         AVERR2(NR)=SUMAVRR2/SUMV
+         AVEIR2(NR)=SUMAVIR2/SUMV
+         AVEBB2(NR)=SUMAVBB2/SUMV
+         AVEIB2(NR)=SUMAVIB2/SUMV
+         AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
+         AVEGR2(NR)=SUMAVGR2*SUMV*4*PI**2
+         AVEGP2(NR)=SUMAVGV2/SUMV*4*PI**2
+
+         call zminmax(YA,NZMINR,ZMIN,ZMINR)
+         call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
+
          RRMIN(NR)=RMIN
          RRMAX(NR)=RMAX
          ZZMIN(NR)=ZMIN
@@ -226,13 +234,6 @@ C
          TRIGPSI(NR)=(RRPSI(NR)-(ZMAXR+ZMINR)/2.D0)/RSPSI(NR)
          BBMIN(NR)=BMIN
          BBMAX(NR)=BMAX
-         AVERR2(NR)=SUMAVRR2/SUMV
-         AVEIR2(NR)=SUMAVIR2/SUMV
-         AVEBB2(NR)=SUMAVBB2/SUMV
-         AVEIB2(NR)=SUMAVIB2/SUMV
-         AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
-         AVEGR2(NR)=SUMAVGR2*SUMV*4*PI**2
-         AVEGP2(NR)=SUMAVGV2/SUMV*4*PI**2
 C
 C        ----- CALCULATE POLOIDAL COORDINATES -----
 C
@@ -243,6 +244,8 @@ C
             ENDDO
             RCHI(NA)=RCHI(1)
             ZCHI(NA)=ZCHI(1)
+C
+C            write(6,'(I5,1P2E12.4)') (N,RCHI(N),ZCHI(N),N=1,NA)
 C     
             IF(MDLEQC.EQ.0) THEN
                CALL SPL1D(XCHI0,RCHI,DXCHI,URCHI,NA,4,IERR)
@@ -279,6 +282,16 @@ C
       DVDPSIT(NR)=(4*DVDPSIT(2)-DVDPSIT(3))/3.D0
       DSDPSIT(NR)=(4*DSDPSIT(2)-DSDPSIT(3))/3.D0
       RLEN(NR)=0.D0
+      AVERR2(1)=(4.D0*AVERR2(2)-AVERR2(3))/3.D0
+      AVEIR2(1)=(4.D0*AVEIR2(2)-AVEIR2(3))/3.D0
+      AVEBB2(1)=(4.D0*AVEBB2(2)-AVEBB2(3))/3.D0
+      AVEIB2(1)=(4.D0*AVEIB2(2)-AVEIB2(3))/3.D0
+      AVEGV2(1)=(4.D0*AVEGV2(2)-AVEGV2(3))/3.D0
+      AVEGR2(1)=(4.D0*AVEGR2(2)-AVEGR2(3))/3.D0
+      AVEGP2(1)=(4.D0*AVEGP2(2)-AVEGP2(3))/3.D0
+      AVEJPR(1)=(4.D0*AVEJPR(2)-AVEJPR(3))/3.D0
+      AVEJTR(1)=(4.D0*AVEJTR(2)-AVEJTR(3))/3.D0
+
       RRMIN(NR)=RAXIS
       RRMAX(NR)=RAXIS
       ZZMIN(NR)=ZAXIS
@@ -311,11 +324,11 @@ C
       PSITA=PSIT(NRPMAX)
       PSIPA=PSIP(NRPMAX)
       
-      do nr=1,nrmax
-         write(6,'(I5,1P6E12.4)') 
-     &        nr,psip(nr)/psipa,psit(nr)/psita,
-     &        vps(nr),sps(nr),dvdpsip(nr),dvdpsit(nr)
-      enddo
+c$$$      do nr=1,nrmax
+c$$$         write(6,'(I5,1P6E12.4)') 
+c$$$     &        nr,psip(nr)/psipa,psit(nr)/psita,
+c$$$     &        vps(nr),sps(nr),dvdpsip(nr),dvdpsit(nr)
+c$$$      enddo
 
 C
       RST(1)=0.D0
@@ -354,9 +367,11 @@ C
          SUMQ=SUMQ+H/(R*BPRL)
       ENDDO
 C
-      SPSA=SUMS
-      VPSA=SUMV*2.D0*PI
-      QPSA=SUMQ*TTSA/(2.D0*PI)
+      SPSA=SPS(NRPMAX)
+      VPSA=VPS(NPPMAX)
+      QPSA=QPS(NRPMAX)
+C
+C     ----- current profile evaluation -----
 C
       DO NR=2,NRPMAX
          DPPSL=DPPFUNC(PSIP(NR))
@@ -370,13 +385,6 @@ C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
 C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
 C     &        AVEJPR(NR),AVEJTR(NR)
       ENDDO
-      AVERR2(1)=(4.D0*AVERR2(2)-AVERR2(3))/3.D0
-      AVEIR2(1)=(4.D0*AVEIR2(2)-AVEIR2(3))/3.D0
-      AVEBB2(1)=(4.D0*AVEBB2(2)-AVEBB2(3))/3.D0
-      AVEIB2(1)=(4.D0*AVEIB2(2)-AVEIB2(3))/3.D0
-      AVEGV2(1)=(4.D0*AVEGV2(2)-AVEGV2(3))/3.D0
-      AVEGR2(1)=(4.D0*AVEGR2(2)-AVEGR2(3))/3.D0
-      AVEGP2(1)=(4.D0*AVEGP2(2)-AVEGP2(3))/3.D0
       AVEJPR(1)=(4.D0*AVEJPR(2)-AVEJPR(3))/3.D0
       AVEJTR(1)=(4.D0*AVEJTR(2)-AVEJTR(3))/3.D0
 C
@@ -410,19 +418,10 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
       EXTERNAL EQDERV
-      integer npmax,np
-      parameter (npm=10)
-      real*8 nra,rpspa,zpspa,dy,spspa,vpspa,qpspa,rlenpa,psitpa
-      real*8 averr2pa,aveir2pa,avebb2pa,aveib2pa
-      real*8 avegv2pa,avegr2pa,avegp2pa
       DIMENSION XA(NTVM),YA(2,NTVM)
       DIMENSION XCHI0(NTVM),XCHI1(NTVM)
       DIMENSION RCHI(NTVM),ZCHI(NTVM),DXCHI(NTVM)
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
-      dimension nra(npm),rpspa(npm),zpspa(npm),spspa(npm),vpspa(npm)
-      dimension qpspa(npm),rlenpa(npm),psitpa(npm),averhrpa(npm)
-      dimension aveir2pa(npm),averh1pa(npm),averh2pa(npm),avebb2pa(npm)
-      dimension aveib2pa(npm),averhbpa(npm)
       DIMENSION THW(NTHMP)
       DIMENSION RPSW(NTHMP),DRPSW(NTHMP),URPSW(4,NTHMP)
       DIMENSION ZPSW(NTHMP),DZPSW(NTHMP),UZPSW(4,NTHMP)
@@ -432,13 +431,11 @@ C
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
-      DR=(REDGE-RAXIS)/(NRPMAX-1)
-      REDGEM=REDGE-DR
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       DR=(RB-RA)/(NRMAX-NRPMAX)
+      DTH=2*PI/NTHMAX
       IF(MDLEQF.LT.10) THEN
-C         REDGEM=RA-RA/(NRPMAX-1)
          DO NR=NRPMAX+1,NRMAX
             RL=REDGE+DR*(NR-NRPMAX)
             ZL=ZAXIS
@@ -446,11 +443,11 @@ C         REDGEM=RA-RA/(NRPMAX-1)
             PPS(NR)=0.D0
             TTS(NR)=2.D0*PI*BB*RR
 C
-            call polintx(nr,npmax,nrm,vps)
-            call polintx(nr,npmax,nrm,sps)
             call polintx(nr,npmax,nrm,qps)
+            call polintx(nr,npmax,nrm,dvdpsip)
+            call polintx(nr,npmax,nrm,dvdpsit)
+            call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,rlen)
-            call polintx(nr,npmax,nrm,psit)
             call polintx(nr,npmax,nrm,averr2)
             call polintx(nr,npmax,nrm,aveir2)
             call polintx(nr,npmax,nrm,avebb2)
@@ -458,6 +455,9 @@ C
             call polintx(nr,npmax,nrm,avegv2)
             call polintx(nr,npmax,nrm,avegr2)
             call polintx(nr,npmax,nrm,avegp2)
+            call polintx(nr,npmax,nrm,psit)
+            call polintx(nr,npmax,nrm,vps)
+            call polintx(nr,npmax,nrm,sps)
 
             call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
             call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
@@ -466,21 +466,25 @@ C
             RMAX=RAXIS
             ZMIN=ZAXIS
             ZMAX=ZAXIS
-            ZMINR=RAXIS
-            ZMAXR=RAXIS
 
             DO NTH=1,NTHMAX+1
+               ya(1,nth)=RPS(NTH,NR)
+               ya(2,nth)=ZPS(NTH,NR)
                RMIN=MIN(RMIN,RPS(NTH,NR))
                RMAX=MAX(RMAX,RPS(NTH,NR))
                IF(ZPS(NTH,NR).LT.ZMIN) THEN
                   ZMIN=ZPS(NTH,NR)
-                  ZMINR=RPS(NTH,NR)
+                  NZMINR=NTH
                ENDIF
                IF(ZPS(NTH,NR).GT.ZMAX) THEN
                   ZMAX=ZPS(NTH,NR)
-                  ZMAXR=RPS(NTH,NR)
+                  NZMAXR=NTH
                ENDIF
             ENDDO
+
+            call zminmax(YA,NZMINR,ZMIN,ZMINR)
+            call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
+
             RRMIN(NR)=RMIN
             RRMAX(NR)=RMAX
             ZZMIN(NR)=ZMIN
@@ -496,23 +500,10 @@ C
             BBMIN(NR)=BBMIN(NRPMAX)/FACTOR
             BBMAX(NR)=BBMAX(NRPMAX)*FACTOR
          ENDDO
-c
-c
-cc         do nr=1,nrmax
-cc            do nth=1,nthmax
-cc               print*, nr,nth,rps(nth,nr)
-cc           enddo
-cc         enddo
 C
-         DO NR=NRPMAX+1,NRMAX
-            RST(NR)=SQRT(PSIT(NR)/(PI*BB))
-         ENDDO
       ELSE
 C
 C     ****** Free boundary without X point ******
-C
-         DR=(RB-REDGE)/(NRMAX-NRPMAX)
-         DTH=2*PI/NTHMAX
 C
 C     ----- CALCULATE PSI,PPS,TTS,PSIT and RPS, ZPS on mag surfaces -----
 C
@@ -531,7 +522,6 @@ C
 C
             SUMS=0.D0
             SUMV=0.D0
-            SUMQ=0.D0
             SUMAVRR2=0.D0
             SUMAVIR2=0.D0
             SUMAVBB2=0.D0
@@ -543,8 +533,6 @@ C
             RMAX=RAXIS
             ZMIN=ZAXIS
             ZMAX=ZAXIS
-            ZMINR=RAXIS
-            ZMAXR=RAXIS
             BMIN=ABS(2.D0*BB)
             BMAX=0.D0
 C
@@ -564,7 +552,6 @@ C
 C
                SUMV=SUMV+H/BPL
                SUMS=SUMS+H/(BPL*R)
-               SUMQ=SUMQ+H/(BPL*R*R)
 C
                SUMAVRR2=SUMAVRR2+H*R*R/BPL
                SUMAVIR2=SUMAVIR2+H/(BPL*R*R)
@@ -587,16 +574,34 @@ C
 C
                RMIN=MIN(RMIN,R)
                RMAX=MAX(RMAX,R)
-               ZMIN=MIN(ZMIN,Z)
-               ZMAX=MAX(ZMAX,Z)
+               IF(Z.LT.ZMIN) THEN
+                  ZMIN=Z
+                  NZMINR=N
+               ENDIF
+               IF(Z.GT.ZMAX) THEN
+                  ZMAX=Z
+                  NZMAXR=N
+               ENDIF
                BMIN=MIN(BMIN,B)
                BMAX=MAX(BMAX,B)
             ENDDO
 C
-            VPS(NR)=SUMV
-            SPS(NR)=SUMS/(2.D0*PI)
             QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
+            DVDPSIP(NR)=SUMV
+            DVDPSIT(NR)=SUMV/QPS(NR)
+            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             RLEN(NR)=XA(NA)
+            AVERR2(NR)=SUMAVRR2/SUMV
+            AVEIR2(NR)=SUMAVIR2/SUMV
+            AVEBB2(NR)=SUMAVBB2/SUMV
+            AVEIB2(NR)=SUMAVIB2/SUMV
+            AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
+            AVEGR2(NR)=SUMAVGR2*SUMV*4*PI**2
+            AVEGP2(NR)=SUMAVGV2/SUMV*4*PI**2
+
+            call zminmax(YA,NZMINR,ZMIN,ZMINR)
+            call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
+
             RRMIN(NR)=RMIN
             RRMAX(NR)=RMAX
             ZZMIN(NR)=ZMIN
@@ -609,13 +614,6 @@ C
             TRIGPSI(NR)=(RRPSI(NR)-(ZMAXR+ZMINR)/2.D0)/RSPSI(NR)
             BBMIN(NR)=BMIN
             BBMAX(NR)=BMAX
-            AVERR2(NR)=SUMAVRR2/SUMV
-            AVEIR2(NR)=SUMAVIR2/SUMV
-            AVEBB2(NR)=SUMAVBB2/SUMV
-            AVEIB2(NR)=SUMAVIB2/SUMV
-            AVEGV2(NR)=SUMAVGV2*SUMV
-            AVEGR2(NR)=SUMAVGR2*SUMV
-            AVEGP2(NR)=SUMAVGV2/SUMV
 C
 C        ----- CALCULATE POLOIDAL COORDINATES -----
 C
@@ -659,23 +657,15 @@ C
          ENDDO
  1000    CONTINUE
 C
+      ENDIF
+C
 C     ----- CALCULATE TOROIDAL FLUX -----
 C
-         DO NR=NRPMAX+1,NRMAX
-            PSIT(NR)=PSIT(NR-1)
-     &              +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
+      DO NR=NRPMAX+1,NRMAX
+         PSIT(NR)=PSIT(NR-1)
+     &           +2.0D0*QPS(NR)*QPS(NR-1)/(QPS(NR)+QPS(NR-1))
      &                    *(PSIP(NR)-PSIP(NR-1))
-         ENDDO
-C
-         DO NR=NRPMAX+1,NRMAX
-            RST(NR)=SQRT(PSIT(NR)/(PI*BB))
-         ENDDO
-C
-         DO NR=NRPMAX+1,NRMAX
-            AVEJPR(NR)=0.D0
-            AVEJTR(NR)=0.D0
-         ENDDO
-      ENDIF
+      ENDDO
 C
       PSITB=PSIT(NRMAX)
       PSIPB=PSIP(NRMAX)
@@ -687,6 +677,11 @@ C
 C
       DO NR=NRPMAX+1,NRMAX
          RHOT(NR)=SQRT(PSIT(NR)/PSITA)
+      ENDDO
+C
+      DO NR=NRPMAX+1,NRMAX
+         AVEJPR(NR)=0.D0
+         AVEJTR(NR)=0.D0
       ENDDO
 C
 C      ----- CALCULATE PLASMA SURFACE -----
@@ -1128,3 +1123,32 @@ c
 13    continue
       return
       END
+
+c     ------ calculatex zmin and zmax -----
+c                assume: z=a(r-r0)^2+z0
+      
+      subroutine zminmax(ya,n,z0,r0)
+
+      implicit none
+      real(8),dimension(2,*),intent(in):: ya
+      integer,intent(in):: n
+      real(8),intent(out):: z0,r0
+      real(8):: r1,r2,r3,z1,z2,z3,dz1,dz2,ra1,ra2,a
+
+      r1=ya(1,n-1)
+      z1=ya(2,n-1)
+      r2=ya(1,n)
+      z2=ya(2,n)
+      r3=ya(1,n+1)
+      z3=ya(2,n+1)
+      dz1=(z1-z2)/(r1-r2)
+      dz2=(z2-z3)/(r2-r3)
+      ra1=(r1+r2)/2.d0
+      ra2=(r2+r3)/2.d0
+      r0=(ra2*dz1-ra1*dz2)/(dz1-dz2)
+      a=dz2/(ra2-r0)
+      z0=z2-0.5*a*(r2-r0)**2
+!      write(6,'(1P4E12.4)') r1,r2,r3,r0
+!      write(6,'(1P4E12.4)') z1,z2,z3,z0
+      return
+      end subroutine zminmax

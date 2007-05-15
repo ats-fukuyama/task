@@ -44,10 +44,7 @@ C
             GOTO 1
          ENDIF
 C
-         NRMAX1=NRMAX
-         NTHMAX1=NTHMAX
-         NSUMAX1=NSUMAX
-         CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         CALL EQCALQ(IERR)
             IF(IERR.NE.0) GOTO 1
 C
       ELSEIF(KID.EQ.'C') THEN
@@ -71,10 +68,7 @@ C
                GOTO 1
             ENDIF
 C
-            NRMAX1=NRMAX
-            NTHMAX1=NTHMAX
-            NSUMAX1=NSUMAX
-            CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+            CALL EQCALQ(IERR)
             IF(IERR.NE.0) GOTO 1
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
@@ -119,25 +113,19 @@ C
          MODELG=3
          CALL EQREAD(0,IERR)
          IF(IERR.EQ.1) GOTO 10
-         NRMAX1=NRMAX
-         NTHMAX1=NTHMAX
-         NSUMAX1=NSUMAX
-         CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         CALL EQCALQ(IERR)
          MSTAT=2
 C
       ELSEIF(KID.EQ.'K') THEN
          CALL KTRIM(KNAMEQ,KL)
-   11    WRITE(6,*) '#EQ> INPUT : EQDATA FILE NAME : ',KNAMEQ(1:KL)
+   11    WRITE(6,*) '#EQ> INPUT : EQDSK FILE NAME : ',KNAMEQ(1:KL)
          READ(5,'(A80)',ERR=11,END=9000) KNAM
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=5
          CALL EQREAD(0,IERR)
          IF(IERR.NE.0) GOTO 11
-         NRMAX1=NRMAX
-         NTHMAX1=NTHMAX
-         NSUMAX1=NSUMAX
-         CALL EQCALQ(NRMAX1,NTHMAX1,NSUMAX1,IERR)
+         CALL EQCALQ(IERR)
          MSTAT=2
 C
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN

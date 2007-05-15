@@ -4,7 +4,7 @@
 
       USE TRCOMM, ONLY : &
            & KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, NT, &
-           & NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG
+           & NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG, KNAMEQ
       USE TRCOM1, ONLY : KDIRX
       use trpl_mod, only: trpl_init, trpl_set, trpl_get
       use equnit_mod
@@ -12,7 +12,7 @@
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
-      CHARACTER(LEN=80):: LINE
+      CHARACTER(LEN=80):: LINE,LINE2
       EXTERNAL TRPARM
 
 !     ------ SELECTION OF TASK TYPE ------
@@ -78,7 +78,20 @@
          CALL TRPROF             ! initialise profile data
          call trpl_init          ! initialize trpl
          call trpl_set(ierr)  ! set trpl with initial profile
-         if(modelg.eq.9) then
+         if(modelg.eq.3) then
+            write(line2,'(A,I5)') 'nrmax=',nrmax+1
+            call eq_parm(2,line2,ierr)
+            write(line2,'(A,I5)') 'nthmax=',64
+            call eq_parm(2,line2,ierr)
+            write(line2,'(A,I5)') 'nsumax=',0
+            call eq_parm(2,line2,ierr)
+            call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
+!            call eq_gout
+            if(ierr.ne.0) write(6,*) 'XX1 ierr=',ierr
+            call trpl_get(ierr)  ! 
+            if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
+!            call trgout
+         elseif(modelg.eq.9) then
             call eq_prof ! initial calculation of eq
             call eq_calc         ! recalculate eq
             call trpl_get(ierr)  ! 

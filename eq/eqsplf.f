@@ -105,7 +105,10 @@ C
 C
       RHOTL=RHON
       CALL SPL1DF(RHOTL,VPL,RHOT,UVPS,NRMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX FNVPS: SPL1DF ERROR : IERR=',IERR
+      IF(IERR.NE.0) then
+         WRITE(6,*) 'XX FNVPS: SPL1DF ERROR : IERR=',IERR
+         write(6,*) psita,rhon,psit(1),psit(nrmax)
+      endif
       FNVPS=VPL
       RETURN
       END

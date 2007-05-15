@@ -1,15 +1,15 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
-#FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
 
 MODINCLUDE=-I. -I../pl -I../lib
 
 SRCS = eqpl.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
        eqgout.f eqgoutx.f eqgsub.f \
-       newton.f invematrix.f
+       newton.f invematrix.f equnit.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f
