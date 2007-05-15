@@ -48,6 +48,8 @@
 
       ELSE IF(KID.EQ.'L') THEN
          CALL TRLOAD
+         call trpl_init
+         call trpl_set(ierr)  ! set trpl with initial profile
          INIT=2
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
          CALL TRSAVE
@@ -85,10 +87,13 @@
             call eq_parm(2,line2,ierr)
             write(line2,'(A,I5)') 'nsumax=',0
             call eq_parm(2,line2,ierr)
+            pause
             call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
+            pause
 !            call eq_gout
             if(ierr.ne.0) write(6,*) 'XX1 ierr=',ierr
             call trpl_get(ierr)  ! 
+            pause
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
 !            call trgout
          elseif(modelg.eq.9) then
