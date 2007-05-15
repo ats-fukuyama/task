@@ -54,8 +54,7 @@ contains
     NSTR1 = 0
     CALL APTOS(STR1, NSTR1, gCTIME3, 'F2')
     IF (iRTIME3 == 0) THEN
-       WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
-            &              'CPU = ', STR1(1:NSTR1), '(sec)'
+       WRITE(6,*) 'real =', iRTIME3, '(sec)   ','CPU = ', STR1(1:NSTR1), '(sec)'
     ELSE
        NSTR2 = 0
        CALL APTOS(STR2, NSTR2, gCTIME3 / (iRTIME3 + 1) * 100, 'F1')
@@ -217,7 +216,7 @@ contains
                 ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPS) THEN
                    IF(IDIAG == 3) THEN
                       IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
-                      WRITE(6,'(3I4,4F15.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                      WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
                            &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
                    END IF
                    CYCLE L_IC
@@ -231,14 +230,13 @@ contains
        ! Save past X for BDF
        IF(IGBDF /= 0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
 
-
        IF(IDIAG >= 2) THEN
           IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
           IF(IC-1 == ICMAX) THEN
-             WRITE(6,'(3I4,4F15.8,A3)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+             WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
                   &                     XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS," *"
           ELSE
-             WRITE(6,'(3I4,4F15.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+             WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
                   &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
           END IF
        END IF
@@ -293,7 +291,7 @@ contains
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
     INTEGER :: JA, JB, JC, KL
     REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
-
+    
     IF(IGBDF /= 0) ADV = C23
 
     !  NR : number of radial mesh 
@@ -429,7 +427,6 @@ contains
             &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
             &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
             &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
-
     END DO
 
     DO NR = 1, NRMAX - 1
@@ -442,7 +439,6 @@ contains
                &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
                &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
                &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
-
        END DO
     END DO
 
@@ -454,7 +450,6 @@ contains
             &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
             &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
             &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
-
     END DO
 
     ! In the case of general term effect in any equations

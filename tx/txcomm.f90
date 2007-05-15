@@ -82,7 +82,7 @@ module commons
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
        &                       PNbV, UbthV, UbphV, PN01V, PN02V, &
-       &                       AphV, Phi, RAthV
+       &                       AphV, Phi, RAthV, PPeV, PPiV, dPPeV, dPPiV
 
   real(8), dimension(0:NRM) :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
 

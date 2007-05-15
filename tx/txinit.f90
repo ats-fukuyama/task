@@ -540,9 +540,15 @@ contains
     dPN   = - (PN0 - PNa) / RA**2
     CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
     CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
-     pea  = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
-    dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
-    pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
+    IF(MDFIXT == 0) THEN
+       pea   = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
+       dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
+       pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
+    ELSE
+       pea   = PTea   ;  pia  = PTia
+       dpea  = 0.d0   ; dpia  = 0.d0
+       pediv = PTeDIV ; pidiv = PTiDIV
+    END IF
     Cfpe1 = - (4.D0 * pea + 3.D0 * PBA * dpea - 4.D0 * pediv) / PBA**3
     Cfpe2 =   (3.D0 * pea + 2.D0 * PBA * dpea - 3.D0 * pediv) / PBA**4
     Cfpi1 = - (4.D0 * pia + 3.D0 * PBA * dpia - 4.D0 * pidiv) / PBA**3
@@ -556,10 +562,17 @@ contains
           X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
           ! Ni
           X(LQi1,NR) = X(LQe1,NR) / PZ
-          ! Ne*Te
-          X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea) * X(LQe1,NR)
-          ! Ni*Ti
-          X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
+          IF(MDFIXT == 0) THEN
+             ! Ne*Te
+             X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea) * X(LQe1,NR)
+             ! Ni*Ti
+             X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
+          ELSE 
+             ! Te
+             X(LQe5,NR) = (PTe0 - PTea) * PROFT + PTea
+             ! Ti
+             X(LQi5,NR) = (PTi0 - PTia) * PROFT + PTia
+          END IF
        ELSE
           X(LQe1,NR) = PNa + dPN * (RL**2 - RA**2) + CfN1 * (RL**2 - RA**2)**3 &
                &                                   + CfN2 * (RL**2 - RA**2)**4
@@ -589,7 +602,11 @@ contains
        BphV(NR)   = BB
        ! Fixed densities to keep them constant during iterations
        PNeV_FIX(NR) = X(LQe1,NR)
-       PTeV_FIX(NR) = X(LQe5,NR) / X(LQe1,NR)
+       IF(MDFIXT == 0) THEN
+          PTeV_FIX(NR) = X(LQe5,NR) / X(LQe1,NR)
+       ELSE
+          PTeV_FIX(NR) = X(LQe5,NR)
+       END IF
     END DO
     CALL DERIVS(PSI,X(LQe1,0:NRMAX),dPNeV_FIX,NRMAX)
 
@@ -708,7 +725,11 @@ contains
        ! +++ Hirshman, Hawryluk and Birge model +++
        PNeV(NR) = X(LQe1,NR)
        PNiV(NR) = X(LQi1,NR)
-       PTeV(NR) = X(LQe5,NR) / X(LQe1,NR)
+       IF(MDFIXT == 0) THEN
+          PTeV(NR) = X(LQe5,NR) / X(LQe1,NR)
+       ELSE
+          PTeV(NR) = X(LQe5,NR)
+       END IF
        Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
        Wte = Vte / (Q(NR) * RR)
        rLnLam = 15.2D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
@@ -753,8 +774,8 @@ contains
     !  Initial condition Part II
 
     DO NR = 0, NRMAX
-       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQe5,0:NRMAX),NRMAX,NRM,0) * rKeV
-       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,X(LQi5,0:NRMAX),NRMAX,NRM,0) * rKeV
+       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PPeV(0:NRMAX),NRMAX,NRM,0) * rKeV
+       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PPiV(0:NRMAX),NRMAX,NRM,0) * rKeV
        IF(rNueNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE

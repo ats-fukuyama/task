@@ -10,6 +10,7 @@ module coefficients
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2
   real(8), dimension(0:NRM) :: UNITY = 1.D0
+  real(8) :: DTt, DTf(1:NQM)
   public :: TXCALA
 
 contains
@@ -54,6 +55,16 @@ contains
     PLC(1:NCM,1:NQMAX,0:NRMAX) = 0.D0
     NLCMAX(1:NQMAX) = 0
 
+!    IF(DT <= 3.D-6) THEN
+    IF(DT <= 1.D-5) THEN
+       DTt          = 1.d2
+       DTf(1)       = 1.d0
+       DTf(2:NQMAX) = 1.d2
+    ELSE
+       DTt          = 1.d0
+       DTf(1:NQMAX) = 1.d0
+    END IF
+
     CALL LQCOEF
 
     !     Maxwell
@@ -97,23 +108,23 @@ contains
        NR = NE - 1
        DO NQ = 1, NQMAX
           NC = 0
-             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(1,NC,NQ,NE)
-             ALC(NC,NQ,NR) = ALC(NC,NQ,NR) + ELM(2,NC,NQ,NE)
+             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(1,NC,NQ,NE) * DTt
+             ALC(NC,NQ,NR) = ALC(NC,NQ,NR) + ELM(2,NC,NQ,NE) * DTt
           DO NC = 1, NLCMAX(NQ)
-             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(1,NC,NQ,NE)
-             ALC(NC,NQ,NR) = ALC(NC,NQ,NR) + ELM(2,NC,NQ,NE)
-             PLC(NC,NQ,NR) = PLC(NC,NQ,NR) + PELM(1,NC,NQ,NE) + PELM(2,NC,NQ,NE)
+             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(1,NC,NQ,NE) * DTf(NQ)
+             ALC(NC,NQ,NR) = ALC(NC,NQ,NR) + ELM(2,NC,NQ,NE) * DTf(NQ)
+             PLC(NC,NQ,NR) = PLC(NC,NQ,NR) +(PELM(1,NC,NQ,NE) + PELM(2,NC,NQ,NE)) * DTf(NQ)
           END DO
        END DO
        NR = NE
        DO NQ = 1, NQMAX
           NC = 0
-             CLC(NC,NQ,NR) = CLC(NC,NQ,NR) + ELM(3,NC,NQ,NE)
-             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(4,NC,NQ,NE)
+             CLC(NC,NQ,NR) = CLC(NC,NQ,NR) + ELM(3,NC,NQ,NE) * DTt
+             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(4,NC,NQ,NE) * DTt
           DO NC = 1, NLCMAX(NQ)
-             CLC(NC,NQ,NR) = CLC(NC,NQ,NR) + ELM(3,NC,NQ,NE)
-             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(4,NC,NQ,NE)
-             PLC(NC,NQ,NR) = PLC(NC,NQ,NR) + PELM(3,NC,NQ,NE) + PELM(4,NC,NQ,NE)
+             CLC(NC,NQ,NR) = CLC(NC,NQ,NR) + ELM(3,NC,NQ,NE) * DTf(NQ)
+             BLC(NC,NQ,NR) = BLC(NC,NQ,NR) + ELM(4,NC,NQ,NE) * DTf(NQ)
+             PLC(NC,NQ,NR) = PLC(NC,NQ,NR) +(PELM(3,NC,NQ,NE) + PELM(4,NC,NQ,NE)) * DTf(NQ)
           END DO
        END DO
     END DO
@@ -352,6 +363,8 @@ contains
 
        ELM(1:4,1,LQm4,NE) = fem_int(1,NE)
        NLC(1,LQm4) = LQm3
+!!$       write(6,*) ELM(1:4,0,LQm4,NE)
+!!$       write(6,*) ELM(1:4,1,LQm4,NE)
     END DO
 
     NLCMAX(LQm4) = 1
@@ -371,12 +384,12 @@ contains
     INTEGER :: NE
 
     DO NE = 1, NEMAX
-       ELM(1:4,0,LQm5,NE) = 1.D0 / DT * fem_int(1,NE)
+       ELM(1:4,0,LQm5,NE) = sqeps0 / DT * fem_int(1,NE)
        NLC(0,LQm5) = LQm5
 
        ! r * Atheta'
 
-       ELM(1:4,1,LQm5,NE) = fem_int(1,NE) / (sqeps0 * rMU0)
+       ELM(1:4,1,LQm5,NE) = fem_int(1,NE) / rMU0
        NLC(1,LQm5) = LQm2
     END DO
 
@@ -499,6 +512,22 @@ contains
     ! Ns*Usr(NRMAX) : fixed or finite gradient
 
     NLCMAX(LQe2) = 6
+
+    IF(MDFIXT /= 0) THEN
+       DO NE = 1, NEMAX
+          P = HPSI(NE) / SQRT(15.D0)
+
+          ELM(1:4,3,LQe2,NE) = - 2.D0 * rKeV / AME * fem_int(17,NE,PTeV) &
+               &               - 2.D0 * rKeV / AME * fem_int(18,NE,PTeV) * P
+          NLC(3,LQe2) = LQe1
+
+          ELM(1:4,7,LQe2,NE) = - 2.D0 * rKeV / AME * fem_int(16,NE,PTeV) &
+               &               - 2.D0 * rKeV / AME * fem_int(34,NE,PSI,PTeV) * P
+          NLC(7,LQe2) = LQe1
+       END DO
+       NLCMAX(LQe2) = 7
+    END IF
+
     RETURN
   END SUBROUTINE LQe2CC
 
@@ -899,31 +928,9 @@ contains
        DO NE = 1, NEMAX
           ELM(1:4,0,LQe5,NE) = 1.D0 / DT * fem_int(1,NE)
           NLC(0,LQe5) = LQe5
-
-          ! Convection
-
-!          ELM(1:4,1,LQe5,NE) = - 2.D0 * fem_int(5,NE,PTeV)
-          ELM(1:4,1,LQe5,NE) =   2.D0 * fem_int(9,NE,PTeV) + 2.D0 * fem_int(6,NE,PTeV)
-          NLC(1,LQe5) = LQe2
-
-          ! Ionization of n01 and n02
-
-          ELM(1:4,2,LQe5,NE) =   fem_int(28,NE,rNuIN0,PTeV)
-          NLC(2,LQe5) = LQn1
-
-          ELM(1:4,3,LQe5,NE) =   fem_int(28,NE,rNuIN0,PTeV)
-          NLC(3,LQe5) = LQn2
-
-          ! Loss to divertor
-
-          ELM(1:4,4,LQe5,NE) = - fem_int(2,NE,rNuL)
-          NLC(4,LQe5) = LQe5
-
-          PELM(1:4,5,LQe5,NE) =  PNeDIV * fem_int(-2,NE,rNuL,PTeV)
-          NLC(5,LQe5) = 0
        END DO
 
-       NLCMAX(LQe5) = 5
+       NLCMAX(LQe5) = 0
     END IF
 
     RETURN
@@ -1059,6 +1066,22 @@ contains
     ! Ns*Usr(NRMAX) : fixed or finite gradient
 
     NLCMAX(LQi2) = 6
+
+    IF(MDFIXT /= 0) THEN
+       DO NE = 1, NEMAX
+          P = HPSI(NE) / SQRT(15.D0)
+
+          ELM(1:4,3,LQi2,NE) = - 2.D0 * rKeV / AMI * fem_int(17,NE,PTiV) &
+               &               - 2.D0 * rKeV / AMI * fem_int(18,NE,PTiV) * P
+          NLC(3,LQi2) = LQi1
+
+          ELM(1:4,7,LQi2,NE) = - 2.D0 * rKeV / AMI * fem_int(16,NE,PTiV) &
+               &               - 2.D0 * rKeV / AMI * fem_int(34,NE,PSI,PTiV) * P
+          NLC(7,LQi2) = LQi1
+       END DO
+       NLCMAX(LQi2) = 7
+    END IF
+
     RETURN
   END SUBROUTINE LQi2CC
 
@@ -1473,46 +1496,9 @@ contains
        DO NE = 1, NEMAX
           ELM(1:4,0,LQi5,NE) = 1.D0 / DT * fem_int(1,NE)
           NLC(0,LQi5) = LQi5
-
-          ! Convection
-
-!          ELM(1:4,1,LQi5,NE) = - 2.D0 * fem_int(5,NE,PTiV)
-          ELM(1:4,1,LQi5,NE) =   2.D0 * fem_int(9,NE,PTiV) + 2.D0 * fem_int(6,NE,PTiV)
-          NLC(1,LQi5) = LQi2
-
-          ! Ionization of n01 and n02
-
-          ELM(1:4,2,LQi5,NE) =     1.D0 / PZ * fem_int(28,NE,rNuIN0,PTiV)
-          NLC(2,LQi5) = LQn1
-
-          ELM(1:4,3,LQi5,NE) =     1.D0 / PZ * fem_int(28,NE,rNuIN0,PTiV)
-          NLC(3,LQi5) = LQn2
-
-          ! Loss to divertor
-
-          ELM(1:4,4,LQi5,NE) = - fem_int(2,NE,rNuL)
-          NLC(4,LQi5) = LQi5
-
-          PELM(1:4,5,LQi5,NE) =  PNeDIV / PZ * fem_int(-2,NE,rNuL,PTiV)
-          NLC(5,LQi5) = 0
-
-          ! Particle source from beam ion
-
-          ELM(1:4,6,LQi5,NE) =   fem_int(28,NE,rNuB,PTiV)
-          NLC(6,LQi5) = LQb1
-
-          ! NBI kick up ions
-
-          PELM(1:4,7,LQi5,NE) = - fem_int(-2,NE,SNB,PTiV)
-          NLC(7,LQi5) = 0
-
-          ! Loss cone loss
-
-          PELM(1:4,8,LQi5,NE) =   fem_int(-2,NE,SiLC,PTiV)
-          NLC(8,LQi5) = 0
        END DO
 
-       NLCMAX(LQi5) = 8
+       NLCMAX(LQi5) = 0
     END IF
 
     RETURN
@@ -1623,7 +1609,6 @@ contains
     ! - UbPhi(0)' : 0
 
     DO NE = 1, NEMAX
-!       ELM(1:4,0,LQb4,NE) = 1.D0 / DT * lump_int(1,NE)
        ELM(1:4,0,LQb4,NE) = 1.D0 / DT * fem_int(1,NE)
        NLC(0,LQb4) = LQb4
 
@@ -1783,7 +1768,7 @@ contains
        END IF
     ELSE
        NLCMAX(LQ) = NLCMAX(LQ) + 1
-       PLC(NLCMAX(LQ),LQ,NR) = VAL
+       PLC(NLCMAX(LQ),LQ,NR) = VAL * DTf(LQ)
        NLCR(NLCMAX(LQ),LQ,NR) = 0
     END IF
 
