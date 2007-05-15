@@ -368,7 +368,7 @@ C
       ENDDO
 C
       SPSA=SPS(NRPMAX)
-      VPSA=VPS(NPPMAX)
+      VPSA=VPS(NRPMAX)
       QPSA=QPS(NRPMAX)
 C
 C     ----- current profile evaluation -----

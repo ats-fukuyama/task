@@ -39,7 +39,7 @@ c
       call bpsd_set_data(device,ierr)
 c
       equ1D%time=0.D0
-      if(equ1D%nrmax.ne.nv) then
+      if(equ1D%nrmax.ne.nrmax) then
          if(allocated(equ1D%s)) deallocate(equ1D%s)
          if(allocated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=NRMAX
@@ -48,7 +48,7 @@ c
       endif
 c
       metric1D%time=0.D0
-      if(metric1D%nrmax.ne.nv) then
+      if(metric1D%nrmax.ne.nrmax) then
          if(allocated(metric1D%s)) deallocate(metric1d%s)
          if(allocated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=NRMAX

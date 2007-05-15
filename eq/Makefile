@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(DFLAGS)
-#FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
 
 MODINCLUDE=-I. -I../pl -I../lib
 
