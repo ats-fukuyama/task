@@ -180,8 +180,8 @@ contains
     grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0))
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PPeV,NRMAX,NRM,0)) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PPiV,NRMAX,NRM,0)) * 1.E20
+    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,NRM,0)) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRM,0)) * 1.E20
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
 
     CALL NCLASS( &
@@ -229,9 +229,9 @@ contains
     ENDIF
 
     JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0) / PTeV(NR)) &
-         &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PPeV,NRMAX,NRM,0) / PPeV(NR)) &
+         &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRM,0) / PeV (NR)) &
          &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
-         &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PPiV,NRMAX,NRM,0) / PPiV(NR))) / BphV(NR)
+         &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR))) / BphV(NR)
 
     ETAL = DBLE(p_etap)
 
@@ -239,8 +239,8 @@ contains
        NueNC = 0.D0
        NuiNC = 0.D0
     ELSE
-       NueNC = DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
-       NuiNC = DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
+       NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
+       NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
     END IF
     
 !!$    AJBSNC(NR)=DBLE(p_bsjb)/BB

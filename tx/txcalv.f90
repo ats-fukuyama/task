@@ -15,15 +15,15 @@ contains
   SUBROUTINE TXCALV(XL,ID)
 
     use physical_constants, only : rMU0
-    use libraries, only : INTG_P
+    use libraries, only : INTG_P, DERIVF
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
     INTEGER :: NR
-    real(8) :: SUML, DERIV3
+    real(8) :: DERIV3
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
-       ErV (NR) = - 2.D0 * R(NR) * DERIV3(NR,PSI,XL(LQm1,0:NRMAX),NRMAX,NRM,0)
+       ErV (NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm1,NQMAX,NRMAX)
     END DO
     EthV (0)       =   0.D0
     EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX) / rMU0
@@ -31,8 +31,8 @@ contains
     AphV (0:NRMAX) =   XL(LQm4,0:NRMAX)
     RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * sqeps0 
     DO NR = 0, NRMAX
-       BthV(NR) = - 2.D0 * R(NR) * DERIV3(NR,PSI,XL(LQm4,0:NRMAX),NRMAX,NRM,0)
-       BphV(NR) =   2.D0         * DERIV3(NR,PSI,XL(LQm5,0:NRMAX),NRMAX,NRM,0) * sqeps0
+       BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX)
+       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * sqeps0
     END DO
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
     UerV (0)       =   0.D0
@@ -41,10 +41,10 @@ contains
     UethV(1:NRMAX) =   XL(LQe3,1:NRMAX) / PNeV(1:NRMAX) / R(1:NRMAX)
     UephV(0:NRMAX) =   XL(LQe4,0:NRMAX) / PNeV(0:NRMAX)
     IF(MDFIXT == 0) THEN
-       PPeV (0:NRMAX) =   XL(LQe5,0:NRMAX)
+       PeV  (0:NRMAX) =   XL(LQe5,0:NRMAX)
        PTeV (0:NRMAX) =   XL(LQe5,0:NRMAX) / PNeV(0:NRMAX)
     ELSE
-       PPeV (0:NRMAX) =   XL(LQe5,0:NRMAX) * PNeV(0:NRMAX)
+       PeV  (0:NRMAX) =   XL(LQe5,0:NRMAX) * PNeV(0:NRMAX)
        PTeV (0:NRMAX) =   XL(LQe5,0:NRMAX)
     END IF
     PNiV (0:NRMAX) =   XL(LQi1,0:NRMAX)
@@ -54,15 +54,15 @@ contains
     UithV(1:NRMAX) =   XL(LQi3,1:NRMAX) / PNiV(1:NRMAX) / R(1:NRMAX)
     UiphV(0:NRMAX) =   XL(LQi4,0:NRMAX) / PNiV(0:NRMAX)
     IF(MDFIXT == 0) THEN
-       PPiV (0:NRMAX) =   XL(LQi5,0:NRMAX)
+       PiV  (0:NRMAX) =   XL(LQi5,0:NRMAX)
        PTiV (0:NRMAX) =   XL(LQi5,0:NRMAX) / PNiV(0:NRMAX)
     ELSE
-       PPiV (0:NRMAX) =   XL(LQi5,0:NRMAX) * PNiV(0:NRMAX)
+       PiV  (0:NRMAX) =   XL(LQi5,0:NRMAX) * PNiV(0:NRMAX)
        PTiV (0:NRMAX) =   XL(LQi5,0:NRMAX)
     END IF
     DO NR = 0, NRMAX
-       dPPeV(NR) = DERIV3(NR,PSI,PPeV(0:NRMAX),NRMAX,NRM,0)
-       dPPiV(NR) = DERIV3(NR,PSI,PPiV(0:NRMAX),NRMAX,NRM,0)
+       dPeV(NR) = DERIV3(NR,PSI,PeV,NRMAX,NRM,0)
+       dPiV(NR) = DERIV3(NR,PSI,PiV,NRMAX,NRM,0)
     END DO
     PNbV (0:NRMAX) =   XL(LQb1,0:NRMAX)
     DO NR = 0, NRA-1
@@ -186,7 +186,7 @@ contains
     PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
     PRFi0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
 
-    p(0:NRMAX) = (PPeV(0:NRMAX) + PPiV(0:NRMAX)) * 1.D20 * rKeV
+    p(0:NRMAX) = (PeV(0:NRMAX) + PiV(0:NRMAX)) * 1.D20 * rKeV
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 

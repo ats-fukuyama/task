@@ -5,12 +5,16 @@
 !             TOKAMAK TRANSPORT SIMULATION CODE
 !    INCLUDING RADIAL ELECTRIC FIELD AND PLASMA ROTATION
 !
-!     DEVELOPED BY Y. FUJI, M. HONDA AND A. FUKUYAMA
+!     DEVELOPED BY M. HONDA, Y. FUJI AND A. FUKUYAMA
 !
 !             DEPARTMENT OF NUCLEAR ENGINEERING
 !              GRADUATE SCHOOL OF ENGINEERING
-!                      KYOTO UNIVERSITY
+!                     KYOTO UNIVERSITY
 !                      KYOTO 606-8501
+!
+!                JAPAN ATOMIC ENERGY AGENCY
+!                   NAKA FUSION INSTITUTE
+!                  TOKAMAK ANALYSIS GROUP
 !
 !***********************************************************
 !
@@ -32,6 +36,8 @@
 !   X19 = Slow neutral                                  N      D
 !   X20 = Fast neutral                                  N      0
 !
+!   In case of MDFIXT /=0, X10 = Te, X15 = Ti
+!
 !   G16 = Total n0                        
 !   G20 = Q                               
 !   G21 = Jphi                            
@@ -41,14 +47,15 @@
 !   G27 = UiPerp    G28 = UiPara          
 !   G29 = D    G30 = G1h2    G31 = MuI    
 !   G32 = S    G33 = Alpha   G34 = rKappa 
-!   G35 = Slow N0   G36 = Fast N0         
+!   G35 = Slow N0   G36 = Fast N0
+  
 
 PROGRAM TASK_TX
   
   use menu, only : TXMENU
   use init_prof, only : TXINIT
   use commons, only : SLID
-  use parameter_control, only : TXPARF
+  use parameter_control, only : TXPARF, TXPARM_CHECK
   implicit none
   character(len=80) :: KPNAME
 
@@ -58,11 +65,12 @@ PROGRAM TASK_TX
   !     ***** Version ID *****
   !     SLID is used to identify data file.
   SLID = 'tx400.0'
-  WRITE(6,*) '######## TASK/TX V4.00.00 06/10/21 ########'
+  WRITE(6,*) '######## TASK/TX V4.00.00 07/05/22 ########'
 
   CALL TXINIT
   KPNAME='txparm'
   CALL TXPARF(KPNAME)
+  CALL TXPARM_CHECK
 
   CALL TXMENU
 

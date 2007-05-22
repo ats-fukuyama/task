@@ -21,6 +21,7 @@ contains
     use file_io, only : TXSAVE, TXLOAD
     use variables, only : TXCALV
     use init_prof, only : TXPROF, TXINIT
+    use parameter_control, only : TXPARM_CHECK
     INTEGER :: ICONT, MODE, I, IST
     character(len=80) :: LINE
     character(len=1)  :: KID, KID2
@@ -40,6 +41,7 @@ contains
 
        CALL TXKLIN(LINE,KID,MODE)
        IF(MODE /= 1) CYCLE
+       CALL TXPARM_CHECK
 
        SELECT CASE(KID)
        CASE('R')

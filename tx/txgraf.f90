@@ -486,7 +486,7 @@ contains
     GVY(NGVV,5)  = SNGL(UephV(0))
     GVY(NGVV,6)  = SNGL(UirV(NRC))
     GVY(NGVV,7)  = SNGL(UithV(NRC))
-    GVY(NGVV,8)  = SNGL(UiphV(0))
+    GVY(NGVV,8)  = SNGL(UiphV(3))
     GVY(NGVV,9)  = SNGL(ErV(NRC))
     GVY(NGVV,10) = SNGL(BthV(NRC))
     GVY(NGVV,11) = SNGL(EphV(NRMAX))
@@ -1323,6 +1323,11 @@ contains
     integer :: IND, IFNT, NR
     real, dimension(0:NRM,1:3) :: GYL, GYL2
 
+    IF (NGR <= -1) THEN
+       WRITE(6,*) 'G', NGR, ' has no data'
+       RETURN
+    END IF
+
     IF (MODEG == 2) THEN
        IND = 9
     ELSE
@@ -1355,18 +1360,18 @@ contains
     END DO
 
     STR = '@LOG: ETA@'
-    CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
-!!$    CALL TXGRFRS(0, GX, GYL, NRA, 2, STR, MODE, IND, 1)
+!!$    CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
+    CALL TXGRFRS(0, GX, GYL, NRA, 2, STR, MODE, IND, 1)
 
     GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
 !    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
     GYL(0:NRMAX,2) = SNGL(AJBS3(0:NRMAX))
 
     STR = '@AJBS@'
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 2-1, gDIV(22))
-    CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
-!!$    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRA, 2-1, gDIV(22))
-!!$    CALL TXGRFRS(1, GX, GYL2, NRA, 2, STR, MODE, IND, 0)
+!!$    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 2-1, gDIV(22))
+!!$    CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRA, 2-1, gDIV(22))
+    CALL TXGRFRS(1, GX, GYL2, NRA, 2, STR, MODE, IND, 0)
 
     CALL PAGEE
 
@@ -1395,6 +1400,12 @@ contains
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
+    ! square
+!    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
+!    GPXY(2) = 10.4286 + 12.5 * MOD(K,2)
+!    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
+!    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
+
     GXMAX=REAL(RB/RA)
 
     IF(PRESENT(GXMIN)) THEN
@@ -1579,7 +1590,7 @@ contains
        CALL APPROPGY(MODEG, GVY(0, 7), GVYL, STR, NGVM, NGVV, 1, gDIV(7))
        CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@u$-i$#f$#$=(0)@'
+       STR = '@u$-i$#f$#$=(0.15)@'
        CALL APPROPGY(MODEG, GVY(0, 8), GVYL, STR, NGVM, NGVV, 1, gDIV(8))
        CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 

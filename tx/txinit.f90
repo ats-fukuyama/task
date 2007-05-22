@@ -560,6 +560,7 @@ contains
           PROFT = PROF**2
           ! Ne
           X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
+!          X(LQe1,NR) = (PN0 - PNa) * SQRT(PROF) + PNa
           ! Ni
           X(LQi1,NR) = X(LQe1,NR) / PZ
           IF(MDFIXT == 0) THEN
@@ -608,7 +609,7 @@ contains
           PTeV_FIX(NR) = X(LQe5,NR)
        END IF
     END DO
-    CALL DERIVS(PSI,X(LQe1,0:NRMAX),dPNeV_FIX,NRMAX)
+    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV_FIX)
 
     ! Poloidal magnetic field
 
@@ -730,8 +731,9 @@ contains
        ELSE
           PTeV(NR) = X(LQe5,NR)
        END IF
-       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
-       Wte = Vte / (Q(NR) * RR)
+       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME) ! Thermal velocity for ions
+       Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
+       EpsL = R(NR) / RR        ! Inverse aspect ratio
        rLnLam = 15.2D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
        rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
@@ -774,8 +776,8 @@ contains
     !  Initial condition Part II
 
     DO NR = 0, NRMAX
-       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PPeV(0:NRMAX),NRMAX,NRM,0) * rKeV
-       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PPiV(0:NRMAX),NRMAX,NRM,0) * rKeV
+       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRM,0) * rKeV
+       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRM,0) * rKeV
        IF(rNueNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE
@@ -932,6 +934,53 @@ contains
 
   END SUBROUTINE TXPARF
 
+  SUBROUTINE TXPARM_CHECK
+
+    DO 
+       ! System integers
+       IF(NRMAX > NRM .OR. NRMAX < 0) EXIT
+       IF(NQMAX > NQM .OR. NQMAX < 0) EXIT
+       IF(NTMAX < 0) EXIT
+       IF(NTSTEP < 0 .OR. NGRSTP < 0 .OR. NGTSTP < 0 .OR. NGVSTP < 0) EXIT
+       ! Physical variables
+       IF(RA >= RB) EXIT
+       IF(RC < 0.D0 .OR. RC > RB) EXIT
+       IF(RR <= RB) EXIT
+       IF(rIPs < 0.D0 .OR. rIPe < 0.D0) EXIT
+       IF(PA < 0.D0 .OR. PZ < 0.D0 .OR. Zeff < 1.D0) EXIT
+       IF(PN0 < 0.D0 .OR. PNa < 0.D0) EXIT
+       IF(PTe0 < 0.D0 .OR. PTea < 0.D0) EXIT
+       IF(PTi0 < 0.D0 .OR. PTia < 0.D0) EXIT
+       IF(De0 < 0.D0 .OR. Di0 < 0.D0) EXIT
+       IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
+       IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0 .OR. WPM0 < 0.D0) EXIT
+       IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0) EXIT
+       IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0 .OR. FSPSCL < 0.D0) EXIT
+       IF(FSLC < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
+       IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
+       IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
+       IF(rG1 < 0.D0) EXIT
+       IF(Eb < 0.D0 .OR. PNBH < 0.D0 .OR. PNBCD < 0.D0) EXIT
+       IF(RNB > RB .OR. RNB < 0.D0) EXIT
+       IF(rNRF < 0.D0 .OR. PRFH < 0.D0) EXIT
+       IF(RRF > RB .OR. RRF < 0.D0) EXIT
+       IF(PN0s < 0.D0 .OR. V0 < 0.D0) EXIT
+       IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) EXIT
+       IF(rGASPF < 0.D0) EXIT
+       IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) EXIT
+       IF(DT < 0.D0 .OR. EPS < 0.D0) EXIT
+       IF(ICMAX < 0) EXIT
+       IF(ADV < 0.D0 .OR. ADV > 1.D0) EXIT
+       IF(tiny_cap < 0.D0) EXIT
+       IF(CMESH < 0.D0 .OR. WMESH < 0.D0) EXIT
+       RETURN
+    END DO
+
+    WRITE(6,*) 'XX CONSISTENCY ERROR: PLEASE CHECK YOUR INPUT PARAMETERS.'
+    STOP
+    
+  END SUBROUTINE TXPARM_CHECK
+
   !***** INPUT PARAMETER LIST *****
 
   SUBROUTINE TXPLST
@@ -994,7 +1043,7 @@ contains
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
          &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
-         &   'EPS   ', EPS   ,  'tiny  ', tiny_cap, &
+         &   'EPS   ', EPS   ,  'tiny  ', tiny_cap,&
          &   'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &

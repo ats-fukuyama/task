@@ -11,7 +11,7 @@
      FSBOHM=0.0,PROFD=20.0,FSPSCL=20.0
      PNBH=0.0,RNB=0.15D0,PNBCD=1.0,Eb=32.0
      PRFH=0.0,RRF=0.15D0
-     PA=1.0, Zeff=2.0, rGASPF=0.03, rGamm0=0.8
+     PA=1.0, Zeff=2.0, rGASPF=0.01, rGamm0=0.8
      NRMAX=60,ntmax=500,ngrstp=50,ngtstp=10,ntstep=100,ngvstp=10
      CMESH=10,WMESH=0.05
      RG1=10.0,icmax=50,modeav=0,idiag=0

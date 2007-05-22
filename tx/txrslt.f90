@@ -22,11 +22,11 @@ contains
          &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
          &     BBL, SUMML, SUMPL, PNES, PAI
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
-    REAL(8) :: EPS, FT, DDX, RL31, RL32, DDD, dPTeV, dPTiV, PPe, PPi, dPPeV, dPPiV, &
+    REAL(8) :: EpsL, FT, DDX, RL31, RL32, DDD, dPTeV, dPTiV, PPe, PPi, dPPe, dPPi, &
          &     dPPV, ALFA, ALFABP, rNuBAR
     REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP
     REAL(8), DIMENSION(1:NRMAX) :: BETAL, BETAPL, BETAQ
-    real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP
+    real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2
     real(8) :: dBetaSUM, BPINT
     real(8) :: DERIV3
 
@@ -38,7 +38,7 @@ contains
     FKAP = 1.D0
 
     RNINT = INTG_F(PNeV)
-    RPEINT = INTG_F(PTeV(0:NRMAX)*PNeV(0:NRMAX))
+    RPEINT = INTG_F(PeV)
     ANSAV(1) = RNINT*2.D0*PI/(PI*RA*RA)
     ANS0(1)  = PNeV(0)
     IF(RNINT > 0.D0) THEN
@@ -50,7 +50,7 @@ contains
     WST(1) = RPEINT*1.5D0*2.D0*PI*RR*2.D0*PI*rKeV*1.D14
 
     RNINT = INTG_F(PNiV)
-    RPIINT = INTG_F(PTiV(0:NRMAX)*PNiV(0:NRMAX))
+    RPIINT = INTG_F(PiV)
     ANSAV(2) = RNINT*2.D0*PI/(PI*RA*RA)
     ANS0(2)  = PNiV(0)
     IF(RNINT > 0.D0) THEN
@@ -128,7 +128,7 @@ contains
 
     !     Bootstrap currents
 
-    PP(0:NRMAX) = PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)
+    PP(0:NRMAX) = PeV(0:NRMAX) + PiV(0:NRMAX)
     DO NR = 0, NRMAX
        ! +++ Original model +++
        dPPV = DERIV3(NR,R,PP,NRMAX,NRM,0)
@@ -139,12 +139,12 @@ contains
        ! +++ Hirshman model +++
        dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0) * RA
        dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0) * RA
-       PPe   = PNeV(NR) * PTeV(NR)
-       PPi   = PNiV(NR) * PTiV(NR)
-       dPPeV = DERIV3(NR,R,PNeV(0:NRMAX)*PTeV(0:NRMAX),NRMAX,NRM,0) * RA
-       dPPiV = DERIV3(NR,R,PNiV(0:NRMAX)*PTiV(0:NRMAX),NRMAX,NRM,0) * RA
-       EPS  = R(NR) / RR
-       FT   =(1.46D0 * SQRT(EPS) + 2.4D0 * EPS) / (1.D0 - EPS)**1.5D0
+       PPe   = PeV(NR)
+       PPi   = PiV(NR)
+       dPPe  = DERIV3(NR,R,PeV,NRMAX,NRM,0) * RA
+       dPPi  = DERIV3(NR,R,PiV,NRMAX,NRM,0) * RA
+       EpsL  = R(NR) / RR
+       FT   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
        DDX  = 1.414D0 * PZ + PZ**2 + FT * (0.754D0 + 2.657D0 * PZ &
             &        + 2.D0 * PZ**2) + FT**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
        RL31 = FT * ( 0.754D0 + 2.21D0 * PZ + PZ**2 + FT * (0.348D0 + 1.243D0 &
@@ -155,8 +155,8 @@ contains
           AJBS2(NR) = 0.D0
        ELSE
           AJBS2(NR) =- (PPe * 1.D20 * rKeV) &
-               &    * (RL31 * ((dPPeV / PPe) + (PTiV(NR) / (PZ * PTeV(NR))) &
-               &    * ((dPPiV / PPi) + DDD * (dPTiV / PTiV(NR)))) &
+               &    * (RL31 * ((dPPe / PPe) + (PTiV(NR) / (PZ * PTeV(NR))) &
+               &    * ((dPPi / PPi) + DDD * (dPTiV / PTiV(NR)))) &
                &    + RL32 * (dPTeV / PTeV(NR))) / (RA * BthV(NR))
        END IF
     END DO
@@ -226,11 +226,11 @@ contains
 
     Betadef(0:NRMAX) = (PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)) &
          &        * 1.D20 * rKeV /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
-    CALL DERIVS(R,Betadef,dBetadr,NRMAX)
+    CALL DERIVS(R,Betadef,NRMAX,dBetadr)
     RPEINT = 0.D0 ; RPIINT = 0.D0 ; dBetaSUM = 0.D0
     DO NR = 1, NRMAX
-       RPEINT = RPEINT + INTG_P(PNeV(0:NRMAX)*PTeV(0:NRMAX),NR,0)
-       RPIINT = RPIINT + INTG_P(PNiV(0:NRMAX)*PTiV(0:NRMAX),NR,0)
+       RPEINT = RPEINT + INTG_P(PeV,NR,0)
+       RPIINT = RPIINT + INTG_P(PiV,NR,0)
        dBetaSUM = dBetaSUM + INTG_P(dBetadr,NR,0)
        RPINT =(RPEINT + RPIINT)*rKeV*1.D20
        SUMM  = 2.D0*PI*RPINT
@@ -293,7 +293,8 @@ contains
     BETAPA = BETAP(NRMAX)
     BETAA  = BETA(NRMAX)
 
-    BPINT = 0.5D0 * INTG_F(BthV(0:NRMAX)**2)
+    BthV2(0:NRMAX) = BthV(0:NRMAX)**2
+    BPINT = 0.5D0 * INTG_F(BthV2)
     ALI   = 8.D0*PI**2*BPINT*FKAP**2/((rMU0*rIp*1.D6)**2)
     VLOOP = EphV(NRMAX)*2.D0*PI*RR
 

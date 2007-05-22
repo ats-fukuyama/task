@@ -189,6 +189,7 @@ contains
     use variables
     use init_prof
     use coefficients, only : TXCALA
+    use parameter_control, only : TXPARM_CHECK
 
     INTEGER :: IST, NQ, NR, NGYT, NGYV, I, IGYT, IGYV
     character(len=100) ::  TXFNAM, RCSId
@@ -264,6 +265,7 @@ contains
     NGVV=-1
     rIP=rIPs
 
+    CALL TXPARM_CHECK
     CALL TXCALM
     CALL TXCALV(X)
     CALL TXCALC

@@ -1,12 +1,297 @@
 !     $Id$
 module core_module
-  use commons, only : nrmax, h, r, psi, hpsi
+  use commons, only : nrmax, h, r, psi, hpsi, nemax
   implicit none
+  real(8) :: c13 = 1.d0 / 3.d0, c16 = 1.d0 / 6.d0, c112 = 1.d0 / 12.d0, c160 = 1.d0 / 60.d0
   public
 
 contains
 
-  function fem_int(id,ne,a,b) result(x)
+  function fem_int(id,a,b) result(x)
+
+!-------------------------------------------------------
+!
+!   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
+!      dpsi : mesh interval
+!      a    : coefficient vector
+!      b    : coefficient vector
+!      u    : variable vector
+!      w    : weighting vector
+!
+!   function(psi) is classified as follows:
+!      id = 1  : u * w
+!      id = 2  : a * u * w
+!      id = 3  :(a * u)'* w
+!      id = 4  : u'* w
+!      id = 5  : a * u'* w
+!      id = 6  : a'* u * w
+!      id = 7  : a'* u'* w
+!      id = 8  : u * w'
+!      id = 9  : a * u * w'
+!      id = 10 :(a * u)'* w'
+!      id = 11 : u'* w'
+!      id = 12 : a * u'* w'
+!      id = 13 : a'* u * w'
+!      id = 14 : a'* u'* w'
+!
+!      id = 15 : psi * a * u * w
+!      id = 16 : psi * a'* u * w
+!      id = 17 : psi * a * u'* w
+!      id = 18 : psi * a * u'* w'
+!      id = 19 : psi * a * u * w'
+!      id = 20 : psi * a * b'* u * w'
+!
+!      id = 21 : sqrt(psi) * a * w (r*a*w)
+!      id = 22 : r * a * u * w
+!      id = 23 : r * a * u'* w
+!      id = 24 : r * a * u * w'
+!      id = 25 : r * a * b'* u * w
+!      id = 26 : r * psi * a * u'* w'
+!      id = 27 : r * psi * a * b'* u * w'
+!
+!      id = 28 : a * b * u * w
+!      id = 29 : a * b'* u * w
+!      id = 30 : a * b * u'* w
+!      id = 31 : a * b * u * w'
+!      id = 32 :(a * b * u)'* w
+!      id = 33 : a'* b'* u * w
+!      id = 34 : a * b'* u * w'
+!      id = 35 : a * b * u'* w'
+!
+!      id = 36 : psi * a'* b * u * w
+!      id = 37 : psi * a * b'* u * w
+!      id = 38 : psi * a * b * u'* w
+!      id = 39 :(psi * a * b * u)'* w
+!      id = 40 : psi * a'* b * u * w'
+!      id = 41 : psi * a * b * u'* w'
+!      id = 42 :(psi * a * b * u)'* w'
+!      id = 43 : psi * a * b * (u / b)'* w'
+!
+!      id = 44 : psi * a * b * u * w
+!      id = 45 :(psi * a * b'* u)'* w'
+!      id = 46 :(psi * a * b'* u)'* w'
+!
+!      id = -1 : a * w
+!      id = -2 : a * b * w
+!      id = -8 : a * w'
+!      id = -9 : a * b * w'
+!
+!   where ' means the derivative of psi
+!
+!  < input >
+!     id       : mode select
+!     a(nrmax) : coefficient vector, optional
+!     b(nrmax) : coefficient vector, optional
+!  < output >
+!     x(1:nemax,4) : matrix of integrated values
+!
+!-------------------------------------------------------
+
+    integer, intent(in) :: id
+    real(8), intent(in), dimension(0:nrmax), optional  :: a, b
+    integer :: ne
+    real(8) :: x(1:nemax,1:4), csq15
+    
+    select case(id)
+    case(-1)
+       do ne = 1, nemax
+          x(ne,1) = hpsi(ne) * c13 * a(ne-1)
+          x(ne,2) = hpsi(ne) * c16 * a(ne)
+          x(ne,3) = hpsi(ne) * c16 * a(ne-1)
+          x(ne,4) = hpsi(ne) * c13 * a(ne)
+       end do
+    case(-2)
+       do ne = 1, nemax
+          x(ne,1) = ( 3.d0 * a(ne-1) +        a(ne)) * hpsi(ne) * c112 * b(ne-1)
+          x(ne,2) = (        a(ne-1) +        a(ne)) * hpsi(ne) * c112 * b(ne)
+          x(ne,3) = (        a(ne-1) +        a(ne)) * hpsi(ne) * c112 * b(ne-1)
+          x(ne,4) = (        a(ne-1) + 3.d0 * a(ne)) * hpsi(ne) * c112 * b(ne)
+       end do
+    case(0)
+       !  for SUPG
+       csq15 = 1.d0 / sqrt(15.d0)
+       x(1:nemax,1) = hpsi(1:nemax) * csq15
+       x(1:nemax,2) = x(1:nemax,1)
+       x(1:nemax,3) = x(1:nemax,1)
+       x(1:nemax,4) = x(1:nemax,1)
+    case(1)
+       x(1:nemax,1) = hpsi(1:nemax) * c13
+       x(1:nemax,2) = hpsi(1:nemax) * c16
+       x(1:nemax,3) = x(1:nemax,2)
+       x(1:nemax,4) = x(1:nemax,1)
+    case(2)
+       do ne = 1, nemax
+          x(ne,1) = ( 3.d0 * a(ne-1) +        a(ne)) * hpsi(ne) * c112
+          x(ne,2) = (        a(ne-1) +        a(ne)) * hpsi(ne) * c112
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (        a(ne-1) + 3.d0 * a(ne)) * hpsi(ne) * c112
+       end do
+    case(3)
+       do ne = 1, nemax
+          x(ne,1) = (-4.d0 * a(ne-1) +        a(ne)) * c16
+          x(ne,2) = (        a(ne-1) + 2.d0 * a(ne)) * c16
+          x(ne,3) = (-2.d0 * a(ne-1) -        a(ne)) * c16
+          x(ne,4) = (-       a(ne-1) + 4.d0 * a(ne)) * c16
+       end do
+    case(4)
+       x(1:nemax,1) = -0.5d0
+       x(1:nemax,2) =  0.5d0
+       x(1:nemax,3) = x(1:nemax,1)
+       x(1:nemax,4) = x(1:nemax,2)
+    case(6)
+       do ne = 1, nemax
+          x(ne,1) = (- a(ne-1) + a(ne)) * c13
+          x(ne,2) = (- a(ne-1) + a(ne)) * c16
+          x(ne,3) = x(ne,2)
+          x(ne,4) = x(ne,1)
+       end do
+    case(8)
+       x(1:nemax,1) =-0.5d0
+       x(1:nemax,2) = x(1:nemax,1)
+       x(1:nemax,3) = 0.5d0
+       x(1:nemax,4) = x(1:nemax,3)
+    case(9)
+       do ne = 1, nemax
+          x(ne,1) = (-2.d0 * a(ne-1) -        a(ne)) * c16
+          x(ne,2) = (-       a(ne-1) - 2.d0 * a(ne)) * c16
+          x(ne,3) =-x(ne,1)
+          x(ne,4) =-x(ne,2)
+       end do
+    case(10)
+       do ne = 1, nemax
+          x(ne,1) = a(ne-1) / hpsi(ne)
+          x(ne,2) =-a(ne)   / hpsi(ne)
+          x(ne,3) =-x(ne,1)
+          x(ne,4) =-x(ne,2)
+       end do
+    case(15)
+       do ne = 1, nemax
+          x(ne,1) = ( 12.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
+               &     + 3.d0*psi(ne-1)*a(ne)   + 2.d0*psi(ne)*a(ne)) * hpsi(ne) * c160
+          x(ne,2) = (  3.d0*psi(ne-1)*a(ne-1) + 2.d0*psi(ne)*a(ne-1) &
+               &     + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * hpsi(ne) * c160
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (  2.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
+               &     + 3.d0*psi(ne-1)*a(ne)   +12.d0*psi(ne)*a(ne)) * hpsi(ne) * c160
+       end do
+    case(16)
+       do ne = 1, nemax
+          x(ne,1) = (3.d0 * psi(ne-1) +        psi(ne)) * (-a(ne-1) + a(ne)) * c112
+          x(ne,2) = (       psi(ne-1) +        psi(ne)) * (-a(ne-1) + a(ne)) * c112
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (       psi(ne-1) + 3.d0 * psi(ne)) * (-a(ne-1) + a(ne)) * c112
+       end do
+    case(17)
+       do ne = 1, nemax
+          x(ne,1) = (-3.d0*psi(ne-1)*a(ne-1) -      psi(ne)*a(ne-1) &
+               &     -     psi(ne-1)*a(ne)   -      psi(ne)*a(ne)) * c112
+          x(ne,2) =-x(ne,1)
+          x(ne,3) = (-     psi(ne-1)*a(ne-1) -      psi(ne)*a(ne-1) &
+               &     -     psi(ne-1)*a(ne)   - 3.d0*psi(ne)*a(ne)) * c112
+          x(ne,4) =-x(ne,3)
+       end do
+    case(18)
+       do ne = 1, nemax
+          x(ne,1) = ( 2.d0*psi(ne-1)*a(ne-1) +      psi(ne)*a(ne-1) &
+               &     +     psi(ne-1)*a(ne)   + 2.d0*psi(ne)*a(ne))  / hpsi(ne) * c16
+          x(ne,2) =-x(ne,1)
+          x(ne,3) = (-2.d0*psi(ne-1)*a(ne-1) -      psi(ne)*a(ne-1) &
+               &     -     psi(ne-1)*a(ne)   - 2.d0*psi(ne)*a(ne))  / hpsi(ne) * c16
+          x(ne,4) =-x(ne,3)
+       end do
+    case(20)
+       do ne = 1, nemax
+          x(ne,1) = ( 3.d0*psi(ne-1)*a(ne-1) +      psi(ne)*a(ne-1) &
+               &     +     psi(ne-1)*a(ne)   +      psi(ne)*a(ne)) &
+               &  * (b(ne-1) - b(ne)) / (12.d0 * hpsi(ne))
+          x(ne,2) = (      psi(ne-1)*a(ne-1) +      psi(ne)*a(ne-1) &
+               &     +     psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) &
+               &  * (b(ne-1) - b(ne)) / (12.d0 * hpsi(ne))
+          x(ne,3) =-x(ne,1)
+          x(ne,4) =-x(ne,2)
+       end do
+    case(28)
+       do ne = 1, nemax
+          x(ne,1) = (12.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne)*b(ne-1) &
+               &    + 3.d0*a(ne-1)*b(ne)   + 2.d0*a(ne)*b(ne)) * hpsi(ne) * c160
+          x(ne,2) = ( 3.d0*a(ne-1)*b(ne-1) + 2.d0*a(ne)*b(ne-1) &
+               &    + 2.d0*a(ne-1)*b(ne)   + 3.d0*a(ne)*b(ne)) * hpsi(ne) * c160
+          x(ne,3) = x(ne,2)
+          x(ne,4) = ( 2.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne)*b(ne-1) &
+               &    + 3.d0*a(ne-1)*b(ne)   +12.d0*a(ne)*b(ne)) * hpsi(ne) * c160
+       end do
+    case(34)
+       do ne = 1, nemax
+          x(ne,1) = ( 2.d0*a(ne-1)*b(ne-1) - 2.d0*a(ne-1)*b(ne) &
+               &     +     a(ne)  *b(ne-1) -      a(ne)  *b(ne)) / hpsi(ne) * c16
+          x(ne,2) = (      a(ne-1)*b(ne-1) -      a(ne-1)*b(ne) &
+               &     +2.d0*a(ne)  *b(ne-1) - 2.d0*a(ne)  *b(ne)) / hpsi(ne) * c16
+          x(ne,3) =-x(ne,1)
+          x(ne,4) =-x(ne,2)
+       end do
+    case(36)
+       do ne = 1, nemax
+          x(ne,1) = ( 12.d0*psi(ne-1)*b(ne-1) + 3.d0*psi(ne)*b(ne-1) &
+               &     + 3.d0*psi(ne-1)*b(ne)   + 2.d0*psi(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
+          x(ne,2) = (  3.d0*psi(ne-1)*b(ne-1) + 2.d0*psi(ne)*b(ne-1) &
+               &     + 2.d0*psi(ne-1)*b(ne)   + 3.d0*psi(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (  2.d0*psi(ne-1)*b(ne-1) + 3.d0*psi(ne)*b(ne-1) &
+               &     + 3.d0*psi(ne-1)*b(ne)   +12.d0*psi(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
+       end do
+    case(39)
+       do ne = 1, nemax
+          x(ne,1) = (-48.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 3.d0*a(ne)*b(ne-1)*psi(ne-1) &
+               &     + 3.d0*a(ne-1)*b(ne)  *psi(ne-1)+ 2.d0*a(ne)*b(ne)  *psi(ne-1) &
+               &     + 3.d0*a(ne-1)*b(ne-1)*psi(ne)  + 2.d0*a(ne)*b(ne-1)*psi(ne) &
+               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne)  + 3.d0*a(ne)*b(ne)  *psi(ne)) * c160
+          x(ne,2) = (  3.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
+               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne-1)+ 3.d0*a(ne)*b(ne)  *psi(ne-1) &
+               &     + 2.d0*a(ne-1)*b(ne-1)*psi(ne)  + 3.d0*a(ne)*b(ne-1)*psi(ne) &
+               &     + 3.d0*a(ne-1)*b(ne)  *psi(ne)  +12.d0*a(ne)*b(ne)  *psi(ne)) * c160
+          x(ne,3) = (-12.d0*a(ne-1)*b(ne-1)*psi(ne-1)- 3.d0*a(ne)*b(ne-1)*psi(ne-1) &
+               &     - 3.d0*a(ne-1)*b(ne)  *psi(ne-1)- 2.d0*a(ne)*b(ne)  *psi(ne-1) &
+               &     - 3.d0*a(ne-1)*b(ne-1)*psi(ne)  - 2.d0*a(ne)*b(ne-1)*psi(ne) &
+               &     - 2.d0*a(ne-1)*b(ne)  *psi(ne)  - 3.d0*a(ne)*b(ne)  *psi(ne)) * c160
+          x(ne,4) = (- 3.d0*a(ne-1)*b(ne-1)*psi(ne-1)- 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
+               &     - 2.d0*a(ne-1)*b(ne)  *psi(ne-1)- 3.d0*a(ne)*b(ne)  *psi(ne-1) &
+               &     - 2.d0*a(ne-1)*b(ne-1)*psi(ne)  - 3.d0*a(ne)*b(ne-1)*psi(ne) &
+               &     - 3.d0*a(ne-1)*b(ne)  *psi(ne)  +48.d0*a(ne)*b(ne)  *psi(ne)) * c160
+       end do
+    case(41)
+       do ne = 1, nemax
+          x(ne,1) = (b(ne-1)*( 3.d0*psi(ne-1)*a(ne-1)+     psi(ne)*a(ne-1) &
+               &              +     psi(ne-1)*a(ne)  +     psi(ne)*a(ne)) &
+               &    +b(ne)  *(      psi(ne-1)*a(ne-1)+     psi(ne)*a(ne-1) &
+               &              +     psi(ne-1)*a(ne)  +3.d0*psi(ne)*a(ne))) / hpsi(ne) * c112
+          x(ne,2) =-x(ne,1)
+          x(ne,3) = x(ne,2)
+          x(ne,4) = x(ne,1)
+       end do
+    case(44)
+       do ne = 1, nemax
+          x(ne,1) = ( 10.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
+               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne-1)+      a(ne)*b(ne)  *psi(ne-1) &
+               &     + 2.d0*a(ne-1)*b(ne-1)*psi(ne)  +      a(ne)*b(ne-1)*psi(ne) &
+               &     +      a(ne-1)*b(ne)  *psi(ne)  +      a(ne)*b(ne)  *psi(ne)) * hpsi(ne) * c160
+          x(ne,2) = (  2.d0*a(ne-1)*b(ne-1)*psi(ne-1)+      a(ne)*b(ne-1)*psi(ne-1) &
+               &     +      a(ne-1)*b(ne)  *psi(ne-1)+      a(ne)*b(ne)  *psi(ne-1) &
+               &     +      a(ne-1)*b(ne-1)*psi(ne)  +      a(ne)*b(ne-1)*psi(ne) &
+               &     +      a(ne-1)*b(ne)  *psi(ne)  + 2.d0*a(ne)*b(ne)  *psi(ne)) * hpsi(ne) * c160
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (       a(ne-1)*b(ne-1)*psi(ne-1)+      a(ne)*b(ne-1)*psi(ne-1) &
+               &     +      a(ne-1)*b(ne)  *psi(ne-1)+ 2.d0*a(ne)*b(ne)  *psi(ne-1) &
+               &     +      a(ne-1)*b(ne-1)*psi(ne)  + 2.d0*a(ne)*b(ne-1)*psi(ne) &
+               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne)  +10.d0*a(ne)*b(ne)  *psi(ne)) * hpsi(ne) * c160
+       end do
+    case default
+       write(6,*)  'XX falut ID in fem_int, id= ',id
+       stop
+    end select
+
+  end function fem_int
+
+  function fem_int_point(id,ne,a,b) result(x)
 !-------------------------------------------------------
 !
 !   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
@@ -397,11 +682,11 @@ contains
        x(3) = a1*(b1-b2)*p1/hp**2
        x(4) =-a2*(b1-b2)*p2/hp**2
     case default
-       write(6,*)  'XX falut ID in fem_int, id= ',id
+       write(6,*)  'XX falut ID in fem_int_point, id= ',id
        stop
     end select
 
-  end function fem_int
+  end function fem_int_point
 
   function lump_int(id,ne,a) result(x)
 
@@ -452,6 +737,11 @@ module libraries
      module procedure APSTOS
      module procedure APRTOS
      module procedure APDTOS
+  end interface
+
+  interface DERIVS
+     module procedure DERIVS1D
+     module procedure DERIVS2D
   end interface
 
 contains
@@ -669,7 +959,7 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE DERIVS(R,F,G,NRMAX)
+  SUBROUTINE DERIVS1D(R,F,NRMAX,G)
 
     real(8), dimension(0:NRMAX), intent(in)  :: R, F
     real(8), dimension(0:NRMAX), intent(out) :: G
@@ -694,85 +984,59 @@ contains
        G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
             &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
 
-  END SUBROUTINE DERIVS
+  END SUBROUTINE DERIVS1D
 
-  REAL(8) FUNCTION DERIVF(NR,R,F,NRMAX,ID)
-    integer, intent(in) :: NR, NRMAX, ID
-    real(8), dimension(0:NRMAX), intent(in) :: F, R
-    integer :: NR0, NR1, NR2
-    real(8) :: DR, DLT1, DLT2, AITKEN4P, RETP, FETP
+  SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
 
-    IF(ID == 0) THEN
-       IF(NR == 0) THEN
-          NR0 = NR
-          NR1 = NR+1
-          NR2 = NR+2
-       ELSEIF(NR == NRMAX) THEN
-          NR0 = NR
-          NR1 = NR-1
-          NR2 = NR-2
-       ELSE
-          NR0 = NR
-          NR1 = NR-1
-          NR2 = NR+1
-       ENDIF
+    real(8), dimension(0:NRMAX), intent(in)  :: R
+    real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
+    real(8), dimension(0:NRMAX), intent(out) :: G
+    integer, intent(in) :: LQ, NRMAX, NQMAX
+    integer :: NR
+    real(8) :: DR1, DR2
 
-       DLT1=R(NR1)-R(NR0)
-       DLT2=R(NR2)-R(NR0)
-       DERIVF = (DLT2**2*F(NR1)-DLT1**2*F(NR2))/(DLT1*DLT2*(DLT2-DLT1)) &
-       &       -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
+    NR = 0
+       DR1 = R(NR+1) - R(NR)
+       DR2 = R(NR+2) - R(NR)
+       G(NR) = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+    DO NR = 1, NRMAX - 1
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR+1) - R(NR)
+       G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+    END DO
+    NR = NRMAX
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR-2) - R(NR)
+       G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+
+  END SUBROUTINE DERIVS2D
+
+  REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
+
+    real(8), dimension(0:NRMAX), intent(in)  :: R
+    real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
+    integer, intent(in) :: LQ, NRMAX, NQMAX
+    integer :: NR
+    real(8) :: DR1, DR2
+
+    IF(NR == 0) THEN
+       DR1 = R(NR+1) - R(NR)
+       DR2 = R(NR+2) - R(NR)
+       DERIVF = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+    ELSE IF(NR == NRMAX) THEN
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR-2) - R(NR)
+       DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
     ELSE
-       IF(NR == 0) THEN
-          IF(ID == 1 .OR. ID == 3) THEN
-             RETP = 2.D0 * R(NR) - R(NR+1)
-             FETP = AITKEN4P(RETP,F(NR),F(NR+1),F(NR+2),F(NR+3),F(NR+4), &
-                  &               R(NR),R(NR+1),R(NR+2),R(NR+3),R(NR+4))
-
-             NR0 = NR
-             NR1 = NR+1
-             DLT1=R(NR1)-R(NR0)
-             DLT2=RETP  -R(NR0)
-             DERIVF = (DLT2**2*F(NR1)-DLT1**2*FETP)/(DLT1*DLT2*(DLT2-DLT1)) &
-                  &  -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
-          ELSE
-             NR0 = NR
-             NR1 = NR+1
-             NR2 = NR+2
-             DLT1=R(NR1)-R(NR0)
-             DLT2=R(NR2)-R(NR0)
-             DERIVF = (DLT2**2*F(NR1)-DLT1**2*F(NR2))/(DLT1*DLT2*(DLT2-DLT1)) &
-                  &  -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
-          END IF
-       ELSEIF(NR == NRMAX) THEN
-          IF(ID == 2 .OR. ID == 3) THEN
-             RETP = 2.D0 * R(NR) - R(NR-1)
-             FETP = AITKEN4P(RETP,F(NR),F(NR-1),F(NR-2),F(NR-3),F(NR-4), &
-                  &               R(NR),R(NR-1),R(NR-2),R(NR-3),R(NR-4))
-
-             NR0 = NR
-             NR1 = NR-1
-             DLT1=R(NR1)-R(NR0)
-             DLT2=RETP  -R(NR0)
-             DERIVF = (DLT2**2*F(NR1)-DLT1**2*FETP)/(DLT1*DLT2*(DLT2-DLT1)) &
-                  &  -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
-          ELSE
-             NR0 = NR
-             NR1 = NR-1
-             NR2 = NR-2
-             DLT1=R(NR1)-R(NR0)
-             DLT2=R(NR2)-R(NR0)
-             DERIVF = (DLT2**2*F(NR1)-DLT1**2*F(NR2))/(DLT1*DLT2*(DLT2-DLT1)) &
-                  &  -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
-          END IF
-       ELSE
-          NR0 = NR
-          NR1 = NR-1
-          NR2 = NR+1
-          DLT1=R(NR1)-R(NR0)
-          DLT2=R(NR2)-R(NR0)
-          DERIVF = (DLT2**2*F(NR1)-DLT1**2*F(NR2))/(DLT1*DLT2*(DLT2-DLT1)) &
-               &  -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
-       END IF
+       DR1 = R(NR-1) - R(NR)
+       DR2 = R(NR+1) - R(NR)
+       DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
     END IF
 
     RETURN
@@ -788,18 +1052,11 @@ contains
 
     ! Calculate \int (r * X) dpsi
 
-    use commons, only : NRMAX, NEMAX
     use core_module, only : fem_int
-    real(8), dimension(0:NRMAX), intent(in) :: X
-    integer :: NE
-    real(8) :: SUML
+    real(8), dimension(*), intent(in) :: X
 
-    SUML = 0.D0
-    DO NE = 1, NEMAX
-       SUML = SUML + 0.5D0 * SUM(fem_int(-1,NE,X))
-    END DO
-    INTG_F = SUML
-    
+    INTG_F = 0.5D0 * SUM(fem_int(-1,X))
+
   END FUNCTION INTG_F
 
   REAL(8) FUNCTION INTG_P(X,NR,ID)
@@ -807,10 +1064,9 @@ contains
     ! Calculate \int r * X(r) dpsi or 0.5 * \int X(psi) dpsi (ID == 0) 
     !           \int     X(r) dpsi (ID == 1) at one mesh
 
-    use commons, only : NRMAX
-    use core_module, only : fem_int
+    use core_module, only : fem_int_point
     integer, intent(in) :: NR, ID
-    real(8), dimension(0:NRMAX), intent(in) :: X
+    real(8), dimension(*), intent(in) :: X
     integer :: NE
 
     IF(ID == 0) THEN
@@ -818,14 +1074,14 @@ contains
           INTG_P = 0.D0
        ELSE
           NE = NR
-          INTG_P = 0.5D0 * SUM(fem_int(-1,NE,X))
+          INTG_P = 0.5D0 * SUM(fem_int_point(-1,NE,X))
        END IF
     ELSEIF(ID == 1) THEN
        IF(NR == 0) THEN
           INTG_P = 0.D0
        ELSE
           NE = NR
-          INTG_P = 0.5D0 * SUM(fem_int(21,NE,X))
+          INTG_P = 0.5D0 * SUM(fem_int_point(21,NE,X))
        END IF
     END IF
     
@@ -835,18 +1091,18 @@ contains
 
     ! Calculate \int_0^r (r * X) dr
 
-    use commons, only : NRMAX
-    use core_module, only : fem_int
+    use core_module, only : fem_int_point
     integer, intent(in) :: NRLMAX
-    real(8), dimension(0:NRMAX), intent(in) :: X
+    real(8), dimension(*), intent(in) :: X
     real(8), intent(out) :: VAL
     integer :: NE, NEMAX
     real(8) :: SUML
 
     NEMAX = NRLMAX
     SUML = 0.D0
+
     DO NE = 1, NEMAX
-       SUML = SUML + 0.5D0 * SUM(fem_int(-1,NE,X))
+       SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X))
     END DO
     VAL = SUML
     

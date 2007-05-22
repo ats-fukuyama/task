@@ -84,7 +84,7 @@ contains
     use coefficients, only : TXCALA
     use graphic, only : TXSTGT, TXSTGV, TXSTGR
 
-    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC, IDIV, NTDO, IDISP, NRAVM, ID
+    INTEGER :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
     REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP, ASG
@@ -151,8 +151,8 @@ contains
              END DO
           END DO
           ! Avoid negative values
-          CALL MINUS_GOES_ZERO(XN(LQb1,0:NRMAX),0)
-          CALL MINUS_GOES_ZERO(XN(LQn1,0:NRMAX),1)
+          CALL MINUS_GOES_ZERO(XN,LQb1,0)
+          CALL MINUS_GOES_ZERO(XN,LQn1,1)
           ! Ignore tiny values
           where (abs(xn) < tiny_cap) xn = 0.d0
 !!$          ! In the case of NBI off after NBI on
@@ -243,9 +243,6 @@ contains
 
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
-!!$       do nq=1,nqmax
-!!$          write(6,'(I3,3E20.10)') nq,x(nq,1),x(nq,15),x(nq,nra)
-!!$       end do
 
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
@@ -255,7 +252,13 @@ contains
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
                & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
        ELSE
-          IF(NT /= NTMAX) WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+          IF(NT /= NTMAX) THEN
+             IF(IC-1 == ICMAX) THEN
+                WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3,"  *")') NT,T_TX,IC
+             ELSE
+                WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+             END IF
+          END IF
        END IF
 
 180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
@@ -512,8 +515,10 @@ contains
 
   SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
-    INTEGER :: NTL, IC, IER, NR
-    REAL(8), DIMENSION(NQM,0:NRM) :: XL
+    INTEGER, intent(in) :: NTL, IC
+    integer, intent(inout) :: IER
+    REAL(8), DIMENSION(1:NQM,0:NRM), intent(in) :: XL
+    integer :: NR
 
     IER = 0
 
@@ -534,7 +539,7 @@ contains
                &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
           WRITE(6,'(20X,2(A,1PE15.7))') 'Te =', SNGL(XL(LQe5,NR)), &
                &           ',   Ti =', SNGL(XL(LQi5,NR))
-          IER = 1
+          IER = 2
           RETURN
        END IF
     END DO
@@ -548,33 +553,33 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE MINUS_GOES_ZERO(XL,ID)
+  SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
-    integer, intent(in) :: ID
-    real(8), dimension(0:NRM), intent(inout) :: XL
+    integer, intent(in) :: LQ,ID
+    real(8), dimension(1:NQMAX,0:NRMAX), intent(inout) :: XL
     integer :: NR, NZERO
 
     IF(ID == 0) THEN
-       IF(MINVAL(XL(0:NRMAX)) < 0.D0) THEN
+       IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
           DO NR = 0, NRMAX
-             IF(XL(NR) <= 0.D0) THEN
+             IF(XL(LQ,NR) <= 0.D0) THEN
                 NZERO = NR
                 EXIT
              END IF
           END DO
 
-          XL(NZERO:NRMAX) = 0.D0
+          XL(LQ,NZERO:NRMAX) = 0.D0
        END IF
     ELSE
-       IF(MINVAL(XL(0:NRMAX)) < 0.D0) THEN
+       IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
           DO NR = NRMAX, 0, -1
-             IF(XL(NR) <= 0.D0) THEN
+             IF(XL(LQ,NR) <= 0.D0) THEN
                 NZERO = NR
                 EXIT
              END IF
           END DO
 
-          XL(0:NZERO) = 0.D0
+          XL(LQ,0:NZERO) = 0.D0
        END IF
     END IF
 
