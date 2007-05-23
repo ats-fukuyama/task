@@ -765,10 +765,10 @@ contains
 
        ! Collisional transfer with ions
 
-       ELM(1:NEMAX,1:4, 5,LQe5) = - fem_int(2,rNuTei)
+       ELM(1:NEMAX,1:4, 5,LQe5) = - 1.5d0 * fem_int(2,rNuTei)
        NLC( 5,LQe5) = LQe5
 
-       ELM(1:NEMAX,1:4, 6,LQe5) =   fem_int(2,rNuTeiEI)
+       ELM(1:NEMAX,1:4, 6,LQe5) =   1.5d0 * fem_int(2,rNuTeiEI)
        NLC( 6,LQe5) = LQi5
 
        ! Collisional heating with beam
@@ -1247,10 +1247,10 @@ contains
 
        ! Collisional transfer with electrons
 
-       ELM(1:NEMAX,1:4, 5,LQi5) = - fem_int(2,rNuTeiEI)
+       ELM(1:NEMAX,1:4, 5,LQi5) = - 1.5d0 * fem_int(2,rNuTeiEI)
        NLC( 5,LQi5) = LQi5
 
-       ELM(1:NEMAX,1:4, 6,LQi5) =   fem_int(2,rNuTei)
+       ELM(1:NEMAX,1:4, 6,LQi5) =   1.5d0 * fem_int(2,rNuTei)
        NLC( 6,LQi5) = LQe5
 
        ! Collisional heating with beam

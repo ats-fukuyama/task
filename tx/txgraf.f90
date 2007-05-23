@@ -1401,10 +1401,10 @@ contains
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     ! square
-!    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
-!    GPXY(2) = 10.4286 + 12.5 * MOD(K,2)
-!    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
-!    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
+    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
+    GPXY(2) = 10.4286 + 12.5 * MOD(K,2)
+    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
+    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
 
     GXMAX=REAL(RB/RA)
 

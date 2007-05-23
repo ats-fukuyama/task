@@ -960,7 +960,7 @@ contains
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
        IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
        IF(rG1 < 0.D0) EXIT
-       IF(Eb < 0.D0 .OR. PNBH < 0.D0 .OR. PNBCD < 0.D0) EXIT
+       IF(Eb < 0.D0 .OR. PNBH < 0.D0) EXIT
        IF(RNB > RB .OR. RNB < 0.D0) EXIT
        IF(rNRF < 0.D0 .OR. PRFH < 0.D0) EXIT
        IF(RRF > RB .OR. RRF < 0.D0) EXIT

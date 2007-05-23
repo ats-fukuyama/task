@@ -266,10 +266,11 @@ contains
             &     / (12.D0 * PI * SQRT(PI) * EPS0**2 * SQRT(AMI) &
             &     * (ABS(PTiV(NR)) * rKeV)**1.5D0)
        ! Energy relaxation time between two kinds of particles
-       rNuTei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
-            &     / (3.D0 * SQRT(2.D0 * PI) * PI * EPS0**2 * AME * AMI &
-            &     * (  ABS(MAX(PTeV(NR),PTeDIV)) * rKeV / AME &
-            &        + ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
+!       rNuTei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+!            &     / (3.D0 * SQRT(2.D0 * PI) * PI * EPS0**2 * AME * AMI &
+!            &     * (  ABS(MAX(PTeV(NR),PTeDIV)) * rKeV / AME &
+!            &        + ABS(PTiV(NR)) * rKeV / AMI)**1.5D0)
+       rNuTei(NR) = rNuei(NR) * (2.D0 * AME / AMI)
 
        !     *** Toroidal neoclassical viscosity ***
        !    (Hirshman and Sigmar, Nucl. Fusion 21 (1981) 1079)
@@ -643,8 +644,8 @@ contains
 
        !     *** Equipartition power ***
 
-       PEQe(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTeV(NR) - PTiV(NR)) * rKeV
-       PEQi(NR)  = - rNuTei(NR) * PNeV(NR) * 1.D20 * (PTiV(NR) - PTeV(NR)) * rKeV
+       PEQe(NR)  = - 1.5D0 * rNuTei(NR) * PNeV(NR) * 1.D20 * (PTeV(NR) - PTiV(NR)) * rKeV
+       PEQi(NR)  = - 1.5D0 * rNuTei(NR) * PNeV(NR) * 1.D20 * (PTiV(NR) - PTeV(NR)) * rKeV
 
        !     *** Ohmic power from Equations ***
 
