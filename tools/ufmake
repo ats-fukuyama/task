@@ -114,11 +114,18 @@ if (-d $dir_in) {
 #usplit
 $file1d = $device."_".$shot."_1d.dat";
 $file2d = $device."_".$shot."_2d.dat";
-system("/bin/echo \"$file1d\" | usplit");
-system("/bin/echo \"$file2d\" | usplit");
+$return  = system("/bin/echo \"$file1d\" | usplit");
+$return += system("/bin/echo \"$file2d\" | usplit");
 $file1dall = $device."1d".$shot.".*";
 $file2dall = $device."2d".$shot.".*";
-system("mv $file1dall $file2dall $dir_in");
+$return += system("mv $file1dall $file2dall $dir_in");
 chdir($dir_org);
-print "Successfully ended.\n";
+unless ($return) {
+    print "Successfully ended.\n";
+    exit(0);
+} else {
+    print "Process failed.\n";
+    exit(-1);
+}
+
 
