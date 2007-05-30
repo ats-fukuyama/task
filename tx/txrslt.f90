@@ -22,7 +22,7 @@ contains
          &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
          &     BBL, SUMML, SUMPL, PNES, PAI
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
-    REAL(8) :: EpsL, FT, DDX, RL31, RL32, DDD, dPTeV, dPTiV, PPe, PPi, dPPe, dPPi, &
+    REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
          &     dPPV, ALFA, ALFABP, rNuBAR
     REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP
     REAL(8), DIMENSION(1:NRMAX) :: BETAL, BETAPL, BETAQ
@@ -130,36 +130,37 @@ contains
 
     PP(0:NRMAX) = PeV(0:NRMAX) + PiV(0:NRMAX)
     DO NR = 0, NRMAX
+       EpsL  = R(NR) / RR
+       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        ! +++ Original model +++
-       dPPV = DERIV3(NR,R,PP,NRMAX,NRM,0)
+       dPPV = DERIV3(NR,R,PP,NRMAX,NRM,0) * 1.D20 * rKeV
        rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
        ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
        ALFABP = (1.D0+rNueNC(NR)/rNuBAR)*BthV(NR)/(BphV(NR))**2
-       AJBS1(NR) =- ALFABP / (1.D0 + ALFA) * dPPV * 1.D20 * rKeV
+!       AJBS1(NR) =- ALFABP / (1.D0 + ALFA) * dPPV
+       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuBAR * dPPV
        ! +++ Hirshman model +++
        dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0) * RA
        dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0) * RA
-       PPe   = PeV(NR)
-       PPi   = PiV(NR)
        dPPe  = DERIV3(NR,R,PeV,NRMAX,NRM,0) * RA
        dPPi  = DERIV3(NR,R,PiV,NRMAX,NRM,0) * RA
-       EpsL  = R(NR) / RR
-       FT   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
-       DDX  = 1.414D0 * PZ + PZ**2 + FT * (0.754D0 + 2.657D0 * PZ &
-            &        + 2.D0 * PZ**2) + FT**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
-       RL31 = FT * ( 0.754D0 + 2.21D0 * PZ + PZ**2 + FT * (0.348D0 + 1.243D0 &
+       FTL   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
+       DDX   = 1.414D0 * PZ + PZ**2 + FTL * (0.754D0 + 2.657D0 * PZ &
+            &        + 2.D0 * PZ**2) + FTL**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
+       RL31  = FTL * ( 0.754D0 + 2.21D0 * PZ + PZ**2 + FTL * (0.348D0 + 1.243D0 &
             &            * PZ + PZ**2)) / DDX
-       RL32 =-FT * (0.884D0 + 2.074D0 * PZ) / DDX
-       DDD  =-1.172D0 / (1.D0 + 0.462D0 * FT)
+       RL32  =-FTL * (0.884D0 + 2.074D0 * PZ) / DDX
+       DDD   =-1.172D0 / (1.D0 + 0.462D0 * FTL)
        IF(NR == 0) THEN
-          AJBS2(NR) = 0.D0
+          AJBS4(NR) = 0.D0
        ELSE
-          AJBS2(NR) =- (PPe * 1.D20 * rKeV) &
-               &    * (RL31 * ((dPPe / PPe) + (PTiV(NR) / (PZ * PTeV(NR))) &
-               &    * ((dPPi / PPi) + DDD * (dPTiV / PTiV(NR)))) &
+          AJBS4(NR) =- (PeV(NR) * 1.D20 * rKeV) &
+               &    * (RL31 * ((dPPe / PeV(NR)) + (PTiV(NR) / (PZ * PTeV(NR))) &
+               &    * ((dPPi / PiV(NR)) + DDD * (dPTiV / PTiV(NR)))) &
                &    + RL32 * (dPTeV / PTeV(NR))) / (RA * BthV(NR))
        END IF
     END DO
+
 
     !      DRH=0.5D0*DR
     !      DO NS=1,NSM

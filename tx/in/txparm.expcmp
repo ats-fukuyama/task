@@ -5,8 +5,8 @@
      PTi0=0.6,PTia=0.06
      Pn0=0.3,Pna=0.05
      De0=0.025,Di0=0.0
-     Chie0=0.6,Chii0=0.3
-     rMue0=1.5,rMui0=1.5
+     Chie0=0.55,Chii0=0.55
+     rMue0=1.6,rMui0=1.6
      FSDFIX=1.0,FSCDBM=0.0
      FSBOHM=0.0,PROFD=20.0,FSPSCL=20.0
      PNBH=0.5,RNB=0.15,PNBCD=1.0,Eb=32.0

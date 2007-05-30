@@ -31,7 +31,7 @@
 !  p_bm2-<1/B**2> (/T**2)
 !  p_eb-<E.B> (V*T/m)
 !  p_fhat-mu_0*F/(dPsi/dr) (rho/m)
-!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (-)
+!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (1/m**2)
 !  p_ft-trapped fraction (-)
 !  p_grbm2-<grad(rho)**2/B**2> (rho**2/m**2/T**2)
 !  p_grphi-radial electric field Phi' (V/rho)
@@ -607,7 +607,8 @@
 !         Response contributions           
           DO jm=1,m_i
             CALL RARRAY_ZERO(k_order,xl)
-            DO l=1,k_order
+!            DO l=1,k_order
+            DO l=1,1
               l1=jm+(l-1)*m_i
               DO k=1,k_order
                 xl(k)=xl(k)-caln_ii(k,l,im,jm)*xab(l1,m)
@@ -794,7 +795,7 @@
 !  jz_s(s)-charge state of s (-)
 !  c_potb-kappa(0)*Bt(0)/[2*q(0)**2] (T)
 !  c_potl-q(0)*R(0) (m)
-!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (-)
+!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (1/m**2)
 !  p_ft-trapped fraction (-)
 !  p_ngrth-<n.grad(Theta)> (1/m)
 !  x-velocity normalized to thermal velocity v/(2kT/m)**0.5 (-)
@@ -1013,7 +1014,7 @@
 !  jz_s(s)-charge state of s (-)
 !  c_potb-kappa(0)*Bt(0)/[2*q(0)**2] (T)
 !  c_potl-q(0)*R(0) (m)
-!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (-)
+!  p_fm(3)-poloidal moments of geometric factor for PS viscosity (1/m**2)
 !  p_ft-trapped fraction (-)
 !  p_ngrth-<n.grad(Theta)> (1/m)
 !  amu_i(i)-atomic mass number of i (-)
@@ -1353,6 +1354,7 @@
       c1=4.0/3.0/SQRT(z_pi)*4.0*z_pi*(z_coulomb
      #   /(4.0*z_pi*z_epsilon0))**2*(z_coulomb/z_protonmass)**2
 !Coulomb logarithm
+
       DO i=1,m_s
         im=jm_s(i)
         iz=jz_s(i)

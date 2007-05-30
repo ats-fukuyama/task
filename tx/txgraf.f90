@@ -1321,7 +1321,7 @@ contains
     integer, intent(in) :: MODE
     character(len=50) :: STR
     integer :: IND, IFNT, NR
-    real, dimension(0:NRM,1:3) :: GYL, GYL2
+    real, dimension(0:NRM,1:4) :: GYL, GYL2
 
     IF (NGR <= -1) THEN
        WRITE(6,*) 'G', NGR, ' has no data'
@@ -1354,24 +1354,23 @@ contains
 
     DO NR = 0, NRMAX
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
-!       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
-       GYL(NR,2) = GLOG(ETA3(NR),1.D-10,1.D0)
-!       write(6,*) R(NR)/RA,AJBS3(NR)/AJBS1(NR)
+       GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
+       GYL(NR,3) = GLOG(ETA3(NR),1.D-10,1.D0)
+!       GYL(NR,4) = GLOG(ETA4(NR),1.D-10,1.D0)
     END DO
 
     STR = '@LOG: ETA@'
-!!$    CALL TXGRFRS(0, GX, GYL, NRMAX, 2, STR, MODE, IND, 1)
-    CALL TXGRFRS(0, GX, GYL, NRA, 2, STR, MODE, IND, 1)
+!!$    CALL TXGRFRS(0, GX, GYL, NRA, 4, STR, MODE, IND, 1)
+    CALL TXGRFRS(0, GX, GYL, NRA, 3, STR, MODE, IND, 1)
 
     GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
-!    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
-    GYL(0:NRMAX,2) = SNGL(AJBS3(0:NRMAX))
+    GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
+    GYL(0:NRMAX,3) = SNGL(AJBS3(0:NRMAX))
+!    GYL(0:NRMAX,4) = SNGL(AJBS4(0:NRMAX))
 
     STR = '@AJBS@'
-!!$    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRMAX, 2-1, gDIV(22))
-!!$    CALL TXGRFRS(1, GX, GYL2, NRMAX, 2, STR, MODE, IND, 0)
-    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRA, 2-1, gDIV(22))
-    CALL TXGRFRS(1, GX, GYL2, NRA, 2, STR, MODE, IND, 0)
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRM, NRA, 3-1, gDIV(22))
+    CALL TXGRFRS(1, GX, GYL2, NRA, 3, STR, MODE, IND, 0)
 
     CALL PAGEE
 
@@ -1401,10 +1400,10 @@ contains
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
     ! square
-    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
-    GPXY(2) = 10.4286 + 12.5 * MOD(K,2)
-    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
-    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
+!!$    GPXY(1) =  3.0 + 12.5 * MOD(K,2)
+!!$    GPXY(2) = 10.4286 + 12.5 * MOD(K,2)
+!!$    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
+!!$    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
 
     GXMAX=REAL(RB/RA)
 
@@ -1927,11 +1926,12 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, MODE, IND)
+  SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, MODE, IND, GYMIN)
 
     INTEGER, INTENT(IN) :: K, NGTM, NGTL, NG
     REAL, DIMENSION(0:NGTM), INTENT(IN) :: GTXL
     REAL, DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
+    real, intent(in), optional :: GYMIN
     character(len=*), INTENT(IN) ::  STR
     INTEGER :: MODE, IND
     REAL, DIMENSION(4) :: GPXY
@@ -1940,8 +1940,13 @@ contains
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
-    CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
-         &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND, 0)
+    IF(PRESENT(GYMIN)) THEN
+       CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
+            &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND, 0, GYMIN_IN=GYMIN)
+    ELSE
+       CALL TXGRAF(GPXY, GTXL, GTYL, NGTM+1, NGTL+1, NG, &
+            &            GTXL(0), GTXL(NGTL), STR, 0.3, MODE, IND, 0)
+    END IF
 
     RETURN
   END SUBROUTINE TXGRFVX
@@ -2199,7 +2204,7 @@ contains
   !***************************************************************
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
-       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, GYMAX_IN)
+       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, GYMAX_IN, GYMIN_IN)
 
     INTEGER, INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
     REAL, INTENT(IN) :: GXMIN, GXMAX, FONT
@@ -2207,7 +2212,7 @@ contains
     REAL, DIMENSION(1:NXMAX), INTENT(IN) :: GX
     REAL, DIMENSION(1:NXM,1:NGMAX), INTENT(IN) :: GY
     integer, intent(in) :: ILOG
-    REAL, INTENT(IN), OPTIONAL :: GYMAX_IN
+    REAL, INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
     character(len=*), INTENT(IN) :: STR
 
     INTEGER :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
@@ -2257,6 +2262,7 @@ contains
        END IF
     END IF
     IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
+    IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
     CALL GQSCAL(GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP)
     IF (GSYMIN > GYMIN) GSYMIN = GSYMIN - GYSTEP
     IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP

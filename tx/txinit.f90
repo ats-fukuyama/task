@@ -301,9 +301,11 @@ contains
     MDLWTB = 0
 
     !   Mode of neoclassical resistivity model
-    !   0    : original model
-    !   1    : Hirshman, Hawryluk and Birge model
-    MDLETA = 0
+    !   0    : original
+    !   1    : NCLASS
+    !   2    : Sauter
+    !   3    : Hirshman, Hawryluk and Birge
+    MDLETA = 1
 
     !   Mode of fixed temperature profile
     !   0    : not fixed
@@ -560,7 +562,6 @@ contains
           PROFT = PROF**2
           ! Ne
           X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
-!          X(LQe1,NR) = (PN0 - PNa) * SQRT(PROF) + PNa
           ! Ni
           X(LQi1,NR) = X(LQe1,NR) / PZ
           IF(MDFIXT == 0) THEN

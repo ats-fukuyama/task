@@ -82,7 +82,7 @@ module commons
        &                       PNeV, UerV, UethV, UephV, PTeV, &
        &                       PNiV, UirV, UithV, UiphV, PTiV, &
        &                       PNbV, UbthV, UbphV, PN01V, PN02V, &
-       &                       AphV, Phi, RAthV, PeV, PiV, dPeV, dPiV
+       &                       AphV, Phi, RAthV, PeV, PiV
 
   real(8), dimension(0:NRM) :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
 
@@ -90,11 +90,11 @@ module commons
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
        &                       rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, &
        &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
-       &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, &
+       &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, ft, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
-       &                       FWthphe, FWthphi, Vbedir, Vbidir
+       &                       FWthphe, FWthphi, Vbedir, Vbidir, rlnLe, rlnLi
   real(8) :: FWthea, FWthia
  
   ! CDBM
@@ -107,7 +107,7 @@ module commons
 
   ! Safety factor, currents, resistivity
   real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS, AJBS1, AJBS2, AJBS3, &
-       &                       ETA, ETA1, ETA2, ETA3
+       &                       AJBS4, ETA, ETA1, ETA2, ETA3, ETA4
 
   ! Global parameters for display
   real(8), dimension(1:NSM) :: ANS0, TS0, ANSAV, TSAV, WST

@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-SRCS = txcnst.f90 txcomm.f90 txlib.f90 txrslt.f90 txncls.f90 txcalv.f90 txcala.f90 \
+SRCS = txcnst.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txcalv.f90 txcala.f90 \
        txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 txmain.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \
        nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \

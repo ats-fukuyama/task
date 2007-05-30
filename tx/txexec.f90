@@ -258,6 +258,7 @@ contains
              ELSE
                 WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
              END IF
+!             write(6,*) AJT,AJOHT
           END IF
        END IF
 

@@ -61,10 +61,10 @@ contains
        DTt          = 1.d2
        DTf(1)       = 1.d0
        DTf(2:NQMAX) = 1.d2
-    ELSE IF(DT <= 1.D-4) THEN
-       DTt          = 1.d3
-       DTf(1)       = 1.d0
-       DTf(2:NQMAX) = 1.d3
+!!$    ELSE IF(DT <= 1.D-4) THEN
+!!$       DTt          = 1.d3
+!!$       DTf(1)       = 1.d0
+!!$       DTf(2:NQMAX) = 1.d3
     ELSE
        DTt          = 1.d0
        DTf(1:NQMAX) = 1.d0
@@ -191,25 +191,25 @@ contains
     RUerV(0:NRMAX)    = R(0:NRMAX)      * UerV(0:NRMAX)
     RUirV(0:NRMAX)    = R(0:NRMAX)      * UirV(0:NRMAX)
     UerVR(1:NRMAX)    = UerV(1:NRMAX) / R(1:NRMAX)
-    UerVR(0)          = AITKEN4P(PSI(0), &
+    UerVR(0)          = AITKEN4P(R(0), &
          &                       UerVR(1),UerVR(2),UerVR(3),UerVR(4),UerVR(5), &
-         &                       PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+         &                       R(1),R(2),R(3),R(4),R(5))
     UirVR(1:NRMAX)    = UirV(1:NRMAX) / R(1:NRMAX)
-    UirVR(0)          = AITKEN4P(PSI(0), &
+    UirVR(0)          = AITKEN4P(R(0), &
          &                       UirVR(1),UirVR(2),UirVR(3),UirVR(4),UirVR(5), &
-         &                       PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+         &                       R(1),R(2),R(3),R(4),R(5))
     UethVR(1:NRMAX)   = UethV(1:NRMAX) / R(1:NRMAX)
-    UethVR(0)         = AITKEN4P(PSI(0), &
+    UethVR(0)         = AITKEN4P(R(0), &
          &                       UethVR(1),UethVR(2),UethVR(3),UethVR(4),UethVR(5), &
-         &                       PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+         &                       R(1),R(2),R(3),R(4),R(5))
     UithVR(1:NRMAX)   = UithV(1:NRMAX) / R(1:NRMAX)
-    UithVR(0)         = AITKEN4P(PSI(0), &
+    UithVR(0)         = AITKEN4P(R(0), &
          &                       UithVR(1),UithVR(2),UithVR(3),UithVR(4),UithVR(5), &
-         &                       PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+         &                       R(1),R(2),R(3),R(4),R(5))
     EthVR(1:NRMAX)    = EthV(1:NRMAX) / R(1:NRMAX)
-    EthVR(0)          = AITKEN4P(PSI(0), &
+    EthVR(0)          = AITKEN4P(R(0), &
          &                       EthVR(1),EthVR(2),EthVR(3),EthVR(4),EthVR(5), &
-         &                       PSI(1),PSI(2),PSI(3),PSI(4),PSI(5))
+         &                       R(1),R(2),R(3),R(4),R(5))
     CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
     CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
     CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)

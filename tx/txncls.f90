@@ -1,5 +1,4 @@
 module nclass_mod
-  use commons
   implicit none
   private
   public :: TX_NCLASS
@@ -35,7 +34,7 @@ contains
 !  p_bm2 - <1/B**2> (/T**2)
 !  p_eb - <E.B> (V*T/m)
 !  p_fhat - mu_0*F/(dPsi/dr) (rho/m)
-!  p_fm(3) - poloidal moments of geometric factor for PS viscosity (-)
+!  p_fm(3) - poloidal moments of geometric factor for PS viscosity (1/m**2)
 !  p_ft - trapped particle fraction (-)
 !  p_grbm2 - <grad(rho)**2/BB**2> (rho**2/m**2/T**2)
 !  p_grphi - radial electric field Phi' (V/rho)
@@ -67,6 +66,7 @@ contains
 !             m=5, banana-plateau, external parallel force fex_iz
 !  veb_s(s) - <E.B> particle convection velocity of s (rho/s)
 !  qeb_s(s) - <E.B> heat convection velocity of s (rho/s)
+!  ymu_s(s) - normalized viscosity for s (kg/m**3/s)
 !  chip_ss(s1,s2) - heat cond coefficient of s2 on p'/p of s1 (rho**2/s)
 !  chit_ss(s1,s2) - heat cond coefficient of s2 on T'/T of s1 (rho**2/s)
 !  dp_ss(s1,s2) - diffusion coefficient of s2 on p'/p of s1 (rho**2/s)
@@ -84,7 +84,8 @@ contains
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-    use physical_constants, only : AME
+    use physical_constants, only : AME, PI, rKeV
+    use commons
     INCLUDE 'nclass/pamx_mi.inc'
     INCLUDE 'nclass/pamx_ms.inc'
     INCLUDE 'nclass/pamx_mz.inc'
@@ -118,25 +119,25 @@ contains
     !  k_v-option for neoclassical v_tor,v_pol,v_para,v_perp
     !       =1 output
     !       =else no output
-    k_out    = 2
+    k_out    = 0
     k_v      = 1
     k_order  = 2
-    k_potato = 1
+    k_potato = 2
     m_i      = 2
     PZMAX    = PZ
     m_z      = INT(PZMAX)
     c_den    = 1.E10
-    c_potb   = SNGL(1.D0*BB/(2.D0*Q0**2))
-    c_potl   = SNGL(Q0*RR)
+    c_potb   = SNGL(1.D0*BphV(0)/(2.D0*Q(0)**2))
+    c_potl   = SNGL(Q(0)*RR)
 
     amu_i(1) = SNGL(AME/AMI)
     amu_i(2) = SNGL(PA)
 
-    BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-    EpsL = R(NR) / RR
-    p_b2   = SNGL(BphV(NR)**2)
-    p_bm2  = SNGL(1.D0 / BphV(NR)**2)
-    p_eb   = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR)) 
+    BBL   = SQRT(BphV(NR)**2 + BthV(NR)**2)
+    EpsL  = R(NR) / RR
+    p_b2  = SNGL(BBL**2)
+    p_bm2 = SNGL(1.D0 / BBL**2)
+    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
     IF(NR == 0) THEN
        p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
        p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
@@ -144,36 +145,25 @@ contains
        p_fhat  = SNGL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
     ELSE
        !        p_fhat = SNGL(2.D0*PI*BphV(NR)/(RA*BthV(NR)))
-       p_fhat = SNGL(BphV(NR)/(RA*BthV(NR)))
+       p_fhat  = SNGL(BphV(NR)/(RA*BthV(NR)))
     END IF
 
     !  Approximation inverse aspect ratio at the magnetix axis
-    IF(NR == 0) EpsL = 0.1D0*R(NR+1)/RR
-    p_fm(1:3) = 0.0
+    IF(NR == 0) EpsL = 0.01D0*R(NR+1)/RR
     IF(SNGL(EpsL) > 0.0) THEN
        DO i=1,3
-          p_fm(i)=SNGL(DBLE(i)*((1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
-               &                 *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2) &
-               &                 **1.5D0*(Q(NR)*RR)**2))
+          p_fm(i)=SNGL(DBLE(i)*(  (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
+               &                 *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
+               &                 *(Q(NR)*RR)**2))
        ENDDO
     ENDIF
+!    p_fm(1:3) = 0.d0
     p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
-    p_grbm2=SNGL(1.D0/RA) * p_bm2
-    p_grphi=SNGL(ErV(NR))
-    IF(NR == 0) THEN
-       p_gr2phi1 = -RA**2*DERIV3(NR+1,R,ErV,NRMAX,NRM,0) &
-            &      +RA*ErV(NR+1)*DERIV3(NR+1,R,BthV,NRMAX,NRM,0)/BthV(NR+1)
-       p_gr2phi2 = -RA**2*DERIV3(NR+2,R,ErV,NRMAX,NRM,0) &
-            &      +RA*ErV(NR+2)*DERIV3(NR+2,R,BthV,NRMAX,NRM,0)/BthV(NR+2)
-       p_gr2phi3 = -RA**2*DERIV3(NR+3,R,ErV,NRMAX,NRM,0) &
-            &      +RA*ErV(NR+3)*DERIV3(NR+3,R,BthV,NRMAX,NRM,0)/BthV(NR+3)
-       p_gr2phi = SNGL(AITKEN2P(R(0),p_gr2phi1,p_gr2phi2,p_gr2phi3,R(1),R(2),R(3)))
-    ELSE
-       p_gr2phi=SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,NRM,0) &
-            &        +RA*ErV(NR)*DERIV3(NR,R,BthV,NRMAX,NRM,0)/BthV(NR))
-    END IF
-    p_ngrth=SNGL(BphV(NR)/(RR*Q(NR)*BBL))
+    p_grbm2   = SNGL(1.D0/RA**2) * p_bm2
+    p_grphi   = SNGL(-RA*ErV(NR))
+    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,NRM,0))
+    p_ngrth   = SNGL(BphV(NR)/(RR*Q(NR)*BBL))
     temp_i(1) = SNGL(PTeV(NR))
     temp_i(2) = SNGL(PTiV(NR))
     grt_i(1)  = SNGL(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0))
@@ -201,8 +191,8 @@ contains
        r0    = SNGL(RR)
        a0    = SNGL(RA)
        e0    = SNGL(1.D0)
-       bt0   = SNGL(BB)
-       q0l   = SNGL(Q0)
+       bt0   = SNGL(BphV(0))
+       q0l   = SNGL(Q(0))
        CALL NCLASS_CHECK(6,NR, &
             &        k_out,k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
             &        p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
@@ -219,19 +209,20 @@ contains
     !     *** Takeover Parameters ***
 
     IF(k_potato == 0) THEN
-       IF(iflag /= -1) THEN
+       IF(iflag /= -1 .and. k_out > 0) THEN
           WRITE(6,*) "XX iflag=",iflag
           IER=1
           RETURN
        ENDIF
     ELSE
-       IF(iflag /= 0) WRITE(6,*) "XX iflag=",iflag
+       IF(iflag /= 0 .and. k_out > 0) WRITE(6,*) "XX iflag=",iflag
     ENDIF
 
     JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0) / PTeV(NR)) &
          &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRM,0) / PeV (NR)) &
          &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
-         &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR))) / BphV(NR)
+         &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR))) / BBL
+    IF(k_potato == 0 .and. NR == 0) JBSL = 0.D0
 
     ETAL = DBLE(p_etap)
 
@@ -241,11 +232,13 @@ contains
     ELSE
        NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
        NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
+!       write(6,*) r(nr)/ra,dble(ymu_s(1,1,1)),ame*pnev(nr)*1.d20*ft(nr)/(1.d0-ft(nr))*rnuee(nr)*(0.533d0+PZ)
+!       write(6,*) r(nr)/ra,dble(ymu_s(1,1,2)),sqrt(2.d0)*ami*pniv(nr)*1.d20*ft(nr)/(1.d0-ft(nr))*rnuii(nr)*0.377d0
     END IF
     
-!!$    AJBSNC(NR)=DBLE(p_bsjb)/BB
+!!$    AJBSNC(NR)=DBLE(p_bsjb)/BphV(NR)
 !!$    ETANC(NR) =DBLE(p_etap)
-!!$    AJEXNC(NR)=DBLE(p_exjb)/BB
+!!$    AJEXNC(NR)=DBLE(p_exjb)/BphV(NR)
 !!$
 !!$    !     ADNCG : Diagonal diffusivity for graphic use only
 !!$    !     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
@@ -295,7 +288,7 @@ contains
 !!$    !     /* neoclassical bulk ion toroidal and poloidal velocities */
 !!$    !
 !!$    IF(k_v /= 0) THEN
-       btot=SQRT(BphV(NR)**2+BthV(NR)**2)*BphV(NR)/ABS(BphV(NR))
+!       btot=SQRT(BphV(NR)**2+BthV(NR)**2)*BphV(NR)/ABS(BphV(NR))
        DO i=1,m_s
           uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
           IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then
@@ -307,7 +300,7 @@ contains
 !!$             VPRP(NR)=DBLE(BphV(NR)/btot*VPOL(NR)-BthV(NR)/btot*VTOR(NR))
           ENDIF
        ENDDO
-!       IF(NT==500) write(6,*) R(NR)/RA,VPOL(NR)
+!       IF(NT==500) write(6,*) R(NR)/RA,VPOL(NR)*1.D-3
 !!$    ENDIF
 
     RETURN
@@ -912,4 +905,170 @@ contains
 
     RETURN
   end SUBROUTINE NCLASS_CHECK
+
 end module nclass_mod
+
+!*************************** Sauter model ******************************
+
+module sauter_mod
+  implicit none
+  real(8), parameter :: AEE  = 1.60217733D-19 ! elementary charge
+  private
+  public :: SAUTER
+
+contains
+
+!***********************************************************************
+!
+!       Sauter model
+!
+!***********************************************************************
+  
+  SUBROUTINE SAUTER(NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN, &
+       &            Q,BB,DPSI,IPSI,EPS,RR,ZI,ZEFF,FT,rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN, &
+       &            JBS,ETA,JBSB,ETAS)
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!     Programmed by HONDA Mitsuru (2007/05/24)
+!     
+!     Note that all the parameters are on the GRID point.
+!
+!     *** INPUT VARIABLES ***
+!     NE    : electron density [10^20/m^3]
+!     TE    : electron temperature [keV]
+!     DTE   : partial derivative of electron temperature to rho [keV/rho]
+!     DPE   : partial derivative of electron pressure to rho [10^20 kev/m^3/rho]
+!     NI    : ion density [10^20/m^3]
+!     TI    : ion temperature [keV]
+!     DTI   : partial derivative of ion temperature to rho [keV/rho]
+!     DPI   : partial derivative of ion pressure to rho [10^20 kev/m^3/rho]
+!     Q     : safety factor
+!     BB    : toloidal magnetic field [T]
+!     DPSI  : partial derivative of poloidal flux to rho [Wb/rho]
+!     IPSI  : magnetic flux function, i.e. the product of major radius
+!             and toroidal magnetic field (RR*BT) [mT]
+!     EPS   : local inverse aspect ratio
+!     RR    : major radius [m]
+!     ZI    : charge number of bulk ion
+!     ZEFF  : effective charge number
+!     FT    : trapped particle fraction
+!     rlnLe : Coulomb logarithm for electron collisions, optional
+!     rlnLi : Coulomb logarithm for ion collisions,      optional
+!     NUE   : Normalized collisionality for electrons,   optional
+!     NUI   : Normalized collisionality for ions,        optional
+!
+!     *** OUTPUT VARIABLES ***
+!     JBS   : bootstrap current [A/m^2]
+!     JBSB  : parallel current <J . B> [AT/m^2],         optional
+!     ETA   : neoclassical resistivity [Ohm m]
+!     ETAS  : classical resistivity [Ohm m],             optional
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    real(8), intent(in) :: NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN,Q,BB,DPSI,IPSI,EPS,RR, &
+    &                      ZI,ZEFF,FT
+    real(8), intent(in), optional :: rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN
+    real(8), intent(out) :: JBS, ETA
+    real(8), intent(out), optional :: JBSB, ETAS
+
+    real(8) :: EPSS,LnLame,NUE,LnLamii,NUI,RPE,ALFA0,ALFA,L31,L32,L34,RNZ,SGMSPTZ,QABS,&
+         &     PE,PI,DPE,DPI
+    real(8) :: F31TEFF,F32EETEFF,F32EITEFF,F34TEFF,F33TEFF
+
+    EPSS = SQRT(EPS)**3
+    QABS = ABS(Q)
+
+    PE  = NE * TE * 1.D20 * AEE * 1.D3
+    PI  = NI * TI * 1.D20 * AEE * 1.D3
+    DPE = DPE_IN  * 1.D20 * AEE * 1.D3
+    DPI = DPI_IN  * 1.D20 * AEE * 1.D3
+
+!     LnLam : coulomb logarithm
+!     NU    : collisional frequency [/s]
+
+    LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
+    IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
+    NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TE*1.D3)**2*EPSS)
+    IF(PRESENT(NUE_IN))   NUE    = NUE_IN
+
+    LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TI*1.D3)**1.5D0))
+    IF(PRESENT(rlnLi_IN)) LnLamii = rlnLi_IN
+    NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TI*1.D3)**2*EPSS)
+    IF(PRESENT(NUI_IN))   NUI     = NUI_IN
+
+!     RPE   : ratio of electron pressure to total pressure 
+
+    RPE = PE/(PE+PI)
+
+    F31TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-FT)*NUE/ZEFF)
+    F32EETEFF = FT/(1.D0+0.26D0*(1.D0-FT)*SQRT(NUE)+0.18D0*(1.D0-0.37D0*FT)*NUE/SQRT(ZEFF))
+    F32EITEFF = FT/(1.D0+(1.D0+0.6D0*FT)*SQRT(NUE)+0.85D0*(1.D0-0.37D0*FT)*NUE*(1.D0+ZEFF))
+    F34TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-0.5D0*FT)*NUE/ZEFF)
+
+    ALFA0 = -1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
+    ALFA  = ((ALFA0+0.25D0*(1.D0-FT**2)*SQRT(NUI)) &
+         &     /(1.D0+0.5D0*SQRT(NUI))+0.315D0*NUI**2*FT**6)/(1.D0+0.15D0*NUI**2*FT**6)
+
+    L31 = F31(F31TEFF,ZEFF)
+    L32 = F32EE(F32EETEFF,ZEFF)+F32EI(F32EITEFF,ZEFF)
+    L34 = F31(F34TEFF,ZEFF)
+
+!     *** Bootstrap Current, JBS ***
+
+    JBS = -IPSI*PE/DPSI/BB &
+         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+    if(present(jbsb)) JBSB = -IPSI*PE/DPSI &
+         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+
+!     *** Spitzer and Neoclassical Resistivity, ETAS, ETA ***
+
+    F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(NUE)+0.45D0*(1.D0-FT)*NUE/ZEFF**1.5)
+    RNZ     = 0.58D0+0.74D0/(0.76D0+ZEFF)
+    SGMSPTZ = 1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame)
+    ETA  = 1.D0 / (SGMSPTZ * F33(F33TEFF,ZEFF))
+    if(present(etas)) ETAS = 1.D0 / SGMSPTZ
+
+  END SUBROUTINE SAUTER
+
+!     *********************
+!     *  Fitting Function *
+!     *********************
+
+  real(8) FUNCTION F33(X,Z)
+    
+    real(8), intent(in) :: X,Z
+
+    F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
+
+  END FUNCTION F33
+
+  real(8) FUNCTION F31(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2 &
+         &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
+
+  END FUNCTION F31
+
+  real(8) FUNCTION F32EE(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
+         &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4)) &
+         &       +1.2D0/(1.D0+0.5D0*Z)*X**4 
+
+  END FUNCTION F32EE
+
+  real(8) FUNCTION F32EI(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
+         &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4)) &
+         &       -1.2D0/(1.D0+0.5D0*Z)*X**4
+
+  END FUNCTION F32EI
+
+end module sauter_mod
