@@ -514,6 +514,7 @@
       integer:: nth1,nth2,nth1x,nth2x
       integer:: nthdiff,nthxdiff
       integer:: nfcdiff
+      integer:: imn1,imn2
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -576,17 +577,17 @@
                   enddo
                enddo
             enddo
-               do nph=1,nphmax
-                  do nth=1,nthmax
-                     fv1(nth,nph)=fmv4(i,j,nth,nph)
-                  enddo
+            do nph=1,nphmax
+               do nth=1,nthmax
+                  fv1(nth,nph)=fmv4(i,j,nth,nph)
                enddo
-               call wmsubfx(fv1,fv1f,nthmax,nphmax)
-               do nph=1,nphmax
-                  do nth=1,nthmax
-                     fmv4(i,j,imn1,nth,nph)=fv1(nth,nph)
-                  enddo
+            enddo
+            call wmsubfx(fv1,fv1f,nthmax,nphmax)
+            do nph=1,nphmax
+               do nth=1,nthmax
+                  fmv4(i,j,nth,nph)=fv1(nth,nph)
                enddo
+            enddo
          enddo
       enddo
 
@@ -610,22 +611,9 @@
                      do i=1,3
                         fmd(i,j,k,nfc1,nfc2,1)
      &                       =fmv4(i,j,nth,nph)
-     &                                =fmc(i,j,k,nfcdiff,nfc2,inod)
-                              enddo
-                           enddo
-                        enddo
+     &                                +fmc(i,j,k,nfcdiff,nfc2,inod)
                      enddo
-                  else
-                     do inod=1,4
-                        do k=1,4
-                           do j=1,3
-                              do i=1,3
-                                 fmd(i,j,k,nfc1,nfc2,inod)=0.d0
-                              enddo
-                           enddo
-                        enddo
-                     enddo
-                  endif
+                  enddo
                enddo
             enddo
          enddo

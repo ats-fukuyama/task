@@ -420,6 +420,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
+      CHARACTER*(80) LINE
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
 C
@@ -453,7 +454,13 @@ C
       KNAMEQ_SAVE=KNAMEQ
 C
       IF(MYRANK.EQ.0) THEN
-         CALL EQCALQ(NRMAX+1,NTHMAX,NSUMAX,IERR)
+         write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
+         call eqparm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nthmax=',NTHMAX
+         call eqparm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+         call eqparm(2,line,ierr)
+         CALL EQCALQ(IERR)
 C
          CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
 C
@@ -471,7 +478,13 @@ C
 C         WRITE(6,'(A,1P2E12.4)') 'PSIPA,PSITA=',PSIPA,PSITA
 C         WRITE(6,'(1P5E12.4)') (RPS(NTH,NRMAX+1),NTH=1,NTHMAX)
 C
-         CALL EQCALQ(NRMAX+1,NTHGM,NSUMAX,IERR)
+         write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
+         call eqparm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nthmax=',NTHMAX
+         call eqparm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+         call eqparm(2,line,ierr)
+         CALL EQCALQ(IERR)
          CALL EQGETG(RPSG,ZPSG,NTHGM,NTHGM,NRMAX+1)
 C
 C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
