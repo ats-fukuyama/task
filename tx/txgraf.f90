@@ -2052,6 +2052,10 @@ contains
        END IF
     END DO
 
+!!$    do nc=1,nlcmax(nq)
+!!$       write(6,*) nq,nc,maxval(abs(gqy(0:nrmax,nc)))
+!!$    end do
+
 !!$    GQY(0:10,1:NLCMAX(NQ))=100.0*GQY(0:10,1:NLCMAX(NQ))
 !!$    GQY(25:NRMAX,1:NLCMAX(NQ))=100.0*GQY(25:NRMAX,1:NLCMAX(NQ))
 !!$    do nc=1,nlcmax(nq)

@@ -15,6 +15,7 @@ contains
 
   SUBROUTINE TXMENU
 
+    use physical_constants, only : rMU0
     use commons
     use main, only : TXEXEC
     use graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
@@ -26,22 +27,35 @@ contains
     character(len=80) :: LINE
     character(len=1)  :: KID, KID2
 
-    IERR = 0
+    IERR  = 0
     ICONT = 0
+    IF(PNBH /= 0) THEN
+       rMUb1 = 1.D0
+       rMUb2 = rMU0
+    END IF
 
     !  *** MENU ***
 
     DO
+       IF(ICONT == 0) TMAX = DT*NTMAX
+
        WRITE(6,'(3(A,1PD12.4))') &
-            &   ' ## TIME=',T_TX,'  DT=',DT,'  TMAX =',TMAX
+            &   ' ## TIME=',T_TX,'  DT=',DT,'  NEXT TIME =',TMAX
        WRITE(6,*) '## INPUT: ', &
             &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
             &   'S:SAVE  L:LOAD  I,N,Bn: Q:QUIT'
        CALL GUFLSH
 
        CALL TXKLIN(LINE,KID,MODE)
-       IF(MODE /= 1) CYCLE
-       CALL TXPARM_CHECK
+       IF(MODE /= 1) THEN
+          CALL TXPARM_CHECK
+          TMAX=T_TX+DT*NTMAX
+          IF(rMUb1 == rMU0 .and. PNBH /= 0.D0) THEN
+             rMUb1 = 1.D0
+             rMUb2 = rMU0
+          END IF
+          CYCLE
+       END IF
 
        SELECT CASE(KID)
        CASE('R')

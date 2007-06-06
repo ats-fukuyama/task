@@ -14,6 +14,8 @@ contains
 
   SUBROUTINE TXINIT
 
+    use physical_constants, only : rMU0
+
     !   ***** Configuration parameters *****
 
     !   Plasma minor radius (m)
@@ -228,6 +230,13 @@ contains
 
     !   Lower bound of dependent variables
     tiny_cap = 1.d-14
+
+    !   Amplitude
+    AMPe4 = 1.D3
+
+    !   Permittivity switch
+    rMUb1 = rMU0
+    rMUb2 = 1.d0
 
     !   ***** Mesh number parameters *****
 
@@ -600,7 +609,7 @@ contains
        ! N0_2 (fast neutrals)
        X(LQn2,NR) = 0.D0
        ! Bphi
-       X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / sqeps0
+       X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0
        BphV(NR)   = BB
        ! Fixed densities to keep them constant during iterations
        PNeV_FIX(NR) = X(LQe1,NR)
@@ -640,7 +649,7 @@ contains
 
     DO NR = 0, NRMAX
 !!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,NRM,0)
-!!$       X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
+!!$       X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
 
        IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
           PROF= 0.D0    
@@ -650,7 +659,7 @@ contains
        IF(FSHL == 0.D0) THEN
           ! Ne*UePhi
           AJPHL(NR) = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
-          X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
+          X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
           AJOH(NR)= PROF
        ELSE
           AJPHL(NR) = 0.D0
@@ -695,12 +704,12 @@ contains
 
     DO NR = 0, NRMAX
        IF(R(NR) < RA) THEN
-          X(LQm4,NR) = - rMU0 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
+          X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
                & *(3.d0*PSI(NR)-1.5D0*PSI(NR)**2/RA**2+PSI(NR)**3/(3.D0*RA**4))
        ELSE
-          X(LQm4,NR) = - rMU0 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
+          X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
                & *(3.d0*RA**2-1.5D0*RA**2+RA**2/3.D0) &
-               & - rMU0 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
+               & - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
        END IF
     END DO
 
@@ -784,18 +793,18 @@ contains
        ELSE
           ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
        END IF
-       X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) + (dPe + dPi) / (AEE * BphV(NR)))&
+       X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) / (AEE * BphV(NR)))&
             &     / (PZ + ALP) * R(NR)
        X(LQe3,NR) =- ALP * X(LQi3,NR)
-       ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
+       ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
             &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
             &      + dPi / (PZ * AEE * PNiV(NR))
        X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
        X(LQi2,NR) = X(LQe2,NR) / PZ
        X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
-            &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
+            &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
             &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-            &     + AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR)
+            &     + AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
     END DO
 
     ! Scalar potential
@@ -815,7 +824,7 @@ contains
     CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
     RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
     X(LQm5,0) = 0.D0
-    X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / sqeps0
+    X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
     deallocate(CMTX,RHSV,TMP)
 
     CALL TXCALV(X)

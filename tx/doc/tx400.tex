@@ -89,6 +89,9 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \def\PRFe{P_\r{RFe}}
 \def\PRFi{P_\r{RFi}}
 \def\PBr{P_\r{Br}}
+\def\EH{E_\r{H}}
+\def\Tna{T_{01}}
+\def\Tnb{T_{02}}
 
 \def\nuNCe{\nu_\r{NCe}}
 \def\nuNCi{\nu_\r{NCi}}
@@ -254,7 +257,7 @@ TASK/TX V4.00 [06/11/01]
 %%    \right\}
 %%\nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ne \ueth
+  - 2 \nuL \ne \ueth
 %
   - \nune \ne \ueth
 %
@@ -290,7 +293,7 @@ TASK/TX V4.00 [06/11/01]
      r \right)
 \nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ne \ueph
+  - 2 \nuL \ne \ueph
 %
   - \nune \ne \ueph
 %
@@ -323,6 +326,8 @@ TASK/TX V4.00 [06/11/01]
   + \PRFe
 %
   - \PBr
+%
+  - \EH \nuion\, \frac{\ne}{\nna+\nnb}\, (\nna+\nnb)
 \\[5mm]
 %\end{eqnarray}
 %\newpage
@@ -417,7 +422,7 @@ TASK/TX V4.00 [06/11/01]
 %%    \right\}
 \nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ni \uith
+  - 2 \nuL \ni \uith
 %
   - \nuni \ni \uith
 %
@@ -459,7 +464,7 @@ TASK/TX V4.00 [06/11/01]
      r \right)
 \nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ni \uiph
+  - 2 \nuL \ni \uiph
 %
   - \nuni \ni \uiph
 %
@@ -495,6 +500,12 @@ TASK/TX V4.00 [06/11/01]
   - \frac{3}{2} \nuLTi \ni (\Ti - \Tidiv)
 %
   + \PRFi
+%
+  + \frac{3}{2} \frac{\nuion}{\Zi} \frac{\ne}{\nna +\nnb}\, (\nna \Tna +
+  \nnb \Tnb)
+\nonumber\\[2.5mm]&&{}
+%
+  - \frac{3}{2} \nuCX \ni (\Ti - \Tna)
 \\[5mm]
 %
 % \nb
@@ -723,7 +734,7 @@ TASK/TX V4.00 [06/11/01]
     \left(r \uith + 2\dd{\Aph}\frac{\psi}{\Bph}\uiph - \psi
      \ave{\frac{\omega}{m}}_\r{i} \right)
 %
-  - \nuL r \ne \ueth
+  - 2 \nuL r \ne \ueth
 %
   - \nune r \ne \ueth
 \nonumber\\[2.5mm]&&{}
@@ -764,7 +775,7 @@ TASK/TX V4.00 [06/11/01]
    \Di}{\me\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
 \nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ne \ueph
+  - 2 \nuL \ne \ueph
 %
   - \nune \ne \ueph
 %
@@ -871,7 +882,7 @@ TASK/TX V4.00 [06/11/01]
     \left(r \uith + 2\dd{\Aph}\frac{\psi}{\Bph}\uiph - \psi
      \ave{\frac{\omega}{m}}_\r{i} \right)
 %
-  - \nuL r \ni \uith
+  - 2 \nuL r \ni \uith
 %
   - \nuni r \ni \uith
 \nonumber\\[2.5mm]&&{}
@@ -915,7 +926,7 @@ TASK/TX V4.00 [06/11/01]
   - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
 \nonumber\\[2.5mm]&&{}
 %
-  - \nuL \ni \uiph
+  - 2 \nuL \ni \uiph
 %
   - \nuni \ni \uiph
 %

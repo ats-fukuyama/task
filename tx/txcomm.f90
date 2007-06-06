@@ -76,13 +76,17 @@ module commons
   real(8) :: UHth, UHph
   real(8), dimension(0:NRM) :: R, PSI
   real(8), dimension(0:NEM) :: H, HPSI
-  
+
+  ! Convergence accelerator
+  real(8) :: rMUb1, rMUb2, AMPe4 
+
   ! Variables
-  real(8), dimension(0:NRM) :: ErV, EthV, EphV, BthV, BphV, &
-       &                       PNeV, UerV, UethV, UephV, PTeV, &
-       &                       PNiV, UirV, UithV, UiphV, PTiV, &
-       &                       PNbV, UbthV, UbphV, PN01V, PN02V, &
-       &                       AphV, Phi, RAthV, PeV, PiV
+  real(8), dimension(0:NRM) :: ErV,    EthV,   EphV,  BthV,  BphV, &
+       &                       PNeV,   UerV,   UethV, UephV, PTeV, &
+       &                       PNiV,   UirV,   UithV, UiphV, PTiV, &
+       &                       PNbV,   UbthV,  UbphV, PN01V, PN02V, &
+       &                       AphV,   Phi,    RAthV, PeV,   PiV,  &
+       &                       RUethV, RUithV, PT01V, PT02V
 
   real(8), dimension(0:NRM) :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
 

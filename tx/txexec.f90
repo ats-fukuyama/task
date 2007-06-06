@@ -22,20 +22,19 @@ contains
     use results
     use output_console, only : TXWDAT
 
-    INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, iRTIME1, iRTIME2, &
-         &     iRTIME3, NSTR1, NSTR2, NSTR3
+    INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
     REAL :: gCTIME1, gCTIME2, gCTIME3
     character(len=10) :: STR1, STR2, STR3
     INTEGER, DIMENSION(1:8) :: TIMES
+    real(8) :: t_interval
 
     IF (IERR /= 0) THEN
        WRITE(6,*) '### ERROR(TXEXEC) : Error should be cleared.'
        RETURN
     END IF
 
-    CALL DATE_AND_TIME(VALUES=TIMES)
-    iRTIME1 = TIMES(5) * 60 * 60 + TIMES(6) * 60 + TIMES(7)
     CALL CPU_TIME(gCTIME1)
+    t_interval = T_TX
 
     ! ***** Core part of simulation *****
 
@@ -44,26 +43,18 @@ contains
 
     ! ***********************************
 
-    CALL DATE_AND_TIME(VALUES=TIMES)
-    iRTIME2 = TIMES(5) * 60 * 60 + TIMES(6) * 60 + TIMES(7)
-    iRTIME3 = iRTIME2 - iRTIME1
-    if (iRTIME3 < 0) iRTIME3 = iRTIME3 + 24 * 60 * 60
     CALL CPU_TIME(gCTIME2)
     gCTIME3 = gCTIME2-gCTIME1
+    t_interval = T_TX - t_interval
 
     NSTR1 = 0
     CALL APTOS(STR1, NSTR1, gCTIME3, 'F2')
-    IF (iRTIME3 == 0) THEN
-       WRITE(6,*) 'real =', iRTIME3, '(sec)   ','CPU = ', STR1(1:NSTR1), '(sec)'
-    ELSE
-       NSTR2 = 0
-       CALL APTOS(STR2, NSTR2, gCTIME3 / (iRTIME3 + 1) * 100, 'F1')
-       NSTR3 = 0
-       CALL APTOS(STR3, NSTR3, gCTIME3 / (iRTIME3 + 0) * 100, 'F1')
-       WRITE(6,*) 'real =', iRTIME3, '(sec)   ',  &
-            &     'CPU = ', STR1(1:NSTR1), '(sec)   ',  &
-            &     '(', STR2(1:NSTR2), '% - ', STR3(1:NSTR3), '%)'
-    END IF
+    NSTR2 = 0
+    CALL APTOS(STR2, NSTR2, SNGL(t_interval), 'E1')
+    NSTR3 = 0
+    CALL APTOS(STR3, NSTR3, SNGL(t_interval) / gCTIME3 * 100, 'F5')
+    WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
+         &     'sim time = ', STR2(1:NSTR2), ' (sec)', '  (', STR3(1:NSTR3), '%)'
 
     !     ***** Print simulation results *****
 

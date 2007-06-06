@@ -14,7 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL,ID)
 
-    use physical_constants, only : rMU0
+    use physical_constants, only : rMU0, rKeV
     use libraries, only : INTG_P, DERIVF
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
@@ -26,20 +26,21 @@ contains
        ErV (NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm1,NQMAX,NRMAX)
     END DO
     EthV (0)       =   0.D0
-    EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX) / rMU0
+    EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX)
     EphV (0:NRMAX) = - XL(LQm3,0:NRMAX)
-    AphV (0:NRMAX) =   XL(LQm4,0:NRMAX)
-    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * sqeps0 
+    AphV (0:NRMAX) =   XL(LQm4,0:NRMAX) * rMUb2
+    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0
     DO NR = 0, NRMAX
-       BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX)
-       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * sqeps0
+       BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX) * rMUb2
+       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * rMU0
     END DO
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
     UerV (0)       =   0.D0
     UerV (1:NRMAX) =   XL(LQe2,1:NRMAX )/ PNeV(1:NRMAX) / R(1:NRMAX)
+    RUethV(0:NRMAX)=   XL(LQe3,0:NRMAX) / PNeV(0:NRMAX)
     UethV(0)       =   0.D0
     UethV(1:NRMAX) =   XL(LQe3,1:NRMAX) / PNeV(1:NRMAX) / R(1:NRMAX)
-    UephV(0:NRMAX) =   XL(LQe4,0:NRMAX) / PNeV(0:NRMAX)
+    UephV(0:NRMAX) =   XL(LQe4,0:NRMAX) / PNeV(0:NRMAX) * AMPe4
     IF(MDFIXT == 0) THEN
        PeV  (0:NRMAX) =   XL(LQe5,0:NRMAX)
        PTeV (0:NRMAX) =   XL(LQe5,0:NRMAX) / PNeV(0:NRMAX)
@@ -50,6 +51,7 @@ contains
     PNiV (0:NRMAX) =   XL(LQi1,0:NRMAX)
     UirV (0)       =   0.D0
     UirV (1:NRMAX) =   XL(LQi2,1:NRMAX) / PNiV(1:NRMAX) / R(1:NRMAX)
+    RUithV(0:NRMAX)=   XL(LQi3,0:NRMAX) / PNiV(0:NRMAX)
     UithV(0)       =   0.D0
     UithV(1:NRMAX) =   XL(LQi3,1:NRMAX) / PNiV(1:NRMAX) / R(1:NRMAX)
     UiphV(0:NRMAX) =   XL(LQi4,0:NRMAX) / PNiV(0:NRMAX)
@@ -100,6 +102,9 @@ contains
     PN01V(0:NRMAX) =   XL(LQn1,0:NRMAX)
     PN02V(0:NRMAX) =   XL(LQn2,0:NRMAX)
 
+    PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
+    PT02V(0:NRMAX) =   PTiV(0:NRMAX)
+
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
 
@@ -114,14 +119,14 @@ contains
 
   SUBROUTINE TXCALC
 
-    use physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKeV
+    use physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKeV, EION
     use libraries, only : EXPV, VALINT_SUB, TRCOFS
     use nclass_mod
     use sauter_mod
 
     INTEGER :: NR, NP, NR1, IER, NRPLTE, NRPLTI
     REAL(8) :: Sigma0, QL, SL, PNB0, PRFe0, PRFi0, Vte, Vti, Vtb, &
-         &     EION, XXX, SiV, ScxV, Wte, Wti, EpsL, &
+         &     XXX, SiV, ScxV, Wte, Wti, EpsL, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, &
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
@@ -137,6 +142,7 @@ contains
     !     *** Constants ***
 
     !     Neutral cross section
+    !     (NRL Plasma Formulary p52 Eq. (1) (2002))
 
     Sigma0 = 8.8D-21
 
@@ -224,8 +230,7 @@ contains
        rlnLi(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
 
        !     *** Ionization frequency ***
-
-       EION = 13.64D0
+       !     (NRL Plasma Formulary p54 Eq. (12) (2002))
        XXX = MAX(PTeV(NR) * 1.D3 / EION, 1.D-2)
        SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
             &              / (EION**1.5D0 * (6.D0 + XXX))
@@ -244,6 +249,7 @@ contains
             &      * Vti * 1.D20)
 
        !     *** Charge exchange frequency ***
+       !     (Amano and Okamoto, JAERI-M 8420)
 
        XXX = LOG10(MAX(PTiV(NR) * 1.D3, 50.D0))
        ScxV = 1.57D-16 * SQRT(PTiV(NR) * 1.D3) &
@@ -257,13 +263,9 @@ contains
        rNu0b(NR) = (PN01V(NR) + PN02V(NR)) * 1.D20 * Sigma0 * Vtb
 
        !     *** Trapped particle fraction ***
-
+       !     (Y. B. Kim, et al., Phys. Fluids B 3 (1990) 2050)
        EpsL = R(NR) / RR        ! Inverse aspect ratio
-!!$       IF(NR == 0) THEN
-!!$          ft(NR) = 1.46D0 * SQRT(0.1D0*R(NR+1)/RR) - 0.46 * 0.1D0*R(NR+1)/RR * SQRT(0.1D0*R(NR+1)/RR)
-!!$       ELSE
-          ft(NR) = 1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL)
-!!$       END IF
+       ft(NR) = 1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL)
 
        !     *** Collision frequency (momentum transfer) ***
 
@@ -287,7 +289,7 @@ contains
        rNuTei(NR) = rNuei(NR) * (2.D0 * AME / AMI)
 
        !     *** Toroidal neoclassical viscosity ***
-       !    (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230
+       !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
        CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR),IER)
        IF(IER /= 0) IERR = IER
@@ -361,7 +363,7 @@ contains
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
 
        !     *** Collision frequency (momentum transfer with beam) ***
-       ! reference : 92/04/02, 92/04/21
+       ! reference : memo (92/04/02, 92/04/21)
 
        Vcr = (3.D0 * SQRT(PI / 2.D0) * PNiV(NR) * PZ**2 / PNeV(NR) * AME / AMI &
             &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
@@ -406,26 +408,28 @@ contains
 
        !     *** Helical neoclassical viscosity ***
 
-       Wte = Vte * NCphi / RR
-       Wti = Vti * NCphi / RR
-       EpsL = EpsH * R(NR) / RA
-       rNuAsE_inv = EpsL**1.5D0 * Wte / rNuei(NR)
-       rNuAsI_inv = EpsL**1.5D0 * Wti / rNuii(NR)
-       rNueHL(NR) = FSHL * SQRT(PI) &
-            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
-       rNuiHL(NR) = FSHL * SQRT(PI) &
-            &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
-       !         WRITE(6,'(I5,1P4E12.4)') 
-       !     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
-       !         rNueHL(NR) = 0.D0
-       !         rNuiHL(NR) = 0.D0
-       !     &               * (1 + EpsL**1.5D0 * rNuAsI)
-       !     &               / (1 + 1.44D0
-       !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
-       !     &                         + ( ErV(NR)
-       !     &                             / ( Vti * BthV(NR)) )**2))
-       !!     &                         + ( ErV(NR) * BBL
-       !!     &                             / ( Vti * BthV(NR)**2) )**2))
+       IF(ABS(FSHL) > 0.D0) THEN
+          Wte = Vte * NCphi / RR
+          Wti = Vti * NCphi / RR
+          EpsL = EpsH * R(NR) / RA
+          rNuAsE_inv = EpsL**1.5D0 * Wte / rNuei(NR)
+          rNuAsI_inv = EpsL**1.5D0 * Wti / rNuii(NR)
+          rNueHL(NR) = FSHL * SQRT(PI) &
+               &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
+          rNuiHL(NR) = FSHL * SQRT(PI) &
+               &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+          !         WRITE(6,'(I5,1P4E12.4)') 
+          !     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
+          !         rNueHL(NR) = 0.D0
+          !         rNuiHL(NR) = 0.D0
+          !     &               * (1 + EpsL**1.5D0 * rNuAsI)
+          !     &               / (1 + 1.44D0
+          !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
+          !     &                         + ( ErV(NR)
+          !     &                             / ( Vti * BthV(NR)) )**2))
+          !!     &                         + ( ErV(NR) * BBL
+          !!     &                             / ( Vti * BthV(NR)**2) )**2))
+       END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
        dQdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRM,0)
@@ -639,6 +643,7 @@ contains
             &     + AEE * EphV(NR) * PNiV(NR) * 1.D20 * UiphV(NR)
 
        !     *** Bremsstraulung loss ***
+       !     (NRL Plasma Formulary p57 Eq. (30) (2002))
 
        PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
     END DO L_NR
@@ -647,6 +652,8 @@ contains
     rNuAsi(0) = AITKEN2P(R(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),R(1),R(2),R(3))
     rNueNC(0) = AITKEN2P(R(0),rNueNC(1),rNueNC(2),rNueNC(3),R(1),R(2),R(3))
     rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
+    if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
+    if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
 
 !###########################
 !!$    DO NR = 0, NRA

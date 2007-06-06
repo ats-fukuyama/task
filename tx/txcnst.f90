@@ -30,4 +30,7 @@ module physical_constants
   !   Conversion factor from keV to joule
   real(8), parameter :: rKeV = 1.D3 * AEE
   
+  !   Hydrogen ionization energy
+  real(8), parameter :: EION = 13.6D0
+
 end module physical_constants

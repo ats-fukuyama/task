@@ -122,7 +122,7 @@ contains
     k_out    = 0
     k_v      = 1
     k_order  = 2
-    k_potato = 2
+    k_potato = 1
     m_i      = 2
     PZMAX    = PZ
     m_z      = INT(PZMAX)

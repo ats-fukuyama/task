@@ -6,11 +6,12 @@ module coefficients
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM, test
   real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNueiEI, rNubeBE, rNubiBI, rNuTeiEI,&
-       &                       ChieNe, ChiiNi, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       &                       rNuCXN1, ChieNe, ChiiNi, rMueNe, rMuiNi, dPNeV, dPNiV, &
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2
   real(8), dimension(0:NRM) :: UNITY = 1.D0
-  real(8) :: DTt, DTf(1:NQM), invDT
+  real(8) :: DTt, DTf(1:NQM), invDT, BeamSW
+  integer, save :: ICALA = 0
   public :: TXCALA
 
 contains
@@ -23,6 +24,7 @@ contains
 
   SUBROUTINE TXCALA
 
+    use physical_constants, only : rMU0
     INTEGER :: NE, NR, NC, NQ
 
     !*** Nodal Equation *****************************************!
@@ -50,10 +52,12 @@ contains
     ALC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
     BLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
     CLC(0:NCM,1:NQMAX,0:NRMAX) = 0.D0
-    NLCR(0:NCM,1:NQMAX,0:NRMAX) = 1
-    NLC(0:NCM,1:NQMAX) = 1
+    NLCR(0:NCM,1:NQMAX,0:NRMAX) = 0
+    NLC(0:NCM,1:NQMAX) = 0
     PLC(1:NCM,1:NQMAX,0:NRMAX) = 0.D0
     NLCMAX(1:NQMAX) = 0
+
+    !     Preconditioning
 
     invDT = 1.d0 / DT
 !    IF(DT <= 3.D-6) THEN
@@ -69,6 +73,20 @@ contains
        DTt          = 1.d0
        DTf(1:NQMAX) = 1.d0
     END IF
+
+    ! In case of ohmic heating (i.e. no NBI), largeness of the term related to beam
+    ! components comparable to that of other terms related to finite variables
+    ! sometimes induces spurious values in beam components even if no NBI is activated.
+    ! To avoid this, setting these terms, especially related to electromagnetic potentials,
+    ! to zero is desirable during no NBI.
+
+    IF(PNBH == 0.D0 .and. PNbV(0) == 0.D0) THEN
+       BeamSW = 0.D0
+    ELSE
+       BeamSW = 1.D0
+    END IF
+
+    !     Coefficients
 
     CALL LQCOEF
 
@@ -152,15 +170,18 @@ contains
     CALL BOUNDARY(0    ,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi4,0)
-    CALL BOUNDARY(NRMAX,LQn2,0)
+    CALL BOUNDARY(NRMAX,LQn2,0,1.D-10)
+!    CALL BOUNDARY(NRMAX,LQn2,0)
 
     !     Integral term
 
-    CALL BOUNDARY(NRMAX,LQm2,1, 2.D0*PSI(NRMAX)*BB/sqeps0)
-    CALL BOUNDARY(NRMAX,LQm3,1,-2.D0*R(NRMAX)*Bthb)
+    CALL BOUNDARY(NRMAX,LQm2,1, 2.D0*PSI(NRMAX)*BB/rMU0)
+    CALL BOUNDARY(NRMAX,LQm3,1,-2.D0*R(NRMAX)*Bthb/rMUb2)
     CALL BOUNDARY(NRMAX,LQn1,1, 2.D0*R(NRMAX)*rGASPF)
 
     deallocate(ELM,PELM)
+
+    IF(ICALA ==0) ICALA = 1
 
     RETURN
   END SUBROUTINE TXCALA
@@ -180,6 +201,7 @@ contains
          &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX))
     rNuCXN0(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) &
          &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX))
+    rNuCXN1(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) * PT01V(0:NRMAX)
     rNueiEI(0:NRMAX)  = rNuei(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNuTeiEI(0:NRMAX) = rNuTei(0:NRMAX) * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNubeBE(0:NRMAX)  = rNube(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
@@ -213,8 +235,8 @@ contains
     CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
     CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
     CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)
-    FWpheBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphe(0:NRMAX)
-    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphi(0:NRMAX)
+    FWpheBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * rMUb2 * FWthphe(0:NRMAX)
+    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * rMUb2 * FWthphi(0:NRMAX)
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
     FWphiBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthi(0:NRMAX)
 
@@ -241,7 +263,7 @@ contains
     ELM(1:NEMAX,1:4,3,LQm1) = - PZ * fem_int(1) / sqeps0
     NLC(3,LQm1) = LQi1
 
-    ELM(1:NEMAX,1:4,4,LQm1) = - PZ * fem_int(1) / sqeps0
+    ELM(1:NEMAX,1:4,4,LQm1) = - PZ * fem_int(1) / sqeps0 * BeamSW
     NLC(4,LQm1) = LQb1
 
     ! phi(b) : 0
@@ -258,31 +280,31 @@ contains
 
   SUBROUTINE LQm2CC
 
-    use physical_constants, only : AEE, rMU0
+    use physical_constants, only : AEE, EPS0
 
     ! (r*Atheta)'(0) : 0
 
-    ELM(1:NEMAX,1:4,0,LQm2) = sqeps0 * fem_int(1) * invDT
+    ELM(1:NEMAX,1:4,0,LQm2) = fem_int(1) * EPS0 * invDT
     NLC(0,LQm2) = LQm2
 
     ! rot Bphi
 
-    ELM(1:NEMAX,1:4,1,LQm2) =(- 4.D0 * fem_int(18,UNITY) - 4.D0 * fem_int(4))
+    ELM(1:NEMAX,1:4,1,LQm2) = - 4.D0 * fem_int(18,UNITY) - 4.D0 * fem_int(4)
     NLC(1,LQm2) = LQm5
 
     ! Electron current
 
-    ELM(1:NEMAX,1:4,2,LQm2) = - rMU0      * AEE * 1.D20 * fem_int(1) / sqeps0
+    ELM(1:NEMAX,1:4,2,LQm2) = -      AEE * 1.D20 * fem_int(1)
     NLC(2,LQm2) = LQe3
 
     ! Ion current
 
-    ELM(1:NEMAX,1:4,3,LQm2) =   rMU0 * PZ * AEE * 1.D20 * fem_int(1) / sqeps0
+    ELM(1:NEMAX,1:4,3,LQm2) =   PZ * AEE * 1.D20 * fem_int(1)
     NLC(3,LQm2) = LQi3
 
     ! Beam ion current
 
-    ELM(1:NEMAX,1:4,4,LQm2) =   rMU0 * PZ * AEE * 1.D20 * fem_int(1) / sqeps0
+    ELM(1:NEMAX,1:4,4,LQm2) =   PZ * AEE * 1.D20 * fem_int(1) * BeamSW
     NLC(4,LQm2) = LQb3
 
     ! (1/r)*(r*Atheta)'(NRMAX) : BB
@@ -299,11 +321,11 @@ contains
 
   SUBROUTINE LQm3CC
 
-    use physical_constants, only : AEE, VC, rMU0
+    use physical_constants, only : AEE, EPS0
 
     ! Aphi'(0) : 0
 
-    ELM(1:NEMAX,1:4,0,LQm3) = fem_int(1) / (VC**2 * DT)
+    ELM(1:NEMAX,1:4,0,LQm3) = fem_int(1) * EPS0 * rMUb1 * invDT
     NLC(0,LQm3) = LQm3
 
     ! rot Btheta
@@ -313,27 +335,27 @@ contains
 
     ! Electron current
 
-    ELM(1:NEMAX,1:4,2,LQm3) = - rMU0 *      AEE * 1.D20 * fem_int(1)
+    ELM(1:NEMAX,1:4,2,LQm3) = - rMUb1      * AEE * 1.D20 * fem_int(1) * AMPe4
     NLC(2,LQm3) = LQe4
 
     ! Ion current
 
-    ELM(1:NEMAX,1:4,3,LQm3) =   rMU0 * PZ * AEE * 1.D20 * fem_int(1)
+    ELM(1:NEMAX,1:4,3,LQm3) =   rMUb1 * PZ * AEE * 1.D20 * fem_int(1)
     NLC(3,LQm3) = LQi4
 
     ! Beam ion current
 
-    ELM(1:NEMAX,1:4,4,LQm3) =   rMU0 * PZ * AEE * 1.D20 * fem_int(1)
+    ELM(1:NEMAX,1:4,4,LQm3) =   rMUb1 * PZ * AEE * 1.D20 * fem_int(1) * BeamSW
     NLC(4,LQm3) = LQb4
 
 !   ! Virtual current for helical system
 !
-!   PELM(1:NEMAX,1:4,5,LQm3) =   rMU0 * fem_int(-1,AJV)
+!   PELM(1:NEMAX,1:4,5,LQm3) =  rMUb1 * fem_int(-1,AJV)
 !   NLC(5,LQm3) = 0
 
     ! Aphi'(NRMAX) : -Bthb
 
-    NLCMAX(LQm3) = 5
+    NLCMAX(LQm3) = 4
     RETURN
   END SUBROUTINE LQm3CC
 
@@ -350,7 +372,7 @@ contains
 
     ! Aphi'
 
-    ELM(1:NEMAX,1:4,1,LQm4) = fem_int(1)
+    ELM(1:NEMAX,1:4,1,LQm4) = fem_int(1) / rMUb2
     NLC(1,LQm4) = LQm3
 
     NLCMAX(LQm4) = 1
@@ -372,7 +394,7 @@ contains
 
     ! r * Atheta'
 
-    ELM(1:NEMAX,1:4,1,LQm5) = fem_int(1) / (rMU0 * sqeps0)
+    ELM(1:NEMAX,1:4,1,LQm5) = fem_int(1) / rMU0
     NLC(1,LQm5) = LQm2
 
     NLCMAX(LQm5) = 1
@@ -461,8 +483,8 @@ contains
          &                    -        (AEE / AME) * fem_int( 9,BphV) * fem_int(0)
     NLC(5,LQe2) = LQe3
 
-    ELM(1:NEMAX,1:4,6,LQe2) = - 2.D0 * (AEE / AME) * fem_int(16,AphV) &
-         &                    - 2.D0 * (AEE / AME) * fem_int(20,UNITY,AphV) * fem_int(0)
+    ELM(1:NEMAX,1:4,6,LQe2) =(- 2.D0 * (AEE / AME) * fem_int(16,AphV) &
+         &                    - 2.D0 * (AEE / AME) * fem_int(20,UNITY,AphV) * fem_int(0)) * AMPe4
     NLC(6,LQe2) = LQe4
 
     NLCMAX(LQe2) = 6
@@ -485,7 +507,7 @@ contains
 
   SUBROUTINE LQe3CC
 
-    use physical_constants, only : AEE, AME, rKeV, rMU0
+    use physical_constants, only : AEE, AME, rKeV
 
     integer :: N
 
@@ -504,11 +526,16 @@ contains
     ELM(1:NEMAX,1:4, 2,LQe3) = - 4.D0 * fem_int(18,rMue) &
          &                     - 4.D0 * fem_int(39,rMueNe,dPNeV) &
          &                     - 4.D0 * fem_int( 3,rMue)
+!    ELM(1:NEMAX,1:4, 2,LQe3) = - 4.D0 * fem_int(18,rMue) &
+!         &                     - 4.D0 * fem_int( 3,rMue)
     NLC( 2,LQe3) = LQe3
+
+!    ELM(1:NEMAX,1:4,18,LQe3) =   4.D0 * fem_int(41,rMue,RUethV)
+!    NLC(18,LQe3) = LQe1
 
     ! Poloidal E force
 
-    ELM(1:NEMAX,1:4, 3,LQe3) =   (AEE / AME) * fem_int(2,PNeV) / rMU0
+    ELM(1:NEMAX,1:4, 3,LQe3) =   (AEE / AME) * fem_int(2,PNeV)
     NLC( 3,LQe3) = LQm2
 
     ! v x B force
@@ -544,7 +571,7 @@ contains
        ELM(1:NEMAX,1:4,10,LQe3) = - 1.D0 / AME * fem_int(2,FWthe)
        NLC(10,LQe3) = LQe3
 
-       ELM(1:NEMAX,1:4,11,LQe3) = - 2.D0 / AME * fem_int(36,AphV,FWthphe)
+       ELM(1:NEMAX,1:4,11,LQe3) = - 2.D0 / AME * fem_int(36,AphV,FWthphe) * AMPe4
        NLC(11,LQe3) = LQe4
 
        ELM(1:NEMAX,1:4,12,LQe3) =   1.D0 / AME * fem_int(44,FWthe,WPM)
@@ -616,7 +643,7 @@ contains
 !   ELM(1:NEMAX,1:4,18+N,LQe3) = - (1.D0 - UHth * UHth) * fem_int(2,rNueHL)
 !   NLC(18+N,LQe3) = LQe3
 !
-!   ELM(1:NEMAX,1:4,19+N,LQe3) = UHph * UHth / 2.D0 * fem_int(22,rNueHL)
+!   ELM(1:NEMAX,1:4,19+N,LQe3) = UHph * UHth / 2.D0 * fem_int(22,rNueHL) * AMPe4
 !   NLC(19+N,LQe3) = LQe4
 
     ! Ns*UsTheta(NRMAX) : 0
@@ -637,18 +664,22 @@ contains
 
     ! Uephi(0)' : 0
 
-    ELM(1:NEMAX,1:4, 0,LQe4) = fem_int(1) * invDT
+    ELM(1:NEMAX,1:4, 0,LQe4) = fem_int(1) * invDT * AMPe4
     NLC( 0,LQe4) = LQe4
 
     ! Nonlinear term
 
-    ELM(1:NEMAX,1:4, 1,LQe4) = - 2.D0 * fem_int(3,RUerV)
+    ELM(1:NEMAX,1:4, 1,LQe4) = - 2.D0 * fem_int(3,RUerV) * AMPe4
     NLC( 1,LQe4) = LQe4
     
     ! Viscosity force
     
-    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 *(fem_int(18,rMue) + fem_int(39,rMueNe,dPNeV))
+    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 *(fem_int(18,rMue) + fem_int(39,rMueNe,dPNeV)) * AMPe4
+!    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 * fem_int(18,rMue)
     NLC( 2,LQe4) = LQe4
+
+!    ELM(1:NEMAX,1:4,17,LQe4) =   4.D0 * fem_int(41,rMue,UephV)
+!    NLC(17,LQe4) = LQe1
 
     ! Toroidal E force
 
@@ -662,7 +693,7 @@ contains
 
     ! Collisional friction with bulk ions
 
-    ELM(1:NEMAX,1:4, 5,LQe4) = - fem_int(2,rNuei)
+    ELM(1:NEMAX,1:4, 5,LQe4) = - fem_int(2,rNuei) * AMPe4
     NLC( 5,LQe4) = LQe4
 
     ELM(1:NEMAX,1:4, 6,LQe4) =   fem_int(2,rNueiEI)
@@ -670,7 +701,7 @@ contains
 
     ! Collisional friction with beam ions
 
-    ELM(1:NEMAX,1:4, 7,LQe4) = - (AMB / AME) * fem_int(2,rNubeBE)
+    ELM(1:NEMAX,1:4, 7,LQe4) = - (AMB / AME) * fem_int(2,rNubeBE) * AMPe4
     NLC( 7,LQe4) = LQe4
 
     ELM(1:NEMAX,1:4, 8,LQe4) =   (AMB / AME) * fem_int(2,rNube)
@@ -683,7 +714,7 @@ contains
        ELM(1:NEMAX,1:4, 9,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB)
        NLC( 9,LQe4) = LQe3
 
-       ELM(1:NEMAX,1:4,10,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB2)
+       ELM(1:NEMAX,1:4,10,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB2) * AMPe4
        NLC(10,LQe4) = LQe4
 
        ELM(1:NEMAX,1:4,11,LQe4) = - 1.D0 / AME * fem_int(44,FWpheBB,WPM)
@@ -704,12 +735,12 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,15,LQe4) = - 2.D0 * fem_int(2,rNuL)
+    ELM(1:NEMAX,1:4,15,LQe4) = - 2.D0 * fem_int(2,rNuL) * AMPe4
     NLC(15,LQe4) = LQe4
 
     ! Collisional friction force with neutrals
 
-    ELM(1:NEMAX,1:4,16,LQe4) = - fem_int(2,rNu0e)
+    ELM(1:NEMAX,1:4,16,LQe4) = - fem_int(2,rNu0e) * AMPe4
     NLC(16,LQe4) = LQe4
 
 !    ! Helical neoclassical viscosity force
@@ -717,7 +748,7 @@ contains
 !    ELM(1:NEMAX,1:4,17,LQe4) =  UHth * UHph / 2.D0 * fem_int(2,rNueHL)
 !    NLC(17,LQe4) = LQe3
 
-!    ELM(1:NEMAX,1:4,18,LQe4) = - (1.D0 - UHph * UHph) * fem_int(2,rNueHL)
+!    ELM(1:NEMAX,1:4,18,LQe4) = - (1.D0 - UHph * UHph) * fem_int(2,rNueHL) * AMPe4
 !    NLC(18,LQe4) = LQe4
 
     NLCMAX(LQe4) = 16
@@ -732,7 +763,7 @@ contains
 
   SUBROUTINE LQe5CC
 
-    use physical_constants, only : AEE, rKeV
+    use physical_constants, only : AEE, rKeV, EION
 
     ! Temperature evolution
     
@@ -752,15 +783,15 @@ contains
        ELM(1:NEMAX,1:4, 2,LQe5) = - 6.D0 * fem_int(18,Chie)
        NLC( 2,LQe5) = LQe5
 
-       ELM(1:NEMAX,1:4,15,LQe5) =   6.D0 * fem_int(41,Chie,PTeV)
-       NLC(15,LQe5) = LQe1
+       ELM(1:NEMAX,1:4,17,LQe5) =   6.D0 * fem_int(41,Chie,PTeV)
+       NLC(17,LQe5) = LQe1
 
        ! Joule heating
 
        ELM(1:NEMAX,1:4, 3,LQe5) = - AEE / rKeV * fem_int(2,EthVR)
        NLC( 3,LQe5) = LQe3
 
-       ELM(1:NEMAX,1:4, 4,LQe5) = - AEE / rKeV * fem_int(2,EphV)
+       ELM(1:NEMAX,1:4, 4,LQe5) = - AEE / rKeV * fem_int(2,EphV) * AMPe4
        NLC( 4,LQe5) = LQe4
 
        ! Collisional transfer with ions
@@ -774,14 +805,14 @@ contains
        ! Collisional heating with beam
 
 !      ELM(1:NEMAX,1:4, 7,LQe5) = - 0.5D0 * AMb * (PNBCD * Vb) / rKeV &
-!           &                * fem_int(2,rNubeBE)
+!           &                * fem_int(2,rNubeBE) * AMPe4
 !      NLC( 7,LQe5) = LQe4
 !
 !      ELM(1:NEMAX,1:4, 8,LQe5) =   0.5D0 * AMb * (PNBCD * Vb) / rKeV &
 !           &                * fem_int(2,rNube)
 !      NLC( 8,LQe5) = LQb4
 
-       ELM(1:NEMAX,1:4, 7,LQe5) = - 0.5D0 * AMb / rKeV * fem_int(28,Vbedir,rNubeBE)
+       ELM(1:NEMAX,1:4, 7,LQe5) = - 0.5D0 * AMb / rKeV * fem_int(28,Vbedir,rNubeBE) * AMPe4
        NLC( 7,LQe5) = LQe4
 
        ELM(1:NEMAX,1:4, 8,LQe5) =   0.5D0 * AMb / rKeV * fem_int(28,Vbedir,rNube)
@@ -806,13 +837,21 @@ contains
        PELM(1:NEMAX,1:4,13,LQe5) =   1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFe)
        NLC(13,LQe5) = 0
 
-       ! Radiation loss
+       ! Radiation loss  (Bremsstrahlung)
 
        PELM(1:NEMAX,1:4,14,LQe5) = - 1.D0 / (1.D20 * rKeV) * fem_int(-1,PBr)
        NLC(14,LQe5) = 0
 
+       ! Ionization loss of n01 and n02
+
+       ELM(1:NEMAX,1:4,15,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
+       NLC(15,LQe5) = LQn1
+
+       ELM(1:NEMAX,1:4,16,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
+       NLC(16,LQe5) = LQn2
+
 !       NLCMAX(LQe5) = 14
-       NLCMAX(LQe5) = 15
+       NLCMAX(LQe5) = 17
     ELSE
 
        !  Fixed temperature profile
@@ -947,7 +986,7 @@ contains
 
   SUBROUTINE LQi3CC
 
-    use physical_constants, only : AEE, AME, rKeV, rMU0
+    use physical_constants, only : AEE, AME, rKeV
 
     integer :: N
 
@@ -966,11 +1005,16 @@ contains
     ELM(1:NEMAX,1:4, 2,LQi3) = - 4.D0 * fem_int(18,rMui) &
          &                     - 4.D0 * fem_int(39,rMuiNi,dPNiV) &
          &                     - 4.D0 * fem_int( 3,rMui)
+!    ELM(1:NEMAX,1:4, 2,LQi3) = - 4.D0 * fem_int(18,rMui) &
+!         &                     - 4.D0 * fem_int( 3,rMui)
     NLC( 2,LQi3) = LQi3
+
+!    ELM(1:NEMAX,1:4,19,LQi3) =   4.D0 * fem_int(41,rMui,RUithV)
+!    NLC(19,LQi3) = LQi1
 
     ! Poroidal E force
 
-    ELM(1:NEMAX,1:4, 3,LQi3) = - (PZ * AEE / AMI) * fem_int(2,PNiV) / rMU0
+    ELM(1:NEMAX,1:4, 3,LQi3) = - (PZ * AEE / AMI) * fem_int(2,PNiV)
     NLC( 3,LQi3) = LQm2
 
     ! v x B force
@@ -1006,7 +1050,7 @@ contains
        ELM(1:NEMAX,1:4,10,LQi3) =   1.D0 / AMI * fem_int(2,FWthe)
        NLC(10,LQi3) = LQe3
 
-       ELM(1:NEMAX,1:4,11,LQi3) =   2.D0 / AMI * fem_int(36,AphV,FWthphe)
+       ELM(1:NEMAX,1:4,11,LQi3) =   2.D0 / AMI * fem_int(36,AphV,FWthphe) * AMPe4
        NLC(11,LQi3) = LQe4
 
        ELM(1:NEMAX,1:4,12,LQi3) = - 1.D0 / AMI * fem_int(44,FWthe,WPM)
@@ -1093,7 +1137,7 @@ contains
 
     ! Ns*UsTheta(NRMAX) : 0
 
-    NLCMAX(LQi3) = 19+N
+    NLCMAX(LQi3) = 18+N
     RETURN
   END SUBROUTINE LQi3CC
 
@@ -1120,7 +1164,11 @@ contains
     ! Viscosity force
 
     ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 *(fem_int(18,rMui) + fem_int(39,rMuiNi,dPNiV))
+!    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 * fem_int(18,rMui)
     NLC( 2,LQi4) = LQi4
+
+!    ELM(1:NEMAX,1:4,19,LQi4) =   4.D0 * fem_int(41,rMui,UiphV)
+!    NLC(19,LQi4) = LQi1
 
     ! Toroidal E force
 
@@ -1137,7 +1185,7 @@ contains
     ELM(1:NEMAX,1:4, 5,LQi4) = - (AME / AMI) * fem_int(2,rNueiEI)
     NLC( 5,LQi4) = LQi4
 
-    ELM(1:NEMAX,1:4, 6,LQi4) =   (AME / AMI) * fem_int(2,rNuei)
+    ELM(1:NEMAX,1:4, 6,LQi4) =   (AME / AMI) * fem_int(2,rNuei) * AMPe4
     NLC( 6,LQi4) = LQe4
 
     ! Collisional friction with beam ions
@@ -1155,7 +1203,7 @@ contains
        ELM(1:NEMAX,1:4, 9,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB)
        NLC( 9,LQi4) = LQe3
 
-       ELM(1:NEMAX,1:4,10,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB2)
+       ELM(1:NEMAX,1:4,10,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB2) * AMPe4
        NLC(10,LQi4) = LQe4
 
        ELM(1:NEMAX,1:4,11,LQi4) =   1.D0 / AMI * fem_int(44,FWpheBB,WPM)
@@ -1234,8 +1282,8 @@ contains
        ELM(1:NEMAX,1:4, 2,LQi5) = - 6.D0 * fem_int(18,Chii)
        NLC( 2,LQi5) = LQi5
 
-       ELM(1:NEMAX,1:4,14,LQi5) =   6.D0 * fem_int(41,Chii,PTiV)
-       NLC(14,LQi5) = LQi1
+       ELM(1:NEMAX,1:4,18,LQi5) =   6.D0 * fem_int(41,Chii,PTiV)
+       NLC(18,LQi5) = LQi1
 
        ! Joule heating
 
@@ -1288,8 +1336,23 @@ contains
        PELM(1:NEMAX,1:4,13,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFi)
        NLC(13,LQi5) = 0
 
-!       NLCMAX(LQi5) = 13
-       NLCMAX(LQi5) = 14
+       ! Ionization heating of n01 and n02
+
+       ELM(1:NEMAX,1:4,14,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT01V)
+       NLC(14,LQi5) = LQn1
+
+       ELM(1:NEMAX,1:4,15,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT02V)
+       NLC(15,LQi5) = LQn2
+
+       ! Charge exchange force
+
+       ELM(1:NEMAX,1:4,16,LQi5)  = - 1.5D0 * fem_int( 2,rNuiCX)
+       NLC(16,LQi5) = LQi5
+
+       PELM(1:NEMAX,1:4,17,LQi5) =   1.5D0 * fem_int(-1,rNuCXN1)
+       NLC(17,LQi5) = 0
+
+       NLCMAX(LQi5) = 18
     ELSE
 
        !  Fixed temperature profile
@@ -1336,7 +1399,7 @@ contains
 
   SUBROUTINE LQb3CC
 
-    use physical_constants, only : AEE, rMU0
+    use physical_constants, only : AEE
 
     ! Ubth(0) : 0
 
@@ -1345,7 +1408,7 @@ contains
 
     ! Poroidal E force
 
-    ELM(1:NEMAX,1:4,1,LQb3) = - (PZ * AEE / AMB) * fem_int(2,PNbV) / rMU0
+    ELM(1:NEMAX,1:4,1,LQb3) = - (PZ * AEE / AMB) * fem_int(2,PNbV)
     NLC(1,LQb3) = LQm2
 
 !    ! Neoclassical viscosity force
@@ -1371,12 +1434,12 @@ contains
 
     ! Collisional friction force with neutrals
 
-    ELM(1:NEMAX,1:4,7,LQb3) = - fem_int(2,rNu0b)
+    ELM(1:NEMAX,1:4,7,LQb3) = - fem_int(2,rNu0b) * BeamSW
     NLC(7,LQb3) = LQb3
 
     ! Charge exchange force
 
-    ELM(1:NEMAX,1:4,8,LQb3) = - fem_int(2,rNuiCX)
+    ELM(1:NEMAX,1:4,8,LQb3) = - fem_int(2,rNuiCX) * BeamSW
     NLC(8,LQb3) = LQb3
 
     ! Ubth(NRMAX) : 0
@@ -1410,7 +1473,7 @@ contains
     ELM(1:NEMAX,1:4,2,LQb4) = - fem_int(2,rNube)
     NLC(2,LQb4) = LQb4
 
-    ELM(1:NEMAX,1:4,3,LQb4) =   fem_int(2,rNubeBE)
+    ELM(1:NEMAX,1:4,3,LQb4) =   fem_int(2,rNubeBE) * AMPe4
     NLC(3,LQb4) = LQe4
 
     ! Collisional friction with ions
@@ -1423,12 +1486,12 @@ contains
 
     ! Collisional friction force with neutrals
 
-    ELM(1:NEMAX,1:4,6,LQb4) = - fem_int(2,rNu0b)
+    ELM(1:NEMAX,1:4,6,LQb4) = - fem_int(2,rNu0b) * BeamSW
     NLC(6,LQb4) = LQb4
 
     ! Charge exchange force
 
-    ELM(1:NEMAX,1:4,7,LQb4) = - fem_int(2,rNuiCX)
+    ELM(1:NEMAX,1:4,7,LQb4) = - fem_int(2,rNuiCX) * BeamSW
     NLC(7,LQb4) = LQb4
 
     ! NBI momentum source
@@ -1525,7 +1588,13 @@ contains
 
     integer, intent(in) :: NR, LQ, ID
     real(8), intent(in), optional :: VAL
-    integer :: NQ
+    integer :: NQ, NC, I
+    integer, save :: IMAX(1:NQM)
+    type list
+       integer :: IDXNC
+       integer :: IDXNQ
+    end type list
+    type(list), save :: IDX(1:NQM,0:1,0:30)
 
     IF(ID == 0) THEN
        ! Initialize ALC, BLC and CLC
@@ -1533,18 +1602,60 @@ contains
        BLC(0:NCM,LQ,NR) = 0.D0
        CLC(0:NCM,LQ,NR) = 0.D0
        PLC(1:NCM,LQ,NR) = 0.D0
+
+       IF(ICALA == 0) THEN
+          I = 0
+          DO NQ = 1, NQMAX
+             DO NC = 1, NLCMAX(NQ)
+                IF(NLCR(NC,NQ,NR) == LQ) THEN
+                   I = I + 1
+                   IDX(LQ,MOD(NR,NRMAX),I)%IDXNC = NC
+                   IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ = NQ
+                END IF
+             END DO
+          END DO
+          IMAX(LQ) = I
+       ELSE
+          IF(PRESENT(VAL)) THEN
+             IF(NR == 0) THEN
+                DO I = 1, IMAX(LQ)
+                   PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) &
+               & = PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) &
+               & + BLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) * VAL
+                   PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR+1) &
+               & = PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR+1) &
+               & + CLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR+1) * VAL
+                END DO
+             ELSE
+                DO I = 1, IMAX(LQ)
+                   PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) &
+               & = PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) &
+               & + BLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR) * VAL
+                   PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR-1) &
+               & = PLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR-1) &
+               & + ALC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR-1) * VAL
+                END DO
+             END IF
+          END IF
+
+          IF(NR == 0) THEN
+             DO I = 1, IMAX(LQ)
+                BLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR)   = 0.D0
+                CLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR+1) = 0.D0
+             END DO
+          ELSE
+             DO I = 1, IMAX(LQ)
+                BLC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR)   = 0.D0
+                ALC(IDX(LQ,MOD(NR,NRMAX),I)%IDXNC,IDX(LQ,MOD(NR,NRMAX),I)%IDXNQ,NR-1) = 0.D0
+             END DO
+          END IF
+       END IF
+
        ! Diagonal term on handled variable
-       !    Although I have no precise proof, I need to set BLC to the value 
-       !    comparable to ALC, BLC and CLC on the other grid if X=0 on axis is imposed.
-       BLC(1,LQ,NR) = 1.D10
+       BLC(1,LQ,NR) = 1.D0
        NLCR(1,LQ,NR) = LQ
 
-       IF(PRESENT(VAL)) THEN
-          BLC(1,LQ,NR) = 1.D0
-          PLC(2,LQ,NR) = - VAL
-          NLCR(2,LQ,NR) = 0
-          IF(NLCMAX(LQ) <= 1) NLCMAX(LQ) = 2
-       END IF
+       IF(PRESENT(VAL)) PLC(1,LQ,NR) = PLC(1,LQ,NR) - VAL
     ELSE
        NLCMAX(LQ) = NLCMAX(LQ) + 1
        PLC(NLCMAX(LQ),LQ,NR) = VAL * DTf(LQ)
@@ -1552,24 +1663,5 @@ contains
     END IF
 
   END SUBROUTINE BOUNDARY
-
-!***************************************************************
-!
-!   Langevin function for SUPG method
-!
-!***************************************************************
-
-  real(8) function falpha(x)
-    real(8), intent(in) :: x
-
-    if (x < -3.d0) then
-       falpha = - 1.d0 - 1.d0 / x
-    elseif (x > 3.d0) then
-       falpha =   1.d0 - 1.d0 / x
-    else
-       falpha = x / 3.d0 * ( 1.d0 - abs(x) / 9.d0)
-    end if
-
-  end function falpha
 
 end module coefficients

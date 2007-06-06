@@ -13,12 +13,12 @@ contains
 
   SUBROUTINE TXGLOB
 
-    use physical_constants, only : AEE, PI, rMU0, rKeV, AME
+    use physical_constants, only : AEE, PI, rMU0, rKeV, AME, EION
     use libraries, only : INTG_F, INTG_P, DERIVS
 
     INTEGER :: I, NS, NF, NR
     REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
-         &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, EION, &
+         &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
          &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
          &     BBL, SUMML, SUMPL, PNES, PAI
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
@@ -102,7 +102,6 @@ contains
 
     !     Output powers
 
-    EION  = 13.64D0
     PIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20*EION*AEE
     SIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
     PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*rKeV
