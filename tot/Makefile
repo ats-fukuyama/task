@@ -16,7 +16,7 @@ SRCS = main.f
 OBJS = $(SRCS:.f=.o)
 
 LIB0 = $(EQLIBS) \
-       ../pl/pllib.a ../pl/noeqlib.o \
+       ../pl/pllib.a \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
