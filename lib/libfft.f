@@ -7,7 +7,7 @@ C
       SUBROUTINE FFT2L ( A , B , WORK , IWORK , N , IND , KEY )
 C
       COMPLEX*16 A(N),B(N)
-      REAL*8 WORK(N)
+      REAL*8 WORK(N),RB(2*N)
       DIMENSION IWORK(N)
 C
       IF(N.EQ.1) THEN
@@ -18,15 +18,19 @@ C
             IND=0
          ENDIF
          DO I=1,N
-            B(I)=A(I)
+            RB(2*I-1)=REAL(A(I))
+            RB(2*I  )=IMAG(A(I))
          ENDDO
          IF(KEY.EQ.0) THEN
-            CALL CDFT(2*N,-1,B,IWORK,WORK)
+            CALL CDFT(2*N,-1,RB,IWORK,WORK)
             DO I=1,N
-               B(I)=B(I)/DBLE(N)
+               B(I)=DCMPLX(RB(2*I-1),RB(2*I))/DBLE(N)
             ENDDO
          ELSE
-            CALL CDFT(2*N, 1,B,IWORK,WORK)
+            CALL CDFT(2*N, 1,RB,IWORK,WORK)
+            DO I=1,N
+               B(I)=DCMPLX(RB(2*I-1),RB(2*I))
+            ENDDO
          ENDIF
       ENDIF
       RETURN
