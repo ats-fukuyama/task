@@ -309,6 +309,7 @@ C
       REAL    *  8 CUTLO,CUTHI,HITEST,SUM,XMAX
       REAL    *  8 DNORM2
       REAL    *  8 ZERO,ONE
+      INTEGER      ID
 C
       DATA ZERO,ONE /0.D0,1.D0/
       DATA CUTLO,CUTHI /8.232D-11, 1.304D19/
@@ -318,7 +319,7 @@ C
          RETURN
       ENDIF
 C
-   10 ASSIGN 30 TO NEXT
+   10 ID=30
 C
       SUM = 0.D0
       I   = 1
@@ -326,14 +327,17 @@ C
 C
 C     BEGIN MAIN LOOP
 C
-   20 GO TO NEXT, (30,50,70,110)
+   20 IF(ID.EQ. 30) GO TO  30
+      IF(ID.EQ. 50) GO TO  50
+      IF(ID.EQ. 70) GO TO  70
+      IF(ID.EQ.110) GO TO 110
 C
    30 IF(CDABS(DX(1)).GT.CUTLO) THEN
          IX=1
          GO TO 85
       ENDIF
 C
-      ASSIGN 50 TO NEXT
+      ID=50
       XMAX = 0.D0
 C
 C     PHASE 1.  SUM IS ZERO
@@ -347,7 +351,7 @@ C
 C
 C     PREPARE FOR PHASE 2.
 C
-      ASSIGN 70 TO NEXT
+      ID=70
       GO TO 105
 C
 C     PREPARE FOR PHASE 4.
@@ -355,7 +359,7 @@ C
   100 CONTINUE
 C
       IX = J
-      ASSIGN 110 TO NEXT
+      ID=110
       SUM=(SUM/DX(I))/DCONJG(DX(I))
 C
   105 XMAX = CDABS(DX(I))

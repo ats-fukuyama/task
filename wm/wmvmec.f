@@ -184,8 +184,8 @@ C
       INCLUDE 'vmcomm.inc'
       integer np,i
       parameter (np=3)
-      real*8 nra,psipa,srmnca,drmnca,szmnsa,dzmnsa
-      dimension nra(np),psipa(np),srmnca(np),drmnca(np),szmnsa(np)
+      real*8 nra,psipax,srmnca,drmnca,szmnsa,dzmnsa
+      dimension nra(np),psipax(np),srmnca(np),drmnca(np),szmnsa(np)
       dimension dzmnsa(np)
 C
 C      ***** SPLINE PSIP *****
@@ -201,10 +201,10 @@ c
 c
             do i=1,np
                nra(i)=nr-np-1+i
-               psipa(i)=psip(nr-np-1+i)
+               psipax(i)=psip(nr-np-1+i)
             enddo
 c     
-            call polint(nra,psipa,np,nr,psip(nr),dy) 
+            call polint(nra,psipax,np,nr,psip(nr),dy) 
 c
 c
          ELSE
