@@ -90,7 +90,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FCFIXED = f95 -X9
 #FCFREE = f95
 #LD=ar
-#LDFLAGS=ru
+#LDFLAGS=rs
 
 ## for Mac OSX Intel fortran compiler 
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
