@@ -4,7 +4,8 @@
    ngtstp=1
    ngrstp=1
    dt=1.D-3
-   modelg=9
+   modelg=3
+   KNAMEQ='eqdata.quest'
    nteqit=1
    nsmax=2
    pn=1.01,1.01

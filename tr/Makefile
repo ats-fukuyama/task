@@ -3,7 +3,7 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
 
 # without eq
 #MODINCLUDE= -I. -I../pl

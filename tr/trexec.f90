@@ -305,13 +305,17 @@
 
       SUBROUTINE TRMTRX(NEQRMAX)
 
-      USE TRCOMM, ONLY : ABRHOG, AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, MDLUF, &
-     &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRM, NRMAX, NSMAX, NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
-     &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, VV, X, XV, Y, YV, Z, ZV, NEQMAXM, RDPS
+      USE TRCOMM, ONLY : ABRHOG, AEE, AKDW, AMZ, AX, AY, AZ, DD, DI, DT, &
+     &                   DVRHOG, EPS0, LDAB, MDLCD, MDLEQB, MDLPCK, MDLUF, &
+     &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRM, NRMAX, NSMAX, &
+     &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
+     &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, &
+     &                   VV, X, XV, Y, YV, Z, ZV, NEQMAXM, RDPS
       USE TRCOM1, ONLY : A, B, C, D, PPA, PPB, PPC, RD
       IMPLICIT NONE
       INTEGER(4), INTENT(INOUT):: NEQRMAX
-      INTEGER(4):: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, NV, NW, NX
+      INTEGER(4):: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
+     &             NV, NW, NX
       REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
 
@@ -372,7 +376,8 @@
       DO NV=1,NEQMAX
       DO NW=1,NEQMAX
          A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
-         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
+         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) &
+     &                -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
          C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
       ENDDO
       ENDDO
@@ -382,7 +387,8 @@
          DO NS1=1,NSMAX
             IF(NS1.NE.NS) THEN
                NEQ1=NEA(NS1,2)
-               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53 *COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1)) &
+     &                  *DV53 *COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
             ENDIF
@@ -401,7 +407,8 @@
       DO NW=1,NEQMAX
       DO NV=1,NEQMAX
          X(NEQMAX*(NR-1)+NV) = X(NEQMAX*(NR-1)+NV) &
-     &                        +PRV*(+B(NV,NW,NR)*XV(NW,NR  )+C(NV,NW,NR)*XV(NW,NR+1))
+     &                        +PRV*(+B(NV,NW,NR)*XV(NW,NR  ) &
+     &                              +C(NV,NW,NR)*XV(NW,NR+1))
       ENDDO
       ENDDO
 
@@ -429,7 +436,8 @@
          DO NV=1,NEQMAX
          DO NW=1,NEQMAX
             A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW)
-            B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
+            B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) &
+     &                   -0.5D0*VI(NV,NW,2,NSW)-DI(NV,NW,2,NSW)
             C(NV,NW,NR) =-0.5D0*VI(NV,NW,2,NSW)+DI(NV,NW,2,NSW)
          ENDDO
          ENDDO
@@ -439,7 +447,8 @@
             DO NS1=1,NSMAX
                IF(NS1.NE.NS) THEN
                   NEQ1=NEA(NS1,2)
-                  C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+                  C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1)) &
+     &                     *DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
                   B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
                   B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
                ENDIF
@@ -458,7 +467,9 @@
          DO NW=1,NEQMAX
          DO NV=1,NEQMAX
             X(NEQMAX*(NR-1)+NV) = X(NEQMAX*(NR-1)+NV) &
-     &                 +PRV*(A(NV,NW,NR)*XV(NW,NR-1)+B(NV,NW,NR)*XV(NW,NR)+C(NV,NW,NR)*XV(NW,NR+1))
+     &                          +PRV*(A(NV,NW,NR)*XV(NW,NR-1) &
+     &                               +B(NV,NW,NR)*XV(NW,NR  ) &
+     &                               +C(NV,NW,NR)*XV(NW,NR+1))
          ENDDO
          ENDDO
 
@@ -487,8 +498,10 @@
 
       DO NV=1,NEQMAX
       DO NW=1,NEQMAX
-         A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW) +DI(NV,NW,2,NSW)/3.D0
-         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) -DI(NV,NW,2,NSW)*3.D0
+         A(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)+DI(NV,NW,1,NSW) &
+     &                +DI(NV,NW,2,NSW)/3.D0
+         B(NV,NW,NR) = 0.5D0*VI(NV,NW,1,NSW)-DI(NV,NW,1,NSW) &
+     &                -DI(NV,NW,2,NSW)*3.D0
          C(NV,NW,NR) =-0.0D0
       ENDDO
       ENDDO
@@ -498,7 +511,8 @@
          DO NS1=1,NSMAX
             IF(NS1.NE.NS) THEN
                NEQ1=NEA(NS1,2)
-               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1))*DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
+               C1=COEF/((RTM(NS)+RTM(NS1))**1.5D0*AMZ(NS)*AMZ(NS1)) &
+     &                 *DV53*COULOG(NS,NS1,RN(NR,1),RT(NR,NS))
                B(NEQ,NEQ, NR)=B(NEQ,NEQ, NR)-RN(NR,NS1)*C1
                B(NEQ,NEQ1,NR)=B(NEQ,NEQ1,NR)+RN(NR,NS )*C1
             ENDIF
