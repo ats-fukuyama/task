@@ -102,6 +102,7 @@
       IF(DFN.GT.DF) THEN
          X=X-TT*DX
          Y=Y-TT*DY
+         IF(DF.LE.EPS) GOTO 9000
          TT=0.5D0*TT
          ITER=ITER+1
          IF(TT.LE.1.D-3) GOTO 8000
