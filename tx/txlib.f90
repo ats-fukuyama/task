@@ -73,6 +73,7 @@ contains
 !
 !      id = -1 : a * w
 !      id = -2 : a * b * w
+!      id = -3 :(a * b)'* w
 !      id = -8 : a * w'
 !      id = -9 : a * b * w'
 !
@@ -90,7 +91,7 @@ contains
     integer, intent(in) :: id
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
     integer :: ne
-    real(8) :: x(1:nemax,1:4), csq15
+    real(8) :: x(1:nemax,1:4), csq15, a1, a2, b1, b2
     
     select case(id)
     case(-1)
@@ -106,6 +107,13 @@ contains
           x(ne,2) = (        a(ne-1) +        a(ne)) * hpsi(ne) * c112 * b(ne)
           x(ne,3) = (        a(ne-1) +        a(ne)) * hpsi(ne) * c112 * b(ne-1)
           x(ne,4) = (        a(ne-1) + 3.d0 * a(ne)) * hpsi(ne) * c112 * b(ne)
+       end do
+    case(-3)
+       do ne = 1, nemax
+          x(ne,1) = (-4.d0 * a(ne-1) +        a(ne)) * c16 * b(ne-1)
+          x(ne,2) = (        a(ne-1) + 2.d0 * a(ne)) * c16 * b(ne)
+          x(ne,3) = (-2.d0 * a(ne-1) -        a(ne)) * c16 * b(ne-1)
+          x(ne,4) = (-       a(ne-1) + 4.d0 * a(ne)) * c16 * b(ne)
        end do
     case(0)
        !  for SUPG
@@ -138,6 +146,13 @@ contains
        x(1:nemax,2) =  0.5d0
        x(1:nemax,3) = x(1:nemax,1)
        x(1:nemax,4) = x(1:nemax,2)
+    case(5)
+       do ne = 1, nemax
+          x(ne,1) = (-2.d0 * a(ne-1) -        a(ne)) / 6.d0
+          x(ne,2) = ( 2.d0 * a(ne-1) +        a(ne)) / 6.d0
+          x(ne,3) = (-       a(ne-1) - 2.d0 * a(ne)) / 6.d0
+          x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) / 6.d0
+       end do
     case(6)
        do ne = 1, nemax
           x(ne,1) = (- a(ne-1) + a(ne)) * c13
@@ -219,6 +234,23 @@ contains
           x(ne,3) = x(ne,2)
           x(ne,4) = ( 2.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne)*b(ne-1) &
                &    + 3.d0*a(ne-1)*b(ne)   +12.d0*a(ne)*b(ne)) * hpsi(ne) * c160
+       end do
+    case(32)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne)
+          b1 = b(ne-1) ; b2 = b(ne)
+          x(ne,1) = (-3.d0*a1*b1 + 3.d0*a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
+               &  + (-3.d0*a1*b1 -      a1*b2 + 3.d0*a2*b1 +      a2*b2) / 12.d0 &
+               &  + (-3.d0*a1*b1 -      a1*b2 -      a2*b1 -      a2*b2) / 12.d0
+          x(ne,2) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
+               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) / 12.d0 &
+               &  + ( 3.d0*a1*b1 +      a1*b2 +      a2*b1 +      a2*b2) / 12.d0
+          x(ne,3) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
+               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) / 12.d0 &
+               &  + (-     a1*b1 -      a1*b2 -      a2*b1 - 3.d0*a2*b2) / 12.d0
+          x(ne,4) = (-     a1*b1 +      a1*b2 - 3.d0*a2*b1 + 3.d0*a2*b2) / 12.d0 &
+               &  + (-     a1*b1 - 3.d0*a1*b2 +      a2*b1 + 3.d0*a2*b2) / 12.d0 &
+               &  + (      a1*b1 +      a1*b2 +      a2*b1 + 3.d0*a2*b2) / 12.d0
        end do
     case(34)
        do ne = 1, nemax
@@ -688,39 +720,48 @@ contains
 
   end function fem_int_point
 
-  function lump_int(id,ne,a) result(x)
+  subroutine inv_int(ne_in,val,x1,x2,x)
 
-    integer, intent(in) :: id, ne
-    real(8), intent(in), dimension(0:nrmax), optional  :: a
-    integer :: node1, node2
-    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, hp
-    
-    node1 = ne-1  ; node2 = ne
-    if(present(a)) then
-       a1 = a(node1) ; a2 = a(node2)
-    end if
-    r1 = r(node1) ; r2 = r(node2)
-    p1 = psi(node1) ; p2 = psi(node2) ; hp = hpsi(ne)
+    integer, intent(in)  :: ne_in
+    real(8), intent(in)  :: val, x1, x2
+    real(8), intent(out) :: x
 
-    select case(id)
-    case(1)
-       x(1) = 0.5d0 * hp
-       x(2) = 0.d0
-       x(3) = 0.d0
-       x(4) = 0.5d0 * hp
-    case(2)
-       x(1) = ( 2.d0 * a1 +        a2) * hp / 6.d0
-       x(2) = 0.d0
-       x(3) = 0.d0
-       x(4) = (        a1 + 2.d0 * a2) * hp / 6.d0
-    case(8)
-       x(1) =-1.d0 * hp
-       x(2) = 0.d0
-       x(3) = 0.d0
-       x(4) = 1.d0 * hp
-    end select
+    integer :: ne
+    real(8) :: f(1:4), a1, a2, suml, lhs
 
-  end function lump_int
+    ! left grid
+
+    ne = ne_in
+    a1 = x1
+
+    f(1) = hpsi(ne) / 3.d0 * a1
+    f(3) = hpsi(ne) / 6.d0 * a1
+
+    suml = f(1) + f(3)
+
+    f(2) = hpsi(ne) / 6.d0
+    f(4) = hpsi(ne) / 3.d0
+
+    lhs = f(2) + f(4)
+
+    ! right grid
+
+    ne = ne_in + 1
+    a2 = x2
+
+    f(2) = hpsi(ne) / 6.d0 * a2
+    f(4) = hpsi(ne) / 3.d0 * a2
+
+    suml = 0.5d0 * (suml + f(2) + f(4))
+
+    f(1) = hpsi(ne) / 3.d0
+    f(3) = hpsi(ne) / 6.d0
+
+    lhs = 0.5d0 * (lhs + f(1) + f(3))
+
+    x = (- val - suml) / lhs
+
+  end subroutine inv_int
 
 end module core_module
 
@@ -751,7 +792,7 @@ contains
 !
 !***************************************************************
 
-  REAL(8) FUNCTION EXPV(X)
+  pure REAL(8) FUNCTION EXPV(X)
 
     REAL(8), INTENT(IN) :: X
 
@@ -1014,12 +1055,11 @@ contains
 
   END SUBROUTINE DERIVS2D
 
-  REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
+  pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
 
     real(8), dimension(0:NRMAX), intent(in)  :: R
     real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-    integer, intent(in) :: LQ, NRMAX, NQMAX
-    integer :: NR
+    integer, intent(in) :: NR, LQ, NRMAX, NQMAX
     real(8) :: DR1, DR2
 
     IF(NR == 0) THEN
@@ -1087,21 +1127,29 @@ contains
     
   END FUNCTION INTG_P
 
-  SUBROUTINE VALINT_SUB(X,NRLMAX,VAL)
+  SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
 
-    ! Calculate \int_0^r (r * X) dr
+    ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
 
     use core_module, only : fem_int_point
     integer, intent(in) :: NRLMAX
+    integer, intent(in), optional :: NR_START
     real(8), dimension(*), intent(in) :: X
     real(8), intent(out) :: VAL
-    integer :: NE, NEMAX
+    integer :: NE, NEMAX, NE_START
     real(8) :: SUML
 
     NEMAX = NRLMAX
-    SUML = 0.D0
 
-    DO NE = 1, NEMAX
+    IF(PRESENT(NR_START)) THEN
+       NE_START = NR_START
+    ELSE
+       ! default
+       NE_START = 1
+    END IF
+
+    SUML = 0.D0
+    DO NE = NE_START, NEMAX
        SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X))
     END DO
     VAL = SUML
@@ -1161,7 +1209,7 @@ contains
 !
 !***************************************************************
 
-  REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
+  pure REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
 
     real(8), intent(in) :: S, ALFA, RKCV
     real(8) :: SA, FS1, FS2
@@ -1209,7 +1257,7 @@ contains
 !   W  : width of flat region around R=RC
 !   RC : center radial point of fine mesh region
 
-  REAL(8) FUNCTION LORENTZ(R,C,W,RC,AMP)
+  pure REAL(8) FUNCTION LORENTZ(R,C,W,RC,AMP)
     real(8), intent(in) :: r, c, w, rc
     real(8), intent(in), optional :: AMP
 
@@ -1218,7 +1266,7 @@ contains
 
   END FUNCTION LORENTZ
 
-  REAL(8) FUNCTION LORENTZ_PART(R,W,RC)
+  pure REAL(8) FUNCTION LORENTZ_PART(R,W,RC)
     real(8), intent(in) :: r, w, rc
 
     LORENTZ_PART = W * ATAN((R - RC) / W) + W * ATAN(RC / W)
@@ -1233,25 +1281,32 @@ contains
 
 ! Bisection method can solve the equation only if the solution is unique
 ! in the designated region.
-!   f      : the function which is set to LHS in the equation
-!   cl     : argument of f
-!   w      : argument of f
-!   rc     : argument of f
-!   amp    : argument of f
-!   s      : the value which is set to RHS in the equation
-!   valmax : maximum value of codomain
-!   val    : solution
+!   f      (in)  : the function which is set to LHS in the equation
+!   cl     (in)  : argument of f
+!   w      (in)  : argument of f
+!   rc     (in)  : argument of f
+!   amp    (in)  : argument of f
+!   s      (in)  : the value which is set to RHS in the equation
+!   valmax (in)  : maximum value of codomain
+!   val    (out) : solution
+!   valmin (in)  : minimum value of codomain, optional
 ! i.e. we now handle the equation of "f = s" or "f - s = 0".
 !   eps    : arithmetic precision
 
-  SUBROUTINE BISECTION(f,cl,w,rc,amp,s,valmax,val)
+  SUBROUTINE BISECTION(f,cl,w,rc,amp,s,valmax,val,valmin)
     real(8), external :: f
     real(8), intent(in) :: cl, w, rc, amp, s, valmax
+    real(8), intent(in), optional :: valmin
     real(8), intent(out) :: val
     integer :: i, n
     real(8) :: a, b, c, eps, fa, fc
 
-    a = 0.d0 ; b = valmax
+    if(present(valmin)) then
+       a = valmin
+    else
+       a = 0.d0
+    end if
+    b = valmax
     eps = 1.d-10
     n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
     fa = f(a,cl,w,rc,amp) - s

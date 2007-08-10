@@ -22,7 +22,7 @@ contains
     RA = 0.35D0
 
     !   Wall radius (m)
-    RB = 0.4D0
+    RB = 0.38D0
 
     !   Partition radius (m) available
     RC = RA
@@ -58,17 +58,26 @@ contains
     !   Initial electron density at r = a (10^20 m^-3)
     PNa = 0.05D0
 
+    !   Electron density in diverter region (Minimum density in SOL)
+    PNeDIV = 10.D-3
+
     !   Initial electron temperature at r = 0 (keV)
     PTe0 = 700.D-3
 
     !   Initial electron temperature at r = a (keV)
     PTea =  50.D-3
 
+    !   Electron temperature in diverter region (Minimum Te in SOL)
+    PTeDIV = 10.D-3
+
     !   Initial ion temperature  at r = 0 (keV)
     PTi0 = 700.D-3
 
     !   Initial ion temperature  at r = a (keV)
     PTia =  50.D-3
+
+    !   Ion temperature in diverter region (Minimum Ti in SOL)
+    PTiDIV = 10.D-3
 
     !   Initail current profile parameter
     PROFJ = 2.D0
@@ -132,6 +141,9 @@ contains
 !!!!    FSLC = 1.D0
     FSLC = 0.D0
 
+    !   Ripple loss parameter
+    FSRP = 0.D0
+
     !   Toroidal neoclassical viscosity parameter
     FSNC = 1.D0
 
@@ -167,11 +179,32 @@ contains
     !   NBI beam energy (keV)
     Eb = 32.D0
 
-    !   Heating radius of NBI heating (m)
-    RNB = 0.175D0
+    !   Heating radius of perp NBI heating (m)
+    RNBP  = 0.175D0
 
-    !   NBI input power (MW)
-    PNBH = 0.D0
+    !   Heating center of perp NBI heating (m)
+    RNBP0 = 0.D0
+
+    !   Heating radius of first tangential NBI heating (m)
+    RNBT1  = 0.175D0
+
+    !   Heating radius of second tangential NBI heating (m)
+    RNBT2  = 0.175D0
+
+    !   Heating center of first tangential NBI heating (m)
+    RNBT10 = 0.D0
+
+    !   Heating center of second tangential NBI heating (m)
+    RNBT20 = 0.D0
+
+    !   NBI perpendicular input power (MW)
+    PNBHP = 0.D0
+
+    !   First NBI tangential input power (MW)
+    PNBHT1 = 0.D0
+
+    !   Second NBI tangential input power (MW)
+    PNBHT2 = 0.D0
 
     !   NBI current drive parameter
     PNBCD= 0.D0
@@ -181,6 +214,9 @@ contains
 
     !   Heating radius of RF heating (m)
     RRF = 0.175D0
+
+    !   Heating center of RF heating (m)
+    RRF0 = 0.D0
 
     !   RF input power (MW)
     PRFH = 0.D0
@@ -199,14 +235,16 @@ contains
     !   Gas-puff particle flux (10^20 m^-2 1/s)
     rGASPF = 0.1D0
 
-    !   Electron density in diverter region (Minimum density in SOL)
-    PNeDIV = 1.D-2
+    !   ***** Ripple loss parameters *****
 
-    !   Electron temperature in diverter region (Minimum Te in SOL)
-    PTeDIV = 1.D-2
+    ! Number of toroidal field coils in JT-60U
+    NTCOIL = 18
 
-    !   Ion temperature in diverter region (Minimum Ti in SOL)
-    PTiDIV = 1.D-2
+    ! Inside ripple rate (0 < DIN < 1)
+    DIN    = 0.2D0
+
+    ! Ripple loss percentage at plasma surface
+    DltRP0 = 0.01D0
 
     !   ***** Numerical parameters *****
 
@@ -335,6 +373,7 @@ contains
     gDIV(12) = 1.E18
     gDIV(13) = 1.E3
     gDIV(16) = 1.E14
+    gDIV(17) = 1.E-3
     gDIV(18) = 1.E6
     gDIV(19) = 1.E3
     gDIV(21) = 1.E6
@@ -346,18 +385,19 @@ contains
     gDIV(27) = 1.E3
     gDIV(28) = 1.E3
     gDIV(35) = 1.E14
-    gDIV(36) = 1.E10
+    gDIV(36) = 1.E12
     gDIV(37) = 1.E20
-    gDIV(38) = 1.E20
-    gDIV(39) = 1.E23
-    gDIV(40) = 1.E23
-    gDIV(41) = 1.E20
-    gDIV(42) = 1.E20
-    gDIV(43) = 1.E20
-    gDIV(44) = 1.E20
-    gDIV(45) = 1.E20
-    gDIV(46) = 1.E20
-    gDIV(47) = 1.E23
+    gDIV(38) = 1.E3
+    gDIV(41) = 1.E6
+    gDIV(42) = 1.E6
+    gDIV(45) = 1.E3
+    gDIV(46) = 1.E3
+    gDIV(50) = 1.E3
+    gDIV(51) = 1.E3
+    gDIV(53) = 1.E-2
+    gDIV(55) = 1.E3
+    gDIV(56) = 1.E-4
+    gDIV(57) = 1.E-8
     gDIV(60) = 1.E6
     gDIV(64) = 1.E-20
     gDIV(65) = 1.E-20
@@ -365,15 +405,21 @@ contains
     gDIV(73) = 1.E6
     gDIV(74) = 1.E6
     gDIV(75) = 1.E6
-    gDIV(88) = 1.E3
+    gDIV(89) = 1.E3
+    gDIV(90) = 1.E20
     gDIV(96) = 1.E6
     gDIV(97) = 1.E6
     gDIV(98) = 1.E6
-    gDIV(99) = 1.E6
     gDIV(100) = 1.E6
     gDIV(101) = 1.E6
     gDIV(102) = 1.E6
     gDIV(103) = 1.E6
+    gDIV(105) = 1.E6
+    gDIV(106) = 1.E6
+    gDIV(107) = 1.E6
+    gDIV(108) = 1.E6
+    gDIV(109) = 1.E15
+    gDIV(110) = 1.E-4
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -527,7 +573,7 @@ contains
     INTEGER :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
     REAL(8) :: ALP, dPe, dPi, DR1, DR2
-    REAL(8) :: EpsL, Vte, Wte, rLnLam, rNuAsE_inv, FTL, EFT, ETAS, CR
+    REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, ETAS, CR
     real(8) :: PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
          &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
     REAL(8) :: DERIV3, FCTR ! External functions
@@ -548,7 +594,8 @@ contains
 
     allocate(AJPHL(0:NRMAX))
     PBA   = RB**2 - RA**2
-    dPN   = - (PN0 - PNa) / RA**2
+!!!    dPN   = - (PN0 - PNa) / RA**2
+    dPN   = - 1.5D0 * (PN0 - PNa) / RA**2
     CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
     CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
     IF(MDFIXT == 0) THEN
@@ -567,8 +614,10 @@ contains
     DO NR = 0, NRMAX
        RL=R(NR)
        IF (RL < RA) THEN
-          PROF  = 1.D0 - (RL / RA)**2
-          PROFT = PROF**2
+!!!          PROF  = 1.D0 - (RL / RA)**2
+!!!          PROFT = PROF**2
+          PROF  = 1.D0 - (RL / RA)**3
+          PROFT = (1.D0 - (RL / RA)**2)**2
           ! Ne
           X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
           ! Ni
@@ -741,24 +790,27 @@ contains
        ELSE
           PTeV(NR) = X(LQe5,NR)
        END IF
+       ! Inverse aspect ratio
+       EpsL = R(NR) / RR
        Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME) ! Thermal velocity for ions
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
-       EpsL = R(NR) / RR        ! Inverse aspect ratio
-       rLnLam = 15.2D0 - LOG(ABS(PNeV(NR))) / 2.D0 + LOG(ABS(PTeV(NR)))
-       rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rLnLam &
+       rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
+       rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rlnLe(NR) &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
             &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
        rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
-       ! Inverse aspect ratio
-       EpsL    = R(NR) / RR
        ! Trapped particle fraction
        FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
        EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
        ! Spitzer resistivity
        ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-       ETA(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
-            &  /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       IF(ABS(FSNC) > 0.D0) THEN
+          ETA(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+               &  /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
+       ELSE
+          ETA(NR) = ETAS
+       END IF
        IF(FSHL == 0.D0) THEN
           ! Ephi
           X(LQm3,NR) = - ETA(NR) *  AJPHL(NR)
@@ -768,6 +820,9 @@ contains
        IF(X(LQm3,NR) == 0.D0) X(LQm3,NR) = -1.D-4
     END DO
     deallocate(AJPHL)
+
+    !   NBI total input power (MW)
+    PNBH = PNBHP + PNBHT1 + PNBHT2
 
     T_TX=0.D0
     NGT=-1
@@ -804,7 +859,8 @@ contains
        X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
             &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-            &     + AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+            &     + AME * rNueiph(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+!       write(6,*) r(nr)/ra,-CORR(Zeff) * AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
     END DO
 
     ! Scalar potential
@@ -850,10 +906,12 @@ module parameter_control
        & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
-       & FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0, &
+       & FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0, &
        & rLn,rLT, &
-       & Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH, &
+       & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD, &
+       & rNRF,RRF,RRF0,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+       & NTCOIL,DIN,DltRP0, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
@@ -966,18 +1024,21 @@ contains
        IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0 .OR. WPM0 < 0.D0) EXIT
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0) EXIT
        IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0 .OR. FSPSCL < 0.D0) EXIT
-       IF(FSLC < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
+       IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
        IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
        IF(rG1 < 0.D0) EXIT
-       IF(Eb < 0.D0 .OR. PNBH < 0.D0) EXIT
-       IF(RNB > RB .OR. RNB < 0.D0) EXIT
+       IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
+       IF(RNBP0 > RB .OR. RNBP0 < 0.D0) EXIT
+       IF(RNBT10 > RB .OR. RNBT10 < 0.D0) EXIT
+       IF(RNBT20 > RB .OR. RNBT20 < 0.D0) EXIT
        IF(rNRF < 0.D0 .OR. PRFH < 0.D0) EXIT
-       IF(RRF > RB .OR. RRF < 0.D0) EXIT
+       IF(RRF0 > RB .OR. RRF0 < 0.D0) EXIT
        IF(PN0s < 0.D0 .OR. V0 < 0.D0) EXIT
        IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) EXIT
        IF(rGASPF < 0.D0) EXIT
        IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) EXIT
+       IF(NTCOIL <= 0 .OR. DIN < 0.D0 .OR. DIN > 1.D0 .OR. DltRP0 < 0.D0 .OR. DltRP0 > 1.D0) EXIT
        IF(DT < 0.D0 .OR. EPS < 0.D0) EXIT
        IF(ICMAX < 0) EXIT
        IF(ADV < 0.D0 .OR. ADV > 1.D0) EXIT
@@ -1003,10 +1064,12 @@ contains
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,'/ &
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
-         &       ' ',8X,'Eb,RNB,PNBH,PNBCD,rNRF,RRF,PRFH,'/ &
+         &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
+         &       ' ',8X,'PNBCD,rNRF,RRF,RRF0,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
+         &       ' ',8X,'NTCOIL,DIN,DltRP0'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
@@ -1042,16 +1105,23 @@ contains
          &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
          &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
          &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  ,  &
-         &   'FSNC  ', FSNC  ,  'FSLP  ', FSLP  ,  &
-         &   'FSLTE ', FSLTE ,  'FSLTI ', FSLTI ,  &
-         &   'FSION ', FSION ,  'FSD0  ', FSD0  ,  &
-         &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
-         &   'Eb    ', Eb    ,  'RNB   ', RNB   ,  &
-         &   'PNBH  ', PNBH  ,  'rNRF  ', rNRF  ,  &
-         &   'RRF   ', RRF   ,  'PRFH  ', PRFH  ,  &
+         &   'FSRP  ', FSRP  ,  'FSNC  ', FSNC  ,  &
+         &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
+         &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
+         &   'FSD0  ', FSD0  ,  'rLn   ', rLn   ,  &
+         &   'rLT   ', rLT   ,  'Eb    ', Eb    ,  &
+         &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
+         &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
+         &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
+         &   'PNBHP ', PNBHP ,  'PNBHT1', PNBHT1,  &
+         &   'PNBHT2', PNBHT2,  &
+         &   'rNRF  ', rNRF  ,  'RRF   ', RRF   ,  &
+         &   'RRF0  ', RRF0  ,  'PRFH  ', PRFH  ,  &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
+         &   'NTCOIL', NTCOIL,  'DIN   ', DIN   ,  &
+         &   'DltRP0', DltRP0, &
          &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
          &   'EPS   ', EPS   ,  'tiny  ', tiny_cap,&
          &   'DT    ', DT    ,  &

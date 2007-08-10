@@ -102,8 +102,8 @@ contains
 
     !     Output powers
 
-    PIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20*EION*AEE
-    SIE(0:NRMAX) =       PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
+    SIE(0:NRMAX) = PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
+    PIE(0:NRMAX) = SIE(0:NRMAX)*EION*AEE
     PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*rKeV
 
 !    PRLINT=INTG_F(PRL)

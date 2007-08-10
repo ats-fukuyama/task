@@ -1034,7 +1034,7 @@ contains
 !     *  Fitting Function *
 !     *********************
 
-  real(8) FUNCTION F33(X,Z)
+  pure real(8) FUNCTION F33(X,Z)
     
     real(8), intent(in) :: X,Z
 
@@ -1042,7 +1042,7 @@ contains
 
   END FUNCTION F33
 
-  real(8) FUNCTION F31(X,Z)
+  pure real(8) FUNCTION F31(X,Z)
 
     real(8), intent(in) :: X,Z
 
@@ -1051,7 +1051,7 @@ contains
 
   END FUNCTION F31
 
-  real(8) FUNCTION F32EE(X,Z)
+  pure real(8) FUNCTION F32EE(X,Z)
 
     real(8), intent(in) :: X,Z
 
@@ -1061,7 +1061,7 @@ contains
 
   END FUNCTION F32EE
 
-  real(8) FUNCTION F32EI(X,Z)
+  pure real(8) FUNCTION F32EI(X,Z)
 
     real(8), intent(in) :: X,Z
 

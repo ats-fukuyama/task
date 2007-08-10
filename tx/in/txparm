@@ -8,10 +8,8 @@
      Chie0=1.D0,Chii0=1.D0,
      FSDFIX=0.0,FSCDBM=1.0,
      FSBOHM=1.0,
-     PNBH=0.0,PRFH=0.0,RNB=0.6D0,RRF=0.6D0,
      Zeff=2.0,
      NRMAX=50,
      RG1=10.0,icmax=10,modeav=0,
      DT=1.D-3,MODEG=2,eps=1.D-2
-     rLn=0.1D0, rLT=0.1D0
  &end

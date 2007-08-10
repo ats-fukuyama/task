@@ -51,10 +51,15 @@ contains
     CALL APTOS(STR1, NSTR1, gCTIME3, 'F2')
     NSTR2 = 0
     CALL APTOS(STR2, NSTR2, SNGL(t_interval), 'E1')
-    NSTR3 = 0
-    CALL APTOS(STR3, NSTR3, SNGL(t_interval) / gCTIME3 * 100, 'F5')
-    WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
-         &     'sim time = ', STR2(1:NSTR2), ' (sec)', '  (', STR3(1:NSTR3), '%)'
+    IF(gCTIME3 /= 0) THEN
+       NSTR3 = 0
+       CALL APTOS(STR3, NSTR3, SNGL(t_interval) / gCTIME3 * 100, 'F5')
+       WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
+            &     'sim time = ', STR2(1:NSTR2), ' (sec)', '  (', STR3(1:NSTR3), '%)'
+    ELSE
+       WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
+            &     'sim time = ', STR2(1:NSTR2), ' (sec)'
+    END IF
 
     !     ***** Print simulation results *****
 
@@ -73,7 +78,7 @@ contains
     use results
     use variables
     use coefficients, only : TXCALA
-    use graphic, only : TXSTGT, TXSTGV, TXSTGR
+    use graphic, only : TXSTGT, TXSTGV, TXSTGR, TXSTGQ
 
     INTEGER :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
@@ -169,6 +174,7 @@ contains
              CALL TXSTGT(SNGL(T_TX))
              CALL TXSTGV(SNGL(T_TX))
              CALL TXSTGR
+             CALL TXSTGQ
              RETURN
           END IF
 
@@ -238,6 +244,8 @@ contains
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
        CALL TXCALC
+!       write(6,'(I4,2X,E20.10)') NT,PTeV(NRA)
+!       write(6,'(I4,2X,E20.10)') NT,PTiV(NRA)
 
        IF(IDIAG == 0 .OR. IDIAG == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
@@ -261,6 +269,8 @@ contains
        END IF
 
        IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(SNGL(T_TX))
+
+       IF (MOD(NT, NTMAX ) == 0) CALL TXSTGQ
 
        IF (IERR /= 0) EXIT L_NTDO
 
@@ -417,34 +427,40 @@ contains
     NR = 0
     DO NQ = 1, NQMAX
        NC1 = NLCR(NC,NQ,NR)
-       BX(NQMAX * NR + NQ) &
-            & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-            &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
-            &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
-            &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+       IF(NC1 /= 0) THEN
+          BX(NQMAX * NR + NQ) &
+               & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+               &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+               &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+       END IF
     END DO
 
     DO NR = 1, NRMAX - 1
        DO NQ = 1, NQMAX
           NC1 = NLCR(NC,NQ,NR)
-          BX(NQMAX * NR + NQ) &
-               &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
-               &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-               &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
-               &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
-               &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
-               &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+          IF(NC1 /= 0) THEN
+             BX(NQMAX * NR + NQ) &
+                  &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+                  &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+                  &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+                  &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+                  &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+                  &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+          END IF
        END DO
     END DO
 
     NR = NRMAX
     DO NQ = 1, NQMAX
        NC1 = NLCR(NC,NQ,NR)
-       BX(NQMAX * NR + NQ) &
-            & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
-            &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-            &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
-            &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
+       IF(NC1 /= 0) THEN
+          BX(NQMAX * NR + NQ) &
+               & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+               &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+               &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
+       END IF
     END DO
 
     ! In the case of general term effect in any equations

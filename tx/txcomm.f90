@@ -2,15 +2,16 @@ module commons
   implicit none
   public
 
-  integer, parameter :: NRM=101, NEM=NRM, NQM=20, NCM=29, NGRM=20, &
-       &                NGTM=1000, NGVM=1000, NGYRM=103, NGYTM=45, &
-       &                NGYVM=49, NGPRM=17, NGPTM=8, NGPVM=15
+  integer, parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
+       &                NGTM=5000, NGVM=5000, NGYRM=115, NGYTM=45, &
+       &                NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
        &                LQi1=11, LQi2=12, LQi3=13, LQi4=14, LQi5=15,&
        &                LQb1=16,          LQb3=17, LQb4=18,&
-       &                LQn1=19, LQn2=20
+       &                LQn1=19, LQn2=20, &
+       &                LQr1=21
 
   !**********************!
   !   INPUT PARAMETERS   !
@@ -30,16 +31,21 @@ module commons
 
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
 
   ! Heat sources
-  real(8) :: Eb, RNB, PNBH, PNBCD, rNRF, RRF, PRFH
+  real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
+       &     PNBCD, rNRF, RRF, RRF0, PRFH
 
   ! Neutral parameters
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
+
+  ! Ripple parameters
+  real(8) :: DIN, DltRP0
+  integer :: NTCOIL
 
   ! Numerical parameters
   real(8) :: DT, EPS, ADV, tiny_cap, CMESH, WMESH
@@ -64,6 +70,9 @@ module commons
   ! Implicit Euler or Gear's backward differential formula
   integer :: IGBDF
 
+  !  Transport model
+  integer :: MDLWTB, MDLETA, MDFIXT
+
   !**********************************!
   !   INTERNAL CONTOROL PARAMETERS   !
   !**********************************!
@@ -86,28 +95,32 @@ module commons
        &                       PNiV,   UirV,   UithV, UiphV, PTiV, &
        &                       PNbV,   UbthV,  UbphV, PN01V, PN02V, &
        &                       AphV,   Phi,    RAthV, PeV,   PiV,  &
-       &                       RUethV, RUithV, PT01V, PT02V
+       &                       RUethV, RUithV, PT01V, PT02V, PNbrpV
 
   real(8), dimension(0:NRM) :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
 
   ! Coefficients
-  real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, &
+  real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, &
        &                       rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, &
+       &                       rNubrp1, rNubrp2, rNueith, rNueiph, rNuD, &
        &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, ft, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
-       &                       FWthphe, FWthphi, Vbedir, Vbidir, rlnLe, rlnLi
+       &                       FWthphe, FWthphi, rlnLe, rlnLi, &
+       &                       Ubrp, Dbrp, DltRP
   real(8) :: FWthea, FWthia
  
   ! CDBM
   real(8), dimension(0:NRM) :: rG1h2, FCDBM, S, Alpha, rKappa
 
   ! Sources and sinks
-  real(8), dimension(0:NRM) :: PNB, SNB, PRFe, PRFi, POH, PNBe, PNBi, POHe, POHi, &
-       &                       PEQe, PEQi, SiLC, SiLCth, SiLCph
+  real(8), dimension(0:NRM) :: PNB, PNBPD, PNBcol_e, PNBcol_i, PNBTG, SNB, MNB, &
+       &                       PNBe, PNBi, PRFe, PRFi, &
+       &                       POH, POHe, POHi, PEQe, PEQi, SiLC, SiLCth, SiLCph, RUiloss
   real(8), dimension(0:NRM) :: PIE, PCX, SIE, PBr
+  real(8) :: RatCX
 
   ! Safety factor, currents, resistivity
   real(8), dimension(0:NRM) :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJBS, AJBS1, AJBS2, AJBS3, &
@@ -146,9 +159,7 @@ module commons
   real, dimension(1:NGYRM) :: gDIV
   real, dimension(0:NGVM) :: GVX
   real, dimension(0:NGVM,1:NGYVM) :: GVY
-
-  !  Transport model
-  integer :: MDLWTB, MDLETA, MDFIXT
+  real, dimension(0:NRM,1:NCM,1:NQM) :: GQY
 
   ! I/O
   character(len=20) :: SLID

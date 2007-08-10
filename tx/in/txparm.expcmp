@@ -9,7 +9,7 @@
      rMue0=1.6,rMui0=1.6
      FSDFIX=1.0,FSCDBM=0.0
      FSBOHM=0.0,PROFD=20.0,FSPSCL=20.0
-     PNBH=0.5,RNB=0.15,PNBCD=1.0,Eb=32.0
+     PNBH=0.5,PNBHP=0.0,RNBP=0.15,PNBCD=1.0,Eb=32.0
      PRFH=0.0,RRF=0.15
      PA=1.0, Zeff=2.0, rGASPF=0.05, rGamm0=0.8
      NRMAX=60,ntmax=1400,ngrstp=280,ngtstp=10,ntstep=200,ngvstp=10
