@@ -18,6 +18,7 @@
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
       use trpl_mod,only: trpl_set, trpl_get
       use equnit_mod
+      use equunit_mod
       IMPLICIT NONE
       INTEGER(4):: I, ICHCK, IDGLOB, IERR, INFO, J, L, LDB, M, MWRMAX, N, NEQ, NEQ1, NEQRMAX, NF, NR, NRHS, NS, NSSN, NSSN1, &
      &             NSTN, NSTN1, NSVN, NSVN1, KL, KU
@@ -51,7 +52,7 @@
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
-      if(modelg.eq.9) then
+      if(modelg.eq.8.or.modelg.eq.9) then
          call trpl_get(ierr)
          if(ierr.ne.0) goto 9000
       endif
@@ -96,6 +97,11 @@
 
       IF(NTEQIT.NE.0) THEN
          IF(MOD(NT,NTEQIT).EQ.0) THEN
+            if(modelg.eq.8) THEN
+               call equ_calc
+               call trpl_get(IERR)
+               if(ierr.ne.0) return
+            endif
             if(modelg.eq.9) THEN
                call eq_calc
                call trpl_get(IERR)

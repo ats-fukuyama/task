@@ -8,6 +8,7 @@
       USE TRCOM1, ONLY : KDIRX
       use trpl_mod, only: trpl_init, trpl_set, trpl_get
       use equnit_mod
+      use equunit_mod
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -93,6 +94,11 @@
             call trpl_get(ierr)  ! 
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
 !            call trgout
+         elseif(modelg.eq.8) then
+            call equ_prof ! initial calculation of eq
+            call equ_calc         ! recalculate eq
+            call trpl_get(ierr)  ! 
+            call trgout
          elseif(modelg.eq.9) then
             call eq_prof ! initial calculation of eq
             call eq_calc         ! recalculate eq

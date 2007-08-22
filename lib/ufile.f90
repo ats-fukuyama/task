@@ -8,12 +8,12 @@ end module ufile_integer
 !
 !***********************************************************
 
-  SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,MODE)
+  SUBROUTINE UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,MODE)
 
     use ufile_integer
     implicit none
     integer(4),        intent(in)  :: MODE
-    character(len=80), intent(in)  :: KUFDEV, KUFDCG
+    character(len=80), intent(in)  :: KUFDIR, KUFDEV, KUFDCG
     character(len=80), intent(out) :: KDIRX
     integer(4)         :: IKNDEV, IKNDCG, IKDIRX, IST
     character(len=100) :: KFILE
@@ -32,7 +32,7 @@ end module ufile_integer
     IKNDEV = len_trim(KUFDEV)
     IKNDCG = len_trim(KUFDCG)
 
-    KDIRX='../../../profiledb/profile_data/'//KUFDEV(1:IKNDEV)//'/' &
+    KDIRX=TRIM(KUFDIR)//'/'//KUFDEV(1:IKNDEV)//'/' &
          &                          //KUFDCG(1:IKNDCG)//'/in/'
 
     IKDIRX = len_trim(KDIRX)

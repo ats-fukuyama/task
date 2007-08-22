@@ -7,15 +7,19 @@ FFLAGS = $(OFLAGS)
 
 # without eq
 #MODINCLUDE= -I. -I../pl
-#EQLIBS= ../pl/noeqlib.o
+#EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 
 # with task/eq
-MODINCLUDE= -I. -I../eq -I../pl
-EQLIBS= ../eq/eqlib.a
+#MODINCLUDE= -I. -I../eq -I../pl
+#EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 
 # with topics/equ
 #MODINCLUDE= -I. -I../pl -I../../topics/src
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
+
+# with task/eq and topics/equ
+MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
+EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
@@ -62,6 +66,8 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	(cd ../pl; make pllib.a)
 ../pl/noeqlib.o:
 	(cd ../pl; make noeqlib.o)
+../pl/noequlib.o:
+	(cd ../pl; make noequlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:

@@ -69,8 +69,3 @@
     0.6725   -1.635      0.25
     0.6075   -1.575      0.25
     0.6075   -1.635      0.25
- &BAL IBLMAX= 0,LBLMIN=0,LBLMAX=0,&END
- &RES NODEMX=0,&end
- &SALF IBLMAX= 0,&end
-    ===== END OF DATA =====
- &EQU NR=0,NZ=0,&END

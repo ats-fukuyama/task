@@ -759,63 +759,50 @@
 
       RKAPS=SQRT(RKAP)
       IF(MDLUF.NE.0) THEN
-         IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
-            DO NR=1,NRMAX
-               TTRHO(NR)=TTRHOU(1,NR)
-               DVRHO(NR)=DVRHOU(1,NR)
-               ABRHO(NR)=ABRHOU(1,NR)
-               ARRHO(NR)=ARRHOU(1,NR)
-               AR1RHO(NR)=AR1RHOU(1,NR)
-               AR2RHO(NR)=AR2RHOU(1,NR)
-               RMJRHO(NR)=RMJRHOU(1,NR)
-               RMNRHO(NR)=RMNRHOU(1,NR)
-               RKPRHO(NR)=RKPRHOU(1,NR)
-               IF(MDPHIA.EQ.0) THEN
+         DO NR=1,NRMAX
+            TTRHO(NR)=TTRHOU(1,NR)
+            DVRHO(NR)=DVRHOU(1,NR)
+            ABRHO(NR)=ABRHOU(1,NR)
+            ARRHO(NR)=ARRHOU(1,NR)
+            AR1RHO(NR)=AR1RHOU(1,NR)
+            AR2RHO(NR)=AR2RHOU(1,NR)
+            RMJRHO(NR)=RMJRHOU(1,NR)
+            RMNRHO(NR)=RMNRHOU(1,NR)
+            RKPRHO(NR)=RKPRHOU(1,NR)
+            IF(MDPHIA.EQ.0) THEN
 !     define rho_a from phi_a data
-                  RHO_A=SQRT(PHIA/(PI*BB))
-                  RJCB(NR)=1.D0/RHO_A
-                  RHOM(NR)=RM(NR)*RHO_A
-                  RHOG(NR)=RG(NR)*RHO_A
-               ELSE
-!     define rho_a from volume data at ideal LCFS
-                  RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
-                  RJCB(NR)=1.D0/RHO_A
-                  RHOM(NR)=RM(NR)/RJCB(NR)
-                  RHOG(NR)=RG(NR)/RJCB(NR)
-               ENDIF
-               EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
-            ENDDO
-            CALL FLUX
-         ELSEIF(MODELG.EQ.5) THEN
-!            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
-!     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHO,
-!     &                         NRMAX,NRM)
-         ENDIF
-      ELSE
-         IF(MODELG.EQ.2.OR.MODELG.EQ.3.OR.MODELG.EQ.9) THEN
-            DO NR=1,NRMAX
-               BPRHO(NR)=BP(NR)
-               QRHO(NR)=QP(NR)
-
-               TTRHO(NR)=BB*RR
-               DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-               ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
-               ARRHO(NR)=1.D0/RR**2
-               AR1RHO(NR)=1.D0/(RKAPS*RA)
-               AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-               RMJRHO(NR)=RR
-               RMNRHO(NR)=RA*RG(NR)
-               RKPRHO(NR)=RKAP
-               RJCB(NR)=1.D0/(RKAPS*RA)
+               RHO_A=SQRT(PHIA/(PI*BB))
+               RJCB(NR)=1.D0/RHO_A
+               RHOM(NR)=RM(NR)*RHO_A
+               RHOG(NR)=RG(NR)*RHO_A
+            ELSE
+               RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
+               RJCB(NR)=1.D0/RHO_A
                RHOM(NR)=RM(NR)/RJCB(NR)
                RHOG(NR)=RG(NR)/RJCB(NR)
-               EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
-            ENDDO
-         ELSEIF(MODELG.EQ.5) THEN
-!            CALL INITIAL_EQDSK(EPSRHO,TTRHO,DVRHO,ABRHO,ARRHO,
-!     &                         AR1RHO,AR2RHO,RJCB,RMJRHO,RMNRHO,RKPRHO,
-!     &                         NRMAX,NRM)
-         ENDIF
+            ENDIF
+            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
+         ENDDO
+         CALL FLUX
+      ELSE
+         DO NR=1,NRMAX
+            BPRHO(NR)=BP(NR)
+            QRHO(NR)=QP(NR)
+
+            TTRHO(NR)=BB*RR
+            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+            ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+            ARRHO(NR)=1.D0/RR**2
+            AR1RHO(NR)=1.D0/(RKAPS*RA)
+            AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+            RMJRHO(NR)=RR
+            RMNRHO(NR)=RA*RG(NR)
+            RKPRHO(NR)=RKAP
+            RJCB(NR)=1.D0/(RKAPS*RA)
+            RHOM(NR)=RM(NR)/RJCB(NR)
+            RHOG(NR)=RG(NR)/RJCB(NR)
+            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
+         ENDDO
       ENDIF
 
       RETURN
