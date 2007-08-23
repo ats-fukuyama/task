@@ -4,13 +4,16 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 MODINCLUDE= -I. -I../lib
 
-SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f wmvmec.f wmbooz.f \
+SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \
        wmsetm.f wmsetf.f wmxprf.f wmdprf.f \
-       wmpout.f wmgout.f wmvout.f wmgsub.f wmdout.f wmfout.f \
+       wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmsetm0.f wmsetm1.f wmpout0.f wmpout1.f \
-       wmtae.f wmfem.f wmfem_sub.f
+       wmtae.f wmfem.f wmfem_sub.f \
+       wmvmec.f wmbooz.f wmvout.f
+
 # wmtrfile.f
+# wmvmec.f wmbooz.f wmvout.f \
 
 SRCS = $(SRC0) nowmsolv.f 
 SRCM = $(SRC0) wmsolv.f 
@@ -91,27 +94,42 @@ veryclean: clean
 WMCOMM = wmcomm.inc wmcom0.inc wmcom1.inc ../mpi/mpicom.inc ../pl/plcom0.inc ../pl/plcom1.inc ../dp/dpcom1.inc
 
 wmmain.o : wmmain.f $(WMCOMM)
+
 wmmenu.o : wmmenu.f $(WMCOMM)
-wmeign.o : wmeign.f $(WMCOMM)
 wminit.o : wminit.f $(WMCOMM) ../pl/plcnst.inc
+wmeign.o : wmeign.f $(WMCOMM)
 wmsetg.o : wmsetg.f $(WMCOMM)
-wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
+
 wmexec.o : wmexec.f $(WMCOMM)
 wmprof.o : wmprof.f $(WMCOMM) wmxprf.inc
-wmsolv.o : wmsolv.f $(WMCOMM)
-nowmsolv.o : nowmsolv.f $(WMCOMM)
+wmdisp.o : wmdisp.f $(WMCOMM)
+
 wmsetm.o : wmsetm.f $(WMCOMM)
 wmsetf.o : wmsetf.f $(WMCOMM)
-wmdisp.o : wmdisp.f $(WMCOMM)
-wmtae.o : wmtae.f $(WMCOMM)
-wmdprf.o : wmdprf.f $(WMCOMM)
 wmxprf.o : wmxprf.f $(WMCOMM) wmxprf.inc
+wmdprf.o : wmdprf.f $(WMCOMM)
+
 wmpout.o : wmpout.f $(WMCOMM)
 wmgout.o : wmgout.f $(WMCOMM)
-wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 wmgsub.o : wmgsub.f $(WMCOMM)
 wmdout.o : wmdout.f $(WMCOMM)	
-wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
-../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
-wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc
+wmfout.o : wmfout.f $(WMCOMM)	
+
+wmsetm0.o : wmsetm0.f $(WMCOMM)
+wmpout0.o : wmpout0.f $(WMCOMM)
+wmsetm1.o : wmsetm1.f $(WMCOMM)
+wmpout1.o : wmpout1.f $(WMCOMM)
+
+wmtae.o : wmtae.f $(WMCOMM)
 wmfem_sub.o : wmfem_sub.f $(WMCOMM)	
+
+wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
+wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
+wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
+
+wmsolv.o : wmsolv.f $(WMCOMM)
+nowmsolv.o : nowmsolv.f $(WMCOMM)
+wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
+../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
+
+wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc

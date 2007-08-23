@@ -361,7 +361,7 @@
          ENDDO
          QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
      &              /(4.D0*PI**2*RDP(1:NRMAX))
-         ELSE ! *** MDLJQ ***
+         ELSE IF(MDLJQ.EQ.1) THEN ! *** MDLJQ ***
             QP(1:NRMAX) =QPU(1,1:NRMAX)
             RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*QP(1:NRMAX))
             BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
@@ -387,6 +387,23 @@
             FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
             FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
             AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+         ENDDO
+         ELSE IF(MDLJQ.EQ.2) THEN ! *** MDLJQ ***
+            QP(1:NRMAX) =QPU(1,1:NRMAX)
+            RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*QP(1:NRMAX))
+            BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
+
+         NR=1
+            AJ(NR) =1.d-6
+            AJOH(NR)=AJ(NR)
+         DO NR=2,NRMAX
+            AJ(NR) =1.D-6
+            AJOH(NR)=AJ(NR)
+         ENDDO
+         NR=1
+            AJTOR(NR) =0.d0
+         DO NR=2,NRMAX
+            AJTOR(NR) =0.d0
          ENDDO
          ENDIF ! *** MDLJQ ***
       ELSEIF(MDLUF.EQ.2) THEN
@@ -430,7 +447,7 @@
          ENDDO
          QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*RDP(1:NRMAX))
 
-         ELSE ! *** MDLJQ ***
+         ELSEIF(MDLJQ.EQ.1) THEN ! *** MDLJQ ***
 
             QP(1:NRMAX) =QPU(1,1:NRMAX)
             RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*QP(1:NRMAX))
@@ -457,6 +474,24 @@
                FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
                FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
                AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+            ENDDO
+         ELSEIF(MDLJQ.EQ.2) THEN ! *** MDLJQ ***
+
+            QP(1:NRMAX) =QPU(1,1:NRMAX)
+            RDP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX)/(4.D0*PI**2*QP(1:NRMAX))
+            BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
+
+            NR=1
+               AJ(NR) =1.D-6
+               AJOH(NR)=AJ(NR)
+            DO NR=2,NRMAX
+               AJ(NR) =1.D-6
+               AJOH(NR)=AJ(NR)
+            ENDDO
+            NR=1
+               AJTOR(NR) =0.D0
+            DO NR=2,NRMAX
+               AJTOR(NR) =0.D0
             ENDDO
          ENDIF ! *** MDLJQ ***
          RIPA=DVRHOG(NRAMAX)*ABRHOG(NRAMAX)*RDP(NRAMAX)*1.D-6 /(2.D0*PI*RMU0)

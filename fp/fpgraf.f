@@ -418,8 +418,7 @@ C
                GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM))))
             ENDIF
    80    CONTINUE
-      ENDIF         
-C
+      ENDIF
       GPMAX=GUCLIP(PMAX)
 C
       CALL PAGES

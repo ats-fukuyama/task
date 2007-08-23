@@ -4,7 +4,7 @@ c                                                         07/05/15
 c=======================================================================
       module equnit_mod
       use eqpl_mod
-      public eq_init, eq_parm, eq_prof, eq_calc, eq_load, eq_gout
+      public eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
       private
       contains
 c=======================================================================

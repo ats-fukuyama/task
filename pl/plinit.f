@@ -124,6 +124,8 @@ C                   3: TASK/EQ output geometry
 C                   4: VMEC output geometry
 C                   5: EQDSK output geometry
 C                   6: Boozer output geometry
+C                   8: call TOPICS/EQU
+C                   9: call TASK/EQ
 C        MODELN: Control plasma profile
 C                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 C                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL

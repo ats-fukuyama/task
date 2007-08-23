@@ -6,6 +6,7 @@ include ../make.header
 
 LFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
+
 MODINCLUDE= -I.
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \

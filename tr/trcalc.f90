@@ -1267,11 +1267,11 @@
 
       AJOH(1:NRMAX) = AJ(1:NRMAX)-(AJNB(1:NRMAX)+AJRF(1:NRMAX)+AJBS(1:NRMAX))
       EZOH(1:NRMAX) = ETA(1:NRMAX)*AJOH(1:NRMAX)
-      IF(KUFDEV.EQ.'lhd') THEN
-         POH(1:NRMAX)  = 0.D0
-      ELSE
+!!!      IF(KUFDEV.EQ.'lhd') THEN
+!!!         POH(1:NRMAX)  = 0.D0
+!!!      ELSE
          POH(1:NRMAX)  = EZOH(1:NRMAX)*AJOH(1:NRMAX)
-      ENDIF
+!!!      ENDIF
 
       RETURN
       END SUBROUTINE TRAJOH

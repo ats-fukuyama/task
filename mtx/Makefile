@@ -7,9 +7,9 @@ SRCN = bandcd.f  mtxset.f precndcb.f \
        bstabcdb.f \
        bandcdb.f
 
-SRCM = bandcdm.f bandcdbm.f \
-       bstabcdbm.f \
+SRCM = bstabcdbm.f \
        precndcbm.f mpisrrc.f
+#      bandcdm.f bandcdbm.f \
 
 OBJN = $(SRCN:.f=.o)
 OBJM = $(SRCM:.f=.o)

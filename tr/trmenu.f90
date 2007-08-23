@@ -3,12 +3,12 @@
       SUBROUTINE TRMENU
 
       USE TRCOMM, ONLY : &
-           & KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, NT, &
-           & NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG, KNAMEQ
+           & KUFDIR, KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, &
+           & NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG, KNAMEQ
       USE TRCOM1, ONLY : KDIRX
-      use trpl_mod, only: trpl_init, trpl_set, trpl_get
-      use equnit_mod
-      use equunit_mod
+      use trpl_mod, only: trpl_init,trpl_set,trpl_get
+      use equnit_mod, only: eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
+      use equunit_mod, only: equ_init,equ_parm,equ_prof,equ_calc,equ_save
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -59,7 +59,7 @@
          CALL ALLOCATE_TRCOMM(IERR)
            IF(IERR.NE.0) GOTO 1
          IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_OPEN(KUFDEV, KUFDCG)
-         IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDEV,KUFDCG,0)
+         IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,0)
          CALL TR_EQS_SELECT(0)
          IF(MDLUF.EQ.1) THEN
             IF(INIT.EQ.2.AND.NT.NE.0) THEN
@@ -89,11 +89,8 @@
             write(line2,'(A,I5)') 'nsumax=',0
             call eq_parm(2,line2,ierr)
             call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
-!            call eq_gout
-            if(ierr.ne.0) write(6,*) 'XX1 ierr=',ierr
             call trpl_get(ierr)  ! 
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
-!            call trgout
          elseif(modelg.eq.8) then
             call equ_prof ! initial calculation of eq
             call equ_calc         ! recalculate eq

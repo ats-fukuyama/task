@@ -19,7 +19,8 @@ LIBS=../lib/tasklib.a ../lib/mdslib.a $(OBJLA)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@
 
-all : ufread ufread3 guiread usplit
+#all : ufread ufread3 guiread usplit
+all : ufread usplit
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)

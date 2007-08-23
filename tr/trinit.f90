@@ -563,6 +563,7 @@
 
 !           0 : create QP(NR) profile from experimental CURTOT profile
 !           1 : create AJ(NR) profile from experimental Q profile
+!           2 : no current with experimental Q profile for helical
 
       MDLJQ=0
 

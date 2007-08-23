@@ -34,8 +34,8 @@ libs:
 	(cd ../lib; make)
 
 $(PROG): $(LIBS)
-#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
-	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
+#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less

@@ -208,7 +208,6 @@ MODULE TRCOMM
     MLM     = NEQMAXM*NRMAX
     NRMP    = NRMAX+1
     NGLF    = NRMAX
-    NRMU    = NRMAX+2
     LDAB    = 6*NEQMAXM
 
 
