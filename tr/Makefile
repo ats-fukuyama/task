@@ -22,7 +22,7 @@ EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o
 #MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
-PLLIBS=../pl/pl_bpsd.o ../pl/noeqlib.o ../pl/noequlib.o
+PLLIBS=../pl/pl_bpsd.o
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
