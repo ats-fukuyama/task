@@ -22,6 +22,8 @@ EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o
 #MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
+PLLIBS=../pl/pl_bpsd.o ../pl/noeqlib.o ../pl/noequlib.o
+
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
       trloop.f90 trexec.f90 trcalc.f90 trcoef.f90 tritg.f90 trrslt.f90 \
@@ -46,8 +48,8 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
-LIBS2=tr2lib.a $(EQLIBS) ../pl/pl_bpsd.o ../lib/tasklib.a ../lib/mdslib.a
-LIBS3=tr3lib.a $(EQLIBS) ../pl/pl_bpsd.o ../lib/tasklib.a ../lib/mdslib.a
+LIBS2=$(PLLIBS) $(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a $(EQLIBS) ../pl/pl_bpsd.o ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
@@ -79,13 +81,13 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	(cd ../lib; make)
 
 libs:
-	(cd ../lib; make)
 	(cd ../pl; make pllib.a)
+	(cd ../lib; make)
 	(cd ../eq; make eqlib.a)
 	(cd ../../topics/src; make tpxlib.a eqlib.a)
 	(cd ../eq; make treqin.o)
 
-tr2: $(LIBS2) trmain.o
+tr2: $(LIBS2) trmain.o 
 	$(FCFREE) trmain.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr3: $(LIBS3) trmain.o 

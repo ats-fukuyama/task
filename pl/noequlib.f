@@ -1,57 +1,72 @@
 c=======================================================================
-c            interface program of "EQ"
-c                                                         07/04/10
+c            interface program of "TOPICS-EQ"
+c                                                         06/08/21
 c=======================================================================
-      module equnit_mod
-      public eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
+      module equunit_mod
+      public equ_init, equ_parm, equ_view, equ_prof, equ_calc, 
+     &       equ_gout, equ_save
       private
       contains
 c=======================================================================
 c            initialize eq module
 c-----------------------------------------------------------------------
-      subroutine eq_init
-      return
-      end subroutine eq_init
-c=======================================================================
-c            set parameters  profile
+      subroutine equ_init
+c
+      implicit none
 c-----------------------------------------------------------------------
-      subroutine eq_parm(mode,kin,ierr)
+      return
+      end subroutine equ_init
+c=======================================================================
+c            set parameters
+c-----------------------------------------------------------------------
+      subroutine equ_parm(mode,kin,ierr)
 c
       implicit none
       character kin*(*)
       integer mode,ierr
       ierr=0
       return
-      end subroutine eq_parm
+      end subroutine equ_parm
+c=======================================================================
+c            view parameters
+c-----------------------------------------------------------------------
+      subroutine equ_view
+c
+      implicit none
+      return
+      end subroutine equ_view
 c=======================================================================
 c            setup  profile
 c-----------------------------------------------------------------------
-      subroutine eq_prof
+      subroutine equ_prof
+c
+      implicit none
       return
-      end subroutine eq_prof
+      end subroutine equ_prof
 c=======================================================================
 c            calculate equilibrium
 c-----------------------------------------------------------------------
-      subroutine eq_calc
-      return
-      end subroutine eq_calc
-c=======================================================================
-c            load equilibrium file
-c-----------------------------------------------------------------------
-      subroutine eq_load(modelg1,knameq1,ierr)
+      subroutine equ_calc
 c
-      integer,intent(in):: modelg1
-      character(len=80),intent(in):: knameq1
-      integer,intent(out):: ierr
-      ierr=0
+      implicit none
       return
-      end subroutine eq_load
+      end subroutine equ_calc
 c=======================================================================
 c            graphic output
 c-----------------------------------------------------------------------
-      subroutine eq_gout
+      subroutine equ_gout
+c
+      implicit none
       return
-      end subroutine eq_gout
+      end subroutine equ_gout
 c=======================================================================
-      end module equnit_mod
+c            file output
+c-----------------------------------------------------------------------
+      subroutine equ_save
+c
+      implicit none
+      return
+      end subroutine equ_save
+c=======================================================================
+      end module equunit_mod
 c=======================================================================
