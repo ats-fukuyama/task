@@ -343,9 +343,10 @@ C
       SUBROUTINE FPCALC_L(NR,NS)
 C
       INCLUDE 'fpcomm.inc'
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
       EXTERNAL FPFN0R,FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
-C
+
+C     ------ define --------
       AMFD=PA(NS)*AMP
       PTFPL=PTFP(NR)
       VTFPL=VTFP(NR)
@@ -354,6 +355,23 @@ C
       RNUDL=RNUD(NR,NS)*RNNL
       PTFDL=PTFD(NR,NS)
       VTFDL=VTFD(NR,NS)
+
+      AEFD=PZ(NS)*AEE
+C      AMFD=PA(NS)*AMP
+      RNFD0=PN(NS)
+      RNFDS=PNS(NS)
+      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      RTFDS=PTS(NS)
+C
+C      IF(MODELR.EQ.0) THEN
+         PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+         VTFD0=SQRT(RTFD0*1.D3*AEE/AMFD)
+C      ELSE
+C         RKE=RTFD0*1.D3*AEE
+C         PTFD0=SQRT(RKE*RKE+2.D0*RKE*AMFD*VC*VC)/VC
+C         VTFD0=PTFD0/SQRT(AMFD**2+PTFD0**2/VC**2)
+C      ENDIF
+
 C
 C     ----- Non-Relativistic -----
 C
@@ -398,6 +416,10 @@ C
 C     ----- Relativistic -----
 C
       ELSE
+         AEFD=PZ(NS)*AEE
+         AMFD=PA(NS)*AMP
+         GAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
+     &        /(RNFP0*PTFP0*1.D20)
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
                DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
@@ -405,27 +427,33 @@ C
                FCPPL=0.D0
             ELSE
                PFPL=PG(NP)*PTFP0
-               VFPL=PFPL/SQRT(AMFP**2+PTFPL**2/VC**2)
-               VFDL=VFPL
-               PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
-               PNFDL=PFDL/PTFDL
-               PNFD=PNFDL
-               TMC2FD=(PTFDL/(AMFD*VC))**2
+               VFPL=PFPL/SQRT(AMFP**2+PFPL**2/VC**2)
+C               VFDL=VFPL
+C               PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
+               PNFPL=PG(NP)
+               PNFP=PNFPL
+C               PNFDL=PFDL/PTFDL
+C               PNFD=PNFDL
+               TMC2FD =(PTFDL/(AMFD*VC))**2
+               TMC2FD0=(PTFD0/(AMFD*VC))**2
+               TMC2FP0=(PTFP0/(AMFP*VC))**2
+               RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
-               WRITE(6,'(I5,1P5E12.4)') NR,PNFD,PTFDL,AMFD,VC,TMC2FD
-               DCPPL= 4.D0*PI*RNUDL*VTFP0/3.D0
-     &              *(RINT1*VTFDL**2/(RINT0*VTFPL**3)
-     &               +RINT2/(RINT0*VTFDL))
-               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
+C               WRITE(6,'(I5,1P5E12.4)') NR,GAMH,PTFDL,AMFD,VC,
+C     &              TMC2FD0
+               DCPPL= GAMH/(3.D0*RINT0)*( (AMFP**2*PTFD0**2*RGAMA**3)
+     &              /(AMFD**2*PTFP0**2*PNFP**3)*RINT1+
+     &              (AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
+C               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
                CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
                CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
                CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
-               FCPPL=-4.D0*PI*RNUDL*VTFP0**2/3.D0
-     &              *(3.D0*RINT4*VTFDL   /(RINT0*VTFPL**2)
-     &               -     RINT5*VTFDL**3/(RINT0*VTFPL**2*VC**2)
-     &               +2.D0*RINT6*VTFPL   /(RINT0*VC**2))
+               FCPPL=-GAMH/(3.D0*RINT0)*(
+     &              (AMFP*RGAMA**2)/(AMFD*PNFP**2)*(3.D0*RINT4
+     &              -TMC2FD0*RINT5)+2.D0*(PTFP0*PNFP)/(PTFD0*RGAMA)
+     &              *TMC2FP0*RINT6 )
             ENDIF
             DO NTH=1,NTHMAX
                DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DCPPL
@@ -436,19 +464,25 @@ C
          DO NP=1,NPMAX
             PFPL=PM(NP)*PTFP0
             VFPL=PFPL/SQRT(AMFP**2+PTFPL**2/VC**2)
-            VFDL=VFPL
-            PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
-            PNFDL=PFDL/PTFDL
-            PNFD=PNFDL
-            TMC2FD=PTFDL**2/(AMFD*VC)**2
+C            VFDL=VFPL
+C            PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
+            PNFPL=PM(NP)
+            PFNP=PFNPL
+C            PNFDL=PFDL/PTFDL
+C            PNFD=PNFDL
+            TMC2FD =PTFDL**2/(AMFD*VC)**2
+            TMC2FD0=PTFD0**2/(AMFD*VC)**2
+            TMC2FP0=PTFP0**2/(AMFP*VC)**2
+            RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
             CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
             CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
             CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
             CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R)
-            DCTTL= 4.D0*PI*RNUDL*VTFP0/3.D0
-     &           *(1.5D0*RINT3*VTFPL**2/(RINT0*VTFPL**3)
-     &            -0.5D0*RINT1*VTFDL**2/(RINT0*VTFPL**3)
-     &            +RINT2/(RINT0*VTFDL))
+            DCTTL= GAMH/(3.D0*RINT0)*(
+     &            1.5D0*RGAMA/PNFP*RINT3
+     &           -0.5D0*(AMFP**2*PTFD0**2*RGAMA**3)
+     &           /(AMFD**2*PTFP0**2*PNFP**3)*RINT1
+     &           +(AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
             IF(MODELC.EQ.-1) THEN
                V=VFPL/VTFP0
                DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
@@ -472,25 +506,25 @@ C
       REAL*8 FUNCTION FPFN0R(X)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
-      A=PNFD
-      PN=A*X
-      FPFN0R=A*PN**2*FPRMXW(PN)
+C      A=PNFD
+      PN=X
+      FPFN0R=PN**2*FPRMXW(PN)
 C
       RETURN
       END
-C
+C---------------------------------------------------------------
       REAL*8 FUNCTION FPFN1R(X,XM,XP)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
       XX=XM
       XX=X
-      A=0.5D0*PNFD
+      A=0.5D0*PNFP
       PN=A*XP
-      B=PN**4/(1.D0+PN**2*TMC2FD)
+      B=PN**4/(1.D0+PN**2*TMC2FD0)
       FPFN1R=A*B*FPRMXW(PN)
 C
       RETURN
@@ -501,11 +535,11 @@ C
       REAL*8 FUNCTION FPFN2R(X)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
-      A=PNFD
-      PN=A*(X+1.D0)
-      B=PN*SQRT(1.D0+PN**2*TMC2FD)
+      A=1.D0
+      PN=A*(X+PNFP)
+      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
       FPFN2R=A*B*FPRMXW(PN)
 C
       RETURN
@@ -516,11 +550,11 @@ C
       REAL*8 FUNCTION FPFN3R(X,XM,XP)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
       XX=X
       XX=XM
-      A=0.5D0*PNFD
+      A=0.5D0*PNFP
       PN=A*XP
       FPFN3R=A*PN**2*FPRMXW(PN)
 C
@@ -532,13 +566,13 @@ C
       REAL*8 FUNCTION FPFN4R(X,XM,XP)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
       XX=X
       XX=XM
-      A=0.5D0*PNFD
+      A=0.5D0*PNFP
       PN=A*XP
-      B=PN**2/SQRT(1.D0+PN**2*TMC2FD)
+      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
       FPFN4R=A*B*FPRMXW(PN)
 C
       RETURN
@@ -549,13 +583,13 @@ C
       REAL*8 FUNCTION FPFN5R(X,XM,XP)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
       XX=X
       XX=XM
-      A=0.5D0*PNFD
+      A=0.5D0*PNFP
       PN=A*XP
-      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD))**3
+      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
       FPFN5R=A*B*FPRMXW(PN)
 C
       RETURN
@@ -566,10 +600,10 @@ C
       REAL*8 FUNCTION FPFN6R(X)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
-      A=PNFD
-      PN=A*(X+1.D0)
+      A=1.D0
+      PN=A*(X+PNFP)
       FPFN6R=A*PN*FPRMXW(PN)
 C
       RETURN
@@ -580,9 +614,9 @@ C
       REAL*8 FUNCTION FPRMXW(PN)
 C
       IMPLICIT COMPLEX*16(C),REAL*8(A-B,D-F,H,O-Z)
-      COMMON /FPFNV1/ PNFD,TMC2FD
+      COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
 C
-      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD))/TMC2FD
+      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
 C      WRITE(6,'(A,1P3E12.4)') 'FPRMXW: ',PN,TMC2FD,EX
       IF (EX.LT.-100.D0)THEN
          FPRMXW=0.D0

@@ -61,14 +61,14 @@ C
       RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
       RTFPS=PTS(NSFP)
 C
-      IF(MODELR.EQ.0) THEN
+C      IF(MODELR.EQ.0) THEN
          PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
          VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
-      ELSE
-         RKE=RTFP0*1.D3*AEE
-         PTFP0=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
-         VTFP0=PTFP0/SQRT(AMFP**2+PTFP0**2/VC**2)
-      ENDIF
+C      ELSE
+C         RKE=RTFP0*1.D3*AEE
+C         PTFP0=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
+C         VTFP0=PTFP0/SQRT(AMFP**2+PTFP0**2/VC**2)
+C      ENDIF
 C
 C     ----- set profile data -----
 C
@@ -79,14 +79,14 @@ C
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
-         IF(MODELR.EQ.0) THEN
+C         IF(MODELR.EQ.0) THEN
             PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
             VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
-         ELSE
-            RKE=RTFP(NR)*1.D3*AEE
-            PTFP(NR)=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
-            VTFP(NR)=PTFP(NR)/SQRT(AMFP**2+PTFP(NR)**2/VC**2)
-         ENDIF
+C         ELSE
+C            RKE=RTFP(NR)*1.D3*AEE
+C            PTFP(NR)=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
+C            VTFP(NR)=PTFP(NR)/SQRT(AMFP**2+PTFP(NR)**2/VC**2)
+C         ENDIF
          RNE=RN(1)
          RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
          DO NS=1,NSMAX
@@ -94,15 +94,15 @@ C
             AMFD=PA(NS)*AMP
             RNFD(NR,NS)=RN(NS)
             RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            IF(MODELR.EQ.0) THEN
+C            IF(MODELR.EQ.0) THEN
                PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
                VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
-            ELSE
-               RKE=RTFD(NR,NS)*1.D3*AEE
-               PTFD(NR,NS)=SQRT(RKE*RKE+2.D0*RKE*AMFD*VC*VC)/VC
-               VTFD(NR,NS)=PTFD(NR,NS)
-     &                    /SQRT(AMFD**2+PTFD(NR,NS)**2/VC**2)
-            ENDIF
+C            ELSE
+C               RKE=RTFD(NR,NS)*1.D3*AEE
+C               PTFD(NR,NS)=SQRT(RKE*RKE+2.D0*RKE*AMFD*VC*VC)/VC
+C               VTFD(NR,NS)=PTFD(NR,NS)
+C     &                    /SQRT(AMFD**2+PTFD(NR,NS)**2/VC**2)
+C            ENDIF
             IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
                RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
             ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
@@ -185,7 +185,7 @@ C
 C
          THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
          DO NR=1,NRMAX
-            THETA(NR)=THETA0*RTFP(NR)
+            THETA(NR)=THETA0*RTFP(NR)/RTFP0
             Z=1.D0/THETA(NR)
 C            IF(Z.LE.100.D0) THEN
                DKBSR(NR)=BESKN(2,Z)
@@ -344,8 +344,8 @@ C
 C
       IF (MODELR.EQ.0) THEN
 C
-         FACT=RNFPL/SQRT(2.D0*PI*RTFPL)**3
-         EX=PML**2/(2.D0*RTFPL)            
+         FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0)**3
+         EX=PML**2/(2.D0*RTFPL/RTFP0)            
          IF(EX.GT.100.D0) THEN
             FPMXWL=0.D0
          ELSE
@@ -356,14 +356,19 @@ C
 C
          THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
          IF(NR.EQ.0.OR.NR.EQ.NRMAX+1) THEN
-            THETAL=THETA0*RTFPL
+            THETAL=THETA0*RTFPL/RTFP0
             Z=1.D0/THETAL
             DKBSL=BESKN(2,Z)
          ELSE
             THETAL=THETA(NR)
-            DKBSL=DKBSR(NR)
+            Z=1.D0/THETAL
+            DKBSL=BESKN(2,Z)
+C            DKBSL=DKBSR(NR)
          ENDIF
          FACT=RNFPL*SQRT(THETA0)/(4.D0*PI*RTFPL*DKBSL)
+     &        *RTFP0*EXP(-1.D0/THETAL)
+C         FACT=RNFPL*SQRT(THETA0)**3*EXP(-1.D0/THETAL)/
+C     &        (4.D0*PI*THETAL*DKBSL)
          EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
