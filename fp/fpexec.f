@@ -23,8 +23,6 @@ C
             DO NL=1,NWMAX
                AAM(NL,NM)=0.D0
             ENDDO
-         ENDDO
-         DO NM=1,NMM
             DO NL=1,NLM
                LL(NM,NL)=0
                AL(NM,NL)=0.D0
@@ -176,11 +174,6 @@ C      DIVFRR=1.D0/(     RL   *DELR)
       IF(NP.EQ.NPMAX) THEN
          DIVDTP=2.D0*DIVDTP
       ENDIF
-C
-      DO 1000 I=1,NLM
-         LL(NM,I)=0
-         AL(NM,I)=0.D0
- 1000 CONTINUE
 C
 C      IF(NR.GT.1) THEN
 C         NL=NL+1
