@@ -24,6 +24,12 @@ C
                AAM(NL,NM)=0.D0
             ENDDO
          ENDDO
+         DO NM=1,NMM
+            DO NL=1,NLM
+               LL(NM,NL)=0
+               AL(NM,NL)=0.D0
+            ENDDO
+         ENDDO
 C
          NLMAX=0
          IF(MODELA.EQ.0) THEN

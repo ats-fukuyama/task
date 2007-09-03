@@ -222,12 +222,14 @@ C
 C
   201       CONTINUE
 C
-            WRITE(6,*) 'NR,NTHC=',NR,NTH
+C            WRITE(6,*) 'NR,NTHC=',NR,NTH
             IF(NTH.EQ.NTHMAX/2) NTH=NTHMAX/2-1
 C
             ITL(NR)=NTH
             ITU(NR)=NTHMAX-NTH+1
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
+C            WRITE(6,'(A,1P2E12.4)') 'EPSR(NR)=',EPSR(NR),EPSL
+C            WRITE(6,'(A,2I8)') 'ITL,ITU=',ITL(NR),ITU(NR)
             EPSR(NR)=EPSL
             FACT=(1.D0+EPSL)/(2.D0*EPSL)
 C
@@ -547,6 +549,8 @@ C
          ENDIF
 C
   250    CONTINUE
+C         CALL FPGRAC('F -2',F,4)
+C         CALL FPGRAC('F1-2',F1,4)
          DO NR=1,NRMAX
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
