@@ -87,7 +87,10 @@ C
       RS=RSRHON(RM(1))
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
-C
+C     density
+      PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
+     &     *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
+
       RETURN
       END
 C
@@ -131,7 +134,9 @@ C
                RSUM2 = RSUM2+VOL(NTH,NP)*F(NTH,NP,NR)*PM(NP)*COSM(NTH)
      &                       /PV
                RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
-     &                       *(PV-1.D0)/THETA0
+     &              *0.5D0*PM(NP)**2/PV**2
+C               RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
+C     &                       *(PV-1.D0)/THETA0
   300       CONTINUE
          ENDIF
 C

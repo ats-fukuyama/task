@@ -378,8 +378,8 @@ C
       IF(MODELR.EQ.0) THEN
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
-               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
-     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
+C               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
+C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
                DCPPL=0.D0
                FCPPL=0.D0
             ELSE
@@ -422,9 +422,10 @@ C
      &        /(RNFP0*PTFP0*1.D20)
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
-               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
-     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
-               FCPPL=0.D0
+C              DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
+C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
+               DCPPL=0.D0
+              FCPPL=0.D0
             ELSE
                PFPL=PG(NP)*PTFP0
                VFPL=PFPL/SQRT(AMFP**2+PFPL**2/VC**2)
@@ -467,7 +468,7 @@ C
 C            VFDL=VFPL
 C            PFDL=AMFD*VFDL/SQRT(1.D0-VFDL**2/VC**2)
             PNFPL=PM(NP)
-            PFNP=PFNPL
+            PNFP=PNFPL
 C            PNFDL=PFDL/PTFDL
 C            PNFD=PNFDL
             TMC2FD =PTFDL**2/(AMFD*VC)**2
