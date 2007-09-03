@@ -358,6 +358,8 @@ C     ------ define --------
 
       AEFD=PZ(NS)*AEE
 C      AMFD=PA(NS)*AMP
+      GAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
+     &        /(RNFP0*PTFP0*1.D20)
       RNFD0=PN(NS)
       RNFDS=PNS(NS)
       RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
@@ -380,7 +382,9 @@ C
             IF(NP.EQ.1) THEN
 C               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
 C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
-               DCPPL=0.D0
+              DCPPL=GAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI))) 
+     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS))) 
+C               DCPPL=0.D0
                FCPPL=0.D0
             ELSE
                PFPL=PG(NP)*PTFP0
@@ -416,15 +420,13 @@ C
 C     ----- Relativistic -----
 C
       ELSE
-         AEFD=PZ(NS)*AEE
-         AMFD=PA(NS)*AMP
-         GAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
-     &        /(RNFP0*PTFP0*1.D20)
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
 C              DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
-C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
-               DCPPL=0.D0
+C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))  
+              DCPPL=GAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
+     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
+C              DCPPL=0.D0
               FCPPL=0.D0
             ELSE
                PFPL=PG(NP)*PTFP0
@@ -446,7 +448,7 @@ C               WRITE(6,'(I5,1P5E12.4)') NR,GAMH,PTFDL,AMFD,VC,
 C     &              TMC2FD0
                DCPPL= GAMH/(3.D0*RINT0)*( (AMFP**2*PTFD0**2*RGAMA**3)
      &              /(AMFD**2*PTFP0**2*PNFP**3)*RINT1+
-     &              (AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
+     &              (AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )*RNFD(NR,NS)*1.D20
 C               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
                CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
                CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
@@ -454,7 +456,7 @@ C               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
                FCPPL=-GAMH/(3.D0*RINT0)*(
      &              (AMFP*RGAMA**2)/(AMFD*PNFP**2)*(3.D0*RINT4
      &              -TMC2FD0*RINT5)+2.D0*(PTFP0*PNFP)/(PTFD0*RGAMA)
-     &              *TMC2FP0*RINT6 )
+     &              *TMC2FP0*RINT6 )*RNFD(NR,NS)*1.D20
             ENDIF
             DO NTH=1,NTHMAX
                DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DCPPL
@@ -483,7 +485,7 @@ C            PNFD=PNFDL
      &            1.5D0*RGAMA/PNFP*RINT3
      &           -0.5D0*(AMFP**2*PTFD0**2*RGAMA**3)
      &           /(AMFD**2*PTFP0**2*PNFP**3)*RINT1
-     &           +(AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
+     &           +(AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )*RNFD(NR,NS)*1.D20
             IF(MODELC.EQ.-1) THEN
                V=VFPL/VTFP0
                DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
