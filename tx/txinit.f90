@@ -207,7 +207,7 @@ contains
     PNBHT2 = 0.D0
 
     !   NBI current drive parameter
-    PNBCD= 0.D0
+    PNBCD= 1.D0
 
     !   Refractive index of RF waves
     rNRF = 0.D0
@@ -240,7 +240,7 @@ contains
     ! Number of toroidal field coils in JT-60U
     NTCOIL = 18
 
-    ! Inside ripple rate (0 < DIN < 1)
+    ! Inside ripple rate, i.e. DltRP0 * DIN becomes the ripple amplitude at r/a = -1
     DIN    = 0.2D0
 
     ! Ripple loss percentage at plasma surface
@@ -352,7 +352,7 @@ contains
     !   1    : NCLASS
     !   2    : Sauter
     !   3    : Hirshman, Hawryluk and Birge
-    MDLETA = 1
+    MDLETA = 0
 
     !   Mode of fixed temperature profile
     !   0    : not fixed
@@ -420,6 +420,7 @@ contains
     gDIV(108) = 1.E6
     gDIV(109) = 1.E15
     gDIV(110) = 1.E-4
+!    gDIV(115) = 1.E15
 
     !   Radius where density increase by command DEL
     DelR = 0.175D0
@@ -802,8 +803,8 @@ contains
        ! Trapped particle fraction
        FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
        EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-       ! Spitzer resistivity
-       ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       ! Spitzer resistivity for hydrogen plasma
+       ETAS = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        IF(ABS(FSNC) > 0.D0) THEN
           ETA(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
@@ -843,6 +844,8 @@ contains
     DO NR = 0, NRMAX
        dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRM,0) * rKeV
        dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRM,0) * rKeV
+       rNuei3(NR)  =(BphV(NR)**2 * CORR(Zeff) + BthV(NR)**2) * rNuei(NR) &
+            &      /(BphV(NR)**2 + BthV(NR)**2)
        IF(rNueNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE
@@ -859,8 +862,7 @@ contains
        X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
             &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-            &     + AME * rNueiph(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
-!       write(6,*) r(nr)/ra,-CORR(Zeff) * AME * rNuei(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+            &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
     END DO
 
     ! Scalar potential

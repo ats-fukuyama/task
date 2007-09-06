@@ -228,7 +228,7 @@ contains
        CLOSE(21)
        RETURN
     END IF
-    !  IF(LOADSLID(1:5) == 'tx410') THEN
+    !  IF(LOADSLID(1:5) == 'tx430') THEN
     READ(21) RCSId
 
     READ(21) RA,RB,RC,RR,BB
@@ -412,7 +412,7 @@ contains
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx410') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx430') THEN
 !!$    READ(21) RCSId
 
     READ(21) RA,RB,RC,RR,BB

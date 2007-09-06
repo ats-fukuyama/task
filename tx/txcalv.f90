@@ -143,24 +143,25 @@ contains
     use nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax
+    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, test
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
-         &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, &
-         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, dQdr, SP, rGBM, &
+         &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNueiPara, &
+         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
-         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, RHS, RATIO, &
+         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
-         &     EbL, logEbL, Scx, Vave, Sion !&
+         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp !&
 !!         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
-    real(8) :: FCL, EFT, ETAS, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
+    real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P
-    real(8), dimension(0:NRMAX) :: p, Vexbr, SL0, SL1, SL2, SL3
+    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SL0, SL1, SL2, SL3, th1, th2!,PNbrpL, DERIV
+!    real(8), dimension(1:4,0:NRMAX) :: U
 
     !     *** Constants ***
 
@@ -262,9 +263,11 @@ contains
     DBW = 3.D0 * SQRT(PTiVA * rKEV * AMI) * Q(NRA) / (PZ * AEE * BphV(NRA)) &
          & / SQRT(R(NRA) / RR)
 
-    ! Ripple parameter
+    ! Ripple amplitude
     DltRP(0:NRMAX) = DltRP0 * (  ((RR + R(0:NRMAX)) / (RR + RA))**(NTCOIL-1) &
          &                     + ((RR - RA) / (RR + R(0:NRMAX)))**(NTCOIL+1) * DIN)
+
+    PNbrpLV(0:NRMAX) = 0.D0
 
     EbL = Eb * 1.D3 / PA
     logEbL = log10(EbL)
@@ -359,14 +362,11 @@ contains
        rNuTei(NR) = rNuei(NR) * (2.D0 * AME / AMI)
 
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-!       rNueith(NR) = (CORR(Zeff) * BthV(NR) + BphV(NR)) / BBL * rNuei(NR)
-!       rNueiph(NR) = (CORR(Zeff) * BphV(NR) - BthV(NR)) / BBL * rNuei(NR)
-!       rNueith(NR) = CORR(Zeff) * rNuei(NR)
-!       rNueiph(NR) = CORR(Zeff) * rNuei(NR)
-       rNueith(NR) = CORR(Zeff) * rNuei(NR) * BthV(NR) / BBL
-       rNueiph(NR) = CORR(Zeff) * rNuei(NR) * BphV(NR) / BBL
-!       rNueith(NR) = rNuei(NR)
-!       rNueiph(NR) = rNuei(NR)
+
+       rNueiPara = CORR(Zeff) * rNuei(NR)
+       rNuei1(NR)  =(BthV(NR)**2 * rNueiPara + BphV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuei2(NR)  = BphV(NR) / BBL**2 * (rNueiPara - rNuei(NR))
+       rNuei3(NR)  =(BphV(NR)**2 * rNueiPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
 
        !     *** Toroidal neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
@@ -474,7 +474,7 @@ contains
           ! effective time of detrapping (Takamura (5.31))
           IF(DltRP(NR) /= 0.D0) THEN
              rNubrp1(NR) = FSRP * rNuD(NR) / DltRP(NR)
-             rNubrp2(NR) = FSRP * rNuD(NR) / SQRT(DltRP(NR))
+             rNubrp2(NR) = FSRP * rNuD(NR) / SQRT(DltRP(NR))! * SQRT(2.D0)
           ELSE
              rNubrp1(NR) = 0.D0
              rNubrp2(NR) = 0.D0
@@ -528,8 +528,8 @@ contains
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-       dQdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRM,0)
-       S(NR) = R(NR) / Q(NR) * dQdr
+       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRM,0)
+       S(NR) = R(NR) / Q(NR) * dQdr(NR)
        dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,NRM,0)
        Alpha(NR) = - Q(NR)**2 * RR * dpdr * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
@@ -567,13 +567,13 @@ contains
           DCDBM      = 0.D0
        END IF
 
-       DeL = 1.D0
 !!$       IF (R(NR) < RA) THEN
 !!$          DeL = FSDFIX * (1.D0 + 4.D0 * (R(NR) / RA)**2) + FSCDBM * DCDBM
 !!$       ELSE
 !!$          DeL = 0.2D0 * FSPSCL
 !!$       END IF
 !!$       DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+!       PROFDDL = 8.D0
        PROFDDL = 3.D0
 !       PROFDDL = 2.D0
        IF (R(NR) < RA) THEN
@@ -589,6 +589,7 @@ contains
           END IF
 !!$          DeL = FSDFIX * PROFDDL + FSCDBM * DCDBM
        END IF
+       DeL = 1.D0
        ! Particle diffusivity
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
@@ -703,14 +704,16 @@ contains
        ! Parallel electric field
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
        ! Total current density = parallel current density(?)
-!       AJ(NR)   = AJPARA
-       AJ(NR)   = AJPH
+       AJ(NR)   = AJPARA
+!       AJ(NR)   = AJPH
        ! Ohmic heating power
-!       POH(NR)  = EPARA*AJPARA
+       POH(NR)  = EPARA*AJPARA
 !       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
-       POH(NR)  = EphV(NR) * AJPH
+!       POH(NR)  = EphV(NR) * AJPH
        ! NB induced current density
-       AJNB(NR) = PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)
+       AJNB(NR) =(  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
+            &     + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL
+!       write(6,*) r(nr)/ra,AJ(NR),AJNB(NR)
 
        !     *** NBI power deposition ***
 
@@ -762,14 +765,9 @@ contains
     DO NR = 0, NRMAX
        ! +++ Original model +++
        EpsL = R(NR) / RR
-!!$       rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
-!!$       ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
-!!$       ETA1(NR) = CORR(Zeff) * AME * (1.D0 + ALFA) * rNuBAR / (PNeV(NR)*1.D20 * AEE**2) &
-!!$            &   * BphV(NR)**2 / (BphV(NR)**2 + BthV(NR)**2)
-       rNuBARth = rNueith(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
-       rNuBARph = rNueiph(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
-       ALFA = (rNuBARth+rNueNC(NR))/rNuBARph*(BthV(NR)/BphV(NR))**2
-       ETA1(NR) = AME * (1.D0 + ALFA) * rNuBARph / (PNeV(NR)*1.D20 * AEE**2) &
+       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+       ETA1(NR) = AME * (1.D0 + ALFA) * rNuei3(NR) / (PNeV(NR)*1.D20 * AEE**2) &
             &   * BphV(NR)**2 / (BphV(NR)**2 + BthV(NR)**2)
 
        ! +++ Sauter model +++
@@ -784,13 +782,15 @@ contains
             &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBS3(NR),ETA=ETA3(NR))
        IF(NR == 0) AJBS3(NR) = 0.D0
 
-       ! +++ Hirshman, Hawryluk and Birge model +++
-       EFT  = ft(NR) * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
-       ! Spitzer resistivity
-       ETAS = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-!!       write(6,*) r(NR)/ra,ETAS,ETA1(NR)
+        ! +++ Hirshman, Hawryluk and Birge model +++
+       Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
+       Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
+       rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
+       EFT  = ft(NR) * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.2D0 * Zeff))
+       ! Spitzer resistivity for hydrogen plasma (parallel direction)
+       ETAS(NR) = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
-       ETA4(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+       ETA4(NR) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
             &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        IF(FSNC /= 0) THEN
           select case(MDLETA)
@@ -806,14 +806,15 @@ contains
              ETA(NR) = ETA2(NR)
           end select
        ELSE
-          ! Spitzer resistivity
-          ETA(NR) = ETAS
+          ! Spitzer resistivity when no neoclassical effects
+          ETA(NR) = ETAS(NR)
        END IF
 
        ! Ohmic current density
-       AJOH(NR) = EphV(NR) / ETA(NR)
-!       EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
-!       AJOH(NR) = EPARA / ETA(NR)
+!       AJOH(NR) = EphV(NR) / ETA(NR)
+       EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
+       AJOH(NR) = EPARA / ETA(NR)
+!       if(nt==100.or.nt==200) write(6,*) r(nr)/ra,epara,eta(nr)
     END DO
 
     !     ***** Ion Orbit Loss *****
@@ -882,7 +883,6 @@ contains
 
     IF(ABS(FSRP) > 0.D0) THEN
        ! Ripple well region
-       RHS = - DIN * (RR + RA)**(NTCOIL-1) * (RR - RA)**(NTCOIL+1)
        DO NR = 1, NRMAX
           EpsL = R(NR) / RR
           theta1  = 0.d0
@@ -907,6 +907,7 @@ contains
              end if
           end do
           ARC = 2.d0 * (theta1 / PI)
+          th1(nr) = theta1
 
           theta2 = PI
           i = 0
@@ -930,15 +931,34 @@ contains
              end if
           end do
           ARC = ARC + 2.d0 * ((PI - theta2) / PI)
-          RATIO = ARC / (2.d0 * PI)
+          RATIO(NR) = ARC / (2.d0 * PI)
+          th2(nr) = theta2
 
           !  Convective loss (the product of the fraction of ripple trapped particle times
           !                   vertical drift velocity)
-          Ubrp(NR) = FSRP * SQRT(DltRP(NR)) * RATIO &
+          Ubrp(NR) = FSRP * 0.5D0 &
                &*(  0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2)) &
                &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
+!!$          rNubL(NR) = Ubrp(NR) / (R(NR) * sin(theta1))
        END DO
-       Ubrp(0) = 0.D0
+!!$       RV0 = AITKEN2P(R(0),r(1)*(pi-th2(1)),r(1)*th1(1),r(2)*th1(2),-R(1),R(1),R(2))
+!!$       Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
+!!$       rNubL(0) = Ubrp(0) / RV0
+!       Ubrp(0) = 0.5D0 * 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(0)**2 + BthV(0)**2))
+!       Ubrp(0) = 0.D0
+       Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
+
+!!$       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
+!!$       do nr = 0, nrmax
+!!$          if(R(NR) <= RB * cos(th1(nr))) then
+!!$             tmp = r(nr)*cos(th1(nr))
+!!$             call wherenr(r,tmp,nrl,Left,Right)
+!!$             CALL SPL1DF(tmp,PNbrpL(NR),R,U,NRMAX+1,IER)
+!!$             PNbrpLV(NRL-1) = PNbrpLV(NRL-1) + Left  * PNbrpL(NR)
+!!$             PNbrpLV(NRL)   = PNbrpLV(NRL)   + Right * PNbrpL(NR)
+!!$!             write(6,*) nrl,sngl(tmp),sngl(r(nrl-1)),sngl(r(nrl)),sngl(PNbrpL(NR)),sngl(Left  * PNbrpL(NR)),sngl(Right * PNbrpL(NR)),sngl(PNbrpLV(NRL-1)),sngl(PNbrpLV(NRL))
+!!$          end if
+!!$       end do
 
        !  Diffusive loss
        !  -- Collisional diffusion of trapped fast particles
@@ -947,29 +967,33 @@ contains
 
           ! rhob : Larmor radius of beam ions
           rhob = AMb * Vb / (PZ * AEE * SQRT(BphV(NR)**2 + BthV(NR)**2))
-          ! Dltcr : criterion of stochastic diffusion
-          Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr)
+          ! DltR2 : Square step size of banana particle
+          DltR2 = PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
 
-          ! effective collisional frequency
-          rNueff = Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR)
-          ! rNubnc : bounce period of beam ions
-          rNubnc = SQRT(EpsL) * Vb / (2.D0 * PI * Q(NR) * RR)
+!!$          ! effective collisional frequency
+!!$          rNueff = Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR)
+          ! rNubnc : bounce frequency of beam ions
+!!          rNubnc = SQRT(EpsL) * Vb / (2.D0 * PI * Q(NR) * RR)
+          rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * RR)
           ! DCB : confined banana diffusion coefficient
-          DCB = rNueff * PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
+          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
           ! DRP : ripple-plateau diffusion coefficient
-          DRP = rNubnc * PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
+!!          DRP = FSRP * rNubnc * DltR2
+          DRP = FSRP * 0.25D0 * DltR2 * rNubnc
 
           ! Collisional ripple well diffusion
-          if (rNueff < rNubnc) then
-             Dbrp(NR) = DCB
-          else
-             Dbrp(NR) = DRP
-          end if
-          ! Stochastic (ergodic) diffusion (whose value is almost equivalent
-          ! to that of ripple-plateau diffusion)
-          if(DltRP(NR) > Dltcr) then
-             Dbrp(NR) = Dbrp(NR) + DRP
-          end if
+!!$          if (rNueff < rNubnc) then
+!!$             Dbrp(NR) = DCB
+!!$          else
+!!$             Dbrp(NR) = DRP
+!!$          end if
+          Dbrp(NR) = DCB * DRP / (DCB + DRP)
+
+          ! Dltcr : criterion of stochastic diffusion
+          Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
+          ! Collisionless stochastic (ergodic) diffusion (whose value is almost
+          ! equivalent to that of ripple-plateau diffusion)
+          if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
     ELSE
@@ -985,7 +1009,7 @@ contains
     real(8), intent(in) :: X
 
     CORR = (1.D0 + 1.198D0 * X + 0.222D0 * X**2) &
-    &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2)
+    &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2) * X
 
   END FUNCTION CORR
 
@@ -1018,4 +1042,31 @@ contains
          &             + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
 
   end function ripple
+
+  ! Search minimum radial number NR satisfying R(NR) > X.
+
+  subroutine wherenr(R,X,NR,Left,Right)
+    real(8), dimension(0:NRMAX), intent(in) :: R
+    real(8), intent(in) :: X
+    integer, intent(out) :: NR
+    real(8), intent(out) :: Left, Right
+    integer :: NRL
+
+    if(X == 0.d0) then
+       NR = 1
+       Left  = 0.d0
+       Right = 0.d0
+       return
+    end if
+
+    do nrl = 1, nrmax
+       if(r(nrl) > x) then
+          NR = nrl
+          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
+          Left  = 1.d0 - Right
+          exit
+       end if
+    end do
+
+  end subroutine wherenr
 end module variables

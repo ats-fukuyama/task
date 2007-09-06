@@ -1,12 +1,12 @@
  &tx
      RA=0.35,RB=0.4,RR=1.3,RC=0.35
      BB=1.3,rIPs=0.12,rIPe=0.12
-     PTe0=0.5D0,PTea=5.D-2
-     PTi0=0.5D0,PTia=5.D-2
-     Pn0=3.D-1,Pna=5.D-2
-     De0=0.0D0,Di0=0.D0
-     Chie0=0.D0,Chii0=0.D0
-     rMue0=0.D0,rMui0=0.D0
+     PTe0=0.5,PTea=0.05
+     PTi0=0.5,PTia=0.05
+     Pn0=0.3,Pna=0.06
+     De0=0.0,Di0=0.0
+     Chie0=0.0,Chii0=0.0
+     rMue0=0.0,rMui0=0.0
      FSDFIX=1.0,FSCDBM=0.0
      FSBOHM=0.0,PROFD=20.0,FSPSCL=20.0
      PA=1.0, Zeff=2.0, rGASPF=0.01, rGamm0=0.8

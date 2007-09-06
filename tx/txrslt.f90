@@ -23,7 +23,7 @@ contains
          &     BBL, SUMML, SUMPL, PNES, PAI
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
     REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
-         &     dPPV, ALFA, ALFABP, rNuBAR
+         &     dPPV, ALFA
     REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP
     REAL(8), DIMENSION(1:NRMAX) :: BETAL, BETAPL, BETAQ
     real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2
@@ -133,11 +133,9 @@ contains
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        ! +++ Original model +++
        dPPV = DERIV3(NR,R,PP,NRMAX,NRM,0) * 1.D20 * rKeV
-       rNuBAR = rNuei(NR)+rNube(NR)*AMB*PNbV(NR)/(AME*PNeV(NR))+rNuL(NR)+rNu0e(NR)
-       ALFA = (1.D0+rNueNC(NR)/rNuBAR)*(BthV(NR)/BphV(NR))**2
-       ALFABP = (1.D0+rNueNC(NR)/rNuBAR)*BthV(NR)/(BphV(NR))**2
-!       AJBS1(NR) =- ALFABP / (1.D0 + ALFA) * dPPV
-       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuBAR * dPPV
+       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
        ! +++ Hirshman model +++
        dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0) * RA
        dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0) * RA
@@ -160,6 +158,7 @@ contains
        END IF
     END DO
 
+    AJBST = INTG_F(AJBS1) * 2.D0 * PI * RKAP * 1.D-6
 
     !      DRH=0.5D0*DR
     !      DO NS=1,NSM

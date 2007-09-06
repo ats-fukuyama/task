@@ -235,6 +235,17 @@ contains
           x(ne,4) = ( 2.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne)*b(ne-1) &
                &    + 3.d0*a(ne-1)*b(ne)   +12.d0*a(ne)*b(ne)) * hpsi(ne) * c160
        end do
+    case(29)
+       do ne = 1, nemax
+          x(ne,1) = (-3.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne-1)*b(ne-1) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+          x(ne,2) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+          x(ne,3) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+          x(ne,4) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
+               &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne-1)) / 12.d0
+       end do
     case(32)
        do ne = 1, nemax
           a1 = a(ne-1) ; a2 = a(ne)
@@ -270,6 +281,17 @@ contains
           x(ne,3) = x(ne,2)
           x(ne,4) = (  2.d0*psi(ne-1)*b(ne-1) + 3.d0*psi(ne)*b(ne-1) &
                &     + 3.d0*psi(ne-1)*b(ne)   +12.d0*psi(ne)*b(ne)) * (-a(ne-1)+a(ne)) * c160
+       end do
+    case(37)
+       do ne = 1, nemax
+          x(ne,1) = (12.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
+               &    + 3.d0*psi(ne-1)*a(ne)   + 2.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+          x(ne,2) = ( 3.d0*psi(ne-1)*a(ne-1) + 2.d0*psi(ne)*a(ne-1) &
+               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+          x(ne,3) = ( 3.d0*psi(ne-1)*a(ne-1) + 2.d0*psi(ne)*a(ne-1) &
+               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+          x(ne,4) = ( 2.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
+               &    + 3.d0*psi(ne-1)*a(ne)   +12.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
        end do
     case(39)
        do ne = 1, nemax

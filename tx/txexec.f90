@@ -244,8 +244,8 @@ contains
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
        CALL TXCALC
-!       write(6,'(I4,2X,E20.10)') NT,PTeV(NRA)
-!       write(6,'(I4,2X,E20.10)') NT,PTiV(NRA)
+!       write(6,'(A4,I4,A1,2X,E20.10)') 'TMP(',NT,')',PTeV(NRA)
+!       write(6,'(A4,I4,A1,2X,E20.10)') 'TMP(',NT,')',PTiV(NRA)
 
        IF(IDIAG == 0 .OR. IDIAG == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &

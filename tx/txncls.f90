@@ -97,8 +97,15 @@ contains
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_gr2phi1, p_gr2phi2, p_gr2phi3, &
          &                       p_fhat1, p_fhat2, p_fhat3, &
-         &     btot, uthai, VPOL(0:NRMAX)
+         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL
     REAL(8) :: DERIV3, AITKEN2P
+
+    !     *** Dummy impurity for using high Zeff ***
+
+!!$    PAL = 12.D0
+!!$    PZL = 6.D0
+    PAL = 56.D0
+    PZL = 18.D0
 
     !     *** Initialization ***
 
@@ -123,8 +130,11 @@ contains
     k_v      = 1
     k_order  = 2
     k_potato = 1
+!    k_potato = 0
     m_i      = 2
+    IF(Zeff > 1.D0) m_i   = 3
     PZMAX    = PZ
+    IF(Zeff > 1.D0) PZMAX = PZL
     m_z      = INT(PZMAX)
     c_den    = 1.E10
     c_potb   = SNGL(1.D0*BphV(0)/(2.D0*Q(0)**2))
@@ -132,6 +142,7 @@ contains
 
     amu_i(1) = SNGL(AME/AMI)
     amu_i(2) = SNGL(PA)
+    IF(Zeff > 1.D0) amu_i(3) = SNGL(PAL)
 
     BBL   = SQRT(BphV(NR)**2 + BthV(NR)**2)
     EpsL  = R(NR) / RR
@@ -172,6 +183,14 @@ contains
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
     grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,NRM,0)) * 1.E20
     grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRM,0)) * 1.E20
+    IF (Zeff > 1.D0) THEN
+       temp_i(3) = temp_i(2)
+       grt_i(3)  = grt_i(2)
+       den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiV(NR)) * 1.E20
+       den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiV(NR)) * 1.E20
+       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRM,0) * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRM,0) * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+    END IF
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
 
     CALL NCLASS( &
@@ -218,10 +237,21 @@ contains
        IF(iflag /= 0 .and. k_out > 0) WRITE(6,*) "XX iflag=",iflag
     ENDIF
 
-    JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0) / PTeV(NR)) &
-         &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRM,0) / PeV (NR)) &
-         &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
-         &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR))) / BBL
+    IF(Zeff == 1.D0) THEN
+       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0) / PTeV(NR)) &
+            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRM,0) / PeV (NR)) &
+            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR))) / BBL
+    ELSE
+       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRM,0) / PTeV(NR)) &
+            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRM,0) / PeV (NR)) &
+            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR) &
+            &                     * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
+            &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRM,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRM,0) / PiV (NR) &
+            &                     * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
+    END IF
     IF(k_potato == 0 .and. NR == 0) JBSL = 0.D0
 
     ETAL = DBLE(p_etap)
@@ -232,8 +262,6 @@ contains
     ELSE
        NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
        NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
-!       write(6,*) r(nr)/ra,dble(ymu_s(1,1,1)),ame*pnev(nr)*1.d20*ft(nr)/(1.d0-ft(nr))*rnuee(nr)*(0.533d0+PZ)
-!       write(6,*) r(nr)/ra,dble(ymu_s(1,1,2)),sqrt(2.d0)*ami*pniv(nr)*1.d20*ft(nr)/(1.d0-ft(nr))*rnuii(nr)*0.377d0
     END IF
     
 !!$    AJBSNC(NR)=DBLE(p_bsjb)/BphV(NR)

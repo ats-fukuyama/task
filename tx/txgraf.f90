@@ -387,7 +387,8 @@ contains
     GT(NGR) = SNGL(T_TX)
 
     GY(0:NRMAX,NGR,1)  = SNGL(PNeV(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,2)  = SNGL((PZ*PNiV(0:NRMAX)+PZ*PNbV(0:NRMAX)+PZ*PNbrpV(0:NRMAX)-PNeV(0:NRMAX))* 1.D20)
+    GY(0:NRMAX,NGR,2)  = SNGL((PZ*PNiV(0:NRMAX)+PZ*PNbV(0:NRMAX) &
+         &                    +PZ*RATIO(0:NRMAX)*PNbrpV(0:NRMAX)-PNeV(0:NRMAX))* 1.D20)
     GY(0:NRMAX,NGR,3)  = SNGL(UerV(0:NRMAX))
     GY(0:NRMAX,NGR,4)  = SNGL(UethV(0:NRMAX))
     GY(0:NRMAX,NGR,5)  = SNGL(UephV(0:NRMAX))
@@ -529,6 +530,7 @@ contains
     GY(0:NRMAX,NGR,111) = SNGL(rNubrp1(0:NRMAX))
     GY(0:NRMAX,NGR,112) = SNGL(DltRP(0:NRMAX))
     GY(0:NRMAX,NGR,113) = SNGL(Ubrp(0:NRMAX))
+!    GY(0:NRMAX,NGR,113) = SNGL(rNubL(0:NRMAX))
     GY(0:NRMAX,NGR,114) = SNGL(Dbrp(0:NRMAX))
     DO NR = 0, NRMAX
        IF(PNbV(NR) == 0.D0) THEN
@@ -537,12 +539,7 @@ contains
           GY(NR,NGR,115) = SNGL(PNbrpV(NR)/PNbV(NR))
        END IF
     END DO
-!!$    IF(PNBH /= 0.D0) THEN
-!!$       GY(0:NRA-1,NGR,115) = SNGL(PNbrpV(0:NRA-1)/PNbV(0:NRA-1))
-!!$       GY(NRA:NRMAX,NGR,115) = 0.D0
-!!$    ELSE
-!!$       GY(0:NRMAX,NGR,115) = 0.D0
-!!$    END IF
+!!$    GY(0:NRMAX,NGR,115) = SNGL(PNbrpLV(0:NRMAX)*1.D20)
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -666,8 +663,8 @@ contains
     GTY(NGT,10) = SNGL(AJT)
     GTY(NGT,11) = SNGL(AJOHT)
     GTY(NGT,12) = SNGL(AJNBT)
-    GTY(NGT,13) = SNGL(AJOHT+AJNBT)
-    !  GTY(NGT,14) = SNGL(AJBST)
+    GTY(NGT,13) = SNGL(AJBST)
+    GTY(NGT,14) = SNGL(AJOHT+AJBST+AJNBT)
     GTY(NGT,15) = SNGL(POUT)
     GTY(NGT,16) = SNGL(PCXT)
     GTY(NGT,17) = SNGL(PIET)
@@ -934,8 +931,10 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,109), GYL, STR, NRM, NRMAX, NGR, gDIV(109))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@Ripple loss ratio@'
-       CALL TXGRFRX(3,GX,GY(0,0,115),NRMAX,NGR,STR,MODE,IND)
+       STR = '@Ripple n$-b$=(r)/n$-b$=(r)@'
+!       STR = '@PNbrpLV@'
+       CALL APPROPGY(MODEG, GY(0,0,115), GYL, STR, NRM, NRMAX, NGR, gDIV(115))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
 !       CALL TXWPGR
 
@@ -1450,6 +1449,7 @@ contains
 !!$       CALL TXGRFRXS(13,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@Ubrp@'
+!       STR = '@rNubL@'
        CALL TXGRFRXS(12,GX,GY(0,0,113),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@Dbrp@'
@@ -1543,12 +1543,13 @@ contains
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
        GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
        GYL(NR,3) = GLOG(ETA3(NR),1.D-10,1.D0)
+!       GYL(NR,4) = GLOG(ETAS(NR),1.D-10,1.D0)
 !       GYL(NR,4) = GLOG(ETA4(NR),1.D-10,1.D0)
     END DO
 
     STR = '@LOG: ETA@'
-!!$    CALL TXGRFRS(0, GX, GYL, NRA, 4, STR, MODE, IND, 1)
     CALL TXGRFRS(0, GX, GYL, NRA, 3, STR, MODE, IND, 1)
+!    CALL TXGRFRS(0, GX, GYL, NRA, 4, STR, MODE, IND, 1)
 
     GYL(0:NRMAX,1) = SNGL(AJBS1(0:NRMAX))
     GYL(0:NRMAX,2) = SNGL(AJBS2(0:NRMAX))
@@ -2048,8 +2049,8 @@ contains
        STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
        CALL TXGRFTX(0, GTX, GTY(0, 1), NGTM, NGT, 4, STR, IND)
 
-       STR = '@IP,IOH,INB,IOH+INB [MA] vs t@'
-       CALL TXGRFTX(2, GTX, GTY(0,10), NGTM, NGT, 4, STR, IND)
+       STR = '@IP,IOH,INB,IBS,ITOT [MA] vs t@'
+       CALL TXGRFTX(2, GTX, GTY(0,10), NGTM, NGT, 5, STR, IND)
 
        STR = '@PIN,POH,PNB,PRF,PNF [MW] vs t@'
        CALL TXGRFTX(4, GTX, GTY(0, 5), NGTM, NGT, 5, STR, IND)
