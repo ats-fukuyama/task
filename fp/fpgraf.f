@@ -11,18 +11,22 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION TEMP(NTHM,NPM,NRM)
-      CHARACTER KID*4,KID1*1,KID2*3
+      CHARACTER KID*5,KID1*1,KID2*3
 C
-    1 WRITE(6,*)'INPUT GRAPH TYPE : F/FX/FS1/FS2 1/2, X:exit,'
-      WRITE(6,*)'             : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
-      WRITE(6,*)'             : R/T N/I/W/PC/PW/PE/T/Q/E'
-      READ(5,'(A4)',ERR=1,END=9000) KID
+    1 WRITE(6,*)'INPUT GRAPH TYPE :'
+      WRITE(6,*)'       : F/FX/FS1/FS2 1/2, X:exit,'
+      WRITE(6,*)'       : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
+      WRITE(6,*)'       : PD/PDC/PDW PP/PT/TP/TT/RR, PF/PFC/FE P/T/R'
+      WRITE(6,*)'       : R/T N/I/W/PC/PW/PE/T/Q/E'
+      READ(5,'(A5)',ERR=1,END=9000) KID
       KID1=KID(1:1)
-      KID2=KID(2:4)
       CALL GUCPTL(KID1)
-      CALL GUCPTL(KID2(1:1))
-      CALL GUCPTL(KID2(2:2))
-      CALL GUCPTL(KID2(3:3))
+
+      IF(KID1.NE.'P') THEN
+         KID2=KID(2:4)
+         CALL GUCPTL(KID2(1:1))
+         CALL GUCPTL(KID2(2:2))
+         CALL GUCPTL(KID2(3:3))
 C
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'1  ') THEN
@@ -172,6 +176,75 @@ C
          GO TO 9000
       ELSE
          WRITE(6,*) 'XX UNKNOWN KID1'
+      END IF
+C
+      ELSE
+         KID1=KID(2:2)
+         CALL GUCPTL(KID1)
+         KID2=KID(3:5)
+         CALL GUCPTL(KID2(1:1))
+         CALL GUCPTL(KID2(2:2))
+         CALL GUCPTL(KID2(3:3))
+C
+      IF (KID1.EQ.'F') THEN
+         IF(KID2.EQ.'P  ') THEN
+            CALL FPGRACP('FP  ',FPP,1)
+         ELSE IF(KID2.EQ.'T  ') THEN
+            CALL FPGRACP('FT  ',FTH,2)
+         ELSE IF(KID2.EQ.'R  ') THEN
+            CALL FPGRACP('FR  ',FRR,0)
+         ELSE IF(KID2.EQ.'PP ') THEN
+            CALL FPGRACP('FPP ',FPP,1)
+         ELSE IF(KID2.EQ.'TH ') THEN
+            CALL FPGRACP('FTH ',FTH,2)
+         ELSE IF(KID2.EQ.'RR ') THEN
+            CALL FPGRACP('FRR ',FRR,0)
+         ELSE IF(KID2.EQ.'CP ') THEN
+            CALL FPGRACP('FCP ',FCPP,1)
+         ELSE IF(KID2.EQ.'CT ') THEN
+            CALL FPGRACP('FCT ',FCTH,2)
+         ELSE IF(KID2.EQ.'EP ') THEN
+            CALL FPGRACP('FEP ',FEPP,1)
+         ELSE IF(KID2.EQ.'ET ') THEN
+            CALL FPGRACP('FET ',FETH,2)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID3'
+         ENDIF
+      ELSE IF (KID1.EQ.'D') THEN
+         IF(KID2.EQ.'PP ') THEN
+            CALL FPGRACP('DPP ',DPP ,1)
+         ELSE IF(KID2.EQ.'PT ') THEN
+            CALL FPGRACP('DPT ',DPT ,1)
+         ELSE IF(KID2.EQ.'TP ') THEN
+            CALL FPGRACP('DTP ',DTP ,2)
+         ELSE IF(KID2.EQ.'TT ') THEN
+            CALL FPGRACP('DTT ',DTT ,2)
+         ELSE IF(KID2.EQ.'CPP') THEN
+            CALL FPGRACP('DCPP',DCPP,1)
+         ELSE IF(KID2.EQ.'CPT') THEN
+            CALL FPGRACP('DCPT',DCPT,1)
+         ELSE IF(KID2.EQ.'CTP') THEN
+            CALL FPGRACP('DCTP',DCTP,2)
+         ELSE IF(KID2.EQ.'CTT') THEN
+            CALL FPGRACP('DCTT',DCTT,2)
+         ELSE IF(KID2.EQ.'W  ') THEN
+            CALL FPGRAC2('DW  ',DWPP,0)
+         ELSE IF(KID2.EQ.'WPP') THEN
+            CALL FPGRACP('DWPP',DWPP,1)
+         ELSE IF(KID2.EQ.'WPT') THEN
+            CALL FPGRACP('DWPT',DWPT,1)
+         ELSE IF(KID2.EQ.'WTP') THEN
+            CALL FPGRACP('DWTP',DWTP,2)
+         ELSE IF(KID2.EQ.'WTT') THEN
+            CALL FPGRACP('DWTT',DWTT,2)
+         ELSE IF(KID2.EQ.'RR ') THEN
+            CALL FPGRACP('DRR ',DRR ,0)
+         ELSE
+            WRITE(6,*) 'XX UNKNOWN KID3'
+         ENDIF
+      ELSE
+         WRITE(6,*) 'XX UNKNOWN KID2'
+      END IF
       END IF
 C
       GO TO 1
@@ -416,6 +489,154 @@ C
                GF(NP,NTH)=-70.0
             ELSE
                GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM))))
+            ENDIF
+   80    CONTINUE
+      ENDIF
+      GPMAX=GUCLIP(PMAX)
+C
+      CALL PAGES
+      CALL SETCHS(.3,0.)
+      CALL SETFNT(32)
+C
+      CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
+      CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
+C
+      CALL GDEFIN(3.,23.,2.,12.,-GPMAX,GPMAX,0.,GPMAX)
+      CALL GFRAME
+      CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
+      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
+C
+      IF(LMODE.EQ.0) THEN
+         IF(GFMIN*GFMAX.GE.0.0) THEN
+            IF(GFMIN.GE.0.0) THEN
+               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+     &                     GFMIN1,0.5*GFSTEP,30,0,KA)
+            ELSE
+               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+     &                     GFMIN1,0.5*GFSTEP,30,2,KA)
+            ENDIF
+         ELSE
+            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+     &                   0.25*GFSTEP, 0.5*GFSTEP,15,0,KA)
+            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+     &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
+         ENDIF
+      ELSE
+         DO 100 I=1,NGLINE
+           GLIN=GFMAX-0.020*(I-1)**2
+           CALL SETLIN(0,0,7-MOD(I-1,5))
+           CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+     &                 GLIN,GFSTEP*100,1,0,KA)
+  100    CONTINUE
+      ENDIF
+C
+      CALL SETLIN(0,2,7)
+      CALL MOVE(24.0,1.0)
+      CALL TEXT('PPARA',5)
+      CALL MOVE(1.0,13.5)
+      CALL TEXT('PPERP',5)
+C
+      CALL MOVE(3.0,12.5)
+      CALL TEXT(STRING,4)
+      CALL MOVE(5.0,12.5)
+      CALL TEXT('FMIN =',6)
+      CALL NUMBR(GFMIN,'(1PE12.4)',12)
+      CALL MOVE(11.0,12.5)
+      CALL TEXT('FMAX =',6)
+      CALL NUMBR(GFMAX,'(1PE12.4)',12)
+      IF(LMODE.EQ.0) THEN
+         CALL MOVE(17.0,12.5)
+         CALL TEXT('STEP =',6)
+         CALL NUMBR(0.5*GFSTEP,'(1PE12.4)',12)
+      ENDIF
+      CALL PAGEE
+      IF(NRMAX.GT.1) GOTO 1
+C
+ 9000 RETURN
+      END
+C
+C ***********************************************************
+C
+C                        C-GRAPHIC muliplied p
+C
+C ***********************************************************
+C
+      SUBROUTINE FPGRACP(STRING,FG,MODE)
+C
+      INCLUDE 'fpcomm.inc'
+C
+      DIMENSION FG(*)
+      DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)
+      CHARACTER STRING*4
+C
+    1 CONTINUE
+      IF(NRMAX.GT.1) THEN
+         IF(MODE.EQ.0) THEN
+            NRG=NRMAX+1
+         ELSE
+            NRG=NRMAX
+         ENDIF
+         WRITE(6,*) '# INPUT NR (1..',NRG,') :'
+         READ(5,*,ERR=1,END=9000) NR
+         IF(NR.LT.1) GOTO 9000
+         IF(NR.GT.NRG) GOTO 1
+      ELSE
+         NR=1
+      END IF
+C
+      LMODE=MODE/4
+C
+      IF(MOD(MODE,2).EQ.0) THEN
+         DO 10 NP=1,NPMAX
+            GP(NP)=GUCLIP(PM(NP))
+   10    CONTINUE
+         NPG=NPMAX
+      ELSE
+         DO 20 NP=1,NPMAX+1
+            GP(NP)=GUCLIP(PG(NP))
+   20    CONTINUE
+         NPG=NPMAX+1
+      ENDIF
+C
+      IF(MOD(MODE/2,2).EQ.0) THEN
+         DO 30 NTH=1,NTHMAX
+            GTH(NTH)=GUCLIP(THM(NTH))
+   30    CONTINUE
+         NTHG=NTHMAX
+      ELSE
+         DO 40 NTH=1,NTHMAX+1
+            GTH(NTH)=GUCLIP(THG(NTH))
+   40    CONTINUE
+         NTHG=NTHMAX+1
+      ENDIF
+C
+      IF(MODE.EQ.0) THEN
+         DO 50 NTH=1,NTHMAX
+         DO 50 NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP))
+   50    CONTINUE
+      ELSEIF(MODE.EQ.1) THEN
+         DO 60 NTH=1,NTHMAX
+         DO 60 NP=1,NPMAX+1
+            NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP))
+   60    CONTINUE
+      ELSEIF(MODE.EQ.2) THEN
+         DO 70 NTH=1,NTHMAX+1
+         DO 70 NP=1,NPMAX
+            NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+            GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP))
+   70    CONTINUE
+      ELSEIF(MODE.EQ.4) THEN
+         DO 80 NTH=1,NTHMAX
+         DO 80 NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            IF(FG(NM)*PM(NP).LT.1.D-70) THEN
+               GF(NP,NTH)=-70.0
+            ELSE
+               GF(NP,NTH)=GUCLIP(LOG10(ABS(FG(NM)*PM(NP))))
             ENDIF
    80    CONTINUE
       ENDIF
