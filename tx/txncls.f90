@@ -162,13 +162,14 @@ contains
     !  Approximation inverse aspect ratio at the magnetix axis
     IF(NR == 0) EpsL = 0.01D0*R(NR+1)/RR
     IF(SNGL(EpsL) > 0.0) THEN
+       ! poloidal moments of geometric factor for PS viscosity
        DO i=1,3
           p_fm(i)=SNGL(DBLE(i)*(  (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
                &                 *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
                &                 *(Q(NR)*RR)**2))
        ENDDO
     ENDIF
-!    p_fm(1:3) = 0.d0
+!    p_fm(1:3) = 0.d0 ! No Pfirsch-Shulter viscosity
     p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
     p_grbm2   = SNGL(1.D0/RA**2) * p_bm2

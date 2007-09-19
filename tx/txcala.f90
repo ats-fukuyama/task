@@ -5,8 +5,8 @@ module coefficients
   implicit none
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM, test
-  real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNueiEI, rNubeBE, rNubiBI, rNuTeiEI,&
-       &                       rNuCXN1, ChieNe, ChiiNi, rMueNe, rMuiNi, dPNeV, dPNiV, &
+  real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
+       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        &                       RUbrp, BphBNi, BthBNi, rNubLL, DbrpftNi, &
@@ -62,19 +62,14 @@ contains
     !     Preconditioning
 
     invDT = 1.d0 / DT
-!    IF(DT <= 3.D-6) THEN
-    IF(DT <= 1.D-5) THEN
-       DTt          = 1.d2
-       DTf(1)       = 1.d0
-       DTf(2:NQMAX) = 1.d2
-!!$    ELSE IF(DT <= 1.D-4) THEN
-!!$       DTt          = 1.d3
+!!$    IF(DT <= 2.D-5) THEN
+!!$       DTt          = 1.5d1
 !!$       DTf(1)       = 1.d0
-!!$       DTf(2:NQMAX) = 1.d3
-    ELSE
+!!$       DTf(2:NQMAX) = 1.5d1
+!!$    ELSE
        DTt          = 1.d0
        DTf(1:NQMAX) = 1.d0
-    END IF
+!!$    END IF
 
     ! In case of ohmic heating (i.e. no NBI), largeness of the term related to beam
     ! components comparable to that of other terms related to finite variables
@@ -221,12 +216,9 @@ contains
     rNuCXN0(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) &
          &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX))
     rNuCXN1(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) * PT01V(0:NRMAX)
-!!!    rNueiEI(0:NRMAX)  = rNuei(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNuTeiEI(0:NRMAX) = rNuTei(0:NRMAX) * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNubeBE(0:NRMAX)  = rNube(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNubiBI(0:NRMAX)  = rNubi(0:NRMAX)  * PNbV(0:NRMAX) / PNiV(0:NRMAX)
-    ChieNe(0:NRMAX)   = Chie(0:NRMAX)   / PNeV(0:NRMAX)
-    ChiiNi(0:NRMAX)   = Chii(0:NRMAX)   / PNiV(0:NRMAX)
     rMueNe(0:NRMAX)   = rMue(0:NRMAX)   / PNeV(0:NRMAX)
     rMuiNi(0:NRMAX)   = rMui(0:NRMAX)   / PNiV(0:NRMAX)
     RUerV(0:NRMAX)    = R(0:NRMAX)      * UerV(0:NRMAX)
@@ -728,8 +720,8 @@ contains
 !!$    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 * fem_int(18,rMue) * AMPe4
     NLC( 2,LQe4) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,17,LQe4) =   4.D0 * fem_int(41,rMue,UephV)
-!!$    NLC(17,LQe4) = LQe1
+!!$    ELM(1:NEMAX,1:4,19,LQe4) =   4.D0 * fem_int(41,rMue,UephV)
+!!$    NLC(19,LQe4) = LQe1
 
     ! Toroidal E force
 
@@ -974,7 +966,13 @@ contains
     ELM(1:NEMAX,1:4,9,LQi1) =   fem_int(28,rNuB,RATIO)
     NLC(9,LQi1) = LQr1
 
-    NLCMAX(LQi1) = 9
+    ! Parallel Loss reduction due to the potential
+    ! induced by the parallel loss of the beam ions
+
+    ELM(1:NEMAX,1:4,10,LQi1) =  fem_int(2,rNuLB) * BeamSW
+    NLC(10,LQi1) = LQb1
+
+    NLCMAX(LQi1) = 10
     RETURN
   END SUBROUTINE LQi1CC
 
@@ -1235,8 +1233,8 @@ contains
 !!$    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 * fem_int(18,rMui)
     NLC( 2,LQi4) = LQi4
 
-!!$    ELM(1:NEMAX,1:4,19,LQi4) =   4.D0 * fem_int(41,rMui,UiphV)
-!!$    NLC(19,LQi4) = LQi1
+!!$    ELM(1:NEMAX,1:4,21,LQi4) =   4.D0 * fem_int(41,rMui,UiphV)
+!!$    NLC(21,LQi4) = LQi1
 
     ! Toroidal E force
 
@@ -1469,21 +1467,26 @@ contains
     ELM(1:NEMAX,1:4,2,LQb1) = - fem_int(2,rNuB)
     NLC(2,LQb1) = LQb1
 
-    ! Ripple trapped beam ions collision with otherwise beam ions
+    ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,3,LQb1) = - fem_int(28,rNubrp2,RATIO)
+    ELM(1:NEMAX,1:4,3,LQb1) = - fem_int(2,rNuLB) * BeamSW
     NLC(3,LQb1) = LQb1
 
-    ELM(1:NEMAX,1:4,4,LQb1) =   fem_int(28,rNubrp1,RATIO)
-    NLC(4,LQb1) = LQr1
+    ! Ripple trapped beam ions collision with otherwise beam ions
+
+    ELM(1:NEMAX,1:4,4,LQb1) = - fem_int(28,rNubrp2,RATIO)
+    NLC(4,LQb1) = LQb1
+
+    ELM(1:NEMAX,1:4,5,LQb1) =   fem_int(28,rNubrp1,RATIO)
+    NLC(5,LQb1) = LQr1
 
 !!$    PELM(1:NEMAX,1:4,5,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
 !!$    NLC(5,LQb1) = 0
 
-    ELM(1:NEMAX,1:4,5,LQb1) = - 4.d0 * fem_int(41,Dbrp,ft)
-    NLC(5,LQb1) = LQb1
+    ELM(1:NEMAX,1:4,6,LQb1) = - 4.d0 * fem_int(41,Dbrp,ft)
+    NLC(6,LQb1) = LQb1
 
-    NLCMAX(LQb1) = 5
+    NLCMAX(LQb1) = 6
     RETURN
   END SUBROUTINE LQb1CC
 
@@ -1538,10 +1541,15 @@ contains
     ELM(1:NEMAX,1:4,8,LQb3) = - fem_int(2,rNubCX) * BeamSW
     NLC(8,LQb3) = LQb3
 
-    ELM(1:NEMAX,1:4,9,LQb3) =(- 4.D0 * fem_int(41,Dbrp,ft) &
-         &                    - 4.D0 * fem_int(39,DbrpftNi,dPNiV) &
-         &                    - 4.D0 * fem_int(32,Dbrp,ft)) * factor
+    ! Loss to divertor
+
+    ELM(1:NEMAX,1:4,9,LQb3) = - fem_int(2,rNuLB) * BeamSW
     NLC(9,LQb3) = LQb3
+
+!!$    ELM(1:NEMAX,1:4,9,LQb3) =(- 4.D0 * fem_int(41,Dbrp,ft) &
+!!$         &                    - 4.D0 * fem_int(39,DbrpftNi,dPNiV) &
+!!$         &                    - 4.D0 * fem_int(32,Dbrp,ft)) * factor
+!!$    NLC(9,LQb3) = LQb3
 
     ! Ubth(NRMAX) : 0
 
@@ -1600,8 +1608,13 @@ contains
     PELM(1:NEMAX,1:4,8,LQb4) = (PNBCD * Vb) * fem_int(-1,MNB)
     NLC(8,LQb4) = 0
 
-    ELM(1:NEMAX,1:4,9,LQb4) = - 4.D0 *(fem_int(41,Dbrp,ft) + fem_int(39,DbrpftNi,dPNiV)) * factor
+    ! Loss to divertor
+
+    ELM(1:NEMAX,1:4,9,LQb4) = - fem_int(2,rNuLB) * BeamSW
     NLC(9,LQb4) = LQb4
+
+!!$    ELM(1:NEMAX,1:4,9,LQb4) = - 4.D0 *(fem_int(41,Dbrp,ft) + fem_int(39,DbrpftNi,dPNiV)) * factor
+!!$    NLC(9,LQb4) = LQb4
 
     ! Ubphi(NRMAX) : 0
 

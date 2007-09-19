@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                NGTM=5000, NGVM=5000, NGYRM=115, NGYTM=45, &
+       &                NGTM=5000, NGVM=5000, NGYRM=116, NGYTM=45, &
        &                NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -104,7 +104,7 @@ module commons
        &                       rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, &
        &                       rNubrp1, rNubrp2, rNuD, rNuei1, rNuei2, rNuei3, &
        &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
-       &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, ft, &
+       &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &

@@ -15,11 +15,11 @@ contains
   SUBROUTINE TXCALV(XL,ID)
 
     use physical_constants, only : rMU0, rKeV
-    use libraries, only : INTG_P, DERIVF
+    use libraries, only : INTG_P, DERIVF, VALINT_SUB
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
     INTEGER :: NR
-    real(8) :: DERIV3
+    real(8) :: DERIV3, IntPNbV
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
@@ -63,18 +63,29 @@ contains
        PTiV (0:NRMAX) =   XL(LQi5,0:NRMAX)
     END IF
     PNbV (0:NRMAX) =   XL(LQb1,0:NRMAX)
+    CALL VALINT_SUB(PNbV,NRMAX,IntPNbV)
 !!$    IF(ABS(FSRP) > 0.D0) THEN
        DO NR = 0, NRMAX
-          IF(PNbV(NR) == 0.D0) THEN
+          IF(PNbV(NR) == 0.D0) THEN    ! The region without beam particles
              UbthV(NR) = 0.D0
-             UbphV(NR) = 0.D0
-          ELSE
-             IF(NR == 0) THEN
+             IF(IntPNbV < 1.D-10) THEN ! NB is NOT injected into a plasma.
+                UbphV(NR) = 0.D0
+             ELSE                      ! NB is injected.
+                UbphV(NR) = PNBCD * Vb
+                IF(NR == NRMAX) UbphV(NR) = 0.D0
+             END IF
+          ELSE ! The region with beam particles
+             IF(NR == 0) THEN ! On axis, poloidal beam velocity is assumed to be zero.
                 UbthV(NR) = 0.D0
                 UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
-             ELSE
+             ELSE ! The region except the magnetic axis
                 UbthV(NR) = XL(LQb3,NR) / PNbV(NR) / R(NR)
                 UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
+                IF(FSRP == 0.D0 .AND. NR > NRA) THEN ! SOL region in the case of no ripple.
+                   UbthV(NR) = 0.D0
+                   UbphV(NR) = PNBCD * Vb
+                   IF(NR == NRMAX) UbphV(NR) = 0.D0
+                END IF
              END IF
           END IF
        END DO
@@ -144,12 +155,12 @@ contains
     use sauter_mod
 
     INTEGER :: NR, NP, NR1, IER, i, imax, nrl, test
-    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
+    REAL(8) :: Sigma0, QL, SL, SLP1, SLP2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNueiPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
-         &     Cs, RhoIT, ExpArg, AiP, DISTAN, &
+         &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
@@ -160,7 +171,8 @@ contains
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P
-    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SL0, SL1, SL2, SL3, th1, th2!,PNbrpL, DERIV
+    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SP0, SP1, SP2, SN0, SN1, SN2, &
+         &                         SP3, th1, th2, Ubpara!,PNbrpL, DERIV
 !    real(8), dimension(1:4,0:NRMAX) :: U
 
     !     *** Constants ***
@@ -204,39 +216,57 @@ contains
 
     !  For NBI heating
     !  *** Perpendicular
-!!$    SL0(0:NRMAX) = 0.D0
-!!$    SL0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
-!!$    CALL VALINT_SUB(SL0,NRA,SL)
-    SL0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
-    CALL VALINT_SUB(SL0,NRMAX,SL)
+!!$    SP0(0:NRMAX) = 0.D0
+!!$    SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+!!$    CALL VALINT_SUB(SP0,NRA,SL)
+    SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+    CALL VALINT_SUB(SP0,NRMAX,SL)
     SL = 2.D0 * PI * SL
+    IF(ABS(FSRP) > 0.D0) THEN
+       SN0(0:NRMAX) = SP0(0:NRMAX)
+    ELSE
+       SN0(0:NRA) = SP0(0:NRA)
+       SN0(NRA+1:NRMAX) = 0.D0
+    END IF
 
     PNBP0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
 
     !  *** Tangential
-!!$    SL1(0:NRMAX) = 0.D0
-!!$    SL1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
-!!$    CALL VALINT_SUB(SL1,NRA,SL)
-    SL1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
-    CALL VALINT_SUB(SL1,NRMAX,SL)
-    SLT1 = 2.D0 * PI * SL
+!!$    SP1(0:NRMAX) = 0.D0
+!!$    SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+!!$    CALL VALINT_SUB(SP1,NRA,SL)
+    SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+    CALL VALINT_SUB(SP1,NRMAX,SL)
+    SLP1 = 2.D0 * PI * SL
+    IF(ABS(FSRP) > 0.D0) THEN
+       SN1(0:NRMAX) = SP1(0:NRMAX)
+    ELSE
+       SN1(0:NRA) = SP1(0:NRA)
+       SN1(NRA+1:NRMAX) = 0.D0
+    END IF
 
-!!$    SL2(0:NRMAX) = 0.D0
-!!$    SL2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)** 2)
-!!$    CALL VALINT_SUB(SL2,NRA,SL)
-    SL2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
-    CALL VALINT_SUB(SL2,NRMAX,SL)
-    SLT2 = 2.D0 * PI * SL
+!!$    SP2(0:NRMAX) = 0.D0
+!!$    SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)** 2)
+!!$    CALL VALINT_SUB(SP2,NRA,SL)
+    SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
+    CALL VALINT_SUB(SP2,NRMAX,SL)
+    SLP2 = 2.D0 * PI * SL
+    IF(ABS(FSRP) > 0.D0) THEN
+       SN2(0:NRMAX) = SP2(0:NRMAX)
+    ELSE
+       SN2(0:NRA) = SP2(0:NRA)
+       SN2(NRA+1:NRMAX) = 0.D0
+    END IF
 
-    PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
-    PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+    PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLP1)
+    PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLP2)
 
     !  For RF heating
-!!$    SL3(0:NRMAX) = 0.D0
-!!$    SL3(0:NRA) = EXP(- ((R(0:NRA) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
-!!$    CALL VALINT_SUB(SL3,NRA,SL)
-    SL3(0:NRMAX) = EXP(- ((R(0:NRMAX) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
-    CALL VALINT_SUB(SL3,NRMAX,SL)
+!!$    SP3(0:NRMAX) = 0.D0
+!!$    SP3(0:NRA) = EXP(- ((R(0:NRA) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+!!$    CALL VALINT_SUB(SP3,NRA,SL)
+    SP3(0:NRMAX) = EXP(- ((R(0:NRMAX) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+    CALL VALINT_SUB(SP3,NRMAX,SL)
     SL = 2.D0 * PI * SL
 
     PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
@@ -585,7 +615,8 @@ contains
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPSCL
+!             DeL = FSPSCL
+             DeL = FSPSCL * 0.15d0
           END IF
 !!$          DeL = FSDFIX * PROFDDL + FSCDBM * DCDBM
        END IF
@@ -648,13 +679,14 @@ contains
        !     *** Heating profile ***
 
 !!$       IF (R(NR) < RA) THEN
-          PNBPD(NR) = PNBP0 * SL0(NR)
-          PNBTG(NR) = PNBT10 * SL1(NR) + PNBT20 * SL2(NR)
+          PNBPD(NR) = PNBP0 * SP0(NR)
+          PNBTG(NR) = PNBT10 * SP1(NR) + PNBT20 * SP2(NR)
           PNB(NR)   = PNBPD(NR) + PNBTG(NR)
-          SNB(NR)   = PNB(NR)  / (Eb * rKeV * 1.D20)
-          MNB(NR)   = PNBTG(NR) / (Eb * rKeV * 1.D20)
-          PRFe(NR)  = PRFe0 * SL3(NR)
-          PRFi(NR)  = PRFi0 * SL3(NR)
+          SNB(NR)   = (PNBP0 * SN0(NR) + PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) &
+               &    / (Eb * rKeV * 1.D20)
+          MNB(NR)   = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
+          PRFe(NR)  = PRFe0 * SP3(NR)
+          PRFi(NR)  = PRFi0 * SP3(NR)
 !!$       ELSE
 !!$          PNBPD(NR) = 0.D0
 !!$          PNBTG(NR) = 0.D0
@@ -682,10 +714,18 @@ contains
 !!$               &             * RL**2 / (1.D0 + RL**2)
           rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
+          Ubpara(NR) = (BphV(NR) * UbphV(NR) + BthV(NR) * UbthV(NR)) / BBL
+          IF(NR == NRMAX) Ubpara(NR) = AITKEN2P(R(NRMAX), &
+               & Ubpara(NRMAX-1),Ubpara(NRMAX-2),Ubpara(NRMAX-3),&
+               & R(NRMAX-1),R(NRMAX-2),R(NRMAX-3))
+          UbparaL = max(Ubpara(NR), FSLP*Cs)
+          rNuLB(NR) = FSRP * UbparaL / (2.D0 * PI * Q(NR) * RR) &
+               &             * RL**2 / (1.D0 + RL**2)
        ELSE
           rNuL(NR) = 0.D0
           rNuLTe(NR) = 0.D0
           rNuLTi(NR) = 0.D0
+          rNuLB(NR) = 0.D0
        END IF
 
        !     *** Current density profile ***
@@ -711,8 +751,9 @@ contains
 !       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
 !       POH(NR)  = EphV(NR) * AJPH
        ! NB induced current density
-       AJNB(NR) =(  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
-            &     + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL
+       AJNB(NR) = (  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
+            &      + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL! &
+!            &    *(1.D0 - PZ / Zeff)
 !       write(6,*) r(nr)/ra,AJ(NR),AJNB(NR)
 
        !     *** NBI power deposition ***

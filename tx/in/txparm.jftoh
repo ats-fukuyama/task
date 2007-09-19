@@ -3,7 +3,7 @@
      BB=1.3,rIPs=0.2,rIPe=0.2
      PTe0=0.5,PTea=0.05
      PTi0=0.5,PTia=0.05
-     Pn0=0.3,Pna=0.05
+     Pn0=0.3,Pna=0.06
      De0=0.03,Di0=0.0
      Chie0=0.25,Chii0=0.25
      rMue0=0.25,rMui0=0.25

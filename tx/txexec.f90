@@ -192,6 +192,8 @@ contains
              ERR1  = 0.D0
              IDISP = IDIV
              ASG(NQ,0:NRMAX) = ABS(XN(NQ,0:NRMAX) - XP(NQ,0:NRMAX)) / AV
+!!$             IF(NQ == LQm2 .OR. NQ == LQi4) ASG(NQ,0:NRMAX) = ASG(NQ,0:NRMAX) * 1.D-2
+!!$             IF(NQ == LQm3) ASG(NQ,0:NRMAX) = ASG(NQ,0:NRMAX) * 1.D-1
 
              L_NR:DO NR = 0, NRMAX
                 ! Show results

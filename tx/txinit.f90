@@ -574,7 +574,7 @@ contains
     INTEGER :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
     REAL(8) :: ALP, dPe, dPi, DR1, DR2
-    REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, ETAS, CR
+    REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
     real(8) :: PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
          &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
     REAL(8) :: DERIV3, FCTR ! External functions
@@ -804,13 +804,13 @@ contains
        FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * EpsL**1.5D0
        EFT  = FTL * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.20D0 * Zeff))
        ! Spitzer resistivity for hydrogen plasma
-       ETAS = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       ETAS(NR) = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        IF(ABS(FSNC) > 0.D0) THEN
-          ETA(NR) = ETAS * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
+          ETA(NR) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
                &  /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        ELSE
-          ETA(NR) = ETAS
+          ETA(NR) = ETAS(NR)
        END IF
        IF(FSHL == 0.D0) THEN
           ! Ephi
