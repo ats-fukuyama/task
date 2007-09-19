@@ -872,7 +872,7 @@ contains
 
        STR = '@E$-r$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,9), GYL, STR, NRM, NRMAX, NGR, gDIV(9))
-       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX=2.0)
+       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND)
 
        CALL TXWPGR
 
@@ -1785,7 +1785,7 @@ contains
 
        STR = '@u$-i$#f$#$=(0.15)@'
        CALL APPROPGY(MODEG, GVY(0, 8), GVYL, STR, NGVM, NGVV, 1, gDIV(8))
-       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND,-10.0)
+       CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
        CALL TXWPGR
 
