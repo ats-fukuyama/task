@@ -32,8 +32,8 @@ all : tot
 
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
-../pl/noeqlib.o:
-	(cd ../pl; make noeqlib.o)
+#../pl/noeqlib.o:
+#	(cd ../pl; make noeqlib.o)
 ../eq/eqlib.a:
 	(cd ../eq; make eqlib.a)
 ../eq/treqin.o:
@@ -67,7 +67,7 @@ all : tot
 
 libs:
 	(cd ../pl; make pllib.a)
-	(cd ../pl; make noeqlib.o)
+#	(cd ../pl; make noeqlib.o)
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)

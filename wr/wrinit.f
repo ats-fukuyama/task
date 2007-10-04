@@ -192,7 +192,13 @@ C
          IF(INITEQ.EQ.0) THEN
             CALL EQLOAD(3,KNAMEQ,0,IERR)
             IF(IERR.EQ.0) THEN
-               CALL EQCALQ(51,64,64,IERR)
+               write(LINE,'(A,I5)') 'nrmax=',51
+               call eqparm(3,line,ierr)
+               write(LINE,'(A,I5)') 'nthmax=',64
+               call eqparm(3,line,ierr)
+               write(LINE,'(A,I5)') 'nsumax=',64
+               call eqparm(3,line,ierr)
+               CALL EQCALQ(IERR)
                CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
                INITEQ=1
             ELSE

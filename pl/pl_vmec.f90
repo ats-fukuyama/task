@@ -1,5 +1,29 @@
 !  $Id$
+!
+module pl_vmec_mod
+use bpsd_mod
+
+      type(bpsd_device_type),private,save  :: device
+      type(bpsd_equ1D_type),private,save   :: equ1D
+      type(bpsd_metric1D_type),private,save:: metric1D
+
+contains
+
 subroutine pl_vmec(file_name,ierr)
+
+  use def_kind
+  implicit none
+  character(len=*),intent(in):: file_name
+  integer(kind=ikind),intent(out):: ierr
+
+  call set_equil(file_name,ierr)
+  if(ierr.ne.0) return
+  call set_bpsd
+  return
+
+end subroutine pl_vmec
+
+subroutine set_equil(file_name,ierr)
 
 !
 !  read wout-file by vmec2000 and calculate S11, S12, <B2>, p', V', and so on.
@@ -390,3 +414,92 @@ subroutine pl_vmec(file_name,ierr)
   close(8)
 
 end subroutine set_equil
+
+!=======================================================================
+      subroutine set_bpsd
+
+      use def_kind
+      use def_param
+      use var_equil3D
+
+      implicit none
+      integer(kind=ikind):: ierr, nr, mn
+      logical, save:: init_flag
+!=======================================================================
+      if(init_flag) then
+         equ1D%nrmax=0
+         metric1D%nrmax=0
+         init_flag=.FALSE.
+      endif
+
+      do mn=1,mnmax
+         if(xm(mn).eq.0.d0.and.xn(mn).eq.0.d0) then
+            device%rr=rmnc(mn,0)
+            device%zz=zmns(mn,0)
+         endif
+         if(xm(mn).eq.1.d0.and.xn(mn).eq.0.d0) then
+            device%ra=rmnc(mn,0)
+            device%rb=device%ra*1.2d0
+            device%elip=rmnc(mn,0)/zmns(mn,0)
+         endif
+      enddo
+      device%bb=sqrt(Bsqav(0))
+      device%ip=Itorf(ns)
+      device%trig=0.d0
+      bpsd_debug_flag=.true.
+      call bpsd_set_data(device,ierr)
+      bpsd_debug_flag=.false.
+
+      equ1D%time=0.D0
+      if(equ1D%nrmax.ne.ns+1) then
+         if(allocated(equ1D%s)) deallocate(equ1D%s)
+         if(allocated(equ1D%data)) deallocate(equ1D%data)
+         equ1D%nrmax=ns+1
+         allocate(equ1D%s(ns+1))
+         allocate(equ1D%data(ns+1))
+      endif
+
+      metric1D%time=0.D0
+      if(metric1D%nrmax.ne.ns+1) then
+         if(allocated(metric1D%s)) deallocate(metric1d%s)
+         if(allocated(metric1D%data)) deallocate(metric1d%data)
+         metric1D%nrmax=ns+1
+         allocate(metric1D%s(ns+1))
+         allocate(metric1D%data(ns+1))
+      endif
+
+      do nr=0,ns
+         equ1D%s(nr+1)=s(nr)
+         equ1D%data(nr+1)%psit=s(nr)
+         equ1D%data(nr+1)%psip=0.d0
+         equ1D%data(nr+1)%ppp=pprim(nr)
+         equ1D%data(nr+1)%piq=iota_vmec(nr)
+         equ1D%data(nr+1)%pip=Ipolf(nr)
+         equ1D%data(nr+1)%pit=Itorf(nr)
+      enddo
+
+      call bpsd_set_equ1D(equ1D,ierr)
+
+      do nr=0,ns
+         metric1D%s(nr+1)=s(nr)
+         metric1D%data(nr+1)%pvol=vprim(nr)
+         metric1D%data(nr+1)%psur=vprim(nr)/(2.d0*pi*device%rr)
+         metric1D%data(nr+1)%dvpsit=vprim(nr)
+         metric1D%data(nr+1)%dvpsip=vprim(nr)/iota_vmec(nr)
+         metric1D%data(nr+1)%aver2= device%rr**2
+         metric1D%data(nr+1)%aver2i=1.d0/device%rr**2
+         metric1D%data(nr+1)%aveb2= Bsqav(nr)
+         metric1D%data(nr+1)%aveb2i=1.d0/Bsqav(nr)
+         metric1D%data(nr+1)%avegv2=vprim(nr)**2*grdssq_av(nr)
+         metric1D%data(nr+1)%avegvr2=vprim(nr)**2*grdssq_av(nr) &
+                                    /device%rr**2
+         metric1D%data(nr+1)%avegpp2=0.d0
+         metric1D%data(nr+1)%rr=device%rr
+         metric1D%data(nr+1)%rs=device%ra*sqrt(s(nr))
+         metric1D%data(nr+1)%elip=device%elip
+         metric1D%data(nr+1)%trig=0.d0
+      enddo
+      call bpsd_set_metric1D(metric1D,ierr)
+      end subroutine set_bpsd
+
+end module pl_vmec_mod

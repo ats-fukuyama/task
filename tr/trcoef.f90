@@ -344,7 +344,7 @@
 !
          IF(MDLKAI.LT.10) THEN
 !   *********************************************************
-!   ***  MDLKAI.EQ. 0   : CONSTANT                        ***
+!   ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*r**2)             ***
 !   ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2)             ***
 !   ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) ***
 !   ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C      ***
@@ -353,7 +353,7 @@
 
             select case(MDLKAI)
             case(0)
-               AKDWL=1.D0
+               AKDWL=1.D0+CKALFA*RHOG(NR)**2
             case(1)
                AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
             case(2)

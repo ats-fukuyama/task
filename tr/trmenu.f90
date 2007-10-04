@@ -7,8 +7,9 @@
            & NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG, KNAMEQ
       USE TRCOM1, ONLY : KDIRX
       use trpl_mod, only: trpl_init,trpl_set,trpl_get
+      use pl_vmec_mod, only: pl_vmec
       use equnit_mod, only: eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
-      use equunit_mod, only: equ_init,equ_parm,equ_prof,equ_calc,equ_save
+      use equunit_mod, only: equ_init,equ_parm,equ_prof,equ_calc
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
@@ -78,9 +79,11 @@
          ELSE
             CALL TR_UFILE_CONTROL(0)
          ENDIF
+
          CALL TRPROF             ! initialise profile data
          call trpl_init          ! initialize trpl
          call trpl_set(ierr)  ! set trpl with initial profile
+
          if(modelg.eq.3) then
             write(line2,'(A,I5)') 'nrmax=',nrmax+1
             call eq_parm(2,line2,ierr)
@@ -91,6 +94,10 @@
             call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
             call trpl_get(ierr)  ! 
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
+         elseif(modelg.eq.7) then
+            call pl_vmec(KNAMEQ,ierr) ! load vmec data
+            call trpl_get(ierr)  ! 
+            call trgout
          elseif(modelg.eq.8) then
             call equ_prof ! initial calculation of eq
             call equ_calc         ! recalculate eq

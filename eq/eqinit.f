@@ -13,7 +13,7 @@ C        RR    : Plasma major radius                             (m)
 C        RA    : Plasma minor radius                             (m)
 C        RB    : Wall minor radius                               (m)
 C        RKAP  : Plasma shape elongation
-C        RDEL  : Plasma shape triangularity *
+C        RDLT  : Plasma shape triangularity *
 C        BB    : Magnetic field at center                        (T)
 C        Q0    : Safety factor at center
 C        QA    : Safety factor on plasma surface

@@ -275,6 +275,8 @@ C
 C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
+            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
+     &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
             IF(MODELC.LT.0) THEN
                IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_L(NR,NS)
@@ -346,6 +348,8 @@ C
       COMMON /FPFNV1/ PNFP,TMC2FD,TMC2FD0
       EXTERNAL FPFN0R,FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
 
+            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
+     &           ':NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
 C     ------ define --------
       AMFD=PA(NS)*AMP
       PTFPL=PTFP(NR)
@@ -358,7 +362,7 @@ C     ------ define --------
 
       AEFD=PZ(NS)*AEE
 C      AMFD=PA(NS)*AMP
-      GAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
+      RGAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
      &        /(RNFP0*PTFP0*1.D20)
       RNFD0=PN(NS)
       RNFDS=PNS(NS)
@@ -382,7 +386,7 @@ C
             IF(NP.EQ.1) THEN
 C               DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
 C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
-              DCPPL=GAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI))) 
+              DCPPL=RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI))) 
      &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS))) 
 C               DCPPL=0.D0
                FCPPL=0.D0
@@ -424,7 +428,7 @@ C
             IF(NP.EQ.1) THEN
 C              DCPPL=RNUDL*(2.D0/(3.D0*SQRT(PI)))
 C     &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))  
-              DCPPL=GAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
+              DCPPL=RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
      &                    *(VTFP0/(SQRT(2.D0)*VTFD(NR,NS)))
 C              DCPPL=0.D0
               FCPPL=0.D0
@@ -444,16 +448,16 @@ C               PNFD=PNFDL
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
-C               WRITE(6,'(I5,1P5E12.4)') NR,GAMH,PTFDL,AMFD,VC,
+C               WRITE(6,'(I5,1P5E12.4)') NR,RGAMH,PTFDL,AMFD,VC,
 C     &              TMC2FD0
-               DCPPL= GAMH/(3.D0*RINT0)*( (AMFP**2*PTFD0**2*RGAMA**3)
+               DCPPL= RGAMH/(3.D0*RINT0)*( (AMFP**2*PTFD0**2*RGAMA**3)
      &              /(AMFD**2*PTFP0**2*PNFP**3)*RINT1+
      &              (AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )*RNFD(NR,NS)*1.D20
 C               WRITE(6,'(I5,1P4E12.4)') NR,RINT0,RINT1,RINT2,DCPPL
                CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
                CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
                CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
-               FCPPL=-GAMH/(3.D0*RINT0)*(
+               FCPPL=-RGAMH/(3.D0*RINT0)*(
      &              (AMFP*RGAMA**2)/(AMFD*PNFP**2)*(3.D0*RINT4
      &              -TMC2FD0*RINT5)+2.D0*(PTFP0*PNFP)/(PTFD0*RGAMA)
      &              *TMC2FP0*RINT6 )*RNFD(NR,NS)*1.D20
@@ -481,7 +485,7 @@ C            PNFD=PNFDL
             CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
             CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
             CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R)
-            DCTTL= GAMH/(3.D0*RINT0)*(
+            DCTTL= RGAMH/(3.D0*RINT0)*(
      &            1.5D0*RGAMA/PNFP*RINT3
      &           -0.5D0*(AMFP**2*PTFD0**2*RGAMA**3)
      &           /(AMFD**2*PTFP0**2*PNFP**3)*RINT1
@@ -496,6 +500,8 @@ C
             ENDDO
          ENDDO
       ENDIF
+            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
+     &           '-NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
 C
       RETURN
       END

@@ -201,7 +201,7 @@
 !   ***       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC         ***
 !   *************************************************************
 
-!      ***  MDLKAI.EQ. 0   : CONSTANT                              ***
+!      ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*rho^2)              ***
 !      ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*rho^2)                  ***
 !      ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/drho)^B/(1-A*rho^2)     ***
 !      ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/drho)^B*Ti^C            ***

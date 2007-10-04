@@ -56,6 +56,9 @@ C
          ZMAX=ZGMAX
          ZMIN=ZGMIN
       ENDIF
+C
+C      write(6,'(1P4E12.4)') RMAX,RMIN,ZMAX,ZMIN
+C
       IF(RAXIS.LE.RMAX.AND.
      &   RAXIS.GE.RMIN.AND.
      &   ZAXIS.LE.ZMAX.AND.
@@ -102,6 +105,7 @@ C
   100 X=0.D0
       Y(1)=RINIT
       Y(2)=ZINIT
+C
 C      WRITE(6,'(I5,1P3E12.4)') 1,X,Y(1),Y(2)
 C
       N=1
@@ -121,7 +125,9 @@ C
          X=X+H
          Y(1)=YOUT(1)
          Y(2)=YOUT(2)
-!         WRITE(6,'(I5,1P5E12.4)') N+1,X,Y(1),Y(2),DYDX(1),DYDX(2)
+C
+C         WRITE(6,'(I5,1P5E12.4)') N+1,X,Y(1),Y(2),DYDX(1),DYDX(2)
+C
          N=N+1
          XA(N)=X
          YA(1,N)=Y(1)

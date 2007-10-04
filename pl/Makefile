@@ -1,12 +1,16 @@
 ### $Id$ ###
 include ../make.header
 
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+
 FFLAGS=$(OFLAGS)
 
-SRCS = plmenu.f plinit.f plprof.f pldata.f plintf.f pl_bpsd.f
+SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f pl_bpsd.f
+SRCSFREE = modules.f90 pl_vmec.f90
 SRCO = noeqlib.f noequlib.f
 
-OBJS = $(SRCS:.f=.o) 
+OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
 OBJO = $(SRCO:.f=.o) 
 
 LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
@@ -16,7 +20,7 @@ LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@
 
-all : pllib.a  noeqlib.o
+all : pllib.a  noeqlib.o noequlib.o
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
@@ -30,7 +34,7 @@ pl : plmain.o $(LIBS)
 	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
 
 clean:
 	-rm -f core a.out *.o ./*~ ./#* *.a
