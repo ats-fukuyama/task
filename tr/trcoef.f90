@@ -353,11 +353,11 @@
 
             select case(MDLKAI)
             case(0)
-               AKDWL=1.D0+CKALFA*RHOG(NR)**2
+               AKDWL=1.D0+CKALFA*RG(NR)**2
             case(1)
-               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)
+               AKDWL=1.D0/(1.D0-CKALFA*RG(NR)**2)
             case(2)
-               AKDWL=1.D0/(1.D0-CKALFA*RHOG(NR)**2)*(ABS(DTI)*RA)**CKBETA
+               AKDWL=1.D0/(1.D0-CKALFA*RG(NR)**2)*(ABS(DTI)*RA)**CKBETA
             case(3)
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
             case(4)
