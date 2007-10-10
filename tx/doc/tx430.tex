@@ -128,7 +128,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V4.30 [07/08/31]
+TASK/TX V4.31 [07/10/10]
 \end{center}
 
 \section{Equations in $r$ coordinates}
@@ -230,8 +230,11 @@ TASK/TX V4.30 [07/08/31]
   - \nu_\r{ei1} \ne (\ueth - \uith)
 %
   - \nu_\r{ei2} \ne (\ueph - \uiph)
+\nonumber\\[2.5mm]&&{}
 %
-  - \frac{\mb}{\me} \nu_\r{be} \nb (\ueth - \ubth)
+  - \frac{\mb}{\me} \nu_\r{be1} \nb (\ueth - \ubth)
+%
+  - \frac{\mb}{\me} \nu_\r{be2} \nb (\ueph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{e^2 \Bph^2 \De}{\me\Te}\ne
@@ -294,7 +297,9 @@ TASK/TX V4.30 [07/08/31]
 %
   - \nu_\r{ei3} \ne (\ueph - \uiph)
 %
-  - \frac{\mb}{\me} \nube \nb (\ueph - \ubph)
+  - \frac{\mb}{\me} \nu_\r{be2} \nb (\ueth - \ubth)
+%
+  - \frac{\mb}{\me} \nu_\r{be3} \nb (\ueph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\me\Te}\frac{\Bth}{\Bph}\ne
@@ -407,7 +412,7 @@ TASK/TX V4.30 [07/08/31]
 %
   - \frac{\me}{\mi} \nu_\r{ei2} \ne (\uiph - \ueph)
 %
-  - \frac{\mb}{\mi} \nu_\r{bi} \nb (\uith - \ubth)
+  - \frac{\mb}{\mi} \nubi \nb (\uith - \ubth)
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\mi\Te}\ne
@@ -557,9 +562,12 @@ TASK/TX V4.30 [07/08/31]
 %
 %  - \nuNCi \nb \ubth
 %
-  - \nube \nb (\ubth - \ueth)
+  - \nu_\r{be1} \nb (\ubth - \ueth)
+%
+  - \nu_\r{be2} \nb (\ubph - \ueph)
 %
   - \nubi \nb (\ubth - \uith)
+\nonumber\\[2.5mm]&&{}
 %
   - \nunb \nb \ubth
 %
@@ -572,10 +580,12 @@ TASK/TX V4.30 [07/08/31]
 %
   \Zb \frac{e}{\mb} \nb \Eph
 %
-  - \nube \nb (\ubph - \ueph)
+  - \nu_\r{be2} \nb (\ubth - \ueth)
+%
+  - \nu_\r{be3} \nb (\ubph - \ueph)
 %
   - \nubi \nb (\ubph - \uiph)
-%\nonumber\\[2.5mm]&&{}
+\nonumber\\[2.5mm]&&{}
 %
   - \nunb \nb \ubph
 %
@@ -773,7 +783,10 @@ TASK/TX V4.30 [07/08/31]
   + 2 s \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} \ne (\ueph - \uiph)
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{\mb}{\me} \nu_\r{be} r \nb (\ueth - \ubth)
+  - \frac{\mb}{\me} \nu_\r{be1} r \nb (\ueth - \ubth)
+%
+  + 2 \frac{\mb}{\me} s \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} \ne (\ueph - \ubph)
+\nonumber\\[2.5mm]&&{}
 %
   - \frac{e^2 \Bph^2 \De}{\me\Te}\ne
     \left(r \ueth + 2\dd{\Aph}\frac{s}{\Bph}\ueph - s
@@ -814,7 +827,9 @@ TASK/TX V4.30 [07/08/31]
   - \nu_\r{ei3} \ne (\ueph - \uiph)
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{\mb}{\me} \nube \nb (\ueph - \ubph)
+  + 2 \frac{\mb}{\me} \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} r \ne (\ueth - \uith)
+%
+  - \frac{\mb}{\me} \nu_\r{be3} \nb (\ueph - \ubph)
 %
   - 2\frac{e^2 \Bph \De}{\me\Te}\dd{\Aph}\ne
     \left(r \ueth - s \ave{\frac{\omega}{m}}_\r{e} \right)
@@ -938,7 +953,7 @@ TASK/TX V4.30 [07/08/31]
 %
   + 2 \frac{\me}{\mi} s \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} \ne (\uiph - \ueph)
 %
-  - \frac{\mb}{\mi} \nu_\r{bi} r \nb (\uith - \ubth)
+  - \frac{\mb}{\mi} \nubi r \nb (\uith - \ubth)
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\mi\Te}\ne
@@ -1070,9 +1085,11 @@ TASK/TX V4.30 [07/08/31]
 %
   - \Zb \frac{e}{\mb} \nb r \Athd
 %
-  - \nuNCi r \nb \ubth
+%  - \nuNCi r \nb \ubth
 %
-  - \nube r \nb (\ubth - \ueth)
+  - \nu_\r{be1} r \nb (\ubth - \ueth)
+%
+  + 2 s \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} \nb (\ubph - \ueph)
 %
   - \nubi r \nb (\ubth - \uith)
 \nonumber\\[2.5mm]&&{}
@@ -1088,14 +1105,16 @@ TASK/TX V4.30 [07/08/31]
 %
   - \Zb \frac{e}{\mb} \nb \Aphd
 %
-  - \nube \nb (\ubph - \ueph)
+  + 2 \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} \nb (\ubth - \ueth)
+%
+  - \nu_\r{be3} \nb (\ubph - \ueph)
 %
   - \nubi \nb (\ubph - \uiph)
+\nonumber\\[2.5mm]&&{}
 %
   - \nunb \nb \ubph
 %
   - \nuCX \nb \ubph
-\nonumber\\[2.5mm]&&{}
 %
   + \vb \frac{\Pbpara}{\Eb}
 \\[5mm]

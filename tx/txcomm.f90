@@ -103,6 +103,7 @@ module commons
   real(8), dimension(0:NRM) :: rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, &
        &                       rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, &
        &                       rNubrp1, rNubrp2, rNuD, rNuei1, rNuei2, rNuei3, &
+       &                       rNube1, rNube2, rNube3, &
        &                       rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        &                       FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        &                       Chie, Chii, De, Di, D01, D02, rNuLTe, rNuLTi, &

@@ -35,7 +35,7 @@
 !   X18 = Nb * UbPhi                                    *      *
 !   X19 = Slow neutral                                  N      D
 !   X20 = Fast neutral                                  N      0
-!   X21 = Nb ripple                                     *      *
+!   X21 = Nb ripple                                     N      N
 !
 !   In case of MDFIXT /=0, X10 = Te, X15 = Ti
 !
@@ -65,8 +65,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx430.0'
-  WRITE(6,*) '######## TASK/TX V4.30.00 07/08/31 ########'
+  SLID = 'tx431.0'
+  WRITE(6,*) '######## TASK/TX V4.31.00 07/10/10 ########'
 
   CALL TXINIT
   KPNAME='txparm'

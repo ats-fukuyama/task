@@ -19,7 +19,7 @@ contains
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
     INTEGER :: NR
-    real(8) :: DERIV3, IntPNbV
+    real(8) :: DERIV3
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
@@ -63,17 +63,11 @@ contains
        PTiV (0:NRMAX) =   XL(LQi5,0:NRMAX)
     END IF
     PNbV (0:NRMAX) =   XL(LQb1,0:NRMAX)
-    CALL VALINT_SUB(PNbV,NRMAX,IntPNbV)
-!!$    IF(ABS(FSRP) > 0.D0) THEN
+    IF(ABS(FSRP) > 0.D0) THEN
        DO NR = 0, NRMAX
-          IF(PNbV(NR) == 0.D0) THEN    ! The region without beam particles
+          IF(PNbV(NR) == 0.D0) THEN ! The region without beam particles
              UbthV(NR) = 0.D0
-             IF(IntPNbV < 1.D-10) THEN ! NB is NOT injected into a plasma.
-                UbphV(NR) = 0.D0
-             ELSE                      ! NB is injected.
-                UbphV(NR) = PNBCD * Vb
-                IF(NR == NRMAX) UbphV(NR) = 0.D0
-             END IF
+             UbphV(NR) = 0.D0
           ELSE ! The region with beam particles
              IF(NR == 0) THEN ! On axis, poloidal beam velocity is assumed to be zero.
                 UbthV(NR) = 0.D0
@@ -81,37 +75,32 @@ contains
              ELSE ! The region except the magnetic axis
                 UbthV(NR) = XL(LQb3,NR) / PNbV(NR) / R(NR)
                 UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
-                IF(FSRP == 0.D0 .AND. NR > NRA) THEN ! SOL region in the case of no ripple.
+             END IF
+          END IF
+       END DO
+    ELSE
+       DO NR = 0, NRA-1
+          IF(PNbV(NR) == 0.D0) THEN
+             UbthV(NR) = 0.D0
+             UbphV(NR) = 0.D0
+          ELSE
+             IF(PNBH == 0.D0 .AND. PNbV(NR) < 1.D-8) THEN
+                UbthV(NR) = 0.D0
+                UbphV(NR) = 0.D0
+             ELSE
+                IF(NR == 0) THEN
                    UbthV(NR) = 0.D0
-                   UbphV(NR) = PNBCD * Vb
-                   IF(NR == NRMAX) UbphV(NR) = 0.D0
+                   UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
+                ELSE
+                   UbthV(NR) = XL(LQb3,NR) / PNbV(NR) / R(NR)
+                   UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
                 END IF
              END IF
           END IF
        END DO
-!!$    ELSE
-!!$       DO NR = 0, NRA-1
-!!$          IF(PNbV(NR) == 0.D0) THEN
-!!$             UbthV(NR) = 0.D0
-!!$             UbphV(NR) = 0.D0
-!!$          ELSE
-!!$             IF(PNBH == 0.D0 .AND. PNbV(NR) < 1.D-8) THEN
-!!$                UbthV(NR) = 0.D0
-!!$                UbphV(NR) = 0.D0
-!!$             ELSE
-!!$                IF(NR == 0) THEN
-!!$                   UbthV(NR) = 0.D0
-!!$                   UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
-!!$                ELSE
-!!$                   UbthV(NR) = XL(LQb3,NR) / PNbV(NR) / R(NR)
-!!$                   UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
-!!$                END IF
-!!$             END IF
-!!$          END IF
-!!$       END DO
-!!$       UbthV(NRA:NRMAX) = 0.D0
-!!$       UbphV(NRA:NRMAX) = 0.D0
-!!$    END IF
+       UbthV(NRA:NRMAX) = 0.D0
+       UbphV(NRA:NRMAX) = 0.D0
+    END IF
 
 !!$    DO NR = 0, NRMAX
 !!$       IF (ABS(PNbV(NR)) < 1.D-6) THEN
@@ -156,7 +145,7 @@ contains
 
     INTEGER :: NR, NP, NR1, IER, i, imax, nrl, test
     REAL(8) :: Sigma0, QL, SL, SLP1, SLP2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
-         &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNueiPara, &
+         &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
@@ -216,47 +205,47 @@ contains
 
     !  For NBI heating
     !  *** Perpendicular
-!!$    SP0(0:NRMAX) = 0.D0
-!!$    SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
-!!$    CALL VALINT_SUB(SP0,NRA,SL)
-    SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
-    CALL VALINT_SUB(SP0,NRMAX,SL)
-    SL = 2.D0 * PI * SL
     IF(ABS(FSRP) > 0.D0) THEN
+       SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+       CALL VALINT_SUB(SP0,NRMAX,SL)
        SN0(0:NRMAX) = SP0(0:NRMAX)
     ELSE
+       SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+       SP0(NRA+1:NRMAX) = 0.D0
+       CALL VALINT_SUB(SP0,NRA,SL)
        SN0(0:NRA) = SP0(0:NRA)
        SN0(NRA+1:NRMAX) = 0.D0
     END IF
+    SL = 2.D0 * PI * SL
 
     PNBP0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
 
     !  *** Tangential
-!!$    SP1(0:NRMAX) = 0.D0
-!!$    SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
-!!$    CALL VALINT_SUB(SP1,NRA,SL)
-    SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
-    CALL VALINT_SUB(SP1,NRMAX,SL)
-    SLP1 = 2.D0 * PI * SL
     IF(ABS(FSRP) > 0.D0) THEN
+       SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+       CALL VALINT_SUB(SP1,NRMAX,SL)
        SN1(0:NRMAX) = SP1(0:NRMAX)
     ELSE
+       SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+       SP1(NRA+1:NRMAX) = 0.D0
+       CALL VALINT_SUB(SP1,NRA,SL)
        SN1(0:NRA) = SP1(0:NRA)
        SN1(NRA+1:NRMAX) = 0.D0
     END IF
+    SLP1 = 2.D0 * PI * SL
 
-!!$    SP2(0:NRMAX) = 0.D0
-!!$    SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)** 2)
-!!$    CALL VALINT_SUB(SP2,NRA,SL)
-    SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
-    CALL VALINT_SUB(SP2,NRMAX,SL)
-    SLP2 = 2.D0 * PI * SL
     IF(ABS(FSRP) > 0.D0) THEN
+       SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
+       CALL VALINT_SUB(SP2,NRMAX,SL)
        SN2(0:NRMAX) = SP2(0:NRMAX)
     ELSE
+       SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)** 2)
+       SP2(NRA+1:NRMAX) = 0.D0
+       CALL VALINT_SUB(SP2,NRA,SL)
        SN2(0:NRA) = SP2(0:NRA)
        SN2(NRA+1:NRMAX) = 0.D0
     END IF
+    SLP2 = 2.D0 * PI * SL
 
     PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLP1)
     PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLP2)
@@ -393,10 +382,10 @@ contains
 
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
 
-       rNueiPara = CORR(Zeff) * rNuei(NR)
-       rNuei1(NR)  =(BthV(NR)**2 * rNueiPara + BphV(NR)**2 * rNuei(NR)) / BBL**2
-       rNuei2(NR)  = BphV(NR) / BBL**2 * (rNueiPara - rNuei(NR))
-       rNuei3(NR)  =(BphV(NR)**2 * rNueiPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuPara = CORR(Zeff) * rNuei(NR)
+       rNuei1(NR)  =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuei2(NR)  = BphV(NR) / BBL**2 * (rNuPara - rNuei(NR))
+       rNuei3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
 
        !     *** Toroidal neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
@@ -493,6 +482,11 @@ contains
                &     / (4.D0 * PI * EPS0**2 * AMB) &
                &     * (1.D0 / AMB + 1.D0 / AMI) &
                &     * 1.D0 / (Vb**3 + 0.75D0 * SQRT(PI) * Vti**3)
+
+          rNuPara = CORR(Zeff) * rNube(NR)
+          rNube1(NR)  =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNube(NR)) / BBL**2
+          rNube2(NR)  = BphV(NR) / BBL**2 * (rNuPara - rNube(NR))
+          rNube3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNube(NR)) / BBL**2
 
           ! deflection time of beam ions against bulk ions
           ! (Takamura (3.26), Tokamaks 3rd p64)
@@ -1029,6 +1023,7 @@ contains
 !!$             Dbrp(NR) = DRP
 !!$          end if
           Dbrp(NR) = DCB * DRP / (DCB + DRP)
+          Dbrp(NR) = 0.D0
 
           ! Dltcr : criterion of stochastic diffusion
           Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
