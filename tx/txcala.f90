@@ -1734,17 +1734,19 @@ contains
   SUBROUTINE LQr1CC
 
     integer :: ne
-    real(8) :: Ubrpl, peclet, coef
+    real(8) :: Ubrpl, Dbrpl, peclet, coef
 
     do ne = 1, nemax
        Ubrpl = Ubrp(ne-1) + Ubrp(ne)
+       Dbrpl = Dbrp(ne-1) + Dbrp(ne)
        if (Ubrpl == 0.d0) then
           coef = 0.d0
+       elseif (Dbrpl == 0.d0) then
+          coef = 1.d0 / sqrt(15.d0) * hpsi(ne)
        else
-          peclet = 0.5d0 * Ubrpl * hpsi(ne) / (Dbrp(ne-1)+Dbrp(ne))
+          peclet = 0.5d0 * Ubrpl * hpsi(ne) / Dbrpl
           coef = 0.5d0 * langevin(peclet) * hpsi(ne)
        end if
-!!$       coef = 0.d0
 
        ELM(NE,1:4,0,LQr1) =   fem_int_point(1,NE) * invDT &
             &               + fem_int_point(8,NE) * coef * invDT

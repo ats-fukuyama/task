@@ -427,7 +427,7 @@ contains
     integer, intent(in) :: id, ne
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
     integer :: node1, node2
-    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, hp
+    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, hp, csq15
     
     node1 = ne-1  ; node2 = ne
     if(present(a)) then
@@ -461,6 +461,12 @@ contains
        x(3) = ( 2.d0 * a1 +        a2) / 6.d0 * b1
        x(4) = (        a1 + 2.d0 * a2) / 6.d0 * b2
 !   +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    case(0)
+       csq15 = 1.d0 / sqrt(15.d0)
+       x(1) = hp * csq15
+       x(2) = x(1)
+       x(3) = x(1)
+       x(4) = x(1)
     case(1)
        x(1) = hp / 3.d0
        x(2) = hp / 6.d0

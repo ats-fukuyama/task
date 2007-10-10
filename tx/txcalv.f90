@@ -1023,13 +1023,13 @@ contains
 !!$             Dbrp(NR) = DRP
 !!$          end if
           Dbrp(NR) = DCB * DRP / (DCB + DRP)
-          Dbrp(NR) = 0.D0
 
           ! Dltcr : criterion of stochastic diffusion
           Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
           ! Collisionless stochastic (ergodic) diffusion (whose value is almost
           ! equivalent to that of ripple-plateau diffusion)
           if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
+!          Dbrp(NR) = 0.D0
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
     ELSE
