@@ -168,7 +168,8 @@ contains
     CALL BOUNDARY(NRMAX,LQm1,0)
     CALL BOUNDARY(0    ,LQm2,0)
     CALL BOUNDARY(0    ,LQe2,0)
-    CALL BOUNDARY(NRMAX,LQe2,0)
+!    CALL BOUNDARY(NRMAX,LQe2,0)
+    IF(FSLC == 0.D0 .AND. FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQe2,0)
     CALL BOUNDARY(0    ,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe4,0)
@@ -176,7 +177,8 @@ contains
     ! Shouldn't be imposed when considering ion orbit loss and ripple loss effects.
     ! Ion flux from the wall maintains the charge neutrality of the plasma
     ! and then Er(r=b)=0.
-    IF(FSLC == 0.D0 .AND. FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQi2,0)
+    CALL BOUNDARY(NRMAX,LQi2,0)
+!    IF(FSLC == 0.D0 .AND. FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQi2,0)
     CALL BOUNDARY(0    ,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi4,0)
@@ -1773,6 +1775,7 @@ contains
        ELM(NE,1:4,4,LQr1) = - 2.d0 * fem_int_point( 3,NE,RUbrp) &
             &               - 2.d0 * fem_int_point(10,NE,RUbrp) * coef
        NLC(4,LQr1) = LQr1
+
 !!$       ELM(NE,1:4,4,LQr1) = - fem_int_point(2,NE,rNubL)
 !!$       NLC(4,LQr1) = LQr1
 !!$       PELM(NE,1:4,4,LQr1) = - fem_int_point(-2,NE,rNubL,PNbrpV)

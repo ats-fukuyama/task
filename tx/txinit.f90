@@ -1122,8 +1122,7 @@ contains
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
-         &   'NTCOIL', NTCOIL,  'DIN   ', DIN   ,  &
-         &   'DltRP0', DltRP0, &
+         &   'DIN   ', DIN   ,  'DltRP0', DltRP0,  &
          &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
          &   'EPS   ', EPS   ,  'tiny  ', tiny_cap,&
          &   'DT    ', DT    ,  &
@@ -1140,7 +1139,8 @@ contains
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
-         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF
+         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
+         &   'NTCOIL', NTCOIL
 
     RETURN
   END SUBROUTINE TXVIEW
