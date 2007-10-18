@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                NGTM=5000, NGVM=5000, NGYRM=116, NGYTM=45, &
+       &                NGTM=5000, NGVM=5000, NGYRM=118, NGYTM=46, &
        &                NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -32,6 +32,7 @@ module commons
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP
+  integer :: MDLC
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
@@ -110,7 +111,7 @@ module commons
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        &                       FWthphe, FWthphi, rlnLe, rlnLi, &
-       &                       Ubrp, Dbrp, DltRP, rNubL, RATIO
+       &                       Ubrp, Dbrp, DltRP, rNubL, RATIO, rNuOL
   real(8) :: FWthea, FWthia
  
   ! CDBM
@@ -137,9 +138,10 @@ module commons
   real(8) :: PBINT, PFINT, POUT, PCXT, PIET, PRLT, SINT, SIET
   real(8) :: SNBT, SNFT, SOUT
   real(8) :: VLOOP, ALI, RQ1, RPE, ZEFF0, QF
-  real(8) :: WPDOT, TAUE1, TAUE2, TAUEP
-  real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0
+  real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH
+  real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   real(8) :: TPRE, WPPRE
+  real(8) :: VOLAVN
 
   ! Internal variables for transport matrix
   real(8), dimension(0:NCM,1:NQM,0:NRM) :: ALC, BLC, CLC

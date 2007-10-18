@@ -4,16 +4,16 @@ module coefficients
   use core_module
   implicit none
   private
-  real(8), dimension(:,:,:,:), allocatable :: ELM, PELM, test
+  real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
   real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
-       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, RUbthV, &
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       &                       RUbrp, BphBNi, BthBNi, rNubLL, DbrpftNi, &
+       &                       RUbrp, BphBNi, BthBNi, rNubLL, DbrpftNi, Dbrpft, &
        &                       rNuei1EI, rNuei2EI, rNuei3EI, &
-       &                       rNube1BE, rNube2BE, rNube3BE
+       &                       rNube1BE, rNube2BE, rNube3BE!, ChieNe, ChiiNi
   real(8), dimension(0:NRM) :: UNITY = 1.D0
-  real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW, factor
+  real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW
   integer, save :: ICALA = 0
   public :: TXCALA
 
@@ -83,10 +83,10 @@ contains
     ELSE
        BeamSW = 1.D0
     END IF
-    IF(FSRP == 0.D0) THEN
-       RpplSW = 0.D0
-    ELSE
+    IF(FSRP == 1.D0) THEN
        RpplSW = 1.D0
+    ELSE
+       RpplSW = 0.D0
     END IF
 
     !     Coefficients
@@ -169,25 +169,33 @@ contains
     CALL BOUNDARY(0    ,LQm2,0)
     CALL BOUNDARY(0    ,LQe2,0)
 !    CALL BOUNDARY(NRMAX,LQe2,0)
-    IF(FSLC == 0.D0 .AND. FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQe2,0)
     CALL BOUNDARY(0    ,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe4,0)
     CALL BOUNDARY(0    ,LQi2,0)
-    ! Shouldn't be imposed when considering ion orbit loss and ripple loss effects.
-    ! Ion flux from the wall maintains the charge neutrality of the plasma
-    ! and then Er(r=b)=0.
-    CALL BOUNDARY(NRMAX,LQi2,0)
-!    IF(FSLC == 0.D0 .AND. FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQi2,0)
+!    CALL BOUNDARY(NRMAX,LQi2,0)
     CALL BOUNDARY(0    ,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi4,0)
     CALL BOUNDARY(NRMAX,LQn2,0)
-!!$    CALL BOUNDARY(NRMAX,LQb1,0)
-    IF(FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQb3,0)
-    IF(FSRP == 0.D0) CALL BOUNDARY(NRMAX,LQb4,0)
+    ! When ripple effect is on (FSRP /= 0), ripple diffusion term will be activated.
+    ! Then we must impose two boundary conditions at each equation.
+    IF(FSRP /= 0.D0) THEN
+       CALL BOUNDARY(0    ,LQb3,0)
+       CALL BOUNDARY(NRMAX,LQb3,0)
+    END IF
+    IF(FSRP /= 0.D0) CALL BOUNDARY(NRMAX,LQb4,0)
 
-    !     Integral term
+    ! Neumann condition of the continuity equation at the boundary is naturally
+    ! imposed through the diffusion term in the pressure equation. However, this
+    ! condition is very weak because it comes from nondiagonal term. Then by setting
+    ! the density constant in the last element, we can force the density gradient
+    ! to be nought at the boundary explicitly.
+
+    CALL BOUNDARY(NRMAX,LQe1,0,PNeV(NRMAX-1))
+    CALL BOUNDARY(NRMAX,LQi1,0,PNiV(NRMAX-1))
+
+    !     Integral term stemming from integration by parts in the diffusion term
 
     CALL BOUNDARY(NRMAX,LQm2,1, 2.D0*PSI(NRMAX)*BB/rMU0)
     CALL BOUNDARY(NRMAX,LQm3,1,-2.D0*R(NRMAX)*Bthb/rMUb2)
@@ -196,8 +204,6 @@ contains
     deallocate(ELM,PELM)
 
     IF(ICALA ==0) ICALA = 1
-
-    factor = 0.0d0
 
     RETURN
   END SUBROUTINE TXCALA
@@ -265,7 +271,10 @@ contains
          &               R(1),R(2),R(3),R(4),R(5))
 
 !!$    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
+
+    RUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX)
     DbrpftNi(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX) / PNiV(0:NRMAX)
+    Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
     rNuei1EI(0:NRMAX)  = rNuei1(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNuei2EI(0:NRMAX)  = rNuei2(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
@@ -273,6 +282,9 @@ contains
     rNube1BE(0:NRMAX)  = rNube1(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNube2BE(0:NRMAX)  = rNube2(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNube3BE(0:NRMAX)  = rNube3(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
+
+!!$    ChieNe(0:NRMAX)    = Chie(0:NRMAX)   / PNeV(0:NRMAX)
+!!$    ChiiNi(0:NRMAX)    = Chii(0:NRMAX)   / PNiV(0:NRMAX)
 
   END SUBROUTINE LQCOEF
 
@@ -728,12 +740,12 @@ contains
     
     ! Viscosity force
     
-    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 *(fem_int(18,rMue) + fem_int(39,rMueNe,dPNeV)) * AMPe4
-!!$    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 * fem_int(18,rMue) * AMPe4
+!    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 *(fem_int(18,rMue) + fem_int(39,rMueNe,dPNeV)) * AMPe4
+    ELM(1:NEMAX,1:4, 2,LQe4) = - 4.D0 * fem_int(18,rMue) * AMPe4
     NLC( 2,LQe4) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,19,LQe4) =   4.D0 * fem_int(41,rMue,UephV)
-!!$    NLC(19,LQe4) = LQe1
+    ELM(1:NEMAX,1:4,21,LQe4) =   4.D0 * fem_int(41,rMue,UephV)
+    NLC(21,LQe4) = LQe1
 
     ! Toroidal E force
 
@@ -817,7 +829,7 @@ contains
 !    ELM(1:NEMAX,1:4,22,LQe4) = - (1.D0 - UHph * UHph) * fem_int(2,rNueHL) * AMPe4
 !    NLC(22,LQe4) = LQe4
 
-    NLCMAX(LQe4) = 20
+    NLCMAX(LQe4) = 21
     RETURN
   END SUBROUTINE LQe4CC
 
@@ -849,6 +861,8 @@ contains
 
        ELM(1:NEMAX,1:4, 3,LQe5) =   4.D0 * fem_int(41,Chie,PTeV)
        NLC( 3,LQe5) = LQe1
+!!$       ELM(1:NEMAX,1:4, 2,LQe5) = - 4.D0 *(fem_int(18,Chie) + fem_int(39,ChieNe,dPNeV))
+!!$       NLC( 2,LQe5) = LQe5
 
        ! Joule heating
 
@@ -981,16 +995,21 @@ contains
  
     ! Particle source from ripple trapped beam ions
 
-    ELM(1:NEMAX,1:4,9,LQi1) =   fem_int(28,rNuB,RATIO)
+    ELM(1:NEMAX,1:4,9,LQi1) =   fem_int(28,rNuB,RATIO) * RpplSW
     NLC(9,LQi1) = LQr1
 
     ! Parallel Loss reduction due to the potential
     ! induced by the parallel loss of the beam ions
 
-    ELM(1:NEMAX,1:4,10,LQi1) =  fem_int(2,rNuLB) * BeamSW
+    ELM(1:NEMAX,1:4,10,LQi1) =   fem_int(2,rNuLB) * BeamSW
     NLC(10,LQi1) = LQb1
 
-    NLCMAX(LQi1) = 10
+    ! Ion orbit loss
+
+    ELM(1:NEMAX,1:4,11,LQi1) = - fem_int(2,rNuOL)
+    NLC(11,LQi1) = LQi1
+
+    NLCMAX(LQi1) = 11
     RETURN
   END SUBROUTINE LQi1CC
 
@@ -1014,8 +1033,6 @@ contains
 
     ELM(1:NEMAX,1:4,1,LQi2) = - 2.D0 * fem_int( 3,RUirV) + fem_int(2,UirVR) &
          &                  +(- 2.D0 * fem_int(10,RUirV) + fem_int(9,UirVR)) * fem_int(0)
-!!$    ELM(1:NEMAX,1:4,1,LQi2) =   2.D0 * fem_int( 9,RUirV) + fem_int(2,UirVR) &
-!!$         &                  +(                             fem_int(9,UirVR)) * fem_int(0)
     NLC(1,LQi2) = LQi2
 
     ! Nonlinear centrifugal force
@@ -1213,6 +1230,11 @@ contains
     PELM(1:NEMAX,1:4,22+N,LQi3) = fem_int(-1,SiLCth)
     NLC(22+N,LQi3) = 0
 
+    ! Ion orbit loss
+
+    ELM(1:NEMAX,1:4,23+N,LQi3) = - fem_int(2,rNuOL)
+    NLC(23+N,LQi3) = LQi3
+
 !   ! Helical Neoclassical viscosity force
 !
 !   ELM(1:NEMAX,1:4,23+N,LQi3) = - (1.D0 - UHth * UHth) * fem_int(2,rNuiHL)
@@ -1223,7 +1245,7 @@ contains
 
     ! Ns*UsTheta(NRMAX) : 0
 
-    NLCMAX(LQi3) = 24+N
+    NLCMAX(LQi3) = 23+N
     RETURN
   END SUBROUTINE LQi3CC
 
@@ -1249,12 +1271,12 @@ contains
 
     ! Viscosity force
 
-    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 *(fem_int(18,rMui) + fem_int(39,rMuiNi,dPNiV))
-!!$    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 * fem_int(18,rMui)
+!    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 *(fem_int(18,rMui) + fem_int(39,rMuiNi,dPNiV))
+    ELM(1:NEMAX,1:4, 2,LQi4) = - 4.D0 * fem_int(18,rMui)
     NLC( 2,LQi4) = LQi4
 
-!!$    ELM(1:NEMAX,1:4,21,LQi4) =   4.D0 * fem_int(41,rMui,UiphV)
-!!$    NLC(21,LQi4) = LQi1
+    ELM(1:NEMAX,1:4,21,LQi4) =   4.D0 * fem_int(41,rMui,UiphV)
+    NLC(21,LQi4) = LQi1
 
     ! Toroidal E force
 
@@ -1334,6 +1356,11 @@ contains
     PELM(1:NEMAX,1:4,20,LQi4) =   fem_int(-1,SiLCph)
     NLC(20,LQi4) = 0
 
+    ! Ion orbit loss
+
+    ELM(1:NEMAX,1:4,22,LQi4) = - fem_int(2,rNuOL)
+    NLC(22,LQi4) = LQi4
+
 !   ! Helical Neoclassical viscosity force
 
 !   ELM(1:NEMAX,1:4,21,LQi4) = UHth * UHph / 2.D0 * fem_int(2,rNuiHL)
@@ -1342,7 +1369,7 @@ contains
 !   ELM(1:NEMAX,1:4,22,LQi4) = - (1.D0 - UHph * UHph) * fem_int(2,rNuiHL)
 !   NLC(22,LQi4) = LQi4
 
-    NLCMAX(LQi4) = 20
+    NLCMAX(LQi4) = 22
     RETURN
   END SUBROUTINE LQi4CC
 
@@ -1374,6 +1401,8 @@ contains
 
        ELM(1:NEMAX,1:4, 3,LQi5) =   4.D0 * fem_int(41,Chii,PTiV)
        NLC( 3,LQi5) = LQi1
+!!$       ELM(1:NEMAX,1:4, 2,LQi5) = - 4.D0 *(fem_int(18,Chii) + fem_int(39,ChiiNi,dPNiV)) 
+!!$       NLC( 2,LQi5) = LQi5
 
        ! Joule heating
 
@@ -1494,14 +1523,16 @@ contains
 
     ! Ripple trapped beam ions collision with otherwise beam ions
 
-    ELM(1:NEMAX,1:4,4,LQb1) = - fem_int(28,rNubrp2,RATIO)
+    ELM(1:NEMAX,1:4,4,LQb1) = - fem_int(28,rNubrp2,RATIO) * RpplSW
     NLC(4,LQb1) = LQb1
 
-    ELM(1:NEMAX,1:4,5,LQb1) =   fem_int(28,rNubrp1,RATIO)
+    ELM(1:NEMAX,1:4,5,LQb1) =   fem_int(28,rNubrp1,RATIO) * RpplSW
     NLC(5,LQb1) = LQr1
 
 !!$    PELM(1:NEMAX,1:4,5,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
 !!$    NLC(5,LQb1) = 0
+
+    ! Ripple diffusion
 
     ELM(1:NEMAX,1:4,6,LQb1) = - 4.d0 * fem_int(41,Dbrp,ft)
     NLC(6,LQb1) = LQb1
@@ -1572,14 +1603,17 @@ contains
     ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(2,rNuLB) * BeamSW
     NLC(11,LQb3) = LQb3
 
-!!$    ELM(1:NEMAX,1:4,11,LQb3) =(- 4.D0 * fem_int(41,Dbrp,ft) &
-!!$         &                    - 4.D0 * fem_int(39,DbrpftNi,dPNiV) &
-!!$         &                    - 4.D0 * fem_int(32,Dbrp,ft)) * factor
-!!$    NLC(11,LQb3) = LQb3
+    ! Momentum diffusion arising from beam ion convective flux due to ripple
+
+    ELM(1:NEMAX,1:4,12,LQb3) = - 4.D0 * fem_int(18,Dbrpft)
+    NLC(12,LQb3) = LQb3
+
+    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
+    NLC(13,LQb3) = LQb1
 
     ! Ubth(NRMAX) : 0
 
-    NLCMAX(LQb3) = 11
+    NLCMAX(LQb3) = 13
     RETURN
   END SUBROUTINE LQb3CC
 
@@ -1595,7 +1629,7 @@ contains
 
     ! - UbPhi(0)' : 0
 
-    ELM(1:NEMAX,1:4,0,LQb4) = fem_int(1) * invDT
+    ELM(1:NEMAX,1:4,0,LQb4) =   fem_int(1) * invDT
     NLC(0,LQb4) = LQb4
 
     ! Toroidal E force
@@ -1637,7 +1671,7 @@ contains
 
     ! NBI momentum source
 
-    PELM(1:NEMAX,1:4,8,LQb4) = (PNBCD * Vb) * fem_int(-1,MNB)
+    PELM(1:NEMAX,1:4,8,LQb4) =   (PNBCD * Vb) * fem_int(-1,MNB)
     NLC(8,LQb4) = 0
 
     ! Loss to divertor
@@ -1645,12 +1679,17 @@ contains
     ELM(1:NEMAX,1:4,9,LQb4) = - fem_int(2,rNuLB) * BeamSW
     NLC(9,LQb4) = LQb4
 
-!!$    ELM(1:NEMAX,1:4,9,LQb4) = - 4.D0 *(fem_int(41,Dbrp,ft) + fem_int(39,DbrpftNi,dPNiV)) * factor
-!!$    NLC(9,LQb4) = LQb4
+    ! Momentum diffusion arising from beam ion convective flux due to ripple
+
+    ELM(1:NEMAX,1:4,10,LQb4) = - 4.D0 * fem_int(18,Dbrpft)
+    NLC(10,LQb4) = LQb4
+
+    ELM(1:NEMAX,1:4,11,LQb4) = - 4.D0 * fem_int(45,Dbrpft,UbphV)
+    NLC(11,LQb4) = LQb1
 
     ! Ubphi(NRMAX) : 0
 
-    NLCMAX(LQb4) = 9
+    NLCMAX(LQb4) = 11
     RETURN
   END SUBROUTINE LQb4CC
 
@@ -1756,24 +1795,24 @@ contains
 
        ! Ripple trapped beam ions collision with otherwise beam ions
 
-       ELM(NE,1:4,1,LQr1) =   fem_int_point(2,NE,rNubrp2) &
-            &               + fem_int_point(9,NE,rNubrp2) * coef
+       ELM(NE,1:4,1,LQr1) =(  fem_int_point(2,NE,rNubrp2) &
+            &               + fem_int_point(9,NE,rNubrp2) * coef) * RpplSW
        NLC(1,LQr1) = LQb1
 
-       ELM(NE,1:4,2,LQr1) = - fem_int_point(2,NE,rNubrp1) &
-            &               - fem_int_point(9,NE,rNubrp1) * coef
+       ELM(NE,1:4,2,LQr1) =(- fem_int_point(2,NE,rNubrp1) &
+            &               - fem_int_point(9,NE,rNubrp1) * coef) * RpplSW
        NLC(2,LQr1) = LQr1
 
        ! Relaxation to thermal ions
 
-       ELM(NE,1:4,3,LQr1) = - fem_int_point(2,NE,rNuB) &
-            &               - fem_int_point(9,NE,rNuB) * coef
+       ELM(NE,1:4,3,LQr1) =(- fem_int_point(2,NE,rNuB) &
+            &               - fem_int_point(9,NE,rNuB) * coef) * RpplSW
        NLC(3,LQr1) = LQr1
 
        ! Ripple loss transport (convective)
 
-       ELM(NE,1:4,4,LQr1) = - 2.d0 * fem_int_point( 3,NE,RUbrp) &
-            &               - 2.d0 * fem_int_point(10,NE,RUbrp) * coef
+       ELM(NE,1:4,4,LQr1) =(- 2.d0 * fem_int_point( 3,NE,RUbrp) &
+            &               - 2.d0 * fem_int_point(10,NE,RUbrp) * coef) * RpplSW
        NLC(4,LQr1) = LQr1
 
 !!$       ELM(NE,1:4,4,LQr1) = - fem_int_point(2,NE,rNubL)
@@ -1783,7 +1822,7 @@ contains
 
        ! Ripple loss transport (diffusive)
 
-       ELM(NE,1:4,5,LQr1) = - 4.d0 * fem_int_point(18,NE,Dbrp)
+       ELM(NE,1:4,5,LQr1) = - 4.d0 * fem_int_point(18,NE,Dbrp) * RpplSW
        NLC(5,LQr1) = LQr1
     end do
 

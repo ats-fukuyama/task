@@ -542,6 +542,12 @@ contains
 !!$    GY(0:NRMAX,NGR,115) = SNGL(PNbrpLV(0:NRMAX)*1.D20)
 
     GY(0:NRMAX,NGR,116) = SNGL(rNuLB(0:NRMAX))
+    GY(0:NRMAX,NGR,117) = SNGL((-   AEE*PNeV(0:NRMAX)*UerV(0:NRMAX) &
+         &                      +PZ*AEE*PNiV(0:NRMAX)*UirV(0:NRMAX))*1.D20)
+
+    ! Orbit loss
+
+    GY(0:NRMAX,NGR,118) = SNGL(rNuOL(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -701,6 +707,8 @@ contains
 
     GTY(NGT,44) = SNGL(ANF0(1))  * 100.0
     GTY(NGT,45) = SNGL(ANFAV(1)) * 100.0
+
+    GTY(NGT,46) = SNGL(VOLAVN)
 
     RETURN
   END SUBROUTINE TXSTGT
@@ -953,7 +961,10 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,24), GYL, STR, NRM, NRMAX, NGR, gDIV(24))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@j$-r$=(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,117),NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(7)
        STR = '@u$-er$=(r)@'
@@ -1216,7 +1227,8 @@ contains
        CALL TXGRFRXS(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@u$-b$#q$#$=(r)@'
-       CALL TXGRFRXS(1,GX,GY(0,0,19),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,19), GYL, STR, NRM, NRMAX, NGR, gDIV(19))
+       CALL TXGRFRXS(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@u$-b$#f$#$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,13), GYL, STR, NRM, NRMAX, NGR, gDIV(13))
@@ -1459,6 +1471,9 @@ contains
 
        STR = '@rNuLB@'
        CALL TXGRFRXS(14,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@rNuOL@'
+       CALL TXGRFRXS(15,GX,GY(0,0,118),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@PRFe@'
 !!$       CALL TXGRFRXS(14,GX,GY(0,0,85),NRMAX,NGR,STR,MODE,IND)
@@ -2104,6 +2119,9 @@ contains
     CASE(8)
        STR = '@Nb0,<Nb> [10$+18$=/m$+3$=] vs t@'
        CALL TXGRFTX(0, GTX, GTY(0,44), NGTM, NGT, 2, STR, IND)
+
+       STR = '@<neutrality> [/m$+3$=] vs t@'
+       CALL TXGRFTX(1, GTX, GTY(0,46), NGTM, NGT, 1, STR, IND)
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT

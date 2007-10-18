@@ -68,7 +68,7 @@ contains
 !      id = 43 : psi * a * b * (u / b)'* w'
 !
 !      id = 44 : psi * a * b * u * w
-!      id = 45 :(psi * a * b'* u)'* w'
+!      id = 45 :(psi * a * b'* u)'* w
 !      id = 46 :(psi * a * b'* u)'* w'
 !
 !      id = -1 : a * w
@@ -91,7 +91,7 @@ contains
     integer, intent(in) :: id
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
     integer :: ne
-    real(8) :: x(1:nemax,1:4), csq15, a1, a2, b1, b2
+    real(8) :: x(1:nemax,1:4), csq15, a1, a2, b1, b2, p1, p2, hp
     
     select case(id)
     case(-1)
@@ -115,6 +115,11 @@ contains
           x(ne,3) = (-2.d0 * a(ne-1) -        a(ne)) * c16 * b(ne-1)
           x(ne,4) = (-       a(ne-1) + 4.d0 * a(ne)) * c16 * b(ne)
        end do
+    case(-8)
+       x(0:nemax,1) =-0.5d0 * a(ne-1)
+       x(0:nemax,2) =-0.5d0 * a(ne)
+       x(0:nemax,3) = 0.5d0 * a(ne-1)
+       x(0:nemax,4) = 0.5d0 * a(ne)
     case(0)
        !  for SUPG
        csq15 = 1.d0 / sqrt(15.d0)
@@ -238,30 +243,30 @@ contains
     case(29)
        do ne = 1, nemax
           x(ne,1) = (-3.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
           x(ne,2) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
           x(ne,3) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) / 12.d0
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
           x(ne,4) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne-1)) / 12.d0
+               &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne-1)) * c112
        end do
     case(32)
        do ne = 1, nemax
           a1 = a(ne-1) ; a2 = a(ne)
           b1 = b(ne-1) ; b2 = b(ne)
-          x(ne,1) = (-3.d0*a1*b1 + 3.d0*a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
-               &  + (-3.d0*a1*b1 -      a1*b2 + 3.d0*a2*b1 +      a2*b2) / 12.d0 &
-               &  + (-3.d0*a1*b1 -      a1*b2 -      a2*b1 -      a2*b2) / 12.d0
-          x(ne,2) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
-               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) / 12.d0 &
-               &  + ( 3.d0*a1*b1 +      a1*b2 +      a2*b1 +      a2*b2) / 12.d0
-          x(ne,3) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) / 12.d0 &
-               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) / 12.d0 &
-               &  + (-     a1*b1 -      a1*b2 -      a2*b1 - 3.d0*a2*b2) / 12.d0
-          x(ne,4) = (-     a1*b1 +      a1*b2 - 3.d0*a2*b1 + 3.d0*a2*b2) / 12.d0 &
-               &  + (-     a1*b1 - 3.d0*a1*b2 +      a2*b1 + 3.d0*a2*b2) / 12.d0 &
-               &  + (      a1*b1 +      a1*b2 +      a2*b1 + 3.d0*a2*b2) / 12.d0
+          x(ne,1) = (-3.d0*a1*b1 + 3.d0*a1*b2 -      a2*b1 +      a2*b2) * c112 &
+               &  + (-3.d0*a1*b1 -      a1*b2 + 3.d0*a2*b1 +      a2*b2) * c112 &
+               &  + (-3.d0*a1*b1 -      a1*b2 -      a2*b1 -      a2*b2) * c112
+          x(ne,2) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) * c112 &
+               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) * c112 &
+               &  + ( 3.d0*a1*b1 +      a1*b2 +      a2*b1 +      a2*b2) * c112
+          x(ne,3) = (-     a1*b1 +      a1*b2 -      a2*b1 +      a2*b2) * c112 &
+               &  + (-     a1*b1 -      a1*b2 +      a2*b1 +      a2*b2) * c112 &
+               &  + (-     a1*b1 -      a1*b2 -      a2*b1 - 3.d0*a2*b2) * c112
+          x(ne,4) = (-     a1*b1 +      a1*b2 - 3.d0*a2*b1 + 3.d0*a2*b2) * c112 &
+               &  + (-     a1*b1 - 3.d0*a1*b2 +      a2*b1 + 3.d0*a2*b2) * c112 &
+               &  + (      a1*b1 +      a1*b2 +      a2*b1 + 3.d0*a2*b2) * c112
        end do
     case(34)
        do ne = 1, nemax
@@ -285,13 +290,13 @@ contains
     case(37)
        do ne = 1, nemax
           x(ne,1) = (12.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
-               &    + 3.d0*psi(ne-1)*a(ne)   + 2.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+               &    + 3.d0*psi(ne-1)*a(ne)   + 2.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
           x(ne,2) = ( 3.d0*psi(ne-1)*a(ne-1) + 2.d0*psi(ne)*a(ne-1) &
-               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
           x(ne,3) = ( 3.d0*psi(ne-1)*a(ne-1) + 2.d0*psi(ne)*a(ne-1) &
-               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+               &    + 2.d0*psi(ne-1)*a(ne)   + 3.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
           x(ne,4) = ( 2.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
-               &    + 3.d0*psi(ne-1)*a(ne)   +12.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) / 60.d0
+               &    + 3.d0*psi(ne-1)*a(ne)   +12.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
        end do
     case(39)
        do ne = 1, nemax
@@ -322,6 +327,13 @@ contains
           x(ne,3) = x(ne,2)
           x(ne,4) = x(ne,1)
        end do
+    case(42)
+       do ne = 1, nemax
+          x(ne,1) = a(ne-1)*b(ne-1)*psi(ne-1) / hpsi(ne)
+          x(ne,2) =-a(ne)  *b(ne)  *psi(ne)   / hpsi(ne)
+          x(ne,3) =-x(ne,1)
+          x(ne,4) =-x(ne,2)
+       end do
     case(44)
        do ne = 1, nemax
           x(ne,1) = ( 10.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
@@ -337,6 +349,15 @@ contains
                &     +      a(ne-1)*b(ne)  *psi(ne-1)+ 2.d0*a(ne)*b(ne)  *psi(ne-1) &
                &     +      a(ne-1)*b(ne-1)*psi(ne)  + 2.d0*a(ne)*b(ne-1)*psi(ne) &
                &     + 2.d0*a(ne-1)*b(ne)  *psi(ne)  +10.d0*a(ne)*b(ne)  *psi(ne)) * hpsi(ne) * c160
+       end do
+    case(45)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne)
+          p1 = psi(ne-1) ; p2 = psi(ne) ; hp = hpsi(ne)
+          x(ne,1) = (b1-b2)*( 9.d0*a1*p1-a2*p1-a1*p2-     a2*p2)/hp * c112
+          x(ne,2) =-(b1-b2)*(      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)/hp * c112
+          x(ne,3) = (b1-b2)*( 3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)/hp * c112
+          x(ne,4) =-(b1-b2)*(-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)/hp * c112
        end do
     case default
        write(6,*)  'XX falut ID in fem_int, id= ',id
@@ -405,8 +426,10 @@ contains
 !      id = 43 : psi * a * b * (u / b)'* w'
 !
 !      id = 44 : psi * a * b * u * w
-!      id = 45 :(psi * a * b'* u)'* w'
+!      id = 45 :(psi * a * b'* u)'* w
 !      id = 46 :(psi * a * b'* u)'* w'
+!      id = 47 : psi * a'* b'* u * w
+!      id = 48 : psi * a * b'* u'* w
 !
 !      id = -1 : a * w
 !      id = -2 : a * b * w
@@ -732,15 +755,25 @@ contains
        x(4) = (       a1*b1*p1+     a2*b1*p1+     a1*b2*p1+ 2.d0*a2*b2*p1 &
             &  +      a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+10.d0*a2*b2*p2) * hp / 60.d0
     case(45)
-       x(1) = (b1-b2)*( 9.d0*a1*p1-a2*p1-a1*p2-     a2*p2)/(12.d0*hp)
-       x(2) =-(b1-b2)*(      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)/(12.d0*hp)
-       x(3) = (b1-b2)*( 3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)/(12.d0*hp)
-       x(4) =-(b1-b2)*(-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)/(12.d0*hp)
+       x(1) = (-9.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/(12.d0*hp)
+       x(2) = (      a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/(12.d0*hp)
+       x(3) = (-3.d0*a1*p1-a2*p1-a1*p2-     a2*p2)*(b2-b1)/(12.d0*hp)
+       x(4) = (-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)*(b2-b1)/(12.d0*hp)
     case(46)
        x(1) =-a1*(b1-b2)*p1/hp**2
        x(2) = a2*(b1-b2)*p2/hp**2
        x(3) = a1*(b1-b2)*p1/hp**2
        x(4) =-a2*(b1-b2)*p2/hp**2
+    case(47)
+       x(1) = (3.d0*p1+     p2)*(a2-a1)*(b2-b1)/(12.d0*hp)
+       x(2) = (     p1+     p2)*(a2-a1)*(b2-b1)/(12.d0*hp)
+       x(3) = (     p1+     p2)*(a2-a1)*(b2-b1)/(12.d0*hp)
+       x(4) = (     p1+3.d0*p2)*(a2-a1)*(b2-b1)/(12.d0*hp)
+    case(48)
+       x(1) =-(3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/(12.d0*hp)
+       x(2) = (3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/(12.d0*hp)
+       x(3) =-(     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/(12.d0*hp)
+       x(4) = (     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/(12.d0*hp)
     case default
        write(6,*)  'XX falut ID in fem_int_point, id= ',id
        stop

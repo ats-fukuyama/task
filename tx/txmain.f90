@@ -25,14 +25,14 @@
 !   X3  = Aphi'                                         N      D
 !   X4  = Aphi                                          *      *
 !   X5  = r * Atheta                                    *      *
-!   X6  = Ne                 X11  = Ni                  *      *
-!   X7  = r * Ne * Uer       X12  = r * Ni * Uir        0      0
+!   X6  = Ne                 X11  = Ni                  N(*)   N(*)
+!   X7  = r * Ne * Uer       X12  = r * Ni * Uir        *      *(0)
 !   X8  = r * Ne * UeTheta   X13  = r * Ni * UiTheta    0      0
 !   X9  = Ne * UePhi         X14  = Ni * UiPhi          N      0
 !   X10 = Ne * Te            X15  = Ni * Ti             N      N
-!   X16 = Nb                                            *      *
-!   X17 = r * Nb * UbTheta                              *      *
-!   X18 = Nb * UbPhi                                    *      *
+!   X16 = Nb                                            *(N)   *(N)
+!   X17 = r * Nb * UbTheta                              *(0)   *(0)
+!   X18 = Nb * UbPhi                                    *(N)   *(0)
 !   X19 = Slow neutral                                  N      D
 !   X20 = Fast neutral                                  N      0
 !   X21 = Nb ripple                                     N      N
@@ -65,8 +65,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx431.0'
-  WRITE(6,*) '######## TASK/TX V4.31.00 07/10/10 ########'
+  SLID = 'tx440.0'
+  WRITE(6,*) '######## TASK/TX V4.40.00 07/10/17 ########'
 
   CALL TXINIT
   KPNAME='txparm'

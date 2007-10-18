@@ -23,6 +23,7 @@ contains
     use variables, only : TXCALV
     use init_prof, only : TXPROF, TXINIT
     use parameter_control, only : TXPARM_CHECK
+    use results, only : TXSTAT
     INTEGER :: ICONT, MODE, I, IST
     character(len=80) :: LINE
     character(len=1)  :: KID, KID2
@@ -42,8 +43,8 @@ contains
        WRITE(6,'(3(A,1PD12.4))') &
             &   ' ## TIME=',T_TX,'  DT=',DT,'  NEXT TIME =',TMAX
        WRITE(6,*) '## INPUT: ', &
-            &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
-            &   'S:SAVE  L:LOAD  I,N,Bn: Q:QUIT'
+            &   'R:RUN  C:CONT  P,V:PARM  G:GR  '// &
+            &   'W:STAT  S:SAVE  L:LOAD  I:INIT  Q:QUIT'
        CALL GUFLSH
 
        CALL TXKLIN(LINE,KID,MODE)
@@ -93,6 +94,8 @@ contains
           CALL TXINIT
        CASE('Q')
           EXIT
+       CASE('W')
+          CALL TXSTAT
        CASE('S')
           CALL TXSAVE
        CASE('L')

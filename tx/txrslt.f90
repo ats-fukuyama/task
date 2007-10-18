@@ -24,8 +24,7 @@ contains
     REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
     REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
          &     dPPV, ALFA
-    REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP
-    REAL(8), DIMENSION(1:NRMAX) :: BETAL, BETAPL, BETAQ
+    REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
     real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2
     real(8) :: dBetaSUM, BPINT
     real(8) :: DERIV3
@@ -36,6 +35,9 @@ contains
 
     RKAP = 1.D0
     FKAP = 1.D0
+
+    VOLAVN =  2.D0 / RB**2 * INTG_F( PZ*PNiV(0:NRMAX)+PZ*PNbV(0:NRMAX) &
+         &                          +PZ*RATIO(0:NRMAX)*PNbrpV(0:NRMAX)-PNeV(0:NRMAX))
 
     RNINT = INTG_F(PNeV)
     RPEINT = INTG_F(PeV)
@@ -292,6 +294,8 @@ contains
     BETAPA = BETAP(NRMAX)
     BETAA  = BETA(NRMAX)
 
+    BETAN  = BETAA / (rIP / (RA * BB)) * 100.D0
+
     BthV2(0:NRMAX) = BthV(0:NRMAX)**2
     BPINT = 0.5D0 * INTG_F(BthV2)
     ALI   = 8.D0*PI**2*BPINT*FKAP**2/((rMU0*rIp*1.D6)**2)
@@ -302,6 +306,7 @@ contains
 
     IF(PINT <= 0.D0) THEN
        TAUEP=0.D0
+       TAUEH=0.D0
        QF=0.D0
     ELSE
        TAUEP=4.8D-2*(rIP**0.85D0) &
@@ -312,6 +317,14 @@ contains
             &      *(BB**0.2D0) &
             &      *(PAI**0.5D0) &
             &      *(PINT**(-0.5D0))
+       TAUEH=0.0562D0*(rIP**0.93D0) &
+            &        *(BB**0.15D0) &
+            &        *(PINT**(-0.69D0)) &
+            &        *(ANSAV(1)**0.41D0) &
+            &        *(PAI**0.19D0) &
+            &        *(RR**1.97D0) &
+            &        *((RA/RR)**0.58D0) &
+            &        *(RKAP**0.78D0)
        QF=5.D0*PNFT/PINT
     END IF
 
@@ -339,5 +352,20 @@ contains
 
     RETURN
   END SUBROUTINE TXGLOB
+
+  subroutine TXSTAT
+
+    write(6,'(1X,2(A26,1PD10.3,3X))') "Vol. ave. of neutrality = ", VOLAVN
+    write(6,'(1X,2(A26,1PD10.3,3X))') "Inductance              = ", ALI, &
+         &                            "Loop voltage            = ", VLOOP
+    write(6,'(1X,2(A26,1PD10.3,3X))') "Confinement time 1      = ", TAUE1, &
+         &                            "Confinement time 2      = ", TAUE2
+    write(6,'(1X,2(A26,1PD10.3,3X))') "L-mode scaling time     = ", TAUEP, &
+         &                            "IPB98(y,2) scaling time = ", TAUEH
+    write(6,'(1X,2(A26,1PD10.3,3X))') "Beta                    = ", BETAA, &
+         &                            "Poloidal beta           = ", BETAPA
+    write(6,'(1X,2(A26,1PD10.3,3X))') "Normalized beta         = ", BETAN
+
+  end subroutine TXSTAT
 
 end module results

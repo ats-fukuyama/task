@@ -19,7 +19,7 @@ contains
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
     INTEGER :: NR
-    real(8) :: DERIV3
+    real(8) :: DERIV3, FCTR
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
@@ -154,7 +154,7 @@ contains
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
-         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp !&
+         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, RLOSS !&
 !!         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
@@ -853,66 +853,98 @@ contains
     END DO
 
     !     ***** Ion Orbit Loss *****
-    !     S. -I. Itoh and K. Itoh, Nucl. Fusion 29 (1989) 1031
 
     SiLC  (0:NRMAX) = 0.D0
     SiLCth(0:NRMAX) = 0.D0
     SiLCph(0:NRMAX) = 0.D0
+    rNuOL (0:NRMAX) = 0.D0
     IF (ABS(FSLC) > 0.D0) THEN
-       DO NR = 1, NRA
-          EpsL = R(NR) / RR
-          Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
-          RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
-          RhoIT = MIN(RhoIT,0.1D0)
-          Wti = Vti / (Q(NR) * RR)
-          rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
-          ExpArg = 2.D0 * EpsL / Vti**2 * (ErV(NR) / BthV(NR))**2
-          AiP = rNuii(NR) * SQRT(EpsL) * rNuAsI_inv / (1.D0 + rNuAsI_inv) * EXPV(- ExpArg)
-          DO NR1 = NRA, NRMAX
-             DISTAN = (R(NR1) - R(NR)) / RhoIT
-             SiLCL = AiP * EXPV( - DISTAN**2) * PNiV(NR)
-             SiLC(NR) = SiLC(NR) - SiLCL
-             SiLC(NR1) = SiLC(NR1) + SiLCL * R(NR) / R(NR1)
-             SiLCthL = SiLCL * AMI * UithV(NR) * R(NR)
-             SiLCth(NR) = SiLCth(NR) - SiLCthL
-             SiLCth(NR1) = SiLCth(NR1) + SiLCthL * R(NR) / R(NR1)
-             SiLCphL = SiLCL * AMI * UiphV(NR)
-             SiLCph(NR) = SiLCph(NR) - SiLCphL
-             SiLCph(NR1) = SiLCph(NR1) + SiLCphL * R(NR) / R(NR1)
-          END DO
-       END DO
+       IF(MDLC == 1) THEN
+          ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
+          do nr=1,nrmax
+             EpsL = R(NR) / RR
+             Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
+             Wti = Vti / (Q(NR) * RR)
+             rNuAsIL = SQRT(2.D0) * rNuii(NR) / (EpsL**1.5D0 * Wti)
+             BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
+             IF(FSLC == 1.D0) THEN
+                rNuOL(NR) = 2.25D0 * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
+                     &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
+                     &         * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
+             ELSE
+                SiLC(NR) = - 2.25D0 * PNiV(NR) * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
+                     &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
+                     &         * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
+                SiLCth(NR) = SiLC(NR) * AMI * UithV(NR) * R(NR)
+                SiLCph(NR) = SiLC(NR) * AMI * UiphV(NR)
+             END IF
+          end do
+       ELSEIF(MDLC == 2) THEN
+          !     S. -I. Itoh and K. Itoh, Nucl. Fusion 29 (1989) 1031
+          IF(FSLC == 1.D0) THEN
+             ! RLOSS : Numerical coefficient proportional to the relative number of ions
+             !         in the loss cone in velocity space
+             RLOSS = 0.1D0
+             rNuOL(0) = 0.D0
+             DO NR = 1, NRMAX
+                EpsL = R(NR) / RR
+                Vti = SQRT(PTiV(NR) * rKeV / AMI)
+                RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
+                RL = (R(NR) - (RA - 1.5D0 * RhoIT)) / DBW ! Alleviation factor
+                IF(R(NR) > (RA - RhoIT)) THEN
+!                IF(ABS(RA - R(NR)) <= RhoIT .AND. R(NR) < RA) THEN
+                   ExpArg = -2.D0 * EpsL * (ErV(NR) / BthV(NR))**2 / Vti**2
+                   ExpArg = ExpArg * (R(NR) / RA)**2
+                   rNuOL(NR) = RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
+                        &    * RL**2 / (1.D0 + RL**2)
+                ELSE
+                   rNuOL(NR) = 0.D0
+                END IF
+             END DO
+          ELSE
+             DO NR = 1, NRA
+                EpsL = R(NR) / RR
+                Vti = SQRT(PTiV(NR) * rKeV / AMI)
+                RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
+                RhoIT = MIN(RhoIT,0.1D0)
+                Wti = Vti / (Q(NR) * RR)
+                rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
+                ExpArg = 2.D0 * EpsL / Vti**2 * (ErV(NR) / BthV(NR))**2
+                AiP = rNuii(NR) * SQRT(EpsL) * rNuAsI_inv / (1.D0 + rNuAsI_inv) &
+                     & * EXPV(- ExpArg)
+                DO NR1 = NRA, NRMAX
+                   DISTAN = (R(NR1) - R(NR)) / RhoIT
+                   SiLCL = AiP * EXPV( - DISTAN**2) * PNiV(NR)
+                   SiLC(NR) = SiLC(NR) - SiLCL
+                   SiLC(NR1) = SiLC(NR1) + SiLCL * R(NR) / R(NR1)
+                   SiLCthL = SiLCL * AMI * UithV(NR) * R(NR)
+                   SiLCth(NR) = SiLCth(NR) - SiLCthL
+                   SiLCth(NR1) = SiLCth(NR1) + SiLCthL * R(NR) / R(NR1)
+                   SiLCphL = SiLCL * AMI * UiphV(NR)
+                   SiLCph(NR) = SiLCph(NR) - SiLCphL
+                   SiLCph(NR1) = SiLCph(NR1) + SiLCphL * R(NR) / R(NR1)
+                END DO
+             END DO
 
-       SiLC  (0:NRMAX) = FSLC * SiLC  (0:NRMAX)
-       SiLCth(0:NRMAX) = FSLC * SiLCth(0:NRMAX)
-       SiLCph(0:NRMAX) = FSLC * SiLCph(0:NRMAX)
+             SiLC  (0:NRMAX) = FSLC * SiLC  (0:NRMAX)
+             SiLCth(0:NRMAX) = FSLC * SiLCth(0:NRMAX)
+             SiLCph(0:NRMAX) = FSLC * SiLCph(0:NRMAX)
 
-!!$       ! *** SiLC correction (int_0^b r * SiLC dr = 0) ***
+!!$          ! *** SiLC correction (int_0^b r * SiLC dr = 0) ***
 !!$
-!!$       CALL VALINT_SUB(SiLC,NRA-1,VAL1)
-!!$       CALL VALINT_SUB(SiLC,NRMAX,VAL2,NRA+2)
-!!$       VAL = VAL1 + VAL2
-!!$       CALL INV_INT(NRA,VAL,SiLC(NRA-1),SiLC(NRA+1),VAL1)
-!!$       SiLC(NRA) = FSLC * VAL1
+!!$          CALL VALINT_SUB(SiLC,NRA-1,VAL1)
+!!$          CALL VALINT_SUB(SiLC,NRMAX,VAL2,NRA+2)
+!!$          VAL = VAL1 + VAL2
+!!$          CALL INV_INT(NRA,VAL,SiLC(NRA-1),SiLC(NRA+1),VAL1)
+!!$          SiLC(NRA) = FSLC * VAL1
 !!$
-!!$       SiLCth(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UithV(0:NRMAX) * R(0:NRMAX)
-!!$       SiLCph(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UiphV(0:NRMAX)
+!!$          SiLCth(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UithV(0:NRMAX) * R(0:NRMAX)
+!!$          SiLCph(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UiphV(0:NRMAX)
 !!$
-!!$       ! *************************************************
+!!$          ! *************************************************
+          END IF
+       END IF
     END IF
-
-!!$    ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
-!!$    do nr=1,nrmax
-!!$       EpsL = R(NR) / RR
-!!$       Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
-!!$       Wti = Vti / (Q(NR) * RR)
-!!$       rNuAsIL = SQRT(2.D0) * rNuii(NR) / (EpsL**1.5D0 * Wti)
-!!$       BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
-!!$       SiLC(NR) = - 2.25D0 * PNiV(NR) * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
-!!$            &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
-!!$            &         * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
-!!$       SiLCth(NR) = SiLC(NR) * AMI * UithV(NR) * R(NR)
-!!$       SiLCph(NR) = SiLC(NR) * AMI * UiphV(NR)
-!!$    end do
 
     !     ***** Ripple loss transport *****
 
@@ -1079,30 +1111,30 @@ contains
 
   end function ripple
 
-  ! Search minimum radial number NR satisfying R(NR) > X.
-
-  subroutine wherenr(R,X,NR,Left,Right)
-    real(8), dimension(0:NRMAX), intent(in) :: R
-    real(8), intent(in) :: X
-    integer, intent(out) :: NR
-    real(8), intent(out) :: Left, Right
-    integer :: NRL
-
-    if(X == 0.d0) then
-       NR = 1
-       Left  = 0.d0
-       Right = 0.d0
-       return
-    end if
-
-    do nrl = 1, nrmax
-       if(r(nrl) > x) then
-          NR = nrl
-          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
-          Left  = 1.d0 - Right
-          exit
-       end if
-    end do
-
-  end subroutine wherenr
+!!$  ! Search minimum radial number NR satisfying R(NR) > X.
+!!$
+!!$  subroutine wherenr(R,X,NR,Left,Right)
+!!$    real(8), dimension(0:NRMAX), intent(in) :: R
+!!$    real(8), intent(in) :: X
+!!$    integer, intent(out) :: NR
+!!$    real(8), intent(out) :: Left, Right
+!!$    integer :: NRL
+!!$
+!!$    if(X == 0.d0) then
+!!$       NR = 1
+!!$       Left  = 0.d0
+!!$       Right = 0.d0
+!!$       return
+!!$    end if
+!!$
+!!$    do nrl = 1, nrmax
+!!$       if(r(nrl) > x) then
+!!$          NR = nrl
+!!$          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
+!!$          Left  = 1.d0 - Right
+!!$          exit
+!!$       end if
+!!$    end do
+!!$
+!!$  end subroutine wherenr
 end module variables

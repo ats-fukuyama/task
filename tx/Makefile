@@ -18,14 +18,14 @@ LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
 .SUFFIXES: .f90
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ -Imod
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ -module mod
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ -Imod
+	$(FCFREE) $(FFLAGS) -c $< -o $@ -module mod
 
 all: $(PROG)
 
 txlib.a: $(OBJNC) $(OBJS) $(INCNC)
-	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJNC)
+	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJNC) -Imod
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -34,8 +34,8 @@ libs:
 	(cd ../lib; make)
 
 $(PROG): $(LIBS)
-	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
-#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
+#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS)
+	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less
@@ -74,4 +74,4 @@ trncls.o: txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
 txrslt.o: txrslt.f90 txcomm.f90
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass -Imod
+	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass -module mod

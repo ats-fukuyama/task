@@ -138,10 +138,19 @@ contains
     FSCX = 1.D0
 
     !   Orbit loss parameter
-!!!!    FSLC = 1.D0
+    !   FSLC = 0 : No orbit loss included.
+    !          1 : Loss term is expressed as damping term.
+    !          2 : Loss term is expressed as source and sink term.
     FSLC = 0.D0
 
+    ! MDLC = 1 : Shaing model
+    !        2 : Itoh model
+    MDLC = 1
+
     !   Ripple loss parameter
+    !     FSRP = 0.D0 : No ripple effect
+    !            1.D0 : Full ripple effect
+    !            2.D0 : Ripple effect but no ripple trapped ions
     FSRP = 0.D0
 
     !   Toroidal neoclassical viscosity parameter
@@ -269,10 +278,10 @@ contains
     !   Lower bound of dependent variables
     tiny_cap = 1.d-14
 
-    !   Amplitude
+    !   Amplitude for numerical stability
     AMPe4 = 1.D3
 
-    !   Permittivity switch
+    !   Permittivity switch for numerical stability
     rMUb1 = rMU0
     rMUb2 = 1.d0
 
@@ -908,7 +917,7 @@ module parameter_control
        & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
-       & FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0, &
+       & FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD, &
        & rNRF,RRF,RRF0,PRFH, &
@@ -1029,6 +1038,7 @@ contains
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
        IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
+       IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
        IF(rG1 < 0.D0) EXIT
        IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
        IF(RNBP0 > RB .OR. RNBP0 < 0.D0) EXIT
@@ -1066,7 +1076,7 @@ contains
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,'/ &
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,rNRF,RRF,RRF0,PRFH,'/ &
@@ -1140,7 +1150,7 @@ contains
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
-         &   'NTCOIL', NTCOIL
+         &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC
 
     RETURN
   END SUBROUTINE TXVIEW
