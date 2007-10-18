@@ -188,7 +188,11 @@ C
             THETA(NR)=THETA0*RTFP(NR)/RTFP0
             Z=1.D0/THETA(NR)
 C            IF(Z.LE.100.D0) THEN
+            IF(Z.lt.1.D4)THEN
                DKBSR(NR)=BESKN(2,Z)
+            ELSE
+               DKBSR(NR)=SQRT(PI/2.D0/Z)*EXP(-Z)
+            ENDIF
 C            ELSE
 C               DKBSR(NR)=SQRT(0.5D0*PI/Z)*(1.D0+15.D0/(8.D0*Z))
 C            ENDIF
@@ -198,14 +202,14 @@ C
 C     ----- set boundary distribution functions -----
 C
       DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),0)
+         FL=FPMXWL(PM(NP),0,NSFP)
          DO NTH=1,NTHMAX
             FS1(NTH,NP)=FL
          ENDDO
       ENDDO
 C
       DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NRMAX+1)
+         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
          DO NTH=1,NTHMAX
             FS2(NTH,NP)=FL
          ENDDO
@@ -310,10 +314,17 @@ C
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NR)
+         FL=FPMXWL(PM(NP),NR,NSFP)
+C         FL=FPMXWL(PM(NP),NR)
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=FL
+            DO NS=1,NSMAX
+               FLNS=FPMXWL(PM(NP),NR,NS)
+               FNS(NTH,NP,NR,NS)=FLNS
+            END DO
          ENDDO
+C         WRITE(6,'(I5,1P4E12.4)') NP,FL,FNS(NTHMAX,NP,NR,1)
+C     &        ,FNS(NTHMAX,NP,NR,2)
       ENDDO
       ENDDO
       RETURN
@@ -323,55 +334,88 @@ C ****************************************
 C     MAXWELLIAN VELOCITY DISTRIBUTION
 C ****************************************
 C
-      FUNCTION FPMXWL(PML,NR)
+C      FUNCTION FPMXWL(PML,NR)
+      FUNCTION FPMXWL(PML,NR,NS)
 C
       INCLUDE 'fpcomm.inc'
 C
+      AMFD=PA(NS)*AMP
+      AEFD=PZ(NS)*AEE
+      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+      RNFD0=PN(NS)
+
       IF(NR.EQ.0) THEN
          RL=RM(1)-DELR
          RHON=RL
          CALL PLPROF(RHON)
-         RNFPL=RN(NSFP)/RNFP0
-         RTFPL=RTPR(NSFP)/RTFP0
+C         RNFPL=RN(NSFP)/RNFP0
+C         RTFPL=RTPR(NSFP)/RTFP0
+         RNFDL=RN(NS)/RNFD0
+         RTFDL=RTPR(NS)/RTFD0
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
          RHON=RL
          CALL PLPROF(RHON)
-         RNFPL=RN(NSFP)/RNFP0
-         RTFPL=RTPR(NSFP)/RTFP0
+C         RNFPL=RN(NSFP)/RNFP0
+C         RTFPL=RTPR(NSFP)/RTFP0
+         RNFDL=RN(NS)/RNFD0
+         RTFDL=RTPR(NS)/RTFD0
       ELSE
-         RNFPL=RNFP(NR)
-         RTFPL=RTFP(NR)
+C         RNFPL=RNFP(NR)
+C         RTFPL=RTFP(NR)
+         RNFDL=RNFD(NR,NS)
+         RTFDL=RTFD(NR,NS)
       ENDIF
-C
+
       IF (MODELR.EQ.0) THEN
-C
-         FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0)**3
-         EX=PML**2/(2.D0*RTFPL/RTFP0)            
+
+C         FACT=RNFPL/SQRT(2.D0*PI*RTFPL/RTFP0)**3
+C         EX=PML**2/(2.D0*RTFPL/RTFP0)            
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0)
          IF(EX.GT.100.D0) THEN
             FPMXWL=0.D0
          ELSE
             FPMXWL=FACT*EXP(-EX)
          ENDIF
-C
+
       ELSE
-C
-         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+
+C         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+         THETA0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
          IF(NR.EQ.0.OR.NR.EQ.NRMAX+1) THEN
-            THETAL=THETA0*RTFPL/RTFP0
+C            THETAL=THETA0*RTFPL/RTFP0
+            THETAL=THETA0*RTFDL/RTFD0
             Z=1.D0/THETAL
-            DKBSL=BESKN(2,Z)
+            IF(Z.lt.1.D4)THEN
+               DKBSL=BESKN(2,Z)
+            ENDIF
          ELSE
-            THETAL=THETA(NR)
+
+C            THETAL=THETA(NR)
+            THETAL=THETA0*RTFD(NR,NS)/RTFD0
             Z=1.D0/THETAL
-            DKBSL=BESKN(2,Z)
-C            DKBSL=DKBSR(NR)
+CC         WRITE(6,'(I5,1P4E12.4)') NR, THETAL,THETAL1,THETAL2,RTFP(NR)
+            IF(Z.lt.1.D4)THEN
+               DKBSL=BESKN(2,Z)
+CC            ELSE
+CC               DKBSL=SQRT(PI/2.D0/Z)*EXP(-Z)
+            ENDIF
+CC            DKBSL=BESKN(2,Z)
+CC            DKBSL=DKBSR(NR)
          ENDIF
-         FACT=RNFPL*SQRT(THETA0)/(4.D0*PI*RTFPL*DKBSL)
-     &        *RTFP0*EXP(-1.D0/THETAL)
-C         FACT=RNFPL*SQRT(THETA0)**3*EXP(-1.D0/THETAL)/
-C     &        (4.D0*PI*THETAL*DKBSL)
-         EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
+         IF(Z.lt.1.D4)THEN
+C            FACT=RNFPL*SQRT(THETA0)/(4.D0*PI*RTFPL*DKBSL)
+C     &        *RTFP0*EXP(-1.D0/THETAL)
+            FACT=RNFDL*SQRT(THETA0)/(4.D0*PI*RTFDL*DKBSL)
+     &        *RTFD0*EXP(-1.D0/THETAL)
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
+         ELSE
+C            FACT=RNFPL/(4.D0*PI)*SQRT(2.D0/PI)*SQRT(THETA0/THETAL)**3
+            FACT=RNFDL/(4.D0*PI)*SQRT(2.D0/PI)*SQRT(THETA0/THETAL)**3
+            EX=-THETA0*PML**2/THETAL*0.5D0
+         ENDIF
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
          ELSE
