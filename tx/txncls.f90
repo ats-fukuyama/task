@@ -95,8 +95,7 @@ contains
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAL, JBSL
     INTEGER :: i, k_out, k_v, ier_check, im, iz
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
-    REAL(8) :: EpsL, BBL, PZMAX, p_gr2phi1, p_gr2phi2, p_gr2phi3, &
-         &                       p_fhat1, p_fhat2, p_fhat3, &
+    REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
          &     btot, uthai, VPOL(0:NRMAX), PAL, PZL
     REAL(8) :: DERIV3, AITKEN2P
 

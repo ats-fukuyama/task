@@ -154,7 +154,8 @@ contains
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
-         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, RLOSS !&
+         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
+         &     RLOSS, SQZ, rNuDL, dErL !&
 !!         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
@@ -489,7 +490,7 @@ contains
           rNube3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNube(NR)) / BBL**2
 
           ! deflection time of beam ions against bulk ions
-          ! (Takamura (3.26), Tokamaks 3rd p64)
+          ! (Takamura (3.26) + Tokamaks 3rd p64)
           ! ** rNuD is similar to rNubi. **
           rNuD(NR) = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 * rlnLi(NR) &
                &   / (2.D0 * PI * EPS0**2 * AMB**2 * Vb**3) &
@@ -862,15 +863,29 @@ contains
        IF(MDLC == 1) THEN
           ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
           do nr=1,nrmax
+             ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
+             dErL = DERIV3(NR,R,ErV,NRMAX,NRM,0)
+             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErL
+
              EpsL = R(NR) / RR
              Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
-             Wti = Vti / (Q(NR) * RR)
-             rNuAsIL = SQRT(2.D0) * rNuii(NR) / (EpsL**1.5D0 * Wti)
              BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
+             ! rNuDL : deflection collisional frequency at V = Vti
+             rNuDL = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 * rlnLi(NR) &
+                  &   / (2.D0 * PI * EPS0**2 * AMI**2 * Vti**3) &
+                  &   * 0.6289d0 ! <-- Numerical value of (Phi - G) at V = Vti
+             rNuAsIL = rNuDL * RR * Q(NR) / (Vti * (abs(SQZ) * EpsL)**1.5D0)
              IF(FSLC == 1.D0) THEN
-                rNuOL(NR) = 2.25D0 * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
-                     &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
-                     &         * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
+                rNuOL(NR) = 2.25D0 * rNuDL / (sqrt(PI) * sqrt(2.D0 * abs(SQZ) * EpsL)) &
+                     &   * EXP(-(rNuAsIL**0.25D0 + (PZ * AEE * BBL / AMI) &
+                     &   * sqrt(abs(SQZ)) / (BphV(NR) * Vti) &
+                     &   * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
+!                write(6,*) NR,SQZ,rNuOL(NR)
+!                rNuOL(NR) = 0.3d0 * rNuOL(NR)
+!!$                rNuOL(NR) = 2.25D0 * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * abs(SQZ) * EpsL)) &
+!!$                     &   * EXP(-(rNuAsIL**0.25D0 + (PZ * AEE * BBL / AMI) * sqrt(abs(SQZ)) &
+!!$                     &   * (BphV(NR) * Vti) &
+!!$                     &   * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
              ELSE
                 SiLC(NR) = - 2.25D0 * PNiV(NR) * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
                      &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
@@ -879,6 +894,7 @@ contains
                 SiLCph(NR) = SiLC(NR) * AMI * UiphV(NR)
              END IF
           end do
+!          stop
        ELSEIF(MDLC == 2) THEN
           !     S. -I. Itoh and K. Itoh, Nucl. Fusion 29 (1989) 1031
           IF(FSLC == 1.D0) THEN
