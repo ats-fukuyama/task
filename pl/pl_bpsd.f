@@ -3,9 +3,9 @@ c=======================================================================
       module bpsd_mod
 c
       type bpsd_shot_type
-         character(len=32) :: deviceID
          integer :: shotID
          integer :: modelID
+         character(len=32) :: deviceID
       end type bpsd_shot_type
 c
       type bpsd_device_type
@@ -24,8 +24,10 @@ c
          real(8) :: pz     ! Charge number (n. of protons - n. of electrons)
          real(8) :: pz0    ! Atomic number (n. of protons)
       end type bpsd_species_data
+
       type bpsd_species_type
          integer :: nsmax     ! Number of particle species
+         integer :: idum      ! Dummy
          type(bpsd_species_data), dimension(:), allocatable :: data
       end type bpsd_species_type
 c
@@ -38,8 +40,9 @@ c
          real(8) :: pit    ! Toroidal current [A] ~2*pi*r*Bp/mu_0
       end type bpsd_equ1D_data
       type bpsd_equ1D_type
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
+         integer :: idum      ! Dummy
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
                               ! (rho^2) normarized toroidal magnetic flux
          type(bpsd_equ1D_data), dimension(:), allocatable :: data
@@ -64,8 +67,9 @@ c
       end type bpsd_metric1D_data
 c
       type bpsd_metric1D_type
-         real(8) :: time
          integer :: nrmax       ! Number of radial points
+         integer :: idum      ! Dummy
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
                                 ! (rho^2) normarized toroidal magnetic flux
          type(bpsd_metric1D_data), dimension(:), allocatable :: data
@@ -78,10 +82,11 @@ c
          real(8) :: ptpp   ! Perpendicular temperature [eV]
          real(8) :: pu     ! Parallel flow velocity [m/s]
       end type bpsd_plasmaf_data
+
       type bpsd_plasmaf_type
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: nsmax     ! Number of particle species
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
                               ! (rho^2) : normarized toroidal magnetic flux
          real(8), dimension(:), allocatable :: qinv 
@@ -90,29 +95,31 @@ c
       end type bpsd_plasmaf_type
 c
       type bpsd_0ddata_type
+         integer :: ndmax     ! Number of data
+         integer :: idum      ! Dummy
          character(len=32) :: dataName
          real(8) :: time
-         integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
          character(len=32), dimension(:), allocatable :: kid
       end type bpsd_0ddata_type
 c
       type bpsd_1ddata_type
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:), allocatable :: data
          character(len=32), dimension(:), allocatable :: kid
       end type bpsd_1ddata_type
 c
       type bpsd_2ddata_type
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nthmax    ! Number of poloidal points
          integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
+         integer :: idum      ! Dummy
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:,:), allocatable :: data
@@ -120,12 +127,12 @@ c
       end type bpsd_2ddata_type
 c
       type bpsd_3ddata_type
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nphmax    ! Number of toroidal points
          integer :: nthmax    ! Number of poloidal points
          integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: ph
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: s 
@@ -135,18 +142,19 @@ c
 c
       type bpsd_shotx_type
          integer :: status = 1! 1:undef 2:assigned
-         character(len=32) :: dataName
-         character(len=32) :: deviceID
          integer :: shotID
          integer :: modelID
+!         integer :: idum      ! Dummy
+         character(len=32) :: dataName
+         character(len=32) :: deviceID
       end type bpsd_shotx_type
 c
       type bpsd_0ddatax_type
          integer :: status = 0! 0:unalloc 1:undef 2:assigned 
                               ! 3:sp-alloc 4:splined
+         integer :: ndmax     ! Number of data
          character(len=32) :: dataName
          real(8) :: time
-         integer :: ndmax     ! Number of data
          real(8), dimension(:), allocatable :: data
          character(len=32), dimension(:), allocatable :: kid
       end type bpsd_0ddatax_type
@@ -154,10 +162,11 @@ c
       type bpsd_1ddatax_type
          integer :: status = 0! 0:unalloc 1:undef 2:assigned 
                               ! 3:sp-alloc 4:splined
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: ndmax     ! Number of data
+         integer :: idum      ! Dummy
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:,:), allocatable :: data
          real(8), dimension(:,:,:), allocatable :: spline
@@ -167,11 +176,11 @@ c
       type bpsd_2ddatax_type
          integer :: status = 0! 0:unalloc 1:undef 2:assigned 
                               ! 3:sp-alloc 4:splined
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: nthmax    ! Number of poloidal points
          integer :: ndmax     ! Number of data
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:,:,:), allocatable :: data
@@ -182,12 +191,13 @@ c
       type bpsd_3ddatax_type
          integer :: status = 0! 0:unalloc 1:undef 2:assigned 
                               ! 3:sp-alloc 4:splined
-         character(len=32) :: dataName
-         real(8) :: time
          integer :: nrmax     ! Number of radial points
          integer :: nthmax    ! Number of poloidal points
          integer :: nphmax    ! Number of toroidal points
          integer :: ndmax     ! Number of data
+         integer :: idum      ! Dummy
+         character(len=32) :: dataName
+         real(8) :: time
          real(8), dimension(:), allocatable :: s 
          real(8), dimension(:), allocatable :: th
          real(8), dimension(:), allocatable :: ph
