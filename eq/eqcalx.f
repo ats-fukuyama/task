@@ -86,26 +86,26 @@ C
             SUM1=SUM1+DELPSIX(NRG,NZG)**2
          ENDDO
          ENDDO
-         SUM=SQRT(SUM1/SUM0)
+         SUM2=SQRT(SUM1/SUM0)
 C
-         IF(SUM.LT.EPSEQ) THEN
+         IF(SUM2.LT.EPSEQ) THEN
             IF(NPRINT.GE.1) THEN
                WRITE(6,'(A,1P4E14.6,I5)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+     &           'SUM2,R/ZAXIS,PSI0=',SUM2,RAXIS,ZAXIS,PSI0,NLOOP
             ENDIF
             GOTO 1000
          ELSE
             IF((NPRINT.EQ.1.AND.NLOOP.EQ.1).OR.
      &          NPRINT.GE.2) THEN
                WRITE(6,'(A,1P4E14.6)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+     &           'SUM2,R/ZAXIS,PSI0=',SUM2,RAXIS,ZAXIS,PSI0
             ENDIF
          ENDIF
       ENDDO
 C
       IF(NPRINT.GE.1) THEN
          WRITE(6,'(A,1P4E14.6,I5)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+     &           'SUM2,R/ZAXIS,PSI0=',SUM2,RAXIS,ZAXIS,PSI0,NLOOP
       ENDIF
       WRITE(6,*) 'XX EQCALX: NLOOP exceeds NLPMAX'
       IERR=10
@@ -690,7 +690,7 @@ C
       INCLUDE '../eq/eqcomx.inc'
 C
       DIMENSION FACTM(4),FACTH(4)
-      DIMENSION RJ(4),PSIBRZ(4),SUM(4)
+      DIMENSION RJ(4),PSIBRZ(4),SUML(4)
       DIMENSION HJ0(NRGM,NZGM),HJ1(NRGM,NZGM),HJ2(NRGM,NZGM)
 C
       IMDLEQF=MOD(MDLEQF,5)
@@ -1105,25 +1105,25 @@ C
          CALL EQPSIB(R1,Z1,PSIBRZ)
          IF(NRG.EQ.1.OR.NRG.EQ.NRGMAX) THEN
          DO K=1,3,2
-            SUM(K)=PSIBRZ(K)
+            SUML(K)=PSIBRZ(K)
             DO NZG2=2,NZGMAX-1
             DO NRG2=2,NRGMAX-1
-               SUM(K)=SUM(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
+               SUML(K)=SUML(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
             ENDDO
             ENDDO
             N=4*((NZG-1)*NRGMAX+NRG-1)+K
-            FVB(N)=SUM(K)
+            FVB(N)=SUML(K)
          ENDDO
          ELSE
          DO K=1,2
-            SUM(K)=PSIBRZ(K)
+            SUML(K)=PSIBRZ(K)
             DO NZG2=2,NZGMAX-1
             DO NRG2=2,NRGMAX-1
-               SUM(K)=SUM(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
+               SUML(K)=SUML(K)-PSIBGR(NRG2,NZG2,NBA,K)*FJRZ(NRG2,NZG2)
             ENDDO
             ENDDO
             N=4*((NZG-1)*NRGMAX+NRG-1)+K
-            FVB(N)=SUM(K)
+            FVB(N)=SUML(K)
          ENDDO
          ENDIF
       ENDDO
@@ -1833,18 +1833,18 @@ C
 C
       INCLUDE '../eq/eqcomx.inc'
 C
-      SUM=0.D0
+      SUML=0.D0
       DO NZG=2,NZGMAX-1
       DO NRG=2,NRGMAX-1
          R2=RG(NRG)
          Z2=ZG(NZG)
          DRG=0.5D0*(RG(NRG+1)-RG(NRG-1))
          DZG=0.5D0*(ZG(NZG+1)-ZG(NZG-1))
-         SUM=SUM
+         SUML=SUML
      &       -DRG*DZG*FJRZ(NRG,NZG)*RGSGRF(R1,Z1,R2,Z2)
       ENDDO
       ENDDO
-      EQPSIV=SUM
+      EQPSIV=SUML
       RETURN
       END
 C

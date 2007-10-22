@@ -230,26 +230,26 @@ C
                SUM1=SUM1+DELPSI(NTG,NSG)**2
             ENDDO
          ENDDO
-         SUM=SQRT(SUM1/SUM0)
+         SUML=SQRT(SUM1/SUM0)
 C
-         IF(SUM.LT.EPSEQ) THEN
+         IF(SUML.LT.EPSEQ) THEN
             IF(NPRINT.GE.1) THEN
                WRITE(6,'(A,1P4E14.6,I5)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+     &           'SUML,R/ZAXIS,PSI0=',SUML,RAXIS,ZAXIS,PSI0,NLOOP
             ENDIF
             RETURN
          ELSE
             IF((NPRINT.EQ.1.AND.NLOOP.EQ.1).OR.
      &          NPRINT.GE.2) THEN
                WRITE(6,'(A,1P4E14.6)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0
+     &           'SUML,R/ZAXIS,PSI0=',SUML,RAXIS,ZAXIS,PSI0
             ENDIF
          ENDIF
       ENDDO
 C
       IF(NPRINT.GE.1) THEN
          WRITE(6,'(A,1P4E14.6,I5)')
-     &           'SUM,R/ZAXIS,PSI0=',SUM,RAXIS,ZAXIS,PSI0,NLOOP
+     &           'SUML,R/ZAXIS,PSI0=',SUML,RAXIS,ZAXIS,PSI0,NLOOP
       ENDIF
       WRITE(6,*) 'XX EQLOOP: NLOOP exceeds NLPMAX'
       IERR=100
