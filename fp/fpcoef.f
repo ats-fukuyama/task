@@ -277,11 +277,7 @@ C
          DO NS=1,NSMAX
             if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
      &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
-            IF(MODELC.LT.0) THEN
-               IF(NS.EQ.NSFP) THEN
-                  CALL FPCALC_L(NR,NS)
-               ENDIF
-            ELSEIF(MODELC.EQ.0) THEN
+            IF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
             ELSEIF(MODELC.EQ.1) THEN
                IF(NS.EQ.NSFP) THEN
@@ -291,6 +287,14 @@ C
                ENDIF
             ELSEIF(MODELC.EQ.2) THEN
                CALL FPCALC_NL(NR,NS)
+            ELSEIF(MODELC.EQ.-1) THEN
+               IF(NS.EQ.NSFP) THEN
+                  CALL FPCALC_L(NR,NS)
+               ENDIF
+            ELSEIF(MODELC.EQ.-2) THEN
+               IF(NS.EQ.NSFP) THEN
+                  CALL FPCALC_NL(NR,NS)
+               ENDIF
             ENDIF
          ENDDO
       ENDDO

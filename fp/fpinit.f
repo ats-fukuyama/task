@@ -142,9 +142,10 @@ C             1 with bounce average
 C     MODELR: 0 without relativistic effect
 C             1 with relativistic effect
 C     MODELC: 0 : linear collision operator
-C             1 : nonlinear collision operator for like particles
+C             1 : nonlinear collision operator for same speceis 
 C             2 : nonlinear collision operator
-C            -1 : electronlinear collision operator with ion scattering
+C            -1 : linear collision operator for same with ion scattering
+C            -2 : nonlinear collision operator for same with ion scattering
 C     MODELW: 0 for given diffusion coefficient model
 C             1 for given wave electric field model
 C             2 for wave electric field calculated by WR(without beam radius)
