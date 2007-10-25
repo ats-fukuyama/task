@@ -3,13 +3,21 @@ include ../make.header
 
 FFLAGS=$(OFLAGS)
 
+# without eq
+#MODINCLUDE= -I. -I../pl
+#EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
+
 # with task/eq
-MODINCLUDE= -I. -I../pl
-EQLIBS= ../eq/eqlib.a
+#MODINCLUDE= -I. -I../eq -I../pl
+#EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 
 # with topics/equ
 #MODINCLUDE= -I. -I../pl -I../../topics/src
-#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
+
+# with task/eq and topics/equ
+MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
+EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 SRCS = main.f
 

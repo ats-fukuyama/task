@@ -141,9 +141,10 @@ C     MODELA: 0 without bounce average
 C             1 with bounce average
 C     MODELR: 0 without relativistic effect
 C             1 with relativistic effect
-C     MODELC: 0 for linear collision operator
-C             1 for nonlinear collision operator
-C            -1 for linear collision operator with ion scattering
+C     MODELC: 0 : linear collision operator
+C             1 : nonlinear collision operator for like particles
+C             2 : nonlinear collision operator
+C            -1 : electronlinear collision operator with ion scattering
 C     MODELW: 0 for given diffusion coefficient model
 C             1 for given wave electric field model
 C             2 for wave electric field calculated by WR(without beam radius)
@@ -379,8 +380,10 @@ C
       ENDIF
 C
       IF(MODELC.EQ.0)THEN
-         WRITE(6,*) 'MAXWELLIAN COLLISION OPERATOR'
+         WRITE(6,*) 'LINEAR COLLISION OPERATOR'
       ELSE IF(MODELC.EQ.1)THEN
+         WRITE(6,*) 'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES'
+      ELSE IF(MODELC.EQ.2)THEN
          WRITE(6,*) 'NONLINEAR COLLISION OPERATOR'
       ELSE IF(MODELC.EQ.-1)THEN
          WRITE(6,*) 'LINEAR COLLISION OPERATOR WITH ION SCATTERING'

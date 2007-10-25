@@ -284,11 +284,13 @@ C
             ELSEIF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
             ELSEIF(MODELC.EQ.1) THEN
-C               IF(NS.EQ.NSFP) THEN
+               IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_NL(NR,NS)
-C               ELSE
-C                  CALL FPCALC_L(NR,NS)
-C               ENDIF
+               ELSE
+                  CALL FPCALC_L(NR,NS)
+               ENDIF
+            ELSEIF(MODELC.EQ.2) THEN
+               CALL FPCALC_NL(NR,NS)
             ENDIF
          ENDDO
       ENDDO
@@ -517,7 +519,7 @@ C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
             DCTTL= 0.25D0*RNUDL/U
      &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
 C            WRITE(6,'(I5,1P4E12.4)')NP,DCTTL 
-            IF(NS.EQ.NSFP.AND.MODELC.LT.0) THEN
+            IF(MODELC.LT.0) THEN
                DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/U
             ENDIF
             DO NTH=1,NTHMAX+1
@@ -651,7 +653,8 @@ C                  PNFP=PNFPL*PTFP0*AMFD/(PTFD0*AMFP)
      &           +(AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
      &          *RNFD(NR,NS)*1.D20
             ENDIF
-          IF(MODELC.EQ.-1) THEN
+
+            IF(MODELC.LT.0) THEN
                V=VFPL/VTFP0
                DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
             ENDIF

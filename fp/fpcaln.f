@@ -8,22 +8,24 @@ C
       INCLUDE 'fpcomm.inc'
 C
       PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
-      DIMENSION PLM(-1:LNM,M),PLG(-1:LNM,M),FPL(-1:LNM,N)
-      DIMENSION D1PLM(-1:LNM,M)
-      DIMENSION D1PLG(-1:LNM,M),D2PLG(-1:LNM,M)
-      DIMENSION RM1M(-1:LNM,N),RM3M(-1:LNM,N)
-      DIMENSION RM2M(-1:LNM,N),RM4M(-1:LNM,N)
-      DIMENSION RM1G(-1:LNM,N),RM3G(-1:LNM,N)
-      DIMENSION RM2G(-1:LNM,N),RM4G(-1:LNM,N)
+      DIMENSION PLM(M,-1:LNM),PLG(M,-1:LNM)
+      DIMENSION D1PLM(M,-1:LNM)
+      DIMENSION D1PLG(M,-1:LNM),D2PLG(M,-1:LNM)
+      DIMENSION PLTEMP(0:LNM)
+      DIMENSION FPL(N,-1:LNM)
+      DIMENSION RM1M(N,-1:LNM),RM3M(N,-1:LNM)
+      DIMENSION RM2M(N,-1:LNM),RM4M(N,-1:LNM)
+      DIMENSION RM1G(N,-1:LNM),RM3G(N,-1:LNM)
+      DIMENSION RM2G(N,-1:LNM),RM4G(N,-1:LNM)
 C
       DIMENSION TX(NTHM+2),TY(NTHM+2),DF(NTHM+2)
       DIMENSION UTY(4,NTHM+2),UTY0(NTHM+2)
       DIMENSION TX1(NPM+2),TY1(NPM+2),DF1(NPM+2)
       DIMENSION UTY1(4,NPM+2),UTY10(NPM+2)
-      DIMENSION PHYM(-1:LNM,N),PSYM(-1:LNM,N)
-      DIMENSION D1PSYM(-1:LNM,N)
-      DIMENSION PSYG(-1:LNM,N)
-      DIMENSION D1PHYG(-1:LNM,N),D1PSYG(-1:LNM,N),D2PSYG(-1:LNM,N)
+      DIMENSION PHYM(N,-1:LNM),PSYM(N,-1:LNM)
+      DIMENSION D1PSYM(N,-1:LNM)
+      DIMENSION PSYG(N,-1:LNM)
+      DIMENSION D1PHYG(N,-1:LNM),D1PSYG(N,-1:LNM),D2PSYG(N,-1:LNM)
 C
 C     additional definition
       AMFD=PA(NS)*AMP
@@ -48,49 +50,73 @@ C     end of additional definition
       LLMIN=0
 
       DO NTH=1,NTHMAX
-         CALL DPLEG(COSM(NTH),LLMAX,PLM(0,NTH),IER)
-         PLM(-1,NTH)=0.D0
+         CALL DPLEG(COSM(NTH),LLMAX,PLTEMP,IER)
+         DO L=0,LLMAX
+            PLM(NTH,L)=PLTEMP(L)
+         ENDDO
+         PLM(NTH,-1)=0.D0
       END DO
 
       DO NTH=1,NTHMAX+1
-         CALL DPLEG(COSG(NTH),LLMAX,PLG(0,NTH),IER)
-         PLG(-1,NTH)=0.D0
+         CALL DPLEG(COSG(NTH),LLMAX,PLTEMP,IER)
+         DO L=0,LLMAX
+            PLG(NTH,L)=PLTEMP(L)
+         ENDDO
+         PLG(NTH,-1)=0.D0
       END DO
 
       DO L=LLMIN,LLMAX
          DO NTH=1,NTHMAX
-            D1PLM(L,NTH)=L/SINM(NTH)*(COSM(NTH)*PLM(L,NTH)-PLM(L-1,NTH))
-C     D2PLM(L,NTH)=-(L/(SINM(NTH)**2)+L**2)*PLM(L,NTH)
-C     &              +L*COSM(NTH)/(SINM(NTH)**2)*PLM(L-1,NTH) 
+            D1PLM(NTH,L)=L/SINM(NTH)*(COSM(NTH)*PLM(NTH,L)-PLM(NTH,L-1))
+C     D2PLM(NTH,L)=-(L/(SINM(NTH)**2)+L**2)*PLM(NTH,L)
+C     &              +L*COSM(NTH)/(SINM(NTH)**2)*PLM(NTH,L-1) 
          END DO
       END DO
 
       DO L=LLMIN,LLMAX
          NTH=1 
-         D1PLG(L,NTH)=0.D0
-         D2PLG(L,NTH)=0.D0
+         D1PLG(NTH,L)=0.D0
+         D2PLG(NTH,L)=-0.5D0*L*(L+1)
       END DO
       DO L=LLMIN,LLMAX
          NTH=NTHMAX+1 
-         D1PLG(L,NTH)=0.D0
-         D2PLG(L,NTH)=0.D0
+         D1PLG(NTH,L)=0.D0
+         D2PLG(NTH,L)=-0.5D0*L*(L+1)*(-1)**L
       END DO
 
       DO L=LLMIN,LLMAX
          DO NTH=2,NTHMAX
-            D1PLG(L,NTH)=L/SING(NTH)*(COSG(NTH)*PLG(L,NTH)-PLG(L-1,NTH))
-            D2PLG(L,NTH)=-(L/(SING(NTH)**2)+L**2)*PLG(L,NTH)
-     &           +L*COSG(NTH)/(SING(NTH)**2)*PLG(L-1,NTH) 
+            D1PLG(NTH,L)=L/SING(NTH)*(COSG(NTH)*PLG(NTH,L)-PLG(NTH,L-1))
+            D2PLG(NTH,L)=-(L/(SING(NTH)**2)+L**2)*PLG(NTH,L)
+     &           +L*COSG(NTH)/(SING(NTH)**2)*PLG(NTH,L-1) 
          END DO
       END DO
 
-      DO NP=1,NPMAX
-         DO L=LLMIN,LLMAX
+c$$$!     plot of Legendre polynomials and their derivatives
+c$$$      CALL PAGES
+c$$$      CALL GRD1D(0,thm,plm,M,NTHMAX,LLMAX+2,'@PLM:@',0)
+c$$$      CALL PAGEE
+c$$$      CALL PAGES
+c$$$      CALL GRD1D(0,thm,d1plm,M,NTHMAX,LLMAX+2,'@D1PLM:@',0)
+c$$$      CALL PAGEE
+c$$$C
+c$$$      CALL PAGES
+c$$$      CALL GRD1D(0,thg,plg,M,NTHMAX+1,LLMAX+2,'@PLG:@',0)
+c$$$      CALL PAGEE
+c$$$      CALL PAGES
+c$$$      CALL GRD1D(0,thg,d1plg,M,NTHMAX+1,LLMAX+2,'@D1PLG:@',0)
+c$$$      CALL PAGEE
+c$$$      CALL PAGES
+c$$$      CALL GRD1D(0,thg,d2plg,M,NTHMAX+1,LLMAX+2,'@D2PLG:@',0)
+c$$$      CALL PAGEE
+
+      DO L=LLMIN,LLMAX
+         DO NP=1,NPMAX
             TX(1)=0.D0
             TY(1)=0.D0
             DO NTH=1,NTHMAX
                TX(NTH+1)=THM(NTH)
-               TY(NTH+1)=FNS(NTH,NP,NR,NS)*PLM(L,NTH)*SINM(NTH)
+               TY(NTH+1)=FNS(NTH,NP,NR,NS)*PLM(NTH,L)*SINM(NTH)
             END DO
             TX(NTHMAX+2)=PI
             TY(NTHMAX+2)=0.D0
@@ -101,9 +127,14 @@ C     CALL SPLC(TX,NTHMAX+2,TY,DF,IOPT,TEMP,NTHM+2,IER)
      
             CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
             CALL SPL1DI(PI,SUM1,TX,UTY,UTY0,NTHMAX+2,IER)
-            FPL(L,NP)=0.5D0*(2*L+1.D0)*SUM1
+            FPL(NP,L)=0.5D0*(2*L+1.D0)*SUM1
          END DO
       END DO
+
+      CALL PAGES
+      CALL GRD1D(0,pm,fpl,N,NPMAX,LLMAX+2,'@FPL:@',0)
+      CALL PAGEE
+
 C     \hat{M}_l calculation 
       DO L=LLMIN,LLMAX
          TX1(1)=0.D0
@@ -111,7 +142,7 @@ C     \hat{M}_l calculation
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             TX1(NNP+1)=PM(NNP)
-            TY1(NNP+1)=FPL(L,NNP)*(PM(NNP)**(1-L))*RGAMB**(1+L)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(1-L))*RGAMB**(1+L)
          END DO
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
@@ -128,7 +159,7 @@ C     \hat{M}_l calculation
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM1M(L,NP)=PSUM-SUM2
+            RM1M(NP,L)=PSUM-SUM2
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
@@ -137,10 +168,15 @@ C     \hat{M}_l calculation
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM1G(L,NPG)=PSUM-SUM3
+            RM1G(NPG,L)=PSUM-SUM3
          END DO
       END DO
 C     End of \hat{M}_l calc
+
+      CALL PAGES
+      CALL GRD1D(0,pg,rm1g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
+      CALL PAGEE
+
 C     calc of N_l  
       DO L=LLMIN,LLMAX
          TX1(1)=0.D0
@@ -148,7 +184,7 @@ C     calc of N_l
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             TX1(NNP+1)=PM(NNP)
-            TY1(NNP+1)=FPL(L,NNP)*(PM(NNP)**(2+L))*RGAMB**(-L)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+L))*RGAMB**(-L)
          END DO
          DF1(1)   = 0.D0
          DF1(NPMAX+2)   = 0.D0
@@ -162,7 +198,7 @@ C     calc of N_l
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM2M(L,NP)=SUM4
+            RM2M(NP,L)=SUM4
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
@@ -171,10 +207,15 @@ C     calc of N_l
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM2G(L,NPG)=SUM5
+            RM2G(NPG,L)=SUM5
          END DO
       END DO
 C     end of N_l calc  
+
+      CALL PAGES
+      CALL GRD1D(0,pg,rm2g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
+      CALL PAGEE
+
 C     calc of hat{M}_l^+ 
       DO L=LLMIN,LLMAX
          TX1(1)=0.D0
@@ -182,7 +223,7 @@ C     calc of hat{M}_l^+
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             TX1(NNP+1)=PM(NNP)
-            TY1(NNP+1)=FPL(L,NNP)*(PM(NNP)**(3-L))*RGAMB**(L-1)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(3-L))*RGAMB**(L-1)
          END DO
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
@@ -199,7 +240,7 @@ C     calc of hat{M}_l^+
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             CALL SPL1DI(PCRIT,SUM6,TX1,UTY1,UTY10,NPMAX+2,IER)
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            RM3M(L,NP)=PSUM-SUM6
+            RM3M(NP,L)=PSUM-SUM6
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
@@ -208,10 +249,15 @@ C     calc of hat{M}_l^+
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM7,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM3G(L,NPG)=PSUM-SUM7
+            RM3G(NPG,L)=PSUM-SUM7
          END DO
       END DO
 C     end of hat{M}_l^+
+
+      CALL PAGES
+      CALL GRD1D(0,pg,rm3g,N,NPMAX+1,LLMAX+2,'@RM3G:@',0)
+      CALL PAGEE
+
 C     calc of hat{N}_l^+    
       DO L=LLMIN,LLMAX
          TX1(1)=0.D0
@@ -219,7 +265,7 @@ C     calc of hat{N}_l^+
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             TX1(NNP+1)=PM(NNP)
-            TY1(NNP+1)=FPL(L,NNP)*(PM(NNP)**(4+L))*RGAMB**(-L-2)
+            TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(4+L))*RGAMB**(-L-2)
          END DO
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
@@ -235,7 +281,7 @@ C     calc of hat{N}_l^+
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM8,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM4M(L,NP)=SUM8
+            RM4M(NP,L)=SUM8
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
@@ -244,50 +290,58 @@ C     calc of hat{N}_l^+
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.gt.PMAX) PCRIT=PMAX
             CALL SPL1DI(PCRIT,SUM9,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM4G(L,NPG)=SUM9
+            RM4G(NPG,L)=SUM9
          END DO
       END DO
 C     end of hat{N}_l^+
+
+      CALL PAGES
+      CALL GRD1D(0,pg,rm4g,N,NPMAX+1,LLMAX+2,'@RM4G:@',0)
+      CALL PAGEE
+
       DO L=LLMIN,LLMAX
          DO NP=1,NPMAX
             RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
             pabar=PTFP0/(AMFP*RGAMA)
             pbbar=PTFD0/AMFD
-            PHYM(L,NP)=-1.D0/(2*L+1)*((PM(NP)**(-L-1))*RM2M(L,NP)
-     &           *pabar**(-L-1)*pbbar**L
-     &           +(PM(NP)**L*RM1M(L,NP))*pabar**L*pbbar**(-L-1) )
+            pmbar=PM(NP)*pabar/pbbar
+            PHYM(NP,L)=-1.D0/(2*L+1)
+     &               *((pmbar**(-L-1))*RM2M(NP,L)
+     &                +(pmbar**L      *RM1M(NP,L)))/pbbar
 
-            PSYM(L,NP)=-0.5D0/(2*L+1)*(
-     &              1.D0/(2*L+3)*((PM(NP)**(-L-1))*RM4M(L,NP)
-     &           *pabar**(-L-1)*pbbar**(L+2)
-     &                           +(PM(NP)**( L+2))*RM1M(L,NP)
-     &           *pabar**(L+2)*pbbar**(-L-1))
-     &             -1.D0/(2*L-1)*((PM(NP)**(-L+1))*RM2M(L,NP)
-     &           *pabar**(-L+1)*pbbar**(L)
-     &                              +(PM(NP)**L  )*RM3M(L,NP)
-     &           *pabar**(L)*pbbar**(-L+1)))
+            PSYM(NP,L)=-0.5D0/(2*L+1)
+     &               *(1.D0/(2*L+3)*((pmbar**(-L-1))*RM4M(NP,L)
+     &                              +(pmbar**( L+2))*RM1M(NP,L))
+     &                -1.D0/(2*L-1)*((pmbar**(-L+1))*RM2M(NP,L)
+     &                              +(pmbar**L     )*RM3M(NP,L)))
+     &               *pbbar
 
-            D1PSYM(L,NP)=-0.5D0/(2*L+1)*(
-     &          1.D0/(2*L+3)*( (L+2)*(PM(NP)**(L+1))*RM1M(L,NP)
-     &           *pabar**(L+1)*pbbar**(-L-1)
-     &                       -(L+1)*(PM(NP)**(-L-2))*RM4M(L,NP)
-     &           *pabar**(-L-2)*pbbar**(L+2))
-     &         -1.D0/(2*L-1)*( L   *(PM(NP)**( L-1))*RM3M(L,NP)
-     &           *pabar**(L-1)*pbbar**(-L+1)
-     &                       -(L-1)*(PM(NP)**(-L  ))*RM2M(L,NP)
-     &           *pabar**(-L)*pbbar**(L)))*pabar
-     &           *RGAMA**(-2)
+            D1PSYM(NP,L)=-0.5D0/(2*L+1)
+     &               *(1.D0/(2*L+3)*( (L+2)*(pmbar**( L+1))*RM1M(NP,L)
+     &                               -(L+1)*(pmbar**(-L-2))*RM4M(NP,L))
+     &                -1.D0/(2*L-1)*(  L   *(pmbar**( L-1))*RM3M(NP,L)
+     &                               -(L-1)*(pmbar**(-L  ))*RM2M(NP,L)))
+     &               *pabar/RGAMA**2
          END DO
       END DO
 
+      CALL PAGES
+      CALL GRD1D(0,pm,phym,N,NPMAX,LLMAX+2,'@PHYM:@',0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(0,pm,psym,N,NPMAX,LLMAX+2,'@PSYM:@',0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(0,pm,d1psym,N,NPMAX,LLMAX+2,'@D1PSYM:@',0)
+      CALL PAGEE
 C
       DO 182 L=LLMIN,LLMAX
         NP=1
-C        PHYG(L,NP)=0.D0
-        PSYG(L,NP)=0.D0
-        D1PHYG(L,NP)=0.D0
-        D1PSYG(L,NP)=0.D0
-        D2PSYG(L,NP)=0.D0
+C        PHYG(NP,L)=0.D0
+        PSYG(NP,L)=0.D0
+        D1PHYG(NP,L)=0.D0
+        D1PSYG(NP,L)=0.D0
+        D2PSYG(NP,L)=0.D0
   182 CONTINUE
 C
       DO L=LLMIN,LLMAX
@@ -295,46 +349,47 @@ C
             RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
             pabar=PTFP0/(AMFP*RGAMA)
             pbbar=PTFD0/AMFD
-            PSYG(L,NP)=-0.5D0/(2*L+1)*(
-     &           1.D0/(2*L+3)*((PG(NP)**(-L-1))*RM4G(L,NP)
-     &           *pabar**(-L-1)*pbbar**(L+2)
-     &           +(PG(NP)**( L+2))*RM1G(L,NP)
-     &           *pabar**(L+2)*pbbar**(-L-1))
-     &           -1.D0/(2*L-1)*( (PG(NP)**(-L+1))*RM2G(L,NP)
-     &           *pabar**(-L+1)*pbbar**(L)
-     &           +(PG(NP)**  L   )*RM3G(L,NP)
-     &           *pabar**(L)*pbbar**(-L+1) ) )
+            pgbar=PG(NP)*pabar/pbbar
+            PSYG(NP,L)=-0.5D0/(2*L+1)
+     &           *(1.D0/(2*L+3)*((pgbar**(-L-1))*RM4G(NP,L)
+     &                          +(pgbar**( L+2))*RM1G(NP,L))
+     &            -1.D0/(2*L-1)*((pgbar**(-L+1))*RM2G(NP,L)
+     &                          +(pgbar**  L   )*RM3G(NP,L)))
+     &           *pbbar
 
-            D1PHYG(L,NP)=-1.D0/(2*L+1)*(L   *(PG(NP)**(L-1))*RM1G(L,NP)
-     &           *pabar**(L-1)*pbbar**(-L-1)
-     &           -(L+1)*(PG(NP)**(-L-2))*RM2G(L,NP)
-     &           *pabar**(-L-2)*pbbar**(L) )*pabar
-     &          /RGAMA**2
+            D1PHYG(NP,L)=-1.D0/(2*L+1)
+     &           *(  L   *(pgbar**( L-1))*RM1G(NP,L)
+     &             -(L+1)*(pgbar**(-L-2))*RM2G(NP,L))
+     &           *pabar/(pbbar**2*RGAMA**2)
 
-            D1PSYG(L,NP)=-0.5D0/(2*L+1)*(
-     &           1.D0/(2*L+3)*( (L+2)*(PG(NP)**( L+1))*RM1G(L,NP)
-     &           *pabar**(L+1)*pbbar**(-L-1)
-     &           -(L+1)*(PG(NP)**(-L-2))*RM4G(L,NP)
-     &           *pabar**(-L-2)*pbbar**(L+2) )
-     &           -1.D0/(2*L-1)*( L   *(PG(NP)**( L-1))*RM3G(L,NP)
-     &           *pabar**(L-1)*pbbar**(-L+1)
-     &           -(L-1)*(PG(NP)**(-L  ))*RM2G(L,NP)
-     &           *pabar**(-L)*pbbar**(L) ) )*pabar
-     &           *RGAMA**(-2)
+            D1PSYG(NP,L)=-0.5D0/(2*L+1)
+     &           *(1.D0/(2*L+3)*( (L+2)*(pgbar**( L+1))*RM1G(NP,L)
+     &                           -(L+1)*(pgbar**(-L-2))*RM4G(NP,L))
+     &            -1.D0/(2*L-1)*(  L   *(pgbar**( L-1))*RM3G(NP,L)
+     &                           -(L-1)*(pgbar**(-L  ))*RM2G(NP,L)))
+     &           *pabar/RGAMA**2
 
-            D2PSYG(L,NP)=-0.5D0/(2*L+1)*(
-     &           DBLE(L+1)*(L+2)/(2*L+3)*( (PG(NP)**(-L-3))*RM4G(L,NP)
-     &           *pabar**(-L-3)*pbbar**(L+2)
-     &           +(PG(NP)**  L   )*RM1G(L,NP)
-     &           *pabar**(L)*pbbar**(-L-1) )
-     &           -DBLE(L  )*(L-1)/(2*L-1)*( (PG(NP)**(-L-1))*RM2G(L,NP)
-     &           *pabar**(-L-1)*pbbar**(L)
-     &           +(PG(NP)**( L-2))*RM3G(L,NP)
-     &           *pabar**(L-2)*pbbar**(-L+1) ) )*(pabar)**2
-     &           /RGAMA**4
+            D2PSYG(NP,L)=-0.5D0/(2*L+1)
+     &           *(DBLE(L+1)*(L+2)/(2*L+3)*((pgbar**(-L-3))*RM4G(NP,L)
+     &                                     +(pgbar**  L   )*RM1G(NP,L))
+     &            -DBLE(L  )*(L-1)/(2*L-1)*((pgbar**(-L-1))*RM2G(NP,L)
+     &                                     +(pgbar**( L-2))*RM3G(NP,L)))
+     &           *(pabar)**2/(pbbar*RGAMA**4)
          END DO
       END DO
 
+      CALL PAGES
+      CALL GRD1D(0,pg,psyg,N,NPMAX+1,LLMAX+2,'@PSYG:@',0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(0,pg,d1phyg,N,NPMAX+1,LLMAX+2,'@D1PHYG:@',0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(0,pg,d1psyg,N,NPMAX+1,LLMAX+2,'@D1PSYG:@',0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(0,pg,d2psyg,N,NPMAX+1,LLMAX+2,'@D2PSYG:@',0)
+      CALL PAGEE
 C   
 C*************************************************
 C*****        KAKUSAN KEISU NO KEISAN        *****
@@ -351,7 +406,7 @@ C
          DO NTH=1,NTHMAX
             WA=0 
             DO L=L0MIN,L0MAX
-               WA=WA+D2PSYG(L,NP)*PLM(L,NTH) 
+               WA=WA+D2PSYG(NP,L)*PLM(NTH,L) 
             END DO
             DCPP(NTH,NP,NR)=FACT*WA*AMFP/PTFP0/(RGAMA2)**6
          END DO
@@ -364,8 +419,8 @@ C      RNUL=RNUD(NR,NS)
          DO NTH=1,NTHMAX+1
             WB=0 
             DO L=L0MIN,L0MAX
-               WB=WB+( 1.D0/PM(NP)*D1PSYM(L,NP)*PLG(L,NTH)
-     &              +1.D0/(PM(NP)**2)*PSYM(L,NP)*D2PLG(L,NTH) ) 
+               WB=WB+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*PLG(NTH,L)
+     &              +  1.D0/(PM(NP)**2)*PSYM(NP,L)*D2PLG(NTH,L) ) 
             END DO
             DCTT(NTH,NP,NR)=FACT*WB*AMFP/PTFP0/(RGAMA2)**6
 C            DCTT(NTH,NP,NR)=FACT*WB 
@@ -380,7 +435,7 @@ C
             WC=0
             WCTEST=0
             DO L=L0MIN,L0MAX
-               WC=WC+D1PHYG(L,NP)*PLM(L,NTH)
+               WC=WC+D1PHYG(NP,L)*PLM(NTH,L)
             END DO
             FCPP(NTH,NP,NR)=FACT2*WC*PTFP0/AMFD/(RGAMA2)**3
          END DO
@@ -392,7 +447,7 @@ C
          DO NTH=1,NTHMAX+1
             WD=0
             DO L=L0MIN,L0MAX
-               WD=WD+1.D0/PM(NP)*PHYM(L,NP)*D1PLG(L,NTH)
+               WD=WD+1.D0/PM(NP)*PHYM(NP,L)*D1PLG(NTH,L)
             END DO
             FCTH(NTH,NP,NR)=FACT2*WD*PTFP0/AMFD/(RGAMA2)**3
          END DO
@@ -409,8 +464,8 @@ C
          DO NTH=1,NTHMAX
             WE=0
             DO L=L0MIN,L0MAX
-               WE=WE+( 1.D0/PG(NP)*D1PSYG(L,NP)*D1PLM(L,NTH)
-     &              -1.D0/(PG(NP)**2)*PSYG(L,NP)*D1PLM(L,NTH) )
+               WE=WE+( 1.D0/ PG(NP)    *D1PSYG(NP,L)*D1PLM(NTH,L)
+     &                -1.D0/(PG(NP)**2)*PSYG(NP,L)  *D1PLM(NTH,L) )
             END DO
             DCPT(NTH,NP,NR)=FACT*WE*AMFP/PTFP0/(RGAMA2)**6
          END DO
@@ -422,8 +477,8 @@ C
          DO NTH=1,NTHMAX+1
             WF=0
             DO L=L0MIN,L0MAX
-               WF=WF+( 1.D0/PM(NP)*D1PSYM(L,NP)*D1PLG(L,NTH)
-     &              -1.D0/(PM(NP)**2)*PSYM(L,NP)*D1PLG(L,NTH) )
+               WF=WF+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*D1PLG(NTH,L)
+     &                -1.D0/(PM(NP)**2)*PSYM(NP,L)  *D1PLG(NTH,L) )
             END DO
             DCTP(NTH,NP,NR)=FACT*WF*AMFP/PTFP0/(RGAMA2)**6
          END DO
@@ -441,10 +496,10 @@ C
      &      DCPPLL, FCPPLL,
      &      (FCPPLL/DCPPLL/PNFP*RGAMA),PCRIT
 C     &      PNFP/RGAMA,
-C     &      (D1PHYG(0,NP)+D1PHYG(0,NP))/AMFD/
-C     &        (D2PSYG(0,NP)+D2PSYG(0,NP))/PNFP*RGAMA**(-2)
-C     &        RM1G(0,NP),RM2G(0,NP),RM3G(0,NP),RM4G(0,NP),PCRIT
-C     &        RM2G(0,NP)/RM4G(0,NP)*AMFD/PTFD0
+C     &      (D1PHYG(NP,0)+D1PHYG(NP,0))/AMFD/
+C     &        (D2PSYG(NP,0)+D2PSYG(NP,0))/PNFP*RGAMA**(-2)
+C     &        RM1G(NP,0),RM2G(NP,0),RM3G(NP,0),RM4G(NP,0),PCRIT
+C     &        RM2G(NP,0)/RM4G(NP,0)*AMFD/PTFD0
       END DO
 
       IF (MODELA.EQ.1) THEN
