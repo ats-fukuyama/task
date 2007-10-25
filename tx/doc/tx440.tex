@@ -94,6 +94,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \def\fei{f_\r{ei}}
 \def\nbrp{n_\r{b}^\r{rp}}
 \def\Pbpara{P_{\r{b}\parallel}}
+\def\Pbperp{P_{\r{b}\perp}}
 \def\nueff{\nu_\r{eff}}
 \def\ubrp{u_\r{b}^\r{rp}}
 \def\Dbrp{D_\r{b}^\r{rp}}
@@ -129,7 +130,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V4.40 [07/10/18]
+TASK/TX V4.42 [07/10/24]
 \end{center}
 
 \section{Equations in $r$ coordinates}
@@ -145,7 +146,7 @@ TASK/TX V4.40 [07/10/18]
 %
   + \frac{1}{\epsilon_0}
 %
-    \left(-e \ne + \Zi e \ni + \Zb e \nb + \Zb e \nbrp \right)
+    \left(-e \ne + \Zi e \ni + \Zb e \nb + \Zb e g \nbrp \right)
 \\[5mm]
 %
 % r \Athd
@@ -369,7 +370,7 @@ TASK/TX V4.40 [07/10/18]
 %
   + \nub \nb
 %
-  + \nub \nbrp
+  + \nub g \nbrp
 %
   - \fCX \frac{\Pb}{\Eb}
 %
@@ -552,13 +553,13 @@ TASK/TX V4.40 [07/10/18]
 %
   \ddt \nb &=&
 %
-    \frac{\Pb}{\Eb}
+    \frac{\Pbpara}{\Eb}
 %
   - \nub \nb
 %
-  - \nueff (\sqrt{\delta}\nb - \nbrp)
+  - \nueff g (\sqrt{2\delta} \nb - \nbrp)
 %
-  + \frac{1}{r} \ddr r f_t \Dbrp \ddr \nb
+  + \frac{1}{r} \ddr r f_t g \Dbrp \ddr \nb
 \\[5mm]
 %
 % \nb \ubth 
@@ -580,7 +581,7 @@ TASK/TX V4.40 [07/10/18]
 %
   - \nuCX \nb \ubth
 %
-  + \frac{1}{r} \ddr r \ubth f_t \Dbrp \ddr \nb
+  + \frac{1}{r} \ddr r \ubth f_t g \Dbrp \ddr \nb
 \\[5mm]
 %
 % \nb  \ubph
@@ -602,7 +603,7 @@ TASK/TX V4.40 [07/10/18]
 %
   + \vb \frac{\Pbpara}{\Eb}
 %
-  + \frac{1}{r} \ddr r \ubth f_t \Dbrp \ddr \nb
+  + \frac{1}{r} \ddr r \ubph f_t g \Dbrp \ddr \nb
 \\[5mm]
 %
 % \nna
@@ -635,9 +636,11 @@ TASK/TX V4.40 [07/10/18]
 %
   \ddt \nbrp &=&
 %
+    \frac{\Pbperp}{\Eb}
+%
   - \frac{1}{r} \ddr \left( r \ubrp \nbrp - r \Dbrp \ddr \nbrp \right)
 %
-  + \nueff (\sqrt{\delta} \nb - \nbrp)
+  + \nueff (\sqrt{2\delta} \nb - \nbrp)
 %
   - \nub \nbrp
 %
@@ -700,7 +703,7 @@ TASK/TX V4.40 [07/10/18]
 %
   + \frac{1}{\epsilon_0}
 %
-    \left(-e \ne + \Zi e \ni + \Zb e \nb + \Zb e \nbrp \right)
+    \left(-e \ne + \Zi e \ni + \Zb e \nb + \Zb e g \nbrp \right)
 \\[5mm]
 %
 % r \Athd
@@ -915,7 +918,7 @@ TASK/TX V4.40 [07/10/18]
 %
   + \nub \nb
 %
-  + \nub \nbrp
+  + \nub g \nbrp
 %
   - \fCX \frac{\Pb}{\Eb}
 %
@@ -1087,13 +1090,13 @@ TASK/TX V4.40 [07/10/18]
 %
   \ddt \nb &=&
 %
-    \frac{\Pb}{\Eb}
+    \frac{\Pbpara}{\Eb}
 %
   - \nub \nb
 %
-  - \nueff (\sqrt{\delta}\nb - \nbrp)
+  - \nueff g (\sqrt{2\delta}\nb - \nbrp)
 %
-  + 4 \dds s f_t \Dbrp \dds \nb
+  + 4 \dds s f_t g \Dbrp \dds \nb
 \\[5mm]
 %
 % r \nb \ubth 
@@ -1115,9 +1118,9 @@ TASK/TX V4.40 [07/10/18]
 %
   - \nuCX r \nb \ubth
 %
-  + 4 \dds s f_t \Dbrp \dds r \nb \ubth
+  + 4 \dds s f_t g \Dbrp \dds r \nb \ubth
 %
-  - 4 \dds s f_t \Dbrp \dd{r\ubth} \nb
+  - 4 \dds s f_t g \Dbrp \dd{r\ubth} \nb
 \\[5mm]
 %
 % \nb \ubph
@@ -1139,9 +1142,9 @@ TASK/TX V4.40 [07/10/18]
 %
   + \vb \frac{\Pbpara}{\Eb}
 %
-  + 4 \dds s f_t \Dbrp \dds r \nb \ubph
+  + 4 \dds s f_t g \Dbrp \dds r \nb \ubph
 %
-  - 4 \dds s f_t \Dbrp \dd{r\ubph} \nb
+  - 4 \dds s f_t g \Dbrp \dd{r\ubph} \nb
 \\[5mm]
 %
 % \nna
@@ -1175,9 +1178,11 @@ TASK/TX V4.40 [07/10/18]
 %
   \ddt \nbrp &=&
 %
+    \frac{\Pbperp}{\Eb}
+%
   - 2 \dds r \ubrp \nbrp + 4 \dds s \Dbrp \dds \nbrp
 %
-  + \nueff (\sqrt{\delta} \nb - \nbrp)
+  + \nueff (\sqrt{2\delta} \nb - \nbrp)
 %
   - \nub \nbrp
 %

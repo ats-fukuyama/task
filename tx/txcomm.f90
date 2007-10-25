@@ -118,8 +118,8 @@ module commons
   real(8), dimension(0:NRM) :: rG1h2, FCDBM, S, Alpha, rKappa
 
   ! Sources and sinks
-  real(8), dimension(0:NRM) :: PNB, PNBPD, PNBcol_e, PNBcol_i, PNBTG, SNB, MNB, &
-       &                       PNBe, PNBi, PRFe, PRFi, &
+  real(8), dimension(0:NRM) :: PNB, PNBPD, PNBcol_e, PNBcol_i, PNBTG, SNB, SNBTG, SNBPD, &
+       &                       MNB, PNBe, PNBi, PRFe, PRFi, &
        &                       POH, POHe, POHi, PEQe, PEQi, SiLC, SiLCth, SiLCph, RUiloss
   real(8), dimension(0:NRM) :: PIE, PCX, SIE, PBr
   real(8) :: RatCX

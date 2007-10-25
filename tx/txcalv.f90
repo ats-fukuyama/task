@@ -155,7 +155,7 @@ contains
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, dErL !&
+         &     RLOSS, SQZ, rNuDL, dErL, xl !&
 !!         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
@@ -492,14 +492,15 @@ contains
           ! deflection time of beam ions against bulk ions
           ! (Takamura (3.26) + Tokamaks 3rd p64)
           ! ** rNuD is similar to rNubi. **
+          xl = Vb / Vti
           rNuD(NR) = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 * rlnLi(NR) &
                &   / (2.D0 * PI * EPS0**2 * AMB**2 * Vb**3) &
-               &   * (0.5D0 * Vb * (  2.D0 / (Vb + 0.5D0 * SQRT(PI) * Vti) &
-               &                    - Vti**2 / (Vb**3 + 0.75D0 * SQRT(PI) * Vti**3)))
+               &   * (  SQRT(1.D0 - EXP(- 4.D0 * xl**2 / PI)) &
+               &      - 2.D0 * xl / (4.D0 * xl**3 + 3.D0 * SQRT(PI)))
           ! effective time of detrapping (Takamura (5.31))
-          IF(DltRP(NR) /= 0.D0) THEN
-             rNubrp1(NR) = FSRP * rNuD(NR) / DltRP(NR)
-             rNubrp2(NR) = FSRP * rNuD(NR) / SQRT(DltRP(NR))! * SQRT(2.D0)
+          IF(ABS(FSRP) > 0.D0 .AND. DltRP(NR) /= 0.D0) THEN
+             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
+             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * DltRP(NR))
           ELSE
              rNubrp1(NR) = 0.D0
              rNubrp2(NR) = 0.D0
@@ -512,20 +513,6 @@ contains
 !!!          rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
 !!          rNuB (NR) = rNube(NR) + rNubi(NR)
        END IF
-!!$       IF(ABS(PNbV(NR)) < 1.D-6) THEN
-!!$          rNube(NR) = 0.D0
-!!$          rNubi(NR) = 0.D0
-!!$          rNuB (NR) = 0.D0
-!!$       ELSE
-!!$          rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 * rlnLe(NR) &
-!!$               &     / (3.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * AMB * AME &
-!!$               &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
-!!$          rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 * rlnLi(NR) &
-!!$               &     / (4.D0 * PI * EPS0**2 * AMB) &
-!!$               &     * (1.D0 / AMB + 1.D0 / AMI) &
-!!$               &     * 1.D0 / ( ABS(UbphV(NR))**3 + 3.D0 * SQRT(PI) / 4.D0 * Vti**1.5D0)
-!!$          rNuB (NR) = rNube(NR) * 3.D0 / LOG(1.D0 + (Vb / Vcr)**3)
-!!$       END IF
 
        !     *** Helical neoclassical viscosity ***
 
@@ -615,7 +602,7 @@ contains
           END IF
 !!$          DeL = FSDFIX * PROFDDL + FSCDBM * DCDBM
        END IF
-       DeL = 1.D0
+!       DeL = 1.D0
        ! Particle diffusivity
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
@@ -677,8 +664,11 @@ contains
           PNBPD(NR) = PNBP0 * SP0(NR)
           PNBTG(NR) = PNBT10 * SP1(NR) + PNBT20 * SP2(NR)
           PNB(NR)   = PNBPD(NR) + PNBTG(NR)
-          SNB(NR)   = (PNBP0 * SN0(NR) + PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) &
-               &    / (Eb * rKeV * 1.D20)
+!!$          SNB(NR)   = (PNBP0 * SN0(NR) + PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) &
+!!$               &    / (Eb * rKeV * 1.D20)
+          SNBTG(NR) = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
+          SNBPD(NR) = PNBP0 * SN0(NR) / (Eb * rKeV * 1.D20)
+          SNB(NR)   = SNBTG(NR) + SNBPD(NR)
           MNB(NR)   = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
           PRFe(NR)  = PRFe0 * SP3(NR)
           PRFi(NR)  = PRFi0 * SP3(NR)
@@ -709,13 +699,14 @@ contains
 !!$               &             * RL**2 / (1.D0 + RL**2)
           rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
-          Ubpara(NR) = (BphV(NR) * UbphV(NR) + BthV(NR) * UbthV(NR)) / BBL
-          IF(NR == NRMAX) Ubpara(NR) = AITKEN2P(R(NRMAX), &
-               & Ubpara(NRMAX-1),Ubpara(NRMAX-2),Ubpara(NRMAX-3),&
-               & R(NRMAX-1),R(NRMAX-2),R(NRMAX-3))
-          UbparaL = max(Ubpara(NR), FSLP*Cs)
-          rNuLB(NR) = FSRP * UbparaL / (2.D0 * PI * Q(NR) * RR) &
-               &             * RL**2 / (1.D0 + RL**2)
+          IF(ABS(FSRP) > 0.D0) THEN
+             Ubpara(NR) = (BphV(NR) * UbphV(NR) + BthV(NR) * UbthV(NR)) / BBL
+             IF(NR == NRMAX) Ubpara(NR) = AITKEN2P(R(NRMAX), &
+                  & Ubpara(NRMAX-1),Ubpara(NRMAX-2),Ubpara(NRMAX-3),&
+                  & R(NRMAX-1),R(NRMAX-2),R(NRMAX-3))
+             UbparaL = max(Ubpara(NR), FSLP*Cs)
+             rNuLB(NR) = UbparaL / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
+          END IF
        ELSE
           rNuL(NR) = 0.D0
           rNuLTe(NR) = 0.D0
@@ -1019,7 +1010,7 @@ contains
 
           !  Convective loss (the product of the fraction of ripple trapped particle times
           !                   vertical drift velocity)
-          Ubrp(NR) = FSRP * 0.5D0 &
+          Ubrp(NR) = 0.5D0 &
                &*(  0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2)) &
                &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
 !!$          rNubL(NR) = Ubrp(NR) / (R(NR) * sin(theta1))
@@ -1059,10 +1050,11 @@ contains
 !!          rNubnc = SQRT(EpsL) * Vb / (2.D0 * PI * Q(NR) * RR)
           rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * RR)
           ! DCB : confined banana diffusion coefficient
+          ! (V. Ya Goloborod'ko, et al., Physica Scripta T16 (1987) 46)
           DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
           ! DRP : ripple-plateau diffusion coefficient
-!!          DRP = FSRP * rNubnc * DltR2
-          DRP = FSRP * 0.25D0 * DltR2 * rNubnc
+!!          DRP = rNubnc * DltR2
+          DRP = 0.25D0 * DltR2 * rNubnc
 
           ! Collisional ripple well diffusion
 !!$          if (rNueff < rNubnc) then
@@ -1077,7 +1069,9 @@ contains
           ! Collisionless stochastic (ergodic) diffusion (whose value is almost
           ! equivalent to that of ripple-plateau diffusion)
           if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
-!          Dbrp(NR) = 0.D0
+!!$          ! ===============
+!!$          Dbrp(nr) = 0.5D0 * Dbrp(nr)
+!!$          ! ===============
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
     ELSE

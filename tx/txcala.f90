@@ -6,7 +6,8 @@ module coefficients
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
   real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
-       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, RUbthV, &
+       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       &                       RATIORUbthV, RATIOUbphV,&
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        &                       RUbrp, BphBNi, BthBNi, rNubLL, DbrpftNi, Dbrpft, &
@@ -272,7 +273,8 @@ contains
 
 !!$    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
 
-    RUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX)
+    RATIORUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX) * RATIO
+    RATIOUbphV(0:NRMAX) = UbthV(0:NRMAX) * RATIO
     DbrpftNi(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX) / PNiV(0:NRMAX)
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
@@ -927,7 +929,7 @@ contains
        PELM(1:NEMAX,1:4,18,LQe5) = Eb * fem_int(-2,SNB,PNBcol_e)
        NLC(18,LQe5) = 0
 
-       ! Redundant heat convetion term
+       ! Redundant heat convection term
 
        ELM(1:NEMAX,1:4,19,LQe5) = 2.D0 * fem_int(5,RUerV)
        NLC(19,LQe5) = LQe5
@@ -1476,7 +1478,7 @@ contains
        PELM(1:NEMAX,1:4,19,LQi5) = Eb * fem_int(-2,SNB,PNBcol_i)
        NLC(19,LQi5) = 0
 
-       ! Redundant heat convetion term
+       ! Redundant heat convection term
 
        ELM(1:NEMAX,1:4,20,LQi5) = 2.D0 * fem_int(5,RUirV)
        NLC(20,LQi5) = LQi5
@@ -1506,9 +1508,13 @@ contains
     ELM(1:NEMAX,1:4,0,LQb1) = fem_int(1) * invDT
     NLC(0,LQb1) = LQb1
 
-    ! NBI particle source (Both charge exchange and ionization)
+    ! NBI (tangential) particle source (Both charge exchange and ionization)
 
-    PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNB)
+    IF(FSRP /= 0.D0) THEN
+       PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNBTG)
+    ELSE
+       PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNB)
+    END IF
     NLC(1,LQb1) = 0
 
     ! Relaxation to thermal ions
@@ -1534,7 +1540,7 @@ contains
 
     ! Ripple diffusion
 
-    ELM(1:NEMAX,1:4,6,LQb1) = - 4.d0 * fem_int(41,Dbrp,ft)
+    ELM(1:NEMAX,1:4,6,LQb1) = - 4.d0 * fem_int(41,Dbrpft,RATIO)
     NLC(6,LQb1) = LQb1
 
     NLCMAX(LQb1) = 6
@@ -1605,10 +1611,10 @@ contains
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
 
-    ELM(1:NEMAX,1:4,12,LQb3) = - 4.D0 * fem_int(18,Dbrpft)
+    ELM(1:NEMAX,1:4,12,LQb3) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
     NLC(12,LQb3) = LQb3
 
-    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
+    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RATIORUbthV)
     NLC(13,LQb3) = LQb1
 
     ! Ubth(NRMAX) : 0
@@ -1681,10 +1687,10 @@ contains
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
 
-    ELM(1:NEMAX,1:4,10,LQb4) = - 4.D0 * fem_int(18,Dbrpft)
+    ELM(1:NEMAX,1:4,10,LQb4) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
     NLC(10,LQb4) = LQb4
 
-    ELM(1:NEMAX,1:4,11,LQb4) = - 4.D0 * fem_int(45,Dbrpft,UbphV)
+    ELM(1:NEMAX,1:4,11,LQb4) = - 4.D0 * fem_int(45,Dbrpft,RATIOUbphV)
     NLC(11,LQb4) = LQb1
 
     ! Ubphi(NRMAX) : 0
@@ -1793,40 +1799,50 @@ contains
             &               + fem_int_point(8,NE) * coef * invDT
        NLC(0,LQr1) = LQr1
 
+       ! NBI perpendicular particle source (Both charge exchange and ionization)
+       ! (Beam ions from perpendicular NBI have few parallel velocity, hence
+       !  they can be easily trapped by ripple wells.)
+       !  (M.H. Redi, et al., NF 35 (1995) 1191, p.1201 sixth line from the bottom
+       !   at right-hand-side column)
+       
+       PELM(NE,1:4,1,LQr1) =(  fem_int_point(-1,NE,SNBPD) &
+            &                + fem_int_point(-8,NE,SNBPD) * coef) * RpplSW
+       NLC(1,LQr1) = 0
+
        ! Ripple trapped beam ions collision with otherwise beam ions
 
-       ELM(NE,1:4,1,LQr1) =(  fem_int_point(2,NE,rNubrp2) &
+       ELM(NE,1:4,2,LQr1) =(  fem_int_point(2,NE,rNubrp2) &
             &               + fem_int_point(9,NE,rNubrp2) * coef) * RpplSW
-       NLC(1,LQr1) = LQb1
+       NLC(2,LQr1) = LQb1
 
-       ELM(NE,1:4,2,LQr1) =(- fem_int_point(2,NE,rNubrp1) &
+       ELM(NE,1:4,3,LQr1) =(- fem_int_point(2,NE,rNubrp1) &
             &               - fem_int_point(9,NE,rNubrp1) * coef) * RpplSW
-       NLC(2,LQr1) = LQr1
+       NLC(3,LQr1) = LQr1
 
        ! Relaxation to thermal ions
 
-       ELM(NE,1:4,3,LQr1) =(- fem_int_point(2,NE,rNuB) &
+       ELM(NE,1:4,4,LQr1) =(- fem_int_point(2,NE,rNuB) &
             &               - fem_int_point(9,NE,rNuB) * coef) * RpplSW
-       NLC(3,LQr1) = LQr1
+       NLC(4,LQr1) = LQr1
 
        ! Ripple loss transport (convective)
 
-       ELM(NE,1:4,4,LQr1) =(- 2.d0 * fem_int_point( 3,NE,RUbrp) &
+       ELM(NE,1:4,5,LQr1) =(- 2.d0 * fem_int_point( 3,NE,RUbrp) &
             &               - 2.d0 * fem_int_point(10,NE,RUbrp) * coef) * RpplSW
-       NLC(4,LQr1) = LQr1
+       NLC(5,LQr1) = LQr1
 
-!!$       ELM(NE,1:4,4,LQr1) = - fem_int_point(2,NE,rNubL)
-!!$       NLC(4,LQr1) = LQr1
-!!$       PELM(NE,1:4,4,LQr1) = - fem_int_point(-2,NE,rNubL,PNbrpV)
-!!$       NLC(4,LQr1) = 0
+!!$       ELM(NE,1:4,5,LQr1) = - fem_int_point(2,NE,rNubL)
+!!$       NLC(5,LQr1) = LQr1
+!!$       PELM(NE,1:4,5,LQr1) = - fem_int_point(-2,NE,rNubL,PNbrpV)
+!!$       NLC(5,LQr1) = 0
 
        ! Ripple loss transport (diffusive)
 
-       ELM(NE,1:4,5,LQr1) = - 4.d0 * fem_int_point(18,NE,Dbrp) * RpplSW
-       NLC(5,LQr1) = LQr1
+       ELM(NE,1:4,6,LQr1) = - 4.d0 * fem_int_point(18,NE,Dbrp) * RpplSW
+       NLC(6,LQr1) = LQr1
     end do
 
-    NLCMAX(LQr1) = 5
+    NLCMAX(LQr1) = 6
     RETURN
   END SUBROUTINE LQr1CC
 
