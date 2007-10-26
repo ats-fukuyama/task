@@ -152,7 +152,7 @@ contains
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
-         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, &
+         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, Vdrift, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, dErL, xl !&
@@ -284,8 +284,9 @@ contains
          & / SQRT(R(NRA) / RR)
 
     ! Ripple amplitude
-    DltRP(0:NRMAX) = DltRP0 * (  ((RR + R(0:NRMAX)) / (RR + RA))**(NTCOIL-1) &
-         &                     + ((RR - RA) / (RR + R(0:NRMAX)))**(NTCOIL+1) * DIN)
+    DO NR = 0, NRMAX
+       DltRP(NR) = ripple(NR,0.D0,FSRP)
+    END DO
 
     PNbrpLV(0:NRMAX) = 0.D0
 
@@ -669,7 +670,7 @@ contains
           SNBTG(NR) = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
           SNBPD(NR) = PNBP0 * SN0(NR) / (Eb * rKeV * 1.D20)
           SNB(NR)   = SNBTG(NR) + SNBPD(NR)
-          MNB(NR)   = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
+          MNB(NR)   = SNBTG(NR)
           PRFe(NR)  = PRFe0 * SP3(NR)
           PRFi(NR)  = PRFi0 * SP3(NR)
 !!$       ELSE
@@ -955,6 +956,7 @@ contains
 
     !     ***** Ripple loss transport *****
 
+    RATIO(0:NRMAX) = 0.D0
     IF(ABS(FSRP) > 0.D0) THEN
        ! Ripple well region
        DO NR = 1, NRMAX
@@ -970,7 +972,7 @@ contains
                 exit
              end if
              theta1 = theta1 + PI * dlt
-             width0 = ripple(NR,theta1)
+             width0 = ripple(NR,theta1,FSRP)
              width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
              if(abs(width0 - width1) < 1.d-6) exit
              if(width0 < width1) then
@@ -994,7 +996,7 @@ contains
                 exit
              end if
              theta2 = theta2 - PI * dlt
-             width0 = ripple(NR,theta2)
+             width0 = ripple(NR,theta2,FSRP)
              width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
              if(abs(width0 - width1) < 1.d-6) exit
              if(width0 < width1) then
@@ -1008,19 +1010,23 @@ contains
           RATIO(NR) = ARC / (2.d0 * PI)
           th2(nr) = theta2
 
-          !  Convective loss (the product of the fraction of ripple trapped particle times
-          !                   vertical drift velocity)
-          Ubrp(NR) = 0.5D0 &
-               &*(  0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2)) &
-               &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
+          !  Convectitve loss (vertical grad B drift velocity)
+          Vdrift = 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2))
+          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))*Vdrift
+          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))/R(NR)*Vdrift
+!!$          Ubrp(NR) = 0.5D0 * Vdrift
+!!$            &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
+!!$          IF(NR == NRMAX) THEN
+!!$             rNubL(NR) = rNubL(NR-1)
+!!$          ELSE
+!!$             rNubL(NR) = Ubrp(NR) / SQRT(RB**2 - R(NR)**2)
+!!$          END IF
 !!$          rNubL(NR) = Ubrp(NR) / (R(NR) * sin(theta1))
        END DO
 !!$       RV0 = AITKEN2P(R(0),r(1)*(pi-th2(1)),r(1)*th1(1),r(2)*th1(2),-R(1),R(1),R(2))
-!!$       Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
 !!$       rNubL(0) = Ubrp(0) / RV0
-!       Ubrp(0) = 0.5D0 * 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(0)**2 + BthV(0)**2))
-!       Ubrp(0) = 0.D0
        Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
+!       Ubrp(0) = 0.D0
 
 !!$       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
 !!$       do nr = 0, nrmax
@@ -1069,9 +1075,6 @@ contains
           ! Collisionless stochastic (ergodic) diffusion (whose value is almost
           ! equivalent to that of ripple-plateau diffusion)
           if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
-!!$          ! ===============
-!!$          Dbrp(nr) = 0.5D0 * Dbrp(nr)
-!!$          ! ===============
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
     ELSE
@@ -1112,13 +1115,17 @@ contains
 
   end function NBIi_ratio
 
-  pure real(8) function ripple(NR,theta)
+  pure real(8) function ripple(NR,theta,FSRP)
     integer, intent(in) :: NR
-    real(8), intent(in) :: theta
+    real(8), intent(in) :: theta, FSRP
 
-    ripple = DltRP0 * (       ((RR + R(NR) * cos(theta)) / (RR + RA))**(NTCOIL-1) &
-         &             + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
-
+    if(FSRP /= 0.D0) then
+       ripple = DltRP0 * (       ((RR + R(NR) * cos(theta)) / (RR + RA))**(NTCOIL-1) &
+            &             + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
+    else
+       ripple = 0.D0
+    end IF
+       
   end function ripple
 
 !!$  ! Search minimum radial number NR satisfying R(NR) > X.

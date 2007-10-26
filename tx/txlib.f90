@@ -832,7 +832,8 @@ module libraries
   implicit none
   private
   public :: EXPV, APTOS, TOUPPER, TRCOFS, DERIVS, DERIVF, INTDERIV3, &
-       &    LORENTZ, LORENTZ_PART, BISECTION, VALINT_SUB, INTG_F, INTG_P
+       &    LORENTZ, LORENTZ_PART, BISECTION, VALINT_SUB, INTG_F, INTG_P, &
+       &    LORENTZ_NEO, LORENTZ_PART_NEO, BISECTION_NEO
 
   interface APTOS
      module procedure APITOS
@@ -1334,6 +1335,28 @@ contains
 
   END FUNCTION LORENTZ_PART
 
+  pure REAL(8) FUNCTION LORENTZ_NEO(R,C1,C2,W1,W2,RC1,RC2,AMP)
+    real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
+    real(8), intent(in), optional :: AMP
+
+    LORENTZ_NEO = R + C1 * ( W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)) &
+         &          + C2 * ( W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2))
+    if(present(amp)) LORENTZ_NEO = LORENTZ_NEO / AMP
+
+  END FUNCTION LORENTZ_NEO
+
+  pure REAL(8) FUNCTION LORENTZ_PART_NEO(R,W1,W2,RC1,RC2,ID)
+    real(8), intent(in) :: r, w1, w2, rc1, rc2
+    integer, intent(in) :: ID
+
+    IF(ID == 0) THEN
+       LORENTZ_PART_NEO = W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)
+    ELSE
+       LORENTZ_PART_NEO = W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2)
+    END IF
+
+  END FUNCTION LORENTZ_PART_NEO
+
 !***************************************************************
 !
 !   Bisection method for solving the equation
@@ -1383,6 +1406,36 @@ contains
     val = c
 
   END SUBROUTINE BISECTION
+
+  SUBROUTINE BISECTION_NEO(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
+    real(8), external :: f
+    real(8), intent(in) :: cl1, cl2, w1, w2, rc1, rc2, amp, s, valmax
+    real(8), intent(in), optional :: valmin
+    real(8), intent(out) :: val
+    integer :: i, n
+    real(8) :: a, b, c, eps, fa, fc
+
+    if(present(valmin)) then
+       a = valmin
+    else
+       a = 0.d0
+    end if
+    b = valmax
+    eps = 1.d-10
+    n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
+    fa = f(a,cl1,cl2,w1,w2,rc1,rc2,amp) - s
+    do i = 1, n
+       c = 0.5d0 * (a + b)
+       fc = f(c,cl1,cl2,w1,w2,rc1,rc2,amp) - s
+       if(fa * fc < 0.d0) then
+          b = c
+       else
+          a = c
+       end if
+    end do
+    val = c
+
+  END SUBROUTINE BISECTION_NEO
 
 end module libraries
 

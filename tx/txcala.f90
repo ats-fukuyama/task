@@ -7,10 +7,10 @@ module coefficients
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
   real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
-       &                       RATIORUbthV, RATIOUbphV,&
+       &                       RATIORUbthV, RATIOUbphV, &
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       &                       RUbrp, BphBNi, BthBNi, rNubLL, DbrpftNi, Dbrpft, &
+       &                       BphBNi, BthBNi, rNubLL, DbrpftNi, Dbrpft, &
        &                       rNuei1EI, rNuei2EI, rNuei3EI, &
        &                       rNube1BE, rNube2BE, rNube3BE!, ChieNe, ChiiNi
   real(8), dimension(0:NRM) :: UNITY = 1.D0
@@ -184,8 +184,9 @@ contains
     IF(FSRP /= 0.D0) THEN
        CALL BOUNDARY(0    ,LQb3,0)
        CALL BOUNDARY(NRMAX,LQb3,0)
+       CALL BOUNDARY(NRMAX,LQb4,0)
+!       CALL BOUNDARY(0    ,LQr1,0)
     END IF
-    IF(FSRP /= 0.D0) CALL BOUNDARY(NRMAX,LQb4,0)
 
     ! Neumann condition of the continuity equation at the boundary is naturally
     ! imposed through the diffusion term in the pressure equation. However, this
@@ -261,7 +262,6 @@ contains
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
     FWphiBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthi(0:NRMAX)
 
-    RUbrp(0:NRMAX)    = R(0:NRMAX)      * Ubrp(0:NRMAX)
     DO NR = 0, NRMAX
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        BphBNi(NR) = BphV(NR) / (BBL * PNiV(NR))
@@ -273,8 +273,8 @@ contains
 
 !!$    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
 
-    RATIORUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX) * RATIO
-    RATIOUbphV(0:NRMAX) = UbthV(0:NRMAX) * RATIO
+    RATIORUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX) * RATIO(0:NRMAX)
+    RATIOUbphV(0:NRMAX) = UbthV(0:NRMAX) * RATIO(0:NRMAX)
     DbrpftNi(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX) / PNiV(0:NRMAX)
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
@@ -1508,42 +1508,43 @@ contains
     ELM(1:NEMAX,1:4,0,LQb1) = fem_int(1) * invDT
     NLC(0,LQb1) = LQb1
 
-    ! NBI (tangential) particle source (Both charge exchange and ionization)
+    ! NBI particle source (Both charge exchange and ionization)
 
-    IF(FSRP /= 0.D0) THEN
-       PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNBTG)
-    ELSE
-       PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNB)
-    END IF
+    PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNB)
     NLC(1,LQb1) = 0
+
+    ! Extracted NBI perpendicular component
+
+    PELM(1:NEMAX,1:4,2,LQb1) = - fem_int(-2,SNBPD,RATIO)
+    NLC(2,LQb1) = 0
 
     ! Relaxation to thermal ions
 
-    ELM(1:NEMAX,1:4,2,LQb1) = - fem_int(2,rNuB)
-    NLC(2,LQb1) = LQb1
+    ELM(1:NEMAX,1:4,3,LQb1) = - fem_int(2,rNuB)
+    NLC(3,LQb1) = LQb1
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,3,LQb1) = - fem_int(2,rNuLB) * BeamSW
-    NLC(3,LQb1) = LQb1
+    ELM(1:NEMAX,1:4,4,LQb1) = - fem_int(2,rNuLB) * BeamSW
+    NLC(4,LQb1) = LQb1
 
     ! Ripple trapped beam ions collision with otherwise beam ions
 
-    ELM(1:NEMAX,1:4,4,LQb1) = - fem_int(28,rNubrp2,RATIO) * RpplSW
-    NLC(4,LQb1) = LQb1
+    ELM(1:NEMAX,1:4,5,LQb1) = - fem_int(28,rNubrp2,RATIO) * RpplSW
+    NLC(5,LQb1) = LQb1
 
-    ELM(1:NEMAX,1:4,5,LQb1) =   fem_int(28,rNubrp1,RATIO) * RpplSW
-    NLC(5,LQb1) = LQr1
+    ELM(1:NEMAX,1:4,6,LQb1) =   fem_int(28,rNubrp1,RATIO) * RpplSW
+    NLC(6,LQb1) = LQr1
 
-!!$    PELM(1:NEMAX,1:4,5,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
-!!$    NLC(5,LQb1) = 0
+!!$    PELM(1:NEMAX,1:4,6,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
+!!$    NLC(6,LQb1) = 0
 
     ! Ripple diffusion
 
-    ELM(1:NEMAX,1:4,6,LQb1) = - 4.d0 * fem_int(41,Dbrpft,RATIO)
-    NLC(6,LQb1) = LQb1
+    ELM(1:NEMAX,1:4,7,LQb1) = - 4.d0 * fem_int(41,Dbrpft,RATIO)
+    NLC(7,LQb1) = LQb1
 
-    NLCMAX(LQb1) = 6
+    NLCMAX(LQb1) = 7
     RETURN
   END SUBROUTINE LQb1CC
 
@@ -1781,17 +1782,17 @@ contains
   SUBROUTINE LQr1CC
 
     integer :: ne
-    real(8) :: Ubrpl, Dbrpl, peclet, coef
+    real(8) :: RUbrpl, SDbrpl, peclet, coef
 
     do ne = 1, nemax
-       Ubrpl = Ubrp(ne-1) + Ubrp(ne)
-       Dbrpl = Dbrp(ne-1) + Dbrp(ne)
-       if (Ubrpl == 0.d0) then
+       RUbrpl = RUbrp(ne-1) + RUbrp(ne)
+       SDbrpl = Dbrp(ne-1)*S(ne-1) + Dbrp(ne)*S(ne)
+       if (RUbrpl == 0.d0) then
           coef = 0.d0
-       elseif (Dbrpl == 0.d0) then
+       elseif (SDbrpl == 0.d0) then
           coef = 1.d0 / sqrt(15.d0) * hpsi(ne)
        else
-          peclet = 0.5d0 * Ubrpl * hpsi(ne) / Dbrpl
+          peclet = 0.5d0 * RUbrpl * hpsi(ne) / SDbrpl
           coef = 0.5d0 * langevin(peclet) * hpsi(ne)
        end if
 
@@ -1800,8 +1801,8 @@ contains
        NLC(0,LQr1) = LQr1
 
        ! NBI perpendicular particle source (Both charge exchange and ionization)
-       ! (Beam ions from perpendicular NBI have few parallel velocity, hence
-       !  they can be easily trapped by ripple wells.)
+       ! (Beam ions by perpendicular NBI have few parallel velocity, hence
+       !  they can be easily trapped by ripple wells if they go into the ripple well region.)
        !  (M.H. Redi, et al., NF 35 (1995) 1191, p.1201 sixth line from the bottom
        !   at right-hand-side column)
        

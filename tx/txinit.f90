@@ -461,10 +461,11 @@ contains
   SUBROUTINE TXCALM
 
     use physical_constants, only : AMP, EPS0
-    use libraries, only : LORENTZ, LORENTZ_PART, BISECTION
+    use libraries, only : LORENTZ, LORENTZ_PART, BISECTION, &
+         &                LORENTZ_NEO, LORENTZ_PART_NEO, BISECTION_NEO
 
     INTEGER :: NR, NRL, NR_RC_NEAR
-    real(8) :: DR, MAXAMP, CL, WL, RL, RCL, CLNEW
+    real(8) :: DR, MAXAMP, CL, WL, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
 
     !   Ion mass number
     AMI   = PA * AMP
@@ -482,26 +483,45 @@ contains
 
     !  Mesh
 
-!!$    CL  = 4.5D0
-!!$    WL  = 5.D-2
-!!$    MAXAMP = LORENTZ(RB,CL,WL,RC)
+!!$    !  As a trial, generate mesh using given CL and WL and seek the position in the
+!!$    !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
+!!$    CL = CMESH
+!!$    WL = WMESH
+!!$    MAXAMP = LORENTZ(RB,CL,WL,RC) / RB
+!!$    NR_RC_NEAR = 0
 !!$    R(0) = 0.D0
 !!$    DO NR = 1, NRMAX - 1
-!!$       RL = DBLE(NR) / DBLE(NRMAX)
+!!$       RL = DBLE(NR) / DBLE(NRMAX) * RB
 !!$       CALL BISECTION(LORENTZ,CL,WL,RC,MAXAMP,RL,RB,R(NR))
+!!$       IF(ABS(R(NR)-RC) <= ABS(R(NR)-R(NR_RC_NEAR))) NR_RC_NEAR = NR
+!!$    END DO
+!!$    R(NRMAX) = RB
+!!$
+!!$    !  Construct new CL value that separatrix is just on mesh.
+!!$    !  New CL is chosen in order not to be settle so far from given CL.
+!!$    !  The mesh finally obtained is well-defined.
+!!$    RCL = DBLE(NR_RC_NEAR) / DBLE(NRMAX) * RB
+!!$    CLNEW = (RC - RCL) / (RCL * LORENTZ_PART(RB,WL,RC) / RB - LORENTZ_PART(RC,WL,RC))
+!!$    MAXAMP = LORENTZ(RB,CLNEW,WL,RC) / RB
+!!$    R(0) = 0.D0
+!!$    DO NR = 1, NRMAX - 1
+!!$       RL = DBLE(NR) / DBLE(NRMAX) * RB
+!!$       CALL BISECTION(LORENTZ,CLNEW,WL,RC,MAXAMP,RL,RB,R(NR))
 !!$    END DO
 !!$    R(NRMAX) = RB
 
     !  As a trial, generate mesh using given CL and WL and seek the position in the
     !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
-    CL  = CMESH
-    WL  = WMESH
-    MAXAMP = LORENTZ(RB,CL,WL,RC) / RB
+    C1L = 2.d0
+    C2L = CMESH
+    W1L = 0.3D0
+    W2L = WMESH
+    MAXAMP = LORENTZ_NEO(RB,C1L,C2L,W1L,W2L,0.D0,RC) / RB
     NR_RC_NEAR = 0
     R(0) = 0.D0
     DO NR = 1, NRMAX - 1
        RL = DBLE(NR) / DBLE(NRMAX) * RB
-       CALL BISECTION(LORENTZ,CL,WL,RC,MAXAMP,RL,RB,R(NR))
+       CALL BISECTION_NEO(LORENTZ_NEO,C1L,C2L,W1L,W2L,0.D0,RC,MAXAMP,RL,RB,R(NR))
        IF(ABS(R(NR)-RC) <= ABS(R(NR)-R(NR_RC_NEAR))) NR_RC_NEAR = NR
     END DO
     R(NRMAX) = RB
@@ -510,12 +530,15 @@ contains
     !  New CL is chosen in order not to be settle so far from given CL.
     !  The mesh finally obtained is well-defined.
     RCL = DBLE(NR_RC_NEAR) / DBLE(NRMAX) * RB
-    CLNEW = (RC - RCL) / (RCL * LORENTZ_PART(RB,WL,RC) / RB - LORENTZ_PART(RC,WL,RC))
-    MAXAMP = LORENTZ(RB,CLNEW,WL,RC) / RB
+    CLNEW = ( (RC - RCL) * RB - RCL * C1L * LORENTZ_PART_NEO(RB,W1L,W2L,0.D0,RC,0) &
+         &   + RB * C1L * LORENTZ_PART_NEO(RC,W1L,W2L,0.D0,RC,0)) &
+         &  / (  RCL * LORENTZ_PART_NEO(RB,W1L,W2L,0.D0,RC,1) &
+         &     - RB  * LORENTZ_PART_NEO(RC,W1L,W2L,0.D0,RC,1))
+    MAXAMP = LORENTZ_NEO(RB,C1L,CLNEW,W1L,W2L,0.D0,RC) / RB
     R(0) = 0.D0
     DO NR = 1, NRMAX - 1
        RL = DBLE(NR) / DBLE(NRMAX) * RB
-       CALL BISECTION(LORENTZ,CLNEW,WL,RC,MAXAMP,RL,RB,R(NR))
+       CALL BISECTION_NEO(LORENTZ_NEO,C1L,CLNEW,W1L,W2L,0.D0,RC,MAXAMP,RL,RB,R(NR))
     END DO
     R(NRMAX) = RB
 

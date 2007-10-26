@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                NGTM=5000, NGVM=5000, NGYRM=118, NGYTM=46, &
+       &                NGTM=5000, NGVM=5000, NGYRM=119, NGYTM=46, &
        &                NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -111,7 +111,7 @@ module commons
        &                       WNthe, WEMthe, WWthe, WT1the, WT2the, &
        &                       WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        &                       FWthphe, FWthphi, rlnLe, rlnLi, &
-       &                       Ubrp, Dbrp, DltRP, rNubL, RATIO, rNuOL
+       &                       Ubrp, RUbrp, Dbrp, DltRP, rNubL, RATIO, rNuOL
   real(8) :: FWthea, FWthia
  
   ! CDBM

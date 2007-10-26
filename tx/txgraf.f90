@@ -530,7 +530,6 @@ contains
     GY(0:NRMAX,NGR,111) = SNGL(rNubrp1(0:NRMAX))
     GY(0:NRMAX,NGR,112) = SNGL(DltRP(0:NRMAX))
     GY(0:NRMAX,NGR,113) = SNGL(Ubrp(0:NRMAX))
-!    GY(0:NRMAX,NGR,113) = SNGL(rNubL(0:NRMAX))
     GY(0:NRMAX,NGR,114) = SNGL(Dbrp(0:NRMAX))
     DO NR = 0, NRMAX
        IF(PNbV(NR) == 0.D0) THEN
@@ -548,6 +547,8 @@ contains
     ! Orbit loss
 
     GY(0:NRMAX,NGR,118) = SNGL(rNuOL(0:NRMAX))
+
+    GY(0:NRMAX,NGR,119) = SNGL(rNubL(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -1453,27 +1454,29 @@ contains
        STR = '@rNuB@'
        CALL TXGRFRXS(10,GX,GY(0,0,79),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@SiLC@'
-       CALL TXGRFRXS(11,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
-
+!!$       STR = '@SiLC@'
+!!$       CALL TXGRFRXS(11,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
+!!$
 !!$       STR = '@SiLCth@'
 !!$       CALL TXGRFRXS(12,GX,GY(0,0,82),NRMAX,NGR,STR,MODE,IND)
 !!$
 !!$       STR = '@SiLCph@'
 !!$       CALL TXGRFRXS(13,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)     
 
+       STR = '@rNuOL@'
+       CALL TXGRFRXS(11,GX,GY(0,0,118),NRMAX,NGR,STR,MODE,IND)
+
        STR = '@Ubrp@'
-!       STR = '@rNubL@'
        CALL TXGRFRXS(12,GX,GY(0,0,113),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@Dbrp@'
        CALL TXGRFRXS(13,GX,GY(0,0,114),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@rNuLB@'
-       CALL TXGRFRXS(14,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
+       STR = '@rNubL@'
+       CALL TXGRFRXS(14,GX,GY(0,0,119),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@rNuOL@'
-       CALL TXGRFRXS(15,GX,GY(0,0,118),NRMAX,NGR,STR,MODE,IND)
+       STR = '@rNuLB@'
+       CALL TXGRFRXS(15,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@PRFe@'
 !!$       CALL TXGRFRXS(14,GX,GY(0,0,85),NRMAX,NGR,STR,MODE,IND)
