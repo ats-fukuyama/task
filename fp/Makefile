@@ -4,9 +4,9 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalv.f fpcaln.f \
-       fpsave.f fpgraf.f fpfile.f fpcalw.f fpcals.f fpwrin.f fpfout.f \
-       fpwmin.f
+SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcaln.f \
+       fpcals.f fpcalv.f fpcalw.f \
+       fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f
 
 OBJS = $(SRCS:.f=.o)
 
@@ -58,12 +58,13 @@ fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
-fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalc.o : fpcalc.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcaln.o : fpcaln.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
-fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalv.o : fpcalv.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
 fpgraf.o : fpgraf.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
-fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
-fpcals.o : fpcals.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
+fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
