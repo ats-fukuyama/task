@@ -84,7 +84,7 @@ contains
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-    use physical_constants, only : AME, PI, rKeV
+    use physical_constants, only : AME, AMP, PI, rKeV
     use commons
     INCLUDE 'nclass/pamx_mi.inc'
     INCLUDE 'nclass/pamx_ms.inc'
@@ -139,7 +139,7 @@ contains
     c_potb   = SNGL(1.D0*BphV(0)/(2.D0*Q(0)**2))
     c_potl   = SNGL(Q(0)*RR)
 
-    amu_i(1) = SNGL(AME/AMI)
+    amu_i(1) = SNGL(AME/AMP)
     amu_i(2) = SNGL(PA)
     IF(Zeff > 1.D0) amu_i(3) = SNGL(PAL)
 

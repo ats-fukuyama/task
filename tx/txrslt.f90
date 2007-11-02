@@ -350,6 +350,16 @@ contains
     !  ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
     ZEFF0=Zeff
 
+    !  Evaluate effective particle diffusivity from particle flux minus Ware pinch
+    !  Gamma = n v - Deff dn/dr  --> Deff = (n v - ft n Eph / Bth) / (- dn/dr)
+
+    Deff(0) = 0.d0
+    do nr = 1, nrmax
+       Deff(nr) = (PNiV(NR)*UirV(NR)-ft(NR)*PNiV(NR)*EphV(NR)/BthV(NR)) &
+               & /(-DERIV3(NR,R,PNiV,NRMAX,NRM,0))
+       if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
+    end do
+
     RETURN
   END SUBROUTINE TXGLOB
 

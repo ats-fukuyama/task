@@ -10,9 +10,11 @@ module coefficients
        &                       RATIORUbthV, RATIOUbphV, &
        &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       &                       BphBNi, BthBNi, rNubLL, DbrpftNi, Dbrpft, &
+       &                       BphBNi, BthBNi, DbrpftNi, Dbrpft, &
        &                       rNuei1EI, rNuei2EI, rNuei3EI, &
-       &                       rNube1BE, rNube2BE, rNube3BE!, ChieNe, ChiiNi
+       &                       rNube1BE, rNube2BE, rNube3BE
+!!sqeps       &                       , sqeps_perp, sqeps_perp_inv
+!!rp_conv       &                       ,rNubLL
   real(8), dimension(0:NRM) :: UNITY = 1.D0
   real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW
   integer, save :: ICALA = 0
@@ -218,6 +220,7 @@ contains
 
   SUBROUTINE LQCOEF
 
+    use physical_constants, only : EPS0
     use libraries, only : DERIVS
     INTEGER :: NR
     REAL(8) :: AITKEN4P, BBL
@@ -271,7 +274,7 @@ contains
          &               BthBNi(1),BthBNi(2),BthBNi(3),BthBNi(4),BthBNi(5), &
          &               R(1),R(2),R(3),R(4),R(5))
 
-!!$    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
+!!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
 
     RATIORUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX) * RATIO(0:NRMAX)
     RATIOUbphV(0:NRMAX) = UbthV(0:NRMAX) * RATIO(0:NRMAX)
@@ -285,8 +288,8 @@ contains
     rNube2BE(0:NRMAX)  = rNube2(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNube3BE(0:NRMAX)  = rNube3(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
 
-!!$    ChieNe(0:NRMAX)    = Chie(0:NRMAX)   / PNeV(0:NRMAX)
-!!$    ChiiNi(0:NRMAX)    = Chii(0:NRMAX)   / PNiV(0:NRMAX)
+!!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
+!!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)
 
   END SUBROUTINE LQCOEF
 
@@ -316,6 +319,20 @@ contains
 
     ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(2,RATIO) / sqeps0 * BeamSW * RpplSW
     NLC(5,LQm1) = LQr1
+!!sqeps    ELM(1:NEMAX,1:4,1,LQm1) =   4.D0 / (AEE * 1.D20) * fem_int(18,sqeps_perp)
+!!sqeps    NLC(1,LQm1) = LQm1
+!!sqeps
+!!sqeps    ELM(1:NEMAX,1:4,2,LQm1) =        fem_int(2,sqeps_perp_inv)
+!!sqeps    NLC(2,LQm1) = LQe1
+!!sqeps
+!!sqeps    ELM(1:NEMAX,1:4,3,LQm1) = - PZ * fem_int(2,sqeps_perp_inv)
+!!sqeps    NLC(3,LQm1) = LQi1
+!!sqeps
+!!sqeps    ELM(1:NEMAX,1:4,4,LQm1) = - PZ * fem_int(2,sqeps_perp_inv) * BeamSW
+!!sqeps    NLC(4,LQm1) = LQb1
+!!sqeps
+!!sqeps    ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(28,RATIO,sqeps_perp_inv) * BeamSW * RpplSW
+!!sqeps    NLC(5,LQm1) = LQr1
 
     ! phi(b) : 0
 
@@ -863,8 +880,6 @@ contains
 
        ELM(1:NEMAX,1:4, 3,LQe5) =   4.D0 * fem_int(41,Chie,PTeV)
        NLC( 3,LQe5) = LQe1
-!!$       ELM(1:NEMAX,1:4, 2,LQe5) = - 4.D0 *(fem_int(18,Chie) + fem_int(39,ChieNe,dPNeV))
-!!$       NLC( 2,LQe5) = LQe5
 
        ! Joule heating
 
@@ -884,13 +899,13 @@ contains
 
        ! Collisional heating with beam
 
-!!$      ELM(1:NEMAX,1:4, 8,LQe5) = - 0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!$           &                * fem_int(2,rNubeBE) * AMPe4
-!!$      NLC( 8,LQe5) = LQe4
-!!$
-!!$      ELM(1:NEMAX,1:4, 9,LQe5) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!$           &                * fem_int(2,rNube)
-!!$      NLC( 9,LQe5) = LQb4
+!!oldNBI      ELM(1:NEMAX,1:4, 8,LQe5) = - 0.5D0 * AMB * (PNBCD * Vb) / rKeV &
+!!oldNBI           &                * fem_int(2,rNubeBE) * AMPe4
+!!oldNBI      NLC( 8,LQe5) = LQe4
+!!oldNBI
+!!oldNBI      ELM(1:NEMAX,1:4, 9,LQe5) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
+!!oldNBI           &                * fem_int(2,rNube)
+!!oldNBI      NLC( 9,LQe5) = LQb4
 
        ! Loss to diverter
 
@@ -1403,8 +1418,6 @@ contains
 
        ELM(1:NEMAX,1:4, 3,LQi5) =   4.D0 * fem_int(41,Chii,PTiV)
        NLC( 3,LQi5) = LQi1
-!!$       ELM(1:NEMAX,1:4, 2,LQi5) = - 4.D0 *(fem_int(18,Chii) + fem_int(39,ChiiNi,dPNiV)) 
-!!$       NLC( 2,LQi5) = LQi5
 
        ! Joule heating
 
@@ -1424,13 +1437,13 @@ contains
 
        ! Heating due to beam momentum deposition
 
-!!$      ELM(1:NEMAX,1:4, 8,LQi5) = - 0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!$           &                * fem_int(2,rNubiBI)
-!!$      NLC( 8,LQi5) = LQi4
-!!$
-!!$      ELM(1:NEMAX,1:4, 9,LQi5) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!$           &                * fem_int(2,rNubi)
-!!$      NLC( 9,LQi5) = LQb4
+!!oldNBI      ELM(1:NEMAX,1:4, 8,LQi5) = - 0.5D0 * AMB * (PNBCD * Vb) / rKeV &
+!!oldNBI           &                * fem_int(2,rNubiBI)
+!!oldNBI      NLC( 8,LQi5) = LQi4
+!!oldNBI
+!!oldNBI      ELM(1:NEMAX,1:4, 9,LQi5) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
+!!oldNBI           &                * fem_int(2,rNubi)
+!!oldNBI      NLC( 9,LQi5) = LQb4
 
        ELM(1:NEMAX,1:4, 8,LQi5) = AMB * (PNBCD * Vb) / rKeV * fem_int(28,BthBNi,MNB)
        NLC( 8,LQi5) = LQi3
@@ -1536,8 +1549,8 @@ contains
     ELM(1:NEMAX,1:4,6,LQb1) =   fem_int(28,rNubrp1,RATIO) * RpplSW
     NLC(6,LQb1) = LQr1
 
-!!$    PELM(1:NEMAX,1:4,6,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
-!!$    NLC(6,LQb1) = 0
+!!rp_conv    PELM(1:NEMAX,1:4,6,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
+!!rp_conv    NLC(6,LQb1) = 0
 
     ! Ripple diffusion
 
@@ -1832,10 +1845,10 @@ contains
             &               - 2.d0 * fem_int_point(10,NE,RUbrp) * coef) * RpplSW
        NLC(5,LQr1) = LQr1
 
-!!$       ELM(NE,1:4,5,LQr1) = - fem_int_point(2,NE,rNubL)
-!!$       NLC(5,LQr1) = LQr1
-!!$       PELM(NE,1:4,5,LQr1) = - fem_int_point(-2,NE,rNubL,PNbrpV)
-!!$       NLC(5,LQr1) = 0
+!!rp_conv       ELM(NE,1:4,5,LQr1) = - fem_int_point(2,NE,rNubL)
+!!rp_conv       NLC(5,LQr1) = LQr1
+!!rp_conv       PELM(NE,1:4,5,LQr1) = - fem_int_point(-2,NE,rNubL,PNbrpV)
+!!rp_conv       NLC(5,LQr1) = 0
 
        ! Ripple loss transport (diffusive)
 

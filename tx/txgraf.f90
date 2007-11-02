@@ -491,8 +491,8 @@ contains
     GY(0:NRMAX,NGR,79) = SNGL(rNuB(0:NRMAX))
     GY(0:NRMAX,NGR,80) = SNGL(rNuION(0:NRMAX))
     GY(0:NRMAX,NGR,81) = SNGL(SiLC(0:NRMAX))
-    GY(0:NRMAX,NGR,82) = SNGL(SiLCth(0:NRMAX))
-    GY(0:NRMAX,NGR,83) = SNGL(SiLCph(0:NRMAX))
+    GY(0:NRMAX,NGR,82) = SNGL(rNuOL(0:NRMAX))
+    GY(0:NRMAX,NGR,83) = SNGL(Deff(0:NRMAX))
     GY(0:NRMAX,NGR,84) = SNGL(SNB(0:NRMAX))
     GY(0:NRMAX,NGR,85) = SNGL(PRFi(0:NRMAX))
     GY(0:NRMAX,NGR,86) = SNGL(PRFe(0:NRMAX))
@@ -544,11 +544,7 @@ contains
     GY(0:NRMAX,NGR,117) = SNGL((-   AEE*PNeV(0:NRMAX)*UerV(0:NRMAX) &
          &                      +PZ*AEE*PNiV(0:NRMAX)*UirV(0:NRMAX))*1.D20)
 
-    ! Orbit loss
-
-    GY(0:NRMAX,NGR,118) = SNGL(rNuOL(0:NRMAX))
-
-    GY(0:NRMAX,NGR,119) = SNGL(rNubL(0:NRMAX))
+    GY(0:NRMAX,NGR,118) = SNGL(rNubL(0:NRMAX))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -781,6 +777,7 @@ contains
     character(len=3) :: KEND
     real, dimension(4) :: GPX, GPY
     real :: GPXL, FACT, GYMAX
+    real(8) :: deriv3
 
     NGYR = NGYRIN
 
@@ -1258,8 +1255,10 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,21), GYL, STR, NRM, NRMAX, NGR, gDIV(21))
        CALL TXGRFRXS(8,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@D$-i$=(r)+D$-e$=(r)@'
-       CALL TXGRFRXS(9,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
+!!$       STR = '@D$-i$=(r)+D$-e$=(r)@'
+!!$       CALL TXGRFRXS(9,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
+       STR = '@D$-eff$=(r)@'
+       CALL TXGRFRXS(9,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@F$-CDBM$=(r)@'
        CALL TXGRFRXS(10,GX,GY(0,0,31),NRMAX,NGR,STR,MODE,IND)     
@@ -1456,15 +1455,9 @@ contains
 
 !!$       STR = '@SiLC@'
 !!$       CALL TXGRFRXS(11,GX,GY(0,0,81),NRMAX,NGR,STR,MODE,IND)
-!!$
-!!$       STR = '@SiLCth@'
-!!$       CALL TXGRFRXS(12,GX,GY(0,0,82),NRMAX,NGR,STR,MODE,IND)
-!!$
-!!$       STR = '@SiLCph@'
-!!$       CALL TXGRFRXS(13,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)     
 
        STR = '@rNuOL@'
-       CALL TXGRFRXS(11,GX,GY(0,0,118),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(11,GX,GY(0,0,82),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@Ubrp@'
        CALL TXGRFRXS(12,GX,GY(0,0,113),NRMAX,NGR,STR,MODE,IND)
@@ -1473,7 +1466,7 @@ contains
        CALL TXGRFRXS(13,GX,GY(0,0,114),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNubL@'
-       CALL TXGRFRXS(14,GX,GY(0,0,119),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(14,GX,GY(0,0,118),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuLB@'
        CALL TXGRFRXS(15,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)

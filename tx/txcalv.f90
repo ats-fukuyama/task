@@ -19,7 +19,6 @@ contains
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
     INTEGER :: NR
-    real(8) :: DERIV3, FCTR
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
@@ -143,7 +142,7 @@ contains
     use nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, test
+    INTEGER :: NR, NP, NR1, IER, i, imax, nrl
     REAL(8) :: Sigma0, QL, SL, SLP1, SLP2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
@@ -151,19 +150,20 @@ contains
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, VAL1, VAL2, VAL, &
-         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, DltR2, Vdrift, &
+         &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
+         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR2, Vdrift, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, dErL, xl !&
-!!         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
+         &     RLOSS, SQZ, rNuDL, dErL, xl, alpha_l !&
+!!neo         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SP0, SP1, SP2, SN0, SN1, SN2, &
-         &                         SP3, th1, th2, Ubpara!,PNbrpL, DERIV
-!    real(8), dimension(1:4,0:NRMAX) :: U
+         &                         SP3, th1, th2, Ubpara
+!!rp_conv         &                         ,PNbrpL, DERIV
+!!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
 
     !     *** Constants ***
 
@@ -288,7 +288,7 @@ contains
        DltRP(NR) = ripple(NR,0.D0,FSRP)
     END DO
 
-    PNbrpLV(0:NRMAX) = 0.D0
+!!rp_conv    PNbrpLV(0:NRMAX) = 0.D0
 
     EbL = Eb * 1.D3 / PA
     logEbL = log10(EbL)
@@ -431,24 +431,24 @@ contains
 !!$               &     * 1.D0 / (1.D0 + RL**2)
 !!$       END IF
 
-!!$       IF(NR /= 0) THEN
-!!$          NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) &
-!!$               &  * (BphV(0) / (RR * Q(NR)))**2
-!!$          FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
-!!$          K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
-!!$          FCL = 1.D0 - FTL
-!!$          K11Be  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
-!!$               & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
-!!$          K11Pe  = SQRT(PI) * Q(NR) * RR * Vte / 3.D0
-!!$          K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
-!!$          K11Bi  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
-!!$               & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
-!!$          K11Pi  = SQRT(PI) * Q(NR) * RR * Vti / 3.D0
-!!$          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-!!$            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
-!!$          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-!!$            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
-!!$       END IF
+!!neo       IF(NR /= 0) THEN
+!!neo          NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) &
+!!neo               &  * (BphV(0) / (RR * Q(NR)))**2
+!!neo          FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
+!!neo          K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
+!!neo          FCL = 1.D0 - FTL
+!!neo          K11Be  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
+!!neo               & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
+!!neo          K11Pe  = SQRT(PI) * Q(NR) * RR * Vte / 3.D0
+!!neo          K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
+!!neo          K11Bi  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
+!!neo               & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
+!!neo          K11Pi  = SQRT(PI) * Q(NR) * RR * Vti / 3.D0
+!!neo          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+!!neo            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
+!!neo          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
+!!neo            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
+!!neo       END IF
 
 !!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
 !!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
@@ -498,14 +498,6 @@ contains
                &   / (2.D0 * PI * EPS0**2 * AMB**2 * Vb**3) &
                &   * (  SQRT(1.D0 - EXP(- 4.D0 * xl**2 / PI)) &
                &      - 2.D0 * xl / (4.D0 * xl**3 + 3.D0 * SQRT(PI)))
-          ! effective time of detrapping (Takamura (5.31))
-          IF(ABS(FSRP) > 0.D0 .AND. DltRP(NR) /= 0.D0) THEN
-             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
-             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * DltRP(NR))
-          ELSE
-             rNubrp1(NR) = 0.D0
-             rNubrp2(NR) = 0.D0
-          END IF
 
           ! The definition given below is a "energy slowing down time" and is not
           ! "particle slowing down time". At present, we assume the former is the
@@ -590,7 +582,8 @@ contains
        PROFDDL = 3.D0
 !       PROFDDL = 2.D0
        IF (R(NR) < RA) THEN
-          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**6) + FSCDBM * DCDBM
+!          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**6) + FSCDBM * DCDBM
+          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
 !          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ELSE
           IF(FSPSCL == 0.D0) THEN
@@ -696,8 +689,6 @@ contains
           rNuLTe(NR) = FSLTE * KAPPA * (PTeV_FIX(NR)*1.D3)**2.5D0 &
                &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
                &             * RL**2 / (1.D0 + RL**2)
-!!$          rNuLTe(NR) = FSLTE * Cs / (2.D0 * PI * Q(NR) * RR) &
-!!$               &             * RL**2 / (1.D0 + RL**2)
           rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
           IF(ABS(FSRP) > 0.D0) THEN
@@ -741,7 +732,6 @@ contains
        AJNB(NR) = (  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
             &      + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL! &
 !            &    *(1.D0 - PZ / Zeff)
-!       write(6,*) r(nr)/ra,AJ(NR),AJNB(NR)
 
        !     *** NBI power deposition ***
 
@@ -872,12 +862,6 @@ contains
                      &   * EXP(-(rNuAsIL**0.25D0 + (PZ * AEE * BBL / AMI) &
                      &   * sqrt(abs(SQZ)) / (BphV(NR) * Vti) &
                      &   * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
-!                write(6,*) NR,SQZ,rNuOL(NR)
-!                rNuOL(NR) = 0.3d0 * rNuOL(NR)
-!!$                rNuOL(NR) = 2.25D0 * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * abs(SQZ) * EpsL)) &
-!!$                     &   * EXP(-(rNuAsIL**0.25D0 + (PZ * AEE * BBL / AMI) * sqrt(abs(SQZ)) &
-!!$                     &   * (BphV(NR) * Vti) &
-!!$                     &   * ABS(- AphV(NR) + AphV(NRA)) / sqrt(2.D0 * EpsL))**2)
              ELSE
                 SiLC(NR) = - 2.25D0 * PNiV(NR) * rNuii(NR) / (sqrt(PI) * sqrt(2.D0 * EpsL)) &
                      &   * EXP(-(rNuAsIL**0.25D0 + AEE * BBL / (BphV(NR) * Vti * AMI) &
@@ -937,19 +921,6 @@ contains
              SiLC  (0:NRMAX) = FSLC * SiLC  (0:NRMAX)
              SiLCth(0:NRMAX) = FSLC * SiLCth(0:NRMAX)
              SiLCph(0:NRMAX) = FSLC * SiLCph(0:NRMAX)
-
-!!$          ! *** SiLC correction (int_0^b r * SiLC dr = 0) ***
-!!$
-!!$          CALL VALINT_SUB(SiLC,NRA-1,VAL1)
-!!$          CALL VALINT_SUB(SiLC,NRMAX,VAL2,NRA+2)
-!!$          VAL = VAL1 + VAL2
-!!$          CALL INV_INT(NRA,VAL,SiLC(NRA-1),SiLC(NRA+1),VAL1)
-!!$          SiLC(NRA) = FSLC * VAL1
-!!$
-!!$          SiLCth(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UithV(0:NRMAX) * R(0:NRMAX)
-!!$          SiLCph(0:NRMAX) = FSLC * SiLC(0:NRMAX) * AMI * UiphV(0:NRMAX)
-!!$
-!!$          ! *************************************************
           END IF
        END IF
     END IF
@@ -1010,6 +981,23 @@ contains
           RATIO(NR) = ARC / (2.d0 * PI)
           th2(nr) = theta2
 
+          ! alpha_l : ripple well parameter
+          alpha_l = EpsL / (NTCOIL * Q(NR) * DltRP(NR)) * (theta1*sin(theta1) &
+               &  + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2)
+          ! Dlteff : effective depth of well along the magnetic field line
+          Dlteff = 2.D0*DltRP(NR)*(SQRT(1.D0-alpha_l**2)-alpha_l*acos(alpha_l))
+
+          ! effective time of detrapping (Takamura (5.31))
+          IF(DltRP(NR) /= 0.D0) THEN
+!!$             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
+!!$             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * DltRP(NR))
+             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
+             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * Dlteff)
+          ELSE
+             rNubrp1(NR) = 0.D0
+             rNubrp2(NR) = 0.D0
+          END IF
+
           !  Convectitve loss (vertical grad B drift velocity)
           Vdrift = 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2))
           RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))*Vdrift
@@ -1027,18 +1015,20 @@ contains
 !!$       rNubL(0) = Ubrp(0) / RV0
        Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
 !       Ubrp(0) = 0.D0
+       rNubrp1(0) = rNuD(0) / DltRP(0)
+       rNubrp2(0) = rNubrp1(0) * SQRT(2.D0 * DltRP(0))
 
-!!$       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
-!!$       do nr = 0, nrmax
-!!$          if(R(NR) <= RB * cos(th1(nr))) then
-!!$             tmp = r(nr)*cos(th1(nr))
-!!$             call wherenr(r,tmp,nrl,Left,Right)
-!!$             CALL SPL1DF(tmp,PNbrpL(NR),R,U,NRMAX+1,IER)
-!!$             PNbrpLV(NRL-1) = PNbrpLV(NRL-1) + Left  * PNbrpL(NR)
-!!$             PNbrpLV(NRL)   = PNbrpLV(NRL)   + Right * PNbrpL(NR)
-!!$!             write(6,*) nrl,sngl(tmp),sngl(r(nrl-1)),sngl(r(nrl)),sngl(PNbrpL(NR)),sngl(Left  * PNbrpL(NR)),sngl(Right * PNbrpL(NR)),sngl(PNbrpLV(NRL-1)),sngl(PNbrpLV(NRL))
-!!$          end if
-!!$       end do
+!!rp_conv       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
+!!rp_conv       do nr = 0, nrmax
+!!rp_conv          if(R(NR) <= RB * cos(th1(nr))) then
+!!rp_conv             tmp = r(nr)*cos(th1(nr))
+!!rp_conv             call wherenr(r,tmp,nrl,Left,Right)
+!!rp_conv             CALL SPL1DF(tmp,PNbrpL(NR),R,U,NRMAX+1,IER)!
+!!rp_conv             PNbrpLV(NRL-1) = PNbrpLV(NRL-1) + Left  * PNbrpL(NR)
+!!rp_conv             PNbrpLV(NRL)   = PNbrpLV(NRL)   + Right * PNbrpL(NR)
+!!rp_conv             write(6,*) nrl,sngl(tmp),sngl(r(nrl-1)),sngl(r(nrl)),sngl(PNbrpL(NR)),sngl(Left  * PNbrpL(NR)),sngl(Right * PNbrpL(NR)),sngl(PNbrpLV(NRL-1)),sngl(PNbrpLV(NRL))
+!!rp_conv          end if
+!!rp_conv       end do
 
        !  Diffusive loss
        !  -- Collisional diffusion of trapped fast particles
@@ -1059,8 +1049,9 @@ contains
           ! (V. Ya Goloborod'ko, et al., Physica Scripta T16 (1987) 46)
           DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
           ! DRP : ripple-plateau diffusion coefficient
-!!          DRP = rNubnc * DltR2
-          DRP = 0.25D0 * DltR2 * rNubnc
+          DRP = rNubnc * DltR2
+!          DRP = 0.25D0 * DltR2 * rNubnc
+!          DRP = SQRT(EpsL) * Vb / (4.D0 * Q(NR) * RR) * DltR2 / (2.D0 * PI)
 
           ! Collisional ripple well diffusion
 !!$          if (rNueff < rNubnc) then
@@ -1078,9 +1069,14 @@ contains
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
     ELSE
+       rNubrp1(0:NRMAX) = 0.D0
+       rNubrp2(0:NRMAX) = 0.D0
        Ubrp(0:NRMAX) = 0.D0
        Dbrp(0:NRMAX) = 0.D0
     END IF
+
+    do nr = 1, nrmax
+    end do
 
     RETURN
   END SUBROUTINE TXCALC
@@ -1128,30 +1124,30 @@ contains
        
   end function ripple
 
-!!$  ! Search minimum radial number NR satisfying R(NR) > X.
-!!$
-!!$  subroutine wherenr(R,X,NR,Left,Right)
-!!$    real(8), dimension(0:NRMAX), intent(in) :: R
-!!$    real(8), intent(in) :: X
-!!$    integer, intent(out) :: NR
-!!$    real(8), intent(out) :: Left, Right
-!!$    integer :: NRL
-!!$
-!!$    if(X == 0.d0) then
-!!$       NR = 1
-!!$       Left  = 0.d0
-!!$       Right = 0.d0
-!!$       return
-!!$    end if
-!!$
-!!$    do nrl = 1, nrmax
-!!$       if(r(nrl) > x) then
-!!$          NR = nrl
-!!$          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
-!!$          Left  = 1.d0 - Right
-!!$          exit
-!!$       end if
-!!$    end do
-!!$
-!!$  end subroutine wherenr
+!!rp_conv  ! Search minimum radial number NR satisfying R(NR) > X.
+!!rp_conv
+!!rp_conv  subroutine wherenr(R,X,NR,Left,Right)
+!!rp_conv    real(8), dimension(0:NRMAX), intent(in) :: R
+!!rp_conv    real(8), intent(in) :: X
+!!rp_conv    integer, intent(out) :: NR
+!!rp_conv    real(8), intent(out) :: Left, Right
+!!rp_conv    integer :: NRL
+!!rp_conv
+!!rp_conv    if(X == 0.d0) then
+!!rp_conv       NR = 1
+!!rp_conv       Left  = 0.d0
+!!rp_conv       Right = 0.d0
+!!rp_conv       return
+!!rp_conv    end if
+!!rp_conv
+!!rp_conv    do nrl = 1, nrmax
+!!rp_conv       if(r(nrl) > x) then
+!!rp_conv          NR = nrl
+!!rp_conv          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
+!!rp_conv          Left  = 1.d0 - Right
+!!rp_conv          exit
+!!rp_conv       end if
+!!rp_conv    end do
+!!rp_conv
+!!rp_conv  end subroutine wherenr
 end module variables

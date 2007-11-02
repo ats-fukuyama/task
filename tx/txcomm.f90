@@ -3,7 +3,7 @@ module commons
   public
 
   integer, parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                NGTM=5000, NGVM=5000, NGYRM=119, NGYTM=46, &
+       &                NGTM=5000, NGVM=5000, NGYRM=118, NGYTM=46, &
        &                NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer, parameter :: NSM=2, NFM=2
   integer, parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -132,6 +132,7 @@ module commons
   real(8), dimension(1:NSM) :: ANS0, TS0, ANSAV, TSAV, WST
   real(8), dimension(1:NFM) :: ANF0, TF0, ANFAV, TFAV, WFT
   real(8), dimension(1:NSM) :: PBCLT, PFCLT, PLT, SPET, SLT
+  real(8), dimension(1:NRM) :: Deff
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
   real(8) :: PINT, POHT, PNBT, PRFT, PNFT

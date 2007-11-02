@@ -431,6 +431,8 @@ contains
     gDIV(110) = 1.E-4
 !    gDIV(115) = 1.E15
 
+    !   *** Obsolete or not used parameter ***
+
     !   Radius where density increase by command DEL
     DelR = 0.175D0
 
@@ -446,6 +448,8 @@ contains
     !   Safety factor for helical
     Q0 = 3.D0
     QA = 2.D0
+
+    !   **************************************
 
     NGR=-1
 
@@ -472,13 +476,17 @@ contains
     !   Beam ion mass number
     AMB   = AMI
     !   Radial step width
-    DR    = RB / NRMAX
+!    DR    = RB / NRMAX
     !   Number of equations
     NQMAX = NQM
+
+    !   *** Obsolete or not used parameters ***
     !   Helical system
     UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
     UHph  = DBLE(NCphi) * UHth
+    !   ***************************************
 
+    !   Square root permittivity for LQm1
     sqeps0 = sqrt(EPS0)
 
     !  Mesh
