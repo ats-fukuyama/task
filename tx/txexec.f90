@@ -2,10 +2,6 @@
 module main
   use commons
   implicit none
-  real(8), dimension(1:4*NQM-1,1:NQM*(NRM+1)) :: BA
-  real(8), dimension(1:6*NQM-2,1:NQM*(NRM+1)) :: BL
-  real(8), dimension(1:NQM*(NRM+1)) :: BX
-  real(8), dimension(1:NQM,0:NRM), SAVE :: XOLD
   private
   public :: TXEXEC
 
@@ -80,11 +76,15 @@ contains
     use coefficients, only : TXCALA
     use graphic, only : TXSTGT, TXSTGV, TXSTGR, TXSTGQ
 
+    real(8), dimension(:,:), allocatable :: BA, BL
+    real(8), dimension(:),   allocatable :: BX
     INTEGER :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
-    REAL(8), DIMENSION(NQM,0:NRM) :: XN, XP, ASG
+    REAL(8), DIMENSION(1:NQMAX,0:NRMAX) :: XN, XP, ASG
     integer :: iasg(1:2)
+
+    allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
 
     IF (MODEAV == 0) THEN
        IDIV = NTMAX + 1
@@ -117,7 +117,7 @@ contains
 
           CALL TXCALC
           CALL TXCALA
-          CALL TXCALB
+          CALL TXCALB(BA,BL,BX)
           CALL TXGLOB
           IF(MDLPCK == 0) THEN
              CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
@@ -282,6 +282,8 @@ contains
 
     WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
 
+    deallocate(BA,BL,BX)
+
     RETURN
   END SUBROUTINE TXLOOP
 
@@ -293,8 +295,10 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE TXCALB
+  SUBROUTINE TXCALB(BA,BL,BX)
 
+    real(8), dimension(:,:), intent(inout) :: BA, BL
+    real(8), dimension(:), intent(inout) :: BX
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
     INTEGER :: JA, JB, JC, KL
     REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
@@ -527,7 +531,7 @@ contains
 
     INTEGER, intent(in) :: NTL, IC
     integer, intent(inout) :: IER
-    REAL(8), DIMENSION(1:NQM,0:NRM), intent(in) :: XL
+    REAL(8), DIMENSION(1:NQMAX,0:NRMAX), intent(in) :: XL
     integer :: NR
 
     IER = 0
@@ -565,8 +569,8 @@ contains
 
   SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
-    integer, intent(in) :: LQ,ID
-    real(8), dimension(1:NQMAX,0:NRMAX), intent(inout) :: XL
+    integer, intent(in) :: LQ, ID
+    real(8), dimension(:,:), intent(inout) :: XL
     integer :: NR, NZERO
 
     IF(ID == 0) THEN
@@ -595,20 +599,20 @@ contains
 
   END SUBROUTINE MINUS_GOES_ZERO
 
-  SUBROUTINE THRESHOLD(XL,ID)
-
-    real(8), dimension(0:NRM), intent(inout) :: XL
-    integer, intent(out) :: ID
-    integer :: NR, NRL
-
-    ID = 0
-    NRL = 0.5 * NRA
-    IF(MINVAL(XL(0:NRL)) < 1.D-8 .AND. MAXVAL(XL(0:NRL)) > 0.D0) THEN
-       XL(0:NRMAX) = 0.D0
-       ID = 1
-    END IF
-
-  END SUBROUTINE THRESHOLD
+!!$  SUBROUTINE THRESHOLD(XL,ID)
+!!$
+!!$    real(8), dimension(0:NRMAX), intent(inout) :: XL
+!!$    integer, intent(out) :: ID
+!!$    integer :: NR, NRL
+!!$
+!!$    ID = 0
+!!$    NRL = 0.5 * NRA
+!!$    IF(MINVAL(XL(0:NRL)) < 1.D-8 .AND. MAXVAL(XL(0:NRL)) > 0.D0) THEN
+!!$       XL(0:NRMAX) = 0.D0
+!!$       ID = 1
+!!$    END IF
+!!$
+!!$  END SUBROUTINE THRESHOLD
 
 end module main
 

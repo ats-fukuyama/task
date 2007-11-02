@@ -288,9 +288,11 @@ contains
     !   ***** Mesh number parameters *****
 
     !   Magnitude of mesh peakness
+    CMESH0 =  2.D0
     CMESH  = 30.D0
 
     !   Width of mesh peakness
+    WMESH0 = 0.2D0
     WMESH  = 5.D-2
 
     !   Number of nodes
@@ -520,9 +522,9 @@ contains
 
     !  As a trial, generate mesh using given CL and WL and seek the position in the
     !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
-    C1L = 2.d0
+    C1L = CMESH0
     C2L = CMESH
-    W1L = 0.3D0
+    W1L = WMESH0
     W2L = WMESH
     MAXAMP = LORENTZ_NEO(RB,C1L,C2L,W1L,W2L,0.D0,RC) / RB
     NR_RC_NEAR = 0
@@ -738,7 +740,7 @@ contains
     ! Toroidal electron current
 
     DO NR = 0, NRMAX
-!!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,NRM,0)
+!!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,NRMAX,0)
 !!$       X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
 
        IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
@@ -811,7 +813,7 @@ contains
     ELSE
        TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
        DO NR = 0, NRMAX
-          dRIP = DERIV3(NR,R,TMP,NRMAX,NRM,0) * 2.D0 * PI / rMU0
+          dRIP = DERIV3(NR,R,TMP,NRMAX,NRMAX,0) * 2.D0 * PI / rMU0
           AJV(NR)=dRIP / (2.D0 * PI * R(NR))
        END DO
     END IF
@@ -882,8 +884,8 @@ contains
     !  Initial condition Part II
 
     DO NR = 0, NRMAX
-       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRM,0) * rKeV
-       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRM,0) * rKeV
+       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRMAX,0) * rKeV
+       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRMAX,0) * rKeV
        rNuei3(NR)  =(BphV(NR)**2 * CORR(Zeff) + BthV(NR)**2) * rNuei(NR) &
             &      /(BphV(NR)**2 + BthV(NR)**2)
        IF(rNueNC(NR) == 0.D0) THEN
@@ -954,7 +956,7 @@ module parameter_control
        & rNRF,RRF,RRF0,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & NTCOIL,DIN,DltRP0, &
-       & DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH, &
+       & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
@@ -1086,7 +1088,8 @@ contains
        IF(ICMAX < 0) EXIT
        IF(ADV < 0.D0 .OR. ADV > 1.D0) EXIT
        IF(tiny_cap < 0.D0) EXIT
-       IF(CMESH < 0.D0 .OR. WMESH < 0.D0) EXIT
+       IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) EXIT
+       IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) EXIT
        RETURN
     END DO
 
@@ -1113,7 +1116,7 @@ contains
          &       ' ',8X,'PNBCD,rNRF,RRF,RRF0,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DIN,DltRP0'/ &
-         &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH,WMESH,'/ &
+         &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
@@ -1138,7 +1141,8 @@ contains
          &   'PTe0  ', PTe0  ,  'PTea  ', PTea  ,  &
          &   'PTi0  ', PTi0  ,  'PTia  ', PTia  ,  &
          &   'rIP   ', rIP   ,  'Zeff  ', Zeff  ,  &
-         &   'PROFJ ', PROFJ ,  'CMESH ', CMESH ,  &
+         &   'PROFJ ', PROFJ ,  'CMESH0', CMESH0,  &
+         &   'WMESH0', WMESH0,  'CMESH ', CMESH ,  &
          &   'WMESH ', WMESH ,  'ADV   ', ADV   ,  &
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &

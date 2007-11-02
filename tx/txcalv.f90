@@ -533,9 +533,9 @@ contains
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRM,0)
+       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRMAX,0)
        S(NR) = R(NR) / Q(NR) * dQdr(NR)
-       dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,NRM,0)
+       dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,NRMAX,0)
        Alpha(NR) = - Q(NR)**2 * RR * dpdr * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
        !     *** Wave-particle interaction ***
@@ -555,7 +555,7 @@ contains
           IF(NR == 0) THEN
              rH=0.D0
           ELSE
-             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,NRM,0)
+             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,NRMAX,0)
              rH = Q(NR) * RR * R(NR) *  dErdr / (Va * S(NR))
           END IF
           
@@ -791,10 +791,10 @@ contains
        ! +++ Sauter model +++
        ! Inverse aspect ratio
        EpsL = R(NR) / RR
-       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRM,0) * RA
-       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRM,0) * RA
-       dPPe  = DERIV3(NR,R,PeV,NRMAX,NRM,0) * RA
-       dPPi  = DERIV3(NR,R,PiV,NRMAX,NRM,0) * RA
+       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) * RA
+       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) * RA
+       dPPe  = DERIV3(NR,R,PeV,NRMAX,NRMAX,0) * RA
+       dPPi  = DERIV3(NR,R,PiV,NRMAX,NRMAX,0) * RA
        CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
             &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
             &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBS3(NR),ETA=ETA3(NR))
@@ -846,7 +846,7 @@ contains
           ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
           do nr=1,nrmax
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
-             dErL = DERIV3(NR,R,ErV,NRMAX,NRM,0)
+             dErL = DERIV3(NR,R,ErV,NRMAX,NRMAX,0)
              SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErL
 
              EpsL = R(NR) / RR

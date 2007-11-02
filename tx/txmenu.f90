@@ -24,7 +24,7 @@ contains
     use init_prof, only : TXPROF, TXINIT
     use parameter_control, only : TXPARM_CHECK
     use results, only : TXSTAT
-    INTEGER :: ICONT, MODE, I, IST
+    INTEGER(4) :: ICONT, MODE, I, IST, ier
     character(len=80) :: LINE
     character(len=1)  :: KID, KID2
 
@@ -38,6 +38,7 @@ contains
     !  *** MENU ***
 
     DO
+       ier = 0
        IF(ICONT == 0) TMAX = DT*NTMAX
 
        WRITE(6,'(3(A,1PD12.4))') &
@@ -61,6 +62,8 @@ contains
 
        SELECT CASE(KID)
        CASE('R')
+          call allocate_txcomm(ier)
+          if(ier /= 0) cycle
           IF (ICONT /= 0) THEN
              WRITE(6,*) '# Would you like to restart? [y/N]'
              READ(5,'(A1)',IOSTAT=IST) KID
@@ -130,6 +133,8 @@ contains
           WRITE(6,*) 'XX Unknown command'
        END SELECT
     END DO
+
+    call deallocate_txcomm
 
     RETURN
   END SUBROUTINE TXMENU

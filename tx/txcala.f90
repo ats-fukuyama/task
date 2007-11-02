@@ -5,19 +5,20 @@ module coefficients
   implicit none
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
-  real(8), dimension(0:NRM) :: rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
-       &                       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
-       &                       RATIORUbthV, RATIOUbphV, &
-       &                       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
-       &                       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       &                       BphBNi, BthBNi, DbrpftNi, Dbrpft, &
-       &                       rNuei1EI, rNuei2EI, rNuei3EI, &
-       &                       rNube1BE, rNube2BE, rNube3BE
-!!sqeps       &                       , sqeps_perp, sqeps_perp_inv
-!!rp_conv       &                       ,rNubLL
-  real(8), dimension(0:NRM) :: UNITY = 1.D0
+  real(8), dimension(:), allocatable ::  &
+       & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
+       & rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       & RATIORUbthV, RATIOUbphV, &
+       & UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
+       & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
+       & BphBNi, BthBNi, DbrpftNi, Dbrpft, &
+       & rNuei1EI, rNuei2EI, rNuei3EI, &
+       & rNube1BE, rNube2BE, rNube3BE
+!!sqeps       &, sqeps_perp, sqeps_perp_inv
+!!rp_conv       &, rNubLL
+  real(8), dimension(:), allocatable :: UNITY
   real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW
-  integer, save :: ICALA = 0
+  integer(4), save :: ICALA = 0
   public :: TXCALA
 
 contains
@@ -31,7 +32,7 @@ contains
   SUBROUTINE TXCALA
 
     use physical_constants, only : rMU0
-    INTEGER :: NE, NR, NC, NQ
+    INTEGER(4) :: NE, NR, NC, NQ, N
 
     !*** Nodal Equation *****************************************!
     !   ALC  : Coefficient matrix on NR+1                        !
@@ -93,6 +94,19 @@ contains
     END IF
 
     !     Coefficients
+
+    N = NRMAX
+
+    allocate(rNuIN0(0:N), rNuCXN0(0:N), rNubeBE(0:N), rNubiBI(0:N), rNuTeiEI(0:N), &
+       &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), dPNeV(0:N), dPNiV(0:N), &
+       &     RATIORUbthV(0:N), RATIOUbphV(0:N), UethVR(0:N), UithVR(0:N), &
+       &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
+       &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
+       &     BphBNi(0:N), BthBNi(0:N), DbrpftNi(0:N), Dbrpft(0:N), &
+       &     rNuei1EI(0:N), rNuei2EI(0:N), rNuei3EI(0:N), &
+       &     rNube1BE(0:N), rNube2BE(0:N), rNube3BE(0:N))
+    allocate(UNITY(0:N))
+    UNITY(0:N) = 1.D0
 
     CALL LQCOEF
 
@@ -206,6 +220,15 @@ contains
     CALL BOUNDARY(NRMAX,LQn1,1, 2.D0*R(NRMAX)*rGASPF)
 
     deallocate(ELM,PELM)
+    deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
+       &       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       &       RATIORUbthV, RATIOUbphV, &
+       &       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
+       &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
+       &       BphBNi, BthBNi, DbrpftNi, Dbrpft, &
+       &       rNuei1EI, rNuei2EI, rNuei3EI, &
+       &       rNube1BE, rNube2BE, rNube3BE)
+    deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
 
