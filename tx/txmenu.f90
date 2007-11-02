@@ -134,7 +134,7 @@ contains
        END SELECT
     END DO
 
-    call deallocate_txcomm
+    if(allocated(r)) call deallocate_txcomm
 
     RETURN
   END SUBROUTINE TXMENU
