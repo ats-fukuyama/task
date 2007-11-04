@@ -57,49 +57,98 @@ C
 C
       DO NRAY=1,NRAYMX
 C
- 1       WRITE(6,*) '# NRAY=' ,NRAY
-      IF(MDLWRI.EQ.0) THEN
-         READ(5,*,ERR=1,END=9000) 
+         IF(MDLWRI.LT.10) then
+    1       WRITE(6,*) '# NRAY=' ,NRAY
+            IF(MDLWRI.EQ.0) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                   RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,
      &                   RCURVA,RCURVB,RBRADA,RBRADB,UUI
-         WRITE(6,*) '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
-         WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-         WRITE(6,'(1PE12.4,0P6F10.3)') 
+               WRITE(6,*) 
+     &              '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
+               WRITE(6,*) 
+     &              '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
+               WRITE(6,'(1PE12.4,0P6F10.3)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
-         WRITE(6,'(12X,1P5E12.4)') 
+               WRITE(6,'(12X,1P5E12.4)') 
      &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
-      ELSEIF(MDLWRI.EQ.1) THEN
-         READ(5,*,ERR=1,END=9000) 
+            ELSEIF(MDLWRI.EQ.1) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                   RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,
      &                   RCURVA,RCURVB,RBRADA,RBRADB,UUI
-         WRITE(6,*) '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
-         WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-         WRITE(6,'(1PE12.4,0P6F10.3)') 
+               WRITE(6,*) 
+     &              '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
+               WRITE(6,*) 
+     &              '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
+               WRITE(6,'(1PE12.4,0P6F10.3)') 
      &                   RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
-         WRITE(6,'(12X,1P5E12.4)') 
+               WRITE(6,'(12X,1P5E12.4)') 
      &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
-         SINP2=SIN(ANGZ*PI/180.D0)**2
-         SINT2=SIN(ANGPH*PI/180.D0)**2
-         RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-         RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-         IF(ANGZ.LT.0.D0) RNZI=-RNZI
-         IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-      ELSEIF(MDLWRI.EQ.2) THEN
-         READ(5,*,ERR=1,END=9000) 
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               IF(ANGZ.LT.0.D0) RNZI=-RNZI
+               IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+            ELSEIF(MDLWRI.EQ.2) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                     RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
-         WRITE(6,*) '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
-         WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
-         WRITE(6,'(1PE12.4,0P6F10.3)') 
+               WRITE(6,*) 
+     &              '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH'
+               WRITE(6,*) 
+     &              '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
+               WRITE(6,'(1PE12.4,0P6F10.3)') 
      &                     RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH
-         WRITE(6,'(12X,1P5E12.4)') 
+               WRITE(6,'(12X,1P5E12.4)') 
      &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
-         SINP2=SIN(ANGZ*PI/180.D0)**2
-         SINT2=SIN(ANGPH*PI/180.D0)**2
-         RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-         RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-         WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
-         GOTO 1
-      ENDIF
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
+               GOTO 1
+            ENDIF
+         ELSE
+            RF=RFIN(NRAY)
+            RPI=RPIN(NRAY)
+            ZPI=ZPIN(NRAY)
+            PHII=PHIIN(NRAY)
+            RKR0=RKRIN(NRAY)
+            RNZI=RNZIN(NRAY)
+            RNPHII=RNPHIIN(NRAY)
+            ANGZ=ANGZIN(NRAY)
+            ANGPH=ANGPHIN(NRAY)
+            UUI=UUIN(NRAY)
+            RCURVA=RCURVAIN(NRAY)
+            RCURVB=RCURVBIN(NRAY)
+            RBRADA=RBRADAIN(NRAY)
+            RBRADB=RBRADBIN(NRAY)
+C
+            IF(MDLWRI.EQ..10)THEN
+               WRITE(6,*) 
+     &              '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
+               WRITE(6,*) 
+     &              '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
+               WRITE(6,'(1PE12.4,0P6F10.3)') 
+     &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII
+               WRITE(6,'(12X,1P5E12.4)') 
+     &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
+            ELSE
+               WRITE(6,*) 
+     &              '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH'
+               WRITE(6,*) 
+     &              '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'
+               WRITE(6,'(1PE12.4,0P6F10.3)') 
+     &                   RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH
+               WRITE(6,'(12X,1P5E12.4)') 
+     &                      RCURVA,RCURVB,RBRADA,RBRADB,UUI
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               IF(ANGZ.LT.0.D0) RNZI=-RNZI
+               IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+            ENDIF
+         ENDIF
 C
       RAYIN(1,NRAY)=RF
       RAYIN(2,NRAY)=RPI

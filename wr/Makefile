@@ -2,6 +2,7 @@
 include ../make.header
 
 FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 

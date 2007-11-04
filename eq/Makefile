@@ -52,7 +52,7 @@ checkak :
 	ftnchek $(FCKFLAGS) $(SRCA) | less
 
 clean:
-	rm -f core a.out *.o ./*~ *.a
+	rm -f core a.out *.o *.mod ./*~ *.a
 	rm -f doc/*~
 
 veryclean: clean

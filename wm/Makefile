@@ -2,6 +2,8 @@
 include ../make.header
 
 FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
+
 MODINCLUDE= -I. -I../lib
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \

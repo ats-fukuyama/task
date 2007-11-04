@@ -37,7 +37,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
 
 clean:
-	-rm -f core a.out *.o ./*~ ./#* *.a
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a
 
 veryclean: clean
 	-rm -f pl
@@ -48,7 +48,7 @@ new:
 	cp -f *.f ../plnew
 	cp -f *.inc ../plnew
 
-plmain.o: plmain.f plcomm.inc plcom0.inc plcom1.inc
+plmain.o: plmain.f plcomm.f90 plcom0.f90 plcom1.inc
 plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
 plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
 plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc

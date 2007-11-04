@@ -62,40 +62,71 @@ C     --- Each ray tracing ---
 C
       DO NRAY=1,NRAYMX
 C
-    1    WRITE(6,*) '# NRAY = ',NRAY
-         IF(MDLWRI.EQ.0) THEN
-            READ(5,*,ERR=1,END=9000) 
+         IF(MDLWRI.LT.10) THEN
+C
+    1       WRITE(6,*) '# NRAY = ',NRAY
+            IF(MDLWRI.EQ.0) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
-            WRITE(6,*) 
-     &      '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
-            WRITE(6,'(1PE12.4,0P7F9.2)') 
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
-         ELSEIF(MDLWRI.EQ.1) THEN
-            READ(5,*,ERR=1,END=9000) 
+            ELSEIF(MDLWRI.EQ.1) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
-            WRITE(6,*) 
-     &      '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
-            WRITE(6,'(1PE12.4,0P7F9.2)') 
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
-            SINP2=SIN(ANGZ*PI/180.D0)**2
-            SINT2=SIN(ANGPH*PI/180.D0)**2
-            RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-            RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-            IF(ANGZ.LT.0.D0) RNZI=-RNZI
-            IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
-         ELSEIF(MDLWRI.EQ.2) THEN
-            READ(5,*,ERR=1,END=9000) 
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               IF(ANGZ.LT.0.D0) RNZI=-RNZI
+               IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+            ELSEIF(MDLWRI.EQ.2) THEN
+               READ(5,*,ERR=1,END=9000) 
      &                      RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
-            WRITE(6,*) 
-     &      '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH,UU'
-            WRITE(6,'(1PE12.4,0P7F9.2)') 
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,PHI,MODEW,ANGZ,ANGPH,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
      &                      RF,RPI,ZPI,PHII,MODEW,ANGZ,ANGPH,UUI
-            SINP2=SIN(ANGZ*PI/180.D0)**2
-            SINT2=SIN(ANGPH*PI/180.D0)**2
-            RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
-            RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
-            WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
-            GOTO 1
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               WRITE(6,*) 'XX MDLWRI=2 IS NOT SUPPORTED YET.'
+               GOTO 1
+            ENDIF
+         ELSE
+            RF=RFIN(NRAY)
+            RPI=RPIN(NRAY)
+            ZPI=ZPIN(NRAY)
+            PHII=PHIIN(NRAY)
+            RKR0=RKRIN(NRAY)
+            RNZI=RNZIN(NRAY)
+            RNPHII=RNPHIIN(NRAY)
+            ANGZ=ANGZIN(NRAY)
+            ANGPH=ANGPHIN(NRAY)
+            UUI=UUIN(NRAY)
+            IF(MDLWRI.EQ..10)THEN
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,PHII,RKR0,RNZI,RNPHII,UUI
+            ELSE
+               WRITE(6,*) 
+     &         '# initial values: RF,RP,ZP,PHI,RKR0,ANGZ,ANGPH,UU'
+               WRITE(6,'(1PE12.4,0P7F9.2)') 
+     &                      RF,RPI,ZPI,PHII,RKR0,ANGZ,ANGPH,UUI
+               SINP2=SIN(ANGZ*PI/180.D0)**2
+               SINT2=SIN(ANGPH*PI/180.D0)**2
+               RNZI  =SQRT(SINP2*(1-SINT2)/(1-SINP2*SINT2))
+               RNPHII=SQRT(SINT2*(1-SINP2)/(1-SINP2*SINT2))
+               IF(ANGZ.LT.0.D0) RNZI=-RNZI
+               IF(ANGPH.LT.0.D0) RNPHII=-RNPHII
+            ENDIF
          ENDIF
 C
          RAYIN(1,NRAY)=RF
@@ -103,8 +134,7 @@ C
          RAYIN(3,NRAY)=ZPI
          RAYIN(4,NRAY)=PHII
          RAYIN(5,NRAY)=RKR0
-C     
-         IF(MDLWRI.EQ.0)THEN
+         IF(MDLWRI.EQ.0.OR.MDLWR.EQ.10)THEN
             RAYIN(6,NRAY)=RNZI
             RAYIN(7,NRAY)=RNPHII
          ELSE

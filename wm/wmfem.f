@@ -193,6 +193,8 @@
       integer:: nph,nth
       real(8):: drho,dph,dth
       complex(8):: csum1,csum2,csum3,csum4
+      
+      write(6,'(A,5I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
 
       if(nr.eq.1) then
          nrm=1
@@ -215,7 +217,7 @@
          if(nph.eq.nphmax) then
             nphp=1
          else
-            nphm=nph+1
+            nphp=nph+1
          endif
          dph=2*pi/nphmax
       do nth=1,nthmax
@@ -227,10 +229,13 @@
          if(nth.eq.nthmax) then
             nthp=1
          else
-            nthm=nth+1
+            nthp=nth+1
          endif
          dth=2*pi/nthmax
 
+         write(6,'(A,5I5)') 'nr,nph,nths:',nr,nph,nthm,nth,nthp
+
+         do j=1,3
          cq(1,j,1)=((mma(3,j,nph,nthp,nr)
      &              -mma(3,j,nph,nthm,nr))/dth
      &             -(mma(2,j,nphp,nth,nr)
@@ -255,6 +260,7 @@
          cp(1,j)=0.d0
          cp(2,j)=-mma(3,j,nph,nth,nr)/gj(nph,nth,nr)
          cp(3,j)= mma(2,j,nph,nth,nr)/gj(nph,nth,nr)
+      enddo
 
       do imn2=1,3
       do imn1=1,3
@@ -497,6 +503,7 @@
       subroutine wmfem_calculate_vacuum(nr,fmd)
 
       implicit none
+      integer,intent(in):: nr
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(out):: fmd
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmc
       complex(8),dimension(nthmax,nphmax):: fv1,fv1f
@@ -506,7 +513,7 @@
       real(8),dimension(4):: rhol
       complex(8):: cfactor
       real(8):: drho,rkth,rkph,rkth0,rho0
-      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
+      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
       integer:: ns,nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       integer:: nph1,nph2,nph1x,nph2x
@@ -607,11 +614,28 @@
                   else
                      nthdiff=nth1-nth2
                   endif
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2,1)
-     &                       =fmv4(i,j,nth,nph)
-     &                                +fmc(i,j,k,nfcdiff,nfc2,inod)
+                  if(nfcmax.eq.1) then
+                     nfcdiff=1
+                  else
+                     nfcdiff=nthmax*nphdiff+nthdiff+nfcmax/2
+                  endif
+
+                  write(6,'(A,3I5)') 'nth1,nth2,nthdiff=',
+     &                                nth1,nth2,nthdiff
+                  write(6,'(A,3I5)') 'nph1,nph2,nphdiff=',
+     &                                nph1,nph2,nphdiff
+                  write(6,'(A,3I5)') 'nfc1,nfc2,nfcdiff=',
+     &                                nfc1,nfc2,nfcdiff
+
+                  do inod=1,4
+                     do k=1,4
+                        do j=1,3
+                           do i=1,3
+                              fmd(i,j,k,nfc1,nfc2,inod)
+     &                             =fmv4(i,j,nth1,nph1)
+     &                             +fmc(i,j,k,nfcdiff,nfc2,inod)
+                           enddo
+                        enddo
                      enddo
                   enddo
                enddo
@@ -626,13 +650,14 @@
       subroutine wmfem_calculate_vacuum_old(nr,fmd)
 
       implicit none
+      integer,intent(in):: nr
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(out):: fmd
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmc
       complex(8),dimension(nthmax,nphmax):: fv1,fv1f
       real(8),dimension(4):: rhol
       complex(8):: cfactor
       real(8):: drho,rkth,rkph,rkth0,rho0
-      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
+      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
       integer:: ns,nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       integer:: nph1,nph2,nph1x,nph2x
@@ -810,13 +835,14 @@
       subroutine wmfem_calculate_plasma(nr,ns,fmd)
 
       implicit none
+      integer,intent(in):: nr
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(out):: fmd
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmc
       complex(8),dimension(3,3,nfcmax,nfcmax):: fms1,fms2
       complex(8),dimension(nthmax,nphmax):: fv1,fv1f
       real(8),dimension(4):: rhol
       real(8):: drho,rkth,rkph,rkth0,rho0
-      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
+      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
       integer:: ns,nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       complex(8):: cfactor
