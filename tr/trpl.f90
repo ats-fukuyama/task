@@ -35,7 +35,7 @@
       device%rr=RR
       device%zz=0.d0
       device%ra=RA
-      device%rb=RB
+      device%rb=RA+0.1D0
       device%bb=BB
       device%ip=RIP
       device%elip=RKAP

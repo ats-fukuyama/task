@@ -30,9 +30,10 @@ SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90
-SRCS= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
-      itg/ifspppl_model.f itg/weiland.f
-SRCF= glf/glf2d.F glf/r8tomsqz.F
+#SRCITG= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f itg/weiland.f
+#SRCITGF= glf/glf2d.F glf/r8tomsqz.F
+SRCITG= noitg.f
+SRCITGF=
 SRC2D=trg2d.f90
 SRC3D=trg3d.f90
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
@@ -41,7 +42,7 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
 
-OBJS= $(SRC90:.f90=.o) $(SRCS:.f=.o) $(SRCF:.F=.o)
+OBJS= $(SRC90:.f90=.o) $(SRCITG:.f=.o) $(SRCITGF:.F=.o)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 OBJE=$(SRCE:.f=.o)
