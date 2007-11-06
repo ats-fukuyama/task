@@ -570,6 +570,7 @@ contains
 
     REAL(4), INTENT(IN) :: GTIME
     REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
+    real(8), dimension(0:NRMAX) :: PNeION
 
     IF (NGVV < NGVM) NGVV=NGVV+1
 
@@ -626,7 +627,8 @@ contains
 
     CALL VALINT_SUB(PNeV,NRA,PNESUM1)
     PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
-    CALL VALINT_SUB(PNeV(0:NRMAX)*rNuION(0:NRMAX),NRA,PNESUM2)
+    PNeION(0:NRMAX) = PNeV(0:NRMAX)*rNuION(0:NRMAX)
+    CALL VALINT_SUB(PNeION,NRA,PNESUM2)
     PNESUM2 = 2.D0*PI*RR*2.D0*PI*(PNESUM2 + PNeV(NRA)*rNuION(NRA)*R(NRA)*(RA-R(NRA)))
 
     GVY(NGVV,41) = SNGL(PNESUM1)
@@ -786,8 +788,8 @@ contains
     character(len=50) :: STR
     character(len=1) :: KSTR,KLABEL
     character(len=3) :: KEND
-    real, dimension(4) :: GPX, GPY
-    real :: GPXL, FACT, GYMAX
+    real(4), dimension(4) :: GPX, GPY
+    real(4) :: GPXL, FACT, GYMAX
 
     NGYR = NGYRIN
 
@@ -2658,7 +2660,7 @@ contains
   !
   !***********************************************************
 
-  REAL FUNCTION GLOG(X,XMIN,XMAX)
+  REAL(4) FUNCTION GLOG(X,XMIN,XMAX)
 
     implicit none
     real(4) :: GUCLIP

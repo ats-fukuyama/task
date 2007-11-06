@@ -300,22 +300,16 @@ contains
        end do
     case(39)
        do ne = 1, nemax
-          x(ne,1) = (-48.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 3.d0*a(ne)*b(ne-1)*psi(ne-1) &
-               &     + 3.d0*a(ne-1)*b(ne)  *psi(ne-1)+ 2.d0*a(ne)*b(ne)  *psi(ne-1) &
-               &     + 3.d0*a(ne-1)*b(ne-1)*psi(ne)  + 2.d0*a(ne)*b(ne-1)*psi(ne) &
-               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne)  + 3.d0*a(ne)*b(ne)  *psi(ne)) * c160
-          x(ne,2) = (  3.d0*a(ne-1)*b(ne-1)*psi(ne-1)+ 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
-               &     + 2.d0*a(ne-1)*b(ne)  *psi(ne-1)+ 3.d0*a(ne)*b(ne)  *psi(ne-1) &
-               &     + 2.d0*a(ne-1)*b(ne-1)*psi(ne)  + 3.d0*a(ne)*b(ne-1)*psi(ne) &
-               &     + 3.d0*a(ne-1)*b(ne)  *psi(ne)  +12.d0*a(ne)*b(ne)  *psi(ne)) * c160
-          x(ne,3) = (-12.d0*a(ne-1)*b(ne-1)*psi(ne-1)- 3.d0*a(ne)*b(ne-1)*psi(ne-1) &
-               &     - 3.d0*a(ne-1)*b(ne)  *psi(ne-1)- 2.d0*a(ne)*b(ne)  *psi(ne-1) &
-               &     - 3.d0*a(ne-1)*b(ne-1)*psi(ne)  - 2.d0*a(ne)*b(ne-1)*psi(ne) &
-               &     - 2.d0*a(ne-1)*b(ne)  *psi(ne)  - 3.d0*a(ne)*b(ne)  *psi(ne)) * c160
-          x(ne,4) = (- 3.d0*a(ne-1)*b(ne-1)*psi(ne-1)- 2.d0*a(ne)*b(ne-1)*psi(ne-1) &
-               &     - 2.d0*a(ne-1)*b(ne)  *psi(ne-1)- 3.d0*a(ne)*b(ne)  *psi(ne-1) &
-               &     - 2.d0*a(ne-1)*b(ne-1)*psi(ne)  - 3.d0*a(ne)*b(ne-1)*psi(ne) &
-               &     - 3.d0*a(ne-1)*b(ne)  *psi(ne)  +48.d0*a(ne)*b(ne)  *psi(ne)) * c160
+          a1 = a(ne-1) ; b1 = b(ne-1) ; p1 = psi(ne-1)
+          a2 = a(ne)   ; b2 = b(ne)   ; p2 = psi(ne)
+          x(ne,1) = (-48.d0*a1*b1*p1+3.d0*a2*b1*p1+3.d0*a1*b2*p1+ 2.d0*a2*b2*p1 &
+               &     + 3.d0*a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+ 3.d0*a2*b2*p2) * c160
+          x(ne,2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
+               &     + 2.d0*a1*b1*p2+3.d0*a2*b1*p2+3.d0*a1*b2*p2+12.d0*a2*b2*p2) * c160
+          x(ne,3) = (-12.d0*a1*b1*p1-3.d0*a2*b1*p1-3.d0*a1*b2*p1- 2.d0*a2*b2*p1 &
+               &     - 3.d0*a1*b1*p2-2.d0*a2*b1*p2-2.d0*a1*b2*p2- 3.d0*a2*b2*p2) * c160
+          x(ne,4) = (- 3.d0*a1*b1*p1-2.d0*a2*b1*p1-2.d0*a1*b2*p1- 3.d0*a2*b2*p1 &
+               &     - 2.d0*a1*b1*p2-3.d0*a2*b1*p2-3.d0*a1*b2*p2+48.d0*a2*b2*p2) * c160
        end do
     case(41)
        do ne = 1, nemax
@@ -880,8 +874,8 @@ contains
   SUBROUTINE APITOS(STR, NSTR, I)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),          INTENT(INOUT) :: NSTR
-    INTEGER(4),          INTENT(IN)    :: I
+    INTEGER(4),       INTENT(INOUT) :: NSTR
+    INTEGER(4),       INTENT(IN)    :: I
 
     INTEGER(4) :: J, NSTRI
     character(len=25) :: KVALUE
@@ -909,9 +903,9 @@ contains
   SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),          INTENT(INOUT) :: NSTR
+    INTEGER(4),       INTENT(INOUT) :: NSTR
     character(len=*), INTENT(IN)    :: INSTR
-    INTEGER(4),          INTENT(IN)    :: NINSTR
+    INTEGER(4),       INTENT(IN)    :: NINSTR
 
     STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
     NSTR = NSTR + NINSTR
@@ -933,7 +927,7 @@ contains
   SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),          INTENT(INOUT) :: NSTR
+    INTEGER(4),       INTENT(INOUT) :: NSTR
     REAL(8),          INTENT(IN)    :: D
     character(len=*), INTENT(IN)    :: FORM
 
@@ -1022,8 +1016,8 @@ contains
   SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),          INTENT(INOUT) :: NSTR
-    REAL,             INTENT(IN)    :: GR
+    INTEGER(4),       INTENT(INOUT) :: NSTR
+    REAL(4),          INTENT(IN)    :: GR
     character(len=*), INTENT(IN)    :: FORM
 
     REAL(8) :: D

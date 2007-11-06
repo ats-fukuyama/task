@@ -19,7 +19,7 @@ contains
     use output_console, only : TXWDAT
 
     INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
-    REAL :: gCTIME1, gCTIME2, gCTIME3
+    REAL(4) :: gCTIME1, gCTIME2, gCTIME3
     character(len=10) :: STR1, STR2, STR3
     INTEGER, DIMENSION(1:8) :: TIMES
     real(8) :: t_interval

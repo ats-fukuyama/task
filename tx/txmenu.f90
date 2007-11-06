@@ -63,8 +63,6 @@ contains
 
        SELECT CASE(KID)
        CASE('R')
-          call allocate_txcomm(ier, icont)
-          if(ier /= 0) cycle
           IF (ICONT /= 0) THEN
              WRITE(6,*) '# Would you like to restart? [y/N]'
              READ(5,'(A1)',IOSTAT=IST) KID
@@ -72,6 +70,8 @@ contains
              CALL TOUPPER(KID)
              IF(KID /= 'Y') CYCLE
           END IF
+          call allocate_txcomm(ier, icont)
+          if(ier /= 0) cycle
           T_TX = 0.D0
           TPRE = 0.D0
           IERR = 0

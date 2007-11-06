@@ -162,12 +162,12 @@ module commons
   integer(4) :: MODEG, MODEAV, MODEGL
   real(4), dimension(:),     allocatable :: GX
   real(4), dimension(:,:,:), allocatable :: GY, GQY
-  real, dimension(0:NGRM) :: GT
-  real, dimension(0:NGTM) :: GTX
-  real, dimension(0:NGTM,1:NGYTM) :: GTY
-  real, dimension(1:NGYRM) :: gDIV
-  real, dimension(0:NGVM) :: GVX
-  real, dimension(0:NGVM,1:NGYVM) :: GVY
+  real(4), dimension(0:NGRM) :: GT
+  real(4), dimension(0:NGTM) :: GTX
+  real(4), dimension(0:NGTM,1:NGYTM) :: GTY
+  real(4), dimension(1:NGYRM) :: gDIV
+  real(4), dimension(0:NGVM) :: GVX
+  real(4), dimension(0:NGVM,1:NGYVM) :: GVY
 
   ! I/O
   character(len=20) :: SLID
