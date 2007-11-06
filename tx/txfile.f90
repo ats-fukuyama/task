@@ -1,22 +1,22 @@
 !     $Id$
+module output_console
+  implicit none
+  public
+
+contains
+
 !***************************************************************
 !
 !   Write Data
 !
 !***************************************************************
 
-module output_console
-  use commons
-  implicit none
-  public
-
-contains
-
   SUBROUTINE TXWDAT
+    use commons, only : PNeV, RB, X, LQe4, LQi4, PNiV, LQn1, NRMAX, PTeV, PTiV, WPT
     use physical_constants, only : PI
     use libraries, only : INTG_F
 
-    INTEGER :: NR
+    INTEGER(4) :: NR
     REAL(8) :: rNbar
 
     !     ***** Volume-averaged density *****
@@ -48,6 +48,7 @@ contains
 
   SUBROUTINE TXWDAT2
 
+    use commons, only : GTY, NGT
     REAL :: gPNeMIN, gPNeMAX, gNB0MIN, gNB0MAX, gUiphMIN, gUiphMAX
     CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
     CALL GMNMX1(GTY(0,2),  1, NGT + 1, 1,  gNB0MIN,  gNB0MAX)
@@ -71,7 +72,8 @@ contains
 
   REAL(8) FUNCTION rLINEAVE(Rho)
 
-    INTEGER :: I, IR, NY = 100
+    use commons, only : RA, NRMAX, PNeV
+    INTEGER(4) :: I, IR, NY = 100
     REAL(8), INTENT(IN) :: Rho
     REAL(8) :: D, DY, Y, RL, SUML
 
@@ -90,9 +92,10 @@ contains
   END FUNCTION rLINEAVE
 end module output_console
 
-module file_io
-  use commons
+
+module file_io 
   implicit none
+  public
 
 contains
 
@@ -103,9 +106,17 @@ contains
 !***************************************************************
 
   SUBROUTINE TXSAVE
+    use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+         &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
+         &              PROFD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,rLn,rLT, &
+         &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
+         &              rNRF,RRF,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+         &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
+         &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+         &              GTY,GVY,NLCMAX,NQM,GQY,NCM
     use libraries, only : TOUPPER
 
-    INTEGER :: IST, NQ, NR, NC, I, IGYT, IGYV
+    INTEGER(4) :: IST, NQ, NR, NC, I, IGYT, IGYV
     character(len=100) :: TXFNAM, RCSId
     character(len=1) :: STR
     LOGICAL :: LEX
@@ -188,6 +199,14 @@ contains
 !***************************************************************
 
   SUBROUTINE TXLOAD
+    use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+         &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
+         &              PROFD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,rLn,rLT, &
+         &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
+         &              rNRF,RRF,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+         &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
+         &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+         &              GTY,GVY,NLCMAX,NQM,GQY,NCM
     use results
     use output_console
     use variables
@@ -195,7 +214,7 @@ contains
     use coefficients, only : TXCALA
     use parameter_control, only : TXPARM_CHECK
 
-    INTEGER :: IST, NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
+    INTEGER(4) :: IST, NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
     character(len=100) ::  TXFNAM, RCSId
     character(len=8) :: LOADSLID
     LOGICAL :: LEX
@@ -221,6 +240,12 @@ contains
           WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
        END IF
     END DO
+
+    call allocate_txcomm(ierr)
+    if(ierr /= 0) then
+       call deallocate_txcomm
+       write(6,*) "XX Allocation error : TXGLOD"
+    end if
 
     READ(21,IOSTAT=IST) LOADSLID
     IF (IST > 0) THEN
@@ -286,7 +311,15 @@ contains
 
   SUBROUTINE TXGSAV
 
-    INTEGER :: IST, NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
+    use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+         &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
+         &              PROFD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,rLn,rLT, &
+         &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
+         &              rNRF,RRF,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+         &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
+         &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+         &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY
+    INTEGER(4) :: IST, NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
     character(len=100) :: TXFNAM, RCSId
     character(len=1) :: STR
     LOGICAL :: LEX
@@ -374,12 +407,20 @@ contains
 
   SUBROUTINE TXGLOD
 
+    use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+         &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
+         &              PROFD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,rLn,rLT, &
+         &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
+         &              rNRF,RRF,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+         &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
+         &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+         &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY
     use results
     use output_console
     use init_prof
     use variables
 
-    INTEGER :: IST, NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV
+    INTEGER(4) :: IST, NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV, ier
     character(len=100) :: TXFNAM, RCSId
     character(len=8) :: LOADSLID
     LOGICAL :: LEX
@@ -405,6 +446,12 @@ contains
           WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
        END IF
     END DO
+
+    call allocate_txcomm(ierr)
+    if(ierr /= 0) then
+       call deallocate_txcomm
+       write(6,*) "XX Allocation error : TXGLOD"
+    end if
 
 !!$    READ(21,IOSTAT=IST) LOADSLID
 !!$    IF (IST > 0) THEN

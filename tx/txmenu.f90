@@ -16,7 +16,8 @@ contains
   SUBROUTINE TXMENU
 
     use physical_constants, only : rMU0
-    use commons
+    use commons, only : IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
+         &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, DelR, RB, PNBCD
     use main, only : TXEXEC
     use graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
     use file_io, only : TXSAVE, TXLOAD
@@ -62,7 +63,7 @@ contains
 
        SELECT CASE(KID)
        CASE('R')
-          call allocate_txcomm(ier)
+          call allocate_txcomm(ier, icont)
           if(ier /= 0) cycle
           IF (ICONT /= 0) THEN
              WRITE(6,*) '# Would you like to restart? [y/N]'
@@ -147,7 +148,7 @@ contains
 
   SUBROUTINE TXKLIN(LINE,KID,MODE)
 
-    INTEGER :: ID, I, MODE, IST
+    INTEGER(4) :: ID, I, MODE, IST
     character(len=80) :: LINE
     character(len=1)  :: KID
 

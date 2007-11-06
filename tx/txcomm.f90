@@ -3,7 +3,7 @@ module commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=118, NGYTM=46, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=120, NGYTM=46, &
        &                   NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
   integer(4), parameter :: NSM=2, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -174,13 +174,13 @@ module commons
 
 contains
 
-  subroutine allocate_txcomm(ier)
+  subroutine allocate_txcomm(ier, icont)
 
     integer(4), intent(out) :: ier
+    integer(4), intent(in), optional :: icont
     integer(4) :: iflag, N, NS, NF
     integer(4), dimension(1:15) :: ierl
 
-    iflag = 0
     ierl(1:15) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
@@ -194,7 +194,13 @@ contains
     NF    = NFM
 
     ! allocation check
-    if(allocated(R)) call deallocate_txcomm
+    if(allocated(R)) then
+       if(present(icont) .and. icont /= 0) then
+          call deallocate_txcomm
+       else
+          return
+       end if
+    end if
 
     do
        allocate(R(0:N),      PSI(0:N),                                        stat = ierl(1))

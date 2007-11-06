@@ -16,7 +16,7 @@ contains
     use physical_constants, only : AEE, PI, rMU0, rKeV, AME, EION
     use libraries, only : INTG_F, INTG_P, DERIVS
 
-    INTEGER :: I, NS, NF, NR
+    INTEGER(4) :: I, NS, NF, NR
     REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
          &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
          &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
@@ -25,7 +25,7 @@ contains
     REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
          &     dPPV, ALFA
     REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
-    real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2
+    real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
     real(8) :: dBetaSUM, BPINT
     real(8) :: DERIV3
 
@@ -36,8 +36,9 @@ contains
     RKAP = 1.D0
     FKAP = 1.D0
 
-    VOLAVN =  2.D0 / RB**2 * INTG_F( PZ*PNiV(0:NRMAX)+PZ*PNbV(0:NRMAX) &
-         &                          +PZ*RATIO(0:NRMAX)*PNbrpV(0:NRMAX)-PNeV(0:NRMAX))
+    PNdiff(0:NRMAX) =  PZ * PNiV(0:NRMAX) + PZ * PNbV(0:NRMAX) &
+         &           + PZ * RATIO(0:NRMAX) * PNbrpV(0:NRMAX) - PNeV(0:NRMAX)
+    VOLAVN =  2.D0 / RB**2 * INTG_F(PNdiff)
 
     RNINT = INTG_F(PNeV)
     RPEINT = INTG_F(PeV)

@@ -370,6 +370,11 @@ contains
     !   1    : fixed
     MDFIXT = 0
 
+    !   Mode of Backward Differential Formula
+    !   0    : not used
+    !   1    : Use BDF
+    IGBDF = 0
+
     !   Multiplication factor for graphic in the radial direction
     !   default : 1.0
     !
@@ -470,8 +475,8 @@ contains
     use libraries, only : LORENTZ, LORENTZ_PART, BISECTION, &
          &                LORENTZ_NEO, LORENTZ_PART_NEO, BISECTION_NEO
 
-    INTEGER :: NR, NRL, NR_RC_NEAR
-    real(8) :: DR, MAXAMP, CL, WL, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
+    INTEGER(4) :: NR, NRL, NR_RC_NEAR
+    real(8)    :: DR, MAXAMP, CL, WL, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
 
     !   Ion mass number
     AMI   = PA * AMP
@@ -613,7 +618,7 @@ contains
     use variables
     use libraries, only : INTG_P, DERIVS, INTDERIV3
 
-    INTEGER :: NR, NQ, I, IER
+    INTEGER(4) :: NR, NQ, I, IER
     REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
     REAL(8) :: ALP, dPe, dPi, DR1, DR2
     REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
@@ -974,7 +979,7 @@ contains
 
   SUBROUTINE TXPARM(KID)
 
-    INTEGER :: IST
+    INTEGER(4) :: IST
     LOGICAL :: LEX
     character(len=*)  :: KID
 
@@ -998,7 +1003,7 @@ contains
 
   SUBROUTINE TXPARL(KLINE)
 
-    integer :: IST
+    integer(4) :: IST
     logical :: LEX
     character(len=*) :: KLINE
     character(len=90) :: KNAME
@@ -1019,7 +1024,7 @@ contains
 
   SUBROUTINE TXPARF(KPNAME)
 
-    integer :: IST, KL
+    integer(4) :: IST, KL
     logical :: LEX
     character(len=*) :: KPNAME
 

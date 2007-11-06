@@ -90,10 +90,10 @@ contains
     INCLUDE 'nclass/pamx_ms.inc'
     INCLUDE 'nclass/pamx_mz.inc'
     INCLUDE 'txncls.inc'
-    INTEGER, INTENT(IN)  :: NR
-    INTEGER, INTENT(OUT) :: IER
+    INTEGER(4), INTENT(IN)  :: NR
+    INTEGER(4), INTENT(OUT) :: IER
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAL, JBSL
-    INTEGER :: i, k_out, k_v, ier_check, im, iz
+    INTEGER(4) :: i, k_out, k_v, ier_check, im, iz
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
          &     btot, uthai, VPOL(0:NRMAX), PAL, PZL
@@ -188,8 +188,10 @@ contains
        grt_i(3)  = grt_i(2)
        den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiV(NR)) * 1.E20
        den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiV(NR)) * 1.E20
-       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) &
+            &                    * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) &
+            &                    * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
 
@@ -357,16 +359,16 @@ contains
     INCLUDE 'txncls.inc'
     !Declaration of local variables
     CHARACTER :: label*120
-    INTEGER, intent(in)  :: nr, nout, k_out
-    integer, intent(out) :: ier
-    INTEGER   :: i, im, iz, iza, j, jm, jza, k, l
-    INTEGER   :: idum(8)
-    REAL      :: a0, bt0, bpol, btor, btot, e0, p_eps, p_q, ppr, q0, r0, uthai
-    REAL      :: dq_s(mx_ms), vq_s(mx_ms)
-    REAL      :: z_coulomb, z_electronmass, z_j7kv, z_mu0, z_pi, z_protonmass
-    REAL      :: dum(8), edum(8), rdum(8)
+    INTEGER(4), intent(in)  :: nr, nout, k_out
+    integer(4), intent(out) :: ier
+    INTEGER(4) :: i, im, iz, iza, j, jm, jza, k, l
+    INTEGER(4) :: idum(8)
+    REAL(4)    :: a0, bt0, bpol, btor, btot, e0, p_eps, p_q, ppr, q0, r0, uthai
+    REAL(4)    :: dq_s(mx_ms), vq_s(mx_ms)
+    REAL(4)    :: z_coulomb, z_electronmass, z_j7kv, z_mu0, z_pi, z_protonmass
+    REAL(4)    :: dum(8), edum(8), rdum(8)
     !Declaration of functions
-    REAL      ::  RARRAY_SUM
+    REAL(4)    ::  RARRAY_SUM
 
     !Physical and conversion constants
     z_coulomb=1.6022e-19

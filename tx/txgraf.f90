@@ -3,8 +3,8 @@
 module graphic
   implicit none
   private
-  real :: GXM, GYM, GYS
-  integer :: NP
+  real(4) :: GXM, GYM, GYS
+  integer(4) :: NP
   public :: TXGOUT, TX_GRAPH_SAVE, TXSTGR, TXSTGT, TXSTGV, TXSTGQ
 
   interface TXWPS
@@ -22,11 +22,12 @@ contains
   !***************************************************************
   
   SUBROUTINE TXGOUT
-    use commons
+    use commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
+         &              NRMAX, NGYRM, GY, NGR
     use libraries, only : TOUPPER
     use file_io, only : TXLOAD, TXGSAV, TXGLOD
 
-    INTEGER :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
+    INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
     character(len=5) :: STR, STR2
     character(len=1) :: KID1, KID2
@@ -354,14 +355,14 @@ contains
 
   !***************************************************************
   !
-  !   Initialize graphic axes
+  !   Initialize graphic axis
   !
   !***************************************************************
 
   SUBROUTINE TXPRFG
 
     use commons, only : NRMAX, GX, R, RA
-    INTEGER :: NR
+    INTEGER(4) :: NR
 
     !  GX(NR) : Integer
 
@@ -381,7 +382,7 @@ contains
     use commons
     use physical_constants, only : AEE, rKeV
 
-    INTEGER :: NR
+    INTEGER(4) :: NR
 
     IF (NGR < NGRM) NGR = NGR + 1
 
@@ -558,12 +559,16 @@ contains
 
   SUBROUTINE TXSTGV(GTIME)
 
-    use commons
+    use commons, only : NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, NRC, UerV, UethV, &
+         &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
+         &              PTeV, PTiV, PN01V, PN02V, EthV, BphV, UbthV, Q, Di, De, &
+         &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
+         &              Chie,  Chii, PIE, PCX, SIE, PBr
     use physical_constants, only : AEE, PI
     use output_console, only : rLINEAVE
     use libraries, only : VALINT_SUB
 
-    REAL, INTENT(IN) :: GTIME
+    REAL(4), INTENT(IN) :: GTIME
     REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
 
     IF (NGVV < NGVM) NGVV=NGVV+1
@@ -650,8 +655,11 @@ contains
 
   SUBROUTINE TXSTGT(GTIME)
 
-    use commons
-    REAL, INTENT(IN) :: GTIME
+    use commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, &
+         &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
+         &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
+         &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, VOLAVN
+    REAL(4), INTENT(IN) :: GTIME
 
     IF (NGT < NGTM) NGT=NGT+1
 
@@ -720,7 +728,7 @@ contains
   SUBROUTINE TXSTGQ
 
     use commons, only : NRMAX, NQMAX, NLCMAX, NLCR, GQY, ALC, BLC, CLC, PLC, X
-    integer :: NR, NC, NQ, NC1
+    integer(4) :: NR, NC, NQ, NC1
 
     DO NQ = 1, NQMAX
        DO NC = 1, NLCMAX(NQ)
@@ -767,11 +775,12 @@ contains
 
   SUBROUTINE TXGRFR(NGYRIN,MODE)
 
-    use commons
+    use commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
+         &              NRA, PSI, HPSI, GY, NGR, gDIV, GX
     use libraries, only : DERIVS
-    INTEGER, INTENT(IN) :: MODE
-    INTEGER, INTENT(IN) :: NGYRIN
-    INTEGER :: IND, NG, NR, NGYR, NE, IFNT, NRMAXL
+    INTEGER(4), INTENT(IN) :: MODE
+    INTEGER(4), INTENT(IN) :: NGYRIN
+    INTEGER(4) :: IND, NG, NR, NGYR, NE, IFNT, NRMAXL
     REAL(4), DIMENSION(0:NRMAX,0:NGRM) :: GYL
     REAL(4), DIMENSION(:,:), allocatable :: GYL2
     character(len=50) :: STR
@@ -779,7 +788,6 @@ contains
     character(len=3) :: KEND
     real, dimension(4) :: GPX, GPY
     real :: GPXL, FACT, GYMAX
-    real(8) :: deriv3
 
     NGYR = NGYRIN
 
@@ -1531,11 +1539,12 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use commons
-    integer, intent(in) :: MODE
+    use commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, &
+         &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV
+    integer(4), intent(in) :: MODE
     character(len=50) :: STR
-    integer :: IND, IFNT, NR
-    real, dimension(0:NRMAX,1:4) :: GYL, GYL2
+    integer(4) :: IND, IFNT, NR
+    real(4), dimension(0:NRMAX,1:4) :: GYL, GYL2
 
     IF (NGR <= -1) THEN
        WRITE(6,*) 'G', NGR, ' has no data'
@@ -1601,15 +1610,15 @@ contains
   SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GXMIN, GYMAX, ILOGIN)
 
     use commons, only : RA, RB
-    INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
-    REAL, DIMENSION(:), INTENT(IN) :: GXL
-    REAL, DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
-    real, intent(in), optional :: GXMIN, GYMAX
-    integer, intent(in), optional :: ILOGIN
+    INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
+    REAL(4), DIMENSION(:), INTENT(IN) :: GXL
+    REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
+    real(4), intent(in), optional :: GXMIN, GYMAX
+    integer(4), intent(in), optional :: ILOGIN
     character(len=*), INTENT(IN) :: STR
-    integer :: ILOG
-    REAL :: GXMAX, GXMINL
-    REAL, DIMENSION(4) :: GPXY
+    integer(4) :: ILOG
+    REAL(4) :: GXMAX, GXMINL
+    REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =  3.0 + 12.5 * MOD(K,2)
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
@@ -1621,7 +1630,7 @@ contains
 !!$    GPXY(3) = 10.5 -  8.5 * REAL(K/2)
 !!$    GPXY(4) = 17.0 -  8.5 * REAL(K/2)
 
-    GXMAX=REAL(RB/RA)
+    GXMAX = REAL(RB/RA)
 
     IF(PRESENT(GXMIN)) THEN
        GXMINL = GXMIN
@@ -1654,15 +1663,15 @@ contains
   SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GYMAX, ILOGIN)
 
     use commons, only : RA, RB
-    INTEGER, INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
-    REAL, DIMENSION(:), INTENT(IN) :: GXL
-    REAL, DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
+    INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
+    REAL(4), DIMENSION(:), INTENT(IN) :: GXL
+    REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
     character(len=*), INTENT(IN) :: STR
-    real, intent(in), optional :: GYMAX
-    integer, intent(in), optional :: ILOGIN
-    integer :: ILOG
-    REAL :: GXMAX
-    REAL, DIMENSION(4) :: GPXY
+    real(4), intent(in), optional :: GYMAX
+    integer(4), intent(in), optional :: ILOGIN
+    integer(4) :: ILOG
+    REAL(4) :: GXMAX
+    REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =   2.0 + 6.1  * MOD(K,4)
     GPXY(2) =   6.7 + 6.1  * MOD(K,4)
@@ -1698,21 +1707,21 @@ contains
     ! Forth argument, NXMAX, is not always "NRMAX" defined as the number of grid points.
 
     use commons, only : RA, RB
-    INTEGER, INTENT(IN) :: K, NXMAX, NGMAX, MODE, IND
-    REAL, DIMENSION(:), INTENT(IN) :: GXL
-    REAL, DIMENSION(:,:), INTENT(IN) :: GYL_IN
-    real, dimension(0:NXMAX,1:NGMAX) :: GYL
+    INTEGER(4), INTENT(IN) :: K, NXMAX, NGMAX, MODE, IND
+    REAL(4), DIMENSION(:), INTENT(IN) :: GXL
+    REAL(4), DIMENSION(:,:), INTENT(IN) :: GYL_IN
+    real(4), dimension(0:NXMAX,1:NGMAX) :: GYL
     character(len=*), INTENT(IN) :: STR
-    integer, intent(in), optional :: ILOGIN
-    integer :: ILOG
-    REAL :: GXMAX
-    REAL, DIMENSION(4) :: GPXY
+    integer(4), intent(in), optional :: ILOGIN
+    integer(4) :: ILOG
+    REAL(4) :: GXMAX
+    REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =  3.0 + 12.5 * MOD(K,2)
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
     GPXY(3) = 10.5 -  8.5 * REAL(K/2)
     GPXY(4) = 17.0 -  8.5 * REAL(K/2)
-    GXMAX=REAL(RB/RA)
+    GXMAX = REAL(RB/RA)
 
     IF(PRESENT(ILOGIN)) THEN
        ILOG = ILOGIN
@@ -1735,12 +1744,12 @@ contains
 
   SUBROUTINE TXGRFV(NGYV,MODE)
 
-    use commons
-    INTEGER, INTENT(IN) :: NGYV, MODE
-    INTEGER :: IND
-    REAL :: gDIVL
+    use commons, only : NGVM, NGVV, MODEG, GVX, DT, NGVSTP, gDIV, GVY
+    INTEGER(4), INTENT(IN) :: NGYV, MODE
+    INTEGER(4) :: IND
+    REAL(4) :: gDIVL
     character(len=50) ::  STR
-    REAL, DIMENSION(0:NGVM,1:4) :: GVYL
+    REAL(4), DIMENSION(0:NGVM,1:4) :: GVYL
 
     IF (NGVV <= 1) THEN
        WRITE(6,*) 'GV', NGYV, ' has no data'
@@ -1985,12 +1994,12 @@ contains
 
   SUBROUTINE TXGRFT(NGYT,MODE)
 
-    use commons
-    INTEGER, INTENT(IN) :: NGYT, MODE
-    INTEGER :: IND
-    REAL :: gDIVL
+    use commons, only : NGTM, NGYTM, MODEG, GTX, GTY, NGT, DT, NGTSTP
+    INTEGER(4), INTENT(IN) :: NGYT, MODE
+    INTEGER(4) :: IND
+    REAL(4) :: gDIVL
     character(len=50) ::  STR
-    REAL, DIMENSION(0:NGTM,1:NGYTM) :: GTYL
+    REAL(4), DIMENSION(0:NGTM,1:NGYTM) :: GTYL
 
     IF (NGT <= 1) THEN
        WRITE(6,*) 'GT', NGYT, ' has no data'
@@ -2150,13 +2159,13 @@ contains
 
   SUBROUTINE TXGRFVX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, MODE, IND, GYMIN)
 
-    INTEGER, INTENT(IN) :: K, NGTM, NGTL, NG
-    REAL, DIMENSION(0:NGTM), INTENT(IN) :: GTXL
-    REAL, DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
-    real, intent(in), optional :: GYMIN
+    INTEGER(4), INTENT(IN) :: K, NGTM, NGTL, NG
+    REAL(4), DIMENSION(0:NGTM), INTENT(IN) :: GTXL
+    REAL(4), DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
+    real(4), intent(in), optional :: GYMIN
     character(len=*), INTENT(IN) ::  STR
-    INTEGER :: MODE, IND
-    REAL, DIMENSION(4) :: GPXY
+    INTEGER(4) :: MODE, IND
+    REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =  3.0 + 12.5 * MOD(K,2)
     GPXY(2) = 12.5 + 12.5 * MOD(K,2)
@@ -2181,12 +2190,12 @@ contains
 
   SUBROUTINE TXGRFTX(K, GTXL, GTYL, NGTM, NGTL, NG, STR, IND)
 
-    INTEGER, INTENT(IN) :: K, NGTM, NGTL, NG
-    REAL, DIMENSION(0:NGTM), INTENT(IN) :: GTXL
-    REAL, DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
+    INTEGER(4), INTENT(IN) :: K, NGTM, NGTL, NG
+    REAL(4), DIMENSION(0:NGTM), INTENT(IN) :: GTXL
+    REAL(4), DIMENSION(0:NGTM,1:NG), INTENT(IN) :: GTYL
     character(len=*), INTENT(IN) ::  STR
-    INTEGER :: IND
-    REAL, DIMENSION(4) :: GPXY
+    INTEGER(4) :: IND
+    REAL(4), DIMENSION(4) :: GPXY
 
     GPXY(1) =  3.0 + 12.0 * MOD(K,2)
     GPXY(2) = 12.0 + 12.0 * MOD(K,2)
@@ -2206,16 +2215,16 @@ contains
 
   SUBROUTINE TXGRFQ(NQ,ID)
 
-    use commons
+    use commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
     use libraries, only : APTOS
     use physical_constants, only : EPS0, rMU0
 
-    INTEGER, INTENT(IN) :: NQ, ID
-    INTEGER :: NR, NC, NC1, NSTR, IND
-    REAL :: GXMAX
-    REAL, DIMENSION(0:NRMAX,1:NCM) :: GQYL
-    REAL, DIMENSION(1:4) :: GPXY
-    REAL, DIMENSION(1:4,1:5) :: GPXYA
+    INTEGER(4), INTENT(IN) :: NQ, ID
+    INTEGER(4) :: NR, NC, NC1, NSTR, IND
+    REAL(4) :: GXMAX
+    REAL(4), DIMENSION(0:NRMAX,1:NCM) :: GQYL
+    REAL(4), DIMENSION(1:4) :: GPXY
+    REAL(4), DIMENSION(1:4,1:5) :: GPXYA
     character(len=80), DIMENSION(1:NQM) :: STRGQ
     character(len=80) :: STR
 
@@ -2269,8 +2278,11 @@ contains
 
   SUBROUTINE TXWPGR
 
-    use commons
-    INTEGER :: IFNT
+    use commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD, &
+         &              FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD0, PNBHT1, PNBHT2, &
+         &              PNBHP, PRFH, Vb, De0, rMue0, rMui0, Chie0, Chii0, PTe0, PTea, &
+         &              PTi0, PTia, V0, rGamm0, rGASPF, Zeff
+    INTEGER(4) :: IFNT
 
     CALL INQFNT(IFNT)
 !    CALL SETFNT(32)
@@ -2357,7 +2369,7 @@ contains
 
   SUBROUTINE TXWPSI(STR, IVAL)
 
-    INTEGER, INTENT(IN) :: IVAL
+    INTEGER(4), INTENT(IN) :: IVAL
     character(len=*), INTENT(IN) :: STR
 
     CALL MOVE(GXM, GYM - GYS * NP)
@@ -2395,20 +2407,20 @@ contains
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
        &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, GYMAX_IN, GYMIN_IN)
 
-    INTEGER, INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
-    REAL, INTENT(IN) :: GXMIN, GXMAX, FONT
-    REAL, DIMENSION(4), INTENT(IN) :: GPXY
-    REAL, DIMENSION(:), INTENT(IN) :: GX
-    REAL, DIMENSION(:,:), INTENT(IN) :: GY
-    integer, intent(in) :: ILOG
-    REAL, INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
+    INTEGER(4), INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
+    REAL(4), INTENT(IN) :: GXMIN, GXMAX, FONT
+    REAL(4), DIMENSION(4), INTENT(IN) :: GPXY
+    REAL(4), DIMENSION(:), INTENT(IN) :: GX
+    REAL(4), DIMENSION(:,:), INTENT(IN) :: GY
+    integer(4), intent(in) :: ILOG
+    REAL(4), INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
     character(len=*), INTENT(IN) :: STR
 
-    INTEGER :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
-    REAL :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &
+    INTEGER(4) :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
+    REAL(4) :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &
          &        GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP, GYORG,  &
          &        GMRK, GCHH, GXL, GYL
-    INTEGER, DIMENSION(0:4) :: NLTYPE
+    INTEGER(4), DIMENSION(0:4) :: NLTYPE
     DATA NLTYPE/0,2,3,4,6/
 
     IF (MODE < 0 .OR. MODE > 4) THEN
@@ -2607,15 +2619,15 @@ contains
   SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV, GIN1)
     use libraries, only : APTOS
 
-    INTEGER, INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
-    REAL, INTENT(IN) :: gDIV
-    REAL, DIMENSION(0:NXM,0:NYMAX),INTENT(IN)  :: GIN
-    REAL, DIMENSION(0:NXM,0:NYMAX),INTENT(OUT) :: GOUT
-    REAL, DIMENSION(0:NXMAX),INTENT(IN), optional :: GIN1
+    INTEGER(4), INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
+    REAL(4), INTENT(IN) :: gDIV
+    REAL(4), DIMENSION(0:NXM,0:NYMAX),INTENT(IN)  :: GIN
+    REAL(4), DIMENSION(0:NXM,0:NYMAX),INTENT(OUT) :: GOUT
+    REAL(4), DIMENSION(0:NXMAX),INTENT(IN), optional :: GIN1
     character(len=*), INTENT(INOUT) :: STR
 
-    INTEGER :: NSTR, POSAT, nx, ny
-    REAL :: gDIVL
+    INTEGER(4) :: NSTR, POSAT, nx, ny
+    REAL(4) :: gDIVL
 
     gDIVL = 1.0
     IF(MODE /= 0) gDIVL = gDIV
@@ -2649,7 +2661,7 @@ contains
   REAL FUNCTION GLOG(X,XMIN,XMAX)
 
     implicit none
-    real GUCLIP
+    real(4) :: GUCLIP
     real(8), intent(in) :: X, XMIN, XMAX
     real(8) :: PLOG
 

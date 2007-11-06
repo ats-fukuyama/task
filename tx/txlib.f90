@@ -88,9 +88,9 @@ contains
 !
 !-------------------------------------------------------
 
-    integer, intent(in) :: id
+    integer(4), intent(in) :: id
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
-    integer :: ne
+    integer(4) :: ne
     real(8) :: x(1:nemax,1:4), csq15, a1, a2, b1, b2, p1, p2, hp
     
     select case(id)
@@ -116,10 +116,10 @@ contains
           x(ne,4) = (-       a(ne-1) + 4.d0 * a(ne)) * c16 * b(ne)
        end do
     case(-8)
-       x(0:nemax,1) =-0.5d0 * a(ne-1)
-       x(0:nemax,2) =-0.5d0 * a(ne)
-       x(0:nemax,3) = 0.5d0 * a(ne-1)
-       x(0:nemax,4) = 0.5d0 * a(ne)
+       x(1:nemax,1) =-0.5d0 * a(ne-1)
+       x(1:nemax,2) =-0.5d0 * a(ne)
+       x(1:nemax,3) = 0.5d0 * a(ne-1)
+       x(1:nemax,4) = 0.5d0 * a(ne)
     case(0)
        !  for SUPG
        csq15 = 1.d0 / sqrt(15.d0)
@@ -447,9 +447,9 @@ contains
 !     x(4)     : matrix of integrated values
 !
 !-------------------------------------------------------
-    integer, intent(in) :: id, ne
+    integer(4), intent(in) :: id, ne
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
-    integer :: node1, node2
+    integer(4) :: node1, node2
     real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, hp, csq15
     
     node1 = ne-1  ; node2 = ne
@@ -783,11 +783,11 @@ contains
 
   subroutine inv_int(ne_in,val,x1,x2,x)
 
-    integer, intent(in)  :: ne_in
+    integer(4), intent(in)  :: ne_in
     real(8), intent(in)  :: val, x1, x2
     real(8), intent(out) :: x
 
-    integer :: ne
+    integer(4) :: ne
     real(8) :: f(1:4), a1, a2, suml, lhs
 
     ! left grid
@@ -869,7 +869,7 @@ contains
 
 !***************************************************************
 !
-!   SUBROUTINE APpend Integer TO Strings
+!   SUBROUTINE APpend Integer(4) TO Strings
 !     INPUT  : STR, NSTR, I
 !              STR(NSTR(original)+1:NSTR(return))
 !              NSTR : Number of STR. First, NSTR = 0.
@@ -880,10 +880,10 @@ contains
   SUBROUTINE APITOS(STR, NSTR, I)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER,          INTENT(INOUT) :: NSTR
-    INTEGER,          INTENT(IN)    :: I
+    INTEGER(4),          INTENT(INOUT) :: NSTR
+    INTEGER(4),          INTENT(IN)    :: I
 
-    INTEGER :: J, NSTRI
+    INTEGER(4) :: J, NSTRI
     character(len=25) :: KVALUE
 
     WRITE(KVALUE,'(I25)') I
@@ -909,9 +909,9 @@ contains
   SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER,          INTENT(INOUT) :: NSTR
+    INTEGER(4),          INTENT(INOUT) :: NSTR
     character(len=*), INTENT(IN)    :: INSTR
-    INTEGER,          INTENT(IN)    :: NINSTR
+    INTEGER(4),          INTENT(IN)    :: NINSTR
 
     STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
     NSTR = NSTR + NINSTR
@@ -933,12 +933,12 @@ contains
   SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER,          INTENT(INOUT) :: NSTR
+    INTEGER(4),          INTENT(INOUT) :: NSTR
     REAL(8),          INTENT(IN)    :: D
     character(len=*), INTENT(IN)    :: FORM
 
-    INTEGER(1) :: IND
-    INTEGER :: L, IS, IE, NSTRD, IST
+    INTEGER(4) :: IND
+    INTEGER(4) :: L, IS, IE, NSTRD, IST
     character(len=10) :: KFORM
     character(len=25) :: KVALUE
 
@@ -1022,7 +1022,7 @@ contains
   SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
     character(len=*), INTENT(INOUT) :: STR
-    INTEGER,          INTENT(INOUT) :: NSTR
+    INTEGER(4),          INTENT(INOUT) :: NSTR
     REAL,             INTENT(IN)    :: GR
     character(len=*), INTENT(IN)    :: FORM
 
@@ -1044,7 +1044,7 @@ contains
 
     character(len=*), INTENT(INOUT) ::  KTEXT
 
-    INTEGER :: NCHAR, I, ID
+    INTEGER(4) :: NCHAR, I, ID
 
     NCHAR = LEN(KTEXT)
     DO I = 1, NCHAR
@@ -1066,8 +1066,8 @@ contains
 
     real(8), dimension(0:NRMAX), intent(in)  :: R, F
     real(8), dimension(0:NRMAX), intent(out) :: G
-    integer, intent(in) :: NRMAX
-    integer :: NR
+    integer(4), intent(in) :: NRMAX
+    integer(4) :: NR
     real(8) :: DR1, DR2
 
     NR = 0
@@ -1094,8 +1094,8 @@ contains
     real(8), dimension(0:NRMAX), intent(in)  :: R
     real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
     real(8), dimension(0:NRMAX), intent(out) :: G
-    integer, intent(in) :: LQ, NRMAX, NQMAX
-    integer :: NR
+    integer(4), intent(in) :: LQ, NRMAX, NQMAX
+    integer(4) :: NR
     real(8) :: DR1, DR2
 
     NR = 0
@@ -1121,7 +1121,7 @@ contains
 
     real(8), dimension(0:NRMAX), intent(in)  :: R
     real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-    integer, intent(in) :: NR, LQ, NRMAX, NQMAX
+    integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
     real(8) :: DR1, DR2
 
     IF(NR == 0) THEN
@@ -1167,9 +1167,9 @@ contains
     !           \int     X(r) dpsi (ID == 1) at one mesh
 
     use core_module, only : fem_int_point
-    integer, intent(in) :: NR, ID
+    integer(4), intent(in) :: NR, ID
     real(8), dimension(*), intent(in) :: X
-    integer :: NE
+    integer(4) :: NE
 
     IF(ID == 0) THEN
        IF(NR == 0) THEN
@@ -1194,11 +1194,11 @@ contains
     ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
 
     use core_module, only : fem_int_point
-    integer, intent(in) :: NRLMAX
-    integer, intent(in), optional :: NR_START
+    integer(4), intent(in) :: NRLMAX
+    integer(4), intent(in), optional :: NR_START
     real(8), dimension(*), intent(in) :: X
     real(8), intent(out) :: VAL
-    integer :: NE, NEMAX, NE_START
+    integer(4) :: NE, NEMAX, NE_START
     real(8) :: SUML
 
     NEMAX = NRLMAX
@@ -1224,11 +1224,11 @@ contains
 !                                   or intX(NRMAX) is known of FVAL (ID = else).
 
   SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
-    integer, intent(in) :: NRMAX, ID
+    integer(4), intent(in) :: NRMAX, ID
     real(8), intent(in), dimension(0:NRMAX) :: X, R
     real(8), intent(in) :: FVAL
     real(8), intent(out), dimension(0:NRMAX) :: intX
-    integer :: NR
+    integer(4) :: NR
     real(8) :: D1, D2, D3
 
     IF(ID == 0) THEN
@@ -1347,7 +1347,7 @@ contains
 
   pure REAL(8) FUNCTION LORENTZ_PART_NEO(R,W1,W2,RC1,RC2,ID)
     real(8), intent(in) :: r, w1, w2, rc1, rc2
-    integer, intent(in) :: ID
+    integer(4), intent(in) :: ID
 
     IF(ID == 0) THEN
        LORENTZ_PART_NEO = W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)
@@ -1382,7 +1382,7 @@ contains
     real(8), intent(in) :: cl, w, rc, amp, s, valmax
     real(8), intent(in), optional :: valmin
     real(8), intent(out) :: val
-    integer :: i, n
+    integer(4) :: i, n
     real(8) :: a, b, c, eps, fa, fc
 
     if(present(valmin)) then
@@ -1412,7 +1412,7 @@ contains
     real(8), intent(in) :: cl1, cl2, w1, w2, rc1, rc2, amp, s, valmax
     real(8), intent(in), optional :: valmin
     real(8), intent(out) :: val
-    integer :: i, n
+    integer(4) :: i, n
     real(8) :: a, b, c, eps, fa, fc
 
     if(present(valmin)) then

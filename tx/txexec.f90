@@ -1,6 +1,5 @@
 !     $Id$
 module main
-  use commons
   implicit none
   private
   public :: TXEXEC
@@ -14,11 +13,12 @@ contains
 !***************************************************************
 
   SUBROUTINE TXEXEC
+    use commons, only : IERR, T_TX
     use libraries, only : APTOS
     use results
     use output_console, only : TXWDAT
 
-    INTEGER :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
+    INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
     REAL :: gCTIME1, gCTIME2, gCTIME3
     character(len=10) :: STR1, STR2, STR3
     INTEGER, DIMENSION(1:8) :: TIMES
@@ -71,6 +71,9 @@ contains
 !***************************************************************
 
   SUBROUTINE TXLOOP
+    use commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
+         &              PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, tiny_cap, EPS, IDIAG, &
+         &              NTSTEP, NGRSTP, NGTSTP, NGVSTP
     use results
     use variables
     use coefficients, only : TXCALA
@@ -79,9 +82,9 @@ contains
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
     INTEGER :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
-    INTEGER, DIMENSION(1:NQMAX*(NRMAX+1)) :: IPIV
+    INTEGER, DIMENSION(1:NQM*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
-    REAL(8), DIMENSION(1:NQMAX,0:NRMAX) :: XN, XP, ASG
+    REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
     integer :: iasg(1:2)
 
     allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
@@ -297,6 +300,8 @@ contains
 
   SUBROUTINE TXCALB(BA,BL,BX)
 
+    use commons, only : IGBDF, ADV, MDLPCK, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
+         &              PLC, X, XOLD
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
     INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
@@ -529,6 +534,7 @@ contains
 
   SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
+    use commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5
     INTEGER, intent(in) :: NTL, IC
     integer, intent(inout) :: IER
     REAL(8), DIMENSION(1:NQMAX,0:NRMAX), intent(in) :: XL
@@ -569,8 +575,9 @@ contains
 
   SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
+    use commons, only : NQM, NRMAX
     integer, intent(in) :: LQ, ID
-    real(8), dimension(:,:), intent(inout) :: XL
+    real(8), dimension(1:NQM,0:NRMAX), intent(inout) :: XL
     integer :: NR, NZERO
 
     IF(ID == 0) THEN
