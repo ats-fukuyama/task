@@ -6,7 +6,7 @@ C            CALCULATION OF DW (BOUNCE AVERAGED,RAY)
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALS
+      SUBROUTINE FPCALWR
 C
       INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.inc'

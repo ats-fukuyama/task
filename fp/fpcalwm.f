@@ -6,7 +6,7 @@ C            CALCULATION OF DW (BOUNCE AVERAGED)
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALV
+      SUBROUTINE FPCALWM
 C
       INCLUDE 'fpcomm.inc'
 C
