@@ -477,6 +477,117 @@ C
          END DO
       END DO
 
+C     
+      IF (MODELA.EQ.1) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+            DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+            DO NP=1,NPMAX+1
+               SUM1=0.D0
+               SUM2=0.D0
+               SUM3=0.D0
+C     
+               DO NG=1,NAVMAX
+                  ETAL=DELH*(NG-0.5D0)
+                  X=EPSR(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+                  IF (COSM(NTH).GE.0.D0) THEN
+                     PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                  ELSE
+                     PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                  ENDIF
+C
+                  SUM1=SUM1+DCPP(NTH,NP,NR)*COSM(NTH)/PCOS
+                  SUM2=SUM2+FCPP(NTH,NP,NR)*COSM(NTH)/PCOS
+                  SUM3=SUM3+DCPT(NTH,NP,NR)/SQRT(PSIB)
+               END DO
+               DCPP(NTH,NP,NR)=SUM1*DELH/PI
+               FCPP(NTH,NP,NR)=SUM2*DELH/PI
+               DCPT(NTH,NP,NR)=SUM3*DELH/PI
+            END DO
+         END DO
+C         
+         DO NTH=1,NTHMAX+1
+            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+            DO NP=1,NPMAX
+               SUM4=0.D0
+               SUM5=0.D0
+               SUM6=0.D0
+C     
+               DO NG=1,NAVMAX
+                  ETAL=DELH*(NG-0.5D0)
+                  X=EPSR(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+                  IF(NTH.NE.NTHMAX/2) THEN
+                     ARG=1.D0-PSIB*SING(NTH)**2
+                     IF(ARG.GT.0.D0) THEN
+                        IF (COSG(NTH).GE.0.D0) THEN
+                           PCOS= SQRT(ARG)
+                        ELSE
+                           PCOS=-SQRT(ARG)
+                        ENDIF
+                     ELSE
+                        PCOS=0.D0
+                     ENDIF
+                     SUM4=SUM4+DCTT(NTH,NP,NR)*PCOS/(PSIB*COSG(NTH))
+                  ENDIF
+                  SUM5=SUM5+FCTH(NTH,NP,NR)/SQRT(PSIB)
+                  SUM6=SUM6+DCTP(NTH,NP,NR)/SQRT(PSIB)
+               END DO
+               DCTT(NTH,NP,NR)=SUM4*DELH/PI
+               FCTH(NTH,NP,NR)=SUM5*DELH/PI
+               DCTP(NTH,NP,NR)=SUM6*DELH/PI
+            END DO
+         END DO
+C
+         DO NP=1,NPMAX+1
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCPP(NTH,NP,NR)=(DCPP(NTH,NP,NR)
+     &                         +DCPP(NTHMAX-NTH+1,NP,NR))/2.D0
+               FCPP(NTH,NP,NR)=(FCPP(NTH,NP,NR)
+     &                         +FCPP(NTHMAX-NTH+1,NP,NR))/2.D0
+               DCPT(NTH,NP,NR)=(DCPT(NTH,NP,NR)
+     &                         +DCPT(NTHMAX-NTH+1,NP,NR))/2.D0
+               DCPP(NTHMAX-NTH+1,NP,NR)=DCPP(NTH,NP,NR)
+               FCPP(NTHMAX-NTH+1,NP,NR)=FCPP(NTH,NP,NR)
+               DCPT(NTHMAX-NTH+1,NP,NR)=DCPT(NTH,NP,NR)
+            END DO
+            DCPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( DCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
+     &                +DCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
+     &                +DCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
+     &                +DCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+            FCPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( FCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
+     &                +FCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
+     &                +FCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
+     &                +FCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+            DCPT(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( DCPT(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
+     &                +DCPT(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
+     &                +DCPT(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
+     &           +DCPT(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+            DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
+            FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
+            DCPT(ITU(NR),NP,NR)=DCPT(ITL(NR),NP,NR)
+         END DO
+
+         DO NP=1,NPMAX
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               DCTT(NTH,NP,NR)=(DCTT(NTH,NP,NR)
+     &                         +DCTT(NTHMAX-NTH+2,NP,NR))/2.D0
+               FCTH(NTH,NP,NR)=(FCTH(NTH,NP,NR)
+     &                         +FCTH(NTHMAX-NTH+2,NP,NR))/2.D0
+               DCTP(NTH,NP,NR)=(DCTP(NTH,NP,NR)
+     &                         +DCTP(NTHMAX-NTH+2,NP,NR))/2.D0
+               DCTT(NTHMAX-NTH+2,NP,NR)=DCTT(NTH,NP,NR)
+               FCTH(NTHMAX-NTH+2,NP,NR)=FCTH(NTH,NP,NR)
+               DCTP(NTHMAX-NTH+2,NP,NR)=DCTP(NTH,NP,NR)
+            END DO
+         END DO
+         END DO
+      END IF
+
 c$$$      DO NP=2, NPMAX+1
 c$$$         PNFP=PG(NP)
 c$$$         DCPPLL=DCPP(1,NP,NR)
