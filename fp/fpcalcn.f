@@ -1,7 +1,4 @@
 C     $Id$
-C*******************************
-C*** DIS FUNC INT TEST VOL.1 ***
-C*******************************
 C
       SUBROUTINE FPCALC_NL(NR,NS)
 C
@@ -476,9 +473,32 @@ C
      &                     +FACT*WF*RGAMA**6
          END DO
       END DO
-
+c
+c$$$      DO NP=2, NPMAX+1
+c$$$         PNFP=PG(NP)
+c$$$         DCPPLL=DCPP(1,NP,NR)
+c$$$         FCPPLL=FCPP(1,NP,NR)
+c$$$         RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+c$$$         vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
+c$$$         ptatb=PG(NP)/RGAMA
+c$$$         PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+c$$$         WRITE(6,'(I5,1P5E12.4)') NP,
+c$$$     &      DCPPLL, FCPPLL,
+c$$$     &      (FCPPLL/DCPPLL/PNFP*RGAMA),PCRIT
+c$$$C     &      PNFP/RGAMA,
+c$$$C     &      (D1PHYG(NP,0)+D1PHYG(NP,0))/AMFD/
+c$$$C     &        (D2PSYG(NP,0)+D2PSYG(NP,0))/PNFP*RGAMA**(-2)
+c$$$C     &        RM1G(NP,0),RM2G(NP,0),RM3G(NP,0),RM4G(NP,0),PCRIT
+c$$$C     &        RM2G(NP,0)/RM4G(NP,0)*AMFD/PTFD0
+c$$$      END DO
 C     
-      IF (MODELA.EQ.1) THEN
+      RETURN
+      END
+C
+      SUBROUTINE FPCALC_NLAV(NR)
+C
+      INCLUDE 'fpcomm.inc'
+C     
          DO NR=1,NRMAX
          DO NTH=1,NTHMAX
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -586,25 +606,6 @@ C
             END DO
          END DO
          END DO
-      END IF
-
-c$$$      DO NP=2, NPMAX+1
-c$$$         PNFP=PG(NP)
-c$$$         DCPPLL=DCPP(1,NP,NR)
-c$$$         FCPPLL=FCPP(1,NP,NR)
-c$$$         RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
-c$$$         vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
-c$$$         ptatb=PG(NP)/RGAMA
-c$$$         PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-c$$$         WRITE(6,'(I5,1P5E12.4)') NP,
-c$$$     &      DCPPLL, FCPPLL,
-c$$$     &      (FCPPLL/DCPPLL/PNFP*RGAMA),PCRIT
-c$$$C     &      PNFP/RGAMA,
-c$$$C     &      (D1PHYG(NP,0)+D1PHYG(NP,0))/AMFD/
-c$$$C     &        (D2PSYG(NP,0)+D2PSYG(NP,0))/PNFP*RGAMA**(-2)
-c$$$C     &        RM1G(NP,0),RM2G(NP,0),RM3G(NP,0),RM4G(NP,0),PCRIT
-c$$$C     &        RM2G(NP,0)/RM4G(NP,0)*AMFD/PTFD0
-c$$$      END DO
 
       RETURN
       END

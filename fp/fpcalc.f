@@ -59,6 +59,24 @@ C
                ENDIF
             ENDIF
          ENDDO
+C
+         IF(MODELA.EQ.1) THEN
+            IF(MODELC.EQ.0) THEN
+               CALL FPCALC_LAV(NR)
+            ELSEIF(MODELC.EQ.1) THEN
+               CALL FPCALC_NLAV(NR)
+            ELSEIF(MODELC.EQ.2) THEN
+               CALL FPCALC_NLAV(NR)
+            ELSEIF(MODELC.EQ.3) THEN
+               CALL FPCALC_LAV(NR)
+            ELSEIF(MODELC.EQ.4) THEN
+               CALL FPCALC_NLAV(NR)
+            ELSEIF(MODELC.EQ.-1) THEN
+               CALL FPCALC_LAV(NR)
+            ELSEIF(MODELC.EQ.-2) THEN
+               CALL FPCALC_NLAV(NR)
+            ENDIF
+         ENDIF
       ENDDO
 
 C
@@ -286,7 +304,19 @@ C                  PNFP=PNFPL*PTFP0*AMFD/(PTFD0*AMFP)
          ENDDO
       ENDIF
 
-      IF(MODELA.EQ.1) THEN
+      RETURN
+      END
+C
+C ************************************************************
+C
+C       BOUNCE AVERAGE OF LINEAR COLLISIONAL OPERATOR
+C
+C ************************************************************
+C
+      SUBROUTINE FPCALC_LAV(NR)
+C
+      INCLUDE 'fpcomm.inc'
+C
          DO NR=1,NRMAX
             DO NTH=1,NTHMAX
                FACT=RLAMDA(NTH,NR)
@@ -323,7 +353,7 @@ C
                FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
             ENDDO
          ENDDO
-      ENDIF
+
       RETURN
       END
 C
