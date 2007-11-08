@@ -831,25 +831,25 @@ contains
        GPX(2) =  2.5 ; GPY(2) = 16.5
        GPX(3) = 24.5 ; GPY(3) = 16.5
        GPX(4) = 24.5 ; GPY(4) = 10.5
-       CALL LINES2D(GPX,GPY,4)
+       CALL LINES(GPX,GPY,4)
        ! Draw lines
        FACT = (GPX(4) - GPX(1)) / R(NRMAX)
        GPXL = GPX(1)
        DO NE = 1, NEMAX-1
           GPXL = GPXL + REAL(H(NE)) * FACT
           IF(NE == NRA) CALL SETLIN(-1,-1,6)
-          CALL LINE2D(GPXL,10.5,GPXL,16.5)
+          CALL LINE1(GPXL,10.5,GPXL,16.5)
           IF(NE == NRA) CALL SETLIN(-1,-1,7)
        END DO
        WRITE(KSTR,'(I1)') 0
        WRITE(KEND,'(I3)') NRMAX
        KLABEL='r'
        CALL SETCHS(0.4,0.0)
-       CALL GTEXT2D(GPX(1),GPY(1)-0.5,KSTR,1,2)
-       CALL GTEXT2D(GPX(4),GPY(4)-0.5,KEND,3,2)
+       CALL GTEXT(GPX(1),GPY(1)-0.5,KSTR,1,2)
+       CALL GTEXT(GPX(4),GPY(4)-0.5,KEND,3,2)
        CALL SETFNT(33)
        CALL SETCHS(0.6,0.0)
-       CALL GTEXT2D(GPX(1)-1.0,0.5*(GPY(1)+GPY(2)),KLABEL,1,2)
+       CALL GTEXT(GPX(1)-1.0,0.5*(GPY(1)+GPY(2)),KLABEL,1,2)
        CALL SETFNT(IFNT)
 
        ! Draw frame of PSI
@@ -857,25 +857,25 @@ contains
        GPX(2) =  2.5 ; GPY(2) =  8.0
        GPX(3) = 24.5 ; GPY(3) =  8.0
        GPX(4) = 24.5 ; GPY(4) =  2.0
-       CALL LINES2D(GPX,GPY,4)
+       CALL LINES(GPX,GPY,4)
        ! Draw lines
        FACT = (GPX(4) - GPX(1)) / PSI(NRMAX)
        GPXL = GPX(1)
        DO NE = 1, NEMAX-1
           GPXL = GPXL + REAL(HPSI(NE)) * FACT
           IF(NE == NRA) CALL SETLIN(-1,-1,6)
-          CALL LINE2D(GPXL,2.0,GPXL,8.0)
+          CALL LINE1(GPXL,2.0,GPXL,8.0)
           IF(NE == NRA) CALL SETLIN(-1,-1,7)
        END DO
        WRITE(KSTR,'(I1)') 0
        WRITE(KEND,'(I3)') NRMAX
        KLABEL='s'
        CALL SETCHS(0.4,0.0)
-       CALL GTEXT2D(GPX(1),GPY(1)-0.5,KSTR,1,2)
-       CALL GTEXT2D(GPX(4),GPY(4)-0.5,KEND,3,2)
+       CALL GTEXT(GPX(1),GPY(1)-0.5,KSTR,1,2)
+       CALL GTEXT(GPX(4),GPY(4)-0.5,KEND,3,2)
        CALL SETFNT(33)
        CALL SETCHS(0.6,0.0)
-       CALL GTEXT2D(GPX(1)-1.0,0.5*(GPY(1)+GPY(2)),KLABEL,1,2)
+       CALL GTEXT(GPX(1)-1.0,0.5*(GPY(1)+GPY(2)),KLABEL,1,2)
        CALL SETFNT(IFNT)
        CALL SETCHS(0.3,0.0)
 
