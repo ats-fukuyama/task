@@ -802,7 +802,7 @@ contains
     DO NR = 0, NRMAX
        IF(R(NR) < RA) THEN
           X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
-               & *(3.d0*PSI(NR)-1.5D0*PSI(NR)**2/RA**2+PSI(NR)**3/(3.D0*RA**4))
+               & *(3.d0*PSI(NR)-1.5D0*(PSI(NR)/RA)**2+(PSI(NR)/RA)**3/(3.D0*RA))
        ELSE
           X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
                & *(3.d0*RA**2-1.5D0*RA**2+RA**2/3.D0) &
