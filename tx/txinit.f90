@@ -85,10 +85,10 @@ contains
     !   ***** Particle diffusivity and viscosity parameters *****
 
     !   Electron-driven diffusion parameter
-    De0 = 0.D0
+    De0 = 0.1D0
 
     !   Ion-driven diffusion parameter
-    Di0 = 0.2D0
+    Di0 = 0.D0
 
     !   Electron viscosity parameter
     rMue0 = 3.D0
@@ -107,11 +107,11 @@ contains
 
     !   Electron thermal diffusivity parameter (Chie/D)
     !     0 for fixed temperature profile
-    Chie0 = 0.D0
+    Chie0 = 3.D0
 
     !   Ion thermal diffusivity parameter (Chie/D)
     !     0 for fixed temperature profile
-    Chii0 = 0.D0
+    Chii0 = 3.D0
 
     !   ***** Turbulent transport control parameters *****
 
