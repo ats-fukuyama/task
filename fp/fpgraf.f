@@ -419,7 +419,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*)
-      DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)
+      DIMENSION GF(NPM,NTHM),GP(NPM),GTH(NTHM),KA(8,NPM,NTHM)
       CHARACTER STRING*4
 C
     1 CONTINUE
@@ -472,13 +472,13 @@ C
       ELSEIF(MODE.EQ.1) THEN
          DO 60 NTH=1,NTHMAX
          DO 60 NP=1,NPMAX+1
-            NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(FG(NM))
    60    CONTINUE
       ELSEIF(MODE.EQ.2) THEN
          DO 70 NTH=1,NTHMAX+1
          DO 70 NP=1,NPMAX
-            NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(FG(NM))
    70    CONTINUE
       ELSEIF(MODE.EQ.4) THEN
@@ -498,7 +498,7 @@ C
       CALL SETCHS(.3,0.)
       CALL SETFNT(32)
 C
-      CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
       CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
 C
@@ -510,23 +510,23 @@ C
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
             IF(GFMIN.GE.0.0) THEN
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,0,KA)
             ELSE
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,2,KA)
             ENDIF
          ELSE
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                   0.25*GFSTEP, 0.5*GFSTEP,15,0,KA)
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
          ENDIF
       ELSE
          DO 100 I=1,NGLINE
            GLIN=GFMAX-0.020*(I-1)**2
            CALL SETLIN(0,0,7-MOD(I-1,5))
-           CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+           CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                 GLIN,GFSTEP*100,1,0,KA)
   100    CONTINUE
       ENDIF
@@ -567,7 +567,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*)
-      DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)
+      DIMENSION GF(NPM,NTHM),GP(NPM),GTH(NTHM),KA(8,NPM,NTHM)
       CHARACTER STRING*4
 C
     1 CONTINUE
@@ -620,13 +620,13 @@ C
       ELSEIF(MODE.EQ.1) THEN
          DO 60 NTH=1,NTHMAX
          DO 60 NP=1,NPMAX+1
-            NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(FG(NM)*PG(NP))
    60    CONTINUE
       ELSEIF(MODE.EQ.2) THEN
          DO 70 NTH=1,NTHMAX+1
          DO 70 NP=1,NPMAX
-            NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(FG(NM)*PM(NP))
    70    CONTINUE
       ELSEIF(MODE.EQ.4) THEN
@@ -646,7 +646,7 @@ C
       CALL SETCHS(.3,0.)
       CALL SETFNT(32)
 C
-      CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
       CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
 C
@@ -658,23 +658,23 @@ C
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
             IF(GFMIN.GE.0.0) THEN
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,0,KA)
             ELSE
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,2,KA)
             ENDIF
          ELSE
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                   0.25*GFSTEP, 0.5*GFSTEP,15,0,KA)
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
          ENDIF
       ELSE
          DO 100 I=1,NGLINE
            GLIN=GFMAX-0.020*(I-1)**2
            CALL SETLIN(0,0,7-MOD(I-1,5))
-           CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+           CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                 GLIN,GFSTEP*100,1,0,KA)
   100    CONTINUE
       ENDIF
@@ -715,7 +715,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*),FH(*)
-      DIMENSION GF(NPMP,NTHMP),GP(NPMP),GTH(NTHMP),KA(8,NPMP,NTHMP)
+      DIMENSION GF(NPM,NTHM),GP(NPM),GTH(NTHM),KA(8,NPM,NTHM)
       CHARACTER STRING*4
 C
     1 CONTINUE
@@ -762,24 +762,24 @@ C
       IF(MODE.EQ.0) THEN
          DO 50 NTH=1,NTHMAX
          DO 50 NP=1,NPMAX
-            NMP1=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            NMP2=NPMP*NTHM*(NR-1)+NTHM* NP   +NTH
+            NMP1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NMP2=NPM*NTHM*(NR-1)+NTHM* NP   +NTH
             FGA=0.5D0*(FG(NMP1)+FG(NMP2))
-            NMT1=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
-            NMT2=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH+1
+            NMT1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NMT2=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH+1
             FHA=0.5D0*(FH(NMT1)+FH(NMT2))
             GF(NP,NTH)=GUCLIP(SQRT(FGA**2+FHA**2))
    50    CONTINUE
       ELSEIF(MODE.EQ.1) THEN
          DO 60 NTH=1,NTHMAX
          DO 60 NP=1,NPMAX+1
-            NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
    60    CONTINUE
       ELSEIF(MODE.EQ.2) THEN
          DO 70 NTH=1,NTHMAX+1
          DO 70 NP=1,NPMAX
-            NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
             GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
    70    CONTINUE
       ELSEIF(MODE.EQ.4) THEN
@@ -800,7 +800,7 @@ C
       CALL SETCHS(.3,0.)
       CALL SETFNT(32)
 C
-      CALL GMNMX2(GF,NPMP,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
       CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
 C
@@ -814,23 +814,23 @@ CXX
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
             IF(GFMIN.GE.0.0) THEN
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,0,KA)
             ELSE
-               CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,2,KA)
             ENDIF
          ELSE
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                   0.25*GFSTEP, 0.5*GFSTEP,20,0,KA)
-            CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                  -0.25*GFSTEP,-0.5*GFSTEP,20,2,KA)
          ENDIF
       ELSE
          DO 100 I=1,NGLINE
            GLIN=GFMAX-0.020*(I-1)**2
            CALL SETLIN(0,2,7-MOD(I-1,5))
-           CALL CONTQ4(GF,GP,GTH,NPMP,NPG,NTHG,
+           CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                 GLIN,GFSTEP*100,1,0,KA)
   100    CONTINUE
       ENDIF

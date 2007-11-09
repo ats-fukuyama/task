@@ -314,7 +314,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*)
-      DIMENSION FL(NPMP,NTHMP)
+      DIMENSION FL(NPM,NTHM)
       CHARACTER STRING*4
 C
     1 CONTINUE
@@ -354,14 +354,14 @@ C
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+               NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
                FL(NP,NTH)=FG(NM)
             ENDDO
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+               NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
                FL(NP,NTH)=FG(NM)
             ENDDO
          ENDDO
@@ -374,7 +374,7 @@ C
          ENDDO
       ENDIF         
 C
-      CALL FPFOUX(STRING,NPG,NTHG,FL,NPMP)
+      CALL FPFOUX(STRING,NPG,NTHG,FL,NPM)
       IF(NRMAX.GT.1) GOTO 1
 C
  9000 RETURN
@@ -391,7 +391,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FG(*),FH(*)
-      DIMENSION FL(NPMP,NTHMP)
+      DIMENSION FL(NPM,NTHM)
       CHARACTER STRING*4
 C
     1 CONTINUE
@@ -424,11 +424,11 @@ C
       IF(MODE.EQ.0) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               NMP1=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-               NMP2=NPMP*NTHM*(NR-1)+NTHM* NP   +NTH
+               NMP1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+               NMP2=NPM*NTHM*(NR-1)+NTHM* NP   +NTH
                FGA=0.5D0*(FG(NMP1)+FG(NMP2))
-               NMT1=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
-               NMT2=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH+1
+               NMT1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+               NMT2=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH+1
                FHA=0.5D0*(FH(NMT1)+FH(NMT2))
                FL(NP,NTH)=SQRT(FGA**2+FHA**2)
             ENDDO
@@ -436,14 +436,14 @@ C
       ELSEIF(MODE.EQ.1) THEN
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX+1
-               NM=NPMP*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+               NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
                FL(NP,NTH)=SQRT(FG(NM)**2+FH(NM)**2)
             ENDDO
          ENDDO
       ELSEIF(MODE.EQ.2) THEN
          DO NTH=1,NTHMAX+1
             DO NP=1,NPMAX
-               NM=NPM*NTHMP*(NR-1)+NTHMP*(NP-1)+NTH
+               NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
                FL(NP,NTH)=SQRT(FG(NM)**2+FH(NM)**2)
             ENDDO
          ENDDO
@@ -456,7 +456,7 @@ C
          ENDDO
       ENDIF         
 C
-      CALL FPFOUX(STRING,NPG,NTHG,FL,NPMP)
+      CALL FPFOUX(STRING,NPG,NTHG,FL,NPM)
       IF(NRMAX.GT.1) GOTO 1
 C
  9000 RETURN

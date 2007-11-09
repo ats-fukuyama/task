@@ -273,16 +273,16 @@ C
 C
       IERR=0
 C
-      IF(NRMAX.GT.NRM) THEN
-         WRITE(6,*) 'FP : ERROR : NRMAX.GE.NRM'
+      IF(NRMAX+1.GT.NRM) THEN
+         WRITE(6,*) 'FP : ERROR : NRMAX+1.GE.NRM'
          IERR=1
       ENDIF
-      IF(NPMAX.GT.NPM) THEN
-         WRITE(6,*) 'FP : ERROR : NPMAX.GE.NPM'
+      IF(NPMAX+1.GT.NPM) THEN
+         WRITE(6,*) 'FP : ERROR : NPMAX+1.GE.NPM'
          IERR=2
       ENDIF
-      IF(NTHMAX.GT.NTHM) THEN
-         WRITE(6,*) 'FP : ERROR : NTHMAX.GE.NTHM'
+      IF(NTHMAX+1.GT.NTHM) THEN
+         WRITE(6,*) 'FP : ERROR : NTHMAX+1.GE.NTHM'
          IERR=3
       ENDIF
       IF(MOD(NTHMAX,2).NE.0) THEN

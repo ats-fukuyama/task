@@ -80,8 +80,78 @@ C
       ENDDO
 
 C
+      CALL PAGES
+      CALL FPGRFA(1,DCPP,PG,1,'@DCPP@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
+      CALL FPGRFA(2,DCTT,PM,2,'@DCTT@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
+      CALL FPGRFA(3,FCPP,PG,1,'@FCPP@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
+      CALL PAGEE
+C
       RETURN
       END
+C
+      SUBROUTINE FPGRFA(ID,DATA,P,IND,TITLE,NTHM,NPM,NRM,
+     &                                      NTHMAX,NPMAX,NRMAX)
+C
+      implicit none
+      integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX
+      real(8), dimension(NTHM,NPM,NRM), intent(IN):: DATA
+      real(8), dimension(NPM), intent(IN):: P
+      character(len=*):: title
+      real(8), dimension(NPM,9):: WORK
+      integer, dimension(9):: NTHG
+      integer:: nth,np,nr,ng,npmaxg
+
+      if(NRMAX.GT.1) then
+    1    WRITE(6,*) '## NR ?'
+         READ(5,*,err=1,end=9999)
+         if(NR.LT.1.OR.NR.GT.NRMAX) THEN
+            write(6,*) 'XX NR must be between 1 and NRMAX:',NRMAX
+            goto 1
+         endif
+      else
+         nr=1
+      endif
+
+      nthg(1)=1
+      nthg(2)=NTHMAX/8
+      nthg(3)=NTHMAX/4
+      if(ind.eq.0) then
+         nthg(4)=NTHMAX/2-NTHMAX/8
+         nthg(5)=NTHMAX/2
+         nthg(6)=NTHMAX/2+NTHMAX/8+1
+         nthg(7)=NTHMAX-NTHMAX/4
+         nthg(8)=NTHMAX-NTHMAX/8
+         nthg(9)=NTHMAX
+         npmaxg=npmax
+      elseif(ind.eq.1) then
+         nthg(4)=NTHMAX/2-NTHMAX/8
+         nthg(5)=NTHMAX/2
+         nthg(6)=NTHMAX/2+NTHMAX/8+1
+         nthg(7)=NTHMAX-NTHMAX/4
+         nthg(8)=NTHMAX-NTHMAX/8
+         nthg(9)=NTHMAX
+         npmaxg=npmax+1
+      elseif(ind.eq.2) then
+         nthg(4)=NTHMAX/2-NTHMAX/8+1
+         nthg(5)=NTHMAX/2+1
+         nthg(6)=NTHMAX/2+NTHMAX/8+1
+         nthg(7)=NTHMAX+1-NTHMAX/4
+         nthg(8)=NTHMAX+1-NTHMAX/8
+         nthg(9)=NTHMAX+1
+         npmaxg=npmax
+      endif
+
+      do ng=1,9
+         nth=NTHG(ng)
+         do np=1,npmaxg
+            work(np,ng)=data(nth,np,nr)
+         enddo
+      enddo
+            
+      CALL GRD1D(ID,p,work,npm,npmaxg,9,TITLE,0)
+
+ 9999 return
+      end
 C
 C ************************************************************
 C
