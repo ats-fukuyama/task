@@ -1,5 +1,11 @@
 C     $Id$
 C
+C ************************************************************
+C
+C      CALCULATION OF NONLINEAR COLLISIONAL OPERATOR
+C
+C ************************************************************
+C
       SUBROUTINE FPCALC_NL(NR,NS)
 C
       INCLUDE 'fpcomm.inc'
@@ -92,24 +98,21 @@ C     &              +L*COSM(NTH)/(SINM(NTH)**2)*PLM(NTH,L-1)
          END DO
       END DO
 
-c$$$!     plot of Legendre polynomials and their derivatives
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,thm,plm,M,NTHMAX,LLMAX+2,'@PLM:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,thm,d1plm,M,NTHMAX,LLMAX+2,'@D1PLM:@',0)
-c$$$      CALL PAGEE
-c$$$C
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,thg,plg,M,NTHMAX+1,LLMAX+2,'@PLG:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,thg,d1plg,M,NTHMAX+1,LLMAX+2,'@D1PLG:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,thg,d2plg,M,NTHMAX+1,LLMAX+2,'@D2PLG:@',0)
-c$$$      CALL PAGEE
-
+      IF(MOD(IDEBUG,2).EQ.1) THEN
+C
+C     +++ plot of Legendre polynomials and their derivatives +++
+C
+         CALL PAGES
+         CALL GRD1D(1,thm,plm,M,NTHMAX,LLMAX+2,'@PLM:@',0)
+         CALL GRD1D(2,thm,d1plm,M,NTHMAX,LLMAX+2,'@D1PLM:@',0)
+         CALL PAGEE
+C
+         CALL PAGES
+         CALL GRD1D(1,thg,plg,M,NTHMAX+1,LLMAX+2,'@PLG:@',0)
+         CALL GRD1D(2,thg,d1plg,M,NTHMAX+1,LLMAX+2,'@D1PLG:@',0)
+         CALL GRD1D(3,thg,d2plg,M,NTHMAX+1,LLMAX+2,'@D2PLG:@',0)
+         CALL PAGEE
+      ENDIF
 C
 C     ----- Legendre expansion of distribution funstion FNS -----
 C
@@ -131,10 +134,6 @@ C
             FPL(NP,L)=0.5D0*(2*L+1.D0)*SUM1
          END DO
       END DO
-
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pm,fpl,N,NPMAX,LLMAX+2,'@FPL:@',0)
-c$$$      CALL PAGEE
 
 C
 C     ----- calculation of \hat{M}_l -----
@@ -175,10 +174,6 @@ C
          END DO
       END DO
 
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,rm1g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
-c$$$      CALL PAGEE
-
 C
 C     ----- calculation of \hat{N}_l -----
 C
@@ -214,10 +209,6 @@ C
             RM2G(NPG,L)=SUM5
          END DO
       END DO
-
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,rm2g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
-c$$$      CALL PAGEE
 
 C
 C     ----- calculation of \hat{M}_l^+ -----
@@ -258,10 +249,6 @@ C
          END DO
       END DO
 
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,rm3g,N,NPMAX+1,LLMAX+2,'@RM3G:@',0)
-c$$$      CALL PAGEE
-
 C
 C     ----- calculation of \hat{N}_l^+ -----
 C
@@ -300,10 +287,20 @@ C
          END DO
       END DO
 
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,rm4g,N,NPMAX+1,LLMAX+2,'@RM4G:@',0)
-c$$$      CALL PAGEE
-
+      IF(MOD(IDEBUG/2,2).EQ.1) THEN
+C
+C     +++ plot of Legendre expansion and M_l, N_l +++
+C
+         CALL PAGES
+         CALL GRD1D(0,pm,fpl,N,NPMAX,LLMAX+2,'@FPL:@',0)
+         CALL PAGEE
+         CALL PAGES
+         CALL GRD1D(1,pg,rm1g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
+         CALL GRD1D(2,pg,rm2g,N,NPMAX+1,LLMAX+2,'@RM2G:@',0)
+         CALL GRD1D(3,pg,rm3g,N,NPMAX+1,LLMAX+2,'@RM3G:@',0)
+         CALL GRD1D(4,pg,rm4g,N,NPMAX+1,LLMAX+2,'@RM4G:@',0)
+         CALL PAGEE
+      ENDIF
 C
 C     ----- calculation of phi_l, psi_l and their derivatives -----
 C
@@ -335,15 +332,6 @@ C
          END DO
       END DO
 
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pm,phym,N,NPMAX,LLMAX+2,'@PHYM:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pm,psym,N,NPMAX,LLMAX+2,'@PSYM:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pm,d1psym,N,NPMAX,LLMAX+2,'@D1PSYM:@',0)
-c$$$      CALL PAGEE
 C
       DO 182 L=LLMIN,LLMAX
         NP=1
@@ -391,18 +379,22 @@ C         DO NP=2,NPMAX+1
          END DO
       END DO
 
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,psyg,N,NPMAX+1,LLMAX+2,'@PSYG:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,d1phyg,N,NPMAX+1,LLMAX+2,'@D1PHYG:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,d1psyg,N,NPMAX+1,LLMAX+2,'@D1PSYG:@',0)
-c$$$      CALL PAGEE
-c$$$      CALL PAGES
-c$$$      CALL GRD1D(0,pg,d2psyg,N,NPMAX+1,LLMAX+2,'@D2PSYG:@',0)
-c$$$      CALL PAGEE
+      IF(MOD(IDEBUG/8,2).EQ.1) THEN
+C
+C     +++ plot of Phi, Psi and their derivatives +++
+C
+         CALL PAGES
+         CALL GRD1D(1,pm,psym,N,NPMAX,LLMAX+2,'@PSYM:@',0)
+         CALL GRD1D(2,pg,psyg,N,NPMAX+1,LLMAX+2,'@PSYG:@',0)
+         CALL GRD1D(3,pm,d1psym,N,NPMAX,LLMAX+2,'@D1PSYM:@',0)
+         CALL GRD1D(4,pg,d1psyg,N,NPMAX+1,LLMAX+2,'@D1PSYG:@',0)
+         CALL PAGEE
+         CALL PAGES
+         CALL GRD1D(1,pg,d2psyg,N,NPMAX+1,LLMAX+2,'@D2PSYG:@',0)
+         CALL GRD1D(3,pm,phym,N,NPMAX,LLMAX+2,'@PHYM:@',0)
+         CALL GRD1D(4,pg,d1phyg,N,NPMAX+1,LLMAX+2,'@D1PHYG:@',0)
+         CALL PAGEE
+      ENDIF
 C
 C     ----- calculation of local diffusion coefficienst -----
 C   

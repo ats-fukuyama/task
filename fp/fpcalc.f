@@ -80,11 +80,19 @@ C
       ENDDO
 
 C
-      CALL PAGES
-      CALL FPGRFA(1,DCPP,PG,1,'@DCPP@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
-      CALL FPGRFA(2,DCTT,PM,2,'@DCTT@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
-      CALL FPGRFA(3,FCPP,PG,1,'@FCPP@',NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX)
-      CALL PAGEE
+      IF(MOD(IDEBUG/16,2).EQ.1) THEN
+C
+C     +++ plot of Phi, Psi and their derivatives +++
+C
+         CALL PAGES
+         CALL FPGRFA(1,DCPP,PG,1,'@DCPP@',NTHM,NPM,NRM,
+     &                                    NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFA(2,DCTT,PM,2,'@DCTT@',NTHM,NPM,NRM,
+     &                                    NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFA(3,FCPP,PG,1,'@FCPP@',NTHM,NPM,NRM,
+     &                                    NTHMAX,NPMAX,NRMAX)
+         CALL PAGEE
+      ENDIF
 C
       RETURN
       END
