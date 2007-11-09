@@ -15,7 +15,7 @@
      &   NTEQIT, NTMAX, NTSTEP, NTUM, &
      &   PA, PZ, PZC, PZFE, Q0, QP, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
      &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT
+     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
@@ -317,7 +317,6 @@
       INTEGER(4):: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
      &             NV, NW, NX
       REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
-
 
       IF(MDLEQB.NE.0) THEN
          IF(MDLCD.EQ.0) THEN
@@ -1023,6 +1022,7 @@
       DV11=DVRHO(NR)
       DV23=DVRHO(NR)**(2.D0/3.D0)
       DV53=DVRHO(NR)**(5.D0/3.D0)
+!!      CC=2.5D0
       CC=1.5D0
       C83=8.D0/3.D0
 
@@ -1550,7 +1550,6 @@
       IMPLICIT NONE
       INTEGER(4),INTENT(IN):: NR,NS
 
-
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN
             RNV=PNSS(NS)
@@ -1569,7 +1568,6 @@
       USE TRCOMM, ONLY : NRMAX, PTS, PTSA, RHOA, RT
       IMPLICIT NONE
       INTEGER(4),INTENT(IN):: NR,NS
-
 
       IF(NR.EQ.NRMAX) THEN
          IF(RHOA.EQ.1.D0) THEN

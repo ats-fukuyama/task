@@ -348,7 +348,8 @@
 !   ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2)             ***
 !   ***  MDLKAI.EQ. 2   : CONSTANT*(dTi/dr)**B/(1-A*r**2) ***
 !   ***  MDLKAI.EQ. 3   : CONSTANT*(dTi/dr)**B*Ti**C      ***
-!   ***  MDLKAI.EQ. 4   : PROP. TO CUBIC FUNC.            ***
+!   ***  MDLKAI.EQ. 4   : PROP. TO CUBIC FUNC. with Bohm  ***
+!   ***  MDLKAI.EQ. 5   : PROP. TO CUBIC FUNC.            ***
 !   *********************************************************
 
             select case(MDLKAI)
@@ -361,10 +362,14 @@
             case(3)
                AKDWL=1.D0*(ABS(DTI)*RA)**CKBETA*ABS(TI)**CKGUMA
             case(4)
-                FSDFIX=0.1D0
-                BPA=AR1RHOG(NRMAX)*RDPS/RR
-                PROFDL=(PTS(1)*RKEV/(16.D0*AEE*SQRT(BB**2+BPA**2)))/FSDFIX
-                AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**2)
+               FSDFIX=0.1D0
+               BPA=AR1RHOG(NRMAX)*RDPS/RR
+               PROFDL=(PTS(1)*RKEV/(16.D0*AEE*SQRT(BB**2+BPA**2)))/FSDFIX
+               AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**2)
+            case(5)
+               FSDFIX=1.D0
+               PROFDL=20.D0
+               AKDWL=FSDFIX*(1.D0+(PROFDL-1.D0)*(RHOG(NR)/ RA)**2)
             case default
                WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
                AKDWL=0.D0
@@ -1057,7 +1062,7 @@
       SUBROUTINE TRCFET
 
       USE TRCOMM, ONLY : AEE, AME, BB, BP, EPS0, EPSRHO, ETA, ETANC, MDLETA, MDLTPF, MDNCLS, NRMAX, NT, PI, Q0, QP, RKEV, &
-     &                   RN, RR, RT, ZEFF
+     &                   RN, RR, RT, ZEFF, rm
       IMPLICIT NONE
       INTEGER(4):: NR
       REAL(8)   :: ANE, ANI, CH, COULOG, CR, EPS, EPSS, ETAS, F33, F33TEFF, FT, FTAUE, FTPF, H, PHI, QL, RK33E, RLNLAME, &
@@ -1172,7 +1177,7 @@
       USE TRCOMM, ONLY : AD, AD0, ADDW, ADDWD, ADDWP, ADLD, ADLP, ADNC, ADNCP, ADNCT, AEE, AKDW, ALP, AME, AMM, AV, AV0,    &
      &                   AVDW, AVK, AVKDW, AVKNC, AVNC, BB, BP, CDH, CDP, CHP, CNH, CNN, CNP, CSPRS, EPSRHO, EZOH, MDDIAG,  &
      &                   MDDW, MDEDGE, MDLAD, MDLAVK, MDNCLS, NREDGE, NRMAX, NSLMAX, NSM, PA, PN, PNSS, PROFN1, PROFN2, PTS,&
-     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF
+     &                   PZ, QP, RA, RHOG, RKEV, RN, RR, RT, ZEFF, RG
       IMPLICIT NONE
       INTEGER(4):: NR, NS, NS1, NA, NB
       REAL(8)   :: ANA, ANDX, ANE, ANED, ANI, ANT, BPL, CFNCI, CFNCNC, CFNCNH, CFNHI, CFNHNC, CFNHNH, DPROF, EDCM, EPS, EPSS,&
@@ -1341,9 +1346,17 @@
             IF(MDEDGE.EQ.1.AND.NR.GE.NREDGE) CDP=CSPRS
             AVNC(NR,1:NSM) =-(RK13E*SQRT(EPS)*EZOHL)/BPL/H
             ADNC(NR,1:NSM) = SQRT(EPS)*RHOE2/TAUE*RK11E
-            AD  (NR,1:NSM) = CDP*ADDW(NR,1:NSM)+CNP*ADNC(NR,1:NSM)
             AVDW(NR,1:NSM) =-AV0*ADDW(NR,1:NSM)*RHOG(NR)/RA
          ENDDO
+!!$      case(5)
+!!$         ADNC(1:NRMAX,1:NSM)=0.D0
+!!$         ADDW(1:NRMAX,1:NSM)=0.D0
+!!$         DO NS=1,NSM
+!!$            DO NR=1,NRMAX
+!!$               AVNC(NR,NS)=RG(NR)*(RG(NR)-1.D0)
+!!$            END DO
+!!$         END DO
+!!$         AVDW(1:NRMAX,1:NSM)=0.D0
       case default
          IF(MDLAD.NE.0) WRITE(6,*) 'XX INVALID MDLAD : ',MDLAD
          AD  (1:NRMAX,1:NSM)=0.D0

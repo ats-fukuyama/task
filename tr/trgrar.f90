@@ -60,14 +60,19 @@
 
       CALL PAGES
 
-      DO NS=1,NSM
-      DO NR=1,NRMAX
-         GYR(NR,NS) = GUCLIP(RN(NR,NS))
-      ENDDO
-      ENDDO
       IF(MDLNF.EQ.0) THEN
+         DO NS=1,2
+            DO NR=1,NRMAX
+               GYR(NR,NS) = GUCLIP(RN(NR,NS))
+            ENDDO
+         ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,2,'@NE,ND [10$+20$=/m$+3$=]  vs r@',2+INQ)
       ELSE
+         DO NS=1,NSM
+            DO NR=1,NRMAX
+               GYR(NR,NS) = GUCLIP(RN(NR,NS))
+            ENDDO
+         ENDDO
          CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM, '@NE,ND,NT,NA [10$+20$=/m$+3$=]  vs r@',2+INQ)
       ENDIF
 
@@ -252,6 +257,7 @@
          GYR(NR+1,1) = GUCLIP(QP(NR))
       ENDDO
       GYR(1,1) = GUCLIP(Q0)
+
       CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1,'@QP  vs r@',2+INQ)
 
       DO NR=1,NRMAX

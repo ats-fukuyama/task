@@ -50,15 +50,15 @@ OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
 LIBS2=$(PLLIBS) $(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a
-LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a $(EQLIBS) ../pl/pl_bpsd.o ../lib/tasklib.a ../lib/mdslib.a
+LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
 
-#all: tr2 tr3
-all: tr2
+all: tr2 tr3
+#all: tr2
 
 tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) -o tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)
