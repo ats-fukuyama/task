@@ -98,7 +98,7 @@ C     &              +L*COSM(NTH)/(SINM(NTH)**2)*PLM(NTH,L-1)
          END DO
       END DO
 
-      IF(MOD(IDEBUG,2).EQ.1) THEN
+      IF(MOD(IDBGFP,2).EQ.1) THEN
 C
 C     +++ plot of Legendre polynomials and their derivatives +++
 C
@@ -159,18 +159,24 @@ C
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PM(NP)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM1M(NP,L)=PSUM-SUM2
+            IF(PCRIT.le.PMAX) THEN
+               CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM1M(NP,L)=PSUM-SUM2
+            ELSE
+               RM1M(NP,L)=0.D0
+            ENDIF
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PG(NPG)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM1G(NPG,L)=PSUM-SUM3
+            IF(PCRIT.le.PMAX) THEN
+               CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM1G(NPG,L)=PSUM-SUM3
+            ELSE
+               RM1G(NPG,L)=0.D0
+            ENDIF
          END DO
       END DO
 
@@ -189,24 +195,31 @@ C
          DF1(NPMAX+2)   = 0.D0
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
+         CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
             RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PM(NP)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM2M(NP,L)=SUM4
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM2M(NP,L)=SUM4
+            ELSE
+               RM2M(NP,L)=PSUM
+            ENDIF
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PG(NPG)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM2G(NPG,L)=SUM5
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM2G(NPG,L)=SUM5
+            ELSE
+               RM2G(NPG,L)=PSUM
+            ENDIF
          END DO
       END DO
 
@@ -234,18 +247,24 @@ C
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PM(NP)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            CALL SPL1DI(PCRIT,SUM6,TX1,UTY1,UTY10,NPMAX+2,IER)
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            RM3M(NP,L)=PSUM-SUM6
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM6,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM3M(NP,L)=PSUM-SUM6
+            else
+               RM3M(NP,L)=0.d0
+            endif
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PG(NPG)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM7,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM3G(NPG,L)=PSUM-SUM7
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM7,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM3G(NPG,L)=PSUM-SUM7
+            else
+               RM3G(NPG,L)=0.d0
+            endif
          END DO
       END DO
 
@@ -266,28 +285,35 @@ C
          DF1(NPMAX+2)   = 0.D0
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPMAX+2,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPMAX+2,IER)
+         CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
             RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PM(NP)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM8,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM4M(NP,L)=SUM8
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM8,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM4M(NP,L)=SUM8
+            else
+               RM4M(NP,L)=PSUM
+            endif
          END DO
          DO NPG=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NPG)**2*TMC2FP0)
             vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
             ptatb=PG(NPG)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-            IF(PCRIT.gt.PMAX) PCRIT=PMAX
-            CALL SPL1DI(PCRIT,SUM9,TX1,UTY1,UTY10,NPMAX+2,IER)
-            RM4G(NPG,L)=SUM9
+            IF(PCRIT.le.PMAX) then
+               CALL SPL1DI(PCRIT,SUM9,TX1,UTY1,UTY10,NPMAX+2,IER)
+               RM4G(NPG,L)=SUM9
+            else
+               RM4G(NPG,L)=PSUM
+            endif
          END DO
       END DO
 
-      IF(MOD(IDEBUG/2,2).EQ.1) THEN
+      IF(MOD(IDBGFP/2,2).EQ.1) THEN
 C
 C     +++ plot of Legendre expansion and M_l, N_l +++
 C
@@ -296,9 +322,15 @@ C
          CALL PAGEE
          CALL PAGES
          CALL GRD1D(1,pg,rm1g,N,NPMAX+1,LLMAX+2,'@RM1G:@',0)
-         CALL GRD1D(2,pg,rm2g,N,NPMAX+1,LLMAX+2,'@RM2G:@',0)
+         CALL GRD1D(2,pg,rm1m,N,NPMAX,  LLMAX+2,'@RM1M:@',0)
          CALL GRD1D(3,pg,rm3g,N,NPMAX+1,LLMAX+2,'@RM3G:@',0)
-         CALL GRD1D(4,pg,rm4g,N,NPMAX+1,LLMAX+2,'@RM4G:@',0)
+         CALL GRD1D(4,pg,rm3m,N,NPMAX,  LLMAX+2,'@RM3M:@',0)
+         CALL PAGEE
+         CALL PAGES
+         CALL GRD1D(1,pg,rm2g,N,NPMAX+1,LLMAX+2,'@RM2G:@',0)
+         CALL GRD1D(2,pg,rm2m,N,NPMAX,  LLMAX+2,'@RM2M:@',0)
+         CALL GRD1D(3,pg,rm4g,N,NPMAX+1,LLMAX+2,'@RM4G:@',0)
+         CALL GRD1D(4,pg,rm4m,N,NPMAX,  LLMAX+2,'@RM4M:@',0)
          CALL PAGEE
       ENDIF
 C
@@ -379,7 +411,7 @@ C         DO NP=2,NPMAX+1
          END DO
       END DO
 
-      IF(MOD(IDEBUG/8,2).EQ.1) THEN
+      IF(MOD(IDBGFP/4,2).EQ.1) THEN
 C
 C     +++ plot of Phi, Psi and their derivatives +++
 C

@@ -12,7 +12,7 @@ C-----------------------------------------------------------------------
 C     ZEFF  : effective ion charge
 C     NSFP  : particle species of distribution
 C
-      ZEFF  = 2.D0
+      ZEFF  = 1.D0
       NSFP  = 1
 C
 C-----------------------------------------------------------------------
@@ -173,7 +173,16 @@ C
       PWAVE = 1.0D0
       LMAXNWR=100
       EPSNWR=1.D-6
-
+C
+C-----------------------------------------------------------------------
+C     IDBGFP : debug graphic control parameter 
+C          1 : Legendre polynomials
+C          2 : fpl, M_l, N_l
+C          4 : psy, phy and their derivatives
+C          8 : dcpp, dctt, fcp
+C
+      IDBGFP=0
+C
       RETURN
       END
 C
@@ -230,7 +239,7 @@ C
      &              MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,
      &              RFDW,DELNPR,NCMIN,NCMAX,
      &              CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,
-     &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDEBUG,
+     &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,
      &              KNAMEQ,KNAMWR,KNAMWM,KNAMFP
 C
       READ(NID,FP,IOSTAT=IST,ERR=9800,END=9900)
@@ -260,7 +269,7 @@ C
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
       WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
-      WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDEBUG,'
+      WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,'
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP'
       RETURN
       END
@@ -347,7 +356,7 @@ C
      &             'EPSE  ',EPSE  ,'LMAXE ',LMAXE
 
       WRITE(6,604) 'LLMAX ',LLMAX ,'NGLINE',NGLINE,
-     &             'NSFP  ',NSFP  ,'IDEBUG',IDEBUG
+     &             'NSFP  ',NSFP  ,'IDBGFP',IDBGFP
 C
       WRITE(6,604) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,
      &             'NRMAX ',NRMAX ,'NAVMAX',NAVMAX

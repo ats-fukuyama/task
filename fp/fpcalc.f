@@ -29,8 +29,10 @@ C
 C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
+C
             if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
      &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
+C
             IF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
             ELSEIF(MODELC.EQ.1) THEN
@@ -60,6 +62,24 @@ C
             ENDIF
          ENDDO
 C
+C        ----- Simple ion collision term using ZEFF -----
+C
+         IF(MODELC.LT.0) THEN
+            NS=1
+            RNNL=RNFD(NR,NS)/RNFP0
+            RNUDL=RNUD(NR,NS)*RNNL
+            DO NP=1,NPMAX
+               PFPL=PM(NP)*PTFP0
+               VFPL=PFPL/AMFP
+               U=VFPL/VTFP0
+               DCTTL=0.5D0*ZEFF*RNUDL/U
+               DO NTH=1,NTHMAX+1
+                  DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
+               ENDDO
+            ENDDO
+         ENDIF
+
+C
          IF(MODELA.EQ.1) THEN
             IF(MODELC.EQ.0) THEN
                CALL FPCALC_LAV(NR)
@@ -80,7 +100,7 @@ C
       ENDDO
 
 C
-      IF(MOD(IDEBUG/16,2).EQ.1) THEN
+      IF(MOD(IDBGFP/8,2).EQ.1) THEN
 C
 C     +++ plot of Phi, Psi and their derivatives +++
 C
@@ -235,10 +255,7 @@ C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
             U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
             DCTTL= 0.25D0*RNUDL/U
      &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
-C            WRITE(6,'(I5,1P4E12.4)')NP,DCTTL 
-            IF(MODELC.LT.0) THEN
-               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/U
-            ENDIF
+C
             DO NTH=1,NTHMAX+1
                DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
             ENDDO
@@ -369,11 +386,6 @@ C                  PNFP=PNFPL*PTFP0*AMFD/(PTFD0*AMFP)
      &           /(AMFD**2*PTFP0**2*PNFP**3)*(RINT1+RINT4)
      &           +(AMFD*PTFP0)/(AMFP*PTFD0)*RINT2 )
      &          *RNFD(NR,NS)*1.D20
-            ENDIF
-
-            IF(MODELC.LT.0) THEN
-               V=VFPL/VTFP0
-               DCTTL=DCTTL+0.5D0*ZEFF*RNUDL/V
             ENDIF
 
             DO NTH=1,NTHMAX+1
