@@ -102,15 +102,29 @@ C
 C
       IF(MOD(IDBGFP/8,2).EQ.1) THEN
 C
-C     +++ plot of Phi, Psi and their derivatives +++
+C     +++ plot of D_coll +++
 C
          CALL PAGES
-         CALL FPGRFA(1,DCPP,PG,1,'@DCPP@',NTHM,NPM,NRM,
-     &                                    NTHMAX,NPMAX,NRMAX)
-         CALL FPGRFA(2,DCTT,PM,2,'@DCTT@',NTHM,NPM,NRM,
-     &                                    NTHMAX,NPMAX,NRMAX)
-         CALL FPGRFA(3,FCPP,PG,1,'@FCPP@',NTHM,NPM,NRM,
-     &                                    NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFA(1,DCPP,PG,1,'@DCPP(P)@',NTHM,NPM,NRM,
+     &                                       NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFA(2,DCTT,PM,2,'@DCTT(P)@',NTHM,NPM,NRM,
+     &                                       NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFA(3,FCPP,PG,1,'@FCPP(P)@',NTHM,NPM,NRM,
+     &                                       NTHMAX,NPMAX,NRMAX)
+         CALL PAGEE
+      ENDIF
+C
+      IF(MOD(IDBGFP/16,2).EQ.1) THEN
+C
+C     +++ plot of D_coll +++
+C
+         CALL PAGES
+         CALL FPGRFB(1,DCPP,THM,1,'@DCPP(TH)@',NTHM,NPM,NRM,
+     &                                         NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFB(2,DCTT,THG,2,'@DCTT(TH)@',NTHM,NPM,NRM,
+     &                                         NTHMAX,NPMAX,NRMAX)
+         CALL FPGRFB(3,FCPP,THM,1,'@FCPP(TH)@',NTHM,NPM,NRM,
+     &                                         NTHMAX,NPMAX,NRMAX)
          CALL PAGEE
       ENDIF
 C
@@ -177,6 +191,52 @@ C
       enddo
             
       CALL GRD1D(ID,p,work,npm,npmaxg,9,TITLE,0)
+
+ 9999 return
+      end
+C
+      SUBROUTINE FPGRFB(ID,DATA,TH,IND,TITLE,NTHM,NPM,NRM,
+     &                                      NTHMAX,NPMAX,NRMAX)
+C
+      implicit none
+      integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX
+      real(8), dimension(NTHM,NPM,NRM), intent(IN):: DATA
+      real(8), dimension(NTHM), intent(IN):: TH
+      character(len=*):: title
+      real(8), dimension(NTHM,10):: WORK
+      integer, dimension(10):: NPG
+      integer:: nth,np,nr,ng,nthmaxg
+
+      if(NRMAX.GT.1) then
+    1    WRITE(6,*) '## NR ?'
+         READ(5,*,err=1,end=9999)
+         if(NR.LT.1.OR.NR.GT.NRMAX) THEN
+            write(6,*) 'XX NR must be between 1 and NRMAX:',NRMAX
+            goto 1
+         endif
+      else
+         nr=1
+      endif
+
+      do ng=1,10
+         npg(ng)=NINT(0.1*NPMAX*ng)
+      enddo
+      if(ind.eq.0) then
+         nthmaxg=nthmax
+      elseif(ind.eq.1) then
+         nthmaxg=nthmax
+      elseif(ind.eq.2) then
+         nthmaxg=nthmax+1
+      endif
+
+      do ng=1,10
+         np=npg(ng)
+         do nth=1,nthmaxg
+            work(nth,ng)=data(nth,np,nr)
+         enddo
+      enddo
+            
+      CALL GRD1D(ID,th,work,nthm,nthmaxg,10,TITLE,0)
 
  9999 return
       end
