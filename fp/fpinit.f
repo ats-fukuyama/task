@@ -320,33 +320,32 @@ C
          WRITE(6,600) 'DEC   ',DEC   ,'RFEC  ',RFEC  ,
      &                'PEC1  ',PEC1  ,'PEC2  ',PEC2
          WRITE(6,600) 'DELYEC',DELYEC
-C
          WRITE(6,600) 'DLH   ',DLH   ,'RLH   ',RLH   ,
      &                'PLH1  ',PLH1  ,'PLH2  ',PLH2
-C
          WRITE(6,600) 'DFW   ',DFW   ,'RFW   ',RFW   ,
      &                'PFW1  ',PFW1  ,'PFW2  ',PFW2
 C
       ELSEIF(MODELW.EQ.1) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
-C
-         WRITE(6,600) 'CEWR/R',DBLE(CEWR) ,'CEWR/I',DIMAG(CEWR),
-     &                'CEWTHR',DBLE(CEWTH),'CEWTHI',DIMAG(CEWTH)
-C
-         WRITE(6,600) 'CEWPHR',DBLE(CEWPH),'CEWPHI',DIMAG(CEWPH),
-     &                'REWY  ',REWY  ,'DREWY ',DREWY
-C
-         WRITE(6,600) 'RKWR  ',RKWR  ,'RKWTH ',RKWTH,
-     &                'RKWPH ',RKWPH
+         WRITE(6,601) 'PWAVE ',PWAVE ,'DELYEC',DELYEC,
+     &                'EPSNWR',EPSNWR,'LMAXNW',LMAXNWR
 C
       ELSEIF(MODELW.EQ.2) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
-C
          WRITE(6,601) 'PWAVE ',PWAVE ,'DELYEC',DELYEC,
      &                'EPSNWR',EPSNWR,'LMAXNW',LMAXNWR
 C
+      ELSEIF(MODELW.EQ.3) THEN
+         WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
+     &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
+         WRITE(6,600) 'CEWR/R',DBLE(CEWR) ,'CEWR/I',DIMAG(CEWR),
+     &                'CEWTHR',DBLE(CEWTH),'CEWTHI',DIMAG(CEWTH)
+         WRITE(6,600) 'CEWPHR',DBLE(CEWPH),'CEWPHI',DIMAG(CEWPH),
+     &                'REWY  ',REWY  ,'DREWY ',DREWY
+         WRITE(6,600) 'RKWR  ',RKWR  ,'RKWTH ',RKWTH,
+     &                'RKWPH ',RKWPH
       ENDIF
 C
       WRITE(6,600) 'PMAX  ',PMAX  ,'DELT  ',DELT  ,
@@ -406,11 +405,11 @@ C
       IF(MODELW.EQ.0)THEN
          WRITE(6,*) 'GIVEN WAVE DIFFUSION COEFFICIENTS'
       ELSE IF(MODELW.EQ.1)THEN
-         WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
-      ELSE IF(MODELW.EQ.2)THEN
          WRITE(6,*) 'RAY TRACING WAVE DATA'
-      ELSE IF(MODELW.EQ.3)THEN
+      ELSE IF(MODELW.EQ.2)THEN
          WRITE(6,*) 'BEAM TRACING WAVE DATA'
+      ELSE IF(MODELW.EQ.3)THEN
+         WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
       ELSE IF(MODELW.EQ.4)THEN
          WRITE(6,*) 'FULL WAVE DATA'
       ELSE
