@@ -8,7 +8,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      EXTERNAL FPFN0U,FPFN0T,FPFN1A,FPFN2A
+      EXTERNAL FPFN0U,FPFN0T,FPFN1A,FPFN2A,FPFN2U,FPFN2T
 C
 C     ----- exec EQ -----
 C
@@ -43,7 +43,7 @@ C
 C
 C     ----- load WR resluts -----
 C
-      IF(MODELW.EQ.2.OR.MODELW.EQ.3) THEN
+      IF(MODELW.EQ.1.OR.MODELW.EQ.2) THEN
          CALL FPLDWR(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
@@ -264,14 +264,17 @@ C
                NTHX=NTH
                IF(NTH.LT.ITL(NR)) THEN
                   CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U)
+C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2U)
                ELSEIF(NTH.GT.ITL(NR)) THEN
                   CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0T)
+C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2T)
                ELSE
                   RINT0=0.D0
                ENDIF
                CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
                RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
-               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
+C               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
+               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*(COSG(NTH)))
             ENDDO
             RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR)
      &                               +RLAMDA(ITL(NR)+1,NR))
@@ -371,10 +374,12 @@ C
          THETA0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
          THETAL=THETA0*RTFDL/RTFD0
          Z=1.D0/THETAL
-         IF(Z.LE.100.D0) THEN
+         IF(Z.LE.150.D0) THEN
             DKBSL=BESKN(2,Z)
             FACT=RNFDL*SQRT(THETA0)/(4.D0*PI*RTFDL*DKBSL)
      &        *RTFD0*EXP(-1.D0/THETAL)
+C            FACT=RNFDL*SQRT(THETA0**3)/(4.D0*PI*THETAL*DKBSL)
+C     &           *EXP(-1.D0/THETAL)
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
          ELSE
             FACT=RNFDL/(4.D0*PI)*SQRT(2.D0/PI)*SQRT(THETA0/THETAL)**3
@@ -386,6 +391,8 @@ C
          ELSE
             FPMXWL=FACT*EXP(EX)
          ENDIF
+C         if(PML.le.2.D0)
+C     &        WRITE(6,'(I5,1P4E12.4)') NS,PML,Z,FPMXWL,DKBSL
       ENDIF
       RETURN
       END
@@ -488,6 +495,33 @@ C
       A1=1.D0+EPSR(NRX)*COS(A0*XP)
       A2=A1-(1.D0+EPSR(NRX))*SING(NTHX)**2
       FPFN2A=A0*SQRT(A1*A2)
+C
+      RETURN
+      END
+C--------------------------------
+      REAL*8 FUNCTION  FPFN2U(X,XM,XP)
+C                           
+      INCLUDE 'fpcomm.inc'
+C
+      XX=X
+      XX=XM
+      A0=ETAG(NTHX,NRX)
+      A1=1.D0+EPSR(NRX)*COS(A0*XP)
+      A2=(1.D0+EPSR(NRX))*SING(NTHX)**2
+      FPFN2U=A0*SQRT(A1/(A1-A2))
+C
+      RETURN
+      END
+C------------------------------
+      REAL*8 FUNCTION FPFN2T(X,XM,XP)
+C                        
+      INCLUDE 'fpcomm.inc'
+C
+      XX=X
+      A0=ETAG(NTHX,NRX)
+      A1=1.D0+EPSR(NRX)*COS(A0*XP)
+      A2=2.D0*EPSR(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
+      FPFN2T=A0*SQRT(A1/A2)
 C
       RETURN
       END

@@ -269,7 +269,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      IF(MODELW.EQ.1) THEN
+      IF(MODELW.EQ.3) THEN
          Y=RHOL*RA*SIN(ETAL)
 C
          ARG=(Y-REWY)**2/DREWY**2
