@@ -456,14 +456,15 @@ C
             WB=0 
             WD=0
             DO L=L0MIN,L0MAX
-               WB=WB+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*PLG(NTH,L)
-     &              +  1.D0/(PM(NP)**2)*PSYM(NP,L)  *D2PLG(NTH,L) ) 
+               WB=WB+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*PLG(NTH,L)*RGAMA**4
+     &          +  1.D0/(PM(NP)**2)*PSYM(NP,L)  *D2PLG(NTH,L) *RGAMA**2) 
                WD=WD+  1.D0/ PM(NP)    *PHYM(NP,L)  *D1PLG(NTH,L)
             END DO
             DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)
-     &                     +FACT*WB*RGAMA**6
+     &                     +FACT*WB
+C*RGAMA**6
             FCTH(NTH,NP,NR)=FCTH(NTH,NP,NR)
-     &                     +FACT*WD*RGAMA**3*AMFP/AMFD
+     &                     +FACT*WD*RGAMA*AMFP/AMFD
          END DO
       END DO
 C
@@ -477,11 +478,11 @@ C
          DO NTH=1,NTHMAX
             WE=0
             DO L=L0MIN,L0MAX
-               WE=WE+( 1.D0/ PG(NP)    *D1PSYG(NP,L)*D1PLM(NTH,L)
-     &                -1.D0/(PG(NP)**2)*PSYG(NP,L)  *D1PLM(NTH,L) )
+               WE=WE+( 1.D0/ PG(NP) *D1PSYG(NP,L)*D1PLM(NTH,L)*RGAMA**4
+     &           -1.D0/(PG(NP)**2)*PSYG(NP,L)  *D1PLM(NTH,L) )*RGAMA**2
             END DO
             DCPT(NTH,NP,NR)=DCPT(NTH,NP,NR)
-     &                     +FACT*WE*RGAMA**6
+     &                     +FACT*WE
          END DO
       END DO
 
@@ -490,11 +491,11 @@ C
          DO NTH=1,NTHMAX+1
             WF=0
             DO L=L0MIN,L0MAX
-               WF=WF+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*D1PLG(NTH,L)
-     &                -1.D0/(PM(NP)**2)*PSYM(NP,L)  *D1PLG(NTH,L) )
+               WF=WF+( 1.D0/ PM(NP) *D1PSYM(NP,L)*D1PLG(NTH,L)*RGAMA**4
+     &           -1.D0/(PM(NP)**2)*PSYM(NP,L)  *D1PLG(NTH,L) )*RGAMA**2
             END DO
             DCTP(NTH,NP,NR)=DCTP(NTH,NP,NR)
-     &                     +FACT*WF*RGAMA**6
+     &                     +FACT*WF
          END DO
       END DO
 c
