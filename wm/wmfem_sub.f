@@ -392,7 +392,7 @@ C
             CEF1(MDX,NDX)=CEFLD(I,MDX,NDX,NR)
          ENDDO
          ENDDO
-         CALL WMSUBE(CEF1,CEF2)
+         CALL WMSUBEX(CEF1,CEF2,NTHMAX,NPHMAX)
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
             CEFLD(I,NTH,NPH,NR)=CEF2(NTH,NPH)
@@ -495,7 +495,7 @@ C
                   CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
                ENDDO
                ENDDO
-               CALL WMSUBE(CPF1,CPF2)
+               CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
                DO NPH=1,NPHMAX
                DO NTH=1,NTHMAX
                   PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
@@ -537,7 +537,7 @@ C
                CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
             ENDDO
             ENDDO
-            CALL WMSUBE(CPF1,CPF2)
+            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
             DO NPH=1,NPHMAX
             DO NTH=1,NTHMAX
                CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
@@ -718,7 +718,7 @@ C
          DO NTH=1,NTHMAX
             CFM(NTH)=CF1(NTH,NPH)
          ENDDO
-         CALL WMXFFT(CFM,NTHMAX,0)
+         CALL WMFFFT(CFM,NTHMAX,0)
          DO NTH=1,NTHMAX
             CF2(NTH,NPH)=CFM(NTH)
          ENDDO
@@ -728,10 +728,76 @@ C
          DO NPH=1,NPHMAX
             CFN(NPH)=CF2(NTH,NPH)
          ENDDO
-         CALL WMXFFT(CFN,NPHMAX,0)
+         CALL WMFFFT(CFN,NPHMAX,0)
          DO NPH=1,NPHMAX
             CF2(NTH,NPH)=CFN(NPH)
          ENDDO
       ENDDO
+      RETURN
+      END
+C
+C     ****** 2D FOURIER TRANSFORM ******
+C
+      SUBROUTINE WMSUBEX(CF1,CF2,NTHMAX,NPHMAX)
+C
+      implicit none
+      complex(8),dimension(nthmax,nphmax),intent(in):: CF1
+      complex(8),dimension(nthmax,nphmax),intent(out):: CF2
+      integer,intent(in):: nthmax,nphmax
+      complex(8),dimension(nthmax):: CFM
+      complex(8),dimension(nphmax):: CFN
+      integer:: NPH,NTH
+C
+      DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            CFM(NTH)=CF1(NTH,NPH)
+         ENDDO
+         CALL WMFFFT(CFM,NTHMAX,1)
+         DO NTH=1,NTHMAX
+            CF2(NTH,NPH)=CFM(NTH)
+         ENDDO
+      ENDDO
+C
+      DO NTH=1,NTHMAX
+         DO NPH=1,NPHMAX
+            CFN(NPH)=CF2(NTH,NPH)
+         ENDDO
+         CALL WMFFFT(CFN,NPHMAX,1)
+         DO NPH=1,NPHMAX
+            CF2(NTH,NPH)=CFN(NPH)
+         ENDDO
+      ENDDO
+      RETURN
+      END
+C
+C     ****** INTERFACE FOR FFT ******
+C
+      SUBROUTINE WMFFFT(CA,N,KEY)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      COMPLEX*16 CA(N)
+      DATA NS/0/
+C
+      IF(N.NE.1) THEN
+         IF(N.EQ.NS) THEN
+            IND=0
+         ELSE
+            IND=1
+            NS=N
+         ENDIF
+         IF(KEY.EQ.0) THEN
+            CALL FFT2L(CA,CT,RFFT,LFFT,N,IND,KEY)
+            DO I=1,N
+               CA(I)=CT(I)
+            ENDDO
+         ELSE
+            DO I=1,N
+               CT(I)=CA(I)
+            ENDDO
+            CALL FFT2L(CT,CA,RFFT,LFFT,N,IND,KEY)
+         ENDIF
+      ENDIF
+C
       RETURN
       END
