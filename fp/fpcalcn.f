@@ -563,7 +563,7 @@ C
                   ETAL=DELH*(NG-0.5D0)
                   X=EPSR(NR)*COS(ETAL)*RR
                   PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
-                  IF(NTH.NE.NTHMAX/2) THEN
+                  IF(NTH.NE.NTHMAX/2+1) THEN
                      ARG=1.D0-PSIB*SING(NTH)**2
                      IF(ARG.GT.0.D0) THEN
                         IF (COSG(NTH).GE.0.D0) THEN
