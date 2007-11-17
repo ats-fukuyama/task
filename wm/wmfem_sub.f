@@ -2,17 +2,19 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm(rr_out,ra_out,crf_out,nth0_out,nph0_out)
+      subroutine get_wmparm(rr_,ra_,crf_,nth0_,nph0_,idbgwm_)
       
       include '../wm/wmcomm.inc'
-      complex(8),intent(out):: crf_out
-      real(8),intent(out):: rr_out,ra_out
-      integer,intent(out):: nth0_out,nph0_out
-      rr_out=rr
-      ra_out=ra
-      crf_out=crf
-      nth0_out=nth0
-      nph0_out=nph0
+      real(8),intent(out):: rr_,ra_
+      complex(8),intent(out):: crf_
+      integer,intent(out):: nth0_,nph0_
+      integer,intent(out):: idbgwm_
+      rr_=rr
+      ra_=ra
+      crf_=crf
+      nth0_=nth0
+      nph0_=nph0
+      idbgwm_=idbgwm
       return
       end subroutine get_wmparm
 C
@@ -21,9 +23,9 @@ C
       SUBROUTINE wmfem_metric(gma,mma,gj)
 C
       INCLUDE 'wmcomm.inc'
-      real(8):: gma(3,3,nphmax,nthmax,nrmax+1)
-      real(8):: mma(3,3,nphmax,nthmax,nrmax+1)
-      real(8):: gj(nphmax,nthmax,nrmax+1)
+      real(8):: gma(3,3,nthmax,nphmax,nrmax+1)
+      real(8):: mma(3,3,nthmax,nphmax,nrmax+1)
+      real(8):: gj(nthmax,nphmax,nrmax+1)
       real(8),dimension(3,3):: RMA
 C
       DO NR=1,NRMAX+1
@@ -38,16 +40,16 @@ C
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
 C
-            gma(1,1,nph,nth,nr)=RG11(nth,nph,nr)*XRI**2
-            gma(1,2,nph,nth,nr)=RG12(nth,nph,nr)
-            gma(1,3,nph,nth,nr)=RG13(nth,nph,nr)*XRI
-            gma(2,1,nph,nth,nr)=RG12(nth,nph,nr)
-            gma(2,2,nph,nth,nr)=RG22(nth,nph,nr)*XRL**2
-            gma(2,3,nph,nth,nr)=RG23(nth,nph,nr)*XRL
-            gma(3,1,nph,nth,nr)=RG13(nth,nph,nr)*XRI
-            gma(3,2,nph,nth,nr)=RG23(nth,nph,nr)*XRL
-            gma(3,3,nph,nth,nr)=RG33(nth,nph,nr)
-            gj(nph,nth,nr)=RJ(nth,nph,nr)*XRL
+            gma(1,1,nth,nph,nr)=RG11(nth,nph,nr)*XRI**2
+            gma(1,2,nth,nph,nr)=RG12(nth,nph,nr)
+            gma(1,3,nth,nph,nr)=RG13(nth,nph,nr)*XRI
+            gma(2,1,nth,nph,nr)=RG12(nth,nph,nr)
+            gma(2,2,nth,nph,nr)=RG22(nth,nph,nr)*XRL**2
+            gma(2,3,nth,nph,nr)=RG23(nth,nph,nr)*XRL
+            gma(3,1,nth,nph,nr)=RG13(nth,nph,nr)*XRI
+            gma(3,2,nth,nph,nr)=RG23(nth,nph,nr)*XRL
+            gma(3,3,nth,nph,nr)=RG33(nth,nph,nr)
+            gj(nth,nph,nr)=RJ(nth,nph,nr)*XRL
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
@@ -78,7 +80,7 @@ C
 C
          do j=1,3
          do i=1,3
-            mma(i,j,nph,nth,nr)=RMA(i,j)
+            mma(i,j,nth,nph,nr)=RMA(i,j)
          enddo
          enddo
 
@@ -447,6 +449,9 @@ C
       DIMENSION CPF1(MDM,NDM),CPF2(MDM,NDM)
       dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,nsmax)
 C
+      DTH=2.D0*PI/DBLE(NTHMAX)
+      DPH=2.D0*PI/DBLE(NPHMAX)
+C
       DO NR=1,nrmax
       DO NS=1,NSMAX
       DO NKX=1,NDSIZ
@@ -500,6 +505,8 @@ C
                DO NTH=1,NTHMAX
                   PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
      &                               +DBLE(CPF2(NTH,NPH))
+C                  write(6,'(3I8,1P3E12.4)') NR,NTH,NPH,CPF2(NTH,NPH),
+C     &                 PABS(NTH,NPH,NR,NS)
                ENDDO
                ENDDO
             ENDDO
@@ -579,6 +586,7 @@ C
             PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NPH,NR,NS)*DTH*DPH
          ENDDO
          ENDDO
+C         write(6,'(2I8,1P3E12.4)') NR,NS,PABSR(NR,NS),DTH,DPH
       ENDDO
       ENDDO
 C

@@ -206,7 +206,6 @@ c
 c     
             call polint(nra,psipax,np,nr,psip(nr),dy) 
 c
-c
          ELSE
             CALL SPL1DF(XRHO(NR),PSIP(NR),XS,U6,NSRMAX,IERR)
             IF(IERR.NE.0) THEN

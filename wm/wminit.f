@@ -129,6 +129,9 @@ C                   1: Writting
 C        MDLWMF: Control of solver
 C                   0: original FDM
 C                   1: FEM
+C        IDBGWM: Control of debug
+C                   0: none
+C                   1: old version
 C
       NPRINT = 2
       NGRAPH = 1
@@ -140,6 +143,7 @@ C
       MODELM = 0
       MODELW = 0
       MDLEMF = 0
+      IDBGWM = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -260,7 +264,8 @@ C
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELM,MODELW,MODELV,MDLWMF,ANTANG,MWGMAX,
+     &              MODELM,MODELW,MODELV,MDLWMF,MDLWMX,IDBGWM,
+     &              ANTANG,MWGMAX,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -296,7 +301,8 @@ C
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
-     &       9X,'MODELM,MODELW,MDLWMF,KNAMEQ,KNAMTR,KNAMPF,'/
+     &       9X,'MODELM,MODELW,MDLWMF,MDLWMX,IDBGWM,'/
+     &       9X,'KNAMEQ,KNAMTR,KNAMPF,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
@@ -377,82 +383,75 @@ C
       IF(NPRINT.LT.2) RETURN
 C
       IF(MODELG.EQ.0) THEN
-         WRITE(6,*) '## 0: UNIFORM ##'
+         WRITE(6,*) '## MODELG=0: UNIFORM ##'
       ELSE IF(MODELG.EQ.1) THEN 
-         WRITE(6,*) '## 1: CYLINDRICAL ##'
+         WRITE(6,*) '## MODELG=1: CYLINDRICAL ##'
       ELSE IF(MODELG.EQ.2) THEN 
-         WRITE(6,*) '## 2: TOROIDAL ##'
+         WRITE(6,*) '## MODELG=2: TOROIDAL ##'
       ELSE IF(MODELG.EQ.3) THEN 
-         WRITE(6,*) '## 3: TASK/EQ ##'
+         WRITE(6,*) '## MODELG=3: TASK/EQ ##'
       ELSE IF(MODELG.EQ.4) THEN 
-         WRITE(6,*) '## 4: VMEC ##'
+         WRITE(6,*) '## MODELG=4: VMEC ##'
       ELSE IF(MODELG.EQ.5) THEN 
-         WRITE(6,*) '## 5: EQDSK ##'
+         WRITE(6,*) '## MODELG=5: EQDSK ##'
       ELSE IF(MODELG.EQ.6) THEN 
-         WRITE(6,*) '## 6: BOOZER ##'
+         WRITE(6,*) '## MODELG=6: BOOZER ##'
       END IF
 C
       IF(MODELJ.EQ.0) THEN
-         WRITE(6,*) '## 0: Loop antenna ##'
+         WRITE(6,*) '## MODELJ=0: Loop antenna ##'
       ELSE IF(MODELJ.EQ.1) THEN 
-         WRITE(6,*) '## 1: Waveguide ##'
+         WRITE(6,*) '## MODELJ=1: Waveguide ##'
       ELSE IF(MODELJ.EQ.2) THEN 
-         WRITE(6,*) '## 2: POLOIDAL MODE ##'
+         WRITE(6,*) '## MODELJ=2: POLOIDAL MODE ##'
       ELSE IF(MODELJ.EQ.3) THEN 
-         WRITE(6,*) '## 3: TOROIDAL MODE ##'
+         WRITE(6,*) '## MODELJ=3: TOROIDAL MODE ##'
       ELSE
-         WRITE(6,*) '##',MODELJ,': VACUUM EIGEN MODE ##'
+         WRITE(6,*) '## MODELJ=',MODELJ,': VACUUM EIGEN MODE ##'
       END IF
 C
       IF(MODELN.EQ.7) THEN
-         WRITE(6,*) '## 8: READ PROFILE DATA : WMDPRF ##'
+         WRITE(6,*) '## MODELN=7: READ PROFILE DATA : WMDPRF ##'
       ELSEIF(MODELN.EQ.8) THEN
-         WRITE(6,*) '## 9: READ PROFILE DATA : WMXPRF ##'
+         WRITE(6,*) '## MODELN=8: READ PROFILE DATA : WMXPRF ##'
       ELSEIF(MODELN.EQ.9) THEN
-         WRITE(6,*) '## 9: READ PROFILE DATA : TRDATA ##'
+         WRITE(6,*) '## MODELN=9: READ PROFILE DATA : TRDATA ##'
       ENDIF
 C
       IF(MOD(MODELA,4).EQ.1) THEN
-         WRITE(6,*) '## 1: ALPHA PARTICLE EFFECT ##'
+         WRITE(6,*) '## MODELA=1: ALPHA PARTICLE EFFECT ##'
       ELSE IF(MOD(MODELA,4).EQ.2) THEN
-         WRITE(6,*) '## 2: ELECTRON BETA EFFECT ##'
+         WRITE(6,*) '## MODELA=2: ELECTRON BETA EFFECT ##'
       ELSE IF(MOD(MODELA,4).EQ.3) THEN
-         WRITE(6,*) '## 3: ALPHA PARTICLE AND ELECTRON BETA EFFECTS ##'
+         WRITE(6,*) '## MODELA=3: ALPHA PARTICLE AND ELECTRON ',
+     &              'BETA EFFECTS ##'
       ENDIF
       IF(MODELA.GE.4) THEN
-         WRITE(6,*) '## 4: ALPHA PARTICLE DENSITY CALCULATED ##'
+         WRITE(6,*) '## MODELA=4: ALPHA PARTICLE DENSITY CALCULATED ##'
       ENDIF
 C
-C      IF(MODELK.EQ.0) THEN
-C         WRITE(6,*) '## 0: NO MODE NUMBER CUTOFF ##'
-C      ELSE IF(MODELK.EQ.1) THEN
-C         WRITE(6,*) '## 1: WITH MODE NUMBER CUTOFF ##'
-C      ENDIF
-C
       IF(MODELM.EQ.0) THEN
-         WRITE(6,*) '## 0: BANDCD ##'
+         WRITE(6,*) '## MODELM=0: BANDCD ##'
       ELSE IF(MODELM.EQ.1) THEN
-         WRITE(6,*) '## 1: BANDCDB'
+         WRITE(6,*) '## MODELM=1: BANDCDB'
       ELSE IF(MODELM.EQ.2) THEN
-         WRITE(6,*) '## 2: BSTABCDB ##'
+         WRITE(6,*) '## MODELM=2: BSTABCDB ##'
       ELSE IF(MODELM.EQ.8) THEN
-         WRITE(6,*) '## 8: BANDCDM ##'
+         WRITE(6,*) '## MODELM=8: BANDCDM ##'
       ELSE IF(MODELM.EQ.9) THEN
-         WRITE(6,*) '## 9: BANDCDBM ##'
+         WRITE(6,*) '## MODELM=9: BANDCDBM ##'
       ELSE IF(MODELM.EQ.10) THEN
-         WRITE(6,*) '## 10: BSTABCDBM ##'
+         WRITE(6,*) '## MODELM=10: BSTABCDBM ##'
       ENDIF
 C
       IF(MDLWMF.EQ.0) THEN
-         WRITE(6,*) '## 0: Original FDM ##'
+         WRITE(6,*) '## MDLWMF=0: Original FDM ##'
       ELSE IF(MDLWMF.EQ.1) THEN
-         WRITE(6,*) '## 1: FEM ##'
+         WRITE(6,*) '## MDLWMF=1: FEM ##'
       ENDIF
 C
-C         WRITE(6,*) '## 0: NOT WRITTING PABS. DATA ##'
-C      ELSE IF(MODELW.EQ.1) THEN
-C         WRITE(6,*) '## 1: WRITTING PABS. DATA ##'
-C      ENDIF
+      WRITE(6,*) '## MDLWMX=',MDLWMX,' ##'
+      WRITE(6,*) '## IDBGWM=',IDBGWM,' ##'
 C
       RF =DBLE(CRF)
       RFI=DIMAG(CRF)
