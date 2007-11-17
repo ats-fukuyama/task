@@ -153,11 +153,7 @@ C            WRITE(6,*) 'NR,RS,RSD=',NR,RS,RSD
             DO NTH=1,NTHMAX
                RCOS=COS(DTH*(NTH-1))
                RSIN=SIN(DTH*(NTH-1))
-               IF(MODELG.EQ.0) THEN
-                  RPS(NTH,NR)  =XR(NR)*RCOS
-               ELSE IF(MODELG.EQ.1) THEN
-                  RPS(NTH,NR) = RR + XR(NR)*RCOS
-               ENDIF
+               RPS(NTH,NR)    = RR + XR(NR)*RCOS
                ZPS(NTH,NR)    =      XR(NR)*RSIN
                DRPSI(NTH,NR)  =      RSD   *RCOS
                DZPSI(NTH,NR)  =      RSD   *RSIN
@@ -203,35 +199,21 @@ C
          DO NSU=1,NSUMAX
             RCOS=COS(DTHU*(NSU-1))
             RSIN=SIN(DTHU*(NSU-1))
-            IF(MODELG.EQ.0) THEN
-               RSU(NSU,1)=RA*RCOS
-               RSW(NSU,1)=RB*RCOS
-            ELSE IF(MODELG.EQ.1) THEN
-               RSU(NSU,1)=RR+RA*RCOS
-               RSW(NSU,1)=RR+RB*RCOS
-            ENDIF
+            RSU(NSU,1)=RR+RA*RCOS
+            RSW(NSU,1)=RR+RB*RCOS
             ZSU(NSU,1)=RA*RSIN
             ZSW(NSU,1)=RB*RSIN
          ENDDO
 C
-         IF(MODELG.EQ.0) THEN
-            RGMIN=-RB*1.01D0
-            RGMAX=+RB*1.01D0
-         ELSE IF(MODELG.EQ.1) THEN
-            RGMIN=RR-RB*1.01D0
-            RGMAX=RR+RB*1.01D0
-         ENDIF
+         RGMIN= RR-RB*1.01D0
+         RGMAX= RR+RB*1.01D0
          ZGMIN=-RB*1.01D0
          ZGMAX= RB*1.01D0
 
 C
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
-            IF(MODELG.EQ.0) THEN
-               RRG=RR
-            ELSE
-               RRG=RPS(NTH,NR)
-            ENDIF
+            RRG=RPS(NTH,NR)
          DO NPH=1,NPHMAX
             RPST(NTH,NPH,NR)=RPS(NTH,NR)
             ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
@@ -311,7 +293,7 @@ C
             DO NTH=1,NTHMAX
                RCOS=COS(DTH*(NTH-1))
                RSIN=SIN(DTH*(NTH-1))
-               IF(MODELG.EQ.0) THEN
+               IF(MODELG.EQ.1) THEN
                   RPS(NTH,NR)  =XR(NR)*RCOS
                ELSE
                   RPS(NTH,NR) = RR + XR(NR)*RCOS
@@ -361,7 +343,7 @@ C
          DO NSU=1,NSUMAX
             RCOS=COS(DTHU*(NSU-1))
             RSIN=SIN(DTHU*(NSU-1))
-            IF(MODELG.EQ.0) THEN
+            IF(MODELG.EQ.1) THEN
                RSU(NSU,1)=RA*RCOS
                RSW(NSU,1)=RB*RCOS
             ELSE
@@ -372,7 +354,7 @@ C
             ZSW(NSU,1)=RB*RSIN
          ENDDO
 C
-         IF(MODELG.EQ.0) THEN
+         IF(MODELG.EQ.1) THEN
             RGMIN=-RB*1.01D0
             RGMAX=+RB*1.01D0
          ELSE
@@ -385,7 +367,7 @@ C
 C
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
-            IF(MODELG.EQ.0) THEN
+            IF(MODELG.EQ.1) THEN
                RRG=RR
             ELSE
                RRG=RPS(NTH,NR)
