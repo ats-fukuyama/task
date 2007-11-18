@@ -23,9 +23,9 @@ C
       SUBROUTINE wmfem_metric(gma,mma,gj)
 C
       INCLUDE 'wmcomm.inc'
-      real(8):: gma(3,3,nthmax,nphmax,nrmax+1)
-      real(8):: mma(3,3,nthmax,nphmax,nrmax+1)
-      real(8):: gj(nthmax,nphmax,nrmax+1)
+      real(8),intent(out):: gma(3,3,nthmax,nphmax,nrmax+1)
+      real(8),intent(out):: mma(3,3,nthmax,nphmax,nrmax+1)
+      real(8),intent(out):: gj(nthmax,nphmax,nrmax+1)
       real(8),dimension(3,3):: RMA
 C
       DO NR=1,NRMAX+1

@@ -614,17 +614,17 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
          endif
          dth=2*pi/nthmax
 
-c$$$         write(6,'(A,5I5)') 'nr,nph,nths:',nr,nph,nthm,nth,nthp
-c$$$         write(6,'(1P2E12.4)') gj(nth,nph,nr)
-c$$$         write(6,'(1P3E12.4)') mma(1,1,nth,nphp,nr),
-c$$$     &                         mma(1,2,nth,nphp,nr),
-c$$$     &                         mma(1,3,nth,nphp,nr)
-c$$$         write(6,'(1P3E12.4)') mma(2,1,nth,nphp,nr),
-c$$$     &                         mma(2,2,nth,nphp,nr),
-c$$$     &                         mma(2,3,nth,nphp,nr)
-c$$$         write(6,'(1P3E12.4)') mma(3,1,nth,nphp,nr),
-c$$$     &                         mma(3,2,nth,nphp,nr),
-c$$$     &                         mma(3,3,nth,nphp,nr)
+         write(6,'(A,5I5)') 'nr,nph,nths:',nr,nph,nthm,nth,nthp
+         write(6,'(1P2E12.4)') gj(nth,nph,nr)
+         write(6,'(1P3E12.4)') mma(1,1,nth,nphp,nr),
+     &                         mma(1,2,nth,nphp,nr),
+     &                         mma(1,3,nth,nphp,nr)
+         write(6,'(1P3E12.4)') mma(2,1,nth,nphp,nr),
+     &                         mma(2,2,nth,nphp,nr),
+     &                         mma(2,3,nth,nphp,nr)
+         write(6,'(1P3E12.4)') mma(3,1,nth,nphp,nr),
+     &                         mma(3,2,nth,nphp,nr),
+     &                         mma(3,3,nth,nphp,nr)
 
          do j=1,3
          cq(1,j,1)=((mma(3,j,nthp,nph,nr)
@@ -653,19 +653,18 @@ c$$$     &                         mma(3,3,nth,nphp,nr)
          cp(3,j)= mma(2,j,nth,nph,nr)/gj(nth,nph,nr)
       enddo
 
-c$$$      write(6,*) 'cq(1)'
-c$$$      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
-c$$$     &     (cq(i,1,1),cq(i,2,1),cq(i,3,1),i=1,3)
-c$$$      write(6,*) 'cq(2)'
-c$$$      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
-c$$$     &     (cq(i,1,2),cq(i,2,2),cq(i,3,2),i=1,3)
-c$$$      write(6,*) 'cq(3)'
-c$$$      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
-c$$$     &     (cq(i,1,3),cq(i,2,3),cq(i,3,3),i=1,3)
-c$$$      write(6,*) 'cp'
-c$$$      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
-c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
-c$$$      pause
+      write(6,*) 'cq(1)'
+      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
+     &     (cq(i,1,1),cq(i,2,1),cq(i,3,1),i=1,3)
+      write(6,*) 'cq(2)'
+      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
+     &     (cq(i,1,2),cq(i,2,2),cq(i,3,2),i=1,3)
+      write(6,*) 'cq(3)'
+      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
+     &     (cq(i,1,3),cq(i,2,3),cq(i,3,3),i=1,3)
+      write(6,*) 'cp'
+      write(6,'(1P2E12.4,2X,1P2E12.3,2X,1P2E12.3)') 
+     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
 
       do imn2=1,3
       do imn1=1,3
@@ -676,7 +675,7 @@ c$$$      pause
          do l=1,3
             csum1=csum1+conjg(cq(i,k,imn1))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cq(l,j,imn2) *gj(nth,nph,nr)
+     &                       *cq(j,l,imn2) *gj(nth,nph,nr)
          enddo
          enddo
          if(i.eq.j.and.imn1.eq.1.and.imn2.eq.1) then
@@ -698,10 +697,10 @@ c$$$      pause
          do l=1,3
             csum2=csum2+conjg(cp(i,k))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cq(l,j,imn1) *gj(nth,nph,nr)
+     &                       *cq(j,l,imn1) *gj(nth,nph,nr)
             csum3=csum3+conjg(cq(i,k,imn1))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cp(l,j)  *gj(nth,nph,nr)
+     &                       *cp(j,l)  *gj(nth,nph,nr)
          enddo
          enddo
          fmv2(i,j,imn1,nth,nph)=csum2
@@ -717,7 +716,7 @@ c$$$      pause
          do l=1,3
             csum4=csum4+conjg(cp(i,k))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cp(l,j) *gj(nth,nph,nr)
+     &                       *cp(j,l) *gj(nth,nph,nr)
          enddo
          enddo
          fmv4(i,j,nth,nph)=csum4
