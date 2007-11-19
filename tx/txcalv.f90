@@ -15,10 +15,10 @@ contains
   SUBROUTINE TXCALV(XL,ID)
 
     use physical_constants, only : rMU0, rKeV
-    use libraries, only : INTG_P, DERIVF, VALINT_SUB
+    use libraries, only : DERIVF, VALINT_SUB
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
     integer, intent(in), optional :: ID
-    INTEGER :: NR
+    INTEGER(4) :: NR
 
     Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
@@ -143,7 +143,7 @@ contains
     use sauter_mod
 
     INTEGER :: NR, NP, NR1, IER, i, imax, nrl
-    REAL(8) :: Sigma0, QL, SL, SLP1, SLP2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
+    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
@@ -154,7 +154,7 @@ contains
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR2, Vdrift, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, dErL, xl, alpha_l !&
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l !&
 !!neo         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
     real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
@@ -233,7 +233,7 @@ contains
        SN1(0:NRA) = SP1(0:NRA)
        SN1(NRA+1:NRMAX) = 0.D0
     END IF
-    SLP1 = 2.D0 * PI * SL
+    SLT1 = 2.D0 * PI * SL
 
     IF(ABS(FSRP) > 0.D0) THEN
        SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
@@ -246,10 +246,10 @@ contains
        SN2(0:NRA) = SP2(0:NRA)
        SN2(NRA+1:NRMAX) = 0.D0
     END IF
-    SLP2 = 2.D0 * PI * SL
+    SLT2 = 2.D0 * PI * SL
 
-    PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLP1)
-    PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLP2)
+    PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+    PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
 
     !  For RF heating
 !!$    SP3(0:NRMAX) = 0.D0
@@ -591,8 +591,7 @@ contains
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-!             DeL = FSPSCL
-             DeL = FSPSCL * 0.15d0
+             DeL = FSPSCL
           END IF
 !!$          DeL = FSDFIX * PROFDDL + FSCDBM * DCDBM
        END IF
@@ -708,11 +707,11 @@ contains
 
        !     *** Current density profile ***
 
-       ! Poloidal current density
+       ! Toloidal current density
        AJPH  = -      AEE * PNeV(NR) * 1.D20 * UephV(NR) &
             &  + PZ * AEE * PNiV(NR) * 1.D20 * UiphV(NR) &
             &  + PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)
-       ! Toroidal current density
+       ! Poroidal current density
        AJTH  = -      AEE * PNeV(NR) * 1.D20 * UethV(NR) &
             &  + PZ * AEE * PNiV(NR) * 1.D20 * UithV(NR) &
             &  + PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)
@@ -790,7 +789,6 @@ contains
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
-       EpsL = R(NR) / RR
        dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) * RA
        dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) * RA
        dPPe  = DERIV3(NR,R,PeV,NRMAX,NRMAX,0) * RA
@@ -846,8 +844,8 @@ contains
           ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
           do nr=1,nrmax
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
-             dErL = DERIV3(NR,R,ErV,NRMAX,NRMAX,0)
-             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErL
+             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,NRMAX,0)
+             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdr
 
              EpsL = R(NR) / RR
              Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
@@ -1031,7 +1029,7 @@ contains
 !!rp_conv       end do
 
        !  Diffusive loss
-       !  -- Collisional diffusion of trapped fast particles
+       !  -- Collisional diffusion of trapped fast particles --
        do nr = 1, nrmax
           EpsL = R(NR) / RR
 
@@ -1075,9 +1073,6 @@ contains
        Dbrp(0:NRMAX) = 0.D0
     END IF
 
-    do nr = 1, nrmax
-    end do
-
     RETURN
   END SUBROUTINE TXCALC
 
@@ -1090,12 +1085,12 @@ contains
 
   END FUNCTION CORR
 
-  pure REAL(8) FUNCTION NUD(X)
-    real(8), intent(in) :: X
-
-    NUD = SQRT(1.D0 + X**2) + X**2 * LOG(X / (1.D0 + SQRT(1.D0 + X**2)))
-
-  END FUNCTION NUD
+!!$  pure REAL(8) FUNCTION NUD(X)
+!!$    real(8), intent(in) :: X
+!!$
+!!$    NUD = SQRT(1.D0 + X**2) + X**2 * LOG(X / (1.D0 + SQRT(1.D0 + X**2)))
+!!$
+!!$  END FUNCTION NUD
 
   pure real(8) function NBIi_ratio(x) result(f)
     use physical_constants, only : PI

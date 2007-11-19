@@ -32,7 +32,7 @@ module commons
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP
-  integer :: MDLC
+  integer(4) :: MDLC
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
@@ -115,7 +115,6 @@ module commons
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLe, rlnLi, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, RATIO, rNuOL
-  real(8) :: FWthea, FWthia
  
   ! CDBM
   real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa

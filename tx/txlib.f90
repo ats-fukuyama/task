@@ -304,7 +304,7 @@ contains
           a2 = a(ne)   ; b2 = b(ne)   ; p2 = psi(ne)
           x(ne,1) = (-48.d0*a1*b1*p1+3.d0*a2*b1*p1+3.d0*a1*b2*p1+ 2.d0*a2*b2*p1 &
                &     + 3.d0*a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+ 3.d0*a2*b2*p2) * c160
-          x(ne,2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
+          x(ne, 2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
                &     + 2.d0*a1*b1*p2+3.d0*a2*b1*p2+3.d0*a1*b2*p2+12.d0*a2*b2*p2) * c160
           x(ne,3) = (-12.d0*a1*b1*p1-3.d0*a2*b1*p1-3.d0*a1*b2*p1- 2.d0*a2*b2*p1 &
                &     - 3.d0*a1*b1*p2-2.d0*a2*b1*p2-2.d0*a1*b2*p2- 3.d0*a2*b2*p2) * c160
@@ -585,10 +585,10 @@ contains
        x(3) =-(3.d0*p1*a1 + p2*a1 + p1*a2 +      p2*a2) * (b1 - b2) / (12.d0 * hp)
        x(4) =-(     p1*a1 + p2*a1 + p1*a2 + 3.d0*p2*a2) * (b1 - b2) / (12.d0 * hp)
     case(21)
-!!$       x(1) = (3.d0 * r1 +        r2) * hp / 12.d0 * a1
-!!$       x(2) = (       r1 +        r2) * hp / 12.d0 * a2
-!!$       x(3) = (       r1 +        r2) * hp / 12.d0 * a1
-!!$       x(4) = (       r1 + 3.d0 * r2) * hp / 12.d0 * a2
+!       x(1) = (3.d0 * r1 +        r2) * hp / 12.d0 * a1
+!       x(2) = (       r1 +        r2) * hp / 12.d0 * a2
+!       x(3) = (       r1 +        r2) * hp / 12.d0 * a1
+!       x(4) = (       r1 + 3.d0 * r2) * hp / 12.d0 * a2
        x(1) = 2.d0*h(ne)*( 15.d0*p1**2+45.d0*p1*r1*r2+48.d0*p1*p2+24.d0*r1*p2*r2 &
             &             + 8.d0*p2**2) / (105.d0*(r1+r2)**2) * a1
        x(2) = 4.d0*h(ne)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
@@ -1432,4 +1432,3 @@ contains
   END SUBROUTINE BISECTION_NEO
 
 end module libraries
-

@@ -891,8 +891,8 @@ contains
     DO NR = 0, NRMAX
        dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRMAX,0) * rKeV
        dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRMAX,0) * rKeV
-       rNuei3(NR)  =(BphV(NR)**2 * CORR(Zeff) + BthV(NR)**2) * rNuei(NR) &
-            &      /(BphV(NR)**2 + BthV(NR)**2)
+!       rNuei3(NR)  =(BphV(NR)**2 * CORR(Zeff) + BthV(NR)**2) * rNuei(NR) &
+!            &      /(BphV(NR)**2 + BthV(NR)**2)
        IF(rNueNC(NR) == 0.D0) THEN
           ALP = 0.D0
        ELSE

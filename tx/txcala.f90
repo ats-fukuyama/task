@@ -1696,43 +1696,43 @@ contains
 
     ! Collisional friction with ions
 
-    ELM(1:NEMAX,1:4,4,LQb4) = - fem_int(2,rNubi)
-    NLC(4,LQb4) = LQb4
+    ELM(1:NEMAX,1:4,6,LQb4) = - fem_int(2,rNubi)
+    NLC(6,LQb4) = LQb4
 
-    ELM(1:NEMAX,1:4,5,LQb4) =   fem_int(2,rNubiBI)
-    NLC(5,LQb4) = LQi4
+    ELM(1:NEMAX,1:4,7,LQb4) =   fem_int(2,rNubiBI)
+    NLC(7,LQb4) = LQi4
 
     ! Collisional friction force with neutrals
 
-    ELM(1:NEMAX,1:4,6,LQb4) = - fem_int(2,rNu0b) * BeamSW
-    NLC(6,LQb4) = LQb4
+    ELM(1:NEMAX,1:4,8,LQb4) = - fem_int(2,rNu0b) * BeamSW
+    NLC(8,LQb4) = LQb4
 
     ! Charge exchange force
 
-    ELM(1:NEMAX,1:4,7,LQb4) = - fem_int(2,rNubCX) * BeamSW
-    NLC(7,LQb4) = LQb4
+    ELM(1:NEMAX,1:4,9,LQb4) = - fem_int(2,rNubCX) * BeamSW
+    NLC(9,LQb4) = LQb4
 
     ! NBI momentum source
 
-    PELM(1:NEMAX,1:4,8,LQb4) =   (PNBCD * Vb) * fem_int(-1,MNB)
-    NLC(8,LQb4) = 0
+    PELM(1:NEMAX,1:4,10,LQb4) =   (PNBCD * Vb) * fem_int(-1,MNB)
+    NLC(10,LQb4) = 0
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,9,LQb4) = - fem_int(2,rNuLB) * BeamSW
-    NLC(9,LQb4) = LQb4
+    ELM(1:NEMAX,1:4,11,LQb4) = - fem_int(2,rNuLB) * BeamSW
+    NLC(11,LQb4) = LQb4
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
 
-    ELM(1:NEMAX,1:4,10,LQb4) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
-    NLC(10,LQb4) = LQb4
+    ELM(1:NEMAX,1:4,12,LQb4) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
+    NLC(12,LQb4) = LQb4
 
-    ELM(1:NEMAX,1:4,11,LQb4) = - 4.D0 * fem_int(45,Dbrpft,RATIOUbphV)
-    NLC(11,LQb4) = LQb1
+    ELM(1:NEMAX,1:4,13,LQb4) = - 4.D0 * fem_int(45,Dbrpft,RATIOUbphV)
+    NLC(13,LQb4) = LQb1
 
     ! Ubphi(NRMAX) : 0
 
-    NLCMAX(LQb4) = 11
+    NLCMAX(LQb4) = 13
     RETURN
   END SUBROUTINE LQb4CC
 
