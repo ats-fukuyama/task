@@ -16,15 +16,21 @@ C
       IF(IERR.NE.0) RETURN
       CALL WMSETG(IERR)
       IF(IERR.NE.0) RETURN
-      CALL WMSETJ(IERR)
-      IF(IERR.NE.0) RETURN
 C
       if(mdlwmf.eq.0) then
+         CALL WMSETG(IERR)
+         IF(IERR.NE.0) RETURN
+         CALL WMSETG(IERR)
+         IF(IERR.NE.0) RETURN
          CALL WMSOLV
          CALL WMEFLD
          CALL WMBFLD
          CALL WMPABS
       else
+         CALL wmfem_setg(ierr)
+         IF(IERR.NE.0) RETURN
+         CALL WMSETJ(IERR)
+         IF(IERR.NE.0) RETURN
          call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cpp,cpa)
          CALL WMFEM_EFLD(cef)
          CALL WMBFLD
@@ -81,6 +87,13 @@ C
      &          2.405, 3.832, 5.136, 6.380,
      &          5.520, 7.016, 8.417, 9.761,
      &          8.654,10.173,11.620,13.015/
+C
+         IF(RD.LE.RA.OR.RD.GE.RB) THEN
+            IF(MYRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
+            RD=0.5D0*(RA+RB)
+            IF(MYRANK.EQ.0) 
+     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
+         ENDIF
 C
       DO NDX=1,NDSIZ
       DO MDX=1,MDSIZ

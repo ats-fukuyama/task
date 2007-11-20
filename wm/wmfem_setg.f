@@ -2,44 +2,45 @@ C     $Id$
 C
 C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
-      SUBROUTINE WMSETG(IERR)
+      subroutine wmfem_setg(ierr)
 C
       INCLUDE 'wmcomm.inc'
 C
 C     ****** Simple COORDINATES ******
 C
       IF(MODELG.EQ.0) THEN
-         CALL WMXRZC(ierr)
+         CALL wmmetric_0(ierr)
 C
 C     ****** CYLINDRICAL COORDINATES ******
 C
       ELSEIF(MODELG.EQ.1) THEN
-         CALL WMXRZT(IERR)
+         CALL wmmetric_cyl(IERR)
 C
 C     ****** TOROIDAL COORDINATES ******
 C
       ELSEIF(MODELG.EQ.2) THEN
-         CALL WMXRZT(IERR)
+         CALL wmmetric_tor(IERR)
 C
 C     ****** EQUILIBRIUM (TASK/EQ) ******
 C
       ELSEIF(MODELG.EQ.3) THEN
-         CALL WMXRZF(IERR)
+         CALL wmmetric_eq(IERR)
 C
 C     ****** EQUILIBRIUM (VMEC) ******
 C
       ELSEIF(MODELG.EQ.4) THEN
-         CALL WMXRZV(IERR)
+C         CALL wmmetric_vmec(IERR)
 C
 C     ****** EQUILIBRIUM (EQDSK) ******
 C
       ELSEIF(MODELG.EQ.5) THEN
-         CALL WMXRZF(IERR)
+         CALL wmmetric_eq(IERR)
 C
 C     ****** EQUILIBRIUM (BOOZER) ******
 C
       ELSEIF(MODELG.EQ.6) THEN
-         CALL WMXRZB(IERR)
+C         CALL wmmetric_booz(IERR)
+
       ENDIF
 C
       IF(IERR.NE.0) RETURN
@@ -97,7 +98,123 @@ C
 C
 C     ****** RADIAL MESH (CYLINDRICAL COORDINATES) ******
 C
-      SUBROUTINE WMXRZC(IERR)
+      subroutine wmmetric_0(ierr)
+C
+      INCLUDE 'wmcomm.inc'
+
+      ierr=0
+
+      drho=(rb/ra)/nrmax
+      dth=2.d0*pi/nthmax
+      dph=2.d0*pi/nphmax
+      dthg=2.d0*pi/nthgm
+
+!     --- radial mesh, q profile ---
+      do nr=1,nrmax+1
+         rhol=drho*(nr-1)
+         xrho(nr)=rhol
+         xr(nr)=ra*rhol
+         if(rhol.lt.1.d0) then
+            qps(nr)=q0+(qa-q0)*rhol**2
+         else
+            qps(nr)=qa*rhol**2
+         endif
+      enddo
+
+!     --- 2D grid ---
+      do nr=1,nrmax+1
+         do nth=1,nthmax
+            rps(nth,nr)=ra*xrho(nr)*cos(dth*(nth-1))
+            zps(nth,nr)=ra*xrho(nr)*sin(dth*(nth-1))
+         enddo
+         do nth=1,nthgm
+            rpsg(nth,nr)=ra*xrho(nr)*cos(dthg*(nth-1))
+            zpsg(nth,nr)=ra*xrho(nr)*sin(dthg*(nth-1))
+         enddo
+      enddo
+
+!     --- 3D grid, metric, Bsup ---
+      do nr=1,nrmax+1
+         if(nr.eq.1) then
+            rhol=xrho(2)/9.d0
+         else
+            rhol=xrho(nr)
+         endif
+         do nph=1,nphmax
+            do nth=1,nthmax
+               rpst(nth,nph,nr)=rps(nth,nr)
+               zpst(nth,nph,nr)=zps(nth,nr)
+
+               rg11(nth,nph,nr)= ra**2
+               rg12(nth,nph,nr)= 0.d0
+               rg13(nth,nph,nr)= 0.d0
+               rg22(nth,nph,nr)= (ra*rhol)**2
+               rg23(nth,nph,nr)= 0.d0
+               rg33(nth,nph,nr)= rr**2
+               rj  (nth,nph,nr)= rr*ra**2*rhol
+
+!               bfld(2,nth,nph,nr)=bb/(rr*qps(nr))
+               bfld(2,nth,nph,nr)=0.d0
+               bfld(3,nth,nph,nr)=bb/rr
+            enddo
+         enddo
+         write(6,'(I8,1P2E12.4)') nr,xrho(nr),rj(1,1,nr)
+      enddo
+
+!     --- plasma boundary ---
+         nsumax=31
+         dthu=2.d0*pi/(nsumax-1)
+         do nsu=1,nsumax
+            rsu(nsu,1)=ra*cos(dthu*(nsu-1))
+            zsu(nsu,1)=ra*sin(dthu*(nsu-1))
+         enddo
+
+!     --- wall boundary ---
+         nswmax=31
+         dthw=2.d0*pi/(nswmax-1)
+         do nsw=1,nswmax
+            rsw(nsu,1)=ra*cos(dthw*(nsw-1))
+            zsw(nsu,1)=ra*sin(dthw*(nsw-1))
+         enddo
+
+!     --- graphic boundary ---
+         rgmin=-rb*1.01d0
+         rgmax= rb*1.01d0
+         zgmin=-rb*1.01d0
+         zgmax= rb*1.01d0
+
+!     --- compatibility ---
+         PSIPA=RA*RA*BB/(Q0+QA)
+         PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
+C
+         P0=0.D0
+         DO NS=1,NSMAX
+            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
+         ENDDO
+         P0=P0*1.D20*AEE*1.D3/1.D6
+C
+         DO NR=1,NRMAX+1
+            RHOL=XRHO(NR)
+            IF(RHOL.LE.1.D0) THEN
+               FEDGE=PNS(1)/PN(1)
+               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
+               PT=(PTPR(1)+2*PTPP(1))/3.D0
+               FEDGE=PTS(1)/PT
+               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
+               PPS(NR)=P0*FACTN*FACTT
+            ELSE
+               PPS(NR)=0.D0
+            ENDIF
+            RBPS(NR)=BB*RR
+            VPS(NR)=2*PI*RR*PI*XR(NR)**2
+            RLEN(NR)=2*PI*XR(NR)
+         ENDDO
+      RETURN
+      END
+C
+C     ****** RADIAL MESH (CYLINDRICAL COORDINATES) ******
+C
+      SUBROUTINE wmmetric_cyl(IERR)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -233,7 +350,7 @@ C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
 C
 C     ****** RADIAL MESH (TOROIDAL COORDINATES) ******
 C
-      SUBROUTINE WMXRZT(IERR)
+      SUBROUTINE wmmetric_tor(IERR)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -384,7 +501,7 @@ C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
 C
 C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
-      SUBROUTINE WMXRZF(IERR)
+      SUBROUTINE wmmetric_eq(IERR)
 C
       INCLUDE 'wmcomm.inc'
 C
@@ -598,31 +715,5 @@ C     &           BPT,BTP(NTH,NR)/RPS(NTH,NR)
 C
          ENDDO
          ENDDO
-      RETURN
-      END
-C
-C     ****** CALCULATE ION CYCROTRON RESONANCE SURFACE ******
-C
-      SUBROUTINE WMICRS
-C
-      INCLUDE 'wmcomm.inc'
-C
-      DO NR=1,NRMAX+1
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
-         BSUPTH=BFLD(2,NTH,NPH,NR)
-         BSUPPH=BFLD(3,NTH,NPH,NR)
-         BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH*XRHO(NR)**2
-     &            +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH*XRHO(NR)
-     &            +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
-C         BABS=SQRT(BPT(NTH,NR)**2+BTP(NTH,NR)**2)
-         BPST(NTH,NPH,NR)=BABS
-C         IF(NTH.EQ.1) THEN
-C            WRITE(6,'(I5,1P4E12.4)') NR,BABS,BABS1,BSUPTH,BSUPPH
-C         ENDIF
-      ENDDO
-      ENDDO
-      ENDDO
-C
       RETURN
       END

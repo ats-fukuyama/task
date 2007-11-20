@@ -2,21 +2,30 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm(rr_,ra_,crf_,nth0_,nph0_,idbgwm_)
+      subroutine get_wmparm(crf_,nth0_,nph0_,idbgwm_)
       
       include '../wm/wmcomm.inc'
-      real(8),intent(out):: rr_,ra_
       complex(8),intent(out):: crf_
       integer,intent(out):: nth0_,nph0_
       integer,intent(out):: idbgwm_
-      rr_=rr
-      ra_=ra
       crf_=crf
       nth0_=nth0
       nph0_=nph0
       idbgwm_=idbgwm
       return
       end subroutine get_wmparm
+
+!---- interface for wm parameter
+
+      subroutine get_wmparm1(rr_,ra_,rb_)
+      
+      include '../wm/wmcomm.inc'
+      real(8),intent(out):: rr_,ra_,rb_
+      rr_=rr
+      ra_=ra
+      rb_=rb
+      return
+      end subroutine get_wmparm1
 C
 C     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 C
@@ -30,59 +39,65 @@ C
 C
       DO NR=1,NRMAX+1
 C
-         if(nr.eq.1) then
-            XRL=XRHO(2)/3.d0
-         else
-            XRL=XRHO(NR)
-         endif
-         XRI=1.D0/XRL
-C
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
 C
-            gma(1,1,nth,nph,nr)=RG11(nth,nph,nr)*XRI**2
+            gma(1,1,nth,nph,nr)=RG11(nth,nph,nr)
             gma(1,2,nth,nph,nr)=RG12(nth,nph,nr)
-            gma(1,3,nth,nph,nr)=RG13(nth,nph,nr)*XRI
+            gma(1,3,nth,nph,nr)=RG13(nth,nph,nr)
             gma(2,1,nth,nph,nr)=RG12(nth,nph,nr)
-            gma(2,2,nth,nph,nr)=RG22(nth,nph,nr)*XRL**2
-            gma(2,3,nth,nph,nr)=RG23(nth,nph,nr)*XRL
-            gma(3,1,nth,nph,nr)=RG13(nth,nph,nr)*XRI
-            gma(3,2,nth,nph,nr)=RG23(nth,nph,nr)*XRL
+            gma(2,2,nth,nph,nr)=RG22(nth,nph,nr)
+            gma(2,3,nth,nph,nr)=RG23(nth,nph,nr)
+            gma(3,1,nth,nph,nr)=RG13(nth,nph,nr)
+            gma(3,2,nth,nph,nr)=RG23(nth,nph,nr)
             gma(3,3,nth,nph,nr)=RG33(nth,nph,nr)
-            gj(nth,nph,nr)=RJ(nth,nph,nr)*XRL
+            gj(nth,nph,nr)=RJ(nth,nph,nr)
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
-         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-         TC2=BSUPTH/BABS
-         TC3=BSUPPH/BABS
+            BSUPTH=BFLD(2,NTH,NPH,NR)
+            BSUPPH=BFLD(3,NTH,NPH,NR)
+            BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH
+     &               +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH
+     &               +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
+            TC2=BSUPTH/BABS
+            TC3=BSUPPH/BABS
 C
-C        ***** RF11=RJ*SQRT(G^11)/XR *****
+C        ***** RF11=RJ*SQRT(G^11) *****
 C
-         RF11=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &            -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-         RMA(1,1)= RJ(NTH,NPH,NR)/RF11*XRI
-         RMA(2,1)= 0.D0
-         RMA(3,1)= 0.D0
-         RMA(1,2)= (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
-     &             +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                  -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR))*XRI)
-     &             /RF11
-         RMA(2,2)= TC3*RF11*XRL
-         RMA(3,2)=-TC2*RF11*XRL
-         RMA(1,3)=TC2*RG12(NTH,NPH,NR)
-     &           +TC3*RG13(NTH,NPH,NR)*XRI
-         RMA(2,3)=TC2*RG22(NTH,NPH,NR)*XRL*XRL
-     &           +TC3*RG23(NTH,NPH,NR)*XRL
-         RMA(3,3)=TC2*RG23(NTH,NPH,NR)*XRL
-     &           +TC3*RG33(NTH,NPH,NR)
+            RF11=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
+     &               -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
+            RMA(1,1)= RJ(NTH,NPH,NR)/RF11
+            RMA(2,1)= 0.D0
+            RMA(3,1)= 0.D0
+            RMA(1,2)= (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
+     &                     -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
+     &                +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
+     &                     -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR)))
+     &                /RF11
+            RMA(2,2)= TC3*RF11
+            RMA(3,2)=-TC2*RF11
+            RMA(1,3)=TC2*RG12(NTH,NPH,NR)
+     &              +TC3*RG13(NTH,NPH,NR)
+            RMA(2,3)=TC2*RG22(NTH,NPH,NR)
+     &              +TC3*RG23(NTH,NPH,NR)
+            RMA(3,3)=TC2*RG23(NTH,NPH,NR)
+     &              +TC3*RG33(NTH,NPH,NR)
+
+            write(6,'(1P3E12.4)') RMA(1,1),RJ(NTH,NPH,NR),RF11
+
+C         if(nr.eq.1) then
+C            rma(2,2)=0.d0
+C            rma(2,3)=0.d0
+C            rma(3,2)=0.d0
+C            gma(2,2,nth,nph,nr)=0.d0
+C         endif
 C
-         do j=1,3
-         do i=1,3
-            mma(i,j,nth,nph,nr)=RMA(i,j)
-         enddo
-         enddo
+            do j=1,3
+               do i=1,3
+                  mma(i,j,nth,nph,nr)=RMA(i,j)
+               enddo
+            enddo
 
          enddo
          enddo

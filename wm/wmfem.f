@@ -15,7 +15,6 @@
       real(8),parameter:: pi = 3.14159265358979D0
       real(8),parameter:: vc = 2.99792458 D8
 
-      real(8):: rr,ra
       complex(8):: crf
       integer:: nth0,nph0
       integer:: idbgwm
@@ -36,7 +35,7 @@
       mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
       mwmax=4*6*nfcmax-1        ! width of coefficient matrix
 
-      call get_wmparm(rr,ra,crf,nth0,nph0,idbgwm)
+      call get_wmparm(crf,nth0,nph0,idbgwm)
       call wmfem_metric(gma,mma,gj)
 
       call wmfem_exec
@@ -217,7 +216,6 @@ C         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
       integer:: id_base=1
       real(8):: angl=0.d0
 
-      call get_wmparm(rr,ra,crf,nth0,nph0,idbgwm)
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
       do ns=0,nsmax             ! loop for vacuum and plasma species
@@ -673,9 +671,9 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
          csum1=0.d0
          do k=1,3
          do l=1,3
-            csum1=csum1+conjg(cq(i,k,imn1))
+            csum1=csum1+conjg(cq(k,i,imn1))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cq(j,l,imn2) *gj(nth,nph,nr)
+     &                       *cq(l,j,imn2) *gj(nth,nph,nr)
          enddo
          enddo
          if(i.eq.j.and.imn1.eq.1.and.imn2.eq.1) then
@@ -695,12 +693,12 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
          csum3=0.d0
          do k=1,3
          do l=1,3
-            csum2=csum2+conjg(cp(i,k))
+            csum2=csum2+conjg(cp(k,i))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cq(j,l,imn1) *gj(nth,nph,nr)
-            csum3=csum3+conjg(cq(i,k,imn1))
+     &                       *cq(l,j,imn1) *gj(nth,nph,nr)
+            csum3=csum3+conjg(cq(k,i,imn1))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cp(j,l)  *gj(nth,nph,nr)
+     &                       *cp(l,j)  *gj(nth,nph,nr)
          enddo
          enddo
          fmv2(i,j,imn1,nth,nph)=csum2
@@ -714,9 +712,9 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
          csum4=0.d0
          do k=1,3
          do l=1,3
-            csum4=csum4+conjg(cp(i,k))
+            csum4=csum4+conjg(cp(k,i))
      &                       *gma(k,l,nth,nph,nr)
-     &                       *cp(j,l) *gj(nth,nph,nr)
+     &                       *cp(l,j) *gj(nth,nph,nr)
          enddo
          enddo
          fmv4(i,j,nth,nph)=csum4
@@ -748,7 +746,9 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
       integer:: nth1,nth2,nth1x,nth2x
       integer:: nthdiff,nthxdiff
       integer:: nfcdiff
+      real(8):: rr,ra,rb
 
+      call get_wmparm1(rr,ra,rb)
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
       do inod=1,4               ! clear fmc
