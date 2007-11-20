@@ -135,11 +135,7 @@ C
 
 !     --- 3D grid, metric, Bsup ---
       do nr=1,nrmax+1
-         if(nr.eq.1) then
-            rhol=xrho(2)/9.d0
-         else
-            rhol=xrho(nr)
-         endif
+         rhol=xrho(nr)
          do nph=1,nphmax
             do nth=1,nthmax
                rpst(nth,nph,nr)=rps(nth,nr)
@@ -158,7 +154,6 @@ C
                bfld(3,nth,nph,nr)=bb/rr
             enddo
          enddo
-         write(6,'(I8,1P2E12.4)') nr,xrho(nr),rj(1,1,nr)
       enddo
 
 !     --- plasma boundary ---

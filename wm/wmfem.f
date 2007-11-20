@@ -565,27 +565,18 @@ C         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
       complex(8),dimension(3,3,nthmax,nphmax),intent(out):: fmv4
       complex(8),dimension(3,3,3):: cq
       complex(8),dimension(3,3):: cp
-      integer:: i,j,k,l,nrm,nrp,nthm,nthp,nphm,nphp
+      integer:: i,j,k,l,nthm,nthp,nphm,nphp
       integer:: imn1,imn2
       integer:: nph,nth
-      real(8):: drho,dph,dth
+      real(8):: dph,dth
       complex(8):: csum1,csum2,csum3,csum4,cfactor
+      integer:: nrl
+      real(8):: drhob,mma3b,mma2b,drhoa,mma3a,mma2a,mma30,mma20
+      real(8):: mma3d,mma2d,gjl
       
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
 C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
-
-      if(nr.eq.1) then
-         nrm=1
-      else
-         nrm=nr-1
-      endif
-      if(nr.eq.nrmax) then
-         nrp=nrmax
-      else
-         nrp=nr+1
-      endif
-      drho=rho(nrp)-rho(nrm)
 
       do nph=1,nphmax
          if(nph.eq.1) then
@@ -625,30 +616,72 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
      &                         mma(3,3,nth,nphp,nr)
 
          do j=1,3
+
+            if(nr.eq.1) then
+               nrl=3
+               drhob=rho(3)
+               mma3b=mma(3,j,nth,nph,nrl)
+               mma2b=mma(2,j,nth,nph,nrl)
+               nrl=2
+               drhoa=rho(2)
+               mma3a=mma(3,j,nth,nph,nrl)
+               mma2a=mma(2,j,nth,nph,nrl)
+               nrl=1
+               mma30=mma(3,j,nth,nph,nrl)
+               mma20=mma(2,j,nth,nph,nrl)
+               mma3D=((mma3a-mma30)*drhob**2-(mma3b-mma30)*drhoa**2)
+     &              /(drhoa*drhob*(drhob-drhoa))
+               mma2D=((mma2a-mma20)*drhob**2-(mma2b-mma20)*drhoa**2)
+     &              /(drhoa*drhob*(drhob-drhoa))
+               gj(nth,nph,1)=gj(nth,nph,2)/9.d0
+               gjl=gj(nth,nph,1)
+            elseif(nr.eq.nrmax) then
+               nrl=nrmax-2
+               drhob=rho(nrl)-rho(nrmax)
+               mma3b=mma(3,j,nth,nph,nrl)
+               mma2b=mma(2,j,nth,nph,nrl)
+               nrl=nrmax-1
+               drhoa=rho(nrl)-rho(nrmax)
+               mma3a=mma(3,j,nth,nph,nrl)
+               mma2a=mma(2,j,nth,nph,nrl)
+               nrl=nrmax
+               mma30=mma(3,j,nth,nph,nrl)
+               mma20=mma(2,j,nth,nph,nrl)
+               mma3D=((mma3a-mma30)*drhob**2-(mma3b-mma30)*drhoa**2)
+     &              /(drhoa*drhob*(drhob-drhoa))
+               mma2D=((mma2a-mma20)*drhob**2-(mma2b-mma20)*drhoa**2)
+     &              /(drhoa*drhob*(drhob-drhoa))
+               gjl=gj(nth,nph,nr)
+            else
+               mma3D=(mma(3,j,nth,nph,nr+1)-mma(3,j,nth,nph,nr-1))
+     &              /(rho(nr+1)-rho(nr-1))
+               mma2D=(mma(2,j,nth,nph,nr+1)-mma(2,j,nth,nph,nr-1))
+     &              /(rho(nr+1)-rho(nr-1))
+               gjl=gj(nth,nph,nr)
+            endif
+
          cq(1,j,1)=((mma(3,j,nthp,nph,nr)
      &              -mma(3,j,nthm,nph,nr))/dth
      &             -(mma(2,j,nth,nphp,nr)
-     &              -mma(2,j,nth,nphm,nr))/dph )/gj(nth,nph,nr)
-         cq(1,j,2)=+ci*mma(3,j,nth,nph,nr)/gj(nth,nph,nr)
-         cq(1,j,3)=-ci*mma(2,j,nth,nph,nr)/gj(nth,nph,nr)
+     &              -mma(2,j,nth,nphm,nr))/dph )/gjl
+         cq(1,j,2)=+ci*mma(3,j,nth,nph,nr)/gjl
+         cq(1,j,3)=-ci*mma(2,j,nth,nph,nr)/gjl
 
          cq(2,j,1)=((mma(1,j,nth,nphp,nr)
      &              -mma(1,j,nth,nphm,nr))/dph
-     &             -(mma(3,j,nth,nph,nrp)
-     &              -mma(3,j,nth,nph,nrm))/drho)/gj(nth,nph,nr)
+     &             -mma3d)/gjl
          cq(2,j,2)=0.d0
-         cq(2,j,3)=+ci*mma(1,j,nth,nph,nr)/gj(nth,nph,nr)
+         cq(2,j,3)=+ci*mma(1,j,nth,nph,nr)/gjl
 
-         cq(3,j,1)=((mma(2,j,nth,nph,nrp)
-     &              -mma(2,j,nth,nph,nrm))/drho
+         cq(3,j,1)=(mma2d
      &             -(mma(1,j,nthp,nph,nr)
-     &              -mma(1,j,nthm,nph,nr))/dth )/gj(nth,nph,nr)
-         cq(3,j,2)=-ci*mma(1,j,nth,nph,nr)/gj(nth,nph,nr)
+     &              -mma(1,j,nthm,nph,nr))/dth )/gjl
+         cq(3,j,2)=-ci*mma(1,j,nth,nph,nr)/gjl
          cq(3,j,3)=0.d0
 
          cp(1,j)=0.d0
-         cp(2,j)=-mma(3,j,nth,nph,nr)/gj(nth,nph,nr)
-         cp(3,j)= mma(2,j,nth,nph,nr)/gj(nth,nph,nr)
+         cp(2,j)=-mma(3,j,nth,nph,nr)/gjl
+         cp(3,j)= mma(2,j,nth,nph,nr)/gjl
       enddo
 
       write(6,*) 'cq(1)'

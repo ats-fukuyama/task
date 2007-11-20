@@ -65,16 +65,44 @@ C
 C
 C        ***** RF11=RJ*SQRT(G^11) *****
 C
-            RF11=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &               -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-            RMA(1,1)= RJ(NTH,NPH,NR)/RF11
-            RMA(2,1)= 0.D0
-            RMA(3,1)= 0.D0
-            RMA(1,2)= (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
+            if(nr.eq.1) then
+               NRL=3
+               RJb  =RJ(NTH,NPH,NRL)
+               RF11b=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
+     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
+               RMAb = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
+     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
+               NRL=2
+               RJa  =RJ(NTH,NPH,NRL)
+               RF11a=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
+     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
+               RMAa = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
+     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
+
+               RJL  =(RJa*xrho(3)**2  -RJb*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+               RF11L=(RF11a*xrho(3)**2-RF11b*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+               RMAL =(RMAa*xrho(3)**2 -RMAb*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+            else
+               RJL  =RJ(NTH,NPH,NR)
+               RF11L=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
+     &                  -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
+               RMAL = (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
      &                     -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
      &                +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
      &                     -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR)))
-     &                /RF11
+            endif
+            
+            RMA(1,1)= RJL/RF11L
+            RMA(2,1)= 0.D0
+            RMA(3,1)= 0.D0
+            RMA(1,2)= RMAL/RF11L
             RMA(2,2)= TC3*RF11
             RMA(3,2)=-TC2*RF11
             RMA(1,3)=TC2*RG12(NTH,NPH,NR)
@@ -84,15 +112,6 @@ C
             RMA(3,3)=TC2*RG23(NTH,NPH,NR)
      &              +TC3*RG33(NTH,NPH,NR)
 
-            write(6,'(1P3E12.4)') RMA(1,1),RJ(NTH,NPH,NR),RF11
-
-C         if(nr.eq.1) then
-C            rma(2,2)=0.d0
-C            rma(2,3)=0.d0
-C            rma(3,2)=0.d0
-C            gma(2,2,nth,nph,nr)=0.d0
-C         endif
-C
             do j=1,3
                do i=1,3
                   mma(i,j,nth,nph,nr)=RMA(i,j)
@@ -102,6 +121,7 @@ C
          enddo
          enddo
          enddo
+         pause
          return
          end
       
