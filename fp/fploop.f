@@ -8,15 +8,21 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+      CHARACTER*(80) LINE
       EXTERNAL FPFN0U,FPFN0T,FPFN1A,FPFN2A,FPFN2U,FPFN2T
 C
 C     ----- exec EQ -----
 C
       IF(MODELG.EQ.3) THEN
-         CALL EQLOAD(3,KNAMEQ,0,IERR)
+         CALL EQLOAD(MODELG,KNAMEQ,0,IERR)
          IF(IERR.EQ.0) THEN
-            CALL EQSETP
-            CALL EQCALQ(51,64,64,IERR)
+            write(LINE,'(A,I5)') 'nrmax=',51
+            call eqparm(2,line,ierr)
+            write(LINE,'(A,I5)') 'nthmax=',64
+            call eqparm(2,line,ierr)
+            write(LINE,'(A,I5)') 'nsumax=',64
+            call eqparm(2,line,ierr)
+            CALL EQCALQ(IERR)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
          ENDIF
       ENDIF

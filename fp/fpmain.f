@@ -24,8 +24,10 @@ C
       OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
 C
       CALL PLINIT
+      CALL EQINIT
       CALL FPINIT
       CALL PLPARM(1,'plparm',IERR)
+      CALL EQPARM(1,'eqparm',IERR)
       CALL FPPARM(1,'fpparm',IERR)
 C
       CALL FPMENU
