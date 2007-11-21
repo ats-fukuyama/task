@@ -76,6 +76,7 @@ C     RKWTH : poloidal component of wave number [1/m]
 C     RKWPH : toroidal component of wave number [1/m]
 C     REWY  : vertical position of ray [r/a]
 C     DREWY : vertical half-width of ray [r/a]
+C     FACTWM: Numerical factor for wave amplitude
 C
       RFDW  = 170.D3
       DELNPR= 0.05D0
@@ -89,6 +90,7 @@ C
       RKWPH = 1.D3
       REWY  = 0.D0
       DREWY = 0.1D0
+      FACTWM= 1.D0
 C
 C-----------------------------------------------------------------------
 C     PMAX  : maximum momentum (normailzed by central thermal momentum)
@@ -237,7 +239,7 @@ C
      &              NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,
      &              DELT,NTMAX,NTSTP1,NTSTP2,NTSTPC,
      &              MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,
-     &              RFDW,DELNPR,NCMIN,NCMAX,
+     &              RFDW,DELNPR,NCMIN,NCMAX,FACTWM,
      &              CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,
      &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,
      &              KNAMEQ,KNAMWR,KNAMWM,KNAMFP
@@ -267,7 +269,7 @@ C
       WRITE(6,*) '      PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
-      WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,'
+      WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,FACTWM,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
       WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,'
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP'
@@ -346,6 +348,11 @@ C
      &                'REWY  ',REWY  ,'DREWY ',DREWY
          WRITE(6,600) 'RKWR  ',RKWR  ,'RKWTH ',RKWTH,
      &                'RKWPH ',RKWPH
+C
+      ELSEIF(MODELW.EQ.4) THEN
+         WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
+     &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
+         WRITE(6,600) 'FACTWM',FACTWM
       ENDIF
 C
       WRITE(6,600) 'PMAX  ',PMAX  ,'DELT  ',DELT  ,
