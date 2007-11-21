@@ -524,7 +524,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C     
-         DO NR=1,NRMAX
+C         DO NR=1,NRMAX
          DO NTH=1,NTHMAX
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
             DO NP=1,NPMAX+1
@@ -630,7 +630,7 @@ C
                DCTP(NTHMAX-NTH+2,NP,NR)=DCTP(NTH,NP,NR)
             END DO
          END DO
-         END DO
+C         END DO
 
       RETURN
       END

@@ -60,6 +60,8 @@ C
                   CALL FPCALC_NL(NR,NS)
                ENDIF
             ENDIF
+            write(6,'(2I8,1P3E12.4)')
+     &           NR,NS,DCPP(5,5,NR),DCTT(5,5,NR),FCPP(5,5,NR)
          ENDDO
 C
 C        ----- Simple ion collision term using ZEFF -----
@@ -467,7 +469,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-         DO NR=1,NRMAX
+C         DO NR=1,NRMAX
             DO NTH=1,NTHMAX
                FACT=RLAMDA(NTH,NR)
                DO NP=1,NPMAX+1
@@ -482,9 +484,9 @@ C
                   DCTT(NTH,NP,NR)=FACT*DCTT(NTH,NP,NR)
                ENDDO
             ENDDO
-         ENDDO
+C         ENDDO
 C
-         DO NR=1,NRMAX
+C         DO NR=1,NRMAX
             DO NP=1,NPMAX+1
                DCPP(ITL(NR),NP,NR)
      &              =RLAMDA(ITL(NR),NR)/4.D0
@@ -502,7 +504,7 @@ C
                DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
                FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
             ENDDO
-         ENDDO
+C         ENDDO
 
       RETURN
       END
