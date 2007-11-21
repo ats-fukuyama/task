@@ -262,10 +262,11 @@ C
       PT1    = 0.0D0
       PT2    = 0.0D0
       PTSEQ  = 0.05D0
-      PROFT0 = 1.5D0
-      PROFT1 = 1.5D0
-      PROFT2 = 2.0D0
-C
+C---- conflict with PROFT? in pl -----
+C      PROFT0 = 1.5D0
+C      PROFT1 = 1.5D0
+C      PROFT2 = 2.0D0
+C----
 C        PV0   : Toroidal rotation (main component)              (m/s)
 C        PV1   : Toroidal rotation (sub component)               (m/s)
 C        PV2   : Toroidal rotation (increment within ITB)        (m/s)
