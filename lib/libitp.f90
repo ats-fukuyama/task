@@ -487,38 +487,46 @@
 
 !     ** Array input version **
 
-      real(8) FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
+      real(8) FUNCTION DERIV3(NR,R,F,NRMAX,ID)
 
-!     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
+!     ID = 0    : NR = 0 to NRMAX
 !          else : NR = 1 to NRMAX
 
       implicit none
-      integer(4),              intent(in) :: NR, NRMAX, NRM, ID
-      real(8), dimension(NRM), intent(in) :: R, F
-      integer(4) :: NRL, NRLMAX, NR0, NR1, NR2
+      integer(4),                    intent(in) :: NR, NRMAX, ID
+      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
+      integer(4) :: NR0, NR1, NR2
       real(8) :: DLT, DLT1, DLT2
 
       IF(ID == 0) THEN
-         NRL=NR+1
-         NRLMAX=NRMAX+1
+         IF(NR == 0) THEN
+            NR0 = NR+1
+            NR1 = NR+2
+            NR2 = NR+3
+         ELSEIF(NR == NRMAX) THEN
+            NR0 = NR+1
+            NR1 = NR
+            NR2 = NR-1
+         ELSE
+            NR0 = NR+1
+            NR1 = NR
+            NR2 = NR+2
+         ENDIF
       ELSE
-         NRL=NR
-         NRLMAX=NRMAX
-      ENDIF
-
-      IF(NRL == 1) THEN
-         NR0 = NRL
-         NR1 = NRL+1
-         NR2 = NRL+2
-      ELSEIF(NRL == NRLMAX) THEN
-         NR0 = NRL
-         NR1 = NRL-1
-         NR2 = NRL-2
-      ELSE
-         NR0 = NRL
-         NR1 = NRL-1
-         NR2 = NRL+1
-      ENDIF
+         IF(NR == 1) THEN
+            NR0 = NR
+            NR1 = NR+1
+            NR2 = NR+2
+         ELSEIF(NR == NRMAX) THEN
+            NR0 = NR
+            NR1 = NR-1
+            NR2 = NR-2
+         ELSE
+            NR0 = NR
+            NR1 = NR-1
+            NR2 = NR+1
+         ENDIF
+      END IF
 
       DLT1 = R(NR1) - R(NR0)
       DLT2 = R(NR2) - R(NR0)
@@ -528,6 +536,48 @@
 
       RETURN
       END FUNCTION DERIV3
+
+!!$      real(8) FUNCTION DERIV3(NR,R,F,NRMAX,NRM,ID)
+!!$
+!!$!     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
+!!$!          else : NR = 1 to NRMAX
+!!$
+!!$      implicit none
+!!$      integer(4),              intent(in) :: NR, NRMAX, NRM, ID
+!!$      real(8), dimension(NRM), intent(in) :: R, F
+!!$      integer(4) :: NRL, NRLMAX, NR0, NR1, NR2
+!!$      real(8) :: DLT, DLT1, DLT2
+!!$
+!!$      IF(ID == 0) THEN
+!!$         NRL=NR+1
+!!$         NRLMAX=NRMAX+1
+!!$      ELSE
+!!$         NRL=NR
+!!$         NRLMAX=NRMAX
+!!$      ENDIF
+!!$
+!!$      IF(NRL == 1) THEN
+!!$         NR0 = NRL
+!!$         NR1 = NRL+1
+!!$         NR2 = NRL+2
+!!$      ELSEIF(NRL == NRLMAX) THEN
+!!$         NR0 = NRL
+!!$         NR1 = NRL-1
+!!$         NR2 = NRL-2
+!!$      ELSE
+!!$         NR0 = NRL
+!!$         NR1 = NRL-1
+!!$         NR2 = NRL+1
+!!$      ENDIF
+!!$
+!!$      DLT1 = R(NR1) - R(NR0)
+!!$      DLT2 = R(NR2) - R(NR0)
+!!$      DERIV3 = (DLT2**2*F(NR1)-DLT1**2*F(NR2)) &
+!!$     &       /(DLT1*DLT2*(DLT2-DLT1)) &
+!!$     &       -(DLT2+DLT1)*F(NR0)/(DLT1*DLT2)
+!!$
+!!$      RETURN
+!!$      END FUNCTION DERIV3
 
 !     *** Extrapolate center value ***************************
 !     *  assuming the gradient is zero at the center (rho=0) *
