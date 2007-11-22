@@ -256,7 +256,7 @@
 !$$$         DPPP=(RPIP-2*RPI0+RPIM)*DRL*DRL
 
 !     safety factor and its gradient on grid
-         DQ = DERIV3(NR,RHOG,QP,NRMAX,NRM,1)
+         DQ = DERIV3(NR,RHOG,QP,NRMAX,1)
          QL = QP(NR)
 
 !     sound speed for electron
@@ -328,7 +328,7 @@
 
 !     rotational shear
 !        omega(or gamma)_e=r/q d(q v_exb/r)/dr
-         DVE = DERIV3(NR,RHOG,VEXB,NRMAX,NRM,1)
+         DVE = DERIV3(NR,RHOG,VEXB,NRMAX,1)
          WEXB(NR) = (S(NR)-1.D0)*VEXB(NR)/RHOG(NR)+DVE
 !     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
