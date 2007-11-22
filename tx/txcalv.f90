@@ -16,11 +16,11 @@ contains
 
     use physical_constants, only : rMU0, rKeV
     use libraries, only : DERIVF, VALINT_SUB
-    REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(INOUT) :: XL
-    integer, intent(in), optional :: ID
+    REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
+    integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
 
-    Phi  (0:NRMAX) =   XL(LQm1,0:NRMAX)
+    PhiV (0:NRMAX) =   XL(LQm1,0:NRMAX)
     DO NR = 0, NRMAX
        ErV (NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm1,NQMAX,NRMAX)
     END DO
@@ -137,7 +137,7 @@ contains
   SUBROUTINE TXCALC
 
     use physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKeV, EION
-    use libraries, only : EXPV, VALINT_SUB, TRCOFS, INTG_P
+    use libraries, only : EXPV, VALINT_SUB, TRCOFS
     use core_module, only : inv_int
     use nclass_mod
     use sauter_mod
@@ -156,7 +156,6 @@ contains
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l !&
 !!neo         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
-    real(8) :: rnubarth, rnubarph
 !!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P
@@ -207,11 +206,11 @@ contains
     !  For NBI heating
     !  *** Perpendicular
     IF(ABS(FSRP) > 0.D0) THEN
-       SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+       SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
        CALL VALINT_SUB(SP0,NRMAX,SL)
        SN0(0:NRMAX) = SP0(0:NRMAX)
     ELSE
-       SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+       SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)**4)
        SP0(NRA+1:NRMAX) = 0.D0
        CALL VALINT_SUB(SP0,NRA,SL)
        SN0(0:NRA) = SP0(0:NRA)
@@ -223,11 +222,11 @@ contains
 
     !  *** Tangential
     IF(ABS(FSRP) > 0.D0) THEN
-       SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+       SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
        CALL VALINT_SUB(SP1,NRMAX,SL)
        SN1(0:NRMAX) = SP1(0:NRMAX)
     ELSE
-       SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+       SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)**4)
        SP1(NRA+1:NRMAX) = 0.D0
        CALL VALINT_SUB(SP1,NRA,SL)
        SN1(0:NRA) = SP1(0:NRA)
@@ -236,11 +235,11 @@ contains
     SLT1 = 2.D0 * PI * SL
 
     IF(ABS(FSRP) > 0.D0) THEN
-       SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)** 2)
+       SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)**2)
        CALL VALINT_SUB(SP2,NRMAX,SL)
        SN2(0:NRMAX) = SP2(0:NRMAX)
     ELSE
-       SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)** 2)
+       SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)**2)
        SP2(NRA+1:NRMAX) = 0.D0
        CALL VALINT_SUB(SP2,NRA,SL)
        SN2(0:NRA) = SP2(0:NRA)
@@ -253,9 +252,9 @@ contains
 
     !  For RF heating
 !!$    SP3(0:NRMAX) = 0.D0
-!!$    SP3(0:NRA) = EXP(- ((R(0:NRA) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)** 4)
+!!$    SP3(0:NRA) = EXP(- ((R(0:NRA) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)**4)
 !!$    CALL VALINT_SUB(SP3,NRA,SL)
-    SP3(0:NRMAX) = EXP(- ((R(0:NRMAX) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRMAX) / RB)** 4)
+    SP3(0:NRMAX) = EXP(- ((R(0:NRMAX) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
     CALL VALINT_SUB(SP3,NRMAX,SL)
     SL = 2.D0 * PI * SL
 
@@ -533,9 +532,9 @@ contains
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,NRMAX,0)
+       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,0)
        S(NR) = R(NR) / Q(NR) * dQdr(NR)
-       dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,NRMAX,0)
+       dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,0)
        Alpha(NR) = - Q(NR)**2 * RR * dpdr * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
        !     *** Wave-particle interaction ***
@@ -555,7 +554,7 @@ contains
           IF(NR == 0) THEN
              rH=0.D0
           ELSE
-             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,NRMAX,0)
+             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,0)
              rH = Q(NR) * RR * R(NR) *  dErdr / (Va * S(NR))
           END IF
           
@@ -669,6 +668,8 @@ contains
 !!$          PNBPD(NR) = 0.D0
 !!$          PNBTG(NR) = 0.D0
 !!$          PNB(NR)   = 0.D0
+!!$          SNBTG(NR) = 0.D0
+!!$          SNBPD(NR) = 0.D0
 !!$          SNB(NR)   = 0.D0
 !!$          MNB(NR)   = 0.D0
 !!$          PRFe(NR)  = 0.D0
@@ -789,10 +790,10 @@ contains
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
-       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) * RA
-       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) * RA
-       dPPe  = DERIV3(NR,R,PeV,NRMAX,NRMAX,0) * RA
-       dPPi  = DERIV3(NR,R,PiV,NRMAX,NRMAX,0) * RA
+       dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
+       dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
+       dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
+       dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
        CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
             &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
             &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBS3(NR),ETA=ETA3(NR))
@@ -844,7 +845,7 @@ contains
           ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
           do nr=1,nrmax
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
-             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,NRMAX,0)
+             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,0)
              SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdr
 
              EpsL = R(NR) / RR
@@ -1107,7 +1108,7 @@ contains
   end function NBIi_ratio
 
   pure real(8) function ripple(NR,theta,FSRP)
-    integer, intent(in) :: NR
+    integer(4), intent(in) :: NR
     real(8), intent(in) :: theta, FSRP
 
     if(FSRP /= 0.D0) then
@@ -1115,7 +1116,7 @@ contains
             &             + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
     else
        ripple = 0.D0
-    end IF
+    end if
        
   end function ripple
 

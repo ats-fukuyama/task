@@ -5,6 +5,8 @@
 !             TOKAMAK TRANSPORT SIMULATION CODE
 !    INCLUDING RADIAL ELECTRIC FIELD AND PLASMA ROTATION
 !
+!      FEM scheme with Linear interpolation function
+!
 !     DEVELOPED BY M. HONDA, Y. FUJI AND A. FUKUYAMA
 !
 !             DEPARTMENT OF NUCLEAR ENGINEERING
@@ -26,7 +28,7 @@
 !   X4  = Aphi                                          *      *
 !   X5  = r * Atheta                                    *      *
 !   X6  = Ne                 X11  = Ni                  N(*)   N(*)
-!   X7  = r * Ne * Uer       X12  = r * Ni * Uir        *      *(0)
+!   X7  = r * Ne * Uer       X12  = r * Ni * Uir        0      *(0)
 !   X8  = r * Ne * UeTheta   X13  = r * Ni * UiTheta    0      0
 !   X9  = Ne * UePhi         X14  = Ni * UiPhi          N      0
 !   X10 = Ne * Te            X15  = Ni * Ti             N      N
@@ -65,8 +67,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx443.0'
-  WRITE(6,*) '######## TASK/TX V4.43.00 07/10/25 ########'
+  SLID = 'tx444.0'
+  WRITE(6,*) '######## TASK/TX V4.44.00 07/11/20 ########'
 
   CALL TXINIT
   KPNAME='txparm'

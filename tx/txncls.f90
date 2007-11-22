@@ -163,9 +163,9 @@ contains
     IF(SNGL(EpsL) > 0.0) THEN
        ! poloidal moments of geometric factor for PS viscosity
        DO i=1,3
-          p_fm(i)=SNGL(DBLE(i)*(  (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
-               &                 *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
-               &                 *(Q(NR)*RR)**2))
+          p_fm(i)=SNGL(DBLE(i)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
+               &                *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
+               &                *(Q(NR)*RR)**2))
        ENDDO
     ENDIF
 !    p_fm(1:3) = 0.d0 ! No Pfirsch-Shulter viscosity
@@ -173,24 +173,24 @@ contains
 
     p_grbm2   = SNGL(1.D0/RA**2) * p_bm2
     p_grphi   = SNGL(-RA*ErV(NR))
-    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,NRMAX,0))
+    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0))
     p_ngrth   = SNGL(BphV(NR)/(RR*Q(NR)*BBL))
     temp_i(1) = SNGL(PTeV(NR))
     temp_i(2) = SNGL(PTiV(NR))
-    grt_i(1)  = SNGL(RA * DERIV3(NR,R,PTeV,NRMAX,NRMAX,0))
-    grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,NRMAX,0))
+    grt_i(1)  = SNGL(RA * DERIV3(NR,R,PTeV,NRMAX,0))
+    grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,0))
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,NRMAX,0)) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0)) * 1.E20
+    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
        den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiV(NR)) * 1.E20
        den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiV(NR)) * 1.E20
-       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) &
+       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0) &
             &                    * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,NRMAX,0) &
+       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0) &
             &                    * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
@@ -240,18 +240,18 @@ contains
     ENDIF
 
     IF(Zeff == 1.D0) THEN
-       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) / PTeV(NR)) &
-            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRMAX,0) / PeV (NR)) &
-            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRMAX,0) / PiV (NR))) / BBL
+       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
+            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
+            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR))) / BBL
     ELSE
-       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) / PTeV(NR)) &
-            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,NRMAX,0) / PeV (NR)) &
-            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRMAX,0) / PiV (NR) &
+       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
+            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
+            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
             &                     * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
-            &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,NRMAX,0) / PiV (NR) &
+            &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+            &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
             &                     * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
     END IF
     IF(k_potato == 0 .and. NR == 0) JBSL = 0.D0

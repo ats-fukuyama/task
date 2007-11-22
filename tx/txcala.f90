@@ -243,9 +243,8 @@ contains
 
   SUBROUTINE LQCOEF
 
-    use physical_constants, only : EPS0
     use libraries, only : DERIVS
-    INTEGER :: NR
+    INTEGER(4) :: NR
     REAL(8) :: AITKEN4P, BBL
 
     rNuIN0(0:NRMAX)   = rNuION(0:NRMAX) * PNeV(0:NRMAX) &
@@ -283,8 +282,8 @@ contains
     CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
     CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
     CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)
-    FWpheBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * rMUb2 * FWthphe(0:NRMAX)
-    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * rMUb2 * FWthphi(0:NRMAX)
+    FWpheBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphe(0:NRMAX)
+    FWphiBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphi(0:NRMAX)
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
     FWphiBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthi(0:NRMAX)
 
@@ -605,7 +604,7 @@ contains
 
     use physical_constants, only : AEE, AME, rKeV
 
-    integer :: N
+    integer(4) :: N
 
     ! Ns*UsTheta(0) : 0
 
@@ -652,7 +651,7 @@ contains
     ELM(1:NEMAX,1:4, 8,LQe3) =   fem_int(2,rNuei1EI)
     NLC( 8,LQe3) = LQi3
 
-    ELM(1:NEMAX,1:4, 9,LQe3) =   2.D0 * fem_int(37,rNuei2,AphV)
+    ELM(1:NEMAX,1:4, 9,LQe3) =   2.D0 * fem_int(37,rNuei2,AphV) * AMPe4
     NLC( 9,LQe3) = LQe4
 
     ELM(1:NEMAX,1:4,10,LQe3) = - 2.D0 * fem_int(37,rNuei2EI,AphV)
@@ -666,7 +665,7 @@ contains
     ELM(1:NEMAX,1:4,12,LQe3) =   (AMB / AME) * fem_int(2,rNube1)
     NLC(12,LQe3) = LQb3
 
-    ELM(1:NEMAX,1:4,13,LQe3) =   2.D0 * (AMB / AME) * fem_int(37,rNube2BE,AphV)
+    ELM(1:NEMAX,1:4,13,LQe3) =   2.D0 * (AMB / AME) * fem_int(37,rNube2BE,AphV) * AMPe4
     NLC(13,LQe3) = LQe4
 
     ELM(1:NEMAX,1:4,14,LQe3) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2,AphV)
@@ -704,7 +703,7 @@ contains
        ELM(1:NEMAX,1:4,15,LQe3) = - 2.D0 / AME * fem_int(17,WNthe)
        NLC(15,LQe3) = LQe1
 
-!      ELM(1:NEMAX,1:4,16,LQe3) = - 2.D0 / AME * fem_int(36,Phi,WEMthe)
+!      ELM(1:NEMAX,1:4,16,LQe3) = - 2.D0 / AME * fem_int(36,PhiV,WEMthe)
 !      NLC(16,LQe3) = LQe1
 !
 !      ELM(1:NEMAX,1:4,17,LQe3) = - 2.D0 / AME * fem_int(15,WWthe)
@@ -721,7 +720,7 @@ contains
        ELM(1:NEMAX,1:4,20,LQe3) =   2.D0 / AME * fem_int(17,WNthi)
        NLC(20,LQe3) = LQi1
 
-!      ELM(1:NEMAX,1:4,21,LQe3) =   2.D0 / AME * fem_int(36,Phi,WEMthi)
+!      ELM(1:NEMAX,1:4,21,LQe3) =   2.D0 / AME * fem_int(36,PhiV,WEMthi)
 !      NLC(21,LQe3) = LQi1
 !
 !      ELM(1:NEMAX,1:4,22,LQe3) =   1.D0 / AME * fem_int(15,WWthi)
@@ -807,7 +806,7 @@ contains
     ELM(1:NEMAX,1:4, 6,LQe4) =   fem_int(2,rNuei3EI)
     NLC( 6,LQe4) = LQi4
 
-    ELM(1:NEMAX,1:4, 7,LQe4) =   2.D0 * fem_int(29,rNuei2,AphV) * AMPe4
+    ELM(1:NEMAX,1:4, 7,LQe4) =   2.D0 * fem_int(29,rNuei2,AphV)
     NLC( 7,LQe4) = LQe3
 
     ELM(1:NEMAX,1:4, 8,LQe4) = - 2.D0 * fem_int(29,rNuei2EI,AphV)
@@ -821,7 +820,7 @@ contains
     ELM(1:NEMAX,1:4,10,LQe4) =   (AMB / AME) * fem_int(2,rNube3)
     NLC(10,LQe4) = LQb4
 
-    ELM(1:NEMAX,1:4,11,LQe4) =   2.D0 * (AMB / AME) * fem_int(29,rNube2BE,AphV) * AMPe4
+    ELM(1:NEMAX,1:4,11,LQe4) =   2.D0 * (AMB / AME) * fem_int(29,rNube2BE,AphV)
     NLC(11,LQe4) = LQe3
 
     ELM(1:NEMAX,1:4,12,LQe4) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2,AphV)
@@ -1125,7 +1124,7 @@ contains
 
     use physical_constants, only : AEE, AME, rKeV
 
-    integer :: N
+    integer(4) :: N
 
     ! Ni*UiTheta(0) : 0
 
@@ -1175,7 +1174,7 @@ contains
     ELM(1:NEMAX,1:4, 9,LQi3) =   2.D0 * (AME / AMI) * fem_int(37,rNuei2EI,AphV)
     NLC( 9,LQi3) = LQi4
 
-    ELM(1:NEMAX,1:4,10,LQi3) = - 2.D0 * (AME / AMI) * fem_int(37,rNuei2,AphV)
+    ELM(1:NEMAX,1:4,10,LQi3) = - 2.D0 * (AME / AMI) * fem_int(37,rNuei2,AphV) * AMPe4
     NLC(10,LQi3) = LQe4
 
     ! Collisional friction with beam ions
@@ -1218,7 +1217,7 @@ contains
        ELM(1:NEMAX,1:4,13,LQi3) =   2.D0 / AMI * fem_int(17,WNthe)
        NLC(13,LQi3) = LQe1
 
-!       ELM(1:NEMAX,1:4,14,LQi3) =   2.D0 / AMI * fem_int(36,Phi,WEMthe)
+!       ELM(1:NEMAX,1:4,14,LQi3) =   2.D0 / AMI * fem_int(36,PhiV,WEMthe)
 !       NLC(14,LQi3) = LQe1
        
 !       ELM(1:NEMAX,1:4,15,LQi3) =   2.D0 / AMI * fem_int(15,WWthe)
@@ -1235,7 +1234,7 @@ contains
        ELM(1:NEMAX,1:4,18,LQi3) = - 2.D0 / AMI * fem_int(17,WNthi)
        NLC(18,LQi3) = LQi1
 
-!       ELM(1:NEMAX,1:4,19,LQi3) = - 2.D0 / AMI * fem_int(36,Phi,WEMthi)
+!       ELM(1:NEMAX,1:4,19,LQi3) = - 2.D0 / AMI * fem_int(36,PhiV,WEMthi)
 !       NLC(19,LQi3) = LQi1
        
 !       ELM(1:NEMAX,1:4,20,LQi3) = - 2.D0 / AMI * fem_int(15,WWthi)
@@ -1339,7 +1338,7 @@ contains
     ELM(1:NEMAX,1:4, 7,LQi4) =   2.D0 * (AME / AMI) * fem_int(29,rNuei2EI,AphV)
     NLC( 7,LQi4) = LQi3
 
-    ELM(1:NEMAX,1:4, 8,LQi4) = - 2.D0 * (AME / AMI) * fem_int(29,rNuei2,AphV) * AMPe4
+    ELM(1:NEMAX,1:4, 8,LQi4) = - 2.D0 * (AME / AMI) * fem_int(29,rNuei2,AphV)
     NLC( 8,LQi4) = LQe3
 
     ! Collisional friction with beam ions
@@ -1620,7 +1619,7 @@ contains
     ELM(1:NEMAX,1:4,5,LQb3) =   2.D0 * fem_int(37,rNube2,AphV)
     NLC(5,LQb3) = LQb4
 
-    ELM(1:NEMAX,1:4,6,LQb3) = - 2.D0 * fem_int(37,rNube2BE,AphV)
+    ELM(1:NEMAX,1:4,6,LQb3) = - 2.D0 * fem_int(37,rNube2BE,AphV) * AMPe4
     NLC(6,LQb3) = LQe4
 
     ! Collisional friction force with ions
@@ -1691,7 +1690,7 @@ contains
     ELM(1:NEMAX,1:4,4,LQb4) =   2.D0 * fem_int(29,rNube2,AphV)
     NLC(4,LQb4) = LQb3
 
-    ELM(1:NEMAX,1:4,5,LQb4) = - 2.D0 * fem_int(29,rNube2BE,AphV) * AMPe4
+    ELM(1:NEMAX,1:4,5,LQb4) = - 2.D0 * fem_int(29,rNube2BE,AphV)
     NLC(5,LQb4) = LQe3
 
     ! Collisional friction with ions
@@ -1817,7 +1816,7 @@ contains
 
   SUBROUTINE LQr1CC
 
-    integer :: ne
+    integer(4) :: ne
     real(8) :: RUbrpl, SDbrpl, peclet, coef
 
     do ne = 1, nemax
@@ -1891,13 +1890,13 @@ contains
 
   SUBROUTINE BOUNDARY(NR,LQ,ID,VAL)
 
-    integer, intent(in) :: NR, LQ, ID
+    integer(4), intent(in) :: NR, LQ, ID
     real(8), intent(in), optional :: VAL
-    integer :: NQ, NC, I
-    integer, save :: IMAX(1:NQM)
+    integer(4) :: NQ, NC, I
+    integer(4), save :: IMAX(1:NQM)
     type list
-       integer :: IDXNC
-       integer :: IDXNQ
+       integer(4) :: IDXNC
+       integer(4) :: IDXNQ
     end type list
     type(list), save :: IDX(1:NQM,0:1,0:50)
 

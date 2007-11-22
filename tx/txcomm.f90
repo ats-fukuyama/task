@@ -96,7 +96,7 @@ module commons
        & PNeV,   UerV,   UethV, UephV, PTeV, &
        & PNiV,   UirV,   UithV, UiphV, PTiV, &
        & PNbV,   UbthV,  UbphV, PN01V, PN02V, &
-       & AphV,   Phi,    RAthV, PeV,   PiV,  &
+       & AphV,   PhiV,    RAthV, PeV,   PiV,  &
        & RUethV, RUithV, PT01V, PT02V, PNbrpV
 !!rp_conv       &, PNbrpLV
 
@@ -160,7 +160,7 @@ module commons
   integer(4) :: NGR, NGT, NGVV
   integer(4) :: MODEG, MODEAV, MODEGL
   real(4), dimension(:),     allocatable :: GX
-  real(4), dimension(:,:,:), allocatable :: GY, GQY
+  real(4), dimension(:,:,:), allocatable :: GY, GQY, GYT
   real(4), dimension(0:NGRM) :: GT
   real(4), dimension(0:NGTM) :: GTX
   real(4), dimension(0:NGTM,1:NGYTM) :: GTY
@@ -211,7 +211,7 @@ contains
        allocate(PNeV(0:N),   UerV(0:N),   UethV(0:N), UephV(0:N), PTeV(0:N),  stat = ierl(2))
        allocate(PNiV(0:N),   UirV(0:N),   UithV(0:N), UiphV(0:N), PTiV(0:N),  stat = ierl(3))
        allocate(PNbV(0:N),   UbthV(0:N),  UbphV(0:N), PN01V(0:N), PN02V(0:N), stat = ierl(4))
-       allocate(AphV(0:N),   Phi(0:N),    RAthV(0:N), PeV(0:N),   PiV(0:N),   stat = ierl(5))
+       allocate(AphV(0:N),   PhiV(0:N),   RAthV(0:N), PeV(0:N),   PiV(0:N),   stat = ierl(5))
        allocate(RUethV(0:N), RUithV(0:N), PT01V(0:N), PT02V(0:N), PNbrpV(0:N),stat = ierl(6))
        ier = sum(ierl) ; iflag = 2
        if (ier /= 0) exit
@@ -267,11 +267,12 @@ contains
        allocate(ALC(0:NCM,1:NQM,0:N),BLC(0:NCM,1:NQM,0:N),CLC(0:NCM,1:NQM,0:N),stat = ierl(1))
        allocate(PLC(1:NCM,1:NQM,0:N),                                          stat = ierl(2))
        allocate(NLC(0:NCM,1:NQM),NLCR(0:NCM,1:NQM,0:N),NLCMAX(1:NQM),          stat = ierl(3))
-       allocate(X(1:NQM,0:N), XOLD(1:NRM,0:N),                                 stat = ierl(4))
+       allocate(X(1:NQM,0:N), XOLD(1:NQM,0:N),                                 stat = ierl(4))
        ier = sum(ierl) ; iflag = 9
        if (ier /= 0) exit
 
        allocate(GX(0:N), GY(0:N,0:NGRM,1:NGYRM), GQY(0:N,1:NCM,1:NQM),         stat = ierl(1))
+       allocate(GYT(0:N,0:NGTM,1:NGYRM),                                       stat = ierl(2))
        ier = sum(ierl) ; iflag = 10
        if (ier /= 0) exit
 
@@ -297,10 +298,10 @@ contains
     deallocate(PNeV,   UerV,   UethV, UephV, PTeV)
     deallocate(PNiV,   UirV,   UithV, UiphV, PTiV)
     deallocate(PNbV,   UbthV,  UbphV, PN01V, PN02V)
-    deallocate(AphV,   Phi,    RAthV, PeV,   PiV)
+    deallocate(AphV,   PhiV,   RAthV, PeV,   PiV)
     deallocate(RUethV, RUithV, PT01V, PT02V, PNbrpV)
 
-    deallocate(PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX)
+    deallocate(PNeV_FIX, PTeV_FIX)
 
     deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
     deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
@@ -342,6 +343,7 @@ contains
     deallocate(X, XOLD)
 
     deallocate(GX, GY, GQY)
+    deallocate(GYT)
 
   end subroutine deallocate_txcomm
 

@@ -4,12 +4,14 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
+SRC3D= txg3d.f90
 SRCS = txcnst.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txcalv.f90 txcala.f90 \
        txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 txmain.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \
        nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
        nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC=txncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
+OBJ3D= $(SRC3D:.f90=.o)
 OBJS = $(SRCS:.f90=.o)
 OBJNC= $(SRCNC:.f=.o)
 PROG = tx
@@ -24,8 +26,8 @@ LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
 
 all: $(PROG)
 
-txlib.a: $(OBJNC) $(OBJS) $(INCNC)
-	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJNC) -Lmod
+txlib.a: $(OBJ3D) $(OBJS) $(OBJNC) $(INCNC)
+	$(LD) $(LDFLAGS) -o txlib.a $(OBJ3D) $(OBJS) $(OBJNC) -Lmod
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -34,8 +36,8 @@ libs:
 	(cd ../lib; make)
 
 $(PROG): $(LIBS)
-	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS) $(LIBLA)
-#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS) $(LIBLA)
+#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS) $(LIBLA)
+	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS) $(LIBLA)
 
 check: $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) | less

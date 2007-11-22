@@ -1,5 +1,4 @@
 !     $Id$
-
 module graphic
   implicit none
   private
@@ -23,11 +22,12 @@ contains
   
   SUBROUTINE TXGOUT
     use commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
-         &              NRMAX, NGYRM, GY, NGR
+         &              NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM
     use libraries, only : TOUPPER
     use file_io, only : TXLOAD, TXGSAV, TXGLOD
+    use graphic_3d
 
-    INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
+    INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
     character(len=5) :: STR, STR2
     character(len=1) :: KID1, KID2
@@ -36,7 +36,7 @@ contains
 
     MODE = MODEGL
     OUTER : DO
-       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: C: A,B: ', &
+       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: C: A,B: Dn: ', &
             &           'S,L,M:file I:init X:exit'
        READ(5,'(A5)',IOSTAT=IST) STR
        IF (IST > 0) THEN
@@ -138,7 +138,7 @@ contains
           END SELECT
 
        CASE('U')
-          IF(T_TX == 0.D0) CYCLE 
+          IF(T_TX == 0.D0) CYCLE
           IF (KID2 == 'A') THEN
              DO NQ = 1, NQMAX, 4
                 CALL PAGES
@@ -179,6 +179,16 @@ contains
 
        CASE('C')
           CALL TXGRCP(MODE)
+
+       CASE('D')
+          READ(STR(2:5),*,IOSTAT=IST) NGYR
+          IF (IST /= 0) THEN
+             WRITE(6,*) '### ERROR : Invalid Command : ', STR
+             CYCLE
+          END IF
+          IF (NGYR >= 0 .AND. NGYR <= NGYRM) THEN
+             CALL TXGRUR(GX,GTX,GYT(0:NRMAX,0:NGT,NGYR),NRMAX,NGT,NGTM)!,STR,KV,MODE)
+          END IF
 
        CASE('M')
           DO
@@ -329,7 +339,7 @@ contains
 
   SUBROUTINE TX_GRAPH_SAVE
 
-    use commons, only : T_TX
+    use commons, only : T_TX, NGR, GT, GY, NRMAX, NGRM, NGYRM
 
     !  Define radial coordinate for graph
 
@@ -345,7 +355,7 @@ contains
 
     !  Store profile data for showing graph
 
-    CALL TXSTGR
+    CALL TXSTGR(NGR,GT,GY,NRMAX,NGRM,NGYRM)
 
     !  Store balance profile data for showing graph
 
@@ -362,7 +372,6 @@ contains
   SUBROUTINE TXPRFG
 
     use commons, only : NRMAX, GX, R, RA
-    INTEGER(4) :: NR
 
     !  GX(NR) : Integer
 
@@ -377,176 +386,179 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXSTGR
+  SUBROUTINE TXSTGR(NG,GTL,GYL,NXM,NGM,NUM)
 
     use commons
     use physical_constants, only : AEE, rKeV
 
-    INTEGER(4) :: NR
+    integer(4), intent(inout) :: NG
+    integer(4), intent(in) :: NXM, NGM, NUM
+    real(4), dimension(0:NGM), intent(out), optional :: GTL
+    real(4), dimension(0:NXM,0:NGM,1:NUM), intent(out) :: GYL
 
-    IF (NGR < NGRM) NGR = NGR + 1
+    INTEGER(4) :: NX
 
-    GT(NGR) = SNGL(T_TX)
+    if(present(GTL)) then
+       IF (NG < NGM) NG = NG + 1
 
-    GY(0:NRMAX,NGR,1)  = SNGL(PNeV(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,2)  = SNGL((PZ*PNiV(0:NRMAX)+PZ*PNbV(0:NRMAX) &
-         &                    +PZ*RATIO(0:NRMAX)*PNbrpV(0:NRMAX)-PNeV(0:NRMAX))* 1.D20)
-    GY(0:NRMAX,NGR,3)  = SNGL(UerV(0:NRMAX))
-    GY(0:NRMAX,NGR,4)  = SNGL(UethV(0:NRMAX))
-    GY(0:NRMAX,NGR,5)  = SNGL(UephV(0:NRMAX))
-    GY(0:NRMAX,NGR,6)  = SNGL(UirV(0:NRMAX))
-    GY(0:NRMAX,NGR,7)  = SNGL(UithV(0:NRMAX))
-    GY(0:NRMAX,NGR,8)  = SNGL(UiphV(0:NRMAX))
-    GY(0:NRMAX,NGR,9)  = SNGL(ErV(0:NRMAX))
-    GY(0:NRMAX,NGR,10) = SNGL(BthV(0:NRMAX))
-    GY(0:NRMAX,NGR,11) = SNGL(EphV(0:NRMAX))
-    GY(0:NRMAX,NGR,12) = SNGL(PNbV(0:NRMAX) * 1.D20)
-    GY(0:NRMAX,NGR,13) = SNGL(UbphV(0:NRMAX))
-    GY(0:NRMAX,NGR,14) = SNGL(PTeV(0:NRMAX))
-    GY(0:NRMAX,NGR,15) = SNGL(PTiV(0:NRMAX))
-    GY(0:NRMAX,NGR,16) = SNGL((PN01V(0:NRMAX)+PN02V(0:NRMAX))*1.D20)
-    GY(0:NRMAX,NGR,17) = SNGL(EthV(0:NRMAX))
-    GY(0:NRMAX,NGR,18) = SNGL(BphV(0:NRMAX))
-    GY(0:NRMAX,NGR,19) = SNGL(UbthV(0:NRMAX))
-    GY(0:NRMAX,NGR,20) = SNGL(Q(0:NRMAX))
+       GTL(NG) = SNGL(T_TX)
+    end IF
 
-    GY(0:NRMAX,NGR,21) = SNGL((-   AEE*PNeV(0:NRMAX)*UephV(0:NRMAX) &
-         &                     +PZ*AEE*PNiV(0:NRMAX)*UiphV(0:NRMAX) &
-         &                     +PZ*AEE*PNbV(0:NRMAX)*UbphV(0:NRMAX))*1.D20)
-    GY(0:NRMAX,NGR,22) = SNGL( -   AEE*PNeV(0:NRMAX)*UephV(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,23) = SNGL(  PZ*AEE*PNiV(0:NRMAX)*UiphV(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,24) = SNGL(  PZ*AEE*PNbV(0:NRMAX)*UbphV(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,25) = SNGL(( BphV(0:NRMAX)*UethV(0:NRMAX) &
-         &                     -BthV(0:NRMAX)*UephV(0:NRMAX)) &
-         &                    /SQRT(BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2))
-    GY(0:NRMAX,NGR,26) = SNGL(( BthV(0:NRMAX)*UethV(0:NRMAX) &
-         &                     +BphV(0:NRMAX)*UephV(0:NRMAX)) &
-         &                    /SQRT(BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2))
-    GY(0:NRMAX,NGR,27) = SNGL(( BphV(0:NRMAX)*UithV(0:NRMAX) &
-         &                     -BthV(0:NRMAX)*UiphV(0:NRMAX)) &
-         &                    /SQRT(BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2))
-    GY(0:NRMAX,NGR,28) = SNGL(( BthV(0:NRMAX)*UithV(0:NRMAX) &
-         &                     +BphV(0:NRMAX)*UiphV(0:NRMAX)) &
-         &                    /SQRT(BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2))
-    GY(0:NRMAX,NGR,29) = SNGL(Di(0:NRMAX)+De(0:NRMAX))
-    DO NR = 0, NRMAX
-       IF (rG1h2(NR) > 3.D0) THEN
-          GY(NR,NGR,30) = 3.0
+    GYL(0:NXM,NG,1)  = SNGL(PNeV(0:NXM)*1.D20)
+    GYL(0:NXM,NG,2)  = SNGL((PZ*PNiV(0:NXM)+PZ*PNbV(0:NXM) &
+         &                  +PZ*RATIO(0:NXM)*PNbrpV(0:NXM)-PNeV(0:NXM))* 1.D20)
+    GYL(0:NXM,NG,3)  = SNGL(UerV(0:NXM))
+    GYL(0:NXM,NG,4)  = SNGL(UethV(0:NXM))
+    GYL(0:NXM,NG,5)  = SNGL(UephV(0:NXM))
+    GYL(0:NXM,NG,6)  = SNGL(UirV(0:NXM))
+    GYL(0:NXM,NG,7)  = SNGL(UithV(0:NXM))
+    GYL(0:NXM,NG,8)  = SNGL(UiphV(0:NXM))
+    GYL(0:NXM,NG,9)  = SNGL(ErV(0:NXM))
+    GYL(0:NXM,NG,10) = SNGL(BthV(0:NXM))
+    GYL(0:NXM,NG,11) = SNGL(EphV(0:NXM))
+    GYL(0:NXM,NG,12) = SNGL(PNbV(0:NXM) * 1.D20)
+    GYL(0:NXM,NG,13) = SNGL(UbphV(0:NXM))
+    GYL(0:NXM,NG,14) = SNGL(PTeV(0:NXM))
+    GYL(0:NXM,NG,15) = SNGL(PTiV(0:NXM))
+    GYL(0:NXM,NG,16) = SNGL((PN01V(0:NXM)+PN02V(0:NXM))*1.D20)
+    GYL(0:NXM,NG,17) = SNGL(EthV(0:NXM))
+    GYL(0:NXM,NG,18) = SNGL(BphV(0:NXM))
+    GYL(0:NXM,NG,19) = SNGL(UbthV(0:NXM))
+    GYL(0:NXM,NG,20) = SNGL(Q(0:NXM))
+
+    GYL(0:NXM,NG,21) = SNGL((-   AEE*PNeV(0:NXM)*UephV(0:NXM) &
+         &                   +PZ*AEE*PNiV(0:NXM)*UiphV(0:NXM) &
+         &                   +PZ*AEE*PNbV(0:NXM)*UbphV(0:NXM))*1.D20)
+    GYL(0:NXM,NG,22) = SNGL( -   AEE*PNeV(0:NXM)*UephV(0:NXM)*1.D20)
+    GYL(0:NXM,NG,23) = SNGL(  PZ*AEE*PNiV(0:NXM)*UiphV(0:NXM)*1.D20)
+    GYL(0:NXM,NG,24) = SNGL(  PZ*AEE*PNbV(0:NXM)*UbphV(0:NXM)*1.D20)
+    GYL(0:NXM,NG,25) = SNGL(( BphV(0:NXM)*UethV(0:NXM)-BthV(0:NXM)*UephV(0:NXM)) &
+         &                  /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+    GYL(0:NXM,NG,26) = SNGL(( BthV(0:NXM)*UethV(0:NXM)+BphV(0:NXM)*UephV(0:NXM)) &
+         &                  /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+    GYL(0:NXM,NG,27) = SNGL(( BphV(0:NXM)*UithV(0:NXM)-BthV(0:NXM)*UiphV(0:NXM)) &
+         &                  /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+    GYL(0:NXM,NG,28) = SNGL(( BthV(0:NXM)*UithV(0:NXM)+BphV(0:NXM)*UiphV(0:NXM)) &
+         &                  /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+    GYL(0:NXM,NG,29) = SNGL(Di(0:NXM)+De(0:NXM))
+    DO NX = 0, NXM
+       IF (rG1h2(NX) > 3.D0) THEN
+          GYL(NX,NG,30) = 3.0
        ELSE
-          GY(NR,NGR,30) = SNGL(rG1h2(NR))
+          GYL(NX,NG,30) = SNGL(rG1h2(NX))
        END IF
     END DO
-    GY(0:NRMAX,NGR,31) = SNGL(FCDBM(0:NRMAX))
-    GY(0:NRMAX,NGR,32) = SNGL(S(0:NRMAX))
-    GY(0:NRMAX,NGR,33) = SNGL(Alpha(0:NRMAX))
-    GY(0:NRMAX,NGR,34) = SNGL(rKappa(0:NRMAX))
-    GY(0:NRMAX,NGR,35) = SNGL(PN01V(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,36) = SNGL(PN02V(0:NRMAX)*1.D20)
-    GY(0:NRMAX,NGR,37) = SNGL(PNiV (0:NRMAX)*1.D20)
+    GYL(0:NXM,NG,31) = SNGL(FCDBM(0:NXM))
+    GYL(0:NXM,NG,32) = SNGL(S(0:NXM))
+    GYL(0:NXM,NG,33) = SNGL(Alpha(0:NXM))
+    GYL(0:NXM,NG,34) = SNGL(rKappa(0:NXM))
+    GYL(0:NXM,NG,35) = SNGL(PN01V(0:NXM)*1.D20)
+    GYL(0:NXM,NG,36) = SNGL(PN02V(0:NXM)*1.D20)
+    GYL(0:NXM,NG,37) = SNGL(PNiV (0:NXM)*1.D20)
 
     !  Raw data
 
-    GY(0:NRMAX,NGR,38) = SNGL(X(LQm1,0:NRMAX))
-    GY(0:NRMAX,NGR,39) = SNGL(X(LQm2,0:NRMAX))
-    GY(0:NRMAX,NGR,40) = SNGL(X(LQm3,0:NRMAX))
-    GY(0:NRMAX,NGR,41) = SNGL(X(LQm4,0:NRMAX))
-    GY(0:NRMAX,NGR,42) = SNGL(X(LQm5,0:NRMAX))
-    GY(0:NRMAX,NGR,43) = SNGL(X(LQe1,0:NRMAX))
-    GY(0:NRMAX,NGR,44) = SNGL(X(LQe2,0:NRMAX))
-    GY(0:NRMAX,NGR,45) = SNGL(X(LQe3,0:NRMAX))
-    GY(0:NRMAX,NGR,46) = SNGL(X(LQe4,0:NRMAX))
-    GY(0:NRMAX,NGR,47) = SNGL(X(LQe5,0:NRMAX))
-    GY(0:NRMAX,NGR,48) = SNGL(X(LQi1,0:NRMAX))
-    GY(0:NRMAX,NGR,49) = SNGL(X(LQi2,0:NRMAX))
-    GY(0:NRMAX,NGR,50) = SNGL(X(LQi3,0:NRMAX))
-    GY(0:NRMAX,NGR,51) = SNGL(X(LQi4,0:NRMAX))
-    GY(0:NRMAX,NGR,52) = SNGL(X(LQi5,0:NRMAX))
-    GY(0:NRMAX,NGR,53) = SNGL(X(LQb1,0:NRMAX))
-    GY(0:NRMAX,NGR,54) = SNGL(X(LQb3,0:NRMAX))
-    GY(0:NRMAX,NGR,55) = SNGL(X(LQb4,0:NRMAX))
-    GY(0:NRMAX,NGR,56) = SNGL(X(LQn1,0:NRMAX))
-    GY(0:NRMAX,NGR,57) = SNGL(X(LQn2,0:NRMAX))
+    GYL(0:NXM,NG,38) = SNGL(X(LQm1,0:NXM))
+    GYL(0:NXM,NG,39) = SNGL(X(LQm2,0:NXM))
+    GYL(0:NXM,NG,40) = SNGL(X(LQm3,0:NXM))
+    GYL(0:NXM,NG,41) = SNGL(X(LQm4,0:NXM))
+    GYL(0:NXM,NG,42) = SNGL(X(LQm5,0:NXM))
+    GYL(0:NXM,NG,43) = SNGL(X(LQe1,0:NXM))
+    GYL(0:NXM,NG,44) = SNGL(X(LQe2,0:NXM))
+    GYL(0:NXM,NG,45) = SNGL(X(LQe3,0:NXM))
+    GYL(0:NXM,NG,46) = SNGL(X(LQe4,0:NXM))
+    GYL(0:NXM,NG,47) = SNGL(X(LQe5,0:NXM))
+    GYL(0:NXM,NG,48) = SNGL(X(LQi1,0:NXM))
+    GYL(0:NXM,NG,49) = SNGL(X(LQi2,0:NXM))
+    GYL(0:NXM,NG,50) = SNGL(X(LQi3,0:NXM))
+    GYL(0:NXM,NG,51) = SNGL(X(LQi4,0:NXM))
+    GYL(0:NXM,NG,52) = SNGL(X(LQi5,0:NXM))
+    GYL(0:NXM,NG,53) = SNGL(X(LQb1,0:NXM))
+    GYL(0:NXM,NG,54) = SNGL(X(LQb3,0:NXM))
+    GYL(0:NXM,NG,55) = SNGL(X(LQb4,0:NXM))
+    GYL(0:NXM,NG,56) = SNGL(X(LQn1,0:NXM))
+    GYL(0:NXM,NG,57) = SNGL(X(LQn2,0:NXM))
 
     !  Coefficients
 
-    GY(0:NRMAX,NGR,58) = SNGL(rMue(0:NRMAX))
-    GY(0:NRMAX,NGR,59) = SNGL(rMui(0:NRMAX))
-    GY(0:NRMAX,NGR,60) = SNGL(rNuei(0:NRMAX))
-    GY(0:NRMAX,NGR,61) = SNGL(rNuL(0:NRMAX))
-    GY(0:NRMAX,NGR,62) = SNGL(rNube(0:NRMAX))
-    GY(0:NRMAX,NGR,63) = SNGL(rNubi(0:NRMAX))
-    GY(0:NRMAX,NGR,64) = SNGL(FWthe(0:NRMAX))
-    GY(0:NRMAX,NGR,65) = SNGL(FWthi(0:NRMAX))
-    GY(0:NRMAX,NGR,66) = SNGL(WPM(0:NRMAX))
-    GY(0:NRMAX,NGR,67) = SNGL(rNuTei(0:NRMAX))
-    GY(0:NRMAX,NGR,68) = SNGL(rNu0e(0:NRMAX))
-    GY(0:NRMAX,NGR,69) = SNGL(rNu0i(0:NRMAX))
-    GY(0:NRMAX,NGR,70) = SNGL(Chie(0:NRMAX))
-    GY(0:NRMAX,NGR,71) = SNGL(Chii(0:NRMAX))
-    GY(0:NRMAX,NGR,72) = SNGL(D01(0:NRMAX))
-    GY(0:NRMAX,NGR,73) = SNGL(D02(0:NRMAX))
-    GY(0:NRMAX,NGR,74) = SNGL(rNueNC(0:NRMAX))
-    GY(0:NRMAX,NGR,75) = SNGL(rNuiNC(0:NRMAX))
-    GY(0:NRMAX,NGR,76) = SNGL(rNueHL(0:NRMAX))
-    GY(0:NRMAX,NGR,77) = SNGL(rNuiHL(0:NRMAX))
-    GY(0:NRMAX,NGR,78) = SNGL(rNuiCX(0:NRMAX))
-    GY(0:NRMAX,NGR,79) = SNGL(rNuB(0:NRMAX))
-    GY(0:NRMAX,NGR,80) = SNGL(rNuION(0:NRMAX))
-    GY(0:NRMAX,NGR,81) = SNGL(SiLC(0:NRMAX))
-    GY(0:NRMAX,NGR,82) = SNGL(rNuOL(0:NRMAX))
-    GY(0:NRMAX,NGR,83) = SNGL(Deff(0:NRMAX))
-    GY(0:NRMAX,NGR,84) = SNGL(SNB(0:NRMAX))
-    GY(0:NRMAX,NGR,85) = SNGL(PRFi(0:NRMAX))
-    GY(0:NRMAX,NGR,86) = SNGL(PRFe(0:NRMAX))
-    GY(0:NRMAX,NGR,87) = SNGL(rNu0b(0:NRMAX))
+    GYL(0:NXM,NG,58) = SNGL(rMue(0:NXM))
+    GYL(0:NXM,NG,59) = SNGL(rMui(0:NXM))
+    GYL(0:NXM,NG,60) = SNGL(rNuei(0:NXM))
+    GYL(0:NXM,NG,61) = SNGL(rNuL(0:NXM))
+    GYL(0:NXM,NG,62) = SNGL(rNube(0:NXM))
+    GYL(0:NXM,NG,63) = SNGL(rNubi(0:NXM))
+    GYL(0:NXM,NG,64) = SNGL(FWthe(0:NXM))
+    GYL(0:NXM,NG,65) = SNGL(FWthi(0:NXM))
+    GYL(0:NXM,NG,66) = SNGL(WPM(0:NXM))
+    GYL(0:NXM,NG,67) = SNGL(rNuTei(0:NXM))
+    GYL(0:NXM,NG,68) = SNGL(rNu0e(0:NXM))
+    GYL(0:NXM,NG,69) = SNGL(rNu0i(0:NXM))
+    GYL(0:NXM,NG,70) = SNGL(Chie(0:NXM))
+    GYL(0:NXM,NG,71) = SNGL(Chii(0:NXM))
+    GYL(0:NXM,NG,72) = SNGL(D01(0:NXM))
+    GYL(0:NXM,NG,73) = SNGL(D02(0:NXM))
+    GYL(0:NXM,NG,74) = SNGL(rNueNC(0:NXM))
+    GYL(0:NXM,NG,75) = SNGL(rNuiNC(0:NXM))
+    GYL(0:NXM,NG,76) = SNGL(rNueHL(0:NXM))
+    GYL(0:NXM,NG,77) = SNGL(rNuiHL(0:NXM))
+    GYL(0:NXM,NG,78) = SNGL(rNuiCX(0:NXM))
+    GYL(0:NXM,NG,79) = SNGL(rNuB(0:NXM))
+    GYL(0:NXM,NG,80) = SNGL(rNuION(0:NXM))
+    GYL(0:NXM,NG,81) = SNGL(SiLC(0:NXM))
+    GYL(0:NXM,NG,82) = SNGL(rNuOL(0:NXM))
+    GYL(0:NXM,NG,83) = SNGL(Deff(0:NXM))
+    GYL(0:NXM,NG,84) = SNGL(SNB(0:NXM))
+    GYL(0:NXM,NG,85) = SNGL(PRFi(0:NXM))
+    GYL(0:NXM,NG,86) = SNGL(PRFe(0:NXM))
+    GYL(0:NXM,NG,87) = SNGL(rNu0b(0:NXM))
 
-    GY(0:NRMAX,NGR,88) = SNGL(PIE(0:NRMAX))
-    GY(0:NRMAX,NGR,89) = SNGL(PCX(0:NRMAX))
-    GY(0:NRMAX,NGR,90) = SNGL(SIE(0:NRMAX))
-    GY(0:NRMAX,NGR,91) = SNGL(PBr(0:NRMAX))
+    GYL(0:NXM,NG,88) = SNGL(PIE(0:NXM))
+    GYL(0:NXM,NG,89) = SNGL(PCX(0:NXM))
+    GYL(0:NXM,NG,90) = SNGL(SIE(0:NXM))
+    GYL(0:NXM,NG,91) = SNGL(PBr(0:NXM))
 
-    GY(0:NRMAX,NGR,92) = SNGL(rNuLTe(0:NRMAX))
-    GY(0:NRMAX,NGR,93) = SNGL(rNuLTi(0:NRMAX))
-    GY(0:NRMAX,NGR,94) = SNGL(rNuAse(0:NRMAX))
-    GY(0:NRMAX,NGR,95) = SNGL(rNuASi(0:NRMAX))
+    GYL(0:NXM,NG,92) = SNGL(rNuLTe(0:NXM))
+    GYL(0:NXM,NG,93) = SNGL(rNuLTi(0:NXM))
+    GYL(0:NXM,NG,94) = SNGL(rNuAse(0:NXM))
+    GYL(0:NXM,NG,95) = SNGL(rNuASi(0:NXM))
 
-    GY(0:NRMAX,NGR,96) = SNGL(PNBe(0:NRMAX))
-    GY(0:NRMAX,NGR,97) = SNGL(PNBi(0:NRMAX))
-    GY(0:NRMAX,NGR,98) = SNGL(POHe(0:NRMAX))
-    GY(0:NRMAX,NGR,99) = SNGL(POHi(0:NRMAX))
-    GY(0:NRMAX,NGR,100) = SNGL(PEQe(0:NRMAX))
-    GY(0:NRMAX,NGR,101) = SNGL(PEQi(0:NRMAX))
+    GYL(0:NXM,NG,96) = SNGL(PNBe(0:NXM))
+    GYL(0:NXM,NG,97) = SNGL(PNBi(0:NXM))
+    GYL(0:NXM,NG,98) = SNGL(POHe(0:NXM))
+    GYL(0:NXM,NG,99) = SNGL(POHi(0:NXM))
+    GYL(0:NXM,NG,100) = SNGL(PEQe(0:NXM))
+    GYL(0:NXM,NG,101) = SNGL(PEQi(0:NXM))
 
-    GY(0:NRMAX,NGR,102) = SNGL(PeV(0:NRMAX)*1.D20*rKeV)
-    GY(0:NRMAX,NGR,103) = SNGL(PiV(0:NRMAX)*1.D20*rKeV)
-    GY(0:NRMAX,NGR,104) = SNGL(PNB(0:NRMAX))
-    GY(0:NRMAX,NGR,105) = SNGL(PNBPD(0:NRMAX))
-    GY(0:NRMAX,NGR,106) = SNGL(PNBTG(0:NRMAX))
-    GY(0:NRMAX,NGR,107) = SNGL(PNBPD(0:NRMAX) * PNBcol_e(0:NRMAX))
-    GY(0:NRMAX,NGR,108) = SNGL(PNBPD(0:NRMAX) * PNBcol_i(0:NRMAX))
+    GYL(0:NXM,NG,102) = SNGL(PeV(0:NXM)*1.D20*rKeV)
+    GYL(0:NXM,NG,103) = SNGL(PiV(0:NXM)*1.D20*rKeV)
+    GYL(0:NXM,NG,104) = SNGL(PNB(0:NXM))
+    GYL(0:NXM,NG,105) = SNGL(PNBPD(0:NXM))
+    GYL(0:NXM,NG,106) = SNGL(PNBTG(0:NXM))
+    GYL(0:NXM,NG,107) = SNGL(PNBPD(0:NXM) * PNBcol_e(0:NXM))
+    GYL(0:NXM,NG,108) = SNGL(PNBPD(0:NXM) * PNBcol_i(0:NXM))
 
     ! Ripple loss part
 
-    GY(0:NRMAX,NGR,109) = SNGL(PNbrpV(0:NRMAX) * 1.D20)
-    GY(0:NRMAX,NGR,110) = SNGL(X(LQr1,0:NRMAX))
-    GY(0:NRMAX,NGR,111) = SNGL(rNubrp1(0:NRMAX))
-    GY(0:NRMAX,NGR,112) = SNGL(DltRP(0:NRMAX))
-    GY(0:NRMAX,NGR,113) = SNGL(Ubrp(0:NRMAX))
-    GY(0:NRMAX,NGR,114) = SNGL(Dbrp(0:NRMAX))
-    DO NR = 0, NRMAX
-       IF(PNbV(NR) == 0.D0) THEN
-          GY(NR,NGR,115) = 0.D0
+    GYL(0:NXM,NG,109) = SNGL(PNbrpV(0:NXM) * 1.D20)
+    GYL(0:NXM,NG,110) = SNGL(X(LQr1,0:NXM))
+    GYL(0:NXM,NG,111) = SNGL(rNubrp1(0:NXM))
+    GYL(0:NXM,NG,112) = SNGL(DltRP(0:NXM))
+    GYL(0:NXM,NG,113) = SNGL(Ubrp(0:NXM))
+    GYL(0:NXM,NG,114) = SNGL(Dbrp(0:NXM))
+    DO NX = 0, NXM
+       IF(PNbV(NX) == 0.D0) THEN
+          GYL(NX,NG,115) = 0.D0
        ELSE
-          GY(NR,NGR,115) = SNGL(PNbrpV(NR)/PNbV(NR))
+          GYL(NX,NG,115) = SNGL(PNbrpV(NX)/PNbV(NX))
        END IF
     END DO
-!!$    GY(0:NRMAX,NGR,115) = SNGL(PNbrpLV(0:NRMAX)*1.D20)
+!!$    GYL(0:NXM,NG,115) = SNGL(PNbrpLV(0:NXM)*1.D20)
 
-    GY(0:NRMAX,NGR,116) = SNGL(rNuLB(0:NRMAX))
-    GY(0:NRMAX,NGR,117) = SNGL((-   AEE*PNeV(0:NRMAX)*UerV(0:NRMAX) &
-         &                      +PZ*AEE*PNiV(0:NRMAX)*UirV(0:NRMAX))*1.D20)
+    GYL(0:NXM,NG,116) = SNGL(rNuLB(0:NXM))
+    GYL(0:NXM,NG,117) = SNGL((-   AEE*PNeV(0:NXM)*UerV(0:NXM) &
+         &                    +PZ*AEE*PNiV(0:NXM)*UirV(0:NXM))*1.D20)
 
-    GY(0:NRMAX,NGR,118) = SNGL(rNubL(0:NRMAX))
+    GYL(0:NXM,NG,118) = SNGL(rNubL(0:NXM))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -559,7 +571,8 @@ contains
 
   SUBROUTINE TXSTGV(GTIME)
 
-    use commons, only : NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, NRC, UerV, UethV, &
+    use commons, only : NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, PNbrpV, &
+         &              NRC, UerV, UethV, &
          &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
          &              PTeV, PTiV, PN01V, PN02V, EthV, BphV, UbthV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
@@ -577,7 +590,8 @@ contains
     GVX(NGVV) = GTIME
 
     GVY(NGVV,1)  = SNGL(PNeV(0) * 1.D20)
-    GVY(NGVV,2)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) - PNeV(0)) * 1.D20)
+    GVY(NGVV,2)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) + PZ * RATIO(0) * PNbrpV(0) &
+         &               - PNeV(0)) * 1.D20)
     GVY(NGVV,3)  = SNGL(UerV(NRC))
     GVY(NGVV,4)  = SNGL(UethV(NRC))
     GVY(NGVV,5)  = SNGL(UephV(0))
@@ -660,8 +674,10 @@ contains
     use commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, &
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
-         &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, VOLAVN
+         &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
+         &              VOLAVN, GYT, NRMAX, NGYRM
     REAL(4), INTENT(IN) :: GTIME
+    integer(4) :: nr
 
     IF (NGT < NGTM) NGT=NGT+1
 
@@ -717,6 +733,8 @@ contains
     GTY(NGT,45) = SNGL(ANFAV(1)) * 100.0
 
     GTY(NGT,46) = SNGL(VOLAVN)
+
+    CALL TXSTGR(NGT,GYL=GYT,NXM=NRMAX,NGM=NGTM,NUM=NGYRM)
 
     RETURN
   END SUBROUTINE TXSTGT
@@ -779,7 +797,6 @@ contains
 
     use commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
          &              NRA, PSI, HPSI, GY, NGR, gDIV, GX
-    use libraries, only : DERIVS
     INTEGER(4), INTENT(IN) :: MODE
     INTEGER(4), INTENT(IN) :: NGYRIN
     INTEGER(4) :: IND, NG, NR, NGYR, NE, IFNT, NRMAXL
@@ -1091,7 +1108,8 @@ contains
 
        STR = '@PBr(r)@'
        CALL TXGRFRX(3,GX,GY(0,0,91),NRMAX,NGR,STR,MODE,IND)
-       !CALL TXWPGR
+
+!       CALL TXWPGR
 
     CASE(15)
        STR = '@PNBe(r)@'
@@ -1119,7 +1137,7 @@ contains
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@NBI Deposition(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,104), GYL, STR, NRMAX, NRMAX, NGR, gDIV(102))
+       CALL APPROPGY(MODEG, GY(0,0,104), GYL, STR, NRMAX, NRMAX, NGR, gDIV(104))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        CALL TXWPGR
@@ -1679,7 +1697,7 @@ contains
     GPXY(2) =   6.7 + 6.1  * MOD(K,4)
     GPXY(3) = 13.75 - 4.25 * REAL(K/4)
     GPXY(4) = 17.0  - 4.25 * REAL(K/4)
-    GXMAX=REAL(RB/RA)
+    GXMAX = REAL(RB/RA)
 
     IF(PRESENT(ILOGIN)) THEN
        ILOG = ILOGIN
@@ -2219,7 +2237,6 @@ contains
 
     use commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
     use libraries, only : APTOS
-    use physical_constants, only : EPS0, rMU0
 
     INTEGER(4), INTENT(IN) :: NQ, ID
     INTEGER(4) :: NR, NC, NC1, NSTR, IND
@@ -2231,13 +2248,13 @@ contains
     character(len=80) :: STR
 
     !        Title
-    DATA STRGQ /'$#f$#$',"A$-$#q$#$='","A$-$#f$#$='",'A$-$#f$#$=','A$-$#q$#$=',  &
-         &      'n$-e$=','n$-e$=u$-er$=', &
-         &      'n$-e$=u$-e$#q$#$=','n$-e$=u$-e$#f$#$=','n$-e$=T$-e$=', &
-         &      'n$-i$=','n$-i$=u$-ir$=', &
-         &      'n$-i$=u$-i$#q$#$=','n$-i$=u$-i$#f$#$=','n$-i$=T$-i$=', &
+    DATA STRGQ /'$#f$#$',"r A$-$#q$#$='","A$-$#f$#$='",'A$-$#f$#$=','r A$-$#q$#$=',  &
+         &      'n$-e$=','r n$-e$=u$-er$=', &
+         &      'r n$-e$=u$-e$#q$#$=','n$-e$=u$-e$#f$#$=','n$-e$=T$-e$=', &
+         &      'n$-i$=','r n$-i$=u$-ir$=', &
+         &      'r n$-i$=u$-i$#q$#$=','n$-i$=u$-i$#f$#$=','n$-i$=T$-i$=', &
          &      'n$-b$=', &
-         &      'n$-b$=u$-b$#q$#$=','n$-b$=u$-b$#f$#$=', &
+         &      'r n$-b$=u$-b$#q$#$=','n$-b$=u$-b$#f$#$=', &
          &      'Slow n$-0$=', 'Fast n$-0$=', 'Ripple n$-b$='/
 
     !        Graph coordinate
@@ -2264,7 +2281,7 @@ contains
     ELSE
        IND = 0
     END IF
-    GXMAX=REAL(RB/RA)
+    GXMAX = REAL(RB/RA)
     CALL TXGRAF(GPXY, GX, GQYL, NRMAX+1, NRMAX+1, NLCMAX(NQ), &
          &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
 !         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
@@ -2628,7 +2645,7 @@ contains
     REAL(4), DIMENSION(0:NXMAX),INTENT(IN), optional :: GIN1
     character(len=*), INTENT(INOUT) :: STR
 
-    INTEGER(4) :: NSTR, POSAT, nx, ny
+    INTEGER(4) :: NSTR, POSAT
     REAL(4) :: gDIVL
 
     gDIVL = 1.0

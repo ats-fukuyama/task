@@ -135,15 +135,15 @@ contains
        EpsL  = R(NR) / RR
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        ! +++ Original model +++
-       dPPV = DERIV3(NR,R,PP,NRMAX,NRMAX,0) * 1.D20 * rKeV
+       dPPV = DERIV3(NR,R,PP,NRMAX,0) * 1.D20 * rKeV
        ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
             & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
        AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
        ! +++ Hirshman model +++
-       dPTeV = DERIV3(NR,R,PTeV,NRMAX,NRMAX,0) * RA
-       dPTiV = DERIV3(NR,R,PTiV,NRMAX,NRMAX,0) * RA
-       dPPe  = DERIV3(NR,R,PeV,NRMAX,NRMAX,0) * RA
-       dPPi  = DERIV3(NR,R,PiV,NRMAX,NRMAX,0) * RA
+       dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
+       dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
+       dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
+       dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
        FTL   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
        DDX   = 1.414D0 * PZ + PZ**2 + FTL * (0.754D0 + 2.657D0 * PZ &
             &        + 2.D0 * PZ**2) + FTL**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
@@ -357,7 +357,7 @@ contains
     Deff(0) = 0.d0
     do nr = 1, nrmax
        Deff(nr) = (PNiV(NR)*UirV(NR)-ft(NR)*PNiV(NR)*EphV(NR)/BthV(NR)) &
-               & /(-DERIV3(NR,R,PNiV,NRMAX,NRMAX,0))
+               & /(-DERIV3(NR,R,PNiV,NRMAX,0))
        if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
     end do
 

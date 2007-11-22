@@ -17,7 +17,8 @@ contains
 
     use physical_constants, only : rMU0
     use commons, only : IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
-         &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, DelR, RB, PNBCD
+         &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, DelR, RB, PNBCD, &
+         &              GT, GY, NGRM, NGYRM
     use main, only : TXEXEC
     use graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
     use file_io, only : TXSAVE, TXLOAD
@@ -56,7 +57,7 @@ contains
           IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
              rMUb1 = 1.D0
              rMUb2 = rMU0
-             X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
+             if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
           END IF
           CYCLE
        END IF
@@ -86,7 +87,7 @@ contains
              CYCLE
           END IF
           NGR=-1
-          CALL TXSTGR
+          CALL TXSTGR(NGR,GT,GY,NRMAX,NGRM,NGYRM)
           CALL TXEXEC
           TMAX=T_TX+DT*NTMAX
        CASE('P')
@@ -148,9 +149,10 @@ contains
 
   SUBROUTINE TXKLIN(LINE,KID,MODE)
 
-    INTEGER(4) :: ID, I, MODE, IST
-    character(len=80) :: LINE
-    character(len=1)  :: KID
+    integer(4), intent(out) :: MODE
+    character(len=80), intent(out) :: LINE
+    character(len=1), intent(out) :: KID
+    integer(4) :: ID, I, IST
 
     !  ----- read line input input -----
 

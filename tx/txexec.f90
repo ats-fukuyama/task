@@ -21,7 +21,7 @@ contains
     INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
     REAL(4) :: gCTIME1, gCTIME2, gCTIME3
     character(len=10) :: STR1, STR2, STR3
-    INTEGER, DIMENSION(1:8) :: TIMES
+    INTEGER(4), DIMENSION(1:8) :: TIMES
     real(8) :: t_interval
 
     IF (IERR /= 0) THEN
@@ -73,19 +73,19 @@ contains
   SUBROUTINE TXLOOP
     use commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
          &              PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, tiny_cap, EPS, IDIAG, &
-         &              NTSTEP, NGRSTP, NGTSTP, NGVSTP
+         &              NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, NGRM, NGYRM
     use results
     use variables
     use coefficients, only : TXCALA
-    use graphic, only : TXSTGT, TXSTGV, TXSTGR, TXSTGQ
+    use graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
-    INTEGER :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
-    INTEGER, DIMENSION(1:NQM*(NRMAX+1)) :: IPIV
+    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
+    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
-    integer :: iasg(1:2)
+    integer(4) :: iasg(1:2)
 
     allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
 
@@ -174,10 +174,7 @@ contains
              CALL TXCALV(X)
              CALL TXCALC
              CALL TXGLOB
-             CALL TXSTGT(SNGL(T_TX))
-             CALL TXSTGV(SNGL(T_TX))
-             CALL TXSTGR
-             CALL TXSTGQ
+             CALL TX_GRAPH_SAVE
              RETURN
           END IF
 
@@ -266,7 +263,7 @@ contains
           END IF
        END IF
 
-180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR
+180    IF (MOD(NT, NGRSTP) == 0) CALL TXSTGR(NGR,GT,GY,NRMAX,NGRM,NGYRM)
 
        IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB
@@ -304,8 +301,8 @@ contains
          &              PLC, X, XOLD
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
-    INTEGER :: I, J, NR, NQ, NC, NC1, IA, IB, IC
-    INTEGER :: JA, JB, JC, KL
+    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IA, IB, IC
+    INTEGER(4) :: JA, JB, JC, KL
     REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
     
     IF(IGBDF /= 0) ADV = C23
@@ -535,10 +532,10 @@ contains
   SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
     use commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5
-    INTEGER, intent(in) :: NTL, IC
-    integer, intent(inout) :: IER
+    INTEGER(4), intent(in) :: NTL, IC
+    integer(4), intent(inout) :: IER
     REAL(8), DIMENSION(1:NQMAX,0:NRMAX), intent(in) :: XL
-    integer :: NR
+    integer(4) :: NR
 
     IER = 0
 
@@ -575,10 +572,10 @@ contains
 
   SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
-    use commons, only : NQM, NRMAX
-    integer, intent(in) :: LQ, ID
-    real(8), dimension(1:NQM,0:NRMAX), intent(inout) :: XL
-    integer :: NR, NZERO
+    use commons, only : NQMAX, NRMAX
+    integer(4), intent(in) :: LQ, ID
+    real(8), dimension(1:NQMAX,0:NRMAX), intent(inout) :: XL
+    integer(4) :: NR, NZERO
 
     IF(ID == 0) THEN
        IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
@@ -609,8 +606,8 @@ contains
 !!$  SUBROUTINE THRESHOLD(XL,ID)
 !!$
 !!$    real(8), dimension(0:NRMAX), intent(inout) :: XL
-!!$    integer, intent(out) :: ID
-!!$    integer :: NR, NRL
+!!$    integer(4), intent(out) :: ID
+!!$    integer(4) :: NR, NRL
 !!$
 !!$    ID = 0
 !!$    NRL = 0.5 * NRA

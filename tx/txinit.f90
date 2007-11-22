@@ -430,6 +430,7 @@ contains
     gDIV(101) = 1.E6
     gDIV(102) = 1.E6
     gDIV(103) = 1.E6
+    gDIV(104) = 1.E6
     gDIV(105) = 1.E6
     gDIV(106) = 1.E6
     gDIV(107) = 1.E6
@@ -456,7 +457,7 @@ contains
     Q0 = 3.D0
     QA = 2.D0
 
-    !   **************************************
+    !   Index for graphic save interval
 
     NGR=-1
 
@@ -641,24 +642,42 @@ contains
     !  Variables
 
     allocate(AJPHL(0:NRMAX))
-    PBA   = RB**2 - RA**2
-!!!    dPN   = - (PN0 - PNa) / RA**2
-    dPN   = - 1.5D0 * (PN0 - PNa) / RA**2
-    CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
-    CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
+!!$    PBA   = RB**2 - RA**2
+!!$!!!    dPN   = - (PN0 - PNa) / RA**2
+!!$    dPN   = - 1.5D0 * (PN0 - PNa) / RA**2
+!!$    CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
+!!$    CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
+!!$    IF(MDFIXT == 0) THEN
+!!$       pea   = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
+!!$       dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
+!!$       pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
+!!$    ELSE
+!!$       pea   = PTea   ;  pia  = PTia
+!!$       dpea  = 0.d0   ; dpia  = 0.d0
+!!$       pediv = PTeDIV ; pidiv = PTiDIV
+!!$    END IF
+!!$    Cfpe1 = - (4.D0 * pea + 3.D0 * PBA * dpea - 4.D0 * pediv) / PBA**3
+!!$    Cfpe2 =   (3.D0 * pea + 2.D0 * PBA * dpea - 3.D0 * pediv) / PBA**4
+!!$    Cfpi1 = - (4.D0 * pia + 3.D0 * PBA * dpia - 4.D0 * pidiv) / PBA**3
+!!$    Cfpi2 =   (3.D0 * pia + 2.D0 * PBA * dpia - 3.D0 * pidiv) / PBA**4
+    PBA   = RB - RA
+!!!    dPN   = - 2.D0 * (PN0 - PNa) / RA
+    dPN   = - 3.D0 * (PN0 - PNa) / RA
+    CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNa - PNeDIV)) / PBA**3
+    CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNa - PNeDIV)) / PBA**4
     IF(MDFIXT == 0) THEN
        pea   = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
        dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
        pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
     ELSE
-       pea   = PTea   ;  pia  = PTia
-       dpea  = 0.d0   ; dpia  = 0.d0
+       pea   = PTea   ;  pia   = PTia
+       dpea  = 0.d0   ; dpia   = 0.d0
        pediv = PTeDIV ; pidiv = PTiDIV
     END IF
-    Cfpe1 = - (4.D0 * pea + 3.D0 * PBA * dpea - 4.D0 * pediv) / PBA**3
-    Cfpe2 =   (3.D0 * pea + 2.D0 * PBA * dpea - 3.D0 * pediv) / PBA**4
-    Cfpi1 = - (4.D0 * pia + 3.D0 * PBA * dpia - 4.D0 * pidiv) / PBA**3
-    Cfpi2 =   (3.D0 * pia + 2.D0 * PBA * dpia - 3.D0 * pidiv) / PBA**4
+    Cfpe1 = - (3.D0 * PBA * dpea + 4.D0 * (pea - pediv)) / PBA**3
+    Cfpe2 =   (2.D0 * PBA * dpea + 3.D0 * (pea - pediv)) / PBA**4
+    Cfpi1 = - (3.D0 * PBA * dpia + 4.D0 * (pia - pidiv)) / PBA**3
+    Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
     DO NR = 0, NRMAX
        RL=R(NR)
        IF (RL < RA) THEN
@@ -682,13 +701,20 @@ contains
              X(LQi5,NR) = (PTi0 - PTia) * PROFT + PTia
           END IF
        ELSE
-          X(LQe1,NR) = PNa + dPN * (RL**2 - RA**2) + CfN1 * (RL**2 - RA**2)**3 &
-               &                                   + CfN2 * (RL**2 - RA**2)**4
-          X(LQi1,NR) =  X(LQe1,NR) / PZ
-          X(LQe5,NR) = pea + dpea * (RL**2 - RA**2) + Cfpe1 * (RL**2 - RA**2)**3 &
-               &                                    + Cfpe2 * (RL**2 - RA**2)**4
-          X(LQi5,NR) = pia + dpia * (RL**2 - RA**2) + Cfpi1 * (RL**2 - RA**2)**3 &
-               &                                    + Cfpi2 * (RL**2 - RA**2)**4
+!!$          X(LQe1,NR) = PNa + dPN * (RL**2 - RA**2) + CfN1 * (RL**2 - RA**2)**3 &
+!!$               &                                   + CfN2 * (RL**2 - RA**2)**4
+!!$          X(LQi1,NR) =  X(LQe1,NR) / PZ
+!!$          X(LQe5,NR) = pea + dpea * (RL**2 - RA**2) + Cfpe1 * (RL**2 - RA**2)**3 &
+!!$               &                                    + Cfpe2 * (RL**2 - RA**2)**4
+!!$          X(LQi5,NR) = pia + dpia * (RL**2 - RA**2) + Cfpi1 * (RL**2 - RA**2)**3 &
+!!$               &                                    + Cfpi2 * (RL**2 - RA**2)**4
+           X(LQe1,NR) = PNa + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
+                &                             + CfN2 * (RL - RA)**4
+           X(LQi1,NR) =  X(LQe1,NR) / PZ
+           X(LQe5,NR) = pea + dpea * (RL - RA) + Cfpe1 * (RL - RA)**3 &
+                &                              + Cfpe2 * (RL - RA)**4
+           X(LQi5,NR) = pia + dpia * (RL - RA) + Cfpi1 * (RL - RA)**3 &
+                &                              + Cfpi2 * (RL - RA)**4
 !!$          SSN = 2.D0 * (RB - RA) * (PN0 - PNa) / (RA * (PNa - PNeDIV))
 !!$          X(LQe1,NR) = (PNa - PNeDIV) * ((RB - RL) / (RB - RA))**SSN + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
 !!$          X(LQi1,NR) = X(LQe1,NR) / PZ
@@ -716,7 +742,6 @@ contains
           PTeV_FIX(NR) = X(LQe5,NR)
        END IF
     END DO
-    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV_FIX)
 
     ! Poloidal magnetic field
 
@@ -745,7 +770,7 @@ contains
     ! Toroidal electron current
 
     DO NR = 0, NRMAX
-!!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,NRMAX,0)
+!!$       AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
 !!$       X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
 
        IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
@@ -818,7 +843,7 @@ contains
     ELSE
        TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
        DO NR = 0, NRMAX
-          dRIP = DERIV3(NR,R,TMP,NRMAX,NRMAX,0) * 2.D0 * PI / rMU0
+          dRIP = DERIV3(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMU0
           AJV(NR)=dRIP / (2.D0 * PI * R(NR))
        END DO
     END IF
@@ -889,8 +914,8 @@ contains
     !  Initial condition Part II
 
     DO NR = 0, NRMAX
-       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,NRMAX,0) * rKeV
-       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,NRMAX,0) * rKeV
+       dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
+       dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
 !       rNuei3(NR)  =(BphV(NR)**2 * CORR(Zeff) + BthV(NR)**2) * rNuei(NR) &
 !            &      /(BphV(NR)**2 + BthV(NR)**2)
        IF(rNueNC(NR) == 0.D0) THEN
