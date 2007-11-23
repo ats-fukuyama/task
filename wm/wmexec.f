@@ -14,13 +14,11 @@ C
 C
       CALL DPCHEK(IERR)
       IF(IERR.NE.0) RETURN
-      CALL WMSETG(IERR)
-      IF(IERR.NE.0) RETURN
 C
       if(mdlwmf.eq.0) then
          CALL WMSETG(IERR)
          IF(IERR.NE.0) RETURN
-         CALL WMSETG(IERR)
+         CALL WMSETJ(IERR)
          IF(IERR.NE.0) RETURN
          CALL WMSOLV
          CALL WMEFLD

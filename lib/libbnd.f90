@@ -155,7 +155,12 @@
             ENDIF
          ENDDO
 
-         IF( ABS2 .LT. EPS ) GO TO 9002
+!         IF( ABS2 .LT. EPS ) GO TO 9002
+      IF( ABS2 .LT. EPS ) THEN
+         write(6,'(A,I8,1P3E12.4)') 'A(1,I),EPS=',I,A(1,I),EPS
+         GOTO 9002
+      ENDIF
+
          IF( IPIVOT .NE. I ) THEN
             TEMP        = X( I      )
             X( I      ) = X( IPIVOT )
@@ -182,7 +187,13 @@
          IF( LH .LT. N ) LH = LH + 1
       ENDDO
 
-      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
+!      IF( ABS(A(1,N)) .LT. EPS ) GO TO 9002
+!      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
+      IF( CDABS(A(1,N)) .LT. EPS ) THEN
+         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+         GOTO 9002
+      ENDIF
+
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
       DO I = 1 , NM

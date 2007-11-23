@@ -448,7 +448,7 @@ C         WRITE(6,'(1P5E12.4)') (RPS(NTH,NRMAX+1),NTH=1,NTHMAX)
 C
          write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
          call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nthmax=',NTHMAX
+         write(LINE,'(A,I5)') 'nthmax=',NTHGM
          call eqparm(2,line,ierr)
          write(LINE,'(A,I5)') 'nsumax=',NSUMAX
          call eqparm(2,line,ierr)

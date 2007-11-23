@@ -88,7 +88,10 @@ C
          IF( LH .LT. N ) LH = LH + 1
    50 CONTINUE
 C
-      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
+C      IF( CDABS(A(1,N)) .LT. EPS ) GOTO 9002
+      IF( CDABS(A(1,N)) .LT. EPS ) THEN
+         write(6,'(A,1P3E12.4)') 'A(1,N),EPS=',A(1,N),EPS
+GOTO 9002
 C
       X( N ) = X( N ) / A( 1 , N )
       JJ = 2
