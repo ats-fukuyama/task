@@ -228,7 +228,7 @@ C
          ELSE IF(KID2.EQ.'CTT') THEN
             CALL FPGRACP('DCTT',DCTT,2)
          ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAC2('DW  ',DWPP,0)
+            CALL FPGRAC2('DW  ',DWPP,DWTT,0)
          ELSE IF(KID2.EQ.'WPP') THEN
             CALL FPGRACP('DWPP',DWPP,1)
          ELSE IF(KID2.EQ.'WPT') THEN
