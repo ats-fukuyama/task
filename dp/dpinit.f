@@ -2,16 +2,16 @@ C     $Id$
 C
 C     *********** INPUT PARAMETER FROM NAMELIST /DP/ ***********
 C
-C     MODELP: TYPE OF DIELECTRIC TENSOR
+C     MODELP: TYPE OF ANALYTIC DIELECTRIC TENSOR
 C                 0 : COLLISIONLESS COLD MODEL
 C                 1 : COLLISIONAL COLD MODEL
 C                 2 : IDEAL MHD MODEL
 C                 3 : RESISTIVE MHD MODEL
 C                 4 : KINETIC MODEL WITHOUT FLR
 C                 5 : KINETIC MODEL WITH FLR
-C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS
+C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
 C                 7 : GYROKINETIC MODEL (coming)
-C                 8 : NUMERICAL MODEL
+C                 8 : GYROKINETIC MODEL (coming)
 C                 9 : LOCAL MODEL (MODELP locally specified by MODELPR)
 C                -1 : (WM) MHD plasma
 C                -2 : (WM) Cold plasma
@@ -36,14 +36,15 @@ C                     POLARIZATION = KINETIC
 C                     ABSORPTION   = GIVEN MODEL
 C
 C     MODELV : NUMERICAL MODEL (*: not yet implemented)
-C              0 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
-C              1 : KINETIC: READ FPDATA DISTRIBUTION
-C              2 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
-C              3 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
-C              4*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
-C              5*: GYROKINETIC: READ FPDATA DISTRIBUTION
-C              6*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (REL.)
-C              7*: GYROKINETIC: READ FPDATA DISTRIBUTION (REL.)
+C              0 : ANALYTIC MODEL
+C              1 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              2 : KINETIC: READ FPDATA DISTRIBUTION
+C              3 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
+C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
+C              5*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              6*: GYROKINETIC: READ FPDATA DISTRIBUTION
+C              7*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (REL.)
+C              8*: GYROKINETIC: READ FPDATA DISTRIBUTION (REL.)
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER (VALID ONLY FOR MODELP>=5)
@@ -73,14 +74,14 @@ C
          modelv(1)= 0
 C
       IF(NSM.GE.2) THEN
-         MODELP(2)=0
+         MODELP(2)= 0
          NDISP1(2)=-2
          NDISP2(2)= 2
          MODELV(2)= 0
       ENDIF
 C
       DO NS=3,NSM
-         MODELP(NS)=0
+         MODELP(NS)= 0
          NDISP1(NS)=-2
          NDISP2(NS)= 2
          modelv(NS)= 0
@@ -206,18 +207,15 @@ C
       DATA INITFP/0/
 C
       DO NS=1,NSMAX
-         IND=0
-         IF(MODELP(NS).EQ.8) IND=1
-         IF(MODELP(NS).EQ.9) IND=1
-         IF((IND.EQ.1).AND.
-     &      (MODELV(NS).EQ.1.OR.MODELV(NS).EQ.3)) THEN
-            write(6,*) '----- DPLDFP -----'
+         IF((MODELV(NS).EQ.2.OR.MODELV(NS).EQ.4)) THEN
             IF(INITFP.EQ.0) THEN
+               write(6,*) '----- DPLDFP ----- NS=',NS
                CALL DPLDFP
                INITFP=1
             ENDIF
          ELSE
-            INITFP=0
+            RHON_MIN=0.D0
+            RHON_MAX=1.D0
          ENDIF
       ENDDO
 C

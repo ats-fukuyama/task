@@ -14,50 +14,39 @@ C
       ELSE
          ID1=MOD(MODELP(NS),10)
          ID2=MODELP(NS)/10
+         IDV=MODELV(NS)
 C
-         IF(ID1.EQ.0) THEN
-            CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.1) THEN
-            CALL DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.2) THEN
-            CALL DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.3) THEN
-            CALL DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.4) THEN
-            CALL DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.5) THEN
-            CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.6) THEN
-            CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(ID1.EQ.8) THEN
-            IF(MODELV(NS).EQ.0) THEN
-               CALL DPFMFL(NS,0)
-               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                  CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
-               ELSE
-                  CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
-               ENDIF
-            ELSE IF(MODELV(NS).EQ.1) THEN
-               CALL DPFPFL(NS)
-               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                  CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
-               ELSE
-                  CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
-               ENDIF
-            ELSE IF(MODELV(NS).EQ.2) THEN
-               CALL DPFMFL(NS,1)
-               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                  CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
-               ELSE
-                  CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
-               ENDIF
-            ELSE IF(MODELV(NS).EQ.3) THEN
-               CALL DPFPFL(NS)
-               IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
-                  CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
-               ELSE
-                  CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
-               ENDIF
+         IF(IDV.EQ.0) THEN
+            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
+         ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
+            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
+         ELSE IF(MODELV(NS).EQ.1) THEN
+            CALL DPFMFL(NS,0)
+            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+               CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
+            ELSE
+               CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
+            ENDIF
+         ELSE IF(MODELV(NS).EQ.2) THEN
+            CALL DPFPFL(NS)
+            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+               CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
+            ELSE
+               CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
+            ENDIF
+         ELSE IF(MODELV(NS).EQ.3) THEN
+            CALL DPFMFL(NS,1)
+            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+               CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
+            ELSE
+               CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
+            ENDIF
+         ELSE IF(MODELV(NS).EQ.4) THEN
+            CALL DPFPFL(NS)
+            IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
+               CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
+            ELSE
+               CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          ENDIF
 C
@@ -84,6 +73,32 @@ C         WRITE(6,'(A,1P6E12.4)')
 C     &        'CLDISP=',CLDISP(1),CLDISP(2),CLDISP(3)
 C         WRITE(6,'(A,1P6E12.4)') 
 C     &        'CLDISP=',CLDISP(4),CLDISP(5),CLDISP(6)
+      RETURN
+      END
+C
+C     ****** CALCULATE DIELECTRIC TENSOR ******
+C
+      SUBROUTINE DPTENS(ID1,CW,CKPR,CKPP,NS,CLDISP)
+C
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+C
+      DIMENSION CLDISP(6)
+C
+      IF(ID1.EQ.0) THEN
+         CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.1) THEN
+         CALL DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.2) THEN
+         CALL DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.3) THEN
+         CALL DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.4) THEN
+         CALL DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.5) THEN
+         CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE IF(ID1.EQ.6) THEN
+         CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
       RETURN
       END
 C

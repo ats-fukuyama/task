@@ -81,6 +81,11 @@ C
          BNZ = BZ/BABS
       ENDIF
 C
+      XPOS_LOC=X
+      YPOS_LOC=Y
+      ZPOS_LOC=Z
+      RHON_LOC=RHON
+C
       RETURN
       END
 C
