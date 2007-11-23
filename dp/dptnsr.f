@@ -20,28 +20,28 @@ C
             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
          ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(MODELV(NS).EQ.1) THEN
+         ELSE IF(IDV.EQ.1) THEN
             CALL DPFMFL(NS,0)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(MODELV(NS).EQ.2) THEN
+         ELSE IF(IDV.EQ.2) THEN
             CALL DPFPFL(NS)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(MODELV(NS).EQ.3) THEN
+         ELSE IF(IDV.EQ.3) THEN
             CALL DPFMFL(NS,1)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(MODELV(NS).EQ.4) THEN
+         ELSE IF(IDV.EQ.4) THEN
             CALL DPFPFL(NS)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
@@ -76,9 +76,9 @@ C     &        'CLDISP=',CLDISP(4),CLDISP(5),CLDISP(6)
       RETURN
       END
 C
-C     ****** CALCULATE DIELECTRIC TENSOR ******
+C     ****** CALCULATE ANALYTIC DIELECTRIC TENSOR ******
 C
-      SUBROUTINE DPTENS(ID1,CW,CKPR,CKPP,NS,CLDISP)
+      SUBROUTINE DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -99,6 +99,9 @@ C
          CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
       ELSE IF(ID1.EQ.6) THEN
          CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
+      ELSE
+         WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1
+      ENDIF
       RETURN
       END
 C
