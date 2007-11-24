@@ -159,7 +159,7 @@ C
       RHOGMN = 0.D0
       RHOGMX = 1.D0
 C
-C     ======( MODEL PARAMETERS )======
+C     ======( IO FILE NAMES )======
 C
 C        KNAMEQ: Filename of equilibrium data
 C        KNAMWR: Filename of ray tracing data
@@ -174,6 +174,26 @@ C
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
+C
+C     ======( FILE IO MODES )======
+C
+C        MODEFR: File name interaction at reading file
+C                 0 : WITHOUT PROMPT
+C                 1 : WITH FILE NAME INPUT
+C        MODEFW: File name interaction at writing file
+C                 0 : WITHOUT PROMPT, ALWAYS OVERWRITE
+!                 1 : WITHOUT PROMPT, CONFIRM, IF FILE EXISTS
+!                 2 : WITHOUT PROMPT, ASK NEW NAME, IF FILE EXISTS
+!                 3 : WITHOUT PROMPT, ERROR, IF FILE EXISTS
+!                 4 : WITH FILE NAME INPUT, ALWAYS OVERWRITE
+!                 5 : WITH FILE NAME INPUT, CONFIRM, IF FILE EXISTS
+!                 6 : WITH FILE NAME INPUT, ASK NEW NAME, IF FILE EXISTS
+!                 7 : WITH FILE NAME INPUT, ERROR, IF FILE EXISTS
+C
+C     ======( Default values )======
+C
+      MODEFR = 0
+      MODEFW = 0
 C
       NRMAXPL= 100
       NSMAXPL= NSMAX
@@ -225,7 +245,8 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
      &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
-     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG
+     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG,
+     &              MODEFR,MODEFW
 C
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -249,7 +270,8 @@ C
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/
      &       9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/
      &       9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/
-     &       9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG')
+     &       9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/
+     &       9X,'MODEFW,MODEFR')
       END
 C
 C     ****** CHECK INPUT PARAMETER ******
@@ -326,6 +348,7 @@ C
      &             'RHOGMX',RHOGMX
       WRITE(6,604) 'MODELG',MODELG,'MODELN',MODELN,
      &             'MODELQ',MODELQ
+      WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
 C
       WRITE(6,100)
       DO NS=1,NSMAX

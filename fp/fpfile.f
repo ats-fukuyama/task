@@ -10,7 +10,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      CALL FWOPEN(21,KNAMFP,0,5,'FP',IERR)
+      CALL FWOPEN(21,KNAMFP,0,MODEFW,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX FPSAVE: FWOPEN: IERR=',IERR
          RETURN
@@ -38,7 +38,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      CALL FROPEN(21,KNAMFP,0,0,'FP',IERR)
+      CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
          RETURN

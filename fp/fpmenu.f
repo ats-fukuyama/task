@@ -42,11 +42,7 @@ C
          CALL FPGRAF
       ELSEIF (KID.EQ.'F') THEN
          CALL FPFOUT
-      ELSEIF (KID.EQ.'L') THEN
-         CALL FPWMREAD(IERR)
-         IF(IERR.NE.0) WRITE(6,*) 'XX FPWMREAD: IERR=',IERR
-         CALL FPWMCHEK
-      ELSEIF (KID.EQ.'S') THEN
+      ELSEIF (KID.EQ.'W') THEN
          CALL FPSGLB
          CALL FPWRIT
       ELSEIF (KID.EQ.'Y') THEN

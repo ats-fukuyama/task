@@ -12,38 +12,9 @@ C
 C
       DIMENSION TEMP(NTHM,NPM,NRM)
       CHARACTER KID*4,KID1*1,KID2*3,KNAM*72
-      LOGICAL LEX,LOP
-C
-      INQUIRE(22,OPENED=LOP)
-      IF(.NOT.LOP) THEN
-C 1001    WRITE(6,*) '# INPUT : FPFOUT FILE NAME : ',KNAMFO
-C         READ(5,'(A72)',ERR=1001,END=9000) KNAM
-C         IF(KNAM(1:2).NE.'/ ') KNAMFO=KNAM
-C
-         INQUIRE(FILE=KNAMFO,EXIST=LEX)
-         IF(LEX) THEN
-C            WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-C     &                 'ARE YOU SURE {Y/N} ?'
-C            READ(5,'(A1)') KID
-C            CALL GUCPTL(KID)
-C            IF(KID.NE.'Y') GOTO 1001
-            OPEN(22,FILE=KNAMFO,IOSTAT=IST,STATUS='OLD',ERR=1002,
-     &           FORM='FORMATTED')
-            WRITE(6,*) '# OLD FILE (',KNAMFO,') IS ASSIGNED FOR OUTPUT.'
-            GOTO 1005
- 1002       WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
-            GOTO 9000
-         ELSE
-            OPEN(22,FILE=KNAMFO,IOSTAT=IST,STATUS='NEW',ERR=1003,
-     &           FORM='FORMATTED')
-            WRITE(6,*) '# NEW FILE (',KNAMFO,') IS CREATED FOR OUTPUT.'
-            GOTO 1005
- 1003       WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
-            GOTO 9000
-         ENDIF
-      ENDIF
-C
- 1005 CONTINUE
+C      
+      CALL FWOPEN(21,KNAMFO,0,5,'FO',IERR)
+      IF(IERR.NE.0) RETURN
 C
     1 WRITE(6,*)'INPUT DATA TYPE : F/FX/FS1/FS2 1/2, N:newfile, X:exit,'
       WRITE(6,*)'             : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
@@ -200,33 +171,6 @@ C
          ENDIF
       ELSE IF (KID1.EQ.'N') THEN
          CLOSE(22)
- 2001    WRITE(6,*) '# INPUT : FPFOUT FILE NAME : ',KNAMFO
-         READ(5,'(A72)',ERR=2001,END=9000) KNAM
-         IF(KNAM(1:2).NE.'/ ') KNAMFO=KNAM
-C
-         INQUIRE(FILE=KNAMFO,EXIST=LEX)
-         IF(LEX) THEN
-C            WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',
-C     &                 'ARE YOU SURE {Y/N} ?'
-C            READ(5,'(A1)') KID
-C            CALL GUCPTL(KID)
-C            IF(KID.NE.'Y') GOTO 2001
-            OPEN(22,FILE=KNAMFO,IOSTAT=IST,STATUS='OLD',ERR=2002,
-     &           FORM='FORMATTED')
-            WRITE(6,*) '# OLD FILE (',KNAMFO,') IS ASSIGNED FOR OUTPUT.'
-            GOTO 2005
- 2002       WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
-            GOTO 2001
-         ELSE
-            OPEN(22,FILE=KNAMFO,IOSTAT=IST,STATUS='NEW',ERR=2003,
-     &           FORM='FORMATTED')
-            WRITE(6,*) '# NEW FILE (',KNAMFO,') IS CREATED FOR OUTPUT.'
-            GOTO 2005
- 2003       WRITE(6,*) 'XX NEW FILE OPEN ERROR : IOSTAT = ',IST
-            GOTO 2001
-         ENDIF
-C
- 2005    CONTINUE
          GO TO 1
       ELSE IF (KID1.EQ.'X') THEN
          GO TO 9000
