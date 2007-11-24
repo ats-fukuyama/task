@@ -10,7 +10,7 @@ C
 C
       INCLUDE '../wm/wmcomm.inc'
 C
-      CALL FWOPEN(21,KNAMWM,0,5,'WM',IERR)
+      CALL FWOPEN(21,KNAMWM,0,MODEFW,'WM',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX WMSAVE: FWOPEN: IERR=',IERR
          RETURN

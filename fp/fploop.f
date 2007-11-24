@@ -14,7 +14,7 @@ C
 C     ----- exec EQ -----
 C
       IF(MODELG.EQ.3) THEN
-         CALL EQLOAD(MODELG,KNAMEQ,0,IERR)
+         CALL EQLOAD(MODELG,KNAMEQ,IERR)
          IF(IERR.EQ.0) THEN
             write(LINE,'(A,I5)') 'nrmax=',51
             call eqparm(2,line,ierr)

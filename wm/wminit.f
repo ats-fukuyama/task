@@ -113,9 +113,6 @@ C                   1: Precession of alpha particles
 C                   2: Precession of electrons
 C                   3: Precession of both alpha particles and electrons
 C                   4: Calculate alpha particle density using slowing down
-C        MODELK: Control mode number cutoff
-C                   0: No cutoff
-C                   1: With cutoff (this should not be used)
 C        MODELM: Control matrix solver
 C                   0: BANDCD
 C                   1: BANDCDB
@@ -139,10 +136,9 @@ C
       MODELA = 0
       ANTANG = 0.D0
       MWGMAX = 2
-      MODELK = 0
       MODELM = 0
       MODELW = 0
-      MDLEMF = 0
+      MDLWMF = 0
       IDBGWM = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
@@ -265,7 +261,7 @@ C
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELM,MODELW,MODELV,MDLWMF,MDLWMX,IDBGWM,
-     &              ANTANG,MWGMAX,
+     &              ANTANG,MWGMAX,MODEFR,MODEFW,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -302,7 +298,7 @@ C
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
      &       9X,'MODELM,MODELW,MDLWMF,MDLWMX,IDBGWM,'/
-     &       9X,'KNAMEQ,KNAMTR,KNAMPF,'/
+     &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
@@ -473,6 +469,10 @@ C
      &             'NPHMAX',NPHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
+      WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
+     &             'MODELN',MODELN,'MODELA',MODELA
+      WRITE(6,602) 'MODELM',MODELM,'MDLWMF',MDLWMF,
+     &             'MODEFR',MODEFR,'MODEFW',MODEFW
 C
       WRITE(6,692)
       DO NS=1,NSMAX

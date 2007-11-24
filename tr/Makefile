@@ -30,10 +30,10 @@ SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90
-#SRCITG= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f itg/weiland.f
-#SRCITGF= glf/glf2d.F glf/r8tomsqz.F
-SRCITG= noitg.f
-SRCITGF=
+SRCITG= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f itg/ifspppl_model.f itg/weiland.f
+SRCITGF= glf/glf2d.F glf/r8tomsqz.F
+#SRCITG= noitg.f
+#SRCITGF=
 SRC2D=trg2d.f90
 SRC3D=trg3d.f90
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
@@ -178,4 +178,3 @@ nclass/u_erf.o      : nclass/u_erf.f
 nclass/u_lu_backsub.o: nclass/u_lu_backsub.f
 nclass/u_lu_decomp.o : nclass/u_lu_decomp.f
 nclass/write_mod.o   : nclass/write_mod.f
-

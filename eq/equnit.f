@@ -65,7 +65,7 @@ c-----------------------------------------------------------------------
       nrmax_save=nrmax
       nthmax_save=nthmax
       nsumax_save=nsumax
-      call eqload(modelg1,knameq1,0,ierr)
+      call eqload(modelg1,knameq1,ierr)
       nrmax=nrmax_save
       nthmax=nthmax_save
       nsumax=nsumax_save

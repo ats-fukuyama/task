@@ -76,7 +76,7 @@ C      CALL EQPARM(2,'EPSEQ=1.D-5',IERR)
 C
       IF(KIN.EQ.'L') THEN
          KNAMEQ='testeq'
-         CALL EQLOAD(9,KNAMEQ,1,IERR)
+         CALL EQLOAD(9,KNAMEQ,IERR)
          IF(IERR.NE.0) 
      &        WRITE(6,*) 'XX TRTEST: EQLOAD ERROR: IERR=',IERR
          CALL EQPARM(2,'NPRINT=2',IERR)

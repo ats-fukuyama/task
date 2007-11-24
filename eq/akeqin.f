@@ -22,7 +22,7 @@ C
       NSUMAX=NSUMAX1
 C
       IERR=0
-      CALL EQLOAD(3,KNAMEQ1,0,IERR)
+      CALL EQLOAD(3,KNAMEQ1,IERR)
       IF(IERR.NE.0) RETURN
 C
       write(LINE,'(A,I5)') 'nrmax=',NRMAX

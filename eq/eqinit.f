@@ -482,8 +482,8 @@ C
      &              PROFR0,PROFR1,PROFR2,EPSEQ,NLPMAX,
      &              NSGMAX,NTGMAX,NUGMAX,EPSNW,DELNW,NLPNW,
      &              NRGMAX,NZGMAX,RGMIN,RGMAX,ZGMIN,ZGMAX,ZLIMP,ZLIMM,
-     &              NPSMAX,NRVMAX,NTVMAX,
-     &              NRMAX,NTHMAX,NSUMAX,
+     &              NPSMAX,NRVMAX,NTVMAX,NRMAX,NTHMAX,NSUMAX,
+     &              MODEFR,MODEFW,
      &              MDLEQF,MDLEQC,MDLEQA,MDLEQX,MDLEQV,NPRINT,
      &              PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC
 C
@@ -519,6 +519,7 @@ C
      &       9X,'MDLEQF,MDLEQC,MDLEQA,MDLEQX,MDLEQV,NPRINT'/
      &       9X,'EPSEQ,NLPMAX,EPSNW,DELNW,NLPNW'/
      &       9X,'RGMIN,RGMAX,RZMIN,RZMAX,ZLIMP,ZLIMM'/
+     &       9X,'MODEFR,MODEFW,'/
      &       9X,'PSIB,NPFCMAX,RIPFC,RPFC,ZPFC,WPFC')
       END
 C
@@ -670,7 +671,9 @@ C
      &             'MDLEQA',MDLEQA,
      &             'MODELQ',MODELQ
       WRITE(6,602) 'MDLEQX',MDLEQX,
-     &             'MDLEQV',MDLEQV
+     &             'MDLEQV',MDLEQV,
+     &             'MODEFR',MODEFR,
+     &             'MDDEFW',MODEFW
       WRITE(6,602) 'NPRINT',NPRINT,
      &             'NLPMAX',NLPMAX,
      &             'NLPNW ',NLPNW
