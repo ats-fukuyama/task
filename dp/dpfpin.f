@@ -134,6 +134,7 @@ C
       CALL PLBMIN(RHON,BMINL)
       DO NP=1,NPMAX
          DO NTH=1,NTHMAX
+C            WRITE(6,'(6I8)') NRMAX,NP,NTH,NRM,NPM,NTHM
             CALL SPL1DF(RHON,Y,RFP,URFP(1,1,NP,NTH),NRMAX+2,IERR)
             FPT(NTH+1)=Y
          ENDDO
@@ -157,6 +158,7 @@ C
             ELSE
                X=PI-ASIN(SQRT(1/PSIS)*SIN(TH))
             ENDIF
+C            write(6,'(A,1P4E12.4)') 'X,PSIS,TH,SIN=',X,PSIS,TH,SIN(TH)
             CALL SPL1DF(X,Y,THT,U2,NTHMAX+2,IERR)
             FM(NP,NTH2)=Y
          ENDDO

@@ -206,8 +206,8 @@
      &  + U(2,NX)*DX &
      &  + U(3,NX)*DX*DX &
      &  + U(4,NX)*DX*DX*DX
-!      WRITE(6,'(A,2I5,1P3E12.4)')
-!     &     'NX,NXI,X0,X(NX-1),X(NX)=',NX,NXI,X0,X(NX-1),X(NX)
+!      WRITE(6,'(A,I8,1P3E12.4)') &
+!     &     'NX,X0,X(NX-1),X(NX)=',NX,X0,X(NX-1),X(NX)
       RETURN
       END SUBROUTINE SPL1DF
 

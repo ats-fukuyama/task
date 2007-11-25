@@ -256,6 +256,7 @@ C
             RN(4)=RN(4)-RN(6)
          ENDIF
       ENDIF
+      RHON_LOC=RHON
 C
       RETURN
       END
@@ -327,10 +328,10 @@ C
          BMINL= SQRT(BMINT**2+BMINP**2)
       ELSEIF(MODELG.EQ.3) THEN
          CALL GETRMX(RHON,RRMAXL)
-         BTL=BB*RR/RRMAXL
-         CALL PLQPRF(RHON,QL)
-         BPL=RS*BTL/(RR*QL)
-         BMINL=SQRT(BTL**2+BPL**2)
+         PP=0.D0
+         Z=0.D0
+         CALL GETRZ(RRMAXL,Z,PP,BR,BZ,BT,RHONL)
+         BMINL = SQRT(BR**2+BT**2+BZ**2)
       ENDIF
       RETURN
       END

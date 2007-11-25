@@ -15,6 +15,8 @@ C
          ID1=MOD(MODELP(NS),10)
          ID2=MODELP(NS)/10
          IDV=MODELV(NS)
+C         write(6,'(A,3I8,1P3E12.4)') 'DPTNSR: ',NS,ID1,IDV,
+C     &        RHON_LOC,RHON_MIN,RHON_MAX
 C
          IF(IDV.EQ.0) THEN
             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
