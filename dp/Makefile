@@ -51,13 +51,15 @@ new:
 	cp -f *.f ../dpnew
 	cp -f *.inc ../dpnew
 
-dpmain.o: dpmain.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dpmenu.o: dpmenu.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dpinit.o: dpinit.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dproot.o: dproot.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dpcont.o: dpcont.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dpdisp.o: dpdisp.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
-dptnsr.o: dptnsr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc ../pl/plcom2.inc
-dpfpin.o: dpfpin.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dphotf.o: dphotf.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
-dphotr.o: dphotr.f dpcomm.inc dpcom1.inc ../pl/plcom1.inc
+DPCOMM=dpcomm.inc dpcom1.inc dpcom2.inc ../pl/plcom0.inc ../pl/plcom1.inc
+
+dpmain.o: dpmain.f $(DPCOMM)
+dpmenu.o: dpmenu.f $(DPCOMM)
+dpinit.o: dpinit.f $(DPCOMM)
+dproot.o: dproot.f $(DPCOMM)
+dpcont.o: dpcont.f $(DPCOMM) ../pl/plcom2.inc
+dpdisp.o: dpdisp.f $(DPCOMM) ../pl/plcom2.inc
+dptnsr.o: dptnsr.f $(DPCOMM) ../pl/plcom2.inc
+dpfpin.o: dpfpin.f $(DPCOMM) ../pl/plcom2.inc
+dphotf.o: dphotf.f $(DPCOMM) ../pl/plcom2.inc
+dphotr.o: dphotr.f $(DPCOMM) ../pl/plcom2.inc
