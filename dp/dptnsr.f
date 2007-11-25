@@ -44,6 +44,9 @@ C
                CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
          ELSE IF(IDV.EQ.4) THEN
+C         write(6,'(A,3I8,1P3E12.4)') 'DPTNSR: ',NS,ID1,IDV,
+C     &        RHON_LOC,RHON_MIN,RHON_MAX
+C         call guflsh
             CALL DPFPFL(NS)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)

@@ -112,7 +112,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 C
@@ -175,7 +183,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 C
@@ -324,7 +340,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 C
@@ -376,7 +400,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNM(NTH)
 C
@@ -470,7 +502,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 C
@@ -522,7 +562,15 @@ C
             ELSE
                INC=1
             ENDIF
-            PAI1  = NC*INC*ADJ(NCD)/X
+            IF(X.EQ.0.d0) THEN
+               if(NCD.eq.1) THEN
+                  PAI1=NC*INC*0.5D0
+               else
+                  PAI1=0.D0
+               endif
+            else
+               PAI1  = NC*INC*ADJ(NCD)/X
+            endif
             CPAI2 = CI*INC*ADJD(NCD)
             PAI3  =    INC*ADJ(NCD)/TTNG(NTH)
 C

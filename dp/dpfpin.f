@@ -153,12 +153,18 @@ C
          CALL SPL1D(THT,FPT,FPX,U2,NTHMAX+2,3,IERR)            
          DO NTH2=1,NTHMAX
             TH=DELTH*(NTH2-0.5D0)
-            IF(COS(TH).GT.0.D0) THEN
-               X=   ASIN(SQRT(1/PSIS)*SIN(TH))
+            XX=SQRT(1/PSIS)*SIN(TH)
+            IF(XX.GE.1.D0) THEN
+               X=0.5D0*PI
+C               write(6,'(A,1P4E12.4)') 
+C     &              'X,PSIS,TH,SIN=',X,PSIS,TH,SIN(TH)
             ELSE
-               X=PI-ASIN(SQRT(1/PSIS)*SIN(TH))
+               IF(COS(TH).GT.0.D0) THEN
+                  X=   ASIN(SQRT(1/PSIS)*SIN(TH))
+               ELSE
+                  X=PI-ASIN(SQRT(1/PSIS)*SIN(TH))
+               ENDIF
             ENDIF
-C            write(6,'(A,1P4E12.4)') 'X,PSIS,TH,SIN=',X,PSIS,TH,SIN(TH)
             CALL SPL1DF(X,Y,THT,U2,NTHMAX+2,IERR)
             FM(NP,NTH2)=Y
          ENDDO
