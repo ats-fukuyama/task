@@ -6,16 +6,20 @@ FFLAGS = $(OFLAGS)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txcalv.f90 \
        txcala.f90 txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 txmain.f90
+SRC2D= txg2d.f90
 SRC3D= txg3d.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \
        nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
        nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC= txncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 OBJS = $(SRCS:.f90=.o)
+OBJ2D= $(SRC2D:.f90=.o)
 OBJ3D= $(SRC3D:.f90=.o)
 OBJNC= $(SRCNC:.f=.o)
-PROG = tx
-LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
+PROG2= tx2
+PROG3= tx
+LIBS2= tx2lib.a ../lib/tasklib.a $(OBJLA)
+LIBS3= tx3lib.a ../lib/tasklib.a $(OBJLA)
 
 .SUFFIXES: .f90
 
@@ -24,10 +28,13 @@ LIBS = txlib.a ../lib/tasklib.a $(OBJLA)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ -module mod
 
-all: $(PROG)
+all: $(PROG3)
 
-txlib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) -o txlib.a $(OBJS) $(OBJ3D) $(OBJNC) -Lmod
+tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC)
+	$(LD) $(LDFLAGS) -o tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) -Lmod
+
+tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
+	$(LD) $(LDFLAGS) -o tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) -Lmod
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -35,18 +42,20 @@ txlib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
 libs:
 	(cd ../lib; make)
 
-$(PROG): $(LIBS)
-	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GFLIBS) $(LIBLA)
-#	$(FCFREE) $(LIBS) -o $@ $(FFLAGS) $(GLLIBS) $(LIBLA)
+$(PROG2): $(LIBS2)
+	$(FCFREE) $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(LIBLA)
 
-check: $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) | less
+$(PROG3): $(LIBS3)
+	$(FCFREE) $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(LIBLA)
+
+check: $(SRCS) $(SRC2D) $(SRC3D)
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | less
 
 clean:
 	rm -f *.o ./*~ ./#* nclass/*.o *.a mod/*.mod
 
 veryclean: clean
-	rm -f $(PROG)
+	rm -f $(PROG2) $(PROG3)
 
 distclean: clean
 	cd ../lib && make clean
