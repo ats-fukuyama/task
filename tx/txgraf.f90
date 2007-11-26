@@ -23,9 +23,7 @@ contains
   SUBROUTINE TXGOUT
     use commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &              NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM
-    use libraries, only : TOUPPER
-    use file_io, only : TXLOAD, TXGSAV, TXGLOD
-    use graphic_3d
+    use interface, only : TXGRUR, TOUPPER
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
@@ -389,7 +387,6 @@ contains
   SUBROUTINE TXSTGR(NG,GTL,GYL,NXM,NGM,NUM)
 
     use commons
-    use physical_constants, only : AEE, rKeV
 
     integer(4), intent(inout) :: NG
     integer(4), intent(in) :: NXM, NGM, NUM
@@ -571,15 +568,13 @@ contains
 
   SUBROUTINE TXSTGV(GTIME)
 
-    use commons, only : NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, PNbrpV, &
-         &              NRC, UerV, UethV, &
+    use commons, only : AEE, PI, NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, &
+         &              PNbrpV, NRC, UerV, UethV, &
          &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
          &              PTeV, PTiV, PN01V, PN02V, EthV, BphV, UbthV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
          &              Chie,  Chii, PIE, PCX, SIE, PBr
-    use physical_constants, only : AEE, PI
-    use output_console, only : rLINEAVE
-    use libraries, only : VALINT_SUB
+    use interface, only : rLINEAVE, VALINT_SUB
 
     REAL(4), INTENT(IN) :: GTIME
     REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
@@ -2236,7 +2231,7 @@ contains
   SUBROUTINE TXGRFQ(NQ,ID)
 
     use commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
-    use libraries, only : APTOS
+    use interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
     INTEGER(4) :: NR, NC, NC1, NSTR, IND
@@ -2636,7 +2631,7 @@ contains
   !***************************************************************
 
   SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV, GIN1)
-    use libraries, only : APTOS
+    use interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
     REAL(4), INTENT(IN) :: gDIV

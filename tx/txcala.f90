@@ -31,7 +31,6 @@ contains
 
   SUBROUTINE TXCALA
 
-    use physical_constants, only : rMU0
     INTEGER(4) :: NE, NR, NC, NQ, N
 
     !*** Nodal Equation *****************************************!
@@ -243,7 +242,7 @@ contains
 
   SUBROUTINE LQCOEF
 
-    use libraries, only : DERIVS
+    use interface, only : DERIVS
     INTEGER(4) :: NR
     REAL(8) :: AITKEN4P, BBL
 
@@ -323,8 +322,6 @@ contains
 
   SUBROUTINE LQm1CC
 
-    use physical_constants, only : AEE
-
     ! phi'(0) : 0
 
     ELM(1:NEMAX,1:4,1,LQm1) =   4.D0 * sqeps0 / (AEE * 1.D20) * fem_int(18,UNITY)
@@ -370,8 +367,6 @@ contains
 
   SUBROUTINE LQm2CC
 
-    use physical_constants, only : AEE, EPS0
-
     ! (r*Atheta)'(0) : 0
 
     ELM(1:NEMAX,1:4,0,LQm2) = fem_int(1) * EPS0 * invDT
@@ -410,8 +405,6 @@ contains
 !***************************************************************
 
   SUBROUTINE LQm3CC
-
-    use physical_constants, only : AEE, EPS0
 
     ! Aphi'(0) : 0
 
@@ -477,8 +470,6 @@ contains
 
   SUBROUTINE LQm5CC
 
-    use physical_constants, only : rMU0
-
     ELM(1:NEMAX,1:4,0,LQm5) = fem_int(1) * invDT 
     NLC(0,LQm5) = LQm5
 
@@ -540,8 +531,6 @@ contains
 
   SUBROUTINE LQe2CC
 
-    use physical_constants, only : AEE, AME, rKeV
-
     ! Ns*Usr(0) : fixed
 
     ELM(1:NEMAX,1:4,0,LQe2) = fem_int(1) * invDT &
@@ -601,8 +590,6 @@ contains
 !***************************************************************
 
   SUBROUTINE LQe3CC
-
-    use physical_constants, only : AEE, AME, rKeV
 
     integer(4) :: N
 
@@ -767,8 +754,6 @@ contains
 
   SUBROUTINE LQe4CC
 
-    use physical_constants, only : AEE, AME
-
     ! Uephi(0)' : 0
 
     ELM(1:NEMAX,1:4, 0,LQe4) = fem_int(1) * invDT * AMPe4
@@ -881,8 +866,6 @@ contains
 !***************************************************************
 
   SUBROUTINE LQe5CC
-
-    use physical_constants, only : AEE, rKeV, EION
 
     ! Temperature evolution
     
@@ -1060,8 +1043,6 @@ contains
   
   SUBROUTINE LQi2CC
 
-    use physical_constants, only : AEE, rKeV
-
     ! Ns*Usr(0) : fixed
 
     ELM(1:NEMAX,1:4,0,LQi2) = fem_int(1) * invDT &
@@ -1121,8 +1102,6 @@ contains
 !***************************************************************
 
   SUBROUTINE LQi3CC
-
-    use physical_constants, only : AEE, AME, rKeV
 
     integer(4) :: N
 
@@ -1296,8 +1275,6 @@ contains
 
   SUBROUTINE LQi4CC
 
-    use physical_constants, only : AEE, AME
-
     ! Uiphi'(0) : 0
 
     ELM(1:NEMAX,1:4, 0,LQi4) = fem_int(1) * invDT
@@ -1419,8 +1396,6 @@ contains
 !***************************************************************
 
   SUBROUTINE LQi5CC
-
-    use physical_constants, only : AEE, rKeV
 
     ! Temperature evolution
 
@@ -1591,8 +1566,6 @@ contains
 
   SUBROUTINE LQb3CC
 
-    use physical_constants, only : AEE
-
     ! Ubth(0) : 0
 
     ELM(1:NEMAX,1:4,0,LQb3) = fem_int(1) * invDT
@@ -1666,8 +1639,6 @@ contains
 !***************************************************************
  
  SUBROUTINE LQb4CC
-
-    use physical_constants, only : AEE
 
     ! - UbPhi(0)' : 0
 

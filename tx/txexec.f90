@@ -14,9 +14,7 @@ contains
 
   SUBROUTINE TXEXEC
     use commons, only : IERR, T_TX
-    use libraries, only : APTOS
-    use results
-    use output_console, only : TXWDAT
+    use interface, only : APTOS
 
     INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
     REAL(4) :: gCTIME1, gCTIME2, gCTIME3
@@ -74,7 +72,6 @@ contains
     use commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
          &              PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, tiny_cap, EPS, IDIAG, &
          &              NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, NGRM, NGYRM
-    use results
     use variables
     use coefficients, only : TXCALA
     use graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ

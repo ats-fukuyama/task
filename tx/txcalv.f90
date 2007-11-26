@@ -14,8 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL,ID)
 
-    use physical_constants, only : rMU0, rKeV
-    use libraries, only : DERIVF, VALINT_SUB
+    use interface, only : DERIVF, VALINT_SUB
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
@@ -136,8 +135,7 @@ contains
 
   SUBROUTINE TXCALC
 
-    use physical_constants, only : AEE, AME, VC, PI, rMU0, EPS0, rKeV, EION
-    use libraries, only : EXPV, VALINT_SUB, TRCOFS
+    use interface, only : EXPV, VALINT_SUB, TRCOFS
     use core_module, only : inv_int
     use nclass_mod
     use sauter_mod
@@ -1094,7 +1092,6 @@ contains
 !!$  END FUNCTION NUD
 
   pure real(8) function NBIi_ratio(x) result(f)
-    use physical_constants, only : PI
     real(8), intent(in) :: x
 
     if (x == 0.d0) then

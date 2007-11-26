@@ -55,8 +55,6 @@
 
 PROGRAM TASK_TX
   
-  use menu, only : TXMENU
-  use init_prof, only : TXINIT
   use commons, only : SLID
   use parameter_control, only : TXPARF, TXPARM_CHECK
   implicit none

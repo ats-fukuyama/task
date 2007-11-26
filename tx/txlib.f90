@@ -822,44 +822,25 @@ end module core_module
 
 !*****************************************************************
 
-module libraries
-  implicit none
-  private
-  public :: EXPV, APTOS, TOUPPER, TRCOFS, DERIVS, DERIVF, INTDERIV3, &
-       &    LORENTZ, LORENTZ_PART, BISECTION, VALINT_SUB, INTG_F, INTG_P, &
-       &    LORENTZ_NEO, LORENTZ_PART_NEO, BISECTION_NEO
-
-  interface APTOS
-     module procedure APITOS
-     module procedure APSTOS
-     module procedure APRTOS
-     module procedure APDTOS
-  end interface
-
-  interface DERIVS
-     module procedure DERIVS1D
-     module procedure DERIVS2D
-  end interface
-
-contains
 !***************************************************************
 !
 !   For no '*** MATH LIBRARY ERROR 14: DEXP(X) UNDERFLOW'
 !
 !***************************************************************
 
-  pure REAL(8) FUNCTION EXPV(X)
+pure REAL(8) FUNCTION EXPV(X)
 
-    REAL(8), INTENT(IN) :: X
+  implicit none
+  REAL(8), INTENT(IN) :: X
 
-    IF (X < -708.D0) THEN
-       EXPV = 0.D0
-    ELSE
-       EXPV = EXP(X)
-    END IF
+  IF (X < -708.D0) THEN
+     EXPV = 0.D0
+  ELSE
+     EXPV = EXP(X)
+  END IF
 
-    RETURN
-  END FUNCTION EXPV
+  RETURN
+END FUNCTION EXPV
 
 !***************************************************************
 !
@@ -871,23 +852,24 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE APITOS(STR, NSTR, I)
+SUBROUTINE APITOS(STR, NSTR, I)
 
-    character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),       INTENT(INOUT) :: NSTR
-    INTEGER(4),       INTENT(IN)    :: I
+  implicit none
+  character(len=*), INTENT(INOUT) :: STR
+  INTEGER(4),       INTENT(INOUT) :: NSTR
+  INTEGER(4),       INTENT(IN)    :: I
 
-    INTEGER(4) :: J, NSTRI
-    character(len=25) :: KVALUE
+  INTEGER(4) :: J, NSTRI
+  character(len=25) :: KVALUE
 
-    WRITE(KVALUE,'(I25)') I
-    J = index(KVALUE,' ',.true.)
-    NSTRI = 25 - J
-    STR(NSTR+1:NSTR+NSTRI) = KVALUE(J+1:25)
-    NSTR = NSTR + NSTRI
+  WRITE(KVALUE,'(I25)') I
+  J = index(KVALUE,' ',.true.)
+  NSTRI = 25 - J
+  STR(NSTR+1:NSTR+NSTRI) = KVALUE(J+1:25)
+  NSTR = NSTR + NSTRI
 
-    RETURN
-  END SUBROUTINE APITOS
+  RETURN
+END SUBROUTINE APITOS
 
 !***************************************************************
 !
@@ -900,18 +882,19 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
+SUBROUTINE APSTOS(STR, NSTR, INSTR, NINSTR)
 
-    character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),       INTENT(INOUT) :: NSTR
-    character(len=*), INTENT(IN)    :: INSTR
-    INTEGER(4),       INTENT(IN)    :: NINSTR
+  implicit none
+  character(len=*), INTENT(INOUT) :: STR
+  INTEGER(4),       INTENT(INOUT) :: NSTR
+  character(len=*), INTENT(IN)    :: INSTR
+  INTEGER(4),       INTENT(IN)    :: NINSTR
 
-    STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
-    NSTR = NSTR + NINSTR
+  STR(NSTR+1:NSTR+NINSTR) = INSTR(1:NINSTR)
+  NSTR = NSTR + NINSTR
 
-    RETURN
-  END SUBROUTINE APSTOS
+  RETURN
+END SUBROUTINE APSTOS
 
 !***************************************************************
 !
@@ -924,83 +907,84 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE APDTOS(STR, NSTR, D, FORM)
+SUBROUTINE APDTOS(STR, NSTR, D, FORM)
 
-    character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),       INTENT(INOUT) :: NSTR
-    REAL(8),          INTENT(IN)    :: D
-    character(len=*), INTENT(IN)    :: FORM
+  implicit none
+  character(len=*), INTENT(INOUT) :: STR
+  INTEGER(4),       INTENT(INOUT) :: NSTR
+  REAL(8),          INTENT(IN)    :: D
+  character(len=*), INTENT(IN)    :: FORM
 
-    INTEGER(4) :: IND
-    INTEGER(4) :: L, IS, IE, NSTRD, IST
-    character(len=10) :: KFORM
-    character(len=25) :: KVALUE
+  INTEGER(4) :: IND
+  INTEGER(4) :: L, IS, IE, NSTRD, IST
+  character(len=10) :: KFORM
+  character(len=25) :: KVALUE
 
-    L = LEN(FORM)
-    IF      (L == 0) THEN
-       WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-       NSTRD = 0
-       RETURN
-    ELSE IF (L == 1) THEN
-       IF (FORM(1:1) == '*') THEN
-          WRITE(KVALUE,*) SNGL(D)
-       ELSE
-          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-          NSTRD = 0
-          RETURN
-       END IF
-    ELSE
-       READ(FORM(2:2),'(I1)',IOSTAT=IST) IND
-       IF (IST > 0) THEN
-          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-          NSTRD = 0
-          RETURN
-       END IF
-       IF (FORM(1:1) == 'F') THEN
-          WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
-          WRITE(KVALUE,KFORM) D
-       ELSE IF (FORM(1:1) == 'D' .OR. FORM(1:1) == 'E' &
-            &            .OR. FORM(1:1) == 'G') THEN
-          WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
-          WRITE(KVALUE,KFORM) D
-       ELSE
-          WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
-          NSTRD = 0
-          RETURN
-       END IF
-    END IF
+  L = LEN(FORM)
+  IF      (L == 0) THEN
+     WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+     NSTRD = 0
+     RETURN
+  ELSE IF (L == 1) THEN
+     IF (FORM(1:1) == '*') THEN
+        WRITE(KVALUE,*) SNGL(D)
+     ELSE
+        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+        NSTRD = 0
+        RETURN
+     END IF
+  ELSE
+     READ(FORM(2:2),'(I1)',IOSTAT=IST) IND
+     IF (IST > 0) THEN
+        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+        NSTRD = 0
+        RETURN
+     END IF
+     IF (FORM(1:1) == 'F') THEN
+        WRITE(KFORM,'(A,I2,A)') '(F25.', IND, ')'
+        WRITE(KVALUE,KFORM) D
+     ELSE IF (FORM(1:1) == 'D' .OR. FORM(1:1) == 'E' &
+          &            .OR. FORM(1:1) == 'G') THEN
+        WRITE(KFORM,'(3A,I2,A)') '(1P', FORM(1:1), '25.', IND, ')'
+        WRITE(KVALUE,KFORM) D
+     ELSE
+        WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
+        NSTRD = 0
+        RETURN
+     END IF
+  END IF
 
-    IS = index(KVALUE,' ',.true.) + 1
-    IE = IS
-    DO
-       IE = IE + 1
-       IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) THEN
-          CYCLE
-       ELSE
-          EXIT
-       END IF
-    END DO
-    IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
+  IS = index(KVALUE,' ',.true.) + 1
+  IE = IS
+  DO
+     IE = IE + 1
+     IF (KVALUE(IE:IE) /= ' ' .AND. IE < 25) THEN
+        CYCLE
+     ELSE
+        EXIT
+     END IF
+  END DO
+  IF (KVALUE(IE:IE) /= ' ' .AND. IE == 25) IE = 25 + 1
 
-    IF (KVALUE(IS:IS) == '-') THEN
-       IF (IS > 1 .AND. KVALUE(IS+1:IS+1) == '.') THEN
-          KVALUE(IS-1:IS-1) = '-'
-          KVALUE(IS  :IS  ) = '0'
-          IS = IS - 1
-       END IF
-    ELSE IF (KVALUE(IS:IS) == '.') THEN
-       IF (IS > 1) THEN
-          KVALUE(IS-1:IS-1) = '0'
-          IS = IS - 1
-       END IF
-    END IF
+  IF (KVALUE(IS:IS) == '-') THEN
+     IF (IS > 1 .AND. KVALUE(IS+1:IS+1) == '.') THEN
+        KVALUE(IS-1:IS-1) = '-'
+        KVALUE(IS  :IS  ) = '0'
+        IS = IS - 1
+     END IF
+  ELSE IF (KVALUE(IS:IS) == '.') THEN
+     IF (IS > 1) THEN
+        KVALUE(IS-1:IS-1) = '0'
+        IS = IS - 1
+     END IF
+  END IF
 
-    NSTRD = IE - IS
-    STR(NSTR+1:NSTR+NSTRD) = KVALUE(IS:IE-1)
-    NSTR = NSTR + NSTRD
+  NSTRD = IE - IS
+  STR(NSTR+1:NSTR+NSTRD) = KVALUE(IS:IE-1)
+  NSTR = NSTR + NSTRD
 
-    RETURN
-  END SUBROUTINE APDTOS
+  RETURN
+END SUBROUTINE APDTOS
 
 !***************************************************************
 !
@@ -1013,20 +997,21 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
+SUBROUTINE APRTOS(STR, NSTR, GR, FORM)
 
-    character(len=*), INTENT(INOUT) :: STR
-    INTEGER(4),       INTENT(INOUT) :: NSTR
-    REAL(4),          INTENT(IN)    :: GR
-    character(len=*), INTENT(IN)    :: FORM
+  implicit none
+  character(len=*), INTENT(INOUT) :: STR
+  INTEGER(4),       INTENT(INOUT) :: NSTR
+  REAL(4),          INTENT(IN)    :: GR
+  character(len=*), INTENT(IN)    :: FORM
 
-    REAL(8) :: D
+  REAL(8) :: D
 
-    D = DBLE(GR)
-    CALL APDTOS(STR, NSTR, D, FORM)
+  D = DBLE(GR)
+  CALL APDTOS(STR, NSTR, D, FORM)
 
-    RETURN
-  END SUBROUTINE APRTOS
+  RETURN
+END SUBROUTINE APRTOS
 
 !***************************************************************
 !
@@ -1034,21 +1019,22 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE TOUPPER(KTEXT)
+SUBROUTINE TOUPPER(KTEXT)
 
-    character(len=*), INTENT(INOUT) ::  KTEXT
+  implicit none
+  character(len=*), INTENT(INOUT) ::  KTEXT
 
-    INTEGER(4) :: NCHAR, I, ID
+  INTEGER(4) :: NCHAR, I, ID
 
-    NCHAR = LEN(KTEXT)
-    DO I = 1, NCHAR
-       ID=IACHAR(KTEXT(I:I))
-       IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
-       KTEXT(I:I)=ACHAR(ID)
-    END DO
+  NCHAR = LEN(KTEXT)
+  DO I = 1, NCHAR
+     ID=IACHAR(KTEXT(I:I))
+     IF(ID >= 97 .AND. ID <= 122) ID = ID - 32
+     KTEXT(I:I)=ACHAR(ID)
+  END DO
 
-    RETURN
-  END SUBROUTINE TOUPPER
+  RETURN
+END SUBROUTINE TOUPPER
 
 !***************************************************************
 !
@@ -1056,87 +1042,90 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE DERIVS1D(R,F,NRMAX,G)
+SUBROUTINE DERIVS1D(R,F,NRMAX,G)
 
-    real(8), dimension(0:NRMAX), intent(in)  :: R, F
-    real(8), dimension(0:NRMAX), intent(out) :: G
-    integer(4), intent(in) :: NRMAX
-    integer(4) :: NR
-    real(8) :: DR1, DR2
+  implicit none
+  real(8), dimension(0:NRMAX), intent(in)  :: R, F
+  real(8), dimension(0:NRMAX), intent(out) :: G
+  integer(4), intent(in) :: NRMAX
+  integer(4) :: NR
+  real(8) :: DR1, DR2
 
-    NR = 0
-       DR1 = R(NR+1) - R(NR)
-       DR2 = R(NR+2) - R(NR)
-       G(NR) = (DR2**2 * F(NR+1) - DR1**2 * F(NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
-    DO NR = 1, NRMAX - 1
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR+1) - R(NR)
-       G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
-    END DO
-    NR = NRMAX
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR-2) - R(NR)
-       G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+  NR = 0
+  DR1 = R(NR+1) - R(NR)
+  DR2 = R(NR+2) - R(NR)
+  G(NR) = (DR2**2 * F(NR+1) - DR1**2 * F(NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+       &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+  DO NR = 1, NRMAX - 1
+     DR1 = R(NR-1) - R(NR)
+     DR2 = R(NR+1) - R(NR)
+     G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+          &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
+  END DO
+  NR = NRMAX
+  DR1 = R(NR-1) - R(NR)
+  DR2 = R(NR-2) - R(NR)
+  G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+       &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
 
-  END SUBROUTINE DERIVS1D
+END SUBROUTINE DERIVS1D
 
-  SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
+SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
 
-    real(8), dimension(0:NRMAX), intent(in)  :: R
-    real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-    real(8), dimension(0:NRMAX), intent(out) :: G
-    integer(4), intent(in) :: LQ, NRMAX, NQMAX
-    integer(4) :: NR
-    real(8) :: DR1, DR2
+  implicit none
+  real(8), dimension(0:NRMAX), intent(in)  :: R
+  real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
+  real(8), dimension(0:NRMAX), intent(out) :: G
+  integer(4), intent(in) :: LQ, NRMAX, NQMAX
+  integer(4) :: NR
+  real(8) :: DR1, DR2
 
-    NR = 0
-       DR1 = R(NR+1) - R(NR)
-       DR2 = R(NR+2) - R(NR)
-       G(NR) = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
-    DO NR = 1, NRMAX - 1
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR+1) - R(NR)
-       G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
-    END DO
-    NR = NRMAX
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR-2) - R(NR)
-       G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  NR = 0
+  DR1 = R(NR+1) - R(NR)
+  DR2 = R(NR+2) - R(NR)
+  G(NR) = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+       &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  DO NR = 1, NRMAX - 1
+     DR1 = R(NR-1) - R(NR)
+     DR2 = R(NR+1) - R(NR)
+     G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+          &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  END DO
+  NR = NRMAX
+  DR1 = R(NR-1) - R(NR)
+  DR2 = R(NR-2) - R(NR)
+  G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+       &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
 
-  END SUBROUTINE DERIVS2D
+END SUBROUTINE DERIVS2D
 
-  pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
+pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
 
-    real(8), dimension(0:NRMAX), intent(in)  :: R
-    real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-    integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
-    real(8) :: DR1, DR2
+  implicit none
+  real(8), dimension(0:NRMAX), intent(in)  :: R
+  real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
+  integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
+  real(8) :: DR1, DR2
 
-    IF(NR == 0) THEN
-       DR1 = R(NR+1) - R(NR)
-       DR2 = R(NR+2) - R(NR)
-       DERIVF = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
-    ELSE IF(NR == NRMAX) THEN
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR-2) - R(NR)
-       DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
-    ELSE
-       DR1 = R(NR-1) - R(NR)
-       DR2 = R(NR+1) - R(NR)
-       DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
-            &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
-    END IF
+  IF(NR == 0) THEN
+     DR1 = R(NR+1) - R(NR)
+     DR2 = R(NR+2) - R(NR)
+     DERIVF = (DR2**2 * F(LQ,NR+1) - DR1**2 * F(LQ,NR+2)) / (DR1 * DR2 * (DR2 - DR1)) &
+          &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  ELSE IF(NR == NRMAX) THEN
+     DR1 = R(NR-1) - R(NR)
+     DR2 = R(NR-2) - R(NR)
+     DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
+          &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  ELSE
+     DR1 = R(NR-1) - R(NR)
+     DR2 = R(NR+1) - R(NR)
+     DERIVF = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR+1)) / (DR1 * DR2 * (DR2 - DR1)) &
+          &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
+  END IF
 
-    RETURN
-  END FUNCTION DERIVF
+  RETURN
+END FUNCTION DERIVF
 
 !***************************************************************
 !
@@ -1144,120 +1133,125 @@ contains
 !
 !***************************************************************
 
-  REAL(8) FUNCTION INTG_F(X)
+REAL(8) FUNCTION INTG_F(X)
 
-    ! Calculate \int (r * X) dpsi
+  ! Calculate \int (r * X) dpsi
 
-    use core_module, only : fem_int
-    real(8), dimension(*), intent(in) :: X
+  use core_module, only : fem_int
+  implicit none
+  real(8), dimension(*), intent(in) :: X
 
-    INTG_F = 0.5D0 * SUM(fem_int(-1,X))
+  INTG_F = 0.5D0 * SUM(fem_int(-1,X))
 
-  END FUNCTION INTG_F
+END FUNCTION INTG_F
 
-  REAL(8) FUNCTION INTG_P(X,NR,ID)
+REAL(8) FUNCTION INTG_P(X,NR,ID)
 
-    ! Calculate \int r * X(r) dpsi or 0.5 * \int X(psi) dpsi (ID == 0) 
-    !           \int     X(r) dpsi (ID == 1) at one mesh
+  ! Calculate \int r * X(r) dpsi or 0.5 * \int X(psi) dpsi (ID == 0) 
+  !           \int     X(r) dpsi (ID == 1) at one mesh
 
-    use core_module, only : fem_int_point
-    integer(4), intent(in) :: NR, ID
-    real(8), dimension(*), intent(in) :: X
-    integer(4) :: NE
+  use core_module, only : fem_int_point
+  implicit none
+  integer(4), intent(in) :: NR, ID
+  real(8), dimension(*), intent(in) :: X
+  integer(4) :: NE
 
-    IF(ID == 0) THEN
-       IF(NR == 0) THEN
-          INTG_P = 0.D0
-       ELSE
-          NE = NR
-          INTG_P = 0.5D0 * SUM(fem_int_point(-1,NE,X))
-       END IF
-    ELSEIF(ID == 1) THEN
-       IF(NR == 0) THEN
-          INTG_P = 0.D0
-       ELSE
-          NE = NR
-          INTG_P = 0.5D0 * SUM(fem_int_point(21,NE,X))
-       END IF
-    END IF
-    
-  END FUNCTION INTG_P
+  IF(ID == 0) THEN
+     IF(NR == 0) THEN
+        INTG_P = 0.D0
+     ELSE
+        NE = NR
+        INTG_P = 0.5D0 * SUM(fem_int_point(-1,NE,X))
+     END IF
+  ELSEIF(ID == 1) THEN
+     IF(NR == 0) THEN
+        INTG_P = 0.D0
+     ELSE
+        NE = NR
+        INTG_P = 0.5D0 * SUM(fem_int_point(21,NE,X))
+     END IF
+  END IF
 
-  SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
+END FUNCTION INTG_P
 
-    ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
+SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
 
-    use core_module, only : fem_int_point
-    integer(4), intent(in) :: NRLMAX
-    integer(4), intent(in), optional :: NR_START
-    real(8), dimension(*), intent(in) :: X
-    real(8), intent(out) :: VAL
-    integer(4) :: NE, NEMAX, NE_START
-    real(8) :: SUML
+  ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
 
-    NEMAX = NRLMAX
+  use core_module, only : fem_int_point
+  implicit none
+  integer(4), intent(in) :: NRLMAX
+  integer(4), intent(in), optional :: NR_START
+  real(8), dimension(*), intent(in) :: X
+  real(8), intent(out) :: VAL
+  integer(4) :: NE, NEMAX, NE_START
+  real(8) :: SUML
 
-    IF(PRESENT(NR_START)) THEN
-       NE_START = NR_START
-    ELSE
-       ! default
-       NE_START = 1
-    END IF
+  NEMAX = NRLMAX
 
-    SUML = 0.D0
-    DO NE = NE_START, NEMAX
-       SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X))
-    END DO
-    VAL = SUML
-    
-  END SUBROUTINE VALINT_SUB
+  IF(PRESENT(NR_START)) THEN
+     NE_START = NR_START
+  ELSE
+     ! default
+     NE_START = 1
+  END IF
+
+  SUML = 0.D0
+  DO NE = NE_START, NEMAX
+     SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X))
+  END DO
+  VAL = SUML
+
+END SUBROUTINE VALINT_SUB
 
 ! *** Integral Method By Inverting Derivative Method ***
 
 !     This formula can be used only if intX(0    ) is known of FVAL (ID = 0)
 !                                   or intX(NRMAX) is known of FVAL (ID = else).
 
-  SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
-    integer(4), intent(in) :: NRMAX, ID
-    real(8), intent(in), dimension(0:NRMAX) :: X, R
-    real(8), intent(in) :: FVAL
-    real(8), intent(out), dimension(0:NRMAX) :: intX
-    integer(4) :: NR
-    real(8) :: D1, D2, D3
+SUBROUTINE INTDERIV3(X,R,intX,FVAL,NRMAX,ID)
 
-    IF(ID == 0) THEN
-       intX(0) = FVAL
-       D1 = R(1) - R(0)
-       D2 = R(2) - R(0)
-       D3 = R(2) - R(1)
-       intX(1) = ( D1*D2*(D2-D1)*X(0)+D1*D3*(D1+D3)*X(1)) &
-            &  / (-D1**2+D2**2+D3**2) + FVAL
-       intX(2) = ( D1**2*D2*(D2-D1)*X(0)+D2*D3**2*(D1-D2)*X(0) &
-            &     +D2**2*D3*(D1+D3)*X(1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
-       DO NR = 3, NRMAX
-          D1 = R(NR-2) - R(NR-1)
-          D2 = R(NR  ) - R(NR-1)
-          intX(NR) = (D2/D1)**2*intX(NR-2)-((D2/D1)**2-1.D0)*intX(NR-1) &
-               &    -X(NR-1)*D2/D1*(D2-D1)
-       END DO
-    ELSE
-       intX(NRMAX) = FVAL
-       D1 = R(NRMAX-1) - R(NRMAX  )
-       D2 = R(NRMAX-2) - R(NRMAX  )
-       D3 = R(NRMAX-2) - R(NRMAX-1)
-       intX(NRMAX-1) = ( D1*D2*(D2-D1)*X(NRMAX)+D1*D3*(D1+D3)*X(NRMAX-1)) &
-            &        / (-D1**2+D2**2+D3**2) + FVAL
-       intX(NRMAX-2) = ( D1**2*D2*(D2-D1)*X(NRMAX  )+D2*D3**2*(D1-D2)*X(NRMAX) &
-            &           +D2**2*D3*(D1+D3)*X(NRMAX-1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
-       DO NR = NRMAX - 3, 0, -1
-          D1 = R(NR+2) - R(NR+1)
-          D2 = R(NR  ) - R(NR+1)
-          intX(NR) = (D2/D1)**2*intX(NR+2)-((D2/D1)**2-1.D0)*intX(NR+1) &
-               &    -X(NR+1)*D2/D1*(D2-D1)
-       END DO
-    END IF
+  implicit none
+  integer(4), intent(in) :: NRMAX, ID
+  real(8), intent(in), dimension(0:NRMAX) :: X, R
+  real(8), intent(in) :: FVAL
+  real(8), intent(out), dimension(0:NRMAX) :: intX
+  integer(4) :: NR
+  real(8) :: D1, D2, D3
 
-  END SUBROUTINE INTDERIV3
+  IF(ID == 0) THEN
+     intX(0) = FVAL
+     D1 = R(1) - R(0)
+     D2 = R(2) - R(0)
+     D3 = R(2) - R(1)
+     intX(1) = ( D1*D2*(D2-D1)*X(0)+D1*D3*(D1+D3)*X(1)) &
+          &  / (-D1**2+D2**2+D3**2) + FVAL
+     intX(2) = ( D1**2*D2*(D2-D1)*X(0)+D2*D3**2*(D1-D2)*X(0) &
+          &     +D2**2*D3*(D1+D3)*X(1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
+     DO NR = 3, NRMAX
+        D1 = R(NR-2) - R(NR-1)
+        D2 = R(NR  ) - R(NR-1)
+        intX(NR) = (D2/D1)**2*intX(NR-2)-((D2/D1)**2-1.D0)*intX(NR-1) &
+             &    -X(NR-1)*D2/D1*(D2-D1)
+     END DO
+  ELSE
+     intX(NRMAX) = FVAL
+     D1 = R(NRMAX-1) - R(NRMAX  )
+     D2 = R(NRMAX-2) - R(NRMAX  )
+     D3 = R(NRMAX-2) - R(NRMAX-1)
+     intX(NRMAX-1) = ( D1*D2*(D2-D1)*X(NRMAX)+D1*D3*(D1+D3)*X(NRMAX-1)) &
+          &        / (-D1**2+D2**2+D3**2) + FVAL
+     intX(NRMAX-2) = ( D1**2*D2*(D2-D1)*X(NRMAX  )+D2*D3**2*(D1-D2)*X(NRMAX) &
+          &           +D2**2*D3*(D1+D3)*X(NRMAX-1)) / (D1*(-D1**2+D2**2+D3**2)) + FVAL
+     DO NR = NRMAX - 3, 0, -1
+        D1 = R(NR+2) - R(NR+1)
+        D2 = R(NR  ) - R(NR+1)
+        intX(NR) = (D2/D1)**2*intX(NR+2)-((D2/D1)**2-1.D0)*intX(NR+1) &
+             &    -X(NR+1)*D2/D1*(D2-D1)
+     END DO
+  END IF
+
+END SUBROUTINE INTDERIV3
 
 !***************************************************************
 !
@@ -1265,41 +1259,42 @@ contains
 !
 !***************************************************************
 
-  pure REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
+pure REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
 
-    real(8), intent(in) :: S, ALFA, RKCV
-    real(8) :: SA, FS1, FS2
+  implicit none
+  real(8), intent(in) :: S, ALFA, RKCV
+  real(8) :: SA, FS1, FS2
 
-    IF(ALFA > 0.D0) THEN
-       SA = S - ALFA
-       IF(SA > 0.D0) THEN
-          FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
-           &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
-       ELSE
-          FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
-       ENDIF
-       IF(RKCV > 0.D0) THEN
-          FS2 = SQRT(RKCV)**3 / S**2
-       ELSE
-          FS2 = 0.D0
-       ENDIF
-    ELSE
-       SA = ALFA - S
-       IF(SA > 0.D0) THEN
-          FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
-           &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
-       ELSE
-          FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
-       ENDIF
-       IF(RKCV < 0.D0) THEN
-          FS2 = SQRT(-RKCV)**3 / S**2
-       ELSE
-          FS2 = 0.D0
-       ENDIF
-    ENDIF
-    TRCOFS = MAX(FS1,FS2)
+  IF(ALFA > 0.D0) THEN
+     SA = S - ALFA
+     IF(SA > 0.D0) THEN
+        FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
+             &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
+     ELSE
+        FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
+     ENDIF
+     IF(RKCV > 0.D0) THEN
+        FS2 = SQRT(RKCV)**3 / S**2
+     ELSE
+        FS2 = 0.D0
+     ENDIF
+  ELSE
+     SA = ALFA - S
+     IF(SA > 0.D0) THEN
+        FS1 = (1.D0 + 9.0D0 * SQRT(2.D0) * SA**2.5D0) &
+             &  / (SQRT(2.D0) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2 + 2.0D0 * SA**3))
+     ELSE
+        FS1 = 1.D0 / SQRT(2.D0 * (1.D0 - 2.D0 * SA) * (1.D0 - 2.D0 * SA + 3.D0 * SA**2))
+     ENDIF
+     IF(RKCV < 0.D0) THEN
+        FS2 = SQRT(-RKCV)**3 / S**2
+     ELSE
+        FS2 = 0.D0
+     ENDIF
+  ENDIF
+  TRCOFS = MAX(FS1,FS2)
 
-  END FUNCTION TRCOFS
+END FUNCTION TRCOFS
 
 !***************************************************************
 !
@@ -1313,43 +1308,31 @@ contains
 !   W  : width of flat region around R=RC
 !   RC : center radial point of fine mesh region
 
-  pure REAL(8) FUNCTION LORENTZ(R,C,W,RC,AMP)
-    real(8), intent(in) :: r, c, w, rc
-    real(8), intent(in), optional :: AMP
+pure REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
 
-    LORENTZ = R + C * (W * ATAN((R - RC) / W) + W * ATAN(RC / W))
-    if(present(amp)) LORENTZ = LORENTZ / AMP
+  implicit none
+  real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
+  real(8), intent(in), optional :: AMP
 
-  END FUNCTION LORENTZ
+  LORENTZ = R + C1 * ( W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)) &
+       &      + C2 * ( W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2))
+  if(present(amp)) LORENTZ = LORENTZ / AMP
 
-  pure REAL(8) FUNCTION LORENTZ_PART(R,W,RC)
-    real(8), intent(in) :: r, w, rc
+END FUNCTION LORENTZ
 
-    LORENTZ_PART = W * ATAN((R - RC) / W) + W * ATAN(RC / W)
+pure REAL(8) FUNCTION LORENTZ_PART(R,W1,W2,RC1,RC2,ID)
 
-  END FUNCTION LORENTZ_PART
+  implicit none
+  real(8), intent(in) :: r, w1, w2, rc1, rc2
+  integer(4), intent(in) :: ID
 
-  pure REAL(8) FUNCTION LORENTZ_NEO(R,C1,C2,W1,W2,RC1,RC2,AMP)
-    real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
-    real(8), intent(in), optional :: AMP
+  IF(ID == 0) THEN
+     LORENTZ_PART = W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)
+  ELSE
+     LORENTZ_PART = W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2)
+  END IF
 
-    LORENTZ_NEO = R + C1 * ( W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)) &
-         &          + C2 * ( W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2))
-    if(present(amp)) LORENTZ_NEO = LORENTZ_NEO / AMP
-
-  END FUNCTION LORENTZ_NEO
-
-  pure REAL(8) FUNCTION LORENTZ_PART_NEO(R,W1,W2,RC1,RC2,ID)
-    real(8), intent(in) :: r, w1, w2, rc1, rc2
-    integer(4), intent(in) :: ID
-
-    IF(ID == 0) THEN
-       LORENTZ_PART_NEO = W1 * ATAN((R - RC1) / W1) + W1 * ATAN(RC1 / W1)
-    ELSE
-       LORENTZ_PART_NEO = W2 * ATAN((R - RC2) / W2) + W2 * ATAN(RC2 / W2)
-    END IF
-
-  END FUNCTION LORENTZ_PART_NEO
+END FUNCTION LORENTZ_PART
 
 !***************************************************************
 !
@@ -1371,64 +1354,34 @@ contains
 ! i.e. we now handle the equation of "f = s" or "f - s = 0".
 !   eps    : arithmetic precision
 
-  SUBROUTINE BISECTION(f,cl,w,rc,amp,s,valmax,val,valmin)
-    real(8), external :: f
-    real(8), intent(in) :: cl, w, rc, amp, s, valmax
-    real(8), intent(in), optional :: valmin
-    real(8), intent(out) :: val
-    integer(4) :: i, n
-    real(8) :: a, b, c, eps, fa, fc
+SUBROUTINE BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
 
-    if(present(valmin)) then
-       a = valmin
-    else
-       a = 0.d0
-    end if
-    b = valmax
-    eps = 1.d-10
-    n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
-    fa = f(a,cl,w,rc,amp) - s
-    do i = 1, n
-       c = 0.5d0 * (a + b)
-       fc = f(c,cl,w,rc,amp) - s
-       if(fa * fc < 0.d0) then
-          b = c
-       else
-          a = c
-       end if
-    end do
-    val = c
+  implicit none
+  real(8), external :: f
+  real(8), intent(in) :: cl1, cl2, w1, w2, rc1, rc2, amp, s, valmax
+  real(8), intent(in), optional :: valmin
+  real(8), intent(out) :: val
+  integer(4) :: i, n
+  real(8) :: a, b, c, eps, fa, fc
 
-  END SUBROUTINE BISECTION
+  if(present(valmin)) then
+     a = valmin
+  else
+     a = 0.d0
+  end if
+  b = valmax
+  eps = 1.d-10
+  n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
+  fa = f(a,cl1,cl2,w1,w2,rc1,rc2,amp) - s
+  do i = 1, n
+     c = 0.5d0 * (a + b)
+     fc = f(c,cl1,cl2,w1,w2,rc1,rc2,amp) - s
+     if(fa * fc < 0.d0) then
+        b = c
+     else
+        a = c
+     end if
+  end do
+  val = c
 
-  SUBROUTINE BISECTION_NEO(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
-    real(8), external :: f
-    real(8), intent(in) :: cl1, cl2, w1, w2, rc1, rc2, amp, s, valmax
-    real(8), intent(in), optional :: valmin
-    real(8), intent(out) :: val
-    integer(4) :: i, n
-    real(8) :: a, b, c, eps, fa, fc
-
-    if(present(valmin)) then
-       a = valmin
-    else
-       a = 0.d0
-    end if
-    b = valmax
-    eps = 1.d-10
-    n = log10((b - a) / eps) / log10(2.d0) + 0.5d0
-    fa = f(a,cl1,cl2,w1,w2,rc1,rc2,amp) - s
-    do i = 1, n
-       c = 0.5d0 * (a + b)
-       fc = f(c,cl1,cl2,w1,w2,rc1,rc2,amp) - s
-       if(fa * fc < 0.d0) then
-          b = c
-       else
-          a = c
-       end if
-    end do
-    val = c
-
-  END SUBROUTINE BISECTION_NEO
-
-end module libraries
+END SUBROUTINE BISECTION
