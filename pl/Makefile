@@ -5,6 +5,7 @@ include ../make.header
 .SUFFIXES: .f .f90 .mod .o .a
 
 FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f pl_bpsd.f
 SRCSFREE = modules.f90 pl_vmec.f90

@@ -23,8 +23,9 @@ C
          BZ=0.D0
       ELSE
          BT=FNTTS(PSIN)/RP
-         BR=-PSIZ/RP
-         BZ= PSIR/RP
+         BR=-PSIZ/(2.D0*PI*RP)
+         BZ= PSIR/(2.D0*PI*RP)
+C         write(6,'(A,1P3E12.4)') 'PSI,PSIZ,PSIR      =',PSI,PSIR,PSIZ
       ENDIF
       RHON=FNRHON(PSIN)
 C

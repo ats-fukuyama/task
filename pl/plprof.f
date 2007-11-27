@@ -331,7 +331,20 @@ C
          PP=0.D0
          Z=0.D0
          CALL GETRZ(RRMAXL,Z,PP,BR,BZ,BT,RHONL)
+C         write(6,'(A,1P3E12.4)') 'RHON,BR,BZ      =',RHON,BR,BZ
          BMINL = SQRT(BR**2+BT**2+BZ**2)
+C - old -
+C         BTL=BB*RR/RRMAXL
+C         CALL PLQPRF(RHON,QL)
+C         write(6,'(A,1P3E12.4)') 'RHON,RR,QL      =',RHON,RR,QL
+C         write(6,'(A,1P3E12.4)') 'RHON,BTL,BT     =',RHON,BTL,BT
+C         RS=RSRHON(RHON)
+C         BPL=RS*BTL/(RR*QL)
+C         write(6,'(A,1P3E12.4)') 'RHON,BPL,BTP    =',RHON,BPL,
+C     &        SQRT(BR**2+BZ**2)
+C         BMIN1=SQRT(BTL**2+BPL**2)
+C         write(6,'(A,1P3E12.4)') 'RHON,BMINL,BMIN1=',RHON,BMINL,BMIN1
+C         pause
       ENDIF
       RETURN
       END

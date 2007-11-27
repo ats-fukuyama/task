@@ -166,7 +166,7 @@ C         WRITE(6,*) 'XX BESJNV: NCALC,N=',NCALC,N
          IERR=0
       ENDIF
       IF(X.LT.0.D0) THEN
-         DO I=1,N+1
+         DO I=1,N
             IF(MOD(I,2).EQ.1) V(I)=-V(I)
          ENDDO
       ENDIF 

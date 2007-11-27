@@ -24,6 +24,8 @@ C
             call eqparm(2,line,ierr)
             CALL EQCALQ(IERR)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+         ELSE
+            write(6,*) 'XX FPPREP:EQLOAD:IERR=',IERR
          ENDIF
       ENDIF
 C

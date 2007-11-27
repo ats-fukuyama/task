@@ -53,6 +53,9 @@ veryclean: clean
 femtest: tasklib.a femtest.o 
 	$(FCFIXED) femtest.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
+testbes: tasklib.a testbes.o 
+	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+
 mmconvert: mmconvert.o
 	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@
 
