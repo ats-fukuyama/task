@@ -6,8 +6,8 @@
 !***************************************************************
 
 SUBROUTINE TXWDAT
-  use commons, only : PI, PNeV, RB, X, LQe4, LQi4, PNiV, LQn1, NRMAX, PTeV, PTiV, WPT
-  use interface, only : INTG_F, rLINEAVE
+  use tx_commons, only : PI, PNeV, RB, X, LQe4, LQi4, PNiV, LQn1, NRMAX, PTeV, PTiV, WPT
+  use tx_interface, only : INTG_F, rLINEAVE
 
   implicit none
   INTEGER(4) :: NR
@@ -42,7 +42,7 @@ END SUBROUTINE TXWDAT
 
 SUBROUTINE TXWDAT2
 
-  use commons, only : GTY, NGT
+  use tx_commons, only : GTY, NGT
   implicit none
   REAL(4) :: gPNeMIN, gPNeMAX, gNB0MIN, gNB0MAX, gUiphMIN, gUiphMAX
   CALL GMNMX1(GTY(0,1),  1, NGT + 1, 1,  gPNeMIN,  gPNeMAX)
@@ -67,7 +67,7 @@ END SUBROUTINE TXWDAT2
 
 REAL(8) FUNCTION rLINEAVE(Rho)
 
-  use commons, only : RA, NRMAX, PNeV
+  use tx_commons, only : RA, NRMAX, PNeV
   implicit none
   REAL(8), INTENT(IN) :: Rho
   INTEGER(4) :: I, IR, NY = 100
@@ -94,7 +94,7 @@ END FUNCTION rLINEAVE
 !***************************************************************
 
 SUBROUTINE TXSAVE
-  use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+  use tx_commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
        &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
        &              PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
        &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
@@ -102,7 +102,7 @@ SUBROUTINE TXSAVE
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        &              GTY,GVY,NLCMAX,NQM,GQY,NCM
-  use interface, only : TOUPPER
+  use tx_interface, only : TOUPPER
 
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, I, IGYT, IGYV
@@ -188,7 +188,7 @@ END SUBROUTINE TXSAVE
 !***************************************************************
 
 SUBROUTINE TXLOAD
-  use commons, only : allocate_txcomm, deallocate_txcomm, &
+  use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
        &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
        &              PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
@@ -197,9 +197,9 @@ SUBROUTINE TXLOAD
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        &              GTY,GVY,NLCMAX,NQM,GQY,NCM
-  use variables
-  use coefficients, only : TXCALA
-  use parameter_control, only : TXPARM_CHECK
+  use tx_variables
+  use tx_coefficients, only : TXCALA
+  use tx_parameter_control, only : TXPARM_CHECK
 
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
@@ -299,7 +299,7 @@ END SUBROUTINE TXLOAD
 
 SUBROUTINE TXGSAV
 
-  use commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+  use tx_commons, only : SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
        &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
        &              PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
        &              Eb,Vb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
@@ -397,7 +397,7 @@ END SUBROUTINE TXGSAV
 
 SUBROUTINE TXGLOD
 
-  use commons, only : allocate_txcomm, deallocate_txcomm, &
+  use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
        &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
        &              PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
@@ -406,7 +406,7 @@ SUBROUTINE TXGLOD
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY
-  use variables
+  use tx_variables
 
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV, ier

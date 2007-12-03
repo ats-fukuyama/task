@@ -1,6 +1,6 @@
 !     $Id$
-module variables
-  use commons
+module tx_variables
+  use tx_commons
   implicit none
   public
 
@@ -14,7 +14,7 @@ contains
 
   SUBROUTINE TXCALV(XL,ID)
 
-    use interface, only : DERIVF, VALINT_SUB
+    use tx_interface, only : DERIVF, VALINT_SUB
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
@@ -135,9 +135,9 @@ contains
 
   SUBROUTINE TXCALC
 
-    use interface, only : EXPV, VALINT_SUB, TRCOFS
-    use core_module, only : inv_int
-    use nclass_mod
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS
+    use tx_core_module, only : inv_int
+    use tx_nclass_mod
     use sauter_mod
 
     INTEGER :: NR, NP, NR1, IER, i, imax, nrl
@@ -1143,4 +1143,4 @@ contains
 !!rp_conv    end do
 !!rp_conv
 !!rp_conv  end subroutine wherenr
-end module variables
+end module tx_variables

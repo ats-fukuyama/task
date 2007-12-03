@@ -6,15 +6,15 @@
 
 SUBROUTINE TXMENU
 
-  use commons, only : allocate_txcomm, deallocate_txcomm, &
+  use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
-       &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, DelR, RB, PNBCD, &
-       &              GT, GY, NGRM, NGYRM, DeLN, R
-  use main, only : TXEXEC
-  use graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
-  use variables, only : TXCALV
-  use parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
-  use interface, only : TXKLIN, TOUPPER
+       &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
+       &              GT, GY, NGRM, NGYRM, R
+  use tx_main, only : TXEXEC
+  use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
+  use tx_variables, only : TXCALV
+  use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
+  use tx_interface, only : TXKLIN, TOUPPER
   implicit none
   INTEGER(4) :: ICONT, MODE, I, IST, ier
   character(len=80) :: LINE
@@ -101,11 +101,11 @@ SUBROUTINE TXMENU
         CALL TX_GRAPH_SAVE
      CASE('G')
         CALL TXGOUT
-     CASE('N')
-        I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
-        X(I,1) = X(I,1) + DelN
-        X(I,2) = X(I,2) + DelN
-        CALL TXCALV(X)
+!!$     CASE('N')
+!!$        I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
+!!$        X(I,1) = X(I,1) + DelN
+!!$        X(I,2) = X(I,2) + DelN
+!!$        CALL TXCALV(X)
      CASE('B')
         KID2=LINE(2:2)
         CALL TOUPPER(KID2)
@@ -139,8 +139,8 @@ END SUBROUTINE TXMENU
 
 SUBROUTINE TXKLIN(LINE,KID,MODE)
 
-  use parameter_control, only : TXPARL
-  use interface, only : TOUPPER
+  use tx_parameter_control, only : TXPARL
+  use tx_interface, only : TOUPPER
   implicit none
 
   integer(4), intent(out) :: MODE

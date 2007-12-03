@@ -1,7 +1,7 @@
 !     $Id$
-module coefficients
-  use commons
-  use core_module
+module tx_coefficients
+  use tx_commons
+  use tx_core_module
   implicit none
   private
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
@@ -242,7 +242,7 @@ contains
 
   SUBROUTINE LQCOEF
 
-    use interface, only : DERIVS
+    use tx_interface, only : DERIVS
     INTEGER(4) :: NR
     REAL(8) :: AITKEN4P, BBL
 
@@ -1959,4 +1959,4 @@ contains
 
   end function langevin
 
-end module coefficients
+end module tx_coefficients

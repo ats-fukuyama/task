@@ -55,8 +55,8 @@
 
 PROGRAM TASK_TX
   
-  use commons, only : SLID
-  use parameter_control, only : TXPARF, TXPARM_CHECK
+  use tx_commons, only : SLID
+  use tx_parameter_control, only : TXPARF, TXPARM_CHECK
   implicit none
   character(len=80) :: KPNAME
 

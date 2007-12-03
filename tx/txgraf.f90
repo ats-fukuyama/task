@@ -1,5 +1,5 @@
 !     $Id$
-module graphic
+module tx_graphic
   implicit none
   private
   real(4) :: GXM, GYM, GYS
@@ -21,9 +21,9 @@ contains
   !***************************************************************
   
   SUBROUTINE TXGOUT
-    use commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
+    use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &              NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM
-    use interface, only : TXGRUR, TOUPPER
+    use tx_interface, only : TXGRUR, TOUPPER
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
@@ -337,7 +337,7 @@ contains
 
   SUBROUTINE TX_GRAPH_SAVE
 
-    use commons, only : T_TX, NGR, GT, GY, NRMAX, NGRM, NGYRM
+    use tx_commons, only : T_TX, NGR, GT, GY, NRMAX, NGRM, NGYRM
 
     !  Define radial coordinate for graph
 
@@ -369,7 +369,7 @@ contains
 
   SUBROUTINE TXPRFG
 
-    use commons, only : NRMAX, GX, R, RA
+    use tx_commons, only : NRMAX, GX, R, RA
 
     !  GX(NR) : Integer
 
@@ -386,7 +386,7 @@ contains
 
   SUBROUTINE TXSTGR(NG,GTL,GYL,NXM,NGM,NUM)
 
-    use commons
+    use tx_commons
 
     integer(4), intent(inout) :: NG
     integer(4), intent(in) :: NXM, NGM, NUM
@@ -568,13 +568,13 @@ contains
 
   SUBROUTINE TXSTGV(GTIME)
 
-    use commons, only : AEE, PI, NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, &
+    use tx_commons, only : AEE, PI, NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, &
          &              PNbrpV, NRC, UerV, UethV, &
          &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
          &              PTeV, PTiV, PN01V, PN02V, EthV, BphV, UbthV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
          &              Chie,  Chii, PIE, PCX, SIE, PBr
-    use interface, only : rLINEAVE, VALINT_SUB
+    use tx_interface, only : rLINEAVE, VALINT_SUB
 
     REAL(4), INTENT(IN) :: GTIME
     REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
@@ -666,7 +666,7 @@ contains
 
   SUBROUTINE TXSTGT(GTIME)
 
-    use commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, &
+    use tx_commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, &
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
          &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
@@ -742,7 +742,7 @@ contains
 
   SUBROUTINE TXSTGQ
 
-    use commons, only : NRMAX, NQMAX, NLCMAX, NLCR, GQY, ALC, BLC, CLC, PLC, X
+    use tx_commons, only : NRMAX, NQMAX, NLCMAX, NLCR, GQY, ALC, BLC, CLC, PLC, X
     integer(4) :: NR, NC, NQ, NC1
 
     DO NQ = 1, NQMAX
@@ -790,7 +790,7 @@ contains
 
   SUBROUTINE TXGRFR(NGYRIN,MODE)
 
-    use commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
+    use tx_commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
          &              NRA, PSI, HPSI, GY, NGR, gDIV, GX
     INTEGER(4), INTENT(IN) :: MODE
     INTEGER(4), INTENT(IN) :: NGYRIN
@@ -1554,7 +1554,7 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, &
+    use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, &
          &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV
     integer(4), intent(in) :: MODE
     character(len=50) :: STR
@@ -1624,7 +1624,7 @@ contains
 
   SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GXMIN, GYMAX, ILOGIN)
 
-    use commons, only : RA, RB
+    use tx_commons, only : RA, RB
     INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
@@ -1677,7 +1677,7 @@ contains
 
   SUBROUTINE TXGRFRXS(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GYMAX, ILOGIN)
 
-    use commons, only : RA, RB
+    use tx_commons, only : RA, RB
     INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
@@ -1721,7 +1721,7 @@ contains
   SUBROUTINE TXGRFRS(K, GXL, GYL_IN, NXMAX, NGMAX, STR, MODE, IND, ILOGIN)
     ! Forth argument, NXMAX, is not always "NRMAX" defined as the number of grid points.
 
-    use commons, only : RA, RB
+    use tx_commons, only : RA, RB
     INTEGER(4), INTENT(IN) :: K, NXMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(:,:), INTENT(IN) :: GYL_IN
@@ -1759,7 +1759,7 @@ contains
 
   SUBROUTINE TXGRFV(NGYV,MODE)
 
-    use commons, only : NGVM, NGVV, MODEG, GVX, DT, NGVSTP, gDIV, GVY
+    use tx_commons, only : NGVM, NGVV, MODEG, GVX, DT, NGVSTP, gDIV, GVY
     INTEGER(4), INTENT(IN) :: NGYV, MODE
     INTEGER(4) :: IND
     REAL(4) :: gDIVL
@@ -2009,7 +2009,7 @@ contains
 
   SUBROUTINE TXGRFT(NGYT,MODE)
 
-    use commons, only : NGTM, NGYTM, MODEG, GTX, GTY, NGT, DT, NGTSTP
+    use tx_commons, only : NGTM, NGYTM, MODEG, GTX, GTY, NGT, DT, NGTSTP
     INTEGER(4), INTENT(IN) :: NGYT, MODE
     INTEGER(4) :: IND
     REAL(4) :: gDIVL
@@ -2230,8 +2230,8 @@ contains
 
   SUBROUTINE TXGRFQ(NQ,ID)
 
-    use commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
-    use interface, only : APTOS
+    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
+    use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
     INTEGER(4) :: NR, NC, NC1, NSTR, IND
@@ -2292,7 +2292,7 @@ contains
 
   SUBROUTINE TXWPGR
 
-    use commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD, &
+    use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD, &
          &              FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD0, PNBHT1, PNBHT2, &
          &              PNBHP, PRFH, Vb, De0, rMue0, rMui0, Chie0, Chii0, PTe0, PTea, &
          &              PTi0, PTia, V0, rGamm0, rGASPF, Zeff
@@ -2631,7 +2631,7 @@ contains
   !***************************************************************
 
   SUBROUTINE APPROPGY(MODE, GIN, GOUT, STR, NXM, NXMAX, NYMAX, gDIV, GIN1)
-    use interface, only : APTOS
+    use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: MODE, NXM, NXMAX, NYMAX
     REAL(4), INTENT(IN) :: gDIV
@@ -2684,4 +2684,4 @@ contains
     RETURN
   END FUNCTION GLOG
 
-end module graphic
+end module tx_graphic

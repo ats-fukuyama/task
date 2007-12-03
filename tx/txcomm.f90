@@ -1,4 +1,4 @@
-module commons
+module tx_commons
   implicit none
   public
 
@@ -378,4 +378,4 @@ contains
 
   end subroutine deallocate_txcomm
 
-end module commons
+end module tx_commons

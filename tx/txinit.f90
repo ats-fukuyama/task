@@ -6,7 +6,7 @@
 !***************************************************************
 
 SUBROUTINE TXINIT
-  use commons
+  use tx_commons
 
   implicit none
 
@@ -466,8 +466,8 @@ END SUBROUTINE TXINIT
 
 SUBROUTINE TXCALM
 
-  use commons
-  use interface, only : LORENTZ, LORENTZ_PART, BISECTION
+  use tx_commons
+  use tx_interface, only : LORENTZ, LORENTZ_PART, BISECTION
 
   implicit none
   INTEGER(4) :: NR, NRL, NR_RC_NEAR
@@ -581,9 +581,9 @@ END SUBROUTINE TXCALM
 
 SUBROUTINE TXPROF
 
-  use commons
-  use variables
-  use interface, only : INTG_P, DERIVS, INTDERIV3
+  use tx_commons
+  use tx_variables
+  use tx_interface, only : INTG_P, DERIVS, INTDERIV3
 
   implicit none
   INTEGER(4) :: NR, NQ, I, IER
@@ -934,8 +934,8 @@ END SUBROUTINE TXPROF
 
 !*****************************************************************************************
 
-module parameter_control
-  use commons
+module tx_parameter_control
+  use tx_commons
   implicit none
   public
   NAMELIST /TX/ &
@@ -1184,4 +1184,4 @@ contains
 
     RETURN
   END SUBROUTINE TXVIEW
-end module parameter_control
+end module tx_parameter_control

@@ -1,5 +1,5 @@
 !     $Id$
-module main
+module tx_main
   implicit none
   private
   public :: TXEXEC
@@ -13,8 +13,8 @@ contains
 !***************************************************************
 
   SUBROUTINE TXEXEC
-    use commons, only : IERR, T_TX
-    use interface, only : APTOS
+    use tx_commons, only : IERR, T_TX
+    use tx_interface, only : APTOS
 
     INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
     REAL(4) :: gCTIME1, gCTIME2, gCTIME3
@@ -69,12 +69,12 @@ contains
 !***************************************************************
 
   SUBROUTINE TXLOOP
-    use commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
+    use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
          &              PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, tiny_cap, EPS, IDIAG, &
          &              NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, NGRM, NGYRM
-    use variables
-    use coefficients, only : TXCALA
-    use graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
+    use tx_variables
+    use tx_coefficients, only : TXCALA
+    use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX
@@ -294,7 +294,7 @@ contains
 
   SUBROUTINE TXCALB(BA,BL,BX)
 
-    use commons, only : IGBDF, ADV, MDLPCK, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
+    use tx_commons, only : IGBDF, ADV, MDLPCK, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
          &              PLC, X, XOLD
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
@@ -528,7 +528,7 @@ contains
 
   SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
-    use commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5
+    use tx_commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5
     INTEGER(4), intent(in) :: NTL, IC
     integer(4), intent(inout) :: IER
     REAL(8), DIMENSION(1:NQMAX,0:NRMAX), intent(in) :: XL
@@ -569,7 +569,7 @@ contains
 
   SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
-    use commons, only : NQMAX, NRMAX
+    use tx_commons, only : NQMAX, NRMAX
     integer(4), intent(in) :: LQ, ID
     real(8), dimension(1:NQMAX,0:NRMAX), intent(inout) :: XL
     integer(4) :: NR, NZERO
@@ -615,5 +615,5 @@ contains
 !!$
 !!$  END SUBROUTINE THRESHOLD
 
-end module main
+end module tx_main
 

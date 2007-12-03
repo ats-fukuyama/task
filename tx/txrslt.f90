@@ -7,8 +7,9 @@
 
 SUBROUTINE TXGLOB
 
-  use commons
-  use interface, only : INTG_F, INTG_P, DERIVS
+  use tx_commons
+  use tx_interface, only : INTG_F, INTG_P, DERIVS
+  implicit none
 
   INTEGER(4) :: I, NS, NF, NR
   REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
@@ -359,9 +360,8 @@ SUBROUTINE TXGLOB
 END SUBROUTINE TXGLOB
 
 subroutine TXSTAT
-  use commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
-       &              BETAPA, BETAN
-
+  use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
+       &                 BETAPA, BETAN
   implicit none
 
   write(6,'(1X,2(A26,1PD10.3,3X))') "Vol. ave. of neutrality = ", VOLAVN

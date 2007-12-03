@@ -1,6 +1,6 @@
 !     $Id$
-module core_module
-  use commons, only : nrmax, h, r, psi, hpsi, nemax
+module tx_core_module
+  use tx_commons, only : nrmax, h, r, psi, hpsi, nemax
   implicit none
   real(8) :: c13 = 1.d0 / 3.d0, c16 = 1.d0 / 6.d0, c112 = 1.d0 / 12.d0, c160 = 1.d0 / 60.d0
   public
@@ -818,7 +818,7 @@ contains
 
   end subroutine inv_int
 
-end module core_module
+end module tx_core_module
 
 !*****************************************************************
 
@@ -1137,7 +1137,7 @@ REAL(8) FUNCTION INTG_F(X)
 
   ! Calculate \int (r * X) dpsi
 
-  use core_module, only : fem_int
+  use tx_core_module, only : fem_int
   implicit none
   real(8), dimension(*), intent(in) :: X
 
@@ -1150,7 +1150,7 @@ REAL(8) FUNCTION INTG_P(X,NR,ID)
   ! Calculate \int r * X(r) dpsi or 0.5 * \int X(psi) dpsi (ID == 0) 
   !           \int     X(r) dpsi (ID == 1) at one mesh
 
-  use core_module, only : fem_int_point
+  use tx_core_module, only : fem_int_point
   implicit none
   integer(4), intent(in) :: NR, ID
   real(8), dimension(*), intent(in) :: X
@@ -1178,7 +1178,7 @@ SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
 
   ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
 
-  use core_module, only : fem_int_point
+  use tx_core_module, only : fem_int_point
   implicit none
   integer(4), intent(in) :: NRLMAX
   integer(4), intent(in), optional :: NR_START

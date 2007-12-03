@@ -1,4 +1,4 @@
-module nclass_mod
+module tx_nclass_mod
   implicit none
   private
   public :: TX_NCLASS
@@ -84,7 +84,7 @@ contains
 !        = 5 error: inversion of flow matrix failed
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
-    use commons
+    use tx_commons
     INCLUDE 'nclass/pamx_mi.inc'
     INCLUDE 'nclass/pamx_ms.inc'
     INCLUDE 'nclass/pamx_mz.inc'
@@ -935,7 +935,7 @@ contains
     RETURN
   end SUBROUTINE NCLASS_CHECK
 
-end module nclass_mod
+end module tx_nclass_mod
 
 !*************************** Sauter model ******************************
 

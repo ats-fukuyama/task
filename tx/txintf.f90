@@ -1,4 +1,4 @@
-module interface
+module tx_interface
 
   !****************!
   !   txmenu.f90   !
@@ -173,4 +173,4 @@ module interface
      end subroutine TXGR3D
   end interface
 
-end module interface
+end module tx_interface
