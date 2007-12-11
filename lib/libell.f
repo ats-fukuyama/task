@@ -2,6 +2,8 @@ C     $Id$
 C
 C     ***** ELLIPTIC INTEGRAL LIBRARY *****
 C
+C     *** Complete elliptic integral of the first kind ***
+C
       FUNCTION ELLFC(AK,IERR)
 C
       IMPLICIT NONE
@@ -22,6 +24,8 @@ C
       ENDIF
       RETURN
       END
+C
+C     *** Complete elliptic integral of the second kind ***
 C
       FUNCTION ELLEC(AK,IERR)
 C
