@@ -5,7 +5,8 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txcalv.f90 \
-       txcala.f90 txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 txmain.f90
+       txcala.f90 txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 \
+       txmain.f90 txntv.f90
 SRC2D= txg2d.f90
 SRC3D= txg3d.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \

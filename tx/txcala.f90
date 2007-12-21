@@ -8,10 +8,9 @@ module tx_coefficients
   real(8), dimension(:), allocatable ::  &
        & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        & rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
-       & RATIORUbthV, RATIOUbphV, &
-       & UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
+       & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       & BphBNi, BthBNi, DbrpftNi, Dbrpft, &
+       & BphBNi, BthBNi, Dbrpft, &
        & rNuei1EI, rNuei2EI, rNuei3EI, &
        & rNube1BE, rNube2BE, rNube3BE
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
@@ -98,10 +97,10 @@ contains
 
     allocate(rNuIN0(0:N), rNuCXN0(0:N), rNubeBE(0:N), rNubiBI(0:N), rNuTeiEI(0:N), &
        &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), dPNeV(0:N), dPNiV(0:N), &
-       &     RATIORUbthV(0:N), RATIOUbphV(0:N), UethVR(0:N), UithVR(0:N), &
+       &     RUbthV(0:N), UethVR(0:N), UithVR(0:N), &
        &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
        &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
-       &     BphBNi(0:N), BthBNi(0:N), DbrpftNi(0:N), Dbrpft(0:N), &
+       &     BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2EI(0:N), rNuei3EI(0:N), &
        &     rNube1BE(0:N), rNube2BE(0:N), rNube3BE(0:N))
     allocate(UNITY(0:N))
@@ -221,10 +220,9 @@ contains
     deallocate(ELM,PELM)
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        &       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
-       &       RATIORUbthV, RATIOUbphV, &
-       &       UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
+       &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
-       &       BphBNi, BthBNi, DbrpftNi, Dbrpft, &
+       &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2EI, rNuei3EI, &
        &       rNube1BE, rNube2BE, rNube3BE)
     deallocate(UNITY)
@@ -297,9 +295,7 @@ contains
 
 !!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
 
-    RATIORUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX) * RATIO(0:NRMAX)
-    RATIOUbphV(0:NRMAX) = UbthV(0:NRMAX) * RATIO(0:NRMAX)
-    DbrpftNi(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX) / PNiV(0:NRMAX)
+    RUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX)
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
     rNuei1EI(0:NRMAX)  = rNuei1(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
@@ -1551,7 +1547,7 @@ contains
 
     ! Ripple diffusion
 
-    ELM(1:NEMAX,1:4,7,LQb1) = - 4.d0 * fem_int(41,Dbrpft,RATIO)
+    ELM(1:NEMAX,1:4,7,LQb1) = - 4.d0 * fem_int(18,Dbrpft)
     NLC(7,LQb1) = LQb1
 
     NLCMAX(LQb1) = 7
@@ -1618,17 +1614,22 @@ contains
     ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(2,rNuLB) * BeamSW
     NLC(11,LQb3) = LQb3
 
-    ! Momentum diffusion arising from beam ion convective flux due to ripple
+    ! Momentum loss due to collisional ripple trapping
 
-    ELM(1:NEMAX,1:4,12,LQb3) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
+    ELM(1:NEMAX,1:4,12,LQb3) = - fem_int(28,rNubrp2,RATIO) * RpplSW
     NLC(12,LQb3) = LQb3
 
-    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RATIORUbthV)
-    NLC(13,LQb3) = LQb1
+    ! Momentum diffusion arising from beam ion convective flux due to ripple
+
+    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(18,Dbrpft)
+    NLC(13,LQb3) = LQb3
+
+    ELM(1:NEMAX,1:4,14,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
+    NLC(14,LQb3) = LQb1
 
     ! Ubth(NRMAX) : 0
 
-    NLCMAX(LQb3) = 13
+    NLCMAX(LQb3) = 14
     RETURN
   END SUBROUTINE LQb3CC
 
@@ -1692,17 +1693,22 @@ contains
     ELM(1:NEMAX,1:4,11,LQb4) = - fem_int(2,rNuLB) * BeamSW
     NLC(11,LQb4) = LQb4
 
-    ! Momentum diffusion arising from beam ion convective flux due to ripple
+    ! Momentum loss due to collisional ripple trapping
 
-    ELM(1:NEMAX,1:4,12,LQb4) = - 4.D0 * fem_int(41,Dbrpft,RATIO)
+    ELM(1:NEMAX,1:4,12,LQb4) = - fem_int(28,rNubrp2,RATIO) * RpplSW
     NLC(12,LQb4) = LQb4
 
-    ELM(1:NEMAX,1:4,13,LQb4) = - 4.D0 * fem_int(45,Dbrpft,RATIOUbphV)
-    NLC(13,LQb4) = LQb1
+    ! Momentum diffusion arising from beam ion convective flux due to ripple
+
+    ELM(1:NEMAX,1:4,13,LQb4) = - 4.D0 * fem_int(18,Dbrpft)
+    NLC(13,LQb4) = LQb4
+
+    ELM(1:NEMAX,1:4,14,LQb4) = - 4.D0 * fem_int(45,Dbrpft,UbphV)
+    NLC(14,LQb4) = LQb1
 
     ! Ubphi(NRMAX) : 0
 
-    NLCMAX(LQb4) = 13
+    NLCMAX(LQb4) = 14
     RETURN
   END SUBROUTINE LQb4CC
 
@@ -1801,6 +1807,7 @@ contains
           peclet = 0.5d0 * RUbrpl * hpsi(ne) / SDbrpl
           coef = 0.5d0 * langevin(peclet) * hpsi(ne)
        end if
+       coef=0.d0 !!! no SUPG
 
        ELM(NE,1:4,0,LQr1) =   fem_int_point(1,NE) * invDT &
             &               + fem_int_point(8,NE) * coef * invDT

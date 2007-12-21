@@ -69,9 +69,10 @@ contains
 !***************************************************************
 
   SUBROUTINE TXLOOP
-    use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, PNeV, PTeV, &
-         &              PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, tiny_cap, EPS, IDIAG, &
-         &              NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, NGRM, NGYRM
+    use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
+         &                 PNeV, PTeV,PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, &
+         &                 tiny_cap, EPS, IDIAG,NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
+         &                 NGRM, NGYRM
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
@@ -85,6 +86,9 @@ contains
     integer(4) :: iasg(1:2)
 
     allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
+
+    !  Read spline table for neoclassical toroidal viscosity if not loaded when FSRP/=0
+    IF(FSRP /= 0.D0 .AND. maxval(fmnq) == 0.D0) CALL Wnm_spline(fmnq, wnm, umnq, nmnqm)
 
     IF (MODEAV == 0) THEN
        IDIV = NTMAX + 1
@@ -528,7 +532,7 @@ contains
 
   SUBROUTINE TXCHCK(NTL,IC,XL,IER)
 
-    use tx_commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5
+    use tx_commons, only : NQMAX, NRMAX, LQe1, LQi1, LQe5, LQi5, LQb1, LQr1
     INTEGER(4), intent(in) :: NTL, IC
     integer(4), intent(inout) :: IER
     REAL(8), DIMENSION(1:NQMAX,0:NRMAX), intent(in) :: XL
@@ -537,11 +541,14 @@ contains
     IER = 0
 
     DO NR = 0, NRMAX
-       IF (XL(LQe1,NR) < 0.D0 .OR. XL(LQi1,NR) < 0.D0) THEN
+       IF (XL(LQe1,NR) < 0.D0 .OR. XL(LQi1,NR) < 0.D0 .OR. &
+        &  XL(LQb1,NR) < 0.D0 .OR. XL(LQr1,NR) < 0.D0) THEN
           WRITE(6,'(2A,I4,2(A,I4),A)') '### ERROR(TXLOOP) : Negative density at ', &
                &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
-          WRITE(6,'(20X,2(A,1PE15.7))') 'ne =', SNGL(XL(LQe1,NR)), &
-               &           ',   ni =', SNGL(XL(LQi1,NR))
+          WRITE(6,'(1X,4(A,1PE10.3))') 'ne =', SNGL(XL(LQe1,NR)), &
+               &                    ',   ni =', SNGL(XL(LQi1,NR)), &
+               &                    ',   nb =', SNGL(XL(LQb1,NR)), &
+               &                    ', nbrp =', SNGL(XL(LQr1,NR))
           IER = 1
           RETURN
        END IF

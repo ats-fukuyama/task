@@ -13,6 +13,24 @@ module tx_interface
   end interface
 
   !****************!
+  !   txntv.f90    !
+  !****************!
+
+  interface
+     subroutine perturb_mag(B_lambda)
+       real(8), dimension(*), intent(out) :: B_lambda
+     end subroutine perturb_mag
+  end interface
+
+  interface
+     subroutine Wnm_spline(fmnq, wnm, umnq, nmnqm)
+       integer(4), intent(in) :: nmnqm
+       real(8), dimension(1:nmnqm), intent(in) :: fmnq, wnm
+       real(8), dimension(1:4,1:nmnqm), intent(in) :: umnq
+     end subroutine Wnm_spline
+  end interface
+
+  !****************!
   !   txlib.f90    !
   !****************!
 

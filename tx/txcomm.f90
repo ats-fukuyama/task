@@ -4,7 +4,8 @@ module tx_commons
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
        &                   NGTM=5000, NGVM=5000, NGYRM=120, NGYTM=46, &
-       &                   NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15
+       &                   NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15, &
+       &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                   LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
@@ -77,7 +78,7 @@ module tx_commons
 
   ! Ripple parameters
   real(8) :: DIN, DltRP0
-  integer(4) :: NTCOIL
+  integer(4) :: NTCOIL, m_pol, n_tor
 
   ! Numerical parameters
   real(8) :: DT, EPS, ADV, tiny_cap, CMESH0, WMESH0, CMESH, WMESH
@@ -145,7 +146,13 @@ module tx_commons
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLe, rlnLi, &
-       & Ubrp, RUbrp, Dbrp, DltRP, rNubL, RATIO, rNuOL
+       & Ubrp, RUbrp, Dbrp, DltRP, rNubL, RATIO, rNuOL, &
+       & rNuNTV, UastNC
+  real(8), dimension(:,:), allocatable :: deltam
+
+  ! Read Wnm table
+  real(8), dimension(:),   allocatable :: Fmnq, Wnm
+  real(8), dimension(:,:), allocatable :: Umnq
  
   ! CDBM
   real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa
@@ -209,9 +216,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:15) :: ierl
+    integer(4), dimension(1:17) :: ierl
 
-    ierl(1:15) = 0
+    ierl(1:17) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -265,7 +272,9 @@ contains
        allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(12))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLe(0:N), rlnLi(0:N),             stat = ierl(13))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(14))
-       allocate(RATIO(0:N),  rNuOL(0:N),                                      stat = ierl(15))
+       allocate(RATIO(0:N),  rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
+       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
+       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(17))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -348,7 +357,9 @@ contains
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
     deallocate(FWthphe,FWthphi,rlnLe, rlnLi)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
-    deallocate(RATIO,  rNuOL)
+    deallocate(RATIO,  rNuOL,  rNuNTV,UastNC)
+    deallocate(Fmnq,   Wnm,    Umnq)
+    deallocate(deltam)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
 

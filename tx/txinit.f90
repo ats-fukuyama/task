@@ -249,6 +249,12 @@ SUBROUTINE TXINIT
   ! Ripple loss percentage at plasma surface
   DltRP0 = 0.01D0
 
+  ! Maximum poloidal mode number of error field (should be power of two)
+  m_pol  = 32
+
+  ! Tolodal mode number of error field
+  n_tor  = NTCOIL
+
   !   ***** Numerical parameters *****
 
   !   Time step size(s)
@@ -590,17 +596,23 @@ SUBROUTINE TXPROF
   REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
-  real(8) :: PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
+  real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
   REAL(8) :: DERIV3, FCTR ! External functions
   real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
   real(8), dimension(:,:), allocatable :: CMTX
+
+  !  Read spline table for neoclassical toroidal viscosity
+  IF(FSRP /= 0.D0) CALL Wnm_spline(fmnq, wnm, umnq, nmnqm)
 
   NEMAX = NRMAX
 
   !  Define basic quantities like mass of particles, mesh, etc.
 
   CALL TXCALM
+
+  !  Contribution of perturbed magnetic field
+  IF(DltRP0 /= 0.D0) CALL perturb_mag
 
   !  Initialize variable vector
 
@@ -783,24 +795,51 @@ SUBROUTINE TXPROF
   END DO
   CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
 
-!!$  ! Numerical solution for AphV
-!!$
-!!$  RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
-!!$  X(LQm4,0) = 0.D0
-!!$  X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
+  ! Numerical solution for AphV
 
-  ! Analytic solution for AphV
+  IF(PROFJ /= 1 .AND. PROFJ /= 2 .AND. PROFJ /= 3 .AND. PROFJ /= 4 .AND. PROFJ /= 5) THEN
+     RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
+     X(LQm4,0) = 0.D0
+     X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
+  ELSE
 
-  DO NR = 0, NRMAX
-     IF(R(NR) < RA) THEN
-        X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
-             & *(3.d0*PSI(NR)-1.5D0*(PSI(NR)/RA)**2+(PSI(NR)/RA)**3/(3.D0*RA))
-     ELSE
-        X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI * RA**2) &
-             & *(3.d0*RA**2-1.5D0*RA**2+RA**2/3.D0) &
-             & - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
-     END IF
-  END DO
+  ! Analytic solution for AphV (Valid for PROFJ=1,2,3,4,5, otherwise use above.)
+
+     DO NR = 0, NRMAX
+        IF(R(NR) < RA) THEN
+           RL = R(NR) / RA
+           IF(PROFJ == 1) THEN
+              FACT = RL**2*(2.d0-0.5d0*RL**2)
+           ELSE IF(PROFJ == 2) THEN
+              FACT = RL**2*(3.d0-1.5D0*RL**2+RL**4/3.D0)
+           ELSE IF(PROFJ == 3) THEN
+              FACT = RL**2*(4.d0-3.d0*RL**2+(4.d0/3.d0)*RL**4-0.25d0*RL**6)
+           ELSE IF(PROFJ == 4) THEN
+              FACT = RL**2*(5.d0-5.d0*RL**2+(10.d0/3.d0)*RL**4-1.25d0*RL**6+0.2d0*RL**8)
+           ELSE IF(PROFJ == 5) THEN
+              FACT = RL**2*(6.d0-7.5d0*RL**2+(20.d0/3.d0)*RL**4-3.75d0*RL**6+1.2d0*RL**8 &
+                   &-RL**10/6.d0)
+           END IF
+           X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * FACT
+        ELSE
+           RL = RA
+           IF(PROFJ == 1) THEN
+              FACT = RL**2*(2.d0-0.5d0*RL**2)
+           ELSE IF(PROFJ == 2) THEN
+              FACT = RL**2*(3.d0-1.5D0*RL**2+RL**4/3.D0)
+           ELSE IF(PROFJ == 3) THEN
+              FACT = RL**2*(4.d0-3.d0*RL**2+(4.d0/3.d0)*RL**4-0.25d0*RL**6)
+           ELSE IF(PROFJ == 4) THEN
+              FACT = RL**2*(5.d0-5.d0*RL**2+(10.d0/3.d0)*RL**4-1.25d0*RL**6+0.2d0*RL**8)
+           ELSE IF(PROFJ == 5) THEN
+              FACT = RL**2*(6.d0-7.5d0*RL**2+(20.d0/3.d0)*RL**4-3.75d0*RL**6+1.2d0*RL**8 &
+                   &-RL**10/6.d0)
+           END IF
+           X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * FACT &
+                &       - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
+        END IF
+     END DO
+  END IF
 
   ! Poloidal current density (Virtual current for helical system)
 
@@ -950,7 +989,7 @@ module tx_parameter_control
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD, &
        & rNRF,RRF,RRF0,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & NTCOIL,DIN,DltRP0, &
+       & NTCOIL,DIN,DltRP0,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
@@ -1110,7 +1149,7 @@ contains
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,rNRF,RRF,RRF0,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'NTCOIL,DIN,DltRP0'/ &
+         &       ' ',8X,'NTCOIL,DIN,DltRP0,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
@@ -1180,7 +1219,8 @@ contains
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
-         &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC
+         &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
+         &   'm_pol ', m_pol ,  'n_tor ', n_tor
 
     RETURN
   END SUBROUTINE TXVIEW

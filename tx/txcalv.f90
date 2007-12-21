@@ -140,7 +140,7 @@ contains
     use tx_nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax, nrl
+    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
@@ -149,12 +149,10 @@ contains
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
-         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR2, Vdrift, &
+         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l !&
-!!neo         &     NGRADB2, K11PSe, K11Be,  K11Pe, K11PSi, K11Bi, K11Pi
-!!    real(8) :: Ce = 0.733D0, Ci = 1.365D0
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SP0, SP1, SP2, SN0, SN1, SN2, &
@@ -427,25 +425,6 @@ contains
 !!$               &                  + 0.70D0 * SQRT(2.D0) * rNuii(NR) / Wti) &
 !!$               &     * 1.D0 / (1.D0 + RL**2)
 !!$       END IF
-
-!!neo       IF(NR /= 0) THEN
-!!neo          NGRADB2 = EpsL**2 / (2.D0 * (1.D0 - EpsL**2)**1.5D0) &
-!!neo               &  * (BphV(0) / (RR * Q(NR)))**2
-!!neo          FTL  = 1.46D0 * SQRT(EpsL) - 0.46D0 * SQRT(EpsL) * EpsL
-!!neo          K11PSe = 0.5D0 * Ce * Vte**2 / rNuee(NR)
-!!neo          FCL = 1.D0 - FTL
-!!neo          K11Be  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
-!!neo               & * (NUD(1.D0) * rNuee(NR) + NUD(Vte/Vti) * rNuei(NR))
-!!neo          K11Pe  = SQRT(PI) * Q(NR) * RR * Vte / 3.D0
-!!neo          K11PSi = 0.5D0 * Ci * Vti**2 / rNuii(NR)
-!!neo          K11Bi  = BphV(0)**2 * FTL / FCL / (3.D0 * NGRADB2) &
-!!neo               & * (NUD(1.D0) * rNuii(NR) + NUD(Vti/Vte) * rNuie(NR))
-!!neo          K11Pi  = SQRT(PI) * Q(NR) * RR * Vti / 3.D0
-!!neo          rNueNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-!!neo            &        *(K11Be * K11PSe) / (K11Be + K11PSe)
-!!neo          rNuiNC(NR) = FSNC*3.D0/(2.D0*(1.D0-EpsL**2)**1.5D0)*(BphV(0)/BphV(NR)/RR)**2 &
-!!neo            &        *(K11Bi * K11PSi) / (K11Bi + K11PSi)
-!!neo       END IF
 
 !!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
 !!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
@@ -927,6 +906,7 @@ contains
     RATIO(0:NRMAX) = 0.D0
     IF(ABS(FSRP) > 0.D0) THEN
        ! Ripple well region
+!       write(6,*) 0.d0,DltRP(0)
        DO NR = 1, NRMAX
           EpsL = R(NR) / RR
           theta1  = 0.d0
@@ -978,18 +958,16 @@ contains
           RATIO(NR) = ARC / (2.d0 * PI)
           th2(nr) = theta2
 
-          ! alpha_l : ripple well parameter
-          alpha_l = EpsL / (NTCOIL * Q(NR) * DltRP(NR)) * (theta1*sin(theta1) &
-               &  + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2)
-          ! Dlteff : effective depth of well along the magnetic field line
-          Dlteff = 2.D0*DltRP(NR)*(SQRT(1.D0-alpha_l**2)-alpha_l*acos(alpha_l))
+!!$          ! alpha_l : ripple well parameter
+!!$          alpha_l = EpsL / (NTCOIL * Q(NR) * DltRP(NR)) * (theta1*sin(theta1) &
+!!$               &  + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2)
+!!$          ! Dlteff : effective depth of well along the magnetic field line
+!!$          Dlteff = 2.D0*DltRP(NR)*(SQRT(1.D0-alpha_l**2)-alpha_l*acos(alpha_l))
 
-          ! effective time of detrapping (Takamura (5.31))
+          ! effective time of detrapping (Takamura (5.31), Stringer NF (1972) 689)
           IF(DltRP(NR) /= 0.D0) THEN
-!!$             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
-!!$             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * DltRP(NR))
              rNubrp1(NR) = rNuD(NR) / DltRP(NR)
-             rNubrp2(NR) = rNubrp1(NR) * SQRT(2.D0 * Dlteff)
+             rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP(NR))
           ELSE
              rNubrp1(NR) = 0.D0
              rNubrp2(NR) = 0.D0
@@ -1007,13 +985,13 @@ contains
 !!$             rNubL(NR) = Ubrp(NR) / SQRT(RB**2 - R(NR)**2)
 !!$          END IF
 !!$          rNubL(NR) = Ubrp(NR) / (R(NR) * sin(theta1))
+!          write(6,*) r(nr)/ra,Dlteff
        END DO
 !!$       RV0 = AITKEN2P(R(0),r(1)*(pi-th2(1)),r(1)*th1(1),r(2)*th1(2),-R(1),R(1),R(2))
 !!$       rNubL(0) = Ubrp(0) / RV0
        Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
-!       Ubrp(0) = 0.D0
        rNubrp1(0) = rNuD(0) / DltRP(0)
-       rNubrp2(0) = rNubrp1(0) * SQRT(2.D0 * DltRP(0))
+       rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
 
 !!rp_conv       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
 !!rp_conv       do nr = 0, nrmax
@@ -1029,26 +1007,28 @@ contains
 
        !  Diffusive loss
        !  -- Collisional diffusion of trapped fast particles --
+       rnubl(:) = 0.d0
        do nr = 1, nrmax
           EpsL = R(NR) / RR
 
           ! rhob : Larmor radius of beam ions
           rhob = AMb * Vb / (PZ * AEE * SQRT(BphV(NR)**2 + BthV(NR)**2))
-          ! DltR2 : Square step size of banana particle
-          DltR2 = PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
+          ! DltR : Step size of banana particles
+!          DltR = SQRT(PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2)
+          DltR = rhob*DltRP(NR)*SQRT(PI*NTCOIL*Q(nr)**3) &
+               & /((NTCOIL*Q(NR)*DltRP(NR))**1.5D0+EpsL**1.5D0)
+!          write(6,*) r(nr)/ra,DltR,rhob*ripple(NR,0.5D0*PI,FSRP)*SQRT(PI*NTCOIL*Q(nr)**3) &
+!               & *ABS(SIN(0.25D0*PI))/((NTCOIL*Q(NR)*ripple(NR,0.5D0*PI,FSRP))**1.5D0+(EpsL*ABS(SIN(0.25D0*PI)))**1.5D0)
 
-!!$          ! effective collisional frequency
-!!$          rNueff = Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR)
-          ! rNubnc : bounce frequency of beam ions
-!!          rNubnc = SQRT(EpsL) * Vb / (2.D0 * PI * Q(NR) * RR)
-          rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * RR)
-          ! DCB : confined banana diffusion coefficient
-          ! (V. Ya Goloborod'ko, et al., Physica Scripta T16 (1987) 46)
-          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
+          ! effective collisional frequency (G. Park et al., PoP 10 (2003) 4004, eq.(6))
+          rNueff = 1.82d0 * Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR)
+          ! rNubnc : bounce frequency of beam ions (same above)
+          rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * (RR + R(NR)))
+!!$          ! DCB : confined banana diffusion coefficient
+!!$          ! (V. Ya Goloborod'ko, et al., Physica Scripta T16 (1987) 46)
+!!$          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
           ! DRP : ripple-plateau diffusion coefficient
-          DRP = rNubnc * DltR2
-!          DRP = 0.25D0 * DltR2 * rNubnc
-!          DRP = SQRT(EpsL) * Vb / (4.D0 * Q(NR) * RR) * DltR2 / (2.D0 * PI)
+          DRP = rNubnc * DltR**2
 
           ! Collisional ripple well diffusion
 !!$          if (rNueff < rNubnc) then
@@ -1056,20 +1036,56 @@ contains
 !!$          else
 !!$             Dbrp(NR) = DRP
 !!$          end if
-          Dbrp(NR) = DCB * DRP / (DCB + DRP)
+!!$!          Dbrp(NR) = DCB * DRP / (DCB + DRP)
+          Dbrp(NR) = DRP/SQRT(1.D0+(rNubnc/rNueff*DltR*NTCOIL*dQdr(NR))**2)
 
-          ! Dltcr : criterion of stochastic diffusion
+          ! Dltcr : GWB criterion of stochastic diffusion
           Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
-          ! Collisionless stochastic (ergodic) diffusion (whose value is almost
+          ! Fraction of stochastic region occupied in a flux surface
+          theta1 = 0.d0
+          i = 0
+          dlt = 1.d0 / (imax - 1)
+          ist = -1
+          do
+             i = i + 1
+             if(ripple(nr,theta1,fsrp) > Dltcr) ist = ist + 1
+             theta1 = theta1 + PI * dlt
+             if(i == imax) exit
+          end do
+          ! Collisionless stochastic (ergodic) diffusion (whose value is 
           ! equivalent to that of ripple-plateau diffusion)
-          if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
+          if (DltRP(NR) > Dltcr) then
+             ! facST : Fraction of stochastic region in a flux surface
+             facST = dble(ist) / dble(imax - 1)
+             Dbrp(NR) = DRP * facST + Dbrp(NR) * (1.d0 - facST)
+             rnubl(nr) = facST
+          end if
+
+!!$          ! Old version for display and comparison
+!!$          DRP = rNubnc * PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
+!!$          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
+!!$          Dbrp(NR) = DCB * DRP / (DCB + DRP)
+!!$          if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
+!!$          write(6,*) r(nr)/ra,ft(NR)*RATIO(NR)*Dbrp(NR)
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
+
+!!$       do nr=0,nrmax
+!!$          write(6,*) r(nr)/ra,Dbrp(nr)
+!!$       end do
+
+       !     ***** Neoclassical toroidal viscosity (NTV) *****
+       !      "rNuNTV" and "UastNC" are obtained from NTVcalc
+
+!       CALL NTVcalc
+
     ELSE
        rNubrp1(0:NRMAX) = 0.D0
        rNubrp2(0:NRMAX) = 0.D0
        Ubrp(0:NRMAX) = 0.D0
        Dbrp(0:NRMAX) = 0.D0
+       rNuNTV(0:NRMAX) = 0.D0
+       UastNC(0:NRMAX) = 0.D0
     END IF
 
     RETURN
@@ -1083,13 +1099,6 @@ contains
     &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2) * X
 
   END FUNCTION CORR
-
-!!$  pure REAL(8) FUNCTION NUD(X)
-!!$    real(8), intent(in) :: X
-!!$
-!!$    NUD = SQRT(1.D0 + X**2) + X**2 * LOG(X / (1.D0 + SQRT(1.D0 + X**2)))
-!!$
-!!$  END FUNCTION NUD
 
   pure real(8) function NBIi_ratio(x) result(f)
     real(8), intent(in) :: x

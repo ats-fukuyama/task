@@ -361,7 +361,7 @@ END SUBROUTINE TXGLOB
 
 subroutine TXSTAT
   use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
-       &                 BETAPA, BETAN
+       &                 BETAPA, BETAN, Q
   implicit none
 
   write(6,'(1X,2(A26,1PD10.3,3X))') "Vol. ave. of neutrality = ", VOLAVN
@@ -373,6 +373,7 @@ subroutine TXSTAT
        &                            "IPB98(y,2) scaling time = ", TAUEH
   write(6,'(1X,2(A26,1PD10.3,3X))') "Beta                    = ", BETAA, &
        &                            "Poloidal beta           = ", BETAPA
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Normalized beta         = ", BETAN
+  write(6,'(1X,2(A26,1PD10.3,3X))') "Normalized beta         = ", BETAN, &
+       &                            "Safety factor on axis   = ", Q(0)
 
 end subroutine TXSTAT
