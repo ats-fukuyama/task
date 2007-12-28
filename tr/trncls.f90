@@ -7,7 +7,7 @@
 
       SUBROUTINE TR_NCLASS(IERR)
 !***********************************************************************
-!TR_NCLASS calculates various paramters and arrays for NCLASS.
+!TR_NCLASS calculates various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER"
 !  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8"
 !  or "DOUBLE".
