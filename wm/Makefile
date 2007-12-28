@@ -2,7 +2,7 @@
 include ../make.header
 
 #FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS) -limf
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I. -I../lib
 
