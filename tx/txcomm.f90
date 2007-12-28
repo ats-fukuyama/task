@@ -71,7 +71,8 @@ module tx_commons
 
   ! Heat sources
   real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
-       &     PNBCD, rNRF, RRF, RRF0, PRFH
+       &     PNBCD, PNBMPD, rNRF, RRF, RRF0, PRFH
+  integer(4) :: MDLNBD, MDLPDM
 
   ! Neutral parameters
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
@@ -159,8 +160,8 @@ module tx_commons
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
-       &                                SNB, SNBTG, SNBPD, MNB, &
-       &                                PNBe, PNBi, PRFe, PRFi, &
+       &                                SNB, SNBe, SNBi, SNBPDi, SNBTGi, &
+       &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
        &                                SiLC, SiLCth, SiLCph
   real(8), dimension(:), allocatable :: PIE, PCX, SIE, PBr
@@ -283,8 +284,8 @@ contains
        if (ier /= 0) exit
 
        allocate(PNB(0:N),   PNBTG(0:N),PNBPD(0:N),PNBcol_e(0:N),PNBcol_i(0:N),stat = ierl(1))
-       allocate(SNB(0:N),   SNBTG(0:N),  SNBPD(0:N),  MNB(0:N),               stat = ierl(2))
-       allocate(PNBe(0:N),  PNBi(0:N),   PRFe(0:N),   PRFi(0:N),              stat = ierl(3))
+       allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBPDi(0:N),SNBTGi(0:N),stat = ierl(2))
+       allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(3))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(4))
        allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N),                         stat = ierl(5))
        allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    PBr(0:N),               stat = ierl(6))
@@ -364,8 +365,8 @@ contains
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
-    deallocate(SNB,    SNBTG, SNBPD, MNB)
-    deallocate(PNBe,   PNBi,  PRFe,  PRFi)
+    deallocate(SNB,    SNBe,  SNBi,  SNBPDi, SNBTGi)
+    deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
     deallocate(SiLC,   SiLCth,SiLCph)
     deallocate(PIE,    PCX,   SIE,   PBr)

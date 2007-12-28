@@ -529,12 +529,12 @@ contains
     GYL(0:NXM,NG,102) = SNGL(PeV(0:NXM)*1.D20*rKeV)
     GYL(0:NXM,NG,103) = SNGL(PiV(0:NXM)*1.D20*rKeV)
     GYL(0:NXM,NG,104) = SNGL(PNB(0:NXM))
-    GYL(0:NXM,NG,105) = SNGL(PNBPD(0:NXM))
-    GYL(0:NXM,NG,106) = SNGL(PNBTG(0:NXM))
-    GYL(0:NXM,NG,107) = SNGL(PNBPD(0:NXM) * PNBcol_e(0:NXM))
-    GYL(0:NXM,NG,108) = SNGL(PNBPD(0:NXM) * PNBcol_i(0:NXM))
+    GYL(0:NXM,NG,105) = SNGL(PNBPD(0:NXM)/(Eb*rKeV*1.D20))
+    GYL(0:NXM,NG,106) = SNGL(PNBTG(0:NXM)/(Eb*rKeV*1.D20))
+    GYL(0:NXM,NG,107) = SNGL(SNBPDi(0:NXM))
+    GYL(0:NXM,NG,108) = SNGL(SNBTGi(0:NXM))
 
-    ! Ripple loss part
+    ! *** Ripple loss part ******************************************
 
     GYL(0:NXM,NG,109) = SNGL(PNbrpV(0:NXM) * 1.D20)
     GYL(0:NXM,NG,110) = SNGL(X(LQr1,0:NXM))
@@ -554,8 +554,10 @@ contains
     GYL(0:NXM,NG,116) = SNGL(rNuLB(0:NXM))
     GYL(0:NXM,NG,117) = SNGL((-   AEE*PNeV(0:NXM)*UerV(0:NXM) &
          &                    +PZ*AEE*PNiV(0:NXM)*UirV(0:NXM))*1.D20)
+    ! ***************************************************************
 
     GYL(0:NXM,NG,118) = SNGL(rNubL(0:NXM))
+    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*(RR+R(0:NXM))*1.D20)
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -1135,7 +1137,11 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,104), GYL, STR, NRMAX, NRMAX, NGR, gDIV(104))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@NBI Torque(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,119), GYL, STR, NRMAX, NRMAX, NGR, gDIV(119))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(17)
        DO NR = 0, NRMAX
@@ -1179,19 +1185,19 @@ contains
 !       CALL TXWPGR
 
     CASE(18)
-       STR = '@PNB perpendicular(r)@'
+       STR = '@SNB perp(r)@'
        CALL APPROPGY(MODEG, GY(0,0,105), GYL, STR, NRMAX, NRMAX, NGR, gDIV(105))
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@PNB tangential(r)@'
+       STR = '@SNB tang(r)@'
        CALL APPROPGY(MODEG, GY(0,0,106), GYL, STR, NRMAX, NRMAX, NGR, gDIV(106))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@PNB perp electron(r)@'
+       STR = '@SNB perp i(r)@'
        CALL APPROPGY(MODEG, GY(0,0,107), GYL, STR, NRMAX, NRMAX, NGR, gDIV(107))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@PNB perp ion(r)@'
+       STR = '@SNB tang i(r)@'
        CALL APPROPGY(MODEG, GY(0,0,108), GYL, STR, NRMAX, NRMAX, NGR, gDIV(108))
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 

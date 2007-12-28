@@ -72,7 +72,8 @@ contains
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 PNeV, PTeV,PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, &
          &                 tiny_cap, EPS, IDIAG,NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
-         &                 NGRM, NGYRM
+         &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
+         &                 NT, DT, rIP, MDLPCK, NGR
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
@@ -576,7 +577,7 @@ contains
 
   SUBROUTINE MINUS_GOES_ZERO(XL,LQ,ID)
     
-    use tx_commons, only : NQMAX, NRMAX
+    use tx_commons, only : NQMAX, NRMAX, NRA
     integer(4), intent(in) :: LQ, ID
     real(8), dimension(1:NQMAX,0:NRMAX), intent(inout) :: XL
     integer(4) :: NR, NZERO
@@ -585,8 +586,12 @@ contains
        IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
           DO NR = 0, NRMAX
              IF(XL(LQ,NR) <= 0.D0) THEN
-                NZERO = NR
-                EXIT
+                IF(NR < NRA) THEN
+                   XL(LQ,NR) = 0.D0
+                ELSE
+                   NZERO = NR
+                   EXIT
+                END IF
              END IF
           END DO
 

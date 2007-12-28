@@ -13,7 +13,7 @@ contains
 
   SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAL,JBSL,IER)
 !***********************************************************************
-!TX_NCLASS calculates various paramters and arrays for NCLASS.
+!TX_NCLASS calculates various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
 !  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8" 
 !  or "DOUBLE".
@@ -95,8 +95,12 @@ contains
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
-         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL
+         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP
     REAL(8) :: DERIV3, AITKEN2P
+
+    !     *** Ellipticity on axis ***
+
+    RKAP = 1.D0
 
     !     *** Dummy impurity for using high Zeff ***
 
@@ -129,14 +133,17 @@ contains
     k_order  = 2
     k_potato = 1
 !    k_potato = 0
+
     m_i      = 2
     IF(Zeff > 1.D0) m_i   = 3
     PZMAX    = PZ
     IF(Zeff > 1.D0) PZMAX = PZL
     m_z      = INT(PZMAX)
     c_den    = 1.E10
-    c_potb   = SNGL(1.D0*BphV(0)/(2.D0*Q(0)**2))
+    !  *** Potate orbit factors ****************
+    c_potb   = SNGL(RKAP*BphV(0)/(2.D0*Q(0)**2))
     c_potl   = SNGL(Q(0)*RR)
+    !  *****************************************
 
     amu_i(1) = SNGL(AME/AMP)
     amu_i(2) = SNGL(PA)
@@ -172,7 +179,14 @@ contains
 
     p_grbm2   = SNGL(1.D0/RA**2) * p_bm2
     p_grphi   = SNGL(-RA*ErV(NR))
-    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0))
+!    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0)) ! Orbit squeezing
+    ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
+    if(nr == 0) then
+       p_gr2phi = 0.0
+    else
+       p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0) &
+            &           +RA**2*ErV(NR)*DERIV3(NR,R,BthV,NRMAX,0)/BthV(NR))
+    end if
     p_ngrth   = SNGL(BphV(NR)/(RR*Q(NR)*BBL))
     temp_i(1) = SNGL(PTeV(NR))
     temp_i(2) = SNGL(PTiV(NR))
@@ -264,7 +278,7 @@ contains
        NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
        NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
     END IF
-    
+
 !!$    AJBSNC(NR)=DBLE(p_bsjb)/BphV(NR)
 !!$    ETANC(NR) =DBLE(p_etap)
 !!$    AJEXNC(NR)=DBLE(p_exjb)/BphV(NR)

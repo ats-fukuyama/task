@@ -1,6 +1,5 @@
 !     $Id$
 module tx_variables
-  use tx_commons
   implicit none
   public
 
@@ -14,7 +13,8 @@ contains
 
   SUBROUTINE TXCALV(XL,ID)
 
-    use tx_interface, only : DERIVF, VALINT_SUB
+    use tx_commons
+    use tx_interface, only : DERIVF
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
@@ -135,13 +135,15 @@ contains
 
   SUBROUTINE TXCALC
 
-    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS
+    use tx_commons
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F
     use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
 
     INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist
-    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PRFe0, PRFi0, &
+    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, &
+         &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
@@ -150,13 +152,14 @@ contains
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
-         &     theta1, theta2, dlt, width0, width1, ARC, &
-         &     EbL, logEbL, Scx, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST
+         &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
+         &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
-    real(8) :: DERIV3, AITKEN2P
-    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SP0, SP1, SP2, SN0, SN1, SN2, &
-         &                         SP3, th1, th2, Ubpara
+    real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
+    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
+         &                         SNBPi, SNBTi1, SNBTi2, &
+         &                         SRF, th1, th2, Ubpara, ar1, ar2, ar3, ar4
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
 
@@ -180,8 +183,29 @@ contains
        Bthb = BB*RB/(QL*RR)
     END IF
 
+    ! **************** Heating part ****************
+
     !   NBI total input power (MW)
     PNBH = PNBHP + PNBHT1 + PNBHT2
+
+    !   Ratio of CX deposition rate to IZ deposition rate
+    !     (Riviere, NF 11 (1971) 363)
+
+    EbL = Eb * 1.D3 / PA
+    logEbL = log10(EbL)
+
+    Scxb = 6.937D-19 * (1.D0 - 0.155D0 * logEbL)**2 / (1.D0 + 1.112D-15 * EbL**3.3D0)
+
+    IF(PNBH == 0.D0) THEN
+       RatCX = 0.D0
+    ELSE
+       IF(Eb > 150.D0) THEN
+          Sion = 3.6D-16 / EbL * (- 0.7783D0 + logEbL)
+       ELSE
+          Sion = 10.D0**(-0.8712D0 * logEbL**2 + 8.156D0 * logEbL - 38.833D0)
+       END IF
+       RatCX = Scxb / (Scxb + Sion)
+    END IF
 
     !     *** Normalization factor for heating profile ***
     !
@@ -201,61 +225,45 @@ contains
 
     !  For NBI heating
     !  *** Perpendicular
-    IF(ABS(FSRP) > 0.D0) THEN
-       SP0(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
-       CALL VALINT_SUB(SP0,NRMAX,SL)
-       SN0(0:NRMAX) = SP0(0:NRMAX)
-    ELSE
-       SP0(0:NRA) = EXP(- ((R(0:NRA) - RNBP0) / RNBP)**2) * (1.D0 - (R(0:NRA) / RA)**4)
-       SP0(NRA+1:NRMAX) = 0.D0
-       CALL VALINT_SUB(SP0,NRA,SL)
-       SN0(0:NRA) = SP0(0:NRA)
-       SN0(NRA+1:NRMAX) = 0.D0
-    END IF
-    SL = 2.D0 * PI * SL
-
+    CALL deposition_profile(SNBP,SL,RNBP0,RNBP,'NB')
     PNBP0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
 
+    IF(MDLNBD /= 0) THEN ! Finite Delta effect
+       ! For ions
+       IF(PNBMPD == 0.D0) THEN ! Exact perpendicular NBI
+          CALL deposition_profile(SNBPi,SL,RNBP0,RNBP,'NB_TRAP',0.D0)
+       ELSE ! Near perpendicular NBI
+          CALL deposition_profile(SNBPi,SL,RNBP0,RNBP,'NB_TRAP',SIGN(1.D0,PNBMPD))
+       END IF
+       PNBPi0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
+    END IF
+
     !  *** Tangential
-    IF(ABS(FSRP) > 0.D0) THEN
-       SP1(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
-       CALL VALINT_SUB(SP1,NRMAX,SL)
-       SN1(0:NRMAX) = SP1(0:NRMAX)
-    ELSE
-       SP1(0:NRA) = EXP(- ((R(0:NRA) - RNBT10) / RNBT1)**2) * (1.D0 - (R(0:NRA) / RA)**4)
-       SP1(NRA+1:NRMAX) = 0.D0
-       CALL VALINT_SUB(SP1,NRA,SL)
-       SN1(0:NRA) = SP1(0:NRA)
-       SN1(NRA+1:NRMAX) = 0.D0
-    END IF
-    SLT1 = 2.D0 * PI * SL
-
-    IF(ABS(FSRP) > 0.D0) THEN
-       SP2(0:NRMAX) = EXP(- ((R(0:NRMAX) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRMAX) / RB)**2)
-       CALL VALINT_SUB(SP2,NRMAX,SL)
-       SN2(0:NRMAX) = SP2(0:NRMAX)
-    ELSE
-       SP2(0:NRA) = EXP(- ((R(0:NRA) - RNBT20) / RNBT2)**2) * (1.D0 - (R(0:NRA) / RA)**2)
-       SP2(NRA+1:NRMAX) = 0.D0
-       CALL VALINT_SUB(SP2,NRA,SL)
-       SN2(0:NRA) = SP2(0:NRA)
-       SN2(NRA+1:NRMAX) = 0.D0
-    END IF
-    SLT2 = 2.D0 * PI * SL
-
+    CALL deposition_profile(SNBT1,SLT1,RNBT10,RNBT1,'NB')
     PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+
+    IF(MDLNBD /= 0) THEN
+       ! For ions
+       CALL deposition_profile(SNBTi1,SLT1,RNBT10,RNBT1,'NB_PASS',SIGN(1.D0,PNBCD))
+       PNBTi10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+    END IF
+
+    CALL deposition_profile(SNBT2,SLT2,RNBT20,RNBT2,'NB')
     PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
 
-    !  For RF heating
-!!$    SP3(0:NRMAX) = 0.D0
-!!$    SP3(0:NRA) = EXP(- ((R(0:NRA) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRA) / RA)**4)
-!!$    CALL VALINT_SUB(SP3,NRA,SL)
-    SP3(0:NRMAX) = EXP(- ((R(0:NRMAX) - RRF0) / RRF)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
-    CALL VALINT_SUB(SP3,NRMAX,SL)
-    SL = 2.D0 * PI * SL
+    IF(MDLNBD /= 0) THEN
+       ! For ions
+       CALL deposition_profile(SNBTi2,SLT2,RNBT20,RNBT2,'NB_PASS',SIGN(1.D0,PNBCD))
+       PNBTi20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+    END IF
+
+    !  For RF heating (equally heating for electrons and ions)
+    CALL deposition_profile(SRF,SL,RRF0,RRF,'RF')
 
     PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
     PRFi0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
+
+    ! ************** Heating part end **************
 
     p(0:NRMAX) = (PeV(0:NRMAX) + PiV(0:NRMAX)) * 1.D20 * rKeV
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
@@ -279,18 +287,19 @@ contains
          & / SQRT(R(NRA) / RR)
 
     ! Ripple amplitude
+    thetab = PI / 3.D0
+    sinthb = sin(thetab)
     DO NR = 0, NRMAX
-       DltRP(NR) = ripple(NR,0.D0,FSRP)
+       DltRP(NR) = ripple(NR,thetab,FSRP)
     END DO
+
+    ellK = ELLFC(sin(0.5d0*thetab),IER) ! first kind of complete elliptic function 
+    ellE = ELLEC(sin(0.5d0*thetab),IER) ! second kind of complete elliptic function 
 
 !!rp_conv    PNbrpLV(0:NRMAX) = 0.D0
 
-    EbL = Eb * 1.D3 / PA
-    logEbL = log10(EbL)
-
     !  Coefficients
 
-!    write(6,*) "++++++++++++++++++++++"
     L_NR: DO NR = 0, NRMAX
 
        Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
@@ -340,10 +349,8 @@ contains
        rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !  For beam ions
-       Scx = 6.937D-19 * (1.D0 - 0.155D0 * logEbL)**2 &
-            & / (1.D0 + 1.112D-15 * EbL**3.3D0)
        Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
-       rNubCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Collision frequency (with neutral) ***
 
@@ -589,9 +596,6 @@ contains
              DeL = FSPSCL
           END IF
        END IF
-!!$       ! Particle diffusivity
-!!$       De(NR)   = De0   * DeL
-!!$       Di(NR)   = Di0   * DeL
        ! Viscosity
        rMue(NR) = rMue0 * DeL
        rMui(NR) = rMui0 * DeL
@@ -629,29 +633,30 @@ contains
 
        !     *** Heating profile ***
 
-!!$       IF (R(NR) < RA) THEN
-          PNBPD(NR) = PNBP0 * SP0(NR)
-          PNBTG(NR) = PNBT10 * SP1(NR) + PNBT20 * SP2(NR)
-          PNB(NR)   = PNBPD(NR) + PNBTG(NR)
-!!$          SNB(NR)   = (PNBP0 * SN0(NR) + PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) &
-!!$               &    / (Eb * rKeV * 1.D20)
-          SNBTG(NR) = (PNBT10 * SN1(NR) + PNBT20 * SN2(NR)) / (Eb * rKeV * 1.D20)
-          SNBPD(NR) = PNBP0 * SN0(NR) / (Eb * rKeV * 1.D20)
-          SNB(NR)   = SNBTG(NR) + SNBPD(NR)
-          MNB(NR)   = SNBTG(NR)
-          PRFe(NR)  = PRFe0 * SP3(NR)
-          PRFi(NR)  = PRFi0 * SP3(NR)
-!!$       ELSE
-!!$          PNBPD(NR) = 0.D0
-!!$          PNBTG(NR) = 0.D0
-!!$          PNB(NR)   = 0.D0
-!!$          SNBTG(NR) = 0.D0
-!!$          SNBPD(NR) = 0.D0
-!!$          SNB(NR)   = 0.D0
-!!$          MNB(NR)   = 0.D0
-!!$          PRFe(NR)  = 0.D0
-!!$          PRFi(NR)  = 0.D0
-!!$       END IF
+       ! For graphic
+       PNBPD(NR) = PNBP0 * SNBP(NR)
+       PNBTG(NR) = PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)
+       PNB(NR)   = PNBPD(NR) + PNBTG(NR)
+       ! For graphic and calculation
+       IF(MDLNBD == 0) THEN
+          SNBTG     = PNBTG(NR) / (Eb * rKeV * 1.D20)
+          SNBPD     = PNBP0 * SNBP(NR) / (Eb * rKeV * 1.D20)
+          SNBTGi(NR)= SNBTG
+          SNBPDi(NR)= SNBPD
+          SNBe(NR)  = SNBTG + SNBPD
+          SNBi(NR)  = SNBTG + SNBPD
+          SNB(NR)   = SNBTG + SNBPD
+          MNB(NR)   = PNBCD * SNBTG + (MDLPDM * PNBMPD) * SNBPD
+       ELSE
+          SNBTGi(NR)=(PNBTi10 * SNBTi1(NR) + PNBTi20 * SNBTi2(NR)) / (Eb * rKeV * 1.D20)
+          SNBPDi(NR)= PNBPi0 * SNBPi(NR) / (Eb * rKeV * 1.D20)
+          SNBe(NR)  =(PNBPD(NR) + PNBTG(NR)) / (Eb * rKeV * 1.D20)
+          SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
+          SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
+          MNB(NR)   = PNBCD * SNBTGi(NR) + (MDLPDM * PNBMPD) * SNBPDi(NR)
+       END IF
+       PRFe(NR)  = PRFe0 * SRF(NR)
+       PRFi(NR)  = PRFi0 * SRF(NR)
 
        !     *** Loss to divertor ***
 
@@ -741,19 +746,7 @@ contains
     if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
     if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
 
-    !     *** Ratio of CX deposition rate to IZ deposition rate ***
-    !     (Riviere, NF 11 (1971) 363)
-
-    IF(PNBH == 0.D0) THEN
-       RatCX = 0.D0
-    ELSE
-       IF(Eb > 150.D0) THEN
-          Sion = 3.6D-16 / EbL * (- 0.7783D0 + logEbL)
-       ELSE
-          Sion = 10.D0**(-0.8712D0 * logEbL**2 + 8.156D0 * logEbL - 38.833D0)
-       END IF
-       RatCX = Scx / (Scx + Sion)
-    END IF
+!    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6
 
     !     *** Resistivity ***
 
@@ -906,7 +899,6 @@ contains
     RATIO(0:NRMAX) = 0.D0
     IF(ABS(FSRP) > 0.D0) THEN
        ! Ripple well region
-!       write(6,*) 0.d0,DltRP(0)
        DO NR = 1, NRMAX
           EpsL = R(NR) / RR
           theta1  = 0.d0
@@ -1007,7 +999,6 @@ contains
 
        !  Diffusive loss
        !  -- Collisional diffusion of trapped fast particles --
-       rnubl(:) = 0.d0
        do nr = 1, nrmax
           EpsL = R(NR) / RR
 
@@ -1015,15 +1006,16 @@ contains
           rhob = AMb * Vb / (PZ * AEE * SQRT(BphV(NR)**2 + BthV(NR)**2))
           ! DltR : Step size of banana particles
 !          DltR = SQRT(PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2)
-          DltR = rhob*DltRP(NR)*SQRT(PI*NTCOIL*Q(nr)**3) &
-               & /((NTCOIL*Q(NR)*DltRP(NR))**1.5D0+EpsL**1.5D0)
-!          write(6,*) r(nr)/ra,DltR,rhob*ripple(NR,0.5D0*PI,FSRP)*SQRT(PI*NTCOIL*Q(nr)**3) &
-!               & *ABS(SIN(0.25D0*PI))/((NTCOIL*Q(NR)*ripple(NR,0.5D0*PI,FSRP))**1.5D0+(EpsL*ABS(SIN(0.25D0*PI)))**1.5D0)
+          DltR = rhob*DltRP(NR)*SQRT(PI*NTCOIL*Q(nr)**3)*ABS(sinthb) &
+               & /((NTCOIL*Q(NR)*DltRP(NR))**1.5D0+(EpsL*ABS(sinthb))**1.5D0)
 
           ! effective collisional frequency (G. Park et al., PoP 10 (2003) 4004, eq.(6))
-          rNueff = 1.82d0 * Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR)
-          ! rNubnc : bounce frequency of beam ions (same above)
-          rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * (RR + R(NR)))
+!          rNueff = 1.82d0 * Q(NR)**2 * NTCOIL**2 / EpsL * rNuD(NR) ! for thetab=0.5*PI
+          rNueff = 8.D0 * Q(NR)**2 * NTCOIL**2 * rNuD(NR) / (EpsL * sinthb**2) &
+               & * (ellE/ellK - cos(0.5d0*thetab)**2)
+          ! rNubnc : bounce frequency of beam ions (Helander and Sigmar, p132 eq.(7.27))
+!          rNubnc = SQRT(EpsL) * Vb / (10.5D0 * Q(NR) * (RR + R(NR))) ! for thetab=0.5*PI
+          rNubnc = SQRT(EpsL) * Vb / (4.D0 * SQRT(2.D0) * ellK * Q(NR) * RR)
 !!$          ! DCB : confined banana diffusion coefficient
 !!$          ! (V. Ya Goloborod'ko, et al., Physica Scripta T16 (1987) 46)
 !!$          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
@@ -1040,7 +1032,9 @@ contains
           Dbrp(NR) = DRP/SQRT(1.D0+(rNubnc/rNueff*DltR*NTCOIL*dQdr(NR))**2)
 
           ! Dltcr : GWB criterion of stochastic diffusion
-          Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
+!          Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
+          Dltcr = DltRP(NR) / (DltR * NTCOIL * (2.D0 * thetab * dQdr(NR) &
+          &     + 2.D0 * Q(NR) / R(NR) * cos(thetab) / sinthb))
           ! Fraction of stochastic region occupied in a flux surface
           theta1 = 0.d0
           i = 0
@@ -1058,7 +1052,6 @@ contains
              ! facST : Fraction of stochastic region in a flux surface
              facST = dble(ist) / dble(imax - 1)
              Dbrp(NR) = DRP * facST + Dbrp(NR) * (1.d0 - facST)
-             rnubl(nr) = facST
           end if
 
 !!$          ! Old version for display and comparison
@@ -1069,10 +1062,6 @@ contains
 !!$          write(6,*) r(nr)/ra,ft(NR)*RATIO(NR)*Dbrp(NR)
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
-
-!!$       do nr=0,nrmax
-!!$          write(6,*) r(nr)/ra,Dbrp(nr)
-!!$       end do
 
        !     ***** Neoclassical toroidal viscosity (NTV) *****
        !      "rNuNTV" and "UastNC" are obtained from NTVcalc
@@ -1091,6 +1080,92 @@ contains
     RETURN
   END SUBROUTINE TXCALC
 
+!***************************************************************
+!
+!   Heating deposition profile
+!     Input : R0    : Deposition center (m)
+!             RW    : Deposition width (m)
+!             CHR   : Trapped NB, passing NB or RF
+!             PNBCD : Injection direction, optional
+!     Output : S(0:NRMAX) : Deposition profile
+!              SINT       : Normalization factor
+!
+!***************************************************************
+
+  subroutine deposition_profile(S,SINT,R0,RW,CHR,PNBCD)
+    use tx_commons, only : NRMAX, NRA, FSRP, R, RA, RB, PI, RR, &
+         &                 AMb, Vb, PZ, AEE, BthV, Q, BphV
+    use tx_interface, only : INTG_F
+    real(8), intent(in)  :: R0, RW
+    real(8), intent(in), optional :: PNBCD
+    character(len=*), intent(in) :: CHR
+    real(8), intent(out), dimension(0:NRMAX) :: S
+    real(8), intent(out) :: SINT
+    integer(4) :: nr
+    real(8) :: EpsL, Rshift, Rpotato, rhop
+    real(8) :: AITKEN2P
+
+    if(CHR == 'RF') then
+       S(0:NRMAX) = EXP(- ((R(0:NRMAX) - R0) / RW)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
+    else if(CHR == 'NB') then
+       if(abs(FSRP) > 0.D0) then
+          S(0:NRMAX) = EXP(- ((R(0:NRMAX) - R0) / RW)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
+       else
+          S(0:NRA) = EXP(- ((R(0:NRA) - R0) / RW)**2) * (1.D0 - (R(0:NRA) / RA)**4)
+          S(NRA+1:NRMAX) = 0.D0
+       end if
+    else
+       if(present(PNBCD) .EQV. .FALSE.) stop 'deposition_profile: input error!'
+       do nr = 0, nrmax
+          EpsL = R(NR) / RR
+          if(nr /= 0) rhop = AMb * Vb / (PZ * AEE * BthV(NR)) ! poloidal Larmor radius
+          if(CHR == 'NB_TRAP') then ! trapped particle
+             ! potato width
+             Rpotato = (Q(NR)**2*(AMb * Vb / (PZ * AEE * BphV(NR)))**2*RR)**(1.D0/3.D0)
+             if(nr == 0) then
+                Rshift = PNBCD * Rpotato ! potato particle
+             else
+                Rshift = PNBCD * MIN(SQRT(EpsL) * rhop, Rpotato) ! potato or banana particle
+             end if
+          else
+             if (nr == 0) then ! passing particle
+                Rshift = PNBCD * (AMb * Vb * Q(NR) / (PZ * AEE * BphV(NR)))
+             else
+                Rshift = PNBCD * (     EpsL  * rhop)
+             end if
+          end if
+
+          if(abs(FSRP) > 0.D0) then
+             S(NR) = EXP(- (((R(NR) + Rshift) - R0) / RW)**2) * (1.D0 - (R(NR) / RB)**4)
+          else
+             if(nr <= nra) then
+                S(NR) = EXP(- (((R(NR) + Rshift) - R0) / RW)**2) * (1.D0 - (R(NR) / RA)**4)
+             else
+                S(NR) = 0.D0
+             end if
+          end if
+!          write(6,*) r(nr)/ra,abs(Rshift),rb-r(nr)
+       end do
+!!$       if(CHR == 'NB_TRAP') then
+!!$          if(PNBCD > 0.D0) then
+!!$             S(0) = AITKEN2P(R(0),S(1),S(2),S(3),R(1),R(2),R(3))
+!!$          else if(PNBCD < 0.D0) then
+!!$             S(0) = 0.D0
+!!$          end if
+!!$       end if
+    end if
+
+    SINT = 2.D0 * PI * INTG_F(S)
+
+  end subroutine deposition_profile
+
+!***************************************************************
+!
+!   Correction factor for resistivity
+!     (Hirshman and Sigmar, (1981), Eq. (7.36))
+!
+!***************************************************************
+
   pure REAL(8) FUNCTION CORR(X)
     ! X is the effective charge number
     real(8), intent(in) :: X
@@ -1100,7 +1175,15 @@ contains
 
   END FUNCTION CORR
 
+!***************************************************************
+!
+!   Ion-electron heating fraction
+!     (Tokamaks 3rd, p250)
+!
+!***************************************************************
+
   pure real(8) function NBIi_ratio(x) result(f)
+    use tx_commons, only : PI
     real(8), intent(in) :: x
 
     if (x == 0.d0) then
@@ -1113,7 +1196,14 @@ contains
 
   end function NBIi_ratio
 
+!***************************************************************
+!
+!   Ripple amplitude function
+!
+!***************************************************************
+
   pure real(8) function ripple(NR,theta,FSRP)
+    use tx_commons, only : DltRP0, RR, R, RA, NTCOIL, DIN
     integer(4), intent(in) :: NR
     real(8), intent(in) :: theta, FSRP
 

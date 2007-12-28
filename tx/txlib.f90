@@ -91,7 +91,7 @@ contains
     integer(4), intent(in) :: id
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
     integer(4) :: ne
-    real(8) :: x(1:nemax,1:4), csq15, a1, a2, b1, b2, p1, p2, hp
+    real(8) :: x(1:nemax,1:4), csq15, csq25, a1, a2, b1, b2, p1, p2, hp
     
     select case(id)
     case(-1)
@@ -122,8 +122,9 @@ contains
        x(1:nemax,4) = 0.5d0 * a(ne)
     case(0)
        !  for SUPG
-       csq15 = 1.d0 / sqrt(15.d0)
-       x(1:nemax,1) = hpsi(1:nemax) * csq15
+       csq15 = 1.d0 / sqrt(15.d0) ! Raymond and Garder
+       csq25 = 2.d0 * csq15 ! NASA report
+       x(1:nemax,1) = hpsi(1:nemax) * csq25
        x(1:nemax,2) = x(1:nemax,1)
        x(1:nemax,3) = x(1:nemax,1)
        x(1:nemax,4) = x(1:nemax,1)

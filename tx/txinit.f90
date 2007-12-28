@@ -210,7 +210,17 @@ SUBROUTINE TXINIT
   PNBHT2 = 0.D0
 
   !   NBI current drive parameter
-  PNBCD= 1.D0
+  PNBCD = 1.D0
+
+  !   MDLPDM=0: Direction of perpendicular NBI system (plus: co, minus: ctr)
+  !   MDLPDM=1: Fraction of toroidal momentum input from perpendicular NBI (-1 < PNBMPD < 1)
+  PNBMPD = 0.D0
+
+  !   Different NBI deposition profiles for electrons and ions
+  MDLNBD = 0
+
+  !   Momentum input from perpendicular NBI
+  MDLPDM = 0 
 
   !   Refractive index of RF waves
   rNRF = 0.D0
@@ -249,10 +259,12 @@ SUBROUTINE TXINIT
   ! Ripple loss percentage at plasma surface
   DltRP0 = 0.01D0
 
+  !   ***** Parameters for toroidal neoclassical viscosity *****
+
   ! Maximum poloidal mode number of error field (should be power of two)
   m_pol  = 32
 
-  ! Tolodal mode number of error field
+  ! Toroidal mode number of error field
   n_tor  = NTCOIL
 
   !   ***** Numerical parameters *****
@@ -339,7 +351,7 @@ SUBROUTINE TXINIT
   !   n : Number of Display
   MODEAV = 0
 
-  !   Diagnostic paramter
+  !   Diagnostic parameter
   !   0 : OFF
   !   1 : debug message output (ntstep == 1)
   !   2 : debug message output (few)
@@ -431,10 +443,6 @@ SUBROUTINE TXINIT
   gDIV(102) = 1.E6
   gDIV(103) = 1.E6
   gDIV(104) = 1.E6
-  gDIV(105) = 1.E6
-  gDIV(106) = 1.E6
-  gDIV(107) = 1.E6
-  gDIV(108) = 1.E6
   gDIV(109) = 1.E15
   gDIV(110) = 1.E-4
   !    gDIV(115) = 1.E15
@@ -986,7 +994,7 @@ module tx_parameter_control
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
        & FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
        & rLn,rLT, &
-       & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD, &
+       & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRF,RRF,RRF0,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & NTCOIL,DIN,DltRP0,m_pol,n_tor, &
@@ -995,8 +1003,8 @@ module tx_parameter_control
        & DelR,DelN, &
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG, gDIV, MODEAV, MODEGL, MDLPCK, MDLWTB, &
-       & MDLETA, MDFIXT, IDIAG, IGBDF
+       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
+       & MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD,MDLPDM
   private :: TXPLST
 
 contains
@@ -1108,6 +1116,7 @@ contains
        IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
        IF(rG1 < 0.D0) EXIT
        IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
+       IF(ABS(PNBCD) > 1.D0 .OR. ABS(PNBMPD) > 1.D0) EXIT
        IF(RNBP0 > RB .OR. RNBP0 < 0.D0) EXIT
        IF(RNBT10 > RB .OR. RNBT10 < 0.D0) EXIT
        IF(RNBT20 > RB .OR. RNBT20 < 0.D0) EXIT
@@ -1127,7 +1136,7 @@ contains
        RETURN
     END DO
 
-    WRITE(6,*) 'XX CONSISTENCY ERROR: PLEASE CHECK YOUR INPUT PARAMETERS.'
+    WRITE(6,*) 'XX CONSISTENCY ERROR: PLEASE CHECK CONSISTENCY OF INPUT PARAMETERS.'
     STOP
     
   END SUBROUTINE TXPARM_CHECK
@@ -1147,7 +1156,7 @@ contains
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
-         &       ' ',8X,'PNBCD,rNRF,RRF,RRF0,PRFH,'/ &
+         &       ' ',8X,'PNBCD,PNBMPD,rNRF,RRF,RRF0,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DIN,DltRP0,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
@@ -1156,7 +1165,7 @@ contains
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,'/ &
-         &       ' ',8X,'MDLWTB,IDIAG,IGBDF')
+         &       ' ',8X,'MDLWTB,IDIAG,IGBDF,MDLNBD,MDLPDM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1194,8 +1203,8 @@ contains
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
-         &   'PNBHP ', PNBHP ,  'PNBHT1', PNBHT1,  &
-         &   'PNBHT2', PNBHT2,  &
+         &   'PNBHP ', PNBHP ,  'PNBMPD', PNBMPD,  &
+         &   'PNBHT1', PNBHT1,  'PNBHT2', PNBHT2,  &
          &   'rNRF  ', rNRF  ,  'RRF   ', RRF   ,  &
          &   'RRF0  ', RRF0  ,  'PRFH  ', PRFH  ,  &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
@@ -1220,7 +1229,8 @@ contains
          &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
-         &   'm_pol ', m_pol ,  'n_tor ', n_tor
+         &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
+         &   'MDLNBD', MDLNBD,  'MDLPDM', MDLPDM
 
     RETURN
   END SUBROUTINE TXVIEW
