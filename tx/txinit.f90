@@ -200,13 +200,13 @@ SUBROUTINE TXINIT
   !   Heating center of second tangential NBI heating (m)
   RNBT20 = 0.D0
 
-  !   NBI perpendicular input power (MW)
+  !   Perpendicular NBI input power (MW)
   PNBHP = 0.D0
 
-  !   First NBI tangential input power (MW)
+  !   First tangential NBI input power (MW)
   PNBHT1 = 0.D0
 
-  !   Second NBI tangential input power (MW)
+  !   Second tangential NBI input power (MW)
   PNBHT2 = 0.D0
 
   !   NBI current drive parameter
@@ -253,11 +253,11 @@ SUBROUTINE TXINIT
   ! Number of toroidal field coils in JT-60U
   NTCOIL = 18
 
-  ! Inside ripple rate, i.e. DltRP0 * DIN becomes the ripple amplitude at r/a = -1
-  DIN    = 0.2D0
+  ! Minimum ripple amplitude in the system (R = Rmag0 = 2.4m on JT-60U)
+  DltRPn = 0.0002D0 * 1.D-2
 
-  ! Ripple loss percentage at plasma surface
-  DltRP0 = 0.01D0
+  ! Effective ellipticity for ripple amplitude estimation
+  kappa = 1.2D0
 
   !   ***** Parameters for toroidal neoclassical viscosity *****
 
@@ -620,7 +620,7 @@ SUBROUTINE TXPROF
   CALL TXCALM
 
   !  Contribution of perturbed magnetic field
-  IF(DltRP0 /= 0.D0) CALL perturb_mag
+!  IF(DltRPn /= 0.D0) CALL perturb_mag
 
   !  Initialize variable vector
 
@@ -830,7 +830,7 @@ SUBROUTINE TXPROF
            END IF
            X(LQm4,NR) = - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * FACT
         ELSE
-           RL = RA
+           RL = 1.D0
            IF(PROFJ == 1) THEN
               FACT = RL**2*(2.d0-0.5d0*RL**2)
            ELSE IF(PROFJ == 2) THEN
@@ -997,7 +997,7 @@ module tx_parameter_control
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRF,RRF,RRF0,PRFH, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & NTCOIL,DIN,DltRP0,m_pol,n_tor, &
+       & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
@@ -1126,7 +1126,7 @@ contains
        IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) EXIT
        IF(rGASPF < 0.D0) EXIT
        IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) EXIT
-       IF(NTCOIL <= 0 .OR. DIN < 0.D0 .OR. DIN > 1.D0 .OR. DltRP0 < 0.D0 .OR. DltRP0 > 1.D0) EXIT
+       IF(NTCOIL <= 0 .OR. DltRPn < 0.D0 .OR. DltRPn > 1.D0 .OR. kappa < 0.D0) EXIT
        IF(DT < 0.D0 .OR. EPS < 0.D0) EXIT
        IF(ICMAX < 0) EXIT
        IF(ADV < 0.D0 .OR. ADV > 1.D0) EXIT
@@ -1158,7 +1158,7 @@ contains
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,rNRF,RRF,RRF0,PRFH,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
-         &       ' ',8X,'NTCOIL,DIN,DltRP0,m_pol,n_tor,'/ &
+         &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
@@ -1210,7 +1210,7 @@ contains
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
-         &   'DIN   ', DIN   ,  'DltRP0', DltRP0,  &
+         &   'DltRPn', DltRPn,  'kappa ', kappa ,  &
          &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
          &   'EPS   ', EPS   ,  'tiny  ', tiny_cap,&
          &   'DT    ', DT    ,  &

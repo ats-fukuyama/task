@@ -22,20 +22,36 @@ contains
   
   SUBROUTINE TXGOUT
     use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
-         &              NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM
+         &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
+         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa
     use tx_interface, only : TXGRUR, TOUPPER
+    use tx_variables, only : ripple
 
-    INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT
+    INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
     character(len=5) :: STR, STR2
     character(len=1) :: KID1, KID2
+
+    integer(4), parameter :: NXMAX = 51, NYMAX = 51, NTHMAX=51
+    integer(4) :: NX, NY, NR, NTH, IPAT, IPRD, NSTEP, IND, ICHK, IFNT, KA(1:8,1:NXMAX,1:NYMAX)
+    real(4) :: DR, DZ, AL, ZORG, ZSTEP, DltRPnL, GXMAX
+    real(4) :: GPXY(1:4), GTMP(0:NRMAX,1:2)
+    real(4), dimension(:), allocatable :: RRL, ZZL
+    real(4), dimension(:,:), allocatable :: VAL
+    real(4) :: GSRMIN,GSRMAX,GSRSTP,GSZMIN,GSZMAX,GSZSTP
+    real(8) :: RL, theta, dtheta, kappal, EpsL, width0, width1, thetab
+    character(len=50) :: STRL
+    character(len=17) :: KOUT
+    integer(4) :: NGULEN
+    real(8) :: BESIN
 
     !     *** MENU ***
 
     MODE = MODEGL
     OUTER : DO
-       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: C: A,B: Dn: ', &
-            &           'S,L,M:file I:init X:exit'
+       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B: C: E: Dn: ', &
+            &           'S,L,M:file W(R,T,V)n:write'
+       WRITE(6,*) '           I:init X:exit'
        READ(5,'(A5)',IOSTAT=IST) STR
        IF (IST > 0) THEN
           WRITE(6,*) '### ERROR : Invalid Command : ', STR
@@ -54,7 +70,8 @@ contains
           CALL TXGSAV
 
        CASE('L')
-          CALL TXGLOD
+          CALL TXGLOD(IER)
+          IF(IER /= 0) CYCLE OUTER
           CALL TXPRFG
 
        CASE('I')
@@ -77,7 +94,7 @@ contains
              READ(STR(2:5),*,IOSTAT=IST) NGPR
              IF (IST /= 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
-                CYCLE
+                CYCLE OUTER
              END IF
              IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
                 CALL TXGRFR(NGPR,MODE)
@@ -102,7 +119,7 @@ contains
              READ(STR(2:5),*,IOSTAT=IST) NGPV
              IF (IST < 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
-                CYCLE
+                CYCLE OUTER
              END IF
              IF (NGPV >= 1 .AND. NGPV <= NGPVM) THEN
                 CALL TXGRFV(NGPV,MODE)
@@ -128,7 +145,7 @@ contains
              READ(STR(2:5),*,IOSTAT=IST) NGPT
              IF (IST < 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
-                CYCLE
+                CYCLE OUTER
              END IF
              IF (NGPT >= 1 .AND. NGPT <= NGPTM) THEN
                 CALL TXGRFT(NGPT,MODE)
@@ -136,7 +153,7 @@ contains
           END SELECT
 
        CASE('U')
-          IF(T_TX == 0.D0) CYCLE
+          IF(T_TX == 0.D0) CYCLE OUTER
           IF (KID2 == 'A') THEN
              DO NQ = 1, NQMAX, 4
                 CALL PAGES
@@ -150,7 +167,7 @@ contains
              READ(STR(2:5),*,IOSTAT=IST) NQ
              IF (IST < 0) THEN
                 WRITE(6,*) '### ERROR : Invalid Command : ', STR
-                CYCLE
+                CYCLE OUTER
              END IF
              IF (NQ >= 1 .AND. NQ <= NQMAX) THEN
                 CALL PAGES
@@ -182,11 +199,152 @@ contains
           READ(STR(2:5),*,IOSTAT=IST) NGYR
           IF (IST /= 0) THEN
              WRITE(6,*) '### ERROR : Invalid Command : ', STR
-             CYCLE
+             CYCLE OUTER
           END IF
           IF (NGYR >= 0 .AND. NGYR <= NGYRM) THEN
              CALL TXGRUR(GX,GTX,GYT(0:NRMAX,0:NGT,NGYR),NRMAX,NGT,NGTM)!,STR,KV,MODE)
           END IF
+
+       CASE('E')
+          ! *** Contour of ripple amplitude ***
+          CALL PAGES
+          DltRPnL = REAL(DltRPn) * 100.0
+
+          allocate(RRL(1:NXMAX),ZZL(1:NYMAX),VAL(1:NXMAX,1:NYMAX))
+          DR = (4.5 - 2.0) / (NXMAX - 1)
+          DZ =  1.5        / (NYMAX - 1)
+          DO NX = 1, NXMAX
+             RRL(NX) = 2.0 + DR * (NX - 1)
+             DO NY = 1, NYMAX
+                ZZL(NY) = DZ * (NY - 1)
+                AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
+                VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
+             END DO
+          END DO
+
+          CALL INQFNT(IFNT)
+          CALL SETFNT(32)
+
+          CALL GQSCAL(2.0,4.5,GSRMIN,GSRMAX,GSRSTP)
+          CALL GQSCAL(0.0,1.5,GSZMIN,GSZMAX,GSZSTP)
+
+          CALL GDEFIN(3.0,18.0,1.5,10.5,2.0,4.5,0.0,1.5)
+          CALL GFRAME
+
+          CALL GSCALE(GSRMIN,GSRSTP,0.0,0.0,0.1,9)
+          CALL GVALUE(GSRMIN,GSRSTP*2,0.0,0.0,NGULEN(GSRSTP))
+          CALL GSCALE(0.0,0.0,0.0,GSZSTP,0.1,9)
+          CALL GVALUE(0.0,0.0,0.0,GSZSTP*2,NGULEN(GSZSTP*2))
+
+          IPAT = 1
+          IPRD = 0
+
+          ZORG  = 0.0003
+          ZSTEP = 0.0002
+          NSTEP = 3
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*1,KA)
+
+          ZORG  = 0.001
+          ZSTEP = 0.002
+          NSTEP = 4
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*2,KA)
+
+          ZORG  = 0.01
+          ZSTEP = 0.02
+          NSTEP = 4
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*3,KA)
+
+          ZORG  = 0.0
+          ZSTEP = 0.1
+          NSTEP = 2
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+
+          ZORG  = 0.0
+          ZSTEP = 0.25
+          NSTEP = 4
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+
+          ZORG  = 1.0
+          ZSTEP = 0.5
+          NSTEP = 3
+          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*5,KA)
+
+          deallocate(RRL,ZZL,VAL)
+
+          allocate(RRL(1:NTHMAX),ZZL(1:NTHMAX))
+          dtheta = PI / (NTHMAX - 1)
+          theta = 0.d0
+          DO I = 1, 2
+             IF(I == 1) THEN
+                kappal = 1.d0
+             ELSE
+                kappal = kappa
+             END IF
+             DO NTH = 1, NTHMAX
+                theta = (NTH - 1) * dtheta
+                RRL(NTH) = real(RR + RA * cos(theta))
+                ZZL(NTH) = real(kappal * RA * sin(theta))
+                IF(ABS(ZZL(NTH) < EPSILON(1.0))) ZZL(NTH) = 0.0
+             END DO
+             CALL LINES2D(RRL,ZZL,NTHMAX)
+          END DO
+          deallocate(RRL,ZZL)
+
+          allocate(RRL(1:2*NRMAX),ZZL(1:2*NRMAX))
+          RRL(1:NRMAX) = RR + R(NRMAX:1:-1) * COS(thrp(1:NRMAX))
+          ZZL(1:NRMAX) = kappa * R(NRMAX:1:-1) * SIN(thrp(1:NRMAX))
+          RRL(NRMAX+1:2*NRMAX) = RR + R(1:NRMAX) * COS(thrp(NRMAX+1:2*NRMAX))
+          ZZL(NRMAX+1:2*NRMAX) = kappa * R(1:NRMAX) * SIN(thrp(NRMAX+1:2*NRMAX))
+          CALL LINES2D(RRL,ZZL,2*NRMAX)
+          deallocate(RRL,ZZL)
+
+          !  *** 1D graphic ***
+
+          IF (MODEG == 2) THEN
+             IND = 9
+          ELSE
+             IND = 0
+          END IF
+
+          GPXY(1) =  3.0
+          GPXY(2) = 11.5
+          GPXY(3) = 11.5
+          GPXY(4) = 17.5
+          GXMAX = REAL(RB/RA)
+          DO NR = 0, NRMAX
+             RL = R(NR)
+             GTMP(NR,1) = real(ripple(RL,0.D0,1.D0))
+          END DO
+          WRITE(KOUT,'(F6.4)') GTMP(NRA,1)
+          KOUT = '$#d$#$-a$=='//KOUT(1:6)
+          CALL GTEXT(GPXY(1)+5.5,GPXY(4)-1.5,KOUT,len_trim(KOUT),0)
+          STRL = '@DltRP at mid-plane(r)@'
+          CALL TXGRAF(GPXY,GX,GTMP,NRMAX+1,NRMAX+1,1,0.0,GXMAX,STRL,0.26,MODE,IND,0)
+
+          GPXY(1) = 13.5
+          GPXY(2) = 22.0
+          GPXY(3) = 11.5
+          GPXY(4) = 17.5
+          GXMAX = REAL(RB/RA)
+          thetab = 0.5D0 * PI
+          DO NR = 0, NRMAX
+             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
+             GTMP(NR,1) = real(ripple(RL,thetab,1.D0))
+             GTMP(NR,2) = real(ripple(R(NR),thetab,1.D0))
+          END DO
+          STRL = '@DltRP at tip point with and w/o elongation(r)@'
+          CALL TXGRAF(GPXY,GX,GTMP,NRMAX+1,NRMAX+1,2,0.0,GXMAX,STRL,0.26,MODE,IND,0)
+
+          CALL SETFNT(IFNT)
+          CALL PAGEE
+
+       CASE('W')
+          READ(STR(3:5),*,IOSTAT=IST) NG
+          IF (IST /= 0) THEN
+             WRITE(6,*) '### ERROR : Invalid Command : ', STR
+             CYCLE OUTER
+          END IF
+          CALL write_console(NG,KID2)
 
        CASE('M')
           DO
@@ -208,7 +366,8 @@ contains
           END IF
           NGR=0
           DO NGF=1,NGFMAX
-             CALL TXGLOD
+             CALL TXGLOD(IER)
+             IF(IER /= 0) CYCLE OUTER
              GYL(0:NRMAX,NGF-NGRT,1:NGYRM) = GY(0:NRMAX,NGR,1:NGYRM)
              CALL TX_GRAPH_SAVE
           END DO
@@ -255,9 +414,9 @@ contains
                    CALL TXGRFR(-5,MODE)
                 CASE DEFAULT
                    READ(STR2(2:5),'(I4)',IOSTAT=IST) NGPR
-                   IF (IST < 0) CYCLE
+                   IF (IST < 0) CYCLE OUTER
                    IF      (NGPR == 0) THEN
-                      CYCLE
+                      CYCLE OUTER
                    ELSE IF (NGPR >= 0 .AND. NGPR <= NGPRM) THEN
                       CALL TXGRFR(NGPR,MODE)
                    END IF
@@ -557,7 +716,10 @@ contains
     ! ***************************************************************
 
     GYL(0:NXM,NG,118) = SNGL(rNubL(0:NXM))
+    ! External NBI torque density
     GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*(RR+R(0:NXM))*1.D20)
+    ! Generated toroidal torque density
+    GYL(0:NXM,NG,120) = SNGL((RR+R(0:NXM))*BthV(0:NXM))*GYL(0:NXM,NG,117)
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -594,7 +756,7 @@ contains
     GVY(NGVV,5)  = SNGL(UephV(0))
     GVY(NGVV,6)  = SNGL(UirV(NRC))
     GVY(NGVV,7)  = SNGL(UithV(NRC))
-    GVY(NGVV,8)  = SNGL(UiphV(3))
+    GVY(NGVV,8)  = SNGL(UiphV(NRC))
     GVY(NGVV,9)  = SNGL(ErV(NRC))
     GVY(NGVV,10) = SNGL(BthV(NRC))
     GVY(NGVV,11) = SNGL(EphV(NRMAX))
@@ -744,7 +906,7 @@ contains
 
   SUBROUTINE TXSTGQ
 
-    use tx_commons, only : NRMAX, NQMAX, NLCMAX, NLCR, GQY, ALC, BLC, CLC, PLC, X
+    use tx_commons, only : NRMAX, NQMAX, NLCMAX, NLCR, GQY, ALC, BLC, CLC, PLC, X!, t_tx,lqi3,lqi4,lqi2
     integer(4) :: NR, NC, NQ, NC1
 
     DO NQ = 1, NQMAX
@@ -781,6 +943,9 @@ contains
           END IF
        END DO
     END DO
+!    write(6,*) sngl(t_tx),gqy(38,3,lqi2),gqy(38,4,lqi2),gqy(38,5,lqi2),gqy(38,6,lqi2)
+!lqi3    write(6,*) sngl(t_tx),gqy(38,5,lqi3),gqy(38,6,lqi3),sum(gqy(38,13:16,lqi3))
+!lqi4    write(6,*) sngl(t_tx),gqy(38,4,lqi4),gqy(38,5,lqi4),sum(gqy(38,6:7,lqi4)),sum(gqy(38,12:15,lqi4))
 
   END SUBROUTINE TXSTGQ
 
@@ -1125,19 +1290,19 @@ contains
        CALL TXGRFRX(3,GX,GY(0,0,99),NRMAX,NGR,STR,MODE,IND)
 
     CASE(16)
-       STR = '@PEQe(r)@'
+       STR = '@PEQe(r), -PEQi(r)@'
        CALL APPROPGY(MODEG, GY(0,0,100), GYL, STR, NRMAX, NRMAX, NGR, gDIV(100))
        CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@PEQi(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,101), GYL, STR, NRMAX, NRMAX, NGR, gDIV(101))
+       STR = '@Generated toroidal torque density(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,120), GYL, STR, NRMAX, NRMAX, NGR, gDIV(120))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@NBI Deposition(r)@'
+       STR = '@NBI deposition(r)@'
        CALL APPROPGY(MODEG, GY(0,0,104), GYL, STR, NRMAX, NRMAX, NGR, gDIV(104))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@NBI Torque(r)@'
+       STR = '@NBI torque density(r)@'
        CALL APPROPGY(MODEG, GY(0,0,119), GYL, STR, NRMAX, NRMAX, NGR, gDIV(119))
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
@@ -1193,11 +1358,11 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,106), GYL, STR, NRMAX, NRMAX, NGR, gDIV(106))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@SNB perp i(r)@'
+       STR = '@SNB perp ion(r)@'
        CALL APPROPGY(MODEG, GY(0,0,107), GYL, STR, NRMAX, NRMAX, NGR, gDIV(107))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@SNB tang i(r)@'
+       STR = '@SNB tang ion(r)@'
        CALL APPROPGY(MODEG, GY(0,0,108), GYL, STR, NRMAX, NRMAX, NGR, gDIV(108))
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
@@ -1838,7 +2003,7 @@ contains
        CALL APPROPGY(MODEG, GVY(0, 7), GVYL, STR, NGVM, NGVV, 1, gDIV(7))
        CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@u$-i$#f$#$=(0.15)@'
+       STR = '@u$-i$#f$#$=(a/2)@'
        CALL APPROPGY(MODEG, GVY(0, 8), GVYL, STR, NGVM, NGVV, 1, gDIV(8))
        CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
@@ -2236,7 +2401,7 @@ contains
 
   SUBROUTINE TXGRFQ(NQ,ID)
 
-    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
+    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX,ame,ami
     use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
@@ -2286,6 +2451,9 @@ contains
     CALL TXGRAF(GPXY, GX, GQYL, NRMAX+1, NRMAX+1, NLCMAX(NQ), &
          &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
 !         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
+    do nc=1,nlcmax(nq)
+       writE(6,*) nc,sum(gqyl(0:nrmax,nc))
+    end do
 
     RETURN
   END SUBROUTINE TXGRFQ
@@ -2689,5 +2857,52 @@ contains
 
     RETURN
   END FUNCTION GLOG
+
+  !***********************************************************
+  !
+  !   WRITE RAW VALUE ONTO CONSOLE
+  !
+  !***********************************************************
+
+  subroutine write_console(n,char)
+
+    use tx_commons
+    implicit none
+    integer(4), intent(in) :: n
+    character(len=1), intent(in) :: char
+    integer(4) :: i
+
+    if (ngr <= -1) then
+       write(6,*) 'No data.'
+       return
+    end if
+
+    select case(char)
+    case('R')
+       if (n >= 0 .and. n <= NGYRM) then
+          write(6,'(7X,A1,13X,A5)') "R","Value"
+          do i = 0, nrmax
+             write(6,*) gx(i),gy(i,ngr,n)
+          end do
+       end IF
+    case('T')
+       if (n >= 0 .and. n <= NGYTM) then
+          write(6,'(7X,A1,13X,A5)') "T","Value"
+          do i = 0, ngt
+             write(6,*) gtx(i),gty(i,n)
+          end do
+       end IF
+    case('V')
+       if (n >= 0 .and. n <= NGYVM) then
+          write(6,'(7X,A1,13X,A5)') "T","Value"
+          do i = 0, ngvv
+             write(6,*) gvx(i),gvy(i,n)
+          end do
+       end IF
+    case default
+       WRITE(6,*) '### ERROR : Invalid Command : '
+    end select
+
+  end subroutine write_console
 
 end module tx_graphic

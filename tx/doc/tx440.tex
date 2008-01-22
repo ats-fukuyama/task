@@ -132,7 +132,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V4.46 [07/12/19]
+TASK/TX V4.47 [08/01/17]
 \end{center}
 
 \section{Equations in $r$ coordinates}
@@ -242,12 +242,12 @@ TASK/TX V4.46 [07/12/19]
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{e^2 \Bph^2 \De}{\me\Te}\ne
-    \left(\ueth - \frac{\Bth}{\Bph}\ueph - \ave{\frac{\omega}{m}}_\r{e}
-     r \right)
+    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph) -
+     \ave{\frac{\omega}{m}}_\r{e} r \right]
 %
-   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
-    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
-     r \right)
+%   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
+%    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
+%     r \right)
 \nonumber\\[2.5mm]&&{}
 %
 %%  + (-e) \Bph
@@ -297,9 +297,9 @@ TASK/TX V4.46 [07/12/19]
   - \frac{e}{\me} \Bth \ne \uer 
 \nonumber\\[2.5mm]&&{}
 %
-  - \nu_\r{ei2} \ne (\ueth - \uith)
-%
   - \nu_\r{ei3} \ne (\ueph - \uiph)
+%
+  - \nu_\r{ei2} \ne (\ueth - \uith)
 %
   - \frac{\mb}{\me} \nu_\r{be2} \nb (\ueth - \ubth)
 %
@@ -307,12 +307,12 @@ TASK/TX V4.46 [07/12/19]
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\me\Te}\frac{\Bth}{\Bph}\ne
-    \left(\ueth - \frac{\Bth}{\Bph}\ueph - \ave{\frac{\omega}{m}}_\r{e}
-     r \right)
+    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph) -
+     \ave{\frac{\omega}{m}}_\r{e}r \right]
 %
-  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\frac{\Bth}{\Bph}\ni
-    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
-     r \right)
+%  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\frac{\Bth}{\Bph}\ni
+%    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
+%     r \right)
 \nonumber\\[2.5mm]&&{}
 %
   - 2 \nuL \ne \ueph
@@ -376,9 +376,12 @@ TASK/TX V4.46 [07/12/19]
 %
   - \fCX \frac{\Pb}{\Eb}
 %
+  + \nubL \nb
+%
   + S_\r{LC}
 %
   - \nuOL \ni
+%
 \\[5mm]
 %
 % \ni \uir 
@@ -422,12 +425,12 @@ TASK/TX V4.46 [07/12/19]
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\mi\Te}\ne
-    \left(\ueth - \frac{\Bth}{\Bph}\ueph - \ave{\frac{\omega}{m}}_\r{e}
-     r \right)
+    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph) -
+     \ave{\frac{\omega}{m}}_\r{e} r \right]
 %
-  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
-    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
-     r \right)
+%  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
+%    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
+%     r \right)
 %
 %%  - (-e) \Bph
 %%    \left\{
@@ -484,20 +487,20 @@ TASK/TX V4.46 [07/12/19]
   + \Zi \frac{e}{\mi} \Bth \ni \uir 
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{\me}{\mi} \nu_\r{ei2} \ne (\uith - \ueth)
-%
   - \frac{\me}{\mi} \nu_\r{ei3} \ne (\uiph - \ueph)
+%
+  - \frac{\me}{\mi} \nu_\r{ei2} \ne (\uith - \ueth)
 %
   - \frac{\mb}{\mi} \nubi \nb (\uiph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{e^2 \Bph^2 \De}{\mi\Te}\frac{\Bth}{\Bph}\ne
-    \left(\ueth - \frac{\Bth}{\Bph}\ueph - \ave{\frac{\omega}{m}}_\r{e}
-     r \right)
+    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph) -
+     \ave{\frac{\omega}{m}}_\r{e} r \right]
 %
-  + \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\frac{\Bth}{\Bph}\ni
-    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
-     r \right)
+%  + \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\frac{\Bth}{\Bph}\ni
+%    \left(\uith - \frac{\Bth}{\Bph}\uiph - \ave{\frac{\omega}{m}}_\r{i}
+%     r \right)
 \nonumber\\[2.5mm]&&{}
 %
   - 2 \nuL \ni \uiph
@@ -600,9 +603,9 @@ TASK/TX V4.46 [07/12/19]
 %
   \Zb \frac{e}{\mb} \nb \Eph
 %
-  - \nu_\r{be2} \nb (\ubth - \ueth)
-%
   - \nu_\r{be3} \nb (\ubph - \ueph)
+%
+  - \nu_\r{be2} \nb (\ubth - \ueth)
 %
   - \nubi \nb (\ubph - \uiph)
 \nonumber\\[2.5mm]&&{}
@@ -611,11 +614,12 @@ TASK/TX V4.46 [07/12/19]
 %
   - \nuCX \nb \ubph
 %
-  - \nubL \nb \ubph
-%
   + \vb \frac{\Pbpara}{\Eb}
 %
+  - \nubL \nb \ubph
+%
   - \nueff g \sqrt{\delta} \nb \ubph
+\nonumber\\[2.5mm]&&{}
 %
   + \frac{1}{r} \ddr r \ubph f_t \Db \ddr \nb
 \\[5mm]
@@ -629,6 +633,7 @@ TASK/TX V4.46 [07/12/19]
   - \frac{1}{\Zi}\, \nuion\, \frac{\ne}{\nna+\nnb}\, \nna
 %
   - \nuCX\, \frac{\ni}{\nna+\nnb}\, \nna
+\nonumber\\[2.5mm]&&{}
 %
   + \gamma_0 \frac{\nuL}{\Zi} \, (\ne - \nediv)
 \\[5mm]
@@ -652,11 +657,11 @@ TASK/TX V4.46 [07/12/19]
 %
     \frac{\Pbperp}{\Eb}
 %
-  - \frac{1}{r} \ddr \left( r \ubrp \nbrp - r \Dbrp \ddr \nbrp \right)
-%
   + \nueff (\sqrt{\delta} \nb - \nbrp)
 %
   - \nub \nbrp
+%
+  - \frac{1}{r} \ddr \left( r \ubrp \nbrp - r \Dbrp \ddr \nbrp \right)
 %
 \end{eqnarray}
 
@@ -817,13 +822,13 @@ TASK/TX V4.46 [07/12/19]
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{e^2 \Bph^2 \De}{\me\Te}\ne
-    \left(r \ueth + 2\dd{\Aph}\frac{s}{\Bph}\ueph - s
-     \ave{\frac{\omega}{m}}_\r{e} \right)
+    \left[(r \ueth - r \uith)+ 2\dd{\Aph}\frac{s}{\Bph}(\ueph -\uiph) - s
+     \ave{\frac{\omega}{m}}_\r{e} \right]
 \nonumber\\[2.5mm]&&{}
 %
-   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
-    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
-     \ave{\frac{\omega}{m}}_\r{i} \right)
+%   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
+%    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
+%     \ave{\frac{\omega}{m}}_\r{i} \right)
 %
   - 2 \nuL r \ne \ueth
 %
@@ -850,27 +855,29 @@ TASK/TX V4.46 [07/12/19]
 %
   + 2 \frac{e}{\me} \dd{\Aph} r \ne \uer 
 %
-  + 2 \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} r \ne (\ueth - \uith)
-%
   - \nu_\r{ei3} \ne (\ueph - \uiph)
+%
+  + 2 \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} r \ne (\ueth - \uith)
 \nonumber\\[2.5mm]&&{}
 %
   + 2 \frac{\mb}{\me} \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} r \ne (\ueth - \uith)
 %
   - \frac{\mb}{\me} \nu_\r{be3} \nb (\ueph - \ubph)
+\nonumber\\[2.5mm]&&{}
 %
   - 2\frac{e^2 \Bph \De}{\me\Te}\dd{\Aph}\ne
-    \left(r \ueth - s \ave{\frac{\omega}{m}}_\r{e} \right)
+    \left[(r \ueth - r \uith) - s \ave{\frac{\omega}{m}}_\r{e} \right]
+%
+  - \frac{e^2 \Bph^2
+  \De}{\me\Te}\left(\frac{\Bth}{\Bph}\right)^2\ne(\ueph - \uiph)
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{e^2 \Bph^2 \De}{\me\Te}\left(\frac{\Bth}{\Bph}\right)^2\ne\ueph
+%   + 2\frac{\Zi^2 e^2 \Bph \Di}{\me\Ti}\dd{\Aph}\ni
+%    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
+%\nonumber\\[2.5mm]&&{}
 %
-   + 2\frac{\Zi^2 e^2 \Bph \Di}{\me\Ti}\dd{\Aph}\ni
-    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
-\nonumber\\[2.5mm]&&{}
-%
-   + \frac{\Zi^2 e^2 \Bph^2
-   \Di}{\me\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
+%   + \frac{\Zi^2 e^2 \Bph^2
+%   \Di}{\me\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
 %
   - 2 \nuL \ne \ueph
 %
@@ -936,6 +943,8 @@ TASK/TX V4.46 [07/12/19]
 %
   - \fCX \frac{\Pb}{\Eb}
 %
+  + \nubL \nb
+%
   + S_\r{LC}
 %
   - \nuOL \ni
@@ -987,14 +996,14 @@ TASK/TX V4.46 [07/12/19]
 \nonumber\\[2.5mm]&&{}
 %
   + \frac{e^2 \Bph^2 \De}{\mi\Te}\ne
-    \left(r \ueth + 2\dd{\Aph}\frac{s}{\Bph}\ueph - s
-     \ave{\frac{\omega}{m}}_\r{e} \right)
+    \left[(r \ueth - r \uith) + 2\dd{\Aph}\frac{s}{\Bph}(\ueph - \uiph)
+     - s\ave{\frac{\omega}{m}}_\r{e} \right]
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
-    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
-     \ave{\frac{\omega}{m}}_\r{i} \right)
-\nonumber\\[2.5mm]&&{}
+%  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
+%    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
+%     \ave{\frac{\omega}{m}}_\r{i} \right)
+%\nonumber\\[2.5mm]&&{}
 %
   - 2 \nuL r \ni \uith
 %
@@ -1026,24 +1035,25 @@ TASK/TX V4.46 [07/12/19]
 %
   - 2 \Zi \frac{e}{\mi} \dd{\Aph} r \ni \uir 
 %
-  + 2 \frac{\me}{\mi} \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} r \ne (\uith - \ueth)
-%
   - \frac{\me}{\mi} \nu_\r{ei3} \ne (\uiph - \ueph)
+%
+  + 2 \frac{\me}{\mi} \dd{\Aph} \frac{\nu_\r{ei2}}{\Bth} r \ne (\uith - \ueth)
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{\mb}{\mi} \nubi \nb (\uiph - \ubph)
 %
   + 2\frac{e^2 \Bph \De}{\mi\Te}\dd{\Aph}\ne
-    \left(r \ueth - s \ave{\frac{\omega}{m}}_\r{e} \right)
+    \left[(r \ueth - r \uith) - s \ave{\frac{\omega}{m}}_\r{e} \right]
 \nonumber\\[2.5mm]&&{}
 %
-  + \frac{e^2 \Bph^2 \De}{\mi\Te}\left(\frac{\Bth}{\Bph}\right)^2\ne\ueph
+  + \frac{e^2 \Bph^2
+  \De}{\mi\Te}\left(\frac{\Bth}{\Bph}\right)^2\ne(\ueph - \uiph)
 %
-  - 2\frac{\Zi^2 e^2 \Bph \Di}{\mi\Ti}\dd{\Aph}\ni
-    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
-\nonumber\\[2.5mm]&&{}
+%  - 2\frac{\Zi^2 e^2 \Bph \Di}{\mi\Ti}\dd{\Aph}\ni
+%    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
+%\nonumber\\[2.5mm]&&{}
 %
-  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
+%  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\left(\frac{\Bth}{\Bph}\right)^2\ni\uiph
 %
   - 2 \nuL \ni \uiph
 %
@@ -1052,9 +1062,9 @@ TASK/TX V4.46 [07/12/19]
   - \nuCX \ni \uiph
 %
   + S_\r{LC\phi}
+\nonumber\\[2.5mm]&&{}
 %
   - \nuOL \ni \uiph
-%\nonumber\\[2.5mm]&&{}
 %
 %  - \nu_\r{iHL} u_{\r{H}\phi} u_{\r{H}\theta} \ni \uith
 %
@@ -1152,9 +1162,9 @@ TASK/TX V4.46 [07/12/19]
 %
   - \Zb \frac{e}{\mb} \nb \Aphd
 %
-  + 2 \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} \nb (\ubth - \ueth)
-%
   - \nu_\r{be3} \nb (\ubph - \ueph)
+%
+  + 2 \dd{\Aph} \frac{\nu_\r{be2}}{\Bth} \nb (\ubth - \ueth)
 %
   - \nubi \nb (\ubph - \uiph)
 \nonumber\\[2.5mm]&&{}
@@ -1208,11 +1218,11 @@ TASK/TX V4.46 [07/12/19]
 %
     \frac{\Pbperp}{\Eb}
 %
-  - 2 \dds r \ubrp \nbrp + 4 \dds s \Dbrp \dds \nbrp
-%
   + \nueff (\sqrt{\delta} \nb - \nbrp)
 %
   - \nub \nbrp
+%
+  - 2 \dds r \ubrp \nbrp + 4 \dds s \Dbrp \dds \nbrp
 %
 \end{eqnarray}
 
@@ -1227,19 +1237,19 @@ TASK/TX V4.46 [07/12/19]
  3    & LQm3 & $\Aphd$       & N        & $-2bB_{\theta\r{b}}$\\
  4    & LQm4 & $\Aph$        & $\times$ & $\times$\\
  5    & LQm5 & $r \Ath$      & $\times$ & $\times$\\
- 6    & LQe1 & $\ne$         & $\times$ & $\times$\\
- 7    & LQe2 & $r \ne \uer$  & 0        & 0\\
+ 6    & LQe1 & $\ne$         & $\times$ & $\times$(N)\\
+ 7    & LQe2 & $r \ne \uer$  & 0        & 0($\times$)\\
  8    & LQe3 & $r \ne \ueth$ & 0        & 0\\
  9    & LQe4 & $\ne \ueph$   & N        & 0\\
  10   & LQe5 & $\ne \Te$     & N        & N\\
- 11   & LQi1 & $\ni$         & $\times$ & $\times$\\
- 12   & LQi2 & $r \ni \uir$  & 0        & 0\\
+ 11   & LQi1 & $\ni$         & $\times$ & $\times$(N)\\
+ 12   & LQi2 & $r \ni \uir$  & 0        & 0($\times$)\\
  13   & LQi3 & $r \ni \uith$ & 0        & 0\\
  14   & LQi4 & $\ni \uiph$   & N        & 0\\
  15   & LQi5 & $\ni \Ti$     & N        & N\\
- 16   & LQb1 & $\nb$         & $\times$ & $\times$\\
- 17   & LQb3 & $r \nb \ubth$ & $\times$ & $\times$\\
- 18   & LQb4 & $\nb \ubph$   & $\times$ & $\times$\\
+ 16   & LQb1 & $\nb$         & $\times$(N) & $\times$(N)\\
+ 17   & LQb3 & $r \nb \ubth$ & $\times$(0) & $\times$(0)\\
+ 18   & LQb4 & $\nb \ubph$   & $\times$(0) & $\times$(0)\\
  19   & LQn1 & $\nna$        & N        & $2bS_\r{gas}$\\
  20   & LQn2 & $\nnb$        & N        & 0\\
  21   & LQr1 & $\nbrp$       & N        & N\\\hline

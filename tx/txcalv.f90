@@ -150,7 +150,7 @@ contains
          &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     KAPPA, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
+         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
@@ -162,6 +162,7 @@ contains
          &                         SRF, th1, th2, Ubpara, ar1, ar2, ar3, ar4
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
+    real(8), dimension(1:2*NRMAX) :: RRR, ZZZ
 
     !     *** Constants ***
 
@@ -287,10 +288,12 @@ contains
          & / SQRT(R(NRA) / RR)
 
     ! Ripple amplitude
-    thetab = PI / 3.D0
+    thetab = 0.5D0 * PI ! pitch angle of a typical banana particle
+!    thetab = PI / 3.D0 ! pitch angle of a typical banana particle
     sinthb = sin(thetab)
     DO NR = 0, NRMAX
-       DltRP(NR) = ripple(NR,thetab,FSRP)
+       RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
+       DltRP(NR) = ripple(RL,thetab,FSRP)
     END DO
 
     ellK = ELLFC(sin(0.5d0*thetab),IER) ! first kind of complete elliptic function 
@@ -472,6 +475,12 @@ contains
           rNube1(NR)  =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNube(NR)) / BBL**2
           rNube2(NR)  = BphV(NR) / BBL**2 * (rNuPara - rNube(NR))
           rNube3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNube(NR)) / BBL**2
+
+!!$          rnube(nr) = 0.d0
+!!$          rnubi(nr) = 0.d0
+!!$          rnube1(nr) = 0.d0
+!!$          rnube2(nr) = 0.d0
+!!$          rnube3(nr) = 0.d0
 
           ! deflection time of beam ions against bulk ions
           ! (Takamura (3.26) + Tokamaks 3rd p64)
@@ -667,8 +676,8 @@ contains
           RL = (R(NR) - RA) / DBW! / 2.D0
           rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
-          KAPPA = (4.D0*PI*EPS0)**2/(SQRT(AME)*rlnLe(NR)*AEE**4*Zeff)*AEE**2.5D0
-          rNuLTe(NR) = FSLTE * KAPPA * (PTeV_FIX(NR)*1.D3)**2.5D0 &
+          Chicl = (4.D0*PI*EPS0)**2/(SQRT(AME)*rlnLe(NR)*AEE**4*Zeff)*AEE**2.5D0
+          rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*1.D3)**2.5D0 &
                &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
                &             * RL**2 / (1.D0 + RL**2)
           rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
@@ -900,7 +909,8 @@ contains
     IF(ABS(FSRP) > 0.D0) THEN
        ! Ripple well region
        DO NR = 1, NRMAX
-          EpsL = R(NR) / RR
+          RL = R(NR)
+          EpsL = RL / RR
           theta1  = 0.d0
           i = 0
           imax = 101
@@ -912,7 +922,8 @@ contains
                 exit
              end if
              theta1 = theta1 + PI * dlt
-             width0 = ripple(NR,theta1,FSRP)
+             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
+             width0 = ripple(RL,theta1,FSRP)
              width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
              if(abs(width0 - width1) < 1.d-6) exit
              if(width0 < width1) then
@@ -936,7 +947,8 @@ contains
                 exit
              end if
              theta2 = theta2 - PI * dlt
-             width0 = ripple(NR,theta2,FSRP)
+             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta2))
+             width0 = ripple(RL,theta2,FSRP)
              width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
              if(abs(width0 - width1) < 1.d-6) exit
              if(width0 < width1) then
@@ -985,6 +997,10 @@ contains
        rNubrp1(0) = rNuD(0) / DltRP(0)
        rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
 
+       ! Save for graphic
+       thrp(1:nrmax) = th2(nrmax:1:-1)
+       thrp(nrmax+1:2*nrmax) = th1(1:nrmax)
+
 !!rp_conv       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
 !!rp_conv       do nr = 0, nrmax
 !!rp_conv          if(R(NR) <= RB * cos(th1(nr))) then
@@ -1000,7 +1016,8 @@ contains
        !  Diffusive loss
        !  -- Collisional diffusion of trapped fast particles --
        do nr = 1, nrmax
-          EpsL = R(NR) / RR
+          RL = R(NR)
+          EpsL = RL / RR
 
           ! rhob : Larmor radius of beam ions
           rhob = AMb * Vb / (PZ * AEE * SQRT(BphV(NR)**2 + BthV(NR)**2))
@@ -1031,28 +1048,30 @@ contains
 !!$!          Dbrp(NR) = DCB * DRP / (DCB + DRP)
           Dbrp(NR) = DRP/SQRT(1.D0+(rNubnc/rNueff*DltR*NTCOIL*dQdr(NR))**2)
 
-          ! Dltcr : GWB criterion of stochastic diffusion
+          ! Dltcr : GWB criterion of stochastic diffusion at banana tip point
 !          Dltcr = (EpsL / (PI * NTCOIL * Q(NR)))**1.5D0 / (rhob * dQdr(NR))
           Dltcr = DltRP(NR) / (DltR * NTCOIL * (2.D0 * thetab * dQdr(NR) &
           &     + 2.D0 * Q(NR) / R(NR) * cos(thetab) / sinthb))
-          ! Fraction of stochastic region occupied in a flux surface
-          theta1 = 0.d0
-          i = 0
-          dlt = 1.d0 / (imax - 1)
-          ist = -1
-          do
-             i = i + 1
-             if(ripple(nr,theta1,fsrp) > Dltcr) ist = ist + 1
-             theta1 = theta1 + PI * dlt
-             if(i == imax) exit
-          end do
-          ! Collisionless stochastic (ergodic) diffusion (whose value is 
-          ! equivalent to that of ripple-plateau diffusion)
-          if (DltRP(NR) > Dltcr) then
-             ! facST : Fraction of stochastic region in a flux surface
-             facST = dble(ist) / dble(imax - 1)
-             Dbrp(NR) = DRP * facST + Dbrp(NR) * (1.d0 - facST)
-          end if
+!!$          ! Fraction of stochastic region occupied in a flux surface
+!!$          theta1 = 0.d0
+!!$          i = 0
+!!$          dlt = 1.d0 / (imax - 1)
+!!$          ist = -1
+!!$          do
+!!$             i = i + 1
+!!$             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
+!!$             if(ripple(RL,theta1,fsrp) > Dltcr) ist = ist + 1
+!!$             theta1 = theta1 + PI * dlt
+!!$             if(i == imax) exit
+!!$          end do
+!!$          ! Collisionless stochastic (ergodic) diffusion (whose value is 
+!!$          ! equivalent to that of ripple-plateau diffusion)
+!!$          if (DltRP(NR) > Dltcr) then
+!!$             ! facST : Fraction of stochastic region in a flux surface
+!!$             facST = dble(ist) / dble(imax - 1)
+!!$             Dbrp(NR) = DRP * facST + Dbrp(NR) * (1.d0 - facST)
+!!$          end if
+          if (DltRP(NR) > Dltcr) Dbrp(NR) = DRP
 
 !!$          ! Old version for display and comparison
 !!$          DRP = rNubnc * PI * NTCOIL * (Q(NR) / EpsL)**3 * DltRP(NR)**2 * rhob**2
@@ -1202,19 +1221,36 @@ contains
 !
 !***************************************************************
 
-  pure real(8) function ripple(NR,theta,FSRP)
-    use tx_commons, only : DltRP0, RR, R, RA, NTCOIL, DIN
-    integer(4), intent(in) :: NR
-    real(8), intent(in) :: theta, FSRP
+  real(8) function ripple(RL,theta,FSRP) result(f)
+    use tx_commons, only : RR, NTCOIL, DltRPn, RA
+    real(8), intent(in) :: RL, theta, FSRP
+    real(8) :: a, L0, Rmag0 = 2.4D0 ! specific value for JT-60U
+    real(8) :: BESIN
 
     if(FSRP /= 0.D0) then
-       ripple = DltRP0 * (       ((RR + R(NR) * cos(theta)) / (RR + RA))**(NTCOIL-1) &
-            &             + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
+       L0 = RR - Rmag0
+       a = sqrt((RL**2+L0**2+2.D0*RL*L0*cos(theta))*(RR-L0)/(RR+RL*cos(theta)))
+       f = DltRPn * BESIN(0,NTCOIL/(RR-L0)*a)
     else
-       ripple = 0.D0
+       f = 0.d0
     end if
-       
+
   end function ripple
+
+!!$  real(8) function ripple(NR,theta,FSRP) result(f)
+!!$    use tx_commons, only : RR, R, RA, NTCOIL
+!!$    integer(4), intent(in) :: NR
+!!$    real(8), intent(in) :: theta, FSRP
+!!$    real(8) :: DIN = 0.2D0, DltRP0 = 0.015D0
+!!$
+!!$    if(FSRP /= 0.D0) then
+!!$       f = DltRP0 * (       ((RR + R(NR) * cos(theta)) / (RR + RA))**(NTCOIL-1) &
+!!$            &        + DIN *((RR - RA) / (RR + R(NR) * cos(theta)))**(NTCOIL+1))
+!!$    else
+!!$       f = 0.D0
+!!$    end if
+!!$       
+!!$  end function ripple
 
 !!rp_conv  ! Search minimum radial number NR satisfying R(NR) > X.
 !!rp_conv

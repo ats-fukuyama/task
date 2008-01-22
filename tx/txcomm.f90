@@ -78,7 +78,7 @@ module tx_commons
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
 
   ! Ripple parameters
-  real(8) :: DIN, DltRP0
+  real(8) :: DltRPn, kappa
   integer(4) :: NTCOIL, m_pol, n_tor
 
   ! Numerical parameters
@@ -176,7 +176,7 @@ module tx_commons
   real(8), dimension(:), allocatable :: ANS0, TS0, ANSAV, TSAV, WST
   real(8), dimension(:), allocatable :: ANF0, TF0, ANFAV, TFAV, WFT
   real(8), dimension(:), allocatable :: PBCLT, PFCLT, PLT, SPET, SLT
-  real(8), dimension(:), allocatable :: Deff
+  real(8), dimension(:), allocatable :: Deff, thrp
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
   real(8) :: PINT, POHT, PNBT, PRFT, PNFT
@@ -301,7 +301,7 @@ contains
        allocate(ANS0(1:NS), TS0(1:NS),   ANSAV(1:NS), TSAV(1:NS), WST(1:NS),  stat = ierl(1))
        allocate(ANF0(1:NF), TF0(1:NF),   ANFAV(1:NF), TFAV(1:NF), WFT(1:NF),  stat = ierl(2))
        allocate(PBCLT(1:NS),PFCLT(1:NS), PLT(1:NS),   SPET(1:NS), SLT(1:NS),  stat = ierl(3))
-       allocate(Deff(0:N),                                                    stat = ierl(4))
+       allocate(Deff(0:N),  thrp(1:2*N),                                      stat = ierl(4))
        ier = sum(ierl) ; iflag = 8
        if (ier /= 0) exit
 
@@ -342,7 +342,7 @@ contains
     deallocate(AphV,   PhiV,   RAthV, PeV,   PiV)
     deallocate(RUethV, RUithV, PT01V, PT02V, PNbrpV)
 
-    deallocate(PNeV_FIX, PTeV_FIX)
+    deallocate(PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX)
 
     deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
     deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
@@ -378,7 +378,7 @@ contains
     deallocate(ANS0, TS0, ANSAV, TSAV, WST)
     deallocate(ANF0, TF0, ANFAV, TFAV, WFT)
     deallocate(PBCLT, PFCLT, PLT, SPET, SLT)
-    deallocate(Deff)
+    deallocate(Deff, thrp)
 
     deallocate(ALC, BLC, CLC)
     deallocate(PLC)

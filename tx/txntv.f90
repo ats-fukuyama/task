@@ -7,7 +7,7 @@
 !***************************************************************
 
 subroutine perturb_mag
-  use tx_commons, only : nrmax, m_pol, PI, n_tor, deltam
+  use tx_commons, only : nrmax, m_pol, PI, n_tor, deltam, r
   use tx_variables, only : ripple
   implicit none
 
@@ -31,7 +31,7 @@ subroutine perturb_mag
   do nr = 0, nrmax
      ! ripple amplitude in the poloidal plane at a certain radial position
      do m = 0, m_max-1
-        delta_l(m) = ripple(nr,theta(m),1.d0)
+        delta_l(m) = ripple(r(nr),theta(m),1.d0)
      end do
      ! Discrete Cosine Transformation
      call ddct(m_max, -1, delta_l, ip, w)

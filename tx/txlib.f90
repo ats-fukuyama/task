@@ -243,14 +243,14 @@ contains
        end do
     case(29)
        do ne = 1, nemax
-          x(ne,1) = (-3.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
-          x(ne,2) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
-          x(ne,3) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne-1)) * c112
-          x(ne,4) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne-1) &
-               &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne-1)) * c112
+          x(ne,1) = (-3.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne-1)*b(ne) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne)) * c112
+          x(ne,2) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne)) * c112
+          x(ne,3) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne) &
+               &     -     a(ne)  *b(ne-1) +      a(ne)  *b(ne)) * c112
+          x(ne,4) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne) &
+               &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne)) * c112
        end do
     case(32)
        do ne = 1, nemax
@@ -441,21 +441,32 @@ contains
 !  < output >
 !     x(4)     : matrix of integrated values
 !
+!  If ne = 0 is given, the coefficient "a" at the magnetic axis is forced to be zero.
+!
 !-------------------------------------------------------
     integer(4), intent(in) :: id, ne
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b
-    integer(4) :: node1, node2
+    integer(4) :: nel, node1, node2, iflag
     real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, hp, csq15
-    
-    node1 = ne-1  ; node2 = ne
+
+    iflag = 0
+    if(ne == 0) then
+       nel = ne + 1
+       iflag = 1
+    else
+       nel = ne
+    end if
+
+    node1 = nel-1  ; node2 = nel
     if(present(a)) then
        a1 = a(node1) ; a2 = a(node2)
        if(present(b)) then
           b1 = b(node1) ; b2 = b(node2)
        end if
     end if
+    if(iflag == 1) a1 = 0.d0
     r1 = r(node1) ; r2 = r(node2)
-    p1 = psi(node1) ; p2 = psi(node2) ; hp = hpsi(ne)
+    p1 = psi(node1) ; p2 = psi(node2) ; hp = hpsi(nel)
 
     select case(id)
     case(-1)
@@ -590,13 +601,13 @@ contains
 !       x(2) = (       r1 +        r2) * hp / 12.d0 * a2
 !       x(3) = (       r1 +        r2) * hp / 12.d0 * a1
 !       x(4) = (       r1 + 3.d0 * r2) * hp / 12.d0 * a2
-       x(1) = 2.d0*h(ne)*( 15.d0*p1**2+45.d0*p1*r1*r2+48.d0*p1*p2+24.d0*r1*p2*r2 &
+       x(1) = 2.d0*h(nel)*( 15.d0*p1**2+45.d0*p1*r1*r2+48.d0*p1*p2+24.d0*r1*p2*r2 &
             &             + 8.d0*p2**2) / (105.d0*(r1+r2)**2) * a1
-       x(2) = 4.d0*h(ne)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
+       x(2) = 4.d0*h(nel)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
             &             + 3.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
-       x(3) = 4.d0*h(ne)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
+       x(3) = 4.d0*h(nel)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
             &             + 3.d0*p2**2) / (105.d0*(r1+r2)**2) * a1
-       x(4) = 2.d0*h(ne)*(  8.d0*p1**2+24.d0*p1*r1*r2+48.d0*p1*p2+45.d0*r1*p2*r2 &
+       x(4) = 2.d0*h(nel)*(  8.d0*p1**2+24.d0*p1*r1*r2+48.d0*p1*p2+45.d0*r1*p2*r2 &
             &             +15.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
     case(22)
        x(1) = (12.d0*r1*a1 + 3.d0*r2*a1 + 3.d0*r1*a2 + 2.d0*r2*a2) * hp / 60.d0

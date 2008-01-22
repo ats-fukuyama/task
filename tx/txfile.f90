@@ -59,6 +59,52 @@ SUBROUTINE TXWDAT2
   RETURN
 END SUBROUTINE TXWDAT2
 
+!***************************************************************
+!
+!   Write Statistic Data
+!
+!***************************************************************
+
+subroutine TXSTAT
+  use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
+       &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, R, &
+       &                 rMui, Chii, UiphV
+  implicit none
+  integer(4) :: NR, NRL
+  real(8) :: RL, rmuil, chiil, uiphl
+  real(8) :: aitken2p
+
+  RL = 0.3D0 * RA
+  DO NR = 0, NRMAX-1
+     IF(R(NR) <= RL.AND.R(NR+1) >= RL) THEN
+        NRL = NR
+        EXIT
+     END IF
+  END DO
+
+  rmuil = aitken2p(rl,rmui(nrl),rmui(nrl+1),rmui(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+  chiil = aitken2p(rl,chii(nrl),chii(nrl+1),chii(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+  uiphl = aitken2p(rl,uiphv(nrl),uiphv(nrl+1),uiphv(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Vol. ave. of neutrality  = ", VOLAVN
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Inductance               = ", ALI, &
+       &                            "Loop voltage             = ", VLOOP
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Confinement time 1       = ", TAUE1, &
+       &                            "Confinement time 2       = ", TAUE2
+  write(6,'(1X,2(A27,1PD10.3,3X))') "L-mode scaling time      = ", TAUEP, &
+       &                            "IPB98(y,2) scaling time  = ", TAUEH
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Beta                     = ", BETAA, &
+       &                            "Poloidal beta            = ", BETAPA
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Normalized beta          = ", BETAN
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Line averaged e density  = ", ANSAV(1), &
+       &                            "Greenwald density        = ", rIp / (PI * RA**2)
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Safety factor on axis    = ", Q(0), &
+       &                            "Safety factor at sep.    = ", Q(NRA)
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
+       &                            "Ion tor. velocity at 0.3 = ", uiphl
+
+end subroutine TXSTAT
+
 !***********************************************************
 !
 !  LINE AVERAGE OF rN
@@ -101,9 +147,9 @@ SUBROUTINE TXSAVE
        &              rNRF,RRF,RRF0,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
-       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DIN,DltRP0,m_pol,n_tor, &
+       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        &              MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD, &
-       &              PNBMPD
+       &              PNBMPD,thrp,kappa
 
   use tx_interface, only : TOUPPER
 
@@ -119,7 +165,11 @@ SUBROUTINE TXSAVE
      WRITE(6,*) '# INPUT : SAVE FILE NAME'
      CALL GUFLSH
      READ(*,'(A100)',IOSTAT=IST) TXFNAM
-     IF (IST > 0) CYCLE
+     IF (IST > 0) THEN
+        CYCLE
+     ELSE IF (IST < 0) THEN
+        RETURN
+     END IF
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
      IF (LEX) THEN
         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',  &
@@ -155,15 +205,14 @@ SUBROUTINE TXSAVE
   WRITE(21) RA,RB,RC,RR,BB
   WRITE(21) PA,PZ,Zeff
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-  WRITE(21) De0,Di0,rMue0,rMui0,WPM0
-  WRITE(21) Chie0,Chii0
+  WRITE(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
   WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
   WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   WRITE(21) rNRF,RRF,RRF0,PRFH,PNBCD,PNBMPD
   WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  WRITE(21) NTCOIL,DIN,DltRP0,m_pol,n_tor
+  WRITE(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
   WRITE(21) DT,EPS,ADV,tiny_cap
   WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   WRITE(21) rG1
@@ -181,6 +230,7 @@ SUBROUTINE TXSAVE
   WRITE(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
   WRITE(21) (NLCMAX(NQ), NQ=1,NQM)
   WRITE(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
+  WRITE(21) (thrp(I), I=1, 2*NRMAX)
   CLOSE(21)
   WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
 
@@ -193,7 +243,7 @@ END SUBROUTINE TXSAVE
 !
 !***************************************************************
 
-SUBROUTINE TXLOAD
+SUBROUTINE TXLOAD(IST)
   use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
        &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
@@ -202,15 +252,17 @@ SUBROUTINE TXLOAD
        &              rNRF,RRF,RRF0,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
-       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DIN,DltRP0,m_pol,n_tor, &
+       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        &              MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD, &
-       &              PNBMPD,NGR,rIP
+       &              PNBMPD,NGR,rIP,thrp,kappa,PTeV_FIX,PNeV_FIX,LQe1,LQe5,TAUE2, &
+       &              rMU0,rMUb1,rMUb2
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
 
   implicit none
-  INTEGER(4) :: IST, NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
+  integer(4), intent(out) :: IST
+  INTEGER(4) :: NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV, NGTL
   character(len=100) ::  TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
@@ -221,7 +273,11 @@ SUBROUTINE TXLOAD
      WRITE(6,*) '# INPUT : LOAD FILE NAME'
      CALL GUFLSH
      READ(*,'(A100)',IOSTAT=IST) TXFNAM
-     IF (IST > 0) CYCLE
+     IF (IST > 0) THEN
+        CYCLE
+     ELSE IF (IST < 0) THEN
+        RETURN
+     END IF
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
      IF (LEX) THEN
         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
@@ -249,21 +305,20 @@ SUBROUTINE TXLOAD
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx446') THEN
+  !  IF(LOADSLID(1:5) == 'tx447') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
   READ(21) PA,PZ,Zeff
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-  READ(21) De0,Di0,rMue0,rMui0,WPM0
-  READ(21) Chie0,Chii0
+  READ(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
   READ(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
   READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   READ(21) rNRF,RRF,RRF0,PRFH,PNBCD,PNBMPD
   READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  READ(21) NTCOIL,DIN,DltRP0,m_pol,n_tor
+  READ(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
   READ(21) DT,EPS,ADV,tiny_cap
   READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   READ(21) rG1
@@ -281,10 +336,12 @@ SUBROUTINE TXLOAD
   READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
   READ(21) (NLCMAX(NQ), NQ=1,NQM)
   READ(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
+  READ(21) (thrp(I), I=1, 2*NRMAX)
   !  END IF
   CLOSE(21)
   WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
 
+  NGTL=NGT
   NGT=-1
   NGR=-1
   NGVV=-1
@@ -292,12 +349,26 @@ SUBROUTINE TXLOAD
 
   CALL TXPARM_CHECK
   CALL TXCALM
+
+  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
+     rMUb1 = 1.D0
+     rMUb2 = rMU0
+  END IF
+
   CALL TXCALV(X)
+
+  PNeV_FIX(0:NRMAX) = X(LQe1,0:NRMAX)
+  PTeV_FIX(0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
+
   CALL TXCALC
   CALL TXCALA
   CALL TXGLOB
   CALL TXWDAT
   CALL TXWDAT2
+
+  ! TAUE2 uses data one step before the data was stored.
+  ! Then TAUE2 is reconstituted by using the graphic data of TAUE2.
+  TAUE2 = DBLE(GTY(NGTL,34))
 
   RETURN
 END SUBROUTINE TXLOAD
@@ -317,9 +388,9 @@ SUBROUTINE TXGSAV
        &              rNRF,RRF,RRF0,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
-       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DIN,DltRP0,m_pol,n_tor, &
+       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DltRPn,m_pol,n_tor, &
        &              MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD, &
-       &              PNBMPD
+       &              PNBMPD,thrp,kappa
 
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
@@ -333,7 +404,11 @@ SUBROUTINE TXGSAV
      WRITE(6,*) '# INPUT : SAVE FILE NAME'
      CALL GUFLSH
      READ(*,'(A100)',IOSTAT=IST) TXFNAM
-     IF (IST > 0) CYCLE
+     IF (IST > 0) THEN
+        CYCLE
+     ELSE IF(IST < 0) THEN
+        RETURN
+     END IF
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
      IF (LEX) THEN
         WRITE(6,*) '# OLD FILE IS GOING TO BE OVERWRITTEN.  ',  &
@@ -369,15 +444,14 @@ SUBROUTINE TXGSAV
   WRITE(21) RA,RB,RC,RR,BB
   WRITE(21) PA,PZ,Zeff
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-  WRITE(21) De0,Di0,rMue0,rMui0,WPM0
-  WRITE(21) Chie0,Chii0
+  WRITE(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
   WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
   WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   WRITE(21) rNRF,RRF,RRF0,PRFH,PNBCD,PNBMPD
   WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  WRITE(21) NTCOIL,DIN,DltRP0,m_pol,n_tor
+  WRITE(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
   WRITE(21) DT,EPS,ADV,tiny_cap
   WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   WRITE(21) rG1
@@ -399,6 +473,7 @@ SUBROUTINE TXGSAV
   WRITE(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
   WRITE(21) (NLCMAX(NQ), NQ=1,NQM)
   WRITE(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
+  WRITE(21) (thrp(I), I=1, 2*NRMAX)
   CLOSE(21)
   WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
 
@@ -411,23 +486,25 @@ END SUBROUTINE TXGSAV
 !
 !***************************************************************
 
-SUBROUTINE TXGLOD
+SUBROUTINE TXGLOD(IST)
 
-  use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
-       &              SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       &              De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
-       &              PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
-       &              Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
-       &              rNRF,RRF,RRF0,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       &              DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
-       &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
-       &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DIN,DltRP0,m_pol,n_tor, &
-       &              MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD, &
-       &              PNBMPD,rIP
+  use tx_commons, only : &
+       & allocate_txcomm, deallocate_txcomm, &
+       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+       & De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0,FSDFIX,FSCDBM,FSBOHM,FSPSCL, &
+       & PROFD,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,rLn,rLT, &
+       & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2, &
+       & rNRF,RRF,RRF0,PRFH,PNBCD,PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
+       & DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
+       & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+       & GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DltRPn,m_pol,n_tor, &
+       & MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD, &
+       & PNBMPD,rIP,thrp,kappa
   use tx_variables
 
   implicit none
-  INTEGER(4) :: IST, NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV, ier
+  integer(4), intent(out) :: IST
+  INTEGER(4) :: NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV
   character(len=100) :: TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
@@ -438,7 +515,11 @@ SUBROUTINE TXGLOD
      WRITE(6,*) '# INPUT : LOAD FILE NAME'
      CALL GUFLSH
      READ(*,'(A100)',IOSTAT=IST) TXFNAM
-     IF (IST > 0) CYCLE
+     IF (IST > 0) THEN
+        CYCLE
+     ELSE IF(IST < 0) THEN
+        RETURN
+     END IF
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
      IF (LEX) THEN
         OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='UNFORMATTED')
@@ -466,21 +547,20 @@ SUBROUTINE TXGLOD
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx446') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx447') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
   READ(21) PA,PZ,Zeff
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
-  READ(21) De0,Di0,rMue0,rMui0,WPM0
-  READ(21) Chie0,Chii0
+  READ(21) De0,Di0,rMue0,rMui0,WPM0,Chie0,Chii0
   READ(21) FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD
   READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   READ(21) rNRF,RRF,RRF0,PRFH,PNBCD,PNBMPD
   READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  READ(21) NTCOIL,DIN,DltRP0,m_pol,n_tor
+  READ(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
   READ(21) DT,EPS,ADV,tiny_cap
   READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   READ(21) rG1
@@ -502,6 +582,7 @@ SUBROUTINE TXGLOD
   READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
   READ(21) (NLCMAX(NQ), NQ=1,NQM)
   READ(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
+  READ(21) (thrp(I), I=1, 2*NRMAX)
   !  END IF
   CLOSE(21)
   WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'

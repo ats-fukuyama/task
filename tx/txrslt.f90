@@ -358,22 +358,3 @@ SUBROUTINE TXGLOB
 
   RETURN
 END SUBROUTINE TXGLOB
-
-subroutine TXSTAT
-  use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
-       &                 BETAPA, BETAN, Q
-  implicit none
-
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Vol. ave. of neutrality = ", VOLAVN
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Inductance              = ", ALI, &
-       &                            "Loop voltage            = ", VLOOP
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Confinement time 1      = ", TAUE1, &
-       &                            "Confinement time 2      = ", TAUE2
-  write(6,'(1X,2(A26,1PD10.3,3X))') "L-mode scaling time     = ", TAUEP, &
-       &                            "IPB98(y,2) scaling time = ", TAUEH
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Beta                    = ", BETAA, &
-       &                            "Poloidal beta           = ", BETAPA
-  write(6,'(1X,2(A26,1PD10.3,3X))') "Normalized beta         = ", BETAN, &
-       &                            "Safety factor on axis   = ", Q(0)
-
-end subroutine TXSTAT

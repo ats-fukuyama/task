@@ -270,6 +270,7 @@ contains
        IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB
           CALL TXSTGT(SNGL(T_TX))
+          call txstgq !!!temporary
        END IF
 
        IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(SNGL(T_TX))

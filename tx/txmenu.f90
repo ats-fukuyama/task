@@ -90,11 +90,16 @@ SUBROUTINE TXMENU
      CASE('Q')
         EXIT
      CASE('W')
+        IF (ICONT == 0) THEN
+           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+           CYCLE
+        END IF
         CALL TXSTAT
      CASE('S')
         CALL TXSAVE
      CASE('L')
-        CALL TXLOAD
+        CALL TXLOAD(IER)
+        IF(IER /= 0) CYCLE
         IERR = 0
         NGR = -1
         ICONT = 1

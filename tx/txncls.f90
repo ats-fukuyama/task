@@ -95,7 +95,7 @@ contains
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
-         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP
+         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, tmp1,tmp2,tmp3
     REAL(8) :: DERIV3, AITKEN2P
 
     !     *** Ellipticity on axis ***
@@ -182,7 +182,7 @@ contains
 !    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0)) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
     if(nr == 0) then
-       p_gr2phi = 0.0
+       p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
     else
        p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0) &
             &           +RA**2*ErV(NR)*DERIV3(NR,R,BthV,NRMAX,0)/BthV(NR))
