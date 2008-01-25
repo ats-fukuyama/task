@@ -89,7 +89,7 @@ libs:
 	(cd ../pl; make pllib.a)
 	(cd ../lib; make)
 	(cd ../eq; make eqlib.a)
-	$(MAKE_TPXLIB)#	(cd ../../topics/src; make tpxlib.a eqlib.a)
+	$(MAKE_TPXLIB)
 	(cd ../eq; make treqin.o)
 
 tr2: $(LIBS2) trmain.o 
