@@ -9,18 +9,22 @@ FFLAGS = $(OFLAGS)
 # without eq
 #MODINCLUDE= -I. -I../pl
 #EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
+#MAKE_TPXLIB=
 
 # with task/eq
-#MODINCLUDE= -I. -I../eq -I../pl
-#EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
+MODINCLUDE= -I. -I../eq -I../pl
+EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
+MAKE_TPXLIB=
 
 # with topics/equ
 #MODINCLUDE= -I. -I../pl -I../../topics/src
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
+#MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 # with task/eq and topics/equ
-MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
-EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
+#EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 PLLIBS=../pl/pl_bpsd.o ../pl/pl_vmec.o ../pl/modules.o
 
@@ -85,7 +89,7 @@ libs:
 	(cd ../pl; make pllib.a)
 	(cd ../lib; make)
 	(cd ../eq; make eqlib.a)
-	(cd ../../topics/src; make tpxlib.a eqlib.a)
+	$(MAKE_TPXLIB)#	(cd ../../topics/src; make tpxlib.a eqlib.a)
 	(cd ../eq; make treqin.o)
 
 tr2: $(LIBS2) trmain.o 
