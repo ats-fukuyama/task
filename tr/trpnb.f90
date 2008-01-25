@@ -8,26 +8,19 @@
 
       USE TRCOMM, ONLY : MDLNB, NRMAX, SNB, TAUB
       IMPLICIT NONE
-      INTEGER(4) :: NR
 
       IF(MDLNB.EQ.0) THEN
-         DO NR=1,NRMAX
-            TAUB(NR)=1.D0
-         ENDDO
+         TAUB(1:NRMAX)=1.D0
       ELSEIF(MDLNB.EQ.1) THEN
          CALL TRNBIA
-         DO NR=1,NRMAX
-            SNB(NR)=0.D0
-         ENDDO
+         SNB(1:NRMAX)=0.D0
          CALL TRAJNB
       ELSEIF(MDLNB.EQ.2) THEN
          CALL TRNBIA
          CALL TRAJNB
       ELSEIF(MDLNB.EQ.3) THEN
          CALL TRNBIB
-         DO NR=1,NRMAX
-            SNB(NR)=0.D0
-         ENDDO
+         SNB(1:NRMAX)=0.D0
          CALL TRAJNB
       ELSEIF(MDLNB.EQ.4) THEN
          CALL TRNBIB
@@ -44,7 +37,8 @@
 
       SUBROUTINE TRNBIA
 
-      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, PNB, PNBENG, PNBR0, PNBRW, PNBTOT, RA, RKEV, RM, SNB
+      USE TRCOMM, ONLY : DR, DVRHO, NRMAX, PNB, PNBENG, PNBR0, PNBRW, PNBTOT, RA, &
+           &             RKEV, RM, SNB
       IMPLICIT NONE
       INTEGER(4):: NR
       REAL(8)   :: PNB0, SUM
@@ -74,7 +68,8 @@
 
       SUBROUTINE TRNBIB
 
-      USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, RKEV, RTG, SNB
+      USE TRCOMM, ONLY : GPNB, NRMAX, PNB, PNBENG, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, &
+           &             RKEV, RTG, SNB
       IMPLICIT NONE
       INTEGER(4):: I, J, NR, NRNBMAX
       REAL(8)   ::DRTG, DVY, RDD, VY
@@ -82,17 +77,10 @@
 
       IF(PNBTOT.LE.0.D0) RETURN
 
-      DO NR=1,NRMAX
-         SNB(NR) = 0.D0
-         DO J=1,10
-            GPNB(NR        ,J)=0.0
-            GPNB(NR+  NRMAX,J)=0.0
-            GPNB(NR+2*NRMAX,J)=0.0
-            GPNB(NR+3*NRMAX,J)=0.0
-         ENDDO
-      ENDDO
-
       NRNBMAX=10
+      SNB(1:NRMAX) = 0.D0
+      GPNB(1:4*NRMAX,1:NRNBMAX) = 0.0
+
       DRTG=2.D0*PNBRW/NRNBMAX
       DVY =2.D0*PNBVW/NRNBMAX
       DO I=1,NRNBMAX
@@ -104,9 +92,8 @@
          ENDDO
       ENDDO
 
-      DO NR=1,NRMAX
-         PNB(NR) = SNB(NR)*1.D20*PNBENG*RKEV
-      ENDDO
+      PNB(1:NRMAX) = SNB(1:NRMAX)*1.D20*PNBENG*RKEV
+
       RETURN
       END SUBROUTINE TRNBIB
 
@@ -118,32 +105,36 @@
 
       SUBROUTINE TRNBPB(J,R0,VY,RDD)
 
-!     J   : J-th NBI
-!     R0  : tangential radius of NBI beam (m)
-!     VY  : vertical position of NBI (m)
-!     RDD : NBI deposition rate
+!     J   (in): J-th NBI
+!     R0  (in): tangential radius of NBI beam (m)
+!     VY  (in): vertical position of NBI (m)
+!     RDD (in): NBI deposition rate
 
 !     KL  : judging condition parameter
 !           0 : beam energy has decreased at stopping condition
 !           1 : beam energy has not decreased at stopping condition yet
 !           2 : median center of beam line
 
-      USE TRCOMM, ONLY : ANC, ANFE, DR, DVRHO, GBAN, GBL, GBP1, GBR, GBRH, GPNB, NLMAX, NRMAX, PNBENG, PNBTOT, PZC, &
-      &                  PZFE, RA, RG, RKEV, RN, RR, RT, SNB
+      USE TRCOMM, ONLY : ANC, ANFE, DR, DVRHO, GBAN, GBL, GBP1, GBR, GBRH, GPNB, &
+           &             NLMAX, NRMAX, PNBENG, PNBTOT, PZC, &
+           &             PZFE, RA, RG, RKEV, RN, RR, RT, SNB
       IMPLICIT NONE
-      INTEGER(4):: I, IB, IDL, IM, J
-      REAL(8)   :: ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, KL, P1, P1SUM, R0, RADIUS1, RADIUS2, RADIUSG, &
-     &             RAL, RDD, RG1, RG2, SGM, SUML, TEX, VY, XL, ZCX, ZFX, ZOX
+      integer(4), intent(in) :: J
+      real(8), intent(in) :: R0, VY, RDD
+      INTEGER(4):: I, IB, IDL, IM, KL
+      REAL(8)   :: ANL, ANL0, COST, COSTV, DCX, DEX, DFX, DL, DOX, DRG, P1, P1SUM, &
+           &       RADIUS1, RADIUS2, RADIUSG, &
+     &             RAL, RG1, RG2, SGM, SUML, TEX, XL, ZCX, ZFX, ZOX
       REAL(4)   :: GUCLIP   ! GSAF
 
-      IF(PNBTOT.LE.0.D0) RETURN
+      IF(PNBTOT <= 0.D0) RETURN
 
 !  COSTV : cosine between midplane and vertical position of NB
       COSTV=SQRT(RA**2-VY**2)/RA
-!  RAL : minor radius on the plane of vertical position of NB
+!  RAL : minor radius of NB injection point projected to the midplane
       RAL=RA*COSTV
 !  XL : maximum distance from injection point to wall
-      IF(R0.GE.RR-RAL) THEN
+      IF(R0 >= RR-RAL) THEN
          XL=2.D0*SQRT((RR+RAL)**2-R0**2)
       ELSE
          XL=SQRT((RR+RAL)**2-R0**2)-SQRT((RR-RAL)**2-R0**2)
@@ -152,60 +143,63 @@
 !        (the number of beam particles per unit length
 !         divided by thier velocity)
       ANL=RDD*PNBTOT*1.D6/(PNBENG*RKEV*1.D20)
-!  IB : radial grid point of NB deposition position
-      IB=INT(VY/(DR*RA))+1
-!  I : radial grid point of NB
+!  IB : number of vertical grid point from midplane to NB injection point,
+!       which defines innermost radial grid point of the heating region for each NB chord
+      IB = INT(ABS(VY/(DR*RA)))+1
+!  I : radial grid point of current NB deposition position
       I=NRMAX-IB+1
 
-!  SUML : total distance in direction of NB
+!  SUML : total distance from injection point in eye direction of NB
       SUML=0.D0
 !  ANL0 : stored ANL for truncation of calculation
       ANL0=ANL
 !  DL : arbitrary minute length in direction of NB
-      DL=XL/1000
+!      DL=XL/1000
+      DL=XL/500
 !  COST : cosine between midplane and NB chord
       COST=SQRT((RR+RAL)**2-R0**2)/(RR+RAL)
 !  IDL : serial number of DL
       IDL=0
 
 !  IM : radial grid point turned back at magnetic axis
-   10 IF(I.GT.0) THEN
+   10 IF(I > 0) THEN
          IM=I+IB-1
       ELSE
-         IF(ABS(I).LE.NRMAX) THEN
+         IF(ABS(I) <= NRMAX) THEN
             IM=IB+ABS(I)-1
-         ELSEIF(ABS(I).LE.2*NRMAX) THEN
+         ELSEIF(ABS(I) <= 2*NRMAX) THEN
             IM=IB-ABS(I)+2*NRMAX
          ELSE
             IM=IB+ABS(I)-2*NRMAX-1
          ENDIF
       ENDIF
 
-!      WRITE(6,'(3(1X,I4),2F15.7)') IB,I,IM,SUML,DL
+!      WRITE(6,'(3(1X,I4),3F15.7)') IB,I,IM,SUML,DL,XL
 
 !      IF(I.NE.0.AND.(IM.GE.1.AND.IM.LE.NRMAX)) THEN
-      IF(I.NE.0.AND.(IM.GE.IB.AND.IM.LE.NRMAX)) THEN
+      IF(I /= 0 .AND. (IM >= IB .AND. IM <= NRMAX)) THEN
 
       P1SUM = 0.D0
       RG1=(RG(IM  )*RA)**2-VY**2
       RG2=(RG(IM-1)*RA)**2-VY**2
-      IF(RG2.LT.0.D0) RG2=0.D0
-      IF(I.GT.0) THEN
-         RADIUS1 = RR+SQRT(RG1)
+      IF(RG2 < 0.D0) RG2=0.D0 ! Turn-around point
+      IF(I > 0) THEN
+         RADIUS1 = RR+SQRT(RG1) ! First LFS
       ELSE
-         IF(ABS(I).LE.NRMAX) THEN
-            RADIUS1 = RR-SQRT(RG2)
-         ELSEIF(ABS(I).LE.2*NRMAX) THEN
-            RADIUS1 = RR-SQRT(RG2)
+         IF(ABS(I) <= NRMAX) THEN
+            RADIUS1 = RR-SQRT(RG2) ! First HFS
+         ELSEIF(ABS(I) <= 2*NRMAX) THEN
+            RADIUS1 = RR-SQRT(RG2) ! Second HFS after turn-around
          ELSE
-            RADIUS1 = RR+SQRT(RG1)
+            RADIUS1 = RR+SQRT(RG1) ! Second LFS after turn-around
          ENDIF
       ENDIF
-      IF(I.EQ.-3*NRMAX) THEN
-         NLMAX(J)=IDL
+      IF(I == -3*NRMAX) THEN ! Shine-through
+         NLMAX(J)=IDL ! Maximum number of points in the eye direction of NB
          RETURN
       ENDIF
 
+      ! Plasma parameters
       DEX = RN(IM,1)*1.D1
       TEX = RT(IM,1)
       DCX = ANC(IM)*1.D1
@@ -215,39 +209,43 @@
       ZFX = PZFE(IM)
       ZOX = 8.D0
 
-!  Accumulate P1 inside one grid
- 20   IF(SUML+DL.GE.XL) DL=XL-SUML
+!  Accumulate P1 inside one grid (P1 denotes the deposition power at each region)
+ 20   IF(SUML+DL >= XL) DL=XL-SUML ! Shine-through
       IDL=IDL+1
       GBL (IDL)  =GUCLIP(SUML)
       GBAN(IDL,J)=GUCLIP(ANL)
 
+      ! Calculate beam stopping cross-section
       CALL TRBSCS(DEX,TEX,PNBENG,DCX,DFX,DOX,ZCX,ZFX,ZOX,SGM)
 
       P1=(DEX*0.1D0)*SGM*ANL*DL
       GBP1(IDL,J)=GUCLIP(P1)
-      IF(P1.LT.0.D0) P1=0.D0
-      IF(ANL.GT.ANL0*1.D-3) THEN
+      IF(P1 < 0.D0) P1=0.D0
+      IF(ANL > ANL0*1.D-3) THEN ! Beam intensity still remains.
          KL=1
-      ELSE
+      ELSE ! All the power is absorbed in a plasma.
          P1=ANL
          KL=0
       ENDIF
 
       SUML=SUML+DL
 !  inside the torus
-      IF(SUML.LT.XL) THEN
-         IF(KL.EQ.1) THEN
+      IF(SUML < XL) THEN
+         IF(KL == 1) THEN
             DRG=SQRT(RG1)-SQRT(RG2)
+            ! RADIUSG: Tangential NBI radius where NB existed at one step past.
             RADIUSG=SQRT( (SUML-DL)**2 +(RR+RAL)*(RR+RAL-2.D0*(SUML-DL)*COST))
             GBR (IDL,J)=GUCLIP(RADIUSG)
             GBRH(IDL,J)=GUCLIP(ABS((RADIUSG-RR)/RAL))
+            ! RADIUS2: Tangential NBI radius where NB currently exists.
             RADIUS2=SQRT(SUML**2+(RR+RAL)*(RR+RAL-2.D0*SUML*COST))
 !            write(6,'(2I4,5F13.7)') I,IM,ABS(RADIUS1-RADIUS2),DRG -ABS(RADIUS1-RADIUS2),RADIUS2-R0,RADIUS1,RADIUS2
 !            write(6,'(2I4,5F13.7)') I,IM,DRG-ABS(RADIUS1-RADIUS2),RADIUS1,RADIUS2,RADIUS2-R0,SUML
 !            write(6,'(2I4,5F13.7)') I,IM,ANL,P1,P1SUM,DRG-ABS(RADIUS1-RADIUS2),RADIUS2-R0
 !            write(6,'(2I4,5F13.7)') I,IM,DRG-ABS(RADIUS1-RADIUS2),RADIUS1,RADIUS2,SUML,RADIUS2-R0
-            IF(RADIUS2-R0.GT.1.D-6) THEN
-               IF(DRG-ABS(RADIUS1-RADIUS2).GT.1.D-6) THEN
+!            write(6,'(2I4,3F13.7)') I,IM,RG1,RG2,DRG
+            IF(RADIUS2-R0 > 1.D-6) THEN
+               IF(DRG-ABS(RADIUS1-RADIUS2) > 1.D-6) THEN
 !  inside the grid
                   ANL=ANL-P1
                   P1SUM=P1SUM+P1
@@ -267,47 +265,44 @@
          ENDIF
       ENDIF
 
-!  NB source flux
+!  NB source flux (Half mesh)
       SNB(IM) = SNB(IM)+P1/(DVRHO(IM)*DR)
-!$$$      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
-!$$$      IF(IM.GT.1.AND.IM.LT.NRMAX) THEN
-!$$$         SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
-!$$$      ELSEIF(IM.EQ.1.OR.IM.EQ.NRMAX) THEN
-!$$$         SNB(IM  ) = SNB(IM  )+       P1/(DVRHO(IM  )*DR)
-!$$$      ENDIF
-!$$$      IF(IM.LT.NRMAX) SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
+!!$      IF(IM.GT.1) SNB(IM-1) = SNB(IM-1)+0.25D0*P1/(DVRHO(IM-1)*DR)
+!!$      IF(IM.GT.1.AND.IM.LT.NRMAX) THEN
+!!$         SNB(IM  ) = SNB(IM  )+0.5D0 *P1/(DVRHO(IM  )*DR)
+!!$      ELSEIF(IM.EQ.1.OR.IM.EQ.NRMAX) THEN
+!!$         SNB(IM  ) = SNB(IM  )+       P1/(DVRHO(IM  )*DR)
+!!$      ENDIF
+!!$      IF(IM.LT.NRMAX) SNB(IM+1) = SNB(IM+1)+0.25D0*P1/(DVRHO(IM+1)*DR)
 
 !  for graphics
-      IF(I.GT.0) THEN
+      IF(I > 0) THEN
          GPNB(IM        ,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-      ELSEIF(I.LE.-1.AND.I.GE.-NRMAX) THEN
+      ELSEIF(I < -1 .AND. I >= -NRMAX) THEN
          GPNB(IM+  NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
-      ELSEIF(I.LE.-NRMAX-1.AND.I.GE.-2*NRMAX) THEN
+      ELSEIF(I <= -NRMAX-1 .AND. I >= -2*NRMAX) THEN
          GPNB(IM+2*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
       ELSE
          GPNB(IM+3*NRMAX,J)=GUCLIP(P1/(DVRHO(IM)*DR)*1.D20*PNBENG*RKEV)
       ENDIF
 
-!      WRITE(6,'(3(1X,I4),4F15.7)') J,I,IM,SUML,DL,ANL,P1
-      IF(KL.EQ.0) THEN
-!  below the lower limits of intensity
+!      WRITE(6,'(4(1X,I4),4F15.7)') J,I,KL,IM,SUML,DL,ANL,P1
+      IF(KL == 0) THEN !  below the lower limits of intensity
          NLMAX(J)=IDL-1
          RETURN
-      ENDIF
-      IF(KL.EQ.2) THEN
-!  inversion of the label number because of innermost grid
-         IF(I.GT.0) THEN
+      ELSE IF(KL == 2) THEN !  inversion of the label number because of innermost grid
+         IF(I > 0) THEN
             I=-2*NRMAX-ABS(I)
          ELSE
-            I=-2*(NRMAX-IB+1)+ABS(I)-1
-            IF(ABS(I).LT.NRMAX) I=I-NRMAX
+            I=-2*(NRMAX-ABS(I))+I
+            IF(ABS(I) < NRMAX) I=I-NRMAX
          ENDIF
          GOTO 10
       ENDIF
 
       ENDIF
 
-      IF(XL-(SUML+DL).GT.1.D-6) THEN
+      IF(XL-(SUML+DL) > 1.D-6) THEN
 !  inside the torus
          I=I-1
       ELSE
