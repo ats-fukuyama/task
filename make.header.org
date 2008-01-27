@@ -26,15 +26,6 @@ FCKFLAGS = -array=0 -usage=no-com-block-unused
 GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
-## for fortran
-#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
-#OFLAGS = -g -O3 -I.
-#DFLAGS = -g -fbounds-check -I.
-#FCFIXED = gfortran
-#FCFREE = gfortran
-#LD=ld
-#LDFLAGS=-r
-
 ## for g95
 #GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl
@@ -42,6 +33,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -fbounds-check -Wunused
 #FCFIXED= g95
 #FCFREE = g95
+#MODOPT = -fmod
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -54,6 +46,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp
 #FCFIXED = pgf95
 #FCFREE  = pgf95
+#MODOPT = -module #comment to add a space
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -66,6 +59,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -check uninit
 #FCFIXED = ifort
 #FCFREE  = ifort
+#MODOPT = -module #comment to add a space
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -78,6 +72,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -check uninit
 #FCFIXED = ifort
 #FCFREE = ifort
+#MODOPT = -module #comment to add a space
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -89,6 +84,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -Am -Haesux -fi -SSL2
 #FCFIXED = f95 -X9
 #FCFREE = f95
+#MODOPT = -module #comment to add a space
 #LD=ar
 #LDFLAGS=rs
 
@@ -99,20 +95,12 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -vec-report0 -CB -traceback -debug extended -fpe0 -check uninit
 #FCFIXED = ifort
 #FCFREE = ifort
+#MODOPT = -module #comment to add a space
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 #OBJLA = -L /Library/Frameworks/Intel_MKL.framework/Libraries/32 -lmkl_lapack64 -lmkl -lguide -lpthread
-
-## for macosx-gfortran
-#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
-#OFLAGS = -g -O3 -I.
-#DFLAGS = -g -fbounds-check -I.
-#FCFIXED = gfortran
-#FCFREE = gfortran
-#LD=ld
-#LDFLAGS=-r
 
 ## for macosx-xlf
 #GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
@@ -121,6 +109,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -g -C -qflttrap=enable:zerodivide:overflow:invalid
 #FCFIXED = xlf95 -qfixed
 #FCFREE  = xlf95 -qsuffix=f=f90 -qsuffix=cpp=F90
+#MODOPT = -qmoddir=
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -132,6 +121,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS = -f -N15 -s -g
 #FCFIXED = f95
 #FCFREE  = f95
+#MODOPT = -I
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
@@ -143,9 +133,20 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #DFLAGS =
 #FCFIXED = sxf90
 #FCFREE  = sxf90
+#MODOPT = -I
 #LD=sxld
 #LDFLAGS=-r
 ## if you have lapack library
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
+
+## for gfortran
+#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
+#OFLAGS = -g -O3 -I.
+#DFLAGS = -g -fbounds-check -I.
+#FCFIXED = gfortran
+#FCFREE = gfortran
+#MODOPT = -M
+#LD=ld
+#LDFLAGS=-r
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)

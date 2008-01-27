@@ -9,7 +9,8 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
 
 OBJS = $(SRCS:.f=.o) 
 
-LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../lib/tasklib.a
+LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../../bpsd/bpsdlib.a \
+       ../lib/tasklib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@

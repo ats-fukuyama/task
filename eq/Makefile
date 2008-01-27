@@ -4,7 +4,7 @@ include ../make.header
 #FFLAGS=$(DFLAGS)
 FFLAGS=$(OFLAGS)
 
-MODINCLUDE=-I. -I../pl -I../lib
+MODINCLUDE=-I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../lib$(MOD)
 
 SRCS = eqpl.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
@@ -20,9 +20,9 @@ OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : eq
 
@@ -31,16 +31,17 @@ eqlib.a: $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
 
-eq : eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FCFIXED) eqmain.o eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
-tr : $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJT) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
-pl : $(OGJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJP) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
-ak : $(OBJA) eqlib.a ../lib/tasklib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJA) eqlib.a ../lib/tasklib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+eq : eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) $(OBJP) eqlib.a ../lib/tasklib.a ../../bspd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less

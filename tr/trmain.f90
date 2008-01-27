@@ -34,7 +34,7 @@
 !     ***************************************************************
 
       USE TRCOMM, ONLY : GTCPU1, NFM, NGM, NRM, NSM, NTM
-      use bpsd_mod
+      use bpsd
       use equnit_mod
       use equunit_mod
       IMPLICIT NONE

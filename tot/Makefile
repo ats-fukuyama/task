@@ -4,26 +4,26 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 
 # without eq
-#MODINCLUDE= -I. -I../pl
+#MODINCLUDE= -I.$(MOD) -I../pl$(MOD)
 #EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 
 # with task/eq
-#MODINCLUDE= -I. -I../eq -I../pl
-#EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
+MODINCLUDE= -I.$(MOD) -I../eq$(MOD) -I../pl$(MOD)
+EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 
 # with topics/equ
-#MODINCLUDE= -I. -I../pl -I../../topics/src
+#MODINCLUDE= -I.$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
 
 # with task/eq and topics/equ
-MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
-EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
+#MODINCLUDE= -I.$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIB0 = ../pl/pllib.a $(EQLIBS) \
+LIB0 = ../../bpsd/bpsdlib.a ../pl/pllib.a $(EQLIBS) \
        ../eq/treqin.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a \
        ../eq/wmeqin.o ../fp/fplib.a \
@@ -32,9 +32,9 @@ LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : tot
 

@@ -1,7 +1,7 @@
 !  $Id$
 !
 module pl_vmec_mod
-use bpsd_mod
+use bpsd
 
       type(bpsd_device_type),private,save  :: device
       type(bpsd_equ1D_type),private,save   :: equ1D

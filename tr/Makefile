@@ -7,26 +7,26 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 # without eq
-#MODINCLUDE= -I. -I../pl
+#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 #EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 #MAKE_TPXLIB=
 
 # with task/eq
-MODINCLUDE= -I. -I../eq -I../pl
+MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq -I../pl$(MOD)
 EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 MAKE_TPXLIB=
 
 # with topics/equ
-#MODINCLUDE= -I. -I../pl -I../../topics/src
+#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I. -I../eq -I../pl -I../../topics/src
+#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
-PLLIBS=../pl/pl_bpsd.o ../pl/pl_vmec.o ../pl/modules.o
+PLLIBS=../../bpsd/bpsdlib.a ../pl/pl_vmec.o ../pl/modules.o
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90  trpl.f90\
       trmenu.f90 trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
@@ -57,9 +57,9 @@ LIBS2=$(PLLIBS) $(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a
 LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all: tr2 tr3
 #all: tr2
@@ -86,8 +86,9 @@ tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	(cd ../lib; make)
 
 libs:
+	(cd ../lib; make tasklib.a)
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
-	(cd ../lib; make)
 	(cd ../eq; make eqlib.a)
 	$(MAKE_TPXLIB)
 	(cd ../eq; make treqin.o)

@@ -7,7 +7,9 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f pl_bpsd.f
+MODINCLUDE=-I.$(MOD) -I../../bpsd$(MOD)
+
+SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f
 SRCSFREE = modules.f90 pl_vmec.f90
 SRCO = noeqlib.f noequlib.f
 
@@ -17,14 +19,15 @@ OBJO = $(SRCO:.f=.o)
 LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : pllib.a  noeqlib.o noequlib.o
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
+
 libs:
 	(cd ../lib; make tasklib.a)
 

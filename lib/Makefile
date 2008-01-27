@@ -7,7 +7,7 @@ include ../make.header
 LFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I.
+MODINCLUDE= -I.$(MOD)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
@@ -24,9 +24,9 @@ OBJSFIXED = $(SRCSFIXED:.f=.o)
 OBJSMDS = $(MDSPLUS:.f=.o)
 
 .f.o :
-	$(FCFIXED) $(LFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFIXED) $(LFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(LFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFREE) $(LFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : tasklib.a mdslib.a
 

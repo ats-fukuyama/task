@@ -1,7 +1,7 @@
 c
       module eqpl_mod
 c
-      use bpsd_mod
+      use bpsd
       public eqpl_init, eqpl_set
       private
 c

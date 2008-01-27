@@ -1,6 +1,6 @@
 !     $Id$
       module trpl_mod
-      use bpsd_mod
+      use bpsd
       type(bpsd_device_type),private,save :: device
       type(bpsd_species_type),private,save :: species
       type(bpsd_equ1D_type),private,save :: equ1D

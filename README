@@ -3,9 +3,23 @@
 ***** TASK : Transport Analyzing System for tokamaK *****
 *********************************************************
 
+2008/01/27: 
+   Directory bpsd is required at the same directory level with task.
+   If you are using CVS, "cvs co bpsd" in the directory 
+   including the task directory. 
+
+   make.header.org was updated. 
+   You have to copy make.header.org to make.header and 
+   remove comment # of a required compiler group.
+
+   mod directories will be created in several components 
+   in order to store module information files.
+
+-------
+
 System Requirements:
        UNIX or UNIX-like system (including Linux, MacOSX)
-       Fortran77 compiler (g77, pgf77, ifort, xlf, ...)
+       Fortran95 compiler with extention (g95, pgf95, ifort, xlf, ...)
        X-Window library
        GSAF graphic library
           usually distributed with TASK

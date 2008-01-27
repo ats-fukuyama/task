@@ -4,7 +4,7 @@ include ../make.header
 #FFLAGS = $(OFLAGS)
 FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I. -I../lib
+MODINCLUDE= -I.$(MOD) -I../lib$(MOD)
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \
@@ -23,16 +23,16 @@ SRCM = $(SRC0) wmsolv.f
 OBJS = $(SRCS:.f=.o)
 OBJM = $(SRCM:.f=.o)
 
-LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
-       ../pl/pllib.a ../dp/dplib.a ../lib/tasklib.a
+LIB0 = ../lib/tasklib.a ../../bpsd/bpsdlib.a ../eq/wmeqin.o ../eq/eqlib.a \
+       ../pl/pllib.a ../dp/dplib.a
 
 LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
 LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : wm
 
