@@ -12,7 +12,7 @@ FFLAGS = $(OFLAGS)
 #MAKE_TPXLIB=
 
 # with task/eq
-MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq -I../pl$(MOD)
+MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD)
 EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 MAKE_TPXLIB=
 

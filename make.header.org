@@ -34,7 +34,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FCFIXED= g95
 #FCFREE = g95
 #MOD = /mod
-#MODDIR = -fmod ./mod
+#MODDIR = -fmod=./mod
 #LD=ld
 #LDFLAGS=-r
 ## if you have lapack library
