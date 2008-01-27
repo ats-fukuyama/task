@@ -41,7 +41,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ ./#* *.a
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a .$(MOD)/*.mod
 
 veryclean: clean
 	-rm -f pl

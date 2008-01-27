@@ -25,9 +25,9 @@ LIBS3= tx3lib.a ../lib/tasklib.a $(OBJLA)
 .SUFFIXES: .f90
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ -module mod
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ -module mod
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR)
 
 #all: $(PROG3)
 all: $(PROG2)
@@ -54,7 +54,7 @@ check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | less
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o *.a mod/*.mod
+	rm -f *.o ./*~ ./#* nclass/*.o *.a .$(MOD)/*.mod
 
 veryclean: clean
 	rm -f $(PROG2) $(PROG3)

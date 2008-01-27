@@ -117,7 +117,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	-rm -f core a.out *.o ./*~
+	-rm -f core a.out *.o ./*~ .$(MOD)/mod.f
 
 veryclean: clean
 	-rm -f tot
