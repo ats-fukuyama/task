@@ -284,7 +284,7 @@ contains
                 theta = (NTH - 1) * dtheta
                 RRL(NTH) = real(RR + RA * cos(theta))
                 ZZL(NTH) = real(kappal * RA * sin(theta))
-                IF(ABS(ZZL(NTH) < EPSILON(1.0))) ZZL(NTH) = 0.0
+                IF(ABS(ZZL(NTH)) < EPSILON(1.0)) ZZL(NTH) = 0.0
              END DO
              CALL LINES2D(RRL,ZZL,NTHMAX)
           END DO

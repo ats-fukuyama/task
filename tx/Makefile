@@ -87,4 +87,4 @@ trncls.o: txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
 txrslt.o: txrslt.f90 txcomm.f90
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass -module mod
+	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass $(MODDIR)
