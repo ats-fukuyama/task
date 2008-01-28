@@ -6,7 +6,7 @@
 
 \begin{document}
 \begin{flushright}
-2006/04/17
+2008/01/28
 \end{flushright}
 
 \begin{center}
@@ -72,20 +72,19 @@ MPI ライブラリを用いた並列分散処理
 
 \subsection{仕様}
 
-使用言語は FORTRAN であり，原則として FORTRAN 95 に含まれる FORTRAN 77 
-仕様と GNU fortran g77 に含まれる FORTRAN 77 からの拡張を含む．すなわ
-ち g77 コンパイラおよび FORTRAN 95 に準拠する FORTRAN コンパイラのいず
-れによっても，コンパイルすることができる．
+使用言語は FORTRAN95 であり，allocatable 変数を derived type の
+component とすることを可能にする拡張を含むコンパイラで，コンパイルする
+ことができる．
 
 使用するグラフィックライブラリは GSAF である．このライブラリは，
 
 \tline{http://p-grp.nucleng.kyoto-u.ac.jp/gsaf/}
+
 から入手することができる．このライブラリを用いて，図形を X-window に表
 示し，図形データをファイルに保存し，このデータを postscript ファイルに
 変換することができる．数値計算ライブラリとして LAPACK を使用する場合が
-あるが，その機能が不必要であれば容易に省略することができる．並列化ライ
-ブラリとして MPI を使用しているが，MPI ライブラリがなくてもコンパイルで
-きる．
+あるが，その機能が不必要であれば省略することができる．並列化ライブラリ
+として MPI を使用しているが，MPI ライブラリがなくてもコンパイルできる．
 
 \section{TASK コードのインストール}
 
@@ -104,6 +103,7 @@ fukuyama@nucleng.kyoto-u.ac.jp まで問い合わせること．なお，この方法では
   CVSROOT=:pserver:anonymous@p-grp.nucleng.kyoto-u.ac.jp:/home/fukuyama/cvs} \\
 \tline{cvs login} \\
 \tline{password: XXXXXXXX} \\
+\tline{cvs co bpsd} \\
 \tline{cvs co task} \\
 \tline{cvs co gsaf}
 
@@ -113,6 +113,7 @@ CVS サーバーに account を有する場合には，修正したファイルを upload す
 
 \tline{export CVS\underline{ }RSH=ssh} \\
 \tline{export CVSROOT=p-grp.nucleng.kyoto-u.ac.jp:/home/fukuyama/cvs} \\
+\tline{cvs co bpsd} \\
 \tline{cvs co task} \\
 \tline{cvs co gsaf}
 
