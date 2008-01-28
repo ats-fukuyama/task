@@ -4,10 +4,10 @@ include make.header
 all: message
 
 message:
-	echo '## This is TASK main directory'
-	echo '     change working directory to'
-	echo '         pl, eq, tr, dp, wm, wr, fp or tot'
-	echo '     and make it'
+	@echo '## This is TASK main directory'
+	@echo '     change working directory to'
+	@echo '         pl, eq, tr, dp, wm, wr, fp or tot'
+	@echo '     and make it'
 
 clean:
 	(cd lib; make clean)
