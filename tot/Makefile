@@ -38,6 +38,8 @@ LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 all : tot
 
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
 ../pl/noeqlib.o:
