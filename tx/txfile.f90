@@ -305,7 +305,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx447') THEN
+  !  IF(LOADSLID(1:5) == 'tx448') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -547,7 +547,7 @@ SUBROUTINE TXGLOD(IST)
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx447') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx448') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB

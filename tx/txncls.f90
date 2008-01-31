@@ -1,3 +1,169 @@
+!*************************** Sauter model ******************************
+
+module sauter_mod
+  implicit none
+  real(8), parameter :: AEE  = 1.60217733D-19 ! elementary charge
+  private
+  public :: SAUTER
+
+contains
+
+!***********************************************************************
+!
+!       Sauter model
+!
+!***********************************************************************
+  
+  SUBROUTINE SAUTER(NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN, &
+       &            Q,BB,DPSI,IPSI,EPS,RR,ZI,ZEFF,FT,rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN, &
+       &            JBS,ETA,JBSB,ETAS)
+
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+!     Programmed by HONDA Mitsuru (2007/05/24)
+!     
+!     Note that all the parameters are on the GRID point.
+!
+!     *** INPUT VARIABLES ***
+!     NE    : electron density [10^20/m^3]
+!     TE    : electron temperature [keV]
+!     DTE   : partial derivative of electron temperature to rho [keV/rho]
+!     DPE   : partial derivative of electron pressure to rho [10^20 kev/m^3/rho]
+!     NI    : ion density [10^20/m^3]
+!     TI    : ion temperature [keV]
+!     DTI   : partial derivative of ion temperature to rho [keV/rho]
+!     DPI   : partial derivative of ion pressure to rho [10^20 kev/m^3/rho]
+!     Q     : safety factor
+!     BB    : toloidal magnetic field [T]
+!     DPSI  : partial derivative of poloidal flux to rho [Wb/rho]
+!     IPSI  : magnetic flux function, i.e. the product of major radius
+!             and toroidal magnetic field (RR*BT) [mT]
+!     EPS   : local inverse aspect ratio
+!     RR    : major radius [m]
+!     ZI    : charge number of bulk ion
+!     ZEFF  : effective charge number
+!     FT    : trapped particle fraction
+!     rlnLe : Coulomb logarithm for electron collisions, optional
+!     rlnLi : Coulomb logarithm for ion collisions,      optional
+!     NUE   : Normalized collisionality for electrons,   optional
+!     NUI   : Normalized collisionality for ions,        optional
+!
+!     *** OUTPUT VARIABLES ***
+!     JBS   : bootstrap current [A/m^2]
+!     JBSB  : parallel current <J . B> [AT/m^2],         optional
+!     ETA   : neoclassical resistivity [Ohm m]
+!     ETAS  : classical resistivity [Ohm m],             optional
+!
+!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    real(8), intent(in) :: NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN,Q,BB,DPSI,IPSI,EPS,RR, &
+    &                      ZI,ZEFF,FT
+    real(8), intent(in), optional :: rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN
+    real(8), intent(out) :: JBS, ETA
+    real(8), intent(out), optional :: JBSB, ETAS
+
+    real(8) :: EPSS,LnLame,NUE,LnLamii,NUI,RPE,ALFA0,ALFA,L31,L32,L34,RNZ,SGMSPTZ,QABS,&
+         &     PE,PI,DPE,DPI
+    real(8) :: F31TEFF,F32EETEFF,F32EITEFF,F34TEFF,F33TEFF
+
+    EPSS = SQRT(EPS)**3
+    QABS = ABS(Q)
+
+    PE  = NE * TE * 1.D20 * AEE * 1.D3
+    PI  = NI * TI * 1.D20 * AEE * 1.D3
+    DPE = DPE_IN  * 1.D20 * AEE * 1.D3
+    DPI = DPI_IN  * 1.D20 * AEE * 1.D3
+
+!     LnLam : coulomb logarithm
+!     NU    : collisional frequency [/s]
+
+    LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
+    IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
+    NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TE*1.D3)**2*EPSS)
+    IF(PRESENT(NUE_IN))   NUE    = NUE_IN
+
+    LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TI*1.D3)**1.5D0))
+    IF(PRESENT(rlnLi_IN)) LnLamii = rlnLi_IN
+    NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TI*1.D3)**2*EPSS)
+    IF(PRESENT(NUI_IN))   NUI     = NUI_IN
+
+!     RPE   : ratio of electron pressure to total pressure 
+
+    RPE = PE/(PE+PI)
+
+    F31TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-FT)*NUE/ZEFF)
+    F32EETEFF = FT/(1.D0+0.26D0*(1.D0-FT)*SQRT(NUE)+0.18D0*(1.D0-0.37D0*FT)*NUE/SQRT(ZEFF))
+    F32EITEFF = FT/(1.D0+(1.D0+0.6D0*FT)*SQRT(NUE)+0.85D0*(1.D0-0.37D0*FT)*NUE*(1.D0+ZEFF))
+    F34TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-0.5D0*FT)*NUE/ZEFF)
+
+    ALFA0 = -1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
+    ALFA  = ((ALFA0+0.25D0*(1.D0-FT**2)*SQRT(NUI)) &
+         &     /(1.D0+0.5D0*SQRT(NUI))+0.315D0*NUI**2*FT**6)/(1.D0+0.15D0*NUI**2*FT**6)
+
+    L31 = F31(F31TEFF,ZEFF)
+    L32 = F32EE(F32EETEFF,ZEFF)+F32EI(F32EITEFF,ZEFF)
+    L34 = F31(F34TEFF,ZEFF)
+
+!     *** Bootstrap Current, JBS ***
+
+    JBS = -IPSI*PE/DPSI/BB &
+         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+    if(present(jbsb)) JBSB = -IPSI*PE/DPSI &
+         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+
+!     *** Spitzer and Neoclassical Resistivity, ETAS, ETA ***
+
+    F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(NUE)+0.45D0*(1.D0-FT)*NUE/ZEFF**1.5)
+    RNZ     = 0.58D0+0.74D0/(0.76D0+ZEFF)
+    SGMSPTZ = 1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame)
+    ETA  = 1.D0 / (SGMSPTZ * F33(F33TEFF,ZEFF))
+    if(present(etas)) ETAS = 1.D0 / SGMSPTZ
+
+  END SUBROUTINE SAUTER
+
+!     *********************
+!     *  Fitting Function *
+!     *********************
+
+  pure real(8) FUNCTION F33(X,Z)
+    
+    real(8), intent(in) :: X,Z
+
+    F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
+
+  END FUNCTION F33
+
+  pure real(8) FUNCTION F31(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2 &
+         &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
+
+  END FUNCTION F31
+
+  pure real(8) FUNCTION F32EE(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
+         &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4)) &
+         &       +1.2D0/(1.D0+0.5D0*Z)*X**4 
+
+  END FUNCTION F32EE
+
+  pure real(8) FUNCTION F32EI(X,Z)
+
+    real(8), intent(in) :: X,Z
+
+    F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
+         &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4)) &
+         &       -1.2D0/(1.D0+0.5D0*Z)*X**4
+
+  END FUNCTION F32EI
+
+end module sauter_mod
+
+
 module tx_nclass_mod
   implicit none
   private
@@ -11,7 +177,7 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAL,JBSL,IER)
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,IER)
 !***********************************************************************
 !TX_NCLASS calculates various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
@@ -85,17 +251,19 @@ contains
 !        = 6 error: trapped fraction must be 0.0.le.p_ft.le.1.0
 !***********************************************************************
     use tx_commons
+    use sauter_mod
     INCLUDE 'nclass/pamx_mi.inc'
     INCLUDE 'nclass/pamx_ms.inc'
     INCLUDE 'nclass/pamx_mz.inc'
     INCLUDE 'txncls.inc'
     INTEGER(4), INTENT(IN)  :: NR
     INTEGER(4), INTENT(OUT) :: IER
-    REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAL, JBSL
+    REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
-         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, tmp1,tmp2,tmp3
+         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, ppr, &
+         &     AJBSL, ETAL, dPTeV, dPTiV, dPPe, dPPi
     REAL(8) :: DERIV3, AITKEN2P
 
     !     *** Ellipticity on axis ***
@@ -132,7 +300,6 @@ contains
     k_v      = 1
     k_order  = 2
     k_potato = 1
-!    k_potato = 0
 
     m_i      = 2
     IF(Zeff > 1.D0) m_i   = 3
@@ -153,14 +320,39 @@ contains
     EpsL  = R(NR) / RR
     p_b2  = SNGL(BBL**2)
     p_bm2 = SNGL(1.D0 / BBL**2)
+
     p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
+    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
+    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
+    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
+    dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
+    rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
+    rlnLi(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
+    CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
+         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
+         &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBSL,ETA=ETAL)
+    IF(NR == 0) AJBSL = 0.D0
+!!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeV(NR)*UephV(NR) &
+!!$         &                +PZ*AEE*PNiV(NR)*UiphV(NR) &
+!!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
+!!$         &              +(-   AEE*PNeV(NR)*UethV(NR) &
+!!$         &                +PZ*AEE*PNiV(NR)*UithV(NR) &
+!!$         &                +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20-AJBSL*BBL))
+!!$    p_eb = SNGL(ETAL*( (-   AEE*PNeV(NR)*UephV(NR) &
+!!$         &              +PZ*AEE*PNiV(NR)*UiphV(NR) &
+!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
+!!$         &            +(-   AEE*PNeV(NR)*UethV(NR) &
+!!$         &              +PZ*AEE*PNiV(NR)*UithV(NR) &
+!!$         &              +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20)
+    ! No ohmic current causes infinite resistivity in the NCLASS module.
+    IF(p_eb == 0.D0) p_eb = 1.e-10
+
     IF(NR == 0) THEN
        p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
        p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
        p_fhat3 = BphV(NR+3)/(RA*BthV(NR+3))
        p_fhat  = SNGL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
     ELSE
-       !        p_fhat = SNGL(2.D0*PI*BphV(NR)/(RA*BthV(NR)))
        p_fhat  = SNGL(BphV(NR)/(RA*BthV(NR)))
     END IF
 
@@ -194,8 +386,10 @@ contains
     grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,0))
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
+!!$    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
+!!$    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
+    grp_iz(1,1)       = SNGL((-AEE*PNeV(NR)*ErV(NR)-AEE*PNeV(NR)*(BphV(NR)*UethV(NR)-BthV(NR)*UephV(NR)))/rKeV) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL((PZ*AEE*PNiV(NR)*ErV(NR)+PZ*AEE*PNiV(NR)*(BphV(NR)*UithV(NR)-BthV(NR)*UiphV(NR)))/rKeV) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
@@ -206,6 +400,10 @@ contains
        grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0) &
             &                    * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
+
+    ! Even when NBI is activated, any external parallel force concerning NBI
+    ! never acts on electrons and bulk ions. Force term due to NBI only appear
+    ! in LQb4.
     fex_iz(1:3,1:mx_mi,1:mx_mz) = 0.0
 
     CALL NCLASS( &
@@ -240,6 +438,15 @@ contains
        IER = ier_check
     ENDIF
 
+!    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,1)/BBL,upar_s(1,2,1)/BBL,sum(upar_s(1,1:3,1))/BBL
+!    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,2)/BBL,upar_s(1,2,2)/BBL,sum(upar_s(1,1:3,2))/BBL
+!!$   write(6,*) r(nr)/ra,p_eb/p_etap+p_bsjb,( (-   AEE*PNeV(NR)*UephV(NR) &
+!!$         &              +PZ*AEE*PNiV(NR)*UiphV(NR) &
+!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
+!!$         &            +(-   AEE*PNeV(NR)*UethV(NR) &
+!!$         &              +PZ*AEE*PNiV(NR)*UithV(NR) &
+!!$         &              +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20
+
     !     *** Takeover Parameters ***
 
     IF(k_potato == 0) THEN
@@ -253,23 +460,23 @@ contains
     ENDIF
 
     IF(Zeff == 1.D0) THEN
-       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
-            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
-            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
+              &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
+              &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR))) / BBL
     ELSE
-       JBSL =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
-            &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
-            &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
-            &                     * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
-            &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-            &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
-            &                     * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
+              &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
+              &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
+              &                     * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
+              &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
+              &                     * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
     END IF
-    IF(k_potato == 0 .and. NR == 0) JBSL = 0.D0
+    IF(k_potato == 0 .and. NR == 0) JBSout = 0.D0
 
-    ETAL = DBLE(p_etap)
+    ETAout = DBLE(p_etap)
 
     IF(NR == 0) THEN
        NueNC = 0.D0
@@ -333,17 +540,17 @@ contains
 !!$    IF(k_v /= 0) THEN
 !       btot=SQRT(BphV(NR)**2+BthV(NR)**2)*BphV(NR)/ABS(BphV(NR))
        DO i=1,m_s
-          uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
+          uthai=DBLE(utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i))
           IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then
              !     Poloidal
-          VPOL(NR)=DBLE(uthai*BthV(NR))
+             VPOL(NR)=uthai*BthV(NR)
 !!$             !     Parallel
 !!$             VPAR(NR)=DBLE(BthV(NR)/btot*VPOL(NR)+BphV(NR)/btot*VTOR(NR))
 !!$             !     Perpendicular
 !!$             VPRP(NR)=DBLE(BphV(NR)/btot*VPOL(NR)-BthV(NR)/btot*VTOR(NR))
           ENDIF
        ENDDO
-!       IF(NT==500) write(6,*) R(NR)/RA,VPOL(NR)*1.D-3
+!       IF(MOD(NT,1000)==0) write(6,'(5F15.7)') R(NR)/RA,UithV(NR),VPOL(NR),utheta_s(1,1,2)*BthV(NR),utheta_s(1,2,2)*BthV(NR)
 !!$    ENDIF
 
     RETURN
@@ -951,167 +1158,3 @@ contains
 
 end module tx_nclass_mod
 
-!*************************** Sauter model ******************************
-
-module sauter_mod
-  implicit none
-  real(8), parameter :: AEE  = 1.60217733D-19 ! elementary charge
-  private
-  public :: SAUTER
-
-contains
-
-!***********************************************************************
-!
-!       Sauter model
-!
-!***********************************************************************
-  
-  SUBROUTINE SAUTER(NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN, &
-       &            Q,BB,DPSI,IPSI,EPS,RR,ZI,ZEFF,FT,rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN, &
-       &            JBS,ETA,JBSB,ETAS)
-
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!     Programmed by HONDA Mitsuru (2007/05/24)
-!     
-!     Note that all the parameters are on the GRID point.
-!
-!     *** INPUT VARIABLES ***
-!     NE    : electron density [10^20/m^3]
-!     TE    : electron temperature [keV]
-!     DTE   : partial derivative of electron temperature to rho [keV/rho]
-!     DPE   : partial derivative of electron pressure to rho [10^20 kev/m^3/rho]
-!     NI    : ion density [10^20/m^3]
-!     TI    : ion temperature [keV]
-!     DTI   : partial derivative of ion temperature to rho [keV/rho]
-!     DPI   : partial derivative of ion pressure to rho [10^20 kev/m^3/rho]
-!     Q     : safety factor
-!     BB    : toloidal magnetic field [T]
-!     DPSI  : partial derivative of poloidal flux to rho [Wb/rho]
-!     IPSI  : magnetic flux function, i.e. the product of major radius
-!             and toroidal magnetic field (RR*BT) [mT]
-!     EPS   : local inverse aspect ratio
-!     RR    : major radius [m]
-!     ZI    : charge number of bulk ion
-!     ZEFF  : effective charge number
-!     FT    : trapped particle fraction
-!     rlnLe : Coulomb logarithm for electron collisions, optional
-!     rlnLi : Coulomb logarithm for ion collisions,      optional
-!     NUE   : Normalized collisionality for electrons,   optional
-!     NUI   : Normalized collisionality for ions,        optional
-!
-!     *** OUTPUT VARIABLES ***
-!     JBS   : bootstrap current [A/m^2]
-!     JBSB  : parallel current <J . B> [AT/m^2],         optional
-!     ETA   : neoclassical resistivity [Ohm m]
-!     ETAS  : classical resistivity [Ohm m],             optional
-!
-!+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-    real(8), intent(in) :: NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN,Q,BB,DPSI,IPSI,EPS,RR, &
-    &                      ZI,ZEFF,FT
-    real(8), intent(in), optional :: rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN
-    real(8), intent(out) :: JBS, ETA
-    real(8), intent(out), optional :: JBSB, ETAS
-
-    real(8) :: EPSS,LnLame,NUE,LnLamii,NUI,RPE,ALFA0,ALFA,L31,L32,L34,RNZ,SGMSPTZ,QABS,&
-         &     PE,PI,DPE,DPI
-    real(8) :: F31TEFF,F32EETEFF,F32EITEFF,F34TEFF,F33TEFF
-
-    EPSS = SQRT(EPS)**3
-    QABS = ABS(Q)
-
-    PE  = NE * TE * 1.D20 * AEE * 1.D3
-    PI  = NI * TI * 1.D20 * AEE * 1.D3
-    DPE = DPE_IN  * 1.D20 * AEE * 1.D3
-    DPI = DPI_IN  * 1.D20 * AEE * 1.D3
-
-!     LnLam : coulomb logarithm
-!     NU    : collisional frequency [/s]
-
-    LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
-    IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
-    NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TE*1.D3)**2*EPSS)
-    IF(PRESENT(NUE_IN))   NUE    = NUE_IN
-
-    LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TI*1.D3)**1.5D0))
-    IF(PRESENT(rlnLi_IN)) LnLamii = rlnLi_IN
-    NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TI*1.D3)**2*EPSS)
-    IF(PRESENT(NUI_IN))   NUI     = NUI_IN
-
-!     RPE   : ratio of electron pressure to total pressure 
-
-    RPE = PE/(PE+PI)
-
-    F31TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-FT)*NUE/ZEFF)
-    F32EETEFF = FT/(1.D0+0.26D0*(1.D0-FT)*SQRT(NUE)+0.18D0*(1.D0-0.37D0*FT)*NUE/SQRT(ZEFF))
-    F32EITEFF = FT/(1.D0+(1.D0+0.6D0*FT)*SQRT(NUE)+0.85D0*(1.D0-0.37D0*FT)*NUE*(1.D0+ZEFF))
-    F34TEFF   = FT/(1.D0+(1.D0-0.1D0*FT)*SQRT(NUE)+0.5D0*(1.D0-0.5D0*FT)*NUE/ZEFF)
-
-    ALFA0 = -1.17D0*(1.D0-FT)/(1.D0-0.22D0*FT-0.19D0*FT**2)
-    ALFA  = ((ALFA0+0.25D0*(1.D0-FT**2)*SQRT(NUI)) &
-         &     /(1.D0+0.5D0*SQRT(NUI))+0.315D0*NUI**2*FT**6)/(1.D0+0.15D0*NUI**2*FT**6)
-
-    L31 = F31(F31TEFF,ZEFF)
-    L32 = F32EE(F32EETEFF,ZEFF)+F32EI(F32EITEFF,ZEFF)
-    L34 = F31(F34TEFF,ZEFF)
-
-!     *** Bootstrap Current, JBS ***
-
-    JBS = -IPSI*PE/DPSI/BB &
-         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
-    if(present(jbsb)) JBSB = -IPSI*PE/DPSI &
-         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
-
-!     *** Spitzer and Neoclassical Resistivity, ETAS, ETA ***
-
-    F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(NUE)+0.45D0*(1.D0-FT)*NUE/ZEFF**1.5)
-    RNZ     = 0.58D0+0.74D0/(0.76D0+ZEFF)
-    SGMSPTZ = 1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame)
-    ETA  = 1.D0 / (SGMSPTZ * F33(F33TEFF,ZEFF))
-    if(present(etas)) ETAS = 1.D0 / SGMSPTZ
-
-  END SUBROUTINE SAUTER
-
-!     *********************
-!     *  Fitting Function *
-!     *********************
-
-  pure real(8) FUNCTION F33(X,Z)
-    
-    real(8), intent(in) :: X,Z
-
-    F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
-
-  END FUNCTION F33
-
-  pure real(8) FUNCTION F31(X,Z)
-
-    real(8), intent(in) :: X,Z
-
-    F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2 &
-         &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
-
-  END FUNCTION F31
-
-  pure real(8) FUNCTION F32EE(X,Z)
-
-    real(8), intent(in) :: X,Z
-
-    F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
-         &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4)) &
-         &       +1.2D0/(1.D0+0.5D0*Z)*X**4 
-
-  END FUNCTION F32EE
-
-  pure real(8) FUNCTION F32EI(X,Z)
-
-    real(8), intent(in) :: X,Z
-
-    F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
-         &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4)) &
-         &       -1.2D0/(1.D0+0.5D0*Z)*X**4
-
-  END FUNCTION F32EI
-
-end module sauter_mod

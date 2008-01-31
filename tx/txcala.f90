@@ -11,8 +11,8 @@ module tx_coefficients
        & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        & BphBNi, BthBNi, Dbrpft, &
-       & rNuei1EI, rNuei2EI, rNuei3EI, &
-       & rNube1BE, rNube2BE, rNube3BE
+       & rNuei1EI, rNuei2BthEI, rNuei3EI, &
+       & rNube1BE, rNube2BthBE, rNube3BE
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -101,8 +101,8 @@ contains
        &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
        &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
        &     BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
-       &     rNuei1EI(0:N), rNuei2EI(0:N), rNuei3EI(0:N), &
-       &     rNube1BE(0:N), rNube2BE(0:N), rNube3BE(0:N))
+       &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
+       &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -223,8 +223,8 @@ contains
        &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        &       BphBNi, BthBNi, Dbrpft, &
-       &       rNuei1EI, rNuei2EI, rNuei3EI, &
-       &       rNube1BE, rNube2BE, rNube3BE)
+       &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
+       &       rNube1BE, rNube2BthBE, rNube3BE)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -286,12 +286,12 @@ contains
     RUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX)
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
 
-    rNuei1EI(0:NRMAX)  = rNuei1(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
-    rNuei2EI(0:NRMAX)  = rNuei2(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
-    rNuei3EI(0:NRMAX)  = rNuei3(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
-    rNube1BE(0:NRMAX)  = rNube1(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
-    rNube2BE(0:NRMAX)  = rNube2(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
-    rNube3BE(0:NRMAX)  = rNube3(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
+    rNuei1EI   (0:NRMAX)  = rNuei1   (0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
+    rNuei2BthEI(0:NRMAX)  = rNuei2Bth(0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
+    rNuei3EI   (0:NRMAX)  = rNuei3   (0:NRMAX)  * PNeV(0:NRMAX) / PNiV(0:NRMAX)
+    rNube1BE   (0:NRMAX)  = rNube1   (0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
+    rNube2BthBE(0:NRMAX)  = rNube2Bth(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
+    rNube3BE   (0:NRMAX)  = rNube3   (0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
 
 !!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
 !!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)
@@ -627,10 +627,10 @@ contains
     ELM(1:NEMAX,1:4, 8,LQe3) =   fem_int(2,rNuei1EI)
     NLC( 8,LQe3) = LQi3
 
-    ELM(1:NEMAX,1:4, 9,LQe3) =   2.D0 * fem_int(37,rNuei2,AphV) * AMPe4
+    ELM(1:NEMAX,1:4, 9,LQe3) =   2.D0 * fem_int(37,rNuei2Bth,AphV) * AMPe4
     NLC( 9,LQe3) = LQe4
 
-    ELM(1:NEMAX,1:4,10,LQe3) = - 2.D0 * fem_int(37,rNuei2EI,AphV)
+    ELM(1:NEMAX,1:4,10,LQe3) = - 2.D0 * fem_int(37,rNuei2BthEI,AphV)
     NLC(10,LQe3) = LQi4
 
     ! Collisional friction with beam ions
@@ -641,10 +641,10 @@ contains
     ELM(1:NEMAX,1:4,12,LQe3) =   (AMB / AME) * fem_int(2,rNube1)
     NLC(12,LQe3) = LQb3
 
-    ELM(1:NEMAX,1:4,13,LQe3) =   2.D0 * (AMB / AME) * fem_int(37,rNube2BE,AphV) * AMPe4
+    ELM(1:NEMAX,1:4,13,LQe3) =   2.D0 * (AMB / AME) * fem_int(37,rNube2BthBE,AphV) * AMPe4
     NLC(13,LQe3) = LQe4
 
-    ELM(1:NEMAX,1:4,14,LQe3) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2,AphV)
+    ELM(1:NEMAX,1:4,14,LQe3) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2Bth,AphV)
     NLC(14,LQe3) = LQb4
 
     IF(MDLWTB == 0) THEN
@@ -792,10 +792,10 @@ contains
     ELM(1:NEMAX,1:4, 7,LQe4) =   fem_int(2,rNuei3EI)
     NLC( 7,LQe4) = LQi4
 
-    ELM(1:NEMAX,1:4, 8,LQe4) =   2.D0 * fem_int(29,rNuei2,AphV)
+    ELM(1:NEMAX,1:4, 8,LQe4) =   2.D0 * fem_int(29,rNuei2Bth,AphV)
     NLC( 8,LQe4) = LQe3
 
-    ELM(1:NEMAX,1:4, 9,LQe4) = - 2.D0 * fem_int(29,rNuei2EI,AphV)
+    ELM(1:NEMAX,1:4, 9,LQe4) = - 2.D0 * fem_int(29,rNuei2BthEI,AphV)
     NLC( 9,LQe4) = LQi3
 
     ! Collisional friction with beam ions
@@ -806,10 +806,10 @@ contains
     ELM(1:NEMAX,1:4,11,LQe4) =   (AMB / AME) * fem_int(2,rNube3)
     NLC(11,LQe4) = LQb4
 
-    ELM(1:NEMAX,1:4,12,LQe4) =   2.D0 * (AMB / AME) * fem_int(29,rNube2BE,AphV)
+    ELM(1:NEMAX,1:4,12,LQe4) =   2.D0 * (AMB / AME) * fem_int(29,rNube2BthBE,AphV)
     NLC(12,LQe4) = LQe3
 
-    ELM(1:NEMAX,1:4,13,LQe4) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2,AphV)
+    ELM(1:NEMAX,1:4,13,LQe4) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2Bth,AphV)
     NLC(13,LQe4) = LQb3
 
     IF(MDLWTB == 0) THEN
@@ -1169,10 +1169,10 @@ contains
     ELM(1:NEMAX,1:4, 8,LQi3) =   (AME / AMI) * fem_int(2,rNuei1)
     NLC( 8,LQi3) = LQe3
 
-    ELM(1:NEMAX,1:4, 9,LQi3) =   2.D0 * (AME / AMI) * fem_int(37,rNuei2EI,AphV)
+    ELM(1:NEMAX,1:4, 9,LQi3) =   2.D0 * (AME / AMI) * fem_int(37,rNuei2BthEI,AphV)
     NLC( 9,LQi3) = LQi4
 
-    ELM(1:NEMAX,1:4,10,LQi3) = - 2.D0 * (AME / AMI) * fem_int(37,rNuei2,AphV) * AMPe4
+    ELM(1:NEMAX,1:4,10,LQi3) = - 2.D0 * (AME / AMI) * fem_int(37,rNuei2Bth,AphV) * AMPe4
     NLC(10,LQi3) = LQe4
 
     ! Collisional friction with beam ions
@@ -1343,10 +1343,10 @@ contains
     ELM(1:NEMAX,1:4, 7,LQi4) =   (AME / AMI) * fem_int(2,rNuei3) * AMPe4
     NLC( 7,LQi4) = LQe4
 
-    ELM(1:NEMAX,1:4, 8,LQi4) =   2.D0 * (AME / AMI) * fem_int(29,rNuei2EI,AphV)
+    ELM(1:NEMAX,1:4, 8,LQi4) =   2.D0 * (AME / AMI) * fem_int(29,rNuei2BthEI,AphV)
     NLC( 8,LQi4) = LQi3
 
-    ELM(1:NEMAX,1:4, 9,LQi4) = - 2.D0 * (AME / AMI) * fem_int(29,rNuei2,AphV)
+    ELM(1:NEMAX,1:4, 9,LQi4) = - 2.D0 * (AME / AMI) * fem_int(29,rNuei2Bth,AphV)
     NLC( 9,LQi4) = LQe3
 
     ! Collisional friction with beam ions
@@ -1629,10 +1629,10 @@ contains
     ELM(1:NEMAX,1:4,3,LQb3) =   fem_int(2,rNube1BE)
     NLC(3,LQb3) = LQe3
 
-    ELM(1:NEMAX,1:4,4,LQb3) =   2.D0 * fem_int(37,rNube2,AphV)
+    ELM(1:NEMAX,1:4,4,LQb3) =   2.D0 * fem_int(37,rNube2Bth,AphV)
     NLC(4,LQb3) = LQb4
 
-    ELM(1:NEMAX,1:4,5,LQb3) = - 2.D0 * fem_int(37,rNube2BE,AphV) * AMPe4
+    ELM(1:NEMAX,1:4,5,LQb3) = - 2.D0 * fem_int(37,rNube2BthBE,AphV) * AMPe4
     NLC(5,LQb3) = LQe4
 
     ! Collisional friction force with ions
@@ -1708,10 +1708,10 @@ contains
     ELM(1:NEMAX,1:4,3,LQb4) =   fem_int(2,rNube3BE) * AMPe4
     NLC(3,LQb4) = LQe4
 
-    ELM(1:NEMAX,1:4,4,LQb4) =   2.D0 * fem_int(29,rNube2,AphV)
+    ELM(1:NEMAX,1:4,4,LQb4) =   2.D0 * fem_int(29,rNube2Bth,AphV)
     NLC(4,LQb4) = LQb3
 
-    ELM(1:NEMAX,1:4,5,LQb4) = - 2.D0 * fem_int(29,rNube2BE,AphV)
+    ELM(1:NEMAX,1:4,5,LQb4) = - 2.D0 * fem_int(29,rNube2BthBE,AphV)
     NLC(5,LQb4) = LQe3
 
     ! Collisional friction with ions

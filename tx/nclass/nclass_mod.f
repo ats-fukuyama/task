@@ -266,9 +266,9 @@
         im=jm_s(i)
         iz=jz_s(i)
         iza=IABS(iz)
-        xi_s(i)=den_iz(im,iza)*iz**2/denz2(im)
+        xi_s(i)=den_iz(im,iza)*iz**2/denz2(im) ! Eq.(11)
         sqz_s(i)=1.0+p_fhat**2/p_b2*amu_i(im)*z_protonmass
-     #               *ABS(p_gr2phi/(z_coulomb*iz))
+     #               *ABS(p_gr2phi/(z_coulomb*iz)) ! Eq.(B2)
       ENDDO
 !Get normalized viscosities
       CALL NCLASS_MU(k_order,k_banana,k_pfirsch,k_potato,m_s,jm_s,jz_s,
@@ -280,7 +280,7 @@
         iz=jz_s(i)
         iza=IABS(iz)
         pgrp_iz(im,iza)=grp_iz(im,iza)
-     #                  +p_grphi*den_iz(im,iza)*iz*z_coulomb/z_j7kv
+     #                  +p_grphi*den_iz(im,iza)*iz*z_coulomb/z_j7kv ! p3233, below Eq.(22)
       ENDDO
 !Get normalized parallel flows within a surface
       jflag=0
@@ -293,7 +293,7 @@
         iflag=5
         GOTO 1000
       ENDIF
-!Calculate poloidal velocity from parallel velocity
+!Calculate poloidal velocity from parallel velocity : Eq.(19)
       DO i=1,m_s
         im=jm_s(i)
         iz=jz_s(i)
@@ -305,11 +305,11 @@
               IF(k.eq.1) THEN
                 utheta_s(k,l,i)=utheta_s(k,l,i)
      #                          +p_fhat*pgrp_iz(im,iza)*z_j7kv
-     #                          /(z_coulomb*iz*den_iz(im,iza))/p_b2
+     #                          /(z_coulomb*iz*den_iz(im,iza))/p_b2 ! Eq.(21a)
               ELSEIF(k.eq.2) THEN
                 utheta_s(k,l,i)=utheta_s(k,l,i)
      #                          +p_fhat*z_j7kv*grt_i(im)
-     #                          /(iz*z_coulomb*p_b2)
+     #                          /(iz*z_coulomb*p_b2) ! Eq.(21b)
               ENDIF
             ENDIF
           ENDDO
@@ -477,7 +477,7 @@
         im=jm_s(i)
         iz=jz_s(i)
         iza=IABS(iz)
-!  Set up response matrix for each charge state 
+!  Set up response matrix for each charge state : Eq.(28)
         DO k=1,k_order
           DO l=1,k_order
             aa(k,l)=xi_s(i)*calm_i(k,l,im)-ymu_s(k,l,i)
@@ -487,7 +487,7 @@
         CALL U_LU_DECOMP(aa,k_order,3,indx,d,iflag)
         IF(iflag.ne.0) GOTO 1000
 !  Get sources and evaluate responses from back substitution 
-!       Lambda terms involving isotopic flows 
+!       Lambda terms involving isotopic flows: From Eqs.(31)-(33) 
         DO l=1,k_order
           DO k=1,k_order
             IF(k.eq.l) THEN
@@ -501,7 +501,7 @@
             crhat(k,l,im)=crhat(k,l,im)+xi_s(i)*rhat(k,l,i)
           ENDDO
         ENDDO
-!       Poloidal source (p' and T') terms 
+!       Poloidal source (p' and T') terms: Eqs.(21a)(21b)
         srcth(1,i)=(cc/iz)*grp_iz(im,iza)/den_iz(im,iza)
         srcth(2,i)=(cc/iz)*grt_i(im)
         srcth(3,i)=0.0
@@ -553,21 +553,21 @@
       DO im=1,m_i
         DO m=1,k_order
           m1=im+(m-1)*m_i
-!  Diagonal coefficients       
+!  Diagonal coefficients : Eq.(34), first term on LHS
           ab(m1,m1)=1.0
 !  Source terms 
-!         p' and T'
+!         p' and T' : Eq.(34), first term on RHS
           xab(m1,1)=crhat(m,4,im)
 !         Unit p'/p and T'/T
           DO j=1,m_s
             xabp(m1,j)=crhatp(m,j,im)
             xabt(m1,j)=crhatt(m,j,im)
           ENDDO
-!         <E.B>
+!         <E.B> : Eq.(34), second term on RHS
           xab(m1,2)=crhat(m,5,im)
-!         External source
+!         External source : Eq.(34), third term on RHS
           xab(m1,3)=crhat(m,6,im)
-!  Field particle friction       
+!  Field particle friction : Eq.(34), sum of coefficients on LHS
           DO jm=1,m_i
             DO l=1,k_order
               l1=jm+(l-1)*m_i
@@ -611,12 +611,12 @@
             DO l=1,1
               l1=jm+(l-1)*m_i
               DO k=1,k_order
-                xl(k)=xl(k)-caln_ii(k,l,im,jm)*xab(l1,m)
+                xl(k)=xl(k)-caln_ii(k,l,im,jm)*xab(l1,m) ! Eq.(27)
               ENDDO
             ENDDO
             DO l=1,k_order
               DO k=1,k_order
-                upar_s(k,m,i)=upar_s(k,m,i)+xl(l)*rhat(k,l,i)
+                upar_s(k,m,i)=upar_s(k,m,i)+xl(l)*rhat(k,l,i) ! Eq.(31)
               ENDDO
             ENDDO
           ENDDO
@@ -656,7 +656,7 @@
           ENDDO
         ENDDO
       ENDDO
-!Currents and fluxes
+!Currents and fluxes: Eqs.(36)(37)
       CALL RARRAY_ZERO(m_s,bsjbp_s)
       CALL RARRAY_ZERO(m_s,bsjbt_s)
       CALL RARRAY_ZERO(mx_ms*m_s,dp_ss)
@@ -680,7 +680,7 @@
           bsjbt_s(j)=bsjbt_s(j)+denzc*uait(1,j,i)
         ENDDO
 !Fluxes
-!  Banana-Plateau
+!  Banana-Plateau : Eqs.(41a)(41b)
         cbpa=cbp/iz
         cbpaq=cbpa*(z_j7kv*temp_i(im))
 !       Unit p'/p and T'/T
@@ -715,10 +715,10 @@
         ccla=ccl*(xi_s(i)/iz)
         cclaq=ccla*(z_j7kv*temp_i(im))
         DO k=1,k_order
-!         Pfirsch-Schluter 
+!         Pfirsch-Schluter : Eqs.(43a)(43b)
           gfl_s(2,i)=gfl_s(2,i)-cpsa*calm_i(1,k,im)*srcth(k,i)
           qfl_s(2,i)=qfl_s(2,i)-cpsaq*calm_i(2,k,im)*srcth(k,i)
-!         Classical 
+!         Classical  : Eqs.(44a)(44b)
           gfl_s(3,i)=gfl_s(3,i)+ccla*calm_i(1,k,im)*srcth(k,i)
           qfl_s(3,i)=qfl_s(3,i)+cclaq*calm_i(2,k,im)*srcth(k,i)
         ENDDO
@@ -751,7 +751,7 @@
      #                 -(cpsbq-cclbq)*caln_ii(2,2,im,jm)*srctht(j)
         ENDDO
       ENDDO
-!Electrical resistivity
+!Electrical resistivity: Eq.(38)
       p_etap=p_eb/p_ohjb
 !Convert to diffusivities and conductivities
 !  Full coefficient matrices 
@@ -804,10 +804,10 @@
 !  vt_i(i)-thermal velocity of i (m/s)
 !  sqz_s(s)-orbit squeezing factor for s (-)
 !Output:
-!  ykb_s(s)-banana viscosity for s (kg/m**3/s)
-!  ykp_s(s)-Pfirsch-Schluter viscosity for s (kg/m**3/s)
-!  ykpo_s(s)-potato viscosity for s (kg/m**3/s)
-!  ykpop_s(s)-potato-plateau viscosity for s (kg/m**3/s)
+!  ykb_s(s)-banana viscosity for s (1/s)
+!  ykp_s(s)-Pfirsch-Schluter viscosity for s (1/s)
+!  ykpo_s(s)-potato viscosity for s (1/s)
+!  ykpop_s(s)-potato-plateau viscosity for s (1/s)
 !  tau_ss(s1,s2)-90 degree scattering time of s1 on s2 (s)
 !***********************************************************************
       IMPLICIT NONE
@@ -836,6 +836,7 @@
      #               z_protonmass
       REAL           ynud_s(mx_ms),           ynut_s(mx_ms),
      #               ynutis(3,mx_ms)
+
 !Initialization
 !  Physical and conversion constants
       z_coulomb=1.6022e-19
@@ -863,12 +864,12 @@
 !         At A=>1 viscosity will go over to Pfirsch-Schluter value
           c4=1.0-p_ft
           IF(c4.lt.1.0e-3) c4=1.0e-3
-          ykb_s(i)=p_ft/c4/sqz_s(i)**1.5*ynud_s(i)
+          ykb_s(i)=p_ft/c4/sqz_s(i)**1.5*ynud_s(i) ! Eq.(B1)
         ENDIF
         IF(k_pfirsch.ne.0) THEN
           DO m=1,3
             ykp_s(i)=ykp_s(i)+c1*vt_i(im)**2*p_fm(m)
-     #                        *(ynutis(m,i)/ynut_s(i))
+     #                        *(ynutis(m,i)/ynut_s(i)) ! Eq.(B8)
           ENDDO
         ENDIF
         IF(k_potato.ne.0) THEN
@@ -1100,7 +1101,7 @@
           x12=x6*x6
           w(m,5)=x12*expmx2
         ENDDO   
-        c1=8.0/3.0/SQRT(z_pi)*h
+        c1=8.0/3.0/SQRT(z_pi)*h ! Coefficient of Eq.(15)
         init=1
       ENDIF
       CALL RARRAY_ZERO(9*m_s,ymu_s)
@@ -1123,20 +1124,20 @@
           CALL NCLASS_K(k_banana,k_pfirsch,k_potato,m_s,jm_s,jz_s,
      #                  c_potb,c_potl,p_fm,p_ft,p_ngrth,xx,amu_i,temp_i,
      #                  vt_i,sqz_s,ykb_s,ykp_s,ykpo_s,ykpop_s,tau_ss)
-!  Loop over species
+!  Loop over species: Eq.(15)
           DO i=1,m_s
             im=jm_s(i)
             iza=IABS(jz_s(i))
             c2=c1*ewt*den_iz(im,iza)*amu_i(im)*z_protonmass
-            dum(1)=c2*w(m,1)
-            dum(2)=c2*(w(m,2)-5.0/2.0*w(m,1))
-            dum(3)=c2*(w(m,3)-5.0*w(m,2)+(25.0/4.0)*w(m,1))
+            dum(1)=c2*w(m,1) ! Lagurre Polynomial L_0^(3/2)
+            dum(2)=c2*(w(m,2)-5.0/2.0*w(m,1)) ! Lagurre Polynomial L_1^(3/2)
+            dum(3)=c2*(w(m,3)-5.0*w(m,2)+(25.0/4.0)*w(m,1)) ! Lagurre Polynomial L_2^(3/2)
             IF(k_banana.eq.0) THEN
               xk=ykp_s(i)
             ELSEIF(k_pfirsch.eq.0) THEN
               xk=ykb_s(i)
             ELSE
-              xk=ykb_s(i)*ykp_s(i)/(ykb_s(i)+ykp_s(i))
+              xk=ykb_s(i)*ykp_s(i)/(ykb_s(i)+ykp_s(i)) ! Eq.(16)
             ENDIF
             ymubs(1,1,i)=ymubs(1,1,i)+ykb_s(i)*dum(1)
             ymubs(1,2,i)=ymubs(1,2,i)+ykb_s(i)*dum(2)
@@ -1229,7 +1230,7 @@
 !Output:
 !  ynud_s(s)-pitch angle diffusion rate for s (/s)
 !  ynut_s(s)-anisotropy relaxation rate for s (/s)
-!  ynutis(3,s)-PS anisotropy relaxation rates for s (/s)
+!  ynutis(3,s)-PS anisotropy relaxation rates for s (-)
 !***********************************************************************
       IMPLICIT NONE
       INCLUDE 'pamx_mi.inc'
@@ -1261,7 +1262,7 @@
       CALL RARRAY_ZERO(3*m_s,ynutis)
       DO i=1,m_s
         im=jm_s(i)
-!Calculate nu_D and nu_T
+!Calculate nu_D and nu_T: Eqs.(B4a)(B12b)
         DO j=1,m_s
           jm=jm_s(j)
           c1=vt_i(jm)/vt_i(im)
@@ -1269,12 +1270,12 @@
           phi=U_ERF(c2)
           g=(phi-c2*(2.0/SQRT(z_pi))*EXP(-c2**2))/(2.0*c2**2)
           ynud_s(i)=ynud_s(i)+(3.0*SQRT(z_pi)/4.0)*(phi-g)/x**3
-     #                        /tau_ss(i,j)
+     #                        /tau_ss(i,j) ! Eq.(B4a)
           ynut_s(i)=ynut_s(i)+((3.0*SQRT(z_pi)/4.0)*((phi-3.0*g)/x**3
      #                       +4.0*(temp_i(im)/temp_i(jm)
-     #                       +1.0/c1**2)*g/x))/tau_ss(i,j)
+     #                       +1.0/c1**2)*g/x))/tau_ss(i,j) ! Eq.(B12b)
         ENDDO   
-! Calculate nu_T*I_m
+! Calculate nu_T*I_m ! Eq.(B10)
         DO m=1,3
           IF(ABS(p_ngrth).gt.0.0) THEN
             c1=x*vt_i(im)*m*p_ngrth
@@ -1397,9 +1398,9 @@
           jz=jz_s(j)
           jza=IABS(jz)
           tau_ss(i,j)=c2/xlnab(im,jm)/iz**2
-     #                /(den_iz(jm,jza)*jz**2)
+     #                /(den_iz(jm,jza)*jz**2) ! Eq.(A4)
           amnt_ii(im,jm)=amnt_ii(im,jm)+amu_i(im)*z_protonmass
-     #                   *den_iz(im,iza)/tau_ss(i,j)
+     #                   *den_iz(im,iza)/tau_ss(i,j) ! Eq.(A3)
         ENDDO          
       ENDDO   
       RETURN

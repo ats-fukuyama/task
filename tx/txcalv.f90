@@ -1,3 +1,4 @@
+
 !     $Id$
 module tx_variables
   implicit none
@@ -390,9 +391,10 @@ contains
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
 
        rNuPara = CORR(Zeff) * rNuei(NR)
-       rNuei1(NR)  =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNuei(NR)) / BBL**2
-       rNuei2(NR)  = BphV(NR) / BBL**2 * (rNuPara - rNuei(NR))
-       rNuei3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuei1(NR)    =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuei2(NR)    = BphV(NR) * BthV(NR) / BBL**2 * (rNuPara - rNuei(NR))
+       rNuei3(NR)    =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
+       rNuei2Bth(NR) = BphV(NR) / BBL**2 * (rNuPara - rNuei(NR))
 
        !     *** Toroidal neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
@@ -472,15 +474,10 @@ contains
                &     * 1.D0 / (Vb**3 + 0.75D0 * SQRT(PI) * Vti**3)
 
           rNuPara = CORR(Zeff) * rNube(NR)
-          rNube1(NR)  =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNube(NR)) / BBL**2
-          rNube2(NR)  = BphV(NR) / BBL**2 * (rNuPara - rNube(NR))
-          rNube3(NR)  =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNube(NR)) / BBL**2
-
-!!$          rnube(nr) = 0.d0
-!!$          rnubi(nr) = 0.d0
-!!$          rnube1(nr) = 0.d0
-!!$          rnube2(nr) = 0.d0
-!!$          rnube3(nr) = 0.d0
+          rNube1(NR)    =(BthV(NR)**2 * rNuPara + BphV(NR)**2 * rNube(NR)) / BBL**2
+          rNube2(NR)    = BphV(NR) * BthV(NR) / BBL**2 * (rNuPara - rNube(NR))
+          rNube3(NR)    =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNube(NR)) / BBL**2
+          rNube2Bth(NR) = BphV(NR) / BBL**2 * (rNuPara - rNube(NR))
 
           ! deflection time of beam ions against bulk ions
           ! (Takamura (3.26) + Tokamaks 3rd p64)
@@ -712,14 +709,13 @@ contains
        AJPARA=(BthV(NR)*AJTH     + BphV(NR)*AJPH    )/BBL
        ! Parallel electric field
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
-       ! Total current density = parallel current density(?)
-       AJ(NR)   = AJPARA
-!       AJ(NR)   = AJPH
+       ! Total current density = toroidal current density
+       AJ(NR)   = AJPH
        ! Ohmic heating power
        POH(NR)  = EPARA*AJPARA
 !       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
 !       POH(NR)  = EphV(NR) * AJPH
-       ! NB induced current density
+       ! NB induced current density (parallel)
        AJNB(NR) = (  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
             &      + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL! &
 !            &    *(1.D0 - PZ / Zeff)
@@ -775,7 +771,8 @@ contains
        dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
        CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
             &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-            &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBS3(NR),ETA=ETA3(NR))
+            &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),&
+            &      JBS=AJBS3(NR),ETA=ETA3(NR))
        IF(NR == 0) AJBS3(NR) = 0.D0
 
         ! +++ Hirshman, Hawryluk and Birge model +++
@@ -806,11 +803,11 @@ contains
           ETA(NR) = ETAS(NR)
        END IF
 
-       ! Ohmic current density
+       ! Ohmic current density (parallel)
 !       AJOH(NR) = EphV(NR) / ETA(NR)
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
        AJOH(NR) = EPARA / ETA(NR)
-!       if(nt==100.or.nt==200) write(6,*) r(nr)/ra,epara,eta(nr)
+!       if(nt==50) write(6,'(F10.7,3E15.7)') r(nr)/ra,epara,eta(nr),ajoh(nr)
     END DO
 
     !     ***** Ion Orbit Loss *****

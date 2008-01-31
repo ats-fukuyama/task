@@ -122,6 +122,7 @@ SUBROUTINE TXGLOB
   AJT   = AJTINT*          2.D0*PI*RKAP/1.D6
   AJOHT = AOHINT*          2.D0*PI*RKAP/1.D6
   AJNBT = ANBINT*          2.D0*PI*RKAP/1.D6
+!  write(6,*) T_TX,AJOHT
 
   !     Bootstrap currents
 

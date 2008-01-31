@@ -1725,7 +1725,7 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, &
+    use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, ETAS, &
          &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV
     integer(4), intent(in) :: MODE
     character(len=50) :: STR

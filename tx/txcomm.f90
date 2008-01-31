@@ -139,8 +139,8 @@ module tx_commons
   real(8), dimension(:), allocatable :: &
        & rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, &
        & rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, rNuD, &
-       & rNubrp1, rNubrp2, rNuei1, rNuei2, rNuei3, &
-       & rNube1, rNube2, rNube3, rNuLTe, rNuLTi, &
+       & rNubrp1, rNubrp2, rNuei1, rNuei2, rNuei3, rNuei2Bth, &
+       & rNube1, rNube2, rNube3, rNube2Bth, rNuLTe, rNuLTi, &
        & rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        & FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        & Chie, Chii, De, Di, D01, D02, &
@@ -262,8 +262,10 @@ contains
        allocate(rNuION(0:N), rNu0e(0:N),  rNu0i(0:N), rNu0b(0:N), rNuL(0:N),  stat = ierl(1))
        allocate(rNuiCX(0:N), rNubCX(0:N), rNuee(0:N), rNuei(0:N), rNuie(0:N), stat = ierl(2))
        allocate(rNuii(0:N),  rNuTei(0:N), rNube(0:N), rNubi(0:N), rNuD(0:N),  stat = ierl(3))
-       allocate(rNubrp1(0:N),rNubrp2(0:N),rNuei1(0:N),rNuei2(0:N),rNuei3(0:N),stat = ierl(4))
-       allocate(rNube1(0:N), rNube2(0:N), rNube3(0:N),rNuLTe(0:N),rNuLTi(0:N),stat = ierl(5))
+       allocate(rNubrp1(0:N),rNubrp2(0:N),rNuei1(0:N),rNuei2(0:N),rNuei3(0:N), &
+            &   rNuei2Bth(0:N),                                               stat = ierl(4))
+       allocate(rNube1(0:N), rNube2(0:N), rNube3(0:N),rNuLTe(0:N),rNuLTi(0:N), &
+            &   rNube2Bth(0:N),                                               stat = ierl(5))
        allocate(rNueNC(0:N), rNuiNC(0:N), rNuAse(0:N),rNuAsi(0:N),            stat = ierl(6))
        allocate(rNueHL(0:N), rNuiHL(0:N),                                     stat = ierl(7))
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   rMue(0:N),  rMui(0:N),  stat = ierl(8))
@@ -347,8 +349,8 @@ contains
     deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
     deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
     deallocate(rNuii,  rNuTei, rNube, rNubi, rNuD)
-    deallocate(rNubrp1,rNubrp2,rNuei1,rNuei2,rNuei3)
-    deallocate(rNube1, rNube2, rNube3,rNuLTe,rNuLTi)
+    deallocate(rNubrp1,rNubrp2,rNuei1,rNuei2,rNuei3,rNuei2Bth)
+    deallocate(rNube1, rNube2, rNube3,rNube2Bth,rNuLTe,rNuLTi)
     deallocate(rNueNC, rNuiNC, rNuAse,rNuAsi)
     deallocate(rNueHL, rNuiHL)
     deallocate(FWthe,  FWthi,  WPM,   rMue,  rMui)
