@@ -925,56 +925,56 @@ SUBROUTINE TXPROF
 
   CALL TXCALC
 
-!!$  !  Initial condition Part II
-!!$
-!!$  DO NR = 0, NRMAX
-!!$     dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
-!!$     dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
-!!$     IF(NR == NRMAX) THEN
-!!$        dPe = 0.D0
-!!$        dPi = 0.D0
-!!$     END IF
-!!$     IF(rNueNC(NR) == 0.D0) THEN
-!!$        ALP = 0.D0
-!!$     ELSE
-!!$        ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
-!!$     END IF
-!!$     X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) / (AEE * BphV(NR)))&
-!!$          &     / (PZ + ALP) * R(NR)
-!!$     X(LQe3,NR) =- ALP * X(LQi3,NR)
-!!$     ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
-!!$          &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
-!!$          &      + dPi / (PZ * AEE * PNiV(NR))
-!!$     X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
-!!$     X(LQi2,NR) = X(LQe2,NR) / PZ
-!!$     X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
-!!$          &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
-!!$          &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-!!$          &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
-!!$  END DO
-!!$
-!!$  ! Scalar potential
-!!$
-!!$  allocate(TMP(0:NRMAX))
-!!$  ! TMP(0) is an arbitrary value (INTDERIV3 does not require the value at axis node
-!!$  !                               in case of (LAST ARGUMENT)=1.)
-!!$  TMP(1:NRMAX) = - 0.5D0 * ErV(1:NRMAX) / R(1:NRMAX)
-!!$  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
-!!$  CALL INTDERIV3(TMP,PSI,X(LQm1,0:NRMAX),0.D0,NRMAX,1)
-!!$
-!!$  ! AthV
-!!$
-!!$  TMP(1:NRMAX) = 0.5D0 * rMU0 * AEE * (X(LQe3,1:NRMAX) - PZ * X(LQi3,1:NRMAX)) * 1.D20 &
-!!$       &       / PSI(1:NRMAX)
-!!$  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
-!!$  CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
-!!$  RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
-!!$  X(LQm5,0) = 0.D0
-!!$  X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
-!!$  deallocate(CMTX,RHSV,TMP)
-!!$
-!!$  CALL TXCALV(X)
-!!$  CALL TXCALC
+  !  Initial condition Part II
+
+  DO NR = 0, NRMAX
+     dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
+     dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
+     IF(NR == NRMAX) THEN
+        dPe = 0.D0
+        dPi = 0.D0
+     END IF
+     IF(rNueNC(NR) == 0.D0) THEN
+        ALP = 0.D0
+     ELSE
+        ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
+     END IF
+     X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) / (AEE * BphV(NR)))&
+          &     / (PZ + ALP) * R(NR)
+     X(LQe3,NR) =- ALP * X(LQi3,NR)
+     ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+          &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
+          &      + dPi / (PZ * AEE * PNiV(NR))
+     X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
+     X(LQi2,NR) = X(LQe2,NR) / PZ
+     X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
+          &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+          &     +(dPe + dPi) / (AEE * BphV(NR)))) &
+          &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+  END DO
+
+  ! Scalar potential
+
+  allocate(TMP(0:NRMAX))
+  ! TMP(0) is an arbitrary value (INTDERIV3 does not require the value at axis node
+  !                               in case of (LAST ARGUMENT)=1.)
+  TMP(1:NRMAX) = - 0.5D0 * ErV(1:NRMAX) / R(1:NRMAX)
+  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+  CALL INTDERIV3(TMP,PSI,X(LQm1,0:NRMAX),0.D0,NRMAX,1)
+
+  ! AthV
+
+  TMP(1:NRMAX) = 0.5D0 * rMU0 * AEE * (X(LQe3,1:NRMAX) - PZ * X(LQi3,1:NRMAX)) * 1.D20 &
+       &       / PSI(1:NRMAX)
+  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+  CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
+  RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
+  X(LQm5,0) = 0.D0
+  X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
+  deallocate(CMTX,RHSV,TMP)
+
+  CALL TXCALV(X)
+  CALL TXCALC
 
   !  Calculate global quantities for storing and showing initial status
 
