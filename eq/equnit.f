@@ -3,7 +3,7 @@ c            interface program of "TASK-EQ"
 c                                                         07/05/15
 c=======================================================================
       module equnit_mod
-      use eqpl_mod
+      use eq_bpsd_mod
       public eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
       private
       contains
@@ -46,9 +46,9 @@ c
       integer ierr
 c-----------------------------------------------------------------------
       call eqcalc(ierr)
-      call eqpl_init(ierr)
+      call eq_bpsd_init(ierr)
       call eqcalq(ierr)
-      call eqpl_set(ierr)
+      call eq_bpsd_set(ierr)
       return
       end subroutine eq_calc
 c=======================================================================
@@ -70,9 +70,9 @@ c-----------------------------------------------------------------------
       nthmax=nthmax_save
       nsumax=nsumax_save
 
-      call eqpl_init(ierr)
+      call eq_bpsd_init(ierr)
       call eqcalq(ierr)
-      call eqpl_set(ierr)
+      call eq_bpsd_set(ierr)
       return
       end subroutine eq_load
 c=======================================================================

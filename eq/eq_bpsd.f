@@ -1,8 +1,8 @@
 c
-      module eqpl_mod
+      module eq_bpsd_mod
 c
       use bpsd
-      public eqpl_init, eqpl_set
+      public eq_bpsd_init, eq_bpsd_set
       private
 c
       type(bpsd_device_type),private,save  :: device
@@ -10,10 +10,10 @@ c
       type(bpsd_metric1D_type),private,save:: metric1D
       type(bpsd_species_type),private,save :: species
       type(bpsd_plasmaf_type),private,save :: plasmaf
-      logical, private, save :: eqpl_init_flag = .TRUE.
+      logical, private, save :: eq_bpsd_init_flag = .TRUE.
       contains
 c=======================================================================
-      subroutine eqpl_init(ierr)
+      subroutine eq_bpsd_init(ierr)
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
 !      implicit none
@@ -22,10 +22,10 @@ c=======================================================================
       integer(4)    ns
       real(8) pretot,dentot,temave
 c=======================================================================
-      if(eqpl_init_flag) then
+      if(eq_bpsd_init_flag) then
          equ1D%nrmax=0
          metric1D%nrmax=0
-         eqpl_init_flag=.FALSE.
+         eq_bpsd_init_flag=.FALSE.
       endif
 c
       device%rr=RR
@@ -57,10 +57,10 @@ c
       endif
 
       return
-      end subroutine eqpl_init
+      end subroutine eq_bpsd_init
 c
 c=======================================================================
-      subroutine eqpl_set(ierr)
+      subroutine eq_bpsd_set(ierr)
 c=======================================================================
 c     interface eqiulibrium <>transport                            JAERI
 c         transport grid -> equilibrium grid     
@@ -81,10 +81,10 @@ c=======================================================================
          data(nr)=1.d0/qps(nr)
       enddo
       call spl1d(sa,data,diff,udata,nrmax,0,ierr)
-      if(ierr.ne.0) write(6,*) 'eqpl_set: spl1d: ierr=',ierr
+      if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1d: ierr=',ierr
       do nr=1,plasmaf%nrmax
          call spl1df(plasmaf%s(nr),plasmaf%qinv(nr),sa,udata,nrmax,ierr)
-         if(ierr.ne.0) write(6,*) 'eqpl_set: spl1df: ierr=',ierr
+         if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1df: ierr=',ierr
       enddo
       call bpsd_set_data(plasmaf,ierr)
 
@@ -120,6 +120,6 @@ c
          metric1D%data(nr)%trig=trigpsi(nr)
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
-      end subroutine eqpl_set
+      end subroutine eq_bpsd_set
 c
-      end module eqpl_mod
+      end module eq_bpsd_mod
