@@ -1010,7 +1010,7 @@ contains
        GPX(2) =  2.5 ; GPY(2) = 16.5
        GPX(3) = 24.5 ; GPY(3) = 16.5
        GPX(4) = 24.5 ; GPY(4) = 10.5
-       CALL LINES(GPX,GPY,4)
+       CALL LINESC(GPX,GPY,4)
        ! Draw lines
        FACT = (GPX(4) - GPX(1)) / R(NRMAX)
        GPXL = GPX(1)
@@ -1036,7 +1036,7 @@ contains
        GPX(2) =  2.5 ; GPY(2) =  8.0
        GPX(3) = 24.5 ; GPY(3) =  8.0
        GPX(4) = 24.5 ; GPY(4) =  2.0
-       CALL LINES(GPX,GPY,4)
+       CALL LINESC(GPX,GPY,4)
        ! Draw lines
        FACT = (GPX(4) - GPX(1)) / PSI(NRMAX)
        GPXL = GPX(1)
