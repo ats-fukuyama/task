@@ -1,8 +1,10 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
+
+MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 
 SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
        fpcalw.f fpcalwr.f fpcalwm.f \
@@ -10,18 +12,21 @@ SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = fplib.a ../pl/pllib.a ../eq/eqlib.a ../lib/tasklib.a
+LIBS = fplib.a ../pl/pllib.a ../eq/eqlib.a ../../bpsd/bpsdlib.a \
+       ../lib/tasklib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : fp
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) -o fplib.a $(OBJS)
 
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
@@ -30,12 +35,13 @@ fplib.a: $(OBJS)
 	(cd ../lib; make tasklib.a)
 
 libs:
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../lib; make tasklib.a)
 
 fp : fpmain.o $(LIBS)
-	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
