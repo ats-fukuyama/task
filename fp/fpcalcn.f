@@ -431,15 +431,16 @@ C
 C     ----- calculation of local diffusion coefficienst -----
 C   
       FACT=-4.D0*PI*RGAMH*1.D20
-      L0MIN=0
-      L0MAX=1
+C      L0MIN=0
+C      L0MAX=1
 
       DO NP=1,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX
             WA=0 
             WC=0
-            DO L=L0MIN,L0MAX
+C            DO L=L0MIN,L0MAX
+            DO L=LLMIN,LLMAX
                WA=WA+D2PSYG(NP,L)*PLM(NTH,L) 
                WC=WC+D1PHYG(NP,L)*PLM(NTH,L)
             END DO
@@ -455,7 +456,8 @@ C
          DO NTH=1,NTHMAX+1
             WB=0 
             WD=0
-            DO L=L0MIN,L0MAX
+C            DO L=L0MIN,L0MAX
+            DO L=LLMIN,LLMAX
                WB=WB+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*PLG(NTH,L)*RGAMA**4
      &          +  1.D0/(PM(NP)**2)*PSYM(NP,L)  *D2PLG(NTH,L) *RGAMA**2) 
                WD=WD+  1.D0/ PM(NP)    *PHYM(NP,L)  *D1PLG(NTH,L)
@@ -477,7 +479,8 @@ C
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX
             WE=0
-            DO L=L0MIN,L0MAX
+C            DO L=L0MIN,L0MAX
+            DO L=LLMIN,LLMAX
                WE=WE+( 1.D0/ PG(NP) *D1PSYG(NP,L)*D1PLM(NTH,L)*RGAMA**4
      &           -1.D0/(PG(NP)**2)*PSYG(NP,L)  *D1PLM(NTH,L) )*RGAMA**2
             END DO
@@ -490,7 +493,8 @@ C
          RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX+1
             WF=0
-            DO L=L0MIN,L0MAX
+C            DO L=L0MIN,L0MAX
+            DO L=LLMIN,LLMAX
                WF=WF+( 1.D0/ PM(NP) *D1PSYM(NP,L)*D1PLG(NTH,L)*RGAMA**4
      &           -1.D0/(PM(NP)**2)*PSYM(NP,L)  *D1PLG(NTH,L) )*RGAMA**2
             END DO

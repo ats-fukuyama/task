@@ -3,18 +3,13 @@
       SUBROUTINE TRMENU
 
       USE TRCOMM, ONLY : &
-           & KUFDIR, KUFDCG, KUFDEV, MDLUF, MDLXP, NGR, NGT, NRMAX, NSMAX, &
-           & NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM, MODELG, KNAMEQ
-      USE TRCOM1, ONLY : KDIRX
-      use trpl_mod, only: trpl_init,trpl_set,trpl_get
-      use pl_vmec_mod, only: pl_vmec
-      use equnit_mod, only: eq_init,eq_parm,eq_prof,eq_calc,eq_load,eq_gout
-      use equunit_mod, only: equ_init,equ_parm,equ_prof,equ_calc
+           & MDLUF, MDLXP, NT, NTMAX, NTMAX_SAVE, ALLOCATE_TRCOMM
+      use trunit
       IMPLICIT NONE
       INTEGER(4)       :: IERR, MODE, NFL, NFLMAX, NTMOLD
       INTEGER(4), SAVE :: INIT=0
       CHARACTER(LEN=1) :: KID
-      CHARACTER(LEN=80):: LINE,LINE2
+      CHARACTER(LEN=80):: LINE
       EXTERNAL TRPARM
 
 !     ------ SELECTION OF TASK TYPE ------
@@ -42,73 +37,20 @@
       IF(MODE.NE.1) GOTO 1
 
       IF(KID.EQ.'P') THEN
-         CALL TRPARM(0,'TR',IERR)
+         CALL tr_parm(0,'TR',IERR)
       ELSE IF(KID.EQ.'V') THEN
-         CALL TRVIEW(0)
+         CALL tr_view
       ELSE IF(KID.EQ.'U') THEN
          CALL TRVIEW(1)
 
       ELSE IF(KID.EQ.'L') THEN
-         CALL TRLOAD
-         call trpl_init
-         call trpl_set(ierr)  ! set trpl with initial profile
+         CALL tr_load(ierr)
          INIT=2
       ELSE IF(KID.EQ.'S'.AND.INIT.EQ.2) THEN
-         CALL TRSAVE
+         CALL tr_save(ierr)
 
       ELSE IF(KID.EQ.'R') THEN
-         CALL ALLOCATE_TRCOMM(IERR)
-           IF(IERR.NE.0) GOTO 1
-         IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_OPEN(KUFDEV, KUFDCG)
-         IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,0)
-         CALL TR_EQS_SELECT(0)
-         IF(MDLUF.EQ.1) THEN
-            IF(INIT.EQ.2.AND.NT.NE.0) THEN
-               NT=0
-               NTMAX=NTMAX_SAVE
-            ENDIF
-            CALL TR_UFILE_CONTROL(1)
-         ELSEIF(MDLUF.EQ.2) THEN
-            CALL TR_UFILE_CONTROL(2)
-         ELSEIF(MDLUF.EQ.3) THEN
-            IF(INIT.EQ.2.AND.NT.NE.0) THEN
-               NT=0
-               NTMAX=NTMAX_SAVE
-            ENDIF
-            CALL TR_UFILE_CONTROL(3)
-         ELSE
-            CALL TR_UFILE_CONTROL(0)
-         ENDIF
-
-         CALL TRPROF             ! initialise profile data
-         call trpl_init          ! initialize trpl
-         call trpl_set(ierr)  ! set trpl with initial profile
-
-         if(modelg.eq.3) then
-            write(line2,'(A,I5)') 'nrmax=',nrmax+1
-            call eq_parm(2,line2,ierr)
-            write(line2,'(A,I5)') 'nthmax=',64
-            call eq_parm(2,line2,ierr)
-            write(line2,'(A,I5)') 'nsumax=',0
-            call eq_parm(2,line2,ierr)
-            call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
-            call trpl_get(ierr)  ! 
-            if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
-         elseif(modelg.eq.7) then
-            call pl_vmec(KNAMEQ,ierr) ! load vmec data
-            call trpl_get(ierr)  ! 
-            call trgout
-         elseif(modelg.eq.8) then
-            call equ_prof ! initial calculation of eq
-            call equ_calc         ! recalculate eq
-            call trpl_get(ierr)  ! 
-            call trgout
-         elseif(modelg.eq.9) then
-            call eq_prof ! initial calculation of eq
-            call eq_calc         ! recalculate eq
-            call trpl_get(ierr)  ! 
-            call trgout
-         endif
+         CALL tr_prof(ierr)
 
          CALL TRLOOP
 
@@ -126,7 +68,7 @@
          NTMOLD=NTMAX
 
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
-         CALL TRGOUT
+         CALL tr_gout
 
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN
 !         write(6,*)  "J0=",AJ(1)*1.D-6

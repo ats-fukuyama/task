@@ -32,6 +32,14 @@
       IERR=0
       ICHCK=0
 
+      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
+         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
+         DIPDT=0.D0
+      ELSE
+         RIP=RIPS
+         IF(NTMAX.NE.0) DIPDT=(RIPE-RIPS)/(DBLE(NTMAX)*DT)
+      ENDIF
+!
  1000 L=0
 !     /* Making New Variables */
       CALL TRATOX
@@ -223,8 +231,6 @@
          RW(NR,2)  = 0.5D0*(YV(2,NR)+Y(2,NR))
       ENDDO
 
-!      write(6,*) L,XV(2,1)/RN(1,1),X(1)/RN(1,1)
-
       CALL TRCHCK(ICHCK)
       IF(ICHCK.EQ.1) GOTO 4000
 
@@ -287,6 +293,8 @@
          RETURN
       ENDIF
 
+ 8000 continue
+
       CALL TRCALC(IERR)
       IF(IERR.NE.0) RETURN
       IF(MDTC.NE.0) THEN
@@ -294,8 +302,60 @@
          CALL TRCFDW_AKDW
       ENDIF
 
+!     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
+
+      IDGLOB=0
+      IF(MOD(NT,NTSTEP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRSNAP
+      ENDIF
+      IF(MOD(NT,NGTSTP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRATOT
+         CALL TRATOTN
+      ENDIF
+      IF(MOD(NT,NGRSTP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRATOG
+      ENDIF
+
       RETURN
       END SUBROUTINE TREXEC
+
+      SUBROUTINE TREVAL(NT,IERR)
+
+      USE TRCOMM, ONLY : NGRSTP, NGTSTP, NTSTEP
+      IMPLICIT NONE
+      INTEGER,INTENT(IN) :: NT
+      INTEGER,INTENT(OUT) :: IERR
+      integer:: IDGLOB
+
+      CALL TRCALC(IERR)
+      IF(IERR.ne.0) RETURN
+
+      IDGLOB=0
+      IF(MOD(NT,NTSTEP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRSNAP
+      ENDIF
+      IF(MOD(NT,NGTSTP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRATOT
+         CALL TRATOTN
+      ENDIF
+      IF(MOD(NT,NGRSTP).EQ.0) THEN
+         IF(IDGLOB.EQ.0) CALL TRGLOB
+         IDGLOB=1
+         CALL TRATOG
+      ENDIF
+      IERR=0
+      RETURN
+      END SUBROUTINE TREVAL
 
 !     ***********************************************************
 
@@ -951,11 +1011,12 @@
       INTEGER(4),INTENT(OUT):: ICHCK
       INTEGER(4) :: IND, NEQ, NR, NSSN
 
-
       ICHCK = 0
       DO NEQ=1,NEQMAX
          IF(NSV(NEQ).EQ.2) THEN
             DO NR=1,NRMAX
+               IF(RT(NR,NSS(NEQ)).LT.0.D0) &
+                    & write(6,*) NT,NR,NEQ,NSS(NEQ),RT(NR,NSS(NEQ))
                IF(RT(NR,NSS(NEQ)).LT.0.D0) GOTO 100
             ENDDO
          ENDIF

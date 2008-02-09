@@ -12,14 +12,39 @@
      &                   PNFE, PNS, PNSA, PNSS, PNSSA, PRF, PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2,&
      &                   PT, PTS, PZ, PZC, PZFE, Q0, QP, QPU, RDP, RG, RHOA, RIP, RIPA, RIPS, RM, RMJRHO, RMJRHOU, RMU0,  &
      &                   RN, RNF, RNFU, RNU, RPSI, RR, RT, RTU, RW, SEX, SNBU, SUMPBM, SWLU, T, TPRE, TST, TTRHO, TTRHOG, &
-     &                   VPAR, VPOL, VPRP, VSEC, VTOR, WROT, WROTU, RDPS
-      USE TRCOM1, ONLY : NTAMAX
+     &                   VPAR, VPOL, VPRP, VSEC, VTOR, WROT, WROTU, RDPS, &
+           & KUFDIR, KUFDCG, KUFDEV, MDLXP, NTMAX_SAVE,ALLOCATE_TRCOMM
+      USE TRCOM1, ONLY : NTAMAX,KDIRX
       IMPLICIT NONE
       INTEGER(4):: IERR, NF, NR, NS
       REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE, FACT, FACTOR0, FACTORM, FACTORP, FCTR, PROF
       REAL(8)   :: SUML
       REAL(8), DIMENSION(NRMAX) :: DSRHO
 
+         CALL ALLOCATE_TRCOMM(IERR)
+           IF(IERR.NE.0) RETURN
+         IF(MDLUF.NE.0.AND.MDLXP.NE.0) CALL IPDB_OPEN(KUFDEV, KUFDCG)
+         IF(MDLUF.NE.0) CALL UFILE_INTERFACE(KDIRX,KUFDIR,KUFDEV,KUFDCG,0)
+         CALL TR_EQS_SELECT(0)
+         IF(MDLUF.EQ.1) THEN
+!            IF(INIT.EQ.2.AND.NT.NE.0) THEN
+            IF(NT.NE.0) THEN
+               NT=0
+               NTMAX=NTMAX_SAVE
+            ENDIF
+            CALL TR_UFILE_CONTROL(1)
+         ELSEIF(MDLUF.EQ.2) THEN
+            CALL TR_UFILE_CONTROL(2)
+         ELSEIF(MDLUF.EQ.3) THEN
+!            IF(INIT.EQ.2.AND.NT.NE.0) THEN
+            IF(NT.NE.0) THEN
+               NT=0
+               NTMAX=NTMAX_SAVE
+            ENDIF
+            CALL TR_UFILE_CONTROL(3)
+         ELSE
+            CALL TR_UFILE_CONTROL(0)
+         ENDIF
 
       NT    = 0
       T     = 0.D0
@@ -628,154 +653,56 @@
       GRG(2:NRMAX+1)=SNGL(RG(1:NRMAX))
 
 !      IF(RHOA.NE.1.D0) NRMAX=NROMAX
+
+      call trsetg(ierr)
+
       RETURN
       END SUBROUTINE TRPROF
 
 !     ***********************************************************
 
-!           SET GEOMETRICAL FACTOR VIA TASK/EQ
+!           SET GEOMETRICAL FACTOR
 
 !     ***********************************************************
 
-      SUBROUTINE TRSETG(ID,IERR)
+      subroutine trsetg(ierr)
 
-      USE TRCOMM, ONLY : ABB2RHOG, ABRHOG, AIB2RHOG, AJ, AJTOR, ARRHO, ARRHOG, BB, DR, DVRHO, DVRHOG, HJRHO, IREAD, &
-     &                   NFM, NRMAX, NSM, PI, PRHO, QP, RA, RDP, RG, RHOTR, RIPS, RKEV, RM, RMU0, RN, RR, RT, RW,   &
-     &                   TRHO, TTRHO, TTRHOG, VTRHO
-      IMPLICIT NONE
-      INTEGER(4), INTENT(IN) :: ID
-      INTEGER(4), INTENT(OUT):: IERR
-      INTEGER(4):: ICONT, NF, NR, NS
-      REAL(8)   :: SRIP, RDPA, FACTOR0, FACTORP, FACTORM ! , RSA
+      use trcomm, only : &
+           & modelg, nrmax, knameq
+      use tr_bpsd, only: tr_bpsd_get
+      use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
+      use equunit_mod, only: equ_prof,equ_calc
+      use pl_vmec_mod, only: pl_vmec
+      integer, intent(out):: ierr
+      character(len=80):: line
 
-      IERR=0
-      IF(IREAD.NE.0) THEN
-
-!     *** Give initial profiles to TASK/EQ ***
-!         CALL TREQIN(RR,RA,RKAP,RDLT,BB,IERR)
-!         IF(IERR.NE.0) WRITE(6,*) 'XX TREQIN1: IERR=',IERR
-
-!     *** Control output display from TASK/EQ ***
-!CC         CALL EQPARM(2,'EPSEQ=1.D-4',IERR)
-!CC         CALL EQPARM(2,'NPRINT=1',IERR)
-!         CALL EQPARM(2,'NPRINT=0',IERR)
-!         CALL EQPARM(2,'NPSMAX=100',IERR)
-         IREAD=0
-      ENDIF
-
-      DO NR=1,NRMAX
-         PRHO(NR)=(SUM(RN(NR,1:NSM)*RT(NR,1:NSM))+SUM(RW(NR,1:NFM)))*1.D14*RKEV
-         TRHO(NR)=SUM(RT(NR,2:NSM)*RN(NR,2:NSM))/RN(NR,1)
-         HJRHO(NR)=AJ(NR)
-         VTRHO(NR)=0.D0
-         RHOTR(NR)=RM(NR)
-      ENDDO
-
-      IF(ID.EQ.0) THEN
-         ICONT=0
-         SRIP=RIPS
-      ELSE
-         ICONT=1
-         SRIP=0.D0
-      ENDIF
-
-!     *** Excute TASK/EQ ***
-!      CALL TREQEX (NRMAX,RM,PRHO,HJRHO,VTRHO,TRHO,SRIP,ICONT,
-!     &             RSA,RDPA,IERR)
-!      IF(IERR.NE.0) THEN
-!         WRITE(6,*) 'XX TREQEX: IERR=',IERR
-!         WRITE(6,*) '&TRDATA'
-!         WRITE(6,*) '  RR=',RR
-!         WRITE(6,*) '  RA=',RA
-!         WRITE(6,*) '  RKAP=',RKAP
-!         WRITE(6,*) '  RDLT=',RDLT
-!         WRITE(6,*) '  BB=',BB
-!         WRITE(6,*) '  RIP=',RIPS
-!         WRITE(6,*) '  PRHO=',(PRHO(NR),NR=1,NRMAX)
-!         WRITE(6,*) '  HJRHO=',(HJRHO(NR),NR=1,NRMAX)
-!         WRITE(6,*) '  VTRHO=',(VTRHO(NR),NR=1,NRMAX)
-!         WRITE(6,*) '  TRHO=',(TRHO(NR),NR=1,NRMAX)
-!         WRITE(6,*) '&END'
-!         RETURN
-!      ENDIF
-!
-!     Initially(NT=0), current density as an input quantity is modified
-!     in order to keep total plasma current constant.
-
-      IF(ID.EQ.0) AJ(1:NRMAX)=HJRHO(1:NRMAX)
-!
-!     *** Provide geometric quantities on half mesh ***
-!      CALL TREQGET(NRMAX,RM,
-!     &             DUMMY,TTRHO,DVRHO,DUMMY,ABRHO,ARRHO,
-!     &             AR1RHO,AR2RHO,DUMMY,DUMMY,DUMMY,
-!     &             DUMMY,DUMMY,DUMMY,RKPRHO,
-!     &             IERR)
-!      IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET1: IERR=',IERR
-
-!     *** Provide geometric quantities on grid mesh ***
-!      CALL TREQGET(NRMAX,RG,
-!     &             QRHO,TTRHOG,DVRHOG,DUMMY,ABRHOG,ARRHOG,
-!     &             AR1RHOG,AR2RHOG,ABB2RHOG,AIB2RHOG,ARHBRHOG,
-!     &             EPSRHO,RMNRHO,RMNRHO,RKPRHOG,
-!     &             IERR)
-!      IF(IERR.NE.0) WRITE(6,*) 'XX TREQGET2: IERR=',IERR
-
-!     *** Adjust system of unit ***
-      RDPA=RDPA/(2.D0*PI)
-      TTRHO(1:NRMAX)   =TTRHO(1:NRMAX)/(2.D0*PI)
-      ARRHO(1:NRMAX)   =ARRHO(1:NRMAX)/RR**2
-      TTRHOG(1:NRMAX)  =TTRHOG(1:NRMAX)/(2.D0*PI)
-      ARRHOG(1:NRMAX)  =ARRHOG(1:NRMAX)/RR**2
-      ABB2RHOG(1:NRMAX)=ABB2RHOG(1:NRMAX)*BB**2
-      AIB2RHOG(1:NRMAX)=AIB2RHOG(1:NRMAX)/BB**2
-
-!$$$      DO NR=1,NRMAX
-!$$$         RDP(NR)=TTRHOG(NR)*ARRHOG(NR)*DVRHOG(NR)
-!$$$     &          /(4.D0*PI**2*QRHO(NR))
-!$$$         QP(NR)=QRHO(NR)
-!$$$      ENDDO
-
-!$$$      DO NR=NRMAX-1,1,-1
-!$$$         RDP(NR) =( DVRHOG(NR+1)*ABRHOG(NR+1)/TTRHOG(NR+1)*RDP(NR+1)
-!$$$     &             -RMU0*BB*DVRHO(NR+1)*DR/TTRHO(NR+1)**2*AJ(NR+1))
-!$$$     &            /(DVRHOG(NR)*ABRHOG(NR)/TTRHOG(NR))
-!$$$      ENDDO
-
-      NR=1
-         RDP(NR) = RMU0*BB*DVRHO(NR)*DR/TTRHO(NR)**2*AJ(NR) &
-     &           /(DVRHOG(NR)*ABRHOG(NR)/TTRHOG(NR))
-
-         FACTOR0=RR/(RMU0*DVRHO(NR))
-         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
-         AJTOR(NR) =FACTOR0*FACTORP*RDP(NR)/DR
-      DO NR=2,NRMAX
-         RDP(NR) =( DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)*RDP(NR-1) &
-     &             +RMU0*BB*DVRHO(NR)*DR/TTRHO(NR)**2*AJ(NR)) &
-     &            /(DVRHOG(NR)*ABRHOG(NR)/TTRHOG(NR))
-
-         FACTOR0=RR/(RMU0*DVRHO(NR))
-         FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)
-         FACTORP=DVRHOG(NR  )*ABRHOG(NR  )
-         AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
-      ENDDO
-      DO NR=1,NRMAX
-!         write(6,*) RM(NR),QP(NR)
-         QP(NR)=2.D0*PI*BB*(RA/SQRT(2.D0*PI))**2*RG(NR)/RDP(NR)
-!200607   QP(NR)=2.D0*PI*BB*(RSA/SQRT(2.D0*PI))**2*RG(NR)/RDP(NR)
-!$$$         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
-      ENDDO
-!$$$      AJT   = SUM(AJ(1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
-!$$$      write(6,*) "Parallel current =",AJT
-!$$$      AJTT   = SUM(AJTOR(1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
-!$$$      write(6,*) "Toroidal current =",AJTT
-!$$$      NR=NRMAX
-!$$$      write(6,*) "Current from RDP =",
-!$$$     &     DVRHOG(NR)*ABRHOG(NR)*RDP(NR)/(2.D0*PI*RMU0)*1.D-6
-!$$$      write(6,*) "Current from RDPA=",
-!$$$     &     DVRHOG(NR)*ABRHOG(NR)*RDPA/(2.D0*PI*RMU0)*1.D-6
-
-      RETURN
-      END SUBROUTINE TRSETG
+         if(modelg.eq.3) then
+            write(line,'(A,I5)') 'nrmax=',nrmax+1
+            call eq_parm(2,line,ierr)
+            write(line,'(A,I5)') 'nthmax=',64
+            call eq_parm(2,line,ierr)
+            write(line,'(A,I5)') 'nsumax=',0
+            call eq_parm(2,line,ierr)
+            call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
+            call tr_bpsd_get(ierr)  ! 
+            if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
+         elseif(modelg.eq.7) then
+            call pl_vmec(knameq,ierr) ! load vmec data
+            call tr_bpsd_get(ierr)  ! 
+            call trgout
+         elseif(modelg.eq.8) then
+            call equ_prof ! initial calculation of eq
+            call equ_calc         ! recalculate eq
+            call tr_bpsd_get(ierr)  ! 
+            call trgout
+         elseif(modelg.eq.9) then
+            call eq_prof ! initial calculation of eq
+            call eq_calc         ! recalculate eq
+            call tr_bpsd_get(ierr)  ! 
+            call trgout
+         endif
+      return
+      end subroutine trsetg
 
 !     ***********************************************************
 

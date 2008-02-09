@@ -37,37 +37,33 @@
       use bpsd
       use equnit_mod
       use equunit_mod
+      use trunit
       IMPLICIT NONE
       REAL(4)   :: GTCPU2
       INTEGER(4):: IERR
 
 !     ------ INITIALIZATION ------
 
-      WRITE(6,600)
-  600 FORMAT(' ')
-      WRITE(6,601) NRM,NSM,NFM,NGM,NTM
-  601 FORMAT(' ','***** TASK/TR  04/12/10 *****', &
-     &       '*** NRM, NSM, NFM, NGM, NTM  ***'/ &
-     &       ' ',33X,I5,I5,I5,I5,I6)
-      OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
+      WRITE(6,*) '***** TASK/TR  08/02/08 *****'
 
       CALL GSOPEN
       CALL GUTIME(GTCPU1)
-!      bpsd_debug_flag = .FALSE.
-!      call bpsd_init
+
       call eq_init
       call equ_init
-      CALL TRINIT
+      CALL tr_init
+
       CALL eq_parm(1,'eqparm',IERR)
       CALL equ_parm(1,'equparm',IERR)
-      CALL TRPARM(1,'trparm',IERR)
+      CALL tr_parm(1,'trparm',IERR)
 
       CALL TRMENU
 
-      CALL GSCLOS
-      CLOSE(7)
+      CALL tr_term
+
       CALL GUTIME(GTCPU2)
       WRITE(6,666) GTCPU2-GTCPU1
   666 FORMAT(' ','#      CPU TIME :   ',F8.3,' SEC ')
+      CALL GSCLOS
       STOP
       END PROGRAM

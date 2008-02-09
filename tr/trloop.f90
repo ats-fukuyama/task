@@ -16,7 +16,8 @@
      &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
      &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
-      use trpl_mod,only: trpl_set, trpl_get
+      use tr_bpsd,only: tr_bpsd_set, tr_bpsd_get
+      use trunit
       use equnit_mod
       use equunit_mod
       IMPLICIT NONE
@@ -24,45 +25,16 @@
      &             NSTN, NSTN1, NSVN, NSVN1, KL, KU
       REAL(8)   :: AJL, DIP, FACTOR0, FACTORM, FACTORP, FCTR, TSL
 
-
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
-         DIPDT=0.D0
-      ELSE
-         RIP=RIPS
-         IF(NTMAX.NE.0) DIPDT=(RIPE-RIPS)/(DBLE(NTMAX)*DT)
-      ENDIF
-
-      CALL TRCALC(IERR)
-      IF(IERR.NE.0) RETURN
-      CALL TRGLOB
-      CALL TRSNAP
-      IF(NGT.EQ.0) THEN
-         CALL TRATOT
-         CALL TRATOTN
-      ENDIF
-      IF(NGR.EQ.0) CALL TRATOG
       IF(NT.GE.NTMAX) GOTO 9000
+
+      CALL TREVAL(NT,IERR)
+      IF(IERR.NE.0) GOTO 9000
 
  1000 CONTINUE
 
-!      write(6,*) 'before trexec:qp'
-!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'before trexec:rt'
-!      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
-!      pause
-
-      if(modelg.eq.8.or.modelg.eq.9) then
-         call trpl_get(ierr)
-         if(ierr.ne.0) goto 9000
-      endif
-
-      CALL TREXEC(DT,IERR)
+      CALL tr_exec(DT,IERR)
       IF(IERR.NE.0) GOTO 9000
       NT=NT+1
-
-      call trpl_set(ierr)
-      if(ierr.ne.0) goto 9000
 
 !     /* Sawtooth Oscillation */
       Q0=FCTR(RG(1),RG(2),QP(1),QP(2))
@@ -73,44 +45,25 @@
          TST=0.D0
       ENDIF
 
-!     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
-
-      IDGLOB=0
-      IF(MOD(NT,NTSTEP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRSNAP
-      ENDIF
-      IF(MOD(NT,NGTSTP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRATOT
-         CALL TRATOTN
-      ENDIF
-      IF(MOD(NT,NGRSTP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRATOG
-      ENDIF
-
 !     *** SET GEOMETRY VIA TASK/EQ ***
 
       IF(NTEQIT.NE.0) THEN
          IF(MOD(NT,NTEQIT).EQ.0) THEN
             if(modelg.eq.8) THEN
                call equ_calc
-               call trpl_get(IERR)
+               call tr_bpsd_get(IERR)
                if(ierr.ne.0) return
             endif
             if(modelg.eq.9) THEN
                call eq_calc
-               call trpl_get(IERR)
+               call tr_bpsd_get(IERR)
                if(ierr.ne.0) return
             endif
          ENDIF
       ENDIF
 
-      IF(IDGLOB.EQ.0) CALL TRGLOB
+      CALL TREVAL(NT,IERR)
+      IF(IERR.NE.0) GOTO 9000
 
 !     *** READING DATA FROM UFILES FOR NEXT STEP ***
 

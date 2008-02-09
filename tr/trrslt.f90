@@ -28,7 +28,6 @@
       REAL(8),DIMENSION(NRM):: DSRHO
 !!      REAL(8),DIMENSION(NRMAX):: DSRHO
 
-
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
 
 !     *** Local beta ***
