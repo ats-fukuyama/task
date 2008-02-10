@@ -1,17 +1,17 @@
 !     $Id$
-      module trpl_mod
+      module tr_bpsd
       use bpsd
       type(bpsd_device_type),private,save :: device
       type(bpsd_species_type),private,save :: species
       type(bpsd_equ1D_type),private,save :: equ1D
       type(bpsd_metric1D_type),private,save :: metric1D
       type(bpsd_plasmaf_type),private,save :: plasmaf
-      logical, private, save :: trpl_init_flag = .TRUE.
+      logical, private, save :: tr_bpsd_init_flag = .TRUE.
       public
       contains
 
 !=======================================================================
-      subroutine trpl_init
+      subroutine tr_bpsd_init
 !=======================================================================
       use trcomm
 ! local variables
@@ -19,16 +19,17 @@
       integer(4)    ns,nr,ierr
       real*8 temp(nrmp,nsm,3)
 !=======================================================================
-      if(trpl_init_flag) then
+
+      if(tr_bpsd_init_flag) then
          species%nsmax=0
          plasmaf%nsmax=0
          plasmaf%nrmax=0
-         trpl_init_flag=.FALSE.
+         tr_bpsd_init_flag=.FALSE.
       endif
 
-!      write(6,*) 'top of trpl_init:qp'
+!      write(6,*) 'top of tr_bpsd_init:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of trpl_init:rt'
+!      write(6,*) 'top of tr_bpsd_init:rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
@@ -141,10 +142,10 @@
 
       call bpsd_set_data(plasmaf,ierr)
       return
-      end subroutine trpl_init
+      end subroutine tr_bpsd_init
 
 !=======================================================================
-      subroutine trpl_set(ierr)
+      subroutine tr_bpsd_set(ierr)
 !=======================================================================
       use trcomm
       integer    ierr
@@ -153,9 +154,9 @@
       real*8 temp(nrmp,nsm,3)
 !=======================================================================
 
-!      write(6,*) 'top of trpl_set:qp'
+!      write(6,*) 'top of tr_bpsd_set:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of trpl_set: rt'
+!      write(6,*) 'top of tr_bpsd_set: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
@@ -185,30 +186,30 @@
      &                -plasmaf%s(2)*plasmaf%qinv(3)) &
      &               /(plasmaf%s(3)-plasmaf%s(2))
 
-!      write(6,*) 'end of trpl_set:qp'
+!      write(6,*) 'end of tr_bpsd_set:qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'end of trpl_set:rt'
+!      write(6,*) 'end of tr_bpsd_set:rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
       call bpsd_set_data(plasmaf,ierr)
       return
-      end subroutine trpl_set
+      end subroutine tr_bpsd_set
 
 !=======================================================================
-      subroutine trpl_get(ierr)
+      subroutine tr_bpsd_get(ierr)
 !=======================================================================
       use trcomm
-      integer    ierr
+      integer,intent(out):: ierr
 ! local variables
       integer    ns,nr
       real*8 temp(nrmp,nsm,3)
       real*8 tempx(nrmp,12),psita,dpsitdrho,dvdrho
       REAL(8) :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
-!      write(6,*) 'top of trpl_get: qp'
+!      write(6,*) 'top of tr_bpsd_get: qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of trpl_get: rt'
+!      write(6,*) 'top of tr_bpsd_get: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
@@ -242,6 +243,8 @@
          call mesh_convert_gtom(temp(1,ns,2),rt(1,ns),nrmax)
          call mesh_convert_gtom(temp(1,ns,3),ru(1,ns),nrmax)
       enddo
+
+      if(modelg.eq.8.or.modelg.eq.9) then
 
       call bpsd_get_data(equ1D,ierr)
 
@@ -348,16 +351,18 @@
 !         AJTOR(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
 !      ENDDO
 
-!      write(6,*) 'end of trpl_get: aj'
+!      write(6,*) 'end of tr_bpsd_get: aj'
 !      write(6,'(1P5E12.4)') (aj(nr),nr=1,nrmax)
-!      write(6,*) 'end of trpl_get: qp'
+!      write(6,*) 'end of tr_bpsd_get: qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'end of trpl_get: rt'
+!      write(6,*) 'end of tr_bpsd_get: rt'
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
+      endif
+
       return
-      end subroutine trpl_get
+      end subroutine tr_bpsd_get
 
 !     ----- convert half mesh to origin + grid mesh -----
 
@@ -446,4 +451,4 @@
       return
       end subroutine mesh_convert_gtom0
 
-      end module trpl_mod
+      end module tr_bpsd
