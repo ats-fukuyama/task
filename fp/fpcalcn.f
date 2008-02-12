@@ -431,15 +431,14 @@ C
 C     ----- calculation of local diffusion coefficienst -----
 C   
       FACT=-4.D0*PI*RGAMH*1.D20
-C      L0MIN=0
-C      L0MAX=1
+
+      L0MIN=0
 
       DO NP=1,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX
             WA=0 
             WC=0
-C            DO L=L0MIN,L0MAX
             DO L=LLMIN,LLMAX
                WA=WA+D2PSYG(NP,L)*PLM(NTH,L) 
                WC=WC+D1PHYG(NP,L)*PLM(NTH,L)
@@ -456,7 +455,6 @@ C            DO L=L0MIN,L0MAX
          DO NTH=1,NTHMAX+1
             WB=0 
             WD=0
-C            DO L=L0MIN,L0MAX
             DO L=LLMIN,LLMAX
                WB=WB+( 1.D0/ PM(NP)    *D1PSYM(NP,L)*PLG(NTH,L)*RGAMA**4
      &          +  1.D0/(PM(NP)**2)*PSYM(NP,L)  *D2PLG(NTH,L) *RGAMA**2) 
@@ -464,7 +462,6 @@ C            DO L=L0MIN,L0MAX
             END DO
             DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)
      &                     +FACT*WB
-C*RGAMA**6
             FCTH(NTH,NP,NR)=FCTH(NTH,NP,NR)
      &                     +FACT*WD*RGAMA*AMFP/AMFD
          END DO
@@ -479,7 +476,6 @@ C
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX
             WE=0
-C            DO L=L0MIN,L0MAX
             DO L=LLMIN,LLMAX
                WE=WE+( 1.D0/ PG(NP) *D1PSYG(NP,L)*D1PLM(NTH,L)*RGAMA**4
      &           -1.D0/(PG(NP)**2)*PSYG(NP,L)  *D1PLM(NTH,L) )*RGAMA**2
@@ -493,7 +489,6 @@ C            DO L=L0MIN,L0MAX
          RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
          DO NTH=1,NTHMAX+1
             WF=0
-C            DO L=L0MIN,L0MAX
             DO L=LLMIN,LLMAX
                WF=WF+( 1.D0/ PM(NP) *D1PSYM(NP,L)*D1PLG(NTH,L)*RGAMA**4
      &           -1.D0/(PM(NP)**2)*PSYM(NP,L)  *D1PLG(NTH,L) )*RGAMA**2
@@ -527,6 +522,8 @@ C
       SUBROUTINE FPCALC_NLAV(NR)
 C
       INCLUDE 'fpcomm.inc'
+      DIMENSION sum11(NSMAX),sum12(NSMAX),sum13(NSMAX)
+     &         ,sum14(NSMAX),sum15(NSMAX),sum16(NSMAX)
 C     
 C         DO NR=1,NRMAX
          DO NTH=1,NTHMAX
@@ -535,6 +532,11 @@ C         DO NR=1,NRMAX
                SUM1=0.D0
                SUM2=0.D0
                SUM3=0.D0
+               Do NS=1,NSMAX
+                  sum11(NS)=0.D0
+                  sum12(NS)=0.D0
+                  sum13(NS)=0.D0
+               END DO
 C     
                DO NG=1,NAVMAX
                   ETAL=DELH*(NG-0.5D0)
@@ -549,10 +551,20 @@ C
                   SUM1=SUM1+DCPP(NTH,NP,NR)*COSM(NTH)/PCOS
                   SUM2=SUM2+FCPP(NTH,NP,NR)*COSM(NTH)/PCOS
                   SUM3=SUM3+DCPT(NTH,NP,NR)/SQRT(PSIB)
+                  Do NS=1,NSMAX
+                  sum11(NS)=sum11(NS)+DCPP2(NTH,NP,NR,NS)*COSM(NTH)/PCOS
+                  sum12(NS)=sum12(NS)+FCPP2(NTH,NP,NR,NS)*COSM(NTH)/PCOS
+                  sum13(NS)=sum13(NS)+DCPT2(NTH,NP,NR,NS)/SQRT(PSIB)
+                 END DO
                END DO
                DCPP(NTH,NP,NR)=SUM1*DELH/PI
                FCPP(NTH,NP,NR)=SUM2*DELH/PI
                DCPT(NTH,NP,NR)=SUM3*DELH/PI
+               Do NS=1,NSMAX
+                  DCPP2(NTH,NP,NR,NS)=SUM11(NS)*DELH/PI
+                  FCPP2(NTH,NP,NR,NS)=SUM12(NS)*DELH/PI
+                  DCPT2(NTH,NP,NR,NS)=SUM13(NS)*DELH/PI                  
+               END DO
             END DO
          END DO
 C         
@@ -562,6 +574,11 @@ C
                SUM4=0.D0
                SUM5=0.D0
                SUM6=0.D0
+               DO NS=1,NSMAX
+                  sum14(NS)=0.D0
+                  sum15(NS)=0.D0
+                  sum16(NS)=0.D0
+               END DO
 C     
                DO NG=1,NAVMAX
                   ETAL=DELH*(NG-0.5D0)
@@ -579,13 +596,27 @@ C
                         PCOS=0.D0
                      ENDIF
                      SUM4=SUM4+DCTT(NTH,NP,NR)*PCOS/(PSIB*COSG(NTH))
+                     DO NS=1,NSMAX
+                        SUM14(NS)=SUM14(NS)
+     &                       +DCTT2(NTH,NP,NR,NS)*PCOS/(PSIB*COSG(NTH))
+                     END DO
                   ENDIF
                   SUM5=SUM5+FCTH(NTH,NP,NR)/SQRT(PSIB)
                   SUM6=SUM6+DCTP(NTH,NP,NR)/SQRT(PSIB)
+                  DO NS=1,NSMAX
+                     SUM15(NS)=SUM15(NS)+FCTH2(NTH,NP,NR,NS)/SQRT(PSIB)
+                     SUM16(NS)=SUM16(NS)+DCTP2(NTH,NP,NR,NS)/SQRT(PSIB)
+                  END DO
+
                END DO
                DCTT(NTH,NP,NR)=SUM4*DELH/PI
                FCTH(NTH,NP,NR)=SUM5*DELH/PI
                DCTP(NTH,NP,NR)=SUM6*DELH/PI
+               Do NS=1,NSMAX
+                  DCTT2(NTH,NP,NR,NS)=SUM14(NS)*DELH/PI
+                  FCTH2(NTH,NP,NR,NS)=SUM15(NS)*DELH/PI
+                  DCTP2(NTH,NP,NR,NS)=SUM16(NS)*DELH/PI                  
+               END DO
             END DO
          END DO
 C
@@ -600,6 +631,17 @@ C
                DCPP(NTHMAX-NTH+1,NP,NR)=DCPP(NTH,NP,NR)
                FCPP(NTHMAX-NTH+1,NP,NR)=FCPP(NTH,NP,NR)
                DCPT(NTHMAX-NTH+1,NP,NR)=DCPT(NTH,NP,NR)
+               DO NS=1,NSMAX
+                  DCPP2(NTH,NP,NR,NS)=(DCPP2(NTH,NP,NR,NS)
+     &                         +DCPP2(NTHMAX-NTH+1,NP,NR,NS))/2.D0
+                  FCPP2(NTH,NP,NR,NS)=(FCPP2(NTH,NP,NR,NS)
+     &                         +FCPP2(NTHMAX-NTH+1,NP,NR,NS))/2.D0
+                  DCPT2(NTH,NP,NR,NS)=(DCPT2(NTH,NP,NR,NS)
+     &                         +DCPT2(NTHMAX-NTH+1,NP,NR,NS))/2.D0
+                  DCPP2(NTHMAX-NTH+1,NP,NR,NS)=DCPP2(NTH,NP,NR,NS)
+                  FCPP2(NTHMAX-NTH+1,NP,NR,NS)=FCPP2(NTH,NP,NR,NS)
+                  DCPT2(NTHMAX-NTH+1,NP,NR,NS)=DCPT2(NTH,NP,NR,NS)
+               END DO
             END DO
             DCPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
      &              *( DCPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
@@ -619,6 +661,26 @@ C
             DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
             FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
             DCPT(ITU(NR),NP,NR)=DCPT(ITL(NR),NP,NR)
+            DO NS=1,NSMAX
+               DCPP2(ITL(NR),NP,NR,NS)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( DCPP2(ITL(NR)-1,NP,NR,NS)/RLAMDA(ITL(NR)-1,NR)
+     &                +DCPP2(ITL(NR)+1,NP,NR,NS)/RLAMDA(ITL(NR)+1,NR)
+     &                +DCPP2(ITU(NR)-1,NP,NR,NS)/RLAMDA(ITU(NR)-1,NR)
+     &                +DCPP2(ITU(NR)+1,NP,NR,NS)/RLAMDA(ITU(NR)+1,NR))
+               FCPP2(ITL(NR),NP,NR,NS)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( FCPP2(ITL(NR)-1,NP,NR,NS)/RLAMDA(ITL(NR)-1,NR)
+     &                +FCPP2(ITL(NR)+1,NP,NR,NS)/RLAMDA(ITL(NR)+1,NR)
+     &                +FCPP2(ITU(NR)-1,NP,NR,NS)/RLAMDA(ITU(NR)-1,NR)
+     &                +FCPP2(ITU(NR)+1,NP,NR,NS)/RLAMDA(ITU(NR)+1,NR))
+               DCPT2(ITL(NR),NP,NR,NS)=RLAMDA(ITL(NR),NR)/4.D0
+     &              *( DCPT2(ITL(NR)-1,NP,NR,NS)/RLAMDA(ITL(NR)-1,NR)
+     &                +DCPT2(ITL(NR)+1,NP,NR,NS)/RLAMDA(ITL(NR)+1,NR)
+     &                +DCPT2(ITU(NR)-1,NP,NR,NS)/RLAMDA(ITU(NR)-1,NR)
+     &           +DCPT2(ITU(NR)+1,NP,NR,NS)/RLAMDA(ITU(NR)+1,NR))
+               DCPP2(ITU(NR),NP,NR,NS)=DCPP2(ITL(NR),NP,NR,NS)
+               FCPP2(ITU(NR),NP,NR,NS)=FCPP2(ITL(NR),NP,NR,NS)
+               DCPT2(ITU(NR),NP,NR,NS)=DCPT2(ITL(NR),NP,NR,NS)
+            END DO
          END DO
 
          DO NP=1,NPMAX
@@ -632,7 +694,20 @@ C
                DCTT(NTHMAX-NTH+2,NP,NR)=DCTT(NTH,NP,NR)
                FCTH(NTHMAX-NTH+2,NP,NR)=FCTH(NTH,NP,NR)
                DCTP(NTHMAX-NTH+2,NP,NR)=DCTP(NTH,NP,NR)
+               DO NS=1,NSMAX
+                  DCTT2(NTH,NP,NR,NS)=(DCTT2(NTH,NP,NR,NS)
+     &                         +DCTT2(NTHMAX-NTH+2,NP,NR,NS))/2.D0
+                  FCTH2(NTH,NP,NR,NS)=(FCTH2(NTH,NP,NR,NS)
+     &                         +FCTH2(NTHMAX-NTH+2,NP,NR,NS))/2.D0
+                  DCTP2(NTH,NP,NR,NS)=(DCTP2(NTH,NP,NR,NS)
+     &                         +DCTP2(NTHMAX-NTH+2,NP,NR,NS))/2.D0
+                  DCTT2(NTHMAX-NTH+2,NP,NR,NS)=DCTT2(NTH,NP,NR,NS)
+                  FCTH2(NTHMAX-NTH+2,NP,NR,NS)=FCTH2(NTH,NP,NR,NS)
+                  DCTP2(NTHMAX-NTH+2,NP,NR,NS)=DCTP2(NTH,NP,NR,NS)
+               END DO
             END DO
+C         WRITE(6,'(I5,1P5E12.4)') NP,
+C     &       DCTT(25,NP,NR),DCTT(26,NP,NR),DCTT(27,NP,NR),DCTT(28,NP,NR)
          END DO
 C         END DO
 

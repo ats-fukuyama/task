@@ -203,8 +203,8 @@ C
       IF (MODELA.EQ.0) RETURN
 C
       DO NR=1,NRMAX
-         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
-C
+C         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
+         FACT=1.D0
          DO NP=1,NPMAX+1
          DO NTH=1,ITL(NR)-1
             FEPP(NTH,NP,NR)= FACT*FEPP(NTH,NP,NR)

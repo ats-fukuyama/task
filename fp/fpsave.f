@@ -24,6 +24,9 @@ C
          RLHT(NR,NTG1)= RLHS(NR)
          RFWT(NR,NTG1)= RFWS(NR)
          RECT(NR,NTG1)= RECS(NR)
+         Do NS=1,NSMAX
+            RPCT2(NR,NTG1,NS)= RPCS2(NR,NS)
+         END DO
 C
          RTT(NR,NTG1) = RWS(NR)*1.D6/(1.5D0*RNS(NR)*1.D20*AEE*1.D3)
          RET(NR,NTG1) = E1(NR)
@@ -57,6 +60,9 @@ C
       PLHT(NTG2)=0.D0
       PFWT(NTG2)=0.D0
       PECT(NTG2)=0.D0
+      DO NS=1,NSMAX
+         PPCT2(NTG2,NS)=0.D0
+      END DO
 C
       DO 1000 NR=1,NRMAX
          RHOL=RM(NR)
@@ -72,6 +78,9 @@ C
          PLHT(NTG2)=PLHT(NTG2)+RLHS(NR)*FACT
          PFWT(NTG2)=PFWT(NTG2)+RFWS(NR)*FACT
          PECT(NTG2)=PECT(NTG2)+RECS(NR)*FACT
+         DO NS=1,NSMAX
+            PPCT2(NTG2,NS)=PPCT2(NTG2,NS)+RPCS2(NR,NS)*FACT
+         END DO
  1000 CONTINUE
 C
       PNT(NTG2) =PNT(NTG2) *2*PI*RR
@@ -90,6 +99,9 @@ C
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
      &     *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
+      Do NS=1,NSMAX
+         PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
+      END DO
 
       RETURN
       END
@@ -102,6 +114,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+      DIMENSION RSUM10(NSMAX)
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 C
       DO 1000 NR=1,NRMAX
@@ -114,6 +127,9 @@ C
          RSUM7=0.D0
          RSUM8=0.D0
          RSUM9=0.D0
+         Do NS=1,NSMAX
+            RSUM10(NS)=0.D0
+         END DO
 C
          DO 100 NP=1,NPMAX
          DO 100 NTH=1,NTHMAX
@@ -196,6 +212,13 @@ C
             RSUM9 = RSUM9+PG(NP)**2*SINM(NTH)/PV
      &              *(DWECPP(NTH,NP,NR)*DFP
      &               +DWECPT(NTH,NP,NR)*DFT)
+            DO NS=1,NSMAX
+               RSUM10(NS)=RSUM10(NS)+PG(NP)**2*SINM(NTH)/PV
+     &              *(DCPP2(NTH,NP,NR,NS)*DFP
+     &               +DCPT2(NTH,NP,NR,NS)*DFT
+     &               -FCPP2(NTH,NP,NR,NS)*FFP)
+            END DO
+
   400    CONTINUE
          FACT=RNFP0*1.D20
          RNS(NR) = RSUM1*FACT               *1.D-20
@@ -203,11 +226,14 @@ C
          FACT=RNFP0*1.D20*PTFP0**2/AMFP
          RWS(NR) = RSUM3*FACT               *1.D-6
          RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
-         RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6 
          RPES(NR)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RLHS(NR)=-RSUM7*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RFWS(NR)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RECS(NR)=-RSUM9*FACT*2.D0*PI*DELP*DELTH
+         Do NS=1,NSMAX
+            RPCS2(NR,NS)=-RSUM10(NS)*FACT*2.D0*PI*DELP*DELTH *1.D-6
+         END DO
 C
 C         IF(MODELA.EQ.1) THEN
 C            RJS(NR)=RJS(NR)*RLAMDB(NR)
@@ -232,6 +258,32 @@ C
 C
       WRITE(6,101) TIMEFP*1000
       WRITE(6,102) PNT(NTG2),PIT(NTG2),PWT(NTG2),PTT(NTG2)
+
+      if(NTG2.ne.1)then
+      FACT1 = 
+     &2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(2))-RSRHON(RG(NRMAX)))
+      FACT2 = 2.D0*PI*RR
+      rntv = 1.6D0/1.D19*1.5D0*
+     &FACT1*FACT2*(PTT(NTG2)-PTT(NTG2-1))*PNT(NTG2)*1.D3*1.D20/DELT
+
+c      write(6,*) "Pw+Pc",(PPWT(NTG2)+PPCT(NTG2))*1.D6,"n*delta T*V",rntv
+c      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12
+c     & ,"Pw[W]",PPWT(NTG2)*1.D6
+      write(6,*) "Pc+PE+Pw",PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2),
+     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2))/PPCT(NTG2)
+c      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG2)-PPCT(NTG2-1))/PPCT(NTG2)
+c     Spitzer
+      resist = 1.D0/(RNFP0*RNFP(1)*1.D20*AEFP**2/AMFP
+     &     /RNUD(1,NSFP)*RNFD(1,NSFP)/RNFP0)*SQRT(2.D0)
+c      write(6,*) "J/E*eta*1.D6", PIT(NTG2)/E0*1.D6/FACT1*resist
+c     & ,"THETA0", (PTFP0/(AMFP*VC))**2
+      Do NS=1,NSMAX
+         write(6,99) NSFP,NS,PPCT2(NTG2,NS)
+      END DO
+c      write(6,*) " "
+ 99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E11.4)
+      end if
+
 C      WRITE(6,'(1PE12.5)') (RNS(NR),NR=1,NRMAX)
 C
       IF(TIMEFP.GT.0.D0) THEN

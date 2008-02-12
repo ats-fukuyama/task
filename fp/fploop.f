@@ -293,7 +293,7 @@ C               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
             RLAMDC(NTHMAX/2+1,NR)=0.D0
          ENDDO
 C
-      ELSE
+       ELSE
          DO NR=1,NRMAX
             ITL(NR)=0
             ITU(NR)=0
@@ -606,6 +606,11 @@ C         CALL FPGRAC('F1-2',F1,4)
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=F1(NTH,NP,NR)
+c     tentative FNS
+c            DO NS=1,NSMAX
+               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR)
+c            END DO
+c
          ENDDO
          ENDDO
          ENDDO

@@ -62,6 +62,41 @@ C
             ENDIF
             write(6,'(2I8,1P3E12.4)')
      &           NR,NS,DCPP(5,5,NR),DCTT(5,5,NR),FCPP(5,5,NR)
+c     divide coefficients by species
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  if(NS.eq.1)then
+                     DCPP2(NTH,NP,NR,NS)=DCPP(NTH,NP,NR)
+                     DCPT2(NTH,NP,NR,NS)=DCPT(NTH,NP,NR)
+                     DCTP2(NTH,NP,NR,NS)=DCTP(NTH,NP,NR)
+                     DCTT2(NTH,NP,NR,NS)=DCTT(NTH,NP,NR)
+                     FCPP2(NTH,NP,NR,NS)=FCPP(NTH,NP,NR)
+                     FCTH2(NTH,NP,NR,NS)=FCTH(NTH,NP,NR)
+                  else
+                     differ1=0.D0
+                     differ2=0.D0
+                     differ3=0.D0
+                     differ4=0.D0
+                     differ5=0.D0
+                     differ6=0.D0
+                     Do NS2=1,NS-1
+                        differ1=differ1+DCPP2(NTH,NP,NR,NS2)
+                        differ2=differ2+DCPT2(NTH,NP,NR,NS2)
+                        differ3=differ3+DCTP2(NTH,NP,NR,NS2)
+                        differ4=differ4+DCTT2(NTH,NP,NR,NS2)
+                        differ5=differ5+FCPP2(NTH,NP,NR,NS2)
+                        differ6=differ6+FCTH2(NTH,NP,NR,NS2)
+                     END DO
+                     DCPP2(NTH,NP,NR,NS)=DCPP(NTH,NP,NR)-differ1
+                     DCPT2(NTH,NP,NR,NS)=DCPT(NTH,NP,NR)-differ2
+                     DCTP2(NTH,NP,NR,NS)=DCTP(NTH,NP,NR)-differ3
+                     DCTT2(NTH,NP,NR,NS)=DCTT(NTH,NP,NR)-differ4
+                     FCPP2(NTH,NP,NR,NS)=FCPP(NTH,NP,NR)-differ5
+                     FCTH2(NTH,NP,NR,NS)=FCTH(NTH,NP,NR)-differ6
+                  end if
+               END DO
+            END DO
+
          ENDDO
 C
 C        ----- Simple ion collision term using ZEFF -----
@@ -269,7 +304,7 @@ C     ------ define --------
       PTFDL=PTFD(NR,NS)
       VTFDL=VTFD(NR,NS)
 
-      AEFD=PZ(NS)*AEE
+c      AEFP=PZ(NSFP)*AEE
       RGAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
      &        /(RNFP0*PTFP0*1.D20)
       RNFD0=PN(NS)
@@ -302,6 +337,8 @@ C
                U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
                DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
                FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
+               if(NSFP.eq.1.and.NS.eq.2) DCPPL=0.D0
+               if(NSFP.eq.1.and.NS.eq.2) FCPPL=0.D0
 C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
             ENDIF
             DO NTH=1,NTHMAX
@@ -318,6 +355,15 @@ C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
             DCTTL= 0.25D0*RNUDL/U
      &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
 C
+c     for check conductivity
+            if(NSFP.eq.1.and.NS.eq.2)then
+               RTE=(RTPR(1)+RTPP(1)*2.D0)/3.D0
+              rZI = -PZ(2)/PZ(1)/(14.9D0-0.5D0*LOG(RN(1))+LOG(RTE))*
+     &              (15.2D0-0.5D0*LOG(RN(1))+LOG(RTE))
+              DCTTL = RNUD(NR,1)*SQRT(2.D0)*VTFD(NR,1)*AMFP
+     &        /(RNFP0*PTFP0*1.D20)*RNFD(1,NS)*1.D20*PTFP0/AMFP
+     &             *rZI/VFPL*0.5D0
+            endif
             DO NTH=1,NTHMAX+1
                DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
             ENDDO
@@ -397,8 +443,8 @@ C                  PNFP=PNFPL*PTFP0*AMFD/(PTFD0*AMFP)
      &              *TMC2FP0*RINT6 )
      &             *RNFD(NR,NS)*1.D20
                ENDIF
-               WRITE(6,'(I5,1P4E12.4)') NP,DCPPL,FCPPL,FCPPL/DCPPL/PNFP
-     &              *RGAMA,PNFP/RGAMA
+C               WRITE(6,'(I5,1P4E12.4)') NP,DCPPL,FCPPL,FCPPL/DCPPL/PNFP
+C     &              *RGAMA,PNFP/RGAMA
             ENDIF
             DO NTH=1,NTHMAX
                DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DCPPL
@@ -475,6 +521,12 @@ C         DO NR=1,NRMAX
                DO NP=1,NPMAX+1
                   DCPP(NTH,NP,NR)=FACT*DCPP(NTH,NP,NR)
                   FCPP(NTH,NP,NR)=FACT*FCPP(NTH,NP,NR)
+c-----------------divide
+                  DO NS=1,NSMAX
+                     DCPP2(NTH,NP,NR,NS)=FACT*DCPP2(NTH,NP,NR,NS)
+                     FCPP2(NTH,NP,NR,NS)=FACT*FCPP2(NTH,NP,NR,NS)
+                  END DO
+c-----------------end of divide
                ENDDO
             ENDDO
 C
@@ -482,10 +534,14 @@ C
                FACT=RLAMDC(NTH,NR)
                DO NP=1,NPMAX
                   DCTT(NTH,NP,NR)=FACT*DCTT(NTH,NP,NR)
+c-----------------divide
+                  DO NS=1,NSMAX
+                     DCTT2(NTH,NP,NR,NS)=FACT*DCTT2(NTH,NP,NR,NS)                     
+                  END DO
+c-----------------end of divide
                ENDDO
             ENDDO
-C         ENDDO
-C
+C         END DO
 C         DO NR=1,NRMAX
             DO NP=1,NPMAX+1
                DCPP(ITL(NR),NP,NR)
@@ -494,6 +550,7 @@ C         DO NR=1,NRMAX
      &                      +DCPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
      &                      +DCPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
      &                      +DCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+
 C
                FCPP(ITL(NR),NP,NR)
      &              =RLAMDA(ITL(NR),NR)/4.D0
@@ -503,6 +560,25 @@ C
      &                      +FCPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
                DCPP(ITU(NR),NP,NR)=DCPP(ITL(NR),NP,NR)
                FCPP(ITU(NR),NP,NR)=FCPP(ITL(NR),NP,NR)
+c--------------divide coeff. by species
+               Do NS=1,NSMAX
+               DCPP2(ITL(NR),NP,NR,NS)
+     &              =RLAMDA(ITL(NR),NR)/4.D0
+     &                *( DCPP2(ITL(NR)-1,NP,NR,NS)/RLAMDA(ITL(NR)-1,NR)
+     &                  +DCPP2(ITL(NR)+1,NP,NR,NS)/RLAMDA(ITL(NR)+1,NR)
+     &                  +DCPP2(ITU(NR)-1,NP,NR,NS)/RLAMDA(ITU(NR)-1,NR)
+     &                  +DCPP2(ITU(NR)+1,NP,NR,NS)/RLAMDA(ITU(NR)+1,NR))
+
+               FCPP2(ITL(NR),NP,NR,NS)
+     &              =RLAMDA(ITL(NR),NR)/4.D0
+     &                *( FCPP2(ITL(NR)-1,NP,NR,NS)/RLAMDA(ITL(NR)-1,NR)
+     &                  +FCPP2(ITL(NR)+1,NP,NR,NS)/RLAMDA(ITL(NR)+1,NR)
+     &                  +FCPP2(ITU(NR)-1,NP,NR,NS)/RLAMDA(ITU(NR)-1,NR)
+     &                  +FCPP2(ITU(NR)+1,NP,NR,NS)/RLAMDA(ITU(NR)+1,NR))
+               DCPP2(ITU(NR),NP,NR,NS)=DCPP2(ITL(NR),NP,NR,NS)
+               FCPP2(ITU(NR),NP,NR,NS)=FCPP2(ITL(NR),NP,NR,NS)
+               END DO
+c--------------end of divide
             ENDDO
 C         ENDDO
 
