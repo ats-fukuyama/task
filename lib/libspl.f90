@@ -734,8 +734,8 @@
 !              FY(NXM,NYMAX) : EDGE DERIVATIVES FOR IDY != 0
 !              FXY(NXM,NYMAX): CORNER DERIVATIVES FOR IDY OR IDY != 0
 !              NXM       : ARRAY SIZE
-!              NXMAX     : NUMBER OF VARIABLES (<NMAX=10001)
-!              NYMAX     : NUMBER OF VARIABLES (<NMAX=10001)
+!              NXMAX     : NUMBER OF VARIABLES
+!              NYMAX     : NUMBER OF VARIABLES
 !              IDX       : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
 !                          1 : DERIVATIVE FX(1) IS GIVEN
 !                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
@@ -767,12 +767,15 @@
      &                         IDX1, IDX2, IDY1, IDY2, T11, T12, T13, T14,               &
      &                         T21, T22, T23, T24, T31, T32, T33, T34, T41, T42, T43, T44, &
      &                         V13, V14, V23, V24, V31, V32, V33, V34, V41, V42, V43, V44
-      INTEGER(4), PARAMETER :: NMAX = 1001
-      REAL(8),    DIMENSION(4,NMAX):: UX, UY,UX0, UY0
-      REAL(8),    DIMENSION(NMAX)  ::  BX
+!      INTEGER(4), PARAMETER :: NMAX = 1001
+!      REAL(8),    DIMENSION(4,NMAX):: UX, UY,UX0, UY0
+!      REAL(8),    DIMENSION(NMAX)  ::  BX
+      REAL(8),    DIMENSION(4,NXMAX):: UX, UX0
+      REAL(8),    DIMENSION(4,NYMAX):: UY, UY0
+      REAL(8),    DIMENSION(NXMAX)  :: BX
 
-      IF(NXMAX.GT.NMAX) GOTO 9001
-      IF(NYMAX.GT.NMAX) GOTO 9002
+!      IF(NXMAX.GT.NMAX) GOTO 9001
+!      IF(NYMAX.GT.NMAX) GOTO 9002
 
       IDX1=MOD(IDX,2)
       IDX2=MOD(IDX/2,2)
@@ -1114,12 +1117,12 @@
       IERR=0
       RETURN
 
- 9001 WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
-      IERR=1
-      RETURN
- 9002 WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
-      IERR=2
-      RETURN
+! 9001 WRITE(6,*) 'XX SPL2D: NXMAX.GT.NMAX:',NXMAX,NMAX
+!      IERR=1
+!      RETURN
+! 9002 WRITE(6,*) 'XX SPL2D: NYMAX.GT.NMAX:',NYMAX,NMAX
+!      IERR=2
+!      RETURN
  9003 WRITE(6,*) 'XX SPL2D: TDMSRDX ERROR: IERR=',IERR
       IERR=3
       RETURN
@@ -1400,8 +1403,8 @@
 !              FY(NXM,NYMAX) : EDGE DERIVATIVES FOR IDY != 0
 !              FXY(NXM,NYMAX): CORNER DERIVATIVES FOR IDY OR IDY != 0
 !              NXM       : ARRAY SIZE
-!              NXMAX     : NUMBER OF VARIABLES (<NMAX=10001)
-!              NYMAX     : NUMBER OF VARIABLES (<NMAX=10001)
+!              NXMAX     : NUMBER OF VARIABLES
+!              NYMAX     : NUMBER OF VARIABLES
 !              IDX       : 0 : SECOND DERIVATIVES = 0 AT X(1) AND X(NXMAX)
 !                          1 : DERIVATIVE FX(1) IS GIVEN
 !                          2 : DERIVATIVE FX(NXMAX) IS GIVEN
@@ -1441,7 +1444,7 @@
 !      COMPLEX(8),    DIMENSION(NMAX)  ::  BX
       COMPLEX(8),    DIMENSION(4,NXMAX):: UX, UX0
       COMPLEX(8),    DIMENSION(4,NYMAX):: UY, UY0
-      COMPLEX(8),    DIMENSION(NXMAX)  ::  BX
+      COMPLEX(8),    DIMENSION(NXMAX)  :: BX
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
