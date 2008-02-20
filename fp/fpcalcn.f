@@ -432,7 +432,7 @@ C     ----- calculation of local diffusion coefficienst -----
 C   
       FACT=-4.D0*PI*RGAMH*1.D20
 
-      L0MIN=0
+C      L0MIN=0
 
       DO NP=1,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)

@@ -330,10 +330,43 @@ C         FL=FPMXWL(PM(NP),NR)
                FNS(NTH,NP,NR,NS)=FLNS
             END DO
          ENDDO
-C         WRITE(6,'(I5,1P4E12.4)') NP,FL,FNS(NTHMAX,NP,NR,1)
-C     &        ,FNS(NTHMAX,NP,NR,2)
+c         WRITE(6,'(I5,1P4E12.4)') NP,FNS(1,NP,NR,1)
+c     &        ,FNS(NTHMAX,NP,NR,2)
+c     &        ,FNS(1,NP,NR,2),PM(NP)
       ENDDO
       ENDDO
+c-----distribution of beam ion 
+      IF(NSBM.ne.0)THEN
+      sum1=0.D0
+      sum2=0.D0
+      sum3=0.D0
+      Do NP=1,NPMAX
+         sum1=sum1+FNS(1,NP,1,1)*PM(NP)**2*DELP
+         sum2=sum2+FNS(1,NP,1,3)*PM(NP)**2*DELP
+      END DO
+      Do NP=1,NPMAX
+         PMP=PM(NP)-1.D0
+         FLNS=0.D0
+         if(NP.ne.1)PMM=PM(NP-1)-1.D0
+         if(PMP.gt.0.D0.and.PMM.lt.0.D0)then
+            FLNS=sum2/PM(NP)**2
+         END if
+         Do NTH=1,NTHMAX
+            FNS(NTH,NP,1,NSBM)=0
+            if(NSFP.eq.NSBM) F(NTH,NP,1)=0
+            if(NTH.eq.1)then
+               FNS(NTH,NP,1,NSBM)=FLNS*2.D0/SINM(NTH)
+               if(NSFP.eq.NSBM) F(NTH,NP,1)=FLNS*2.D0/SINM(NTH)
+            end if
+         END DO
+c         sum3 = sum3 +FNS(1,NP,1,3)*PM(NP)**2
+c         WRITE(6,'(I5,1P4E12.4)') NP,FNS(1,NP,1,1)
+c     &        ,FNS(1,NP,1,2)
+c     &        ,FNS(1,NP,1,2),PM(NP)
+      END DO
+c      write(*,*)"NSBM",NSBM
+c      write(*,*)sum1,sum2,sum3
+      END IF
       RETURN
       END
 C
@@ -402,8 +435,31 @@ C     &           *EXP(-1.D0/THETAL)
 C         if(PML.le.2.D0)
 C     &        WRITE(6,'(I5,1P4E12.4)') NS,PML,Z,FPMXWL,DKBSL
       ENDIF
+
       RETURN
       END
+c-----------------------
+      FUNCTION FPBEAM(PML,NR,NS)
+      INCLUDE 'fpcomm.inc'
+
+      AMFD=PA(NS)*AMP
+      AEFD=PZ(NS)*AEE
+      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+      RNFD0=PN(NS)
+      RNFDL=RNFD(NR,NS)
+      rsigma=1.d-1
+
+c      IF(NS.eq.NSBM)THEN
+c      EX=-(PML-1.D0)**2/(2.D0*rsigma**2)
+c      FACT=RNFDL*PTFD0**3/(SQRT(2.D0*PI)*rsigma)
+c      FPBEAM=FACT*EXP(EX)
+c      END IF
+      FPBEAM=RNFDL/(4.D0*PI)
+
+      RETURN
+      END
+
 C
 C *************************
 C     INITIAL DATA SAVE
@@ -549,6 +605,18 @@ C
 C
       DO NT=1,NTMAX
 C
+      IF(MODELC.eq.2)THEN
+C----NSFP LOOP-------
+      DO NSFP=1,NSMAX
+         CALL FPPREP(IERR)
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            F(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
+         END DO
+         END DO
+         END DO
+
          L=0
 C
          IF(MODELE.NE.0) THEN
@@ -608,16 +676,17 @@ C         CALL FPGRAC('F1-2',F1,4)
             F(NTH,NP,NR)=F1(NTH,NP,NR)
 c     tentative FNS
 c            DO NS=1,NSMAX
-               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR)
+c            F1(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
+               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
 c            END DO
-c
          ENDDO
          ENDDO
          ENDDO
+
 C
-         TIMEFP=TIMEFP+DELT
+         if(NT.eq.1.and.NSFP.eq.1)TIMEFP=TIMEFP+DELT
 C
-         ISAVE=0
+
          IF (MOD(NT,NTSTP1).EQ.0) THEN
             CALL FPSPRF
          ENDIF
@@ -625,6 +694,100 @@ C
             CALL FPSGLB
             CALL FPWRIT
          ENDIF
+         ISAVE=0
+      END DO
+      NSFP=1
+      TIMEFP=TIMEFP+DELT
+C-----END OF NSFP LOOP--------------------------
+      ELSE
+
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            F(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
+         END DO
+         END DO
+         END DO
+
+         L=0
+C
+         IF(MODELE.NE.0) THEN
+            DO NR=1,NRMAX
+               E3(NR)=0.D0
+               RJ3(NR)=0.D0
+            ENDDO
+         ENDIF
+C
+ 2       L=L+1
+C
+         IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF
+C
+         CALL FPEXEC(IERR)
+         IF(IERR.NE.0) GOTO 251
+C
+         IF(MODELE.NE.0) THEN
+            DO NR=2,NRMAX
+               RSUM=0.D0
+               DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
+               ENDDO
+               ENDDO
+               RJN(NR)=AEFP*RNFP0*1.D20*PTFP0*DELP*RSUM/(AMFP*RM(NR)*RA)
+            ENDDO
+            RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
+C
+            DELEM=0.D0
+            DO NR=1,NRMAX
+               IF(ABS(RJN(NR)-RJ3(NR)).GT.1.D-20) THEN
+                  DELE(NR)=(RJN(NR)-RJ2(NR))*(E2(NR)-E3(NR))
+     &                    /(RJN(NR)-RJ3(NR))
+                  E3(NR)=E2(NR)
+                  RJ3(NR)=RJN(NR)
+                  E2(NR)=E2(NR)-DELE(NR)
+                  DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
+               ENDIF
+            ENDDO
+C
+            IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 2
+            IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
+C
+            DO NR=1,NRMAX
+               E1(NR)=E2(NR)
+               RJ1(NR)=RJN(NR)
+            ENDDO
+            CALL FPNEWE
+         ENDIF
+C
+ 251     CONTINUE
+C         CALL FPGRAC('F -2',F,4)
+C         CALL FPGRAC('F1-2',F1,4)
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            F(NTH,NP,NR)=F1(NTH,NP,NR)
+c     tentative FNS
+c            DO NS=1,NSMAX
+c            F1(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
+               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
+c            END DO
+         ENDDO
+         ENDDO
+         ENDDO
+
+         TIMEFP=TIMEFP+DELT
+         ISAVE=0
+C
+C
+         IF (MOD(NT,NTSTP1).EQ.0) THEN
+            CALL FPSPRF
+         ENDIF
+         IF (MOD(NT,NTSTP2).EQ.0) THEN
+            CALL FPSGLB
+            CALL FPWRIT
+         ENDIF
+
+      END IF
 C
          IF(IERR.NE.0) GOTO 1100
       ENDDO

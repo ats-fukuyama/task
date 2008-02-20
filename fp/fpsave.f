@@ -260,6 +260,7 @@ C
       WRITE(6,102) PNT(NTG2),PIT(NTG2),PWT(NTG2),PTT(NTG2)
 
       if(NTG2.ne.1)then
+c-----check of conductivity--------
       FACT1 = 
      &2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(2))-RSRHON(RG(NRMAX)))
       FACT2 = 2.D0*PI*RR
@@ -269,19 +270,48 @@ C
 c      write(6,*) "Pw+Pc",(PPWT(NTG2)+PPCT(NTG2))*1.D6,"n*delta T*V",rntv
 c      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12
 c     & ,"Pw[W]",PPWT(NTG2)*1.D6
-      write(6,*) "Pc+PE+Pw",PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2),
-     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2))/PPCT(NTG2)
+c      write(6,*) "Pc+PE+Pw",PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2),
+c     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2))/PPCT(NTG2)
 c      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG2)-PPCT(NTG2-1))/PPCT(NTG2)
 c     Spitzer
-      resist = 1.D0/(RNFP0*RNFP(1)*1.D20*AEFP**2/AMFP
-     &     /RNUD(1,NSFP)*RNFD(1,NSFP)/RNFP0)*SQRT(2.D0)
+c      resist = 1.D0/(RNFP0*RNFP(1)*1.D20*AEFP**2/AMFP
+c     &     /RNUD(1,NSFP)*RNFD(1,NSFP)/RNFP0)*SQRT(2.D0)
 c      write(6,*) "J/E*eta*1.D6", PIT(NTG2)/E0*1.D6/FACT1*resist
 c     & ,"THETA0", (PTFP0/(AMFP*VC))**2
+c----end of conductivity check---------
+c----check of beam power-------
+      IF(NSBM.ne.0)THEN
+c         su1=0.D0
+c         if(NTG2.eq.1)then
+c            sumt1=0.D0
+c            sumt2=0.D0
+c            sumt3=0.D0
+c         end if
+c         
+c         Do NS=2,NSMAX
+c            su1=su1+PN(NS)*PZ(NS)**2/PA(NS)
+c         END DO
+c         WBC=14.8D0*PTPP(1)*(1-R1)**2
+c     &        *( PA(NSBM)**(3.D0/2.D0)*su1/PN(1) )**(2.D0/3.D0)
+c         write(6,*)"Wbc[keV],Wb_init",WBC,PTT(1)
+c         write(6,*)"Wb/Wbc, PC3=>1, PC3=>2"
+c         sumt1=sumt1+PPCT2(NTG2,1)
+c         sumt2=sumt2+PPCT2(NTG2,2)
+c         sumt3=sumt3+PPCT(NTG2)
+c         write(6,999)PTT(NTG2)/WBC
+c     &        ,PPCT2(NTG2,1)/PPCT(NTG2),PPCT2(NTG2,2)/PPCT(NTG2)
+c         write(6,*)" "
+c         write(6,999)PTT(1)/WBC,sumt1/sumt3,sumt2/sumt3
+      END IF
+c-----end of beam check----
+      write(6,*)NTG2
       Do NS=1,NSMAX
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
       END DO
 c      write(6,*) " "
  99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E11.4)
+ 999  FORMAT(f14.6,2E14.6)
+
       end if
 
 C      WRITE(6,'(1PE12.5)') (RNS(NR),NR=1,NRMAX)

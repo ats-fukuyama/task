@@ -14,6 +14,7 @@ C     NSFP  : particle species of distribution
 C
       ZEFF  = 1.D0
       NSFP  = 1
+      NSBM = 0
 C
 C-----------------------------------------------------------------------
 C     DRR0  : radial diffusion coefficient (m^2/s)

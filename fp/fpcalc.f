@@ -30,8 +30,8 @@ C
       DO NR=1,NRMAX
          DO NS=1,NSMAX
 C
-            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
-     &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
+c            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
+c     &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
 C
             IF(MODELC.EQ.0) THEN
                CALL FPCALC_L(NR,NS)
@@ -60,8 +60,8 @@ C
                   CALL FPCALC_NL(NR,NS)
                ENDIF
             ENDIF
-            write(6,'(2I8,1P3E12.4)')
-     &           NR,NS,DCPP(5,5,NR),DCTT(5,5,NR),FCPP(5,5,NR)
+c            write(6,'(2I8,1P3E12.4)')
+c     &           NR,NS,DCPP(5,5,NR),DCTT(5,5,NR),FCPP(5,5,NR)
 c     divide coefficients by species
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -95,9 +95,29 @@ c     divide coefficients by species
                      FCTH2(NTH,NP,NR,NS)=FCTH(NTH,NP,NR)-differ6
                   end if
                END DO
+c     check for collision coef.
+c               if(NS.eq.NSMAX.and.NP.ne.1)then
+c                  IF(MODELR.eq.0)THEN
+c                     TMC2FP0=0.D0
+c                  ELSE IF(MODELR.eq.1)THEN
+c                     TMC2FP0=(PTFP0/(AMFP*VC))**2
+c                  END IF
+c                  PNFP=PG(NP)
+c                  RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+c                  pbar=PNFP/RGAMA
+c                  write(*,1274)FCPP2(1,NP,NR,1)/DCPP2(1,NP,NR,1)/pbar,
+c     &                 FCPP2(1,NP,NR,2)/DCPP2(1,NP,NR,2)/pbar,
+c     &                 FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
+c                  write(*,1281)NP,FCPP2(1,NP,NR,1)
+c     &                 ,FCPP2(1,NP,NR,2),FCPP(1,NP,NR)
+c     &                 ,DCPP(1,NP,NR),FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
+c,DCPP(1,NP,NR)
+c               end if
+c     end of check
             END DO
-
          ENDDO
+ 1274    FORMAT(3e14.5)
+ 1281    FORMAT(I2,5e14.5)
 C
 C        ----- Simple ion collision term using ZEFF -----
 C
@@ -337,8 +357,8 @@ C
                U=VFPL/(SQRT(2.D0)*VTFD(NR,NS))
                DCPPL= 0.5D0*RNUDL/U   *(ERF0(U)/U**2-ERF1(U)/U)
                FCPPL=-      RNUFL/U**2*(ERF0(U)-U*ERF1(U))
-               if(NSFP.eq.1.and.NS.eq.2) DCPPL=0.D0
-               if(NSFP.eq.1.and.NS.eq.2) FCPPL=0.D0
+c               if(NSFP.eq.1.and.NS.eq.2) DCPPL=0.D0
+c               if(NSFP.eq.1.and.NS.eq.2) FCPPL=0.D0
 C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
             ENDIF
             DO NTH=1,NTHMAX
@@ -356,14 +376,14 @@ C               WRITE(6,'(I5,1P4E12.4)')NP,DCPPL,FCPPL,FCPPL/DCPPL/PG(NP)
      &                   *((2.D0-1.D0/U**2)*ERF0(U)+ERF1(U)/U)
 C
 c     for check conductivity
-            if(NSFP.eq.1.and.NS.eq.2)then
-               RTE=(RTPR(1)+RTPP(1)*2.D0)/3.D0
-              rZI = -PZ(2)/PZ(1)/(14.9D0-0.5D0*LOG(RN(1))+LOG(RTE))*
-     &              (15.2D0-0.5D0*LOG(RN(1))+LOG(RTE))
-              DCTTL = RNUD(NR,1)*SQRT(2.D0)*VTFD(NR,1)*AMFP
-     &        /(RNFP0*PTFP0*1.D20)*RNFD(1,NS)*1.D20*PTFP0/AMFP
-     &             *rZI/VFPL*0.5D0
-            endif
+c            if(NSFP.eq.1.and.NS.eq.2)then
+c               RTE=(RTPR(1)+RTPP(1)*2.D0)/3.D0
+c              rZI = -PZ(2)/PZ(1)/(14.9D0-0.5D0*LOG(RN(1))+LOG(RTE))*
+c     &              (15.2D0-0.5D0*LOG(RN(1))+LOG(RTE))
+c              DCTTL = RNUD(NR,1)*SQRT(2.D0)*VTFD(NR,1)*AMFP
+c     &        /(RNFP0*PTFP0*1.D20)*RNFD(1,NS)*1.D20*PTFP0/AMFP
+c     &             *rZI/VFPL*0.5D0
+c            endif
             DO NTH=1,NTHMAX+1
                DCTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DCTTL
             ENDDO
