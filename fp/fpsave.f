@@ -26,6 +26,7 @@ C
          RECT(NR,NTG1)= RECS(NR)
          Do NS=1,NSMAX
             RPCT2(NR,NTG1,NS)= RPCS2(NR,NS)
+            RWT2(NR,NTG1,NS) = RWS2(NR,NS)
          END DO
 C
          RTT(NR,NTG1) = RWS(NR)*1.D6/(1.5D0*RNS(NR)*1.D20*AEE*1.D3)
@@ -62,6 +63,7 @@ C
       PECT(NTG2)=0.D0
       DO NS=1,NSMAX
          PPCT2(NTG2,NS)=0.D0
+         PWT2(NTG2,NS)=0.D0
       END DO
 C
       DO 1000 NR=1,NRMAX
@@ -80,6 +82,7 @@ C
          PECT(NTG2)=PECT(NTG2)+RECS(NR)*FACT
          DO NS=1,NSMAX
             PPCT2(NTG2,NS)=PPCT2(NTG2,NS)+RPCS2(NR,NS)*FACT
+            PWT2(NTG2,NS) =PWT2(NTG2,NS) +RWS2(NR,NS)*FACT
          END DO
  1000 CONTINUE
 C
@@ -96,12 +99,15 @@ C
       RS=RSRHON(RM(1))
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
+      Do NS=1,NSMAX
+         PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
+         PWT2(NTG2,NS) =PWT2(NTG2,NS) *2.D0*PI*RR
+         PTT2(NTG2,NS) =
+     &        PWT2(NTG2,NS)*1.D6/(1.5D0*PNT(NTG2)*1.D20*AEE*1.D3)
+      END DO
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
      &     *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
-      Do NS=1,NSMAX
-         PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
-      END DO
 
       RETURN
       END
@@ -114,7 +120,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DIMENSION RSUM10(NSMAX)
+      DIMENSION RSUM10(NSMAX),RSUM33(NSMAX)
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 C
       DO 1000 NR=1,NRMAX
@@ -129,6 +135,7 @@ C
          RSUM9=0.D0
          Do NS=1,NSMAX
             RSUM10(NS)=0.D0
+            RSUM33(NS)=0.D0
          END DO
 C
          DO 100 NP=1,NPMAX
@@ -142,6 +149,10 @@ C
                RSUM2 = RSUM2+VOL(NTH,NP)*F(NTH,NP,NR)*PM(NP)*COSM(NTH)
                RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
      &                       *0.5D0*PM(NP)**2
+               DO NS=1,NSMAX
+                  RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
+     &                 *FNS(NTH,NP,NR,NS)*0.5D0*PM(NP)**2
+               END DO
   200       CONTINUE
          ELSE
             DO 300 NP=1,NPMAX
@@ -153,6 +164,16 @@ C
      &              *0.5D0*PM(NP)**2/PV**2
 C               RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
 C     &                       *(PV-1.D0)/THETA0
+               DO NS=1,NSMAX
+                  AMFD=PA(NS)*AMP
+                  RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+                  PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+                  THETB0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
+                  PV2=SQRT(1.D0+THETB0*PM(NP)**2)
+
+                  RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
+     &                 *FNS(NTH,NP,NR,NS)*0.5D0*PM(NP)**2/PV2**2
+               END DO
   300       CONTINUE
          ENDIF
 C
@@ -223,7 +244,7 @@ C
          FACT=RNFP0*1.D20
          RNS(NR) = RSUM1*FACT               *1.D-20
          RJS(NR) = RSUM2*FACT*AEFP*PTFP0/AMFP*1.D-6
-         FACT=RNFP0*1.D20*PTFP0**2/AMFP
+         FACT=RNFP0*1.D20*PTFP0**2/AMFP 
          RWS(NR) = RSUM3*FACT               *1.D-6
          RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6 
@@ -231,8 +252,15 @@ C
          RLHS(NR)=-RSUM7*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RFWS(NR)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RECS(NR)=-RSUM9*FACT*2.D0*PI*DELP*DELTH
+
+
          Do NS=1,NSMAX
+            AMFD=PA(NS)*AMP
+            RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+            PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+
             RPCS2(NR,NS)=-RSUM10(NS)*FACT*2.D0*PI*DELP*DELTH *1.D-6
+            RWS2(NR,NS) = RSUM33(NS)*PN(NS)*1.D20*PTFD0**2/AMFD*1.D-6
          END DO
 C
 C         IF(MODELA.EQ.1) THEN
@@ -304,13 +332,24 @@ c         write(6,*)" "
 c         write(6,999)PTT(1)/WBC,sumt1/sumt3,sumt2/sumt3
       END IF
 c-----end of beam check----
-      write(6,*)NTG2
+c      write(6,*)DCTT2(1,10,1,1),DCTT2(1,10,1,2)
+c      write(6,*)FCPP2(1,10,1,1),FCPP2(1,10,1,2)
+c      write(6,*)NTG2,PTPR(NSFP)*(1.D0-R1**2)
+c      write(6,*)NTG2,DCPP2(1,10,1,1),DCPP2(1,10,1,2)
       Do NS=1,NSMAX
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
       END DO
-c      write(6,*) " "
+
+      sumPTT=0.D0
+      DO NS=1,NSMAX
+         write(6,1467)  NS, PTT2(NTG2,NS)
+         sumPTT=sumPTT + PTT2(NTG2,NS)
+      END DO
+      write(6,*) "SUM_PTT",sumPTT
+      write(6,*) " "
  99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E11.4)
  999  FORMAT(f14.6,2E14.6)
+ 1467 FORMAT(1H ,"T_",I1,"[keV]= ",E12.4)
 
       end if
 

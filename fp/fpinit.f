@@ -15,6 +15,8 @@ C
       ZEFF  = 1.D0
       NSFP  = 1
       NSBM = 0
+      NSFPMI = 1
+      NSFPMA = 2
 C
 C-----------------------------------------------------------------------
 C     DRR0  : radial diffusion coefficient (m^2/s)
@@ -144,11 +146,11 @@ C     MODELA: 0 without bounce average
 C             1 with bounce average
 C     MODELR: 0 without relativistic effect
 C             1 with relativistic effect
-C     MODELC: 0 : linear collision operator
-C             1 : NL for same species and L for different species
-C             2 : nonlinear collision operator
-C             3 : linear coll. operator for different species (for debug)
-C             4 : nonlinear coll. operator for different species (for debug)
+C     MODELC: 0 or 1: linear collision operator and (const./variable) T
+C             2 or 3 : NL for same species and L for different species
+C             4 : nonlinear collision operator
+C             5 : linear coll. operator for different species (for debug)
+C             6 : nonlinear coll. operator for different species (for debug)
 C            -1 : linear collision operator for same with ion scattering
 C            -2 : nonlinear collision operator for same with ion scattering
 C     MODELW: 0 for given diffusion coefficient model
@@ -243,7 +245,8 @@ C
      &              RFDW,DELNPR,NCMIN,NCMAX,FACTWM,
      &              CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,
      &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,
-     &              KNAMEQ,KNAMWR,KNAMWM,KNAMFP,MODEFR,MODEFW
+     &              KNAMEQ,KNAMWR,KNAMWM,KNAMFP,MODEFR,MODEFW,
+     &              NSFPMI,NSFPMA
 C
       READ(NID,FP,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -401,10 +404,18 @@ C
       ENDIF
 C
       IF(MODELC.EQ.0)THEN
-         WRITE(6,*) 'LINEAR COLLISION OPERATOR'
-      ELSE IF(MODELC.EQ.1)THEN
-         WRITE(6,*) 'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES'
+         WRITE(6,*) 'LINEAR COLLISION OPERATOR & CONST. T'
+      ELSE IF(MODELC.eq.1)THEN
+         WRITE(6,*) 'LINEAR COLLISION OPERATOR & VARIABLE. T'
       ELSE IF(MODELC.EQ.2)THEN
+         WRITE(6,*) 
+     &    'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & CONST. T'
+      ELSE IF(MODELC.eq.3)THEN
+         WRITE(6,*) 
+     &  'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES & VARIABLE T'
+      ELSE IF(MODELC.eq.4)THEN
+         WRITE(6,*) 'NONLINEAR COLLISION OPERATOR FOR LIKE PARTILCES'
+      ELSE IF(MODELC.EQ.5)THEN
          WRITE(6,*) 'NONLINEAR COLLISION OPERATOR'
       ELSE IF(MODELC.EQ.-1)THEN
          WRITE(6,*) 'LINEAR COLLISION OPERATOR WITH ION SCATTERING'

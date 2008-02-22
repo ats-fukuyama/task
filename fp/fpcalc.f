@@ -16,6 +16,11 @@ C
             DCPP(NTH,NP,NR)=0.D0
             DCPT(NTH,NP,NR)=0.D0
             FCPP(NTH,NP,NR)=0.D0
+            DO NS=1,NSMAX
+               DCPP2(NTH,NP,NR,NS)=0.D0
+               DCPT2(NTH,NP,NR,NS)=0.D0
+               FCPP2(NTH,NP,NR,NS)=0.D0
+            END DO
          ENDDO
          ENDDO
          DO NP=1,NPMAX
@@ -23,6 +28,11 @@ C
             DCTP(NTH,NP,NR)=0.D0
             DCTT(NTH,NP,NR)=0.D0
             FCTH(NTH,NP,NR)=0.D0
+            Do NS=1,NSMAX
+               DCTP2(NTH,NP,NR,NS)=0.D0
+               DCTT2(NTH,NP,NR,NS)=0.D0
+               FCTH2(NTH,NP,NR,NS)=0.D0
+            END DO
          ENDDO
          ENDDO
       ENDDO
@@ -33,21 +43,21 @@ C
 c            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
 c     &           ' NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
 C
-            IF(MODELC.EQ.0) THEN
+            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
                CALL FPCALC_L(NR,NS)
-            ELSEIF(MODELC.EQ.1) THEN
+            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
                IF(NS.EQ.NSFP) THEN
                   CALL FPCALC_NL(NR,NS)
                ELSE
                   CALL FPCALC_L(NR,NS)
                ENDIF
-            ELSEIF(MODELC.EQ.2) THEN
+            ELSEIF(MODELC.EQ.4) THEN
                CALL FPCALC_NL(NR,NS)
-            ELSEIF(MODELC.EQ.3) THEN
+            ELSEIF(MODELC.EQ.5) THEN
                IF(NS.NE.NSFP) THEN
                   CALL FPCALC_L(NR,NS)
                ENDIF
-            ELSEIF(MODELC.EQ.4) THEN
+            ELSEIF(MODELC.EQ.6) THEN
                IF(NS.NE.NSFP) THEN
                   CALL FPCALC_NL(NR,NS)
                ENDIF
@@ -96,23 +106,23 @@ c     divide coefficients by species
                   end if
                END DO
 c     check for collision coef.
-c               if(NS.eq.NSMAX.and.NP.ne.1)then
-c                  IF(MODELR.eq.0)THEN
-c                     TMC2FP0=0.D0
-c                  ELSE IF(MODELR.eq.1)THEN
-c                     TMC2FP0=(PTFP0/(AMFP*VC))**2
-c                  END IF
-c                  PNFP=PG(NP)
-c                  RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
-c                  pbar=PNFP/RGAMA
+               if(NS.eq.NSMAX+1.and.NP.ne.1)then
+                  IF(MODELR.eq.0)THEN
+                     TMC2FP0=0.D0
+                  ELSE IF(MODELR.eq.1)THEN
+                     TMC2FP0=(PTFP0/(AMFP*VC))**2
+                  END IF
+                  PNFP=PG(NP)
+                  RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+                  pbar=PNFP/RGAMA
 c                  write(*,1274)FCPP2(1,NP,NR,1)/DCPP2(1,NP,NR,1)/pbar,
 c     &                 FCPP2(1,NP,NR,2)/DCPP2(1,NP,NR,2)/pbar,
 c     &                 FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
-c                  write(*,1281)NP,FCPP2(1,NP,NR,1)
-c     &                 ,FCPP2(1,NP,NR,2),FCPP(1,NP,NR)
-c     &                 ,DCPP(1,NP,NR),FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
+                  write(*,1281)NP,FCPP2(1,NP,NR,1)
+     &                 ,FCPP2(1,NP,NR,2),FCPP(1,NP,NR)
+     &                 ,DCPP(1,NP,NR),FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
 c,DCPP(1,NP,NR)
-c               end if
+               end if
 c     end of check
             END DO
          ENDDO
@@ -138,15 +148,15 @@ C
 
 C
          IF(MODELA.EQ.1) THEN
-            IF(MODELC.EQ.0) THEN
+            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
                CALL FPCALC_LAV(NR)
-            ELSEIF(MODELC.EQ.1) THEN
+            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
                CALL FPCALC_NLAV(NR)
-            ELSEIF(MODELC.EQ.2) THEN
-               CALL FPCALC_NLAV(NR)
-            ELSEIF(MODELC.EQ.3) THEN
-               CALL FPCALC_LAV(NR)
             ELSEIF(MODELC.EQ.4) THEN
+               CALL FPCALC_NLAV(NR)
+            ELSEIF(MODELC.EQ.5) THEN
+               CALL FPCALC_LAV(NR)
+            ELSEIF(MODELC.EQ.6) THEN
                CALL FPCALC_NLAV(NR)
             ELSEIF(MODELC.EQ.-1) THEN
                CALL FPCALC_LAV(NR)
@@ -311,8 +321,8 @@ C
       EXTERNAL FPFN0R,FPFN1R,FPFN2R,FPFN3R,FPFN4R,FPFN5R,FPFN6R
      &     ,FPFN7R,FPFN8R,FPFN9R,FPFN10R
 
-            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
-     &           ':NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
+c            if(nr.eq.1) write(6,'(A,I8,1P2E12.4)') 
+c     &           ':NS,RN,RNFD=',NS,RN(NS),RNFD(NR,NS)
 C     ------ define --------
       AMFD=PA(NS)*AMP
       AEFD=PZ(NS)*AEE 

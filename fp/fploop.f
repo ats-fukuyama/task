@@ -87,6 +87,12 @@ C
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
+         IF(NTG2.ne.0)THEN
+            IF(MODELC.eq.1.or.MODELC.eq.3)
+     &      RTFP(NR)=PTT2(NTG2,NS)
+         END IF
+c         write(*,*) "temperature",RTFP(NR)
+
 C         IF(MODELR.EQ.0) THEN
             PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
             VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
@@ -102,6 +108,10 @@ C         ENDIF
             AMFD=PA(NS)*AMP
             RNFD(NR,NS)=RN(NS)
             RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            IF(NTG2.ne.0.and.NS.eq.NSFP)THEN
+               IF(MODELC.eq.1.or.MODELC.eq.3)
+     &              RTFD(NR,NS)=PTT2(NTG2,NS)
+            END IF
 C            IF(MODELR.EQ.0) THEN
                PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
                VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
@@ -605,9 +615,9 @@ C
 C
       DO NT=1,NTMAX
 C
-      IF(MODELC.eq.2)THEN
-C----NSFP LOOP-------
-      DO NSFP=1,NSMAX
+      IF(MODELC.ne.-3)THEN
+C----NSFP LOOP----------------------------------
+      DO NSFP=NSFPMI,NSFPMA
          CALL FPPREP(IERR)
          DO NR=1,NRMAX
          DO NP=1,NPMAX
@@ -674,11 +684,7 @@ C         CALL FPGRAC('F1-2',F1,4)
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=F1(NTH,NP,NR)
-c     tentative FNS
-c            DO NS=1,NSMAX
-c            F1(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
-               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
-c            END DO
+            FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
          ENDDO
          ENDDO
          ENDDO
@@ -686,7 +692,7 @@ c            END DO
 C
          if(NT.eq.1.and.NSFP.eq.1)TIMEFP=TIMEFP+DELT
 C
-
+         ISAVE=0
          IF (MOD(NT,NTSTP1).EQ.0) THEN
             CALL FPSPRF
          ENDIF
@@ -694,12 +700,13 @@ C
             CALL FPSGLB
             CALL FPWRIT
          ENDIF
-         ISAVE=0
+
       END DO
       NSFP=1
       TIMEFP=TIMEFP+DELT
 C-----END OF NSFP LOOP--------------------------
       ELSE
+         CALL FPPREP(IERR)
 
          DO NR=1,NRMAX
          DO NP=1,NPMAX
