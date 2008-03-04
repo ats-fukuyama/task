@@ -87,9 +87,9 @@ C
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
-         IF(NTG2.ne.0)THEN
+         IF(NTG2.ge.NSFPMA+1)THEN
             IF(MODELC.eq.1.or.MODELC.eq.3)
-     &      RTFP(NR)=PTT2(NTG2,NS)
+     &      RTFP(NR)=PTT2(NTG2,NSFP)
          END IF
 c         write(*,*) "temperature",RTFP(NR)
 
@@ -108,9 +108,9 @@ C         ENDIF
             AMFD=PA(NS)*AMP
             RNFD(NR,NS)=RN(NS)
             RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            IF(NTG2.ne.0.and.NS.eq.NSFP)THEN
+            IF(NTG2.ge.NSFPMA+1.and.NS.eq.NSFP)THEN
                IF(MODELC.eq.1.or.MODELC.eq.3)
-     &              RTFD(NR,NS)=PTT2(NTG2,NS)
+     &              RTFD(NR,NS)=PTT2(NTG2,NSFP)
             END IF
 C            IF(MODELR.EQ.0) THEN
                PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
@@ -338,6 +338,7 @@ C         FL=FPMXWL(PM(NP),NR)
             DO NS=1,NSMAX
                FLNS=FPMXWL(PM(NP),NR,NS)
                FNS(NTH,NP,NR,NS)=FLNS
+               FNS2(NTH,NP,NR,NS)=FLNS
             END DO
          ENDDO
 c         WRITE(6,'(I5,1P4E12.4)') NP,FNS(1,NP,NR,1)
@@ -454,10 +455,10 @@ c-----------------------
 
       AMFD=PA(NS)*AMP
       AEFD=PZ(NS)*AEE
-      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
-      RNFD0=PN(NS)
-      RNFDL=RNFD(NR,NS)
+c      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+c      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+c      RNFD0=PN(NS)
+c      RNFDL=RNFD(NR,NS)
       rsigma=1.d-1
 
 c      IF(NS.eq.NSBM)THEN
@@ -684,7 +685,12 @@ C         CALL FPGRAC('F1-2',F1,4)
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=F1(NTH,NP,NR)
-            FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
+            FNS2(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
+            if(NSFP.eq.NSFPMA)THEN
+               DO NS2=NSFPMI,NSFPMA
+                  FNS(NTH,NP,NR,NS2)=FNS2(NTH,NP,NR,NS2)
+               END DO
+            END IF
          ENDDO
          ENDDO
          ENDDO
@@ -773,6 +779,7 @@ C         CALL FPGRAC('F1-2',F1,4)
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=F1(NTH,NP,NR)
+            FNS2(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
 c     tentative FNS
 c            DO NS=1,NSMAX
 c            F1(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
@@ -795,7 +802,7 @@ C
          ENDIF
 
       END IF
-C
+C------------------------------
          IF(IERR.NE.0) GOTO 1100
       ENDDO
  1100 CONTINUE

@@ -25,6 +25,7 @@ C
          RFWT(NR,NTG1)= RFWS(NR)
          RECT(NR,NTG1)= RECS(NR)
          Do NS=1,NSMAX
+            RNT2(NR,NTG1,NS)=RNS2(NR,NS)
             RPCT2(NR,NTG1,NS)= RPCS2(NR,NS)
             RWT2(NR,NTG1,NS) = RWS2(NR,NS)
          END DO
@@ -62,6 +63,7 @@ C
       PFWT(NTG2)=0.D0
       PECT(NTG2)=0.D0
       DO NS=1,NSMAX
+         PNT2(NTG2,NS)=0.D0
          PPCT2(NTG2,NS)=0.D0
          PWT2(NTG2,NS)=0.D0
       END DO
@@ -81,6 +83,7 @@ C
          PFWT(NTG2)=PFWT(NTG2)+RFWS(NR)*FACT
          PECT(NTG2)=PECT(NTG2)+RECS(NR)*FACT
          DO NS=1,NSMAX
+            PNT2(NTG2,NS) =PNT2(NTG2,NS) +RNS2(NR,NS)*FACT
             PPCT2(NTG2,NS)=PPCT2(NTG2,NS)+RPCS2(NR,NS)*FACT
             PWT2(NTG2,NS) =PWT2(NTG2,NS) +RWS2(NR,NS)*FACT
          END DO
@@ -100,10 +103,11 @@ C
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
       Do NS=1,NSMAX
+         PNT2(NTG2,NS) =PNT2(NTG2,NS) *2*PI*RR
          PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
          PWT2(NTG2,NS) =PWT2(NTG2,NS) *2.D0*PI*RR
          PTT2(NTG2,NS) =
-     &        PWT2(NTG2,NS)*1.D6/(1.5D0*PNT(NTG2)*1.D20*AEE*1.D3)
+     &        PWT2(NTG2,NS)*1.D6/(1.5D0*PNT2(NTG2,NS)*1.D20*AEE*1.D3)
       END DO
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
@@ -120,7 +124,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DIMENSION RSUM10(NSMAX),RSUM33(NSMAX)
+      DIMENSION RSUM10(NSMAX),RSUM33(NSMAX),RSUM11(NSMAX)
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 C
       DO 1000 NR=1,NRMAX
@@ -135,12 +139,17 @@ C
          RSUM9=0.D0
          Do NS=1,NSMAX
             RSUM10(NS)=0.D0
+            RSUM11(NS)=0.D0
             RSUM33(NS)=0.D0
          END DO
 C
          DO 100 NP=1,NPMAX
          DO 100 NTH=1,NTHMAX
             RSUM1 = RSUM1+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
+            DO NS=1,NSMAX
+               RSUM11(NS) = 
+     &          RSUM11(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)*FNS2(NTH,NP,NR,NS)
+            END DO
   100    CONTINUE
 C
          IF(MODELR.EQ.0) THEN
@@ -151,7 +160,7 @@ C
      &                       *0.5D0*PM(NP)**2
                DO NS=1,NSMAX
                   RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
-     &                 *FNS(NTH,NP,NR,NS)*0.5D0*PM(NP)**2
+     &                 *FNS2(NTH,NP,NR,NS)*0.5D0*PM(NP)**2
                END DO
   200       CONTINUE
          ELSE
@@ -172,7 +181,7 @@ C     &                       *(PV-1.D0)/THETA0
                   PV2=SQRT(1.D0+THETB0*PM(NP)**2)
 
                   RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
-     &                 *FNS(NTH,NP,NR,NS)*0.5D0*PM(NP)**2/PV2**2
+     &                 *FNS2(NTH,NP,NR,NS)*0.5D0*PM(NP)**2/PV2**2
                END DO
   300       CONTINUE
          ENDIF
@@ -243,6 +252,9 @@ C
   400    CONTINUE
          FACT=RNFP0*1.D20
          RNS(NR) = RSUM1*FACT               *1.D-20
+         DO NS=1,NSMAX
+            RNS2(NR,NS) = RSUM11(NS) * PN(NS)
+         END DO
          RJS(NR) = RSUM2*FACT*AEFP*PTFP0/AMFP*1.D-6
          FACT=RNFP0*1.D20*PTFP0**2/AMFP 
          RWS(NR) = RSUM3*FACT               *1.D-6
@@ -336,6 +348,38 @@ c      write(6,*)DCTT2(1,10,1,1),DCTT2(1,10,1,2)
 c      write(6,*)FCPP2(1,10,1,1),FCPP2(1,10,1,2)
 c      write(6,*)NTG2,PTPR(NSFP)*(1.D0-R1**2)
 c      write(6,*)NTG2,DCPP2(1,10,1,1),DCPP2(1,10,1,2)
+c-----slowing down-------------
+c      DO NS=1,NSMAX
+c         AMFD=PA(NS)*AMP
+c         RGG=2.D0/3.D0/sqrt(PI)*VTFP(1)/VTFD(1,NS)
+c         rtautj=2.D0*PI*EPS0**2*AMFP**2*VTFD(1,NS)**2*VTFP(1)
+c     &        /(PNT(NTG2)*1.D20*PZ(NSFP)**2*PZ(NS)**2*AEE**4*10.d0
+c     &        *(1.D0+AMFP/AMFD)*RGG )
+c         write(6,*)"slowing",NSFP,"to",NS,"=",rtautj
+c      END DO
+      IF(NTG2.GE.3)THEN
+c      rtauei=3.D0*sqrt(2.D0*PI)*pi*eps0**2/sqrt(AMP*PA(1))*PA(2)*AMP
+c     &  *SQRT(PTT(NTG2)*1.D6)**3/(PNT(NTG2)*1.D20*PZ(2)**2*AEE**4*15.D0)
+         rtauei=0.1D0*PA(2)*SQRT(PTT2(NTG2,1))**3
+     &        /(PZ(2)**2*PNT(NTG2)*15.D0)
+      RTAUEI2=
+     &     -(PTT2(NTG2-1,1)-PTT2(NTG2-1,2))/
+     &     (PTT2(NTG2,1)-PTT2(NTG2-2,1))
+     &*DELT
+      RTAUIE=2.33D-3/SQRT(PA(1))*PA(2)*SQRT(PTT2(NTG2,1))**3
+     &     /(PZ(1)**2*PZ(2)**2*PNT(NTG2)*15.D0 )
+     &     *SQRT(1.D0+PZ(1)*PTT2(NTG2,2)/PZ(2)/PTT2(NTG2,1))**3
+
+      RTAUIE2=
+     &     -(PTT2(NTG2-1,2)-PTT2(NTG2-1,1))/
+     &     (PTT2(NTG2,2)-PTT2(NTG2-2,2))
+     &*DELT
+
+      write(6,*)"slowing e-i",rtauei,rtauei2
+      write(6,*)"slowing i-e",rtauie,rtauie2
+      END IF
+
+c-----------------------------
       Do NS=1,NSMAX
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
       END DO
