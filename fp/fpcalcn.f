@@ -444,9 +444,9 @@ C      L0MIN=0
                WC=WC+D1PHYG(NP,L)*PLM(NTH,L)
             END DO
             DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)
-     &                     +FACT*WA*RGAMA**6
+     &                      +FACT*WA*RGAMA**6
             FCPP(NTH,NP,NR)=FCPP(NTH,NP,NR)
-     &                     +FACT*WC*RGAMA**3*AMFP/AMFD
+     &                      +FACT*WC*RGAMA**3*AMFP/AMFD
          END DO
       END DO
 
@@ -498,23 +498,18 @@ C
          END DO
       END DO
 c
-c$$$      DO NP=2, NPMAX+1
-c$$$         PNFP=PG(NP)
-c$$$         DCPPLL=DCPP(1,NP,NR)
-c$$$         FCPPLL=FCPP(1,NP,NR)
-c$$$         RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
-c$$$         vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
-c$$$         ptatb=PG(NP)/RGAMA
-c$$$         PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
-c$$$         WRITE(6,'(I5,1P5E12.4)') NP,
-c$$$     &      DCPPLL, FCPPLL,
-c$$$     &      (FCPPLL/DCPPLL/PNFP*RGAMA),PCRIT
-c$$$C     &      PNFP/RGAMA,
-c$$$C     &      (D1PHYG(NP,0)+D1PHYG(NP,0))/AMFD/
-c$$$C     &        (D2PSYG(NP,0)+D2PSYG(NP,0))/PNFP*RGAMA**(-2)
-c$$$C     &        RM1G(NP,0),RM2G(NP,0),RM3G(NP,0),RM4G(NP,0),PCRIT
-c$$$C     &        RM2G(NP,0)/RM4G(NP,0)*AMFD/PTFD0
-c$$$      END DO
+c      DO NP=2, NPMAX+1
+c         PNFP=PG(NP)
+c         RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+c         vtatb=(AMFD*PTFP0)/(AMFP*PTFD0)
+c         ptatb=PG(NP)/RGAMA
+c         PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+c         ratio=AMFP/AMFD
+c         if(ratio.eq.1.D0)WRITE(6,'(I5,1P5E14.5)') NP,
+c     &      D1PHYG(NP,0)/D2PSYG(NP,0)/PNFP,
+c     &      (FCPP(1,NP,NR)/DCPP(1,NP,NR)/PNFP*RGAMA),
+c     &        PLM(1,0)
+c      END DO
 C     
       RETURN
       END

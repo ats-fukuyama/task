@@ -118,10 +118,9 @@ c     check for collision coef.
 c                  write(*,1274)FCPP2(1,NP,NR,1)/DCPP2(1,NP,NR,1)/pbar,
 c     &                 FCPP2(1,NP,NR,2)/DCPP2(1,NP,NR,2)/pbar,
 c     &                 FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
-                  write(*,1281)NP,FCPP2(1,NP,NR,1)
-     &                 ,FCPP2(1,NP,NR,2),FCPP(1,NP,NR)
-     &                 ,DCPP(1,NP,NR),FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
-c,DCPP(1,NP,NR)
+                  write(*,1281)NP,FCPP2(1,NP,1,1)/DCPP2(1,NP,1,1)/pbar
+     &                 ,FCPP2(1,NP,1,2)/DCPP2(1,NP,1,2)/pbar
+     &                 ,FCPP2(1,NP,1,1),FCPP2(1,NP,1,2),FCPP(1,NP,1)
                end if
 c     end of check
             END DO

@@ -163,7 +163,8 @@ C
       RKPARA =(B0TH*RKTH+B0PH*RKPH)/SQRT(B2)
       RKPERP =(B0PH*RKTH-B0TH*RKPH)/SQRT(B2)
       RWC    =AEFP*SQRT(B2)/AMFP
-C      WRITE(6,'(1P4E12.4)') RW,RWC,RKPARA,RKPERP
+c      WRITE(6,'(1P4E12.4)') RW,RWC/RGAMMA
+c     &     ,RW-RWC/RGAMMA-KPARA*VPARA
 C 
       DWC11=0.D0
       DWC12=0.D0
@@ -216,15 +217,27 @@ C
          IF(VPARA.EQ.0.D0) THEN
             DWC=0.D0  
          ELSE
-            EX=-((RW-RKPARA*VPARA-N*RWC/RGAMMA)
-     &           /(RW*VPARA*DELNPR/VC))**2
+c            EX=-((RW-RKPARA*VPARA-N*RWC/RGAMMA)
+c     &           /(RW*VPARA*DELNPR/VC))**2
+            EX=-( (RW-RKPARA*VPARA-N*RWC/RGAMMA)
+     &           /(DELNPR*RW))**2
             IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
+c                DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTFP0**2
+c     &              /(RW*ABS(VPARA)*DELNPR/VC)
                 DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTFP0**2
-     &              /(RW*ABS(VPARA)*DELNPR/VC)
+     &              /ABS(RW)/DELNPR
             ENDIF
          ENDIF
+         rtest=(RW-RKPARA*VPARA-N*RWC/RGAMMA)/RW
+c         if(DWC.ne.0.D0)
+c     &       write(6,1333)N,DWC
+c     &        ,rtest
+c     &       ,PCOS,p
+c     &       ,ex
+
+ 1333    FORMAT(I2,4E14.6)
          DWC11=DWC11+DWC*A11
          DWC12=DWC12+DWC*A12
          DWC21=DWC21+DWC*A21
