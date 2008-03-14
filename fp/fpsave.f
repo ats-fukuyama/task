@@ -357,27 +357,27 @@ c     &        /(PNT(NTG2)*1.D20*PZ(NSFP)**2*PZ(NS)**2*AEE**4*10.d0
 c     &        *(1.D0+AMFP/AMFD)*RGG )
 c         write(6,*)"slowing",NSFP,"to",NS,"=",rtautj
 c      END DO
-c      IF(NTG2.GE.NSMAX+1)THEN
+      IF(NTG2.GE.NSMAX+1)THEN
 c      rtauei=3.D0*sqrt(2.D0*PI)*pi*eps0**2/sqrt(AMP*PA(1))*PA(2)*AMP
 c     &  *SQRT(PTT(NTG2)*1.D6)**3/(PNT(NTG2)*1.D20*PZ(2)**2*AEE**4*15.D0)
-c         rtauei=0.1D0*PA(2)*SQRT(PTT2(NTG2,1))**3
-c     &        /(PZ(2)**2*PNT(NTG2)*15.D0)
-c      RTAUEI2=
-c     &     -(PTT2(NTG2-1,1)-PTT2(NTG2-1,2))/
-c     &     (PTT2(NTG2,1)-PTT2(NTG2-2,1))
-c     &*DELT
-c      RTAUIE=2.33D-3/SQRT(PA(1))*PA(2)*SQRT(PTT2(NTG2,1))**3
-c     &     /(PZ(1)**2*PZ(2)**2*PNT(NTG2)*15.D0 )
-c     &     *SQRT(1.D0+PZ(1)*PTT2(NTG2,2)/PZ(2)/PTT2(NTG2,1))**3
+         rtauei=0.1D0*PA(2)*SQRT(PTT2(NTG2,1))**3
+     &        /(PZ(2)**2*PNT(NTG2)*15.D0)
+      RTAUEI2=
+     &     -(PTT2(NTG2-1,1)-PTT2(NTG2-1,2))/
+     &     (PTT2(NTG2,1)-PTT2(NTG2-2,1))
+     &*DELT
+      RTAUIE=2.33D-3/SQRT(PA(1))*PA(2)*SQRT(PTT2(NTG2,1))**3
+     &     /(PZ(1)**2*PZ(2)**2*PNT(NTG2)*15.D0 )
+     &     *SQRT(1.D0+PZ(1)*PTT2(NTG2,2)/PZ(2)/PTT2(NTG2,1))**3
+      RTAUIE2=
+     &     -(PTT2(NTG2-1,2)-PTT2(NTG2-1,1))/
+     &     (PTT2(NTG2,2)-PTT2(NTG2-2,2))
+     &*DELT
 
-c      RTAUIE2=
-c     &     -(PTT2(NTG2-1,2)-PTT2(NTG2-1,1))/
-c     &     (PTT2(NTG2,2)-PTT2(NTG2-2,2))
-c     &*DELT
+      write(6,*)"slowing e-i",rtauei,rtauei2
+      write(6,*)"slowing i-e",rtauie,rtauie2
 
-c      write(6,*)"slowing e-i",rtauei,rtauei2
-c      write(6,*)"slowing i-e",rtauie,rtauie2
-c      END IF
+      END IF
 
 c-----------------------------
       Do NS=1,NSMAX

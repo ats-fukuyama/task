@@ -44,13 +44,13 @@ C
          FPP(NTH,NP,NR)=FEPP(NTH,NP,NR)+FCPP(NTH,NP,NR)
 c         if(DWPP(NTH,NP,1).ne.0.D0.and.DWPP(NTH,NP,1).ge.DCPP(NTH,NP,1))
 c     &        write(*,*) NP,NTH, DCPP(NTH,NP,1), DWPP(NTH,NP,NR)
-         if(DCPP(NTH,NP,1).le.0.D0)
-     &write(*,1543)NP,DCPP2(NTH,NP,1,1),
-     &        DCPP2(NTH,NP,1,2),DCPP2(NTH,NP,1,3),DCPP(NTH,NP,1)
+c         if(DCPP(NTH,NP,1).le.0.D0)
+c     &write(*,1543)NP,NTH,DCPP2(NTH,NP,1,1),
+c     &        DCPP2(NTH,NP,1,2),DCPP2(NTH,NP,1,3),DCPP(NTH,NP,1)
       ENDDO
       ENDDO
       ENDDO
- 1543 FORMAT(I2,4E14.6)
+ 1543 FORMAT(2I2,4E14.6)
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
