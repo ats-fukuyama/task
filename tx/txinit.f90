@@ -445,6 +445,7 @@ SUBROUTINE TXINIT
   gDIV(104) = 1.E6
   gDIV(109) = 1.E15
   gDIV(110) = 1.E-4
+  gDIV(121) = 1.E6
   !    gDIV(115) = 1.E15
 
   !   *** Obsolete or not used parameter ***

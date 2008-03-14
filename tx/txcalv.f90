@@ -1,4 +1,3 @@
-
 !     $Id$
 module tx_variables
   implicit none
@@ -148,7 +147,7 @@ contains
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
-         &     DCDBM, DeL, AJPH, AJTH, AJPARA, EPARA, Vcr, &
+         &     DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
@@ -395,8 +394,17 @@ contains
        rNuei2(NR)    = BphV(NR) * BthV(NR) / BBL**2 * (rNuPara - rNuei(NR))
        rNuei3(NR)    =(BphV(NR)**2 * rNuPara + BthV(NR)**2 * rNuei(NR)) / BBL**2
        rNuei2Bth(NR) = BphV(NR) / BBL**2 * (rNuPara - rNuei(NR))
+!!$       rNuei1(NR)    = rNuei(NR)
+!!$       rNuei2(NR)    = 0.D0
+!!$       rNuei3(NR)    = rNuei(NR)
+!!$       rNuei2Bth(NR) = 0.D0
+!!$       rNuei1(NR)    = rNuPara
+!!$       rNuei2(NR)    = 0.D0
+!!$       rNuei3(NR)    = rNuPara
+!!$       rNuei2Bth(NR) = 0.D0
+!       write(6,*) r(nr)/ra,rNueNC(NR)*(BthV(NR)/BBL)**2/(rNuei(NR)+rNueNC(NR)*(BthV(NR)/BBL)**2)*BphV(NR)/BBL
 
-       !     *** Toroidal neoclassical viscosity ***
+       !     *** Parallel neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
        CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR),IER)
@@ -706,19 +714,19 @@ contains
             &  + PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)
 
        ! Parallel current density
-       AJPARA=(BthV(NR)*AJTH     + BphV(NR)*AJPH    )/BBL
+       AJPARA(NR)=(BthV(NR)*AJTH     + BphV(NR)*AJPH    )/BBL
        ! Parallel electric field
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
        ! Total current density = toroidal current density
        AJ(NR)   = AJPH
-       ! Ohmic heating power
-       POH(NR)  = EPARA*AJPARA
-!       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
-!       POH(NR)  = EphV(NR) * AJPH
        ! NB induced current density (parallel)
        AJNB(NR) = (  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
             &      + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL! &
 !            &    *(1.D0 - PZ / Zeff)
+       ! Ohmic heating power
+       POH(NR)  = EPARA*(AJPARA(NR)-AJNB(NR)) ! This form neglects BS current!!
+!       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
+!       POH(NR)  = EphV(NR) * AJPH
 
        !     *** NBI power deposition ***
 
@@ -762,6 +770,8 @@ contains
             & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
        ETA1(NR) = AME * (1.D0 + ALFA) * rNuei3(NR) / (PNeV(NR)*1.D20 * AEE**2) &
             &   * BphV(NR)**2 / (BphV(NR)**2 + BthV(NR)**2)
+!       write(6,*) nr,r(nr)/ra,ame/(aee**2*PNeV(NR)*1.d20)*(corr(zeff)*rnuei(nr)+bthv(nr)**2/(bphv(nr)**2+bthv(nr)**2)*rnuenc(nr))/eta2(nr)
+!       if(nr==24) write(6,*) ame/(aee**2*PNeV(NR)*1.d20)*(corr(zeff)*rnuei(nr)+bthv(nr)**2/(bphv(nr)**2+bthv(nr)**2)*rnuenc(nr)*0.38d0),eta2(nr)
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
@@ -806,8 +816,15 @@ contains
        ! Ohmic current density (parallel)
 !       AJOH(NR) = EphV(NR) / ETA(NR)
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
-       AJOH(NR) = EPARA / ETA(NR)
-!       if(nt==50) write(6,'(F10.7,3E15.7)') r(nr)/ra,epara,eta(nr),ajoh(nr)
+
+!!$       EpsL  = R(NR) / RR
+!!$       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
+!!$       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+!!$            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+!!$       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * (dPPe(NR) + dPPi(NR)) * 1.D20 * rKeV
+
+!       write(6,*) r(nr)/ra,epara/eta(nr),aj(nr)-ajbs1(nr)-ajnb(nr)
+       AJOH(NR) = EPARA / ETA(NR) - AJNB(NR) ! ????????????
     END DO
 
     !     ***** Ion Orbit Loss *****

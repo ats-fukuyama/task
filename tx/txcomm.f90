@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=120, NGYTM=46, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=122, NGYTM=46, &
        &                   NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
@@ -129,7 +129,7 @@ module tx_commons
        & PNeV,   UerV,   UethV, UephV, PTeV, &
        & PNiV,   UirV,   UithV, UiphV, PTiV, &
        & PNbV,   UbthV,  UbphV, PN01V, PN02V, &
-       & AphV,   PhiV,    RAthV, PeV,   PiV,  &
+       & AphV,   PhiV,   RAthV, PeV,   PiV,  &
        & RUethV, RUithV, PT01V, PT02V, PNbrpV
 !!rp_conv       &, PNbrpLV
 
@@ -168,7 +168,7 @@ module tx_commons
   real(8) :: RatCX
 
   ! Safety factor, currents, resistivity
-  real(8), dimension(:), allocatable :: Q, AJ, AJOH, AJV, AJRF, AJNB, &
+  real(8), dimension(:), allocatable :: Q, AJ, AJOH, AJV, AJRF, AJNB, AJPARA, &
        &                                AJBS, AJBS1, AJBS2, AJBS3, AJBS4, &
        &                                ETA, ETAS, ETA1, ETA2, ETA3, ETA4
 
@@ -297,6 +297,7 @@ contains
        allocate(Q(0:N), AJ(0:N), AJOH(0:N), AJV(0:N), AJRF(0:N),  AJNB(0:N),  stat = ierl(1))
        allocate(AJBS(0:N),  AJBS1(0:N),  AJBS2(0:N),  AJBS3(0:N), AJBS4(0:N), stat = ierl(2))
        allocate(ETA(0:N),ETAS(0:N),ETA1(0:N),ETA2(0:N),ETA3(0:N),ETA4(0:N),   stat = ierl(3))
+       allocate(AJPARA(0:N),                                                  stat = ierl(4))
        ier = sum(ierl) ; iflag = 7
        if (ier /= 0) exit
 
@@ -373,7 +374,7 @@ contains
     deallocate(SiLC,   SiLCth,SiLCph)
     deallocate(PIE,    PCX,   SIE,   PBr)
 
-    deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB)
+    deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB, AJPARA)
     deallocate(AJBS, AJBS1, AJBS2, AJBS3, AJBS4)
     deallocate(ETA, ETAS, ETA1, ETA2, ETA3, ETA4)
 

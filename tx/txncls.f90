@@ -322,16 +322,16 @@ contains
     p_bm2 = SNGL(1.D0 / BBL**2)
 
     p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
-    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
-    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
-    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
-    dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
-    rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
-    rlnLi(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
-    CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
-         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-         &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBSL,ETA=ETAL)
-    IF(NR == 0) AJBSL = 0.D0
+!!$    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
+!!$    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
+!!$    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
+!!$    dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
+!!$    rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
+!!$    rlnLi(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
+!!$    CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
+!!$         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
+!!$         &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBSL,ETA=ETAL)
+!!$    IF(NR == 0) AJBSL = 0.D0
 !!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeV(NR)*UephV(NR) &
 !!$         &                +PZ*AEE*PNiV(NR)*UiphV(NR) &
 !!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
@@ -366,7 +366,7 @@ contains
                &                *(Q(NR)*RR)**2))
        ENDDO
     ENDIF
-!    p_fm(1:3) = 0.d0 ! No Pfirsch-Shulter viscosity
+!!    p_fm(1:3) = 0.0 ! No Pfirsch-Shulter viscosity
     p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
     p_grbm2   = SNGL(1.D0/RA**2) * p_bm2

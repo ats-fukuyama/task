@@ -721,6 +721,10 @@ contains
     ! Generated toroidal torque density
     GYL(0:NXM,NG,120) = SNGL((RR+R(0:NXM))*BthV(0:NXM))*GYL(0:NXM,NG,117)
 
+    GYL(0:NXM,NG,121) = SNGL(AJPARA(0:NXM))
+    GYL(0:NXM,NG,122) = SNGL((BthV(0:NXM)*EthV(0:NXM)+BphV(0:NXM)*EphV(0:NXM)) &
+         &                   /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+
     RETURN
   END SUBROUTINE TXSTGR
 
@@ -1167,7 +1171,11 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,26), GYL, STR, NRMAX, NRMAX, NGR, gDIV(26))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@j$-//$=(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,121), GYL, STR, NRMAX, NRMAX, NGR, gDIV(121))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(8)
        STR = '@u$-ir$=(r)@'
@@ -1181,7 +1189,11 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,28), GYL, STR, NRMAX, NRMAX, NGR, gDIV(28))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@E$-//$=(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,122), GYL, STR, NRMAX, NRMAX, NGR, gDIV(122))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(9)
        STR = '@D$-i$=(r)+D$-e$=(r)@'

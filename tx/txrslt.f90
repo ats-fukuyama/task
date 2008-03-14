@@ -135,6 +135,7 @@ SUBROUTINE TXGLOB
      ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
           & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
      AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
+!     ajbs1(nr) = -rNueNC(NR)*(BphV(NR)/BBL)**2/(rNuei(NR)+rNueNC(NR)*(BthV(NR)/BBL)**2)*BthV(NR)/BBL/BphV(NR)*dPPV
      ! +++ Hirshman model +++
      dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
      dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
