@@ -719,7 +719,7 @@ contains
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
        ! Total current density = toroidal current density
        AJ(NR)   = AJPH
-       ! NB induced current density (parallel)
+       ! Beam current density (parallel)
        AJNB(NR) = (  (PZ * AEE * PNbV(NR) * 1.D20 * UbphV(NR)) * BphV(NR) &
             &      + (PZ * AEE * PNbV(NR) * 1.D20 * UbthV(NR)) * BthV(NR))/BBL! &
 !            &    *(1.D0 - PZ / Zeff)
@@ -824,7 +824,7 @@ contains
 !!$       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * (dPPe(NR) + dPPi(NR)) * 1.D20 * rKeV
 
 !       write(6,*) r(nr)/ra,epara/eta(nr),aj(nr)-ajbs1(nr)-ajnb(nr)
-       AJOH(NR) = EPARA / ETA(NR) - AJNB(NR) ! ????????????
+       AJOH(NR) = EPARA / ETA(NR)! - AJNB(NR) ! ????????????
     END DO
 
     !     ***** Ion Orbit Loss *****
