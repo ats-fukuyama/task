@@ -141,7 +141,7 @@ contains
     use tx_nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist
+    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist, irip
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
@@ -153,16 +153,16 @@ contains
          &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
+         &     DltRP_rim, theta_rim, diff_min, RL_min, theta_min, theta, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
          &                         SNBPi, SNBTi1, SNBTi2, &
-         &                         SRF, th1, th2, Ubpara, ar1, ar2, ar3, ar4
+         &                         SRF, th1, th2, Ubpara
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
-    real(8), dimension(1:2*NRMAX) :: RRR, ZZZ
 
     !     *** Constants ***
 
@@ -289,11 +289,11 @@ contains
 
     ! Ripple amplitude
     thetab = 0.5D0 * PI ! pitch angle of a typical banana particle
-!    thetab = PI / 3.D0 ! pitch angle of a typical banana particle
     sinthb = sin(thetab)
     DO NR = 0, NRMAX
        RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
-       DltRP(NR) = ripple(RL,thetab,FSRP)
+       DltRP(NR) = ripple(RL,thetab,FSRP) ! Ripple amplitude at banana tip point
+                                          ! Mainly use for estimation of diffusive processes
     END DO
 
     ellK = ELLFC(sin(0.5d0*thetab),IER) ! first kind of complete elliptic function 
@@ -419,6 +419,7 @@ contains
           rNuAse(NR) = 1.D0 / rNuAsE_inv
           rNuAsi(NR) = 1.D0 / rNuAsI_inv
        END IF
+
 !!$       IF(R(NR) < RA) THEN
 !!$          rNueNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
 !!$               &     * SQRT(PI) * Q(NR)**2 * Wte &
@@ -919,45 +920,82 @@ contains
 
     !     ***** Ripple loss transport *****
 
-    RATIO(0:NRMAX) = 0.D0
+    rip_rat(0:NRMAX) = 0.D0
     IF(ABS(FSRP) > 0.D0) THEN
+       ! +++ Convective loss +++
+
+       ! *** Physical aspect of trapped particles in local ripple wells ***
+       ! As pointed out in Goldston and Towner (1981) in section 2.5, banana particles
+       ! which have small perpendicular component of their velocity, i.e. those
+       ! residing near the banana tip point, are apt to be trapped in ripple wells,
+       ! provided that they lie in ripple well region with alpha < 1.
+       ! In this code, however, we cannot calculate banana tip point for each particle.
+       ! Then we assume that all the ripple trapped particles are generated from the
+       ! banana particles at the rim of the ripple well region, i.e. alpha = 1.
+       ! We readily find two rims in a upper-half plane of a flux surface: LFS and HFS.
+       ! Since the contribution from the HFS is usually negligible of their smallness,
+       ! we only take account of the rim at the LFS.
+       ! The banana particles have an opportunity to be trapped in local ripple wells
+       ! when their banana tips lie in ripple well region. As will be discussed in 
+       ! "Diffusive loss", we assume the poloidal angle of banana tip is 90 degrees on
+       ! behalf of all the banana particles. However, on most of magnetic surfaces,
+       ! the banana tips of 90 degrees do not lie in ripple well region, hence we cannot
+       ! assume it for ripple well trapping. In this case we assume that the banana
+       ! particles have an maxwellian distribution over the poloidal plane whose peak
+       ! is taken at theta=90 degree, which is taken to be consistent with the assumption
+       ! for diffusive loss case. Therefore, when we consider the scattering at the rim
+       ! of ripple well region, we estimate the banana particle density which are going
+       ! to be trapped as sqrt(delta(theta_rim)) * fmaxwell(theta_rim) * nb.
+
        ! Ripple well region
        DO NR = 1, NRMAX
           RL = R(NR)
           EpsL = RL / RR
+          ! For LFS
           theta1  = 0.d0
           i = 0
           imax = 101
           dlt = 1.d0 / (imax - 1)
-          do 
+          irip = 0
+          do
              i = i + 1
+             irip = irip + 1
              if(i == imax) then
-                write(6,*) "ERROR! Ripple Amplitude."
+                write(6,'(A,I3)') "LFS rim of ripple well region not detected at NR = ",NR
                 exit
              end if
              theta1 = theta1 + PI * dlt
              RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
              width0 = ripple(RL,theta1,FSRP)
              width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
+             ! Rim of ripple well region detected
              if(abs(width0 - width1) < 1.d-6) exit
+             ! Overreached a rim of ripple well. Go back and use finer step size.
              if(width0 < width1) then
                 theta1  = theta1 - PI * dlt
                 dlt = 0.1d0 * dlt
                 i = 0
+                irip = irip - 1
                 cycle
              end if
+             ! Ripple amplitude at the rim of the ripple well region
+             DltRP_rim = width0
+             theta_rim = theta1
           end do
-          ARC = 2.d0 * (theta1 / PI)
+          ARC = 2.d0 * theta1
           th1(nr) = theta1
 
+          ! For HFS
           theta2 = PI
           i = 0
           imax = 101
           dlt = 1.d0 / (imax - 1)
+          irip = 0
           do 
              i = i + 1
+             irip = irip + 1
              if(i == imax) then
-                write(6,*) "ERROR! Ripple Amplitude."
+                write(6,'(A,I3)') "HFS rim of ripple well region not detected at NR = ",NR
                 exit
              end if
              theta2 = theta2 - PI * dlt
@@ -969,32 +1007,43 @@ contains
                 theta2  = theta2 + PI * dlt
                 dlt = 0.1d0 * dlt
                 i = 0
+                irip = irip - 1
                 cycle
              end if
           end do
-          ARC = ARC + 2.d0 * ((PI - theta2) / PI)
-          RATIO(NR) = ARC / (2.d0 * PI)
+          ARC = ARC + 2.d0 * (PI - theta2)
+          ! Ratio of ripple well region in a certain flux surface
+          rip_rat(NR) = ARC / (2.d0 * PI)
           th2(nr) = theta2
 
+!!rpl_ave          sum_rp = 0.d0
+!!rpl_ave          imax = 51
+!!rpl_ave          dlt = 1.d0 / (imax - 1)
+!!rpl_ave          do i = 1, imax
+!!rpl_ave             theta = (i - 1) * PI * dlt
+!!rpl_ave             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta))
+!!rpl_ave             sum_rp = sum_rp + ripple(RL,theta,FSRP)**2
+!!rpl_ave          end do
+!!rpl_ave          DltRP_ave = sqrt(sum_rp/imax)
+
 !!$          ! alpha_l : ripple well parameter
-!!$          alpha_l = EpsL / (NTCOIL * Q(NR) * DltRP(NR)) * (theta1*sin(theta1) &
-!!$               &  + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2)
+!!$          alpha_l = EpsL * sin(thetab) / (NTCOIL * Q(NR) * DltRP(NR))
 !!$          ! Dlteff : effective depth of well along the magnetic field line
 !!$          Dlteff = 2.D0*DltRP(NR)*(SQRT(1.D0-alpha_l**2)-alpha_l*acos(alpha_l))
 
-          ! effective time of detrapping (Takamura (5.31), Stringer NF (1972) 689)
-          IF(DltRP(NR) /= 0.D0) THEN
-             rNubrp1(NR) = rNuD(NR) / DltRP(NR)
-             rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP(NR))
-          ELSE
-             rNubrp1(NR) = 0.D0
-             rNubrp2(NR) = 0.D0
-          END IF
+          ! effective time of detrapping
+          ! (Yushmanov NF (1982), Stringer NF (1972) 689, Takamura (5.31))
+          rNubrp1(NR) = rNuD(NR) / DltRP_rim
+          ! See the description of "Convective loss"
+          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fmaxwell(theta_rim,0.5D0*PI,0.8D0)
+!!rpl_ave          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_ave)
 
-          !  Convectitve loss (vertical grad B drift velocity)
+          ! Convectitve loss (vertical grad B drift velocity)
           Vdrift = 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2))
-          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))*Vdrift
-          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))/R(NR)*Vdrift
+!          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))*Vdrift
+!          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))/R(NR)*Vdrift
+          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim)*Vdrift
+          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim)/R(NR)*Vdrift
 !!$          Ubrp(NR) = 0.5D0 * Vdrift
 !!$            &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
 !!$          IF(NR == NRMAX) THEN
@@ -1003,11 +1052,12 @@ contains
 !!$             rNubL(NR) = Ubrp(NR) / SQRT(RB**2 - R(NR)**2)
 !!$          END IF
 !!$          rNubL(NR) = Ubrp(NR) / (R(NR) * sin(theta1))
-!          write(6,*) r(nr)/ra,Dlteff
+!          if(nr >=5) stop
        END DO
 !!$       RV0 = AITKEN2P(R(0),r(1)*(pi-th2(1)),r(1)*th1(1),r(2)*th1(2),-R(1),R(1),R(2))
 !!$       rNubL(0) = Ubrp(0) / RV0
        Ubrp(0) = AITKEN2P(R(0),Ubrp(1),Ubrp(2),Ubrp(3),R(1),R(2),R(3))
+       ! On the axis ripple amplitude is uniquely defined because of no poloidal variation.
        rNubrp1(0) = rNuD(0) / DltRP(0)
        rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
 
@@ -1027,7 +1077,14 @@ contains
 !!rp_conv          end if
 !!rp_conv       end do
 
-       !  Diffusive loss
+       !  +++ Diffusive loss +++
+
+       ! *** Physical aspect of banana particles suffered from diffusive loss ***
+       ! Banana particles are not affected by local ripple wells regardless whether
+       ! the wells exist or not. All the diffusion processes for them occur at the
+       ! banana tip point "thetab", hence we only consider the ripple amplitude at
+       ! the banana tip point, DltRP(NR).
+
        !  -- Collisional diffusion of trapped fast particles --
        do nr = 1, nrmax
           RL = R(NR)
@@ -1092,7 +1149,7 @@ contains
 !!$          DCB = NTCOIL**2.25D0*Q(NR)**3.25D0*RR*rhob*DltRP(NR)**1.5d0*rNuD(NR)/EpsL**2.5D0
 !!$          Dbrp(NR) = DCB * DRP / (DCB + DRP)
 !!$          if(DltRP(NR) > Dltcr) Dbrp(NR) = DRP
-!!$          write(6,*) r(nr)/ra,ft(NR)*RATIO(NR)*Dbrp(NR)
+!!$          write(6,*) r(nr)/ra,ft(NR)*rip_rat(NR)*Dbrp(NR)
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
 
@@ -1250,6 +1307,24 @@ contains
     end if
 
   end function ripple
+
+!***************************************************************
+!
+!   Maxwellian distribution
+!
+!   (input)
+!     x     : position
+!     mu    : average
+!     sigma : standard deviation
+!
+!***************************************************************
+
+  real(8) function fmaxwell(x,mu,sigma) result(f)
+    real(8), intent(in) :: x, mu, sigma
+
+    f = exp(- (x - mu)**2 / (2.d0 * sigma**2))
+
+  end function fmaxwell
 
 !!$  real(8) function ripple(NR,theta,FSRP) result(f)
 !!$    use tx_commons, only : RR, R, RA, NTCOIL

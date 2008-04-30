@@ -32,7 +32,7 @@ SUBROUTINE TXGLOB
   FKAP = 1.D0
 
   PNdiff(0:NRMAX) =  PZ * PNiV(0:NRMAX) + PZ * PNbV(0:NRMAX) &
-       &           + PZ * RATIO(0:NRMAX) * PNbrpV(0:NRMAX) - PNeV(0:NRMAX)
+       &           + PZ * rip_rat(0:NRMAX) * PNbrpV(0:NRMAX) - PNeV(0:NRMAX)
   VOLAVN =  2.D0 / RB**2 * INTG_F(PNdiff)
 
   RNINT = INTG_F(PNeV)

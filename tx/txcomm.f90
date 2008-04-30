@@ -147,7 +147,7 @@ module tx_commons
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLe, rlnLi, &
-       & Ubrp, RUbrp, Dbrp, DltRP, rNubL, RATIO, rNuOL, &
+       & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC
   real(8), dimension(:,:), allocatable :: deltam
 
@@ -275,7 +275,7 @@ contains
        allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(12))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLe(0:N), rlnLi(0:N),             stat = ierl(13))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(14))
-       allocate(RATIO(0:N),  rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
+       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
        allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(17))
        ier = sum(ierl) ; iflag = 4
@@ -361,7 +361,7 @@ contains
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
     deallocate(FWthphe,FWthphi,rlnLe, rlnLi)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
-    deallocate(RATIO,  rNuOL,  rNuNTV,UastNC)
+    deallocate(rip_rat,rNuOL,  rNuNTV,UastNC)
     deallocate(Fmnq,   Wnm,    Umnq)
     deallocate(deltam)
 

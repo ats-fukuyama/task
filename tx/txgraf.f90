@@ -562,7 +562,7 @@ contains
 
     GYL(0:NXM,NG,1)  = SNGL(PNeV(0:NXM)*1.D20)
     GYL(0:NXM,NG,2)  = SNGL((PZ*PNiV(0:NXM)+PZ*PNbV(0:NXM) &
-         &                  +PZ*RATIO(0:NXM)*PNbrpV(0:NXM)-PNeV(0:NXM))* 1.D20)
+         &                  +PZ*rip_rat(0:NXM)*PNbrpV(0:NXM)-PNeV(0:NXM))* 1.D20)
     GYL(0:NXM,NG,3)  = SNGL(UerV(0:NXM))
     GYL(0:NXM,NG,4)  = SNGL(UethV(0:NXM))
     GYL(0:NXM,NG,5)  = SNGL(UephV(0:NXM))
@@ -736,8 +736,8 @@ contains
 
   SUBROUTINE TXSTGV(GTIME)
 
-    use tx_commons, only : AEE, PI, NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, RATIO, &
-         &              PNbrpV, NRC, UerV, UethV, &
+    use tx_commons, only : AEE, PI, NGVV, NGVM, GVX, GVY, PNeV, PZ, PNiV, PNbV, &
+         &              rip_rat, PNbrpV, NRC, UerV, UethV, &
          &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
          &              PTeV, PTiV, PN01V, PN02V, EthV, BphV, UbthV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
@@ -753,7 +753,7 @@ contains
     GVX(NGVV) = GTIME
 
     GVY(NGVV,1)  = SNGL(PNeV(0) * 1.D20)
-    GVY(NGVV,2)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) + PZ * RATIO(0) * PNbrpV(0) &
+    GVY(NGVV,2)  = SNGL((PZ * PNiV(0) + PZ * PNbV(0) + PZ * rip_rat(0) * PNbrpV(0) &
          &               - PNeV(0)) * 1.D20)
     GVY(NGVV,3)  = SNGL(UerV(NRC))
     GVY(NGVV,4)  = SNGL(UethV(NRC))
@@ -1649,7 +1649,7 @@ contains
 !!$       STR = '@rNuAsi@'
 !!$       CALL TXGRFRXS( 5,GX,GY(0,0,95),NRMAX,NGR,STR,MODE,IND,GYMAX=8.0)
 
-       STR = '@rNurp1@'
+       STR = '@rNubrp1@'
        CALL TXGRFRXS( 4,GX,GY(0,0,111),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@DltRP@'

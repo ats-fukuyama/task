@@ -281,7 +281,7 @@ contains
     END DO
     BthBNi(0) = 0.D0 ! Any value is OK. (Never affect the result.)
 
-!!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * RATIO(0:NRMAX)
+!!rp_conv    rNubLL(0:NRMAX) = rNubL(0:NRMAX) * rip_rat(0:NRMAX)
 
     RUbthV(0:NRMAX) = R(0:NRMAX) * UbthV(0:NRMAX)
     Dbrpft(0:NRMAX) = Dbrp(0:NRMAX) * ft(0:NRMAX)
@@ -320,7 +320,7 @@ contains
     ELM(1:NEMAX,1:4,4,LQm1) = - PZ * fem_int(1) / sqeps0 * BeamSW
     NLC(4,LQm1) = LQb1
 
-    ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(2,RATIO) / sqeps0 * BeamSW * RpplSW
+    ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(2,rip_rat) / sqeps0 * BeamSW * RpplSW
     NLC(5,LQm1) = LQr1
 !!sqeps    ELM(1:NEMAX,1:4,1,LQm1) =   4.D0 / (AEE * 1.D20) * fem_int(18,sqeps_perp)
 !!sqeps    NLC(1,LQm1) = LQm1
@@ -334,7 +334,7 @@ contains
 !!sqeps    ELM(1:NEMAX,1:4,4,LQm1) = - PZ * fem_int(2,sqeps_perp_inv) * BeamSW
 !!sqeps    NLC(4,LQm1) = LQb1
 !!sqeps
-!!sqeps    ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(28,RATIO,sqeps_perp_inv) * BeamSW * RpplSW
+!!sqeps    ELM(1:NEMAX,1:4,5,LQm1) = - PZ * fem_int(28,rip_rat,sqeps_perp_inv) * BeamSW * RpplSW
 !!sqeps    NLC(5,LQm1) = LQr1
 
     ! phi(b) : 0
@@ -1021,7 +1021,7 @@ contains
 
     ! Particle source from ripple trapped beam ions
 
-    ELM(1:NEMAX,1:4,7,LQi1) =   fem_int(28,rNuB,RATIO) * RpplSW
+    ELM(1:NEMAX,1:4,7,LQi1) =   fem_int(28,rNuB,rip_rat) * RpplSW
     NLC(7,LQi1) = LQr1
 
     ! NBI kick up ions (Charge exchange)
@@ -1570,7 +1570,7 @@ contains
 
     ! Extracted NBI perpendicular component
 
-    PELM(1:NEMAX,1:4,2,LQb1) = - fem_int(-2,SNBPDi,RATIO)
+    PELM(1:NEMAX,1:4,2,LQb1) = - fem_int(-2,SNBPDi,rip_rat)
     NLC(2,LQb1) = 0
 
     ! Relaxation to thermal ions
@@ -1585,10 +1585,10 @@ contains
 
     ! Ripple trapped beam ions collision with otherwise beam ions
 
-    ELM(1:NEMAX,1:4,5,LQb1) = - fem_int(28,rNubrp2,RATIO) * RpplSW
+    ELM(1:NEMAX,1:4,5,LQb1) = - fem_int(28,rNubrp2,rip_rat) * RpplSW
     NLC(5,LQb1) = LQb1
 
-    ELM(1:NEMAX,1:4,6,LQb1) =   fem_int(28,rNubrp1,RATIO) * RpplSW
+    ELM(1:NEMAX,1:4,6,LQb1) =   fem_int(28,rNubrp1,rip_rat) * RpplSW
     NLC(6,LQb1) = LQr1
 
 !!rp_conv    PELM(1:NEMAX,1:4,6,LQb1) =  fem_int(-2,PNbrpLV,rNubLL)
@@ -1660,7 +1660,7 @@ contains
 
     ! Momentum loss due to collisional ripple trapping
 
-    ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(28,rNubrp2,RATIO) * RpplSW
+    ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(28,rNubrp2,rip_rat) * RpplSW
     NLC(11,LQb3) = LQb3
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
@@ -1744,7 +1744,7 @@ contains
 
     ! Momentum loss due to collisional ripple trapping
 
-    ELM(1:NEMAX,1:4,12,LQb4) = - fem_int(28,rNubrp2,RATIO) * RpplSW
+    ELM(1:NEMAX,1:4,12,LQb4) = - fem_int(28,rNubrp2,rip_rat) * RpplSW
     NLC(12,LQb4) = LQb4
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
