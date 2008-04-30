@@ -945,7 +945,7 @@ contains
        ! is taken at theta=90 degree, which is taken to be consistent with the assumption
        ! for diffusive loss case. Therefore, when we consider the scattering at the rim
        ! of ripple well region, we estimate the banana particle density which are going
-       ! to be trapped as sqrt(delta(theta_rim)) * fmaxwell(theta_rim) * nb.
+       ! to be trapped as {sqrt(delta(theta_rim)) * fmaxwell(theta_rim)} * nb.
 
        ! Ripple well region
        DO NR = 1, NRMAX
@@ -1035,7 +1035,7 @@ contains
           ! (Yushmanov NF (1982), Stringer NF (1972) 689, Takamura (5.31))
           rNubrp1(NR) = rNuD(NR) / DltRP_rim
           ! See the description of "Convective loss"
-          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fmaxwell(theta_rim,0.5D0*PI,0.8D0)
+          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fmaxwell(theta_rim,0.5D0*PI,0.85D0)
 !!rpl_ave          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_ave)
 
           ! Convectitve loss (vertical grad B drift velocity)
