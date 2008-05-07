@@ -141,7 +141,7 @@ contains
     use tx_nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist, irip
+    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
@@ -153,9 +153,9 @@ contains
          &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
-         &     DltRP_rim, theta_rim, diff_min, RL_min, theta_min, theta, sum_rp, DltRP_ave, &
+         &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, rhop, Rpotato
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
@@ -961,13 +961,24 @@ contains
              i = i + 1
              irip = irip + 1
              if(i == imax) then
-                write(6,'(A,I3)') "LFS rim of ripple well region not detected at NR = ",NR
+!                write(6,'(A,I3)') "LFS rim of ripple well region not detected at NR = ",NR
+                theta1 = PI
                 exit
              end if
              theta1 = theta1 + PI * dlt
              RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
              width0 = ripple(RL,theta1,FSRP)
              width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
+             ! Poloidal angle at which the difference between width0 and width1 is minimized.
+             if(i == 1) then
+                theta_min = theta1
+                diff_min = abs(width0 - width1)
+             else
+                if(abs(width0 - width1) < diff_min) then
+                   diff_min = abs(width0 - width1)
+                   theta_min = theta1
+                end if
+             end if
              ! Rim of ripple well region detected
              if(abs(width0 - width1) < 1.d-6) exit
              ! Overreached a rim of ripple well. Go back and use finer step size.
@@ -983,7 +994,7 @@ contains
              theta_rim = theta1
           end do
           ARC = 2.d0 * theta1
-          th1(nr) = theta1
+          th1(nr) = theta_min
 
           ! For HFS
           theta2 = PI
@@ -995,13 +1006,23 @@ contains
              i = i + 1
              irip = irip + 1
              if(i == imax) then
-                write(6,'(A,I3)') "HFS rim of ripple well region not detected at NR = ",NR
+!                write(6,'(A,I3)') "HFS rim of ripple well region not detected at NR = ",NR
+                theta2 = PI
                 exit
              end if
              theta2 = theta2 - PI * dlt
              RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta2))
              width0 = ripple(RL,theta2,FSRP)
              width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
+             if(i == 1) then
+                theta_min = theta2
+                diff_min = abs(width0 - width1)
+             else
+                if(abs(width0 - width1) < diff_min) then
+                   diff_min = abs(width0 - width1)
+                   theta_min = theta2
+                end if
+             end if
              if(abs(width0 - width1) < 1.d-6) exit
              if(width0 < width1) then
                 theta2  = theta2 + PI * dlt
@@ -1014,7 +1035,7 @@ contains
           ARC = ARC + 2.d0 * (PI - theta2)
           ! Ratio of ripple well region in a certain flux surface
           rip_rat(NR) = ARC / (2.d0 * PI)
-          th2(nr) = theta2
+          th2(nr) = theta_min
 
 !!rpl_ave          sum_rp = 0.d0
 !!rpl_ave          imax = 51
@@ -1153,6 +1174,23 @@ contains
        end do
        Dbrp(0) = AITKEN2P(R(0),Dbrp(1),Dbrp(2),Dbrp(3),R(1),R(2),R(3))
 
+       ! Potato orbit effect
+       !   Approaching to the magnetic axis, we reach the point where the banana
+       !   particles changes themselves to the potato particles.
+       !   Inside the point, the particle orbit is no longer changed.
+       do nr = 0, nrmax
+          rhop = AMb * Vb / (PZ * AEE * BthV(NR)) ! poloidal Larmor radius
+          ! potato width (Helander and Sigmar, p133)
+          Rpotato = (Q(NR)**2*(AMb * Vb / (PZ * AEE * BphV(NR)))**2*RR)**(1.D0/3.D0)
+          if(r(nr) > Rpotato) then
+             nr_potato = nr - 1
+             exit
+          end if
+       end do
+       do nr = 0, nr_potato
+          Dbrp(nr)  = Dbrp(nr_potato+1)
+       end do
+
        !     ***** Neoclassical toroidal viscosity (NTV) *****
        !      "rNuNTV" and "UastNC" are obtained from NTVcalc
 
@@ -1289,6 +1327,7 @@ contains
 !***************************************************************
 !
 !   Ripple amplitude function
+!     (Yushmanov review pp.122, 123)
 !
 !***************************************************************
 

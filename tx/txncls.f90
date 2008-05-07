@@ -321,7 +321,8 @@ contains
     p_b2  = SNGL(BBL**2)
     p_bm2 = SNGL(1.D0 / BBL**2)
 
-    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
+!    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
+    p_eb  = SNGL(EphV(NR)*BphV(NR))
 !!$    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
 !!$    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
 !!$    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA

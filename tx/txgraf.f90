@@ -963,6 +963,7 @@ contains
 
     use tx_commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
          &              NRA, PSI, HPSI, GY, NGR, gDIV, GX
+!!$    use tx_interface, only : INTG_F
     INTEGER(4), INTENT(IN) :: MODE
     INTEGER(4), INTENT(IN) :: NGYRIN
     INTEGER(4) :: IND, NG, NR, NGYR, NE, IFNT, NRMAXL
@@ -1156,6 +1157,9 @@ contains
 
        STR = '@j$-r$=(r)@'
        CALL TXGRFRX(3,GX,GY(0,0,117),NRMAX,NGR,STR,MODE,IND)
+
+!!$       write(6,*) 'Er=', INTG_F(dble(GY(0:NRMAX,NGR,7)))
+!!$       write(6,*) 'jr=', INTG_F(dble(GY(0:NRMAX,NGR,117)))
 
 !       CALL TXWPGR
 
