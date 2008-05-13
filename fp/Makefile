@@ -8,7 +8,7 @@ MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 
 SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
        fpcalw.f fpcalwr.f fpcalwm.f \
-       fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f
+       fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f fpcalcnr.f
 
 OBJS = $(SRCS:.f=.o)
 
@@ -74,3 +74,4 @@ fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
+fpcalcnr.o : fpcalcnr.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc

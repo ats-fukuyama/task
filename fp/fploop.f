@@ -87,9 +87,21 @@ C
 C
          RNFP(NR)=RN(NSFP)
          RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
+         NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1)) + 1
+         if(NSFPMA.eq.NSFPMI)NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1))
+         IF(NTG3.eq.1)THEN
+            DO NS=1,NSMAX
+               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            END DO
+         END IF
+
          IF(NTG2.ge.NSFPMA+1)THEN
-            IF(MODELC.eq.1.or.MODELC.eq.3)
-     &      RTFP(NR)=PTT2(NTG2,NSFP)
+            IF(MODELC.eq.1.or.MODELC.eq.3)THEN
+               RTFP(NR)=PTT2(NTG3-1,NSFP)
+c               IF(MODELR.eq.1)THEN
+
+c               END IF
+            END IF
          END IF
 c         write(*,*) "temperature",RTFP(NR)
 
@@ -108,9 +120,14 @@ C         ENDIF
             AMFD=PA(NS)*AMP
             RNFD(NR,NS)=RN(NS)
             RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            IF(NTG2.ge.NSFPMA+1.and.NS.eq.NSFP)THEN
-               IF(MODELC.eq.1.or.MODELC.eq.3)
-     &              RTFD(NR,NS)=PTT2(NTG2,NSFP)
+            IF(NTG2.ge.NSFPMA+1)THEN
+               IF(MODELC.eq.1.or.MODELC.eq.3)THEN
+                  IF(NS.ge.NSFPMI.and.NS.le.NSFPMA)
+     &                 RTFD(NR,NS)=PTT2(NTG3-1,NS)
+c                  IF(MODELR.eq.1)THEN
+
+c                  END IF
+               END IF
             END IF
 C            IF(MODELR.EQ.0) THEN
                PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
@@ -329,10 +346,10 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
+c      open(7,file='testdelt.dat')
       DO NR=1,NRMAX
       DO NP=1,NPMAX
          FL=FPMXWL(PM(NP),NR,NSFP)
-C         FL=FPMXWL(PM(NP),NR)
          DO NTH=1,NTHMAX
             F(NTH,NP,NR)=FL
             DO NS=1,NSMAX
@@ -627,7 +644,6 @@ C----NSFP LOOP----------------------------------
          END DO
          END DO
          END DO
-
          L=0
 C
          IF(MODELE.NE.0) THEN

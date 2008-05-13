@@ -243,8 +243,8 @@ c     &       ,ex
          DWC21=DWC21+DWC*A21
          DWC22=DWC22+DWC*A22
   100 CONTINUE
-      if(DWC11.ge.1.D0.or.DWC22.ge.1.D0)
-     &     write(*,1333)N,DWC11,DWC12,DWC21,DWC22
+c      if(DWC11.ge.1.D0.or.DWC22.ge.1.D0)
+c     &     write(*,1333)N,DWC11,DWC12,DWC21,DWC22
 
 C
       DWPPL=PSIN**2*DWC11  +PSIN*PCOS*(DWC12+DWC21)    +PCOS**2*DWC22

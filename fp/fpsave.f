@@ -103,11 +103,18 @@ C
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
       Do NS=1,NSMAX
-         PNT2(NTG2,NS) =PNT2(NTG2,NS) *2*PI*RR
+         NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
+         if(NSFPMA.eq.NSFPMI) NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) 
+
          PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
+         IF(NS.eq.NSFP)THEN
+         PNT2(NTG2,NS) =PNT2(NTG2,NS) *2*PI*RR
          PWT2(NTG2,NS) =PWT2(NTG2,NS) *2.D0*PI*RR
-         PTT2(NTG2,NS) =
+         PTT2(NTG3,NS) =
      &        PWT2(NTG2,NS)*1.D6/(1.5D0*PNT2(NTG2,NS)*1.D20*AEE*1.D3)
+         PNT2(NTG2,NS)=PNT2(NTG2,NS)/(2.D0*PI*RR
+     &        *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
+         END IF
       END DO
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
@@ -186,6 +193,10 @@ C     &                       *(PV-1.D0)/THETA0
   300       CONTINUE
          ENDIF
 C
+c         NP=1
+c         NTH=NTHMAX
+c         write(*,645)NP, NTH, RSUM33(1)
+c     &           ,PG(NP),F(NTH,NP,NR),FNS(NTH,NP,NR,NSFP)
          DO 400 NP=2,NPMAX
             PV=SQRT(1.D0+THETA0*PG(NP)**2)
          DO 400 NTH=1,NTHMAX
@@ -248,7 +259,17 @@ C
      &               +DCPT2(NTH,NP,NR,NS)*DFT
      &               -FCPP2(NTH,NP,NR,NS)*FFP)
             END DO
+c            IF(NTH.eq.NTHMAX)
+c     &       write(*,645)NP, NTH
+c     &           ,PG(NP),F(NTH,NP,NR),FNS(NTH,NP,NR,NSFP)
+c     &  ,DFP,FFP
+c     &           ,RSUM10(NSFP),RSUM4,RSUM4-RSUM10(NSFP)
+c     &,PV,SINM(NTH)
+c     &           ,DCPP2(NTH,NP,NR,NSFP),DCPP(NTH,NP,NR)
+c     &           ,FCPP2(NTH,NP,NR,NSFP),FCPP(NTH,NP,NR)
 
+
+ 645     FORMAT(2I3,5E16.8)
   400    CONTINUE
          FACT=RNFP0*1.D20
          RNS(NR) = RSUM1*FACT               *1.D-20
@@ -298,7 +319,8 @@ C
 C
       WRITE(6,101) TIMEFP*1000
       WRITE(6,102) PNT(NTG2),PIT(NTG2),PWT(NTG2),PTT(NTG2)
-
+      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
+      if(NSFPMA.eq.NSFPMI)      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) 
       if(NTG2.ne.1)then
 c-----check of conductivity--------
       FACT1 = 
@@ -349,53 +371,52 @@ c      write(6,*)FCPP2(1,10,1,1),FCPP2(1,10,1,2)
 c      write(6,*)NTG2,PTPR(NSFP)*(1.D0-R1**2)
 c      write(6,*)NTG2,DCPP2(1,10,1,1),DCPP2(1,10,1,2)
 c-----slowing down-------------
-c      DO NS=1,NSMAX
-c         AMFD=PA(NS)*AMP
-c         RGG=2.D0/3.D0/sqrt(PI)*VTFP(1)/VTFD(1,NS)
-c         rtautj=2.D0*PI*EPS0**2*AMFP**2*VTFD(1,NS)**2*VTFP(1)
-c     &        /(PNT(NTG2)*1.D20*PZ(NSFP)**2*PZ(NS)**2*AEE**4*10.d0
-c     &        *(1.D0+AMFP/AMFD)*RGG )
-c         write(6,*)"slowing",NSFP,"to",NS,"=",rtautj
-c      END DO
-      IF(NTG2.GE.NSMAX+1)THEN
-c      rtauei=3.D0*sqrt(2.D0*PI)*pi*eps0**2/sqrt(AMP*PA(1))*PA(2)*AMP
-c     &  *SQRT(PTT(NTG2)*1.D6)**3/(PNT(NTG2)*1.D20*PZ(2)**2*AEE**4*15.D0)
-         rtauei=0.1D0*PA(2)*SQRT(PTT2(NTG2,1))**3
-     &        /(PZ(2)**2*PNT(NTG2)*15.D0)
+      IF(NTG2.GE.NSMAX+1.and.NSFP.eq.NSFPMA+1)THEN
+         rtaue=1.09D16*SQRT(PTT2(NTG3,1)**3)
+     &        /PNT(NTG2)/1.d20/17.D0
+         rtauei=rtaue*PA(2)/PA(1)*0.5D0
+         rtaui =6.60D17*SQRT(PA(2)/PA(2)*PTT2(NTG3,2)**3)
+     &        /PNT(NTG2)/17.D0/1.D20
       RTAUEI2=
-     &     -(PTT2(NTG2-1,1)-PTT2(NTG2-1,2))/
-     &     (PTT2(NTG2,1)-PTT2(NTG2-2,1))
+     &     -(PTT2(NTG3-1,1)-PTT2(NTG3-1,2))/
+     &     (PTT2(NTG3,1)-PTT2(NTG3-1,1))
      &*DELT
-      RTAUIE=2.33D-3/SQRT(PA(1))*PA(2)*SQRT(PTT2(NTG2,1))**3
-     &     /(PZ(1)**2*PZ(2)**2*PNT(NTG2)*15.D0 )
-     &     *SQRT(1.D0+PZ(1)*PTT2(NTG2,2)/PZ(2)/PTT2(NTG2,1))**3
+
       RTAUIE2=
-     &     -(PTT2(NTG2-1,2)-PTT2(NTG2-1,1))/
-     &     (PTT2(NTG2,2)-PTT2(NTG2-2,2))
+     &     -(PTT2(NTG3-1,2)-PTT2(NTG3-1,1))/
+     &     (PTT2(NTG3,2)-PTT2(NTG3-1,2))
      &*DELT
-
-      write(6,*)"slowing e-i",rtauei,rtauei2
-      write(6,*)"slowing i-e",rtauie,rtauie2
-
+      write(6,1582)rtaue,rtaui,rtauei
+      write(6,*)"slowing e-i from diff",rtauei2
+      write(6,*)"slowing i-e from diff",rtauie2
+      write(6,*)"ratio", rtauei2/rtauie2
+c      write(7,*)NTG3,rtauei2,rtauie2
       END IF
-
+ 1582 FORMAT("tau_e, tau_i, tau_ei [s]", 3E14.5)
 c-----------------------------
+c      sumPCT=0.D0
       Do NS=1,NSMAX
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
+c         sumPCT= sumPCT + PPCT2(NTG2,NS)
       END DO
+c      write(6,1549) NTG2,sumPCT
 
       sumPTT=0.D0
-      DO NS=1,NSMAX
-         write(6,1467)  NS, PTT2(NTG2,NS)
-         sumPTT=sumPTT + PTT2(NTG2,NS)
-      END DO
-      write(6,*) "SUM_PTT",sumPTT
+      IF(NSFP.eq.NSFPMA)THEN
+         DO NS=1,NSMAX
+            write(6,1467)  NS, PTT2(NTG3,NS)
+            sumPTT=sumPTT + PTT2(NTG3,NS)
+         END DO
+      write(6,*) "SUM_PTT",sumPTT, NTG2, NTG3
+      END IF
       write(6,*) " "
- 99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E11.4)
+
+ 99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E14.7)
  999  FORMAT(f14.6,2E14.6)
- 1467 FORMAT(1H ,"T_",I1,"[keV]= ",E12.4)
+ 1467 FORMAT(1H ,"T_",I1,"[keV]= ",E12.5)
 
       end if
+c      IF(NSFP.EQ.NSFPMA) PTT3(NTG3-1)=PTT2(NTG3-1,NSFPMA)
 
 C      WRITE(6,'(1PE12.5)') (RNS(NR),NR=1,NRMAX)
 C

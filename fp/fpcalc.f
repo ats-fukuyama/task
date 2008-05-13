@@ -52,7 +52,11 @@ C
                   CALL FPCALC_L(NR,NS)
                ENDIF
             ELSEIF(MODELC.EQ.4) THEN
-               CALL FPCALC_NL(NR,NS)
+               IF(MODELR.eq.0)THEN
+                  CALL FPCALC_NL(NR,NS)
+               ELSE IF(MODELR.eq.1)THEN
+                  CALL FPCALC_NLR(NR,NS)
+               END IF
             ELSEIF(MODELC.EQ.5) THEN
                IF(NS.NE.NSFP) THEN
                   CALL FPCALC_L(NR,NS)
@@ -70,8 +74,7 @@ C
                   CALL FPCALC_NL(NR,NS)
                ENDIF
             ENDIF
-c            write(6,'(2I8,1P3E12.4)')
-c     &           NR,NS,DCPP(5,5,NR),DCTT(5,5,NR),FCPP(5,5,NR)
+
 c     divide coefficients by species
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -106,7 +109,7 @@ c     divide coefficients by species
                   end if
                END DO
 c     check for collision coef.
-               if(NS.eq.NSMAX+1.and.NP.ne.1)then
+               if(NS.eq.NSMAX+1.and.NP.ne.0)then
                   IF(MODELR.eq.0)THEN
                      TMC2FP0=0.D0
                   ELSE IF(MODELR.eq.1)THEN
@@ -118,15 +121,36 @@ c     check for collision coef.
 c                  write(*,1274)FCPP2(1,NP,NR,1)/DCPP2(1,NP,NR,1)/pbar,
 c     &                 FCPP2(1,NP,NR,2)/DCPP2(1,NP,NR,2)/pbar,
 c     &                 FCPP(1,NP,NR)/DCPP(1,NP,NR)/pbar
-                  write(*,1281)NP,FCPP2(1,NP,1,1)/DCPP2(1,NP,1,1)/pbar
-     &                 ,FCPP2(1,NP,1,2)/DCPP2(1,NP,1,2)/pbar
-     &                 ,FCPP2(1,NP,1,1),FCPP2(1,NP,1,2),FCPP(1,NP,1)
+                  write(*,1281)NP,DCPT2(25,NP,1,1)
+c     &                 ,FCPP2(1,NP,1,1)/DCPP2(1,NP,1,1)/pbar
+c     &                 ,FCPP2(1,NP,1,2)/DCPP2(1,NP,1,2)/pbar
+     &               ,DCPP2(25,NP,1,1),FCPP2(25,NP,1,1),DCTT2(25,NP,1,1)
+     &                 ,FCPP(1,NP,1)
                end if
 c     end of check
             END DO
-         ENDDO
+         END DO
  1274    FORMAT(3e14.5)
  1281    FORMAT(I2,5e14.5)
+
+
+         DO NS=1,NSMAX
+         DO NP = 1, NPMAX
+            NTH=2
+            TMC2FP0=(PTFP0/(AMFP*VC))**2
+            RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
+c            WRITE(*,765) NP, PG(NP)
+c     &              ,DCPP2(NTH,NP,1,NS),FCPP2(NTH,NP,1,NS)
+c     &              ,DCTT2(NTH,NP,1,NS)
+Cc     &              ,FCPP(NTH,NP,1)*RGAMA/DCPP(NTH,NP,1)/PG(NP)
+c     &              ,FCTH2(NTH,NP,1,NS),DCPT2(NTH,NP,1,NS)
+         END DO
+c         write(*,*)" "
+c         write(*,*)" "
+         END DO
+ 765     FORMAT(I2, 6E14.6)
+
+
 C
 C        ----- Simple ion collision term using ZEFF -----
 C
