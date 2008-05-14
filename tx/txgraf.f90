@@ -1066,7 +1066,7 @@ contains
     CASE(1) 
        STR = '@n$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRMAX, NRMAX, NGR, gDIV(1))
-       CALL TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX=0.2)
+       CALL TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND)!, GYMAX=0.2)
 
        STR = '@Z*n$-i$=+Z*n$-b$=+Z*n$-brp$=-n$-e$=@'
        CALL APPROPGY(MODEG, GY(0,0,2), GYL, STR, NRMAX, NRMAX, NGR, gDIV(2))
@@ -1102,7 +1102,7 @@ contains
 
        STR = '@u$-i$#f$#$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,8), GYL, STR, NRMAX, NRMAX, NGR, gDIV(8))
-       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX=200.0, GYMIN=-100.0)
+       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND)!, GYMAX=200.0, GYMIN=-100.0)
 
        CALL TXWPGR
 
@@ -1219,7 +1219,7 @@ contains
        CALL TXGRFRX(0,GX,GY(0,0,14),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@T$-i$=(r)@'
-       CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND,GYMAX=6.0)
+       CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)!,GYMAX=6.0)
 
        STR = '@p$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,102), GYL, STR, NRMAX, NRMAX, NGR, gDIV(102))
