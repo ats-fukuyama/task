@@ -155,8 +155,8 @@ contains
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, rhop, Rpotato
-    real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi, SUML
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, rhop, Rpotato, ETASL
+    real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
          &                         SNBPi, SNBTi1, SNBTi2, &
@@ -767,12 +767,11 @@ contains
     DO NR = 0, NRMAX
        ! +++ Original model +++
        EpsL = R(NR) / RR
-       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
-            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
-       ETA1(NR) = AME * (1.D0 + ALFA) * rNuei3(NR) / (PNeV(NR)*1.D20 * AEE**2) &
-            &   * BphV(NR)**2 / (BphV(NR)**2 + BthV(NR)**2)
-!       write(6,*) nr,r(nr)/ra,ame/(aee**2*PNeV(NR)*1.d20)*(corr(zeff)*rnuei(nr)+bthv(nr)**2/(bphv(nr)**2+bthv(nr)**2)*rnuenc(nr))/eta2(nr)
-!       if(nr==24) write(6,*) ame/(aee**2*PNeV(NR)*1.d20)*(corr(zeff)*rnuei(nr)+bthv(nr)**2/(bphv(nr)**2+bthv(nr)**2)*rnuenc(nr)*0.38d0),eta2(nr)
+       ETASL = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/(BthV(NR)**2+BphV(NR)**2))*rNueNC(NR)/(CORR(Zeff)*rNuei(NR)))
+!!$       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/(BthV(NR)**2+BphV(NR)**2))*rNueNC(NR)/(2.D0*CORR(Zeff)*rNuei(NR)))
+!!$       ETA1(NR) = AME / (AEE**2 * PNeV(NR)*1.D20) &
+!!$            &   * (CORR(Zeff)*rNuei(NR) + BthV(NR)**2/(BphV(NR)**2+BthV(NR)**2)*rNueNC(NR))
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
@@ -791,9 +790,9 @@ contains
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
        EFT  = ft(NR) * rNuAsE_inv / (rNuAsE_inv + (0.58D0 + 0.2D0 * Zeff))
+       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        ! Spitzer resistivity for hydrogen plasma (parallel direction)
        ETAS(NR) = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-       CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        ETA4(NR) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
             &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        IF(FSNC /= 0) THEN

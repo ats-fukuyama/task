@@ -897,6 +897,7 @@ contains
 
     GTY(NGT,46) = SNGL(VOLAVN)
 
+    ! Store data for 3D graphics
     CALL TXSTGR(NGT,GYL=GYT,NXM=NRMAX,NGM=NGTM,NUM=NGYRM)
 
     RETURN
@@ -963,7 +964,6 @@ contains
 
     use tx_commons, only : NRMAX, NGRM, NGR, MODEG, GT, DT, NGRSTP, R, NEMAX, H, &
          &              NRA, PSI, HPSI, GY, NGR, gDIV, GX
-!!$    use tx_interface, only : INTG_F
     INTEGER(4), INTENT(IN) :: MODE
     INTEGER(4), INTENT(IN) :: NGYRIN
     INTEGER(4) :: IND, NG, NR, NGYR, NE, IFNT, NRMAXL
@@ -1066,7 +1066,7 @@ contains
     CASE(1) 
        STR = '@n$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,1), GYL, STR, NRMAX, NRMAX, NGR, gDIV(1))
-       CALL TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+       CALL TXGRFRX(0, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX=0.2)
 
        STR = '@Z*n$-i$=+Z*n$-b$=+Z*n$-brp$=-n$-e$=@'
        CALL APPROPGY(MODEG, GY(0,0,2), GYL, STR, NRMAX, NRMAX, NGR, gDIV(2))
@@ -1102,7 +1102,7 @@ contains
 
        STR = '@u$-i$#f$#$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,8), GYL, STR, NRMAX, NRMAX, NGR, gDIV(8))
-       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND)
+       CALL TXGRFRX(2, GX, GYL, NRMAX, NGR, STR, MODE, IND, GYMAX=200.0, GYMIN=-100.0)
 
        CALL TXWPGR
 
@@ -1158,8 +1158,8 @@ contains
        STR = '@j$-r$=(r)@'
        CALL TXGRFRX(3,GX,GY(0,0,117),NRMAX,NGR,STR,MODE,IND)
 
-!!$       write(6,*) 'Er=', INTG_F(dble(GY(0:NRMAX,NGR,7)))
-!!$       write(6,*) 'jr=', INTG_F(dble(GY(0:NRMAX,NGR,117)))
+!!$       write(6,*) 'Er=', GY(21,NGR,9)
+!!$       write(6,*) 'jr=', GY(21,NGR,117)
 
 !       CALL TXWPGR
 
@@ -1219,7 +1219,7 @@ contains
        CALL TXGRFRX(0,GX,GY(0,0,14),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@T$-i$=(r)@'
-       CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(1,GX,GY(0,0,15),NRMAX,NGR,STR,MODE,IND,GYMAX=6.0)
 
        STR = '@p$-e$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,102), GYL, STR, NRMAX, NRMAX, NGR, gDIV(102))
@@ -1741,7 +1741,7 @@ contains
 
   SUBROUTINE TXGRCP(MODE)
 
-    use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, ETAS, &
+    use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, ETAS, ETA4, &
          &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV
     integer(4), intent(in) :: MODE
     character(len=50) :: STR
@@ -1809,16 +1809,17 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, GXMIN, GYMAX, ILOGIN)
+  SUBROUTINE TXGRFRX(K, GXL, GYL, NRMAX, NGMAX, STR, MODE, IND, &
+       &             GXMIN, GYMAX, GYMIN, ILOGIN)
 
     use tx_commons, only : RA, RB
     INTEGER(4), INTENT(IN) :: K, NRMAX, NGMAX, MODE, IND
     REAL(4), DIMENSION(:), INTENT(IN) :: GXL
     REAL(4), DIMENSION(0:NRMAX,1:NGMAX+1), INTENT(IN) :: GYL
-    real(4), intent(in), optional :: GXMIN, GYMAX
+    real(4), intent(in), optional :: GXMIN, GYMAX, GYMIN
     integer(4), intent(in), optional :: ILOGIN
     character(len=*), INTENT(IN) :: STR
-    integer(4) :: ILOG
+    integer(4) :: ILOG, IPRES
     REAL(4) :: GXMAX, GXMINL
     REAL(4), DIMENSION(4) :: GPXY
 
@@ -1845,12 +1846,23 @@ contains
        ILOG = 0
     END IF
 
-    IF(PRESENT(GYMAX)) THEN
-       CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
-            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG, GYMAX)
-    ELSE
+    IPRES = 0
+    IF(PRESENT(GYMAX)) IPRES = IPRES + 1
+    IF(PRESENT(GYMIN)) IPRES = IPRES + 2
+
+    IF(IPRES == 0) THEN
        CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
             &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG)
+    ELSEIF(IPRES == 1) THEN
+       CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
+            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG, GYMAX_IN=GYMAX)
+    ELSEIF(IPRES == 2) THEN
+       CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
+            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG, GYMIN_IN=GYMIN)
+    ELSE
+       CALL TXGRAF(GPXY, GXL, GYL, NRMAX+1, NRMAX+1, NGMAX+1, &
+            &            GXMINL, GXMAX, STR, 0.3, MODE, IND, ILOG, GYMAX_IN=GYMAX, &
+            &                                                      GYMIN_IN=GYMIN)
     END IF
 
     RETURN

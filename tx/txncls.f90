@@ -321,8 +321,8 @@ contains
     p_b2  = SNGL(BBL**2)
     p_bm2 = SNGL(1.D0 / BBL**2)
 
-!    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
-    p_eb  = SNGL(EphV(NR)*BphV(NR))
+    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
+!    p_eb  = SNGL(EphV(NR)*BphV(NR))
 !!$    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
 !!$    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
 !!$    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
@@ -370,7 +370,7 @@ contains
 !!    p_fm(1:3) = 0.0 ! No Pfirsch-Shulter viscosity
     p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
-    p_grbm2   = SNGL(1.D0/RA**2) * p_bm2
+    p_grbm2   = SNGL(1.D0/RA**2)
     p_grphi   = SNGL(-RA*ErV(NR))
 !    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0)) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
@@ -387,10 +387,10 @@ contains
     grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,0))
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-!!$    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
-!!$    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
-    grp_iz(1,1)       = SNGL((-AEE*PNeV(NR)*ErV(NR)-AEE*PNeV(NR)*(BphV(NR)*UethV(NR)-BthV(NR)*UephV(NR)))/rKeV) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL((PZ*AEE*PNiV(NR)*ErV(NR)+PZ*AEE*PNiV(NR)*(BphV(NR)*UithV(NR)-BthV(NR)*UiphV(NR)))/rKeV) * 1.E20
+    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
+!!$    grp_iz(1,1)       = SNGL((-AEE*PNeV(NR)*ErV(NR)-AEE*PNeV(NR)*(BphV(NR)*UethV(NR)-BthV(NR)*UephV(NR)))/rKeV) * 1.E20
+!!$    grp_iz(2,INT(PZ)) = SNGL((PZ*AEE*PNiV(NR)*ErV(NR)+PZ*AEE*PNiV(NR)*(BphV(NR)*UithV(NR)-BthV(NR)*UiphV(NR)))/rKeV) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)

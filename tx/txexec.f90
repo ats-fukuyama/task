@@ -301,12 +301,12 @@ contains
   SUBROUTINE TXCALB(BA,BL,BX)
 
     use tx_commons, only : IGBDF, ADV, MDLPCK, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
-         &              PLC, X, XOLD
+         &              PLC, X, XOLD!, lqb1, pnbv
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
     INTEGER(4) :: I, J, NR, NQ, NC, NC1, IA, IB, IC
     INTEGER(4) :: JA, JB, JC, KL
-    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
+    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3!, suml1,suml2
     
     IF(IGBDF /= 0) ADV = C23
 
@@ -416,6 +416,17 @@ contains
              END DO
           END DO
        END DO
+
+!!$       ! Ratio between stochastic loss and other losses
+!!$       suml1 = 0.d0
+!!$       do nr=0,26
+!!$          suml1 = suml1 + BLC(7,lqb1,nr) * PNbV(nr)
+!!$       end do
+!!$       suml2 = 0.d0
+!!$       do nr=27,nrmax
+!!$          suml2 = suml2 + BLC(7,lqb1,nr) * PNbV(nr)
+!!$       end do
+!!$       write(6,*) suml1,suml2
 
     END IF
 
