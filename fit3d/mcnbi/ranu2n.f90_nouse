@@ -1,0 +1,46 @@
+      SUBROUTINE RANU2N(A,ICON)
+
+  USE mcnmod, ONLY : mm, mm2, ntest, iss, ixm 
+  IMPLICIT NONE
+
+  REAL(4),INTENT(OUT):: a(ntest)
+  INTEGER(4),INTENT(OUT):: icon
+  INTEGER(4):: i, j
+  REAL(4):: am(mm2)
+  REAL(8):: x(mm2)
+  INTEGER(4):: ix=959321
+
+      if (iss.eq.0) then
+        call ranu2(ix,am,mm2,icon)
+      print *, ' ix =', ix 
+      do j=1, mm2 
+        ixm(j)=am(j)*ix
+        print *, ' ixm(',j,') =', ixm(j), ' am(',j,')=',am(j) 
+      end do
+      iss=1
+      end if
+
+!CDIR NODEP
+      do j=1, mm2 
+        X(j)=DFLOAT(IXM(j))/2147483648.D0
+      end do
+
+!      N1=N/MM
+
+      DO I=1,MM
+!CDIR NODEP
+        do j=1,MM2            
+          X(j)=X(j)*32771.D0+0.574890473391860723D0
+          X(j)=X(j)-INT(X(j))
+          A(MM2*(I-1)+j)=X(j)
+        end do
+      end do
+
+!CDIR NODEP
+      do j=1, MM2 
+        IXM(j)=X(j)*2147483648.D0
+      end do
+      ICON=0
+
+      RETURN
+      END
