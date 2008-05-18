@@ -398,11 +398,11 @@
 
   IMPLICIT NONE
   INTEGER(4),INTENT(IN) :: n
-  REAL,INTENT(IN) :: y(n), dydx(n), x, h
-  REAL,INTENT(OUT):: yout(n)
+  REAL(8),INTENT(IN) :: y(n), dydx(n), x, h
+  REAL(8),INTENT(OUT):: yout(n)
   INTEGER(4), PARAMETER :: nmax=10
   INTEGER(4):: i
-  REAL:: hh, h6, xh, yt(nmax), dyt(nmax), dym(nmax)
+  REAL(8):: hh, h6, xh, yt(nmax), dyt(nmax), dym(nmax)
 
       hh=h*0.5
       h6=h/6.

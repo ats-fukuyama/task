@@ -2194,15 +2194,15 @@ MODULE hfreya_all
   INTEGER(4),INTENT(IN):: n, n0, i
   REAL(8),INTENT(IN) :: x(*), y0(*), x0(*)
   REAL(8),INTENT(OUT):: y(*),w(4,*)
-  INTEGER(4),PARAMETER :: n$d=202
-  INTEGER(4) :: j, kp, m, n1, n2, ip(n$d)
-  REAL(8) :: xmin, xmax, xx, z, dx(n$d),dy(n$d),y1(n$d)
+  INTEGER(4),PARAMETER :: ndim=202
+  INTEGER(4) :: j, kp, m, n1, n2, ip(ndim)
+  REAL(8) :: xmin, xmax, xx, z, dx(ndim),dy(ndim),y1(ndim)
 
  999  FORMAT(//' $$$$$$spln$$$$$ n0 (=',i4,') is larger than', &
      &       ' allowed dimension size (=',i4,')')
 
-      IF(n0.gt.n$d) THEN
-        PRINT 999,n0,n$d
+      IF(n0.gt.ndim) THEN
+        PRINT 999,n0,ndim
         STOP                              999
       ELSE IF(i.eq.0) THEN
         n2= n0-2
