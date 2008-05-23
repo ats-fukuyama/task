@@ -146,8 +146,6 @@ C---- INTEGRAL ABBREVIATIONS
 C
       DO NI = 0, 2
       DO NA = 0, 2
-c      NI=1
-c      NA=1
 
       DO L=0,LLMAX
          TX1(1)=0.D0
@@ -156,11 +154,15 @@ c      NA=1
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             RUFP = (PTFD0*PM(NNP))/AMFD
-c            RUFP = (PTFP0*PM(NNP))/AMFP
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             TX1(NNP+1)=PM(NNP)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+NI))/RGAMB
      &           *RJ_1(L+NI,NA)
+
+               IF(L.eq.2.and.NA.eq.1.and.NI.eq.1)THEN
+c               write(*,765) NNP,RUFP/VC,TY1(NNP),FPL(NNP,L),RJ_1(L+1,1)
+               END IF
+
          END DO
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
@@ -196,7 +198,6 @@ C-------
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
             RUFP = (PTFD0*PM(NNP))/AMFD
-c            RUFP = (PTFP0*PM(NNP))/AMFP
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             TX1(NNP+1)=PM(NNP)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+NI))/RGAMB
@@ -227,9 +228,6 @@ c            RUFP = (PTFP0*PM(NNP))/AMFP
             ELSE
                RYABG(NPG,L,NI,NA)=0.D0
             ENDIF
-
-c         IF(NI.eq.1.and.NA.eq.1.and.L.eq.0)
-c     &           WRITE(*,*)NPG,L, RYABG(NPG,L,0,0), PCRIT, PTFD0
 
          END DO
       END DO
@@ -366,34 +364,110 @@ C
 
 
             rz = RUFP/VC
-            sinh=LOG(rz+SQRT(1.D0+rz**2))
+c            RSIGMA=LOG(rz+SQRT(1.D0+rz**2))
+         RSIGMA = RZ - RZ**3/6.D0 +9.D0/120.D0*RZ**5
             rgama=SQRT(1+rz**2)
+            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NP)
 
-            IF(L.eq.LLMAX)then
+            IF(L.eq.LLMAX+1)then
                write(*,765) NP
-c     &              ,DPSI022G(NP,L)/VC**2*4.D0
-c     &              ,-DPSI02G(NP,L)
-c     &              ,-PSI022G(NP,L)*4.D0/RUFP/VC**2
-c     &              ,PSI02G(NP,L)/RUFP
+c     &              ,DPSI02G(NP,L)*2.D0*RGAMA**2
+c     &              ,-DPSI022G(NP,L)*8.D0*RGAMA**2/VC**2
+c     &              ,-RUFP*PSI0G(NP,L)
+c     &              ,-L*(L+1)/RUFP*PSI02G(NP,L)
+c     &              ,(8.D0*RUFP/VC**4+4.D0*L*(L+1)/RUFP/VC**2)
+c     &              *PSI022G(NP,L)
 
-c     &              ,(DPSI022G(NP,L)/VC**2*4.D0
-c     &              -DPSI02G(NP,L)
-c     &              -PSI022G(NP,L)*4.D0/RUFP/VC**2
-c     &              +PSI02G(NP,L)/RUFP)
-c*rgama/rufp
+c     &              ,(DPSI02G(NP,L)*2.D0*RGAMA**2
+c     &              -DPSI022G(NP,L)*8.D0*RGAMA**2/VC**2
+c     &              -RUFP*PSI0G(NP,L)
+c     &              -L*(L+1)/RUFP*PSI02G(NP,L)
+c     &              +(8.D0*RUFP/VC**4+4.D0*L*(L+1)/RUFP/VC**2)
+c     &              *PSI022G(NP,L))*RGAMA/RUFP
 
-     &              ,RJABG(NP,L,1,1)*RY_1(L,0)
-     &              ,-RJABG(NP,L,0,2)*RUFP*RY_1(L-1,1)
-     &              ,RYABG(NP,L,0,0)*RUFP*RJ_1(L+1,1)
-     &              ,-RYABG(NP,L,1,1)*RJ_1(L,2)
-     &              ,RJABG(NP,L,1,1),RY_1(L,0)
+c     &              ,(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NP)
+c     &              ,RJABG(NP,L,1,1),RJABG(NP,L,0,2)
+c     &              ,RYABG(NP,L,0,0),RYABG(NP,L,1,1)
+
+c     &              ,DERY(L,0)*RJABG(NP,L,1,1)
+c     &              ,-(RY_1(L-1,1)+RUFP*DERY(L-1,1))*RJABG(NP,L,0,2)
+cc     &              ,(RJ_1(L+1,1)+RUFP*DERJ(L+1,1))*RYABG(NP,L,0,0)
+c     &              ,-DERJ(L,2)*RYABG(NP,L,1,1)
+
+cc     &              ,RJ_1(L+1,1), DERJ(L+1,1)*RUFP
+cc     &              ,RYABG(NP,L,0,0)
+
+     &              ,RZ
+
+c     &              ,RJ_1(2,0)
+c     &              ,(1.D0/60.D0*RZ**2+9.D0/60.D0*RZ**3)/4.D0
+c     &              ,RJ_1(2,1)
+c     &              
+
+c     &              ,RJ_1(2,2) 
+c     &       , (2.D0*RGAMA*RZ**3-3.D0*RZ*RGAMA+3.D0*RSIGMA)/24.D0/RZ**3
+
+     &              ,RJ_1(4,0)
+     &              ,RJ_1(4,1)
+     &              ,RJ_1(3,2)
+
+c     &              ,RY_1(2,0)
+c     &              -( -(1.D0+2.D0*RGAMA**2)/RZ**3)
+c     &              ,RY_1(2,1)
+c     &              -( -3.D0*RGAMA/RZ**3)
+c     &              ,RY_1(2,2)
+c     &              -( -3.D0/RZ**3)
+
+c     &              ,RY_1(3,0)
+c     &              -( -(3.D0*RGAMA*(3.D0+2.D0*RGAMA**2))/RZ**4)
+c     &              ,RY_1(3,1)
+c     &              - (-3.D0*(1.D0+4.D0*RGAMA**2)/RZ**4)
+c     &              ,RY_1(3,2)
+c     &              - (-15.D0*RGAMA/RZ**4)
+
+c     &              ,RY_1(4,0)
+c     &              - (-3.D0*(8.D0*RGAMA**4+24.D0*RGAMA**2+3.D0)/RZ**5)
+c     &              ,RY_1(4,1)
+c     &              - (-15.D0*RGAMA*(4.D0*RGAMA**2+3.D0)/RZ**5 )
+c     &              ,RY_1(4,2)
+c     &              - ( -15.D0*(6.D0*RGAMA**2+1.D0)/RZ**5 )
+
+c     &              ,1.D0/RZ*4,1.D0/RZ**5
+
+c     &              ,RJ_1(4,0)
+c     &              ,((24.D0*RGAMA**4+72.D0*RGAMA**2+9.D0)*RSIGMA
+c     &              -(50.D0*RGAMA**2+55.D0)*RGAMA*RZ)/576.D0/RZ**5
+c     &              ,RJ_1(4,1)
+c     &              ,((6.D0*rgama**4+83.D0*RGAMA**2+16.D0)*RZ
+c     &              -(60.D0*RGAMA**2+45.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
+c     &              ,RJ_1(4,2)
+c     &              ,((90.D0*RGAMA**2+15.D0)*RSIGMA + 
+c     &              (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ)
+c     &              /1440.D0/RZ**5
            END IF
 
          END DO
       END DO
+
+c      Do NN = 1,100
+c         RZ = 1.D-5 * NN * 5.D0
+c         RUFP = RZ * VC
+c         RGAMA = SQRT(1.D0+RZ**2)
+c         RSIGMA = 
+c     &        5.D0/384.D0*RZ**9
+c     &        -5.D0/112.D0*RZ**7
+c     &        +3.D0/40.D0*RZ**5
+c     &        -RZ**3/6.D0 
+c     &        +RZ
+
+c         CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
+c         WRITE(*,765) NN, RZ
+c, RSIGMA-LOG(RZ+RGAMA)
+c     &        ,RJ_1(2,0), RJ_1(2,1), RJ_1(2,2)
+c      END Do
       
 
- 765  FORMAT(I2, 6E14.6)
+ 765  FORMAT(I3, 8E14.6)
 C
 C----------END OF ON GIRD
 C---- END OF PSI AND IT'S DERIVATIVES
@@ -437,7 +511,8 @@ C-----DCPP & FCPP-----------------
 
       DO NTH=1,NTHMAX
          DCPP(NTH,1,NR)=RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
-     &        *(PTFP0/(SQRT(2.D0)*PTFDL)) +DCPP(NTH,1,NR)
+     &        *(PTFP0/(SQRT(2.D0)*PTFDL))*AMFD/AMFP
+     &        +DCPP(NTH,1,NR)
          FCPP(NTH,1,NR)=0.D0
       END DO
 C-----DCTT & FCTH--------------------
@@ -525,7 +600,6 @@ C-----DCPT & DCTP
          END DO
       END DO
 
-
       RETURN
       END
 
@@ -561,22 +635,34 @@ C
 C
 C---- END OF INITIALIZATION
 C
-      RGAMMA= sqrt(1.D0+(RUFP/VC)**2)
+      RGAMA= sqrt(1.D0+(RUFP/VC)**2)
+      RZ = RUFP/VC
+      IF(RZ.le.1.d-1)THEN
+         RSIGMA = 
+     &        5.D0/384.D0*RZ**9
+     &        -5.D0/112.D0*RZ**7
+     &        +3.D0/40.D0*RZ**5
+     &        -RZ**3/6.D0 
+     &        +RZ
+
+      ELSE
+         RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
+      END IF
+
 C
 C---- FIRST KIND LEGENDRE FUNCTION FOR J
 C
-      RZ=RUFP/VC
-      RSIGMA=LOG(RZ+SQRT(1.D0+RZ**2))
       FKLF_J(0,0) = sqrt(2.D0*VC/PI/RUFP)
      &     *RSIGMA
       FKLF_J(0,1) = sqrt(2.D0*RUFP/PI/VC)
-      FKLF_J(0,2) = sqrt(2.D0*RUFP/PI/VC)*RGAMMA
+      FKLF_J(0,2) = sqrt(2.D0*RUFP/PI/VC)*RGAMA
       FKLF_J(0,-1) = FKLF_J(0,1)
+
 C
 C---- FIRST KIND LEGENDRE FUNCTION FOR Y
 C
       FKLF_Y(0,0) = sqrt(2.D0*VC/PI/RUFP)
-      FKLF_Y(0,1) = sqrt(2.D0*VC/PI/RUFP)*RGAMMA
+      FKLF_Y(0,1) = sqrt(2.D0*VC/PI/RUFP)*RGAMA
       FKLF_Y(0,2) = sqrt(2.D0*RUFP/PI/VC)
      &     *(VC/RUFP+2.D0*RUFP/VC)
       FKLF_Y(0,-1) = FKLF_Y(0,1)
@@ -585,50 +671,124 @@ C---- RECURRENCE EQUATION
 C
       Do L = 0, LLMAX+1
          Do NA = 0, 2
-            FKLF_J(L+1,NA) = (RGAMMA*FKLF_J(L,NA)-FKLF_J(L,NA-1))
+            FKLF_J(L+1,NA) = (RGAMA*FKLF_J(L,NA)-FKLF_J(L,NA-1))
      &           *VC/RUFP/DBLE(NA+L+1)
             FKLF_Y(L+1,NA) = 
-     &           ( (NA-L-1)*RGAMMA*FKLF_Y(L,NA)-(NA+L)*FKLF_Y(L,NA-1) )
+     &           ( (NA-L-1)*RGAMA*FKLF_Y(L,NA)-(NA+L)*FKLF_Y(L,NA-1) )
      &           *VC/RUFP
          END DO
+
          FKLF_J(L+1,-1)=FKLF_J(L+1,1)
          FKLF_Y(L+1,-1)=FKLF_Y(L+1,1)
       END DO
 
 C
-C---- MINUS L
+C--- ANALYZED J, Y
 C
-c      Do NA = -1,2
-c         FKLF_J(-1,NA) = - FKLF_Y(0,NA)
-c         FKLF_Y(-1,NA) = FKLF_J(0,NA)
-c         FKLF_J(-2,NA) = FKLF_Y(1,NA)
-c         FKLF_Y(-2,NA) = - FKLF_J(1,NA)
-c      END DO
 
+         RJ_1(0,0) = RSIGMA/RZ
+         RJ_1(0,1) = 1.D0
+         RJ_1(0,2) = RGAMA
+         
+         RJ_1(1,0) = (RGAMA*RSIGMA-RZ)/RZ**2
+         RJ_1(1,1) = (RZ*RGAMA-RSIGMA)*0.5D0/RZ**2
+         RJ_1(1,2) = RZ / 3.D0
+         
+         IF(RZ.le.2.D-4)THEN
+            RJ_1(2,0) = ( (4.D0/15.D0)*RZ**2 
+     &           -(15.D0/112.D0+3.D0/80.D0)*RZ**4 )/4.D0
+            RJ_1(2,1) =(3.D0/12.D0*RZ**2 - 29.D0/80.D0*RZ**4 )/6.D0
+            RJ_1(2,2) = (8.D0/5.D0*RZ**2 - 4.D0/7.D0*RZ**4 )/24.D0
+         ELSE
+            RJ_1(2,0) = ( (2.D0*RGAMA**2+1.D0)*RSIGMA-3.D0*RGAMA*RZ )
+     &           /4.D0/RZ**3
+            RJ_1(2,1) =((RGAMA**2+2.D0)*RZ-3.D0*RGAMA*RSIGMA)/6.D0/RZ**3
+            RJ_1(2,2) = 
+     &          (2.D0*RGAMA*RZ**3-3.D0*RZ*RGAMA+3.D0*RSIGMA)/24.D0/RZ**3
+         END IF
 
-c      DO L=0,2
-c         write(*,935) (FKLF_J(L,NA), NA=-1,2)
-c      END DO
-c      write(*,*) RUFP/VC
-C
-C--- TRANSFORM P TO J OR Y
-C
+         RY_1(0,0) = -1.D0/RZ
+         RY_1(0,1) = -RGAMA/RZ
+         RY_1(0,2) = -(1.D0+2.D0*RZ**2)/RZ
+
+         RY_1(1,0) = -RGAMA/RZ**2
+         RY_1(1,1) = -1.D0/RZ**2
+         RY_1(1,2) = -(1.D0-2.D0*RZ**2)*RGAMA/RZ**2
+
+         RY_1(2,0) = -(1.D0+2.D0*RGAMA**2)/RZ**3
+         RY_1(2,1) = -3.D0*RGAMA/RZ**3
+         RY_1(2,2) = -3.D0/RZ**3
+
+         IF(LLMAX.ge.1)THEN
+            IF(RZ.le.1.D-2)THEN
+            RJ_1(3,0) = 
+     &           ( (81.D0/80.D0-75.D0/112.D0)*RZ**3
+     &              -13.D0/320.D0*RZ**5-9.D0/160.D0*RZ**7
+     &              )/36.D0
+            RJ_1(3,1) =
+     &           ( (11.D0/16.D0-0.9D0+75.D0/112.D0)*RZ**3
+     &           + (1.D0/8.D0+15.D0/28.D0)*RZ**5)/48.D0
+            RJ_1(3,2) =
+     &           ( (29.D0/240.D0-5.D0/112.D0)*RZ**3
+     &           -(11.D0/336.D0+3.D0/320.D0)*RZ**5 )*15.D0/120.D0
+
+            ELSE
+            RJ_1(3,0) = 
+     &           ( (6.D0*RGAMA**2+9.D0)*RGAMA*RSIGMA
+     &           -(11.D0*RGAMA**2+4.D0)*RZ )/36.D0/RZ**4
+            RJ_1(3,1) = 
+     &           ((2.D0*RGAMA**2+13.D0)*RGAMA*RZ
+     &           -3.D0*(4.D0*RGAMA**2+1.D0)*RSIGMA)/48.D0/RZ**4
+            RJ_1(3,2) = 
+     &           (2.D0*RGAMA**2*RZ**3-(7.D0*RGAMA**2+8.D0)*RZ
+     &           +15.D0*RGAMA*RSIGMA )/120.D0/RZ**4
+            END IF
+            RY_1(3,0) = -(3.D0*RGAMA*(3.D0+2.D0*RGAMA**2))/RZ**4
+            RY_1(3,1) = -3.D0*(1.D0+4.D0*RGAMA**2)/RZ**4
+            RY_1(3,2) = -15.D0*RGAMA/RZ**4
+
+         END IF
+
+         IF(LLMAX.ge.2)THEN
+            RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
+            IF(RZ.le.3.D-2)THEN
+               RJ_1(4,0) = (9.D0/5.D0)*RZ**4/576.D0
+               RJ_1(4,1) = ((357.D0/64.D0)*RZ**4 
+     &              -(999.D0/224.D0+19.D0/16.D0)*RZ**6 )/720.D0
+               RJ_1(4,2) = (525.D0/96.D0-267.D0/56.D0)*RZ**4/1440.D0
+            ELSE
+               ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
+               RJ_1(4,0) = 
+c((24.D0*RGAMA**4+72.D0*RGAMA**2+9.D0)*RSIGMA
+c     &              -5.D0*(10.D0*RGAMA**2+11.D0)*RGAMA*RZ)/576.D0/RZ**5
+     &              (3.D0*(8.D0*RZ**4+4.D1*RZ**2)*RSIGMA
+     &              -50.D0*RGAMA*RZ**3+RA1)/576.D0/RZ**5
+
+               RJ_1(4,1) = ((6.D0*rgama**4+83.D0*RGAMA**2+16.D0)*RZ
+     &              -(60.D0*RGAMA**2+45.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
+               RJ_1(4,2) = ((90.D0*RGAMA**2+15.D0)*RSIGMA + 
+     &              (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ)
+     &              /1440.D0/RZ**5               
+            END IF
+            RY_1(4,0) = 
+     &           -3.D0*(8.D0*RGAMA**4+24.D0*RGAMA**2+3.D0)/RZ**5
+            RY_1(4,1) = 
+     &           -15.D0*RGAMA*(4.D0*RGAMA**2+3.D0)/RZ**5
+            RY_1(4,2) = 
+     &           -15.D0*(6.D0*RGAMA**2+1.D0)/RZ**5
+         END IF
 
       DO NA=0,2
-         Do L=0,LLMAX+2
-             RJ_1(L,NA)=SQRT(PI*VC/2.D0/RUFP)*FKLF_J(L,NA)
-             RY_1(L,NA)=SQRT(PI*VC/2.D0/RUFP)*FKLF_Y(L,NA)*(-1)**(-L-1)
-         END DO
+c         Do L=0,LLMAX+2
+c             RJ_1(L,NA)=SQRT(PI*VC/2.D0/RUFP)*FKLF_J(L,NA)
+c             RY_1(L,NA)=SQRT(PI*VC/2.D0/RUFP)*FKLF_Y(L,NA)*(-1)**(-L-1)
+c         END DO
          RJ_1(-1,NA) = - RY_1(0,NA)
          RY_1(-1,NA) = RJ_1(0,NA)
          RJ_1(-2,NA) = RY_1(1,NA)
          RY_1(-2,NA) = - RJ_1(1,NA)
       END DO
 
-c      DO L=0,2
-c         write(*,935) (RJ_1(L,NA), NA=0,2)
-c      END DO
-c      write(*,*) RUFP/VC
 
  935  FORMAT(4E12.4)
       Return
@@ -654,14 +814,14 @@ C
 C
 C---- END OF INITIALIZATION
 C
-      RGAMMA= sqrt(1.D0+(RUFP/VC)**2)
+      RGAMA= sqrt(1.D0+(RUFP/VC)**2)
 
       DO NA = 0, 2
          DO L= -1, LLMAX+2
-           DERJ(L,NA) = RJ_1(L-1,NA)/(VC*RGAMMA) - (L+1)/RUFP*RJ_1(L,NA)
+           DERJ(L,NA) = RJ_1(L-1,NA)/(VC*RGAMA) - (L+1)/RUFP*RJ_1(L,NA)
          END DO
          DO L= -2, LLMAX+1
-           DERY(L,NA) =-RY_1(L+1,NA)/(VC*RGAMMA) + L/RUFP*RY_1(L,NA)
+           DERY(L,NA) =-RY_1(L+1,NA)/(VC*RGAMA) + L/RUFP*RY_1(L,NA)
          END DO
       END DO
 

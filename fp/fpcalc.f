@@ -135,18 +135,22 @@ c     end of check
 
 
          DO NS=1,NSMAX
-         DO NP = 1, NPMAX
+         DO NP = 2, NPMAX
             NTH=2
             TMC2FP0=(PTFP0/(AMFP*VC))**2
-            RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
-c            WRITE(*,765) NP, PG(NP)
+            IF(MODELR.eq.1)THEN
+               RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
+            ELSE
+               RGAMA = 1.D0
+            END IF
+            WRITE(*,765) NP, PG(NP)
 c     &              ,DCPP2(NTH,NP,1,NS),FCPP2(NTH,NP,1,NS)
 c     &              ,DCTT2(NTH,NP,1,NS)
-Cc     &              ,FCPP(NTH,NP,1)*RGAMA/DCPP(NTH,NP,1)/PG(NP)
+     &              ,FCPP(NTH,NP,1)*RGAMA/DCPP(NTH,NP,1)/PG(NP)
 c     &              ,FCTH2(NTH,NP,1,NS),DCPT2(NTH,NP,1,NS)
          END DO
-c         write(*,*)" "
-c         write(*,*)" "
+         write(*,*)" "
+         write(*,*)" "
          END DO
  765     FORMAT(I2, 6E14.6)
 
