@@ -65,6 +65,20 @@ contains
          &     PE,PI,DPE,DPI
     real(8) :: F31TEFF,F32EETEFF,F32EITEFF,F34TEFF,F33TEFF
 
+    ! On magnetic axis, the neoclassical resistivity reduces to the classical resistivity
+    ! and the bootstrap current vanishes.
+    IF(EPS == 0.D0) THEN
+       RNZ = 0.58D0+0.74D0/(0.76D0+ZEFF)
+       LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
+       IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
+
+       JBS = 0.D0
+       ETA = 1.D0 / (1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame))
+       IF(PRESENT(JBSB)) JBSB = 0.D0
+       IF(PRESENT(ETAS)) ETAS = ETA
+       RETURN
+    END IF
+
     EPSS = SQRT(EPS)**3
     QABS = ABS(Q)
 

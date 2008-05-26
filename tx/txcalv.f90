@@ -155,7 +155,7 @@ contains
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, rhop, Rpotato, ETASL
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
@@ -1106,6 +1106,9 @@ contains
        ! the banana tip point, DltRP(NR).
 
        !  -- Collisional diffusion of trapped fast particles --
+       IF(PNBH == 0.D0) THEN
+          Dbrp(0:NRMAX) = 0.D0
+       ELSE
        do nr = 1, nrmax
           RL = R(NR)
           EpsL = RL / RR
@@ -1178,7 +1181,6 @@ contains
        !   particles changes themselves to the potato particles.
        !   Inside the point, the particle orbit is no longer changed.
        do nr = 0, nrmax
-          rhop = AMb * Vb / (PZ * AEE * BthV(NR)) ! poloidal Larmor radius
           ! potato width (Helander and Sigmar, p133)
           Rpotato = (Q(NR)**2*(AMb * Vb / (PZ * AEE * BphV(NR)))**2*RR)**(1.D0/3.D0)
           if(r(nr) > Rpotato) then
@@ -1189,6 +1191,7 @@ contains
        do nr = 0, nr_potato
           Dbrp(nr)  = Dbrp(nr_potato+1)
        end do
+       END IF
 
        !     ***** Neoclassical toroidal viscosity (NTV) *****
        !      "rNuNTV" and "UastNC" are obtained from NTVcalc
