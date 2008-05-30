@@ -159,10 +159,6 @@ C
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+NI))/RGAMB
      &           *RJ_1(L+NI,NA)
 
-               IF(L.eq.2.and.NA.eq.1.and.NI.eq.1)THEN
-c               write(*,765) NNP,RUFP/VC,TY1(NNP),FPL(NNP,L),RJ_1(L+1,1)
-               END IF
-
          END DO
          TX1(NPMAX+2)=PMAX
          TY1(NPMAX+2)=0.D0
@@ -371,80 +367,7 @@ c            RSIGMA=LOG(rz+SQRT(1.D0+rz**2))
 
             IF(L.eq.LLMAX+1)then
                write(*,765) NP
-c     &              ,DPSI02G(NP,L)*2.D0*RGAMA**2
-c     &              ,-DPSI022G(NP,L)*8.D0*RGAMA**2/VC**2
-c     &              ,-RUFP*PSI0G(NP,L)
-c     &              ,-L*(L+1)/RUFP*PSI02G(NP,L)
-c     &              ,(8.D0*RUFP/VC**4+4.D0*L*(L+1)/RUFP/VC**2)
-c     &              *PSI022G(NP,L)
-
-c     &              ,(DPSI02G(NP,L)*2.D0*RGAMA**2
-c     &              -DPSI022G(NP,L)*8.D0*RGAMA**2/VC**2
-c     &              -RUFP*PSI0G(NP,L)
-c     &              -L*(L+1)/RUFP*PSI02G(NP,L)
-c     &              +(8.D0*RUFP/VC**4+4.D0*L*(L+1)/RUFP/VC**2)
-c     &              *PSI022G(NP,L))*RGAMA/RUFP
-
-c     &              ,(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NP)
-c     &              ,RJABG(NP,L,1,1),RJABG(NP,L,0,2)
-c     &              ,RYABG(NP,L,0,0),RYABG(NP,L,1,1)
-
-c     &              ,DERY(L,0)*RJABG(NP,L,1,1)
-c     &              ,-(RY_1(L-1,1)+RUFP*DERY(L-1,1))*RJABG(NP,L,0,2)
-cc     &              ,(RJ_1(L+1,1)+RUFP*DERJ(L+1,1))*RYABG(NP,L,0,0)
-c     &              ,-DERJ(L,2)*RYABG(NP,L,1,1)
-
-cc     &              ,RJ_1(L+1,1), DERJ(L+1,1)*RUFP
-cc     &              ,RYABG(NP,L,0,0)
-
-     &              ,RZ
-
-c     &              ,RJ_1(2,0)
-c     &              ,(1.D0/60.D0*RZ**2+9.D0/60.D0*RZ**3)/4.D0
-c     &              ,RJ_1(2,1)
-c     &              
-
-c     &              ,RJ_1(2,2) 
-c     &       , (2.D0*RGAMA*RZ**3-3.D0*RZ*RGAMA+3.D0*RSIGMA)/24.D0/RZ**3
-
-     &              ,RJ_1(4,0)
-     &              ,RJ_1(4,1)
-     &              ,RJ_1(3,2)
-
-c     &              ,RY_1(2,0)
-c     &              -( -(1.D0+2.D0*RGAMA**2)/RZ**3)
-c     &              ,RY_1(2,1)
-c     &              -( -3.D0*RGAMA/RZ**3)
-c     &              ,RY_1(2,2)
-c     &              -( -3.D0/RZ**3)
-
-c     &              ,RY_1(3,0)
-c     &              -( -(3.D0*RGAMA*(3.D0+2.D0*RGAMA**2))/RZ**4)
-c     &              ,RY_1(3,1)
-c     &              - (-3.D0*(1.D0+4.D0*RGAMA**2)/RZ**4)
-c     &              ,RY_1(3,2)
-c     &              - (-15.D0*RGAMA/RZ**4)
-
-c     &              ,RY_1(4,0)
-c     &              - (-3.D0*(8.D0*RGAMA**4+24.D0*RGAMA**2+3.D0)/RZ**5)
-c     &              ,RY_1(4,1)
-c     &              - (-15.D0*RGAMA*(4.D0*RGAMA**2+3.D0)/RZ**5 )
-c     &              ,RY_1(4,2)
-c     &              - ( -15.D0*(6.D0*RGAMA**2+1.D0)/RZ**5 )
-
-c     &              ,1.D0/RZ*4,1.D0/RZ**5
-
-c     &              ,RJ_1(4,0)
-c     &              ,((24.D0*RGAMA**4+72.D0*RGAMA**2+9.D0)*RSIGMA
-c     &              -(50.D0*RGAMA**2+55.D0)*RGAMA*RZ)/576.D0/RZ**5
-c     &              ,RJ_1(4,1)
-c     &              ,((6.D0*rgama**4+83.D0*RGAMA**2+16.D0)*RZ
-c     &              -(60.D0*RGAMA**2+45.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
-c     &              ,RJ_1(4,2)
-c     &              ,((90.D0*RGAMA**2+15.D0)*RSIGMA + 
-c     &              (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ)
-c     &              /1440.D0/RZ**5
-           END IF
+            END IF
 
          END DO
       END DO

@@ -143,14 +143,14 @@ c     end of check
             ELSE
                RGAMA = 1.D0
             END IF
-            WRITE(*,765) NP, PG(NP)
+c            WRITE(*,765) NP, PG(NP)
 c     &              ,DCPP2(NTH,NP,1,NS),FCPP2(NTH,NP,1,NS)
 c     &              ,DCTT2(NTH,NP,1,NS)
-     &              ,FCPP(NTH,NP,1)*RGAMA/DCPP(NTH,NP,1)/PG(NP)
+c     &              ,FCPP(NTH,NP,1)*RGAMA/DCPP(NTH,NP,1)/PG(NP)
 c     &              ,FCTH2(NTH,NP,1,NS),DCPT2(NTH,NP,1,NS)
          END DO
-         write(*,*)" "
-         write(*,*)" "
+c         write(*,*)" "
+c         write(*,*)" "
          END DO
  765     FORMAT(I2, 6E14.6)
 

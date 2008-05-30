@@ -69,14 +69,8 @@ C
       RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
       RTFPS=PTS(NSFP)
 C
-C      IF(MODELR.EQ.0) THEN
-         PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
-         VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
-C      ELSE
-C         RKE=RTFP0*1.D3*AEE
-C         PTFP0=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
-C         VTFP0=PTFP0/SQRT(AMFP**2+PTFP0**2/VC**2)
-C      ENDIF
+      PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
+      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
 C
 C     ----- set profile data -----
 C
@@ -91,28 +85,20 @@ C
          if(NSFPMA.eq.NSFPMI)NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1))
          IF(NTG3.eq.1)THEN
             DO NS=1,NSMAX
-               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+c               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
             END DO
          END IF
 
          IF(NTG2.ge.NSFPMA+1)THEN
             IF(MODELC.eq.1.or.MODELC.eq.3)THEN
                RTFP(NR)=PTT2(NTG3-1,NSFP)
-c               IF(MODELR.eq.1)THEN
-
-c               END IF
+     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
             END IF
          END IF
-c         write(*,*) "temperature",RTFP(NR)
+c         write(*,*) "temperature",PTT(1), RTFP(1)
 
-C         IF(MODELR.EQ.0) THEN
-            PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
-            VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
-C         ELSE
-C            RKE=RTFP(NR)*1.D3*AEE
-C            PTFP(NR)=SQRT(RKE*RKE+2.D0*RKE*AMFP*VC*VC)/VC
-C            VTFP(NR)=PTFP(NR)/SQRT(AMFP**2+PTFP(NR)**2/VC**2)
-C         ENDIF
+         PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
+         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
          RNE=RN(1)
          RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
          DO NS=1,NSMAX
@@ -124,20 +110,11 @@ C         ENDIF
                IF(MODELC.eq.1.or.MODELC.eq.3)THEN
                   IF(NS.ge.NSFPMI.and.NS.le.NSFPMA)
      &                 RTFD(NR,NS)=PTT2(NTG3-1,NS)
-c                  IF(MODELR.eq.1)THEN
-
-c                  END IF
+     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
                END IF
             END IF
-C            IF(MODELR.EQ.0) THEN
                PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
                VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
-C            ELSE
-C               RKE=RTFD(NR,NS)*1.D3*AEE
-C               PTFD(NR,NS)=SQRT(RKE*RKE+2.D0*RKE*AMFD*VC*VC)/VC
-C               VTFD(NR,NS)=PTFD(NR,NS)
-C     &                    /SQRT(AMFD**2+PTFD(NR,NS)**2/VC**2)
-C            ENDIF
             IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
                RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
             ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
@@ -152,6 +129,7 @@ C            ENDIF
      &                 /(2*AMFD*VTFD(NR,NS)**2*PTFP0)
          ENDDO
       ENDDO
+
 C
 C     ----- set poloidal magneticl field -----
 C
@@ -363,6 +341,7 @@ c     &        ,FNS(NTHMAX,NP,NR,2)
 c     &        ,FNS(1,NP,NR,2),PM(NP)
       ENDDO
       ENDDO
+
 c-----distribution of beam ion 
       IF(NSBM.ne.0)THEN
       sum1=0.D0
@@ -520,6 +499,7 @@ C
       CALL FPSGLB
       CALL FPWRIT
 C
+
       RETURN
       END
 C
