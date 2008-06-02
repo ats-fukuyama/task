@@ -68,7 +68,7 @@ END SUBROUTINE TXWDAT2
 subroutine TXSTAT
   use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, R, &
-       &                 rMui, Chii, UiphV
+       &                 rMui, Chii, UiphV, TSAV
   implicit none
   integer(4) :: NR, NRL
   real(8) :: RL, rmuil, chiil, uiphl
@@ -98,6 +98,8 @@ subroutine TXSTAT
   write(6,'(1X,2(A27,1PD10.3,3X))') "Normalized beta          = ", BETAN
   write(6,'(1X,2(A27,1PD10.3,3X))') "Line averaged e density  = ", ANSAV(1), &
        &                            "Greenwald density        = ", rIp / (PI * RA**2)
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Line averaged e temp.    = ", TSAV(1), &
+       &                            "Line averaged i temp.    = ", TSAV(2)
   write(6,'(1X,2(A27,1PD10.3,3X))') "Safety factor on axis    = ", Q(0), &
        &                            "Safety factor at sep.    = ", Q(NRA)
   write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
@@ -305,7 +307,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx449') THEN
+  !  IF(LOADSLID(1:5) == 'tx450') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -547,7 +549,7 @@ SUBROUTINE TXGLOD(IST)
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx449') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx450') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -598,3 +600,186 @@ SUBROUTINE TXGLOD(IST)
 
   RETURN
 END SUBROUTINE TXGLOD
+
+!***************************************************************
+!
+!   Read ASCII data file to substitute it into array
+!
+!***************************************************************
+
+subroutine ascii_input
+
+  use tx_commons, only : infiles, nmax_file, n_infiles, iflag_file, datatype
+  use tx_interface, only : KSPLIT_TX
+  implicit none
+  integer(4) :: IST, i, j
+  character(len=100) :: TXFNAM, RCSId
+  character(len=140) :: kline, kline1, kline2
+  character(len=20)  :: kmesh, kdata
+  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype
+  LOGICAL :: LEX
+
+  ! Open ASCII file
+  DO
+     WRITE(6,*) '# INPUT : LOAD ASCII FILE NAME'
+     CALL GUFLSH
+     READ(*,'(A100)',IOSTAT=IST) TXFNAM
+     IF (IST > 0) THEN
+        CYCLE
+     ELSE IF (IST < 0) THEN
+        RETURN
+     END IF
+     INQUIRE(FILE=TXFNAM,EXIST=LEX)
+     IF (LEX) THEN
+        EXIT
+     ELSE
+        WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
+     END IF
+  END DO
+
+  ! Number of data
+  do
+     write(6,*) '# Number of data which you would like to use as inputs ?'
+     call guflsh
+     read(*,'(I2)',iostat=ist) n_infiles
+     if(ist > 0) then
+        cycle
+     else if(ist < 0) then
+        return
+     else
+        exit   
+     end if
+  end do
+
+  ! Allocate derived type
+  allocate(infiles(1:n_infiles))
+
+  ! Read data
+  do i = 1, n_infiles
+     OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED')
+     IF (IST == 0) THEN
+        WRITE(6,*) '# ASCII FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),  &
+             &     ' ) IS ASSIGNED FOR INPUT.'
+     ELSEIF (IST > 0) THEN
+        WRITE(6,*) 'XX  ASCII FILE OPEN ERROR !, IOSTAT = ', IST
+     ELSEIF (IST < 0) THEN
+        deallocate(infiles)
+        return
+     END IF
+
+     ! Select a type of input data from ascii files
+     do 
+        write(6,*) '# Select a type of input data from ascii file'
+        write(6,*) '# 1: PNBP, 2: PNBT1, 3: PNBT2, 4: PRF, 5: LQe4'
+        call guflsh
+        read(*,'(I2)',iostat=ist) itype
+        if(itype <= 0 .or. itype > 5) cycle
+        if(ist > 0) then
+           cycle
+        else if(ist < 0) then
+           deallocate(infiles)
+           return
+        else
+           exit
+        end if
+     end do
+     infiles(i)%name = datatype(itype)
+
+     ! Which column indicates the mesh data
+     do
+        write(6,*) '# Which column indicates the mesh data in ', &
+             &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
+        read(*,'(I2)', iostat=ist) infiles(i)%ncol_mesh
+        if(infiles(i)%ncol_mesh == 0) cycle
+        if (ist > 0) then
+           cycle
+        else if(ist < 0) then
+           deallocate(infiles)
+           return
+        else
+           exit
+        end if
+     end do
+
+     ! Which column indicates the data which you would like to use
+     do
+        write(6,*) '# Which column indicates the data which you would like to use in ', &
+             &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
+        read(*,'(I2)', iostat=ist) infiles(i)%ncol_data
+        if(infiles(i)%ncol_data == 0) cycle
+        if (ist > 0) then
+           cycle
+        else if(ist < 0) then
+           deallocate(infiles)
+           return
+        else
+           exit
+        end if
+     end do
+
+     ! Read data from the file
+     nol = 0 ! number of lines
+     do 
+        read(21,'(A140)',IOSTAT=IST) kline
+        if(ist < 0) exit ! detect the end of the file
+        nol = nol + 1
+
+        j = 0
+        do
+           j = j + 1
+           kline = trim(adjustl(kline))
+           call ksplit_tx(kline,' ',kline1,kline2)
+           if(j == infiles(i)%ncol_mesh) then
+              kmesh = trim(kline1)
+           else if(j == infiles(i)%ncol_data) then
+              kdata = trim(kline1)
+           end if
+           kline = kline2
+           if(j >= infiles(i)%ncol_mesh .and. j >= infiles(i)%ncol_data) exit
+        end do
+
+        read(kmesh,'(F15.7)') infiles(i)%r(nol)
+        read(kdata,'(F15.7)') infiles(i)%data(nol)
+
+!        write(6,*) infiles(i)%r(nol),infiles(i)%data(nol)
+     end do
+     if(nol > nmax_file) then
+        write(6,*) 'XX The number of lines in the file exceeds ',nmax_file
+        write(6,*) '   Program is terminated.'
+        stop
+     else
+        infiles(i)%nol = nol
+     end if
+
+     close(21)
+
+  end do
+
+  iflag_file = 1
+
+end subroutine ascii_input
+
+!***************************************************************
+!
+!   Return the number of the datatype in "infiles"
+!
+!***************************************************************
+
+integer(4) function detect_datatype(kchar)
+
+  use tx_commons, only : infiles, n_infiles
+  implicit none
+  character(len=*), intent(in) :: kchar
+  integer(4) :: i
+  logical :: kmatch
+
+  do i = 1, n_infiles
+     if(kmatch(infiles(i)%name,kchar)) then
+        detect_datatype = i
+        return
+     end if
+  end do
+
+  detect_datatype = 0
+
+end function detect_datatype

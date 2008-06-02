@@ -136,7 +136,7 @@ contains
   SUBROUTINE TXCALC
 
     use tx_commons
-    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate
     use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
@@ -146,11 +146,11 @@ contains
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
-         &     rGIC, rH, dErdr, dpdr, PROFDL, PROFDDL, &
+         &     rGIC, rH, dErdr, dpdr, PROFCL, PROFDL, PALFL, &
          &     DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
+         &     Chicl, rNuBAR, Ecr, Enf, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
@@ -158,6 +158,7 @@ contains
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
+    real(8) :: PAHe = 4.D0 ! Atomic mass number of He
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
          &                         SNBPi, SNBTi1, SNBTi2, &
          &                         SRF, th1, th2, Ubpara
@@ -264,17 +265,52 @@ contains
     PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
     PRFi0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
 
+    ! Deposition profiles are loaded from the file
+
+    if(iflag_file /= 0) then
+       do i = 1, n_infiles
+          if(infiles(i)%name == datatype(1)) then ! Perp NB
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,0,SNBP)
+             SL   = 2.D0 * PI * INTG_F(SNBP)
+             PNBP0  = ABS(PNBP0) * 1.D6 / (2.D0 * Pi * RR * SL)
+          else if(infiles(i)%name == datatype(2)) then ! Tang NB 1
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,9,SNBT1)
+             SLT1 = 2.D0 * PI * INTG_F(SNBT1)
+             PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+          else if(infiles(i)%name == datatype(3)) then ! Tang NB 2
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,9,SNBT2)
+             SLT2 = 2.D0 * PI * INTG_F(SNBT2)
+             PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+          else if(infiles(i)%name == datatype(4)) then ! RF
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,0,SRF)
+             SL   = 2.D0 * PI * INTG_F(SRF)
+             PRFe0 = 0.5D0 * ABS(PRFH) * 1.D6 / (2.D0 * Pi * RR * SL)
+             PRFi0 = 0.5D0 * ABS(PRFH) * 1.D6 / (2.D0 * Pi * RR * SL)
+          end if
+       end do
+    end if
+
+    ! Alpha heating
+
+    do nr = 0, nrmax
+       PALFL = FSNF * bosch_fusion(PTiV(NR),0.5D0*PNiV(NR),0.5D0*PNiV(NR))
+       Enf = 3.5D3 ! in keV, equal to 3.5 MeV
+       Ecr = 14.8D0 * (PAHe / PA**(2.D0/3.D0)) * PTeV(NR) ! in keV
+       PALFi(NR) = PALFL * rate_to_ion(Enf/Ecr)
+       PALFe(NR) = PALFL - PALFi(NR)
+    end do
+
     ! ************** Heating part end **************
 
     p(0:NRMAX) = (PeV(0:NRMAX) + PiV(0:NRMAX)) * 1.D20 * rKeV
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
-    IF(PROFD == 0.D0.AND.FSDFIX /= 0.D0) THEN
-       PROFDL = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
+    IF(PROFD == 0.D0 .AND. FSDFIX /= 0.D0) THEN
+       PROFCL = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
             &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX
     ELSE
-       PROFDL = PROFD
+       PROFCL = PROFD
     END IF
 
     ! Banana width
@@ -345,9 +381,11 @@ contains
 !!$            &          * (XXX * XXX - 14.63D0 * XXX + 53.65D0)
 !!$       rNuiCX(NR) = FSCX * ScxV * (PN01V(NR) + PN02V(NR)) * 1.D20
 
-       !     (Riviere, NF 11 (1971) 363)
-       !  For thermal ions
-       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3/PA))**2
+       !     (Riviere, NF 11 (1971) 363, Eq.(4))
+       !  For thermal ions (assuming that energy of deuterium
+       !                    is equivalent to that of proton)
+       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
+            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
        Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
        rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
 
@@ -467,7 +505,7 @@ contains
 !!!            &   * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)**(1.D0/3.D0)
 !       Ecr = (9.D0 * PI / 16.D0 * AMI / AME)**(1.D0/3.D0) * AMB / AMI * PTeV(NR) ! in keV
        Ecr = 14.8D0 * (PA / PA**(2.D0/3.D0)) * PTeV(NR) ! in keV
-       PNBcol_i(NR) = NBIi_ratio(Eb/Ecr)
+       PNBcol_i(NR) = rate_to_ion(Eb/Ecr)
        PNBcol_e(NR) = 1.d0 - PNBcol_i(NR)
        IF(PNBH == 0.D0 .AND. PNbV(NR) < 1.D-8) THEN
           rNube(NR) = 0.D0
@@ -528,6 +566,9 @@ contains
           !     &                             / ( Vti * BthV(NR)) )**2))
           !!     &                         + ( ErV(NR) * BBL
           !!     &                             / ( Vti * BthV(NR)**2) )**2))
+       ELSE
+          rNueHL(0:NRMAX) = 0.D0
+          rNuiHL(0:NRMAX) = 0.D0
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
@@ -570,47 +611,46 @@ contains
           DCDBM      = 0.D0
        END IF
 
-!!$       IF (R(NR) < RA) THEN
-!!$          DeL = FSDFIX * (1.D0 + 4.D0 * (R(NR) / RA)**2) + FSCDBM * DCDBM
-!!$       ELSE
-!!$          DeL = 0.2D0 * FSPSCL
-!!$       END IF
-!!$       DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
-!       PROFDDL = 8.D0
-       PROFDDL = 3.D0
-!       PROFDDL = 2.D0
-       IF (R(NR) < RA) THEN
-!          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**6) + FSCDBM * DCDBM
-          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
-!          DeL = FSDFIX * (1.D0 + (PROFDDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
-       ELSE
-          IF(FSPSCL == 0.D0) THEN
-             factor_bohm = (FSDFIX * PROFDDL + FSCDBM * DCDBM) &
-                  &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
-             DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
-          ELSE
-             DeL = FSPSCL
-          END IF
-!!$          DeL = FSDFIX * PROFDDL + FSCDBM * DCDBM
-       END IF
-!       DeL = 1.D0
-       ! Particle diffusivity
-       De(NR)   = De0   * DeL
-       Di(NR)   = Di0   * DeL
+       !     *** Turbulent transport of particles ***
 
+!       PROFDL = 8.D0
+       PROFDL = 3.D0
+!       PROFDL = 2.D0
        IF (R(NR) < RA) THEN
-          DeL = FSDFIX * (1.D0 + (PROFDL -1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+          DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
+!          DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ELSE
           IF(FSPSCL == 0.D0) THEN
              factor_bohm = (FSDFIX * PROFDL + FSCDBM * DCDBM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
-!!$             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX * PROFDL &
-!!$                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPSCL
+             DeL = FSPSCL * FSDFIX * PROFDL
+          END IF
+!!$          DeL = FSDFIX * PROFDL + FSCDBM * DCDBM
+       END IF
+       ! Particle diffusivity
+       De(NR)   = De0   * DeL
+       Di(NR)   = Di0   * DeL
+
+       !     *** Turbulent transport of momentum and heat ***
+
+       IF (R(NR) < RA) THEN
+          DeL = FSDFIX * (1.D0 + (PROFCL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+!pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
+       ELSE
+          IF(FSPSCL == 0.D0) THEN
+             factor_bohm = (FSDFIX * PROFCL + FSCDBM * DCDBM) &
+                  &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
+!bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX * PROFCL &
+!bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
+             DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
+          ELSE
+             DeL = FSPSCL * FSDFIX * PROFCL
+!pedestal             DeL = FSPSCL * FSDFIX * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
        END IF
+!       DeL = 3.d0
        ! Viscosity
        rMue(NR) = rMue0 * DeL
        rMui(NR) = rMui0 * DeL
@@ -1310,9 +1350,12 @@ contains
 !   Ion-electron heating fraction
 !     (Tokamaks 3rd, p250)
 !
+!   (input)
+!     x     : fraction of energy
+!
 !***************************************************************
 
-  pure real(8) function NBIi_ratio(x) result(f)
+  pure real(8) function rate_to_ion(x) result(f)
     use tx_commons, only : PI
     real(8), intent(in) :: x
 
@@ -1324,7 +1367,7 @@ contains
             &          + PI / 6.d0))
     end if
 
-  end function NBIi_ratio
+  end function Rate_to_ion
 
 !***************************************************************
 !
@@ -1366,6 +1409,49 @@ contains
     f = exp(- (x - mu)**2 / (2.d0 * sigma**2))
 
   end function fmaxwell
+
+!***************************************************************
+!
+!   Alpha heating power
+! 
+!     T(d,n)4He : D + T -> 4He + n + 17.6 MeV
+!     valid for 0.2 keV <= Ti <= 100 keV
+!
+!     << Bosch-Hale fusion reactivity model >>
+!     (H.-S. Bosch and G.M. Hale, Nucl. Fusion 32 (1992) 611)
+!     written by HONDA Mitsuru based on ITPA SSO Plans (2007/10/19)
+!
+!     Inputs (real*8): tikev  : Ion temperature [keV]
+!                      den_D  : Deuterium density [10^20/m^3]
+!                      den_T  : Tritium density [10^20/m^3]
+!     Output (real*8): bosch_fusion  : Fusion reaction power [W/m^3]
+!
+!***************************************************************
+
+  real(8) function bosch_fusion(tikev,den_D,den_T)
+    real(8), intent(in) :: tikev, den_D, den_T
+    real(8) :: c1,c2,c3,c4,c5,c6,c7,bg,mrcsq
+    real(8) :: denDcgs,denTcgs,theta,sk,svdt
+
+    data c1,c2,c3,c4,c5,c6,c7/1.17302d-9,1.51361d-2,7.51886d-2, &
+         &     4.60643d-3,1.35000d-2,-1.06750d-4,1.36600d-5/
+    data bg,mrcsq/34.3827d0,1.124656d6/
+
+    denDcgs = den_D * 1.d-6 * 1.d20 ! nD [/cm^3]
+    denTcgs = den_T * 1.d-6 * 1.d20 ! nT [/cm^3]
+    !...Bosch-Hale formulation
+    !     theta : Eq.(13)
+    theta = tikev/(1.d0-((tikev*(c2+(tikev*(c4+tikev*c6)))) &
+         &      /(1.d0+tikev*(c3+tikev*(c5+tikev*c7)))))
+    !     sk : Eq.(14)
+    sk    = (bg**2/(4.d0*theta))**0.333d0
+    !     svdt : Eq.(12), [cm^3/s]
+    svdt  = c1*theta*sqrt(sk/(mrcsq*tikev**3))*exp(-3.d0*sk)
+    !     Fusion reaction power for D-T reaction
+    !        Alpha particle energy : 3.5 [MeV] = 5.6d-13 [J]
+    bosch_fusion = 5.6d-13*denDcgs*denTcgs*svdt*1.d6
+    
+  end function bosch_fusion
 
 !!$  real(8) function ripple(NR,theta,FSRP) result(f)
 !!$    use tx_commons, only : RR, R, RA, NTCOIL

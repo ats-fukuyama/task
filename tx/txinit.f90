@@ -73,8 +73,16 @@ SUBROUTINE TXINIT
   !   Ion temperature in diverter region (Minimum Ti in SOL)
   PTiDIV = 10.D-3
 
-  !   Initail current profile parameter
+  !   Initial current profile parameter
   PROFJ = 2.D0
+
+  !   Initial density profile parameters
+  PROFN1 = 3.D0
+  PROFN2 = 1.D0
+
+  !   Initial temperature profile parameters
+  PROFT1 = 2.D0
+  PROFT2 = 2.D0
 
   !   ***** Particle diffusivity and viscosity parameters *****
 
@@ -147,6 +155,9 @@ SUBROUTINE TXINIT
   !            2.D0 : Ripple effect but no ripple trapped ions
   FSRP = 0.D0
 
+  !   Alpha heating paramter
+  FSNF = 0.D0
+
   !   Toroidal neoclassical viscosity parameter
   FSNC = 1.D0
 
@@ -171,10 +182,10 @@ SUBROUTINE TXINIT
 
   !   ***** initial parameters *****
 
-  !   Initial Density scale length in SOL (m)
+  !   Initial Density scale length in SOL (m), valid if MDITSN /= 0
   rLn = 0.03D0
 
-  !   Initail Temperature scale length in SOL (m)
+  !   Initail Temperature scale length in SOL (m), valid if MDITST /= 0
   rLT = 0.030D0
 
   !   ***** Heating parameters *****
@@ -387,6 +398,22 @@ SUBROUTINE TXINIT
   !   1    : Use BDF
   IGBDF = 0
 
+  !   Mode of initial density and temperature profiles in the SOL
+  !   0    : polynominal model
+  !   1    : exponential decay model
+  MDITSN = 0  ! for density profiles
+  MDITST = 0  ! for temperature profiles
+
+  !   Mode of initial temperature profiles
+  !   0    : original
+  !   1    : pedestal model
+  MDINTT = 0
+
+  !   Mode of initial plasma profils
+  !   0    : many profiles are analytically calculated 
+  !   1    : minimal profiles are calculated
+  MDINIT = 0
+
   !   Multiplication factor for graphic in the radial direction
   !   default : 1.0
   !
@@ -445,8 +472,10 @@ SUBROUTINE TXINIT
   gDIV(104) = 1.E6
   gDIV(109) = 1.E15
   gDIV(110) = 1.E-4
+!  gDIV(115) = 1.E15
   gDIV(121) = 1.E6
-  !    gDIV(115) = 1.E15
+  gDIV(123) = 1.E6
+  gDIV(124) = 1.E6
 
   !   *** Obsolete or not used parameter ***
 
@@ -578,6 +607,7 @@ SUBROUTINE TXCALM
 
   !  Mesh coordinate
 
+  RHO(0:NRMAX) = R(0:NRMAX) / RA
   PSI(0:NRMAX) = R(0:NRMAX)**2
 
   !  Mesh interval
@@ -598,11 +628,12 @@ SUBROUTINE TXPROF
 
   use tx_commons
   use tx_variables
-  use tx_interface, only : INTG_P, DERIVS, INTDERIV3
+  use tx_interface, only : INTG_P, DERIVS, INTDERIV3, detect_datatype, INTG_F
 
   implicit none
-  INTEGER(4) :: NR, NQ, I, IER
-  REAL(8) :: RL, PROF, PROFT, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
+  INTEGER(4) :: NR, NQ, I, IER, ifile
+  REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
+  REAL(8) :: AJFCT, SUM_INT
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
@@ -630,26 +661,7 @@ SUBROUTINE TXPROF
   !  Variables
 
   allocate(AJPHL(0:NRMAX))
-!!$  PBA   = RB**2 - RA**2
-!!$!!!  dPN   = - (PN0 - PNa) / RA**2
-!!$  dPN   = - 1.5D0 * (PN0 - PNa) / RA**2
-!!$  CfN1  = - (4.D0 * PNa + 3.D0 * PBA * dPN - 4.D0 * PNeDIV) / PBA**3
-!!$  CfN2  =   (3.D0 * PNa + 2.D0 * PBA * dPN - 3.D0 * PNeDIV) / PBA**4
-!!$  IF(MDFIXT == 0) THEN
-!!$     pea   = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
-!!$     dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
-!!$     pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
-!!$  ELSE
-!!$     pea   = PTea   ;  pia  = PTia
-!!$     dpea  = 0.d0   ; dpia  = 0.d0
-!!$     pediv = PTeDIV ; pidiv = PTiDIV
-!!$  END IF
-!!$  Cfpe1 = - (4.D0 * pea + 3.D0 * PBA * dpea - 4.D0 * pediv) / PBA**3
-!!$  Cfpe2 =   (3.D0 * pea + 2.D0 * PBA * dpea - 3.D0 * pediv) / PBA**4
-!!$  Cfpi1 = - (4.D0 * pia + 3.D0 * PBA * dpia - 4.D0 * pidiv) / PBA**3
-!!$  Cfpi2 =   (3.D0 * pia + 2.D0 * PBA * dpia - 3.D0 * pidiv) / PBA**4
   PBA   = RB - RA
-!!!  dPN   = - 2.D0 * (PN0 - PNa) / RA
   dPN   = - 3.D0 * (PN0 - PNa) / RA
   CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNa - PNeDIV)) / PBA**3
   CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNa - PNeDIV)) / PBA**4
@@ -669,51 +681,58 @@ SUBROUTINE TXPROF
   DO NR = 0, NRMAX
      RL=R(NR)
      IF (RL < RA) THEN
-!!!        PROF  = 1.D0 - (RL / RA)**2
-!!!        PROFT = PROF**2
-        PROF  = 1.D0 - (RL / RA)**3
-        PROFT = (1.D0 - (RL / RA)**2)**2
-        ! Ne
-        X(LQe1,NR) = (PN0 - PNa) * PROF + PNa
-        ! Ni
-        X(LQi1,NR) = X(LQe1,NR) / PZ
-        IF(MDFIXT == 0) THEN
-           ! Ne*Te
-           X(LQe5,NR) = ((PTe0 - PTea) * PROFT + PTea) * X(LQe1,NR)
-           ! Ni*Ti
-           X(LQi5,NR) = ((PTi0 - PTia) * PROFT + PTia) * X(LQi1,NR)
-        ELSE 
-           ! Te
-           X(LQe5,NR) = (PTe0 - PTea) * PROFT + PTea
-           ! Ti
-           X(LQi5,NR) = (PTi0 - PTia) * PROFT + PTia
+        PROFN = (1.D0 - RHO(NR)**PROFN1)**PROFN2
+        PROFT = (1.D0 - RHO(NR)**PROFT1)**PROFT2
+        X(LQe1,NR) = (PN0 - PNa) * PROFN + PNa ! Ne
+        X(LQi1,NR) = X(LQe1,NR) / PZ           ! Ni
+        IF(MDINTT == 0) THEN
+           PTePROF = (PTe0 - PTea) * PROFT + PTea
+           PTiPROF = (PTi0 - PTia) * PROFT + PTia
+           IF(MDFIXT == 0) THEN
+              X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
+              X(LQi5,NR) = PTiPROF * X(LQi1,NR) ! Ni*Ti
+           ELSE 
+              X(LQe5,NR) = PTePROF ! Te
+              X(LQi5,NR) = PTiPROF ! Ti
+           END IF
+        ELSE
+           PTePROF = (PTe0 - PTea) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
+                &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTea
+           PTiPROF = (PTi0 - PTia) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
+                &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTia
+           IF(MDFIXT == 0) THEN
+              X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
+              X(LQi5,NR) = PTiPROF * X(LQi1,NR) ! Ne*Te
+           ELSE
+              X(LQe5,NR) = PTePROF ! Te
+              X(LQi5,NR) = PTiPROF ! Ti
+           END IF
         END IF
      ELSE
-!!$        X(LQe1,NR) = PNa + dPN * (RL**2 - RA**2) + CfN1 * (RL**2 - RA**2)**3 &
-!!$             &                                   + CfN2 * (RL**2 - RA**2)**4
-!!$        X(LQi1,NR) =  X(LQe1,NR) / PZ
-!!$        X(LQe5,NR) = pea + dpea * (RL**2 - RA**2) + Cfpe1 * (RL**2 - RA**2)**3 &
-!!$             &                                    + Cfpe2 * (RL**2 - RA**2)**4
-!!$        X(LQi5,NR) = pia + dpia * (RL**2 - RA**2) + Cfpi1 * (RL**2 - RA**2)**3 &
-!!$             &                                    + Cfpi2 * (RL**2 - RA**2)**4
-        X(LQe1,NR) = PNa + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
-             &                             + CfN2 * (RL - RA)**4
-        X(LQi1,NR) =  X(LQe1,NR) / PZ
-        X(LQe5,NR) = pea + dpea * (RL - RA) + Cfpe1 * (RL - RA)**3 &
-             &                              + Cfpe2 * (RL - RA)**4
-        X(LQi5,NR) = pia + dpia * (RL - RA) + Cfpi1 * (RL - RA)**3 &
-             &                              + Cfpi2 * (RL - RA)**4
-!!$        SSN = 2.D0 * (RB - RA) * (PN0 - PNa) / (RA * (PNa - PNeDIV))
-!!$        X(LQe1,NR) = (PNa - PNeDIV) * ((RB - RL) / (RB - RA))**SSN + PNeDIV!PNa * EXP(-(RL-RA) / rLn)!
-!!$        X(LQi1,NR) = X(LQe1,NR) / PZ
-!!$        SSPe = 2.D0 * (RB - RA) * (PN0 - PNa)       * PTea &
-!!$             & / (RA * (PNa*PTea - PNeDIV*PTeDIV))
-!!$        SSPi = 2.D0 * (RB - RA) *((PN0 - PNa) / PZ) * PTia &
-!!$             & / (RA * (PNa*PTia - PNeDIV*PTiDIV) / PZ)
-!!$        X(LQe5,NR) = ((PNa*PTea - PNeDIV*PTeDIV)      * ((RB - RL) / (RB - RA))**SSPe) &
-!!$             &     + PNeDIV*PTeDIV!PTea*X(LQe1,NR)
-!!$        X(LQi5,NR) = ((PNa*PTia - PNeDIV*PTiDIV) / PZ * ((RB - RL) / (RB - RA))**SSPi) &
-!!$             &     + PNeDIV*PTiDIV / PZ!PTia*X(LQi1,NR)
+        IF(MDITSN == 0) THEN
+           X(LQe1,NR) = PNa + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
+                &                             + CfN2 * (RL - RA)**4
+           X(LQi1,NR) = X(LQe1,NR) / PZ
+        ELSE
+           X(LQe1,NR) = PNa * EXP(- (RL - RA) / rLN)
+           X(LQi1,NR) = X(LQe1,NR) / PZ
+        END IF
+        IF(MDITST == 0) THEN
+           X(LQe5,NR) = pea + dpea * (RL - RA) + Cfpe1 * (RL - RA)**3 &
+                &                              + Cfpe2 * (RL - RA)**4
+           X(LQi5,NR) = pia + dpia * (RL - RA) + Cfpi1 * (RL - RA)**3 &
+                &                              + Cfpi2 * (RL - RA)**4
+        ELSE
+           PTePROF = PTea * EXP(- (RL - RA) / rLT)
+           PTiPROF = PTia * EXP(- (RL - RA) / rLT)
+           IF(MDFIXT == 0) THEN
+              X(LQe5,NR) = PTePROF * X(LQe1,NR)
+              X(LQi5,NR) = PTiPROF * X(LQi1,NR)
+           ELSE
+              X(LQe5,NR) = PTePROF
+              X(LQi5,NR) = PTiPROF
+           END IF
+        END IF
      END IF
      ! N0_1 (slow neutrals)
      X(LQn1,NR) = PN0s
@@ -740,9 +759,9 @@ SUBROUTINE TXPROF
         IF(RL < RA) THEN
            PROF = 1.D0 - (RL / RA)**2
            ! Btheta
-           BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL) * (1.D0 - PROF**(PROFJ+1))
+           BthV(NR) = rMUb1 * rIPs * 1.D6 / (2.D0 * PI * RL) * (1.D0 - PROF**(PROFJ+1))
         ELSE
-           BthV(NR) = rMU0 * rIPs * 1.D6 / (2.D0 * PI * RL)
+           BthV(NR) = rMUb1 * rIPs * 1.D6 / (2.D0 * PI * RL)
         END IF
      END DO
   ELSE
@@ -757,26 +776,44 @@ SUBROUTINE TXPROF
 
   ! Toroidal electron current
 
-  DO NR = 0, NRMAX
-!!$     AJPHL(NR) = 2.D0 / rMU0 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
-!!$     X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+  ifile = detect_datatype('LQe4')
+  if(ifile == 0) then
+     DO NR = 0, NRMAX
+!!$        AJPHL(NR) = 2.D0 / rMUv1 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
+!!$        X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
 
-     IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
-        PROF= 0.D0    
-     ELSE             
-        PROF= 1.D0-(R(NR)/RA)**2
-     END IF
-     IF(FSHL == 0.D0) THEN
-        ! Ne*UePhi
-        AJPHL(NR) = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
+        IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
+           PROF= 0.D0    
+        ELSE             
+           PROF= 1.D0-(R(NR)/RA)**2
+        END IF
+        IF(FSHL == 0.D0) THEN
+           ! Ne*UePhi
+           AJPHL(NR) = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
+           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+           AJOH(NR)= AJPHL(NR)
+!           AJOH(NR)= PROF
+        ELSE
+           AJPHL(NR) = 0.D0
+           X(LQe4,NR) = 0.D0
+           AJOH(NR)= 0.D0
+        END IF
+     END DO
+  else
+     call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
+     AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
+     DO NR = 0, NRMAX
+        AJPHL(NR) = AJFCT * AJPHL(NR)
         X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
-        AJOH(NR)= PROF
-     ELSE
-        AJPHL(NR) = 0.D0
-        X(LQe4,NR) = 0.D0
-        AJOH(NR)= 0.D0
-     END IF
-  END DO
+        AJOH(NR) = AJPHL(NR)
+     END DO
+     BthV(0) = 0.d0
+     SUM_INT = 0.d0
+     DO NR = 1, NRMAX
+        SUM_INT = SUM_INT + INTG_P(AJPHL,NR,0)
+        BthV(NR) = rMUb1 * SUM_INT / R(NR)
+     END DO
+  end if
 
   ! Inverse matrix of derivative formula for integration
 
@@ -806,7 +843,8 @@ SUBROUTINE TXPROF
 
   ! Numerical solution for AphV
 
-  IF(PROFJ /= 1 .AND. PROFJ /= 2 .AND. PROFJ /= 3 .AND. PROFJ /= 4 .AND. PROFJ /= 5) THEN
+  IF((PROFJ /= 1 .AND. PROFJ /= 2 .AND. PROFJ /= 3 .AND. PROFJ /= 4 .AND. PROFJ /= 5) .OR. &
+       & (ifile /= 0)) THEN
      RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
      X(LQm4,0) = 0.D0
      X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
@@ -858,7 +896,7 @@ SUBROUTINE TXPROF
   ELSE
      TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
      DO NR = 0, NRMAX
-        dRIP = DERIV3(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMU0
+        dRIP = DERIV3(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
         AJV(NR)=dRIP / (2.D0 * PI * R(NR))
      END DO
   END IF
@@ -928,54 +966,58 @@ SUBROUTINE TXPROF
 
   !  Initial condition Part II
 
-  DO NR = 0, NRMAX
-     dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
-     dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
-     IF(NR == NRMAX) THEN
-        dPe = 0.D0
-        dPi = 0.D0
-     END IF
-     IF(rNueNC(NR) == 0.D0) THEN
-        ALP = 0.D0
-     ELSE
-        ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
-     END IF
-     X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) / (AEE * BphV(NR)))&
-          &     / (PZ + ALP) * R(NR)
-     X(LQe3,NR) =- ALP * X(LQi3,NR)
-     ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
-          &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
-          &      + dPi / (PZ * AEE * PNiV(NR))
-     X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
-     X(LQi2,NR) = X(LQe2,NR) / PZ
-     X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
-          &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
-          &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-          &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
-  END DO
+  IF(MDINIT == 0) THEN
 
-  ! Scalar potential
+     DO NR = 0, NRMAX
+        dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
+        dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
+        IF(NR == NRMAX) THEN
+           dPe = 0.D0
+           dPi = 0.D0
+        END IF
+        IF(rNueNC(NR) == 0.D0) THEN
+           ALP = 0.D0
+        ELSE
+           ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
+        END IF
+        X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) &
+             &     / (AEE * BphV(NR))) / (PZ + ALP) * R(NR)
+        X(LQe3,NR) =- ALP * X(LQi3,NR)
+        ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+             &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
+             &      + dPi / (PZ * AEE * PNiV(NR))
+        X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
+        X(LQi2,NR) = X(LQe2,NR) / PZ
+        X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
+             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+             &     +(dPe + dPi) / (AEE * BphV(NR)))) &
+             &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+     END DO
 
-  allocate(TMP(0:NRMAX))
-  ! TMP(0) is an arbitrary value (INTDERIV3 does not require the value at axis node
-  !                               in case of (LAST ARGUMENT)=1.)
-  TMP(1:NRMAX) = - 0.5D0 * ErV(1:NRMAX) / R(1:NRMAX)
-  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
-  CALL INTDERIV3(TMP,PSI,X(LQm1,0:NRMAX),0.D0,NRMAX,1)
+     ! Scalar potential
 
-  ! AthV
+     allocate(TMP(0:NRMAX))
+     ! TMP(0) is an arbitrary value (INTDERIV3 does not require the value at axis node
+     !                               in case of (LAST ARGUMENT)=1.)
+     TMP(1:NRMAX) = - 0.5D0 * ErV(1:NRMAX) / R(1:NRMAX)
+     TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+     CALL INTDERIV3(TMP,PSI,X(LQm1,0:NRMAX),0.D0,NRMAX,1)
+     
+     ! AthV
 
-  TMP(1:NRMAX) = 0.5D0 * rMU0 * AEE * (X(LQe3,1:NRMAX) - PZ * X(LQi3,1:NRMAX)) * 1.D20 &
-       &       / PSI(1:NRMAX)
-  TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
-  CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
-  RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
-  X(LQm5,0) = 0.D0
-  X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
-  deallocate(CMTX,RHSV,TMP)
+     TMP(1:NRMAX) = 0.5D0 * rMU0 * AEE * (X(LQe3,1:NRMAX) - PZ * X(LQi3,1:NRMAX)) * 1.D20 &
+          &       / PSI(1:NRMAX)
+     TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
+     CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
+     RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
+     X(LQm5,0) = 0.D0
+     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
+     deallocate(CMTX,RHSV,TMP)
 
-  CALL TXCALV(X)
-  CALL TXCALC
+     CALL TXCALV(X)
+     CALL TXCALC
+
+  END IF
 
   !  Calculate global quantities for storing and showing initial status
 
@@ -993,11 +1035,11 @@ module tx_parameter_control
   NAMELIST /TX/ &
        & RA,RB,RC,RR,BB, &
        & PA,PZ,Zeff, &
-       & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
+       & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
        & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
-       & FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
+       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRF,RRF,RRF0,PRFH, &
@@ -1009,7 +1051,7 @@ module tx_parameter_control
        & rG1,EpsH,FSHL,NCphi,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
-       & MDLETA,MDFIXT,IDIAG,IGBDF,MDLNBD,MDLPDM
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM
   private :: TXPLST
 
 contains
@@ -1116,6 +1158,7 @@ contains
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0) EXIT
        IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0 .OR. FSPSCL < 0.D0) EXIT
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
+       IF(FSNF < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
        IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
        IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
@@ -1154,11 +1197,11 @@ contains
     RETURN
 
 601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
-         &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,'/ &
+         &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,rNRF,RRF,RRF0,PRFH,'/ &
@@ -1169,8 +1212,8 @@ contains
          &       ' ',8X,'DelR,DelN,'/ &
          &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,'/ &
-         &       ' ',8X,'MDLWTB,IDIAG,IGBDF,MDLNBD,MDLPDM')
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1189,7 +1232,9 @@ contains
          &   'PTe0  ', PTe0  ,  'PTea  ', PTea  ,  &
          &   'PTi0  ', PTi0  ,  'PTia  ', PTia  ,  &
          &   'rIP   ', rIP   ,  'Zeff  ', Zeff  ,  &
-         &   'PROFJ ', PROFJ ,  'CMESH0', CMESH0,  &
+         &   'PROFJ ', PROFJ ,  'PROFN1', PROFN1,  &
+         &   'PROFN2', PROFN2,  'PROFT1', PROFT1,  &
+         &   'PROFT2', PROFT2,  'CMESH0', CMESH0,  &
          &   'WMESH0', WMESH0,  'CMESH ', CMESH ,  &
          &   'WMESH ', WMESH ,  'ADV   ', ADV   ,  &
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
@@ -1200,7 +1245,8 @@ contains
          &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
          &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
          &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  ,  &
-         &   'FSRP  ', FSRP  ,  'FSNC  ', FSNC  ,  &
+         &   'FSRP  ', FSRP  ,  'FSNF  ', FSNF  ,  &
+         &   'FSNC  ', FSNC  ,  &
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD0  ', FSD0  ,  'rLn   ', rLn   ,  &
@@ -1231,11 +1277,14 @@ contains
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
-         &   'MDFIXT', MDFIXT,  'NCphi ', NCphi,   &
+         &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
+         &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
+         &   'MDINIT', MDINIT, &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
-         &   'MDLNBD', MDLNBD,  'MDLPDM', MDLPDM
+         &   'MDLNBD', MDLNBD,  'MDLPDM', MDLPDM,  &
+         &   'NCphi ', NCphi
 
     RETURN
   END SUBROUTINE TXVIEW

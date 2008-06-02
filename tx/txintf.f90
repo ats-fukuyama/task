@@ -75,6 +75,14 @@ module tx_interface
      end SUBROUTINE TOUPPER
   end interface
 
+  interface
+     SUBROUTINE KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
+       CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
+       CHARACTER(LEN=1),  INTENT(IN)  :: KID
+       CHARACTER(LEN=*), INTENT(OUT) :: KKLINE1, KKLINE2
+     end SUBROUTINE KSPLIT_TX
+  end interface
+
   interface DERIVS
      SUBROUTINE DERIVS1D(R,F,NRMAX,G)
        real(8), dimension(0:NRMAX), intent(in)  :: R, F
@@ -157,9 +165,30 @@ module tx_interface
      end SUBROUTINE BISECTION
   end interface
 
+  interface
+     subroutine inexpolate(nmax_in,r_in,dat_in,nmax_std,r_std,iedge,dat_out)
+       integer(4), intent(in) :: nmax_in, nmax_std, iedge
+       real(8), dimension(1:nmax_in), intent(in) :: r_in, dat_in
+       real(8), dimension(0:nmax_std), intent(in) :: r_std
+       real(8), dimension(0:nmax_std), intent(out) :: dat_out
+     end subroutine inexpolate
+  end interface
+
   !****************!
   !   txfile.f90   !
   !****************!
+
+  interface
+     SUBROUTINE TXLOAD(IST)
+       integer(4), intent(out) :: IST
+     end SUBROUTINE TXLOAD
+  end interface
+
+  interface
+     SUBROUTINE TXGLOD(IST)
+       integer(4), intent(out) :: IST
+     end SUBROUTINE TXGLOD
+  end interface
 
   interface
      REAL(8) FUNCTION rLINEAVE(Rho)
@@ -167,9 +196,15 @@ module tx_interface
      end FUNCTION rLINEAVE
   end interface
 
-  !****************!
-  !   txg3d.f90    !
-  !****************!
+  interface
+     integer(4) function detect_datatype(kchar)
+       character(len=*), intent(in) :: kchar
+     end function detect_datatype
+  end interface
+
+  !***************************!
+  !   txg3d.f90, txg2d.f90    !
+  !***************************!
 
   interface
      subroutine TXGRUR(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)

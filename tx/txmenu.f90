@@ -14,7 +14,7 @@ SUBROUTINE TXMENU
   use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
   use tx_variables, only : TXCALV
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
-  use tx_interface, only : TXKLIN, TOUPPER
+  use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   implicit none
   INTEGER(4) :: ICONT, MODE, I, IST, ier
   character(len=80) :: LINE
@@ -22,7 +22,7 @@ SUBROUTINE TXMENU
 
   IERR  = 0
   ICONT = 0
-  IF(PNBH /= 0) THEN
+  IF((PNBHP + PNBHT1 + PNBHT2) /= 0) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF
@@ -36,8 +36,9 @@ SUBROUTINE TXMENU
      WRITE(6,'(3(A,1PD12.4))') &
           &   ' ## TIME=',T_TX,'  DT=',DT,'  NEXT TIME =',TMAX
      WRITE(6,*) '## INPUT: ', &
-          &   'R:RUN  C:CONT  P,V:PARM  G:GR  '// &
-          &   'W:STAT  S:SAVE  L:LOAD  I:INIT  Q:QUIT'
+          &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
+          &   'W:STAT  S:SAVE  L:LOAD  I:INIT '
+     WRITE(6,'(11X,A)') 'F:FILE  Q:QUIT'
      CALL GUFLSH
 
      CALL TXKLIN(LINE,KID,MODE)
@@ -124,6 +125,8 @@ SUBROUTINE TXMENU
         CASE DEFAULT
            WRITE(6,*) 'XX Unknown beam command'
         END SELECT
+     CASE('F')
+        CALL ASCII_INPUT
      CASE('#')
         CONTINUE
      CASE DEFAULT

@@ -968,7 +968,13 @@ contains
 !!oldNBI           &                * fem_int(2,rNube)
 !!oldNBI      NLC(19,LQe5) = LQb4
 
-       NLCMAX(LQe5) = 17
+       ! Simpified Alpha heating
+
+       PELM(1:NEMAX,1:4,18,LQe5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFe)
+       NLC(18,LQe5) = 0
+       
+       NLCMAX(LQe5) = 18
+
     ELSE
 
        !  Fixed temperature profile
@@ -1538,7 +1544,12 @@ contains
        PELM(1:NEMAX,1:4,20,LQi5) = Eb * fem_int(-2,SNB,PNBcol_i)
        NLC(20,LQi5) = 0
 
-       NLCMAX(LQi5) = 20
+       ! Simplified Alpha heating
+
+       PELM(1:NEMAX,1:4,21,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFi)
+       NLC(21,LQi5) = 0
+
+       NLCMAX(LQi5) = 21
     ELSE
 
        !  Fixed temperature profile

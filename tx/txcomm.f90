@@ -3,8 +3,8 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=122, NGYTM=46, &
-       &                   NGYVM=49, NGPRM=18, NGPTM=8, NGPVM=15, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=124, NGYTM=46, &
+       &                   NGYVM=49, NGPRM=19, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -13,6 +13,7 @@ module tx_commons
        &                   LQb1=16,          LQb3=17, LQb4=18,&
        &                   LQn1=19, LQn2=20, &
        &                   LQr1=21
+  integer(4), parameter :: nmax_file = 100
 
   !************************!
   ! Set physical constants !
@@ -56,14 +57,14 @@ module tx_commons
   real(8) :: PA, PZ, Zeff
 
   ! Profiles
-  real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ
+  real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ, PROFN1, PROFN2, PROFT1, PROFT2
 
   ! Diffusivities and viscosities
   real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, WPM0, WPE0, WPI0
 
   ! Amplitude parameters for transport
   real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP, FSNF
   integer(4) :: MDLC
 
   ! Scale lengths in SOL
@@ -107,6 +108,9 @@ module tx_commons
   !  Transport model
   integer(4) :: MDLWTB, MDLETA, MDFIXT
 
+  !  Initial condition
+  integer(4) :: MDITSN, MDITST, MDINTT, MDINIT
+
   !**********************************!
   !   INTERNAL CONTOROL PARAMETERS   !
   !**********************************!
@@ -117,7 +121,7 @@ module tx_commons
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
   real(8) :: UHth, UHph
-  real(8), dimension(:), allocatable :: R, PSI
+  real(8), dimension(:), allocatable :: R, PSI, RHO
   real(8), dimension(:), allocatable :: H, HPSI
 
   ! Convergence accelerator
@@ -163,7 +167,7 @@ module tx_commons
        &                                SNB, SNBe, SNBi, SNBPDi, SNBTGi, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
-       &                                SiLC, SiLCth, SiLCph
+       &                                SiLC, SiLCth, SiLCph, PALFe, PALFi
   real(8), dimension(:), allocatable :: PIE, PCX, SIE, PBr
   real(8) :: RatCX
 
@@ -210,6 +214,21 @@ module tx_commons
   ! I/O
   character(len=20) :: SLID
 
+  ! Input data from ascii files
+  type infiles_type
+     character(len=6) :: name
+     integer(4) :: nol ! number of lines, i.e. upper bound of the array
+     integer(4) :: ncol_mesh, ncol_data ! indices indicating the columns where the mesh
+                                        !   and the data are stored
+     real(8), dimension(1:nmax_file) :: r, data
+  end type infiles_type
+  type(infiles_type), allocatable :: infiles(:)
+  integer(4) :: n_infiles ! number of data which are read from the file
+  integer(4) :: iflag_file = 0 ! Flag indicating whether infiles is null or not.
+                               ! Default "null"
+  character(len=6), dimension(1:5) :: datatype
+  data datatype /'PNBP', 'PNBT1', 'PNBT2', 'PRF', 'LQe4'/
+
 contains
 
   subroutine allocate_txcomm(ier, icont)
@@ -241,7 +260,7 @@ contains
     end if
 
     do
-       allocate(R(0:N),      PSI(0:N),                                        stat = ierl(1))
+       allocate(R(0:N),      PSI(0:N),      RHO(0:N),                         stat = ierl(1))
        allocate(H(0:NEMAX),  HPSI(0:NEMAX),                                   stat = ierl(2))
        ier = sum(ierl) ; iflag = 1
        if (ier /= 0) exit
@@ -289,7 +308,7 @@ contains
        allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBPDi(0:N),SNBTGi(0:N),stat = ierl(2))
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(3))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(4))
-       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N),                         stat = ierl(5))
+       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(5))
        allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    PBr(0:N),               stat = ierl(6))
        ier = sum(ierl) ; iflag = 6
        if (ier /= 0) exit
@@ -335,7 +354,7 @@ contains
 
   subroutine deallocate_txcomm
 
-    deallocate(R,      PSI)
+    deallocate(R,      PSI,    RHO)
     deallocate(H,      HPSI)
 
     deallocate(ErV,    EthV,   EphV,  BthV,  BphV)
@@ -371,7 +390,7 @@ contains
     deallocate(SNB,    SNBe,  SNBi,  SNBPDi, SNBTGi)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
-    deallocate(SiLC,   SiLCth,SiLCph)
+    deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)
     deallocate(PIE,    PCX,   SIE,   PBr)
 
     deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB, AJPARA)
@@ -390,6 +409,8 @@ contains
 
     deallocate(GX, GY, GQY)
     deallocate(GYT)
+
+    if(allocated(infiles)) deallocate(infiles)
 
   end subroutine deallocate_txcomm
 

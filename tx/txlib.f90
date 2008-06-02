@@ -1050,6 +1050,34 @@ END SUBROUTINE TOUPPER
 
 !***************************************************************
 !
+!   Separate string at char (similar to KSPLIT in task/lib/libchar.f90)
+!
+!***************************************************************
+
+SUBROUTINE KSPLIT_TX(KKLINE,KID,KKLINE1,KKLINE2)
+
+  IMPLICIT NONE
+  CHARACTER(LEN=*),  INTENT(IN)  :: KKLINE
+  CHARACTER(LEN=1),  INTENT(IN)  :: KID
+  CHARACTER(LEN=*), INTENT(OUT) :: KKLINE1, KKLINE2
+  INTEGER(4) :: I
+
+  I = INDEX(KKLINE,KID)
+  IF(I == 0) THEN
+     KKLINE1 = KKLINE
+     KKLINE2 = ' '
+  ELSEIF(I == 1) THEN
+     KKLINE1 = ' '
+     KKLINE2 = KKLINE(I+1:)
+  ELSE
+     KKLINE1 = KKLINE(1:I-1)
+     KKLINE2 = KKLINE(I+1:)
+  END IF
+  
+END SUBROUTINE KSPLIT_TX
+
+!***************************************************************
+!
 !   Derivative
 !
 !***************************************************************
@@ -1397,3 +1425,110 @@ SUBROUTINE BISECTION(f,cl1,cl2,w1,w2,rc1,rc2,amp,s,valmax,val,valmin)
   val = c
 
 END SUBROUTINE BISECTION
+
+!************************************************************************************
+!
+!   Interpolate and extrapolate data loaded from file
+!     INPUT  : nmax_in  : the number of the data point of the file
+!              r_in     : radial coordinate of the file
+!              dat_in   : the data of the file
+!              nmax_std : the number of the data point
+!              r_std    : radial coordinate
+!              iedge    : indication of the treatment at the axis and the separatrix
+!     OUTPUT : dat_out  : interpolated and extrapolated value of dat_in
+!
+!      imode |  iaxis  iedge  |    axis        separatrix   |
+!     -------------------------------------------------------
+!        *   |    *      0    |         as it is            |
+!        1   |    1      1    |     0              0        |
+!        2   |    2      2    |     0              ex       |
+!        3   |    3      3    |     0              val      |
+!        4   |    1      1    |     ex             0        |
+!        5   |    2      2    |     ex             ex       |
+!        6   |    3      3    |     ex             val      |
+!        7   |    1      1    |     val            0        |
+!        8   |    2      2    |     val            ex       |
+!        9   |    3      3    |     val            val      |
+!
+!     0 : zero, ex : extrapolation, val : three quarters of the nearest value
+!************************************************************************************
+
+subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
+  implicit none
+  integer(4), intent(in) :: nmax_in, nmax_std, imode
+  real(8), dimension(1:nmax_in),  intent(in)  :: rho_in, dat_in
+  real(8), dimension(0:nmax_std), intent(in)  :: rho_std
+  real(8), dimension(0:nmax_std), intent(out) :: dat_out
+  integer(4) :: i, iaxis, iedge, nmax
+  real(8), dimension(:), allocatable :: rho_tmp, dat_tmp
+  real(8) :: aitken2p
+
+  if(imode < 1 .or. imode > 9) stop 'inexpolate: inappropriate imode'
+
+  ! Check whether the outermost value of the input is over the separatrix or not
+  if(rho_in(nmax_in) >= 1.d0) then
+     iedge = 0
+  else
+     iedge = mod((imode-1),3)+1
+  end if
+
+  ! Reshape the mesh and data arrays
+  if(iedge /= 0) nmax = nmax_in + 1
+  if(rho_in(1) == 0.d0) then ! Originally having the value at the axis
+     nmax = nmax - 1
+     allocate(rho_tmp(0:nmax),dat_tmp(0:nmax))
+     rho_tmp(0:nmax_in-1) = rho_in(1:nmax_in)
+     dat_tmp(0:nmax_in-1) = dat_in(1:nmax_in)
+     iaxis = 0
+  else ! Not so
+     allocate(rho_tmp(0:nmax),dat_tmp(0:nmax))
+     rho_tmp(0) = 0.d0
+     dat_tmp(0) = 0.d0
+     rho_tmp(1:nmax_in) = rho_in(1:nmax_in)
+     dat_tmp(1:nmax_in) = dat_in(1:nmax_in)
+     iaxis = 1
+  end if
+
+  ! Extrapolate the value at the axis
+  if(iaxis /= 0) then
+     iaxis = int((imode-1)/3)+1
+     if(iaxis == 1) then
+        dat_tmp(0) = 0.d0
+     else if(iaxis == 2) then
+        dat_tmp(0) = aitken2p(0.d0,dat_tmp(1),dat_tmp(2),dat_tmp(3), &
+             &                     rho_tmp(1),rho_tmp(2),rho_tmp(3))
+     else if(iaxis == 3) then
+        dat_tmp(0) = 0.75d0 * dat_tmp(1)
+     end if
+     dat_out(0) = dat_tmp(0)
+  end if
+
+  ! Extrapolate the value at the separatrix
+  if(iedge == 1) then
+     rho_tmp(nmax) = 1.d0
+     dat_tmp(nmax) = 0.d0
+  else if(iedge == 2) then
+     rho_tmp(nmax) = 1.d0
+     dat_tmp(nmax) = aitken2p(1.d0,dat_tmp(nmax-1),dat_tmp(nmax-2),dat_tmp(nmax-3), &
+             &                     rho_tmp(nmax-1),rho_tmp(nmax-2),rho_tmp(nmax-3))
+  else if(iedge == 3) then
+     rho_tmp(nmax) = 1.d0
+     dat_tmp(nmax) = 0.75d0 * dat_tmp(nmax-1)
+  end if
+
+  ! Interpolate the value
+  do i = 1, nmax_std
+     if(rho_std(i) < rho_tmp(nmax)) then
+        call aitken(rho_std(i),dat_out(i),rho_tmp,dat_tmp,2,size(dat_tmp))
+     end if
+  end do
+
+  deallocate(rho_tmp,dat_tmp)
+
+  where(dat_out < 0.d0) dat_out = 0.d0
+
+!!$  do i=0,nmax_std
+!!$     write(6,*) rho_std(i),dat_out(i)
+!!$  end do
+
+end subroutine inexpolate

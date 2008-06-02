@@ -24,7 +24,7 @@ contains
     use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
          &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa
-    use tx_interface, only : TXGRUR, TOUPPER
+    use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
     use tx_variables, only : ripple
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER
@@ -369,8 +369,8 @@ contains
              CALL TXGLOD(IER)
              IF(IER /= 0) CYCLE OUTER
              GYL(0:NRMAX,NGF-NGRT,1:NGYRM) = GY(0:NRMAX,NGR,1:NGYRM)
-             CALL TX_GRAPH_SAVE
           END DO
+          CALL TXPRFG
           NGR = NGFMAX-NGRT
           GY(0:NRMAX,0:NGR,1:NGYRM) = GYL(0:NRMAX,0:NGR,1:NGYRM)
           DO 
@@ -724,6 +724,8 @@ contains
     GYL(0:NXM,NG,121) = SNGL(AJPARA(0:NXM))
     GYL(0:NXM,NG,122) = SNGL((BthV(0:NXM)*EthV(0:NXM)+BphV(0:NXM)*EphV(0:NXM)) &
          &                   /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
+    GYL(0:NXM,NG,123) = SNGL(PALFe(0:NXM))
+    GYL(0:NXM,NG,124) = SNGL(PALFi(0:NXM))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -834,7 +836,7 @@ contains
 
   SUBROUTINE TXSTGT(GTIME)
 
-    use tx_commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, &
+    use tx_commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, PNFT, &
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
          &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
@@ -854,6 +856,7 @@ contains
     GTY(NGT,6)  = SNGL(POHT)
     GTY(NGT,7)  = SNGL(PNBT)
     GTY(NGT,8)  = SNGL(PRFT)
+    GTY(NGT,9)  = SNGL(PNFT)
 
     GTY(NGT,10) = SNGL(AJT)
     GTY(NGT,11) = SNGL(AJOHT)
@@ -1381,6 +1384,15 @@ contains
        STR = '@SNB tang ion(r)@'
        CALL APPROPGY(MODEG, GY(0,0,108), GYL, STR, NRMAX, NRMAX, NGR, gDIV(108))
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+    CASE(19)
+       STR = '@PALFe(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,123), GYL, STR, NRMAX, NRMAX, NGR, gDIV(123))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@PALFi(r)@'
+       CALL APPROPGY(MODEG, GY(0,0,124), GYL, STR, NRMAX, NRMAX, NGR, gDIV(124))
+       CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
