@@ -478,9 +478,9 @@ C
 
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 c      WRITE(6,*)" "
-      write(6,1333) THETA0, RTFP(1),PTT2(1,NSFP)
+      write(6,1333) THETA0, RTFP(1),PTT2(1,NSFP)/RTFP(1)
 c      WRITE(6,*)" "
- 1333 FORMAT(1H ,"THETA0=",E15.7,"   T_given=",E15.7,"   T_cal=",E15.7)
+ 1333 FORMAT(1H ,"THETA0=",E15.7,"   T_given=",E15.7,"   ratio=",E15.7)
 
       IF(mod(NTG2,NSFPMA-NSFPMI+1).eq.1)THEN
          write(6,*) "-------------------------------------------------"
