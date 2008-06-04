@@ -361,7 +361,6 @@ C     ------ define --------
       PTFDL=PTFD(NR,NS)
       VTFDL=VTFD(NR,NS)
 
-c      AEFP=PZ(NSFP)*AEE
       RGAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP
      &        /(RNFP0*PTFP0*1.D20)
       RNFD0=PN(NS)

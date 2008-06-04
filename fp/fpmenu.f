@@ -22,7 +22,7 @@ C
          TIMEFP=0.D0
          NTG1=0
          NTG2=0
-         CALL FPPREP(IERR)
+         CALL FPMESH(IERR)
          IF(IERR.NE.0) GOTO 1
          CALL FPFINI
          CALL FPSAVI
@@ -47,7 +47,7 @@ C
          CALL FPWRIT
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
-         CALL FPPREP(IERR)
+         CALL FPMESH(IERR)
          IF(IERR.NE.0) GOTO 1
          CALL FPFINI
          CALL FPCOEF

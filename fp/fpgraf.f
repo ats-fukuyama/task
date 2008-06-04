@@ -323,7 +323,7 @@ C
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
 C
-      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
+c      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
       DO 10 N=1,NTG2
         GX(N)=GUCLIP(PTG(N))
         GY(N)=GUCLIP(FT(N))

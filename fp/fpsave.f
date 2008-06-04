@@ -103,8 +103,8 @@ C
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
       Do NS=1,NSMAX
-         NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
-         if(NSFPMA.eq.NSFPMI) NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) 
+         NTG3 = INT( (NTG2+NSFPMA-NSFPMI-1)/(NSFPMA-NSFPMI+1)) +1
+         if(NSFPMA.eq.NSFPMI) NTG3 = NTG2
 
          PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
          IF(NS.eq.NSFP)THEN
@@ -125,6 +125,8 @@ C
          END IF
 
       END DO
+
+
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
      &     *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
@@ -188,12 +190,12 @@ C
                RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
      &                       *(PV-1.D0)/THETA0
                DO NS=1,NSMAX
-                  AMFD=PA(NS)*AMP
-                  RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-                  PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
-                  THETB0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
-                  PV2=SQRT(1.D0+THETB0*PM(NP)**2)
                   IF(NTG2.eq.0)THEN
+                     AMFD=PA(NS)*AMP
+                     RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+                     PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
+                     THETB0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
+                     PV2=SQRT(1.D0+THETB0*PM(NP)**2)
                      RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
      &                    *FNS(NTH,NP,NR,NS)*(PV2-1.D0)/THETB0
                   ELSE
@@ -327,11 +329,9 @@ C
          DO NS=1,NSMAX
             write(6,1467)  NS, PTT2(NTG2,NS)
          END DO
-         WRITE(6,*) "NTG2=",NTG2
+         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
       END IF
 
-      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
-      if(NSFPMA.eq.NSFPMI)      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) 
       if(NTG2.ne.1)then
 c-----check of conductivity--------
       FACT1 = 
@@ -410,20 +410,12 @@ c-----------------------------
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
       END DO
 
-c      sumPTT=0.D0
       IF(NSFP.eq.NSFPMA)THEN
          DO NS=1,NSMAX
             write(6,1467)  NS, PTT2(NTG3,NS)
-c            sumPTT=sumPTT + PTT2(NTG3,NS)
          END DO
-c      write(6,*) "SUM_PTT",sumPTT, NTG2, NTG3
          WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
       END IF
-c      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-c      write(6,*) "THETA0  ",THETA0,"Tgiven ",RTFP(1)
-
-c
-c
 
  99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E14.7)
  999  FORMAT(f14.6,2E14.6)
@@ -484,10 +476,16 @@ C
          ENDIF
       ENDIF
 
-      IF(mod(NTG2,2).eq.1)THEN
+      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+c      WRITE(6,*)" "
+      write(6,1333) THETA0, RTFP(1),PTT2(1,NSFP)
+c      WRITE(6,*)" "
+ 1333 FORMAT(1H ,"THETA0=",E15.7,"   T_given=",E15.7,"   T_cal=",E15.7)
+
+      IF(mod(NTG2,NSFPMA-NSFPMI+1).eq.1)THEN
          write(6,*) "-------------------------------------------------"
       ELSE
-         WRITE(6,*) "NTG2=",NTG2
+         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
          WRITE(6,*) "    "
       END IF
 

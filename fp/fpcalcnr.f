@@ -43,7 +43,6 @@ C----- DEFINITION OF LOCAL QUANTITIES -------------
 C
       AMFD=PA(NS)*AMP
       AEFD=PZ(NS)*AEE
-c      AMFP=PA(NSFP)*AMP
       PTFPL=PTFP(NR)
       PTFDL=PTFD(NR,NS)
       VTFPL=VTFP(NR)

@@ -4,7 +4,7 @@ C *****************************
 C     PREPARATION OF FPLOOP
 C *****************************
 C
-      SUBROUTINE FPPREP(IERR)
+      SUBROUTINE FPMESH(IERR)
 C
       INCLUDE 'fpcomm.inc'
 C
@@ -25,7 +25,7 @@ C
             CALL EQCALQ(IERR)
             CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
          ELSE
-            write(6,*) 'XX FPPREP:EQLOAD:IERR=',IERR
+            write(6,*) 'XX FPMESH:EQLOAD:IERR=',IERR
          ENDIF
       ENDIF
 C
@@ -59,76 +59,11 @@ C
          CALL FPWMREAD(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
-C
-C     ----- set parameters for target species -----
-C
-      AEFP=PZ(NSFP)*AEE
-      AMFP=PA(NSFP)*AMP
-      RNFP0=PN(NSFP)
-      RNFPS=PNS(NSFP)
-      RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
-      RTFPS=PTS(NSFP)
-C
-      PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
-      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
-C
-C     ----- set profile data -----
-C
-      DO NR=1,NRMAX
-C
-         RHON=RM(NR)
-         CALL PLPROF(RHON)
-C
-         RNFP(NR)=RN(NSFP)
-         RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
-         NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1)) + 1
-         if(NSFPMA.eq.NSFPMI)NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1))
-         IF(NTG3.eq.1)THEN
-            DO NS=1,NSMAX
-c               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            END DO
-         END IF
 
-         IF(NTG2.ge.NSFPMA+1)THEN
-            IF(MODELC.eq.1.or.MODELC.eq.3)THEN
-               RTFP(NR)=PTT2(NTG3-1,NSFP)
-     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
-            END IF
-         END IF
-c         write(*,*) "temperature",PTT(1), RTFP(1)
+      CALL FPPREP(IERR)
 
-         PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
-         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
-         RNE=RN(1)
-         RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
-         DO NS=1,NSMAX
-            AEFD=PZ(NS)*AEE
-            AMFD=PA(NS)*AMP
-            RNFD(NR,NS)=RN(NS)
-            RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            IF(NTG2.ge.NSFPMA+1)THEN
-               IF(MODELC.eq.1.or.MODELC.eq.3)THEN
-                  IF(NS.ge.NSFPMI.and.NS.le.NSFPMA)
-     &                 RTFD(NR,NS)=PTT2(NTG3-1,NS)
-     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
-               END IF
-            END IF
-               PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
-               VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
-            IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
-               RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
-            ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
-               RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
-            ELSE
-               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
-            ENDIF
-            FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
-            RNUD(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(SQRT(2.D0)*VTFD(NR,NS)*PTFP0**2)
-            RNUF(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(2*AMFD*VTFD(NR,NS)**2*PTFP0)
-         ENDDO
-      ENDDO
+
+
 
 C
 C     ----- set poloidal magneticl field -----
@@ -180,49 +115,16 @@ C
 C
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-         VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
+c         IF(MODELR.eq.0)THEN
+            VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
+c         ELSE
+c            THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+c            RGAMA=SQRT(1.D0 + THETA0*PM(NP)**2)
+c            VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH/RGAMA**2
+c         END IF
       ENDDO
       ENDDO
-C
-C     ----- set relativistic parameters -----
-C
-      IF (MODELR.EQ.0) THEN
-C
-         THETA0=0.D0
-         DO NR=1,NRMAX
-            THETA(NR)=0.D0
-            DKBSR(NR)=0.D0
-         ENDDO
-C
-      ELSE
-C
-         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-         DO NR=1,NRMAX
-            THETA(NR)=THETA0*RTFP(NR)/RTFP0
-            Z=1.D0/THETA(NR)
-            IF(Z.LE.100.D0) THEN
-               DKBSR(NR)=BESKN(2,Z)
-            ELSE
-               DKBSR(NR)=SQRT(PI/(2.D0*Z))*EXP(-Z)
-            ENDIF
-         ENDDO
-      ENDIF
-C
-C     ----- set boundary distribution functions -----
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),0,NSFP)
-         DO NTH=1,NTHMAX
-            FS1(NTH,NP)=FL
-         ENDDO
-      ENDDO
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
-         DO NTH=1,NTHMAX
-            FS2(NTH,NP)=FL
-         ENDDO
-      ENDDO
+
 C
 C     ----- set bounce-average parameters -----
 C
@@ -311,6 +213,131 @@ C
             ENDDO
          ENDDO
       END IF
+
+      IERR=0
+      RETURN
+      END
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+C
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
+      SUBROUTINE FPPREP(IERR)
+
+      INCLUDE 'fpcomm.inc'
+
+      EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
+
+C
+C     ----- set parameters for target species -----
+C
+      AEFP=PZ(NSFP)*AEE
+      AMFP=PA(NSFP)*AMP
+      RNFP0=PN(NSFP)
+      RNFPS=PNS(NSFP)
+      RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
+      RTFPS=PTS(NSFP)
+C
+      PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
+      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
+C
+C     ----- set profile data -----
+C
+      DO NR=1,NRMAX
+C
+         RHON=RM(NR)
+         CALL PLPROF(RHON)
+C
+         RNFP(NR)=RN(NSFP)
+         RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
+         if(NSFPMA.eq.NSFPMI)NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1))
+         IF(NTG3.eq.1)THEN
+            DO NS=1,NSMAX
+c               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            END DO
+         END IF
+
+         IF(NTG2.ge.NSFPMA+1)THEN
+            IF(MODELC.eq.1.or.MODELC.eq.3)THEN
+               RTFP(NR)=PTT2(NTG3-1,NSFP)
+     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
+            END IF
+         END IF
+c         write(*,*) "temperature",PTT(1), RTFP(1)
+
+         PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
+         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
+         RNE=RN(1)
+         RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
+         DO NS=1,NSMAX
+            AEFD=PZ(NS)*AEE
+            AMFD=PA(NS)*AMP
+            RNFD(NR,NS)=RN(NS)
+            RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            IF(NTG2.ge.NSFPMA+1)THEN
+               IF(MODELC.eq.1.or.MODELC.eq.3)THEN
+                  IF(NS.ge.NSFPMI.and.NS.le.NSFPMA)
+     &                 RTFD(NR,NS)=PTT2(NTG3-1,NS)
+     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
+               END IF
+            END IF
+               PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
+               VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
+            IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
+               RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
+            ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
+               RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
+            ELSE
+               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
+            ENDIF
+            FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
+            RNUD(NR,NS)=FACT*RNFP0*1.D20
+     &                 /(SQRT(2.D0)*VTFD(NR,NS)*PTFP0**2)
+            RNUF(NR,NS)=FACT*RNFP0*1.D20
+     &                 /(2*AMFD*VTFD(NR,NS)**2*PTFP0)
+         ENDDO
+      ENDDO
+
+C
+C     ----- set relativistic parameters -----
+C
+      IF (MODELR.EQ.0) THEN
+C
+         THETA0=0.D0
+         DO NR=1,NRMAX
+            THETA(NR)=0.D0
+            DKBSR(NR)=0.D0
+         ENDDO
+C
+      ELSE
+C
+         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+         DO NR=1,NRMAX
+            THETA(NR)=THETA0*RTFP(NR)/RTFP0
+            Z=1.D0/THETA(NR)
+            IF(Z.LE.100.D0) THEN
+               DKBSR(NR)=BESKN(2,Z)
+            ELSE
+               DKBSR(NR)=SQRT(PI/(2.D0*Z))*EXP(-Z)
+            ENDIF
+         ENDDO
+      ENDIF
+C
+C     ----- set boundary distribution functions -----
+C
+      DO NP=1,NPMAX
+         FL=FPMXWL(PM(NP),0,NSFP)
+         DO NTH=1,NTHMAX
+            FS1(NTH,NP)=FL
+         ENDDO
+      ENDDO
+C
+      DO NP=1,NPMAX
+         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
+         DO NTH=1,NTHMAX
+            FS2(NTH,NP)=FL
+         ENDDO
+      ENDDO
 C
       IERR=0
       RETURN
