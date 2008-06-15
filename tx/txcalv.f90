@@ -32,6 +32,7 @@ contains
        BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX) * rMUb2
        BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * rMU0
     END DO
+
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
     UerV (0)       =   0.D0
     UerV (1:NRMAX) =   XL(LQe2,1:NRMAX )/ PNeV(1:NRMAX) / R(1:NRMAX)
@@ -161,7 +162,7 @@ contains
     real(8) :: PAHe = 4.D0 ! Atomic mass number of He
     real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
          &                         SNBPi, SNBTi1, SNBTi2, &
-         &                         SRF, th1, th2, Ubpara
+         &                         SRFe, SRFi, th1, th2, Ubpara
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
 
@@ -260,10 +261,11 @@ contains
     END IF
 
     !  For RF heating (equally heating for electrons and ions)
-    CALL deposition_profile(SRF,SL,RRF0,RRF,'RF')
+    CALL deposition_profile(SRFe,SL,RRFe0,RRFew,'RFe')
+    PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
 
-    PRFe0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
-    PRFi0 = 0.5D0 * PRFH * 1.D6 / (2.D0 * Pi * RR * SL)
+    CALL deposition_profile(SRFi,SL,RRFi0,RRFiw,'RFi')
+    PRFi0 = PRFHi * 1.D6 / (2.D0 * Pi * RR * SL)
 
     ! Deposition profiles are loaded from the file
 
@@ -282,10 +284,11 @@ contains
              SLT2 = 2.D0 * PI * INTG_F(SNBT2)
              PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
           else if(infiles(i)%name == datatype(4)) then ! RF
-             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,0,SRF)
-             SL   = 2.D0 * PI * INTG_F(SRF)
-             PRFe0 = 0.5D0 * ABS(PRFH) * 1.D6 / (2.D0 * Pi * RR * SL)
-             PRFi0 = 0.5D0 * ABS(PRFH) * 1.D6 / (2.D0 * Pi * RR * SL)
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,0,SRFe)
+             SL   = 2.D0 * PI * INTG_F(SRFe)
+             PRFe0 = ABS(PRFHe) * 1.D6 / (2.D0 * Pi * RR * SL)
+             SL   = 2.D0 * PI * INTG_F(SRFe)
+             PRFi0 = ABS(PRFHi) * 1.D6 / (2.D0 * Pi * RR * SL)
           end if
        end do
     end if
@@ -442,12 +445,6 @@ contains
 !!$       rNuei2Bth(NR) = 0.D0
 !       write(6,*) r(nr)/ra,rNueNC(NR)*(BthV(NR)/BBL)**2/(rNuei(NR)+rNueNC(NR)*(BthV(NR)/BBL)**2)*BphV(NR)/BBL
 
-       !     *** Parallel neoclassical viscosity ***
-       !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
-
-       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR),IER)
-       IF(IER /= 0) IERR = IER
-
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        Wti = Vti / (Q(NR) * RR) ! Omega_ti; transit frequency for ions
        
@@ -458,6 +455,14 @@ contains
           rNuAsi(NR) = 1.D0 / rNuAsI_inv
        END IF
 
+       IF(ABS(FSHL)==0.D0) THEN
+       !     *** Parallel neoclassical viscosity ***
+       !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
+
+       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR),IER)
+       IF(IER /= 0) IERR = IER
+
+       ELSE
 !!$       IF(R(NR) < RA) THEN
 !!$          rNueNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
 !!$               &     * SQRT(PI) * Q(NR)**2 * Wte &
@@ -485,10 +490,15 @@ contains
 !!$               &     * 1.D0 / (1.D0 + RL**2)
 !!$       END IF
 
-!!$       rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
-!!$            &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
-!!$       rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
-!!$            &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+          IF(nr == 0) THEN
+             rNueNC(NR) = 0.d0
+             rNuiNC(NR) = 0.d0
+          ELSE
+             rNueNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
+                  &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
+             rNuiNC(NR) = FSNC * SQRT(PI) * Q(NR)**2 &
+                  &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+          ENDIF
        !     &               * (1 + EpsL**1.5D0 * rNuAsI)
        !     &               / (1 + 1.44D0
        !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
@@ -496,6 +506,8 @@ contains
        !     &                             / ( Vti * BthV(NR)) )**2))
        !!     &                         + ( ErV(NR) * BBL
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
+
+          ENDIF
 
        !     *** Beam slowing down time (momentum transfer with beam) ***
        ! reference : memo (92/04/02, 92/04/21)
@@ -545,27 +557,16 @@ contains
 
        !     *** Helical neoclassical viscosity ***
 
-       IF(ABS(FSHL) > 0.D0) THEN
-          Wte = Vte * NCphi / RR
-          Wti = Vti * NCphi / RR
+       IF(ABS(FSHL) > 0.D0 .AND. NR > 0) THEN
+          Wte = Vte * NCph / RR
+          Wti = Vti * NCph / RR
           EpsL = EpsH * R(NR) / RA
-          rNuAsE_inv = EpsL**1.5D0 * Wte / rNuei(NR)
-          rNuAsI_inv = EpsL**1.5D0 * Wti / rNuii(NR)
+          rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
+          rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
           rNueHL(NR) = FSHL * SQRT(PI) &
                &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
           rNuiHL(NR) = FSHL * SQRT(PI) &
                &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
-          !         WRITE(6,'(I5,1P4E12.4)') 
-          !     &        NR,rNueNC(NR),rNuiNC(NR),rNueHL(NR),rNuiHL(NR)
-          !         rNueHL(NR) = 0.D0
-          !         rNuiHL(NR) = 0.D0
-          !     &               * (1 + EpsL**1.5D0 * rNuAsI)
-          !     &               / (1 + 1.44D0
-          !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
-          !     &                         + ( ErV(NR)
-          !     &                             / ( Vti * BthV(NR)) )**2))
-          !!     &                         + ( ErV(NR) * BBL
-          !!     &                             / ( Vti * BthV(NR)**2) )**2))
        ELSE
           rNueHL(0:NRMAX) = 0.D0
           rNuiHL(0:NRMAX) = 0.D0
@@ -710,8 +711,8 @@ contains
           SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
           MNB(NR)   = PNBCD * SNBTGi(NR) + (MDLPDM * PNBMPD) * SNBPDi(NR)
        END IF
-       PRFe(NR)  = PRFe0 * SRF(NR)
-       PRFi(NR)  = PRFi0 * SRF(NR)
+       PRFe(NR)  = PRFe0 * SRFe(NR)
+       PRFi(NR)  = PRFi0 * SRFi(NR)
 
        !     *** Loss to divertor ***
 
@@ -791,6 +792,19 @@ contains
        !     (NRL Plasma Formulary p57 Eq. (30) (2002))
 
        PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
+       !     *** Particle diffusion due to magnetic braiding ***AF 2008-06-08
+
+       IF (R(NR) > RMAGMN .AND. R(NR) < RMAGMX) THEN
+          DMAG(NR)=DMAG0*16.D0*(R(NR)-RMAGMN)**2*(RMAGMX-R(NR))**2 &
+          &                   /(RMAGMX-RMAGMN)**4
+          DMAGe(NR)=DMAG(NR)*Vte
+          DMAGi(NR)=DMAG(NR)*Vti
+       ELSE
+          DMAG(NR)=0.D0
+          DMAGe(NR)=0.D0
+          DMAGi(NR)=0.D0
+       ENDIF
+
     END DO L_NR
 
     rNuAse(0) = AITKEN2P(R(0),rNuAse(1),rNuAse(2),rNuAse(3),R(1),R(2),R(3))
@@ -1275,7 +1289,7 @@ contains
     real(8) :: EpsL, Rshift, Rpotato, rhop
     real(8) :: AITKEN2P
 
-    if(CHR == 'RF') then
+    if(CHR == 'RFe' .OR. CHR == 'RFi') then
        S(0:NRMAX) = EXP(- ((R(0:NRMAX) - R0) / RW)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
     else if(CHR == 'NB') then
        if(abs(FSRP) > 0.D0) then

@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=124, NGYTM=46, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=127, NGYTM=48, &
        &                   NGYVM=49, NGPRM=19, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
@@ -72,7 +72,8 @@ module tx_commons
 
   ! Heat sources
   real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
-       &     PNBCD, PNBMPD, rNRF, RRF, RRF0, PRFH
+       &     PNBCD, PNBMPD, &
+       &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi
   integer(4) :: MDLNBD, MDLPDM
 
   ! Neutral parameters
@@ -94,7 +95,10 @@ module tx_commons
 
   ! Helical parameters
   real(8) :: EpsH, FSHL, Q0, QA
-  integer(4) :: NCPHI
+  integer(4) :: NCph, NCth
+
+  ! Magnetic braiding parameters
+  real(8) :: DMAG0, RMAGMN, RMAGMX
 
   ! Diagnostic message
   integer(4) :: IDIAG
@@ -148,6 +152,7 @@ module tx_commons
        & rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        & FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        & Chie, Chii, De, Di, D01, D02, &
+       & DMAG, DMAGe, DMAGi, &
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLe, rlnLi, &
@@ -183,7 +188,7 @@ module tx_commons
   real(8), dimension(:), allocatable :: Deff, thrp
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
-  real(8) :: PINT, POHT, PNBT, PRFT, PNFT
+  real(8) :: PINT, POHT, PNBT, PRFT, PRFTe, PRFTi, PNFT
   real(8) :: PBINT, PFINT, POUT, PCXT, PIET, PRLT, SINT, SIET
   real(8) :: SNBT, SNFT, SOUT
   real(8) :: VLOOP, ALI, RQ1, RPE, ZEFF0, QF
@@ -236,9 +241,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:17) :: ierl
+    integer(4), dimension(1:18) :: ierl
 
-    ierl(1:17) = 0
+    ierl(1:18) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -297,6 +302,7 @@ contains
        allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
        allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(17))
+       allocate(DMAG(0:N),     DMAGe(0:N),     DMAGi(0:N),                    stat = ierl(18))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -346,8 +352,8 @@ contains
 
     ! All the memories allocated above are clear if some errors occur.
     if(iflag /= 0) then
-       call deallocate_txcomm
        write(6,*) "XX Allocation error category = ",iflag
+       call deallocate_txcomm
     end if
 
   end subroutine allocate_txcomm
@@ -383,6 +389,7 @@ contains
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC)
     deallocate(Fmnq,   Wnm,    Umnq)
     deallocate(deltam)
+    deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
 

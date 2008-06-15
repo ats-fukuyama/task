@@ -33,11 +33,13 @@ contains
     character(len=1) :: KID1, KID2
 
     integer(4), parameter :: NXMAX = 51, NYMAX = 51, NTHMAX=51
-    integer(4) :: NX, NY, NR, NTH, IPAT, IPRD, NSTEP, IND, ICHK, IFNT, KA(1:8,1:NXMAX,1:NYMAX)
+    integer(4) :: NX, NY, NR, NTH, NGTDO, IPAT, IPRD, NSTEP, IND, ICHK, IFNT, KA(1:8,1:NXMAX,1:NYMAX)
     real(4) :: DR, DZ, AL, ZORG, ZSTEP, DltRPnL, GXMAX
     real(4) :: GPXY(1:4), GTMP(0:NRMAX,1:2)
     real(4), dimension(:), allocatable :: RRL, ZZL
     real(4), dimension(:,:), allocatable :: VAL
+    real(8), dimension(:), allocatable :: FX
+    real(8), dimension(:,:), allocatable :: FY
     real(4) :: GSRMIN,GSRMAX,GSRSTP,GSZMIN,GSZMAX,GSZSTP
     real(8) :: RL, theta, dtheta, kappal, EpsL, width0, width1, thetab
     character(len=50) :: STRL
@@ -49,7 +51,7 @@ contains
 
     MODE = MODEGL
     OUTER : DO
-       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B: C: E: Dn: ', &
+       WRITE(6,*) '# SELECT : Rn: Tn: Un: Vn: A,B: C: E: Dn: Fn: Gn:', &
             &           'S,L,M:file W(R,T,V)n:write'
        WRITE(6,*) '           I:init X:exit'
        READ(5,'(A5)',IOSTAT=IST) STR
@@ -203,6 +205,48 @@ contains
           END IF
           IF (NGYR >= 0 .AND. NGYR <= NGYRM) THEN
              CALL TXGRUR(GX,GTX,GYT(0:NRMAX,0:NGT,NGYR),NRMAX,NGT,NGTM)!,STR,KV,MODE)
+          END IF
+
+       CASE('F')
+          READ(STR(2:5),*,IOSTAT=IST) NGYR
+          IF (IST /= 0) THEN
+             WRITE(6,*) '### ERROR : Invalid Command : ', STR
+             CYCLE OUTER
+          END IF
+          IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
+             ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,1))
+             DO NR=0,NRMAX
+                FX(NR)=DBLE(GX(NR))
+                FY(NR,1)=DBLE(GYT(NR,NGT,NGYR))
+             ENDDO
+             STRL='@profile'//STR(2:5)//'@'
+             CALL PAGES
+             CALL GRD1D(0,FX,FY,NRMAX+1,NRMAX+1,1,STRL,0)
+             CALL PAGEE
+             DEALLOCATE(FX,FY)
+          END IF
+
+       CASE('G')
+          READ(STR(2:5),*,IOSTAT=IST) NGYR
+          IF (IST /= 0) THEN
+             WRITE(6,*) '### ERROR : Invalid Command : ', STR
+             CYCLE OUTER
+          END IF
+          IF (NGYR >= 1 .AND. NGYR <= NGYRM) THEN
+             ALLOCATE(FX(0:NRMAX),FY(0:NRMAX,0:NGT))
+             DO NR=0,NRMAX
+                FX(NR)=DBLE(GX(NR))
+             ENDDO
+             DO NGTDO=0,NGT
+             DO NR=0,NRMAX
+                FY(NR,NGTDO)=DBLE(GYT(NR,NGTDO,NGYR))
+             ENDDO
+             ENDDO
+             STRL='@profile'//STR(2:5)//'@'
+             CALL PAGES
+             CALL GRD1D(0,FX,FY,NRMAX+1,NRMAX+1,NGT+1,STRL,0)
+             CALL PAGEE
+             DEALLOCATE(FX,FY)
           END IF
 
        CASE('E')
@@ -727,6 +771,12 @@ contains
     GYL(0:NXM,NG,123) = SNGL(PALFe(0:NXM))
     GYL(0:NXM,NG,124) = SNGL(PALFi(0:NXM))
 
+    ! *** Particle diffusion due to magnetic braidng ***AF (2008-06-08)
+    GYL(0:NXM,NG,125) = SNGL(DMAG(0:NXM))
+    GYL(0:NXM,NG,126) = SNGL(DMAGe(0:NXM))
+    GYL(0:NXM,NG,127) = SNGL(DMAGi(0:NXM))
+
+
     RETURN
   END SUBROUTINE TXSTGR
 
@@ -836,7 +886,7 @@ contains
 
   SUBROUTINE TXSTGT(GTIME)
 
-    use tx_commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, PNFT, &
+    use tx_commons, only : NGT, NGTM, GTX, GTY, TS0, TSAV, PINT, POHT, PNBT, PRFT, PRFTe, PRFTi,PNFT, &
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
          &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
@@ -899,6 +949,8 @@ contains
     GTY(NGT,45) = SNGL(ANFAV(1)) * 100.0
 
     GTY(NGT,46) = SNGL(VOLAVN)
+    GTY(NGT,47) = SNGL(PRFTe)
+    GTY(NGT,48) = SNGL(PRFTi)
 
     ! Store data for 3D graphics
     CALL TXSTGR(NGT,GYL=GYT,NXM=NRMAX,NGM=NGTM,NUM=NGYRM)
@@ -2508,7 +2560,7 @@ contains
 
     use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD, &
          &              FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD0, PNBHT1, PNBHT2, &
-         &              PNBHP, PRFH, Vb, De0, rMue0, rMui0, Chie0, Chii0, PTe0, PTea, &
+         &              PNBHP, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, Chie0, Chii0, PTe0, PTea, &
          &              PTi0, PTia, V0, rGamm0, rGASPF, Zeff
     INTEGER(4) :: IFNT
 
@@ -2548,7 +2600,7 @@ contains
 !!!    CALL TXWPS('@PNBH  @', PNBH)
     CALL TXWPS('@PNBHT @', PNBHT1+PNBHT2)
     CALL TXWPS('@PNBHP @', PNBHP)
-    CALL TXWPS('@PRFH  @', PRFH)
+    CALL TXWPS('@PRFH  @', PRFHe+PRFHi)
     CALL TXWPS('@Vb    @', Vb)
     CALL TXWPS('@De0   @', De0)
 !!!    CALL TXWPS('@Di0   @', Di0)

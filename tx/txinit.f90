@@ -158,7 +158,7 @@ SUBROUTINE TXINIT
   !   Alpha heating paramter
   FSNF = 0.D0
 
-  !   Toroidal neoclassical viscosity parameter
+  !   Poloidal neoclassical viscosity parameter
   FSNC = 1.D0
 
   !   Helical neoclassical viscosity parameter
@@ -234,16 +234,20 @@ SUBROUTINE TXINIT
   MDLPDM = 0 
 
   !   Refractive index of RF waves
-  rNRF = 0.D0
+  rNRFe = 0.D0
+  rNRFi = 0.D0
 
-  !   Heating radius of RF heating (m)
-  RRF = 0.175D0
+  !   Heating width of RF heating (m)
+  RRFew = 0.175D0
+  RRFiw = 0.175D0
 
-  !   Heating center of RF heating (m)
-  RRF0 = 0.D0
+  !   Heating center radius of RF heating (m)
+  RRFe0 = 0.D0
+  RRFi0 = 0.D0
 
   !   RF input power (MW)
-  PRFH = 0.D0
+  PRFHe = 0.D0
+  PRFHi = 0.D0
 
   !   ***** Neutral parameters *****
 
@@ -277,6 +281,19 @@ SUBROUTINE TXINIT
 
   ! Toroidal mode number of error field
   n_tor  = NTCOIL
+
+  ! Magnetic braiding parameters ***AF (2008-06-08)
+  DMAG0   = 0.D0  ! Magnetic field line diffusivity : (Delta r)**2/Delta z [m]
+  RMAGMN  = RA    ! minimum radius of the braiding region [m]
+  RMAGMX  = RA    ! maximum radius of the braiding region [m]
+
+  !   Helical ripple amplitude at r=a, linear in (r/a)
+  EpsH = 0.1D0    ! amplitude 
+  NCph = 5        ! toroidal pitch number
+  NCth = 2        ! poloidal pitch number
+  Q0 = 3.D0       ! q(0) by external coils
+  QA = 2.D0       ! q(a) by external coils
+
 
   !   ***** Numerical parameters *****
 
@@ -485,16 +502,6 @@ SUBROUTINE TXINIT
   !   Amount of increase of density by command DEL
   DelN = 5.D-1
 
-  !   Helical ripple amplitude at r=a, Bhelical/Btoroidal, linear to r/a
-  EpsH = 0.1D0
-
-  !   Helical pitch number
-  NCphi = 10
-
-  !   Safety factor for helical
-  Q0 = 3.D0
-  QA = 2.D0
-
   !   Index for graphic save interval
 
   NGR=-1
@@ -526,11 +533,9 @@ SUBROUTINE TXCALM
   !   Number of equations
   NQMAX = NQM
 
-  !   *** Obsolete or not used parameters ***
   !   Helical system
-  UHth  = 1.D0 / SQRT(1.D0 + DBLE(NCphi)*2)
-  UHph  = DBLE(NCphi) * UHth
-  !   ***************************************
+  UHth  = DBLE(NCth) / DBLE(NCph)
+  UHph  = 1.D0
 
   !   Square root permittivity for LQm1
   sqeps0 = sqrt(EPS0)
@@ -843,14 +848,11 @@ SUBROUTINE TXPROF
 
   ! Numerical solution for AphV
 
-  IF((PROFJ /= 1 .AND. PROFJ /= 2 .AND. PROFJ /= 3 .AND. PROFJ /= 4 .AND. PROFJ /= 5) .OR. &
-       & (ifile /= 0)) THEN
-     RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
-     X(LQm4,0) = 0.D0
-     X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
-  ELSE
+  IF((FSHL == 0.0) .AND. (ifile == 0) .AND. &
+     (PROFJ == 1 .OR. PROFJ == 2 .OR. PROFJ == 3 .OR. &
+      PROFJ == 4 .OR. PROFJ == 5)) THEN
 
-  ! Analytic solution for AphV (Valid for PROFJ=1,2,3,4,5, otherwise use above.)
+  ! Analytic solution for AphV (Valid for PROFJ=1,2,3,4,5, otherwise use below.)
 
      DO NR = 0, NRMAX
         IF(R(NR) < RA) THEN
@@ -886,6 +888,10 @@ SUBROUTINE TXPROF
                 &       - rMUb1 * rIPs * 1.D6 / (4.D0 * PI) * LOG(PSI(NR)/RA**2)
         END IF
      END DO
+  ELSE
+     RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
+     X(LQm4,0) = 0.D0
+     X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
   END IF
 
   ! Poloidal current density (Virtual current for helical system)
@@ -895,10 +901,12 @@ SUBROUTINE TXPROF
      AJV(0:NRMAX)=0.D0
   ELSE
      TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
-     DO NR = 0, NRMAX
+     DO NR = 1, NRMAX
         dRIP = DERIV3(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
         AJV(NR)=dRIP / (2.D0 * PI * R(NR))
      END DO
+     AJV(0)=(4*AJV(1)-AJV(2))/3.D0
+!     write(6,'(I5,1P2E12.4)') (NR,R(NR),AJV(NR),NR=0,NRMAX)
   END IF
   deallocate(TMP)
 
@@ -1042,13 +1050,14 @@ module tx_parameter_control
        & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
-       & rNRF,RRF,RRF0,PRFH, &
+       & rNRFe,RRFew,RRFe0,PRFHe, rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelR,DelN, &
-       & rG1,EpsH,FSHL,NCphi,Q0,QA, &
+       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth,&
+       & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
        & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM
@@ -1168,8 +1177,10 @@ contains
        IF(RNBP0 > RB .OR. RNBP0 < 0.D0) EXIT
        IF(RNBT10 > RB .OR. RNBT10 < 0.D0) EXIT
        IF(RNBT20 > RB .OR. RNBT20 < 0.D0) EXIT
-       IF(rNRF < 0.D0 .OR. PRFH < 0.D0) EXIT
-       IF(RRF0 > RB .OR. RRF0 < 0.D0) EXIT
+       IF(rNRFe < 0.D0 .OR. PRFHe < 0.D0) EXIT
+       IF(rNRFi < 0.D0 .OR. PRFHi < 0.D0) EXIT
+       IF(RRFe0 > RB .OR. RRFe0 < 0.D0) EXIT
+       IF(RRFi0 > RB .OR. RRFi0 < 0.D0) EXIT
        IF(PN0s < 0.D0 .OR. V0 < 0.D0) EXIT
        IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) EXIT
        IF(rGASPF < 0.D0) EXIT
@@ -1204,13 +1215,14 @@ contains
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
-         &       ' ',8X,'PNBCD,PNBMPD,rNRF,RRF,RRF0,PRFH,'/ &
+         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,rNRFe,RRFew,RRFe0,PRFHe,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelR,DelN,'/ &
-         &       ' ',8X,'rG1,EpsH,FSHL,NCphi,Q0,QA,'/ &
+         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ &
+         &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
          &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM')
@@ -1256,8 +1268,10 @@ contains
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
          &   'PNBHP ', PNBHP ,  'PNBMPD', PNBMPD,  &
          &   'PNBHT1', PNBHT1,  'PNBHT2', PNBHT2,  &
-         &   'rNRF  ', rNRF  ,  'RRF   ', RRF   ,  &
-         &   'RRF0  ', RRF0  ,  'PRFH  ', PRFH  ,  &
+         &   'rNRFe ', rNRFe ,  'RRFew ', RRFew ,  &
+         &   'RRFe0 ', RRFe0 ,  'PRFHe ', PRFHe ,  &
+         &   'rNRFi ', rNRFe ,  'RRFiw ', RRFiw ,  &
+         &   'RRFi0 ', RRFi0 ,  'PRFHi ', PRFHi ,  &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
@@ -1267,6 +1281,9 @@ contains
          &   'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
+         &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
+         &   'DMAG0 ', DMAG0 ,  'RMAGMN', RMAGMN,  &
+         &   'RMAGMX', RMAGMX,  &
          &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
          &   'Q0    ', Q0    ,  'QA    ', QA
     WRITE(6,'((" ",A6," =",I5,3(6X,A6," =",I5)))') &
@@ -1284,7 +1301,7 @@ contains
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLPDM', MDLPDM,  &
-         &   'NCphi ', NCphi
+         &   'NCph  ', NCph  ,  'NCth  ', NCth
 
     RETURN
   END SUBROUTINE TXVIEW

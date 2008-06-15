@@ -417,12 +417,12 @@ contains
 
 !   ! Virtual current for helical system
 !
-!   PELM(1:NEMAX,1:4,5,LQm3) =  rMUb1 * fem_int(-1,AJV)
-!   NLC(5,LQm3) = 0
+    PELM(1:NEMAX,1:4,5,LQm3) =  rMUb1 * fem_int(-1,AJV)
+    NLC(5,LQm3) = 0
 
     ! Aphi'(NRMAX) : -Bthb
 
-    NLCMAX(LQm3) = 4
+    NLCMAX(LQm3) = 5
     RETURN
   END SUBROUTINE LQm3CC
 
@@ -503,7 +503,12 @@ contains
     PELM(1:NEMAX,1:4,6,LQe1) =   (1.D0 - RatCX) * fem_int(-1,SNBe)
     NLC(6,LQe1) = 0
 
-    NLCMAX(LQe1) = 6
+    !  Diffusion of electrons (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,7,LQe1) = - 4.D0 * fem_int(18,DMAGe)
+    NLC(7,LQe1) = LQe1
+
+    NLCMAX(LQe1) = 7
     RETURN
   END SUBROUTINE LQe1CC
 
@@ -733,17 +738,22 @@ contains
     ELM(1:NEMAX,1:4,21+N,LQe3) = - fem_int(2,rNu0e)
     NLC(21+N,LQe3) = LQe3
 
-!   ! Helical neoclassical viscosity force
-!
-!   ELM(1:NEMAX,1:4,22+N,LQe3) = - (1.D0 - UHth * UHth) * fem_int(2,rNueHL)
-!   NLC(22+N,LQe3) = LQe3
-!
-!   ELM(1:NEMAX,1:4,23+N,LQe3) = UHph * UHth / 2.D0 * fem_int(22,rNueHL) * AMPe4
-!   NLC(23+N,LQe3) = LQe4
+    ! Helical neoclassical viscosity force (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,22+N,LQe3) = - UHth * UHth * fem_int(2,rNueHL)
+    NLC(22+N,LQe3) = LQe3
+
+    ELM(1:NEMAX,1:4,23+N,LQe3) = UHph * UHth * fem_int(2,rNueHL) * AMPe4
+    NLC(23+N,LQe3) = LQe4
+
+    !  Diffusion of electrons (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,24+N,LQe3) = - 4.D0 * fem_int(18,DMAGe)
+    NLC(24+N,LQe3) = LQe3
 
     ! Ns*UsTheta(NRMAX) : 0
 
-    NLCMAX(LQe3) = 21+N
+    NLCMAX(LQe3) = 24+N
     RETURN
   END SUBROUTINE LQe3CC
 
@@ -860,15 +870,20 @@ contains
     ELM(1:NEMAX,1:4,20,LQe4) = - fem_int(2,rNu0e) * AMPe4
     NLC(20,LQe4) = LQe4
 
-!    ! Helical neoclassical viscosity force
+!    ! Helical neoclassical viscosity force (***AF 2008-06-08)
 
-!    ELM(1:NEMAX,1:4,21,LQe4) =  UHth * UHph / 2.D0 * fem_int(2,rNueHL)
-!    NLC(21,LQe4) = LQe3
+    ELM(1:NEMAX,1:4,21,LQe4) =  UHth * UHph * fem_int(2,rNueHL)
+    NLC(21,LQe4) = LQe3
 
-!    ELM(1:NEMAX,1:4,22,LQe4) = - (1.D0 - UHph * UHph) * fem_int(2,rNueHL) * AMPe4
-!    NLC(22,LQe4) = LQe4
+    ELM(1:NEMAX,1:4,22,LQe4) = - UHph * UHph * fem_int(2,rNueHL) * AMPe4
+    NLC(22,LQe4) = LQe4
 
-    NLCMAX(LQe4) = 20
+    !  Diffusion of electrons (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,23,LQe4) = - 4.D0 * fem_int(18,DMAGe) * AMPe4
+    NLC(23,LQe4) = LQe4
+
+    NLCMAX(LQe4) = 23
     RETURN
   END SUBROUTINE LQe4CC
 
@@ -973,7 +988,12 @@ contains
        PELM(1:NEMAX,1:4,18,LQe5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFe)
        NLC(18,LQe5) = 0
        
-       NLCMAX(LQe5) = 18
+    !  Diffusion of electrons (***AF 2008-06-08)
+
+       ELM(1:NEMAX,1:4,19,LQe5) = - 4.D0 * fem_int(18,DMAGe)
+       NLC(19,LQe5) = LQe5
+
+       NLCMAX(LQe5) = 19
 
     ELSE
 
@@ -1051,7 +1071,12 @@ contains
     ELM(1:NEMAX,1:4,11,LQi1) = - fem_int(2,rNuOL)
     NLC(11,LQi1) = LQi1
 
-    NLCMAX(LQi1) = 11
+    !  Diffusion of ions (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,12,LQi1) = - 4.D0 * fem_int(18,DMAGi)
+    NLC(12,LQi1) = LQi1
+
+    NLCMAX(LQi1) = 12
     RETURN
   END SUBROUTINE LQi1CC
 
@@ -1291,16 +1316,21 @@ contains
     NLC(22+N,LQi3) = LQi3
 
 !   ! Helical Neoclassical viscosity force
-!
-!   ELM(1:NEMAX,1:4,23+N,LQi3) = - (1.D0 - UHth * UHth) * fem_int(2,rNuiHL)
-!   NLC(23+N,LQi3) = LQi3
-!
-!   ELM(1:NEMAX,1:4,24+N,LQi3) = UHph * UHth * fem_int(22,rNuiHL)
-!   NLC(24+N,LQi3) = LQi4
+
+   ELM(1:NEMAX,1:4,23+N,LQi3) = - UHth * UHth * fem_int(2,rNuiHL)
+   NLC(23+N,LQi3) = LQi3
+
+   ELM(1:NEMAX,1:4,24+N,LQi3) = UHph * UHth * fem_int(2,rNuiHL)
+   NLC(24+N,LQi3) = LQi4
+
+    !  Diffusion of ions (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,25+N,LQi3) = - 4.D0 * fem_int(18,DMAGi)
+    NLC(25+N,LQi3) = LQi3
 
     ! Ns*UsTheta(NRMAX) : 0
 
-    NLCMAX(LQi3) = 22+N
+    NLCMAX(LQi3) = 25+N
     RETURN
   END SUBROUTINE LQi3CC
 
@@ -1428,13 +1458,18 @@ contains
 
 !   ! Helical Neoclassical viscosity force
 
-!   ELM(1:NEMAX,1:4,22,LQi4) = UHth * UHph / 2.D0 * fem_int(2,rNuiHL)
-!   NLC(22,LQi4) = LQi3
+   ELM(1:NEMAX,1:4,22,LQi4) = UHth * UHph * fem_int(2,rNuiHL)
+   NLC(22,LQi4) = LQi3
 
-!   ELM(1:NEMAX,1:4,23,LQi4) = - (1.D0 - UHph * UHph) * fem_int(2,rNuiHL)
-!   NLC(23,LQi4) = LQi4
+   ELM(1:NEMAX,1:4,23,LQi4) = - UHph * UHph * fem_int(2,rNuiHL)
+   NLC(23,LQi4) = LQi4
 
-    NLCMAX(LQi4) = 21
+    !  Diffusion of ions (***AF 2008-06-08)
+
+    ELM(1:NEMAX,1:4,24,LQi4) = - 4.D0 * fem_int(18,DMAGi)
+    NLC(24,LQi4) = LQi4
+
+    NLCMAX(LQi4) = 24
     RETURN
   END SUBROUTINE LQi4CC
 
@@ -1549,7 +1584,12 @@ contains
        PELM(1:NEMAX,1:4,21,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFi)
        NLC(21,LQi5) = 0
 
-       NLCMAX(LQi5) = 21
+       !  Diffusion of ions (***AF 2008-06-08)
+
+       ELM(1:NEMAX,1:4,22,LQi5) = - 4.D0 * fem_int(18,DMAGi)
+       NLC(22,LQi5) = LQi5
+
+       NLCMAX(LQi5) = 22
     ELSE
 
        !  Fixed temperature profile
