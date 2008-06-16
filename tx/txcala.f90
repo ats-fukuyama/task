@@ -870,7 +870,7 @@ contains
     ELM(1:NEMAX,1:4,20,LQe4) = - fem_int(2,rNu0e) * AMPe4
     NLC(20,LQe4) = LQe4
 
-!    ! Helical neoclassical viscosity force (***AF 2008-06-08)
+    ! Helical neoclassical viscosity force (***AF 2008-06-08)
 
     ELM(1:NEMAX,1:4,21,LQe4) =  UHth * UHph * fem_int(2,rNueHL)
     NLC(21,LQe4) = LQe3
@@ -988,7 +988,7 @@ contains
        PELM(1:NEMAX,1:4,18,LQe5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFe)
        NLC(18,LQe5) = 0
        
-    !  Diffusion of electrons (***AF 2008-06-08)
+       !  Diffusion of electrons (***AF 2008-06-08)
 
        ELM(1:NEMAX,1:4,19,LQe5) = - 4.D0 * fem_int(18,DMAGe)
        NLC(19,LQe5) = LQe5
@@ -1315,13 +1315,13 @@ contains
     ELM(1:NEMAX,1:4,22+N,LQi3) = - fem_int(2,rNuOL)
     NLC(22+N,LQi3) = LQi3
 
-!   ! Helical Neoclassical viscosity force
+    ! Helical Neoclassical viscosity force
 
-   ELM(1:NEMAX,1:4,23+N,LQi3) = - UHth * UHth * fem_int(2,rNuiHL)
-   NLC(23+N,LQi3) = LQi3
+    ELM(1:NEMAX,1:4,23+N,LQi3) = - UHth * UHth * fem_int(2,rNuiHL)
+    NLC(23+N,LQi3) = LQi3
 
-   ELM(1:NEMAX,1:4,24+N,LQi3) = UHph * UHth * fem_int(2,rNuiHL)
-   NLC(24+N,LQi3) = LQi4
+    ELM(1:NEMAX,1:4,24+N,LQi3) = UHph * UHth * fem_int(2,rNuiHL)
+    NLC(24+N,LQi3) = LQi4
 
     !  Diffusion of ions (***AF 2008-06-08)
 
@@ -1456,13 +1456,13 @@ contains
     ELM(1:NEMAX,1:4,21,LQi4) = - fem_int(2,rNuOL)
     NLC(21,LQi4) = LQi4
 
-!   ! Helical Neoclassical viscosity force
+   ! Helical Neoclassical viscosity force
 
-   ELM(1:NEMAX,1:4,22,LQi4) = UHth * UHph * fem_int(2,rNuiHL)
-   NLC(22,LQi4) = LQi3
+    ELM(1:NEMAX,1:4,22,LQi4) = UHth * UHph * fem_int(2,rNuiHL)
+    NLC(22,LQi4) = LQi3
 
-   ELM(1:NEMAX,1:4,23,LQi4) = - UHph * UHph * fem_int(2,rNuiHL)
-   NLC(23,LQi4) = LQi4
+    ELM(1:NEMAX,1:4,23,LQi4) = - UHph * UHph * fem_int(2,rNuiHL)
+    NLC(23,LQi4) = LQi4
 
     !  Diffusion of ions (***AF 2008-06-08)
 

@@ -223,11 +223,12 @@ SUBROUTINE TXINIT
   !   NBI current drive parameter
   PNBCD = 1.D0
 
-  !   MDLPDM=0: Direction of perpendicular NBI system (plus: co, minus: ctr)
-  !   MDLPDM=1: Fraction of toroidal momentum input from perpendicular NBI (-1 < PNBMPD < 1)
+!!  !   MDLPDM=0: Direction of perpendicular NBI system (plus: co, minus: ctr)
+!!  !   MDLPDM=1: Fraction of toroidal momentum input from perpendicular NBI (-1 < PNBMPD < 1)
+  !   Rate of the collisional slowing down part of the perpendicular NBI
   PNBMPD = 0.D0
 
-  !   Different NBI deposition profiles for electrons and ions
+  !   Different NBI deposition profiles for electrons and ions due to banana orbit effect
   MDLNBD = 0
 
   !   Momentum input from perpendicular NBI
@@ -928,8 +929,8 @@ SUBROUTINE TXPROF
      EpsL = R(NR) / RR
      Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME) ! Thermal velocity for ions
      Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
-     rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
-     rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rlnLe(NR) &
+     rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
+     rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rlnLei(NR) &
           &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
           &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
      rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))

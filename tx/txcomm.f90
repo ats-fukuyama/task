@@ -155,7 +155,7 @@ module tx_commons
        & DMAG, DMAGe, DMAGi, &
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
-       & FWthphe, FWthphi, rlnLe, rlnLi, &
+       & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC
   real(8), dimension(:,:), allocatable :: deltam
@@ -297,7 +297,7 @@ contains
        allocate(De(0:N),     Di(0:N),     D01(0:N),   D02(0:N),               stat = ierl(10))
        allocate(WNthe(0:N),  WEMthe(0:N), WWthe(0:N), WT1the(0:N),WT2the(0:N),stat = ierl(11))
        allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(12))
-       allocate(FWthphe(0:N),FWthphi(0:N),rlnLe(0:N), rlnLi(0:N),             stat = ierl(13))
+       allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(13))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(14))
        allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
@@ -384,7 +384,7 @@ contains
     deallocate(De,     Di,     D01,   D02)
     deallocate(WNthe,  WEMthe, WWthe, WT1the,WT2the)
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
-    deallocate(FWthphe,FWthphi,rlnLe, rlnLi)
+    deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC)
     deallocate(Fmnq,   Wnm,    Umnq)

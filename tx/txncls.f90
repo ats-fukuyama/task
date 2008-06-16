@@ -15,7 +15,7 @@ contains
 !***********************************************************************
   
   SUBROUTINE SAUTER(NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN, &
-       &            Q,BB,DPSI,IPSI,EPS,RR,ZI,ZEFF,FT,rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN, &
+       &            Q,BB,DPSI,IPSI,EPS,RR,ZI,ZEFF,FT,rlnLei_IN,rlnLii_IN,NUE_IN,NUI_IN, &
        &            JBS,ETA,JBSB,ETAS)
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -42,8 +42,8 @@ contains
 !     ZI    : charge number of bulk ion
 !     ZEFF  : effective charge number
 !     FT    : trapped particle fraction
-!     rlnLe : Coulomb logarithm for electron collisions, optional
-!     rlnLi : Coulomb logarithm for ion collisions,      optional
+!     rlnLei: Coulomb logarithm for electron collisions, optional
+!     rlnLii: Coulomb logarithm for ion collisions,      optional
 !     NUE   : Normalized collisionality for electrons,   optional
 !     NUI   : Normalized collisionality for ions,        optional
 !
@@ -57,7 +57,7 @@ contains
 
     real(8), intent(in) :: NE,TE,DTE,DPE_IN,NI,TI,DTI,DPI_IN,Q,BB,DPSI,IPSI,EPS,RR, &
     &                      ZI,ZEFF,FT
-    real(8), intent(in), optional :: rlnLe_IN,rlnLi_IN,NUE_IN,NUI_IN
+    real(8), intent(in), optional :: rlnLei_IN,rlnLii_IN,NUE_IN,NUI_IN
     real(8), intent(out) :: JBS, ETA
     real(8), intent(out), optional :: JBSB, ETAS
 
@@ -70,7 +70,7 @@ contains
     IF(EPS == 0.D0) THEN
        RNZ = 0.58D0+0.74D0/(0.76D0+ZEFF)
        LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
-       IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
+       IF(PRESENT(rlnLei_IN)) LnLame = rlnLei_IN
 
        JBS = 0.D0
        ETA = 1.D0 / (1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame))
@@ -91,12 +91,12 @@ contains
 !     NU    : collisional frequency [/s]
 
     LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
-    IF(PRESENT(rlnLe_IN)) LnLame = rlnLe_IN
+    IF(PRESENT(rlnLei_IN)) LnLame = rlnLei_IN
     NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TE*1.D3)**2*EPSS)
     IF(PRESENT(NUE_IN))   NUE    = NUE_IN
 
     LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TI*1.D3)**1.5D0))
-    IF(PRESENT(rlnLi_IN)) LnLamii = rlnLi_IN
+    IF(PRESENT(rlnLii_IN)) LnLamii = rlnLii_IN
     NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TI*1.D3)**2*EPSS)
     IF(PRESENT(NUI_IN))   NUI     = NUI_IN
 
@@ -341,11 +341,11 @@ contains
 !!$    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
 !!$    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
 !!$    dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
-!!$    rlnLe(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
-!!$    rlnLi(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
+!!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
+!!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
 !!$    CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
 !!$         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-!!$         &      rlnLe_IN=rlnLe(NR),rlnLi_IN=rlnLi(NR),JBS=AJBSL,ETA=ETAL)
+!!$         &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),JBS=AJBSL,ETA=ETAL)
 !!$    IF(NR == 0) AJBSL = 0.D0
 !!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeV(NR)*UephV(NR) &
 !!$         &                +PZ*AEE*PNiV(NR)*UiphV(NR) &

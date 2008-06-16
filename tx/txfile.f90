@@ -307,7 +307,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx450') THEN
+  !  IF(LOADSLID(1:5) == 'tx452') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -549,7 +549,7 @@ SUBROUTINE TXGLOD(IST)
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx450') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx452') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -650,6 +650,9 @@ subroutine ascii_input
         exit   
      end if
   end do
+
+  ! Deallocate if already allocated
+  if(allocated(infiles)) deallocate(infiles)
 
   ! Allocate derived type
   allocate(infiles(1:n_infiles))

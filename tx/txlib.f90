@@ -1439,7 +1439,7 @@ END SUBROUTINE BISECTION
 !
 !      imode |  iaxis  iedge  |    axis        separatrix   |
 !     -------------------------------------------------------
-!        *   |    *      0    |         as it is            |
+!        *   |    *      0    |         as it is            | <- if data in rho > 1 exist
 !        1   |    1      1    |     0              0        |
 !        2   |    2      2    |     0              ex       |
 !        3   |    3      3    |     0              val      |
@@ -1473,6 +1473,7 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
   end if
 
   ! Reshape the mesh and data arrays
+  nmax = nmax_in
   if(iedge /= 0) nmax = nmax_in + 1
   if(rho_in(1) == 0.d0) then ! Originally having the value at the axis
      nmax = nmax - 1
@@ -1490,7 +1491,9 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
   end if
 
   ! Extrapolate the value at the axis
-  if(iaxis /= 0) then
+  if(iaxis == 0) then
+     dat_out(0) = dat_tmp(0)
+  else
      iaxis = int((imode-1)/3)+1
      if(iaxis == 1) then
         dat_tmp(0) = 0.d0
