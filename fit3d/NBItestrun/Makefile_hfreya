@@ -1,0 +1,20 @@
+COMP = sxf90
+FFLAGS = -Chopt -Wf"-A dbl4 -O extendreorder" -R2
+INCDIR = /home/murakami/fort/hfreya2/include
+#
+OBJ    = hfreya2z_020502Tnlim_gauss2_rdv01.o  \
+	drive_rdv01.o  iodisk3_hf.o
+BIN    = hfreya2z_020502Tnlim_gauss2_rdv01.lm
+BINDIR = /home/murakami/fort/hfreya2
+
+$(BINDIR)/$(BIN):	$(OBJ)
+	$(COMP) $(FFLAGS) -o $(BINDIR)/$(BIN) $(OBJ) -lasl
+
+hfreya2z_020502Tnlim_gauss2_rdv01.o:	hfreya2z_020502Tnlim_gauss2_rdv01.f
+	$(COMP) -c $(FFLAGS) -I$(INCDIR) hfreya2z_020502Tnlim_gauss2_rdv01.f
+drive_rdv01.o:	drive_rdv01.f
+	$(COMP) -c $(FFLAGS) -I$(INCDIR) drive_rdv01.f
+iodisk3_hf.o:	iodisk3_hf.f
+	$(COMP) -c $(FFLAGS) -I$(INCDIR) iodisk3_hf.f
+iodisk3_hf_FMT.o:	iodisk3_hf_FMT.f
+	$(COMP) -c $(FFLAGS) -I$(INCDIR) iodisk3_hf_FMT.f
