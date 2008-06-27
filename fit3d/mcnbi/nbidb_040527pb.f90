@@ -2301,7 +2301,8 @@ MODULE mcnbi_all
 !     charge exchange with neutral
 !-------------------------------------c
 !
-      CALL rjuflp(ntest,ix,iy,iran,rndcx,iswrd,icon)
+!      CALL rjuflp(ntest,ix,iy,iran,rndcx,iswrd,icon)
+      CALL fort_random(ntest,rndcx,iswrd,ix,iy,icon)
 
 !CDIR NODEP
       DO n=1,ntest
@@ -2423,8 +2424,9 @@ MODULE mcnbi_all
 
 !      call ranu2n(ran,icon)
 !      call djuflp(ntest,ix,iy,iran,ran,iswrd,icon)
-      CALL rjuflp(ntest,ix,iy,iran,ran,iswrd,icon)
+!      CALL rjuflp(ntest,ix,iy,iran,ran,iswrd,icon)
 !      call rjufsp(ntest,ix,iy,ran,icon)
+      CALL fort_random(ntest,ran,iswrd,ix,iy,icon)
 
 !     if(icon.ne.0) write(6,100) icon
 

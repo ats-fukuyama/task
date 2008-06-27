@@ -30,6 +30,9 @@ fit/fitlib.a:
 	(cd fit; make)
 
 fit3d:  $(LIBS) $(OBJS)
+	(cd hfreya2; make)
+	(cd mcnbi; make)
+	(cd fit; make)
 	$(FCFIXED) $(OBJS) $(LIBS) -o fit3d $(FFLAGS) $(FLIBS)
 
 clean :

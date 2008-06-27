@@ -76,6 +76,7 @@ c     .. function references ..
 c     .. subroutine references ..
 c     c05ncu, c05ncw, c05ncx, c05ncy, c05ncz
 c     ..
+      external fcn
       data one, p1, p5, p001, p0001, zero /1.0d0,1.0d-1,5.0d-1,1.0d-3,
      *1.0d-4,0.0d0/
       epsmch = x02aaf(0.0d0)

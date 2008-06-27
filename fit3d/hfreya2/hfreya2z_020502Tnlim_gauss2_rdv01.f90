@@ -1,5 +1,7 @@
 MODULE hfreya_all
 
+
+
   CONTAINS
 !***********************************************************************
 !       program      h f r e y a  2
@@ -308,11 +310,13 @@ MODULE hfreya_all
   IMPLICIT NONE
   REAL(8),INTENT(IN) :: x0(*), r, phi, zf
   REAL(8),INTENT(OUT):: ps, thet, sphi
-  INTEGER(4),PARAMETER:: n=3
+  INTEGER(4),PARAMETER:: n=3, ldfjac=n, lr=(n*(n+1))/2
   INTEGER(4):: ifail, iwk(n), nev(2)
   INTEGER(4):: maxfev=100, mode=0
   REAL(8):: er, x(n), fvec(n), wk(n*(n+3)), dwk(n*(2*n+2))
-  EXTERNAL fcnv, fcnj
+  REAL(8):: fjac(ldfjac,n),diag(n),qtf(n),rq(lr),w(n,4)
+  REAL(8):: xtol,factor
+  INTEGER(4):: nprint,nfev,njev
 
 !!  n is the number of nonlinear algebrac equations to be solved by the
 !!!     data x0/0.6,0.9,1.2,1.5,1.8,0.,0.,0.,0./
@@ -322,7 +326,7 @@ MODULE hfreya_all
 !      integer iwk(n),nev(2)
 !*     real wk(n*(3*n+7))
 !*     integer iwk(2*n)
-!*     external fcn
+!       external fcn
 !      external fcnv,fcnj
 !C---NEC END
 !
@@ -335,13 +339,17 @@ MODULE hfreya_all
       zz=zf
       pphi=phi
 
+      nprint=1
+      factor=1.d0
+      xtol=0.d0
+
 !C---NEC 01/02/19 start
-!*     call c05pcf(fcn,n,x,fvec,fjac,ldfjac,xtol,maxfev,diag,mode,
-!*    &     factor,nprint,nfev,njev,rq,lr,qtf,w,ifail)
-      nev(1) = maxfev
-      nev(2) = 100*n
-      er     = 0.1d-10
-      CALL DLSRDS(fcnv,fcnj,x,n,er,nev,mode,iwk,wk,dwk,ifail)
+      call c05pcf(fcn,n,x,fvec,fjac,ldfjac,xtol,maxfev,diag,mode, &
+     &     factor,nprint,nfev,njev,rq,lr,qtf,w,ifail)
+!      nev(1) = maxfev
+!      nev(2) = 100*n
+!      er     = 0.1d-10
+!      CALL DLSRDS(fcnv,fcnj,x,n,er,nev,mode,iwk,wk,dwk,ifail)
 !C---NEC END
 !x    if(x(1).le.xmin) then
 !x    x(1)=xmin

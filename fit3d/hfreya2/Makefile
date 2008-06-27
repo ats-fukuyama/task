@@ -13,9 +13,10 @@ MODINCLUDE= -I.$(MOD) -I../../../bpsd$(MOD) -I../../task/pl$(MOD)
 
 SRCS = hfrmod.f90 \
        hfreya2z_020502Tnlim_gauss2_rdv01.f90 \
-       drive_rdv01.f90 iodisk3_hf.f90 hfrfnc.f90
+       drive_rdv01.f90 iodisk3_hf.f90 hfrfnc.f90 
+SRCT = chs_c05pcf.f
 
-OBJS = $(SRCS:.f90=.o)
+OBJS = $(SRCS:.f90=.o) $(SRCT:.f=.o)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
