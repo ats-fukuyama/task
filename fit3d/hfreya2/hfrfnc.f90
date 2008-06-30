@@ -135,7 +135,8 @@
   INTEGER(4),INTENT(INOUT):: idum
   INTEGER(4),PARAMETER:: mseed=161803398, mbig=1000000000, mz=0
   REAL(8),PARAMETER:: fac=1.d-9
-  INTEGER(4):: i, ii, inext, inextp, k, mj, mk, ma(55)
+  INTEGER(4):: i, ii, k, mj, mk
+  INTEGER(4),save:: inext, inextp, ma(55)
   INTEGER(4):: iff=0
 !!!     parameter (mbig=4000000.,mseed=1618033.,mz=0.,fac=2.5e-7)
 !      parameter (mbig=1000000000,mseed=161803398,mz=0,fac=1.e-9)
