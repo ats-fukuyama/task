@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -29,10 +29,12 @@ mcnbi/mcnbilib.a:
 fit/fitlib.a:
 	(cd fit; make)
 
-fit3d:  $(LIBS) $(OBJS)
+libs:
 	(cd hfreya2; make)
 	(cd mcnbi; make)
 	(cd fit; make)
+
+fit3d:  $(LIBS) $(OBJS)
 	$(FCFIXED) $(OBJS) $(LIBS) -o fit3d $(FFLAGS) $(FLIBS)
 
 clean :

@@ -341,7 +341,7 @@ MODULE hfreya_all
 
       nprint=1
       factor=1.d0
-      xtol=0.d0
+      xtol=1.d-11
 
 !C---NEC 01/02/19 start
       call c05pcf(fcn,n,x,fvec,fjac,ldfjac,xtol,maxfev,diag,mode, &

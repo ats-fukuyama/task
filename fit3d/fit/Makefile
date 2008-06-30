@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../../make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a

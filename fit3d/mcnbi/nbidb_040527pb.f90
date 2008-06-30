@@ -1779,9 +1779,11 @@ MODULE mcnbi_all
           ei(nt(n),  1,m)    = ei(nt(n),  1,m)-swt(n)*dei1
           ee(nt(n),  1,m)    = ee(nt(n),  1,m)-swt(n)*dee1
 !
-          idsgn = 3-isswt(n)
-          ei(nt(n),idsgn ,m) = ei(nt(n),idsgn  ,m) -dei1
-          ee(nt(n),idsgn ,m) = ee(nt(n),idsgn  ,m) -dee1
+!!!! commented on 2008-06-27
+!          idsgn = 3-isswt(n)
+!          ei(nt(n),idsgn ,m) = ei(nt(n),idsgn  ,m) -dei1
+!          ee(nt(n),idsgn ,m) = ee(nt(n),idsgn  ,m) -dee1
+!!!!
 
 !-----------------------------------------------------c
 !
@@ -2691,6 +2693,9 @@ MODULE mcnbi_all
         IF (isw(ip).eq.1) THEN
           ereng  = abs(eng(ip) -ekin0(ip))/ekin0(ip)
           iernum = int(ereng/dlter)+1
+          write(6,'(A,2I6,1P3E12.4)') &
+               '*** iernum: ',ip,iernum,eng(ip),ekin0(ip),ereng
+          if(iernum.gt.20) iernum=20
           ierdis(iernum) = ierdis(iernum) +1
         END IF
       END DO
