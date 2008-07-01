@@ -36,7 +36,7 @@ MODULE hfreya_all
 !-----------------------------------c
 
       CALL dimles
-      PRINT *, 'dimles is ended.'
+      WRITE(6,*) 'dimles is ended.'
       IF(icoef.eq.0) CALL coeff
       IF(icoef.eq.1) CALL coeff1
 
@@ -156,21 +156,21 @@ MODULE hfreya_all
 !    Print out the field data
 !--------------------------------------------c
 
-      PRINT 600,  modmax,loop
-      PRINT 601, (nnum(k),mnum(k),k=1,modmax)
+      WRITE(6,600)  modmax,loop
+      WRITE(6,601) (nnum(k),mnum(k),k=1,modmax)
 !
-      PRINT 602, (i,psi(i),psip(i),gg(i),ai(i),aiota(i),vol(i),vprime(i),i=0,loop)
+      WRITE(6,602) (i,psi(i),psip(i),gg(i),ai(i),aiota(i),vol(i),vprime(i),i=0,loop)
 !
-      PRINT 610, (nnum(k),mnum(k),k=1,11)
+      WRITE(6,610) (nnum(k),mnum(k),k=1,11)
 !
       DO i=0,loop
-        PRINT 611, i,(bbnm(k,i),k=1,11)
+        WRITE(6,611) i,(bbnm(k,i),k=1,11)
       END DO
 !
-      PRINT 610, (nnum(k),mnum(k),k=12,22)
+      WRITE(6,610) (nnum(k),mnum(k),k=12,22)
 
       DO i=0,loop
-        PRINT 611, i,(bbnm(k,i),k=12,22)
+        WRITE(6,611) i,(bbnm(k,i),k=12,22)
       END DO
 
 
@@ -202,10 +202,10 @@ MODULE hfreya_all
 !--------------------------------------------c
 
       mx=min(11,modmax)
-      PRINT 620, (nnumbr(k),mnumbr(k),k=1,mx)
+      WRITE(6,620) (nnumbr(k),mnumbr(k),k=1,mx)
 
       DO i=0,loop
-        PRINT 611, i,(bnm(k,i),k=1,mx)
+        WRITE(6,611) i,(bnm(k,i),k=1,mx)
       END DO
 
  620  FORMAT(1h ,//,' ****** fourier amplitude ** bnm **'//,3x,11(2x,'(',i3,i5,')'),//)
@@ -1520,7 +1520,7 @@ MODULE hfreya_all
         sigee   =sgvxne(i)*veli/xnion(i)
         delsig = sigi/(sigino+sigcx+sigee)
 
-        PRINT 1111, i,delsig,sigz,sigi,sigino, sigcx,sigee,xte(i),xnion(i)
+        WRITE(6,1111) i,delsig,sigz,sigi,sigino, sigcx,sigee,xte(i),xnion(i)
 
  1111   FORMAT(' i,dl,sigz,sigi,sigino,xte,xni=',i4,8e12.3)
  1112   FORMAT(' ijk, aaa, nTE=',3i4,4e12.3)
@@ -2210,7 +2210,7 @@ MODULE hfreya_all
      &       ' allowed dimension size (=',i4,')')
 
       IF(n0.gt.ndim) THEN
-        PRINT 999,n0,ndim
+        WRITE(6,999) n0,ndim
         STOP                              999
       ELSE IF(i.eq.0) THEN
         n2= n0-2

@@ -37,7 +37,7 @@
       ALLOCATE(cb(maxp), cjb(maxp), cmmnte(maxp), cmmnti(maxp), cppara(maxp), cpperp(maxp))
       ALLOCATE(cvol(maxp),p1(maxp),p2(maxp),pts(maxp),qe(maxp), qi(maxp),r(maxp),rra(maxp))
 
-      PRINT *, 'start'
+      WRITE(6,*) 'start'
 
 !!      open(20,file='prof.out20',status='unknown')
 !!      open(10,file='prof.out10',status='unknown')
@@ -94,28 +94,28 @@
 
       pnorm = pnbi/1.d6
 
-      PRINT *, " "
-      PRINT *, "----------------------- "
-      PRINT *, " Parameters"
-      PRINT *, " "
-      PRINT *, '   pi          =',pi
-      PRINT *, '   e           =',echg
-      PRINT *, '   c [m/sec]  =',clight
-      PRINT *, '   me [Kg]      =',cme
-      PRINT *, '   mi [Kg]      =',cmp
+      WRITE(6,*) " "
+      WRITE(6,*) "----------------------- "
+      WRITE(6,*) " Parameters"
+      WRITE(6,*) " "
+      WRITE(6,*) '   pi          =',pi
+      WRITE(6,*) '   e           =',echg
+      WRITE(6,*) '   c [m/sec]  =',clight
+      WRITE(6,*) '   me [Kg]      =',cme
+      WRITE(6,*) '   mi [Kg]      =',cmp
 
 
       enbikv = enbi/1.d3
 
       vf = sqrt(2.d0*echg*enbi/(cmp*amb))
 
-      PRINT *, ' Zf           =',azb
-      PRINT *, ' Mf/Mp        =',amb
-      PRINT *, ' E_nbi [eV]   =',enbi
-      PRINT *, ' v_f [m/sec]  =',vf
-      PRINT *, ' Z_eff        =',zeff
-      PRINT *, ' Z_1          =',z1
-      PRINT *, ' pnorm        =',pnorm
+      WRITE(6,*) ' Zf           =',azb
+      WRITE(6,*) ' Mf/Mp        =',amb
+      WRITE(6,*) ' E_nbi [eV]   =',enbi
+      WRITE(6,*) ' v_f [m/sec]  =',vf
+      WRITE(6,*) ' Z_eff        =',zeff
+      WRITE(6,*) ' Z_1          =',z1
+      WRITE(6,*) ' pnorm        =',pnorm
 !
 !      cn0    = 1.0d17
 
@@ -209,18 +209,19 @@
       ttf = taus/3.d0*log((1.e0+(vf/vc)**3)/(1.e0+(vti/vc)**3))
 
       IF (time.gt.ttf) THEN
+        tex=0.d0
         vlst = vti
       ELSE
         tex  = exp(-3*time/taus)
         vlst = vf*( tex -(vc/vf)**3*(1.e0-tex) )**(1.e0/3.e0)
       END IF
 
-      PRINT *, ' tau_f        =',ttf
-      PRINT *, ' time         =',time
-      PRINT *, ' vlst         =',vlst
-      PRINT *, ' exp(-3t/ts)  =',tex
-      PRINT *, ' v_Ti         =',vti
-      PRINT *, ' zeta0        =',zeta0
+      WRITE(6,*), ' tau_f        =',ttf
+      WRITE(6,*) ' time         =',time
+      WRITE(6,*) ' vlst         =',vlst
+      WRITE(6,*) ' exp(-3t/ts)  =',tex
+      WRITE(6,*) ' v_Ti         =',vti
+      WRITE(6,*) ' zeta0        =',zeta0
 
 !--------------------------------------------c
 !--------------------------------------------c
@@ -245,6 +246,8 @@
       cbden = 0.d0
       ge    = 0.d0
       gi    = 0.d0
+      cke   = 0.d0
+      cki   = 0.d0
       pperp = 0.d0
       ppara = 0.d0
 !
@@ -297,29 +300,29 @@
 
 !--------------------------------------------c
 !
-        PRINT *, ' n0  [m^-3]   =',cnn
-        PRINT *, ' Te0 [eV]     =',teev
-        PRINT *, ' Ti0 [eV]     =',tiev
-        PRINT *, ' Vthi [m/sec] =',vti
-        PRINT *, ' E_c [eV]     =',ecev
-        PRINT *, ' v_c  [m/sec] =',vc
-        PRINT *, ' tau_s [sec]  =',taus
-        PRINT *, ' sgmcx [cm^2] =',sgmcx
-        PRINT *, ' tau_cx [sec] =',taucx
+        WRITE(6,*) ' n0  [m^-3]   =',cnn
+        WRITE(6,*) ' Te0 [eV]     =',teev
+        WRITE(6,*) ' Ti0 [eV]     =',tiev
+        WRITE(6,*) ' Vthi [m/sec] =',vti
+        WRITE(6,*) ' E_c [eV]     =',ecev
+        WRITE(6,*) ' v_c  [m/sec] =',vc
+        WRITE(6,*) ' tau_s [sec]  =',taus
+        WRITE(6,*) ' sgmcx [cm^2] =',sgmcx
+        WRITE(6,*) ' tau_cx [sec] =',taucx
 !
-        PRINT *, ' cbden            =',cbden
-        PRINT *, ' ge               =',ge
-        PRINT *, ' gi               =',gi
-        PRINT *, ' cke               =',cke
-        PRINT *, ' cki               =',cki
-        PRINT *, ' pperp            =',pperp
-        PRINT *, ' ppara            =',ppara
-        PRINT *, ' q_e  [W/cm^-3]   =',qe(ir)
-        PRINT *, ' q_i  [W/cm^-3]   =',qi(ir)
-        PRINT *, ' n_b  [m^-3]      =',cb(ir)
-        PRINT *, ' jb   [A/cm^-3]   =',cjb(ir)
-        PRINT *, ' p_perp           =',cpperp(ir)
-        PRINT *, ' p_para           =',cppara(ir)
+        WRITE(6,*) ' cbden            =',cbden
+        WRITE(6,*) ' ge               =',ge
+        WRITE(6,*) ' gi               =',gi
+        WRITE(6,*) ' cke               =',cke
+        WRITE(6,*) ' cki               =',cki
+        WRITE(6,*) ' pperp            =',pperp
+        WRITE(6,*) ' ppara            =',ppara
+        WRITE(6,*) ' q_e  [W/cm^-3]   =',qe(ir)
+        WRITE(6,*) ' q_i  [W/cm^-3]   =',qi(ir)
+        WRITE(6,*) ' n_b  [m^-3]      =',cb(ir)
+        WRITE(6,*) ' jb   [A/cm^-3]   =',cjb(ir)
+        WRITE(6,*) ' p_perp           =',cpperp(ir)
+        WRITE(6,*) ' p_para           =',cppara(ir)
 !
 
         qet  = qet+qe(ir)*cvol(ir)
@@ -343,9 +346,9 @@
 
       qtot = qet+qit
       qtot = qet+qit
-         PRINT *, ' cbden            =',cbden
-         PRINT *, ' ge               =',ge
-         PRINT *, ' gi               =',gi
+         WRITE(6,*) ' cbden            =',cbden
+         WRITE(6,*) ' ge               =',ge
+         WRITE(6,*) ' gi               =',gi
 !
  7000 FORMAT(i4,17e15.5)
 

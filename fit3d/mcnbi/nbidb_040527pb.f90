@@ -173,6 +173,7 @@ MODULE mcnbi_all
       dw=e0int*1.5d0/dfloat(iend)
 !      dw=tiev*0.1d0
 
+      jl=0
       DO n=1,ntest
         IF (isw(n).eq.0) THEN
           IF (jl.gt.iend) THEN
@@ -184,9 +185,9 @@ MODULE mcnbi_all
         ENDIF
       END DO
 
-      PRINT *, ' '
-      PRINT *, ' '
-      PRINT *, ' '
+      WRITE(6,*) ' '
+      WRITE(6,*) ' '
+      WRITE(6,*) ' '
       WRITE(6,665)
       WRITE(6,667)
       DO i=1,iend+1
@@ -198,9 +199,9 @@ MODULE mcnbi_all
  665  FORMAT(/,5x,' lost particle distribution')
  667  FORMAT(7x,'eng[keV]',12x,'alog(fl)' )
  676  FORMAT(2e12.4)
-      PRINT *, ' '
-      PRINT *, ' '
-      PRINT *, ' '
+      WRITE(6,*) ' '
+      WRITE(6,*) ' '
+      WRITE(6,*) ' '
 
 !      write(6,*) 'mplot,maxnpl',mplot,maxnpl
 
@@ -209,7 +210,7 @@ MODULE mcnbi_all
 !      write(12) rgc,zgc,pgc,tang,pang
 
 !ppp
-      PRINT *, ' ckb,tmass=', ckb,tmass
+      WRITE(6,*) ' ckb,tmass=', ckb,tmass
 
 !     etmax : maxmum value of energy in grid
 
@@ -217,8 +218,8 @@ MODULE mcnbi_all
       vvmax= sqrt(2.0d0*etmax*ckb/tmass)
       dvvmax=vvmax/dfloat(mvmax-1)
 !ppp
-      PRINT *, ' Output of distribution function'
-      PRINT *, ' vvmax=', vvmax
+      WRITE(6,*) ' Output of distribution function'
+      WRITE(6,*) ' vvmax=', vvmax
 
       DO im=1,mm2
 !CDIR NODEP
@@ -642,12 +643,12 @@ MODULE mcnbi_all
 !   read cx data
 !-------------------------------------c
 
-      PRINT 1775
-      PRINT 1776
+      WRITE(6,1775)
+      WRITE(6,1776)
 
       DO i=1,mxcx
         READ(16,1777) j,zr,denein(i),denion(i),tein(i),tiin(i), denn0(i),engn0(i),zrms
-        PRINT 1777, j,zr,denein(i),denion(i),tein(i),tiin(i), denn0(i),engn0(i),zrms
+        WRITE(6,1777) j,zr,denein(i),denion(i),tein(i),tiin(i), denn0(i),engn0(i),zrms
       END DO
 
  1775 FORMAT(2x,5hpoint,5x,6hradius,8x,2hne,12x,2hni,12x,2hte, 12x,2hti, &
@@ -996,7 +997,7 @@ MODULE mcnbi_all
      &      *cecgs**2*cgtchg**2*anecgs/cgte**1.5d0
       cfe0=1.5d0*sqrt(0.5d0*cpi)*cfbe
 
-      PRINT 666, cfb,cfbi,cfi0,cfbe,cfe0
+      WRITE(6,666) cfb,cfbi,cfi0,cfbe,cfe0
 
  666  FORMAT(' cfb,cfbi,cfi0,cfbe,cfe0=',5e12.3)
 !----------------------------------------c
@@ -1060,7 +1061,7 @@ MODULE mcnbi_all
       g=b0*r
       IF (b0.lt.0.d0) THEN
          b0 = -b0
-         PRINT *, '*** b0 is replaced by -b0.'
+         WRITE(6,*), '*** b0 is replaced by -b0.'
       END IF
 
 !----------------------------------------c
@@ -1262,8 +1263,8 @@ MODULE mcnbi_all
  50   CONTINUE
 
       rtpt9=dfloat(ipt9)/dfloat(ntest)
-      PRINT *, '*** partile number in out9 = ', ipt9
-      PRINT *, '*** reading rate = ', rtpt9
+      WRITE(6,*) '*** partile number in out9 = ', ipt9
+      WRITE(6,*) '*** reading rate = ', rtpt9
 
       REWIND(9)
 
@@ -1347,7 +1348,7 @@ MODULE mcnbi_all
 
         ichk=mod(n,200)
         IF (ichk.eq.0) THEN
-          PRINT *, 'n, clog, taus,rswt=',n, clog,taus,rswt(n)
+          WRITE(6,*) 'n, clog, taus,rswt=',n, clog,taus,rswt(n)
         END IF
 
 !cccc
@@ -1410,10 +1411,10 @@ MODULE mcnbi_all
         END IF
       END DO
 !
-      PRINT *, '  nt1,  nt2,  nt3 = ' ,  nt1,  nt2,  nt3
-      PRINT *, ' rtp1, rtp2, rtp3 = ' , rtp1, rtp2, rtp3
-      PRINT *, ' pecrh, engsr, rtptcl = ',pecrh,engsr,rtptcl
-      PRINT *, ' ismpsi = ', ismpsi
+      WRITE(6,*) '  nt1,  nt2,  nt3 = ' ,  nt1,  nt2,  nt3
+      WRITE(6,*) ' rtp1, rtp2, rtp3 = ' , rtp1, rtp2, rtp3
+      WRITE(6,*) ' pecrh, engsr, rtptcl = ',pecrh,engsr,rtptcl
+      WRITE(6,*) ' ismpsi = ', ismpsi
 !
  7010 FORMAT(3e18.5)
 !
@@ -1439,7 +1440,7 @@ MODULE mcnbi_all
   USE mcnmod , ONLY : allocate_restrt1, deallocate_restrt1
   IMPLICIT NONE
   INTEGER(4),INTENT(IN):: irs
-  REAL(8):: vel0
+  REAL(8):: vel0=0.d0
 
       NAMELIST/ne0/   e0int, pecrh
 !-----------------------------------------------c
@@ -1573,7 +1574,7 @@ MODULE mcnbi_all
 
 
 
-        PRINT *, ' time = ',time, '   it0= ',it0
+        WRITE(6,*) ' time = ',time, '   it0= ',it0
         it0=it0+1
 
       END IF
@@ -2353,7 +2354,7 @@ MODULE mcnbi_all
 
       DO ir = 1, mrmax
 !ppp
-        PRINT *, 'ir =',ir
+        WRITE(6,*) 'ir =',ir
 
         IF (ir.eq.1) THEN
           sr = 1.d-4
@@ -2365,7 +2366,7 @@ MODULE mcnbi_all
         vthe=sqrt(2.d0*rte/tmass)
 
 !ppp
-        PRINT *, 'sr,rte,vthe=',sr,rte,vthe
+        WRITE(6,*) 'sr,rte,vthe=',sr,rte,vthe
 
         ffsum = 0.d0
         DO ivpl=1,mvmax2
@@ -2379,7 +2380,7 @@ MODULE mcnbi_all
         END DO
 
 !ppp
-        PRINT *, 'ffsum=',ffsum
+        WRITE(6,*) 'ffsum=',ffsum
 !     ffmxa is normalized by ffsum.
         IF (ffsum.gt.0.d0) THEN
 !
@@ -2518,6 +2519,8 @@ MODULE mcnbi_all
       stdep  = 0.d0
       stdepe = 0.d0
       stdepi = 0.d0
+      errtot = 0.d0
+
 
       DO n=1,ntest
 

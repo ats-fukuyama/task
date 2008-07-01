@@ -75,19 +75,19 @@
 !      READ(ndiskc,7001) nmboz, nsdm1, nfp
       READ(ndiskc) nmboz, nsdm1, nfp
  7001 FORMAT(3i4)
-      PRINT 6001,  nmboz, nsdm1, nfp
+      WRITE(6,6001)  nmboz, nsdm1, nfp
 
       IF( nmboz - 1 .lt. mmx ) THEN
-        PRINT 9001, nmboz - 1, mmx
+        WRITE(6,9001) nmboz - 1, mmx
         STOP
       ELSE
-        PRINT 9003, nmboz - 1, mmx
+        WRITE(6,9003) nmboz - 1, mmx
       endif
       IF( nsdm1 .ne. kmsh    ) THEN
-        PRINT 9002, nsdm1, kmsh
+        WRITE(6,9002) nsdm1, kmsh
         STOP
       ELSE
-        PRINT 9004, nsdm1, kmsh
+        WRITE(6,9004) nsdm1, kmsh
       endif
 
 !      do 1000, i = 2, nsd
@@ -141,8 +141,8 @@
  7003 FORMAT(2i4)
  7004 FORMAT(4d25.17)
 
-      PRINT 6002
-      PRINT 6003, (i, psi2(i), eot(i), cui(i), cug(i), i = 2, nsd)
+      WRITE(6,6002)
+      WRITE(6,6003) (i, psi2(i), eot(i), cui(i), cug(i), i = 2, nsd)
 
       IF( lcheck ) THEN
         nout  = 10
@@ -154,10 +154,10 @@
           iis  =(ii-1)*nout+1
           iie  = ii   *nout
           IF( ii .eq. nprt ) iie  = nsd
-          PRINT 6011,         ( kk , kk = iis, iie )
+          WRITE(6,6011)         ( kk , kk = iis, iie )
 
           DO j = 1, nmboz
-            PRINT 6012, j, mboz(j), nboz(j), ( bbozh(j,kk), kk = iis, iie )
+            WRITE(6,6012) j, mboz(j), nboz(j), ( bbozh(j,kk), kk = iis, iie )
           END DO
         END DO
       ENDIF
@@ -177,7 +177,7 @@
         END DO
       END DO
 
-      PRINT *, ' - End 301 -'
+     WRITE(6,*) ' - End 301 -'
 !+++++ extrapolation of the values at the magnetic axis
 
       DO j = 1, nmboz
@@ -198,7 +198,7 @@
       cui  (  1) = 3.0d0*cui  (  2) - 3.0d0*cui  (  3) + cui  (  4)
       cug  (  1) = 3.0d0*cug  (  2) - 3.0d0*cug  (  3) + cug  (  4)
 
-      PRINT *, ' - End 302 -'
+      WRITE(6,*) ' - End 302 -'
 !+++++ extrapolation of the values at the boundary
 
       DO j = 1, nmboz
@@ -233,7 +233,7 @@
       END DO
 !$$$  c
 !
-      PRINT *, ' - End 303 -'
+      WRITE(6,*) ' - End 303 -'
 !..... assuming if = 1 correponds to mboz = 0 and nboz = 0.
 
 
@@ -259,7 +259,7 @@
 
 !!        ifsum     = 0
 
-      PRINT *, ' - End 502 -'
+      WRITE(6,*) ' - End 502 -'
 
 !      do 503 is = 1, nsd
 !        ifsum     = ifsum + 1
@@ -272,7 +272,7 @@
         icont(ijf) = 0
       END DO
 
-      PRINT *, ' - End 504 -'
+      WRITE(6,*) ' - End 504 -'
 !..... selection of modes for each surface
 
       DO is = 1, nsd
@@ -293,7 +293,7 @@
         END DO
       END DO
 !
-      PRINT *, ' - End 601 -'
+      WRITE(6,*) ' - End 601 -'
 !.....selection of modes for all surfaces
 
       DO ijf = 2, nmboz
@@ -318,7 +318,7 @@
         zco( is,1) = zbozh( 1,is)
       END DO
 
-      PRINT *, ' - End 700 -'
+      WRITE(6,*) ' - End 700 -'
 
 
       DO ijf = 2, nmboz
@@ -338,15 +338,15 @@
       END DO
 
 
-      PRINT 6031, critc, imttl
+      WRITE(6,6031) critc, imttl
 
       DO is = 1, nsd
-        PRINT 6032, is, icont(is), bmin(is), bmax(is)
+        WRITE(6,6032) is, icont(is), bmin(is), bmax(is)
       END DO
 
-      PRINT *
-      PRINT *,' selected foutier spectrum of b '
-      PRINT *
+      WRITE(6,*)
+      WRITE(6,*)' selected foutier spectrum of b '
+      WRITE(6,*)
 
       nout  = 10
       nprt  = nsd/nout
@@ -356,17 +356,17 @@
         iis  =(ii-1)*nout+1
         iie  = ii   *nout
         IF( ii .eq. nprt ) iie  = nsd
-        PRINT 6033,         ( kk , kk = iis, iie )
+        WRITE(6,6033)         ( kk , kk = iis, iie )
 
         DO j = 1, imttl
-          PRINT 6034, j, idint(cm(j)), idint(cn(j)), ( bco(kk,j), kk = iis, iie )
+          WRITE(6,6034) j, idint(cm(j)), idint(cn(j)), ( bco(kk,j), kk = iis, iie )
         END DO
       END DO
 
 
 
-      PRINT 6004
-      PRINT 6003, (i, psi2(i), eot(i), cui(i)*pi2/(1.0d6*cmu0), &
+      WRITE(6,6004)
+      WRITE(6,6003) (i, psi2(i), eot(i), cui(i)*pi2/(1.0d6*cmu0), &
                    cug(i)*pi2/(1.0d6*cmu0), i = 1, nsd)
 
       nout  = 10
@@ -377,10 +377,10 @@
         iis  =(ii-1)*nout+1
         iie  = ii   *nout
         IF( ii .eq. nprt ) iie  = nsd
-        PRINT 6013,         ( kk , kk = iis, iie )
+        WRITE(6,6013)         ( kk , kk = iis, iie )
 
         DO j = 1, mmx + 1
-          PRINT 6012, j, idint(cm(j)), idint(cn(j)), ( bco(kk,j), kk = iis, iie )
+          WRITE(6,6012) j, idint(cm(j)), idint(cn(j)), ( bco(kk,j), kk = iis, iie )
         END DO
       END DO
 
@@ -390,10 +390,10 @@
         iis  =(ii-1)*nout+1
         iie  = ii   *nout
         IF( ii .eq. nprt ) iie  = nsd
-        PRINT 6015,         ( kk , kk = iis, iie )
+        WRITE(6,6015)         ( kk , kk = iis, iie )
 
         DO j = 1, mmx + 1
-          PRINT 6014, j, idint(cm(j)), idint(cn(j)), ( rco(kk,j), kk = iis, iie )
+          WRITE(6,6014), j, idint(cm(j)), idint(cn(j)), ( rco(kk,j), kk = iis, iie )
         END DO
       END DO
 
@@ -401,10 +401,10 @@
           iis  =(ii-1)*nout+1
           iie  = ii   *nout
           IF( ii .eq. nprt ) iie  = nsd
-          PRINT 6017,         ( kk , kk = iis, iie )
+          WRITE(6,6017)         ( kk , kk = iis, iie )
 
           DO j = 1, mmx + 1
-            PRINT 6016, j, idint(cm(j)), idint(cn(j)), ( zco(kk,j), kk = iis, iie )
+            WRITE(6,6016) j, idint(cm(j)), idint(cn(j)), ( zco(kk,j), kk = iis, iie )
           END DO
         END DO
 
@@ -412,10 +412,10 @@
           iis  =(ii-1)*nout+1
           iie  = ii   *nout
           IF( ii .eq. nprt ) iie  = nsd
-          PRINT 6019, ( kk , kk = iis, iie )
+          WRITE(6,6019) ( kk , kk = iis, iie )
 
           DO j = 1, mmx + 1
-            PRINT 6018, j, idint(cm(j)), idint(cn(j)), ( pco(kk,j), kk = iis, iie )
+            WRITE(6,6018) j, idint(cm(j)), idint(cn(j)), ( pco(kk,j), kk = iis, iie )
           END DO
         END DO
 
