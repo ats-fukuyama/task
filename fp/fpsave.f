@@ -14,6 +14,8 @@ C
 C
       RTG(NTG1)=TIMEFP
 C
+      NTG4 = INT( (NTG1+NSFPMA-NSFPMI-1)/(NSFPMA-NSFPMI+1)) +1
+      if(NSFPMA.eq.NSFPMI) NTG4 = NTG1
       DO 1000 NR=1,NRMAX
          RNT(NR,NTG1) = RNS(NR)
          RJT(NR,NTG1) = RJS(NR)
@@ -25,15 +27,20 @@ C
          RFWT(NR,NTG1)= RFWS(NR)
          RECT(NR,NTG1)= RECS(NR)
          Do NS=1,NSMAX
-            RNT2(NR,NTG1,NS)=RNS2(NR,NS)
-            RPCT2(NR,NTG1,NS)= RPCS2(NR,NS)
-            RWT2(NR,NTG1,NS) = RWS2(NR,NS)
+            RNT2(NR,NTG4,NS) = RNS2(NR,NS)
+            RJT2(NR,NTG4,NS) = RJS2(NR,NS)
+            RPCT2(NR,NTG4,NS)= RPCS2(NR,NS)
+            RWT2(NR,NTG4,NS) = RWS2(NR,NS)
+            RTT2(NR,NTG4,NS) = RWS2(NR,NS)*1.D6
+     &           /(1.5D0*RNS2(NR,NS)*1.D20*AEE*1.D3)
+
          END DO
 C
          RTT(NR,NTG1) = RWS(NR)*1.D6/(1.5D0*RNS(NR)*1.D20*AEE*1.D3)
          RET(NR,NTG1) = E1(NR)
          RS=RSRHON(RM(NR))
          RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
+
  1000 CONTINUE
 C
       RETURN
@@ -48,6 +55,8 @@ C
       INCLUDE 'fpcomm.inc'
 C
       IF(NTG2.LT.NTG2M) NTG2=NTG2+1
+      NTG3 = INT( (NTG2+NSFPMA-NSFPMI-1)/(NSFPMA-NSFPMI+1)) +1
+      if(NSFPMA.eq.NSFPMI) NTG3 = NTG2
 C
       IF(ISAVE.EQ.0) CALL FPSSUB
 C
@@ -63,10 +72,20 @@ C
       PFWT(NTG2)=0.D0
       PECT(NTG2)=0.D0
       DO NS=1,NSMAX
-         PNT2(NTG2,NS)=0.D0
-         PPCT2(NTG2,NS)=0.D0
-         PWT2(NTG2,NS)=0.D0
+         PPCT2(NTG3,NS)= 0.D0
       END DO
+      IF(NTG2.eq.1)THEN
+         DO NS=1,NSMAX
+            PNT2(1,NS) = 0.D0
+            PWT2(1,NS) = 0.D0
+            PIT2(1,NS) = 0.D0
+         END DO
+      END IF
+
+      PNT2(NTG3,NSFP) = 0.D0
+      PWT2(NTG3,NSFP) = 0.D0
+      PIT2(NTG3,NSFP) = 0.D0
+
 C
       DO 1000 NR=1,NRMAX
          RHOL=RM(NR)
@@ -83,53 +102,61 @@ C
          PFWT(NTG2)=PFWT(NTG2)+RFWS(NR)*FACT
          PECT(NTG2)=PECT(NTG2)+RECS(NR)*FACT
          DO NS=1,NSMAX
-            PNT2(NTG2,NS) =PNT2(NTG2,NS) +RNS2(NR,NS)*FACT
             PPCT2(NTG2,NS)=PPCT2(NTG2,NS)+RPCS2(NR,NS)*FACT
-            PWT2(NTG2,NS) =PWT2(NTG2,NS) +RWS2(NR,NS)*FACT
+            IF(NTG2.eq.1)THEN
+               PNT2(1,NS) =PNT2(1,NS) +RNS2(NR,NS)*FACT
+               PWT2(1,NS) =PWT2(1,NS) +RWS2(NR,NS)*FACT
+               PIT2(1,NS) =PIT2(1,NS) +RJS2(NR,NS)*FACT
+            END IF
          END DO
+         IF(NTG2.ne.1)THEN
+            PNT2(NTG3,NSFP) =PNT2(NTG3,NSFP) +RNS2(NR,NSFP)*FACT
+            PWT2(NTG3,NSFP) =PWT2(NTG3,NSFP) +RWS2(NR,NSFP)*FACT
+            PIT2(NTG3,NSFP) =PIT2(NTG3,NSFP) +RJS2(NR,NSFP)*FACT
+         END IF
+
  1000 CONTINUE
 C
-      PNT(NTG2) =PNT(NTG2) *2*PI*RR
+      PNT(NTG2) =PNT(NTG2) *2.0*PI*RR
       PIT(NTG2) =PIT(NTG2) 
-      PWT(NTG2) =PWT(NTG2) *2*PI*RR
-      PPCT(NTG2)=PPCT(NTG2)*2*PI*RR
-      PPWT(NTG2)=PPWT(NTG2)*2*PI*RR
-      PPET(NTG2)=PPET(NTG2)*2*PI*RR
-      PLHT(NTG2)=PLHT(NTG2)*2*PI*RR
-      PFWT(NTG2)=PFWT(NTG2)*2*PI*RR
-      PECT(NTG2)=PECT(NTG2)*2*PI*RR
+      PWT(NTG2) =PWT(NTG2) *2.D0*PI*RR
+      PPCT(NTG2)=PPCT(NTG2)*2.D0*PI*RR
+      PPWT(NTG2)=PPWT(NTG2)*2.D0*PI*RR
+      PPET(NTG2)=PPET(NTG2)*2.D0*PI*RR
+      PLHT(NTG2)=PLHT(NTG2)*2.D0*PI*RR
+      PFWT(NTG2)=PFWT(NTG2)*2.D0*PI*RR
+      PECT(NTG2)=PECT(NTG2)*2.D0*PI*RR
       PTT(NTG2) =PWT(NTG2)*1.D6/(1.5D0*PNT(NTG2)*1.D20*AEE*1.D3)
       RS=RSRHON(RM(1))
       PQT(NTG2) =RS*BB*2.D0/(RR*(BP(1)+BP(2)))
       PET(NTG2) =E1(NRMAX)
+      
       Do NS=1,NSMAX
-         NTG3 = INT( (NTG2+NSFPMA-NSFPMI-1)/(NSFPMA-NSFPMI+1)) +1
-         if(NSFPMA.eq.NSFPMI) NTG3 = NTG2
-
          PPCT2(NTG2,NS)=PPCT2(NTG2,NS)*2.D0*PI*RR
-         IF(NS.eq.NSFP)THEN
-            PNT2(NTG2,NS) =PNT2(NTG2,NS) *2*PI*RR
-            PWT2(NTG2,NS) =PWT2(NTG2,NS) *2.D0*PI*RR
-            PTT2(NTG3,NS) =
-     &           PWT2(NTG2,NS)*1.D6/(1.5D0*PNT2(NTG2,NS)*1.D20*AEE*1.D3)
-            PNT2(NTG2,NS)=PNT2(NTG2,NS)/(2.D0*PI*RR
-     &           *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
-         END IF
-         IF(NTG2.eq.1.and.NS.ne.NSFP)THEN
-            PNT2(NTG2,NS) =PNT2(NTG2,NS) *2*PI*RR
-            PWT2(NTG2,NS) =PWT2(NTG2,NS) *2.D0*PI*RR
+         IF(NTG3.eq.1)THEN
+            PNT2(1,NS) =PNT2(1,NS) *2.D0*PI*RR
+            PWT2(1,NS) =PWT2(1,NS) *2.D0*PI*RR
             PTT2(1,NS) =
-     &           PWT2(NTG2,NS)*1.D6/(1.5D0*PNT2(NTG2,NS)*1.D20*AEE*1.D3)
-            PNT2(NTG2,NS)=PNT2(NTG2,NS)/(2.D0*PI*RR
+     &           PWT2(1,NS)*1.D6/(1.5D0*PNT2(1,NS)*1.D20*AEE*1.D3)
+            PNT2(1,NS)=PNT2(1,NS)/(2.D0*PI*RR
      &           *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
          END IF
-
       END DO
 
+      IF(NTG2.ne.1)THEN
+         PNT2(NTG3,NSFP) =PNT2(NTG3,NSFP) *2.D0*PI*RR
+         PWT2(NTG3,NSFP) =PWT2(NTG3,NSFP) *2.D0*PI*RR
+         PTT2(NTG3,NSFP) =
+     &       PWT2(NTG3,NSFP)*1.D6/(1.5D0*PNT2(NTG3,NSFP)*1.D20*AEE*1.D3)
+         PNT2(NTG3,NSFP)=PNT2(NTG3,NSFP)/(2.D0*PI*RR
+     &       *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
+      END IF
 
 C     density
       PNT(NTG2)=PNT(NTG2)/(2.D0*PI*RR
      &     *2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)))
+c      PNT(NTG2)=RNS(1)
+c      PNT2(NTG3,NSFP)=RNS2(1,NSFP)
 
       RETURN
       END
@@ -143,6 +170,7 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION RSUM10(NSMAX),RSUM33(NSMAX),RSUM11(NSMAX)
+     &     ,RSUM22(NSMAX)
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
 C
       DO 1000 NR=1,NRMAX
@@ -158,15 +186,20 @@ C
          Do NS=1,NSMAX
             RSUM10(NS)=0.D0
             RSUM11(NS)=0.D0
+            RSUM22(NS)=0.D0
             RSUM33(NS)=0.D0
          END DO
 C
          DO 100 NP=1,NPMAX
          DO 100 NTH=1,NTHMAX
-            RSUM1 = RSUM1+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
+            RSUM1 = RSUM1+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
+     &       *F(NTH,NP,NR)
             DO NS=1,NSMAX
                RSUM11(NS) = 
-     &          RSUM11(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)*FNS2(NTH,NP,NR,NS)
+     &          RSUM11(NS)+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
+     &          *FNS2(NTH,NP,NR,NS)
             END DO
   100    CONTINUE
 C
@@ -174,10 +207,14 @@ C
             DO 200 NP=1,NPMAX
             DO 200 NTH=1,NTHMAX
                RSUM2 = RSUM2+VOL(NTH,NP)*F(NTH,NP,NR)*PM(NP)*COSM(NTH)
-               RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
+               RSUM3 = RSUM3+VOL(NTH,NP)*F(NTH,NP,NR)
+c*RLAMDA(NTH,NR)
      &                       *0.5D0*PM(NP)**2
                DO NS=1,NSMAX
-                  RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
+                  RSUM22(NS) = RSUM22(NS)
+     &                 +VOL(NTH,NP)*FNS2(NTH,NP,NR,NS)*PM(NP)*COSM(NTH)
+                  RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
      &                 *FNS2(NTH,NP,NR,NS)*0.5D0*PM(NP)**2
                END DO
   200       CONTINUE
@@ -187,7 +224,9 @@ C
             DO 300 NTH=1,NTHMAX
                RSUM2 = RSUM2+VOL(NTH,NP)*F(NTH,NP,NR)*PM(NP)*COSM(NTH)
      &                       /PV
-               RSUM3 = RSUM3+VOL(NTH,NP)*RLAMDA(NTH,NR)*F(NTH,NP,NR)
+               RSUM3 = RSUM3+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
+     &          *F(NTH,NP,NR)
      &                       *(PV-1.D0)/THETA0
                DO NS=1,NSMAX
                   IF(NTG2.eq.0)THEN
@@ -196,10 +235,17 @@ C
                      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
                      THETB0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
                      PV2=SQRT(1.D0+THETB0*PM(NP)**2)
-                     RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
+
+                     RSUM22(NS) = RSUM22(NS) + + VOL(NTH,NP)
+     &                    *FNS2(NTH,NP,NR,NS)*PM(NP)*COSM(NTH)/PV2
+                     RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
      &                    *FNS(NTH,NP,NR,NS)*(PV2-1.D0)/THETB0
                   ELSE
-                     RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)*RLAMDA(NTH,NR)
+                     RSUM22(NS) = RSUM22(NS) + VOL(NTH,NP)
+     &                    *FNS2(NTH,NP,NR,NS)*PM(NP)*COSM(NTH)/PV
+                     RSUM33(NS) = RSUM33(NS)+VOL(NTH,NP)
+c*RLAMDA(NTH,NR)
      &                    *F(NTH,NP,NR)*(PV-1.D0)/THETA0                     
                   END IF
                END DO
@@ -277,13 +323,15 @@ c     &           ,PG(NP),F(NTH,NP,NR),FNS(NTH,NP,NR,NSFP)
  645     FORMAT(2I3,5E16.8)
   400    CONTINUE
          FACT=RNFP0*1.D20
-         RNS(NR) = RSUM1*FACT               *1.D-20
+         RNS(NR) = RSUM1*FACT                   *1.D-20
+         RJS(NR) = RSUM2*FACT*AEFP*PTFP0/AMFP*1.D-6
          DO NS=1,NSMAX
             RNS2(NR,NS) = RSUM11(NS) * PN(NS)
+            RJS2(NR,NS) = RSUM22(NS)*FACT*AEFP*PTFP0/AMFP*1.D-6
          END DO
-         RJS(NR) = RSUM2*FACT*AEFP*PTFP0/AMFP*1.D-6
          FACT=RNFP0*1.D20*PTFP0**2/AMFP 
          RWS(NR) = RSUM3*FACT               *1.D-6
+
          RPCS(NR)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RPWS(NR)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6 
          RPES(NR)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
@@ -291,14 +339,13 @@ c     &           ,PG(NP),F(NTH,NP,NR),FNS(NTH,NP,NR,NSFP)
          RFWS(NR)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
          RECS(NR)=-RSUM9*FACT*2.D0*PI*DELP*DELTH
 
-
          Do NS=1,NSMAX
             AMFD=PA(NS)*AMP
             RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
             PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
 
-            RPCS2(NR,NS)=-RSUM10(NS)*FACT*2.D0*PI*DELP*DELTH *1.D-6
             RWS2(NR,NS) = RSUM33(NS)*PN(NS)*1.D20*PTFD0**2/AMFD*1.D-6
+            RPCS2(NR,NS)=-RSUM10(NS)*FACT*2.D0*PI*DELP*DELTH *1.D-6
          END DO
 C
 C         IF(MODELA.EQ.1) THEN
@@ -329,7 +376,7 @@ C
          DO NS=1,NSMAX
             write(6,1467)  NS, PTT2(NTG2,NS)
          END DO
-         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
+         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3,"  NTG1=" ,NTG1
       END IF
 
       if(NTG2.ne.1)then
@@ -410,12 +457,6 @@ c-----------------------------
          write(6,99) NSFP,NS,PPCT2(NTG2,NS)
       END DO
 
-      IF(NSFP.eq.NSFPMA)THEN
-         DO NS=1,NSMAX
-            write(6,1467)  NS, PTT2(NTG3,NS)
-         END DO
-         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
-      END IF
 
  99   FORMAT(1H ," PC[MW] ",I2," to ",I2," = ",E14.7)
  999  FORMAT(f14.6,2E14.6)
@@ -477,15 +518,37 @@ C
       ENDIF
 
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-c      WRITE(6,*)" "
+      WRITE(6,*)" "
       write(6,1333) THETA0, RTFP(1),PTT2(1,NSFP)/RTFP(1)
-c      WRITE(6,*)" "
+      write(6,1334) THETA0, RNFP(1),PNT2(NTG3,NSFP)/RNFP(1)
+      write(6,*) RNFP(1), RN(1),RNT(1,1)
+      WRITE(6,*)" "
  1333 FORMAT(1H ,"THETA0=",E15.7,"   T_given=",E15.7,"   ratio=",E15.7)
+ 1334 FORMAT(1H ,"THETA0=",E15.7,"   n_given=",E15.7,"   ratio=",E15.7)
+
+      IF(NSFP.eq.NSFPMA)THEN
+         rtotI=0.D0
+         rtotW=0.D0
+         DO NS=1,NSMAX
+            write(6,1467)  NS, PTT2(NTG3,NS)
+            rtotI = rtotI + PIT2(NTG3,NS)
+            rtotW = rtotW + PWT2(NTG3,NS)
+         END DO
+         PITT(NTG3) = rtotI
+         PWTT(NTG3) = rtotW
+         WRITE(6,1600)  PITT(NTG3)
+         WRITE(6,1590)  PWTT(NTG3)
+         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3,"  NTG1=" ,NTG1
+      END IF
+
+ 1600 FORMAT(1H ,'TOTAL CURRENT [MA]      = ',E15.7)
+ 1590 FORMAT(1H ,'TOTAL STORED ENERGY [MJ]= ',E15.7)
+
 
       IF(mod(NTG2,NSFPMA-NSFPMI+1).eq.1)THEN
          write(6,*) "-------------------------------------------------"
       ELSE
-         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3
+         WRITE(6,*) "NTG2=",NTG2,"     NTG3=",NTG3,"  NTG1=" ,NTG1
          WRITE(6,*) "    "
       END IF
 

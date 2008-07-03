@@ -112,11 +112,11 @@ C
          ENDIF
       ELSE IF (KID1.EQ.'T') THEN
          IF(KID2.EQ.'N  ') THEN
-            CALL FPGRAT('TN  ',PNT)
+            CALL FPGRAT2('TN  ',PNT2)
          ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPGRAT('TI  ',PIT)
+            CALL FPGRAT3('TI  ',PITT)
          ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAT('TW  ',PWT)
+            CALL FPGRAT3('TW  ',PWTT)
          ELSE IF(KID2.EQ.'PC ') THEN
             CALL FPGRAT('TPC ',PPCT)
          ELSE IF(KID2.EQ.'PW ') THEN
@@ -130,7 +130,7 @@ C
          ELSE IF(KID2.EQ.'EC ') THEN
             CALL FPGRAT('TEC ',PECT)
          ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPGRAT('TT  ',PTT)
+            CALL FPGRAT2('TT  ',PTT2)
          ELSE IF(KID2.EQ.'Q  ') THEN
             CALL FPGRAT('TQ  ',PQT)
          ELSE IF(KID2.EQ.'E  ') THEN
@@ -323,7 +323,6 @@ C
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
 C
-c      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
       DO 10 N=1,NTG2
         GX(N)=GUCLIP(PTG(N))
         GY(N)=GUCLIP(FT(N))
@@ -339,6 +338,84 @@ c      NTG3 = INT(NTG2/(NSFPMA-NSFPMI+1)) + 1
       CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
       CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
       CALL GPLOTP(GX,GY,1,NTG2,1,0,0,0)
+      CALL MOVE(1.0,17.5)
+      CALL TEXT(STRING,4)
+      CALL MOVE(24.0,1.0)
+      CALL TEXT('t',1)
+      CALL PAGEE
+      RETURN
+      END
+C
+C ***********************************************************
+C
+C                        T-GRAPHIC-2
+C
+C ***********************************************************
+C
+      SUBROUTINE FPGRAT2(STRING,FT)
+C
+      INCLUDE 'fpcomm.inc'
+      DIMENSION  FT(NTG2M,NSMAX),GX(NTG2M),GY(NTG2M)
+      CHARACTER STRING*4
+C
+      CALL PAGES
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+C
+      DO 10 N=1,NTG3
+        GX(N)=GUCLIP(PTG(N))
+        GY(N)=GUCLIP(FT(N,NSFP))
+   10 CONTINUE
+      CALL GMNMX1(GY,1,NTG3,1,GYMIN,GYMAX)
+      IF(GYMIN.GT.0.) GYMIN=0.0
+      IF(GYMAX.LT.0.) GYMAX=0.0
+      CALL GQSCAL(GYMIN,GYMAX,GYMIN1,GYMAX1,GYSTEP)
+      CALL GQSCAL(0.,GX(NTG3),GXMIN,GXMAX,GXSTEP)
+      CALL GDEFIN(3.,23.,2.,17.,0.,GX(NTG3),GYMIN1,GYMAX1)
+      CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
+      CALL GFRAME
+      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
+      CALL GPLOTP(GX,GY,1,NTG3,1,0,0,0)
+      CALL MOVE(1.0,17.5)
+      CALL TEXT(STRING,4)
+      CALL MOVE(24.0,1.0)
+      CALL TEXT('t',1)
+      CALL PAGEE
+      RETURN
+      END
+C
+C ***********************************************************
+C
+C                        T-GRAPHIC-3
+C
+C ***********************************************************
+C
+      SUBROUTINE FPGRAT3(STRING,FT)
+C
+      INCLUDE 'fpcomm.inc'
+      DIMENSION  FT(NTG2M),GX(NTG2M),GY(NTG2M)
+      CHARACTER STRING*4
+C
+      CALL PAGES
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+C
+      DO 10 N=1,NTG3
+        GX(N)=GUCLIP(PTG(N))
+        GY(N)=GUCLIP(FT(N))
+   10 CONTINUE
+      CALL GMNMX1(GY,1,NTG3,1,GYMIN,GYMAX)
+      IF(GYMIN.GT.0.) GYMIN=0.0
+      IF(GYMAX.LT.0.) GYMAX=0.0
+      CALL GQSCAL(GYMIN,GYMAX,GYMIN1,GYMAX1,GYSTEP)
+      CALL GQSCAL(0.,GX(NTG3),GXMIN,GXMAX,GXSTEP)
+      CALL GDEFIN(3.,23.,2.,17.,0.,GX(NTG3),GYMIN1,GYMAX1)
+      CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
+      CALL GFRAME
+      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
+      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
+      CALL GPLOTP(GX,GY,1,NTG3,1,0,0,0)
       CALL MOVE(1.0,17.5)
       CALL TEXT(STRING,4)
       CALL MOVE(24.0,1.0)

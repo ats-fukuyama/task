@@ -62,9 +62,6 @@ C
 
       CALL FPPREP(IERR)
 
-
-
-
 C
 C     ----- set poloidal magneticl field -----
 C
@@ -72,6 +69,7 @@ C
          RHON=RG(NR)
          CALL FPSETB(RHON,0.5D0*PI,BT,BP(NR))
          EPSR(NR)=RSRHON(RHON)/RR
+C         WRITE(*,*) BT, BP(NR)
       ENDDO
 C
 C     ----- set parallel current density -----
@@ -214,6 +212,23 @@ C
          ENDDO
       END IF
 
+C
+C     ----- set boundary distribution functions -----
+C
+      DO NP=1,NPMAX
+         FL=FPMXWL(PM(NP),0,NSFP)
+         DO NTH=1,NTHMAX
+            FS1(NTH,NP)=FL
+         ENDDO
+      ENDDO
+C
+      DO NP=1,NPMAX
+         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
+         DO NTH=1,NTHMAX
+            FS2(NTH,NP)=FL
+         ENDDO
+      ENDDO
+
       IERR=0
       RETURN
       END
@@ -319,26 +334,11 @@ C
                DKBSR(NR)=BESKN(2,Z)
             ELSE
                DKBSR(NR)=SQRT(PI/(2.D0*Z))*EXP(-Z)
+     &             *( 1.D0 + 15.D0/(8.D0*Z) + 105.D0/(128.D0*Z**2) )
             ENDIF
          ENDDO
       ENDIF
-C
-C     ----- set boundary distribution functions -----
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),0,NSFP)
-         DO NTH=1,NTHMAX
-            FS1(NTH,NP)=FL
-         ENDDO
-      ENDDO
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
-         DO NTH=1,NTHMAX
-            FS2(NTH,NP)=FL
-         ENDDO
-      ENDDO
-C
+
       IERR=0
       RETURN
       END
@@ -350,6 +350,7 @@ C
       SUBROUTINE FPFINI
 C
       INCLUDE 'fpcomm.inc'
+      DIMENSION RSUM11(NSMAX)
 C
 c      open(7,file='testdelt.dat')
       DO NR=1,NRMAX
@@ -363,44 +364,42 @@ c      open(7,file='testdelt.dat')
                FNS2(NTH,NP,NR,NS)=FLNS
             END DO
          ENDDO
-c         WRITE(6,'(I5,1P4E12.4)') NP,FNS(1,NP,NR,1)
-c     &        ,FNS(NTHMAX,NP,NR,2)
-c     &        ,FNS(1,NP,NR,2),PM(NP)
-      ENDDO
-      ENDDO
+      END DO
+      END DO
+ccccc
+c     normalize n
+ccccc
+      NTEST=0
+      IF(NTEST.eq.1)THEN
+      NR=1
+      DO NS=1,NSMAX
+         RSUM11(NS) = 0.D0
+         DO  NP=1,NPMAX
+            DO  NTH=1,NTHMAX
+               RSUM11(NS)=RSUM11(NS)
+     &              +VOL(NTH,NP)*RLAMDA(NTH,NR)*FNS(NTH,NP,NR,NS)
+            END DO
+        END DO
+      END DO
 
-c-----distribution of beam ion 
-      IF(NSBM.ne.0)THEN
-      sum1=0.D0
-      sum2=0.D0
-      sum3=0.D0
-      Do NP=1,NPMAX
-         sum1=sum1+FNS(1,NP,1,1)*PM(NP)**2*DELP
-         sum2=sum2+FNS(1,NP,1,3)*PM(NP)**2*DELP
+      WRITE(*,1337) (RNFD(1,j),j=1,NSMAX)
+      WRITE(*,1337) (RSUM11(j)*RNFP0,j=1,NSMAX)
+
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+      DO NTH=1,NTHMAX
+         F(NTH,NP,NR)=F(NTH,NP,NR)*RNFP(NR)/RSUM11(1)
+         DO NS=1,NSMAX
+            FNS(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)*RNFD(NR,NS)/RSUM11(NS)
+            FNS2(NTH,NP,NR,NS)=FNS2(NTH,NP,NR,NS)*RNFD(NR,NS)/RSUM11(NS)
       END DO
-      Do NP=1,NPMAX
-         PMP=PM(NP)-1.D0
-         FLNS=0.D0
-         if(NP.ne.1)PMM=PM(NP-1)-1.D0
-         if(PMP.gt.0.D0.and.PMM.lt.0.D0)then
-            FLNS=sum2/PM(NP)**2
-         END if
-         Do NTH=1,NTHMAX
-            FNS(NTH,NP,1,NSBM)=0
-            if(NSFP.eq.NSBM) F(NTH,NP,1)=0
-            if(NTH.eq.1)then
-               FNS(NTH,NP,1,NSBM)=FLNS*2.D0/SINM(NTH)
-               if(NSFP.eq.NSBM) F(NTH,NP,1)=FLNS*2.D0/SINM(NTH)
-            end if
-         END DO
-c         sum3 = sum3 +FNS(1,NP,1,3)*PM(NP)**2
-c         WRITE(6,'(I5,1P4E12.4)') NP,FNS(1,NP,1,1)
-c     &        ,FNS(1,NP,1,2)
-c     &        ,FNS(1,NP,1,2),PM(NP)
       END DO
-c      write(*,*)"NSBM",NSBM
-c      write(*,*)sum1,sum2,sum3
+      END DO
+      END DO
+ 1337 FORMAT(3E14.6)
       END IF
+
+
       RETURN
       END
 C
@@ -432,7 +431,7 @@ C
          RNFDL=RN(NS)/RNFD0
          RTFDL=RTPR(NS)/RTFD0
       ELSE
-         RNFDL=RNFD(NR,NS)
+         RNFDL=RNFD(NR,NS)/RNFD0
          RTFDL=RTFD(NR,NS)
       ENDIF
 
@@ -456,18 +455,19 @@ C
 C            FACT=RNFDL*SQRT(THETA0**3)/(4.D0*PI*THETAL*DKBSL)
 C     &           *EXP(-1.D0/THETAL)
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
+
          ELSE
-            FACT=RNFDL/(4.D0*PI)*SQRT(2.D0/PI)*SQRT(THETA0/THETAL)**3
-            EX=-THETA0*PML**2/THETAL*0.5D0
-            DKBSL=SQRT(PI/(2.D0*Z))*EXP(-Z)
+            DAPPROX = SQRT( pi/(2.D0*Z) )*
+     &           ( 1.D0+15.D0/(8.D0*Z) +15.D0*7.D0/(8.D0*Z)**2/2.D0 )
+            FACT=RNFDL*SQRT(THETA0)/(4.D0*PI*RTFDL*DAPPROX)
+     &        *RTFD0
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
          ENDIF
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
          ELSE
             FPMXWL=FACT*EXP(EX)
          ENDIF
-C         if(PML.le.2.D0)
-C     &        WRITE(6,'(I5,1P4E12.4)') NS,PML,Z,FPMXWL,DKBSL
       ENDIF
 
       RETURN

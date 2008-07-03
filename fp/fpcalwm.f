@@ -148,7 +148,8 @@ C
 C
       THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
       CALL FPSETV(RHOL,ETAL,RKR,RKTH,RKPH,CER,CETH,CEPH)
-      CALL FPSETB(RHOL,ETAL,B0TH,B0PH)
+      CALL FPSETB(RHOL,ETAL,B0PH,B0TH)
+C     BOPH=B_\phi=B_toroidal, B0TH=B_\theta=B_poloidal
 C
       RW     =2.D0*PI*RFDW*1.D6
       B2     =B0TH**2+B0PH**2
@@ -259,10 +260,6 @@ C     &              /(RW*ABS(VPARA)*DELNPR/VC)
      &              /ABS(RW)/DELNPR
             ENDIF
          ENDIF
-         rtest=(RW-RKPARA*VPARA-N*RWC/RGAMMA)/RW
-         ratioCE=ABS(CEPARA)/ABS(CEPERP)
-         ratioCE2=ABS(CEPH)/ABS(CETH)
-         ratioBE=B0PH/B0TH
 c         if(DWC.ne.0.and.ratioCE.ge.1.D0)
 c     &        write(6,1333)N,P,ratioCE,ratioBE,ratioCE2
 c     &        ,rtest
@@ -284,8 +281,13 @@ c     &       ,ex
          DWC22=DWC22+DWC*A22
 
   100 CONTINUE
-c      if(DWC11.ge.1.D0.or.DWC22.ge.1.D0)
-c     &     write(*,1333)N,DWC11,DWC12,DWC21,DWC22
+
+      ratioCE=ABS(CEPARA)/ABS(CEPERP)
+      ratioCE2=ABS(CEPH)/ABS(CETH)
+      ratioBE=B0PH/B0TH
+c      if(ratioCE.ge.1.D0)
+c     &     write(*,1333)N, B0TH, B0PH, CETH, CEPH
+cCEPARA, CEPERP
 
 C
       IF(NTEST.eq.0)THEN
@@ -307,6 +309,8 @@ C
 C     ****** CALCULATE LOCAL MAGNETIC FIELD ******
 C
       SUBROUTINE FPSETB(RHOL,ETAL,BTL,BPL)
+C
+C     BTL=B_toroidal, BPL=B_poloidal
 C
       INCLUDE 'fpcomm.inc'
 C
