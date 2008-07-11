@@ -108,6 +108,20 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 #OBJLA = -L /Library/Frameworks/Intel_MKL.framework/Libraries/32 -lmkl_lapack64 -lmkl -lguide -lpthread
 
+## for g95 (Power PC)
+#GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
+#GLLIBS=-L/usr/local/lib -lgsgl
+#OFLAGS = -O3
+#DFLAGS = -g -fbounds-check -Wunused -ftrace=full
+#FCFIXED= g95
+#FCFREE = g95
+#MOD = /mod
+#MODDIR = -fmod=./mod
+#LD=ld
+#LDFLAGS=-r
+## if you have lapack library
+#OBJLA = /usr/local/lib/lapack-g95.a /usr/local/lib/blas-g95.a
+
 ## for macosx-xlf
 #GFLIBS=-L/usr/local/lib -lg3d-xlf -lgsp-xlf -lgdp-xlf -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-xlf
