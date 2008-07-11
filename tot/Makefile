@@ -78,6 +78,7 @@ all : tot
 	(cd ../mpi; make mpilib.o)
 
 libs:
+	(cd ../lib; make tasklib.a)
 	(cd ../pl; make pllib.a)
 	(cd ../pl; make noeqlib.o)
 	(cd ../pl; make noequlib.o)
@@ -92,7 +93,6 @@ libs:
 	(cd ../fp; make fplib.a)
 	(cd ../mtx; make mtxlib.a)
 	(cd ../mtx; make mpimtxlib.a)
-	(cd ../lib; make tasklib.a)
 	(cd ../mpi; make nompilib.o)
 	(cd ../mpi; make mpilib.o)
 
@@ -122,7 +122,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	-rm -f core a.out *.o ./*~ .$(MOD)/mod.f
+	-rm -f core a.out *.o *.mod ./*~ *.a .$(MOD)/*.mod
 
 veryclean: clean
 	-rm -f tot
