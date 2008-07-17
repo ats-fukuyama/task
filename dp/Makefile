@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
        dpfpin.f dphotf.f dphotr.f
@@ -20,7 +20,7 @@ LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../../bpsd/bpsdlib.a \
 all : dp
 
 dplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o dplib.a $(OBJS)
+	$(LD) $(LDFLAGS) dplib.a $(OBJS)
 
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)

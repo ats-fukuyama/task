@@ -9,7 +9,7 @@ FFLAGS=$(OFLAGS)
 
 # with task/eq
 MODINCLUDE= -I.$(MOD) -I../eq$(MOD) -I../pl$(MOD)
-EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
+EQLIBS= ../pl/noequlib.o ../eq/eqlib.a 
 
 # with topics/equ
 #MODINCLUDE= -I.$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
@@ -23,13 +23,16 @@ SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIB0 = ../../bpsd/bpsdlib.a ../pl/pllib.a $(EQLIBS) \
-       ../eq/treqin.o ../tr/tr2lib.a \
-       ../dp/dplib.a ../wr/wrlib.a \
-       ../eq/wmeqin.o ../fp/fplib.a \
-       ../lib/tasklib.a ../lib/mdslib.a
-LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a ../mpi/nompilib.o
-LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a ../mpi/mpilib.o
+LIB0 = ../eq/treqin.o ../tr/tr2lib.a \
+       ../dp/dplib.a ../wr/wrlib.a ../fp/fplib.a \
+       ../pl/pllib.a ../eq/wmeqin.o $(EQLIBS) \
+       ../../bpsd/bpsdlib.a \
+       ../lib/mdslib.a 
+       
+LIBS = $(LIB0) ../wm/wmlib.a  ../mtx/mtxlib.a \
+       ../lib/tasklib.a ../mpi/nompilib.o
+LIBM = $(LIB0) ../wm/mpiwmlib.a  ../mtx/mpimtxlib.a \
+       ../lib/tasklib.a ../mpi/mpilib.o
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

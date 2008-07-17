@@ -22,7 +22,7 @@ C
 ***********************************************************************
 C
       SUBROUTINE BSTABCDB(A,N,M,LA,LD,B,EPS,ITER,X,D,R,RT,P,PH,V,T,
-     &                    S,SH,TEMP1,TEMP2,NM,NBSIZ,IERR)
+     &                    S,SH,TEMP1,TEMP2,NM,NBSIZ,WMSETM,IERR)
 C
       COMMON /WMBLPR/ ICF,IDF,IEF,ISCNF,IECNF
 C
@@ -48,6 +48,7 @@ C
       DIMENSION TEMP1(LD,NBSIZ),TEMP2(NBSIZ)
       DIMENSION NM(NBSIZ)
       LOGICAL   FTFLG
+      EXTERNAL WMSETM
 C
       IERR = 0
       EPS  = 1.D-8

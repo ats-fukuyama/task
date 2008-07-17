@@ -478,7 +478,7 @@ end subroutine set_equil
          equ1D%data(nr+1)%pit=Itorf(nr)
       enddo
 
-      call bpsd_set_equ1D(equ1D,ierr)
+      call bpsd_set_data(equ1D,ierr)
 
       do nr=0,ns
          metric1D%s(nr+1)=s(nr)
@@ -499,7 +499,7 @@ end subroutine set_equil
          metric1D%data(nr+1)%elip=device%elip
          metric1D%data(nr+1)%trig=0.d0
       enddo
-      call bpsd_set_metric1D(metric1D,ierr)
+      call bpsd_set_data(metric1D,ierr)
       end subroutine set_bpsd
 
 end module pl_vmec_mod

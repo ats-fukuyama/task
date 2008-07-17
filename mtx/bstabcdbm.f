@@ -22,7 +22,8 @@ C
 ***********************************************************************
 C
       SUBROUTINE BSTABCDBM(A,N,M,LA,LD,B,EPS,ITER,X,D,R,RT,P,PH,V,T,
-     &                    S,SH,F,TEMP1,TEMP2,NM,NBSIZ,NFST,NEND,IERR)
+     &                     S,SH,F,TEMP1,TEMP2,NM,NBSIZ,NFST,NEND,
+     &                     WMSETM,IERR)
 C
       INCLUDE '../mpi/mpif.inc'
 C
@@ -58,6 +59,7 @@ C
 C      DIMENSION F(M*(2*M+1))
       DIMENSION NM(NBSIZ)
       LOGICAL   FTFLG
+      EXTERNAL WMSETM
 C
       IERR = 0
       EPS  = 1.D-8

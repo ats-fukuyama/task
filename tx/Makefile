@@ -33,10 +33,10 @@ LIBS3= tx3lib.a ../lib/tasklib.a $(OBJLA)
 all: $(PROG3) $(PROG2)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) -o tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) -Lmod
+	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) -Lmod
 
 tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) -o tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) -Lmod
+	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) -Lmod
 
 ../lib/tasklib.a:
 	(cd ../lib; make)

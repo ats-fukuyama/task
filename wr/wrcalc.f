@@ -487,7 +487,7 @@ C
 C
 C      WRITE(6,*) S,T,S/T
       RKR=RKRI-S/T
-C      WRITE(6,*) X1
+      WRITE(6,'(1P3E12.4)') RKR,RKRI,-S/T
 C
       IF(ABS((RKR-RKRI)/RKRI).LE.EPSNW) GOTO 9000
 C      WRITE(6,*) ABS((RKR-RKRI)/RKRI), RKR

@@ -32,7 +32,8 @@ libs:
 	(cd ../lib; make tasklib.a)
 
 pllib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
+	$(LD) $(LDFLAGS) pllib.a $(OBJS)
+#	$(LD) $(LDFLAGS) -o pllib.a $(OBJS)
 
 pl : plmain.o $(LIBS)
 	$(FCFIXED) plmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)

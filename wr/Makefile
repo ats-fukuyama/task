@@ -4,23 +4,27 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
+MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
+
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIBS = wrlib.a ../dp/dplib.a ../pl/pllib.a ../eq/eqlib.a \
-       ../lib/tasklib.a
+LIBS = wrlib.a ../pl/pllib.a ../eq/eqlib.a ../dp/dplib.a \
+       ../../bpsd/bpsdlib.a ../lib/tasklib.a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : wr
 
 wrlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o wrlib.a $(OBJS)
+	$(LD) $(LDFLAGS) wrlib.a $(OBJS)
 
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make bpsdlib.a)
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
 ../eq/eqlib.a:
@@ -30,13 +34,14 @@ wrlib.a: $(OBJS)
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
 libs:
+	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
 	(cd ../eq; make eqlib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../lib; make tasklib.a)
 
 wr : wrmain.o $(LIBS)
-	$(FCFIXED) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) wrmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less

@@ -27,7 +27,7 @@ OBJA = $(SRCA:.f=.o)
 all : eq
 
 eqlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o eqlib.a $(OBJS)
+	$(LD) $(LDFLAGS) eqlib.a $(OBJS)
 
 libs:
 	(cd ../lib; make tasklib.a)

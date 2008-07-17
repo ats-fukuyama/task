@@ -23,7 +23,7 @@ LIBS = fplib.a ../pl/pllib.a ../eq/eqlib.a ../../bpsd/bpsdlib.a \
 all : fp
 
 fplib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o fplib.a $(OBJS)
+	$(LD) $(LDFLAGS) fplib.a $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)

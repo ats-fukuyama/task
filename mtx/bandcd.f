@@ -2,11 +2,12 @@ C     $Id$
 C
 C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION) ******
 C
-      SUBROUTINE BANDCDNB( A , X , N , L , LA , IERR )
+      SUBROUTINE BANDCDNB( A , X , N , L , LA , WMSETM, IERR )
 C
 C     COMPLEX * 16    A( LA , N ) , X( N ) , ATMP( LMAX ) , TEMP
       COMPLEX * 16    A( LA , N ) , X( N ) , TEMP
       REAL    *  8    EPS , ABS1 , ABS2
+      EXTERNAL WMSETM
       DATA EPS/ 1.D-70 /
 C
       NRP=0

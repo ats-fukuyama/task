@@ -16,6 +16,7 @@ C
       COMPLEX * 16 TINV1
       COMPLEX * 16 F
       REAL    *  8 EPS
+      EXTERNAL WMSETM
 C
       PARAMETER (NBSIZM=3*MDM*NDM)
 C
@@ -65,7 +66,7 @@ C
 C     ######## SELECTION OF SOLUTION METHOD ########
 C
       IF(MODELM.EQ.0.AND.MYRANK.EQ.0) THEN
-         CALL BANDCDNB(CEM,CFV,MSIZ,2*MBND-1,MBNDM,IERR)
+         CALL BANDCDNB(CEM,CFV,MSIZ,2*MBND-1,MBNDM,WMSETM,IERR)
          IF(IERR.NE.0.AND.MYRANK.EQ.0) THEN
             WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
          ENDIF
@@ -74,20 +75,20 @@ C
       IF(MODELM.EQ.1.AND.MYRANK.EQ.0) THEN
          CALL BANDCDB(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,
      &        NBSIZM,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-     &        NBSIZ,IERR)
+     &        NBSIZ,WMSETM,IERR)
       ENDIF
 C
       IF(MODELM.EQ.2.AND.MYRANK.EQ.0) THEN
          CALL BSTABCDB(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
      &                 EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,
-     &                 TEMP1,TEMP2,NM,NBSIZ,IERR)
+     &                 TEMP1,TEMP2,NM,NBSIZ,WMSETM,IERR)
          IF(IERR.NE.0.AND.MYRANK.EQ.0) 
      &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
       ENDIF
 C
 c$$$      IF(MODELM.EQ.8) THEN
 c$$$         CALL BANDCDM(CEM,CFV,MSIZ,2*MBND-1,MBNDM,
-c$$$     &                F,NFST,NEND,IERR)
+c$$$     &                F,NFST,NEND,WMSETM,IERR)
 c$$$         IF(IERR.NE.0.AND.MYRANK.EQ.0) THEN
 c$$$            WRITE(6,*) 'XXX BANDCD PIVOT ERROR: IERR=',IERR
 c$$$         ENDIF
@@ -98,7 +99,7 @@ c$$$         LG=18*MDSIZ*NDSIZ
 c$$$         NG=2*NPROCS*NBSIZ
 c$$$         CALL BANDCDBM(CEM,CFV,X,MSIZ,2*MBND-1,MBNDM,AG,LG,NG,XG,
 c$$$     &        NBSIZM,F,NM,TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-c$$$     &        NBSIZ,NFST,NEND,IERR)
+c$$$     &        NBSIZ,NFST,NEND,WMSETM,IERR)
 c$$$         IF(IERR.NE.0.AND.MYRANK.EQ.0) 
 c$$$     &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
 c$$$      ENDIF
@@ -106,7 +107,7 @@ C
       IF(MODELM.EQ.10) THEN
          CALL BSTABCDBM(CEM,MSIZ,MBND-1,MBNDM,NBSIZM,CFV,
      &        EPS,ITR,X,D,R1,R2,P1,P2,Q1,Q2,H,W,F,TEMP1,TEMP2,
-     &        NM,NBSIZ,NFST,NEND,IERR)
+     &        NM,NBSIZ,NFST,NEND,WMSETM,IERR)
          IF(IERR.NE.0.AND.MYRANK.EQ.0) 
      &        WRITE(6,*) 'ITR=',ITR,'  EPS=',EPS
       ENDIF

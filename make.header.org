@@ -1,5 +1,7 @@
 ### $Id$ ###
 
+### $Id$ ###
+
 ## if you have lapack library
 #LAPACK = lapack.f
 #OBJLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
@@ -36,7 +38,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -fmod=./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-g95.a /usr/local/lib/blas-g95.a
 
@@ -49,8 +51,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #FCFREE  = pgf95
 #MOD = /mod
 #MODDIR = -module ./mod
-#LD=ld
-#LDFLAGS=-r
+#LD=ar
+#LDFLAGS=ru
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 
@@ -64,7 +66,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -module ./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 
@@ -78,7 +80,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -module ./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 
@@ -91,7 +93,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -module ./mod
 #LD=ar
-#LDFLAGS=rs
+#LDFLAGS=ru
 
 ## for Mac OSX Intel fortran compiler 
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
@@ -103,7 +105,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -module ./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 #OBJLA = -L /Library/Frameworks/Intel_MKL.framework/Libraries/32 -lmkl_lapack64 -lmkl -lguide -lpthread
@@ -118,7 +120,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -fmod=./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-g95.a /usr/local/lib/blas-g95.a
 
@@ -132,7 +134,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -qmoddir=./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
 
@@ -145,7 +147,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD =
 #MODDIR =
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 
@@ -158,7 +160,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD =
 #MODDIR =
 #LD=sxld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 ## if you have lapack library
 #OBJLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 
@@ -171,6 +173,6 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #MOD = /mod
 #MODDIR = -M./mod
 #LD=ld
-#LDFLAGS=-r
+#LDFLAGS=-r -o
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(OBJLA)

@@ -31,10 +31,10 @@ OBJSMDS = $(MDSPLUS:.f=.o)
 all : tasklib.a mdslib.a
 
 tasklib.a: $(OBJSFREE) $(OBJSFIXED)
-	$(LD) $(LDFLAGS) -o tasklib.a $(OBJSFREE) $(OBJSFIXED)
+	$(LD) $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
 
 mdslib.a: $(OBJSMDS)
-	$(LD) $(LDFLAGS) -o mdslib.a $(OBJSMDS)
+	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
 
 new :
 	mkdir ../libnew

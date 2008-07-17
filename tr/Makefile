@@ -65,10 +65,10 @@ LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a
 all: tr2
 
 tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) -o tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)
+	$(LD) $(LDFLAGS) tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)
 
 tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) -o tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
+	$(LD) $(LDFLAGS) tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
 
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)

@@ -134,7 +134,7 @@ C     IERR=6 : namelist line input error
 C     IERR=7 : unknown MODE
 C     IERR=10X : input parameter out of range
 C
-      EXTERNAL PLNLIN,PLPLST
+      EXTERNAL DPNLIN,DPPLST
       CHARACTER KIN*(*)
 C
     1 CALL TASK_PARM(MODE,'DP',KIN,DPNLIN,DPPLST,IERR)

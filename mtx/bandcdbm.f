@@ -4,7 +4,7 @@ C     ****** SOLUTION OF BAND MATRIX (GAUSSIAN ELIMINATION IN MPI) ******
 C
       SUBROUTINE BANDCDBM(A,D,X,N,L,LA,AG,LG,NG,XG,LD,F,NM,
      &                    TMPA,TMPG,TMPB,TINV1,TEMP1,TEMP2,
-     &                    NBSIZ,NFST,NEND,IERR)
+     &                    NBSIZ,NFST,NEND,WMSETM,IERR)
 C
       INCLUDE '../mpi/mpif.inc'
 C
@@ -24,6 +24,7 @@ C
       COMPLEX * 16 F(6*NBSIZ*2*NBSIZ)
       INTEGER      NM(NBSIZ)
       INTEGER      IDISP(2)
+      EXTERNAL     WMSETM
 C
       NRP=0
       DO J=ISTA,IEND
