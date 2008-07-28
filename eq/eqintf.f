@@ -22,7 +22,7 @@ C
          BR=0.D0
          BZ=0.D0
       ELSE
-         BT=FNTTS(PSIN)/RP
+         BT=FNTTS(SQRT(PSIN))/RP
          BR=-PSIZ/(2.D0*PI*RP)
          BZ= PSIR/(2.D0*PI*RP)
 C         write(6,'(A,1P3E12.4)') 'PSI,PSIZ,PSIR      =',PSI,PSIR,PSIZ
@@ -50,41 +50,41 @@ C
 C
 C     ***** GET PRESSURE AS A FUNCTION OF PSIN *****
 C
-      SUBROUTINE GETPP(PSIN,PP)
+      SUBROUTINE GETPP(RHON,PP)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      PP=FNPPS(PSIN)
+      PP=FNPPS(RHON)
       RETURN
       END
 C
 C     ***** GET SAFETY FACTOR AS A FUNCTION OF PSIN *****
 C
-      SUBROUTINE GETQP(PSIN,QP)
+      SUBROUTINE GETQP(RHON,QP)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      QP=FNQPS(PSIN)
+      QP=FNQPS(RHON)
       RETURN
       END
 C
 C     ***** GET MINIMUM R AS A FUNCTION OF PSIN *****
 C
-      SUBROUTINE GETRMN(PSIN,RRMINL)
+      SUBROUTINE GETRMN(RHON,RRMINL)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      RRMINL=FNRRMN(PSIN)
+      RRMINL=FNRRMN(RHON)
       RETURN
       END
 C
 C     ***** GET MAXIMUM R AS A FUNCTION OF PSIN *****
 C
-      SUBROUTINE GETRMX(PSIN,RRMAXL)
+      SUBROUTINE GETRMX(RHON,RRMAXL)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      RRMAXL=FNRRMX(PSIN)
+      RRMAXL=FNRRMX(RHON)
       RETURN
       END
 C

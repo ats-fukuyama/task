@@ -177,7 +177,7 @@ C
          ELSE
             PTOT=PTOT*1.D20*1.D3/AEE
             CALL GETPP(0.D0,PL0)
-            CALL GETPP(RHOL**2,PL)
+            CALL GETPP(RHOL,PL)
             FACT=SQRT(PTOT*PL/PL0)
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
@@ -303,7 +303,7 @@ C
             ENDIF
          ENDIF
       ELSE
-         CALL GETQP(RHOL**2,QL)
+         CALL GETQP(RHOL,QL)
       ENDIF
       RETURN
       END
@@ -327,7 +327,7 @@ C
          BMINP= RS*BMINT/((RR+RS)*QL)
          BMINL= SQRT(BMINT**2+BMINP**2)
       ELSEIF(MODELG.EQ.3) THEN
-         CALL GETRMX(RHON**2,RRMAXL)
+         CALL GETRMX(RHON,RRMAXL)
          PP=0.D0
          Z=0.D0
          CALL GETRZ(RRMAXL,Z,PP,BR,BZ,BT,RHONL)
@@ -363,8 +363,8 @@ C
          RRMINL=RR-RS
          RRMAXL=RR+RS
       ELSEIF(MODELG.EQ.3) THEN
-         CALL GETRMN(RHON**2,RRMINL)
-         CALL GETRMX(RHON**2,RRMAXL)
+         CALL GETRMN(RHON,RRMINL)
+         CALL GETRMX(RHON,RRMAXL)
       ENDIF
       RETURN
       END

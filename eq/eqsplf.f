@@ -28,7 +28,7 @@ C
             FNRHON=SQRT(PSITL/PSITA)
          ENDIF
       ELSE
-         FNRHON=PSIN
+         FNRHON=SQRT(PSIN)
       ENDIF
       RETURN
       END
