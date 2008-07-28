@@ -773,6 +773,7 @@
       REAL(8),    DIMENSION(4,NXMAX):: UX, UX0
       REAL(8),    DIMENSION(4,NYMAX):: UY, UY0
       REAL(8),    DIMENSION(NXMAX)  :: BX
+      REAL(8),    DIMENSION(NYMAX)  :: BY
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
@@ -947,44 +948,44 @@
          IF(IDY.EQ.4) THEN
             DYM=Y(NYMAX)-Y(NYMAX-1)
             DYP=Y(2)-Y(1)
-            BX(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP &
+            BY(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP &
      &                 +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
             IF(IDY1.EQ.0) THEN
-               BX(1)=3.D0*(F(NX,2)-F(NX,1))
+               BY(1)=3.D0*(F(NX,2)-F(NX,1))
             ELSE
-               BX(1)=FY(NX,1)
+               BY(1)=FY(NX,1)
             ENDIF
          ENDIF
          DO NY=2,NYMAX-1
             DYM=Y(NY)-Y(NY-1)
             DYP=Y(NY+1)-Y(NY)
-            BX(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP &
+            BY(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP &
      &                  +DYP*(F(NX,NY  )-F(NX,NY-1))/DYM)
          ENDDO
          IF(IDY.EQ.4) THEN
             DYM=Y(NYMAX)-Y(NYMAX-1)
             DYP=Y(2)-Y(1)
-            BX(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP &
+            BY(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP &
      &                     +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
             IF(IDY2.EQ.0) THEN
-               BX(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
+               BY(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
             ELSE
-               BX(NYMAX)=FY(NX,NYMAX)
+               BY(NYMAX)=FY(NX,NYMAX)
             ENDIF
          ENDIF
 
          IF(IDY.EQ.4) THEN
-            CALL TDMPRDX(UY,BX,NYMAX-1,IERR)
+            CALL TDMPRDX(UY,BY,NYMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9005
-            BX(NYMAX)=BX(1)
+            BY(NYMAX)=BY(1)
          ELSE
-            CALL TDMSRDX(UY,BX,NYMAX,IERR)
+            CALL TDMSRDX(UY,BY,NYMAX,IERR)
             IF(IERR.NE.0) GOTO 9006
          ENDIF
          DO NY=1,NYMAX
-            FY(NX,NY)=BX(NY)
+            FY(NX,NY)=BY(NY)
          ENDDO
       ENDDO
 
@@ -1445,6 +1446,7 @@
       COMPLEX(8),    DIMENSION(4,NXMAX):: UX, UX0
       COMPLEX(8),    DIMENSION(4,NYMAX):: UY, UY0
       COMPLEX(8),    DIMENSION(NXMAX)  :: BX
+      COMPLEX(8),    DIMENSION(NXMAX)  :: BY
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
@@ -1619,44 +1621,44 @@
          IF(IDY.EQ.4) THEN
             DYM=Y(NYMAX)-Y(NYMAX-1)
             DYP=Y(2)-Y(1)
-            BX(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP  &
+            BY(1)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP  &
      &                 +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
             IF(IDY1.EQ.0) THEN
-               BX(1)=3.D0*(F(NX,2)-F(NX,1))
+               BY(1)=3.D0*(F(NX,2)-F(NX,1))
             ELSE
-               BX(1)=FY(NX,1)
+               BY(1)=FY(NX,1)
             ENDIF
          ENDIF
          DO NY=2,NYMAX-1
             DYM=Y(NY)-Y(NY-1)
             DYP=Y(NY+1)-Y(NY)
-            BX(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP  &
+            BY(NY)=3.D0*(DYM*(F(NX,NY+1)-F(NX,NY  ))/DYP  &
      &                  +DYP*(F(NX,NY  )-F(NX,NY-1))/DYM)
          ENDDO
          IF(IDY.EQ.4) THEN
             DYM=Y(NYMAX)-Y(NYMAX-1)
             DYP=Y(2)-Y(1)
-            BX(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP  &
+            BY(NYMAX)=3.D0*(DYM*(F(NX,    2)-F(NX,      1))/DYP  &
      &                     +DYP*(F(NX,NYMAX)-F(NX,NYMAX-1))/DYM)
          ELSE
             IF(IDY2.EQ.0) THEN
-               BX(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
+               BY(NYMAX)=3.D0*(F(NX,NYMAX)-F(NX,NYMAX-1))
             ELSE
-               BX(NYMAX)=FY(NX,NYMAX)
+               BY(NYMAX)=FY(NX,NYMAX)
             ENDIF
          ENDIF
 
          IF(IDY.EQ.4) THEN
-            CALL TDMPCDX(UY,BX,NYMAX-1,IERR)
+            CALL TDMPCDX(UY,BY,NYMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9005
-            BX(NYMAX)=BX(1)
+            BY(NYMAX)=BY(1)
          ELSE
-            CALL TDMSCDX(UY,BX,NYMAX,IERR)
+            CALL TDMSCDX(UY,BY,NYMAX,IERR)
             IF(IERR.NE.0) GOTO 9006
          ENDIF
          DO NY=1,NYMAX
-            FY(NX,NY)=BX(NY)
+            FY(NX,NY)=BY(NY)
          ENDDO
       ENDDO
 
