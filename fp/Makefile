@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=$(OFLAGS)
-FFLAGS=$(DFLAGS)
+FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 
@@ -66,6 +66,7 @@ fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalc.o : fpcalc.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalcn.o : fpcalcn.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcalcnr.o : fpcalcnr.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalw.o : fpcalw.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcalwr.o : fpcalwr.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
 fpcalwm.o : fpcalwm.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
@@ -74,4 +75,4 @@ fpfout.o : fpfout.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
-fpcalcnr.o : fpcalcnr.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpwmin.o : fpwmin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
