@@ -23,22 +23,21 @@ SRCS = main.f
 
 OBJS = $(SRCS:.f=.o)
 
-LIB0 =  ../eq/treqin.o ../tr/tr2lib.a \
+LIB0 =  ../eq/treqin.o ../tr/trcom2.o ../tr/trcom3.o ../tr/tr2lib.a \
        ../dp/dplib.a ../wr/wrlib.a ../fp/fplib.a \
        ../eq/wmeqin.o \
        ../../bpsd/bpsdlib.a \
        ../lib/mdslib.a 
-       
+
 LIBS = $(LIB0) ../wm/wmlib.a ../pl/pllib.a \
        $(EQLIBS) \
        ../mpi/nompilib.o ../mtx/mtxlib.a \
        ../lib/tasklib.a
-        
+
 LIBM = $(LIB0) ../wm/mpiwmlib.a  ../pl/pllib.a \
        $(EQLIBS) \
        ../mpi/mpilib.o ../mtx/mpimtxlib.a \
        ../lib/tasklib.a
-       
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
