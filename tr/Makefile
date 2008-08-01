@@ -26,7 +26,7 @@ MAKE_TPXLIB=
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
-PLLIBS=../../bpsd/bpsdlib.a ../pl/pl_vmec.o ../pl/modules.o
+PLLIBS=../pl/pl_vmec.o ../pl/modules.o ../../bpsd/bpsdlib.a 
 
 SRC90=trcom0.f90 trcom1.f90 trcom2.f90 trcom3.f90 trcomm.f90 tr_bpsd.f90\
       trinit.f90 trprof.f90 trfile.f90 trhelp.f90 \
@@ -55,8 +55,8 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 
-LIBS2=$(PLLIBS) $(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a
-LIBS3=$(PLLIBS) $(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a
+LIBS2=$(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
+LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
