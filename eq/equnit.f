@@ -18,7 +18,7 @@ c
       return
       end subroutine eq_init
 c=======================================================================
-c            set parameters  profile
+c            set parameters
 c-----------------------------------------------------------------------
       subroutine eq_parm(mode,kin,ierr)
 c

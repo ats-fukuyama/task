@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 # for sxf90
 #FFLAGS=-Chopt -Wf"-init heap=zero"

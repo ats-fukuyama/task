@@ -452,8 +452,8 @@ end subroutine set_equil
 
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.ns+1) then
-         if(allocated(equ1D%s)) deallocate(equ1D%s)
-         if(allocated(equ1D%data)) deallocate(equ1D%data)
+         if(associated(equ1D%s)) deallocate(equ1D%s)
+         if(associated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=ns+1
          allocate(equ1D%s(ns+1))
          allocate(equ1D%data(ns+1))
@@ -461,8 +461,8 @@ end subroutine set_equil
 
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.ns+1) then
-         if(allocated(metric1D%s)) deallocate(metric1d%s)
-         if(allocated(metric1D%data)) deallocate(metric1d%data)
+         if(associated(metric1D%s)) deallocate(metric1d%s)
+         if(associated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=ns+1
          allocate(metric1D%s(ns+1))
          allocate(metric1D%data(ns+1))

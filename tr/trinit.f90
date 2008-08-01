@@ -725,7 +725,8 @@
             WRITE(-NID,TR,IOSTAT=IST,ERR=9800)
          ELSE
             WRITE(6,*) "TRNLIN error NSMAX+NSZMAX+NSNMAX too large"
-            WRITE(6,*) "TRNLIN       NSTMAX2,NSMAX,NSZMAX,NSNMAX:",NSTMAX2,NSMAX,NSZMAX,NSNMAX
+            WRITE(6,*) "TRNLIN       NSTMAX2,NSMAX,NSZMAX,NSNMAX:", &
+                                     NSTMAX2,NSMAX,NSZMAX,NSNMAX
             GOTO 9800
          ENDIF
       ELSE

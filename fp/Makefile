@@ -40,7 +40,7 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../lib; make tasklib.a)
 
-fp : fpmain.o $(LIBS)
+fp : $(LIBS) fpmain.o 
 	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
 check :

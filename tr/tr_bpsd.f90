@@ -44,7 +44,7 @@
       call bpsd_set_data(device,ierr)
 
       if(species%nsmax.ne.nsmax) then
-         if(allocated(species%data)) then
+         if(associated(species%data)) then
             deallocate(species%data)
          endif
          species%nsmax=nsmax
@@ -59,10 +59,10 @@
       call bpsd_set_data(species,ierr)
 
       if((equ1D%nrmax.ne.nrmax+1)) then
-         if(allocated(equ1D%s)) then
+         if(associated(equ1D%s)) then
             deallocate(equ1D%s)
          endif
-         if(allocated(equ1D%data)) then
+         if(associated(equ1D%data)) then
             deallocate(equ1D%data)
          endif
          equ1D%nrmax=nrmax+1
@@ -77,10 +77,10 @@
       enddo
 
       if((metric1D%nrmax.ne.nrmax+1)) then
-         if(allocated(metric1D%s)) then
+         if(associated(metric1D%s)) then
             deallocate(metric1D%s)
          endif
-         if(allocated(metric1D%data)) then
+         if(associated(metric1D%data)) then
             deallocate(metric1D%data)
          endif
          metric1D%nrmax=nrmax+1
@@ -96,13 +96,13 @@
 
       if((plasmaf%nsmax.ne.nsmax).or. &
      &   (plasmaf%nrmax.ne.nrmax+1)) then
-         if(allocated(plasmaf%s)) then
+         if(associated(plasmaf%s)) then
             deallocate(plasmaf%s)
          endif
-         if(allocated(plasmaf%data)) then
+         if(associated(plasmaf%data)) then
             deallocate(plasmaf%data)
          endif
-         if(allocated(plasmaf%qinv)) then
+         if(associated(plasmaf%qinv)) then
             deallocate(plasmaf%qinv)
          endif
          plasmaf%nsmax=nsmax
@@ -118,9 +118,9 @@
          plasmaf%s(nr+1)=rg(nr)**2
       enddo
       do ns=1,nsmax
-         call mesh_convert_mtog(rn(1,ns),temp(1,ns,1),nrmax)
-         call mesh_convert_mtog(rt(1,ns),temp(1,ns,2),nrmax)
-         call mesh_convert_mtog(ru(1,ns),temp(1,ns,3),nrmax)
+         call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:nrmax,ns,1),nrmax)
+         call mesh_convert_mtog(rt(1:nrmax,ns),temp(1:nrmax,ns,2),nrmax)
+         call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:nrmax,ns,3),nrmax)
       enddo
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
@@ -162,9 +162,9 @@
 
       plasmaf%time=t
       do ns=1,nsmax
-         call mesh_convert_mtog(rn(1,ns),temp(1,ns,1),nrmax)
-         call mesh_convert_mtog(rt(1,ns),temp(1,ns,2),nrmax)
-         call mesh_convert_mtog(ru(1,ns),temp(1,ns,3),nrmax)
+         call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:nrmax,ns,1),nrmax)
+         call mesh_convert_mtog(rt(1:nrmax,ns),temp(1:nrmax,ns,2),nrmax)
+         call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:nrmax,ns,3),nrmax)
       enddo
       do nr=1,plasmaf%nrmax
          do ns=1,plasmaf%nsmax
@@ -239,9 +239,9 @@
 !      write(6,*) (qp(nr),nr=1,nrmax)
 
       do ns=1,nsmax
-         call mesh_convert_gtom(temp(1,ns,1),rn(1,ns),nrmax)
-         call mesh_convert_gtom(temp(1,ns,2),rt(1,ns),nrmax)
-         call mesh_convert_gtom(temp(1,ns,3),ru(1,ns),nrmax)
+         call mesh_convert_gtom(temp(1:nrmax,ns,1),rn(1:nrmax,ns),nrmax)
+         call mesh_convert_gtom(temp(1:nrmax,ns,2),rt(1:nrmax,ns),nrmax)
+         call mesh_convert_gtom(temp(1:nrmax,ns,3),ru(1:nrmax,ns),nrmax)
       enddo
 
       if(modelg.eq.8.or.modelg.eq.9) then

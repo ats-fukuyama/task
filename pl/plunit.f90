@@ -1,5 +1,9 @@
 !     $Id$
 
+      module plunit
+
+        contains
+
 !     ****** INITIALIZE INPUT PARAMETERS ******
 
       subroutine pl_init
@@ -49,7 +53,7 @@
 !        PUITB : Toroidal rotation velocity increment at ITB   (m/s)
 
       NSMAX = 2
-      CALL PL_ALLOCATE
+      call pl_allocate_ns
 
 !     ======( PROFILE PARAMETERS )======
 
@@ -172,10 +176,10 @@
 !     IERR=7 : unknown MODE
 !     IERR=10X : input parameter out of range
 
-      implicit none
-      integer MODE,IERR
-      character(len=*) KIN
-      EXTERNAL pl_nlin,pl_plst
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: mode
+      CHARACTER(LEN=*),INTENT(IN)::  kin
+      INTEGER,INTENT(OUT):: ierr
 
     1 CALL TASK_PARM(MODE,'PL',KIN,pl_nlin,pl_plst,IERR)
       IF(IERR.NE.0) RETURN
@@ -199,7 +203,9 @@
                     RHOMIN,QMIN,RHOITB,RHOEDG, &
                     MODELG,MODELN,MODELQ,RHOGMN,RHOGMX, &
                     KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
-                    MODEFR,MODEFW,IDEBUG,rkind
+                    MODEFR,MODEFW,IDEBUG, &
+                    rkind,pl_allocate_ns
+
       implicit none
       integer,intent(in) :: NID
       integer,intent(out) :: IST,IERR
@@ -249,7 +255,7 @@
 
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
 
-      CALL pl_allocate
+      CALL pl_allocate_ns
 
       DO NS=1,NSMAX
          PAX(NS)=PA(NS)
@@ -398,3 +404,5 @@
   604 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  : &
              2X,A6,'=',I7,4X  :2X,A6,'=',I7)
       END SUBROUTINE pl_view
+
+      end module plunit

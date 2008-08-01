@@ -7,6 +7,8 @@
 
       implicit none
 
+      public pl_allocate_ns
+
       integer:: NSMAX,MODELG,MODELN,MODELQ,IDEBUG,MODEFR,MODEFW
 
       real(rkind):: RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ
@@ -20,7 +22,7 @@
 
       contains
 
-        subroutine pl_allocate
+        subroutine pl_allocate_ns
           implicit none
           integer,save:: NSMAX_save
           integer,save:: init=0
@@ -30,7 +32,7 @@
              init=1
           else
              if(NSMAX.eq.NSMAX_save) return
-             call pl_deallocate
+             call pl_deallocate_ns
           endif
 
           allocate(PA(NSMAX))
@@ -100,9 +102,9 @@
              PUITB(NS)= 0.D0
           ENDDO
           return
-        end subroutine pl_allocate
+        end subroutine pl_allocate_ns
 
-        subroutine pl_deallocate
+        subroutine pl_deallocate_ns
           implicit none
 
           deallocate(PA)
@@ -121,6 +123,6 @@
           deallocate(PUITB)
           return
 
-        end subroutine pl_deallocate
+        end subroutine pl_deallocate_ns
 
       end module plcomm
