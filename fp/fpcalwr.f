@@ -6,7 +6,7 @@ C            CALCULATION OF DW (BOUNCE AVERAGED,RAY)
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALWR
+      SUBROUTINE FPCALWR(NSA)
 C
       INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.inc'
@@ -156,9 +156,9 @@ C            ELSE
 C               IFLAG=0
 C            ENDIF
             CALL FPDWAV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP),NR,NTH,
-     &                  DWPPS,DWPTS,DWTPS,DWTTS)
-            DWPP(NTH,NP,NR)=DWPPS
-            DWPT(NTH,NP,NR)=DWPTS
+     &                  DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+            DWPP(NTH,NP,NR,NSA)=DWPPS
+            DWPT(NTH,NP,NR,NSA)=DWPTS
   100    CONTINUE
   101    CONTINUE
 C
@@ -166,26 +166,34 @@ C
          DO 200 NP=1,NPMAX+1
 C
          DO 190 NTH=ITL(NR)+1,NTHMAX/2
-            DWPP(NTH,NP,NR)  =(DWPP(NTH,NP,NR)
-     &                        +DWPP(NTHMAX-NTH+1,NP,NR))*FACT
-            DWPT(NTH,NP,NR)  =(DWPT(NTH,NP,NR)
-     &                        +DWPT(NTHMAX-NTH+1,NP,NR))*FACT
-            DWPP(NTHMAX-NTH+1,NP,NR)  =DWPP(NTH,NP,NR)
-            DWPT(NTHMAX-NTH+1,NP,NR)  =DWPT(NTH,NP,NR)
+            DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA)
+     &                        +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+            DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA)
+     &                        +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+            DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
+            DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
   190    CONTINUE
-         DWPP(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
-     &                  *( DWPP(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
-     &                    +DWPP(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
-     &                    +DWPP(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
-     &                    +DWPP(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
+         DWPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0
+     &                  *( DWPP(ITL(NR)-1,NP,NR,NSA)
+     &                                         /RLAMDA(ITL(NR)-1,NR)
+     &                    +DWPP(ITL(NR)+1,NP,NR,NSA)
+     &                                         /RLAMDA(ITL(NR)+1,NR)
+     &                    +DWPP(ITU(NR)-1,NP,NR,NSA)
+     &                                         /RLAMDA(ITU(NR)-1,NR)
+     &                    +DWPP(ITU(NR)+1,NP,NR,NSA)
+     &                                         /RLAMDA(ITU(NR)+1,NR))
 C
-         DWPT(ITL(NR),NP,NR)=RLAMDA(ITL(NR),NR)/4.D0
-     &                  *( DWPT(ITL(NR)-1,NP,NR)/RLAMDA(ITL(NR)-1,NR)
-     &                    +DWPT(ITL(NR)+1,NP,NR)/RLAMDA(ITL(NR)+1,NR)
-     &                    +DWPT(ITU(NR)-1,NP,NR)/RLAMDA(ITU(NR)-1,NR)
-     &                    +DWPT(ITU(NR)+1,NP,NR)/RLAMDA(ITU(NR)+1,NR))
-         DWPP(ITU(NR),NP,NR)  =DWPP(ITL(NR),NP,NR)
-         DWPT(ITU(NR),NP,NR)  =DWPT(ITL(NR),NP,NR)
+         DWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0
+     &                  *( DWPT(ITL(NR)-1,NP,NR,NSA)
+     &                                         /RLAMDA(ITL(NR)-1,NR)
+     &                    +DWPT(ITL(NR)+1,NP,NR,NSA)
+     &                                         /RLAMDA(ITL(NR)+1,NR)
+     &                    +DWPT(ITU(NR)-1,NP,NR,NSA)
+     &                                         /RLAMDA(ITU(NR)-1,NR)
+     &                    +DWPT(ITU(NR)+1,NP,NR,NSA)
+     &                                         /RLAMDA(ITU(NR)+1,NR))
+         DWPP(ITU(NR),NP,NR,NSA)  =DWPP(ITL(NR),NP,NR,NSA)
+         DWPT(ITU(NR),NP,NR,NSA)  =DWPT(ITL(NR),NP,NR,NSA)
   200    CONTINUE
          ENDIF
  1000 CONTINUE
@@ -326,16 +334,16 @@ C
             IF(NTH.NE.NTHMAX/2+1) THEN
                DO 1100 NP=1,NPMAX
                   CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
-     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
-                  DWTP(NTH,NP,NR)=DWTPS
-                  DWTT(NTH,NP,NR)=DWTTS
+     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+                  DWTP(NTH,NP,NR,NSA)=DWTPS
+                  DWTT(NTH,NP,NR,NSA)=DWTTS
  1100          CONTINUE
             ELSE
                DO 1200 NP=1,NPMAX
 C                  CALL FPDWAV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
 C     &                        NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
-                  DWTP(NTH,NP,NR)=0.D0
-                  DWTT(NTH,NP,NR)=0.D0
+                  DWTP(NTH,NP,NR,NSA)=0.D0
+                  DWTT(NTH,NP,NR,NSA)=0.D0
  1200          CONTINUE
             ENDIF
  1101    CONTINUE
@@ -345,12 +353,12 @@ C
          IF(MODELA.EQ.1) THEN
             DO 1300 NTH=ITL(NR)+1,NTHMAX/2
             DO 1300 NP=1,NPMAX
-               DWTP(NTH,NP,NR)=(DWTP(NTH,NP,NR)
-     &                         +DWTP(NTHMAX-NTH+2,NP,NR))*FACT
-               DWTT(NTH,NP,NR)=(DWTT(NTH,NP,NR)
-     &                         +DWTT(NTHMAX-NTH+2,NP,NR))*FACT
-               DWTP(NTHMAX-NTH+2,NP,NR)=DWTP(NTH,NP,NR)
-               DWTT(NTHMAX-NTH+2,NP,NR)=DWTT(NTH,NP,NR)
+               DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA)
+     &                         +DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+               DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA)
+     &                         +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+               DWTP(NTHMAX-NTH+2,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
+               DWTT(NTHMAX-NTH+2,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)
  1300       CONTINUE
          ENDIF
  2000 CONTINUE
@@ -362,7 +370,8 @@ C***********************************************************************
 C     Calculate DW averaged over magnetic surface for (p,theta0,r)
 C***********************************************************************
 C
-      SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,NTH,DWPPS,DWPTS,DWTPS,DWTTS)
+      SUBROUTINE FPDWAV(ETA,RSIN,RCOS,P,NR,NTH,
+     &                  DWPPS,DWPTS,DWTPS,DWTTS,NSA)
 C
       INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.inc'
@@ -416,7 +425,7 @@ C               WRITE(6,*) RHOR,RM(NR)
                RKZ=RKCR(3,NCR,NR,NRAY)
                CALL FPDWLL(P,PSIN,PCOS,
      &                     CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
-     &                     DWPPL,DWPTL,DWTPL,DWTTL)
+     &                     DWPPL,DWPTL,DWTPL,DWTTL,NSA)
                DWPPS=DWPPS+DWPPL*RCOS/PCOS
                DWPTS=DWPTS+DWPTL          /SQRT(PSI)
                DWTPS=DWTPS+DWTPL          /SQRT(PSI)
@@ -503,7 +512,7 @@ C***********************************************************************
 C  
       SUBROUTINE FPDWLL(P,PSIN,PCOS,
      &                  CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
-     &                  DWPPL,DWPTL,DWTPL,DWTTL)
+     &                  DWPPL,DWPTL,DWTPL,DWTTL,NSA)
 C
       INCLUDE 'fpcomm.inc'
 C
@@ -513,8 +522,7 @@ C
       CALL PLMAG(RX,RY,RZ,RHON)
 C
       RW     =2.D0*PI*RFDW*1.D6
-      RWC    =AEFP*BABS/AMFP
-      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+      RWC    =AEFP(NSA)*BABS/AMFP(NSA)
 C
       RKPARA = RKX*BNX +RKY*BNY +RKZ*BNZ
       RKPERP = SQRT(RKX*RKX+RKY*RKY+RKZ*RKZ-RKPARA*RKPARA)
@@ -534,18 +542,18 @@ C
       CEPLUS =(CE1+CI*CE2)/SQRT(2.D0)
       CEMINUS=(CE1-CI*CE2)/SQRT(2.D0)
 C
-      RGAMMA =SQRT(1.D0+P*P*THETA0)
-      PPARA  =PTFP0*P*PCOS
-      PPERP  =PTFP0*P*PSIN
-      VPARA  =PPARA/(AMFP*RGAMMA)
-      VPERP  =PPERP/(AMFP*RGAMMA)
+      RGAMMA =SQRT(1.D0+P*P*THETA0(NSA))
+      PPARA  =PTFP0(NSA)*P*PCOS
+      PPERP  =PTFP0(NSA)*P*PSIN
+      VPARA  =PPARA/(AMFP(NSA)*RGAMMA)
+      VPERP  =PPERP/(AMFP(NSA)*RGAMMA)
 C 
       DWC11=0.D0
       DWC12=0.D0
       DWC21=0.D0
       DWC22=0.D0
       RKW  =RKPARA/RW
-      RGZAI=RKPERP*PPERP/(RWC*AMFP)
+      RGZAI=RKPERP*PPERP/(RWC*AMFP(NSA))
 C
 C      WRITE(26,*) 'RKPERP,PPERP,RWC,RGZAI = ',RKPERP,PPERP,RWC,RGZAI
 C      CALL BESSEL(RGZAI,RJ,NCBMAX,NJMAX+1)
@@ -578,14 +586,14 @@ C
          ELSE
              CTHETA=(CEPLUS*RJNM+CEMINUS*RJNP)/SQRT(2.D0)
      &              +CEPARA*PPARA*(RJNM+RJNP)*RKPERP
-     &              /(2*NC*RWC*AMFP)
+     &              /(2*NC*RWC*AMFP(NSA))
          ENDIF
          RTHETA2=ABS(CTHETA)**2
          IF (NC.EQ.0) THEN
             A11=0
             A12=0
             A21=0
-            A22=RTHETA2*RKW**2/(AMFP**2*RGAMMA**2)
+            A22=RTHETA2*RKW**2/(AMFP(NSA)**2*RGAMMA**2)
 	 ELSE
             A11=RTHETA2*(1.D0-RKW*VPARA)**2
             A12=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
@@ -595,13 +603,13 @@ C
          IF(VPARA.EQ.0.D0) THEN
             DWC=0.D0  
          ELSE
-            EX=-((RGAMMA-RKPARA*PPARA/(RW*AMFP)-NC*RWC/RW)
-     &           /(PPARA*DELNPR/(AMFP*VC)))**2
+            EX=-((RGAMMA-RKPARA*PPARA/(RW*AMFP(NSA))-NC*RWC/RW)
+     &           /(PPARA*DELNPR/(AMFP(NSA)*VC)))**2
             IF (EX.LT.-100.D0) THEN 
                 DWC=0.D0
             ELSE
-                DWC=0.5D0*SQRT(PI)*AEFP**2*EXP(EX)/PTFP0**2
-     &              /(RW*ABS(PPARA)*DELNPR/(AMFP*VC))
+                DWC=0.5D0*SQRT(PI)*AEFP(NSA)**2*EXP(EX)/PTFP0(NSA)**2
+     &              /(RW*ABS(PPARA)*DELNPR/(AMFP(NSA)*VC))
             ENDIF
          ENDIF
          DWC11=DWC11+DWC*A11

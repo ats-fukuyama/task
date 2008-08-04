@@ -1,14 +1,14 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 
 SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
-       fpcalw.f fpcalwr.f fpcalwm.f \
-       fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f fpcalcnr.f
+       fpcalcnr.f fpcalw.f fpcalwr.f fpcalwm.f \
+       fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f 
 
 OBJS = $(SRCS:.f=.o)
 

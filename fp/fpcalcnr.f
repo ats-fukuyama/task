@@ -6,7 +6,7 @@ C      CALCULATION OF NONLINEAR-RELAIVISTIC COLLISIONAL OPERATOR
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALC_NLR(NR,NS)
+      SUBROUTINE FPCALC_NLR(NR,NSA,NSB)
 C
       INCLUDE 'fpcomm.inc'
 
@@ -41,20 +41,10 @@ C
 C
 C----- DEFINITION OF LOCAL QUANTITIES -------------
 C
-      AMFD=PA(NS)*AMP
-      AEFD=PZ(NS)*AEE
-      PTFPL=PTFP(NR)
-      PTFDL=PTFD(NR,NS)
-      VTFPL=VTFP(NR)
-      VTFDL=VTFD(NR,NS)
-      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
-
-
-      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-      RGAMH=RNUD(NR,NS)*SQRT(2.D0)*VTFD(NR,NS)*AMFP/(RNFP0*PTFP0*1.D20)
-      TMC2FD0=(PTFD0/(AMFD*VC))**2
-      TMC2FP0=(PTFP0/(AMFP*VC))**2
+      RGAMH=RNUD(NR,NSA,NSB)*SQRT(2.D0)*VTFD(NR,NS)*AMFP(NSA)
+     &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+      TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
+      TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
 
 C
 C     ----- calculation of Legendre Polynomials -----
@@ -152,7 +142,7 @@ C
          NNP=1
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
-            RUFP = (PTFD0*PM(NNP))/AMFD
+            RUFP = (PTFD0(NSB)*PM(NNP))/AMFD(NSB)
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             TX1(NNP+1)=PM(NNP)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+NI))/RGAMB
@@ -168,21 +158,21 @@ C
          CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PM(NP)
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP)
             IF(PCRIT.le.PMAX) THEN
                CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
-               RJABM(NP,L,NI,NA)=SUM2*(PTFD0/AMFD)**NI
+               RJABM(NP,L,NI,NA)=SUM2*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
-               RJABM(NP,L,NI,NA)=PSUM*(PTFD0/AMFD)**NI
+               RJABM(NP,L,NI,NA)=PSUM*(PTFD0(NSB)/AMFD(NSB))**NI
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NPG)
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG)
             IF(PCRIT.le.PMAX) THEN
                CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
-               RJABG(NPG,L,NI,NA)=SUM3*(PTFD0/AMFD)**NI
+               RJABG(NPG,L,NI,NA)=SUM3*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
-               RJABG(NPG,L,NI,NA)=PSUM*(PTFD0/AMFD)**NI
+               RJABG(NPG,L,NI,NA)=PSUM*(PTFD0(NSB)/AMFD(NSB))**NI
             ENDIF
          END DO
       END DO
@@ -192,7 +182,7 @@ C-------
          TY1(1)=0.D0
          DO NNP=1,NPMAX
             RGAMB=SQRT(1.D0+PM(NNP)**2*TMC2FD0)
-            RUFP = (PTFD0*PM(NNP))/AMFD
+            RUFP = (PTFD0(NSB)*PM(NNP))/AMFD(NSB)
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             TX1(NNP+1)=PM(NNP)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP)**(2+NI))/RGAMB
@@ -207,19 +197,19 @@ C-------
          CALL SPL1DI(PMAX,PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PM(NP)
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PM(NP)
             IF(PCRIT.le.PMAX) THEN
                CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
-               RYABM(NP,L,NI,NA)=(PSUM-SUM4)*(PTFD0/AMFD)**NI
+               RYABM(NP,L,NI,NA)=(PSUM-SUM4)*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
                RYABM(NP,L,NI,NA)=0.D0
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NPG)
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NPG)
             IF(PCRIT.le.PMAX) THEN
                CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
-               RYABG(NPG,L,NI,NA)=(PSUM-SUM5)*(PTFD0/AMFD)**NI
+               RYABG(NPG,L,NI,NA)=(PSUM-SUM5)*(PTFD0(NSB)/AMFD(NSB))**NI
             ELSE
                RYABG(NPG,L,NI,NA)=0.D0
             ENDIF
@@ -241,7 +231,7 @@ C
       DO L = 0,LLMAX
          DO NP = 1, NPMAX
             RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
-            RUFP = (PTFP0*PM(NP))/AMFP
+            RUFP = (PTFP0(NSA)*PM(NP))/AMFP(NSA)
 
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             CALL DERIV_JY(RUFP,RJ_1,RY_1,DERJ,DERY)
@@ -304,7 +294,7 @@ C
       DO L=0,LLMAX
          DO NP = 2, NPMAX+1
             RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
-            RUFP = (PTFP0*PG(NP))/AMFP
+            RUFP = (PTFP0(NSA)*PG(NP))/AMFP(NSA)
             CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
             CALL DERIV_JY(RUFP,RJ_1,RY_1,DERJ,DERY)
 
@@ -362,7 +352,7 @@ C
 c            RSIGMA=LOG(rz+SQRT(1.D0+rz**2))
          RSIGMA = RZ - RZ**3/6.D0 +9.D0/120.D0*RZ**5
             rgama=SQRT(1+rz**2)
-            PCRIT=(AMFD*PTFP0)/(AMFP*PTFD0)*PG(NP)
+            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP)
 
             IF(L.eq.LLMAX+1)then
                write(*,765) NP
@@ -398,13 +388,13 @@ C
 C--- LOCAL DIFFUSION COEFFICIENTS
 C
       FACT=4.D0*PI*RGAMH*1.D20
-     &     * (PTFP0 / AMFP) 
+     &     * (PTFP0(NSA) / AMFP(NSA)) 
       FACT2=4.D0*PI*RGAMH*1.D20
-     &     * (PTFP0 / AMFP)**2
+     &     * (PTFP0(NSA) / AMFP(NSA))**2
 C-----DCPP & FCPP-----------------
       DO NP=2,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
-         RUFP = (PTFP0*PG(NP))/AMFP
+         RUFP = (PTFP0(NSA)*PG(NP))/AMFP(NSA)
          DO NTH=1,NTHMAX
             DO L=LLMIN,LLMAX
                SUMA = DPSI02G(NP,L)*PLM(NTH,L)
@@ -415,7 +405,7 @@ C-----DCPP & FCPP-----------------
                SUMF = DPSI1G(NP,L) * PLM(NTH,L)
                SUMG = DPSI11G(NP,L) * PLM(NTH,L)
 
-               DCPP(NTH,NP,NR)=DCPP(NTH,NP,NR)
+               DCPP2(NTH,NP,NR,NSB,NSA)=DCPP2(NTH,NP,NR,NSB,NSA)
      &           + FACT * RGAMA / RUFP *(
      &           2.D0*RGAMA**2* SUMA
      &           -8.D0*(RGAMA/VC)**2* SUMB
@@ -423,8 +413,8 @@ C-----DCPP & FCPP-----------------
      &           +(8.D0*(RUFP/VC)**2+4.D0*L*(L+1))/(RUFP*VC**2)
      &           *SUME    )
 
-               FCPP(NTH,NP,NR) = FCPP(NTH,NP,NR)
-     &              +FACT2 * AMFP/AMFD*RGAMA
+               FCPP2(NTH,NP,NR,NSB,NSA) = FCPP2(NTH,NP,NR,NSB,NSA)
+     &              +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA
      &              *( -SUMF + 2.D0/VC**2*SUMG )
 
             END DO
@@ -432,16 +422,17 @@ C-----DCPP & FCPP-----------------
       END DO
 
       DO NTH=1,NTHMAX
-         DCPP(NTH,1,NR)=RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
-     &        *(PTFP0/(SQRT(2.D0)*PTFDL))*AMFD/AMFP
-     &        +DCPP(NTH,1,NR)
-         FCPP(NTH,1,NR)=0.D0
+         DCPP2(NTH,1,NR,NSB,NSA)
+     &        =RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
+     &        *(PTFP0(NSA)/(SQRT(2.D0)*PTFDL))*AMFD(NSB)/AMFP(NSA)
+     &        +DCPP2(NTH,1,NR,NSB,NSA)
+         FCPP2(NTH,1,NR,NSB,NSA)=0.D0
       END DO
 C-----DCTT & FCTH--------------------
 
       DO NP=1,NPMAX
          RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
-         RUFP = (PTFP0*PM(NP))/AMFP
+         RUFP = (PTFP0(NSA)*PM(NP))/AMFP(NSA)
          DO NTH=1,NTHMAX+1
             SUMA = 0.D0
             SUMB = 0.D0
@@ -461,15 +452,15 @@ C-----DCTT & FCTH--------------------
                SUMG = SUMG + PSI1M(NP,L) * D1PLG(NTH,L)
                SUMH = SUMH + PSI11M(NP,L) * D1PLG(NTH,L)
             END DO
-            DCTT(NTH,NP,NR) = DCTT(NTH,NP,NR)
+            DCTT2(NTH,NP,NR,NSB,NSA) = DCTT2(NTH,NP,NR,NSB,NSA)
      &           +FACT/RGAMA/RUFP
      &           *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB + SUMC/RUFP
      &           +4.D0*RGAMA**2/VC**2*SUMD 
      &           - (4.D0*RUFP/VC**4*SUME - 4.D0/RUFP/VC**2*SUMF )
      &           )
 
-            FCTH(NTH,NP,NR) = FCTH(NTH,NP,NR)
-     &           + FACT2 * AMFP/AMFD/RGAMA/RUFP
+            FCTH2(NTH,NP,NR,NSB,NSA) = FCTH2(NTH,NP,NR,NSB,NSA)
+     &           + FACT2 * AMFP(NSA)/AMFD(NSB)/RGAMA/RUFP
      &           *(- SUMG + 2.D0/VC**2*SUMH )
 
          END DO
@@ -477,12 +468,12 @@ C-----DCTT & FCTH--------------------
 
 C-----DCPT & DCTP
       DO NTH=1,NTHMAX
-         DCPT(NTH,1,NR)=0.D0
+         DCPT2(NTH,1,NR,NSB,NSA)=0.D0
       END DO
 
       DO NP=2,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
-         RUFP = (PTFP0*PG(NP))/AMFP
+         RUFP = (PTFP0(NSA)*PG(NP))/AMFP(NSA)
          DO NTH=1,NTHMAX
             SUMA = 0.D0
             SUMB = 0.D0
@@ -494,7 +485,7 @@ C-----DCPT & DCTP
                SUMC = SUMC + PSI022G(NP,L) * D1PLM(NTH,L)
                SUMD = SUMD + PSI02G(NP,L) * D1PLM(NTH,L)
             END DO
-            DCPT(NTH,NP,NR) = DCPT(NTH,NP,NR)
+            DCPT2(NTH,NP,NR,NSB,NSA) = DCPT2(NTH,NP,NR,NSB,NSA)
      &           +FACT*RGAMA/RUFP
      &           *( 4.D0/VC**2*SUMA - SUMB 
      &           - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )
@@ -503,7 +494,7 @@ C-----DCPT & DCTP
 
       DO NP=1,NPMAX
          RGAMA=SQRT(1.D0+PM(NP)**2*TMC2FP0)
-         RUFP = (PTFP0*PM(NP))/AMFP
+         RUFP = (PTFP0(NSA)*PM(NP))/AMFP(NSA)
          DO NTH=1,NTHMAX+1
             SUMA = 0.D0
             SUMB = 0.D0
@@ -515,7 +506,7 @@ C-----DCPT & DCTP
                SUMC = SUMC + PSI022M(NP,L) * D1PLG(NTH,L)
                SUMD = SUMD + PSI02M(NP,L) * D1PLG(NTH,L)
             END DO
-            DCTP(NTH,NP,NR) = DCTP(NTH,NP,NR)
+            DCTP2(NTH,NP,NR,NSB,NSA) = DCTP2(NTH,NP,NR,NSB,NSA)
      &           +FACT*RGAMA/RUFP
      &           *( 4.D0/VC**2*SUMA - SUMB 
      &           - 4.D0/(RUFP*VC**2)*SUMC + SUMD/RUFP )

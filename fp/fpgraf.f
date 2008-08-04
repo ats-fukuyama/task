@@ -9,12 +9,14 @@ C
       SUBROUTINE FPGRAF
 C
       INCLUDE 'fpcomm.inc'
+      SAVE NSA,NSB
+      DATA NSA,NSB/1,0/
 C
       DIMENSION TEMP(NTHM,NPM,NRM)
       CHARACTER KID*5,KID1*1,KID2*3
 C
     1 WRITE(6,*)'INPUT GRAPH TYPE :'
-      WRITE(6,*)'       : F/FX/FS1/FS2 1/2, X:exit,'
+      WRITE(6,*)'       : F/FX/FS1/FS2 1/2, Nnm:NSA=n, X:exit,'
       WRITE(6,*)'       : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
       WRITE(6,*)'       : PD/PDC/PDW PP/PT/TP/TT/RR, PF/PFC/FE P/T/R'
       WRITE(6,*)'       : R/T N/I/W/PC/PW/PE/T/Q/E'
@@ -37,7 +39,9 @@ C
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=F(NTH,NP,NR)-F(NTHMAX+1-NTH,NP,NR)
+               NS=NS_NSA(NSA)
+               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NS)
+     &                        -FNS(NTHMAX+1-NTH,NP,NR,NS)
             ENDDO
             ENDDO
             ENDDO
@@ -46,63 +50,77 @@ C
             DO NR=1,NRMAX
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=F(NTH,NP,NR)-F(NTHMAX+1-NTH,NP,NR)
+               NS=NS_NSA(NSA)
+               TEMP(NTH,NP,NR)=FNS(NTH,NP,NR,NS)
+     &                        -FNS(NTHMAX+1-NTH,NP,NR,NS)
             ENDDO
             ENDDO
             ENDDO
             CALL FPGRAC('FY2 ',TEMP,0)
          ELSE IF(KID2.EQ.'S11') THEN
-            CALL FPGRAP('FS11',FS1)
+            CALL FPGRAPA('FS11',FS1,NSA)
          ELSE IF(KID2.EQ.'S12') THEN
-            CALL FPGRAC('FS12',FS1,4)
+            CALL FPGRACA('FS12',FS1,4,NSA)
          ELSE IF(KID2.EQ.'S21') THEN
-            CALL FPGRAP('FS21',FS2)
+            CALL FPGRAPA('FS21',FS2,NSA)
          ELSE IF(KID2.EQ.'S22') THEN
-            CALL FPGRAC('FS22',FS2,4)
+            CALL FPGRACA('FS22',FS2,4,NSA)
          ELSE IF(KID2.EQ.'P  ') THEN
-            CALL FPGRAC('FP  ',FPP,1)
+            CALL FPGRACA('FP  ',FPP,1,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPGRAC('FT  ',FTH,2)
+            CALL FPGRACA('FT  ',FTH,2,NSA)
          ELSE IF(KID2.EQ.'R  ') THEN
-            CALL FPGRAC('FR  ',FRR,0)
+            CALL FPGRACA('FR  ',FRR,0,NSA)
          ELSE IF(KID2.EQ.'PP ') THEN
-            CALL FPGRAC('FPP ',FPP,1)
+            CALL FPGRACA('FPP ',FPP,1,NSA)
          ELSE IF(KID2.EQ.'TH ') THEN
-            CALL FPGRAC('FTH ',FTH,2)
+            CALL FPGRACA('FTH ',FTH,2,NSA)
          ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPGRAC('FRR ',FRR,0)
+            CALL FPGRACA('FRR ',FRR,0,NSA)
          ELSE IF(KID2.EQ.'CP ') THEN
-            CALL FPGRAC('FCP ',FCPP,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACA('FCP ',FCPP,1,NSA)
+            ELSE
+               CALL FPGRACAB('FCP ',FCPP2,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CT ') THEN
-            CALL FPGRAC('FCT ',FCTH,2)
+            IF(NSB.eq.0) THEN
+               CALL FPGRACA('FCT ',FCTH,2,NSA)
+            ELSE
+               CALL FPGRACAB('FCT ',FCTH2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'EP ') THEN
-            CALL FPGRAC('FEP ',FEPP,1)
+            CALL FPGRACA('FEP ',FEPP,1,NSA)
          ELSE IF(KID2.EQ.'ET ') THEN
-            CALL FPGRAC('FET ',FETH,2)
+            CALL FPGRACA('FET ',FETH,2,NSA)
          ELSE
             WRITE(6,*) 'XX UNKNOWN KID2'
          ENDIF
       ELSE IF (KID1.EQ.'R') THEN
          IF(KID2.EQ.'N  ') THEN
-            CALL FPGRAR('RN  ',RNT)
+            CALL FPGRARA('RN  ',RNT,NSA)
          ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPGRAR('RI  ',RJT)
+            CALL FPGRARA('RI  ',RJT,NSA)
          ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAR('RW  ',RWT)
+            CALL FPGRARA('RW  ',RWT,NSA)
          ELSE IF(KID2.EQ.'PC ') THEN
-            CALL FPGRAR('RPC ',RPCT)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRARA('RPC ',RPCT,NSA)
+            ELSE
+               CALL FPGRARAB('RPC ',RPCT2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'PW ') THEN
-            CALL FPGRAR('RPW ',RPWT)
+            CALL FPGRARA('RPW ',RPWT,NSA)
          ELSE IF(KID2.EQ.'PE ') THEN
-            CALL FPGRAR('RPE ',RPET)
+            CALL FPGRARA('RPE ',RPET,NSA)
          ELSE IF(KID2.EQ.'LH ') THEN
-            CALL FPGRAR('RLH ',RLHT)
+            CALL FPGRARA('RLH ',RLHT,NSA)
          ELSE IF(KID2.EQ.'FW ') THEN
-            CALL FPGRAR('RFW ',RFWT)
+            CALL FPGRARA('RFW ',RFWT,NSA)
          ELSE IF(KID2.EQ.'EC ') THEN
-            CALL FPGRAR('REC ',RECT)
+            CALL FPGRARA('REC ',RECT,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPGRAR('RT  ',RTT)
+            CALL FPGRARA('RT  ',RTT,NSA)
          ELSE IF(KID2.EQ.'Q  ') THEN
             CALL FPGRAR('RQ  ',RQT)
          ELSE IF(KID2.EQ.'E  ') THEN
@@ -112,25 +130,29 @@ C
          ENDIF
       ELSE IF (KID1.EQ.'T') THEN
          IF(KID2.EQ.'N  ') THEN
-            CALL FPGRAT2('TN  ',PNT2)
+            CALL FPGRATA('TN  ',PNT,NSA)
          ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPGRAT3('TI  ',PITT)
+            CALL FPGRATA('TI  ',PITT,NSA)
          ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAT3('TW  ',PWTT)
+            CALL FPGRATA('TW  ',PWTT,NSA)
          ELSE IF(KID2.EQ.'PC ') THEN
-            CALL FPGRAT('TPC ',PPCT)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRATA('TPC ',PPCT,NSA)
+            ELSE
+               CALL FPGRATAB('TPC ',PPCT2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'PW ') THEN
-            CALL FPGRAT('TPW ',PPWT)
+            CALL FPGRATA('TPW ',PPWT,NSA)
          ELSE IF(KID2.EQ.'PE ') THEN
-            CALL FPGRAT('TPE ',PPET)
+            CALL FPGRATA('TPE ',PPET,NSA)
          ELSE IF(KID2.EQ.'LH ') THEN
-            CALL FPGRAT('TLH ',PLHT)
+            CALL FPGRATA('TLH ',PLHT,NSA)
          ELSE IF(KID2.EQ.'FW ') THEN
-            CALL FPGRAT('TFW ',PFWT)
+            CALL FPGRATA('TFW ',PFWT,NSA)
          ELSE IF(KID2.EQ.'EC ') THEN
-            CALL FPGRAT('TEC ',PECT)
+            CALL FPGRATA('TEC ',PECT,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPGRAT2('TT  ',PTT2)
+            CALL FPGRATA('TT  ',PTT,NSA)
          ELSE IF(KID2.EQ.'Q  ') THEN
             CALL FPGRAT('TQ  ',PQT)
          ELSE IF(KID2.EQ.'E  ') THEN
@@ -140,36 +162,60 @@ C
          ENDIF
       ELSE IF (KID1.EQ.'D') THEN
          IF(KID2.EQ.'PP ') THEN
-            CALL FPGRAC('DPP ',DPP ,1)
+            CALL FPGRACA('DPP ',DPP ,1,NSA)
          ELSE IF(KID2.EQ.'PT ') THEN
-            CALL FPGRAC('DPT ',DPT ,1)
+            CALL FPGRACA('DPT ',DPT ,1,NSA)
          ELSE IF(KID2.EQ.'TP ') THEN
-            CALL FPGRAC('DTP ',DTP ,2)
+            CALL FPGRACA('DTP ',DTP ,2,NSA)
          ELSE IF(KID2.EQ.'TT ') THEN
-            CALL FPGRAC('DTT ',DTT ,2)
+            CALL FPGRACA('DTT ',DTT ,2,NSA)
          ELSE IF(KID2.EQ.'CPP') THEN
-            CALL FPGRAC('DCPP',DCPP,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACA('DCPP',DCPP,1,NSA)
+            ELSE
+               CALL FPGRACAB('DCPP',DCPP,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CPT') THEN
-            CALL FPGRAC('DCPT',DCPT,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACA('DCPT',DCPT,1,NSA)
+            ELSE
+               CALL FPGRACAB('DCPT',DCPT2,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CTP') THEN
-            CALL FPGRAC('DCTP',DCTP,2)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACA('DCTP',DCTP,2,NSA)
+            ELSE
+               CALL FPGRACAB('DCTP',DCTP2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CTT') THEN
-            CALL FPGRAC('DCTT',DCTT,2)
-         ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAC2('DW  ',DWPP,DWTT,0)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACA('DCTT',DCTT,2,NSA)
+            ELSE
+               CALL FPGRACAB('DCTT',DCTT2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'WPP') THEN
-            CALL FPGRAC('DWPP',DWPP,1)
+            CALL FPGRACA('DWPP',DWPP,1,NSA)
          ELSE IF(KID2.EQ.'WPT') THEN
-            CALL FPGRAC('DWPT',DWPT,1)
+            CALL FPGRACA('DWPT',DWPT,1,NSA)
          ELSE IF(KID2.EQ.'WTP') THEN
-            CALL FPGRAC('DWTP',DWTP,2)
+            CALL FPGRACA('DWTP',DWTP,2,NSA)
          ELSE IF(KID2.EQ.'WTT') THEN
-            CALL FPGRAC('DWTT',DWTT,2)
+            CALL FPGRACA('DWTT',DWTT,2,NSA)
          ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPGRAC('DRR ',DRR ,0)
+            CALL FPGRACA('DRR ',DRR ,0,NSA)
          ELSE
             WRITE(6,*) 'XX UNKNOWN KID2'
          ENDIF
+      ELSE IF (KID1.EQ.'N') THEN
+         READ(KID2,*) NSA1
+         IF(NSA1.GE.10) THEN
+            NSA=NSA1/10
+            NSB=MOD(NSA1,10)
+         ELSE
+            NSA=NSA1
+            NSB=0
+         ENDIF
+         WRITE(6,'(A,2I3)') '# NSA and NSB are changed to',NSA,NSB
       ELSE IF (KID1.EQ.'X') THEN
          GO TO 9000
       ELSE IF (KID1.EQ.'Q') THEN
@@ -188,57 +234,79 @@ C
 C
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'P  ') THEN
-            CALL FPGRACP('FP  ',FPP,1)
+            CALL FPGRACPA('FP  ',FPP,1,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPGRACP('FT  ',FTH,2)
+            CALL FPGRACPA('FT  ',FTH,2,NSA)
          ELSE IF(KID2.EQ.'R  ') THEN
-            CALL FPGRACP('FR  ',FRR,0)
+            CALL FPGRACPA('FR  ',FRR,0,NSA)
          ELSE IF(KID2.EQ.'PP ') THEN
-            CALL FPGRACP('FPP ',FPP,1)
+            CALL FPGRACPA('FPP ',FPP,1,NSA)
          ELSE IF(KID2.EQ.'TH ') THEN
-            CALL FPGRACP('FTH ',FTH,2)
+            CALL FPGRACPA('FTH ',FTH,2,NSA)
          ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPGRACP('FRR ',FRR,0)
+            CALL FPGRACPA('FRR ',FRR,0,NSA)
          ELSE IF(KID2.EQ.'CP ') THEN
-            CALL FPGRACP('FCP ',FCPP,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('FCP ',FCPP,1,NSA)
+            ELSE
+               CALL FPGRACPAB('FCP ',FCPP2,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CT ') THEN
-            CALL FPGRACP('FCT ',FCTH,2)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('FCT ',FCTH,2,NSA)
+            ELSE
+               CALL FPGRACPAB('FCT ',FCTH2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'EP ') THEN
-            CALL FPGRACP('FEP ',FEPP,1)
+            CALL FPGRACPA('FEP ',FEPP,1,NSA)
          ELSE IF(KID2.EQ.'ET ') THEN
-            CALL FPGRACP('FET ',FETH,2)
+            CALL FPGRACPA('FET ',FETH,2,NSA)
          ELSE
             WRITE(6,*) 'XX UNKNOWN KID3'
          ENDIF
       ELSE IF (KID1.EQ.'D') THEN
          IF(KID2.EQ.'PP ') THEN
-            CALL FPGRACP('DPP ',DPP ,1)
+            CALL FPGRACPA('DPP ',DPP ,1,NSA)
          ELSE IF(KID2.EQ.'PT ') THEN
-            CALL FPGRACP('DPT ',DPT ,1)
+            CALL FPGRACPA('DPT ',DPT ,1,NSA)
          ELSE IF(KID2.EQ.'TP ') THEN
-            CALL FPGRACP('DTP ',DTP ,2)
+            CALL FPGRACPA('DTP ',DTP ,2,NSA)
          ELSE IF(KID2.EQ.'TT ') THEN
-            CALL FPGRACP('DTT ',DTT ,2)
+            CALL FPGRACPA('DTT ',DTT ,2,NSA)
          ELSE IF(KID2.EQ.'CPP') THEN
-            CALL FPGRACP('DCPP',DCPP,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('DCPP',DCPP,1,NSA)
+            ELSE
+               CALL FPGRACPAB('DCPP',DCPP2,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CPT') THEN
-            CALL FPGRACP('DCPT',DCPT,1)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('DCPT',DCPT,1,NSA)
+            ELSE
+               CALL FPGRACPAB('DCPT',DCPT2,1,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CTP') THEN
-            CALL FPGRACP('DCTP',DCTP,2)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('DCTP',DCTP,2,NSA)
+            ELSE
+               CALL FPGRACPAB('DCTP',DCTP2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'CTT') THEN
-            CALL FPGRACP('DCTT',DCTT,2)
-         ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRAC2('DW  ',DWPP,DWTT,0)
+            IF(NSB.EQ.0) THEN
+               CALL FPGRACPA('DCTT',DCTT,2,NSA)
+            ELSE
+               CALL FPGRACPAB('DCTT',DCTT2,2,NSA,NSB)
+            ENDIF
          ELSE IF(KID2.EQ.'WPP') THEN
-            CALL FPGRACP('DWPP',DWPP,1)
+            CALL FPGRACPA('DWPP',DWPP,1,NSA)
          ELSE IF(KID2.EQ.'WPT') THEN
-            CALL FPGRACP('DWPT',DWPT,1)
+            CALL FPGRACPA('DWPT',DWPT,1,NSA)
          ELSE IF(KID2.EQ.'WTP') THEN
-            CALL FPGRACP('DWTP',DWTP,2)
+            CALL FPGRACPA('DWTP',DWTP,2,NSA)
          ELSE IF(KID2.EQ.'WTT') THEN
-            CALL FPGRACP('DWTT',DWTT,2)
+            CALL FPGRACPA('DWTT',DWTT,2,NSA)
          ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPGRACP('DRR ',DRR ,0)
+            CALL FPGRACPA('DRR ',DRR ,0,NSA)
          ELSE
             WRITE(6,*) 'XX UNKNOWN KID3'
          ENDIF
@@ -257,6 +325,32 @@ C
 C                        R-GRAPHIC
 C
 C ***********************************************************
+C
+      SUBROUTINE FPGRARA(STRING,FRA,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FRA(NRM,NTG1M,NSAM),TEMP(NRM,NTG1M)
+      CHARACTER STRING*4
+      DO NT1=1,NTG1
+         DO NR=1,NRMAX
+            TEMP(NR,NT1)=FRA(NR,NT1,NSA)
+         ENDDO
+      ENDDO
+      CALL FPGRAR(STRING,TEMP)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRARAB(STRING,FRA,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FRAB(NRM,NTG1M,NSBM,NSAM),TEMP(NRM,NTG1M)
+      CHARACTER STRING*4
+      DO NT1=1,NTG1
+         DO NR=1,NRMAX
+            TEMP(NR,NT1)=FRAB(NR,NT1,NSB,NSA)
+         ENDDO
+      ENDDO
+      CALL FPGRAR(STRING,TEMP)
+      RETURN
+      END
 C
       SUBROUTINE FPGRAR(STRING,FR)
 C
@@ -313,6 +407,32 @@ C                        T-GRAPHIC
 C
 C ***********************************************************
 C
+      SUBROUTINE FPGRATA(STRING,FTA,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FTA(NRM,NTG2M,NSAM),TEMP(NRM,NTG2M)
+      CHARACTER STRING*4
+      DO NT2=1,NTG2
+         DO NR=1,NRMAX
+            TEMP(NR,NT2)=FTA(NR,NT2,NSA)
+         ENDDO
+      ENDDO
+      CALL FPGRAT(STRING,TEMP)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRATAB(STRING,FTA,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FTAB(NRM,NTG2M,NSBM,NSAM),TEMP(NRM,NTG2M)
+      CHARACTER STRING*4
+      DO NT2=1,NTG2
+         DO NR=1,NRMAX
+            TEMP(NR,NT2)=FTAB(NR,NT2,NSB,NSA)
+         ENDDO
+      ENDDO
+      CALL FPGRAT(STRING,TEMP)
+      RETURN
+      END
+C
       SUBROUTINE FPGRAT(STRING,FT)
 C
       INCLUDE 'fpcomm.inc'
@@ -348,87 +468,39 @@ C
 C
 C ***********************************************************
 C
-C                        T-GRAPHIC-2
-C
-C ***********************************************************
-C
-      SUBROUTINE FPGRAT2(STRING,FT)
-C
-      INCLUDE 'fpcomm.inc'
-      DIMENSION  FT(NTG2M,NSMAX),GX(NTG2M),GY(NTG2M)
-      CHARACTER STRING*4
-C
-      CALL PAGES
-      CALL SETCHS(0.3,0.0)
-      CALL SETFNT(32)
-C
-      DO 10 N=1,NTG3
-        GX(N)=GUCLIP(PTG(N))
-        GY(N)=GUCLIP(FT(N,NSFP))
-   10 CONTINUE
-      CALL GMNMX1(GY,1,NTG3,1,GYMIN,GYMAX)
-      IF(GYMIN.GT.0.) GYMIN=0.0
-      IF(GYMAX.LT.0.) GYMAX=0.0
-      CALL GQSCAL(GYMIN,GYMAX,GYMIN1,GYMAX1,GYSTEP)
-      CALL GQSCAL(0.,GX(NTG3),GXMIN,GXMAX,GXSTEP)
-      CALL GDEFIN(3.,23.,2.,17.,0.,GX(NTG3),GYMIN1,GYMAX1)
-      CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
-      CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
-      CALL GPLOTP(GX,GY,1,NTG3,1,0,0,0)
-      CALL MOVE(1.0,17.5)
-      CALL TEXT(STRING,4)
-      CALL MOVE(24.0,1.0)
-      CALL TEXT('t',1)
-      CALL PAGEE
-      RETURN
-      END
-C
-C ***********************************************************
-C
-C                        T-GRAPHIC-3
-C
-C ***********************************************************
-C
-      SUBROUTINE FPGRAT3(STRING,FT)
-C
-      INCLUDE 'fpcomm.inc'
-      DIMENSION  FT(NTG2M),GX(NTG2M),GY(NTG2M)
-      CHARACTER STRING*4
-C
-      CALL PAGES
-      CALL SETCHS(0.3,0.0)
-      CALL SETFNT(32)
-C
-      DO 10 N=1,NTG3
-        GX(N)=GUCLIP(PTG(N))
-        GY(N)=GUCLIP(FT(N))
-   10 CONTINUE
-      CALL GMNMX1(GY,1,NTG3,1,GYMIN,GYMAX)
-      IF(GYMIN.GT.0.) GYMIN=0.0
-      IF(GYMAX.LT.0.) GYMAX=0.0
-      CALL GQSCAL(GYMIN,GYMAX,GYMIN1,GYMAX1,GYSTEP)
-      CALL GQSCAL(0.,GX(NTG3),GXMIN,GXMAX,GXSTEP)
-      CALL GDEFIN(3.,23.,2.,17.,0.,GX(NTG3),GYMIN1,GYMAX1)
-      CALL GSCALE(0.,GXSTEP,0.,GYSTEP,1.0,0)
-      CALL GFRAME
-      CALL GVALUE(0.,GXSTEP*2,0.,0.,NGULEN(2*GXSTEP))
-      CALL GVALUE(0.,0.,0.,GYSTEP*2,NGULEN(2*GYSTEP))
-      CALL GPLOTP(GX,GY,1,NTG3,1,0,0,0)
-      CALL MOVE(1.0,17.5)
-      CALL TEXT(STRING,4)
-      CALL MOVE(24.0,1.0)
-      CALL TEXT('t',1)
-      CALL PAGEE
-      RETURN
-      END
-C
-C ***********************************************************
-C
 C                        P-GRAPHIC
 C
 C ***********************************************************
+C
+      SUBROUTINE FPGRAPA(STRING,FGA,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGA(NTHM,NPM,NRM,NSAM),TEMP(NTHM,NPM,NRM)
+      CHARACTER STRING*4
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
+            ENDDO
+         ENDDO
+      ENDDO
+      CALL FPGRAP(STRING,TEMP)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRAPAB(STRING,FGAB,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGAB(NTHM,NPM,NRM,NSBM,NSAM),TEMP(NTHM,NPM,NRM)
+      CHARACTER STRING*4
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               TEMP(NTH,NP,NR)=FGAB(NTH,NP,NR,NSB,NSA)
+            ENDDO
+         ENDDO
+      ENDDO
+      CALL FPGRAP(STRING,TEMP)
+      RETURN
+      END
 C
       SUBROUTINE FPGRAP(STRING,FG)
 C
@@ -491,6 +563,89 @@ C
 C                        C-GRAPHIC
 C
 C ***********************************************************
+C
+      SUBROUTINE FPGRACA(STRING,FGA,MODE,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGA(*),TEMP(NMM)
+      CHARACTER STRING*4
+C
+      IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX+1
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX+1
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ENDIF
+      CALL FPGRAC(STRING,TEMP,MODE)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRACAB(STRING,FGAB,MODE,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGAB(*),TEMP(NMM)
+      CHARACTER STRING*4
+C
+      IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX+1
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX+1
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ENDIF
+      CALL FPGRAC(STRING,TEMP,MODE)
+      RETURN
+      END
 C
       SUBROUTINE FPGRAC(STRING,FG,MODE)
 C
@@ -640,6 +795,89 @@ C                        C-GRAPHIC muliplied p
 C
 C ***********************************************************
 C
+      SUBROUTINE FPGRACPA(STRING,FGA,MODE,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGA(*),TEMP(NMM)
+      CHARACTER STRING*4
+C
+      IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX+1
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX+1
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*(NSA-1)+NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGA(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ENDIF
+      CALL FPGRACP(STRING,TEMP,MODE)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRACPAB(STRING,FGAB,MODE,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGAB(*),TEMP(NMM)
+      CHARACTER STRING*4
+C
+      IF(MODE.EQ.0.OR.MODE.EQ.4) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX
+         DO NP=1,NPMAX+1
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+         DO NTH=1,NTHMAX+1
+         DO NP=1,NPMAX
+            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            NM1=NPM*NTHM*NRM*NSBM*(NSA-1)+NPM*NTHM*NRM*(NSB-1)
+     &         +NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
+            TEMP(NM)=FGAB(NM1)
+         ENDDO
+         ENDDO
+         ENDDO
+      ENDIF
+      CALL FPGRACP(STRING,TEMP,MODE)
+      RETURN
+      END
+C
       SUBROUTINE FPGRACP(STRING,FG,MODE)
 C
       INCLUDE 'fpcomm.inc'
@@ -752,162 +990,6 @@ C
          DO 100 I=1,NGLINE
            GLIN=GFMAX-0.020*(I-1)**2
            CALL SETLIN(0,0,7-MOD(I-1,5))
-           CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                 GLIN,GFSTEP*100,1,0,KA)
-  100    CONTINUE
-      ENDIF
-C
-      CALL SETLIN(0,2,7)
-      CALL MOVE(24.0,1.0)
-      CALL TEXT('PPARA',5)
-      CALL MOVE(1.0,13.5)
-      CALL TEXT('PPERP',5)
-C
-      CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING,4)
-      CALL MOVE(5.0,12.5)
-      CALL TEXT('FMIN =',6)
-      CALL NUMBR(GFMIN,'(1PE12.4)',12)
-      CALL MOVE(11.0,12.5)
-      CALL TEXT('FMAX =',6)
-      CALL NUMBR(GFMAX,'(1PE12.4)',12)
-      IF(LMODE.EQ.0) THEN
-         CALL MOVE(17.0,12.5)
-         CALL TEXT('STEP =',6)
-         CALL NUMBR(0.5*GFSTEP,'(1PE12.4)',12)
-      ENDIF
-      CALL PAGEE
-      IF(NRMAX.GT.1) GOTO 1
-C
- 9000 RETURN
-      END
-C
-C ***********************************************************
-C
-C                        C-GRAPHIC
-C
-C ***********************************************************
-C
-      SUBROUTINE FPGRAC2(STRING,FG,FH,MODE)
-C
-      INCLUDE 'fpcomm.inc'
-C
-      DIMENSION FG(*),FH(*)
-      DIMENSION GF(NPM,NTHM),GP(NPM),GTH(NTHM),KA(8,NPM,NTHM)
-      CHARACTER STRING*4
-C
-    1 CONTINUE
-      IF(NRMAX.GT.1) THEN
-         IF(MODE.EQ.0) THEN
-            NRG=NRMAX+1
-         ELSE
-            NRG=NRMAX
-         ENDIF
-         WRITE(6,*) '# INPUT NR (1..',NRG,') :'
-         READ(5,*,ERR=1,END=9000) NR
-         IF(NR.LT.1) GOTO 9000
-         IF(NR.GT.NRG) GOTO 1
-      ELSE
-         NR=1
-      END IF
-C
-      LMODE=MODE/4
-C
-      IF(MOD(MODE,2).EQ.0) THEN
-         DO 10 NP=1,NPMAX
-            GP(NP)=GUCLIP(PM(NP))
-   10    CONTINUE
-         NPG=NPMAX
-      ELSE
-         DO 20 NP=1,NPMAX+1
-            GP(NP)=GUCLIP(PG(NP))
-   20    CONTINUE
-         NPG=NPMAX+1
-      ENDIF
-C
-      IF(MOD(MODE/2,2).EQ.0) THEN
-         DO 30 NTH=1,NTHMAX
-            GTH(NTH)=GUCLIP(THM(NTH))
-   30    CONTINUE
-         NTHG=NTHMAX
-      ELSE
-         DO 40 NTH=1,NTHMAX+1
-            GTH(NTH)=GUCLIP(THG(NTH))
-   40    CONTINUE
-         NTHG=NTHMAX+1
-      ENDIF
-C
-      IF(MODE.EQ.0) THEN
-         DO 50 NTH=1,NTHMAX
-         DO 50 NP=1,NPMAX
-            NMP1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            NMP2=NPM*NTHM*(NR-1)+NTHM* NP   +NTH
-            FGA=0.5D0*(FG(NMP1)+FG(NMP2))
-            NMT1=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            NMT2=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH+1
-            FHA=0.5D0*(FH(NMT1)+FH(NMT2))
-            GF(NP,NTH)=GUCLIP(SQRT(FGA**2+FHA**2))
-   50    CONTINUE
-      ELSEIF(MODE.EQ.1) THEN
-         DO 60 NTH=1,NTHMAX
-         DO 60 NP=1,NPMAX+1
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
-   60    CONTINUE
-      ELSEIF(MODE.EQ.2) THEN
-         DO 70 NTH=1,NTHMAX+1
-         DO 70 NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            GF(NP,NTH)=GUCLIP(SQRT(FG(NM)**2+FH(NM)**2))
-   70    CONTINUE
-      ELSEIF(MODE.EQ.4) THEN
-         DO 80 NTH=1,NTHMAX
-         DO 80 NP=1,NPMAX
-            NM=NPM*NTHM*(NR-1)+NTHM*(NP-1)+NTH
-            IF(FG(NM).LT.1.D-70) THEN
-               GF(NP,NTH)=-70.0
-            ELSE
-               GF(NP,NTH)=GUCLIP(LOG10(ABS(SQRT(FG(NM)**2+FH(NM)**2))))
-            ENDIF
-   80    CONTINUE
-      ENDIF         
-C
-      GPMAX=GUCLIP(PMAX)
-C
-      CALL PAGES
-      CALL SETCHS(.3,0.)
-      CALL SETFNT(32)
-C
-      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
-      CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
-      CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
-C
-      CALL GDEFIN(3.,23.,2.,12.,-GPMAX,GPMAX,0.,GPMAX)
-      CALL GFRAME
-      CALL GSCALE(0.,GPSTEP,0.,GPSTEP,1.0,0)
-      CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
-CXX
-      GFSTEP=2000.0
-CXX
-      IF(LMODE.EQ.0) THEN
-         IF(GFMIN*GFMAX.GE.0.0) THEN
-            IF(GFMIN.GE.0.0) THEN
-               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                     GFMIN1,0.5*GFSTEP,30,0,KA)
-            ELSE
-               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                     GFMIN1,0.5*GFSTEP,30,2,KA)
-            ENDIF
-         ELSE
-            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                   0.25*GFSTEP, 0.5*GFSTEP,20,0,KA)
-            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                  -0.25*GFSTEP,-0.5*GFSTEP,20,2,KA)
-         ENDIF
-      ELSE
-         DO 100 I=1,NGLINE
-           GLIN=GFMAX-0.020*(I-1)**2
-           CALL SETLIN(0,2,7-MOD(I-1,5))
            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                 GLIN,GFSTEP*100,1,0,KA)
   100    CONTINUE

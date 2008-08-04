@@ -13,8 +13,7 @@ C     ZEFF  : effective ion charge
 C     NSFP  : particle species of distribution
 C
       ZEFF  = 1.D0
-      NSFP  = 1
-      NSBM = 0
+      NSBEAM = 0
       NSFPMI = 1
       NSFPMA = 2
 C
@@ -235,7 +234,7 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
      &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
-     &              ZEFF,NSFP,DRR0,E0,R1,DELR1,RMIN,RMAX,
+     &              ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,
      &              DEC,PEC1,PEC2,RFEC,DELYEC,
      &              DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,
      &              PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,
@@ -267,7 +266,7 @@ C
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'
       WRITE(6,*) '      MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'
-      WRITE(6,*) '      ZEFF,NSFP,DRR0,E0,R1,DELR1,RMIN,RMAX,'
+      WRITE(6,*) '      ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,'
       WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,'
@@ -366,7 +365,7 @@ C
      &             'EPSE  ',EPSE  ,'LMAXE ',LMAXE
 
       WRITE(6,604) 'LLMAX ',LLMAX ,'NGLINE',NGLINE,
-     &             'NSFP  ',NSFP  ,'IDBGFP',IDBGFP
+     &             'IDBGFP',IDBGFP
 C
       WRITE(6,604) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,
      &             'NRMAX ',NRMAX ,'NAVMAX',NAVMAX

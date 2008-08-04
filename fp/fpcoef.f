@@ -6,47 +6,47 @@ C                      CALCULATION OF D AND F
 C
 C ************************************************************
 C
-      SUBROUTINE FPCOEF
+      SUBROUTINE FPCOEF(NSA)
 C
       INCLUDE 'fpcomm.inc'
 C
 C     ----- Parallel electric field accleration term -----
 C
-      CALL FPCALE
+      CALL FPCALE(NSA)
 C
 C     ----- Quasi-linear wave-particle interaction term -----
 C
       IF(MODELW.EQ.0) THEN
-         CALL FPCALW
+         CALL FPCALW(NSA)
       ELSEIF(MODELW.EQ.1) THEN
-         CALL FPCALWR
+         CALL FPCALWR(NSA)
       ELSEIF(MODELW.EQ.2) THEN
-         CALL FPCALWR
+         CALL FPCALWR(NSA)
       ELSEIF(MODELW.EQ.3) THEN
-         CALL FPCALWM
+         CALL FPCALWM(NSA)
       ELSEIF(MODELW.EQ.4) THEN
-         CALL FPCALWM
+         CALL FPCALWM(NSA)
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW
       ENDIF
 C
 C     ----- Collisional slowing down and diffusion term -----
 C
-      CALL FPCALC
+      CALL FPCALC(NSA)
 C
 C     ----- Sum up velocity diffusion terms -----
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
-         DPP(NTH,NP,NR)=DCPP(NTH,NP,NR)+DWPP(NTH,NP,NR)
-         DPT(NTH,NP,NR)=DCPT(NTH,NP,NR)+DWPT(NTH,NP,NR)
-         FPP(NTH,NP,NR)=FEPP(NTH,NP,NR)+FCPP(NTH,NP,NR)
-c         if(DWPP(NTH,NP,1).ne.0.D0.and.DWPP(NTH,NP,1).ge.DCPP(NTH,NP,1))
-c     &        write(*,*) NP,NTH, DCPP(NTH,NP,1), DWPP(NTH,NP,NR)
-c         if(DCPP(NTH,NP,1).le.0.D0)
-c     &write(*,1543)NP,NTH,DCPP2(NTH,NP,1,1),
-c     &        DCPP2(NTH,NP,1,2),DCPP2(NTH,NP,1,3),DCPP(NTH,NP,1)
+         DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
+         DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
+         FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+c         if(DWPP(NTH,NP,1,NSA).ne.0.D0.and.DWPP(NTH,NP,1,NSA).ge.DCPP(NTH,NP,1,NSA))
+c     &        write(*,*) NP,NTH, DCPP(NTH,NP,1,NSA), DWPP(NTH,NP,NR,NSA)
+c         if(DCPP(NTH,NP,1,NSA).le.0.D0)
+c     &write(*,1543)NP,NTH,DCPP2(NTH,NP,1,1,NSA),
+c     &        DCPP2(NTH,NP,1,2,NSA),DCPP2(NTH,NP,1,3,NSA),DCPP(NTH,NP,1,NSA)
       ENDDO
       ENDDO
       ENDDO
@@ -55,9 +55,9 @@ C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX+1
-         DTP(NTH,NP,NR)=DCTP(NTH,NP,NR)+DWTP(NTH,NP,NR)
-         DTT(NTH,NP,NR)=DCTT(NTH,NP,NR)+DWTT(NTH,NP,NR)
-         FTH(NTH,NP,NR)=FETH(NTH,NP,NR)+FCTH(NTH,NP,NR)
+         DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
+         DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
+         FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
       ENDDO
       ENDDO
       ENDDO
@@ -71,7 +71,7 @@ C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-         SP(NTH,NP,NR)=0.D0
+         SP(NTH,NP,NR,NSA)=0.D0
       ENDDO
       ENDDO
       ENDDO
@@ -82,28 +82,28 @@ C     ****************************
 C
       DO NR=1,NRMAX
       DO NTH=1,NTHMAX
-C         DPP(NTH,NPMAX,NR)=0.5D0*DPP(NTH,NPMAX,NR)
-C         DPT(NTH,NPMAX,NR)=0.5D0*DPT(NTH,NPMAX,NR)
-         DPP(NTH,NPMAX+1,NR)=0.D0
-         DPT(NTH,NPMAX+1,NR)=0.D0
-         FPMAX=FPP(NTH,NPMAX+1,NR)
-         FPP(NTH,NPMAX+1,NR)=MAX(FPMAX,0.D0)
+C         DPP(NTH,NPMAX,NR,NSA)=0.5D0*DPP(NTH,NPMAX,NR,NSA)
+C         DPT(NTH,NPMAX,NR,NSA)=0.5D0*DPT(NTH,NPMAX,NR,NSA)
+         DPP(NTH,NPMAX+1,NR,NSA)=0.D0
+         DPT(NTH,NPMAX+1,NR,NSA)=0.D0
+         FPMAX=FPP(NTH,NPMAX+1,NR,NSA)
+         FPP(NTH,NPMAX+1,NR,NSA)=MAX(FPMAX,0.D0)
       ENDDO
       ENDDO
 C
 C      DO NR=1,NRMAX
 C      DO NTH=1,NTHMAX+1
-C         DTP(NTH,NPMAX,NR)=0.D0
-C         DTT(NTH,NPMAX,NR)=0.D0
-C         FTH(NTH,NPMAX,NR)=0.D0
+C         DTP(NTH,NPMAX,NR,NSA)=0.D0
+C         DTT(NTH,NPMAX,NR,NSA)=0.D0
+C         FTH(NTH,NPMAX,NR,NSA)=0.D0
 C       ENDDO
 C       ENDDO
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
-         WEIGHP(NTH,NP,NR)=FPWEGH(-DELP*FPP(NTH,NP,NR),
-     &                             DPP(NTH,NP,NR))
+         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP*FPP(NTH,NP,NR,NSA),
+     &                             DPP(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
@@ -111,8 +111,9 @@ C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX+1
-         WEIGHT(NTH,NP,NR)=FPWEGH(-DELTH*PM(NP)*FTH(NTH,NP,NR),
-     &                             DTT(NTH,NP,NR))
+         WEIGHT(NTH,NP,NR,NSA)
+     &           =FPWEGH(-DELTH*PM(NP)*FTH(NTH,NP,NR,NSA),
+     &                    DTT(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
@@ -120,8 +121,8 @@ C
       DO NR=1,NRMAX+1
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-         WEIGHR(NTH,NP,NR)=FPWEGH(-DELR*FRR(NTH,NP,NR),
-     &                             DRR(NTH,NP,NR))
+         WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FRR(NTH,NP,NR,NSA),
+     &                             DRR(NTH,NP,NR,NSA))
       ENDDO
       ENDDO
       ENDDO
@@ -135,20 +136,20 @@ C                 CALCULATION OF DRR AND VR
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALR
+      SUBROUTINE FPCALR(NSA)
 C
       INCLUDE 'fpcomm.inc'
 C
       DO 10 NR=1,NRMAX+1
          RHON=RG(NR)
          CALL PLPROF(RHON)
-         RTFPL=RTPR(NSFP)/RTFP0
+         RTFPL=RTPR(NS_NSA(NSA))/RTFP0(NSA)
          FACTR=-2.D0*RG(NR)/RA
       DO 10 NP=1,NPMAX
-          FACTP=1.D0/SQRT(1.D0+PG(NP)**2/RTFPL)
+         FACTP=1.D0/SQRT(1.D0+PG(NP)**2/RTFPL)
       DO 10 NTH=1,NTHMAX
-         DRR(NTH,NP,NR)=DRR0*FACTP
-         FRR(NTH,NP,NR)=DRR0*FACTP*FACTR
+         DRR(NTH,NP,NR,NSA)=DRR0*FACTP
+         FRR(NTH,NP,NR,NSA)=DRR0*FACTP*FACTR
    10 CONTINUE
 C
       IF (MODELA.EQ.1) THEN
@@ -156,24 +157,24 @@ C
          DO 100 NTH=1,NTHMAX
             RL=0.5D0*(RLAMDA(NTH,NR-1)+RLAMDA(NTH,NR))
          DO 100 NP=1,NPMAX
-            DRR(NTH,NP,NR)=RL*DRR(NTH,NP,NR)
-            FRR(NTH,NP,NR)=RL*FRR(NTH,NP,NR)
+            DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
+            FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
   100    CONTINUE
 C
          NR=1
          DO 110 NTH=1,NTHMAX
             RL=0.5D0*(1.D0+RLAMDA(NTH,NR))
          DO 110 NP=1,NPMAX
-            DRR(NTH,NP,NR)=RL*DRR(NTH,NP,NR)
-            FRR(NTH,NP,NR)=RL*FRR(NTH,NP,NR)
+            DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
+            FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
   110    CONTINUE
 C
          NR=NRMAX+1
          DO 120 NTH=1,NTHMAX
             RL=RLAMDA(NTH,NR-1)
          DO 120 NP=1,NPMAX
-            DRR(NTH,NP,NR)=RL*DRR(NTH,NP,NR)
-            FRR(NTH,NP,NR)=RL*FRR(NTH,NP,NR)
+            DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
+            FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
   120    CONTINUE
       ENDIF
 C
@@ -186,14 +187,14 @@ C                    CALCULATION OF FE
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALE
+      SUBROUTINE FPCALE(NSA)
 C
       INCLUDE 'fpcomm.inc'
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX+1
       DO NTH=1,NTHMAX
-         FEPP(NTH,NP,NR)= AEFP*E2(NR)/PTFP0*COSM(NTH)
+         FEPP(NTH,NP,NR,NSA)= AEFP(NSA)*E2(NR)/PTFP0(NSA)*COSM(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -201,7 +202,7 @@ C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX+1
-         FETH(NTH,NP,NR)=-AEFP*E2(NR)/PTFP0*SING(NTH)
+         FETH(NTH,NP,NR,NSA)=-AEFP(NSA)*E2(NR)/PTFP0(NSA)*SING(NTH)
       ENDDO
       ENDDO
       ENDDO
@@ -213,37 +214,37 @@ C         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
          FACT=1.D0
          DO NP=1,NPMAX+1
          DO NTH=1,ITL(NR)-1
-            FEPP(NTH,NP,NR)= FACT*FEPP(NTH,NP,NR)
+            FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
 C
          DO NP=1,NPMAX+1
          DO NTH=ITL(NR),ITU(NR)
-            FEPP(NTH,NP,NR)= 0.D0
+            FEPP(NTH,NP,NR,NSA)= 0.D0
          ENDDO
          ENDDO
 C
          DO NP=1,NPMAX+1
          DO NTH=ITU(NR)+1,NTHMAX
-            FEPP(NTH,NP,NR)= FACT*FEPP(NTH,NP,NR)
+            FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
 C
          DO NP=1,NPMAX
          DO NTH=1,ITL(NR)
-            FETH(NTH,NP,NR)=FACT*FETH(NTH,NP,NR)
+            FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
 C
          DO NP=1,NPMAX
          DO NTH=ITL(NR)+1,ITU(NR)
-            FETH(NTH,NP,NR)= 0.D0
+            FETH(NTH,NP,NR,NSA)= 0.D0
          ENDDO
          ENDDO
 C
          DO NP=1,NPMAX
          DO NTH=ITU(NR)+1,NTHMAX+1
-            FETH(NTH,NP,NR)=FACT*FETH(NTH,NP,NR)
+            FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
 C

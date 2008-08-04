@@ -22,9 +22,8 @@ C
          TIMEFP=0.D0
          NTG1=0
          NTG2=0
-         CALL FPMESH(IERR)
+         CALL FPPREP(IERR)
          IF(IERR.NE.0) GOTO 1
-         CALL FPFINI
          CALL FPSAVI
          CALL FPLOOP
       ELSEIF (KID.EQ.'C') THEN
@@ -44,15 +43,20 @@ C
          CALL FPFOUT
       ELSEIF (KID.EQ.'W') THEN
          CALL FPSGLB
-         CALL FPWRIT
+         CALL FPWRT2
+         CALL FPSPRF
+         CALL FPWRT1
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
-         CALL FPMESH(IERR)
+         CALL FPPREP(IERR)
          IF(IERR.NE.0) GOTO 1
-         CALL FPFINI
-         CALL FPCOEF
+         DO NSA=1,NSAMAX
+            CALL FPCOEF(NSA)
+         ENDDO
          CALL FPSGLB
-         CALL FPWRIT
+         CALL FPWRT2
+         CALL FPSPRF
+         CALL FPWRT1
       ELSEIF (KID.EQ.'I') THEN
          NTG1=0
          NTG2=0

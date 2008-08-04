@@ -3,7 +3,192 @@ C
 C *****************************
 C     PREPARATION OF FPLOOP
 C *****************************
+
+      SUBROUTINE FPPREP(IERR)
+
+      INCLUDE 'fpcomm.inc'
+
+      EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
+
+C     ----- NS_NSA and NS_NSB array -----
+
+      NSAMAX=NSFPMA-NSFPMI+1
+      DO NSA=1,NSAMAX
+         NS_NSA(NSA)=NSFPMI+NSA-1
+      ENDDO
+      NSBMAX=NSMAX
+      DO NSB=1,NSBMAX
+         NS_NSB(NSB)=NSB
+      ENDDO
+      DO NSA=1,NSAMAX
+         WRITE(6,'(A,2I3)') 'NSA,NS=',NSA,NS_NSA(NSA)
+      ENDDO
+      DO NSB=1,NSBMAX
+         WRITE(6,'(A,2I3)') 'NSB,NS=',NSB,NS_NSB(NSB)
+      ENDDO
+
+      CALL FPMESH(IERR)
+
+C     ----- Initialize velocity distribution function of all species -----
+
+      DO NS=1,NSMAX
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               FL=FPMXWL(PM(NP),NR,NS)
+               DO NTH=1,NTHMAX
+                  FNS(NTH,NP,NR,NS)=FL
+               END DO
+            ENDDO
+         END DO
+      END DO
+
+C     ----- set boundary distribution functions -----
+
+      DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         DO NP=1,NPMAX
+            FL=FPMXWL(PM(NP),0,NS)
+            DO NTH=1,NTHMAX
+               FS1(NTH,NP,NSA)=FL
+            ENDDO
+         ENDDO
 C
+         DO NP=1,NPMAX
+            FL=FPMXWL(PM(NP),NRMAX+1,NS)
+            DO NTH=1,NTHMAX
+               FS2(NTH,NP,NSA)=FL
+            ENDDO
+         ENDDO
+      ENDDO
+
+C     ----- set parameters for target species -----
+
+      DO NSA=1,NSAMAX
+         NS=NS_NSA(NSA)
+         AEFP(NSA)=PZ(NS)*AEE
+         AMFP(NSA)=PA(NS)*AMP
+         RNFP0(NSA)=PN(NS)
+         RNFPS(NSA)=PNS(NS)
+         RTFP0(NSA)=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+         RTFPS(NSA)=PTS(NS)
+C
+         PTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
+         VTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE/AMFP(NSA))
+      ENDDO
+C
+C     ----- set profile data -----
+C
+      DO NR=1,NRMAX
+C
+         RHON=RM(NR)
+         CALL PLPROF(RHON)
+C
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            RNFP(NR,NSA)=RN(NS)
+            RTFP(NR,NSA)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
+            VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
+         ENDDO
+
+         RNE=RN(1)
+         RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
+
+         DO NSB=1,NSBMAX
+            NS=NS_NSB(NSB)
+            AEFD(NSB)=PZ(NS)*AEE
+            AMFD(NSB)=PA(NS)*AMP
+            RNFD(NR,NSB)=RN(NS)
+            RTFD(NR,NSB)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
+            VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
+         ENDDO
+
+         DO NSA=1,NSAMAX
+            NSFP=NS_NSA(NSA)
+            DO NSB=1,NSBMAX
+               NS=NS_NSB(NSB)
+
+               IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
+                  RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
+               ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
+                  RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
+               ELSE
+                  RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
+               ENDIF
+               FACT=AEFP(NSA)**2*AEFD(NSB)**2*RLNRL/(4.D0*PI*EPS0**2)
+               RNUD(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20
+     &                 /(SQRT(2.D0)*VTFD(NR,NSB)*PTFP0(NSA)**2)
+               RNUF(NR,NSB,NSA)=FACT*RNFP0(NSA)*1.D20
+     &                 /(2*AMFD(NSB)*VTFD(NR,NSB)**2*PTFP0(NSA))
+            ENDDO
+         ENDDO
+      ENDDO
+c     ----- normalize f with respect to n -----
+
+      NTEST=0
+      IF(NTEST.eq.1)THEN
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            NR=1
+            RSUM=0.D0
+            DO  NP=1,NPMAX
+               DO  NTH=1,NTHMAX
+                  RSUM11=RSUM11
+     &                 +VOL(NTH,NP)*RLAMDA(NTH,NR)*FNS(NTH,NP,NR,NS)
+               END DO
+            END DO
+
+            WRITE(*,'(A,I5,1P2E12.4)') 'NS,RNFP,RSUM=',
+     &                  NS,RNFP(1,NSA),RSUM11
+
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     FNS(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)
+     &                    *RNFP(NR,NSA)/RSUM11
+                  END DO
+               END DO
+            END DO
+         END DO
+      END IF
+
+C
+C     ----- set relativistic parameters -----
+C
+      IF (MODELR.EQ.0) THEN
+C
+         DO NSA=1,NSAMAX
+            THETA0(NSA)=0.D0
+            DO NR=1,NRMAX
+               THETA(NR,NSA)=0.D0
+               DKBSR(NR,NSA)=0.D0
+            ENDDO
+         ENDDO
+C
+      ELSE
+C
+         DO NSA=1,NSAMAX
+            THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
+            DO NR=1,NRMAX
+               THETA(NR,NSA)=THETA0(NSA)*RTFP(NR,NSA)/RTFP0(NSA)
+               Z=1.D0/THETA(NR,NSA)
+               IF(Z.LE.100.D0) THEN
+                  DKBSR(NR,NSA)=BESKN(2,Z)
+               ELSE
+                  DKBSR(NR,NSA)=SQRT(PI/(2.D0*Z))*EXP(-Z)
+     &             *( 1.D0 + 15.D0/(8.D0*Z) + 105.D0/(128.D0*Z**2) )
+               ENDIF
+            ENDDO
+         ENDDO
+      ENDIF
+
+      IERR=0
+      RETURN
+      END
+
+C     ***** create mesh quantities *****
+
       SUBROUTINE FPMESH(IERR)
 C
       INCLUDE 'fpcomm.inc'
@@ -59,8 +244,6 @@ C
          CALL FPWMREAD(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
-
-      CALL FPPREP(IERR)
 
 C
 C     ----- set poloidal magneticl field -----
@@ -212,194 +395,7 @@ C
          ENDDO
       END IF
 
-C
-C     ----- set boundary distribution functions -----
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),0,NSFP)
-         DO NTH=1,NTHMAX
-            FS1(NTH,NP)=FL
-         ENDDO
-      ENDDO
-C
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NRMAX+1,NSFP)
-         DO NTH=1,NTHMAX
-            FS2(NTH,NP)=FL
-         ENDDO
-      ENDDO
-
       IERR=0
-      RETURN
-      END
-
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-C
-CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
-
-      SUBROUTINE FPPREP(IERR)
-
-      INCLUDE 'fpcomm.inc'
-
-      EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
-
-C
-C     ----- set parameters for target species -----
-C
-      AEFP=PZ(NSFP)*AEE
-      AMFP=PA(NSFP)*AMP
-      RNFP0=PN(NSFP)
-      RNFPS=PNS(NSFP)
-      RTFP0=(PTPR(NSFP)+2.D0*PTPP(NSFP))/3.D0
-      RTFPS=PTS(NSFP)
-C
-      PTFP0=SQRT(RTFP0*1.D3*AEE*AMFP)
-      VTFP0=SQRT(RTFP0*1.D3*AEE/AMFP)
-C
-C     ----- set profile data -----
-C
-      DO NR=1,NRMAX
-C
-         RHON=RM(NR)
-         CALL PLPROF(RHON)
-C
-         RNFP(NR)=RN(NSFP)
-         RTFP(NR)=(RTPR(NSFP)+2.D0*RTPP(NSFP))/3.D0
-         if(NSFPMA.eq.NSFPMI)NTG3 = INT((NTG2+1)/(NSFPMA-NSFPMI+1))
-         IF(NTG3.eq.1)THEN
-            DO NS=1,NSMAX
-c               PTT2(1,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            END DO
-         END IF
-
-         IF(NTG2.ge.NSFPMA+1)THEN
-            IF(MODELC.eq.1.or.MODELC.eq.3)THEN
-               RTFP(NR)=PTT2(NTG3-1,NSFP)
-     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
-            END IF
-         END IF
-c         write(*,*) "temperature",PTT(1), RTFP(1)
-
-         PTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE*AMFP)
-         VTFP(NR)=SQRT(RTFP(NR)*1.D3*AEE/AMFP)
-         RNE=RN(1)
-         RTE=(RTPR(1)+2.D0*RTPP(1))/3.D0
-         DO NS=1,NSMAX
-            AEFD=PZ(NS)*AEE
-            AMFD=PA(NS)*AMP
-            RNFD(NR,NS)=RN(NS)
-            RTFD(NR,NS)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-            IF(NTG2.ge.NSFPMA+1)THEN
-               IF(MODELC.eq.1.or.MODELC.eq.3)THEN
-                  IF(NS.ge.NSFPMI.and.NS.le.NSFPMA)
-     &                 RTFD(NR,NS)=PTT2(NTG3-1,NS)
-     &              *(RTPR(NSFP)+2.D0*RTPP(NSFP))/(3.D0*PTT2(1,NSFP))
-               END IF
-            END IF
-               PTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE*AMFD)
-               VTFD(NR,NS)=SQRT(RTFD(NR,NS)*1.D3*AEE/AMFD)
-            IF(NSFP.EQ.1.AND.NS.EQ.1) THEN
-               RLNRL=14.9D0-0.5D0*LOG(RNE)+LOG(RTE)
-            ELSEIF(NSFP.EQ.1.OR.NS.EQ.1) THEN
-               RLNRL=15.2D0-0.5D0*LOG(RNE)+LOG(RTE)
-            ELSE
-               RLNRL=17.3D0-0.5D0*LOG(RNE)+1.5D0*LOG(RTFD(NR,NS))
-            ENDIF
-            FACT=AEFP**2*AEFD**2*RLNRL/(4.D0*PI*EPS0**2)
-            RNUD(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(SQRT(2.D0)*VTFD(NR,NS)*PTFP0**2)
-            RNUF(NR,NS)=FACT*RNFP0*1.D20
-     &                 /(2*AMFD*VTFD(NR,NS)**2*PTFP0)
-         ENDDO
-      ENDDO
-
-C
-C     ----- set relativistic parameters -----
-C
-      IF (MODELR.EQ.0) THEN
-C
-         THETA0=0.D0
-         DO NR=1,NRMAX
-            THETA(NR)=0.D0
-            DKBSR(NR)=0.D0
-         ENDDO
-C
-      ELSE
-C
-         THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-         DO NR=1,NRMAX
-            THETA(NR)=THETA0*RTFP(NR)/RTFP0
-            Z=1.D0/THETA(NR)
-            IF(Z.LE.100.D0) THEN
-               DKBSR(NR)=BESKN(2,Z)
-            ELSE
-               DKBSR(NR)=SQRT(PI/(2.D0*Z))*EXP(-Z)
-     &             *( 1.D0 + 15.D0/(8.D0*Z) + 105.D0/(128.D0*Z**2) )
-            ENDIF
-         ENDDO
-      ENDIF
-
-      IERR=0
-      RETURN
-      END
-C
-C ****************************************
-C     INITIALIZE VELOCITY DISTRIBUTION    
-C ****************************************
-C
-      SUBROUTINE FPFINI
-C
-      INCLUDE 'fpcomm.inc'
-      DIMENSION RSUM11(NSMAX)
-C
-c      open(7,file='testdelt.dat')
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX
-         FL=FPMXWL(PM(NP),NR,NSFP)
-         DO NTH=1,NTHMAX
-            F(NTH,NP,NR)=FL
-            DO NS=1,NSMAX
-               FLNS=FPMXWL(PM(NP),NR,NS)
-               FNS(NTH,NP,NR,NS)=FLNS
-               FNS2(NTH,NP,NR,NS)=FLNS
-            END DO
-         ENDDO
-      END DO
-      END DO
-ccccc
-c     normalize n
-ccccc
-      NTEST=0
-      IF(NTEST.eq.1)THEN
-      NR=1
-      DO NS=1,NSMAX
-         RSUM11(NS) = 0.D0
-         DO  NP=1,NPMAX
-            DO  NTH=1,NTHMAX
-               RSUM11(NS)=RSUM11(NS)
-     &              +VOL(NTH,NP)*RLAMDA(NTH,NR)*FNS(NTH,NP,NR,NS)
-            END DO
-        END DO
-      END DO
-
-      WRITE(*,1337) (RNFD(1,j),j=1,NSMAX)
-      WRITE(*,1337) (RSUM11(j)*RNFP0,j=1,NSMAX)
-
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX
-         F(NTH,NP,NR)=F(NTH,NP,NR)*RNFP(NR)/RSUM11(1)
-         DO NS=1,NSMAX
-            FNS(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)*RNFD(NR,NS)/RSUM11(NS)
-            FNS2(NTH,NP,NR,NS)=FNS2(NTH,NP,NR,NS)*RNFD(NR,NS)/RSUM11(NS)
-      END DO
-      END DO
-      END DO
-      END DO
- 1337 FORMAT(3E14.6)
-      END IF
-
-
       RETURN
       END
 C
@@ -407,37 +403,42 @@ C ****************************************
 C     MAXWELLIAN VELOCITY DISTRIBUTION
 C ****************************************
 C
-C      FUNCTION FPMXWL(PML,NR)
       FUNCTION FPMXWL(PML,NR,NS)
 C
       INCLUDE 'fpcomm.inc'
 C
-      AMFD=PA(NS)*AMP
-      AEFD=PZ(NS)*AEE
-      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
-      RNFD0=PN(NS)
+      AMFDL=PA(NS)*AMP
+      AEFDL=PZ(NS)*AEE
+      RNFD0L=PN(NS)
+      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+      PTFD0L=SQRT(RTFD0L*1.D3*AEE*AMFDL)
 
       IF(NR.EQ.0) THEN
          RL=RM(1)-DELR
          RHON=RL
          CALL PLPROF(RHON)
-         RNFDL=RN(NS)/RNFD0
-         RTFDL=RTPR(NS)/RTFD0
+         RNFDL=RN(NS)/RNFD0L
+         RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+         RTFDL=RT/RTFD0L
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
          RHON=RL
          CALL PLPROF(RHON)
-         RNFDL=RN(NS)/RNFD0
-         RTFDL=RTPR(NS)/RTFD0
+         RNFDL=RN(NS)/RNFD0L
+         RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+         RTFDL=RT/RTFD0L
       ELSE
-         RNFDL=RNFD(NR,NS)/RNFD0
-         RTFDL=RTFD(NR,NS)
+         RL=RM(NR)
+         RHON=RL
+         CALL PLPROF(RHON)
+         RNFDL=RN(NS)/RNFD0L
+         RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+         RTFDL=RT/RTFD0L
       ENDIF
 
       IF (MODELR.EQ.0) THEN
-         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0)**3
-         EX=PML**2/(2.D0*RTFDL/RTFD0)
+         FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
+         EX=PML**2/(2.D0*RTFDL/RTFD0L)
          IF(EX.GT.100.D0) THEN
             FPMXWL=0.D0
          ELSE
@@ -445,23 +446,23 @@ C
          ENDIF
 
       ELSE
-         THETA0=RTFD0*1.D3*AEE/(AMFD*VC*VC)
-         THETAL=THETA0*RTFDL/RTFD0
+         THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
+         THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
          IF(Z.LE.150.D0) THEN
             DKBSL=BESKN(2,Z)
-            FACT=RNFDL*SQRT(THETA0)/(4.D0*PI*RTFDL*DKBSL)
-     &        *RTFD0*EXP(-1.D0/THETAL)
+            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL)
+     &        *RTFD0L*EXP(-1.D0/THETAL)
 C            FACT=RNFDL*SQRT(THETA0**3)/(4.D0*PI*THETAL*DKBSL)
 C     &           *EXP(-1.D0/THETAL)
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
 
          ELSE
             DAPPROX = SQRT( pi/(2.D0*Z) )*
      &           ( 1.D0+15.D0/(8.D0*Z) +15.D0*7.D0/(8.D0*Z)**2/2.D0 )
-            FACT=RNFDL*SQRT(THETA0)/(4.D0*PI*RTFDL*DAPPROX)
+            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DAPPROX)
      &        *RTFD0
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0))/THETAL
+            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
          ENDIF
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
@@ -504,29 +505,31 @@ C
       INCLUDE 'fpcomm.inc'
 C
       ISAVE=0
+      DO NSA=1,NSAMAX
       DO NR=1,NRMAX
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-         DCPP(NTH,NP,NR)=0.D0
-         DCPT(NTH,NP,NR)=0.D0
-         FCPP(NTH,NP,NR)=0.D0
-         DWPP(NTH,NP,NR)=0.D0
-         DWPT(NTH,NP,NR)=0.D0
-         FEPP(NTH,NP,NR)=0.D0
-         DWLHPP(NTH,NP,NR)=0.D0
-         DWLHPT(NTH,NP,NR)=0.D0
-         DWFWPP(NTH,NP,NR)=0.D0
-         DWFWPT(NTH,NP,NR)=0.D0
-         DWECPP(NTH,NP,NR)=0.D0
-         DWECPT(NTH,NP,NR)=0.D0
+         DCPP(NTH,NP,NR,NSA)=0.D0
+         DCPT(NTH,NP,NR,NSA)=0.D0
+         FCPP(NTH,NP,NR,NSA)=0.D0
+         DWPP(NTH,NP,NR,NSA)=0.D0
+         DWPT(NTH,NP,NR,NSA)=0.D0
+         FEPP(NTH,NP,NR,NSA)=0.D0
+         DWLHPP(NTH,NP,NR,NSA)=0.D0
+         DWLHPT(NTH,NP,NR,NSA)=0.D0
+         DWFWPP(NTH,NP,NR,NSA)=0.D0
+         DWFWPT(NTH,NP,NR,NSA)=0.D0
+         DWECPP(NTH,NP,NR,NSA)=0.D0
+         DWECPT(NTH,NP,NR,NSA)=0.D0
+      ENDDO
       ENDDO
       ENDDO
       ENDDO
       CALL FPSPRF
       CALL FPSGLB
-      CALL FPWRIT
+      CALL FPWRT2
+      CALL FPWRT1
 C
-
       RETURN
       END
 C
@@ -633,24 +636,17 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DIMENSION RJN(NRM),RJ3(NRM),E3(NRM),DELE(NRM)
+      DIMENSION RJNS(NRM,NSAM),RJN(NRM),RJ3(NRM),E3(NRM),DELE(NRM)
       
 C
       IF(MODELE.NE.0) CALL FPNEWE
-C
+
+C     +++++ Time loop +++++
+
       DO NT=1,NTMAX
-C
-      IF(MODELC.ne.-3)THEN
-C----NSFP LOOP----------------------------------
-      DO NSFP=NSFPMI,NSFPMA
-         CALL FPPREP(IERR)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            F(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
-         END DO
-         END DO
-         END DO
+
+C     +++++ Iteration loop for toroidal electric field +++++
+
          L=0
 C
          IF(MODELE.NE.0) THEN
@@ -661,174 +657,118 @@ C
          ENDIF
 C
     1    L=L+1
-C
-         IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF
-C
-         CALL FPEXEC(IERR)
-         IF(IERR.NE.0) GOTO 250
-C
-         IF(MODELE.NE.0) THEN
-            DO NR=2,NRMAX
-               RSUM=0.D0
+
+C     +++++ NSA loop +++++
+
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            DO NR=1,NRMAX
                DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
+                  DO NTH=1,NTHMAX
+                     F(NTH,NP,NR)=FNS(NTH,NP,NR,NS)
+                  END DO
+               END DO
+            END DO
+
+            IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF(NSA)
+
+            CALL FPEXEC(NSA,IERR)
+            IF(IERR.NE.0) GOTO 250
+
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR) 
+                  ENDDO
                ENDDO
-               ENDDO
-               RJN(NR)=AEFP*RNFP0*1.D20*PTFP0*DELP*RSUM/(AMFP*RM(NR)*RA)
             ENDDO
-            RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
-C
+         ENDDO
+
+C     +++++ end of NSA loop +++++
+
+C     ----- calculation of current density -----
+
+         IF(MODELE.NE.0) THEN
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               DO NR=2,NRMAX
+                  RSUM=0.D0
+                  DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     RSUM=RSUM+VOL(NTH,NP)*FNS1(NTH,NP,NR,NS)*PM(NP)
+                  ENDDO
+                  ENDDO
+                  RJNS(NR,NSA)=AEFP(NSA)*RNFP0(NSA)*1.D20
+     &                    *PTFP0(NSA)*DELP*RSUM/(AMFP(NSA)*RM(NR)*RA)
+               ENDDO
+               RJNS(1,NSA)=(4.D0*RJNS(2,NSA)-RJNS(3,NSA))/3.D0
+            ENDDO
+
+C     ----- calculation of toroidal electric field -----
+
             DELEM=0.D0
             DO NR=1,NRMAX
-               IF(ABS(RJN(NR)-RJ3(NR)).GT.1.D-20) THEN
-                  DELE(NR)=(RJN(NR)-RJ2(NR))*(E2(NR)-E3(NR))
-     &                    /(RJN(NR)-RJ3(NR))
+               RJNL=0.D0
+               DO NSA=1,NSAMAX
+                  RJNL=RJNL+RJNS(NR,NSA)
+               END DO
+               RJN(NNR)=RJNL
+               IF(ABS(RJNL-RJ3(NR)).GT.1.D-20) THEN
+                  DELE(NR)=(RJNL-RJ2(NR))*(E2(NR)-E3(NR))
+     &                    /(RJNL-RJ3(NR))
                   E3(NR)=E2(NR)
-                  RJ3(NR)=RJN(NR)
+                  RJ3(NR)=RJNL
                   E2(NR)=E2(NR)-DELE(NR)
                   DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
                ENDIF
             ENDDO
-C
+
             IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 1
             IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
-C
+
             DO NR=1,NRMAX
                E1(NR)=E2(NR)
                RJ1(NR)=RJN(NR)
             ENDDO
             CALL FPNEWE
          ENDIF
+C     +++++ end of toroidal electric field loop +++++
 C
   250    CONTINUE
+C
 C         CALL FPGRAC('F -2',F,4)
 C         CALL FPGRAC('F1-2',F1,4)
+
+C     +++++ update velocity distribution function +++++
+
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
          DO NR=1,NRMAX
          DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-            F(NTH,NP,NR)=F1(NTH,NP,NR)
-            FNS2(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
-            if(NSFP.eq.NSFPMA)THEN
-               DO NS2=NSFPMI,NSFPMA
-                  FNS(NTH,NP,NR,NS2)=FNS2(NTH,NP,NR,NS2)
-               END DO
-            END IF
+            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+         ENDDO
          ENDDO
          ENDDO
          ENDDO
 
-C
-         if(NT.eq.1.and.NSFP.eq.1)TIMEFP=TIMEFP+DELT
-C
-         ISAVE=0
-         IF (MOD(NT,NTSTP1).EQ.0) THEN
-            CALL FPSPRF
-         ENDIF
-         IF (MOD(NT,NTSTP2).EQ.0) THEN
-            CALL FPSGLB
-            CALL FPWRIT
-         ENDIF
-
-      END DO
-      NSFP=1
-      TIMEFP=TIMEFP+DELT
-C-----END OF NSFP LOOP--------------------------
-      ELSE
-         CALL FPPREP(IERR)
-
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            F(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
-         END DO
-         END DO
-         END DO
-
-         L=0
-C
-         IF(MODELE.NE.0) THEN
-            DO NR=1,NRMAX
-               E3(NR)=0.D0
-               RJ3(NR)=0.D0
-            ENDDO
-         ENDIF
-C
- 2       L=L+1
-C
-         IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF
-C
-         CALL FPEXEC(IERR)
-         IF(IERR.NE.0) GOTO 251
-C
-         IF(MODELE.NE.0) THEN
-            DO NR=2,NRMAX
-               RSUM=0.D0
-               DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  RSUM=RSUM+VOL(NTH,NP)*F1(NTH,NP,NR)*PM(NP)
-               ENDDO
-               ENDDO
-               RJN(NR)=AEFP*RNFP0*1.D20*PTFP0*DELP*RSUM/(AMFP*RM(NR)*RA)
-            ENDDO
-            RJN(1)=(4.D0*RJN(2)-RJN(3))/3.D0
-C
-            DELEM=0.D0
-            DO NR=1,NRMAX
-               IF(ABS(RJN(NR)-RJ3(NR)).GT.1.D-20) THEN
-                  DELE(NR)=(RJN(NR)-RJ2(NR))*(E2(NR)-E3(NR))
-     &                    /(RJN(NR)-RJ3(NR))
-                  E3(NR)=E2(NR)
-                  RJ3(NR)=RJN(NR)
-                  E2(NR)=E2(NR)-DELE(NR)
-                  DELEM=MAX(ABS(DELE(NR))/MAX(ABS(E1(NR)),1.D-6),DELEM)
-               ENDIF
-            ENDDO
-C
-            IF (L.LT.LMAXE.AND.DELEM.GT.EPSE) GO TO 2
-            IF (L.GE.LMAXE) WRITE(6,*) 'L IS LARGER THAN LMAXE'
-C
-            DO NR=1,NRMAX
-               E1(NR)=E2(NR)
-               RJ1(NR)=RJN(NR)
-            ENDDO
-            CALL FPNEWE
-         ENDIF
-C
- 251     CONTINUE
-C         CALL FPGRAC('F -2',F,4)
-C         CALL FPGRAC('F1-2',F1,4)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            F(NTH,NP,NR)=F1(NTH,NP,NR)
-            FNS2(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
-c     tentative FNS
-c            DO NS=1,NSMAX
-c            F1(NTH,NP,NR)=FNS(NTH,NP,NR,NSFP)
-               FNS(NTH,NP,NR,NSFP)=F1(NTH,NP,NR) 
-c            END DO
-         ENDDO
-         ENDDO
-         ENDDO
+C     +++++ calculate and save global data +++++
 
          TIMEFP=TIMEFP+DELT
+
          ISAVE=0
-C
-C
-         IF (MOD(NT,NTSTP1).EQ.0) THEN
-            CALL FPSPRF
-         ENDIF
          IF (MOD(NT,NTSTP2).EQ.0) THEN
             CALL FPSGLB
-            CALL FPWRIT
+            CALL FPWRT2
+         ENDIF
+         IF (MOD(NT,NTSTP1).EQ.0) THEN
+            CALL FPSPRF
+            CALL FPWRT1
          ENDIF
 
-      END IF
-C------------------------------
-         IF(IERR.NE.0) GOTO 1100
+         IF(IERR.NE.0) RETURN
       ENDDO
- 1100 CONTINUE
+C     +++++ end of time loop +++++
 C
       RETURN
       END
