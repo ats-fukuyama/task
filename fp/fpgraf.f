@@ -132,9 +132,9 @@ C
          IF(KID2.EQ.'N  ') THEN
             CALL FPGRATA('TN  ',PNT,NSA)
          ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPGRATA('TI  ',PITT,NSA)
+            CALL FPGRATA('TI  ',PIT,NSA)
          ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPGRATA('TW  ',PWTT,NSA)
+            CALL FPGRATA('TW  ',PWT,NSA)
          ELSE IF(KID2.EQ.'PC ') THEN
             IF(NSB.EQ.0) THEN
                CALL FPGRATA('TPC ',PPCT,NSA)
@@ -173,7 +173,7 @@ C
             IF(NSB.EQ.0) THEN
                CALL FPGRACA('DCPP',DCPP,1,NSA)
             ELSE
-               CALL FPGRACAB('DCPP',DCPP,1,NSA,NSB)
+               CALL FPGRACAB('DCPP',DCPP2,1,NSA,NSB)
             ENDIF
          ELSE IF(KID2.EQ.'CPT') THEN
             IF(NSB.EQ.0) THEN
@@ -409,12 +409,10 @@ C ***********************************************************
 C
       SUBROUTINE FPGRATA(STRING,FTA,NSA)
       INCLUDE 'fpcomm.inc'
-      DIMENSION FTA(NRM,NTG2M,NSAM),TEMP(NRM,NTG2M)
+      DIMENSION FTA(NSAM,NTG2M),TEMP(NTG2M)
       CHARACTER STRING*4
       DO NT2=1,NTG2
-         DO NR=1,NRMAX
-            TEMP(NR,NT2)=FTA(NR,NT2,NSA)
-         ENDDO
+         TEMP(NT2)=FTA(NSA,NT2)
       ENDDO
       CALL FPGRAT(STRING,TEMP)
       RETURN
@@ -422,12 +420,10 @@ C
 C
       SUBROUTINE FPGRATAB(STRING,FTA,NSA,NSB)
       INCLUDE 'fpcomm.inc'
-      DIMENSION FTAB(NRM,NTG2M,NSBM,NSAM),TEMP(NRM,NTG2M)
+      DIMENSION FTAB(NSBM,NSAM,NTG2M),TEMP(NTG2M)
       CHARACTER STRING*4
       DO NT2=1,NTG2
-         DO NR=1,NRMAX
-            TEMP(NR,NT2)=FTAB(NR,NT2,NSB,NSA)
-         ENDDO
+         TEMP(NT2)=FTAB(NSB,NSA,NT2)
       ENDDO
       CALL FPGRAT(STRING,TEMP)
       RETURN

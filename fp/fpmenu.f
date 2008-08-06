@@ -24,7 +24,6 @@ C
          NTG2=0
          CALL FPPREP(IERR)
          IF(IERR.NE.0) GOTO 1
-         CALL FPSAVI
          CALL FPLOOP
       ELSEIF (KID.EQ.'C') THEN
          IF(KID.EQ.'F') THEN

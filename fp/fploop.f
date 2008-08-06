@@ -183,6 +183,12 @@ C
          ENDDO
       ENDIF
 
+      CALL FPCOEF
+      CALL FPSGLB
+      CALL FPWRT2
+      CALL FPSPRF
+      CALL FPWRT1
+
       IERR=0
       RETURN
       END
@@ -296,13 +302,7 @@ C
 C
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-c         IF(MODELR.eq.0)THEN
-            VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
-c         ELSE
-c            THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
-c            RGAMA=SQRT(1.D0 + THETA0*PM(NP)**2)
-c            VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH/RGAMA**2
-c         END IF
+         VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
       ENDDO
       ENDDO
 
@@ -432,8 +432,7 @@ C
          RHON=RL
          CALL PLPROF(RHON)
          RNFDL=RN(NS)/RNFD0L
-         RT=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
-         RTFDL=RT/RTFD0L
+         RTFDL=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
       ENDIF
 
       IF (MODELR.EQ.0) THEN
@@ -500,36 +499,31 @@ C *************************
 C     INITIAL DATA SAVE
 C *************************
 C
-      SUBROUTINE FPSAVI
+      SUBROUTINE FPCINI
 C
       INCLUDE 'fpcomm.inc'
 C
       ISAVE=0
+C
       DO NSA=1,NSAMAX
       DO NR=1,NRMAX
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX
-         DCPP(NTH,NP,NR,NSA)=0.D0
-         DCPT(NTH,NP,NR,NSA)=0.D0
-         FCPP(NTH,NP,NR,NSA)=0.D0
-         DWPP(NTH,NP,NR,NSA)=0.D0
-         DWPT(NTH,NP,NR,NSA)=0.D0
-         FEPP(NTH,NP,NR,NSA)=0.D0
-         DWLHPP(NTH,NP,NR,NSA)=0.D0
-         DWLHPT(NTH,NP,NR,NSA)=0.D0
-         DWFWPP(NTH,NP,NR,NSA)=0.D0
-         DWFWPT(NTH,NP,NR,NSA)=0.D0
-         DWECPP(NTH,NP,NR,NSA)=0.D0
-         DWECPT(NTH,NP,NR,NSA)=0.D0
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
+            DPP(NTH,NP,NR,NSA)=0.D0
+            DPT(NTH,NP,NR,NSA)=0.D0
+            FPP(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
+            DTP(NTH,NP,NR,NSA)=0.D0
+            DTT(NTH,NP,NR,NSA)=0.D0
+            FTH(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
       ENDDO
       ENDDO
-      ENDDO
-      ENDDO
-      CALL FPSPRF
-      CALL FPSGLB
-      CALL FPWRT2
-      CALL FPWRT1
-C
+
       RETURN
       END
 C
@@ -660,6 +654,8 @@ C
 
 C     +++++ NSA loop +++++
 
+         IF (MOD(NT-1,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF(NSA)
+
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
             DO NR=1,NRMAX
@@ -669,8 +665,6 @@ C     +++++ NSA loop +++++
                   END DO
                END DO
             END DO
-
-            IF (MOD(NT-1,NTSTPC).EQ.0) CALL FPCOEF(NSA)
 
             CALL FPEXEC(NSA,IERR)
             IF(IERR.NE.0) GOTO 250

@@ -1,119 +1,6 @@
 C     $Id$
 C
 C *************************
-C     SAVE PROFILE DATA
-C *************************
-C
-      SUBROUTINE FPSPRF
-C
-      INCLUDE 'fpcomm.inc'
-C
-      IF(NTG1.LT.NTG1M) NTG1=NTG1+1
-C
-      IF(ISAVE.EQ.0) CALL FPSSUB
-C
-      RTG(NTG1)=TIMEFP
-C
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            RNT(NR,NSA,NTG1) = RNS(NR,NSA)
-            RJT(NR,NSA,NTG1) = RJS(NR,NSA)
-            RWT(NR,NSA,NTG1) = RWS(NR,NSA)
-            RPCT(NR,NSA,NTG1)= RPCS(NR,NSA)
-            RPWT(NR,NSA,NTG1)= RPWS(NR,NSA)
-            RPET(NR,NSA,NTG1)= RPES(NR,NSA)
-            RLHT(NR,NSA,NTG1)= RLHS(NR,NSA)
-            RFWT(NR,NSA,NTG1)= RFWS(NR,NSA)
-            RECT(NR,NSA,NTG1)= RECS(NR,NSA)
-            DO NSB=1,NSBMAX
-               RPCT2(NR,NSB,NSA,NTG1)= RPCS2(NR,NSB,NSA)
-            END DO
-C
-            RTT(NR,NSA,NTG1) = RWS(NR,NSA)*1.D6
-     &                         /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
-            RET(NR,NTG1) = E1(NR)
-            RS=RSRHON(RM(NR))
-            RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
-         ENDDO
-      ENDDO
-
-      RETURN
-      END
-C
-C *************************
-C     SAVE GLOBAL DATA
-C *************************
-C
-      SUBROUTINE FPSGLB
-C
-      INCLUDE 'fpcomm.inc'
-C
-      IF(NTG2.LT.NTG2M) NTG2=NTG2+1
-C
-      IF(ISAVE.EQ.0) CALL FPSSUB
-C
-      PTG(NTG2)=TIMEFP
-C
-      DO NSA=1,NSAMAX
-         PNT(NSA,NTG2)=0.D0
-         PIT(NSA,NTG2)=0.D0
-         PWT(NSA,NTG2)=0.D0
-         PPCT(NSA,NTG2)=0.D0
-         PPWT(NSA,NTG2)=0.D0
-         PPET(NSA,NTG2)=0.D0
-         PLHT(NSA,NTG2)=0.D0
-         PFWT(NSA,NTG2)=0.D0
-         PECT(NSA,NTG2)=0.D0
-         DO NSB=1,NSBMAX
-            PPCT2(NSB,NSA,NTG1)= 0.D0
-         END DO
-      ENDDO
-C
-      DO NSA=1,NSAMAX
-         DO NR=1,NRMAX
-            RHOL=RM(NR)
-            RHOL1=RG(NR)
-            RHOL2=RG(NR+1)
-            FACT=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
-            PNT(NSA,NTG2) =PNT(NSA,NTG2) +RNS(NSA,NR)*FACT
-            PIT(NSA,NTG2) =PIT(NSA,NTG2) +RJS(NSA,NR)*FACT
-            PWT(NSA,NTG2) =PWT(NSA,NTG2) +RWS(NSA,NR)*FACT
-            PPCT(NSA,NTG2)=PPCT(NSA,NTG2)+RPCS(NSA,NR)*FACT
-            PPWT(NSA,NTG2)=PPWT(NSA,NTG2)+RPWS(NSA,NR)*FACT
-            PPET(NSA,NTG2)=PPET(NSA,NTG2)+RPES(NSA,NR)*FACT
-            PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NSA,NR)*FACT
-            PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NSA,NR)*FACT
-            PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NSA,NR)*FACT
-            DO NSB=1,NSBMAX
-               PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)
-     &                            +RPCS2(NSB,NSA,NR)*FACT
-            END DO
-         ENDDO
-         
-         PNT(NSA,NTG2) =PNT(NSA,NTG2) *2.0*PI*RR
-         PIT(NSA,NTG2) =PIT(NSA,NTG2) 
-         PWT(NSA,NTG2) =PWT(NSA,NTG2) *2.D0*PI*RR
-         PPCT(NSA,NTG2)=PPCT(NSA,NTG2)*2.D0*PI*RR
-         PPWT(NSA,NTG2)=PPWT(NSA,NTG2)*2.D0*PI*RR
-         PPET(NSA,NTG2)=PPET(NSA,NTG2)*2.D0*PI*RR
-         PLHT(NSA,NTG2)=PLHT(NSA,NTG2)*2.D0*PI*RR
-         PFWT(NSA,NTG2)=PFWT(NSA,NTG2)*2.D0*PI*RR
-         PECT(NSA,NTG2)=PECT(NSA,NTG2)*2.D0*PI*RR
-         IF(PNT(NSA,NTG2).NE.0.d0) THEN
-            PTT(NSA,NTG2) =PWT(NSA,NTG2)*1.D6
-     &           /(1.5D0*PNT(NSA,NTG2)*1.D20*AEE*1.D3)
-         ELSE
-            PTT(NSA,NTG2)=0.D0
-         ENDIF
-         DO NSB=1,NSBMAX
-            PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)*2.D0*PI*RR
-         END DO
-      ENDDO
-         
-      RETURN
-      END
-C
-C *************************
 C     SAVE DATA ROUTINE
 C *************************
 C
@@ -137,7 +24,7 @@ C
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
-C
+
             NS=NS_NSA(NSA)
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -261,6 +148,130 @@ C
       RETURN
       END
 C
+C *************************
+C     SAVE PROFILE DATA
+C *************************
+C
+      SUBROUTINE FPSPRF
+C
+      INCLUDE 'fpcomm.inc'
+C
+      IF(NTG1.LT.NTG1M) NTG1=NTG1+1
+C
+      IF(ISAVE.EQ.0) CALL FPSSUB
+C
+      RTG(NTG1)=TIMEFP
+C
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            RNT(NR,NSA,NTG1) = RNS(NR,NSA)
+            RJT(NR,NSA,NTG1) = RJS(NR,NSA)
+            RWT(NR,NSA,NTG1) = RWS(NR,NSA)
+            RPCT(NR,NSA,NTG1)= RPCS(NR,NSA)
+            RPWT(NR,NSA,NTG1)= RPWS(NR,NSA)
+            RPET(NR,NSA,NTG1)= RPES(NR,NSA)
+            RLHT(NR,NSA,NTG1)= RLHS(NR,NSA)
+            RFWT(NR,NSA,NTG1)= RFWS(NR,NSA)
+            RECT(NR,NSA,NTG1)= RECS(NR,NSA)
+            DO NSB=1,NSBMAX
+               RPCT2(NR,NSB,NSA,NTG1)= RPCS2(NR,NSB,NSA)
+            END DO
+C
+            IF(RNS(NR,NSA).NE.0.D0) THEN
+               RTT(NR,NSA,NTG1) = RWS(NR,NSA)*1.D6
+     &                            /(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
+            ELSE
+               RTT(NR,NSA,NTG1) = 0.D0
+            ENDIF
+            RET(NR,NTG1) = E1(NR)
+            RS=RSRHON(RM(NR))
+            RQT(NR,NTG1) = RS*BB*2.D0/(RR*(BP(NR)+BP(NR+1)))
+         ENDDO
+      ENDDO
+
+      RETURN
+      END
+C
+C *************************
+C     SAVE GLOBAL DATA
+C *************************
+C
+      SUBROUTINE FPSGLB
+C
+      INCLUDE 'fpcomm.inc'
+C
+      IF(NTG2.LT.NTG2M) NTG2=NTG2+1
+C
+      IF(ISAVE.EQ.0) CALL FPSSUB
+C
+      PTG(NTG2)=TIMEFP
+C
+      DO NSA=1,NSAMAX
+         PNT(NSA,NTG2)=0.D0
+         PIT(NSA,NTG2)=0.D0
+         PWT(NSA,NTG2)=0.D0
+         PPCT(NSA,NTG2)=0.D0
+         PPWT(NSA,NTG2)=0.D0
+         PPET(NSA,NTG2)=0.D0
+         PLHT(NSA,NTG2)=0.D0
+         PFWT(NSA,NTG2)=0.D0
+         PECT(NSA,NTG2)=0.D0
+         DO NSB=1,NSBMAX
+            PPCT2(NSB,NSA,NTG2)= 0.D0
+         END DO
+      ENDDO
+C
+      TVOL=0.D0
+      DO NR=1,NRMAX
+         RHOL=RM(NR)
+         RHOL1=RG(NR)
+         RHOL2=RG(NR+1)
+         TVOL=TVOL+2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
+      ENDDO
+
+      DO NSA=1,NSAMAX
+         DO NR=1,NRMAX
+            RHOL=RM(NR)
+            RHOL1=RG(NR)
+            RHOL2=RG(NR+1)
+            FACT=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
+            PNT(NSA,NTG2) =PNT(NSA,NTG2) +RNS(NR,NSA)*FACT
+            PIT(NSA,NTG2) =PIT(NSA,NTG2) +RJS(NR,NSA)*FACT
+            PWT(NSA,NTG2) =PWT(NSA,NTG2) +RWS(NR,NSA)*FACT
+            PPCT(NSA,NTG2)=PPCT(NSA,NTG2)+RPCS(NR,NSA)*FACT
+            PPWT(NSA,NTG2)=PPWT(NSA,NTG2)+RPWS(NR,NSA)*FACT
+            PPET(NSA,NTG2)=PPET(NSA,NTG2)+RPES(NR,NSA)*FACT
+            PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*FACT
+            PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*FACT
+            PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*FACT
+            DO NSB=1,NSBMAX
+               PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)
+     &                            +RPCS2(NR,NSB,NSA)*FACT
+            END DO
+         ENDDO
+         PIT(NSA,NTG2) =PIT(NSA,NTG2) 
+         PPCT(NSA,NTG2)=PPCT(NSA,NTG2)*2.D0*PI*RR
+         PPWT(NSA,NTG2)=PPWT(NSA,NTG2)*2.D0*PI*RR
+         PPET(NSA,NTG2)=PPET(NSA,NTG2)*2.D0*PI*RR
+         PLHT(NSA,NTG2)=PLHT(NSA,NTG2)*2.D0*PI*RR
+         PFWT(NSA,NTG2)=PFWT(NSA,NTG2)*2.D0*PI*RR
+         PECT(NSA,NTG2)=PECT(NSA,NTG2)*2.D0*PI*RR
+         IF(PNT(NSA,NTG2).NE.0.d0) THEN
+            PTT(NSA,NTG2) =PWT(NSA,NTG2)*1.D6
+     &           /(1.5D0*PNT(NSA,NTG2)*1.D20*AEE*1.D3)
+         ELSE
+            PTT(NSA,NTG2)=0.D0
+         ENDIF
+         PNT(NSA,NTG2) =PNT(NSA,NTG2)/TVOL
+         PWT(NSA,NTG2) =PWT(NSA,NTG2) *2.D0*PI*RR
+         DO NSB=1,NSBMAX
+            PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)*2.D0*PI*RR
+         END DO
+      ENDDO
+         
+      RETURN
+      END
+C
 C ***********************************************************
 C
 C                         RESULT
@@ -301,24 +312,23 @@ C
       WRITE(6,101) TIMEFP*1000
 
       DO NSA=1,NSAMAX
-         WRITE(6,102) NSA,NS_NSA(NSA)
          DO NR=1,NRMAX
-            WRITE(6,103) RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
+            WRITE(6,102) NSA,NS_NSA(NSA),
+     &                   RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
      &                          RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
      &                          RPET(NR,NSA,NTG1)
-            IF(RPWT(NR,NSA,NTG1).GE.0.D0) THEN
-            WRITE(6,104)        RPWT(NR,NSA,NTG1),RLHT(NR,NSA,NTG1),
+            IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
+            WRITE(6,103)        RPWT(NR,NSA,NTG1),RLHT(NR,NSA,NTG1),
      &                          RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
             ENDIF
          ENDDO
       ENDDO
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms'/
-     &       5X,'RM',10X,' n',10X,' T',10X,' j',10X,'PC',10X,'PE'/
-     &       29X,                'PW',10X,'PLH',9X,'PIC',9X,'PEC')
-  102 FORMAT(' NSA,NS=',2I2)
-  103 FORMAT(1P6E12.4)
-  104 FORMAT(24X,1P4E12.4)
+     &     'NSA/NS',5X,'RM',10X,' n',8X,' T//PW',6X,
+     &     ' j//PLH',5X,'PC//PIC',5X,'PE//PEC')
+  102 FORMAT(2I3,1P6E12.4)
+  103 FORMAT(30X,1P4E12.4)
       END
 C ***********************************************************
 C

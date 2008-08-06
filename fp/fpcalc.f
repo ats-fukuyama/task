@@ -9,18 +9,13 @@ C
       SUBROUTINE FPCALC(NSA)
 C
       INCLUDE 'fpcomm.inc'
-C
+
       DO NR=1,NRMAX
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
             DCPP(NTH,NP,NR,NSA)=0.D0
             DCPT(NTH,NP,NR,NSA)=0.D0
             FCPP(NTH,NP,NR,NSA)=0.D0
-            DO NSB=1,NSBMAX
-               DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
-               DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
-               FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
-            END DO
          ENDDO
          ENDDO
          DO NP=1,NPMAX
@@ -28,13 +23,27 @@ C
             DCTP(NTH,NP,NR,NSA)=0.D0
             DCTT(NTH,NP,NR,NSA)=0.D0
             FCTH(NTH,NP,NR,NSA)=0.D0
-            Do NSB=1,NSBMAX
-               DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
-               DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
-               FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
-            END DO
          ENDDO
          ENDDO
+      ENDDO
+
+      DO NSB=1,NSBMAX
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
+            DCPP2(NTH,NP,NR,NSB,NSA)=0.D0
+            DCPT2(NTH,NP,NR,NSB,NSA)=0.D0
+            FCPP2(NTH,NP,NR,NSB,NSA)=0.D0
+         ENDDO
+         ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
+            DCTP2(NTH,NP,NR,NSB,NSA)=0.D0
+            DCTT2(NTH,NP,NR,NSB,NSA)=0.D0
+            FCTH2(NTH,NP,NR,NSB,NSA)=0.D0
+         ENDDO
+         ENDDO
+      ENDDO
       ENDDO
 C
       DO NR=1,NRMAX
@@ -78,16 +87,24 @@ C
 
 c     sum up coefficients by species
          DO NSB=1,NSBMAX
-            DO NP=1,NPMAX
+            DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)
      &                               +DCPP2(NTH,NP,NR,NSB,NSA)
                   DCPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)
      &                               +DCPT2(NTH,NP,NR,NSB,NSA)
+                  FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA)
+     &                               +FCPP2(NTH,NP,NR,NSB,NSA)
+               END DO
+            END DO
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX+1
                   DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)
      &                               +DCTP2(NTH,NP,NR,NSB,NSA)
                   DCTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)
      &                               +DCTT2(NTH,NP,NR,NSB,NSA)
+                  FCTH(NTH,NP,NR,NSA)=FCTH(NTH,NP,NR,NSA)
+     &                               +FCTH2(NTH,NP,NR,NSB,NSA)
                END DO
             END DO
          END DO

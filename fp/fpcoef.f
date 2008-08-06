@@ -6,9 +6,32 @@ C                      CALCULATION OF D AND F
 C
 C ************************************************************
 C
-      SUBROUTINE FPCOEF(NSA)
+      SUBROUTINE FPCOEF
 C
       INCLUDE 'fpcomm.inc'
+
+      ISAVE=0
+C
+      DO NSA=1,NSAMAX
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
+            DPP(NTH,NP,NR,NSA)=0.D0
+            DPT(NTH,NP,NR,NSA)=0.D0
+            FPP(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
+            DTP(NTH,NP,NR,NSA)=0.D0
+            DTT(NTH,NP,NR,NSA)=0.D0
+            FTH(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
+      ENDDO
+      ENDDO
+
+      DO NSA=1,NSAMAX
 C
 C     ----- Parallel electric field accleration term -----
 C
@@ -37,29 +60,36 @@ C
 C     ----- Sum up velocity diffusion terms -----
 C
       DO NR=1,NRMAX
-      DO NP=1,NPMAX+1
-      DO NTH=1,NTHMAX
-         DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
-         DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
-         FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
-c         if(DWPP(NTH,NP,1,NSA).ne.0.D0.and.DWPP(NTH,NP,1,NSA).ge.DCPP(NTH,NP,1,NSA))
-c     &        write(*,*) NP,NTH, DCPP(NTH,NP,1,NSA), DWPP(NTH,NP,NR,NSA)
-c         if(DCPP(NTH,NP,1,NSA).le.0.D0)
-c     &write(*,1543)NP,NTH,DCPP2(NTH,NP,1,1,NSA),
-c     &        DCPP2(NTH,NP,1,2,NSA),DCPP2(NTH,NP,1,3,NSA),DCPP(NTH,NP,1,NSA)
-      ENDDO
-      ENDDO
-      ENDDO
- 1543 FORMAT(2I2,4E14.6)
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
+            DPP(NTH,NP,NR,NSA)=0.D0
+            DPT(NTH,NP,NR,NSA)=0.D0
+            FPP(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
+            DTP(NTH,NP,NR,NSA)=0.D0
+            DTT(NTH,NP,NR,NSA)=0.D0
+            FTH(NTH,NP,NR,NSA)=0.D0
+         ENDDO
+         ENDDO
+
+         DO NP=1,NPMAX+1
+         DO NTH=1,NTHMAX
+            DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
+            DPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA)+DWPT(NTH,NP,NR,NSA)
+            FPP(NTH,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)+FCPP(NTH,NP,NR,NSA)
+         ENDDO
+         ENDDO
 C
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX+1
-         DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
-         DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
-         FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
-      ENDDO
-      ENDDO
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX+1
+            DTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA)+DWTP(NTH,NP,NR,NSA)
+            DTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DWTT(NTH,NP,NR,NSA)
+            FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
+         ENDDO
+         ENDDO
       ENDDO
 C
 C     ----- Radial diffusion term (disabled) -----
@@ -126,6 +156,8 @@ C
       ENDDO
       ENDDO
       ENDDO
+
+      ENDDO
 C
       RETURN
       END
@@ -140,42 +172,48 @@ C
 C
       INCLUDE 'fpcomm.inc'
 C
-      DO 10 NR=1,NRMAX+1
+      DO NR=1,NRMAX+1
          RHON=RG(NR)
          CALL PLPROF(RHON)
          RTFPL=RTPR(NS_NSA(NSA))/RTFP0(NSA)
          FACTR=-2.D0*RG(NR)/RA
-      DO 10 NP=1,NPMAX
+      DO NP=1,NPMAX
          FACTP=1.D0/SQRT(1.D0+PG(NP)**2/RTFPL)
-      DO 10 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          DRR(NTH,NP,NR,NSA)=DRR0*FACTP
          FRR(NTH,NP,NR,NSA)=DRR0*FACTP*FACTR
-   10 CONTINUE
+      ENDDO
+      ENDDO
+      ENDDO
 C
       IF (MODELA.EQ.1) THEN
-         DO 100 NR=2,NRMAX
-         DO 100 NTH=1,NTHMAX
+         DO NR=2,NRMAX
+         DO NTH=1,NTHMAX
             RL=0.5D0*(RLAMDA(NTH,NR-1)+RLAMDA(NTH,NR))
-         DO 100 NP=1,NPMAX
+         DO NP=1,NPMAX
             DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
             FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
-  100    CONTINUE
+         ENDDO
+         ENDDO
+         ENDDO
 C
          NR=1
-         DO 110 NTH=1,NTHMAX
+         DO NTH=1,NTHMAX
             RL=0.5D0*(1.D0+RLAMDA(NTH,NR))
-         DO 110 NP=1,NPMAX
+         DO NP=1,NPMAX
             DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
             FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
-  110    CONTINUE
+         ENDDO
+         ENDDO
 C
          NR=NRMAX+1
-         DO 120 NTH=1,NTHMAX
+         DO NTH=1,NTHMAX
             RL=RLAMDA(NTH,NR-1)
-         DO 120 NP=1,NPMAX
+         DO NP=1,NPMAX
             DRR(NTH,NP,NR,NSA)=RL*DRR(NTH,NP,NR,NSA)
             FRR(NTH,NP,NR,NSA)=RL*FRR(NTH,NP,NR,NSA)
-  120    CONTINUE
+         ENDDO
+         ENDDO
       ENDIF
 C
       RETURN
