@@ -290,16 +290,14 @@ C
      &        PNT(NSA,NTG2),PTT(NSA,NTG2),PWT(NSA,NTG2),PIT(NSA,NTG2)
          WRITE(6,103) PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
          IF(NSBMAX.GT.1) THEN
-            DO NSB=1,NSBMAX
-               write(6,104) NSB,NS_NSB(NSB),PPCT2(NSB,NSA,NTG2)
-            END DO
+            write(6,104) (PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       ENDDO
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1P4E12.4)
-  103 FORMAT('             PC,PW,PE=',11X,1P4E12.4)
-  104 FORMAT(12X,'    NSB,NS=',2I2,' PCAB=',1PE12.4)
+  103 FORMAT('             PC,PW,PE=',11X,1P3E12.4)
+  104 FORMAT('             PCAB    =',11X,1P3E12.4)
       END
 
 C ***********************************************************
