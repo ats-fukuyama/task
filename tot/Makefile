@@ -93,6 +93,8 @@ libs:
 	(cd ../eq; make eqlib.a)
 	(cd ../eq; make treqin.o)
 	(cd ../eq; make wmeqin.o)
+	(cd ../tr; make trcom2.o)
+	(cd ../tr; make trcom3.o)
 	(cd ../tr; make tr2lib.a)
 	(cd ../dp; make dplib.a)
 	(cd ../wr; make wrlib.a)

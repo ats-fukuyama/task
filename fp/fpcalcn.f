@@ -363,7 +363,7 @@ C         DO NP=2,NPMAX+1
          DO NP=1,NPMAX+1
             RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)
             pabar=PTFP0(NSA)/(AMFP(NSA)*RGAMA)
-            pbbar=PTFD0(NSB)/AMFD(PSB)
+            pbbar=PTFD0(NSB)/AMFD(NSB)
             IF(NP.EQ.1) THEN
                pgbar=0.001D0*PG(2)*pabar/pbbar
             ELSE

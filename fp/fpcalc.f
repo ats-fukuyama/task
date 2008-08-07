@@ -365,7 +365,7 @@ C
                PNFP=PNFPL
                TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2
                TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-               TMC2FP0=(PTFP0(NSA)/(AMFP(BSA)*VC))**2
+               TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
                RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                ptatb=PG(NP)/RGAMA
