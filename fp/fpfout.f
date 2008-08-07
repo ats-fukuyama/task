@@ -2,188 +2,9 @@ C     $Id$
 C
 C ***********************************************************
 C
-C                    SELECTION OF FILE OUTPUT
+C                FILE OUTPUT of GRAPH DATA
 C
 C ***********************************************************
-C
-      SUBROUTINE FPFOUT
-C
-      INCLUDE 'fpcomm.inc'
-C
-      DIMENSION TEMP(NTHM,NPM,NRM)
-      CHARACTER KID*4,KID1*1,KID2*3,KNAM*72
-C      
-      CALL FWOPEN(21,KNAMFO,0,5,'FO',IERR)
-      IF(IERR.NE.0) RETURN
-C
-    1 WRITE(6,*)'INPUT DATA TYPE : F/FX/FS1/FS2 1/2, N:newfile, X:exit,'
-      WRITE(6,*)'             : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
-      WRITE(6,*)'             : R/T N/I/W/PC/PW/PE/T/Q/E'
-      READ(5,'(A4)',ERR=1,END=9000) KID
-      KID1=KID(1:1)
-      KID2=KID(2:4)
-      CALL GUCPTL(KID1)
-      CALL GUCPTL(KID2(1:1))
-      CALL GUCPTL(KID2(2:2))
-      CALL GUCPTL(KID2(3:3))
-C
-      IF (KID1.EQ.'F') THEN
-         IF(KID2.EQ.'1  ') THEN
-            CALL FPFOTP('F1  ',F)
-         ELSE IF(KID2.EQ.'2  ') THEN
-            CALL FPFOTC('F2  ',F,4)
-         ELSE IF(KID2.EQ.'X2  ') THEN
-            DO NR=1,NRMAX
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=F(NTH,NP,NR)-F(NTHMAX+1-NTH,NP,NR)
-            ENDDO
-            ENDDO
-            ENDDO
-            CALL FPFOTC('FX2 ',TEMP,4)
-         ELSE IF(KID2.EQ.'Y2  ') THEN
-            DO NR=1,NRMAX
-            DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=F(NTH,NP,NR)-F(NTHMAX+1-NTH,NP,NR)
-            ENDDO
-            ENDDO
-            ENDDO
-            CALL FPFOTC('FY2 ',TEMP,0)
-         ELSE IF(KID2.EQ.'S11') THEN
-            CALL FPFOTP('FS11',FS1)
-         ELSE IF(KID2.EQ.'S12') THEN
-            CALL FPFOTC('FS12',FS1,4)
-         ELSE IF(KID2.EQ.'S21') THEN
-            CALL FPFOTP('FS21',FS2)
-         ELSE IF(KID2.EQ.'S22') THEN
-            CALL FPFOTC('FS22',FS2,4)
-         ELSE IF(KID2.EQ.'P  ') THEN
-            CALL FPFOTC('FP  ',FPP,1)
-         ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPFOTC('FT  ',FTH,2)
-         ELSE IF(KID2.EQ.'R  ') THEN
-            CALL FPFOTC('FR  ',FRR,0)
-         ELSE IF(KID2.EQ.'PP ') THEN
-            CALL FPFOTC('FPP ',FPP,1)
-         ELSE IF(KID2.EQ.'TH ') THEN
-            CALL FPFOTC('FTH ',FTH,2)
-         ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPFOTC('FRR ',FRR,0)
-         ELSE IF(KID2.EQ.'CP ') THEN
-            CALL FPFOTC('FCP ',FCPP,1)
-         ELSE IF(KID2.EQ.'CT ') THEN
-            CALL FPFOTC('FCT ',FCTH,2)
-         ELSE IF(KID2.EQ.'EP ') THEN
-            CALL FPFOTC('FEP ',FEPP,1)
-         ELSE IF(KID2.EQ.'ET ') THEN
-            CALL FPFOTC('FET ',FETH,2)
-         ELSE
-            WRITE(6,*) 'XX UNKNOWN KID2'
-         ENDIF
-      ELSE IF (KID1.EQ.'R') THEN
-         IF(KID2.EQ.'N  ') THEN
-            CALL FPFOTR('RN  ',RNT)
-         ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPFOTR('RI  ',RJT)
-         ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPFOTR('RW  ',RWT)
-         ELSE IF(KID2.EQ.'PC ') THEN
-            CALL FPFOTR('RPC ',RPCT)
-         ELSE IF(KID2.EQ.'PW ') THEN
-            CALL FPFOTR('RPW ',RPWT)
-         ELSE IF(KID2.EQ.'PE ') THEN
-            CALL FPFOTR('RPE ',RPET)
-         ELSE IF(KID2.EQ.'LH ') THEN
-            CALL FPFOTR('RLH ',RLHT)
-         ELSE IF(KID2.EQ.'FW ') THEN
-            CALL FPFOTR('RFW ',RFWT)
-         ELSE IF(KID2.EQ.'EC ') THEN
-            CALL FPFOTR('REC ',RECT)
-         ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPFOTR('RT  ',RTT)
-         ELSE IF(KID2.EQ.'Q  ') THEN
-            CALL FPFOTR('RQ  ',RQT)
-         ELSE IF(KID2.EQ.'E  ') THEN
-            CALL FPFOTR('RE  ',RET)
-         ELSE
-            WRITE(6,*) 'XX UNKNOWN KID2'
-         ENDIF
-      ELSE IF (KID1.EQ.'T') THEN
-         IF(KID2.EQ.'N  ') THEN
-            CALL FPFOTT('TN  ',PNT)
-         ELSE IF(KID2.EQ.'I  ') THEN
-            CALL FPFOTT('TI  ',PIT)
-         ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPFOTT('TW  ',PWT)
-         ELSE IF(KID2.EQ.'PC ') THEN
-            CALL FPFOTT('TPC ',PPCT)
-         ELSE IF(KID2.EQ.'PW ') THEN
-            CALL FPFOTT('TPW ',PPWT)
-         ELSE IF(KID2.EQ.'PE ') THEN
-            CALL FPFOTT('TPE ',PPET)
-         ELSE IF(KID2.EQ.'LH ') THEN
-            CALL FPFOTT('TLH ',PLHT)
-         ELSE IF(KID2.EQ.'FW ') THEN
-            CALL FPFOTT('TFW ',PFWT)
-         ELSE IF(KID2.EQ.'EC ') THEN
-            CALL FPFOTT('TEC ',PECT)
-         ELSE IF(KID2.EQ.'T  ') THEN
-            CALL FPFOTT('TT  ',PTT)
-         ELSE IF(KID2.EQ.'Q  ') THEN
-            CALL FPFOTT('TQ  ',PQT)
-         ELSE IF(KID2.EQ.'E  ') THEN
-            CALL FPFOTT('TE  ',PET)
-         ELSE
-            WRITE(6,*) 'XX UNKNOWN KID2'
-         ENDIF
-      ELSE IF (KID1.EQ.'D') THEN
-         IF(KID2.EQ.'PP ') THEN
-            CALL FPFOTC('DPP ',DPP ,1)
-         ELSE IF(KID2.EQ.'PT ') THEN
-            CALL FPFOTC('DPT ',DPT ,1)
-         ELSE IF(KID2.EQ.'TP ') THEN
-            CALL FPFOTC('DTP ',DTP ,2)
-         ELSE IF(KID2.EQ.'TT ') THEN
-            CALL FPFOTC('DTT ',DTT ,2)
-         ELSE IF(KID2.EQ.'CPP') THEN
-            CALL FPFOTC('DCPP',DCPP,1)
-         ELSE IF(KID2.EQ.'CPT') THEN
-            CALL FPFOTC('DCPT',DCPT,1)
-         ELSE IF(KID2.EQ.'CTP') THEN
-            CALL FPFOTC('DCTP',DCTP,2)
-         ELSE IF(KID2.EQ.'CTT') THEN
-            CALL FPFOTC('DCTT',DCTT,2)
-         ELSE IF(KID2.EQ.'W  ') THEN
-            CALL FPFOTC2('DW  ',DWPP,DWTT,0)
-         ELSE IF(KID2.EQ.'WPP') THEN
-            CALL FPFOTC('DWPP',DWPP,1)
-         ELSE IF(KID2.EQ.'WPT') THEN
-            CALL FPFOTC('DWPT',DWPT,1)
-         ELSE IF(KID2.EQ.'WTP') THEN
-            CALL FPFOTC('DWTP',DWTP,2)
-         ELSE IF(KID2.EQ.'WTT') THEN
-            CALL FPFOTC('DWTT',DWTT,2)
-         ELSE IF(KID2.EQ.'RR ') THEN
-            CALL FPFOTC('DRR ',DRR ,0)
-         ELSE
-            WRITE(6,*) 'XX UNKNOWN KID2'
-         ENDIF
-      ELSE IF (KID1.EQ.'N') THEN
-         CLOSE(22)
-         GO TO 1
-      ELSE IF (KID1.EQ.'X') THEN
-         GO TO 9000
-      ELSE IF (KID1.EQ.'Q') THEN
-         GO TO 9000
-      ELSE
-         WRITE(6,*) 'XX UNKNOWN KID1'
-      END IF
-C
-      GO TO 1
-C
- 9000 RETURN
-      END
 C
 C ***********************************************************
 C
@@ -195,7 +16,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
       DIMENSION FR(NRM,NTG1M)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
       CALL FPFOUX(STRING,NRMAX,NTG1,FR,NRM)
 C
@@ -212,7 +33,7 @@ C
 C
       INCLUDE 'fpcomm.inc'
       DIMENSION  FT(NTG2M)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
       CALL FPFOUX(STRING,NTG2,1,FT,NTG2M)
       RETURN
@@ -228,9 +49,9 @@ C
 C
       INCLUDE 'fpcomm.inc'
       DIMENSION FG(NTHM,NPM,NRM),FL(NPM,NRM)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
-    1 WRITE(6,*) '# INPUT NTH (1..',NTHMAX,') :'
+    1 WRITE(6,'(A,I4,A)') '# INPUT NTH (1..',NTHMAX,' or 0) :'
       READ(5,*,ERR=1,END=9000) NTH
       IF(NTH.LT.1) GOTO 9000
       IF(NTH.GT.NTHMAX) GOTO 1
@@ -259,7 +80,7 @@ C
 C
       DIMENSION FG(*)
       DIMENSION FL(NPM,NTHM)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
     1 CONTINUE
       IF(NRMAX.GT.1) THEN
@@ -268,7 +89,7 @@ C
          ELSE
             NRG=NRMAX
          ENDIF
-         WRITE(6,*) '# INPUT NR (1..',NRG,') :'
+         WRITE(6,'(A,I4,A)') '# INPUT NR (1..',NRG,' or 0) :'
          READ(5,*,ERR=1,END=9000) NR
          IF(NR.LT.1) GOTO 9000
          IF(NR.GT.NRG) GOTO 1
@@ -336,7 +157,7 @@ C
 C
       DIMENSION FG(*),FH(*)
       DIMENSION FL(NPM,NTHM)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
     1 CONTINUE
       IF(NRMAX.GT.1) THEN
@@ -345,7 +166,7 @@ C
          ELSE
             NRG=NRMAX
          ENDIF
-         WRITE(6,*) '# INPUT NR (1..',NRG,') :'
+         WRITE(6,'(A,I4,A)') '# INPUT NR (1..',NRG,' or 0) :'
          READ(5,*,ERR=1,END=9000) NR
          IF(NR.LT.1) GOTO 9000
          IF(NR.GT.NRG) GOTO 1
@@ -417,9 +238,9 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION FL(N1M,*)
-      CHARACTER STRING*4
+      CHARACTER(LEN=*),INTENT(IN):: STRING
 C
-      WRITE(22,'(A4)') STRING
+      WRITE(22,'(A)') STRING
       WRITE(22,'(2I10)') N1MAX,N2MAX
       DO N2=1,N2MAX
          WRITE(22,'(1P5E15.7)') (FL(N1,N2),N1=1,N1MAX)

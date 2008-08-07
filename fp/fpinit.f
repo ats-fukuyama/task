@@ -104,6 +104,7 @@ C     LMAXE : maximum loop count in electric field prediction
 C     EPSDE : convergence limit in double-exponential integration
 C     H0DE  : initial step size in double-exponential integration
 C     NGLINE: maximum number of contour lines
+C     NGRAPH: graphic mode: 0 for file out, 1 for contour plot
 C
 CCC      PMAX  = 15.D0
       PMAX  = 7.D0
@@ -115,6 +116,7 @@ CCC      PMAX  = 15.D0
       EPSDE = 1.D-8
       H0DE  = 0.25D0
       NGLINE= 30
+      NGRAPH=1
 C
 C-----------------------------------------------------------------------
 C     NPMAX : momentum magnitude division number
@@ -238,7 +240,7 @@ C
      &              DEC,PEC1,PEC2,RFEC,DELYEC,
      &              DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,
      &              PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,
-     &              NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,
+     &              NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,NGRAPH,
      &              DELT,NTMAX,NTSTP1,NTSTP2,NTSTPC,
      &              MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,
      &              RFDW,DELNPR,NCMIN,NCMAX,FACTWM,
@@ -270,7 +272,7 @@ C
       WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,'
-      WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,'
+      WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,NGRAPH,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
       WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,FACTWM,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
@@ -365,7 +367,7 @@ C
      &             'EPSE  ',EPSE  ,'LMAXE ',LMAXE
 
       WRITE(6,604) 'LLMAX ',LLMAX ,'NGLINE',NGLINE,
-     &             'IDBGFP',IDBGFP
+     &             'IDBGFP',IDBGFP,'NGRAPH',NGRAPH
 C
       WRITE(6,604) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,
      &             'NRMAX ',NRMAX ,'NAVMAX',NAVMAX

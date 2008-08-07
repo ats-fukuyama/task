@@ -8,6 +8,8 @@ C
 C
       CHARACTER KID*1,LINE*80
       EXTERNAL FPPARM
+      INTEGER NTG1,NTG2
+      DATA NTG1/0/,NTG2/0/
 C
     1 CONTINUE
          IERR=0
@@ -26,10 +28,6 @@ C
          IF(IERR.NE.0) GOTO 1
          CALL FPLOOP
       ELSEIF (KID.EQ.'C') THEN
-         IF(KID.EQ.'F') THEN
-            NTG1=0
-            NTG2=0
-         ENDIF
          CALL FPLOOP
       ELSEIF (KID.EQ.'P') THEN
          CALL FPPARM(0,'FP',IERR)
@@ -39,19 +37,24 @@ C
       ELSEIF (KID.EQ.'G') THEN
          CALL FPGRAF
       ELSEIF (KID.EQ.'F') THEN
-         CALL FPFOUT
+         NGRAPH_SAVE=NGRAPH
+         NGRAPH=0
+         CALL FPGRAF
+         NGRAPH=NGRAPH_SAVE
       ELSEIF (KID.EQ.'W') THEN
-         CALL FPSGLB
-         CALL FPWRT2
-         CALL FPSPRF
-         CALL FPWRT1
+         IF(NTG1.NE.0) THEN
+            CALL FPSGLB
+            CALL FPWRT2
+            CALL FPSPRF
+            CALL FPWRT1
+         ELSE
+            WRITE(6,*) 'XX no data to write'
+         ENDIF
       ELSEIF (KID.EQ.'Y') THEN
          TIMEFP=0.D0
          CALL FPPREP(IERR)
          IF(IERR.NE.0) GOTO 1
-         DO NSA=1,NSAMAX
-            CALL FPCOEF(NSA)
-         ENDDO
+         CALL FPCOEF
          CALL FPSGLB
          CALL FPWRT2
          CALL FPSPRF
