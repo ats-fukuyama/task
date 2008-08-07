@@ -15,7 +15,7 @@ C
       ZEFF  = 1.D0
       NSBEAM = 0
       NSFPMI = 1
-      NSFPMA = 2
+      NSFPMA = 1
 C
 C-----------------------------------------------------------------------
 C     DRR0  : radial diffusion coefficient (m^2/s)
@@ -29,8 +29,8 @@ C
       E0    = 0.D0
       R1    = 0.1D0*RR
       DELR1 = 0.1D0
-      RMIN  = 0.05D0
-      RMAX  = 0.3D0
+      RMIN  = 0.1D0
+      RMAX  = 0.4D0
 C
 C-----------------------------------------------------------------------
 C     DEC   : Electron Cyclotron wave diffusion coefficient (normalized)

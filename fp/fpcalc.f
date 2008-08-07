@@ -85,7 +85,51 @@ C
             ENDIF
          ENDDO
 
+C        ----- Simple electron-ion collision term using ZEFF -----
+
+         IF(MODELC.LT.0) THEN
+            IF(NS_NSA(NSA).EQ.1) THEN
+               DO NSB=1,NSBMAX
+                  IF(NS_NSA(NSB).EQ.1) THEN
+                     RNNL=RNFP(NR,NSA)/RNFP0(NSA)
+                     RNUDL=RNUD(NR,NSB,NSA)*RNNL
+                     DO NP=1,NPMAX
+                        PFPL=PM(NP)*PTFP0(NSA)
+                        VFPL=PFPL/AMFP(NSA)
+                        U=VFPL/VTFP0(NSA)
+                        DCTTL=0.5D0*ZEFF*RNUDL/U
+                        DO NTH=1,NTHMAX+1
+                           DCTT2(NTH,NP,NR,NSB,NSA)
+     &                          =DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
+                        ENDDO
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDIF
+         ENDIF
+
+C     ----- bounce average -----
+
+         IF(MODELA.EQ.1) THEN
+            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
+               CALL FPCALC_LAV(NR,NSA)
+            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
+               CALL FPCALC_NLAV(NR,NSA)
+            ELSEIF(MODELC.EQ.4) THEN
+               CALL FPCALC_NLAV(NR,NSA)
+            ELSEIF(MODELC.EQ.5) THEN
+               CALL FPCALC_LAV(NR,NSA)
+            ELSEIF(MODELC.EQ.6) THEN
+               CALL FPCALC_NLAV(NR,NSA)
+            ELSEIF(MODELC.EQ.-1) THEN
+               CALL FPCALC_LAV(NR,NSA)
+            ELSEIF(MODELC.EQ.-2) THEN
+               CALL FPCALC_NLAV(NR,NSA)
+            ENDIF
+         ENDIF
+
 c     sum up coefficients by species
+
          DO NSB=1,NSBMAX
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
@@ -108,48 +152,6 @@ c     sum up coefficients by species
                END DO
             END DO
          END DO
-C
-C        ----- Simple ion collision term using ZEFF -----
-C
-         IF(MODELC.LT.0) THEN
-            IF(NS_NSA(NSA).EQ.1) THEN
-               DO NSB=1,NSBMAX
-                  IF(NS_NSA(NSB).EQ.1) THEN
-                     RNNL=RNFP(NR,NSA)/RNFP0(NSA)
-                     RNUDL=RNUD(NR,NSB,NSA)*RNNL
-                     DO NP=1,NPMAX
-                        PFPL=PM(NP)*PTFP0(NSA)
-                        VFPL=PFPL/AMFP(NSA)
-                        U=VFPL/VTFP0(NSA)
-                        DCTTL=0.5D0*ZEFF*RNUDL/U
-                        DO NTH=1,NTHMAX+1
-                           DCTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA)+DCTTL
-                        ENDDO
-                     ENDDO
-                  ENDIF
-               ENDDO
-            ENDIF
-         ENDIF
-
-C
-         IF(MODELA.EQ.1) THEN
-            IF(MODELC.EQ.0.or.MODELC.eq.1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.2.or.MODELC.eq.3) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.4) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.5) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.6) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-1) THEN
-               CALL FPCALC_LAV(NR,NSA)
-            ELSEIF(MODELC.EQ.-2) THEN
-               CALL FPCALC_NLAV(NR,NSA)
-            ENDIF
-         ENDIF
-
       ENDDO
 
 C
