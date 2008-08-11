@@ -501,8 +501,8 @@ C
       SUBROUTINE FPCALC_NLAV(NR,NSA)
 C
       INCLUDE 'fpcomm.inc'
-      DIMENSION sum11(NSMAX),sum12(NSMAX),sum13(NSMAX)
-     &         ,sum14(NSMAX),sum15(NSMAX),sum16(NSMAX)
+      DIMENSION sum11(NSBM),sum12(NSBM),sum13(NSBM)
+     &         ,sum14(NSBM),sum15(NSBM),sum16(NSBM)
 C     
          DO NTH=1,NTHMAX
             DELH=2.D0*ETAM(NTH,NR)/NAVMAX
@@ -564,24 +564,24 @@ C
                      ELSE
                         PCOS=0.D0
                      ENDIF
-                     DO NS=1,NSMAX
-                        SUM14(NS)=SUM14(NS)
+                     DO NSB=1,NSBMAX
+                        SUM14(NSB)=SUM14(NSB)
      &                       +DCTT2(NTH,NP,NR,NSB,NSA)*PCOS
      &                       /(PSIB*COSG(NTH))
                      END DO
                   ENDIF
-                  DO NS=1,NSMAX
-                     SUM15(NS)=SUM15(NS)
+                  DO NSB=1,NSBMAX
+                     SUM15(NSB)=SUM15(NSB)
      &                    +FCTH2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
-                     SUM16(NS)=SUM16(NS)
+                     SUM16(NSB)=SUM16(NSB)
      &                    +DCTP2(NTH,NP,NR,NSB,NSA)/SQRT(PSIB)
                   END DO
 
                END DO
                Do NSB=1,NSBMAX
-                  DCTT2(NTH,NP,NR,NSB,NSA)=SUM14(NS)*DELH/PI
-                  FCTH2(NTH,NP,NR,NSB,NSA)=SUM15(NS)*DELH/PI
-                  DCTP2(NTH,NP,NR,NSB,NSA)=SUM16(NS)*DELH/PI                  
+                  DCTT2(NTH,NP,NR,NSB,NSA)=SUM14(NSB)*DELH/PI
+                  FCTH2(NTH,NP,NR,NSB,NSA)=SUM15(NSB)*DELH/PI
+                  DCTP2(NTH,NP,NR,NSB,NSA)=SUM16(NSB)*DELH/PI                  
                END DO
             END DO
          END DO
