@@ -32,7 +32,7 @@ C
 C
 C     ----- definition of local quantities -----
 C
-      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NS)*AMFP(NSA)
+      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
      &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
       pabbar=(PTFP0(NSA)*AMFD(NSB))/(PTFD0(NSB)*AMFP(NSA))
@@ -533,9 +533,9 @@ C
                   END DO
                END DO
                DO NSB=1,NSBMAX
-                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM11(NS)*DELH/PI
-                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM12(NS)*DELH/PI
-                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM13(NS)*DELH/PI                  
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM11(NSB)*DELH/PI
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM12(NSB)*DELH/PI
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM13(NSB)*DELH/PI                  
                END DO
             END DO
          END DO

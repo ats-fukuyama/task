@@ -41,7 +41,7 @@ C
 C
 C----- DEFINITION OF LOCAL QUANTITIES -------------
 C
-      RGAMH=RNUD(NR,NSA,NSB)*SQRT(2.D0)*VTFD(NR,NS)*AMFP(NSA)
+      RGAMH=RNUD(NR,NSA,NSB)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
      &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
       TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
@@ -111,6 +111,7 @@ C
 C
 C     ----- Legendre expansion of distribution funstion FNS -----
 C
+      NS=NS_NSA(NSA)
       DO L=LLMIN,LLMAX
          DO NP=1,NPMAX
             TX(1)=0.D0
@@ -348,38 +349,16 @@ C
 
 
 
-            rz = RUFP/VC
+c            rz = RUFP/VC
 c            RSIGMA=LOG(rz+SQRT(1.D0+rz**2))
-         RSIGMA = RZ - RZ**3/6.D0 +9.D0/120.D0*RZ**5
-            rgama=SQRT(1+rz**2)
-            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP)
+c         RSIGMA = RZ - RZ**3/6.D0 +9.D0/120.D0*RZ**5
+c            rgama=SQRT(1+rz**2)
+c            PCRIT=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*PG(NP)
 
-            IF(L.eq.LLMAX+1)then
-               write(*,765) NP
-            END IF
 
          END DO
       END DO
 
-c      Do NN = 1,100
-c         RZ = 1.D-5 * NN * 5.D0
-c         RUFP = RZ * VC
-c         RGAMA = SQRT(1.D0+RZ**2)
-c         RSIGMA = 
-c     &        5.D0/384.D0*RZ**9
-c     &        -5.D0/112.D0*RZ**7
-c     &        +3.D0/40.D0*RZ**5
-c     &        -RZ**3/6.D0 
-c     &        +RZ
-
-c         CALL FKLF_JY(RUFP,FKLF_J,FKLF_Y,RJ_1,RY_1)
-c         WRITE(*,765) NN, RZ
-c, RSIGMA-LOG(RZ+RGAMA)
-c     &        ,RJ_1(2,0), RJ_1(2,1), RJ_1(2,2)
-c      END Do
-      
-
- 765  FORMAT(I3, 8E14.6)
 C
 C----------END OF ON GIRD
 C---- END OF PSI AND IT'S DERIVATIVES
@@ -424,7 +403,7 @@ C-----DCPP & FCPP-----------------
       DO NTH=1,NTHMAX
          DCPP2(NTH,1,NR,NSB,NSA)
      &        =RGAMH*RNFD(NR,NS)*1.D20*(2.D0/(3.D0*SQRT(PI)))
-     &        *(PTFP0(NSA)/(SQRT(2.D0)*PTFDL))*AMFD(NSB)/AMFP(NSA)
+     &       *(PTFP0(NSA)/(SQRT(2.D0)*PTFD(NR,NSB)))*AMFD(NSB)/AMFP(NSA)
      &        +DCPP2(NTH,1,NR,NSB,NSA)
          FCPP2(NTH,1,NR,NSB,NSA)=0.D0
       END DO
