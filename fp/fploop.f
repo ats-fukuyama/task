@@ -75,6 +75,16 @@ C
          PTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
          VTFP0(NSA)=SQRT(RTFP0(NSA)*1.D3*AEE/AMFP(NSA))
       ENDDO
+
+      DO NSB=1,NSBMAX
+         NS=NS_NSB(NSB)
+         AEFD(NSB)=PZ(NS)*AEE
+         AMFD(NSB)=PA(NS)*AMP
+         RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+C
+         PTFD0(NSB)=SQRT(RTFD0L*1.D3*AEE*AMFD(NSB))
+         VTFD0(NSB)=SQRT(RTFD0L*1.D3*AEE/AMFD(NSB))
+      ENDDO
 C
 C     ----- set profile data -----
 C
@@ -654,7 +664,7 @@ C
 
 C     +++++ NSA loop +++++
 
-         IF (MOD(NT-1,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF(NSA)
+         IF (MOD(NT-1,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF
 
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
