@@ -465,13 +465,13 @@ C
 C            FACT=RNFDL*SQRT(THETA0**3)/(4.D0*PI*THETAL*DKBSL)
 C     &           *EXP(-1.D0/THETAL)
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-
          ELSE
             DAPPROX = SQRT( pi/(2.D0*Z) )*
      &           ( 1.D0+15.D0/(8.D0*Z) +15.D0*7.D0/(8.D0*Z)**2/2.D0 )
             FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DAPPROX)
-     &        *RTFD0
+     &        *RTFD0L
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+
          ENDIF
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0

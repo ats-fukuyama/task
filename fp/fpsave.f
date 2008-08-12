@@ -283,21 +283,37 @@ C
       INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.inc'
 C
+      WRITE(6,*)"--------------------------------------------"
+      WRITE(6,*)"-----Global data"
       WRITE(6,101) PTG(NTG2)*1000
 
       DO NSA=1,NSAMAX
          WRITE(6,102) NSA,NS_NSA(NSA),
      &        PNT(NSA,NTG2),PTT(NSA,NTG2),PWT(NSA,NTG2),PIT(NSA,NTG2)
-         WRITE(6,103) PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
+c         WRITE(6,103) PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
          IF(NSBMAX.GT.1) THEN
-            write(6,104) (PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
+c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       ENDDO
+      DO NSA=1,NSAMAX
+         WRITE(6,103) NSA,NS_NSA(NSA),
+     &        PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
+      END DO
+      DO NSA=1,NSAMAX
+         IF(NSBMAX.GT.1) THEN
+            write(6,104) NSA,NS_NSA(NSA),
+     &           (PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
+         ENDIF
+      END DO
+
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1P4E12.4)
-  103 FORMAT('             PC,PW,PE=',11X,1P3E12.4)
-  104 FORMAT('             PCAB    =',11X,1P3E12.4)
+c  103 FORMAT('             PC,PW,PE=',11X,1P3E12.4)
+c  104 FORMAT('             PCAB    =',11X,1P3E12.4)
+  103 FORMAT('        ',2I2,' PC,PW,PE=',11X,1P3E12.4)
+  104 FORMAT('        ',2I2,' PCAB    =',11X,1P3E12.4)
+
       END
 
 C ***********************************************************
@@ -307,17 +323,33 @@ C
       INCLUDE 'fpcomm.inc'
       INCLUDE '../wr/wrcom1.inc'
 C
+      WRITE(6,*)"-----Radial profile data"
       WRITE(6,101) TIMEFP*1000
 
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
-            WRITE(6,102) NSA,NS_NSA(NSA),
-     &                   RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
-     &                          RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
-     &                          RPET(NR,NSA,NTG1)
+c            WRITE(6,102) NSA,NS_NSA(NSA),
+c     &                   RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
+c     &                          RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
+c     &                          RPET(NR,NSA,NTG1)
+c            IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
+c            WRITE(6,103)        RPWT(NR,NSA,NTG1),RLHT(NR,NSA,NTG1),
+c     &                          RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
+c            ENDIF
             IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
-            WRITE(6,103)        RPWT(NR,NSA,NTG1),RLHT(NR,NSA,NTG1),
-     &                          RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
+
+               WRITE(6,104) NSA,NS_NSA(NSA),
+     &              RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
+     &              RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
+     &              RPET(NR,NSA,NTG1),RPWT(NR,NSA,NTG1),
+     &              RLHT(NR,NSA,NTG1),
+     &              RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
+            ELSE
+               WRITE(6,102) NSA,NS_NSA(NSA),
+     &              RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
+     &              RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
+     &              RPET(NR,NSA,NTG1)
+
             ENDIF
          ENDDO
       ENDDO
@@ -327,6 +359,7 @@ C
      &     ' j//PLH',5X,'PC//PIC',5X,'PE//PEC')
   102 FORMAT(2I3,1P6E12.4)
   103 FORMAT(30X,1P4E12.4)
+  104 FORMAT(2I3,1P10E12.4) 
       END
 C ***********************************************************
 C

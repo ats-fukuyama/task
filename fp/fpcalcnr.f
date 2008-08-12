@@ -6,7 +6,7 @@ C      CALCULATION OF NONLINEAR-RELAIVISTIC COLLISIONAL OPERATOR
 C
 C ************************************************************
 C
-      SUBROUTINE FPCALC_NLR(NR,NSA,NSB)
+      SUBROUTINE FPCALC_NLR(NR,NSB,NSA)
 C
       INCLUDE 'fpcomm.inc'
 
@@ -41,7 +41,7 @@ C
 C
 C----- DEFINITION OF LOCAL QUANTITIES -------------
 C
-      RGAMH=RNUD(NR,NSA,NSB)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
+      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
      &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
       TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
       TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
@@ -395,10 +395,10 @@ C-----DCPP & FCPP-----------------
                FCPP2(NTH,NP,NR,NSB,NSA) = FCPP2(NTH,NP,NR,NSB,NSA)
      &              +FACT2 * AMFP(NSA)/AMFD(NSB)*RGAMA
      &              *( -SUMF + 2.D0/VC**2*SUMG )
-
             END DO
          END DO
       END DO
+
 
       DO NTH=1,NTHMAX
          DCPP2(NTH,1,NR,NSB,NSA)
@@ -407,6 +407,7 @@ C-----DCPP & FCPP-----------------
      &        +DCPP2(NTH,1,NR,NSB,NSA)
          FCPP2(NTH,1,NR,NSB,NSA)=0.D0
       END DO
+
 C-----DCTT & FCTH--------------------
 
       DO NP=1,NPMAX

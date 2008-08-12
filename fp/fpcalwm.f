@@ -72,7 +72,7 @@ C
             IF(NTH.NE.NTHMAX/2+1) THEN
                DO 1100 NP=1,NPMAX
                   CALL FPSUMV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
-     &                        NR,DWPPS,DWPTS,DWTPS,DWTTS,NS)
+     &                        NR,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
  1100          CONTINUE

@@ -422,7 +422,7 @@ C
                   FCPPL=-RGAMH/(3.D0*RINT0)*(
      &                 (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2)
      &                 *(3.D0*(RINT4+RINT8)-TMC2FD0*(RINT5+RINT9))
-     &                 +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NAB)*RGAMA)
+     &                 +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NSB)*RGAMA)
      &                 *TMC2FP0*RINT6 )
      &             *RNFD(NR,NSB)*1.D20
                ENDIF
