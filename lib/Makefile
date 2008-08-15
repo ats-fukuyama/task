@@ -4,16 +4,16 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-#LFLAGS = $(OFLAGS)
-LFLAGS = $(DFLAGS)
+LFLAGS = $(OFLAGS)
+#LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I.$(MOD)
 
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
-             libspl.f90 libeq.f90 \
-             libgut.f90 \
+             libspl.f90 libspl2d.f90 libspl3d.f90 \
+             libeq.f90 libgut.f90 \
              libchar.f90 libkio.f90 \
              libfio.f90 ufile.f90 libitp.f90 libfem.f90
 SRCSFIXED =  libspf.f libbes.f libell.f \
