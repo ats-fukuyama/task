@@ -60,8 +60,8 @@ testbes: tasklib.a testbes.o
 testspl: tasklib.a testspl.o 
 	$(FCFIXED) testspl.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
-testspl3d: libspl3d.o testspl3d.o tasklib.a
-	$(FCFIXED) testspl3d.o libspl3d.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testspl3d: tasklib.a testspl3d.o 
+	$(FCFIXED) testspl3d.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
 mmconvert: mmconvert.o
 	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@
