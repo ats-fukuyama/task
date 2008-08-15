@@ -75,7 +75,7 @@ C
                   CALL FPCALC_NL(NR,NSB,NSA)
                ENDIF
             ELSEIF(MODELC.EQ.-1) THEN
-               IF(NS_NSB(NSA).EQ.NS_NSA(NSA)) THEN
+               IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
                   CALL FPCALC_L(NR,NSB,NSA)
                ENDIF
             ELSEIF(MODELC.EQ.-2) THEN
@@ -90,14 +90,22 @@ C        ----- Simple electron-ion collision term using ZEFF -----
          IF(MODELC.LT.0) THEN
             IF(NS_NSA(NSA).EQ.1) THEN
                DO NSB=1,NSBMAX
-                  IF(NS_NSA(NSB).EQ.1) THEN
-                     RNNL=RNFP(NR,NSA)/RNFP0(NSA)
-                     RNUDL=RNUD(NR,NSB,NSA)*RNNL
+                  IF(NS_NSB(NSB).EQ.2) THEN
+c                     RNNL=RNFP(NR,NSA)/RNFP0(NSA)
+c                     RNUDL=RNUD(NR,NSB,NSA)*RNNL
+      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
+     &        /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+                   RGAMH2=RGAMH*RNFD(NR,NSB)*1.D20*PTFP0(NSA)/AMFP(NSA)
+               RTE=(RTPR(1)+RTPP(1)*2.D0)/3.D0
+              rZI = -PZ(2)/PZ(1)/(14.9D0-0.5D0*LOG(RN(1))+LOG(RTE))*
+     &              (15.2D0-0.5D0*LOG(RN(1))+LOG(RTE))
+c                     RZI=-PZ(2)/PZ(1)*RNUD(NR,NSB,NSA)/RNUD(NR,NSA,NSA)
                      DO NP=1,NPMAX
                         PFPL=PM(NP)*PTFP0(NSA)
                         VFPL=PFPL/AMFP(NSA)
                         U=VFPL/VTFP0(NSA)
-                        DCTTL=0.5D0*ZEFF*RNUDL/U
+                        DCTTL=0.5D0*RZI*RGAMH2/VFPL
+c                        write(*,*)DCTTL
                         DO NTH=1,NTHMAX+1
                            DCTT2(NTH,NP,NR,NSB,NSA)
      &                          =DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
@@ -314,7 +322,7 @@ C     ------ define --------
       RNUFL=RNUF(NR,NSB,NSA)*RNNL
       RNUDL=RNUD(NR,NSB,NSA)*RNNL
 
-      RGAMH=RNUDL*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
+      RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
      &        /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
 C
 C     ----- Non-Relativistic -----

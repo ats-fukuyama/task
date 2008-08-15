@@ -769,6 +769,7 @@ C     +++++ calculate and save global data +++++
             CALL FPSPRF
             CALL FPWRT1
          ENDIF
+      call FPWRT3
 
          IF(IERR.NE.0) RETURN
       ENDDO

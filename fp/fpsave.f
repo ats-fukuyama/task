@@ -372,23 +372,32 @@ C
 
 c$$$      if(NTG2.ne.1)then
 c$$$c-----check of conductivity--------
-c$$$      FACT1 = 
-c$$$     &2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(2))-RSRHON(RG(NRMAX)))
-c$$$      FACT2 = 2.D0*PI*RR
-c$$$      rntv = 1.6D0/1.D19*1.5D0*
-c$$$     &FACT1*FACT2*(PTT(NTG2)-PTT(NTG2-1))*PNT(NTG2)*1.D3*1.D20/DELT
-c$$$
-c$$$c      write(6,*) "Pw+Pc",(PPWT(NTG2)+PPCT(NTG2))*1.D6,"n*delta T*V",rntv
-c$$$c      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12
-c$$$c     & ,"Pw[W]",PPWT(NTG2)*1.D6
-c$$$c      write(6,*) "Pc+PE+Pw",PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2),
-c$$$c     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2))/PPCT(NTG2)
-c$$$c      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG2)-PPCT(NTG2-1))/PPCT(NTG2)
-c$$$c     Spitzer
-c$$$c      resist = 1.D0/(RNFP0*RNFP(1)*1.D20*AEFP**2/AMFP
-c$$$c     &     /RNUD(1,NSFP)*RNFD(1,NSFP)/RNFP0)*SQRT(2.D0)
-c$$$c      write(6,*) "J/E*eta*1.D6", PIT(NTG2)/E0*1.D6/FACT1*resist
-c$$$c     & ,"THETA0", (PTFP0/(AMFP*VC))**2
+      IF(NTG2.ne.1)then
+         FACT1 = 
+     &2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(2))-RSRHON(RG(NRMAX)))
+c         FACT2 = 2.D0*PI*RR
+c         rntv = 1.6D0/1.D19*1.5D0*
+c     &FACT1*FACT2*(PTT(NTG2)-PTT(NTG2-1))*PNT(NTG2)*1.D3*1.D20/DELT
+
+c      write(6,*) "Pw+Pc",(PPWT(NTG2)+PPCT(NTG2))*1.D6,"n*delta T*V",rntv
+c      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12
+c     & ,"Pw[W]",PPWT(NTG2)*1.D6
+c      write(6,*) "Pc+PE+Pw",PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2),
+c     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG2)+PPET(NTG2)+PPWT(NTG2))/PPCT(NTG2)
+c      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG2)-PPCT(NTG2-1))/PPCT(NTG2)
+C     Spitzer
+
+      Do NSA=1,NSAMAX
+      Do NSB=1,NSBMAX
+
+      resist = 1.D0/(RNFP0(NSA)*RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
+     &     /RNUD(1,1,1)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
+      write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
+c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
+     &     ,DCTT2(2,2,1,NSB,NSA)
+      END DO
+      END DO
+      end if
 c$$$c----end of conductivity check---------
 c$$$c----check of beam power-------
 c$$$      IF(NSBM.ne.0)THEN
