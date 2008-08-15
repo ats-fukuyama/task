@@ -4,7 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-LFLAGS = $(OFLAGS)
+#LFLAGS = $(OFLAGS)
+LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I.$(MOD)
@@ -55,6 +56,12 @@ femtest: tasklib.a femtest.o
 
 testbes: tasklib.a testbes.o 
 	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+
+testspl: tasklib.a testspl.o 
+	$(FCFIXED) testspl.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+
+testspl3d: libspl3d.o testspl3d.o tasklib.a
+	$(FCFIXED) testspl3d.o libspl3d.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
 mmconvert: mmconvert.o
 	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@

@@ -1159,8 +1159,9 @@
       INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                       INTENT(OUT):: IERR
 
-      INTEGER(4)            :: NX, NY
-      REAL(8)               :: DX, DY, FX, FY, F1, F2, F3, F4
+      INTEGER(4)            :: NX, NY, I
+      REAL(8)               :: DX, DY, FX, FY
+      REAL(8),DIMENSION(4)  :: UF
 
 
       IERR=0
@@ -1220,47 +1221,11 @@
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
 
-!      WRITE(6,'(2I5,1P2E12.4)') NX,NY,X0,Y0
-!      IF(NX.EQ.33 .AND. NY.EQ.18) THEN
-!         WRITE(6,'(1P4E12.4)') X0,Y0,DX,DY
-!         WRITE(6,'(1P4E12.4)') U(1,1,NX,NY),U(1,2,NX,NY),
-!     &                         U(1,3,NX,NY),U(1,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(2,1,NX,NY),U(2,2,NX,NY),
-!     &                         U(2,3,NX,NY),U(2,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(3,1,NX,NY),U(3,2,NX,NY),
-!     &                         U(3,3,NX,NY),U(3,4,NX,NY)
-!         WRITE(6,'(1P4E12.4)') U(4,1,NX,NY),U(4,2,NX,NY),
-!     &                         U(4,3,NX,NY),U(4,4,NX,NY)
-!         CALL GUFLSH
-!      ENDIF
-
-!      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
-!     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
-!     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-!     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
-!     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-!     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
-!     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-!     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
-
-      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY &
-     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
-      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY &
-     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
-      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY &
-     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
-      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY &
-     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
-      F0= ((F4*DX+F3)*DX+F2)*DX+F1
-
-!      F0=((( ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY
-!     &        +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)    )*DX
-!     &      +((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY
-!     &        +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)    )*DX
-!     &      +((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY
-!     &        +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)    )*DX
-!     &      +((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY
-!     &        +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
+      DO I=1,4
+         UF(I)=((U(I,4,NX,NY) *DY     +U(I,3,NX,NY))*DY &
+                +U(I,2,NX,NY))*DY     +U(I,1,NX,NY)
+      ENDDO
+      F0= ((UF(4)*DX+UF(3))*DX+UF(2))*DX+UF(1)
 
       IERR=0
       RETURN
@@ -1281,8 +1246,9 @@
       INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                       INTENT(OUT):: IERR
 
-      INTEGER(4)  :: NX, NY
-      REAL(8)     :: DX, DY, FX, FY, F1, F2, F3, F4, FY1, FY2, FY3, FY4
+      INTEGER(4)  :: NX, NY, I
+      REAL(8)     :: DX, DY, FX, FY
+      REAL(8),DIMENSION(4):: UF
 
 
       IERR=0
@@ -1342,52 +1308,19 @@
       DX=X0-X(NX-1)
       DY=Y0-Y(NY-1)
 
-!      F0= U(1,1,NX,NY)      +U(1,2,NX,NY)*DY
-!     &   +U(1,3,NX,NY)*DY*DY+U(1,4,NX,NY)*DY*DY*DY
-!     &  +(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-!     &   +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)*DX
-!     &  +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-!     &   +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*DX
-!     &  +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-!     &   +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*DX
+      DO I=1,4
+         UF(I)=((U(I,4,NX,NY) *DY +U(I,3,NX,NY))*DY &
+                +U(I,2,NX,NY))*DY +U(I,1,NX,NY)
+      ENDDO
+      F0= ((UF(4)*DX+UF(3))*DX+UF(2))*DX+UF(1)
+      FX0= (3*UF(4)*DX+2*UF(3))*DX+UF(2)
 
-      F4= ((U(4,4,NX,NY) *DY     +U(4,3,NX,NY))*DY &
-     &     +U(4,2,NX,NY))*DY     +U(4,1,NX,NY)
-      F3= ((U(3,4,NX,NY) *DY     +U(3,3,NX,NY))*DY &
-     &     +U(3,2,NX,NY))*DY     +U(3,1,NX,NY)
-      F2= ((U(2,4,NX,NY) *DY     +U(2,3,NX,NY))*DY &
-     &     +U(2,2,NX,NY))*DY     +U(2,1,NX,NY)
-      F1= ((U(1,4,NX,NY) *DY     +U(1,3,NX,NY))*DY &
-     &     +U(1,2,NX,NY))*DY     +U(1,1,NX,NY)
-      F0= ((F4*DX+F3)*DX+F2)*DX+F1
+      DO I=1,4
+         UF(I)=(3*U(I,4,NX,NY)*DY +2*U(I,3,NX,NY))*DY &
+                +U(I,2,NX,NY)
+      ENDDO
+      FY0= ((UF(4)*DX+UF(3))*DX+UF(2))*DX+UF(1)
 
-!      FX0=(U(2,1,NX,NY)      +U(2,2,NX,NY)*DY
-!     &    +U(2,3,NX,NY)*DY*DY+U(2,4,NX,NY)*DY*DY*DY)
-!     &   +(U(3,1,NX,NY)      +U(3,2,NX,NY)*DY
-!     &    +U(3,3,NX,NY)*DY*DY+U(3,4,NX,NY)*DY*DY*DY)*DX*2
-!     &   +(U(4,1,NX,NY)      +U(4,2,NX,NY)*DY
-!     &    +U(4,3,NX,NY)*DY*DY+U(4,4,NX,NY)*DY*DY*DY)*DX*DX*3
-
-      FX0= (3*F4*DX+2*F3)*DX+F2
-
-!      FY0=                   +U(1,2,NX,NY)
-!     &    +U(1,3,NX,NY)*DY*2 +U(1,4,NX,NY)*DY*DY*3
-!     &   +(                  +U(2,2,NX,NY)
-!     &    +U(2,3,NX,NY)*DY*2 +U(2,4,NX,NY)*DY*DY*3 )*DX
-!     &   +(                  +U(3,2,NX,NY)
-!     &    +U(3,3,NX,NY)*DY*2 +U(3,4,NX,NY)*DY*DY*3 )*DX*DX
-!     &   +(                  +U(4,2,NX,NY)
-!     &    +U(4,3,NX,NY)*DY*2 +U(4,4,NX,NY)*DY*DY*3 )*DX*DX*DX
-
-      FY4= (3*U(4,4,NX,NY) *DY     +2*U(4,3,NX,NY))*DY &
-     &       +U(4,2,NX,NY)
-      FY3= (3*U(3,4,NX,NY) *DY     +2*U(3,3,NX,NY))*DY &
-     &       +U(3,2,NX,NY)
-      FY2= (3*U(2,4,NX,NY) *DY     +2*U(2,3,NX,NY))*DY &
-     &       +U(2,2,NX,NY)
-      FY1= (3*U(1,4,NX,NY) *DY     +2*U(1,3,NX,NY))*DY &
-     &       +U(1,2,NX,NY)
-      FY0= ((FY4*DX+FY3)*DX+FY2)*DX+FY1
       IERR=0
       RETURN
       END SUBROUTINE SPL2DD
