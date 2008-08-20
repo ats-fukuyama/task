@@ -190,7 +190,7 @@ C
 C
          DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0) THEN
+            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
                FEDGE=PNS(1)/PN(1)
                FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
@@ -285,7 +285,7 @@ C
 C
          DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0) THEN
+            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
                FEDGE=PNS(1)/PN(1)
                FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
@@ -422,7 +422,7 @@ C
 C
          DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0) THEN
+            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
                FEDGE=PNS(1)/PN(1)
                FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
@@ -490,6 +490,9 @@ C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NPH,NR),
 C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
          ENDDO
          ENDDO
+         ENDDO
+         DO NR=1,NRMAX
+            write(6,*) 'wmmetric_tor: RJ(1,1,',NR,'1)=',RJ(1,1,NR)
          ENDDO
       RETURN
       END

@@ -32,8 +32,8 @@
       integer,dimension(:),allocatable,save :: nphnfc,nphfnfc
       integer,dimension(:),allocatable,save :: nthnfc2,nthfnfc2
       integer,dimension(:),allocatable,save :: nphnfc2,nphfnfc2
-!      integer:: nfc,nfc2
-!      integer:: nthf1,nphf1,nthf2,nphf2,nthfdiff,nphfdiff
+
+!     ***** define array size  *****
 
       nfcmax=nthmax*nphmax      ! size of block matrix 
                                 !    (number of Fourier components)
@@ -43,27 +43,29 @@
       nphmax2=2*nphmax          ! number of toroidal modes of coefficients
       nfcmax2=nthmax2*nphmax2   ! size of block matrix of coefficients
 
+!     ***** get additional parameters *****
+
       call get_wmparm(crf,nth0,nph0,idbgwm)
 
-!     allocate matrix and vector
+!     ***** allocate matrix and vector *****
 
       call wmfem_allocate
 
       if(nrmax.eq.0) return   ! matrix and vector deallocated
 
-!     calculate metric and convaersion tensor
+!     ***** calculate metric and convaersion tensor *****
 
       call wmfem_metric(gma,mma,gj)
 
-!     setup Fourier component index
+!     ***** setup Fourier component index *****
 
       call wmfem_setup_index
 
-!     calculate matrix
+!     ***** calculate coefficient matrix *****
 
       call wmfem_calculate
 
-!     solve matrix
+!     ***** solve matrix equation *****
 
       call wmfem_solve
 
@@ -71,7 +73,8 @@
 
       contains
 
-!     ----- allocate -----
+!     ---------------------------
+!     ----- allocate arrays -----
 
       subroutine wmfem_allocate
 
@@ -132,7 +135,8 @@
       nfcmax_save=nfcmax
       end subroutine wmfem_allocate
 
-!---- setup Fourier component inxex ----
+!     ---------------------------------------
+!     ---- setup Fourier component index ----
 
       subroutine wmfem_setup_index
 
@@ -225,7 +229,8 @@
       return
       end subroutine wmfem_setup_index
 
-!---- Solve matrix equation to solve ----
+!     -------------------------------=
+!     ---- Solve matrix equation  ----
 
       subroutine wmfem_solve
 
@@ -234,7 +239,7 @@
 
       mc=(mwmax+1)/2    ! diagonal position in mw
 
-!     solve matrix
+!     ----- solve matrix -----
 
       do ml=1,mlmax
          fvx(ml)=fvb(ml)
@@ -249,7 +254,7 @@
       call bandcd(fma,fvx,mlmax,mwmax,mwmax,ierr)
       if(ierr.ne.0) write(6,*) '# ierr= ',ierr
 
-!     calculate E field
+!     ----- calculate E field -----
 
       do nr=1,nrmax
       do nph=1,nphmax
@@ -262,7 +267,7 @@
       enddo
       enddo
 
-!     calculate power
+!     ----- calculate power -----
 
       mc=(mwmax+1)/2
       do ns=0,nsmax
@@ -282,7 +287,7 @@
                do j=1,6
                   csum=csum
      &              +conjg(fvx(ml+i))
-c     &                      *fms(mw+j-i,ml+i,ns)
+     &                      *fms(mw+j-i,ml+i,ns)
      &                           *fvx(ml+mw-mc+j)
                enddo
                enddo
@@ -290,8 +295,8 @@ c     &                      *fms(mw+j-i,ml+i,ns)
             enddo
             csums=csums+csum
             cpp(nth,nph,nth1,nph1,nr,ns)=csum
-C            write(6,'(6I5,1P2E12.4)') nth,nph,nth1,nph1,nr,ns,
-C     &           cpp(nth,nph,nth1,nph1,nr,ns)
+!            write(6,'(6I5,1P2E12.4)') nth,nph,nth1,nph1,nr,ns,
+!     &           cpp(nth,nph,nth1,nph1,nr,ns)
          enddo
          enddo
       enddo
@@ -300,7 +305,7 @@ C     &           cpp(nth,nph,nth1,nph1,nr,ns)
 !         write(6,'(A,I5,1P2E12.4)') 'ns,csums=',ns,csums
       enddo
 
-!     calculate antenna impedance
+!     ----- calculate antenna impedance -----
 
       do nph=1,nphmax
       do nth=1,nthmax
@@ -311,14 +316,15 @@ C     &           cpp(nth,nph,nth1,nph1,nr,ns)
                cpa(nth,nph)=cpa(nth,nph)+conjg(fvx(ml+i))*fvb(ml+i)
             enddo
          enddo
-C         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
+!         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
       enddo
       enddo
 
       return
       end subroutine wmfem_solve
 
-!----- calculate coefficint matrix fma -----
+!     -------------------------------------------
+!     ----- calculate coefficint matrix fma -----
 
       subroutine wmfem_calculate
 
@@ -524,9 +530,9 @@ c$$$            endif
       integer:: ns,nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       integer:: nph1,nph2,nphx1,nphx2
-      integer:: nphdiff,nphxdiff
+      integer:: nphfdiff
       integer:: nth1,nth2,nthx1,nthx2
-      integer:: nthdiff,nthxdiff
+      integer:: nthfdiff
       integer:: nthf1,nphf1,nthf2,nphf2
       integer:: imn1,imn2
 
@@ -596,32 +602,32 @@ c$$$            endif
          nphf2=nphfnfc(nfc2)
          nthf2=nthfnfc(nfc2)
 
-!         nphfdiff=nphf2-nphf1+nphmax
-!         nthfdiff=nthf2-nthf1+nthmax
+         nphfdiff=nphf2-nphf1+nphmax
+         nthfdiff=nthf2-nthf1+nthmax
 
          do inod=1,4
             do j=1,3
             do i=1,3
                fmd(i,j,1,nfc1,nfc2,inod)
-     &              =fmv1(i,j,1,1,nthdiff,nphdiff)
-     &              +fmv1(i,j,2,1,nthdiff,nphdiff)*nthf1
-     &              +fmv1(i,j,3,1,nthdiff,nphdiff)*nphf1
-     &              +fmv1(i,j,1,2,nthdiff,nphdiff)      *nthf2
-     &              +fmv1(i,j,2,2,nthdiff,nphdiff)*nthf1*nthf2
-     &              +fmv1(i,j,3,2,nthdiff,nphdiff)*nphf1*nthf2
-     &              +fmv1(i,j,1,3,nthdiff,nphdiff)      *nphf2
-     &              +fmv1(i,j,2,3,nthdiff,nphdiff)*nthf1*nphf2
-     &              +fmv1(i,j,3,3,nthdiff,nphdiff)*nphf1*nphf2
+     &              =fmv1(i,j,1,1,nthfdiff,nphfdiff)
+     &              +fmv1(i,j,2,1,nthfdiff,nphfdiff)*nthf1
+     &              +fmv1(i,j,3,1,nthfdiff,nphfdiff)*nphf1
+     &              +fmv1(i,j,1,2,nthfdiff,nphfdiff)      *nthf2
+     &              +fmv1(i,j,2,2,nthfdiff,nphfdiff)*nthf1*nthf2
+     &              +fmv1(i,j,3,2,nthfdiff,nphfdiff)*nphf1*nthf2
+     &              +fmv1(i,j,1,3,nthfdiff,nphfdiff)      *nphf2
+     &              +fmv1(i,j,2,3,nthfdiff,nphfdiff)*nthf1*nphf2
+     &              +fmv1(i,j,3,3,nthfdiff,nphfdiff)*nphf1*nphf2
                fmd(i,j,2,nfc1,nfc2,inod)
-     &              =fmv2(i,j,1,nthdiff,nphdiff)
-     &              +fmv2(i,j,2,nthdiff,nphdiff)*nthf1
-     &              +fmv2(i,j,3,nthdiff,nphdiff)*nphf1
+     &              =fmv2(i,j,1,nthfdiff,nphfdiff)
+     &              +fmv2(i,j,2,nthfdiff,nphfdiff)*nthf1
+     &              +fmv2(i,j,3,nthfdiff,nphfdiff)*nphf1
                fmd(i,j,3,nfc1,nfc2,inod)
-     &              =fmv3(i,j,1,nthdiff,nphdiff)
-     &              +fmv3(i,j,2,nthdiff,nphdiff)      *nthf2
-     &              +fmv3(i,j,3,nthdiff,nphdiff)      *nphf2
+     &              =fmv3(i,j,1,nthfdiff,nphfdiff)
+     &              +fmv3(i,j,2,nthfdiff,nphfdiff)      *nthf2
+     &              +fmv3(i,j,3,nthfdiff,nphfdiff)      *nphf2
                fmd(i,j,4,nfc1,nfc2,inod)
-     &              =fmv4(i,j,nthdiff,nphdiff)
+     &              =fmv4(i,j,nthfdiff,nphfdiff)
             enddo
             enddo
          enddo
@@ -1030,7 +1036,7 @@ C      write(6,'(A,3I5)') 'nr,nthmax,nphmax:',nr,nthmax,nphmax
       integer:: nph1,nph2,nph1x,nph2x
       integer:: nphdiff,nphxdiff
       integer:: nth1,nth2,nth1x,nth2x
-      integer:: nthdiff,nthxdiff
+      integer:: nthdiff
       integer:: nfcdiff
       real(8):: rr,ra,rb
 

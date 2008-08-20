@@ -120,6 +120,8 @@ C
 
          enddo
          enddo
+            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
+            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
          enddo
          return
          end
