@@ -101,12 +101,6 @@ C
 C        ANTANG: Antenna angle: 0 : theta direction (degree)
 C        MWGMAX: Antenna angle: 0 : theta direction (degree)
 C
-C        MODELP: Extra control of plasma response model
-C                   -1: MHD plasma
-C                   -2: Cold plasma
-C                   -3: Hot plasma (No FLR)
-C                   -4: Hot plasma (Cold FLR)
-C
 C        MODELA: Control alpha particle contribution
 C                   0: No alpha effect
 C                   1: Precession of alpha particles

@@ -32,8 +32,8 @@
       integer,dimension(:),allocatable,save :: nphnfc,nphfnfc
       integer,dimension(:),allocatable,save :: nthnfc2,nthfnfc2
       integer,dimension(:),allocatable,save :: nphnfc2,nphfnfc2
-      integer:: nfc,nfc2
-      integer:: nthf1,nphf1,nthf2,nphf2,nthfdiff,nphfdiff
+!      integer:: nfc,nfc2
+!      integer:: nthf1,nphf1,nthf2,nphf2,nthfdiff,nphfdiff
 
       nfcmax=nthmax*nphmax      ! size of block matrix 
                                 !    (number of Fourier components)
@@ -44,28 +44,99 @@
       nfcmax2=nthmax2*nphmax2   ! size of block matrix of coefficients
 
       call get_wmparm(crf,nth0,nph0,idbgwm)
-      call wmfem_metric(gma,mma,gj)
-
-      call wmfem_exec
-
-      return
-
-      contains
-
-!---- main routine of wmfem ----
-
-      subroutine wmfem_exec
-
-      integer:: mc,ml,mw,ierr,nr,nth,nph,ns,nr1,nth1,nph1,i,j
-      complex(8):: csum,csums,csum1,csum2
-
-      mc=(mwmax+1)/2    ! diagonal position in mw
 
 !     allocate matrix and vector
 
       call wmfem_allocate
 
       if(nrmax.eq.0) return   ! matrix and vector deallocated
+
+!     calculate metric and convaersion tensor
+
+      call wmfem_metric(gma,mma,gj)
+
+!     setup Fourier component index
+
+      call wmfem_setup_index
+
+!     calculate matrix
+
+      call wmfem_calculate
+
+!     solve matrix
+
+      call wmfem_solve
+
+      return
+
+      contains
+
+!     ----- allocate -----
+
+      subroutine wmfem_allocate
+
+      implicit none
+      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
+      integer,save:: mwmax_save=0,mlmax_save=0
+      integer,save:: nsmax_save=0,nfcmax_save=0
+
+      if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save)
+     &                        .or.(nphmax.ne.nphmax_save)) then
+         if(allocated(gma)) deallocate(gma)
+         if(allocated(mma)) deallocate(mma)
+         if(allocated(gj)) deallocate(gj)
+         allocate(gma(3,3,nthmax2,nphmax2,nrmax))
+         allocate(mma(3,3,nthmax2,nphmax2,nrmax))
+         allocate(gj(nthmax2,nphmax2,nrmax))
+      endif
+
+      if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
+         if(allocated(fma)) deallocate(fma)
+         if(allocated(fmax)) deallocate(fmax)
+         allocate(fma(mwmax,mlmax))
+         allocate(fmax(mwmax,mlmax))
+      endif
+      if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
+     &   (nsmax.ne.nsmax_save)) then
+         if(allocated(fms)) deallocate(fms)
+         allocate(fms(mwmax,mlmax,0:nsmax))
+      endif
+      if(mlmax.ne.mlmax_save) then
+         if(allocated(fvb)) deallocate(fvb)
+         if(allocated(fvx)) deallocate(fvx)
+         allocate(fvb(mlmax))
+         allocate(fvx(mlmax))
+      endif
+      if(nfcmax.ne.nfcmax_save) then
+         if(allocated(nthnfc)) deallocate(nthnfc)
+         if(allocated(nphnfc)) deallocate(nphnfc)
+         if(allocated(nthfnfc)) deallocate(nthfnfc)
+         if(allocated(nphfnfc)) deallocate(nphfnfc)
+         if(nfcmax.ne.0) allocate(nthnfc(nfcmax))
+         if(nfcmax.ne.0) allocate(nphnfc(nfcmax))
+         if(nfcmax.ne.0) allocate(nthfnfc(nfcmax))
+         if(nfcmax.ne.0) allocate(nphfnfc(nfcmax))
+
+         if(allocated(nthnfc2)) deallocate(nthnfc2)
+         if(allocated(nphnfc2)) deallocate(nphnfc2)
+         if(allocated(nthfnfc2)) deallocate(nthfnfc2)
+         if(allocated(nphfnfc2)) deallocate(nphfnfc2)
+         if(nfcmax2.ne.0) allocate(nthnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(nphnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(nthfnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(nphfnfc2(nfcmax2))
+      endif
+      mwmax_save=mwmax
+      mlmax_save=mlmax
+      nsmax_save=nsmax
+      nfcmax_save=nfcmax
+      end subroutine wmfem_allocate
+
+!---- setup Fourier component inxex ----
+
+      subroutine wmfem_setup_index
+
+      integer:: nth,nph,nfc,nfc2
 
 !     setup an array of mode number
 
@@ -123,9 +194,9 @@
             nthnfc2(nfc2)=nth-1
          enddo
          do nth=1,nthmax
-            nfc=nthmax2*(nph-1)+nth
+            nfc2=nthmax2*(nph-1)+nth
             nthfnfc2(nfc2)=nth-1
-            nfc=nthmax2*(nph-1)+nthmax2+1-nth
+            nfc2=nthmax2*(nph-1)+nthmax2+1-nth
             nthfnfc2(nfc2)=-nth
          enddo
          enddo
@@ -151,14 +222,17 @@
          enddo
       endif
 
-!     calculate matrix
-!        obtain metric
-!        obtain dielectric tensor
-!        calculate element matrix
-!        FFT
-!     calculate RHS vector
+      return
+      end subroutine wmfem_setup_index
 
-      call wmfem_calculate
+!---- Solve matrix equation to solve ----
+
+      subroutine wmfem_solve
+
+      integer:: mc,ml,mw,ierr,nr,nth,nph,ns,nr1,nth1,nph1,i,j
+      complex(8):: csum,csums,csum1,csum2
+
+      mc=(mwmax+1)/2    ! diagonal position in mw
 
 !     solve matrix
 
@@ -242,68 +316,7 @@ C         write(6,'(2I5,1P2E12.4)') nth,nph,cpa(nth,nph)
       enddo
 
       return
-      end subroutine wmfem_exec
-
-!     ----- allocate -----
-
-      subroutine wmfem_allocate
-
-      implicit none
-      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
-      integer,save:: mwmax_save=0,mlmax_save=0
-      integer,save:: nsmax_save=0,nfcmax_save=0
-
-      if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save)
-     &                        .or.(nphmax.ne.nphmax_save)) then
-         if(allocated(gma)) deallocate(gma)
-         if(allocated(mma)) deallocate(mma)
-         if(allocated(gj)) deallocate(gj)
-         allocate(gma(3,3,nthmax2,nphmax2,nrmax))
-         allocate(mma(3,3,nthmax2,nphmax2,nrmax))
-         allocate(gj(nthmax2,nphmax2,nrmax))
-      endif
-
-      if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
-         if(allocated(fma)) deallocate(fma)
-         if(allocated(fmax)) deallocate(fmax)
-         allocate(fma(mwmax,mlmax))
-         allocate(fmax(mwmax,mlmax))
-      endif
-      if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
-     &   (nsmax.ne.nsmax_save)) then
-         if(allocated(fms)) deallocate(fms)
-         allocate(fms(mwmax,mlmax,0:nsmax))
-      endif
-      if(mlmax.ne.mlmax_save) then
-         if(allocated(fvb)) deallocate(fvb)
-         if(allocated(fvx)) deallocate(fvx)
-         allocate(fvb(mlmax))
-         allocate(fvx(mlmax))
-      endif
-      if(nfcmax.ne.nfcmax_save) then
-         if(allocated(nthnfc)) deallocate(nthnfc)
-         if(allocated(nphnfc)) deallocate(nphnfc)
-         if(allocated(nthfnfc)) deallocate(nthfnfc)
-         if(allocated(nphfnfc)) deallocate(nphfnfc)
-         if(nfcmax.ne.0) allocate(nthnfc(nfcmax))
-         if(nfcmax.ne.0) allocate(nphnfc(nfcmax))
-         if(nfcmax.ne.0) allocate(nthfnfc(nfcmax))
-         if(nfcmax.ne.0) allocate(nphfnfc(nfcmax))
-
-         if(allocated(nthnfc2)) deallocate(nthnfc2)
-         if(allocated(nphnfc2)) deallocate(nphnfc2)
-         if(allocated(nthfnfc2)) deallocate(nthfnfc2)
-         if(allocated(nphfnfc2)) deallocate(nphfnfc2)
-         if(nfcmax.ne.0) allocate(nthnfc(nfcmax2))
-         if(nfcmax.ne.0) allocate(nphnfc(nfcmax2))
-         if(nfcmax.ne.0) allocate(nthfnfc(nfcmax2))
-         if(nfcmax.ne.0) allocate(nphfnfc(nfcmax2))
-      endif
-      mwmax_save=mwmax
-      mlmax_save=mlmax
-      nsmax_save=nsmax
-      nfcmax_save=nfcmax
-      end subroutine wmfem_allocate
+      end subroutine wmfem_solve
 
 !----- calculate coefficint matrix fma -----
 
@@ -514,6 +527,7 @@ c$$$            endif
       integer:: nphdiff,nphxdiff
       integer:: nth1,nth2,nthx1,nthx2
       integer:: nthdiff,nthxdiff
+      integer:: nthf1,nphf1,nthf2,nphf2
       integer:: imn1,imn2
 
       call wmfem_calculate_vacuum_sub(nr,fmv1,fmv2,fmv3,fmv4)
@@ -582,8 +596,8 @@ c$$$            endif
          nphf2=nphfnfc(nfc2)
          nthf2=nthfnfc(nfc2)
 
-         nphfdiff=nphf2-nphf1+nphmax
-         nthfdiff=nthf2-nthf1+nthmax
+!         nphfdiff=nphf2-nphf1+nphmax
+!         nthfdiff=nthf2-nthf1+nthmax
 
          do inod=1,4
             do j=1,3
@@ -1624,7 +1638,7 @@ c$$$      enddo
      &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,6,8)
 
 ! (*,1) **********
-            else if(i.eq.1) then
+            else if(j.eq.1) then
             fma(mw  ,ml  )=fma(mw  ,ml  )
      &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,1,1)*drho
      &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,5,1)

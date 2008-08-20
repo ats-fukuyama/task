@@ -121,7 +121,6 @@ C
          enddo
          enddo
          enddo
-         pause
          return
          end
       
