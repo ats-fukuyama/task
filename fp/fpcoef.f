@@ -74,7 +74,7 @@ C
             FTH(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-
+c         write(*,*)"test wm", DWPP(2,2,1,NSA), NSA
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)

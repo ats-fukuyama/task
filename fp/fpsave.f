@@ -394,7 +394,7 @@ C     Spitzer
      &     /RNUD(1,1,1)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
       write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
 c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
-     &     ,DCTT2(2,2,1,NSB,NSA)
+     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
       END DO
       END DO
       end if

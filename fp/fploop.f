@@ -268,7 +268,7 @@ C
          RHON=RG(NR)
          CALL FPSETB(RHON,0.5D0*PI,BT,BP(NR))
          EPSR(NR)=RSRHON(RHON)/RR
-C         WRITE(*,*) BT, BP(NR)
+c         WRITE(*,*) BT, BP(NR)
       ENDDO
 C
 C     ----- set parallel current density -----
@@ -769,7 +769,8 @@ C     +++++ calculate and save global data +++++
             CALL FPSPRF
             CALL FPWRT1
          ENDIF
-      call FPWRT3
+
+c      call FPWRT3
 
          IF(IERR.NE.0) RETURN
       ENDDO

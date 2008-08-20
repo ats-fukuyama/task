@@ -61,6 +61,7 @@ C
          DWPT(ITU(NR),NP,NR,NSA)  =DWPT(ITL(NR),NP,NR,NSA)
   200    CONTINUE
          ENDIF
+c         write(*,*)"test",DWPP(2,2,1,NSA),NSA
  1000 CONTINUE
 C
 C =============  CALCULATION OF DWTP AND DWTT  ===============
@@ -155,7 +156,9 @@ C
       PARAMETER(NJMAX=100)
       DIMENSION RJ(0:NJMAX),DRJ(0:NJMAX)
 C
-      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+c      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
+      THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
+
       CALL FPSETV(RHOL,ETAL,RKR,RKTH,RKPH,CER,CETH,CEPH)
       CALL FPSETB(RHOL,ETAL,B0PH,B0TH)
 C     BOPH=B_\phi=B_toroidal, B0TH=B_\theta=B_poloidal
@@ -181,6 +184,9 @@ C
       RKW  =RKPARA/RW
       RGZAI=RKPERP*VPERP/ABS(RWC)
       NHMAX=MAX(ABS(NCMIN-1),ABS(NCMAX+1),2)
+
+c      write(*,*)"test1",B2,RW
+c      write(*,*)"test2",RABSE
       CALL BESSJN(RGZAI,NHMAX,RJ,DRJ)
 C      CALL BESSEL(RGZAI,RJ,NCBMAX,NJMAX+1)
 C
