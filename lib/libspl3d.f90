@@ -1373,11 +1373,11 @@
          ENDIF
 
          IF(IDX.EQ.4) THEN
-            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            CALL TDMPCDX(UX,BX,NXMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9003
             BX(NXMAX)=BX(1)
          ELSE
-            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            CALL TDMSCDX(UX,BX,NXMAX,IERR)
             IF(IERR.NE.0) GOTO 9004
          ENDIF
          DO NX=1,NXMAX
@@ -1427,11 +1427,11 @@
          ENDIF
 
          IF(IDY.EQ.4) THEN
-            CALL TDMPRDX(UY,BY,NYMAX-1,IERR)
+            CALL TDMPCDX(UY,BY,NYMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9005
             BY(NYMAX)=BY(1)
          ELSE
-            CALL TDMSRDX(UY,BY,NYMAX,IERR)
+            CALL TDMSCDX(UY,BY,NYMAX,IERR)
             IF(IERR.NE.0) GOTO 9006
          ENDIF
          DO NY=1,NYMAX
@@ -1481,11 +1481,11 @@
          ENDIF
 
          IF(IDZ.EQ.4) THEN
-            CALL TDMPRDX(UZ,BZ,NZMAX-1,IERR)
+            CALL TDMPCDX(UZ,BZ,NZMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9005
             BZ(NZMAX)=BZ(1)
          ELSE
-            CALL TDMSRDX(UZ,BZ,NZMAX,IERR)
+            CALL TDMSCDX(UZ,BZ,NZMAX,IERR)
             IF(IERR.NE.0) GOTO 9006
          ENDIF
          DO NZ=1,NZMAX
@@ -1535,11 +1535,11 @@
          ENDIF
 
          IF(IDX.EQ.4) THEN
-            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            CALL TDMPCDX(UX,BX,NXMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9007
             BX(NXMAX)=BX(1)
          ELSE
-            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            CALL TDMSCDX(UX,BX,NXMAX,IERR)
             IF(IERR.NE.0) GOTO 9008
          ENDIF
          DO NX=1,NXMAX
@@ -1589,11 +1589,11 @@
          ENDIF
 
          IF(IDY.EQ.4) THEN
-            CALL TDMPRDX(UY,BY,NYMAX-1,IERR)
+            CALL TDMPCDX(UY,BY,NYMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9007
             BY(NYMAX)=BY(1)
          ELSE
-            CALL TDMSRDX(UY,BY,NYMAX,IERR)
+            CALL TDMSCDX(UY,BY,NYMAX,IERR)
             IF(IERR.NE.0) GOTO 9008
          ENDIF
          DO NY=1,NYMAX
@@ -1643,11 +1643,11 @@
          ENDIF
 
          IF(IDZ.EQ.4) THEN
-            CALL TDMPRDX(UZ,BZ,NZMAX-1,IERR)
+            CALL TDMPCDX(UZ,BZ,NZMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9007
             BZ(NZMAX)=BZ(1)
          ELSE
-            CALL TDMSRDX(UZ,BZ,NZMAX,IERR)
+            CALL TDMSCDX(UZ,BZ,NZMAX,IERR)
             IF(IERR.NE.0) GOTO 9008
          ENDIF
          DO NZ=1,NZMAX
@@ -1698,11 +1698,11 @@
          ENDIF
 
          IF(IDX.EQ.4) THEN
-            CALL TDMPRDX(UX,BX,NXMAX-1,IERR)
+            CALL TDMPCDX(UX,BX,NXMAX-1,IERR)
             IF(IERR.NE.0) GOTO 9007
             BX(NXMAX)=BX(1)
          ELSE
-            CALL TDMSRDX(UX,BX,NXMAX,IERR)
+            CALL TDMSCDX(UX,BX,NXMAX,IERR)
             IF(IERR.NE.0) GOTO 9008
          ENDIF
          DO NX=1,NXMAX
