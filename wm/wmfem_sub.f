@@ -29,15 +29,14 @@ C     $Id$
 C
 C     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 C
-      SUBROUTINE wmfem_metric(gma,mma,gj)
+      SUBROUTINE wmfem_metrics(rhol,nthmax,nphmax,gma,mma,dmma,gj)
 C
       INCLUDE 'wmcomm.inc'
-      real(8),intent(out):: gma(3,3,nthmax,nphmax,nrmax+1)
-      real(8),intent(out):: mma(3,3,nthmax,nphmax,nrmax+1)
-      real(8),intent(out):: gj(nthmax,nphmax,nrmax+1)
+      real(8),intent(in):: rhol
+      integer,intent(in):: nthmax,nphmax
+      real(8),intent(out),dimension(3,3,nthmax,nphmax):: gma,mma,dmma
+      real(8),intent(out),dimension(gj):: gj
       real(8),dimension(3,3):: RMA
-C
-      DO NR=1,NRMAX+1
 C
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
