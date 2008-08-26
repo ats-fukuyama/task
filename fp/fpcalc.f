@@ -80,7 +80,11 @@ C
                ENDIF
             ELSEIF(MODELC.EQ.-2) THEN
                IF(NS_NSB(NSB).EQ.NS_NSA(NSA)) THEN
-                  CALL FPCALC_NL(NR,NSB,NSA)
+                  IF(MODELR.eq.0)THEN
+                     CALL FPCALC_NL(NR,NSB,NSA)
+                  ELSE IF(MODELR.eq.1)THEN
+                     CALL FPCALC_NLR(NR,NSB,NSA)
+                  END IF
                ENDIF
             ENDIF
          ENDDO

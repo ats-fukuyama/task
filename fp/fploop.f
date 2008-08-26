@@ -10,6 +10,7 @@ C *****************************
 
       EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
 
+      open(7,file='coef_comp.dat')
 C     ----- NS_NSA and NS_NSB array -----
 
       NSAMAX=NSFPMA-NSFPMI+1
@@ -666,6 +667,23 @@ C     +++++ NSA loop +++++
 
          IF (MOD(NT-1,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF
 
+         IF(NT.eq.NTMAX)THEN
+         DO NSA=1,2
+         DO NSB=1,2
+          Do NP=1,NPMAX
+            write(7,1600) NSA,NSB,PG(NP),
+     &           DCPP2(2,NP,1,NSB,NSA),DCTT2(2,NP,1,NSB,NSA),
+     &           DCPT2(2,NP,1,NSB,NSA),FCPP2(2,NP,1,NSB,NSA),
+     &           FCTH2(2,NP,1,NSB,NSA)
+          END DO
+         write(7,*) " "
+         write(7,*) " "
+         END DO
+         END DO
+         END IF
+
+ 1600    FORMAT(2I2,6E14.6)
+
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
             DO NR=1,NRMAX
@@ -770,7 +788,7 @@ C     +++++ calculate and save global data +++++
             CALL FPWRT1
          ENDIF
 
-c      call FPWRT3
+      call FPWRT3
 
          IF(IERR.NE.0) RETURN
       ENDDO

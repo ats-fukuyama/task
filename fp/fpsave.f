@@ -295,9 +295,12 @@ c         WRITE(6,103) PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
 c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       ENDDO
+
+      rtotalPW=0.D0
       DO NSA=1,NSAMAX
          WRITE(6,103) NSA,NS_NSA(NSA),
      &        PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
+         rtotalPW=rtotPW + PPWT(NSA,NTG2)
       END DO
       DO NSA=1,NSAMAX
          IF(NSBMAX.GT.1) THEN
@@ -305,6 +308,7 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
      &           (PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       END DO
+      write(*,105) rtotalpw
 
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
@@ -314,6 +318,7 @@ c  104 FORMAT('             PCAB    =',11X,1P3E12.4)
   103 FORMAT('        ',2I2,' PC,PW,PE=',11X,1P3E12.4)
   104 FORMAT('        ',2I2,' PCAB    =',11X,1P3E12.4)
 
+ 105  FORMAT('total absorption [MW]', E12.4)
       END
 
 C ***********************************************************
@@ -391,10 +396,11 @@ C     Spitzer
       Do NSB=1,NSBMAX
 
       resist = 1.D0/(RNFP0(NSA)*RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
-     &     /RNUD(1,1,1)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
+     &     /RNUD(1,1,NSA)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
       write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
+     &     ,resist
 c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
-     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
+c     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
       END DO
       END DO
       end if

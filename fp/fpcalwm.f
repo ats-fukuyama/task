@@ -357,6 +357,9 @@ C
       IF(MODELW.EQ.3) THEN
          Y=RHOL*RA*SIN(ETAL)
 C
+         DREWY=1.D1
+         REWY=0.D0
+
          ARG=(Y-REWY)**2/DREWY**2
          IF(ARG.GT.100.D0) THEN
             FACT=0.D0
@@ -364,10 +367,18 @@ C
             FACT=EXP(-ARG)
          ENDIF
 C
+         CEWR=1.D2
+         CEWTH=1.D2
+         CEWPH=0.D0
+
          CER= CEWR*FACT
          CETH=CEWTH*FACT
          CEPH=CEWPH*FACT
 C
+         RKWR=0.D0
+         RKWTH=0.D0
+         RKWPH=0.D0
+
          RKR= RKWR
          RKTH=RKWTH
          RKPH=RKWPH

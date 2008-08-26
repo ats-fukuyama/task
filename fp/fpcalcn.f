@@ -110,7 +110,7 @@ C
 C
 C     ----- Legendre expansion of distribution funstion FNS -----
 C
-      NS=NS_NSA(NSA)
+      NS=NS_NSB(NSB)
       DO L=LLMIN,LLMAX
          DO NP=1,NPMAX
             TX(1)=0.D0
