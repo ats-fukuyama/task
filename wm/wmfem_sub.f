@@ -29,28 +29,28 @@ C     $Id$
 C
 C     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 C
-      SUBROUTINE wmfem_metrics(rhol,nthmax,nphmax,gma,mma,dmma,gj)
+      SUBROUTINE wmfem_metrics(rhol,nthmaxl,nphmaxl,gma,mma,dmma,gj)
 C
       INCLUDE 'wmcomm.inc'
       real(8),intent(in):: rhol
-      integer,intent(in):: nthmax,nphmax
-      real(8),intent(out),dimension(3,3,nthmax,nphmax):: gma,mma,dmma
-      real(8),intent(out),dimension(gj):: gj
+      integer,intent(in):: nthmaxl,nphmaxl
+      real(8),intent(out),dimension(3,3,nthmaxl,nphmaxl):: gma,mma,dmma
+      real(8),intent(out),dimension(nthmaxl,nphmaxl):: gj
       real(8),dimension(3,3):: RMA
 C
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
 C
-            gma(1,1,nth,nph,nr)=RG11(nth,nph,nr)
-            gma(1,2,nth,nph,nr)=RG12(nth,nph,nr)
-            gma(1,3,nth,nph,nr)=RG13(nth,nph,nr)
-            gma(2,1,nth,nph,nr)=RG12(nth,nph,nr)
-            gma(2,2,nth,nph,nr)=RG22(nth,nph,nr)
-            gma(2,3,nth,nph,nr)=RG23(nth,nph,nr)
-            gma(3,1,nth,nph,nr)=RG13(nth,nph,nr)
-            gma(3,2,nth,nph,nr)=RG23(nth,nph,nr)
-            gma(3,3,nth,nph,nr)=RG33(nth,nph,nr)
-            gj(nth,nph,nr)=RJ(nth,nph,nr)
+            gma(1,1,nth,nph)=RG11(nth,nph,nr)
+            gma(1,2,nth,nph)=RG12(nth,nph,nr)
+            gma(1,3,nth,nph)=RG13(nth,nph,nr)
+            gma(2,1,nth,nph)=RG12(nth,nph,nr)
+            gma(2,2,nth,nph)=RG22(nth,nph,nr)
+            gma(2,3,nth,nph)=RG23(nth,nph,nr)
+            gma(3,1,nth,nph)=RG13(nth,nph,nr)
+            gma(3,2,nth,nph)=RG23(nth,nph,nr)
+            gma(3,3,nth,nph)=RG33(nth,nph,nr)
+            gj(nth,nph)=RJ(nth,nph,nr)
 C
 C        ----- Calculate rotation matrix mu=RMA -----
 C
@@ -113,15 +113,15 @@ C
 
             do j=1,3
                do i=1,3
-                  mma(i,j,nth,nph,nr)=RMA(i,j)
+                  mma(i,j,nth,nph)=RMA(i,j)
                enddo
             enddo
 
          enddo
          enddo
-            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
-            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
-         enddo
+C            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
+C            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
+C         enddo
          return
          end
       

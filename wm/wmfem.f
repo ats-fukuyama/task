@@ -1485,4 +1485,107 @@ c$$$      enddo
       return
       end subroutine fem_hqq
 
+!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
+
+      SUBROUTINE wmfem_metrics(rhol,gma,mma,dmma,gj)
+
+      IMPLICIT NONE
+      real(8),intent(in):: rhol
+      real(8),intent(out),dimension(3,3,nthmaxl,nphmaxl):: gma,mma,dmma
+      real(8),intent(out),dimension(nthmaxl,nphmaxl):: gj
+      real(8),dimension(3,3):: rma
+
+      dth=2.d0*pi/nthmax2
+      dph=2.d0*pi/nphmax2
+
+      do nph=1,nphmax2
+         phl=dph*(nph-1)
+         do nth=1,nthmax2
+            
+         DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+C
+            gma(1,1,nth,nph)=RG11(nth,nph,nr)
+            gma(1,2,nth,nph)=RG12(nth,nph,nr)
+            gma(1,3,nth,nph)=RG13(nth,nph,nr)
+            gma(2,1,nth,nph)=RG12(nth,nph,nr)
+            gma(2,2,nth,nph)=RG22(nth,nph,nr)
+            gma(2,3,nth,nph)=RG23(nth,nph,nr)
+            gma(3,1,nth,nph)=RG13(nth,nph,nr)
+            gma(3,2,nth,nph)=RG23(nth,nph,nr)
+            gma(3,3,nth,nph)=RG33(nth,nph,nr)
+            gj(nth,nph)=RJ(nth,nph,nr)
+C
+C        ----- Calculate rotation matrix mu=RMA -----
+C
+            BSUPTH=BFLD(2,NTH,NPH,NR)
+            BSUPPH=BFLD(3,NTH,NPH,NR)
+            BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH
+     &               +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH
+     &               +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
+            TC2=BSUPTH/BABS
+            TC3=BSUPPH/BABS
+C
+C        ***** RF11=RJ*SQRT(G^11) *****
+C
+            if(nr.eq.1) then
+               NRL=3
+               RJb  =RJ(NTH,NPH,NRL)
+               RF11b=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
+     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
+               RMAb = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
+     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
+               NRL=2
+               RJa  =RJ(NTH,NPH,NRL)
+               RF11a=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
+     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
+               RMAa = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
+     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
+     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
+
+               RJL  =(RJa*xrho(3)**2  -RJb*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+               RF11L=(RF11a*xrho(3)**2-RF11b*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+               RMAL =(RMAa*xrho(3)**2 -RMAb*xrho(2)**2)
+     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+            else
+               RJL  =RJ(NTH,NPH,NR)
+               RF11L=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
+     &                  -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
+               RMAL = (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
+     &                     -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
+     &                +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
+     &                     -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR)))
+            endif
+            
+            RMA(1,1)= RJL/RF11L
+            RMA(2,1)= 0.D0
+            RMA(3,1)= 0.D0
+            RMA(1,2)= RMAL/RF11L
+            RMA(2,2)= TC3*RF11
+            RMA(3,2)=-TC2*RF11
+            RMA(1,3)=TC2*RG12(NTH,NPH,NR)
+     &              +TC3*RG13(NTH,NPH,NR)
+            RMA(2,3)=TC2*RG22(NTH,NPH,NR)
+     &              +TC3*RG23(NTH,NPH,NR)
+            RMA(3,3)=TC2*RG23(NTH,NPH,NR)
+     &              +TC3*RG33(NTH,NPH,NR)
+
+            do j=1,3
+               do i=1,3
+                  mma(i,j,nth,nph)=RMA(i,j)
+               enddo
+            enddo
+
+         enddo
+         enddo
+C            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
+C            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
+C         enddo
+         return
+         end
       end subroutine wmfem
