@@ -26,202 +26,147 @@ C     $Id$
       rb_=rb
       return
       end subroutine get_wmparm1
-C
-C     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
-C
-      SUBROUTINE wmfem_metrics(rhol,nthmaxl,nphmaxl,gma,mma,dmma,gj)
-C
-      INCLUDE 'wmcomm.inc'
-      real(8),intent(in):: rhol
-      integer,intent(in):: nthmaxl,nphmaxl
-      real(8),intent(out),dimension(3,3,nthmaxl,nphmaxl):: gma,mma,dmma
-      real(8),intent(out),dimension(nthmaxl,nphmaxl):: gj
-      real(8),dimension(3,3):: RMA
-C
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-C
-            gma(1,1,nth,nph)=RG11(nth,nph,nr)
-            gma(1,2,nth,nph)=RG12(nth,nph,nr)
-            gma(1,3,nth,nph)=RG13(nth,nph,nr)
-            gma(2,1,nth,nph)=RG12(nth,nph,nr)
-            gma(2,2,nth,nph)=RG22(nth,nph,nr)
-            gma(2,3,nth,nph)=RG23(nth,nph,nr)
-            gma(3,1,nth,nph)=RG13(nth,nph,nr)
-            gma(3,2,nth,nph)=RG23(nth,nph,nr)
-            gma(3,3,nth,nph)=RG33(nth,nph,nr)
-            gj(nth,nph)=RJ(nth,nph,nr)
-C
-C        ----- Calculate rotation matrix mu=RMA -----
-C
-            BSUPTH=BFLD(2,NTH,NPH,NR)
-            BSUPPH=BFLD(3,NTH,NPH,NR)
-            BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH
-     &               +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH
-     &               +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
-            TC2=BSUPTH/BABS
-            TC3=BSUPPH/BABS
-C
-C        ***** RF11=RJ*SQRT(G^11) *****
-C
-            if(nr.eq.1) then
-               NRL=3
-               RJb  =RJ(NTH,NPH,NRL)
-               RF11b=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
-     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
-               RMAb = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
-     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
-               NRL=2
-               RJa  =RJ(NTH,NPH,NRL)
-               RF11a=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
-     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
-               RMAa = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
-     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
 
-               RJL  =(RJa*xrho(3)**2  -RJb*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
-               RF11L=(RF11a*xrho(3)**2-RF11b*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
-               RMAL =(RMAa*xrho(3)**2 -RMAb*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
+!     ****** CALCULATE METRIC TENSOR ******
+
+      SUBROUTINE wmfem_metrics(rho,th,ph,gm,gj)
+
+      INCLUDE 'wmcomm.inc'
+      real(8),intent(in):: rho,th,ph
+      real(8),intent(out),dimension(3,3):: gm
+      real(8),intent(out):: gj
+      real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
+
+      select case(modelg)
+      case(0)
+         gm(1,1)= ra**2
+         gm(1,2)= 0.d0
+         gm(1,3)= 0.d0
+         gm(2,1)= 0.d0
+         gm(2,2)= (ra*rho)**2
+         gm(2,3)= 0.d0
+         gm(3,1)= 0.d0
+         gm(3,2)= 0.d0
+         gm(3,3)= rr**2
+         gj=rr*ra**2*rho
+      case(1,2)
+         rcos=cos(th)
+         rsin=sin(th)
+         rrl   = rr + ra*rho*rcos
+         zzl   =      ra*rho*rsin
+         drrrho=      ra*rcos
+         dzzrho=      ra*rsin
+         drrchi=     -ra*rho*rsin
+         dzzchi=      ra*rho*rcos
+         gm(1,1)= drrrho**2+dzzrho**2
+         gm(1,2)= drrrho*drrchi+dzzrho*dzzchi
+         gm(1,3)= 0.d0
+         gm(2,1)= gm(1,2)
+         gm(2,2)= drrchi**2+dzzchi**2
+         gm(2,3)= 0.d0
+         gm(3,1)= gm(1,3)
+         gm(3,2)= gm(2,3)
+         gm(3,3)= rrl**2
+         gj     = rrl*(drrrho*dzzchi-drrchi*dzzrho)
+      case(3)
+!         call wmeq_get_pos(rho,th,rrl,zzl,drrrho,dzzrho,drrchi,dzzchi)
+         gm(1,1)= drrrho**2+dzzrho**2
+         gm(1,2)= drrrho*drrchi+dzzrho*dzzchi
+         gm(1,3)= 0.d0
+         gm(2,1)= gm(1,2)
+         gm(2,2)= drrchi**2+dzzchi**2
+         gm(2,3)= 0.d0
+         gm(3,1)= gm(1,3)
+         gm(3,2)= gm(2,3)
+         gm(3,3)= rrl**2
+         gj     = rrl*(drrrho*dzzchi-drrchi*dzzrho)
+      end select
+      return
+      end subroutine wmfem_metrics
+         
+!     ****** CALCULATE MAGNETIC FIELD ******
+
+      SUBROUTINE wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+
+      INCLUDE 'wmcomm.inc'
+      real(8),intent(in):: rho,th,ph
+      real(8),intent(out):: babs,bsupth,bsupph
+      real(8):: rrl,qinv
+
+      select case(modelg)
+      case(0)
+         call wmfem_qprofile(rho,qinv)
+         bsupth=(bb*qinv)/rr
+         bsupph=bb/rr
+         babs=bb*sqrt(1.d0+ra*rho*qinv/rr)
+      case(1,2)
+         call wmfem_qprofile(rho,qinv)
+         rrl   = rr + ra*rho*cos(th)
+         bsupth=(bb*qinv)/rrl
+         bsupph=bb/rrl
+         babs=bb*sqrt(1.d0+ra*rho*qinv/rr)*rr/rrl
+      case(3)
+!         call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
+      end select
+      return
+      end subroutine wmfem_magnetic
+
+!     ****** CALCULATE Q PROFILE ******
+
+      SUBROUTINE wmfem_qprofile(rho,qinv)
+
+      INCLUDE 'wmcomm.inc'
+      real(8),intent(in):: rho
+      real(8),intent(out):: qinv
+      real(8):: ql,qsa0,qsaa
+
+      select case(modelg)
+      case(0,1,2)
+         select case(modelq)
+         case(0)
+            if(rho.gt.1.d0) then
+               ql=qa*rho**2
+            else if(rhomin.le.0.d0) then
+               ql=(q0-qa)*(1.d0-rho**2)+qa
             else
-               RJL  =RJ(NTH,NPH,NR)
-               RF11L=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &                  -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-               RMAL = (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                     -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
-     &                +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                     -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR)))
-            endif
-            
-            RMA(1,1)= RJL/RF11L
-            RMA(2,1)= 0.D0
-            RMA(3,1)= 0.D0
-            RMA(1,2)= RMAL/RF11L
-            RMA(2,2)= TC3*RF11
-            RMA(3,2)=-TC2*RF11
-            RMA(1,3)=TC2*RG12(NTH,NPH,NR)
-     &              +TC3*RG13(NTH,NPH,NR)
-            RMA(2,3)=TC2*RG22(NTH,NPH,NR)
-     &              +TC3*RG23(NTH,NPH,NR)
-            RMA(3,3)=TC2*RG23(NTH,NPH,NR)
-     &              +TC3*RG33(NTH,NPH,NR)
-
-            do j=1,3
-               do i=1,3
-                  mma(i,j,nth,nph)=RMA(i,j)
-               enddo
-            enddo
-
-         enddo
-         enddo
-C            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
-C            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
-C         enddo
-         return
-         end
-      
-C
-C     ****** CALCULATE DIELECTRIC TENSOR ******
-C
-      SUBROUTINE wmfem_disp(nr,ns,fms)
-C
-C           NR : NODE NUMBER (RADIAL POSITION)
-C           NS : PARTICLE SPECIES 
-C
-      INCLUDE 'wmcomm.inc'
-      complex(8):: fms(3,3,nthmax*nphmax,nthmax*nphmax)
-C
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
-         DO ND=-NDSIZX,NDSIZX
-         DO MD=-MDSIZX,MDSIZX
-            CTNSR(1,1,MD,ND,NTH,NPH)=0.D0
-            CTNSR(1,2,MD,ND,NTH,NPH)=0.D0
-            CTNSR(1,3,MD,ND,NTH,NPH)=0.D0
-            CTNSR(2,1,MD,ND,NTH,NPH)=0.D0
-            CTNSR(2,2,MD,ND,NTH,NPH)=0.D0
-            CTNSR(2,3,MD,ND,NTH,NPH)=0.D0
-            CTNSR(3,1,MD,ND,NTH,NPH)=0.D0
-            CTNSR(3,2,MD,ND,NTH,NPH)=0.D0
-            CTNSR(3,3,MD,ND,NTH,NPH)=0.D0
-         ENDDO
-         ENDDO
-      ENDDO
-      ENDDO
-C
-      IF((MOD(MODELA,2).EQ.1).AND.(NS.EQ.3)) THEN
-         CALL WMTNAX(NR)
-      ELSEIF((MOD(MODELA/2,2).EQ.1).AND.(NS.EQ.1)) THEN
-         CALL WMTNEX(NR)
-      ELSEIF(NS.EQ.5.OR.NS.EQ.6) THEN
-         CALL WMTNDK(NR,NS)
-      ELSE
-         IF(MODELP(NS).LT.0) THEN
-            CALL WMTNSX(NR,NS)
-         ELSEIF(MODELP(NS).EQ.8) THEN
-            IF(MODELV(NS).EQ.9) THEN
-               MODELVS=MODELV(NS)
-               MODELV(NS)=MODELVR(NR,NS)
-               CALL WMDPIN(NR,NS)
-               MODELV(NS)=MODELVS
-            ELSE
-               CALL WMDPIN(NR,NS)
-            ENDIF
-         ELSEIF(MODELP(NS).EQ.9) THEN
-            MODELPS=MODELP(NS)
-            MODELP(NS)=MODELPR(NR,NS)
-            IF(MODELP(NS).EQ.8) THEN
-               IF(MODELV(NS).EQ.9) THEN
-                  MODELVS=MODELV(NS)
-                  MODELV(NS)=MODELVR(NR,NS)
-                  CALL WMDPIN(NR,NS)
-                  MODELV(NS)=MODELVS
-               ELSE
-                  CALL WMDPIN(NR,NS)
-               ENDIF
-            ELSE
-               CALL WMDPIN(NR,NS)
-            ENDIF
-            MODELP(NS)=MODELPS
-         ELSE
-            CALL WMDPIN(NR,NS)
-         ENDIF
-      ENDIF
-C
-      DO NPH=1,NPHMAX
-      DO NTH=1,NTHMAX
-         nfc1=nthmax*(nph-1)+nth
-         DO ND=NDMIN,NDMAX
-            ndx=nd-ndmin+1
-         DO MD=MDMIN,MDMAX
-            mdx=md-mdmin+1
-            nfc2=nthmax*(ndx-1)+mdx
-            do j=1,3
-            do i=1,3
-               fms(i,j,nfc1,nfc2)=CTNSR(i,j,MD,ND,NTH,NPH)
-            enddo
-            enddo
-         ENDDO
-         ENDDO
-      ENDDO
-      ENDDO
-C
-C      IF(NR.EQ.1) THEN
-C      WRITE(6,*) 'WMDISP: NR,NS=',NR,NS
-C      WRITE(6,'(1P6E12.4)') 
-C     &     CTNSR(1,1,0,0,1,1),CTNSR(1,2,0,0,1,1),CTNSR(1,3,0,0,1,1),
-C     &     CTNSR(2,1,0,0,1,1),CTNSR(2,2,0,0,1,1),CTNSR(2,3,0,0,1,1),
-C     &     CTNSR(3,1,0,0,1,1),CTNSR(3,2,0,0,1,1),CTNSR(3,3,0,0,1,1)
-C      ENDIF
-C      IF(NR.EQ.2) STOP
-C
-      RETURN
-      END
+               qsa0    =1/q0-1/qmin
+               qsaa    =1/qa-1/qmin
+               if(rho.le.rhomin)then
+                  ql=1/(1/q0-qsa0*(3*rho**2/rhomin**2
+     &                  -2*rho**3/rhomin**3))
+               else
+                  ql=1/(1/qmin+3*qsa0*(rho-rhomin)**2/rhomin**2
+     &               +(qsaa-3*qsa0*(1-rhomin)**2/rhomin**2)
+     &                *(rho-rhomin)**3/(1-rhomin)**3)
+               end if
+            end if
+            qinv=1.d0/ql
+         case(1)
+            if(rip.eq.0.d0) then
+               qinv=0.d0
+            else
+               qa=2.d0*pi*ra*ra*bb/(rmu0*rip*1.d6*rr)
+               q0=qa/(1.d0+profj)
+               if(rho.ge.1.d0) then
+                  ql= qa*rho**2
+               else
+                  ql= qa*rho**2/(1.d0-(1.d0-rho**2)**(profj+1.d0))
+               end if
+               qinv=1.d0/ql
+            end if
+         case(2)
+            if(rho.gt.1.d0) then
+               qinv=1.d0/(qa*rho**2)
+            else
+               qinv=(1.d0/q0-1.d0/qa)*(1.d0-rho**2)+1.d0/qa
+            end if
+         end select
+      case(3)
+         call getqp(rho,ql)
+         qinv=1.d0/qinv
+      end select
+      return
+      end subroutine wmfem_qprofile
 C
 C     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
 C

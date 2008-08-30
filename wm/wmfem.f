@@ -2,11 +2,11 @@
 
 !     ***** wmfem main routine *****
 
-      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rho,cef,cpp,cpa)
+      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,cef,cpp,cpa)
 
       implicit none
       integer,intent(in):: nrmax,nthmax,nphmax,nsmax
-      real(8),dimension(nrmax),intent(in):: rho
+      real(8),dimension(nrmax),intent(in):: rhoa
       complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef
       complex(8),dimension(nthmax,nphmax,nthmax,nphmax,nrmax,0:nsmax),
      &     intent(out):: cpp
@@ -26,7 +26,7 @@
 
 !      real(8),dimension(:,:,:,:,:),allocatable :: gma,mma 
 !     &                                          !(3,3,nthmax,nphmax,nrmax)
-!      real(8),dimension(:,:,:),allocatable:: gj !(nthmax,nphmax,nrmax)
+!      real(8),dimension(:,:,:),allocatable:: gja !(nthmax,nphmax,nrmax)
 
       integer,dimension(:),allocatable,save :: nthnfc,nthfnfc
       integer,dimension(:),allocatable,save :: nphnfc,nphfnfc
@@ -57,10 +57,6 @@
 
       call wmfem_setup_index
 
-!     ***** calculate metric and convaersion tensor *****
-
-!      call wmfem_metric(gma,mma,gj)
-
 !     ***** calculate coefficient matrix *****
 
       call wmfem_calculate
@@ -87,10 +83,10 @@
 !     &                        .or.(nphmax.ne.nphmax_save)) then
 !         if(allocated(gma)) deallocate(gma)
 !         if(allocated(mma)) deallocate(mma)
-!         if(allocated(gj)) deallocate(gj)
+!         if(allocated(gja)) deallocate(gja)
 !         allocate(gma(3,3,nthmax2,nphmax2,nrmax))
 !         allocate(mma(3,3,nthmax2,nphmax2,nrmax))
-!         allocate(gj(nthmax2,nphmax2,nrmax))
+!         allocate(gja(nthmax2,nphmax2,nrmax))
 !      endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
@@ -353,10 +349,10 @@
          enddo
 
          do nr=1,nrmax-1        ! loop for elements
-            rho1=rho(nr)
-            rho2=(2.d0*rho(nr)+rho(nr+1))/3.d0
-            rho3=(rho(nr)+2.d0*rho(nr+1))/3.d0
-            rho4=rho(nr+1)
+            rho1=rhoa(nr)
+            rho2=(2.d0*rhoa(nr)+rhoa(nr+1))/3.d0
+            rho3=(rhoa(nr)+2.d0*rhoa(nr+1))/3.d0
+            rho4=rhoa(nr+1)
 
             if(ns.eq.0) then
                if(idbgwm.eq.0) then
@@ -526,10 +522,10 @@ c$$$            endif
 
 !----- calculate coefficint matrix fma (E rho,theta,phi )-----
 
-      subroutine wmfem_calculate_vacuum_g(rhol,fmd)
+      subroutine wmfem_calculate_vacuum_g(rho,fmd)
 
       implicit none
-      real(8),intent(in):: rhol
+      real(8),intent(in):: rho
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       complex(8),dimension(3,3,3,3,nfcmax2):: fmv1
@@ -539,7 +535,7 @@ c$$$            endif
       integer:: nth,nth1,nth2,nthdiff,nph,nph1,nph2,nphdiff
       integer:: imn1,imn2,nfcdiff
 
-      call wmfem_calculate_vacuum_sub(rhol,fmv1,fmv2,fmv3,fmv4)
+      call wmfem_calculate_vacuum_sub(rho,fmv1,fmv2,fmv3,fmv4)
 
       do i=1,3
          do j=1,3
@@ -648,17 +644,16 @@ c$$$            endif
 
 !----- calculate vacuum matrix fms -----
 
-      subroutine wmfem_calculate_vacuum_sub(rhol,fmv1,fmv2,fmv3,fmv4)
+      subroutine wmfem_calculate_vacuum_sub(rho,fmv1,fmv2,fmv3,fmv4)
 
       implicit none
-      real(8),intent(in):: rhol
+      real(8),intent(in):: rho
       complex(8),dimension(3,3,3,3,nfcmax2),intent(out):: fmv1
       complex(8),dimension(3,3,3,nfcmax2),intent(out):: fmv2,fmv3
       complex(8),dimension(3,3,nfcmax2),intent(out):: fmv4
 
-      real(8),dimension(:,:,:,:),allocatable :: gma,mma,dmma 
-     &                                                !(3,3,nthmax,nphmax)
-      real(8),dimension(:,:),allocatable:: gj     !(nthmax,nphmax)
+      real(8),dimension(3,3,nthmax,nphmax) :: gma,mma,dmma 
+      real(8),dimension(nthmax,nphmax):: gja
 
       complex(8),dimension(3,3,3):: cq
       complex(8),dimension(3,3):: cp
@@ -669,11 +664,11 @@ c$$$            endif
       complex(8):: csum1,csum2,csum3,csum4,cfactor
       integer:: nrl,nfc2
       real(8):: drhob,mma3b,mma2b,drhoa,mma3a,mma2a,mma30,mma20
-      real(8):: mma3d,mma2d,gjl
+      real(8):: mma3d,mma2d,gj
       
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
-      call wmfem_metrics(rhol,nthmax2,nphmax2,gma,mma,dmma,gj)
+      call wmfem_tensors(rho,gma,mma,dmma,gja)
 
       do nph=1,nphmax2
          if(nph.eq.1) then
@@ -700,32 +695,32 @@ c$$$            endif
                nthp=nth+1
             endif
             dth=2*pi/nthmax2
-            gjl=gj(nth,nph)
+            gj=gja(nth,nph)
             nfc2=nthmax2*(nph-1)+nth
 
             do j=1,3
                cq(1,j,1)=((mma(3,j,nthp,nph)
      &                    -mma(3,j,nthm,nph))/dth
      &                   -(mma(2,j,nth,nphp)
-     &                    -mma(2,j,nth,nphm))/dph )/gjl
-               cq(1,j,2)=+ci*mma(3,j,nth,nph)/gjl
-               cq(1,j,3)=-ci*mma(2,j,nth,nph)/gjl
+     &                    -mma(2,j,nth,nphm))/dph )/gj
+               cq(1,j,2)=+ci*mma(3,j,nth,nph)/gj
+               cq(1,j,3)=-ci*mma(2,j,nth,nph)/gj
 
                cq(2,j,1)=((mma(1,j,nth,nphp)
      &                    -mma(1,j,nth,nphm))/dph
-     &                    -dmma(3,j,nth,nph))/gjl
+     &                    -dmma(3,j,nth,nph))/gj
                cq(2,j,2)=0.d0
-               cq(2,j,3)=+ci*mma(1,j,nth,nph)/gjl
+               cq(2,j,3)=+ci*mma(1,j,nth,nph)/gj
 
                cq(3,j,1)=(dmma(2,j,nth,nph)
      &                  -(mma(1,j,nthp,nph)
-     &                   -mma(1,j,nthm,nph))/dth )/gjl
-               cq(3,j,2)=-ci*mma(1,j,nth,nph)/gjl
+     &                   -mma(1,j,nthm,nph))/dth )/gj
+               cq(3,j,2)=-ci*mma(1,j,nth,nph)/gj
                cq(3,j,3)=0.d0
 
                cp(1,j)=0.d0
-               cp(2,j)=-mma(3,j,nth,nph)/gjl
-               cp(3,j)= mma(2,j,nth,nph)/gjl
+               cp(2,j)=-mma(3,j,nth,nph)/gj
+               cp(3,j)= mma(2,j,nth,nph)/gj
             enddo
 
 c$$$      write(6,*) 'cq(1)'
@@ -750,12 +745,12 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
                            do l=1,3
                               csum1=csum1+conjg(cq(k,i,imn1))
      &                                   *gma(k,l,nth,nph)
-     &                                   *cq(l,j,imn2) *gjl
+     &                                   *cq(l,j,imn2) *gj
                            enddo
                         enddo
                         if(i.eq.j.and.imn1.eq.1.and.imn2.eq.1) then
                            fmv1(i,j,imn1,imn2,nfc2)
-     &                          =csum1-cfactor*gj(nth,nph)
+     &                          =csum1-cfactor*gj
                         else
                            fmv1(i,j,imn1,imn2,nfc2)=csum1
                         endif
@@ -773,10 +768,10 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
                         do l=1,3
                            csum2=csum2+conjg(cp(k,i))
      &                                *gma(k,l,nth,nph)
-     &                                *cq(l,j,imn1)*gjl
+     &                                *cq(l,j,imn1)*gj
                            csum3=csum3+conjg(cq(k,i,imn1))
      &                                *gma(k,l,nth,nph)
-     &                                *cp(l,j)*gjl
+     &                                *cp(l,j)*gj
                         enddo
                      enddo
                      fmv2(i,j,imn1,nfc2)=csum2
@@ -792,7 +787,7 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
                      do l=1,3
                         csum4=csum4+conjg(cp(k,i))
      &                       *gma(k,l,nth,nph)
-     &                       *cp(l,j) *gjl
+     &                       *cp(l,j) *gj
                      enddo
                   enddo
                   fmv4(i,j,nfc2)=csum4
@@ -806,10 +801,10 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
 
 !----- calculate coefficint matrix fmd (E cylindrical +,-,para)-----
 
-      subroutine wmfem_calculate_vacuum_c(rhol,fmd)
+      subroutine wmfem_calculate_vacuum_c(rho,fmd)
 
       implicit none
-      real(8),intent(in):: rhol
+      real(8),intent(in):: rho
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
       complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
@@ -842,9 +837,9 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
          nth=nthnfc(nfc2)
          nph=nphnfc(nfc2)
 
-         if(rhol.ne.0.d0) then
-            rkth=nth/(ra*rhol)
-            rkth0=1.d0/(ra*rhol)
+         if(rho.ne.0.d0) then
+            rkth=nth/(ra*rho)
+            rkth0=1.d0/(ra*rho)
          else
             rkth=0.d0
             rkth0=0.d0
@@ -852,25 +847,25 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
          rkph=nph/rr
 
          do nfc1=1,nfcmax2
-            fmc(1,1,1,nfc1,nfc2)= rhol*(cfactor-rkph**2-rkth**2)
-            fmc(1,2,1,nfc1,nfc2)= rhol*(-ci*rkth*rkth0)
-            fmc(2,1,1,nfc1,nfc2)= rhol*(+ci*rkth*rkth0)
-            fmc(2,2,1,nfc1,nfc2)= rhol*(cfactor-rkph**2-rkth0**2)
-            fmc(2,3,1,nfc1,nfc2)= rhol*(rkth*rkph)
-            fmc(3,2,1,nfc1,nfc2)= rhol*(rkth*rkph)
-            fmc(3,3,1,nfc1,nfc2)= rhol*(cfactor-rkth**2)
+            fmc(1,1,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth**2)
+            fmc(1,2,1,nfc1,nfc2)= rho*(-ci*rkth*rkth0)
+            fmc(2,1,1,nfc1,nfc2)= rho*(+ci*rkth*rkth0)
+            fmc(2,2,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth0**2)
+            fmc(2,3,1,nfc1,nfc2)= rho*(rkth*rkph)
+            fmc(3,2,1,nfc1,nfc2)= rho*(rkth*rkph)
+            fmc(3,3,1,nfc1,nfc2)= rho*(cfactor-rkth**2)
                   
-            fmc(2,1,2,nfc1,nfc2)= rhol*( ci*rkth)/ra
-            fmc(2,2,2,nfc1,nfc2)= rhol*(  -rkth0)/ra
-            fmc(3,1,2,nfc1,nfc2)= rhol*( ci*rkph)/ra
+            fmc(2,1,2,nfc1,nfc2)= rho*( ci*rkth)/ra
+            fmc(2,2,2,nfc1,nfc2)= rho*(  -rkth0)/ra
+            fmc(3,1,2,nfc1,nfc2)= rho*( ci*rkph)/ra
                   
-            fmc(1,2,3,nfc1,nfc2)= rhol*(-ci*rkth)/ra
-            fmc(1,3,3,nfc1,nfc2)= rhol*(-ci*rkph)/ra
-            fmc(2,2,3,nfc1,nfc2)= rhol*(  -rkth0)/ra
+            fmc(1,2,3,nfc1,nfc2)= rho*(-ci*rkth)/ra
+            fmc(1,3,3,nfc1,nfc2)= rho*(-ci*rkph)/ra
+            fmc(2,2,3,nfc1,nfc2)= rho*(  -rkth0)/ra
                   
             fmc(1,1,4,nfc1,nfc2)= 0.d0
-            fmc(2,2,4,nfc1,nfc2)= rhol*(-1.d0)/ra**2
-            fmc(3,3,4,nfc1,nfc2)= rhol*(-1.d0)/ra**2
+            fmc(2,2,4,nfc1,nfc2)= rho*(-1.d0)/ra**2
+            fmc(3,3,4,nfc1,nfc2)= rho*(-1.d0)/ra**2
          enddo
       enddo
 
@@ -931,30 +926,21 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
 
 !----- calculate coefficint matrix fma -----
 
-      subroutine wmfem_calculate_plasma(rhol,ns,fmd)
+      subroutine wmfem_calculate_plasma(rho,ns,fmd)
 
       implicit none
-      real(8),intent(in):: rhol
+      real(8),intent(in):: rho
+      integer,intent(in):: ns
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
       complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
-      complex(8),dimension(3,3,nfcmax2,nfcmax):: fms1,fms2
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
-      real(8),dimension(nthmax2,nphmax2):: gjl
       real(8),dimension(:,:,:,:),allocatable :: gma,mma,dmma 
      &                                                !(3,3,nthmax,nphmax)
-      real(8),dimension(:,:),allocatable:: gj         !(nthmax,nphmax)
+      real(8),dimension(:,:),allocatable:: gja         !(nthmax,nphmax)
 
-      real(8),dimension(4):: rhoa
-      real(8):: drho,rkth,rkph,rkth0,rho0
-      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nf1,nf2,nth,nph,nthx
-      integer:: ns,nfc1,nfc2
-      complex(8):: csum,fmd1,fmd2,fmd3,fmd4
       complex(8):: cfactor
-      integer:: nph1,nph2,nph1x,nph2x
-      integer:: nphdiff,nphxdiff
-      integer:: nth1,nth2,nth1x,nth2x
-      integer:: nthdiff,nthxdiff
-      integer:: nfcdiff
+      integer:: i,j,k,nf1,nf2,nfc1,nfc2,nth,nph
+      integer:: nph1,nph2,nphdiff,nth1,nth2,nthdiff,nfcdiff
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -970,9 +956,9 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
          enddo
       enddo
 
-      call wmfem_metrics(rhol,nthmax2,nphmax2,gma,mma,dmma,gj)
+      call wmfem_tensors(rho,gma,mma,dmma,gja)
 
-      call wmfem_disp(rhol,nthmax2,nphmax2,ns,fms)
+      call wmfem_disp_tensor(rho,ns,fmc)
 
       do j=1,3
          do i=1,3
@@ -981,7 +967,7 @@ c$$$     &     (cp(i,1),  cp(i,2),  cp(i,3),i=1,3)
                   nth=nthnfc2(nfc1)
                   nph=nphnfc2(nfc1)
                   fv1(nth,nph)=cfactor*fmc(i,j,1,nfc1,nfc2)
-     &                                *gjl(nth,nph)
+     &                                *gja(nth,nph)
                enddo
                call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
                do nfc1=1,nfcmax2
@@ -1487,105 +1473,144 @@ c$$$      enddo
 
 !     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
 
-      SUBROUTINE wmfem_metrics(rhol,gma,mma,dmma,gj)
+      SUBROUTINE wmfem_tensors(rho,gma,mma,dmma,gja)
 
       IMPLICIT NONE
-      real(8),intent(in):: rhol
-      real(8),intent(out),dimension(3,3,nthmaxl,nphmaxl):: gma,mma,dmma
-      real(8),intent(out),dimension(nthmaxl,nphmaxl):: gj
-      real(8),dimension(3,3):: rma
+      real(8),intent(in):: rho
+      real(8),intent(out),dimension(3,3,nthmax2,nphmax2):: gma,mma,dmma
+      real(8),intent(out),dimension(nthmax2,nphmax2):: gja
+      real(8),dimension(3,3):: gm,gmp,gmm,mm,mmp,mmm
+      real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
+      real(8):: babs,bsupth,bsupph,rhol
+      integer:: nth,nph,i,j
 
       dth=2.d0*pi/nthmax2
       dph=2.d0*pi/nphmax2
+      IF(rho.EQ.0.d0) THEN
+         rhol=1.d-6
+         drhom=0.d0
+      else
+         rhol=rho
+         drhom=1.d-6
+      endif
+      drhop=1.d-6
+      DO nph=1,nphmax2
+         ph=dph*(nph-1)
+         DO nth=1,nthmax2
+            th=dth*(nth-1)
 
-      do nph=1,nphmax2
-         phl=dph*(nph-1)
-         do nth=1,nthmax2
+            CALL wmfem_metrics(rhol,th,ph,gm,gj)
+            CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mm)
+
+            CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
+            CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gmm,gjm,babs,bsupth,bsupph,mmm)
+
+            CALL wmfem_metrics(rhol+drhop,th,ph,gmp,gjp)
+            CALL wmfem_magnetic(rhol+drhop,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gmp,gjp,babs,bsupth,bsupph,mmp)
+
+            DO j=1,3
+               DO i=1,3
+                  gma(i,j,nth,nph)=gm(i,j)
+                  mma(i,j,nth,nph)=mm(i,j)
+                  dmma(i,j,nth,nph)=(mmp(i,j)-mmm(i,j))/(drhom+drhop)
+               END DO
+            END DO
+            gja(i,j)=gj
+
+         ENDDO
+      ENDDO
+      RETURN
+      END SUBROUTINE wmfem_tensors
+
+!        ****** CALCULATE CONVERSION TENSOR ******
+
+         SUBROUTINE wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mm)
+
+         IMPLICIT NONE
+         real(8),dimension(3,3),intent(in):: gm
+         real(8),intent(in):: gj,babs,bsupth,bsupph
+         real(8),dimension(3,3),intent(out):: mm
+         real(8):: tc2,tc3,gf11,gf12
+
+!        ----- Calculate rotation matrix mm -----
+
+         tc2=bsupth/babs
+         tc3=bsupph/babs
+
+!        ----- gf11=gj*SQRT(gm11) -----
+
+         gf11 = SQRT(gm(2,2)*gm(3,3)-gm(2,3)*gm(3,2))
+         gf12 =(tc2*(gm(2,3)*gm(1,2)-gm(2,2)*gm(1,3))
+     &         +tc3*(gm(3,3)*gm(1,2)-gm(2,3)*gm(1,3)))
             
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-C
-            gma(1,1,nth,nph)=RG11(nth,nph,nr)
-            gma(1,2,nth,nph)=RG12(nth,nph,nr)
-            gma(1,3,nth,nph)=RG13(nth,nph,nr)
-            gma(2,1,nth,nph)=RG12(nth,nph,nr)
-            gma(2,2,nth,nph)=RG22(nth,nph,nr)
-            gma(2,3,nth,nph)=RG23(nth,nph,nr)
-            gma(3,1,nth,nph)=RG13(nth,nph,nr)
-            gma(3,2,nth,nph)=RG23(nth,nph,nr)
-            gma(3,3,nth,nph)=RG33(nth,nph,nr)
-            gj(nth,nph)=RJ(nth,nph,nr)
-C
-C        ----- Calculate rotation matrix mu=RMA -----
-C
-            BSUPTH=BFLD(2,NTH,NPH,NR)
-            BSUPPH=BFLD(3,NTH,NPH,NR)
-            BABS=SQRT(     RG22(NTH,NPH,NR)*BSUPTH*BSUPTH
-     &               +2.D0*RG23(NTH,NPH,NR)*BSUPTH*BSUPPH
-     &               +     RG33(NTH,NPH,NR)*BSUPPH*BSUPPH)
-            TC2=BSUPTH/BABS
-            TC3=BSUPPH/BABS
-C
-C        ***** RF11=RJ*SQRT(G^11) *****
-C
-            if(nr.eq.1) then
-               NRL=3
-               RJb  =RJ(NTH,NPH,NRL)
-               RF11b=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
-     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
-               RMAb = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
-     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
-               NRL=2
-               RJa  =RJ(NTH,NPH,NRL)
-               RF11a=SQRT(RG22(NTH,NPH,NRL)*RG33(NTH,NPH,NRL)
-     &                   -RG23(NTH,NPH,NRL)*RG23(NTH,NPH,NRL))
-               RMAa = (TC2*(RG23(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG22(NTH,NPH,NRL)*RG13(NTH,NPH,NRL))
-     &                +TC3*(RG33(NTH,NPH,NRL)*RG12(NTH,NPH,NRL)
-     &                     -RG23(NTH,NPH,NRL)*RG13(NTH,NPH,NRL)))
+         if(gf11.eq.0.d0) write(6,*)
 
-               RJL  =(RJa*xrho(3)**2  -RJb*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
-               RF11L=(RF11a*xrho(3)**2-RF11b*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
-               RMAL =(RMAa*xrho(3)**2 -RMAb*xrho(2)**2)
-     &               /(xrho(3)*xrho(2)*(xrho(3)-xrho(2)))
-            else
-               RJL  =RJ(NTH,NPH,NR)
-               RF11L=SQRT(RG22(NTH,NPH,NR)*RG33(NTH,NPH,NR)
-     &                  -RG23(NTH,NPH,NR)*RG23(NTH,NPH,NR))
-               RMAL = (TC2*(RG23(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                     -RG22(NTH,NPH,NR)*RG13(NTH,NPH,NR))
-     &                +TC3*(RG33(NTH,NPH,NR)*RG12(NTH,NPH,NR)
-     &                     -RG23(NTH,NPH,NR)*RG13(NTH,NPH,NR)))
-            endif
-            
-            RMA(1,1)= RJL/RF11L
-            RMA(2,1)= 0.D0
-            RMA(3,1)= 0.D0
-            RMA(1,2)= RMAL/RF11L
-            RMA(2,2)= TC3*RF11
-            RMA(3,2)=-TC2*RF11
-            RMA(1,3)=TC2*RG12(NTH,NPH,NR)
-     &              +TC3*RG13(NTH,NPH,NR)
-            RMA(2,3)=TC2*RG22(NTH,NPH,NR)
-     &              +TC3*RG23(NTH,NPH,NR)
-            RMA(3,3)=TC2*RG23(NTH,NPH,NR)
-     &              +TC3*RG33(NTH,NPH,NR)
+         mm(1,1)= gj/gf11
+         mm(2,1)= 0.D0
+         mm(3,1)= 0.D0
+         mm(1,2)= gf12/gf11
+         mm(2,2)= tc3*gf11
+         mm(3,2)=-tc2*gf11
+         mm(1,3)= tc2*gm(1,2)+tc3*gm(1,3)
+         mm(2,3)= tc2*gm(2,2)+tc3*gm(2,3)
+         mm(3,3)= tc2*gm(3,2)+tc3*gm(3,3)
 
-            do j=1,3
-               do i=1,3
-                  mma(i,j,nth,nph)=RMA(i,j)
-               enddo
-            enddo
+         end subroutine wmfem_rotation_tensor
 
-         enddo
-         enddo
-C            write(6,*) 'gj(1,1,',NR,'1)=',gj(1,1,NR)
-C            write(6,*) 'mma(1,1,1,1,',NR,')=',mma(1,1,1,1,NR)
-C         enddo
-         return
-         end
+!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
+
+         SUBROUTINE wmfem_disp_tensor(rho,ns,fmc)
+
+         IMPLICIT NONE
+         real(8),intent(in):: rho
+         integer,intent(in):: ns
+         complex(8),dimension(3,3,4,nfcmax2,nfcmax),intent(out):: fmc
+         complex(8),dimension(3,3):: fms
+
+         real(8):: th,ph,dth,dph
+         integer:: nth,nph,nthf,nphf,i,j,nfc2,nfc
+
+         dth=2.d0*pi/nthmax2
+         dph=2.d0*pi/nphmax2
+         DO nfc2=1,nfcmax2
+            nth=nthnfc2(nfc2)
+            nph=nphnfc2(nfc2)
+            th=dth*(nth-1)
+            ph=dph*(nph-1)
+            DO nfc=1,nfcmax
+               nthf=nthfnfc(nfc)
+               nphf=nphfnfc(nfc)
+               CALL wmfem_dielectric(rho,th,ph,nthf,nphf,ns,fms)
+               DO j=1,3
+                  DO i=1,3
+                     fmc(i,j,1,nfc2,nfc)=fms(i,j)
+                  END DO
+               END DO
+            END DO
+         END DO
+         RETURN
+         END SUBROUTINE wmfem_disp_tensor
+
+!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
+
+         SUBROUTINE wmfem_dielectric(rho,th,ph,nthf,nphf,ns,fms)
+
+         IMPLICIT NONE
+         real(8),intent(in):: rho,th,ph
+         integer,intent(in):: nthf,nphf,ns
+         complex(8),dimension(3,3),intent(out):: fms
+         complex(8):: cw,ckpara,ckperp
+         real(8):: babs,bsupth,bsupph
+
+         cw=2*pi*crf*1.d6
+         CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+         ckpara=nthf*bsupth/babs+nphf*bsupph/babs
+         ckperp=(0.d0,0.d0)
+
+         CALL dpcalc(cw,ckpara,ckperp,rho,ns,fms)
+
+         END SUBROUTINE wmfem_dielectric
       end subroutine wmfem
