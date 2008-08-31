@@ -398,10 +398,12 @@
                            f4=fmd4(i,j,k,nfc1,nfc2)
                            fmd(i,j,k,nfc1,nfc2,1)=f1
                            fmd(i,j,k,nfc1,nfc2,2)
-     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)
+     &                       =(-11*f1+18*f2- 9*f3+ 2*f4)/(6*drho)
+!     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
                            fmd(i,j,k,nfc1,nfc2,3)=f4
                            fmd(i,j,k,nfc1,nfc2,4)
-     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)
+     &                       =(- 2*f1+ 9*f2-18*f3+11*f4)/(6*drho)
+!     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
                         enddo
                      enddo
                   enddo
@@ -520,7 +522,7 @@
       complex(8),dimension(3,3,3,nfcmax2):: fmv2,fmv3
       complex(8),dimension(3,3,nfcmax2):: fmv4
       integer:: i,j,k,nfc,nfc1,nfc2
-      integer:: nth,nth1,nth2,nthdiff,nph,nph1,nph2,nphdiff
+      integer:: nth,mm1,mm2,mmdiff,nph,nn1,nn2,nndiff
       integer:: imn,imn1,imn2,nfcdiff
 
       call wmfem_calculate_vacuum_sub(rho,fmv1,fmv2,fmv3,fmv4)
@@ -583,36 +585,36 @@
       enddo
 
       do nfc1=1,nfcmax          ! Fit to fmd and adjust m and n
-         nph1=nnnfc(nfc1)
-         nth1=mmnfc(nfc1)
+         nn1=nnnfc(nfc1)
+         mm1=mmnfc(nfc1)
          do nfc2=1,nfcmax
-            nph2=nnnfc(nfc2)
-            nth2=mmnfc(nfc2)
+            nn2=nnnfc(nfc2)
+            mm2=mmnfc(nfc2)
 
-            nphdiff=nph1-nph2
-            nthdiff=nth1-nth2
-            nfcdiff=nthmax*nphdiff+nthdiff+nfcmax
+            nndiff=nn1-nn2
+            mmdiff=mm1-mm2
+            nfcdiff=nthmax2*nndiff+mmdiff+nfcmax
 
             do j=1,3
                do i=1,3
                   fmd(i,j,1,nfc1,nfc2)
      &              =fmv1(i,j,1,1,nfcdiff)
-     &              +fmv1(i,j,2,1,nfcdiff)*nth1
-     &              +fmv1(i,j,3,1,nfcdiff)*nph1
-     &              +fmv1(i,j,1,2,nfcdiff)     *nth2
-     &              +fmv1(i,j,2,2,nfcdiff)*nth1*nth2
-     &              +fmv1(i,j,3,2,nfcdiff)*nph1*nth2
-     &              +fmv1(i,j,1,3,nfcdiff)     *nph2
-     &              +fmv1(i,j,2,3,nfcdiff)*nth1*nph2
-     &              +fmv1(i,j,3,3,nfcdiff)*nph1*nph2
+     &              +fmv1(i,j,2,1,nfcdiff)*mm1
+     &              +fmv1(i,j,3,1,nfcdiff)*nn1
+     &              +fmv1(i,j,1,2,nfcdiff)    *mm2
+     &              +fmv1(i,j,2,2,nfcdiff)*mm1*mm2
+     &              +fmv1(i,j,3,2,nfcdiff)*nn1*mm2
+     &              +fmv1(i,j,1,3,nfcdiff)    *nn2
+     &              +fmv1(i,j,2,3,nfcdiff)*mm1*nn2
+     &              +fmv1(i,j,3,3,nfcdiff)*nn1*nn2
                fmd(i,j,2,nfc1,nfc2)
      &              =fmv2(i,j,1,nfcdiff)
-     &              +fmv2(i,j,2,nfcdiff)*nth1
-     &              +fmv2(i,j,3,nfcdiff)*nph1
+     &              +fmv2(i,j,2,nfcdiff)*mm1
+     &              +fmv2(i,j,3,nfcdiff)*nn1
                fmd(i,j,3,nfc1,nfc2)
      &              =fmv3(i,j,1,nfcdiff)
-     &              +fmv3(i,j,2,nfcdiff)     *nth2
-     &              +fmv3(i,j,3,nfcdiff)     *nph2
+     &              +fmv3(i,j,2,nfcdiff)    *mm2
+     &              +fmv3(i,j,3,nfcdiff)    *nn2
                fmd(i,j,4,nfc1,nfc2)
      &              =fmv4(i,j,nfcdiff)
             enddo
@@ -776,12 +778,12 @@
       complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       complex(8):: cfactor
-      real(8):: drho,rkth,rkph,rkth0,rho0
-      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph
-      integer:: ns,nfc1,nfc2
+      real(8):: rkth,rkph,rkth0,rho0
+      integer:: i,j,k,nn,mm,nth,nph
+      integer:: nfc1,nfc2
       complex(8):: csum,fmd1,fmd2,fmd3,fmd4
-      integer:: nph1,nph2,nth1,nth2
-      integer:: nphdiff,nthdiff,nfcdiff
+      integer:: mm1,mm2,nn1,nn2
+      integer:: mmdiff,nndiff,nfcdiff
       real(8):: rr,ra,rb
 
       call get_wmparm1(rr,ra,rb)
@@ -801,17 +803,17 @@
       enddo
 
       do nfc2=1,nfcmax
-         nth=nthnfc(nfc2)
-         nph=nphnfc(nfc2)
+         mm=mmnfc(nfc2)
+         nn=nnnfc(nfc2)
 
          if(rho.ne.0.d0) then
-            rkth=nth/(ra*rho)
+            rkth=mm/(ra*rho)
             rkth0=1.d0/(ra*rho)
          else
             rkth=0.d0
             rkth0=0.d0
          endif
-         rkph=nph/rr
+         rkph=nn/rr
 
          do nfc1=1,nfcmax2
             fmc(1,1,1,nfc1,nfc2)= rho*(cfactor-rkph**2-rkth**2)
@@ -859,15 +861,15 @@
 !     ----- Fit to fmd and adjust m and n -----
 
       do nfc2=1,nfcmax
-         nth2=mmnfc(nfc2)
-         nph2=nnnfc(nfc2)
+         mm2=mmnfc(nfc2)
+         nn2=nnnfc(nfc2)
          do nfc1=1,nfcmax
-            nth1=mmnfc(nfc1)
-            nph1=nnnfc(nfc1)
+            mm1=mmnfc(nfc1)
+            nn1=nnnfc(nfc1)
 
-            nphdiff=nph1-nph2
-            nthdiff=nth1-nth2
-            nfcdiff=nthmax2*nphdiff+nthdiff+nfcmax
+            mmdiff=mm1-mm2
+            nndiff=nn1-nn2
+            nfcdiff=nthmax2*nndiff+mmdiff+nfcmax
 
             do k=1,4
                do j=1,3
