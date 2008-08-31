@@ -491,9 +491,6 @@ C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
          ENDDO
          ENDDO
          ENDDO
-         DO NR=1,NRMAX
-            write(6,*) 'wmmetric_tor: RJ(1,1,',NR,'1)=',RJ(1,1,NR)
-         ENDDO
       RETURN
       END
 C

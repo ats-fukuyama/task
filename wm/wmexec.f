@@ -6,6 +6,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
       dimension cef(3,nthmax,nphmax,nrmax+1)
+      dimension cbf(3,nthmax,nphmax,nrmax+1)
       dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,0:nsmax)
       dimension cpa(nthmax,nphmax)
 C
@@ -29,9 +30,9 @@ C
          IF(IERR.NE.0) RETURN
          CALL WMSETJ(IERR)
          IF(IERR.NE.0) RETURN
-         call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cpp,cpa)
+         call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cbf,cpp,cpa)
          CALL WMFEM_EFLD(cef)
-         CALL WMBFLD
+         CALL WMFEM_BFLD(cbf)
          CALL WMFEM_PABS(cpp)
       endif
 C

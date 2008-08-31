@@ -341,7 +341,7 @@ C
       RETURN
       END
 C
-C     ****** CALCULATE ELECTRIC FIELD ******
+C     ****** CALCULATE WAVE ELECTRIC FIELD ******
 C
       SUBROUTINE WMFEM_EFLD(cef)
 C
@@ -407,6 +407,83 @@ c$$$            IF(XRHO(NR).GT.1.0D0) THEN
 c$$$               DO NTH=1,NTHMAX
 c$$$                  DO NPH=1,NPHMAX
 c$$$                     CEP(K,NTH,NPH,NR)=(0.D0,0.D0)
+c$$$                  ENDDO
+c$$$               ENDDO
+c$$$            ELSE
+c$$$            ENDIF
+c$$$         ENDDO
+c$$$      ENDDO
+C
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE WAVE MAGNETIC FIELD ******
+C
+      SUBROUTINE WMFEM_BFLD(cbf)
+C
+      INCLUDE 'wmcomm.inc'
+      dimension cbf(3,nthmax,nphmax,nrmax+1)
+C
+      DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
+C
+      do nr=1,nrmax+1
+         DO ND=NDMIN,NDMAX
+            NDX=ND-NDMIN+1
+         DO MD=MDMIN,MDMAX
+            MDX=MD-MDMIN+1
+            CBFLDK(1,MDX,NDX,NR )=cbf(1,mdx,ndx,nr)
+            CBFLDK(2,MDX,NDX,NR )=cbf(2,mdx,ndx,nr)
+            CBFLDK(3,MDX,NDX,NR )=cbf(3,mdx,ndx,nr)
+            CBFLD(1,MDX,NDX,NR )=cbf(1,mdx,ndx,nr)
+            CBFLD(2,MDX,NDX,NR )=cbf(2,mdx,ndx,nr)
+            CBFLD(3,MDX,NDX,NR )=cbf(3,mdx,ndx,nr)
+         enddo
+         enddo
+      enddo
+C
+C     ----- Inverse Fourier transform ----
+C
+      DO NR=1,NRMAX+1
+      DO I=1,3
+         DO NDX=1,NDSIZ
+         DO MDX=1,MDSIZ
+            CBF1(MDX,NDX)=CBFLD(I,MDX,NDX,NR)
+         ENDDO
+         ENDDO
+         CALL WMSUBEX(CBF1,CBF2,NTHMAX,NPHMAX)
+         DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            CBFLD(I,NTH,NPH,NR)=CBF2(NTH,NPH)
+         ENDDO
+         ENDDO
+      ENDDO
+      ENDDO
+C
+C     ----- Calculate CBN from CBsup -----
+C
+C
+      DO NR=1,NRMAX+1
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+         CBN(1,NTH,NPH,NR)=CBFLD(1,NTH,NPH,NR)
+         CBN(2,NTH,NPH,NR)=CBFLD(2,NTH,NPH,NR)
+         CBN(3,NTH,NPH,NR)=CBFLD(3,NTH,NPH,NR)
+         CBP(1,NTH,NPH,NR)=(   CBN(1,NTH,NPH,NR)
+     &                     +CI*CBN(2,NTH,NPH,NR))/SQRT(2.D0)
+         CBP(2,NTH,NPH,NR)=(   CBN(1,NTH,NPH,NR)
+     &                     -CI*CBN(2,NTH,NPH,NR))/SQRT(2.D0)
+         CBP(3,NTH,NPH,NR)=    CBN(3,NTH,NPH,NR)
+      ENDDO
+      ENDDO
+      ENDDO
+c$$$C
+c$$$      DO K=1,3
+c$$$         DO NR=1,NRMAX+1
+c$$$            IF(XRHO(NR).GT.1.0D0) THEN
+c$$$               DO NTH=1,NTHMAX
+c$$$                  DO NPH=1,NPHMAX
+c$$$                     CBP(K,NTH,NPH,NR)=(0.D0,0.D0)
 c$$$                  ENDDO
 c$$$               ENDDO
 c$$$            ELSE
@@ -496,58 +573,58 @@ C     &                 PABS(NTH,NPH,NR,NS)
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
-      NS=1
-      DO NR=1,NRMAX
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            PCUR(NTH,NPH,NR)=0.D0
-         ENDDO
-         ENDDO
-         CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
-         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
-         WW=DBLE(CW)
-         IF(RN(1).LE.0.D0) THEN
-            RLNLMD=15.D0
-         ELSE
-            RT=(RTPR(1)+2*RTPP(1))/3.D0
-            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(1))
-     &           + 2.30D0*LOG10(RT)
-         ENDIF
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-            NN=NPH0+ND
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            MM=NTH0+MD
-            DO KKX=1,KDSIZ
-            DO LLX=1,LDSIZ
-               CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
-            ENDDO
-            ENDDO
-            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
-            DO NPH=1,NPHMAX
-            DO NTH=1,NTHMAX
-               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-               RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
-              IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
-              IF(ABS(WW/RKPR).LT.VC) THEN
-                 W=WW/(RKPR*VTE)
-                 XL=(RPST(NTH,NPH,NR)-RR  )/RR
-                 YL=(ZPST(NTH,NPH,NR)-0.D0)/RR
-                 EFCD=W1CDEF(ABS(W),ZEFF,XL,YL,1)
-                 IF(W.LT.0.D0) EFCD=-EFCD
-                 IF (RN(1).GT.0.D0) THEN
-                    PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)
-     &                   +0.384D0*RTPR(1)/(AEE*1.D3)*EFCD
-     &                   /((RN(1)/1.D20)*RLNLMD)*DBLE(CPF2(NTH,NPH))
-     &                   /(2.D0*PI*RPST(NTH,NPH,NR))
-                 END IF
-              ENDIF
-            ENDDO
-            ENDDO
-         ENDDO
-         ENDDO
-      ENDDO
+c$$$      NS=1
+c$$$      DO NR=1,NRMAX
+c$$$         DO NPH=1,NPHMAX
+c$$$         DO NTH=1,NTHMAX
+c$$$            PCUR(NTH,NPH,NR)=0.D0
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$         CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
+c$$$         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
+c$$$         WW=DBLE(CW)
+c$$$         IF(RN(1).LE.0.D0) THEN
+c$$$            RLNLMD=15.D0
+c$$$         ELSE
+c$$$            RT=(RTPR(1)+2*RTPP(1))/3.D0
+c$$$            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(1))
+c$$$     &           + 2.30D0*LOG10(RT)
+c$$$         ENDIF
+c$$$         DO ND=NDMIN,NDMAX
+c$$$            NDX=ND-NDMIN+1
+c$$$            NN=NPH0+ND
+c$$$         DO MD=MDMIN,MDMAX
+c$$$            MDX=MD-MDMIN+1
+c$$$            MM=NTH0+MD
+c$$$            DO KKX=1,KDSIZ
+c$$$            DO LLX=1,LDSIZ
+c$$$               CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
+c$$$            ENDDO
+c$$$            ENDDO
+c$$$            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
+c$$$            DO NPH=1,NPHMAX
+c$$$            DO NTH=1,NTHMAX
+c$$$               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+c$$$               RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
+c$$$              IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
+c$$$              IF(ABS(WW/RKPR).LT.VC) THEN
+c$$$                 W=WW/(RKPR*VTE)
+c$$$                 XL=(RPST(NTH,NPH,NR)-RR  )/RR
+c$$$                 YL=(ZPST(NTH,NPH,NR)-0.D0)/RR
+c$$$                 EFCD=W1CDEF(ABS(W),ZEFF,XL,YL,1)
+c$$$                 IF(W.LT.0.D0) EFCD=-EFCD
+c$$$                 IF (RN(1).GT.0.D0) THEN
+c$$$                    PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)
+c$$$     &                   +0.384D0*RTPR(1)/(AEE*1.D3)*EFCD
+c$$$     &                   /((RN(1)/1.D20)*RLNLMD)*DBLE(CPF2(NTH,NPH))
+c$$$     &                   /(2.D0*PI*RPST(NTH,NPH,NR))
+c$$$                 END IF
+c$$$              ENDIF
+c$$$            ENDDO
+c$$$            ENDDO
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$      ENDDO
 C
       DO NR=1,NRMAX
          PCURR(NR)=0.D0
