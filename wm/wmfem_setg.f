@@ -1,45 +1,49 @@
 C     $Id$
-C
+
 C     ****** RADIAL MESH AND METRIC TENSOR ******
-C
+
       subroutine wmfem_setg(ierr)
-C
+
       INCLUDE 'wmcomm.inc'
-C
-C     ****** Simple COORDINATES ******
-C
+
+C     ****** Cylindrical coordinates ******
+
       IF(MODELG.EQ.0) THEN
-         CALL wmmetric_0(ierr)
-C
-C     ****** CYLINDRICAL COORDINATES ******
-C
+         CALL wmmetric_cyl(ierr)
+
+C     ****** Toroidal coordinates (circular tokamak) ******
+
       ELSEIF(MODELG.EQ.1) THEN
-         CALL wmmetric_cyl(IERR)
-C
-C     ****** TOROIDAL COORDINATES ******
-C
+         CALL wmmetric_tor(IERR)
+
+C     ****** Toroidal coordinates (simple equilibrium) ******
       ELSEIF(MODELG.EQ.2) THEN
          CALL wmmetric_tor(IERR)
-C
-C     ****** EQUILIBRIUM (TASK/EQ) ******
-C
+
+C     ****** equilibrium file (TASK/EQ) ******
+
       ELSEIF(MODELG.EQ.3) THEN
          CALL wmmetric_eq(IERR)
-C
-C     ****** EQUILIBRIUM (VMEC) ******
-C
+
+C     ****** equilibrium file (VMEC) ******
+
       ELSEIF(MODELG.EQ.4) THEN
 C         CALL wmmetric_vmec(IERR)
-C
-C     ****** EQUILIBRIUM (EQDSK) ******
-C
+
+C     ****** equilibrium file (EQDSK) ******
+
       ELSEIF(MODELG.EQ.5) THEN
          CALL wmmetric_eq(IERR)
-C
-C     ****** EQUILIBRIUM (BOOZER) ******
-C
+
+C     ****** equilibrium file (BOOZER) ******
+
       ELSEIF(MODELG.EQ.6) THEN
 C         CALL wmmetric_booz(IERR)
+
+C     ****** bpsd equilibrium ******
+
+      ELSEIF(MODELG.EQ.9) THEN
+C         CALL wmmetric_bpsd(IERR)
 
       ENDIF
 C
@@ -98,7 +102,7 @@ C
 C
 C     ****** RADIAL MESH (CYLINDRICAL COORDINATES) ******
 C
-      subroutine wmmetric_0(ierr)
+      subroutine wmmetric_cyl(ierr)
 C
       INCLUDE 'wmcomm.inc'
 
@@ -203,142 +207,6 @@ C
             RBPS(NR)=BB*RR
             VPS(NR)=2*PI*RR*PI*XR(NR)**2
             RLEN(NR)=2*PI*XR(NR)
-         ENDDO
-      RETURN
-      END
-C
-C     ****** RADIAL MESH (CYLINDRICAL COORDINATES) ******
-C
-      SUBROUTINE wmmetric_cyl(IERR)
-C
-      INCLUDE 'wmcomm.inc'
-C
-         IERR=0
-C
-         NSUMAX=31
-         NSWMAX=31
-         NPHMAX=1
-C
-         PSIPA=RA*RA*BB/(Q0+QA)
-         PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
-         DRHO=SQRT(PSIPB/PSIPA)/NRMAX
-C
-         DO NR=1,NRMAX+1
-            RHOL=DRHO*(NR-1)
-            XRHO(NR)=RHOL
-C
-            IF(NR.EQ.1) THEN
-               XR(NR)=0.D0
-            ELSEIF(RHOL.LT.1.D0) THEN
-               XR(NR)=RA*SQRT((2.D0*Q0*RHOL**2+(QA-Q0)*RHOL**4)
-     &                        /(Q0+QA))
-            ELSE
-               XR(NR)=RA*SQRT((Q0+QA*RHOL**4)/(Q0+QA))
-            ENDIF
-C
-C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
-C
-            IF(RHOL.LT.1.D0) THEN
-               QPS(NR)=Q0+(QA-Q0)*RHOL**2
-            ELSE
-               QPS(NR)=QA*RHOL**2
-            ENDIF
-         ENDDO
-C
-         DTH=2.D0*PI/NTHMAX
-         DTHG=2.D0*PI/NTHGM
-         DO NR=1,NRMAX+1
-            IF(NR.EQ.1) THEN
-               RS=XR(2)/XRHO(2)
-            ELSE
-               RS=XR(NR)/XRHO(NR)
-            ENDIF
-            RSD=QPS(NR)/(BB*RS)
-C            WRITE(6,*) 'NR,RS,RSD=',NR,RS,RSD
-            DO NTH=1,NTHMAX
-               RCOS=COS(DTH*(NTH-1))
-               RSIN=SIN(DTH*(NTH-1))
-               RPS(NTH,NR)    = RR + XR(NR)*RCOS
-               ZPS(NTH,NR)    =      XR(NR)*RSIN
-               DRPSI(NTH,NR)  =      RSD   *RCOS
-               DZPSI(NTH,NR)  =      RSD   *RSIN
-               DRCHI(NTH,NR)  =     -RS    *RSIN
-               DZCHI(NTH,NR)  =      RS    *RCOS
-            ENDDO
-            DO NTH=1,NTHGM
-               RCOS=COS(DTHG*(NTH-1))
-               RSIN=SIN(DTHG*(NTH-1))
-               IF(MODELG.EQ.0) THEN
-                  RPSG(NTH,NR)  =      XR(NR)*RCOS
-               ELSE IF(MODELG.EQ.1) THEN
-                  RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-               ENDIF
-               ZPSG(NTH,NR)  =         XR(NR)*RSIN
-            ENDDO
-         ENDDO
-C
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
-C
-         DO NR=1,NRMAX+1
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
-               FEDGE=PNS(1)/PN(1)
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
-         ENDDO
-C
-         DTHU=2.D0*PI/(NSUMAX-1)
-         DO NSU=1,NSUMAX
-            RCOS=COS(DTHU*(NSU-1))
-            RSIN=SIN(DTHU*(NSU-1))
-            RSU(NSU,1)=RR+RA*RCOS
-            RSW(NSU,1)=RR+RB*RCOS
-            ZSU(NSU,1)=RA*RSIN
-            ZSW(NSU,1)=RB*RSIN
-         ENDDO
-C
-         RGMIN= RR-RB*1.01D0
-         RGMAX= RR+RB*1.01D0
-         ZGMIN=-RB*1.01D0
-         ZGMAX= RB*1.01D0
-
-C
-         DO NR=1,NRMAX+1
-         DO NTH=1,NTHMAX
-            RRG=RPS(NTH,NR)
-         DO NPH=1,NPHMAX
-            RPST(NTH,NPH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
-C
-            RG11(NTH,NPH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
-            RG12(NTH,NPH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
-     &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
-            RG13(NTH,NPH,NR)= 0.D0
-            RG22(NTH,NPH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
-            RG23(NTH,NPH,NR)= 0.D0
-            RG33(NTH,NPH,NR)= RRG**2
-            RJ  (NTH,NPH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
-     &                             -DRCHI(NTH,NR)*DZPSI(NTH,NR))
-C
-            BFLD(2,NTH,NPH,NR)=1.D0/RJ(NTH,NPH,NR)
-            BFLD(3,NTH,NPH,NR)=RBPS(NR)/RRG**2
-C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NPH,NR),
-C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
-         ENDDO
-         ENDDO
          ENDDO
       RETURN
       END

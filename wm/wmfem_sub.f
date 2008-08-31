@@ -98,13 +98,13 @@ C     $Id$
          call wmfem_qprofile(rho,qinv)
          bsupth=(bb*qinv)/rr
          bsupph=bb/rr
-         babs=bb*sqrt(1.d0+ra*rho*qinv/rr)
+         babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)
       case(1,2)
          call wmfem_qprofile(rho,qinv)
          rrl   = rr + ra*rho*cos(th)
          bsupth=(bb*qinv)/rrl
          bsupph=bb/rrl
-         babs=bb*sqrt(1.d0+ra*rho*qinv/rr)*rr/rrl
+         babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
       case(3)
 !         call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
       end select
@@ -573,13 +573,13 @@ C     &                 PABS(NTH,NPH,NR,NS)
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
-c$$$      NS=1
-c$$$      DO NR=1,NRMAX
-c$$$         DO NPH=1,NPHMAX
-c$$$         DO NTH=1,NTHMAX
-c$$$            PCUR(NTH,NPH,NR)=0.D0
-c$$$         ENDDO
-c$$$         ENDDO
+      NS=1
+      DO NR=1,NRMAX
+         DO NPH=1,NPHMAX
+         DO NTH=1,NTHMAX
+            PCUR(NTH,NPH,NR)=0.D0
+         ENDDO
+         ENDDO
 c$$$         CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 c$$$         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
 c$$$         WW=DBLE(CW)
@@ -624,7 +624,7 @@ c$$$            ENDDO
 c$$$            ENDDO
 c$$$         ENDDO
 c$$$         ENDDO
-c$$$      ENDDO
+      ENDDO
 C
       DO NR=1,NRMAX
          PCURR(NR)=0.D0
