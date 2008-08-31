@@ -97,20 +97,31 @@ C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
-      DIMENSION THT(NTHM+2),FPT(NTHM+2),FPX(NTHM+2)
+      DIMENSION THT(NTHM+2),FPT(NTHM+2),FPTX(NTHM+2)
       DIMENSION U2(4,NTHM+2)
+      DIMENSION FPR(NRM+2),FPRX(NRM+2)
 C
-      PN0   =FPDATA(1)
-      PT0   =FPDATA(2)
-      PTH0  =FPDATA(3)
-      DELR  =FPDATA(4)
-      DELP  =FPDATA(5)
-      DELTH =FPDATA(6)
+      DO NSA1=1,NSAMAX
+         IF(NS.EQ.NS_NSA(NSA1)) THEN
+            NSA=NSA1
+            GO TO 1
+         ENDIF
+      ENDDO
+      RETURN
+
+    1 CONTINUE
+
+      PN0   =RNFP0(NSA)
+      PT0   =RTFP0(NSA)
+      PTH0  =SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
+      DELR  =FPDATA(1)
+      DELP  =FPDATA(2)
+      DELTH =FPDATA(3)
       NRMAX =NFPDAT(1)
       NPMAX =NFPDAT(2)
       NTHMAX=NFPDAT(3)
 C
-      PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
+      PTH0W=(PTH0/(AMFP(NSA)*VC))**2
 C
       DO 110 NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
@@ -130,11 +141,29 @@ C
          TTNG(NTH) = TAN(THG)
   120 CONTINUE
 C
+      DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            DO NR=1,NRMAX
+               FP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)
+            ENDDO
+            IF(NRMAX.EQ.1)THEN
+               FPR(1)=4.D0*FP(NTH,NP,1)/3.D0
+            ELSE
+               FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
+            ENDIF
+            DO NR=1,NRMAX
+               FPR(NR+1)=FP(NTH,NP,NR)
+            ENDDO
+            FPR(NRMAX+2)=0.D0
+            FPRX(1)=0.D0
+            CALL SPL1D(RFP,FPR,FPX,URFP(1,1,NP,NTH),NRMAX+2,1,IERR)
+         ENDDO
+      ENDDO
+C
       RHON=RHON_LOC
       CALL PLBMIN(RHON,BMINL)
       DO NP=1,NPMAX
          DO NTH=1,NTHMAX
-C            WRITE(6,'(6I8)') NRMAX,NP,NTH,NRM,NPM,NTHM
             CALL SPL1DF(RHON,Y,RFP,URFP(1,1,NP,NTH),NRMAX+2,IERR)
             FPT(NTH+1)=Y
          ENDDO
@@ -148,8 +177,8 @@ C
          THT(NTHMAX+2)=PI
          FPT(1)=(9.D0*FPT(2)-FPT(3))/8.D0
          FPT(NTHMAX+2)=(9.D0*FPT(NTHMAX+1)-FPT(NTHMAX))/8.D0         
-         FPX(1)=0.D0
-         FPX(NTHMAX+2)=0.D0
+         FPTX(1)=0.D0
+         FPTX(NTHMAX+2)=0.D0
          CALL SPL1D(THT,FPT,FPX,U2,NTHMAX+2,3,IERR)            
          DO NTH2=1,NTHMAX
             TH=DELTH*(NTH2-0.5D0)
@@ -178,8 +207,6 @@ C
 C
       INCLUDE 'dpcomm.inc'
 C      
-      DIMENSION FPR(NRM+2),FPX(NRM+2)
-C
       CALL FROPEN(21,KNAMFP,0,MODEFR,'FP',IERR)
       IF(IERR.NE.0) THEN
          WRITE(6,*) 'XX DPLDFP: FROPEN: IERR=',IERR
@@ -187,17 +214,25 @@ C
       ENDIF
       REWIND(21)
 
-      READ(21) PN0,PT0,PTH0
+      READ(21) NRMAX,NPMAX,NTHMAX,NSAMAX
       READ(21) DELR,DELP,DELTH,RMIN,RMAX
-      READ(21) NRMAX,NPMAX,NTHMAX
-      READ(21) (((FP(NTH,NP,NR),NTH=1,NTHMAX),NP=1,NPMAX),NR=1,NRMAX)
+      DO NSA=1,NSAMAX
+         READ(21) NS_NSA(NSA)
+         READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+         READ(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX),
+     &                NP=1,NPMAX),NR=1,NRMAX)
+      ENDDO
       CLOSE(21)
 C
-      PN0=0.2D0*PN0
       WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
-      WRITE(6,*) 'PN0,PT0,PTH0 =',PN0,PT0,PTH0
-      WRITE(6,*) 'DELR,DELP,DELTH =',DELR,DELP,DELTH
-      WRITE(6,*) 'NRMAX,NPMAX,NTHMAX =',NRMAX,NPMAX,NTHMAX
+      WRITE(6,*) 'NRMAX,NPMAX,NTHMAX,NSAMAX =',NRMAX,NPMAX,NTHMAX,NSAMAX
+      WRITE(6,'(A,1P5E12.4)') 'DELR/P/TH,RMIN/RMAX =',
+     &                         DELR,DELP,DELTH,RMIN,RMAX
+      DO NSA=1,NSAMAX
+         WRITE(6,*) 'NSA,NS =',NSA,NS_NSA(NSA)
+         WRITE(6,'(A,1P4E12.4)') 'AEFP,AMFP,RNFP0,RTFP0=',
+     &        AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
+      ENDDO
 C
       RHON_MIN=RMIN
       RHON_MAX=RMAX
@@ -212,28 +247,9 @@ C
       ENDDO
       RFP(NRMAX+2)=RMIN+DELR*NRMAX
 C
-      DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            IF(NRMAX.EQ.1)THEN
-               FPR(1)=4.D0*FP(NTH,NP,1)/3.D0
-            ELSE
-               FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
-            ENDIF
-            DO NR=1,NRMAX
-               FPR(NR+1)=FP(NTH,NP,NR)
-            ENDDO
-            FPR(NRMAX+2)=0.D0
-            FPX(1)=0.D0
-            CALL SPL1D(RFP,FPR,FPX,URFP(1,1,NP,NTH),NRMAX+2,1,IERR)
-         ENDDO
-      ENDDO
-C
-      FPDATA(1)=PN0
-      FPDATA(2)=PT0
-      FPDATA(3)=PTH0
-      FPDATA(4)=DELR
-      FPDATA(5)=DELP
-      FPDATA(6)=DELTH
+      FPDATA(1)=DELR
+      FPDATA(2)=DELP
+      FPDATA(3)=DELTH
       NFPDAT(1)=NRMAX
       NFPDAT(2)=NPMAX
       NFPDAT(3)=NTHMAX
