@@ -398,11 +398,13 @@
                            f4=fmd4(i,j,k,nfc1,nfc2)
                            fmd(i,j,k,nfc1,nfc2,1)=f1
                            fmd(i,j,k,nfc1,nfc2,2)
-     &                       =(-11*f1+18*f2- 9*f3+ 2*f4)/(6*drho)
+     &                       =0.5d0*(-3*f1+4*f2- f3)/drho
+!     &                       =(-11*f1+18*f2- 9*f3+ 2*f4)/(6*drho)
 !     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
                            fmd(i,j,k,nfc1,nfc2,3)=f4
                            fmd(i,j,k,nfc1,nfc2,4)
-     &                       =(- 2*f1+ 9*f2-18*f3+11*f4)/(6*drho)
+     &                       =-0.5d0*(-f2+4*f3- 3*f4)/drho
+!     &                       =(- 2*f1+ 9*f2-18*f3+11*f4)/(6*drho)
 !     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
                         enddo
                      enddo
@@ -756,8 +758,8 @@
                do k=1,3
                   do l=1,3
                      csum4=csum4+conjg(cp(k,i))
-     &                    *gma(k,l,nth,nph)
-     &                    *cp(l,j) *gj
+     &                          *gma(k,l,nth,nph)
+     &                          *cp(l,j)*gj
                   enddo
                enddo
                fmv4(i,j,nfc2)=csum4
