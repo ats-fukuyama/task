@@ -26,8 +26,8 @@
 
       integer,dimension(:),pointer,save :: nthnfc,mmnfc
       integer,dimension(:),pointer,save :: nphnfc,nnnfc
-      integer,dimension(:),pointer,save :: nthnfc2,mmnfc2
-      integer,dimension(:),pointer,save :: nphnfc2,nnnfc2
+      integer,dimension(:),pointer,save :: nthnfc2
+      integer,dimension(:),pointer,save :: nphnfc2
 
 !     ***** define array size  *****
 
@@ -113,12 +113,8 @@
 
          if(associated(nthnfc2)) deallocate(nthnfc2)
          if(associated(nphnfc2)) deallocate(nphnfc2)
-         if(associated(mmnfc2)) deallocate(mmnfc2)
-         if(associated(nnnfc2)) deallocate(nnnfc2)
          if(nfcmax2.ne.0) allocate(nthnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(nphnfc2(nfcmax2))
-         if(nfcmax2.ne.0) allocate(mmnfc2(nfcmax2))
-         if(nfcmax2.ne.0) allocate(nnnfc2(nfcmax2))
       endif
       mwmax_save=mwmax
       mlmax_save=mlmax
@@ -180,7 +176,6 @@
          do nph=1,nphmax2
             nfc2=nph
             nthnfc2(nfc2)=1
-            mmnfc2(nfc2)=0
          enddo
       else
          do nph=1,nphmax2
@@ -188,31 +183,18 @@
             nfc2=nthmax2*(nph-1)+nth
             nthnfc2(nfc2)=nth
          enddo
-         do nth=1,nthmax
-            nfc2=nthmax2*(nph-1)+nth
-            mmnfc2(nfc2)=nth-1
-            nfc2=nthmax2*(nph-1)+nthmax2+1-nth
-            mmnfc2(nfc2)=-nth
-         enddo
          enddo
       endif
       if(nphmax.eq.1) then
          do nth=1,nthmax2
             nfc2=nth
             nphnfc2(nfc2)=1
-            nnnfc2(nfc2)=0
          enddo
       else
          do nth=1,nthmax2
          do nph=1,nphmax2
             nfc2=nthmax2*(nph-1)+nth
             nphnfc2(nfc2)=nph
-         enddo
-         do nph=1,nphmax
-            nfc2=nthmax2*(nph-1)+nth
-            nnnfc2(nfc2)=nph-1
-            nfc2=nthmax2*(nphmax2-nph)+nth
-            nnnfc2(nfc2)=-nph
          enddo
          enddo
       endif
@@ -398,14 +380,12 @@
                            f4=fmd4(i,j,k,nfc1,nfc2)
                            fmd(i,j,k,nfc1,nfc2,1)=f1
                            fmd(i,j,k,nfc1,nfc2,2)
-     &                       =0.5d0*(-3*f1+4*f2- f3)/drho
-!     &                       =(-11*f1+18*f2- 9*f3+ 2*f4)/(6*drho)
-!     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
+!     &                       =1.5d0*(-3*f1+ 4*f2- f3)/drho
+     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
                            fmd(i,j,k,nfc1,nfc2,3)=f4
                            fmd(i,j,k,nfc1,nfc2,4)
-     &                       =-0.5d0*(-f2+4*f3- 3*f4)/drho
-!     &                       =(- 2*f1+ 9*f2-18*f3+11*f4)/(6*drho)
-!     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
+!     &                       =1.5d0*(f2- 4*f3+ 3*f4)/drho
+     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
                         enddo
                      enddo
                   enddo
@@ -595,7 +575,8 @@
 
             nndiff=nn1-nn2
             mmdiff=mm1-mm2
-            nfcdiff=nthmax2*nndiff+mmdiff+nfcmax
+            nfcdiff=nthmax2*nndiff+mmdiff+1
+            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do j=1,3
                do i=1,3
@@ -871,7 +852,8 @@
 
             mmdiff=mm1-mm2
             nndiff=nn1-nn2
-            nfcdiff=nthmax2*nndiff+mmdiff+nfcmax
+            nfcdiff=nthmax2*nndiff+mmdiff+1
+            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do k=1,4
                do j=1,3
@@ -900,7 +882,7 @@
 
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
-      integer:: nph1,nph2,nphdiff,nth1,nth2,nthdiff,nfcdiff
+      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -942,34 +924,24 @@
 !     ----- Fit to fmd and adjust m and n -----
 
       do nfc2=1,nfcmax
-         nth2=mmnfc(nfc2)
-         nph2=nnnfc(nfc2)
+         mm2=mmnfc(nfc2)
+         nn2=nnnfc(nfc2)
          do nfc1=1,nfcmax
-            nth1=mmnfc(nfc1)
-            nph1=nnnfc(nfc1)
+            mm1=mmnfc(nfc1)
+            nn1=nnnfc(nfc1)
 
-            nphdiff=nph1-nph2
-            nthdiff=nth1-nth2
-            nfcdiff=nthmax2*nphdiff+nthdiff+nfcmax
+            nndiff=nn1-nn2
+            mmdiff=mm1-mm2
+            nfcdiff=nthmax2*nndiff+mmdiff+1
+            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
-            if(nfcdiff.ge.1.and.nfcdiff.le.nfcmax) then
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)
-     &                       =fmc(i,j,k,nfcdiff,nfc2)
-                     enddo
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
                   enddo
                enddo
-            else
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=0.d0
-                     enddo
-                  enddo
-               enddo
-            endif
+            enddo
          enddo
       enddo
       return
@@ -989,7 +961,7 @@
 
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
-      integer:: nph1,nph2,nphdiff,nth1,nth2,nthdiff,nfcdiff
+      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1028,34 +1000,24 @@
 !     ----- Fit to fmd and adjust m and n -----
 
       do nfc2=1,nfcmax
-         nth2=mmnfc(nfc2)
-         nph2=nnnfc(nfc2)
+         mm2=mmnfc(nfc2)
+         nn2=nnnfc(nfc2)
          do nfc1=1,nfcmax
-            nth1=mmnfc(nfc1)
-            nph1=nnnfc(nfc1)
+            mm1=mmnfc(nfc1)
+            nn1=nnnfc(nfc1)
 
-            nphdiff=nph1-nph2
-            nthdiff=nth1-nth2
-            nfcdiff=nthmax2*nphdiff+nthdiff+nfcmax
+            nndiff=nn1-nn2
+            mmdiff=mm1-mm2
+            nfcdiff=nthmax2*nndiff+mmdiff+1
+            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
-            if(nfcdiff.ge.1.and.nfcdiff.le.nfcmax) then
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)
-     &                       =fmc(i,j,k,nfcdiff,nfc2)
-                     enddo
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
                   enddo
                enddo
-            else
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=0.d0
-                     enddo
-                  enddo
-               enddo
-            endif
+            enddo
          enddo
       enddo
       return
@@ -1811,7 +1773,7 @@ c$$$      enddo
      &                  (cqa(i,j,1,nfcfdiff)
      &                  +cqa(i,j,2,nfcfdiff)*mm2
      &                  +cqa(i,j,3,nfcfdiff)*nn2)*fvx(ml+2*j-1)
-     &                 + cpa(i,j,  nfcfdiff)       *fvx(ml+2*j  ))
+     &                 + cpa(i,j,  nfcfdiff)     *fvx(ml+2*j  ))
                enddo
             enddo
          enddo
