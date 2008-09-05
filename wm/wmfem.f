@@ -211,8 +211,6 @@
       complex(8):: csum,csums,csum1,csum2
       complex(8),dimension(3,nthmax,nphmax):: cbfl
 
-      mc=(mwmax+1)/2    ! diagonal position in mw
-
 !     ----- solve matrix -----
 
       do ml=1,mlmax
@@ -231,14 +229,14 @@
 !     ----- calculate E field -----
 
       do nr=1,nrmax
-      do nph=1,nphmax
-      do nth=1,nthmax
-         ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-         cef(1,nth,nph,nr)=fvx(ml+1)
-         cef(2,nth,nph,nr)=fvx(ml+3)
-         cef(3,nth,nph,nr)=fvx(ml+5)
-      enddo
-      enddo
+         do nph=1,nphmax
+            do nth=1,nthmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+               cef(1,nth,nph,nr)=fvx(ml+1)
+               cef(2,nth,nph,nr)=fvx(ml+3)
+               cef(3,nth,nph,nr)=fvx(ml+5)
+            enddo
+         enddo
       enddo
 
 !     ----- calculate B field -----
@@ -259,36 +257,36 @@
       mc=(mwmax+1)/2
       do ns=0,nsmax
          csums=0.d0
-      do nr=1,nrmax-1
-      do nph=1,nphmax
-      do nth=1,nthmax
-         ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
-         do nph1=1,nphmax
-         do nth1=1,nthmax
-            csum=0.d0
-            do nr1=nr-1,nr+1
-               mw=mc+6*nthmax*nphmax*(nr1-nr)+6*nthmax*(nph1-nph)
-     &              +6*(nth1-nth)
-               if(ml+mw-mc+1.ge.1.and.ml+mw-mc+6.le.mlmax) then
-               do i=1,6
-               do j=1,6
-                  csum=csum
-     &              +conjg(fvx(ml+i))
-     &                      *fms(mw+j-i,ml+i,ns)
-     &                           *fvx(ml+mw-mc+j)
-               enddo
-               enddo
-               endif
-            enddo
-            csums=csums+csum
-            cpp(nth,nph,nth1,nph1,nr,ns)=csum
+         do nr=1,nrmax-1
+            do nph=1,nphmax
+            do nth=1,nthmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph-1)+6*(nth-1)
+               do nph1=1,nphmax
+               do nth1=1,nthmax
+                  csum=0.d0
+                  do nr1=nr-1,nr+1
+                     mw=mc+6*nthmax*nphmax*(nr1-nr)+6*nthmax*(nph1-nph)
+     &                    +6*(nth1-nth)
+                     if(ml+mw-mc+1.ge.1.and.ml+mw-mc+6.le.mlmax) then
+                        do i=1,6
+                        do j=1,6
+                           csum=csum
+     &                          +conjg(fvx(ml+i))
+     &                          *fms(mw+j-i,ml+i,ns)
+     &                          *fvx(ml+mw-mc+j)
+                        enddo
+                        enddo
+                     endif
+                  enddo
+                  csums=csums+csum
+                  cpp(nth,nph,nth1,nph1,nr,ns)=csum
 !            write(6,'(6I5,1P2E12.4)') nth,nph,nth1,nph1,nr,ns,
 !     &           cpp(nth,nph,nth1,nph1,nr,ns)
+               enddo
+               enddo
+            enddo
+            enddo
          enddo
-         enddo
-      enddo
-      enddo
-      enddo
 !         write(6,'(A,I5,1P2E12.4)') 'ns,csums=',ns,csums
       enddo
 
@@ -314,10 +312,8 @@
 
       subroutine wmfem_calculate
 
-      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: 
-     &     fmd
-      complex(8),dimension(3,3,4,nfcmax,nfcmax):: 
-     &     fmd1,fmd2,fmd3,fmd4
+      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
+      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn
@@ -380,12 +376,12 @@
                            f4=fmd4(i,j,k,nfc1,nfc2)
                            fmd(i,j,k,nfc1,nfc2,1)=f1
                            fmd(i,j,k,nfc1,nfc2,2)
-!     &                       =1.5d0*(-3*f1+ 4*f2- f3)/drho
-     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
+     &                       =1.5d0*(-3*f1+ 4*f2- f3)/drho
+!     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
                            fmd(i,j,k,nfc1,nfc2,3)=f4
                            fmd(i,j,k,nfc1,nfc2,4)
-!     &                       =1.5d0*(f2- 4*f3+ 3*f4)/drho
-     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
+     &                       =1.5d0*(f2- 4*f3+ 3*f4)/drho
+!     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
                         enddo
                      enddo
                   enddo
@@ -793,8 +789,8 @@
             rkth=mm/(ra*rho)
             rkth0=1.d0/(ra*rho)
          else
-            rkth=0.d0
-            rkth0=0.d0
+            rkth=mm/(ra*1.d-6)
+            rkth0=1.d0/(ra*1.d-6)
          endif
          rkph=nn/rr
 
@@ -1163,20 +1159,20 @@
          table_initialize_flag=1
       endif
 
-c$$$      do i=1,3
-c$$$      do j=1,3
-c$$$      do k=1,4
-c$$$      do nf1=1,nfcmax
-c$$$      do nf2=1,nfcmax
-c$$$      do inod=1,4
-c$$$         write(16,'(7I5,A,1P2E12.4)') 
-c$$$     &        nr,i,j,k,nf1,nf2,inod,':',fmd(i,j,k,nf1,nf2,inod)
-c$$$      enddo
-c$$$      enddo
-c$$$      enddo
-c$$$      enddo
-c$$$      enddo
-c$$$      enddo
+      do i=1,3
+      do j=1,3
+      do k=1,4
+      do nf1=1,nfcmax
+      do nf2=1,nfcmax
+      do inod=1,4
+         write(16,'(7I5,A,1P2E12.4)') 
+     &        nr,i,j,k,nf1,nf2,inod,':',fmd(i,j,k,nf1,nf2,inod)
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
+      enddo
 
       mr=6*nfcmax  ! line interval between radial points 
       mc=(mwmax+1)/2
