@@ -47,7 +47,7 @@ contains
 !           : g4=(x-1/2)^3/6     dg4=(x-1/2)^2/2
 !     q     : q1=(1-2x)(1-x)     dq1=-3+4x
 !           : q2=4x(1-x)         dq2=4-8x
-!           : q3=x(2x-1)         
+!           : q3=x(2x-1)         dq3=4x-1
 !
 
     implicit none
@@ -2891,7 +2891,7 @@ contains
       table_hqh(8,6,8)= 4.d0/15.d0
 
 !------
-      do k=1,6
+      do k=1,8
          do j=1,6
             do i=1,8
                table_hhq(i,k,j)=table_hqh(i,j,k)
