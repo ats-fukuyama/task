@@ -25,6 +25,10 @@ C
          CALL WMEFLD
          CALL WMBFLD
          CALL WMPABS
+         if(myrank.eq.0) then
+            CALL WMPFLX
+            CALL WMPANT
+         endif
       else
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
@@ -33,12 +37,10 @@ C
          call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cbf,cpp,cpa)
          CALL WMFEM_EFLD(cef)
          CALL WMFEM_BFLD(cbf)
-         CALL WMFEM_PABS(cpp)
+         CALL WMFEM_PABS(cpp,cpa)
       endif
 C
       IF(MYRANK.EQ.0) THEN
-         CALL WMPFLX
-         CALL WMPANT
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
       ENDIF

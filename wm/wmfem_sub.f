@@ -69,7 +69,8 @@ C     $Id$
          gm(3,3)= rrl**2
          gj     = rrl*(drrrho*dzzchi-drrchi*dzzrho)
       case(3)
-!         call wmeq_get_pos(rho,th,rrl,zzl,drrrho,dzzrho,drrchi,dzzchi)
+         call wmeq_get_posrz(rho,th,rrl,zzl,
+     &                        drrrho,dzzrho,drrchi,dzzchi)
          gm(1,1)= drrrho**2+dzzrho**2
          gm(1,2)= drrrho*drrchi+dzzrho*dzzchi
          gm(1,3)= 0.d0
@@ -106,10 +107,55 @@ C     $Id$
          bsupph=bb/rrl
          babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
       case(3)
-!         call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
+         call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
       end select
       return
       end subroutine wmfem_magnetic
+
+!     ***** calculate position R and Z from eqdata ****
+
+      subroutine wmeq_get_posrz(rho,th,rrl,zzl,
+     &                          drrrho,dzzrho,drrchi,dzzchi)
+
+      INCLUDE '../eq/eqcomq.inc'
+      real(8),intent(in):: rho,th
+      real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
+
+      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      return
+      end subroutine wmeq_get_posrz
+
+!     ***** calculated magnetic field from eqdata ****
+
+      subroutine wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
+
+      INCLUDE '../eq/eqcomq.inc'
+      real(8),intent(in):: rho,th
+      real(8),intent(out):: babs,bsupth,bsupph
+      real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
+      real(8):: bprr,bpzz,bthl,bphl,ttl
+      
+      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+
+      CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
+
+      bprr= DPSIDZ/(2.D0*PI*rrl)
+      bpzz=-DPSIDR/(2.D0*PI*rrl)
+      bthl=SQRT(bprr**2+bpzz**2)
+!      CALL EQTT(rho)
+      bphl= ttl/(2.D0*PI*rrl)
+      bsupth=bthl
+      bsupph=bphl
+      babs=0.d0
+      return
+
+      end subroutine wmeq_get_magnetic
 
 !     ****** CALCULATE Q PROFILE ******
 
@@ -497,25 +543,28 @@ C
 C
 C     ****** CALCULATE ABSORBED POWER ******
 C
-      SUBROUTINE WMFEM_PABS(cpp)
+      SUBROUTINE WMFEM_PABS(cpp,cpa)
 C
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
       DIMENSION CPF1(MDM,NDM),CPF2(MDM,NDM)
-      dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,nsmax)
+      dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,0:nsmax)
+      dimension cpa(nthmax,nphmax)
+      real(8),dimension(3,3)::  gm
+      real(8):: gj1,gj2
 C
       DTH=2.D0*PI/DBLE(NTHMAX)
       DPH=2.D0*PI/DBLE(NPHMAX)
 C
       DO NR=1,nrmax
       DO NS=1,NSMAX
-      DO NKX=1,NDSIZ
-      DO KDX=1,KDSIZ
-      DO MLX=1,MDSIZ
-      DO LDX=1,LDSIZ
-         CPABS(LDX,MLX,KDX,NKX,NS,NR)=cpp(MLX,NKX,LDX,KDX,NR,NS)
+      DO NDX=1,NDSIZ
+      DO KKX=1,KDSIZ
+      DO MDX=1,MDSIZ
+      DO LLX=1,LDSIZ
+         CPABS(LLX,MDX,KKX,NDX,NS,NR)=cpp(MDX,NDX,LLX,KKX,NR,NS)
       ENDDO
       ENDDO
       ENDDO
@@ -527,12 +576,10 @@ C     +++++ CALCULATE PABS IN MODE NUMBER SPACE +++++
 C
          DO NR=1,NRMAX
          DO NS=1,NSMAX
+            KKX=1
+            LLX=1
          DO NDX=1,NDSIZ
-            KK=0
-            KKX=KK-KDMIN+1
          DO MDX=1,MDSIZ
-            LL=0
-            LLX=LL-LDMIN+1
             PABSK(MDX,NDX,NR,NS)=DBLE(CPABS(LLX,MDX,KKX,NDX,NS,NR))
          ENDDO
          ENDDO
@@ -550,10 +597,8 @@ C
             ENDDO
             DO NDX=1,NDSIZ
             DO MDX=1,MDSIZ
-               DO KK=KDMIN,KDMAX
-                  KKX=KK-KDMIN+1
-               DO LL=LDMIN,LDMAX
-                  LLX=LL-LDMIN+1
+               DO KKX=1,NDSIZ
+               DO LLX=1,MDSIZ
                   CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
                ENDDO
                ENDDO
@@ -562,14 +607,28 @@ C
                DO NTH=1,NTHMAX
                   PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
      &                               +DBLE(CPF2(NTH,NPH))
-C                  write(6,'(3I8,1P3E12.4)') NR,NTH,NPH,CPF2(NTH,NPH),
-C     &                 PABS(NTH,NPH,NR,NS)
                ENDDO
                ENDDO
             ENDDO
             ENDDO
+!            DO NPH=1,NPHMAX
+!            DO NTH=1,NTHMAX
+!               write(6,'(3I8,1P2E12.4)') NR,NTH,NPH,
+!     &                                   PABS(NTH,NPH,NR,NS)
+!            ENDDO
+!            ENDDO
          ENDDO
          ENDDO
+
+C     +++++ Antenna impedance +++++
+
+      cradtt=(0.d0,0.d0)
+      do nph=1,nphmax
+         do nth=1,nthmax
+            cradtt=cradtt+cpa(nth,nph)
+         end do
+      end do
+
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
@@ -671,29 +730,29 @@ C
       ENDIF
       FACTSQ=SQRT(FACT)
 C
-      NR=1
+      DO NR=1,NRMAX-1
          DS(NR)=0.D0
+         DRHO=XRHO(NR+1)-XRHO(NR)
          DO NPH=1,NPHMAX
          DO NTH=1,NTHMAX
-            DSS(NTH,NPH,NR)=0.D0
-         ENDDO
-         ENDDO
-      DO NR=2,NRMAX
-         DS(NR)=0.D0
-         DRHO=0.5D0*(XRHO(NR+1)-XRHO(NR-1))
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            IF(MODELG.EQ.3) THEN
-               DPSIPDRHO=2.D0*PSITA*XRHO(NR)/QPS(NR)
-            ELSE
-               DPSIPDRHO=2.D0*PSIPA*XRHO(NR)
-            ENDIF
-            DSSS=DPSIPDRHO*DRHO*RJ(NTH,NPH,NR)
+            th=dth*(nth-1)
+            ph=dph*(nph-1)
+            call wmfem_metrics(xrho(nr),th,ph,gm,gj1)
+            call wmfem_metrics(xrho(nr+1),th,ph,gm,gj2)
+!            write(6,'(I5,1P6E12.4)') 
+!     &           nr,xrho(nr),xrho(nr+1),th,ph,gj1,gj2
+            DSSS=DRHO*0.5d0*(gj1+gj2)
             DSS(NTH,NPH,NR)=1.D0/DSSS
             DS(NR)=DS(NR)+DSSS*DTH*DPH
          ENDDO
          ENDDO
          DS(NR)=1.D0/DS(NR)
+      ENDDO
+      DS(NRMAX)=0.D0
+      DO NTH=1,NTHMAX
+         DO NPH=1,NPHMAX
+            DSS(NTH,NPH,NRMAX)=0.d0
+         ENDDO
       ENDDO
 C
       PABSTT=FACT*PABSTT
@@ -708,6 +767,8 @@ C
             ENDDO
             ENDDO
          ENDDO
+!      write(6,'(2I5,1P2E12.4)') 
+!     &     (NR,NS,DS(NR),PABSR(NR,NS),NR=1,NRMAX)
       ENDDO
 C
       DO NS=1,NSMAX
