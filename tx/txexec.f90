@@ -254,7 +254,7 @@ contains
        IF(IDIAG == 0 .OR. IDIAG == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
                & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
-       ELSE
+       ELSE IF(IDIAG > 0) THEN
           IF(NT /= NTMAX) THEN
              IF(IC-1 == ICMAX) THEN
                 WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3,"  *")') NT,T_TX,IC
@@ -271,6 +271,7 @@ contains
           CALL TXGLOB
           CALL TXSTGT(SNGL(T_TX))
           call txstgq !!!temporary
+          if(IDIAG < 0) call steady_check
        END IF
 
        IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(SNGL(T_TX))

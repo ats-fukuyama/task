@@ -169,7 +169,7 @@ module tx_commons
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
-       &                                SNB, SNBe, SNBi, SNBPDi, SNBTGi, &
+       &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
        &                                SiLC, SiLCth, SiLCph, PALFe, PALFi
@@ -225,6 +225,7 @@ module tx_commons
      integer(4) :: nol ! number of lines, i.e. upper bound of the array
      integer(4) :: ncol_mesh, ncol_data ! indices indicating the columns where the mesh
                                         !   and the data are stored
+     real(8) :: totS, totP ! Total number of ions per second and total power
      real(8), dimension(1:nmax_file) :: r, data
   end type infiles_type
   type(infiles_type), allocatable :: infiles(:)
@@ -311,11 +312,12 @@ contains
        if (ier /= 0) exit
 
        allocate(PNB(0:N),   PNBTG(0:N),PNBPD(0:N),PNBcol_e(0:N),PNBcol_i(0:N),stat = ierl(1))
-       allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBPDi(0:N),SNBTGi(0:N),stat = ierl(2))
-       allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(3))
-       allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(4))
-       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(5))
-       allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    PBr(0:N),               stat = ierl(6))
+       allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBb(0:N),              stat = ierl(2))
+       allocate(SNBPDi(0:N),SNBTGi(0:N),                                      stat = ierl(3))
+       allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
+       allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
+       allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
+       allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    PBr(0:N),               stat = ierl(7))
        ier = sum(ierl) ; iflag = 6
        if (ier /= 0) exit
 
@@ -394,7 +396,8 @@ contains
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
-    deallocate(SNB,    SNBe,  SNBi,  SNBPDi, SNBTGi)
+    deallocate(SNB,    SNBe,  SNBi,  SNBb)
+    deallocate(SNBPDi, SNBTGi)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
     deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)

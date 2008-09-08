@@ -16,7 +16,8 @@ module tx_coefficients
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
-  real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW
+  real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW, &
+       &     fact = 1.d0 ! <= SOL loss accelerator
   integer(4), save :: ICALA = 0
   public :: TXCALA
 
@@ -477,7 +478,7 @@ contains
     ELM(1:NEMAX,1:4,0,LQe1) = fem_int(1) * invDT
     NLC(0,LQe1) = LQe1
 
-    ! Convection
+    ! Divergence
 
     ELM(1:NEMAX,1:4,1,LQe1) = - 2.D0 * fem_int(4)
     NLC(1,LQe1) = LQe2
@@ -526,7 +527,7 @@ contains
          &                  + fem_int(8) * fem_int(0) * invDT
     NLC(0,LQe2) = LQe2
 
-    ! Nonlinear term
+    ! Advection
     
     ELM(1:NEMAX,1:4,1,LQe2) = - 2.D0 * fem_int( 3,RUerV) + fem_int(2,UerVR) &
          &                  +(- 2.D0 * fem_int(10,RUerV) + fem_int(9,UerVR)) * fem_int(0)
@@ -535,7 +536,7 @@ contains
          &                  * fem_int_point(0,1)
     NLC(1,LQe2) = LQe2
 
-    ! Nonlinear centrifugal force
+    ! Centrifugal force
 
     ELM(1:NEMAX,1:4,2,LQe2) = fem_int(2,UethVR) &
          &                  + fem_int(9,UethVR) * fem_int(0)
@@ -592,7 +593,7 @@ contains
     ELM(1:NEMAX,1:4, 0,LQe3) = fem_int(1) * invDT
     NLC( 0,LQe3) = LQe3
 
-    ! Nonlinear term
+    ! Advection
 
     ELM(1:NEMAX,1:4, 1,LQe3) = - 2.D0 * fem_int(3,RUerV)
     NLC( 1,LQe3) = LQe3
@@ -730,7 +731,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,20+N,LQe3) = - 2.D0 * fem_int(2,rNuL)
+    ELM(1:NEMAX,1:4,20+N,LQe3) = - 2.D0 * fem_int(2,rNuL) * fact
     NLC(20+N,LQe3) = LQe3
 
     ! Collisional friction force with neutrals
@@ -770,7 +771,7 @@ contains
     ELM(1:NEMAX,1:4, 0,LQe4) = fem_int(1) * invDT * AMPe4
     NLC( 0,LQe4) = LQe4
 
-    ! Nonlinear term
+    ! Advection
 
     ELM(1:NEMAX,1:4, 1,LQe4) = - 2.D0 * fem_int(3,RUerV) * AMPe4
     NLC( 1,LQe4) = LQe4
@@ -862,7 +863,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,19,LQe4) = - 2.D0 * fem_int(2,rNuL) * AMPe4
+    ELM(1:NEMAX,1:4,19,LQe4) = - 2.D0 * fem_int(2,rNuL) * AMPe4 * fact
     NLC(19,LQe4) = LQe4
 
     ! Collisional friction force with neutrals
@@ -901,7 +902,7 @@ contains
        ELM(1:NEMAX,1:4, 0,LQe5) =   1.5D0 * fem_int(1) * invDT
        NLC( 0,LQe5) = LQe5
 
-       ! Convection transport
+       ! Advection
 
        ELM(1:NEMAX,1:4, 1,LQe5) = - 5.D0 * fem_int(3,RUerV)
        NLC( 1,LQe5) = LQe5
@@ -914,7 +915,7 @@ contains
        ELM(1:NEMAX,1:4, 3,LQe5) =   4.D0 * fem_int(41,Chie,PTeV)
        NLC( 3,LQe5) = LQe1
 
-       ! Redundant heat convection term
+       ! Redundant heat advection
 
        ELM(1:NEMAX,1:4, 4,LQe5) = 2.D0 * fem_int(5,RUerV)
        NLC( 4,LQe5) = LQe5
@@ -1019,7 +1020,7 @@ contains
     ELM(1:NEMAX,1:4,0,LQi1) = fem_int(1) * invDT
     NLC(0,LQi1) = LQi1
 
-    ! Convection
+    ! Divergence
 
     ELM(1:NEMAX,1:4,1,LQi1) = - 2.D0 * fem_int(4)
     NLC(1,LQi1) = LQi2
@@ -1094,7 +1095,7 @@ contains
          &                  + fem_int(8) * fem_int(0) * invDT
     NLC(0,LQi2) = LQi2
 
-    ! Nonlinear term
+    ! Advection
 
     ELM(1:NEMAX,1:4,1,LQi2) = - 2.D0 * fem_int( 3,RUirV) + fem_int(2,UirVR) &
          &                  +(- 2.D0 * fem_int(10,RUirV) + fem_int(9,UirVR)) * fem_int(0)
@@ -1103,7 +1104,7 @@ contains
          &                  * fem_int_point(0,1)
     NLC(1,LQi2) = LQi2
 
-    ! Nonlinear centrifugal force
+    ! Centrifugal force
 
     ELM(1:NEMAX,1:4,2,LQi2) = fem_int(2,UithVR) &
          &                  + fem_int(9,UithVR) * fem_int(0)
@@ -1160,7 +1161,7 @@ contains
     ELM(1:NEMAX,1:4, 0,LQi3) = fem_int(1) * invDT
     NLC( 0,LQi3) = LQi3
 
-    ! Nonlinear term
+    ! Advection
 
     ELM(1:NEMAX,1:4, 1,LQi3) = - 2.D0 * fem_int(3,RUirV)
     NLC( 1,LQi3) = LQi3
@@ -1292,7 +1293,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,18+N,LQi3) = - 2.D0 * fem_int(2,rNuL)
+    ELM(1:NEMAX,1:4,18+N,LQi3) = - 2.D0 * fem_int(2,rNuL) * fact
     NLC(18+N,LQi3) = LQi3
 
     ! Collisional friction force with neutrals
@@ -1347,7 +1348,7 @@ contains
     ELM(1:NEMAX,1:4, 0,LQi4) = fem_int(1) * invDT
     NLC( 0,LQi4) = LQi4
 
-    ! Nonlinear term
+    ! Advection
 
     ELM(1:NEMAX,1:4, 1,LQi4) = - 2.D0 * fem_int(3,RUirV)
     NLC( 1,LQi4) = LQi4
@@ -1433,7 +1434,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,17,LQi4) = - 2.D0 * fem_int(2,rNuL)
+    ELM(1:NEMAX,1:4,17,LQi4) = - 2.D0 * fem_int(2,rNuL) * fact
     NLC(17,LQi4) = LQi4
 
     ! Collisional friction force with neutrals
@@ -1487,7 +1488,7 @@ contains
        ELM(1:NEMAX,1:4, 0,LQi5) =   1.5D0 * fem_int(1) * invDT
        NLC( 0,LQi5) = LQi5
 
-       ! Convection transport
+       ! Advection
 
        ELM(1:NEMAX,1:4, 1,LQi5) = - 5.D0 * fem_int(3,RUirV)
        NLC( 1,LQi5) = LQi5
@@ -1616,7 +1617,7 @@ contains
 
     ! NBI particle source (Both charge exchange and ionization)
 
-    PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNBi)
+    PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNBb)
     NLC(1,LQb1) = 0
 
     ! Extracted NBI perpendicular component
@@ -1706,7 +1707,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,10,LQb3) = - fem_int(2,rNuLB) * BeamSW
+    ELM(1:NEMAX,1:4,10,LQb3) = - fem_int(2,rNuLB) * BeamSW * fact
     NLC(10,LQb3) = LQb3
 
     ! Momentum loss due to collisional ripple trapping
@@ -1722,10 +1723,10 @@ contains
     ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
     NLC(13,LQb3) = LQb1
 
-!!$    ! Neoclassical viscosity force
-!!$
-!!$    ELM(1:NEMAX,1:4,14,LQb3) = - fem_int(2,rNuiNC)
-!!$    NLC(14,LQb3) = LQb3
+!!neo    ! Neoclassical viscosity force
+!!neo
+!!neo    ELM(1:NEMAX,1:4,14,LQb3) = - fem_int(2,rNuiNC)
+!!neo    NLC(14,LQb3) = LQb3
 
     ! Ubth(NRMAX) : 0
 
@@ -1790,7 +1791,7 @@ contains
 
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,11,LQb4) = - fem_int(2,rNuLB) * BeamSW
+    ELM(1:NEMAX,1:4,11,LQb4) = - fem_int(2,rNuLB) * BeamSW * fact
     NLC(11,LQb4) = LQb4
 
     ! Momentum loss due to collisional ripple trapping

@@ -107,6 +107,55 @@ subroutine TXSTAT
 
 end subroutine TXSTAT
 
+!***************************************************************
+!
+!   Steady state check
+!
+!***************************************************************
+
+subroutine steady_check
+  use tx_commons, only : RA, NRMAX, R, UiphV, PNeV, PeV, T_TX
+  use tx_interface, only : INTG_F
+
+  implicit none
+  integer(4) :: nr
+  integer(4), save :: nrl = 0
+  real(8) :: rl, uiphl, pnevl, pevl
+  real(8), save :: uiphl_old = 0.d0, pnevl_old = 0.d0, pevl_old = 0.d0
+  real(8) :: aitken2p
+
+  ! Seel a grid number "nrl" nearest rho=0.3
+  if(nrl == 0) then
+     RL = 0.3D0 * RA
+     DO NR = 0, NRMAX-1
+        IF(R(NR) <= RL.AND.R(NR+1) >= RL) THEN
+           NRL = NR
+           EXIT
+        END IF
+     END DO
+  end if
+  
+  ! Ion toroidal velocity
+  uiphl = aitken2p(rl,uiphv(nrl),uiphv(nrl+1),uiphv(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+
+  ! Electron density
+  PNeVl  = aitken2p(rl,pnev(nrl),pnev(nrl+1),pnev(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+
+  ! Electron pressure
+  PeVl  = aitken2p(rl,pev(nrl),pev(nrl+1),pev(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+
+  ! Dispaly
+  if(uiphl /= 0.d0) then
+     write(6,*) real(t_tx),real(abs(uiphl - uiphl_old)/uiphl), &
+          &                real(abs(pnevl - pnevl_old)/pnevl), &
+          &                real(abs(pevl - pevl_old)/pevl), real(uiphl)
+  end if
+  uiphl_old = uiphl
+  pnevl_old = pnevl
+  pevl_old = pevl
+
+end subroutine steady_check
+
 !***********************************************************
 !
 !  LINE AVERAGE OF rN
@@ -613,43 +662,80 @@ subroutine ascii_input
   use tx_interface, only : KSPLIT_TX
   implicit none
   integer(4) :: IST, i, j
-  character(len=100) :: TXFNAM, RCSId
-  character(len=140) :: kline, kline1, kline2
+  character(len=100) :: TXFNAM
+  character(len=140) :: kline, kline1, kline2, ktotS, ktotP
   character(len=20)  :: kmesh, kdata
-  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype
+  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype, nol_start
   LOGICAL :: LEX
 
-  ! Open ASCII file
-  DO
-     WRITE(6,*) '# INPUT : LOAD ASCII FILE NAME'
-     CALL GUFLSH
-     READ(*,'(A100)',IOSTAT=IST) TXFNAM
-     IF (IST > 0) THEN
-        CYCLE
-     ELSE IF (IST < 0) THEN
-        RETURN
-     END IF
-     INQUIRE(FILE=TXFNAM,EXIST=LEX)
-     IF (LEX) THEN
-        EXIT
-     ELSE
-        WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
-     END IF
-  END DO
+  ! Define the column number where the data is firstly read in OrbitEffectDist.dat.
+  ! Only valid when iflag_file == 1.
+  !   *Raw data    => nol_start = 2
+  !   *Spline data => nol_start = 51
+  nol_start = 51
 
-  ! Number of data
-  do
-     write(6,*) '# Number of data which you would like to use as inputs ?'
+  ! Check a mode of input file
+  do 
+     write(6,*) '# OFMC perpendicular NBI (1) or arbitrary input (2) ?'
      call guflsh
-     read(*,'(I2)',iostat=ist) n_infiles
+     read(*,'(I1)',iostat=ist) iflag_file
      if(ist > 0) then
         cycle
      else if(ist < 0) then
         return
+     end if
+     if(iflag_file == 1 .or. iflag_file == 2) then
+        exit
      else
-        exit   
+        cycle
      end if
   end do
+
+  ! *** Defined input *********************************************
+  if(iflag_file == 1) then
+     TXFNAM = 'OrbitEffectDist.dat'
+     INQUIRE(FILE=TXFNAM,EXIST=LEX)
+     IF (LEX) THEN
+     ELSE
+        WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
+        return
+     END IF
+
+     n_infiles = 6
+  ! *** Arbitrary input *********************************************
+  else if(iflag_file == 2) then
+     ! Check ASCII file
+     DO
+        WRITE(6,*) '# INPUT : LOAD ASCII FILE NAME'
+        CALL GUFLSH
+        READ(*,'(A100)',IOSTAT=IST) TXFNAM
+        IF (IST > 0) THEN
+           CYCLE
+        ELSE IF (IST < 0) THEN
+           RETURN
+        END IF
+        INQUIRE(FILE=TXFNAM,EXIST=LEX)
+        IF (LEX) THEN
+           EXIT
+        ELSE
+           WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
+        END IF
+     END DO
+
+     ! Number of data
+     do
+        write(6,*) '# Number of data which you would like to use as inputs ?'
+        call guflsh
+        read(*,'(I2)',iostat=ist) n_infiles
+        if(ist > 0) then
+           cycle
+        else if(ist < 0) then
+           return
+        else
+           exit   
+        end if
+     end do
+  end if
 
   ! Deallocate if already allocated
   if(allocated(infiles)) deallocate(infiles)
@@ -657,8 +743,9 @@ subroutine ascii_input
   ! Allocate derived type
   allocate(infiles(1:n_infiles))
 
-  ! Read data
-  do i = 1, n_infiles
+  ! *** Defined input *********************************************
+  if(iflag_file == 1) then
+     ! Read data
      OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED')
      IF (IST == 0) THEN
         WRITE(6,*) '# ASCII FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),  &
@@ -670,95 +757,199 @@ subroutine ascii_input
         return
      END IF
 
-     ! Select a type of input data from ascii files
-     do 
-        write(6,*) '# Select a type of input data from ascii file'
-        write(6,*) '# 1: PNBP, 2: PNBT1, 3: PNBT2, 4: PRF, 5: LQe4'
-        call guflsh
-        read(*,'(I2)',iostat=ist) itype
-        if(itype <= 0 .or. itype > 5) cycle
-        if(ist > 0) then
-           cycle
-        else if(ist < 0) then
-           deallocate(infiles)
-           return
-        else
-           exit
-        end if
-     end do
-     infiles(i)%name = datatype(itype)
-
-     ! Which column indicates the mesh data
-     do
-        write(6,*) '# Which column indicates the mesh data in ', &
-             &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
-        read(*,'(I2)', iostat=ist) infiles(i)%ncol_mesh
-        if(infiles(i)%ncol_mesh == 0) cycle
-        if (ist > 0) then
-           cycle
-        else if(ist < 0) then
-           deallocate(infiles)
-           return
-        else
-           exit
-        end if
-     end do
-
-     ! Which column indicates the data which you would like to use
-     do
-        write(6,*) '# Which column indicates the data which you would like to use in ', &
-             &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
-        read(*,'(I2)', iostat=ist) infiles(i)%ncol_data
-        if(infiles(i)%ncol_data == 0) cycle
-        if (ist > 0) then
-           cycle
-        else if(ist < 0) then
-           deallocate(infiles)
-           return
-        else
-           exit
-        end if
-     end do
+     ! Name
+     !   In case of "OFMC perpendicular NBI input (1)", sequence of data is already
+     !   defined as follows:
+     !   1: S_birth_total, 2: S_birth_trap, 3: S_birth_pass
+     !   4: S_orbit_total, 5: S_orbit_trap, 6: S_orbit_pass
+     !   Therefore name of the data is not necessary; hence null is substituted.
+     infiles(1:n_infiles)%name = ' '
 
      ! Read data from the file
+     i = 0 ! outer loop count
      nol = 0 ! number of lines
      do 
         read(21,'(A140)',IOSTAT=IST) kline
         if(ist < 0) exit ! detect the end of the file
+        i = i + 1
+        if(i == 44) then
+           ktotS = kline ! Total number of ions per second
+        else if(i == 45) then
+           ktotP = kline ! Total power of ions
+        end if
+        if(i <= nol_start) then
+           cycle
+        else if(i >= 92) then
+           exit
+        end if
         nol = nol + 1
 
-        j = 0
-        do
-           j = j + 1
+        do j = 1, n_infiles + 2
            kline = trim(adjustl(kline))
            call ksplit_tx(kline,' ',kline1,kline2)
-           if(j == infiles(i)%ncol_mesh) then
+           if(j == 1) then
+              ! First line is discarded.
+              kline = kline2
+              cycle
+           else if(j == 2) then
+              ! Second line is defined as a mesh data, rho.
               kmesh = trim(kline1)
-           else if(j == infiles(i)%ncol_data) then
+              kline = kline2
+           else
+              ! Third to eighth lines are defined as data. Please see "Name" shown above.
               kdata = trim(kline1)
+              read(kmesh,'(F15.7)') infiles(j-2)%r(nol)
+              read(kdata,'(F15.7)') infiles(j-2)%data(nol)
+              kline = kline2
            end if
-           kline = kline2
-           if(j >= infiles(i)%ncol_mesh .and. j >= infiles(i)%ncol_data) exit
         end do
-
-        read(kmesh,'(F15.7)') infiles(i)%r(nol)
-        read(kdata,'(F15.7)') infiles(i)%data(nol)
-
-!        write(6,*) infiles(i)%r(nol),infiles(i)%data(nol)
      end do
+
+     ! Total number of ions per second
+     do j = 1, 8
+        ktotS = trim(adjustl(ktotS))
+        call ksplit_tx(ktotS,' ',kline1,kline2)
+        if(j >= 3) then
+           kdata = trim(kline1)
+           read(kdata,'(F15.7)') infiles(j-2)%totS
+        end if
+        ktotS = kline2
+     end do
+
+     ! Total power of ions
+     do j = 1, 9
+        ktotP = trim(adjustl(ktotP))
+        call ksplit_tx(ktotP,' ',kline1,kline2)
+        if(j >= 4) then
+           kdata = trim(kline1)
+           read(kdata,'(F15.7)') infiles(j-3)%totP
+        end if
+        ktotP = kline2
+     end do
+
      if(nol > nmax_file) then
         write(6,*) 'XX The number of lines in the file exceeds ',nmax_file
         write(6,*) '   Program is terminated.'
         stop
      else
-        infiles(i)%nol = nol
+        ! All the data should have same mesh data.
+        infiles(:)%nol = nol
      end if
 
      close(21)
 
-  end do
+!!write     do i = 1, nol
+!!write        write(6,'(I3,F6.3,6(1PE12.4))') i,infiles(1)%r(i),(infiles(j)%data(i),j=1,6)
+!!write     end do
+!!write     write(6,'(9X,6(1PE12.4))') (infiles(i)%totS, i = 1, 6)
+!!write     write(6,'(9X,6(1PE12.4))') (infiles(i)%totP, i = 1, 6)
+!!write     stop
 
-  iflag_file = 1
+  ! *** Arbitrary input *********************************************
+  else if(iflag_file == 2) then
+
+     ! Read data
+     do i = 1, n_infiles
+        OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED')
+        IF (IST == 0) THEN
+           WRITE(6,*) '# ASCII FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),  &
+                &     ' ) IS ASSIGNED FOR INPUT.'
+        ELSEIF (IST > 0) THEN
+           WRITE(6,*) 'XX  ASCII FILE OPEN ERROR !, IOSTAT = ', IST
+        ELSEIF (IST < 0) THEN
+           deallocate(infiles)
+           return
+        END IF
+
+        ! Select a type of input data from ascii files
+        do 
+           write(6,'(A,I2,A)') '# Select a type of input data from ascii file for ',i,' data.'
+           write(6,*) '# 1: PNBP, 2: PNBT1, 3: PNBT2, 4: PRF, 5: LQe4'
+           call guflsh
+           read(*,'(I2)',iostat=ist) itype
+           if(ist > 0) then
+              cycle
+           else if(ist < 0) then
+              deallocate(infiles)
+              return
+           else
+              if(itype <= 0 .or. itype > 5) cycle
+              exit
+           end if
+        end do
+        infiles(i)%name = datatype(itype)
+
+        ! Which column indicates the mesh data
+        do
+           write(6,*) '# Which column indicates the mesh data in ', &
+                &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
+           read(*,'(I2)', iostat=ist) infiles(i)%ncol_mesh
+           if(infiles(i)%ncol_mesh == 0) cycle
+           if (ist > 0) then
+              cycle
+           else if(ist < 0) then
+              deallocate(infiles)
+              return
+           else
+              exit
+           end if
+        end do
+
+        ! Which column indicates the data which you would like to use
+        do
+           write(6,*) '# Which column indicates the data which you would like to use in ', &
+                &     TXFNAM(1:LEN_TRIM(TXFNAM)), ' ?'
+           read(*,'(I2)', iostat=ist) infiles(i)%ncol_data
+           if(infiles(i)%ncol_data == 0) cycle
+           if (ist > 0) then
+              cycle
+           else if(ist < 0) then
+              deallocate(infiles)
+              return
+           else
+              exit
+           end if
+        end do
+
+        ! Read data from the file
+        nol = 0 ! number of lines
+        do 
+           read(21,'(A140)',IOSTAT=IST) kline
+           if(ist < 0) exit ! detect the end of the file
+           nol = nol + 1
+
+           j = 0
+           do
+              j = j + 1
+              kline = trim(adjustl(kline))
+              call ksplit_tx(kline,' ',kline1,kline2)
+              if(j == infiles(i)%ncol_mesh) then
+                 kmesh = trim(kline1)
+              else if(j == infiles(i)%ncol_data) then
+                 kdata = trim(kline1)
+              end if
+              kline = kline2
+              if(j >= infiles(i)%ncol_mesh .and. j >= infiles(i)%ncol_data) exit
+           end do
+
+           read(kmesh,'(F15.7)') infiles(i)%r(nol)
+           read(kdata,'(F15.7)') infiles(i)%data(nol)
+
+!           write(6,*) infiles(i)%r(nol),infiles(i)%data(nol)
+        end do
+        if(nol > nmax_file) then
+           write(6,*) 'XX The number of lines in the file exceeds ',nmax_file
+           write(6,*) '   Program is terminated.'
+           stop
+        else
+           infiles(i)%nol = nol
+        end if
+
+        close(21)
+
+     end do
+
+  end if
 
 end subroutine ascii_input
 

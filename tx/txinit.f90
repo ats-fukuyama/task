@@ -140,13 +140,14 @@ SUBROUTINE TXINIT
   FSCX = 1.D0
 
   !   Orbit loss parameter
-  !   FSLC = 0 : No orbit loss included.
-  !          1 : Loss term is expressed as damping term.
-  !          2 : Loss term is expressed as source and sink term.
+  !     FSLC = 0 : No orbit loss included.
+  !            1 : Loss term is expressed as damping term.
+  !            2 : Loss term is expressed as source and sink term.
   FSLC = 0.D0
 
-  ! MDLC = 1 : Shaing model
-  !        2 : Itoh model
+  !   Orbit loss model
+  !     MDLC = 1 : Shaing model
+  !            2 : Itoh model
   MDLC = 1
 
   !   Ripple loss parameter
@@ -229,6 +230,9 @@ SUBROUTINE TXINIT
   PNBMPD = 0.D0
 
   !   Different NBI deposition profiles for electrons and ions due to banana orbit effect
+  !     MDLNBD = 0 : No charge separation
+  !              1 : Orbit effect for banana particles only
+  !              2 : Orbit effect for all beam ions including passing particles
   MDLNBD = 0
 
   !   Momentum input from perpendicular NBI
@@ -385,6 +389,7 @@ SUBROUTINE TXINIT
   !   1 : debug message output (ntstep == 1)
   !   2 : debug message output (few)
   !   3 : debug message output (many)
+  !  -1 : message for steady state check at NGTSTP intervals
   IDIAG = 0
 
   !   ***** Model parameters *****

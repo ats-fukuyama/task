@@ -761,9 +761,11 @@ contains
 
     GYL(0:NXM,NG,118) = SNGL(rNubL(0:NXM))
     ! External NBI torque density
-    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*(RR+R(0:NXM))*1.D20)
+!!    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*(RR+R(0:NXM))*1.D20)
+    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*RR*1.D20)
     ! Generated toroidal torque density
-    GYL(0:NXM,NG,120) = SNGL((RR+R(0:NXM))*BthV(0:NXM))*GYL(0:NXM,NG,117)
+!!    GYL(0:NXM,NG,120) = SNGL((RR+R(0:NXM))*BthV(0:NXM))*GYL(0:NXM,NG,117)
+    GYL(0:NXM,NG,120) = SNGL(RR*BthV(0:NXM))*GYL(0:NXM,NG,117)
 
     GYL(0:NXM,NG,121) = SNGL(AJPARA(0:NXM))
     GYL(0:NXM,NG,122) = SNGL((BthV(0:NXM)*EthV(0:NXM)+BphV(0:NXM)*EphV(0:NXM)) &
@@ -775,7 +777,6 @@ contains
     GYL(0:NXM,NG,125) = SNGL(DMAG(0:NXM))
     GYL(0:NXM,NG,126) = SNGL(DMAGe(0:NXM))
     GYL(0:NXM,NG,127) = SNGL(DMAGi(0:NXM))
-
 
     RETURN
   END SUBROUTINE TXSTGR

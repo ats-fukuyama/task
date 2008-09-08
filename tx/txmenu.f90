@@ -9,7 +9,7 @@ SUBROUTINE TXMENU
   use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
        &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
-       &              GT, GY, NGRM, NGYRM, R
+       &              GT, GY, NGRM, NGYRM, R, iflag_file
   use tx_main, only : TXEXEC
   use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
   use tx_variables, only : TXCALV
@@ -127,6 +127,17 @@ SUBROUTINE TXMENU
         END SELECT
      CASE('F')
         CALL ASCII_INPUT
+
+        if(iflag_file == 1) then
+           if(rMUb2 == 1.D0) then
+              rMUb1 = 1.D0
+              rMUb2 = rMU0
+
+              if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
+              IF(T_TX /= 0.D0) CALL TXCALV(X)
+           end if
+        end if
+
      CASE('#')
         CONTINUE
      CASE DEFAULT

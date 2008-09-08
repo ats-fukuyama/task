@@ -196,28 +196,6 @@ contains
 
     ! **************** Heating part ****************
 
-    !   NBI total input power (MW)
-    PNBH = PNBHP + PNBHT1 + PNBHT2
-
-    !   Ratio of CX deposition rate to IZ deposition rate
-    !     (Riviere, NF 11 (1971) 363)
-
-    EbL = Eb * 1.D3 / PA
-    logEbL = log10(EbL)
-
-    Scxb = 6.937D-19 * (1.D0 - 0.155D0 * logEbL)**2 / (1.D0 + 1.112D-15 * EbL**3.3D0)
-
-    IF(PNBH == 0.D0) THEN
-       RatCX = 0.D0
-    ELSE
-       IF(Eb > 150.D0) THEN
-          Sion = 3.6D-16 / EbL * (- 0.7783D0 + logEbL)
-       ELSE
-          Sion = 10.D0**(-0.8712D0 * logEbL**2 + 8.156D0 * logEbL - 38.833D0)
-       END IF
-       RatCX = Scxb / (Scxb + Sion)
-    END IF
-
     !     *** Normalization factor for heating profile ***
     !
     !    SL is a normalization factor for a given heating profile.
@@ -253,7 +231,7 @@ contains
     CALL deposition_profile(SNBT1,SLT1,RNBT10,RNBT1,'NB')
     PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
 
-    IF(MDLNBD /= 0) THEN
+    IF(MDLNBD > 1) THEN
        ! For ions
        CALL deposition_profile(SNBTi1,SLT1,RNBT10,RNBT1,'NB_PASS',SIGN(1.D0,PNBCD))
        PNBTi10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
@@ -262,7 +240,7 @@ contains
     CALL deposition_profile(SNBT2,SLT2,RNBT20,RNBT2,'NB')
     PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
 
-    IF(MDLNBD /= 0) THEN
+    IF(MDLNBD > 1) THEN
        ! For ions
        CALL deposition_profile(SNBTi2,SLT2,RNBT20,RNBT2,'NB_PASS',SIGN(1.D0,PNBCD))
        PNBTi20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
@@ -277,7 +255,81 @@ contains
 
     ! Deposition profiles are loaded from the file
 
-    if(iflag_file /= 0) then
+    ! *** Defined input *********************************************
+    if(iflag_file == 1) then
+       ! Birth TOTAL (SNB for heating profiles)
+       i = 1
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNB)
+       ! Calibration by using total power of all ions
+       SL = 2.D0 * Pi * INTG_F(SNB)
+       PNBHP = infiles(i)%totP * 1.D-6
+       SNB(0:NRMAX) = SNB(0:NRMAX) * 1.D-20 &
+            &       * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+       PNBP0 = Eb * rKeV * 1.D20
+       ! "or"= infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNB)))
+       ! Birth profile for electrons
+       SNBe(0:NRMAX) = SNB(0:NRMAX)
+       ! Birth profile for thermal ions
+       SNBi(0:NRMAX) = SNB(0:NRMAX)
+
+       ! Birth Trapped (SNBP for graphic of PNBPD)
+       i = 2
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,2,SNBP)
+       ! Calibration by using total power of all ions
+       SL = 2.D0 * Pi * INTG_F(SNBP)
+       SNBP(0:NRMAX) = SNBP(0:NRMAX) * 1.D-20 &
+            &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+
+       ! Orbit Trapped (SNBPDi for trapped beam ions)
+       i = 5
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi)
+       ! Calibration by using total power of trapped ions
+       SL = 2.D0 * Pi * INTG_F(SNBPDi)
+       SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
+            &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+       PNBPi0 = Eb * rKeV * 1.D20
+       ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
+
+       ! *** Orbit effect for banana ions only ***
+       if(MDLNBD == 1) then
+          ! Birth Passing (SNBTGi for passing beam ions)
+          i = 3
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+          ! Calibration by using total power of trapped ions
+          SL = 2.D0 * Pi * INTG_F(SNBTGi)
+          SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+               &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+          PNBT10 = Eb * rKeV * 1.D20
+          ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
+
+          ! Birth Passing + Orbit TOTAL (SNBb for beam ions)
+          SNBb(0:NRMAX) = SNBPDi(0:NRMAX) + SNBTGi(0:NRMAX)
+
+       ! *** Orbit effect for all ions ***
+       else if(MDLNBD == 2) then
+          ! Orbit TOTAL (SNBb for beam ions)
+          i = 4
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb)
+          ! Calibration by using total power of trapped ions
+          SL = 2.D0 * Pi * INTG_F(SNBb)
+          SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
+               &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+
+          ! Orbit Passing (SNBTGi for passing beam ions)
+          i = 6
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+          ! Calibration by using total power of trapped ions
+          SL = 2.D0 * Pi * INTG_F(SNBTGi)
+          SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+               &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+          PNBT10 = Eb * rKeV * 1.D20
+          ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
+       end if
+       ! Torque injection
+       MNB(0:NRMAX)  = PNBCD * SNBTGi(0:NRMAX) * PNBMPD
+       
+    ! *** Arbitrary input *********************************************
+    else if(iflag_file == 2) then
        do i = 1, n_infiles
           if(infiles(i)%name == datatype(1)) then ! Perp NB
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBP)
@@ -318,7 +370,28 @@ contains
           end if
        end do
     end if
-!    stop
+
+    !   NBI total input power (MW)
+    PNBH = PNBHP + PNBHT1 + PNBHT2
+
+    !   Ratio of CX deposition rate to IZ deposition rate
+    !     (Riviere, NF 11 (1971) 363)
+
+    EbL = Eb * 1.D3 / PA
+    logEbL = log10(EbL)
+
+    Scxb = 6.937D-19 * (1.D0 - 0.155D0 * logEbL)**2 / (1.D0 + 1.112D-15 * EbL**3.3D0)
+
+    IF(PNBH == 0.D0) THEN
+       RatCX = 0.D0
+    ELSE
+       IF(Eb > 150.D0) THEN
+          Sion = 3.6D-16 / EbL * (- 0.7783D0 + logEbL)
+       ELSE
+          Sion = 10.D0**(-0.8712D0 * logEbL**2 + 8.156D0 * logEbL - 38.833D0)
+       END IF
+       RatCX = Scxb / (Scxb + Sion)
+    END IF
 
     ! Alpha heating
 
@@ -735,27 +808,49 @@ contains
        !     *** Heating profile ***
 
        ! For graphic
-       PNBPD(NR) = PNBP0 * SNBP(NR)
-       PNBTG(NR) = PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)
-       PNB(NR)   = PNBPD(NR) + PNBTG(NR)
+       IF(iflag_file == 1) THEN
+          PNBPD(NR) = PNBP0 * SNBP(NR) ! Power of trapped ions
+          PNBTG(NR) = PNBT10 * SNBTGi(NR) ! Power of passing ions
+          PNB(NR)   = PNBPD(NR) + PNBTG(NR)
+       ELSE
+          PNBPD(NR) = PNBP0 * SNBP(NR)
+          PNBTG(NR) = PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)
+          PNB(NR)   = PNBPD(NR) + PNBTG(NR)
+       END IF
        ! For graphic and calculation
        IF(MDLNBD == 0) THEN
           SNBTG     = PNBTG(NR) / (Eb * rKeV * 1.D20)
           SNBPD     = PNBP0 * SNBP(NR) / (Eb * rKeV * 1.D20)
           SNBTGi(NR)= SNBTG
           SNBPDi(NR)= SNBPD
-          SNBe(NR)  = SNBTG + SNBPD
-          SNBi(NR)  = SNBTG + SNBPD
           SNB(NR)   = SNBTG + SNBPD
+          SNBe(NR)  = SNB(NR)
+          SNBi(NR)  = SNB(NR)
+          SNBb(NR)  = SNB(NR)
           MNB(NR)   = PNBCD * SNBTG
        ELSE
-          SNBTGi(NR)=(PNBTi10 * SNBTi1(NR) + PNBTi20 * SNBTi2(NR)) / (Eb * rKeV * 1.D20)
-          SNBPDi(NR)= PNBPi0 * SNBPi(NR) / (Eb * rKeV * 1.D20)
-          SNBe(NR)  =(PNBPD(NR) + PNBTG(NR)) / (Eb * rKeV * 1.D20)
-          SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
-          SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
-          MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD!/2.3d0! + (MDLPDM * PNBMPD) * SNBPDi(NR)
-!          MNB(NR)   = 0.D0
+          IF(iflag_file /= 1) THEN
+             ! Source profile for passing ions in temporal and graphic use
+             IF(MDLNBD == 1) THEN
+                SNBTGi(NR)=(PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)) / (Eb * rKeV * 1.D20)
+             ELSE
+                SNBTGi(NR)=(PNBTi10 * SNBTi1(NR) + PNBTi20 * SNBTi2(NR)) / (Eb * rKeV * 1.D20)
+             END IF
+             ! Source profile for trapped ions with banana orbit effect
+             !   in temporal and graphic use
+             SNBPDi(NR)= PNBPi0 * SNBPi(NR) / (Eb * rKeV * 1.D20)
+             ! Birth profiles for heating power
+             SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
+             ! Birth profiles for electrons and thermal ions
+             SNBe(NR)  = SNB(NR)
+             SNBi(NR)  = SNB(NR)
+!!old fashion             SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
+             ! Source profiles for beam ions with banana orbit effect
+             SNBb(NR)  = SNBPDi(NR) + SNBTGi(NR)
+             ! Torque injection
+             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD!/2.3d0! + (MDLPDM * PNBMPD) * SNBPDi(NR)
+          END IF
+          ! Note: in case of iflag_file == 1, these terms have been already defined above.
        END IF
        PRFe(NR)  = PRFe0 * SRFe(NR)
        PRFi(NR)  = PRFi0 * SRFi(NR)
@@ -816,18 +911,18 @@ contains
 !       POH(NR)  = EthV(NR)*AJTH + EphV(NR)*AJPH
 !       POH(NR)  = EphV(NR) * AJPH
 
-       !     *** NBI power deposition ***
+       !     *** NBI power deposition for graphics ***
 
        PNBe(NR) = Eb * SNB(NR) * PNBcol_e(NR) * (1.D20 * rKeV)
        PNBi(NR) = Eb * SNB(NR) * PNBcol_i(NR) * (1.D20 * rKeV) &
             &   + AMb * Vb * MNB(NR) * (BthV(NR)*UithV(NR)+BphV(NR)*UiphV(NR))/BBL * 1.D20
 
-       !     *** Equipartition power ***
+       !     *** Equipartition power for graphics ***
 
        PEQe(NR)  = - 1.5D0 * rNuTei(NR) * PNeV(NR) * 1.D20 * (PTeV(NR) - PTiV(NR)) * rKeV
        PEQi(NR)  = - 1.5D0 * rNuTei(NR) * PNeV(NR) * 1.D20 * (PTiV(NR) - PTeV(NR)) * rKeV
 
-       !     *** Ohmic power from Equations ***
+       !     *** Ohmic power from Equations for graphics ***
 
        POHe(NR) = - AEE * EthV(NR) * PNeV(NR) * 1.D20 * UethV(NR) &
             &     - AEE * EphV(NR) * PNeV(NR) * 1.D20 * UephV(NR)
@@ -838,6 +933,7 @@ contains
        !     (NRL Plasma Formulary p57 Eq. (30) (2002))
 
        PBr(NR) = 5.35D-37 * PZ**2 * PNeV(NR) * PNiV(NR) * 1.D40 * SQRT(PTeV(NR))
+
        !     *** Particle diffusion due to magnetic braiding ***AF 2008-06-08
 
        IF (R(NR) > RMAGMN .AND. R(NR) < RMAGMX) THEN

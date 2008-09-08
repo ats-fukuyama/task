@@ -1439,15 +1439,15 @@ END SUBROUTINE BISECTION
 !
 !      imode |  iaxis  iedge  |    axis        separatrix   |
 !     -------------------------------------------------------
-!        *   |    *      0    |         as it is            | <- if data in rho > 1 exist
+!        *   |    0      0    |         as it is            | <= if data in rho > 1 exist
 !        1   |    1      1    |     0              0        |
-!        2   |    2      2    |     0              ex       |
-!        3   |    3      3    |     0              val      |
-!        4   |    1      1    |     ex             0        |
+!        2   |    1      2    |     0              ex       |
+!        3   |    1      3    |     0              val      |
+!        4   |    2      1    |     ex             0        |
 !        5   |    2      2    |     ex             ex       |
-!        6   |    3      3    |     ex             val      |
-!        7   |    1      1    |     val            0        |
-!        8   |    2      2    |     val            ex       |
+!        6   |    2      3    |     ex             val      |
+!        7   |    3      1    |     val            0        |
+!        8   |    3      2    |     val            ex       |
 !        9   |    3      3    |     val            val      |
 !
 !     0 : zero, ex : extrapolation, val : three quarters of the nearest value
