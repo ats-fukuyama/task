@@ -32,7 +32,7 @@ C
       else
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
-         CALL WMSETJ(IERR)
+         CALL WMFEM_SETJ(IERR)
          IF(IERR.NE.0) RETURN
          call wmfem(nrmax+1,nthmax,nphmax,nsmax,xrho,cef,cbf,cpp,cpa)
          CALL WMFEM_EFLD(cef)

@@ -2,16 +2,16 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm(crf_,nth0_,nph0_,idbgwm_)
+      subroutine get_wmparm(crf_,nth0_,nph0_,mdlwmf_)
       
       include '../wm/wmcomm.inc'
       complex(8),intent(out):: crf_
       integer,intent(out):: nth0_,nph0_
-      integer,intent(out):: idbgwm_
+      integer,intent(out):: mdlwmf_
       crf_=crf
       nth0_=nth0
       nph0_=nph0
-      idbgwm_=idbgwm
+      mdlwmf_=mdlwmf
       return
       end subroutine get_wmparm
 
@@ -137,22 +137,28 @@ C     $Id$
       real(8),intent(out):: babs,bsupth,bsupph
       real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
       real(8):: bprr,bpzz,bthl,bphl,ttl
+      real(8),dimension(3,3):: gm
       
       CALL spl2dd(th,rho,rrl,drrchi,drrrho,
      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      gm(2,2)= drrchi**2+dzzchi**2
+      gm(2,3)= 0.d0
+      gm(3,3)= rrl**2
 
       CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
 
       bprr= DPSIDZ/(2.D0*PI*rrl)
       bpzz=-DPSIDR/(2.D0*PI*rrl)
       bthl=SQRT(bprr**2+bpzz**2)
-!      CALL EQTT(rho)
+      ttl=FNTTS(rho)
       bphl= ttl/(2.D0*PI*rrl)
       bsupth=bthl
       bsupph=bphl
-      babs=0.d0
+      babs=sqrt(     gm(2,2)*bsupth*bsupth
+     &         +2.d0*gm(2,3)*bsupth*bsupph
+     &         +     gm(3,3)*bsupph*bsupph)
       return
 
       end subroutine wmeq_get_magnetic
@@ -214,6 +220,133 @@ C     $Id$
       return
       end subroutine wmfem_qprofile
 C
+C     ****** CALCULATE ANTENNA CURRENT ******
+C     
+      SUBROUTINE WMFEM_SETJ(IERR)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      DIMENSION RHO(0:3,1:3,2:3)
+C
+      DATA RHO/ 3.832, 1.841, 3.054, 4.201,
+     &          7.016, 5.332, 6.706, 8.015,
+     &         10.173, 8.536, 9.969,11.346,
+     &          2.405, 3.832, 5.136, 6.380,
+     &          5.520, 7.016, 8.417, 9.761,
+     &          8.654,10.173,11.620,13.015/
+C
+         IF(RD.LE.RA.OR.RD.GE.RB) THEN
+            IF(MYRANK.EQ.0) WRITE(6,*) '!! WMSETJ: RD = (RA+RB)/2'
+            RD=0.5D0*(RA+RB)
+            IF(MYRANK.EQ.0) 
+     &           WRITE(6,'(A,1P3E12.4)') 'RA,RB,RD=',RA,RB,RD
+         ENDIF
+C
+      DO NDX=1,NDSIZ
+      DO MDX=1,MDSIZ
+         CJANT(1,MDX,NDX)=(0.D0,0.D0)
+         CJANT(2,MDX,NDX)=(0.D0,0.D0)
+         CJANT(3,MDX,NDX)=(0.D0,0.D0)
+      ENDDO
+      ENDDO
+C
+      MODELWG=0
+      IF(MODELJ.EQ.0) THEN
+         CALL WMFEM_CANT
+      ELSEIF(MODELJ.EQ.1) THEN
+         MODELWG=1
+      ELSEIF(MODELJ.EQ.2) THEN
+         CJANT(2,1,1)= 1.D0
+      ELSEIF(MODELJ.EQ.3) THEN
+         CJANT(3,1,1)= 1.D0
+      ELSE
+         NMODE=MOD(MODELJ,10)
+         IMODE=MODELJ/10
+         IF(NTH0.LT.0.OR.NTH0.GT.3) GOTO 9000
+         IF(NMODE.LT.1.OR.NMODE.GT.3) GOTO 9000
+         IF(IMODE.LT.2.OR.IMODE.GT.3) GOTO 9000
+         RF =0.5D0*VC/PI
+     &            *SQRT((NPH0/RR)**2+(RHO(NTH0,NMODE,IMODE)/RB)**2)
+     &            *1.D-6
+         RFI=0.D0
+         CRF=DCMPLX(RF,RFI)
+         CJANT(IMODE,1,1)=(1.D0,0.D0)
+      ENDIF
+C
+      IERR=0
+      RETURN
+C
+ 9000 WRITE(6,*) 'XX WMCALJ ERROR'
+      IERR=1
+      RETURN
+      END
+C
+C     ****** CALCULATE ANTENNA CURRENT ******
+C
+      SUBROUTINE WMFEM_CANT
+C
+      INCLUDE 'wmcomm.inc'
+C
+      DIMENSION CJT(MDM,NDM,NAM)
+      DIMENSION CJZ(MDM,NDM,NAM)
+C
+      DO NA=1,NAMAX
+         TH1=THJ1(NA)*PI/180.D0
+         TH2=THJ2(NA)*PI/180.D0
+         PH1=PHJ1(NA)*PI/180.D0
+         PH2=PHJ2(NA)*PI/180.D0
+C
+         CAJ=AJ(NA)*EXP(DCMPLX(0.D0,APH(NA)*PI/180.D0))
+C   
+      DO NDX=1,NPHMAX
+         ND=NDX-1
+         IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
+         NN=NPH0+NHC*ND
+         IF(NN.EQ.0.OR.ABS(PH2-PH1).LE.1.D-15) THEN
+            CJN=-CI
+         ELSE
+            CJN=(EXP(-CI*NN*PH2)-EXP(-CI*NN*PH1))/(NN*(PH2-PH1))
+         ENDIF
+      DO MDX=1,NTHMAX
+         MD=MDX-1
+         IF(NTHMAX.GT.1.AND.MDX.GT.NTHMAX/2) MD=MD-NTHMAX
+         MM=NTH0+MD
+         IF(ABS(MM+BETAJ).LE.0.D0) THEN
+            CJMP=-CI*(TH2-TH1)
+         ELSE
+            CJMP=(EXP(-CI*(MM+BETAJ)*TH2)-EXP(-CI*(MM+BETAJ)*TH1))
+     &           /(MM+BETAJ)
+         ENDIF
+         IF(ABS(MM-BETAJ).LE.0.D0) THEN
+            CJMM=-CI*(TH2-TH1)
+         ELSE
+            CJMM=(EXP(-CI*(MM-BETAJ)*TH2)-EXP(-CI*(MM-BETAJ)*TH1))
+     &           /(MM-BETAJ)
+         ENDIF
+         CJTEMP=CAJ/(8*PI**2)*CJN*(CJMP+CJMM)
+         CJT(MDX,NDX,NA)=CJTEMP*COS(2*PI*ANTANG/360.D0)
+         CJZ(MDX,NDX,NA)=CJTEMP*SIN(2*PI*ANTANG/360.D0)
+      ENDDO
+      ENDDO
+      ENDDO
+C
+      DO NDX=1,NPHMAX
+      DO MDX=1,NTHMAX
+      DO NA=1,NAMAX
+         CJANT(2,MDX,NDX)=CJANT(2,MDX,NDX)+CJT(MDX,NDX,NA)
+         CJANT(3,MDX,NDX)=CJANT(3,MDX,NDX)+CJZ(MDX,NDX,NA)
+         IF(MYRANK.EQ.0) THEN
+            IF(NPRINT.GE.3) WRITE(6,'(A,2I4,1P2E15.7)') 
+     &                   'NN,MM,CJANT=',
+     &                   NPH0+NHC*ND,NTH0+MD,CJANT(2,MDX,NDX)
+         ENDIF
+      ENDDO
+      ENDDO
+      ENDDO
+C
+      RETURN
+      END
+C
 C     ****** ASSEMBLE TOTAL ELEMENT FREE VECTOR ******
 C
       SUBROUTINE get_wmfvb(NR,CFVP)
@@ -251,32 +384,28 @@ C
                   DRHO=XRHO2-XRHO1
                   XRHOC=0.5D0*(XRHO2+XRHO1)
 C
-                  IF(MODELG.EQ.3) THEN
-                     QPC=0.5D0*(QPS(NRANT)+QPS(NRANT+1))
-                     DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
-                  ELSE
-                     DPSIPDRHOC =2.D0*PSIPA*XRHOC
-                  ENDIF
-C
                   FACTM=(XRHO2-RD/RA)/DRHO
                   FACTP=(RD/RA-XRHO1)/DRHO
 C
-                  DO ND=NDMIN,NDMAX
-                     NDX=ND-NDMIN+1
+                  DO NDX=1,NPHMAX
+                     ND=NDX-1
+                     IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
                      NN=NPH0+NHC*ND
-                  DO MD=MDMIN,MDMAX
-                     MDX=MD-MDMIN+1
+                  DO MDX=1,NTHMAX
+                     MD=MDX-1
+                     IF(NTHMAX.GT.1.AND.MDX.GT.NTHMAX/2) MD=MD-NTHMAX
                      MM=NTH0+MD
+
                      CJTHM=CC*CJANT(2,MDX,NDX)*FACTM*XRHOC
-     &                                        /(DPSIPDRHOC*DRHO*DPH)
+     &                                        /(DRHO*DPH)
                      CJPHM=CC*CJANT(3,MDX,NDX)*FACTM*XRHOC
-     &                                        /(DPSIPDRHOC*DRHO*DTH)
+     &                                        /(DRHO*DTH)
                      CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)
-     &                                         *DPSIPDRHOC*DRHO/XRHOC
+     &                                         *DRHO/XRHOC
                      CJTHP=CC*CJANT(2,MDX,NDX)*FACTP*XRHOC
-     &                                        /(DPSIPDRHOC*DRHO*DPH)
+     &                                        /(DRHO*DPH)
                      CJPHP=CC*CJANT(3,MDX,NDX)*FACTP*XRHOC
-     &                                        /(DPSIPDRHOC*DRHO*DTH)
+     &                                        /(DRHO*DTH)
                      CFVP(NDX,MDX,1)=0.D0
                      CFVP(NDX,MDX,2)=0.D0
                      CFVP(NDX,MDX,3)=0.D0
@@ -306,28 +435,20 @@ c$$$     &                    'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
                   DRHO=XRHO2-XRHO1
                   XRHOC=0.5D0*(XRHO2+XRHO1)
 C
-                  IF(MODELG.EQ.3) THEN
-                     IF(NR.LT.NRMAX) THEN
-                        QPC=0.5D0*(QPS(NR+1)+QPS(NR+2))
-                     ELSE
-                        QPC=0.5D0*(3*QPS(NR+1)-QPS(NR))
-                     ENDIF
-                     DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
-                  ELSE
-                     DPSIPDRHOC =2.D0*PSIPA*XRHOC
-                  ENDIF
-C
-                  DO ND=NDMIN,NDMAX
-                     NDX=ND-NDMIN+1
+                  DO NDX=1,NPHMAX
+                     ND=NDX-1
+                     IF(NPHMAX.GT.1.AND.NDX.GT.NPHMAX/2) ND=ND-NPHMAX
                      NN=NPH0+NHC*ND
-                  DO MD=MDMIN,MDMAX
-                     MDX=MD-MDMIN+1
+                  DO MDX=1,NTHMAX
+                     MD=MDX-1
+                     IF(NTHMAX.GT.1.AND.MDX.GT.NTHMAX/2) MD=MD-NTHMAX
                      MM=NTH0+MD
+
                      CJTHM=CC*CJANT(2,MDX,NDX)*XRHOC
-     &                             /(DPSIPDRHOC*DRHO*DPH)
+     &                             /(DRHO*DPH)
                      CJPHM=CC*CJANT(3,MDX,NDX)*XRHOC
-     &                             /(DPSIPDRHOC*DRHO*DTH)
-                     CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO
+     &                             /(DRHO*DTH)
+                     CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DRHO
      &                             /XRHOC
                      CFVP(NDX,MDX,1)=CJR
 c$$$                     WRITE(6,'(A,3I5,A,1P2E12.4)') 
@@ -352,17 +473,6 @@ c$$$     &                    'CFVP(',NDX,MDX,3,')',CFVP(NDX,MDX,3)
             DRHO=XRHO2-XRHO1
             XRHOC=0.5D0*(XRHO2+XRHO1)
 C
-            IF(MODELG.EQ.3) THEN
-               IF(NR.LT.NRMAX) THEN
-                  QPC=0.5D0*(QPS(NR+1)+QPS(NR+2))
-               ELSE
-                  QPC=0.5D0*(3*QPS(NR+1)-QPS(NR))
-               ENDIF
-               DPSIPDRHOC =2.D0*PSITA*XRHOC /QPC
-            ELSE
-               DPSIPDRHOC =2.D0*PSIPA*XRHOC
-            ENDIF
-C
             CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
             RJFACT=RN(1)*RT
@@ -373,9 +483,9 @@ C
             DO MD=MDMIN,MDMAX
                MDX=MD-MDMIN+1
                MM=NTH0+MD
-               CJTHM=RJFACT*XRHOC/(DPSIPDRHOC*DRHO*DPH)
-               CJPHM=RJFACT*XRHOC/(DPSIPDRHOC*DRHO*DTH)
-               CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DPSIPDRHOC*DRHO/XRHOC
+               CJTHM=RJFACT*XRHOC/(DRHO*DPH)
+               CJPHM=RJFACT*XRHOC/(DRHO*DTH)
+               CJR  =-(CI*MM*CJTHM+CI*NN*CJPHM)*DRHO/XRHOC
 C               CFVP(NDX,MDX,1)=CJR
                CFVP(NDX,MDX,1)=0.D0
                CFVP(NDX,MDX,2)=CJTHM
@@ -397,13 +507,23 @@ C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
       do nr=1,nrmax+1
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            CEFLDK(1,MDX,NDX,NR )=cef(1,mdx,ndx,nr)
-            CEFLDK(2,MDX,NDX,NR )=cef(2,mdx,ndx,nr)
-            CEFLDK(3,MDX,NDX,NR )=cef(3,mdx,ndx,nr)
+         DO NDX=1,nphmax
+            if(nphmax.eq.1) then
+               NDX1=NDX
+            else
+               NDX1=NDX+nphmax/2-1
+               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+            endif
+         DO MDX=1,nthmax
+            if(nthmax.eq.1) then
+               MDX1=MDX
+            else
+               MDX1=MDX+nthmax/2-1
+               IF(MDX1.gt.nthmax) MDX1=MDX1-nthmax
+            endif
+            CEFLDK(1,MDX1,NDX1,NR )=cef(1,mdx,ndx,nr)
+            CEFLDK(2,MDX1,NDX1,NR )=cef(2,mdx,ndx,nr)
+            CEFLDK(3,MDX1,NDX1,NR )=cef(3,mdx,ndx,nr)
             CEFLD(1,MDX,NDX,NR )=cef(1,mdx,ndx,nr)
             CEFLD(2,MDX,NDX,NR )=cef(2,mdx,ndx,nr)
             CEFLD(3,MDX,NDX,NR )=cef(3,mdx,ndx,nr)
@@ -474,13 +594,23 @@ C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
 C
       do nr=1,nrmax+1
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            CBFLDK(1,MDX,NDX,NR )=cbf(1,mdx,ndx,nr)
-            CBFLDK(2,MDX,NDX,NR )=cbf(2,mdx,ndx,nr)
-            CBFLDK(3,MDX,NDX,NR )=cbf(3,mdx,ndx,nr)
+         DO NDX=1,nphmax
+            if(nphmax.eq.1) then
+               NDX1=NDX
+            else
+               NDX1=NDX+nphmax/2-1
+               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+            endif
+         DO MDX=1,nthmax
+            if(nthmax.eq.1) then
+               MDX1=MDX
+            else
+               MDX1=MDX+nthmax/2-1
+               IF(MDX1.gt.nthmax) MDX1=MDX1-nthmax
+            endif
+            CBFLDK(1,MDX1,NDX1,NR )=cbf(1,mdx,ndx,nr)
+            CBFLDK(2,MDX1,NDX1,NR )=cbf(2,mdx,ndx,nr)
+            CBFLDK(3,MDX1,NDX1,NR )=cbf(3,mdx,ndx,nr)
             CBFLD(1,MDX,NDX,NR )=cbf(1,mdx,ndx,nr)
             CBFLD(2,MDX,NDX,NR )=cbf(2,mdx,ndx,nr)
             CBFLD(3,MDX,NDX,NR )=cbf(3,mdx,ndx,nr)
@@ -578,9 +708,21 @@ C
          DO NS=1,NSMAX
             KKX=1
             LLX=1
-         DO NDX=1,NDSIZ
-         DO MDX=1,MDSIZ
-            PABSK(MDX,NDX,NR,NS)=DBLE(CPABS(LLX,MDX,KKX,NDX,NS,NR))
+         DO NDX=1,nphmax
+            if(nphmax.eq.1) then
+               NDX1=NDX
+            else
+               NDX1=NDX+nphmax/2-1
+               IF(NDX1.gt.nphmax) NDX1=NDX1-nphmax
+            endif
+         DO MDX=1,nthmax
+            if(nthmax.eq.1) then
+               MDX1=MDX
+            else
+               MDX1=MDX+nthmax/2-1
+               IF(MDX1.gt.nthmax) MDX1=MDX1-nthmax
+            endif
+            PABSK(MDX1,NDX1,NR,NS)=DBLE(CPABS(LLX,MDX,KKX,NDX,NS,NR))
          ENDDO
          ENDDO
          ENDDO

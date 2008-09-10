@@ -433,12 +433,27 @@ C
          RF=DBLE(CRF)
          WF=2*PI*RF*1.0D6
          DO NR=1,NRMAX+1
-            CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
+            rhol=xrho(nr)
+            if(MDLWMF.eq.1) THEN
+               CALL PLPROF2(rhol,RN,RTPR,RTPP,RU)
+            else
+               CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
+            endif
+            dth=2.d0*pi/nthmax
+            dph=2.d0*pi/nphmax
             DO NTH=1,NTHMAX
                NTHP=NTH+1
                IF(NTHP.GT.NTHMAX) NTHP=1
-               CALL WMCMAG(NR,NTH, NPH,BABS, BSUPTH, BSUPPH )
-               CALL WMCMAG(NR,NTHP,NPH,BABSP,BSUPTHP,BSUPPHP)
+               if(MDLWMF.eq.1) THEN
+                  ph=dph*(nph-1)
+                  th=dth*(nth-1)
+                  call wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+                  th=dth*(nthp-1)
+                  call wmfem_magnetic(rhol,th,ph,babsp,bsupthp,bsupphp)
+               else
+                  CALL WMCMAG(NR,NTH, NPH,BABS, BSUPTH, BSUPPH )
+                  CALL WMCMAG(NR,NTHP,NPH,BABSP,BSUPTHP,BSUPPHP)
+               endif
                DO NTHG=1,NTHGS
                   NTHL=(NTH-1)*NTHGS+NTHG
                   FACT=DBLE(NTHG-1)/DBLE(NTHGS)

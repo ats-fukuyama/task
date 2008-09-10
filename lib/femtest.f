@@ -29,7 +29,7 @@
       write(6,*) ' * id=11: Maxwell eq (cylinder) quadra + linear'
       write(6,*) ' * *******************************'
 
-      id=11
+      id=10
       nrmax=11
       npow=1
       nth=0
@@ -2231,7 +2231,8 @@ c$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
          do inod=1,4
             if(inod.eq.1) then
                if(nr.eq.1) then
-                  rho0=(8.d0*rho(nr)+rho(nr+1))/9.d0
+!                  rho0=(8.d0*rho(nr)+rho(nr+1))/9.d0
+                  rho0=rho(nr+1))/1.d-6
                else
                   rho0=rho(nr)
                endif
@@ -2603,6 +2604,13 @@ c$$$     &           rho(nr+1)-0.85d0,0.85d0-rho(nr)
          enddo
          fma(mc-2,3)=1.d0
          fma(mc,3)=ci*nth
+         fma(mc,5)=1.d0
+      elseif(abs(nth).eq.2) then
+         do mw=1,mwmax
+            fma(mw,3) = 0.d0
+            fma(mw,5) = 0.d0
+         enddo
+         fma(mc,3)=1.d0
          fma(mc,5)=1.d0
       else
          do mw=1,mwmax

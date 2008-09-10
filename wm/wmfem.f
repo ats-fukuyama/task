@@ -17,7 +17,7 @@
 
       complex(8):: crf
       integer:: nth0,nph0
-      integer:: idbgwm
+      integer:: mdlwmf
 
       integer:: nfcmax,mlmax,mwmax,nthmax2,nphmax2,nfcmax2
       complex(8),dimension(:,:),pointer,save:: fma,fmax !(mwmax,mlmax)
@@ -49,7 +49,7 @@
 
 !     ***** get additional parameters *****
 
-      call get_wmparm(crf,nth0,nph0,idbgwm)
+      call get_wmparm(crf,nth0,nph0,mdlwmf)
 
 !     ***** allocate matrix and vector *****
 
@@ -252,6 +252,8 @@
                cef(1,mm,nn,nr)=fvx(ml+1)
                cef(2,mm,nn,nr)=fvx(ml+3)
                cef(3,mm,nn,nr)=fvx(ml+5)
+!               write(6,'(3I4,1P6E11.3)') nr,nn,mm,cef(1,mm,nn,nr),
+!     &              cef(2,mm,nn,nr),cef(3,mm,nn,nr)
             enddo
          enddo
       enddo
@@ -402,24 +404,24 @@
             drho=rhoa(nr+1)-rhoa(nr)
 
             if(ns.eq.0) then
-               if(idbgwm.eq.0) then
+               if(mdlwmf.eq.1) then
                   call wmfem_calculate_vacuum(rho1,fmd1)
                   call wmfem_calculate_vacuum(rho2,fmd2)
                   call wmfem_calculate_vacuum(rho3,fmd3)
                   call wmfem_calculate_vacuum(rho4,fmd4)
-               else if(idbgwm.eq.1) then
+               else if(mdlwmf.eq.2) then
                   call wmfem_calculate_vacuum_c(rho1,fmd1)
                   call wmfem_calculate_vacuum_c(rho2,fmd2)
                   call wmfem_calculate_vacuum_c(rho3,fmd3)
                   call wmfem_calculate_vacuum_c(rho4,fmd4)
                endif
             else
-               if(idbgwm.eq.0) then
+               if(mdlwmf.eq.1) then
                   call wmfem_calculate_plasma(rho1,ns,fmd1)
                   call wmfem_calculate_plasma(rho2,ns,fmd2)
                   call wmfem_calculate_plasma(rho3,ns,fmd3)
                   call wmfem_calculate_plasma(rho4,ns,fmd4)
-               else if(idbgwm.eq.1) then
+               else if(mdlwmf.eq.2) then
                   call wmfem_calculate_plasma_c(rho1,ns,fmd1)
                   call wmfem_calculate_plasma_c(rho2,ns,fmd2)
                   call wmfem_calculate_plasma_c(rho3,ns,fmd3)
@@ -523,6 +525,24 @@ c$$$         enddo
       enddo
       enddo
 
+!------      fvb
+
+      do ml=1,mlmax
+         fvb(ml)=0.d0
+      enddo
+         
+      do nr=1,nrmax-1
+         call get_wmfvb(nr,fvb_nr)
+         do nfc=1,nfcmax
+            nth=nthnfc(nfc)
+            nph=nphnfc(nfc)
+            ml=6*nfcmax*(nr-1)+6*(nfc-1)
+            fvb(ml+1)=fvb_nr(nph,nth,1)
+            fvb(ml+3)=fvb_nr(nph,nth,2)
+            fvb(ml+5)=fvb_nr(nph,nth,3)
+         enddo
+      enddo
+
 !----- boundary conditions -----
 
       mc=(mwmax+1)/2
@@ -539,6 +559,7 @@ c$$$         enddo
                enddo
             enddo
             fma(mc,ml+3)=1.d0
+            fvb(ml+3)=0.d0
             fms(mc,ml+3,0)=1.d0
          elseif(abs(mm).eq.1) then
             do mw=3,mwmax
@@ -578,6 +599,8 @@ c$$$         enddo
             enddo
             fma(mc  ,ml+1)=1.d0
             fma(mc  ,ml+5)=1.d0
+            fvb(ml+1)=0.d0
+            fvb(ml+5)=0.d0
             fms(mc  ,ml+1,0)=1.d0
             fms(mc  ,ml+5,0)=1.d0
 
@@ -606,6 +629,8 @@ c$$$            fms(mc  ,ml+5,0)=1.d0
             enddo
             fma(mc,ml+3)=1.d0
             fma(mc,ml+5)=1.d0
+            fvb(ml+3)=0.d0
+            fvb(ml+5)=0.d0
             fms(mc,ml+3,0)=1.d0
             fms(mc,ml+5,0)=1.d0
          endif
@@ -621,6 +646,8 @@ c$$$            fms(mc  ,ml+5,0)=1.d0
             enddo
             fma(mc,ml+3) = 1.d0
             fma(mc,ml+5) = 1.d0
+            fvb(ml+3)=0.d0
+            fvb(ml+5)=0.d0
          else
             do mw=1,mwmax
                fma(mw,ml+2) = 0.d0
@@ -630,6 +657,66 @@ c$$$            fms(mc  ,ml+5,0)=1.d0
             fma(mc,ml+2) = 1.d0
             fma(mc,ml+3) = 1.d0
             fma(mc,ml+5) = 1.d0
+            fvb(ml+2)=0.d0
+            fvb(ml+3)=0.d0
+            fvb(ml+5)=0.d0
+         endif
+      enddo
+
+      do nr=1,nrmax
+         if(nphmax.gt.1) then
+            nn=nphmax/2+1
+            do mm=1,nthmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+               do mw=1,mwmax
+                  fma(mw,ml+1)=0.d0
+                  fma(mw,ml+3)=0.d0
+                  fma(mw,ml+5)=0.d0
+                  do ns=0,nsmax
+                     fms(mw,ml+1,ns)=0.d0
+                     fms(mw,ml+3,ns)=0.d0
+                     fms(mw,ml+5,ns)=0.d0
+                  end do
+               end do
+               fma(mc,ml+1)=1.d0
+               fma(mc,ml+3)=1.d0
+               fma(mc,ml+5)=1.d0
+               fvb(ml+1)=0.d0
+               fvb(ml+3)=0.d0
+               fvb(ml+5)=0.d0
+               do ns=0,nsmax
+                  fms(mw,ml+1,ns)=1.d0
+                  fms(mw,ml+3,ns)=1.d0
+                  fms(mw,ml+5,ns)=1.d0
+               end do
+            end do
+         endif
+         if(nthmax.gt.1) then
+            mm=nthmax/2+1
+            do nn=1,nphmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+               do mw=1,mwmax
+                  fma(mw,ml+1)=0.d0
+                  fma(mw,ml+3)=0.d0
+                  fma(mw,ml+5)=0.d0
+                  do ns=0,nsmax
+                     fms(mw,ml+1,ns)=0.d0
+                     fms(mw,ml+3,ns)=0.d0
+                     fms(mw,ml+5,ns)=0.d0
+                  end do
+               end do
+               fma(mc,ml+1)=1.d0
+               fma(mc,ml+3)=1.d0
+               fma(mc,ml+5)=1.d0
+               fvb(ml+1)=0.d0
+               fvb(ml+3)=0.d0
+               fvb(ml+5)=0.d0
+               do ns=0,nsmax
+                  fms(mc,ml+1,ns)=1.d0
+                  fms(mc,ml+3,ns)=1.d0
+                  fms(mc,ml+5,ns)=1.d0
+               end do
+            end do
          endif
       enddo
 
@@ -644,24 +731,6 @@ c$$$               endif
 c$$$            endif
 c$$$         enddo
 c$$$      enddo
-
-!------      fvb
-
-      do ml=1,mlmax
-         fvb(ml)=0.d0
-      enddo
-         
-      do nr=1,nrmax-1
-         call get_wmfvb(nr,fvb_nr)
-         do nfc=1,nfcmax
-            nth=nthnfc(nfc)
-            nph=nphnfc(nfc)
-            ml=6*nfcmax*(nr-1)+6*(nfc-1)
-            fvb(ml+1)=fvb_nr(nph,nth,1)
-            fvb(ml+3)=fvb_nr(nph,nth,2)
-            fvb(ml+5)=fvb_nr(nph,nth,3)
-         enddo
-      enddo
 
       return
       end subroutine wmfem_calculate
@@ -1218,6 +1287,339 @@ c$$$      enddo
 
       end subroutine wmfem_calculate_plasma_c
 
+!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
+
+      SUBROUTINE wmfem_tensors(rho,gma,muma,dmuma,gja)
+
+      IMPLICIT NONE
+      real(8),intent(in):: rho
+      real(8),intent(out),dimension(3,3,nthmax2,nphmax2):: 
+     &     gma,muma,dmuma
+      real(8),intent(out),dimension(nthmax2,nphmax2):: gja
+      real(8),dimension(3,3):: gm,gmp,gmm,mum,mump,mumm
+      real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
+      real(8):: babs,bsupth,bsupph,rhol
+      integer:: nth,nph,i,j
+
+      dth=2.d0*pi/nthmax2
+      dph=2.d0*pi/nphmax2
+      IF(rho.EQ.0.d0) THEN
+         rhol=1.d-6
+         drhom=0.d0
+      else
+         rhol=rho
+         drhom=1.d-6
+      endif
+      drhop=1.d-6
+      DO nph=1,nphmax2
+         ph=dph*(nph-1)
+         DO nth=1,nthmax2
+            th=dth*(nth-1)
+
+            CALL wmfem_metrics(rhol,th,ph,gm,gj)
+            CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
+
+            CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
+            CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gmm,gjm,babs,bsupth,bsupph,mumm)
+
+            CALL wmfem_metrics(rhol+drhop,th,ph,gmp,gjp)
+            CALL wmfem_magnetic(rhol+drhop,th,ph,babs,bsupth,bsupph)
+            CALL wmfem_rotation_tensor(gmp,gjp,babs,bsupth,bsupph,mump)
+
+            DO j=1,3
+               DO i=1,3
+                  gma(i,j,nth,nph)=gm(i,j)
+                  muma(i,j,nth,nph)=mum(i,j)
+                  dmuma(i,j,nth,nph)
+     &                 =(mump(i,j)-mumm(i,j))/(drhom+drhop)
+               END DO
+            END DO
+            gja(nth,nph)=gj
+
+         ENDDO
+      ENDDO
+      RETURN
+      END SUBROUTINE wmfem_tensors
+
+!        ****** CALCULATE CONVERSION TENSOR ******
+
+         SUBROUTINE wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
+
+         IMPLICIT NONE
+         real(8),dimension(3,3),intent(in):: gm
+         real(8),intent(in):: gj,babs,bsupth,bsupph
+         real(8),dimension(3,3),intent(out):: mum
+         real(8):: tc2,tc3,gf11,gf12
+
+!        ----- Calculate rotation matrix mum -----
+
+         tc2=bsupth/babs
+         tc3=bsupph/babs
+
+!        ----- gf11=gj*SQRT(gm11) -----
+
+         gf11 = SQRT(gm(2,2)*gm(3,3)-gm(2,3)*gm(3,2))
+         gf12 =(tc2*(gm(2,3)*gm(1,2)-gm(2,2)*gm(1,3))
+     &         +tc3*(gm(3,3)*gm(1,2)-gm(2,3)*gm(1,3)))
+            
+         mum(1,1)= gj/gf11
+         mum(2,1)= 0.D0
+         mum(3,1)= 0.D0
+         mum(1,2)= gf12/gf11
+         mum(2,2)= tc3*gf11
+         mum(3,2)=-tc2*gf11
+         mum(1,3)= tc2*gm(1,2)+tc3*gm(1,3)
+         mum(2,3)= tc2*gm(2,2)+tc3*gm(2,3)
+         mum(3,3)= tc2*gm(3,2)+tc3*gm(3,3)
+
+         end subroutine wmfem_rotation_tensor
+
+!     ****** CALCULATE dielectric tensor on a mag surface ******
+
+         SUBROUTINE wmfem_disp_tensor(rho,ns,fmc)
+
+         IMPLICIT NONE
+         real(8),intent(in):: rho
+         integer,intent(in):: ns
+         complex(8),dimension(3,3,4,nfcmax2,nfcmax),intent(out):: fmc
+         complex(8),dimension(3,3):: fms
+
+         real(8):: th,ph,dth,dph
+         integer:: nth,nph,mm,nn,i,j,nfc2,nfc
+         complex(8):: cx
+
+         dth=2.d0*pi/nthmax2
+         dph=2.d0*pi/nphmax2
+         DO nfc2=1,nfcmax2
+            nth=nthnfc2(nfc2)
+            nph=nphnfc2(nfc2)
+            th=dth*(nth-1)
+            ph=dph*(nph-1)
+            DO nfc=1,nfcmax
+               mm=mmnfc(nfc)
+               nn=nnnfc(nfc)
+               CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fms)
+c$$$            do i=1,3
+c$$$               do j=1,i
+c$$$                  cx=fms(i,j)-conjg(fms(j,i))
+c$$$                  if(abs(cx).gt.1.d-14) then
+c$$$                     write(6,'(A,4I5,1P2E12.4)') 'AH(fmc)=',
+c$$$     &                    nfc2,nfc,i,j,cx
+c$$$                  endif
+c$$$               enddo
+c$$$            enddo
+               DO j=1,3
+                  DO i=1,3
+                     fmc(i,j,1,nfc2,nfc)=fms(i,j)
+                     fmc(i,j,2,nfc2,nfc)=0.d0
+                     fmc(i,j,3,nfc2,nfc)=0.d0
+                     fmc(i,j,4,nfc2,nfc)=0.d0
+                  END DO
+               END DO
+            END DO
+         END DO
+         RETURN
+         END SUBROUTINE wmfem_disp_tensor
+
+!     ****** CALCULATE dielectric tensor ******
+
+         SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fms)
+
+         IMPLICIT NONE
+         real(8),intent(in):: rho,th,ph
+         integer,intent(in):: mm,nn,ns
+         complex(8),dimension(3,3),intent(out):: fms
+         complex(8):: cw,ckpara,ckperp
+         real(8):: babs,bsupth,bsupph
+
+         cw=2*pi*crf*1.d6
+         CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+         ckpara=mm*bsupth/babs+nn*bsupph/babs
+         ckperp=(0.d0,0.d0)
+
+         CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fms)
+c$$$         if(rho.le.0.1d0.and.ns.eq.3) THEN
+c$$$            write(6,'(A,1P3E12.4,I5)') 'rho,th,babs,ns=',rho,th,babs,ns
+c$$$            write(6,'(A,1P4E12.4)') 'ckpr,ckpp=',ckpara,ckperp
+c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(1,1),fms(1,2),fms(1,3)
+c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
+         return
+
+         END SUBROUTINE wmfem_dielectric
+
+!----- calculate local wave magnetic field -----
+
+      subroutine wmfem_cbf(nr,cbf)
+
+      implicit none
+      integer,intent(in):: nr
+      complex(8),dimension(3,nthmax,nphmax):: cbf
+
+      real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
+      real(8),dimension(nthmax2,nphmax2):: gja
+
+      complex(8),dimension(3,3,3):: cq
+      complex(8),dimension(3,3):: cp
+      complex(8),dimension(3,3,3,nfcmax2):: cqa
+      complex(8),dimension(3,3,nfcmax2):: cpa
+      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
+      integer:: i,j,k,l,nthm,nthp,nphm,nphp
+      integer:: nfc2,nph,nth,imn,ml
+      integer:: nfc1,nph1,nth1
+      integer:: nn1,mm1,nn2,mm2,mmdiff,nndiff,nfcfdiff
+      real(8):: rho,dph,dth,gj
+      complex(8):: cfactor
+      
+      cfactor=vc/(2*pi*crf*1.d6)
+
+      rho=rhoa(nr)
+
+      call wmfem_tensors(rho,gma,muma,dmuma,gja)
+
+!     ----- calculation rot coefficients cpa and cqa -----
+
+      do nfc2=1,nfcmax2
+         nth=nthnfc2(nfc2)
+         nph=nphnfc2(nfc2)
+         if(nph.eq.1) then
+            nphm=nphmax2
+         else
+            nphm=nph-1
+         endif
+         if(nph.eq.nphmax2) then
+            nphp=1
+         else
+            nphp=nph+1
+         endif
+         dph=2*pi/nphmax2
+
+         if(nth.eq.1) then
+            nthm=nthmax2
+         else
+            nthm=nth-1
+         endif
+         if(nth.eq.nthmax2) then
+            nthp=1
+         else
+            nthp=nth+1
+         endif
+         dth=2*pi/nthmax2
+         gj=gja(nth,nph)
+
+         do j=1,3
+            cq(1,j,1)=((muma(3,j,nthp,nph)
+     &                 -muma(3,j,nthm,nph))/dth
+     &                -(muma(2,j,nth,nphp)
+     &                 -muma(2,j,nth,nphm))/dph )/gj
+            cq(1,j,2)=+ci*muma(3,j,nth,nph)/gj
+            cq(1,j,3)=-ci*muma(2,j,nth,nph)/gj
+
+            cq(2,j,1)=((muma(1,j,nth,nphp)
+     &                 -muma(1,j,nth,nphm))/dph
+     &                 -dmuma(3,j,nth,nph))/gj
+            cq(2,j,2)=0.d0
+            cq(2,j,3)=+ci*muma(1,j,nth,nph)/gj
+
+            cq(3,j,1)=(dmuma(2,j,nth,nph)
+     &               -(muma(1,j,nthp,nph)
+     &                -muma(1,j,nthm,nph))/dth )/gj
+            cq(3,j,2)=-ci*muma(1,j,nth,nph)/gj
+            cq(3,j,3)=0.d0
+
+            cp(1,j)=0.d0
+            cp(2,j)=-muma(3,j,nth,nph)/gj
+            cp(3,j)= muma(2,j,nth,nph)/gj
+         enddo
+
+         do imn=1,3
+            do i=1,3
+               do j=1,3
+                  cqa(i,j,imn,nfc2)=0.d0
+                  do l=1,3
+                     cqa(i,j,imn,nfc2)=cqa(i,j,imn,nfc2)
+     &                 +gma(i,l,nth,nph)*cq(l,j,imn)*gj
+                  enddo
+               enddo
+            enddo
+         enddo
+         do i=1,3
+            do j=1,3
+               cpa(i,j,nfc2)=0.d0
+               do l=1,3
+                  cpa(i,j,nfc2)=cpa(i,j,nfc2)
+     &                 +gma(i,l,nth,nph)*cp(l,j)*gj
+               enddo
+            enddo
+         enddo
+      enddo
+
+!     ----- FFT of cqa and cpa -----
+            
+      do i=1,3
+         do j=1,3
+            do imn=1,3
+               do nfc2=1,nfcmax2
+                  nth=nthnfc2(nfc2)
+                  nph=nphnfc2(nfc2)
+                  fv1(nth,nph)=cqa(i,j,imn,nfc2)
+               enddo
+               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+               do nfc2=1,nfcmax2
+                  nth=nthnfc2(nfc2)
+                  nph=nphnfc2(nfc2)
+                  cqa(i,j,imn,nfc2)=fv1f(nth,nph)
+               enddo
+            enddo
+            do nfc2=1,nfcmax2
+               nth=nthnfc2(nfc2)
+               nph=nphnfc2(nfc2)
+               fv1(nth,nph)=cpa(i,j,nfc2)
+            enddo
+            call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
+            do nfc2=1,nfcmax2
+               nth=nthnfc2(nfc2)
+               nph=nphnfc2(nfc2)
+               cpa(i,j,nfc2)=fv1f(nth,nph)
+            enddo
+         enddo
+      enddo
+      
+!     ----- calculated cbf -----
+      
+      do nfc1=1,nfcmax
+         nph1=nphnfc(nfc1)
+         nth1=nthnfc(nfc1)
+         nn1=nnnfc(nfc1)
+         mm1=mmnfc(nfc1)
+         do nfc2=1,nfcmax
+            nn2=nnnfc(nfc2)
+            mm2=mmnfc(nfc2)
+
+            nndiff=nn1-nn2
+            mmdiff=mm1-mm2
+            nfcfdiff=nthmax*nndiff+mmdiff+nfcmax
+            ml=6*nthmax*nphmax*(nr-1)+6*(nfc2-1)
+
+!          !!!!! on axis should be considered !!!!!
+
+            do i=1,3
+               cbf(i,nth1,nph1)=0.d0
+               do j=1,3
+                  cbf(i,nth1,nph1)=cbf(i,nth1,nph1)
+     &                 +cfactor*(
+     &                  (cqa(i,j,1,nfcfdiff)
+     &                  +cqa(i,j,2,nfcfdiff)*mm2
+     &                  +cqa(i,j,3,nfcfdiff)*nn2)*fvx(ml+2*j-1)
+     &                 + cpa(i,j,  nfcfdiff)     *fvx(ml+2*j  ))
+               enddo
+            enddo
+         enddo
+      enddo
+      return
+      end subroutine wmfem_cbf
+
 !---- FEM cubic hermit ---
 
       subroutine fem_hhh(nr,fmd,nfcmax,drho)
@@ -1660,338 +2062,5 @@ c$$$      enddo
          enddo
       return
       end subroutine fem_hqq
-
-!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
-
-      SUBROUTINE wmfem_tensors(rho,gma,muma,dmuma,gja)
-
-      IMPLICIT NONE
-      real(8),intent(in):: rho
-      real(8),intent(out),dimension(3,3,nthmax2,nphmax2):: 
-     &     gma,muma,dmuma
-      real(8),intent(out),dimension(nthmax2,nphmax2):: gja
-      real(8),dimension(3,3):: gm,gmp,gmm,mum,mump,mumm
-      real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
-      real(8):: babs,bsupth,bsupph,rhol
-      integer:: nth,nph,i,j
-
-      dth=2.d0*pi/nthmax2
-      dph=2.d0*pi/nphmax2
-      IF(rho.EQ.0.d0) THEN
-         rhol=1.d-6
-         drhom=0.d0
-      else
-         rhol=rho
-         drhom=1.d-6
-      endif
-      drhop=1.d-6
-      DO nph=1,nphmax2
-         ph=dph*(nph-1)
-         DO nth=1,nthmax2
-            th=dth*(nth-1)
-
-            CALL wmfem_metrics(rhol,th,ph,gm,gj)
-            CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
-
-            CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
-            CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gmm,gjm,babs,bsupth,bsupph,mumm)
-
-            CALL wmfem_metrics(rhol+drhop,th,ph,gmp,gjp)
-            CALL wmfem_magnetic(rhol+drhop,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gmp,gjp,babs,bsupth,bsupph,mump)
-
-            DO j=1,3
-               DO i=1,3
-                  gma(i,j,nth,nph)=gm(i,j)
-                  muma(i,j,nth,nph)=mum(i,j)
-                  dmuma(i,j,nth,nph)
-     &                 =(mump(i,j)-mumm(i,j))/(drhom+drhop)
-               END DO
-            END DO
-            gja(nth,nph)=gj
-
-         ENDDO
-      ENDDO
-      RETURN
-      END SUBROUTINE wmfem_tensors
-
-!        ****** CALCULATE CONVERSION TENSOR ******
-
-         SUBROUTINE wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
-
-         IMPLICIT NONE
-         real(8),dimension(3,3),intent(in):: gm
-         real(8),intent(in):: gj,babs,bsupth,bsupph
-         real(8),dimension(3,3),intent(out):: mum
-         real(8):: tc2,tc3,gf11,gf12
-
-!        ----- Calculate rotation matrix mum -----
-
-         tc2=bsupth/babs
-         tc3=bsupph/babs
-
-!        ----- gf11=gj*SQRT(gm11) -----
-
-         gf11 = SQRT(gm(2,2)*gm(3,3)-gm(2,3)*gm(3,2))
-         gf12 =(tc2*(gm(2,3)*gm(1,2)-gm(2,2)*gm(1,3))
-     &         +tc3*(gm(3,3)*gm(1,2)-gm(2,3)*gm(1,3)))
-            
-         mum(1,1)= gj/gf11
-         mum(2,1)= 0.D0
-         mum(3,1)= 0.D0
-         mum(1,2)= gf12/gf11
-         mum(2,2)= tc3*gf11
-         mum(3,2)=-tc2*gf11
-         mum(1,3)= tc2*gm(1,2)+tc3*gm(1,3)
-         mum(2,3)= tc2*gm(2,2)+tc3*gm(2,3)
-         mum(3,3)= tc2*gm(3,2)+tc3*gm(3,3)
-
-         end subroutine wmfem_rotation_tensor
-
-!     ****** CALCULATE dielectric tensor on a mag surface ******
-
-         SUBROUTINE wmfem_disp_tensor(rho,ns,fmc)
-
-         IMPLICIT NONE
-         real(8),intent(in):: rho
-         integer,intent(in):: ns
-         complex(8),dimension(3,3,4,nfcmax2,nfcmax),intent(out):: fmc
-         complex(8),dimension(3,3):: fms
-
-         real(8):: th,ph,dth,dph
-         integer:: nth,nph,mm,nn,i,j,nfc2,nfc
-         complex(8):: cx
-
-         dth=2.d0*pi/nthmax2
-         dph=2.d0*pi/nphmax2
-         DO nfc2=1,nfcmax2
-            nth=nthnfc2(nfc2)
-            nph=nphnfc2(nfc2)
-            th=dth*(nth-1)
-            ph=dph*(nph-1)
-            DO nfc=1,nfcmax
-               mm=mmnfc(nfc)
-               nn=nnnfc(nfc)
-               CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fms)
-c$$$            do i=1,3
-c$$$               do j=1,i
-c$$$                  cx=fms(i,j)-conjg(fms(j,i))
-c$$$                  if(abs(cx).gt.1.d-14) then
-c$$$                     write(6,'(A,4I5,1P2E12.4)') 'AH(fmc)=',
-c$$$     &                    nfc2,nfc,i,j,cx
-c$$$                  endif
-c$$$               enddo
-c$$$            enddo
-               DO j=1,3
-                  DO i=1,3
-                     fmc(i,j,1,nfc2,nfc)=fms(i,j)
-                     fmc(i,j,2,nfc2,nfc)=0.d0
-                     fmc(i,j,3,nfc2,nfc)=0.d0
-                     fmc(i,j,4,nfc2,nfc)=0.d0
-                  END DO
-               END DO
-            END DO
-         END DO
-         RETURN
-         END SUBROUTINE wmfem_disp_tensor
-
-!     ****** CALCULATE dielectric tensor ******
-
-         SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fms)
-
-         IMPLICIT NONE
-         real(8),intent(in):: rho,th,ph
-         integer,intent(in):: mm,nn,ns
-         complex(8),dimension(3,3),intent(out):: fms
-         complex(8):: cw,ckpara,ckperp
-         real(8):: babs,bsupth,bsupph
-
-         cw=2*pi*crf*1.d6
-         CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
-         ckpara=mm*bsupth/babs+nn*bsupph/babs
-         ckperp=(0.d0,0.d0)
-
-         CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fms)
-c$$$         if(rho.le.0.1d0.and.ns.eq.3) THEN
-c$$$            write(6,'(A,1P3E12.4,I5)') 'rho,th,babs,ns=',rho,th,babs,ns
-c$$$            write(6,'(A,1P4E12.4)') 'ckpr,ckpp=',ckpara,ckperp
-c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(1,1),fms(1,2),fms(1,3)
-c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
-         return
-
-         END SUBROUTINE wmfem_dielectric
-
-!----- calculate local wave magnetic field -----
-
-      subroutine wmfem_cbf(nr,cbf)
-
-      implicit none
-      integer,intent(in):: nr
-      complex(8),dimension(3,nthmax,nphmax):: cbf
-
-      real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
-      real(8),dimension(nthmax2,nphmax2):: gja
-
-      complex(8),dimension(3,3,3):: cq
-      complex(8),dimension(3,3):: cp
-      complex(8),dimension(3,3,3,nfcmax2):: cqa
-      complex(8),dimension(3,3,nfcmax2):: cpa
-      complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
-      integer:: i,j,k,l,nthm,nthp,nphm,nphp
-      integer:: nfc2,nph,nth,imn,ml
-      integer:: nfc1,nph1,nth1,nth2,nph2
-      integer:: nn1,mm1,nn2,mm2,mmdiff,nndiff,nfcfdiff
-      real(8):: rho,dph,dth,gj
-      complex(8):: cfactor
-      
-      cfactor=vc/(2*pi*crf*1.d6)
-
-      rho=rhoa(nr)
-
-      call wmfem_tensors(rho,gma,muma,dmuma,gja)
-
-!     ----- calculation rot coefficients cpa and cqa -----
-
-      do nfc2=1,nfcmax2
-         nth=nthnfc2(nfc2)
-         nph=nphnfc2(nfc2)
-         if(nph.eq.1) then
-            nphm=nphmax2
-         else
-            nphm=nph-1
-         endif
-         if(nph.eq.nphmax2) then
-            nphp=1
-         else
-            nphp=nph+1
-         endif
-         dph=2*pi/nphmax2
-
-         if(nth.eq.1) then
-            nthm=nthmax2
-         else
-            nthm=nth-1
-         endif
-         if(nth.eq.nthmax2) then
-            nthp=1
-         else
-            nthp=nth+1
-         endif
-         dth=2*pi/nthmax2
-         gj=gja(nth,nph)
-
-         do j=1,3
-            cq(1,j,1)=((muma(3,j,nthp,nph)
-     &                 -muma(3,j,nthm,nph))/dth
-     &                -(muma(2,j,nth,nphp)
-     &                 -muma(2,j,nth,nphm))/dph )/gj
-            cq(1,j,2)=+ci*muma(3,j,nth,nph)/gj
-            cq(1,j,3)=-ci*muma(2,j,nth,nph)/gj
-
-            cq(2,j,1)=((muma(1,j,nth,nphp)
-     &                 -muma(1,j,nth,nphm))/dph
-     &                 -dmuma(3,j,nth,nph))/gj
-            cq(2,j,2)=0.d0
-            cq(2,j,3)=+ci*muma(1,j,nth,nph)/gj
-
-            cq(3,j,1)=(dmuma(2,j,nth,nph)
-     &               -(muma(1,j,nthp,nph)
-     &                -muma(1,j,nthm,nph))/dth )/gj
-            cq(3,j,2)=-ci*muma(1,j,nth,nph)/gj
-            cq(3,j,3)=0.d0
-
-            cp(1,j)=0.d0
-            cp(2,j)=-muma(3,j,nth,nph)/gj
-            cp(3,j)= muma(2,j,nth,nph)/gj
-         enddo
-
-         do imn=1,3
-            do i=1,3
-               do j=1,3
-                  cqa(i,j,imn,nfc2)=0.d0
-                  do l=1,3
-                     cqa(i,j,imn,nfc2)=cqa(i,j,imn,nfc2)
-     &                 +gma(i,l,nth,nph)*cq(l,j,imn)*gj
-                  enddo
-               enddo
-            enddo
-         enddo
-         do i=1,3
-            do j=1,3
-               cpa(i,j,nfc2)=0.d0
-               do l=1,3
-                  cpa(i,j,nfc2)=cpa(i,j,nfc2)
-     &                 +gma(i,l,nth,nph)*cp(l,j)*gj
-               enddo
-            enddo
-         enddo
-      enddo
-
-!     ----- FFT of cqa and cpa -----
-            
-      do i=1,3
-         do j=1,3
-            do imn=1,3
-               do nfc2=1,nfcmax2
-                  nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  fv1(nth,nph)=cqa(i,j,imn,nfc2)
-               enddo
-               call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
-               do nfc2=1,nfcmax2
-                  nth=nthnfc2(nfc2)
-                  nph=nphnfc2(nfc2)
-                  cqa(i,j,imn,nfc2)=fv1f(nth,nph)
-               enddo
-            enddo
-            do nfc2=1,nfcmax2
-               nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               fv1(nth,nph)=cpa(i,j,nfc2)
-            enddo
-            call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
-            do nfc2=1,nfcmax2
-               nth=nthnfc2(nfc2)
-               nph=nphnfc2(nfc2)
-               cpa(i,j,nfc2)=fv1f(nth,nph)
-            enddo
-         enddo
-      enddo
-      
-!     ----- calculated cbf -----
-      
-      do nfc1=1,nfcmax
-         nph1=nphnfc(nfc1)
-         nth1=nthnfc(nfc1)
-         nn1=nnnfc(nfc1)
-         mm1=mmnfc(nfc1)
-         do nfc2=1,nfcmax
-            nph2=nphnfc(nfc2)
-            nth2=nthnfc(nfc2)
-            nn2=nnnfc(nfc2)
-            mm2=mmnfc(nfc2)
-
-            nndiff=nn1-nn2
-            mmdiff=mm1-mm2
-            nfcfdiff=nthmax*nndiff+mmdiff+nfcmax
-            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nph2-1)+6*(nth2-1)
-
-            do i=1,3
-               cbf(i,nth1,nph1)=0.d0
-               do j=1,3
-                  cbf(i,nth1,nph1)=cbf(i,nth1,nph1)
-     &                 +cfactor*(
-     &                  (cqa(i,j,1,nfcfdiff)
-     &                  +cqa(i,j,2,nfcfdiff)*mm2
-     &                  +cqa(i,j,3,nfcfdiff)*nn2)*fvx(ml+2*j-1)
-     &                 + cpa(i,j,  nfcfdiff)     *fvx(ml+2*j  ))
-               enddo
-            enddo
-         enddo
-      enddo
-      return
-      end subroutine wmfem_cbf
 
       end subroutine wmfem

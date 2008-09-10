@@ -91,6 +91,23 @@ C
 C
 C     ****** CALCULATE PLASMA PROFILE ******
 C
+      SUBROUTINE PLPROF2(RHON,RN_,RTPR_,RTPP_,RU_)
+C
+      INCLUDE '../pl/plcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION RN_(NSM),RTPR_(NSM),RTPP_(NSM),RU_(NSM)
+      CALL PLPROF(RHON)
+      DO NS=1,NSMAX
+         RN_(NS)=RN(NS)
+         RTPR_(NS)=RTPR(NS)
+         RTPP_(NS)=RTPP(NS)
+         RU_(NS)=RU(NS)
+      ENDDO
+      RETURN
+      END
+C
+C     ****** CALCULATE PLASMA PROFILE ******
+C
       SUBROUTINE PLPROF(RHON)
 C
       INCLUDE '../pl/plcomm.inc'

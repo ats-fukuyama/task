@@ -120,9 +120,7 @@ C                   1: Writting
 C        MDLWMF: Control of solver
 C                   0: original FDM
 C                   1: FEM
-C        IDBGWM: Control of debug
-C                   0: none
-C                   1: old version
+C                   2: FEM (simple cyrindrical)
 C
       NPRINT = 2
       NGRAPH = 1
@@ -133,7 +131,7 @@ C
       MODELM = 0
       MODELW = 0
       MDLWMF = 0
-      IDBGWM = 0
+      MDLWMX = 0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -254,7 +252,7 @@ C
      &              RF,RFI,RD,BETAJ,AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
-     &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,IDBGWM,
+     &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,
      &              ANTANG,MWGMAX,MODEFR,MODEFW,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
@@ -291,7 +289,7 @@ C
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
-     &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,IDBGWM,'/
+     &       9X,'MODELQ,MODELM,MODELW,MDLWMF,MDLWMX,'/
      &       9X,'KNAMEQ,KNAMTR,KNAMPF,MODEFR,MODEFW,'/
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
@@ -440,9 +438,6 @@ C
          WRITE(6,*) '## MDLWMF=1: FEM ##'
       ENDIF
 C
-      WRITE(6,*) '## MDLWMX=',MDLWMX,' ##'
-      WRITE(6,*) '## IDBGWM=',IDBGWM,' ##'
-C
       RF =DBLE(CRF)
       RFI=DIMAG(CRF)
       WRITE(6,601) 'BB    ',BB    ,'RR    ',RR    ,
@@ -465,9 +460,9 @@ C
      &             'NHC   ',NHC   ,'MWGMAX',MWGMAX
       WRITE(6,602) 'MODELG',MODELG,'MODELJ',MODELJ,
      &             'MODELN',MODELN,'MODELA',MODELA
-      WRITE(6,602) 'MODELM',MODELM,'MDLWMF',MDLWMF,
+      WRITE(6,602) 'MODELM',MODELM,'MODELQ',MODELQ,
      &             'MODEFR',MODEFR,'MODEFW',MODEFW
-      WRITE(6,602) 'MODELQ',MODELQ
+      WRITE(6,602) 'MDLWMF',MDLWMF,'MDLWMX',MDLWMX
 C
       WRITE(6,692)
       DO NS=1,NSMAX

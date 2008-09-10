@@ -95,7 +95,6 @@ C
          MDSIZX = 3*NTHMAX/2
       ENDIF
 C
-      IF(MODELG.NE.6) CALL WMICRS
       IERR=0
       RETURN
       END
@@ -153,9 +152,9 @@ C
                rg33(nth,nph,nr)= rr**2
                rj  (nth,nph,nr)= rr*ra**2*rhol
 
-!               bfld(2,nth,nph,nr)=bb/(rr*qps(nr))
                bfld(2,nth,nph,nr)=0.d0
                bfld(3,nth,nph,nr)=bb/rr
+               BPST(NTH,NPH,NR)=bb
             enddo
          enddo
       enddo
@@ -217,6 +216,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
+      REAL(8) gm(3,3),gj
 C
          IERR=0
 C
@@ -234,75 +234,21 @@ C
 C
 C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
 C
-            IF(RHOL.GT.1.D0) THEN
-               QPS(NR)  = QA*RHOL**2
-            ELSEIF(RHOMIN.LE.0.D0)THEN
-               QPS(NR)  =(Q0-QA)*(1-RHOL**2)+QA
-            ELSE
-               QSA0    =1/Q0-1/QMIN
-               QSAA    =1/QA-1/QMIN
-               IF(RHOL.LE.RHOMIN)THEN
-                  QPS(NR) =1/(1/Q0-QSA0*(3*RHOL**2/RHOMIN**2
-     &                            -2*RHOL**3/RHOMIN**3))
-               ELSE
-                  QPS(NR) =1/(1/QMIN+3*QSA0*(RHOL-RHOMIN)**2/RHOMIN**2
-     &                  +(QSAA-3*QSA0*(1-RHOMIN)**2/RHOMIN**2)
-     &                  *(RHOL-RHOMIN)**3/(1-RHOMIN)**3)
-               ENDIF
-            ENDIF
+            call wmfem_qprofile(xrho(nr),qinv)
+            QPS(NR)  = 1.D0/qinv
          ENDDO
 C
          DTH=2.D0*PI/NTHMAX
+         DPH=2.D0*PI/NPHMAX
+
          DTHG=2.D0*PI/NTHGM
          DO NR=1,NRMAX+1
-            RSD=RA/(2.D0*PSIPA)
-            DO NTH=1,NTHMAX
-               RCOS=COS(DTH*(NTH-1))
-               RSIN=SIN(DTH*(NTH-1))
-               IF(MODELG.EQ.1) THEN
-                  RPS(NTH,NR)  =XR(NR)*RCOS
-               ELSE
-                  RPS(NTH,NR) = RR + XR(NR)*RCOS
-               ENDIF
-               ZPS(NTH,NR)    =      XR(NR)*RSIN
-               DRPSI(NTH,NR)  =      RSD   *RCOS
-               DZPSI(NTH,NR)  =      RSD   *RSIN
-               DRCHI(NTH,NR)  =     -RA    *RSIN
-               DZCHI(NTH,NR)  =      RA    *RCOS
-            ENDDO
             DO NTH=1,NTHGM
                RCOS=COS(DTHG*(NTH-1))
                RSIN=SIN(DTHG*(NTH-1))
-               IF(MODELG.EQ.0) THEN
-                  RPSG(NTH,NR)  =      XR(NR)*RCOS
-               ELSE
-                  RPSG(NTH,NR)  = RR + XR(NR)*RCOS
-               ENDIF
-               ZPSG(NTH,NR)  =         XR(NR)*RSIN
+               RPSG(NTH,NR)  = RR + XR(NR)*RCOS
+               ZPSG(NTH,NR)  =      XR(NR)*RSIN
             ENDDO
-         ENDDO
-C
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
-C
-         DO NR=1,NRMAX+1
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
-               FEDGE=PNS(1)/PN(1)
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
          ENDDO
 C
          DTHU=2.D0*PI/(NSUMAX-1)
@@ -320,42 +266,33 @@ C
             ZSW(NSU,1)=RB*RSIN
          ENDDO
 C
-         IF(MODELG.EQ.1) THEN
-            RGMIN=-RB*1.01D0
-            RGMAX=+RB*1.01D0
-         ELSE
-            RGMIN=RR-RB*1.01D0
-            RGMAX=RR+RB*1.01D0
-         ENDIF
+         RGMIN=RR-RB*1.01D0
+         RGMAX=RR+RB*1.01D0
          ZGMIN=-RB*1.01D0
          ZGMAX= RB*1.01D0
 
 C
          DO NR=1,NRMAX+1
          DO NTH=1,NTHMAX
-            IF(MODELG.EQ.1) THEN
-               RRG=RR
-            ELSE
-               RRG=RPS(NTH,NR)
-            ENDIF
+            rhol=xrho(nr)
+            th=dth*(nth-1)
+            call wmfem_metrics(rhol,th,0.d0,gm,gj)
+            call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
          DO NPH=1,NPHMAX
-            RPST(NTH,NPH,NR)=RPS(NTH,NR)
-            ZPST(NTH,NPH,NR)=ZPS(NTH,NR)
+            RPST(NTH,NPH,NR)=RR+RA*XRHO(NR)*COS(TH)
+            ZPST(NTH,NPH,NR)=   RA*XRHO(NR)*SIN(TN)
 C
-            RG11(NTH,NPH,NR)= DRPSI(NTH,NR)**2+DZPSI(NTH,NR)**2
-            RG12(NTH,NPH,NR)= DRPSI(NTH,NR)*DRCHI(NTH,NR)
-     &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
-            RG13(NTH,NPH,NR)= 0.D0
-            RG22(NTH,NPH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
-            RG23(NTH,NPH,NR)= 0.D0
-            RG33(NTH,NPH,NR)= RRG**2
-            RJ  (NTH,NPH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
-     &                             -DRCHI(NTH,NR)*DZPSI(NTH,NR))
+            RG11(NTH,NPH,NR)= gm(1,1)
+            RG12(NTH,NPH,NR)= gm(1,2)
+            RG13(NTH,NPH,NR)= gm(1,3)
+            RG22(NTH,NPH,NR)= gm(2,2)
+            RG23(NTH,NPH,NR)= gm(2,3)
+            RG33(NTH,NPH,NR)= gm(3,3)
+            RJ  (NTH,NPH,NR)= gj
 C
-            BFLD(2,NTH,NPH,NR)=BB*RR/RRG**2/QPS(NR)
-            BFLD(3,NTH,NPH,NR)=BB*RR/RRG**2
-C            WRITE(6,*) 'NR,RJ,BFLD2,BFLD3=',NR,RJ(NTH,NPH,NR),
-C     &                 BFLD(2,NTH,NPH,NR),BFLD(3,NTH,NPH,NR)
+            BFLD(2,NTH,NPH,NR)=bsupth
+            BFLD(3,NTH,NPH,NR)=bsupph
+            BPST(NTH,NPH,NR)=BABS
          ENDDO
          ENDDO
          ENDDO
@@ -393,7 +330,6 @@ C
       IF(MYRANK.EQ.0) THEN
          CALL EQLOAD(MODELG,KNAMEQ,IERR)
       ENDIF
-      CALL MPBCIA(IERR)
       IF(IERR.EQ.1) RETURN
 C
       NRMAXSV=NRMAX
@@ -401,7 +337,7 @@ C
       NSUMAXSV=NSUMAX
       KNAMEQ_SAVE=KNAMEQ
 C
-      IF(MYRANK.EQ.0) THEN
+c$$$      IF(MYRANK.EQ.0) THEN
          write(LINE,'(A,I5)') 'nrmax=',NRMAX+1
          call eqparm(2,line,ierr)
          write(LINE,'(A,I5)') 'nthmax=',NTHMAX
@@ -436,43 +372,43 @@ C
          CALL EQGETG(RPSG,ZPSG,NTHGM,NTHGM,NRMAX+1)
 C
 C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
-      ENDIF
-      CALL MPBCDA(BB)
-      CALL MPBCDA(RR)
-      CALL MPBCDA(RIP)
-      CALL MPBCDA(RA)
-      CALL MPBCDA(RKAP)
-      CALL MPBCDA(RDLT)
-      CALL MPBCDA(RB)
-      CALL MPBCDN(RHOT,NRMAX+1)
-      CALL MPBCDN(PSIP,NRMAX+1)
-      CALL MPBCDN(RPS,NTHM*(NRMAX+1))
-      CALL MPBCDN(DRPSI,NTHM*(NRMAX+1))
-      CALL MPBCDN(DRCHI,NTHM*(NRMAX+1))
-      CALL MPBCDN(ZPS,NTHM*(NRMAX+1))
-      CALL MPBCDN(DZPSI,NTHM*(NRMAX+1))
-      CALL MPBCDN(DZCHI,NTHM*(NRMAX+1))
-      CALL MPBCDN(BPT,NTHM*(NRMAX+1))
-      CALL MPBCDN(BTP,NTHM*(NRMAX+1))
-      CALL MPBCDN(PPS,NRMAX+1)
-      CALL MPBCDN(QPS,NRMAX+1)
-      CALL MPBCDN(RBPS,NRMAX+1)
-      CALL MPBCDN(VPS,NRMAX+1)
-      CALL MPBCDN(RLEN,NRMAX+1)
-      CALL MPBCDN(RSU,NSUMAX)
-      CALL MPBCDN(ZSU,NSUMAX)
-      CALL MPBCDN(RSW,NSUMAX)
-      CALL MPBCDN(ZSW,NSUMAX)
-      CALL MPBCDA(RGMIN)
-      CALL MPBCDA(RGMAX)
-      CALL MPBCDA(ZGMIN)
-      CALL MPBCDA(ZGMAX)
-      CALL MPBCDA(RAXIS)
-      CALL MPBCDA(ZAXIS)
-      CALL MPBCDA(PSIPA)
-      CALL MPBCDA(PSITA)
-      CALL MPBCDA(Q0)
-      CALL MPBCDA(QA)
+c$$$      ENDIF
+c$$$      CALL MPBCDA(BB)
+c$$$      CALL MPBCDA(RR)
+c$$$      CALL MPBCDA(RIP)
+c$$$      CALL MPBCDA(RA)
+c$$$      CALL MPBCDA(RKAP)
+c$$$      CALL MPBCDA(RDLT)
+c$$$      CALL MPBCDA(RB)
+c$$$      CALL MPBCDN(RHOT,NRMAX+1)
+c$$$      CALL MPBCDN(PSIP,NRMAX+1)
+c$$$      CALL MPBCDN(RPS,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(DRPSI,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(DRCHI,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(ZPS,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(DZPSI,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(DZCHI,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(BPT,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(BTP,NTHM*(NRMAX+1))
+c$$$      CALL MPBCDN(PPS,NRMAX+1)
+c$$$      CALL MPBCDN(QPS,NRMAX+1)
+c$$$      CALL MPBCDN(RBPS,NRMAX+1)
+c$$$      CALL MPBCDN(VPS,NRMAX+1)
+c$$$      CALL MPBCDN(RLEN,NRMAX+1)
+c$$$      CALL MPBCDN(RSU,NSUMAX)
+c$$$      CALL MPBCDN(ZSU,NSUMAX)
+c$$$      CALL MPBCDN(RSW,NSUMAX)
+c$$$      CALL MPBCDN(ZSW,NSUMAX)
+c$$$      CALL MPBCDA(RGMIN)
+c$$$      CALL MPBCDA(RGMAX)
+c$$$      CALL MPBCDA(ZGMIN)
+c$$$      CALL MPBCDA(ZGMAX)
+c$$$      CALL MPBCDA(RAXIS)
+c$$$      CALL MPBCDA(ZAXIS)
+c$$$      CALL MPBCDA(PSIPA)
+c$$$      CALL MPBCDA(PSITA)
+c$$$      CALL MPBCDA(Q0)
+c$$$      CALL MPBCDA(QA)
 C
          RMAX=RSU(1,1)
          DO NSU=2,NSUMAX

@@ -139,6 +139,7 @@ C
       CLDISP(4)= 0.D0
       CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
       CLDISP(6)= 0.D0
+
       RETURN
       END
 C
@@ -163,6 +164,16 @@ C
       CLDISP(4)= 0.D0
       CLDISP(5)=(0.D0,-1.D0)*CWP*CWC/(1.D0-CWC*CWC)
       CLDISP(6)= 0.D0
+
+c$$$      write(6,'(A)') 'DPTNCC'
+c$$$      write(6,'(A,I5)') 'NS=',NS
+c$$$      write(6,'(A,1P4E12.4)') 'PA,PZ,RN,B=',PA(NS),PZ(NS),RN(NS),BABS
+c$$$      write(6,'(A,1P4E12.4)') 'CW,CKPR=',CW,CKPR
+c$$$      write(6,'(A,1P4E12.4)') 'CWP,CWC=',CWP,CWC
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(1/2)=',CLDISP(1),CLDISP(2)
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(3/4)=',CLDISP(3),CLDISP(4)
+c$$$      write(6,'(A,1P4E12.4)') 'CLDISP(5/6)=',CLDISP(5),CLDISP(6)
+c$$$      pause
       RETURN
       END
 C
