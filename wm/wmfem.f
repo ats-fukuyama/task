@@ -2,13 +2,14 @@
 
 !     ***** wmfem main routine *****
 
-      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,cef,cbf,cpp,cpa)
+      subroutine wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,
+     &                 nsmax,rhoa,cef,cbf,cpp,cpa)
 
       implicit none
       integer,intent(in):: nrmax,nthmax,nphmax,nsmax
       real(8),dimension(nrmax),intent(in):: rhoa
       complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
-      complex(8),dimension(nthmax,nphmax,nthmax*2,nphmax*2,
+      complex(8),dimension(nthmax,nphmax,nthmax2,nphmax2,
      &     nrmax,0:nsmax),intent(out):: cpp
       complex(8),dimension(nthmax,nphmax),intent(out):: cpa
       complex(8),parameter:: ci=(0.d0,1.d0)
@@ -35,16 +36,16 @@
                                 !    (number of Fourier components)
       mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
       mwmax=4*6*nfcmax-1        ! width of coefficient matrix
-      if(nthmax.eq.1) then
-         nthmax2=1
-      else
-         nthmax2=2*nthmax       ! number of poloidal modes of coefficients
-      endif
-      if(nphmax.eq.1) then
-         nphmax2=1
-      else
-         nphmax2=2*nphmax       ! number of toroidal modes of coefficients
-      endif
+c$$$      if(nthmax.eq.1) then
+c$$$         nthmax2=1
+c$$$      else
+c$$$         nthmax2=2*nthmax       ! number of poloidal modes of coefficients
+c$$$      endif
+c$$$      if(nphmax.eq.1) then
+c$$$         nphmax2=1
+c$$$      else
+c$$$         nphmax2=2*nphmax       ! number of toroidal modes of coefficients
+c$$$      endif
       nfcmax2=nthmax2*nphmax2   ! size of block matrix of coefficients
 
 !     ***** get additional parameters *****
