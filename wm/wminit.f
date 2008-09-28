@@ -266,6 +266,16 @@ C
       RFI=DIMAG(CRF)
       READ(NID,WM,IOSTAT=IST,ERR=9800,END=9900)
       CRF=DCMPLX(RF,RFI)
+      IF(NPHMAX.EQ.1) THEN
+         NPHMAX2=1
+      ELSE
+         NPHMAX2=2*NPHMAX
+      ENDIF
+      IF(NTHMAX.EQ.1) THEN
+         NTHMAX2=1
+      ELSE
+         NTHMAX2=2*NTHMAX
+      ENDIF
       IERR=0
       RETURN
 C

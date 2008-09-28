@@ -7,7 +7,7 @@ C
       INCLUDE 'wmcomm.inc'
       dimension cef(3,nthmax,nphmax,nrmax+1)
       dimension cbf(3,nthmax,nphmax,nrmax+1)
-      dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,0:nsmax)
+      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax+1,0:nsmax)
       dimension cpa(nthmax,nphmax)
 C
       IERR=0

@@ -8,8 +8,8 @@
       integer,intent(in):: nrmax,nthmax,nphmax,nsmax
       real(8),dimension(nrmax),intent(in):: rhoa
       complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
-      complex(8),dimension(nthmax,nphmax,nthmax,nphmax,nrmax,0:nsmax),
-     &     intent(out):: cpp
+      complex(8),dimension(nthmax,nphmax,nthmax*2,nphmax*2,
+     &     nrmax,0:nsmax),intent(out):: cpp
       complex(8),dimension(nthmax,nphmax),intent(out):: cpa
       complex(8),parameter:: ci=(0.d0,1.d0)
       real(8),parameter:: pi = 3.14159265358979D0
@@ -323,9 +323,9 @@
                      enddo
                   enddo
                   nndiff=nn2-nn1
-                  if(nndiff.lt.0) nndiff=nndiff+nphmax
+                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
                   mmdiff=mm2-mm1
-                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax
+                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
                   cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
                enddo
                enddo
@@ -816,9 +816,11 @@ c$$$      enddo
             mm2=mmnfc(nfc2)
 
             nndiff=nn1-nn2
+            if(nndiff.lt.0) nndiff=nndiff+nphmax2
             mmdiff=mm1-mm2
+            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
+!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do j=1,3
                do i=1,3
@@ -1098,10 +1100,12 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             mm1=mmnfc(nfc1)
             nn1=nnnfc(nfc1)
 
-            mmdiff=mm1-mm2
             nndiff=nn1-nn2
+            if(nndiff.lt.0) nndiff=nndiff+nphmax2
+            mmdiff=mm1-mm2
+            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
+!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do k=1,4
                do j=1,3
@@ -1179,9 +1183,11 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             nn1=nnnfc(nfc1)
 
             nndiff=nn1-nn2
+            if(nndiff.lt.0) nndiff=nndiff+nphmax2
             mmdiff=mm1-mm2
+            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
+!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do k=1,4
                do j=1,3
@@ -1269,9 +1275,11 @@ c$$$      enddo
             nn1=nnnfc(nfc1)
 
             nndiff=nn1-nn2
+            if(nndiff.lt.0) nndiff=nndiff+nphmax2
             mmdiff=mm1-mm2
+            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
+!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
             do k=1,4
                do j=1,3
@@ -1467,7 +1475,7 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
       integer:: i,j,k,l,nthm,nthp,nphm,nphp
       integer:: nfc2,nph,nth,imn,ml
       integer:: nfc1,nph1,nth1
-      integer:: nn1,mm1,nn2,mm2,mmdiff,nndiff,nfcfdiff
+      integer:: nn1,mm1,nn2,mm2,mmdiff,nndiff,nfcdiff
       real(8):: rho,dph,dth,gj
       complex(8):: cfactor
       
@@ -1597,8 +1605,11 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
             mm2=mmnfc(nfc2)
 
             nndiff=nn1-nn2
+            if(nndiff.lt.0) nndiff=nndiff+nphmax2
             mmdiff=mm1-mm2
-            nfcfdiff=nthmax*nndiff+mmdiff+nfcmax
+            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+            nfcdiff=nthmax2*nndiff+mmdiff+1
+!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
             ml=6*nthmax*nphmax*(nr-1)+6*(nfc2-1)
 
 !          !!!!! on axis should be considered !!!!!
@@ -1608,10 +1619,10 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
                do j=1,3
                   cbf(i,nth1,nph1)=cbf(i,nth1,nph1)
      &                 +cfactor*(
-     &                  (cqa(i,j,1,nfcfdiff)
-     &                  +cqa(i,j,2,nfcfdiff)*mm2
-     &                  +cqa(i,j,3,nfcfdiff)*nn2)*fvx(ml+2*j-1)
-     &                 + cpa(i,j,  nfcfdiff)     *fvx(ml+2*j  ))
+     &                  (cqa(i,j,1,nfcdiff)
+     &                  +cqa(i,j,2,nfcdiff)*mm2
+     &                  +cqa(i,j,3,nfcdiff)*nn2)*fvx(ml+2*j-1)
+     &                 + cpa(i,j,  nfcdiff)     *fvx(ml+2*j  ))
                enddo
             enddo
          enddo

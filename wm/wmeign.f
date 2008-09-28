@@ -805,7 +805,7 @@ C
       CALL WMSOLV
       CALL WMEFLD
 C
-      SUM=0.D0
+      ESUM=0.D0
       EABSMAX=0.D0
       CEMAX=0.D0
       DO NR=1,NRMAX+1
@@ -814,7 +814,7 @@ C
          EABS=ABS(CEFLD(1,NTH,NPH,NR))**2
      &       +ABS(CEFLD(2,NTH,NPH,NR))**2
      &       +ABS(CEFLD(3,NTH,NPH,NR))**2
-         SUM=SUM+EABS
+         ESUM=ESUM+EABS
          EABS=ABS(CEFLD(2,NTH,NPH,NR))**2
          IF(EABS.GT.EABSMAX) THEN
             EABSMAX=EABS
@@ -876,8 +876,8 @@ C
       ENDDO
       ENDDO
 C
-C      WRITE(6,*) NRMAX,NTHMAX,NPHMAX,SUM,RF
-      F=NRMAX*NTHMAX*NPHMAX/(SUM*RF**4)
+C      WRITE(6,*) NRMAX,NTHMAX,NPHMAX,ESUM,RF
+      F=NRMAX*NTHMAX*NPHMAX/(ESUM*RF**4)
       IF(F.LE.1.D-15) F=1.D-15
       AMPEIGEN=F
 C

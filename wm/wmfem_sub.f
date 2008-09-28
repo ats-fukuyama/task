@@ -679,8 +679,8 @@ C
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
-      DIMENSION CPF1(MDM,NDM),CPF2(MDM,NDM)
-      dimension cpp(nthmax,nphmax,nthmax,nphmax,nrmax+1,0:nsmax)
+      DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
+      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax+1,0:nsmax)
       dimension cpa(nthmax,nphmax)
       real(8),dimension(3,3)::  gm
       real(8):: gj1,gj2
@@ -722,7 +722,7 @@ C
                MDX1=MDX+nthmax/2-1
                IF(MDX1.gt.nthmax) MDX1=MDX1-nthmax
             endif
-            PABSK(MDX1,NDX1,NR,NS)=DBLE(CPABS(LLX,MDX,KKX,NDX,NS,NR))
+            PABSK(MDX1,NDX1,NR,NS)=DBLE(cpp(MDX,NDX,LLX,KKX,NR,NS))
          ENDDO
          ENDDO
          ENDDO
@@ -739,16 +739,16 @@ C
             ENDDO
             DO NDX=1,NDSIZ
             DO MDX=1,MDSIZ
-               DO KKX=1,NDSIZ
-               DO LLX=1,MDSIZ
-                  CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
+               DO KKX=1,nphmax2
+               DO LLX=1,nthmax2
+                  CPF1(LLX,KKX)=cpp(MDX,NDX,LLX,KKX,NR,NS)
                ENDDO
                ENDDO
-               CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
+               CALL WMSUBEX(CPF1,CPF2,NTHMAX2,NPHMAX2)
                DO NPH=1,NPHMAX
                DO NTH=1,NTHMAX
                   PABS(NTH,NPH,NR,NS)=PABS(NTH,NPH,NR,NS)
-     &                               +DBLE(CPF2(NTH,NPH))
+     &                               +DBLE(CPF2(2*NTH-1,2*NPH-1))
                ENDDO
                ENDDO
             ENDDO
