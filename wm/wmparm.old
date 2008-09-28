@@ -1,16 +1,16 @@
  &wm
-   MODELG=3
-   NTHMAX=16
-   NRMAX=100
-   RF=21
-   RD=0.263
-   PA(2)=1
-   PZ(2)=1
-   NSMAX=2
-   PN=0.3,0.3
-   PNS=0.03,0.03
-   PTPR=0.3,0.3
-   PTPP=0.3,0.3
-   PTS=0.03,0.03
-   KNAMEQ='eqdata.tst'
+   MDLWMF=1
+   idbgwm=1
+   modelg=0
+   modelq=0
+   nrmax=10
+   nthmax=1
+   nphmax=1
+   nsmax=0
+   nth0=0
+   nph0=0
+   rb=1.2
+   rd=1.1
+   ra=1
+   rr=3
  &end

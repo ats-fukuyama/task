@@ -280,7 +280,7 @@ C
             call wmfem_magnetic(rhol,th,0.d0,babs,bsupth,bsupph)
          DO NPH=1,NPHMAX
             RPST(NTH,NPH,NR)=RR+RA*XRHO(NR)*COS(TH)
-            ZPST(NTH,NPH,NR)=   RA*XRHO(NR)*SIN(TN)
+            ZPST(NTH,NPH,NR)=   RA*XRHO(NR)*SIN(TH)
 C
             RG11(NTH,NPH,NR)= gm(1,1)
             RG12(NTH,NPH,NR)= gm(1,2)

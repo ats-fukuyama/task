@@ -279,7 +279,6 @@
          do nr=1,nrmax-1
             do nn1=1,nphmax
             do mm1=1,nthmax
-               ml=6*nthmax*nphmax*(nr1-1)+6*nthmax*(nn1-1)+6*(mm1-1)
                do nn2=1,nphmax
                do mm2=1,nthmax
                   csum=0.d0
