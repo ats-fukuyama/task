@@ -333,6 +333,25 @@ c$$$      endif
             enddo
             enddo
          enddo
+      enddo
+         
+      csums=0.d0
+      do ns=0,nsmax
+         csum=0.d0
+         do nr=1,nrmax-1
+            do nn1=1,nphmax
+            do mm1=1,nthmax
+               csum=csum+cpp(mm1,nn1,1,1,nr,ns)
+            enddo
+            enddo
+         enddo
+         write(6,'(A,I5,1P2E12.4)') 'NS,PABSP=',ns,csum
+         csums=csums+csum
+      enddo
+      write(6,'(A,5X,1P2E12.4)') '   PABSP=',csums
+         
+      csums=0.d0
+      do ns=0,nsmax
          csum=0.d0
          do ml=1,mlmax
             do mw=1,mwmax
@@ -342,10 +361,10 @@ c$$$      endif
                endif
             enddo
          enddo
-         write(6,'(A,I5,1P2E12.4)') 'NS,PABS=',ns,csum
+         write(6,'(A,I5,1P2E12.4)') 'NS,PABSM=',ns,csum
          csums=csums+csum
       enddo
-      write(6,'(A,5X,1P2E12.4)') '   PABS=',csums
+      write(6,'(A,5X,1P2E12.4)') '   PABSM=',csums
 
 !     ----- calculate antenna impedance -----
 
@@ -365,7 +384,7 @@ c$$$      endif
          do ml=1,mlmax
             csum=csum-ci*conjg(fvx(ml))*fvb(ml)
          enddo
-         write(6,'(A,5X,1P2E12.4)') '   PRAD=',csum
+         write(6,'(A,5X,1P2E12.4)') '   PRADM=',csum
 
       return
       end subroutine wmfem_solve
