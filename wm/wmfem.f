@@ -209,9 +209,10 @@ c$$$      endif
       subroutine wmfem_solve
 
       integer:: mc,ml,mw,ierr,nr,nth,nph,ns,mm,nn,i,j
-      integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff,ml1
+      integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff
+      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2
       real(8):: factor
-      complex(8):: csum,csums
+      complex(8):: csum,csums,cfactor
       complex(8),dimension(3,nthmax,nphmax):: cbfl
 
 !     ----- solve matrix -----
@@ -275,70 +276,133 @@ c$$$      endif
 !     ----- calculate power -----
 
       mc=(mwmax+1)/2
-      csums=0.d0
+
+c$$$      do ns=0,nsmax
+c$$$         do nr=1,nrmax-1
+c$$$            do nn1=1,nphmax
+c$$$            do mm1=1,nthmax
+c$$$               do nn2=1,nphmax
+c$$$               do mm2=1,nthmax
+c$$$                  csum=0.d0
+c$$$                  do ir=1,4
+c$$$                     select case(ir)
+c$$$                     case(1)
+c$$$                        nr1=nr
+c$$$                        nr2=nr
+c$$$                        if(nr.eq.1) then
+c$$$                           factor=1.d0
+c$$$                        else
+c$$$                           factor=0.5d0
+c$$$                        endif
+c$$$                     case(2)
+c$$$                        nr1=nr
+c$$$                        nr2=nr+1
+c$$$                        factor=1.d0
+c$$$                     case(3)
+c$$$                        nr1=nr+1
+c$$$                        nr2=nr
+c$$$                        factor=1.d0
+c$$$                     case(4)
+c$$$                        nr1=nr+1
+c$$$                        nr2=nr+1
+c$$$                        if(nr.eq.nrmax-1) then
+c$$$                           factor=1.d0
+c$$$                        else
+c$$$                           factor=0.5d0
+c$$$                        endif
+c$$$                     end select
+c$$$                     ml=6*nthmax*nphmax*(nr1-1)
+c$$$     &                 +6*nthmax*(nn1-1)  +6*(mm1-1)
+c$$$                     mw=6*nthmax*nphmax*(nr2-nr1)
+c$$$     &                 +6*nthmax*(nn2-nn1)+6*(mm2-mm1)
+c$$$                     do i=1,6
+c$$$                     do j=1,6
+c$$$                        csum=csum-ci*factor
+c$$$     &                            *conjg(fvx(ml+i))
+c$$$     &                            *fms(mc+mw+j-i,ml+i,ns)
+c$$$     &                            *fvx(ml+mw+j)
+c$$$                     enddo
+c$$$                     enddo
+c$$$                  enddo
+c$$$                  nndiff=nn2-nn1
+c$$$                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
+c$$$                  mmdiff=mm2-mm1
+c$$$                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+c$$$                  cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
+c$$$               enddo
+c$$$               enddo
+c$$$            enddo
+c$$$            enddo
+c$$$         enddo
+c$$$      enddo
+         
       do ns=0,nsmax
          do nr=1,nrmax-1
-            do nn1=1,nphmax
-            do mm1=1,nthmax
-               do nn2=1,nphmax
-               do mm2=1,nthmax
-                  csum=0.d0
-                  do ir=1,4
-                     select case(ir)
-                     case(1)
-                        nr1=nr
-                        nr2=nr
-                        if(nr.eq.1) then
-                           factor=1.d0
-                        else
-                           factor=0.5d0
-                        endif
-                     case(2)
-                        nr1=nr
-                        nr2=nr+1
-                        factor=1.d0
-                     case(3)
-                        nr1=nr+1
-                        nr2=nr
-                        factor=1.d0
-                     case(4)
-                        nr1=nr+1
-                        nr2=nr+1
-                        if(nr.eq.nrmax-1) then
-                           factor=1.d0
-                        else
-                           factor=0.5d0
-                        endif
-                     end select
-                     ml=6*nthmax*nphmax*(nr1-1)
-     &                 +6*nthmax*(nn1-1)  +6*(mm1-1)
-                     mw=6*nthmax*nphmax*(nr2-nr1)
-     &                 +6*nthmax*(nn2-nn1)+6*(mm2-mm1)
-                     do i=1,6
-                     do j=1,6
-                        csum=csum-ci*factor
-     &                            *conjg(fvx(ml+i))
-     &                            *fms(mc+mw+j-i,ml+i,ns)
-     &                            *fvx(ml+mw+j)
-                     enddo
-                     enddo
-                  enddo
-                  nndiff=nn2-nn1
-                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                  mmdiff=mm2-mm1
-                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-                  cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
-               enddo
-               enddo
-            enddo
-            enddo
-         enddo
-      enddo
-         
+            do nn=1,nphmax
+               do mm=1,nthmax
+                  do nn0=1,nphmax2
+                     do mm0=1,nthmax2
+                        cpp(mm,nn,mm0,nn0,nr,ns)=0.d0
+                     end do
+                  end do
+               end do
+            end do
+         end do
+      end do
+
+      do ns=0,nsmax
+         do nr=1,nrmax-1
+            do nn=1,nphmax
+               do mm=1,nthmax
+                  do i=1,6
+                     ml=6*nthmax*nphmax*(nr-1)
+     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
+                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+                        ml1=ml+mw1-mc
+                        i1=mod(ml1-1,6)+1
+                        mlx=(ml1-1)/6
+                        mm1=mod(mlx,nthmax)+1
+                        mlx=mlx/nthmax
+                        nn1=mod(mlx,nphmax)+1
+                        nr1=mlx/nphmax+1
+                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
+
+                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+                           ml2=ml+mw2-mc
+                           i2=mod(ml2-1,6)+1
+                           if(i1.eq.i2) then
+                           mlx=(ml2-1)/6
+                           mm2=mod(mlx,nthmax)+1
+                           mlx=mlx/nthmax
+                           nn2=mod(mlx,nphmax)+1
+                           nr2=mlx/nphmax+1
+                           if(nr1.eq.nr2) then
+
+                           nndiff=nn2-nn1
+                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                           mmdiff=mm2-mm1
+                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+
+                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                     +0.5d0*cfactor*fvx(ml2)
+                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+     &                     +0.5d0*cfactor*fvx(ml2)
+                           endif
+                           endif
+                        end do
+                     end do
+                  end do
+               end do
+            end do
+         end do
+      end do
+            
       csums=0.d0
       do ns=0,nsmax
          csum=0.d0
-         do nr=1,nrmax-1
+         do nr=1,nrmax
             do nn1=1,nphmax
             do mm1=1,nthmax
                csum=csum+cpp(mm1,nn1,1,1,nr,ns)
@@ -354,11 +418,10 @@ c$$$      endif
       do ns=0,nsmax
          csum=0.d0
          do ml=1,mlmax
-            do mw=1,mwmax
+!            do mw=1,mwmax
+            do mw=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
                ml1=ml+mw-mc
-               if(ml1.ge.1.and.ml1.le.mlmax) then
-                  csum=csum-ci*conjg(fvx(ml))*fms(mw,ml,ns)*fvx(ml1)
-               endif
+               csum=csum-ci*conjg(fvx(ml))*fms(mw,ml,ns)*fvx(ml1)
             enddo
          enddo
          write(6,'(A,I5,1P2E12.4)') 'NS,PABSM=',ns,csum
@@ -1154,7 +1217,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
-      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff
+      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1207,15 +1270,37 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
-            do k=1,4
-               do j=1,3
-                  do i=1,3
-                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
+c$$$            do k=1,4
+c$$$               do j=1,3
+c$$$                  do i=1,3
+c$$$                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
+c$$$                  enddo
+c$$$               enddo
+c$$$            enddo
+
+            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
+               nph=(nn1+nn2)/2-nph0+1
+               if(nph.le.0) nph=nph+nphmax
+               nth=(mm1+mm2)/2-nth0+1
+               if(nth.le.0) nth=nth+nthmax
+               nfcadd=nthmax*(nph-1)+nth
+               do k=1,4
+                  do j=1,3
+                     do i=1,3
+                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
+                     enddo
                   enddo
                enddo
-            enddo
+            else
+               do k=1,4
+                  do j=1,3
+                     do i=1,3
+                        fmd(i,j,k,nfc1,nfc2)=0.d0
+                     enddo
+                  enddo
+               enddo
+            endif
          enddo
       enddo
       return
@@ -1235,7 +1320,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       complex(8):: cfactor,cx
       integer:: i,j,k,nfc1,nfc2,nth,nph
-      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff
+      integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1299,15 +1384,36 @@ c$$$      enddo
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
 
-            do k=1,4
-               do j=1,3
-                  do i=1,3
-                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
+            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
+               nph=(nn1+nn2)/2-nph0+1
+               if(nph.le.0) nph=nph+nphmax
+               nth=(mm1+mm2)/2-nth0+1
+               if(nth.le.0) nth=nth+nthmax
+               nfcadd=nthmax*(nph-1)+nth
+               do k=1,4
+                  do j=1,3
+                     do i=1,3
+                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
+                     enddo
                   enddo
                enddo
-            enddo
+            else
+               do k=1,4
+                  do j=1,3
+                     do i=1,3
+                        fmd(i,j,k,nfc1,nfc2)=0.d0
+                     enddo
+                  enddo
+               enddo
+            endif
+c$$$            do k=1,4
+c$$$               do j=1,3
+c$$$                  do i=1,3
+c$$$                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
+c$$$                  enddo
+c$$$               enddo
+c$$$            enddo
          enddo
       enddo
       return
