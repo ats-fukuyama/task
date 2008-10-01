@@ -10,7 +10,7 @@ C *****************************
 
       EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
 
-      open(7,file='coef_comp.dat')
+      open(8,file='collision_t.dat')
 C     ----- NS_NSA and NS_NSB array -----
 
       NSAMAX=NSFPMA-NSFPMI+1
@@ -665,22 +665,25 @@ C
 
 C     +++++ NSA loop +++++
 
-         IF (MOD(NT-1,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF
 
-         IF(NT.eq.NTMAX)THEN
-         DO NSA=1,2
-         DO NSB=1,2
-          Do NP=1,NPMAX
-            write(7,1600) NSA,NSB,PG(NP),
-     &           DCPP2(2,NP,1,NSB,NSA),DCTT2(2,NP,1,NSB,NSA),
-     &           DCPT2(2,NP,1,NSB,NSA),FCPP2(2,NP,1,NSB,NSA),
-     &           FCTH2(2,NP,1,NSB,NSA)
-          END DO
-         write(7,*) " "
-         write(7,*) " "
-         END DO
-         END DO
-         END IF
+c         IF(NT.eq.NTMAX)THEN
+c         DO NSA=1,2
+c         DO NSB=1,2
+c          Do NP=1,NPMAX
+c         NSA=1
+c         NSB=1
+c         NP=2
+c         write(*,*) " "
+c            write(*,1600) Nt,NSa,PG(NP),
+c     &           DPP(2,NP,1,NSA),DCTT2(2,NP,1,NSB,NSA),
+c     &           DCPT2(2,NP,1,NSB,NSA),FCPP2(2,NP,1,NSB,NSA),
+c     &           FCTH2(2,NP,1,NSB,NSA)
+c          END DO
+c         write(*,*) " "
+c         write(7,*) " "
+c         END DO
+c         END DO
+c         END IF
 
  1600    FORMAT(2I2,6E14.6)
 
@@ -706,7 +709,25 @@ C     +++++ NSA loop +++++
             ENDDO
          ENDDO
 
+
+C     +++++ update velocity distribution function +++++
+
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+
 C     +++++ end of NSA loop +++++
+c         IF (MOD(NT,NTSTPC).EQ.0.AND.NT.NE.1) write(*,*)"NT",NT
+c         IF (MOD(NT,NTSTPC).EQ.0.AND.NT.NE.1) CALL FPCOEF
+c         IF (MOD(NT,NTSTPC).EQ.0) write(*,*)"NT",NT
+         IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
 
 C     ----- calculation of current density -----
 
@@ -761,18 +782,6 @@ C
 C         CALL FPGRAC('F -2',F,4)
 C         CALL FPGRAC('F1-2',F1,4)
 
-C     +++++ update velocity distribution function +++++
-
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
 
 C     +++++ calculate and save global data +++++
 
@@ -789,6 +798,7 @@ C     +++++ calculate and save global data +++++
          ENDIF
 
       call FPWRT3
+
 
          IF(IERR.NE.0) RETURN
       ENDDO

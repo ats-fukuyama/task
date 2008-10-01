@@ -21,6 +21,7 @@ C
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
+            RSUM123=0.D0
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
@@ -53,9 +54,32 @@ C
                      RSUM3 = RSUM3
      &                    +VOL(NTH,NP)*FNS(NTH,NP,NR,NS)
      &                                 *(PV-1.D0)/THETA0(NSA)
+                     RSUM123 = RSUM123
+     &                    +VOL(NTH,NP)*FNS(NTH,NP,NR,NS)
+     &                                 *(PV-1.D0)/THETA0(NSA)
                   END DO
                END DO
             ENDIF
+
+c      AMFDL=PA(NS)*AMP
+c      AEFDL=PZ(NS)*AEE
+c      RNFD0L=PN(NS)
+c      RTFDL=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+c      RTFD0L=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
+c         THETAL=THETA0(NSA)*RTFDL/RTFD0L
+c         Z=1.D0/THETAL
+c               DKBSL1=BESKN(1,Z)
+c               DKBSL2=BESKN(2,Z)
+c               DKBSL1=1.D0+3.D0/8.D0/Z -15.D0/128.D0/z**2
+c               DKBSL2=1.D0+15.D0/8.D0/z +105.D0/128.D0/z**2
+
+c              write(*,*)Rsum123, (3.D0/z+DKBSL1/DKBSL2)/THETA0(NSA)
+c     &              *RN(NS)/PN(NS)
+c     &              ,Rsum123/(3.D0/z+DKBSL1/DKBSL2)*THETA0(NSA)
+c     &              *PN(NS)/RN(NS)
+c     &              ,1.D0/z
+c     &              ,THETA0(NSA),RN(NS)
+c     &             ,Rsum123/(3.D0+DKBSL1/DKBSL2/THETA0(NSA))/THETA0(NSA)
 
 C
             DO NP=2,NPMAX
@@ -130,6 +154,7 @@ C
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWS(NR,NSA) = RSUM3*FACT               *1.D-6
+            RWS123(NR,NSA) = RSUM123*FACT                   *1.D-6
             RPCS(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP*DELTH *1.D-6
             RPWS(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP*DELTH *1.D-6 
             RPES(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
@@ -216,6 +241,7 @@ C
          PLHT(NSA,NTG2)=0.D0
          PFWT(NSA,NTG2)=0.D0
          PECT(NSA,NTG2)=0.D0
+         PWT2(NSA,NTG2)=0.D0
          DO NSB=1,NSBMAX
             PPCT2(NSB,NSA,NTG2)= 0.D0
          END DO
@@ -244,6 +270,9 @@ C
             PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*FACT
             PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*FACT
             PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*FACT
+            IF(MODELR.eq.1) CALL FPNEWTON(NR,NSA,rtemp)
+            PWT2(NSA,NTG2) =PWT2(NSA,NTG2) +rtemp*FACT/1.D6
+     &                            *(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
             DO NSB=1,NSBMAX
                PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)
      &                            +RPCS2(NR,NSB,NSA)*FACT
@@ -259,8 +288,11 @@ C
          IF(PNT(NSA,NTG2).NE.0.d0) THEN
             PTT(NSA,NTG2) =PWT(NSA,NTG2)*1.D6
      &           /(1.5D0*PNT(NSA,NTG2)*1.D20*AEE*1.D3)
+            PTT2(NSA,NTG2) =PWT2(NSA,NTG2)*1.D6
+     &           /(1.5D0*PNT(NSA,NTG2)*1.D20*AEE*1.D3)
          ELSE
             PTT(NSA,NTG2)=0.D0
+            PTT2(NSA,NTG2)=0.D0
          ENDIF
          PNT(NSA,NTG2) =PNT(NSA,NTG2)/TVOL
          PWT(NSA,NTG2) =PWT(NSA,NTG2) *2.D0*PI*RR
@@ -288,8 +320,13 @@ C
       WRITE(6,101) PTG(NTG2)*1000
 
       DO NSA=1,NSAMAX
-         WRITE(6,102) NSA,NS_NSA(NSA),
+         IF(MODELR.eq.0)THEN
+            WRITE(6,102) NSA,NS_NSA(NSA),
      &        PNT(NSA,NTG2),PTT(NSA,NTG2),PWT(NSA,NTG2),PIT(NSA,NTG2)
+         ELSE
+            WRITE(6,102) NSA,NS_NSA(NSA),
+     &        PNT(NSA,NTG2),PTT2(NSA,NTG2),PWT(NSA,NTG2),PIT(NSA,NTG2)
+         END IF
 c         WRITE(6,103) PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
          IF(NSBMAX.GT.1) THEN
 c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
@@ -297,10 +334,12 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
       ENDDO
 
       rtotalPW=0.D0
+      rtotalPC=0.D0
       DO NSA=1,NSAMAX
          WRITE(6,103) NSA,NS_NSA(NSA),
      &        PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
-         rtotalPW=rtotPW + PPWT(NSA,NTG2)
+         rtotalPW=rtotalPW + PPWT(NSA,NTG2)
+         rtotalPC=rtotalPC + PPCT(NSA,NTG2)
       END DO
       DO NSA=1,NSAMAX
          IF(NSBMAX.GT.1) THEN
@@ -309,6 +348,11 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       END DO
       write(*,105) rtotalpw
+      write(*,107) rtotalPC
+
+      write(8,106) PTG(NTG2)*1000, PPCT(1,NTG2),PPCT(2,NTG2)
+     &  ,PPCT2(1,1,NTG2),PPCT2(2,1,NTG2),PPCT2(1,2,NTG2),PPCT2(2,2,NTG2)
+     &     ,PPET(1,NTG2),PPET(2,NTG2)
 
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
@@ -319,6 +363,8 @@ c  104 FORMAT('             PCAB    =',11X,1P3E12.4)
   104 FORMAT('        ',2I2,' PCAB    =',11X,1P3E12.4)
 
  105  FORMAT('total absorption [MW]', E12.4)
+ 106  FORMAT(F12.4, 8E12.4)
+ 107  FORMAT('total collision power [MW]', E12.4)
       END
 
 C ***********************************************************
@@ -333,6 +379,10 @@ C
 
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
+      RTFDL=RTFP(NR,NSA)
+      RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
+         THETAL=THETA0(NSA)*RTFDL/RTFD0L
+
 c            WRITE(6,102) NSA,NS_NSA(NSA),
 c     &                   RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
 c     &                          RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
@@ -341,20 +391,25 @@ c            IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
 c            WRITE(6,103)        RPWT(NR,NSA,NTG1),RLHT(NR,NSA,NTG1),
 c     &                          RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
 c            ENDIF
-            IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
+            IF(MODELR.eq.1)THEN
+               CALL FPNEWTON(NR,NSA,rtemp)
+               RTT(NR,NSA,NTG1)=rtemp
+            END IF
 
+            IF(RPWT(NR,NSA,NTG1).GT.0.D0) THEN
                WRITE(6,104) NSA,NS_NSA(NSA),
      &              RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
      &              RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
      &              RPET(NR,NSA,NTG1),RPWT(NR,NSA,NTG1),
      &              RLHT(NR,NSA,NTG1),
      &              RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
+c               write(*,103)rtemp, RTFP(NR,NSA)
             ELSE
                WRITE(6,102) NSA,NS_NSA(NSA),
      &              RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
      &              RJT(NR,NSA,NTG1),RPCT(NR,NSA,NTG1),
      &              RPET(NR,NSA,NTG1)
-
+c               write(*,103)THETAL,rtemp, RTFP(NR,NSA)
             ENDIF
          ENDDO
       ENDDO
@@ -363,7 +418,7 @@ c            ENDIF
      &     'NSA/NS',5X,'RM',10X,' n',8X,' T//PW',6X,
      &     ' j//PLH',5X,'PC//PIC',5X,'PE//PEC')
   102 FORMAT(2I3,1P6E12.4)
-  103 FORMAT(30X,1P4E12.4)
+  103 FORMAT(30X,1P4E14.6)
   104 FORMAT(2I3,1P10E12.4) 
       END
 C ***********************************************************
@@ -394,15 +449,20 @@ C     Spitzer
 
       Do NSA=1,NSAMAX
       Do NSB=1,NSBMAX
-
       resist = 1.D0/(RNFP0(NSA)*RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
      &     /RNUD(1,1,NSA)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
       write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
-     &     ,resist
+c     &     ,resist
+     &     ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
 c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
 c     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
       END DO
       END DO
+      dtaue=1.09D16*(PTT(1,NTG2))**(1.5D0)/PNT(1,NTG2)/PZ(2)**2
+     &     /15.D0*1.D-20
+      dtaui=6.6D17*(PTT(2,NTG2))**(1.5D0)/PNT(2,NTG2)/PZ(2)**4
+     &     /15.D0*1.D-20*(AMFP(2)/AMFP(2))**0.5D0
+      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
       end if
 c$$$c----end of conductivity check---------
 c$$$c----check of beam power-------
@@ -565,4 +625,94 @@ c$$$     &           ' JN    =',1PE11.4,' J/P   =',1PE11.4)
 c$$$  107 FORMAT(1H ,' RHO   =',F6.3,5X,' EN    =',1PE11.4,
 c$$$     &           ' JN    =',1PE11.4,' J/E   =',1PE11.4)
       END
+
+
+CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+      Subroutine FPNEWTON(NR,NSA,rtemp)
+
+      INCLUDE 'fpcomm.inc'
+
+
+C-----initial value of Z
+      RTFDL=RTFP(NR,NSA)
+      RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
+         THETAL=THETA0(NSA)*RTFDL/RTFD0L
+c         Z=1.D0/THETAL
+C------------------------------------
+
+C--------iteration start
+         ISW=0
+         nco=0
+         DO while(ISW.eq.0.and.nco.le.100)
+            nco=nco+1
+            Z=1.D0/THETAL
+c         DO n=1,500
+c            z=n*1.D0
+c            THETAL=1.D0/z
+C-------------------------------------
+            IF(Z.LE.1.5D2) THEN
+               DKBSL0=BESKN(0,Z)
+               DKBSL1=BESKN(1,Z)
+               DKBSL2=BESKN(2,Z)
+               DKBSL3=BESKN(3,Z)
+            ELSE
+C------- note : omit sqrt()*exp(-z) 
+               DKBSL0=1.D0 - 1.D0/8.D0/z + 9.D0/128.D0/z**2
+               DKBSL1=1.D0 + 3.D0/8.D0/Z - 15.D0/128.D0/z**2
+               DKBSL2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
+               DKBSL3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
+            ENDIF
+c-------------------------------------
+
+
+            IF(Z.le.1.5D2)THEN
+CCCCCCCCCCCC high temperature 
+               rfunc=(3.D0/z-1.D0+DKBSL1/DKBSL2)/THETA0(NSA)
+     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
+     &              -RWS123(NR,NSA)
+
+               dfunc2=(3.D0+ 
+     &              ( (DKBSL0+DKBSL2)*DKBSL2-(DKBSL1+DKBSL3)*DKBSL1 )
+     &              /(2.D0*DKBSL2**2)/THETAL**2 )/THETA0(NSA)
+     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
+
+            ELSE
+CCCCCCCCC  Low temperature
+               rfunc=(3.D0/z-1.D0+DKBSL1/DKBSL2)/THETA0(NSA)
+     &           *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
+     &           -RWS123(NR,NSA)
+
+               dfunc2=(3.D0 + 1956.D0/128.D0/2.D0/THETAL**2
+     &           /(1.D0+3.D1/8.D0*THETAL+7.6D2/128.D0*THETAL**2) 
+     &           *DKBSL2**2 )
+     &              /THETA0(NSA)
+     &           *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
+
+c               dfunc2=(3.D0+ 
+c     &              ( (DKBSL0+DKBSL2)*DKBSL2-(DKBSL1+DKBSL3)*DKBSL1 )
+c     &              /(2.D0*DKBSL2**2)/THETAL**2 )/THETA0(NSA)
+c     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
+
+            END IF
+            rt2 = THETAL - rfunc/dfunc2
+            rt3 =ABS(rt2-THETAL)/ABS(THETAL)
+            rtemp=AMFP(NSA)*VC**2*rt2/(AEE*1.D3)
+
+            IF(rt3.le.1.D-11)THEN
+               THETAL=rt2
+               ISW=1
+            ELSE
+               THETAL=rt2
+               ISW=0
+            ENDIF
+
+      END DO
+
+      return
+      end
+
+
+
+
+
 
