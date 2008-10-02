@@ -1279,30 +1279,40 @@ c$$$                  enddo
 c$$$               enddo
 c$$$            enddo
 
-            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
-               nph=(nn1+nn2)/2-nph0+1
-               if(nph.le.0) nph=nph+nphmax
-               nth=(mm1+mm2)/2-nth0+1
-               if(nth.le.0) nth=nth+nthmax
-               nfcadd=nthmax*(nph-1)+nth
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
-                     enddo
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
+     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
                   enddo
                enddo
-            else
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=0.d0
-                     enddo
-                  enddo
-               enddo
-            endif
+            enddo
+
+c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
+c$$$               nph=(nn1+nn2)/2-nph0+1
+c$$$               if(nph.le.0) nph=nph+nphmax
+c$$$               nth=(mm1+mm2)/2-nth0+1
+c$$$               if(nth.le.0) nth=nth+nthmax
+c$$$               nfcadd=nthmax*(nph-1)+nth
+c$$$               do k=1,4
+c$$$                  do j=1,3
+c$$$                     do i=1,3
+c$$$                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
+c$$$                     enddo
+c$$$                  enddo
+c$$$               enddo
+c$$$            else
+c$$$               do k=1,4
+c$$$                  do j=1,3
+c$$$                     do i=1,3
+c$$$                        fmd(i,j,k,nfc1,nfc2)=0.d0
+c$$$                     enddo
+c$$$                  enddo
+c$$$               enddo
+c$$$            endif
          enddo
       enddo
+
       return
 
       end subroutine wmfem_calculate_plasma
@@ -1385,28 +1395,38 @@ c$$$      enddo
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
-            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
-               nph=(nn1+nn2)/2-nph0+1
-               if(nph.le.0) nph=nph+nphmax
-               nth=(mm1+mm2)/2-nth0+1
-               if(nth.le.0) nth=nth+nthmax
-               nfcadd=nthmax*(nph-1)+nth
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
-                     enddo
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
+     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
                   enddo
                enddo
-            else
-               do k=1,4
-                  do j=1,3
-                     do i=1,3
-                        fmd(i,j,k,nfc1,nfc2)=0.d0
-                     enddo
-                  enddo
-               enddo
-            endif
+            enddo
+
+c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
+c$$$               nph=(nn1+nn2)/2-nph0+1
+c$$$               if(nph.le.0) nph=nph+nphmax
+c$$$               nth=(mm1+mm2)/2-nth0+1
+c$$$               if(nth.le.0) nth=nth+nthmax
+c$$$               nfcadd=nthmax*(nph-1)+nth
+c$$$               do k=1,4
+c$$$                  do j=1,3
+c$$$                     do i=1,3
+c$$$                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
+c$$$                     enddo
+c$$$                  enddo
+c$$$               enddo
+c$$$            else
+c$$$               do k=1,4
+c$$$                  do j=1,3
+c$$$                     do i=1,3
+c$$$                        fmd(i,j,k,nfc1,nfc2)=0.d0
+c$$$                     enddo
+c$$$                  enddo
+c$$$               enddo
+c$$$            endif
+
 c$$$            do k=1,4
 c$$$               do j=1,3
 c$$$                  do i=1,3
