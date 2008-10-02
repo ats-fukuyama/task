@@ -411,6 +411,7 @@ c               write(*,103)rtemp, RTFP(NR,NSA)
      &              RPET(NR,NSA,NTG1)
 c               write(*,103)THETAL,rtemp, RTFP(NR,NSA)
             ENDIF
+c               RTT(NR,NSA,NTG1)=rtemp
          ENDDO
       ENDDO
       RETURN
@@ -636,14 +637,18 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 C-----initial value of Z
       RTFDL=RTFP(NR,NSA)
       RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
+      IF(NTG1.le.1)THEN
          THETAL=THETA0(NSA)*RTFDL/RTFD0L
-c         Z=1.D0/THETAL
+      ELSE
+         THETAL=THETA0(NSA)*RTT(NR,NSA,NTG1)/RTFD0L
+      END IF
+         Z=1.D0/THETAL
 C------------------------------------
 
 C--------iteration start
          ISW=0
          nco=0
-         DO while(ISW.eq.0.and.nco.le.100)
+         DO while(ISW.eq.0.and.nco.le.10000000)
             nco=nco+1
             Z=1.D0/THETAL
 c         DO n=1,500
@@ -698,7 +703,7 @@ c     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
             rt3 =ABS(rt2-THETAL)/ABS(THETAL)
             rtemp=AMFP(NSA)*VC**2*rt2/(AEE*1.D3)
 
-            IF(rt3.le.1.D-11)THEN
+            IF(rt3.le.1.D-10)THEN
                THETAL=rt2
                ISW=1
             ELSE
@@ -707,7 +712,7 @@ c     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
             ENDIF
 
       END DO
-
+c      write(*,*)NSA,NCO,rt3
       return
       end
 
