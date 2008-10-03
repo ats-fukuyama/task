@@ -6,7 +6,7 @@
      &                 nsmax,rhoa,cef,cbf,cpp,cpa)
 
       implicit none
-      integer,intent(in):: nrmax,nthmax,nphmax,nsmax
+      integer,intent(in):: nrmax,nthmax,nphmax,nsmax,nthmax2,nphmax2
       real(8),dimension(nrmax),intent(in):: rhoa
       complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
       complex(8),dimension(nthmax,nphmax,nthmax2,nphmax2,
@@ -20,7 +20,7 @@
       integer:: nth0,nph0
       integer:: mdlwmf
 
-      integer:: nfcmax,mlmax,mwmax,nthmax2,nphmax2,nfcmax2
+      integer:: nfcmax,mlmax,mwmax,nfcmax2
       complex(8),dimension(:,:),pointer,save:: fma,fmax !(mwmax,mlmax)
       complex(8),dimension(:,:,:),pointer,save:: fms !(mwmax,mlmax,0:nsmax)
       complex(8),dimension(:),pointer,save:: fvb,fvx !(mlmax)
@@ -64,11 +64,19 @@ c$$$      endif
 
 !     ***** calculate coefficient matrix *****
 
-      call wmfem_calculate
+      call wmfem_calculate_matrix
 
 !     ***** solve matrix equation *****
 
       call wmfem_solve
+
+!     ***** calculate field and power *****
+
+      call wmfem_calculate_field
+
+!     ***** calculate power *****
+
+      call wmfem_calculate_power
 
       return
 
@@ -203,267 +211,10 @@ c$$$      endif
       return
       end subroutine wmfem_setup_index
 
-!     -------------------------------=
-!     ---- Solve matrix equation  ----
-
-      subroutine wmfem_solve
-
-      integer:: mc,ml,mw,ierr,nr,nth,nph,ns,mm,nn,i,j
-      integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff
-      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2
-      real(8):: factor
-      complex(8):: csum,csums,cfactor
-      complex(8),dimension(3,nthmax,nphmax):: cbfl
-
-!     ----- solve matrix -----
-
-      do ml=1,mlmax
-         fvx(ml)=fvb(ml)
-      enddo
-      do ml=1,mlmax
-         do mw=1,mwmax
-            fmax(mw,ml)=fma(mw,ml)
-         enddo
-      enddo
-
-      write(6,*) 'mlmax,mwmax=',mlmax,mwmax
-      call bandcd(fma,fvx,mlmax,mwmax,mwmax,ierr)
-      if(ierr.ne.0) write(6,*) '# ierr= ',ierr
-
-!     ----- calculate E field -----
-
-      nr=1
-         do nn=1,nphmax
-            do mm=1,nthmax
-               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-               if(abs(mm).eq.1) then
-                  cef(1,mm,nn,nr)=(fvx(ml+1)+fvx(ml+3))
-                  cef(2,mm,nn,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
-                  cef(3,mm,nn,nr)=fvx(ml+5)
-               else
-                  cef(1,mm,nn,nr)=fvx(ml+1)
-                  cef(2,mm,nn,nr)=fvx(ml+3)
-                  cef(3,mm,nn,nr)=fvx(ml+5)
-               endif
-            enddo
-         enddo
-      do nr=2,nrmax
-         do nn=1,nphmax
-            do mm=1,nthmax
-               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-               cef(1,mm,nn,nr)=fvx(ml+1)
-               cef(2,mm,nn,nr)=fvx(ml+3)
-               cef(3,mm,nn,nr)=fvx(ml+5)
-!               write(6,'(3I4,1P6E11.3)') nr,nn,mm,cef(1,mm,nn,nr),
-!     &              cef(2,mm,nn,nr),cef(3,mm,nn,nr)
-            enddo
-         enddo
-      enddo
-
-!     ----- calculate B field -----
-
-      do nr=1,nrmax
-         call wmfem_cbf(nr,cbfl)
-         do nph=1,nphmax
-            do nth=1,nthmax
-               cbf(1,nth,nph,nr)=cbfl(1,nth,nph)
-               cbf(2,nth,nph,nr)=cbfl(2,nth,nph)
-               cbf(3,nth,nph,nr)=cbfl(3,nth,nph)
-            enddo
-         enddo
-      enddo
-
-!     ----- calculate power -----
-
-      mc=(mwmax+1)/2
-
-c$$$      do ns=0,nsmax
-c$$$         do nr=1,nrmax-1
-c$$$            do nn1=1,nphmax
-c$$$            do mm1=1,nthmax
-c$$$               do nn2=1,nphmax
-c$$$               do mm2=1,nthmax
-c$$$                  csum=0.d0
-c$$$                  do ir=1,4
-c$$$                     select case(ir)
-c$$$                     case(1)
-c$$$                        nr1=nr
-c$$$                        nr2=nr
-c$$$                        if(nr.eq.1) then
-c$$$                           factor=1.d0
-c$$$                        else
-c$$$                           factor=0.5d0
-c$$$                        endif
-c$$$                     case(2)
-c$$$                        nr1=nr
-c$$$                        nr2=nr+1
-c$$$                        factor=1.d0
-c$$$                     case(3)
-c$$$                        nr1=nr+1
-c$$$                        nr2=nr
-c$$$                        factor=1.d0
-c$$$                     case(4)
-c$$$                        nr1=nr+1
-c$$$                        nr2=nr+1
-c$$$                        if(nr.eq.nrmax-1) then
-c$$$                           factor=1.d0
-c$$$                        else
-c$$$                           factor=0.5d0
-c$$$                        endif
-c$$$                     end select
-c$$$                     ml=6*nthmax*nphmax*(nr1-1)
-c$$$     &                 +6*nthmax*(nn1-1)  +6*(mm1-1)
-c$$$                     mw=6*nthmax*nphmax*(nr2-nr1)
-c$$$     &                 +6*nthmax*(nn2-nn1)+6*(mm2-mm1)
-c$$$                     do i=1,6
-c$$$                     do j=1,6
-c$$$                        csum=csum-ci*factor
-c$$$     &                            *conjg(fvx(ml+i))
-c$$$     &                            *fms(mc+mw+j-i,ml+i,ns)
-c$$$     &                            *fvx(ml+mw+j)
-c$$$                     enddo
-c$$$                     enddo
-c$$$                  enddo
-c$$$                  nndiff=nn2-nn1
-c$$$                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
-c$$$                  mmdiff=mm2-mm1
-c$$$                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-c$$$                  cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
-c$$$               enddo
-c$$$               enddo
-c$$$            enddo
-c$$$            enddo
-c$$$         enddo
-c$$$      enddo
-         
-      do ns=0,nsmax
-         do nr=1,nrmax-1
-            do nn=1,nphmax
-               do mm=1,nthmax
-                  do nn0=1,nphmax2
-                     do mm0=1,nthmax2
-                        cpp(mm,nn,mm0,nn0,nr,ns)=0.d0
-                     end do
-                  end do
-               end do
-            end do
-         end do
-      end do
-
-      do ns=0,nsmax
-         do nr=1,nrmax-1
-            do nn=1,nphmax
-               do mm=1,nthmax
-                  do i=1,6
-                     ml=6*nthmax*nphmax*(nr-1)
-     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
-                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-                        ml1=ml+mw1-mc
-                        i1=mod(ml1-1,6)+1
-                        mlx=(ml1-1)/6
-                        mm1=mod(mlx,nthmax)+1
-                        mlx=mlx/nthmax
-                        nn1=mod(mlx,nphmax)+1
-                        nr1=mlx/nphmax+1
-                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
-
-c$$$                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-c$$$                           ml2=ml+mw2-mc
-c$$$                           i2=mod(ml2-1,6)+1
-c$$$                           if(i1.eq.i2) then
-c$$$                           mlx=(ml2-1)/6
-c$$$                           mm2=mod(mlx,nthmax)+1
-c$$$                           mlx=mlx/nthmax
-c$$$                           nn2=mod(mlx,nphmax)+1
-c$$$                           nr2=mlx/nphmax+1
-c$$$                           if(nr1.eq.nr2) then
-
-c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
-                        nr2=nr1
-                        do nn2=1,nphmax
-                        do mm2=1,nthmax
-                              
-                           nndiff=nn2-nn
-                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                           mmdiff=mm2-mm
-                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-                           ml2=6*nthmax*nphmax*(nr2-1)
-     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
-
-                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-     &                     +0.5d0*cfactor*fvx(ml2)
-                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-     &                     +0.5d0*cfactor*fvx(ml2)
-c$$$                           endif
-c$$$                           endif
-                        end do
-                        end do
-c                        end do
-                     end do
-                  end do
-               end do
-            end do
-         end do
-      end do
-            
-      csums=0.d0
-      do ns=0,nsmax
-         csum=0.d0
-         do nr=1,nrmax
-            do nn1=1,nphmax
-            do mm1=1,nthmax
-               csum=csum+cpp(mm1,nn1,1,1,nr,ns)
-            enddo
-            enddo
-         enddo
-         write(6,'(A,I5,1P2E12.4)') 'NS,PABSP=',ns,csum
-         csums=csums+csum
-      enddo
-      write(6,'(A,5X,1P2E12.4)') '   PABSP=',csums
-         
-      csums=0.d0
-      do ns=0,nsmax
-         csum=0.d0
-         do ml=1,mlmax
-!            do mw=1,mwmax
-            do mw=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-               ml1=ml+mw-mc
-               csum=csum-ci*conjg(fvx(ml))*fms(mw,ml,ns)*fvx(ml1)
-            enddo
-         enddo
-         write(6,'(A,I5,1P2E12.4)') 'NS,PABSM=',ns,csum
-         csums=csums+csum
-      enddo
-      write(6,'(A,5X,1P2E12.4)') '   PABSM=',csums
-
-!     ----- calculate antenna impedance -----
-
-      do nn=1,nphmax
-      do mm=1,nthmax
-         cpa(mm,nn)=0.d0
-         do nr=1,nrmax
-            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-            do i=1,6
-               cpa(mm,nn)=cpa(mm,nn)-ci*conjg(fvx(ml+i))*fvb(ml+i)
-            enddo
-         enddo
-!         write(6,'(2I5,1P2E12.4)') mm,nn,cpa(mm,nn)
-      enddo
-      enddo
-         csum=0.d0
-         do ml=1,mlmax
-            csum=csum-ci*conjg(fvx(ml))*fvb(ml)
-         enddo
-         write(6,'(A,5X,1P2E12.4)') '   PRADM=',csum
-
-      return
-      end subroutine wmfem_solve
 
 !     ----- calculate coefficint matrix fma -----
 
-      subroutine wmfem_calculate
+      subroutine wmfem_calculate_matrix
 
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
       complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
@@ -824,7 +575,7 @@ c$$$         enddo
 c$$$      enddo
 
       return
-      end subroutine wmfem_calculate
+      end subroutine wmfem_calculate_matrix
 
 !----- calculate coefficint matrix fma (E rho,theta,phi )-----
 
@@ -1655,6 +1406,83 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
 
          END SUBROUTINE wmfem_dielectric
 
+!     ***** Solve matrix equation *****
+
+      subroutine wmfem_solve
+
+      integer:: ml,mw,ierr
+
+!     ----- solve matrix -----
+
+      do ml=1,mlmax
+         fvx(ml)=fvb(ml)
+      enddo
+      do ml=1,mlmax
+         do mw=1,mwmax
+            fmax(mw,ml)=fma(mw,ml)
+         enddo
+      enddo
+
+      write(6,*) 'mlmax,mwmax=',mlmax,mwmax
+      call bandcd(fma,fvx,mlmax,mwmax,mwmax,ierr)
+      if(ierr.ne.0) write(6,*) '# ierr= ',ierr
+
+      return
+      end subroutine wmfem_solve
+
+!     ***** Calculate electric and magnetic field *****
+
+      subroutine wmfem_calculate_field
+
+      integer:: ml,nr,nn,mm,nth,nph
+      complex(8),dimension(3,nthmax,nphmax):: cbfl
+
+!     ----- calculate E field -----
+
+      nr=1
+         do nn=1,nphmax
+            do mm=1,nthmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+               if(abs(mm).eq.1) then
+                  cef(1,mm,nn,nr)=(fvx(ml+1)+fvx(ml+3))
+                  cef(2,mm,nn,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
+                  cef(3,mm,nn,nr)=fvx(ml+5)
+               else
+                  cef(1,mm,nn,nr)=fvx(ml+1)
+                  cef(2,mm,nn,nr)=fvx(ml+3)
+                  cef(3,mm,nn,nr)=fvx(ml+5)
+               endif
+            enddo
+         enddo
+      do nr=2,nrmax
+         do nn=1,nphmax
+            do mm=1,nthmax
+               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+               cef(1,mm,nn,nr)=fvx(ml+1)
+               cef(2,mm,nn,nr)=fvx(ml+3)
+               cef(3,mm,nn,nr)=fvx(ml+5)
+!               write(6,'(3I4,1P6E11.3)') nr,nn,mm,cef(1,mm,nn,nr),
+!     &              cef(2,mm,nn,nr),cef(3,mm,nn,nr)
+            enddo
+         enddo
+      enddo
+
+!     ----- calculate B field -----
+
+      do nr=1,nrmax
+         call wmfem_cbf(nr,cbfl)
+         do nph=1,nphmax
+            do nth=1,nthmax
+               cbf(1,nth,nph,nr)=cbfl(1,nth,nph)
+               cbf(2,nth,nph,nr)=cbfl(2,nth,nph)
+               cbf(3,nth,nph,nr)=cbfl(3,nth,nph)
+            enddo
+         enddo
+      enddo
+
+      return
+      end subroutine wmfem_calculate_field
+
 !----- calculate local wave magnetic field -----
 
       subroutine wmfem_cbf(nr,cbf)
@@ -1828,6 +1656,202 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
       enddo
       return
       end subroutine wmfem_cbf
+
+!     ***** Calculate absorbed power *****
+
+      subroutine wmfem_calculate_power
+
+      integer:: mc,ml,mw,nr,ns,mm,nn,i,j
+      integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff
+      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2
+      real(8):: factor
+      complex(8):: csum,csums,cfactor
+
+      mc=(mwmax+1)/2
+
+c$$$      do ns=0,nsmax
+c$$$         do nr=1,nrmax-1
+c$$$            do nn1=1,nphmax
+c$$$            do mm1=1,nthmax
+c$$$               do nn2=1,nphmax
+c$$$               do mm2=1,nthmax
+c$$$                  csum=0.d0
+c$$$                  do ir=1,4
+c$$$                     select case(ir)
+c$$$                     case(1)
+c$$$                        nr1=nr
+c$$$                        nr2=nr
+c$$$                        if(nr.eq.1) then
+c$$$                           factor=1.d0
+c$$$                        else
+c$$$                           factor=0.5d0
+c$$$                        endif
+c$$$                     case(2)
+c$$$                        nr1=nr
+c$$$                        nr2=nr+1
+c$$$                        factor=1.d0
+c$$$                     case(3)
+c$$$                        nr1=nr+1
+c$$$                        nr2=nr
+c$$$                        factor=1.d0
+c$$$                     case(4)
+c$$$                        nr1=nr+1
+c$$$                        nr2=nr+1
+c$$$                        if(nr.eq.nrmax-1) then
+c$$$                           factor=1.d0
+c$$$                        else
+c$$$                           factor=0.5d0
+c$$$                        endif
+c$$$                     end select
+c$$$                     ml=6*nthmax*nphmax*(nr1-1)
+c$$$     &                 +6*nthmax*(nn1-1)  +6*(mm1-1)
+c$$$                     mw=6*nthmax*nphmax*(nr2-nr1)
+c$$$     &                 +6*nthmax*(nn2-nn1)+6*(mm2-mm1)
+c$$$                     do i=1,6
+c$$$                     do j=1,6
+c$$$                        csum=csum-ci*factor
+c$$$     &                            *conjg(fvx(ml+i))
+c$$$     &                            *fms(mc+mw+j-i,ml+i,ns)
+c$$$     &                            *fvx(ml+mw+j)
+c$$$                     enddo
+c$$$                     enddo
+c$$$                  enddo
+c$$$                  nndiff=nn2-nn1
+c$$$                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
+c$$$                  mmdiff=mm2-mm1
+c$$$                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+c$$$                  cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
+c$$$               enddo
+c$$$               enddo
+c$$$            enddo
+c$$$            enddo
+c$$$         enddo
+c$$$      enddo
+         
+      do ns=0,nsmax
+         do nr=1,nrmax-1
+            do nn=1,nphmax
+               do mm=1,nthmax
+                  do nn0=1,nphmax2
+                     do mm0=1,nthmax2
+                        cpp(mm,nn,mm0,nn0,nr,ns)=0.d0
+                     end do
+                  end do
+               end do
+            end do
+         end do
+      end do
+
+      do ns=0,nsmax
+         do nr=1,nrmax-1
+            do nn=1,nphmax
+               do mm=1,nthmax
+                  do i=1,6
+                     ml=6*nthmax*nphmax*(nr-1)
+     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
+                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+                        ml1=ml+mw1-mc
+                        i1=mod(ml1-1,6)+1
+                        mlx=(ml1-1)/6
+                        mm1=mod(mlx,nthmax)+1
+                        mlx=mlx/nthmax
+                        nn1=mod(mlx,nphmax)+1
+                        nr1=mlx/nphmax+1
+                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
+
+c$$$                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+c$$$                           ml2=ml+mw2-mc
+c$$$                           i2=mod(ml2-1,6)+1
+c$$$                           if(i1.eq.i2) then
+c$$$                           mlx=(ml2-1)/6
+c$$$                           mm2=mod(mlx,nthmax)+1
+c$$$                           mlx=mlx/nthmax
+c$$$                           nn2=mod(mlx,nphmax)+1
+c$$$                           nr2=mlx/nphmax+1
+c$$$                           if(nr1.eq.nr2) then
+
+c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
+                        nr2=nr1
+                        do nn2=1,nphmax
+                        do mm2=1,nthmax
+                              
+                           nndiff=nn2-nn
+                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                           mmdiff=mm2-mm
+                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+                           ml2=6*nthmax*nphmax*(nr2-1)
+     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
+
+                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                     +0.5d0*cfactor*fvx(ml2)
+                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+     &                     +0.5d0*cfactor*fvx(ml2)
+c$$$                           endif
+c$$$                           endif
+                        end do
+                        end do
+c                        end do
+                     end do
+                  end do
+               end do
+            end do
+         end do
+      end do
+            
+      csums=0.d0
+      do ns=0,nsmax
+         csum=0.d0
+         do nr=1,nrmax
+            do nn1=1,nphmax
+            do mm1=1,nthmax
+               csum=csum+cpp(mm1,nn1,1,1,nr,ns)
+            enddo
+            enddo
+         enddo
+         write(6,'(A,I5,1P2E12.4)') 'NS,PABSP=',ns,csum
+         csums=csums+csum
+      enddo
+      write(6,'(A,5X,1P2E12.4)') '   PABSP=',csums
+         
+      csums=0.d0
+      do ns=0,nsmax
+         csum=0.d0
+         do ml=1,mlmax
+!            do mw=1,mwmax
+            do mw=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+               ml1=ml+mw-mc
+               csum=csum-ci*conjg(fvx(ml))*fms(mw,ml,ns)*fvx(ml1)
+            enddo
+         enddo
+         write(6,'(A,I5,1P2E12.4)') 'NS,PABSM=',ns,csum
+         csums=csums+csum
+      enddo
+      write(6,'(A,5X,1P2E12.4)') '   PABSM=',csums
+
+!     ----- calculate antenna impedance -----
+
+      do nn=1,nphmax
+      do mm=1,nthmax
+         cpa(mm,nn)=0.d0
+         do nr=1,nrmax
+            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+            do i=1,6
+               cpa(mm,nn)=cpa(mm,nn)-ci*conjg(fvx(ml+i))*fvb(ml+i)
+            enddo
+         enddo
+!         write(6,'(2I5,1P2E12.4)') mm,nn,cpa(mm,nn)
+      enddo
+      enddo
+         csum=0.d0
+         do ml=1,mlmax
+            csum=csum-ci*conjg(fvx(ml))*fvb(ml)
+         enddo
+         write(6,'(A,5X,1P2E12.4)') '   PRADM=',csum
+
+      return
+      end subroutine wmfem_calculate_power
 
 !---- FEM cubic hermit ---
 
