@@ -367,21 +367,28 @@ c$$$      enddo
                         nr1=mlx/nphmax+1
                         cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
 
-                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-                           ml2=ml+mw2-mc
-                           i2=mod(ml2-1,6)+1
-                           if(i1.eq.i2) then
-                           mlx=(ml2-1)/6
-                           mm2=mod(mlx,nthmax)+1
-                           mlx=mlx/nthmax
-                           nn2=mod(mlx,nphmax)+1
-                           nr2=mlx/nphmax+1
-                           if(nr1.eq.nr2) then
+c$$$                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+c$$$                           ml2=ml+mw2-mc
+c$$$                           i2=mod(ml2-1,6)+1
+c$$$                           if(i1.eq.i2) then
+c$$$                           mlx=(ml2-1)/6
+c$$$                           mm2=mod(mlx,nthmax)+1
+c$$$                           mlx=mlx/nthmax
+c$$$                           nn2=mod(mlx,nphmax)+1
+c$$$                           nr2=mlx/nphmax+1
+c$$$                           if(nr1.eq.nr2) then
 
-                           nndiff=nn2-nn1
+c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
+                        nr2=nr1
+                        do nn2=1,nphmax
+                        do mm2=1,nthmax
+                              
+                           nndiff=nn2-nn
                            if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                           mmdiff=mm2-mm1
+                           mmdiff=mm2-mm
                            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+                           ml2=6*nthmax*nphmax*(nr2-1)
+     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
 
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
      &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
@@ -389,9 +396,11 @@ c$$$      enddo
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
      &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
      &                     +0.5d0*cfactor*fvx(ml2)
-                           endif
-                           endif
+c$$$                           endif
+c$$$                           endif
                         end do
+                        end do
+c                        end do
                      end do
                   end do
                end do
@@ -1218,6 +1227,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
+      integer:: mmadd1,mmadd2,nnadd1,nnadd2,nfcadd1,nfcadd2
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1271,6 +1281,27 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
+            nnadd1=(nn1+nn2  )/2-nph0
+            if(nnadd1.lt.0) nnadd1=nnadd1+nphmax
+            nnadd2=(nn1+nn2+1)/2-nph0
+            if(nnadd2.lt.0) nnadd2=nnadd2+nphmax
+            mmadd1=(mm1+mm2  )/2-nth0
+            if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
+            mmadd2=(mm1+mm2+1)/2-nth0
+            if(mmadd2.lt.0) mmadd2=mmadd2+nthmax
+            nfcadd1=nthmax*nnadd1+mmadd1+1
+            nfcadd2=nthmax*nnadd2+mmadd2+1
+
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     fmd(i,j,k,nfc1,nfc2)
+     &                    =0.5d0*fmc(i,j,k,nfcdiff,nfcadd1)
+     &                    +0.5d0*fmc(i,j,k,nfcdiff,nfcadd2)
+                  enddo
+               enddo
+            enddo
+
 c$$$            do k=1,4
 c$$$               do j=1,3
 c$$$                  do i=1,3
@@ -1279,14 +1310,14 @@ c$$$                  enddo
 c$$$               enddo
 c$$$            enddo
 
-            do k=1,4
-               do j=1,3
-                  do i=1,3
-                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
-     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
-                  enddo
-               enddo
-            enddo
+c$$$            do k=1,4
+c$$$               do j=1,3
+c$$$                  do i=1,3
+c$$$                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
+c$$$     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
+c$$$                  enddo
+c$$$               enddo
+c$$$            enddo
 
 c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
 c$$$               nph=(nn1+nn2)/2-nph0+1
@@ -1331,6 +1362,7 @@ c$$$            endif
       complex(8):: cfactor,cx
       integer:: i,j,k,nfc1,nfc2,nth,nph
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
+      integer:: mmadd1,mmadd2,nnadd1,nnadd2,nfcadd1,nfcadd2
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1395,14 +1427,35 @@ c$$$      enddo
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
+            nnadd1=(nn1+nn2  )/2-nph0
+            if(nnadd1.lt.0) nnadd1=nnadd1+nphmax
+            nnadd2=(nn1+nn2+1)/2-nph0
+            if(nnadd2.lt.0) nnadd2=nnadd2+nphmax
+            mmadd1=(mm1+mm2  )/2-nth0
+            if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
+            mmadd2=(mm1+mm2+1)/2-nth0
+            if(mmadd2.lt.0) mmadd2=mmadd2+nthmax
+            nfcadd1=nthmax*nnadd1+mmadd1+1
+            nfcadd2=nthmax*nnadd2+mmadd2+1
+
             do k=1,4
                do j=1,3
                   do i=1,3
-                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
-     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
+                     fmd(i,j,k,nfc1,nfc2)
+     &                    =0.5d0*fmc(i,j,k,nfcdiff,nfcadd1)
+     &                    +0.5d0*fmc(i,j,k,nfcdiff,nfcadd2)
                   enddo
                enddo
             enddo
+
+c$$$            do k=1,4
+c$$$               do j=1,3
+c$$$                  do i=1,3
+c$$$                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
+c$$$     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
+c$$$                  enddo
+c$$$               enddo
+c$$$            enddo
 
 c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
 c$$$               nph=(nn1+nn2)/2-nph0+1
