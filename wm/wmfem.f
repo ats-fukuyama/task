@@ -1775,9 +1775,9 @@ c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
                         do nn2=1,nphmax
                         do mm2=1,nthmax
                               
-                           nndiff=nn2-nn
+                           nndiff=nn1-nn2
                            if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                           mmdiff=mm2-mm
+                           mmdiff=mm1-mm2
                            if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
                            ml2=6*nthmax*nphmax*(nr2-1)
      &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
