@@ -43,6 +43,9 @@ libs:
 fp : $(LIBS) fpmain.o 
 	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
+test : $(LIBS) fpnewton.o 
+	$(FCFIXED) fpnewton.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
