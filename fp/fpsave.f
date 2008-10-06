@@ -629,91 +629,103 @@ c$$$     &           ' JN    =',1PE11.4,' J/E   =',1PE11.4)
 
 
 CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+
       Subroutine FPNEWTON(NR,NSA,rtemp)
 
       INCLUDE 'fpcomm.inc'
 
+C-----Average kinetic energy
+      EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA)
+     &     /(RN(NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
 
-C-----initial value of Z
-      RTFDL=RTFP(NR,NSA)
-      RTFD0L=(PTPR(NSA)+2.D0*PTPP(NSA))/3.D0
-      IF(NTG1.le.1)THEN
-         THETAL=THETA0(NSA)*RTFDL/RTFD0L
-      ELSE
-         THETAL=THETA0(NSA)*RTT(NR,NSA,NTG1)/RTFD0L
-      END IF
-         Z=1.D0/THETAL
-C------------------------------------
+C-----initial value of THETAL
+      THETAL=2.d0*EAVE/3.d0
+      xtemp1=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+
+      CALL XNEWTON(EAVE,THETAL,ncount)
+
+      xtemp2=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+      xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
+      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp1,xtemp2
+
+      RETURN
+
+      CONTAINS
+
+      SUBROUTINE xnewton(eave,thetal,ncount)
+      IMPLICIT NONE
+      REAL(8),intent(in):: eave
+      REAL(8),intent(inout):: thetal
+      INTEGer,intent(out):: ncount
+      REAL(8),parameter:: eps=1.d-10
+      REAL(8):: delthetal,thetalnew,epsthetal
 
 C--------iteration start
-         ISW=0
-         nco=0
-         DO while(ISW.eq.0.and.nco.le.10000000)
-            nco=nco+1
-            Z=1.D0/THETAL
-c         DO n=1,500
-c            z=n*1.D0
-c            THETAL=1.D0/z
-C-------------------------------------
-            IF(Z.LE.1.5D2) THEN
-               DKBSL0=BESKN(0,Z)
-               DKBSL1=BESKN(1,Z)
-               DKBSL2=BESKN(2,Z)
-               DKBSL3=BESKN(3,Z)
-            ELSE
-C------- note : omit sqrt()*exp(-z) 
-               DKBSL0=1.D0 - 1.D0/8.D0/z + 9.D0/128.D0/z**2
-               DKBSL1=1.D0 + 3.D0/8.D0/Z - 15.D0/128.D0/z**2
-               DKBSL2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
-               DKBSL3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
-            ENDIF
-c-------------------------------------
+      ncount=0
+      DO while(ncount.le.100)
+         ncount=ncount+1
+         delthetal=-(rfunc(thetal)-eave)/dfunc(thetal)
+         thetalnew=thetal+delthetal
+         epsthetal=ABS(delthetal/thetal)
 
-
-            IF(Z.le.1.5D2)THEN
-CCCCCCCCCCCC high temperature 
-               rfunc=(3.D0/z-1.D0+DKBSL1/DKBSL2)/THETA0(NSA)
-     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
-     &              -RWS123(NR,NSA)
-
-               dfunc2=(3.D0+ 
-     &              ( (DKBSL0+DKBSL2)*DKBSL2-(DKBSL1+DKBSL3)*DKBSL1 )
-     &              /(2.D0*DKBSL2**2)/THETAL**2 )/THETA0(NSA)
-     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
-
-            ELSE
-CCCCCCCCC  Low temperature
-               rfunc=(3.D0/z-1.D0+DKBSL1/DKBSL2)/THETA0(NSA)
-     &           *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
-     &           -RWS123(NR,NSA)
-
-               dfunc2=(3.D0 + 1956.D0/128.D0/2.D0/THETAL**2
-     &           /(1.D0+3.D1/8.D0*THETAL+7.6D2/128.D0*THETAL**2) 
-     &           *DKBSL2**2 )
-     &              /THETA0(NSA)
-     &           *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
-
-c               dfunc2=(3.D0+ 
-c     &              ( (DKBSL0+DKBSL2)*DKBSL2-(DKBSL1+DKBSL3)*DKBSL1 )
-c     &              /(2.D0*DKBSL2**2)/THETAL**2 )/THETA0(NSA)
-c     &              *RN(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*1.D-6
-
-            END IF
-            rt2 = THETAL - rfunc/dfunc2
-            rt3 =ABS(rt2-THETAL)/ABS(THETAL)
-            rtemp=AMFP(NSA)*VC**2*rt2/(AEE*1.D3)
-
-            IF(rt3.le.1.D-10)THEN
-               THETAL=rt2
-               ISW=1
-            ELSE
-               THETAL=rt2
-               ISW=0
-            ENDIF
-
+         thetal=thetalnew
+         IF(epsthetal.le.eps) EXIT
       END DO
-c      write(*,*)NSA,NCO,rt3
-      return
+      RETURN
+      END SUBROUTINE xnewton
+
+      FUNCTION rfunc(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,rfunc
+      REAL(8):: z,dkbsl1,dkbsl2,BESEKN
+      z=1.D0/thetal
+      dkbsl1=BESEKN(1,Z)
+      dkbsl2=BESEKN(2,Z)
+      rfunc= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
+      RETURN
+      END FUNCTION rfunc
+
+      FUNCTION rfuncp(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,rfuncp
+      REAL(8):: z,dkbsl1,dkbsl2
+      z=1.D0/thetal
+      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
+      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
+      rfuncp= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
+      RETURN
+      END FUNCTION rfuncp
+      
+      FUNCTION dfunc(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,dfunc
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3,BESEKN
+      z=1.D0/thetal
+      dkbsl0=BESEKN(0,z)
+      dkbsl1=BESEKN(1,z)
+      dkbsl2=BESEKN(2,z)
+      dkbsl3=BESEKN(3,z)
+      dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2
+     &        -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2
+     &      +3.d0
+      RETURN
+      END FUNCTION dfunc
+
+      FUNCTION dfuncp(thetal)
+      IMPLICIT NONE
+      REAL(8):: thetal,dfuncp
+      REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3
+      z=1.D0/thetal
+      dkbsl0=1.D0 -  1.D0/8.D0/z +   9.D0/128.D0/z**2
+      dkbsl1=1.D0 +  3.D0/8.D0/z -  15.D0/128.D0/z**2
+      dkbsl2=1.D0 + 15.D0/8.D0/z + 105.D0/128.D0/z**2
+      dkbsl3=1.D0 + 35.D0/8.D0/z + 945.D0/128.D0/z**2
+      dfuncp =( (dkbsl0 +dkbsl2 )/dkbsl2
+     &         -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2
+     &      +3.d0
+      RETURN
+      END FUNCTION dfuncp
+
       end
 
 
