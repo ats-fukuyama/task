@@ -403,7 +403,7 @@ c            ENDIF
      &              RPET(NR,NSA,NTG1),RPWT(NR,NSA,NTG1),
      &              RLHT(NR,NSA,NTG1),
      &              RFWT(NR,NSA,NTG1),RECT(NR,NSA,NTG1)
-c               write(*,103)rtemp, RTFP(NR,NSA)
+c               write(*,103)THETAL,rtemp, RTFP(NR,NSA)
             ELSE
                WRITE(6,102) NSA,NS_NSA(NSA),
      &              RM(NR),RNT(NR,NSA,NTG1),RTT(NR,NSA,NTG1),
@@ -452,7 +452,8 @@ C     Spitzer
       Do NSB=1,NSBMAX
       resist = 1.D0/(RNFP0(NSA)*RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
      &     /RNUD(1,1,NSA)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
-      write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
+      if(E0.ne.0.d0) 
+     &     write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
 c     &     ,resist
      &     ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
 c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
@@ -461,8 +462,12 @@ c     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
       END DO
       dtaue=1.09D16*(PTT(1,NTG2))**(1.5D0)/PNT(1,NTG2)/PZ(2)**2
      &     /15.D0*1.D-20
+      if(nsamax.gt.1) then
       dtaui=6.6D17*(PTT(2,NTG2))**(1.5D0)/PNT(2,NTG2)/PZ(2)**4
      &     /15.D0*1.D-20*(AMFP(2)/AMFP(2))**0.5D0
+      else
+         dtaui=0.d0
+      endif
       write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
       end if
 c$$$c----end of conductivity check---------
@@ -640,13 +645,13 @@ C-----Average kinetic energy
 
 C-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
-      xtemp1=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+      xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
 
       CALL XNEWTON(EAVE,THETAL,ncount)
 
-      xtemp2=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+      rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
       xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
-      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp1,xtemp2
+      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp,rtemp
 
       RETURN
 

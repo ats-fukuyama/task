@@ -173,7 +173,6 @@ C
             THETA0(NSA)=0.D0
             DO NR=1,NRMAX
                THETA(NR,NSA)=0.D0
-               DKBSR(NR,NSA)=0.D0
             ENDDO
          ENDDO
 C
@@ -183,13 +182,6 @@ C
             THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
             DO NR=1,NRMAX
                THETA(NR,NSA)=THETA0(NSA)*RTFP(NR,NSA)/RTFP0(NSA)
-               Z=1.D0/THETA(NR,NSA)
-               IF(Z.LE.100.D0) THEN
-                  DKBSR(NR,NSA)=BESKN(2,Z)
-               ELSE
-                  DKBSR(NR,NSA)=SQRT(PI/(2.D0*Z))*EXP(-Z)
-     &             *( 1.D0 + 15.D0/(8.D0*Z) + 105.D0/(128.D0*Z**2) )
-               ENDIF
             ENDDO
          ENDDO
       ENDIF
@@ -459,21 +451,19 @@ C
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
          Z=1.D0/THETAL
-         IF(Z.LE.150.D0) THEN
-            DKBSL=BESKN(2,Z)
+c$$$         IF(Z.LE.150.D0) THEN
+            DKBSL=BESEKN(2,Z)
             FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DKBSL)
-     &        *RTFD0L*EXP(-1.D0/THETAL)
-C            FACT=RNFDL*SQRT(THETA0**3)/(4.D0*PI*THETAL*DKBSL)
-C     &           *EXP(-1.D0/THETAL)
-            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-         ELSE
-            DAPPROX = SQRT( pi/(2.D0*Z) )*
-     &           ( 1.D0+15.D0/(8.D0*Z) +15.D0*7.D0/(8.D0*Z)**2/2.D0 )
-            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DAPPROX)
      &        *RTFD0L
             EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
-
-         ENDIF
+c$$$         ELSE
+c$$$            DAPPROX = SQRT( pi/(2.D0*Z) )*
+c$$$     &           ( 1.D0+15.D0/(8.D0*Z) +15.D0*7.D0/(8.D0*Z)**2/2.D0 )
+c$$$            FACT=RNFDL*SQRT(THETA0L)/(4.D0*PI*RTFDL*DAPPROX)
+c$$$     &        *RTFD0L
+c$$$            EX=(1.D0-SQRT(1.D0+PML**2*THETA0L))/THETAL
+c$$$
+c$$$         ENDIF
          IF(EX.LT.-100.D0) THEN
             FPMXWL=0.D0
          ELSE
