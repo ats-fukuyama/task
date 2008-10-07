@@ -34,6 +34,8 @@ C
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'1  ') THEN
             CALL FPGRAPA('F1',FNS,NSA)
+         ELSE IF(KID2.EQ.'R1 ') THEN
+            CALL FPGRAPRA('F1',FNS,NSA)
          ELSE IF(KID2.EQ.'2  ') THEN
             CALL FPGRACA('F2',FNS,4,NSA)
          ELSE IF(KID2.EQ.'X2  ') THEN
@@ -595,6 +597,204 @@ C
 C
  9000 RETURN
       END
+C
+C ***********************************************************
+C
+C                        PR-GRAPHIC
+C
+C ***********************************************************
+C
+      SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGA(NTHM,NPM,NRM,NSAM),TEMP(NTHM,NPM,NRM)
+      CHARACTER(LEN=*),INTENT(IN):: STRING
+      CHARACTER(LEN=80):: STRING1
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
+            ENDDO
+         ENDDO
+      ENDDO
+      WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
+      CALL FPGRAPR(TRIM(STRING1),TEMP)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRAPRAB(STRING,FGAB,NSA,NSB)
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FGAB(NTHM,NPM,NRM,NSBM,NSAM),TEMP(NTHM,NPM,NRM)
+      CHARACTER(LEN=*),INTENT(IN):: STRING
+      CHARACTER(LEN=80):: STRING1
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               TEMP(NTH,NP,NR)=FGAB(NTH,NP,NR,NSB,NSA)
+            ENDDO
+         ENDDO
+      ENDDO
+      WRITE(STRING1,'(A,A1,I2,A1,I2,A1)') STRING,'(',NSA,',',NSB,')'
+      CALL FPGRAPR(TRIM(STRING1),TEMP)
+      RETURN
+      END
+C
+      SUBROUTINE FPGRAPR(STRING,FG)
+C
+      INCLUDE 'fpcomm.inc'
+      DIMENSION FG(NTHM,NPM,NRM),GX(NPM),GY(NRM),GZ(NPM,NRM)
+      CHARACTER(LEN=*),INTENT(IN):: STRING
+      CHARACTER(LEN=80):: STRING1
+
+      IF(NGRAPH.EQ.0) THEN
+         CALL FPFOTP(STRING,FG)
+         RETURN
+      ENDIF
+
+    1 WRITE(6,'(A,I4,A)') '# INPUT NTH (1..',NTHMAX,' or 0) :'
+      READ(5,*,ERR=1,END=9000) NTH
+      IF(NTH.LT.1) GOTO 9000
+      IF(NTH.GT.NTHMAX) GOTO 1
+      WRITE(STRING1,'(A,A,I4)') STRING,' : NTH=',NTH
+
+      DO NP=1,NPMAX
+         GX(NP)=GUCLIP(PM(NP)**2)
+      ENDDO
+      DO NR=1,NRMAX
+         GY(NR)=GUCLIP(RM(NR))
+      ENDDO
+      DO NR=1,NRMAX
+      DO NP=1,NPMAX
+         IF(FG(NTH,NP,NR).LT.1.D-14) THEN
+            GZ(NP,NR)=-14.0
+         ELSE
+            GZ(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
+         ENDIF
+      ENDDO
+      ENDDO
+
+      GX1=3.0
+      GX2=20.0
+      GY1=2.0
+      GY2=17.0
+
+      CALL PAGES
+      CALL FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NPM,NPMAX,NRMAX,
+     &     TRIM(STRING1))
+      CALL PAGEE
+
+ 9000 RETURN
+      END
+
+!     ***********************************************************
+
+!           SUBPROGRAM FOR 2D PROFILE
+
+!     ***********************************************************
+
+      SUBROUTINE FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR)
+
+      IMPLICIT NONE
+      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2
+      INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX
+      REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
+      REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
+      REAL(4),DIMENSION(NXM,NYMAX),  INTENT(IN):: GZ
+      CHARACTER(LEN=*),             INTENT(IN):: STR
+      INTEGER(4) :: I, NGULEN
+      REAL(4)    :: GOX, GOY, GOZ, GPHI, GRADIUS, GSTEPX, GSTEPY, 
+     &              GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX,
+     &              GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL, 
+     &              GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
+      CHARACTER(LEN=1)  :: KDL
+!      INTEGER,DIMENSION(8,NXM,NYMAX) :: KA
+      EXTERNAL R2W2B,W2G2B,R2Y2W,WRGBW
+      EXTERNAL WHITE
+!      EXTERNAL R2G2B
+
+      CALL SETCHS(0.3,0.0)
+      CALL SETFNT(32)
+      CALL SETLNW(0.035)
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL SETLIN(-1,-1,7)
+
+      CALL MOVE(GX1,GY2+0.2)
+      CALL TEXT(STR,LEN(STR))
+
+      CALL GMNMX2(GZ,NXM,1,NXMAX,1,1,NYMAX,1,GZMIN,GZMAX)
+      GZVAL=0.5*(ABS(GZMIN)+ABS(GZMAX))
+      IF((GZVAL.LE.1.D-6).OR.(ABS(GZMAX-GZMIN)/GZVAL.LT.1.D-6)) THEN
+         WRITE(6,*) GZMIN,GZMAX
+         CALL GUFLSH
+         RETURN
+      ENDIF
+
+      IF(GZMIN.GE.0.0) THEN
+         GZMIN=0.0
+      ELSEIF(GZMAX.LE.0.0) THEN
+         GZMAX=0.0
+      ENDIF
+
+      CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
+      CALL GMNMX1(GY,1,NYMAX,1,GYMIN,GYMAX)
+
+      CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
+      CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
+      CALL GQSCAL(GZMIN,GZMAX,GSZMIN,GSZMAX,GSTEPZ)
+!      WRITE(6,*) GSZMIN,GSZMAX,GSTEPZ
+!      CALL GUFLSH
+
+      IF(GXMIN*GXMAX.LT.0.0) THEN
+         GXORG=0.0
+      ELSE
+         GXORG=GSXMIN
+      ENDIF
+      IF(GYMIN*GYMAX.LT.0.0) THEN
+         GYORG=0.0
+      ELSE
+         GYORG=GSYMIN
+      ENDIF
+      IF(GZMIN*GZMAX.LT.0.0) THEN
+         GSZMAX=MAX(ABS(GSZMIN),ABS(GSZMAX))
+         GSZMIN=-GSZMAX
+      ENDIF
+
+      GXL=10.0*1.5
+      GYL=20.0*1.5
+      GZL=10.0*1.5
+      CALL GDEFIN3D(GX1,GX2,GY1,GY2,GXL,GYL,GZL)
+      GPHI=-60.0
+      GTHETA=65.0
+      GRADIUS=100.0
+      GOX=0.5*(GSXMIN+GSXMAX)
+      GOY=0.5*(GYMIN+GYMAX)
+      GOZ=0.5*(GSZMIN+GSZMAX)
+      CALL GVIEW3D(GPHI,GTHETA,GRADIUS,1.0,1,GOX,GOY,GOZ)
+      CALL GDATA3D3(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &              GSXMIN,GSXMAX,GSYMIN,GSYMAX,GSZMIN,GSZMAX)
+      CALL SETCHS(0.2,0.0)
+      CALL SETLIN(0,0,7)
+
+      CALL GSCALE3DX(GSXMIN,GSTEPX,0.3,0)
+      CALL GSCALE3DY(GSYMIN,GSTEPY,0.3,0)
+      CALL GSCALE3DZ(GSZMIN,GSTEPZ,0.3,0)
+      CALL GVALUE3DX(GSXMIN,GSTEPX,1,NGULEN(GSTEPX))
+      CALL GVALUE3DY(GSYMIN,GSTEPY,1,NGULEN(GSTEPY))
+      CALL GVALUE3DZ(GSZMIN,GSTEPZ,2,NGULEN(GSTEPZ))
+
+      IF(GZMIN*GZMAX.LT.0.0) THEN
+         CALL CPLOT3D1(7,R2W2B)
+      ELSEIF(GZMIN.LT.0.0) THEN
+         CALL CPLOT3D1(7,W2G2B)
+C         CALL CPLOT3D1(7,WHITE)
+      ELSE
+         CALL CPLOT3D1(7,R2Y2W)
+      ENDIF
+
+      CALL GAXIS3D(0)
+
+      CALL SETLIN(0,0,7)
+      RETURN
+      END SUBROUTINE FPGR3D
 C
 C ***********************************************************
 C
