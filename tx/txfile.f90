@@ -356,7 +356,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx452') THEN
+  !  IF(LOADSLID(1:5) == 'tx453') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -598,7 +598,7 @@ SUBROUTINE TXGLOD(IST)
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx452') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx453') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -661,18 +661,21 @@ subroutine ascii_input
   use tx_commons, only : infiles, nmax_file, n_infiles, iflag_file, datatype
   use tx_interface, only : KSPLIT_TX
   implicit none
-  integer(4) :: IST, i, j
+  integer(4) :: IST, i, j, nmax
   character(len=100) :: TXFNAM
   character(len=140) :: kline, kline1, kline2, ktotS, ktotP
   character(len=20)  :: kmesh, kdata
-  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype, nol_start
+  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype, nol_start, nol2
   LOGICAL :: LEX
+
+  ! Max number of columns
+  nmax = 30
 
   ! Define the column number where the data is firstly read in OrbitEffectDist.dat.
   ! Only valid when iflag_file == 1.
   !   *Raw data    => nol_start = 2
-  !   *Spline data => nol_start = 51
-  nol_start = 51
+  !   *Spline data => nol_start = nmax + 11
+  nol_start = nmax + 11
 
   ! Check a mode of input file
   do 
@@ -768,41 +771,58 @@ subroutine ascii_input
      ! Read data from the file
      i = 0 ! outer loop count
      nol = 0 ! number of lines
+     nol2 = 0 ! number of lines
      do 
         read(21,'(A140)',IOSTAT=IST) kline
         if(ist < 0) exit ! detect the end of the file
         i = i + 1
-        if(i == 44) then
+        if(i == nmax + 4) then
            ktotS = kline ! Total number of ions per second
-        else if(i == 45) then
+        else if(i == nmax + 5) then
            ktotP = kline ! Total power of ions
         end if
         if(i <= nol_start) then
            cycle
-        else if(i >= 92) then
-           exit
+        else if(i >= 2 * nmax + 12 .and. i <= 3 * nmax + 25) then
+           cycle
+        else if(i >= 3 * nmax + 26) then
+           nol2 = nol2 + 1
+           do j = 1, 5
+              kline = trim(adjustl(kline))
+              call ksplit_tx(kline,' ',kline1,kline2)
+              if(j == 1 .or. j == 2) then
+                 kline = kline2
+                 cycle
+              else
+                 ! Parallel velocity for passing beam ions
+                 kdata = trim(kline1)
+                 read(kdata,'(F15.7)') infiles(j+1)%vb(nol2)
+                 kline = kline2
+              end if
+           end do
+           infiles(1:3)%vb(nol2) = 0.d0
+        else
+           nol = nol + 1
+           do j = 1, n_infiles + 2
+              kline = trim(adjustl(kline))
+              call ksplit_tx(kline,' ',kline1,kline2)
+              if(j == 1) then
+                 ! First line is discarded.
+                 kline = kline2
+                 cycle
+              else if(j == 2) then
+                 ! Second line is defined as a mesh data, rho.
+                 kmesh = trim(kline1)
+                 kline = kline2
+              else
+                 ! Third to eighth lines are defined as data. Please see "Name" shown above.
+                 kdata = trim(kline1)
+                 read(kmesh,'(F15.7)') infiles(j-2)%r(nol)
+                 read(kdata,'(F15.7)') infiles(j-2)%data(nol)
+                 kline = kline2
+              end if
+           end do
         end if
-        nol = nol + 1
-
-        do j = 1, n_infiles + 2
-           kline = trim(adjustl(kline))
-           call ksplit_tx(kline,' ',kline1,kline2)
-           if(j == 1) then
-              ! First line is discarded.
-              kline = kline2
-              cycle
-           else if(j == 2) then
-              ! Second line is defined as a mesh data, rho.
-              kmesh = trim(kline1)
-              kline = kline2
-           else
-              ! Third to eighth lines are defined as data. Please see "Name" shown above.
-              kdata = trim(kline1)
-              read(kmesh,'(F15.7)') infiles(j-2)%r(nol)
-              read(kdata,'(F15.7)') infiles(j-2)%data(nol)
-              kline = kline2
-           end if
-        end do
      end do
 
      ! Total number of ions per second

@@ -121,6 +121,8 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \def\nuLTi{\nu_{\r{L}T_\r{i}}}
 \def\nuOL{\nu_\r{OL}}
 \def\nubL{\nu_\r{bL}}
+\def\vbph{v_{\r{b}\phi}}
+\def\vbth{v_{\r{b}\theta}}
 
 \newcommand{\Frac}[2]{%
   {\displaystyle {\displaystyle #1\over \displaystyle #2}}%
@@ -132,7 +134,7 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \begin{document}
 
 \begin{center}
-TASK/TX V4.47 [08/01/17]
+TASK/TX V4.53 [08/10/07]
 \end{center}
 
 \section{Equations in $r$ coordinates}
@@ -590,6 +592,8 @@ TASK/TX V4.47 [08/01/17]
 %
   - \nuCX \nb \ubth
 %
+  + \vbth \frac{\Pbpara}{\Eb}
+%
   - \nubL \nb \ubth
 %
   - \nueff g \sqrt{\delta} \nb \ubth
@@ -614,7 +618,7 @@ TASK/TX V4.47 [08/01/17]
 %
   - \nuCX \nb \ubph
 %
-  + \vb \frac{\Pbpara}{\Eb}
+  + \vbph \frac{\Pbpara}{\Eb}
 %
   - \nubL \nb \ubph
 %
@@ -1146,6 +1150,8 @@ TASK/TX V4.47 [08/01/17]
 %
   - \nuCX r \nb \ubth
 %
+  + r \vbth \frac{\Pbpara}{\Eb}
+%
   - \nubL r \nb \ubth
 %
   - \nueff g \sqrt{\delta} r \nb \ubth
@@ -1173,7 +1179,7 @@ TASK/TX V4.47 [08/01/17]
 %
   - \nuCX \nb \ubph
 %
-  + \vb \frac{\Pbpara}{\Eb}
+  + \vbph \frac{\Pbpara}{\Eb}
 %
   - \nubL \nb \ubph
 %

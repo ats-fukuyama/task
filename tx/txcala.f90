@@ -12,7 +12,8 @@ module tx_coefficients
        & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        & BphBNi, BthBNi, Dbrpft, &
        & rNuei1EI, rNuei2BthEI, rNuei3EI, &
-       & rNube1BE, rNube2BthBE, rNube3BE
+       & rNube1BE, rNube2BthBE, rNube3BE, &
+       & Vbparaph, RVbparath
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -103,7 +104,8 @@ contains
        &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
        &     BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
-       &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N))
+       &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
+       &     Vbparaph(0:N), RVbparath(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -225,7 +227,8 @@ contains
        &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
-       &       rNube1BE, rNube2BthBE, rNube3BE)
+       &       rNube1BE, rNube2BthBE, rNube3BE, &
+       &       Vbparaph, RVbparath)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -279,6 +282,13 @@ contains
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        BphBNi(NR) = BphV(NR) / (BBL * PNiV(NR))
        IF(NR /= 0) BthBNi(NR) = BthV(NR) / (BBL * R(NR) * PNiV(NR))
+       if(MDLMOM == 0) then
+          Vbparaph(NR)  = Vbpara(NR)
+          RVbparath(NR) = 0.d0
+       else
+          Vbparaph(NR)  = Vbpara(NR) * (BphV(NR) / BBL)
+          RVbparath(NR) = Vbpara(NR) * (BthV(NR) / BBL) * R(NR)
+       end if
     END DO
     BthBNi(0) = 0.D0 ! Any value is OK. (Never affect the result.)
 
@@ -1705,32 +1715,37 @@ contains
     ELM(1:NEMAX,1:4,9,LQb3) = - fem_int(2,rNubCX) * BeamSW
     NLC(9,LQb3) = LQb3
 
+    ! NBI momentum source
+
+    PELM(1:NEMAX,1:4,10,LQb3) =  fem_int(-2,RVbparath,MNB)
+    NLC(10,LQb3) = 0
+
     ! Loss to divertor
 
-    ELM(1:NEMAX,1:4,10,LQb3) = - fem_int(2,rNuLB) * BeamSW * fact
-    NLC(10,LQb3) = LQb3
+    ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(2,rNuLB) * BeamSW * fact
+    NLC(11,LQb3) = LQb3
 
     ! Momentum loss due to collisional ripple trapping
 
-    ELM(1:NEMAX,1:4,11,LQb3) = - fem_int(28,rNubrp2,rip_rat) * RpplSW
-    NLC(11,LQb3) = LQb3
+    ELM(1:NEMAX,1:4,12,LQb3) = - fem_int(28,rNubrp2,rip_rat) * RpplSW
+    NLC(12,LQb3) = LQb3
 
     ! Momentum diffusion arising from beam ion convective flux due to ripple
 
-    ELM(1:NEMAX,1:4,12,LQb3) = - 4.D0 * fem_int(18,Dbrpft)
-    NLC(12,LQb3) = LQb3
+    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(18,Dbrpft)
+    NLC(13,LQb3) = LQb3
 
-    ELM(1:NEMAX,1:4,13,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
-    NLC(13,LQb3) = LQb1
+    ELM(1:NEMAX,1:4,14,LQb3) = - 4.D0 * fem_int(45,Dbrpft,RUbthV)
+    NLC(14,LQb3) = LQb1
 
 !!neo    ! Neoclassical viscosity force
 !!neo
-!!neo    ELM(1:NEMAX,1:4,14,LQb3) = - fem_int(2,rNuiNC)
-!!neo    NLC(14,LQb3) = LQb3
+!!neo    ELM(1:NEMAX,1:4,15,LQb3) = - fem_int(2,rNuiNC)
+!!neo    NLC(15,LQb3) = LQb3
 
     ! Ubth(NRMAX) : 0
 
-    NLCMAX(LQb3) = 13
+    NLCMAX(LQb3) = 14
     RETURN
   END SUBROUTINE LQb3CC
 
@@ -1786,7 +1801,7 @@ contains
 
     ! NBI momentum source
 
-    PELM(1:NEMAX,1:4,10,LQb4) =  Vb * fem_int(-1,MNB)
+    PELM(1:NEMAX,1:4,10,LQb4) =  fem_int(-2,Vbparaph,MNB)
     NLC(10,LQb4) = 0
 
     ! Loss to divertor

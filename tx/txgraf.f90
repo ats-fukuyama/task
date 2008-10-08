@@ -23,8 +23,9 @@ contains
   SUBROUTINE TXGOUT
     use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
-         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa
-    use tx_interface, only : TXGRUR, TOUPPER, TXGLOD
+         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa!, &
+!         &                 X, LQi4, LQi1, ANSAV, rIP, LQe1
+    use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_variables, only : ripple
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER
@@ -75,6 +76,8 @@ contains
           CALL TXGLOD(IER)
           IF(IER /= 0) CYCLE OUTER
           CALL TXPRFG
+
+!          write(6,*) INTG_F(X(LQe1,0:NRMAX))*2.D0*PI/(PI*RA*RA)/(rIp / (PI * RA**2)),INTG_F(X(LQi4,0:NRMAX))/(0.5D0*RB**2),INTG_F(X(LQi4,0:NRMAX))/INTG_F(X(LQi1,0:NRMAX))
 
        CASE('I')
           T_TX = 0.D0
@@ -597,6 +600,8 @@ contains
     real(4), dimension(0:NXM,0:NGM,1:NUM), intent(out) :: GYL
 
     INTEGER(4) :: NX
+    real(8) :: psirho_a
+    real(8), dimension(:), allocatable :: psirho
 
     if(present(GTL)) then
        IF (NG < NGM) NG = NG + 1
@@ -777,6 +782,16 @@ contains
     GYL(0:NXM,NG,125) = SNGL(DMAG(0:NXM))
     GYL(0:NXM,NG,126) = SNGL(DMAGe(0:NXM))
     GYL(0:NXM,NG,127) = SNGL(DMAGi(0:NXM))
+
+    ! *** Rho vs Psi *************************************************
+    allocate(psirho(0:NXM))
+    psirho(0) = 0.d0
+    do NX = 1, NXM
+       psirho(NX) = - RR * (AphV(NX) - AphV(0))
+    end do
+    psirho_a = psirho(NRA)
+    GYL(0:NXM,NG,128) = SNGL(psirho(0:NXM)/psirho_a)
+    deallocate(psirho)
 
     RETURN
   END SUBROUTINE TXSTGR

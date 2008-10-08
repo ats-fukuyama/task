@@ -16,7 +16,7 @@ SUBROUTINE TXGLOB
        &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
        &     BBL, SUMML, SUMPL, PNES, PAI
-  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
+  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML, tmpa
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
        &     dPPV, ALFA
   REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
@@ -30,6 +30,8 @@ SUBROUTINE TXGLOB
 
   RKAP = 1.D0
   FKAP = 1.D0
+
+!!  if(mod(nt,ntstep)==0) write(6,*) INTG_F(X(LQi4,0:NRMAX))/(0.5D0*RB**2),INTG_F(X(LQi4,0:NRMAX))/INTG_F(PNiV)
 
   PNdiff(0:NRMAX) =  PZ * PNiV(0:NRMAX) + PZ * PNbV(0:NRMAX) &
        &           + PZ * rip_rat(0:NRMAX) * PNbrpV(0:NRMAX) - PNeV(0:NRMAX)

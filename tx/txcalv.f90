@@ -177,6 +177,7 @@ contains
     !     NBI beam speed
 
     Vb =  SQRT(2.D0 * Eb * rKeV / AMB)
+    Vbpara(0:NRMAX) = Vb
 
     !     Poloidal magnetic field on wall
 
@@ -280,18 +281,13 @@ contains
        SNBP(0:NRMAX) = SNBP(0:NRMAX) * 1.D-20 &
             &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
 
-       ! Orbit Trapped (SNBPDi for trapped beam ions)
-       i = 5
-       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi)
-       ! Calibration by using total power of trapped ions
-       SL = 2.D0 * Pi * INTG_F(SNBPDi)
-       SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
-            &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
-       PNBPi0 = Eb * rKeV * 1.D20
-       ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
+       ! *** No orbit effect for all ions ***
+       if(MDLNBD == 0) then
+          ! Birth Trapped (SNBPDi for trapped beam ions)
+          SNBPDi(0:NRMAX) = SNBP(0:NRMAX)
+          PNBPi0 = Eb * rKeV * 1.D20
+          ! "or" = infiles(2)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
 
-       ! *** Orbit effect for banana ions only ***
-       if(MDLNBD == 1) then
           ! Birth Passing (SNBTGi for passing beam ions)
           i = 3
           call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
@@ -302,31 +298,63 @@ contains
           PNBT10 = Eb * rKeV * 1.D20
           ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
 
-          ! Birth Passing + Orbit TOTAL (SNBb for beam ions)
-          SNBb(0:NRMAX) = SNBPDi(0:NRMAX) + SNBTGi(0:NRMAX)
+          ! Birth TOTAL (SNBb for beam ions)
+          SNBb(0:NRMAX) = SNB(0:NRMAX)
 
-       ! *** Orbit effect for all ions ***
-       else if(MDLNBD == 2) then
-          ! Orbit TOTAL (SNBb for beam ions)
-          i = 4
-          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb)
+       ! *** Orbit effect ***
+       else
+          ! Orbit Trapped (SNBPDi for trapped beam ions)
+          i = 5
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi)
           ! Calibration by using total power of trapped ions
-          SL = 2.D0 * Pi * INTG_F(SNBb)
-          SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
-               &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
-
-          ! Orbit Passing (SNBTGi for passing beam ions)
-          i = 6
-          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
-          ! Calibration by using total power of trapped ions
-          SL = 2.D0 * Pi * INTG_F(SNBTGi)
-          SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+          SL = 2.D0 * Pi * INTG_F(SNBPDi)
+          SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
                &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
-          PNBT10 = Eb * rKeV * 1.D20
-          ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
+          PNBPi0 = Eb * rKeV * 1.D20
+          ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
+
+          ! *** Orbit effect for banana ions only ***
+          if(MDLNBD == 1) then
+             ! Birth Passing (SNBTGi for passing beam ions)
+             i = 3
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+             ! Calibration by using total power of trapped ions
+             SL = 2.D0 * Pi * INTG_F(SNBTGi)
+             SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+                  &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+             PNBT10 = Eb * rKeV * 1.D20
+             ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
+
+             ! Birth Passing + Orbit TOTAL (SNBb for beam ions)
+             SNBb(0:NRMAX) = SNBPDi(0:NRMAX) + SNBTGi(0:NRMAX)
+
+             ! *** Orbit effect for all ions ***
+          else if(MDLNBD == 2) then
+             ! Orbit TOTAL (SNBb for beam ions)
+             i = 4
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb)
+             ! Calibration by using total power of trapped ions
+             SL = 2.D0 * Pi * INTG_F(SNBb)
+             SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
+                  &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+
+             ! Orbit Passing (SNBTGi for passing beam ions)
+             i = 6
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+             ! Calibration by using total power of trapped ions
+             SL = 2.D0 * Pi * INTG_F(SNBTGi)
+             SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+                  &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+             PNBT10 = Eb * rKeV * 1.D20
+             ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
+          end if
        end if
-       ! Torque injection
+       ! Torque injection part
        MNB(0:NRMAX)  = PNBCD * SNBTGi(0:NRMAX) * PNBMPD
+
+       ! Local parallel velocity at birth for passing ions
+       i = 6
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara)
        
     ! *** Arbitrary input *********************************************
     else if(iflag_file == 2) then
@@ -847,8 +875,8 @@ contains
 !!old fashion             SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
              ! Source profiles for beam ions with banana orbit effect
              SNBb(NR)  = SNBPDi(NR) + SNBTGi(NR)
-             ! Torque injection
-             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD!/2.3d0! + (MDLPDM * PNBMPD) * SNBPDi(NR)
+             ! Torque injection part
+             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD!/2.3d0
           END IF
           ! Note: in case of iflag_file == 1, these terms have been already defined above.
        END IF

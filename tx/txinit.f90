@@ -224,8 +224,6 @@ SUBROUTINE TXINIT
   !   NBI current drive parameter
   PNBCD = 1.D0
 
-!!  !   MDLPDM=0: Direction of perpendicular NBI system (plus: co, minus: ctr)
-!!  !   MDLPDM=1: Fraction of toroidal momentum input from perpendicular NBI (-1 < PNBMPD < 1)
   !   Rate of the collisional slowing down part of the perpendicular NBI
   PNBMPD = 0.D0
 
@@ -235,8 +233,10 @@ SUBROUTINE TXINIT
   !              2 : Orbit effect for all beam ions including passing particles
   MDLNBD = 0
 
-  !   Momentum input from perpendicular NBI
-  MDLPDM = 0 
+  !   Momentum input model for beam ions
+  !     MDLMOM = 0 : Parallel velocity = initial beam velocity, Toroidal torque only
+  !              1 : Toroidal and poloidal torques are given distinctly from "Vbpara".
+  MDLMOM = 0 
 
   !   Refractive index of RF waves
   rNRFe = 0.D0
@@ -1066,7 +1066,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLMOM
   private :: TXPLST
 
 contains
@@ -1231,7 +1231,7 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLPDM')
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1306,7 +1306,7 @@ contains
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
-         &   'MDLNBD', MDLNBD,  'MDLPDM', MDLPDM,  &
+         &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &
          &   'NCph  ', NCph  ,  'NCth  ', NCth
 
     RETURN

@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=127, NGYTM=48, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=128, NGYTM=48, &
        &                   NGYVM=49, NGPRM=19, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
@@ -74,7 +74,7 @@ module tx_commons
   real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
        &     PNBCD, PNBMPD, &
        &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi
-  integer(4) :: MDLNBD, MDLPDM
+  integer(4) :: MDLNBD, MDLMOM
 
   ! Neutral parameters
   real(8) :: PN0s, V0, rGamm0, rGASPF, PNeDIV, PTeDIV, PTiDIV
@@ -157,7 +157,7 @@ module tx_commons
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
-       & rNuNTV, UastNC
+       & rNuNTV, UastNC, Vbpara
   real(8), dimension(:,:), allocatable :: deltam
 
   ! Read Wnm table
@@ -226,7 +226,7 @@ module tx_commons
      integer(4) :: ncol_mesh, ncol_data ! indices indicating the columns where the mesh
                                         !   and the data are stored
      real(8) :: totS, totP ! Total number of ions per second and total power
-     real(8), dimension(1:nmax_file) :: r, data
+     real(8), dimension(1:nmax_file) :: r, data, vb
   end type infiles_type
   type(infiles_type), allocatable :: infiles(:)
   integer(4) :: n_infiles ! number of data which are read from the file
@@ -300,7 +300,7 @@ contains
        allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(12))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(13))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(14))
-       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N)            ,stat = ierl(15))
+       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(15))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
        allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(17))
        allocate(DMAG(0:N),     DMAGe(0:N),     DMAGi(0:N),                    stat = ierl(18))
@@ -388,7 +388,7 @@ contains
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
-    deallocate(rip_rat,rNuOL,  rNuNTV,UastNC)
+    deallocate(rip_rat,rNuOL,  rNuNTV,UastNC,Vbpara)
     deallocate(Fmnq,   Wnm,    Umnq)
     deallocate(deltam)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
