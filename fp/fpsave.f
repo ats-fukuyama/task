@@ -468,7 +468,7 @@ c     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
       else
          dtaui=0.d0
       endif
-      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
+c      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
       end if
 c$$$c----end of conductivity check---------
 c$$$c----check of beam power-------
@@ -641,7 +641,9 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 C-----Average kinetic energy
       EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA)
-     &     /(RN(NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
+c     &     /(RNFP0(NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
+     &     /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
+
 
 C-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
@@ -651,7 +653,7 @@ C-----initial value of THETAL
 
       rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
       xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
-      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp,rtemp
+c      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp,rtemp
 
       RETURN
 
@@ -659,6 +661,7 @@ C-----initial value of THETAL
 
       SUBROUTINE xnewton(eave,thetal,ncount)
       IMPLICIT NONE
+      INTEGER NR,NSA
       REAL(8),intent(in):: eave
       REAL(8),intent(inout):: thetal
       INTEGer,intent(out):: ncount
@@ -681,12 +684,13 @@ C--------iteration start
 
       FUNCTION rfunc(thetal)
       IMPLICIT NONE
+      INTEGER NR,NSA
       REAL(8):: thetal,rfunc
       REAL(8):: z,dkbsl1,dkbsl2,BESEKN
       z=1.D0/thetal
       dkbsl1=BESEKN(1,Z)
       dkbsl2=BESEKN(2,Z)
-      rfunc= dkbsl1 /dkbsl2 -1.D0+3.D0/Z
+      rfunc= (dkbsl1 /dkbsl2 -1.D0+3.D0/Z)
       RETURN
       END FUNCTION rfunc
 
@@ -703,6 +707,7 @@ C--------iteration start
       
       FUNCTION dfunc(thetal)
       IMPLICIT NONE
+      INTEGER NR,NSA
       REAL(8):: thetal,dfunc
       REAL(8):: z,dkbsl0,dkbsl1,dkbsl2,dkbsl3,BESEKN
       z=1.D0/thetal
@@ -711,7 +716,7 @@ C--------iteration start
       dkbsl2=BESEKN(2,z)
       dkbsl3=BESEKN(3,z)
       dfunc =( (dkbsl0 +dkbsl2 )/dkbsl2
-     &        -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2
+     &          -(dkbsl1 +dkbsl3 )*dkbsl1 /dkbsl2 **2)*0.5d0*z**2
      &      +3.d0
       RETURN
       END FUNCTION dfunc

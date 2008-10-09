@@ -790,6 +790,18 @@ C     +++++ calculate and save global data +++++
       call FPWRT3
 
 
+      IF(NT.eq.NTMAX)THEN
+         open(8,file='radial_profile.dat')
+         DO NR=1,NRMAX
+            WRITE(8,645) RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
+     &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
+     &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
+     &         RPCT2(NR,3,3,NTG1)
+         END DO
+c         write(8,*)" " 
+c         write(8,*)" " 
+      END IF
+ 645  FORMAT(9E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO
 C     +++++ end of time loop +++++
