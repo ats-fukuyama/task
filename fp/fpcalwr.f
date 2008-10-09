@@ -113,8 +113,9 @@ C
                   RYB =A1*RYMIN2+A2*RYMIN1
                   RZB =A1*RZMIN2+A2*RZMIN1
                   RADB=A1*RBMIN2+A2*RBMIN1
-                  DELYEC=RADB
-C 
+                  IF(RADB.NE.0.D0) THEN
+                     DELYEC=RADB
+                  ENDIF
                   DELCR2=XLL2
                   DELRB2=DELYEC**2
                   ARG=DELCR2/DELRB2
@@ -295,7 +296,9 @@ C
                   RYB =A1*RYMIN2+A2*RYMIN1
                   RZB =A1*RZMIN2+A2*RZMIN1
                   RADB=A1*RBMIN2+A2*RBMIN1
-                  DELYEC=RADB
+                  IF(RADB.NE.0.D0) THEN
+                     DELYEC=RADB
+                  ENDIF
 C
                   DELCR2=XLL2
                   DELRB2=DELYEC**2
@@ -451,7 +454,7 @@ C
                   RZ =RBB(3,NR,NTH,NAV,NRAY)
                   CALL FPDWLL(P,PSIN,PCOS,
      &                 CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ,
-     &                 DWPPL,DWPTL,DWTPL,DWTTL)
+     &                 DWPPL,DWPTL,DWTPL,DWTTL,NSA)
 C
                   DWPPS=DWPPS+DWPPL*RCOS/PCOS
                   DWPTS=DWPTS+DWPTL          /SQRT(PSI)
