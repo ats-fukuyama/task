@@ -22,6 +22,7 @@
       IF(K2.EQ.'7') CALL TRGRR7(INQ)
       IF(K2.EQ.'8') CALL TRGRR8(INQ)
       IF(K2.EQ.'9') CALL TRGRR9(INQ)
+      IF(K2.EQ.'A') CALL TRGRRA(INQ)
 
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
 
@@ -126,8 +127,8 @@
 
       SUBROUTINE TRGRR2(INQ)
 
-      USE TRCOMM, ONLY : BETA, BETA0, BETAL, BETAP, BETAP0, BETAPL, BETAQ, BETAQ0, GRG, GRM, GYR, NRMAX, NRMP, NSM, PCX, &
-     &                   PEX, PIE, PNB, PNF, POH, PRF, PRL
+      USE TRCOMM, ONLY : AK, AKNC,AKDW, GRG, GRM, GYR, NRMAX, NRMP, NSM, &
+      &                  PNB, PNF, POH, PRF, PRL, PCX, PIE, PEX 
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: INQ
       INTEGER(4) :: NS, NR
@@ -159,22 +160,26 @@
      &            '@POH,PRL,PCX,PIE [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
-         GYR(NR+1,1) = GUCLIP(BETAL(NR))
-         GYR(NR+1,2) = GUCLIP(BETA(NR))
-         GYR(NR+1,3) = GUCLIP(BETAQ(NR))
+         GYR(NR+1,1) = GUCLIP(AK(NR,1))
+         GYR(NR+1,2) = GUCLIP(AKNC(NR,1))
+         GYR(NR+1,3) = GUCLIP(AKDW(NR,1))
       ENDDO
-      GYR(1,1)=GUCLIP(BETA0)
-      GYR(1,2)=GUCLIP(BETA0)
-      GYR(1,3)=GUCLIP(BETAQ0)
-      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,3,'@BETA,<BETA>,BETAQ  vs r@',2+INQ)
+         GYR(1,1) = GUCLIP(AK(1,1))
+         GYR(1,2) = GUCLIP(AKNC(1,1))
+         GYR(1,3) = GUCLIP(AKDW(1,1))
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3, &
+      &           '@AKE,AKNCE,AKDWE [m$+2$=/s]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
-         GYR(NR+1,1) = GUCLIP(BETAPL(NR))
-         GYR(NR+1,2) = GUCLIP(BETAP(NR))
+         GYR(NR+1,1) = GUCLIP(AK(NR,2))
+         GYR(NR+1,2) = GUCLIP(AKNC(NR,2))
+         GYR(NR+1,3) = GUCLIP(AKDW(NR,2))
       ENDDO
-      GYR(1,1)=GUCLIP(BETAP0)
-      GYR(1,2)=GUCLIP(BETAP0)
-      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,'@BETAP,<BETAP>  vs r@',2+INQ)
+         GYR(1,1) = GUCLIP(AK(1,2))
+         GYR(1,2) = GUCLIP(AKNC(1,2))
+         GYR(1,3) = GUCLIP(AKDW(1,2))
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX,3, &
+      &           '@AKD,AKNCD,AKDWD [m$+2$=/s]  vs r@',2+INQ)
 
       CALL TRGRTM
       CALL PAGEE
@@ -748,6 +753,69 @@
 
       RETURN
       END SUBROUTINE TRGRR9
+
+!     ***********************************************************
+
+!           GRAPHIC : RADIAL PROFILE : WS,WF,BETA,BETAP
+
+!     ***********************************************************
+
+      SUBROUTINE TRGRRA(INQ)
+
+      USE TRCOMM, ONLY : BETA, BETA0, BETAL, BETAP, BETAP0, BETAPL, BETAQ, BETAQ0, GRG, GRM, GYR, NRMAX, NRMP, NSM, PCX, &
+     &                   PEX, PIE, PNB, PNF, POH, PRF, PRL
+      IMPLICIT NONE
+      INTEGER(4),INTENT(IN) :: INQ
+      INTEGER(4) :: NS, NR
+      REAL(4)    :: GUCLIP
+
+
+      CALL PAGES
+
+      DO NR=1,NRMAX
+         GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
+         GYR(NR,2) = GUCLIP(PNB(NR) * 1.D-6)
+         GYR(NR,3) = GUCLIP(PNF(NR) * 1.D-6)
+      ENDDO
+      DO NS=1,NSM
+      DO NR=1,NRMAX
+         GYR(NR,NS+3) = GUCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
+      ENDDO
+      ENDDO
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+3, &
+     &            '@POH,PNB,PNF,PRF [MW/m$+3$=]  vs r@',2+INQ)
+
+      DO NR=1,NRMAX
+         GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
+         GYR(NR,2) = GUCLIP(PRL(NR) * 1.D-6)
+         GYR(NR,3) = GUCLIP(PCX(NR) * 1.D-6)
+         GYR(NR,4) = GUCLIP(PIE(NR) * 1.D-6)
+      ENDDO
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4, &
+     &            '@POH,PRL,PCX,PIE [MW/m$+3$=]  vs r@',2+INQ)
+
+      DO NR=1,NRMAX
+         GYR(NR+1,1) = GUCLIP(BETAL(NR))
+         GYR(NR+1,2) = GUCLIP(BETA(NR))
+         GYR(NR+1,3) = GUCLIP(BETAQ(NR))
+      ENDDO
+      GYR(1,1)=GUCLIP(BETA0)
+      GYR(1,2)=GUCLIP(BETA0)
+      GYR(1,3)=GUCLIP(BETAQ0)
+      CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,3,'@BETA,<BETA>,BETAQ  vs r@',2+INQ)
+
+      DO NR=1,NRMAX
+         GYR(NR+1,1) = GUCLIP(BETAPL(NR))
+         GYR(NR+1,2) = GUCLIP(BETAP(NR))
+      ENDDO
+      GYR(1,1)=GUCLIP(BETAP0)
+      GYR(1,2)=GUCLIP(BETAP0)
+      CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,2,'@BETAP,<BETAP>  vs r@',2+INQ)
+
+      CALL TRGRTM
+      CALL PAGEE
+      RETURN
+      END SUBROUTINE TRGRRA
 
 !     ***********************************************************
 

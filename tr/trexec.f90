@@ -32,14 +32,6 @@
       IERR=0
       ICHCK=0
 
-      IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         IF(NTMAX.GT.NTAMAX) NTMAX=NTAMAX
-         DIPDT=0.D0
-      ELSE
-         RIP=RIPS
-         IF(NTMAX.NE.0) DIPDT=(RIPE-RIPS)/(DBLE(NTMAX)*DT)
-      ENDIF
-!
  1000 L=0
 !     /* Making New Variables */
       CALL TRATOX
@@ -242,7 +234,7 @@
  4000 T=T+DT
       VSEC=VSEC+VLOOP*DT
       RIP=RIP+DIPDT*DT
-!      write(6,'(A,1P3E12.5)') "RIP,RIPE,DIP=",RIP,RIPE,DIPDT*DT
+!      write(6,'(A,1P4E12.4)') "T,RIP,RIPE,DIP=",T,RIP,RIPE,DIPDT*DT
 
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
 !     calculate plasma current at next time from interpolating data
@@ -302,25 +294,25 @@
          CALL TRCFDW_AKDW
       ENDIF
 
-!     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
+! !     *** DATA ACQUISITION FOR SHOWING GRAPH AND STATUS ***
 
-      IDGLOB=0
-      IF(MOD(NT,NTSTEP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRSNAP
-      ENDIF
-      IF(MOD(NT,NGTSTP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRATOT
-         CALL TRATOTN
-      ENDIF
-      IF(MOD(NT,NGRSTP).EQ.0) THEN
-         IF(IDGLOB.EQ.0) CALL TRGLOB
-         IDGLOB=1
-         CALL TRATOG
-      ENDIF
+!       IDGLOB=0
+!       IF(MOD(NT,NTSTEP).EQ.0) THEN
+!          IF(IDGLOB.EQ.0) CALL TRGLOB
+!          IDGLOB=1
+!          CALL TRSNAP
+!       ENDIF
+!       IF(MOD(NT,NGTSTP).EQ.0) THEN
+!          IF(IDGLOB.EQ.0) CALL TRGLOB
+!          IDGLOB=1
+!          CALL TRATOT
+!          CALL TRATOTN
+!       ENDIF
+!       IF(MOD(NT,NGRSTP).EQ.0) THEN
+!          IF(IDGLOB.EQ.0) CALL TRGLOB
+!          IDGLOB=1
+!          CALL TRATOG
+!       ENDIF
 
       RETURN
       END SUBROUTINE TREXEC

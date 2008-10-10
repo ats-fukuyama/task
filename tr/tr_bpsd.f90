@@ -160,6 +160,16 @@
 !      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
 !      pause
 
+      device%rr=RR
+      device%zz=0.d0
+      device%ra=RA
+      device%rb=RA+0.1D0
+      device%bb=BB
+      device%ip=RIP
+      device%elip=RKAP
+      device%trig=RDLT
+      call bpsd_set_data(device,ierr)
+
       plasmaf%time=t
       do ns=1,nsmax
          call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:nrmax,ns,1),nrmax)
