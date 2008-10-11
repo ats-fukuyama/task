@@ -21,7 +21,7 @@
       integer:: mdlwmf
 
       integer:: nfcmax,mlmax,mwmax,nfcmax2
-      complex(8),dimension(:,:),pointer,save:: fma,fmax !(mwmax,mlmax)
+      complex(8),dimension(:,:),pointer,save:: fma !(mwmax,mlmax)
       complex(8),dimension(:,:,:),pointer,save:: fms !(mwmax,mlmax,0:nsmax)
       complex(8),dimension(:),pointer,save:: fvb,fvx !(mlmax)
 
@@ -94,9 +94,7 @@ c$$$      endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
          if(associated(fma)) deallocate(fma)
-         if(associated(fmax)) deallocate(fmax)
          allocate(fma(mwmax,mlmax))
-         allocate(fmax(mwmax,mlmax))
       endif
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
      &   (nsmax.ne.nsmax_save)) then
@@ -978,7 +976,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8):: cfactor
       integer:: i,j,k,nfc1,nfc2,nth,nph
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
-      integer:: mmadd1,mmadd2,nnadd1,nnadd2,nfcadd1,nfcadd2
+      integer:: mmadd1,mmadd2,nnadd1,nnadd2
+      integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1040,15 +1039,20 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
             mmadd2=(mm1+mm2+1)/2-nth0
             if(mmadd2.lt.0) mmadd2=mmadd2+nthmax
+
             nfcadd1=nthmax*nnadd1+mmadd1+1
-            nfcadd2=nthmax*nnadd2+mmadd2+1
+            nfcadd2=nthmax*nnadd1+mmadd2+1
+            nfcadd3=nthmax*nnadd2+mmadd1+1
+            nfcadd4=nthmax*nnadd2+mmadd2+1
 
             do k=1,4
                do j=1,3
                   do i=1,3
                      fmd(i,j,k,nfc1,nfc2)
-     &                    =0.5d0*fmc(i,j,k,nfcdiff,nfcadd1)
-     &                    +0.5d0*fmc(i,j,k,nfcdiff,nfcadd2)
+     &                    =0.25d0*fmc(i,j,k,nfcdiff,nfcadd1)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd2)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd3)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd4)
                   enddo
                enddo
             enddo
@@ -1113,7 +1117,8 @@ c$$$            endif
       complex(8):: cfactor,cx
       integer:: i,j,k,nfc1,nfc2,nth,nph
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
-      integer:: mmadd1,mmadd2,nnadd1,nnadd2,nfcadd1,nfcadd2
+      integer:: mmadd1,mmadd2,nnadd1,nnadd2
+      integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
 
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
@@ -1186,18 +1191,24 @@ c$$$      enddo
             if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
             mmadd2=(mm1+mm2+1)/2-nth0
             if(mmadd2.lt.0) mmadd2=mmadd2+nthmax
+
             nfcadd1=nthmax*nnadd1+mmadd1+1
-            nfcadd2=nthmax*nnadd2+mmadd2+1
+            nfcadd2=nthmax*nnadd1+mmadd2+1
+            nfcadd3=nthmax*nnadd2+mmadd1+1
+            nfcadd4=nthmax*nnadd2+mmadd2+1
 
             do k=1,4
                do j=1,3
                   do i=1,3
                      fmd(i,j,k,nfc1,nfc2)
-     &                    =0.5d0*fmc(i,j,k,nfcdiff,nfcadd1)
-     &                    +0.5d0*fmc(i,j,k,nfcdiff,nfcadd2)
+     &                    =0.25d0*fmc(i,j,k,nfcdiff,nfcadd1)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd2)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd3)
+     &                    +0.25d0*fmc(i,j,k,nfcdiff,nfcadd4)
                   enddo
                enddo
             enddo
+
 
 c$$$            do k=1,4
 c$$$               do j=1,3
@@ -1300,7 +1311,7 @@ c$$$            enddo
       RETURN
       END SUBROUTINE wmfem_tensors
 
-!        ****** CALCULATE CONVERSION TENSOR ******
+!        ****** CALCULATE ROTATION TENSOR ******
 
          SUBROUTINE wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
 
@@ -1416,11 +1427,6 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
 
       do ml=1,mlmax
          fvx(ml)=fvb(ml)
-      enddo
-      do ml=1,mlmax
-         do mw=1,mwmax
-            fmax(mw,ml)=fma(mw,ml)
-         enddo
       enddo
 
       write(6,*) 'mlmax,mwmax=',mlmax,mwmax
@@ -2338,3 +2344,4 @@ c$$$      enddo
       end subroutine fem_hqq
 
       end subroutine wmfem
+
