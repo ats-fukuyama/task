@@ -1663,7 +1663,7 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
 
       integer:: mc,ml,mw,nr,ns,mm,nn,i,j
       integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff
-      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2
+      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2,nfc,nfc1,nfc2
       real(8):: factor
       complex(8):: csum,csums,cfactor
 
@@ -1742,45 +1742,89 @@ c$$$      enddo
          end do
       end do
 
+c$$$      do ns=0,nsmax
+c$$$         do nr=1,nrmax-1
+c$$$            do nn=1,nphmax
+c$$$               do mm=1,nthmax
+c$$$                  do i=1,6
+c$$$                     ml=6*nthmax*nphmax*(nr-1)
+c$$$     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
+c$$$                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
+c$$$                        ml1=ml+mw1-mc
+c$$$                        i1=mod(ml1-1,6)+1
+c$$$                        mlx=(ml1-1)/6
+c$$$                        mm1=mod(mlx,nthmax)+1
+c$$$                        mlx=mlx/nthmax
+c$$$                        nn1=mod(mlx,nphmax)+1
+c$$$                        nr1=mlx/nphmax+1
+c$$$                        if(ns.eq.1.and.nn.eq.1.and.mm.eq.1.and.i.eq.1) 
+c$$$     &                       write(6,*) nr,nr1
+c$$$                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
+c$$$
+c$$$                        nr2=nr1
+c$$$                        do nn2=1,nphmax
+c$$$                        do mm2=1,nthmax
+c$$$                              
+c$$$                           nndiff=nn1-nn2
+c$$$                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+c$$$                           mmdiff=mm1-mm2
+c$$$                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+c$$$                           ml2=6*nthmax*nphmax*(nr2-1)
+c$$$     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
+c$$$
+c$$$                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+c$$$     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+c$$$     &                     +0.5d0*cfactor*fvx(ml2)
+c$$$                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+c$$$     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
+c$$$     &                     +0.5d0*cfactor*fvx(ml2)
+c$$$                        end do
+c$$$                        end do
+c$$$c                        end do
+c$$$                     end do
+c$$$                  end do
+c$$$               end do
+c$$$            end do
+c$$$         end do
+c$$$      end do
+c$$$            
+
       do ns=0,nsmax
          do nr=1,nrmax-1
-            do nn=1,nphmax
-               do mm=1,nthmax
+            do nfc=1,nfcmax
+               nn=nphnfc(nfc)
+               mm=nthnfc(nfc)
                   do i=1,6
                      ml=6*nthmax*nphmax*(nr-1)
      &                 +6*nthmax*(nn-1)+6*(mm-1)+i
-                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-                        ml1=ml+mw1-mc
-                        i1=mod(ml1-1,6)+1
-                        mlx=(ml1-1)/6
-                        mm1=mod(mlx,nthmax)+1
-                        mlx=mlx/nthmax
-                        nn1=mod(mlx,nphmax)+1
-                        nr1=mlx/nphmax+1
-                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
+                     do nr1=max(1,nr-1),min(nrmax,nr+1)
+                     do nfc1=1,nfcmax
+                        nn1=nphnfc(nfc1)
+                        mm1=nthnfc(nfc1)
+                     do i1=1,6
+                        mw=6*nthmax*nphmax*(nr1-nr)
+     &                    +6*nthmax*(nn1-nn)+6*(mm1-mm)+(i1-i)
+                        cfactor=-ci*conjg(fvx(ml))*fms(mc+mw,ml,ns)
 
-c$$$                        do mw2=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-c$$$                           ml2=ml+mw2-mc
-c$$$                           i2=mod(ml2-1,6)+1
-c$$$                           if(i1.eq.i2) then
-c$$$                           mlx=(ml2-1)/6
-c$$$                           mm2=mod(mlx,nthmax)+1
-c$$$                           mlx=mlx/nthmax
-c$$$                           nn2=mod(mlx,nphmax)+1
-c$$$                           nr2=mlx/nphmax+1
-c$$$                           if(nr1.eq.nr2) then
-
-c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
                         nr2=nr1
-                        do nn2=1,nphmax
-                        do mm2=1,nthmax
-                              
-                           nndiff=nn1-nn2
-                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                           mmdiff=mm1-mm2
-                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+                        do nfc2=1,nfcmax
+                           nn2=nphnfc(nfc2)
+                           mm2=nthnfc(nfc2)
                            ml2=6*nthmax*nphmax*(nr2-1)
      &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
+                              
+                           nndiff=nnnfc(nfc1)-nph0
+     &                           -nnnfc(nfc)+nnnfc(nfc2)
+!                           nndiff=nn1-nn+nn2
+!                           nndiff=nn1-nn2
+                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                           if(nndiff.ge.nphmax) nndiff=nndiff-nphmax2
+                           mmdiff=mmnfc(nfc1)-nth0
+     &                           -mmnfc(nfc)+mmnfc(nfc2)
+!                           mmdiff=mm1-mm+mm2
+!                           mmdiff=mm1-mm2
+                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+                           if(mmdiff.ge.nthmax) mmdiff=mmdiff-nthmax2
 
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
      &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
@@ -1788,14 +1832,11 @@ c                        do nr2=max(1,nr-1),min(nrmax,nr+1)
                            cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
      &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
      &                     +0.5d0*cfactor*fvx(ml2)
-c$$$                           endif
-c$$$                           endif
                         end do
-                        end do
-c                        end do
+                     end do
+                     end do
                      end do
                   end do
-               end do
             end do
          end do
       end do
