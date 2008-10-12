@@ -27,8 +27,8 @@
 
       integer,dimension(:),pointer,save :: nthnfc,mmnfc
       integer,dimension(:),pointer,save :: nphnfc,nnnfc
-      integer,dimension(:),pointer,save :: nthnfc2
-      integer,dimension(:),pointer,save :: nphnfc2
+      integer,dimension(:),pointer,save :: nthnfc2,mmnfc2
+      integer,dimension(:),pointer,save :: nphnfc2,nnnfc2
 
 !     ***** define array size  *****
 
@@ -120,8 +120,12 @@ c$$$      endif
 
          if(associated(nthnfc2)) deallocate(nthnfc2)
          if(associated(nphnfc2)) deallocate(nphnfc2)
+         if(associated(mmnfc2)) deallocate(mmnfc2)
+         if(associated(nnnfc2)) deallocate(nnnfc2)
          if(nfcmax2.ne.0) allocate(nthnfc2(nfcmax2))
          if(nfcmax2.ne.0) allocate(nphnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(mmnfc2(nfcmax2))
+         if(nfcmax2.ne.0) allocate(nnnfc2(nfcmax2))
       endif
       mwmax_save=mwmax
       mlmax_save=mlmax
@@ -183,6 +187,7 @@ c$$$      endif
          do nph=1,nphmax2
             nfc2=nph
             nthnfc2(nfc2)=1
+            mmnfc2(nfc2)=nth0
          enddo
       else
          do nph=1,nphmax2
@@ -190,18 +195,31 @@ c$$$      endif
             nfc2=nthmax2*(nph-1)+nth
             nthnfc2(nfc2)=nth
          enddo
+         do nth=1,nthmax
+            nfc2=nthmax2*(nph-1)+nth
+            mmnfc2(nfc2)=nth0+nth-1
+            nfc=nthmax2*(nph-1)+nthmax2+1-nth
+            mmnfc2(nfc2)=nth0-nth
+         enddo
          enddo
       endif
       if(nphmax.eq.1) then
          do nth=1,nthmax2
             nfc2=nth
             nphnfc2(nfc2)=1
+            nnnfc2(nfc2)=nph0
          enddo
       else
          do nth=1,nthmax2
          do nph=1,nphmax2
             nfc2=nthmax2*(nph-1)+nth
             nphnfc2(nfc2)=nph
+         enddo
+         do nph=1,nphmax
+            nfc2=nthmax2*(nph-1)+nth
+            nnnfc2(nfc2)=nph0+nph-1
+            nfc2=nthmax2*(nphmax2-nph)+nth
+            nnnfc2(nfc2)=nph0-nph
          enddo
          enddo
       endif
@@ -330,24 +348,6 @@ c$$$            endif
             endif
          enddo
 
-c$$$         do ml=1,mlmax
-c$$$            do mw=1,mwmax
-c$$$               ml1=ml+mw-(mwmax+1)/2
-c$$$               if(ml1.ge.1.and.ml1.le.mlmax) then
-c$$$                  mw1=mwmax-mw+1
-c$$$                  cx=fma(mw,ml)-conjg(fma(mw1,ml1))
-c$$$                  if(abs(cx).gt.1.d-15) then
-c$$$                     nr=(ml-1)/(6*nphmax*nthmax)
-c$$$                     nph=(ml-nr*6*nphmax*nthmax-1)/(6*nthmax)
-c$$$                     nth=(ml-nr*6*nphmax*nthmax-nph*6*nthmax-1)/6
-c$$$                     i=ml-nr*6*nphmax*nthmax-nph*6*nthmax-nth*6
-c$$$                     write(6,'(A,8I5,1P2E12.4)') 'AH(fma)=',
-c$$$     &                    mw,ml,mw1,ml1,nr+1,nph+1,nth+1,i+1,cx
-c$$$                  endif
-c$$$               endif
-c$$$            enddo
-c$$$         enddo
-
          do ml=1,mlmax
          do mw=1,mwmax
             fms(mw,ml,ns)=fma(mw,ml)
@@ -443,21 +443,6 @@ c$$$         enddo
             fvb(ml+5)=0.d0
             fms(mc  ,ml+1,0)=1.d0
             fms(mc  ,ml+5,0)=1.d0
-
-c$$$            do mw=1,mwmax
-c$$$               fma(mw,ml+3) = 0.d0
-c$$$               fma(mw,ml+5) = 0.d0
-c$$$               do ns=0,nsmax
-c$$$                  fms(mw,ml+3,ns)=0.d0
-c$$$                  fms(mw,ml+5,ns)=0.d0
-c$$$               enddo
-c$$$            enddo
-c$$$            fma(mc-2,ml+3)=1.d0
-c$$$            fma(mc  ,ml+3)=ci*mm
-c$$$            fma(mc  ,ml+5)=1.d0
-c$$$            fms(mc-2,ml+3,0)=1.d0
-c$$$            fms(mc  ,ml+3,0)=ci*mm
-c$$$            fms(mc  ,ml+5,0)=1.d0
          else
             do mw=1,mwmax
                fma(mw,ml+3) = 0.d0
@@ -559,18 +544,6 @@ c$$$            fms(mc  ,ml+5,0)=1.d0
             end do
          endif
       enddo
-
-c$$$      do ml=1,mlmax
-c$$$         do mw=1,mwmax
-c$$$            if(ml+mw-mc.ge.1.and.ml+mw-mc.le.mlmax) then
-c$$$               cx=fms(mw,ml,0)-conjg(fms(mwmax-mw+1,ml+mw-mc,0))
-c$$$               if(abs(cx).gt.1.d-14) then
-c$$$                  write(6,'(A,2I5,1P4E12.4)') 'mw,ml,cx=',mw,ml,
-c$$$     &                 fms(mw,ml,0),fms(mwmax-mw+1,ml+mw-mc,0)
-c$$$               endif
-c$$$            endif
-c$$$         enddo
-c$$$      enddo
 
       return
       end subroutine wmfem_calculate_matrix
@@ -685,6 +658,7 @@ c$$$      enddo
      &                 +fmv3(i,j,3,nfcdiff)    *nn2
                   fmd(i,j,4,nfc1,nfc2)
      &                 =fmv4(i,j,nfcdiff)
+
 c$$$                  write(6,'(A,2I5,1P4E12.4)')
 c$$$     &                 'fmd:',i,j,fmd(i,j,1,nfc1,nfc2),
 c$$$     &                            fmd(i,j,2,nfc1,nfc2)
@@ -1056,46 +1030,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
                   enddo
                enddo
             enddo
-
-c$$$            do k=1,4
-c$$$               do j=1,3
-c$$$                  do i=1,3
-c$$$                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
-c$$$                  enddo
-c$$$               enddo
-c$$$            enddo
-
-c$$$            do k=1,4
-c$$$               do j=1,3
-c$$$                  do i=1,3
-c$$$                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
-c$$$     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
-c$$$                  enddo
-c$$$               enddo
-c$$$            enddo
-
-c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
-c$$$               nph=(nn1+nn2)/2-nph0+1
-c$$$               if(nph.le.0) nph=nph+nphmax
-c$$$               nth=(mm1+mm2)/2-nth0+1
-c$$$               if(nth.le.0) nth=nth+nthmax
-c$$$               nfcadd=nthmax*(nph-1)+nth
-c$$$               do k=1,4
-c$$$                  do j=1,3
-c$$$                     do i=1,3
-c$$$                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
-c$$$                     enddo
-c$$$                  enddo
-c$$$               enddo
-c$$$            else
-c$$$               do k=1,4
-c$$$                  do j=1,3
-c$$$                     do i=1,3
-c$$$                        fmd(i,j,k,nfc1,nfc2)=0.d0
-c$$$                     enddo
-c$$$                  enddo
-c$$$               enddo
-c$$$            endif
          enddo
       enddo
 
@@ -1123,20 +1057,6 @@ c$$$            endif
       cfactor=(2*pi*crf*1.d6)**2/vc**2
 
       call wmfem_disp_tensor(rho,ns,fmc)
-
-c$$$      do nfc1=1,nfcmax2
-c$$$         do nfc2=1,nfcmax
-c$$$            do i=1,3
-c$$$               do j=1,i
-c$$$                  cx=fmc(i,j,1,nfc1,nfc2)-conjg(fmc(j,i,1,nfc1,nfc2))
-c$$$                  if(abs(cx).gt.1.d-14) then
-c$$$                     write(6,'(A,4I5,1P2E12.4)') 'AH(fmc)=',
-c$$$     &                    nfc1,nfc2,i,j,cx
-c$$$                  endif
-c$$$               enddo
-c$$$            enddo
-c$$$         enddo
-c$$$      enddo
 
       do j=1,3
          do i=1,3
@@ -1208,47 +1128,6 @@ c$$$      enddo
                   enddo
                enddo
             enddo
-
-
-c$$$            do k=1,4
-c$$$               do j=1,3
-c$$$                  do i=1,3
-c$$$                     fmd(i,j,k,nfc1,nfc2)=0.5d0*fmc(i,j,k,nfcdiff,nfc1)
-c$$$     &                                   +0.5d0*fmc(i,j,k,nfcdiff,nfc2)
-c$$$                  enddo
-c$$$               enddo
-c$$$            enddo
-
-c$$$            if(mod(nn1+nn2,2).eq.0.and.mod(mm1+mm2,2).eq.0) then
-c$$$               nph=(nn1+nn2)/2-nph0+1
-c$$$               if(nph.le.0) nph=nph+nphmax
-c$$$               nth=(mm1+mm2)/2-nth0+1
-c$$$               if(nth.le.0) nth=nth+nthmax
-c$$$               nfcadd=nthmax*(nph-1)+nth
-c$$$               do k=1,4
-c$$$                  do j=1,3
-c$$$                     do i=1,3
-c$$$                        fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfcadd)
-c$$$                     enddo
-c$$$                  enddo
-c$$$               enddo
-c$$$            else
-c$$$               do k=1,4
-c$$$                  do j=1,3
-c$$$                     do i=1,3
-c$$$                        fmd(i,j,k,nfc1,nfc2)=0.d0
-c$$$                     enddo
-c$$$                  enddo
-c$$$               enddo
-c$$$            endif
-
-c$$$            do k=1,4
-c$$$               do j=1,3
-c$$$                  do i=1,3
-c$$$                     fmd(i,j,k,nfc1,nfc2)=fmc(i,j,k,nfcdiff,nfc2)
-c$$$                  enddo
-c$$$               enddo
-c$$$            enddo
          enddo
       enddo
       return
@@ -1369,15 +1248,6 @@ c$$$            enddo
                mm=mmnfc(nfc)
                nn=nnnfc(nfc)
                CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fms)
-c$$$            do i=1,3
-c$$$               do j=1,i
-c$$$                  cx=fms(i,j)-conjg(fms(j,i))
-c$$$                  if(abs(cx).gt.1.d-14) then
-c$$$                     write(6,'(A,4I5,1P2E12.4)') 'AH(fmc)=',
-c$$$     &                    nfc2,nfc,i,j,cx
-c$$$                  endif
-c$$$               enddo
-c$$$            enddo
                DO j=1,3
                   DO i=1,3
                      fmc(i,j,1,nfc2,nfc)=fms(i,j)
@@ -1408,11 +1278,7 @@ c$$$            enddo
          ckperp=(0.d0,0.d0)
 
          CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fms)
-c$$$         if(rho.le.0.1d0.and.ns.eq.3) THEN
-c$$$            write(6,'(A,1P3E12.4,I5)') 'rho,th,babs,ns=',rho,th,babs,ns
-c$$$            write(6,'(A,1P4E12.4)') 'ckpr,ckpp=',ckpara,ckperp
-c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(1,1),fms(1,2),fms(1,3)
-c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
+
          return
 
          END SUBROUTINE wmfem_dielectric
@@ -1642,7 +1508,6 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
             mmdiff=mm1-mm2
             if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
             nfcdiff=nthmax2*nndiff+mmdiff+1
-!            if(nfcdiff.le.0) nfcdiff=nfcdiff+nfcmax2
             ml=6*nthmax*nphmax*(nr-1)+6*(nfc2-1)
 
 !          !!!!! on axis should be considered !!!!!
@@ -1668,79 +1533,20 @@ c$$$            write(6,'(A,1P6E12.4)') 'fms: ',fms(2,1),fms(2,2),fms(2,3)
       subroutine wmfem_calculate_power
 
       integer:: mc,ml,mw,nr,ns,mm,nn,i,j
-      integer:: ir,nr1,nr2,mm1,nn1,mm2,nn2,mmdiff,nndiff
-      integer:: i1,i2,nn0,mm0,mw1,mw2,mlx,ml1,ml2,nfc,nfc1,nfc2
+      integer:: ir,nr1,mm1,nn1,mm2,nn2,nndiff,mmdiff
+      integer:: i1,ml1,ml2,nfc,nfc1,nfc2
       real(8):: factor
       complex(8):: csum,csums,cfactor
 
       mc=(mwmax+1)/2
 
-c$$$      do ns=0,nsmax
-c$$$         do nr=1,nrmax-1
-c$$$            do nn1=1,nphmax
-c$$$            do mm1=1,nthmax
-c$$$               do nn2=1,nphmax
-c$$$               do mm2=1,nthmax
-c$$$                  csum=0.d0
-c$$$                  do ir=1,4
-c$$$                     select case(ir)
-c$$$                     case(1)
-c$$$                        nr1=nr
-c$$$                        nr2=nr
-c$$$                        if(nr.eq.1) then
-c$$$                           factor=1.d0
-c$$$                        else
-c$$$                           factor=0.5d0
-c$$$                        endif
-c$$$                     case(2)
-c$$$                        nr1=nr
-c$$$                        nr2=nr+1
-c$$$                        factor=1.d0
-c$$$                     case(3)
-c$$$                        nr1=nr+1
-c$$$                        nr2=nr
-c$$$                        factor=1.d0
-c$$$                     case(4)
-c$$$                        nr1=nr+1
-c$$$                        nr2=nr+1
-c$$$                        if(nr.eq.nrmax-1) then
-c$$$                           factor=1.d0
-c$$$                        else
-c$$$                           factor=0.5d0
-c$$$                        endif
-c$$$                     end select
-c$$$                     ml=6*nthmax*nphmax*(nr1-1)
-c$$$     &                 +6*nthmax*(nn1-1)  +6*(mm1-1)
-c$$$                     mw=6*nthmax*nphmax*(nr2-nr1)
-c$$$     &                 +6*nthmax*(nn2-nn1)+6*(mm2-mm1)
-c$$$                     do i=1,6
-c$$$                     do j=1,6
-c$$$                        csum=csum-ci*factor
-c$$$     &                            *conjg(fvx(ml+i))
-c$$$     &                            *fms(mc+mw+j-i,ml+i,ns)
-c$$$     &                            *fvx(ml+mw+j)
-c$$$                     enddo
-c$$$                     enddo
-c$$$                  enddo
-c$$$                  nndiff=nn2-nn1
-c$$$                  if(nndiff.lt.0) nndiff=nndiff+nphmax2
-c$$$                  mmdiff=mm2-mm1
-c$$$                  if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-c$$$                  cpp(mm1,nn1,mmdiff+1,nndiff+1,nr,ns)=csum
-c$$$               enddo
-c$$$               enddo
-c$$$            enddo
-c$$$            enddo
-c$$$         enddo
-c$$$      enddo
-         
       do ns=0,nsmax
          do nr=1,nrmax-1
             do nn=1,nphmax
                do mm=1,nthmax
-                  do nn0=1,nphmax2
-                     do mm0=1,nthmax2
-                        cpp(mm,nn,mm0,nn0,nr,ns)=0.d0
+                  do nn2=1,nphmax2
+                     do mm2=1,nthmax2
+                        cpp(mm,nn,mm2,nn2,nr,ns)=0.d0
                      end do
                   end do
                end do
@@ -1748,101 +1554,45 @@ c$$$      enddo
          end do
       end do
 
-c$$$      do ns=0,nsmax
-c$$$         do nr=1,nrmax-1
-c$$$            do nn=1,nphmax
-c$$$               do mm=1,nthmax
-c$$$                  do i=1,6
-c$$$                     ml=6*nthmax*nphmax*(nr-1)
-c$$$     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
-c$$$                     do mw1=max(1,mc-ml+1),min(mwmax,mc-ml+mlmax)
-c$$$                        ml1=ml+mw1-mc
-c$$$                        i1=mod(ml1-1,6)+1
-c$$$                        mlx=(ml1-1)/6
-c$$$                        mm1=mod(mlx,nthmax)+1
-c$$$                        mlx=mlx/nthmax
-c$$$                        nn1=mod(mlx,nphmax)+1
-c$$$                        nr1=mlx/nphmax+1
-c$$$                        if(ns.eq.1.and.nn.eq.1.and.mm.eq.1.and.i.eq.1) 
-c$$$     &                       write(6,*) nr,nr1
-c$$$                        cfactor=-ci*conjg(fvx(ml))*fms(mw1,ml,ns)
-c$$$
-c$$$                        nr2=nr1
-c$$$                        do nn2=1,nphmax
-c$$$                        do mm2=1,nthmax
-c$$$                              
-c$$$                           nndiff=nn1-nn2
-c$$$                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
-c$$$                           mmdiff=mm1-mm2
-c$$$                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-c$$$                           ml2=6*nthmax*nphmax*(nr2-1)
-c$$$     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
-c$$$
-c$$$                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-c$$$     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-c$$$     &                     +0.5d0*cfactor*fvx(ml2)
-c$$$                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-c$$$     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-c$$$     &                     +0.5d0*cfactor*fvx(ml2)
-c$$$                        end do
-c$$$                        end do
-c$$$c                        end do
-c$$$                     end do
-c$$$                  end do
-c$$$               end do
-c$$$            end do
-c$$$         end do
-c$$$      end do
-c$$$            
-
       do ns=0,nsmax
          do nr=1,nrmax-1
             do nfc=1,nfcmax
                nn=nphnfc(nfc)
                mm=nthnfc(nfc)
-                  do i=1,6
-                     ml=6*nthmax*nphmax*(nr-1)
-     &                 +6*nthmax*(nn-1)+6*(mm-1)+i
-                     do nr1=max(1,nr-1),min(nrmax,nr+1)
+               do i=1,6
+                  ml=6*nthmax*nphmax*(nr-1)
+     &              +6*nthmax*(nn-1)+6*(mm-1)+i
+                  do nr1=max(1,nr-1),min(nrmax,nr+1)
                      do nfc1=1,nfcmax
                         nn1=nphnfc(nfc1)
                         mm1=nthnfc(nfc1)
-                     do i1=1,6
-                        mw=6*nthmax*nphmax*(nr1-nr)
-     &                    +6*nthmax*(nn1-nn)+6*(mm1-mm)+(i1-i)
-                        cfactor=-ci*conjg(fvx(ml))*fms(mc+mw,ml,ns)
+                        do i1=1,6
+                           ml1=6*nthmax*nphmax*(nr1-1)
+     &                        +6*nthmax*(nn1-1)+6*(mm1-1)+i1
+                           do nfc2=1,nfcmax
+                              nn2=nphnfc(nfc2)
+                              mm2=nthnfc(nfc2)
+                              nndiff=nnnfc(nfc2)-nnnfc(nfc1)
+                              mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
+                              if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                              if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
 
-                        nr2=nr1
-                        do nfc2=1,nfcmax
-                           nn2=nphnfc(nfc2)
-                           mm2=nthnfc(nfc2)
-                           ml2=6*nthmax*nphmax*(nr2-1)
-     &                        +6*nthmax*(nn2-1)+6*(mm2-1)+i1
-                              
-                           nndiff=nnnfc(nfc1)-nph0
-     &                           -nnnfc(nfc)+nnnfc(nfc2)
-!                           nndiff=nn1-nn+nn2
-!                           nndiff=nn1-nn2
-                           if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                           if(nndiff.ge.nphmax) nndiff=nndiff-nphmax2
-                           mmdiff=mmnfc(nfc1)-nth0
-     &                           -mmnfc(nfc)+mmnfc(nfc2)
-!                           mmdiff=mm1-mm+mm2
-!                           mmdiff=mm1-mm2
-                           if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
-                           if(mmdiff.ge.nthmax) mmdiff=mmdiff-nthmax2
+                              mw=6*nthmax*nphmax*(nr1-nr)
+     &                          +6*nthmax*(nn2-nn)+6*(mm2-mm)+(i1-i)
 
-                           cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
-     &                     +0.5d0*cfactor*fvx(ml2)
-                           cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-     &                     =cpp(mm,nn,mmdiff+1,nndiff+1,nr2,ns)
-     &                     +0.5d0*cfactor*fvx(ml2)
+                              cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                       =cpp(mm,nn,mmdiff+1,nndiff+1,nr,ns)
+     &                       -0.5d0*ci*conjg(fvx(ml))
+     &                                *fms(mc+mw,ml,ns)*fvx(ml1)
+                              cpp(mm,nn,mmdiff+1,nndiff+1,nr1,ns)
+     &                       =cpp(mm,nn,mmdiff+1,nndiff+1,nr1,ns)
+     &                       -0.5d0*ci*conjg(fvx(ml))
+     &                                *fms(mc+mw,ml,ns)*fvx(ml1)
+                           end do
                         end do
                      end do
-                     end do
-                     end do
                   end do
+               end do
             end do
          end do
       end do
