@@ -17,10 +17,10 @@ C
       CHARACTER(LEN=80):: STRING1
 C
     1 WRITE(6,*)'INPUT GRAPH TYPE :'
-      WRITE(6,*)'       : F/FX/FS1/FS2 1/2, Nn:NSA=n, Nnm:NSA=n,NSB=m,'
-      WRITE(6,*)'       : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
-      WRITE(6,*)'       : PD/PDC/PDW PP/PT/TP/TT/RR, PF/PFC/FE P/T/R'
-      WRITE(6,*)'       : R/T N/I/W/PC/PW/PE/T/Q/E,  Gn,  X:exit'
+      WRITE(6,*)'    : F/FX/FR/FS1/FS2 1/2, Nn:NSA=n, Nnm:NSA=n,NSB=m,'
+      WRITE(6,*)'    : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
+      WRITE(6,*)'    : PD/PDC/PDW PP/PT/TP/TT/RR, PF/PFC/FE P/T/R'
+      WRITE(6,*)'    : R/T N/I/W/PC/PW/PE/T/Q/E,  Gn,  X:exit'
       READ(5,'(A5)',ERR=1,END=9000) KID
       KID1=KID(1:1)
       CALL GUCPTL(KID1)
