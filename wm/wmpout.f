@@ -5,7 +5,6 @@ C
       SUBROUTINE WMEFLD
 C
       INCLUDE 'wmcomm.inc'
-C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
       DRHO1=(XRHO(2)-XRHO(1))**2
@@ -275,7 +274,6 @@ C
       SUBROUTINE WMBFLD
 C
       INCLUDE 'wmcomm.inc'
-C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM)
 C
       CW=2*PI*CRF*1.D6

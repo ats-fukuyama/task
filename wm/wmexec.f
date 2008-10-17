@@ -17,6 +17,7 @@ C
       IF(IERR.NE.0) RETURN
 C
       if(mdlwmf.eq.0) then
+C
          CALL WMSETG(IERR)
          IF(IERR.NE.0) RETURN
          CALL WMSETJ(IERR)

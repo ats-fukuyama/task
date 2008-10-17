@@ -32,10 +32,20 @@ C
       DIMENSION NM(NBSIZM)
       DIMENSION CFVS(MSIZP)
 C
+      COMPLEX(8),DIMENSION(:,:),pointer:: CEM
+      COMPLEX(8),DIMENSION(:),pointer:: CFV
+
       NBSIZ=3*MDSIZ*NDSIZ
-      MSIZ=NRMAX*NBSIZ
+      IF(MODEWG.EQ.0) THEN
+         MSIZ=NRMAX*NBSIZ
+      ELSE
+         MSIZ=NRMAX*NBSIZ+MWGMAX*NAMAX
+      ENDIF
       MBND=2*NBSIZ
-C
+
+      ALLOCATE(CEM(MBNDM,MSIZ))
+      ALLOCATE(CFV(MSIZ))
+
       NFRAC=(NRMAX-1)/NPROCS+1
       NBST=MYRANK*NFRAC+1
       NBED=NBST+NFRAC-1
@@ -83,6 +93,9 @@ C
             CFVG(I)=CFV(I)
          ENDDO
       ENDIF
+C
+      DEALLOCATE(CFV)
+      DEALLOCATE(CEM)
 C
       RETURN
       END
