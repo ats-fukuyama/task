@@ -242,7 +242,7 @@ c$$$      endif
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
       integer:: ns,nfc1,nfc2,ml1,mw1,mr
-      complex(8):: csum,f1,f2,f3,f4,cx,cy
+      complex(8):: csum,f1,f2,f3,f4,cx,cy,cxd,cyd
       integer:: id_base=1
       real(8):: angl=0.d0
 
@@ -382,34 +382,54 @@ c$$$      endif
             fms(mc,mll+3,nr,0)=1.d0
             fvb(ml+3)=0.d0
          elseif(abs(mm).eq.1) then
-            do mw=3,mwmax
+            do mw=4,mwmax
                cx= fma(mw  ,ml+1)
+!               cxd=fma(mw-1,ml+2)
                cy= fma(mw-2,ml+3)
-               fma(mw  ,ml+1)=cx+ci*mm*cy
-               fma(mw-2,ml+3)=cx-ci*mm*cy
+!               cyd=fma(mw-3,ml+4)
+               fma(mw  ,ml+1)=cx +ci*mm*cy
+!               fma(mw-1,ml+2)=cxd+ci*mm*cyd
+               fma(mw-2,ml+3)=cx -ci*mm*cy
+!               fma(mw-3,ml+4)=cxd-ci*mm*cyd
                do ns=0,nsmax
                   cx= fms(mw  ,mll+1,nr,ns)
+!                  cxd=fms(mw-1,mll+2,nr,ns)
                   cy= fms(mw-2,mll+3,nr,ns)
-                  fms(mw  ,mll+1,nr,ns)=cx+ci*mm*cy
-                  fms(mw-2,mll+3,nr,ns)=cx-ci*mm*cy
+!                  cyd=fms(mw-3,mll+4,nr,ns)
+                  fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
+!                  fms(mw-1,mll+2,nr,ns)=cxd+ci*mm*cyd
+                  fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
+!                  fms(mw-3,mll+4,nr,ns)=cxd-ci*mm*cyd
                enddo
             enddo
-            do mw=-mc+4,mc
+            do mw=-mc+5,mc
                if(ml+mw.ge.1.AND.ml+mw.LE.12*nfcmax) then
-                  cx=fma(mc-mw+1,ml+mw)
-                  cy=fma(mc-mw+3,ml+mw)
-                  fma(mc-mw+1,ml+mw)=cx-ci*mm*cy
-                  fma(mc-mw+3,ml+mw)=cx+ci*mm*cy
+                  cx= fma(mc-mw+1,ml+mw)
+!                  cxd=fma(mc-mw+2,ml+mw)
+                  cy= fma(mc-mw+3,ml+mw)
+!                  cyd=fma(mc-mw+4,ml+mw)
+                  fma(mc-mw+1,ml+mw)=cx -ci*mm*cy
+!                  fma(mc-mw+2,ml+mw)=cxd-ci*mm*cyd
+                  fma(mc-mw+3,ml+mw)=cx +ci*mm*cy
+!                  fma(mc-mw+4,ml+mw)=cxd+ci*mm*cyd
                   do ns=0,nsmax
-                     cx=fms(mc-mw+1,mll+mw,nr,ns)
-                     cy=fms(mc-mw+3,mll+mw,nr,ns)
-                     fms(mc-mw+1,mll+mw,nr,ns)=cx-ci*mm*cy
-                     fms(mc-mw+3,mll+mw,nr,ns)=cx+ci*mm*cy
+                     cx= fms(mc-mw+1,mll+mw,nr,ns)
+!                     cxd=fms(mc-mw+2,mll+mw,nr,ns)
+                     cy= fms(mc-mw+3,mll+mw,nr,ns)
+!                     cyd=fms(mc-mw+4,mll+mw,nr,ns)
+                     fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
+!                     fms(mc-mw+2,mll+mw,nr,ns)=cxd-ci*mm*cyd
+                     fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
+!                     fms(mc-mw+4,mll+mw,nr,ns)=cxd+ci*mm*cyd
                      if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
-                        cx=fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
-                        cy=fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
-                        fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx-ci*mm*cy
-                        fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx+ci*mm*cy
+                        cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
+!                        cxd=fms(mc-mw+2-mr,mll+mw-mr,nr,ns)
+                        cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
+!                        cyd=fms(mc-mw+4-mr,mll+mw-mr,nr,ns)
+                        fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx -ci*mm*cy
+!                        fms(mc-mw+2-mr,mll+mw-mr,nr+1,ns)=cxd-ci*mm*cyd
+                        fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx +ci*mm*cy
+!                        fms(mc-mw+4-mr,mll+mw-mr,nr+1,ns)=cxd+ci*mm*cyd
                      endif
                   end do
                endif
@@ -1171,7 +1191,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          ph=dph*(nph-1)
          DO nth=1,nthmax2
             th=dth*(nth-1)
-
             CALL wmfem_metrics(rhol,th,ph,gm,gj)
             CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
             CALL wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
@@ -1285,6 +1304,10 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
          ckpara=mm*bsupth/babs+nn*bsupph/babs
          ckperp=(0.d0,0.d0)
+
+c$$$         if(ns.eq.1.and.abs(th).lt.0.1) 
+c$$$     &    write(6,'(A,2I5,1P5E12.4)') 'm,n,kpara:',
+c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
          CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
 
@@ -1613,6 +1636,30 @@ c$$$               endif
          end do
          end do
       end do
+
+c$$$      do ns=0,nsmax
+c$$$         do mmdiff=1,nthmax2
+c$$$            csum=0.d0
+c$$$            do mm=1,nthmax
+c$$$               csum=csum+cpp(mm,1,mmdiff,1,1,ns)
+c$$$            enddo
+c$$$            write(6,'(A,2I5,1P2E12.4)') 
+c$$$     &              'ns,mmdiff,cpp=',
+c$$$     &               ns,mmdiff,csum
+c$$$         enddo
+c$$$      enddo
+            
+      do ns=0,nsmax
+         do mmdiff=1,nthmax2
+            csum=0.d0
+            do mm=1,nthmax
+               csum=csum+cpp(mm,1,mmdiff,1,2,ns)
+            enddo
+c$$$            write(6,'(A,2I5,1P2E12.4)') 
+c$$$     &              'ns,mmdiff,cpp=',
+c$$$     &               ns,mmdiff,csum
+         enddo
+      enddo
             
       csums=0.d0
       do ns=0,nsmax

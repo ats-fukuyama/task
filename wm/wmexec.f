@@ -31,15 +31,17 @@ C
             CALL WMPANT
          endif
       else
+         nrmax=nrmax+1
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
          CALL WMFEM_SETJ(IERR)
          IF(IERR.NE.0) RETURN
-         call wmfem(nrmax+1,nthmax,nphmax,nthmax2,nphmax2,nsmax,
+         call wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,nsmax,
      &              xrho,cef,cbf,cpp,cpa)
          CALL WMFEM_EFLD(cef)
          CALL WMFEM_BFLD(cbf)
          CALL WMFEM_PABS(cpp,cpa)
+         nrmax=nrmax-1
       endif
 C
       IF(MYRANK.EQ.0) THEN

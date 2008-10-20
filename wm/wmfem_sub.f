@@ -135,13 +135,18 @@ C     $Id$
       INCLUDE '../eq/eqcomq.inc'
       real(8),intent(in):: rho,th
       real(8),intent(out):: babs,bsupth,bsupph
-      real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
+      real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi,rhol
       real(8):: bprr,bpzz,bthl,bphl,ttl
       real(8),dimension(3,3):: gm
-      
-      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+
+      if(rho.lt.1.d-8) then
+         rhol=1.d-8
+      else
+         rhol=rho
+      endif
+      CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
      &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+      CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
      &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
@@ -151,14 +156,15 @@ C     $Id$
 
       bprr= DPSIDZ/(2.D0*PI*rrl)
       bpzz=-DPSIDR/(2.D0*PI*rrl)
-      bthl=SQRT(bprr**2+bpzz**2)
       ttl=FNTTS(rho)
-      bphl= ttl/(2.D0*PI*rrl)
-      bsupth=bthl
-      bsupph=bphl
+      bthl=SQRT(bprr**2+bpzz**2)
+      bphl= ttl/rrl
+      bsupth=bthl/sqrt(gm(2,2))
+      bsupph=bphl/sqrt(gm(3,3))
       babs=sqrt(     gm(2,2)*bsupth*bsupth
      &         +2.d0*gm(2,3)*bsupth*bsupph
      &         +     gm(3,3)*bsupph*bsupph)
+!      write(6,'(A,1P4E12.4)') '%%%--',bthl,bphl,bsupth,bsupph
       return
 
       end subroutine wmeq_get_magnetic
@@ -502,11 +508,11 @@ C
       SUBROUTINE WMFEM_EFLD(cef)
 C
       INCLUDE 'wmcomm.inc'
-      dimension cef(3,nthmax,nphmax,nrmax+1)
+      dimension cef(3,nthmax,nphmax,nrmax)
 C
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
-      do nr=1,nrmax+1
+      do nr=1,nrmax
          DO NDX=1,nphmax
             if(nphmax.eq.1) then
                NDX1=NDX
@@ -533,7 +539,7 @@ C
 C
 C     ----- Inverse Fourier transform ----
 C
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
       DO I=1,3
          DO NDX=1,NDSIZ
          DO MDX=1,MDSIZ
@@ -552,7 +558,7 @@ C
 C     ----- Calculate CEN from CEsup -----
 C
 C
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CEN(1,NTH,NPH,NR)=CEFLD(1,NTH,NPH,NR)
@@ -568,7 +574,7 @@ C
       ENDDO
 c$$$C
 c$$$      DO K=1,3
-c$$$         DO NR=1,NRMAX+1
+c$$$         DO NR=1,NRMAX
 c$$$            IF(XRHO(NR).GT.1.0D0) THEN
 c$$$               DO NTH=1,NTHMAX
 c$$$                  DO NPH=1,NPHMAX
@@ -589,11 +595,11 @@ C
       SUBROUTINE WMFEM_BFLD(cbf)
 C
       INCLUDE 'wmcomm.inc'
-      dimension cbf(3,nthmax,nphmax,nrmax+1)
+      dimension cbf(3,nthmax,nphmax,nrmax)
 C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
 C
-      do nr=1,nrmax+1
+      do nr=1,nrmax
          DO NDX=1,nphmax
             if(nphmax.eq.1) then
                NDX1=NDX
@@ -620,7 +626,7 @@ C
 C
 C     ----- Inverse Fourier transform ----
 C
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
       DO I=1,3
          DO NDX=1,NDSIZ
          DO MDX=1,MDSIZ
@@ -639,7 +645,7 @@ C
 C     ----- Calculate CBN from CBsup -----
 C
 C
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX
          CBN(1,NTH,NPH,NR)=CBFLD(1,NTH,NPH,NR)
@@ -655,7 +661,7 @@ C
       ENDDO
 c$$$C
 c$$$      DO K=1,3
-c$$$         DO NR=1,NRMAX+1
+c$$$         DO NR=1,NRMAX
 c$$$            IF(XRHO(NR).GT.1.0D0) THEN
 c$$$               DO NTH=1,NTHMAX
 c$$$                  DO NPH=1,NPHMAX
@@ -680,7 +686,7 @@ C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
-      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax+1,0:nsmax)
+      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax)
       dimension cpa(nthmax,nphmax)
       real(8),dimension(3,3)::  gm
       real(8):: gj1,gj2
@@ -753,12 +759,14 @@ C
                ENDDO
             ENDDO
             ENDDO
-!            DO NPH=1,NPHMAX
-!            DO NTH=1,NTHMAX
-!               write(6,'(3I8,1P2E12.4)') NR,NTH,NPH,
-!     &                                   PABS(NTH,NPH,NR,NS)
-!            ENDDO
-!            ENDDO
+c$$$            if(nr.eq.1.or.nr.eq.2) then
+c$$$            DO NPH=1,NPHMAX
+c$$$            DO NTH=1,NTHMAX
+c$$$               write(6,'(3I8,1P2E12.4)') NR,NTH,NPH,
+c$$$     &                                   PABS(NTH,NPH,NR,NS)
+c$$$            ENDDO
+c$$$            ENDDO
+c$$$            endif
          ENDDO
          ENDDO
 
@@ -935,7 +943,7 @@ C
          ENDDO
       ENDDO
 C
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
          DO ND=NDMIN,NDMAX
             NDX=ND-NDMIN+1
          DO MD=MDMIN,MDMAX

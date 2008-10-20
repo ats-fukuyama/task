@@ -69,6 +69,8 @@ C
       NRMAX   = 50
       NTHMAX  = 1
       NPHMAX  = 1
+      NSUMAX  = 64
+      NSWMAX  = 64
 C
       DO NS=1,NSM
          DO NR=1,NRMAX
@@ -260,7 +262,8 @@ C
      &              RHOMIN,QMIN,RHOEDG,
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
-     &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR
+     &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
+     &              NSUMAX,NSWMAX
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -308,7 +311,8 @@ C
      &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'/
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
-     &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO')
+     &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
+     &       9X,'NSUMAX,NSWMAX')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****

@@ -616,7 +616,7 @@ C
          ELSEIF(K2.EQ.'P') THEN
             GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
          ELSEIF(K2.EQ.'J') THEN
-             GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
+            GY(NR,NTH)=GUCLIP(PCUR(NTH,NPH,NR))
          ENDIF
       ENDDO
       ENDDO

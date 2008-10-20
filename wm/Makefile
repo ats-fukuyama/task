@@ -15,7 +15,6 @@ SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmvmec.f wmbooz.f wmvout.f
 
 # wmtrfile.f
-# wmvmec.f wmbooz.f wmvout.f \
 
 SRCS = $(SRC0) nowmsolv.f 
 SRCM = $(SRC0) wmsolv.f 
@@ -124,6 +123,7 @@ wmpout1.o : wmpout1.f $(WMCOMM)
 
 wmtae.o : wmtae.f $(WMCOMM)
 wmfem_sub.o : wmfem_sub.f $(WMCOMM)	
+wmfem_setg.o : wmfem_setg.f $(WMCOMM)	
 
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
