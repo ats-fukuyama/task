@@ -28,7 +28,7 @@ C     ****** equilibrium file (TASK/EQ) ******
 C     ****** equilibrium file (VMEC) ******
 
       ELSEIF(MODELG.EQ.4) THEN
-C         CALL wmmetric_vmec(IERR)
+         CALL wmmetric_vmec(IERR)
 
 C     ****** equilibrium file (EQDSK) ******
 
@@ -109,20 +109,16 @@ C
 
       call wmfem_setr(ierr)
 
-      dth=2.d0*pi/nthmax
-      dph=2.d0*pi/nphmax
-      dthg=2.d0*pi/nthgm
-
 !     --- q profile ---
-      do nr=1,nrmax
-         if(xrho(nr).lt.1.d0) then
-            qps(nr)=q0+(qa-q0)*xrho(nr)**2
-         else
-            qps(nr)=qa*xrho(nr)**2
-         endif
-      enddo
+      DO nr=1,nrmax
+         call wmfem_qprofile(xrho(nr),qinv)
+         qps(nr)  = 1.D0/qinv
+      ENDDO
 
 !     --- 2D grid ---
+      dth=2.d0*pi/nthmax
+      dthg=2.d0*pi/nthgm
+
       do nr=1,nrmax
          do nth=1,nthmax
             rps(nth,nr)=ra*xrho(nr)*cos(dth*(nth-1))
@@ -177,32 +173,6 @@ C
          zgmin=-rb*1.01d0
          zgmax= rb*1.01d0
 
-!     --- compatibility ---
-         PSIPA=RA*RA*BB/(Q0+QA)
-         PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
-
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
-
-         DO NR=1,NRMAX
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
-               FEDGE=PNS(1)/PN(1)
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
-         ENDDO
       RETURN
       END
 C
@@ -217,16 +187,15 @@ C
 
       call wmfem_setr(ierr)
 
-      dth=2.d0*pi/nthmax
-      dph=2.d0*pi/nphmax
-      dthg=2.d0*pi/nthgm
-
-      DO NR=1,NRMAX
+!     --- q profile ---
+      DO nr=1,nrmax
          call wmfem_qprofile(xrho(nr),qinv)
-         QPS(NR)  = 1.D0/qinv
+         qps(nr)  = 1.D0/qinv
       ENDDO
 
 !     --- 2D grid ---
+      dth=2.d0*pi/nthmax
+      dthg=2.d0*pi/nthgm
       DO NR=1,NRMAX
          DO NTH=1,NTHMAX
             RPS(NTH,NR)  = RR + XR(NR)*COS(DTH*(NTH-1))
@@ -284,32 +253,6 @@ C
       ZGMIN=-RB*1.01D0
       ZGMAX= RB*1.01D0
 
-!     --- compatibility ---
-         PSIPA=RA*RA*BB/(Q0+QA)
-         PSIPB=SQRT(RB**2/RA**2+(RB**2/RA**2-1.D0)*Q0/QA)*PSIPA
-
-         P0=0.D0
-         DO NS=1,NSMAX
-            P0=P0+PN(NS)*(PTPR(NS)+2*PTPP(NS))/3.D0
-         ENDDO
-         P0=P0*1.D20*AEE*1.D3/1.D6
-
-         DO NR=1,NRMAX
-            RHOL=XRHO(NR)
-            IF(RHOL.LE.1.D0.AND.PN(1).NE.0.D0) THEN
-               FEDGE=PNS(1)/PN(1)
-               FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
-               PT=(PTPR(1)+2*PTPP(1))/3.D0
-               FEDGE=PTS(1)/PT
-               FACTT=(1.D0-FEDGE)*(1.D0-RHOL**PROFT1)**PROFT2+FEDGE
-               PPS(NR)=P0*FACTN*FACTT
-            ELSE
-               PPS(NR)=0.D0
-            ENDIF
-            RBPS(NR)=BB*RR
-            VPS(NR)=2*PI*RR*PI*XR(NR)**2
-            RLEN(NR)=2*PI*XR(NR)
-         ENDDO
       RETURN
       END
 C
@@ -347,8 +290,6 @@ C
          CALL EQCALQ(IERR)
          
          CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
-         CALL EQGETQ(PPS,QPS,RBPS,VPS,RLEN,NRMAX)
-         CALL EQGETA(RAXIS,ZAXIS,PSIPA,PSITA,Q0,QA)
          CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
          NSWMAX=NSUMAX
          CALL EQGETF(RGMIN,RGMAX,ZGMIN,ZGMAX)
@@ -357,6 +298,12 @@ C
 !     --- radial mesh after RA,RD,RB determined ---
 
       call wmfem_setr(ierr)
+
+!     --- q profile ---
+      DO nr=1,nrmax
+         call wmfem_qprofile(xrho(nr),qinv)
+         qps(nr)  = 1.D0/qinv
+      ENDDO
 
 !     --- 3D grid, metric, Bsup ---
       dth=2.d0*pi/nthmax

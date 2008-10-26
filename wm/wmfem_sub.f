@@ -2,16 +2,17 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm(crf_,nth0_,nph0_,mdlwmf_)
+      subroutine get_wmparm(crf_,nth0_,nph0_,mdlwmf_,mdlwmd_)
       
       include '../wm/wmcomm.inc'
       complex(8),intent(out):: crf_
       integer,intent(out):: nth0_,nph0_
-      integer,intent(out):: mdlwmf_
+      integer,intent(out):: mdlwmf_,mdlwmd_
       crf_=crf
       nth0_=nth0
       nph0_=nph0
       mdlwmf_=mdlwmf
+      mdlwmd_=mdlwmd
       return
       end subroutine get_wmparm
 

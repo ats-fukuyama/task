@@ -18,10 +18,10 @@
 
       complex(8):: crf
       integer:: nth0,nph0
-      integer:: mdlwmf
+      integer:: mdlwmf,mdlwmd
 
       integer:: nfcmax,mlmax,mwmax,nfcmax2
-      complex(8),dimension(:,:),pointer,save:: fma,fmax !(mwmax,mlmax)
+      complex(8),dimension(:,:),pointer,save:: fma !(mwmax,mlmax)
       complex(8),dimension(:,:,:,:),pointer,save:: fms 
      &                          !(mwmax,12*nfcmax,nrmax,0:nsmax)
       complex(8),dimension(:),pointer,save:: fvb,fvx !(mlmax)
@@ -37,21 +37,11 @@
                                 !    (number of Fourier components)
       mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
       mwmax=4*6*nfcmax-1        ! width of coefficient matrix
-c$$$      if(nthmax.eq.1) then
-c$$$         nthmax2=1
-c$$$      else
-c$$$         nthmax2=2*nthmax       ! number of poloidal modes of coefficients
-c$$$      endif
-c$$$      if(nphmax.eq.1) then
-c$$$         nphmax2=1
-c$$$      else
-c$$$         nphmax2=2*nphmax       ! number of toroidal modes of coefficients
-c$$$      endif
       nfcmax2=nthmax2*nphmax2   ! size of block matrix of coefficients
 
 !     ***** get additional parameters *****
 
-      call get_wmparm(crf,nth0,nph0,mdlwmf)
+      call get_wmparm(crf,nth0,nph0,mdlwmf,mdlwmd)
 
 !     ***** allocate matrix and vector *****
 
@@ -92,18 +82,23 @@ c$$$      endif
 !      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
       integer,save:: mwmax_save=0,mlmax_save=0
       integer,save:: nsmax_save=0,nfcmax_save=0
+      integer,save:: mdlwmd_save=0
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
          if(associated(fma)) deallocate(fma)
-         if(associated(fmax)) deallocate(fmax)
          allocate(fma(mwmax,mlmax))
-         allocate(fmax(mwmax,mlmax))
       endif
+
+      if(mdlwmd.ge.1) then
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save).or.
-     &   (nsmax.ne.nsmax_save)) then
+     &   (nsmax.ne.nsmax_save).or.mdlwmd.ne.mdlwmd_save) then
          if(associated(fms)) deallocate(fms)
-         allocate(fms(mwmax,12*nfcmax,nrmax,0:nsmax))
+         if(mdlwmd.ge.1) then
+            allocate(fms(mwmax,12*nfcmax,nrmax,0:nsmax))
+         endif 
       endif
+      endif
+
       if(mlmax.ne.mlmax_save) then
          if(associated(fvb)) deallocate(fvb)
          if(associated(fvx)) deallocate(fvx)
@@ -134,6 +129,7 @@ c$$$      endif
       mlmax_save=mlmax
       nsmax_save=nsmax
       nfcmax_save=nfcmax
+      mdlwmd_save=mdlwmd
       end subroutine wmfem_allocate
 
 !     ---------------------------------------
@@ -246,98 +242,30 @@ c$$$      endif
       integer:: id_base=1
       real(8):: angl=0.d0
 
+      do ml=1,mlmax             ! clear fma
+         do mw=1,mwmax
+            fma(mw,ml)=0.d0
+         end do
+      end do
+
       do ns=0,nsmax             ! loop for vacuum and plasma species
 
          do nr=1,nrmax-1        ! loop for elements
-            if(nr.eq.1) then
-               rho1=rhoa(nr+1)/9.d0
-            else
-               rho1=rhoa(nr)
-            endif
-            rho2=(2.d0*rhoa(nr)+rhoa(nr+1))/3.d0
-            rho3=(rhoa(nr)+2.d0*rhoa(nr+1))/3.d0
-            rho4=rhoa(nr+1)
-            drho=rhoa(nr+1)-rhoa(nr)
 
-            if(ns.eq.0) then
-               if(mdlwmf.eq.1) then
-                  call wmfem_calculate_vacuum(rho1,fmd1)
-                  call wmfem_calculate_vacuum(rho2,fmd2)
-                  call wmfem_calculate_vacuum(rho3,fmd3)
-                  call wmfem_calculate_vacuum(rho4,fmd4)
-               else if(mdlwmf.eq.2) then
-                  call wmfem_calculate_vacuum_c(rho1,fmd1)
-                  call wmfem_calculate_vacuum_c(rho2,fmd2)
-                  call wmfem_calculate_vacuum_c(rho3,fmd3)
-                  call wmfem_calculate_vacuum_c(rho4,fmd4)
-               endif
-            else
-               if(mdlwmf.eq.1) then
-                  call wmfem_calculate_plasma(rho1,ns,fmd1)
-                  call wmfem_calculate_plasma(rho2,ns,fmd2)
-                  call wmfem_calculate_plasma(rho3,ns,fmd3)
-                  call wmfem_calculate_plasma(rho4,ns,fmd4)
-               else if(mdlwmf.eq.2) then
-                  call wmfem_calculate_plasma_c(rho1,ns,fmd1)
-                  call wmfem_calculate_plasma_c(rho2,ns,fmd2)
-                  call wmfem_calculate_plasma_c(rho3,ns,fmd3)
-                  call wmfem_calculate_plasma_c(rho4,ns,fmd4)
-               endif
-            endif
+            call wmfem_calculate_local(nr,ns,fml)
 
-! ------ calculate coefficients of basis for profile from four points 
-
-            do nfc1=1,nfcmax
-               do nfc2=1,nfcmax
-                  do k=1,4
-                     do j=1,3
-                        do i=1,3
-                           f1=fmd1(i,j,k,nfc1,nfc2)
-                           f2=fmd2(i,j,k,nfc1,nfc2)
-                           f3=fmd3(i,j,k,nfc1,nfc2)
-                           f4=fmd4(i,j,k,nfc1,nfc2)
-                           fmd(i,j,k,nfc1,nfc2,1)=f1
-                           fmd(i,j,k,nfc1,nfc2,2)
-     &                       =1.5d0*(-3*f1+ 4*f2- f3)
-!     &                       =1.5d0*(-3*f1+ 4*f2- f3)/drho
-!     &                       =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)/drho
-                           fmd(i,j,k,nfc1,nfc2,3)=f4
-                           fmd(i,j,k,nfc1,nfc2,4)
-     &                       =1.5d0*(f2- 4*f3+ 3*f4)
-!     &                       =1.5d0*(f2- 4*f3+ 3*f4)/drho
-!     &                       =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)/drho
-                        enddo
-                     enddo
+            if(mdlwmd.ge.1) then
+               do ml=1,12*nfcmax
+                  do mw=1,mwmax
+                     fms(mw,ml,nr,ns)=fml(mw,ml)
                   enddo
                enddo
-            enddo
-            
-            if(id_base.eq.0) then
-               call fem_hhh(fmd,nfcmax,drho,fml)
-            else
-               call fem_hqq(fmd,nfcmax,drho,fml)
             endif
 
-            do ml=1,12*nfcmax
-               do mw=1,mwmax
-                  fms(mw,ml,nr,ns)=fml(mw,ml)
-               enddo
-            enddo
-         enddo
-      enddo
-
-      do ml=1,mlmax             ! clear fma
-      do mw=1,mwmax
-         fma(mw,ml)=0.d0
-      enddo
-      enddo
-
-      do ns=0,nsmax
-         do nr=1,nrmax-1
             do ml=1,12*nfcmax
                do mw=1,mwmax
                   fma(mw,6*nfcmax*(nr-1)+ml)
-     &           =fma(mw,6*nfcmax*(nr-1)+ml)+fms(mw,ml,nr,ns)
+     &           =fma(mw,6*nfcmax*(nr-1)+ml)+fml(mw,ml)
                enddo
             enddo
          enddo
@@ -374,96 +302,90 @@ c$$$      endif
          if(mm.eq.0) then
             do mw=1,mwmax
                fma(mw,ml+3) = 0.d0
-               do ns=0,nsmax
-                  fms(mw,mll+3,nr,ns)=0.d0
-               enddo
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+3,nr,ns)=0.d0
+                  enddo
+               end if
             enddo
             fma(mc,ml+3)=1.d0
-            fms(mc,mll+3,nr,0)=1.d0
+            if(mdlwmd.ge.1) fms(mc,mll+3,nr,0)=1.d0
             fvb(ml+3)=0.d0
          elseif(abs(mm).eq.1) then
             do mw=4,mwmax
                cx= fma(mw  ,ml+1)
-!               cxd=fma(mw-1,ml+2)
                cy= fma(mw-2,ml+3)
-!               cyd=fma(mw-3,ml+4)
                fma(mw  ,ml+1)=cx +ci*mm*cy
-!               fma(mw-1,ml+2)=cxd+ci*mm*cyd
                fma(mw-2,ml+3)=cx -ci*mm*cy
-!               fma(mw-3,ml+4)=cxd-ci*mm*cyd
-               do ns=0,nsmax
-                  cx= fms(mw  ,mll+1,nr,ns)
-!                  cxd=fms(mw-1,mll+2,nr,ns)
-                  cy= fms(mw-2,mll+3,nr,ns)
-!                  cyd=fms(mw-3,mll+4,nr,ns)
-                  fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
-!                  fms(mw-1,mll+2,nr,ns)=cxd+ci*mm*cyd
-                  fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
-!                  fms(mw-3,mll+4,nr,ns)=cxd-ci*mm*cyd
-               enddo
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     cx= fms(mw  ,mll+1,nr,ns)
+                     cy= fms(mw-2,mll+3,nr,ns)
+                     fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
+                     fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
+                  enddo
+               endif
             enddo
             do mw=-mc+5,mc
                if(ml+mw.ge.1.AND.ml+mw.LE.12*nfcmax) then
                   cx= fma(mc-mw+1,ml+mw)
-!                  cxd=fma(mc-mw+2,ml+mw)
                   cy= fma(mc-mw+3,ml+mw)
-!                  cyd=fma(mc-mw+4,ml+mw)
                   fma(mc-mw+1,ml+mw)=cx -ci*mm*cy
-!                  fma(mc-mw+2,ml+mw)=cxd-ci*mm*cyd
                   fma(mc-mw+3,ml+mw)=cx +ci*mm*cy
-!                  fma(mc-mw+4,ml+mw)=cxd+ci*mm*cyd
-                  do ns=0,nsmax
-                     cx= fms(mc-mw+1,mll+mw,nr,ns)
-!                     cxd=fms(mc-mw+2,mll+mw,nr,ns)
-                     cy= fms(mc-mw+3,mll+mw,nr,ns)
-!                     cyd=fms(mc-mw+4,mll+mw,nr,ns)
-                     fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
-!                     fms(mc-mw+2,mll+mw,nr,ns)=cxd-ci*mm*cyd
-                     fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
-!                     fms(mc-mw+4,mll+mw,nr,ns)=cxd+ci*mm*cyd
-                     if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
-                        cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
-!                        cxd=fms(mc-mw+2-mr,mll+mw-mr,nr,ns)
-                        cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
-!                        cyd=fms(mc-mw+4-mr,mll+mw-mr,nr,ns)
-                        fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx -ci*mm*cy
-!                        fms(mc-mw+2-mr,mll+mw-mr,nr+1,ns)=cxd-ci*mm*cyd
-                        fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx +ci*mm*cy
-!                        fms(mc-mw+4-mr,mll+mw-mr,nr+1,ns)=cxd+ci*mm*cyd
-                     endif
-                  end do
+                  if(mdlwmd.ge.1) then
+                     do ns=0,nsmax
+                        cx= fms(mc-mw+1,mll+mw,nr,ns)
+                        cy= fms(mc-mw+3,mll+mw,nr,ns)
+                        fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
+                        fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
+                        if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
+                           cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
+                           cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
+                           fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx-ci*mm*cy
+                           fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx+ci*mm*cy
+                        endif
+                     end do
+                  endif
                endif
             enddo
 
             do mw=1,mwmax
                fma(mw,ml+1) = 0.d0
                fma(mw,ml+5) = 0.d0
-               do ns=0,nsmax
-                  fms(mw,mll+1,nr,ns)=0.d0
-                  fms(mw,mll+5,nr,ns)=0.d0
-               enddo
-            enddo
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+1,nr,ns)=0.d0
+                     fms(mw,mll+5,nr,ns)=0.d0
+                  end do
+               end if
+            end do
             fma(mc  ,ml+1)=1.d0
             fma(mc  ,ml+5)=1.d0
             fvb(ml+1)=0.d0
             fvb(ml+5)=0.d0
-            fms(mc  ,mll+1,nr,0)=1.d0
-            fms(mc  ,mll+5,nr,0)=1.d0
+            if(mdlwmd.ge.1) then
+               fms(mc  ,mll+1,nr,0)=1.d0
+               fms(mc  ,mll+5,nr,0)=1.d0
+            endif
          else
             do mw=1,mwmax
                fma(mw,ml+3) = 0.d0
                fma(mw,ml+5) = 0.d0
-               do ns=0,nsmax
-                  fms(mw,mll+3,nr,ns)=0.d0
-                  fms(mw,mll+5,nr,ns)=0.d0
-               enddo
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+3,nr,ns)=0.d0
+                     fms(mw,mll+5,nr,ns)=0.d0
+                  enddo
+               endif
             enddo
             fma(mc,ml+3)=1.d0
             fma(mc,ml+5)=1.d0
             fvb(ml+3)=0.d0
             fvb(ml+5)=0.d0
-            fms(mc,mll+3,nr,0)=1.d0
-            fms(mc,mll+5,nr,0)=1.d0
+            if(mdlwmd.ge.1) then
+               fms(mc,mll+3,nr,0)=1.d0
+               fms(mc,mll+5,nr,0)=1.d0
+            endif
          endif
       enddo
 
@@ -505,16 +427,18 @@ c$$$      endif
                   fma(mw,ml+1)=0.d0
                   fma(mw,ml+3)=0.d0
                   fma(mw,ml+5)=0.d0
-                  do ns=0,nsmax
-                     fms(mw,mll+1,nr,ns)=0.d0
-                     fms(mw,mll+3,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
-                     if(nr.ne.1) then
-                        fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                        fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                        fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
-                     endif
-                  end do
+                  if(mdlwmd.ge.1) then
+                     do ns=0,nsmax
+                        fms(mw,mll+1,nr,ns)=0.d0
+                        fms(mw,mll+3,nr,ns)=0.d0
+                        fms(mw,mll+5,nr,ns)=0.d0
+                        if(nr.ne.1) then
+                           fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                           fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                           fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                        endif
+                     end do
+                  endif
                end do
                fma(mc,ml+1)=1.d0
                fma(mc,ml+3)=1.d0
@@ -522,16 +446,18 @@ c$$$      endif
                fvb(ml+1)=0.d0
                fvb(ml+3)=0.d0
                fvb(ml+5)=0.d0
-               do ns=0,nsmax
-                  fms(mc,mll+1,nr,ns)=1.d0
-                  fms(mc,mll+3,nr,ns)=1.d0
-                  fms(mc,mll+5,nr,ns)=1.d0
-                  if(nr.ne.1) then
-                     fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                     fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                     fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
-                  endif
-               end do
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mc,mll+1,nr,ns)=1.d0
+                     fms(mc,mll+3,nr,ns)=1.d0
+                     fms(mc,mll+5,nr,ns)=1.d0
+                     if(nr.ne.1) then
+                        fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                        fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                        fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                     endif
+                  enddo
+               end if
             end do
          endif
          if(nthmax.gt.1) then
@@ -543,39 +469,129 @@ c$$$      endif
                   fma(mw,ml+1)=0.d0
                   fma(mw,ml+3)=0.d0
                   fma(mw,ml+5)=0.d0
-                  do ns=0,nsmax
-                     fms(mw,mll+1,nr,ns)=0.d0
-                     fms(mw,mll+3,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
-                     if(nr.ne.1) then
-                        fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                        fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                        fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
-                     endif
-                  end do
-               end do
+                  if(mdlwmd.ge.1) then
+                     do ns=0,nsmax
+                        fms(mw,mll+1,nr,ns)=0.d0
+                        fms(mw,mll+3,nr,ns)=0.d0
+                        fms(mw,mll+5,nr,ns)=0.d0
+                        if(nr.ne.1) then
+                           fms(mw,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                           fms(mw,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                           fms(mw,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                        endif
+                     end do
+                  endif
+               enddo
                fma(mc,ml+1)=1.d0
                fma(mc,ml+3)=1.d0
                fma(mc,ml+5)=1.d0
                fvb(ml+1)=0.d0
                fvb(ml+3)=0.d0
                fvb(ml+5)=0.d0
-               do ns=0,nsmax
-                  fms(mc,mll+1,nr,ns)=1.d0
-                  fms(mc,mll+3,nr,ns)=1.d0
-                  fms(mc,mll+5,nr,ns)=1.d0
-                  if(nr.ne.1) then
-                     fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
-                     fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
-                     fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
-                  endif
-               end do
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mc,mll+1,nr,ns)=1.d0
+                     fms(mc,mll+3,nr,ns)=1.d0
+                     fms(mc,mll+5,nr,ns)=1.d0
+                     if(nr.ne.1) then
+                        fms(mc,mll+6*nfcmax+1,nr-1,ns)=0.d0
+                        fms(mc,mll+6*nfcmax+3,nr-1,ns)=0.d0
+                        fms(mc,mll+6*nfcmax+5,nr-1,ns)=0.d0
+                     endif
+                  end do
+               endif
             end do
          endif
       enddo
 
       return
       end subroutine wmfem_calculate_matrix
+
+!     ----- calculate coefficint matrix fma -----
+
+      subroutine wmfem_calculate_local(nr,ns,fml)
+
+      integer,intent(in):: nr,ns
+      complex(8),dimension(mwmax,12*nfcmax),intent(out):: fml
+      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
+      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
+      complex(8),dimension(nphmax,nthmax,3):: fvb_nr
+      real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
+      integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
+      integer:: nfc1,nfc2,ml1,mw1,mr
+      complex(8):: csum,f1,f2,f3,f4,cx,cy,cxd,cyd
+      integer:: id_base=1
+      real(8):: angl=0.d0
+
+      if(nr.eq.1) then
+         rho1=rhoa(nr+1)/9.d0
+      else
+         rho1=rhoa(nr)+1.D-12
+      endif
+      rho2=(2.d0*rhoa(nr)+rhoa(nr+1))/3.d0
+      rho3=(rhoa(nr)+2.d0*rhoa(nr+1))/3.d0
+      rho4=rhoa(nr+1)-1.D-12
+      drho=rhoa(nr+1)-rhoa(nr)
+
+      if(ns.eq.0) then
+         if(mdlwmf.eq.1) then
+            call wmfem_calculate_vacuum(rho1,fmd1)
+            call wmfem_calculate_vacuum(rho2,fmd2)
+            call wmfem_calculate_vacuum(rho3,fmd3)
+            call wmfem_calculate_vacuum(rho4,fmd4)
+         else if(mdlwmf.eq.2) then
+            call wmfem_calculate_vacuum_c(rho1,fmd1)
+            call wmfem_calculate_vacuum_c(rho2,fmd2)
+            call wmfem_calculate_vacuum_c(rho3,fmd3)
+            call wmfem_calculate_vacuum_c(rho4,fmd4)
+         endif
+      else
+         if(mdlwmf.eq.1) then
+            call wmfem_calculate_plasma(rho1,ns,fmd1)
+            call wmfem_calculate_plasma(rho2,ns,fmd2)
+            call wmfem_calculate_plasma(rho3,ns,fmd3)
+            call wmfem_calculate_plasma(rho4,ns,fmd4)
+         else if(mdlwmf.eq.2) then
+            call wmfem_calculate_plasma_c(rho1,ns,fmd1)
+            call wmfem_calculate_plasma_c(rho2,ns,fmd2)
+            call wmfem_calculate_plasma_c(rho3,ns,fmd3)
+            call wmfem_calculate_plasma_c(rho4,ns,fmd4)
+         endif
+      endif
+
+! ------ calculate coefficients of basis for profile from four points 
+
+      do nfc1=1,nfcmax
+         do nfc2=1,nfcmax
+            do k=1,4
+               do j=1,3
+                  do i=1,3
+                     f1=fmd1(i,j,k,nfc1,nfc2)
+                     f2=fmd2(i,j,k,nfc1,nfc2)
+                     f3=fmd3(i,j,k,nfc1,nfc2)
+                     f4=fmd4(i,j,k,nfc1,nfc2)
+                     fmd(i,j,k,nfc1,nfc2,1)=f1
+                     fmd(i,j,k,nfc1,nfc2,2)
+     &                    =1.5d0*(-3*f1+ 4*f2- f3)
+!     &                    =0.5d0*(-11*f1+18*f2- 9*f3+ 2*f4)
+                     fmd(i,j,k,nfc1,nfc2,3)=f4
+                     fmd(i,j,k,nfc1,nfc2,4)
+     &                    =1.5d0*(f2- 4*f3+ 3*f4)
+!     &                    =0.5d0*(- 2*f1+ 9*f2-18*f3+11*f4)
+                  enddo
+               enddo
+            enddo
+         enddo
+      enddo
+            
+      if(id_base.eq.0) then
+         call fem_hhh(fmd,nfcmax,drho,fml)
+      else
+         call fem_hqq(fmd,nfcmax,drho,fml)
+      endif
+
+      return
+      end subroutine wmfem_calculate_local
 
 !----- calculate coefficint matrix fma (E rho,theta,phi )-----
 
@@ -1325,9 +1341,6 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       do ml=1,mlmax
          fvx(ml)=fvb(ml)
-         do mw=1,mwmax
-            fmax(mw,ml)=fma(mw,ml)
-         end do
       end do
 
       write(6,*) 'mlmax,mwmax=',mlmax,mwmax
@@ -1572,6 +1585,7 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
       integer:: i1,ml1,ml2,nfc,nfc1,nfc2,mll,nr0
       real(8):: factor
       complex(8):: csum,csums,cfactor
+      complex(8),dimension(mwmax,12*nfcmax):: fml
 
       mc=(mwmax+1)/2
 
@@ -1591,37 +1605,49 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       do ns=0,nsmax
          do nr0=1,nrmax-1
-         do nr=nr0,nr0+1
-            do nfc=1,nfcmax
-               nn=nphnfc(nfc)
-               mm=nthnfc(nfc)
-               do i=1,6
-                  mll=6*nthmax*nphmax*(nr-nr0)
-     &               +6*nthmax*(nn-1)+6*(mm-1)+i
-                  ml=6*nthmax*nphmax*(nr-1)
-     &              +6*nthmax*(nn-1)+6*(mm-1)+i
-                  do nr1=nr0,nr0+1
-                     do nfc1=1,nfcmax
-                        nn1=nphnfc(nfc1)
-                        mm1=nthnfc(nfc1)
-                        do i1=1,6
-                           ml1=6*nthmax*nphmax*(nr1-1)
-     &                        +6*nthmax*(nn1-1)+6*(mm1-1)+i1
-                           do nfc2=1,nfcmax
-                              nn2=nphnfc(nfc2)
-                              mm2=nthnfc(nfc2)
-                              nndiff=nnnfc(nfc2)-nnnfc(nfc1)
-                              mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
-                              if(nndiff.lt.0) nndiff=nndiff+nphmax2
-                              if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
 
-                              mw=6*nthmax*nphmax*(nr1-nr)
-     &                          +6*nthmax*(nn2-nn)+6*(mm2-mm)+(i1-i)
+            if(mdlwmd.eq.0) then
+               call wmfem_calculate_local(nr0,ns,fml)
+            else
+               do ml=1,12*nfcmax
+                  do mw=1,mwmax
+                     fml(mw,ml)=fms(mw,ml,nr0,ns)
+                  enddo
+               enddo
+            endif
 
-                              cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
-     &                       =cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
-     &                       -ci*conjg(fvx(ml))
-     &                                *fms(mc+mw,mll,nr0,ns)*fvx(ml1)
+
+            do nr=nr0,nr0+1
+               do nfc=1,nfcmax
+                  nn=nphnfc(nfc)
+                  mm=nthnfc(nfc)
+                  do i=1,6
+                     mll=6*nthmax*nphmax*(nr-nr0)
+     &                  +6*nthmax*(nn-1)+6*(mm-1)+i
+                     ml =6*nthmax*nphmax*(nr-1)
+     &                  +6*nthmax*(nn-1)+6*(mm-1)+i
+                     do nr1=nr0,nr0+1
+                        do nfc1=1,nfcmax
+                           nn1=nphnfc(nfc1)
+                           mm1=nthnfc(nfc1)
+                           do i1=1,6
+                              ml1=6*nthmax*nphmax*(nr1-1)
+     &                           +6*nthmax*(nn1-1)+6*(mm1-1)+i1
+                              do nfc2=1,nfcmax
+                                 nn2=nphnfc(nfc2)
+                                 mm2=nthnfc(nfc2)
+                                 nndiff=nnnfc(nfc2)-nnnfc(nfc1)
+                                 mmdiff=mmnfc(nfc2)-mmnfc(nfc1)
+                                 if(nndiff.lt.0) nndiff=nndiff+nphmax2
+                                 if(mmdiff.lt.0) mmdiff=mmdiff+nthmax2
+
+                                 mw=6*nthmax*nphmax*(nr1-nr)
+     &                             +6*nthmax*(nn2-nn)+6*(mm2-mm)+(i1-i)
+
+                                 cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
+     &                          =cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
+     &                          -ci*conjg(fvx(ml))
+     &                                *fml(mc+mw,mll)*fvx(ml1)
 c$$$               if(ns.eq.0.and.nr0.eq.1) then
 c$$$                  write(6,'(A,4I5,1P8E12.4)') 
 c$$$     &                 'nr,nr1,cpp=',nr,nr1,i,i1,cpp(mm,nn,1,1,nr0,ns),
@@ -1679,7 +1705,8 @@ c$$$               endif
          csums=csums+csum
       enddo
       write(6,'(A,5X,1P2E12.4)') '   PABSP=',csums
-         
+
+      if(mdlwmd.ge.1) then
       csums=0.d0
       do ns=0,nsmax
          csum=0.d0
@@ -1699,6 +1726,7 @@ c$$$               endif
          csums=csums+csum
       enddo
       write(6,'(A,5X,1P2E12.4)') '   PABSM=',csums
+      endif
 
 !     ----- calculate antenna impedance -----
 
