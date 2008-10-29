@@ -270,7 +270,14 @@ C
             PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*FACT
             PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*FACT
             PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*FACT
-            IF(MODELR.eq.1) CALL FPNEWTON(NR,NSA,rtemp)
+            IF(MODELR.eq.1) then
+               CALL FPNEWTON(NR,NSA,rtemp)
+            else
+               EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA)
+     &              /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
+               THETAL=2.d0*EAVE/3.d0
+               rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
+            endif
             PWT2(NSA,NTG2) =PWT2(NSA,NTG2) +rtemp*FACT/1.D6
      &                            *(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
             DO NSB=1,NSBMAX
@@ -641,7 +648,6 @@ CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 
 C-----Average kinetic energy
       EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA)
-c     &     /(RNFP0(NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
      &     /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
 
 

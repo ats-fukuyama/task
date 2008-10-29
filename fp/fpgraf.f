@@ -33,11 +33,11 @@ C
 C
       IF (KID1.EQ.'F') THEN
          IF(KID2.EQ.'1  ') THEN
-            CALL FPGRAPA('F1',FNS,NSA)
+            CALL FPGRAPA('F1',FNS,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'R1 ') THEN
-            CALL FPGRAPRA('F1',FNS,NSA)
+            CALL FPGRAPRA('F1',FNS,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'2  ') THEN
-            CALL FPGRACA('F2',FNS,4,NSA)
+            CALL FPGRACA('F2',FNS,4,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'X2  ') THEN
             DO NR=1,NRMAX
             DO NP=1,NPMAX
@@ -221,6 +221,12 @@ C
             NSB=0
          ENDIF
          WRITE(6,'(A,2I3)') '# NSA and NSB are changed to',NSA,NSB
+      ELSE IF (KID1.EQ.'W') THEN
+         IF(KID2.EQ.'P  ') THEN
+            CALL FPGRACA('WP  ',WEIGHP,1,NSA)
+         ELSE IF(KID2.EQ.'T  ') THEN
+            CALL FPGRACA('WT  ',WEIGHT,2,NSA)
+         ENDIF
       ELSE IF (KID1.EQ.'G') THEN
          READ(KID2,*) NGRAPH
          WRITE(6,'(A,I3)') '# NGRAPH is changed to',NGRAPH

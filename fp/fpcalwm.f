@@ -192,6 +192,7 @@ c      write(*,*)"test2",RABSE
       CALL BESSJN(RGZAI,NHMAX,RJ,DRJ)
 C      CALL BESSEL(RGZAI,RJ,NCBMAX,NJMAX+1)
 C
+      NTEST=0
       DO 100 N=NCMIN,NCMAX
          IF (N.LT.0) THEN
              RJN=(-1)**(-N)*RJ(-N)
@@ -368,18 +369,10 @@ C
          ELSE
             FACT=EXP(-ARG)
          ENDIF
-C
-         CEWR=1.D2
-         CEWTH=1.D2
-         CEWPH=0.D0
 
          CER= CEWR*FACT
          CETH=CEWTH*FACT
          CEPH=CEWPH*FACT
-C
-         RKWR=0.D0
-         RKWTH=0.D0
-         RKWPH=0.D0
 
          RKR= RKWR
          RKTH=RKWTH
