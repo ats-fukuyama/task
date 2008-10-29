@@ -369,11 +369,9 @@ C
          ELSE
             FACT=EXP(-ARG)
          ENDIF
-
          CER= CEWR*FACT
          CETH=CEWTH*FACT
          CEPH=CEWPH*FACT
-
          RKR= RKWR
          RKTH=RKWTH
          RKPH=RKWPH

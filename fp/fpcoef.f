@@ -114,8 +114,8 @@ C
       DO NTH=1,NTHMAX
 C         DPP(NTH,NPMAX,NR,NSA)=0.5D0*DPP(NTH,NPMAX,NR,NSA)
 C         DPT(NTH,NPMAX,NR,NSA)=0.5D0*DPT(NTH,NPMAX,NR,NSA)
-         DPP(NTH,NPMAX+1,NR,NSA)=0.D0
-         DPT(NTH,NPMAX+1,NR,NSA)=0.D0
+C         DPP(NTH,NPMAX+1,NR,NSA)=0.D0
+C         DPT(NTH,NPMAX+1,NR,NSA)=0.D0
          FPMAX=FPP(NTH,NPMAX+1,NR,NSA)
          FPP(NTH,NPMAX+1,NR,NSA)=MAX(FPMAX,0.D0)
       ENDDO
@@ -129,34 +129,6 @@ C         FTH(NTH,NPMAX,NR,NSA)=0.D0
 C       ENDDO
 C       ENDDO
 C
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX+1
-      DO NTH=1,NTHMAX
-         WEIGHP(NTH,NP,NR,NSA)=FPWEGH(-DELP*FPP(NTH,NP,NR,NSA),
-     &                             DPP(NTH,NP,NR,NSA))
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX+1
-         WEIGHT(NTH,NP,NR,NSA)
-     &           =FPWEGH(-DELTH*PM(NP)*FTH(NTH,NP,NR,NSA),
-     &                    DTT(NTH,NP,NR,NSA))
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      DO NR=1,NRMAX+1
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX
-         WEIGHR(NTH,NP,NR,NSA)=FPWEGH(-DELR*FRR(NTH,NP,NR,NSA),
-     &                             DRR(NTH,NP,NR,NSA))
-      ENDDO
-      ENDDO
-      ENDDO
-
       ENDDO
 C
       RETURN
@@ -288,36 +260,5 @@ C
 C
       ENDDO
 C
-      RETURN
-      END
-C
-C ************************************************
-C     WEIGHTING FUNCTION FOR CONVECTION EFFECT
-C ************************************************
-C
-      FUNCTION FPWEGH(X,Y)
-C
-      IMPLICIT REAL*8(A-F,H,O-Z)
-C
-      IF(ABS(Y).LT.1.D-70) THEN
-         IF(X.GT.0.D0) THEN
-            FPWEGH=0.D0
-         ELSEIF(X.LT.0.D0) THEN
-            FPWEGH=1.D0
-         ELSE
-            FPWEGH=0.5D0
-         ENDIF
-      ELSE
-         Z=X/Y
-         IF(ABS(Z).LT.1.D-5)THEN
-            FPWEGH=0.5D0-Z/12.D0+Z**3/720.D0
-         ELSE IF(Z.GE.100.D0)THEN
-            FPWEGH=1.D0/Z
-         ELSE IF(Z.LE.-100.D0)THEN
-            FPWEGH=1.D0/Z+1.D0
-         ELSE
-            FPWEGH=1.D0/Z-1.D0/(EXP(Z)-1.D0)
-         END IF
-      ENDIF
       RETURN
       END
