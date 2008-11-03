@@ -1008,8 +1008,8 @@ C
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMIN1+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=FLOAT(NGL-1)/FLOAT(NGLMAX-1)
-                  RGB(3,NGL)=FLOAT(NGL-1)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   IF(MOD(NGL,5).EQ.0) THEN
                      WLN(NGL)=0.06
@@ -1017,14 +1017,8 @@ C
                      WLN(NGL)=0.03
                   ENDIF
                ENDDO
-               CALL INQVEW(PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX)
-               write(6,'(1P4E12.4)') PXMIN,PXMAX,PYMIN,PYMAX
-               write(6,'(1P4E12.4)') XMIN,XMAX,YMIN,YMAX
                CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
-     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0,KA)
-               CALL INQVEW(PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX)
-               write(6,'(1P4E12.4)') PXMIN,PXMAX,PYMIN,PYMAX
-               write(6,'(1P4E12.4)') XMIN,XMAX,YMIN,YMAX
+     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
                CALL GUFLSH
 C               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
 C     &                     GFMIN1,0.5*GFSTEP,30,0,KA)
@@ -1278,8 +1272,8 @@ C
                NGLMAX=INT((GFMAX-GFMIN1)/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   RGB(1,NGL)=1.D0
-                  RGB(2,NGL)=FLOAT(NGL-1)/FLOAT(NGLMAX-1)
-                  RGB(3,NGL)=FLOAT(NGL-1)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
                   ILN(NGL)=0
                   IF(MOD(NGL,5).EQ.0) THEN
                      WLN(NGL)=0.06
@@ -1287,14 +1281,8 @@ C
                      WLN(NGL)=0.03
                   ENDIF
                ENDDO
-               CALL INQVEW(PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX)
-               write(6,'(1P4E12.4)') PXMIN,PXMAX,PYMIN,PYMAX
-               write(6,'(1P4E12.4)') XMIN,XMAX,YMIN,YMAX
                CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
-     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0,KA)
-               CALL INQVEW(PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX)
-               write(6,'(1P4E12.4)') PXMIN,PXMAX,PYMIN,PYMAX
-               write(6,'(1P4E12.4)') XMIN,XMAX,YMIN,YMAX
+     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
             ELSE
                CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
      &                     GFMIN1,0.5*GFSTEP,30,2,KA)
@@ -1343,19 +1331,19 @@ C
 C     ****** CONTOUR PLOT : R-THETA, VARIABLE STEP, PATTERN ******
 C
       SUBROUTINE CONTG4X(Z,R,T,NXA,NXMAX,NYMAX,
-     &                  ZL,RGB,ILN,WLN,NSTEP,ISPL,KA)
+     &                  ZL,RGB,ILN,WLN,NSTEP,ISPL)
 C
       IMPLICIT LOGICAL(L)
       COMMON /GSCTR4/ RMAX,RT,TT,XT,YT
 C
       EXTERNAL CONTV2X
-      DIMENSION Z(NXA,NYMAX),R(NXMAX),T(NYMAX),KA(2,NXMAX*NYMAX)
+      DIMENSION Z(NXA,NYMAX),R(NXMAX),T(NYMAX)
       DIMENSION ZL(NSTEP),RGB(3,NSTEP),ILN(NSTEP),WLN(NSTEP)
 C
       RMAX=R(NXMAX)
 C
       CALL CONTG0X(Z,R,T,NXA,NXMAX,NYMAX,
-     &            ZL,RGB,ILN,WLN,NSTEP,ISPL,0,3,CONTV2X,KA)
+     &            ZL,RGB,ILN,WLN,NSTEP,ISPL,0,3,CONTV2X)
 C
       RETURN
       END
@@ -1364,7 +1352,7 @@ C     ****** CONTOUR PLOT : COMMON SUB ******
 C
       SUBROUTINE CONTG0X(Z,X,Y,NXA,NXMAX,NYMAX,
      &                  ZL,RGB,ILN,WLN,NSTEP,
-     &                  ISPL,IPRD,INDX,SUBV,KA)
+     &                  ISPL,IPRD,INDX,SUBV)
 C
       IMPLICIT LOGICAL(L)
       EXTERNAL SUBV
@@ -1376,9 +1364,6 @@ C
       DIMENSION XF(NFMAX),YF(NFMAX)
       DIMENSION XP(NFMAX),YP(NFMAX)
       DIMENSION XG(NGMAX),YG(NGMAX)
-C
-      write(6,*) 'CONTG0X: ',ISPL
-      CALL GUFLSH
 C
       IF(ISPL.GE.0) THEN
          CALL INQRGB(RS,GS,BS)
@@ -1972,16 +1957,14 @@ C
       DIMENSION XH(N),YH(N),XP(NPM),YP(NPM)
       DIMENSION IKN(0-M:NPA+M)
 C
-      Write(6,*) 'GUSP2DX: ',ISPL
-      CALL GUFLSH
-      IF(ISPL.EQ.0) THEN
-         DO I=1,N
-            XP(I)=XH(I)
-            YP(I)=YH(I)
-         ENDDO
-         NP=N
-         RETURN
-      ENDIF
+c$$$      IF(ISPL.EQ.0) THEN
+c$$$         DO I=1,N
+c$$$            XP(I)=XH(I)
+c$$$            YP(I)=YH(I)
+c$$$         ENDDO
+c$$$         NP=N
+c$$$         RETURN
+c$$$      ENDIF
 C
       NQ=NPM
       IF(NQ.GT.NPA) NQ=NPA
