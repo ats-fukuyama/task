@@ -226,6 +226,8 @@ C
             CALL FPGRACA('WP  ',WEIGHP,1,NSA)
          ELSE IF(KID2.EQ.'T  ') THEN
             CALL FPGRACA('WT  ',WEIGHT,2,NSA)
+         ELSE IF(KID2.EQ.'R  ') THEN
+            CALL FPGRACA('WR  ',WEIGHR,2,NSA)
          ENDIF
       ELSE IF (KID1.EQ.'G') THEN
          READ(KID2,*,ERR=1,END=1) NGRAPH
@@ -1004,7 +1006,7 @@ C
       IF(LMODE.EQ.0) THEN
          IF(GFMIN*GFMAX.GE.0.0) THEN
             IF(GFMIN.GE.0.0) THEN
-               NGLMAX=INT((GFMAX-GFMIN1)/(0.5*GFSTEP))
+               NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
                DO NGL=1,NGLMAX
                   ZL(NGL)=GFMIN1+0.5*GFSTEP*(NGL-1)
                   RGB(1,NGL)=1.D0
@@ -1019,12 +1021,26 @@ C
                ENDDO
                CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
      &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
-               CALL GUFLSH
-C               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-C     &                     GFMIN1,0.5*GFSTEP,30,0,KA)
+c$$$               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
+c$$$     &                     GFMIN1,0.5*GFSTEP,30,0,KA)
             ELSE
-               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                     GFMIN1,0.5*GFSTEP,30,2,KA)
+               NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
+               DO NGL=1,NGLMAX
+                  ZL(NGL)=GFMAX1-0.5*GFSTEP*(NGL-1)
+                  RGB(1,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=1.D0
+                  ILN(NGL)=0
+                  IF(MOD(NGL,5).EQ.0) THEN
+                     WLN(NGL)=0.06
+                  ELSE
+                     WLN(NGL)=0.03
+                  ENDIF
+               ENDDO
+               CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
+     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
+c$$$               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
+c$$$     &                     GFMIN1,0.5*GFSTEP,30,2,KA)
             ENDIF
          ELSE
             CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,

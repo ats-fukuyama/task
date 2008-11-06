@@ -187,11 +187,11 @@ C
             DO NTH=ITL(NR)+1,NTHMAX/2
                DO NP=1,NPMAX
                   DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA)
-     &                           +DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+     &                           -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
                   DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA)
      &                           +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-                  DWTP(NTHMAX-NTH+2,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
-                  DWTT(NTHMAX-NTH+2,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)
+                  DWTP(NTHMAX-NTH+2,NP,NR,NSA)=-DWTP(NTH,NP,NR,NSA)
+                  DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
          ENDIF

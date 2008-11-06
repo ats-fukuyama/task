@@ -6,7 +6,7 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
 
-SRCS = fpmenu.f fpinit.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
+SRCS = fpmenu.f fpinit.f fpprep.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f \
        fpcalcnr.f fpcalw.f fpcalwr.f fpcalwm.f \
        fpgraf.f fpfile.f fpfout.f fpsave.f fpwrin.f fpwmin.f 
 
@@ -64,6 +64,7 @@ new:
 fpmain.o : fpmain.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpmenu.o : fpmenu.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpinit.o : fpinit.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpprep.o : fpprep.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fploop.o : fploop.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpexec.o : fpexec.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpcoef.o : fpcoef.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc

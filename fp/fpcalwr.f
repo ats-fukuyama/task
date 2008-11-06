@@ -168,9 +168,9 @@ C
 C
          DO 190 NTH=ITL(NR)+1,NTHMAX/2
             DWPP(NTH,NP,NR,NSA)  =(DWPP(NTH,NP,NR,NSA)
-     &                        +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+     &                            +DWPP(NTHMAX-NTH+1,NP,NR,NSA))*FACT
             DWPT(NTH,NP,NR,NSA)  =(DWPT(NTH,NP,NR,NSA)
-     &                        +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
+     &                            +DWPT(NTHMAX-NTH+1,NP,NR,NSA))*FACT
             DWPP(NTHMAX-NTH+1,NP,NR,NSA)  =DWPP(NTH,NP,NR,NSA)
             DWPT(NTHMAX-NTH+1,NP,NR,NSA)  =DWPT(NTH,NP,NR,NSA)
   190    CONTINUE
@@ -357,11 +357,11 @@ C
             DO 1300 NTH=ITL(NR)+1,NTHMAX/2
             DO 1300 NP=1,NPMAX
                DWTP(NTH,NP,NR,NSA)=(DWTP(NTH,NP,NR,NSA)
-     &                         +DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+     &                            -DWTP(NTHMAX-NTH+2,NP,NR,NSA))*FACT
                DWTT(NTH,NP,NR,NSA)=(DWTT(NTH,NP,NR,NSA)
-     &                         +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
-               DWTP(NTHMAX-NTH+2,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
-               DWTT(NTHMAX-NTH+2,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)
+     &                            +DWTT(NTHMAX-NTH+2,NP,NR,NSA))*FACT
+               DWTP(NTHMAX-NTH+2,NP,NR,NSA)=-DWTP(NTH,NP,NR,NSA)
+               DWTT(NTHMAX-NTH+2,NP,NR,NSA)= DWTT(NTH,NP,NR,NSA)
  1300       CONTINUE
          ENDIF
  2000 CONTINUE
