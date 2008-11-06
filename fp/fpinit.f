@@ -103,8 +103,6 @@ C     EPSE  : convergence limit in electric field prediction
 C     LMAXE : maximum loop count in electric field prediction
 C     EPSDE : convergence limit in double-exponential integration
 C     H0DE  : initial step size in double-exponential integration
-C     NGLINE: maximum number of contour lines
-C     NGRAPH: graphic mode: 0 for file out, 1 for contour plot
 C
 CCC      PMAX  = 15.D0
       PMAX  = 7.D0
@@ -115,6 +113,17 @@ CCC      PMAX  = 15.D0
       LMAXE = 10
       EPSDE = 1.D-8
       H0DE  = 0.25D0
+C
+C-----------------------------------------------------------------------
+C     PGMAX:  maximum p in graphics (if not 0)
+C     RGMIN:  minimum rho in graphics (if not 0)
+C     RGMAX:  maximum rho in graphics (if not 1)
+C     NGLINE: maximum number of contour lines
+C     NGRAPH: graphic mode: 0 for file out, 1 for contour plot
+
+      PGMAX=10.D0
+      RGMIN=0.D0
+      RGMAX=1.D0
       NGLINE= 30
       NGRAPH=1
 C
@@ -235,12 +244,13 @@ C
      &              NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,
-     &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
+     &              MODELG,MODELN,MODELQ,
      &              ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,
      &              DEC,PEC1,PEC2,RFEC,DELYEC,
      &              DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,
      &              PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,
-     &              NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,NGRAPH,
+     &              NPMAX,NTHMAX,NRMAX,NAVMAX,
+     &              PGMAX,RGMIN,RGMAX,NGLINE,NGRAPH,
      &              DELT,NTMAX,NTSTP1,NTSTP2,NTSTPC,
      &              MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,
      &              RFDW,DELNPR,NCMIN,NCMAX,FACTWM,
@@ -267,12 +277,13 @@ C
       WRITE(6,*) '      NSMAX,PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,PU,PUS,'
       WRITE(6,*) '      PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'
       WRITE(6,*) '      RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,'
-      WRITE(6,*) '      MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'
+      WRITE(6,*) '      MODELG,MODELN,MODELQ,'
       WRITE(6,*) '      ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,'
       WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
       WRITE(6,*) '      PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,'
-      WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,NGLINE,NGRAPH,'
+      WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,'
+      WRITE(6,*) '      PGMAX,RGMIN.RGMAX,NGLINE,NGRAPH,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
       WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,FACTWM,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
@@ -365,6 +376,9 @@ C
 C
       WRITE(6,601) 'EPSDE ',EPSDE ,'H0DE  ',H0DE  ,
      &             'EPSE  ',EPSE  ,'LMAXE ',LMAXE
+
+      WRITE(6,601) 'PGMAX ',PGMAX ,'RGMIN ',RGMIN ,
+     &             'RGMAX ',RGMAX
 
       WRITE(6,604) 'LLMAX ',LLMAX ,'NGLINE',NGLINE,
      &             'IDBGFP',IDBGFP,'NGRAPH',NGRAPH

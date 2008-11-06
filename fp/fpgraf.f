@@ -35,7 +35,7 @@ C
          IF(KID2.EQ.'1  ') THEN
             CALL FPGRAPA('F1',FNS,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'R1 ') THEN
-            CALL FPGRAPRA('F1',FNS,NS_NSA(NSA))
+            CALL FPGRAPRA('FR1',FNS,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'2  ') THEN
             CALL FPGRACA('F2',FNS,4,NS_NSA(NSA))
          ELSE IF(KID2.EQ.'X2  ') THEN
@@ -387,22 +387,31 @@ C
       CALL SETLNW(0.03)
       CALL SETCHS(0.3,0.)
       CALL SETFNT(32)
+
+      DO NR=1,NRMAX
+          GX(NR)=GUCLIP(RM(NR))
+      ENDDO
+      CALL GMNMX1(GX,1,NRMAX,1,GXMIN,GXMAX)
+      IF(RGMIN.NE.0.0) GXMIN=GUCLIP(RGMIN)
+      IF(RGMAX.NE.1.0) GXMIN=GUCLIP(RGMAX)
+
       GYMAX0=-1.E30
       GYMIN0= 1.E30
       DO 230 NT=1,NTG1
         DO 240 NR=1,NRMAX
-          GY(NR)=GUCLIP(FR(NR,NT))
           GX(NR)=GUCLIP(RM(NR))
+          GY(NR)=GUCLIP(FR(NR,NT))
   240   CONTINUE
+        CALL GMNMX1(GX,1,NRMAX,1,GXMIN,GXMAX)
         CALL GMNMX1(GY,1,NRMAX,1,GYMIN,GYMAX)
         GYMAX0=MAX(GYMAX0,GYMAX)
         GYMIN0=MIN(GYMIN0,GYMIN)
   230 CONTINUE
-C
       IF(GYMIN0 .GE. 0.) GYMIN0=0.
       IF(GYMAX0 .LE. 0.) GYMAX0=0.
+
       CALL GQSCAL(GYMIN0,GYMAX0,GYMIN1,GYMAX1,GYSTEP)
-      CALL GQSCAL(GUCLIP(RHOGMN),GUCLIP(RHOGMX),GXMIN1,GXMAX1,GXSTEP)
+      CALL GQSCAL(GXMIN,GXMAX,GXMIN1,GXMAX1,GXSTEP)
       CALL GDEFIN(3.0,23.0,2.0,17.0,GXMIN1,GXMAX1,GYMIN1,GYMAX1)
       CALL GFRAME
       GXORG=(INT(GXMIN1/(2*GXSTEP)+1))*2*GXSTEP
@@ -570,13 +579,12 @@ C
             GY(NP,NR)=GUCLIP(LOG10(FG(NTH,NP,NR)))
          ENDIF
   100 CONTINUE
-      DO 200 NP=1,NPMAX
+      DO NP=1,NPMAX
          GX(NP)=GUCLIP(PM(NP)**2)
-  200 CONTINUE
+      ENDDO
       GXMAX=GUCLIP(PMAX**2)
-CXX
-      GXMAX=100.0
-CXX
+      IF(PGMAX.NE.0.0) GXMAX=GUCLIP(PGMAX**2)
+
       CALL GMNMX2(GY,NPM,1,NPMAX,1,1,NRMAX,1,GYMIN,GYMAX)
       CALL GQSCAL(GYMIN,GYMAX,GYMINP,GYMAXP,GYSTEP)
       CALL GQSCAL(0.0,GXMAX,GXMINP,GXMAXP,GXSTEP)
@@ -664,9 +672,15 @@ C
       IF(NTH.GT.NTHMAX) GOTO 1
       WRITE(STRING1,'(A,A,I4)') STRING,' : NTH=',NTH
 
+      NPGMAX=1
       DO NP=1,NPMAX
+         IF(PGMAX.NE.0.0) THEN
+            IF(PM(NP).GT.PGMAX) GOTO 10
+         ENDIF
+         NPGMAX=NP
          GX(NP)=GUCLIP(PM(NP)**2)
       ENDDO
+   10 CONTINUE
       DO NR=1,NRMAX
          GY(NR)=GUCLIP(RM(NR))
       ENDDO
@@ -686,8 +700,8 @@ C
       GY2=17.0
 
       CALL PAGES
-      CALL FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NPM,NPMAX,NRMAX,
-     &     TRIM(STRING1))
+      CALL FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NPM,NPGMAX,NRMAX,
+     &     GUCLIP(PGMAX**2),GUCLIP(RGMIN),GUCLIP(RGMAX),TRIM(STRING1))
       CALL PAGEE
 
  9000 RETURN
@@ -699,10 +713,11 @@ C
 
 !     ***********************************************************
 
-      SUBROUTINE FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR)
+      SUBROUTINE FPGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,
+     &                  GXMAX1,GYMIN1,GYMAX1,STR)
 
       IMPLICIT NONE
-      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2
+      REAL(4),        INTENT(IN):: GX1,GX2,GY1,GY2,GXMAX1,GYMIN1,GYMAX1
       INTEGER(4),     INTENT(IN):: NXM,NXMAX,NYMAX
       REAL(4),DIMENSION(NXMAX),      INTENT(IN):: GX
       REAL(4),DIMENSION(NYMAX),      INTENT(IN):: GY
@@ -713,11 +728,7 @@ C
      &              GSTEPZ, GSXMAX, GSXMIN, GSYMAX, GSYMIN, GSZMAX,
      &              GSZMIN, GTHETA, GXL, GXMAX, GXMIN, GXORG, GYL, 
      &              GYMAX, GYMIN, GYORG, GZL, GZMAX, GZMIN, GZVAL
-      CHARACTER(LEN=1)  :: KDL
-!      INTEGER,DIMENSION(8,NXM,NYMAX) :: KA
-      EXTERNAL R2W2B,W2G2B,R2Y2W,WRGBW
-      EXTERNAL WHITE
-!      EXTERNAL R2G2B
+      EXTERNAL R2W2B,R2Y2W,W2G2B,WHITE
 
       CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
@@ -744,6 +755,9 @@ C
 
       CALL GMNMX1(GX,1,NXMAX,1,GXMIN,GXMAX)
       CALL GMNMX1(GY,1,NYMAX,1,GYMIN,GYMAX)
+      IF(GXMAX1.NE.0.0) GXMAX=GXMAX1
+      IF(GYMIN1.NE.0.0) GYMIN=GYMIN1
+      IF(GYMAX1.NE.1.0) GYMAX=GYMAX1
 
       CALL GQSCAL(GXMIN,GXMAX,GSXMIN,GSXMAX,GSTEPX)
       CALL GQSCAL(GYMIN,GYMAX,GSYMIN,GSYMAX,GSTEPY)
@@ -1043,10 +1057,40 @@ c$$$               CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
 c$$$     &                     GFMIN1,0.5*GFSTEP,30,2,KA)
             ENDIF
          ELSE
-            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                   0.25*GFSTEP, 0.5*GFSTEP,15,0,KA)
-            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
-     &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
+               GFFMAX=MAX(ABS(GFMAX1),ABS(GFMIN1))
+               NGLMAX=INT(GFFMAX/(0.5*GFSTEP))
+               DO NGL=1,NGLMAX
+                  ZL(NGL)=-0.25*GFSTEP-0.5*GFSTEP*(NGL-1)
+                  RGB(1,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(2,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=1.D0
+                  ILN(NGL)=0
+                  IF(MOD(NGL,5).EQ.0) THEN
+                     WLN(NGL)=0.06
+                  ELSE
+                     WLN(NGL)=0.03
+                  ENDIF
+               ENDDO
+               CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
+     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
+               DO NGL=1,NGLMAX
+                  ZL(NGL)= 0.25*GFSTEP+0.5*GFSTEP*(NGL-1)
+                  RGB(1,NGL)=1.D0
+                  RGB(2,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  RGB(3,NGL)=FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
+                  ILN(NGL)=0
+                  IF(MOD(NGL,5).EQ.0) THEN
+                     WLN(NGL)=0.06
+                  ELSE
+                     WLN(NGL)=0.03
+                  ENDIF
+               ENDDO
+               CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,
+     &                     ZL,RGB,ILN,WLN,NGLMAX,0,0)
+c$$$            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
+c$$$     &                   0.25*GFSTEP, 0.5*GFSTEP,15,0,KA)
+c$$$            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,
+c$$$     &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
          ENDIF
       ELSE
          DO 100 I=1,NGLINE
@@ -1376,7 +1420,8 @@ C
       DIMENSION ZL(NSTEP),RGB(3,NSTEP),ILN(NSTEP),WLN(NSTEP)
       PARAMETER(NH=101)
       DIMENSION ZLS(NH),RGBS(3,NH),ILNS(NH),WLNS(NH)
-      PARAMETER (NFMAX=2000,NGMAX=4000)
+C      PARAMETER (NFMAX=2000,NGMAX=4000)
+      PARAMETER (NFMAX=200,NGMAX=400)
       DIMENSION XF(NFMAX),YF(NFMAX)
       DIMENSION XP(NFMAX),YP(NFMAX)
       DIMENSION XG(NGMAX),YG(NGMAX)
@@ -1822,16 +1867,32 @@ C
                ENDIF
                IF(.NOT.LINV) THEN
                   IF(J.EQ.NFMAX) THEN
+c$$$                     WRITE(6,*) 'TYPE A'
+c$$$                     DO I=1,J
+c$$$                        WRITE(6,'(I5,1P2E12.4,5X,I5,1P2E12.4)')
+c$$$     &                       I,XF(I),YF(I)
+c$$$                     ENDDO
+c$$$                     CALL GUFLSH
+c$$$                     PAUSE
                      CALL GUSP2DX(XF(1),YF(1),J,XP,YP,NFMAX,NP,ISPL)
                      CALL SUBV(XP,YP,NP,XG,YG,NGMAX,NN)
                      CALL LINEPTX(XG,YG,NN,ILNS(K))            
                      J=1
                      XF(1)=XF(NFMAX)
                      YF(1)=YF(NFMAX)
+c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
+c$$$     &                    '-3-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
                   ENDIF
                   J=J+1
                ELSE
                   IF(J.EQ.1) THEN
+c$$$                     WRITE(6,*) 'TYPE B'
+c$$$                     DO I=J,NFMAX
+c$$$                        WRITE(6,'(I5,1P2E12.4)')
+c$$$     &                       I,XF(I),YF(I)
+c$$$                     ENDDO
+c$$$                     CALL GUFLSH
+c$$$                     PAUSE
                      CALL GUSP2DX(XF(J),YF(J),NFMAX-J+1,
      &                           XP,YP,NFMAX,NP,ISPL)
                      CALL SUBV(XP,YP,NP,XG,YG,NGMAX,NN)
@@ -1839,28 +1900,40 @@ C
                      J=NFMAX
                      XF(NFMAX)=XF(1)
                      YF(NFMAX)=YF(1)
+c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
+c$$$     &                    '-2-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
                   ENDIF
                   J=J-1
                ENDIF
                RT=(U0-UA)/(UB-UA)
                XF(J)=(XB-XA)*RT+XA
                YF(J)=(YB-YA)*RT+YA
+c$$$                     WRITE(6,'(A,7I5,1P2E12.4)') 
+c$$$     &                    '-1-',J,IEL,IE,NAX,NAY,NBX,NBY,XF(J),YF(J)
 C
                KA(1,IEL)=KA(1,IEL)+1
-               IF(IEL.EQ.IE.AND..NOT.LINV) LEND=.TRUE.
+               IF(IEL.EQ.IE) LEND=.TRUE.
+C               IF(IEL.EQ.IE.AND..NOT.LINV) LEND=.TRUE.
 C               IF(IEL.EQ.IE1.AND..NOT.LINV) LEND=.TRUE.
             ENDIF
-C
-C      WRITE(6,'(A,6I5,2I7)') 'step 3: K,NY,NX,NYL,NXL,MODEL,IE,IEL',
-C     &                                K,NY,NX,NYL,NXL,MODEL,IE,IEL
-C      WRITE(6,'(A,1P5E12.4)') 'U0..4: ',U0,U1,U2,U3,U4
-C      CALL GUFLSH
 C
             IF(.NOT.LEND) GOTO 200
 C
             IF(.NOT.LINV) THEN
+c$$$                     WRITE(6,*) 'TYPE C'
+c$$$                     DO I=1,J
+c$$$                        WRITE(6,'(I5,1P2E12.4,5X,I5,1P2E12.4)')
+c$$$     &                       I,XF(I),YF(I)
+c$$$                     ENDDO
+c$$$                     CALL GUFLSH
                CALL GUSP2DX(XF(1),YF(1),J,XP,YP,NFMAX,NP,ISPL)
             ELSE
+c$$$                     WRITE(6,*) 'TYPE D'
+c$$$                     DO I=J,NFMAX
+c$$$                        WRITE(6,'(I5,1P2E12.4,5X,I5,1P2E12.4)')
+c$$$     &                       I,XF(I),YF(I)
+c$$$                     ENDDO
+c$$$                     CALL GUFLSH
                CALL GUSP2DX(XF(J),YF(J),NFMAX-J+1,XP,YP,NFMAX,NP,ISPL)
             ENDIF
             CALL SUBV(XP,YP,NP,XG,YG,NGMAX,NN)
@@ -1973,14 +2046,14 @@ C
       DIMENSION XH(N),YH(N),XP(NPM),YP(NPM)
       DIMENSION IKN(0-M:NPA+M)
 C
-c$$$      IF(ISPL.EQ.0) THEN
-c$$$         DO I=1,N
-c$$$            XP(I)=XH(I)
-c$$$            YP(I)=YH(I)
-c$$$         ENDDO
-c$$$         NP=N
-c$$$         RETURN
-c$$$      ENDIF
+      IF(ISPL.EQ.0) THEN
+         DO I=1,N
+            XP(I)=XH(I)
+            YP(I)=YH(I)
+         ENDDO
+         NP=N
+         RETURN
+      ENDIF
 C
       NQ=NPM
       IF(NQ.GT.NPA) NQ=NPA

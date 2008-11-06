@@ -167,7 +167,7 @@ C
 C
       DO NR=1,NRMAX
       DO NP=1,NPMAX
-         DFDP=-2.D0*PM(NP)*RTFP0(NSA)/RTFP(NR,NSA)
+         DFDP=-PM(NP)*RTFP0(NSA)/RTFP(NR,NSA)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
          IF(NTH.EQ.1) THEN

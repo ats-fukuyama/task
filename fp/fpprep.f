@@ -186,6 +186,30 @@ C
          ENDDO
       ENDIF
 
+c$$$      DO NSA=1,NSAMAX
+c$$$         NS=NS_NSA(NSA)
+c$$$      DO NR=1,NRMAX
+c$$$         NTH=1
+c$$$         DO NP=2,NPMAX-1
+c$$$            IF(FNS(NTH,NP+1,NR,NSA).LE.1.D-70) THEN
+c$$$               DFDP=0.D0
+c$$$            ELSE
+c$$$               DFDP=(FNS(NTH,NP+1,NR,NS)-FNS(NTH,NP-1,NR,NS))
+c$$$     &                    /(2.D0*DELP*FNS(NTH,NP,NR,NS))
+c$$$            ENDIF
+c$$$            IF(FNS(NTH,NP,NR,NSA).LE.1.D-70) THEN
+c$$$               DFDP1=0.D0
+c$$$            ELSE
+c$$$               DFDP1=(LOG(FNS(NTH,NP+1,NR,NS))-LOG(FNS(NTH,NP-1,NR,NS)))
+c$$$     &                    /(2.D0*DELP)
+c$$$            ENDIF
+c$$$            DFDP2=-PM(NP)*RTFP0(NSA)/RTFP(NR,NSA)
+c$$$            write(6,'(I5,1P5E12.4)')
+c$$$     &           NP,PM(NP),DFDP,DFDP1,DFDP2,FNS(NTH,NP,NR,NS)
+c$$$         ENDDO
+c$$$      ENDDO
+c$$$      ENDDO
+
       CALL FPCOEF
       CALL FPSGLB
       CALL FPWRT2
