@@ -40,19 +40,19 @@ c
 c
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nrmax) then
-         if(associated(equ1D%s)) deallocate(equ1D%s)
+         if(associated(equ1D%rho)) deallocate(equ1D%rho)
          if(associated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=NRMAX
-         allocate(equ1D%s(NRMAX))
+         allocate(equ1D%rho(NRMAX))
          allocate(equ1D%data(NRMAX))
       endif
 c
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nrmax) then
-         if(associated(metric1D%s)) deallocate(metric1d%s)
+         if(associated(metric1D%rho)) deallocate(metric1d%rho)
          if(associated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=NRMAX
-         allocate(metric1D%s(NRMAX))
+         allocate(metric1D%rho(NRMAX))
          allocate(metric1D%data(NRMAX))
       endif
 
@@ -67,7 +67,6 @@ c         transport grid -> equilibrium grid
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       integer nr,ierr
-      real(8):: s
       real(8),dimension(nrmax):: sa,data,diff
       real(8),dimension(4,nrmax):: udata
       
@@ -83,13 +82,14 @@ c=======================================================================
       call spl1d(sa,data,diff,udata,nrmax,0,ierr)
       if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1d: ierr=',ierr
       do nr=1,plasmaf%nrmax
-         call spl1df(plasmaf%s(nr),plasmaf%qinv(nr),sa,udata,nrmax,ierr)
+         call spl1df((plasmaf%rho(nr))**2,plasmaf%qinv(nr),
+     &               sa,udata,nrmax,ierr)
          if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1df: ierr=',ierr
       enddo
       call bpsd_set_data(plasmaf,ierr)
 
       do nr=1,nrmax
-         equ1D%s(nr)=psit(nr)/psit(nrmax)
+         equ1D%rho(nr)=SQRT(psit(nr)/psit(nrmax))
          equ1D%data(nr)%psit=psit(nr)
          equ1D%data(nr)%psip=psip(nr)
          equ1D%data(nr)%ppp=pps(nr)
@@ -101,8 +101,7 @@ c=======================================================================
       call bpsd_set_equ1D(equ1D,ierr)
 c
       do nr=1,nrmax
-         s=psit(nr)/psit(nrmax)
-         metric1D%s(nr)=s
+         metric1D%rho(nr)=SQRT(psit(nr)/psit(nrmax))
          metric1D%data(nr)%pvol=vps(nr)
          metric1D%data(nr)%psur=sps(nr)
          metric1D%data(nr)%dvpsit=dvdpsit(nr)

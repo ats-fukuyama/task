@@ -452,24 +452,24 @@ end subroutine set_equil
 
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.ns+1) then
-         if(associated(equ1D%s)) deallocate(equ1D%s)
+         if(associated(equ1D%rho)) deallocate(equ1D%rho)
          if(associated(equ1D%data)) deallocate(equ1D%data)
          equ1D%nrmax=ns+1
-         allocate(equ1D%s(ns+1))
+         allocate(equ1D%rho(ns+1))
          allocate(equ1D%data(ns+1))
       endif
 
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.ns+1) then
-         if(associated(metric1D%s)) deallocate(metric1d%s)
+         if(associated(metric1D%rho)) deallocate(metric1d%rho)
          if(associated(metric1D%data)) deallocate(metric1d%data)
          metric1D%nrmax=ns+1
-         allocate(metric1D%s(ns+1))
+         allocate(metric1D%rho(ns+1))
          allocate(metric1D%data(ns+1))
       endif
 
       do nr=0,ns
-         equ1D%s(nr+1)=s(nr)
+         equ1D%rho(nr+1)=sqrt(s(nr))
          equ1D%data(nr+1)%psit=s(nr)
          equ1D%data(nr+1)%psip=0.d0
          equ1D%data(nr+1)%ppp=pprim(nr)
@@ -481,7 +481,7 @@ end subroutine set_equil
       call bpsd_set_data(equ1D,ierr)
 
       do nr=0,ns
-         metric1D%s(nr+1)=s(nr)
+         metric1D%rho(nr+1)=sqrt(s(nr))
          metric1D%data(nr+1)%pvol=vprim(nr)
          metric1D%data(nr+1)%psur=vprim(nr)/(2.d0*pi*device%rr)
          metric1D%data(nr+1)%dvpsit=vprim(nr)

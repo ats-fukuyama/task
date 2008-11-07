@@ -70,7 +70,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 ## if you have lapack library
 #OBJLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 
-## for Intel fortran compiler EM64
+## for Intel fortran compiler EM64T
 #GFLIBS=-L/usr/local/lib64 -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
 #OFLAGS = -O3 -prefetch -xW -vec-report0 -convert big_endian
