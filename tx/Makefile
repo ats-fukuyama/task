@@ -19,8 +19,8 @@ OBJ3D= $(SRC3D:.f90=.o)
 OBJNC= $(SRCNC:.f=.o)
 PROG2= tx2
 PROG3= tx
-LIBS2= tx2lib.a ../lib/tasklib.a $(OBJLA)
-LIBS3= tx3lib.a ../lib/tasklib.a $(OBJLA)
+LIBS2= tx2lib.a ../lib/tasklib.a
+LIBS3= tx3lib.a ../lib/tasklib.a
 
 .SUFFIXES: .f90
 
@@ -29,14 +29,14 @@ LIBS3= tx3lib.a ../lib/tasklib.a $(OBJLA)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR)
 
+all: $(PROG2)
 #all: $(PROG3)
-all: $(PROG3) $(PROG2)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) -Lmod
+	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC)
 
 tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) -Lmod
+	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC)
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -45,16 +45,16 @@ libs:
 	(cd ../lib; make)
 
 $(PROG2): $(LIBS2)
-	$(FCFREE) $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(LIBLA)
+	$(FCFREE) $(LIBS2) $(LIBLA) -o $@ $(FFLAGS) $(GFLIBS)
 
 $(PROG3): $(LIBS3)
-	$(FCFREE) $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(LIBLA)
+	$(FCFREE) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS) $(GLLIBS)
 
 check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | less
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o *.a .$(MOD)/*.mod
+	rm -f *.o ./*~ ./#* nclass/*.o *.a $(MOD)/*.mod
 
 veryclean: clean
 	rm -f $(PROG2) $(PROG3)

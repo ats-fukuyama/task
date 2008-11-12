@@ -4,19 +4,19 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 
 # without eq
-#MODINCLUDE= -I.$(MOD) -I../pl$(MOD)
+#MODINCLUDE= -I$(MOD) -I../pl/$(MOD)
 #EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 
 # with task/eq
-MODINCLUDE= -I.$(MOD) -I../eq$(MOD) -I../pl$(MOD)
+MODINCLUDE= -I$(MOD) -I../eq/$(MOD) -I../pl/$(MOD)
 EQLIBS= ../pl/noequlib.o ../eq/eqlib.a 
 
 # with topics/equ
-#MODINCLUDE= -I.$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I.$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I./$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 
 SRCS = main.f
@@ -44,7 +44,7 @@ LIBM = $(LIB0) ../wm/mpiwmlib.a  ../pl/pllib.a \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : tot
+all : libs tot
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
@@ -132,7 +132,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ *.a .$(MOD)/*.mod
+	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f tot

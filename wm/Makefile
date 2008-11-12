@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../lib$(MOD)
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD)
 
 SRC0 = wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \
@@ -87,7 +87,7 @@ new :
 	cp -f *.inc ../wmnew
 
 clean:
-	rm -f core *.o ./*~ ../mtx/*.o *.a .$(MOD)/*.mod
+	rm -f core *.o ./*~ ../mtx/*.o *.a $(MOD)/*.mod
 
 veryclean: clean
 	rm -f wm

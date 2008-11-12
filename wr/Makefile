@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
+MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
@@ -47,7 +47,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
 
 clean:
-	-rm -f core a.out *.o *.a ./*~
+	-rm -f core a.out *.o *.a ./*~ $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f wr

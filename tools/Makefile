@@ -12,7 +12,7 @@ UR3OBJS=$(UR3SRCS:.f=.o)
 GUIOBJS=$(GUISRCS:.f=.o)
 SPLOBJ=$(SPLSRC:.f=.o)
 
-LIBS=../lib/tasklib.a ../lib/mdslib.a $(OBJLA)
+LIBS=../lib/tasklib.a ../lib/mdslib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@
@@ -28,13 +28,13 @@ all : ufread usplit
 	(cd ../lib; make mdslib.a)
 
 ufread : $(UROBJS) $(LIBS)
-	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UROBJS) $(GFLIBS) $(MDSLIB) $(LIBLA)
 
 ufread3 : $(UR3OBJS) $(LIBS)
-	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(UR3OBJS) $(GLLIBS) $(MDSLIB) $(LIBLA)
 
 guiread : $(GUIOBJS) $(LIBS)
-	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB) $(OBJLA)
+	-$(FCFIXED) -o $@ $(LIBS) $(FFLAGS) $(GUIOBJS) $(GLLIBS) $(MDSLIB) $(LIBLA)
 
 usplit : $(SPLOBJ)
 	-$(FCFIXED) -o $@ $(FFLAGS) $(SPLOBJ)

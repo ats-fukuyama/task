@@ -4,7 +4,7 @@ include ../make.header
 #FFLAGS=$(DFLAGS)
 FFLAGS=$(OFLAGS)
 
-MODINCLUDE=-I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../lib$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
 SRCS = eq_bpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
@@ -53,7 +53,7 @@ checkak :
 	ftnchek $(FCKFLAGS) $(SRCA) | less
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ *.a .$(MOD)/*.mod
+	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
 	-rm -f doc/*~
 
 veryclean: clean

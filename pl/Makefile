@@ -7,7 +7,7 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE=-I.$(MOD) -I../../bpsd$(MOD)
+MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD)
 
 SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f
 SRCSFREE = modules.f90 pl_vmec.f90 plcomm.f90 plunit.f90
@@ -42,7 +42,7 @@ check :
 	ftnchek $(FCKFLAGS) $(SRCSFIXED) | less
 
 clean:
-	-rm -f core a.out *.o *.mod ./*~ ./#* *.a .$(MOD)/*.mod
+	-rm -f core a.out *.o *.mod ./*~ ./#* *.a $(MOD)/*.mod
 
 veryclean: clean
 	-rm -f pl

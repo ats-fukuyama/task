@@ -7,22 +7,22 @@ FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 # without eq
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
 #EQLIBS= ../pl/noeqlib.o ../pl/noequlib.o 
 #MAKE_TPXLIB=
 
 # with task/eq
-MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD)
+MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD)
 EQLIBS= ../eq/eqlib.a ../pl/noequlib.o 
 MAKE_TPXLIB=
 
 # with topics/equ
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../../topics/src/tpxlib.a ../../topics/src/eqlib.a  ../pl/noeqlib.o 
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
 # with task/eq and topics/equ
-#MODINCLUDE= -I.$(MOD) -I../../bpsd$(MOD) -I../eq$(MOD) -I../pl$(MOD) -I../../topics/src$(MOD)
+#MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../eq/$(MOD) -I../pl/$(MOD) -I../../topics/src/$(MOD)
 #EQLIBS= ../eq/eqlib.a ../../topics/src/tpxlib.a ../../topics/src/eqlib.a
 #MAKE_TPXLIB= (cd ../../topics/src; make tpxlib.a eqlib.a)
 
@@ -36,8 +36,9 @@ SRC90=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90\
       trgrad.f90 trgram.f90 trgsub.f90 trunit.f90 trloop.f90 trmenu.f90 \
 
 
-SRCITG= glf/callglf2d.f glf/zgeev.f glf/blas_zgeev.f \
+SRCITG= glf/callglf2d.f glf/zgeev.f \
         itg/ifspppl_model.f itg/weiland.f
+# glf/blas_zgeev.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
 #SRCITG= noitg.f
 #SRCITGF=
@@ -97,16 +98,16 @@ libs:
 	(cd ../eq; make treqin.o)
 
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(OBJLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr3: $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(OBJLA) $(MODINCLUDE)
+	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core *.a *.mod .$(MOD)/*.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
 	rm -f tr2 tr3
