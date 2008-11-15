@@ -177,6 +177,11 @@
          call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:nrmax,ns,3),nrmax)
       enddo
       do nr=1,plasmaf%nrmax
+         if(nr.eq.1) then
+            plasmaf%rho(nr)=0.d0
+         else
+            plasmaf%rho(nr)=rg(nr-1)
+         endif
          do ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%pn=temp(nr,ns,1)*1.d20
             plasmaf%data(nr,ns)%pt=temp(nr,ns,2)*1.D3
