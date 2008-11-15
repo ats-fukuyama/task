@@ -36,9 +36,9 @@ SRC90=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90\
       trgrad.f90 trgram.f90 trgsub.f90 trunit.f90 trloop.f90 trmenu.f90 \
 
 
-SRCITG= glf/callglf2d.f glf/zgeev.f \
+SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
-# glf/blas_zgeev.f
+# glf/zgeev.f glf/blas_zgeev.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
 #SRCITG= noitg.f
 #SRCITGF=
