@@ -25,8 +25,8 @@ OBJM = $(SRCM:.f=.o)
 LIB0 = ../eq/wmeqin.o ../eq/eqlib.a \
        ../pl/pllib.a ../dp/dplib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a 
 
-LIBS = wmlib.a $(LIB0) ../mtx/mtxlib.a ../mpi/nompilib.o
-LIBM = mpiwmlib.a $(LIB0) ../mtx/mpimtxlib.a ../mpi/mpilib.o
+LIBS = $(LIB0) wmlib.a ../mtx/mtxlib.a ../mpi/nompilib.o
+LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

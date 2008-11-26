@@ -50,7 +50,7 @@ C        THJ2  : End poloidal angle of antenna              (degree)
 C        PHJ1  : Start toroidal angle of antenna            (degree)
 C        PHJ2  : End toroidal angle of antenna              (degree)
 C
-      NAMAX=1
+      NAMAX  = 1
       DO NA=1,NAM
          AJ(NA)   = 1.D0
          APH(NA)  = 0.D0

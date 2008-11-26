@@ -69,7 +69,7 @@ C     $Id$
          gm(3,2)= gm(2,3)
          gm(3,3)= rrl**2
          gj     = rrl*(drrrho*dzzchi-drrchi*dzzrho)
-      case(3)
+      case(3,5)
          call wmeq_get_posrz(rho,th,rrl,zzl,
      &                        drrrho,dzzrho,drrchi,dzzchi)
          gm(1,1)= drrrho**2+dzzrho**2
@@ -82,6 +82,8 @@ C     $Id$
          gm(3,2)= gm(2,3)
          gm(3,3)= rrl**2
          gj     = rrl*(drrrho*dzzchi-drrchi*dzzrho)
+      case default
+         stop 'wmfem_metrics: undefined modelg is input'
       end select
       return
       end subroutine wmfem_metrics
@@ -107,8 +109,10 @@ C     $Id$
          bsupth=(bb*qinv)/rrl
          bsupph=bb/rrl
          babs=bb*sqrt(1.d0+(ra*rho*qinv/rr)**2)*rr/rrl
-      case(3)
+      case(3,5)
          call wmeq_get_magnetic(rho,th,babs,bsupth,bsupph)
+      case default
+         stop 'wmfem_magnetic: undefined modelg is input'
       end select
       return
       end subroutine wmfem_magnetic
@@ -220,9 +224,11 @@ C     $Id$
                qinv=(1.d0/q0-1.d0/qa)*(1.d0-rho**2)+1.d0/qa
             end if
          end select
-      case(3)
+      case(3,5)
          call getqp(rho,ql)
-         qinv=1.d0/qinv
+         qinv=1.d0/ql
+      case default
+         stop 'wmfem_qprofile: undefined modelg is input'
       end select
       return
       end subroutine wmfem_qprofile
