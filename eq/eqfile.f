@@ -175,10 +175,10 @@ c
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
       read (neqdsk,2020) rdim,zdim,RR,rleft,zmid
-      RA=0.5D0*rdim
-      RKAP=zdim/rdim
-      RDLT=0.D0
-      RB=1.1D0*RA
+CChonda      RA=0.5D0*rdim
+CChonda      RKAP=zdim/rdim
+CChonda      RDLT=0.D0
+CChonda      RB=1.1D0*RA
       DR=rdim/(NRGMAX-1)
       DZ=zdim/(NZGMAX-1)
       DO NRG=1,NRGMAX
@@ -196,7 +196,8 @@ C
       PSI0=PSI0-PSIA
       PSIPA=-PSI0
       DO NPS=1,NPSMAX
-         PSIPS(NPS)=PSI0-DPS*(NPS-1)
+CChonda         PSIPS(NPS)=PSI0-DPS*(NPS-1)
+         PSIPS(NPS)=-DPS*(NPS-1)
       ENDDO
       read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
       RIP=RIP/1.D6
@@ -210,6 +211,31 @@ C
       read (neqdsk,2022) NSUMAX,limitr
       read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
+C
+      RSUMAX = RR
+      RSUMIN = RR
+      ZSUMAX = 0.d0
+      ZSUMIN = 0.d0
+      R_ZSUMAX = 0.d0
+      R_ZSUMIN = 0.d0
+      do i = 1, nsumax
+         if(RSU(i) .GT. RSUMAX) RSUMAX = RSU(i)
+         if(RSU(i) .LT. RSUMIN) RSUMIN = RSU(i)
+         if(ZSU(i) .GT. ZSUMAX) then
+            ZSUMAX   = ZSU(i)
+            R_ZSUMAX = RSU(i)
+         end if
+         if(ZSU(i) .LT. ZSUMIN) then
+            ZSUMIN   = ZSU(i)
+            R_ZSUMIN = RSU(i)
+         end if
+      enddo
+C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
+      RA   = 0.5d0 * (RSUMAX - RSUMIN)
+      RB   = 1.1d0 * RA
+      RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
+      R_CTR = RSUMIN + RA
+      RDLT = 0.5d0 * (ABS(R_CTR-R_ZSUMIN) + ABS(R_CTR-R_ZSUMAX)) / RA
 C
 C      GOTO 1000
 C      kvtor=0
@@ -257,5 +283,5 @@ c
  2000 format (6a8,3i4)
  2020 format (5e16.9)
  2022 format (2i5)
- 2024 format (i5,e16.9,i5)
+c 2024 format (i5,e16.9,i5)
        end

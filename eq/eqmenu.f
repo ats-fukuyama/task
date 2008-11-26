@@ -111,7 +111,8 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=3
-         CALL EQREAD(0,IERR)
+CChonda         CALL EQREAD(0,IERR)
+         CALL EQREAD(IERR)
          IF(IERR.EQ.1) GOTO 10
          CALL EQCALQ(IERR)
          MSTAT=2
@@ -123,7 +124,8 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=5
-         CALL EQREAD(0,IERR)
+CChonda         CALL EQREAD(0,IERR)
+         CALL EQREAD(IERR)
          IF(IERR.NE.0) GOTO 11
          CALL EQCALQ(IERR)
          MSTAT=2

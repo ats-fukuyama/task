@@ -19,6 +19,8 @@ OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
+.SUFFIXES: .f90
+
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
@@ -28,6 +30,13 @@ all : eq
 
 eqlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) eqlib.a $(OBJS)
+
+../lib/tasklib.a:
+	(cd ../lib; make)
+../../bpsd/bpsdlib.a:
+	(cd ../../bpsd; make)
+../pl/pllib.a:
+	(cd ../pl; make)
 
 libs:
 	(cd ../lib; make tasklib.a)
