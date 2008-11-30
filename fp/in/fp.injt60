@@ -1,0 +1,56 @@
+0
+f
+fpjt60.gs
+c
+p
+ &fp
+   modelg=3,KNAMEQ='../eq/eqdata.jt60'
+   modelw=4,KNAMWM='../wm/wmdata.jt60'
+            KNAMFP='../fp/fpdata.jt60'
+   NSMAX=3
+   PA(2)=2.0
+   PZ(2)=1.0
+   PA(3)=1.0
+   PZ(3)=1.0
+   PN= 0.3,0.285,0.015
+   PNS=0.03,0.0285,0.0015
+   PROFN2=0.5
+   PTPR=3.7,3.7,3.7
+   PTPP=3.7,3.7,3.7
+   PTS= 0.4,0.4,0.4
+   PROFT2=2.0
+   RFDW=55
+   NRMAX=11
+   RMIN=0.1D0
+   RMAX=0.4D0
+   NTMAX=1
+   PMAX=20.D0
+   NPMAX=100
+   NTHMAX=100
+   MODELC=4
+   MODELR=1
+   DELT=1.d-3
+   DELNPR=2.0d-1
+   NTSTPC=1
+   NSFPMI=1
+   NSFPMA=3
+   PWAVE=3.D3
+ &end
+v
+r
+s
+g
+n
+1
+f2
+
+q
+
+
+
+
+
+
+
+
+

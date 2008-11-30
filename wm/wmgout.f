@@ -8,7 +8,7 @@ C
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
-    1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  RCMP/P/123  CP/J',
+    1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  CPM/P/123  CP/J',
      &           '  P/F/SBQ23J   R/GZ  S'
       WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
      &           '  G/01234  ?/HELP  X/EXIT'

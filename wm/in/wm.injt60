@@ -1,0 +1,38 @@
+0
+f
+wmjt60.gs
+c
+p
+ &wm
+   modelg=3,KNAMEQ='../eq/eqdata.jt60'
+   KNAMWM='../wm/wmdata.jt60'
+   modelp=5,5,5
+   NSMAX=3
+   PA(2)=2.0
+   PZ(2)=1.0
+   PA(3)=1.0
+   PZ(3)=1.0
+   PN= 0.3,0.285,0.015
+   PNS=0.03,0.0285,0.0015
+   PROFN2=0.5
+   PTPR=3.7,3.7,3.7
+   PTPP=3.7,3.7,3.7
+   PTS= 0.4,0.4,0.4
+   PROFT2=2.0
+   RF=55.0
+   NTHMAX=16
+   NTH0=0
+   NPH0=16
+ &end
+v
+r
+s
+g
+rea
+1
+ren
+/
+peti
+pp3
+x
+q

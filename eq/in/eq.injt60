@@ -3,7 +3,8 @@ f
 eqjt60.gs
 c
 p
- &eq 
+ &eq
+   KNAMEQ='eqdata.jt60'
    RR=3.5016
    RA=0.9837
    RKAP=1.2810
@@ -14,6 +15,7 @@ p
    PROFJ0=1.6
    MDLEQA=1
  &end
+v
 r
 c
  0.0125/
@@ -21,5 +23,4 @@ g
 s
 x
 s
-eqdata.jt60
 q
