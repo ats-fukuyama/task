@@ -157,11 +157,14 @@ C
             FPR(NRMAX+2)=0.D0
             FPRX(1)=0.D0
             CALL SPL1D(RFP,FPR,FPX,URFP(1,1,NP,NTH),NRMAX+2,1,IERR)
+CCC TEMP 08/12/08 AF 
             IF(IERR.NE.0) THEN
                DO NR=1,NRMAX+2
                   WRITE(6,'(3I5,1P2E12.4)') NP,NTH,NR,RFP(NR),FPR(NR)
                ENDDO
+               STOP
             ENDIF
+CCC END TEMP
          ENDDO
       ENDDO
 C
