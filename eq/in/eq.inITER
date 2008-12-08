@@ -11,6 +11,7 @@ p
    RB=2.1
    BB=5.3
    RIP=15
+   KNAMEQ='eqdata.ITER'
  &end
 r
 c
@@ -20,5 +21,4 @@ c
 s
 x
 s
-eqdata.ITER
 q
