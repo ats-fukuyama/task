@@ -12,6 +12,9 @@ C
 C 
       CALL GUTIME(TIME1)
 C
+      CALL DPCHEK(IERR)
+      IF(IERR.NE.0) RETURN
+C
       IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) 
      &   '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
@@ -134,7 +137,7 @@ C
          RAYIN(3,NRAY)=ZPI
          RAYIN(4,NRAY)=PHII
          RAYIN(5,NRAY)=RKR0
-         IF(MDLWRI.EQ.0.OR.MDLWR.EQ.10)THEN
+         IF(MDLWRI.EQ.0.OR.MDLWRI.EQ.10)THEN
             RAYIN(6,NRAY)=RNZI
             RAYIN(7,NRAY)=RNPHII
          ELSE

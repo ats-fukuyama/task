@@ -12,6 +12,9 @@ C
 C 
       CALL GUTIME(TIME1)
 C
+      CALL DPCHEK(IERR)
+      IF(IERR.NE.0) RETURN
+C
       IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) '# default values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI'
          WRITE(6,*) '#                 RCURVA,RCURVB,RBRADA,RBRADB,UU'

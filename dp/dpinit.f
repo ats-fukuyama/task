@@ -218,6 +218,7 @@ C
             RHON_MAX=1.D0
          ENDIF
       ENDDO
+      IERR=0
 C
       RETURN
       END

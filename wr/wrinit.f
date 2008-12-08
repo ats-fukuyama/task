@@ -202,6 +202,7 @@ C
 C
       INCLUDE 'wrcomm.inc'
 C  
+      CHARACTER(LEN=80):: LINE
       DATA INITEQ,INITFP/0,0/
 C
       IERR=0
