@@ -142,21 +142,23 @@ C
   120 CONTINUE
 C
       DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
+        DO NTH=1,NTHMAX
             DO NR=1,NRMAX
                FP(NTH,NP,NR)=FNS(NTH,NP,NR,NSA)
             ENDDO
-            IF(NRMAX.EQ.1)THEN
-               FPR(1)=4.D0*FP(NTH,NP,1)/3.D0
-            ELSE
+            IF(RHON_MIN.EQ.0.D0)THEN
                FPR(1)=(9.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/8.D0
+               FPRX(1)=0.D0
+               ID=1
+            ELSE
+               FPR(1)=(4.D0*FP(NTH,NP,1)-FP(NTH,NP,2))/3.D0
+               ID=0
             ENDIF
             DO NR=1,NRMAX
                FPR(NR+1)=FP(NTH,NP,NR)
             ENDDO
-            FPR(NRMAX+2)=0.D0
-            FPRX(1)=0.D0
-            CALL SPL1D(RFP,FPR,FPX,URFP(1,1,NP,NTH),NRMAX+2,1,IERR)
+            FPR(NRMAX+2)=(4.D0*FP(NTH,NP,NRMAX+1)-FP(NTH,NP,NRMAX))/3.D0
+            CALL SPL1D(RFP,FPR,FPRX,URFP(1,1,NP,NTH),NRMAX+2,ID,IERR)
 CCC TEMP 08/12/08 AF 
             IF(IERR.NE.0) THEN
                DO NR=1,NRMAX+2
