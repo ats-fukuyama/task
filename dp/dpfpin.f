@@ -123,14 +123,14 @@ C
 C
       PTH0W=(PTH0/(AMFP(NSA)*VC))**2
 C
-      DO 110 NP=1,NPMAX
+      DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
          PG(NP)=DELP* NP
          RGMM(NP)=SQRT(1+PTH0W*PM(NP)**2) 
          RGMG(NP)=SQRT(1+PTH0W*PG(NP)**2)
-  110 CONTINUE
+      ENDDO
 C
-      DO 120 NTH=1,NTHMAX
+      DO NTH=1,NTHMAX
          THM=DELTH*(NTH-0.5D0)
          THG=DELTH* NTH
          TSNM(NTH) = SIN(THM)
@@ -139,7 +139,7 @@ C
          TCSG(NTH) = COS(THG)
          TTNM(NTH) = TAN(THM)
          TTNG(NTH) = TAN(THG)
-  120 CONTINUE
+      ENDDO
 C
       DO NP=1,NPMAX
         DO NTH=1,NTHMAX
@@ -159,27 +159,18 @@ C
             ENDDO
             FPR(NRMAX+2)=(4.D0*FP(NTH,NP,NRMAX+1)-FP(NTH,NP,NRMAX))/3.D0
             CALL SPL1D(RFP,FPR,FPRX,URFP(1,1,NP,NTH),NRMAX+2,ID,IERR)
-CCC TEMP 08/12/08 AF 
-            IF(IERR.NE.0) THEN
-               DO NR=1,NRMAX+2
-                  WRITE(6,'(3I5,1P2E12.4)') NP,NTH,NR,RFP(NR),FPR(NR)
-               ENDDO
-               STOP
-            ENDIF
-CCC END TEMP
          ENDDO
       ENDDO
 C
       RHON=RHON_LOC
       CALL PLBMIN(RHON,BMINL)
+      PSIS=BABS/BMINL
+
       DO NP=1,NPMAX
          DO NTH=1,NTHMAX
             CALL SPL1DF(RHON,Y,RFP,URFP(1,1,NP,NTH),NRMAX+2,IERR)
             FPT(NTH+1)=Y
          ENDDO
-C
-         PSIS=BABS/BMINL
-C
          THT(1)=0.D0
          DO NTH=1,NTHMAX
             THT(NTH+1)=DELTH*(NTH-0.5D0)
@@ -195,13 +186,11 @@ C
             XX=SQRT(1/PSIS)*SIN(TH)
             IF(XX.GE.1.D0) THEN
                X=0.5D0*PI
-C               write(6,'(A,1P4E12.4)') 
-C     &              'X,PSIS,TH,SIN=',X,PSIS,TH,SIN(TH)
             ELSE
                IF(COS(TH).GT.0.D0) THEN
-                  X=   ASIN(SQRT(1/PSIS)*SIN(TH))
+                  X=   ASIN(XX)
                ELSE
-                  X=PI-ASIN(SQRT(1/PSIS)*SIN(TH))
+                  X=PI-ASIN(XX)
                ENDIF
             ENDIF
             CALL SPL1DF(X,Y,THT,U2,NTHMAX+2,IERR)
