@@ -180,7 +180,7 @@ C
          FPT(NTHMAX+2)=(9.D0*FPT(NTHMAX+1)-FPT(NTHMAX))/8.D0         
          FPTX(1)=0.D0
          FPTX(NTHMAX+2)=0.D0
-         CALL SPL1D(THT,FPT,FPX,U2,NTHMAX+2,3,IERR)            
+         CALL SPL1D(THT,FPT,FPTX,U2,NTHMAX+2,3,IERR)            
          DO NTH2=1,NTHMAX
             TH=DELTH*(NTH2-0.5D0)
             XX=SQRT(1/PSIS)*SIN(TH)
