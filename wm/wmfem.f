@@ -1590,7 +1590,7 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
       mc=(mwmax+1)/2
 
       do ns=0,nsmax
-         do nr=1,nrmax-1
+         do nr=1,nrmax
             do nn=1,nphmax
                do mm=1,nthmax
                   do nn2=1,nphmax2

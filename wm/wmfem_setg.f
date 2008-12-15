@@ -304,6 +304,10 @@ C
          call wmfem_qprofile(xrho(nr),qinv)
          qps(nr)  = 1.D0/qinv
       ENDDO
+      call wmfem_qprofile(0.d0,qinv)
+      Q0=1.D0/qinv
+      call wmfem_qprofile(1.d0,qinv)
+      QA=1.D0/qinv
 
 !     --- 3D grid, metric, Bsup ---
       dth=2.d0*pi/nthmax
