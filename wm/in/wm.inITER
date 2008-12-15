@@ -6,6 +6,7 @@ p
  &wm
    MODELG=3
    KNAMEQ='../eq/eqdata.ITER'
+   KNAMWM='wmdata.ITER'
    MDLWMF=1
    NSMAX=3
    PA(2)=2.D0 PZ(2)=1.D0
