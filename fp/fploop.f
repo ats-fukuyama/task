@@ -1,4 +1,4 @@
-C     $Id$
+c     $Id$
 C
 C *****************
 C     MAIN LOOP
@@ -70,12 +70,12 @@ c 1600    FORMAT(2I2,6E14.6)
             DO NR=1,NRMAX
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR) 
+                     FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR)
+c                     FNS1(NTH,NP,NR,NS)=ABS(F1(NTH,NP,NR))
                   ENDDO
                ENDDO
             ENDDO
          ENDDO
-
 
 C     +++++ update velocity distribution function +++++
 
@@ -162,21 +162,45 @@ C     +++++ calculate and save global data +++++
             CALL FPWRT1
          ENDIF
 
-      call FPWRT3
+         call FPWRT3
 
 
       IF(NT.eq.NTMAX)THEN
          open(8,file='radial_profile.dat')
+c         open(9,file='distri_func.dat')
+         open(9,file='t-global_10.dat')
          DO NR=1,NRMAX
-            WRITE(8,645) RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
+            WRITE(8,645) RM(NR),RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
      &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
      &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
-     &         RPCT2(NR,3,3,NTG1)
+     &         RPCT2(NR,3,3,NTG1),
+     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1),
+     &         RPCT(NR,1,NTG1),RPCT(NR,2,NTG1),RPCT(NR,3,NTG1)
+c            DO NP=1,NPMAX
+c               DO NTH=1,NTHMAX
+c                  WRITE(9,645)PM(NP)*COSM(NTH),PM(NP)*SINM(NTH)
+c     &                 ,FNS(NTH,NP,NR,1)
+c     &                 ,FNS(NTH,NP,NR,2),FNS(NTH,NP,NR,3)
+c               END DO
+c            END DO
+c            WRITE(9,*)"#",NR
+c            WRITE(9,*)" "
+c            WRITE(9,*)" "
          END DO
+         close(8)
+         DO NTI=1,NTMAX
+            WRITE(9,645) PTG(NTI)*1000
+     &           ,PPCT(1,NTI),PPCT(2,NTI),PPCT(3,NTI)
+     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
+     &           ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI)
+     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
+     &           ,PIT(1,NTI),PIT(2,NTI),PIT(3,NTI)
+         END DO
+         close(9)
 c         write(8,*)" " 
 c         write(8,*)" " 
       END IF
- 645  FORMAT(9E14.6)
+ 645  FORMAT(17E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO
 C     +++++ end of time loop +++++

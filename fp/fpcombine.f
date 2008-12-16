@@ -57,6 +57,8 @@ C
       write(6,'(A,2I5,1P2E12.4,2I5)') 
      &     'NRMIN/MAX,RMIN,RMAX,NPMAX,NTHMAX=',
      &     NR0+1,NR0+NRMAX,RMIN1,RMAX1,NPMAX,NTHMAX
+
+      NR0=NR0+NRMAX
       RETURN
       END
 C

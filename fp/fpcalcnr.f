@@ -367,9 +367,9 @@ C
 C--- LOCAL DIFFUSION COEFFICIENTS
 C
       FACT=4.D0*PI*RGAMH*1.D20
-     &     * (PTFP0(NSA) / AMFP(NSA)) 
+     &     * (PTFP0(NSA) / AMFP(NSA))*RNFP0(NSB) 
       FACT2=4.D0*PI*RGAMH*1.D20
-     &     * (PTFP0(NSA) / AMFP(NSA))**2
+     &     * (PTFP0(NSA) / AMFP(NSA))**2*RNFP0(NSB)
 C-----DCPP & FCPP-----------------
       DO NP=2,NPMAX+1
          RGAMA=SQRT(1.D0+PG(NP)**2*TMC2FP0)

@@ -81,7 +81,7 @@ c     &              ,1.D0/z
 c     &              ,THETA0(NSA),RN(NS)
 c     &             ,Rsum123/(3.D0+DKBSL1/DKBSL2/THETA0(NSA))/THETA0(NSA)
 
-C
+            IF(NTG2.EQ.1)      CALL FPWEIGHT(NSA,IERR)
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP)**2)
                DO NTH=1,NTHMAX
@@ -361,6 +361,30 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
      &  ,PPCT2(1,1,NTG2),PPCT2(2,1,NTG2),PPCT2(1,2,NTG2),PPCT2(2,2,NTG2)
      &     ,PPET(1,NTG2),PPET(2,NTG2)
 
+c      NP2=99
+c      WRITE(*,*)ITL(1)-2,DWPP(35,NP2,1,3),DCPP(35,NP2,1,3)
+c      WRITE(*,*)ITL(1)-1,DWPP(36,NP2,1,3),DCPP(36,NP2,1,3)
+c      WRITE(*,*)ITL(1),DWPP(37,NP2,1,3),DCPP(37,NP2,1,3)
+c      WRITE(*,*)ITL(1)+1,DWPP(38,NP2,1,3),DCPP(38,NP2,1,3)
+c      WRITE(*,*)ITL(1)+2,DWPP(39,NP2,1,3),DCPP(39,NP2,1,3)
+
+c      WRITE(*,*)FNS(36,NP2,1,3),RLAMDA(36,1),RLAMDC(36,1)
+c      WRITE(*,*)FNS(37,NP2,1,3),RLAMDA(37,1),RLAMDC(37,1)
+c      WRITE(*,*)FNS(38,NP2,1,3),RLAMDA(38,1),RLAMDC(38,1)
+
+c      DO NTH=1,NTHMAX
+c         WRITE(*,1001)NTH,
+c     &        DWPT(NTH,50,1,3),DWTP(NTH,50,1,3),DWTT(NTH,50,1,3)
+c     &        ,DWPP(NTH,50,1,3),DWTT(NTH,50,1,3)
+c     &        ,DWPT(NTH,50,1,3),FNS(NTH,50,1,3)
+c      DO NP=1,NPMAX
+c         WRITE(*,1001)NP,
+c     &  FNS(ITL(1)-2,NP,1,3),FNS(ITL(1)-1,NP,1,3),FNS(ITL(1),NP,1,3),
+c     &        FNS(ITL(1)+1,NP,1,3),FNS(ITL(1)+2,NP,1,3)
+c     &   DTP(ITL(1)-2,NP,1,3),DTP(ITL(1)-1,NP,1,3),DTP(ITL(1),NP,1,3)
+c     &        ,DTP(ITL(1)+1,NP,1,3),DTP(ITL(1)+2,NP,1,3)
+c      END DO
+ 1001 FORMAT(I4,9E14.6)
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1P4E12.4)
@@ -456,16 +480,19 @@ c      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG2)-PPCT(NTG2-1))/PPCT(NTG2)
 C     Spitzer
 
       Do NSA=1,NSAMAX
-      Do NSB=1,NSBMAX
-      resist = 1.D0/(RNFP0(NSA)*RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
-     &     /RNUD(1,1,NSA)*RNFD(1,NSB)/RNFP0(NSA) ) *SQRT(2.D0)
-      if(E0.ne.0.d0) 
-     &     write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist
-c     &     ,resist
-     &     ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
+c      Do NSB=1,NSBMAX
+         rnute=RNUD(1,1,NSA)*SQRT(2.D0)*RNFP(1,NSA)/RNFP0(NSA)
+     &        *(PTFP0(NSA)/PTFD(1,NSA))**2
+         resist2=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
+      resist = 1.D0/(RNFP0(NSA)/RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)
+     &    /RNUD(1,1,NSA)*RNFD(1,NSA)/RNFP0(NSA) ) *SQRT(2.D0)/rnfp0(NSA)
+c      if(E0.ne.0.d0) 
+c     &    write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG2)/E0*1.D6/FACT1*resist2
+c     &     ,resist,resist2
+c     &     ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
 c     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
 c     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
-      END DO
+c      END DO
       END DO
       dtaue=1.09D16*(PTT(1,NTG2))**(1.5D0)/PNT(1,NTG2)/PZ(2)**2
      &     /15.D0*1.D-20

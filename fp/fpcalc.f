@@ -95,11 +95,9 @@ C        ----- Simple electron-ion collision term using ZEFF -----
             IF(NS_NSA(NSA).EQ.1) THEN
                DO NSB=1,NSBMAX
                   IF(NS_NSB(NSB).EQ.2) THEN
-c                     RNNL=RNFP(NR,NSA)/RNFP0(NSA)
-c                     RNUDL=RNUD(NR,NSB,NSA)*RNNL
-      RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA)
+                RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA)
      &        /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
-                   RGAMH2=RGAMH*RNFD(NR,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)
+                   RGAMH2=RGAMH*RNFP(1,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)
                RTE=(RTPR(1)+RTPP(1)*2.D0)/3.D0
               rZI = -PZ(2)/PZ(1)/(14.9D0-0.5D0*LOG(RN(1))+LOG(RTE))*
      &              (15.2D0-0.5D0*LOG(RN(1))+LOG(RTE))

@@ -124,7 +124,7 @@ C     NGRAPH: graphic mode: 0 for file out, 1 for contour plot
       PGMAX=10.D0
       RGMIN=0.D0
       RGMAX=1.D0
-      NGLINE= 30
+      NGLINE= 25
       NGRAPH=1
 C
 C-----------------------------------------------------------------------

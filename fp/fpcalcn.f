@@ -33,7 +33,7 @@ C
 C     ----- definition of local quantities -----
 C
       RGAMH=RNUD(NR,NSB,NSA)*SQRT(2.D0)*VTFD(NR,NSB)*AMFP(NSA)
-     &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+     &     /(RNFP0(NSA)*PTFP0(NSA)*1.D20)*RNFP0(NSB)
       vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
       pabbar=(PTFP0(NSA)*AMFD(NSB))/(PTFD0(NSB)*AMFP(NSA))
 

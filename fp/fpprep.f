@@ -10,7 +10,6 @@ C *****************************
 
       EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
 
-      open(8,file='collision_t.dat')
 C     ----- NS_NSA and NS_NSB array -----
 
       NSAMAX=NSFPMA-NSFPMI+1

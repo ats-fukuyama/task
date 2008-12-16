@@ -9,6 +9,8 @@ C
       SUBROUTINE FPCALWM(NSA)
 C
       INCLUDE 'fpcomm.inc'
+      DIMENSION sum11(NSBM),sum12(NSBM),sum13(NSBM)
+     &         ,sum14(NSBM),sum15(NSBM),sum16(NSBM)
 C
 C =============  CALCULATION OF DWPP AND DWPT  ===============
 C
@@ -20,14 +22,19 @@ C
          DO 101 NTH=1,NTHMAX
             IF(NTH.EQ.ITL(NR).OR.NTH.EQ.ITU(NR)) GOTO 101
          DO 100 NP=1,NPMAX+1
+c            CALL FPWAVV(RM(NR),ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP),
+c     &           DWPPL,DWPTL,DWTPL,DWTTL,NSA)
             CALL FPSUMV(ETAM(NTH,NR),SINM(NTH),COSM(NTH),PG(NP),NR,
      &                 DWPPS,DWPTS,DWTPS,DWTTS,NSA)
             DWPP(NTH,NP,NR,NSA)=DWPPS
             DWPT(NTH,NP,NR,NSA)=DWPTS
+c            DWPP(NTH,NP,NR,NSA)=DWPPL
+c            DWPT(NTH,NP,NR,NSA)=DWPTL
   100    CONTINUE
   101    CONTINUE
 C
          IF(MODELA.EQ.1) THEN
+ 
          DO 200 NP=1,NPMAX+1
 C
          DO 190 NTH=ITL(NR)+1,NTHMAX/2
@@ -47,7 +54,7 @@ C
      &                                   /RLAMDA(ITU(NR)-1,NR)
      &                    +DWPP(ITU(NR)+1,NP,NR,NSA)
      &                                   /RLAMDA(ITU(NR)+1,NR))
-C
+
          DWPT(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0
      &                  *( DWPT(ITL(NR)-1,NP,NR,NSA)
      &                                   /RLAMDA(ITL(NR)-1,NR)
@@ -169,6 +176,7 @@ C      CEPARA =(B0TH*CETH+B0PH*CEPH)/SQRT(B2)
 C      CEPERP =(B0PH*CETH-B0TH*CEPH)/SQRT(B2)
       CEPARA =CEPH
       CEPERP =CETH
+
       RABSE = SQRT(ABS(CEPARA)**2+ABS(CEPERP)**2)
       CEPLUS =(CER+CI*CEPERP)/SQRT(2.D0)
       CEMINUS=(CER-CI*CEPERP)/SQRT(2.D0)
@@ -278,19 +286,6 @@ C     &              /(RW*ABS(VPARA)*DELNPR/VC)
      &              /ABS(RW)/DELNPR
             ENDIF
          ENDIF
-c         if(DWC.ne.0.and.ratioCE.ge.1.D0)
-c     &        write(6,1333)N,P,ratioCE,ratioBE,ratioCE2
-c     &        ,rtest
-c     &        ,RKPARA*PTFP0/(AMFP*RGAMMA)/vc*DELT*P
-c     &        ,DELNPR
-c     &        ,RW
-c     &        ,RKPARA*VPARA
-c     &        ,RWC
-c/RGAMMA
-c     &        ,RW/RKPARA*(1.D0-RWC/RW)/VTFP0
-
-c     &       ,PCOS,p
-c     &       ,ex
 
  1333    FORMAT(I2,6E14.6)
          DWC11=DWC11+DWC*A11
