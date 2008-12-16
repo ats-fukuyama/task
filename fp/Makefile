@@ -43,6 +43,10 @@ libs:
 fp : $(LIBS) fpmain.o 
 	$(FCFIXED) fpmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
+fpcombine : fpcombine.o 
+	$(FCFIXED) fpcombine.o -o $@ ../lib/tasklib.a \
+        $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
+
 testnewton : $(LIBS) testnewton.o 
 	$(FCFIXED) testnewton.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS) $(MODDIR) $(MODINCLUDE)
 
@@ -80,3 +84,4 @@ fpfile.o : fpfile.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpsave.o : fpsave.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
 fpwrin.o : fpwrin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc ../wr/wrcom1.inc fpcom2.inc
 fpwmin.o : fpwmin.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
+fpcombine.o : fpcombine.f fpcomm.inc fpcom1.inc ../pl/plcom1.inc
