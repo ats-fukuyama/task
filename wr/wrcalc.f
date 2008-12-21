@@ -219,7 +219,11 @@ C
          DO I=1,7
             YN(I,IT)=YM(I)
          ENDDO
-         YN(8,IT)=Y7-YM(7)
+         IF(YM(7).GT.0.D0) THEN
+            YN(8,IT)=Y7-YM(7)
+         ELSE
+            YN(8,IT)=Y7
+         ENDIF
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =YM(1)
@@ -246,7 +250,7 @@ C
             GOTO 11
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA) THEN
+         IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -292,8 +296,13 @@ C
             YN(I,IT)=Y(I)
          ENDDO
          Y(7)=Y(7)+F(7)*DELS
-         YN(7,IT)=Y(7)
-         YN(8,IT)=-F(7)*DELS
+         IF(Y(7).GT.0.D0) THEN
+            YN(7,IT)=Y(7)
+            YN(8,IT)=-F(7)*DELS
+         ELSE
+            YN(7,IT)=0.D0
+            YN(8,IT)=Y(7)
+         ENDIF
 C
          IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
             RL  =Y(1)
@@ -315,7 +324,7 @@ C
             GOTO 11
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),RHON)
-         IF(RHON.GT.RB/RA) THEN
+         IF(RHON.GT.RB/RA*1.2D0) THEN
             NIT = IT
             GOTO 11
          ENDIF         
