@@ -1,0 +1,102 @@
+0
+f
+gsdata.ITER
+c
+p
+ &fp
+   modelg=3,KNAMEQ='../eq/eqdata.ITER'
+   modelw=2,KNAMWR='../wr/wrdata.ITER'
+            KNAMFP='../fp/fpdata.ITER'
+   NSMAX=3
+   PA(2)=2.0,PA(3)=3.0
+   PN=0.8,0.4,0.4
+   PNS=0.01,0.005,0.005
+   PTPR=20.0,20.0,20.0
+   PTPP=20.0,20.0,20.0
+   PROFN2=0.5
+   MODELN=1
+   NRMAX=40
+   RMIN=0.4D0
+   RMAX=0.8D0
+   NTMAX=5
+   PMAX=10.D0
+   NPMAX=50
+   NTHMAX=50
+   MODELC=4
+   MODELR=1
+   DELT=1.d-3
+   NTSTPC=1
+   NSFPMI=1
+   NSFPMA=1
+   pwave=0.001D0
+ &end
+v
+r
+s
+g
+n1
+rt
+ri
+rpw
+rpc
+tt
+ti
+tpw
+tpc
+f2
+1
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+41
+0
+dwpp
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+0
+x
+q
