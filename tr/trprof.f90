@@ -6,18 +6,22 @@
 
       SUBROUTINE TRPROF
 
-      USE TRCOMM, ONLY : ABRHOG, AJ, AJNB, AJNBU, AJOH, AJTOR, AJU, ALP, ANC, ANFE, ANNU, AR1RHOG, ARRHOG, BB, BP, BPRHO, &
-     &                   DR, DVRHO, DVRHOG, ETA, GRG, GRM, MDLEQ0, MDLJQ, MDLUF, MDNCLS, MDNI, MODELG, MODEP, NFM, NGR,   &
-     &                   NGST, NGT, NRAMAX, NRM, NRMAX, NROMAX, NSM, NT, NTMAX, PBM, PBMU, PEX, PI, PICU, PN, PNBU, PNC,  &
-     &                   PNFE, PNS, PNSA, PNSS, PNSSA, PRF, PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2,&
-     &                   PT, PTS, PZ, PZC, PZFE, Q0, QP, QPU, RDP, RG, RHOA, RIP, RIPA, RIPS, RM, RMJRHO, RMJRHOU, RMU0,  &
-     &                   RN, RNF, RNFU, RNU, RPSI, RR, RT, RTU, RW, SEX, SNBU, SUMPBM, SWLU, T, TPRE, TST, TTRHO, TTRHOG, &
-     &                   VPAR, VPOL, VPRP, VSEC, VTOR, WROT, WROTU, RDPS, &
-           & KUFDIR, KUFDCG, KUFDEV, MDLXP, NTMAX_SAVE,ALLOCATE_TRCOMM
+      USE TRCOMM, ONLY : ABRHOG, AJ, AJNB, AJNBU, AJOH, AJTOR, AJU, ALP, &
+     & ANC, ANFE, ANNU, AR1RHOG, ARRHOG, BB, BP, BPRHO, DR, DVRHO, DVRHOG, &
+     & ETA, GRG, GRM, MDLEQ0, MDLJQ, MDLUF, MDNCLS, MDNI, MODELG, MODEP, &
+     & NFM, NGR, NGST, NGT, NRAMAX, NRM, NRMAX, NROMAX, NSM, NT, NTMAX, PBM, &
+     & PBMU, PEX, PI, PICU, PN, PNBU, PNC, PNFE, PNS, PNSA, PNSS, PNSSA, PRF, &
+     & PROFJ1, PROFJ2, PROFN1, PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, &
+     & PTS, PZ, PZC, PZFE, Q0, QP, QPU, RDP, RG, RHOA, RIP, RIPA, RIPS, RM, &
+     & RMJRHO, RMJRHOU, RMU0, RN, RNF, RNFU, RNU, RPSI, RR, RT, RTU, RW, &
+     & SEX, SNBU, SUMPBM, SWLU, T, TPRE, TST, TTRHO, TTRHOG, VPAR, VPOL, &
+     & VPRP, VSEC, VTOR, WROT, WROTU, RDPS, KUFDIR, KUFDCG, KUFDEV, MDLXP, &
+     & NTMAX_SAVE,ALLOCATE_TRCOMM
       USE TRCOM1, ONLY : NTAMAX,KDIRX
       IMPLICIT NONE
       INTEGER(4):: IERR, NF, NR, NS
-      REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE, FACT, FACTOR0, FACTORM, FACTORP, FCTR, PROF
+      REAL(8)   :: ANEAVE, ANI, ANZ, DILUTE
+      REAL(8)   :: FACT, FACTOR0, FACTORM, FACTORP, FCTR, PROF
       REAL(8)   :: SUML
       REAL(8), DIMENSION(NRMAX) :: DSRHO
 
@@ -667,8 +671,7 @@
 
       subroutine trsetg(ierr)
 
-      use trcomm, only : &
-           & modelg, nrmax, knameq
+      use trcomm, only : modelg, nrmax, knameq
       use tr_bpsd, only: tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
       use equunit_mod, only: equ_prof,equ_calc
@@ -686,6 +689,7 @@
             call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
             call tr_bpsd_get(ierr)  ! 
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
+            pause
          elseif(modelg.eq.7) then
             call pl_vmec(knameq,ierr) ! load vmec data
             call tr_bpsd_get(ierr)  ! 
