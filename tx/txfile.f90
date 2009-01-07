@@ -788,9 +788,9 @@ subroutine ascii_input
         end if
         if(i <= nol_start) then
            cycle
-        else if(i >= 2 * nmax + 12 .and. i <= 3 * nmax + 25) then
+        else if(i >= 2 * nmax + 12 .and. i <= 3 * nmax + 24) then
            cycle
-        else if(i >= 3 * nmax + 26) then
+        else if(i >= 3 * nmax + 25) then
            nol2 = nol2 + 1
            do j = 1, 5
               kline = trim(adjustl(kline))

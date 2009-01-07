@@ -400,11 +400,15 @@ contains
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 
+!!$       do nr=0,nrmax
+!!$          do nq=1,nqmax
+!!$             write(6,*) nr,nq,x(nq,nr)
+!!$          end do
+!!$       end do
+
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
        CALL TXCALC
-!       write(6,'(A4,I4,A1,2X,E20.10)') 'TMP(',NT,')',PTeV(NRA)
-!       write(6,'(A4,I4,A1,2X,E20.10)') 'TMP(',NT,')',PTiV(NRA)
 
        IF(IDIAG == 0 .OR. IDIAG == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
@@ -416,7 +420,6 @@ contains
              ELSE
                 WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
              END IF
-!             write(6,*) AJT,AJOHT
           END IF
        END IF
 

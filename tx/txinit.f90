@@ -336,10 +336,11 @@ SUBROUTINE TXINIT
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
 
-  !   Amplitude for numerical stability
+  !   Amplitude for numerical convergence
   AMPe4 = 1.D3
+  AMPm5 = 1.D3
 
-  !   Permittivity switch for numerical stability
+  !   Permittivity switch for numerical convergence
   rMUb1 = rMU0
   rMUb2 = 1.d0
 
@@ -390,7 +391,7 @@ SUBROUTINE TXINIT
   !   2 : Change Line Color and Style (With Legend)
   !   3 : Change Line Color, Style and Mark
   !   4 : Change Line Color, Style and Mark (With Legend)
-  MODEGL=1
+  MODEGL = 1
 
   !   Mode of AV
   !   0 : OFF
@@ -485,7 +486,7 @@ SUBROUTINE TXINIT
   gDIV(37) = 1.E20
   gDIV(38) = 1.E3
   gDIV(41) = 1.E6
-  gDIV(42) = 1.E6
+  gDIV(42) = 1.E3
   gDIV(45) = 1.E3
   gDIV(46) = 1.E3
   gDIV(50) = 1.E3
@@ -768,7 +769,7 @@ SUBROUTINE TXPROF
      ! N0_2 (fast neutrals)
      X(LQn2,NR) = 0.D0
      ! Bphi
-     X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0
+     X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0 / AMPm5
      BphV(NR)   = BB
      ! Fixed densities to keep them constant during iterations
      PNeV_FIX(NR) = X(LQe1,NR)
@@ -1043,7 +1044,7 @@ SUBROUTINE TXPROF
      CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
      RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
      X(LQm5,0) = 0.D0
-     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
+     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0 / AMPm5
      deallocate(CMTX,RHSV,TMP)
 
      CALL TXCALV(X)

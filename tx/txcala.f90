@@ -377,7 +377,7 @@ contains
 
     ! rot Bphi
 
-    ELM(1:NEMAX,1:4,1,LQm2) = - 4.D0 * fem_int(18,UNITY) - 4.D0 * fem_int(4)
+    ELM(1:NEMAX,1:4,1,LQm2) = (- 4.D0 * fem_int(18,UNITY) - 4.D0 * fem_int(4)) * AMPm5
     NLC(1,LQm2) = LQm5
 
     ! Electron current
@@ -473,7 +473,7 @@ contains
 
   SUBROUTINE LQm5CC
 
-    ELM(1:NEMAX,1:4,0,LQm5) = fem_int(1) * invDT 
+    ELM(1:NEMAX,1:4,0,LQm5) = fem_int(1) * invDT * AMPm5
     NLC(0,LQm5) = LQm5
 
     ! r * Atheta'

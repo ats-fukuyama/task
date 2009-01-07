@@ -27,10 +27,10 @@ contains
     EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX)
     EphV (0:NRMAX) = - XL(LQm3,0:NRMAX)
     AphV (0:NRMAX) =   XL(LQm4,0:NRMAX) * rMUb2
-    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0
+    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0 * AMPm5
     DO NR = 0, NRMAX
        BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX) * rMUb2
-       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * rMU0
+       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * rMU0  * AMPm5
     END DO
 
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
@@ -258,6 +258,7 @@ contains
 
     ! *** Defined input *********************************************
     if(iflag_file == 1) then
+
        ! Birth TOTAL (SNB for heating profiles)
        i = 1
        call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNB)
@@ -355,7 +356,7 @@ contains
        ! Local parallel velocity at birth for passing ions
        i = 6
        call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara)
-       
+
     ! *** Arbitrary input *********************************************
     else if(iflag_file == 2) then
        do i = 1, n_infiles
