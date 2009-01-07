@@ -15,7 +15,6 @@ SUBROUTINE TXGRUR(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)
   integer(4) :: INQ
   CHARACTER(LEN=80) :: STR, KV
   REAL(4) :: GX1, GX2, GY1, GY2
-  integer(4) :: nr,ntl
 
   STR = '@3D Graphic@'
   KV  = ''

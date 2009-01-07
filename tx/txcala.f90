@@ -13,7 +13,8 @@ module tx_coefficients
        & BphBNi, BthBNi, Dbrpft, &
        & rNuei1EI, rNuei2BthEI, rNuei3EI, &
        & rNube1BE, rNube2BthBE, rNube3BE, &
-       & Vbparaph, RVbparath
+       & Vbparaph, RVbparath, &
+       & Chie1, Chie2, Chii1, Chii2
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -105,7 +106,8 @@ contains
        &     BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
-       &     Vbparaph(0:N), RVbparath(0:N))
+       &     Vbparaph(0:N), RVbparath(0:N), &
+       &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -228,7 +230,8 @@ contains
        &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
        &       rNube1BE, rNube2BthBE, rNube3BE, &
-       &       Vbparaph, RVbparath)
+       &       Vbparaph, RVbparath, &
+       &       Chie1, Chie2, Chii1, Chii2)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -303,6 +306,11 @@ contains
     rNube1BE   (0:NRMAX)  = rNube1   (0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNube2BthBE(0:NRMAX)  = rNube2Bth(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
     rNube3BE   (0:NRMAX)  = rNube3   (0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)
+
+    Chie1(0:NRMAX) = Chie(0:NRMAX) + ChiNCTe(0:NRMAX) + ChiNCpe(0:NRMAX)
+    Chie2(0:NRMAX) = Chie(0:NRMAX) + ChiNCTe(0:NRMAX)
+    Chii1(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX) + ChiNCpi(0:NRMAX)
+    Chii2(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX)
 
 !!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
 !!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)
@@ -919,10 +927,10 @@ contains
 
        ! Conduction transport
 
-       ELM(1:NEMAX,1:4, 2,LQe5) = - 4.D0 * fem_int(18,Chie)
+       ELM(1:NEMAX,1:4, 2,LQe5) = - 4.D0 * fem_int(18,Chie1)
        NLC( 2,LQe5) = LQe5
 
-       ELM(1:NEMAX,1:4, 3,LQe5) =   4.D0 * fem_int(41,Chie,PTeV)
+       ELM(1:NEMAX,1:4, 3,LQe5) =   4.D0 * fem_int(41,Chie2,PTeV)
        NLC( 3,LQe5) = LQe1
 
        ! Redundant heat advection
@@ -1480,7 +1488,12 @@ contains
     ELM(1:NEMAX,1:4,24,LQi4) = - 4.D0 * fem_int(18,DMAGi)
     NLC(24,LQi4) = LQi4
 
-    NLCMAX(LQi4) = 24
+    !  Virtual torque input
+
+    PELM(1:NEMAX,1:4,25,LQi4) =   1.D0 / (AMI * RR * 1.D20) * fem_int(-1,Tqi)
+    NLC(25,LQi4) = 0
+
+    NLCMAX(LQi4) = 25
     RETURN
   END SUBROUTINE LQi4CC
 
@@ -1505,10 +1518,10 @@ contains
 
        ! Conduction transport
 
-       ELM(1:NEMAX,1:4, 2,LQi5) = - 4.D0 * fem_int(18,Chii)
+       ELM(1:NEMAX,1:4, 2,LQi5) = - 4.D0 * fem_int(18,Chii1)
        NLC( 2,LQi5) = LQi5
 
-       ELM(1:NEMAX,1:4, 3,LQi5) =   4.D0 * fem_int(41,Chii,PTiV)
+       ELM(1:NEMAX,1:4, 3,LQi5) =   4.D0 * fem_int(41,Chii2,PTiV)
        NLC( 3,LQi5) = LQi1
 
        ! Redundant heat convection term

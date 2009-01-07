@@ -148,7 +148,7 @@ contains
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, &
-         &     rGIC, rH, dErdr, dpdr, PROFCL, PROFDL, PALFL, &
+         &     rGIC, rH, dErdr, dpdr, PROFCL, PALFL, &
          &     DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
@@ -157,7 +157,7 @@ contains
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, Tqi0L
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8) :: PAHe = 4.D0 ! Atomic mass number of He
@@ -421,7 +421,7 @@ contains
        RatCX = Scxb / (Scxb + Sion)
     END IF
 
-    ! Alpha heating
+    !   Alpha heating
 
     do nr = 0, nrmax
        PALFL = FSNF * bosch_fusion(PTiV(NR),0.5D0*PNiV(NR),0.5D0*PNiV(NR))
@@ -431,17 +431,23 @@ contains
        PALFe(NR) = PALFL - PALFi(NR)
     end do
 
+    !   Virtual torque input to LQi4
+
+    CALL deposition_profile(Tqi,SL,0.d0,0.d0,'Virtual')
+    Tqi0L = Tqi0 / (2.D0 * Pi * RR * SL)
+    Tqi(0:NRMAX) = Tqi0L * Tqi(0:NRMAX)
+
     ! ************** Heating part end **************
 
     p(0:NRMAX) = (PeV(0:NRMAX) + PiV(0:NRMAX)) * 1.D20 * rKeV
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
-    IF(PROFD == 0.D0 .AND. FSDFIX /= 0.D0) THEN
+    IF(PROFC == 0.D0 .AND. FSDFIX /= 0.D0) THEN
        PROFCL = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
             &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX
     ELSE
-       PROFCL = PROFD
+       PROFCL = PROFC
     END IF
 
     ! Banana width
@@ -497,11 +503,13 @@ contains
 !tokamaks       rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
 
        !     *** Ionization rate ***
-       !     (NRL Plasma Formulary p54 Eq. (12) (2002))
-       XXX = MAX(PTeV(NR) * 1.D3 / EION, 1.D-2)
-       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
-            &              / (EION**1.5D0 * (6.D0 + XXX))
-       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
+
+!!$       !     (NRL Plasma Formulary p54 Eq. (12) (2002))
+!!$       XXX = MAX(PTeV(NR) * 1.D3 / EION, 1.D-2)
+!!$       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
+!!$            &              / (EION**1.5D0 * (6.D0 + XXX))
+!!$       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNuION(NR) = FSION * SiViz(PTeV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Slow neutral diffusion coefficient ***
 
@@ -516,24 +524,21 @@ contains
             &      * Vti * 1.D20)
 
        !     *** Charge exchange rate ***
-!!$       !     (Amano and Okamoto, JAERI-M 8420)
-!!$
-!!$       XXX = LOG10(MAX(PTiV(NR) * 1.D3, 50.D0))
-!!$       ScxV = 1.57D-16 * SQRT(PTiV(NR) * 1.D3) &
-!!$            &          * (XXX * XXX - 14.63D0 * XXX + 53.65D0)
-!!$       rNuiCX(NR) = FSCX * ScxV * (PN01V(NR) + PN02V(NR)) * 1.D20
-
-       !     (Riviere, NF 11 (1971) 363, Eq.(4))
        !  For thermal ions (assuming that energy of deuterium
        !                    is equivalent to that of proton)
-       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
-            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
-       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
-       rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+
+!!$       !     (Riviere, NF 11 (1971) 363, Eq.(4))
+!!$       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
+!!$            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
+!!$       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
+!!$       rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !  For beam ions
-       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
-       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+       !     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, p.323, B163)
+!!$       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
+!!$       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNubCX(NR) = FSCX * Scxb * Vb * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Collision frequency (with neutral) ***
 
@@ -596,7 +601,8 @@ contains
        !     *** Parallel neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
-       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR),IER)
+       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
+            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR),IER)
        IF(IER /= 0) IERR = IER
 
        ELSE
@@ -760,21 +766,22 @@ contains
 
        !     *** Turbulent transport of particles ***
 
-!       PROFDL = 8.D0
-       PROFDL = 3.D0
-!       PROFDL = 2.D0
+!       PROFD = 8.D0
+!       PROFD = 3.D0
+!       PROFD = 2.D0
        IF (R(NR) < RA) THEN
-          DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
-!          DeL = FSDFIX * (1.D0 + (PROFDL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**4) + FSCDBM * DCDBM
+!          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
+!          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ELSE
-          IF(FSPSCL == 0.D0) THEN
-             factor_bohm = (FSDFIX * PROFDL + FSCDBM * DCDBM) &
+          IF(FSPCLD == 0.D0) THEN
+             factor_bohm = (FSDFIX * PROFD + FSCDBM * DCDBM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPSCL * FSDFIX * PROFDL
+             DeL = FSPCLD * FSDFIX * PROFD
           END IF
-!!$          DeL = FSDFIX * PROFDL + FSCDBM * DCDBM
+!!$          DeL = FSDFIX * PROFD + FSCDBM * DCDBM
        END IF
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -786,15 +793,15 @@ contains
           DeL = FSDFIX * (1.D0 + (PROFCL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
-          IF(FSPSCL == 0.D0) THEN
+          IF(FSPCLC == 0.D0) THEN
              factor_bohm = (FSDFIX * PROFCL + FSCDBM * DCDBM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
 !bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX * PROFCL &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPSCL * FSDFIX * PROFCL
-!pedestal             DeL = FSPSCL * FSDFIX * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
+             DeL = FSPCLC * FSDFIX * PROFCL
+!pedestal             DeL = FSPCLC * FSDFIX * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
        END IF
 !       DeL = 3.d0
@@ -975,6 +982,8 @@ contains
           DMAGi(NR)=0.D0
        ENDIF
 
+!!Parail_SOL       if(nr>=nra) write(6,*) nr,RB-RA,sqrt(rmui(nr)*(RR*q(nr)/Vti))
+
     END DO L_NR
 
     rNuAse(0) = AITKEN2P(R(0),rNuAse(1),rNuAse(2),rNuAse(3),R(1),R(2),R(3))
@@ -983,6 +992,10 @@ contains
     rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
     if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
     if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
+    ChiNCpe(0) = AITKEN2P(R(0),ChiNCpe(1),ChiNCpe(2),ChiNCpe(3),R(1),R(2),R(3))
+    ChiNCte(0) = AITKEN2P(R(0),ChiNCte(1),ChiNCte(2),ChiNCte(3),R(1),R(2),R(3))
+    ChiNCpi(0) = AITKEN2P(R(0),ChiNCpi(1),ChiNCpi(2),ChiNCpi(3),R(1),R(2),R(3))
+    ChiNCti(0) = AITKEN2P(R(0),ChiNCti(1),ChiNCti(2),ChiNCti(3),R(1),R(2),R(3))
 
 !    write(6,*) INTG_F(SNBe),INTG_F(SNBi)
 !    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6
@@ -1440,7 +1453,7 @@ contains
 !   Heating deposition profile
 !     Input : R0    : Deposition center (m)
 !             RW    : Deposition width (m)
-!             CHR   : Trapped NB, passing NB or RF
+!             CHR   : Trapped NB, passing NB, RF or Virtual torque
 !             PNBCD : Injection direction, optional
 !     Output : S(0:NRMAX) : Deposition profile
 !              SINT       : Normalization factor
@@ -1460,7 +1473,10 @@ contains
     real(8) :: EpsL, Rshift, Rpotato, rhop
     real(8) :: AITKEN2P
 
-    if(CHR == 'RFe' .OR. CHR == 'RFi') then
+    if(CHR == 'Virtual') then
+       S(0:NRA) = 1.D0 - (R(0:NRA) / RA)**2
+       S(NRA+1:NRMAX) = 0.D0
+    else if(CHR == 'RFe' .OR. CHR == 'RFi') then
        S(0:NRMAX) = EXP(- ((R(0:NRMAX) - R0) / RW)**2) * (1.D0 - (R(0:NRMAX) / RB)**4)
     else if(CHR == 'NB') then
        if(abs(FSRP) > 0.D0) then
@@ -1712,6 +1728,67 @@ contains
     bosch_fusion = 5.6d-13*denDcgs*denTcgs*svdt*1.d6
     
   end function bosch_fusion
+
+!***************************************************************
+!
+!   Rate coefficients for electron impact hydrogen (e+H) ionization process
+!     valid for 1eV => 10^5eV
+! 
+!     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, Eq. (2.9.5l))
+!     (R.L. Freeman and E.M. Jones, Culham Laboratory Report, CLM-R-137 (May 1974)
+!
+!     Inputs (real*8): tekev : Electron temperature [keV]
+!     Output (real*8): SiViz : Ionization maxwellian rate coefficient (m^3/s)
+!
+!     Internal (real*8): a : Table of Maxwellian rate coefficients in TABLE 3
+!                                     ^^^^^^^^^^
+!***************************************************************
+
+  real(8) function SiViz(tekev)
+
+    implicit none
+    real(8), intent(in) :: tekev
+    real(8) :: x
+    real(8), dimension(0:6) :: a
+    data a /-0.3173850D02, 0.1143818D02, -0.3833998D01, 0.7046692D0, &
+         &  -0.7431486D-1, 0.4153749D-2, -0.9486967D-4/
+
+    if(tekev < 1.d-3 .or. tekev > 1.d2) stop 'Function SiViz: Out of energy range.'
+    x = log(tekev * 1.d3)
+    SiViz = exp(a(0)+x*(a(1)+x*(a(2)+x*(a(3)+x*(a(4)+x*(a(5)+x*a(6)))))))*1.D-6
+
+  end function SiViz
+
+!***************************************************************
+!
+!   Rate coefficients for charge exchange cross-section protons on atomic hydrogen
+!     valid for 1eV => 10^5eV
+! 
+!     (R.L. Freeman and E.M. Jones, Culham Laboratory Report, CLM-R-137 (May 1974)
+!
+!     Inputs (real*8): tikev : Ion temperature [keV]
+!     Output (real*8): SiVcx : Charge exchange maxwellian rate coefficient (m^3/s)
+!
+!     Internal (real*8): a : Table of Maxwellian rate coefficients in TABLE 3
+!                                     ^^^^^^^^^^
+!***************************************************************
+
+  real(8) function SiVcx(tikev)
+
+    implicit none
+    real(8), intent(in) :: tikev
+    real(8) :: x
+    real(8), dimension(0:8) :: a
+    data a /-0.1841757D02, 0.5282950D0, -0.2200477D0,   0.9750192D-1, &
+         &  -0.1749183D-1, 0.4954298D-3, 0.2174910D-3, -0.2530205D-4, 0.8230751D-6/
+
+    if(tikev < 1.d-3 .or. tikev > 1.d2) stop 'Function SiVcx: Out of energy range.'
+    x = log(tikev * 1.d3)
+    SiVcx = exp( a(0)+x*(a(1)+x*(a(2)+x*(a(3)+x*(a(4) &
+         &      +x*(a(5)+x*(a(6)+x*(a(7)+x*a(8)))))))))*1.D-6
+
+  end function SiVcx
+
 
 !!$  real(8) function ripple(NR,theta,FSRP) result(f)
 !!$    use tx_commons, only : RR, R, RA, NTCOIL

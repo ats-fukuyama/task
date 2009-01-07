@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=128, NGYTM=48, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=131, NGYTM=48, &
        &                   NGYVM=49, NGPRM=19, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
@@ -63,7 +63,7 @@ module tx_commons
   real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, WPM0, WPE0, WPI0
 
   ! Amplitude parameters for transport
-  real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPSCL, PROFD
+  real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPCLD, FSPCLC, PROFD, PROFC
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD0, rG1, FSRP, FSNF
   integer(4) :: MDLC
 
@@ -73,7 +73,7 @@ module tx_commons
   ! Heat sources
   real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
        &     PNBCD, PNBMPD, &
-       &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi
+       &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi, Tqi0
   integer(4) :: MDLNBD, MDLMOM
 
   ! Neutral parameters
@@ -108,6 +108,9 @@ module tx_commons
 
   ! Implicit Euler or Gear's backward differential formula
   integer(4) :: IGBDF
+
+  ! Nonlinear iteration method
+  integer(4) :: MDSOLV
 
   !  Transport model
   integer(4) :: MDLWTB, MDLETA, MDFIXT
@@ -152,6 +155,7 @@ module tx_commons
        & rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        & FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        & Chie, Chii, De, Di, D01, D02, &
+       & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
@@ -169,7 +173,7 @@ module tx_commons
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
-       &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, &
+       &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, Tqi, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
        &                                SiLC, SiLCth, SiLCph, PALFe, PALFi
@@ -195,7 +199,7 @@ module tx_commons
   real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH
   real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   real(8) :: TPRE, WPPRE
-  real(8) :: VOLAVN
+  real(8) :: VOLAVN, Gamma_a
 
   ! Internal variables for transport matrix
   real(8),    dimension(:,:,:), allocatable :: ALC, BLC, CLC, PLC
@@ -242,7 +246,7 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:18) :: ierl
+    integer(4), dimension(1:19) :: ierl
 
     ierl(1:18) = 0
     if(nrmax <= 1) then
@@ -296,14 +300,15 @@ contains
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   rMue(0:N),  rMui(0:N),  stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
        allocate(De(0:N),     Di(0:N),     D01(0:N),   D02(0:N),               stat = ierl(10))
-       allocate(WNthe(0:N),  WEMthe(0:N), WWthe(0:N), WT1the(0:N),WT2the(0:N),stat = ierl(11))
-       allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(12))
-       allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(13))
-       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(14))
-       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(15))
-       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
-       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(17))
-       allocate(DMAG(0:N),     DMAGe(0:N),     DMAGi(0:N),                    stat = ierl(18))
+       allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
+       allocate(WNthe(0:N),  WEMthe(0:N), WWthe(0:N), WT1the(0:N),WT2the(0:N),stat = ierl(12))
+       allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(13))
+       allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(14))
+       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(15))
+       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(16))
+       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(17))
+       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(18))
+       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(19))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -313,7 +318,7 @@ contains
 
        allocate(PNB(0:N),   PNBTG(0:N),PNBPD(0:N),PNBcol_e(0:N),PNBcol_i(0:N),stat = ierl(1))
        allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBb(0:N),              stat = ierl(2))
-       allocate(SNBPDi(0:N),SNBTGi(0:N),                                      stat = ierl(3))
+       allocate(SNBPDi(0:N),SNBTGi(0:N), Tqi(0:N),                            stat = ierl(3))
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
        allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
@@ -384,6 +389,7 @@ contains
     deallocate(FWthe,  FWthi,  WPM,   rMue,  rMui)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
     deallocate(De,     Di,     D01,   D02)
+    deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(WNthe,  WEMthe, WWthe, WT1the,WT2the)
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
@@ -397,7 +403,7 @@ contains
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
     deallocate(SNB,    SNBe,  SNBi,  SNBb)
-    deallocate(SNBPDi, SNBTGi)
+    deallocate(SNBPDi, SNBTGi,Tqi)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
     deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)

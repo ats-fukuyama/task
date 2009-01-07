@@ -71,22 +71,29 @@ contains
   SUBROUTINE TXLOOP
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 PNeV, PTeV,PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, &
-         &                 tiny_cap, EPS, IDIAG,NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
+         &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
-         &                 NT, DT, rIP, MDLPCK, NGR
+         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
 
     real(8), dimension(:,:), allocatable :: BA, BL
-    real(8), dimension(:),   allocatable :: BX
+    real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
     INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID
     INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
+    real(8), dimension(1:NQMAX) :: tiny_array
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
-    integer(4) :: iasg(1:2)
+    integer(4), dimension(1:2) :: iasg
+    real(8) :: denom, nume, tiny_denom
+    real(8), dimension(:,:), allocatable :: XN1, XN2
 
     allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
+    IF(MDSOLV == 1) THEN
+       allocate(XNvec(1:NQM*(NRMAX+1)),FL(1:NQM*(NRMAX+1)),FLP(1:NQM*(NRMAX+1)))
+       allocate(BAE(1:(NQM*(NRMAX+1))**2),DltXN(1:NQM*(NRMAX+1)),DltXP(1:NQM*(NRMAX+1)))
+    END IF
 
     !  Read spline table for neoclassical toroidal viscosity if not loaded when FSRP/=0
     IF(FSRP /= 0.D0 .AND. maxval(fmnq) == 0.D0) CALL Wnm_spline(fmnq, wnm, umnq, nmnqm)
@@ -110,9 +117,21 @@ contains
        ! Create new X = XN
        XN(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
 
+       ! Negligible order of magnitude for each variable
+       DO NQ = 1, NQMAX
+          tiny_array(NQ) = maxval(XN(NQ,0:NRMAX)) * tiny_cap
+       END DO
+
        L_IC : DO IC = 1, ICMAX
           ! Save past X = XP
           XP(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
+          IF(MDSOLV == 1 .and. IC == 1) THEN
+             DO NR = 0, NRMAX
+                DO NQ = 1, NQMAX
+                   XNvec(NQMAX * NR + NQ) = XN(NQ,NR)
+                END DO
+             END DO
+          END IF
 
           CALL TXCALV(XP,ID)
           IF(IC == 1) THEN
@@ -122,40 +141,89 @@ contains
 
           CALL TXCALC
           CALL TXCALA
-          CALL TXCALB(BA,BL,BX)
+          IF(MDSOLV == 1.and. IC /= 1) THEN
+             ! Get FL and BX
+             CALL TXCALB_SECANT(FL,BX,XNvec)
+          ELSE
+             ! Get BA or BL, and BX
+             CALL TXCALB(BA,BL,BX)
+          END IF
           CALL TXGLOB
-          IF(MDLPCK == 0) THEN
-             CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
-             IF (IERR >= 30000) THEN
-                WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
-                     &              NT, ' -', IC, ' step. IERR=',IERR
-                IERR = 1
-                XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
-                GOTO 180
+
+          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
+             IF(MDLPCK == 0) THEN
+                CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
+                IF (IERR >= 30000) THEN
+                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
+                        &              NT, ' -', IC, ' step. IERR=',IERR
+                   IERR = 1
+                   XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
+                   GOTO 180
+                END IF
+             ELSE
+                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, &
+                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR)
+                IF(IERR /= 0) THEN
+                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGBSV, IERR = ',  &
+                        &              NT, ' -', IC, ' step. IERR=',IERR
+                   IERR = 1
+                   XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
+                   GOTO 180
+                ENDIF
              END IF
           ELSE
-             CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, &
-                  &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR)
-             IF(IERR /= 0) THEN
-                WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGBSV, IERR = ',  &
-                     &              NT, ' -', IC, ' step. IERR=',IERR
-                IERR = 1
-                XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
-                GOTO 180
-             ENDIF
+             IF(MDLPCK == 0) THEN
+                stop 'TXLOOP: MDLPCK = 0 cannot be reconciled to MDSOLV = 1. '
+             ELSE
+                DO J = 1, NQMAX*(NRMAX+1)
+                   DO I = 1, NQMAX*(NRMAX+1)
+                      IF(DltXP(J) < tiny_cap) THEN
+                         BAE((NQMAX*(NRMAX+1))*(J-1)+I) = 0.D0
+                      ELSE
+                         BAE((NQMAX*(NRMAX+1))*(J-1)+I) = (FL(I) - FLP(I)) / DltXP(J)
+                      END IF
+!                      IF(I == J) write(6,*) BAE((NQMAX*(NRMAX+1))*(J-1)+I)
+                   END DO
+                END DO
+                DltXN(1:NQMAX*(NRMAX+1)) = - FL(1:NQMAX*(NRMAX+1))
+                CALL LAPACK_DGESV(NQMAX*(NRMAX+1),1,BAE,NQMAX*(NRMAX+1), &
+                     &            IPIV,DltXN,NQMAX*(NRMAX+1),IERR)
+                IF(IERR /= 0) THEN
+                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGESV, IERR = ',  &
+                        &              NT, ' -', IC, ' step. IERR=',IERR
+                   IERR = 1
+                   XN(1:NQMAX,0:NRMAX) = XP(1:NQMAX,0:NRMAX)
+                   GOTO 180
+                ENDIF
+             END IF
           END IF
 
-          ! Copy calculated variables' vector to variable matrix
-          DO NR = 0, NRMAX
-             DO NQ = 1, NQMAX
-                XN(NQ,NR) = BX(NQMAX * NR + NQ)
+          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
+             ! Copy calculated variables' vector to variable matrix
+             DO NR = 0, NRMAX
+                DO NQ = 1, NQMAX
+                   XN(NQ,NR) = BX(NQMAX * NR + NQ)
+                END DO
              END DO
-          END DO
+          ELSE
+             DO NR = 0, NRMAX
+                DO NQ = 1, NQMAX
+                   DltXN(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ)
+                   XN(NQ,NR) = XP(NQ,NR) + DltXN(NQMAX * NR + NQ)
+                   XNvec(NQMAX * NR + NQ) = XN(NQ,NR)
+                END DO
+             END DO
+          END IF
+
           ! Avoid negative values
           CALL MINUS_GOES_ZERO(XN,LQb1,0)
           CALL MINUS_GOES_ZERO(XN,LQn1,1)
           ! Ignore tiny values
-          where (abs(xn) < tiny_cap) xn = 0.d0
+          DO NQ = 1, NQMAX
+             DO NR = 0, NRMAX
+                if(abs(XN(NQ,NR)) < tiny_array(NQ)) XN(NQ,NR) = 0.d0
+             END DO
+          END DO
 !!$          ! In the case of NBI off after NBI on
 !!$          IF(PNBH == 0.D0) CALL THRESHOLD(XN(LQb1,0:NRMAX),ID)
 !!$          IF(ID == 1) THEN
@@ -180,8 +248,93 @@ contains
              RETURN
           END IF
 
+          IF(MDSOLV == 1) THEN
+             FLP(1:NQMAX*(NRMAX+1)) = FL(1:NQMAX*(NRMAX+1))
+             DO NR = 0, NRMAX
+                DO NQ = 1, NQMAX
+                   XNvec(NQMAX * NR + NQ) = XN(NQ,NR)
+                   DltXP(NQMAX * NR + NQ) = XNvec(NQMAX * NR + NQ) - XP(NQ,NR)
+                END DO
+             END DO
+          END IF
+
+          if(MDSOLV == 2) then
+
+             ! Steffensen's method (not completed)
+
+             tiny_denom = tiny_cap * EPS
+
+             allocate(XN1(1:NQMAX,0:NRMAX),XN2(1:NQMAX,0:NRMAX))
+
+             ! Save past X = XN1
+             XN1(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
+
+             CALL TXCALV(XN1,ID)
+             CALL TXCALC
+             CALL TXCALA
+             CALL TXCALB(BA,BL,BX)
+             CALL TXGLOB
+             IF(MDLPCK == 0) THEN
+                CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
+                IF (IERR >= 30000) THEN
+                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : Matrix BA is singular at ',  &
+                        &              NT, ' -', IC, ' step. IERR=',IERR
+                   IERR = 1
+                   XN(1:NQMAX,0:NRMAX) = XN1(1:NQMAX,0:NRMAX)
+                   GOTO 180
+                END IF
+             ELSE
+                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, &
+                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR)
+                IF(IERR /= 0) THEN
+                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : DGBSV, IERR = ',  &
+                        &              NT, ' -', IC, ' step. IERR=',IERR
+                   IERR = 1
+                   XN(1:NQMAX,0:NRMAX) = XN1(1:NQMAX,0:NRMAX)
+                   GOTO 180
+                ENDIF
+             END IF
+
+             ! Copy calculated variables' vector to variable matrix
+             DO NR = 0, NRMAX
+                DO NQ = 1, NQMAX
+                   XN2(NQ,NR) = BX(NQMAX * NR + NQ)
+                END DO
+             END DO
+             ! Avoid negative values
+             CALL MINUS_GOES_ZERO(XN2,LQb1,0)
+             CALL MINUS_GOES_ZERO(XN2,LQn1,1)
+             ! Ignore tiny values
+             DO NQ = 1, NQMAX
+                DO NR = 0, NRMAX
+                   if(abs(XN2(NQ,NR)) < tiny_array(NQ)) XN2(NQ,NR) = 0.d0
+                END DO
+             END DO
+!             where (abs(xn2) < tiny_cap) xn2 = 0.d0
+
+             do NQ = 1, NQMAX
+                do NR = 0, NRMAX
+                   if(abs(XN(NQ,NR) - XP(NQ,NR)) > tiny_cap) then
+                      denom = XP(NQ,NR) - 2.D0 * XN1(NQ,NR) + XN2(NQ,NR)
+                      nume  = (XN1(NQ,NR) - XP(NQ,NR))**2
+                      if(abs(denom) < tiny_denom) then
+                         XN(NQ,NR) = 0.D0
+!                         write(6,*) "PASS: NQ=",NQ,"  NR=",NR
+!                         write(6,*) denom, tiny_denom
+                      else
+                         XN(NQ,NR) = XP(NQ,NR) - nume / denom
+                      end if
+                   end if
+                end do
+             end do
+
+             deallocate(XN1,XN2)
+
+          end if
+
 !          IF(IC == 1) EXIT L_IC
 
+          ASG(1:NQMAX,0:NRMAX) = 0.D0
           L_NQ:DO NQ = 1, NQMAX
              ! Calculate maximum local root-mean-square of X and corresponding grid point
              NRAVM = SUM(MAXLOC(SQRT(XN(NQ,0:NRMAX)**2)))-1
@@ -216,7 +369,8 @@ contains
                    IF (NQ == NQMAX) CYCLE L_IC
                 ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPS) THEN
                    IF(IDIAG == 3) THEN
-                      IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
+!                      IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
+                      IASG(1:2) = MAXLOC(ASG(1:NQ,0:NR))
                       WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
                            &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
                    END IF
@@ -225,6 +379,7 @@ contains
              END DO L_NR
 
           END DO L_NQ
+
           EXIT L_IC
        END DO L_IC
 
@@ -278,6 +433,8 @@ contains
 
        IF (MOD(NT, NTMAX ) == 0) CALL TXSTGQ
 
+       call cal_flux
+
        IF (IERR /= 0) EXIT L_NTDO
 
     END DO L_NTDO
@@ -287,17 +444,26 @@ contains
     WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
 
     deallocate(BA,BL,BX)
+    IF(MDSOLV == 1) deallocate(XNvec,FL,FLP,DltXN,DltXP,BAE)
 
     RETURN
   END SUBROUTINE TXLOOP
 
-!***************************************************************
+!*********************************************************************************
 !
-!   Calculate BA, BX
-!      BA : coefficient matrix
+!   Calculate coefficients matrix BA or BL and vector BX for linearlized equation
+!
+!      BA : coefficient matrix for BANDRD solver
+!      BL : coefficient matrix for LAPACK DGBSV solver
 !      BX : right-hand-side vector
 !
-!***************************************************************
+!   ** Simple explanation **
+!
+!      A(u)u=b(u)+c, where A denotes the matrix, u the vector to be solved
+!                          b the coefficients vector of u,
+!                          c the additive coefficients vector independent on u
+!
+!*********************************************************************************
 
   SUBROUTINE TXCALB(BA,BL,BX)
 
@@ -314,7 +480,7 @@ contains
     !  NR : number of radial mesh 
     !  NQ : number of equation
 
-    ! *** Left-hand-side coefficient matrix ***
+    ! *** Left-hand-side banded coefficient matrix, denoted by "A" ***
 
     !***************************************************************
     !   ALC, BLC and CLC are NQMAX x max(NLCMAX) on each NR,
@@ -323,6 +489,7 @@ contains
     !   certain variable in certain term in certain equation.
     !***************************************************************
 
+    ! For BANDRD solver
     IF(MDLPCK == 0) THEN
        BA(1:NQMAX*4-1,1:NQMAX*(NRMAX+1)) = 0.D0
 
@@ -359,6 +526,7 @@ contains
           END DO
        END DO
 
+    ! For LAPACK DGBSV solver
     ELSE
        BL(1:6*NQMAX-2,1:NQMAX*(NRMAX+1)) = 0.D0
        KL = 2 * NQMAX - 1
@@ -431,7 +599,7 @@ contains
 
     END IF
 
-    ! *** Right-hand-side vector ***
+    ! *** Right-hand-side vector, denoted by "bu" ***
 
     BX(1:NQMAX*(NRMAX+1)) = 0.D0
 
@@ -486,7 +654,7 @@ contains
        END IF
     END DO
 
-    ! In the case of general term effect in any equations
+    ! *** In the case of general term effect in any equations, denoted by "c" ***
     DO NR = 0, NRMAX
        DO NQ = 1, NQMAX
           DO NC = 1, NLCMAX(NQ)
@@ -495,7 +663,9 @@ contains
        END DO
     END DO
 
-    ! Numerical scheme
+    ! *** Only the case of not BDF ***
+    !  Because "ADV" has no longer original meaning when BDF is used.
+
     IF(IGBDF == 0) THEN
     NR = 0
        DO NQ = 1, NQMAX
@@ -535,6 +705,7 @@ contains
           END DO
        END DO
     END IF
+
     RETURN
   END SUBROUTINE TXCALB
 
@@ -640,5 +811,191 @@ contains
 !!$
 !!$  END SUBROUTINE THRESHOLD
 
-end module tx_main
+!*********************************************************************************
+!
+!   Calculate coefficients matrix BA or BL and vector BX for linearlized equation
+!
+!      BA : coefficient matrix for BANDRD solver
+!      BL : coefficient matrix for LAPACK DGBSV solver
+!      BX : right-hand-side vector
+!
+!   ** Simple explanation **
+!
+!      A(u)u=b(u)+c, where A denotes the matrix, u the vector to be solved
+!                          b the coefficients vector of u,
+!                          c the additive coefficients vector independent on u
+!
+!*********************************************************************************
 
+  SUBROUTINE TXCALB_SECANT(FL,BX,XNvec)
+
+    use tx_commons, only : IGBDF, ADV, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
+         &              PLC, X, XOLD
+    real(8), dimension(:), intent(out) :: FL
+    real(8), dimension(:), intent(inout) :: BX
+    real(8), dimension(:), intent(in) :: XNvec
+    INTEGER(4) :: NR, NQ, NC, NC1, IA, IB, IC
+    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
+    
+    IF(IGBDF /= 0) ADV = C23
+
+    !  NR : number of radial mesh 
+    !  NQ : number of equation
+
+    ! *** Left-hand-side coefficient matrix, denoted by "A" ***
+
+    !***************************************************************
+    !   ALC, BLC and CLC are NQMAX x max(NLCMAX) on each NR,
+    !   then IC, IB and IA are NQMAX away from each other,
+    !   which are pointers of columns of the matrix BA in terms of 
+    !   certain variable in certain term in certain equation.
+    !***************************************************************
+
+    FL(1:NQMAX*(NRMAX+1)) = 0.D0
+
+    ! Time derivative (NC=0)
+    DO NR = 0, NRMAX
+       DO NQ = 1, NQMAX
+          NC = 0
+          NC1 = NLCR(NC,NQ,NR)
+          IF(NC1 == 0) CYCLE
+          IC = NQMAX * (NR - 1) + NC1
+          IB = IC + NQMAX
+          IA = IB + NQMAX
+          IF(NR /= 0)     FL(IC) = FL(IC) + CLC(NC,NQ,NR) * XNvec(IC)
+                          FL(IB) = FL(IB) + BLC(NC,NQ,NR) * XNvec(IB)
+          IF(NR /= NRMAX) FL(IA) = FL(IA) + ALC(NC,NQ,NR) * XNvec(IA)
+       END DO
+    END DO
+
+    ! *** NC /= 0 ***
+    DO NR = 0, NRMAX
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 == 0) CYCLE
+             IC = NQMAX * (NR - 1) + NC1
+             IB = IC + NQMAX
+             IA = IB + NQMAX
+             IF(NR /= 0)     FL(IC) = FL(IC) - CLC(NC,NQ,NR) * ADV * XNvec(IC)
+                             FL(IB) = FL(IB) - BLC(NC,NQ,NR) * ADV * XNvec(IB)
+             IF(NR /= NRMAX) FL(IA) = FL(IA) - ALC(NC,NQ,NR) * ADV * XNvec(IA)
+!             write(6,'(7I6)') NR,NQ,NC,NC1,IC,IB,IA
+          END DO
+       END DO
+    END DO
+
+    ! *** Right-hand-side vector, denoted by "bu" ***
+
+    BX(1:NQMAX*(NRMAX+1)) = 0.D0
+
+    IF(IGBDF == 0) THEN
+       COEF1 = 1.D0
+       COEF2 = 0.D0
+       COEF3 = 1.D0
+    ELSE
+       COEF1 = C43
+       COEF2 = C13
+       COEF3 = C23
+    END IF
+
+    ! In the case of NC=0 i.e. time derivative term effects in any equations
+    NC = 0
+    NR = 0
+    DO NQ = 1, NQMAX
+       NC1 = NLCR(NC,NQ,NR)
+       IF(NC1 /= 0) THEN
+          BX(NQMAX * NR + NQ) &
+               & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+               &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+               &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+       END IF
+    END DO
+
+    DO NR = 1, NRMAX - 1
+       DO NQ = 1, NQMAX
+          NC1 = NLCR(NC,NQ,NR)
+          IF(NC1 /= 0) THEN
+             BX(NQMAX * NR + NQ) &
+                  &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+                  &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+                  &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+                  &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+                  &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+                  &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+          END IF
+       END DO
+    END DO
+
+    NR = NRMAX
+    DO NQ = 1, NQMAX
+       NC1 = NLCR(NC,NQ,NR)
+       IF(NC1 /= 0) THEN
+          BX(NQMAX * NR + NQ) &
+               & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+               &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+               &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
+       END IF
+    END DO
+
+    ! *** In the case of general term effect in any equations, denoted by "c" ***
+    DO NR = 0, NRMAX
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR) * COEF3
+          END DO
+       END DO
+    END DO
+
+    ! *** Only the case of not BDF ***
+    !  Because "ADV" has no longer original meaning when BDF is used.
+
+    IF(IGBDF == 0) THEN
+    NR = 0
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  BLC(NC,NQ,NR) * X(NC1,NR  ) &
+                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+
+    DO NR = 1, NRMAX-1
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+                     &                + BLC(NC,NQ,NR) * X(NC1,NR  ) &
+                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+    END DO
+
+    NR = NRMAX
+       DO NQ = 1, NQMAX
+          DO NC = 1, NLCMAX(NQ)
+             NC1 = NLCR(NC,NQ,NR)
+             IF(NC1 /= 0) THEN
+                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+                     &                + BLC(NC,NQ,NR) * X(NC1,NR  )) * (1.D0 - ADV)
+             END IF
+          END DO
+       END DO
+    END IF
+
+    ! Making LHS term of "f(x)=0"
+    FL(1:NQMAX*(NRMAX+1)) = FL(1:NQMAX*(NRMAX+1)) - BX(1:NQMAX*(NRMAX+1))
+
+    RETURN
+  END SUBROUTINE TXCALB_SECANT
+
+end module tx_main

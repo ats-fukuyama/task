@@ -128,11 +128,17 @@ SUBROUTINE TXINIT
   !   Bohm transport coefficient parameter in SOL
   FSBOHM = 0.D0
 
-  !   Pseud-classical transport coefficient parameter in SOL
-  FSPSCL = 0.D0
+  !   Pseud-classical particle transport coefficient parameter in SOL
+  FSPCLD = 0.D0
 
-  !   Diffusion coefficient profile parameter (D(r=a)/D(r=0))
-  PROFD = 10.D0
+  !   Pseud-classical heat & mom transport coefficient parameter in SOL
+  FSPCLC = 0.D0
+
+  !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
+  PROFD =  3.D0
+
+  !   Heat & mom diffusion coefficient profile parameter (D(r=a)/D(r=0))
+  PROFC = 10.D0
 
   !   ***** Other transport parameters *****
 
@@ -254,18 +260,25 @@ SUBROUTINE TXINIT
   PRFHe = 0.D0
   PRFHi = 0.D0
 
+  !   Virtual torque input (N m)
+  Tqi0  = 0.D0
+
   !   ***** Neutral parameters *****
 
   !   Initial Neutral density (10^20 m^-3)
   PN0s = 1.D-8
 
   !   Neutral thermal velocity (m/s)
+  !     V0 = SQRT(2.D0*X[eV]*AEE/(PA*AMP))
   V0 = 1.5D3
 
   !   Recycling rate in SOL
   rGamm0 = 0.8D0
 
   !   Gas-puff particle flux (10^20 m^-2 1/s)
+  !      If you input Gamma_0 [particles/sec], you translate it into
+  !      rGASPF [1/(m^2 s)]:
+  !        rGASPF = Gamma_0 / (2.D0*PI*RR*2.D0*PI*RB)
   rGASPF = 0.1D0
 
   !   ***** Ripple loss parameters *****
@@ -421,6 +434,12 @@ SUBROUTINE TXINIT
   !   1    : Use BDF
   IGBDF = 0
 
+  !   Mode of nonlinear iteration method
+  !   0    : fixed point method (or Picard method), linear convergence
+  !   1    : Secant method, golden ratio (1.618...) convergence (NOT working now)
+  !   2    : Steffensen's method, quadratic convergence (Validity unconfirmed)
+  MDSOLV = 0
+
   !   Mode of initial density and temperature profiles in the SOL
   !   0    : polynominal model
   !   1    : exponential decay model
@@ -452,7 +471,6 @@ SUBROUTINE TXINIT
   gDIV(13) = 1.E3
   gDIV(16) = 1.E14
   gDIV(17) = 1.E-3
-  gDIV(18) = 1.E6
   gDIV(19) = 1.E3
   gDIV(21) = 1.E6
   gDIV(22) = 1.E6
@@ -1052,11 +1070,11 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0, &
-       & FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD, &
+       & FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC, &
        & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
-       & rNRFe,RRFew,RRFe0,PRFHe, rNRFi,RRFiw,RRFi0,PRFHi, &
+       & rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
@@ -1066,7 +1084,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLMOM
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM
   private :: TXPLST
 
 contains
@@ -1171,7 +1189,8 @@ contains
        IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
        IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0 .OR. WPM0 < 0.D0) EXIT
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0) EXIT
-       IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0 .OR. FSPSCL < 0.D0) EXIT
+       IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0) EXIT
+       IF(FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
        IF(FSNF < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
@@ -1217,11 +1236,11 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,'/ &
-         &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPSCL,PROFD,'/ &
+         &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC,'/ &
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
          &       ' ',8X,'rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
-         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,rNRFe,RRFew,RRFe0,PRFHe,'/ &
+         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFe,RRFew,RRFe0,PRFHe,'/ &
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
@@ -1231,7 +1250,8 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDLNBD,MDLMOM')
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDSOLV' / & 
+         &       ' ',8X,'MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1259,12 +1279,13 @@ contains
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
          &   'WPM0  ', WPM0  ,  'WPE0  ', WPE0  ,  &
          &   'WPI0  ', WPI0  ,  'PROFD ', PROFD ,  &
+         &   'PROFC ', PROFC , &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
          &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
-         &   'FSBOHM', FSBOHM,  'FSPSCL', FSPSCL,  &
-         &   'FSCX  ', FSCX  ,  'FSLC  ', FSLC  ,  &
-         &   'FSRP  ', FSRP  ,  'FSNF  ', FSNF  ,  &
-         &   'FSNC  ', FSNC  ,  &
+         &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
+         &   'FSPCLC', FSPCLC,  'FSCX  ', FSCX  ,  &
+         &   'FSLC  ', FSLC  ,  'FSRP  ', FSRP  ,  &
+         &   'FSNF  ', FSNF  ,  'FSNC  ', FSNC  ,  &
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD0  ', FSD0  ,  'rLn   ', rLn   ,  &
@@ -1278,6 +1299,7 @@ contains
          &   'RRFe0 ', RRFe0 ,  'PRFHe ', PRFHe ,  &
          &   'rNRFi ', rNRFe ,  'RRFiw ', RRFiw ,  &
          &   'RRFi0 ', RRFi0 ,  'PRFHi ', PRFHi ,  &
+         &   'Tqi0  ', Tqi0  , &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
@@ -1302,8 +1324,8 @@ contains
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
          &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
-         &   'MDINIT', MDINIT, &
-         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
+         &   'MDINIT', MDINIT,  'IDIAG ', IDIAG ,  &
+         &   'IGBDF ', IGBDF,   'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &

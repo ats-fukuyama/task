@@ -29,8 +29,8 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR)
 
-all: $(PROG2)
-#all: $(PROG3)
+#all: $(PROG2)
+all: $(PROG2) $(PROG3)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC)
 	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC)

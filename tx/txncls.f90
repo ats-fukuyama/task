@@ -191,7 +191,7 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,IER)
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER)
 !***********************************************************************
 !TX_NCLASS calculates various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
@@ -273,11 +273,12 @@ contains
     INTEGER(4), INTENT(IN)  :: NR
     INTEGER(4), INTENT(OUT) :: IER
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAout, JBSout
-    INTEGER(4) :: i, k_out, k_v, ier_check, im, iz
+    INTEGER(4) :: i, k_out, k_v, ier_check, im, iz, model
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
          &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, ppr, &
-         &     AJBSL, ETAL, dPTeV, dPTiV, dPPe, dPPi
+         &     AJBSL, ETAL, dPTeV, dPTiV, dPPe, dPPi, &
+         &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
     REAL(8) :: DERIV3, AITKEN2P
 
     !     *** Ellipticity on axis ***
@@ -474,6 +475,7 @@ contains
        IF(iflag /= 0 .and. k_out > 0) WRITE(6,*) "XX iflag=",iflag
     ENDIF
 
+    !   Bootstrap current
     IF(Zeff == 1.D0) THEN
        JBSout =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
               &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
@@ -491,8 +493,10 @@ contains
     END IF
     IF(k_potato == 0 .and. NR == 0) JBSout = 0.D0
 
+    !   Neoclassical resistivity
     ETAout = DBLE(p_etap)
 
+    !   Neoclassical viscosity
     IF(NR == 0) THEN
        NueNC = 0.D0
        NuiNC = 0.D0
@@ -501,59 +505,14 @@ contains
        NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
     END IF
 
-!!$    AJBSNC(NR)=DBLE(p_bsjb)/BphV(NR)
-!!$    ETANC(NR) =DBLE(p_etap)
-!!$    AJEXNC(NR)=DBLE(p_exjb)/BphV(NR)
-!!$
-!!$    !     ADNCG : Diagonal diffusivity for graphic use only
-!!$    !     AVNCG : Off-diagonal part driven pinch and neoclassical pinch
-!!$    !             for graphic use only
-!!$
-!!$    DO NS=1,NSM
-!!$       CJBSP(NR,NS)=DBLE(bsjbp_s(NS))
-!!$       CJBST(NR,NS)=DBLE(bsjbt_s(NS))
-!!$       ADNCG(NR,NS)=DBLE(dn_s(NS))/AR2RHO(NR)
-!!$       AVNCG(NR,NS)=DBLE(vn_s(NS)+veb_s(NS))/AR1RHO(NR)
-!!$       DO NS1=1,NSLMAX
-!!$          AKNCP(NR,NS,NS1)=DBLE(chip_ss(NS,NS1))/AR2RHO(NR)
-!!$          AKNCT(NR,NS,NS1)=DBLE(chit_ss(NS,NS1))/AR2RHO(NR)
-!!$          ADNCP(NR,NS,NS1)=DBLE(dp_ss(NS,NS1))/AR2RHO(NR)
-!!$          ADNCT(NR,NS,NS1)=DBLE(dt_ss(NS,NS1))/AR2RHO(NR)
-!!$       ENDDO
-!!$       DO NM=1,5
-!!$          RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-!!$          RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NS))*1.D-20/AR1RHO(NR)
-!!$       ENDDO
-!!$       AVKNC(NR,NS)=DBLE(qeb_s(NS))/AR1RHO(NR)
-!!$       AVNC (NR,NS)=DBLE(veb_s(NS))/AR1RHO(NR)
-!!$    ENDDO
-!!$    IF(MDLEQZ.NE.0) THEN
-!!$       DO NSZ=1,NSZMAX
-!!$          NS =NSM+NSZ
-!!$          NSN=NSLMAX+NSZ
-!!$          CJBSP(NR,NS)=DBLE(bsjbp_s(NSN))
-!!$          CJBST(NR,NS)=DBLE(bsjbt_s(NSN))
-!!$          ADNCG(NR,NS)=DBLE(dn_s(NSN))/AR2RHO(NR)
-!!$          AVNCG(NR,NS)=DBLE(vn_s(NSN)+veb_s(NSN))/AR1RHO(NR)
-!!$          DO NS1=1,NSLMAX
-!!$             AKNCP(NR,NS,NS1)=DBLE(chip_ss(NSN,NS1))/AR2RHO(NR)
-!!$             AKNCT(NR,NS,NS1)=DBLE(chit_ss(NSN,NS1))/AR2RHO(NR)
-!!$             ADNCP(NR,NS,NS1)=DBLE(dp_ss(NSN,NS1))/AR2RHO(NR)
-!!$             ADNCT(NR,NS,NS1)=DBLE(dt_ss(NSN,NS1))/AR2RHO(NR)
-!!$          ENDDO
-!!$          DO NM=1,5
-!!$             RGFLS(NR,NM,NS)=DBLE(gfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-!!$             RQFLS(NR,NM,NS)=DBLE(qfl_s(NM,NSN))*1.D-20/AR1RHO(NR)
-!!$          ENDDO
-!!$          AVKNC(NR,NS)=DBLE(qeb_s(NSN))/AR1RHO(NR)
-!!$          AVNC (NR,NS)=DBLE(veb_s(NSN))/AR1RHO(NR)
-!!$       ENDDO
-!!$    ENDIF
-!!$    !
-!!$    !     /* neoclassical bulk ion toroidal and poloidal velocities */
-!!$    !
-!!$    IF(k_v /= 0) THEN
-!       btot=SQRT(BphV(NR)**2+BthV(NR)**2)*BphV(NR)/ABS(BphV(NR))
+    !   Neoclassical thermal diffusivity (Diagonal effect only)
+    model = 1
+    ChiNCpel = DBLE(chip_ss(1,1)) * model
+    ChiNCtel = DBLE(chit_ss(1,1)) * model
+    ChiNCpil = DBLE(chip_ss(2,2)) * model
+    ChiNCtil = DBLE(chit_ss(2,2)) * model
+
+    !   Now not using
        DO i=1,m_s
           uthai=DBLE(utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i))
           IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then

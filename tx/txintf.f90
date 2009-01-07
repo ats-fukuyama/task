@@ -217,6 +217,16 @@ module tx_interface
   end interface
 
   interface
+     subroutine TXGRURA(GX,GTX,GYL,NRMAX,NGT,NGTM)!,STR,KV,INQ)
+       integer(4),                  intent(in) :: NRMAX, NGT, NGTM!, INQ
+       real(4), dimension(0:NRMAX), intent(in) :: GX
+       real(4), dimension(0:NGT),   intent(in) :: GTX
+       real(4), dimension(0:NRMAX,0:NGTM), intent(in) :: GYL
+!       CHARACTER(LEN=80),INTENT(IN):: STR, KV
+     end subroutine TXGRURA
+  end interface
+
+  interface
      subroutine TXGR3D(GX1,GX2,GY1,GY2,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,KV,MODE)
        REAL(4),    INTENT(IN) :: GX1, GX2, GY1, GY2
        INTEGER(4), INTENT(IN) :: NXM, NXMAX, NYMAX, MODE

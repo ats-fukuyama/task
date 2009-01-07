@@ -16,11 +16,12 @@ SUBROUTINE TXGLOB
        &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
        &     BBL, SUMML, SUMPL, PNES, PAI
-  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML, tmpa
+  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
        &     dPPV, ALFA
   REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
+  real(8), dimension(:), allocatable :: Siz
   real(8) :: dBetaSUM, BPINT
   real(8) :: DERIV3
 
@@ -353,10 +354,47 @@ SUBROUTINE TXGLOB
 
   Deff(0) = 0.d0
   do nr = 1, nrmax
-     Deff(nr) = (PNiV(NR)*UirV(NR)-ft(NR)*PNiV(NR)*EphV(NR)/BthV(NR)) &
-          & /(-DERIV3(NR,R,PNiV,NRMAX,0))
+     ! Including Ware pinch
+!     Deff(nr) = (PNiV(NR)*UirV(NR)-ft(NR)*PNiV(NR)*EphV(NR)/BthV(NR)) &
+!          & /(-DERIV3(NR,R,PNiV,NRMAX,0))
+     ! Excluding Ware pinch
+     Deff(nr) = -PNiV(NR)*UirV(NR)/DERIV3(NR,R,PNiV,NRMAX,0)
      if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
   end do
 
   RETURN
 END SUBROUTINE TXGLOB
+
+!***********************************************************
+!
+!  Outflux of ions through the separatrix in case of no NBI
+!
+!    Output : Gamma_a [m^-2s^-1]
+!
+!***********************************************************
+
+subroutine cal_flux
+
+  use tx_commons, only : PNiV, NRA, PI, RR, RA, rNuION, PNeV, PZ, DT, Gamma_a
+  use tx_interface, only : INTG_P
+  implicit none
+
+  real(8) :: total_ion, SizINT
+  real(8), save :: total_ion_save = 0.d0
+  real(8), dimension(:), allocatable :: Siz
+
+  !  Number of ions inside the separatrix [particles]
+  total_ion = INTG_P(PNiV,NRA,0)*2.D0*PI*RR*2.D0*PI*1.D20
+
+  !  Rate of generation of ions inside the separatix
+  allocate(Siz(0:NRA))
+  Siz(0:NRA) = rNuION(0:NRA)*PNeV(0:NRA)/PZ*1.D20 ! [m^-3s^-1]
+  SizINT = INTG_P(Siz,NRA,0)*2.D0*PI*RR*2.D0*PI ! [s^-1]
+  deallocate(Siz)
+
+  !  Outflux of ions through the separatix [m^-2s^-1]
+  Gamma_a = (SizINT - (total_ion - total_ion_save) / DT) / (2.D0*PI*RR*2.D0*PI*RA)
+
+  total_ion_save = total_ion
+
+end subroutine cal_flux
