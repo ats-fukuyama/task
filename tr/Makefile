@@ -100,8 +100,8 @@ libs:
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
 	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
 
-tr3: $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
+tr3: trcom2.o trcom3.o $(LIBS3) trmain.o 
+	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
