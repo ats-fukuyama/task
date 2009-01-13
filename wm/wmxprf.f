@@ -45,7 +45,7 @@ C
       REAL*8 UPRFNE(4,NXPRF), UPRFTE(4,NXPRF), UPRFTI(4,NXPRF)
       REAL*8 DERIV(NXPRF)
       REAL*8 ZEFFSV, PSIL, PPL, PTSSV(NSM), PNSSV(NSM)
-      REAL*8 XPAR1, XPAR2, XPAR, PRFPSI_CTR
+      REAL*8 XPAR1, XPAR2, XPAR
 C
       CHARACTER    TRFILE*80, CWK1*10
 C
@@ -127,13 +127,6 @@ C
          READ ( IFNO, '(4E14.7)', END=9999, ERR=9999 )
      >        PRFPSI(N), PRFNE(N), PRFTE(N), PRFTI(N)
       ENDDO
-C
-      ! ***** Added tentatively by M. Honda *****
-      PRFPSI_CTR = PRFPSI(1)
-      DO N=1,NPRF
-         PRFPSI(N) = 2.D0 * PI * (PRFPSI(N) - PRFPSI_CTR)
-      ENDDO
-      ! *****************************************
 C
 C----  Set coefficient for spline
 C
