@@ -165,7 +165,7 @@ C
 C
       character case(6)*10
       dimension rlim(NSUM),zlim(NSUM),pressw(NPSM),pwprim(NPSM),
-     &          dmion(NSUM),rhovn(NSUM)
+     &          dmion(NSUM),rhovn(NSUM),ajtor(NPSM)
 C
       neqdsk=21
       CALL FROPEN(neqdsk,KNAMEQ,1,MODEFR,'EQ',IERR)
@@ -204,7 +204,7 @@ CChonda         PSIPS(NPS)=PSI0-DPS*(NPS-1)
       read (neqdsk,2020) zmaxis,xdum,sibry,xdum,xdum
       read (neqdsk,2020) (TTPS(i),i=1,NPSMAX)
       read (neqdsk,2020) (PPPS(i),i=1,NPSMAX)
-      read (neqdsk,2020) (DTTPS(i),i=1,NPSMAX)
+      read (neqdsk,2020) (TTDTTPS(i),i=1,NPSMAX)
       read (neqdsk,2020) (DPPPS(i),i=1,NPSMAX)
       read (neqdsk,2020) ((PSIRZ(i,j),i=1,NRGMAX),j=1,NZGMAX)
       read (neqdsk,2020) (QQPS(i),i=1,NPSMAX)
@@ -269,8 +269,9 @@ C
          ENDDO
       ENDDO
       DO i=1,NPSMAX
-         TTPS(i) =2.D0*PI*TTPS(i)
-         DTTPS(i)=2.D0*PI*DTTPS(i)
+         TTPS(i)   =2.D0*PI*TTPS(i)
+         TTDTTPS(i)=2.D0*PI*TTDTTPS(i)
+         DTTPS(i)  =2.D0*PI*TTDTTPS(i)/TTPS(i)
       ENDDO
 C
       DO NZG=1,NZGMAX

@@ -72,6 +72,12 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PPPS: IERR=',IERR
       CALL SPL1D(PSIPS,TTPS,  DERIV,UTTPS, NPSMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTPS: IERR=',IERR
+      IF(MODELG.EQ.5) THEN
+         CALL SPL1D(PSIPS,DPPPS,  DERIV,UDPPPS, NPSMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DPPPS: IERR=',IERR
+         CALL SPL1D(PSIPS,DTTPS,  DERIV,UDTTPS, NPSMAX,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DTTPS: IERR=',IERR
+      ENDIF
 C
       RAXIS=RR
       ZAXIS=0.D0
@@ -133,6 +139,7 @@ C
          PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
+C         write(6,*) PSIG(RINIT,ZINIT)/PSI0,tts(nr),2.D0*PI*BB*RR
 C
 C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
 C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
@@ -142,8 +149,10 @@ C
 C
          SUMS=0.D0
          SUMV=0.D0
+         SUMAVRR =0.D0
          SUMAVRR2=0.D0
          SUMAVIR2=0.D0
+         SUMAVBB =0.D0
          SUMAVBB2=0.D0
          SUMAVIB2=0.D0
          SUMAVGV2=0.D0
@@ -173,8 +182,10 @@ C
             SUMV=SUMV+H/BPL
             SUMS=SUMS+H/(BPL*R)
 C
+            SUMAVRR =SUMAVRR +H*R/BPL
             SUMAVRR2=SUMAVRR2+H*R*R/BPL
             SUMAVIR2=SUMAVIR2+H/(BPL*R*R)
+            SUMAVBB =SUMAVBB +H*SQRT(B2L)/BPL
             SUMAVBB2=SUMAVBB2+H*B2L/BPL
             SUMAVIB2=SUMAVIB2+H/(B2L*BPL)
             SUMAVGV2=SUMAVGV2+H*R*R*BPL
@@ -211,13 +222,15 @@ C
          DVDPSIT(NR)=SUMV/QPS(NR)
          DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
          RLEN(NR)=XA(NA)
+         AVERR (NR)=SUMAVRR /SUMV
          AVERR2(NR)=SUMAVRR2/SUMV
          AVEIR2(NR)=SUMAVIR2/SUMV
+         AVEBB (NR)=SUMAVBB /SUMV
          AVEBB2(NR)=SUMAVBB2/SUMV
          AVEIB2(NR)=SUMAVIB2/SUMV
-         AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
-         AVEGR2(NR)=SUMAVGR2*SUMV*4*PI**2
-         AVEGP2(NR)=SUMAVGV2/SUMV*4*PI**2
+         AVEGV2(NR)=SUMAVGV2*SUMV*4.d0*PI**2
+         AVEGR2(NR)=SUMAVGR2*SUMV*4.d0*PI**2
+         AVEGP2(NR)=SUMAVGV2/SUMV*4.d0*PI**2
 
          call zminmax(YA,NZMINR,ZMIN,ZMINR)
          call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
@@ -282,8 +295,10 @@ C
       DVDPSIT(NR)=(4*DVDPSIT(2)-DVDPSIT(3))/3.D0
       DSDPSIT(NR)=(4*DSDPSIT(2)-DSDPSIT(3))/3.D0
       RLEN(NR)=0.D0
+      AVERR (1)=(4.D0*AVERR (2)-AVERR (3))/3.D0
       AVERR2(1)=(4.D0*AVERR2(2)-AVERR2(3))/3.D0
       AVEIR2(1)=(4.D0*AVEIR2(2)-AVEIR2(3))/3.D0
+      AVEBB (1)=(4.D0*AVEBB (2)-AVEBB (3))/3.D0
       AVEBB2(1)=(4.D0*AVEBB2(2)-AVEBB2(3))/3.D0
       AVEIB2(1)=(4.D0*AVEIB2(2)-AVEIB2(3))/3.D0
       AVEGV2(1)=(4.D0*AVEGV2(2)-AVEGV2(3))/3.D0
@@ -376,10 +391,14 @@ C
       DO NR=2,NRPMAX
          DPPSL=DPPFUNC(PSIP(NR))
          DTTSL=DTTFUNC(PSIP(NR))
-         TTSL= TTFUNC(PSIP(NR))
-         AVEJPR(NR)=-(TTSL*DPPSL/BB+AVEBB2(NR)*BB*DTTSL/RMU0)
-         AVEJTR(NR)=-(2.D0*PI*RR*DPPSL
-     &               +AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR))
+         TTSL =TTFUNC(PSIP(NR))
+CChonda         AVEJPR(NR)=-(TTSL*DPPSL/BB+AVEBB2(NR)*BB*DTTSL/RMU0)
+CChonda         AVEJTR(NR)=-(2.D0*PI*RR*DPPSL
+CChonda     &               +AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR))
+         AVEJTR(NR)=(-AVERR2(NR)*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0))
+     &              /AVERR(NR)
+         AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
+     &              /(2.d0*PI*(BB/ABS(BB))*AVEBB(NR))
 C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
 C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
 C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
@@ -448,8 +467,10 @@ C
             call polintx(nr,npmax,nrm,dvdpsit)
             call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,rlen)
+            call polintx(nr,npmax,nrm,averr)
             call polintx(nr,npmax,nrm,averr2)
             call polintx(nr,npmax,nrm,aveir2)
+            call polintx(nr,npmax,nrm,avebb)
             call polintx(nr,npmax,nrm,avebb2)
             call polintx(nr,npmax,nrm,aveib2)
             call polintx(nr,npmax,nrm,avegv2)
@@ -484,6 +505,7 @@ C
 
             call zminmax(YA,NZMINR,ZMIN,ZMINR)
             call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
+C            write(6,'(I3,5F15.7)') NR,PSIP(NR),ZMIN,ZMINR,ZMAX,ZMAXR 
 
             RRMIN(NR)=RMIN
             RRMAX(NR)=RMAX
@@ -522,8 +544,10 @@ C
 C
             SUMS=0.D0
             SUMV=0.D0
+            SUMAVRR =0.D0
             SUMAVRR2=0.D0
             SUMAVIR2=0.D0
+            SUMAVBB =0.D0
             SUMAVBB2=0.D0
             SUMAVIB2=0.D0
             SUMAVGV2=0.D0
@@ -553,8 +577,10 @@ C
                SUMV=SUMV+H/BPL
                SUMS=SUMS+H/(BPL*R)
 C
+               SUMAVRR =SUMAVRR +H*R/BPL
                SUMAVRR2=SUMAVRR2+H*R*R/BPL
                SUMAVIR2=SUMAVIR2+H/(BPL*R*R)
+               SUMAVBB =SUMAVBB +H*SQRT(B2L)/BPL
                SUMAVBB2=SUMAVBB2+H*B2L/BPL
                SUMAVIB2=SUMAVIB2+H/(B2L*BPL)
                SUMAVGV2=SUMAVGV2+H*R*R*BPL
@@ -591,8 +617,10 @@ C
             DVDPSIT(NR)=SUMV/QPS(NR)
             DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             RLEN(NR)=XA(NA)
+            AVERR (NR)=SUMAVRR /SUMV
             AVERR2(NR)=SUMAVRR2/SUMV
             AVEIR2(NR)=SUMAVIR2/SUMV
+            AVEBB (NR)=SUMAVBB /SUMV
             AVEBB2(NR)=SUMAVBB2/SUMV
             AVEIB2(NR)=SUMAVIB2/SUMV
             AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
@@ -792,11 +820,17 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for BBMAX: IERR=',IERR
 C
       DERIV(1)=0.D0
+      CALL SPL1D(RHOT,AVERR ,DERIV,UAVERR ,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERRR: IERR=',IERR
+      DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVERR2,DERIV,UAVERR2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVERRR2: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEIR2,DERIV,UAVEIR2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEIR2: IERR=',IERR
+      DERIV(1)=0.D0
+      CALL SPL1D(RHOT,AVEBB ,DERIV,UAVEBB ,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEBB: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEBB2,DERIV,UAVEBB2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEBB2: IERR=',IERR
@@ -1013,12 +1047,18 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      CALL SPL1DD(PSIPL,PPL,DPPL,PSIPS,UPPPS,NPSMAX,IERR)
-      IF(IERR.NE.0) THEN
-         WRITE(6,*) 'XX DPPFUNC: SPL1DF ERROR : IERR=',IERR
-         WRITE(6,*) PSIPL,PSIPS(1),PSIPS(NPSMAX)
+      IF(MODELG.EQ.5) THEN
+         CALL SPL1DF(PSIPL,DPPL,PSIPS,UDPPPS,NPSMAX,IERR)
+         IF(IERR.NE.0)WRITE(6,*) 'XX DPPFUNC: SPL1DF ERROR : IERR=',IERR
+         DPPFUNC=DPPL
+       ELSE
+         CALL SPL1DD(PSIPL,PPL,DPPL,PSIPS,UPPPS,NPSMAX,IERR)
+         IF(IERR.NE.0) THEN
+            WRITE(6,*) 'XX DPPFUNC: SPL1DD ERROR : IERR=',IERR
+            WRITE(6,*) PSIPL,PSIPS(1),PSIPS(NPSMAX)
+         ENDIF
+         DPPFUNC=DPPL
       ENDIF
-      DPPFUNC=DPPL
       RETURN
       END
 C
@@ -1028,9 +1068,15 @@ C
 C
       INCLUDE '../eq/eqcomq.inc'
 C
-      CALL SPL1DD(PSIPL,TTL,DTTL,PSIPS,UTTPS,NPSMAX,IERR)
-      IF(IERR.NE.0) WRITE(6,*) 'XX DTTFUNC: SPL1DF ERROR : IERR=',IERR
-      DTTFUNC=DTTL
+      IF(MODELG.EQ.5) THEN
+         CALL SPL1DF(PSIPL,DTTL,PSIPS,UDTTPS,NPSMAX,IERR)
+         IF(IERR.NE.0)WRITE(6,*) 'XX DTTFUNC: SPL1DF ERROR : IERR=',IERR
+         DTTFUNC=DTTL
+      ELSE
+         CALL SPL1DD(PSIPL,TTL,DTTL,PSIPS,UTTPS,NPSMAX,IERR)
+         IF(IERR.NE.0)WRITE(6,*) 'XX DTTFUNC: SPL1DD ERROR : IERR=',IERR
+         DTTFUNC=DTTL
+      ENDIF
       RETURN
       END
 
@@ -1124,8 +1170,12 @@ c
       return
       END
 
-c     ------ calculatex zmin and zmax -----
+c     ------ calculate zmin and zmax -----
 c                assume: z=a(r-r0)^2+z0
+c       Input : ya(1, n) : R(psi)
+c               ya(2, n) : Z(psi)
+c               n        : poloidal index
+c       Output: z0, r0
       
       subroutine zminmax(ya,n,z0,r0)
 
@@ -1143,12 +1193,11 @@ c                assume: z=a(r-r0)^2+z0
       z3=ya(2,n+1)
       dz1=(z1-z2)/(r1-r2)
       dz2=(z2-z3)/(r2-r3)
-      ra1=(r1+r2)/2.d0
-      ra2=(r2+r3)/2.d0
+      ra1=0.5d0*(r1+r2)
+      ra2=0.5d0*(r2+r3)
+
       r0=(ra2*dz1-ra1*dz2)/(dz1-dz2)
       a=dz2/(ra2-r0)
-      z0=z2-0.5*a*(r2-r0)**2
-!      write(6,'(1P4E12.4)') r1,r2,r3,r0
-!      write(6,'(1P4E12.4)') z1,z2,z3,z0
+      z0=z2-0.5d0*a*(r2-r0)**2
       return
       end subroutine zminmax

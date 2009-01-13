@@ -19,6 +19,8 @@ OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
+FLIBS = $(GLIBS)
+
 .SUFFIXES: .f90
 
 .f.o :
