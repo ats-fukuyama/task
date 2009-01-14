@@ -9,12 +9,12 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION RJNS(NRM,NSAM),RJN(NRM),RJ3(NRM),E3(NRM),DELE(NRM)
-      
+     &     ,RSUMF(NSAM),RSUMF0(NSAM)
 C
       IF(MODELE.NE.0) CALL FPNEWE
 
 C     +++++ Time loop +++++
-
+c      open(8,file='coef_time.dat')
       DO NT=1,NTMAX
 
 C     +++++ Iteration loop for toroidal electric field +++++
@@ -53,9 +53,23 @@ c         END DO
 c         END IF
 c
 c 1600    FORMAT(2I2,6E14.6)
+         NCHECK=0
+         DEPS=1.D0
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     FNS2(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)
+                  END DO
+               END DO
+            END DO
+         END DO
 
+         DO WHILE(DEPS.gt.1.D-7.and.NCHECK.le.10)
+         NCHECK=NCHECK+1
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
+            RSUMF(NS)=0.D0
             DO NR=1,NRMAX
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
@@ -66,18 +80,58 @@ c 1600    FORMAT(2I2,6E14.6)
 
             CALL FPEXEC(NSA,IERR)
             IF(IERR.NE.0) GOTO 250
-
             DO NR=1,NRMAX
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
                      FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR)
 c                     FNS1(NTH,NP,NR,NS)=ABS(F1(NTH,NP,NR))
+                     RSUMF(NS)=RSUMF(NS)
+     &           +ABS(FNS1(NTH,NP,NR,NS)-FNS2(NTH,NP,NR,NS))**2
+                     RSUMF0(NS)=RSUMF0(NS)
+     &           +ABS(FNS2(NTH,NP,NR,NS))**2
                   ENDDO
                ENDDO
             ENDDO
          ENDDO
-
+         DEPS=0.D0
+         DO j=1,NSMAX-1
+            DEPS1=RSUMF(j)/RSUMF0(j)
+            DEPS2=RSUMF(j+1)/RSUMF0(j+1)
+            DEPS=MAX(DEPS1,DEPS2,DEPS)
+c            write(*,*)DEPS1,DEPS2,DEPS
+         END DO
+         write(*,*)"DEPS",DEPS,NCHECK
 C     +++++ update velocity distribution function +++++
+
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            FNS2(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)
+            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+
+C     +++++ end of NSA loop +++++
+
+         IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
+
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+         DO NR=1,NRMAX
+         DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            FNS(NTH,NP,NR,NS)=FNS2(NTH,NP,NR,NS)
+            FNS2(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+         ENDDO
+         ENDDO
+         ENDDO
+         ENDDO
+         
+      END DO
 
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
@@ -90,9 +144,14 @@ C     +++++ update velocity distribution function +++++
          ENDDO
          ENDDO
 
-C     +++++ end of NSA loop +++++
 
-         IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
+c         NP=2
+c            Write(8,646) NT
+c     & ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3)
+c     & ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3)
+c     & ,DCTT(2,NP,1,1),DCTT(2,NP,1,2),DCTT(2,NP,1,3)
+c     & ,FCPP(2,NP,1,1),FCPP(2,NP,1,2),FCPP(2,NP,1,3)
+
 
 C     ----- calculation of current density -----
 
@@ -166,43 +225,78 @@ C     +++++ calculate and save global data +++++
 
 
       IF(NT.eq.NTMAX)THEN
-         open(8,file='radial_profile.dat')
-c         open(9,file='distri_func.dat')
-         open(9,file='t-global_10.dat')
-         DO NR=1,NRMAX
-            WRITE(8,645) RM(NR),RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
-     &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
-     &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
-     &         RPCT2(NR,3,3,NTG1),
-     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1),
-     &         RPCT(NR,1,NTG1),RPCT(NR,2,NTG1),RPCT(NR,3,NTG1)
-c            DO NP=1,NPMAX
-c               DO NTH=1,NTHMAX
-c                  WRITE(9,645)PM(NP)*COSM(NTH),PM(NP)*SINM(NTH)
-c     &                 ,FNS(NTH,NP,NR,1)
-c     &                 ,FNS(NTH,NP,NR,2),FNS(NTH,NP,NR,3)
-c               END DO
-c            END DO
-c            WRITE(9,*)"#",NR
-c            WRITE(9,*)" "
-c            WRITE(9,*)" "
-         END DO
-         close(8)
+c         open(8,file='radial_profile.dat')
+c         open(8,file='coef.dat')
+         open(9,file='power_test.dat')
+c         Do NP=1,NPMAX
+c            Write(8,646) NP
+c     & ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3)
+c     & ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3)
+c     & ,DCTT(2,NP,1,1),DCTT(2,NP,1,2),DCTT(2,NP,1,3)
+c     & ,FCPP(2,NP,1,1),FCPP(2,NP,1,2),FCPP(2,NP,1,3)
+c         END DO
+
+c         DO NR=1,NRMAX
+c            WRITE(8,645) RM(NR),RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
+c     &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
+c     &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
+c     &         RPCT2(NR,3,3,NTG1),
+c     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1),
+c         END DO
+c         close(8)
          DO NTI=1,NTMAX
+            dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
+            dw2=PPCT(3,NTI-1)+PPWT(3,NTI-1)+PPET(3,NTI-1)
             WRITE(9,645) PTG(NTI)*1000
-     &           ,PPCT(1,NTI),PPCT(2,NTI),PPCT(3,NTI)
-     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
-     &           ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI)
-     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
-     &           ,PIT(1,NTI),PIT(2,NTI),PIT(3,NTI)
+c     &           ,PPCT(1,NTI),PPCT(2,NTI),PPCT(3,NTI)
+c     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
+c     &           ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI)
+c     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
+c     &           ,PIT(1,NTI),PIT(2,NTI),PIT(3,NTI)
+
+c     &           ,PTT2(3,NTI),PWT2(3,NTI),PTT2(3,NTI)/PWT2(3,NTI)
+c     &           ,PPWT(3,NTI),PPCT(3,NTI),PPCT(3,NTI)-PPCT2(3,3,NTI)
+     &           ,PNT(3,NTI),RNFP(1,3),PWT(3,NTI)
+     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
+     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
+     &           ,PWT(3,NTI+1)-PWT(3,NTI)
+     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
+     &           /1.5D0
+
+c密度のズレ補正
+     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
+     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+     &           PPET(3,NTI)*PNT(3,NTI))
+c
+     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1))
+     &           /(dw*PNT(3,NTI))/2.D0
+
+     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
+     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+     &           PPET(3,NTI)*PNT(3,NTI))
+
+     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
+     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
+     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
+
+c
+c     &           ,(PWT(3,NTI)/PNT(3,NTI)-PWT(3,NTI-1)/PNT(3,NTI-1))
+c     &           /(PPWT(3,NTI)/PNT(3,NTI)+PPCT(3,NTI)/PNT(3,NTI)
+c     &           +PPET(3,NTI)/PNT(3,NTI))
+c
+
+
          END DO
          close(9)
 c         write(8,*)" " 
 c         write(8,*)" " 
       END IF
  645  FORMAT(17E14.6)
+ 646  FORMAT(I3,17E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO
+c      close(8)
 C     +++++ end of time loop +++++
 C
       RETURN

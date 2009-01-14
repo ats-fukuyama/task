@@ -96,24 +96,25 @@ c     &             ,Rsum123/(3.D0+DKBSL1/DKBSL2/THETA0(NSA))/THETA0(NSA)
                   ELSE
                      WPP=WEIGHP(NTH+1,NP,NR,NSA)
                   ENDIF
-                  DFP=    PG(NP)*RLAMDA(NTH,NR)/DELP
+                  DFP=    PG(NP)*RLAMDA(NTH,NR)
+     &                 /DELP
      &                   *(FNS(NTH,NP,NR,NS)-FNS(NTH,NP-1,NR,NS))
                   IF(NTH.EQ.1) THEN
                      DFT=    1.D0/(2.D0*DELTH)
-     &                   *( RLAMDA(NTH+1,NR)
-     &                      *((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NS)
+     &                   *( RLAMDA(NTH+1,NR)*
+     &                      ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NS)
      &                             +WPP *FNS(NTH+1,NP-1,NR,NS)))
                   ELSE IF(NTH.EQ.NTHMAX) THEN
                      DFT=    1.D0/(2.D0*DELTH)
-     &                   *(-RLAMDA(NTH-1,NR)
+     &                   *(- RLAMDA(NTH-1,NR)
      &                      *((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NS)
      &                             +WPM *FNS(NTH-1,NP-1,NR,NS)))
                   ELSE
                      DFT=    1.D0/(2.D0*DELTH)
-     &                   *( RLAMDA(NTH+1,NR)
-     &                      *((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NS)
+     &                   *( RLAMDA(NTH+1,NR)*
+     &                      ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NS)
      &                             +WPP *FNS(NTH+1,NP-1,NR,NS))
-     &                     -RLAMDA(NTH-1,NR)
+     &                     - RLAMDA(NTH-1,NR)
      &                      *((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NS)
      &                             +WPM *FNS(NTH-1,NP-1,NR,NS)))
                   ENDIF
@@ -123,7 +124,8 @@ c     &             ,Rsum123/(3.D0+DKBSL1/DKBSL2/THETA0(NSA))/THETA0(NSA)
                   RSUM4 = RSUM4+PG(NP)**2*SINM(NTH)/PV
      &                   *(DCPP(NTH,NP,NR,NSA)*DFP
      &                    +DCPT(NTH,NP,NR,NSA)*DFT
-     &                    -FCPP(NTH,NP,NR,NSA)*FFP)
+     &                    -FCPP(NTH,NP,NR,NSA)*FFP
+     &                 )
                   RSUM5 = RSUM5+PG(NP)**2*SINM(NTH)/PV
      &                   *(DWPP(NTH,NP,NR,NSA)*DFP
      &                    +DWPT(NTH,NP,NR,NSA)*DFT)
@@ -144,6 +146,7 @@ c     &             ,Rsum123/(3.D0+DKBSL1/DKBSL2/THETA0(NSA))/THETA0(NSA)
      &                    +DCPT2(NTH,NP,NR,NSB,NSA)*DFT
      &                    -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
+c                  WRITE(*,*)NP,NTH,FFP,DCPT(NTH,NP,NR,NSA)*DFT
                ENDDO
             ENDDO
 
@@ -303,6 +306,7 @@ C
          ENDIF
          PNT(NSA,NTG2) =PNT(NSA,NTG2)/TVOL
          PWT(NSA,NTG2) =PWT(NSA,NTG2) *2.D0*PI*RR
+         PWT2(NSA,NTG2) =PWT2(NSA,NTG2) *2.D0*PI*RR
          DO NSB=1,NSBMAX
             PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)*2.D0*PI*RR
          END DO
@@ -357,9 +361,9 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
       write(*,105) rtotalpw
       write(*,107) rtotalPC
 
-      write(8,106) PTG(NTG2)*1000, PPCT(1,NTG2),PPCT(2,NTG2)
-     &  ,PPCT2(1,1,NTG2),PPCT2(2,1,NTG2),PPCT2(1,2,NTG2),PPCT2(2,2,NTG2)
-     &     ,PPET(1,NTG2),PPET(2,NTG2)
+c      write(8,106) PTG(NTG2)*1000, PPCT(1,NTG2),PPCT(2,NTG2)
+c     &  ,PPCT2(1,1,NTG2),PPCT2(2,1,NTG2),PPCT2(1,2,NTG2),PPCT2(2,2,NTG2)
+c     &     ,PPET(1,NTG2),PPET(2,NTG2)
 
 c      NP2=99
 c      WRITE(*,*)ITL(1)-2,DWPP(35,NP2,1,3),DCPP(35,NP2,1,3)
