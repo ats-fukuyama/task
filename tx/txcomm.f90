@@ -153,6 +153,8 @@ module tx_commons
        & rNubrp1, rNubrp2, rNuei1, rNuei2, rNuei3, rNuei2Bth, &
        & rNube1, rNube2, rNube3, rNube2Bth, rNuLTe, rNuLTi, &
        & rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
+       & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
+       & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWthe, FWthi, WPM, rMue, rMui, rNuB, rNuLB, ft, &
        & Chie, Chii, De, Di, D01, D02, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
@@ -296,7 +298,7 @@ contains
        allocate(rNube1(0:N), rNube2(0:N), rNube3(0:N),rNuLTe(0:N),rNuLTi(0:N), &
             &   rNube2Bth(0:N),                                               stat = ierl(5))
        allocate(rNueNC(0:N), rNuiNC(0:N), rNuAse(0:N),rNuAsi(0:N),            stat = ierl(6))
-       allocate(rNueHL(0:N), rNuiHL(0:N),                                     stat = ierl(7))
+       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), rNuiHLphph(0:N),                                                           stat = ierl(7))
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   rMue(0:N),  rMui(0:N),  stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
        allocate(De(0:N),     Di(0:N),     D01(0:N),   D02(0:N),               stat = ierl(10))

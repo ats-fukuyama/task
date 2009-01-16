@@ -158,6 +158,7 @@ contains
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, Tqi0L
+    real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
     real(8) :: PAHe = 4.D0 ! Atomic mass number of He
@@ -713,13 +714,43 @@ contains
        IF(ABS(FSHL) > 0.D0 .AND. NR > 0) THEN
           Wte = Vte * NCph / RR
           Wti = Vti * NCph / RR
-          EpsL = EpsH * R(NR) / RA
+          EpsL = EpsH * (R(NR) / RA)**2
           rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
           rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
-          rNueHL(NR) = FSHL * SQRT(PI) &
-               &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
-          rNuiHL(NR) = FSHL * SQRT(PI) &
-               &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+          IF(NR.EQ.0) THEN
+             omegaer=0.d0
+             BLinv=0.d0
+          ELSE
+             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
+             Bthl = BB*R(NR)/(QL*RR)
+             BLinv=BB/Bthl
+             omegaer=ErV(NR)/(BB*R(NR))
+          ENDIF
+          omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
+          omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
+          rNueHL(NR) = FSHL * Wte * BLinv * rNuAsE_inv &
+          &            /(3.D0+1.67*omegaere)
+          rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
+          &            /(3.D0+1.67*omegaeri)
+
+          UHth=(RR/Ncph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+          UHph=(R(NR)/Ncth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+          UHth  = DBLE(NCth) / DBLE(NCph)
+          UHph  = 1.D0
+
+          rNueHLthth(NR)=UHth*UHth*rNueHL(NR)
+          rNueHLthph(NR)=UHth*UHph*rNueHL(NR)
+          rNueHLphth(NR)=UHth*UHph*rNueHL(NR)
+          rNueHLphph(NR)=UHph*UHph*rNueHL(NR)
+          rNuiHLthth(NR)=UHth*UHth*rNuiHL(NR)
+          rNuiHLthph(NR)=UHth*UHph*rNuiHL(NR)
+          rNuiHLphth(NR)=UHth*UHph*rNuiHL(NR)
+          rNuiHLphph(NR)=UHph*UHph*rNuiHL(NR)
+
+!          rNueHL(NR) = FSHL * SQRT(PI) &
+!               &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
+!          rNuiHL(NR) = FSHL * SQRT(PI) &
+!               &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
        ELSE
           rNueHL(0:NRMAX) = 0.D0
           rNuiHL(0:NRMAX) = 0.D0

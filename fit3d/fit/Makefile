@@ -22,7 +22,7 @@ OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o)
 all : fitlib.a
 
 fitlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :
 	-rm -f *.o *.a ./*~ .$(MOD)/*.mod

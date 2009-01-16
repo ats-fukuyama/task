@@ -27,7 +27,7 @@ OBJS = $(SRCS:.f90=.o) $(SRCT:.f=.o)
 all : hfreya2lib.a
 
 hfreya2lib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :
 	-rm -f *.o *.a ./*~ .$(MOD)/*.mod

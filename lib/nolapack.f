@@ -39,11 +39,17 @@ C
       CHARACTER KCH1*(*),KCH2*(*)
       DIMENSION DM(*),EM(*),IBLOCK(*),ISPLIT(*)
       DIMENSION WORK(*),IWORK(*),W(*)
-C
       INFO=-1
       RETURN
       END
 
+C
+      SUBROUTINE LAPACK_DGESV(N,NRHS,A,LDA,IPIV,B,LDB,INFO)
+C
+      DIMENSION A(LDA,*),B(LDB,*)
+      INFO=-1
+      RETURN
+      END
 
 c ======================================================================
 c NIST Guide to Available Math Software.

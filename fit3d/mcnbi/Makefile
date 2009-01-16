@@ -27,7 +27,7 @@ OBJS = $(SRCS:.f90=.o) $(SRCX:.f=.o)
 all : mcnbilib.a
 
 mcnbilib.a: $(OBJS)
-	$(LD) $(LDFLAGS) -o $@ $(OBJS)
+	$(LD) $(LDFLAGS) $@ $(OBJS)
 
 clean :
 	-rm -f *.o *.a ./*~ .$(MOD)/*.mod
