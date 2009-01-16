@@ -101,6 +101,8 @@ C     RIMPL : implicit computation parameter
 C     EPSM  : convergence limit in matrix equation solver
 C     EPSE  : convergence limit in electric field prediction
 C     LMAXE : maximum loop count in electric field prediction
+C     EPSFP : convergence limit in nonlinear collision operator iteration
+C     LMAXFP: maximum loop count in nonlinear collision operator iteration
 C     EPSDE : convergence limit in double-exponential integration
 C     H0DE  : initial step size in double-exponential integration
 C
@@ -111,6 +113,8 @@ CCC      PMAX  = 15.D0
       EPSM  = 1.D-8
       EPSE  = 1.D-4
       LMAXE = 10
+      EPSFP = 1.D-7
+      LMAXFP= 10
       EPSDE = 1.D-8
       H0DE  = 0.25D0
 C
@@ -248,7 +252,7 @@ C
      &              ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,
      &              DEC,PEC1,PEC2,RFEC,DELYEC,
      &              DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,
-     &              PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,
+     &              PMAX,RIMPL,EPSM,EPSE,EPSFP,EPSDE,H0DE,LMAXE,LMAXFP,
      &              NPMAX,NTHMAX,NRMAX,NAVMAX,
      &              PGMAX,RGMIN,RGMAX,NGLINE,NGRAPH,
      &              DELT,NTMAX,NTSTP1,NTSTP2,NTSTPC,
@@ -281,11 +285,11 @@ C
       WRITE(6,*) '      ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,'
       WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
-      WRITE(6,*) '      PMAX,RIMPL,EPSM,EPSE,EPSDE,H0DE,LMAXE,'
+      WRITE(6,*) '      EPSM,EPSE,EPSFP,EPSDE,H0DE,LMAXE,LMAXFP'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,'
       WRITE(6,*) '      PGMAX,RGMIN.RGMAX,NGLINE,NGRAPH,'
       WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
-      WRITE(6,*) '      RFDW,DELNPR,NCMIN,NCMAX,FACTWM,'
+      WRITE(6,*) '      RFDW,DELNPR,PMAX,RIMPL,NCMIN,NCMAX,FACTWM,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
       WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,'
       WRITE(6,*) '      KNAMEQ,KNAMWR,KNAMWM,KNAMFP,MODEFR,MODEFW'
@@ -374,8 +378,10 @@ C
       WRITE(6,600) 'PMAX  ',PMAX  ,'DELT  ',DELT  ,
      &             'RIMPL ',RIMPL ,'EPSM  ',EPSM
 C
-      WRITE(6,601) 'EPSDE ',EPSDE ,'H0DE  ',H0DE  ,
-     &             'EPSE  ',EPSE  ,'LMAXE ',LMAXE
+      WRITE(6,600) 'EPSDE ',EPSDE ,'H0DE  ',H0DE  ,
+     &             'EPSE  ',EPSE  ,'EPSFP ',EPSFP
+
+      WRITE(6,604) 'LMAXE ',LMAXE ,'LMAXFP',LMAXFP
 
       WRITE(6,601) 'PGMAX ',PGMAX ,'RGMIN ',RGMIN ,
      &             'RGMAX ',RGMAX

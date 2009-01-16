@@ -65,7 +65,7 @@ c 1600    FORMAT(2I2,6E14.6)
             END DO
          END DO
 
-         DO WHILE(DEPS.gt.1.D-7.and.NCHECK.le.10)
+         DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP)
             NCHECK=NCHECK+1
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
