@@ -66,82 +66,83 @@ c 1600    FORMAT(2I2,6E14.6)
          END DO
 
          DO WHILE(DEPS.gt.1.D-7.and.NCHECK.le.10)
-         NCHECK=NCHECK+1
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-            RSUMF(NS)=0.D0
-            DO NR=1,NRMAX
+            NCHECK=NCHECK+1
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               DO NR=1,NRMAX
                DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     F(NTH,NP,NR)=FNS(NTH,NP,NR,NS)
-                  END DO
+               DO NTH=1,NTHMAX
+                  F(NTH,NP,NR)=FNS(NTH,NP,NR,NS)
                END DO
-            END DO
+               END DO
+               END DO
 
-            CALL FPEXEC(NSA,IERR)
-            IF(IERR.NE.0) GOTO 250
-            DO NR=1,NRMAX
+               CALL FPEXEC(NSA,IERR)
+               IF(IERR.NE.0) GOTO 250
+
+               RSUMF(NS)=0.D0
+               RSUMF0(NS)=0.D0
+               DO NR=1,NRMAX
                DO NP=1,NPMAX
-                  DO NTH=1,NTHMAX
-                     FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR)
-c                     FNS1(NTH,NP,NR,NS)=ABS(F1(NTH,NP,NR))
-                     RSUMF(NS)=RSUMF(NS)
-     &           +ABS(FNS1(NTH,NP,NR,NS)-FNS2(NTH,NP,NR,NS))**2
-                     RSUMF0(NS)=RSUMF0(NS)
-     &           +ABS(FNS2(NTH,NP,NR,NS))**2
-                  ENDDO
+               DO NTH=1,NTHMAX
+                  FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR)
+                  RSUMF(NS)=RSUMF(NS)
+     &                   +ABS(FNS1(NTH,NP,NR,NS)-FNS2(NTH,NP,NR,NS))**2
+                  RSUMF0(NS)=RSUMF0(NS)
+     &                   +ABS(FNS2(NTH,NP,NR,NS))**2
+               ENDDO
+               ENDDO
                ENDDO
             ENDDO
-         ENDDO
-         DEPS=0.D0
-         DO j=1,NSMAX-1
-            DEPS1=RSUMF(j)/RSUMF0(j)
-            DEPS2=RSUMF(j+1)/RSUMF0(j+1)
-            DEPS=MAX(DEPS1,DEPS2,DEPS)
-c            write(*,*)DEPS1,DEPS2,DEPS
-         END DO
-         write(*,*)"DEPS",DEPS,NCHECK
+            DEPS=0.D0
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               DEPS1=RSUMF(NS)/RSUMF0(NS)
+               DEPS=MAX(DEPS,DEPS1)
+            END DO
+            write(6,*)"DEPS",DEPS,NCHECK
+
 C     +++++ update velocity distribution function +++++
 
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            FNS2(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)
-            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               DO NR=1,NRMAX
+               DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS2(NTH,NP,NR,NS)=FNS(NTH,NP,NR,NS)
+                  FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+               ENDDO
+               ENDDO
+               ENDDO
+            ENDDO
 
 C     +++++ end of NSA loop +++++
 
-         IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
+            IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
 
-         DO NSA=1,NSAMAX
-            NS=NS_NSA(NSA)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            FNS(NTH,NP,NR,NS)=FNS2(NTH,NP,NR,NS)
-            FNS2(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               DO NR=1,NRMAX
+               DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS(NTH,NP,NR,NS)=FNS2(NTH,NP,NR,NS)
+                  FNS2(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+               ENDDO
+               ENDDO
+               ENDDO
+            ENDDO
          
-      END DO
+         END DO
 
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
-         DO NR=1,NRMAX
-         DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
-         ENDDO
-         ENDDO
-         ENDDO
+            DO NR=1,NRMAX
+            DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               FNS(NTH,NP,NR,NS)=FNS1(NTH,NP,NR,NS)
+            ENDDO
+            ENDDO
+            ENDDO
          ENDDO
 
 
