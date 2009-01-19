@@ -10,8 +10,9 @@ SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 
 OBJS = $(SRCS:.f=.o)
 
+WMLIBS = ../wm/wmlib.a ../mtx/mtxlib.a ../eq/wmeqin.o ../mpi/nompilib.o
 LIBS = wrlib.a ../pl/pllib.a ../eq/eqlib.a ../dp/dplib.a \
-       ../../bpsd/bpsdlib.a ../lib/tasklib.a
+       ../../bpsd/bpsdlib.a ../lib/tasklib.a $(WMLIBS)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

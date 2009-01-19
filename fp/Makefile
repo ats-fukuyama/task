@@ -12,8 +12,9 @@ SRCS = fpmenu.f fpinit.f fpprep.f fploop.f fpexec.f fpcoef.f fpcalc.f fpcalcn.f 
 
 OBJS = $(SRCS:.f=.o)
 
+WMLIBS = ../wm/wmlib.a ../mtx/mtxlib.a ../eq/wmeqin.o ../mpi/nompilib.o
 LIBS = fplib.a ../pl/pllib.a ../eq/eqlib.a ../../bpsd/bpsdlib.a \
-       ../lib/tasklib.a
+       ../lib/tasklib.a ../dp/dplib.a $(WMLIBS)
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)

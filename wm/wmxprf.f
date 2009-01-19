@@ -40,12 +40,12 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'wmxprf.inc'
 C
-      REAL*8 PRFPSI(NXPRF)  , PRFNE(NXPRF)   , PRFTE(NXPRF)
-     >     , PRFTI(NXPRF)
-      REAL*8 UPRFNE(4,NXPRF), UPRFTE(4,NXPRF), UPRFTI(4,NXPRF)
-      REAL*8 DERIV(NXPRF)
+c$$$      REAL*8 PRFPSI(NXPRF)  , PRFNE(NXPRF)   , PRFTE(NXPRF)
+c$$$     >     , PRFTI(NXPRF)
+c$$$      REAL*8 UPRFNE(4,NXPRF), UPRFTE(4,NXPRF), UPRFTI(4,NXPRF)
+c$$$      REAL*8 DERIV(NXPRF)
       REAL*8 ZEFFSV, PSIL, PPL, PTSSV(NSM), PNSSV(NSM)
-      REAL*8 XPAR1, XPAR2, XPAR
+      REAL*8 XPAR1, XPAR2, XPAR, PSIPAL
 C
       CHARACTER    TRFILE*80, CWK1*10
 C
@@ -81,15 +81,6 @@ C
       WRITE (6,*) '==========  WMXPRF START  =========='
 C
       IERR = 9999
-      NRMAX1 = NRMAX + 1
-      XPAR1 = 0.0D0
-      XPAR2 = 0.0D0
-      DO NS=3,NSMAX
-         XPAR1 = XPAR1 + PZ(NS)*PZ(NS)*PNS(NS)
-         XPAR2 = XPAR2 + PZ(NS)*PNS(NS)
-      ENDDO
-      IF (XPAR2.EQ.0.0D0) GO TO 9997
-      XPAR = XPAR1/XPAR2
 C
 C----  Set ion calculation mode
 C
@@ -128,6 +119,12 @@ C
      >        PRFPSI(N), PRFNE(N), PRFTE(N), PRFTI(N)
       ENDDO
 C
+C----  Normalize coordinate PRFPSI
+C
+      DO N=1,NPRF
+         PRFPSI(N) = PRFPSI(N) / PRFPSI(NPRF)
+      ENDDO
+C
 C----  Set coefficient for spline
 C
       CALL SPL1D(PRFPSI,PRFNE,  DERIV,UPRFNE, NPRF,0,IRC)
@@ -137,34 +134,79 @@ C
       CALL SPL1D(PRFPSI,PRFTI,  DERIV,UPRFTI, NPRF,0,IRC)
       IF (IRC.NE.0) GO TO 9999
 C
+C---- PSIP at the separatrix
+C
+      NRMAX1 = NRMAX + 1
+      DO NR=1,NRMAX1
+         IF(XRHO(NR).GE.1.D0) THEN
+            PSIPAL = PSIP(NR)
+            GOTO 7000
+         ENDIF
+      ENDDO
+ 7000 CONTINUE
+C
+C---- For impurities
+C
+      XPAR1 = 0.0D0
+      XPAR2 = 0.0D0
+      DO NS=3,NSMAX
+         XPAR1 = XPAR1 + PZ(NS)*PZ(NS)*PNS(NS)
+         XPAR2 = XPAR2 + PZ(NS)*PNS(NS)
+      ENDDO
+      IF (XPAR2.EQ.0.0D0) GO TO 9997
+      XPAR = XPAR1/XPAR2
+C
 C----  Set profile data at the point calculated in wm-code.
 C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
 C
       DO NR=1,NRMAX1
-         IF (XRHO(NR).GT.1.0D0) THEN
-            PN60(NR,1) = 0.0D0
-            PT60(NR,1) = PRFTE(NPRF)*PTS(1)
-            DO NS=2,NSMAX
-               PN60(NR,NS) = 0.0D0
+         PSIL=PSIP(NR)/PSIPAL
+         CALL WMSPL_PROF(PSIL,PN60(NR,1),PT60(NR,1),PT60(NR,2))
+         IF(PSIL.GT.1.D0) THEN
+            PN60(NR,2) = 0.D0
+            DO NS=3,NSMAX
+               PN60(NR,NS) = 0.D0
                PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
             ENDDO
          ELSE
-            PSIL=PSIP(NR)
-            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFNE,NPRF,IRC)
-            PN60(NR,1)=PPL*PNS(1)
-            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTE,NPRF,IRC)
-            PT60(NR,1)=PPL*PTS(1)
-            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTI,NPRF,IRC)
-            PT60(NR,2)=PPL*PTS(2)
 C---- not need PNS(2)
             PN60(NR,2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN60(NR,1)
             DO NS=3,NSMAX
                PN60(NR,NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN60(NR,1)
      &              *PNS(NS)
-               PT60(NR,NS)=PPL*PTS(NS)
+               PT60(NR,NS)=PT60(NR,2)*PTS(NS)
             ENDDO
          ENDIF
       ENDDO
+c$$$C
+c$$$C----  Set profile data at the point calculated in wm-code.
+c$$$C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
+c$$$C
+c$$$      DO NR=1,NRMAX1
+c$$$         IF (XRHO(NR).GT.1.0D0) THEN
+c$$$            PN60(NR,1) = 0.0D0
+c$$$            PT60(NR,1) = PRFTE(NPRF)*PTS(1)
+c$$$            DO NS=2,NSMAX
+c$$$               PN60(NR,NS) = 0.0D0
+c$$$               PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
+c$$$            ENDDO
+c$$$         ELSE
+c$$$            PSIL=PSIP(NR)/PSIPAL
+c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFNE,NPRF,IRC)
+c$$$            PN60(NR,1)=PPL*PNS(1)
+c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTE,NPRF,IRC)
+c$$$            PT60(NR,1)=PPL*PTS(1)
+c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTI,NPRF,IRC)
+c$$$            PT60(NR,2)=PPL*PTS(2)
+c$$$C---- not need PNS(2)
+c$$$            PN60(NR,2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN60(NR,1)
+c$$$            DO NS=3,NSMAX
+c$$$               PN60(NR,NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN60(NR,1)
+c$$$     &              *PNS(NS)
+c$$$               PT60(NR,NS)=PPL*PTS(NS)
+c$$$            ENDDO
+c$$$         ENDIF
+c$$$      ENDDO
 C     
 C----  Change the value at center and surface
 C
@@ -222,4 +264,51 @@ C
       WRITE (6,*) '     *****  NO IMPURITY  *****      '
       WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
  9996 RETURN
+      END
+C
+C**************************************************
+C
+C     Interpolation of profile at a given point
+C
+C**************************************************
+C
+      SUBROUTINE WMSPL_PROF(Rhol,PNEL,PTEL,PTIL)
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'wmxprf.inc'
+C
+C---- Input
+      real*8 Rhol ! Normalized Psi
+C---- Output
+      real*8 PNEL, ! Electron density
+     &       PTEL, ! Electron temperature
+     &       PTIL  ! Bulk ion temperature
+C---- Internal
+      integer NS
+      real*8 PSIL, PPL
+C
+C---- The following variables come from "wmxprf.inc".
+C        NPRFI,NPRF,
+C        PRFPSI,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
+C
+C---- Carry input parameter "ZEFF" to PLPLOF
+      ZEFFWM = ZEFF
+C
+C----  Set profile data at the point calculated in wm-code.
+C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
+C
+      IF (Rhol.GT.1.0D0) THEN
+         PNEL = 0.0D0
+         PTEL = PRFTE(NPRF)*PTS(1)
+         PTIL = PRFTI(NPRF)*PTS(2)
+      ELSE
+         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFNE,NPRF,IRC)
+         PNEL=PPL*PNS(1)
+         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFTE,NPRF,IRC)
+         PTEL=PPL*PTS(1)
+         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFTI,NPRF,IRC)
+         PTIL=PPL*PTS(2)
+      ENDIF
+C
+      RETURN
       END

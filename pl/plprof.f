@@ -108,10 +108,22 @@ C
 C
 C     ****** CALCULATE PLASMA PROFILE ******
 C
+C     Density, temperatures, rotation and Ratio of collision
+C       frequency to wave frequency evaluated at a given point, RHON
+C
+C     Input: RHON : 
+C
+C     Output: RN(NS)   : Density
+C             RTPR(NS) : Parallel temperature
+C             RTPP(NS) : Perpendicular temperature
+C             RU(NS)   : Toroidal rotation velocity
+C             RZCL(NS) : Ratio of collision frequency to wave frequency
+C
       SUBROUTINE PLPROF(RHON)
 C
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
+      INCLUDE '../wm/wmxprf.inc'
       DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
 C
       IF(RHON.LE.0.D0) THEN
@@ -256,6 +268,69 @@ C
                   RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
                   RU(NS)  =RU(NS)  +PUITB(NS)*FACTITB
                ENDIF
+            ENDDO
+         ENDIF
+C
+      ELSEIF(MODELN.EQ.8) THEN
+C
+         XPAR1 = 0.0D0
+         XPAR2 = 0.0D0
+         DO NS=3,NSMAX
+            XPAR1 = XPAR1 + PZ(NS)*PZ(NS)*PNS(NS)
+            XPAR2 = XPAR2 + PZ(NS)*PNS(NS)
+         ENDDO
+         XPAR = XPAR1/XPAR2
+C
+         CALL WMSPL_PROF(Rhol,RNPL(1),RTPL(1),RTPL(2))
+         IF(Rhol.GT.1.D0) THEN
+            RNPL(2) = 0.D0
+            DO NS=3,NSMAX
+               RNPL(NS) = 0.D0
+               RTPL(NS) = PRFTI(NPRF)*PTS(NS)
+            ENDDO
+         ELSE
+C---- not need PNS(2)
+            RNPL(2)=(1.D0-(PZ(2)-ZEFFWM)/(PZ(2)-XPAR))/PZ(2)*RNPL(1)
+            DO NS=3,NSMAX
+               RNPL(NS)=(PZ(2)-ZEFFWM)/(PZ(2)-XPAR)/XPAR2*RNPL(1)
+     &                 *PNS(NS)
+               RTPL(NS)=RTPL(2)*PTS(NS)
+            ENDDO
+         ENDIF
+C
+         IF(RHOL.GE.1.D0) THEN
+            DO NS=1,NSMAX
+               RN(NS)  =0.D0
+               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+                  CALL WMSPL_PROF(1.D0,RNPL(1),RTPL(1),RTPL(2))
+                  IF(NS.EQ.1) THEN
+                     RTPR(NS)=RTPL(1)*1.D-3
+                     RTPP(NS)=RTPL(1)*1.D-3
+                  ELSE
+                     RTPR(NS)=RTPL(2)*1.D-3
+                     RTPP(NS)=RTPL(2)*1.D-3
+                  ENDIF
+               ELSE
+                  RTPR(NS)=PTS(NS)
+                  RTPP(NS)=PTS(NS)
+               ENDIF
+               RU(NS)  =PUS(NS)
+            ENDDO
+         ELSE
+            FACTN=(1.D0-RHOL**PROFN1)**PROFN2
+            FACTT=(1.D0-RHOL**PROFT1)**PROFT2
+            FACTU=(1.D0-RHOL**PROFU1)**PROFU2
+            DO NS=1,NSMAX
+               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+                  RN(NS)  = RNPL(NS)*1.D-20
+                  RTPR(NS)= RTPL(NS)*1.D-3
+                  RTPP(NS)= RTPL(NS)*1.D-3
+               ELSE
+                  RN(NS)  =((PN(NS)  -PNS(NS))*FACTN+PNS(NS))
+                  RTPR(NS)=((PTPR(NS)-PTS(NS))*FACTT+PTS(NS))
+                  RTPP(NS)=((PTPP(NS)-PTS(NS))*FACTT+PTS(NS))
+               ENDIF
+               RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
          ENDIF
 C

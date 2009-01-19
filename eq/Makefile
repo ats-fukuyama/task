@@ -19,6 +19,8 @@ OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
+WMLIBS = ../wm/wmlib.a ../mtx/mtxlib.a ../eq/wmeqin.o ../mpi/nompilib.o
+LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a ../dp/dplib.a $(WMLIBS)
 FLIBS = $(GLIBS)
 
 .SUFFIXES: .f90
@@ -46,13 +48,13 @@ libs:
 	(cd ../pl; make pllib.a)
 
 eq : eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJP) eqlib.a ../lib/tasklib.a ../../bspd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJP) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) $(OBJA) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check :
 	ftnchek $(FCKFLAGS) $(SRCS) | less
