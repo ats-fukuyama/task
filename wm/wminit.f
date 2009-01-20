@@ -122,7 +122,7 @@ C                   1: Writting
 C        MDLWMF: Control of solver
 C                   0: original FDM
 C                   1: FEM
-C                   2: FEM (simple cyrindrical)
+C                   2: FEM (simple cylindrical)
 C        MDLWMD: Control of solver memory
 C                   0: least memory, but slower
 C                   1: (nsmax+3) times memory, but half computation time

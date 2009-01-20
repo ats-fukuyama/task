@@ -40,19 +40,15 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'wmxprf.inc'
 C
-c$$$      REAL*8 PRFPSI(NXPRF)  , PRFNE(NXPRF)   , PRFTE(NXPRF)
-c$$$     >     , PRFTI(NXPRF)
-c$$$      REAL*8 UPRFNE(4,NXPRF), UPRFTE(4,NXPRF), UPRFTI(4,NXPRF)
-c$$$      REAL*8 DERIV(NXPRF)
       REAL*8 ZEFFSV, PSIL, PPL, PTSSV(NSM), PNSSV(NSM)
-      REAL*8 XPAR1, XPAR2, XPAR, PSIPAL
+      REAL*8 PSIPAL
 C
       CHARACTER    TRFILE*80, CWK1*10
 C
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV
       SAVE ZEFFSV, NSMAXSV, PTSSV, PNSSV
 C
-      DATA TRFILE / 'trdata' /  ! fixed name
+      DATA TRFILE / 'topics-data' /  ! fixed name
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
       DATA ZEFFSV / 0.0D0 /
       DATA NSMAXSV /0/
@@ -76,7 +72,7 @@ C
             IF (DABS(PNSSV(NS)-PNS(NS)).GT.1.D-6 ) IP2 = 1
          ENDDO
       ENDIF
-      IF (IP1+IP2.EQ.0) GO TO 9997
+      IF (IP1+IP2.EQ.0) GO TO 9996
 C
       WRITE (6,*) '==========  WMXPRF START  =========='
 C
@@ -115,8 +111,19 @@ C
       OPEN ( IFNO, FILE=TRFILE, ERR=9998 )
       READ ( IFNO, '(I3)', END=9999, ERR=9999 ) NPRF
       DO N=1,NPRF
-         READ ( IFNO, '(4E14.7)', END=9999, ERR=9999 )
-     >        PRFPSI(N), PRFNE(N), PRFTE(N), PRFTI(N)
+         READ ( IFNO, '(11E14.7)', END=9999, ERR=9999 )
+     >        PRFPSI(N), (PRFN(N,I), I=1,NXSPC),
+     >                   (PRFT(N,I), I=1,NXSPC)
+      ENDDO
+C
+C----  Modification for charge neutrality
+C
+      DO NR=1,NPRF
+         VAL=0.D0
+         DO NS=2,NSMAX-1
+            VAL=VAL+PZ(NS)*PRFN(NR,NS)
+         ENDDO
+         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
       ENDDO
 C
 C----  Normalize coordinate PRFPSI
@@ -127,16 +134,20 @@ C
 C
 C----  Set coefficient for spline
 C
-      CALL SPL1D(PRFPSI,PRFNE,  DERIV,UPRFNE, NPRF,0,IRC)
-      IF (IRC.NE.0) GO TO 9999
-      CALL SPL1D(PRFPSI,PRFTE,  DERIV,UPRFTE, NPRF,0,IRC)
-      IF (IRC.NE.0) GO TO 9999
-      CALL SPL1D(PRFPSI,PRFTI,  DERIV,UPRFTI, NPRF,0,IRC)
-      IF (IRC.NE.0) GO TO 9999
+      DO NS=1,NSMAX
+         CALL SPL1D(PRFPSI,PRFN(1,NS),  DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
+         IF (IRC.NE.0) GO TO 9999
+         CALL SPL1D(PRFPSI,PRFT(1,NS),  DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
+         IF (IRC.NE.0) GO TO 9999
+      ENDDO
 C
 C---- PSIP at the separatrix
 C
-      NRMAX1 = NRMAX + 1
+      IF(MDLWMF.EQ.0) THEN
+         NRMAX1 = NRMAX + 1
+      ELSE
+         NRMAX1 = NRMAX
+      ENDIF
       DO NR=1,NRMAX1
          IF(XRHO(NR).GE.1.D0) THEN
             PSIPAL = PSIP(NR)
@@ -145,85 +156,31 @@ C
       ENDDO
  7000 CONTINUE
 C
-C---- For impurities
-C
-      XPAR1 = 0.0D0
-      XPAR2 = 0.0D0
-      DO NS=3,NSMAX
-         XPAR1 = XPAR1 + PZ(NS)*PZ(NS)*PNS(NS)
-         XPAR2 = XPAR2 + PZ(NS)*PNS(NS)
-      ENDDO
-      IF (XPAR2.EQ.0.0D0) GO TO 9997
-      XPAR = XPAR1/XPAR2
-C
 C----  Set profile data at the point calculated in wm-code.
 C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
 C
       DO NR=1,NRMAX1
          PSIL=PSIP(NR)/PSIPAL
-         CALL WMSPL_PROF(PSIL,PN60(NR,1),PT60(NR,1),PT60(NR,2))
-         IF(PSIL.GT.1.D0) THEN
-            PN60(NR,2) = 0.D0
-            DO NS=3,NSMAX
-               PN60(NR,NS) = 0.D0
-               PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
-            ENDDO
-         ELSE
-C---- not need PNS(2)
-            PN60(NR,2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN60(NR,1)
-            DO NS=3,NSMAX
-               PN60(NR,NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN60(NR,1)
-     &              *PNS(NS)
-               PT60(NR,NS)=PT60(NR,2)*PTS(NS)
-            ENDDO
-         ENDIF
+         DO NS=1,NSMAX
+            CALL WMSPL_PROF(PSIL,NS,PN60(NR,NS),PT60(NR,NS))
+         ENDDO
       ENDDO
-c$$$C
-c$$$C----  Set profile data at the point calculated in wm-code.
-c$$$C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
-c$$$C
-c$$$      DO NR=1,NRMAX1
-c$$$         IF (XRHO(NR).GT.1.0D0) THEN
-c$$$            PN60(NR,1) = 0.0D0
-c$$$            PT60(NR,1) = PRFTE(NPRF)*PTS(1)
-c$$$            DO NS=2,NSMAX
-c$$$               PN60(NR,NS) = 0.0D0
-c$$$               PT60(NR,NS) = PRFTI(NPRF)*PTS(NS)
-c$$$            ENDDO
-c$$$         ELSE
-c$$$            PSIL=PSIP(NR)/PSIPAL
-c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFNE,NPRF,IRC)
-c$$$            PN60(NR,1)=PPL*PNS(1)
-c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTE,NPRF,IRC)
-c$$$            PT60(NR,1)=PPL*PTS(1)
-c$$$            CALL SPL1DF(PSIL,PPL,PRFPSI,UPRFTI,NPRF,IRC)
-c$$$            PT60(NR,2)=PPL*PTS(2)
-c$$$C---- not need PNS(2)
-c$$$            PN60(NR,2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN60(NR,1)
-c$$$            DO NS=3,NSMAX
-c$$$               PN60(NR,NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN60(NR,1)
-c$$$     &              *PNS(NS)
-c$$$               PT60(NR,NS)=PPL*PTS(NS)
-c$$$            ENDDO
-c$$$         ENDIF
-c$$$      ENDDO
-C     
-C----  Change the value at center and surface
 C
-      PN(1)   = PRFNE(1)*1.0D-20*PNS(1)
-      PTPR(1) = PRFTE(1)*1.0D-3 *PTS(1)
-      PTPP(1) = PRFTE(1)*1.0D-3 *PTS(1)
+C----  Modification for charge neutrality after spline interpolation
+C
+      DO NR=1,NRMAX1
+         VAL=0.D0
+         DO NS=2,NSMAX-1
+            VAL=VAL+PZ(NS)*PN60(NR,NS)
+         ENDDO
+         PN60(NR,NSMAX)=(PN60(NR,1)-VAL)/PZ(NSMAX)
+      ENDDO
 C
       IF (NPRFI.EQ.1) THEN
-C----  not need PNS(2)
-         PN(2)=(1.D0-(PZ(2)-ZEFF)/(PZ(2)-XPAR))/PZ(2)*PN(1)
-         PTPR(2) = PRFTI(1)*1.0D-3*PTS(2)
-         PTPP(2) = PRFTI(1)*1.0D-3*PTS(2)
-C     
-         DO NS=3,NSMAX
-            PN(NS)=(PZ(2)-ZEFF)/(PZ(2)-XPAR)/XPAR2*PN(1)*PNS(NS)
-            PTPR(NS) = PRFTI(1)*1.D-3*PTS(NS)
-            PTPP(NS) = PRFTI(1)*1.D-3*PTS(NS)
+         DO NS=1,NSMAX
+            PN(NS)   = PN60(1,NS) * 1.D-20
+            PTPR(NS) = PT60(1,NS) * 1.D-3
+            PTPP(NS) = PT60(1,NS) * 1.D-3
          ENDDO
       ENDIF
 C
@@ -231,16 +188,30 @@ C----  Debug write
 C
 c$$$      WRITE(6,8000)
 c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P4(1XE10.3))') N,PRFPSI(N),PRFNE(N),
-c$$$     >                                  PRFTE(N),PRFTI(N)
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFPSI(N),(PRFN(N,I),I=1,NXSPC)
 c$$$      ENDDO
 c$$$      WRITE(6,8010)
-c$$$      DO N=1,NRMAX1
-c$$$         WRITE(6,'(I3,1P4(1XE10.3))') N, XRHO(N), PSIP(N),
-c$$$     >                                   PN60(N,1), PT60(N,2)
+c$$$      DO N=1,NPRF
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFPSI(N),(PRFT(N,I),I=1,NXSPC)
 c$$$      ENDDO
-c$$$ 8000 FORMAT(' N ',3X,'PRFPSI',6X,'PRFNE',6X,'PRFTE',6X,'PRFTI')
-c$$$ 8010 FORMAT(' N ',4X,'XRHO',7X,'PSIP ',6X,'PNE',8X,'PTI')
+c$$$      WRITE(6,8020)
+c$$$      DO N=1,NRMAX1
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), PSIP(N),
+c$$$     >                                  (PN60(N,I),I=1,NXSPC)
+c$$$      ENDDO
+c$$$      WRITE(6,8030)
+c$$$      DO N=1,NRMAX1
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), PSIP(N),
+c$$$     >                                  (PT60(N,I),I=1,NXSPC)
+c$$$      ENDDO
+ 8000 FORMAT(' N ',3X,'PRFPSI',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
+     >             5X,'PRFNI3',5X,'PRFNI4')
+ 8010 FORMAT(' N ',3X,'PRFPSI',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
+     >             5X,'PRFTI3',5X,'PRFTI4')
+ 8020 FORMAT(' N ',4X,'XRHO',7X,'PSIP ',6X,'PNE',8X,'PNI1',
+     >             7X,'PNI2',7X,'PNI3',7X,'PNI4')
+ 8030 FORMAT(' N ',4X,'XRHO',7X,'PSIP ',6X,'PTE',8X,'PTI1',
+     >             7X,'PTI2',7X,'PTI3',7X,'PTI4')
 C
       NRMAXSV=NRMAX
       NTHMAXSV=NTHMAX
@@ -253,17 +224,18 @@ C
          PNSSV(NS)=PNS(NS)
       ENDDO
 C
+      IF(NSMAX.EQ.2) GOTO 9997
+C
       IERR = 0
 C
  9999 CONTINUE
       CLOSE( IFNO )
  9998 CONTINUE
       WRITE (6,*) '==========  WMXPRF  END   =========='
-      GO TO 9996
- 9997 CONTINUE
-      WRITE (6,*) '     *****  NO IMPURITY  *****      '
-      WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
- 9996 RETURN
+      GO TO 9995
+ 9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
+ 9996 WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
+ 9995 RETURN
       END
 C
 C**************************************************
@@ -272,19 +244,18 @@ C     Interpolation of profile at a given point
 C
 C**************************************************
 C
-      SUBROUTINE WMSPL_PROF(Rhol,PNEL,PTEL,PTIL)
+      SUBROUTINE WMSPL_PROF(Rhol,NS,PNL,PTL)
 C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'wmxprf.inc'
 C
 C---- Input
+      integer NS
       real*8 Rhol ! Normalized Psi
 C---- Output
-      real*8 PNEL, ! Electron density
-     &       PTEL, ! Electron temperature
-     &       PTIL  ! Bulk ion temperature
+      real*8 PNL, ! density
+     &       PTL  ! temperature
 C---- Internal
-      integer NS
       real*8 PSIL, PPL
 C
 C---- The following variables come from "wmxprf.inc".
@@ -298,16 +269,13 @@ C----  Set profile data at the point calculated in wm-code.
 C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
 C
       IF (Rhol.GT.1.0D0) THEN
-         PNEL = 0.0D0
-         PTEL = PRFTE(NPRF)*PTS(1)
-         PTIL = PRFTI(NPRF)*PTS(2)
+         PNL = 0.D0
+         PTL = PTS(NS)
       ELSE
-         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFNE,NPRF,IRC)
-         PNEL=PPL*PNS(1)
-         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFTE,NPRF,IRC)
-         PTEL=PPL*PTS(1)
-         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFTI,NPRF,IRC)
-         PTIL=PPL*PTS(2)
+         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFN(1,1,NS),NPRF,IRC)
+         PNL=PPL
+         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFT(1,1,NS),NPRF,IRC)
+         PTL=PPL
       ENDIF
 C
       RETURN
