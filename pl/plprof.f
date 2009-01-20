@@ -273,43 +273,27 @@ C
 C
       ELSEIF(MODELN.EQ.8) THEN
 C
-         XPAR1 = 0.0D0
-         XPAR2 = 0.0D0
-         DO NS=3,NSMAX
-            XPAR1 = XPAR1 + PZ(NS)*PZ(NS)*PNS(NS)
-            XPAR2 = XPAR2 + PZ(NS)*PNS(NS)
+         DO NS=1,NSMAX
+            CALL WMSPL_PROF(Rhol,NS,RNPL(NS),RTPL(NS))
          ENDDO
-         XPAR = XPAR1/XPAR2
 C
-         CALL WMSPL_PROF(Rhol,RNPL(1),RTPL(1),RTPL(2))
-         IF(Rhol.GT.1.D0) THEN
-            RNPL(2) = 0.D0
-            DO NS=3,NSMAX
-               RNPL(NS) = 0.D0
-               RTPL(NS) = PRFTI(NPRF)*PTS(NS)
-            ENDDO
-         ELSE
-C---- not need PNS(2)
-            RNPL(2)=(1.D0-(PZ(2)-ZEFFWM)/(PZ(2)-XPAR))/PZ(2)*RNPL(1)
-            DO NS=3,NSMAX
-               RNPL(NS)=(PZ(2)-ZEFFWM)/(PZ(2)-XPAR)/XPAR2*RNPL(1)
-     &                 *PNS(NS)
-               RTPL(NS)=RTPL(2)*PTS(NS)
-            ENDDO
-         ENDIF
+C----  Modification for charge neutrality after spline interpolation
+C
+         VAL=0.D0
+         DO NS=2,NSMAX-1
+            VAL=VAL+PZ(NS)*RNPL(NS)
+         ENDDO
+         RNPL(NSMAX)=(RNPL(1)-VAL)/PZ(NSMAX)
+C
+C----
 C
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
-               RN(NS)  =0.D0
+               RN(NS)=PNS(NS)
                IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
-                  CALL WMSPL_PROF(1.D0,RNPL(1),RTPL(1),RTPL(2))
-                  IF(NS.EQ.1) THEN
-                     RTPR(NS)=RTPL(1)*1.D-3
-                     RTPP(NS)=RTPL(1)*1.D-3
-                  ELSE
-                     RTPR(NS)=RTPL(2)*1.D-3
-                     RTPP(NS)=RTPL(2)*1.D-3
-                  ENDIF
+                  CALL WMSPL_PROF(1.D0,NS,RNPL(NS),RTPL(NS))
+                  RTPR(NS)=RTPL(NS)*1.D-3
+                  RTPP(NS)=RTPL(NS)*1.D-3
                ELSE
                   RTPR(NS)=PTS(NS)
                   RTPP(NS)=PTS(NS)
