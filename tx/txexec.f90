@@ -70,7 +70,8 @@ contains
 
   SUBROUTINE TXLOOP
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
-         &                 PNeV, PTeV,PNeV_FIX, PTeV_FIX, NQM, IERR, LQb1, LQn1, &
+         &                 PNeV, PTeV, PNeV_FIX, PTeV_FIX, PNiV, PTiV, PNiV_FIX, PTiV_FIX, &
+         &                 NQM, IERR, LQb1, LQn1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
          &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV
@@ -122,6 +123,7 @@ contains
           tiny_array(NQ) = maxval(XN(NQ,0:NRMAX)) * tiny_cap
        END DO
 
+       ! In the following loop, XN is being updated during iteration.
        L_IC : DO IC = 1, ICMAX
           ! Save past X = XP
           XP(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
@@ -133,10 +135,12 @@ contains
              END DO
           END IF
 
-          CALL TXCALV(XP,ID)
+          CALL TXCALV(XP)
           IF(IC == 1) THEN
              PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
              PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
+             PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
+             PTiV_FIX(0:NRMAX) = PTiV(0:NRMAX)
           END IF
 
           CALL TXCALC
@@ -242,7 +246,7 @@ contains
           IF (IERR /= 0) THEN
              X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
              CALL TXCALV(X)
-             CALL TXCALC
+!             CALL TXCALC
              CALL TXGLOB
              CALL TX_GRAPH_SAVE
              RETURN
@@ -269,7 +273,7 @@ contains
              ! Save past X = XN1
              XN1(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 
-             CALL TXCALV(XN1,ID)
+             CALL TXCALV(XN1)
              CALL TXCALC
              CALL TXCALA
              CALL TXCALB(BA,BL,BX)
@@ -384,7 +388,10 @@ contains
        END DO L_IC
 
        ! Save past X for BDF
-       IF(IGBDF /= 0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
+       IF(IGBDF /= 0) THEN
+          XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
+          CALL TXCALV(XOLD,0)
+       END IF
 
        IF(IDIAG >= 2) THEN
           IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))

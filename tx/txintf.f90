@@ -106,6 +106,14 @@ module tx_interface
   end interface
 
   interface
+     function dfdx(x,f,nmax,mode)
+       integer(4), intent(in) :: nmax, mode
+       real(8), dimension(0:nmax), intent(in) :: x, f
+       real(8), dimension(0:nmax) :: dfdx
+     end function dfdx
+  end interface
+
+  interface
      REAL(8) FUNCTION INTG_F(X)
        real(8), dimension(*), intent(in) :: X
      end FUNCTION INTG_F

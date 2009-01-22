@@ -7,7 +7,7 @@ module tx_coefficients
   real(8), dimension(:,:,:,:), allocatable :: ELM, PELM
   real(8), dimension(:), allocatable ::  &
        & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
-       & rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       & rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        & BphBNi, BthBNi, Dbrpft, &
@@ -99,7 +99,7 @@ contains
     N = NRMAX
 
     allocate(rNuIN0(0:N), rNuCXN0(0:N), rNubeBE(0:N), rNubiBI(0:N), rNuTeiEI(0:N), &
-       &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), dPNeV(0:N), dPNiV(0:N), &
+       &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), &!dPNeV(0:N), dPNiV(0:N), &
        &     RUbthV(0:N), UethVR(0:N), UithVR(0:N), &
        &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
        &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
@@ -224,7 +224,7 @@ contains
 
     deallocate(ELM,PELM)
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
-       &       rNuCXN1, rMueNe, rMuiNi, dPNeV, dPNiV, &
+       &       rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
        &       BphBNi, BthBNi, Dbrpft, &
@@ -247,7 +247,7 @@ contains
 
   SUBROUTINE LQCOEF
 
-    use tx_interface, only : DERIVS
+    use tx_interface, only : dfdx!, derivs
     INTEGER(4) :: NR
     REAL(8) :: BBL
 
@@ -273,9 +273,10 @@ contains
     UithVR(0)         = 0.D0 ! Any value is OK. (Never affect the result.)
     EthVR(1:NRMAX)    = EthV(1:NRMAX) / R(1:NRMAX)
     EthVR(0)          = 0.D0 ! Any value is OK. (Never affect the result.)
-    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
-    CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
-    CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)
+!    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
+!    CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
+!    CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)
+    dAphV(0:NRMAX)    = dfdx(PSI,AphV ,NRMAX,0)
     FWpheBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphe(0:NRMAX)
     FWphiBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphi(0:NRMAX)
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
@@ -966,8 +967,10 @@ contains
        ELM(1:NEMAX,1:4,11,LQe5) = - 1.5D0          * fem_int( 2,rNuLTe)
        NLC(11,LQe5) = LQe5
 
-       PELM(1:NEMAX,1:4,12,LQe5) =  1.5D0 * PTeDIV * fem_int(-2,rNuLTe,PNeV)
-       NLC(12,LQe5) = 0
+!!unstable       PELM(1:NEMAX,1:4,12,LQe5) =  1.5D0 * PTeDIV * fem_int(-2,rNuLTe,PNeV)
+!!unstable       NLC(12,LQe5) = 0
+       ELM(1:NEMAX,1:4,12,LQe5) =   1.5D0 * PTeDIV * fem_int( 2,rNuLTe)
+       NLC(12,LQe5) = LQe1
 
        ! Direct heating (RF)
 

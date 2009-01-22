@@ -18,6 +18,11 @@
 !                   NAKA FUSION INSTITUTE
 !                  TOKAMAK ANALYSIS GROUP
 !
+!     Reference:
+!       M. Honda and A. Fukuyama, "Dynamic transport simulation
+!       code including plasma rotation and radial electric field",
+!       Journal of Computational Physics, 227 (2008) 2808-2844
+!
 !***********************************************************
 !
 !   Variables                                         Boundary Cond.
@@ -65,8 +70,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx453.0'
-  WRITE(6,*) '######## TASK/TX V4.53.10 09/01/07 ########'
+  SLID = 'tx454.0'
+  WRITE(6,*) '######## TASK/TX V4.54.10 09/01/22 ########'
 
   CALL TXINIT
   KPNAME='txparm'

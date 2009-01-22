@@ -8,7 +8,7 @@
 SUBROUTINE TXGLOB
 
   use tx_commons
-  use tx_interface, only : INTG_F, INTG_P, DERIVS
+  use tx_interface, only : INTG_F, INTG_P, dfdx
   implicit none
 
   INTEGER(4) :: I, NS, NF, NR
@@ -23,7 +23,7 @@ SUBROUTINE TXGLOB
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
   real(8), dimension(:), allocatable :: Siz
   real(8) :: dBetaSUM, BPINT
-  real(8) :: DERIV3
+  real(8) :: DERIV4, FCTR
 
   !     Line Averaged Density and Temperature
   !     Core Density and Temperature
@@ -133,15 +133,15 @@ SUBROUTINE TXGLOB
      EpsL  = R(NR) / RR
      BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
      ! +++ Original model +++
-     dPPV = DERIV3(NR,R,PP,NRMAX,0) * 1.D20 * rKeV
+     dPPV = DERIV4(NR,R,PP,NRMAX,0) * 1.D20 * rKeV
      ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
           & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
      AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
      ! +++ Hirshman model +++
-     dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
-     dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
-     dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
-     dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
+     dPTeV = DERIV4(NR,R,PTeV,NRMAX,0) * RA
+     dPTiV = DERIV4(NR,R,PTiV,NRMAX,0) * RA
+     dPPe  = DERIV4(NR,R,PeV,NRMAX,0) * RA
+     dPPi  = DERIV4(NR,R,PiV,NRMAX,0) * RA
      FTL   =(1.46D0 * SQRT(EpsL) + 2.4D0 * EpsL) / (1.D0 - EpsL)**1.5D0
      DDX   = 1.414D0 * PZ + PZ**2 + FTL * (0.754D0 + 2.657D0 * PZ &
           &        + 2.D0 * PZ**2) + FTL**2 * (0.348D0 + 1.243D0 * PZ + PZ**2)
@@ -226,7 +226,7 @@ SUBROUTINE TXGLOB
 
   Betadef(0:NRMAX) = (PNeV(0:NRMAX) * PTeV(0:NRMAX) + PNiV(0:NRMAX) * PTiV(0:NRMAX)) &
        &        * 1.D20 * rKeV /((BphV(0:NRMAX)**2 + BthV(0:NRMAX)**2) / (2.D0 * rMU0))
-  CALL DERIVS(R,Betadef,NRMAX,dBetadr)
+  dBetadr(0:NRMAX) = dfdx(R,Betadef,NRMAX,0)
   RPEINT = 0.D0 ; RPIINT = 0.D0 ; dBetaSUM = 0.D0
   DO NR = 1, NRMAX
      RPEINT = RPEINT + INTG_P(PeV,NR,0)
@@ -286,8 +286,9 @@ SUBROUTINE TXGLOB
 !!$  BETAPL(I) = 2.D0*SUMML*rMU0/(           BP(NRMAX)**2)*FACT
 !!$  BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BP(I))**2)*FACT
 
-  BETA0  = (4.D0*BETA(1)  -BETA(2)  )/3.D0
-  BETAP0 = (4.D0*BETAPL(1)-BETAPL(2))/3.D0
+  BETA0  = FCTR(R(1),R(2),BETA(1),BETA(2))
+
+  BETAP0 = FCTR(R(1),R(2),BETAPL(1),BETAPL(2))
   BETAQ0 = 0.D0
 
   BETAPA = BETAP(NRMAX)
@@ -346,7 +347,7 @@ SUBROUTINE TXGLOB
      END DO OUTER
   END IF
 
-  !  ZEFF0=(4.D0*ZEFF(1)-ZEFF(2))/3.D0
+  !  ZEFF0=FCTR(R(1),R(2),ZEFF(1),ZEFF(2))
   ZEFF0=Zeff
 
   !  Evaluate effective particle diffusivity from particle flux minus Ware pinch
@@ -356,9 +357,9 @@ SUBROUTINE TXGLOB
   do nr = 1, nrmax
      ! Including Ware pinch
 !     Deff(nr) = (PNiV(NR)*UirV(NR)-ft(NR)*PNiV(NR)*EphV(NR)/BthV(NR)) &
-!          & /(-DERIV3(NR,R,PNiV,NRMAX,0))
+!          & /(-DERIV4(NR,R,PNiV,NRMAX,0))
      ! Excluding Ware pinch
-     Deff(nr) = -PNiV(NR)*UirV(NR)/DERIV3(NR,R,PNiV,NRMAX,0)
+     Deff(nr) = -PNiV(NR)*UirV(NR)/DERIV4(NR,R,PNiV,NRMAX,0)
      if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
   end do
 

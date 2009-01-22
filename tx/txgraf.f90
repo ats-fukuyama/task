@@ -1338,25 +1338,17 @@ contains
 !       CALL TXWPGR
 
     CASE(9)
-!!$       STR = '@D$-i$=(r)+D$-e$=(r)@'
-!!$       CALL TXGRFRX(0,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
        STR = '@D$-i,eff$=(r)@'
        CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)
 
-!!$       STR = '@G$-1$=h$+2$=(r)@'
-!!$       CALL TXGRFRX(1,GX,GY(0,0,30),NRMAX,NGR,STR,MODE,IND)
-!!$       STR = '@$#c$#$-NCi$=(r)@'
-!!$       CALL TXGRFRX(1,GX,GY(0,0,130),NRMAX,NGR,STR,MODE,IND)
        STR = '@D$-i$=(r)+D$-e$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@$#c$#$-e$=(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,70),NRMAX,NGR,STR,MODE,IND)
 
-!!$       STR = '@F$-CDBM$=(r)@'
-!!$       CALL TXGRFRX(3,GX,GY(0,0,31),NRMAX,NGR,STR,MODE,IND)
-       STR = '@Virtual Torque(r)@'
-       CALL TXGRFRX(3,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
+       STR = '@$#c$#$-NCi$=(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,130),NRMAX,NGR,STR,MODE,IND)
 
 !       CALL TXWPGR
 
@@ -1387,7 +1379,10 @@ contains
        STR = '@$#k$#(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,34),NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@F$-CDBM$=(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,31),NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(12)
        STR = '@E$-$#q$#$=(r)@'
@@ -1536,6 +1531,12 @@ contains
        STR = '@PALFi(r)@'
        CALL APPROPGY(MODEG, GY(0,0,124), GYL, STR, NRMAX, NGR, gDIV(124))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@G$-1$=h$+2$=(r)@'
+       CALL TXGRFRX(2,GX,GY(0,0,30),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@Virtual Torque(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
 
     CASE(-1)
        STR = '@E$-r$=(r)@'

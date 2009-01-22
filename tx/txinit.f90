@@ -123,6 +123,8 @@ SUBROUTINE TXINIT
 
   !   CDBM transport coefficient parameter
   !     (Current diffusive ballooning mode)
+  !      The finer time step size, typically less than or equal to DT=5.D-4,
+  !         is anticipated when using CDBM.
   FSCDBM = 0.D0
 
   !   Bohm transport coefficient parameter in SOL
@@ -326,12 +328,21 @@ SUBROUTINE TXINIT
   ICMAX = 10
 
   !   Time-advancing method
-  !     ADV = 0     : Explicit scheme
-  !           0.5   : Crank-Nicolson scheme
-  !           2/3   : Galerkin scheme
+  !     ADV = 0     : Explicit scheme       (Not usable)
+  !           0.5   : Crank-Nicolson scheme (Not usable)
+  !           2/3   : Galerkin scheme       (Not usable)
   !           0.878 : Liniger scheme
-  !           1     : Implicit scheme
+  !           1     : Implicit scheme       (Recommended)
   ADV = 1.D0
+
+  !   Mode of Backward Differential (Gear's) Formula (Second-order accuracy)
+  !   (http://www.scholarpedia.org/article/Backward_differentiation_formulas)
+  !   (Bibun Houteishiki no Suuchi Kaihou I, Taketomo Mitsui, Iwanami, 1993, p29,30)
+  !   (P.M.Gresho and R.L.Sani, "Incompressible Flow and the Finite Element Method,
+  !    Vol.1 Advection-Diffusion", John Wiley and Sons, 2000, p.263)
+  !     IGBDF = 0   : not used
+  !             1   : Use BDF2
+  IGBDF = 0
 
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
@@ -429,11 +440,6 @@ SUBROUTINE TXINIT
   !   0    : not fixed
   !   1    : fixed
   MDFIXT = 0
-
-  !   Mode of Backward Differential Formula
-  !   0    : not used
-  !   1    : Use BDF
-  IGBDF = 0
 
   !   Mode of nonlinear iteration method
   !   0    : fixed point method (or Picard method), linear convergence
@@ -658,7 +664,7 @@ SUBROUTINE TXPROF
 
   use tx_commons
   use tx_variables
-  use tx_interface, only : INTG_P, DERIVS, INTDERIV3, detect_datatype, INTG_F
+  use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx
 
   implicit none
   INTEGER(4) :: NR, NQ, I, IER, ifile
@@ -668,8 +674,8 @@ SUBROUTINE TXPROF
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
-  REAL(8) :: DERIV3, FCTR ! External functions
-  real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV
+  REAL(8) :: DERIV4, FCTR ! External functions
+  real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr
   real(8), dimension(:,:), allocatable :: CMTX
 
   !  Read spline table for neoclassical toroidal viscosity
@@ -773,10 +779,12 @@ SUBROUTINE TXPROF
      BphV(NR)   = BB
      ! Fixed densities to keep them constant during iterations
      PNeV_FIX(NR) = X(LQe1,NR)
+     PNiV_FIX(NR) = X(LQi1,NR)
      IF(MDFIXT == 0) THEN
         PTeV_FIX(NR) = X(LQe5,NR) / X(LQe1,NR)
+        PTiV_FIX(NR) = X(LQi5,NR) / X(LQi1,NR)
      ELSE
-        PTeV_FIX(NR) = X(LQe5,NR)
+        PTiV_FIX(NR) = X(LQi5,NR)
      END IF
   END DO
 
@@ -809,7 +817,7 @@ SUBROUTINE TXPROF
   ifile = detect_datatype('LQe4')
   if(ifile == 0) then
      DO NR = 0, NRMAX
-!!$        AJPHL(NR) = 2.D0 / rMUv1 * DERIV3(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
+!!$        AJPHL(NR) = 2.D0 / rMUv1 * DERIV4(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
 !!$        X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
 
         IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
@@ -927,10 +935,10 @@ SUBROUTINE TXPROF
   ELSE
      TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
      DO NR = 1, NRMAX
-        dRIP = DERIV3(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
+        dRIP = DERIV4(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
         AJV(NR)=dRIP / (2.D0 * PI * R(NR))
      END DO
-     AJV(0)=(4*AJV(1)-AJV(2))/3.D0
+     AJV(0)=FCTR(R(1),R(2),AJV(1),AJV(2))
 !     write(6,'(I5,1P2E12.4)') (NR,R(NR),AJV(NR),NR=0,NRMAX)
   END IF
   deallocate(TMP)
@@ -938,7 +946,7 @@ SUBROUTINE TXPROF
   ! Toroidal electric field for initial NCLASS calculation
 
   Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
-  Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
+  Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
 
   DO NR = 0, NRMAX
      ! +++ Hirshman, Hawryluk and Birge model +++
@@ -1001,9 +1009,13 @@ SUBROUTINE TXPROF
 
   IF(MDINIT == 0) THEN
 
+     allocate(dPedr(0:NRMAX),dPidr(0:NRMAX))
+     dPedr(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PeV,NRMAX,0) * rKeV
+     dPidr(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV,NRMAX,0) * rKeV
+
      DO NR = 0, NRMAX
-        dPe = 2.D0 * R(NR) * DERIV3(NR,PSI,PeV,NRMAX,0) * rKeV
-        dPi = 2.D0 * R(NR) * DERIV3(NR,PSI,PiV,NRMAX,0) * rKeV
+        dPe = dPedr(NR)
+        dPi = dPidr(NR)
         IF(NR == NRMAX) THEN
            dPe = 0.D0
            dPi = 0.D0
@@ -1026,6 +1038,8 @@ SUBROUTINE TXPROF
              &     +(dPe + dPi) / (AEE * BphV(NR)))) &
              &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
      END DO
+
+     deallocate(dPedr,dPidr)
 
      ! Scalar potential
 
@@ -1305,9 +1319,8 @@ contains
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
          &   'DltRPn', DltRPn,  'kappa ', kappa ,  &
-         &   'PN0s  ', PN0s  ,  'ADV   ', ADV   ,  &
-         &   'EPS   ', EPS   ,  'tiny  ', tiny_cap,&
-         &   'DT    ', DT    ,  &
+         &   'PN0s  ', PN0s  ,  'EPS   ', EPS   ,  &
+         &   'tiny  ', tiny_cap,'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
          &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &

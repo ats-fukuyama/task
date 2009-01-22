@@ -91,7 +91,7 @@ subroutine NTVcalc
 
   integer(4) :: nr, m, ierr
   real(8) :: suml, f, wnm_plus, wnm_minus, EpsL, Vti2, dPTiV, B_lambda
-  real(8) :: deriv3, aitken2p ! external function
+  real(8) :: deriv4, aitken2p ! external function
 
   do nr = 0, nrmax
      suml = 0.d0
@@ -117,7 +117,7 @@ subroutine NTVcalc
      rNuNTV(nr) = 1.74d0 * Vti2 / rNuii(nr) * EpsL**1.5d0 / RR**2 * B_lambda
 !     write(6,*) r(nr)/ra,rnuntv(nr)
 
-     dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA * rKeV
+     dPTiV = DERIV4(NR,R,PTiV,NRMAX,0) * RA * rKeV
      if(nr /= 0) UastNC(nr) = 3.5d0 * RR * Q(nr) / (PZ * AEE * R(nr) * BB) * dPTiV
   end do
   UastNC(0) = AITKEN2P(R(0),UastNC(1),UastNC(2),UastNC(3),R(1),R(2),R(3))

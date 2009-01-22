@@ -1167,6 +1167,48 @@ pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
   RETURN
 END FUNCTION DERIVF
 
+! *** Universal high-accuracy 1st-derivative routine ***
+!
+!   Mode=0 gives you higher accuracy of the derivative.
+!   Mode=1 gives you faster calculation of the derivative.
+!
+!   Input: x(0:nmax)     : radial coordinate
+!          f(0:nmax)     : function
+!          nmax          : size of array
+!          mode          : 0 : Spline with 1st derivatives
+!                              with O(4) accuracy at boundaries (recommended)
+!                          1 : Taylor expansion derivative
+!                              with O(4) accuracy
+!   Output: dfdx(0:nmax) : derivative of the function with respect to x
+
+function dfdx(x,f,nmax,mode)
+
+  implicit none
+  integer(4), intent(in) :: nmax, mode
+  real(8), dimension(0:nmax), intent(in) :: x, f
+  real(8), dimension(0:nmax) :: dfdx
+
+  integer(4) :: n, ierr
+  real(8), dimension(0:nmax) :: deriv
+  real(8), dimension(1:4,0:nmax) :: u
+  real(8) :: deriv4
+
+  dfdx(0)    = deriv4(   0,x,f,nmax,0)
+  dfdx(nmax) = deriv4(nmax,x,f,nmax,0)
+  if(mode == 0) then
+     deriv(0)    = dfdx(0)
+     deriv(nmax) = dfdx(nmax)
+     call spl1d(x,f,deriv,u,nmax+1,3,ierr)
+     if(ierr /= 0) stop 'dfdx: SPL1D error!'
+     dfdx(1:nmax-1) = deriv(1:nmax-1)
+  else
+     do n = 1, nmax-1
+        dfdx(n) = deriv4(n,x,f,nmax,0)
+     end do
+  end if
+
+end function dfdx
+
 !***************************************************************
 !
 !   Integral Method

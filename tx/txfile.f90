@@ -308,7 +308,8 @@ SUBROUTINE TXLOAD(IST)
        &              rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        &              GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
        &              MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
-       &              MDLNBD,PNBMPD,NGR,rIP,thrp,kappa,PTeV_FIX,PNeV_FIX,LQe1,LQe5,TAUE2, &
+       &              MDLNBD,PNBMPD,NGR,rIP,thrp,kappa,PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX, &
+       &              LQe1,LQe5,LQi1,LQi5,TAUE2, &
        &              rMU0,rMUb1,rMUb2
   use tx_variables
   use tx_coefficients, only : TXCALA
@@ -359,7 +360,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx453') THEN
+  !  IF(LOADSLID(1:5) == 'tx454') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -413,6 +414,8 @@ SUBROUTINE TXLOAD(IST)
 
   PNeV_FIX(0:NRMAX) = X(LQe1,0:NRMAX)
   PTeV_FIX(0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
+  PNiV_FIX(0:NRMAX) = X(LQi1,0:NRMAX)
+  PTiV_FIX(0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
 
   CALL TXCALC
   CALL TXCALA
@@ -603,7 +606,7 @@ SUBROUTINE TXGLOD(IST)
 !!$       CLOSE(21)
 !!$       RETURN
 !!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx453') THEN
+!!$    !  IF(LOADSLID(1:5) == 'tx454') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB

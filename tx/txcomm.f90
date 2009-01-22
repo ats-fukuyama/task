@@ -144,7 +144,7 @@ module tx_commons
        & RUethV, RUithV, PT01V, PT02V, PNbrpV
 !!rp_conv       &, PNbrpLV
 
-  real(8), dimension(:), allocatable :: PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX
+  real(8), dimension(:), allocatable :: PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX
 
   ! Coefficients
   real(8), dimension(:), allocatable :: &
@@ -171,7 +171,7 @@ module tx_commons
   real(8), dimension(:,:), allocatable :: Umnq
  
   ! CDBM
-  real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa
+  real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa, pres0
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
@@ -286,7 +286,7 @@ contains
        ier = sum(ierl) ; iflag = 2
        if (ier /= 0) exit
 
-       allocate(PNeV_FIX(0:N), PTeV_FIX(0:N), dPNeV_FIX(0:N), dPNiV_FIX(0:N), stat = ierl(1))
+       allocate(PNeV_FIX(0:N), PTeV_FIX(0:N), PNiV_FIX(0:N), PTiV_FIX(0:N),   stat = ierl(1))
        ier = sum(ierl) ; iflag = 3
        if (ier /= 0) exit
 
@@ -298,7 +298,9 @@ contains
        allocate(rNube1(0:N), rNube2(0:N), rNube3(0:N),rNuLTe(0:N),rNuLTi(0:N), &
             &   rNube2Bth(0:N),                                               stat = ierl(5))
        allocate(rNueNC(0:N), rNuiNC(0:N), rNuAse(0:N),rNuAsi(0:N),            stat = ierl(6))
-       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), rNuiHLphph(0:N),                                                           stat = ierl(7))
+       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), &
+            &   rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), &
+            &   rNuiHLphph(0:N),                                              stat = ierl(7))
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   rMue(0:N),  rMui(0:N),  stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
        allocate(De(0:N),     Di(0:N),     D01(0:N),   D02(0:N),               stat = ierl(10))
@@ -315,6 +317,7 @@ contains
        if (ier /= 0) exit
 
        allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
+       allocate(pres0(0:N),                                                   stat = ierl(2))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
 
@@ -379,7 +382,7 @@ contains
     deallocate(AphV,   PhiV,   RAthV, PeV,   PiV)
     deallocate(RUethV, RUithV, PT01V, PT02V, PNbrpV)
 
-    deallocate(PNeV_FIX, PTeV_FIX, dPNeV_FIX, dPNiV_FIX)
+    deallocate(PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX)
 
     deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
     deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
@@ -402,6 +405,7 @@ contains
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
+    deallocate(pres0)
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
     deallocate(SNB,    SNBe,  SNBi,  SNBb)

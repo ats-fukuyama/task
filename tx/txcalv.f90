@@ -14,24 +14,27 @@ contains
   SUBROUTINE TXCALV(XL,ID)
 
     use tx_commons
-    use tx_interface, only : DERIVF
+    use tx_interface, only : dfdx
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
+    real(8) :: FCTR
+
+    IF(present(ID)) THEN
+       ! The pres0 is the pressure evaluated at the previous time step.
+       pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+       return
+    END IF
 
     PhiV (0:NRMAX) =   XL(LQm1,0:NRMAX)
-    DO NR = 0, NRMAX
-       ErV (NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm1,NQMAX,NRMAX)
-    END DO
+    ErV  (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,PhiV,NRMAX,0)
     EthV (0)       =   0.D0
     EthV (1:NRMAX) = - XL(LQm2,1:NRMAX) / R(1:NRMAX)
     EphV (0:NRMAX) = - XL(LQm3,0:NRMAX)
     AphV (0:NRMAX) =   XL(LQm4,0:NRMAX) * rMUb2
+    BthV (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,AphV ,NRMAX,0)
     RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0 * AMPm5
-    DO NR = 0, NRMAX
-       BthV(NR) = - 2.D0 * R(NR) * DERIVF(NR,PSI,XL,LQm4,NQMAX,NRMAX) * rMUb2
-       BphV(NR) =   2.D0         * DERIVF(NR,PSI,XL,LQm5,NQMAX,NRMAX) * rMU0  * AMPm5
-    END DO
+    BphV (0:NRMAX) =   2.D0              * dfdx(PSI,RAthV,NRMAX,0)
 
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
     UerV (0)       =   0.D0
@@ -123,7 +126,9 @@ contains
     PT02V(0:NRMAX) =   PTiV(0:NRMAX)
 
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
-    Q(0) = (4.D0 * Q(1) - Q(2)) / 3.D0
+    Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
+
+    pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
 
     RETURN
   END SUBROUTINE TXCALV
@@ -137,36 +142,40 @@ contains
   SUBROUTINE TXCALC
 
     use tx_commons
-    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx
     use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
 
-    INTEGER :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato
+    real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
+         &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
+
+    INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, SNBPi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, &
-         &     rGIC, rH, dErdr, dpdr, PROFCL, PALFL, &
-         &     DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
+         &     rGIC, rH, PROFCL, PALFL, DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     Chicl, rNuBAR, Ecr, Enf, factor_bohm, rNuAsIL, &
+         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, Tqi0L
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, Tqi0L!, &
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
-    real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC
-    real(8) :: PAHe = 4.D0 ! Atomic mass number of He
-    real(8), dimension(0:NRMAX) :: p, Vexbr, dQdr, SNBP, SNBT1, SNBT2, &
+    real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC, deriv4
+    real(8), dimension(0:NRMAX) :: pres, Vexbr, SNBP, SNBT1, SNBT2, &
          &                         SNBPi, SNBTi1, SNBTi2, &
          &                         SRFe, SRFi, th1, th2, Ubpara
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
+    ! For derivatives
+    real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
+         &                                dPedr, dPidr, dpdr
 
     !     *** Constants ***
 
@@ -427,7 +436,6 @@ contains
 
     do nr = 0, nrmax
        PALFL = FSNF * bosch_fusion(PTiV(NR),0.5D0*PNiV(NR),0.5D0*PNiV(NR))
-       Enf = 3.5D3 ! in keV, equal to 3.5 MeV
        Ecr = 14.8D0 * (PAHe / PA**(2.D0/3.D0)) * PTeV(NR) ! in keV
        PALFi(NR) = PALFL * rate_to_ion(Enf/Ecr)
        PALFe(NR) = PALFL - PALFi(NR)
@@ -441,7 +449,17 @@ contains
 
     ! ************** Heating part end **************
 
-    p(0:NRMAX) = (PeV(0:NRMAX) + PiV(0:NRMAX)) * 1.D20 * rKeV
+    ! ************** For turbulent transport **************
+    !   The reason that we keep the pressure throughout iteration is to stabilize numerical
+    !      instability caused by the CDBM model, strongly dependent on the pressure gradient.
+    !   In order to suppress oscillation of the pressure in the direction of time, 
+    !      we take the average between pres and pres0, evaluated at the previous time step,
+    !      when differentiating the pressure with respect to psi.
+
+    pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
+         &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
+    IF(ABS(FSCDBM > 0.D0)) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
+    Vexbr(0)       = 0.d0
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
@@ -451,6 +469,8 @@ contains
     ELSE
        PROFCL = PROFC
     END IF
+
+    ! ************** Turbulent transport end **************
 
     ! Banana width
 !    Wbane = (Q(0) * SQRT(RR * AME * PTeV(0) * rKeV) / (AEE * BphV(0)))**(2.D0/3.D0)
@@ -475,6 +495,26 @@ contains
     ellE = ELLEC(sin(0.5d0*thetab),IER) ! second kind of complete elliptic function 
 
 !!rp_conv    PNbrpLV(0:NRMAX) = 0.D0
+
+    !     *** Calculate derivatives in advance ***
+    !     !!! Caution !!!
+    !        The r-derivatives of variables, or near-variables (ex. temperature) should be
+    !          estimated by their psi-derivatives multiplied by 2*r because they are
+    !          evaluated on the psi-abscissa. On the other hand, those of the other
+    !          parameters (ex. radial electric field, poloidal magnetic field) should be
+    !          directly calculated.
+
+    allocate(dQdr(0:NRMAX),dVebdr(0:NRMAX),dErdr(0:NRMAX),dBthdr(0:NRMAX))
+    allocate(dTedr(0:NRMAX),dTidr(0:NRMAX),dPedr(0:NRMAX),dPidr(0:NRMAX),dpdr(0:NRMAX))
+    dQdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,Q    ,NRMAX,0)
+    dVebdr(0:NRMAX) =                     dfdx(R  ,Vexbr,NRMAX,0)
+    dErdr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,ErV  ,NRMAX,0)
+    dBthdr(0:NRMAX) =                     dfdx(R  ,BthV ,NRMAX,0)
+    dTedr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PTeV ,NRMAX,0)
+    dTidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PTiV ,NRMAX,0)
+    dPedr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PeV  ,NRMAX,0)
+    dPidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV  ,NRMAX,0)
+    dpdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,pres ,NRMAX,0)
 
     !  Coefficients
 
@@ -506,11 +546,11 @@ contains
 
        !     *** Ionization rate ***
 
-!!$       !     (NRL Plasma Formulary p54 Eq. (12) (2002))
-!!$       XXX = MAX(PTeV(NR) * 1.D3 / EION, 1.D-2)
-!!$       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
-!!$            &              / (EION**1.5D0 * (6.D0 + XXX))
-!!$       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
+!old       !     (NRL Plasma Formulary p54 Eq. (12) (2002))
+!old       XXX = MAX(PTeV(NR) * 1.D3 / EION, 1.D-2)
+!old       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
+!old            &              / (EION**1.5D0 * (6.D0 + XXX))
+!old       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
        rNuION(NR) = FSION * SiViz(PTeV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Slow neutral diffusion coefficient ***
@@ -529,17 +569,17 @@ contains
        !  For thermal ions (assuming that energy of deuterium
        !                    is equivalent to that of proton)
 
-!!$       !     (Riviere, NF 11 (1971) 363, Eq.(4))
-!!$       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
-!!$            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
-!!$       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
-!!$       rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+!old       !     (Riviere, NF 11 (1971) 363, Eq.(4))
+!old       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
+!old            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
+!old       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
+!old       rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
        rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !  For beam ions
        !     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, p.323, B163)
-!!$       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
-!!$       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+!old       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
+!old       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
        rNubCX(NR) = FSCX * Scxb * Vb * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Collision frequency (with neutral) ***
@@ -604,11 +644,12 @@ contains
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
        CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
-            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR),IER)
+            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+            &         dErdr(NR),dBthdr(NR),dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER)
        IF(IER /= 0) IERR = IER
 
        ELSE
-!!$       IF(R(NR) < RA) THEN
+!!$       IF(RHO(NR) < 1.D0) THEN
 !!$          rNueNC(NR) = FSNC * (BphV(0) / BphV(NR))**2 / (2.D0*(1.D0-EpsL**2)**1.5D0) &
 !!$               &     * SQRT(PI) * Q(NR)**2 * Wte &
 !!$               &     * (1.53D0 / (rNuAsE_inv + SQRT(3.48D0 * rNuAsE_inv) + 1.52D0)) &
@@ -757,10 +798,8 @@ contains
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
-       dQdr(NR) = 2.D0 * R(NR) * DERIV3(NR,PSI,Q,NRMAX,0)
        S(NR) = R(NR) / Q(NR) * dQdr(NR)
-       dpdr = 2.D0 * R(NR) * DERIV3(NR,PSI,p,NRMAX,0)
-       Alpha(NR) = - Q(NR)**2 * RR * dpdr * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
+       Alpha(NR) = - Q(NR)**2 * RR * dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
        !     *** Wave-particle interaction ***
 
@@ -779,8 +818,7 @@ contains
           IF(NR == 0) THEN
              rH=0.D0
           ELSE
-             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,0)
-             rH = Q(NR) * RR * R(NR) *  dErdr / (Va * S(NR))
+             rH = Q(NR) * RR * R(NR) * dVebdr(NR) / (Va * S(NR))
           END IF
           
           ! Turbulence suppression by ExB shear
@@ -801,7 +839,7 @@ contains
 !       PROFD = 8.D0
 !       PROFD = 3.D0
 !       PROFD = 2.D0
-       IF (R(NR) < RA) THEN
+       IF (RHO(NR) < 1.D0) THEN
           DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**4) + FSCDBM * DCDBM
 !          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
 !          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
@@ -821,7 +859,8 @@ contains
 
        !     *** Turbulent transport of momentum and heat ***
 
-       IF (R(NR) < RA) THEN
+       IF (RHO(NR) < 1.D0) THEN
+!parail       IF (RHO(NR) < 0.93D0) THEN
           DeL = FSDFIX * (1.D0 + (PROFCL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
@@ -915,7 +954,7 @@ contains
              ! Source profiles for beam ions with banana orbit effect
              SNBb(NR)  = SNBPDi(NR) + SNBTGi(NR)
              ! Torque injection part
-             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD!/2.3d0
+             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD
           END IF
           ! Note: in case of iflag_file == 1, these terms have been already defined above.
        END IF
@@ -932,6 +971,9 @@ contains
           rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
           Chicl = (4.D0*PI*EPS0)**2/(SQRT(AME)*rlnLei(NR)*AEE**4*Zeff)*AEE**2.5D0
+
+          ! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
+          !   to obain good convergence.
           rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*1.D3)**2.5D0 &
                &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
                &             * RL**2 / (1.D0 + RL**2)
@@ -1045,10 +1087,10 @@ contains
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
-       dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
-       dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
-       dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
-       dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
+       dPTeV = dTedr(NR) * RA
+       dPTiV = dTidr(NR) * RA
+       dPPe  = dPedr(NR) * RA
+       dPPi  = dPidr(NR) * RA
        CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
             &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
             &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),&
@@ -1107,12 +1149,12 @@ contains
        IF(MDLC == 1) THEN
           ! K. C. Shaing, Phys. Fluids B 4 (1992) 3310
           do nr=1,nrmax
+             Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
-             dErdr = 2.D0 * R(NR) * DERIV3(NR,PSI,Vexbr,NRMAX,0)
-             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdr
+!?? JCP version             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dVebdr(NR)
+             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdr(NR) / Vti
 
              EpsL = R(NR) / RR
-             Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
              BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
              ! rNuDL : deflection collisional frequency at V = Vti
              rNuDL = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 * rlnLii(NR) &
@@ -1146,7 +1188,7 @@ contains
                 RhoIT = Vti * AMI / (PZ * AEE * BthV(NR))
                 RL = (R(NR) - (RA - 1.5D0 * RhoIT)) / DBW ! Alleviation factor
                 IF(R(NR) > (RA - RhoIT)) THEN
-!                IF(ABS(RA - R(NR)) <= RhoIT .AND. R(NR) < RA) THEN
+!                IF(ABS(RA - R(NR)) <= RhoIT .AND. RHO(NR) < 1.D0) THEN
                    ExpArg = -2.D0 * EpsL * (ErV(NR) / BthV(NR))**2 / Vti**2
                    ExpArg = ExpArg * (R(NR) / RA)**2
                    rNuOL(NR) = RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
@@ -1477,6 +1519,8 @@ contains
        UastNC(0:NRMAX) = 0.D0
     END IF
 
+    deallocate(dQdr,dVebdr,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,dpdr)
+
     RETURN
   END SUBROUTINE TXCALC
 
@@ -1648,8 +1692,8 @@ contains
     ! X is the effective charge number
     real(8), intent(in) :: X
 
-    CORR = (1.D0 + 1.198D0 * X + 0.222D0 * X**2) &
-    &    / (1.D0 + 2.966D0 * X + 0.753D0 * X**2) * X
+    CORR = (1.D0 + (1.198D0 + 0.222D0 * X) * X) * X &
+    &    / (1.D0 + (2.966D0 + 0.753D0 * X) * X)
 
   END FUNCTION CORR
 
@@ -1820,7 +1864,6 @@ contains
          &      +x*(a(5)+x*(a(6)+x*(a(7)+x*a(8)))))))))*1.D-6
 
   end function SiVcx
-
 
 !!$  real(8) function ripple(NR,theta,FSRP) result(f)
 !!$    use tx_commons, only : RR, R, RA, NTCOIL

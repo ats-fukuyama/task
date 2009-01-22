@@ -191,8 +191,15 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER)
-!***********************************************************************
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
+       &               dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,IER)
+!****************************************************************************
+!
+!  Input : NR,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
+!  Output: NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
+!
+!****************************************************************************
+!
 !TX_NCLASS calculates various parameters and arrays for NCLASS.
 !Please note that type declarations of all variables except "INTEGER" 
 !  in NCLASS subroutine are "REAL(*4)" or "SINGLE" but not "REAL*8" 
@@ -272,14 +279,14 @@ contains
     INCLUDE 'txncls.inc'
     INTEGER(4), INTENT(IN)  :: NR
     INTEGER(4), INTENT(OUT) :: IER
+    real(8), intent(in)  :: dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz, model
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
          &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, ppr, &
-         &     AJBSL, ETAL, dPTeV, dPTiV, dPPe, dPPi, &
-         &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
-    REAL(8) :: DERIV3, AITKEN2P
+         &     AJBSL, ETAL, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
+    REAL(8) :: AITKEN2P
 
     !     *** Ellipticity on axis ***
 
@@ -338,13 +345,9 @@ contains
 
     p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
 !    p_eb  = SNGL(EphV(NR)*BphV(NR))
-!!$    dPTeV = DERIV3(NR,R,PTeV,NRMAX,0) * RA
-!!$    dPTiV = DERIV3(NR,R,PTiV,NRMAX,0) * RA
-!!$    dPPe  = DERIV3(NR,R,PeV,NRMAX,0) * RA
-!!$    dPPi  = DERIV3(NR,R,PiV,NRMAX,0) * RA
 !!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
 !!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
-!!$    CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
+!!$    CALL SAUTER(PNeV(NR),PTeV(NR),dTedr,dPedr,PNiV(NR),PTiV(NR),dTidr,dPidr, &
 !!$         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
 !!$         &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),JBS=AJBSL,ETA=ETAL)
 !!$    IF(NR == 0) AJBSL = 0.D0
@@ -387,34 +390,29 @@ contains
 
     p_grbm2   = SNGL(1.D0/RA**2)
     p_grphi   = SNGL(-RA*ErV(NR))
-!    p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0)) ! Orbit squeezing
+!    p_gr2phi  = SNGL(-RA**2*dErdr) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
     if(nr == 0) then
        p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
     else
-       p_gr2phi  = SNGL(-RA**2*DERIV3(NR,R,ErV,NRMAX,0) &
-            &           +RA**2*ErV(NR)*DERIV3(NR,R,BthV,NRMAX,0)/BthV(NR))
+       p_gr2phi  = SNGL(-RA**2*dErdr+RA**2*ErV(NR)*dBthdr/BthV(NR))
     end if
     p_ngrth   = SNGL(BphV(NR)/(RR*Q(NR)*BBL))
     temp_i(1) = SNGL(PTeV(NR))
     temp_i(2) = SNGL(PTiV(NR))
-    grt_i(1)  = SNGL(RA * DERIV3(NR,R,PTeV,NRMAX,0))
-    grt_i(2)  = SNGL(RA * DERIV3(NR,R,PTiV,NRMAX,0))
+    grt_i(1)  = SNGL(RA * dTedr)
+    grt_i(2)  = SNGL(RA * dTidr)
     den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
     den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * DERIV3(NR,R,PeV,NRMAX,0)) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0)) * 1.E20
-!!$    grp_iz(1,1)       = SNGL((-AEE*PNeV(NR)*ErV(NR)-AEE*PNeV(NR)*(BphV(NR)*UethV(NR)-BthV(NR)*UephV(NR)))/rKeV) * 1.E20
-!!$    grp_iz(2,INT(PZ)) = SNGL((PZ*AEE*PNiV(NR)*ErV(NR)+PZ*AEE*PNiV(NR)*(BphV(NR)*UithV(NR)-BthV(NR)*UiphV(NR)))/rKeV) * 1.E20
+    grp_iz(1,1)       = SNGL(RA * dPedr) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * dPidr) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
        den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiV(NR)) * 1.E20
        den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiV(NR)) * 1.E20
-       grp_iz(2,INT(PZ))  = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0) &
-            &                    * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = SNGL(RA * DERIV3(NR,R,PiV,NRMAX,0) &
-            &                    * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+       grp_iz(2,INT(PZ))  = SNGL(RA * dPidr * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = SNGL(RA * dPidr * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
 
     ! Even when NBI is activated, any external parallel force concerning NBI
@@ -477,19 +475,17 @@ contains
 
     !   Bootstrap current
     IF(Zeff == 1.D0) THEN
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
-              &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
-              &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedr / PTeV(NR)) &
+              &  + DBLE(bsjbp_s(1)) *(RA * dPedr / PeV (NR)) &
+              &  + DBLE(bsjbt_s(2)) *(RA * dTidr / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(2)) *(RA * dPidr / PiV (NR))) / BBL
     ELSE
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * DERIV3(NR,R,PTeV,NRMAX,0) / PTeV(NR)) &
-              &  + DBLE(bsjbp_s(1)) *(RA * DERIV3(NR,R,PeV ,NRMAX,0) / PeV (NR)) &
-              &  + DBLE(bsjbt_s(2)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(2)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
-              &                     * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
-              &  + DBLE(bsjbt_s(3)) *(RA * DERIV3(NR,R,PTiV,NRMAX,0) / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(3)) *(RA * DERIV3(NR,R,PiV ,NRMAX,0) / PiV (NR) &
-              &                     * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedr / PTeV(NR)) &
+              &  + DBLE(bsjbp_s(1)) *(RA * dPedr / PeV (NR)) &
+              &  + DBLE(bsjbt_s(2)) *(RA * dTidr / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(2)) *(RA * dPidr / PiV (NR) * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
+              &  + DBLE(bsjbt_s(3)) *(RA * dTidr / PTiV(NR)) &
+              &  + DBLE(bsjbp_s(3)) *(RA * dPidr / PiV (NR) * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
     END IF
     IF(k_potato == 0 .and. NR == 0) JBSout = 0.D0
 
