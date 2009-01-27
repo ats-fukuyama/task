@@ -784,6 +784,7 @@ SUBROUTINE TXPROF
         PTeV_FIX(NR) = X(LQe5,NR) / X(LQe1,NR)
         PTiV_FIX(NR) = X(LQi5,NR) / X(LQi1,NR)
      ELSE
+        PTeV_FIX(NR) = X(LQe5,NR)
         PTiV_FIX(NR) = X(LQi5,NR)
      END IF
   END DO

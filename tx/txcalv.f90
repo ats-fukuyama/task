@@ -458,7 +458,7 @@ contains
 
     pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
          &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
-    IF(ABS(FSCDBM > 0.D0)) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
+    IF(ABS(FSCDBM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
     Vexbr(0)       = 0.d0
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
@@ -748,6 +748,7 @@ contains
           rNuB(NR) = rNubes * 3.D0 / LOG(1.D0 + (Eb / Ecr)**1.5D0)
 !!          rNuB(NR) = rNube(NR) * 1.5D0 / LOG(1.D0 + (Eb / Ecr)**1.5D0)
 !!          rNuB(NR) = rNube(NR) + rNubi(NR)
+!       write(6,'(1P4E15.7)') rho(nr),2.d0*pi*q(nr)*RR/Vbpara(nr),1.d0/rnube(nr),1.d0/rnubi(nr)!1.d0/rnub(nr)
        END IF
 
        !     *** Helical neoclassical viscosity ***
@@ -826,7 +827,6 @@ contains
           ! Turbulent transport coefficient calculated by CDBM model
           DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
-!          write(6,'(I3,3F15.7)') NR,ABS(Alpha(NR))**1.5D0,VC**2 / Wpe2 * Va / (Q(NR) * RR),Chie0*DCDBM
           !DCDBM = MAX(DCDBM,1.D-05)
        ELSE
           rG1h2(NR)  = 0.D0
@@ -840,8 +840,8 @@ contains
 !       PROFD = 3.D0
 !       PROFD = 2.D0
        IF (RHO(NR) < 1.D0) THEN
-          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**4) + FSCDBM * DCDBM
-!          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
+!parail          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**4) + FSCDBM * DCDBM
+          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
 !          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
        ELSE
           IF(FSPCLD == 0.D0) THEN
@@ -1591,7 +1591,6 @@ contains
                 S(NR) = 0.D0
              end if
           end if
-!          write(6,*) r(nr)/ra,abs(Rshift),rb-r(nr)
        end do
 !!$       if(CHR == 'NB_TRAP') then
 !!$          if(PNBCD > 0.D0) then

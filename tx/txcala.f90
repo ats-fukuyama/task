@@ -276,7 +276,7 @@ contains
 !    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
 !    CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
 !    CALL DERIVS(PSI,X,LQm4,NQMAX,NRMAX,dAphV)
-    dAphV(0:NRMAX)    = dfdx(PSI,AphV ,NRMAX,0)
+    dAphV(0:NRMAX)    = dfdx(PSI,AphV,NRMAX,0) / rMUb2
     FWpheBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphe(0:NRMAX)
     FWphiBB(0:NRMAX)  =- 2.D0 * (dAphV(0:NRMAX) * rMUb2) * FWthphi(0:NRMAX)
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
