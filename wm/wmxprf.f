@@ -15,7 +15,6 @@ C                  vacuum vessel
 C         KNAMEQ : file name of eq data
 C         ZEFF   : effective charge number
 C         XRHO   : ro data of the calculated point ( sub. WMXRZF )
-C         PSIP   : psi data of the calculated point ( sub. EQGETP )
 C
 C         PNS(I) : density on plasma surface           (1.0E20/m3)
 C         PTS(I) : temperature on plasma surface       (keV)
@@ -40,8 +39,7 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'wmxprf.inc'
 C
-      REAL*8 ZEFFSV, PSIL, PPL, PTSSV(NSM), PNSSV(NSM)
-      REAL*8 PSIPAL
+      REAL*8 ZEFFSV, RHON, PPL, PTSSV(NSM), PNSSV(NSM)
 C
       CHARACTER    TRFILE*80, CWK1*10
 C
@@ -102,7 +100,8 @@ C
       ENDIF
 C
 C----  Open profile data file and read
-C----  PRFNE, PRFTE is data at the point divided equally by psi
+C----  PRFNE, PRFTE is data at the point divided equally by rho 
+C        defined by toroidal magnetic flux
 C
 C      CALL HANDLE( IFNO )
 C      IF ( IFNO.EQ.0 ) GO TO 9999
@@ -112,7 +111,7 @@ C
       READ ( IFNO, '(I3)', END=9999, ERR=9999 ) NPRF
       DO N=1,NPRF
          READ ( IFNO, '(11E14.7)', END=9999, ERR=9999 )
-     >        PRFPSI(N), (PRFN(N,I), I=1,NXSPC),
+     >        PRFRHO(N), (PRFN(N,I), I=1,NXSPC),
      >                   (PRFT(N,I), I=1,NXSPC)
       ENDDO
 C
@@ -126,43 +125,28 @@ C
          PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
       ENDDO
 C
-C----  Normalize coordinate PRFPSI
-C
-      DO N=1,NPRF
-         PRFPSI(N) = PRFPSI(N) / PRFPSI(NPRF)
-      ENDDO
-C
 C----  Set coefficient for spline
 C
       DO NS=1,NSMAX
-         CALL SPL1D(PRFPSI,PRFN(1,NS),  DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFN(1,NS),  DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
          IF (IRC.NE.0) GO TO 9999
-         CALL SPL1D(PRFPSI,PRFT(1,NS),  DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
+         CALL SPL1D(PRFRHO,PRFT(1,NS),  DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
          IF (IRC.NE.0) GO TO 9999
       ENDDO
-C
-C---- PSIP at the separatrix
 C
       IF(MDLWMF.EQ.0) THEN
          NRMAX1 = NRMAX + 1
       ELSE
          NRMAX1 = NRMAX
       ENDIF
-      DO NR=1,NRMAX1
-         IF(XRHO(NR).GE.1.D0) THEN
-            PSIPAL = PSIP(NR)
-            GOTO 7000
-         ENDIF
-      ENDDO
- 7000 CONTINUE
 C
 C----  Set profile data at the point calculated in wm-code.
-C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
+C----    RHON  : rho value at the point
 C
       DO NR=1,NRMAX1
-         PSIL=PSIP(NR)/PSIPAL
+         RHON=XRHO(NR)
          DO NS=1,NSMAX
-            CALL WMSPL_PROF(PSIL,NS,PN60(NR,NS),PT60(NR,NS))
+            CALL WMSPL_PROF(RHON,NS,PN60(NR,NS),PT60(NR,NS))
          ENDDO
       ENDDO
 C
@@ -188,29 +172,27 @@ C----  Debug write
 C
 c$$$      WRITE(6,8000)
 c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFPSI(N),(PRFN(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFN(N,I),I=1,NXSPC)
 c$$$      ENDDO
 c$$$      WRITE(6,8010)
 c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFPSI(N),(PRFT(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFT(N,I),I=1,NXSPC)
 c$$$      ENDDO
 c$$$      WRITE(6,8020)
 c$$$      DO N=1,NRMAX1
-c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), PSIP(N),
-c$$$     >                                  (PN60(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), (PN60(N,I),I=1,NXSPC)
 c$$$      ENDDO
 c$$$      WRITE(6,8030)
 c$$$      DO N=1,NRMAX1
-c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), PSIP(N),
-c$$$     >                                  (PT60(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), (PT60(N,I),I=1,NXSPC)
 c$$$      ENDDO
- 8000 FORMAT(' N ',3X,'PRFPSI',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
+ 8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
      >             5X,'PRFNI3',5X,'PRFNI4')
- 8010 FORMAT(' N ',3X,'PRFPSI',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
+ 8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
      >             5X,'PRFTI3',5X,'PRFTI4')
- 8020 FORMAT(' N ',4X,'XRHO',7X,'PSIP ',6X,'PNE',8X,'PNI1',
+ 8020 FORMAT(' N ',4X,'XRHO',7X,'PNE',8X,'PNI1',
      >             7X,'PNI2',7X,'PNI3',7X,'PNI4')
- 8030 FORMAT(' N ',4X,'XRHO',7X,'PSIP ',6X,'PTE',8X,'PTI1',
+ 8030 FORMAT(' N ',4X,'XRHO',7X,'PTE',8X,'PTI1',
      >             7X,'PTI2',7X,'PTI3',7X,'PTI4')
 C
       NRMAXSV=NRMAX
@@ -251,30 +233,29 @@ C
 C
 C---- Input
       integer NS
-      real*8 Rhol ! Normalized Psi
+      real*8 Rhol ! Normalized radial mesh
 C---- Output
       real*8 PNL, ! density
      &       PTL  ! temperature
 C---- Internal
-      real*8 PSIL, PPL
+      real*8 PPL
 C
 C---- The following variables come from "wmxprf.inc".
 C        NPRFI,NPRF,
-C        PRFPSI,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
+C        PRFRHO,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
 C
 C---- Carry input parameter "ZEFF" to PLPLOF
       ZEFFWM = ZEFF
 C
 C----  Set profile data at the point calculated in wm-code.
-C----    PSIP  : psi value at the point ( calculated at subroutine eqpsic )
 C
       IF (Rhol.GT.1.0D0) THEN
          PNL = 0.D0
          PTL = PTS(NS)
       ELSE
-         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFN(1,1,NS),NPRF,IRC)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IRC)
          PNL=PPL
-         CALL SPL1DF(Rhol,PPL,PRFPSI,UPRFT(1,1,NS),NPRF,IRC)
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRF,IRC)
          PTL=PPL
       ENDIF
 C
