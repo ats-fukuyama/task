@@ -21,7 +21,6 @@ OBJA = $(SRCA:.f=.o)
 
 WMLIBS = ../wm/wmlib.a ../mtx/mtxlib.a ../eq/wmeqin.o ../mpi/nompilib.o
 LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a ../dp/dplib.a $(WMLIBS)
-FLIBS = $(GLIBS)
 
 .SUFFIXES: .f90
 

@@ -33,11 +33,16 @@ C
          RB=RA
       ENDIF
 C
-      CALL EQSETP
+      CALL EQSETP(IERR)
+      IF(IERR.NE.0) RETURN
 C
       CALL EQCALQP(IERR)
+      IF(IERR.NE.0) RETURN
 C
-      IF(NSUMAX.GT.0) CALL EQCALQV(IERR)
+      IF(NSUMAX.GT.0) THEN
+         CALL EQCALQV(IERR)
+         IF(IERR.NE.0) RETURN
+      ENDIF
 C
       CALL EQSETS(IERR)
 C
@@ -46,7 +51,7 @@ C
 C
 C     ***** SETUP DATA (spline PSIRZ and find axis) *****
 C
-      SUBROUTINE EQSETP
+      SUBROUTINE EQSETP(IERR)
 C
       INCLUDE '../eq/eqcomq.inc'
 C
@@ -84,6 +89,9 @@ C
       PSI0=PSIG(RAXIS,ZAXIS)
       PSIPA=-PSI0
 C
+      CALL EQAXIS(IERR)
+      IF(IERR.NE.0) RETURN
+C
       RETURN
       END
 C
@@ -100,9 +108,6 @@ C
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
 C
       IERR=0
-C
-      CALL EQAXIS(IERR)
-      IF(IERR.NE.0) RETURN
 C
 C     ----- SET DR, DTH -----
 C
