@@ -502,11 +502,10 @@ contains
     END IF
 
     !   Neoclassical thermal diffusivity (Diagonal effect only)
-    model = 0
-    ChiNCpel = DBLE(chip_ss(1,1)) * model
-    ChiNCtel = DBLE(chit_ss(1,1)) * model
-    ChiNCpil = DBLE(chip_ss(2,2)) * model
-    ChiNCtil = DBLE(chit_ss(2,2)) * model
+    ChiNCpel = ChiNC * DBLE(chip_ss(1,1))
+    ChiNCtel = ChiNC * DBLE(chit_ss(1,1))
+    ChiNCpil = ChiNC * DBLE(chip_ss(2,2))
+    ChiNCtil = ChiNC * DBLE(chit_ss(2,2))
 
     !   Now not using
        DO i=1,m_s

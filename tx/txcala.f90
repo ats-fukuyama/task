@@ -14,7 +14,7 @@ module tx_coefficients
        & rNuei1EI, rNuei2BthEI, rNuei3EI, &
        & rNube1BE, rNube2BthBE, rNube3BE, &
        & Vbparaph, RVbparath, &
-       & Chie1, Chie2, Chii1, Chii2
+       & Chie1, Chie2, Chii1, Chii2, FVpchph
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -107,7 +107,7 @@ contains
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
-       &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N))
+       &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), FVpchph(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -231,7 +231,7 @@ contains
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
-       &       Chie1, Chie2, Chii1, Chii2)
+       &       Chie1, Chie2, Chii1, Chii2, FVpchph)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -312,6 +312,8 @@ contains
     Chie2(0:NRMAX) = Chie(0:NRMAX) + ChiNCTe(0:NRMAX)
     Chii1(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX) + ChiNCpi(0:NRMAX)
     Chii2(0:NRMAX) = Chii(0:NRMAX) + ChiNCTi(0:NRMAX)
+
+    FVpchph(0:NRMAX) = FVpch(0:NRMAX) / BphV(0:NRMAX) * BthV(0:NRMAX)
 
 !!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
 !!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)
@@ -688,8 +690,11 @@ contains
        ELM(1:NEMAX,1:4,18,LQe3) =   2.D0 / AME * fem_int(36,AphV,FWthphe)
        NLC(18,LQe3) = LQi4
 
-       ELM(1:NEMAX,1:4,19,LQe3) =   1.D0 / AME * fem_int(44,FWthe,WPM)
+       ! Ad hoc turbulent pinch term
+       ELM(1:NEMAX,1:4,19,LQe3) = - 1.D0 / AME * fem_int(15,FVpch)
        NLC(19,LQe3) = LQe1
+!!WPM       ELM(1:NEMAX,1:4,19,LQe3) =   1.D0 / AME * fem_int(44,FWthe,WPM)
+!!WPM       NLC(19,LQe3) = LQe1
 
 !!ion       ! Wave interaction force (ion driven)
 !!ion
@@ -858,8 +863,11 @@ contains
        ELM(1:NEMAX,1:4,17,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB2)
        NLC(17,LQe4) = LQi4
 
-       ELM(1:NEMAX,1:4,18,LQe4) = - 1.D0 / AME * fem_int(44,FWpheBB,WPM)
+       ! Ad hoc turbulent pinch term
+       ELM(1:NEMAX,1:4,18,LQe4) =   1.D0 / AME * fem_int(15,FVpchph)
        NLC(18,LQe4) = LQe1
+!!WPM       ELM(1:NEMAX,1:4,18,LQe4) = - 1.D0 / AME * fem_int(44,FWpheBB,WPM)
+!!WPM       NLC(18,LQe4) = LQe1
 
 !!ion       ! Wave interaction force (ion driven)
 !!ion
@@ -1252,8 +1260,11 @@ contains
        ELM(1:NEMAX,1:4,16,LQi3) = - 2.D0 / AMI * fem_int(36,AphV,FWthphe)
        NLC(16,LQi3) = LQi4
 
-       ELM(1:NEMAX,1:4,17,LQi3) = - 1.D0 / AMI * fem_int(44,FWthe,WPM)
+       ! Ad hoc turbulent pinch term
+       ELM(1:NEMAX,1:4,17,LQi3) =   1.D0 / AMI * fem_int(15,FVpch)
        NLC(17,LQi3) = LQe1
+!!WPM       ELM(1:NEMAX,1:4,17,LQi3) = - 1.D0 / AMI * fem_int(44,FWthe,WPM)
+!!WPM       NLC(17,LQi3) = LQe1
 
 !!ion       ! Wave interaction force (ion driven)
 !!ion
@@ -1431,8 +1442,11 @@ contains
        ELM(1:NEMAX,1:4,15,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB2) 
        NLC(15,LQi4) = LQi4
 
-       ELM(1:NEMAX,1:4,16,LQi4) =   1.D0 / AMI * fem_int(44,FWpheBB,WPM)
+       ! Ad hoc turbulent pinch term
+       ELM(1:NEMAX,1:4,16,LQi4) = - 1.D0 / AMI * fem_int(15,FVpchph)
        NLC(16,LQi4) = LQe1
+!!WPM       ELM(1:NEMAX,1:4,16,LQi4) =   1.D0 / AMI * fem_int(44,FWpheBB,WPM)
+!!WPM       NLC(16,LQi4) = LQe1
 
 !!ion       ! Wave interaction force (ion driven)
 !!ion

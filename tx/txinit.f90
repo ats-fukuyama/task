@@ -86,6 +86,9 @@ SUBROUTINE TXINIT
 
   !   ***** Particle diffusivity and viscosity parameters *****
 
+  !   Turbulent pinch velocity parameter
+  VWpch0 = 0.D0
+
   !   Electron-driven diffusion parameter
   De0 = 0.1D0
 
@@ -167,6 +170,9 @@ SUBROUTINE TXINIT
   !   Alpha heating paramter
   FSNF = 0.D0
 
+  !   Neoclassical thermal diffusivity parameter
+  ChiNC = 0.D0
+
   !   Poloidal neoclassical viscosity parameter
   FSNC = 1.D0
 
@@ -183,8 +189,11 @@ SUBROUTINE TXINIT
   !   Ionization parameter
   FSION = 1.D0
 
-  !   Neutral diffusion factor
-  FSD0 = 1.D0
+  !   Slow neutral diffusion factor
+  FSD01 = 1.D0
+
+  !   Fast neutral diffusion factor
+  FSD02 = 1.D0
 
   !   Factor of E x B rotation shear
   rG1 = 24.D0
@@ -1084,10 +1093,10 @@ module tx_parameter_control
        & RA,RB,RC,RR,BB, &
        & PA,PZ,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
-       & De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0, &
-       & Chie0,Chii0, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0, &
+       & Chie0,Chii0,ChiNC, &
        & FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC, &
-       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC, &
+       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFi,RRFiw,RRFi0,PRFHi, &
@@ -1204,13 +1213,13 @@ contains
        IF(De0 < 0.D0 .OR. Di0 < 0.D0) EXIT
        IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
        IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0 .OR. WPM0 < 0.D0) EXIT
-       IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0) EXIT
+       IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) EXIT
        IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0) EXIT
        IF(FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
-       IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0 .OR. FSHL < 0.D0) EXIT
-       IF(FSNF < 0.D0) EXIT
+       IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) EXIT
+       IF(FSHL < 0.D0 .OR. FSNF < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
-       IF(FSION < 0.D0 .OR. FSD0 < 0.D0) EXIT
+       IF(FSION < 0.D0 .OR. FSD01 < 0.D0 .OR. FSD02 < 0.D0) EXIT
        IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
        IF(rG1 < 0.D0) EXIT
        IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
@@ -1250,13 +1259,13 @@ contains
 
 601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
-         &       ' ',8X,'De0,Di0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
-         &       ' ',8X,'Chie0,Chii0,'/ &
+         &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
+         &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC,'/ &
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD0,MDLC,'/ &
-         &       ' ',8X,'rLn,rLT,'/ &
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,'/&
+         &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
-         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFe,RRFew,RRFe0,PRFHe,'/ &
+         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
@@ -1293,10 +1302,11 @@ contains
          &   'WMESH ', WMESH ,  'ADV   ', ADV   ,  &
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
-         &   'WPM0  ', WPM0  ,  'WPE0  ', WPE0  ,  &
-         &   'WPI0  ', WPI0  ,  'PROFD ', PROFD ,  &
-         &   'PROFC ', PROFC , &
+         &   'VWpch0', VWpch0,  'WPM0  ', WPM0  ,  &
+         &   'WPE0  ', WPE0  ,  'WPI0  ', WPI0  ,  &
+         &   'PROFD ', PROFD ,  'PROFC ', PROFC , &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
+         &   'ChiNC ', ChiNC , &
          &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
          &   'FSPCLC', FSPCLC,  'FSCX  ', FSCX  ,  &
@@ -1304,8 +1314,9 @@ contains
          &   'FSNF  ', FSNF  ,  'FSNC  ', FSNC  ,  &
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
-         &   'FSD0  ', FSD0  ,  'rLn   ', rLn   ,  &
-         &   'rLT   ', rLT   ,  'Eb    ', Eb    ,  &
+         &   'FSD01 ', FSD01 ,  'FSD02 ', FSD02 ,  &
+         &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
+         &   'Eb    ', Eb    ,  &
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &

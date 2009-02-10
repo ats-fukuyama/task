@@ -555,13 +555,13 @@ contains
 
        !     *** Slow neutral diffusion coefficient ***
 
-       D01(NR) = FSD0 * V0**2 &
+       D01(NR) = FSD01 * V0**2 &
             &   / (Sigma0 * (PN01V(NR) * V0  + (PNiV(NR) + PN02V(NR)) &
             &      * Vti) * 1.D20)
 
        !     *** Fast neutral diffusion coefficient ***
 
-       D02(NR) = FSD0 * Vti**2 &
+       D02(NR) = FSD02 * Vti**2 &
             &   / (Sigma0 * (PNiV(NR) + PN01V(NR) + PN02V(NR)) &
             &      * Vti * 1.D20)
 
@@ -647,6 +647,7 @@ contains
             &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
             &         dErdr(NR),dBthdr(NR),dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER)
        IF(IER /= 0) IERR = IER
+!       if(mod(nt,10)==0) write(6,*) rho(nr),((BthV(NR)/BphV(NR))**2-1.d0)*rNuPara+rNueNC(NR)*(BthV(NR)/BphV(NR))**2,UerV(NR)
 
        ELSE
 !!$       IF(RHO(NR) < 1.D0) THEN
@@ -857,6 +858,9 @@ contains
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
 
+       ! Turbulent pinch term
+       VWpch(NR) = VWpch0 * RHO(NR)
+
        !     *** Turbulent transport of momentum and heat ***
 
        IF (RHO(NR) < 1.D0) THEN
@@ -890,6 +894,12 @@ contains
        FWthi(NR)   = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
        FWthphe(NR) = AEE**2         * BphV(NR)    * De(NR) / (PTeV(NR) * rKeV)
        FWthphi(NR) = AEE**2 * PZ**2 * BphV(NR)    * Di(NR) / (PTiV(NR) * rKeV)
+       ! Ad hoc turbulent pinch velocity
+       IF(NR == 0) THEN
+          FVpch(NR) = 0.D0
+       ELSE
+          FVpch(NR) = AEE * BphV(NR) * VWpch(NR) / R(NR)
+       END IF
 
        ! Work induced by drift wave
        IF(MDLWTB == 1) THEN
@@ -970,11 +980,13 @@ contains
           RL = (R(NR) - RA) / DBW! / 2.D0
           rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
                &             * RL**2 / (1.D0 + RL**2)
-          Chicl = (4.D0*PI*EPS0)**2/(SQRT(AME)*rlnLei(NR)*AEE**4*Zeff)*AEE**2.5D0
+          ! Classical heat conduction [s**4/(kg**2.5*m**6)]
+          ! (C S Pitcher and P C Stangeby, PPCF 39 (1997) 779)
+          Chicl = (4.D0*PI*EPS0)**2/(SQRT(AME)*rlnLei(NR)*AEE**4*Zeff)
 
           ! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
           !   to obain good convergence.
-          rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*1.D3)**2.5D0 &
+          rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*rKeV)**2.5D0 &
                &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
                &             * RL**2 / (1.D0 + RL**2)
           rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &

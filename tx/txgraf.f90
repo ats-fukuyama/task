@@ -860,6 +860,9 @@ contains
     ! *** Virtual torque *********************************************
     GYL(0:NXM,NG,131) = SNGL(Tqi(0:NXM))
 
+    ! *** Turbulent pinch velocity *********************************************
+    GYL(0:NXM,NG,132) = SNGL(VWpch(0:NXM))
+
     RETURN
   END SUBROUTINE TXSTGR
 
@@ -1339,7 +1342,7 @@ contains
 
     CASE(9)
        STR = '@D$-i,eff$=(r)@'
-       CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND,GYMAX=5.0)
 
        STR = '@D$-i$=(r)+D$-e$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
@@ -1535,8 +1538,14 @@ contains
        STR = '@G$-1$=h$+2$=(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,30),NRMAX,NGR,STR,MODE,IND)
 
+       CALL TXWPGR
+
+    CASE(20)
+       STR = '@VWpch(r)@'
+       CALL TXGRFRX(0,GX,GY(0,0,132),NRMAX,NGR,STR,MODE,IND)
+
        STR = '@Virtual Torque(r)@'
-       CALL TXGRFRX(3,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(1,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
@@ -1635,7 +1644,7 @@ contains
 !!$       STR = '@D$-i$=(r)+D$-e$=(r)@'
 !!$       CALL TXGRFRXS(9,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
        STR = '@D$-eff$=(r)@'
-       CALL TXGRFRXS(9,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(9,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND,GYMAX=5.0)
 
        STR = '@F$-CDBM$=(r)@'
        CALL TXGRFRXS(10,GX,GY(0,0,31),NRMAX,NGR,STR,MODE,IND)     
@@ -2645,7 +2654,8 @@ contains
   !
   !***************************************************************
 
-  SUBROUTINE TXGRFRS(K, GXL, GYL, NXMAX, NGMAX, STR, MODE, IND, ILOGIN, ISIZE, KINDEX, GMAX, GMIN)
+  SUBROUTINE TXGRFRS(K, GXL, GYL, NXMAX, NGMAX, STR, MODE, IND, ILOGIN, ISIZE, KINDEX, &
+       &             GMAX, GMIN)
     ! Forth argument, NXMAX, is not always "NRMAX" defined as the number of grid points.
 
     use tx_commons, only : RA, RB
@@ -2699,7 +2709,8 @@ contains
             &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
     ELSE IF(KINDEX == 'ANIME') THEN
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
-            &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG, GYMAX_IN=GMAX, GYMIN_IN=GMIN)
+            &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG, &
+            &            GYMAX_IN=GMAX, GYMIN_IN=GMIN, KINDEX=KINDEX)
     ELSE
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
             &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
@@ -3253,7 +3264,7 @@ contains
   SUBROUTINE TXWPGR
 
     use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPCLD, FSPCLC, &
-         &              PROFD, PROFC, FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD0, &
+         &              PROFD, PROFC, FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD02, &
          &              PNBHT1, PNBHT2, PNBHP, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, &
          &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff
     INTEGER(4) :: IFNT
@@ -3273,7 +3284,7 @@ contains
     CALL TXWPS('@PNBCD @', PNBCD)
 !!!    CALL TXWPS('@NRMAX @', NRMAX)
 
-    NP = NP + 1
+!    NP = NP + 1
     CALL TXWPS('@BB    @', BB)
     CALL TXWPS('@rIp   @', rIp)
     CALL TXWPS('@FSDFIX@', FSDFIX)
@@ -3289,7 +3300,7 @@ contains
     CALL TXWPS('@FSNC  @', FSNC)
     CALL TXWPS('@FSLP  @', FSLP)
     CALL TXWPS('@FSION @', FSION)
-    CALL TXWPS('@FSD0  @', FSD0)
+    CALL TXWPS('@FSD02 @', FSD02)
 
     GXM = GXM + 0.35 * 17
     NP = 0
@@ -3381,7 +3392,8 @@ contains
   !***************************************************************
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
-       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, GYMAX_IN, GYMIN_IN)
+       &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, &
+       &                  GYMAX_IN, GYMIN_IN, KINDEX)
 
     INTEGER(4), INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
     REAL(4), INTENT(IN) :: GXMIN, GXMAX, FONT
@@ -3391,12 +3403,14 @@ contains
     integer(4), intent(in) :: ILOG
     REAL(4), INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
     character(len=*), INTENT(IN) :: STR
+    character(len=*), INTENT(IN), optional :: KINDEX
 
     INTEGER(4) :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
     REAL(4) :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &
          &        GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP, GYORG,  &
          &        GMRK, GCHH, GXL, GYL
     INTEGER(4), DIMENSION(0:4) :: NLTYPE
+    real(4), dimension(:,:), allocatable :: GYAR
     DATA NLTYPE/0,2,3,4,6/
 
     IF (MODE < 0 .OR. MODE > 4) THEN
@@ -3427,10 +3441,16 @@ contains
     CALL SETLIN(0, 0, 7)
     CALL SETLNW(0.035)
 
+
+    allocate(GYAR(size(GY,1),size(GY,2)))
+    GYAR = GY
+    IF(PRESENT(GYMAX_IN)) where(GYAR > GYMAX_IN) GYAR = GYMAX_IN
+    IF(PRESENT(GYMIN_IN)) where(GYAR < GYMIN_IN) GYAR = GYMIN_IN
+
     CALL GQSCAL(GXMIN, GXMAX, GSXMIN, GSXMAX, GXSTEP)
     GSXMIN = GXMIN
     GSXMAX = GXMAX
-    CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
+    CALL GMNMX2(GYAR,NXM,1,NXMAX,1,1,NGMAX,1,GYMIN,GYMAX)
     IF(ILOG == 0) THEN
        IF (GYMAX > 0.0) THEN
           IF (GYMIN > 0.0) GYMIN=0.0
@@ -3438,8 +3458,10 @@ contains
           GYMAX=0.0
        END IF
     END IF
-    IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
-    IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
+    IF(PRESENT(KINDEX)) THEN
+       IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
+       IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
+    END IF
     CALL GQSCAL(GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP)
     IF (GSYMIN > GYMIN) GSYMIN = GSYMIN - GYSTEP
     IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP
@@ -3496,7 +3518,7 @@ contains
        DO NG = 1, NGMAX
           ICL = 7 - MOD(NGMAX - NG, 5)
           CALL SETLIN(0, 1, ICL)
-          CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, 0, 0)
+          CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, 0, 0)
        END DO
 
        ! MODE = 1: Change Line Color and Style
@@ -3508,7 +3530,7 @@ contains
              ICL  = 7 - MOD(NG-1, 5)
              IPAT = NLTYPE(MOD(NG-1, 5))
              CALL SETLIN(0, 1, ICL)
-             CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, 0, IPAT)
+             CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, 0, IPAT)
           END DO
        ELSE
           DO NG = 1, NGMAX
@@ -3516,7 +3538,7 @@ contains
              ISTEP = NXMAX / 10
              IPAT  = (NG - 1) / 5
              CALL SETLIN(0, 1, ICL)
-             CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, 0, ISTEP, IPAT)
+             CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, 0, ISTEP, IPAT)
           END DO
        END IF
        ! Legend
@@ -3551,7 +3573,7 @@ contains
           ISTEP = NXMAX / 10
           IPAT  = (NG - 1) / 5
           CALL SETLIN(0, 1, ICL)
-          CALL GPLOTP(GX, GY(1,NG), 1, NXMAX, 1, -IMRK, ISTEP, IPAT)
+          CALL GPLOTP(GX, GYAR(1,NG), 1, NXMAX, 1, -IMRK, ISTEP, IPAT)
        END DO
        ! Legend
        IF (MODE == 4) THEN
@@ -3582,6 +3604,8 @@ contains
     END SELECT
 
     CALL SETFNT(IFNT)
+
+    deallocate(GYAR)
 
     RETURN
   END SUBROUTINE TXGRAF
