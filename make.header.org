@@ -14,19 +14,6 @@
 #LIBLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 #LIBLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
-
-## for pgf95
-#GFLIBS=-L/usr/local/lib -lg3d-pgf -lgsp-pgf -lgdp-pgf -L/usr/X11R6/lib -lX11
-#GLLIBS=-L/usr/local/lib -lgsgl-pgf95
-#OFLAGS = -O3 -tp p7 -Mbyteswapio
-#DFLAGS = -g -Mbounds -Minform,inform -Ktrap=fp -Mbyteswapio
-#FCFIXED = pgf95
-#FCFREE  = pgf95
-#MOD = mod
-#MODDIR = -module mod
-#LD=ar
-#LDFLAGS=ru
-## if you have lapack library
 ## else
 LAPACK = nolapack.f
 LIBLA =
