@@ -776,10 +776,15 @@ contains
           rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
           &            /(3.D0+1.67*omegaeri)
 
-          UHth=(RR/Ncph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
-          UHph=(R(NR)/Ncth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
-          UHth  = DBLE(NCth) / DBLE(NCph)
-          UHph  = 1.D0
+!          UHth=(RR/Ncph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!          UHph=(R(NR)/Ncth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!          UHth  = DBLE(NCth) / DBLE(NCph)
+!          UHph  = 1.D0
+!    09/02/11 mm
+
+          UHth=(RR*NCth)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+
 
           rNueHLthth(NR)=UHth*UHth*rNueHL(NR)
           rNueHLthph(NR)=UHth*UHph*rNueHL(NR)
