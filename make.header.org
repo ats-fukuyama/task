@@ -164,9 +164,9 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r -o
 
 ## for gfortran
-#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11 -lSystem
-#OFLAGS = -g -O3 -I.
-#DFLAGS = -g -fbounds-check -I.
+#GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
+#OFLAGS = -g -O3 -I mod
+#DFLAGS = -g -fbounds-check -I mod
 #FCFIXED = gfortran
 #FCFREE = gfortran
 #MOD = mod
