@@ -72,32 +72,33 @@ C
       ENDIF
       IF (IP1+IP2.EQ.0) GO TO 9996
 C
-      WRITE (6,*) '==========  WMXPRF START  =========='
+C      WRITE (6,*) '==========  WMXPRF START  =========='
 C
       IERR = 9999
 C
 C----  Set ion calculation mode
 C
-      IF (IP2.EQ.1) THEN
-         NPRFI = 0
-         WRITE(6,*)
-         WRITE(6,*)
-         WRITE(6,*)
-         DO WHILE ( NPRFI.NE.1.AND.NPRFI.NE.2 )
-            WRITE(6,*) 'SELECT MODE OF CALCULATION FOR ION'
-            WRITE(6,*) '  1 : USE PROFILE DATA FORM FILE'
-            WRITE(6,*) '  2 : USE DEFAULT METHOD OF WM CODE'
-            WRITE(6,*) 'SELECT 1 (DEFAULT) or 2 >>'
-            CWK1 = ' '
-            READ(5,'(A)',ERR=210) CWK1
-            IF (CWK1.EQ.' ') THEN
-               NPRFI = 1
-            ELSE
-               READ(CWK1,*,ERR=210) NPRFI
-            ENDIF
-         ENDDO
- 210     CONTINUE
-      ENDIF
+c$$$      IF (IP2.EQ.1) THEN
+c$$$         NPRFI = 0
+c$$$         WRITE(6,*)
+c$$$         WRITE(6,*)
+c$$$         WRITE(6,*)
+c$$$         DO WHILE ( NPRFI.NE.1.AND.NPRFI.NE.2 )
+c$$$            WRITE(6,*) 'SELECT MODE OF CALCULATION FOR ION'
+c$$$            WRITE(6,*) '  1 : USE PROFILE DATA FORM FILE'
+c$$$            WRITE(6,*) '  2 : USE DEFAULT METHOD OF WM CODE'
+c$$$            WRITE(6,*) 'SELECT 1 (DEFAULT) or 2 >>'
+c$$$            CWK1 = ' '
+c$$$            READ(5,'(A)',ERR=210) CWK1
+c$$$            IF (CWK1.EQ.' ') THEN
+c$$$               NPRFI = 1
+c$$$            ELSE
+c$$$               READ(CWK1,*,ERR=210) NPRFI
+c$$$            ENDIF
+c$$$         ENDDO
+c$$$ 210     CONTINUE
+c$$$      ENDIF
+          NPRFI=1
 C
 C----  Open profile data file and read
 C----  PRFNE, PRFTE is data at the point divided equally by rho 
@@ -213,7 +214,7 @@ C
  9999 CONTINUE
       CLOSE( IFNO )
  9998 CONTINUE
-      WRITE (6,*) '==========  WMXPRF  END   =========='
+      WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
       GO TO 9995
  9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
  9996 WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
