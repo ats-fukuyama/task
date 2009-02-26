@@ -409,14 +409,14 @@
 
 !     ** Array input version **
 
-      real(8) FUNCTION DERIV4(NR,R,F,NRMAX,NRM,ID)
+      real(8) FUNCTION DERIV4(NR,R,F,NRMAX,ID)
 
 !     ID = 0    : NR = 0 to NRMAX  ==> NR = 1 to NRMAX+1
 !          else : NR = 1 to NRMAX
 
       implicit none
-      integer(4),              intent(in) :: NR, NRMAX, NRM, ID
-      real(8), dimension(NRM), intent(in) :: R, F
+      integer(4),                    intent(in) :: NR, NRMAX,ID
+      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
       integer(4) :: NRL, NRLMAX, NR0, NR1, NR2, NR3
       real(8) :: DX1, DX2, DX3
 
