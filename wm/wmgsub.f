@@ -407,6 +407,8 @@ C
          DO NTH=1,NTHGMAX
             GRL(NR,NTH)=GUCLIP(RPSG(NTH,NR))
             GZL(NR,NTH)=GUCLIP(ZPSG(NTH,NR))
+!            IF(NR.EQ.NRMAX) 
+!     &      write(6,'(2I5,1P4E12.4)') NR,NTH,RPSG(NTH,NR),ZPSG(NTH,NR)
          ENDDO
          ENDDO
       ENDIF

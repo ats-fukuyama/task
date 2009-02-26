@@ -1322,7 +1322,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          ckperp=(0.d0,0.d0)
 
 c$$$         if(ns.eq.1.and.abs(th).lt.0.1) 
-c$$$     &    write(6,'(A,2I5,1P5E12.4)') 'm,n,kpara:',
+c$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
 c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
          CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)

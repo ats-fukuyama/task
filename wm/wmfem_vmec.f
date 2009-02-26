@@ -33,11 +33,6 @@ C
       NFL=8
       CALL FROPEN(NFL,KNAMEQ,1,0,'EQ',IERR)
 C
-C      open(8,FILE=FNAME,FORM='FORMATTED',STATUS='OLD')
-c
-c     write (nfort8,711) voli,gamma,1.0/nfp,Rmajor_p,bz_vmec,
-c    >       ncurr,mnmax,ns,ntheta,nzeta,itfsq,niter/nstep+1,
-c    >       mpol,ntor,ntor+1,1
       read  (     8,711) voli, rgam,     d2,      rc,     d3,
      >          n1,mnmax,nsrmax,ntheta_in,nzeta_in,n2,n3,
      >       mpol_in,ntor_in,n4,n5
@@ -91,32 +86,16 @@ c
             if (m .eq. 0) nmin0 = 0
             do n = nmin0, ntor_in
                mn = mn + 1
-c                write (nfort8,722) xm(mn),xn(mn),
-c    f			rmnc(mn),zmns(mn),lmns(mn),
-c    h			bmn,gmn,
-c    h			bsubumn, bsubvmn, bsubsmn, bsupumn, bsupvmn
-c	 ----------------------------
                  read  (     8,722) xm(mn),xn(mn),
      f          rmnc(mn),zmns(mn),rlmns(mn),
      h          bmod(mn),rgmod(mn),
      h          d1,      d2,      d3, bsu(mn), bsv(mn)
-c	 ----------------------------
             enddo
          enddo
-c          write (nfort8,723)
-c    h          ( gsqrt(js,k),
-c    h            bsubu(js,k),  bsubv(js,k),  bsubs(js,k),
-c    h            bsupu(js,k),  bsupv(js,k),
-c    h            bmod    (k),  k=1,nznt                  )
            read (      8,723) (d1,d2,d3,d4,d5,d6,d7,k=1,nznt)
       enddo
  722  format(12e20.13)
  723  format(7e20.13)
-c
-c          write (nfort8,732) (iotas(js),pres(js),vp(js),phips(js),
-c    1            buco(js),bvco(js),phi(js),chi(js),jcuru(js),
-c    2            jcurv(js),specw(js),js=2,ns)
-c	 --------------------------------------------------------
            read  (     8,732) (riotas(js),pres(js),vp(js),phips(js),
      1            bpco(js),baco(js),phi(js),rchi(js),rjtheta(js),
      2            rjzeta(js),specw(js),js=2,nsrmax)
@@ -131,8 +110,6 @@ c	 --------------------------------------------------------
      >                 ,1x,'   jcuru_f',1x,'   jcurv_f'
      >                 ,1x,'     specw'/(1x,i3,11(1x,1pd10.3)) )
 
-c       write (nfort8,734) (am(i),i=0,10)
-c       write (nfort8,735) (fsqt(i),wdot(i),i=1,100)
         read  (     8,734) (amvm(i),i=0,10)
         read  (     8,735) (fsqt(i),wdot(i),i=1,100)
  734  format(11e20.13)
