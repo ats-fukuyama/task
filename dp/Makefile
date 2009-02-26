@@ -9,9 +9,8 @@ SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
 
 OBJS = $(SRCS:.f=.o) 
 
-WMLIBS = ../wm/wmlib.a ../mtx/mtxlib.a ../eq/wmeqin.o ../mpi/nompilib.o
 LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../../bpsd/bpsdlib.a \
-	 ../lib/tasklib.a $(WMLIBS)
+	 ../lib/tasklib.a
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@
 .f90.o :
