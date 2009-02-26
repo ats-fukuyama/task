@@ -123,7 +123,6 @@ C
 C
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
-      INCLUDE '../wm/wmxprf.inc'
       DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
 C
       IF(RHON.LE.0.D0) THEN
@@ -290,7 +289,7 @@ C
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)=PNS(NS)
-               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+               IF (NS.EQ.1.OR.NS.GT.1) THEN
                   CALL WMSPL_PROF(1.D0,NS,RNPL(NS),RTPL(NS))
                   RTPR(NS)=RTPL(NS)*1.D-3
                   RTPP(NS)=RTPL(NS)*1.D-3
@@ -305,7 +304,7 @@ C
             FACTT=(1.D0-RHOL**PROFT1)**PROFT2
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
-               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+               IF (NS.EQ.1.OR.NS.GT.1) THEN
                   RN(NS)  = RNPL(NS)*1.D-20
                   RTPR(NS)= RTPL(NS)*1.D-3
                   RTPP(NS)= RTPL(NS)*1.D-3
@@ -514,6 +513,114 @@ C
       ENDIF
       RETURN
       END
-
-
-
+C
+C     ***** FILE READ FOR TASK/WM (WMXPRF) *****
+C
+      subroutine plwmxprf(ierr)
+c
+      include '../pl/plcomm.inc' ! for NSMAX, PZ
+      include '../pl/plwmx.inc'
+c
+      real*8 PRFN(NXPRF,NXSPC), PRFT(NXPRF,NXSPC)
+      CHARACTER TRFILE*80
+      DATA TRFILE / 'topics-data' /  ! fixed name
+c
+      ierr = 0
+c
+C----  Open profile data file and read
+C----  PRFNE, PRFTE is data at the point divided equally by rho 
+C        defined by toroidal magnetic flux
+C
+      IFNO=22
+      OPEN ( IFNO, FILE=TRFILE, ERR=9995 )
+      READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRF
+      DO N=1,NPRF
+         READ ( IFNO, '(11E14.7)', END=9996, ERR=9996 )
+     >        PRFRHO(N), (PRFN(N,I), I=1,NXSPC),
+     >                   (PRFT(N,I), I=1,NXSPC)
+      ENDDO
+C
+C----  Modification for charge neutrality
+C
+      DO NR=1,NPRF
+         VAL=0.D0
+         DO NS=2,NSMAX-1
+            VAL=VAL+PZ(NS)*PRFN(NR,NS)
+         ENDDO
+         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
+      ENDDO
+C
+C----  Set coefficient for spline
+C
+      DO NS=1,NSMAX
+         CALL SPL1D(PRFRHO,PRFN(1,NS),  DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
+         IF (IRC.NE.0) GO TO 9997
+         CALL SPL1D(PRFRHO,PRFT(1,NS),  DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
+         IF (IRC.NE.0) GO TO 9997
+      ENDDO
+C
+C----  Debug write
+C
+c$$$      WRITE(6,8000)
+c$$$      DO N=1,NPRF
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFN(N,I),I=1,NXSPC)
+c$$$      ENDDO
+c$$$      WRITE(6,8010)
+c$$$      DO N=1,NPRF
+c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFT(N,I),I=1,NXSPC)
+c$$$      ENDDO
+ 8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
+     >             5X,'PRFNI3',5X,'PRFNI4')
+ 8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
+     >             5X,'PRFTI3',5X,'PRFTI4')
+      GO TO 9999
+c
+ 9995 WRITE(6,*) '==========  PLWMXPRF FILE OPEN ERROR  =========='
+      GO TO 9999
+ 9996 WRITE(6,*) '==========  PLWMXPRF FILE READ ERROR  =========='
+      GO TO 9999
+ 9997 WRITE(6,*) '==========  PLWMXPRF SPL1D ERROR  =========='
+c
+ 9999 CLOSE( IFNO )
+      return
+      end
+C
+C     ***** Interpolation of profile at a given point *****
+C
+      SUBROUTINE WMSPL_PROF(Rhol,NS,PNL,PTL)
+c
+c     <Input>  Rhol : Normalized radius
+c              NS   : Particle species
+c     <Output> PNL  : Density at Rhol
+c              PTL  : Temperature at Rhol
+c
+      include '../pl/plcomm.inc' ! for PTS
+      include '../pl/plwmx.inc'
+C
+C---- Input
+      integer NS
+      real*8 Rhol ! Normalized radial mesh
+C---- Output
+      real*8 PNL, ! density
+     &       PTL  ! temperature
+C---- Internal
+      real*8 PPL
+C
+C---- The following variables come from "plwmx.inc".
+C        NPRF,
+C        PRFRHO,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
+C
+C---- Set profile data at the point calculated in wm-code.
+C
+      IF (Rhol.GT.1.0D0) THEN
+         PNL = 0.D0
+         PTL = PTS(NS)
+      ELSE
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IRC)
+         PNL=PPL
+         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRF,IRC)
+         PTL=PPL
+      ENDIF
+C
+      RETURN
+      END

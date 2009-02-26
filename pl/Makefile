@@ -59,5 +59,6 @@ plmain.o: plmain.f plcomm.f90 plcom0.f90 plcom1.inc
 plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
 plinit.o: plinit.f plcomm.inc plcom0.inc plcom1.inc plcnst.inc
 plintf.o: plintf.f plcomm.inc plcom0.inc plcom1.inc
-plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc ../wm/wmxprf.f $(WMCOMM)
+#plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc ../wm/wmxprf.f $(WMCOMM)
+plprof.o: plprof.f plcomm.inc plcom0.inc plcom1.inc plcom2.inc plwmx.inc $(WMCOMM)
 pldata.o: pldata.f plcomd.inc plcom0.inc plcom3.inc
