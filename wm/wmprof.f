@@ -62,7 +62,7 @@ C
          IF(RHOL.GE.1.D0) THEN
             DO NS=1,NSMAX
                RN(NS)  =0.D0
-               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+               IF (NS.EQ.1.OR.NS.GT.1) THEN
                   RTPR(NS)=PT60(NRMAX+1,NS)*1.D-3
                   RTPP(NS)=PT60(NRMAX+1,NS)*1.D-3
                ELSE
@@ -76,7 +76,7 @@ C
             FACTT=(1.D0-RHOL**PROFT1)**PROFT2
             FACTU=(1.D0-RHOL**PROFU1)**PROFU2
             DO NS=1,NSMAX
-               IF (NS.EQ.1.OR.(NS.GT.1.AND.NPRFI.EQ.1)) THEN
+               IF (NS.EQ.1.OR.NS.GT.1) THEN
                   RN(NS)  = PN60(NR,NS)*1.D-20
                   RTPR(NS)= PT60(NR,NS)*1.D-3
                   RTPP(NS)= PT60(NR,NS)*1.D-3

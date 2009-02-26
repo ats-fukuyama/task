@@ -28,7 +28,6 @@ C         PTPP(I): Perpendicular temperature at center (keV)
 C         I=1:electron, I=2:Impurity, I=3:ion
 C
 C       wmxprf.inc
-C         NPRFI     : calculation mode for ion
 C         PN60(N,I) : density at the calculated point     (1/m3)
 C         PT60(N,I) : temperature at the calculated point (eV)
 C         I=1:electron, I=2:Impurity, I=3:ion
@@ -39,14 +38,14 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE 'wmxprf.inc'
 C
-      REAL*8 ZEFFSV, RHON, PPL, PTSSV(NSM), PNSSV(NSM)
+      REAL*8 ZEFFSV, PTSSV(NSM), PNSSV(NSM)
 C
-      CHARACTER    TRFILE*80, CWK1*10
+cc      CHARACTER    TRFILE*80, CWK1*10
 C
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV
       SAVE ZEFFSV, NSMAXSV, PTSSV, PNSSV
 C
-      DATA TRFILE / 'topics-data' /  ! fixed name
+cc      DATA TRFILE / 'topics-data' /  ! fixed name
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
       DATA ZEFFSV / 0.0D0 /
       DATA NSMAXSV /0/
@@ -76,64 +75,11 @@ C      WRITE (6,*) '==========  WMXPRF START  =========='
 C
       IERR = 9999
 C
-C----  Set ion calculation mode
-C
-c$$$      IF (IP2.EQ.1) THEN
-c$$$         NPRFI = 0
-c$$$         WRITE(6,*)
-c$$$         WRITE(6,*)
-c$$$         WRITE(6,*)
-c$$$         DO WHILE ( NPRFI.NE.1.AND.NPRFI.NE.2 )
-c$$$            WRITE(6,*) 'SELECT MODE OF CALCULATION FOR ION'
-c$$$            WRITE(6,*) '  1 : USE PROFILE DATA FORM FILE'
-c$$$            WRITE(6,*) '  2 : USE DEFAULT METHOD OF WM CODE'
-c$$$            WRITE(6,*) 'SELECT 1 (DEFAULT) or 2 >>'
-c$$$            CWK1 = ' '
-c$$$            READ(5,'(A)',ERR=210) CWK1
-c$$$            IF (CWK1.EQ.' ') THEN
-c$$$               NPRFI = 1
-c$$$            ELSE
-c$$$               READ(CWK1,*,ERR=210) NPRFI
-c$$$            ENDIF
-c$$$         ENDDO
-c$$$ 210     CONTINUE
-c$$$      ENDIF
-          NPRFI=1
-C
 C----  Open profile data file and read
 C----  PRFNE, PRFTE is data at the point divided equally by rho 
 C        defined by toroidal magnetic flux
 C
-C      CALL HANDLE( IFNO )
-C      IF ( IFNO.EQ.0 ) GO TO 9999
-C
-      IFNO=22
-      OPEN ( IFNO, FILE=TRFILE, ERR=9998 )
-      READ ( IFNO, '(I3)', END=9999, ERR=9999 ) NPRF
-      DO N=1,NPRF
-         READ ( IFNO, '(11E14.7)', END=9999, ERR=9999 )
-     >        PRFRHO(N), (PRFN(N,I), I=1,NXSPC),
-     >                   (PRFT(N,I), I=1,NXSPC)
-      ENDDO
-C
-C----  Modification for charge neutrality
-C
-      DO NR=1,NPRF
-         VAL=0.D0
-         DO NS=2,NSMAX-1
-            VAL=VAL+PZ(NS)*PRFN(NR,NS)
-         ENDDO
-         PRFN(NR,NSMAX)=(PRFN(NR,1)-VAL)/PZ(NSMAX)
-      ENDDO
-C
-C----  Set coefficient for spline
-C
-      DO NS=1,NSMAX
-         CALL SPL1D(PRFRHO,PRFN(1,NS),  DERIV,UPRFN(1,1,NS), NPRF,0,IRC)
-         IF (IRC.NE.0) GO TO 9999
-         CALL SPL1D(PRFRHO,PRFT(1,NS),  DERIV,UPRFT(1,1,NS), NPRF,0,IRC)
-         IF (IRC.NE.0) GO TO 9999
-      ENDDO
+      CALL PLWMXPRF(IERR) ! in pl/plprof.f
 C
       IF(MDLWMF.EQ.0) THEN
          NRMAX1 = NRMAX + 1
@@ -161,24 +107,14 @@ C
          PN60(NR,NSMAX)=(PN60(NR,1)-VAL)/PZ(NSMAX)
       ENDDO
 C
-      IF (NPRFI.EQ.1) THEN
-         DO NS=1,NSMAX
-            PN(NS)   = PN60(1,NS) * 1.D-20
-            PTPR(NS) = PT60(1,NS) * 1.D-3
-            PTPP(NS) = PT60(1,NS) * 1.D-3
-         ENDDO
-      ENDIF
+      DO NS=1,NSMAX
+         PN(NS)   = PN60(1,NS) * 1.D-20
+         PTPR(NS) = PT60(1,NS) * 1.D-3
+         PTPP(NS) = PT60(1,NS) * 1.D-3
+      ENDDO
 C
 C----  Debug write
 C
-c$$$      WRITE(6,8000)
-c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFN(N,I),I=1,NXSPC)
-c$$$      ENDDO
-c$$$      WRITE(6,8010)
-c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFT(N,I),I=1,NXSPC)
-c$$$      ENDDO
 c$$$      WRITE(6,8020)
 c$$$      DO N=1,NRMAX1
 c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), (PN60(N,I),I=1,NXSPC)
@@ -187,10 +123,6 @@ c$$$      WRITE(6,8030)
 c$$$      DO N=1,NRMAX1
 c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), (PT60(N,I),I=1,NXSPC)
 c$$$      ENDDO
- 8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
-     >             5X,'PRFNI3',5X,'PRFNI4')
- 8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
-     >             5X,'PRFTI3',5X,'PRFTI4')
  8020 FORMAT(' N ',4X,'XRHO',7X,'PNE',8X,'PNI1',
      >             7X,'PNI2',7X,'PNI3',7X,'PNI4')
  8030 FORMAT(' N ',4X,'XRHO',7X,'PTE',8X,'PTI1',
@@ -211,54 +143,9 @@ C
 C
       IERR = 0
 C
- 9999 CONTINUE
-      CLOSE( IFNO )
- 9998 CONTINUE
-      WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
       GO TO 9995
  9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
  9996 WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
- 9995 RETURN
-      END
-C
-C**************************************************
-C
-C     Interpolation of profile at a given point
-C
-C**************************************************
-C
-      SUBROUTINE WMSPL_PROF(Rhol,NS,PNL,PTL)
-C
-      INCLUDE 'wmcomm.inc'
-      INCLUDE 'wmxprf.inc'
-C
-C---- Input
-      integer NS
-      real*8 Rhol ! Normalized radial mesh
-C---- Output
-      real*8 PNL, ! density
-     &       PTL  ! temperature
-C---- Internal
-      real*8 PPL
-C
-C---- The following variables come from "wmxprf.inc".
-C        NPRFI,NPRF,
-C        PRFRHO,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
-C
-C---- Carry input parameter "ZEFF" to PLPLOF
-      ZEFFWM = ZEFF
-C
-C----  Set profile data at the point calculated in wm-code.
-C
-      IF (Rhol.GT.1.0D0) THEN
-         PNL = 0.D0
-         PTL = PTS(NS)
-      ELSE
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFN(1,1,NS),NPRF,IRC)
-         PNL=PPL
-         CALL SPL1DF(Rhol,PPL,PRFRHO,UPRFT(1,1,NS),NPRF,IRC)
-         PTL=PPL
-      ENDIF
-C
+ 9995 WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
       RETURN
       END
