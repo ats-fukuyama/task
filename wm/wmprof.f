@@ -5,7 +5,7 @@ C
       SUBROUTINE WMCDEN(NR,RN,RTPR,RTPP,RU)
 C
       INCLUDE 'wmcomm.inc'
-      INCLUDE 'wmxprf.inc'
+c      INCLUDE 'wmxprf.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)

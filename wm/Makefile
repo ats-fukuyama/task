@@ -102,12 +102,12 @@ wmeign.o : wmeign.f $(WMCOMM)
 wmsetg.o : wmsetg.f $(WMCOMM)
 
 wmexec.o : wmexec.f $(WMCOMM)
-wmprof.o : wmprof.f $(WMCOMM) wmxprf.inc
+wmprof.o : wmprof.f $(WMCOMM)
 wmdisp.o : wmdisp.f $(WMCOMM)
 
 wmsetm.o : wmsetm.f $(WMCOMM)
 wmsetf.o : wmsetf.f $(WMCOMM)
-wmxprf.o : wmxprf.f $(WMCOMM) wmxprf.inc
+wmxprf.o : wmxprf.f $(WMCOMM)
 wmdprf.o : wmdprf.f $(WMCOMM)
 
 wmpout.o : wmpout.f $(WMCOMM)

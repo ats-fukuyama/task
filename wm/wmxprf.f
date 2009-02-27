@@ -1,13 +1,11 @@
 C     $Id$
-      SUBROUTINE WMXPRF (
-     O                    IERR )
+      SUBROUTINE WMXPRF ( IERR )
 C=======================================================================
 C
-C     This subroutine get profile data for wm-code.
-C     Profile data got from tokrd file on nanasvr is for JT-60.
+C     Read profile data for wm-code.
 C
 C     Input
-C       wmcomm.inc
+C       wmcom1.inc
 C         NRMAX  : number of the point for calculated
 C         NTHMAX : number of poloidal mesh points
 C         NSUMAX : number of the coordinates of separatrix surface,
@@ -16,18 +14,19 @@ C         KNAMEQ : file name of eq data
 C         ZEFF   : effective charge number
 C         XRHO   : ro data of the calculated point ( sub. WMXRZF )
 C
+C       plcom1.inc
 C         PNS(I) : density on plasma surface           (1.0E20/m3)
 C         PTS(I) : temperature on plasma surface       (keV)
 C         I=1:electron, I=2:Impurity, I=3:ion
 C
 C     Output
-C       wmcomm.inc
+C       plcom1.inc
 C         PN(I)  : density at center                   (1.0E20/m3)
 C         PTPR(I): Parallel temperature at center      (keV)
 C         PTPP(I): Perpendicular temperature at center (keV)
 C         I=1:electron, I=2:Impurity, I=3:ion
 C
-C       wmxprf.inc
+C       wmcom1.inc
 C         PN60(N,I) : density at the calculated point     (1/m3)
 C         PT60(N,I) : temperature at the calculated point (eV)
 C         I=1:electron, I=2:Impurity, I=3:ion
@@ -36,16 +35,12 @@ C                                     created by Itakura : CSK  00/07/31
 C=======================================================================
 C
       INCLUDE 'wmcomm.inc'
-      INCLUDE 'wmxprf.inc'
 C
       REAL*8 ZEFFSV, PTSSV(NSM), PNSSV(NSM)
-C
-cc      CHARACTER    TRFILE*80, CWK1*10
 C
       SAVE NRMAXSV,NTHMAXSV,NSUMAXSV
       SAVE ZEFFSV, NSMAXSV, PTSSV, PNSSV
 C
-cc      DATA TRFILE / 'topics-data' /  ! fixed name
       DATA NRMAXSV,NTHMAXSV,NSUMAXSV/0,0,0/
       DATA ZEFFSV / 0.0D0 /
       DATA NSMAXSV /0/
