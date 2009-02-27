@@ -31,7 +31,6 @@ C         PN60(N,I) : density at the calculated point     (1/m3)
 C         PT60(N,I) : temperature at the calculated point (eV)
 C         I=1:electron, I=2:Impurity, I=3:ion
 C
-C                                     created by Itakura : CSK  00/07/31
 C=======================================================================
 C
       INCLUDE 'wmcomm.inc'
@@ -83,12 +82,10 @@ C
       ENDIF
 C
 C----  Set profile data at the point calculated in wm-code.
-C----    RHON  : rho value at the point
 C
       DO NR=1,NRMAX1
-         RHON=XRHO(NR)
          DO NS=1,NSMAX
-            CALL WMSPL_PROF(RHON,NS,PN60(NR,NS),PT60(NR,NS))
+            CALL WMSPL_PROF(XRHO(NR),NS,PN60(NR,NS),PT60(NR,NS))
          ENDDO
       ENDDO
 C
@@ -141,6 +138,7 @@ C
       GO TO 9995
  9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
  9996 WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
+      GO TO 9999
  9995 WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
-      RETURN
+ 9999 RETURN
       END
