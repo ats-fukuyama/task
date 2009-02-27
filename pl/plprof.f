@@ -519,7 +519,7 @@ C
       subroutine plwmxprf(ierr)
 c
       include '../pl/plcomm.inc' ! for NSMAX, PZ
-      include '../pl/plwmx.inc'
+      include '../pl/plxprf.inc'
 c
       real*8 PRFN(NXPRF,NXSPC), PRFT(NXPRF,NXSPC)
       CHARACTER TRFILE*80
@@ -595,7 +595,7 @@ c     <Output> PNL  : Density at Rhol
 c              PTL  : Temperature at Rhol
 c
       include '../pl/plcomm.inc' ! for PTS
-      include '../pl/plwmx.inc'
+      include '../pl/plxprf.inc'
 C
 C---- Input
       integer NS
@@ -606,7 +606,7 @@ C---- Output
 C---- Internal
       real*8 PPL
 C
-C---- The following variables come from "plwmx.inc".
+C---- The following variables come from "plxprf.inc".
 C        NPRF,
 C        PRFRHO,PRFNE,PRFTE,PRFTI,UPRFNE,UPRFTE,UPRFTI,DERIV
 C
