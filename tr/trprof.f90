@@ -672,14 +672,17 @@
       subroutine trsetg(ierr)
 
       use trcomm, only : modelg, nrmax, knameq
-      use tr_bpsd, only: tr_bpsd_get
+      use tr_bpsd, only: tr_bpsd_init,tr_bpsd_set,tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
       use equunit_mod, only: equ_prof,equ_calc
       use pl_vmec_mod, only: pl_vmec
       integer, intent(out):: ierr
       character(len=80):: line
 
-         if(modelg.eq.3) then
+      call tr_bpsd_init
+      call tr_bpsd_set(ierr)
+
+         if(modelg.eq.3.or.modelg.eq.5) then
             write(line,'(A,I5)') 'nrmax=',nrmax+1
             call eq_parm(2,line,ierr)
             write(line,'(A,I5)') 'nthmax=',64
@@ -689,7 +692,6 @@
             call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
             call tr_bpsd_get(ierr)  ! 
             if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
-            pause
          elseif(modelg.eq.7) then
             call pl_vmec(knameq,ierr) ! load vmec data
             call tr_bpsd_get(ierr)  ! 
@@ -705,6 +707,7 @@
             call tr_bpsd_get(ierr)  ! 
             call trgout
          endif
+
       return
       end subroutine trsetg
 
