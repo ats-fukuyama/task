@@ -19,7 +19,7 @@ OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
 
-LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a ../dp/dplib.a
+LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 
 .SUFFIXES: .f90
 
