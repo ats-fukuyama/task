@@ -44,7 +44,8 @@
       DO NR=1,NRMAX-1
          SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) + SUM(RW(NR,1:NFM)))*RKEV*1.D20
 
-         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+!!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
          VOL  = VOL  +         DVRHO(NR)*DR
          SUMM = SUMM + SUML   *DVRHO(NR)*DR
          SUMP = SUMP + SUML**2*DVRHO(NR)*DR
@@ -58,7 +59,8 @@
       NR=NRMAX
          SUML = (SUM(RN(NR,1:NSM)*RT(NR,1:NSM)) + SUM(RW(NR,1:NFM)))*RKEV*1.D20
 
-         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+!!         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+         DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
          VOL  = VOL  +         DVRHO(NR)*DR
          SUMM = SUMM + SUML   *DVRHO(NR)*DR
          SUMP = SUMP + SUML**2*DVRHO(NR)*DR

@@ -106,10 +106,11 @@ c
          metric1D%data(nr)%psur=sps(nr)
          metric1D%data(nr)%dvpsit=dvdpsit(nr)
          metric1D%data(nr)%dvpsip=dvdpsip(nr)
-         metric1D%data(nr)%aver2= averr2(nr)
+         metric1D%data(nr)%aver2 =averr2(nr)
          metric1D%data(nr)%aver2i=aveir2(nr)
-         metric1D%data(nr)%aveb2= avebb2(nr)
+         metric1D%data(nr)%aveb2 =avebb2(nr)
          metric1D%data(nr)%aveb2i=aveib2(nr)
+         metric1D%data(nr)%avegv =avegv(nr)
          metric1D%data(nr)%avegv2=avegv2(nr)
          metric1D%data(nr)%avegvr2=avegr2(nr)
          metric1D%data(nr)%avegpp2=avegp2(nr)
@@ -117,6 +118,7 @@ c
          metric1D%data(nr)%rs=rspsi(nr)
          metric1D%data(nr)%elip=elippsi(nr)
          metric1D%data(nr)%trig=trigpsi(nr)
+!honda         write(6,*) SQRT(psit(nr)/psit(nrmax)),avegr2(nr)
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
       end subroutine eq_bpsd_set

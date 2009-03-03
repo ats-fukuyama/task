@@ -196,7 +196,6 @@ C
       PSI0=PSI0-PSIA
       PSIPA=-PSI0
       DO NPS=1,NPSMAX
-CChonda         PSIPS(NPS)=PSI0-DPS*(NPS-1)
          PSIPS(NPS)=-DPS*(NPS-1)
       ENDDO
       read (neqdsk,2020) RIP,simag,xdum,rmaxis,xdum
@@ -270,8 +269,9 @@ C
       ENDDO
       DO i=1,NPSMAX
          TTPS(i)   =2.D0*PI*TTPS(i)
-         TTDTTPS(i)=2.D0*PI*TTDTTPS(i)
-         DTTPS(i)  =2.D0*PI*TTDTTPS(i)/TTPS(i)
+         TTDTTPS(i)=4.D0*PI**2*TTDTTPS(i)
+         DTTPS(i)  =TTDTTPS(i)/TTPS(i)
+Chonda         write(6,*) PSIPS(i),QQPS(i)
       ENDDO
 C
       DO NZG=1,NZGMAX
@@ -279,6 +279,18 @@ C
          HJTRZ(NRG,NZG)=0.D0
       ENDDO
       ENDDO
+C
+C     ** Simplified check for Toroidal current and parallel current **
+C
+c$$$      DO i=1,NPSMAX
+c$$$         write(6,*) PSIPS(i),
+c$$$     &              -RR*DPPPS(i)-TTDTTPS(i)/(4.D0*PI**2*RR*RMU0),
+c$$$     &              (-TTPS(i)*DPPPS(i)/BB-DTTPS(i)*BB/RMU0)/(2.D0*PI)
+c$$$      ENDDO
+C
+      do i=1,npsmax
+C         write(6,*) psips(i),TTPS(i)
+      enddo
       return
 c     
  2000 format (6a8,3i4)

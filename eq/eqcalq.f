@@ -68,6 +68,33 @@ C
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL2D for HJTRZ: IERR=',IERR
 C
+C     *** Initial parameters for first guess of EQAXIS input ***
+      RAXIS=RR
+      ZAXIS=0.D0
+      PSI0=PSIG(RAXIS,ZAXIS)
+      PSIPA=-PSI0
+C     **********************************************************
+C
+C     *** Calculate RAXIS, ZAXIS, PSI0 and PSIPA ***
+      CALL EQAXIS(IERR)
+      IF(IERR.NE.0) RETURN
+C     **********************************************
+C
+      IF(MODELG.EQ.5) THEN
+C     *** Reconstruct PSIPS ***********************************************
+C     *  PSIPS originates from PSI0 and PSIA in eqdsk data.
+C     *  However, EQAXIS calculates PSI0 and the position of the magnetic
+C     *    axis by using PSIRZ interpolated by cubic spline, and these
+C     *    are slightly different from those in eqdsk data.
+C     *  Then the radial psi-coordinate is corrected to fit itself to the
+C     *    interpolated PSI contour.
+         DPS = PSIPA / (NPSMAX - 1)
+         DO NPS=1,NPSMAX
+            PSIPS(NPS) = DPS * (NPS - 1)
+         ENDDO
+C     *********************************************************************
+      ENDIF
+C
 C      DO NPS=1,NPSMAX
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NPS:',NPS,PSIPS(NPS),
 C     &                             PPPS(NPS),TTPS(NPS)
@@ -83,14 +110,6 @@ C
          CALL SPL1D(PSIPS,DTTPS,  DERIV,UDTTPS, NPSMAX,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for DTTPS: IERR=',IERR
       ENDIF
-C
-      RAXIS=RR
-      ZAXIS=0.D0
-      PSI0=PSIG(RAXIS,ZAXIS)
-      PSIPA=-PSI0
-C
-      CALL EQAXIS(IERR)
-      IF(IERR.NE.0) RETURN
 C
       RETURN
       END
@@ -160,6 +179,7 @@ C
          SUMAVBB =0.D0
          SUMAVBB2=0.D0
          SUMAVIB2=0.D0
+         SUMAVGV =0.D0
          SUMAVGV2=0.D0
          SUMAVGR2=0.D0
 C
@@ -193,6 +213,7 @@ C
             SUMAVBB =SUMAVBB +H*SQRT(B2L)/BPL
             SUMAVBB2=SUMAVBB2+H*B2L/BPL
             SUMAVIB2=SUMAVIB2+H/(B2L*BPL)
+            SUMAVGV =SUMAVGV +H*R
             SUMAVGV2=SUMAVGV2+H*R*R*BPL
             SUMAVGR2=SUMAVGR2+H*BPL
 C
@@ -223,6 +244,7 @@ C
          ENDDO
 C
          QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
+Chonda         write(6,*) PSIP(NR),QPS(NR)
          DVDPSIP(NR)=SUMV
          DVDPSIT(NR)=SUMV/QPS(NR)
          DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
@@ -233,8 +255,10 @@ C
          AVEBB (NR)=SUMAVBB /SUMV
          AVEBB2(NR)=SUMAVBB2/SUMV
          AVEIB2(NR)=SUMAVIB2/SUMV
+         AVEGV (NR)=SUMAVGV      *2.d0*PI
          AVEGV2(NR)=SUMAVGV2*SUMV*4.d0*PI**2
          AVEGR2(NR)=SUMAVGR2*SUMV*4.d0*PI**2
+Chonda         write(6,'(4E15.7)') PSIP(NR),SUMAVGR2,SUMV,AVEGR2(NR)
          AVEGP2(NR)=SUMAVGV2/SUMV*4.d0*PI**2
 
          call zminmax(YA,NZMINR,ZMIN,ZMINR)
@@ -306,6 +330,7 @@ C
       AVEBB (1)=(4.D0*AVEBB (2)-AVEBB (3))/3.D0
       AVEBB2(1)=(4.D0*AVEBB2(2)-AVEBB2(3))/3.D0
       AVEIB2(1)=(4.D0*AVEIB2(2)-AVEIB2(3))/3.D0
+      AVEGV (1)=(4.D0*AVEGV (2)-AVEGV (3))/3.D0
       AVEGV2(1)=(4.D0*AVEGV2(2)-AVEGV2(3))/3.D0
       AVEGR2(1)=(4.D0*AVEGR2(2)-AVEGR2(3))/3.D0
       AVEGP2(1)=(4.D0*AVEGP2(2)-AVEGP2(3))/3.D0
@@ -397,13 +422,12 @@ C
          DPPSL=DPPFUNC(PSIP(NR))
          DTTSL=DTTFUNC(PSIP(NR))
          TTSL =TTFUNC(PSIP(NR))
-CChonda         AVEJPR(NR)=-(TTSL*DPPSL/BB+AVEBB2(NR)*BB*DTTSL/RMU0)
-CChonda         AVEJTR(NR)=-(2.D0*PI*RR*DPPSL
-CChonda     &               +AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR))
-         AVEJTR(NR)=(-AVERR2(NR)*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0))
-     &              /AVERR(NR)
+c$$$         AVEJTR(NR)=-(AVERR2(NR)*DPPSL+TTSL*DTTSL/(4.D0*PI**2))
+c$$$     &              /AVERR(NR)
+c$$$         AVEJPR(NR)=-(TTSL*DPPSL+AVEBB2(NR)*DTTSL)/(2.D0*PI*AVEBB(NR))
+         AVEJTR(NR)=-RR*DPPSL-TTSL*DTTSL/(4.d0*PI**2*RMU0*RR)
          AVEJPR(NR)=(-TTSL*DPPSL-DTTSL*AVEBB2(NR)/RMU0)
-     &              /(2.d0*PI*(BB/ABS(BB))*AVEBB(NR))
+     &              /(2.d0*PI*ABS(BB))
 C         WRITE(6,'(A,1P6E12.4)') 'AVEJ=',
 C     &        TTSL*DPPSL/BB,AVEBB2(NR)*BB*DTTSL/RMU0,
 C     &        2.D0*PI*RR*DPPSL,AVEIR2(NR)*TTSL*DTTSL/(2.D0*PI*RMU0*RR),
@@ -478,6 +502,7 @@ C
             call polintx(nr,npmax,nrm,avebb)
             call polintx(nr,npmax,nrm,avebb2)
             call polintx(nr,npmax,nrm,aveib2)
+            call polintx(nr,npmax,nrm,avegv)
             call polintx(nr,npmax,nrm,avegv2)
             call polintx(nr,npmax,nrm,avegr2)
             call polintx(nr,npmax,nrm,avegp2)
@@ -555,6 +580,7 @@ C
             SUMAVBB =0.D0
             SUMAVBB2=0.D0
             SUMAVIB2=0.D0
+            SUMAVGV =0.D0
             SUMAVGV2=0.D0
             SUMAVGR2=0.D0
 C
@@ -588,6 +614,7 @@ C
                SUMAVBB =SUMAVBB +H*SQRT(B2L)/BPL
                SUMAVBB2=SUMAVBB2+H*B2L/BPL
                SUMAVIB2=SUMAVIB2+H/(B2L*BPL)
+               SUMAVGV =SUMAVGV +H*R
                SUMAVGV2=SUMAVGV2+H*R*R*BPL
                SUMAVGR2=SUMAVGR2+H*BPL
 C
@@ -628,9 +655,10 @@ C
             AVEBB (NR)=SUMAVBB /SUMV
             AVEBB2(NR)=SUMAVBB2/SUMV
             AVEIB2(NR)=SUMAVIB2/SUMV
-            AVEGV2(NR)=SUMAVGV2*SUMV*4*PI**2
-            AVEGR2(NR)=SUMAVGR2*SUMV*4*PI**2
-            AVEGP2(NR)=SUMAVGV2/SUMV*4*PI**2
+            AVEGV (NR)=SUMAVGV      *2.D0*PI
+            AVEGV2(NR)=SUMAVGV2*SUMV*4.D0*PI**2
+            AVEGR2(NR)=SUMAVGR2*SUMV*4.D0*PI**2
+            AVEGP2(NR)=SUMAVGV2/SUMV*4.D0*PI**2
 
             call zminmax(YA,NZMINR,ZMIN,ZMINR)
             call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
@@ -842,6 +870,9 @@ C
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEIB2,DERIV,UAVEIB2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEIB2: IERR=',IERR
+      DERIV(1)=0.D0
+      CALL SPL1D(RHOT,AVEGV ,DERIV,UAVEGV ,NRMAX,1,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEGV: IERR=',IERR
       DERIV(1)=0.D0
       CALL SPL1D(RHOT,AVEGV2,DERIV,UAVEGV2,NRMAX,1,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEGV2: IERR=',IERR

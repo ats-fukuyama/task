@@ -1,11 +1,11 @@
 !     $Id$
       module tr_bpsd
       use bpsd
-      type(bpsd_device_type),private,save :: device
-      type(bpsd_species_type),private,save :: species
-      type(bpsd_equ1D_type),private,save :: equ1D
+      type(bpsd_device_type),  private,save :: device
+      type(bpsd_species_type), private,save :: species
+      type(bpsd_equ1D_type),   private,save :: equ1D
       type(bpsd_metric1D_type),private,save :: metric1D
-      type(bpsd_plasmaf_type),private,save :: plasmaf
+      type(bpsd_plasmaf_type), private,save :: plasmaf
       logical, private, save :: tr_bpsd_init_flag = .TRUE.
       public
       contains
@@ -15,9 +15,9 @@
 !=======================================================================
       use trcomm
 ! local variables
-      real(8)       qpl,rgl
-      integer(4)    ns,nr,ierr
-      real*8 temp(nrmp,nsm,3)
+      real(8)    :: qpl,rgl
+      integer(4) :: ns,nr,ierr
+      real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
       if(tr_bpsd_init_flag) then
@@ -148,10 +148,10 @@
       subroutine tr_bpsd_set(ierr)
 !=======================================================================
       use trcomm
-      integer    ierr
+      integer(4) :: ierr
 ! local variables
-      integer    ns,nr
-      real*8 temp(nrmp,nsm,3)
+      integer(4) :: ns,nr
+      real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
 !      write(6,*) 'top of tr_bpsd_set:qp'
@@ -193,8 +193,8 @@
 
 !      write(6,*) 'RDP_set:',(rdp(nr),nr=1,nrmax)
 
-      do nr=2,nrmax
-         plasmaf%qinv(nr) &
+      do nr=1,nrmax
+         plasmaf%qinv(nr+1) &
          & =(4.D0*PI**2*RDP(nr))/(TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr))
       enddo
       plasmaf%qinv(1)=((plasmaf%rho(3))**2*plasmaf%qinv(2) &
@@ -215,12 +215,12 @@
       subroutine tr_bpsd_get(ierr)
 !=======================================================================
       use trcomm
-      integer,intent(out):: ierr
+      integer(4),intent(out) :: ierr
 ! local variables
-      integer    ns,nr
-      real*8 temp(nrmp,nsm,3)
-      real*8 tempx(nrmp,12),psita,dpsitdrho,dvdrho
-      REAL(8) :: FACTOR0, FACTORM, FACTORP
+      integer(4) :: ns,nr
+      real(8)    :: temp(nrmp,nsm,3)
+      real(8)    :: tempx(nrmp,12),psita,dpsitdrho,dvdrho
+      REAL(8)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
 !      write(6,*) 'top of tr_bpsd_get: qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
@@ -238,6 +238,9 @@
       RKAP=device%elip
       RDLT=device%trig
 
+      RIPS=RIP
+      RIPE=RIP
+
       call bpsd_get_data(plasmaf,ierr)
 
       do ns=1,plasmaf%nsmax
@@ -250,8 +253,7 @@
       do nr=2,plasmaf%nrmax
          qp(nr-1)=1.d0/plasmaf%qinv(nr)
       enddo
-      Q0=2*qp(1)-qp(2)
-!      write(6,*) (qp(nr),nr=1,nrmax)
+      Q0=2.d0*qp(1)-qp(2)
 
       do ns=1,nsmax
          call mesh_convert_gtom(temp(1:nrmax,ns,1),rn(1:nrmax,ns),nrmax)
@@ -259,7 +261,7 @@
          call mesh_convert_gtom(temp(1:nrmax,ns,3),ru(1:nrmax,ns),nrmax)
       enddo
 
-      if(modelg.eq.8.or.modelg.eq.9) then
+      if(modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
 
       call bpsd_get_data(equ1D,ierr)
 
@@ -268,28 +270,31 @@
          tempx(nr,2)=equ1D%data(nr)%psit
          tempx(nr,3)=equ1D%data(nr)%ppp
          tempx(nr,4)=equ1D%data(nr)%piq
-         tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2*pi)
+         tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2.d0*pi)
          tempx(nr,6)=equ1D%data(nr)%pit
       enddo
-      call mesh_convert_gtom(tempx(1,1),PSITRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,2),PSIPRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,3),PPPRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,4),PIQRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,5),TTRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,6),PIRHO,nrmax)
-      
+      call data_interpolate_gtom_full(tempx(1,1),PSITRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,2),PSIPRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,3),PPPRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,4),PIQRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,5),TTRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,6),PIRHO,nrmax)
+
       TTRHOG(1:nrmax)=tempx(2:nrmax+1,5)
       psita=equ1D%data(equ1D%nrmax)%psit
 
       call bpsd_get_data(metric1D,ierr)
-      do nr=2,metric1D%nrmax
-         rgl=rg(nr-1)
+      do nr=2,metric1D%nrmax       ! metric1D%nrmax = nrmax + 1
+         rgl=rg(nr-1) ! rgl is equivalent to metric1D%rho(nr)
          dpsitdrho=2.D0*psita*rgl
          dvdrho=metric1D%data(nr)%dvpsit*dpsitdrho
          tempx(nr,1)=dvdrho
          tempx(nr,2)=metric1D%data(nr)%avegvr2/dvdrho**2
+!         write(6,*) rgl,metric1D%data(nr)%avegvr2
          tempx(nr,3)=metric1D%data(nr)%aver2i
-         tempx(nr,4)=sqrt(metric1D%data(nr)%avegv2/dvdrho**2)
+         tempx(nr,4)=metric1D%data(nr)%avegv/dvdrho
+!honda         tempx(nr,4)=sqrt(metric1D%data(nr)%avegv2/dvdrho**2)
+!honda         write(6,*) metric1D%rho(nr),sqrt(metric1D%data(nr)%avegv2/dvdrho**2),metric1D%data(nr)%avegv/dvdrho
          tempx(nr,5)=metric1D%data(nr)%avegv2/dvdrho**2
          tempx(nr,6)=metric1D%data(nr)%aveb2
          tempx(nr,7)=metric1D%data(nr)%aveb2i
@@ -299,7 +304,7 @@
          tempx(nr,11)=metric1D%data(nr)%rs
          tempx(nr,12)=metric1D%data(nr)%elip
       enddo
-      nr=1
+      nr=1 ! equivalent to "rho = 0"
          tempx(nr,1)=0.d0
          tempx(nr,2)=tempx(2,2)
          tempx(nr,3)=metric1D%data(nr)%aver2i
@@ -313,28 +318,30 @@
          tempx(nr,11)=metric1D%data(nr)%rs
          tempx(nr,12)=metric1D%data(nr)%elip
 
-      call mesh_convert_gtom0(tempx(1,1),DVRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,2),ABRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,3),ARRHO,nrmax)
-      call mesh_convert_gtom(tempx(1,4),AR1RHO,nrmax)
-      call mesh_convert_gtom(tempx(1,5),AR2RHO,nrmax)
-      call mesh_convert_gtom(tempx(1,12),RKPRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,1), DVRHO, nrmax)
+      call data_interpolate_gtom     (tempx(1,2), ABRHO, nrmax)
+      call data_interpolate_gtom_full(tempx(1,3), ARRHO, nrmax)
+      call data_interpolate_gtom     (tempx(1,4), AR1RHO,nrmax)
+      call data_interpolate_gtom     (tempx(1,5), AR2RHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,12),RKPRHO,nrmax)
 
-      DVRHOG(1:nrmax)=tempx(2:nrmax+1,1)
-      ABRHOG(1:nrmax)=tempx(2:nrmax+1,2)    ! avegvr2
-      ARRHOG(1:nrmax)=tempx(2:nrmax+1,3)    ! aver2i
-      AR1RHOG(1:nrmax)=tempx(2:nrmax+1,4)
-      AR2RHOG(1:nrmax)=tempx(2:nrmax+1,5)
+      DVRHOG  (1:nrmax)=tempx(2:nrmax+1,1)
+      ABRHOG  (1:nrmax)=tempx(2:nrmax+1,2)  ! avegvr2
+      ARRHOG  (1:nrmax)=tempx(2:nrmax+1,3)  ! aver2i
+      AR1RHOG (1:nrmax)=tempx(2:nrmax+1,4)
+      AR2RHOG (1:nrmax)=tempx(2:nrmax+1,5)
       ABB2RHOG(1:nrmax)=tempx(2:nrmax+1,6)
       AIB2RHOG(1:nrmax)=tempx(2:nrmax+1,7)
       ARHBRHOG(1:nrmax)=tempx(2:nrmax+1,8)  ! not used
-      EPSRHO(1:nrmax)=tempx(2:nrmax+1,9)
-      RMJRHO(1:nrmax)=tempx(2:nrmax+1,10)
-      RMNRHO(1:nrmax)=tempx(2:nrmax+1,11)
-      RKPRHOG(1:nrmax)=tempx(2:nrmax+1,12)
+      EPSRHO  (1:nrmax)=tempx(2:nrmax+1,9)
+      RMJRHO  (1:nrmax)=tempx(2:nrmax+1,10)
+      RMNRHO  (1:nrmax)=tempx(2:nrmax+1,11)
+      RKPRHOG (1:nrmax)=tempx(2:nrmax+1,12)
 
       do nr=1,nrmax
          RDP(nr)=TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr)/(4.D0*PI**2*QP(nr))
+!abrho         write(6,'(4E15.7)') RG(NR),ABRHOG(NR),RM(NR),ABRHO(NR)
+!         write(6,'(F5.2,5E13.5)') RG(nr),TTRHOG(nr),ARRHOG(nr),DVRHOG(nr),QP(nr),RDP(nr)
 !         RDPX=psita*rg(nr)/(pi*qp(nr))
 !         write(6,'(A,I5,1p4E12.4)') &
 !         &   'RDP:',nr,RDP(nr),RDPX,qp(nr),1.d0/qp(nr)
@@ -353,6 +360,8 @@
          FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
          FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
          AJ(NR) =FACTOR0*(FACTORP*RDP(NR)-FACTORM*RDP(NR-1))/DR
+!met         write(6,'(4E15.7)') RM(NR),DVRHOG(NR)-DVRHOG(NR-1),ABRHOG(NR)-ABRHOG(NR-1),TTRHOG(NR)-TTRHOG(NR-1)
+!aj         write(6,'(4E15.7)') RM(NR),FACTOR0,FACTORP*RDP(NR)-FACTORM*RDP(NR-1),AJ(NR)
          AJOH(NR)=AJ(NR)
       ENDDO
 !      NR=1
@@ -380,36 +389,43 @@
       end subroutine tr_bpsd_get
 
 !     ----- convert half mesh to origin + grid mesh -----
+!
+!       Suppose that rho derivative of data be zero
+!          at the axis and the boundary
+!       datag(1) at rho = 0 and datag(nrmax+1) at rho = 1
 
       subroutine mesh_convert_mtog(datam,datag,nrmax)
 
       implicit none
-      integer nrmax
-      real*8 datam(nrmax),datag(nrmax+1)
-      integer nr
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datam(nrmax)
+      real(8),    intent(out) :: datag(nrmax+1)
 
-      datag(1)=(9.d0*datam(1)-datam(2))/8.d0
-      do nr=2,nrmax
-         datag(nr)=(datam(nr-1)+datam(nr))/2.d0
-      enddo
-      datag(nrmax+1)=(4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+      datag(1)       = (9.d0*datam(1)-datam(2))/8.d0
+      datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
+      datag(nrmax+1) = (4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+
       return
       end subroutine mesh_convert_mtog
 
 !     ----- convert origin + grid mesh to half mesh -----
+!
+!       just invert mesh_convert_gtom
+      !!! CAUTION !!!=======================================================!
+      !  This routine should be used only in case that one reconverts       !
+      !   data converted by "mesh_convert_mtog" routine.                    !
+      !  In any other case, one should use "data_interpolate_gtom" routine. !
+      !=====================================================================!
 
       subroutine mesh_convert_gtom(datag,datam,nrmax)
 
       implicit none
-      integer nrmax
-      real*8 datag(nrmax+1),datam(nrmax)
-      real*8 c11,c12,c21,c22,det,a11,a12,a21,a22
-      integer nr,ierr
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datag(nrmax+1)
+      real(8),    intent(out) :: datam(nrmax)
+      real(8) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(8) :: det,a11,a12,a21,a22
 
-      c11= 9.d0/8.d0
-      c12=-1.d0/8.d0
-      c21= 0.5d0
-      c22= 0.5d0
       det=c11*c22-c12*c21
       a11= c22/det
       a12=-c12/det
@@ -417,53 +433,87 @@
       a22= c11/det
       datam(1)=a11*datag(1)+a12*datag(2)
       datam(2)=a21*datag(1)+a22*datag(2)
-      do nr=3,nrmax
-         datam(nr)=2.d0*datag(nr)-datam(nr-1)
-      enddo
+      datam(3:nrmax) = 2.d0 * datag(3:nrmax) - datam(2:nrmax-1)
       return
       end subroutine mesh_convert_gtom
 
 !     ----- convert half mesh to origin + grid mesh -----
+!
+!       Suppose that data be zero at the axis
+!          and rho derivative of data be zero at the boundary
 
       subroutine mesh_convert_mtog0(datam,datag,nrmax)
 
       implicit none
-      integer nrmax
-      real*8 datam(nrmax),datag(nrmax+1)
-      integer nr
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datam(nrmax)
+      real(8),    intent(out) :: datag(nrmax+1)
 
-      datag(1)=0.d0
-      do nr=2,nrmax
-         datag(nr)=(datam(nr-1)+datam(nr))/2.d0
-      enddo
-      datag(nrmax+1)=(4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+      datag(1)       = 0.d0
+      datag(2:nrmax) = 0.5d0 * (datam(1:nrmax-1) + datam(2:nrmax))
+      datag(nrmax+1) = (4.d0*datam(nrmax)-datam(nrmax-1))/3.d0
+
       return
       end subroutine mesh_convert_mtog0
 
 !     ----- convert origin + grid mesh to half mesh -----
+!
+!       just invert mesh_convert_mtog0
+      !!! CAUTION !!!========================================================!
+      !  This routine should be used only in case that one reconverts        !
+      !   data converted by "mesh_convert_mtog" routine.                     !
+      !  In any other case, one should use "data_interpolate_gtom0" routine. !
+      !======================================================================!
 
       subroutine mesh_convert_gtom0(datag,datam,nrmax)
 
       implicit none
-      integer nrmax
-      real*8 datag(nrmax+1),datam(nrmax)
-      real*8 c11,c12,c21,c22,det,a11,a12,a21,a22
-      integer nr,ierr
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datag(nrmax+1)
+      real(8),    intent(out) :: datam(nrmax)
+      real(8) :: c11=9.d0/8.d0,c12=-1.d0/8.d0,c21=0.5d0,c22=0.5d0
+      real(8) :: det,a11,a12,a21,a22
 
-      c11= 9.d0/8.d0
-      c12=-1.d0/8.d0
-      c21= 0.5d0
-      c22= 0.5d0
       det=c11*c22-c12*c21
       a11= c22/det
       a12=-c12/det
       a21=-c21/det
       a22= c11/det
       datam(1)=0.5d0*datag(2)
-      do nr=2,nrmax
-         datam(nr)=2.d0*datag(nr)-datam(nr-1)
-      enddo
+      datam(2:nrmax) = 2.d0 * datag(2:nrmax) - datam(1:nrmax-1)
       return
       end subroutine mesh_convert_gtom0
+
+!     ----- interpolate data on half mesh from full data on grid -----
+
+      subroutine data_interpolate_gtom_full(datag,datam,nrmax)
+
+      implicit none
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datag(nrmax+1)
+      real(8),    intent(out) :: datam(nrmax)
+
+      datam(1:nrmax) = 0.5d0 * (datag(1:nrmax) + datag(2:nrmax+1))
+
+      return
+      end subroutine data_interpolate_gtom_full
+
+!     ----- interpolate data on half mesh
+!              from data on grid except the axis -----
+
+      subroutine data_interpolate_gtom(datag,datam,nrmax)
+
+      implicit none
+      integer(4), intent(in)  :: nrmax
+      real(8),    intent(in)  :: datag(nrmax+1)
+      real(8),    intent(out) :: datam(nrmax)
+
+      ! linear extrapolation
+      datam(1) = 1.5d0 * datag(2) - 0.5d0 * datag(3)
+
+      datam(2:nrmax) = 0.5d0 * (datag(2:nrmax) + datag(3:nrmax+1))
+
+      return
+      end subroutine data_interpolate_gtom
 
       end module tr_bpsd

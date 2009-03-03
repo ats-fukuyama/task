@@ -599,7 +599,8 @@
 !     calculate plasma current inside the calucated region (rho <= rhoa)
 !     necessary for MDLEQB = 1 and MDLUF /= 0
       IF(MDLUF.EQ.1.OR.MDLUF.EQ.3) THEN
-         DSRHO(1:NRAMAX)=DVRHO(1:NRAMAX)/(2.D0*PI*RMJRHO(1:NRAMAX))
+!!         DSRHO(1:NRAMAX)=DVRHO(1:NRAMAX)/(2.D0*PI*RMJRHO(1:NRAMAX))
+         DSRHO(1:NRAMAX)=DVRHO(1:NRAMAX)/(2.D0*PI*RR)
          RIPA=SUM(AJ(1:NRAMAX)*DSRHO(1:NRAMAX))*DR/1.D6
       ENDIF
 
@@ -671,7 +672,7 @@
 
       subroutine trsetg(ierr)
 
-      use trcomm, only : modelg, nrmax, knameq
+      use trcomm, only : modelg, nrmax, knameq, RR, RA
       use tr_bpsd, only: tr_bpsd_init,tr_bpsd_set,tr_bpsd_get
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
       use equunit_mod, only: equ_prof,equ_calc

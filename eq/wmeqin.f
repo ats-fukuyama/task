@@ -10,6 +10,7 @@ C
       DO NR=1,NRMAX1
          RHOT1(NR)=RHOT(NR)
          PSIP1(NR)=PSIP(NR)
+Chonda         write(6,*) "EQGETP",NR,RHOT(NR)
       ENDDO
       RETURN
       END

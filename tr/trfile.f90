@@ -2429,7 +2429,8 @@
          DO NR=1,NRAMAX
             CALL TIMESPL(TSL,AJL ,TMU,AJU  (1,NR),NTXMAX,NTUM,IERR)
             VOL=VOL+DVRHO(NR)*DR
-            DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+!!            DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RMJRHO(NR))
+            DSRHO(NR)=DVRHO(NR)/(2.D0*PI*RR)
             AJTMP(NR)=AJL
          ENDDO
          RIPA=SUM(AJTMP(1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
