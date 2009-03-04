@@ -288,9 +288,6 @@ c$$$     &              -RR*DPPPS(i)-TTDTTPS(i)/(4.D0*PI**2*RR*RMU0),
 c$$$     &              (-TTPS(i)*DPPPS(i)/BB-DTTPS(i)*BB/RMU0)/(2.D0*PI)
 c$$$      ENDDO
 C
-      do i=1,npsmax
-C         write(6,*) psips(i),TTPS(i)
-      enddo
       return
 c     
  2000 format (6a8,3i4)
@@ -298,3 +295,45 @@ c
  2022 format (2i5)
 c 2024 format (i5,e16.9,i5)
        end
+C
+C     ***** SAVE METRICS *****
+C
+      SUBROUTINE EQMETRIC(IERR)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      character KNAMET*80
+      data KNAMET /'eq_metric.dat'/ 
+C
+      nmetric=21
+      CALL FWOPEN(nmetric,KNAMET,1,MODEFW,'EQ',IERR)
+      IF(IERR.NE.0) RETURN
+C
+      nmetric=21
+      REWIND(nmetric)
+      WRITE(nmetric,'(A,2X,A,6X,A,8X,A,3X,A)') '#','rho_tor','dV/drho',
+     &     '<1/R^2>',"<|grad rho|^2/R^2>"
+      DO NR = 1, NRPMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT1,PSIP,UDVDRHO ,NRMAX,IERR)
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT2,PSIP,UAVEIR2 ,NRMAX,IERR)
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT3,PSIP,UAVEGR2R,NRMAX,IERR)
+         WRITE(nmetric,'(1X,F10.8,1P3E15.7)') RHOT(NR),DAT1,DAT2,DAT3
+      ENDDO
+      WRITE(nmetric,'(80X)')
+      WRITE(nmetric,'(A,2X,A,3X,A,3X,A,5X,A,9X,A)') '#','rho_tor',
+     &     "<|grad rho|>","<|grad rho|^2>","<B^2>","<1/B^2>"
+      DO NR = 1, NRPMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT1,PSIP,UAVEGRR ,NRMAX,IERR)
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT2,PSIP,UAVEGRR2,NRMAX,IERR)
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT3,PSIP,UAVEBB2 ,NRMAX,IERR)
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT4,PSIP,UAVEIB2 ,NRMAX,IERR)
+         WRITE(nmetric,'(1X,F10.8,1P4E15.7)') RHOT(NR),
+     &        DAT1,DAT2,DAT3,DAT4
+      ENDDO
+      CLOSE(nmetric)
+C
+      WRITE(6,*) '# METRIC DATA WAS SUCCESSFULLY SAVED TO "',
+     &           KNAMET(1:13),'".'
+C
+      RETURN
+      END

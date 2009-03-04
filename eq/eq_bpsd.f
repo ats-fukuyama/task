@@ -5,11 +5,11 @@ c
       public eq_bpsd_init, eq_bpsd_set
       private
 c
-      type(bpsd_device_type),private,save  :: device
-      type(bpsd_equ1D_type),private,save   :: equ1D
-      type(bpsd_metric1D_type),private,save:: metric1D
-      type(bpsd_species_type),private,save :: species
-      type(bpsd_plasmaf_type),private,save :: plasmaf
+      type(bpsd_device_type),  private,save :: device
+      type(bpsd_equ1D_type),   private,save :: equ1D
+      type(bpsd_metric1D_type),private,save :: metric1D
+      type(bpsd_species_type), private,save :: species
+      type(bpsd_plasmaf_type), private,save :: plasmaf
       logical, private, save :: eq_bpsd_init_flag = .TRUE.
       contains
 c=======================================================================
@@ -17,10 +17,10 @@ c=======================================================================
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
 !      implicit none
-      integer ierr
+      integer(4) :: ierr
 ! local variables
-      integer(4)    ns
-      real(8) pretot,dentot,temave
+      integer(4) :: ns
+      real(8) :: pretot, dentot, temave
 c=======================================================================
       if(eq_bpsd_init_flag) then
          equ1D%nrmax=0
@@ -28,14 +28,14 @@ c=======================================================================
          eq_bpsd_init_flag=.FALSE.
       endif
 c
-      device%rr=RR
-      device%zz=0.d0
-      device%ra=RA
-      device%rb=RB
-      device%bb=BB
-      device%ip=RIP
-      device%elip=RKAP
-      device%trig=RDLT
+      device%rr   = RR
+      device%zz   = 0.d0
+      device%ra   = RA
+      device%rb   = RB
+      device%bb   = BB
+      device%ip   = RIP
+      device%elip = RKAP
+      device%trig = RDLT
       call bpsd_set_data(device,ierr)
 c
       equ1D%time=0.D0
@@ -66,8 +66,8 @@ c     interface eqiulibrium <>transport                            JAERI
 c         transport grid -> equilibrium grid     
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
-      integer nr,ierr
-      real(8),dimension(nrmax):: sa,data,diff
+      integer(4) :: nr, ierr
+      real(8),dimension(nrmax)  :: sa, data, diff
       real(8),dimension(4,nrmax):: udata
       
 ! local variables
@@ -76,7 +76,7 @@ c=======================================================================
       plasmaf%nrmax=0
       call bpsd_get_data(plasmaf,ierr)
       do nr=1,nrmax
-         sa(nr)=psit(nr)/psit(nrmax)
+         sa(nr)=rhot(nr)**2 ! = psit(nr)/psit(nrmax)
          data(nr)=1.d0/qps(nr)
       enddo
       call spl1d(sa,data,diff,udata,nrmax,0,ierr)
@@ -89,36 +89,35 @@ c=======================================================================
       call bpsd_set_data(plasmaf,ierr)
 
       do nr=1,nrmax
-         equ1D%rho(nr)=SQRT(psit(nr)/psit(nrmax))
-         equ1D%data(nr)%psit=psit(nr)
-         equ1D%data(nr)%psip=psip(nr)
-         equ1D%data(nr)%ppp=pps(nr)
-         equ1D%data(nr)%piq=1.d0/qps(nr)
-         equ1D%data(nr)%pip=tts(nr)/rmu0
-         equ1D%data(nr)%pit=0.d0
+         equ1D%rho(nr)       = rhot(nr) ! = SQRT(psit(nr)/psit(nrmax))
+         equ1D%data(nr)%psit = psit(nr)
+         equ1D%data(nr)%psip = psip(nr)
+         equ1D%data(nr)%ppp  = pps(nr)
+         equ1D%data(nr)%piq  = 1.d0/qps(nr)
+         equ1D%data(nr)%pip  = tts(nr)/rmu0
+         equ1D%data(nr)%pit  = 0.d0
       enddo
 
       call bpsd_set_equ1D(equ1D,ierr)
-c
+
       do nr=1,nrmax
-         metric1D%rho(nr)=SQRT(psit(nr)/psit(nrmax))
-         metric1D%data(nr)%pvol=vps(nr)
-         metric1D%data(nr)%psur=sps(nr)
-         metric1D%data(nr)%dvpsit=dvdpsit(nr)
-         metric1D%data(nr)%dvpsip=dvdpsip(nr)
-         metric1D%data(nr)%aver2 =averr2(nr)
-         metric1D%data(nr)%aver2i=aveir2(nr)
-         metric1D%data(nr)%aveb2 =avebb2(nr)
-         metric1D%data(nr)%aveb2i=aveib2(nr)
-         metric1D%data(nr)%avegv =avegv(nr)
-         metric1D%data(nr)%avegv2=avegv2(nr)
-         metric1D%data(nr)%avegvr2=avegr2(nr)
-         metric1D%data(nr)%avegpp2=avegp2(nr)
-         metric1D%data(nr)%rr=rrpsi(nr)
-         metric1D%data(nr)%rs=rspsi(nr)
-         metric1D%data(nr)%elip=elippsi(nr)
-         metric1D%data(nr)%trig=trigpsi(nr)
-!honda         write(6,*) SQRT(psit(nr)/psit(nrmax)),avegr2(nr)
+         metric1D%rho(nr)          = rhot(nr)
+         metric1D%data(nr)%pvol    = fnvps(rhot(nr))    ! vps     on rhot
+         metric1D%data(nr)%psur    = fnsps(rhot(nr))    ! sps     on rhot
+         metric1D%data(nr)%dvpsit  = fndvdpst(rhot(nr)) ! dvdpsit on rhot
+         metric1D%data(nr)%dvpsip  = fndvdpsp(rhot(nr)) ! dvdpsip on rhot
+         metric1D%data(nr)%aver2   = fnavrr2(rhot(nr))  ! averr2  on rhot
+         metric1D%data(nr)%aver2i  = fnavir2(rhot(nr))  ! aveir2  on rhot
+         metric1D%data(nr)%aveb2   = fnavbb2(rhot(nr))  ! avebb2  on rhot
+         metric1D%data(nr)%aveb2i  = fnavib2(rhot(nr))  ! aveib2  on rhot
+         metric1D%data(nr)%avegv   = fnavgv(rhot(nr))   ! avegv   on rhot
+         metric1D%data(nr)%avegv2  = fnavgv2(rhot(nr))  ! avegv2  on rhot
+         metric1D%data(nr)%avegvr2 = fnavgr2(rhot(nr))  ! avegr2  on rhot
+         metric1D%data(nr)%avegpp2 = fnavgp2(rhot(nr))  ! avegp2  on rhot
+         metric1D%data(nr)%rr      = fnrrps(rhot(nr))   ! rrpsi   on rhot
+         metric1D%data(nr)%rs      = fnrsps(rhot(nr))   ! rspsi   on rhot
+         metric1D%data(nr)%elip    = fnelpps(rhot(nr))  ! elippsi on rhot
+         metric1D%data(nr)%trig    = fntrgps(rhot(rn))  ! trigpsi on rhot
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
       end subroutine eq_bpsd_set

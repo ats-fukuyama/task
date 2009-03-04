@@ -439,7 +439,7 @@ C     ****** INPUT PARAMETERS ******
 C
       SUBROUTINE EQPARM(MODE,KIN,IERR)
 C
-C     MODE=0 : standard namelinst input
+C     MODE=0 : standard namelist input
 C     MODE=1 : namelist file input
 C     MODE=2 : namelist line input
 C

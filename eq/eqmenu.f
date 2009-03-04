@@ -22,7 +22,7 @@ C
          IERR=0
          WRITE(6,601) 
   601    FORMAT('## EQ MENU: R/RUN  C/CONT  P,V,I/PARM  G/GRAPH',
-     &                  '  M/MULT  S,L,K/FILE  Q/QUIT')
+     &                  '  M/MULT  S,L,K,F/FILE  Q/QUIT')
 C
          CALL TASK_KLIN(LINE,KID,MODE,EQPARM)
       IF(MODE.NE.1) GOTO 1
@@ -102,7 +102,7 @@ C
          ENDDO
 C
       ELSEIF(KID.EQ.'S') THEN
-         CALL EQSAVE(5)
+         CALL EQSAVE
 C
       ELSEIF(KID.EQ.'L') THEN
          CALL KTRIM(KNAMEQ,KL)
@@ -111,7 +111,6 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=3
-CChonda         CALL EQREAD(0,IERR)
          CALL EQREAD(IERR)
          IF(IERR.EQ.1) GOTO 10
          CALL EQCALQ(IERR)
@@ -124,11 +123,13 @@ C
          IF(KNAM(1:2).NE.'/ ') KNAMEQ=KNAM
 C
          MODELG=5
-CChonda         CALL EQREAD(0,IERR)
          CALL EQREAD(IERR)
          IF(IERR.NE.0) GOTO 11
          CALL EQCALQ(IERR)
          MSTAT=2
+C
+      ELSEIF(KID.EQ.'F') THEN
+         IF(MSTAT.NE.0) CALL EQMETRIC(IERR)
 C
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
          CONTINUE

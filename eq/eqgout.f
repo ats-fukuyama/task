@@ -11,17 +11,17 @@ C
       CHARACTER KSTR*2,K1*1,K2*1
 C
     1 IF(MODE.EQ.0) THEN
-        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB TR X/EXIT'
       ELSEIF(MODE.EQ.1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
-     &                             'S,S1,S2,SR,ST,SD,SB M A X/EXIT'
+     &                             'S,S1,S2,SR,ST,SD,SB TR M A X/EXIT'
       ELSEIF(MODE.EQ.2) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
-     &                             'S,S1,S2,SR,ST,SD,SB M A X/EXIT'
+     &                             'S,S1,S2,SR,ST,SD,SB TR M A X/EXIT'
       ELSEIF(MODE.EQ.-1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 X/EXIT'
       ELSE
-        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB TR X/EXIT'
       ENDIF
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
@@ -71,6 +71,8 @@ C
          ELSE
             WRITE(6,*) 'XX: EQGOUT: NO EQCALQ DATA CREATED!'
          ENDIF
+      ELSEIF (K1.EQ.'T') THEN
+         CALL EQGTR1
       ELSEIF (K1.EQ.'M') THEN
          CALL EQGC1M
       ELSEIF (K1.EQ.'A') THEN
@@ -365,28 +367,76 @@ C
             GX(NR)=GUCLIP(PSIT(NR))
          ENDDO
       ENDIF
-
+C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(PPS(NR)*1.D-6)
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(PPS(NR))*1.E-6
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNPPS(RHOT(NR)))*1.E-6
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UPPS,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)*1.E-6
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@PPS@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(TTS(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(TTS(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNTTS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UTTS,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@TTS@',1)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(RLEN(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(RLEN(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNRLEN(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            IF(RHOT(NR).LT.1.D0) THEN
+               CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,URLEN,NRMAX,IERR)
+            ELSE
+               DAT = 2.D0*PI*BB*RR
+            ENDIF
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@RLEN@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(QPS(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(QPS(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNQPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UQPS,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@QPS@',0)
 C
       CALL PAGEE
@@ -394,30 +444,93 @@ C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(VPS(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(VPS(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNVPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UVPS,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@VPS@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(SPS(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(SPS(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNSPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,USPS,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@SPS@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(RRMIN(NR))
-         GY(NR,2)=GUCLIP(RRMAX(NR))
-         GY(NR,3)=GUCLIP(ZZMIN(NR))
-         GY(NR,4)=GUCLIP(ZZMAX(NR))
-         GY(NR,5)=GUCLIP(RZMIN(NR))
-         GY(NR,6)=GUCLIP(RZMAX(NR))
-      ENDDO
-      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,6,'@RRMIN/MAX@',0)
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(RRMIN(NR))
+            GY(NR,2)=GUCLIP(RRMAX(NR))
+            GY(NR,3)=GUCLIP(ZZMIN(NR))
+            GY(NR,4)=GUCLIP(ZZMAX(NR))
+            GY(NR,5)=GUCLIP(RZMIN(NR))
+            GY(NR,6)=GUCLIP(RZMAX(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNRRMN(RHOT(NR)))
+            GY(NR,2)=GUCLIP(FNRRMX(RHOT(NR)))
+            GY(NR,3)=GUCLIP(FNZZMN(RHOT(NR)))
+            GY(NR,4)=GUCLIP(FNZZMX(RHOT(NR)))
+            GY(NR,5)=GUCLIP(FNBBMN(RHOT(NR)))
+            GY(NR,6)=GUCLIP(FNBBMX(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,URRMAX,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,URRMIN,NRMAX,IERR)
+            GY(NR,2)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UZZMAX,NRMAX,IERR)
+            GY(NR,3)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UZZMIN,NRMAX,IERR)
+            GY(NR,4)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UBBMAX,NRMAX,IERR)
+            GY(NR,5)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UBBMIN,NRMAX,IERR)
+            GY(NR,6)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,6,
+     &            '@RRMIN/MAX,ZZMIN/MAX,BBMIN/MAX@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(BBMIN(NR))
-         GY(NR,2)=GUCLIP(BBMAX(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(BBMIN(NR))
+            GY(NR,2)=GUCLIP(BBMAX(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNBBMN(RHOT(NR)))
+            GY(NR,2)=GUCLIP(FNBBMX(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UBBMAX,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UBBMIN,NRMAX,IERR)
+            GY(NR,2)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,'@BBMIN/MAX@',0)
 C
       CALL PAGEE
@@ -425,24 +538,68 @@ C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVERR2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVERR2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVRR2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVERR2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVERR2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEIR2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEIR2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVIR2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEIR2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEIR2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEBB2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEBB2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVBB2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEBB2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@AVEBB2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEIB2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEIB2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVIB2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEIB2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@AVEIB2@',0)
 C
       CALL PAGEE
@@ -450,25 +607,74 @@ C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEGV2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEGV2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVGV2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEGV2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEGV2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEGR2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEGR2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVGR2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEGR2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@AVEGR2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEGP2(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEGP2(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVGP2(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEGP2,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@AVEGP2@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(AVEJPR(NR))*1.E-6
-         GY(NR,2)=GUCLIP(AVEJTR(NR))*1.E-6
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEJPR(NR))*1.E-6
+            GY(NR,2)=GUCLIP(AVEJTR(NR))*1.E-6
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEJPR,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)*1.E-6
+            CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEJTR,NRMAX,IERR)
+            GY(NR,2)=GUCLIP(DAT)*1.E-6
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEJPR,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)*1.E-6
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEJTR,NRMAX,IERR)
+            GY(NR,2)=GUCLIP(DAT)*1.E-6
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,2,
      &                                           '@AVEJPR,AVEJTR@',0)
 C
@@ -477,24 +683,68 @@ C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(RRPSI(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(RRPSI(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNRRPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,URRPSI,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@RRPSI@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(RSPSI(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(RSPSI(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNRSPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,URSPSI,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@RSPSI@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(ELIPPSI(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(ELIPPSI(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNELPPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UELIPPSI,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@ELIPPSI@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(TRIGPSI(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(TRIGPSI(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNTRGPS(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UTRIGPSI,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@TRIGPSI@',0)
 C
       CALL PAGEE
@@ -502,15 +752,53 @@ C
       CALL PAGES
       CALL SETCHS(0.35,0.0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(DVDPSIP(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(DVDPSIP(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNDVDPSP(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UDVDPSIP,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@DVDPSIP@',0)
 C
-      DO NR=1,NRMAX
-         GY(NR,1)=GUCLIP(DVDPSIT(NR))
-      ENDDO
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(DVDPSIT(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNDVDPST(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UDVDPSIT,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
       CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRMAX,1,'@DVDPSIT@',0)
+C
+      IF(MODE.EQ.0) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(AVEGV(NR))
+         ENDDO
+      ELSEIF(MODE.EQ.1) THEN
+         DO NR=1,NRMAX
+            GY(NR,1)=GUCLIP(FNAVGV(RHOT(NR)))
+         ENDDO
+      ELSEIF(MODE.EQ.2) THEN
+         DO NR=1,NRMAX
+            CALL SPL1DF(FNPSIPT(PSIT(NR)),DAT,PSIP,UAVEGV,NRMAX,IERR)
+            GY(NR,1)=GUCLIP(DAT)
+         ENDDO
+      ENDIF
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRMAX,1,'@AVEGV@',0)
 C
       CALL PAGEE
 C
@@ -1106,6 +1394,76 @@ C
       YPOS=YPOS-DELY
 C
       RETURN
+      END
+C
+C     ****** DRAW 1D METRIC PROFILES FOR TRANSPORT CODES ******
+C
+      SUBROUTINE EQGTR1
+C
+      include 'eqcomq.inc'
+C
+      dimension gx(nrm),gy(nrm)
+C
+      DO NR=1,NRMAX
+         GX(NR)=GUCLIP(RHOT(NR))
+         IF(RHOT(NR).EQ.1.D0) NRLMAX=NR
+      ENDDO
+C
+      CALL PAGES
+      CALL SETCHS(0.35,0.0)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UDVDRHO,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRLMAX,1,"@V'@",0)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEIR2,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRLMAX,1,'@<1/R^2>@',1)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEGR2R,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRLMAX,1,
+     &            '@<|grad rho|^2/R^2>@',0)
+      CALL PAGEE
+C
+      CALL PAGES
+      CALL SETCHS(0.35,0.0)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEGRR,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D( 3.0,13.0,10.0,16.0,GX,GY,NRM,NRLMAX,1,
+     &            '@<|grad rho|>@',0)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEGRR2,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D(15.0,25.0,10.0,16.0,GX,GY,NRM,NRLMAX,1,
+     &            '@<|grad rho|^2>@',1)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEBB2,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D( 3.0,13.0, 2.0, 8.0,GX,GY,NRM,NRLMAX,1,
+     &            '@<B^2>@',0)
+C
+      DO NR=1,NRMAX
+         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT,PSIP,UAVEIB2,NRMAX,IERR)
+         GY(NR)=GUCLIP(DAT)
+      ENDDO
+      CALL EQGR1D(15.0,25.0, 2.0, 8.0,GX,GY,NRM,NRLMAX,1,'@<1/B^2>@',0)
+      CALL PAGEE
+C
+      return
       END
 C
 C     ****** DRAW CALCULATED EQ1D MULTI GRAPH ******
