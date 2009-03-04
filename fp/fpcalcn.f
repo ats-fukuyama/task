@@ -623,6 +623,21 @@ C
      &             +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITL(NR)+1,NR)
      &             +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)-1,NR)
      &             +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA)/RLAMDA(ITU(NR)+1,NR))
+c               DCPP2(ITL(NR),NP,NR,NSB,NSA)=0.25D0
+c     &           *( DCPP2(ITL(NR)-1,NP,NR,NSB,NSA)
+c     &             +DCPP2(ITL(NR)+1,NP,NR,NSB,NSA)
+c     &             +DCPP2(ITU(NR)-1,NP,NR,NSB,NSA)
+c     &             +DCPP2(ITU(NR)+1,NP,NR,NSB,NSA))
+c               FCPP2(ITL(NR),NP,NR,NSB,NSA)=0.25D0
+c     &           *( FCPP2(ITL(NR)-1,NP,NR,NSB,NSA)
+c     &             +FCPP2(ITL(NR)+1,NP,NR,NSB,NSA)
+c     &             +FCPP2(ITU(NR)-1,NP,NR,NSB,NSA)
+c     &             +FCPP2(ITU(NR)+1,NP,NR,NSB,NSA))
+c               DCPT2(ITL(NR),NP,NR,NSB,NSA)=0.25D0
+c     &           *( DCPT2(ITL(NR)-1,NP,NR,NSB,NSA)
+c     &             +DCPT2(ITL(NR)+1,NP,NR,NSB,NSA)
+c     &             +DCPT2(ITU(NR)-1,NP,NR,NSB,NSA)
+c     &             +DCPT2(ITU(NR)+1,NP,NR,NSB,NSA))
                DCPP2(ITU(NR),NP,NR,NSB,NSA)=DCPP2(ITL(NR),NP,NR,NSB,NSA)
                FCPP2(ITU(NR),NP,NR,NSB,NSA)=FCPP2(ITL(NR),NP,NR,NSB,NSA)
                DCPT2(ITU(NR),NP,NR,NSB,NSA)=DCPT2(ITL(NR),NP,NR,NSB,NSA)

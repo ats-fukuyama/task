@@ -1,3 +1,4 @@
+
 c     $Id$
 C
 C *****************
@@ -9,12 +10,12 @@ C
       INCLUDE 'fpcomm.inc'
 C
       DIMENSION RJNS(NRM,NSAM),RJN(NRM),RJ3(NRM),E3(NRM),DELE(NRM)
-     &     ,RSUMF(NSAM),RSUMF0(NSAM)
+     &     ,RSUMF(NSAM),RSUMF0(NSAM),DEPS2(NSAM)
 C
       IF(MODELE.NE.0) CALL FPNEWE
 
 C     +++++ Time loop +++++
-c      open(8,file='coef_time.dat')
+c      open(8,file='dfdt_n10b_comp06.dat')
       DO NT=1,NTMAX
 
 C     +++++ Iteration loop for toroidal electric field +++++
@@ -32,27 +33,6 @@ C
 
 C     +++++ NSA loop +++++
 
-
-c         IF(NT.eq.NTMAX)THEN
-c         DO NSA=1,2
-c         DO NSB=1,2
-c          Do NP=1,NPMAX
-c         NSA=1
-c         NSB=1
-c         NP=2
-c         write(*,*) " "
-c            write(*,1600) Nt,NSa,PG(NP),
-c     &           DPP(2,NP,1,NSA),DCTT2(2,NP,1,NSB,NSA),
-c     &           DCPT2(2,NP,1,NSB,NSA),FCPP2(2,NP,1,NSB,NSA),
-c     &           FCTH2(2,NP,1,NSB,NSA)
-c          END DO
-c         write(*,*) " "
-c         write(7,*) " "
-c         END DO
-c         END DO
-c         END IF
-c
-c 1600    FORMAT(2I2,6E14.6)
          NCHECK=0
          DEPS=1.D0
          DO NS=1,NSMAX
@@ -65,6 +45,9 @@ c 1600    FORMAT(2I2,6E14.6)
             END DO
          END DO
 
+         DO NS=1,NSMAX
+            DEPS2(NS)=1.D0
+         END DO
          DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP)
             NCHECK=NCHECK+1
             DO NSA=1,NSAMAX
@@ -77,8 +60,19 @@ c 1600    FORMAT(2I2,6E14.6)
                END DO
                END DO
 
-               CALL FPEXEC(NSA,IERR)
-               IF(IERR.NE.0) GOTO 250
+               IF(DEPS2(NS).ge.EPSFP)THEN
+c                  write(*,*)NS,EPSFP,DEPS2(NS)
+                  CALL FPEXEC(NSA,IERR)
+                  IF(IERR.NE.0) GOTO 250
+               ELSE
+                  DO NR=1,NRMAX
+                  DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     F1(NTH,NP,NR)=FNS2(NTH,NP,NR,NS)
+                  END DO
+                  END DO
+                  END DO
+               END IF
 
                RSUMF(NS)=0.D0
                RSUMF0(NS)=0.D0
@@ -98,9 +92,12 @@ c 1600    FORMAT(2I2,6E14.6)
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
                DEPS1=RSUMF(NS)/RSUMF0(NS)
+               DEPS2(NS)=RSUMF(NS)/RSUMF0(NS)
+               IF(DEPS1.ge.DEPS) NSTEST=NS
                DEPS=MAX(DEPS,DEPS1)
             END DO
-            write(6,*)"DEPS",DEPS,NCHECK
+
+          write(6,1274)DEPS,NCHECK,NT,NSTEST,(RSUMF(j)/RSUMF0(j),j=1,3)
 
 C     +++++ update velocity distribution function +++++
 
@@ -118,7 +115,12 @@ C     +++++ update velocity distribution function +++++
 
 C     +++++ end of NSA loop +++++
 
-            IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF
+            DO NSA=1,NSAMAX
+               NS=NS_NSA(NSA)
+               IF(DEPS2(NS).ne.0.D0)THEN
+                  IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF(NSA)
+               END IF
+            END DO
 
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
@@ -133,7 +135,7 @@ C     +++++ end of NSA loop +++++
             ENDDO
          
          END DO
-
+C END OF DOWHILE
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
             DO NR=1,NRMAX
@@ -145,6 +147,7 @@ C     +++++ end of NSA loop +++++
             ENDDO
          ENDDO
 
+ 1274    FORMAT("DEPS",E14.6,3I3,3E14.6)
 
 c         NP=2
 c            Write(8,646) NT
@@ -228,9 +231,14 @@ C     +++++ calculate and save global data +++++
       IF(NT.eq.NTMAX)THEN
 c         open(8,file='radial_profile.dat')
 c         open(8,file='coef.dat')
-         open(9,file='power_test.dat')
+         open(9,file='power_test_n10b_comp25.dat')
 c         Do NP=1,NPMAX
 c            Write(8,646) NP
+c     & ,FNS(14,NP,1,3),FNS(15,NP,1,3),FNS(16,NP,1,3)
+c     & ,FNS(17,NP,1,3),FNS(18,NP,1,3),FNS(19,NP,1,3)
+c     & ,FNS(20,NP,1,3),FNS(21,NP,1,3),FNS(22,NP,1,3)
+c     & ,FNS(23,NP,1,3),FNS(24,NP,1,3),FNS(25,NP,1,3)
+
 c     & ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3)
 c     & ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3)
 c     & ,DCTT(2,NP,1,1),DCTT(2,NP,1,2),DCTT(2,NP,1,3)
@@ -242,51 +250,53 @@ c            WRITE(8,645) RM(NR),RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
 c     &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
 c     &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
 c     &         RPCT2(NR,3,3,NTG1),
-c     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1),
+c     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1)
+c         END DO
+
+c         close(8)
+c         open(8,file='coef_theta.dat')
+c         Do NTH=1,NTHMAX
+c            Write(8,646) NTH
+c     & ,DCPP(NTH,2,1,1),DCPP(NTH,2,1,2),DCPP(NTH,2,1,3)
+c     & ,DCPT(NTH,2,1,1),DCPT(NTH,2,1,2),DCPT(NTH,2,1,3)
+c     & ,DCTT(NTH,2,1,1),DCTT(NTH,2,1,2),DCTT(NTH,2,1,3)
+c     & ,FCPP(NTH,2,1,1),FCPP(NTH,2,1,2),FCPP(NTH,2,1,3)
 c         END DO
 c         close(8)
+
          DO NTI=1,NTMAX
             dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
             dw2=PPCT(3,NTI-1)+PPWT(3,NTI-1)+PPET(3,NTI-1)
             WRITE(9,645) PTG(NTI)*1000
-c     &           ,PPCT(1,NTI),PPCT(2,NTI),PPCT(3,NTI)
-c     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
-c     &           ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI)
-c     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
-c     &           ,PIT(1,NTI),PIT(2,NTI),PIT(3,NTI)
-
-c     &           ,PTT2(3,NTI),PWT2(3,NTI),PTT2(3,NTI)/PWT2(3,NTI)
-c     &           ,PPWT(3,NTI),PPCT(3,NTI),PPCT(3,NTI)-PPCT2(3,3,NTI)
-     &           ,PNT(3,NTI),RNFP(1,3),PWT(3,NTI)
-     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
-     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
-     &           ,PWT(3,NTI+1)-PWT(3,NTI)
-     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
-     &           /1.5D0
+     &           ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI)
+     &           ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI)
+     &           ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI)
+     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
+     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
+cccccccccccccc
+c     &           ,PNT(3,NTI),PNT(1,NTI),PNT(2,NTI)
+c     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
+c     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
+c     &           ,PWT(3,NTI+1)-PWT(3,NTI)
+c     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
+c     &           /1.5D0
 
 c密度のズレ補正
-     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
-     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-     &           PPET(3,NTI)*PNT(3,NTI))
-c
-     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1))
-     &           /(dw*PNT(3,NTI))/2.D0
+c     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))
 
-     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
-     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-     &           PPET(3,NTI)*PNT(3,NTI))
+c     &           ,(PWT(3,NTI)-PWT(3,NTI-1))
+c     &           /(PPWT(3,NTI)+PPCT(3,NTI)+PPET(3,NTI))
 
-     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
-     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
-     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
+c     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))
 
-c
-c     &           ,(PWT(3,NTI)/PNT(3,NTI)-PWT(3,NTI-1)/PNT(3,NTI-1))
-c     &           /(PPWT(3,NTI)/PNT(3,NTI)+PPCT(3,NTI)/PNT(3,NTI)
-c     &           +PPET(3,NTI)/PNT(3,NTI))
-c
-
+c     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
+c     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
 
          END DO
          close(9)
@@ -297,9 +307,21 @@ c         write(8,*)" "
  646  FORMAT(I3,17E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO
-c      close(8)
+      close(8)
 C     +++++ end of time loop +++++
 C
+      IF(MODELA.eq.1)THEN
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     FNS(NTH,NP,NR,NS) = FNS(NTH,NP,NR,NS)/RCOEF(NR)
+                  END DO
+               END DO
+            END DO
+         END DO
+      END IF
+      
       RETURN
       END
 C

@@ -65,6 +65,7 @@ C
          ELSE
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX/2
+c               DO NTH=1,ITU(NR)
                   NM=NMA(NTH,NP,1)
                   AAM(NWCEN,NM)= RLAMDA(NTH,NR)-RIMPL       *DELT*DL(NM)
                   FM(NM)=F(NTH,NP,NR)
@@ -111,6 +112,15 @@ C
             F1(NTH,NP,NR)=BM(NM)
          ENDDO
          ENDDO
+ccccc
+c         DO NP=1,NPMAX
+c            DO NTH=ITL(NR)+1,NTHMAX/2
+c               F1(NTH,NP,NR)
+c     &          =(F1(NTH,NP,NR)+F1(NTHMAX-NTH+1,NP,NR))/2.D0
+c               F1(NTHMAX-NTH+1,NP,NR)=F1(NTH,NP,NR)
+c            END DO
+c         END DO
+ccccc
       ENDDO
 C
       RETURN

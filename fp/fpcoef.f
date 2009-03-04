@@ -6,13 +6,13 @@ C                      CALCULATION OF D AND F
 C
 C ************************************************************
 C
-      SUBROUTINE FPCOEF
+      SUBROUTINE FPCOEF(NSA)
 C
       INCLUDE 'fpcomm.inc'
 
       ISAVE=0
 C
-      DO NSA=1,NSAMAX
+C      DO NSA=1,NSAMAX
       DO NR=1,NRMAX
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
@@ -29,13 +29,14 @@ C
          ENDDO
          ENDDO
       ENDDO
-      ENDDO
+C      ENDDO
 
-      DO NSA=1,NSAMAX
+C      DO NSA=1,NSAMAX
 C
 C     ----- Parallel electric field accleration term -----
 C
       CALL FPCALE(NSA)
+
 C
 C     ----- Quasi-linear wave-particle interaction term -----
 C
@@ -56,6 +57,7 @@ C
 C     ----- Collisional slowing down and diffusion term -----
 C
       CALL FPCALC(NSA)
+
 C
 C     ----- Sum up velocity diffusion terms -----
 C
@@ -74,7 +76,7 @@ C
             FTH(NTH,NP,NR,NSA)=0.D0
          ENDDO
          ENDDO
-c         write(*,*)"test wm", DWPP(2,2,1,NSA), NSA
+
          DO NP=1,NPMAX+1
          DO NTH=1,NTHMAX
             DPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA)+DWPP(NTH,NP,NR,NSA)
@@ -129,7 +131,8 @@ C         FTH(NTH,NPMAX,NR,NSA)=0.D0
 C       ENDDO
 C       ENDDO
 C
-      ENDDO
+
+C      ENDDO
 C
       RETURN
       END
@@ -220,6 +223,7 @@ C
       IF (MODELA.EQ.0) RETURN
 C
       DO NR=1,NRMAX
+         IF(MODELA.eq.1)then
 C         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
          FACT=1.D0
          DO NP=1,NPMAX+1
@@ -238,6 +242,18 @@ C
          DO NTH=ITU(NR)+1,NTHMAX
             FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
          ENDDO
+         FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0
+     &           *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR)
+     &             +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR)
+     &             +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR)
+     &             +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
+c         FEPP(ITL(NR),NP,NR,NSA)=1.D0/4.D0
+c     &           *( FEPP(ITL(NR)-1,NP,NR,NSA)
+c     &             +FEPP(ITL(NR)+1,NP,NR,NSA)
+c     &             +FEPP(ITU(NR)-1,NP,NR,NSA)
+c     &             +FEPP(ITU(NR)+1,NP,NR,NSA))
+
+         FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
          ENDDO
 C
          DO NP=1,NPMAX
@@ -258,6 +274,94 @@ C
          ENDDO
          ENDDO
 C
+         ELSE
+
+         DO NTH=1,NTHMAX
+            DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+            DO NP=1,NPMAX+1
+               sum11=0.D0
+C
+               DO NG=1,NAVMAX
+                  ETAL=DELH*(NG-0.5D0)
+                  X=EPSR(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+c                  IF (COSM(NTH).GE.0.D0) THEN
+                     PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+c                  ELSE
+c                     PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+c                  ENDIF
+                  sum11=sum11
+     &                 +FEPP(NTH,NP,NR,NSA)*ABS(COSM(NTH))/PCOS
+               END DO
+               FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI
+            END DO
+         END DO
+
+         DO NP=1,NPMAX+1
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               FEPP(NTH,NP,NR,NSA)
+     &          =(FEPP(NTH,NP,NR,NSA)+FEPP(NTHMAX-NTH+1,NP,NR,NSA))/2.D0
+               FEPP(NTHMAX-NTH+1,NP,NR,NSA)=FEPP(NTH,NP,NR,NSA)
+            END DO
+         FEPP(ITL(NR),NP,NR,NSA)=1.D0/4.D0
+     &           *( FEPP(ITL(NR)-1,NP,NR,NSA)
+     &             +FEPP(ITL(NR)+1,NP,NR,NSA)
+     &             +FEPP(ITU(NR)-1,NP,NR,NSA)
+     &             +FEPP(ITU(NR)+1,NP,NR,NSA))
+
+         FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
+         END DO
+c         DO NP=1,NPMAX+1
+c         DO NTH=ITL(NR),ITU(NR)
+c            FEPP(NTH,NP,NR,NSA)= 0.D0
+c         ENDDO
+c         ENDDO
+
+         DO NTH=1,NTHMAX+1
+            DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+            DO NP=1,NPMAX
+               sum15=0.D0
+C     
+               DO NG=1,NAVMAX
+                  ETAL=DELH*(NG-0.5D0)
+                  X=EPSR(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+                  IF(NTH.NE.NTHMAX/2+1) THEN
+                     ARG=1.D0-PSIB*SING(NTH)**2
+                     IF(ARG.GT.0.D0) THEN
+                        IF (COSG(NTH).GE.0.D0) THEN
+                           PCOS= SQRT(ARG)
+                        ELSE
+                           PCOS=-SQRT(ARG)
+                        ENDIF
+                     ELSE
+                        PCOS=0.D0
+                     ENDIF
+                  ENDIF
+                  SUM15=SUM15
+     &                 +FETH(NTH,NP,NR,NSA)/SQRT(PSIB)
+               END DO
+               FETH(NTH,NP,NR,NSA)=SUM15*DELH/PI
+            END DO
+         END DO
+
+         DO NP=1,NPMAX
+            DO NTH=ITL(NR)+1,NTHMAX/2
+               FETH(NTH,NP,NR,NSA)
+     &              =(FETH(NTH,NP,NR,NSA)
+     &              +FETH(NTHMAX-NTH+2,NP,NR,NSA))/2.D0
+               FETH(NTHMAX-NTH+2,NP,NR,NSA)
+     &              =FETH(NTH,NP,NR,NSA)
+            END DO
+         END DO
+
+c         DO NP=1,NPMAX
+c         DO NTH=ITL(NR)+1,ITU(NR)
+c            FETH(NTH,NP,NR,NSA)= 0.D0
+c         ENDDO
+c         ENDDO
+      END IF
+
       ENDDO
 C
       RETURN

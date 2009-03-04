@@ -54,7 +54,9 @@ C
          TIMEFP=0.D0
          CALL FPPREP(IERR)
          IF(IERR.NE.0) GOTO 1
-         CALL FPCOEF
+         DO NSA=1,NSAMAX
+            CALL FPCOEF(NSA)
+         END DO
          CALL FPSGLB
          CALL FPWRT2
          CALL FPSPRF

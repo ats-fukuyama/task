@@ -9,7 +9,7 @@ C *****************************
       INCLUDE 'fpcomm.inc'
 
       EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
-
+c      DIMENSION RCOEF(NRMAX)
 C     ----- NS_NSA and NS_NSB array -----
 
       NSAMAX=NSFPMA-NSFPMI+1
@@ -41,7 +41,31 @@ C     ----- Initialize velocity distribution function of all species -----
             ENDDO
          END DO
       END DO
+c--------- normalize bounce averaged distribution function ---------
+      IF(MODELA.eq.1)THEN
+         DO NS=1,NSMAX
+         DO NR=1,NRMAX
+         RSUM1=0.D0
+         RSUM2=0.D0
+         rcoef(NR)=0.D0
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  RSUM1 = RSUM1+VOL(NTH,NP)*FNS(NTH,NP,NR,NS)
+     &                 *RLAMDA(NTH,NR)
+                  RSUM2 = RSUM2+VOL(NTH,NP)*FNS(NTH,NP,NR,NS)
+               END DO
+            END DO
+            RCOEF(NR)=RSUM2/RSUM1
+c            write(*,*)"test",RSUM1,RSUM2,RSUM1/RSUM2,NS,NR
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS(NTH,NP,NR,NS) = FNS(NTH,NP,NR,NS)*RCOEF(NR)
+               END DO
+            END DO
 
+         END DO
+         END DO
+      END IF
 C     ----- set boundary distribution functions -----
 
       DO NSA=1,NSAMAX
@@ -208,8 +232,9 @@ c$$$     &           NP,PM(NP),DFDP,DFDP1,DFDP2,FNS(NTH,NP,NR,NS)
 c$$$         ENDDO
 c$$$      ENDDO
 c$$$      ENDDO
-
-      CALL FPCOEF
+      DO NSA=1,NSAMAX
+         CALL FPCOEF(NSA)
+      END DO
       CALL FPSGLB
       CALL FPWRT2
       CALL FPSPRF
@@ -344,12 +369,13 @@ C
 C
   201       CONTINUE
 C
-C            WRITE(6,*) 'NR,NTHC=',NR,NTH
+            WRITE(6,*) 'NR,NTHC=',NR,NTH
             IF(NTH.EQ.NTHMAX/2) NTH=NTHMAX/2-1
 C
             ITL(NR)=NTH
             ITU(NR)=NTHMAX-NTH+1
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
+c            EPSL=EPSR(NR)
 C            WRITE(6,'(A,1P2E12.4)') 'EPSR(NR)=',EPSR(NR),EPSL
 C            WRITE(6,'(A,2I8)') 'ITL,ITU=',ITL(NR),ITU(NR)
             EPSR(NR)=EPSL
@@ -405,6 +431,34 @@ C               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
                RLAMDC(NTHMAX-NTH+2,NR)=RLAMDC(NTH,NR)
             ENDDO
             RLAMDC(NTHMAX/2+1,NR)=0.D0
+ccc
+c            DO NTH=1,NTHMAX
+c               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+c               sum11=0.D0  
+c               DO NG=1,NAVMAX
+c                  ETAL=DELH*(NG-0.5D0)
+c                  X=EPSR(NR)*COS(ETAL)*RR
+c                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+c                  PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+c                  sum11=sum11
+c     &                 +1.D0/PCOS*ABS(COSM(NTH))
+c               END DO
+c               RLAMDA2(NTH,NR)=SUM11*DELH/PI
+c               WRITE(*,*) NTH,RLAMDA(NTH,NR),RLAMDA2(nth,nr)
+c ETAM(NTH,NR)*2.D0,ETAG(NTH,NR)*2.D0
+c 
+c            END DO
+c            RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR)
+c     &                               +RLAMDA(ITL(NR)+1,NR))
+c            RLAMDA(ITU(NR),NR)=0.5D0*(RLAMDA(ITU(NR)-1,NR)
+c     &                               +RLAMDA(ITU(NR)+1,NR))
+c            RLAMDA2(ITL(NR),NR)=0.5D0*(RLAMDA2(ITL(NR)-1,NR)
+c     &                               +RLAMDA2(ITL(NR)+1,NR))
+c            RLAMDA2(ITU(NR),NR)=0.5D0*(RLAMDA2(ITU(NR)-1,NR)
+c     &                               +RLAMDA2(ITU(NR)+1,NR))
+
+ccc            
+
          ENDDO
 C
        ELSE
