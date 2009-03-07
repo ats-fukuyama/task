@@ -33,10 +33,14 @@ C
          CALL MPBCDA(FIINI)
 C
          CALL DIAMIN(FRINI,FIINI,AMPL)
-         CALL WMBFLD
-         CALL WMPABS
-         CALL WMPFLX
-         CALL WMPANT
+         
+         IF(MDLWMF.EQ.0) THEN
+            CALL WMBFLD
+            CALL WMPABS
+            CALL WMPFLX
+            CALL WMPANT
+         ELSE
+
       GOTO 1
 C
  9000 CONTINUE
@@ -801,9 +805,20 @@ C
       CRF=DCMPLX(RF,RFI)
 C
       MODEEG=1
-      CALL WMSETG(IERR)
-      CALL WMSOLV
-      CALL WMEFLD
+
+      IF(mdlwmf.EQ.0) THEN
+         CALL WMSETG(IERR)
+         CALL WMSOLV
+         CALL WMEFLD
+      ELSE
+         nrmax=nrmax+1
+         CALL wmfem_setg(ierr)
+         IF(IERR.NE.0) RETURN
+         CALL wmfem_setj(ierr)
+         IF(IERR.NE.0) RETURN
+         call wmfem_solve
+         nrmax=nrmax-1
+      ENDIF
 C
       ESUM=0.D0
       EABSMAX=0.D0
