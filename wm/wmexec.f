@@ -5,10 +5,6 @@ C
       SUBROUTINE WMEXEC(IERR)
 C
       INCLUDE 'wmcomm.inc'
-      dimension cef(3,nthmax,nphmax,nrmax+1)
-      dimension cbf(3,nthmax,nphmax,nrmax+1)
-      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax+1,0:nsmax)
-      dimension cpa(nthmax,nphmax)
 C
       IERR=0
       MODEEG=0
@@ -34,13 +30,9 @@ C
          nrmax=nrmax+1
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
-         CALL WMFEM_SETJ(IERR)
+         CALL wmfem_setj(ierr)
          IF(IERR.NE.0) RETURN
-         call wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,nsmax,
-     &              xrho,cef,cbf,cpp,cpa)
-         CALL WMFEM_EFLD(cef)
-         CALL WMFEM_BFLD(cbf)
-         CALL WMFEM_PABS(cpp,cpa)
+         call wmfem_solve
          nrmax=nrmax-1
       endif
 C
@@ -48,6 +40,27 @@ C
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
       ENDIF
+      RETURN
+      END
+C
+C     ****** FEM Solver ******
+C
+      SUBROUTINE wmfem_solve
+
+      INCLUDE 'wmcomm.inc'
+      dimension cef(3,nthmax,nphmax,nrmax)
+      dimension cbf(3,nthmax,nphmax,nrmax)
+      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax)
+      dimension cpa(nthmax,nphmax)
+
+      call wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,nsmax,
+     &           xrho,cef,cbf,cpp,cpa)
+      CALL WMFEM_EFLD(cef)
+      IF(modeeg.eq.0) THEN
+         CALL WMFEM_BFLD(cbf)
+         CALL WMFEM_PABS(cpp,cpa)
+      ENDIF
+
       RETURN
       END
 C

@@ -39,7 +39,7 @@ C
             CALL WMPABS
             CALL WMPFLX
             CALL WMPANT
-         ELSE
+         ENDIF
 
       GOTO 1
 C
