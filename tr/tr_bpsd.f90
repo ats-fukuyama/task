@@ -1,5 +1,6 @@
 !     $Id$
       module tr_bpsd
+
       use bpsd
       type(bpsd_device_type),  private,save :: device
       type(bpsd_species_type), private,save :: species
@@ -8,6 +9,7 @@
       type(bpsd_plasmaf_type), private,save :: plasmaf
       logical, private, save :: tr_bpsd_init_flag = .TRUE.
       public
+
       contains
 
 !=======================================================================

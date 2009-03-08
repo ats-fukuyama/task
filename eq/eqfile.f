@@ -254,6 +254,7 @@ C 1000 CONTINUE
 C
       REWIND(neqdsk)
       CLOSE(neqdsk)
+!      write (6,'(I5,1PE12.4)') (i,QQPS(i),i=1,NPSMAX)
 C
 C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
 C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIA

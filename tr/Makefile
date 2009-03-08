@@ -3,8 +3,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 # without eq
 #MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
@@ -65,8 +65,8 @@ LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: tr2 tr3
-#all: tr2
+#all: tr2 tr3
+all: tr2
 
 tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)

@@ -711,7 +711,7 @@
 
       return
       end subroutine trsetg
-
+      
 !     ***********************************************************
 
 !           SET GEOMETRIC FACTOR AT HALF MESH
@@ -720,62 +720,61 @@
 
       SUBROUTINE TRSTGF
 
-      USE TRCOMM, ONLY : ABRHO, ABRHOU, AR1RHO, AR1RHOU, AR2RHO, AR2RHOU, ARRHO, ARRHOU, BB, BP, BPRHO, DVRHO, DVRHOU, &
-     &                   EPSRHO, MDLUF, MDPHIA, MODELG, NRMAX, PHIA, PI, QP, QRHO, RA, RG, RHOG, RHOM, RJCB, RKAP, RKPRHO, &
-     &                   RKPRHOU, RM, RMJRHO, RMJRHOU, RMNRHO, RMNRHOU, RR, TTRHO, TTRHOU, VOLAU
-      IMPLICIT NONE
-      INTEGER(4) :: NR
-      REAL(8)    :: RKAPS, RHO_A
+        USE TRCOMM, ONLY : ABRHO,ABRHOU,AR1RHO,AR1RHOU,AR2RHO,AR2RHOU,ARRHO, &
+             & ARRHOU,BB,BP,BPRHO,DVRHO,DVRHOU,EPSRHO,MDLUF,MDPHIA,MODELG, &
+             & NRMAX,PHIA,PI,QP,QRHO,RA,RG,RHOG,RHOM,RJCB,RKAP,RKPRHO, &
+             & RKPRHOU,RM,RMJRHO,RMJRHOU,RMNRHO,RMNRHOU,RR,TTRHO,TTRHOU,VOLAU
+        IMPLICIT NONE
+        INTEGER(4) :: NR
+        REAL(8)    :: RKAPS, RHO_A
 
-      RKAPS=SQRT(RKAP)
-      IF(MDLUF.NE.0) THEN
-         DO NR=1,NRMAX
-            TTRHO(NR)=TTRHOU(1,NR)
-            DVRHO(NR)=DVRHOU(1,NR)
-            ABRHO(NR)=ABRHOU(1,NR)
-            ARRHO(NR)=ARRHOU(1,NR)
-            AR1RHO(NR)=AR1RHOU(1,NR)
-            AR2RHO(NR)=AR2RHOU(1,NR)
-            RMJRHO(NR)=RMJRHOU(1,NR)
-            RMNRHO(NR)=RMNRHOU(1,NR)
-            RKPRHO(NR)=RKPRHOU(1,NR)
-            IF(MDPHIA.EQ.0) THEN
-!     define rho_a from phi_a data
-               RHO_A=SQRT(PHIA/(PI*BB))
-               RJCB(NR)=1.D0/RHO_A
-               RHOM(NR)=RM(NR)*RHO_A
-               RHOG(NR)=RG(NR)*RHO_A
-            ELSE
-               RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
-               RJCB(NR)=1.D0/RHO_A
-               RHOM(NR)=RM(NR)/RJCB(NR)
-               RHOG(NR)=RG(NR)/RJCB(NR)
-            ENDIF
-            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
-         ENDDO
-         CALL FLUX
-      ELSE
-         DO NR=1,NRMAX
-            BPRHO(NR)=BP(NR)
-            QRHO(NR)=QP(NR)
+        RKAPS=SQRT(RKAP)
+        IF(MDLUF.NE.0) THEN
+           DO NR=1,NRMAX
+              TTRHO(NR)=TTRHOU(1,NR)
+              DVRHO(NR)=DVRHOU(1,NR)
+              ABRHO(NR)=ABRHOU(1,NR)
+              ARRHO(NR)=ARRHOU(1,NR)
+              AR1RHO(NR)=AR1RHOU(1,NR)
+              AR2RHO(NR)=AR2RHOU(1,NR)
+              RMJRHO(NR)=RMJRHOU(1,NR)
+              RMNRHO(NR)=RMNRHOU(1,NR)
+              RKPRHO(NR)=RKPRHOU(1,NR)
+              IF(MDPHIA.EQ.0) THEN !     define rho_a from phi_a data
+                 RHO_A=SQRT(PHIA/(PI*BB))
+                 RJCB(NR)=1.D0/RHO_A
+                 RHOM(NR)=RM(NR)*RHO_A
+                 RHOG(NR)=RG(NR)*RHO_A
+              ELSE
+                 RHO_A=SQRT(VOLAU(1)/(2.D0*PI**2*RMJRHOU(1,NRMAX)))
+                 RJCB(NR)=1.D0/RHO_A
+                 RHOM(NR)=RM(NR)/RJCB(NR)
+                 RHOG(NR)=RG(NR)/RJCB(NR)
+              ENDIF
+              EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
+           ENDDO
+           CALL FLUX
+        ELSE
+           DO NR=1,NRMAX
+              BPRHO(NR)=BP(NR)
+              QRHO(NR)=QP(NR)
+              TTRHO(NR)=BB*RR
+              DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
+              ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
+              ARRHO(NR)=1.D0/RR**2
+              AR1RHO(NR)=1.D0/(RKAPS*RA)
+              AR2RHO(NR)=1.D0/(RKAPS*RA)**2
+              RMJRHO(NR)=RR
+              RMNRHO(NR)=RA*RG(NR)
+              RKPRHO(NR)=RKAP
+              RJCB(NR)=1.D0/(RKAPS*RA)
+              RHOM(NR)=RM(NR)/RJCB(NR)
+              RHOG(NR)=RG(NR)/RJCB(NR)
+              EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
+           ENDDO
+        ENDIF
 
-            TTRHO(NR)=BB*RR
-            DVRHO(NR)=2.D0*PI*RKAP*RA*RA*2.D0*PI*RR*RM(NR)
-            ABRHO(NR)=1.D0/(RKAPS*RA*RR)**2
-            ARRHO(NR)=1.D0/RR**2
-            AR1RHO(NR)=1.D0/(RKAPS*RA)
-            AR2RHO(NR)=1.D0/(RKAPS*RA)**2
-            RMJRHO(NR)=RR
-            RMNRHO(NR)=RA*RG(NR)
-            RKPRHO(NR)=RKAP
-            RJCB(NR)=1.D0/(RKAPS*RA)
-            RHOM(NR)=RM(NR)/RJCB(NR)
-            RHOG(NR)=RG(NR)/RJCB(NR)
-            EPSRHO(NR)=RMNRHO(NR)/RMJRHO(NR)
-         ENDDO
-      ENDIF
-
-      RETURN
+        RETURN
       END SUBROUTINE TRSTGF
 
 !     ***********************************************************
@@ -786,42 +785,43 @@
 
       SUBROUTINE TRGFRG
 
-      USE TRCOMM, ONLY : ABB2RHOG, ABRHO, ABRHOG, AIB2RHOG, AR1RHO, AR1RHOG, AR2RHO, AR2RHOG, ARHBRHOG, ARRHO, ARRHOG, &
-     &                   BB, DVRHO, DVRHOG, EPSRHO, NRMAX, RG, RKPRHO, RKPRHOG, RM, TTRHO, TTRHOG
-      IMPLICIT NONE
-      INTEGER(4) :: NR
-      REAL(8)    :: RGL
+        USE TRCOMM, ONLY : ABB2RHOG,ABRHO,ABRHOG,AIB2RHOG,AR1RHO,AR1RHOG, &
+             & AR2RHO,AR2RHOG,ARHBRHOG,ARRHO,ARRHOG,BB,DVRHO,DVRHOG,EPSRHO, &
+             & NRMAX,RG,RKPRHO,RKPRHOG,RM,TTRHO,TTRHOG
+        IMPLICIT NONE
+        INTEGER(4) :: NR
+        REAL(8)    :: RGL
 
-      DO NR=1,NRMAX-1
-         AR1RHOG(NR)=0.5D0*(AR1RHO(NR)+AR1RHO(NR+1))
-         AR2RHOG(NR)=0.5D0*(AR2RHO(NR)+AR2RHO(NR+1))
-         RKPRHOG(NR)=0.5D0*(RKPRHO(NR)+RKPRHO(NR+1))
-         TTRHOG (NR)=0.5D0*(TTRHO (NR)+TTRHO (NR+1))
-         DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
-         ARRHOG (NR)=0.5D0*(ARRHO (NR)+ARRHO (NR+1))
-         ABRHOG (NR)=0.5D0*(ABRHO (NR)+ABRHO (NR+1))
+        DO NR=1,NRMAX-1
+           AR1RHOG(NR)=0.5D0*(AR1RHO(NR)+AR1RHO(NR+1))
+           AR2RHOG(NR)=0.5D0*(AR2RHO(NR)+AR2RHO(NR+1))
+           RKPRHOG(NR)=0.5D0*(RKPRHO(NR)+RKPRHO(NR+1))
+           TTRHOG (NR)=0.5D0*(TTRHO (NR)+TTRHO (NR+1))
+           DVRHOG (NR)=0.5D0*(DVRHO (NR)+DVRHO (NR+1))
+           ARRHOG (NR)=0.5D0*(ARRHO (NR)+ARRHO (NR+1))
+           ABRHOG (NR)=0.5D0*(ABRHO (NR)+ABRHO (NR+1))
 
-         ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
-         AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
-         ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
-      ENDDO
-      NR=NRMAX
-         RGL=RG(NR)
+           ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+           AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+           ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
+        ENDDO
+        NR=NRMAX
+          RGL=RG(NR)
 
-         CALL AITKEN(RGL,AR1RHOG(NR),RM,AR1RHO,2,NRMAX)
-         CALL AITKEN(RGL,AR2RHOG(NR),RM,AR2RHO,2,NRMAX)
-         CALL AITKEN(RGL,RKPRHOG(NR),RM,RKPRHO,2,NRMAX)
-         CALL AITKEN(RGL,TTRHOG (NR),RM,TTRHO ,2,NRMAX)
-         CALL AITKEN(RGL,DVRHOG (NR),RM,DVRHO ,2,NRMAX)
-         CALL AITKEN(RGL,ARRHOG (NR),RM,ARRHO ,2,NRMAX)
-         CALL AITKEN(RGL,ABRHOG (NR),RM,ABRHO ,2,NRMAX)
+          CALL AITKEN(RGL,AR1RHOG(NR),RM,AR1RHO,2,NRMAX)
+          CALL AITKEN(RGL,AR2RHOG(NR),RM,AR2RHO,2,NRMAX)
+          CALL AITKEN(RGL,RKPRHOG(NR),RM,RKPRHO,2,NRMAX)
+          CALL AITKEN(RGL,TTRHOG (NR),RM,TTRHO ,2,NRMAX)
+          CALL AITKEN(RGL,DVRHOG (NR),RM,DVRHO ,2,NRMAX)
+          CALL AITKEN(RGL,ARRHOG (NR),RM,ARRHO ,2,NRMAX)
+          CALL AITKEN(RGL,ABRHOG (NR),RM,ABRHO ,2,NRMAX)
 
-         ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
-         AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
-         ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
+          ABB2RHOG(NR)=BB**2*(1.D0+0.5D0*EPSRHO(NR)**2)
+          AIB2RHOG(NR)=(1.D0+1.5D0*EPSRHO(NR)**2)/BB**2
+          ARHBRHOG(NR)=AR2RHOG(NR)*AIB2RHOG(NR)
 
-      RETURN
-      END SUBROUTINE TRGFRG
+          RETURN
+        END SUBROUTINE TRGFRG
 
 !     ***********************************************************
 

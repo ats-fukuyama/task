@@ -464,6 +464,8 @@ C
          RSW(NTH)=RSU(NTH)
          ZSW(NTH)=ZSU(NTH)
       ENDDO
+!      write (6,'(I5,1PE12.4)') (i,QPS(i),i=1,NRMAX)
+      
 C
       RETURN
       END

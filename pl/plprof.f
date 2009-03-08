@@ -535,7 +535,7 @@ C
       OPEN ( IFNO, FILE=TRFILE, ERR=9995 )
       READ ( IFNO, '(I3)', END=9996, ERR=9996 ) NPRF
       DO N=1,NPRF
-         READ ( IFNO, '(11E14.7)', END=9996, ERR=9996 )
+         READ ( IFNO, '(13E14.7)', END=9996, ERR=9996 )
      >        PRFRHO(N), (PRFN(N,I), I=1,NXSPC),
      >                   (PRFT(N,I), I=1,NXSPC)
       ENDDO
