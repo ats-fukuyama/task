@@ -160,7 +160,11 @@ C
 C
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
-      DIMENSION CDISP(6),CLDISP(6),CDTNS(3,3)
+      COMPLEX(8),INTENT(IN):: CW,CKPR,CKPP
+      REAL(8),INTENT(IN):: RHON,BABS1
+      INTEGER(4),INTENT(IN):: NS
+      COMPLEX(8),DIMENSION (3,3),INTENT(OUT):: CDTNS
+      COMPLEX(8),DIMENSION(6):: CDISP,CLDISP
 C
       BABS=BABS1
       CALL PLPROF(RHON)
@@ -171,15 +175,38 @@ C
             CDISP(I)=0.D0
          ENDDO
          DO NS1=1,NSMAX
-            CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+            IF(modelp(ns1).EQ.5) THEN
+               CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
+!               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
+               IF(real(ckkppf**2).GT.0.d0) THEN
+                  ckpp1=ckppf
+               ELSE
+                  ckpp1=ckpp
+               ENDIF
+            ELSE
+               ckpp1=ckpp
+            ENDIF
+            CALL DPTENS(CW,CKPR,CKPP1,NS1,CLDISP)
             DO I=1,6
                CDISP(I)=CDISP(I)+CLDISP(I)
             ENDDO
          ENDDO
       ELSE
-         CALL DPTENS(CW,CKPR,CKPP,NS,CDISP)
+         IF(modelp(ns).EQ.5) THEN
+            CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
+!            write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
+            IF(real(ckkppf**2).GT.0.d0) THEN
+               ckpp1=ckppf
+            ELSE
+               ckpp1=ckpp
+            ENDIF
+         ELSE
+            ckpp1=ckpp
+         ENDIF
+         CALL DPTENS(CW,CKPR,CKPP1,NS,CDISP)
       ENDIF
 C
+
       CDTNS(1,1)= CDISP(1)
       CDTNS(1,2)= CDISP(5)
       CDTNS(1,3)= CDISP(4)
@@ -190,5 +217,50 @@ C
       CDTNS(3,2)=-CDISP(6)
       CDTNS(3,3)= CDISP(1)+CDISP(2)
 C
+      RETURN
+      END
+C
+C     ****** CALCULATE COLD KPERP ******
+C
+      SUBROUTINE DPCOLD_RKPERP(CW,CKPR,CKPPF,CKPPS)
+C
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CDISP(6),CLDISP(6)
+C
+      CDISP(1)=1.D0
+      DO I=2,6
+         CDISP(I)=0.D0
+      ENDDO
+      CKPP=(0.D0,0.D0)
+      CNPR=CKPR*VC/CW
+
+      DO NS1=1,NSMAX
+         MODELP_SAVE=MODELP(NS1)
+         MODELP(NS1)=0
+         CALL DPTENS(CW,CKPR,CKPP,NS1,CLDISP)
+         DO I=1,6
+            CDISP(I)=CDISP(I)+CLDISP(I)
+         ENDDO
+         MODELP(NS1)=MODELP_SAVE
+      ENDDO
+
+      CCS= CDISP(1)
+      CCD= -CI*CDISP(5)
+      CCP= CDISP(1)+CDISP(2)
+
+      CCA=CCS
+      CCB=(CCP+CCS)*CNPR**2-(CCS**2-CCD**2+CCS*CCP)
+      CCC=((CCS-CNPR**2)**2-CCD**2)*CCP
+      CCD=SQRT(CCB**2-4.D0*CCA*CCC)
+      CKPP1=(-CCB+CCD)/(2.D0*CCA)
+      CKPP2=(-CCB-CCD)/(2.D0*CCA)
+      IF(REAL(CKPP2).GT.ReAL(CKPP1)) THEN
+         CTEMP=CKPP1
+         CKPP1=CKPP2
+         CKPP2=CTEMP
+      ENDIF
+      CKPPf=SQRT(CKPP1)*CW/VC
+      CKPPs=SQRT(CKPP2)*CW/VC
       RETURN
       END

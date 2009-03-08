@@ -1,17 +1,7 @@
 !     $Id$
 
-!     ***** wmfem main routine *****
+      module wmfem_mod
 
-      subroutine wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,
-     &                 nsmax,rhoa,cef,cbf,cpp,cpa)
-
-      implicit none
-      integer,intent(in):: nrmax,nthmax,nphmax,nsmax,nthmax2,nphmax2
-      real(8),dimension(nrmax),intent(in):: rhoa
-      complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
-      complex(8),dimension(nthmax,nphmax,nthmax2,nphmax2,
-     &     nrmax,0:nsmax),intent(out):: cpp
-      complex(8),dimension(nthmax,nphmax),intent(out):: cpa
       complex(8),parameter:: ci=(0.d0,1.d0)
       real(8),parameter:: pi = 3.14159265358979D0
       real(8),parameter:: vc = 2.99792458 D8
@@ -20,7 +10,7 @@
       integer:: nth0,nph0
       integer:: mdlwmf,mdlwmd
 
-      integer:: nfcmax,mlmax,mwmax,nfcmax2
+      integer:: nfcmax,mlmax,mwmax,nthmax2,nphmax2,nfcmax2
       complex(8),dimension(:,:),pointer,save:: fma !(mwmax,mlmax)
       complex(8),dimension(:,:,:,:),pointer,save:: fms 
      &                          !(mwmax,12*nfcmax,nrmax,0:nsmax)
@@ -31,13 +21,39 @@
       integer,dimension(:),pointer,save :: nthnfc2,mmnfc2
       integer,dimension(:),pointer,save :: nphnfc2,nnnfc2
 
+      end module wmfem_mod
+
+!     ***** wmfem main routine *****
+
+      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,cef,cbf,cpp,cpa)
+
+      use wmfem_mod
+      implicit none
+      integer,intent(in):: nrmax,nthmax,nphmax,nsmax
+      real(8),dimension(nrmax),intent(in):: rhoa
+      complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
+      complex(8),dimension(nthmax,nphmax,nthmax*2,nphmax*2,
+     &     nrmax,0:nsmax),intent(out):: cpp
+      complex(8),dimension(nthmax,nphmax),intent(out):: cpa
+
 !     ***** define array size  *****
 
       nfcmax=nthmax*nphmax      ! size of block matrix 
                                 !    (number of Fourier components)
       mlmax=6*nfcmax*nrmax      ! length of coeffient matrix and source vector
       mwmax=4*6*nfcmax-1        ! width of coefficient matrix
-      nfcmax2=nthmax2*nphmax2   ! size of block matrix of coefficients
+
+      if(nthmax.eq.1) then
+         nthmax2=1
+      else
+         nthmax2=nthmax*2
+      endif
+      if(nphmax.eq.1) then
+         nphmax2=1
+      else
+         nphmax2=nphmax*2
+      endif
+      nfcmax2=nthmax2*nphmax2
 
 !     ***** get additional parameters *****
 
@@ -182,14 +198,7 @@
          enddo
       endif
 
-      if(nthmax.eq.1) then
-         do nph=1,nphmax2
-            nfc2=nph
-            nthnfc2(nfc2)=1
-            mmnfc2(nfc2)=nth0
-         enddo
-      else
-         do nph=1,nphmax2
+      do nph=1,nphmax2
          do nth=1,nthmax2
             nfc2=nthmax2*(nph-1)+nth
             nthnfc2(nfc2)=nth
@@ -200,16 +209,9 @@
             nfc=nthmax2*(nph-1)+nthmax2+1-nth
             mmnfc2(nfc2)=nth0-nth
          enddo
-         enddo
-      endif
-      if(nphmax.eq.1) then
-         do nth=1,nthmax2
-            nfc2=nth
-            nphnfc2(nfc2)=1
-            nnnfc2(nfc2)=nph0
-         enddo
-      else
-         do nth=1,nthmax2
+      enddo
+      
+      do nth=1,nthmax2
          do nph=1,nphmax2
             nfc2=nthmax2*(nph-1)+nth
             nphnfc2(nfc2)=nph
@@ -220,8 +222,7 @@
             nfc2=nthmax2*(nphmax2-nph)+nth
             nnnfc2(nfc2)=nph0-nph
          enddo
-         enddo
-      endif
+      enddo
 
       return
       end subroutine wmfem_setup_index
@@ -1179,158 +1180,6 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
 
       end subroutine wmfem_calculate_plasma_c
 
-!     ****** CALCULATE METRIC AND CONVERSION TENSOR ******
-
-      SUBROUTINE wmfem_tensors(rho,gma,muma,dmuma,gja)
-
-      IMPLICIT NONE
-      real(8),intent(in):: rho
-      real(8),intent(out),dimension(3,3,nthmax2,nphmax2):: 
-     &     gma,muma,dmuma
-      real(8),intent(out),dimension(nthmax2,nphmax2):: gja
-      real(8),dimension(3,3):: gm,gmp,gmm,mum,mump,mumm
-      real(8):: th,ph,dth,dph,drhom,drhop,gj,gjp,gjm
-      real(8):: babs,bsupth,bsupph,rhol
-      integer:: nth,nph,i,j
-
-      dth=2.d0*pi/nthmax2
-      dph=2.d0*pi/nphmax2
-      IF(rho.EQ.0.d0) THEN
-         rhol=1.d-6
-         drhom=0.d0
-      else
-         rhol=rho
-         drhom=1.d-6
-      endif
-      drhop=1.d-6
-      DO nph=1,nphmax2
-         ph=dph*(nph-1)
-         DO nth=1,nthmax2
-            th=dth*(nth-1)
-            CALL wmfem_metrics(rhol,th,ph,gm,gj)
-            CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
-
-            CALL wmfem_metrics(rhol-drhom,th,ph,gmm,gjm)
-            CALL wmfem_magnetic(rhol-drhom,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gmm,gjm,babs,bsupth,bsupph,mumm)
-
-            CALL wmfem_metrics(rhol+drhop,th,ph,gmp,gjp)
-            CALL wmfem_magnetic(rhol+drhop,th,ph,babs,bsupth,bsupph)
-            CALL wmfem_rotation_tensor(gmp,gjp,babs,bsupth,bsupph,mump)
-
-            DO j=1,3
-               DO i=1,3
-                  gma(i,j,nth,nph)=gm(i,j)
-                  muma(i,j,nth,nph)=mum(i,j)
-                  dmuma(i,j,nth,nph)
-     &                 =(mump(i,j)-mumm(i,j))/(drhom+drhop)
-               END DO
-            END DO
-            gja(nth,nph)=gj
-
-         ENDDO
-      ENDDO
-      RETURN
-      END SUBROUTINE wmfem_tensors
-
-!        ****** CALCULATE ROTATION TENSOR ******
-
-         SUBROUTINE wmfem_rotation_tensor(gm,gj,babs,bsupth,bsupph,mum)
-
-         IMPLICIT NONE
-         real(8),dimension(3,3),intent(in):: gm
-         real(8),intent(in):: gj,babs,bsupth,bsupph
-         real(8),dimension(3,3),intent(out):: mum
-         real(8):: tc2,tc3,gf11,gf12
-
-!        ----- Calculate rotation matrix mum -----
-
-         tc2=bsupth/babs
-         tc3=bsupph/babs
-
-!        ----- gf11=gj*SQRT(gm11) -----
-
-         gf11 = SQRT(gm(2,2)*gm(3,3)-gm(2,3)*gm(3,2))
-         gf12 =(tc2*(gm(2,3)*gm(1,2)-gm(2,2)*gm(1,3))
-     &         +tc3*(gm(3,3)*gm(1,2)-gm(2,3)*gm(1,3)))
-            
-         mum(1,1)= gj/gf11
-         mum(2,1)= 0.D0
-         mum(3,1)= 0.D0
-         mum(1,2)= gf12/gf11
-         mum(2,2)= tc3*gf11
-         mum(3,2)=-tc2*gf11
-         mum(1,3)= tc2*gm(1,2)+tc3*gm(1,3)
-         mum(2,3)= tc2*gm(2,2)+tc3*gm(2,3)
-         mum(3,3)= tc2*gm(3,2)+tc3*gm(3,3)
-
-         end subroutine wmfem_rotation_tensor
-
-!     ****** CALCULATE dielectric tensor on a mag surface ******
-
-         SUBROUTINE wmfem_disp_tensor(rho,ns,fmc)
-
-         IMPLICIT NONE
-         real(8),intent(in):: rho
-         integer,intent(in):: ns
-         complex(8),dimension(3,3,4,nfcmax2,nfcmax),intent(out):: fmc
-         complex(8),dimension(3,3):: fml
-
-         real(8):: th,ph,dth,dph
-         integer:: nth,nph,mm,nn,i,j,nfc2,nfc
-         complex(8):: cx
-
-         dth=2.d0*pi/nthmax2
-         dph=2.d0*pi/nphmax2
-         DO nfc2=1,nfcmax2
-            nth=nthnfc2(nfc2)
-            nph=nphnfc2(nfc2)
-            th=dth*(nth-1)
-            ph=dph*(nph-1)
-            DO nfc=1,nfcmax
-               mm=mmnfc(nfc)
-               nn=nnnfc(nfc)
-               CALL wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
-               DO j=1,3
-                  DO i=1,3
-                     fmc(i,j,1,nfc2,nfc)=fml(i,j)
-                     fmc(i,j,2,nfc2,nfc)=0.d0
-                     fmc(i,j,3,nfc2,nfc)=0.d0
-                     fmc(i,j,4,nfc2,nfc)=0.d0
-                  END DO
-               END DO
-            END DO
-         END DO
-         RETURN
-         END SUBROUTINE wmfem_disp_tensor
-
-!     ****** CALCULATE dielectric tensor ******
-
-         SUBROUTINE wmfem_dielectric(rho,th,ph,mm,nn,ns,fml)
-
-         IMPLICIT NONE
-         real(8),intent(in):: rho,th,ph
-         integer,intent(in):: mm,nn,ns
-         complex(8),dimension(3,3),intent(out):: fml
-         complex(8):: cw,ckpara,ckperp
-         real(8):: babs,bsupth,bsupph
-
-         cw=2*pi*crf*1.d6
-         CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
-         ckpara=mm*bsupth/babs+nn*bsupph/babs
-         ckperp=(0.d0,0.d0)
-
-c$$$         if(ns.eq.1.and.abs(th).lt.0.1) 
-c$$$     &    write(6,'(a,2i5,1p5e12.4)') 'm,n,kpara:',
-c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
-
-         CALL dpcalc(cw,ckpara,ckperp,rho,babs,ns,fml)
-
-         return
-
-         END SUBROUTINE wmfem_dielectric
-
 !     ***** Solve matrix equation *****
 
       subroutine wmfem_solve
@@ -1580,6 +1429,7 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       subroutine wmfem_calculate_power
 
+      implicit none
       integer:: mc,ml,mw,nr,ns,mm,nn,i,j
       integer:: ir,nr1,mm1,nn1,mm2,nn2,nndiff,mmdiff
       integer:: i1,ml1,ml2,nfc,nfc1,nfc2,mll,nr0
@@ -1591,10 +1441,10 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       do ns=0,nsmax
          do nr=1,nrmax
-            do nn=1,nphmax
-               do mm=1,nthmax
-                  do nn2=1,nphmax2
-                     do mm2=1,nthmax2
+            do nn2=1,nphmax2
+               do mm2=1,nthmax2
+                  do nn=1,nphmax
+                     do mm=1,nthmax
                         cpp(mm,nn,mm2,nn2,nr,ns)=0.d0
                      end do
                   end do
@@ -1648,11 +1498,6 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
      &                          =cpp(mm,nn,mmdiff+1,nndiff+1,nr0,ns)
      &                          -ci*conjg(fvx(ml))
      &                                *fml(mc+mw,mll)*fvx(ml1)
-c$$$               if(ns.eq.0.and.nr0.eq.1) then
-c$$$                  write(6,'(A,4I5,1P8E12.4)') 
-c$$$     &                 'nr,nr1,cpp=',nr,nr1,i,i1,cpp(mm,nn,1,1,nr0,ns),
-c$$$     &                 conjg(fvx(ml)),fms(mc+mw,mll,nr,ns),fvx(ml1)
-c$$$               endif
                            end do
                         end do
                      end do
@@ -1750,445 +1595,6 @@ c$$$               endif
 
       return
       end subroutine wmfem_calculate_power
-
-!---- FEM cubic hermit ---
-
-      subroutine fem_hhh(fmd,nfcmax,drho,fml)
-
-      use libfem_mod
-      implicit none
-      complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
-      complex(8),dimension(4*6*nfcmax-1,2*6*nfcmax),intent(out):: fml
-      integer,intent(in):: nfcmax
-      real(8),intent(in):: drho
-      integer:: mr,mc,i,j,k,nf1,nf2,inod,ml,mw
-
-      if(table_initialize_flag.eq.0) then
-         call table_initialize
-         table_initialize_flag=1
-      endif
-
-      mr=6*nfcmax  ! line interval between radial points 
-      mc=12*nfcmax ! diagonal column at the top line
-
-      do ml=1,2*6*nfcmax
-         do mw=1,4*6*nfcmax-1
-            fml(mw,ml)=0.d0
-         end do
-      end do
-
-         do nf1=1,nfcmax
-         do nf2=1,nfcmax
-         do j=1,3
-         do i=1,3
-            ml=6*(nf1-1)+2*(i-1)+1
-            mw=mc+6*(nf2-nf1)+2*(j-i)
-            do inod=1,4
-
-            fml(mw  ,ml  )=fml(mw  ,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,5)/drho
-            fml(mw+1,ml  )=fml(mw+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,6)
-            fml(mw+mr,ml  )=fml(mw+mr,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,7)/drho
-            fml(mw+mr+1,ml  )=fml(mw+Mr+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,8)
-
-            fml(mw-1,ml+1)=fml(mw-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,5)
-            fml(mw  ,ml+1)=fml(mw  ,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,2)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,2)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,6)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,6)*drho
-            fml(mw+mr-1,ml+1)=fml(mw+mr-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,7)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,7)
-            fml(mw+mr,ml+1)=fml(mw+mr,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,4)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,4)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,8)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,8)*drho
-
-            fml(mw-mr,ml+mr)=fml(mw-mr,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,5)/drho
-            fml(mw-mr+1,ml+mr)=fml(mw-mr+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,6)
-            fml(mw  ,ml+mr)=fml(mw  ,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,7)/drho
-            fml(mw+1,ml+mr)=fml(mw+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,8)
-
-            fml(mw-mr-1,ml+mr+1)=fml(mw-mr-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,5)
-            fml(mw-mr,ml+mr+1)=fml(mw-mr,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,2)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,2)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,6)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,6)*drho
-            fml(mw-1,ml+mr+1)=fml(mw-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,7)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,7)
-            fml(mw  ,ml+mr+1)=fml(mw  ,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,4)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,4)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,8)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,8)*drho
-
-            enddo
-         enddo
-         enddo
-         enddo
-         enddo
-
-      return
-      end subroutine fem_hhh
-
-!---- FEM cubic hermit + quadratic ---
-
-      subroutine fem_hqq(fmd,nfcmax,drho,fml)
-
-      use libfem_mod
-      implicit none
-      complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
-      complex(8),dimension(4*6*nfcmax-1,2*6*nfcmax),intent(out):: fml
-      integer,intent(in):: nfcmax
-      real(8),intent(in):: drho
-      integer:: mr,mc,i,j,k,nf1,nf2,inod,ml,mw
-
-      if(table_initialize_flag.eq.0) then
-         call table_initialize
-         table_initialize_flag=1
-      endif
-
-      mr=6*nfcmax  ! line interval between radial points 
-      mc=12*nfcmax ! diagonal column at the top line
-
-      do ml=1,2*6*nfcmax
-         do mw=1,4*6*nfcmax-1
-            fml(mw,ml)=0.d0
-         end do
-      end do
-
-         do nf1=1,nfcmax
-         do nf2=1,nfcmax
-         do j=1,3
-         do i=1,3
-            ml=6*(nf1-1)+2*(i-1)+1
-            mw=mc+6*(nf2-nf1)+2*(j-i)
-            do inod=1,4
-
-! (1,1) **********
-            if(i.eq.1.and.j.eq.1) then
-
-            fml(mw  ,ml  )=fml(mw  ,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,1,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,4,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,1,4)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,4,4)/drho
-
-            fml(mw+1,ml  )=fml(mw+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,1,2)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,4,2)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,1,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,4,5)/drho
-            fml(mw+mr,ml  )=fml(mw+mr,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,1,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,4,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,1,6)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,4,6)/drho
-
-            fml(mw-1,ml+1)=fml(mw-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,2,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,5,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,2,4)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,5,4)/drho
-            fml(mw  ,ml+1)=fml(mw  ,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,2,2)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,5,2)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,2,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,5,5)/drho
-            fml(mw+mr-1,ml+1)=fml(mw+mr-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,2,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,5,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,2,6)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,5,6)/drho
-
-            fml(mw-mr,ml+mr)=fml(mw-mr,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,3,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,6,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,3,4)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,6,4)/drho
-            fml(mw-mr+1,ml+mr)=fml(mw-mr+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,3,2)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,6,2)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,3,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,6,5)/drho
-            fml(mw  ,ml+mr)=fml(mw  ,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqq(inod,3,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqq(inod,6,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqq(inod,3,6)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqq(inod,6,6)/drho
-
-! (1,*) **********
-            else if(i.eq.1) then
-            fml(mw  ,ml  )=fml(mw  ,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,1,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,4,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,1,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,4,5)/drho
-            fml(mw+1,ml  )=fml(mw+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,1,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,4,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,1,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,4,6)
-            fml(mw+mr,ml  )=fml(mw+mr,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,1,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,4,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,1,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,4,7)/drho
-            fml(mw+mr+1,ml  )=fml(mw+mr+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,1,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,4,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,1,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,4,8)
-
-            fml(mw-1,ml+1)=fml(mw-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,2,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,5,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,2,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,5,5)/drho
-            fml(mw  ,ml+1)=fml(mw  ,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,2,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,5,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,2,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,5,6)
-            fml(mw+mr-1,ml+1)=fml(mw+mr-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,2,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,5,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,2,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,5,7)/drho
-            fml(mw+mr,ml+1)=fml(mw+mr,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,2,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,5,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,2,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,5,8)
-
-            fml(mw-mr,ml+mr)=fml(mw-mr,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,3,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,6,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,3,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,6,5)/drho
-            fml(mw-mr+1,ml+mr)=fml(mw-mr+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,3,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,6,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,3,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,6,6)
-            fml(mw  ,ml+mr)=fml(mw  ,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,3,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,6,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,3,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,6,7)/drho
-            fml(mw+1,ml+mr)=fml(mw+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hqh(inod,3,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hqh(inod,6,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hqh(inod,3,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hqh(inod,6,8)
-
-! (*,1) **********
-            else if(j.eq.1) then
-            fml(mw  ,ml  )=fml(mw  ,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,1,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,5,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,1,4)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,5,4)/drho
-            fml(mw+1,ml  )=fml(mw+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,1,2)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,5,2)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,1,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,5,5)/drho
-            fml(mw+mr,ml  )=fml(mw+mr,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,1,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,5,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,1,6)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,5,6)/drho
-
-            fml(mw-1,ml+1)=fml(mw-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,2,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,6,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,2,4)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,6,4)
-            fml(mw  ,ml+1)=fml(mw  ,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,2,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,6,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,2,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,6,5)
-            fml(mw+mr-1,ml+1)=fml(mw+mr-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,2,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,6,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,2,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,6,6)
-
-            fml(mw-mr,ml+mr)=fml(mw-mr,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,3,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,7,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,3,4)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,7,4)/drho
-            fml(mw-mr+1,ml+mr)=fml(mw-mr+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,3,2)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,7,2)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,3,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,7,5)/drho
-            fml(mw  ,ml+mr)=fml(mw  ,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,3,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,7,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,3,6)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,7,6)/drho
-
-            fml(mw-mr-1,ml+mr+1)=fml(mw-mr-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,4,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,8,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,4,4)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,8,4)
-            fml(mw-mr,ml+mr+1)=fml(mw-mr,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,4,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,8,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,4,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,8,5)
-            fml(mw-1,ml+mr+1)=fml(mw-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhq(inod,4,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhq(inod,8,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhq(inod,4,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhq(inod,8,6)
-
-! (*,*) **********
-            else
-            fml(mw  ,ml  )=fml(mw  ,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,5)/drho
-            fml(mw+1,ml  )=fml(mw+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,6)
-            fml(mw+mr,ml  )=fml(mw+mr,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,7)/drho
-            fml(mw+mr+1,ml  )=fml(mw+mr+1,ml  )
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,1,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,5,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,1,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,5,8)
-
-            fml(mw-1,ml+1)=fml(mw-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,5)
-            fml(mw  ,ml+1)=fml(mw  ,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,2)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,2)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,6)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,6)*drho
-            fml(mw+mr-1,ml+1)=fml(mw+mr-1,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,7)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,7)
-            fml(mw+mr,ml+1)=fml(mw+mr,ml+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,2,4)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,6,4)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,2,8)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,6,8)*drho
-
-            fml(mw-mr,ml+mr)=fml(mw-mr,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,1)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,1)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,5)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,5)/drho
-            fml(mw-mr+1,ml+mr)=fml(mw-mr+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,2)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,2)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,6)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,6)
-            fml(mw  ,ml+mr)=fml(mw  ,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,3)*drho
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,3)
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,7)
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,7)/drho
-            fml(mw+1,ml+mr)=fml(mw+1,ml+mr)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,3,4)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,7,4)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,3,8)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,7,8)
-
-            fml(mw-mr-1,ml+mr+1)=fml(mw-mr-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,1)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,1)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,5)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,5)
-            fml(mw-mr,ml+mr+1)=fml(mw-mr,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,2)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,2)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,6)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,6)*drho
-            fml(mw-1,ml+mr+1)=fml(mw-1,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,3)*drho**2
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,3)*drho
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,7)*drho
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,7)
-            fml(mw  ,ml+mr+1)=fml(mw  ,ml+mr+1)
-     &              +fmd(i,j,1,nf1,nf2,inod)*table_hhh(inod,4,4)*drho**3
-     &              +fmd(i,j,2,nf1,nf2,inod)*table_hhh(inod,8,4)*drho**2
-     &              +fmd(i,j,3,nf1,nf2,inod)*table_hhh(inod,4,8)*drho**2
-     &              +fmd(i,j,4,nf1,nf2,inod)*table_hhh(inod,8,8)*drho
-            endif
-
-            enddo
-         enddo
-         enddo
-         enddo
-         enddo
-      return
-      end subroutine fem_hqq
 
       end subroutine wmfem
 

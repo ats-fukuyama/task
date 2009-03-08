@@ -28,6 +28,16 @@ C
          endif
       else
          nrmax=nrmax+1
+         if(nphmax.eq.1) then
+            nphmax2=1
+         else
+            nphmax2=nphmax*2
+         endif
+         if(nthmax.eq.1) then
+            nthmax2=1
+         else
+            nthmax2=nthmax*2
+         endif
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
          CALL wmfem_setj(ierr)

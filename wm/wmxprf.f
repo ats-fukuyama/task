@@ -116,9 +116,9 @@ c$$$      DO N=1,NRMAX1
 c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N, XRHO(N), (PT60(N,I),I=1,NXSPC)
 c$$$      ENDDO
  8020 FORMAT(' N ',4X,'XRHO',7X,'PNE',8X,'PNI1',
-     >             7X,'PNI2',7X,'PNI3',7X,'PNI4')
+     &             7X,'PNI2',7X,'PNI3',7X,'PNI4')
  8030 FORMAT(' N ',4X,'XRHO',7X,'PTE',8X,'PTI1',
-     >             7X,'PTI2',7X,'PTI3',7X,'PTI4')
+     &             7X,'PTI2',7X,'PTI3',7X,'PTI4')
 C
       NRMAXSV=NRMAX
       NTHMAXSV=NTHMAX

@@ -693,7 +693,7 @@ C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
-      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax)
+      dimension cpp(nthmax,nphmax,nthmax*2,nphmax*2,nrmax,0:nsmax)
       dimension cpa(nthmax,nphmax)
       real(8),dimension(3,3)::  gm
       real(8):: gj1,gj2

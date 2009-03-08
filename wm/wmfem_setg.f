@@ -163,8 +163,8 @@ C
 !     --- wall boundary ---
          dthw=2.d0*pi/nswmax
          do nsw=1,nswmax
-            rsw(nsu,1)=ra*cos(dthw*(nsw-1))
-            zsw(nsu,1)=ra*sin(dthw*(nsw-1))
+            rsw(nsu,1)=rb*cos(dthw*(nsw-1))
+            zsw(nsu,1)=rb*sin(dthw*(nsw-1))
          enddo
 
 !     --- graphic boundary ---
@@ -243,8 +243,8 @@ C
 !     --- wall boundary ---
       DTHW=2.D0*PI/NSWMAX
       DO NSW=1,NSWMAX
-         RSW(NSW,1)=RR+RA*COS(DTHW*(NSW-1))
-         ZSW(NSW,1)=   RA*SIN(DTHW*(NSW-1))
+         RSW(NSW,1)=RR+RB*COS(DTHW*(NSW-1))
+         ZSW(NSW,1)=   RB*SIN(DTHW*(NSW-1))
       ENDDO
 
 !     --- graphic boundary ---
