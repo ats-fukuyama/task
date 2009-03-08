@@ -103,6 +103,9 @@ tr2: trcom2.o trcom3.o $(LIBS2) trmain.o
 tr3: trcom2.o trcom3.o $(LIBS3) trmain.o 
 	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
 
+xtr: trcom2.o trcom3.o $(LIBS2) xtr.o 
+	$(FCFREE) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
+
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
