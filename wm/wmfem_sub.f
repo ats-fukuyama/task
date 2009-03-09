@@ -117,6 +117,26 @@ C     $Id$
       return
       end subroutine wmfem_magnetic
 
+!     ****** CALCULATE PLASMA DENSITY AND TEMPERATURE ******
+
+      SUBROUTINE wmfem_plasma(rho,nsmax_,rn_,rtpr_,rtpp_,ru_)
+
+      INCLUDE 'wmcomm.inc'
+      real(8),intent(in):: rho
+      integer,intent(in):: nsmax_
+      real(8),dimension(nsmax),intent(out):: rn_,rtpr_,rtpp_,ru_
+      INCLUDE '../pl/plcom2.inc'
+      
+      CALL PLPROF(rho)
+      DO ns=1,nsmax_
+         rn_(ns)=rn(ns)
+         rtpr_(ns)=ptpr(ns)
+         rtpp_(ns)=rtpp(ns)
+         ru_(ns)=ru(ns)
+      ENDDO
+      return
+      end subroutine wmfem_plasma
+
 !     ***** calculate position R and Z from eqdata ****
 
       subroutine wmeq_get_posrz(rho,th,rrl,zzl,
@@ -512,11 +532,11 @@ C
 C
 C     ****** CALCULATE WAVE ELECTRIC FIELD ******
 C
-      SUBROUTINE WMFEM_EFLD(cef)
+      SUBROUTINE WMFEM_EFLD
 C
+      use wmfem_com, only: cef
       INCLUDE 'wmcomm.inc'
-      dimension cef(3,nthmax,nphmax,nrmax)
-C
+
       DIMENSION CEF1(MDM,NDM),CEF2(MDM,NDM),RMA(3,3)
 C
       do nr=1,nrmax
@@ -599,10 +619,10 @@ C
 C
 C     ****** CALCULATE WAVE MAGNETIC FIELD ******
 C
-      SUBROUTINE WMFEM_BFLD(cbf)
+      SUBROUTINE WMFEM_BFLD
 C
+      use wmfem_com, only: cbf
       INCLUDE 'wmcomm.inc'
-      dimension cbf(3,nthmax,nphmax,nrmax)
 C
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM),RMA(3,3)
 C
@@ -686,15 +706,14 @@ C
 C
 C     ****** CALCULATE ABSORBED POWER ******
 C
-      SUBROUTINE WMFEM_PABS(cpp,cpa)
+      SUBROUTINE WMFEM_PABS
 C
+      use wmfem_com, only: cpp,cpa
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
-      dimension cpp(nthmax,nphmax,nthmax*2,nphmax*2,nrmax,0:nsmax)
-      dimension cpa(nthmax,nphmax)
       real(8),dimension(3,3)::  gm
       real(8):: gj1,gj2
 C

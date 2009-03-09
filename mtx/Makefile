@@ -2,6 +2,7 @@
 include ../make.header
 
 LFLAGS = $(OFLAGS)
+#LFLAGS = $(DFLAGS)
 
 SRCN = bandcd.f  mtxset.f precndcb.f \
        bstabcdb.f \

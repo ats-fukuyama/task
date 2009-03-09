@@ -7,6 +7,8 @@
 MODULE cdbm_mod
 
   IMPLICIT NONE
+  PRIVATE
+  PUBLIC:: cdbm
 
   integer,parameter :: rkind=selected_real_kind(12,100)
   integer,parameter :: ikind=selected_int_kind(8)
@@ -29,8 +31,8 @@ MODULE cdbm_mod
 
 CONTAINS
 
-  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,vexb,dvexbdr, &
-       &             factore,model,dc_cdbm)
+  SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
+       &             calf,cexb,model,chi_cdbm)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
     real(rkind),intent(in):: rr      ! Major radius [m]
@@ -42,9 +44,9 @@ CONTAINS
     real(rkind),intent(in):: dpdr    ! Pressure gradient [Pa/m]
     real(rkind),intent(in):: rhoni   ! Ion mass density
     !                                  (sum of ion-mass times ion-density)
-    real(rkind),intent(in):: vexb    ! ExB drift velocity
-    real(rkind),intent(in):: dvexbdr ! ExB drift velocity gradient
-    real(rkind),intent(in):: factore ! Factor of ExB drift effects
+    real(rkind),intent(in):: dvexbdr ! ExB drift velocity gradient [1/s]
+    real(rkind),intent(in):: calf    ! Factor in s-alpha effects [1.0]
+    real(rkind),intent(in):: cexb    ! Factor in ExB drift effects [1.0]
     integer(ikind),intent(in):: model! Model ID
     !                                    0: CDBM original
     !                                    1: CDBM05 including elongation
@@ -53,14 +55,14 @@ CONTAINS
     !                                    4: CDBM original with strong ExB shear
     !                                    5: CDBM05 with strong ExB shear
 
-    real(rkind),intent(out):: dc_cdbm! Thermal diffusion coefficient
-    !                                  for both electrons and ions
+    real(rkind),intent(out):: chi_cdbm! Thermal diffusion coefficient
+    !                                   for both electrons and ions
 
     real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
     real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fk,fs,fe
 
     if(model.lt.0.or.model.gt.5) then
-       write(6,*) 'XX dc_cdbm: model: out of range'
+       write(6,*) 'XX cdbm: model: out of range'
        stop
     endif
 
@@ -80,12 +82,8 @@ CONTAINS
     curv=-(rs/rr)*(1.D0-1.D0/(qp*qp))
 
     !     rotational shear
-    !        omega_exb = (r/q) d(q v_exb/r)/dr
-    IF(rs.eq.0.d0) then
-       wexb=0.d0
-    ELSE
-       wexb = (shear-1.D0)*vexb/rs+dvexbdr
-    ENDIF
+    shearl=sqrt(shear**2+0.1D0**2)   !
+    wexb = -qp*rr/(shearl*va)*dvexbdr
 
     SELECT CASE(MOD(model,2))
     CASE(0)
@@ -98,14 +96,14 @@ CONTAINS
     CASE(0)
        fe=1.D0
     CASE(1)
-       fe=1.D0/(1.D0+fe*wexb**2)
+       fe=1.D0/(1.D0+cexb*wexb**2)
     CASE(2)
-       shearl=(shear**2+0.1D0**2)   !
-       fe=fexb(wexb,shearl,alpha)
+       shearl=sqrt(shear**2+0.1D0**2)   !
+       fe=cexb*fexb(wexb,shear,alpha)
     END SELECT
 
-    fs=trcofs(shear,alpha,curv)
-    dc_cdbm=ckcdbm*fs*fk*fe**SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
+    fs=trcofs(shear,calf*alpha,curv)
+    chi_cdbm=ckcdbm*fs*fk*fe**SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
     RETURN
   END SUBROUTINE cdbm
 

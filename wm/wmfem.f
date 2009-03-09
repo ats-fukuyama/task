@@ -1,40 +1,22 @@
 !     $Id$
 
-      module wmfem_mod
-
-      complex(8),parameter:: ci=(0.d0,1.d0)
-      real(8),parameter:: pi = 3.14159265358979D0
-      real(8),parameter:: vc = 2.99792458 D8
-
-      complex(8):: crf
-      integer:: nth0,nph0
-      integer:: mdlwmf,mdlwmd
-
-      integer:: nfcmax,mlmax,mwmax,nthmax2,nphmax2,nfcmax2
-      complex(8),dimension(:,:),pointer,save:: fma !(mwmax,mlmax)
-      complex(8),dimension(:,:,:,:),pointer,save:: fms 
-     &                          !(mwmax,12*nfcmax,nrmax,0:nsmax)
-      complex(8),dimension(:),pointer,save:: fvb,fvx !(mlmax)
-
-      integer,dimension(:),pointer,save :: nthnfc,mmnfc
-      integer,dimension(:),pointer,save :: nphnfc,nnnfc
-      integer,dimension(:),pointer,save :: nthnfc2,mmnfc2
-      integer,dimension(:),pointer,save :: nphnfc2,nnnfc2
-
-      end module wmfem_mod
-
 !     ***** wmfem main routine *****
 
-      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,cef,cbf,cpp,cpa)
+      subroutine wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,mode)
 
-      use wmfem_mod
+      use wmfem_com
       implicit none
       integer,intent(in):: nrmax,nthmax,nphmax,nsmax
       real(8),dimension(nrmax),intent(in):: rhoa
-      complex(8),dimension(3,nthmax,nphmax,nrmax),intent(out):: cef,cbf
-      complex(8),dimension(nthmax,nphmax,nthmax*2,nphmax*2,
-     &     nrmax,0:nsmax),intent(out):: cpp
-      complex(8),dimension(nthmax,nphmax),intent(out):: cpa
+      integer,intent(in):: mode
+      integer:: ierr
+
+!     ***** metric setup  *****
+
+         CALL wmfem_setg(ierr)
+         IF(IERR.NE.0) RETURN
+         CALL wmfem_setj(ierr)
+         IF(IERR.NE.0) RETURN
 
 !     ***** define array size  *****
 
@@ -71,19 +53,23 @@
 
 !     ***** calculate coefficient matrix *****
 
-      call wmfem_calculate_matrix
+      if(mode.eq.0.or.mode.eq.1) call wmfem_calculate_matrix
 
 !     ***** solve matrix equation *****
 
-      call wmfem_solve
+      if(mode.eq.0.or.mode.eq.1) call wmfem_solve
 
-!     ***** calculate field and power *****
+!     ***** calculate efield *****
 
-      call wmfem_calculate_field
+      if(mode.eq.0.or.mode.eq.1) call wmfem_calculate_efield
+
+!     ***** calculate bfield *****
+
+      if(mode.eq.1.or.mode.eq.2) call wmfem_calculate_bfield
 
 !     ***** calculate power *****
 
-      call wmfem_calculate_power
+      if(mode.eq.1.or.mode.eq.2) call wmfem_calculate_power
 
       return
 
@@ -95,10 +81,22 @@
       subroutine wmfem_allocate
 
       implicit none
-!      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
+      integer,save:: nrmax_save=0,nthmax_save=0,nphmax_save=0
       integer,save:: mwmax_save=0,mlmax_save=0
       integer,save:: nsmax_save=0,nfcmax_save=0
-      integer,save:: mdlwmd_save=0
+      integer,save:: mdlwmd_save=0 
+
+      if((nrmax.ne.nrmax_save).or.(nthmax.ne.nthmax_save).or. 
+     &   (nphmax.ne.nphmax_save)) then
+         if(associated(cef)) deallocate(cef)
+         allocate(cef(3,nthmax,nphmax,nrmax))
+         if(associated(cbf)) deallocate(cbf)
+         allocate(cbf(3,nthmax,nphmax,nrmax))
+         if(associated(cpp)) deallocate(cpp)
+         allocate(cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax))
+         if(associated(cpa)) deallocate(cpa)
+         allocate(cpa(nthmax,nphmax))
+      endif
 
       if((mwmax.ne.mwmax_save).or.(mlmax.ne.mlmax_save)) then
          if(associated(fma)) deallocate(fma)
@@ -1199,30 +1197,27 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       return
       end subroutine wmfem_solve
 
-!     ***** Calculate electric and magnetic field *****
+!     ***** Calculate electric field *****
 
-      subroutine wmfem_calculate_field
+      subroutine wmfem_calculate_efield
 
-      integer:: ml,nr,nn,mm,nth,nph
-      complex(8),dimension(3,nthmax,nphmax):: cbfl
-
-!     ----- calculate E field -----
+      integer:: nr,nn,mm,ml
 
       nr=1
-         do nn=1,nphmax
-            do mm=1,nthmax
-               ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
-               if(abs(mm).eq.1) then
-                  cef(1,mm,nn,nr)=(fvx(ml+1)+fvx(ml+3))
-                  cef(2,mm,nn,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
-                  cef(3,mm,nn,nr)=fvx(ml+5)
-               else
-                  cef(1,mm,nn,nr)=fvx(ml+1)
-                  cef(2,mm,nn,nr)=fvx(ml+3)
-                  cef(3,mm,nn,nr)=fvx(ml+5)
-               endif
-            enddo
+      do nn=1,nphmax
+         do mm=1,nthmax
+            ml=6*nthmax*nphmax*(nr-1)+6*nthmax*(nn-1)+6*(mm-1)
+            if(abs(mm).eq.1) then
+               cef(1,mm,nn,nr)=(fvx(ml+1)+fvx(ml+3))
+               cef(2,mm,nn,nr)=(fvx(ml+1)-fvx(ml+3))/(ci*mm)
+               cef(3,mm,nn,nr)=fvx(ml+5)
+            else
+               cef(1,mm,nn,nr)=fvx(ml+1)
+               cef(2,mm,nn,nr)=fvx(ml+3)
+               cef(3,mm,nn,nr)=fvx(ml+5)
+            endif
          enddo
+      enddo
       do nr=2,nrmax
          do nn=1,nphmax
             do mm=1,nthmax
@@ -1236,7 +1231,15 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          enddo
       enddo
 
-!     ----- calculate B field -----
+      return
+      end subroutine wmfem_calculate_efield
+
+!     ***** Calculate magnetic field *****
+
+      subroutine wmfem_calculate_bfield
+
+      integer:: nr,nth,nph
+      complex(8),dimension(3,nthmax,nphmax):: cbfl
 
       do nr=1,nrmax
          call wmfem_cbf(nr,cbfl)
@@ -1250,7 +1253,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       enddo
 
       return
-      end subroutine wmfem_calculate_field
+      end subroutine wmfem_calculate_bfield
 
 !----- calculate local wave magnetic field -----
 

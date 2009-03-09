@@ -23,6 +23,7 @@
      &                   NRMAX, NSM, NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, RG, RHOG, RHOM,  &
      &                   RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM,     &
      &                   TAUK, VC, VEXB, VGR1, VGR2, VGR3, VGR4, WEXB, ZEFF
+      USE cdbm_mod
       IMPLICIT NONE
       INTEGER(4):: NS, NR08, NR
       REAL(8)   :: AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, AMI, AMT, ANA, ANDX, ANE, ANT, &
@@ -33,6 +34,9 @@
      &             RPM, RPP, RREFF, RRSTAR, RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, TRCOFSS, &
      &             TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX,     &
      &             BPA, PROFDL
+      REAL(8):: RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB
+      REAL(8):: chi_cdbm
+      INTEGER:: MODEL
       REAL(8),DIMENSION(NRMAX):: S_HM
       REAL(8)   :: DERIV3P
 
@@ -207,6 +211,7 @@
             TI  = 0.5D0*(RNTP/RNP+RNTM/RNM)
             DTI = (RNTP/RNP-RNTM/RNM)*DRL
          ENDIF
+!         WRITE(6,'(1PE12.4)') DPP
 
 !$$$C     second derivative of effective pressure for old version WE1
 !$$$         RPI4=0.D0
@@ -558,6 +563,7 @@
                ALPHAL=ALPHA(NR)*CALF
                FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
                IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
+!               write(6,'(1P3E12.4)') alpha(nr),DPP*1.D20*RKEV,dpp
                AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
                AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
             case(32)
@@ -770,7 +776,9 @@
 !            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
             VGR4(NR,3)=RG1
 
-         ELSEIF(MDLKAI.GE.60) THEN
+         ELSEIF(MDLKAI.GE.60.AND.MDLKAI.LE.64) THEN
+            CONTINUE
+         ELSEIF(MDLKAI.EQ.65) THEN
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
@@ -819,133 +827,40 @@
                VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S(NR))
             ENDIF
 
-         ELSEIF(MDLKAI.LT.141) THEN
+         ELSEIF(MDLKAI.GE.100) THEN
 
             RS=RA*RG(NR)
-            RKPRHOL=RKPRHO(NR)
+            RKAPL=RKPRHO(NR)
             SHEARL=S(NR)
             PNEL=ANE*1.D20
-            RHONI=
-            DPDR=
-            VEXB=
-            DVEXBDR=
-            FACTORE=1.D0
-            MODEL=MDLKAI-100
+            RHONI=(AMD*ANDX+AMT*ANT+AMA*ANA)*1.D20
+            DPDRl=DPP*1.D20*RKEV
+            DVEXBDRL=DVE/RA
+            cexb=RG1
+            MODEL=MDLKAI-130
 
-            CALL cdbm(BB,RR,RS,RKPRHOL,QL,SHEARL,PNEL,rhoni,dpdr,vexb,dvexbdr, &
-       &             FAfactore,MODEL,dc_cdbm)
+            CALL cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
+                 &    dvexbdrl,calf,cexb,MODEL,chi_cdbm)
 
-            IF(MOD(MDLKAI,2).EQ.0) THEN
-               SL=(S(NR)**2+0.1D0**2)
-               WE1=-QL*RR/(SL*VA)*DVE
-               RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
-!               DBDRR=DPPP*1.D20*RKEV*RA*RA/(BB**2/(2*RMU0))
-!               DELTAE=SQRT(DELTA2)
-!               WE1=SQRT(PA(2)/PA(1))*(QL*RR*DELTAE)/(2*SL*RA*RA)*DBDRR
-            ENDIF
+            AKDWEL=(CK0/12.D0)*chi_cdbm
+            AKDWIL=(CK1/12.D0)*chi_cdbm
 
-            select case(MDLKAI)
-            case(30)
-               FS=1.D0/(1.7D0+SQRT(6.D0)*S(NR))
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(31)
-               ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(32)
-               ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFS(S(NR),ALPHAL,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
-               FS=FS*RG1
-               IF(MDCD05.NE.0) FS=FS*(2.D0*SQRT(RKPRHO(NR))/(1.D0+RKPRHO(NR)**2))**1.5D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(33)
-               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(34)
-               FS=TRCOFS(S(NR),0.D0,RKCV(NR))
-!               FS=FS/(1.D0+RG1*WE1*WE1)
-               FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(35)
-               ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFSS(S(NR),ALPHAL)
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(36)
-               ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFSS(S(NR),ALPHAL)
-!               FS=FS/(1.D0+RG1*WE1*WE1)
-               FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(37)
-               FS=TRCOFSS(S(NR),0.D0)
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(38)
-               FS=TRCOFSS(S(NR),0.D0)
-!               FS=FS/(1.D0+RG1*WE1*WE1)
-               FS=FS*RG1
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            case(39)
-               ALPHAL=ALPHA(NR)*CALF
-               FS=TRCOFSX(S(NR),ALPHAL,RKCV(NR),RA/RR)
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-
-!$$$            case(40)
-!$$$               AEI=(PZ(2)*ANDX+PZ(3)*ANT+PZ(4)*ANA)*AEE/PNI
-!$$$               WCI=AEI*BB/AMI
-!$$$               PTI=(TD*ANDX+TT*ANT+TA*ANA)/PNI
-!$$$               VTI=SQRT(ABS(PTI*RKEV/AMI))
-!$$$               RHOI=VTI/WCI
-!$$$C
-!$$$               FS=TRCOFT(S(NR),ALPHA(NR),RKCV(NR),RA/RR)
-!$$$               SA=S(NR)-ALPHA(NR)
-!$$$               RNST2=0.5D0/((1.D0-2.D0*SA+3.D0*SA*SA)*FS)
-!$$$               RKPP2=RNST2/(FS*ABS(ALPHA(NR))*DELTA2)
-!$$$C
-!$$$               SLAMDA=RKPP2*RHOI**2
-!$$$               RLAMDA=RLAMBDA(SLAMDA)
-!$$$               OMEGAS= SQRT(RKPP2)*TE*RKEV/(AEE*BB*ABS(CLPE))
-!$$$               TAUAP=(QL*RR)/VA
-!$$$               OMEGASS=(OMEGAS*TAUAP)/(RNST2*SQRT(ALPHA(NR)))
-!$$$C
-!$$$c$$$               FS=FS/(1.D0+RG1*WE1*WE1)
-!$$$C
-!$$$               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(RLAMDA*(1.D0+OMEGASS**2))
-!$$$               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR) /(1.D0+OMEGASS**2)
-            case default
-               WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
-               FS=1.D0
-               AKDWEL=CK0*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-               AKDWIL=CK1*FS*SQRT(ABS(ALPHA(NR)))**3*DELTA2*VA/(QL*RR)
-            end select
             AKDW(NR,1)=AKDWEL
             AKDW(NR,2)=AKDWIL
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
 
-            VGR1(NR,1)=FS
+            VGR1(NR,1)=0.d0
             VGR1(NR,2)=S(NR)
             VGR1(NR,3)=ALPHA(NR)
             VGR2(NR,1)=ER(NR)!RNST2
             VGR2(NR,2)=VEXB(NR)!OMEGASS
-            VGR2(NR,3)=0.D0
-!            VGR3(NR,1)=1.D0/(1.D0+RG1*WE1*WE1)!SLAMDA
-            VGR3(NR,1)=RG1!SLAMDA
-            VGR3(NR,2)=ABS(WE1)
+            VGR2(NR,3)=WEXB(NR)
+            VGR3(NR,1)=0.D0
+            VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
-            VGR4(NR,1)=RLAMDA
-            VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
+            VGR4(NR,1)=0.D0
+            VGR4(NR,2)=0.D0
             VGR4(NR,3)=0.D0
 
          ELSE

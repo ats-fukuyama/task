@@ -28,21 +28,11 @@ C
          endif
       else
          nrmax=nrmax+1
-         if(nphmax.eq.1) then
-            nphmax2=1
-         else
-            nphmax2=nphmax*2
-         endif
-         if(nthmax.eq.1) then
-            nthmax2=1
-         else
-            nthmax2=nthmax*2
-         endif
          CALL wmfem_setg(ierr)
          IF(IERR.NE.0) RETURN
          CALL wmfem_setj(ierr)
          IF(IERR.NE.0) RETURN
-         call wmfem_solve
+         call wmfem(nrmax,nthmax,nphmax,nsmax,xrho,0)
          nrmax=nrmax-1
       endif
 C
@@ -50,27 +40,6 @@ C
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
       ENDIF
-      RETURN
-      END
-C
-C     ****** FEM Solver ******
-C
-      SUBROUTINE wmfem_solve
-
-      INCLUDE 'wmcomm.inc'
-      dimension cef(3,nthmax,nphmax,nrmax)
-      dimension cbf(3,nthmax,nphmax,nrmax)
-      dimension cpp(nthmax,nphmax,nthmax2,nphmax2,nrmax,0:nsmax)
-      dimension cpa(nthmax,nphmax)
-
-      call wmfem(nrmax,nthmax,nphmax,nthmax2,nphmax2,nsmax,
-     &           xrho,cef,cbf,cpp,cpa)
-      CALL WMFEM_EFLD(cef)
-      IF(modeeg.eq.0) THEN
-         CALL WMFEM_BFLD(cbf)
-         CALL WMFEM_PABS(cpp,cpa)
-      ENDIF
-
       RETURN
       END
 C
