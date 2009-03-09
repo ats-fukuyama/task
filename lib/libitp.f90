@@ -579,9 +579,9 @@
 !!$      RETURN
 !!$      END FUNCTION DERIV3
 
-!     *** Extrapolate center value ***************************
-!     *  assuming the gradient is zero at the center (rho=0) *
-!     ********************************************************
+!     *** Extrapolate center value *********************************
+!     *  assuming the 1st-derivative is zero at the center (rho=0) *
+!     **************************************************************
 
       real(8) FUNCTION FCTR(R1,R2,F1,F2)
 
@@ -592,3 +592,25 @@
 
       RETURN
       END FUNCTION FCTR
+
+!     *** Extrapolate center value *********************************
+!     *  assuming the 2st-derivative is zero at the center (rho=0) *
+!     *  (Higher order version)                                    *
+!     **************************************************************
+
+      real(8) FUNCTION FCTR2(R1,R2,R3,F1,F2,F3)
+
+      implicit none
+      real(8), intent(in) :: R1, R2, R3, F1, F2, F3
+      real(8) :: D1, D2, D3
+
+      D1 = (R2 - R1) * (R3 - R1) * (R1 + R2 + R3)
+      D2 = (R2 - R1) * (R3 - R2) * (R1 + R2 + R3)
+      D3 = (R3 - R1) * (R3 - R2) * (R1 + R2 + R3)
+
+      FCTR2 =  R2 * R3 * (R2 + R3) / D1 * F1 &
+     &       - R3 * R1 * (R3 + R1) / D2 * F2 &
+     &       + R1 * R2 * (R1 + R2) / D3 * F3
+
+      RETURN
+      END FUNCTION FCTR2
