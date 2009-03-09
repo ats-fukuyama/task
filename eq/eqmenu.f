@@ -126,7 +126,7 @@ C
          CALL EQREAD(IERR)
          IF(IERR.NE.0) GOTO 11
          CALL EQCALQ(IERR)
-         MSTAT=0
+         MSTAT=3
 C
       ELSEIF(KID.EQ.'F') THEN
          IF(MSTAT.NE.0) CALL EQMETRIC(IERR)

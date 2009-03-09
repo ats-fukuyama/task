@@ -28,7 +28,7 @@ LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : eq
+all : eq2 eq3
 
 eqlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) eqlib.a $(OBJS)
@@ -45,8 +45,10 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
 
-eq : eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+eq2: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+eq3: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(GLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
@@ -84,7 +86,7 @@ eqcalc.o: eqcalc.f $(EQCOMM)
 eqcalx.o: eqcalx.f $(EQCOMM) eqcom5.inc
 eqcalq.o: eqcalq.f $(EQCOMM) eqcom3.inc
 eqcalv.o: eqcalv.f $(EQCOMM) eqcom2.inc
-eqsub.o: eqsub.f   $(EQCOMM) eqcom2.inc
+eqsub.o : eqsub.f  $(EQCOMM) eqcom2.inc
 eqfunc.o: eqfunc.f $(EQCOMM) eqcom2.inc eqcom4.inc
 eqsplf.o: eqsplf.f $(EQCOMM) eqcom3.inc
 eqfile.o: eqfile.f $(EQCOMM) eqcom2.inc

@@ -67,7 +67,7 @@ c         transport grid -> equilibrium grid
 c=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       integer(4) :: nr, ierr
-      real(8),dimension(nrmax)  :: sa, data, diff
+      real(8),dimension(nrmax)  :: sa, data, diff, tmp
       real(8),dimension(4,nrmax):: udata
       
 ! local variables
@@ -106,20 +106,23 @@ c=======================================================================
          metric1D%data(nr)%psur    = fnsps(rhot(nr))    ! sps     on rhot
          metric1D%data(nr)%dvpsit  = fndvdpst(rhot(nr)) ! dvdpsit on rhot
          metric1D%data(nr)%dvpsip  = fndvdpsp(rhot(nr)) ! dvdpsip on rhot
-         metric1D%data(nr)%aver2   = fnavrr2(rhot(nr))  ! averr2  on rhot
-         metric1D%data(nr)%aver2i  = fnavir2(rhot(nr))  ! aveir2  on rhot
-         metric1D%data(nr)%aveb2   = fnavbb2(rhot(nr))  ! avebb2  on rhot
-         metric1D%data(nr)%aveb2i  = fnavib2(rhot(nr))  ! aveib2  on rhot
-         metric1D%data(nr)%avegv   = fnavgv(rhot(nr))   ! avegv   on rhot
-         metric1D%data(nr)%avegv2  = fnavgv2(rhot(nr))  ! avegv2  on rhot
-         metric1D%data(nr)%avegvr2 = fnavgr2(rhot(nr))  ! avegr2  on rhot
-         metric1D%data(nr)%avegpp2 = fnavgp2(rhot(nr))  ! avegp2  on rhot
-         metric1D%data(nr)%rr      = fnrrps(rhot(nr))   ! rrpsi   on rhot
-         metric1D%data(nr)%rs      = fnrsps(rhot(nr))   ! rspsi   on rhot
-         metric1D%data(nr)%elip    = fnelpps(rhot(nr))  ! elippsi on rhot
-         metric1D%data(nr)%trig    = fntrgps(rhot(nr))  ! trigpsi on rhot
+         metric1D%data(nr)%aver2   = fnavrr2 (rhot(nr)) ! averr2  on rhot
+         metric1D%data(nr)%aver2i  = fnavir2 (rhot(nr)) ! aveir2  on rhot
+         metric1D%data(nr)%aveb2   = fnavbb2 (rhot(nr)) ! avebb2  on rhot
+         metric1D%data(nr)%aveb2i  = fnavib2 (rhot(nr)) ! aveib2  on rhot
+         metric1D%data(nr)%avegv   = fnavgv  (rhot(nr)) ! avegv   on rhot
+         metric1D%data(nr)%avegv2  = fnavgv2 (rhot(nr)) ! avegv2  on rhot
+         metric1D%data(nr)%avegvr2 = fnavgvr2(rhot(nr)) ! avegvr2 on rhot
+         metric1D%data(nr)%avegr   = fnavgr  (rhot(nr)) ! avegr   on rhot
+         metric1D%data(nr)%avegr2  = fnavgr2 (rhot(nr)) ! avegr2  on rhot
+         metric1D%data(nr)%avegrr2 = fnavgrr2(rhot(nr)) ! avegrr2 on rhot
+         metric1D%data(nr)%avegpp2 = fnavgp2 (rhot(nr)) ! avegp2  on rhot
+         metric1D%data(nr)%rr      = fnrrps  (rhot(nr)) ! rrpsi   on rhot
+         metric1D%data(nr)%rs      = fnrsps  (rhot(nr)) ! rspsi   on rhot
+         metric1D%data(nr)%elip    = fnelpps (rhot(nr)) ! elippsi on rhot
+         metric1D%data(nr)%trig    = fntrgps (rhot(rn)) ! trigpsi on rhot
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
       end subroutine eq_bpsd_set
-c
+
       end module eq_bpsd_mod

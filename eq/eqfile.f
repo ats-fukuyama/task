@@ -316,21 +316,15 @@ C
      &     '<1/R^2>',"<|grad rho|^2/R^2>"
       DO NR = 1, NRPMAX
          CALL SPL1DF(FNPSIP(RHOT(NR)),DAT1,PSIP,UDVDRHO ,NRMAX,IERR)
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT2,PSIP,UAVEIR2 ,NRMAX,IERR)
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT3,PSIP,UAVEGR2R,NRMAX,IERR)
-         WRITE(nmetric,'(1X,F10.8,1P3E15.7)') RHOT(NR),DAT1,DAT2,DAT3
+         WRITE(nmetric,'(1X,F10.8,1P3E15.7)') RHOT(NR),DAT1,
+     &        fnavir2(rhot(nr)),fnavgrr2(nr)
       ENDDO
       WRITE(nmetric,'(80X)')
       WRITE(nmetric,'(A,2X,A,3X,A,3X,A,5X,A,9X,A)') '#','rho_tor',
      &     "<|grad rho|>","<|grad rho|^2>","<B^2>","<1/B^2>"
-      DO NR = 1, NRPMAX
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT1,PSIP,UAVEGRR ,NRMAX,IERR)
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT2,PSIP,UAVEGRR2,NRMAX,IERR)
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT3,PSIP,UAVEBB2 ,NRMAX,IERR)
-         CALL SPL1DF(FNPSIP(RHOT(NR)),DAT4,PSIP,UAVEIB2 ,NRMAX,IERR)
-         WRITE(nmetric,'(1X,F10.8,1P4E15.7)') RHOT(NR),
-     &        DAT1,DAT2,DAT3,DAT4
-      ENDDO
+      WRITE(nmetric,'(1X,0PF10.8,1P4E15.7)') (RHOT(NR),
+     &     fnavgr(rhot(nr)),fnavgr2(rhot(nr)),
+     &     fnavbb2(rhot(nr)),fnavib2(rhot(nr)),NR=1,NRPMAX)
       CLOSE(nmetric)
 C
       WRITE(6,*) '# METRIC DATA WAS SUCCESSFULLY SAVED TO "',
