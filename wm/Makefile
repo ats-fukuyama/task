@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD)
 
@@ -122,8 +122,11 @@ wmsetm1.o : wmsetm1.f $(WMCOMM)
 wmpout1.o : wmpout1.f $(WMCOMM)
 
 wmtae.o : wmtae.f $(WMCOMM)
-wmfem_sub.o : wmfem_sub.f $(WMCOMM)	
-wmfem_setg.o : wmfem_setg.f $(WMCOMM)	
+
+wmfem.o : wmfem.f wmfem_com.f
+wmfem_calc.o : wmfem_calc.f wmfem_com.f
+wmfem_sub.o : wmfem_sub.f wmfem_com.f $(WMCOMM)	
+wmfem_setg.o : wmfem_setg.f wmfem_com.f $(WMCOMM)	
 
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
