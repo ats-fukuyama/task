@@ -40,8 +40,7 @@ C
             CALL WMPFLX
             CALL WMPANT
          else
-            CALL WMFEM_BFLD
-            CALL WMFEM_PABS
+            call wmfem_post
          endif
 
       GOTO 1
@@ -459,8 +458,7 @@ C
             CALL WMPFLX
             CALL WMPANT
          else
-            CALL WMFEM_BFLD
-            CALL WMFEM_PABS
+            call wmfem_post
          endif
 
       GOTO 1
@@ -695,8 +693,7 @@ C
                CALL WMPFLX
                CALL WMPANT
             else
-               CALL WMFEM_BFLD
-               CALL WMFEM_PABS
+               call wmfem_post
             endif
          ENDIF
 C
@@ -825,13 +822,7 @@ C
          CALL WMSOLV
          CALL WMEFLD
       ELSE
-         nrmax=nrmax+1
-         CALL wmfem_setg(ierr)
-         IF(IERR.NE.0) RETURN
-         CALL wmfem_setj(ierr)
-         IF(IERR.NE.0) RETURN
-         call wmfem(nrmax,nthmax,nphmax,nsmax,rhoa,mode)
-         nrmax=nrmax-1
+         call wmfem_main
       ENDIF
 C
       ESUM=0.D0

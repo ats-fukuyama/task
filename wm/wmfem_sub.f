@@ -2,7 +2,7 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm(crf_,nth0_,nph0_,mdlwmf_,mdlwmd_)
+      subroutine get_wmfem_parm(crf_,nth0_,nph0_,mdlwmf_,mdlwmd_)
       
       include '../wm/wmcomm.inc'
       complex(8),intent(out):: crf_
@@ -14,11 +14,11 @@ C     $Id$
       mdlwmf_=mdlwmf
       mdlwmd_=mdlwmd
       return
-      end subroutine get_wmparm
+      end subroutine get_wmfem_parm
 
 !---- interface for wm parameter
 
-      subroutine get_wmparm1(rr_,ra_,rb_)
+      subroutine get_wmfem_parm1(rr_,ra_,rb_)
       
       include '../wm/wmcomm.inc'
       real(8),intent(out):: rr_,ra_,rb_
@@ -26,7 +26,36 @@ C     $Id$
       ra_=ra
       rb_=rb
       return
-      end subroutine get_wmparm1
+      end subroutine get_wmfem_parm1
+
+!---- interface for wm parameter
+
+      subroutine get_wmfem_size(nrmax_,nthmax_,nphmax_,nsmax_,ierr)
+      
+      use wmfem_com, only: rhoa
+      include '../wm/wmcomm.inc'
+      integer,intent(out):: nrmax_,nthmax_,nphmax_,nsmax_
+      integer,intent(out):: ierr
+      integer,save::  nrmax_save=0
+      integer:: nr
+
+      nrmax_=nrmax+1
+      nthmax_=nthmax
+      nphmax_=nphmax
+      nsmax_=nsmax
+
+      if(nrmax.ne.nrmax_save) then
+         if(associated(rhoa)) deallocate(rhoa)
+         allocate(rhoa(nrmax_))
+      endif
+
+      do nr=1,nrmax_
+         rhoa(nr)=xrho(nr)
+      end do
+      ierr=0
+
+      return
+      end subroutine get_wmfem_size
 
 !     ****** CALCULATE METRIC TENSOR ******
 
