@@ -27,8 +27,10 @@ C
             CALL WMPANT
          endif
       else
+         nrmax=nrmax+1
          call wmfem_main
          call wmfem_post
+         nrmax=nrmax-1
       endif
 C
       IF(MYRANK.EQ.0) THEN

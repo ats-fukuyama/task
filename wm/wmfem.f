@@ -509,7 +509,7 @@
          fvx(ml)=fvb(ml)
       end do
 
-      write(6,*) 'mlmax,mwmax=',mlmax,mwmax
+!      write(6,*) 'mlmax,mwmax=',mlmax,mwmax
       call bandcd(fma,fvx,mlmax,mwmax,mwmax,ierr)
       if(ierr.ne.0) write(6,*) '# ierr= ',ierr
 
@@ -580,6 +580,8 @@
 
       subroutine wmfem_calculate_bfield
 
+      use wmfem_com
+      implicit none
       integer:: nr,nth,nph
       complex(8),dimension(3,nthmax,nphmax):: cbfl
 

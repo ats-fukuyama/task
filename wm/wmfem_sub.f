@@ -39,7 +39,7 @@ C     $Id$
       integer,save::  nrmax_save=0
       integer:: nr
 
-      nrmax_=nrmax+1
+      nrmax_=nrmax
       nthmax_=nthmax
       nphmax_=nphmax
       nsmax_=nsmax
@@ -737,7 +737,7 @@ C     ****** CALCULATE ABSORBED POWER ******
 C
       SUBROUTINE WMFEM_PABS
 C
-      use wmfem_com, only: cpp,cpa
+      use wmfem_com, only: cpp,cpa,nthmax2,nphmax2
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)

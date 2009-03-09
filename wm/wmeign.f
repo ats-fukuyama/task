@@ -40,7 +40,9 @@ C
             CALL WMPFLX
             CALL WMPANT
          else
+            nrmax=nrmax+1
             call wmfem_post
+            nrmax=nrmax-1
          endif
 
       GOTO 1
@@ -458,7 +460,9 @@ C
             CALL WMPFLX
             CALL WMPANT
          else
+            nrmax=nrmax+1
             call wmfem_post
+            nrmax=nrmax-1
          endif
 
       GOTO 1
@@ -693,7 +697,9 @@ C
                CALL WMPFLX
                CALL WMPANT
             else
+               nrmax=nrmax+1
                call wmfem_post
+               nrmax=nrmax-1
             endif
          ENDIF
 C
@@ -822,7 +828,9 @@ C
          CALL WMSOLV
          CALL WMEFLD
       ELSE
+         nrmax=nrmax+1
          call wmfem_main
+         nrmax=nrmax-1
       ENDIF
 C
       ESUM=0.D0
