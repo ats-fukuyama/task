@@ -351,15 +351,15 @@ C
       NLPNW  = 20
 C
 C        MDLEQF : Profile parameter
-C            0: given analytic profile  P,Jtoroidal,T,Vph + Ip
-C            1: given analytic profile  P,F               + Ip
-C            2: given analytic profile  P,Jparallel       + Ip
-C            3: given analytic profile  P,Jparallel
+C            0: given analytic profile  P,J_tor,T,Vph + Ip
+C            1: given analytic profile  P,F           + Ip
+C            2: given analytic profile  P,J_para      + Ip
+C            3: given analytic profile  P,J_para
 C            4: given analytic profile  P,q
-C            5: given spline profile    P,Jtoroial,T,Vph  + Ip
-C            6: given spline profile    P,F               + Ip
-C            7: given spline profile    P,Jparapllel      + Ip
-C            8: given spline profile    P,Jparapllel
+C            5: given spline profile    P,J_tor,T,Vph + Ip
+C            6: given spline profile    P,F           + Ip
+C            7: given spline profile    P,J_para      + Ip
+C            8: given spline profile    P,J_para
 C            9: given spline profile    P,q
 C
 C           10: Free boundary

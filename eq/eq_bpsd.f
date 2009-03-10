@@ -1,10 +1,9 @@
-c
       module eq_bpsd_mod
-c
+
       use bpsd
-      public eq_bpsd_init, eq_bpsd_set
+      public eq_bpsd_init, eq_bpsd_set, eq_bpsd_get
       private
-c
+
       type(bpsd_device_type),  private,save :: device
       type(bpsd_equ1D_type),   private,save :: equ1D
       type(bpsd_metric1D_type),private,save :: metric1D
@@ -12,22 +11,22 @@ c
       type(bpsd_plasmaf_type), private,save :: plasmaf
       logical, private, save :: eq_bpsd_init_flag = .TRUE.
       contains
-c=======================================================================
+!=======================================================================
       subroutine eq_bpsd_init(ierr)
-c=======================================================================
+!=======================================================================
       INCLUDE '../eq/eqcomq.inc'
 !      implicit none
       integer(4) :: ierr
 ! local variables
       integer(4) :: ns
       real(8) :: pretot, dentot, temave
-c=======================================================================
+!=======================================================================
       if(eq_bpsd_init_flag) then
          equ1D%nrmax=0
          metric1D%nrmax=0
          eq_bpsd_init_flag=.FALSE.
       endif
-c
+
       device%rr   = RR
       device%zz   = 0.d0
       device%ra   = RA
@@ -37,7 +36,7 @@ c
       device%elip = RKAP
       device%trig = RDLT
       call bpsd_set_data(device,ierr)
-c
+
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nrmax) then
          if(associated(equ1D%rho)) deallocate(equ1D%rho)
@@ -46,7 +45,7 @@ c
          allocate(equ1D%rho(NRMAX))
          allocate(equ1D%data(NRMAX))
       endif
-c
+
       metric1D%time=0.D0
       if(metric1D%nrmax.ne.nrmax) then
          if(associated(metric1D%rho)) deallocate(metric1d%rho)
@@ -58,20 +57,20 @@ c
 
       return
       end subroutine eq_bpsd_init
-c
-c=======================================================================
+
+!=======================================================================
       subroutine eq_bpsd_set(ierr)
-c=======================================================================
-c     interface eqiulibrium <>transport                            JAERI
-c         transport grid -> equilibrium grid     
-c=======================================================================
+!=======================================================================
+!     interface eqiulibrium => transport
+!         equilibrium grid => transport grid     
+!=======================================================================
       INCLUDE '../eq/eqcomq.inc'
       integer(4) :: nr, ierr
       real(8),dimension(nrmax)  :: sa, data, diff, tmp
       real(8),dimension(4,nrmax):: udata
       
 ! local variables
-c=======================================================================
+!=======================================================================
 
       plasmaf%nrmax=0
       call bpsd_get_data(plasmaf,ierr)
@@ -123,6 +122,44 @@ c=======================================================================
          metric1D%data(nr)%trig    = fntrgps (rhot(rn)) ! trigpsi on rhot
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
+
       end subroutine eq_bpsd_set
+
+!=======================================================================
+      subroutine eq_bpsd_get(ierr)
+!=======================================================================
+!     interface transport => equilibrium
+!=======================================================================
+      INCLUDE '../eq/eqcomq.inc'
+      integer(4) :: ierr
+
+      call bpsd_get_data(device,ierr)
+
+      RR=device%rr
+      RA=device%ra
+      RB=device%rb
+      BB=device%bb
+      RIP=device%ip
+      RKAP=device%elip
+      RDLT=device%trig
+
+      equ1D%time=0.D0
+      if(equ1D%nrmax.ne.nrmax) then
+         if(associated(equ1D%rho)) deallocate(equ1D%rho)
+         if(associated(equ1D%data)) deallocate(equ1D%data)
+         equ1D%nrmax=NRMAX
+         allocate(equ1D%rho(NRMAX))
+         allocate(equ1D%data(NRMAX))
+      endif
+
+      metric1D%time=0.D0
+      if(metric1D%nrmax.ne.nrmax) then
+         if(associated(metric1D%rho)) deallocate(metric1d%rho)
+         if(associated(metric1D%data)) deallocate(metric1d%data)
+         metric1D%nrmax=NRMAX
+         allocate(metric1D%rho(NRMAX))
+         allocate(metric1D%data(NRMAX))
+      endif
+      end subroutine eq_bpsd_get
 
       end module eq_bpsd_mod
