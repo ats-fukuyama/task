@@ -78,9 +78,9 @@
       enddo
             
       if(id_base.eq.0) then
-         call fem_hhh(fmd,nfcmax,drho,fml)
+         call fem_hhh(fmd,drho,fml)
       else
-         call fem_hqq(fmd,nfcmax,drho,fml)
+         call fem_hqq(fmd,drho,fml)
       endif
 
       return
@@ -841,14 +841,13 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
 !---- FEM cubic hermit ---
 
-      subroutine fem_hhh(fmd,nfcmax,drho,fml)
+      subroutine fem_hhh(fmd,drho,fml)
 
       use libfem_mod
       use wmfem_com
       implicit none
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
       complex(8),dimension(4*6*nfcmax-1,2*6*nfcmax),intent(out):: fml
-      integer,intent(in):: nfcmax
       real(8),intent(in):: drho
       integer:: mr,mc,i,j,k,nf1,nf2,inod,ml,mw
 
@@ -969,14 +968,13 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
 !---- FEM cubic hermit + quadratic ---
 
-      subroutine fem_hqq(fmd,nfcmax,drho,fml)
+      subroutine fem_hqq(fmd,drho,fml)
 
       use libfem_mod
       use wmfem_com
       implicit none
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
       complex(8),dimension(4*6*nfcmax-1,2*6*nfcmax),intent(out):: fml
-      integer,intent(in):: nfcmax
       real(8),intent(in):: drho
       integer:: mr,mc,i,j,k,nf1,nf2,inod,ml,mw
 
