@@ -154,7 +154,7 @@
 
       SUBROUTINE TRCMP2(INQ)
 
-      USE TRCOMM, ONLY : AJBST, AJT, G3D, GT, GVT, GYT, KUFDCG, KUFDEV, MDLUF, MDLXP, NGT, NRMAX, NTM, NTS, &
+      USE TRCOMM, ONLY : AJBST, AJTTOR, G3D, GT, GVT, GYT, KUFDCG, KUFDEV, MDLUF, MDLXP, NGT, NRMAX, NTM, NTS, &
      &                   NTUM, PEXST, PRFST, RTU, TS0, WPT
       USE TRCOM1, ONLY : NTXMAX
       IMPLICIT NONE
@@ -251,7 +251,8 @@
 
          CALL MOVE( 2.0, 12.0)
          CALL TEXT('IP  =', 5)
-         CALL NUMBD(AJT,'(1F7.3)',7)
+!!         CALL NUMBD(AJT,'(1F7.3)',7)
+         CALL NUMBD(AJTTOR,'(1F7.3)',7)
          CALL TEXT('[MA]', 4)
 
          CALL MOVE( 2.0, 11.0)

@@ -13,9 +13,10 @@
      &   MDLEQN, MDLPCK, MDLUF, MDTC, MLM, NEQMAX, NFM, NGR, NGRSTP, &
      &   NGT, NGTSTP, NRAMAX, NRM, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
      &   NTEQIT, NTMAX, NTSTEP, NTUM, &
-     &   PA, PZ, PZC, PZFE, Q0, QP, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
+     &   PA, PZ, PZC, PZFE, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
      &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt
+     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT, akdw, nt, &
+     &   ABVRHOG, RDPVRHOG
       USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
@@ -127,7 +128,6 @@
          ENDDO
       ENDIF
 
-
       DO NR=1,NRMAX
          DO NEQ=1,NEQMAX
             NSSN=NSS(NEQ)
@@ -138,7 +138,10 @@
                   RDP(NR) = XV(NEQ,NR)
                ELSE
                   RDP(NR) = 0.5D0*(XV(NEQ,NR)+X(NEQRMAX*(NR-1)+NSTN))
+!                  if(nr==nrmax)write(6,*) NEQMAX,NEQRMAX,NEQRMAX*(NR-1)+NSTN,NEQMAX*(NR-1)+NSTN,NSTN
+!                  if(nr==nrmax)write(6,*) "NSTN/=0",XV(NEQ,NR),X(NEQRMAX*(NR-1)+NSTN),X(NEQMAX*(NR-1)+NSTN)
                ENDIF
+               RDPVRHOG(NR) = RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN !!!
                IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN
@@ -248,9 +251,10 @@
                CALL TIMESPL(TSL,AJL,TMU,AJU(1,NR),NTXMAX,NTUM,IERR)
                AJ(NR)=AJL
                FACTOR0=RMU0*BB*DVRHO(NR)*AJ(NR)/TTRHO(NR)**2
-               FACTORM=DVRHOG(NR-1)*ABRHOG(NR-1)/TTRHOG(NR-1)
-               FACTORP=DVRHOG(NR  )*ABRHOG(NR  )/TTRHOG(NR  )
-               RDP(NR)=(FACTOR0*DR+FACTORM*RDP(NR-1))/FACTORP
+               FACTORM=ABVRHOG(NR-1)/TTRHOG(NR-1)
+               FACTORP=ABVRHOG(NR  )/TTRHOG(NR  )
+               RDPVRHOG(NR)=(FACTOR0*DR+FACTORM*RDPVRHOG(NR-1))/FACTORP
+               RDP(NR)=RDPVRHOG(NR)*DVRHOG(NR)
             ENDDO
             IF(RHOA.NE.1.D0) NRMAX=NRAMAX
          ENDIF
@@ -362,7 +366,8 @@
      &                   MDTC, MLM, NEA, NEQM, NEQMAX, NRM, NRMAX, NSMAX, &
      &                   NSS, NST, NTUM, NVM, PI, PNB, PNF, RA, RIP, RIPA, &
      &                   RKEV, RMU0, RN, RR, RT, RTM, TAUB, TAUF, TAUK, VI, &
-     &                   VV, X, XV, Y, YV, Z, ZV, NEQMAXM, RDPS
+     &                   VV, X, XV, Y, YV, Z, ZV, NEQMAXM, RDPS, &
+     &                   ABVRHOG, RDPVRHOG, RDP
       USE TRCOM1, ONLY : A, B, C, D, PPA, PPB, PPC, RD
       IMPLICIT NONE
       INTEGER(4), INTENT(INOUT):: NEQRMAX
@@ -370,9 +375,10 @@
      &             NV, NW, NX
       REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
+      ! Boundary condition for magnetic diffusion equation
       IF(MDLEQB.NE.0) THEN
          IF(MDLCD.EQ.0) THEN
-            RDPS=2.D0*PI*RMU0*RIP*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+            RDPS=2.D0*PI*RMU0*RIP*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
          ELSE
             NEQ=1
             IF(NSS(NEQ).EQ.0) THEN
@@ -381,12 +387,13 @@
                RDPA=0.D0
             ENDIF
             RLP=RA*(LOG(8.D0*RR/RA)-2.D0)
-            RDPS= RDPA -4.D0*PI*PI*RMU0*RA/(RLP*DVRHOG(NRMAX)*ABRHOG(NRMAX))
+            RDPS= RDPA -4.D0*PI*PI*RMU0*RA*DVRHOG(NRMAX)/(RLP*ABVRHOG(NRMAX))
          ENDIF
          IF(MDLUF.NE.0) THEN
-            RDPS=2.D0*PI*RMU0*RIPA*1.D6/(DVRHOG(NRMAX)*ABRHOG(NRMAX))
+            RDPS=2.D0*PI*RMU0*RIPA*1.D6*DVRHOG(NRMAX)/ABVRHOG(NRMAX)
          ENDIF
       ENDIF
+!      RDPS=RDP(NRMAX)
 
       COEF = AEE**4*1.D20/(3.D0*SQRT(2.D0*PI)*PI*EPS0**2)
 
@@ -868,7 +875,7 @@
       SUBROUTINE TRXTOA
 
       USE TRCOMM, ONLY : AKDW, AMM, ANC, ANFE, ANNU, AR1RHOG, BP, DR, MDLEQE, MDLEQN, MDTC, NEQMAX, NRM, NRMAX, NROMAX, &
-     &                   NSM, NSMAX, NSS, NSV, PA, PZ, PZC, PZFE, RDP, RN, RPSI, RR, RT, RU, RW, XV, YV, ZV
+     &                   NSM, NSMAX, NSS, NSV, PA, PZ, PZC, PZFE, RDP, RN, RPSI, RR, RT, RU, RW, XV, YV, ZV, RDPVRHOG, DVRHOG
       IMPLICIT NONE
       INTEGER(4):: N, NEQ, NEQ1, NR, NS, NSSN, NSSN1, NSVN, NSVN1
       REAL(8)   :: SUM
@@ -880,6 +887,7 @@
             NSVN=NSV(NEQ)
             IF(NSVN.EQ.0) THEN
                RDP(NR) = XV(NEQ,NR)
+               RDPVRHOG(NR)=RDP(NR) / DVRHOG(NR)
             ELSEIF(NSVN.EQ.1) THEN
                IF(MDLEQN.NE.0) THEN
                   IF(NSSN.EQ.1.AND.MDLEQE.EQ.0) THEN

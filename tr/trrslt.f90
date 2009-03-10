@@ -20,7 +20,7 @@
            & RNF, RQ1, RR, RT, RW, SIE, SIET, SINT, SLT, SNB, SNBT, SNF, &
            & SNFT, SOUT, SPE, SPET, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, &
            & TFAV, TPRE, TS0, TSAV, VLOOP, VV, WBULKT, WFT, WPDOT, WPPRE, & 
-           & WPT, WST, WTAILT, ZEFF, ZEFF0
+           & WPT, WST, WTAILT, ZEFF, ZEFF0, ABVRHOG, RDPVRHOG
       IMPLICIT NONE
       INTEGER(4):: NEQ, NF, NMK, NR, NRL, NS, NSSN, NSSN1, NSVN, NSVN1, NSW, NW
       REAL(8)   :: ANFSUM, C83, DRH, DV53, FCTR, PAI, PLST, RNSUM, RNTSUM, &
@@ -208,6 +208,7 @@
       AJBST     = SUM(AJBS (1:NRMAX)  *DSRHO(1:NRMAX))*DR/1.D6
 
       AJT    = SUM(AJ   (1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
+      ! Plasma current, AJTTOR
       AJTTOR = SUM(AJTOR(1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
       AJOHT  = SUM(AJOH (1:NRMAX)*DSRHO(1:NRMAX))*DR/1.D6
 
@@ -296,8 +297,8 @@
 
 !     *** Inductance and one-turn voltage ***
 
-      WPOL=SUM(DVRHOG(1:NRMAX)*ABRHOG(1:NRMAX)*RDP(1:NRMAX)**2*DR/(2.D0*RMU0))
-      ALI=4.D0*WPOL/(RMU0*RR*(AJT*1.D6)**2)
+      WPOL=SUM(ABVRHOG(1:NRMAX)*RDPVRHOG(1:NRMAX)**2*DVRHOG(1:NRMAX))*DR/(2.D0*RMU0)
+      ALI=4.D0*WPOL/(RMU0*RR*(AJTTOR*1.D6)**2)
 
       VLOOP = EZOH(NRMAX)*2.D0*PI*RR
 
@@ -672,7 +673,7 @@
      &                   BETAPA, DT, GTCPU1, KFNLOG, NGR, NGT, NRMAX, NTMAX, PBCLT, PBINT, PCXT, PFCLT, PFINT, PICTOT, PIET, &
      &                   PINT, PLHNPR, PLHTOT, PLT, PN, PNBT, PNFT, POHT, POUT, PRFT, PRLT, Q0, QF, QP, RIPE, RIPS, RQ1, SIET,&
      &                   SINT, SLT, SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, TS0, TSAV, VLOOP, VSEC,    &
-     &                   WBULKT, WFT, WPDOT, WPT, WST, WTAILT, ZEFF, ZEFF0
+     &                   WBULKT, WFT, WPDOT, WPT, WST, WTAILT, ZEFF, ZEFF0, AJTTOR
       IMPLICIT NONE
       CHARACTER(LEN=1),INTENT(IN):: KID
       INTEGER(4):: I, IERR, IST, NDD, NDM, NDY, NTH1, NTM1, NTS1
@@ -716,12 +717,18 @@
      &          ' ',3X,'WF    =',1PD10.3,'  TF0   =',1PD10.3, &
      &               '  TFAVE =',1PD10.3,'  NFAVE =',1PD10.3)
 
-         WRITE(6,603) AJT,VLOOP,ALI,VSEC, &
-     &                AJOHT,AJNBT,AJRFT,AJBST
-  603    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
+!!$         WRITE(6,603) AJT,VLOOP,ALI,VSEC, &
+!!$     &                AJOHT,AJNBT,AJRFT,AJBST
+!!$  603    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
+!!$     &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
+!!$     &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
+!!$     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+         WRITE(16,603) AJTTOR,VLOOP,ALI,VSEC, &
+     &                AJT,AJOHT,AJNBT,AJBST
+  603    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
      &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
-     &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
-     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+     &          ' ',3X,'AJT   =',1PD10.3,'  AJOHT =',1PD10.3, &
+     &               '  AJNBT =',1PD10.3,'  AJBST =',1PD10.3)
 
          WRITE(6,604) PINT,POHT,PNBT,PNFT, &
      &                PRFT(1),PRFT(2),PRFT(3),PRFT(4), &
@@ -897,8 +904,8 @@
      &          ' ',3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3, &
      &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3)
 
-         WRITE(6,673) AJT,VLOOP,ALI,Q0,AJOHT,AJNBT,AJRFT,AJBST
-  673    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
+         WRITE(6,673) AJTTOR,VLOOP,ALI,Q0,AJOHT,AJNBT,AJRFT,AJBST
+  673    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
      &               '  ALI   =',1PD10.3,'  Q0    =',1PD10.3/ &
      &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
      &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
@@ -951,9 +958,9 @@
      &          ' ',3X,'WD    =',1PD10.3,'  TD0   =',1PD10.3, &
      &               '  TDAVE =',1PD10.3,'  NDAVE =',1PD10.3)
 
-         WRITE(16,1673) AJT,VLOOP,ALI,Q0, &
+         WRITE(16,1673) AJTTOR,VLOOP,ALI,Q0, &
      &                AJOHT,AJNBT,AJRFT,AJBST
- 1673    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
+ 1673    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
      &               '  ALI   =',1PD10.3,'  Q0    =',1PD10.3/ &
      &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
      &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)

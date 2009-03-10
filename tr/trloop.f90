@@ -7,23 +7,16 @@
       SUBROUTINE TRLOOP
 
       USE TRCOMM, ONLY : &
-     &   ABRHOG, AJ, AJU, AMM, ANC, ANFE, ANNU, AR1RHOG, AX, AY, AZ, BB, &
-     &   DR, DT, DVRHO, DVRHOG, EPSLTR, LDAB, LMAXTR, MDLEQB, MDLEQE, &
-     &   MDLEQN, MDLPCK, MDLUF, MDTC, MLM, MODELG, NEQMAX, NFM, NGR, NGRSTP, &
-     &   NGT, NGTSTP, NRAMAX, NRM, NRMAX, NROMAX, NSM, NSMAX, NSS, NST, NSV, &
-     &   NT, NTEQIT, NTMAX, NTSTEP, NTUM, &
-     &   PA, PZ, PZC, PZFE, Q0, QP, RDP, RG, RHOA, RIP, RIPE, RIPS, RIPU, &
-     &   RMU0, RN, RR, RT, RU, RW, T, TPRST, TST, TTRHO, TTRHOG, &
-     &   VLOOP, VSEC, X, XV, Y, YV, Z, ZV ,NEQMAXM, DIPDT
-      USE TRCOM1, ONLY : TMU, TMU1, NTAMAX, NTXMAX, NTXMAX1
+     &   DT, MDLUF, MODELG, NT, NTEQIT, NTMAX, Q0, QP, RG, RIP, RIPE, RIPS, &
+     &   TPRST, TST, DIPDT
+      USE TRCOM1, ONLY : NTAMAX
       use tr_bpsd,only: tr_bpsd_set, tr_bpsd_get
       use trunit
       use equnit_mod
       use equunit_mod
       IMPLICIT NONE
-      INTEGER(4):: I, ICHCK, IDGLOB, IERR, INFO, J, L, LDB, M, MWRMAX, N, NEQ, NEQ1, NEQRMAX, NF, NR, NRHS, NS, NSSN, NSSN1, &
-     &             NSTN, NSTN1, NSVN, NSVN1, KL, KU
-      REAL(8)   :: AJL, DIP, FACTOR0, FACTORM, FACTORP, FCTR, TSL
+      INTEGER(4):: IERR
+      REAL(8)   :: FCTR
 
       IF(NT.GE.NTMAX) GOTO 9000
 

@@ -217,7 +217,7 @@
 
       DO I=1,NGT
          GYT(I,1)=GVT(I,99)
-         GYT(I,2)=GVT(I,34)
+         GYT(I,2)=GVT(I,101)!GVT(I,34)
       ENDDO
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,2,'@BT, IP  vs t@',2+INQ)
 
@@ -315,12 +315,14 @@
       GYT(1:NGT,4)=GVT(1:NGT,14)
       CALL TRGR1D( 3.0,12.0,14.0,17.0,GT,GYT,NTM,NGT,4,'@TE,TD,<TE>,<TD> [keV]  vs t@',2+INQ)
 
-      GYT(1:NGT,1)=GVT(1:NGT,34)
+!      GYT(1:NGT,1)=GVT(1:NGT,34)
+      GYT(1:NGT,1)=GVT(1:NGT,101)
       GYT(1:NGT,2)=GVT(1:NGT,35)
       GYT(1:NGT,3)=GVT(1:NGT,36)
       GYT(1:NGT,4)=GVT(1:NGT,37)
       GYT(1:NGT,5)=GVT(1:NGT,38)
-      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,5,'@IP,IOH,INB,IRF,IBS [MA]  vs t@',2+INQ)
+      GYT(1:NGT,6)=GVT(1:NGT,34)
+      CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,6,'@IP,IOH,INB,IRF,IBS,IPARA [MA]  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,39)
       GYT(1:NGT,2)=GVT(1:NGT,40)
@@ -394,7 +396,7 @@
 
       GYT(1:NGT,1)=GVT(1:NGT,85)*100.0
       GYT(1:NGT,2)=GVT(1:NGT,84)*100.0
-      GYT(1:NGT,3)=GVT(1:NGT,85)*100.0/(GVT(1:NGT,34)/SNGL(RA*BB))
+      GYT(1:NGT,3)=GVT(1:NGT,85)*100.0/(GVT(1:NGT,101)/SNGL(RA*BB))!(GVT(1:NGT,34)/SNGL(RA*BB))
       CALL TRGR1D( 3.0,12.0, 9.7,12.7,GT,GYT,NTM,NGT,3,'@BETAa,BETA0,[%],BETAN  vs t@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,79)
@@ -521,7 +523,7 @@
       CALL TRGR1D(15.5,24.5,11.0,17.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@tauE/tauE89 vs li@',2+INQ)
 
       GYT(1:NGT,1)=SNGL(RA/RR)*GVT(1:NGT,83)
-      GYT(1:NGT,2)=GVT(1:NGT,38)/GVT(1:NGT,34)
+      GYT(1:NGT,2)=GVT(1:NGT,38)/GVT(1:NGT,101)!GVT(1:NGT,34)
       CALL TRGR1D( 3.0,12.0, 2.0, 8.0,GYT(1,1),GYT(1,2),NTM,NGT,1,'@Ibs/Ip vs eps*betap@',2+INQ)
 
       GYT(1:NGT,1)=GVT(1:NGT,77)
