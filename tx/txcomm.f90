@@ -15,18 +15,18 @@ module tx_commons
        &                   LQr1=21
   integer(4), parameter :: nmax_file = 100
 
-  !************************!
-  ! Set physical constants !
-  !************************!
+  !**********************************************!
+  ! Set physical constants, based on CODATA 2006 !
+  !**********************************************!
 
   !   Electron charge (C)
-  real(8), parameter :: AEE  = 1.60217733D-19
+  real(8), parameter :: AEE  = 1.602176487D-19
 
   !   Electron mass (kg)
-  real(8), parameter :: AME  = 9.1093897D-31
+  real(8), parameter :: AME  = 9.10938215D-31
 
   !   Proton mass (kg)
-  real(8), parameter :: AMP  = 1.6726231D-27
+  real(8), parameter :: AMP  = 1.672621637D-27
 
   !   Light velocity (m/s)
   real(8), parameter :: VC   = 2.99792458D8

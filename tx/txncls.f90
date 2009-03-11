@@ -2,7 +2,7 @@
 
 module sauter_mod
   implicit none
-  real(8), parameter :: AEE  = 1.60217733D-19 ! elementary charge
+  real(8), parameter :: AEE  = 1.602176487D-19 ! elementary charge
   private
   public :: SAUTER
 
