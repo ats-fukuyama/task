@@ -2,7 +2,7 @@ MODULE TRCOMM
   USE TRCOM0
   IMPLICIT NONE
 
-!     ****** CONSTANTS ******
+!     ****** CONSTANTS, based on CODATA 2006 ******
 ! TRCNS
 !        PI    : Pi
 !        AEE   : Elementaty charge
@@ -13,9 +13,9 @@ MODULE TRCOMM
 !        EPS0  : Permittivity of free space
 !        RKEV  : Factor ([keV] -> [J])
   REAL(8), PARAMETER :: PI   = 3.14159265358979323846D0
-  REAL(8), PARAMETER :: AEE  = 1.60217733D-19
-  REAL(8), PARAMETER :: AME  = 9.1093897D-31
-  REAL(8), PARAMETER :: AMM  = 1.6726231D-27
+  REAL(8), PARAMETER :: AEE  = 1.602176487D-19
+  REAL(8), PARAMETER :: AME  = 9.10938215D-31
+  REAL(8), PARAMETER :: AMM  = 1.672621637D-27
   REAL(8), PARAMETER :: VC   = 2.99792458D8
   REAL(8), PARAMETER :: RMU0 = 4.D0*PI*1.D-7
   REAL(8), PARAMETER :: EPS0 = 1.D0/(VC*VC*RMU0)

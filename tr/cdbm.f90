@@ -22,9 +22,10 @@ MODULE cdbm_mod
   real(rkind),parameter :: PI   = 3.14159265358979323846_dp
   real(rkind),parameter :: TWOPI= PI+PI
 
-  real(rkind),parameter :: AEE  = 1.6021892E-19_dp ! elementary charge
-  real(rkind),parameter :: AME  = 9.109534E-31_dp  ! electron mass
-  real(rkind),parameter :: AMP  = 1.6726485E-27_dp ! proton mass
+  ! Physical constans, based on CODATA 2006
+  real(rkind),parameter :: AEE  = 1.602176487E-19_dp ! elementary charge
+  real(rkind),parameter :: AME  = 9.10938215E-31_dp  ! electron mass
+  real(rkind),parameter :: AMP  = 1.672621637E-27_dp ! proton mass
   real(rkind),parameter :: VC   = 2.99792458E8_dp  ! speed of light
   real(rkind),parameter :: RMU0 = 4.E-7_dp*PI      ! permeability
   real(rkind),parameter :: EPS0 = ONE/(VC*VC*RMU0) ! permittivity
@@ -103,7 +104,7 @@ CONTAINS
     END SELECT
 
     fs=trcofs(shear,calf*alpha,curv)
-    chi_cdbm=ckcdbm*fs*fk*fe**SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
+    chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
     RETURN
   END SUBROUTINE cdbm
 
