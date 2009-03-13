@@ -37,8 +37,8 @@ C
          ENDIF
 C
       ELSEIF(MODELG.EQ.2) THEN
-         RL=SQRT(X**2+Y**2)
-         RS =SQRT((RL-RR)**2+Z**2)
+         RL  =SQRT(X**2+Y**2)
+         RS  =SQRT((RL-RR)**2+Z**2)
          RHON=RS/RA
          IF(RS.LE.0.D0) THEN
             BT   = BB
@@ -98,10 +98,10 @@ C
       DIMENSION RN_(NSM),RTPR_(NSM),RTPP_(NSM),RU_(NSM)
       CALL PLPROF(RHON)
       DO NS=1,NSMAX
-         RN_(NS)=RN(NS)
+         RN_(NS)  =RN(NS)
          RTPR_(NS)=RTPR(NS)
          RTPP_(NS)=RTPP(NS)
-         RU_(NS)=RU(NS)
+         RU_(NS)  =RU(NS)
       ENDDO
       RETURN
       END
@@ -154,7 +154,7 @@ C
                RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
                IF(RHOL.LT.RHOITB) THEN
-                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
                   RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
                   RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
                   RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
@@ -184,7 +184,7 @@ C
                RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
                IF(RHOL.LT.RHOITB) THEN
-                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
                   RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
                   RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
                   RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
@@ -212,7 +212,7 @@ C
                RN(NS)  =PN(NS)  *FACT
                RTPR(NS)=PTPR(NS)*FACT
                RTPP(NS)=PTPP(NS)*FACT
-               RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
+               RU(NS)  =(PU(NS)-PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
             ENDDO
          ENDIF
@@ -235,23 +235,23 @@ C
                FNX=(1.D0-RHOEDG**PROFN1)**PROFN2
                DFNX=-PROFN1*PROFN2*RHOEDG**(PROFN1-1.D0)
      &             *(1.D0-RHOEDG**PROFN1)**(PROFN2-1.D0)
-               AN= 3*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
-               BN=-2*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
-               FACTN=AN*(1-RHOL)**2+BN*(1-RHOL)**3
+               AN= 3.D0*FNX/(1.D0-RHOEDG)**2+DFNX/(1.D0-RHOEDG)
+               BN=-2.D0*FNX/(1.D0-RHOEDG)**3-DFNX/(1.D0-RHOEDG)**2
+               FACTN=AN*(1.D0-RHOL)**2+BN*(1.D0-RHOL)**3
 C
                FTX=(1.D0-RHOEDG**PROFT1)**PROFT2
                DFTX=-PROFT1*PROFT2*RHOEDG**(PROFT1-1.D0)
      &             *(1.D0-RHOEDG**PROFT1)**(PROFT2-1.D0)
-               AT= 3*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
-               BT=-2*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
-               FACTT=AT*(1-RHOL)**2+BT*(1-RHOL)**3
+               AT= 3.D0*FTX/(1.D0-RHOEDG)**2+DFTX/(1.D0-RHOEDG)
+               BT=-2.D0*FTX/(1.D0-RHOEDG)**3-DFTX/(1.D0-RHOEDG)**2
+               FACTT=AT*(1.D0-RHOL)**2+BT*(1.D0-RHOL)**3
 C
                FUX=(1.D0-RHOEDG**PROFU1)**PROFU2
                DFUX=-PROFU1*PROFU2*RHOEDG**(PROFU1-1.D0)
      &             *(1.D0-RHOEDG**PROFU1)**(PROFU2-1.D0)
-               AU= 3*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
-               BU=-2*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
-               FACTU=AU*(1-RHOL)**2+BU*(1-RHOL)**3
+               AU= 3.D0*FUX/(1.D0-RHOEDG)**2+DFUX/(1.D0-RHOEDG)
+               BU=-2.D0*FUX/(1.D0-RHOEDG)**3-DFUX/(1.D0-RHOEDG)**2
+               FACTU=AU*(1.D0-RHOL)**2+BU*(1.D0-RHOL)**3
             ENDIF
 C
             DO NS=1,NSMAX
@@ -261,7 +261,7 @@ C
                RU(NS)  =(PU(NS)  -PUS(NS))*FACTU+PUS(NS)
                RZCL(NS)=PZCL(NS)
                IF(RHOL.LT.RHOITB) THEN
-                  FACTITB=(1.D0-(RHOL/RHOITB)**4)**2
+                  FACTITB =(1.D0-(RHOL/RHOITB)**4)**2
                   RN(NS)  =RN(NS)  +PNITB(NS)*FACTITB
                   RTPR(NS)=RTPR(NS)+PTITB(NS)*FACTITB
                   RTPP(NS)=RTPP(NS)+PTITB(NS)*FACTITB
@@ -353,17 +353,18 @@ C
             IF(RHOL.GT.1.D0) THEN
                QL = QA*RHOL**2
             ELSEIF(RHOMIN.LE.0.D0)THEN
-               QL =(Q0-QA)*(1-RHOL**2)+QA
+               QL =(Q0-QA)*(1.D0-RHOL**2)+QA
             ELSE
-               QSA0    =1/Q0-1/QMIN
-               QSAA    =1/QA-1/QMIN
+               QSA0  =1.D0/Q0-1.D0/QMIN
+               QSAA  =1.D0/QA-1.D0/QMIN
                IF(RHOL.LE.RHOMIN)THEN
-                  QL =1/(1/Q0-QSA0*(3*RHOL**2/RHOMIN**2
-     &                       -2*RHOL**3/RHOMIN**3))
+                  QL =1.D0/(1.D0/Q0-QSA0*(3.D0*RHOL**2/RHOMIN**2
+     &                                   -2.D0*RHOL**3/RHOMIN**3))
                ELSE
-                  QL =1/(1/QMIN+3*QSA0*(RHOL-RHOMIN)**2/RHOMIN**2
-     &                  +(QSAA-3*QSA0*(1-RHOMIN)**2/RHOMIN**2)
-     &                    *(RHOL-RHOMIN)**3/(1-RHOMIN)**3)
+                  QL =1.D0
+     &               / (1.D0/QMIN+3.D0*QSA0*(RHOL-RHOMIN)**2/RHOMIN**2
+     &                +(QSAA     -3.D0*QSA0*(1.D0-RHOMIN)**2/RHOMIN**2)
+     &                    *(RHOL-RHOMIN)**3/(1.D0-RHOMIN)**3)
                ENDIF
             ENDIF
          ELSEIF(MODELQ.EQ.1) THEN
