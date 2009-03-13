@@ -13,25 +13,26 @@ C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
 C                 7 : GYROKINETIC MODEL (coming)
 C                 8 : GYROKINETIC MODEL (coming)
 C                 9 : LOCAL MODEL (MODELP locally specified by MODELPR)
-C                -1 : (WM) MHD plasma
-C                -2 : (WM) Cold plasma
-C                -3 : (WM) Hot plasma (No FLR)
-C                -4 : (WM) Hot plasma (Cold FLR)
-C                -5 : (WM) Hot plasma (FLR)
+C                11 : (WM) MHD plasma
+C                12 : (WM) Cold plasma
+C                13 : (WM) Hot plasma (No FLR)
+C                14 : (WM) Hot plasma (Cold FLR)
+C                15 : (WM) Hot plasma (FLR)
+C                16 : (WM) Drift kinetic plasma
 C
-C              0- 9 : PROPAGATION  = GIVEN MODEL
+C             0- 99 : PROPAGATION  = GIVEN MODEL
 C                     POLARIZATION = GIVEN MODEL
 C                     ABSORPTION   = GIVEN MODEL
 C
-C             10-19 : PROPAGATION  = COLD
+C           100-199 : PROPAGATION  = COLD
 C                     POLARIZATION = GIVEN MODEL
 C                     ABSORPTION   = GIVEN MODEL
 C
-C             20-29 : PROPAGATION  = COLD
+C           200-299 : PROPAGATION  = COLD
 C                     POLARIZATION = COLD
 C                     ABSORPTION   = GIVEN MODEL
 C
-C             30-39 : PROPAGATION  = KINETIC
+C           300-399 : PROPAGATION  = KINETIC
 C                     POLARIZATION = KINETIC
 C                     ABSORPTION   = GIVEN MODEL
 C
@@ -47,8 +48,8 @@ C              7*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (REL.)
 C              8*: GYROKINETIC: READ FPDATA DISTRIBUTION (REL.)
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 C
-C     NDISP1: MINIMUM HARMONIC NUMBER (VALID ONLY FOR MODELP>=5)
-C     NDISP2: MAXMUM  HARMONIC NUMBER (VALID ONLY FOR MODELP>=5)
+C     NDISP1: MINIMUM HARMONIC NUMBER
+C     NDISP2: MAXMUM  HARMONIC NUMBER
 C
 C     RF0,RFI0,RKX0,RKY0,RKZ0 : STANDARD PARAMETER FOR ROOT FINDING
 C     RF1,RF2                 : SCAN RANGE OF REAL FREQUENCY (MHZ)
@@ -68,7 +69,7 @@ C
 C
       INCLUDE 'dpcomm.inc'
 C
-         MODELP(1)= 5
+         MODELP(1)= 0
          NDISP1(1)=-2
          NDISP2(1)= 2
          modelv(1)= 0

@@ -390,7 +390,7 @@ C
             IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
             RNPR=VC*RKPR/WW
 C
-            IF(MODELP(NS).EQ.5) THEN
+            IF(MODELP(NS).EQ.5.OR.MODELP(NS).EQ.15) THEN
                DTT=1.D0
                DTX=0.D0
                DO NSS=1,NSMAX

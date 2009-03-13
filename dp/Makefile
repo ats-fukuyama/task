@@ -4,7 +4,8 @@ include ../make.header
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f dptnsr.f\
+SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
+       dptens.f dptnsr1.f dptnsr2.f \
        dpfpin.f dphotf.f dphotr.f
 
 OBJS = $(SRCS:.f=.o) 
@@ -60,7 +61,9 @@ dpinit.o: dpinit.f $(DPCOMM)
 dproot.o: dproot.f $(DPCOMM)
 dpcont.o: dpcont.f $(DPCOMM) ../pl/plcom2.inc
 dpdisp.o: dpdisp.f $(DPCOMM) ../pl/plcom2.inc
-dptnsr.o: dptnsr.f $(DPCOMM) ../pl/plcom2.inc
+dptens.o: dptens.f $(DPCOMM) ../pl/plcom2.inc
+dptnsr1.o: dptnsr1.f $(DPCOMM) ../pl/plcom2.inc
+dptnsr2.o: dptnsr2.f $(DPCOMM) ../pl/plcom2.inc
 dpfpin.o: dpfpin.f $(DPCOMM) ../pl/plcom2.inc
 dphotf.o: dphotf.f $(DPCOMM) ../pl/plcom2.inc
 dphotr.o: dphotr.f $(DPCOMM) ../pl/plcom2.inc

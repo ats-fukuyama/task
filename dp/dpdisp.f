@@ -175,7 +175,7 @@ C
             CDISP(I)=0.D0
          ENDDO
          DO NS1=1,NSMAX
-            IF(modelp(ns1).EQ.5) THEN
+            IF(modelp(ns1).EQ.5.OR.modelp(ns).eq.15) THEN
                CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
 !               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
                IF(real(ckkppf**2).GT.0.d0) THEN
