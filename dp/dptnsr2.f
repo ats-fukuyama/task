@@ -66,8 +66,8 @@ C
          CCROS=0.D0
          CPARA=0.D0
          DO NC=-1,1
-            CGZ(1)=(CW-NC*CWC-CKPR*RU(NS))/RKTPR
             CALL DSPFNA(1,CGZ,CZ,CDZ)
+            CGZ(1)=(CW-NC*CWC-CKPR*RU(NS))/RKTPR
             IF(NC.EQ.-1) THEN
                CPERP=CPERP+   CWP*CGZ0*CZ(1)/2
                CCROS=CCROS-CI*CWP*CGZ0*CZ(1)/2
@@ -83,7 +83,7 @@ C
       ELSE IF(MODELP(NS).EQ.14.OR.MODELP(NS).EQ.15) THEN
          CWP=AE*AE*RN(NS)*1.D20/(AM*EPS0*CW*CW)
          RWC=AE*BABS/AM
-         RKTPR=ABS(RKPR)*SQRT(2.D0*RTPR(NS)*AEE*1.D3/AM)
+         RKTPR=ABS(CKPR)*SQRT(2.D0*RTPR(NS)*AEE*1.D3/AM)
          RKTPP=RTPP(NS)*AEE*1.D3/(AM*RWC*RWC)
          CWC=DCMPLX(RWC,0.D0)
          CGZ0=(CW       -CKPR*RU(NS))/RKTPR
@@ -157,7 +157,8 @@ C
       CLDISP(2)=CLDISP(2)+CPARA-CPERP
       CLDISP(3)=CLDISP(3)+CPERM
       CLDISP(5)=CLDISP(5)-CCROS
-C
+      WRITE(6,'(1P6E12.4)') CW,CKPR,CKPP
+      WRITE(6,'(3X,1P6E12.4)') CLDISP(1),CLDISP(2),CLDISP(5)
       RETURN
       END
 C
