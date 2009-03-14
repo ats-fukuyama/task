@@ -178,7 +178,7 @@ C
             IF(modelp(ns1).EQ.5.OR.modelp(ns).eq.15) THEN
                CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
 !               write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
-               IF(real(ckkppf**2).GT.0.d0) THEN
+               IF(real(ckppf**2).GT.0.d0) THEN
                   ckpp1=ckppf
                ELSE
                   ckpp1=ckpp
@@ -192,10 +192,10 @@ C
             ENDDO
          ENDDO
       ELSE
-         IF(modelp(ns).EQ.5) THEN
+         IF(modelp(ns).EQ.5.OR.modelp(ns).eq.15) THEN
             CALL DPCOLD_RKPERP(cw,ckpr,ckppf,ckpps)
 !            write(6,'(1P6E12.4)') ckpr,ckppf,ckpps 
-            IF(real(ckkppf**2).GT.0.d0) THEN
+            IF(real(ckppf**2).GT.0.d0) THEN
                ckpp1=ckppf
             ELSE
                ckpp1=ckpp
@@ -253,14 +253,30 @@ C
       CCB=(CCP+CCS)*CNPR**2-(CCS**2-CCD**2+CCS*CCP)
       CCC=((CCS-CNPR**2)**2-CCD**2)*CCP
       CCD=SQRT(CCB**2-4.D0*CCA*CCC)
-      CKPP1=(-CCB+CCD)/(2.D0*CCA)
-      CKPP2=(-CCB-CCD)/(2.D0*CCA)
-      IF(REAL(CKPP2).GT.ReAL(CKPP1)) THEN
-         CTEMP=CKPP1
-         CKPP1=CKPP2
-         CKPP2=CTEMP
+      CKPPA=(-CCB+CCD)/(2.D0*CCA)
+      CKPPB=(-CCB-CCD)/(2.D0*CCA)
+      RKPPA2=REAL(CKPPA**2)
+      RKPPB2=REAL(CKPPB**2)
+      IF(RKPPA2.GE.0.D0) THEN
+         IF(RKPPB2.GE.0.D0) THEN
+            IF(RKPPA2.GT.RKPPB2) THEN
+               CTEMP=CKPPA
+               CKPPA=CKPPB
+               CKPPB=CTEMP
+            ENDIF
+         ELSE
+            CKPPB=0.D0
+         ENDIF
+      ELSE
+         IF(RKPPB2.GE.0.D0) THEN
+            CKPPA=CKPPB
+            CKPPB=0.D0
+         ELSE
+            CKPPA=0.D0
+            CKPPB=0.D0
+         ENDIF
       ENDIF
-      CKPPf=SQRT(CKPP1)*CW/VC
-      CKPPs=SQRT(CKPP2)*CW/VC
+      CKPPf=SQRT(CKPPA)*CW/VC
+      CKPPs=SQRT(CKPPB)*CW/VC
       RETURN
       END
