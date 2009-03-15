@@ -175,14 +175,10 @@ C     $Id$
       real(8),intent(in):: rho,th
       real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
 
-      psipl=fnpsip(rho)
-      dpsipl=fndpsip(rho)
-      CALL spl2dd(th,psipl,rrl,drrchi,drrpsi,
-     &                  THIT,PSIP,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,psipl,zzl,dzzchi,dzzpsi,
-     &                  THIT,PSIP,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      drrrho=drrpsi*dpsipl
-      dzzrho=dzzpsi*dpsipl
+      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       return
       end subroutine wmeq_get_posrz
 
@@ -204,10 +200,10 @@ C     $Id$
       ENDIF
 
       psipl=fnpsip(rhol)
-      CALL spl2dd(th,psipl,rrl,drrchi,drrpsi,
-     &                  THIT,PSIP,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,psipl,zzl,dzzchi,dzzpsi,
-     &                  THIT,PSIP,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
+     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
+     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2

@@ -2,11 +2,7 @@
    mdlwmf=1
    modelg=3
    knameq='../eq/eqdata.ITER'
-   nrmax=100
-   nthmax=8
    nsmax=3
-   nth0=0
-   nph0=10
    pa(2)=2.d0 pz(2)=1.d0
    pa(3)=3.d0 pz(3)=1.d0
    pn=0.5,0.25,0.25
@@ -18,4 +14,6 @@
    rf=53
    nth0=0
    nph0=10
+   nrmax=100
+   nthmax=8
  &end
