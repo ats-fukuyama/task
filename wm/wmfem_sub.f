@@ -175,10 +175,14 @@ C     $Id$
       real(8),intent(in):: rho,th
       real(8),intent(out):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi
 
-      CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      psipl=fnpsip(rho)
+      dpsipl=fndpsip(rho)
+      CALL spl2dd(th,psipl,rrl,drrchi,drrpsi,
+     &                  THIT,PSIP,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,psipl,zzl,dzzchi,dzzpsi,
+     &                  THIT,PSIP,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      drrrho=drrpsi*dpsipl
+      dzzrho=dzzpsi*dpsipl
       return
       end subroutine wmeq_get_posrz
 
@@ -189,19 +193,21 @@ C     $Id$
       INCLUDE '../eq/eqcomq.inc'
       real(8),intent(in):: rho,th
       real(8),intent(out):: babs,bsupth,bsupph
-      real(8):: rrl,zzl,drrrho,dzzrho,drrchi,dzzchi,rhol
+      real(8):: rrl,zzl,drrpsi,dzzpsi,drrchi,dzzchi,rhol
       real(8):: bprr,bpzz,bthl,bphl,ttl
       real(8),dimension(3,3):: gm
 
-      if(rho.lt.1.d-8) then
-         rhol=1.d-8
-      else
+      IF(rho.LE.1.D-8) THEN
+         rhol=1.D-8
+      ELSE
          rhol=rho
-      endif
-      CALL spl2dd(th,rhol,rrl,drrchi,drrrho,
-     &                  THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      CALL spl2dd(th,rhol,zzl,dzzchi,dzzrho,
-     &                  THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      ENDIF
+
+      psipl=fnpsip(rhol)
+      CALL spl2dd(th,psipl,rrl,drrchi,drrpsi,
+     &                  THIT,PSIP,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+      CALL spl2dd(th,psipl,zzl,dzzchi,dzzpsi,
+     &                  THIT,PSIP,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
       gm(2,2)= drrchi**2+dzzchi**2
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2
@@ -212,7 +218,7 @@ C     $Id$
       bpzz=-DPSIDR/(2.D0*PI*rrl)
       ttl=FNTTS(rho)
       bthl=SQRT(bprr**2+bpzz**2)
-      bphl= ttl/rrl
+      bphl= ttl/(2.d0*PI*rrl)
       bsupth=bthl/sqrt(gm(2,2))
       bsupph=bphl/sqrt(gm(3,3))
       babs=sqrt(     gm(2,2)*bsupth*bsupth

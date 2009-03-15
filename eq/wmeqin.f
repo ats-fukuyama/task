@@ -26,10 +26,10 @@ C
          RPS1  (NTH,NR)=RPS  (NTH,NR)
          DRPSI1(NTH,NR)=DRPSI(NTH,NR)
          DRCHI1(NTH,NR)=DRCHI(NTH,NR)
-C         IF(NR.LE.3) THEN
-C            WRITE(6,'(2I5,1P3E12.4)') 
-C     &           NR,NTH,RPS(NTH,NR),DRPSI(NTH,NR),DRCHI(NTH,NR)
-C         ENDIF
+         IF(NR.LE.5) THEN
+            WRITE(6,'(2I5,1P3E12.4)') 
+     &           NR,NTH,RPS(NTH,NR),DRPSI(NTH,NR),DRCHI(NTH,NR)
+         ENDIF
       ENDDO
       ENDDO
       RETURN

@@ -539,60 +539,42 @@ C     ***** DRAW RESONANCE AND CUTOFF *****
 C
       IF(K2.EQ.'P') THEN
 C
-C     ****** DRAW ELECTRON CYCROTRON REASONANCE SURFACE (yellow) ****** 
+C     ****** DRAW CYCROTRON REASONANCE SURFACE (yellow, dot-dashed) ****** 
 C
-         BECF=2.D0*PI*AME*RF*1.D6/AEE
-         GBECF=GUCLIP(BECF)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF,1.0,1,2,4,KACONT)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/2,1.0,1,2,6,KACONT)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/3,1.0,1,2,6,KACONT)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBECF/4,1.0,1,2,6,KACONT)
+         DO NS=1,NSMAX
+            DO NC=1,4
+               BCF=PA(NS)*AMP*WF/(NC*ABS(PZ(NS))*AEE)
+               GBCF=GUCLIP(BCF)
+               CALL SETRGB(1.0,1.0,(NC-1)*0.1)
+               CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &                     GBCF,1.0,1,2,4,KACONT)
+C               WRITE(6,'(A,2I5,1PE12.4)') 'NS,NC,BCF=',NS,NC,BCF
+            ENDDO
+         ENDDO
 C
-C     ****** DRAW PROTON CYCROTRON REASONANCE SURFACE (yellow) ****** 
+C     ****** DRAW PLASMA CUTOFF SURFACE (light blue, two-dot-dashed) ******
 C
-         BICF=2.D0*PI*AMP*RF*1.D6/AEE
-         GBICF=GUCLIP(BICF)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBICF,1.0,1,2,4,KACONT)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBICF/2,1.0,1,2,6,KACONT)
-         CALL SETLIN(0,2,2)
-         CALL CONTQ5(GBY,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               GBICF/3,1.0,1,2,6,KACONT)
-C
-C     ****** DRAW CUTOFF SURFACE (light blue, long-dashed) ******
-C
-         CALL SETLIN(0,2,1)
+         CALL SETRGB(0.0,1.0,1.0)
          CALL CONTQ5(GTCO,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,3,KACONT)
+     &               0.0,1.0,1,2,6,KACONT)
 C
-C     ****** DRAW HYBRID RESONANCE SURFACE (purple, dot-dashed) ******
+C     ****** DRAW RIGHT CUT OFF SURFACE (light blue, two-dot-dashed) ******
 C
-         CALL SETLIN(0,2,3)
-         CALL CONTQ5(GTHR,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,4,KACONT)
-C
-C     ****** DRAW RIGHT CUT OFF SURFACE (light blue, dot-dashed) ******
-C
-         CALL SETLIN(0,2,1)
+         CALL SETRGB(0.5,1.0,1.0)
          CALL CONTQ5(GTRC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
-     &               0.0,1.0,1,2,4,KACONT)
+     &               0.0,1.0,1,2,6,KACONT)
 C
 C     ****** DRAW LEFT CUT OFF SURFACE (light blue, two-dots-dashed) ******
 C
-         CALL SETLIN(0,2,1)
+         CALL SETRGB(1.0,0.5,1.0)
          CALL CONTQ5(GTLC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
      &               0.0,1.0,1,2,6,KACONT)
+C
+C     ****** DRAW HYBRID RESONANCE SURFACE (purple, long-dashed) ******
+C
+         CALL SETRGB(1.0,0.0,1.0)
+         CALL CONTQ5(GTHR,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
+     &               0.0,1.0,1,2,3,KACONT)
 C
       ENDIF
 C

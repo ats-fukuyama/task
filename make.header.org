@@ -175,3 +175,4 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r -o
 
 FLIBS = $(GFLIBS) $(MDSLIB) $(LIBLA)
+#FLIBS = $(GLLIBS) $(MDSLIB) $(LIBLA)

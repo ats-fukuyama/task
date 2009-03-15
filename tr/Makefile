@@ -98,13 +98,13 @@ libs:
 	(cd ../eq; make treqin.o)
 
 tr2: trcom2.o trcom3.o $(LIBS2) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
 
 tr3: trcom2.o trcom3.o $(LIBS3) trmain.o 
-	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(GLLIBS) $(MDSLIB) $(LIBLA) $(MODINCLUDE)
+	$(FCFREE) trmain.o trcom2.o trcom3.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS) $(MODINCLUDE)
 
 xtr: trcom2.o trcom3.o $(LIBS2) xtr.o 
-	$(FCFREE) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(GFLIBS) $(MDSLIB) $(LIBLA) $(MODULE) $(MODO) $(MODINCLUDE)
+	$(FCFREE) xtr.o trcom2.o trcom3.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS) $(MODULE) $(MODO) $(MODINCLUDE)
 
 check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less

@@ -326,6 +326,7 @@ C         CALL EQGOUT(0)
                ZPST(NTH,NPH,NR)= zzl
 
                RG11(NTH,NPH,NR)= gm(1,1)
+!               write(6,'(3I5,1P2E12.4)') NR,NTH,NPH,gm(1,1),gm(2,2)
                RG12(NTH,NPH,NR)= gm(1,2)
                RG13(NTH,NPH,NR)= gm(1,3)
                RG22(NTH,NPH,NR)= gm(2,2)

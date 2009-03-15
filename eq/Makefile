@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS=$(DFLAGS)
 FFLAGS=$(OFLAGS)
+#FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
@@ -28,7 +28,7 @@ LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : eq2 eq3
+all : eq
 
 eqlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) eqlib.a $(OBJS)
@@ -45,10 +45,8 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../pl; make pllib.a)
 
-eq2: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+eq: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
-eq3: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(GLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a

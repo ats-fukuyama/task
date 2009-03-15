@@ -39,7 +39,7 @@ C
       RETURN
       END
 C
-C     FNPSIN: evaluate PSIP corresponding to toroidal flux function
+C     FNPSIPT: evaluate PSIP corresponding to toroidal flux function
 C            (PSIT) (i.e. PSIP(PSIT))
 C
       FUNCTION FNPSIPT(PSITL)
