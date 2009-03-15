@@ -169,7 +169,7 @@ C
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
 C
-!      RLA=RLN(NS) ! inverse of density scale lenth
+      RLA=RLN(NS) ! inverse of density scale lenth
 
       RNA=RN(NS)*1.D20
       RTA=RTPP(NS)*AEE*1.D3
