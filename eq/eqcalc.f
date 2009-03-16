@@ -285,45 +285,46 @@ C
          I=(NSG-1)*NTGMAX+NTG
          IF(NTG.EQ.1)THEN
             Q(NBND         -1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
             Q(NBND  +NTGMAX-1,I)= (AB(NSG,NTG)-AB(NSG+1,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
      &                           +AD(NSG,NTG)/(DTG*DTG)
             Q(NBND+2*NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
          ELSE
             Q(NBND  -NTGMAX-1,I)= (AB(NSG,NTG)+AC(NSG,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
             Q(NBND         -1,I)=(AB(NSG,NTG)-AB(NSG+1,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
      &                           +AD(NSG,NTG)/(DTG*DTG)
             Q(NBND  +NTGMAX-1,I)=-(AB(NSG+1,NTG)+AC(NSG,NTG))
-     &                           /(4*DSG*DTG)
+     &                           /(4.D0*DSG*DTG)
          ENDIF
          Q(NBND-NTGMAX,I)=  AA(NSG,NTG)/(DSG*DSG)
-     &                   -(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
+     &                   -(AC(NSG,NTG+1)-AC(NSG,NTG))/(4.D0*DSG*DTG)
          Q(NBND       ,I)=-(AA(NSG+1,NTG)+AA(NSG,NTG))/(DSG*DSG)
      &                   -(AD(NSG,NTG+1)+AD(NSG,NTG))/(DTG*DTG)
          Q(NBND+NTGMAX,I)=  AA(NSG+1,NTG)/(DSG*DSG)
-     &                   +(AC(NSG,NTG+1)-AC(NSG,NTG))/(4*DSG*DTG)
+     &                   +(AC(NSG,NTG+1)-AC(NSG,NTG))/(4.D0*DSG*DTG)
 C
 C     ------ Set periodic condition ------
 C
          IF(NTG.EQ.NTGMAX)THEN	
             Q(NBND-2*NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
-     &                            /(4*DSG*DTG)
+     &                            /(4.D0*DSG*DTG)
             Q(NBND-  NTGMAX+1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
-     &                            /(4*DSG*DTG)
+     &                            /(4.D0*DSG*DTG)
      &                          +  AD(NSG,NTG+1)/(DTG*DTG)
             Q(NBND         +1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
-     &                            /(4*DSG*DTG)
+     &                            /(4.D0*DSG*DTG)
          ELSE
-            Q(NBND-NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))/(4*DSG*DTG)
+            Q(NBND-NTGMAX+1,I)=-(AB(NSG,NTG)+AC(NSG,NTG+1))
+     &                          /(4.D0*DSG*DTG)
             Q(NBND       +1,I)= (AB(NSG+1,NTG)-AB(NSG,NTG))
-     &                          /(4*DSG*DTG)
+     &                          /(4.D0*DSG*DTG)
      &                        +  AD(NSG,NTG+1)/(DTG*DTG)
             Q(NBND+NTGMAX+1,I)= (AB(NSG+1,NTG)+AC(NSG,NTG+1))
-     &                          /(4*DSG*DTG)
+     &                          /(4.D0*DSG*DTG)
          ENDIF
       ENDDO
       ENDDO

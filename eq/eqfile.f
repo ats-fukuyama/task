@@ -310,7 +310,6 @@ C
       CALL FWOPEN(nmetric,KNAMET,1,MODEFW,'EQ',IERR)
       IF(IERR.NE.0) RETURN
 C
-      nmetric=21
       REWIND(nmetric)
       WRITE(nmetric,'(A,2X,A,6X,A,8X,A,3X,A)') '#','rho_tor','dV/drho',
      &     '<1/R^2>',"<|grad rho|^2/R^2>"

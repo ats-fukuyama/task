@@ -318,8 +318,8 @@ C        NPSMAX: Number of flux surfaces
 C        NRMAX : Number of radial mesh points for flux coordinates
 C        NTHMAX: Number of poloidal mesh points for flux coordinates
 C        NSUMAX: Number of boundary points
-C        NRVMAX: Number of radial mesh of surface averate
-C        NTVMAX: Number of poloidal mesh for surface averate
+C        NRVMAX: Number of radial mesh of surface average
+C        NTVMAX: Number of poloidal mesh for surface average
 C
       NSGMAX = 32
       NTGMAX = 32
@@ -341,7 +341,7 @@ C
 C        EPSEQ  : Convergence criterion for equilibrium
 C        NLPMAX : Maximum iteration number of EQ
 C        EPSNW  : Convergence criterion for newton method
-C        DELNW  : Increment for ferivative in newton method
+C        DELNW  : Increment for derivative in newton method
 C        NLPNW  : Maximum iteration number in newton method
 C
       EPSEQ  = 1.D-6
@@ -396,10 +396,10 @@ C            2: print all loop
 C
       NPRINT= 0
 C
-C        RGMIN: Minimum R of coputation region [m]
-C        RGMAX: Maxmum  R of coputation region [m]
-C        ZGMIN: Minimum Z of coputation region [m]
-C        ZGMAX: Maxmum  Z of coputation region [m]
+C        RGMIN: Minimum R of computation region [m]
+C        RGMAX: Maxmum  R of computation region [m]
+C        ZGMIN: Minimum Z of computation region [m]
+C        ZGMAX: Maxmum  Z of computation region [m]
 C        ZLIMP: Position of upper X points
 C        ZLIMM: Position of lower X points
 C
