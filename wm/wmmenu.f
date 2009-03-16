@@ -20,7 +20,7 @@ C
          IF(MYRANK.EQ.0) THEN
             WRITE(6,601)
   601       FORMAT('## WM MENU: P,V/PARM R/RUN D0-3/AMP F/ROOT ',
-     &      'G/GRAPH T/TAE S,W/SAVE Q/QUIT')
+     &      'G/GRAPH T/TAE O/OUT S,W/SAVE Q/QUIT')
             CALL TASK_KLIN(LINE,KID,MODE,WMPARM)
          ENDIF
          CALL MPBCIA(MODE)
@@ -104,6 +104,15 @@ C
             CALL WMSETJ(IERR)
                IF(IERR.NE.0) GOTO 1
             IF(MYRANK.EQ.0) CALL WMTAE
+            CALL MPSYNC
+            KID=' '
+C
+C        *** Pabs(r,s) output for TOPICS ***
+C
+         ELSE IF (KID.EQ.'O') THEN
+            IF(MYRANK.EQ.0) THEN
+               CALL WM_TOPICS_OUT
+            ENDIF
             CALL MPSYNC
             KID=' '
 C
