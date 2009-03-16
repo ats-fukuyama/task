@@ -151,8 +151,8 @@ C     $Id$
       SUBROUTINE wmfem_plasma(rho,nsmax_,rn_,rtpr_,rtpp_,ru_)
 
       INCLUDE 'wmcomm.inc'
-      real(8),intent(in):: rho
       integer,intent(in):: nsmax_
+      real(8),intent(in):: rho
       real(8),dimension(nsmax),intent(out):: rn_,rtpr_,rtpp_,ru_
       INCLUDE '../pl/plcom2.inc'
       
@@ -1040,9 +1040,9 @@ C
       SUBROUTINE WMSUBFX(CF1,CF2,NTHMAX,NPHMAX)
 C
       implicit none
+      integer,intent(in):: nthmax,nphmax
       complex(8),dimension(nthmax,nphmax),intent(in):: CF1
       complex(8),dimension(nthmax,nphmax),intent(out):: CF2
-      integer,intent(in):: nthmax,nphmax
       complex(8),dimension(nthmax):: CFM
       complex(8),dimension(nphmax):: CFN
       integer:: NPH,NTH
@@ -1074,9 +1074,9 @@ C
       SUBROUTINE WMSUBEX(CF1,CF2,NTHMAX,NPHMAX)
 C
       implicit none
+      integer,intent(in):: nthmax,nphmax
       complex(8),dimension(nthmax,nphmax),intent(in):: CF1
       complex(8),dimension(nthmax,nphmax),intent(out):: CF2
-      integer,intent(in):: nthmax,nphmax
       complex(8),dimension(nthmax):: CFM
       complex(8),dimension(nphmax):: CFN
       integer:: NPH,NTH

@@ -17,9 +17,9 @@
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
       IMPLICIT NONE
+      INTEGER(4),               INTENT(IN)    :: N, L, LA
       REAL(8), DIMENSION(LA, N),INTENT(INOUT) :: A
       REAL(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
       INTEGER(4),               INTENT(OUT)   :: IERR
       REAL(8)            :: ABS1, ABS2, TEMP
       REAL(8), PARAMETER :: EPS = 1.D-70
@@ -118,9 +118,9 @@
 !          NOTICE: ARRAY A AND X WILL BE DESTROYED.
 
       IMPLICIT NONE
+      INTEGER(4),               INTENT(IN)    :: N, L, LA
       COMPLEX(8), DIMENSION(LA, N),INTENT(INOUT) :: A
       COMPLEX(8), DIMENSION(N),    INTENT(INOUT) :: X
-      INTEGER(4),               INTENT(IN)    :: N, L, LA
       INTEGER(4),               INTENT(OUT)   :: IERR
       REAL(8) :: ABS1, ABS2
       COMPLEX(8) :: TEMP

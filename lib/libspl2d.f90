@@ -34,13 +34,13 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
       REAL(8), DIMENSION(NXM,NYMAX),  INTENT(INOUT):: FX, FY, FXY
-      REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
       INTEGER(4),                       INTENT(OUT):: IERR
+      REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
 
       INTEGER(4)            :: NX, NY, IDX1, IDX2, IDY1, IDY2
       REAL(8)               :: DX, DXM, DXP, DX1, DX2, DX3
@@ -429,13 +429,13 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       REAL(8),                          INTENT(IN) :: X0, Y0
-      REAL(8),                          INTENT(OUT):: F0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                       INTENT(OUT):: IERR
+      REAL(8),                          INTENT(OUT):: F0
 
       INTEGER(4)            :: NX, NY, I
       REAL(8)               :: DX, DY, FX, FY
@@ -516,13 +516,13 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       REAL(8),                          INTENT(IN) :: X0, Y0
-      REAL(8),                          INTENT(OUT):: F0, FX0, FY0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                       INTENT(OUT):: IERR
+      REAL(8),                          INTENT(OUT):: F0, FX0, FY0
 
       INTEGER(4)  :: NX, NY, I
       REAL(8)     :: DX, DY, FX, FY
@@ -635,13 +635,13 @@
 
       IMPLICIT NONE
 
-      REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
-      REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
+      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
+      REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
+      REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
       COMPLEX(8), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
-      COMPLEX(8), DIMENSION(NXM,NYMAX),  INTENT(INOUT):: FX, FY, FXY
+      COMPLEX(8), DIMENSION(NXM,NYMAX),    INTENT(INOUT):: FX, FY, FXY
+      INTEGER(4),                          INTENT(OUT):: IERR
       COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(OUT):: U
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
-      INTEGER(4),                       INTENT(OUT):: IERR
 
 
       INTEGER(4) :: NX, NY
@@ -1035,13 +1035,13 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
       REAL(8),                             INTENT(IN) :: X0, Y0
-      COMPLEX(8),                          INTENT(OUT):: F0
       REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
       COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                          INTENT(OUT):: IERR
+      COMPLEX(8),                          INTENT(OUT):: F0
 
       INTEGER(4)            :: NX, NY
       REAL(8)               :: DX, DY, FX, FY
@@ -1149,13 +1149,13 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
       REAL(8),                             INTENT(IN) :: X0, Y0
-      COMPLEX(8),                          INTENT(OUT):: F0, FX0, FY0
       REAL(8), DIMENSION(NXMAX),           INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),           INTENT(IN) :: Y
       COMPLEX(8), DIMENSION(4,4,NXM,NYMAX),INTENT(IN) :: U
-      INTEGER(4),                          INTENT(IN) :: NXM, NXMAX, NYMAX
       INTEGER(4),                          INTENT(OUT):: IERR
+      COMPLEX(8),                          INTENT(OUT):: F0, FX0, FY0
 
       INTEGER(4)  :: NX, NY
       REAL(8)     :: DX, DY, FX, FY

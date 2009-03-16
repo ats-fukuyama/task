@@ -47,15 +47,15 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
       REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
       REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
       REAL(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
+      INTEGER(4),                             INTENT(OUT):: IERR
       REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
-      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
-      INTEGER(4),INTENT(OUT):: IERR
 
       INTEGER(4) :: NX,NY,NZ,I,J,K,L
       REAL(8)    :: DX,DXM,DXP,DX1,DX2,DX3
@@ -842,14 +842,14 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       REAL(8),                          INTENT(IN) :: X0, Y0, Z0
-      REAL(8),                          INTENT(OUT):: F0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
       REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       INTEGER(4),                       INTENT(OUT):: IERR
+      REAL(8),                          INTENT(OUT):: F0
 
       INTEGER(4)            :: NX, NY, NZ, I, J
       REAL(8)               :: DX, DY, DZ, FX, FY, FZ
@@ -967,14 +967,14 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       REAL(8),                          INTENT(IN) :: X0,Y0,Z0
-      REAL(8),                          INTENT(OUT):: F0,FX0,FY0,FZ0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
-      REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
+      REAL(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U 
       INTEGER(4),                       INTENT(OUT):: IERR
+      REAL(8),                          INTENT(OUT):: F0,FX0,FY0,FZ0
 
       INTEGER(4)  :: NX,NY,NZ,I,J
       REAL(8)     :: DX,DY,DZ,FX,FY,FZ
@@ -1148,15 +1148,15 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
       COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(IN) :: F
       COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FX,FY,FZ
       COMPLEX(8), DIMENSION(NXM,NYM,NZMAX),INTENT(INOUT):: FXY,FYZ,FZX,FXYZ
+      INTEGER(4),                                INTENT(OUT):: IERR
       COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(OUT):: U
-      INTEGER(4),INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX,IDX,IDY,IDZ
-      INTEGER(4),INTENT(OUT):: IERR
 
       INTEGER(4) :: NX,NY,NZ,I,J,K,L
       REAL(8)    :: DX,DXM,DXP,DX1,DX2,DX3
@@ -1943,14 +1943,14 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       REAL(8),                          INTENT(IN) :: X0, Y0, Z0
-      COMPLEX(8),                          INTENT(OUT):: F0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
       COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       INTEGER(4),                       INTENT(OUT):: IERR
+      COMPLEX(8),                       INTENT(OUT):: F0
 
       INTEGER(4)            :: NX, NY, NZ, I, J
       REAL(8)               :: DX, DY, DZ, FX, FY, FZ
@@ -2068,14 +2068,14 @@
 
       IMPLICIT NONE
 
+      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       REAL(8),                          INTENT(IN) :: X0,Y0,Z0
-      COMPLEX(8),                          INTENT(OUT):: F0,FX0,FY0,FZ0
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NZMAX),        INTENT(IN) :: Z
       COMPLEX(8), DIMENSION(4,4,4,NXM,NYM,NZMAX),INTENT(IN) :: U
-      INTEGER(4),                       INTENT(IN) :: NXM,NYM,NXMAX,NYMAX,NZMAX
       INTEGER(4),                       INTENT(OUT):: IERR
+      COMPLEX(8),                       INTENT(OUT):: F0,FX0,FY0,FZ0
 
       INTEGER(4)  :: NX,NY,NZ,I,J
       REAL(8)     :: DX,DY,DZ,FX,FY,FZ

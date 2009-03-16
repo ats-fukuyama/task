@@ -23,9 +23,9 @@
 
       IMPLICIT NONE
       INTEGER(4),                  INTENT(IN) :: NXMAX, ID
-      INTEGER(4),                  INTENT(OUT):: IERR
       REAL(8), DIMENSION(NXMAX),   INTENT(IN) :: X, F
       REAL(8), DIMENSION(NXMAX), INTENT(INOUT):: FX
+      INTEGER(4),                  INTENT(OUT):: IERR
       REAL(8), DIMENSION(4,NXMAX), INTENT(OUT):: U
       INTEGER(4)  :: ID1, ID2, NX
       REAL(8)     :: DX, DX1, DX2, DX3, DXM, DXP, T11, T21, T31, T41, &
@@ -162,12 +162,12 @@
       SUBROUTINE SPL1DF(X0,F0,X,U,NXMAX,IERR)
 
       IMPLICIT NONE
-      REAL(8),                  INTENT(IN) :: X0
-      REAL(8),                  INTENT(OUT):: F0
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      INTEGER(4),               INTENT(OUT):: IERR
+      INTEGER(4),                INTENT(IN) :: NXMAX
+      REAL(8),                   INTENT(IN) :: X0
+      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(8),                   INTENT(OUT):: F0
+      INTEGER(4),                INTENT(OUT):: IERR
       REAL(8)     :: FS, DX
       INTEGER(4)  :: NX
 
@@ -217,12 +217,12 @@
       SUBROUTINE SPL1DD(X0,F0,DF0,X,U,NXMAX,IERR)
 
       IMPLICIT NONE
-      REAL(8),                  INTENT(IN) :: X0
-      REAL(8),                  INTENT(OUT):: F0, DF0
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      INTEGER(4),               INTENT(OUT):: IERR
+      INTEGER(4),                INTENT(IN) :: NXMAX
+      REAL(8),                   INTENT(IN) :: X0
+      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(8),                   INTENT(OUT):: F0, DF0
+      INTEGER(4),                INTENT(OUT):: IERR
       REAL(8)     :: FS, DX
       INTEGER(4)  :: NX
 
@@ -273,11 +273,11 @@
       SUBROUTINE SPL1DI0(X,U,U0,NXMAX,IERR)
 
       IMPLICIT NONE
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      REAL(8),DIMENSION(NXMAX), INTENT(OUT):: U0
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      INTEGER(4),               INTENT(OUT):: IERR
+      INTEGER(4),                INTENT(IN) :: NXMAX
+      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: X
+      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(8),DIMENSION(NXMAX),  INTENT(OUT):: U0
+      INTEGER(4),                INTENT(OUT):: IERR
       REAL(8)     :: DX
       INTEGER(4)  :: NX
 
@@ -310,13 +310,13 @@
       SUBROUTINE SPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
 
       IMPLICIT NONE
-      REAL(8),                  INTENT(IN) :: X0
-      REAL(8),                  INTENT(OUT):: FI
-      REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
-      REAL(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      REAL(8),DIMENSION(NXMAX), INTENT(IN):: U0
-      INTEGER(4),               INTENT(IN) :: NXMAX
-      INTEGER(4),               INTENT(OUT):: IERR
+      INTEGER(4),                INTENT(IN) :: NXMAX
+      REAL(8),                   INTENT(IN) :: X0
+      REAL(8),DIMENSION(NXMAX) , INTENT(IN) :: X
+      REAL(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      REAL(8),DIMENSION(NXMAX),  INTENT(IN) :: U0
+      REAL(8),                   INTENT(OUT):: FI
+      INTEGER(4),                INTENT(OUT):: IERR
       REAL(8)     :: DX, FS
       INTEGER(4)  :: NX
 
@@ -380,12 +380,12 @@
 !              IERR      : ERROR INDICATOR
 
       IMPLICIT NONE
-      REAL(8),    DIMENSION(NXMAX),  INTENT(IN)   :: X
+      INTEGER(4),                   INTENT(IN)   :: NXMAX, ID
+      REAL(8),    DIMENSION(NXMAX), INTENT(IN)   :: X
       COMPLEX(8),DIMENSION(NXMAX),  INTENT(IN)   :: F
       COMPLEX(8),DIMENSION(NXMAX),  INTENT(INOUT):: FX
       COMPLEX(8),DIMENSION(4,NXMAX),INTENT(INOUT):: U
-      INTEGER(4),                    INTENT(IN)   :: NXMAX, ID
-      INTEGER(4),                    INTENT(OUT)  :: IERR
+      INTEGER(4),                   INTENT(OUT)  :: IERR
       REAL(8)     :: DXM, DXP, DX, DX1, DX2, DX3, V31, V32, V33, V34, &
      &               V41, V42, V43, V44
       INTEGER(4)  :: ID1, ID2, NX
@@ -523,11 +523,11 @@
       SUBROUTINE CSPL1DF(X0,F0,X,U,NXMAX,IERR)
 
       IMPLICIT NONE
+      INTEGER(4),               INTENT(IN) :: NXMAX
       REAL(8),                  INTENT(IN) :: X0
-      COMPLEX(8),              INTENT(OUT):: F0
       REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
       COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      INTEGER(4),               INTENT(IN) :: NXMAX
+      COMPLEX(8),               INTENT(OUT):: F0
       INTEGER(4),               INTENT(OUT):: IERR
       REAL(8)     :: FS, DX
       INTEGER(4)  :: NX
@@ -578,11 +578,11 @@
       SUBROUTINE CSPL1DD(X0,F0,DF0,X,U,NXMAX,IERR)
 
       IMPLICIT NONE
+      INTEGER(4),               INTENT(IN) :: NXMAX
       REAL(8),                  INTENT(IN) :: X0
-      COMPLEX(8),              INTENT(OUT):: F0, DF0
       REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
       COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      INTEGER(4),               INTENT(IN) :: NXMAX
+      COMPLEX(8),               INTENT(OUT):: F0, DF0
       INTEGER(4),               INTENT(OUT):: IERR
       REAL(8)     :: FS, DX
       INTEGER(4)  :: NX
@@ -635,10 +635,10 @@
       SUBROUTINE CSPL1DI0(X,U,U0,NXMAX,IERR)
 
       IMPLICIT NONE
+      INTEGER(4),               INTENT(IN) :: NXMAX
       REAL(8),DIMENSION(NXMAX), INTENT(IN) :: X
       COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
       COMPLEX(8),DIMENSION(NXMAX), INTENT(OUT):: U0
-      INTEGER(4),               INTENT(IN) :: NXMAX
       INTEGER(4),               INTENT(OUT):: IERR
       REAL(8)     :: DX
       INTEGER(4)  :: NX
@@ -672,12 +672,12 @@
       SUBROUTINE CSPL1DI(X0,FI,X,U,U0,NXMAX,IERR)
 
       IMPLICIT NONE
-      REAL(8),                      INTENT(IN) :: X0
-      COMPLEX(8),                  INTENT(OUT):: FI
-      REAL(8),    DIMENSION(NXMAX), INTENT(IN) :: X
-      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN):: U
-      COMPLEX(8),DIMENSION(NXMAX), INTENT(IN) :: U0
       INTEGER(4),                   INTENT(IN) :: NXMAX
+      REAL(8),                      INTENT(IN) :: X0
+      REAL(8),    DIMENSION(NXMAX), INTENT(IN) :: X
+      COMPLEX(8),DIMENSION(4,NXMAX),INTENT(IN) :: U
+      COMPLEX(8),DIMENSION(NXMAX),  INTENT(IN) :: U0
+      COMPLEX(8),                   INTENT(OUT):: FI
       INTEGER(4),                   INTENT(OUT):: IERR
       REAL(8)     :: DX, FS
       INTEGER(4)  :: NX
@@ -741,10 +741,10 @@
 !     +++++++++++++++++
 
       IMPLICIT NONE
+      INTEGER(4),                INTENT(IN)   :: NMAX
       REAL(8), DIMENSION(4,NMAX),INTENT(INOUT):: A
-      REAL(8), DIMENSION(NMAX),INTENT(INOUT)  :: X
-      INTEGER(4),                 INTENT(IN)  :: NMAX
-      INTEGER(4),                 INTENT(OUT) :: IERR
+      REAL(8), DIMENSION(NMAX),  INTENT(INOUT):: X
+      INTEGER(4),                INTENT(OUT)  :: IERR
       REAL(8)    :: AAN,BBN,AN,BN,CN,DN,FACT,XN
       INTEGER(4) :: N
 
@@ -798,10 +798,10 @@
 !     +++++++++++++++++
 
       IMPLICIT NONE
+      INTEGER(4),                INTENT(IN)   :: NMAX
       REAL(8), DIMENSION(4,NMAX),INTENT(INOUT):: A
-      REAL(8), DIMENSION(NMAX),INTENT(INOUT)  :: X
-      INTEGER(4),                 INTENT(IN)  :: NMAX
-      INTEGER(4),                 INTENT(OUT) :: IERR
+      REAL(8), DIMENSION(NMAX),  INTENT(INOUT):: X
+      INTEGER(4),                INTENT(OUT)  :: IERR
       REAL(8) :: AAN, BBN, CCN, DDN, EEN, DDNN, EENN, AN, BN, CN, DN, FACT, X1, XN
       INTEGER(4) :: N
 
@@ -873,10 +873,10 @@
 !     +++++++++++++++++
 
       IMPLICIT NONE
+      INTEGER(4),                    INTENT(IN)   :: NMAX
       COMPLEX(8), DIMENSION(4,NMAX), INTENT(INOUT):: A
       COMPLEX(8), DIMENSION(NMAX),   INTENT(INOUT):: X
-      INTEGER(4),                     INTENT(IN)   :: NMAX
-      INTEGER(4),                     INTENT(OUT)  :: IERR
+      INTEGER(4),                    INTENT(OUT)  :: IERR
       COMPLEX(8) ::  AAN, BBN, AN, BN, CN, DN, FACT, XN
       INTEGER(4)  :: N
 
@@ -928,10 +928,10 @@
 !     +++++++++++++++++
 
       IMPLICIT NONE
+      INTEGER(4),                    INTENT(IN)   :: NMAX
       COMPLEX(8), DIMENSION(4,NMAX), INTENT(INOUT):: A
       COMPLEX(8), DIMENSION(NMAX),   INTENT(INOUT):: X
-      INTEGER(4),                     INTENT(IN)   :: NMAX
-      INTEGER(4),                     INTENT(OUT)  :: IERR
+      INTEGER(4),                    INTENT(OUT)  :: IERR
       COMPLEX(8) :: AAN, BBN, CCN, DDN, EEN, DDNN, EENN, AN, BN, CN, DN, FACT, X1, XN
       INTEGER(4)  :: N
 
