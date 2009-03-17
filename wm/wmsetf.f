@@ -15,7 +15,7 @@ C
 C
 C      DATA IDEBUG/0/
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
       CWC2=CW**2/VC**2
 C
       IF(NR.EQ.1) THEN

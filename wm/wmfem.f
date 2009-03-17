@@ -221,8 +221,6 @@
 
       subroutine wmfem_calculate_matrix
 
-      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
-      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       complex(8),dimension(mwmax,12*nfcmax):: fml
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
@@ -554,6 +552,8 @@
       end subroutine wmfem_calculate_efield
       end subroutine wmfem_main
 
+!     ***** wmfem_main end *********************************************
+
 !     ***** wmfem post routine *****
 
       subroutine wmfem_post
@@ -622,7 +622,7 @@
       real(8):: rho,dph,dth,gj
       complex(8):: cfactor
       
-      cfactor=vc/(2*pi*crf*1.d6)
+      cfactor=vc/(2.d0*pi*crf*1.d6)
 
       rho=rhoa(nr)
 
@@ -945,3 +945,4 @@ c$$$               endif
 
       end subroutine wmfem_post
 
+!     ***** wmfem_post end *********************************************

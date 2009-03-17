@@ -549,7 +549,7 @@ C
             ENDDO
 C
             IF(NR+1.GE.NRANT) THEN
-               CW=2*PI*CRF*1.D6
+               CW=2.D0*PI*CRF*1.D6
                CC=CI*CW*RMU0
                DPH=2.D0*PI/NPHMAX
                DTH=2.D0*PI/NTHMAX

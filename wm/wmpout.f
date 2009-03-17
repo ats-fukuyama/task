@@ -276,7 +276,7 @@ C
       INCLUDE 'wmcomm.inc'
       DIMENSION CBF1(MDM,NDM),CBF2(MDM,NDM)
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
 C
       DRHO1=(XRHO(2)-XRHO(1))**2
       DRHO2=(XRHO(3)-XRHO(1))**2

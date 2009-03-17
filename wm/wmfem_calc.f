@@ -6,8 +6,10 @@
       IMPLICIT NONE
       integer,intent(in):: nr,ns
       complex(8),dimension(mwmax,12*nfcmax),intent(out):: fml
-      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
-      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
+!      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
+!      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
+      complex(8),dimension(:,:,:,:,:,:), allocatable :: fmd
+      complex(8),dimension(:,:,:,:,:),allocatable :: fmd1,fmd2,fmd3,fmd4
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
       integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
@@ -26,9 +28,10 @@
       rho4=rhoa(nr+1)-1.D-12
       drho=rhoa(nr+1)-rhoa(nr)
 
+      allocate(fmd1(3,3,4,nfcmax,nfcmax),fmd2(3,3,4,nfcmax,nfcmax),
+     &         fmd3(3,3,4,nfcmax,nfcmax),fmd4(3,3,4,nfcmax,nfcmax))
       if(ns.eq.0) then
          if(mdlwmf.eq.1) then
-            call wmfem_calculate_vacuum(rho1,fmd1)
             call wmfem_calculate_vacuum(rho2,fmd2)
             call wmfem_calculate_vacuum(rho3,fmd3)
             call wmfem_calculate_vacuum(rho4,fmd4)
@@ -54,6 +57,7 @@
 
 ! ------ calculate coefficients of basis for profile from four points 
 
+      allocate(fmd(3,3,4,nfcmax,nfcmax,4))
       do nfc1=1,nfcmax
          do nfc2=1,nfcmax
             do k=1,4
@@ -82,6 +86,8 @@
       else
          call fem_hqq(fmd,drho,fml)
       endif
+
+      deallocate(fmd,fmd1,fmd2,fmd3,fmd4)
 
       return
       end subroutine wmfem_calculate_local
@@ -236,7 +242,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8):: drhob,muma3b,muma2b,drhoa,muma3a,muma2a,muma30,muma20
       real(8):: muma3d,muma2d,gj
       
-      cfactor=(2*pi*crf*1.d6)**2/vc**2
+      cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
       call wmfem_tensors(rho,gma,muma,dmuma,gja)
 
@@ -376,7 +382,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8):: rr,ra,rb
 
       call get_wmfem_parm1(rr,ra,rb)
-      cfactor=(2*pi*crf*1.d6)**2/vc**2
+      cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
 !     ----- clear fmc -----
       do nfc2=1,nfcmax
@@ -495,7 +501,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
 
-      cfactor=(2*pi*crf*1.d6)**2/vc**2
+      cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
       call wmfem_tensors(rho,gma,muma,dmuma,gja)
 
@@ -597,7 +603,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
 
-      cfactor=(2*pi*crf*1.d6)**2/vc**2
+      cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
       call wmfem_disp_tensor(rho,ns,fmc)
 
@@ -819,7 +825,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       complex(8):: ckppf,ckpps
       real(8):: babs,bsupth,bsupph
 
-      cw=2*pi*crf*1.d6
+      cw=2.d0*pi*crf*1.d6
       CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
       ckpara=mm*bsupth/babs+nn*bsupph/babs
       ckperp=(0.d0,0.d0)

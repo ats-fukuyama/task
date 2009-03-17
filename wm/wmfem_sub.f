@@ -437,7 +437,7 @@ C
 C
 C               write(6,*) 'nr,nrant=',nr,nrant
 C
-               CW=2*PI*CRF*1.D6
+               CW=2.D0*PI*CRF*1.D6
                CC=CI*CW*RMU0
                DPH=2.D0*PI/NPHMAX
                DTH=2.D0*PI/NTHMAX

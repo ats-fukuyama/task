@@ -90,7 +90,7 @@ C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION CGZ(1),CZ(1),CDZ(1)
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
       WW=DBLE(CW)
 C
       CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
@@ -352,7 +352,7 @@ C
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CDTNS(3,3)
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
       WW=DBLE(CW)
 C
       RHON=XRHO(NR)
@@ -499,7 +499,7 @@ C
 C
       INCLUDE 'wmcomm.inc'
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
 C
       CALL WMCPOS(NR,XL)
       IF(XL.LT.RA) THEN
@@ -591,7 +591,7 @@ C
       INCLUDE 'wmcomm.inc'
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
 C
       CALL WMCPOS(NR,XL)
       CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
@@ -702,7 +702,7 @@ C
       INCLUDE 'wmcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
-      CW=2*PI*CRF*1.D6
+      CW=2.D0*PI*CRF*1.D6
 C
       RHON=XRHO(NR)
       CALL PLPROF(RHON+0.01D0)
