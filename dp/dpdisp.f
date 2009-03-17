@@ -276,7 +276,7 @@ C
             CKPPB=0.D0
          ENDIF
       ENDIF
-      CKPPf=SQRT(CKPPA)*CW/VC
-      CKPPs=SQRT(CKPPB)*CW/VC
+      CKPPF=SQRT(CKPPA)*CW/VC
+      CKPPS=SQRT(CKPPB)*CW/VC
       RETURN
       END
