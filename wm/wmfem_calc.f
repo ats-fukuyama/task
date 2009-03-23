@@ -554,13 +554,17 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             nfcdiff=nthmax2*nndiff+mmdiff+1
 
             nnadd1=(nn1+nn2  )/2-nph0
-            if(nnadd1.lt.0) nnadd1=nnadd1+nphmax
+            if(nnadd1.lt.0)      nnadd1=nnadd1+nphmax
+            if(nnadd1.ge.nphmax) nnadd1=nnadd1-nphmax
             nnadd2=(nn1+nn2+1)/2-nph0
-            if(nnadd2.lt.0) nnadd2=nnadd2+nphmax
+            if(nnadd2.lt.0)      nnadd2=nnadd2+nphmax
+            if(nnadd2.ge.nphmax) nnadd2=nnadd2-nphmax
             mmadd1=(mm1+mm2  )/2-nth0
-            if(mmadd1.lt.0) mmadd1=mmadd1+nthmax
+            if(mmadd1.lt.0)      mmadd1=mmadd1+nthmax
+            if(mmadd1.ge.nthmax) mmadd1=mmadd1-nthmax
             mmadd2=(mm1+mm2+1)/2-nth0
-            if(mmadd2.lt.0) mmadd2=mmadd2+nthmax
+            if(mmadd2.lt.0)      mmadd2=mmadd2+nthmax
+            if(mmadd2.ge.nthmax) mmadd2=mmadd2-nthmax
 
             nfcadd1=nthmax*nnadd1+mmadd1+1
             nfcadd2=nthmax*nnadd1+mmadd2+1

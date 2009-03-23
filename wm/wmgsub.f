@@ -347,6 +347,124 @@ C
  9000 RETURN
       END
 C
+C     ****** DRAW 1D RADIAL GRAPHS ******
+C
+      SUBROUTINE WMGREQM(K2,K3,K4)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      DIMENSION GY(NRM,MDM),GP(4,4)
+      CHARACTER RTITL(6,4)*6
+      CHARACTER K2,K3,K4
+      REAL(8),DIMENSION(3,3):: gm,mum
+      REAL(8):: rhol,th,ph,gj,babs,bsupth,bsupph
+      REAL(8):: dth,dph
+      INTEGER:: nth,nph
+
+      DATA GP/ 3.0, 10.8,  9.5, 16.5,
+     &        13.8, 21.6,  9.5, 16.5,
+     &         3.0, 10.8,  1.0,  8.0,
+     &        13.8, 21.6,  1.0,  8.0/
+C
+      dth=2.d0*pi/nthmax
+      dph=2.d0*pi/nphmax
+C
+    2 IF(NPHMAX.EQ.1) THEN
+         NPH=1
+      ELSE
+         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
+         READ(5,*,ERR=2,END=9000) NPH
+      ENDIF
+      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
+         WRITE(6,*) 'XX ILLEGAL NPH'
+         GOTO 2
+      ENDIF
+      ph=dph*(nph-1)
+C
+      RTITL(1,1)='RM11  '
+      RTITL(1,2)='RM12  '
+      RTITL(1,3)='RM13  '
+      RTITL(2,1)='RM21  '
+      RTITL(2,2)='RM22  '
+      RTITL(2,3)='RM23  '
+      RTITL(3,1)='RM31  '
+      RTITL(3,2)='RM32  '
+      RTITL(3,3)='RM33  '
+      RTITL(4,1)='RG11  '
+      RTITL(4,2)='RG12  '
+      RTITL(4,3)='RG13  '
+      RTITL(4,4)='RGJ   '
+      RTITL(5,1)='RG22  '
+      RTITL(5,2)='RG23  '
+      RTITL(5,3)='RG33  '
+      RTITL(6,1)='BABS  '
+      RTITL(6,2)='BSTH  '
+      RTITL(6,3)='BSPH  '
+      
+      DO I=1,6
+         if(i.eq.4) then
+            jmax=4
+         else
+            jmax=3
+         endif
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         DO j=1,jmax
+            DO nth=1,nthmax
+               th=dth*(nth-1)
+               DO nr=1,nrmax+1
+                  rhol=xrho(nr)
+                  IF(rhol.EQ.0.d0) rhol=1.d-6
+                  CALL wmfem_metrics(rhol,th,ph,gm,gj)
+                  CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+                  CALL wmfem_rotation_tensor(gm,gj,
+     &                                       babs,bsupth,bsupph,mum)
+                  select case(i)
+                  case(1:3)
+                     gy(nr,nth)=mum(i,j)
+                  case(4)
+                     select case(j)
+                     case(1)
+                        gy(nr,nth)=gm(1,1)
+                     case(2)
+                        gy(nr,nth)=gm(1,2)
+                     case(3)
+                        gy(nr,nth)=gm(1,3)
+                     case(4)
+                        gy(nr,nth)=gj
+                     end select
+                  case(5)
+                     select case(j)
+                     case(1)
+                        gy(nr,nth)=gm(2,1)
+                     case(2)
+                        gy(nr,nth)=gm(2,2)
+                     case(3)
+                        gy(nr,nth)=gm(3,3)
+                     end select
+                  case(6)
+                     select case(j)
+                     case(1)
+                        gy(nr,nth)=babs
+                     case(2)
+                        gy(nr,nth)=bsupth
+                        if(nr.eq.1) write(6,*) 'bsupth',nr,nth,bsupth
+                        if(nr.eq.2) write(6,*) 'bsupth',nr,nth,bsupth
+                     case(3)
+                        gy(nr,nth)=bsupph
+                     end select
+                  end select
+               ENDDO
+            ENDDO
+            CALL WMGGR(GY,NTHMAX,RTITL(i,j),GP(1,j))
+         ENDDO
+         CALL WMGPRM('C',K3,0,0,0,0)
+         CALL PAGEE
+      ENDDO
+C
+ 9000 RETURN
+      END
+C
 C     ****** WRITE GRAPHIC DATA IN FILE ******
 C
       SUBROUTINE WMGFWR(GGL,NPH,K2,K3,K4)

@@ -220,7 +220,14 @@ C     $Id$
       babs=sqrt(     gm(2,2)*bsupth*bsupth
      &         +2.d0*gm(2,3)*bsupth*bsupph
      &         +     gm(3,3)*bsupph*bsupph)
-!      write(6,'(A,1P4E12.4)') '%%%--',bthl,bphl,bsupth,bsupph
+c$$$      if(abs(th).le.1.d-6.and.rhol.le.0.01) then
+c$$$         write(6,'(A,1P4E12.4)') 'rhol,th,ph,babs:',rhol,th,ph,babs
+c$$$         write(6,'(A,1P3E12.4)') 'gm:22,33:ttl:   ',gm(2,2),gm(3,3),ttl
+c$$$         write(6,'(A,1P4E12.4)') 'rr,zz,bprr,bpzz:',rrl,zzl,bprr,bpzz
+c$$$         write(6,'(A,1P4E12.4)') 'bthl,bphl,bsup; ',bthl,bphl,
+c$$$     &        bsupth,bsupph
+c$$$         write(6,*)
+c$$$      endif
       return
 
       end subroutine wmeq_get_magnetic
