@@ -137,7 +137,7 @@ C
 C
       GO TO 9995
  9997 WRITE (6,*) '     *****  NO IMPURITY  *****      '
- 9996 WRITE (6,*) '======  WMXPRF  ABNORMAL END  ======'
+ 9996 WRITE (6,*) '======  WMXPRF ALREADY READ  ======'
       GO TO 9999
  9995 WRITE (6,*) '==========  WMXPRF COMPLETED  =========='
  9999 RETURN

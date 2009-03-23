@@ -110,9 +110,8 @@ C
 C        *** Pabs(r,s) output for TOPICS ***
 C
          ELSE IF (KID.EQ.'O') THEN
-            IF(MYRANK.EQ.0) THEN
-               CALL WM_TOPICS_OUT
-            ENDIF
+            CALL WM_TOPICS(IERR)
+            IF(IERR.NE.0) GOTO 1
             CALL MPSYNC
             KID=' '
 C

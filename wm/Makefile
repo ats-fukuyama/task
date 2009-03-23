@@ -12,7 +12,7 @@ SRC0 = wmfem_com.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmpout.f wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmsetm0.f wmsetm1.f wmpout0.f wmpout1.f \
        wmtae.f wmfem.f wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\
-       wmvmec.f wmbooz.f wmvout.f
+       wmvmec.f wmbooz.f wmvout.f wmtpcs.f
 
 # wmtrfile.f
 
@@ -138,3 +138,4 @@ wmvout.o : wmvout.f $(WMCOMM) vmcomm.inc
 ../eq/wmeqin.o: ../eq/wmeqin.f ../eq/eqcom1.inc ../eq/eqcom3.inc
 
 wmtrfile.o : wmtrfile.f ../tr/trcomm.inc ../tr/trcom0.inc
+wmtpcs.o : wmtpcs.f $(WMCOMM)

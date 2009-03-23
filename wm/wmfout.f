@@ -36,30 +36,3 @@ C
 C
       RETURN
       END
-C
-C***********************************************************************
-C
-C     Make Pabs(r,s) output file for TOPICS
-C
-C***********************************************************************
-C
-      SUBROUTINE WM_TOPICS_OUT
-C
-      INCLUDE '../wm/wmcomm.inc'
-C
-      CHARACTER KNAMWT*80
-      DATA KNAMWT /'wm_topics.out'/
-C
-C     Output: XRHO(NR), PABSR(NR,NS)
-C
-      ntopics=21
-      CALL FWOPEN(ntopics,KNAMWT,1,MODEFW,'WM',IERR)
-      IF(IERR.NE.0) RETURN
-C
-      REWIND(ntopics)
-      WRITE(ntopics,'(1P7E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
-     &     NR=1,NRMAX)
-      CLOSE(ntopics)
-C
-      RETURN
-      END

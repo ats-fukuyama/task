@@ -40,6 +40,19 @@ C
       NHC    = 10
       PRFIN  = 0.D0
 C
+C     (Multi-mode case)
+C
+C     MNPHMAX : Number of toroidal modes
+C     MNPH0  : Current central value of toroidal mode number
+C     PFRAC  : Fraction of power for each toroidal mode number
+C
+      MNPHMAX = 1
+      DO NM = 1, MNPHMX
+         MNPH0(NM) = 8
+         PFRAC(NM) = 0.D0
+      ENDDO
+C
+C
 C     *** ANTENNA PARAMETERS ***
 C
 C        NAMAX : Number of antennae
@@ -62,8 +75,8 @@ C
 C
 C     *** MESH PARAMETERS ***
 C
-C        NRMAX : Number of radial mesh points
-C        NTHMAX: Number of poloidal mesh points
+C        NRMAX  : Number of radial mesh points
+C        NTHMAX : Number of poloidal mesh points
 C        NPHMAX : Number of toroidal mesh points
 C
       NRMAX   = 50
@@ -267,7 +280,7 @@ C
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
-     &              NSUMAX,NSWMAX
+     &              NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -316,7 +329,7 @@ C
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
      &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
-     &       9X,'NSUMAX,NSWMAX')
+     &       9X,'NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
