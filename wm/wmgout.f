@@ -1059,7 +1059,7 @@ C
          CALL MOVE(XPOS,YPOS)
          CALL TEXT('CUR:',4)
          CALL MOVE(XPOS,YPOS-DY)
-         CALL NUMBD(PCURTT,'(1PE12.4)',12)
+         CALL NUMBD(PCURT,'(1PE12.4)',12)
          YPOS=YPOS-2*DY
          CALL MOVE(XPOS,YPOS)
          IF(K1.EQ.'R'.AND.K3.EQ.'M') THEN

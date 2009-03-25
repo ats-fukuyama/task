@@ -181,7 +181,7 @@ C         ENDIF
       ENDDO
       ENDDO
 C
-C     ------- プラズマの外側のE+,E-,Ez0にする ---------
+C     ------- Set E+, E- and Ez0 to those outside the plasma ---------
       DO K=1,3
          DO NR=1,NRMAX+1
             IF(XRHO(NR).GT.1.0D0) THEN
