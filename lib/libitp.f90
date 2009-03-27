@@ -614,3 +614,29 @@
 
       RETURN
       END FUNCTION FCTR2
+
+!     *** Extrapolate center and its adjacent values ***************
+!     *  assuming the 1st-derivative is zero at the center (rho=0) *
+!     **************************************************************
+
+      subroutine SCTR(R1,R2,R3,R4,F2,F3,F4,F0,F1)
+
+      implicit none
+      real(8), intent(in)  :: R1, R2, R3, R4, F2, F3, F4
+      real(8), intent(out) :: F0, F1
+      real(8) :: D2, D3, D4
+
+      D2 = (R3 - R2) * (R4 - R2) * (R2*R3 + R3*R4 + R4*R2)
+      D3 = (R3 - R2) * (R4 - R3) * (R2*R3 + R3*R4 + R4*R2)
+      D4 = (R4 - R2) * (R4 - R3) * (R2*R3 + R3*R4 + R4*R2)
+
+      F0 =  R3**2 * R4**2 / D2 * F2 &
+     &    - R4**2 * R2**2 / D3 * F3 &
+     &    + R2**2 * R3**2 / D4 * F4
+
+      F1 =  (R3 - R1) * (R4 - R1) * (R3*R4 + R1*R4 + R1*R3) / D2 * F2 &
+     &    - (R2 - R1) * (R4 - R1) * (R2*R4 + R4*R1 + R1*R2) / D3 * F3 &
+     &    + (R2 - R1) * (R3 - R1) * (R2*R3 + R3*R1 + R1*R2) / D4 * F4
+
+      RETURN
+      end subroutine SCTR
