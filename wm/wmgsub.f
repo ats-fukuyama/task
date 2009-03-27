@@ -750,6 +750,13 @@ C
       CALL TEXT('STEP:',5)
       CALL NUMBR(GGFSTP,'(1PE9.2)',9)
 C
+      CALL MOVE(17.5,14.5)
+      CALL TEXT('RAXS:',5)
+      CALL NUMBR(REAL(RAXIS),'(1PE9.2)',9)
+      CALL MOVE(17.5,14.0)
+      CALL TEXT('ZAXS:',5)
+      CALL NUMBR(REAL(ZAXIS),'(1PE9.2)',9)
+C
       RETURN
       END
 C
