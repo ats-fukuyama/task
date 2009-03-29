@@ -32,6 +32,7 @@
      &         fmd3(3,3,4,nfcmax,nfcmax),fmd4(3,3,4,nfcmax,nfcmax))
       if(ns.eq.0) then
          if(mdlwmf.eq.1) then
+            call wmfem_calculate_vacuum(rho1,fmd1)
             call wmfem_calculate_vacuum(rho2,fmd2)
             call wmfem_calculate_vacuum(rho3,fmd3)
             call wmfem_calculate_vacuum(rho4,fmd4)
