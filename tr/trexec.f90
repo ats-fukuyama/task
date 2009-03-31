@@ -194,6 +194,8 @@
                IF(NSTN.EQ.0) THEN
                   IF(NSSN.NE.NSM) THEN
                      RT(NR,NSSN) = XV(NEQ,NR)/RN(NR,NSSN)
+!                     write(6,'(A,2I5,1P3E12.4)') '-1- ',NR,NSSN, &
+!                     & XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN)
                   ELSE
                      IF(RN(NR,NSM).LT.1.D-70) THEN
                         RT(NR,NSM) = 0.D0
@@ -204,11 +206,15 @@
                ELSE
                   IF(NSSN.NE.NSM) THEN
                      RT(NR,NSSN) = 0.5D0*(XV(NEQ,NR) +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSSN)
+!                     write(6,'(A,3I5,1P4E12.4)') '-2- ',NR,NSSN,NSTN, &
+!                     & XV(NEQ,NR),RN(NR,NSSN),RT(NR,NSSN),X(NEQRMAX*(NR-1)+NSTN)
                   ELSE
                      IF(RN(NR,NSM).LT.1.D-70) THEN
                         RT(NR,NSM) = 0.D0
                      ELSE
                         RT(NR,NSM) = 0.5D0*(XV(NEQ,NR) +X(NEQRMAX*(NR-1)+NSTN))/RN(NR,NSM)
+!                     write(6,'(A,2I5,1P3E12.4)') '-3- ',NR,NSM, &
+!                     & XV(NEQ,NR),RN(NR,NSM),RT(NR,NSM)
                      ENDIF
                   ENDIF
                ENDIF

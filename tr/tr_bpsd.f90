@@ -242,8 +242,10 @@
       RKAP=device%elip
       RDLT=device%trig
 
-      RIPS=RIP
-      RIPE=RIP
+      if(modelg.eq.3.or.modelg.eq.5) then
+         RIPS=RIP
+         RIPE=RIP
+      endif
 
       call bpsd_get_data(plasmaf,ierr)
 
@@ -265,7 +267,7 @@
          call mesh_convert_gtom(temp(1:nrmax,ns,3),ru(1:nrmax,ns),nrmax)
       enddo
 
-      if(modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
+      if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
 
       call bpsd_get_data(equ1D,ierr)
 
@@ -376,9 +378,11 @@
 !      pause
 
       ! Calibration in order to keep consistency between metrics and plasma current
-      RIP  = ABVRHOG(NRMAX)*RDPVRHOG(NRMAX)/(2.D0*PI*RMU0)*1.D-6
-      RIPS = RIP
-      RIPE = RIP
+      if(modelg.eq.3.or.modelg.eq.5) then
+         RIP  = ABVRHOG(NRMAX)*RDPVRHOG(NRMAX)/(2.D0*PI*RMU0)*1.D-6
+         RIPS = RIP
+         RIPE = RIP
+      endif
 
       endif
 

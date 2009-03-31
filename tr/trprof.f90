@@ -693,6 +693,7 @@
       use equnit_mod, only: eq_parm,eq_prof,eq_calc,eq_load
       use equunit_mod, only: equ_prof,equ_calc
       use pl_vmec_mod, only: pl_vmec
+      implicit none
       integer, intent(out):: ierr
       character(len=80):: line
 
@@ -707,8 +708,9 @@
          write(line,'(A,I5)') 'nsumax=',0
          call eq_parm(2,line,ierr)
          call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
+         if(ierr.ne.0) write(6,*) 'XX eq_load: ierr=',ierr
          call tr_bpsd_get(ierr)  ! 
-         if(ierr.ne.0) write(6,*) 'XX2 ierr=',ierr
+         if(ierr.ne.0) write(6,*) 'XX tr_bpsd_get: ierr=',ierr
       elseif(modelg.eq.7) then
          call pl_vmec(knameq,ierr) ! load vmec data
          call tr_bpsd_get(ierr)  ! 

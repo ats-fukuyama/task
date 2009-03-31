@@ -29,7 +29,7 @@
       ELSE
          RIP=RIPS
          IF(NTMAX.NE.0) DIPDT=(RIPE-RIPS)/(DBLE(NTMAX)*DT)
-!         write(6,'(A,1P4E12.4)') "**RIP,RIPS,RIPE,DIP=",RIP,RIPS,RIPE,DIPDT
+         write(6,'(A,1P4E12.4)') "**RIP,RIPS,RIPE,DIP=",RIP,RIPS,RIPE,DIPDT
       ENDIF
 
  1000 CONTINUE
@@ -57,6 +57,7 @@
                if(ierr.ne.0) return
             endif
             if(modelg.eq.9) THEN
+               call tr_bpsd_set(IERR)
                call eq_calc
                call tr_bpsd_get(IERR)
                if(ierr.ne.0) return
