@@ -119,7 +119,7 @@
          metric1D%data(nr)%rr      = fnrrps  (rhot(nr)) ! rrpsi   on rhot
          metric1D%data(nr)%rs      = fnrsps  (rhot(nr)) ! rspsi   on rhot
          metric1D%data(nr)%elip    = fnelpps (rhot(nr)) ! elippsi on rhot
-         metric1D%data(nr)%trig    = fntrgps (rhot(rn)) ! trigpsi on rhot
+         metric1D%data(nr)%trig    = fntrgps (rhot(nr)) ! trigpsi on rhot
       enddo
       call bpsd_set_metric1D(metric1D,ierr)
 

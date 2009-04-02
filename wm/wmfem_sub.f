@@ -30,12 +30,11 @@ C     $Id$
 
 !---- interface for wm parameter
 
-      subroutine get_wmfem_size(nrmax_,nthmax_,nphmax_,nsmax_,ierr)
+      subroutine get_wmfem_size(nrmax_,nthmax_,nphmax_,nsmax_)
       
       use wmfem_com, only: rhoa
       include '../wm/wmcomm.inc'
       integer,intent(out):: nrmax_,nthmax_,nphmax_,nsmax_
-      integer,intent(out):: ierr
       integer,save::  nrmax_save=0
       integer:: nr
 

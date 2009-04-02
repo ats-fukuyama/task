@@ -717,18 +717,18 @@
      &          ' ',3X,'WF    =',1PD10.3,'  TF0   =',1PD10.3, &
      &               '  TFAVE =',1PD10.3,'  NFAVE =',1PD10.3)
 
-!!$         WRITE(6,603) AJT,VLOOP,ALI,VSEC, &
-!!$     &                AJOHT,AJNBT,AJRFT,AJBST
-!!$  603    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
-!!$     &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
-!!$     &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
-!!$     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
-         WRITE(16,603) AJTTOR,VLOOP,ALI,VSEC, &
-     &                AJT,AJOHT,AJNBT,AJBST
-  603    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
+         WRITE(6,603) AJT,VLOOP,ALI,VSEC, &
+     &                AJOHT,AJNBT,AJRFT,AJBST
+  603    FORMAT(' ',3X,'AJT   =',1PD10.3,'  VLOOP =',1PD10.3, &
      &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
-     &          ' ',3X,'AJT   =',1PD10.3,'  AJOHT =',1PD10.3, &
-     &               '  AJNBT =',1PD10.3,'  AJBST =',1PD10.3)
+     &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
+     &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+!         WRITE(16,603) AJTTOR,VLOOP,ALI,VSEC, &
+!     &                AJT,AJOHT,AJNBT,AJBST
+!  603    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
+!     &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
+!     &          ' ',3X,'AJT   =',1PD10.3,'  AJOHT =',1PD10.3, &
+!     &               '  AJNBT =',1PD10.3,'  AJBST =',1PD10.3)
 
          WRITE(6,604) PINT,POHT,PNBT,PNFT, &
      &                PRFT(1),PRFT(2),PRFT(3),PRFT(4), &

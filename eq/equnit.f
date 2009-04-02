@@ -72,8 +72,11 @@
       nsumax=nsumax_save
 
       call eq_bpsd_init(ierr)
+      if(ierr.ne.0) write(6,*) 'XX eq_bpsd_init: ierr=',ierr
       call eqcalq(ierr)
+      if(ierr.ne.0) write(6,*) 'XX eq_calq: ierr=',ierr
       call eq_bpsd_set(ierr)
+      if(ierr.ne.0) write(6,*) 'XX eq_bpsd_set: ierr=',ierr
       return
       end subroutine eq_load
 !=======================================================================

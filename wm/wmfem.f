@@ -14,8 +14,7 @@
          IF(IERR.NE.0) RETURN
          CALL wmfem_setj(ierr)
          IF(IERR.NE.0) RETURN
-         CALL get_wmfem_size(nrmax,nthmax,nphmax,nsmax,ierr)
-         IF(IERR.NE.0) RETURN
+         CALL get_wmfem_size(nrmax,nthmax,nphmax,nsmax)
 
 !     ***** define array size  *****
 
@@ -61,7 +60,7 @@
 !     ***** calculate efield *****
 
       call wmfem_calculate_efield
-      call wmfem_efld(cef)
+      call wmfem_efld
 
       return
 
@@ -565,12 +564,12 @@
 !     ***** calculate bfield *****
 
       call wmfem_calculate_bfield
-      call wmfem_bfld(cbf)
+      call wmfem_bfld
 
 !     ***** calculate power *****
 
       call wmfem_calculate_power
-      call wmfem_pabs(cpp,cpa)
+      call wmfem_pabs
 
       return
 
