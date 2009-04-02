@@ -40,18 +40,18 @@ C
 C
 C     ----- Quasi-linear wave-particle interaction term -----
 C
-      IF(MODELW.EQ.0) THEN
+      IF(MODELW(NSA).EQ.0) THEN
          CALL FPCALW(NSA)
-      ELSEIF(MODELW.EQ.1) THEN
+      ELSEIF(MODELW(NSA).EQ.1) THEN
          CALL FPCALWR(NSA)
-      ELSEIF(MODELW.EQ.2) THEN
+      ELSEIF(MODELW(NSA).EQ.2) THEN
          CALL FPCALWR(NSA)
-      ELSEIF(MODELW.EQ.3) THEN
+      ELSEIF(MODELW(NSA).EQ.3) THEN
          CALL FPCALWM(NSA)
-      ELSEIF(MODELW.EQ.4) THEN
+      ELSEIF(MODELW(NSA).EQ.4) THEN
          CALL FPCALWM(NSA)
       ELSE
-         WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW
+         WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW(NSA)
       ENDIF
 C
 C     ----- Collisional slowing down and diffusion term -----
@@ -100,13 +100,76 @@ C      CALL FPCALR
 C
 C     ----- Particle source term (disabled) -----
 C
-      DO NR=1,NRMAX
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX
-         SP(NTH,NP,NR,NSA)=0.D0
-      ENDDO
-      ENDDO
-      ENDDO
+      SELECT CASE(MODELS(NSA))
+      CASE(0)
+         DO NR=1,NRMAX
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  SP(NTH,NP,NR,NSA)=0.D0
+               ENDDO
+            ENDDO
+         ENDDO
+      CASE(1)
+         PSP=SQRT(2.D0*AMFP(NSA)*SPENG(NSA)*AEE)/PTFP0(NSA)
+         SUML=0.D0
+         DO NP=1,NPMAX-1
+            IF(PG(NP).LE.PSP.AND.PG(NP+1).GT.PSP) THEN
+               DO NTH=1,NTHMAX
+                  ANGSP=PI*SPANG(NSA)/180.D0
+                  IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
+                     DO NR=1,NRMAX
+                        SPL=EXP(-(RM(NR)-SPR0(NSA))**2/SPRW(NSA)**2)
+                        SP(NTH,NP,NR,NSA)=SPL*RLAMDA(NTH,NR)
+                        SUML=SUML
+     &                      +SPL*VOL(NTH,NP)*RLAMDA(NTH,NR)*VOLR(NR)
+                     ENDDO
+                  ENDIF
+               ENDDO
+            ENDIF
+         ENDDO
+         DO NP=1,NPMAX-1
+            DO NTH=1,NTHMAX
+               DO NR=1,NRMAX
+                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)*DELT
+     &                             *SP(NTH,NP,NR,NSA)/SUML
+               ENDDO
+            ENDDO
+         ENDDO
+         NP=NPMAX
+         DO NTH=1,NTHMAX
+            DO NR=1,NRMAX
+               SP(NTH,NP,NR,NSA)=0.D0
+            ENDDO
+         ENDDO
+      CASE(2)
+         PSP=SQRT(2.D0*AMFP(NSA)*3.5D6*AEE)/PTFP0(NSA)
+         SUML=0.D0
+         DO NP=1,NPMAX-1
+            IF(PG(NP).LE.PSP.AND.PG(NP+1).GT.PSP) THEN
+               DO NR=1,NRMAX
+                  SPL=EXP(-(RM(NR)-SPR0(NSA))**2/SPRW(NSA)**2)
+                  DO NTH=1,NTHMAX
+                     SP(NTH,NP,NR,NSA)=SPL*RLAMDA(NTH,NR)
+                     SUML=SUML+SPL*VOL(NTH,NP)*RLAMDA(NTH,NR)*VOLR(NR)
+                  ENDDO
+               ENDDO
+            ENDIF
+         ENDDO
+         DO NP=1,NPMAX-1
+            DO NTH=1,NTHMAX
+               DO NR=1,NRMAX
+                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)*DELT
+     &                             *SP(NTH,NP,NR,NSA)/SUML
+               ENDDO
+            ENDDO
+         ENDDO
+         NP=NPMAX
+         DO NTH=1,NTHMAX
+            DO NR=1,NRMAX
+               SP(NTH,NP,NR,NSA)=0.D0
+            ENDDO
+         ENDDO
+      END SELECT
 C
 C     ****************************
 C     Boundary condition at p=pmax

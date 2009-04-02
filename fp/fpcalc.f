@@ -385,11 +385,9 @@ C
                PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))
      &              *ptatb
               IF(PCRIT.le.PMAX)THEN
-                 write(*,*)"1",np
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                   PNFP=PCRIT
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
-                 write(*,*)"2",np
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
                   PNFP=PNFPL
                   DCPPL=RGAMH/(3.D0*RINT0)*(
@@ -401,7 +399,6 @@ C
                   PNFP=PCRIT
                   CALL DEFT  (RINT4,ES4,H0DE,EPSDE,0,FPFN4R)
                   CALL DEFT  (RINT5,ES5,H0DE,EPSDE,0,FPFN5R)
-                 write(*,*)"3",np
                   CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
                   PNFP=PNFPL
                   FCPPL=-RGAMH/(3.D0*RINT0)*(
@@ -411,13 +408,11 @@ C
      &                 /(PTFD0(NSB)*RGAMA)*TMC2FP0*RINT6 )
      &             *RNFD(NR,NSB)*1.D20
                ELSEIF(PCRIT.gt.PMAX)THEN
-                 write(*,*)"4"
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                   PNFP=PMAX
                   CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
                   PNFP=PCRIT
                   CALL DEFT  (RINT7,ES7,H0DE,EPSDE,0,FPFN7R)
-                 write(*,*)"5"
                   CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
                   PNFP=PNFPL
                   DCPPL=RGAMH/(3.D0*RINT0)*( 
@@ -433,7 +428,6 @@ C
                   PNFP=PCRIT
                   CALL DEFT  (RINT8,ES8,H0DE,EPSDE,0,FPFN9R)
                   CALL DEFT  (RINT9,ES9,H0DE,EPSDE,0,FPFN10R)
-                 write(*,*)"6"
                   CALL DEHIFT(RINT6,ES6,H0DE,EPSDE,0,FPFN6R)
                   PNFP=PNFPL
                   FCPPL=-RGAMH/(3.D0*RINT0)*(
@@ -464,12 +458,10 @@ C
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))
      &           *ptatb
             IF(PCRIT.le.PMAX)THEN
-                 write(*,*)"7",NP
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                PNFP=PCRIT
 cPNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
-                 write(*,*)"8",NP
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
                CALL DEFT  (RINT3,ES3,H0DE,EPSDE,0,FPFN3R)
                PNFP=PNFPL
@@ -480,7 +472,6 @@ cPNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
      &           +(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))*RINT2 )
      &          *RNFD(NR,NSB)*1.D20
             ELSEIF(PCRIT.gt.PMAX)THEN
-                 write(*,*)"9",NP
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                PNFP=PMAX
                CALL DEFT  (RINT1,ES1,H0DE,EPSDE,0,FPFN1R)
@@ -488,7 +479,6 @@ cPNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
                PNFP=PNFPL*PTFP0(NSA)*AMFD(NSB)/(PTFD0(NSB)*AMFP(NSA))
                CALL DEFT  (RINT4,ES1,H0DE,EPSDE,0,FPFN7R)
                CALL DEFT  (RINT5,ES3,H0DE,EPSDE,0,FPFN8R)
-                 write(*,*)"10",NP
                CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
                PNFP=PNFPL
                DCTTL=RGAMH/(3.D0*RINT0)*(

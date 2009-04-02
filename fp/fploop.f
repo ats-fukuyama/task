@@ -45,8 +45,8 @@ C     +++++ NSA loop +++++
             END DO
          END DO
 
-         DO NS=1,NSMAX
-            DEPS2(NS)=1.D0
+         DO NSA=1,NSAMAX
+            DEPS2(NSA)=1.D0
          END DO
          DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP)
             NCHECK=NCHECK+1
@@ -60,8 +60,8 @@ C     +++++ NSA loop +++++
                END DO
                END DO
 
-               IF(DEPS2(NS).ge.EPSFP)THEN
-c                  write(*,*)NS,EPSFP,DEPS2(NS)
+               IF(DEPS2(NSA).ge.EPSFP)THEN
+c                  write(*,*)NSA,EPSFP,DEPS2(NSA)
                   CALL FPEXEC(NSA,IERR)
                   IF(IERR.NE.0) GOTO 250
                ELSE
@@ -74,15 +74,15 @@ c                  write(*,*)NS,EPSFP,DEPS2(NS)
                   END DO
                END IF
 
-               RSUMF(NS)=0.D0
-               RSUMF0(NS)=0.D0
+               RSUMF(NSA)=0.D0
+               RSUMF0(NSA)=0.D0
                DO NR=1,NRMAX
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   FNS1(NTH,NP,NR,NS)=F1(NTH,NP,NR)
-                  RSUMF(NS)=RSUMF(NS)
+                  RSUMF(NSA)=RSUMF(NSA)
      &                   +ABS(FNS1(NTH,NP,NR,NS)-FNS2(NTH,NP,NR,NS))**2
-                  RSUMF0(NS)=RSUMF0(NS)
+                  RSUMF0(NSA)=RSUMF0(NSA)
      &                   +ABS(FNS2(NTH,NP,NR,NS))**2
                ENDDO
                ENDDO
@@ -91,13 +91,14 @@ c                  write(*,*)NS,EPSFP,DEPS2(NS)
             DEPS=0.D0
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
-               DEPS1=RSUMF(NS)/RSUMF0(NS)
-               DEPS2(NS)=RSUMF(NS)/RSUMF0(NS)
+               DEPS1=RSUMF(NSA)/RSUMF0(NSA)
+               DEPS2(NSA)=RSUMF(NSA)/RSUMF0(NSA)
                IF(DEPS1.ge.DEPS) NSTEST=NS
                DEPS=MAX(DEPS,DEPS1)
             END DO
 
-          write(6,1274)DEPS,NCHECK,NT,NSTEST,(RSUMF(j)/RSUMF0(j),j=1,3)
+      write(6,1274)DEPS,NCHECK,NT,NSTEST,(RSUMF(NSA)/RSUMF0(NSA),
+     &             NSA=1,NSAMAX)
 
 C     +++++ update velocity distribution function +++++
 
@@ -117,7 +118,7 @@ C     +++++ end of NSA loop +++++
 
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
-               IF(DEPS2(NS).ne.0.D0)THEN
+               IF(DEPS2(NSA).ne.0.D0)THEN
                   IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF(NSA)
                END IF
             END DO
@@ -266,42 +267,15 @@ c         close(8)
 
          DO NTI=1,NTMAX
             dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
-            dw2=PPCT(3,NTI-1)+PPWT(3,NTI-1)+PPET(3,NTI-1)
             WRITE(9,645) PTG(NTI)*1000
      &           ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI)
      &           ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI)
      &           ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI)
      &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
      &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
-cccccccccccccc
-c     &           ,PNT(3,NTI),PNT(1,NTI),PNT(2,NTI)
-c     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
-c     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
-c     &           ,PWT(3,NTI+1)-PWT(3,NTI)
-c     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
-c     &           /1.5D0
-
-c密度のズレ補正
-c     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))
-
-c     &           ,(PWT(3,NTI)-PWT(3,NTI-1))
-c     &           /(PPWT(3,NTI)+PPCT(3,NTI)+PPET(3,NTI))
-
-c     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))
-
-c     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
-c     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
 
          END DO
          close(9)
-c         write(8,*)" " 
-c         write(8,*)" " 
       END IF
  645  FORMAT(17E14.6)
  646  FORMAT(I3,17E14.6)

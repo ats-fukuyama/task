@@ -41,13 +41,15 @@ C     ----- Initialize velocity distribution function of all species -----
             ENDDO
          END DO
       END DO
+
 c--------- normalize bounce averaged distribution function ---------
+
       IF(MODELA.eq.1)THEN
          DO NS=1,NSMAX
          DO NR=1,NRMAX
          RSUM1=0.D0
          RSUM2=0.D0
-         rcoef(NR)=0.D0
+         RCOEF(NR)=0.D0
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   RSUM1 = RSUM1+VOL(NTH,NP)*FNS(NTH,NP,NR,NS)
@@ -56,7 +58,6 @@ c--------- normalize bounce averaged distribution function ---------
                END DO
             END DO
             RCOEF(NR)=RSUM2/RSUM1
-c            write(*,*)"test",RSUM1,RSUM2,RSUM1/RSUM2,NS,NR
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   FNS(NTH,NP,NR,NS) = FNS(NTH,NP,NR,NS)*RCOEF(NR)
@@ -293,14 +294,16 @@ C
 C
 C     ----- load WR resluts -----
 C
-      IF(MODELW.EQ.1.OR.MODELW.EQ.2) THEN
+      DO NSA=NSFPMI,NSFPMA
+      IF(MODELW(NSA).EQ.1.OR.MODELW(NSA).EQ.2) THEN
          CALL FPLDWR(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
-      IF(MODELW.EQ.4) THEN
+      IF(MODELW(NSA).EQ.4) THEN
          CALL FPWMREAD(IERR)
          IF(IERR.NE.0) RETURN
       ENDIF
+      ENDDO
 
 C
 C     ----- set poloidal magneticl field -----
@@ -356,7 +359,17 @@ C
          VOL(NTH,NP)=2.D0*PI*SINM(NTH)*PM(NP)**2*DELP*DELTH
       ENDDO
       ENDDO
-
+      DO NR=1,NRMAX
+         RHOL=RM(NR)
+         RHOL1=RG(NR)
+         RHOL2=RG(NR+1)
+         VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
+     &           *2.D0*PI*RR
+      ENDDO
+      TVOLR=0.D0
+      DO NR=1,NRMAX
+         TVOLR=TVOLR+VOLR(NR)
+      ENDDO
 C
 C     ----- set bounce-average parameters -----
 C
@@ -548,28 +561,6 @@ c$$$         ENDIF
 
       RETURN
       END
-c-----------------------
-      FUNCTION FPBEAM(PML,NR,NS)
-      INCLUDE 'fpcomm.inc'
-
-      AMFD=PA(NS)*AMP
-      AEFD=PZ(NS)*AEE
-c      RTFD0=(PTPR(NS)+2.D0*PTPP(NS))/3.D0
-c      PTFD0=SQRT(RTFD0*1.D3*AEE*AMFD)
-c      RNFD0=PN(NS)
-c      RNFDL=RNFD(NR,NS)
-      rsigma=1.d-1
-
-c      IF(NS.eq.NSBM)THEN
-c      EX=-(PML-1.D0)**2/(2.D0*rsigma**2)
-c      FACT=RNFDL*PTFD0**3/(SQRT(2.D0*PI)*rsigma)
-c      FPBEAM=FACT*EXP(EX)
-c      END IF
-      FPBEAM=RNFDL/(4.D0*PI)
-
-      RETURN
-      END
-
 C
 C *************************
 C     INITIAL DATA SAVE

@@ -18,7 +18,7 @@ C =============  CALCULATION OF DWPP AND DWPT  ===============
 C
       FACT=0.5D0
 C
-      IF(MODELW.EQ.2) THEN
+      IF(MODELW(NSA).EQ.2) THEN
       DO  NRDO=1,NRMAX
          NR=NRDO
          DO  NTH=1,NTHMAX
@@ -201,7 +201,7 @@ C
 C
 C =============  CALCULATION OF DWTP AND DWTT  ===============
 C
-      IF(MODELW.EQ.2) THEN
+      IF(MODELW(NSA).EQ.2) THEN
       DO  NRDO=1,NRMAX
          NR=NRDO
          DO  NTH=1,NTHMAX
@@ -403,7 +403,7 @@ C
 C            IF(IFLAG.EQ.1) WRITE(6,*) 'NR,NCRMAX=',NR,NCRMAX(NR,NRAY)
             RFDW=RAYIN(1,NRAY)
 C
-            IF(MODELW.EQ.1) THEN
+            IF(MODELW(NSA).EQ.1) THEN
              DO NCR=1,NCRMAX(NR,NRAY)
              RX=RCR(1,NCR,NR,NRAY)
              RY=RCR(2,NCR,NR,NRAY)
@@ -438,7 +438,7 @@ C               WRITE(6,*) RHOR,RM(NR)
             ENDIF
 C
 C
-            IF(MODELW.EQ.2) THEN
+            IF(MODELW(NSA).EQ.2) THEN
                ARG=ARGB(NR,NTH,NAV,NRAY)
                IF(ARG.GT.0.D0.AND.ARG.LT.15.D0) THEN
                   FACTOR= EXP(-ARG)

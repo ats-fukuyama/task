@@ -313,30 +313,18 @@ C
             PPCT2(NSB,NSA,NTG2)= 0.D0
          END DO
       ENDDO
-C
-      TVOL=0.D0
-      DO NR=1,NRMAX
-         RHOL=RM(NR)
-         RHOL1=RG(NR)
-         RHOL2=RG(NR+1)
-         TVOL=TVOL+2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
-      ENDDO
 
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
-            RHOL=RM(NR)
-            RHOL1=RG(NR)
-            RHOL2=RG(NR+1)
-            FACT=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1))
-            PNT(NSA,NTG2) =PNT(NSA,NTG2) +RNS(NR,NSA)*FACT
-            PIT(NSA,NTG2) =PIT(NSA,NTG2) +RJS(NR,NSA)*FACT
-            PWT(NSA,NTG2) =PWT(NSA,NTG2) +RWS(NR,NSA)*FACT
-            PPCT(NSA,NTG2)=PPCT(NSA,NTG2)+RPCS(NR,NSA)*FACT
-            PPWT(NSA,NTG2)=PPWT(NSA,NTG2)+RPWS(NR,NSA)*FACT
-            PPET(NSA,NTG2)=PPET(NSA,NTG2)+RPES(NR,NSA)*FACT
-            PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*FACT
-            PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*FACT
-            PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*FACT
+            PNT(NSA,NTG2) =PNT(NSA,NTG2) +RNS(NR,NSA)*VOLR(NR)
+            PIT(NSA,NTG2) =PIT(NSA,NTG2) +RJS(NR,NSA)*VOLR(NR)
+            PWT(NSA,NTG2) =PWT(NSA,NTG2) +RWS(NR,NSA)*VOLR(NR)
+            PPCT(NSA,NTG2)=PPCT(NSA,NTG2)+RPCS(NR,NSA)*VOLR(NR)
+            PPWT(NSA,NTG2)=PPWT(NSA,NTG2)+RPWS(NR,NSA)*VOLR(NR)
+            PPET(NSA,NTG2)=PPET(NSA,NTG2)+RPES(NR,NSA)*VOLR(NR)
+            PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*VOLR(NR)
+            PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*VOLR(NR)
+            PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*VOLR(NR)
             IF(MODELR.eq.1) then
                CALL FPNEWTON(NR,NSA,rtemp)
             else
@@ -345,20 +333,16 @@ C
                THETAL=2.d0*EAVE/3.d0
                rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
             endif
-            PWT2(NSA,NTG2) =PWT2(NSA,NTG2) +rtemp*FACT/1.D6
+            PWT2(NSA,NTG2) =PWT2(NSA,NTG2) +rtemp*VOLR(NR)/1.D6
      &                            *(1.5D0*RNS(NR,NSA)*1.D20*AEE*1.D3)
             DO NSB=1,NSBMAX
                PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)
-     &                            +RPCS2(NR,NSB,NSA)*FACT
+     &                            +RPCS2(NR,NSB,NSA)*VOLR(NR)
             END DO
          ENDDO
-         PIT(NSA,NTG2) =PIT(NSA,NTG2) 
-         PPCT(NSA,NTG2)=PPCT(NSA,NTG2)*2.D0*PI*RR
-         PPWT(NSA,NTG2)=PPWT(NSA,NTG2)*2.D0*PI*RR
-         PPET(NSA,NTG2)=PPET(NSA,NTG2)*2.D0*PI*RR
-         PLHT(NSA,NTG2)=PLHT(NSA,NTG2)*2.D0*PI*RR
-         PFWT(NSA,NTG2)=PFWT(NSA,NTG2)*2.D0*PI*RR
-         PECT(NSA,NTG2)=PECT(NSA,NTG2)*2.D0*PI*RR
+
+         PIT(NSA,NTG2) =PIT(NSA,NTG2)/2.D0*PI*RR
+
          IF(PNT(NSA,NTG2).NE.0.d0) THEN
             PTT(NSA,NTG2) =PWT(NSA,NTG2)*1.D6
      &           /(1.5D0*PNT(NSA,NTG2)*1.D20*AEE*1.D3)
@@ -368,12 +352,7 @@ C
             PTT(NSA,NTG2)=0.D0
             PTT2(NSA,NTG2)=0.D0
          ENDIF
-         PNT(NSA,NTG2) =PNT(NSA,NTG2)/TVOL
-         PWT(NSA,NTG2) =PWT(NSA,NTG2) *2.D0*PI*RR
-         PWT2(NSA,NTG2) =PWT2(NSA,NTG2) *2.D0*PI*RR
-         DO NSB=1,NSBMAX
-            PPCT2(NSB,NSA,NTG2)=PPCT2(NSB,NSA,NTG2)*2.D0*PI*RR
-         END DO
+         PNT(NSA,NTG2) =PNT(NSA,NTG2)/TVOLR
       ENDDO
          
       RETURN
@@ -456,10 +435,10 @@ c      END DO
       RETURN
   101 FORMAT(' TIME=',F12.3,' ms')
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1P4E12.4)
-c  103 FORMAT('             PC,PW,PE=',11X,1P3E12.4)
-c  104 FORMAT('             PCAB    =',11X,1P3E12.4)
-  103 FORMAT('        ',2I2,' PC,PW,PE=',11X,1P3E12.4)
-  104 FORMAT('        ',2I2,' PCAB    =',11X,1P3E12.4)
+c  103 FORMAT('             PC,PW,PE=',11X,1P4E12.4)
+c  104 FORMAT('             PCAB    =',11X,1P4E12.4)
+  103 FORMAT('        ',2I2,' PC,PW,PE=',11X,1P4E12.4)
+  104 FORMAT('        ',2I2,' PCAB    =',11X,1P4E12.4)
 
  105  FORMAT('total absorption [MW]', E12.4)
  106  FORMAT(F12.4, 8E12.4)

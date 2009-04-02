@@ -95,6 +95,21 @@ C
       FACTWM= 1.D0
 C
 C-----------------------------------------------------------------------
+C     SPTOT(NSA) : Total number of particle source per second  [/s]
+C     SPR0(NSA)  : Radial center of particle source            [m]
+C     SPRW(NSA)  : Radial width of particle source             [m]
+C     SPENG(NSA) : Energy of particle source                   [eV]
+C     SPANG(NSA) : Pitch angle of particle source              [degree]
+C
+      DO NSA=1,NSAM
+         SPTOT(NSA)= 0.D0
+         SPR0(NSA) = 0.D0
+         SPRW(NSA) = 0.D0
+         SPENG(NSA)= 1.D6
+         SPANG(NSA)= 0.D0
+      ENDDO
+C
+C-----------------------------------------------------------------------
 C     PMAX  : maximum momentum (normailzed by central thermal momentum)
 C     DELT  : time step size (s)
 C     RIMPL : implicit computation parameter
@@ -167,17 +182,25 @@ C             5 : linear coll. operator for different species (for debug)
 C             6 : nonlinear coll. operator for different species (for debug)
 C            -1 : linear collision operator for same with ion scattering
 C            -2 : nonlinear collision operator for same with ion scattering
-C     MODELW: 0 for given diffusion coefficient model
-C             1 for wave electric field calculated by WR(without beam radius)
-C             2 for wave electric field calculated by WR(with beam radius)
-C             3 for given wave electric field model
-C             4 for wave electric field calculated by WM
+C     MODELW(NSA) :
+C             0 : given diffusion coefficient model
+C             1 : wave electric field calculated by WR(ray tracing)
+C             2 : wave electric field calculated by WR(beam tracing)
+C             3 : given wave electric field model
+C             4 : wave electric field calculated by WM
+C     MODELS(NSA) :
+C             0 : no particle source
+C             1 : beam particle source
+C             2 : 3.5 MeV alpha particle source
 C
       MODELE= 0
       MODELA= 1
       MODELR= 0
       MODELC= 0
-      MODELW= 0
+      DO NSA=1,NSAM
+         MODELW(NSA)= 0
+         MODELS(NSA)= 0
+      ENDDO
 C
 C-----------------------------------------------------------------------
 C     LLMAX : dimension of legendre polynomials's calculation
@@ -252,11 +275,12 @@ C
      &              ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,
      &              DEC,PEC1,PEC2,RFEC,DELYEC,
      &              DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,
+     &              SPTOT,SPR0,SPRW,SPENG,SPANG,
      &              PMAX,RIMPL,EPSM,EPSE,EPSFP,EPSDE,H0DE,LMAXE,LMAXFP,
      &              NPMAX,NTHMAX,NRMAX,NAVMAX,
-     &              PGMAX,RGMIN,RGMAX,NGLINE,NGRAPH,
+     &              PGMAX,RGMIN,RGMAX,NGLINE,NGRAPH,LLMAX,
      &              DELT,NTMAX,NTSTP1,NTSTP2,NTSTPC,
-     &              MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,
+     &              MODELE,MODELA,MODELC,MODELW,MODELS,MODELR,
      &              RFDW,DELNPR,NCMIN,NCMAX,FACTWM,
      &              CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,
      &              EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,
@@ -285,10 +309,11 @@ C
       WRITE(6,*) '      ZEFF,DRR0,E0,R1,DELR1,RMIN,RMAX,'
       WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,'
       WRITE(6,*) '      DLH,PLH1,PLH2,RLH,DFW,PFW1,PFW2,RFW,'
+      WRITE(6,*) '      SPTOT,SPR0,SPRW,SPENG,SPANG,'
       WRITE(6,*) '      EPSM,EPSE,EPSFP,EPSDE,H0DE,LMAXE,LMAXFP'
       WRITE(6,*) '      NPMAX,NTHMAX,NRMAX,NAVMAX,'
-      WRITE(6,*) '      PGMAX,RGMIN.RGMAX,NGLINE,NGRAPH,'
-      WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELR,LLMAX,'
+      WRITE(6,*) '      PGMAX,RGMIN.RGMAX,NGLINE,NGRAPH,LLMAX'
+      WRITE(6,*) '      MODELE,MODELA,MODELC,MODELW,MODELS,MODELR,'
       WRITE(6,*) '      RFDW,DELNPR,PMAX,RIMPL,NCMIN,NCMAX,FACTWM,'
       WRITE(6,*) '      CEWR,CEWTH,CEWPH,RKWR,RKWTH,RKWPH,REWY,DREWY,'
       WRITE(6,*) '      EPSNWR,LMAXNWR,PWAVE,DELCRI,NTHWAV,IDBGFP,'
@@ -337,8 +362,10 @@ C
       WRITE(6,600) 'R1    ',R1    ,'DELR1 ',DELR1 ,
      &             'RMIN  ',RMIN  ,'RMAX  ',RMAX
 C
-      IF(MODELW.EQ.0) THEN
-C
+      DO NSA=NSFPMI,NSFPMA
+         WRITE(6,'(A,I2)') 'NSA = ',NSA
+
+      IF(MODELW(NSA).EQ.0) THEN
          WRITE(6,600) 'DEC   ',DEC   ,'RFEC  ',RFEC  ,
      &                'PEC1  ',PEC1  ,'PEC2  ',PEC2
          WRITE(6,600) 'DELYEC',DELYEC
@@ -347,19 +374,19 @@ C
          WRITE(6,600) 'DFW   ',DFW   ,'RFW   ',RFW   ,
      &                'PFW1  ',PFW1  ,'PFW2  ',PFW2
 C
-      ELSEIF(MODELW.EQ.1) THEN
+      ELSEIF(MODELW(NSA).EQ.1) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
          WRITE(6,601) 'PWAVE ',PWAVE ,'DELYEC',DELYEC,
      &                'EPSNWR',EPSNWR,'LMAXNW',LMAXNWR
 C
-      ELSEIF(MODELW.EQ.2) THEN
+      ELSEIF(MODELW(NSA).EQ.2) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
          WRITE(6,601) 'PWAVE ',PWAVE ,'DELYEC',DELYEC,
      &                'EPSNWR',EPSNWR,'LMAXNW',LMAXNWR
 C
-      ELSEIF(MODELW.EQ.3) THEN
+      ELSEIF(MODELW(NSA).EQ.3) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
          WRITE(6,600) 'CEWR/R',DBLE(CEWR) ,'CEWR/I',DIMAG(CEWR),
@@ -369,11 +396,21 @@ C
          WRITE(6,600) 'RKWR  ',RKWR  ,'RKWTH ',RKWTH,
      &                'RKWPH ',RKWPH
 C
-      ELSEIF(MODELW.EQ.4) THEN
+      ELSEIF(MODELW(NSA).EQ.4) THEN
          WRITE(6,602) 'RFDW  ',RFDW  ,'DELNPR',DELNPR,
      &                'NCMIN ',NCMIN ,'NCMAX ',NCMAX
          WRITE(6,600) 'FACTWM',FACTWM
       ENDIF
+C
+      IF(MODELS(NSA).EQ.1) THEN
+         WRITE(6,600) 'SPTOT ',SPTOT(NSA) ,'SPR0  ',SPR0(NSA),
+     &                'SPRW  ',SPRW(NSA)
+         WRITE(6,600) 'SPENG ',SPENG(NSA) ,'SPANG ',SPANG(NSA)
+      ELSEIF(MODELS(NSA).EQ.2) THEN
+         WRITE(6,600) 'SPTOT ',SPTOT(NSA) ,'SPR0  ',SPR0(NSA),
+     &                'SPRW  ',SPRW(NSA)
+      ENDIF
+      ENDDO
 C
       WRITE(6,600) 'PMAX  ',PMAX  ,'DELT  ',DELT  ,
      &             'RIMPL ',RIMPL ,'EPSM  ',EPSM
@@ -444,19 +481,30 @@ C
          WRITE(6,*) 'XX UNKNOWN MODELC: MODELC =',MODELC
       END IF
 C
-      IF(MODELW.EQ.0)THEN
+      DO NSA=NSFPMI,NSFPMA
+         WRITE(6,'(A,I2)') 'NSA = ',NSA
+
+      IF(MODELW(NSA).EQ.0)THEN
          WRITE(6,*) 'GIVEN WAVE DIFFUSION COEFFICIENTS'
-      ELSE IF(MODELW.EQ.1)THEN
+      ELSE IF(MODELW(NSA).EQ.1)THEN
          WRITE(6,*) 'RAY TRACING WAVE DATA'
-      ELSE IF(MODELW.EQ.2)THEN
+      ELSE IF(MODELW(NSA).EQ.2)THEN
          WRITE(6,*) 'BEAM TRACING WAVE DATA'
-      ELSE IF(MODELW.EQ.3)THEN
+      ELSE IF(MODELW(NSA).EQ.3)THEN
          WRITE(6,*) 'GIVEN WAVE AMPLITUDE'
-      ELSE IF(MODELW.EQ.4)THEN
+      ELSE IF(MODELW(NSA).EQ.4)THEN
          WRITE(6,*) 'FULL WAVE DATA'
       ELSE
          WRITE(6,*) 'XX UNKNOWN MODELW: MODELW =',MODELW
       END IF
+
+      IF(MODELS(NSA).EQ.1) THEN
+         WRITE(6,*) 'BEAM PARTICLE SOURCE'
+      ELSEIF(MODELS(NSA).EQ.2) THEN
+         WRITE(6,*) 'ALPHA PARTICLE SOURCE'
+      ENDIF
+      ENDDO
+
 C
       IF(MODELG.EQ.2)THEN
          WRITE(6,*) 'GIVEN PLASMA GEOMETRY'

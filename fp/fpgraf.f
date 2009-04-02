@@ -515,19 +515,19 @@ C                        P-GRAPHIC
 C
 C ***********************************************************
 C
-      SUBROUTINE FPGRAPA(STRING,FGA,NSA)
+      SUBROUTINE FPGRAPA(STRING,FGA,NS)
       INCLUDE 'fpcomm.inc'
-      DIMENSION FGA(NTHM,NPM,NRM,NSAM),TEMP(NTHM,NPM,NRM)
+      DIMENSION FGA(NTHM,NPM,NRM,*),TEMP(NTHM,NPM,NRM)
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       DO NR=1,NRMAX
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
+               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NS)
             ENDDO
          ENDDO
       ENDDO
-      WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
+      WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NS,')'
       CALL FPGRAP(TRIM(STRING1),TEMP)
       RETURN
       END
@@ -620,19 +620,19 @@ C                        PR-GRAPHIC
 C
 C ***********************************************************
 C
-      SUBROUTINE FPGRAPRA(STRING,FGA,NSA)
+      SUBROUTINE FPGRAPRA(STRING,FGA,NS)
       INCLUDE 'fpcomm.inc'
-      DIMENSION FGA(NTHM,NPM,NRM,NSAM),TEMP(NTHM,NPM,NRM)
+      DIMENSION FGA(NTHM,NPM,NRM,*),TEMP(NTHM,NPM,NRM)
       CHARACTER(LEN=*),INTENT(IN):: STRING
       CHARACTER(LEN=80):: STRING1
       DO NR=1,NRMAX
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX
-               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NSA)
+               TEMP(NTH,NP,NR)=FGA(NTH,NP,NR,NS)
             ENDDO
          ENDDO
       ENDDO
-      WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NSA,')'
+      WRITE(STRING1,'(A,A1,I2,A1)') STRING,'(',NS,')'
       CALL FPGRAPR(TRIM(STRING1),TEMP)
       RETURN
       END
