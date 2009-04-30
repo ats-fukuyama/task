@@ -433,7 +433,7 @@ C
      &             'NTSTP2',NTSTP2,'NTSTPC',NTSTPC
 C
       WRITE(6,604) 'MODELE',MODELE,'MODELA',MODELA ,
-     &             'MODELC',MODELC,'MODELW',MODELW
+     &             'MODELC',MODELC
 C
       WRITE(6,604) 'MODEFR',MODEFR,'MODEFW',MODEFW
 C

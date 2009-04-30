@@ -798,6 +798,36 @@
       RETURN
       END SUBROUTINE TRSTGF
 
+
+!     ***********************************************************
+
+!           CALCULATING FLUX FROM SOURCE TERM FILES
+
+!     ***********************************************************
+
+      SUBROUTINE FLUX
+
+      USE TRCOMM, ONLY : DR, DVRHO, MDLFLX, NRM, NRMAX, NSM, PZ, RGFLX, SNBU, SWLU
+      IMPLICIT NONE
+      INTEGER(4):: NR
+      REAL(8),DIMENSION(NRMAX)::  SALEL, SALIL
+
+
+      IF(MDLFLX.EQ.0) THEN
+         RGFLX(1:NRMAX,1:NSM)=0.D0
+      ELSE
+         DO NR=1,NRMAX
+            SALEL(NR)=SNBU(1,NR,1)+SWLU(1,NR)/PZ(2)
+            RGFLX(NR,1)=SUM(SALEL(1:NR)*DVRHO(1:NR))*DR
+            SALIL(NR)=SNBU(1,NR,2)+SWLU(1,NR)
+            RGFLX(NR,2)=SUM(SALIL(1:NR)*DVRHO(1:NR))*DR
+            RGFLX(NR,3:NSM)=0.D0
+         ENDDO
+      ENDIF
+
+      RETURN
+      END SUBROUTINE FLUX
+
 !     ***********************************************************
 
 !           GEOMETRIC QUANTITIES AT GRID MESH
