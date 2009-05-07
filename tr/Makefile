@@ -114,7 +114,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o a.out core *.a *.mod $(MOD)/*.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
 	rm -f tr2 tr3
@@ -196,3 +196,5 @@ nclass/u_erf.o      : nclass/u_erf.f
 nclass/u_lu_backsub.o: nclass/u_lu_backsub.f
 nclass/u_lu_decomp.o : nclass/u_lu_decomp.f
 nclass/write_mod.o   : nclass/write_mod.f
+cytran/cytran_mod.o: cytran/cytran_mod.f90
+cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90

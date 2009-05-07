@@ -498,8 +498,8 @@
 !     SYNCSELF: fraction of x (o) mode reflected as x (o) mode
 
       MDLPR=0
-      SYNCABS=0.D0
-      SYNCSELF=0.D0
+      SYNCABS=0.2D0
+      SYNCSELF=0.95D0
 
 !     ==== EDGE MODEL ====
 

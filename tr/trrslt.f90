@@ -280,7 +280,7 @@
 
       WPT =WBULKT+WTAILT
       PINT=POHT+PNBT+PRFST+PNFT+PEXST
-      POUT=PLST+PCXT+PIET+PRLT
+      POUT=PLST+PCXT+PIET+PRBT*PRCT+PRLT
       SINT=SIET+SNBT
       SOUT=SLST
 
@@ -371,7 +371,7 @@
            & RMNRHO, RN, RPSI, RQ1, RR, RT, RW, S, ALPHA, SIET, SINT, SLT, &
            & SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, &
            & TS0, TSAV, VLOOP, VPOL, VTOR, WBULKT, WFT, WPDOT, WPT, WST, &
-           & WTAILT, ZEFF, ZEFF0, RKCV
+           & WTAILT, ZEFF, ZEFF0, RKCV, PRBT, PRCT, PRSUMT
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
       REAL(8)   :: RMN, F0D
@@ -453,7 +453,7 @@
       GVT(NGT,57) = GUCLIP(POUT)
       GVT(NGT,58) = GUCLIP(PCXT)
       GVT(NGT,59) = GUCLIP(PIET)
-      GVT(NGT,60) = GUCLIP(PRLT)
+      GVT(NGT,60) = GUCLIP(PRSUMT)
       GVT(NGT,61) = GUCLIP(PLT(1))
       GVT(NGT,62) = GUCLIP(PLT(2))
       GVT(NGT,63) = GUCLIP(PLT(3))
@@ -509,6 +509,10 @@
       GVT(NGT,105)= GUCLIP(ANLAV(2))
       GVT(NGT,106)= GUCLIP(ANLAV(3))
       GVT(NGT,107)= GUCLIP(ANLAV(4))
+
+      GVT(NGT,108)= GUCLIP(PRBT)
+      GVT(NGT,109)= GUCLIP(PRCT)
+      GVT(NGT,110)= GUCLIP(PRLT)
 
 !     *** FOR 3D ***
 
@@ -673,11 +677,15 @@
 
       SUBROUTINE TRPRNT(KID)
 
-      USE TRCOMM, ONLY : AJ, AJBST, AJNBT, AJOHT, AJRFT, AJT, ALI, ANC, ANFAV, ANFE, ANSAV, BB, BETA0, BETAA, BETAN, BETAP0, &
-     &                   BETAPA, DT, GTCPU1, KFNLOG, NGR, NGT, NRMAX, NTMAX, PBCLT, PBINT, PCXT, PFCLT, PFINT, PICTOT, PIET, &
-     &                   PINT, PLHNPR, PLHTOT, PLT, PN, PNBT, PNFT, POHT, POUT, PRFT, PRLT, Q0, QF, QP, RIPE, RIPS, RQ1, SIET,&
-     &                   SINT, SLT, SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, TAUE98, TF0, TFAV, TS0, TSAV, VLOOP, VSEC,    &
-     &                   WBULKT, WFT, WPDOT, WPT, WST, WTAILT, ZEFF, ZEFF0, AJTTOR
+      USE TRCOMM, ONLY : &
+           AJ, AJBST, AJNBT, AJOHT, AJRFT, AJT, ALI, ANC, ANFAV, ANFE, &
+           ANSAV, BB, BETA0, BETAA, BETAN, BETAP0, BETAPA, DT, GTCPU1, &
+           KFNLOG, NGR, NGT, NRMAX, NTMAX, PBCLT, PBINT, PCXT, PFCLT, &
+           PFINT, PICTOT, PIET, PINT, PLHNPR, PLHTOT, PLT, PN, PNBT, &
+           PNFT, POHT, POUT, PRFT, PRSUMT, Q0, QF, QP, RIPE, RIPS, RQ1, &
+           SIET, SINT, SLT, SNBT, SNFT, SOUT, T, TAUE1, TAUE2, TAUE89, &
+           TAUE98, TF0, TFAV, TS0, TSAV, VLOOP, VSEC, WBULKT, WFT, &
+           WPDOT, WPT, WST, WTAILT, ZEFF, ZEFF0, AJTTOR, PRBT, PRCT, PRLT
       IMPLICIT NONE
       CHARACTER(LEN=1),INTENT(IN):: KID
       INTEGER(4):: I, IERR, IST, NDD, NDM, NDY, NTH1, NTM1, NTS1
@@ -727,6 +735,7 @@
      &               '  ALI   =',1PD10.3,'  VSEC  =',1PD10.3/ &
      &          ' ',3X,'AJOHT =',1PD10.3,'  AJNBT =',1PD10.3, &
      &               '  AJRFT =',1PD10.3,'  AJBST =',1PD10.3)
+
 !         WRITE(16,603) AJTTOR,VLOOP,ALI,VSEC, &
 !     &                AJT,AJOHT,AJNBT,AJBST
 !  603    FORMAT(' ',3X,'AJTTOR=',1PD10.3,'  VLOOP =',1PD10.3, &
@@ -739,8 +748,9 @@
      &                PBINT,PFINT,AJ(1)*1.D-6, &
      &                PBCLT(1),PBCLT(2),PBCLT(3),PBCLT(4), &
      &                PFCLT(1),PFCLT(2),PFCLT(3),PFCLT(4), &
-     &                POUT,PRLT,PCXT,PIET, &
-     &                PLT(1),PLT(2),PLT(3),PLT(4)
+     &                POUT,PRSUMT,PCXT,PIET, &
+     &                PLT(1),PLT(2),PLT(3),PLT(4), &
+                      PRBT,PRCT,PRLT
   604    FORMAT(' ',3X,'PINT  =',1PD10.3,'  POHT  =',1PD10.3, &
      &               '  PNBT  =',1PD10.3,'  PNFTE =',1PD10.3/ &
      &          ' ',3X,'PRFTE =',1PD10.3,'  PRFTD =',1PD10.3, &
@@ -751,10 +761,12 @@
      &               '  PBCLT =',1PD10.3,'  PBCLA =',1PD10.3/ &
      &          ' ',3X,'PFCLE =',1PD10.3,'  PFCLD =',1PD10.3, &
      &               '  PFCLT =',1PD10.3,'  PFCLA =',1PD10.3/ &
-     &          ' ',3X,'POUT  =',1PD10.3,'  PRLT  =',1PD10.3, &
+     &          ' ',3X,'POUT  =',1PD10.3,'  PRSUMT=',1PD10.3, &
      &               '  PCXT  =',1PD10.3,'  PIETE =',1PD10.3/ &
      &          ' ',3X,'PLTE  =',1PD10.3,'  PLTD  =',1PD10.3, &
-     &               '  PLTTE =',1PD10.3,'  PLTA  =',1PD10.3)
+     &               '  PLTTE =',1PD10.3,'  PLTA  =',1PD10.3/ &
+     &          ' ',3X,'PRBT  =',1PD10.3,'  PRCT  =',1PD10.3, &
+     &               '  PRLT  =',1PD10.3)
 
          WRITE(6,605) SINT,SIET,SNBT,SNFT, &
      &                SOUT,ZEFF(1),ANC(1),ANFE(1), &

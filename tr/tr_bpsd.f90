@@ -357,7 +357,7 @@
       ABVRHOG (1:nrmax)=tempx(2:nrmax+1,14) ! <|grad V|^2/R^2>
 
       PVOLRHOG(1:nrmax)=tempx(2:nrmax+1,15) ! Plasma volume
-      PSURRHOG(1:nrmax)=tempx(2:nrmax+1,16) ! Plasma volume
+      PSURRHOG(1:nrmax)=tempx(2:nrmax+1,16) ! Plasma surface
 
       do nr=1,nrmax
 !         RDP(nr)=TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr)/(4.D0*PI**2*QP(nr))
