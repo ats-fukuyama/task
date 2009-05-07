@@ -286,6 +286,18 @@ C
       RETURN
       END
 C
+C     FNAVBB: evaluate AVEBB corresponding to RHON (i.e. AVEBB(RHON))
+C
+      FUNCTION FNAVBB(RHON)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEBB,NRMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX FNAVBB: SPL1DF ERROR : IERR=',IERR
+      FNAVBB=DAT
+      RETURN
+      END
+C
 C     FNAVGV: evaluate AVEGV corresponding to RHON (i.e. AVEGV(RHON))
 C
       FUNCTION FNAVGV(RHON)

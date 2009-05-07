@@ -208,7 +208,7 @@ C
             B2L=BTL**2+BPL**2
 C
             SUMV=SUMV+H/BPL
-            SUMS=SUMS+H/(BPL*R)
+            SUMS=SUMS+H*R
 C
             SUMAVRR =SUMAVRR +H*R/BPL
             SUMAVRR2=SUMAVRR2+H*R*R/BPL
@@ -250,7 +250,7 @@ C
 Chonda         write(6,*) PSIP(NR),QPS(NR)
          DVDPSIP(NR)=SUMV
          DVDPSIT(NR)=SUMV/QPS(NR)
-         DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
+         SPS(NR)=SUMS*2.D0*PI
          RLEN(NR)=XA(NA)
          AVERR  (NR)=SUMAVRR /SUMV
          AVERR2 (NR)=SUMAVRR2/SUMV
@@ -327,7 +327,7 @@ C
       QPS(1)     = FCTR2(PS2,PS3,PS4,QPS(2),QPS(3),QPS(4))
       DVDPSIP(1) = FCTR2(PS2,PS3,PS4,DVDPSIP(2),DVDPSIP(3),DVDPSIP(4))
       DVDPSIT(1) = FCTR2(PS2,PS3,PS4,DVDPSIT(2),DVDPSIT(3),DVDPSIT(4))
-      DSDPSIT(1) = FCTR2(PS2,PS3,PS4,DSDPSIT(2),DSDPSIT(3),DSDPSIT(4))
+!      DSDPSIT(1) = FCTR2(PS2,PS3,PS4,DSDPSIT(2),DSDPSIT(3),DSDPSIT(4))
       RLEN(1)    = 0.D0
       AVERR (1)  = FCTR2(PS2,PS3,PS4,AVERR  (2),AVERR  (3),AVERR  (4))
       AVERR2(1)  = FCTR2(PS2,PS3,PS4,AVERR2 (2),AVERR2 (3),AVERR2 (4))
@@ -372,9 +372,9 @@ C
          VPS(NR)=VPS(NR-1)
      &           +0.5D0*(DVDPSIP(NR-1)+DVDPSIP(NR))
      &                 *(PSIP(NR)-PSIP(NR-1))
-         SPS(NR)=SPS(NR-1)
-     &           +0.5D0*(DSDPSIT(NR-1)+DSDPSIT(NR))
-     &                 *(PSIT(NR)-PSIT(NR-1))
+!         SPS(NR)=SPS(NR-1)
+!     &           +0.5D0*(DSDPSIT(NR-1)+DSDPSIT(NR))
+!     &                 *(PSIT(NR)-PSIT(NR-1))
       ENDDO
       PSITA=PSIT(NRPMAX)
       PSIPA=PSIP(NRPMAX)
@@ -417,7 +417,7 @@ C
          BTL=TTSA/(2.D0*PI*R)
          B=SQRT(BPL**2+BTL**2)
 C
-         SUMS=SUMS+H/BPRL
+         SUMS=SUMS+H*R
          SUMV=SUMV+H*R/BPRL
          SUMQ=SUMQ+H/(R*BPRL)
       ENDDO
@@ -501,7 +501,7 @@ C
             call polintx(nr,npmax,nrm,qps)
             call polintx(nr,npmax,nrm,dvdpsip)
             call polintx(nr,npmax,nrm,dvdpsit)
-            call polintx(nr,npmax,nrm,dsdpsit)
+C            call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,rlen)
             call polintx(nr,npmax,nrm,averr)
             call polintx(nr,npmax,nrm,averr2)
@@ -613,7 +613,7 @@ C
                B2L=BTL**2+BPL**2
 C
                SUMV=SUMV+H/BPL
-               SUMS=SUMS+H/(BPL*R)
+               SUMS=SUMS+H*R
 C
                SUMAVRR =SUMAVRR +H*R/BPL
                SUMAVRR2=SUMAVRR2+H*R*R/BPL
@@ -654,7 +654,8 @@ C
             QPS(NR)=SUMAVIR2*TTS(NR)/(4.D0*PI**2)
             DVDPSIP(NR)=SUMV
             DVDPSIT(NR)=SUMV/QPS(NR)
-            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
+            SPS(NR)=SUMS*2.D0*PI
+C            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             RLEN(NR)=XA(NA)
             AVERR  (NR)=SUMAVRR /SUMV
             AVERR2 (NR)=SUMAVRR2/SUMV
