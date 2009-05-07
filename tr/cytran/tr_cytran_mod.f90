@@ -6,37 +6,35 @@ MODULE tr_cytran_mod
 
 USE bpsd_kinds
 use cytran_mod
-IMPLICIT NONE
 
 CONTAINS
 
-SUBROUTINE tr_cytran(nrmax,den_rm,te_rm,bavg_rm,dvol_rm,area_rg, &
-                     fabs,fself,psync_rm)
+SUBROUTINE tr_cytran
+
+USE trcomm, ONLY: &
+     nrmax,rn,rt,abb1rho,pvolrhog,psurrhog,prc,syncabs,syncself,aee
 
 !------------------------------------------------------------------------------
-!Declaration of interface variables
+!Declaration of local variables
 
-INTEGER, INTENT(IN) :: &
-  nrmax                  !no. of radial plasma nodes [-]
-REAL(KIND=rkind), INTENT(IN) :: &
-  den_rm(nrmax),       & !electron density in cell [/m::3]
+REAL(KIND=rkind) :: &
+  den_rm(nrmax),       & !electron density in cell [/m**3]
   te_rm(nrmax),        & !electron temperature in cell [keV]
   bavg_rm(nrmax),      & !<B> in cell [T]
   dvol_rm(nrmax),      & !volume of cell [m**3]
-  area_rg(nrmax)         !surface area of inner boundary of cell [m**2]
-REAL(KIND=rkind), INTENT(IN) :: &
-  fabs,                & !fraction of cyclotron radiation by walls [-]
-  fself                  !fraction of x (o) mode reflected as x (o) mode [-]
-REAL(KIND=rkind), INTENT(OUT) :: &
-  psync_rm(nrmax)
-
-!Declaration of internal variables
+  area_rg(nrmax),      & !surface area of inner boundary of cell [m**2]
+  psync_rm(nrmax)        !net power source/loss in cell i [keV/m**3/s]
+REAL(KIND=rkind) :: &
+  fabs,                & !fraction of cyclotron radiation absorption by walls
+  fself                  !fraction of x (o) mode reflected as x (o) mode
 
 INTEGER :: &
   k_cyt_res              !option for resolution of frequency interval
                          !=1    gives default of 100 intervals
                          !>1    gives enhancement 100*k_cyt_res
                          !      10 recommended to keep graininess < a couple %
+INTEGER :: &
+     nr
 REAL(KIND=rkind) :: &
   ree,                 & !refl of X mode from incident X mode [0-1]
   reo,                 & !refl of X mode from incident O mode [0-1]
@@ -52,6 +50,14 @@ REAL(KIND=rkind) :: &
 !    Label             1     2     3     4    n-1    n
 !                   |                             |
 !                   Magnetic axis (rho=0)         Plasma boundary (rho=1)
+
+do nr=1,nrmax
+   den_rm(nr)=rn(nr,1)
+   te_rm(nr)=rt(nr,1)
+   bavg_rm(nr)=0.5d0*(abb1rho(nr)+abb1rho(nr+1))
+   dvol_rm(nr)=pvolrhog(nr+1)-pvolrhog(nr)
+   area_rg(nr)=psurrhog(nr)
+enddo
 
 !------------------------------------------------------------------------------
 !Set reflection factors
@@ -82,7 +88,9 @@ CALL CYTRAN(ree,reo,roo,roe,nrmax-1,bavg_rm,den_rm,te_rm,area_rg, &
             K_CYT_RES=k_cyt_res)
 
 !Set outside ghost point value same as last node inside plasma
-psync_rm(nrmax)=psync_rm(nrmax-1)
+do nr=1,nrmax
+   prc(nr)=psync_rm(nr)*psync_rm(nr)*aee*1.D3
+end do
 
 !------------------------------------------------------------------------------
 !Cleanup and exit

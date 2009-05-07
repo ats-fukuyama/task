@@ -127,8 +127,9 @@
 
       SUBROUTINE TRGRR2(INQ)
 
-      USE TRCOMM, ONLY : AK, AKNC,AKDW, GRG, GRM, GYR, NRMAX, NRMP, NSM, &
-      &                  PNB, PNF, POH, PRF, PRL, PCX, PIE, PEX 
+      USE TRCOMM, ONLY : &
+           AK, AKNC,AKDW, GRG, GRM, GYR, NRMAX, NRMP, NSM, PNB, PNF, POH, &
+           PRF, PRB, PRC, PRL, PRSUM, PCX, PIE, PEX 
       IMPLICIT NONE
       INTEGER(4),INTENT(IN) :: INQ
       INTEGER(4) :: NS, NR
@@ -141,23 +142,26 @@
          GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
          GYR(NR,2) = GUCLIP(PNB(NR) * 1.D-6)
          GYR(NR,3) = GUCLIP(PNF(NR) * 1.D-6)
+         GYR(NR,4) = GUCLIP(PRSUM(NR) * 1.D-6)
       ENDDO
       DO NS=1,NSM
       DO NR=1,NRMAX
-         GYR(NR,NS+3) = GUCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
+         GYR(NR,NS+4) = GUCLIP((PRF(NR,NS)+PEX(NR,NS)) * 1.D-6)
       ENDDO
       ENDDO
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+3, &
-     &            '@POH,PNB,PNF,PRF [MW/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRM,GYR,NRMP,NRMAX,NSM+4, &
+     &            '@POH,PNB,PNF,PR,PRF [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR,1) = GUCLIP(POH(NR) * 1.D-6)
-         GYR(NR,2) = GUCLIP(PRL(NR) * 1.D-6)
-         GYR(NR,3) = GUCLIP(PCX(NR) * 1.D-6)
-         GYR(NR,4) = GUCLIP(PIE(NR) * 1.D-6)
+         GYR(NR,2) = GUCLIP(PRB(NR) * 1.D-6)
+         GYR(NR,3) = GUCLIP(PRC(NR) * 1.D-6)
+         GYR(NR,4) = GUCLIP(PRL(NR) * 1.D-6)
+         GYR(NR,5) = GUCLIP(PCX(NR) * 1.D-6)
+         GYR(NR,6) = GUCLIP(PIE(NR) * 1.D-6)
       ENDDO
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,4, &
-     &            '@POH,PRL,PCX,PIE [MW/m$+3$=]  vs r@',2+INQ)
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRM,GYR,NRMP,NRMAX,6, &
+     &            '@POH,PRB,PRC,PRL,PCX,PIE [MW/m$+3$=]  vs r@',2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(AK(NR,1))

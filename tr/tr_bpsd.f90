@@ -223,7 +223,7 @@
 ! local variables
       integer(4) :: ns,nr
       real(8)    :: temp(nrmp,nsm,3),tmp(nrm)
-      real(8)    :: tempx(nrmp,14),psita,dpsitdrho,dvdrho
+      real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho
       REAL(8)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
 !      write(6,*) 'top of tr_bpsd_get: qp'
@@ -308,6 +308,9 @@
          tempx(nr,12)=metric1D%data(nr)%elip
          tempx(nr,13)=1.d0/metric1D%data(nr)%dvpsip/(2.d0*pi)
          tempx(nr,14)=metric1D%data(nr)%avegvr2
+         tempx(nr,15)=metric1D%data(nr)%pvol
+         tempx(nr,16)=metric1D%data(nr)%psur
+         tempx(nr,17)=metric1D%data(nr)%aveb
       enddo
       nr=1 ! equivalent to "rho = 0"
          tempx(nr,1)=0.d0                     ! definition
@@ -325,6 +328,10 @@
          tempx(nr,13)=1.d0/metric1D%data(nr)%dvpsip/(2.d0*pi)
          tempx(nr,14)=metric1D%data(nr)%avegvr2
 
+         tempx(nr,15)=metric1D%data(nr)%pvol
+         tempx(nr,16)=metric1D%data(nr)%psur
+         tempx(nr,17)=metric1D%data(nr)%aveb
+
       call data_interpolate_gtom_full(tempx(1,1), DVRHO, nrmax)
       call data_interpolate_gtom_full(tempx(1,2), ABRHO, nrmax)
       call data_interpolate_gtom_full(tempx(1,3), ARRHO, nrmax)
@@ -332,6 +339,7 @@
       call data_interpolate_gtom_full(tempx(1,5), AR2RHO,nrmax)
       call data_interpolate_gtom_full(tempx(1,12),RKPRHO,nrmax)
       call data_interpolate_gtom_full(tempx(1,14),ABVRHO,nrmax)
+      call data_interpolate_gtom_full(tempx(1,17),ABB1RHO,nrmax)
 
       DVRHOG  (1:nrmax)=tempx(2:nrmax+1,1)  ! dV/drho
       ABRHOG  (1:nrmax)=tempx(2:nrmax+1,2)  ! <|grad rho|^2/R^2>; avegrr2
@@ -347,6 +355,9 @@
       RKPRHOG (1:nrmax)=tempx(2:nrmax+1,12) ! local kappa
       RDPVRHOG(1:nrmax)=tempx(2:nrmax+1,13) ! dpsi/dV
       ABVRHOG (1:nrmax)=tempx(2:nrmax+1,14) ! <|grad V|^2/R^2>
+
+      PVOLRHOG(1:nrmax)=tempx(2:nrmax+1,15) ! Plasma volume
+      PSURRHOG(1:nrmax)=tempx(2:nrmax+1,16) ! Plasma volume
 
       do nr=1,nrmax
 !         RDP(nr)=TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr)/(4.D0*PI**2*QP(nr))

@@ -16,7 +16,8 @@
      &                  PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHNPR, PLHR0, PLHRW, PLHTOE, PLHTOT, PN, PNBCD, PNBENG,  &
      &                  PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
      &                  PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
-     &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR
+     &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
+     MDLPR,SYNCABS,SYNCSELF
       IMPLICIT NONE
       INTEGER(4) NS, IERR
 
@@ -487,8 +488,22 @@
          PELPAT(NS) = 1.0D0
       ENDDO
 
+!     ==== RADIATION ====
+
+!     MDLPR  : MODEL OF RADIATION
+!               0: PRSUM=PRB+PRL
+!               1: PRSUM=PRB+PRL+PRC
+
+!     SYNCABS : fraction of cyclotron radiation absorption by walls
+!     SYNCSELF: fraction of x (o) mode reflected as x (o) mode
+
+      MDLPR=0
+      SYNCABS=0.D0
+      SYNCSELF=0.D0
+
 !     ==== EDGE MODEL ====
 
+!      MDEDGE: model parameter for plasma edge model0
 !        0 : off
 !        1 : simple edge model (set to zero outside NREDGE)
 
@@ -689,6 +704,7 @@
      &                   PNBTOT, PNBR0, PNBRW, PNBVY, PNBVW, PNBENG, PNBRTG, MDLNB, PECTOT, PECR0, PECRW, PECTOE, PECNPR, MDLEC,&
      &                   PLHTOT, PLHR0, PLHRW, PLHTOE, PLHNPR, MDLLH, PICTOT, PICR0, PICRW, PICTOE, PICNPR, MDLIC,              &
      &                   PNBCD, PECCD, PLHCD, PICCD, PBSCD, MDLCD, PELTOT, PELR0, PELRW, PELRAD, PELVEL, MDLPEL,                &
+     MDLPR, SYNCABS, SYNCSELF,  &
      &                   PELTIM, KNAMEQ, KNAMTR, KFNLOG, MDLEQB, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLEQ0, MDLEQE,        &
      &                   MDLEOI, NSMAX, NSZMAX, NSNMAX, KUFDIR, KUFDEV, KUFDCG, TIME_INT, MODEP, MDNI, MDLJQ,  &
      &                   MDTC, MDLPCK, NTMAX_SAVE
@@ -714,6 +730,7 @@
      &              PICTOT,PICR0,PICRW,PICTOE,PICNPR,MDLIC, &
      &              PNBCD,PECCD,PLHCD,PICCD,PBSCD,MDLCD, &
      &              PELTOT,PELR0,PELRW,PELRAD,PELVEL,MDLPEL, &
+                    MDLPR,SYNCABS,SYNCSELF, &
      &              PELTIM,PELPAT,KNAMEQ,KNAMTR,KFNLOG, &
      &              MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0,MDLEQE, &
      &              MDLEOI,NSMAX,NSZMAX,NSNMAX, &
@@ -821,7 +838,8 @@
      &       ' ',8X,'PLHTOT,PLHR0,PLHRW,PLHTOE,PLHNPR,PLHCD,MDLLH'/ &
      &       ' ',8X,'PICTOT,PICR0,PICRW,PICTOE,PICNPR,PICCD,MDLIC'/ &
      &       ' ',8X,'PELTOT,PELR0,PELRW,PELRAD,PELVEL,PELTIM,MDLPEL'/ &
-     &       ' ',8X,'PELTIM,PELPAT,MODELG,NTEQIT,MDEDGE'/ &
+     &       ' ',8X,'PELTIM,PELPAT,MDLPR,SYNCABS,SYNCSELF,MODELG,NTEQIT'/&
+     &       ' ',8X,'MDEDGE'/ &
      &       ' ',8X,'MDLXP,MDLUF,MDNCLS,MDLWLD,MDLFLX,MDLER,MDCD05'/ &
      &       ' ',8X,'MDLEQB,MDLEQN,MDLEQT,MDLEQU,MDLEQZ,MDLEQ0'/ &
      &       ' ',8X,'MDLEQE,MDLEOI,NSMAX,NSZMAX,NSNMAX,KUFDIR,KUFDEV,KUFDCG'/ &
@@ -867,7 +885,7 @@
       USE TRCOMM, ONLY : AD0, ALP, BB, CALF, CDH, CDP, CDW, CHP, CK0, CK1, CKALFA, CKBETA, CKGUMA, CNB, CNH, CNN, CNP,      &
      &                   CSPRS, CWEB, DT, EPSLTR, IZERO, KUFDCG, KUFDIR,KUFDEV, LMAXTR, MDCD05, MDEDGE, MDLAD, MDLAVK, MDLCD,      &
      &                   MDLEC, MDLEOI, MDLEQ0, MDLEQB, MDLEQE, MDLEQN, MDLEQT, MDLEQU, MDLEQZ, MDLER, MDLETA, MDLFLX,      &
-     &                   MDLIC, MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPEL, MDLST, MDLTPF, MDLUF, MDLWLD,   &
+     &                   MDLIC, MDLJBS, MDLJQ, MDLKAI, MDLKNC, MDLLH, MDLNB, MDLNF, MDLPEL, MDLPR, SYNCABS, SYNCSELF, MDLST, MDLTPF, MDLUF, MDLWLD,   &
      &                   MDNCLS, MDNI, MDTC, MODELG, NGPST, NGRSTP, NGTSTP, NRMAX, NSMAX, NSNMAX, NSZMAX, NTEQIT, NTMAX,    &
      &                   NTSTEP, PA, PBSCD, PECCD, PECNPR, PECR0, PECRW, PECTOE, PECTOT, PELPAT, PELR0, PELRAD, PELRW,      &
      &                   PELTIM, PELTOT, PELVEL, PICCD, PICNPR, PICR0, PICRW, PICTOE, PICTOT, PLHCD, PLHNPR, PLHR0, PLHRW,  &
@@ -947,6 +965,11 @@
          WRITE(6,603) 'MDLPEL',MDLPEL,'PELRAD',PELRAD,'PELVEL',PELVEL,'PELTIM',PELTIM
       ENDIF
 
+      IF((MDLPR.GE.1).OR.(ID.EQ.1)) THEN
+         WRITE(6,623) 'MDLPR   ',MDLPR,   'SYNCABS ',SYNCABS, &
+                      'SYNCSELF',SYNCSELF
+      ENDIF
+
       WRITE(6,601) 'CNB   ',CNB
       RETURN
 
@@ -960,6 +983,8 @@
      &        2X,A6,'=',1X,A6,4X:2X,A6,'=',I7)
   605 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
      &        2X,A6,'=',I7,4X   :2X,A6,'=',1PE11.3)
+  623 FORMAT(' ',A8,'=',I7,4X   :2X,A8,'=',1PE11.3: &
+     &        2X,A8,'=',1PE11.3)
       END SUBROUTINE TRVIEW
 
 !     ***********************************************************

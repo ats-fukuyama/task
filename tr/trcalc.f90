@@ -8,10 +8,12 @@
       SUBROUTINE TRCALC(IERR)
 
       USE TRCOMM, ONLY : AJBS, AJRF, AR1RHOG, ARRHOG, BP, DT, DVRHOG, MDLEQ0, &
-           & MDLEQB, MDLJBS, MDLUF, MDNCLS, NRAMAX, NRM, NRMAX, &
-           & NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
-           & PI, PIE, PIN, PN, PNB, PNF, POH, PRF, PRL, Q0, QP, RDP, RG, &
-           & RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, T, TTRHOG, RDPVRHOG
+           MDLEQB, MDLJBS, MDLUF, MDLPR, MDNCLS, NRAMAX, NRM, NRMAX, &
+           NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
+           PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRL, PRSUM, &
+           Q0, QP, RDP, RG, &
+           RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, T, TTRHOG, RDPVRHOG
+      USE tr_cytran_mod
       IMPLICIT NONE
       INTEGER(4),INTENT(OUT)    :: IERR
       INTEGER(4)                :: NR, NS, NWM, NWMMAX, NWR, NWRMAX
@@ -30,7 +32,10 @@
       POH(1:NRMAX)=0.D0
       PIE(1:NRMAX)=0.D0
       PCX(1:NRMAX)=0.D0
+      PRB(1:NRMAX)=0.D0
+      PRC(1:NRMAX)=0.D0
       PRL(1:NRMAX)=0.D0
+      PRSUM(1:NRMAX)=0.D0
       PNB(1:NRMAX)=0.D0
       PNF(1:NRMAX)=0.D0
       PBIN(1:NRMAX)=0.D0
@@ -57,6 +62,7 @@
 
       IF(T.LT.PELTIM+0.5D0*DT.AND. T.GE.PELTIM-0.5D0*DT) CALL TRPELT
       CALL TRZEFF
+      IF(MDLPR.EQ.0) CALL TR_CYTRAN
 
       IF(MDNCLS.NE.0) THEN
          CALL TR_NCLASS(IERR)
@@ -107,7 +113,7 @@
             SSIN(NR,8)=                                    SNB(NR)
          ENDIF
          PIN(NR,1)=PBCL(NR,1)+PFCL(NR,1)+PRF(NR,1) &
-              &   +POH(NR)-PRL(NR)-PIE(NR)+PEX(NR,1)
+              &   +POH(NR)-PRSUM(NR)-PIE(NR)+PEX(NR,1)
          PIN(NR,2)=PBCL(NR,2)+PFCL(NR,2)+PRF(NR,2) &
               &   -PN(2)*PCX(NR)/(PN(2)+PN(3))+PEX(NR,2)
          PIN(NR,3)=PBCL(NR,3)+PFCL(NR,3)+PRF(NR,3) &
@@ -372,9 +378,11 @@
 
       SUBROUTINE TRLOSS
 
-      USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, NRMAX, NT, NTUM, PCX, PIE, PRL, PRLU, RKEV, RN, RT, &
-     &                   SCX, SIE, TSCX, TSIE
+      USE TRCOMM, ONLY : AEE, ANC, ANFE, ANNU, DT, KUFDEV, MDLUF, MDLPR, &
+           NRMAX, NT, NTUM, PCX, PIE, PRB, PRC, PRSUM, PRL, PRLU, RKEV, RN, &
+           RT, SCX, SIE, TSCX, TSIE
       USE TRCOM1, ONLY : NTAMAX, NTXMAX, PNBI, TMU
+      USE tr_cytran_mod, ONLY: tr_cytran
       IMPLICIT NONE
       INTEGER(4):: IERR, NR
       REAL(8):: ANDX, ANE, ANHE, ANT, EION, PLC, PLD, PLFE, PLHE, PLTT, PRLL, SCH, SION, TD, TE, TN, TNU, TRRPC, TRRPFE, TSL
@@ -384,24 +392,22 @@
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             DO NR=1,NRMAX
-!               CALL TIMESPL(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
-!               PRL(NR)=PRLL
-               PRL(NR)=PRLU(1,NR)
+               PRSUM(NR)=PRLU(1,NR)
             ENDDO
          ELSE
             TSL=DT*DBLE(NT)
             IF(KUFDEV.EQ.'X') THEN
                DO NR=1,NRMAX
                   CALL TIMESPL(TSL,PRLL,TMU,PRLU(1,NR),NTXMAX,NTUM,IERR)
-                  PRL(NR)=PRLL
+                  PRSUM(NR)=PRLL
                ENDDO
             ELSE
                DO NR=1,NRMAX
                   IF(PNBI.LT.12.D6) THEN
-                     PRL(NR)=PRLU(1,NR)
+                     PRSUM(NR)=PRLU(1,NR)
                   ELSE
-                     PRL(NR)=PRLU(2,NR)
-                     IF(NT.EQ.NTAMAX) PRL(NR)=PRLU(3,NR)
+                     PRSUM(NR)=PRLU(2,NR)
+                     IF(NT.EQ.NTAMAX) PRSUM(NR)=PRLU(3,NR)
                   ENDIF
                ENDDO
             ENDIF
@@ -410,12 +416,12 @@
          IF(NT.EQ.0) THEN
             TSL=DT*DBLE(1)
             DO NR=1,NRMAX
-               PRL(NR)=PRLU(1,NR)
+               PRSUM(NR)=PRLU(1,NR)
             ENDDO
          ELSE
             TSL=DT*DBLE(NT)
             DO NR=1,NRMAX
-               PRL(NR)=PRLU(1,NR)
+               PRSUM(NR)=PRLU(1,NR)
             ENDDO
          ENDIF
       ELSE
@@ -428,11 +434,19 @@
 !     Radiation loss caused by impurities
             PLFE  = ANE*ANFE(NR)*TRRPFE(TE)*1.D40
             PLC   = ANE*ANC (NR)*TRRPC (TE)*1.D40
+            PRL(NR)=PLFE+PLC
 !     Bremsstrahlung
             PLD   = ANE*ANDX*5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
             PLTT  = ANE*ANT *5.35D-37*1.D0**2*SQRT(ABS(TE))*1.D40
             PLHE  = ANE*ANHE*5.35D-37*2.D0**2*SQRT(ABS(TE))*1.D40
-            PRL(NR)= PLFE+PLC+PLD+PLTT+PLHE
+            PRB(NR)= PLD+PLTT+PLHE
+!     Sumup
+            SELECT CASE(MDLPR)
+            CASE(0)
+               PRSUM(NR)=PRL(NR)+PRB(NR)
+            CASE(1,2)
+               PRSUM(NR)=PRL(NR)+PRB(NR)+PRC(NR)
+            END SELECT
          ENDDO
       ENDIF
 

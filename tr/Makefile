@@ -28,8 +28,8 @@ MAKE_TPXLIB=
 
 PLLIBS=../pl/pl_vmec.o ../pl/modules.o ../../bpsd/bpsdlib.a 
 
-SRC90=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90\
-      trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
+SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
+SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
       trexec.f90 trcalc.f90 cdbm.f90 trcoef.f90 tritg.f90 trrslt.f90 \
       trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
@@ -49,13 +49,17 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
+SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 
+OBJM= $(SRC90M:.f90=.o)
 OBJS= $(SRC90:.f90=.o) $(SRCITG:.f=.o) $(SRCITGF:.F=.o)
-OBJ2D=$(SRC2D:.f90=.o)
-OBJ3D=$(SRC3D:.f90=.o)
 OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
+OBJCYT=$(SRCCYT:.f90=.o)
+OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJS)
+OBJ2D=$(SRC2D:.f90=.o)
+OBJ3D=$(SRC3D:.f90=.o)
 
 LIBS2=$(EQLIBS) tr2lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
@@ -68,11 +72,11 @@ LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 all: tr2 tr3
 #all: tr2
 
-tr2lib.a: $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) tr2lib.a $(OBJS) $(OBJ2D) $(OBJE) $(OBJL) $(OBJNC)
+tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) tr2lib.a $(OBJTR) $(OBJ2D)
 
-tr3lib.a: $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC) $(INCNC) $(INCGLF)
-	$(LD) $(LDFLAGS) tr3lib.a $(OBJS) $(OBJ3D) $(OBJE) $(OBJL) $(OBJNC)
+tr3lib.a: $(OBJTR) $(OBJ3D) $(INCNC) $(INCGLF)
+	$(LD) $(LDFLAGS) tr3lib.a $(OBJTR) $(OBJ3D)
 
 ../pl/pllib.a:
 	(cd ../pl; make pllib.a)
