@@ -1,0 +1,12 @@
+ &wm
+   mdlwmf=1
+   pn=0.5,0.5
+   pns=0.5,0.5
+   modelp=4,4
+   q0=1
+   qa=2
+   nph0=1
+   nth0=-2
+   nthmax=8
+   nrmax=50
+ &end
