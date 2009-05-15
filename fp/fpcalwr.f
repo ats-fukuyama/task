@@ -489,7 +489,7 @@ C***********************************************************************
 C     Calculate PSIN, PCOS, PSI
 C***********************************************************************
 C
-      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI)
+      SUBROUTINE FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
 C
       INCLUDE 'fpcomm.inc'
 C

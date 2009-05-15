@@ -232,7 +232,7 @@ C     +++++ calculate and save global data +++++
       IF(NT.eq.NTMAX)THEN
 c         open(8,file='radial_profile.dat')
 c         open(8,file='coef.dat')
-         open(9,file='power_test_n10b_comp25.dat')
+         open(9,file='power_test.dat')
 c         Do NP=1,NPMAX
 c            Write(8,646) NP
 c     & ,FNS(14,NP,1,3),FNS(15,NP,1,3),FNS(16,NP,1,3)
@@ -273,6 +273,33 @@ c         close(8)
      &           ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI)
      &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
      &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
+c<<<<<<< fploop.f
+cccccccccccccc
+c     &           ,PNT(3,NTI),PNT(1,NTI),PNT(2,NTI)
+c     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
+c     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
+c     &           ,PWT(3,NTI+1)-PWT(3,NTI)
+c     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
+c     &           /1.5D0
+
+c密度のズレ補正
+c     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))
+
+     &           ,(PWT(3,NTI)-PWT(3,NTI-1))
+     &           /(PPWT(3,NTI)+PPCT(3,NTI)+PPET(3,NTI))
+
+c     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))
+
+c     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
+c     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
+c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
+c     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
+c=======
+c>>>>>>> 1.52
 
          END DO
          close(9)
