@@ -341,7 +341,7 @@ C
             END DO
          ENDDO
 
-         PIT(NSA,NTG2) =PIT(NSA,NTG2)/2.D0*PI*RR
+         PIT(NSA,NTG2) =PIT(NSA,NTG2)/(2.D0*PI*RR)
 
          IF(PNT(NSA,NTG2).NE.0.d0) THEN
             PTT(NSA,NTG2) =PWT(NSA,NTG2)*1.D6
