@@ -6,10 +6,10 @@ C                    (-1.D0, +1.D0)
 C         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
 C     ************************************************************
 C
-      SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC)
+      SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC,KID)
       IMPLICIT REAL*8(A-H,O-Z)
       EXTERNAL FUNC
-C     CHARACTER KL*1
+      CHARACTER*(*) KID
       DATA HP/1.5707 96326 79489 66192D0/
 C
       EPS1=EPS**0.75D0
@@ -23,7 +23,7 @@ C
       NPMIN=1
       NMMIN=1
 C
-    5 IND=0
+    1 IND=0
       ATP=ABS(CSI)
       ATM=ATP
       NPD=2
@@ -85,29 +85,24 @@ C
       IF(ES.LE.EPS1*ABS(CS)) GO TO 200
       NMAX=MAX0(NP,NM)
       IF(NMAX.GT.1000) THEN
-  110    WRITE(6,603)
-         GO TO 9
-C        READ(5,501,END=120) KL
-C        IF(KL.EQ.'Q') GOTO 200
-C        IF(KL.NE.'C') GOTO 110
+         WRITE(6,603) TRIM(KID)
+         GO TO 9999
       ENDIF
-  130 H=0.5D0*H
+      H=0.5D0*H
       CS=0.5D0*CS
       NPMIN=NP*2-1
       NMMIN=NM*2-1
       NP=-1
       NM=-1
-      GO TO 5
-C 120 REWIND 5
-C     GO TO 130
+      GO TO 1
 C
   200 RETURN
 C
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
-  603 FORMAT(1H ,'# SUB DEFT # C or CR : CONTINUE / Q : QUIT')
-    9 STOP
+  603 FORMAT(1H ,'XX DEFT: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
       END
 C
 C     *************************************************************
@@ -116,10 +111,10 @@ C                    (0, +INFINITE)
 C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
 C     *************************************************************
 C
-      SUBROUTINE DEHIFT(CS,ES,H0,EPS,ILST,FUNC)
+      SUBROUTINE DEHIFT(CS,ES,H0,EPS,ILST,FUNC,KID)
       IMPLICIT REAL*8(A-H,O-Z)
       EXTERNAL FUNC
-C     CHARACTER KL*1
+      CHARACTER*(*) KID
       DATA HP/1.5707 96326 79489 66192D0/
 C
       EPS1=EPS**0.75D0
@@ -133,7 +128,7 @@ C
       NPMIN=1
       NMMIN=1
 C
-    5 IND=0
+    1 IND=0
       ATP=ABS(CSI)
       ATM=ATP
       NPD=2
@@ -189,40 +184,36 @@ C
       IF(ES.LE.EPS1*ABS(CS)) GO TO 200
       NMAX=MAX0(NP,NM)
       IF(NMAX.GT.1000) THEN
-  110    WRITE(6,603)
-         GO TO 9
-C        READ(5,501,END=120) KL
-C        IF(KL.EQ.'Q') GOTO 200
-C        IF(KL.NE.'C') GOTO 110
+         WRITE(6,603) TRIM(KID)
+         GO TO 9999
       ENDIF
-  130 H=0.5D0*H
+      H=0.5D0*H
       CS=0.5D0*CS
       NPMIN=NP*2-1
       NMMIN=NM*2-1
       NP=-1
       NM=-1
-      GO TO 5
-C 120 REWIND 5
-C     GO TO 130
+      GO TO 1
 C
   200 RETURN
 C
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
-  603 FORMAT(1H ,'# SUB DEHIFT # C or CR : CONTINUE / Q : QUIT')
-    9 STOP
+  603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
       END
 C
+C     *************************************************************
 C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
 C               FOR INTEGRAND WITH FACTOR EXP(-X)
 C                    (0, +INFINITE)
 C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+C     *************************************************************
 C
-C
-      SUBROUTINE DEHIFE(FUNC,CS,ES,H0,EPS,ILST)
+      SUBROUTINE DEHIFE(CS,ES,H0,EPS,ILST,FUNC,KID)
       IMPLICIT REAL*8(A-H,O-Z)
-      CHARACTER KL*1
+      CHARACTER*(*) KID
       EXTERNAL FUNC
 C
       EPS1=EPS**0.75D0
@@ -236,7 +227,7 @@ C
       NPMIN=1
       NMMIN=1
 C
-    5 IND=0
+    1 IND=0
       ATP=ABS(CSI)
       ATM=ATP 
       NPD=2
@@ -290,42 +281,40 @@ C
       IF(ES.LT.EPS1*ABS(CS)) GO TO 200
       NMAX=MAX0(NP,NM)
       IF(NMAX.GT.1000) THEN
-  110    WRITE(6,603)
-         GOTO 9
-C         READ(5,501,END=120) KL
-C         IF(KL.EQ.'Q') GOTO 200
-C         IF(KL.NE.'C') GOTO 110
+         WRITE(6,603) TRIM(KID)
+         GOTO 9999
       ENDIF
-  120 CONTINUE
       H=0.5D0*H
       CS=0.5D0*CS
       NPMIN=NP*2-1
       NMMIN=NM*2-1
       NP=-1
       NM=-1
-      GO TO 5
+      GO TO 1
 C
   200 IF(ILST.EQ.1) THEN
          WRITE(6,602) H,NP,NM,CS,ES
       ENDIF
-    9 RETURN
+      RETURN
 C
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
-  603 FORMAT(1H ,'# SUB DEHIFE # C or CR : CONTINUE / Q : QUIT')
+  603 FORMAT(1H ,'XX DEHIFE: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
       END
 C
+C     *************************************************************
 C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
 C               FOR INTEGRAND WITH FACTOR EXP(-X)
 C                    (0, +INFINITE)
 C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+C     *************************************************************
 C
-C
-      SUBROUTINE DEHIFEC(CFUNC,CS,ES,H0,EPS,ILST)
+      SUBROUTINE DEHIFEC(CS,ES,H0,EPS,ILST,CFUNC,KID)
       IMPLICIT REAL*8(A-H,O-Z)
       COMPLEX*16 CFUNC,CS,CSI,CSP,CT
-      CHARACTER KL*1
+      CHARACTER*(*) KID
       EXTERNAL CFUNC
 C
       EPS1=EPS**0.75D0
@@ -339,7 +328,7 @@ C
       NPMIN=1
       NMMIN=1
 C
-    5 IND=0
+    1 IND=0
       ATP=ABS(CSI)
       ATM=ATP 
       NPD=2
@@ -393,28 +382,25 @@ C
       IF(ES.LT.EPS1*ABS(CS)) GO TO 200
       NMAX=MAX0(NP,NM)
       IF(NMAX.GT.1000) THEN
-  110    WRITE(6,603)
-         GOTO 9
-C         READ(5,501,END=120) KL
-C         IF(KL.EQ.'Q') GOTO 200
-C         IF(KL.NE.'C') GOTO 110
+         WRITE(6,603) TRIM(KID)
+         GOTO 9999
       ENDIF
-  120 CONTINUE
       H=0.5D0*H
       CS=0.5D0*CS
       NPMIN=NP*2-1
       NMMIN=NM*2-1
       NP=-1
       NM=-1
-      GO TO 5
+      GO TO 1
 C
   200 IF(ILST.EQ.1) THEN
          WRITE(6,602) H,NP,NM,CS,ES
       ENDIF
-    9 RETURN
+      RETURN
 C
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD12.4,2I8,1P2D12.4)
   602 FORMAT(1H ,1PD12.4,2I8,1P2D12.4,1PD12.4)
-  603 FORMAT(1H ,'# SUB DEHIFE # C or CR : CONTINUE / Q : QUIT')
+  603 FORMAT(1H ,'XX DEHIFEC: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
       END

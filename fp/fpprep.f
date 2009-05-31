@@ -424,15 +424,15 @@ C
             DO NTH=1,NTHMAX/2
                NTHX=NTH
                IF(NTH.LT.ITL(NR)) THEN
-                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U)
-C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2U)
+                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0U,'FPFN0U')
+C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2U,'FPFN2U')
                ELSEIF(NTH.GT.ITL(NR)) THEN
-                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0T)
-C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2T)
+                  CALL DEFT(RINT0,ES,H0DE,EPSDE,0,FPFN0T,'FPFN0T')
+C                  CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2T,'FPFN2T')
                ELSE
                   RINT0=0.D0
                ENDIF
-               CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
+               CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A,'FPFN2A')
                RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
 C               RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*ABS(COSG(NTH)))
                RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*(COSG(NTH)))
