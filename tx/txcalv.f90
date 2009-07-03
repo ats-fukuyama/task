@@ -151,7 +151,7 @@ contains
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
     INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato, npower, &
-         &        NRP, NRMSOL, NRB
+         &        NRB, NRP
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, SNBPi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
@@ -521,9 +521,9 @@ contains
 
     !     *** For estimation of D02 ***
 
-    ! NRP : peak of PN02V
-    NRP = maxloc(PN02V(0:NRMAX),1) - 1
-    if(NRP == 0) NRP = NRMAX
+!!D02    ! NRP : peak of PN02V
+!!D02    NRP = maxloc(PN02V(0:NRMAX),1) - 1
+!!D02    if(NRP == 0) NRP = NRMAX
 
     ! SCX : source of PN02V
     DO NR = 0, NRMAX
@@ -1018,26 +1018,6 @@ contains
        ELSE
           FWahle(NR) = AEE      * BphV(NR) * De(NR) / (PTeV(NR) * rKeV)
           FWahli(NR) = AEE * PZ * BphV(NR) * Di(NR) / (PTiV(NR) * rKeV)
-       END IF
-
-       ! Work induced by drift wave
-       IF(MDLWTB == 1) THEN
-          WNthe (NR) = WPE0 *         AEE    * BphV(NR)    * De(NR)
-          WEMthe(NR) = WPE0 *         AEE**2 * BphV(NR)    * De(NR) &
-               &                       / (PTeV(NR) * rKeV)
-          WWthe (NR) = WPE0 *         AEE**2 * BphV(NR)**2 * De(NR) &
-               &            * WPM (NR) / (PTeV(NR) * rKeV)
-          WT1the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR)) &
-               &                       / (PTeV(NR) * rKeV)
-          WT2the(NR) = WPE0 *         AEE    * BphV(NR)    *(rMue(NR) - 0.5D0 * De(NR))
-          WNthi (NR) = WPI0 * PZ    * AEE    * BphV(NR)    * Di(NR)
-          WEMthi(NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)    * Di(NR) &
-               &                       / (PTiV(NR) * rKeV)
-          WWthi (NR) = WPI0 * PZ**2 * AEE**2 * BphV(NR)**2 * Di(NR) &
-               &            * WPM (NR) / (PTiV(NR) * rKeV)
-          WT1thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR)) &
-               &            / (PTiV(NR) * rKeV)
-          WT2thi(NR) = WPI0 * PZ    * AEE    * BphV(NR)    *(rMui(NR) - 0.5D0 * Di(NR))
        END IF
 
        !     *** Heating profile ***
@@ -1981,7 +1961,7 @@ contains
 !     (R.L. Freeman and E.M. Jones, Culham Laboratory Report, CLM-R-137 (May 1974)
 !
 !     Inputs (real*8): tekev : Electron temperature [keV]
-!     Output (real*8): SiViz : Ionization maxwellian rate coefficient (m^3/s)
+!     Output (real*8): SiViz : Ionization maxwellian rate coefficient [m^3/s]
 !
 !     Internal (real*8): a : Table of Maxwellian rate coefficients in TABLE 3
 !                                     ^^^^^^^^^^
@@ -2009,7 +1989,7 @@ contains
 !     (R.L. Freeman and E.M. Jones, Culham Laboratory Report, CLM-R-137 (May 1974)
 !
 !     Inputs (real*8): tikev : Ion temperature [keV]
-!     Output (real*8): SiVcx : Charge exchange maxwellian rate coefficient (m^3/s)
+!     Output (real*8): SiVcx : Charge exchange maxwellian rate coefficient [m^3/s]
 !
 !     Internal (real*8): a : Table of Maxwellian rate coefficients in TABLE 3
 !                                     ^^^^^^^^^^
@@ -2029,6 +2009,18 @@ contains
          &      +x*(a(5)+x*(a(6)+x*(a(7)+x*a(8)))))))))*1.D-6
 
   end function SiVcx
+
+!***************************************************************
+!
+!   Reduce diffusivity for thermal neutrals LQn2 due to cylindrical geometry
+!
+!     Inputs (integer*4): NRctr  : interest radial grid number
+!            (real*8)   : rLmean : mean free path of LQn2 at NRctr [m]
+!     Output (real*8)   : reduce_D02 : Reduction factor of D02 [*]
+!
+!     Internal (real*8): a : Table of Maxwellian rate coefficients in TABLE 3
+!                                     ^^^^^^^^^^
+!***************************************************************
 
   real(8) function reduce_D02(NRctr,rLmean)
     use tx_commons, only : Pi, NRMAX, R

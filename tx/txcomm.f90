@@ -60,7 +60,7 @@ module tx_commons
   real(8) :: PN0, PNa, PTe0, PTea, PTi0, PTia, PROFJ, PROFN1, PROFN2, PROFT1, PROFT2
 
   ! Diffusivities and viscosities
-  real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0, WPE0, WPI0
+  real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0
 
   ! Amplitude parameters for transport
   real(8) :: FSCBKP, FSCBSH, FSBOHM, FSPCLD, FSPCLC, FSVAHL, PROFD, PROFC, PROFD1, PROFD2, PROFC1
@@ -114,7 +114,7 @@ module tx_commons
   integer(4) :: MDSOLV
 
   !  Transport model
-  integer(4) :: MDLWTB, MDLETA, MDFIXT, MDVAHL
+  integer(4) :: MDLETA, MDFIXT, MDVAHL
 
   !  Initial condition
   integer(4) :: MDITSN, MDITST, MDINTT, MDINIT
@@ -160,8 +160,6 @@ module tx_commons
        & Chie, Chii, De, Di, VWpch, D01, D02, U02, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
-       & WNthe, WEMthe, WWthe, WT1the, WT2the, &
-       & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, FWahle, FWahli
@@ -249,9 +247,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:19) :: ierl
+    integer(4), dimension(1:17) :: ierl
 
-    ierl(1:18) = 0
+    ierl(1:17) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -308,14 +306,12 @@ contains
        allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),   D02(0:N),   &
             &   U02(0:N),                                                     stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
-       allocate(WNthe(0:N),  WEMthe(0:N), WWthe(0:N), WT1the(0:N),WT2the(0:N),stat = ierl(12))
-       allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(13))
-       allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(14))
-       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(15))
-       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(16))
-       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(17))
-       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(18))
-       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(19))
+       allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(12))
+       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(13))
+       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(14))
+       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(15))
+       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(16))
+       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(17))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -401,8 +397,6 @@ contains
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
     deallocate(De,     Di,     VWpch, D01,   D02,  U02)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
-    deallocate(WNthe,  WEMthe, WWthe, WT1the,WT2the)
-    deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC,Vbpara)

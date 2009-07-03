@@ -101,10 +101,6 @@ SUBROUTINE TXINIT
   !   Ion viscosity parameter
   rMui0 = 3.D0
 
-  !   Wave-particle interaction parameter
-  WPE0 = 0.D0
-  WPI0 = 1.D0
-
   !   Drift frequency parameter (omega/omega*e)
   WPM0 = 0.D0
 
@@ -468,11 +464,6 @@ SUBROUTINE TXINIT
   !   0    : Use BANDRD
   !   else : Use LAPACK_DGBSV
   MDLPCK = 0
-
-  !   Mode of Wave-particle interaction model
-  !   0    : Non-ambipolar model
-  !   1    : Shaing model
-  MDLWTB = 0
 
   !   Mode of neoclassical resistivity model
   !   0    : original
@@ -1160,7 +1151,7 @@ module tx_parameter_control
        & RA,RB,RC,RR,BB, &
        & PA,PZ,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
        & Chie0,Chii0,ChiNC, &
        & FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
        & PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
@@ -1173,10 +1164,10 @@ module tx_parameter_control
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelRho,DelN, &
-       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth,&
+       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
+       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
        & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART, &
        & MDSOLV,MDLNBD,MDLMOM
   private :: TXPLST
@@ -1281,7 +1272,6 @@ contains
        IF(PTi0 < 0.D0 .OR. PTia < 0.D0) EXIT
        IF(De0 < 0.D0 .OR. Di0 < 0.D0) EXIT
        IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
-       IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0) EXIT
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) EXIT
        IF(minval(FSDFIX) < 0.D0) EXIT
        IF(minval(FSCDBM) < 0.D0) EXIT
@@ -1330,7 +1320,7 @@ contains
 
 601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
-         &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
+         &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,'/ &
          &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
@@ -1346,7 +1336,7 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ &
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK'/ &
          &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART' / & 
          &       ' ',8X,'MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
@@ -1375,7 +1365,6 @@ contains
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
          &   'VWpch0', VWpch0,  'WPM0  ', WPM0  ,  &
-         &   'WPE0  ', WPE0  ,  'WPI0  ', WPI0  ,  &
          &   'PROFD ', PROFD ,  'PROFC ', PROFC ,  &
          &   'PROFD1', PROFD1,  'PROFD2', PROFD2,  &
          &   'PROFC1', PROFC1,  'ChiNC ', ChiNC ,  &
@@ -1424,7 +1413,7 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
-         &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
+         &   'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
          &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
          &   'MDINIT', MDINIT,  'MDVAHL', MDVAHL,  &

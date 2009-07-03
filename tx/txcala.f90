@@ -696,38 +696,36 @@ contains
     ELM(1:NEMAX,1:4,14,LQe3) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2Bth,AphV)
     NLC(14,LQe3) = LQb4
 
-    IF(MDLWTB == 0) THEN
+    ! Turbulent particle transport driver
 
-       ! Turbulent particle transport driver
+    ELM(1:NEMAX,1:4,15,LQe3) = - 1.D0 / AME * fem_int(2,FWthe)
+    NLC(15,LQe3) = LQe3
 
-       ELM(1:NEMAX,1:4,15,LQe3) = - 1.D0 / AME * fem_int(2,FWthe)
-       NLC(15,LQe3) = LQe3
+    ELM(1:NEMAX,1:4,16,LQe3) =   1.D0 / AME * fem_int(2,FWthe)
+    NLC(16,LQe3) = LQi3
 
-       ELM(1:NEMAX,1:4,16,LQe3) =   1.D0 / AME * fem_int(2,FWthe)
-       NLC(16,LQe3) = LQi3
+    ELM(1:NEMAX,1:4,17,LQe3) =   1.D0 / AME * fem_int(15,FWpheBB) * AMPe4
+    NLC(17,LQe3) = LQe4
 
-       ELM(1:NEMAX,1:4,17,LQe3) =   1.D0 / AME * fem_int(15,FWpheBB) * AMPe4
-       NLC(17,LQe3) = LQe4
+    ELM(1:NEMAX,1:4,18,LQe3) = - 1.D0 / AME * fem_int(15,FWpheBB)
+    NLC(18,LQe3) = LQi4
 
-       ELM(1:NEMAX,1:4,18,LQe3) = - 1.D0 / AME * fem_int(15,FWpheBB)
-       NLC(18,LQe3) = LQi4
+    ! Wave interaction force (electron driven)
 
-       ! Wave interaction force (electron driven)
+    ELM(1:NEMAX,1:4,19,LQe3) = - 1.D0 / AME * fem_int(44,FWthe,WPM)
+    NLC(19,LQe3) = LQe1
 
-       ELM(1:NEMAX,1:4,19,LQe3) = - 1.D0 / AME * fem_int(44,FWthe,WPM)
-       NLC(19,LQe3) = LQe1
+    ! Convection controller
 
-       ! Convection controller
+    ELM(1:NEMAX,1:4,20,LQe3) = - 2.D0 * (rKeV / AME) * fem_int(37,FWahle,PTeV) &
+         &                            * (1.D0 - FSVAHL) &
+         &                     + 2.D0 * ( AEE / AME) * fem_int(37,FWahle,PhiV) * FSVAHLL
+    NLC(20,LQe3) = LQe1
 
-       ELM(1:NEMAX,1:4,20,LQe3) = - 2.D0 * (rKeV / AME) * fem_int(37,FWahle,PTeV) &
-            &                            * (1.D0 - FSVAHL) &
-            &                     + 2.D0 * ( AEE / AME) * fem_int(37,FWahle,PhiV) * FSVAHLL
-       NLC(20,LQe3) = LQe1
+    ! Ad hoc turbulent pinch term
 
-       ! Ad hoc turbulent pinch term
-
-       ELM(1:NEMAX,1:4,21,LQe3) = - 1.D0 / AME * fem_int(15,FVpch)
-       NLC(21,LQe3) = LQe1
+    ELM(1:NEMAX,1:4,21,LQe3) = - 1.D0 / AME * fem_int(15,FVpch)
+    NLC(21,LQe3) = LQe1
 
 !!ion       ! Turbulent particle transport driver (ion driven)
 !!ion
@@ -751,45 +749,7 @@ contains
 !!ion       ELM(1:NEMAX,1:4,20,LQe3) =   1.D0 / AME * fem_int(44,FWthi,WPM)
 !!ion       NLC(20,LQe3) = LQi1
 
-       N = 0
-    ELSEIF(MDLWTB == 1) THEN
-
-       ! Wave interaction force (electron driven)
-
-       ELM(1:NEMAX,1:4,15,LQe3) = - 2.D0 / AME * fem_int(17,WNthe)
-       NLC(15,LQe3) = LQe1
-
-!      ELM(1:NEMAX,1:4,16,LQe3) = - 2.D0 / AME * fem_int(36,PhiV,WEMthe)
-!      NLC(16,LQe3) = LQe1
-!
-!      ELM(1:NEMAX,1:4,17,LQe3) = - 2.D0 / AME * fem_int(15,WWthe)
-!      NLC(17,LQe3) = LQe1
-!
-!      ELM(1:NEMAX,1:4,18,LQe3) = - 2.D0 / AME * rKeV * fem_int(17,WT1the)
-!      NLC(18,LQe3) = LQe5
-!
-!      ELM(1:NEMAX,1:4,19,LQe3) =   2.D0 / AME * fem_int(17,WT2the)
-!      NLC(19,LQe3) = LQe1
-
-       ! Wave interaction force (ion driven)
-
-       ELM(1:NEMAX,1:4,20,LQe3) =   2.D0 / AME * fem_int(17,WNthi)
-       NLC(20,LQe3) = LQi1
-
-!      ELM(1:NEMAX,1:4,21,LQe3) =   2.D0 / AME * fem_int(36,PhiV,WEMthi)
-!      NLC(21,LQe3) = LQi1
-!
-!      ELM(1:NEMAX,1:4,22,LQe3) =   1.D0 / AME * fem_int(15,WWthi)
-!      NLC(22,LQe3) = LQi1
-!
-!      ELM(1:NEMAX,1:4,23,LQe3) =   2.D0 / AME * rKeV * fem_int(17,WT1thi)
-!      NLC(23,LQe3) = LQi5
-!
-!      ELM(1:NEMAX,1:4,24,LQe3) = - 2.D0 / AME * fem_int(17,WT2thi)
-!      NLC(24,LQe3) = LQi1
-
-       N = 4
-    END IF
+    N = 0
 
     ! Loss to divertor
 
@@ -885,38 +845,36 @@ contains
     ELM(1:NEMAX,1:4,13,LQe4) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2Bth,AphV)
     NLC(13,LQe4) = LQb3
 
-    IF(MDLWTB == 0) THEN
+    ! Turbulent particle transport driver
 
-       ! Turbulent particle transport driver
+    ELM(1:NEMAX,1:4,14,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB)
+    NLC(14,LQe4) = LQe3
 
-       ELM(1:NEMAX,1:4,14,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB)
-       NLC(14,LQe4) = LQe3
+    ELM(1:NEMAX,1:4,15,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB)
+    NLC(15,LQe4) = LQi3
 
-       ELM(1:NEMAX,1:4,15,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB)
-       NLC(15,LQe4) = LQi3
+    ELM(1:NEMAX,1:4,16,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB2) * AMPe4
+    NLC(16,LQe4) = LQe4
 
-       ELM(1:NEMAX,1:4,16,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB2) * AMPe4
-       NLC(16,LQe4) = LQe4
+    ELM(1:NEMAX,1:4,17,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB2)
+    NLC(17,LQe4) = LQi4
 
-       ELM(1:NEMAX,1:4,17,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB2)
-       NLC(17,LQe4) = LQi4
+    ! Wave interaction force (electron driven)
 
-       ! Wave interaction force (electron driven)
+    ELM(1:NEMAX,1:4,18,LQe4) =   1.D0 / AME * fem_int(44,FWpheBB,WPM)
+    NLC(18,LQe4) = LQe1
 
-       ELM(1:NEMAX,1:4,18,LQe4) =   1.D0 / AME * fem_int(44,FWpheBB,WPM)
-       NLC(18,LQe4) = LQe1
+    ! Convection controller
 
-       ! Convection controller
+    ELM(1:NEMAX,1:4,19,LQe4) = - 4.D0 * (rKeV / AME) * fem_int(37,FWahlphe,PTeV) &
+         &                            * (1.D0 - FSVAHL) &
+         &                     + 4.D0 * ( AEE / AME) * fem_int(37,FWahlphe,PhiV) * FSVAHLL
+    NLC(19,LQe4) = LQe1
 
-       ELM(1:NEMAX,1:4,19,LQe4) = - 4.D0 * (rKeV / AME) * fem_int(37,FWahlphe,PTeV) &
-            &                            * (1.D0 - FSVAHL) &
-            &                     + 4.D0 * ( AEE / AME) * fem_int(37,FWahlphe,PhiV) * FSVAHLL
-       NLC(19,LQe4) = LQe1
+    ! Ad hoc turbulent pinch term
 
-       ! Ad hoc turbulent pinch term
-
-       ELM(1:NEMAX,1:4,20,LQe4) = - 2.D0 / AME * fem_int(36,AphV,FVpchph)
-       NLC(20,LQe4) = LQe1
+    ELM(1:NEMAX,1:4,20,LQe4) = - 2.D0 / AME * fem_int(36,AphV,FVpchph)
+    NLC(20,LQe4) = LQe1
 
 !!ion       ! Turbulent particle transport driver (ion driven)
 !!ion
@@ -939,8 +897,6 @@ contains
 !!ion
 !!ion       ELM(1:NEMAX,1:4,19,LQe4) = - 1.D0 / AME * fem_int(44,FWphiBB,WPM)
 !!ion       NLC(19,LQe4) = LQi1
-
-    END IF
 
     ! Loss to divertor
 
@@ -1305,38 +1261,36 @@ contains
     ELM(1:NEMAX,1:4,12,LQi3) =   (AMB / AMI) * fem_int(2,rNubi)
     NLC(12,LQi3) = LQb3
 
-    IF(MDLWTB == 0) THEN
+    ! Turbulent particle transport driver
 
-       ! Turbulent particle transport driver
+    ELM(1:NEMAX,1:4,13,LQi3) =   1.D0 / AMI * fem_int(2,FWthe)
+    NLC(13,LQi3) = LQe3
 
-       ELM(1:NEMAX,1:4,13,LQi3) =   1.D0 / AMI * fem_int(2,FWthe)
-       NLC(13,LQi3) = LQe3
+    ELM(1:NEMAX,1:4,14,LQi3) = - 1.D0 / AMI * fem_int(2,FWthe)
+    NLC(14,LQi3) = LQi3
 
-       ELM(1:NEMAX,1:4,14,LQi3) = - 1.D0 / AMI * fem_int(2,FWthe)
-       NLC(14,LQi3) = LQi3
+    ELM(1:NEMAX,1:4,15,LQi3) = - 1.D0 / AMI * fem_int(15,FWpheBB) * AMPe4
+    NLC(15,LQi3) = LQe4
 
-       ELM(1:NEMAX,1:4,15,LQi3) = - 1.D0 / AMI * fem_int(15,FWpheBB) * AMPe4
-       NLC(15,LQi3) = LQe4
+    ELM(1:NEMAX,1:4,16,LQi3) =   1.D0 / AMI * fem_int(15,FWpheBB)
+    NLC(16,LQi3) = LQi4
 
-       ELM(1:NEMAX,1:4,16,LQi3) =   1.D0 / AMI * fem_int(15,FWpheBB)
-       NLC(16,LQi3) = LQi4
+    ! Wave interaction force (electron driven)
 
-       ! Wave interaction force (electron driven)
+    ELM(1:NEMAX,1:4,17,LQi3) =   1.D0 / AMI * fem_int(44,FWthe,WPM)
+    NLC(17,LQi3) = LQe1
 
-       ELM(1:NEMAX,1:4,17,LQi3) =   1.D0 / AMI * fem_int(44,FWthe,WPM)
-       NLC(17,LQi3) = LQe1
+    ! Convection controller
 
-       ! Convection controller
+    ELM(1:NEMAX,1:4,18,LQi3) =   2.D0 * (rKeV / AMI) * fem_int(37,FWahle,PTeV) &
+         &                            * (1.D0 - FSVAHL) &
+         &                     - 2.D0 * ( AEE / AMI) * fem_int(37,FWahle,PhiV) * FSVAHLL
+    NLC(18,LQi3) = LQe1
 
-       ELM(1:NEMAX,1:4,18,LQi3) =   2.D0 * (rKeV / AMI) * fem_int(37,FWahle,PTeV) &
-            &                            * (1.D0 - FSVAHL) &
-            &                     - 2.D0 * ( AEE / AMI) * fem_int(37,FWahle,PhiV) * FSVAHLL
-       NLC(18,LQi3) = LQe1
+    ! Ad hoc turbulent pinch term
 
-       ! Ad hoc turbulent pinch term
-
-       ELM(1:NEMAX,1:4,19,LQi3) =   1.D0 / AMI * fem_int(15,FVpch)
-       NLC(19,LQi3) = LQe1
+    ELM(1:NEMAX,1:4,19,LQi3) =   1.D0 / AMI * fem_int(15,FVpch)
+    NLC(19,LQi3) = LQe1
 
 !!ion       ! Turbulent particle transport driver (ion driven)
 !!ion
@@ -1360,45 +1314,7 @@ contains
 !!ion       ELM(1:NEMAX,1:4,18,LQi3) = - 1.D0 / AMI * fem_int(44,FWthi,WPM)
 !!ion       NLC(18,LQi3) = LQi1
 
-       N = 0
-    ELSEIF(MDLWTB == 1) THEN
-
-       ! Wave interaction force (electron driven)
-
-       ELM(1:NEMAX,1:4,13,LQi3) =   2.D0 / AMI * fem_int(17,WNthe)
-       NLC(13,LQi3) = LQe1
-
-!       ELM(1:NEMAX,1:4,14,LQi3) =   2.D0 / AMI * fem_int(36,PhiV,WEMthe)
-!       NLC(14,LQi3) = LQe1
-       
-!       ELM(1:NEMAX,1:4,15,LQi3) =   2.D0 / AMI * fem_int(15,WWthe)
-!       NLC(15,LQi3) = LQe1
-       
-!       ELM(1:NEMAX,1:4,16,LQi3) =   2.D0 / AMI * rKeV * fem_int(17,WT1the)
-!       NLC(16,LQi3) = LQe5
-       
-!       ELM(1:NEMAX,1:4,17,LQi3) = - 2.D0 / AMI * fem_int(17,WT2the)
-!       NLC(17,LQi3) = LQe1
-
-       ! Wave interaction force (ion driven)
-
-       ELM(1:NEMAX,1:4,18,LQi3) = - 2.D0 / AMI * fem_int(17,WNthi)
-       NLC(18,LQi3) = LQi1
-
-!       ELM(1:NEMAX,1:4,19,LQi3) = - 2.D0 / AMI * fem_int(36,PhiV,WEMthi)
-!       NLC(19,LQi3) = LQi1
-       
-!       ELM(1:NEMAX,1:4,20,LQi3) = - 2.D0 / AMI * fem_int(15,WWthi)
-!       NLC(20,LQi3) = LQi1
-       
-!       ELM(1:NEMAX,1:4,21,LQi3) = - 2.D0 / AMI * rKeV * fem_int(17,WT1thi)
-!       NLC(21,LQi3) = LQi5
-       
-!       ELM(1:NEMAX,1:4,22,LQi3) =   2.D0 / AMI * fem_int(17,WT2thi)
-!       NLC(22,LQi3) = LQi1
-
-       N = 4
-    END IF
+    N = 0
 
     ! Loss to divertor
 
@@ -1503,38 +1419,36 @@ contains
     ELM(1:NEMAX,1:4,11,LQi4) =   (AMB / AMI) * fem_int(2,rNubi)
     NLC(11,LQi4) = LQb4
 
-    IF(MDLWTB == 0) THEN
+    ! Turbulent particle transport driver (electron driven)
 
-       ! Turbulent particle transport driver (electron driven)
+    ELM(1:NEMAX,1:4,12,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB)
+    NLC(12,LQi4) = LQe3
 
-       ELM(1:NEMAX,1:4,12,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB)
-       NLC(12,LQi4) = LQe3
+    ELM(1:NEMAX,1:4,13,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB)
+    NLC(13,LQi4) = LQi3
 
-       ELM(1:NEMAX,1:4,13,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB)
-       NLC(13,LQi4) = LQi3
+    ELM(1:NEMAX,1:4,14,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB2) * AMPe4
+    NLC(14,LQi4) = LQe4
 
-       ELM(1:NEMAX,1:4,14,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB2) * AMPe4
-       NLC(14,LQi4) = LQe4
+    ELM(1:NEMAX,1:4,15,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB2) 
+    NLC(15,LQi4) = LQi4
 
-       ELM(1:NEMAX,1:4,15,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB2) 
-       NLC(15,LQi4) = LQi4
+    ! Wave interaction force (electron driven)
 
-       ! Wave interaction force (electron driven)
+    ELM(1:NEMAX,1:4,16,LQi4) = - 1.D0 / AMI * fem_int(44,FWpheBB,WPM)
+    NLC(16,LQi4) = LQe1
 
-       ELM(1:NEMAX,1:4,16,LQi4) = - 1.D0 / AMI * fem_int(44,FWpheBB,WPM)
-       NLC(16,LQi4) = LQe1
+    ! Convection controller
 
-       ! Convection controller
+    ELM(1:NEMAX,1:4,17,LQi4) =   4.D0 * (rKeV / AMI) * fem_int(37,FWahlphe,PTeV) &
+         &                            * (1.D0 - FSVAHL) &
+         &                     - 4.D0 * ( AEE / AMI) * fem_int(37,FWahlphe,PhiV) * FSVAHLL
+    NLC(17,LQi4) = LQe1
 
-       ELM(1:NEMAX,1:4,17,LQi4) =   4.D0 * (rKeV / AMI) * fem_int(37,FWahlphe,PTeV) &
-            &                            * (1.D0 - FSVAHL) &
-            &                     - 4.D0 * ( AEE / AMI) * fem_int(37,FWahlphe,PhiV) * FSVAHLL
-       NLC(17,LQi4) = LQe1
+    ! Ad hoc turbulent pinch term
 
-       ! Ad hoc turbulent pinch term
-
-       ELM(1:NEMAX,1:4,18,LQi4) =   2.D0 / AMI * fem_int(36,AphV,FVpchph)
-       NLC(18,LQi4) = LQe1
+    ELM(1:NEMAX,1:4,18,LQi4) =   2.D0 / AMI * fem_int(36,AphV,FVpchph)
+    NLC(18,LQi4) = LQe1
 
 !!ion       ! Turbulent particle transport driver (ion driven)
 !!ion
@@ -1557,8 +1471,6 @@ contains
 !!ion
 !!ion       ELM(1:NEMAX,1:4,17,LQi4) =   1.D0 / AMI * fem_int(44,FWphiBB,WPM)
 !!ion       NLC(17,LQi4) = LQi1
-
-    END IF
 
     ! Loss to divertor
 
