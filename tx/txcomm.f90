@@ -3,8 +3,8 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=132, NGYTM=48, &
-       &                   NGYVM=49, NGPRM=20, NGPTM=8, NGPVM=15, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=136, NGYTM=51, &
+       &                   NGYVM=49, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
@@ -63,8 +63,9 @@ module tx_commons
   real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0, WPE0, WPI0
 
   ! Amplitude parameters for transport
-  real(8) :: FSDFIX, FSCDBM, FSBOHM, FSPCLD, FSPCLC, PROFD, PROFC
+  real(8) :: FSCBKP, FSCBSH, FSBOHM, FSPCLD, FSPCLC, FSVAHL, PROFD, PROFC, PROFD1, PROFD2, PROFC1
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, rG1, FSRP, FSNF
+  real(8), dimension(1:3) :: FSDFIX, FSCDBM
   integer(4) :: MDLC
 
   ! Scale lengths in SOL
@@ -90,8 +91,8 @@ module tx_commons
   ! Mesh parameters
   integer(4) :: NRMAX, NEMAX, NTMAX, NTSTEP, NGRSTP, NGTSTP, NGVSTP, NRA, NRC
 
-  ! Parameters for parameter survey
-  real(8) :: DelR, DelN
+  ! Parameters for density perturbation experiment
+  real(8) :: DelRho, DelN
 
   ! Helical parameters
   real(8) :: EpsH, FSHL, Q0, QA
@@ -113,7 +114,7 @@ module tx_commons
   integer(4) :: MDSOLV
 
   !  Transport model
-  integer(4) :: MDLWTB, MDLETA, MDFIXT
+  integer(4) :: MDLWTB, MDLETA, MDFIXT, MDVAHL
 
   !  Initial condition
   integer(4) :: MDITSN, MDITST, MDINTT, MDINIT
@@ -123,7 +124,7 @@ module tx_commons
   !**********************************!
 
   ! Configuration parameters
-  integer(4) :: NT, NQMAX, IERR
+  integer(4) :: NT, NQMAX, IERR, IReSTART
   real(8) :: T_TX, TMAX
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
@@ -156,14 +157,14 @@ module tx_commons
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWthe, FWthi, WPM, FVpch, rMue, rMui, rNuB, rNuLB, ft, &
-       & Chie, Chii, De, Di, VWpch, D01, D02, &
+       & Chie, Chii, De, Di, VWpch, D01, D02, U02, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & WNthe, WEMthe, WWthe, WT1the, WT2the, &
        & WNthi, WEMthi, WWthi, WT1thi, WT2thi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
-       & rNuNTV, UastNC, Vbpara
+       & rNuNTV, UastNC, Vbpara, FWahle, FWahli
   real(8), dimension(:,:), allocatable :: deltam
 
   ! Read Wnm table
@@ -179,7 +180,7 @@ module tx_commons
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
        &                                SiLC, SiLCth, SiLCph, PALFe, PALFi
-  real(8), dimension(:), allocatable :: PIE, PCX, SIE, PBr
+  real(8), dimension(:), allocatable :: PIE, PCX, SIE, SCX, PBr
   real(8) :: RatCX
 
   ! Safety factor, currents, resistivity
@@ -198,7 +199,7 @@ module tx_commons
   real(8) :: PBINT, PFINT, POUT, PCXT, PIET, PRLT, SINT, SIET
   real(8) :: SNBT, SNFT, SOUT
   real(8) :: VLOOP, ALI, RQ1, RPE, ZEFF0, QF
-  real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH
+  real(8) :: WPDOT, TAUE1, TAUE2, TAUEP, TAUEH, TAUP, TAUPA
   real(8) :: BETAP0, BETAPA, BETA0, BETAA, BETAQ0, BETAN
   real(8) :: TPRE, WPPRE
   real(8) :: VOLAVN, Gamma_a
@@ -302,9 +303,10 @@ contains
             &   rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), &
             &   rNuiHLphph(0:N),                                              stat = ierl(7))
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   FVpch(0:N), rMue(0:N),  &
-            &   rMui(0:N),                                                    stat = ierl(8))
+            &   rMui(0:N),   FWahle(0:N), FWahli(0:N),                        stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
-       allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),   D02(0:N),   stat = ierl(10))
+       allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),   D02(0:N),   &
+            &   U02(0:N),                                                     stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
        allocate(WNthe(0:N),  WEMthe(0:N), WWthe(0:N), WT1the(0:N),WT2the(0:N),stat = ierl(12))
        allocate(WNthi(0:N),  WEMthi(0:N), WWthi(0:N), WT1thi(0:N),WT2thi(0:N),stat = ierl(13))
@@ -328,7 +330,7 @@ contains
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
        allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
-       allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    PBr(0:N),               stat = ierl(7))
+       allocate(PIE(0:N),   PCX(0:N),    SIE(0:N),    SCX(0:N),   PBr(0:N),   stat = ierl(7))
        ier = sum(ierl) ; iflag = 6
        if (ier /= 0) exit
 
@@ -389,12 +391,15 @@ contains
     deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
     deallocate(rNuii,  rNuTei, rNube, rNubi, rNuD)
     deallocate(rNubrp1,rNubrp2,rNuei1,rNuei2,rNuei3,rNuei2Bth)
-    deallocate(rNube1, rNube2, rNube3,rNube2Bth,rNuLTe,rNuLTi)
+    deallocate(rNube1, rNube2, rNube3,rNuLTe,rNuLTi,rNube2Bth)
     deallocate(rNueNC, rNuiNC, rNuAse,rNuAsi)
-    deallocate(rNueHL, rNuiHL)
-    deallocate(FWthe,  FWthi,  WPM,   FVpch, rMue,  rMui)
+    deallocate(rNueHL, rNuiHL, rNueHLthth, rNuiHLthth, rNueHLthph, &
+         &     rNuiHLthph, rNueHLphth, rNuiHLphth, rNueHLphph, &
+         &     rNuiHLphph)
+    deallocate(FWthe,  FWthi,  WPM,   FVpch, rMue,  rMui, &
+         &     FWahle, FWahli)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
-    deallocate(De,     Di,     VWpch, D01,   D02)
+    deallocate(De,     Di,     VWpch, D01,   D02,  U02)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(WNthe,  WEMthe, WWthe, WT1the,WT2the)
     deallocate(WNthi,  WEMthi, WWthi, WT1thi,WT2thi)
@@ -414,7 +419,7 @@ contains
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
     deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)
-    deallocate(PIE,    PCX,   SIE,   PBr)
+    deallocate(PIE,    PCX,   SIE,   SCX,    PBr)
 
     deallocate(Q, AJ, AJOH, AJV, AJRF, AJNB, AJPARA)
     deallocate(AJBS, AJBS1, AJBS2, AJBS3, AJBS4)

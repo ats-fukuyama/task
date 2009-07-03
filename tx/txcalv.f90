@@ -150,7 +150,8 @@ contains
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
-    INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato
+    INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato, npower, &
+         &        NRP, NRMSOL, NRB
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, SNBPi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
@@ -163,8 +164,10 @@ contains
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, &
          &     theta1, theta2, thetab, sinthb, dlt, width0, width1, ARC, &
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
-         &     EbL, logEbL, Scx, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, Tqi0L!, &
+         &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, &
+         &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, rLmean, rLmeanL, Sitot, costh, &
+         &     PTiVav, N02INT, RatSCX, sum1, sum2
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC, deriv4
@@ -175,7 +178,7 @@ contains
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
     ! For derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
-         &                                dPedr, dPidr, dpdr
+         &                                dPedr, dPidr, dpdr, ForTav
 
     !     *** Constants ***
 
@@ -257,7 +260,7 @@ contains
        PNBTi20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
     END IF
 
-    !  For RF heating (equally heating for electrons and ions)
+    !  For RF heating
     CALL deposition_profile(SRFe,SL,RRFe0,RRFew,'RFe')
     PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
 
@@ -458,14 +461,14 @@ contains
 
     pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
          &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
-    IF(ABS(FSCDBM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
+    IF(maxval(FSCDBM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
     Vexbr(0)       = 0.d0
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
-    IF(PROFC == 0.D0 .AND. FSDFIX /= 0.D0) THEN
+    IF(PROFC == 0.D0 .AND. FSDFIX(3) /= 0.D0) THEN
        PROFCL = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
-            &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX
+            &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX(3)
     ELSE
        PROFCL = PROFC
     END IF
@@ -516,6 +519,40 @@ contains
     dPidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV  ,NRMAX,0)
     dpdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,pres ,NRMAX,0)
 
+    !     *** For estimation of D02 ***
+
+    ! NRP : peak of PN02V
+    NRP = maxloc(PN02V(0:NRMAX),1) - 1
+    if(NRP == 0) NRP = NRMAX
+
+    ! SCX : source of PN02V
+    DO NR = 0, NRMAX
+       SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
+    END DO
+
+    ! NRB : Boundary of N02 source
+    NRB = NRA
+    do NR = NRMAX - 1, 0, -1
+       RatSCX = SCX(NR) / SCX(NRMAX)
+       if(RatSCX < 1.D-8) then
+          NRB = NR
+          exit
+       else if (RatSCX < tiny_cap) then
+          NRB = NR - 1
+       end if
+    end do
+
+    ! PTiVav : Particle (or density) -averaged temperature over the N02 source region
+    sum1 = 0.d0 ; sum2 = 0.d0
+    do nr = nrb, nrmax
+       call VALINT_SUB(PN02V,NR,N02int,NR)
+       sum1 = sum1 + N02int
+       sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
+    end do
+    PTiVav = sum2 / sum1
+
+!!D02    write(6,'(F8.5,2I4,5F11.6)') T_TX,NRP,NRB,Rho(NRP),Rho(NRB),PTiV(NRP),PTiVav
+
     !  Coefficients
 
     L_NR: DO NR = 0, NRMAX
@@ -554,26 +591,81 @@ contains
        rNuION(NR) = FSION * SiViz(PTeV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !     *** Slow neutral diffusion coefficient ***
+       !  For example,
+       !    E.L. Vold et al., NF 32 (1992) 1433
 
-       D01(NR) = FSD01 * V0**2 &
-            &   / (Sigma0 * (PN01V(NR) * V0  + (PNiV(NR) + PN02V(NR)) &
-            &      * Vti) * 1.D20)
+       !  Maxwellian velocity for slow neutrals
+       V0ave = sqrt(4.D0 * V0**2 / Pi)
+
+       !  Total Maxwellian rate coefficients
+!!$       if(nr <= NRB) then
+!!$          Sitot = (SiVcx(PTiV(NRB)) * PNiV(NRB) + SiViz(PTeV(NRB)) * PNeV(NRB)) *1.D20
+!!$       else
+          Sitot = (SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20
+!!$       end if
+
+       !  Diffusion coefficient for slow neutrals (short m.f.p.)
+!old       D01(NR) = FSD01 * V0**2 &
+!old            &   / (Sigma0 * (PN01V(NR) * V0  + (PNiV(NR) + PN02V(NR)) &
+!old            &      * Vti) * 1.D20)
+!       D01(NR) = FSD01 * V0ave**2 &
+!            &   / (3.D0 * SiVcx(PTiV(NR)) * PNiV(NR) * 1.D20)
+       D01(NR) = FSD01 * V0ave**2 &
+            &  / (3.D0 * (SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20)
 
        !     *** Fast neutral diffusion coefficient ***
 
-       D02(NR) = FSD02 * Vti**2 &
-            &   / (Sigma0 * (PNiV(NR) + PN01V(NR) + PN02V(NR)) &
-            &      * Vti * 1.D20)
+       !  Maxwellian thermal velocity at the separatrix
+!       Viave = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi))
+!       Viave = sqrt(8.D0 * PTiV(NRP) * rKeV / (Pi * AMi))
+       Viave = sqrt(8.D0 * PTiVav * rKeV / (Pi * AMi))
+
+       !  Mean free path for fast neutrals
+       rLmean = Viave / Sitot
+       !  Locally determined mean free path for fast neutrals
+       rLmeanL = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi)) &
+            &  / ((SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20)
+
+       !  Diffusion coefficient for fast neutrals (short to long m.f.p.)
+!old       D02(NR) = FSD02 * Vti**2 &
+!old            &   / (Sigma0 * (PNiV(NR) + PN01V(NR) + PN02V(NR)) &
+!old            &      * Vti * 1.D20)
+!       D02(NR) = FSD02 * Viave**2 &
+!            &   / (3.D0 * SiVcx(PTiV(NR)) * PNiV(NR) * 1.D20)
+!!       if(rho(nr) < 0.9d0) then
+!!          D02(NR) = D02(NR) * (-0.33333d0*rho(nr)+0.35d0)
+!!       else if (rho(nr) >= 0.9d0 .and. rho(nr) <= 1.0d0) then
+!!          D02(NR) = D02(NR) * (3.5055d0*rho(nr)**3-2.5055d0)
+!!       end if
+       D02(NR) = FSD02 * Viave**2 / (3.D0 * Sitot)
+!       if(nr >= NRB .and. nr <= NRP) D02(NR) = D02(NR) * reduce_D02(NR,rLmean)
+       if(nr >= NRB .and. nr <= NRA) D02(NR) = D02(NR) * reduce_D02(NR,rLmean)
+!!D02       if(nt >= ntmax-1) write(6,'(I3,F10.6,F11.3,3F10.6,1P2E11.3)') nr,r(nr),d02(nr),rLmean,rLmeanL,PTiV(NR),SCX(NR)
+
+!!$       IF(NR == 0) THEN
+!!$          U02(NR) = 0.D0
+!!$       ELSE
+!!$          U02(NR) = Viave
+!!$          costh = 1.D0 - 0.5D0 * rLmean**2 / R(NR)**2
+!!$!          if(costh < -1.d0) then
+!!$!             U02(NR) = U02(NR) * ( rLmean * (rLmean - 2.D0 * R(NR)) / (rLmean - R(NR))**2)
+!!$!          else if (costh <= 1.d0) then
+!!$!             U02(NR) = U02(NR) * acos(costh) / Pi
+!!$!          end if
+!!$          if(costh >= -1.d0 .and. costh <= 1.d0) U02(NR) = U02(NR) * acos(costh) / Pi
+!!$!          U02(NR) = 0.D0
+!!$       END IF
+       U02(NR) = 0.D0
 
        !     *** Charge exchange rate ***
        !  For thermal ions (assuming that energy of deuterium
        !                    is equivalent to that of proton)
 
 !old       !     (Riviere, NF 11 (1971) 363, Eq.(4))
-!old       Scx = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
+!old       Scxi = 6.937D-19 * (1.D0 - 0.155D0 * LOG10(PTiV(NR)*1.D3))**2 &
 !old            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
 !old       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
-!old       rNuiCX(NR) = FSCX * Scx * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
+!old       rNuiCX(NR) = FSCX * Scxi * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
        rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
 
        !  For beam ions
@@ -785,7 +877,6 @@ contains
           UHth=(RR*NCth)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
           UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
 
-
           rNueHLthth(NR)=UHth*UHth*rNueHL(NR)
           rNueHLthph(NR)=UHth*UHph*rNueHL(NR)
           rNueHLphth(NR)=UHth*UHph*rNueHL(NR)
@@ -810,30 +901,32 @@ contains
 
        !     *** Wave-particle interaction ***
 
-       IF (ABS(FSCDBM) > 0.D0) THEN
+       IF (maxval(FSCDBM) > 0.D0) THEN
           ! Alfven velocity
           Va = SQRT(BBL**2 / (rMU0 * PNiV(NR) * 1.D20 * AMI))
           ! Squared plasma frequency
           Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
           ! Arbitrary coefficient for CDBM model
-          rGC = 8.D0
+!          rGC = 8.D0
+          rGC = 12.D0
           ! Magnetic curvature
-          rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
+          rKappa(NR) = FSCBKP * (- R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2))
           ! Calculate CDBM coefficient
           FCDBM(NR) = TRCOFS(S(NR),Alpha(NR),rKappa(NR))
           ! ExB rotational shear
           IF(NR == 0) THEN
-             rH=0.D0
+             rH = 0.D0
           ELSE
              rH = Q(NR) * RR * R(NR) * dVebdr(NR) / (Va * S(NR))
           END IF
-          
           ! Turbulence suppression by ExB shear
-          rG1h2(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
+          rG1h2(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rH**2))
+
           ! Turbulent transport coefficient calculated by CDBM model
           DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
           !DCDBM = MAX(DCDBM,1.D-05)
+          IF(Rho(NR) == 1.D0) DCDBMA = DCDBM 
        ELSE
           rG1h2(NR)  = 0.D0
           FCDBM(NR)  = 0.D0
@@ -842,22 +935,25 @@ contains
 
        !     *** Turbulent transport of particles ***
 
-!       PROFD = 8.D0
-!       PROFD = 3.D0
-!       PROFD = 2.D0
-       IF (RHO(NR) < 1.D0) THEN
-!parail          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**4) + FSCDBM * DCDBM
-          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**3) + FSCDBM * DCDBM
-!          DeL = FSDFIX * (1.D0 + (PROFD - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+!parail       PROFD1 = 4
+       RhoSOL = 1.D0
+       IF (RHO(NR) < RhoSOL) THEN
+!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSCDBM(1) * DCDBM
+          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.07d0) &
+               & + FSCDBM(1) * DCDBM
        ELSE
           IF(FSPCLD == 0.D0) THEN
-             factor_bohm = (FSDFIX * PROFD + FSCDBM * DCDBM) &
+             factor_bohm = (FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPCLD * FSDFIX * PROFD
+             IF(FSCDBM(1) == 0.D0) THEN
+                DeL = FSPCLD * diff_prof(RhoSOL,FSDFIX(1),PROFD,PROFD1,0.d0)
+             ELSE
+                DeL = FSCDBM(1) * DCDBMA
+             END IF
           END IF
-!!$          DeL = FSDFIX * PROFD + FSCDBM * DCDBM
+!!$          DeL = FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM
        END IF
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -867,21 +963,29 @@ contains
        VWpch(NR) = VWpch0 * RHO(NR)
 
        !     *** Turbulent transport of momentum and heat ***
+       !        Temporarily, the profiles of the heat diffusivities are
+       !          the same as those of the viscosities:
+       !          i.e. FSCDBM(2) and FSDFIX(2) are not effective.
 
-       IF (RHO(NR) < 1.D0) THEN
-!parail       IF (RHO(NR) < 0.93D0) THEN
-          DeL = FSDFIX * (1.D0 + (PROFCL - 1.D0) * (R(NR) / RA)**2) + FSCDBM * DCDBM
+       RhoSOL = 1.D0
+!parail       RhoSOL = 0.93D0
+       IF (RHO(NR) < RhoSOL) THEN
+          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSCDBM(3) * DCDBM
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
           IF(FSPCLC == 0.D0) THEN
-             factor_bohm = (FSDFIX * PROFCL + FSCDBM * DCDBM) &
+             factor_bohm = (FSDFIX(3) * PROFCL + FSCDBM(3) * DCDBM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
-!bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX * PROFCL &
+!bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(3) * PROFCL &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             DeL = FSPCLC * FSDFIX * PROFCL
-!pedestal             DeL = FSPCLC * FSDFIX * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
+             IF(FSCDBM(3) == 0.D0) THEN
+                DeL = FSPCLC * diff_prof(RhoSOL,FSDFIX(3),PROFCL,PROFC1,0.d0)
+             ELSE
+                DeL = FSCDBM(3) * DCDBMA
+             END IF
+!pedestal             DeL = FSPCLC * FSDFIX(3) * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
        END IF
 !       DeL = 3.d0
@@ -893,7 +997,8 @@ contains
        Chii(NR) = Chii0 * DeL
 
        ! <omega/m>
-       WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
+!       WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
+       WPM(NR) = WPM0
        ! Force induced by drift wave (e.q.(8),(13))
        FWthe(NR)   = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
        FWthi(NR)   = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
@@ -904,6 +1009,15 @@ contains
           FVpch(NR) = 0.D0
        ELSE
           FVpch(NR) = AEE * BphV(NR) * VWpch(NR) / R(NR)
+!!$          FVpch(NR) = AEE * BphV(NR) * VWpch(NR)
+       END IF
+       ! Annihilator of inherent particle pinch induced by FWth terms
+       IF(MDVAHL == 0) THEN
+          FWahle(NR) = 0.D0
+          FWahli(NR) = 0.D0
+       ELSE
+          FWahle(NR) = AEE      * BphV(NR) * De(NR) / (PTeV(NR) * rKeV)
+          FWahli(NR) = AEE * PZ * BphV(NR) * Di(NR) / (PTiV(NR) * rKeV)
        END IF
 
        ! Work induced by drift wave
@@ -1273,7 +1387,7 @@ contains
        ! is taken at theta=90 degree, which is taken to be consistent with the assumption
        ! for diffusive loss case. Therefore, when we consider the scattering at the rim
        ! of ripple well region, we estimate the banana particle density which are going
-       ! to be trapped as {sqrt(delta(theta_rim)) * fmaxwell(theta_rim)} * nb.
+       ! to be trapped as {sqrt(delta(theta_rim)) * fgaussian(theta_rim)} * nb.
 
        ! Ripple well region
        DO NR = 1, NRMAX
@@ -1384,7 +1498,7 @@ contains
           ! (Yushmanov NF (1982), Stringer NF (1972) 689, Takamura (5.31))
           rNubrp1(NR) = rNuD(NR) / DltRP_rim
           ! See the description of "Convective loss"
-          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fmaxwell(theta_rim,0.5D0*PI,0.85D0)
+          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fgaussian(theta_rim,0.5D0*PI,0.85D0)
 !!rpl_ave          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_ave)
 
           ! Convectitve loss (vertical grad B drift velocity)
@@ -1540,6 +1654,40 @@ contains
 
     RETURN
   END SUBROUTINE TXCALC
+
+!***************************************************************
+!
+!   Given diffusion coefficient profile
+!     Input : factor : FSDFIX
+!             profd  : shape factor
+!             rho    : normalized radius
+!             npower : power of rho
+!             fgfact : switch for superimpose of Gaussian profile
+!          <optional> (valid when fgfact /= 0)
+!             mu     : average
+!             sigma  : standard deviation
+!
+!     diff_prof = factor         at rho=0
+!                 factor * profd at rho=1
+!
+!***************************************************************
+
+  real(8) function diff_prof(rho,factor,profd,power,fgfact,mu,sigma)
+    real(8), intent(in) :: rho, factor, profd, power, fgfact
+    real(8), intent(in), optional :: mu, sigma
+    real(8) :: fmod, fmodmax
+
+    ! Gaussian profile modified by parabolic profile
+    if(fgfact /= 0.d0) then
+       fmod    = fgaussian(rho,mu,sigma) * (- 4.d0 * (rho - 0.5d0)**2 + 1.d0)
+       fmodmax = fgaussian(mu, mu,sigma) * (- 4.d0 * (mu  - 0.5d0)**2 + 1.d0)
+       fmod = fgfact * fmod / fmodmax
+    end if
+
+    ! Sum of usual and modified Gaussian profiles
+    diff_prof = factor * (1.d0 + (profd - 1.d0) * rho**power) + fmod
+
+  end function diff_prof
 
 !***************************************************************
 !
@@ -1762,7 +1910,7 @@ contains
 
 !***************************************************************
 !
-!   Maxwellian distribution
+!   Gaussian (Maxwellian) distribution
 !
 !   (input)
 !     x     : position
@@ -1771,12 +1919,15 @@ contains
 !
 !***************************************************************
 
-  real(8) function fmaxwell(x,mu,sigma) result(f)
+  real(8) function fgaussian(x,mu,sigma,norm) result(f)
+    use tx_commons, only : pi
     real(8), intent(in) :: x, mu, sigma
+    integer(4), intent(in), optional :: norm
 
     f = exp(- (x - mu)**2 / (2.d0 * sigma**2))
+    if(present(norm)) f = f / (sqrt(2.d0 * pi) * sigma)
 
-  end function fmaxwell
+  end function fgaussian
 
 !***************************************************************
 !
@@ -1838,7 +1989,6 @@ contains
 
   real(8) function SiViz(tekev)
 
-    implicit none
     real(8), intent(in) :: tekev
     real(8) :: x
     real(8), dimension(0:6) :: a
@@ -1867,7 +2017,6 @@ contains
 
   real(8) function SiVcx(tikev)
 
-    implicit none
     real(8), intent(in) :: tikev
     real(8) :: x
     real(8), dimension(0:8) :: a
@@ -1880,6 +2029,50 @@ contains
          &      +x*(a(5)+x*(a(6)+x*(a(7)+x*a(8)))))))))*1.D-6
 
   end function SiVcx
+
+  real(8) function reduce_D02(NRctr,rLmean)
+    use tx_commons, only : Pi, NRMAX, R
+    integer(4), intent(in) :: NRctr
+    real(8), intent(in) :: rLmean
+
+    integer(4) :: nr, nr0, idebug = 0
+    real(8) :: Rctr, costh0, theta0, frac, DltL, costh, theta, theta1, rLmean_eff, rLmean_av
+
+    Rctr = R(NRctr)
+    costh0 = 0.5d0 * rLmean / Rctr
+    if(abs(costh0) > 1.d0) then
+       reduce_D02 = 1.d0
+       return
+    end if
+    theta0 = 2.d0 * acos(costh0)
+    frac = theta0 / Pi
+    if(idebug /= 0) write(6,*) "frac=",frac,"rLmean=",rLmean
+
+    DltL = abs(Rctr - rLmean)
+    do nr = 0, nrmax
+       if(R(nr) > DltL) then
+          nr0 = nr
+          exit
+       end if
+    end do
+
+    rLmean_av = 0.d0
+    theta     = 0.d0
+    do nr = nr0, nrctr
+       costh  = (Rctr**2 + rLmean**2 - R(nr)**2) / (2.d0 * Rctr * rLmean)
+       theta1 = 2.d0 * acos(costh)
+       theta  = theta1 - theta
+!       rLmean_eff = rLmean * costh
+       rLmean_eff = Rctr - R(nr)
+       rLmean_av  = rLmean_av + rLmean_eff * (theta / theta0)
+       if(idebug /= 0) write(6,'(I3,5F15.7)') nr,theta1,theta,theta/theta0,rLmean_eff,rLmean_av
+       theta  = theta1
+    end do
+ 
+    reduce_D02 = frac * (rLmean_av / rLmean)
+    if(idebug /= 0) write(6,*) "reduce_D02=",reduce_D02
+
+  end function reduce_D02
 
 !!$  real(8) function ripple(NR,theta,FSRP) result(f)
 !!$    use tx_commons, only : RR, R, RA, NTCOIL

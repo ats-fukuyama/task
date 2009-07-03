@@ -68,23 +68,35 @@ END SUBROUTINE TXWDAT2
 subroutine TXSTAT
   use tx_commons, only : VOLAVN, ALI, VLOOP, TAUE1, TAUE2, TAUEP, TAUEH, BETAA, &
        &                 BETAPA, BETAN, Q, ANSAV, rIp, PI, RA, NRA, NRMAX, R, &
-       &                 rMui, Chii, UiphV, TSAV, Gamma_a
+       &                 rMui, Chii, UiphV, TSAV, Gamma_a, TAUPA, PZ, PNiV, UirV, &
+       &                 PTeV, rKeV, AMI, RR, rNuei
   implicit none
-  integer(4) :: NR, NRL
-  real(8) :: RL, rmuil, chiil, uiphl
+  integer(4) :: NR, NRL1, NRL2
+  real(8) :: RL1, RL2, rmuil, chiil, uiphl, PTeVL, WDe, rNueiL
   real(8) :: aitken2p
 
-  RL = 0.3D0 * RA
+  RL1 = 0.3D0 * RA ; RL2 = 0.5D0 * RA
   DO NR = 0, NRMAX-1
-     IF(R(NR) <= RL.AND.R(NR+1) >= RL) THEN
-        NRL = NR
+     IF(R(NR) <= RL1 .AND. R(NR+1) >= RL1) THEN
+        NRL1 = NR
+     ELSE IF(R(NR) <= RL2 .AND. R(NR+1) >= RL2) THEN
+        NRL2 = NR
         EXIT
      END IF
   END DO
 
-  rmuil = aitken2p(rl,rmui(nrl),rmui(nrl+1),rmui(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
-  chiil = aitken2p(rl,chii(nrl),chii(nrl+1),chii(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
-  uiphl = aitken2p(rl,uiphv(nrl),uiphv(nrl+1),uiphv(nrl+2),r(nrl),r(nrl+1),r(nrl+2))
+  call cal_flux
+
+  rmuil = aitken2p(RL1,rmui(NRL1),rmui(NRL1+1),rmui(NRL1+2),r(NRL1),r(NRL1+1),r(NRL1+2))
+  chiil = aitken2p(RL1,chii(NRL1),chii(NRL1+1),chii(NRL1+2),r(NRL1),r(NRL1+1),r(NRL1+2))
+  uiphl = aitken2p(RL1,uiphv(NRL1),uiphv(NRL1+1),uiphv(NRL1+2),r(NRL1),r(NRL1+1),r(NRL1+2))
+
+  ! For effective collision frequency at rho = 0.5
+
+  PTeVL = aitken2p(RL2,PTeV(NRL2),PTeV(NRL2+1),PTeV(NRL2+2),r(NRL2),r(NRL2+1),r(NRL2+2))
+  ! WDe : curvature drift frequency
+  WDe   = 2.d0 * sqrt(0.1d0) * sqrt(PTeVL * rKeV / AMI) / RR
+  rNueiL = aitken2p(RL2,rNuei(NRL2),rNuei(NRL2+1),rNuei(NRL2+2),r(NRL2),r(NRL2+1),r(NRL2+2))
 
   write(6,'(1X,2(A27,1PD10.3,3X))') "Vol. ave. of neutrality  = ", VOLAVN
   write(6,'(1X,2(A27,1PD10.3,3X))') "Inductance               = ", ALI, &
@@ -96,15 +108,18 @@ subroutine TXSTAT
   write(6,'(1X,2(A27,1PD10.3,3X))') "Beta                     = ", BETAA, &
        &                            "Poloidal beta            = ", BETAPA
   write(6,'(1X,2(A27,1PD10.3,3X))') "Normalized beta          = ", BETAN, &
-       &                            "Ion flux through sep.    = ", Gamma_a
-  write(6,'(1X,2(A27,1PD10.3,3X))') "Line averaged e density  = ", ANSAV(1), &
+       &                            "tau_p inside sep.        = ", TAUPA
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Ion flux thru sep.       = ", PZ*PNiV(NRA)*UirV(NRA)*1.D20, &
+       &                            "Ion flux thru sep. (est) = ", Gamma_a
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Vol. averaged e density  = ", ANSAV(1), &
        &                            "Greenwald density        = ", rIp / (PI * RA**2)
-  write(6,'(1X,2(A27,1PD10.3,3X))') "Line averaged e temp.    = ", TSAV(1), &
-       &                            "Line averaged i temp.    = ", TSAV(2)
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Vol. averaged e temp.    = ", TSAV(1), &
+       &                            "Vol. averaged i temp.    = ", TSAV(2)
   write(6,'(1X,2(A27,1PD10.3,3X))') "Safety factor on axis    = ", Q(0), &
        &                            "Safety factor at sep.    = ", Q(NRA)
   write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
        &                            "Ion tor. velocity at 0.3 = ", uiphl
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Eff .col. freq. at 0.5   = ", rNueiL/WDe
 
 end subroutine TXSTAT
 
@@ -116,7 +131,6 @@ end subroutine TXSTAT
 
 subroutine steady_check
   use tx_commons, only : RA, NRMAX, R, UiphV, PNeV, PeV, T_TX
-  use tx_interface, only : INTG_F
 
   implicit none
   integer(4) :: nr
@@ -193,16 +207,18 @@ END FUNCTION rLINEAVE
 
 SUBROUTINE TXSAVE
   use tx_commons, only : &
-       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSBOHM,FSPCLC, &
-       & FSPCLD,PROFD,PROFC,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
-       & FSD01,FSD02,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,&
+       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1, &
+       & FSBOHM,FSPCLC,FSVAHL,FSPCLD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02, &
+       & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,&
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
-       & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+       & DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH, &
+       & ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
+       & T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
+       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLWTB,MDLETA,MDFIXT,MDVAHL, &
        & MDLNBD,PNBMPD,thrp,kappa
 
   use tx_interface, only : TOUPPER
@@ -253,26 +269,33 @@ SUBROUTINE TXSAVE
      END IF
   END DO
 
+  ! *** Variables defined in tx_commons but not included in the following ***
+  !
+  !   VWpch0, WPE0, WPI0, Tqi0, MDLMOM, NEMAX, NRA, NRC, DelRho, DelN,
+  !   EpsH, Q0, QA, NCph, NCth, DMAG0, RMAGMN, RMAGMX,
+  !   MDITSN, MDITST, MDINTT, MDINIT
+  !
+  ! *************************************************************************
+
   WRITE(21) SLID
   WRITE(21) RCSId
 
   WRITE(21) RA,RB,RC,RR,BB
-  WRITE(21) PA,PZ,Zeff
-  WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+  WRITE(21) PA,PZ,Zeff,rIPs,rIPe
+  WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2
+  WRITE(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   WRITE(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC
-  WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC
+  WRITE(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL
+  WRITE(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSRP,FSNF,FSHL
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   WRITE(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
   WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  WRITE(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
-  WRITE(21) DT,EPS,ADV,tiny_cap
-  WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  WRITE(21) rG1
-  WRITE(21) rIPs,rIPe
-  WRITE(21) MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB
-  WRITE(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD
+  WRITE(21) DltRPn,kappa
+  WRITE(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
+  WRITE(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
+  WRITE(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLWTB,MDLETA,MDFIXT,MDVAHL
+  WRITE(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
   WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
@@ -300,19 +323,21 @@ END SUBROUTINE TXSAVE
 SUBROUTINE TXLOAD(IST)
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSBOHM,FSPCLD, &
-       & FSPCLC,PROFD,PROFC,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
-       & FSD01,FSD02,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
+       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1, &
+       & FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02, &
+       & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
-       & DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
-       & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
+       & DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH, &
+       & ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
+       & T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
-       & MDLNBD,PNBMPD,NGR,rIP,thrp,kappa,PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX, &
-       & LQe1,LQe5,LQi1,LQi5,TAUE2, &
-       & rMU0,rMUb1,rMUb2
+       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLWTB,MDLETA,MDFIXT,MDVAHL, &
+       & MDLNBD,PNBMPD,NGR,rIP,thrp,kappa, &
+       & PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX,LQe1,LQe5,LQi1,LQi5,TAUE2, &
+       & rMU0,rMUb1,rMUb2,NEMAX,IReSTART
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
@@ -366,22 +391,21 @@ SUBROUTINE TXLOAD(IST)
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
-  READ(21) PA,PZ,Zeff
-  READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+  READ(21) PA,PZ,Zeff,rIPs,rIPe
+  READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2
+  READ(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   READ(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  READ(21) FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC
-  READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC
+  READ(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL
+  READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSRP,FSNF,FSHL
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   READ(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
   READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  READ(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
-  READ(21) DT,EPS,ADV,tiny_cap
-  READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  READ(21) rG1
-  READ(21) rIPs,rIPe
-  READ(21) MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB
-  READ(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD
+  READ(21) DltRPn,kappa
+  READ(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
+  READ(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
+  READ(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLWTB,MDLETA,MDFIXT,MDVAHL
+  READ(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   READ(21) T_TX,TMAX,NT,NQMAX,IERR
   READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
@@ -403,8 +427,11 @@ SUBROUTINE TXLOAD(IST)
   NGR=-1
   NGVV=-1
   rIP=rIPs
+  IReSTART = 1
 
   CALL TXPARM_CHECK
+
+  NEMAX = NRMAX
   CALL TXCALM
 
   IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
@@ -441,9 +468,10 @@ END SUBROUTINE TXLOAD
 SUBROUTINE TXGSAV
 
   use tx_commons, only : &
-       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSBOHM,FSPCLD, &
-       & FSPCLC,PROFD,PROFC,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
+       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH, &
+       & FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
+       & PROFD,PROFC,PROFD1,PROFD2,PROFC1,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
        & FSD01,FSD02,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
@@ -503,22 +531,21 @@ SUBROUTINE TXGSAV
 !!$    WRITE(21) RCSId
 
   WRITE(21) RA,RB,RC,RR,BB
-  WRITE(21) PA,PZ,Zeff
-  WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+  WRITE(21) PA,PZ,Zeff,rIPs,rIPe
+  WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia
   WRITE(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  WRITE(21) FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC
-  WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC
+  WRITE(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL
+  WRITE(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
+  WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   WRITE(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
   WRITE(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  WRITE(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
+  WRITE(21) DltRPn,kappa
   WRITE(21) DT,EPS,ADV,tiny_cap
   WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  WRITE(21) rG1
-  WRITE(21) rIPs,rIPe
   WRITE(21) MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB
-  WRITE(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD
+  WRITE(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
   WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
@@ -551,9 +578,10 @@ SUBROUTINE TXGLOD(IST)
 
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
-       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSBOHM,FSPCLD, &
-       & FSPCLC,PROFD,PROFC,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
+       & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH, &
+       & FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
+       & PROFD,PROFC,PROFD1,PROFD2,PROFC1,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
        & FSD01,FSD02,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
@@ -561,7 +589,7 @@ SUBROUTINE TXGLOD(IST)
        & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DltRPn,m_pol,n_tor, &
        & MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
-       & MDLNBD,PNBMPD,rIP,thrp,kappa
+       & MDLNBD,PNBMPD,rIP,thrp,kappa,rho
   use tx_variables
 
   implicit none
@@ -570,6 +598,7 @@ SUBROUTINE TXGLOD(IST)
   character(len=100) :: TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
+  real(8) :: tmp
 
   ! tmp : NGYT
 
@@ -613,22 +642,21 @@ SUBROUTINE TXGLOD(IST)
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
-  READ(21) PA,PZ,Zeff
-  READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ
+  READ(21) PA,PZ,Zeff,rIPs,rIPe
+  READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia
   READ(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  READ(21) FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC
-  READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC
+  READ(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL
+  READ(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
+  READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   READ(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
   READ(21) PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV
-  READ(21) NTCOIL,DltRPn,kappa,m_pol,n_tor
+  READ(21) DltRPn,kappa
   READ(21) DT,EPS,ADV,tiny_cap
   READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  READ(21) rG1
-  READ(21) rIPs,rIPe
   READ(21) MODEG,MODEAV,MODEGL,MDLPCK,MDLWTB
-  READ(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD
+  READ(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   READ(21) T_TX,TMAX,NT,NQMAX,IERR
   READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
@@ -657,6 +685,10 @@ SUBROUTINE TXGLOD(IST)
 !!$    CALL TXGLOB
 !!$    CALL TXWDAT
 !!$    CALL TXWDAT2
+
+!!$  do nr = 0, nrmax
+!!$     write(6,*) real(RHO(NR)), GY(NR,NGR,1), GY(NR,NGR,37), GY(NR,NGR,14)*1.e3, GY(NR,NGR,15)*1.e3, GY(NR,NGR,35), GY(NR,NGR,36)
+!!$  end do
 
   RETURN
 END SUBROUTINE TXGLOD
@@ -1008,3 +1040,31 @@ integer(4) function detect_datatype(kchar)
   detect_datatype = 0
 
 end function detect_datatype
+
+!***************************************************************
+!
+!   Write ASCII data file for TOPICS/NTMAIN
+!
+!***************************************************************
+
+subroutine for_ntmain
+  use tx_commons, only : NRMAX, Rho, PNeV, PNiV, PTeV, PTiV, PN01V, PN02V
+  implicit none
+  integer(4) :: IERR, NR
+
+  CALL FWOPEN(21,'txprf.dat',1,1,'TX',IERR)
+  IF(IERR /= 0) THEN
+     WRITE(6,*) 'XX for_ntmain: FWOPEN: IERR=', IERR
+     RETURN
+  ENDIF
+
+  write(21,'(4X,I3)') NRMAX+1
+  do nr = 0, nrmax
+     write(21,'(1P7E17.9)') Rho(NR), PNeV(NR)*1.D20, PNiV(NR)*1.D20, &
+          & PTeV(NR)*1.D3, PTiV(NR)*1.D3, PN01V(NR)*1.D20, PN02V(NR)*1.D20
+  end do
+
+  CLOSE(21)
+
+end subroutine for_ntmain
+

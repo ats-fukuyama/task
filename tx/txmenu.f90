@@ -9,14 +9,15 @@ SUBROUTINE TXMENU
   use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
        &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
-       &              GT, GY, NGRM, NGYRM, R, iflag_file, MDLMOM
+       &              GT, GY, NGRM, NGYRM, R, iflag_file, MDLMOM, &
+       &              DelRho, DelN, Rho, LQe1, LQi1, PZ
   use tx_main, only : TXEXEC
   use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
   use tx_variables, only : TXCALV
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   implicit none
-  INTEGER(4) :: ICONT, MODE, I, IST, ier
+  INTEGER(4) :: ICONT, MODE, I, IST, ier, NR
   character(len=80) :: LINE
   character(len=1)  :: KID, KID2
 
@@ -38,7 +39,7 @@ SUBROUTINE TXMENU
      WRITE(6,*) '## INPUT: ', &
           &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
           &   'W:STAT  S:SAVE  L:LOAD  I:INIT '
-     WRITE(6,'(11X,A)') 'F:FILE  Q:QUIT'
+     WRITE(6,'(11X,A)') 'F:FILE  N:PTRB  O:OUT  Q:QUIT'
      CALL GUFLSH
 
      CALL TXKLIN(LINE,KID,MODE)
@@ -91,10 +92,10 @@ SUBROUTINE TXMENU
      CASE('Q')
         EXIT
      CASE('W')
-        IF (ICONT == 0) THEN
-           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
-           CYCLE
-        END IF
+!!$        IF (ICONT == 0) THEN
+!!$           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+!!$           CYCLE
+!!$        END IF
         CALL TXSTAT
      CASE('S')
         CALL TXSAVE
@@ -107,11 +108,16 @@ SUBROUTINE TXMENU
         CALL TX_GRAPH_SAVE
      CASE('G')
         CALL TXGOUT
-!!$     CASE('N')
-!!$        I = NINT((DelR / (RB / NRMAX)) - 0.5D0)
-!!$        X(I,1) = X(I,1) + DelN
-!!$        X(I,2) = X(I,2) + DelN
-!!$        CALL TXCALV(X)
+     CASE('N')
+        DO NR = 0, NRMAX-1
+           IF(Rho(NR) <= DelRho .AND. Rho(NR+1) >= DelRho) THEN
+              I = NR
+              EXIT
+           END IF
+        END DO
+        X(LQe1,I) = X(LQe1,I) + DelN
+        X(LQi1,I) = X(LQi1,I) + DelN * PZ
+        CALL TXCALV(X)
      CASE('B')
         KID2=LINE(2:2)
         CALL TOUPPER(KID2)
@@ -138,7 +144,8 @@ SUBROUTINE TXMENU
               IF(T_TX /= 0.D0) CALL TXCALV(X)
            end if
         end if
-
+     CASE('O')
+        CALL FOR_NTMAIN
      CASE('#')
         CONTINUE
      CASE DEFAULT

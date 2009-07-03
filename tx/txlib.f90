@@ -7,7 +7,7 @@ module tx_core_module
 
 contains
 
-  function fem_int(id,a,b) result(x)
+  function fem_int(id,a,b,c) result(x)
 
 !-------------------------------------------------------
 !
@@ -70,6 +70,10 @@ contains
 !      id = 44 : psi * a * b * u * w
 !      id = 45 :(psi * a * b'* u)'* w
 !      id = 46 :(psi * a * b'* u)'* w'
+!      id = 47 : psi * a'* b'* u * w
+!      id = 48 : psi * a * b'* u'* w
+!
+!      id = 49 : psi * a * b'* c'* u * w
 !
 !      id = -1 : a * w
 !      id = -2 : a * b * w
@@ -89,9 +93,9 @@ contains
 !-------------------------------------------------------
 
     integer(4), intent(in) :: id
-    real(8), intent(in), dimension(0:nrmax), optional  :: a, b
+    real(8), intent(in), dimension(0:nrmax), optional  :: a, b, c
     integer(4) :: ne
-    real(8) :: x(1:nemax,1:4), csq15, csq25, a1, a2, b1, b2, p1, p2, hp
+    real(8) :: x(1:nemax,1:4), csq15, csq25, a1, a2, b1, b2, c1, c2, p1, p2, hp
     
     select case(id)
     case(-1)
@@ -299,13 +303,26 @@ contains
           x(ne,4) = ( 2.d0*psi(ne-1)*a(ne-1) + 3.d0*psi(ne)*a(ne-1) &
                &    + 3.d0*psi(ne-1)*a(ne)   +12.d0*psi(ne)*a(ne)) * (-b(ne-1)+b(ne)) * c160
        end do
+    case(38)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; b1 = b(ne-1) ; p1 = psi(ne-1)
+          a2 = a(ne)   ; b2 = b(ne)   ; p2 = psi(ne)
+          x(ne,1) =-( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
+               &     + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) * c160
+          x(ne,2) = ( 12.d0*p1*a1*b1 + 3.d0*p2*a1*b1 + 3.d0*p1*a2*b1 + 2.d0*p2*a2*b1 &
+               &     + 3.d0*p1*a1*b2 + 2.d0*p2*a1*b2 + 2.d0*p1*a2*b2 + 3.d0*p2*a2*b2) * c160
+          x(ne,3) =-(  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
+               &     + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) * c160
+          x(ne,4) = (  3.d0*p1*a1*b1 + 2.d0*p2*a1*b1 + 2.d0*p1*a2*b1 + 3.d0*p2*a2*b1 &
+               &     + 2.d0*p1*a1*b2 + 3.d0*p2*a1*b2 + 3.d0*p1*a2*b2 +12.d0*p2*a2*b2) * c160
+       end do
     case(39)
        do ne = 1, nemax
           a1 = a(ne-1) ; b1 = b(ne-1) ; p1 = psi(ne-1)
           a2 = a(ne)   ; b2 = b(ne)   ; p2 = psi(ne)
           x(ne,1) = (-48.d0*a1*b1*p1+3.d0*a2*b1*p1+3.d0*a1*b2*p1+ 2.d0*a2*b2*p1 &
                &     + 3.d0*a1*b1*p2+2.d0*a2*b1*p2+2.d0*a1*b2*p2+ 3.d0*a2*b2*p2) * c160
-          x(ne, 2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
+          x(ne,2) = (  3.d0*a1*b1*p1+2.d0*a2*b1*p1+2.d0*a1*b2*p1+ 3.d0*a2*b2*p1 &
                &     + 2.d0*a1*b1*p2+3.d0*a2*b1*p2+3.d0*a1*b2*p2+12.d0*a2*b2*p2) * c160
           x(ne,3) = (-12.d0*a1*b1*p1-3.d0*a2*b1*p1-3.d0*a1*b2*p1- 2.d0*a2*b2*p1 &
                &     - 3.d0*a1*b1*p2-2.d0*a2*b1*p2-2.d0*a1*b2*p2- 3.d0*a2*b2*p2) * c160
@@ -354,6 +371,24 @@ contains
           x(ne,3) = (b1-b2)*( 3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)/hp * c112
           x(ne,4) =-(b1-b2)*(-     a1*p1-a2*p1-a1*p2+9.d0*a2*p2)/hp * c112
        end do
+    case(48)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne)
+          p1 = psi(ne-1) ; p2 = psi(ne) ; hp = hpsi(ne)
+          x(ne,1) =-(3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/hp * c112
+          x(ne,2) = (3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/hp * c112
+          x(ne,3) =-(     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/hp * c112
+          x(ne,4) = (     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/hp * c112
+       end do
+    case(49)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne) ; b1 = b(ne-1) ; b2 = b(ne) ; c1 = c(ne-1) ; c2 = c(ne)
+          p1 = psi(ne-1) ; p2 = psi(ne) ; hp = hpsi(ne)
+          x(ne,1) = (3.d0*p1*(4.d0*a1+a2)+p2*(3.d0*a1+2.d0*a2))*(b2-b1)*(c2-c1)/hp*c160
+          x(ne,2) = (p1*(3.d0*a1+2.d0*a2)+p2*(2.d0*a1+3.d0*a2))*(b2-b1)*(c2-c1)/hp*c160
+          x(ne,3) = x(ne,2)
+          x(ne,4) = (p1*(2.d0*a1+3.d0*a2)+3.d0*p2*(a1+4.d0*a2))*(b2-b1)*(c2-c1)/hp*c160
+       end do
     case default
        write(6,*)  'XX falut ID in fem_int, id= ',id
        stop
@@ -361,7 +396,7 @@ contains
 
   end function fem_int
 
-  function fem_int_point(id,ne,a,b) result(x)
+  function fem_int_point(id,ne,a,b,c) result(x)
 !-------------------------------------------------------
 !
 !   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
@@ -426,6 +461,8 @@ contains
 !      id = 47 : psi * a'* b'* u * w
 !      id = 48 : psi * a * b'* u'* w
 !
+!      id = 49 : psi * a * b'* c'* u * w
+!
 !      id = -1 : a * w
 !      id = -2 : a * b * w
 !      id = -8 : a * w'
@@ -445,9 +482,9 @@ contains
 !
 !-------------------------------------------------------
     integer(4), intent(in) :: id, ne
-    real(8), intent(in), dimension(0:nrmax), optional  :: a, b
+    real(8), intent(in), dimension(0:nrmax), optional  :: a, b, c
     integer(4) :: nel, node1, node2, iflag
-    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, hp, csq15
+    real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, c1, c2, hp, csq15
 
     iflag = 0
     if(ne == 0) then
@@ -780,6 +817,11 @@ contains
        x(2) = (3.d0*a1*p1+a2*p1+a1*p2+     a2*p2)*(b2-b1)/(12.d0*hp)
        x(3) =-(     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/(12.d0*hp)
        x(4) = (     a1*p1+a2*p1+a1*p2+3.d0*a2*p2)*(b2-b1)/(12.d0*hp)
+    case(49)
+       x(1) = (3.d0*p1*(4.d0*a1+a2)+p2*(3.d0*a1+2.d0*a2))*(b2-b1)*(c2-c1)/(60.d0*hp)
+       x(2) = (p1*(3.d0*a1+2.d0*a2)+p2*(2.d0*a1+3.d0*a2))*(b2-b1)*(c2-c1)/(60.d0*hp)
+       x(3) = x(2)
+       x(4) = (p1*(2.d0*a1+3.d0*a2)+3.d0*p2*(a1+4.d0*a2))*(b2-b1)*(c2-c1)/(60.d0*hp)
     case default
        write(6,*)  'XX falut ID in fem_int_point, id= ',id
        stop
@@ -1219,6 +1261,11 @@ REAL(8) FUNCTION INTG_F(X)
 
   ! Calculate \int (r * X) dpsi
 
+  ! === ATTENTION !!! ==================================================!
+  !   This function can be used only if size(X) is equivalent to NEMAX, !
+  !   which is the integral domain of fem_int funtion.                  !
+  ! ====================================================================!
+
   use tx_core_module, only : fem_int
   implicit none
   real(8), dimension(*), intent(in) :: X
@@ -1229,8 +1276,10 @@ END FUNCTION INTG_F
 
 REAL(8) FUNCTION INTG_P(X,NR,ID)
 
+  ! Integrate X at a certain ONE point (NOT the domain)
+
   ! Calculate \int r * X(r) dpsi or 0.5 * \int X(psi) dpsi (ID == 0) 
-  !           \int     X(r) dpsi (ID == 1) at one mesh
+  !           \int     X(r) dpsi (ID == 1)
 
   use tx_core_module, only : fem_int_point
   implicit none
@@ -1257,6 +1306,8 @@ REAL(8) FUNCTION INTG_P(X,NR,ID)
 END FUNCTION INTG_P
 
 SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
+
+  ! Integrate X in the arbitrary size domain from NR_START to NRLMAX
 
   ! Calculate \int_{r(NR_START)}^r(NRLMAX) (r * X) dr
 

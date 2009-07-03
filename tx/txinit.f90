@@ -122,13 +122,32 @@ SUBROUTINE TXINIT
 
   !   Fixed transport coefficient parameter
   !   Suitable between 0.01 and 0.05
-  FSDFIX = 0.05D0
+  !     1 : particle transport
+  !     2 : momentum transport
+  !     3 : thermal transport
+  FSDFIX(1:3) = 1.D0
 
-  !   CDBM transport coefficient parameter
+  !   ==== CDBM transport coefficient parameters ============================
   !     (Current diffusive ballooning mode)
   !      The finer time step size, typically less than or equal to DT=5.D-4,
   !         is anticipated when using CDBM.
-  FSCDBM = 0.D0
+  !   Switch and amplification of CDBM turbulence (typically 0 or 1)
+  !     1 : particle transport
+  !     2 : momentum transport
+  !     3 : thermal transport
+  FSCDBM(1:3) = 0.D0
+
+  !   Effect of magnetic curvature
+  !     (It could destabilize a numerical robustness when FS2 > FS1 (see TRCOFS).)
+  FSCBKP = 0.D0
+
+  !   Effect of ExB shear stabilization
+  FSCBSH = 0.D0
+
+  !   Factor of E x B rotation shear
+  rG1 = 24.D0
+
+  !   =======================================================================
 
   !   Bohm transport coefficient parameter in SOL
   FSBOHM = 0.D0
@@ -139,11 +158,25 @@ SUBROUTINE TXINIT
   !   Pseud-classical heat & mom transport coefficient parameter in SOL
   FSPCLC = 0.D0
 
+  !   Controller for the degree of the effect of Te'
+  !     on the turbulent particle transport
+  !   Only valid if MDVAHL = 1.
+  FSVAHL = 0.D0
+
   !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
   PROFD =  3.D0
 
-  !   Heat & mom diffusion coefficient profile parameter (D(r=a)/D(r=0))
+  !   Heat & mom. diffusion coefficient profile parameter (D(r=a)/D(r=0))
   PROFC = 10.D0
+
+  !   Exponent of particle diffusion coefficient profile
+  PROFD1 = 3.D0
+
+  !   Gaussian modification of particle diffusion coefficient profile
+  PROFD2 = 0.D0
+
+  !   Exponent of heat & mom. diffusion coefficient profile
+  PROFC1 = 2.D0
 
   !   ***** Other transport parameters *****
 
@@ -194,9 +227,6 @@ SUBROUTINE TXINIT
 
   !   Fast neutral diffusion factor
   FSD02 = 1.D0
-
-  !   Factor of E x B rotation shear
-  rG1 = 24.D0
 
   !   ***** initial parameters *****
 
@@ -353,6 +383,12 @@ SUBROUTINE TXINIT
   !             1   : Use BDF2
   IGBDF = 0
 
+  !   Parameter used just after a data file is loaded or a heating is activated
+  !     in case of IGBDF=1.
+  !     IReSTART = 0 : default
+  !                1 : in above case
+  IReSTART = 0
+
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
 
@@ -456,21 +492,36 @@ SUBROUTINE TXINIT
   !   2    : Steffensen's method, quadratic convergence (Validity unconfirmed)
   MDSOLV = 0
 
-  !   Mode of initial density and temperature profiles in the SOL
-  !   0    : polynominal model
-  !   1    : exponential decay model
-  MDITSN = 0  ! for density profiles
-  MDITST = 0  ! for temperature profiles
-
   !   Mode of initial temperature profiles
   !   0    : original
   !   1    : pedestal model
+  !   2    : empirical steady state temperature profile
   MDINTT = 0
+
+  !   Mode of initial density profile in the SOL
+  !   0    : polynominal model
+  !   1    : exponential decay model
+  MDITSN = 0
+
+  !   Mode of initial temperature profile in the SOL
+  !   0    : polynominal model
+  !   1    : exponential decay model
+  !   2    : exponential decay model 2
+  !          This should be chosen if MDINTT=2.
+  MDITST = 0
 
   !   Mode of initial plasma profils
   !   0    : many profiles are analytically calculated 
   !   1    : minimal profiles are calculated
   MDINIT = 0
+
+  !   Mode of inherent convection annihilator
+  !   0    : Nothing to do
+  !   1    : Use parameter FSVAHL controlling the contribution of d(lnT)/dln(n)
+  !          (Te gradient term is only changed according to FSVAHL.)
+  !   2    : Annihilate the inherent convection (= obtain pure diffusion)
+  !          when FSNC = 0
+  MDVAHL = 0
 
   !   Multiplication factor for graphic in the radial direction
   !   default : 1.0
@@ -496,11 +547,12 @@ SUBROUTINE TXINIT
   gDIV(26) = 1.E3
   gDIV(27) = 1.E3
   gDIV(28) = 1.E3
-  gDIV(35) = 1.E14
-  gDIV(36) = 1.E12
+  gDIV(35) = 1.E15
+  gDIV(36) = 1.E13
   gDIV(37) = 1.E20
   gDIV(38) = 1.E3
-  gDIV(41) = 1.E6
+  gDIV(39) = 1.E-3
+  gDIV(41) = 1.E3
   gDIV(42) = 1.E3
   gDIV(45) = 1.E3
   gDIV(46) = 1.E3
@@ -509,16 +561,19 @@ SUBROUTINE TXINIT
   gDIV(53) = 1.E-2
   gDIV(55) = 1.E3
   gDIV(56) = 1.E-4
-  gDIV(57) = 1.E-8
+  gDIV(57) = 1.E-6
   gDIV(60) = 1.E6
   gDIV(64) = 1.E-20
   gDIV(65) = 1.E-20
   gDIV(72) = 1.E3
-  gDIV(73) = 1.E6
+  gDIV(73) = 1.E3
   gDIV(74) = 1.E6
   gDIV(75) = 1.E6
+  gDIV(85) = 1.E6
+  gDIV(86) = 1.E6
   gDIV(89) = 1.E3
   gDIV(90) = 1.E20
+  gDIV(92) = 1.E3
   gDIV(96) = 1.E6
   gDIV(97) = 1.E6
   gDIV(98) = 1.E6
@@ -533,14 +588,18 @@ SUBROUTINE TXINIT
   gDIV(121) = 1.E6
   gDIV(123) = 1.E6
   gDIV(124) = 1.E6
+  gDIV(133) = 1.E20
+  gDIV(136) = 1.E3
 
-  !   *** Obsolete or not used parameter ***
+  !   *** Density perturbation technique ***
 
-  !   Radius where density increase by command DEL
-  DelR = 0.175D0
+  !   Normalized radius where density increase
+  DelRho = 0.2D0
 
-  !   Amount of increase of density by command DEL
-  DelN = 5.D-1
+  !   Amount of increase in density (10^20 m^-3)
+  DelN = 1.D-1
+
+  !   ***
 
   !   Index for graphic save interval
 
@@ -682,7 +741,7 @@ SUBROUTINE TXPROF
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
-       &     Cfpe1, Cfpe2, Cfpi1, Cfpi2
+       &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp
   REAL(8) :: DERIV4, FCTR ! External functions
   real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr
   real(8), dimension(:,:), allocatable :: CMTX
@@ -725,7 +784,7 @@ SUBROUTINE TXPROF
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
   DO NR = 0, NRMAX
      RL=R(NR)
-     IF (RL < RA) THEN
+     IF (RL < RA) THEN ! +++ Core +++
         PROFN = (1.D0 - RHO(NR)**PROFN1)**PROFN2
         PROFT = (1.D0 - RHO(NR)**PROFT1)**PROFT2
         X(LQe1,NR) = (PN0 - PNa) * PROFN + PNa ! Ne
@@ -733,27 +792,24 @@ SUBROUTINE TXPROF
         IF(MDINTT == 0) THEN
            PTePROF = (PTe0 - PTea) * PROFT + PTea
            PTiPROF = (PTi0 - PTia) * PROFT + PTia
-           IF(MDFIXT == 0) THEN
-              X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
-              X(LQi5,NR) = PTiPROF * X(LQi1,NR) ! Ni*Ti
-           ELSE 
-              X(LQe5,NR) = PTePROF ! Te
-              X(LQi5,NR) = PTiPROF ! Ti
-           END IF
-        ELSE
+        ELSE IF(MDINTT == 1) THEN
            PTePROF = (PTe0 - PTea) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
                 &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTea
            PTiPROF = (PTi0 - PTia) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
                 &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTia
-           IF(MDFIXT == 0) THEN
-              X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
-              X(LQi5,NR) = PTiPROF * X(LQi1,NR) ! Ne*Te
-           ELSE
-              X(LQe5,NR) = PTePROF ! Te
-              X(LQi5,NR) = PTiPROF ! Ti
-           END IF
+        ELSE
+           PTePROF = PTe0 * exp(- log(PTe0 / PTea) * RHO(NR)**2)
+           PTiPROF = PTi0 * exp(- log(PTi0 / PTia) * RHO(NR)**2)
         END IF
-     ELSE
+        IF(MDFIXT == 0) THEN
+           X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
+           X(LQi5,NR) = PTiPROF * X(LQi1,NR) ! Ni*Ti
+        ELSE 
+           X(LQe5,NR) = PTePROF ! Te
+           X(LQi5,NR) = PTiPROF ! Ti
+        END IF
+     ELSE ! +++ SOL +++
+        ! density
         IF(MDITSN == 0) THEN
            X(LQe1,NR) = PNa + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
                 &                             + CfN2 * (RL - RA)**4
@@ -762,14 +818,24 @@ SUBROUTINE TXPROF
            X(LQe1,NR) = PNa * EXP(- (RL - RA) / rLN)
            X(LQi1,NR) = X(LQe1,NR) / PZ
         END IF
+        ! pressure (MDFIXT=0) or temperature (MDFIXT=1)
         IF(MDITST == 0) THEN
            X(LQe5,NR) = pea + dpea * (RL - RA) + Cfpe1 * (RL - RA)**3 &
                 &                              + Cfpe2 * (RL - RA)**4
            X(LQi5,NR) = pia + dpia * (RL - RA) + Cfpi1 * (RL - RA)**3 &
                 &                              + Cfpi2 * (RL - RA)**4
         ELSE
-           PTePROF = PTea * EXP(- (RL - RA) / rLT)
-           PTiPROF = PTia * EXP(- (RL - RA) / rLT)
+           IF(MDITST == 1) THEN
+              PTePROF = PTea * EXP(- (RL - RA) / rLT)
+              PTiPROF = PTia * EXP(- (RL - RA) / rLT)
+           ELSE
+              sigma = 0.3d0 * (RHO(NRMAX) - 1.d0)
+              fexp  = exp(- (RHO(NR) - 1.d0)**2 / (2.d0 * sigma**2))
+              PTePROF = PTe0   * exp(- log(PTe0 / PTea) * RHO(NR)**2) *         fexp &
+                   &  + PTeDIV                                        * (1.d0 - fexp)
+              PTiPROF = PTi0   * exp(- log(PTi0 / PTia) * RHO(NR)**2) *         fexp &
+                   &  + PTiDIV                                        * (1.d0 - fexp)
+           END IF
            IF(MDFIXT == 0) THEN
               X(LQe5,NR) = PTePROF * X(LQe1,NR)
               X(LQi5,NR) = PTiPROF * X(LQi1,NR)
@@ -782,7 +848,8 @@ SUBROUTINE TXPROF
      ! N0_1 (slow neutrals)
      X(LQn1,NR) = PN0s
      ! N0_2 (fast neutrals)
-     X(LQn2,NR) = 0.D0
+!     X(LQn2,NR) = 0.D0
+     X(LQn2,NR) = 1.D-20 ! when ThntSW = 0.D0
      ! Bphi
      X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0 / AMPm5
      BphV(NR)   = BB
@@ -1095,7 +1162,8 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0, &
        & Chie0,Chii0,ChiNC, &
-       & FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC, &
+       & FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
+       & PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
        & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
@@ -1104,12 +1172,13 @@ module tx_parameter_control
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
-       & DelR,DelN, &
+       & DelRho,DelN, &
        & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth,&
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART, &
+       & MDSOLV,MDLNBD,MDLMOM
   private :: TXPLST
 
 contains
@@ -1212,10 +1281,12 @@ contains
        IF(PTi0 < 0.D0 .OR. PTia < 0.D0) EXIT
        IF(De0 < 0.D0 .OR. Di0 < 0.D0) EXIT
        IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
-       IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0 .OR. WPM0 < 0.D0) EXIT
+       IF(WPE0 < 0.D0 .OR. WPI0 < 0.D0) EXIT
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) EXIT
-       IF(FSDFIX < 0.D0 .OR. FSCDBM < 0.D0 .OR. FSBOHM < 0.D0) EXIT
-       IF(FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
+       IF(minval(FSDFIX) < 0.D0) EXIT
+       IF(minval(FSCDBM) < 0.D0) EXIT
+       IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) EXIT
+       IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) EXIT
        IF(FSHL < 0.D0 .OR. FSNF < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
@@ -1261,7 +1332,8 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,WPE0,WPI0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
-         &       ' ',8X,'FSDFIX,FSCDBM,FSBOHM,FSPCLD,FSPCLC,PROFD,PROFC,'/ &
+         &       ' ',8X,'FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,'/ &
+         &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
@@ -1270,13 +1342,13 @@ contains
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
-         &       ' ',8X,'DelR,DelN,'/ &
+         &       ' ',8X,'DelRho,DelN,'/ &
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ &
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MDLWTB'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,IDIAG,IGBDF,MDSOLV' / & 
-         &       ' ',8X,'MDLNBD,MDLMOM')
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART' / & 
+         &       ' ',8X,'MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1304,12 +1376,17 @@ contains
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
          &   'VWpch0', VWpch0,  'WPM0  ', WPM0  ,  &
          &   'WPE0  ', WPE0  ,  'WPI0  ', WPI0  ,  &
-         &   'PROFD ', PROFD ,  'PROFC ', PROFC , &
+         &   'PROFD ', PROFD ,  'PROFC ', PROFC ,  &
+         &   'PROFD1', PROFD1,  'PROFD2', PROFD2,  &
+         &   'PROFC1', PROFC1,  'ChiNC ', ChiNC ,  &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
-         &   'ChiNC ', ChiNC , &
-         &   'FSDFIX', FSDFIX,  'FSCDBM', FSCDBM,  &
+         &   'FSDFX1', FSDFIX(1),  'FSDFX2', FSDFIX(2),  &
+         &   'FSDFX3', FSDFIX(3),  'FCDBM1', FSCDBM(1),  &
+         &   'FCDBM2', FSCDBM(2),  'FCDBM3', FSCDBM(3),  &
+         &   'FSCBKP', FSCBKP,  'FSCBSH', FSCBSH,  &
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
-         &   'FSPCLC', FSPCLC,  'FSCX  ', FSCX  ,  &
+         &   'FSPCLC', FSPCLC,  'FSVAHL', FSVAHL,  &
+         &   'FSCX  ', FSCX  ,  &
          &   'FSLC  ', FSLC  ,  'FSRP  ', FSRP  ,  &
          &   'FSNF  ', FSNF  ,  'FSNC  ', FSNC  ,  &
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
@@ -1350,8 +1427,9 @@ contains
          &   'MDLWTB', MDLWTB,  'MDLETA', MDLETA,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
          &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
-         &   'MDINIT', MDINIT,  'IDIAG ', IDIAG ,  &
-         &   'IGBDF ', IGBDF,   'MDSOLV', MDSOLV,  &
+         &   'MDINIT', MDINIT,  'MDVAHL', MDVAHL,  &
+         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
+         &   'IReSTR', IReSTART,'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &

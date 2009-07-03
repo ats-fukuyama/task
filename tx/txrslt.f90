@@ -8,7 +8,7 @@
 SUBROUTINE TXGLOB
 
   use tx_commons
-  use tx_interface, only : INTG_F, INTG_P, dfdx
+  use tx_interface, only : INTG_F, INTG_P, dfdx, VALINT_SUB
   implicit none
 
   INTEGER(4) :: I, NS, NF, NR
@@ -16,16 +16,16 @@ SUBROUTINE TXGLOB
        &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
        &     BBL, SUMML, SUMPL, PNES, PAI
-  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML
+  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML, SUMdenom, SUMPNiV
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
        &     dPPV, ALFA
   REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
-  real(8), dimension(:), allocatable :: Siz
+  real(8), dimension(:), allocatable :: denom
   real(8) :: dBetaSUM, BPINT
   real(8) :: DERIV4, FCTR
 
-  !     Line Averaged Density and Temperature
+  !     Volume-Averaged Density and Temperature
   !     Core Density and Temperature
   !     Electoron and ion Work Quantities
 
@@ -104,6 +104,8 @@ SUBROUTINE TXGLOB
 
   SIE(0:NRMAX) = PNeV(0:NRMAX)*rNuION(0:NRMAX)*1.D20
   PIE(0:NRMAX) = SIE(0:NRMAX)*EION*AEE
+  SCX(0:NRMAX) = PNiV(0:NRMAX)*rNuiCX(0:NRMAX)/(PN01V(0:NRMAX)+PN02V(0:NRMAX)) &
+       &        *PN01V(0:NRMAX)*1.D20
   PCX(0:NRMAX) = 1.5D0*PNiV(0:NRMAX)*rNuiCX(0:NRMAX)*1.D20*PTiV(0:NRMAX)*rKeV
 
   !    PRLINT=INTG_F(PRL)
@@ -363,6 +365,24 @@ SUBROUTINE TXGLOB
      if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
   end do
 
+  ! *** Particle confinement time; TAUP ***
+
+  allocate(denom(0:NRMAX))
+  denom(0:NRMAX) = PNiV(0:NRMAX) * rNuION(0:NRMAX)
+  TAUP  = INTG_F(PNiV) / INTG_F(denom)
+  deallocate(denom)
+
+  allocate(denom(0:NRA))
+  denom(0:NRA) = PNiV(0:NRA) * rNuION(0:NRA)
+  CALL VALINT_SUB(PNiV,NRA,SUMPNiV)
+  CALL VALINT_SUB(denom,NRA,SUMdenom)
+  TAUPA = SUMPNiV / SUMdenom
+  deallocate(denom)
+
+  ! *** Ion outflux through the separatrix ***
+
+  call cal_flux
+
   RETURN
 END SUBROUTINE TXGLOB
 
@@ -377,20 +397,22 @@ END SUBROUTINE TXGLOB
 subroutine cal_flux
 
   use tx_commons, only : PNiV, NRA, PI, RR, RA, rNuION, PNeV, PZ, DT, Gamma_a
-  use tx_interface, only : INTG_P
+  use tx_interface, only : VALINT_SUB
   implicit none
 
-  real(8) :: total_ion, SizINT
+  real(8) :: total_ion, SizINT, SumPNiV
   real(8), save :: total_ion_save = 0.d0
   real(8), dimension(:), allocatable :: Siz
 
   !  Number of ions inside the separatrix [particles]
-  total_ion = INTG_P(PNiV,NRA,0)*2.D0*PI*RR*2.D0*PI*1.D20
+  CALL VALINT_SUB(PNiV,NRA,SumPNiV)
+  total_ion = SumPNiV*2.D0*PI*RR*2.D0*PI*1.D20
 
   !  Rate of generation of ions inside the separatix
   allocate(Siz(0:NRA))
   Siz(0:NRA) = rNuION(0:NRA)*PNeV(0:NRA)/PZ*1.D20 ! [m^-3s^-1]
-  SizINT = INTG_P(Siz,NRA,0)*2.D0*PI*RR*2.D0*PI ! [s^-1]
+  CALL VALINT_SUB(Siz,NRA,SizINT)
+  SizINT = SizINT*2.D0*PI*RR*2.D0*PI ! [s^-1]
   deallocate(Siz)
 
   !  Outflux of ions through the separatix [m^-2s^-1]

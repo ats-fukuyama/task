@@ -773,8 +773,8 @@ contains
     GYL(0:NXM,NG,82) = SNGL(rNuOL(0:NXM))
     GYL(0:NXM,NG,83) = SNGL(Deff(0:NXM))
     GYL(0:NXM,NG,84) = SNGL(SNB(0:NXM))
-    GYL(0:NXM,NG,85) = SNGL(PRFi(0:NXM))
-    GYL(0:NXM,NG,86) = SNGL(PRFe(0:NXM))
+    GYL(0:NXM,NG,85) = SNGL(PRFe(0:NXM))
+    GYL(0:NXM,NG,86) = SNGL(PRFi(0:NXM))
     GYL(0:NXM,NG,87) = SNGL(rNu0b(0:NXM))
 
     GYL(0:NXM,NG,88) = SNGL(PIE(0:NXM))
@@ -862,6 +862,15 @@ contains
 
     ! *** Turbulent pinch velocity *********************************************
     GYL(0:NXM,NG,132) = SNGL(VWpch(0:NXM))
+
+    GYL(0:NXM,NG,133) = SNGL(SCX(0:NXM))
+
+    ! *** Total thermal diffusivity *****************
+    GYL(0:NXM,NG,134) = SNGL(Chie(0:NXM)+ChiNCpe(0:NXM)+ChiNCte(0:NXM))
+    GYL(0:NXM,NG,135) = SNGL(Chii(0:NXM)+ChiNCpi(0:NXM)+ChiNCti(0:NXM))
+
+    ! *** Convective velocity of thermal neutrals ***
+    GYL(0:NXM,NG,136) = SNGL(U02(0:NXM))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -976,7 +985,7 @@ contains
          &              AJT, AJOHT, AJNBT, AJBST, POUT, PCXT, PIET, QF, ANS0, &
          &              ANSAV, WPT, WBULKT, WST, TAUE1, TAUE2, TAUEP, BETAA, &
          &              BETA0, BETAPA, BETAP0, VLOOP, ALI, Q, RQ1, ANF0, ANFAV, &
-         &              VOLAVN, GYT, NRMAX, NGYRM
+         &              VOLAVN, GYT, NRMAX, NGYRM, TAUP, TAUPA, Gamma_a
     REAL(4), INTENT(IN) :: GTIME
 
     IF (NGT < NGTM) NGT=NGT+1
@@ -1036,6 +1045,16 @@ contains
     GTY(NGT,46) = SNGL(VOLAVN)
     GTY(NGT,47) = SNGL(PRFTe)
     GTY(NGT,48) = SNGL(PRFTi)
+    ! Initial value becomes too big because almost no neutrals exist.
+    IF(NGT == 0) THEN
+       GTY(NGT,49) = 0.0
+       GTY(NGT,50) = 0.0
+       GTY(NGT,51) = 0.0
+    ELSE
+       GTY(NGT,49) = SNGL(TAUP)
+       GTY(NGT,50) = SNGL(TAUPA)
+       GTY(NGT,51) = SNGL(Gamma_a) * 1.E-20
+    END IF
 
     ! Store data for 3D graphics
     CALL TXSTGR(NGT,GYL=GYT,NXM=NRMAX,NGM=NGTM,NUM=NGYRM)
@@ -1221,7 +1240,7 @@ contains
 
     CASE(2)
        STR = '@u$-er$=(r)@'
-       CALL TXGRFRX(0, GX, GY(0,0,3), NRMAX, NGR, STR, MODE, IND)
+       CALL TXGRFRX(0, GX, GY(0,0,3), NRMAX, NGR, STR, MODE, IND)!,GYMAX=0.4,GYMIN=0.0)
 
        STR = '@u$-e$#q$#$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,4), GYL, STR, NRMAX, NGR, gDIV(4))
@@ -1342,12 +1361,13 @@ contains
 
     CASE(9)
        STR = '@D$-i,eff$=(r)@'
-       CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND,GYMAX=5.0)
+       CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND,GYMAX=1.0)
+!       CALL TXGRFRX(0,GX,GY(0,0,83),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@D$-i$=(r)+D$-e$=(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,29),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@$#c$#$-e$=(r)@'
+       STR = '@$#c$#$-tbe$=(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,70),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@$#c$#$-NCi$=(r)@'
@@ -1411,10 +1431,23 @@ contains
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@TOTAL N$-0$=(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRMAX, NGR, gDIV(16))
-       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+!       CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRMAX, NGR, gDIV(16))
+!       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       GYL(0:NRMAX,0:NGR) = LOG10(GY(0:NRMAX,0:NGR,16))
+!       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=10.0,ILOGIN=1)
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
 
-       CALL TXWPGR
+       STR = '@SCX(r)@'
+!       CALL APPROPGY(MODEG, GY(0,0,133), GYL, STR, NRMAX, NGR, gDIV(133))
+!       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       DO NG = 0, NGR
+          DO NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,133)),1.D18,1.D23)
+          END DO
+       END DO
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
+
+!       CALL TXWPGR
 
     CASE(14)
        STR = '@PIE(r)@'
@@ -1424,12 +1457,14 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,89), GYL, STR, NRMAX, NGR, gDIV(89))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@SIE(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,90), GYL, STR, NRMAX, NGR, gDIV(90))
-       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-
        STR = '@PBr(r)@'
-       CALL TXGRFRX(3,GX,GY(0,0,91),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRX(2,GX,GY(0,0,91),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@SIE(r)@'
+!       CALL APPROPGY(MODEG, GY(0,0,90), GYL, STR, NRMAX, NGR, gDIV(90))
+!       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+       GYL(0:NRMAX,0:NGR) = LOG10(GY(0:NRMAX,0:NGR,90))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
 
 !       CALL TXWPGR
 
@@ -1538,7 +1573,10 @@ contains
        STR = '@G$-1$=h$+2$=(r)@'
        CALL TXGRFRX(2,GX,GY(0,0,30),NRMAX,NGR,STR,MODE,IND)
 
-       CALL TXWPGR
+       STR = '@$#c$#$-i$=(r)@'
+       CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
 
     CASE(20)
        STR = '@VWpch(r)@'
@@ -1546,6 +1584,28 @@ contains
 
        STR = '@Virtual Torque(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@$#G$#$-e$==n$-e$=u$-er$=(r)@'
+       GYL(0:NRMAX,0:NGR) = GY(0:NRMAX,0:NGR,1) * GY(0:NRMAX,0:NGR,3)
+       CALL APPROPGY(MODEG, GYL, GYL, STR, NRMAX, NGR, gDIV(1))
+!       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=-0.01,GYMAX=0.05)
+       CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=0.0,GYMAX=0.05)
+
+       STR = '@$#G$#$-i$==n$-i$=u$-ir$=(r)@'
+       GYL(0:NRMAX,0:NGR) = GY(0:NRMAX,0:NGR,37) * GY(0:NRMAX,0:NGR,6)
+       CALL APPROPGY(MODEG, GYL, GYL, STR, NRMAX, NGR, gDIV(37))
+       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+    CASE(21)
+       STR = '@PRFe@'
+       CALL APPROPGY(MODEG, GY(0,0,85), GYL, STR, NRMAX, NGR, gDIV(85))
+       CALL TXGRFRX(0,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@PRFi@'
+       CALL APPROPGY(MODEG, GY(0,0,86), GYL, STR, NRMAX, NGR, gDIV(86))
+       CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
+
+       CALL TXWPGR
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
@@ -1672,7 +1732,8 @@ contains
        CALL TXGRFRXS( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@LQm2@'
-       CALL TXGRFRXS( 1,GX,GY(0,0,39),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,39), GYL, STR, NRMAX, NGR, gDIV(39))
+       CALL TXGRFRXS( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@LQm3@'
        CALL TXGRFRXS( 2,GX,GY(0,0,40),NRMAX,NGR,STR,MODE,IND)
@@ -1760,7 +1821,8 @@ contains
        CALL TXGRFRXS( 4,GX,GY(0,0,61),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuLTe@'
-       CALL TXGRFRXS( 5,GX,GY(0,0,92),NRMAX,NGR,STR,MODE,IND)
+       CALL APPROPGY(MODEG, GY(0,0,92), GYL, STR, NRMAX, NGR, gDIV(92))
+       CALL TXGRFRXS( 5,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuLTi@'
        CALL TXGRFRXS( 6,GX,GY(0,0,93),NRMAX,NGR,STR,MODE,IND)
@@ -1773,15 +1835,19 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,64), GYL, STR, NRMAX, NGR, gDIV(64))
        CALL TXGRFRXS( 8,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@FWthi@'
-       CALL APPROPGY(MODEG, GY(0,0,65), GYL, STR, NRMAX, NGR, gDIV(65))
-       CALL TXGRFRXS( 9,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+!!$       STR = '@FWthi@'
+!!$       CALL APPROPGY(MODEG, GY(0,0,65), GYL, STR, NRMAX, NGR, gDIV(65))
+!!$       CALL TXGRFRXS( 9,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@WPM@'
-       CALL TXGRFRXS(10,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 9,GX,GY(0,0,66),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuTei@'
-       CALL TXGRFRXS(11,GX,GY(0,0,67),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS(10,GX,GY(0,0,67),NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@U02@'
+       CALL APPROPGY(MODEG, GY(0,0,136), GYL, STR, NRMAX, NGR, gDIV(136))
+       CALL TXGRFRXS(11,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNu0e@'
        CALL TXGRFRXS(12,GX,GY(0,0,68),NRMAX,NGR,STR,MODE,IND)
@@ -3066,7 +3132,11 @@ contains
        CALL TXGRFVX(3, GTX, GTY(0,43), NGTM, NGT, 1, STR, MODE, IND)
 
     CASE(5)
-       ! Do nothing.
+       STR = '@TAUP, TAUPA [s] vs t@'
+       CALL TXGRFVX(0, GTX, GTY(0,49), NGTM, NGT, 2, STR, MODE, IND)
+
+       STR = '@Gamma_a [10$+20$=/m$+2$=s$+1$=] vs t@'
+       CALL TXGRFVX(1, GTX, GTY(0,51), NGTM, NGT, 1, STR, MODE, IND)
 
     CASE(6)
        STR = '@Te,Ti,<Te>,<Ti> [keV] vs t@'
@@ -3124,6 +3194,12 @@ contains
 
        STR = '@<neutrality> [/m$+3$=] vs t@'
        CALL TXGRFTX(1, GTX, GTY(0,46), NGTM, NGT, 1, STR, IND)
+
+       STR = '@TAUP, TAUPA [s] vs t@'
+       CALL TXGRFTX(2, GTX, GTY(0,49), NGTM, NGT, 2, STR, IND)
+
+       STR = '@Gamma_a [10$+20$=/m$+2$=s$+1$=] vs t@'
+       CALL TXGRFTX(3, GTX, GTY(0,51), NGTM, NGT, 1, STR, IND)
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYT: NGYT = ',NGYT
@@ -3287,8 +3363,8 @@ contains
 !    NP = NP + 1
     CALL TXWPS('@BB    @', BB)
     CALL TXWPS('@rIp   @', rIp)
-    CALL TXWPS('@FSDFIX@', FSDFIX)
-    CALL TXWPS('@FSCDBM@', FSCDBM)
+    CALL TXWPS('@FSDFX1@', FSDFIX(1))
+    CALL TXWPS('@FCDBM3@', FSCDBM(3))
     CALL TXWPS('@FSBOHM@', FSBOHM)
     CALL TXWPS('@FSPCLD@', FSPCLD)
     CALL TXWPS('@FSPCLC@', FSPCLC)
@@ -3444,8 +3520,8 @@ contains
 
     allocate(GYAR(size(GY,1),size(GY,2)))
     GYAR = GY
-    IF(PRESENT(GYMAX_IN)) where(GYAR > GYMAX_IN) GYAR = GYMAX_IN
-    IF(PRESENT(GYMIN_IN)) where(GYAR < GYMIN_IN) GYAR = GYMIN_IN
+!!$    IF(PRESENT(GYMAX_IN)) where(GYAR > GYMAX_IN) GYAR = GYMAX_IN
+!!$    IF(PRESENT(GYMIN_IN)) where(GYAR < GYMIN_IN) GYAR = GYMIN_IN
 
     CALL GQSCAL(GXMIN, GXMAX, GSXMIN, GSXMAX, GXSTEP)
     GSXMIN = GXMIN
@@ -3458,10 +3534,10 @@ contains
           GYMAX=0.0
        END IF
     END IF
-    IF(PRESENT(KINDEX)) THEN
+!!$    IF(PRESENT(KINDEX)) THEN
        IF(PRESENT(GYMAX_IN)) GYMAX=GYMAX_IN
        IF(PRESENT(GYMIN_IN)) GYMIN=GYMIN_IN
-    END IF
+!!$    END IF
     CALL GQSCAL(GYMIN, GYMAX, GSYMIN, GSYMAX, GYSTEP)
     IF (GSYMIN > GYMIN) GSYMIN = GSYMIN - GYSTEP
     IF (GSYMAX < GYMAX) GSYMAX = GSYMAX + GYSTEP
@@ -3682,11 +3758,13 @@ contains
 
   subroutine write_console(n,char)
 
-    use tx_commons
-    implicit none
+    use tx_commons, only : ngr, NGYRM, nrmax, gx, gy, NGYTM, ngt, gtx, gty, &
+         & NGYVM, ngvv, gvx, gvy, R
+    use tx_interface, only : dfdx
     integer(4), intent(in) :: n
     character(len=1), intent(in) :: char
     integer(4) :: i
+    real(8), dimension(:), allocatable :: dVdr
 
     if (ngr <= -1) then
        write(6,*) 'No data.'
@@ -3714,6 +3792,16 @@ contains
           do i = 0, ngvv
              write(6,*) gvx(i),gvy(i,n)
           end do
+       end IF
+    case('D') ! R-derivative of a radial profile
+       if (n >= 0 .and. n <= NGYRM) then
+          allocate(dVdr(0:nrmax))
+          dVdr(0:nrmax) = dfdx(R,dble(gy(0:nrmax,ngr,n)),nrmax,0)
+          write(6,'(7X,A1,13X,A5)') "R","dValue/dR"
+          do i = 0, nrmax
+             write(6,*) gx(i),real(dVdr(i))
+          end do
+          deallocate(dVdr)
        end IF
     case default
        WRITE(6,*) '### ERROR : Invalid Command : '

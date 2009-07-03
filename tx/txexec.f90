@@ -74,7 +74,7 @@ contains
          &                 NQM, IERR, LQb1, LQn1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
-         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV
+         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, IReSTART
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
@@ -108,7 +108,8 @@ contains
     IF(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
 
     ! Save X -> XP -> XOLD for BDF only at the beginning of the calculation
-    IF(IGBDF /= 0 .and. T_TX == 0.D0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
+    IF(IGBDF /= 0 .and. (T_TX == 0.D0 .OR. IReSTART /= 0)) &
+         & XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
 
     L_NTDO:DO NTDO = 1, NTMAX
        NT = NTDO
@@ -443,7 +444,7 @@ contains
 
        IF (MOD(NT, NTMAX ) == 0) CALL TXSTGQ
 
-       call cal_flux
+!       call cal_flux
 
        IF (IERR /= 0) EXIT L_NTDO
 
