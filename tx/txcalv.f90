@@ -166,8 +166,9 @@ contains
          &     DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, &
-         &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, rLmean, rLmeanL, Sitot, costh, &
-         &     PTiVav, N02INT, RatSCX, sum1, sum2
+         &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
+         &     PTiVav, N02INT, RatSCX, sum1, sum2, &
+         &     rGCIM, DCDIM!, !TRCOFSIM, OMEGAPR, RAQPR, FS1 !,09/06/17~ miki_m 
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC, deriv4
@@ -933,6 +934,48 @@ contains
           DCDBM      = 0.D0
        END IF
 
+       !   *** CDIM mode ***
+       !   09/06/17~ miki_m
+
+       IF (ABS(FSCDIM) > 0.D0) THEN
+          ! Alfven velocity
+          Va = SQRT(BBL**2 / (rMU0 * PNiV(NR) * 1.D20 * AMI))
+          ! Squared plasma frequency
+          Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
+          ! Arbitrary coefficient for CDIM model
+          rGCIM = 8.D0
+          ! Magnetic curvature
+          rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
+          ! Calculate CDIM coefficient
+          OMEGAPR = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR
+          RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx (PSI , (R / RA)**4 / Q , NRMAX , 0) ! cf. txcalv.f90 L501
+!          RAQPR = dfdx (PSI , (R / RA)**4 / Q , NRMAX , 0) ! cf. txcalv.f90 L501
+          FS1 = 3.D0 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S**2.D0)
+          TRCOFSIM = FS1
+          FCDIM(NR) = TRCOFSIM(NR)
+          ! ExB rotational shear
+          IF(NR == 0) THEN
+             rH=0.D0
+          ELSE
+             rH = Q(NR) * RR * R(NR) * dVebdr(NR) / (Va * S(NR))
+          END IF
+
+          ! Turbulence suppression by ExB shear for CDIM mode
+          rG1h2IM(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
+          ! Turbulent transport coefficient calculated by CDIM model
+          DCDIM = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
+               &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
+
+          IF(Rho(NR) == 1.D0) DCDIMA = DCDIM 
+
+       ELSE
+          rG1h2IM(NR) = 0.D0
+          FCDIM(NR)   = 0.D0
+          DCDIM       = 0.D0
+       END IF
+
+       !     *** end CDIM mode ***
+
        !     *** Turbulent transport of particles ***
 
 !parail       PROFD1 = 4
@@ -940,20 +983,20 @@ contains
        IF (RHO(NR) < RhoSOL) THEN
 !          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSCDBM(1) * DCDBM
           DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.07d0) &
-               & + FSCDBM(1) * DCDBM
+               & + FSCDBM(1) * DCDBM + FSCDIM * DCDIM
        ELSE
           IF(FSPCLD == 0.D0) THEN
-             factor_bohm = (FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM) &
+             factor_bohm = (FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM + FSCDIM * DCDIM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
              IF(FSCDBM(1) == 0.D0) THEN
                 DeL = FSPCLD * diff_prof(RhoSOL,FSDFIX(1),PROFD,PROFD1,0.d0)
              ELSE
-                DeL = FSCDBM(1) * DCDBMA
+                DeL = FSCDBM(1) * DCDBMA + FSCDIM * DCDIMA
              END IF
           END IF
-!!$          DeL = FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM
+!!$          DeL = FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM + FSCDIM * DCDIM
        END IF
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -970,11 +1013,12 @@ contains
        RhoSOL = 1.D0
 !parail       RhoSOL = 0.93D0
        IF (RHO(NR) < RhoSOL) THEN
-          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSCDBM(3) * DCDBM
+          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSCDBM(3) * DCDBM &
+            & + FSCDIM * DCDIM
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
           IF(FSPCLC == 0.D0) THEN
-             factor_bohm = (FSDFIX(3) * PROFCL + FSCDBM(3) * DCDBM) &
+             factor_bohm = (FSDFIX(3) * PROFCL + FSCDBM(3) * DCDBM + FSCDIM * DCDIM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
 !bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(3) * PROFCL &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
@@ -983,7 +1027,7 @@ contains
              IF(FSCDBM(3) == 0.D0) THEN
                 DeL = FSPCLC * diff_prof(RhoSOL,FSDFIX(3),PROFCL,PROFC1,0.d0)
              ELSE
-                DeL = FSCDBM(3) * DCDBMA
+                DeL = FSCDBM(3) * DCDBMA             
              END IF
 !pedestal             DeL = FSPCLC * FSDFIX(3) * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF

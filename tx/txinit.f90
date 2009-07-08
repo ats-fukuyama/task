@@ -145,6 +145,10 @@ SUBROUTINE TXINIT
 
   !   =======================================================================
 
+  !   CDIM transport coefficient parameter
+  !  09/06/17~ miki_m
+  FSCDIM = 0.D0
+
   !   Bohm transport coefficient parameter in SOL
   FSBOHM = 0.D0
 
@@ -1169,7 +1173,7 @@ module tx_parameter_control
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
        & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART, &
-       & MDSOLV,MDLNBD,MDLMOM
+       & MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
   private :: TXPLST
 
 contains
@@ -1275,6 +1279,7 @@ contains
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) EXIT
        IF(minval(FSDFIX) < 0.D0) EXIT
        IF(minval(FSCDBM) < 0.D0) EXIT
+       IF(FSCDIM < 0.D0) EXIT !***09/06/17~ miki_m
        IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) EXIT
        IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) EXIT
@@ -1324,6 +1329,7 @@ contains
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
          &       ' ',8X,'FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,'/ &
          &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
+         &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
@@ -1373,6 +1379,7 @@ contains
          &   'FSDFX3', FSDFIX(3),  'FCDBM1', FSCDBM(1),  &
          &   'FCDBM2', FSCDBM(2),  'FCDBM3', FSCDBM(3),  &
          &   'FSCBKP', FSCBKP,  'FSCBSH', FSCBSH,  &
+         &   'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
          &   'FSPCLC', FSPCLC,  'FSVAHL', FSVAHL,  &
          &   'FSCX  ', FSCX  ,  &
@@ -1382,7 +1389,7 @@ contains
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD01 ', FSD01 ,  'FSD02 ', FSD02 ,  &
          &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
-         &   'Eb    ', Eb    ,  &
+         &   'Eb    ', Eb    , &
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
