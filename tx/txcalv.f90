@@ -2,6 +2,7 @@
 module tx_variables
   implicit none
   public
+  integer(4) :: NRB
 
 contains
 
@@ -14,10 +15,11 @@ contains
   SUBROUTINE TXCALV(XL,ID)
 
     use tx_commons
-    use tx_interface, only : dfdx
+    use tx_interface, only : dfdx, VALINT_SUB
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
+    real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
     real(8) :: FCTR
 
     IF(present(ID)) THEN
@@ -122,13 +124,45 @@ contains
 
     PNbRPV(0:NRMAX)=   XL(LQr1,0:NRMAX)
 
-    PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
-    PT02V(0:NRMAX) =   PTiV(0:NRMAX)
-
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
 
     pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+
+    PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
+
+    !  *** For thermal neutrals originating from slow neutrals ***
+
+    ! SCX : source of PN02V
+    DO NR = 0, NRMAX
+       SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
+    END DO
+
+    ! NRB : Boundary of N02 source
+    NRB = NRA
+    do NR = NRMAX - 1, 0, -1
+       RatSCX = SCX(NR) / SCX(NRMAX)
+       if(RatSCX < 1.D-8) then
+          NRB = NR
+          exit
+       else if (RatSCX < tiny_cap) then
+          NRB = NR - 1
+       end if
+    end do
+
+    ! PTiVav : Particle (or density) averaged temperature across the N02 source region
+    sum1 = 0.d0 ; sum2 = 0.d0
+    do nr = nrb, nrmax
+       call VALINT_SUB(PN02V,NR,N02int,NR)
+       sum1 = sum1 + N02int
+       sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
+    end do
+    PTiVav = sum2 / sum1
+    do nr = 0, nrmax
+       PT02V(NR) = PTiVav
+    end do
+
+!       PT02V(0:NRMAX) =   PTiV(0:NRMAX)
 
     RETURN
   END SUBROUTINE TXCALV
@@ -150,8 +184,7 @@ contains
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
-    INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato, npower, &
-         &        NRB, NRP
+    INTEGER(4) :: NR, NP, NR1, IER, i, imax, nrl, ist, irip, nr_potato, npower
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, SNBPi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
@@ -167,7 +200,6 @@ contains
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, &
          &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
-         &     PTiVav, N02INT, RatSCX, sum1, sum2, &
          &     rGCIM, DCDIM!, !TRCOFSIM, OMEGAPR, RAQPR, FS1 !,09/06/17~ miki_m 
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
@@ -520,39 +552,7 @@ contains
     dPidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV  ,NRMAX,0)
     dpdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,pres ,NRMAX,0)
 
-    !     *** For estimation of D02 ***
-
-!!D02    ! NRP : peak of PN02V
-!!D02    NRP = maxloc(PN02V(0:NRMAX),1) - 1
-!!D02    if(NRP == 0) NRP = NRMAX
-
-    ! SCX : source of PN02V
-    DO NR = 0, NRMAX
-       SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
-    END DO
-
-    ! NRB : Boundary of N02 source
-    NRB = NRA
-    do NR = NRMAX - 1, 0, -1
-       RatSCX = SCX(NR) / SCX(NRMAX)
-       if(RatSCX < 1.D-8) then
-          NRB = NR
-          exit
-       else if (RatSCX < tiny_cap) then
-          NRB = NR - 1
-       end if
-    end do
-
-    ! PTiVav : Particle (or density) -averaged temperature over the N02 source region
-    sum1 = 0.d0 ; sum2 = 0.d0
-    do nr = nrb, nrmax
-       call VALINT_SUB(PN02V,NR,N02int,NR)
-       sum1 = sum1 + N02int
-       sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
-    end do
-    PTiVav = sum2 / sum1
-
-!!D02    write(6,'(F8.5,2I4,5F11.6)') T_TX,NRP,NRB,Rho(NRP),Rho(NRB),PTiV(NRP),PTiVav
+!!D02    write(6,'(F8.5,I4,2F11.6)') T_TX,NRB,Rho(NRB),PT02V(NR)
 
     !  Coefficients
 
@@ -618,8 +618,7 @@ contains
 
        !  Maxwellian thermal velocity at the separatrix
 !       Viave = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi))
-!       Viave = sqrt(8.D0 * PTiV(NRP) * rKeV / (Pi * AMi))
-       Viave = sqrt(8.D0 * PTiVav * rKeV / (Pi * AMi))
+       Viave = sqrt(8.D0 * PT02V(NR) * rKeV / (Pi * AMi))
 
        !  Mean free path for fast neutrals
        rLmean = Viave / Sitot
@@ -639,7 +638,6 @@ contains
 !!          D02(NR) = D02(NR) * (3.5055d0*rho(nr)**3-2.5055d0)
 !!       end if
        D02(NR) = FSD02 * Viave**2 / (3.D0 * Sitot)
-!       if(nr >= NRB .and. nr <= NRP) D02(NR) = D02(NR) * reduce_D02(NR,rLmean)
        if(nr >= NRB .and. nr <= NRA) D02(NR) = D02(NR) * reduce_D02(NR,rLmean)
 !!D02       if(nt >= ntmax-1) write(6,'(I3,F10.6,F11.3,3F10.6,1P2E11.3)') nr,r(nr),d02(nr),rLmean,rLmeanL,PTiV(NR),SCX(NR)
 
