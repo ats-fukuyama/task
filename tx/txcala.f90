@@ -1910,8 +1910,6 @@ contains
   SUBROUTINE LQn2CC
 
     ELM(1:NEMAX,1:4,0,LQn2) = fem_int(1) * invDT
-!!$    ELM(1:NEMAX,1:4,0,LQn2) = fem_int(1) * invDT &
-!!$         &                  + fem_int(8) * fem_int(0) * invDT
     NLC(0,LQn2) = LQn2
 
     !  Diffusion of neutrals
@@ -1922,30 +1920,17 @@ contains
     ! Ionization
 
     ELM(1:NEMAX,1:4,2,LQn2) = - 1.D0 / PZ * fem_int(2,rNuIN0)
-!!$    ELM(1:NEMAX,1:4,2,LQn2) = - 1.D0 / PZ * (  fem_int(2,rNuIN0) &
-!!$         &                                   + fem_int(9,rNuIN0) * fem_int(0))
     NLC(2,LQn2) = LQn2
 
     ! Generation of fast neutrals by charge exchange
 
     ELM(1:NEMAX,1:4,3,LQn2) = fem_int(2,rNuCXN0)
-!!$    ELM(1:NEMAX,1:4,3,LQn2) = (fem_int(2,rNuCXN0) &
-!!$         &                   + fem_int(9,rNuCXN0) * fem_int(0))
     NLC(3,LQn2) = LQn1
 
     ! NBI particle source (Charge exchange)
 
     PELM(1:NEMAX,1:4,4,LQn2) = RatCX * fem_int(-1,SNBi)
-!!$    PELM(1:NEMAX,1:4,4,LQn2) = RatCX * (  fem_int(-1,SNBi) &
-!!$         &                              + fem_int(-8,SNBi) * fem_int(0))
     NLC(4,LQn2) = 0
-
-!    ! Convection due to cylindrical geometry
-!
-!    ELM(1:NEMAX,1:4,5,LQn2) = - 2.D0 * fem_int(3,RU02)
-!!!$    ELM(1:NEMAX,1:4,5,LQn2) = - 2.D0 * (  fem_int(3,RU02) &
-!!!$         &                              + fem_int(10,RU02) * fem_int(0))
-!    NLC(5,LQn2) = LQn2
 
     NLCMAX(LQn2) = 4
     RETURN
