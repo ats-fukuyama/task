@@ -121,6 +121,7 @@ contains
 !!$    END DO
     PN01V(0:NRMAX) =   XL(LQn1,0:NRMAX)
     PN02V(0:NRMAX) =   XL(LQn2,0:NRMAX)
+    PN03V(0:NRMAX) =   XL(LQn3,0:NRMAX)
 
     PNbRPV(0:NRMAX)=   XL(LQr1,0:NRMAX)
 
@@ -163,6 +164,7 @@ contains
     end do
 
 !       PT02V(0:NRMAX) =   PTiV(0:NRMAX)
+    PT03V(0:NRMAX) =   PTiV(0:NRMAX)
 
     RETURN
   END SUBROUTINE TXCALV
@@ -189,7 +191,7 @@ contains
          &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
-         &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, &
+         &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
          &     rGIC, rH, PROFCL, PALFL, DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
@@ -562,6 +564,8 @@ contains
        Vti = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMI)
        Vtb = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMB)
 
+       PN0tot = PN01V(NR) + PN02V(NR) + PN03V(NR)
+
        !     *** Coulomb logarithms ***
        !     (NRL Plasma Formulary p34,35 (2007))
        Ne_m3 = PNeV(NR) * 1.d20 ; Ni_m3 = PNiV(NR) * 1.d20
@@ -589,7 +593,7 @@ contains
 !old       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
 !old            &              / (EION**1.5D0 * (6.D0 + XXX))
 !old       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNuION(NR) = FSION * SiViz(PTeV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNuION(NR) = FSION * SiViz(PTeV(NR)) * PN0tot * 1.D20
 
        !     *** Slow neutral diffusion coefficient ***
        !  For example,
@@ -614,7 +618,7 @@ contains
        D01(NR) = FSD01 * V0ave**2 &
             &  / (3.D0 * (SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20)
 
-       !     *** Fast neutral diffusion coefficient ***
+       !     *** Thermal neutral diffusion coefficient ***
 
        !  Maxwellian thermal velocity at the separatrix
 !       Viave = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi))
@@ -656,6 +660,11 @@ contains
 !!$       END IF
        U02(NR) = 0.D0
 
+       !     *** Thermal neutral diffusion coefficient, produced by NBI ***
+
+       Viave = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi))
+       D03(NR) = FSD03 * Viave**2 / (3.D0 * Sitot)
+
        !     *** Charge exchange rate ***
        !  For thermal ions (assuming that energy of deuterium
        !                    is equivalent to that of proton)
@@ -665,19 +674,19 @@ contains
 !old            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
 !old       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
 !old       rNuiCX(NR) = FSCX * Scxi * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * PN0tot * 1.D20
 
        !  For beam ions
        !     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, p.323, B163)
 !old       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
 !old       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNubCX(NR) = FSCX * Scxb * Vb * (PN01V(NR) + PN02V(NR)) * 1.D20
+       rNubCX(NR) = FSCX * Scxb * Vb * PN0tot * 1.D20
 
        !     *** Collision frequency (with neutral) ***
 
-       rNu0e(NR) = (PN01V(NR) + PN02V(NR)) * 1.D20 * Sigma0 * Vte
-       rNu0i(NR) = (PN01V(NR) + PN02V(NR)) * 1.D20 * Sigma0 * Vti
-       rNu0b(NR) = (PN01V(NR) + PN02V(NR)) * 1.D20 * Sigma0 * Vtb
+       rNu0e(NR) = PN0tot * 1.D20 * Sigma0 * Vte
+       rNu0i(NR) = PN0tot * 1.D20 * Sigma0 * Vti
+       rNu0b(NR) = PN0tot * 1.D20 * Sigma0 * Vtb
 
        !     *** Collision frequency (momentum transfer, Braginskii's formula) ***
 

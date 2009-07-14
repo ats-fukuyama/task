@@ -2,17 +2,17 @@ module tx_commons
   implicit none
   public
 
-  integer(4), parameter :: NRM=101, NEM=NRM, NQM=21, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=136, NGYTM=51, &
-       &                   NGYVM=49, NGPRM=21, NGPTM=8, NGPVM=15, &
+  integer(4), parameter :: NRM=101, NEM=NRM, NQM=22, NCM=29, NGRM=20, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=139, NGYTM=51, &
+       &                   NGYVM=54, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
   integer(4), parameter :: NSM=2, NFM=2
   integer(4), parameter :: LQm1=1,  LQm2=2,  LQm3=3,  LQm4=4,  LQm5=5,&
        &                   LQe1=6,  LQe2=7,  LQe3=8,  LQe4=9,  LQe5=10,&
        &                   LQi1=11, LQi2=12, LQi3=13, LQi4=14, LQi5=15,&
        &                   LQb1=16,          LQb3=17, LQb4=18,&
-       &                   LQn1=19, LQn2=20, &
-       &                   LQr1=21
+       &                   LQn1=19, LQn2=20, LQn3=21, &
+       &                   LQr1=22
   integer(4), parameter :: nmax_file = 100
 
   !**********************************************!
@@ -64,7 +64,7 @@ module tx_commons
 
   ! Amplitude parameters for transport
   real(8) :: FSCBKP, FSCBSH, FSBOHM, FSPCLD, FSPCLC, FSVAHL, PROFD, PROFC, PROFD1, PROFD2, PROFC1, FSCDIM
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, rG1, FSRP, FSNF
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, rG1, FSRP, FSNF
   real(8), dimension(1:3) :: FSDFIX, FSCDBM
   integer(4) :: MDLC
 
@@ -140,9 +140,9 @@ module tx_commons
        & ErV,    EthV,   EphV,  BthV,  BphV, &
        & PNeV,   UerV,   UethV, UephV, PTeV, &
        & PNiV,   UirV,   UithV, UiphV, PTiV, &
-       & PNbV,   UbthV,  UbphV, PN01V, PN02V, &
+       & PNbV,   UbthV,  UbphV, PN01V, PN02V, PN03V, &
        & AphV,   PhiV,   RAthV, PeV,   PiV,  &
-       & RUethV, RUithV, PT01V, PT02V, PNbrpV
+       & RUethV, RUithV, PT01V, PT02V, PT03V, PNbrpV
 !!rp_conv       &, PNbrpLV
 
   real(8), dimension(:), allocatable :: PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX
@@ -157,7 +157,7 @@ module tx_commons
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWthe, FWthi, WPM, FVpch, rMue, rMui, rNuB, rNuLB, ft, &
-       & Chie, Chii, De, Di, VWpch, D01, D02, U02, &
+       & Chie, Chii, De, Di, VWpch, D01, D02, D03, U02, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
@@ -275,7 +275,7 @@ contains
     end if
 
     do
-       allocate(R(0:N),      PSI(0:N),      RHO(0:N),                         stat = ierl(1))
+       allocate(R(0:N),      PSI(0:N),    RHO(0:N),                           stat = ierl(1))
        allocate(H(0:NEMAX),  HPSI(0:NEMAX),                                   stat = ierl(2))
        ier = sum(ierl) ; iflag = 1
        if (ier /= 0) exit
@@ -283,9 +283,11 @@ contains
        allocate(ErV(0:N),    EthV(0:N),   EphV(0:N),  BthV(0:N),  BphV(0:N),  stat = ierl(1))
        allocate(PNeV(0:N),   UerV(0:N),   UethV(0:N), UephV(0:N), PTeV(0:N),  stat = ierl(2))
        allocate(PNiV(0:N),   UirV(0:N),   UithV(0:N), UiphV(0:N), PTiV(0:N),  stat = ierl(3))
-       allocate(PNbV(0:N),   UbthV(0:N),  UbphV(0:N), PN01V(0:N), PN02V(0:N), stat = ierl(4))
+       allocate(PNbV(0:N),   UbthV(0:N),  UbphV(0:N), PN01V(0:N), PN02V(0:N), &
+            &   PN03V(0:N),                                                   stat = ierl(4))
        allocate(AphV(0:N),   PhiV(0:N),   RAthV(0:N), PeV(0:N),   PiV(0:N),   stat = ierl(5))
-       allocate(RUethV(0:N), RUithV(0:N), PT01V(0:N), PT02V(0:N), PNbrpV(0:N),stat = ierl(6))
+       allocate(RUethV(0:N), RUithV(0:N), PT01V(0:N), PT02V(0:N), PT03V(0:N), &
+            &   PNbrpV(0:N),                                                  stat = ierl(6))
        ier = sum(ierl) ; iflag = 2
        if (ier /= 0) exit
 
@@ -308,7 +310,7 @@ contains
             &   rMui(0:N),   FWahle(0:N), FWahli(0:N),                        stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
        allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),   D02(0:N),   &
-            &   U02(0:N),                                                     stat = ierl(10))
+            &   D03(0:N),    U02(0:N),                                        stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(12))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(13))
@@ -384,9 +386,9 @@ contains
     deallocate(ErV,    EthV,   EphV,  BthV,  BphV)
     deallocate(PNeV,   UerV,   UethV, UephV, PTeV)
     deallocate(PNiV,   UirV,   UithV, UiphV, PTiV)
-    deallocate(PNbV,   UbthV,  UbphV, PN01V, PN02V)
+    deallocate(PNbV,   UbthV,  UbphV, PN01V, PN02V, PN03V)
     deallocate(AphV,   PhiV,   RAthV, PeV,   PiV)
-    deallocate(RUethV, RUithV, PT01V, PT02V, PNbrpV)
+    deallocate(RUethV, RUithV, PT01V, PT02V, PT03V, PNbrpV)
 
     deallocate(PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX)
 
@@ -402,7 +404,7 @@ contains
     deallocate(FWthe,  FWthi,  WPM,   FVpch, rMue,  rMui, &
          &     FWahle, FWahli)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
-    deallocate(De,     Di,     VWpch, D01,   D02,  U02)
+    deallocate(De,     Di,     VWpch, D01,   D02,  D03, U02)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)

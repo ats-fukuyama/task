@@ -225,8 +225,11 @@ SUBROUTINE TXINIT
   !   Slow neutral diffusion factor
   FSD01 = 1.D0
 
-  !   Fast neutral diffusion factor
+  !   Thermal neutral diffusion factor
   FSD02 = 1.D0
+
+  !   Thermal neutral diffusion factor, produced by NBI
+  FSD03 = 1.D0
 
   !   ***** initial parameters *****
 
@@ -531,7 +534,7 @@ SUBROUTINE TXINIT
   gDIV(9)  = 1.E3
   gDIV(12) = 1.E18
   gDIV(13) = 1.E3
-  gDIV(16) = 1.E14
+  gDIV(16) = 1.E16
   gDIV(17) = 1.E-3
   gDIV(19) = 1.E3
   gDIV(21) = 1.E6
@@ -585,6 +588,8 @@ SUBROUTINE TXINIT
   gDIV(124) = 1.E6
   gDIV(133) = 1.E20
   gDIV(136) = 1.E3
+  gDIV(137) = 1.E-6
+  gDIV(139) = 1.E3
 
   !   *** Density perturbation technique ***
 
@@ -842,9 +847,11 @@ SUBROUTINE TXPROF
      END IF
      ! N0_1 (slow neutrals)
      X(LQn1,NR) = PN0s
-     ! N0_2 (fast neutrals)
+     ! N0_2 (thermal neutrals)
 !     X(LQn2,NR) = 0.D0
      X(LQn2,NR) = 1.D-20 ! when ThntSW = 0.D0
+     ! N0_3 (thermal neutrals, due to NBI)
+     X(LQn3,NR) = 0.D0
      ! Bphi
      X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0 / AMPm5
      BphV(NR)   = BB
@@ -1159,7 +1166,7 @@ module tx_parameter_control
        & Chie0,Chii0,ChiNC, &
        & FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
        & PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
-       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,MDLC, &
+       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
        & rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFi,RRFiw,RRFi0,PRFHi, &
@@ -1285,7 +1292,7 @@ contains
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) EXIT
        IF(FSHL < 0.D0 .OR. FSNF < 0.D0) EXIT
        IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
-       IF(FSION < 0.D0 .OR. FSD01 < 0.D0 .OR. FSD02 < 0.D0) EXIT
+       IF(FSION < 0.D0 .OR. FSD01 < 0.D0 .OR. FSD02 < 0.D0 .OR. FSD03 < 0.D0) EXIT
        IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
        IF(rG1 < 0.D0) EXIT
        IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
@@ -1330,7 +1337,7 @@ contains
          &       ' ',8X,'FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,'/ &
          &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
          &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,'/&
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
          &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFe,RRFew,RRFe0,PRFHe,'/&
@@ -1388,8 +1395,8 @@ contains
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD01 ', FSD01 ,  'FSD02 ', FSD02 ,  &
-         &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
-         &   'Eb    ', Eb    , &
+         &   'FSD03 ', FSD03 ,  'rLn   ', rLn   ,  &
+         &   'rLT   ', rLT   ,  'Eb    ', Eb    ,  &
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
