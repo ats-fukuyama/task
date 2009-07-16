@@ -192,7 +192,7 @@ contains
 !***********************************************************
 
   SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
-       &               dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,IER)
+       &               dTedr,dTidr,dPedr,dPidr,dErdr,dBthdr,IER,dErdr0,dBthdr0)
 !****************************************************************************
 !
 !  Input : NR,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
@@ -279,13 +279,17 @@ contains
     INCLUDE 'txncls.inc'
     INTEGER(4), INTENT(IN)  :: NR
     INTEGER(4), INTENT(OUT) :: IER
-    real(8), intent(in)  :: dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
+    real(8), intent(in)  :: dTedr,dTidr,dPedr,dPidr,dErdr,dBthdr
+    real(8), intent(in), optional :: dErdr0,dBthdr0
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz, model
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
          &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, ppr, &
          &     AJBSL, ETAL, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
+    real(8) :: RL, BphVL, BthVL, EphVL, EthVL, QL, ErVL, PTeVL, PTiVL, &
+         &     PNeVL, PNiVL, PeVL, PiVL, &
+         &     dErdrL, dBthdrL, dTedrL, dTidrL, dPedrL, dPidrL
     REAL(8) :: AITKEN2P
 
     !     *** Ellipticity on axis ***
@@ -338,81 +342,110 @@ contains
     amu_i(2) = SNGL(PA)
     IF(Zeff > 1.D0) amu_i(3) = SNGL(PAL)
 
-    BBL   = SQRT(BphV(NR)**2 + BthV(NR)**2)
-    EpsL  = R(NR) / RR
+    !***** !! IMPORTANT !! **********************************************!
+    !  When NR == 0, the values are evaluated at the position            !
+    !    intermediate between the magnetic axis and the adjacent mesh.   !
+    !********************************************************************!
+    
+    IF (NR /= 0) THEN
+       RL    = R(NR)
+       BphVL = BphV(NR) ; BthVL = BthV(NR)
+       EphVL = EphV(NR) ; EthVL = EthV(NR)
+       QL    = Q   (NR) ; ErVL  = ErV (NR)
+       PTeVL = PTeV(NR) ; PTiVL = PTiV(NR)
+       PNeVL = PNeV(NR) ; PNiVL = PNiV(NR)
+       PeVL  = PeV (NR) ; PiVL  = PiV (NR)
+       dErdrL = dErdr   ; dBthdrL = dBthdr
+       dTedrL = dTedr   ; dTidrL  = dTidr
+       dPedrL = dPedr   ; dPidrL  = dPidr
+    ELSE
+       RL    = 0.5D0 * R(NR+1)
+       BphVL = 0.5D0 *(BphV(NR) + BphV(NR+1)) ; BthVL = 0.5D0 * BthV(NR+1)
+       EphVL = 0.5D0 *(EphV(NR) + EphV(NR+1)) ; EthVL = 0.5D0 * EthV(NR+1)
+       QL    = 0.5D0 *(Q   (NR) + Q   (NR+1)) ; ErVL  = 0.5D0 * ErV (NR+1)
+       PTeVL = 0.5D0 *(PTeV(NR) + PTeV(NR+1)) ; PTiVL = 0.5D0 *(PTiV(NR) + PTiV(NR+1))
+       PNeVL = 0.5D0 *(PNeV(NR) + PNeV(NR+1)) ; PNiVL = 0.5D0 *(PNiV(NR) + PNiV(NR+1))
+       PeVL  = 0.5D0 *(PeV (NR) + PeV (NR+1)) ; PiVL  = 0.5D0 *(PiV (NR) + PiV (NR+1))
+       dTedrL = 0.5D0 * dTedr   ; dTidrL  = 0.5D0 * dTidr
+       dPedrL = 0.5D0 * dPedr   ; dPidrL  = 0.5D0 * dPidr
+       dErdrL = 0.5D0 *(dErdr + dErdr0) ; dBthdrL = 0.5D0 *(dBthdr + dBthdr0)
+    END IF
+
+    BBL   = SQRT(BphVL**2 + BthVL**2)
+    EpsL  = RL / RR
     p_b2  = SNGL(BBL**2)
     p_bm2 = SNGL(1.D0 / BBL**2)
 
-    p_eb  = SNGL(EphV(NR)*BphV(NR)+EthV(NR)*BthV(NR))
-!    p_eb  = SNGL(EphV(NR)*BphV(NR))
-!!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
-!!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiV(NR)*SQRT(2.D0*PNiV(NR)*1.D20*PZ**2/PTiV(NR)))
-!!$    CALL SAUTER(PNeV(NR),PTeV(NR),dTedr,dPedr,PNiV(NR),PTiV(NR),dTidr,dPidr, &
-!!$         &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
+    p_eb  = SNGL(EphVL*BphVL + EthVL*BthVL)
+!    p_eb  = SNGL(EphV*BphV)
+!!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeVL*1.D20)/(PTeVL))
+!!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiVL*SQRT(2.D0*PNiVL*1.D20*PZ**2/PTiVL))
+!!$    CALL SAUTER(PNeVL,PTeVL,dTedrL,dPedrL,PNiVL,PTiVL,dTidrL,dPidrL, &
+!!$         &      QL,BphVL,RR*RA*BthVL,RR*BphVL,EpsL,RR,PZ,Zeff,ft(nr), &
 !!$         &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),JBS=AJBSL,ETA=ETAL)
 !!$    IF(NR == 0) AJBSL = 0.D0
-!!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeV(NR)*UephV(NR) &
-!!$         &                +PZ*AEE*PNiV(NR)*UiphV(NR) &
-!!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
-!!$         &              +(-   AEE*PNeV(NR)*UethV(NR) &
-!!$         &                +PZ*AEE*PNiV(NR)*UithV(NR) &
-!!$         &                +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20-AJBSL*BBL))
-!!$    p_eb = SNGL(ETAL*( (-   AEE*PNeV(NR)*UephV(NR) &
-!!$         &              +PZ*AEE*PNiV(NR)*UiphV(NR) &
-!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
-!!$         &            +(-   AEE*PNeV(NR)*UethV(NR) &
-!!$         &              +PZ*AEE*PNiV(NR)*UithV(NR) &
-!!$         &              +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20)
+!!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeVL*UephV(NR) &
+!!$         &                +PZ*AEE*PNiVL*UiphV(NR) &
+!!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
+!!$         &              +(-   AEE*PNeVL*UethV(NR) &
+!!$         &                +PZ*AEE*PNiVL*UithV(NR) &
+!!$         &                +PZ*AEE*PNbV(NR)*UbthV(NR))*BthVL)*1.D20-AJBSL*BBL))
+!!$    p_eb = SNGL(ETAL*( (-   AEE*PNeVL*UephV(NR) &
+!!$         &              +PZ*AEE*PNiVL*UiphV(NR) &
+!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
+!!$         &            +(-   AEE*PNeVL*UethV(NR) &
+!!$         &              +PZ*AEE*PNiVL*UithV(NR) &
+!!$         &              +PZ*AEE*PNbVL*UbthV(NR))*BthVL)*1.D20)
     ! No ohmic current causes infinite resistivity in the NCLASS module.
     IF(p_eb == 0.D0) p_eb = 1.e-10
 
-    IF(NR == 0) THEN
-       p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
-       p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
-       p_fhat3 = BphV(NR+3)/(RA*BthV(NR+3))
-       p_fhat  = SNGL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
-    ELSE
-       p_fhat  = SNGL(BphV(NR)/(RA*BthV(NR)))
-    END IF
+!!$    IF(NR == 0) THEN
+!!$       p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
+!!$       p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
+!!$       p_fhat3 = BphV(NR+3)/(RA*BthV(NR+3))
+!!$       p_fhat  = SNGL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
+!!$    ELSE
+       p_fhat  = SNGL(BphVL/(RA*BthVL))
+!!$    END IF
 
     !  Approximation inverse aspect ratio at the magnetix axis
-    IF(NR == 0) EpsL = 0.01D0*R(NR+1)/RR
+!!$    IF(NR == 0) EpsL = 0.01D0*R(NR+1)/RR
     IF(SNGL(EpsL) > 0.0) THEN
        ! poloidal moments of geometric factor for PS viscosity
        DO i=1,3
           p_fm(i)=SNGL(DBLE(i)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
                &                *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
-               &                *(Q(NR)*RR)**2))
+               &                *(QL*RR)**2))
        ENDDO
     ENDIF
 !!    p_fm(1:3) = 0.0 ! No Pfirsch-Shulter viscosity
     p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
     p_grbm2   = SNGL(1.D0/RA**2)
-    p_grphi   = SNGL(-RA*ErV(NR))
-!    p_gr2phi  = SNGL(-RA**2*dErdr) ! Orbit squeezing
+    p_grphi   = SNGL(-RA*ErVL)
+!    p_gr2phi  = SNGL(-RA**2*dErdrL) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
-    if(nr == 0) then
-       p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
-    else
-       p_gr2phi  = SNGL(-RA**2*dErdr+RA**2*ErV(NR)*dBthdr/BthV(NR))
-    end if
-    p_ngrth   = SNGL(BphV(NR)/(RR*Q(NR)*BBL))
-    temp_i(1) = SNGL(PTeV(NR))
-    temp_i(2) = SNGL(PTiV(NR))
-    grt_i(1)  = SNGL(RA * dTedr)
-    grt_i(2)  = SNGL(RA * dTidr)
-    den_iz(1,1)       = SNGL(PNeV(NR)) * 1.E20
-    den_iz(2,INT(PZ)) = SNGL(PNiV(NR)) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * dPedr) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * dPidr) * 1.E20
+!!$    if(nr == 0) then
+!!$       p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
+!!$    else
+       p_gr2phi  = SNGL(-RA**2*dErdrL+RA**2*ErVL*dBthdrL/BthVL)
+!!$    end if
+    p_ngrth   = SNGL(BphVL/(RR*QL*BBL))
+    temp_i(1) = SNGL(PTeVL)
+    temp_i(2) = SNGL(PTiVL)
+    grt_i(1)  = SNGL(RA * dTedrL)
+    grt_i(2)  = SNGL(RA * dTidrL)
+    den_iz(1,1)       = SNGL(PNeVL) * 1.E20
+    den_iz(2,INT(PZ)) = SNGL(PNiVL) * 1.E20
+    grp_iz(1,1)       = SNGL(RA * dPedrL) * 1.E20
+    grp_iz(2,INT(PZ)) = SNGL(RA * dPidrL) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
-       den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiV(NR)) * 1.E20
-       den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiV(NR)) * 1.E20
-       grp_iz(2,INT(PZ))  = SNGL(RA * dPidr * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = SNGL(RA * dPidr * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+       den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiVL) * 1.E20
+       den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiVL) * 1.E20
+       grp_iz(2,INT(PZ))  = SNGL(RA * dPidrL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = SNGL(RA * dPidrL * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
 
     ! Even when NBI is activated, any external parallel force concerning NBI
@@ -432,8 +465,8 @@ contains
          &      chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
     IF(k_out >0 .and.k_out <= 7) THEN
-       p_eps = SNGL(R(NR)/RR)
-       p_q   = SNGL(Q(NR))
+       p_eps = SNGL(RL/RR)
+       p_q   = SNGL(QL)
        r0    = SNGL(RR)
        a0    = SNGL(RA)
        e0    = SNGL(1.D0)
@@ -454,12 +487,6 @@ contains
 
 !    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,1)/BBL,upar_s(1,2,1)/BBL,sum(upar_s(1,1:3,1))/BBL
 !    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,2)/BBL,upar_s(1,2,2)/BBL,sum(upar_s(1,1:3,2))/BBL
-!!$   write(6,*) r(nr)/ra,p_eb/p_etap+p_bsjb,( (-   AEE*PNeV(NR)*UephV(NR) &
-!!$         &              +PZ*AEE*PNiV(NR)*UiphV(NR) &
-!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphV(NR) &
-!!$         &            +(-   AEE*PNeV(NR)*UethV(NR) &
-!!$         &              +PZ*AEE*PNiV(NR)*UithV(NR) &
-!!$         &              +PZ*AEE*PNbV(NR)*UbthV(NR))*BthV(NR))*1.D20
 
     !     *** Takeover Parameters ***
 
@@ -475,17 +502,17 @@ contains
 
     !   Bootstrap current
     IF(Zeff == 1.D0) THEN
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedr / PTeV(NR)) &
-              &  + DBLE(bsjbp_s(1)) *(RA * dPedr / PeV (NR)) &
-              &  + DBLE(bsjbt_s(2)) *(RA * dTidr / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(2)) *(RA * dPidr / PiV (NR))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedrL/ PTeVL) &
+              &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
+              &  + DBLE(bsjbt_s(2)) *(RA * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL)) / BBL
     ELSE
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedr / PTeV(NR)) &
-              &  + DBLE(bsjbp_s(1)) *(RA * dPedr / PeV (NR)) &
-              &  + DBLE(bsjbt_s(2)) *(RA * dTidr / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(2)) *(RA * dPidr / PiV (NR) * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
-              &  + DBLE(bsjbt_s(3)) *(RA * dTidr / PTiV(NR)) &
-              &  + DBLE(bsjbp_s(3)) *(RA * dPidr / PiV (NR) * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedrL/ PTeVL) &
+              &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
+              &  + DBLE(bsjbt_s(2)) *(RA * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
+              &  + DBLE(bsjbt_s(3)) *(RA * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(3)) *(RA * dPidrL/ PiVL * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
     END IF
     IF(k_potato == 0 .and. NR == 0) JBSout = 0.D0
 
@@ -493,13 +520,13 @@ contains
     ETAout = DBLE(p_etap)
 
     !   Neoclassical viscosity
-    IF(NR == 0) THEN
-       NueNC = 0.D0
-       NuiNC = 0.D0
-    ELSE
-       NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeV(NR) * 1.D20 * AME * BthV(NR)**2)
-       NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiV(NR) * 1.D20 * AMI * BthV(NR)**2)
-    END IF
+!!$    IF(NR == 0) THEN
+!!$       NueNC = 0.D0
+!!$       NuiNC = 0.D0
+!!$    ELSE
+       NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeVL * 1.D20 * AME * BthVL**2)
+       NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiVL * 1.D20 * AMI * BthVL**2)
+!!$    END IF
 
     !   Neoclassical thermal diffusivity (Diagonal effect only)
     ChiNCpel = ChiNC * DBLE(chip_ss(1,1))
@@ -507,20 +534,19 @@ contains
     ChiNCpil = ChiNC * DBLE(chip_ss(2,2))
     ChiNCtil = ChiNC * DBLE(chit_ss(2,2))
 
-    !   Now not using
-       DO i=1,m_s
-          uthai=DBLE(utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i))
-          IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then
-             !     Poloidal
-             VPOL(NR)=uthai*BthV(NR)
-!!$             !     Parallel
-!!$             VPAR(NR)=DBLE(BthV(NR)/btot*VPOL(NR)+BphV(NR)/btot*VTOR(NR))
-!!$             !     Perpendicular
-!!$             VPRP(NR)=DBLE(BphV(NR)/btot*VPOL(NR)-BthV(NR)/btot*VTOR(NR))
-          ENDIF
-       ENDDO
-!       IF(MOD(NT,1000)==0) write(6,'(5F15.7)') R(NR)/RA,UithV(NR),VPOL(NR),utheta_s(1,1,2)*BthV(NR),utheta_s(1,2,2)*BthV(NR)
-!!$    ENDIF
+!!$    !   Now not using
+!!$       DO i=1,m_s
+!!$          uthai=DBLE(utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i))
+!!$          IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then
+!!$             !     Poloidal
+!!$             VPOL(NR)=uthai*BthVL
+!!$!             !     Parallel
+!!$!             VPAR(NR)=DBLE(BthVL/btot*VPOL(NR)+BphVL/btot*VTOR(NR))
+!!$!             !     Perpendicular
+!!$!             VPRP(NR)=DBLE(BphVL/btot*VPOL(NR)-BthVL/btot*VTOR(NR))
+!!$          ENDIF
+!!$       ENDDO
+!!$!       IF(MOD(NT,1000)==0) write(6,'(5F15.7)') RL/RA,UithV(NR),VPOL(NR),utheta_s(1,1,2)*BthVL,utheta_s(1,2,2)*BthVL
 
     RETURN
   end SUBROUTINE TX_NCLASS

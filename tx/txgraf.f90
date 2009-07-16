@@ -23,8 +23,7 @@ contains
   SUBROUTINE TXGOUT
     use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
-         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV!, &
-!         &                 X, LQi4, LQi1, ANSAV, rIP, LQe1
+         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_variables, only : ripple
 
@@ -76,8 +75,6 @@ contains
           CALL TXGLOD(IER)
           IF(IER /= 0) CYCLE OUTER
           CALL TXPRFG
-
-!          write(6,*) INTG_F(X(LQe1,0:NRMAX))*2.D0*PI/(PI*RA*RA)/(rIp / (PI * RA**2)),INTG_F(X(LQi4,0:NRMAX))/(0.5D0*RB**2),INTG_F(X(LQi4,0:NRMAX))/INTG_F(X(LQi1,0:NRMAX))
 
        CASE('I')
           ! *** Initialization ***
@@ -1458,7 +1455,7 @@ contains
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@NBI N$-0$=(r)@'
-       CALL APPROPGY(MODEG, GY(0,0,138), GYL, STR, NRMAX, NGR, gDIV(36))
+       CALL APPROPGY(MODEG, GY(0,0,138), GYL, STR, NRMAX, NGR, gDIV(138))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
        STR = '@TOTAL N$-0$=(r)@'
@@ -2038,8 +2035,8 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,10), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(10), &
             &        GMAX=GMAX(3), GMIN=GMIN(3))
 
-       STR(4) = '@n$-e$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,1),  GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(1), &
+       STR(4) = '@Z*n$-i$=+Z*n$-b$=-n$-e$=@'
+       CALL APPROPGY(MODEG, GYT(0,0,2),  GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(2), &
             &        GMAX=GMAX(4), GMIN=GMIN(4))
 
        STR(5) = '@T$-e$=(r)@'
@@ -2054,36 +2051,36 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,18), GYL(0,0,7), STR(7), NRMAX, NGT, gDIV(18), &
             &        GMAX=GMAX(7), GMIN=GMIN(7))
 
-       STR(8) = '@u$-er$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,3),  GYL(0,0,8), STR(8), NRMAX, NGT, gDIV(3), &
+       STR(8) = '@n$-e$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,1),  GYL(0,0,8), STR(8), NRMAX, NGT, gDIV(1), &
             &        GMAX=GMAX(8), GMIN=GMIN(8))
 
-       STR(9) = '@u$-e$#q$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,4),  GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(4), &
+       STR(9) = '@u$-er$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,3),  GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(3), &
             &        GMAX=GMAX(9), GMIN=GMIN(9))
 
-       STR(10) = '@u$-e$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,5),  GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(5), &
+       STR(10) = '@u$-e$#q$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,4),  GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(4), &
             &        GMAX=GMAX(10), GMIN=GMIN(10))
 
-       STR(11) = '@SLOW N$-0$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,35), GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(35), &
+       STR(11) = '@u$-e$#f$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,5),  GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(5), &
             &        GMAX=GMAX(11), GMIN=GMIN(11))
 
-       STR(12) = '@u$-ir$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,6),  GYL(0,0,12), STR(12), NRMAX, NGT, gDIV(6), &
+       STR(12) = '@n$-i$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,37), GYL(0,0,12), STR(12), NRMAX, NGT, gDIV(37), &
             &        GMAX=GMAX(12), GMIN=GMIN(12))
 
-       STR(13) = '@u$-i$#q$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,7),  GYL(0,0,13), STR(13), NRMAX, NGT, gDIV(7), &
+       STR(13) = '@u$-ir$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,6),  GYL(0,0,13), STR(13), NRMAX, NGT, gDIV(6), &
             &        GMAX=GMAX(13), GMIN=GMIN(13))
 
-       STR(14) = '@u$-i$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,8),  GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(8), &
+       STR(14) = '@u$-i$#q$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,7),  GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(7), &
             &        GMAX=GMAX(14), GMIN=GMIN(14))
 
-       STR(15) = '@FAST N$-0$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,36), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(36), &
+       STR(15) = '@u$-i$#f$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,8),  GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(8), &
             &        GMAX=GMAX(15), GMIN=GMIN(15))
 
        DO NG = 0, NGT
@@ -2114,39 +2111,36 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,109), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(109), &
             &        GMAX=GMAX(3), GMIN=GMIN(3))
 
-       STR(4) = '@q(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,20), GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(20), &
+       STR(4) = '@TOTAL N$-0$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,16), GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(16), &
             &        GMAX=GMAX(4), GMIN=GMIN(4))
 
-       STR(5) = '@j$-e$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,22), GYL(0,0,5), STR(5), NRMAX, NGT, gDIV(22), &
+       STR(5) = '@SLOW N$-0$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,35), GYL(0,0,5), STR(5), NRMAX, NGT, gDIV(35), &
             &        GMAX=GMAX(5), GMIN=GMIN(5))
 
-       STR(6) = '@j$-i$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,23), GYL(0,0,6), STR(6), NRMAX, NGT, gDIV(23), &
+       STR(6) = '@THERMAL N$-0$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,36), GYL(0,0,6), STR(6), NRMAX, NGT, gDIV(36), &
             &        GMAX=GMAX(6), GMIN=GMIN(6))
 
-       STR(7) = '@j$-b$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,24), GYL(0,0,7), STR(7), NRMAX, NGT, gDIV(24), &
+       STR(7) = '@NBI N$-0$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,138), GYL(0,0,7), STR(7), NRMAX, NGT, gDIV(138), &
             &        GMAX=GMAX(7), GMIN=GMIN(7))
 
-       STR(8) = '@j$-$#f$#$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,21), GYL(0,0,8), STR(8), NRMAX, NGT, gDIV(21), &
+       STR(8) = '@q(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,20), GYL(0,0,8), STR(8), NRMAX, NGT, gDIV(20), &
             &        GMAX=GMAX(8), GMIN=GMIN(8))
 
-!       STR(9) = '@D$-i$=(r)+D$-e$=(r)@'
-!       CALL APPROPGY(MODEG, GYT(0,0,29), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(29), &
-!            &        GMAX=GMAX(9), GMIN=GMIN(9))
-       STR(9) = '@D$-eff$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,83), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(83), &
+       STR(9) = '@j$-$#f$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,21), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(21), &
             &        GMAX=GMAX(9), GMIN=GMIN(9))
 
-       STR(10) = '@F$-CDBM$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,31), GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(31), &
+       STR(10) = '@j$-e$#f$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,22), GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(22), &
             &        GMAX=GMAX(10), GMIN=GMIN(10))
 
-       STR(11) = '@G$-1$=h$+2$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,30), GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(30), &
+       STR(11) = '@j$-i$#f$#$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,23), GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(23), &
             &        GMAX=GMAX(11), GMIN=GMIN(11))
 
        STR(12) = '@S(r)@'
@@ -2157,12 +2151,12 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,33), GYL(0,0,13), STR(13), NRMAX, NGT, gDIV(33), &
             &        GMAX=GMAX(13), GMIN=GMIN(13))
 
-       STR(14) = '@Z*n$-i$=+Z*n$-b$=-n$-e$=@'
-       CALL APPROPGY(MODEG, GYT(0,0,2),  GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(2), &
+       STR(14) = '@F$-CDBM$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,31), GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(31), &
             &        GMAX=GMAX(14), GMIN=GMIN(14))
 
-       STR(15) = '@n$-i$=(r)@'
-       CALL APPROPGY(MODEG, GYT(0,0,37), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(37), &
+       STR(15) = '@G$-1$=h$+2$=(r)@'
+       CALL APPROPGY(MODEG, GYT(0,0,30), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(30), &
             &        GMAX=GMAX(15), GMIN=GMIN(15))
 
        DO NG = 0, NGT
@@ -2269,9 +2263,13 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,57), GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(57), &
             &        GMAX=GMAX(4), GMIN=GMIN(4))
 
-       STR(5) = '@LQr1@'
-       CALL APPROPGY(MODEG, GYT(0,0,110), GYL(0,0,5), STR(5), NRMAX, NGT, gDIV(110), &
+       STR(5) = '@LQn3@'
+       CALL APPROPGY(MODEG, GYT(0,0,137), GYL(0,0,5), STR(5), NRMAX, NGT, gDIV(137), &
             &        GMAX=GMAX(5), GMIN=GMIN(5))
+
+       STR(6) = '@LQr1@'
+       CALL APPROPGY(MODEG, GYT(0,0,110), GYL(0,0,6), STR(6), NRMAX, NGT, gDIV(110), &
+            &        GMAX=GMAX(6), GMIN=GMIN(6))
 
        DO NG = 0, NGT
           call animes
@@ -2321,32 +2319,36 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,64), GYL(0,0,8), STR(8), NRMAX, NGT, gDIV(64), &
             &        GMAX=GMAX(8), GMIN=GMIN(8))
 
-       STR(9) = '@FWthi@'
-       CALL APPROPGY(MODEG, GYT(0,0,65), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(65), &
+!!$       STR(9) = '@FWthi@'
+!!$       CALL APPROPGY(MODEG, GYT(0,0,65), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(65), &
+!!$            &        GMAX=GMAX(9), GMIN=GMIN(9))
+
+       STR(9) = '@WPM@'
+       CALL APPROPGY(MODEG, GYT(0,0,66), GYL(0,0,9), STR(9), NRMAX, NGT, gDIV(66), &
             &        GMAX=GMAX(9), GMIN=GMIN(9))
 
-       STR(10) = '@WPM@'
-       CALL APPROPGY(MODEG, GYT(0,0,66), GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(66), &
+       STR(10) = '@rNu0e@'
+       CALL APPROPGY(MODEG, GYT(0,0,68), GYL(0,0,10), STR(10), NRMAX, NGT, gDIV(68), &
             &        GMAX=GMAX(10), GMIN=GMIN(10))
 
-       STR(11) = '@rNuTei@'
-       CALL APPROPGY(MODEG, GYT(0,0,67), GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(67), &
+       STR(11) = '@rNu0i@'
+       CALL APPROPGY(MODEG, GYT(0,0,69), GYL(0,0,11), STR(11), NRMAX, NGT, gDIV(69), &
             &        GMAX=GMAX(11), GMIN=GMIN(11))
 
-       STR(12) = '@rNu0e@'
-       CALL APPROPGY(MODEG, GYT(0,0,68), GYL(0,0,12), STR(12), NRMAX, NGT, gDIV(68), &
+       STR(12) = '@D01@'
+       CALL APPROPGY(MODEG, GYT(0,0,72), GYL(0,0,12), STR(12), NRMAX, NGT, gDIV(72), &
             &        GMAX=GMAX(12), GMIN=GMIN(12))
 
-       STR(13) = '@rNu0i@'
-       CALL APPROPGY(MODEG, GYT(0,0,69), GYL(0,0,13), STR(13), NRMAX, NGT, gDIV(69), &
+       STR(13) = '@D02@'
+       CALL APPROPGY(MODEG, GYT(0,0,73), GYL(0,0,13), STR(13), NRMAX, NGT, gDIV(73), &
             &        GMAX=GMAX(13), GMIN=GMIN(13))
 
-       STR(14) = '@D01@'
-       CALL APPROPGY(MODEG, GYT(0,0,72), GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(72), &
+       STR(14) = '@D03@'
+       CALL APPROPGY(MODEG, GYT(0,0,139), GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(139), &
             &        GMAX=GMAX(14), GMIN=GMIN(14))
 
-       STR(15) = '@D02@'
-       CALL APPROPGY(MODEG, GYT(0,0,73), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(73), &
+       STR(15) = '@U02@'
+       CALL APPROPGY(MODEG, GYT(0,0,136), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(136), &
             &        GMAX=GMAX(15), GMIN=GMIN(15))
 
        DO NG = 0, NGT
@@ -2389,8 +2391,8 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,87), GYL(0,0,6), STR(6), NRMAX, NGT, gDIV(87), &
             &        GMAX=GMAX(6), GMIN=GMIN(6))
 
-       STR(7) = '@SNB@'
-       CALL APPROPGY(MODEG, GYT(0,0,84), GYL(0,0,7), STR(7), NRMAX, NGT, gDIV(84), &
+       STR(7) = '@rNuTei@'
+       CALL APPROPGY(MODEG, GYT(0,0,67), GYL(0,0,7), STR(7), NRMAX, NGT, gDIV(67), &
             &        GMAX=GMAX(7), GMIN=GMIN(7))
 
        STR(8) = '@rNube@'

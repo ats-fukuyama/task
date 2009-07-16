@@ -386,12 +386,6 @@ SUBROUTINE TXINIT
   !             1   : Use BDF2
   IGBDF = 0
 
-  !   Parameter used just after a data file is loaded or a heating is activated
-  !     in case of IGBDF=1.
-  !     IReSTART = 0 : default
-  !                1 : in above case
-  IReSTART = 0
-
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
 
@@ -589,6 +583,7 @@ SUBROUTINE TXINIT
   gDIV(133) = 1.E20
   gDIV(136) = 1.E3
   gDIV(137) = 1.E-6
+  gDIV(138) = 1.E13
   gDIV(139) = 1.E3
 
   !   *** Density perturbation technique ***
@@ -1179,7 +1174,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART, &
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF, &
        & MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
   private :: TXPLST
 
@@ -1350,7 +1345,7 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF,IReSTART' / & 
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF' / & 
          &       ' ',8X,'MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
@@ -1432,7 +1427,7 @@ contains
          &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
          &   'MDINIT', MDINIT,  'MDVAHL', MDVAHL,  &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
-         &   'IReSTR', IReSTART,'MDSOLV', MDSOLV,  &
+         &   'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &

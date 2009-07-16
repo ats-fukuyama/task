@@ -10,14 +10,14 @@ SUBROUTINE TXMENU
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
        &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
        &              GT, GY, NGRM, NGYRM, R, iflag_file, MDLMOM, &
-       &              DelRho, DelN, Rho, LQe1, LQi1, PZ
+       &              DelRho, DelN, Rho, LQe1, LQi1, PZ, ICONT
   use tx_main, only : TXEXEC
   use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
   use tx_variables, only : TXCALV
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   implicit none
-  INTEGER(4) :: ICONT, MODE, I, IST, ier, NR
+  INTEGER(4) :: MODE, I, IST, ier, NR
   character(len=80) :: LINE
   character(len=1)  :: KID, KID2
 
@@ -92,10 +92,10 @@ SUBROUTINE TXMENU
      CASE('Q')
         EXIT
      CASE('W')
-!!$        IF (ICONT == 0) THEN
-!!$           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
-!!$           CYCLE
-!!$        END IF
+        IF (ICONT == 0) THEN
+           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+           CYCLE
+        END IF
         CALL TXSTAT
      CASE('S')
         CALL TXSAVE
@@ -109,6 +109,10 @@ SUBROUTINE TXMENU
      CASE('G')
         CALL TXGOUT
      CASE('N')
+        IF (ICONT == 0) THEN
+           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+           CYCLE
+        END IF
         DO NR = 0, NRMAX-1
            IF(Rho(NR) <= DelRho .AND. Rho(NR+1) >= DelRho) THEN
               I = NR
@@ -145,6 +149,10 @@ SUBROUTINE TXMENU
            end if
         end if
      CASE('O')
+        IF (ICONT == 0) THEN
+           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+           CYCLE
+        END IF
         CALL FOR_NTMAIN
      CASE('#')
         CONTINUE

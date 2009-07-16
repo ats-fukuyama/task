@@ -124,7 +124,7 @@ module tx_commons
   !**********************************!
 
   ! Configuration parameters
-  integer(4) :: NT, NQMAX, IERR, IReSTART
+  integer(4) :: NT, NQMAX, IERR, ICONT
   real(8) :: T_TX, TMAX
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
@@ -246,10 +246,10 @@ module tx_commons
 
 contains
 
-  subroutine allocate_txcomm(ier, icont)
+  subroutine allocate_txcomm(ier, icont_in)
 
     integer(4), intent(out) :: ier
-    integer(4), intent(in), optional :: icont
+    integer(4), intent(in), optional :: icont_in
     integer(4) :: iflag, N, NS, NF
     integer(4), dimension(1:17) :: ierl
 
@@ -267,7 +267,7 @@ contains
 
     ! allocation check
     if(allocated(R)) then
-       if(present(icont) .and. icont /= 0) then
+       if(present(icont_in) .and. icont_in /= 0) then
           call deallocate_txcomm
        else
           return

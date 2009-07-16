@@ -337,14 +337,13 @@ SUBROUTINE TXLOAD(IST)
        & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLETA,MDFIXT,MDVAHL, &
        & MDLNBD,PNBMPD,NGR,rIP,thrp,kappa, &
        & PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX,LQe1,LQe5,LQi1,LQi5,TAUE2, &
-       & rMU0,rMUb1,rMUb2,NEMAX,IReSTART
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
-
   implicit none
   integer(4), intent(out) :: IST
-  INTEGER(4) :: NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV, NGTL
+  INTEGER(4) :: NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
   character(len=100) ::  TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
@@ -387,7 +386,7 @@ SUBROUTINE TXLOAD(IST)
      CLOSE(21)
      RETURN
   END IF
-  !  IF(LOADSLID(1:5) == 'tx454') THEN
+  !  IF(LOADSLID(1:5) == 'tx455') THEN
   READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -420,14 +419,10 @@ SUBROUTINE TXLOAD(IST)
   READ(21) (thrp(I), I=1, 2*NRMAX)
   !  END IF
   CLOSE(21)
-  WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
+  WRITE(6,'(2A)') '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE. ID = ',LOADSLID
 
-  NGTL=NGT
-  NGT=-1
-  NGR=-1
-  NGVV=-1
   rIP=rIPs
-  IReSTART = 1
+  ICONT = 1
 
   CALL TXPARM_CHECK
 
@@ -454,7 +449,12 @@ SUBROUTINE TXLOAD(IST)
 
   ! TAUE2 uses data one step before the data was stored.
   ! Then TAUE2 is reconstituted by using the graphic data of TAUE2.
-  TAUE2 = DBLE(GTY(NGTL,34))
+  TAUE2 = DBLE(GTY(NGT,34))
+
+  ! Reset start point of graphics
+  NGT=-1
+  NGR=-1
+  NGVV=-1
 
   RETURN
 END SUBROUTINE TXLOAD
@@ -527,7 +527,7 @@ SUBROUTINE TXGSAV
      END IF
   END DO
 
-!!$    WRITE(21) SLID
+    WRITE(21) SLID
 !!$    WRITE(21) RCSId
 
   WRITE(21) RA,RB,RC,RR,BB
@@ -632,13 +632,13 @@ SUBROUTINE TXGLOD(IST)
      write(6,*) "XX Allocation error : TXGLOD"
   end if
 
-!!$    READ(21,IOSTAT=IST) LOADSLID
-!!$    IF (IST > 0) THEN
-!!$       WRITE(6,*) 'XX READ ERROR in TXGLOD !'
-!!$       CLOSE(21)
-!!$       RETURN
-!!$    END IF
-!!$    !  IF(LOADSLID(1:5) == 'tx454') THEN
+  READ(21,IOSTAT=IST) LOADSLID
+  IF (IST > 0) THEN
+     WRITE(6,*) 'XX READ ERROR in TXGLOD !'
+     CLOSE(21)
+     RETURN
+  END IF
+!!$    !  IF(LOADSLID(1:5) == 'tx455') THEN
 !!$    READ(21) RCSId
 
   READ(21) RA,RB,RC,RR,BB
@@ -675,7 +675,7 @@ SUBROUTINE TXGLOD(IST)
   READ(21) (thrp(I), I=1, 2*NRMAX)
   !  END IF
   CLOSE(21)
-  WRITE(6,*) '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE.'
+  WRITE(6,'(2A)') '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE. ID = ',LOADSLID
 
   rIp = rIps
 

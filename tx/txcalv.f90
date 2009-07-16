@@ -743,10 +743,23 @@ contains
        !     *** Parallel neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
-       CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
-            &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-            &         dErdr(NR),dBthdr(NR),dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER)
-       IF(IER /= 0) IERR = IER
+          IF(NR == 0) THEN
+             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
+                  &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+                  &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1), &
+                  &         dErdr(NR+1),dBthdr(NR+1),IER,dErdr(0),dBthdr(0))
+          ELSE
+             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
+                  &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+                  &         dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR), &
+                  &         dErdr(NR),dBthdr(NR),IER)
+          END IF
+!!$          if(nr == 0) then
+!!$             write(6,*) 0.5d0*Rho(nr+1),rNueNC(NR),ChiNCpe(NR)
+!!$          else
+!!$             write(6,*) Rho(nr),rNueNC(NR),ChiNCte(NR)
+!!$          end if
+          IF(IER /= 0) IERR = IER
 !       if(mod(nt,10)==0) write(6,*) rho(nr),((BthV(NR)/BphV(NR))**2-1.d0)*rNuPara+rNueNC(NR)*(BthV(NR)/BphV(NR))**2,UerV(NR)
 
        ELSE
@@ -1048,8 +1061,7 @@ contains
        Chii(NR) = Chii0 * DeL
 
        ! <omega/m>
-!       WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
-       WPM(NR) = WPM0
+       WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
        ! Force induced by drift wave (e.q.(8),(13))
        FWthe(NR)   = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
        FWthi(NR)   = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
@@ -1224,14 +1236,25 @@ contains
 
     rNuAse(0) = AITKEN2P(R(0),rNuAse(1),rNuAse(2),rNuAse(3),R(1),R(2),R(3))
     rNuAsi(0) = AITKEN2P(R(0),rNuAsi(1),rNuAsi(2),rNuAsi(3),R(1),R(2),R(3))
-    rNueNC(0) = AITKEN2P(R(0),rNueNC(1),rNueNC(2),rNueNC(3),R(1),R(2),R(3))
-    rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
+
+    !  Linear extrapolation
+
+!!$    rNueNC(0) = AITKEN2P(R(0),rNueNC(1),rNueNC(2),rNueNC(3),R(1),R(2),R(3))
+!!$    rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
+    rNueNC(0) = 2.D0 * rNueNC(0) - rNueNC(1)
+    rNuiNC(0) = 2.D0 * rNuiNC(0) - rNuiNC(1)
     if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
     if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
-    ChiNCpe(0) = AITKEN2P(R(0),ChiNCpe(1),ChiNCpe(2),ChiNCpe(3),R(1),R(2),R(3))
-    ChiNCte(0) = AITKEN2P(R(0),ChiNCte(1),ChiNCte(2),ChiNCte(3),R(1),R(2),R(3))
-    ChiNCpi(0) = AITKEN2P(R(0),ChiNCpi(1),ChiNCpi(2),ChiNCpi(3),R(1),R(2),R(3))
-    ChiNCti(0) = AITKEN2P(R(0),ChiNCti(1),ChiNCti(2),ChiNCti(3),R(1),R(2),R(3))
+!!$    ChiNCpe(0) = AITKEN2P(R(0),ChiNCpe(1),ChiNCpe(2),ChiNCpe(3),R(1),R(2),R(3))
+!!$    ChiNCte(0) = AITKEN2P(R(0),ChiNCte(1),ChiNCte(2),ChiNCte(3),R(1),R(2),R(3))
+!!$    ChiNCpi(0) = AITKEN2P(R(0),ChiNCpi(1),ChiNCpi(2),ChiNCpi(3),R(1),R(2),R(3))
+!!$    ChiNCti(0) = AITKEN2P(R(0),ChiNCti(1),ChiNCti(2),ChiNCti(3),R(1),R(2),R(3))
+    ChiNCpe(0) = 2.D0 * ChiNCpe(0) - ChiNCpe(1)
+    ChiNCte(0) = 2.D0 * ChiNCte(0) - ChiNCte(1)
+    ChiNCpi(0) = 2.D0 * ChiNCpi(0) - ChiNCpi(1)
+    ChiNCti(0) = 2.D0 * ChiNCti(0) - ChiNCti(1)
+    ETA2(0)  = 2.D0 * ETA2(0)  - ETA(1)
+    AJBS2(0) = 2.D0 * AJBS2(0) - AJBS2(1)
 
 !    write(6,*) INTG_F(SNBe),INTG_F(SNBi)
 !    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6

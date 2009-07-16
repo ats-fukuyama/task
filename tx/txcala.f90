@@ -9,7 +9,8 @@ module tx_coefficients
        & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        & rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, RU02, &
-       & FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
+       & FWpheBB, dAphV, FWpheBB2, FWtheBB, FWpheB, &
+!!ion       & FWphiBB, FWphiBB2, FWthiBB, FWphiB, &
        & BphBNi, BthBNi, Dbrpft, &
        & rNuei1EI, rNuei2BthEI, rNuei3EI, &
        & rNube1BE, rNube2BthBE, rNube3BE, &
@@ -112,13 +113,14 @@ contains
        &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), &!dPNeV(0:N), dPNiV(0:N), &
        &     RUbthV(0:N), UethVR(0:N), UithVR(0:N), &
        &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), RU02(0:N), &
-       &     FWpheBB(0:N), FWphiBB(0:N), dAphV(0:N), FWpheBB2(0:N), FWphiBB2(0:N), &
-       &     BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
+       &     FWpheBB(0:N), dAphV(0:N), FWpheBB2(0:N), &
+       &     FWtheBB(0:N), FWpheB(0:N), BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
        &     FVpchph(0:N), FWahlphe(0:N), FWahlphi(0:N))
+!!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthiBB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -239,13 +241,14 @@ contains
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        &       rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, RU02, &
-       &       FWpheBB, FWphiBB, dAphV, FWpheBB2, FWphiBB2, &
+       &       FWpheBB, dAphV, FWpheBB2, FWtheBB, FWpheB, &
        &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
        &       FVpchph, FWahlphe, FWahlphi)
+!!ion    deallocate(FWphiBB, FWphiBB2, FWthiBB, FWphiB)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -291,9 +294,9 @@ contains
 !    CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
     dAphV(0:NRMAX)    = dfdx(PSI,AphV,NRMAX,0)
     FWpheBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphe(0:NRMAX)
-    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphi(0:NRMAX)
     FWpheBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthe(0:NRMAX)
-    FWphiBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthi(0:NRMAX)
+!!ion    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphi(0:NRMAX)
+!!ion    FWphiBB2(0:NRMAX) =(BthV(0:NRMAX) / BphV(0:NRMAX))**2 * FWthi(0:NRMAX)
 
     DO NR = 0, NRMAX
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
@@ -306,6 +309,11 @@ contains
           Vbparaph(NR)  = Vbpara(NR) * (BphV(NR) / BBL)
           RVbparath(NR) = Vbpara(NR) * (BthV(NR) / BBL) * R(NR)
        end if
+
+       FWtheBB(NR) = FWthe  (NR) * (BBL / BphV(NR))
+       FWpheB (NR) = FWpheBB(NR) * (BBL / BphV(NR))
+!!ion       FWthiBB(NR) = FWthi  (NR) * (BBL / BphV(NR))
+!!ion       FWphiB (NR) = FWphiBB(NR) * (BBL / BphV(NR))
     END DO
     BthBNi(0) = 0.D0 ! Any value is OK. (Never affect the result.)
 
@@ -717,10 +725,10 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,19,LQe3) = - 1.D0 / AME * fem_int(44,FWthe,WPM)
+    ELM(1:NEMAX,1:4,19,LQe3) = - 1.D0 / AME * fem_int(44,FWtheBB,WPM)
     NLC(19,LQe3) = LQe1
 
-    ! Convection controller
+    ! Contribution of off-diagonal term due to heat flux
 
     ELM(1:NEMAX,1:4,20,LQe3) = - 2.D0 * (rKeV / AME) * fem_int(37,FWahle,PTeV) &
          &                            * (1.D0 - FSVAHL) &
@@ -751,7 +759,7 @@ contains
 !!ion            &                     - 2.D0 * ( AEE / AME) * fem_int(37,FWahli,PhiV) * FSVAHLL
 !!ion       NLC(19,LQe3) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,20,LQe3) =   1.D0 / AME * fem_int(44,FWthi,WPM)
+!!ion       ELM(1:NEMAX,1:4,20,LQe3) =   1.D0 / AME * fem_int(44,FWthiBB,WPM)
 !!ion       NLC(20,LQe3) = LQi1
 
     N = 0
@@ -866,10 +874,10 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,18,LQe4) =   1.D0 / AME * fem_int(44,FWpheBB,WPM)
+    ELM(1:NEMAX,1:4,18,LQe4) =   1.D0 / AME * fem_int(44,FWpheB,WPM)
     NLC(18,LQe4) = LQe1
 
-    ! Convection controller
+    ! Contribution of off-diagonal term due to heat flux
 
     ELM(1:NEMAX,1:4,19,LQe4) = - 4.D0 * (rKeV / AME) * fem_int(37,FWahlphe,PTeV) &
          &                            * (1.D0 - FSVAHL) &
@@ -900,7 +908,7 @@ contains
 !!ion            &                     - 4.D0 * ( AEE / AME) * fem_int(37,FWahlphi,PhiV) * FSVAHLL
 !!ion       NLC(18,LQe4) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,19,LQe4) = - 1.D0 / AME * fem_int(44,FWphiBB,WPM)
+!!ion       ELM(1:NEMAX,1:4,19,LQe4) = - 1.D0 / AME * fem_int(44,FWphiB,WPM)
 !!ion       NLC(19,LQe4) = LQi1
 
     ! Loss to divertor
@@ -995,31 +1003,21 @@ contains
        ELM(1:NEMAX,1:4,12,LQe5) =   1.5D0 * PTeDIV * fem_int( 2,rNuLTe)
        NLC(12,LQe5) = LQe1
 
-       ! Direct heating (RF)
-
-       PELM(1:NEMAX,1:4,13,LQe5) =   1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFe)
-       NLC(13,LQe5) = 0
-
-       ! Radiation loss  (Bremsstrahlung)
-
-       PELM(1:NEMAX,1:4,14,LQe5) = - 1.D0 / (1.D20 * rKeV) * fem_int(-1,PBr)
-       NLC(14,LQe5) = 0
-
        ! Ionization loss of n01 and n02
 
+       ELM(1:NEMAX,1:4,13,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
+       NLC(13,LQe5) = LQn1
+
+       ELM(1:NEMAX,1:4,14,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
+       NLC(14,LQe5) = LQn2
+
        ELM(1:NEMAX,1:4,15,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
-       NLC(15,LQe5) = LQn1
-
-       ELM(1:NEMAX,1:4,16,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
-       NLC(16,LQe5) = LQn2
-
-       ELM(1:NEMAX,1:4,17,LQe5) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
-       NLC(17,LQe5) = LQn3
+       NLC(15,LQe5) = LQn3
 
        ! Collisional NBI heating (Perp + Tan)
 
-       PELM(1:NEMAX,1:4,18,LQe5) = Eb * fem_int(-2,SNB,PNBcol_e)
-       NLC(18,LQe5) = 0
+       PELM(1:NEMAX,1:4,16,LQe5) = Eb * fem_int(-2,SNB,PNBcol_e)
+       NLC(16,LQe5) = 0
 
        ! Collisional heating with beam
 
@@ -1033,9 +1031,19 @@ contains
 
        ! Simpified Alpha heating
 
-       PELM(1:NEMAX,1:4,19,LQe5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFe)
-       NLC(19,LQe5) = 0
+       PELM(1:NEMAX,1:4,17,LQe5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFe)
+       NLC(17,LQe5) = 0
        
+       ! Direct heating (RF)
+
+       PELM(1:NEMAX,1:4,18,LQe5) =   1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFe)
+       NLC(18,LQe5) = 0
+
+       ! Radiation loss  (Bremsstrahlung)
+
+       PELM(1:NEMAX,1:4,19,LQe5) = - 1.D0 / (1.D20 * rKeV) * fem_int(-1,PBr)
+       NLC(19,LQe5) = 0
+
        !  Diffusion of electrons (***AF 2008-06-08)
 
        ELM(1:NEMAX,1:4,20,LQe5) = - 4.D0 * fem_int(18,DMAGe)
@@ -1287,10 +1295,10 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,17,LQi3) =   1.D0 / AMI * fem_int(44,FWthe,WPM)
+    ELM(1:NEMAX,1:4,17,LQi3) =   1.D0 / AMI * fem_int(44,FWtheBB,WPM)
     NLC(17,LQi3) = LQe1
 
-    ! Convection controller
+    ! Contribution of off-diagonal term due to heat flux
 
     ELM(1:NEMAX,1:4,18,LQi3) =   2.D0 * (rKeV / AMI) * fem_int(37,FWahle,PTeV) &
          &                            * (1.D0 - FSVAHL) &
@@ -1321,7 +1329,7 @@ contains
 !!ion            &                     + 2.D0 * ( AEE / AMI) * fem_int(37,FWahli,PhiV) * FSVAHLL
 !!ion       NLC(17,LQi3) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,18,LQi3) = - 1.D0 / AMI * fem_int(44,FWthi,WPM)
+!!ion       ELM(1:NEMAX,1:4,18,LQi3) = - 1.D0 / AMI * fem_int(44,FWthiBB,WPM)
 !!ion       NLC(18,LQi3) = LQi1
 
     N = 0
@@ -1445,10 +1453,10 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,16,LQi4) = - 1.D0 / AMI * fem_int(44,FWpheBB,WPM)
+    ELM(1:NEMAX,1:4,16,LQi4) = - 1.D0 / AMI * fem_int(44,FWpheB,WPM)
     NLC(16,LQi4) = LQe1
 
-    ! Convection controller
+    ! Contribution of off-diagonal term due to heat flux
 
     ELM(1:NEMAX,1:4,17,LQi4) =   4.D0 * (rKeV / AMI) * fem_int(37,FWahlphe,PTeV) &
          &                            * (1.D0 - FSVAHL) &
@@ -1479,7 +1487,7 @@ contains
 !!ion            &                     + 4.D0 * ( AEE / AMI) * fem_int(37,FWahlphi,PhiV) * FSVAHLL
 !!ion       NLC(16,LQi4) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,17,LQi4) =   1.D0 / AMI * fem_int(44,FWphiBB,WPM)
+!!ion       ELM(1:NEMAX,1:4,17,LQi4) =   1.D0 / AMI * fem_int(44,FWphiB,WPM)
 !!ion       NLC(17,LQi4) = LQi1
 
     ! Loss to divertor
@@ -1609,38 +1617,38 @@ contains
        PELM(1:NEMAX,1:4,14,LQi5) =  1.5D0 * PTiDIV      * fem_int(-2,rNuLTi,PNiV)
        NLC(14,LQi5) = 0
 
-       ! Direct heating (RF)
-
-       PELM(1:NEMAX,1:4,15,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFi)
-       NLC(15,LQi5) = 0
-
        ! Ionization heating of n01 and n02
 
-       ELM(1:NEMAX,1:4,16,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT01V)
-       NLC(16,LQi5) = LQn1
+       ELM(1:NEMAX,1:4,15,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT01V)
+       NLC(15,LQi5) = LQn1
 
-       ELM(1:NEMAX,1:4,17,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT02V)
-       NLC(17,LQi5) = LQn2
+       ELM(1:NEMAX,1:4,16,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT02V)
+       NLC(16,LQi5) = LQn2
 
-       ELM(1:NEMAX,1:4,18,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT03V)
-       NLC(18,LQi5) = LQn3
+       ELM(1:NEMAX,1:4,17,LQi5) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT03V)
+       NLC(17,LQi5) = LQn3
 
        ! Charge exchange force
 
-       ELM(1:NEMAX,1:4,19,LQi5)  = - 1.5D0 * fem_int( 2,rNuiCX)
-       NLC(19,LQi5) = LQi5
+       ELM(1:NEMAX,1:4,18,LQi5)  = - 1.5D0 * fem_int( 2,rNuiCX)
+       NLC(18,LQi5) = LQi5
 
-       PELM(1:NEMAX,1:4,20,LQi5) =   1.5D0 * fem_int(-1,rNuCXN1)
-       NLC(20,LQi5) = 0
+       PELM(1:NEMAX,1:4,19,LQi5) =   1.5D0 * fem_int(-1,rNuCXN1)
+       NLC(19,LQi5) = 0
 
        ! Collisional NBI heating (Perp + Tan)
 
-       PELM(1:NEMAX,1:4,21,LQi5) = Eb * fem_int(-2,SNB,PNBcol_i)
-       NLC(21,LQi5) = 0
+       PELM(1:NEMAX,1:4,20,LQi5) = Eb * fem_int(-2,SNB,PNBcol_i)
+       NLC(20,LQi5) = 0
 
        ! Simplified Alpha heating
 
-       PELM(1:NEMAX,1:4,22,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFi)
+       PELM(1:NEMAX,1:4,21,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PALFi)
+       NLC(21,LQi5) = 0
+
+       ! Direct heating (RF)
+
+       PELM(1:NEMAX,1:4,22,LQi5) = 1.D0 / (1.D20 * rKeV) * fem_int(-1,PRFi)
        NLC(22,LQi5) = 0
 
        !  Diffusion of ions (***AF 2008-06-08)

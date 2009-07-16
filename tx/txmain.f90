@@ -9,19 +9,27 @@
 !
 !     DEVELOPED BY M. HONDA, Y. FUJI AND A. FUKUYAMA
 !
+!                JAPAN ATOMIC ENERGY AGENCY
+!                   NAKA FUSION INSTITUTE
+!                 JT-60 PLASMA DESIGN GROUP
+!
 !             DEPARTMENT OF NUCLEAR ENGINEERING
 !              GRADUATE SCHOOL OF ENGINEERING
 !                     KYOTO UNIVERSITY
-!                      KYOTO 606-8501
 !
-!                JAPAN ATOMIC ENERGY AGENCY
-!                   NAKA FUSION INSTITUTE
-!                  TOKAMAK ANALYSIS GROUP
-!
-!     Reference:
-!       M. Honda and A. Fukuyama, "Dynamic transport simulation
-!       code including plasma rotation and radial electric field",
-!       Journal of Computational Physics, 227 (2008) 2808-2844
+!     References:
+!       M. Honda and A. Fukuyama
+!         "Dynamic transport simulation code including plasma rotation
+!            and radial electric field",
+!         Journal of Computational Physics, 227 (2008) 2808-2844.
+!       M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki
+!         "Numerical analysis of the effect of fast-ion losses
+!            on plasma rotation in a tokamak with toroidal field ripple"
+!         Nuclear Fusion, 48 (2008) 085003 (12pp)
+!       M. Honda, T. Takizuka, A. Fukuyama, M. Yoshida and T. Ozeki
+!         "Self-consistent simulation of torque generation
+!            by radial current due to fast particles"
+!         Nuclear Fusion, 49 (2009) 035009 (10pp)
 !
 !***********************************************************
 !
@@ -41,21 +49,16 @@
 !   X17 = r * Nb * UbTheta                              *(0)   *(0)
 !   X18 = Nb * UbPhi                                    *(N)   *(0)
 !   X19 = Slow neutral                                  N      D
-!   X20 = Fast neutral                                  N      0
-!   X21 = Nb ripple                                     N      N
+!   X20 = Thermal neutral                               N      0
+!   X21 = Neutral by NBI                                N      0
+!   X22 = Nb ripple                                     N      N
 !
 !   In case of MDFIXT /=0, X10 = Te, X15 = Ti
 !
-!   G16 = Total n0                        
-!   G20 = Q                               
-!   G21 = Jphi                            
-!   G22 = JePhi     G23 = JiPhi           
-!   G24 = JbPhi                           
-!   G25 = UePerp    G26 = UePara          
-!   G27 = UiPerp    G28 = UiPara          
-!   G29 = D    G30 = G1h2    G31 = MuI    
-!   G32 = S    G33 = Alpha   G34 = rKappa 
-!   G35 = Slow N0   G36 = Fast N0
+!   Nomenclature:
+!     N : Neumann condition, 0 : Dirichlet condition with zero
+!     D : Neumann or Dirichelt condition with finite value
+!     * : No boundary condition imposed
   
 
 PROGRAM TASK_TX
@@ -70,8 +73,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx454.0'
-  WRITE(6,*) '######## TASK/TX V4.54.20 09/04/09 ########'
+  SLID = 'tx455.0'
+  WRITE(6,*) '######## TASK/TX V4.55.00 09/07/15 ########'
 
   CALL TXINIT
   KPNAME='txparm'
