@@ -50,7 +50,7 @@
 !   X18 = Nb * UbPhi                                    *(N)   *(0)
 !   X19 = Slow neutral                                  N      D
 !   X20 = Thermal neutral                               N      0
-!   X21 = Neutral by NBI                                N      0
+!   X21 = Halo Neutral                                  N      0
 !   X22 = Nb ripple                                     N      N
 !
 !   In case of MDFIXT /=0, X10 = Te, X15 = Ti

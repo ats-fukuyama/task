@@ -660,7 +660,7 @@ contains
 !!$       END IF
        U02(NR) = 0.D0
 
-       !     *** Thermal neutral diffusion coefficient, produced by NBI ***
+       !     *** Halo neutral diffusion coefficient ***
 
        Viave = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi))
        D03(NR) = FSD03 * Viave**2 / (3.D0 * Sitot)

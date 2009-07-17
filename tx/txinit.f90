@@ -228,7 +228,7 @@ SUBROUTINE TXINIT
   !   Thermal neutral diffusion factor
   FSD02 = 1.D0
 
-  !   Thermal neutral diffusion factor, produced by NBI
+  !   Halo neutral diffusion factor
   FSD03 = 1.D0
 
   !   ***** initial parameters *****
@@ -845,7 +845,7 @@ SUBROUTINE TXPROF
      ! N0_2 (thermal neutrals)
 !     X(LQn2,NR) = 0.D0
      X(LQn2,NR) = 1.D-20 ! when ThntSW = 0.D0
-     ! N0_3 (thermal neutrals, due to NBI)
+     ! N0_3 (halo neutrals)
      X(LQn3,NR) = 0.D0
      ! Bphi
      X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0 / AMPm5

@@ -869,7 +869,7 @@ contains
     ! *** Convective velocity of thermal neutrals ***
     GYL(0:NXM,NG,136) = SNGL(U02(0:NXM))
 
-    ! *** Thermal neutral produced by NBI ***
+    ! *** Halo neutral ***
     GYL(0:NXM,NG,137) = SNGL(X(LQn3,0:NXM))
     GYL(0:NXM,NG,138) = SNGL(PN03V(0:NXM)*1.D20)
     GYL(0:NXM,NG,139) = SNGL(D03(0:NXM))
@@ -1454,7 +1454,7 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,36), GYL, STR, NRMAX, NGR, gDIV(36))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@NBI N$-0$=(r)@'
+       STR = '@HALO N$-0$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,138), GYL, STR, NRMAX, NGR, gDIV(138))
        CALL TXGRFRX(2,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
@@ -1710,7 +1710,7 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,36), GYL, STR, NRMAX, NGR, gDIV(36))
        CALL TXGRFRXS(6,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@NBI N$-0$=(r)@'
+       STR = '@HALO N$-0$=(r)@'
        CALL APPROPGY(MODEG, GY(0,0,138), GYL, STR, NRMAX, NGR, gDIV(138))
        CALL TXGRFRXS(7,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
@@ -3032,7 +3032,7 @@ contains
        CALL APPROPGY(MODEG, GVY(0,36), GVYL, STR, NGVV, 1, gDIV(36))
        CALL TXGRFVX(1, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       STR = '@NBI N$-0$=(r)@'
+       STR = '@HALO N$-0$=(r)@'
        CALL APPROPGY(MODEG, GVY(0,50), GVYL, STR, NGVV, 1, gDIV(138))
        CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
@@ -3338,7 +3338,7 @@ contains
          &      'r n$-i$=u$-i$#q$#$=','n$-i$=u$-i$#f$#$=','n$-i$=T$-i$=', &
          &      'n$-b$=', &
          &      'r n$-b$=u$-b$#q$#$=','n$-b$=u$-b$#f$#$=', &
-         &      'Slow n$-0$=', 'Thermal n$-0$=', 'NBI n$-0$=', 'Ripple n$-b$='/
+         &      'Slow n$-0$=', 'Thermal n$-0$=', 'Halo n$-0$=', 'Ripple n$-b$='/
 
     !        Graph coordinate
     DATA GPXYA/ 2.5, 9.5, 10.5,17.0, &
