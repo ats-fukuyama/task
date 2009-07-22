@@ -1736,6 +1736,8 @@ contains
        fmod    = fgaussian(rho,mu,sigma) * (- 4.d0 * (rho - 0.5d0)**2 + 1.d0)
        fmodmax = fgaussian(mu, mu,sigma) * (- 4.d0 * (mu  - 0.5d0)**2 + 1.d0)
        fmod = fgfact * fmod / fmodmax
+    else
+       fmod = 0.d0
     end if
 
     ! Sum of usual and modified Gaussian profiles
@@ -2072,13 +2074,23 @@ contains
   real(8) function SiVcx(tikev)
 
     real(8), intent(in) :: tikev
-    real(8) :: x
+    real(8) :: x, tikev_temp
     real(8), dimension(0:8) :: a
     data a /-0.1841757D02, 0.5282950D0, -0.2200477D0,   0.9750192D-1, &
          &  -0.1749183D-1, 0.4954298D-3, 0.2174910D-3, -0.2530205D-4, 0.8230751D-6/
 
-    if(tikev < 1.d-3 .or. tikev > 1.d2) stop 'Function SiVcx: Out of energy range.'
-    x = log(tikev * 1.d3)
+    if(tikev < 1.d-3) then
+       write(6,'(A,1pE12.4)') &
+            'Function SiVcx: Out of energy range. tikev=', tikev
+       tikev_temp=1.D-3
+    else if(tikev > 1.d2) then
+       write(6,'(A,1pE12.4)') &
+            'Function SiVcx: Out of energy range. tikev=', tikev
+       tikev_temp=1.D2
+    else
+       tikev_temp=tikev
+    endif
+    x = log(tikev_temp * 1.d3)
     SiVcx = exp( a(0)+x*(a(1)+x*(a(2)+x*(a(3)+x*(a(4) &
          &      +x*(a(5)+x*(a(6)+x*(a(7)+x*a(8)))))))))*1.D-6
 
