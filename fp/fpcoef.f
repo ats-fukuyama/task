@@ -212,7 +212,8 @@ C
 C
       DO NR=1,NRMAX+1
          RHON=RG(NR)
-         RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
+         CALL PLPROF(RHON)
+         RTFPL=RTPR(NS_NSA(NSA))/RTFP0(NSA)
          FACTR=-2.D0*RG(NR)/RA
       DO NP=1,NPMAX
          FACTP=1.D0/SQRT(1.D0+PG(NP)**2/RTFPL)
