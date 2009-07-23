@@ -6,6 +6,7 @@ C *****************************
 
       SUBROUTINE FPPREP(IERR)
 
+      USE plprof
       INCLUDE 'fpcomm.inc'
 
       EXTERNAL FPFN0U, FPFN0T, FPFN1A, FPFN2A
@@ -116,12 +117,12 @@ C
       DO NR=1,NRMAX
 C
          RHON=RM(NR)
-         CALL PLPROF(RHON)
+         CALL pl_prof(RHON,PLF)
 C
          DO NSA=1,NSAMAX
             NS=NS_NSA(NSA)
-            RNFP(NR,NSA)=RN(NS)
-            RTFP(NR,NSA)=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+            RNFP(NR,NSA)=PLF(NS)%RN
+            RTFP(NR,NSA)=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
             PTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE*AMFP(NSA))
             VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
          ENDDO
@@ -498,7 +499,9 @@ C ****************************************
 C
       FUNCTION FPMXWL(PML,NR,NS)
 C
+      USE plprof
       INCLUDE 'fpcomm.inc'
+      TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
 C
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -509,21 +512,21 @@ C
       IF(NR.EQ.0) THEN
          RL=RM(1)-DELR
          RHON=RL
-         CALL PLPROF(RHON)
+         CALL PL_PROF(RHON,PLF)
          RNFDL=RN(NS)/RNFD0L
          RTFDL=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
       ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NRMAX)+DELR
          RHON=RL
-         CALL PLPROF(RHON)
-         RNFDL=RN(NS)/RNFD0L
-         RTFDL=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PLF(NS)%RN/RNFD0L
+         RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ELSE
          RL=RM(NR)
          RHON=RL
-         CALL PLPROF(RHON)
-         RNFDL=RN(NS)/RNFD0L
-         RTFDL=(RTPR(NS)+2.D0*RTPP(NS))/3.D0
+         CALL PL_PROF(RHON,PLF)
+         RNFDL=PLF(NS)%RN/RNFD0L
+         RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
       ENDIF
 
       IF (MODELR.EQ.0) THEN
