@@ -75,6 +75,7 @@ C
          NR=NRDO
 C
          DO 1101 NTH=1,NTHMAX+1
+            RHOL=RM(NR)
             IF(NTH.NE.NTHMAX/2+1) THEN
                DO 1100 NP=1,NPMAX
                   CALL FPSUMV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
@@ -83,7 +84,6 @@ C
                   DWTT(NTH,NP,NR,NSA)=DWTTS
  1100          CONTINUE
             ELSE
-               RHOL=RM(NR)
                DO 1200 NP=1,NPMAX
                   P=PM(NP)
                   CALL FPWAVV(RHOL,ETAG(NTH,NR),SING(NTH),COSG(NTH),P,
@@ -92,6 +92,10 @@ C
                   DWTT(NTH,NP,NR,NSA)=DWTTL
  1200          CONTINUE
             ENDIF
+c            CALL FPSETV(RHOL,ETAL,RKR,RKTH,RKPH,CER,CETH,CEPH,NSA)
+c            write(*,1234) NTH,RHOL
+c     &           ,ABS(CEPH)**2,ABS(CETH)**2
+ 1234    FORMAT("RHOL-|E|^2",I3,3E14.6)
  1101    CONTINUE
 C
          IF(MODELA.EQ.1) THEN

@@ -61,7 +61,7 @@ C     +++++ NSA loop +++++
                END DO
 
                IF(DEPS2(NSA).ge.EPSFP)THEN
-c                  write(*,*)NSA,EPSFP,DEPS2(NSA)
+!                  write(*,*)NSA,EPSFP,DEPS2(NSA)
                   CALL FPEXEC(NSA,IERR)
                   IF(IERR.NE.0) GOTO 250
                ELSE
@@ -148,7 +148,7 @@ C END OF DOWHILE
             ENDDO
          ENDDO
 
- 1274    FORMAT("DEPS",E14.6,3I3,3E14.6)
+ 1274    FORMAT("DEPS",E14.6,3I3,4E14.6)
 
 c         NP=2
 c            Write(8,646) NT
@@ -230,11 +230,12 @@ C     +++++ calculate and save global data +++++
 
 
       IF(NT.eq.NTMAX)THEN
-c         open(8,file='radial_profile.dat')
-c         open(8,file='coef.dat')
-         open(9,file='power_test.dat')
-c         Do NP=1,NPMAX
-c            Write(8,646) NP
+!         open(8,file='radial_profile_four.dat')
+!         open(8,file='distri_func7.dat')
+         open(9,file='time_evolution_four7.dat')
+!         Do NP=1,NPMAX
+!            Write(8,646) NP
+!     &      ,FNS(1,NP,1,1),FNS(1,NP,1,2),FNS(1,NP,1,3),FNS(1,NP,1,4)
 c     & ,FNS(14,NP,1,3),FNS(15,NP,1,3),FNS(16,NP,1,3)
 c     & ,FNS(17,NP,1,3),FNS(18,NP,1,3),FNS(19,NP,1,3)
 c     & ,FNS(20,NP,1,3),FNS(21,NP,1,3),FNS(22,NP,1,3)
@@ -244,17 +245,17 @@ c     & ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3)
 c     & ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3)
 c     & ,DCTT(2,NP,1,1),DCTT(2,NP,1,2),DCTT(2,NP,1,3)
 c     & ,FCPP(2,NP,1,1),FCPP(2,NP,1,2),FCPP(2,NP,1,3)
-c         END DO
+!         END DO
 
 c         DO NR=1,NRMAX
-c            WRITE(8,645) RM(NR),RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),
-c     &         RPCT2(NR,3,1,NTG1),RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),
-c     &         RPCT2(NR,3,2,NTG1),RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),
-c     &         RPCT2(NR,3,3,NTG1),
+c            WRITE(8,645) RM(NR),
+c     &         RPCT2(NR,1,1,NTG1),RPCT2(NR,2,1,NTG1),RPCT2(NR,3,1,NTG1),
+c     &         RPCT2(NR,1,2,NTG1),RPCT2(NR,2,2,NTG1),RPCT2(NR,3,2,NTG1),
+c     &         RPCT2(NR,1,3,NTG1),RPCT2(NR,2,3,NTG1),RPCT2(NR,3,3,NTG1),
 c     &         RPWT(NR,1,NTG1),RPWT(NR,2,NTG1),RPWT(NR,3,NTG1)
 c         END DO
 
-c         close(8)
+
 c         open(8,file='coef_theta.dat')
 c         Do NTH=1,NTHMAX
 c            Write(8,646) NTH
@@ -263,48 +264,22 @@ c     & ,DCPT(NTH,2,1,1),DCPT(NTH,2,1,2),DCPT(NTH,2,1,3)
 c     & ,DCTT(NTH,2,1,1),DCTT(NTH,2,1,2),DCTT(NTH,2,1,3)
 c     & ,FCPP(NTH,2,1,1),FCPP(NTH,2,1,2),FCPP(NTH,2,1,3)
 c         END DO
-c         close(8)
+!         close(8)
 
          DO NTI=1,NTMAX
             dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
             WRITE(9,645) PTG(NTI)*1000
-     &           ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI)
-     &           ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI)
-     &           ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI)
-     &           ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI)
-     &           ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI)
-c<<<<<<< fploop.f
-cccccccccccccc
-c     &           ,PNT(3,NTI),PNT(1,NTI),PNT(2,NTI)
-c     &           ,dw/1000.D0,PWT(3,NTI)-PWT(3,NTI-1)
-c     &           ,(PWT(3,NTI+1)-PWT(3,NTI-1))/2.D0 
-c     &           ,PWT(3,NTI+1)-PWT(3,NTI)
-c     &    , (PWT(3,NTI+1)-PWT(3,NTI-1)-(PWT(3,NTI+2)-PWT(3,NTI-2))/8.D0)
-c     &           /1.5D0
-
-c密度のズレ補正
-c     &           ,(PWT(3,NTI)*PNT(3,NTI)-PWT(3,NTI-1)*PNT(3,NTI-1))
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))
-
-     &           ,(PWT(3,NTI)-PWT(3,NTI-1))
-     &           /(PPWT(3,NTI)+PPCT(3,NTI)+PPET(3,NTI))
-
-c     &           ,(PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI)*PNT(3,NTI))
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))
-
-c     &           ,( PWT(3,NTI+1)*PNT(3,NTI+1)-PWT(3,NTI-1)*PNT(3,NTI-1)- 
-c     &      (PWT(3,NTI+2)*PNT(3,NTI+2)-PWT(3,NTI-2)*PNT(3,NTI-2))/8.D0)
-c     &           /(PPWT(3,NTI)*PNT(3,NTI)+PPCT(3,NTI)*PNT(3,NTI)+
-c     &           PPET(3,NTI)*PNT(3,NTI))/1.5D0
-c=======
-c>>>>>>> 1.52
+     &      ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI)
+     &      ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI)
+     &      ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI)
+     &      ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI)
+!     &      ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)
+     &      ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)
 
          END DO
          close(9)
       END IF
- 645  FORMAT(17E14.6)
+ 645  FORMAT(21E14.6)
  646  FORMAT(I3,17E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO

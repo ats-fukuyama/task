@@ -10,7 +10,7 @@ C
 C
       DIMENSION RSUM10(NSBMAX)
 
-      IF(NTMAX.eq.0) open(8,file='dfdt_n10b_.dat')
+!      IF(NTMAX.eq.0)
       DO NR=1,NRMAX
          DO NSA=1,NSAMAX
             RSUM1=0.D0
@@ -26,6 +26,7 @@ C
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
+            RSUM11=0.D0
 
             NS=NS_NSA(NSA)
             IF(MODELA.eq.0)THEN
@@ -101,7 +102,6 @@ C
                   END DO
                ENDIF               
             END IF
-
 
 
             IF(NTG2.EQ.1)      CALL FPWEIGHT(NSA,IERR)
@@ -187,6 +187,11 @@ c     &                 *1.D0/RLAMDA(NTH,NR)
      &                    +DCPT2(NTH,NP,NR,NSB,NSA)*DFT
      &                    -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
+                  IF(MODELS(NSA).ne.0)THEN
+                     RSUM11=RSUM11+PG(NP)**2*SINM(NTH)/PV
+     &                    *SP(NTH,NP,NR,NSA)
+                  END IF
+
 
                   IF(NSA.eq.3)THEN
                   testa=PG(NP)**2*SINM(NTH)/PV
@@ -227,12 +232,12 @@ c            END IF
             RPES(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP*DELTH *1.D-6
             RLHS(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP*DELTH *1.D-6
             RFWS(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
-            RECS(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP*DELTH
-
+            RECS(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP*DELTH *1.D-6
             DO NSB=1,NSBMAX
                RPCS2(NR,NSB,NSA)=-RSUM10(NSB)
      &                          *FACT*2.D0*PI*DELP*DELTH *1.D-6
             END DO
+            RSPS(NR,NSA)= RSUM11*FACT*2.D0*PI*DELP*DELTH*1.D-6
          ENDDO
       ENDDO
 
@@ -268,6 +273,7 @@ C
             DO NSB=1,NSBMAX
                RPCT2(NR,NSB,NSA,NTG1)= RPCS2(NR,NSB,NSA)
             END DO
+            RSPT(NR,NSA,NTG1)= RSPS(NR,NSA)
 C
             IF(RNS(NR,NSA).NE.0.D0) THEN
                RTT(NR,NSA,NTG1) = RWS(NR,NSA)*1.D6
@@ -309,6 +315,7 @@ C
          PFWT(NSA,NTG2)=0.D0
          PECT(NSA,NTG2)=0.D0
          PWT2(NSA,NTG2)=0.D0
+         PSPT(NSA,NTG2)=0.D0
          DO NSB=1,NSBMAX
             PPCT2(NSB,NSA,NTG2)= 0.D0
          END DO
@@ -325,6 +332,7 @@ C
             PLHT(NSA,NTG2)=PLHT(NSA,NTG2)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG2)=PFWT(NSA,NTG2)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG2)=PECT(NSA,NTG2)+RECS(NR,NSA)*VOLR(NR)
+            PSPT(NSA,NTG2)=PSPT(NSA,NTG2)+RSPS(NR,NSA)*VOLR(NR)
             IF(MODELR.eq.1) then
                CALL FPNEWTON(NR,NSA,rtemp)
             else
@@ -401,6 +409,9 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
      &           (PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
          ENDIF
       END DO
+      DO NSA=1,NSAMAX
+         write(6,108) NSA,NS_NSA(NSA),PSPT(NSA,NTG2)
+      END DO
       write(*,105) rtotalpw
       write(*,107) rtotalPC
 
@@ -443,6 +454,7 @@ c  104 FORMAT('             PCAB    =',11X,1P4E12.4)
  105  FORMAT('total absorption [MW]', E12.4)
  106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power [MW]', E12.4)
+ 108  FORMAT('        ',2I2,' PSP     =',11X,1P4E12.4)
       END
 
 C ***********************************************************

@@ -130,7 +130,8 @@ C
          DO NP=1,NPMAX-1
             DO NTH=1,NTHMAX
                DO NR=1,NRMAX
-                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)*DELT
+                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)
+!*DELT
      &                             *SP(NTH,NP,NR,NSA)/SUML
                ENDDO
             ENDDO
@@ -158,7 +159,8 @@ C
          DO NP=1,NPMAX-1
             DO NTH=1,NTHMAX
                DO NR=1,NRMAX
-                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)*DELT
+                  SP(NTH,NP,NR,NSA)=SPTOT(NSA)
+!*DELT
      &                             *SP(NTH,NP,NR,NSA)/SUML
                ENDDO
             ENDDO
