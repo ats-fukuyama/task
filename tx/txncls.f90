@@ -519,14 +519,11 @@ contains
     !   Neoclassical resistivity
     ETAout = DBLE(p_etap)
 
-    !   Neoclassical viscosity
-!!$    IF(NR == 0) THEN
-!!$       NueNC = 0.D0
-!!$       NuiNC = 0.D0
-!!$    ELSE
-       NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeVL * 1.D20 * AME * BthVL**2)
-       NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiVL * 1.D20 * AMI * BthVL**2)
-!!$    END IF
+    !   Neoclassical viscosity (so-called "Heuristic closure")
+    !     T.A. Gianakon, S.E. Kruger, C.C. Hegna, PoP 9 (2002) 536, Eq.(12)
+    !     D.D. Schnack, et al., PoP 13 (2006) 058103, Eqs.(11),(88) and (89)
+    NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeVL * 1.D20 * AME * BthVL**2)
+    NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiVL * 1.D20 * AMI * BthVL**2)
 
     !   Neoclassical thermal diffusivity (Diagonal effect only)
     ChiNCpel = ChiNC * DBLE(chip_ss(1,1))

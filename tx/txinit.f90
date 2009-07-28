@@ -1261,59 +1261,79 @@ contains
 
   SUBROUTINE TXPARM_CHECK
 
+    integer(4) :: idx
+
+    idx = 1
     DO 
+       ! /// idx = 1 - 10 ///
        ! System integers
-       IF(NRMAX > NRM .OR. NRMAX < 0) EXIT
-       IF(NQMAX > NQM .OR. NQMAX < 0) EXIT
-       IF(NTMAX < 0) EXIT
-       IF(NTSTEP < 0 .OR. NGRSTP < 0 .OR. NGTSTP < 0 .OR. NGVSTP < 0) EXIT
+       IF(NRMAX > NRM .OR. NRMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(NTMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(NTSTEP < 0 .OR. NGRSTP < 0 .OR. NGTSTP < 0 .OR. NGVSTP < 0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
        ! Physical variables
-       IF(RA >= RB) EXIT
-       IF(RC < 0.D0 .OR. RC > RB) EXIT
-       IF(RR <= RB) EXIT
-       IF(rIPs < 0.D0 .OR. rIPe < 0.D0) EXIT
-       IF(PA < 0.D0 .OR. PZ < 0.D0 .OR. Zeff < 1.D0) EXIT
-       IF(PN0 < 0.D0 .OR. PNa < 0.D0) EXIT
-       IF(PTe0 < 0.D0 .OR. PTea < 0.D0) EXIT
-       IF(PTi0 < 0.D0 .OR. PTia < 0.D0) EXIT
-       IF(De0 < 0.D0 .OR. Di0 < 0.D0) EXIT
-       IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) EXIT
-       IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) EXIT
-       IF(minval(FSDFIX) < 0.D0) EXIT
-       IF(minval(FSCDBM) < 0.D0) EXIT
-       IF(FSCDIM < 0.D0) EXIT !***09/06/17~ miki_m
-       IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) EXIT
-       IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) EXIT
-       IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) EXIT
-       IF(FSHL < 0.D0 .OR. FSNF < 0.D0) EXIT
-       IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) EXIT
-       IF(FSION < 0.D0 .OR. FSD01 < 0.D0 .OR. FSD02 < 0.D0 .OR. FSD03 < 0.D0) EXIT
-       IF(MDLC /= 1 .AND. MDLC /= 2) EXIT
-       IF(rG1 < 0.D0) EXIT
-       IF(Eb < 0.D0 .OR. PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) EXIT
-       IF(ABS(PNBCD) > 1.D0 .OR. ABS(PNBMPD) > 1.D0) EXIT
-       IF(RNBP0 > RB .OR. RNBP0 < 0.D0) EXIT
-       IF(RNBT10 > RB .OR. RNBT10 < 0.D0) EXIT
-       IF(RNBT20 > RB .OR. RNBT20 < 0.D0) EXIT
-       IF(rNRFe < 0.D0 .OR. PRFHe < 0.D0) EXIT
-       IF(rNRFi < 0.D0 .OR. PRFHi < 0.D0) EXIT
-       IF(RRFe0 > RB .OR. RRFe0 < 0.D0) EXIT
-       IF(RRFi0 > RB .OR. RRFi0 < 0.D0) EXIT
-       IF(PN0s < 0.D0 .OR. V0 < 0.D0) EXIT
-       IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) EXIT
-       IF(rGASPF < 0.D0) EXIT
-       IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) EXIT
-       IF(NTCOIL <= 0 .OR. DltRPn < 0.D0 .OR. DltRPn > 1.D0 .OR. kappa < 0.D0) EXIT
-       IF(DT < 0.D0 .OR. EPS < 0.D0) EXIT
-       IF(ICMAX < 0) EXIT
-       IF(ADV < 0.D0 .OR. ADV > 1.D0) EXIT
-       IF(tiny_cap < 0.D0) EXIT
-       IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) EXIT
-       IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) EXIT
+       IF(RA >= RB)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RC < 0.D0 .OR. RC > RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RR <= RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rIPs < 0.D0 .OR. rIPe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(PA < 0.D0 .OR. PZ < 0.D0 .OR. Zeff < 1.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(PN0 < 0.D0 .OR. PNa < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(PTe0 < 0.D0 .OR. PTea < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       ! /// idx = 11 - 20 ///
+       IF(PTi0 < 0.D0 .OR. PTia < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(De0 < 0.D0 .OR. Di0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(minval(FSDFIX) < 0.D0 .OR. minval(FSCDBM) < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(FSCDIM < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF !***09/06/17~ miki_m
+       IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(FSHL < 0.D0 .OR. FSNF < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       ! /// idx = 21 - 30 ///
+       IF(FSLP < 0.D0 .OR. FSLTE < 0.D0 .OR. FSLTI < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(FSION < 0.D0)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(FSD01 < 0.D0 .OR. FSD02 < 0.D0 .OR. FSD03 < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(MDLC /= 1 .AND. MDLC /= 2) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rG1 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(Eb < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(PNBHP < 0.D0 .OR. PNBHT1 < 0.D0 .OR. PNBHT2 < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(ABS(PNBCD) > 1.D0 .OR. ABS(PNBMPD) > 1.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(RNBP0 > RB .OR. RNBP0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RNBT10 > RB .OR. RNBT10 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       ! /// idx = 31 - 40 ///
+       IF(RNBT20 > RB .OR. RNBT20 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rNRFe < 0.D0 .OR. PRFHe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rNRFi < 0.D0 .OR. PRFHi < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RRFe0 > RB .OR. RRFe0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RRFi0 > RB .OR. RRFi0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(PN0s < 0.D0 .OR. V0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rGamm0 < 0.D0 .OR. rGamm0 > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(rGASPF < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
+       IF(NTCOIL <= 0 .OR. DltRPn < 0.D0 .OR. DltRPn > 1.D0 .OR. kappa < 0.D0) THEN
+          EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       ! /// idx = 41 - 46 ///
+       IF(DT < 0.D0 .OR. EPS < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(ICMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(ADV < 0.D0 .OR. ADV > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(tiny_cap < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        RETURN
     END DO
 
-    WRITE(6,*) 'XX CONSISTENCY ERROR: PLEASE CHECK CONSISTENCY OF INPUT PARAMETERS.'
+    WRITE(6,'(A,I3)') 'XX INPUT ERROR: Please check consistency of INPUT PARAMETERS. idx =',idx
     STOP
     
   END SUBROUTINE TXPARM_CHECK

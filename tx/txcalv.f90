@@ -726,7 +726,6 @@ contains
 !!$       rNuei2(NR)    = 0.D0
 !!$       rNuei3(NR)    = rNuPara
 !!$       rNuei2Bth(NR) = 0.D0
-!       write(6,*) r(nr)/ra,rNueNC(NR)*(BthV(NR)/BBL)**2/(rNuei(NR)+rNueNC(NR)*(BthV(NR)/BBL)**2)*BphV(NR)/BBL
 
        Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
        Wti = Vti / (Q(NR) * RR) ! Omega_ti; transit frequency for ions
