@@ -188,7 +188,7 @@ c     &                 *1.D0/RLAMDA(NTH,NR)
      &                    -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
                   IF(MODELS(NSA).ne.0)THEN
-                     RSUM11=RSUM11+PG(NP)**2*SINM(NTH)/PV
+                     RSUM11=RSUM11+PG(NP)**4*SINM(NTH)/PV
      &                    *SP(NTH,NP,NR,NSA)
                   END IF
 
@@ -234,9 +234,10 @@ c            END IF
             RFWS(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP*DELTH *1.D-6
             RECS(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP*DELTH *1.D-6
             DO NSB=1,NSBMAX
-               RPCS2(NR,NSB,NSA)=-RSUM10(NSB)
-     &                          *FACT*2.D0*PI*DELP*DELTH *1.D-6
+               RPCS2(NR,NSB,NSA)=-RSUM10(NSB)*FACT
+     &                              *2.D0*PI*DELP*DELTH *1.D-6
             END DO
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*0.5D0
             RSPS(NR,NSA)= RSUM11*FACT*2.D0*PI*DELP*DELTH*1.D-6
          ENDDO
       ENDDO
