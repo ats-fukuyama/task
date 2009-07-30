@@ -6,7 +6,7 @@ FFLAGS=$(OFLAGS)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dptens.f dptnsr1.f dptnsr2.f \
-       dpfpin.f dphotf.f dphotr.f
+       dpfpin.f dphotf.f dphotr.f dpdkdt.f
 
 OBJS = $(SRCS:.f=.o) 
 
@@ -67,3 +67,4 @@ dptnsr2.o: dptnsr2.f $(DPCOMM) ../pl/plcom2.inc
 dpfpin.o: dpfpin.f $(DPCOMM) ../pl/plcom2.inc
 dphotf.o: dphotf.f $(DPCOMM) ../pl/plcom2.inc
 dphotr.o: dphotr.f $(DPCOMM) ../pl/plcom2.inc
+dpdkdt.o: dpdkdt.f $(DPCOMM) ../pl/plcom2.inc
