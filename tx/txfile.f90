@@ -119,7 +119,8 @@ subroutine TXSTAT
        &                            "Safety factor at sep.    = ", Q(NRA)
   write(6,'(1X,2(A27,1PD10.3,3X))') "Ion Prandtl num. at 0.3  = ", rmuil/chiil, &
        &                            "Ion tor. velocity at 0.3 = ", uiphl
-  write(6,'(1X,2(A27,1PD10.3,3X))') "Eff .col. freq. at 0.5   = ", rNueiL/WDe
+  write(6,'(1X,2(A27,1PD10.3,3X))') "Eff .col. freq. at 0.5   = ", rNueiL/WDe, &
+       &                            "Plasma volume inside sep.= ", 2.D0*PI*RR*PI*RA**2
 
 end subroutine TXSTAT
 

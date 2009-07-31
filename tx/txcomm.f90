@@ -162,7 +162,8 @@ module tx_commons
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
-       & rNuNTV, UastNC, Vbpara, FWahle, FWahli
+       & rNuNTV, UastNC, Vbpara, FWahle, FWahli, &
+       & SiVizA, SiVcxA
   real(8), dimension(:,:), allocatable :: deltam
 
   ! Read Wnm table
@@ -251,9 +252,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont_in
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:17) :: ierl
+    integer(4), dimension(1:18) :: ierl
 
-    ierl(1:17) = 0
+    ierl(1:18) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -318,6 +319,7 @@ contains
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(15))
        allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(16))
        allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(17))
+       allocate(SiVizA(0:N), SiVcxA(0:N),                                     stat = ierl(18))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -412,6 +414,7 @@ contains
     deallocate(Fmnq,   Wnm,    Umnq)
     deallocate(deltam)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
+    deallocate(SiVizA, SiVcxA)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
     deallocate(pres0)

@@ -564,7 +564,9 @@ contains
        Vti = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMI)
        Vtb = SQRT(2.D0 * ABS(PTiV(NR)) * rKeV / AMB)
 
-       PN0tot = PN01V(NR) + PN02V(NR) + PN03V(NR)
+       PN0tot = (PN01V(NR) + PN02V(NR) + PN03V(NR)) * 1.D20
+       SiVizA(NR) = SiViz(PTeV(NR))
+       SiVcxA(NR) = SiVcx(PTiV(NR))
 
        !     *** Coulomb logarithms ***
        !     (NRL Plasma Formulary p34,35 (2007))
@@ -593,7 +595,7 @@ contains
 !old       SiV = 1.D-11 * SQRT(XXX) * EXP(- 1.D0 / XXX) &
 !old            &              / (EION**1.5D0 * (6.D0 + XXX))
 !old       rNuION(NR) = FSION * SiV * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNuION(NR) = FSION * SiViz(PTeV(NR)) * PN0tot * 1.D20
+       rNuION(NR) = FSION * SiVizA(NR) * PN0tot
 
        !     *** Slow neutral diffusion coefficient ***
        !  For example,
@@ -604,9 +606,9 @@ contains
 
        !  Total Maxwellian rate coefficients
 !!$       if(nr <= NRB) then
-!!$          Sitot = (SiVcx(PTiV(NRB)) * PNiV(NRB) + SiViz(PTeV(NRB)) * PNeV(NRB)) *1.D20
+!!$          Sitot = (SiVcxA(NRB) * PNiV(NRB) + SiVizA(NRB) * PNeV(NRB)) *1.D20
 !!$       else
-          Sitot = (SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20
+          Sitot = (SiVcxA(NR) * PNiV(NR) + SiVizA(NR) * PNeV(NR)) *1.D20
 !!$       end if
 
        !  Diffusion coefficient for slow neutrals (short m.f.p.)
@@ -614,9 +616,9 @@ contains
 !old            &   / (Sigma0 * (PN01V(NR) * V0  + (PNiV(NR) + PN02V(NR)) &
 !old            &      * Vti) * 1.D20)
 !       D01(NR) = FSD01 * V0ave**2 &
-!            &   / (3.D0 * SiVcx(PTiV(NR)) * PNiV(NR) * 1.D20)
+!            &   / (3.D0 * SiVcxA(NR) * PNiV(NR) * 1.D20)
        D01(NR) = FSD01 * V0ave**2 &
-            &  / (3.D0 * (SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20)
+            &  / (3.D0 * (SiVcxA(NR) * PNiV(NR) + SiVizA(NR) * PNeV(NR)) *1.D20)
 
        !     *** Thermal neutral diffusion coefficient ***
 
@@ -628,14 +630,14 @@ contains
        rLmean = Viave / Sitot
        !  Locally determined mean free path for fast neutrals
        rLmeanL = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi)) &
-            &  / ((SiVcx(PTiV(NR)) * PNiV(NR) + SiViz(PTeV(NR)) * PNeV(NR)) *1.D20)
+            &  / ((SiVcxA(NR) * PNiV(NR) + SiVizA(NR) * PNeV(NR)) *1.D20)
 
        !  Diffusion coefficient for fast neutrals (short to long m.f.p.)
 !old       D02(NR) = FSD02 * Vti**2 &
 !old            &   / (Sigma0 * (PNiV(NR) + PN01V(NR) + PN02V(NR)) &
 !old            &      * Vti * 1.D20)
 !       D02(NR) = FSD02 * Viave**2 &
-!            &   / (3.D0 * SiVcx(PTiV(NR)) * PNiV(NR) * 1.D20)
+!            &   / (3.D0 * SiVcxA(NR) * PNiV(NR) * 1.D20)
 !!       if(rho(nr) < 0.9d0) then
 !!          D02(NR) = D02(NR) * (-0.33333d0*rho(nr)+0.35d0)
 !!       else if (rho(nr) >= 0.9d0 .and. rho(nr) <= 1.0d0) then
@@ -674,19 +676,19 @@ contains
 !old            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
 !old       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
 !old       rNuiCX(NR) = FSCX * Scxi * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNuiCX(NR) = FSCX * SiVcx(PTiV(NR)) * PN0tot * 1.D20
+       rNuiCX(NR) = FSCX * SiVcxA(NR) * PN0tot
 
        !  For beam ions
        !     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, p.323, B163)
 !old       Vave = SQRT(8.D0 * Eb * rKeV / (PI * AMI))
 !old       rNubCX(NR) = FSCX * Scxb * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNubCX(NR) = FSCX * Scxb * Vb * PN0tot * 1.D20
+       rNubCX(NR) = FSCX * Scxb * Vb * PN0tot
 
        !     *** Collision frequency (with neutral) ***
 
-       rNu0e(NR) = PN0tot * 1.D20 * Sigma0 * Vte
-       rNu0i(NR) = PN0tot * 1.D20 * Sigma0 * Vti
-       rNu0b(NR) = PN0tot * 1.D20 * Sigma0 * Vtb
+       rNu0e(NR) = PN0tot * Sigma0 * Vte
+       rNu0i(NR) = PN0tot * Sigma0 * Vti
+       rNu0b(NR) = PN0tot * Sigma0 * Vtb
 
        !     *** Collision frequency (momentum transfer, Braginskii's formula) ***
 
@@ -2045,13 +2047,23 @@ contains
   real(8) function SiViz(tekev)
 
     real(8), intent(in) :: tekev
-    real(8) :: x
+    real(8) :: x, tekev_temp
     real(8), dimension(0:6) :: a
     data a /-0.3173850D02, 0.1143818D02, -0.3833998D01, 0.7046692D0, &
          &  -0.7431486D-1, 0.4153749D-2, -0.9486967D-4/
 
-    if(tekev < 1.d-3 .or. tekev > 1.d2) stop 'Function SiViz: Out of energy range.'
-    x = log(tekev * 1.d3)
+    if(tekev < 1.d-3) then
+       write(6,'(A,1pE12.4)') &
+            'Function SiViz: Out of energy range. tekev=', tekev
+       tekev_temp=1.D-3
+    else if(tekev > 1.d2) then
+       write(6,'(A,1pE12.4)') &
+            'Function SiViz: Out of energy range. tekev=', tekev
+       tekev_temp=1.D2
+    else
+       tekev_temp=tekev
+    endif
+    x = log(tekev_temp * 1.d3)
     SiViz = exp(a(0)+x*(a(1)+x*(a(2)+x*(a(3)+x*(a(4)+x*(a(5)+x*a(6)))))))*1.D-6
 
   end function SiViz

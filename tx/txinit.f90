@@ -237,7 +237,7 @@ SUBROUTINE TXINIT
   rLn = 0.03D0
 
   !   Initail Temperature scale length in SOL (m), valid if MDITST /= 0
-  rLT = 0.030D0
+  rLT = 0.03D0
 
   !   ***** Heating parameters *****
 
@@ -810,7 +810,7 @@ SUBROUTINE TXPROF
                 &                             + CfN2 * (RL - RA)**4
            X(LQi1,NR) = X(LQe1,NR) / PZ
         ELSE
-           X(LQe1,NR) = PNa * EXP(- (RL - RA) / rLN)
+           X(LQe1,NR) = PNa * EXP(- (RL - RA) / rLn)
            X(LQi1,NR) = X(LQe1,NR) / PZ
         END IF
         ! pressure (MDFIXT=0) or temperature (MDFIXT=1)

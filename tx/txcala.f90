@@ -268,10 +268,12 @@ contains
     INTEGER(4) :: NR
     REAL(8) :: BBL
 
-    rNuIN0(0:NRMAX)   = rNuION(0:NRMAX) * PNeV(0:NRMAX) &
-         &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX) + PN03V(0:NRMAX))
-    rNuCXN0(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) &
-         &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX) + PN03V(0:NRMAX))
+!!$    rNuIN0(0:NRMAX)   = rNuION(0:NRMAX) * PNeV(0:NRMAX) &
+!!$         &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX) + PN03V(0:NRMAX))
+!!$    rNuCXN0(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) &
+!!$         &            / (PN01V(0:NRMAX) + PN02V(0:NRMAX) + PN03V(0:NRMAX))
+    rNuIN0(0:NRMAX)   = FSION * SiVizA(0:NRMAX) * PNeV(0:NRMAX) * 1.D20
+    rNuCXN0(0:NRMAX)  = FSCX  * SiVcxA(0:NRMAX) * PNiV(0:NRMAX) * 1.D20
     rNuCXN1(0:NRMAX)  = rNuiCX(0:NRMAX) * PNiV(0:NRMAX) * PT01V(0:NRMAX)
     rNuTeiEI(0:NRMAX) = rNuTei(0:NRMAX) * PNeV(0:NRMAX) / PNiV(0:NRMAX)
     rNubeBE(0:NRMAX)  = rNube(0:NRMAX)  * PNbV(0:NRMAX) / PNeV(0:NRMAX)

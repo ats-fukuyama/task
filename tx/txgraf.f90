@@ -1440,7 +1440,11 @@ contains
        STR = '@SIE(r)@'
 !       CALL APPROPGY(MODEG, GY(0,0,90), GYL, STR, NRMAX, NGR, gDIV(90))
 !       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-       GYL(0:NRMAX,0:NGR) = LOG10(GY(0:NRMAX,0:NGR,90))
+       DO NG = 0, NGR
+          DO NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,90)),1.D10,1.D23)
+          END DO
+       END DO
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,GYMIN=18.0,ILOGIN=1)
 
 !       CALL TXWPGR
@@ -1461,7 +1465,11 @@ contains
        STR = '@TOTAL N$-0$=(r)@'
 !       CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRMAX, NGR, gDIV(16))
 !       CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-       GYL(0:NRMAX,0:NGR) = LOG10(GY(0:NRMAX,0:NGR,16))
+       DO NG = 0, NGR
+          DO NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+          END DO
+       END DO
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
 
 !       CALL TXWPGR
@@ -1699,7 +1707,11 @@ contains
        STR = '@TOTAL N$-0$=(r)@'
 !       CALL APPROPGY(MODEG, GY(0,0,16), GYL, STR, NRMAX, NGR, gDIV(16))
 !       CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND)
-       GYL(0:NRMAX,0:NGR) = LOG10(GY(0:NRMAX,0:NGR,16))
+       DO NG = 0, NGR
+          DO NR = 0, NRMAX
+             GYL(NR,NG) = GLOG(DBLE(GY(NR,NG,16)),1.D0,1.D23)
+          END DO
+       END DO
        CALL TXGRFRXS(4,GX,GYL,NRMAX,NGR,STR,MODE,IND,ILOGIN=1)
 
        STR = '@SLOW N$-0$=(r)@'
@@ -3778,7 +3790,7 @@ contains
 
   !***********************************************************
   !
-  !   CEILING FUNCTION FOR LOG10 PLOT
+  !   Ceiling FUNCTION for LOG10 plot
   !
   !***********************************************************
 
