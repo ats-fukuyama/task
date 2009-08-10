@@ -874,6 +874,9 @@ contains
     GYL(0:NXM,NG,138) = SNGL(PN03V(0:NXM)*1.D20)
     GYL(0:NXM,NG,139) = SNGL(D03(0:NXM))
 
+    ! *** CDIM mode 09/07/13 miki_m ***
+    GYL(0:NXM,NG,140) = SNGL(FCDIM(0:NXM))
+
     RETURN
   END SUBROUTINE TXSTGR
 
@@ -890,7 +893,7 @@ contains
          &              UephV, UirV, UithV, UiphV, ErV, BthV, EphV, NRMAX, UbphV, &
          &              PTeV, PTiV, PN01V, PN02V, PN03V, EthV, BphV, UbthV, Q, Di, De, &
          &              rG1h2, FCDBM, S, Alpha, rKappa, NRA, RR, R, RA, rNuION, &
-         &              Chie,  Chii, PIE, PCX, SIE, PBr, Deff, PeV, PiV, rKeV
+         &              Chie,  Chii, PIE, PCX, SIE, PBr, Deff, PeV, PiV, rKeV, FCDIM
     use tx_interface, only : rLINEAVE, VALINT_SUB
 
     REAL(4), INTENT(IN) :: GTIME
@@ -951,6 +954,8 @@ contains
     GVY(NGVV,39)  = SNGL(rLINEAVE(0.24D0))
     GVY(NGVV,40)  = SNGL(rLINEAVE(0.6D0))
 
+
+
     CALL VALINT_SUB(PNeV,NRA,PNESUM1)
     PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
     PNeION(0:NRMAX) = PNeV(0:NRMAX)*rNuION(0:NRMAX)
@@ -977,6 +982,8 @@ contains
     GVY(NGVV,52) = SNGL(Deff(NRC))
     GVY(NGVV,53) = SNGL(PeV(0) * 1.D20 * rKeV)
     GVY(NGVV,54) = SNGL(PiV(0) * 1.D20 * rKeV)
+
+    GVY(NGVV,55) = SNGL(FCDIM(NRC)) !09/07/13 miki_m
 
     RETURN
   END SUBROUTINE TXSTGV
@@ -1627,7 +1634,18 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,86), GYL, STR, NRMAX, NGR, gDIV(86))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
+       STR = '@F$-CDIM$=(r)@'
+       CALL TXGRFRX(2,GX,GY(0,0,140),NRMAX,NGR,STR,MODE,IND)
+
+
        CALL TXWPGR
+
+    CASE(22)
+       STR = '@F$-CDIM$=(r)@'
+       CALL TXGRFRX(0,GX,GY(0,0,137),NRMAX,NGR,STR,MODE,IND)
+
+!       CALL TXWPGR
+
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
@@ -3398,7 +3416,7 @@ contains
     use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPCLD, FSPCLC, &
          &              PROFD, PROFC, FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD02, &
          &              PNBHT1, PNBHT2, PNBHP, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, &
-         &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff
+         &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff, FSCDIM
     INTEGER(4) :: IFNT
 
     CALL INQFNT(IFNT)
@@ -3433,6 +3451,8 @@ contains
     CALL TXWPS('@FSLP  @', FSLP)
     CALL TXWPS('@FSION @', FSION)
     CALL TXWPS('@FSD02 @', FSD02)
+
+!    CALL TXWPS('@FCDIM3@', FSCDIM)
 
     GXM = GXM + 0.35 * 17
     NP = 0

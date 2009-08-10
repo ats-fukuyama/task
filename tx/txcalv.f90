@@ -202,7 +202,7 @@ contains
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ellE, ellK, Rpotato, ETASL, &
          &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
-         &     rGCIM, DCDIM!, !TRCOFSIM, OMEGAPR, RAQPR, FS1 !,09/06/17~ miki_m 
+         &     rGCIM, DCDIM,rHIM!, !TRCOFSIM, OMEGAPR, RAQPR, FS1 !,09/06/17~ miki_m 
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, ELLFC, ELLEC, deriv4
@@ -555,6 +555,10 @@ contains
     dpdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,pres ,NRMAX,0)
 
 !!D02    write(6,'(F8.5,I4,2F11.6)') T_TX,NRB,Rho(NRB),PT02V(NR)
+
+    ! Calculate CDIM coefficient
+    RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * &  ! cf. txcalv.f90 L501
+         &     dfdx (PSI(0:NRMAX) , (R(0:NRMAX) / RA)**4 / Q(0:NRMAX) , NRMAX , 0)
 
     !  Coefficients
 
@@ -967,27 +971,34 @@ contains
           rGCIM = 8.D0
           ! Magnetic curvature
           rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
-          ! Calculate CDIM coefficient
-          OMEGAPR = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR
-          RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx (PSI , (R / RA)**4 / Q , NRMAX , 0) ! cf. txcalv.f90 L501
-!          RAQPR = dfdx (PSI , (R / RA)**4 / Q , NRMAX , 0) ! cf. txcalv.f90 L501
-          FS1 = 3.D0 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S**2.D0)
-          TRCOFSIM = FS1
-          FCDIM(NR) = TRCOFSIM(NR)
-          ! ExB rotational shear
+
+          OMEGAPR(NR) = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR(NR)
+          ! for s=0 , FS1=NaN
           IF(NR == 0) THEN
-             rH=0.D0
+             FS1(NR) = 0
           ELSE
-             rH = Q(NR) * RR * R(NR) * dVebdr(NR) / (Va * S(NR))
+             FS1(NR) = 3.D0 * (OMEGAPR(NR) / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2.D0)
           END IF
 
+!          TRCOFSIM(NR) = FS1(NR)
+!          FCDIM(NR) = TRCOFSIM(NR)
+           FCDIM(NR) = FS1(NR)
+
+
+          ! ExB rotational shear
+          rHIM = Q(NR) * RR * R(NR)**2.D0 * dVebdr(NR) / (Va * RA)
+
           ! Turbulence suppression by ExB shear for CDIM mode
-          rG1h2IM(NR) = 1.D0 / (1.D0 + rG1 * rH**2)
+          rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rHIM**2))
           ! Turbulent transport coefficient calculated by CDIM model
           DCDIM = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
 
           IF(Rho(NR) == 1.D0) DCDIMA = DCDIM 
+
+!          IF(NR == 0 .OR. NR == 1) & 
+!                         write(6,*) ',NR=',NR,'RAQPR=',RAQPR(NR),'OMEGAPR=',OMEGAPR(NR), &
+!               &     'Q=',Q(NR),'S=',S(NR),'FCDIM=',FCDIM(NR),'DCDIM=',DCDIM
 
        ELSE
           rG1h2IM(NR) = 0.D0
@@ -1048,7 +1059,7 @@ contains
              IF(FSCDBM(3) == 0.D0) THEN
                 DeL = FSPCLC * diff_prof(RhoSOL,FSDFIX(3),PROFCL,PROFC1,0.d0)
              ELSE
-                DeL = FSCDBM(3) * DCDBMA             
+                DeL = FSCDBM(3) * DCDBMA + FSCDIM * DCDIMA
              END IF
 !pedestal             DeL = FSPCLC * FSDFIX(3) * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
