@@ -6,6 +6,14 @@ C                    (-1.D0, +1.D0)
 C         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
 C     ************************************************************
 C
+C        For integral with respect to y from a to b,
+C            variable transformation should be
+C                 x = (2*y-a-b)/(b-a)
+C
+C                 near y ~ a   y-a=(b-a)*(1+x)/2
+C                 near y ~ b   b-y=(b-a)*(1-x)/2
+C                 otherwize      y=(b-a)*x/2+(a+b)/2
+C
       SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC,KID)
       IMPLICIT REAL*8(A-H,O-Z)
       EXTERNAL FUNC
