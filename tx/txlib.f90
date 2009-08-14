@@ -11,7 +11,7 @@ contains
 
 !-------------------------------------------------------
 !
-!   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
+!   Calculate "\int_0^{psi_b} function(psi) dpsi"
 !      dpsi : mesh interval
 !      a    : coefficient vector
 !      b    : coefficient vector
@@ -1261,10 +1261,10 @@ REAL(8) FUNCTION INTG_F(X)
 
   ! Calculate \int (r * X) dpsi
 
-  ! === ATTENTION !!! ==================================================!
-  !   This function can be used only if size(X) is equivalent to NEMAX, !
-  !   which is the integral domain of fem_int funtion.                  !
-  ! ====================================================================!
+  ! === ATTENTION !!! ======================================================!
+  !   This function can be used only if size(X) is equivalent to NEMAX,     !
+  !   denoting the maximum index of the integral domain of fem_int funtion. !
+  ! ========================================================================!
 
   use tx_core_module, only : fem_int
   implicit none
@@ -1654,3 +1654,24 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
 !!$  end do
 
 end subroutine inexpolate
+
+!***************************************************************
+!
+!   Gaussian (Maxwellian) distribution
+!
+!   (input)
+!     x     : position
+!     mu    : average
+!     sigma : standard deviation
+!
+!***************************************************************
+
+pure real(8) function fgaussian(x,mu,sigma,norm) result(f)
+  real(8), parameter :: pi = 3.14159265358979323846d0
+  real(8), intent(in) :: x, mu, sigma
+  integer(4), intent(in), optional :: norm
+
+  f = exp(- (x - mu)**2 / (2.d0 * sigma**2))
+  if(present(norm)) f = f / (sqrt(2.d0 * pi) * sigma)
+
+end function fgaussian

@@ -25,7 +25,7 @@ contains
          &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
          &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
-    use tx_variables, only : ripple
+    use tx_ripple, only : ripple
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER
     real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL

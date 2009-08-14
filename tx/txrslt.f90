@@ -15,14 +15,14 @@ SUBROUTINE TXGLOB
   REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
        &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
-       &     BBL, SUMML, SUMPL, PNES, PAI
+       &     BBL, SUMML, SUMPL, PNES, PAI, Vol, BPave
   REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML, SUMdenom, SUMPNiV
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
        &     dPPV, ALFA
   REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
   real(8), dimension(:), allocatable :: denom
-  real(8) :: dBetaSUM, BPINT
+  real(8) :: dBetaSUM
   real(8) :: DERIV4, FCTR
 
   !     Volume-Averaged Density and Temperature
@@ -32,6 +32,9 @@ SUBROUTINE TXGLOB
   RKAP = 1.D0
   FKAP = 1.D0
 
+  !  Volume
+  Vol = (2.D0 * PI * RR) * (RKAP * PI * RB**2)
+
 !!  if(mod(nt,ntstep)==0) write(6,*) INTG_F(X(LQi4,0:NRMAX))/(0.5D0*RB**2),INTG_F(X(LQi4,0:NRMAX))/INTG_F(PNiV)
 
   PNdiff(0:NRMAX) =  PZ * PNiV(0:NRMAX) + PZ * PNbV(0:NRMAX) &
@@ -40,7 +43,7 @@ SUBROUTINE TXGLOB
 
   RNINT = INTG_F(PNeV)
   RPEINT = INTG_F(PeV)
-  ANSAV(1) = RNINT*2.D0*PI/(PI*RA*RA)
+  ANSAV(1) = 2.D0*PI*RR*2.D0*PI*RKAP / Vol * RNINT
   ANS0(1)  = PNeV(0)
   IF(RNINT > 0.D0) THEN
      TSAV(1) = RPEINT/RNINT
@@ -52,7 +55,7 @@ SUBROUTINE TXGLOB
 
   RNINT = INTG_F(PNiV)
   RPIINT = INTG_F(PiV)
-  ANSAV(2) = RNINT*2.D0*PI/(PI*RA*RA)
+  ANSAV(2) = 2.D0*PI*RR*2.D0*PI*RKAP / Vol * RNINT
   ANS0(2)  = PNiV(0)
   IF(RNINT > 0.D0) THEN
      TSAV(2) = RPIINT/RNINT
@@ -65,7 +68,7 @@ SUBROUTINE TXGLOB
   ANFINT = INTG_F(PNbV)
   RWINT  = INTG_F(SNB)
   WFT(1) = 0.5D0*AMI*RWINT**2.D0*1.5D0*2.D0*PI*RR*2.D0*PI*RKAP*rKeV*1.D14
-  ANFAV(1) = ANFINT*2.D0*PI/(PI*RA*RA)
+  ANFAV(1) = 2.D0*PI*RR*2.D0*PI*RKAP / Vol * ANFINT
   ANF0(1)  = PNbV(0)
   IF(ANFINT > 0.D0) THEN
      TFAV(1)  = RWINT/ANFINT
@@ -299,9 +302,12 @@ SUBROUTINE TXGLOB
 
   BETAN  = BETAA / (rIP / (RA * BB)) * 100.D0
 
+  ! Internal inductance li(3)
+  ! (In our case, li(1)=li(2)=li(3) due to the circular cross-section.)
   BthV2(0:NRMAX) = BthV(0:NRMAX)**2
-  BPINT = 0.5D0 * INTG_F(BthV2)
-  ALI   = 8.D0*PI**2*BPINT*FKAP**2/((rMU0*rIp*1.D6)**2)
+!  ALI   = 8.D0*PI**2*(0.5D0 * INTG_F(BthV2))*FKAP**2/((rMU0*rIp*1.D6)**2)
+  BPave = 2.D0*PI*RR*2.D0*PI*RKAP / Vol * INTG_F(BthV2)
+  ALI   = BPave / ((rMU0 * rIp * 1.D6)**2 * RR / (2.D0 * Vol))
   VLOOP = EphV(NRMAX)*2.D0*PI*RR
 
   !  PAI=(PA(2)*PN(2)+PA(3)*PN(3)+PA(4)*PN(4))/(PN(2)+PN(3)+PN(4))

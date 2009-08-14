@@ -182,6 +182,13 @@ module tx_interface
      end subroutine inexpolate
   end interface
 
+  interface
+     pure real(8) function fgaussian(x,mu,sigma,norm)
+       real(8), intent(in) :: x, mu, sigma
+       integer(4), intent(in), optional :: norm
+     end function fgaussian
+  end interface
+
   !****************!
   !   txfile.f90   !
   !****************!
