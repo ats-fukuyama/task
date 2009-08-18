@@ -12,9 +12,11 @@
 #LIBLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 #LIBLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
+#MODLA95 = /usr/local/lib/lapack95_modules
 ## else
 LAPACK = nolapack.f
 LIBLA =
+MODLA95 = 
 
 ## if you have mdslib
 #MDSPLUS = mdsplus.f
