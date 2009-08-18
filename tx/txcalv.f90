@@ -1537,6 +1537,8 @@ contains
 !!$       end if
     end if
 
+    call sctr(R(1),R(2),R(3),R(4),S(2),S(3),S(4),S(0),S(1))
+
     SINT = 2.D0 * PI * INTG_F(S)
 
   end subroutine deposition_profile

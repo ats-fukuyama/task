@@ -463,7 +463,7 @@ SUBROUTINE TXINIT
 
   !   Mode of LAPACK
   !   0    : Use BANDRD
-  !   else : Use LAPACK_DGBSV
+  !   else : Use LAPACK_DGBSV or LA_GBSV
   MDLPCK = 0
 
   !   Mode of neoclassical resistivity model

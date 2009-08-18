@@ -4,9 +4,9 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txcalv.f90 \
+SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txrppl.f90 txcalv.f90 \
        txcala.f90 txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 \
-       txmain.f90 txntv.f90 txrppl.f90
+       txmain.f90 txntv.f90
 SRC2D= txg2d.f90
 SRC3D= txg3d.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \
@@ -25,9 +25,9 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 .SUFFIXES: .f90
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
 
 #all: $(PROG2)
 all: $(PROG3)
@@ -88,4 +88,4 @@ txrslt.o: txrslt.f90 txcomm.f90
 txrppl.o: txrppl.f90 txcomm.f90
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
-	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass $(MODDIR)
+	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass

@@ -136,7 +136,7 @@ SUBROUTINE TXMENU
            WRITE(6,*) 'XX Unknown beam command'
         END SELECT
      CASE('F')
-        CALL ASCII_INPUT
+        CALL ascii_input
 
         if(iflag_file == 1) then
            MDLMOM = 1
