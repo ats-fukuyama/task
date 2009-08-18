@@ -13,7 +13,7 @@
 #LIBLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 #LIBLA = -L/opt/intel/Compiler/11.1/038/mkl/lib/32 -lmkl_intel -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95
-#MODLA95 = /usr/local/lib/lapack95_modules
+#MODLA95 = -I/usr/local/lib/lapack95_modules
 ## else
 LAPACK = nolapack.f
 LIBLA =
