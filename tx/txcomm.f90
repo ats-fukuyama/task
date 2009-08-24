@@ -176,7 +176,7 @@ module tx_commons
 
   ! CDIM
   ! 09/06/17~ miki_m
-  real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, TRCOFSIM, OMEGAPR, RAQPR, FS1
+  real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, OMEGAPR, RAQPR
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
@@ -325,9 +325,7 @@ contains
        if (ier /= 0) exit
 
        allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
-       allocate(rG1h2IM(0:N), FCDIM(0:N), TRCOFSIM(0:N), OMEGAPR(0:N), RAQPR(0:N), FS1(0:N),  &
-!            &   S(0:N),  Alpha(0:N), rKappa(0:N),
-            &   stat = ierl(1)) !09/06/17 miki_m
+       allocate(rG1h2IM(0:N),  FCDIM(0:N),  OMEGAPR(0:N),  RAQPR(0:N),        stat = ierl(1)) !09/06/17 miki_m
        allocate(pres0(0:N),                                                   stat = ierl(2))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
@@ -420,7 +418,7 @@ contains
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
     deallocate(pres0)
 
-    deallocate(rG1h2IM,  FCDIM, TRCOFSIM, OMEGAPR, RAQPR, FS1)  !***miki_m 09/06/17~
+    deallocate(rG1h2IM, FCDIM, OMEGAPR, RAQPR)  !***miki_m 09/06/17~
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
     deallocate(SNB,    SNBe,  SNBi,  SNBb)

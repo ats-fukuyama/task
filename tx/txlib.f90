@@ -1437,20 +1437,18 @@ END FUNCTION TRCOFS
 !
 !***************************************************************
 
-!pure REAL(8) FUNCTION TRCOFSIM(S,ALFA,RKCV)
+!pure REAL(8) FUNCTION TRCOFSIM(S,ALFA)
 
 !  implicit none
-!  real(8), intent(in) :: S, RKCV
-!  real(8) :: OMEGAPR, FS1, FS2, RAQPR
+!  real(8), intent(in) :: S
+!  real(8) :: OMEGAPR,  RAQPR
 
 !  OMEGAPR = (R(NR) / RR)**2.D0 * (NCph / NCth) / (R / RA)**2.D0 * RAQPR
 
 !  RAQPR = 2.D0 * R(0:NRMAX) * dfdx (PSI , (R / RA)**4 / Q , NMAX , 0 )
 ! cf. txcalv.f90 L501
 
-!  FS1 = 3 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S**2.D0)
-
-!  TRCOFSIM = FS1
+!  TRCOFSIM = 3 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S**2.D0)
 
 !END FUNCTION TRCOFSIM
 

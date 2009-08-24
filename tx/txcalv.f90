@@ -200,7 +200,7 @@ contains
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ETASL, &
          &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
-         &     rGCIM, DCDIM,rHIM!, !TRCOFSIM, OMEGAPR, RAQPR, FS1 !,09/06/17~ miki_m 
+         &     rGCIM, DCDIM, rGIM, rHIM !, 09/06/17~ miki_m 
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, deriv4
@@ -876,8 +876,8 @@ contains
           rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
           &            /(3.D0+1.67*omegaeri)
 
-!          UHth=(RR/Ncph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
-!          UHph=(R(NR)/Ncth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!          UHth=(RR/NCph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!          UHph=(R(NR)/NCth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
 !          UHth  = DBLE(NCth) / DBLE(NCph)
 !          UHph  = 1.D0
 !    09/02/11 mm
@@ -950,31 +950,38 @@ contains
           ! Squared plasma frequency
           Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
           ! Arbitrary coefficient for CDIM model
-          rGCIM = 8.D0
+          rGCIM = 8.D-1
           ! Magnetic curvature
           rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
 
           OMEGAPR(NR) = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR(NR)
-          ! for s=0 , FS1=NaN
-          IF(NR == 0) THEN
-             FS1(NR) = 0
+         
+          IF(NR == 0) THEN  ! for s=0
+             FCDIM(NR) = 0
           ELSE
-             FS1(NR) = 3.D0 * (OMEGAPR(NR) / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2.D0)
+             FCDIM(NR) = 3.D0 * (OMEGAPR(NR) / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2.D0)
           END IF
 
-!          TRCOFSIM(NR) = FS1(NR)
-!          FCDIM(NR) = TRCOFSIM(NR)
-           FCDIM(NR) = FS1(NR)
-
-
           ! ExB rotational shear
-          rHIM = Q(NR) * RR * R(NR)**2.D0 * dVebdr(NR) / (Va * RA)
+          IF(NR == 0) THEN
+             rGIM = 0.D0
+             rHIM = 0.D0
+          ELSE
+!             rGIM = rG1
+             rGIM = 1.04D0 * R(NR)**2.D0 / ( dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2) &
+                  &                         * OMEGAPR(NR)**2.D0 * RA**2.D0 * RR**2.D0 )
+!             rHIM = Q(NR) * RR * R(NR)**2.D0 * dVebdr(NR) / (Va * RA)
+             rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdr(NR) / BBL
+          END IF
 
           ! Turbulence suppression by ExB shear for CDIM mode
-          rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rHIM**2))
+          rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rGIM * rHIM**2))
+
           ! Turbulent transport coefficient calculated by CDIM model
           DCDIM = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
+
+!-----------------memo:beta'=dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)-----------
 
           IF(Rho(NR) == 1.D0) DCDIMA = DCDIM 
 
@@ -1455,7 +1462,7 @@ contains
        fmod = 0.d0
     end if
 
-    ! Sum of usual and modified Gaussian profiles
+    ! Sum  jof usual and modified Gaussian profiles
     diff_prof = factor * (1.d0 + (profd - 1.d0) * rho**power) + fmod
 
   end function diff_prof

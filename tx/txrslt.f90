@@ -370,6 +370,7 @@ SUBROUTINE TXGLOB
      ! Excluding Ware pinch
      Deff(nr) = -PNiV(NR)*UirV(NR)/DERIV4(NR,R,PNiV,NRMAX,0)
      if(Deff(nr) < 0.d0) Deff(nr) = 0.d0
+!     write(6,*) 'nr=',nr,'Deff=',deff(nr)
   end do
 
   ! *** Particle confinement time; TAUP ***
