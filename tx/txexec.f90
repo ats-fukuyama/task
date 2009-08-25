@@ -78,12 +78,12 @@ contains
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
-!    use f95_lapack ! for LAPACK95
+    use f95_lapack ! for LAPACK95
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
     INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID, IERR_LA
-    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV !LA
+!LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
     real(8), dimension(1:NQMAX) :: tiny_array
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
@@ -167,9 +167,9 @@ contains
                    GOTO 180
                 END IF
              ELSE
-                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & !LA
-                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) !LA
-!la_gbsv                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
+!LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
+!LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
+                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
                 IF(IERR_LA /= 0) THEN
                    WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                         &              NT, ' -', IC, ' step. IERR=',IERR_LA
@@ -291,9 +291,9 @@ contains
 !!$                   GOTO 180
 !!$                END IF
 !!$             ELSE
-!!$                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & !LA
-!!$                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) !LA
-!!$!la_gbsv                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
+!!$!LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, &
+!!$!LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
+!!$                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
 !!$                IF(IERR_LA /= 0) THEN
 !!$                   WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
 !!$                        &              NT, ' -', IC, ' step. IERR=',IERR_LA
