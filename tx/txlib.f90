@@ -1551,12 +1551,13 @@ END SUBROUTINE BISECTION
 !              dat_in   : the data of the file
 !              nmax_std : the number of the data point
 !              r_std    : radial coordinate
-!              iedge    : indication of the treatment at the axis and the separatrix
+!              iedge    : indication of the treatment at the axis and the outer boundary
+!              ideriv   : (optional) r-derivative at the axis becomes zero when imode=4,5,6
 !     OUTPUT : dat_out  : interpolated and extrapolated value of dat_in
+!              nrbound  : (optional) outermost index corresponding to rho_in(nmax_in)
 !
-!      imode |  iaxis  iedge  |    axis        separatrix   |
+!      imode |  iaxis  iedge  |    axis      outer boundary |
 !     -------------------------------------------------------
-!        *   |    0      0    |         as it is            | <= if data in rho > 1 exist
 !        1   |    1      1    |     0              0        |
 !        2   |    1      2    |     0              ex       |
 !        3   |    1      3    |     0              val      |
@@ -1570,28 +1571,29 @@ END SUBROUTINE BISECTION
 !     0 : zero, ex : extrapolation, val : three quarters of the nearest value
 !************************************************************************************
 
-subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
+subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound)
   implicit none
   integer(4), intent(in) :: nmax_in, nmax_std, imode
+  integer(4), intent(in),  optional :: ideriv
+  integer(4), intent(out), optional :: nrbound
   real(8), dimension(1:nmax_in),  intent(in)  :: rho_in, dat_in
   real(8), dimension(0:nmax_std), intent(in)  :: rho_std
   real(8), dimension(0:nmax_std), intent(out) :: dat_out
-  integer(4) :: i, iaxis, iedge, nmax
+  integer(4) :: i, iaxis, iedge, nmax, isep
+  real(8) :: rhoa
   real(8), dimension(:), allocatable :: rho_tmp, dat_tmp
-  real(8) :: aitken2p
+  real(8) :: aitken2p, fctr
+
+  isep = 0
 
   if(imode < 1 .or. imode > 9) stop 'inexpolate: inappropriate imode'
 
   ! Check whether the outermost value of the input is over the separatrix or not
-  if(rho_in(nmax_in) >= 1.d0) then
-     iedge = 0
-  else
-     iedge = mod((imode-1),3)+1
-  end if
+  if(rho_in(nmax_in) >= 1.d0) isep = 1
+  iedge = mod((imode-1),3)+1
 
   ! Reshape the mesh and data arrays
   nmax = nmax_in
-  if(iedge /= 0) nmax = nmax_in + 1
   if(rho_in(1) == 0.d0) then ! Originally having the value at the axis
      nmax = nmax - 1
      allocate(rho_tmp(0:nmax),dat_tmp(0:nmax))
@@ -1617,22 +1619,37 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
      else if(iaxis == 2) then
         dat_tmp(0) = aitken2p(0.d0,dat_tmp(1),dat_tmp(2),dat_tmp(3), &
              &                     rho_tmp(1),rho_tmp(2),rho_tmp(3))
+        if(present(ideriv)) then
+           if(ideriv == 1) then
+              dat_tmp(0) = fctr(rho_tmp(1),rho_tmp(2),dat_tmp(1),dat_tmp(2))
+           else
+              call sctr(           rho_tmp(1),rho_tmp(2),rho_tmp(3),rho_tmp(4), &
+                   &                          dat_tmp(2),dat_tmp(3),dat_tmp(4), &
+                   &    dat_tmp(0),dat_tmp(1))
+              dat_out(1) = dat_tmp(1)
+           end if
+        end if
      else if(iaxis == 3) then
         dat_tmp(0) = 0.75d0 * dat_tmp(1)
      end if
      dat_out(0) = dat_tmp(0)
   end if
 
-  ! Extrapolate the value at the separatrix
+  ! Extrapolate the value at the outer boundary
+  if(isep == 0) then
+     rhoa = 1.d0
+  else
+     rhoa = rho_tmp(nmax)
+  end if
   if(iedge == 1) then
-     rho_tmp(nmax) = 1.d0
+     rho_tmp(nmax) = rhoa
      dat_tmp(nmax) = 0.d0
   else if(iedge == 2) then
-     rho_tmp(nmax) = 1.d0
-     dat_tmp(nmax) = aitken2p(1.d0,dat_tmp(nmax-1),dat_tmp(nmax-2),dat_tmp(nmax-3), &
+     rho_tmp(nmax) = rhoa
+     dat_tmp(nmax) = aitken2p(rhoa,dat_tmp(nmax-1),dat_tmp(nmax-2),dat_tmp(nmax-3), &
              &                     rho_tmp(nmax-1),rho_tmp(nmax-2),rho_tmp(nmax-3))
   else if(iedge == 3) then
-     rho_tmp(nmax) = 1.d0
+     rho_tmp(nmax) = rhoa
      dat_tmp(nmax) = 0.75d0 * dat_tmp(nmax-1)
   end if
 
@@ -1640,11 +1657,15 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out)
   do i = 1, nmax_std
      if(rho_std(i) < rho_tmp(nmax)) then
         call aitken(rho_std(i),dat_out(i),rho_tmp,dat_tmp,2,size(dat_tmp))
+     else
+        if(present(nrbound)) nrbound = i - 1
+        exit
      end if
   end do
 
   deallocate(rho_tmp,dat_tmp)
 
+  ! Avoid negative values
   where(dat_out < 0.d0) dat_out = 0.d0
 
 !!$  do i=0,nmax_std

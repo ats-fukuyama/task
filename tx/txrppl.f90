@@ -8,7 +8,7 @@ contains
 !
 !   Toroidal ripple effects
 !
-!     Inputs (real*8) : dQdr   (0:NRMAX) : r-derivative of the safety factor
+!     Input  (real*8) : dQdr   (0:NRMAX) : r-derivative of the safety factor
 !     Output (real*8) : rNubrp1(0:NRMAX) : defraction frequency
 !                       rNubrp2(0:NRMAX) : defraction frequence
 !                       Ubrp   (0:NRMAX) : convective velocity due to grad B drift
@@ -24,7 +24,8 @@ contains
     real(8), dimension(0:NRMAX), intent(in) :: dQdr
 
     integer(4) :: NR, IER, i, imax, irip, nr_potato
-    real(8) :: thetab, sinthb, RL, ellE, ellK, EpsL, theta1, theta2, dlt, width0, width1, &
+    real(8) :: thetab, sinthb, RL, ellE, ellK, EpsL, theta1, theta2, dlt, &
+         &     width0, width1, dltwidth, &
          &     ARC, DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, Rpotato
     real(8) :: ELLFC, ELLEC, AITKEN2P
@@ -75,10 +76,12 @@ contains
        ! of ripple well region, we estimate the banana particle density which are going
        ! to be trapped as {sqrt(delta(theta_rim)) * fgaussian(theta_rim)} * nb.
 
-       ! Ripple well region
+       ! Ripple well region, i.e. area where "width0 - width1 > 0".
        DO NR = 1, NRMAX
           RL = R(NR)
           EpsL = RL / RR
+
+          ! ===== Calculation of ripple field and ripple well region =====
           ! For LFS
           theta1  = 0.d0
           i = 0
@@ -98,17 +101,13 @@ contains
              width0 = ripple(RL,theta1,FSRP)
              width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
              ! Poloidal angle at which the difference between width0 and width1 is minimized.
-             if(i == 1) then
+             dltwidth = abs(width0 - width1)
+             if(i == 1 .or. dltwidth < diff_min) then
+                diff_min  = dltwidth
                 theta_min = theta1
-                diff_min = abs(width0 - width1)
-             else
-                if(abs(width0 - width1) < diff_min) then
-                   diff_min = abs(width0 - width1)
-                   theta_min = theta1
-                end if
              end if
-             ! Rim of ripple well region detected
-             if(abs(width0 - width1) < 1.d-6) exit
+             ! Convergence: Rim of ripple well region detected
+             if(dltwidth < 1.d-6) exit
              ! Overreached a rim of ripple well. Go back and use finer step size.
              if(width0 < width1) then
                 theta1  = theta1 - PI * dlt
@@ -117,12 +116,12 @@ contains
                 irip = irip - 1
                 cycle
              end if
-             ! Ripple amplitude at the rim of the ripple well region
+             ! Seek ripple amplitude just inside the rim of the ripple well region
              DltRP_rim = width0
              theta_rim = theta1
           end do
           ARC = 2.d0 * theta1
-          th1(nr) = theta_min
+          th1(nr) = theta_min ! save for graphics
 
           ! For HFS
           theta2 = PI
@@ -142,16 +141,12 @@ contains
              RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta2))
              width0 = ripple(RL,theta2,FSRP)
              width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
-             if(i == 1) then
+             dltwidth = abs(width0 - width1)
+             if(i == 1 .or. dltwidth < diff_min) then
+                diff_min  = dltwidth
                 theta_min = theta2
-                diff_min = abs(width0 - width1)
-             else
-                if(abs(width0 - width1) < diff_min) then
-                   diff_min = abs(width0 - width1)
-                   theta_min = theta2
-                end if
              end if
-             if(abs(width0 - width1) < 1.d-6) exit
+             if(dltwidth < 1.d-6) exit
              if(width0 < width1) then
                 theta2  = theta2 + PI * dlt
                 dlt = 0.1d0 * dlt
@@ -163,7 +158,7 @@ contains
           ARC = ARC + 2.d0 * (PI - theta2)
           ! Ratio of ripple well region in a certain flux surface
           rip_rat(NR) = ARC / (2.d0 * PI)
-          th2(nr) = theta_min
+          th2(nr) = theta_min ! save for graphics
 
 !!rpl_ave          sum_rp = 0.d0
 !!rpl_ave          imax = 51
@@ -179,6 +174,8 @@ contains
 !!$          alpha_l = EpsL * sin(thetab) / (NTCOIL * Q(NR) * DltRP(NR))
 !!$          ! Dlteff : effective depth of well along the magnetic field line
 !!$          Dlteff = 2.D0*DltRP(NR)*(SQRT(1.D0-alpha_l**2)-alpha_l*acos(alpha_l))
+
+          ! ===== Coefficients calculation (Part I) =====
 
           ! effective time of detrapping
           ! (Yushmanov NF (1982), Stringer NF (1972) 689, Takamura (5.31))
@@ -234,6 +231,8 @@ contains
        ! with ripple wells. All the diffusion processes for them occur at the
        ! banana tip point "thetab", hence we only consider the ripple amplitude at
        ! the banana tip point, DltRP(NR).
+
+       ! ===== Coefficients calculation (Part II) =====
 
        !  -- Collisional diffusion of trapped fast particles --
        IF(PNBH == 0.D0) THEN
@@ -369,5 +368,32 @@ contains
 !!$    end if
 !!$       
 !!$  end function ripple
+
+!!rp_conv  ! Search minimum radial number NR satisfying R(NR) > X.
+!!rp_conv
+!!rp_conv  subroutine wherenr(R,X,NR,Left,Right)
+!!rp_conv    real(8), dimension(0:NRMAX), intent(in) :: R
+!!rp_conv    real(8), intent(in) :: X
+!!rp_conv    integer, intent(out) :: NR
+!!rp_conv    real(8), intent(out) :: Left, Right
+!!rp_conv    integer :: NRL
+!!rp_conv
+!!rp_conv    if(X == 0.d0) then
+!!rp_conv       NR = 1
+!!rp_conv       Left  = 0.d0
+!!rp_conv       Right = 0.d0
+!!rp_conv       return
+!!rp_conv    end if
+!!rp_conv
+!!rp_conv    do nrl = 1, nrmax
+!!rp_conv       if(r(nrl) > x) then
+!!rp_conv          NR = nrl
+!!rp_conv          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
+!!rp_conv          Left  = 1.d0 - Right
+!!rp_conv          exit
+!!rp_conv       end if
+!!rp_conv    end do
+!!rp_conv
+!!rp_conv  end subroutine wherenr
 
 end module tx_ripple

@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NRM=101, NEM=NRM, NQM=22, NCM=29, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=140, NGYTM=51, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=141, NGYTM=51, &
        &                   NGYVM=55, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
 !09/07/13 miki_m original : NGYRM=136
@@ -66,14 +66,14 @@ module tx_commons
   ! Amplitude parameters for transport
   real(8) :: FSCBKP, FSCBSH, FSBOHM, FSPCLD, FSPCLC, FSVAHL, PROFD, PROFC, PROFD1, PROFD2, PROFC1, FSCDIM
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, rG1, FSRP, FSNF
-  real(8), dimension(1:3) :: FSDFIX, FSCDBM
-  integer(4) :: MDLC
+  real(8), dimension(1:3) :: FSDFIX, FSANOM
+  integer(4) :: MDLC, MDANOM
 
   ! Scale lengths in SOL
   real(8) :: rLn, rLT
 
   ! Heat sources
-  real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, &
+  real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, PNBHex, &
        &     PNBCD, PNBMPD, &
        &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi, Tqi0
   integer(4) :: MDLNBD, MDLMOM
@@ -158,7 +158,7 @@ module tx_commons
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWthe, FWthi, WPM, FVpch, rMue, rMui, rNuB, rNuLB, ft, &
-       & Chie, Chii, De, Di, VWpch, D01, D02, D03, U02, &
+       & Chie, Chii, De, Di, wexb, VWpch, D01, D02, D03, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
@@ -311,8 +311,8 @@ contains
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   FVpch(0:N), rMue(0:N),  &
             &   rMui(0:N),   FWahle(0:N), FWahli(0:N),                        stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
-       allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),   D02(0:N),   &
-            &   D03(0:N),    U02(0:N),                                        stat = ierl(10))
+       allocate(De(0:N),     Di(0:N),     wexb(0:N),  VWpch(0:N), D01(0:N),   &
+            &   D02(0:N),    D03(0:N),                                        stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(12))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(13))
@@ -405,7 +405,7 @@ contains
     deallocate(FWthe,  FWthi,  WPM,   FVpch, rMue,  rMui, &
          &     FWahle, FWahli)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
-    deallocate(De,     Di,     VWpch, D01,   D02,  D03, U02)
+    deallocate(De,     Di,     wexb,  VWpch, D01,   D02,  D03)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)

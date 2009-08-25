@@ -31,6 +31,16 @@ module tx_interface
   end interface
 
   !****************!
+  !   txmmm.f90    !
+  !****************!
+
+  interface
+     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
+       real(8), dimension(*), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
+     end subroutine txmmm95
+  end interface
+
+  !****************!
   !   txlib.f90    !
   !****************!
 
@@ -174,8 +184,10 @@ module tx_interface
   end interface
 
   interface
-     subroutine inexpolate(nmax_in,r_in,dat_in,nmax_std,r_std,iedge,dat_out)
+     subroutine inexpolate(nmax_in,r_in,dat_in,nmax_std,r_std,iedge,dat_out,ideriv,nrbound)
        integer(4), intent(in) :: nmax_in, nmax_std, iedge
+       integer(4), intent(in),  optional :: ideriv
+       integer(4), intent(out), optional :: nrbound
        real(8), dimension(1:nmax_in), intent(in) :: r_in, dat_in
        real(8), dimension(0:nmax_std), intent(in) :: r_std
        real(8), dimension(0:nmax_std), intent(out) :: dat_out

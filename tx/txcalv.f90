@@ -178,7 +178,7 @@ contains
   SUBROUTINE TXCALC
 
     use tx_commons
-    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx, txmmm95
     use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
@@ -187,9 +187,9 @@ contains
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
-    INTEGER(4) :: NR, NP, NR1, IER, i, nrl, ist, npower
-    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, SNBPi_INTG, &
-         &     PNBPi0, PNBTi10, PNBTi20, SNBTG, SNBPD, PRFe0, PRFi0, &
+    INTEGER(4) :: NR, NP, NR1, IER, i, nrl, ist, npower, ideriv = 1, nrbound
+    REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
+         &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
@@ -204,12 +204,11 @@ contains
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, deriv4
-    real(8), dimension(0:NRMAX) :: pres, Vexbr, SNBP, SNBT1, SNBT2, &
-         &                         SNBPi, SNBTi1, SNBTi2, &
+    real(8), dimension(0:NRMAX) :: pres, Vexbr, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
          &                         SRFe, SRFi, Ubpara
     ! For derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
-         &                                dPedr, dPidr, dpdr, ForTav
+         &                                dPedr, dPidr, dpdr, dNedr, dNidr
 
     !     *** Constants ***
 
@@ -259,83 +258,118 @@ contains
 
     !  For NBI heating
     !  *** Perpendicular
-    CALL deposition_profile(SNBP,SL,RNBP0,RNBP,'NB')
-    PNBP0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
+    IF(PNBHP /= 0.D0) THEN
+       CALL deposition_profile(SNBP,SL,RNBP0,RNBP,'NB')
+       PNBP0 = PNBHP * 1.D6 / (2.D0 * Pi * RR * SL)
 
-    IF(MDLNBD /= 0) THEN ! Finite Delta effect
-       ! For ions
-       IF(PNBMPD == 0.D0) THEN ! Exact perpendicular NBI
-          CALL deposition_profile(SNBPi,SL,RNBP0,RNBP,'NB_TRAP',0.D0)
-       ELSE ! Near perpendicular NBI
-          CALL deposition_profile(SNBPi,SL,RNBP0,RNBP,'NB_TRAP',SIGN(1.D0,PNBMPD))
+       IF(MDLNBD /= 0) THEN ! Orbit effect
+          ! For ions
+          IF(PNBMPD == 0.D0) THEN ! Exact perpendicular NBI
+             CALL deposition_profile(SNBPDi,SL,RNBP0,RNBP,'NB_TRAP',0.D0)
+          ELSE ! Near perpendicular NBI
+             CALL deposition_profile(SNBPDi,SL,RNBP0,RNBP,'NB_TRAP',SIGN(1.D0,PNBMPD))
+          END IF
+          PNBPi0 = PNBHP * 1.D6 / (2.D0 * Pi * RR * SL)
        END IF
-       PNBPi0 = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
+    ELSE
+       SNBP(0:NRMAX)   = 0.D0
+       SNBPDi(0:NRMAX) = 0.D0
     END IF
 
     !  *** Tangential
-    CALL deposition_profile(SNBT1,SLT1,RNBT10,RNBT1,'NB')
-    PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+    IF(PNBHT1 /= 0.D0) THEN
+       CALL deposition_profile(SNBT1,SLT1,RNBT10,RNBT1,'NB')
+       PNBT10 = PNBHT1 * 1.D6 / (2.D0 * Pi * RR * SLT1)
 
-    IF(MDLNBD > 1) THEN
-       ! For ions
-       CALL deposition_profile(SNBTi1,SLT1,RNBT10,RNBT1,'NB_PASS',SIGN(1.D0,PNBCD))
-       PNBTi10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+       IF(MDLNBD > 1) THEN ! Orbit effect
+          ! For ions
+          CALL deposition_profile(SNBTi1,SLT1,RNBT10,RNBT1,'NB_PASS',SIGN(1.D0,PNBCD))
+          PNBTi10 = PNBHT1 * 1.D6 / (2.D0 * Pi * RR * SLT1)
+       END IF
+    ELSE
+       SNBT1(0:NRMAX)  = 0.D0
+       SNBTi1(0:NRMAX) = 0.D0
     END IF
 
-    CALL deposition_profile(SNBT2,SLT2,RNBT20,RNBT2,'NB')
-    PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+    IF(PNBHT2 /= 0.D0) THEN
+       CALL deposition_profile(SNBT2,SLT2,RNBT20,RNBT2,'NB')
+       PNBT20 = PNBHT2 * 1.D6 / (2.D0 * Pi * RR * SLT2)
 
-    IF(MDLNBD > 1) THEN
-       ! For ions
-       CALL deposition_profile(SNBTi2,SLT2,RNBT20,RNBT2,'NB_PASS',SIGN(1.D0,PNBCD))
-       PNBTi20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+       IF(MDLNBD > 1) THEN
+          ! For ions
+          CALL deposition_profile(SNBTi2,SLT2,RNBT20,RNBT2,'NB_PASS',SIGN(1.D0,PNBCD))
+          PNBTi20 = PNBHT2 * 1.D6 / (2.D0 * Pi * RR * SLT2)
+       END IF
+    ELSE
+       SNBT2(0:NRMAX)  = 0.D0
+       SNBTi2(0:NRMAX) = 0.D0
     END IF
 
     !  For RF heating
-    CALL deposition_profile(SRFe,SL,RRFe0,RRFew,'RFe')
-    PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
+    IF(PRFHe /= 0.D0) THEN
+       CALL deposition_profile(SRFe,SL,RRFe0,RRFew,'RFe')
+       PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
+    ELSE
+       SRFe(0:NRMAX) = 0.D0
+    END IF
 
-    CALL deposition_profile(SRFi,SL,RRFi0,RRFiw,'RFi')
-    PRFi0 = PRFHi * 1.D6 / (2.D0 * Pi * RR * SL)
+    IF(PRFHi /= 0.D0) THEN
+       CALL deposition_profile(SRFi,SL,RRFi0,RRFiw,'RFi')
+       PRFi0 = PRFHi * 1.D6 / (2.D0 * Pi * RR * SL)
+    ELSE
+       SRFi(0:NRMAX) = 0.D0
+    END IF
 
     ! Deposition profiles are loaded from the file
 
-    ! *** Defined input *********************************************
+     !   In case of "NBI input from OFMC (1)", sequence of data is already
+     !   defined as follows:
+     !     (1) S_birth_ele,  (2) S_birth_tot, (3) S_birth_trap, (4) S_birth_pass,
+     !     (5) S_birth_loss, (6) S_orbit_tot, (7) S_orbit_trap, (8) S_orbit_pass
+
+     !     (1) S_birth_ele,   (2) S_birth_trap, (3) S_birth_pass
+     !     (4) S_orbit_total, (5) S_orbit_trap, (6) S_orbit_pass
+
+    ! *** Pre-defined input (for OFMC data) ***************************
     if(iflag_file == 1) then
 
-       ! Birth TOTAL (SNB for heating profiles)
+       ! (1) Birth electrons
        i = 1
-       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNB)
-       ! Calibration by using total power of all ions
-       SL = 2.D0 * Pi * INTG_F(SNB)
-       PNBHP = infiles(i)%totP * 1.D-6
-       SNB(0:NRMAX) = SNB(0:NRMAX) * 1.D-20 &
-            &       * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
-       PNBP0 = Eb * rKeV * 1.D20
-       ! "or"= infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNB)))
-       ! Birth profile for electrons
-       SNBe(0:NRMAX) = SNB(0:NRMAX)
-       ! Birth profile for thermal ions
-       SNBi(0:NRMAX) = SNB(0:NRMAX)
-
-       ! Birth Trapped (SNBP for graphic of PNBPD)
-       i = 2
-       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,2,SNBP)
-       ! Calibration by using total power of all ions
-       SL = 2.D0 * Pi * INTG_F(SNBP)
-       SNBP(0:NRMAX) = SNBP(0:NRMAX) * 1.D-20 &
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBe,ideriv)
+       ! Calibration by using total power of electrons
+       SL = 2.D0 * Pi * INTG_F(SNBe)
+       SNBe(0:NRMAX) = SNBe(0:NRMAX) * 1.D-20 &
             &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+
+       ! (2) Birth TOTAL ions (SNB for heating profiles)
+       i = 2
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBi,ideriv)
+       ! Calibration by using total power of all ions
+       SL = 2.D0 * Pi * INTG_F(SNBi)
+       PNBHex = infiles(i)%totP * 1.D-6
+       SNBi(0:NRMAX) = SNBi(0:NRMAX) * 1.D-20 &
+            &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
+       PNBex0 = Eb * rKeV * 1.D20
+       !  "or"= infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBi)))
+       ! Birth profiles for heating power
+       !   (plasma is usually heated by beam ions, not beam electrons)
+       SNB(0:NRMAX) = SNBi(0:NRMAX)
 
        ! *** No orbit effect for all ions ***
        if(MDLNBD == 0) then
-          ! Birth Trapped (SNBPDi for trapped beam ions)
-          SNBPDi(0:NRMAX) = SNBP(0:NRMAX)
+          ! (3) Birth Trapped (SNBPDi for trapped beam ions)
+          i = 3
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,2,SNBPDi)
+          ! Calibration by using total power of all ions
+          SL = 2.D0 * Pi * INTG_F(SNBPDi)
+          SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
+               &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
           PNBPi0 = Eb * rKeV * 1.D20
           ! "or" = infiles(2)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
 
-          ! Birth Passing (SNBTGi for passing beam ions)
-          i = 3
-          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+          ! (4) Birth Passing (SNBTGi for passing beam ions)
+          i = 4
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
           ! Calibration by using total power of trapped ions
           SL = 2.D0 * Pi * INTG_F(SNBTGi)
           SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
@@ -343,14 +377,14 @@ contains
           PNBT10 = Eb * rKeV * 1.D20
           ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
 
-          ! Birth TOTAL (SNBb for beam ions)
+          ! (2) Birth TOTAL (SNBb for beam ions)
           SNBb(0:NRMAX) = SNB(0:NRMAX)
 
        ! *** Orbit effect ***
        else
-          ! Orbit Trapped (SNBPDi for trapped beam ions)
-          i = 5
-          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi)
+          ! (7) Orbit Trapped (SNBPDi for trapped beam ions)
+          i = 7
+          call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi,ideriv)
           ! Calibration by using total power of trapped ions
           SL = 2.D0 * Pi * INTG_F(SNBPDi)
           SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
@@ -358,11 +392,11 @@ contains
           PNBPi0 = Eb * rKeV * 1.D20
           ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
 
-          ! *** Orbit effect for banana ions only ***
+       ! *** Orbit effect for banana ions only ***
           if(MDLNBD == 1) then
-             ! Birth Passing (SNBTGi for passing beam ions)
-             i = 3
-             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+             ! (4) Birth Passing (SNBTGi for passing beam ions)
+             i = 4
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBTGi)
              SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
@@ -370,22 +404,22 @@ contains
              PNBT10 = Eb * rKeV * 1.D20
              ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
 
-             ! Birth Passing + Orbit TOTAL (SNBb for beam ions)
-             SNBb(0:NRMAX) = SNBPDi(0:NRMAX) + SNBTGi(0:NRMAX)
+             ! (4) Birth Passing + (7) Orbit Trapped (SNBb for beam ions)
+             SNBb(0:NRMAX) = SNBTGi(0:NRMAX) + SNBPDi(0:NRMAX)
 
-             ! *** Orbit effect for all ions ***
+       ! *** Orbit effect for all ions ***
           else if(MDLNBD == 2) then
-             ! Orbit TOTAL (SNBb for beam ions)
-             i = 4
-             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb)
+             ! (6) Orbit TOTAL (SNBb for beam ions)
+             i = 6
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBb)
              SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
                   &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
 
-             ! Orbit Passing (SNBTGi for passing beam ions)
-             i = 6
-             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi)
+             ! (8) Orbit Passing (SNBTGi for passing beam ions)
+             i = 8
+             call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBTGi)
              SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
@@ -394,12 +428,16 @@ contains
              ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
           end if
        end if
-       ! Torque injection part
+       ! Collisional torque injection part
        MNB(0:NRMAX)  = PNBCD * SNBTGi(0:NRMAX) * PNBMPD
 
        ! Local parallel velocity at birth for passing ions
-       i = 6
-       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara)
+       i = 8
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara,nrbound=nrbound)
+       do nr = nrbound+1, nrmax
+          Vbpara(nr) = Vbpara(nrbound)
+       end do
+
 
     ! *** Arbitrary input *********************************************
     else if(iflag_file == 2) then
@@ -407,7 +445,7 @@ contains
           if(infiles(i)%name == datatype(1)) then ! Perp NB
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBP)
              SL   = 2.D0 * PI * INTG_F(SNBP)
-             PNBP0  = ABS(PNBHP) * 1.D6 / (2.D0 * Pi * RR * SL)
+             PNBP0  = PNBHP * 1.D6 / (2.D0 * Pi * RR * SL)
              ! Banana orbit effect
              if(MDLNBD /= 0) then! .and. PNBMPD /= 0.D0) then
                 do NR = 0, NRMAX
@@ -415,37 +453,37 @@ contains
                    SNBTi2(NR) = (1.d0 - ft(NR)) * SNBP(NR) ! tangential part of ions
                    SNBT2(NR)  = SNBTi2(NR)                 ! tangential part of electrons
                    ! Trapped particles generated by Perp NB
-                   SNBPi(NR) = ft(NR) * SNBP(NR)           ! perpendicular part of ions
-                   SNBP(NR)  = SNBPi(NR)                   ! perpendicular part of electrons
+                   SNBPDi(NR) = ft(NR) * SNBP(NR)          ! perpendicular part of ions
+                   SNBP(NR)   = SNBPDi(NR)                 ! perpendicular part of electrons
                 end do
                 PNBTi20 = PNBP0 ! tangential part of ions
                 PNBT20  = PNBP0 ! tangential part of electrons
-                SNBPi_INTG = INTG_F(SNBPi)
-                call shift_prof(SNBPi, 'TRAP',SIGN(1.D0,PNBCD))
+                SNBPDi_INTG = INTG_F(SNBPDi)
+                call shift_prof(SNBPDi, 'TRAP',SIGN(1.D0,PNBCD))
                 ! calibration of Perp NB amplitude of ions
-                PNBPi0 = PNBP0 * (SNBPi_INTG / INTG_F(SNBPi))
+                PNBPi0 = PNBP0 * (SNBPDi_INTG / INTG_F(SNBPDi))
 !!                call shift_prof(SNBTi2,'PASS',SIGN(1.D0,PNBCD))
              end if
           else if(infiles(i)%name == datatype(2)) then ! Tang NB 1
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,9,SNBT1)
              SLT1 = 2.D0 * PI * INTG_F(SNBT1)
-             PNBT10 = ABS(PNBHT1) * 1.D6 / (2.D0 * Pi * RR * SLT1)
+             PNBT10 = PNBHT1 * 1.D6 / (2.D0 * Pi * RR * SLT1)
           else if(infiles(i)%name == datatype(3)) then ! Tang NB 2
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,9,SNBT2)
              SLT2 = 2.D0 * PI * INTG_F(SNBT2)
-             PNBT20 = ABS(PNBHT2) * 1.D6 / (2.D0 * Pi * RR * SLT2)
+             PNBT20 = PNBHT2 * 1.D6 / (2.D0 * Pi * RR * SLT2)
           else if(infiles(i)%name == datatype(4)) then ! RF
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,0,SRFe)
              SL   = 2.D0 * PI * INTG_F(SRFe)
-             PRFe0 = ABS(PRFHe) * 1.D6 / (2.D0 * Pi * RR * SL)
+             PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
              SL   = 2.D0 * PI * INTG_F(SRFe)
-             PRFi0 = ABS(PRFHi) * 1.D6 / (2.D0 * Pi * RR * SL)
+             PRFi0 = PRFHi * 1.D6 / (2.D0 * Pi * RR * SL)
           end if
        end do
     end if
 
     !   NBI total input power (MW)
-    PNBH = PNBHP + PNBHT1 + PNBHT2
+    PNBH = PNBHP + PNBHT1 + PNBHT2 + PNBHex
 
     !   Ratio of CX deposition rate to IZ deposition rate
     !     (Riviere, NF 11 (1971) 363)
@@ -492,7 +530,7 @@ contains
 
     pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
          &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
-    IF(maxval(FSCDBM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
+    IF(maxval(FSANOM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
     Vexbr(0)       = 0.d0
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
@@ -525,7 +563,8 @@ contains
     !          directly calculated.
 
     allocate(dQdr(0:NRMAX),dVebdr(0:NRMAX),dErdr(0:NRMAX),dBthdr(0:NRMAX))
-    allocate(dTedr(0:NRMAX),dTidr(0:NRMAX),dPedr(0:NRMAX),dPidr(0:NRMAX),dpdr(0:NRMAX))
+    allocate(dTedr(0:NRMAX),dTidr(0:NRMAX),dPedr(0:NRMAX),dPidr(0:NRMAX),dpdr(0:NRMAX), &
+         &   dNedr(0:NRMAX),dNidr(0:NRMAX))
     dQdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,Q    ,NRMAX,0)
     dVebdr(0:NRMAX) =                     dfdx(R  ,Vexbr,NRMAX,0)
     dErdr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,ErV  ,NRMAX,0)
@@ -535,6 +574,8 @@ contains
     dPedr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PeV  ,NRMAX,0)
     dPidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV  ,NRMAX,0)
     dpdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,pres ,NRMAX,0)
+    dNedr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PNeV ,NRMAX,0)
+    dNidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PNiV ,NRMAX,0)
 
 !!D02    write(6,'(F8.5,I4,2F11.6)') T_TX,NRB,Rho(NRB),PT02V(NR)
 
@@ -632,21 +673,6 @@ contains
        D02(NR) = FSD02 * Viave**2 / (3.D0 * Sitot)
        if(nr >= NRB .and. nr <= NRA) D02(NR) = D02(NR) * reduce_D02(NR,rLmean)
 !!D02       if(nt >= ntmax-1) write(6,'(I3,F10.6,F11.3,3F10.6,1P2E11.3)') nr,r(nr),d02(nr),rLmean,rLmeanL,PTiV(NR),SCX(NR)
-
-!!$       IF(NR == 0) THEN
-!!$          U02(NR) = 0.D0
-!!$       ELSE
-!!$          U02(NR) = Viave
-!!$          costh = 1.D0 - 0.5D0 * rLmean**2 / R(NR)**2
-!!$!          if(costh < -1.d0) then
-!!$!             U02(NR) = U02(NR) * ( rLmean * (rLmean - 2.D0 * R(NR)) / (rLmean - R(NR))**2)
-!!$!          else if (costh <= 1.d0) then
-!!$!             U02(NR) = U02(NR) * acos(costh) / Pi
-!!$!          end if
-!!$          if(costh >= -1.d0 .and. costh <= 1.d0) U02(NR) = U02(NR) * acos(costh) / Pi
-!!$!          U02(NR) = 0.D0
-!!$       END IF
-       U02(NR) = 0.D0
 
        !     *** Halo neutral diffusion coefficient ***
 
@@ -907,9 +933,9 @@ contains
        S(NR) = R(NR) / Q(NR) * dQdr(NR)
        Alpha(NR) = - Q(NR)**2 * RR * dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
-       !     *** Wave-particle interaction ***
+       !     *** Thermal diffusivity ***
 
-       IF (maxval(FSCDBM) > 0.D0) THEN
+       IF (maxval(FSANOM) > 0.D0) THEN
           ! Alfven velocity
           Va = SQRT(BBL**2 / (rMU0 * PNiV(NR) * 1.D20 * AMI))
           ! Squared plasma frequency
@@ -998,26 +1024,30 @@ contains
        !     *** end CDIM mode ***
 
        !     *** Turbulent transport of particles ***
+       !     ***     Wave-particle interaction    ***
 
 !parail       PROFD1 = 4
        RhoSOL = 1.D0
        IF (RHO(NR) < RhoSOL) THEN
-!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSCDBM(1) * DCDBM
+!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSANOM(1) * DCDBM
           DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.07d0) &
-               & + FSCDBM(1) * DCDBM + FSCDIM * DCDIM
+               & + FSANOM(1) * DCDBM + FSCDIM * DCDIM
        ELSE
           IF(FSPCLD == 0.D0) THEN
-             factor_bohm = (FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM + FSCDIM * DCDIM) &
+             ! Bohm-like diffusivity
+             factor_bohm = (FSDFIX(1) * PROFD + FSANOM(1) * DCDBM + FSCDIM * DCDIM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             IF(FSCDBM(1) == 0.D0) THEN
+             IF(FSANOM(1) == 0.D0) THEN
+                ! Fixed value and fixed profile
                 DeL = FSPCLD * diff_prof(RhoSOL,FSDFIX(1),PROFD,PROFD1,0.d0)
              ELSE
-                DeL = FSCDBM(1) * DCDBMA + FSCDIM * DCDIMA
+                ! Theory-based anomalous diffusivity
+                DeL = FSANOM(1) * DCDBMA + FSCDIM * DCDIMA
              END IF
           END IF
-!!$          DeL = FSDFIX(1) * PROFD + FSCDBM(1) * DCDBM + FSCDIM * DCDIM
+!!$          DeL = FSDFIX(1) * PROFD + FSANOM(1) * DCDBM + FSCDIM * DCDIM
        END IF
        ! Particle diffusivity
        De(NR)   = De0   * DeL
@@ -1029,26 +1059,26 @@ contains
        !     *** Turbulent transport of momentum and heat ***
        !        Temporarily, the profiles of the heat diffusivities are
        !          the same as those of the viscosities:
-       !          i.e. FSCDBM(2) and FSDFIX(2) are not effective.
+       !          i.e. FSANOM(2) and FSDFIX(2) are not effective.
 
        RhoSOL = 1.D0
 !parail       RhoSOL = 0.93D0
        IF (RHO(NR) < RhoSOL) THEN
-          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSCDBM(3) * DCDBM &
+          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSANOM(3) * DCDBM &
             & + FSCDIM * DCDIM
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
           IF(FSPCLC == 0.D0) THEN
-             factor_bohm = (FSDFIX(3) * PROFCL + FSCDBM(3) * DCDBM + FSCDIM * DCDIM) &
+             factor_bohm = (FSDFIX(3) * PROFCL + FSANOM(3) * DCDBM + FSCDIM * DCDIM) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
 !bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(3) * PROFCL &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
-             IF(FSCDBM(3) == 0.D0) THEN
+             IF(FSANOM(3) == 0.D0) THEN
                 DeL = FSPCLC * diff_prof(RhoSOL,FSDFIX(3),PROFCL,PROFC1,0.d0)
              ELSE
-                DeL = FSCDBM(3) * DCDBMA + FSCDIM * DCDIMA
+                DeL = FSANOM(3) * DCDBMA + FSCDIM * DCDIMA
              END IF
 !pedestal             DeL = FSPCLC * FSDFIX(3) * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
@@ -1087,50 +1117,39 @@ contains
        !     *** Heating profile ***
 
        ! For graphic
-       IF(iflag_file == 1) THEN
-          PNBPD(NR) = PNBP0 * SNBP(NR) ! Power of trapped ions
-          PNBTG(NR) = PNBT10 * SNBTGi(NR) ! Power of passing ions
-          PNB(NR)   = PNBPD(NR) + PNBTG(NR)
-       ELSE
-          PNBPD(NR) = PNBP0 * SNBP(NR)
-          PNBTG(NR) = PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)
-          PNB(NR)   = PNBPD(NR) + PNBTG(NR)
-       END IF
+       if(iflag_file == 1) then
+          PNBPD(NR) = PNBPi0 * SNBPDi(NR)  ! Power of trapped ions
+          PNBTG(NR) = PNBT10 * SNBTGi(NR)  ! Power of passing ions
+       else
+          PNBPD(NR) = PNBP0 * SNBP(NR)     ! Power of perpendicular NBI
+          PNBTG(NR) = PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)  ! Power of tangential NBIs
+       end if
+       PNB(NR)   = PNBPD(NR) + PNBTG(NR)
+
        ! For graphic and calculation
-       IF(MDLNBD == 0) THEN
-          SNBTG     = PNBTG(NR) / (Eb * rKeV * 1.D20)
-          SNBPD     = PNBP0 * SNBP(NR) / (Eb * rKeV * 1.D20)
-          SNBTGi(NR)= SNBTG
-          SNBPDi(NR)= SNBPD
-          SNB(NR)   = SNBTG + SNBPD
+       !   Note: in case of iflag_file == 1, following terms have been already defined above.
+       if(iflag_file /= 1) then
+          ! Source profile for passing ions in temporal and graphic use
+          if(MDLNBD == 2) then
+             SNBTGi(NR)=(PNBTi10 * SNBTi1(NR) + PNBTi20 * SNBTi2(NR)) / (Eb * rKeV * 1.D20)
+          else
+             SNBTGi(NR)=(PNBT10  * SNBT1(NR)  + PNBT20  * SNBT2(NR))  / (Eb * rKeV * 1.D20)
+          end if
+          ! Source profile for trapped ions with banana orbit effect
+          !   in temporal and graphic use
+          SNBPDi(NR)= PNBPi0 * SNBPDi(NR) / (Eb * rKeV * 1.D20)
+          ! Birth profiles for heating power
+          SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
+          ! Birth profiles for electrons and thermal ions
           SNBe(NR)  = SNB(NR)
           SNBi(NR)  = SNB(NR)
-          SNBb(NR)  = SNB(NR)
-          MNB(NR)   = PNBCD * SNBTG
-       ELSE
-          IF(iflag_file /= 1) THEN
-             ! Source profile for passing ions in temporal and graphic use
-             IF(MDLNBD == 1) THEN
-                SNBTGi(NR)=(PNBT10 * SNBT1(NR) + PNBT20 * SNBT2(NR)) / (Eb * rKeV * 1.D20)
-             ELSE
-                SNBTGi(NR)=(PNBTi10 * SNBTi1(NR) + PNBTi20 * SNBTi2(NR)) / (Eb * rKeV * 1.D20)
-             END IF
-             ! Source profile for trapped ions with banana orbit effect
-             !   in temporal and graphic use
-             SNBPDi(NR)= PNBPi0 * SNBPi(NR) / (Eb * rKeV * 1.D20)
-             ! Birth profiles for heating power
-             SNB(NR)   = PNB(NR) / (Eb * rKeV * 1.D20)
-             ! Birth profiles for electrons and thermal ions
-             SNBe(NR)  = SNB(NR)
-             SNBi(NR)  = SNB(NR)
-!!old fashion             SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
-             ! Source profiles for beam ions with banana orbit effect
-             SNBb(NR)  = SNBPDi(NR) + SNBTGi(NR)
-             ! Torque injection part
-             MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD
-          END IF
-          ! Note: in case of iflag_file == 1, these terms have been already defined above.
-       END IF
+!!old fashion          SNBi(NR)  = SNBPDi(NR) + SNBTGi(NR)
+          ! Source profiles for beam ions with banana orbit effect
+          SNBb(NR)  = SNBPDi(NR) + SNBTGi(NR)
+          ! Torque injection part
+          MNB(NR)   = PNBCD * SNBTGi(NR) * PNBMPD
+       end if
+
        PRFe(NR)  = PRFe0 * SRFe(NR)
        PRFi(NR)  = PRFi0 * SRFi(NR)
 
@@ -1259,6 +1278,8 @@ contains
 
 !    write(6,*) INTG_F(SNBe),INTG_F(SNBi)
 !    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6
+
+    if(MDANOM == 2) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
 
     !     *** Resistivity ***
 
@@ -1425,7 +1446,7 @@ contains
     rNuNTV(0:NRMAX) = 0.D0
     UastNC(0:NRMAX) = 0.D0
 
-    deallocate(dQdr,dVebdr,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,dpdr)
+    deallocate(dQdr,dVebdr,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,dpdr,dNedr,dNidr)
 
     RETURN
   END SUBROUTINE TXCALC
@@ -1544,6 +1565,7 @@ contains
 !!$       end if
     end if
 
+    ! Modify S(0) and S(1) so that S' becomes zero at the axis
     call sctr(R(1),R(2),R(3),R(4),S(2),S(3),S(4),S(0),S(1))
 
     SINT = 2.D0 * PI * INTG_F(S)
@@ -1842,30 +1864,4 @@ contains
 
   end function reduce_D02
 
-!!rp_conv  ! Search minimum radial number NR satisfying R(NR) > X.
-!!rp_conv
-!!rp_conv  subroutine wherenr(R,X,NR,Left,Right)
-!!rp_conv    real(8), dimension(0:NRMAX), intent(in) :: R
-!!rp_conv    real(8), intent(in) :: X
-!!rp_conv    integer, intent(out) :: NR
-!!rp_conv    real(8), intent(out) :: Left, Right
-!!rp_conv    integer :: NRL
-!!rp_conv
-!!rp_conv    if(X == 0.d0) then
-!!rp_conv       NR = 1
-!!rp_conv       Left  = 0.d0
-!!rp_conv       Right = 0.d0
-!!rp_conv       return
-!!rp_conv    end if
-!!rp_conv
-!!rp_conv    do nrl = 1, nrmax
-!!rp_conv       if(r(nrl) > x) then
-!!rp_conv          NR = nrl
-!!rp_conv          Right = (x - r(nr-1)) / (r(nr) - r(nr-1))
-!!rp_conv          Left  = 1.d0 - Right
-!!rp_conv          exit
-!!rp_conv       end if
-!!rp_conv    end do
-!!rp_conv
-!!rp_conv  end subroutine wherenr
 end module tx_variables

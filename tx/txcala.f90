@@ -8,7 +8,7 @@ module tx_coefficients
   real(8), dimension(:), allocatable ::  &
        & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        & rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
-       & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, RU02, &
+       & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        & FWpheBB, dAphV, FWpheBB2, FWtheBB, FWpheB, &
 !!ion       & FWphiBB, FWphiBB2, FWthiBB, FWphiB, &
        & BphBNi, BthBNi, Dbrpft, &
@@ -112,7 +112,7 @@ contains
     allocate(rNuIN0(0:N), rNuCXN0(0:N), rNubeBE(0:N), rNubiBI(0:N), rNuTeiEI(0:N), &
        &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), &!dPNeV(0:N), dPNiV(0:N), &
        &     RUbthV(0:N), UethVR(0:N), UithVR(0:N), &
-       &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), RU02(0:N), &
+       &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
        &     FWpheBB(0:N), dAphV(0:N), FWpheBB2(0:N), &
        &     FWtheBB(0:N), FWpheB(0:N), BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
@@ -240,7 +240,7 @@ contains
     deallocate(ELM,PELM)
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        &       rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
-       &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, RU02, &
+       &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
        &       FWpheBB, dAphV, FWpheBB2, FWtheBB, FWpheB, &
        &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
@@ -339,8 +339,6 @@ contains
     FVpchph (0:NRMAX) = FVpch(0:NRMAX)  / BphV(0:NRMAX)
     FWahlphe(0:NRMAX) = FWahle(0:NRMAX) / BphV(0:NRMAX) * dAphV(0:NRMAX)
     FWahlphi(0:NRMAX) = FWahli(0:NRMAX) / BphV(0:NRMAX) * dAphV(0:NRMAX)
-
-    RU02(0:NRMAX)   = R(0:NRMAX) * U02(0:NRMAX)
 
 !!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
 !!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)

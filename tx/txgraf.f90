@@ -703,13 +703,14 @@ contains
     GYL(0:NXM,NG,28) = SNGL(( BthV(0:NXM)*UithV(0:NXM)+BphV(0:NXM)*UiphV(0:NXM)) &
          &                  /SQRT(BphV(0:NXM)**2 + BthV(0:NXM)**2))
     GYL(0:NXM,NG,29) = SNGL(Di(0:NXM)+De(0:NXM))
-    DO NX = 0, NXM
-       IF (rG1h2(NX) > 3.D0) THEN
-          GYL(NX,NG,30) = 3.0
-       ELSE
-          GYL(NX,NG,30) = SNGL(rG1h2(NX))
-       END IF
-    END DO
+!!$    DO NX = 0, NXM
+!!$       IF (rG1h2(NX) > 3.D0) THEN
+!!$          GYL(NX,NG,30) = 3.0
+!!$       ELSE
+!!$          GYL(NX,NG,30) = SNGL(rG1h2(NX))
+!!$       END IF
+!!$    END DO
+    GYL(0:NXM,NG,30) = SNGL(rG1h2(0:NXM))
     GYL(0:NXM,NG,31) = SNGL(FCDBM(0:NXM))
     GYL(0:NXM,NG,32) = SNGL(S(0:NXM))
     GYL(0:NXM,NG,33) = SNGL(Alpha(0:NXM))
@@ -866,8 +867,8 @@ contains
     GYL(0:NXM,NG,134) = SNGL(Chie(0:NXM)+ChiNCpe(0:NXM)+ChiNCte(0:NXM))
     GYL(0:NXM,NG,135) = SNGL(Chii(0:NXM)+ChiNCpi(0:NXM)+ChiNCti(0:NXM))
 
-    ! *** Convective velocity of thermal neutrals ***
-    GYL(0:NXM,NG,136) = SNGL(U02(0:NXM))
+    ! *** Parallel velocity of passing beam ions ***
+    GYL(0:NXM,NG,136) = SNGL(Vbpara(0:NXM))
 
     ! *** Halo neutral ***
     GYL(0:NXM,NG,137) = SNGL(X(LQn3,0:NXM))
@@ -876,6 +877,9 @@ contains
 
     ! *** CDIM mode 09/07/13 miki_m ***
     GYL(0:NXM,NG,140) = SNGL(FCDIM(0:NXM))
+
+    ! *** ExB shearing rate ***
+    GYL(0:NXM,NG,141) = SNGL(wexb(0:NXM))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -1599,8 +1603,8 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,124), GYL, STR, NRMAX, NGR, gDIV(124))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@G$-1$=h$+2$=(r)@'
-       CALL TXGRFRX(2,GX,GY(0,0,30),NRMAX,NGR,STR,MODE,IND)
+       STR = '@$#w$#$-ExB$=(r)@'
+       CALL TXGRFRX(2,GX,GY(0,0,141),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@$#c$#$-i$=(r)@'
        CALL TXGRFRX(3,GX,GY(0,0,135),NRMAX,NGR,STR,MODE,IND)
@@ -1909,7 +1913,7 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,139), GYL, STR, NRMAX, NGR, gDIV(139))
        CALL TXGRFRXS(14,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@U02@'
+       STR = '@Vbpara@'
        CALL APPROPGY(MODEG, GY(0,0,136), GYL, STR, NRMAX, NGR, gDIV(136))
        CALL TXGRFRXS(15,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
@@ -2377,7 +2381,7 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,139), GYL(0,0,14), STR(14), NRMAX, NGT, gDIV(139), &
             &        GMAX=GMAX(14), GMIN=GMIN(14))
 
-       STR(15) = '@U02@'
+       STR(15) = '@Vbpara@'
        CALL APPROPGY(MODEG, GYT(0,0,136), GYL(0,0,15), STR(15), NRMAX, NGT, gDIV(136), &
             &        GMAX=GMAX(15), GMIN=GMIN(15))
 
@@ -3413,9 +3417,9 @@ contains
 
   SUBROUTINE TXWPGR
 
-    use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSCDBM, FSBOHM, FSPCLD, FSPCLC, &
+    use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSANOM, FSBOHM, FSPCLD, FSPCLC, &
          &              PROFD, PROFC, FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD02, &
-         &              PNBHT1, PNBHT2, PNBHP, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, &
+         &              PNBHT1, PNBHT2, PNBHP, PNBHex, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, &
          &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff, FSCDIM
     INTEGER(4) :: IFNT
 
@@ -3438,7 +3442,7 @@ contains
     CALL TXWPS('@BB    @', BB)
     CALL TXWPS('@rIp   @', rIp)
     CALL TXWPS('@FSDFX1@', FSDFIX(1))
-    CALL TXWPS('@FCDBM3@', FSCDBM(3))
+    CALL TXWPS('@FANOM3@', FSANOM(3))
     CALL TXWPS('@FSBOHM@', FSBOHM)
     CALL TXWPS('@FSPCLD@', FSPCLD)
     CALL TXWPS('@FSPCLC@', FSPCLC)
@@ -3458,7 +3462,11 @@ contains
     NP = 0
 !!!    CALL TXWPS('@PNBH  @', PNBH)
     CALL TXWPS('@PNBHT @', PNBHT1+PNBHT2)
-    CALL TXWPS('@PNBHP @', PNBHP)
+    IF(PNBHex == 0.D0) THEN
+       CALL TXWPS('@PNBHP @', PNBHP)
+    ELSE
+       CALL TXWPS('@PNBHex@', PNBHex)
+    END IF
     CALL TXWPS('@PRFH  @', PRFHe+PRFHi)
     CALL TXWPS('@Vb    @', Vb)
     CALL TXWPS('@De0   @', De0)

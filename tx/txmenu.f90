@@ -8,7 +8,7 @@ SUBROUTINE TXMENU
 
   use tx_commons, only : allocate_txcomm, deallocate_txcomm, &
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
-       &              PNBHT2, PNBHP, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
+       &              PNBHT2, PNBHP, PNBHex, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
        &              GT, GY, NGRM, NGYRM, R, iflag_file, MDLMOM, &
        &              DelRho, DelN, Rho, LQe1, LQi1, PZ, ICONT
   use tx_main, only : TXEXEC
@@ -17,13 +17,13 @@ SUBROUTINE TXMENU
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   implicit none
-  INTEGER(4) :: MODE, I, IST, ier, NR
+  INTEGER(4) :: MODE, I, IST, ier, NR, iret
   character(len=80) :: LINE
   character(len=1)  :: KID, KID2
 
   IERR  = 0
   ICONT = 0
-  IF((PNBHP + PNBHT1 + PNBHT2) /= 0) THEN
+  IF((PNBHP + PNBHT1 + PNBHT2 + PNBHex) /= 0) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF
@@ -46,7 +46,8 @@ SUBROUTINE TXMENU
      IF(MODE /= 1) THEN
         CALL TXPARM_CHECK
         TMAX=T_TX+DT*NTMAX
-        IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
+        IF(rMUb1 == rMU0 .and. &
+        & (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0 .OR. PNBHex /= 0.D0)) THEN
            rMUb1 = 1.D0
            rMUb2 = rMU0
            if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
@@ -153,7 +154,7 @@ SUBROUTINE TXMENU
            WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
            CYCLE
         END IF
-        CALL FOR_NTMAIN
+        CALL outfile(ICONT,iret)
      CASE('#')
         CONTINUE
      CASE DEFAULT

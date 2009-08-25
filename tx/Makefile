@@ -6,17 +6,19 @@ FFLAGS = $(OFLAGS)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txrppl.f90 txcalv.f90 \
        txcala.f90 txinit.f90 txfile.f90 txgraf.f90 txexec.f90 txmenu.f90 \
-       txmain.f90 txntv.f90
+       txmain.f90 txntv.f90 txmmm.f90
 SRC2D= txg2d.f90
 SRC3D= txg3d.f90
 SRCNC= nclass/nclass_mod.f nclass/rarray_sum.f \
        nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
        nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC= txncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
+SRCMM= mmm/mmm95.f mmm/weiland14.f mmm/stripx.f mmm/tomsqz.f
 OBJS = $(SRCS:.f90=.o)
 OBJ2D= $(SRC2D:.f90=.o)
 OBJ3D= $(SRC3D:.f90=.o)
 OBJNC= $(SRCNC:.f=.o)
+OBJMM= $(SRCMM:.f=.o)
 PROG2= tx2
 PROG3= tx
 LIBS2= tx2lib.a ../lib/tasklib.a
@@ -29,14 +31,14 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
 
-all: $(PROG2)
-#all: $(PROG3)
+#all: $(PROG2)
+all: $(PROG3)
 
-tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC)
+tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
 
-tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC)
-	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC)
+tx3lib.a: $(OBJS) $(OBJ3D) $(OBJNC) $(INCNC) $(OBJMM)
+	$(LD) $(LDFLAGS) tx3lib.a $(OBJS) $(OBJ3D) $(OBJNC) $(OBJMM)
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -86,6 +88,7 @@ trncls.o: txncls.f90 trncls.inc trcomm.inc trcom0.inc nclass/pamx_mi.inc \
           nclass/pamx_ms.inc nclass/pamx_mz.inc
 txrslt.o: txrslt.f90 txcomm.f90
 txrppl.o: txrppl.f90 txcomm.f90
+txmmm.o : txmmm.f90 txcomm.f90
 nclass/nclass_mod.o : nclass/nclass_mod.f nclass/pamx_mi.inc \
                       nclass/pamx_ms.inc nclass/pamx_mz.inc
 	$(FCFIXED) $(FFLAGS) -c nclass/nclass_mod.f -o nclass/nclass_mod.o -Inclass

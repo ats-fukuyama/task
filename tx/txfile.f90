@@ -210,7 +210,7 @@ SUBROUTINE TXSAVE
   use tx_commons, only : &
        & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLC,FSVAHL,FSPCLD,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
        & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,&
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
@@ -286,7 +286,7 @@ SUBROUTINE TXSAVE
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2
   WRITE(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   WRITE(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  WRITE(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
+  WRITE(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
   WRITE(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSRP,FSNF,FSHL
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
@@ -326,7 +326,7 @@ SUBROUTINE TXLOAD(IST)
        & allocate_txcomm, deallocate_txcomm, &
        & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,rIPs,rIPe,PN0,PNa,PTe0,PTea,PTi0,PTia, &
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
        & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
@@ -395,7 +395,7 @@ SUBROUTINE TXLOAD(IST)
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2
   READ(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   READ(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  READ(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
+  READ(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
   READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSRP,FSNF,FSHL
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
@@ -470,7 +470,7 @@ SUBROUTINE TXGSAV
 
   use tx_commons, only : &
        & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
        & PROFD,PROFC,PROFD1,PROFD2,PROFC1,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
        & FSD01,FSD02,FSD03,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
@@ -535,7 +535,7 @@ SUBROUTINE TXGSAV
   WRITE(21) PA,PZ,Zeff,rIPs,rIPe
   WRITE(21) PN0,PNa,PTe0,PTea,PTi0,PTia
   WRITE(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  WRITE(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
+  WRITE(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
   WRITE(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   WRITE(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03
   WRITE(21) rLn,rLT
@@ -580,7 +580,7 @@ SUBROUTINE TXGLOD(IST)
   use tx_commons, only : &
        & allocate_txcomm, deallocate_txcomm, &
        & SLID,RA,RB,RC,RR,BB,PA,PZ,Zeff,PN0,PNa,PTe0,PTea,PTi0,PTia, &
-       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSCDBM,FSCBKP,FSCBSH, &
+       & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH, &
        & FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
        & PROFD,PROFC,PROFD1,PROFD2,PROFC1,FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION, &
        & FSD01,FSD02,FSD03,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
@@ -646,7 +646,7 @@ SUBROUTINE TXGLOD(IST)
   READ(21) PA,PZ,Zeff,rIPs,rIPe
   READ(21) PN0,PNa,PTe0,PTea,PTi0,PTia
   READ(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
-  READ(21) FSDFIX,FSCDBM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
+  READ(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLC,FSVAHL,FSCDIM
   READ(21) PROFD,PROFC,PROFD1,PROFD2,PROFC1
   READ(21) FSCX,FSLC,FSRP,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03
   READ(21) rLn,rLT
@@ -705,25 +705,16 @@ subroutine ascii_input
   use tx_commons, only : infiles, nmax_file, n_infiles, iflag_file, datatype
   use tx_interface, only : KSPLIT_TX
   implicit none
-  integer(4) :: IST, i, j, nmax
+  integer(4) :: IST, i, j, k, nrho, i_start
   character(len=100) :: TXFNAM
-  character(len=140) :: kline, kline1, kline2, ktotS, ktotP
+  character(len=140) :: kline, kline1, kline2
   character(len=20)  :: kmesh, kdata
-  integer(4) :: nol, nol_max, ncol_mesh, ncol_data, itype, nol_start, nol2
+  integer(4) :: nol, ncol_mesh, ncol_data, itype
   LOGICAL :: LEX
-
-  ! Max number of columns
-  nmax = 30
-
-  ! Define the column number where the data is firstly read in OrbitEffectDist.dat.
-  ! Only valid when iflag_file == 1.
-  !   *Raw data    => nol_start = 2
-  !   *Spline data => nol_start = nmax + 11
-  nol_start = nmax + 11
 
   ! Check a mode of input file
   do 
-     write(6,*) '# OFMC perpendicular NBI (1) or arbitrary input (2) ?'
+     write(6,*) '# NBI input from OFMC (1) or arbitrary input (2) ?'
      call guflsh
      read(*,'(I1)',iostat=ist) iflag_file
      if(ist > 0) then
@@ -738,7 +729,7 @@ subroutine ascii_input
      end if
   end do
 
-  ! *** Defined input *********************************************
+  ! *** Pre-defined input (for OFMC data) ***************************
   if(iflag_file == 1) then
      TXFNAM = 'OrbitEffectDist.dat'
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
@@ -748,7 +739,7 @@ subroutine ascii_input
         return
      END IF
 
-     n_infiles = 6
+     n_infiles = 8
   ! *** Arbitrary input *********************************************
   else if(iflag_file == 2) then
      ! Check ASCII file
@@ -790,7 +781,7 @@ subroutine ascii_input
   ! Allocate derived type
   allocate(infiles(1:n_infiles))
 
-  ! *** Defined input *********************************************
+  ! *** Pre-defined input (for OFMC data) ***************************
   if(iflag_file == 1) then
      ! Read data
      OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED')
@@ -805,49 +796,81 @@ subroutine ascii_input
      END IF
 
      ! Name
-     !   In case of "OFMC perpendicular NBI input (1)", sequence of data is already
+     !   In case of "NBI input from OFMC (1)", sequence of data is already
      !   defined as follows:
-     !   1: S_birth_total, 2: S_birth_trap, 3: S_birth_pass
-     !   4: S_orbit_total, 5: S_orbit_trap, 6: S_orbit_pass
+     !     (1) S_birth_ele,  (2) S_birth_tot, (3) S_birth_trap, (4) S_birth_pass,
+     !     (5) S_birth_loss, (6) S_orbit_tot, (7) S_orbit_trap, (8) S_orbit_pass
      !   Therefore name of the data is not necessary; hence null is substituted.
+     !   Note: The following relations are satisfied:
+     !     (1) = (3) + (4) + (5), (2) = (3) + (4), (6) = (7) + (8)
+     !     (3) /= (7), (4) /= (8), (2) = (6)
      infiles(1:n_infiles)%name = ' '
 
      ! Read data from the file
-     i = 0 ! outer loop count
-     nol = 0 ! number of lines
-     nol2 = 0 ! number of lines
+     i    = 0  ! outermost loop count
+     nol  = 0  ! number of lines
+     nrho = 0  ! number of times that "RHO" appears in kline, i.e. separator
+     k    = 0  ! data is taken during k/=0
      do 
         read(21,'(A140)',IOSTAT=IST) kline
         if(ist < 0) exit ! detect the end of the file
         i = i + 1
-        if(i == nmax + 4) then
-           ktotS = kline ! Total number of ions per second
-        else if(i == nmax + 5) then
-           ktotP = kline ! Total power of ions
-        end if
-        if(i <= nol_start) then
+        if(k == 0) then
+           if(index(kline,"RHO") /= 0) then ! detect the start position of the data chunk
+              nrho = nrho + 1
+              k = 1
+              i_start = i + 1
+           end if
            cycle
-        else if(i >= 2 * nmax + 12 .and. i <= 3 * nmax + 24) then
-           cycle
-        else if(i >= 3 * nmax + 25) then
-           nol2 = nol2 + 1
-           do j = 1, 5
-              kline = trim(adjustl(kline))
-              call ksplit_tx(kline,' ',kline1,kline2)
-              if(j == 1 .or. j == 2) then
-                 kline = kline2
-                 cycle
-              else
-                 ! Parallel velocity for passing beam ions
-                 kdata = trim(kline1)
-                 read(kdata,'(F15.7)') infiles(j+1)%vb(nol2)
-                 kline = kline2
-              end if
-           end do
-           infiles(1:3)%vb(nol2) = 0.d0
-        else
-           nol = nol + 1
-           do j = 1, n_infiles + 2
+       end if
+
+        if(nrho == 1) then ! === Get "TOTAL" and "TOTAL POWER" data ===
+           if(index(kline,"sec") /= 0) then
+              ! Total number of ions per second
+              j = 0
+              do
+                 kline = trim(adjustl(kline))
+                 call ksplit_tx(kline,' ',kline1,kline2)
+                 if(index(kline1,"E+") == 0) then
+                    kline = kline2
+                    cycle
+                 else
+                    j = j + 1
+                    kdata = trim(kline1)
+                    read(kdata,'(E15.7)') infiles(j)%totS
+                    kline = kline2
+                 end if
+                 if(len_trim(kline2) == 0) exit ! all the data has been already taken.
+              end do
+
+           else if(index(kline,"W") /= 0) then
+              ! Total power of ions
+              j = 0
+              do
+                 kline = trim(adjustl(kline))
+                 call ksplit_tx(kline,' ',kline1,kline2)
+                 if(index(kline1,"E+") == 0) then
+                    kline = kline2
+                    cycle
+                 else
+                    j = j + 1
+                    kdata = trim(kline1)
+                    read(kdata,'(E15.7)') infiles(j)%totP
+                    kline = kline2
+                 end if
+                 if(len_trim(kline2) == 0) exit ! all the data has been already taken.
+              end do
+              
+              k = 0
+           end if
+
+       else if(nrho == 2) then ! === Get "SMOOTHING" data ===
+           if(len_trim(kline) == 0) then ! detect the end of the data chunk
+              k = 0
+           end if
+           nol = i - i_start + 1
+
+           do j = 1, n_infiles + 2 ! "+ 2" includes the index number and the mesh data columns
               kline = trim(adjustl(kline))
               call ksplit_tx(kline,' ',kline1,kline2)
               if(j == 1) then
@@ -861,34 +884,42 @@ subroutine ascii_input
               else
                  ! Third to eighth lines are defined as data. Please see "Name" shown above.
                  kdata = trim(kline1)
-                 read(kmesh,'(F15.7)') infiles(j-2)%r(nol)
-                 read(kdata,'(F15.7)') infiles(j-2)%data(nol)
+                 read(kmesh,'(E15.7)') infiles(j-2)%r(nol)
+                 read(kdata,'(E15.7)') infiles(j-2)%data(nol)
                  kline = kline2
               end if
            end do
-        end if
-     end do
 
-     ! Total number of ions per second
-     do j = 1, 8
-        ktotS = trim(adjustl(ktotS))
-        call ksplit_tx(ktotS,' ',kline1,kline2)
-        if(j >= 3) then
-           kdata = trim(kline1)
-           read(kdata,'(F15.7)') infiles(j-2)%totS
-        end if
-        ktotS = kline2
-     end do
+        else if(nrho == 4) then ! === Get "V//" data ===
+           if(len_trim(kline) == 0) then ! detect the end of the data chunk
+              k = 0
+           else
+              nol = i - i_start + 1
+              j = 5 ! Vb data exist for (6)(7)(8) only
+              infiles(1:j)%vb(nol) = 0.d0
+              do
+                 kline = trim(adjustl(kline))
+                 call ksplit_tx(kline,' ',kline1,kline2)
+                 if(index(kline1,"E+") == 0) then
+                    kline = kline2
+                    cycle
+                 else
+                    j = j + 1
+                    ! Parallel velocity
+                    kdata = trim(kline1)
+                    read(kdata,'(E15.7)') infiles(j)%vb(nol)
+                    kline = kline2
+                 end if
+                 if(len_trim(kline2) == 0) exit ! all the data has been already taken.
+              end do
+           end if
 
-     ! Total power of ions
-     do j = 1, 9
-        ktotP = trim(adjustl(ktotP))
-        call ksplit_tx(ktotP,' ',kline1,kline2)
-        if(j >= 4) then
-           kdata = trim(kline1)
-           read(kdata,'(F15.7)') infiles(j-3)%totP
+        else
+           ! detect the end of the data chunk
+           if(len_trim(kline) == 0) k = 0
+
         end if
-        ktotP = kline2
+
      end do
 
      if(nol > nmax_file) then
@@ -902,12 +933,19 @@ subroutine ascii_input
 
      close(21)
 
-!!write     do i = 1, nol
-!!write        write(6,'(I3,F6.3,6(1PE12.4))') i,infiles(1)%r(i),(infiles(j)%data(i),j=1,6)
-!!write     end do
-!!write     write(6,'(9X,6(1PE12.4))') (infiles(i)%totS, i = 1, 6)
-!!write     write(6,'(9X,6(1PE12.4))') (infiles(i)%totP, i = 1, 6)
-!!write     stop
+!!$     write(6,*) "===== data ====="
+!!$     do i = 1, nol
+!!$        write(6,'(I3,F6.3,8(1PE12.4))') i,infiles(1)%r(i),(infiles(j)%data(i),j=1,8)
+!!$     end do
+!!$     write(6,*) "===== V// ====="
+!!$     do i = 1, nol
+!!$        write(6,'(I3,F6.3,8(1PE12.4))') i,infiles(1)%r(i),(infiles(j)%vb(i),j=1,8)
+!!$     end do
+!!$     write(6,*) "===== total S ====="
+!!$     write(6,'(9X,8(1PE12.4))') (infiles(i)%totS, i = 1, 8)
+!!$     write(6,*) "===== total W ====="
+!!$     write(6,'(9X,8(1PE12.4))') (infiles(i)%totP, i = 1, 8)
+!!$!     stop
 
   ! *** Arbitrary input *********************************************
   else if(iflag_file == 2) then
@@ -996,8 +1034,8 @@ subroutine ascii_input
               if(j >= infiles(i)%ncol_mesh .and. j >= infiles(i)%ncol_data) exit
            end do
 
-           read(kmesh,'(F15.7)') infiles(i)%r(nol)
-           read(kdata,'(F15.7)') infiles(i)%data(nol)
+           read(kmesh,'(E15.7)') infiles(i)%r(nol)
+           read(kdata,'(E15.7)') infiles(i)%data(nol)
 
 !           write(6,*) infiles(i)%r(nol),infiles(i)%data(nol)
         end do
@@ -1044,6 +1082,38 @@ end function detect_datatype
 
 !***************************************************************
 !
+!   Control routine for writing ASCII data file
+!
+!      Just choose "for_ntmain" or "for_ofmc" routine
+!
+!***************************************************************
+
+subroutine outfile
+  implicit none
+  integer(4) :: n, ist
+
+  do
+     write(6,'(1X,A,1X,I1)') '## outfile: input ?'
+     write(6,'(1X,A)') '##          1: for OFMC, 2: for TOPICS/NTMAIN, 9: exit'
+     read(*,'(I1)',iostat=ist) n
+     if (ist > 0) then
+        cycle
+     else if (ist < 0) then
+        return
+     end if
+     
+     if (n == 1) then
+        call for_ofmc
+     else if (n == 2) then
+        call for_ntmain
+     end if
+     exit
+  end do
+
+end subroutine outfile
+
+!***************************************************************
+!
 !   Write ASCII data file for TOPICS/NTMAIN
 !
 !***************************************************************
@@ -1069,3 +1139,105 @@ subroutine for_ntmain
 
 end subroutine for_ntmain
 
+!***************************************************************
+!
+!   Write ASCII data file for OFMC
+!
+!      Prepare three profiles of electron density and
+!         electron and ion temperatures from TASK/TX
+!
+!      For OFMC code, the ele. density should be in m^{-3} and
+!                     the temperatures in eV.
+!
+!      This routine was originally built as task/data_spline.
+!
+!***************************************************************
+
+subroutine for_ofmc
+  use tx_commons, only : NRMAX, NRA, RR, RA, BB, rIp, AphV, PNeV, PTeV, PTiV
+  implicit none
+
+  integer(4) :: nmax, ist, i, j, NR, ierr
+  real(8) :: dpsi, psirho_a
+  real(8), dimension(:), allocatable :: psirho, psi_out, data, data_out, deriv
+  real(8), dimension(:,:), allocatable :: u
+
+  do
+     write(6,'(1X,A)') '## for_ofmc: number of grids ? [Default=30]'
+     read(*,'(I3)',iostat=ist) nmax
+     if (ist > 0) then
+        cycle
+     else if (ist < 0) then
+        return
+     end if
+     if(nmax == 0) then
+        nmax = 30
+     else if(nmax < 0) then
+        cycle
+     end if
+     exit
+  end do
+
+  ! Output file open
+  CALL FWOPEN(21,'txofmc.dat',1,1,'TX',IERR)
+  IF(IERR /= 0) THEN
+     WRITE(6,*) 'XX for_ofmc: FWOPEN: IERR=', IERR
+     RETURN
+  ENDIF
+
+  write(21,'(A)') 'PARM'
+  write(21,'(1X,A5,1X,I5,2(1X,A5))') '*****',-1,('*****', j = 1, 2)
+  write(21,'(1X,I5,11(1X,A5))') nmax,('*****', j = 1, 11)
+  write(21,'(4(1PE12.5))') RR,RA,BB,rIp
+  write(21,'(3(1X,A11),2(1PE12.5))') ('************', j = 1, 3), 1.d0, 0.d0
+  write(21,'(5(1X,A11))') ('************', j = 1, 5)
+
+  allocate(psirho(0:NRMAX),data(0:NRMAX),deriv(0:NRMAX),u(1:4,0:NRMAX))
+  allocate(psi_out(1:nmax),data_out(1:nmax+1))
+
+  ! normalized psi with respect to rho
+  psirho(0) = 0.d0
+  do NR = 1, NRMAX
+     psirho(NR) = - RR * (AphV(NR) - AphV(0))
+  end do
+  psirho_a = psirho(NRA)
+  psirho(0:NRMAX) = psirho(0:NRMAX) / psirho_a
+
+  ! Equally-spaced psi on a half mesh
+  dpsi = 1.d0 / dble(nmax)
+  do i = 1, nmax
+     psi_out(i) = i * dpsi - 0.5d0 * dpsi
+  end do
+
+  do i = 1, 3
+     if     (i == 1) then ! Ne
+        data(0:NRMAX) = PNeV(0:NRMAX) * 1.D20 ! in m^{-3}
+     else if(i == 2) then ! Te
+        data(0:NRMAX) = PTeV(0:NRMAX) * 1.D3  ! in eV
+     else if(i == 3) then ! Ti
+        data(0:NRMAX) = PTiV(0:NRMAX) * 1.D3  ! in eV
+     end if
+
+     ! Output data on the magnetic axis
+     write(21,'(2(1PE12.5))') data(0), -1.d0
+
+     ! Spline data for equally-spaced psi
+     call spl1d(psirho,data,deriv,u,NRMAX,0,ierr)
+     if(ierr /= 0) stop 'Error at spl1d'
+     do j = 1, nmax
+        call spl1df(psi_out(j),data_out(j),psirho,u,NRMAX,ierr)
+        if(ierr /= 0) stop 'Error at spl1df'
+     end do
+
+     ! Add data on the separatrix to output data array
+     data_out(nmax+1) = data(NRA)
+
+     ! Output data
+     write(21,'(4(1PE18.10))') (data_out(j), j = 1, nmax+1)
+  end do
+
+  deallocate(psirho,data,deriv,u,psi_out,data_out)
+
+  close(21)
+
+end subroutine for_ofmc

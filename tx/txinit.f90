@@ -123,22 +123,27 @@ SUBROUTINE TXINIT
   !     3 : thermal transport
   FSDFIX(1:3) = 1.D0
 
-  !   ==== CDBM transport coefficient parameters ============================
-  !     (Current diffusive ballooning mode)
-  !      The finer time step size, typically less than or equal to DT=5.D-4,
-  !         is anticipated when using CDBM.
-  !   Switch and amplification of CDBM turbulence (typically 0 or 1)
+  !   Anomalous turbulent transport models
+  !     1 : CDBM model (Current diffusive ballooning mode)
+  !     2 : MMM95 (Multi-mode model)
+  MDANOM = 1
+
+  !   Switch and amplification of turbulence coefficients (typically 0 or 1)
   !     1 : particle transport
   !     2 : momentum transport
   !     3 : thermal transport
-  FSCDBM(1:3) = 0.D0
+  FSANOM(1:3) = 0.D0
+
+  !   Effect of ExB shear stabilization
+  FSCBSH = 0.D0
+
+  !   ==== CDBM transport coefficient parameters ============================
+  !      The finer time step size, typically less than or equal to DT=5.D-4,
+  !         is anticipated when using CDBM.
 
   !   Effect of magnetic curvature
   !     (It could destabilize a numerical robustness when FS2 > FS1 (see TRCOFS).)
   FSCBKP = 0.D0
-
-  !   Effect of ExB shear stabilization
-  FSCBSH = 0.D0
 
   !   Factor of E x B rotation shear
   rG1 = 24.D0
@@ -270,6 +275,9 @@ SUBROUTINE TXINIT
 
   !   Second tangential NBI input power (MW)
   PNBHT2 = 0.D0
+
+  !   NBI input power from input file (MW)
+  PNBHex = 0.D0
 
   !   NBI current drive parameter
   PNBCD = 1.D0
@@ -1159,7 +1167,7 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
        & Chie0,Chii0,ChiNC, &
-       & FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL, &
+       & FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,MDANOM, &
        & PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
        & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,MDLC, &
        & rLn,rLT, &
@@ -1286,7 +1294,7 @@ contains
        IF(rMue0 < 0.D0 .OR. rMui0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(Chie0 < 0.D0 .OR. Chii0 < 0.D0 .OR. ChiNC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(minval(FSDFIX) < 0.D0 .OR. minval(FSCDBM) < 0.D0) THEN ; EXIT ; ELSE
+       IF(minval(FSDFIX) < 0.D0 .OR. minval(FSANOM) < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSCDIM < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF !***09/06/17~ miki_m
        IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
@@ -1349,7 +1357,7 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
-         &       ' ',8X,'FSDFIX,FSCDBM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,'/ &
+         &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,MDANOM,'/ &
          &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
          &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,'/&
@@ -1398,8 +1406,8 @@ contains
          &   'PROFC1', PROFC1,  'ChiNC ', ChiNC ,  &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
          &   'FSDFX1', FSDFIX(1),  'FSDFX2', FSDFIX(2),  &
-         &   'FSDFX3', FSDFIX(3),  'FCDBM1', FSCDBM(1),  &
-         &   'FCDBM2', FSCDBM(2),  'FCDBM3', FSCDBM(3),  &
+         &   'FSDFX3', FSDFIX(3),  'FANOM1', FSANOM(1),  &
+         &   'FANOM2', FSANOM(2),  'FANOM3', FSANOM(3),  &
          &   'FSCBKP', FSCBKP,  'FSCBSH', FSCBSH,  &
          &   'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
@@ -1415,13 +1423,13 @@ contains
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
-         &   'PNBHP ', PNBHP ,  'PNBMPD', PNBMPD,  &
-         &   'PNBHT1', PNBHT1,  'PNBHT2', PNBHT2,  &
-         &   'rNRFe ', rNRFe ,  'RRFew ', RRFew ,  &
-         &   'RRFe0 ', RRFe0 ,  'PRFHe ', PRFHe ,  &
-         &   'rNRFi ', rNRFe ,  'RRFiw ', RRFiw ,  &
-         &   'RRFi0 ', RRFi0 ,  'PRFHi ', PRFHi ,  &
-         &   'Tqi0  ', Tqi0  , &
+         &   'PNBHP ', PNBHP ,  'PNBHT1', PNBHT1,  &
+         &   'PNBHT2', PNBHT2,  'PNBHex', PNBHex,  &
+         &   'PNBMPD', PNBMPD,  'rNRFe ', rNRFe ,  &
+         &   'RRFew ', RRFew ,  'RRFe0 ', RRFe0 ,  &
+         &   'PRFHe ', PRFHe ,  'rNRFi ', rNRFe ,  &
+         &   'RRFiw ', RRFiw ,  'RRFi0 ', RRFi0 ,  &
+         &   'PRFHi ', PRFHi ,  'Tqi0  ', Tqi0  ,  &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
@@ -1442,7 +1450,7 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
-         &   'MDLETA', MDLETA,  &
+         &   'MDLETA', MDLETA,  'MDANOM', MDANOM,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
          &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
          &   'MDINIT', MDINIT,  'MDVAHL', MDVAHL,  &
