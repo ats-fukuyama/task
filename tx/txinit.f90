@@ -160,7 +160,10 @@ SUBROUTINE TXINIT
   !   Pseud-classical particle transport coefficient parameter in SOL
   FSPCLD = 0.D0
 
-  !   Pseud-classical heat & mom transport coefficient parameter in SOL
+  !   Pseud-classical mom. transport coefficient parameter in SOL
+  FSPCLM = 0.D0
+
+  !   Pseud-classical heat transport coefficient parameter in SOL
   FSPCLC = 0.D0
 
   !   Controller for the degree of the effect of Te'
@@ -171,16 +174,22 @@ SUBROUTINE TXINIT
   !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
   PROFD =  3.D0
 
-  !   Heat & mom. diffusion coefficient profile parameter (D(r=a)/D(r=0))
-  PROFC = 10.D0
-
   !   Exponent of particle diffusion coefficient profile
   PROFD1 = 3.D0
 
   !   Gaussian modification of particle diffusion coefficient profile
   PROFD2 = 0.D0
 
-  !   Exponent of heat & mom. diffusion coefficient profile
+  !   Mom. diffusion coefficient profile parameter (D(r=a)/D(r=0))
+  PROFM = 10.D0
+
+  !   Exponent of mom. diffusion coefficient profile
+  PROFM1 = 2.D0
+
+  !   Heat diffusion coefficient profile parameter (D(r=a)/D(r=0))
+  PROFC = 10.D0
+
+  !   Exponent of heat diffusion coefficient profile
   PROFC1 = 2.D0
 
   !   ***** Other transport parameters *****
@@ -1167,8 +1176,8 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
        & Chie0,Chii0,ChiNC, &
-       & FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,MDANOM, &
-       & PROFD,PROFC,PROFD1,PROFD2,PROFC1, &
+       & FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM, &
+       & PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1, &
        & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
@@ -1298,7 +1307,7 @@ contains
           idx = idx + 1 ; ENDIF
        IF(FSCDIM < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF !***09/06/17~ miki_m
        IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
+       IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLM < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
@@ -1357,8 +1366,8 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
-         &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLC,FSVAHL,MDANOM,'/ &
-         &       ' ',8X,'PROFD,PROFC,PROFD1,PROFD2,PROFC1,'/ &
+         &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM,'/ &
+         &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1,'/ &
          &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
@@ -1401,8 +1410,9 @@ contains
          &   'De0   ', De0   ,  'Di0   ', Di0   ,  &
          &   'rMue0 ', rMue0 ,  'rMui0 ', rMui0 ,  &
          &   'VWpch0', VWpch0,  'WPM0  ', WPM0  ,  &
-         &   'PROFD ', PROFD ,  'PROFC ', PROFC ,  &
-         &   'PROFD1', PROFD1,  'PROFD2', PROFD2,  &
+         &   'PROFD ', PROFD ,  'PROFD1', PROFD1,  &
+         &   'PROFD2', PROFD2,  'PROFM ', PROFM ,  &
+         &   'PROFM1', PROFM1,  'PROFC ', PROFC ,  &
          &   'PROFC1', PROFC1,  'ChiNC ', ChiNC ,  &
          &   'Chie0 ', Chie0 ,  'Chii0 ', Chii0 ,  &
          &   'FSDFX1', FSDFIX(1),  'FSDFX2', FSDFIX(2),  &
@@ -1411,8 +1421,8 @@ contains
          &   'FSCBKP', FSCBKP,  'FSCBSH', FSCBSH,  &
          &   'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
-         &   'FSPCLC', FSPCLC,  'FSVAHL', FSVAHL,  &
-         &   'FSCX  ', FSCX  ,  &
+         &   'FSPCLM', FSPCLM,  'FSPCLC', FSPCLC,  &
+         &   'FSVAHL', FSVAHL,  'FSCX  ', FSCX  ,  &
          &   'FSLC  ', FSLC  ,  'FSRP  ', FSRP  ,  &
          &   'FSNF  ', FSNF  ,  'FSNC  ', FSNC  ,  &
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &

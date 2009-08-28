@@ -193,7 +193,7 @@ contains
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
-         &     rGIC, rH, PROFCL, PALFL, DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
+         &     rGIC, rH, PROFML, PROFCL, PALFL, DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
@@ -534,6 +534,13 @@ contains
     Vexbr(0)       = 0.d0
     Vexbr(1:NRMAX) = ErV(1:NRMAX) &
          &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
+
+    IF(PROFM == 0.D0 .AND. FSDFIX(2) /= 0.D0) THEN
+       PROFML = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
+            &    SQRT(BphV(NRA)**2 + BthV(NRA)**2))) / FSDFIX(2)
+    ELSE
+       PROFML = PROFM
+    END IF
 
     IF(PROFC == 0.D0 .AND. FSDFIX(3) /= 0.D0) THEN
        PROFCL = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
@@ -933,7 +940,9 @@ contains
        S(NR) = R(NR) / Q(NR) * dQdr(NR)
        Alpha(NR) = - Q(NR)**2 * RR * dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)
 
-       !     *** Thermal diffusivity ***
+       !   ***** Thermal diffusivity *****
+
+       !   *** CDBM model ***
 
        IF (maxval(FSANOM) > 0.D0) THEN
           ! Alfven velocity
@@ -1056,13 +1065,37 @@ contains
        ! Turbulent pinch term
        VWpch(NR) = VWpch0 * RHO(NR)
 
-       !     *** Turbulent transport of momentum and heat ***
-       !        Temporarily, the profiles of the heat diffusivities are
-       !          the same as those of the viscosities:
-       !          i.e. FSANOM(2) and FSDFIX(2) are not effective.
+       !     *** Turbulent transport of momentum ***
 
        RhoSOL = 1.D0
 !parail       RhoSOL = 0.93D0
+
+       IF (RHO(NR) < RhoSOL) THEN
+          DeL = diff_prof(RHO(NR),FSDFIX(2),PROFML,PROFM1,0.d0) + FSANOM(2) * DCDBM &
+            & + FSCDIM * DCDIM
+!pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
+       ELSE
+          IF(FSPCLM == 0.D0) THEN
+             factor_bohm = (FSDFIX(2) * PROFML + FSANOM(2) * DCDBM + FSCDIM * DCDIM) &
+                  &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
+!bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(2) * PROFML &
+!bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
+             DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
+          ELSE
+             IF(FSANOM(2) == 0.D0) THEN
+                DeL = FSPCLM * diff_prof(RhoSOL,FSDFIX(2),PROFML,PROFM1,0.d0)
+             ELSE
+                DeL = FSANOM(2) * DCDBMA + FSCDIM * DCDIMA
+             END IF
+!pedestal             DeL = FSPCLM * FSDFIX(2) * PROFML * exp(-120.d0*(rho(nra)-0.9d0)**2)
+          END IF
+       END IF
+       ! Viscosity
+       rMue(NR) = rMue0 * DeL
+       rMui(NR) = rMui0 * DeL
+
+       !     *** Turbulent transport of heat ***
+
        IF (RHO(NR) < RhoSOL) THEN
           DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSANOM(3) * DCDBM &
             & + FSCDIM * DCDIM
@@ -1084,9 +1117,6 @@ contains
           END IF
        END IF
 !       DeL = 3.d0
-       ! Viscosity
-       rMue(NR) = rMue0 * DeL
-       rMui(NR) = rMui0 * DeL
        ! Thermal diffusivity
        Chie(NR) = Chie0 * DeL
        Chii(NR) = Chii0 * DeL

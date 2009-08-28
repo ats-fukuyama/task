@@ -71,7 +71,7 @@ contains
   SUBROUTINE TXLOOP
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 PNeV, PTeV, PNeV_FIX, PTeV_FIX, PNiV, PTiV, PNiV_FIX, PTiV_FIX, &
-         &                 NQM, IERR, LQb1, LQn1, &
+         &                 NQM, IERR, LQb1, LQn1, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
          &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT
@@ -225,6 +225,7 @@ contains
           ! Avoid negative values
           CALL MINUS_GOES_ZERO(XN,LQb1,0)
           CALL MINUS_GOES_ZERO(XN,LQn1,1)
+          IF(FSRP /= 0.D0) CALL MINUS_GOES_ZERO(XN,LQr1,2)
           ! Ignore tiny values
           DO NQ = 1, NQMAX
              DO NR = 0, NRMAX
@@ -795,7 +796,7 @@ contains
 
           XL(LQ,NZERO:NRMAX) = 0.D0
        END IF
-    ELSE
+    ELSE IF(ID == 1) THEN
        IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
           DO NR = NRMAX, 0, -1
              IF(XL(LQ,NR) <= 0.D0) THEN
@@ -805,6 +806,12 @@ contains
           END DO
 
           XL(LQ,0:NZERO) = 0.D0
+       END IF
+    ELSE
+       IF(MINVAL(XL(LQ,0:NRMAX)) < 0.D0) THEN
+          DO NR = 0, NRMAX
+             IF(XL(LQ,NR) < 0.D0) XL(LQ,NR) = 0.D0
+          END DO
        END IF
     END IF
 
