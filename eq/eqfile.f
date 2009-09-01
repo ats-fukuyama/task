@@ -174,7 +174,7 @@ c
       REWIND(neqdsk)
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
-      read (neqdsk,2020) rdim,zdim,RR,rleft,zmid
+      read (neqdsk,2020) rdim,zdim,Rctr,rleft,zmid
 CChonda      RA=0.5D0*rdim
 CChonda      RKAP=zdim/rdim
 CChonda      RDLT=0.D0
@@ -187,7 +187,7 @@ CChonda      RB=1.1D0*RA
       DO NZG=1,NZGMAX
          ZG(NZG)=zmid-0.5D0*zdim+DZ*(NZG-1)
       ENDDO
-      read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIA,BB
+      read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIA,Bctr
 C
       PSI0=2.D0*PI*PSI0
       PSIA=2.D0*PI*PSIA
@@ -211,8 +211,8 @@ C
       read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
 C
-      RSUMAX = RR
-      RSUMIN = RR
+      RSUMAX = Rctr
+      RSUMIN = Rctr
       ZSUMAX = 0.d0
       ZSUMIN = 0.d0
       R_ZSUMAX = 0.d0
@@ -230,11 +230,17 @@ C
          end if
       enddo
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
-      RA   = 0.5d0 * (RSUMAX - RSUMIN)
+      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
+      RA   = RR - RSUMIN
+      !==  RB: wall minor radius  ======================
+      !    Multiplication factor 1.1 is tentatively set.
       RB   = 1.1d0 * RA
+!      RB   = 1.2d0 * RA
+      !=================================================
       RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
-      R_CTR = RSUMIN + RA
-      RDLT = 0.5d0 * (ABS(R_CTR-R_ZSUMIN) + ABS(R_CTR-R_ZSUMAX)) / RA
+      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
+      BB   = Rctr * Bctr / RR
+      RIPX = RIP
 C
 C      GOTO 1000
 C      kvtor=0

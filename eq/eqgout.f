@@ -11,17 +11,17 @@ C
       CHARACTER KSTR*2,K1*1,K2*1
 C
     1 IF(MODE.EQ.0) THEN
-        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB TR X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,S3,SR,ST,SD,SB TR X/EXIT'
       ELSEIF(MODE.EQ.1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
-     &                             'S,S1,S2,SR,ST,SD,SB TR M A X/EXIT'
+     &                            'S,S1,S2,S3,SR,ST,SD,SB TR M A X/EXIT'
       ELSEIF(MODE.EQ.2) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
-     &                             'S,S1,S2,SR,ST,SD,SB TR M A X/EXIT'
+     &                            'S,S1,S2,S3,SR,ST,SD,SB TR M A X/EXIT'
       ELSEIF(MODE.EQ.-1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 X/EXIT'
       ELSE
-        WRITE(6,*) ' ## INPUT KID : S,S1,S2,SR,ST,SD,SB TR X/EXIT'
+        WRITE(6,*) ' ## INPUT KID : S,S1,S2,S3,SR,ST,SD,SB TR X/EXIT'
       ENDIF
       READ(5,'(A2)',ERR=1,END=9000) KSTR
       K1=KSTR(1:1)
@@ -59,6 +59,8 @@ C
                CALL EQGS1D(0)
             ELSEIF(K2.EQ.'2') THEN
                CALL EQGS2D
+            ELSEIF(K2.EQ.'3') THEN
+               CALL EQGS3D
             ELSEIF(K2.EQ.'R') THEN
                CALL EQGS1D(1)
             ELSEIF(K2.EQ.'T') THEN
@@ -862,16 +864,32 @@ C
       CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
       CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(GGZSTP*2))
 C
+C     *** Outside the separatrix ***
       CALL SETRGB(1.0,0.0,0.0)
       CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
       CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
      &            0.5*GPSTEP,GPSTEP,NPSTEP,0,0,KA)
+C     *** The separatrix ***
       CALL SETRGB(0.0,1.0,0.0)
       CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
      &            0.0,GPSTEP,1,0,0,KA)
+C     *** Inside the separatrix ***
+      NPINSD=10
+      GPINSD=(0.0-GPMIN)/NPINSD
       CALL SETRGB(0.0,0.0,1.0)
+c$$$      CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
+c$$$     &            -0.5*GPSTEP,-GPSTEP,NPINSD,0,0,KA)
       CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
-     &            -0.5*GPSTEP,-GPSTEP,NPSTEP,0,0,KA)
+     &            -GPINSD,-GPINSD,NPINSD,0,0,KA)
+C     *** Magnetic axis ***
+      GRAXIS=REAL(RAXIS)
+      GZAXIS=REAL(ZAXIS)
+      GRZSTP=0.1*GGRSTP
+      CALL MOVE2D(GRAXIS-GRZSTP,GZAXIS-GRZSTP)
+      CALL DRAW2D(GRAXIS+GRZSTP,GZAXIS+GRZSTP)
+      CALL MOVE2D(GRAXIS+GRZSTP,GZAXIS-GRZSTP)
+      CALL DRAW2D(GRAXIS-GRZSTP,GZAXIS+GRZSTP)
+C
       CALL OFFCLP
       CALL SETRGB(0.0,0.0,0.0)
       CALL EQGPRM
@@ -927,6 +945,107 @@ C
       ENDDO
 C
       CALL SETRGB(0.0,0.0,0.0)
+      CALL EQGPRM
+      CALL PAGEE
+C
+      RETURN
+      END
+C
+C     ****** DRAW SPLINED EQ3D GRAPH ******
+C
+      SUBROUTINE EQGS3D
+C
+      INCLUDE 'eqcomq.inc'
+C
+      DIMENSION GPSIRZ(NRGM,NZGM),GRG(NRGM),GZG(NZGM)
+      DIMENSION KA(8,NRGM,NZGM)
+      CHARACTER KTITL*80
+      EXTERNAL R2W2B_Wat0_
+C
+      DO NR=1,NRGMAX
+         GRG(NR)=GUCLIP(RG(NR))
+      ENDDO
+      DO NZ=1,NZGMAX
+         GZG(NZ)=GUCLIP(ZG(NZ))
+      ENDDO
+      DO NZ=1,NZGMAX
+         DO NR=1,NRGMAX
+            GPSIRZ(NR,NZ)=GUCLIP(PSIRZ(NR,NZ))
+         ENDDO
+      ENDDO
+C
+      CALL GMNMX1(GRG,1,NRGMAX,1,GRMIN,GRMAX)
+      CALL GMNMX1(GZG,1,NZGMAX,1,GZMIN,GZMAX)
+      CALL GMNMX2(GPSIRZ,NRGM,1,NRGMAX,1,1,NZGMAX,1,GPMIN,GPMAX)
+      NPSTEP=20
+      GPORG=GPMIN
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+C
+      GRLEN=GRMAX-GRMIN
+      GZLEN=GZMAX-GZMIN
+      IF(GRLEN.GT.GZLEN) THEN
+         GPR=15.0
+         GPZ=15.0*GZLEN/GRLEN
+      ELSE
+         GPR=15.0*GRLEN/GZLEN
+         GPZ=15.0
+      ENDIF
+C
+      CALL PAGES
+      CALL GSGLENABLELIGHTING
+c$$$      CALL MOVE(2.0,17.5)
+c$$$      KTITL='/PSIRZ contour in R-Z/'
+c$$$      CALL TEXTX(KTITL)
+C
+      CALL GQSCAL(GRMIN,GRMAX,GGRMIN,GGRMAX,GGRSTP)
+      CALL GQSCAL(GZMIN,GZMAX,GGZMIN,GGZMAX,GGZSTP)
+      CALL GQSCAL(GPMIN,GPMAX,GGPMIN,GGPMAX,GGPSTP)
+C
+      CALL SETLIN(0,2,7)
+c$$$      CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
+c$$$     &            GRMIN,GRMAX,GZMIN,GZMAX)
+      GYL=15.0
+      GXL=(GRMAX-GRMIN)/(GZMAX-GZMIN)*GYL
+      GZL=10.0
+      CALL GDEFIN3D(GXL,GYL,GZL,
+     &              GGRMIN,GGRMAX,GGZMIN,GGZMAX,GGPMIN,GGPMAX)
+C
+C     viewpoint
+      GPHI    =-90.0
+      GTHETA  =  0.0
+      GRADIUS =  5.0
+C
+      GOX=0.5*(GGRMIN+GGRMAX)+GGRSTP
+      GOY=0.5*(GGZMIN+GGZMAX)
+      GOZ=0.5*(GGPMIN+GGPMAX)
+      CALL GVIEW3D(GPHI,GTHETA,GRADIUS,GOX,GOY,GOZ)
+      CALL SETCHS(0.3,0.0)
+      CALL SETLIN(0,0,4)
+C
+      CALL GSCALE3DX(GGRMIN,GGRSTP,0.3,0)
+      CALL GSCALE3DY(GGZMIN,GGZSTP,0.3,0)
+      CALL GSCALE3DZ(GGPMIN,GGPSTP,0.3,10)
+      CALL GVALUE3DX(GGRMIN,GGRSTP,1,1)
+      CALL GVALUE3DY(GGZMIN,GGZSTP,1,1)
+      CALL GVALUE3DZ(GGPMIN,GGPSTP,11,-2)
+C
+c$$$      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, -1.0, 0.0, 0.0)
+c$$$      CALL GTEXTX3D(GGRMAX+0.15*(GGRMAX-GGRMIN),0.5*(GGZMIN+GGZMAX),
+c$$$     &              GGPMIN,'@TIME (sec)@',2)
+c$$$      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, -1.0, 0.0, 0.0)
+c$$$      CALL GTEXTX3D(0.5*(GGRMIN+GGRMAX),GGZMIN+0.1*(GGZMIN-GGZMAX),
+c$$$     &              GGPMIN,'@R@',2)
+c$$$      CALL Set3DTextBaseLine(0.0, 1.0, 0.0, 0.0, 0.0, 1.0)
+c$$$      CALL GTEXTX3D(GGRMIN,GGZMIN+0.05*(GGZMIN-GGZMAX),
+c$$$     &              GGPMAX+0.1*(GGPMAX-GGPMIN),KV,2)
+C
+      CALL PERS3D2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,-27,R2W2B_Wat0_)
+      CALL GAxis3D(0)
+      CALL GDrawBack3D(0.5, 0.5, 0.5)
+C
+      CALL SETLIN(0,0,4)
+C
+      CALL OFFCLP
       CALL EQGPRM
       CALL PAGEE
 C

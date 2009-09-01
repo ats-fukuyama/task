@@ -54,13 +54,13 @@ pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) $(OBJA) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
-check :
-	ftnchek $(FCKFLAGS) $(SRCS) | less
-checktr :
+check : $(SRCS)
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | less
+checktr : $(SRCT)
 	ftnchek $(FCKFLAGS) $(SRCT) | less
-checkpl :
+checkpl : $(SRCP)
 	ftnchek $(FCKFLAGS) $(SRCP) | less
-checkak :
+checkak : $(SRCA)
 	ftnchek $(FCKFLAGS) $(SRCA) | less
 
 clean:

@@ -44,9 +44,8 @@ C
          IF(IERR.NE.0) RETURN
       ENDIF
 C
-      CALL EQSETS(IERR)
-C
       CALL EQSETS_RHO(IERR)
+      CALL EQSETS(IERR)
 C
       RETURN
       END
@@ -185,6 +184,7 @@ C
          SUMAVGV =0.D0
          SUMAVGV2=0.D0
          SUMAVGR2=0.D0
+         SUMAVIR =0.D0
 C
          RMIN=RAXIS
          RMAX=RAXIS
@@ -219,6 +219,7 @@ C
             SUMAVGV =SUMAVGV +H*R
             SUMAVGV2=SUMAVGV2+H*R*R*BPL
             SUMAVGR2=SUMAVGR2+H*BPL
+            SUMAVIR =SUMAVIR +H/(BPL*R)
 C
             XCHI1(N)=SUMAVIR2
             RCHI(N)=YA(1,N)
@@ -262,7 +263,8 @@ Chonda         write(6,*) PSIP(NR),QPS(NR)
          AVEGV2 (NR)=SUMAVGV2*SUMV*4.d0*PI**2
          AVEGVR2(NR)=SUMAVGR2*SUMV*4.d0*PI**2
 Chonda         write(6,'(4E15.7)') PSIP(NR),SUMAVGR2,SUMV,AVEGVR2(NR)
-         AVEGP2(NR)=SUMAVGV2/SUMV*4.d0*PI**2
+         AVEGP2 (NR)=SUMAVGV2/SUMV*4.d0*PI**2
+         AVEIR  (NR)=SUMAVIR /SUMV
 
          call zminmax(YA,NZMINR,ZMIN,ZMINR)
          call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
@@ -273,8 +275,8 @@ Chonda         write(6,'(4E15.7)') PSIP(NR),SUMAVGR2,SUMV,AVEGVR2(NR)
          ZZMAX(NR)=ZMAX
          RZMIN(NR)=ZMINR
          RZMAX(NR)=ZMAXR
-         RRPSI(NR)=(RMAX+RMIN)/2.D0
-         RSPSI(NR)=(RMAX-RMIN)/2.D0
+         RRPSI(NR)=0.5D0*(RMAX+RMIN)
+         RSPSI(NR)=0.5D0*(RMAX-RMIN)
          ELIPPSI(NR)=(ZMAX-ZMIN)/(2.D0*RSPSI(NR))
          TRIGPSI(NR)=(RRPSI(NR)-(ZMAXR+ZMINR)/2.D0)/RSPSI(NR)
          BBMIN(NR)=BMIN
@@ -341,6 +343,7 @@ C
       AVEGP2(1)  = FCTR2(PS2,PS3,PS4,AVEGP2 (2),AVEGP2 (3),AVEGP2 (4))
       AVEJPR(1)  = FCTR2(PS2,PS3,PS4,AVEJPR (2),AVEJPR (3),AVEJPR (4))
       AVEJTR(1)  = FCTR2(PS2,PS3,PS4,AVEJTR (2),AVEJTR (3),AVEJTR (4))
+      AVEIR (1)  = FCTR2(PS2,PS3,PS4,AVEIR  (2),AVEIR  (3),AVEIR  (4))
 
       RRMIN(1)   = RAXIS
       RRMAX(1)   = RAXIS
@@ -461,6 +464,7 @@ C
          RSW(NTH)=RSU(NTH)
          ZSW(NTH)=ZSU(NTH)
       ENDDO
+
 !      write (6,'(I5,1PE12.4)') (i,QPS(i),i=1,NRMAX)
       
 C
@@ -516,6 +520,7 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,psit)
             call polintx(nr,npmax,nrm,vps)
             call polintx(nr,npmax,nrm,sps)
+            call polintx(nr,npmax,nrm,aveir)
 
             call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
             call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
@@ -590,6 +595,7 @@ C
             SUMAVGV =0.D0
             SUMAVGV2=0.D0
             SUMAVGR2=0.D0
+            SUMAVIR =0.D0
 C
             RMIN=RAXIS
             RMAX=RAXIS
@@ -624,6 +630,7 @@ C
                SUMAVGV =SUMAVGV +H*R
                SUMAVGV2=SUMAVGV2+H*R*R*BPL
                SUMAVGR2=SUMAVGR2+H*BPL
+               SUMAVIR =SUMAVIR +H/(BPL*R)
 C
                XCHI1(N)=SUMAVIR2
                RCHI(N)=YA(1,N)
@@ -667,6 +674,7 @@ C            DSDPSIT(NR)=SUMS/QPS(NR)/(2.D0*PI)
             AVEGV2 (NR)=SUMAVGV2*SUMV*4.D0*PI**2
             AVEGVR2(NR)=SUMAVGR2*SUMV*4.D0*PI**2
             AVEGP2 (NR)=SUMAVGV2/SUMV*4.D0*PI**2
+            AVEIR  (NR)=SUMAVIR /SUMV
 
             call zminmax(YA,NZMINR,ZMIN,ZMINR)
             call zminmax(YA,NZMAXR,ZMAX,ZMAXR)
@@ -878,6 +886,8 @@ C
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEJPR: IERR=',IERR
       CALL SPL1D(PSIP,AVEJTR,DERIV,UAVEJTR,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEJTR: IERR=',IERR
+      CALL SPL1D(PSIP,AVEIR ,DERIV,UAVEIR ,NRMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for AVEIR: IERR=',IERR
 C
       CALL SPL1D(PSIP,RRPSI  ,DERIV,URRPSI  ,NRMAX,0,IERR)
       IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for RRPSI: IERR=',IERR
@@ -949,44 +959,79 @@ C      ENDDO
 C
 C        +++++ CALCULATE INTEGRATED QUANTITIES +++++
 C
-      NDPMAX=100
-      DELPS=-PSI0/NDPMAX
-      PPSL=FNPPS(0.D0)
-      VPSL=FNVPS(0.D0)
-      SPSL=FNSPS(0.D0)
-      SUMV =0.5D0*VPSL*DELPS
-      SUMS =0.5D0*SPSL*DELPS
-      SUMPV=0.5D0*PPSL*VPSL*DELPS
-      SUMPS=0.5D0*PPSL*SPSL*DELPS
-      DO NDP=1,NDPMAX-1
-         PSIL=PSI0+DELPS*NDP
-         PSIN=1.D0-PSIL/PSI0
-         RHON=FNRHON(PSIN)
-         PPSL=FNPPS(RHON)
-         VPSL=FNVPS(RHON)
-         SPSL=FNSPS(RHON)
-         SUMV =SUMV +VPSL*DELPS
-         SUMS =SUMS +SPSL*DELPS
-         SUMPV=SUMPV+PPSL*VPSL*DELPS
-         SUMPS=SUMPS+PPSL*SPSL*DELPS
+c$$$      NDPMAX=100
+c$$$      DELPS=-PSI0/NDPMAX
+c$$$      PPSL=FNPPS(0.D0)
+c$$$      VPSL=FNVPS(0.D0)
+c$$$      SPSL=FNSPS(0.D0)
+c$$$      SUMV =0.5D0*VPSL*DELPS
+c$$$      SUMS =0.5D0*SPSL*DELPS
+c$$$      SUMPV=0.5D0*PPSL*VPSL*DELPS
+c$$$      SUMPS=0.5D0*PPSL*SPSL*DELPS
+c$$$      DO NDP=1,NDPMAX-1
+c$$$         PSIL=PSI0+DELPS*NDP
+c$$$         PSIN=1.D0-PSIL/PSI0
+c$$$         RHON=FNRHON(PSIN)
+c$$$         PPSL=FNPPS(RHON)
+c$$$         VPSL=FNVPS(RHON)
+c$$$         SPSL=FNSPS(RHON)
+c$$$         SUMV =SUMV +VPSL*DELPS
+c$$$         SUMS =SUMS +SPSL*DELPS
+c$$$         SUMPV=SUMPV+PPSL*VPSL*DELPS
+c$$$         SUMPS=SUMPS+PPSL*SPSL*DELPS
+c$$$      ENDDO
+c$$$      PPSL=FNPPS(1.D0)
+c$$$      VPSL=FNVPS(1.D0)
+c$$$      SPSL=FNSPS(1.D0)
+c$$$      SUMV =SUMV +0.5D0*VPSL*DELPS
+c$$$      SUMS =SUMS +0.5D0*SPSL*DELPS
+c$$$      SUMPV=SUMPV+0.5D0*PPSL*VPSL*DELPS
+c$$$      SUMPS=SUMPS+0.5D0*PPSL*SPSL*DELPS
+c$$$      PVOL=SUMV
+c$$$      PAREA=SUMS
+c$$$      RAAVE=SQRT(PAREA/PI)
+c$$$      PVAVE=SUMPV/SUMV
+c$$$      PSAVE=SUMPS/SUMS
+c$$$      BPA=RMU0*RIP*1.D6/FNRLEN(1.D0)
+c$$$      BETAT=PVAVE/(BB**2/(2.D0*RMU0))
+c$$$      BETAP=PSAVE/(BPA**2/(2.D0*RMU0))
+c$$$      QAXIS=FNQPS(0.D0)
+c$$$      QSURF=FNQPS(1.D0)
+C
+      NDRMAX=100
+      DELRHO=1.D0/NDRMAX
+      RHON1=0.D0
+      RHONH=0.5D0*DELRHO
+      RHON2=DELRHO
+      PPSL1=FNPPS(RHON1)
+      PPSL2=FNPPS(RHON2)
+      CALL SPL1DF(FNPSIP(RHONH),DVDRHOL,PSIP,UDVDRHO,NRMAX,IERR)
+      SUMV=DVDRHOL*DELRHO ! Volume
+      SUMPV=0.5D0*(PPSL1+PPSL2)*DVDRHOL*DELRHO ! Pressure times volume
+      CALL SPL1DF(FNPSIP(RHONH),AVEIRL,PSIP,UAVEIR,NRMAX,IERR)
+      SUMS=DVDRHOL*AVEIRL*DELRHO ! Cross-section
+      DO NDR=1,NDRMAX-1
+         RHON1=RHON1+DELRHO
+         RHONH=RHONH+DELRHO
+         RHON2=RHON2+DELRHO
+         PPSL1=FNPPS(RHON1)
+         PPSL2=FNPPS(RHON2)
+         CALL SPL1DF(FNPSIP(RHONH),DVDRHOL,PSIP,UDVDRHO,NRMAX,IERR)
+         SUMV=SUMV+DVDRHOL*DELRHO
+         SUMPV=SUMPV+0.5D0*(PPSL1+PPSL2)*DVDRHOL*DELRHO
+         CALL SPL1DF(FNPSIP(RHONH),AVEIRL,PSIP,UAVEIR,NRMAX,IERR)
+         SUMS=SUMS+DVDRHOL*AVEIRL*DELRHO
       ENDDO
-      PPSL=FNPPS(1.D0)
-      VPSL=FNVPS(1.D0)
-      SPSL=FNSPS(1.D0)
-      SUMV =SUMV +0.5D0*VPSL*DELPS
-      SUMS =SUMS +0.5D0*SPSL*DELPS
-      SUMPV=SUMPV+0.5D0*PPSL*VPSL*DELPS
-      SUMPS=SUMPS+0.5D0*PPSL*SPSL*DELPS
-      PVOL=SUMV
-      PAREA=SUMS
-      RAAVE=SQRT(PAREA/PI)
-      PVAVE=SUMPV/SUMV
-      PSAVE=SUMPS/SUMS
-      BPA=RMU0*RIP*1.D6/FNRLEN(1.D0)
-      BETAT=PVAVE/(BB**2/(2.D0*RMU0))
-      BETAP=PSAVE/(BPA**2/(2.D0*RMU0))
-      QAXIS=FNQPS(0.D0)
-      QSURF=FNQPS(1.D0)
+C
+      PVOL =SUMV           ! Volume (or FNVPS(1.D0))
+      PAREA=SUMS/(2.D0*PI) ! Cross section
+      RAAVE=SQRT(PAREA/PI) ! Minor radius determined by cross section
+      PVAVE=SUMPV/PVOL     ! Volume averaged pressure
+      BPA=RMU0*RIP*1.D6/FNRLEN(1.D0)   ! Poloidal magnetic field at the separatrix
+      BETAT=PVAVE/(BB**2/(2.D0*RMU0))  ! Toroidal beta
+      BETAP=PVAVE/(BPA**2/(2.D0*RMU0)) ! Poloidal beta
+      QAXIS=FNQPS(0.D0)    ! Safety factor at the magnetic axis
+      QSURF=FNQPS(1.D0)    ! Safety factor at the separatrix
 C
       IF(NPRINT.GE.2) THEN
          WRITE(6,'(A,1P4E12.4)') 

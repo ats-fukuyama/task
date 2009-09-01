@@ -453,3 +453,15 @@ C
       FNAVGRR2=DAT
       RETURN
       END
+C
+C     FNAVIR2: evaluate AVEIR corresponding to RHON (i.e. AVEIR(RHON))
+C
+      FUNCTION FNAVIR(RHON)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      CALL SPL1DF(FNPSIP(RHON),DAT,PSIP,UAVEIR,NRMAX,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX FNAVIR: SPL1DF ERROR : IERR=',IERR
+      FNAVIR=DAT
+      RETURN
+      END
