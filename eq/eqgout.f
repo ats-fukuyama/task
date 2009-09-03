@@ -1665,10 +1665,10 @@ C
       DIMENSION GR(NTHMP),GZ(NTHMP)
       DIMENSION GPSIRZ(NRGM,NZGM),GRG(NRGM),GZG(NZGM)
       DIMENSION GRrp(NRrpM), GZrp(NZrpM),GrpplRZ(NRrpM,NZrpM)
-      DIMENSION KA(8,NRGM,NZGM),KB(8,NRrpM,NZrpM)!,KC(2,NRrpM,NZrpM)
-!!      integer(4), dimension(:), allocatable :: ILN
-!!      real(4), dimension(:), allocatable :: GZL, WLN
-!!      real(4), dimension(:,:), allocatable :: RGB
+      DIMENSION KA(8,NRGM,NZGM),KB(8,NRrpM,NZrpM),KC(2,NRrpM,NZrpM)
+c$$$      integer(4), dimension(:), allocatable :: ILN
+c$$$      real(4), dimension(:), allocatable :: GZL, WLN
+c$$$      real(4), dimension(:,:), allocatable :: RGB
       CHARACTER KTITL*80
 C
 C     *** Psi contour ***
@@ -1772,15 +1772,14 @@ C
          GPZ=15.0
       ENDIF
 C
-c$$$      NPSTEP = 6
+c$$$      NPSTEP = 5
 c$$$      allocate(GZL(1:NPSTEP),RGB(1:3,1:NPSTEP),ILN(1:NPSTEP),
 c$$$     &         WLN(1:NPSTEP))
-c$$$      GZL(1) = 0.002
-c$$$      GZL(2) = 0.004
-c$$$      GZL(3) = 0.006
-c$$$      GZL(4) = 0.008
-c$$$      GZL(5) = 0.015
-c$$$      GZL(6) = 0.025
+c$$$      GZL(1) = 0.0002
+c$$$      GZL(2) = 0.0004
+c$$$      GZL(3) = 0.0006
+c$$$      GZL(4) = 0.0008
+c$$$      GZL(5) = 0.001
 c$$$C
 c$$$      DO J = 1, NPSTEP
 c$$$         DO I = 1, 3
