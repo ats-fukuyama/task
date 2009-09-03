@@ -86,6 +86,16 @@ C     ***** INTEGRATE ALONG THE MAGNETIC FIELD LINE *****
 C
       SUBROUTINE EQMAGS(RINIT,ZINIT,NMAX,XA,YA,N,IERR)
 C
+C     ** Input **
+C       RINIT : Initial starting point for tracing
+C       ZINIT : Initial starting point for tracing
+C       NMAX  : Size of arraies of XA, YA
+C     ** Output **
+C       XA    : Length from (RINIT,ZINIT) to the current position
+C       YA    : Coordinate of the current position
+C       N     : Number of partitions along the magnetic surface
+C       IERR  : Error indicator
+C
       INCLUDE '../eq/eqcomc.inc'
 C
       EXTERNAL EQDERV

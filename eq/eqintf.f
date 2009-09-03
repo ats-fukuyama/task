@@ -6,13 +6,22 @@ C           PSIN=0 ON MAGNETIC AXIS
 C           PSIN=1 ON PLASMA BOUNDARY
 C
 C           PSI=PSI0 ON MAGNETIC AXIS
-C           PSI=0     ON PLASMA BOUNDARY
+C           PSI=0    ON PLASMA BOUNDARY
 C
       SUBROUTINE GETRZ(RP,ZP,PHIP,BR,BZ,BT,RHON)
 C
+C     *** Input ***
+C       RP, ZP : (R,Z) at which one would like to know magnetic fields
+C       PHIP   : null
+C     *** Output ***
+C       BR     : major radius component of the magnetic field
+C       BZ     : vertical component of the magnetic field
+C       BT     : toroidal magnetic field
+C       RHON   : normalized radial coordinate corresponding to (R,Z)
+C
       INCLUDE '../eq/eqcomq.inc'
 C
-      CALL SPL2DD(RP,ZP,PSI,PSIR,PSIZ,
+      CALL SPL2DD(RP,ZP,PSI,DPSIR,DPSIZ,
      &            RG,ZG,UPSIRZ,NRGM,NRGMAX,NZGMAX,IERR)
 C
       PSIN=1.D0-PSI/PSI0
@@ -23,9 +32,9 @@ C
          BZ=0.D0
       ELSE
          BT=FNTTS(SQRT(PSIN))/RP
-         BR=-PSIZ/(2.D0*PI*RP)
-         BZ= PSIR/(2.D0*PI*RP)
-C         write(6,'(A,1P3E12.4)') 'PSI,PSIZ,PSIR      =',PSI,PSIR,PSIZ
+         BR=-DPSIZ/(2.D0*PI*RP)
+         BZ= DPSIR/(2.D0*PI*RP)
+C         write(6,'(A,1P3E12.4)') 'PSI,DPSIZ,DPSIR      =',PSI,DPSIR,DPSIZ
       ENDIF
       RHON=FNRHON(PSIN)
 C

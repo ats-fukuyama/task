@@ -12,12 +12,12 @@ C
 C
     1 IF(MODE.EQ.0) THEN
         WRITE(6,*) ' ## INPUT KID : S,S1,S2,S3,SR,ST,SD,SB TR X/EXIT'
-      ELSEIF(MODE.EQ.1) THEN
+      ELSEIF(MODE.EQ.1 .OR. MODE.EQ.2) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
      &                            'S,S1,S2,S3,SR,ST,SD,SB TR M A X/EXIT'
-      ELSEIF(MODE.EQ.2) THEN
+      ELSEIF(MODE.EQ.3) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 ',
-     &                            'S,S1,S2,S3,SR,ST,SD,SB TR M A X/EXIT'
+     &                         'S,S1,S2,S3,SP,SR,ST,SD,SB TR M A X/EXIT'
       ELSEIF(MODE.EQ.-1) THEN
         WRITE(6,*) ' ## INPUT KID : C,C1,C2 X/EXIT'
       ELSE
@@ -69,6 +69,8 @@ C
                CALL EQGSDD
             ELSEIF(K2.EQ.'B') THEN
                CALL EQGSBB
+            ELSEIF(K2.EQ.'P') THEN
+               IF(MODE.EQ.3) CALL EQGSRP
             ENDIF
          ELSE
             WRITE(6,*) 'XX: EQGOUT: NO EQCALQ DATA CREATED!'
@@ -974,6 +976,20 @@ C
          ENDDO
       ENDDO
 C
+c$$$      DO NR=1,NRrpM
+c$$$         GRG(NR)=GUCLIP(Rrp(NR))
+c$$$      ENDDO
+c$$$      DO NZ=1,NZrpM
+c$$$         GZG(NZ)=GUCLIP(Zrp(NZ))
+c$$$      ENDDO
+c$$$      DO NZ=1,NZrpM
+c$$$         DO NR=1,NRrpM
+c$$$            GPSIRZ(NR,NZ)=GUCLIP(RpplRZ(NR,NZ))
+c$$$         ENDDO
+c$$$      ENDDO
+c$$$      NRGMAX = NRrpM
+c$$$      NZGMAX = NZrpM
+C
       CALL GMNMX1(GRG,1,NRGMAX,1,GRMIN,GRMAX)
       CALL GMNMX1(GZG,1,NZGMAX,1,GZMIN,GZMAX)
       CALL GMNMX2(GPSIRZ,NRGM,1,NRGMAX,1,1,NZGMAX,1,GPMIN,GPMAX)
@@ -1640,3 +1656,210 @@ C
       RETURN
       END
 C
+C     ****** DRAW SPLINED Ripple Contour ******
+C
+      SUBROUTINE EQGSRP
+C
+      INCLUDE 'eqcomq.inc'
+C
+      DIMENSION GR(NTHMP),GZ(NTHMP)
+      DIMENSION GPSIRZ(NRGM,NZGM),GRG(NRGM),GZG(NZGM)
+      DIMENSION GRrp(NRrpM), GZrp(NZrpM),GrpplRZ(NRrpM,NZrpM)
+      DIMENSION KA(8,NRGM,NZGM),KB(8,NRrpM,NZrpM)!,KC(2,NRrpM,NZrpM)
+!!      integer(4), dimension(:), allocatable :: ILN
+!!      real(4), dimension(:), allocatable :: GZL, WLN
+!!      real(4), dimension(:,:), allocatable :: RGB
+      CHARACTER KTITL*80
+C
+C     *** Psi contour ***
+C
+      DO NR=1,NRGMAX
+         GRG(NR)=GUCLIP(RG(NR))
+      ENDDO
+      DO NZ=1,NZGMAX
+         GZG(NZ)=GUCLIP(ZG(NZ))
+      ENDDO
+      DO NZ=1,NZGMAX
+         DO NR=1,NRGMAX
+            GPSIRZ(NR,NZ)=GUCLIP(PSIRZ(NR,NZ))
+         ENDDO
+      ENDDO
+C
+      CALL GMNMX1(GRG,1,NRGMAX,1,GRMIN,GRMAX)
+      CALL GMNMX1(GZG,1,NZGMAX,1,GZMIN,GZMAX)
+      CALL GMNMX2(GPSIRZ,NRGM,1,NRGMAX,1,1,NZGMAX,1,GPMIN,GPMAX)
+      NPSTEP=20
+      GPORG=GPMIN
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+C
+      GRLEN=GRMAX-GRMIN
+      GZLEN=GZMAX-GZMIN
+      IF(GRLEN.GT.GZLEN) THEN
+         GPR=15.0
+         GPZ=15.0*GZLEN/GRLEN
+      ELSE
+         GPR=15.0*GRLEN/GZLEN
+         GPZ=15.0
+      ENDIF
+C
+      CALL PAGES
+      CALL MOVE(2.0,17.5)
+      KTITL='/PSIRZ contour in R-Z/'
+      CALL TEXTX(KTITL)
+C
+      CALL GQSCAL(GRMIN,GRMAX,GGRMIN,GGRMAX,GGRSTP)
+      CALL GQSCAL(GZMIN,GZMAX,GGZMIN,GGZMAX,GGZSTP)
+C
+      CALL SETLIN(0,2,7)
+      CALL GDEFIN(2.0,2.0+GPR,2.0,2.0+GPZ,
+     &            GRMIN,GRMAX,GZMIN,GZMAX)
+      CALL GFRAME
+      CALL GSCALE(GGRMIN+GGRSTP,GGRSTP,0.0,0.0,0.1,9)
+      CALL GVALUE(GGRMIN+GGRSTP,GGRSTP*2,0.0,0.0,NGULEN(GGRSTP))
+      CALL GSCALE(0.0,0.0,0.0,GGZSTP,0.1,9)
+      CALL GVALUE(0.0,0.0,0.0,GGZSTP*2,NGULEN(GGZSTP*2))
+C
+C     *** Outside the separatrix ***
+      CALL SETRGB(1.0,0.0,0.0)
+C      CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
+      CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
+     &            0.5*GPSTEP,GPSTEP,NPSTEP,0,0,KA)
+C     *** The separatrix ***
+      CALL SETRGB(0.0,1.0,0.0)
+      CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
+     &            0.0,GPSTEP,1,0,0,KA)
+C     *** Inside the separatrix ***
+      NPINSD=10
+      GPINSD=(0.0-GPMIN)/NPINSD
+      CALL SETRGB(0.0,0.0,1.0)
+      CALL CONTQ2(GPSIRZ,GRG,GZG,NRGM,NRGMAX,NZGMAX,
+     &            -GPINSD,-GPINSD,NPINSD,0,0,KA)
+C     *** Magnetic axis ***
+      GRAXIS=REAL(RAXIS)
+      GZAXIS=REAL(ZAXIS)
+      GRZSTP=0.1*GGRSTP
+      CALL MOVE2D(GRAXIS-GRZSTP,GZAXIS-GRZSTP)
+      CALL DRAW2D(GRAXIS+GRZSTP,GZAXIS+GRZSTP)
+      CALL MOVE2D(GRAXIS+GRZSTP,GZAXIS-GRZSTP)
+      CALL DRAW2D(GRAXIS-GRZSTP,GZAXIS+GRZSTP)
+C
+C     *** Ripple contour ***
+C
+C     // Pre-processing //
+      DO NR=1,NRrpM
+         GRrp(NR)=GUCLIP(Rrp(NR))
+      ENDDO
+      DO NZ=1,NZrpM
+         GZrp(NZ)=GUCLIP(Zrp(NZ))
+      ENDDO
+      DO NZ=1,NZrpM
+         DO NR=1,NRrpM
+            GRpplRZ(NR,NZ)=GUCLIP(RpplRZ(NR,NZ))
+         ENDDO
+      ENDDO
+C
+      CALL GMNMX1(GRrp,1,NRrpM,1,GRMIN,GRMAX)
+      CALL GMNMX1(GZrp,1,NZrpM,1,GZMIN,GZMAX)
+      CALL GMNMX2(GRpplRZ,NRrpM,1,NRrpM,1,1,NZrpM,1,GPMIN,GPMAX)
+C
+      GRLEN=GRMAX-GRMIN
+      GZLEN=GZMAX-GZMIN
+      IF(GRLEN.GT.GZLEN) THEN
+         GPR=15.0
+         GPZ=15.0*GZLEN/GRLEN
+      ELSE
+         GPR=15.0*GRLEN/GZLEN
+         GPZ=15.0
+      ENDIF
+C
+c$$$      NPSTEP = 6
+c$$$      allocate(GZL(1:NPSTEP),RGB(1:3,1:NPSTEP),ILN(1:NPSTEP),
+c$$$     &         WLN(1:NPSTEP))
+c$$$      GZL(1) = 0.002
+c$$$      GZL(2) = 0.004
+c$$$      GZL(3) = 0.006
+c$$$      GZL(4) = 0.008
+c$$$      GZL(5) = 0.015
+c$$$      GZL(6) = 0.025
+c$$$C
+c$$$      DO J = 1, NPSTEP
+c$$$         DO I = 1, 3
+c$$$            RGB(I,J) = 0.0
+c$$$         END DO
+c$$$         ILN(J) = 2
+c$$$         WLN(J) = 0.05
+c$$$      END DO
+C
+      CALL INQLIN(ILN_STR,IBL_STR,ICL_STR)
+      CALL SETLIN(-1,1,-1)
+C
+C     // From 0.02% to 0.1% //
+      NPSTEP= 5
+      GPMIN = 0.0002
+      GPMAX = 0.001
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+C
+      CALL SETRGB(0.0,0.0,0.0)
+C      CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
+      CALL CONTQ2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+     &            GPMIN,GPSTEP,NPSTEP,0,1,KB)
+!      CALL CONTE2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+!     &            GZL,NPSTEP,0,2,KC)
+c$$$      CALL CONTG2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+c$$$     &            GZL,RGB,ILN,WLN,NPSTEP,0,0,KC)
+c$$$      deallocate(GZL,RGB,ILN,WLN)
+C
+C     // From 0.2% to 0.8% //
+      NPSTEP= 4
+      GPMIN = 0.002
+      GPMAX = 0.008
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+C
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL CONTQ2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+     &            GPMIN,GPSTEP,NPSTEP,0,2,KB)
+C
+C     // 1.5% & 2.5% //
+      NPSTEP= 2
+      GPMIN = 0.015
+      GPMAX = 0.025
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+      CALL CONTQ2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+     &            GPMIN,GPSTEP,NPSTEP,0,2,KB)
+C
+C     // Integer ripple contours //
+      NPSTEP= 4
+      GPMIN = 0.01
+      GPMAX = 0.04
+      GPSTEP=(GPMAX-GPMIN)/NPSTEP
+      CALL CONTQ2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+     &            GPMIN,GPSTEP,NPSTEP,0,0,KB)
+      CALL SETLIN(ILN_STR,IBL_STR,ICL_STR)
+C
+C     // Ripple well region //
+      CALL SETMKS(4,0.1)
+      IF(GAlpRP(1,1) < 1.0) THEN
+         CALL MOVE2D(GRal(1),GZal(1))
+         CALL INQPOS(GXL,GYL)
+         CALL MARK(GXL,GYL)
+      ENDIF
+      DO NR = 2, NRPMAX
+         DO N = 2, NtrcMAX(NR)
+            IF(GAlpRP(NR,N) < 1.0) THEN
+!               write(6,*) NR,N,GRal(J),GZal(J),GAlpRP(NR,N)
+               J = NtrcMAX(NR)*(NR-1)+N
+               CALL MOVE2D(GRal(J),GZal(J))
+               CALL INQPOS(GXL,GYL)
+               CALL MARK(GXL,GYL)
+            ENDIF
+         ENDDO
+      ENDDO
+C
+C     // Post-processing //
+      CALL OFFCLP
+      CALL SETRGB(0.0,0.0,0.0)
+      CALL EQGPRM
+      CALL PAGEE
+C
+      RETURN
+      END

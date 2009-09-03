@@ -337,3 +337,75 @@ C
 C
       RETURN
       END
+C
+C     ***** READ RIPPLE CONTOUR DATA FROM OFMC ****
+C
+      subroutine read_rppl(ierr)
+C
+      INCLUDE '../eq/eqcomq.inc'
+C
+      character kfile*20, kline*130
+C
+      kfile='ripple.profile'
+      nrppl=21
+      CALL FROPEN(nrppl,kfile,1,MODEFR,'EQ',IERR)
+      IF(IERR.NE.0) RETURN
+c
+      rewind(nrppl)
+c
+c     *** R-coordinates ***
+      idx = 0
+      do
+         if(idx == 0) then
+            read(nrppl,'(A130)',iostat=ist) kline
+            if(index(kline,"R-coordinate") /= 0) then ! detect the start position of the data chunk
+               idx = 1
+            end if
+            cycle
+         end if
+c
+         read(nrppl,'(1x,10e13.5)') (Rrp(i),i=1,NRrpM)
+         exit
+      end do
+c
+c     *** Z-coordinates ***
+      idx = 0
+      do
+         if(idx == 0) then
+            read(nrppl,'(A130)',iostat=ist) kline
+            if(index(kline,"Z-coordinate") /= 0) then ! detect the start position of the data chunk
+               idx = 1
+            end if
+            cycle
+         end if
+c
+         read(nrppl,'(1x,10e13.5)') (Zrp(i),i=1,NZrpM)
+         exit
+      end do
+c
+c     *** Ripple contour ***
+      idx = 0
+      j   = 0
+      do
+         if(idx == 0) then
+            read(nrppl,'(A130)',iostat=ist) kline
+            if(index(kline,"at") /= 0) then ! detect the start position of the data chunk
+               idx = 1
+               j = j + 1
+            end if
+            cycle
+         end if
+c
+         read(nrppl,'(1x,10e13.5)') (RpplRZ(i,j),i=1,NRrpM)
+         idx = 0
+         if(j == NZrpM) then
+            exit
+         else
+            cycle
+         end if
+      end do
+c
+      close(nrppl)
+c
+      return
+      end

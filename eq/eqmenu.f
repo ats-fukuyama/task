@@ -126,10 +126,16 @@ C
          CALL EQREAD(IERR)
          IF(IERR.NE.0) GOTO 11
          CALL EQCALQ(IERR)
-         MSTAT=3
+         MSTAT=2
 C
       ELSEIF(KID.EQ.'F') THEN
          IF(MSTAT.NE.0) CALL EQMETRIC(IERR)
+C
+      ELSEIF(KID.EQ.'H') THEN
+         if(MSTAT .eq. 0) return
+         call read_rppl(ierr)
+         if(ierr .eq. 0) call eqrppl(IERR)
+         MSTAT=3
 C
       ELSE IF(KID.EQ.'X'.OR.KID.EQ.'#') THEN
          CONTINUE
