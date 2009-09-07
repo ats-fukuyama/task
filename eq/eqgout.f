@@ -1786,7 +1786,7 @@ c$$$         DO I = 1, 3
 c$$$            RGB(I,J) = 0.0
 c$$$         END DO
 c$$$         ILN(J) = 2
-c$$$         WLN(J) = 0.05
+c$$$         WLN(J) = 0.03
 c$$$      END DO
 C
       CALL INQLIN(ILN_STR,IBL_STR,ICL_STR)
@@ -1802,8 +1802,8 @@ C
 C      CALL SETCLP(2.0,2.0+GPR,2.0,2.0+GPZ)
       CALL CONTQ2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
      &            GPMIN,GPSTEP,NPSTEP,0,1,KB)
-!      CALL CONTE2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
-!     &            GZL,NPSTEP,0,2,KC)
+c$$$      CALL CONTE2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
+c$$$     &            GZL,NPSTEP,0,0,KC)
 c$$$      CALL CONTG2(GRpplRZ,GRrp,GZrp,NRrpM,NRrpM,NZrpM,
 c$$$     &            GZL,RGB,ILN,WLN,NPSTEP,0,0,KC)
 c$$$      deallocate(GZL,RGB,ILN,WLN)
@@ -1838,16 +1838,14 @@ C
 C     // Ripple well region //
       CALL SETMKS(4,0.1)
       IF(GAlpRP(1,1) < 1.0) THEN
-         CALL MOVE2D(GRal(1),GZal(1))
+         CALL MOVE2D(GRal(1,1),GZal(1,1))
          CALL INQPOS(GXL,GYL)
          CALL MARK(GXL,GYL)
       ENDIF
       DO NR = 2, NRPMAX
          DO N = 2, NtrcMAX(NR)
             IF(GAlpRP(NR,N) < 1.0) THEN
-!               write(6,*) NR,N,GRal(J),GZal(J),GAlpRP(NR,N)
-               J = NtrcMAX(NR)*(NR-1)+N
-               CALL MOVE2D(GRal(J),GZal(J))
+               CALL MOVE2D(GRal(NR,N),GZal(NR,N))
                CALL INQPOS(GXL,GYL)
                CALL MARK(GXL,GYL)
             ENDIF

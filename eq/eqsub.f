@@ -91,7 +91,7 @@ C       RINIT : Initial starting point for tracing
 C       ZINIT : Initial starting point for tracing
 C       NMAX  : Size of arraies of XA, YA
 C     ** Output **
-C       XA    : Length from (RINIT,ZINIT) to the current position
+C       XA    : Length from (RINIT,ZINIT) to the current position along the field line
 C       YA    : Coordinate of the current position
 C       N     : Number of partitions along the magnetic surface
 C       IERR  : Error indicator

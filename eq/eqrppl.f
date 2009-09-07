@@ -8,7 +8,8 @@ C
       EXTERNAL EQDERV
       DIMENSION XA(NTVM),YA(2,NTVM)
       DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
-      DIMENSION rip_rat(NRM),DltRPV(NRM)
+      DIMENSION rip_rat(NRM),DltRPV(NRM),DltRP_rim(NRM),theta_rim(NRM)
+      DIMENSION DltRP_mid(NRM)
 C
       IERR=0
 C
@@ -43,16 +44,6 @@ C     ----- SET NUMBER OF DIVISION for integration -----
 C
       IF(NTVMAX.GT.NTVM) NTVMAX=NTVM
 C
-C     ----- CALCULATE PSI and RPS, ZPS 
-C           on magnetic surfaces, PSIP(NR) -----
-C
-      NR=1
-      DO NTH=1,NTHMAX+1
-         RPS(NTH,NR)=RAXIS
-         ZPS(NTH,NR)=ZAXIS
-      ENDDO
-      PSIP(1)=PSIG(RAXIS,ZAXIS)-PSI0
-C
 C     +++++ SETUP AXIS DATA +++++
 C
       NR = 1
@@ -67,19 +58,23 @@ C
       ELSE
          AlpRP = 0.d0
       END IF
-      DO N = 1, NA
-         GRal(NA*(NR-1)+N) = real(RAXIS)
-         GZal(NA*(NR-1)+N) = real(ZAXIS)
-         GAlpRP(NR,N)  = real(AlpRP)
+      NtrcMAX(NR) = 1
+      DO N = 1, NtrcMAX(NR)
+         GRal  (NR,N) = real(RAXIS)
+         GZal  (NR,N) = real(ZAXIS)
+         GAlpRP(NR,N) = real(AlpRP)
       ENDDO
 C
       AlpRP0 = AlpRP
-      rip_rat(NR) = 0.d0
+      DltRP_rim(NR) = 0.d0
+      theta_rim(NR) = 0.d0
+      rip_rat(NR)   = 0.d0
+      DltRPV(NR)    = DLTRP
+      DltRP_mid(NR) = DLTRP
 C
       DO NR=2,NRPMAX
          RINIT=RAXIS+DR*(NR-1)
          ZINIT=ZAXIS
-         PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
 C
 C         WRITE(6,'(A,I5,1P3E12.4)') 'NR:',NR,
 C     &        PSIP(NR),RINIT,ZINIT
@@ -94,7 +89,17 @@ c$$$         BMIN=ABS(2.D0*BB)
 c$$$         BMAX=0.D0
 C
          ARC = 0.d0
-         idx = 0
+         idx1 = 0
+         idx2 = 0
+C
+C     --- Ripple amplitude at the outer midplane ---
+C
+         R = YA(1,1)
+         Z = YA(2,1)
+         CALL SPL2DF(R,Z,DltRP_mid(NR),Rrp,Zrp,URpplRZ,
+     &               NRrpM,NRrpM,NZrpM,IERR)
+         IF(IERR.NE.0) 
+     &        WRITE(6,*) 'XX EQRPPL: SPL2DF ERROR : IERR=',IERR
 C
          DO N=2,NA
             H=XA(N)-XA(N-1)
@@ -124,19 +129,49 @@ C
             END IF
 !            write(6,'(2I4,2F15.7)') NR,N,H,XA(N)
 C
-            GRal(NA*(NR-1)+N) = real(R)
-            GZal(NA*(NR-1)+N) = real(Z)
+            GRal  (NR,N) = real(R)
+            GZal  (NR,N) = real(Z)
             GAlpRP(NR,N) = real(AlpRP)
 C
 C           --- For TASK/TX ---
 C
-            if(AlpRP < 1.d0) then
+            if(AlpRP < 1.d0) then ! Ripple well
                ARC = ARC + H
+               if(idx1 == 0) then ! Upper side
+                  DltRP_rim(NR) = DLTRP
+                  RL    = SQRT((R - RAXIS)**2 + (Z - ZAXIS)**2)
+                  sinth = (Z - ZAXIS) / RL
+                  theta_rim(NR) = asin(sinth)
+               else if(R > RAXIS) then ! Lower side
+                  RL    = SQRT((R - RAXIS)**2 + (Z - ZAXIS)**2)
+                  sinth = (Z - ZAXIS) / RL
+                  if(abs(asin(sinth)) > abs(theta_rim(NR))) then
+                     theta_rim(NR) = abs(asin(sinth))
+                     DltRP_rim(NR) = DLTRP
+                  end if
+               end if
+            else ! No ripple well
+               idx1 = 1
             end if
-            if(R > RAXIS .and. idx == 0) then
-               DltRPV(NR) = DLTRP
-               idx = 1
+            if(R < RAXIS .and. idx2 == 0) then ! Upper half side
+               DltRPV(NR) = DLTRP 
+               idx2 = 1
             end if
+            if(R > RAXIS .and. idx2 == 1) then ! Lower half side
+               ! Average between upper and lower half sides
+               DltRPV(NR) = 0.5d0 * (DltRPV(NR) + DLTRP)
+               idx2 = 2
+            end if
+C
+c$$$            if(R < RAXIS) then
+c$$$               if(idx2 == 0) then ! Upper side
+c$$$                  DltRPV(NR) = DLTRP 
+c$$$                  idx2 = 1
+c$$$               else ! Average between upper and lower sides
+c$$$                  write(6,*) NR,N,R,RAXIS
+c$$$                  DltRPV(NR) = 0.5d0 * (DltRPV(NR) + DLTRP)
+c$$$               end if
+c$$$            end if
 C
 c$$$            R=YA(1,N)
 c$$$            Z=YA(2,N)
@@ -165,15 +200,26 @@ C
 C
 c$$$      DO NR = 1, NRPMAX
 c$$$         DO N = 1, NtrcMAX(NR)
-c$$$            J = NtrcMAX(NR)*(NR-1)+N
-c$$$            if(GRal(J) > 0.d0) write(6,*) GRal(J),GZal(J),GAlpRP(NR,N)
+c$$$            if(GRal(NR,J) > 0.d0) write(6,*) GRal(NR,N),GZal(NR,N),GAlpRP(NR,N)
 c$$$         ENDDO
 c$$$         write(6,*) 
+c$$$      ENDDO
       ENDDO
 C
+C     ----- File output for TASK/TX -----
+C
+      ntxout=22
+      CALL FWOPEN(ntxout,'tx_ripple.dat',1,0,'EQ RIPPLE TO TX',IERR)
+      write(ntxout,'(I4)') nrpmax
+      write(ntxout,'(2X,A,6X,A,9X,A,6X,A,7X,A,9X,A,8X,A)') 'NR','RHON',
+     &     'DltRP_rim','theta_rim','rip_rat','DltRP','DltRP_mid'
       do nr = 1, nrpmax
-         write(6,*) nr,rip_rat(nr),DltRPV(NR)
+         PSIPNL = PSIP(NR) / PSIPA
+         RHON = FNRHON(PSIPNL)
+         write(ntxout,'(I4,1P6E15.7)') nr,RHON,DltRP_rim(nr),
+     &        theta_rim(nr),rip_rat(nr),DltRPV(NR),DltRP_mid(NR)
       enddo
+      close(ntxout)
 C
       RETURN
       END
