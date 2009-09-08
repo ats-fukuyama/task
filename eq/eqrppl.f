@@ -7,7 +7,6 @@ C
 C
       EXTERNAL EQDERV
       DIMENSION XA(NTVM),YA(2,NTVM)
-      DIMENSION URCHI(4,NTVM),UZCHI(4,NTVM)
       DIMENSION rip_rat(NRM),DltRPV(NRM),DltRP_rim(NRM),theta_rim(NRM)
       DIMENSION DltRP_mid(NRM)
 C
@@ -29,7 +28,7 @@ C     ----- Load ripple data -----
 C
       call eq_set_rppl(IERR)
 C
-C     ----- SET DR, DTH -----
+C     ----- SET DR -----
 C
       IF(NSUMAX.EQ.0) THEN
          NRPMAX=NRMAX
@@ -38,7 +37,6 @@ C
          NRPMAX=NINT((REDGE-RAXIS)/DR)+1
       ENDIF
       DR=(REDGE-RAXIS)/(NRPMAX-1)
-      DTH=2.d0*PI/NTHMAX
 C
 C     ----- SET NUMBER OF DIVISION for integration -----
 C
@@ -65,7 +63,6 @@ C
          GAlpRP(NR,N) = real(AlpRP)
       ENDDO
 C
-      AlpRP0 = AlpRP
       DltRP_rim(NR) = 0.d0
       theta_rim(NR) = 0.d0
       rip_rat(NR)   = 0.d0

@@ -55,13 +55,13 @@ ak : $(OBJA) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) $(OBJA) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 
 check : $(SRCS)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRC3D) | $(PAGER)
 checktr : $(SRCT)
-	ftnchek $(FCKFLAGS) $(SRCT) | less
+	ftnchek $(FCKFLAGS) $(SRCT) | $(PAGER)
 checkpl : $(SRCP)
-	ftnchek $(FCKFLAGS) $(SRCP) | less
+	ftnchek $(FCKFLAGS) $(SRCP) | $(PAGER)
 checkak : $(SRCA)
-	ftnchek $(FCKFLAGS) $(SRCA) | less
+	ftnchek $(FCKFLAGS) $(SRCA) | $(PAGER)
 
 clean:
 	-rm -f core a.out *.o *.mod ./*~ *.a $(MOD)/*.mod
