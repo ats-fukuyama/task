@@ -416,7 +416,8 @@
 
       implicit none
       integer(4),                    intent(in) :: NR, NRMAX,ID
-      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
+!      real(8), dimension(1:NRMAX+1), intent(in) :: R, F
+      real(8), dimension(*), intent(in) :: R, F
       integer(4) :: NRL, NRLMAX, NR0, NR1, NR2, NR3
       real(8) :: DX1, DX2, DX3
 
