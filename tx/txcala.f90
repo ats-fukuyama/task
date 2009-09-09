@@ -1686,7 +1686,7 @@ contains
     PELM(1:NEMAX,1:4,1,LQb1) =   fem_int(-1,SNBb)
     NLC(1,LQb1) = 0
 
-    ! Extracted NBI perpendicular component
+    ! Extracted NBI perpendicular component fallen into the ripple well region
 
     PELM(1:NEMAX,1:4,2,LQb1) = - fem_int(-2,SNBPDi,rip_rat)
     NLC(2,LQb1) = 0
@@ -2000,7 +2000,7 @@ contains
 
     do ne = 1, nemax
        RUbrpl = RUbrp(ne-1) + RUbrp(ne)
-       SDbrpl = Dbrp(ne-1)*S(ne-1) + Dbrp(ne)*S(ne)
+       SDbrpl = Dbrp(ne-1)*PSI(ne-1) + Dbrp(ne)*PSI(ne)
        if (RUbrpl == 0.d0) then
           coef = 0.d0
        elseif (SDbrpl == 0.d0) then

@@ -501,7 +501,13 @@ SUBROUTINE TXINIT
   !   2    : Steffensen's method, quadratic convergence (Validity unconfirmed)
   MDSOLV = 0
 
+  !   Mode of initial density profiles
+  !   -1   : read from file
+  !   0    : original
+  MDINTN = 0
+
   !   Mode of initial temperature profiles
+  !   -1   : read from file
   !   0    : original
   !   1    : pedestal model
   !   2    : empirical steady state temperature profile
@@ -744,7 +750,7 @@ SUBROUTINE TXPROF
 
   use tx_commons
   use tx_variables
-  use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx
+  use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, initprof_input
 
   implicit none
   INTEGER(4) :: NR, NQ, I, IER, ifile
@@ -753,7 +759,8 @@ SUBROUTINE TXPROF
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
-       &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp
+       &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
+       &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
   REAL(8) :: DERIV4, FCTR ! External functions
   real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr
   real(8), dimension(:,:), allocatable :: CMTX
@@ -776,19 +783,43 @@ SUBROUTINE TXPROF
 
   !  Variables
 
-  allocate(AJPHL(0:NRMAX))
+  if(MDINTN == -1 .or. MDINTT == -1) call initprof_input
+  if(MDINTN == -1) then
+     call initprof_input(  0,1,PN0L)
+     call initprof_input(NRA,1,PNaL)
+     PNeDIVL = 0.25 * PNaL
+  else
+     PN0L = PN0
+     PNaL = PNa
+     PNeDIVL = PNeDIV
+  end if
+  if(MDINTT == -1) then
+     call initprof_input(  0,2,PTe0L)
+     call initprof_input(  0,2,PTi0L)
+     call initprof_input(NRA,3,PTeaL)
+     call initprof_input(NRA,3,PTiaL)
+     PTeDIVL = 0.25 * PTeaL
+     PTiDIVL = 0.25 * PTiaL
+  else
+     PTe0L   = PTe0
+     PTi0L   = PTi0
+     PTeaL   = PTea
+     PTiaL   = PTia
+     PTeDIVL = PTeDIV
+     PTiDIVL = PTiDIV
+  end if
   PBA   = RB - RA
-  dPN   = - 3.D0 * (PN0 - PNa) / RA
-  CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNa - PNeDIV)) / PBA**3
-  CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNa - PNeDIV)) / PBA**4
+  dPN   = - 3.D0 * (PN0L - PNaL) / RA
+  CfN1  = - (3.D0 * PBA * dPN + 4.D0 * (PNaL - PNeDIVL)) / PBA**3
+  CfN2  =   (2.D0 * PBA * dPN + 3.D0 * (PNaL - PNeDIVL)) / PBA**4
   IF(MDFIXT == 0) THEN
-     pea   = PNa    * PTea   ;  pia  = PNa    / PZ * PTia
-     dpea  = dPN    * PTea   ; dpia  = dPN    / PZ * PTia
-     pediv = PNeDIV * PTeDIV ; pidiv = PNeDIV / PZ * PTiDIV
+     pea   = PNaL    * PTeaL   ; pia   = PNaL    / PZ * PTiaL
+     dpea  = dPN     * PTeaL   ; dpia  = dPN     / PZ * PTiaL
+     pediv = PNeDIVL * PTeDIVL ; pidiv = PNeDIVL / PZ * PTiDIVL
   ELSE
-     pea   = PTea   ;  pia   = PTia
-     dpea  = 0.d0   ; dpia   = 0.d0
-     pediv = PTeDIV ; pidiv = PTiDIV
+     pea   = PTeaL   ; pia   = PTiaL
+     dpea  = 0.d0    ; dpia  = 0.d0
+     pediv = PTeDIVL ; pidiv = PTiDIVL
   END IF
   Cfpe1 = - (3.D0 * PBA * dpea + 4.D0 * (pea - pediv)) / PBA**3
   Cfpe2 =   (2.D0 * PBA * dpea + 3.D0 * (pea - pediv)) / PBA**4
@@ -796,22 +827,30 @@ SUBROUTINE TXPROF
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
   DO NR = 0, NRMAX
      RL=R(NR)
-     IF (RL < RA) THEN ! +++ Core +++
-        PROFN = (1.D0 - RHO(NR)**PROFN1)**PROFN2
-        PROFT = (1.D0 - RHO(NR)**PROFT1)**PROFT2
-        X(LQe1,NR) = (PN0 - PNa) * PROFN + PNa ! Ne
-        X(LQi1,NR) = X(LQe1,NR) / PZ           ! Ni
-        IF(MDINTT == 0) THEN
-           PTePROF = (PTe0 - PTea) * PROFT + PTea
-           PTiPROF = (PTi0 - PTia) * PROFT + PTia
-        ELSE IF(MDINTT == 1) THEN
-           PTePROF = (PTe0 - PTea) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
-                &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTea
-           PTiPROF = (PTi0 - PTia) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
-                &                   + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTia
+     IF (RL <= RA) THEN ! +++ Core +++
+        IF(MDINTN == -1) THEN
+           call initprof_input(NR,1,X(LQe1,NR)) ! Ne
+           X(LQi1,NR) = X(LQe1,NR) / PZ         ! Ni
         ELSE
-           PTePROF = PTe0 * exp(- log(PTe0 / PTea) * RHO(NR)**2)
-           PTiPROF = PTi0 * exp(- log(PTi0 / PTia) * RHO(NR)**2)
+           PROFN = (1.D0 - RHO(NR)**PROFN1)**PROFN2
+           X(LQe1,NR) = (PN0L - PNaL) * PROFN + PNaL ! Ne
+           X(LQi1,NR) = X(LQe1,NR) / PZ           ! Ni
+        END IF
+        IF(MDINTT == -1) THEN
+           call initprof_input(NR,2,PTePROF) ! Te
+           call initprof_input(NR,3,PTiPROF) ! Ti
+        ELSE IF(MDINTT == 0) THEN
+           PROFT = (1.D0 - RHO(NR)**PROFT1)**PROFT2
+           PTePROF = (PTe0L - PTeaL) * PROFT + PTeaL
+           PTiPROF = (PTi0L - PTiaL) * PROFT + PTiaL
+        ELSE IF(MDINTT == 1) THEN
+           PTePROF = (PTe0L - PTeaL) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
+                &                     + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTeaL
+           PTiPROF = (PTi0L - PTiaL) * (0.8263d0 * (1.d0 - RHO(NR)**2 )**1.5d0 &
+                &                     + 0.167d0  * (1.d0 - RHO(NR)**30)**1.25d0) + PTiaL
+        ELSE
+           PTePROF = PTe0L * exp(- log(PTe0L / PTeaL) * RHO(NR)**2)
+           PTiPROF = PTi0L * exp(- log(PTi0L / PTiaL) * RHO(NR)**2)
         END IF
         IF(MDFIXT == 0) THEN
            X(LQe5,NR) = PTePROF * X(LQe1,NR) ! Ne*Te
@@ -823,11 +862,11 @@ SUBROUTINE TXPROF
      ELSE ! +++ SOL +++
         ! density
         IF(MDITSN == 0) THEN
-           X(LQe1,NR) = PNa + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
-                &                             + CfN2 * (RL - RA)**4
+           X(LQe1,NR) = PNaL + dPN * (RL - RA) + CfN1 * (RL - RA)**3 &
+                &                              + CfN2 * (RL - RA)**4
            X(LQi1,NR) = X(LQe1,NR) / PZ
         ELSE
-           X(LQe1,NR) = PNa * EXP(- (RL - RA) / rLn)
+           X(LQe1,NR) = PNaL * EXP(- (RL - RA) / rLn)
            X(LQi1,NR) = X(LQe1,NR) / PZ
         END IF
         ! pressure (MDFIXT=0) or temperature (MDFIXT=1)
@@ -838,15 +877,15 @@ SUBROUTINE TXPROF
                 &                              + Cfpi2 * (RL - RA)**4
         ELSE
            IF(MDITST == 1) THEN
-              PTePROF = PTea * EXP(- (RL - RA) / rLT)
-              PTiPROF = PTia * EXP(- (RL - RA) / rLT)
+              PTePROF = PTeaL * EXP(- (RL - RA) / rLT)
+              PTiPROF = PTiaL * EXP(- (RL - RA) / rLT)
            ELSE
               sigma = 0.3d0 * (RHO(NRMAX) - 1.d0)
               fexp  = exp(- (RHO(NR) - 1.d0)**2 / (2.d0 * sigma**2))
-              PTePROF = PTe0   * exp(- log(PTe0 / PTea) * RHO(NR)**2) *         fexp &
-                   &  + PTeDIV                                        * (1.d0 - fexp)
-              PTiPROF = PTi0   * exp(- log(PTi0 / PTia) * RHO(NR)**2) *         fexp &
-                   &  + PTiDIV                                        * (1.d0 - fexp)
+              PTePROF = PTe0L   * exp(- log(PTe0L / PTeaL) * RHO(NR)**2) *         fexp &
+                   &  + PTeDIVL                                          * (1.d0 - fexp)
+              PTiPROF = PTi0L   * exp(- log(PTi0L / PTiaL) * RHO(NR)**2) *         fexp &
+                   &  + PTiDIVL                                          * (1.d0 - fexp)
            END IF
            IF(MDFIXT == 0) THEN
               X(LQe5,NR) = PTePROF * X(LQe1,NR)
@@ -878,6 +917,7 @@ SUBROUTINE TXPROF
         PTiV_FIX(NR) = X(LQi5,NR)
      END IF
   END DO
+  if(MDINTN == -1 .or. MDINTT == -1) call initprof_input(idx = 0)
 
   ! Poloidal magnetic field
 
@@ -905,6 +945,7 @@ SUBROUTINE TXPROF
 
   ! Toroidal electron current
 
+  allocate(AJPHL(0:NRMAX))
   ifile = detect_datatype('LQe4')
   if(ifile == 0) then
      DO NR = 0, NRMAX
@@ -1191,8 +1232,8 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF, &
-       & MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
+       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL, &
+       & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
   private :: TXPLST
 
 contains
@@ -1382,8 +1423,8 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTT,MDINIT,MDVAHL,IDIAG,IGBDF' / & 
-         &       ' ',8X,'MDSOLV,MDLNBD,MDLMOM')
+         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,' / & 
+         &       ' ',8X,'IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
 !***************************************************************
@@ -1462,10 +1503,10 @@ contains
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
          &   'MDLETA', MDLETA,  'MDANOM', MDANOM,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
-         &   'MDITST', MDITST,  'MDINTT', MDINTT,  &
-         &   'MDINIT', MDINIT,  'MDVAHL', MDVAHL,  &
-         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
-         &   'MDSOLV', MDSOLV,  &
+         &   'MDITST', MDITST,  'MDINTN', MDINTN,  &
+         &   'MDINTT', MDINTT,  'MDINIT', MDINIT,  &
+         &   'MDVAHL', MDVAHL,  'IDIAG ', IDIAG ,  &
+         &   'IGBDF ', IGBDF,   'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &

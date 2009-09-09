@@ -184,9 +184,9 @@ module tx_interface
   end interface
 
   interface
-     subroutine inexpolate(nmax_in,r_in,dat_in,nmax_std,r_std,iedge,dat_out,ideriv,nrbound)
+     subroutine inexpolate(nmax_in,r_in,dat_in,nmax_std,r_std,iedge,dat_out,ideriv,nrbound,idx)
        integer(4), intent(in) :: nmax_in, nmax_std, iedge
-       integer(4), intent(in),  optional :: ideriv
+       integer(4), intent(in),  optional :: ideriv, idx
        integer(4), intent(out), optional :: nrbound
        real(8), dimension(1:nmax_in), intent(in) :: r_in, dat_in
        real(8), dimension(0:nmax_std), intent(in) :: r_std
@@ -227,6 +227,13 @@ module tx_interface
      integer(4) function detect_datatype(kchar)
        character(len=*), intent(in) :: kchar
      end function detect_datatype
+  end interface
+
+  interface
+     subroutine initprof_input(nr, idx, out)
+       integer(4), optional :: nr, idx
+       real(8), optional :: out
+     end subroutine initprof_input
   end interface
 
   !***************************!

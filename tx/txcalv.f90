@@ -2,7 +2,8 @@
 module tx_variables
   implicit none
   public
-  integer(4) :: NRB
+  integer(4), save :: NRB
+  real(8), save :: Vbabsmax
 
 contains
 
@@ -19,7 +20,7 @@ contains
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
-    real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
+    real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2, BBL
     real(8) :: FCTR
 
     IF(present(ID)) THEN
@@ -69,6 +70,7 @@ contains
     PNbV (0:NRMAX) =   XL(LQb1,0:NRMAX)
     IF(ABS(FSRP) > 0.D0) THEN
        DO NR = 0, NRMAX
+          BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
           IF(PNbV(NR) == 0.D0) THEN ! The region without beam particles
              UbthV(NR) = 0.D0
              UbphV(NR) = 0.D0
@@ -79,6 +81,8 @@ contains
              ELSE ! The region except the magnetic axis
                 UbthV(NR) = XL(LQb3,NR) / PNbV(NR) / R(NR)
                 UbphV(NR) = XL(LQb4,NR) / PNbV(NR)
+                if(abs(UbthV(NR)) > Vbabsmax * (BthV(NR) / BBL)) UbthV(NR) = 0.D0
+                if(abs(UbphV(NR)) > Vbabsmax * (BphV(NR) / BBL)) UbphV(NR) = 0.D0
              END IF
           END IF
        END DO
@@ -221,6 +225,7 @@ contains
 
     Vb =  SQRT(2.D0 * Eb * rKeV / AMB)
     Vbpara(0:NRMAX) = Vb
+    Vbabsmax = Vb
 
     !     Poloidal magnetic field on wall
 
@@ -433,11 +438,11 @@ contains
 
        ! Local parallel velocity at birth for passing ions
        i = 8
-       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara,nrbound=nrbound)
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%vb,NRMAX,RHO,5,Vbpara,nrbound=nrbound,idx=0)
        do nr = nrbound+1, nrmax
           Vbpara(nr) = Vbpara(nrbound)
        end do
-
+       Vbabsmax = maxval(abs(Vbpara))
 
     ! *** Arbitrary input *********************************************
     else if(iflag_file == 2) then

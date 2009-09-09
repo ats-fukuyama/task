@@ -119,14 +119,14 @@ module tx_commons
   integer(4) :: MDLETA, MDFIXT, MDVAHL
 
   !  Initial condition
-  integer(4) :: MDITSN, MDITST, MDINTT, MDINIT
+  integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINIT
 
   !**********************************!
   !   INTERNAL CONTOROL PARAMETERS   !
   !**********************************!
 
   ! Configuration parameters
-  integer(4) :: NT, NQMAX, IERR, ICONT
+  integer(4) :: NT, NQMAX, IERR, ICONT, IRPIN
   real(8) :: T_TX, TMAX
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
@@ -163,7 +163,7 @@ module tx_commons
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
-       & Ubrp, RUbrp, Dbrp, DltRP, rNubL, rip_rat, rNuOL, &
+       & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid,rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, FWahle, FWahli, &
        & SiVizA, SiVcxA
   real(8), dimension(:,:), allocatable :: deltam
@@ -316,7 +316,8 @@ contains
             &   D02(0:N),    D03(0:N),                                        stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(12))
-       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), rNubL(0:N), stat = ierl(13))
+       allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), DltRP_mid(0:N), &
+            &   rNubL(0:N),                                                   stat = ierl(13))
        allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(14))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(15))
        allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(16))
@@ -409,7 +410,7 @@ contains
     deallocate(De,     Di,     wexb,  VWpch, D01,   D02,  D03)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
-    deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, rNubL)
+    deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, DltRP_mid, rNubL)
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC,Vbpara)
     deallocate(Fmnq,   Wnm,    Umnq)
     deallocate(deltam)

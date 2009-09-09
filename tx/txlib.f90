@@ -1571,10 +1571,10 @@ END SUBROUTINE BISECTION
 !     0 : zero, ex : extrapolation, val : three quarters of the nearest value
 !************************************************************************************
 
-subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound)
+subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideriv,nrbound,idx)
   implicit none
   integer(4), intent(in) :: nmax_in, nmax_std, imode
-  integer(4), intent(in),  optional :: ideriv
+  integer(4), intent(in),  optional :: ideriv, idx
   integer(4), intent(out), optional :: nrbound
   real(8), dimension(1:nmax_in),  intent(in)  :: rho_in, dat_in
   real(8), dimension(0:nmax_std), intent(in)  :: rho_std
@@ -1666,7 +1666,7 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
   deallocate(rho_tmp,dat_tmp)
 
   ! Avoid negative values
-  where(dat_out < 0.d0) dat_out = 0.d0
+  if(present(idx) .eqv. .false.) where(dat_out < 0.d0) dat_out = 0.d0
 
 !!$  do i=0,nmax_std
 !!$     write(6,*) rho_std(i),dat_out(i)

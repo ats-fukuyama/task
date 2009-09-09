@@ -10,19 +10,21 @@ SUBROUTINE TXMENU
        &              rMU0, IERR, PNBH, rMUb1, rMUb2, TMAX, DT, NTMAX, T_TX, PNBHT1, &
        &              PNBHT2, PNBHP, PNBHex, X, LQm4, NRMAX, TPRE, NGR, RB, PNBCD, &
        &              GT, GY, NGRM, NGYRM, R, iflag_file, MDLMOM, &
-       &              DelRho, DelN, Rho, LQe1, LQi1, PZ, ICONT
+       &              DelRho, DelN, Rho, LQe1, LQi1, PZ, ICONT, IRPIN
   use tx_main, only : TXEXEC
   use tx_graphic, only : TX_GRAPH_SAVE, TXSTGR, TXGOUT
   use tx_variables, only : TXCALV
   use tx_parameter_control, only : TXPARM_CHECK, TXPARM, TXVIEW
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
+  use tx_ripple, only : ripple_input, ripple_spl, deallocate_ripple
   implicit none
-  INTEGER(4) :: MODE, I, IST, ier, NR, iret
+  INTEGER(4) :: MODE, I, IST, ier, NR, iret, IER_RP
   character(len=80) :: LINE
   character(len=1)  :: KID, KID2
 
   IERR  = 0
   ICONT = 0
+  IRPIN = 0 ! Read ripple file if IRPIN /= 0
   IF((PNBHP + PNBHT1 + PNBHT2 + PNBHex) /= 0) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
@@ -39,7 +41,7 @@ SUBROUTINE TXMENU
      WRITE(6,*) '## INPUT: ', &
           &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
           &   'W:STAT  S:SAVE  L:LOAD  I:INIT '
-     WRITE(6,'(11X,A)') 'F:FILE  N:PTRB  O:OUT  Q:QUIT'
+     WRITE(6,'(11X,A)') 'F,FR:FILE  N:PTRB  O:OUT  Q:QUIT'
      CALL GUFLSH
 
      CALL TXKLIN(LINE,KID,MODE)
@@ -72,6 +74,7 @@ SUBROUTINE TXMENU
         ICONT = 1
         CALL TXPROF
         CALL TX_GRAPH_SAVE
+        if(IRPIN /= 0) CALL ripple_spl
         CALL TXEXEC
         TMAX=T_TX+DT*NTMAX
      CASE('C')
@@ -81,6 +84,7 @@ SUBROUTINE TXMENU
         END IF
         NGR=-1
         CALL TXSTGR(NGR,GT,GY,NRMAX,NGRM,NGYRM)
+        if(IRPIN /= 0) CALL ripple_spl
         CALL TXEXEC
         TMAX=T_TX+DT*NTMAX
      CASE('P')
@@ -137,18 +141,26 @@ SUBROUTINE TXMENU
            WRITE(6,*) 'XX Unknown beam command'
         END SELECT
      CASE('F')
-        CALL ascii_input
+        KID2=LINE(2:2)
+        CALL TOUPPER(KID2)
+        SELECT CASE(KID2)
+        CASE('R')
+           CALL ripple_input(IER_RP)
+           if(IER_RP == 0) IRPIN = 1
+        CASE DEFAULT
+           CALL ascii_input
 
-        if(iflag_file == 1) then
-           MDLMOM = 1
-           if(rMUb2 == 1.D0) then
-              rMUb1 = 1.D0
-              rMUb2 = rMU0
+           if(iflag_file == 1) then
+              MDLMOM = 1
+              if(rMUb2 == 1.D0) then
+                 rMUb1 = 1.D0
+                 rMUb2 = rMU0
 
-              if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
-              IF(T_TX /= 0.D0) CALL TXCALV(X)
+                 if(allocated(X)) X(LQm4,0:NRMAX) = X(LQm4,0:NRMAX) / rMUb2
+                 IF(T_TX /= 0.D0) CALL TXCALV(X)
+              end if
            end if
-        end if
+        END SELECT
      CASE('O')
         IF (ICONT == 0) THEN
            WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
@@ -162,6 +174,7 @@ SUBROUTINE TXMENU
      END SELECT
   END DO
 
+  call deallocate_ripple
   if(allocated(r)) call deallocate_txcomm
 
   RETURN

@@ -23,7 +23,8 @@ contains
   SUBROUTINE TXGOUT
     use tx_commons, only : MODEGL, T_TX, TPRE, NGT, NGVV, NGPRM, NGPVM, NGPTM, NQMAX, &
          &                 NRMAX, NGYRM, GY, NGR, GX, GTX, GYT, NGTM, &
-         &                 DltRPn, NTCOIL, MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV
+         &                 MODEG, RB, RA, PI, RR, NRA, Q, R, thrp, kappa, gDIV, &
+         &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_ripple, only : ripple
 
@@ -263,95 +264,97 @@ contains
        CASE('E')
           ! *** Contour of ripple amplitude ***
           CALL PAGES
-          DltRPnL = REAL(DltRPn) * 100.0
-
-          allocate(RRL(1:NXMAX),ZZL(1:NYMAX),VAL(1:NXMAX,1:NYMAX),KA(1:8,1:NXMAX,1:NYMAX))
-          DR = (4.5 - 2.0) / (NXMAX - 1)
-          DZ =  1.5        / (NYMAX - 1)
-          DO NX = 1, NXMAX
-             RRL(NX) = 2.0 + DR * (NX - 1)
-             DO NY = 1, NYMAX
-                ZZL(NY) = DZ * (NY - 1)
-                AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
-                VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
-             END DO
-          END DO
-
           CALL INQFNT(IFNT)
           CALL SETFNT(32)
 
-          CALL GQSCAL(2.0,4.5,GSRMIN,GSRMAX,GSRSTP)
-          CALL GQSCAL(0.0,1.5,GSZMIN,GSZMAX,GSZSTP)
+          if(IRPIN == 0) then
+             DltRPnL = REAL(DltRPn) * 100.0
 
-          CALL GDEFIN(3.0,18.0,1.5,10.5,2.0,4.5,0.0,1.5)
-          CALL GFRAME
-
-          CALL GSCALE(GSRMIN,GSRSTP,0.0,0.0,0.1,9)
-          CALL GVALUE(GSRMIN,GSRSTP*2,0.0,0.0,NGULEN(GSRSTP))
-          CALL GSCALE(0.0,0.0,0.0,GSZSTP,0.1,9)
-          CALL GVALUE(0.0,0.0,0.0,GSZSTP*2,NGULEN(GSZSTP*2))
-
-          IPAT = 1
-          IPRD = 0
-
-          ZORG  = 0.0003
-          ZSTEP = 0.0002
-          NSTEP = 3
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*1,KA)
-
-          ZORG  = 0.001
-          ZSTEP = 0.002
-          NSTEP = 4
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*2,KA)
-
-          ZORG  = 0.01
-          ZSTEP = 0.02
-          NSTEP = 4
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*3,KA)
-
-          ZORG  = 0.0
-          ZSTEP = 0.1
-          NSTEP = 2
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
-
-          ZORG  = 0.0
-          ZSTEP = 0.25
-          NSTEP = 4
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
-
-          ZORG  = 1.0
-          ZSTEP = 0.5
-          NSTEP = 3
-          CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*5,KA)
-
-          deallocate(RRL,ZZL,VAL,KA)
-
-          allocate(RRL(1:NTHMAX),ZZL(1:NTHMAX))
-          dtheta = PI / (NTHMAX - 1)
-          theta = 0.d0
-          DO I = 1, 2
-             IF(I == 1) THEN
-                kappal = 1.d0
-             ELSE
-                kappal = kappa
-             END IF
-             DO NTH = 1, NTHMAX
-                theta = (NTH - 1) * dtheta
-                RRL(NTH) = real(RR + RA * cos(theta))
-                ZZL(NTH) = real(kappal * RA * sin(theta))
-                IF(ABS(ZZL(NTH)) < EPSILON(1.0)) ZZL(NTH) = 0.0
+             allocate(RRL(1:NXMAX),ZZL(1:NYMAX),VAL(1:NXMAX,1:NYMAX),KA(1:8,1:NXMAX,1:NYMAX))
+             DR = (4.5 - 2.0) / (NXMAX - 1)
+             DZ =  1.5        / (NYMAX - 1)
+             DO NX = 1, NXMAX
+                RRL(NX) = 2.0 + DR * (NX - 1)
+                DO NY = 1, NYMAX
+                   ZZL(NY) = DZ * (NY - 1)
+                   AL = SQRT(((RRL(NX) - 2.4)**2 + ZZL(NY)**2) * (2.4 / RRL(NX)))
+                   VAL(NX,NY) = REAL(DltRPnL * BESIN(0,NTCOIL/2.4D0*AL))
+                END DO
              END DO
-             CALL LINES2D(RRL,ZZL,NTHMAX)
-          END DO
-          deallocate(RRL,ZZL)
 
-          allocate(RRL(1:2*NRMAX),ZZL(1:2*NRMAX))
-          RRL(1:NRMAX) = RR + R(NRMAX:1:-1) * COS(thrp(1:NRMAX))
-          ZZL(1:NRMAX) = kappa * R(NRMAX:1:-1) * SIN(thrp(1:NRMAX))
-          RRL(NRMAX+1:2*NRMAX) = RR + R(1:NRMAX) * COS(thrp(NRMAX+1:2*NRMAX))
-          ZZL(NRMAX+1:2*NRMAX) = kappa * R(1:NRMAX) * SIN(thrp(NRMAX+1:2*NRMAX))
-          CALL LINES2D(RRL,ZZL,2*NRMAX)
-          deallocate(RRL,ZZL)
+             CALL GQSCAL(2.0,4.5,GSRMIN,GSRMAX,GSRSTP)
+             CALL GQSCAL(0.0,1.5,GSZMIN,GSZMAX,GSZSTP)
+
+             CALL GDEFIN(3.0,18.0,1.5,10.5,2.0,4.5,0.0,1.5)
+             CALL GFRAME
+
+             CALL GSCALE(GSRMIN,GSRSTP,0.0,0.0,0.1,9)
+             CALL GVALUE(GSRMIN,GSRSTP*2,0.0,0.0,NGULEN(GSRSTP))
+             CALL GSCALE(0.0,0.0,0.0,GSZSTP,0.1,9)
+             CALL GVALUE(0.0,0.0,0.0,GSZSTP*2,NGULEN(GSZSTP*2))
+
+             IPAT = 1
+             IPRD = 0
+
+             ZORG  = 0.0003
+             ZSTEP = 0.0002
+             NSTEP = 3
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*1,KA)
+
+             ZORG  = 0.001
+             ZSTEP = 0.002
+             NSTEP = 4
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*2,KA)
+
+             ZORG  = 0.01
+             ZSTEP = 0.02
+             NSTEP = 4
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*3,KA)
+
+             ZORG  = 0.0
+             ZSTEP = 0.1
+             NSTEP = 2
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+
+             ZORG  = 0.0
+             ZSTEP = 0.25
+             NSTEP = 4
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*4,KA)
+
+             ZORG  = 1.0
+             ZSTEP = 0.5
+             NSTEP = 3
+             CALL CONTP2(VAL,RRL,ZZL,NXMAX,NXMAX,NYMAX,ZORG,ZSTEP,NSTEP,IPRD,IPAT*5,KA)
+
+             deallocate(RRL,ZZL,VAL,KA)
+
+             allocate(RRL(1:NTHMAX),ZZL(1:NTHMAX))
+             dtheta = PI / (NTHMAX - 1)
+             theta = 0.d0
+             DO I = 1, 2
+                IF(I == 1) THEN
+                   kappal = 1.d0
+                ELSE
+                   kappal = kappa
+                END IF
+                DO NTH = 1, NTHMAX
+                   theta = (NTH - 1) * dtheta
+                   RRL(NTH) = real(RR + RA * cos(theta))
+                   ZZL(NTH) = real(kappal * RA * sin(theta))
+                   IF(ABS(ZZL(NTH)) < EPSILON(1.0)) ZZL(NTH) = 0.0
+                END DO
+                CALL LINES2D(RRL,ZZL,NTHMAX)
+             END DO
+             deallocate(RRL,ZZL)
+
+             allocate(RRL(1:2*NRMAX),ZZL(1:2*NRMAX))
+             RRL(1:NRMAX) = RR + R(NRMAX:1:-1) * COS(thrp(1:NRMAX))
+             ZZL(1:NRMAX) = kappa * R(NRMAX:1:-1) * SIN(thrp(1:NRMAX))
+             RRL(NRMAX+1:2*NRMAX) = RR + R(1:NRMAX) * COS(thrp(NRMAX+1:2*NRMAX))
+             ZZL(NRMAX+1:2*NRMAX) = kappa * R(1:NRMAX) * SIN(thrp(NRMAX+1:2*NRMAX))
+             CALL LINES2D(RRL,ZZL,2*NRMAX)
+             deallocate(RRL,ZZL)
+          end if
 
           !  *** 1D graphic ***
 
@@ -369,7 +372,11 @@ contains
           allocate(GRPL(0:NRMAX,1:2))
           DO NR = 0, NRMAX
              RL = R(NR)
-             GRPL(NR,1) = real(ripple(RL,0.D0,1.D0))
+             if(IRPIN == 0) then
+                GRPL(NR,1) = real(ripple(RL,0.D0,1.D0))
+             else
+                GRPL(NR,1) = real(DltRP_mid(NR))
+             end if
           END DO
           WRITE(KOUT,'(F6.4)') GRPL(NRA,1)
           KOUT = '$#d$#$-a$=='//KOUT(1:6)
@@ -385,11 +392,21 @@ contains
           thetab = 0.5D0 * PI
           DO NR = 0, NRMAX
              RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
-             GRPL(NR,1) = real(ripple(RL,thetab,1.D0))
-             GRPL(NR,2) = real(ripple(R(NR),thetab,1.D0))
+             if(IRPIN == 0) then
+                GRPL(NR,1) = real(ripple(RL,thetab,1.D0))
+                GRPL(NR,2) = real(ripple(R(NR),thetab,1.D0))
+                NG = 2
+             else
+                GRPL(NR,1) = real(DltRP(NR))
+                NG = 1
+             end if
           END DO
-          STRL = '@DltRP at tip point with and w/o elongation(r)@'
-          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,2,0.0,GXMAX,STRL,0.26,MODE,IND,0)
+          if(IRPIN == 0) then
+             STRL = '@DltRP at tip point with and w/o elongation(r)@'
+          else
+             STRL = '@DltRP at tip point(r)@'
+          end if
+          CALL TXGRAF(GPXY,GX,GRPL,NRMAX+1,NRMAX+1,NG,0.0,GXMAX,STRL,0.26,MODE,IND,0)
           deallocate(GRPL)
 
           CALL SETFNT(IFNT)
@@ -823,9 +840,11 @@ contains
     ! ***************************************************************
 
     GYL(0:NXM,NG,118) = SNGL(rNubL(0:NXM))
-    ! External NBI torque density
+    ! External toroidal NBI torque density
 !!    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*(RR+R(0:NXM))*1.D20)
-    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*RR*1.D20)
+!!    GYL(0:NXM,NG,119) = SNGL(AMb*Vb*MNB(0:NXM)*RR*1.D20)
+    GYL(0:NXM,NG,119) = SNGL(AMb*Vbpara(0:NXM)*MNB(0:NXM)*RR &
+         &            *(BphV(0:NXM)/SQRT(BphV(0:NXM)**2+BthV(0:NXM)))*1.D20)
     ! Generated toroidal torque density
 !!    GYL(0:NXM,NG,120) = SNGL((RR+R(0:NXM))*BthV(0:NXM))*GYL(0:NXM,NG,117)
     GYL(0:NXM,NG,120) = SNGL(RR*BthV(0:NXM))*GYL(0:NXM,NG,117)
@@ -1530,7 +1549,7 @@ contains
        CALL APPROPGY(MODEG, GY(0,0,104), GYL, STR, NRMAX, NGR, gDIV(104))
        CALL TXGRFRX(1,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@NBI torque density(r)@'
+       STR = '@NBI toroidal torque density(r)@'
        CALL APPROPGY(MODEG, GY(0,0,119), GYL, STR, NRMAX, NGR, gDIV(119))
        CALL TXGRFRX(3,GX,GYL,NRMAX,NGR,STR,MODE,IND)
 

@@ -2,6 +2,11 @@ module tx_ripple
   implicit none
   public
 
+  integer(4) :: N_RPIN
+  real(8), dimension(:), allocatable :: DltRP_rim, theta_rim
+  real(8), dimension(:), allocatable :: RHOL, DltRP_rimL, theta_rimL, rip_ratL, DltRPL, &
+       &                                DltRP_midL
+
 contains
 
 !**********************************************************************************
@@ -10,7 +15,7 @@ contains
 !
 !     Input  (real*8) : dQdr   (0:NRMAX) : r-derivative of the safety factor
 !     Output (real*8) : rNubrp1(0:NRMAX) : defraction frequency
-!                       rNubrp2(0:NRMAX) : defraction frequence
+!                       rNubrp2(0:NRMAX) : defraction frequency
 !                       Ubrp   (0:NRMAX) : convective velocity due to grad B drift
 !                       Dbrp   (0:NRMAX) : diffusivity
 !
@@ -25,22 +30,25 @@ contains
 
     integer(4) :: NR, IER, i, imax, irip, nr_potato
     real(8) :: thetab, sinthb, RL, ellE, ellK, EpsL, theta1, theta2, dlt, &
-         &     width0, width1, dltwidth, &
-         &     ARC, DltRP_rim, theta_rim, diff_min, theta_min, sum_rp, DltRP_ave, &
+         &     width0, width1, dltwidth, ARC, diff_min, theta_min, sum_rp, DltRP_ave, &
          &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, Rpotato
     real(8) :: ELLFC, ELLEC, AITKEN2P
     real(8), dimension(0:NRMAX) :: th1, th2
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
 
+    if(allocated(DltRP_rim) .EQV. .FALSE.) allocate(DltRP_rim(0:NRMAX),theta_rim(0:NRMAX))
+
     ! Ripple amplitude
     thetab = 0.5D0 * PI ! pitch angle of a typical banana particle
     sinthb = sin(thetab)
-    DO NR = 0, NRMAX
-       RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
-       DltRP(NR) = ripple(RL,thetab,FSRP) ! Ripple amplitude at banana tip point
-                                          ! Mainly use for estimation of diffusive processes
-    END DO
+    if(IRPIN == 0) then
+       DO NR = 0, NRMAX
+          RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(thetab))
+          DltRP(NR) = ripple(RL,thetab,FSRP) ! Ripple amplitude at banana tip point
+                                             ! Mainly use for estimation of diffusive processes
+       END DO
+    end if
 
     ellK = ELLFC(sin(0.5d0*thetab),IER) ! first kind of complete elliptic function 
     ellE = ELLEC(sin(0.5d0*thetab),IER) ! second kind of complete elliptic function 
@@ -82,83 +90,85 @@ contains
           EpsL = RL / RR
 
           ! ===== Calculation of ripple field and ripple well region =====
-          ! For LFS
-          theta1  = 0.d0
-          i = 0
-          imax = 101
-          dlt = 1.d0 / (imax - 1)
-          irip = 0
-          do
-             i = i + 1
-             irip = irip + 1
-             if(i == imax) then
-!                write(6,'(A,I3)') "LFS rim of ripple well region not detected at NR = ",NR
-                theta1 = PI
-                exit
-             end if
-             theta1 = theta1 + PI * dlt
-             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
-             width0 = ripple(RL,theta1,FSRP)
-             width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
-             ! Poloidal angle at which the difference between width0 and width1 is minimized.
-             dltwidth = abs(width0 - width1)
-             if(i == 1 .or. dltwidth < diff_min) then
-                diff_min  = dltwidth
-                theta_min = theta1
-             end if
-             ! Convergence: Rim of ripple well region detected
-             if(dltwidth < 1.d-6) exit
-             ! Overreached a rim of ripple well. Go back and use finer step size.
-             if(width0 < width1) then
-                theta1  = theta1 - PI * dlt
-                dlt = 0.1d0 * dlt
-                i = 0
-                irip = irip - 1
-                cycle
-             end if
-             ! Seek ripple amplitude just inside the rim of the ripple well region
-             DltRP_rim = width0
-             theta_rim = theta1
-          end do
-          ARC = 2.d0 * theta1
-          th1(nr) = theta_min ! save for graphics
+          if(IRPIN == 0) then
+             ! For LFS
+             theta1  = 0.d0
+             i = 0
+             imax = 101
+             dlt = 1.d0 / (imax - 1)
+             irip = 0
+             do
+                i = i + 1
+                irip = irip + 1
+                if(i == imax) then
+!                   write(6,'(A,I3)') "LFS rim of ripple well region not detected at NR = ",NR
+                   theta1 = PI
+                   exit
+                end if
+                theta1 = theta1 + PI * dlt
+                RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta1))
+                width0 = ripple(RL,theta1,FSRP)
+                width1 = EpsL * sin(theta1) / (NTCOIL * Q(NR))
+                ! Poloidal angle at which the difference between width0 and width1 is minimized.
+                dltwidth = abs(width0 - width1)
+                if(i == 1 .or. dltwidth < diff_min) then
+                   diff_min  = dltwidth
+                   theta_min = theta1
+                end if
+                ! Convergence: Rim of ripple well region detected
+                if(dltwidth < 1.d-6) exit
+                ! Overreached a rim of ripple well. Go back and use finer step size.
+                if(width0 < width1) then
+                   theta1  = theta1 - PI * dlt
+                   dlt = 0.1d0 * dlt
+                   i = 0
+                   irip = irip - 1
+                   cycle
+                end if
+                ! Seek ripple amplitude just inside the rim of the ripple well region
+                DltRP_rim(nr) = width0
+                theta_rim(nr) = theta1
+             end do
+             ARC = 2.d0 * theta1
+             th1(nr) = theta_min ! save for graphics
 
-          ! For HFS
-          theta2 = PI
-          i = 0
-          imax = 101
-          dlt = 1.d0 / (imax - 1)
-          irip = 0
-          do 
-             i = i + 1
-             irip = irip + 1
-             if(i == imax) then
-!                write(6,'(A,I3)') "HFS rim of ripple well region not detected at NR = ",NR
-                theta2 = PI
-                exit
-             end if
-             theta2 = theta2 - PI * dlt
-             RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta2))
-             width0 = ripple(RL,theta2,FSRP)
-             width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
-             dltwidth = abs(width0 - width1)
-             if(i == 1 .or. dltwidth < diff_min) then
-                diff_min  = dltwidth
-                theta_min = theta2
-             end if
-             if(dltwidth < 1.d-6) exit
-             if(width0 < width1) then
-                theta2  = theta2 + PI * dlt
-                dlt = 0.1d0 * dlt
-                i = 0
-                irip = irip - 1
-                cycle
-             end if
-          end do
-          ARC = ARC + 2.d0 * (PI - theta2)
-          ! Ratio of ripple well region in a certain flux surface
-          rip_rat(NR) = ARC / (2.d0 * PI)
-          th2(nr) = theta_min ! save for graphics
+             ! For HFS
+             theta2 = PI
+             i = 0
+             imax = 101
+             dlt = 1.d0 / (imax - 1)
+             irip = 0
+             do 
+                i = i + 1
+                irip = irip + 1
+                if(i == imax) then
+!                   write(6,'(A,I3)') "HFS rim of ripple well region not detected at NR = ",NR
+                   theta2 = PI
+                   exit
+                end if
+                theta2 = theta2 - PI * dlt
+                RL = R(NR) * (1.D0 + (kappa - 1.D0) * sin(theta2))
+                width0 = ripple(RL,theta2,FSRP)
+                width1 = EpsL * sin(theta2) / (NTCOIL * Q(NR))
+                dltwidth = abs(width0 - width1)
+                if(i == 1 .or. dltwidth < diff_min) then
+                   diff_min  = dltwidth
+                   theta_min = theta2
+                end if
+                if(dltwidth < 1.d-6) exit
+                if(width0 < width1) then
+                   theta2  = theta2 + PI * dlt
+                   dlt = 0.1d0 * dlt
+                   i = 0
+                   irip = irip - 1
+                   cycle
+                end if
+             end do
+             ARC = ARC + 2.d0 * (PI - theta2)
+             ! Ratio of ripple well region in a certain flux surface
+             rip_rat(NR) = ARC / (2.d0 * PI)
+             th2(nr) = theta_min ! save for graphics
+          end if
 
 !!rpl_ave          sum_rp = 0.d0
 !!rpl_ave          imax = 51
@@ -179,17 +189,21 @@ contains
 
           ! effective time of detrapping
           ! (Yushmanov NF (1982), Stringer NF (1972) 689, Takamura (5.31))
-          rNubrp1(NR) = rNuD(NR) / DltRP_rim
+          if(DltRP_rim(nr) == 0.d0) then
+             rNubrp1(NR) = 0.d0
+          else
+             rNubrp1(NR) = rNuD(NR) / DltRP_rim(nr)
+          end if
           ! See the description of "Convective loss"
-          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim) * fgaussian(theta_rim,0.5D0*PI,0.85D0)
+          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_rim(nr)) * fgaussian(theta_rim(nr),0.5D0*PI,0.85D0)
 !!rpl_ave          rNubrp2(NR) = rNubrp1(NR) * SQRT(DltRP_ave)
 
           ! Convectitve loss (vertical grad B drift velocity)
           Vdrift = 0.5D0 * AMb * Vb**2 / (PZ * AEE * RR * SQRT(BphV(NR)**2 + BthV(NR)**2))
 !          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))*Vdrift
 !          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP(NR))/R(NR)*Vdrift
-          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim)*Vdrift
-          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim)/R(NR)*Vdrift
+          RUbrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim(nr))*Vdrift
+          if(nr/=0) Ubrp(NR)=(NTCOIL*Q(NR)*RR*DltRP_rim(nr))/R(NR)*Vdrift
 !!$          Ubrp(NR) = 0.5D0 * Vdrift
 !!$            &  * (theta1*sin(theta1) + (PI - theta2)*sin(theta2)) / (PI + theta1 - theta2))
 !!$          IF(NR == NRMAX) THEN
@@ -208,8 +222,10 @@ contains
        rNubrp2(0) = rNubrp1(0) * SQRT(DltRP(0))
 
        ! Save for graphic
-       thrp(1:nrmax) = th2(nrmax:1:-1)
-       thrp(nrmax+1:2*nrmax) = th1(1:nrmax)
+       if(IRPIN == 0) then
+          thrp(1:nrmax) = th2(nrmax:1:-1)
+          thrp(nrmax+1:2*nrmax) = th1(1:nrmax)
+       end if
 
 !!rp_conv       CALL SPL1D(R,PNbrpV,DERIV,U,NRMAX+1,0,IER)
 !!rp_conv       do nr = 0, nrmax
@@ -395,5 +411,150 @@ contains
 !!rp_conv    end do
 !!rp_conv
 !!rp_conv  end subroutine wherenr
+
+!***************************************************************
+!
+!   Read ripple data file from TASK/EQ
+!
+!***************************************************************
+
+  subroutine ripple_input(ier)
+
+    integer(4) :: ier, nrpin, ist, nrpmax, n, i, j
+    character(len=130) :: kline
+
+    !  *** Read ripple data from file ***
+
+    nrpin = 23
+    call FROPEN(nrpin,'tx_ripple.dat',1,0,'RIPPLE FROM EQ',ier)
+    if(ier /= 0) return
+
+    read(nrpin,'(I4)',iostat=ist) nrpmax
+    if(ist /= 0) return
+    read(nrpin,'(A130)',iostat=ist) kline
+    if(ist /= 0) return
+
+    N = nrpmax
+    allocate(RHOL(1:N), DltRP_rimL(1:N), theta_rimL(1:N), rip_ratL(1:N), DltRPL(1:N), &
+         &   DltRP_midL(1:N))
+
+    do i = 1, N
+       read(nrpin,'(I4,6E15.7)',iostat=ist) j, RHOL(i), DltRP_rimL(i), theta_rimL(i), &
+            &                                  rip_ratL(i), DltRPL(i), DltRP_midL(i)
+       if(ist /= 0) return
+!!$       write(6,'(I4,1P6E15.7)') i,RHOL(i), DltRP_rimL(i), theta_rimL(i), &
+!!$            &                                  rip_ratL(i), DltRPL(i), DltRP_midL(i)
+    end do
+
+    close(nrpin)
+
+    N_RPIN = nrpmax
+
+  end subroutine ripple_input
+
+!***************************************************************
+!
+!   Spline interpolated ripple data
+!
+!***************************************************************
+
+  subroutine ripple_spl
+
+    use tx_commons, only : NRA, Rho, rip_rat, DltRP, DltRP_mid, DltRPn, NRMAX
+
+    integer(4) :: nr, ier, N
+    real(8), dimension(:), allocatable :: DERIV
+    real(8), dimension(:,:), allocatable :: U
+    real(8) :: deriv4
+
+    N = N_RPIN
+
+    allocate(DERIV(1:N),U(1:4,1:N)) 
+    if(allocated(DltRP_rim) .EQV. .FALSE.) allocate(DltRP_rim(0:NRMAX),theta_rim(0:NRMAX))
+
+    !   *** Interpolation ***
+
+    DERIV(1) = deriv4(1,RHOL,DltRP_rimL,N,1)
+    DERIV(N) = deriv4(N,RHOL,DltRP_rimL,N,1)
+    call spl1d(RHOL,DltRP_rimL,DERIV,U,N,3,ier)
+    if(ier /= 0) stop 'Error at spl1d in ripple_input: DltRP_rim'
+    do nr = 0, nra
+       call spl1df(Rho(nr),DltRP_rim(nr),RHOL,U,N,ier)
+       if(ier /= 0) stop 'Error at spl1df in ripple_input: DltRP_rim'
+    end do
+    where(DltRP_rim < 0.d0) DltRP_rim = 0.d0
+
+    DERIV(1) = deriv4(1,RHOL,theta_rimL,N,1)
+    DERIV(N) = deriv4(N,RHOL,theta_rimL,N,1)
+    call spl1d(RHOL,theta_rimL,DERIV,U,N,3,ier)
+    if(ier /= 0) stop 'Error at spl1d in ripple_input: theta_rim'
+    do nr = 0, nra
+       call spl1df(Rho(nr),theta_rim(nr),RHOL,U,N,ier)
+       if(ier /= 0) stop 'Error at spl1df in ripple_input: theta_rim'
+    end do
+    where(theta_rim < 0.d0) theta_rim = 0.d0
+    
+    DERIV(1) = deriv4(1,RHOL,rip_ratL,N,1)
+    DERIV(N) = deriv4(N,RHOL,rip_ratL,N,1)
+    call spl1d(RHOL,rip_ratL,DERIV,U,N,3,ier)
+    if(ier /= 0) stop 'Error at spl1d in ripple_input: rip_rat'
+    do nr = 0, nra
+       call spl1df(Rho(nr),rip_rat(nr),RHOL,U,N,ier)
+       if(ier /= 0) stop 'Error at spl1df in ripple_input: rip_rat'
+    end do
+    where(rip_rat < 0.d0) rip_rat = 0.d0
+
+    DERIV(1) = deriv4(1,RHOL,DltRPL,N,1)
+    DERIV(N) = deriv4(N,RHOL,DltRPL,N,1)
+    call spl1d(RHOL,DltRPL,DERIV,U,N,3,ier)
+    if(ier /= 0) stop 'Error at spl1d in ripple_input: DltRPL'
+    do nr = 0, nra
+       call spl1df(Rho(nr),DltRP(nr),RHOL,U,N,ier)
+       if(ier /= 0) stop 'Error at spl1df in ripple_input: DltRPL'
+    end do
+
+    DERIV(1) = deriv4(1,RHOL,DltRP_midL,N,1)
+    DERIV(N) = deriv4(N,RHOL,DltRP_midL,N,1)
+    call spl1d(RHOL,DltRP_midL,DERIV,U,N,3,ier)
+    if(ier /= 0) stop 'Error at spl1d in ripple_input: DltRP_midL'
+    do nr = 0, nra
+       call spl1df(Rho(nr),DltRP_mid(nr),RHOL,U,N,ier)
+       if(ier /= 0) stop 'Error at spl1df in ripple_input: DltRP_midL'
+    end do
+
+    DltRPn = DltRP_midL(1)
+
+    !   *** Linear extrapolation ***
+
+    do nr = nra+1, nrmax
+       call aitken(Rho(nr),DltRP_rim(nr),Rho,DltRP_rim,1,nr)
+       call aitken(Rho(nr),theta_rim(nr),Rho,theta_rim,1,nr)
+       call aitken(Rho(nr),rip_rat(nr)  ,Rho,rip_rat  ,1,nr)
+       call aitken(Rho(nr),DltRP(nr)    ,Rho,DltRP    ,1,nr)
+       call aitken(Rho(nr),DltRP_mid(nr),Rho,DltRP_mid,1,nr)
+    end do
+
+!!$    do nr = 0, nrmax
+!!$       write(6,'(I4,1P5E15.7)') nr,Rho(nr), DltRP_rim(nr), theta_rim(nr), &
+!!$            &                                  rip_rat(nr), DltRP(nr)       
+!!$    end do
+!!$    stop
+    
+    deallocate(DERIV,U)
+
+  end subroutine ripple_spl
+
+!***************************************************************
+!
+!   Deallocate ripple data
+!
+!***************************************************************
+
+  subroutine deallocate_ripple
+
+    if(allocated(RHOL)) deallocate(RHOL, DltRP_rimL, theta_rimL, rip_ratL, DltRPL, DltRP_midL)
+    if(allocated(DltRP_rim)) deallocate(DltRP_rim,theta_rim)
+
+  end subroutine deallocate_ripple
 
 end module tx_ripple

@@ -53,7 +53,7 @@ $(PROG3): $(LIBS3)
 	$(FCFREE) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS) $(FLIBS)
 
 check: $(SRCS) $(SRC2D) $(SRC3D)
-	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | less
+	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
 
 clean:
 	rm -f *.o ./*~ ./#* nclass/*.o *.a $(MOD)/*.mod

@@ -274,7 +274,7 @@ SUBROUTINE TXSAVE
   !
   !   VWpch0, Tqi0, MDLMOM, NEMAX, NRA, NRC, DelRho, DelN,
   !   EpsH, Q0, QA, NCph, NCth, DMAG0, RMAGMN, RMAGMX,
-  !   MDITSN, MDITST, MDINTT, MDINIT
+  !   MDITSN, MDITST, MDINTN, MDINTT, MDINIT
   !
   ! *************************************************************************
 
@@ -822,7 +822,7 @@ subroutine ascii_input
               i_start = i + 1
            end if
            cycle
-       end if
+        end if
 
         if(nrho == 1) then ! === Get "TOTAL" and "TOTAL POWER" data ===
            if(index(kline,"sec") /= 0) then
@@ -1241,3 +1241,76 @@ subroutine for_ofmc
   close(21)
 
 end subroutine for_ofmc
+
+!***************************************************************
+!
+!   Read ASCII data file for initial profiles
+!
+!      Prepare three profiles of electron density and
+!         electron and ion temperatures for TASK/TX
+!
+!***************************************************************
+
+subroutine initprof_input(nr, idx, out)
+
+  use tx_commons, only : NRMAX, Rho
+
+  integer(4), optional :: nr, idx
+  integer(4) :: nintin, ier, ist, i, j, k
+  integer(4), save :: nrinmax
+  real(8), optional :: out
+  real(8), dimension(:), allocatable, save :: rho_in, deriv
+  real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3
+
+  if((present(nr) .eqv. .false.) .and. (present(idx) .eqv. .false.)) then
+     nintin = 24
+     call FROPEN(nintin,'initprof.dat',1,0,'INIT PROF',ier)
+     if(ier /= 0) return
+
+     read(nintin,'(I4)',iostat=ist) nrinmax
+     if(ist /= 0) return
+     allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:3))
+     allocate(deriv(1:nrinmax),u1(1:4,1:nrinmax),u2(1:4,1:nrinmax),u3(1:4,1:nrinmax))
+
+     do k = 1, nrinmax
+        read(nintin,'(1X,I3,4(E10.3))',iostat=ist) i, rho_in(k),(prof_in(k,j),j=1,3)
+!        write(6,'(1X,I3,1P4E10.3)') i, rho_in(k),(prof_in(k,j),j=1,3)
+     end do
+
+     close(nintin)
+
+     call spl1d(rho_in,prof_in(1:nrinmax,1),deriv,u1,nrinmax,0,ier)
+     if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(1)'
+     call spl1d(rho_in,prof_in(1:nrinmax,2),deriv,u2,nrinmax,0,ier)
+     if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(2)'
+     call spl1d(rho_in,prof_in(1:nrinmax,3),deriv,u3,nrinmax,0,ier)
+     if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(3)'
+
+  else if((present(nr) .eqv. .true.) .and. (present(idx) .eqv. .true.)) then
+     if(idx == 1) then ! Electron density
+        call spl1df(Rho(nr),out,rho_in,u1,nrinmax,ier)
+        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 1'
+        out = out * 1.d-20
+     else if(idx == 2) then ! Electron temperature
+        call spl1df(Rho(nr),out,rho_in,u2,nrinmax,ier)
+        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 2'
+        out = out * 1.d-3
+     else if(idx == 3) then ! Ion temperature
+        call spl1df(Rho(nr),out,rho_in,u3,nrinmax,ier)
+        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 3'
+        out = out * 1.d-3
+     else 
+        stop 'initprof_input: wrong input!'
+     end if
+
+  else if((present(nr) .eqv. .false.) .and. (present(idx) .eqv. .true.)) then
+     if(idx == 0) then
+        deallocate(rho_in,prof_in,deriv,u1,u2,u3)
+     else
+        stop 'initprof_input: wrong input!'
+     end if
+  else
+     stop 'initprof_input: wrong input!'
+  end if
+
+end subroutine initprof_input
