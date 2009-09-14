@@ -127,20 +127,26 @@
 !  runtime. Also, the parallel partitioning of the matrix is
 !  determined by PETSc at runtime.
 
+      write(6,*) 'at 1'
       imax=imax_
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
+      write(6,*) 'at 2'
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,imax,imax,ierr)
+      write(6,*) 'at 3'
       call MatSetFromOptions(A,ierr)
+      write(6,*) 'at 4'
 
       call MatGetOwnershipRange(A,istart,iend,ierr)
       istart_=istart+1
       iend_=iend
+      write(6,*) 'at 5'
 
       call VecCreate(PETSC_COMM_WORLD,b,ierr)
       call VecSetSizes(b,PETSC_DECIDE,imax,ierr)
       call VecSetFromOptions(b,ierr)
       call VecDuplicate(b,x,ierr)
 
+      write(6,*) 'at 6'
 !  Currently, all PETSc parallel matrix formats are partitioned by
 !  contiguous chunks of rows across the processors.  Determine which
 !  rows of the matrix are locally owned. 
@@ -339,9 +345,10 @@
       INTEGER,DIMENSION(n),INTENT(INOUT):: data
       INTEGER,INTENT(IN):: n
       
-      call mpi_bcast(data,n,mpi_integer,
+      write(6,*) 'at -2',MPI_INTEGER,PETSC_COMM_WORLD
+      call mpi_bcast(data,n,MPI_INTEGER,
      &               0,PETSC_COMM_WORLD,ierr)
-
+      write(6,*) 'at -1'
       RETURN
       END SUBROUTINE mtx_broadcast_integer
 

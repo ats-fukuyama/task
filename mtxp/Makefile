@@ -1,3 +1,5 @@
+FFLAGS=-g
+
 include ${PETSC_DIR}/conf/base
 
 testksp: libmtxksp.o testmtx.o 

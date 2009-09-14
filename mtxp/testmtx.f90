@@ -15,13 +15,17 @@
       isource=6
 
     1 IF(nrank.eq.0) then
-      WRITE(6,'(A,3I5)') '# INPUT: imax,isource=', &
-                                   imax,isource
-      READ(5,*,END=9000,ERR=1) imax,isource
-      idata(1)=imax
-      idata(2)=isource
+         WRITE(6,'(A,3I5)') '# INPUT: imax,isource=', &
+                                      imax,isource
+         READ(5,*,END=9000,ERR=1) imax,isource
+         idata(1)=imax
+         idata(2)=isource
       ENDIF
+      WRITE(6,*) 'at -4'
+      CALL mtx_barrier
       CALL mtx_broadcast_integer(idata,2)
+      WRITE(6,*) 'at -3'
+      CALL mtx_barrier
       imax=idata(1)
       isource=idata(2)
 
