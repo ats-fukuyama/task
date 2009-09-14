@@ -45,7 +45,7 @@
       INTEGER,INTENT(IN):: j_width         ! band matrix width
       INTEGER,INTENT(OUT):: i_start,i_end  ! allocated range of lines 
 
-      WRITE(6,*) '## libmtxbnd 
+      WRITE(6,*) '## libmtxbnd'
       imax=i_max
       jmax=j_width
       ALLOCATE(A(jmax,imax))
