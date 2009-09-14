@@ -21,21 +21,15 @@
          idata(1)=imax
          idata(2)=isource
       ENDIF
-      WRITE(6,*) 'at -4'
-      CALL mtx_barrier
       CALL mtx_broadcast_integer(idata,2)
-      WRITE(6,*) 'at -3'
-      CALL mtx_barrier
       imax=idata(1)
       isource=idata(2)
 
       IF(imax.EQ.0) GO TO 9000
 
-      IF(nrank.EQ.0) ALLOCATE(x(imax))
+      ALLOCATE(x(imax))
 
-      write(6,*) 'nrank,nproc=',nrank,nprocs
       CALL mtx_setup(imax,istart,iend,jwidth)
-      write(6,*) 'istart,iend=',istart,iend
 
       DO i=istart,iend
          if(i.ne.1) CALL mtx_set_matrix(i,i-1,1.d0)
@@ -54,11 +48,8 @@
          write(6,*) 'Iteration Number=',its
       endif
 
-      DO i=1,imax
-         CALL mtx_get_vector(i,v)
-         WRITE(6,'(A,I5,1PE12.4)') 'i,v=',i,v
-      ENDDO
       CALL mtx_gather_vector(x)
+
       if(nrank.eq.0) then
          DO i=1,imax
             WRITE(6,'(A,I5,1PE12.4)') 'i,x=',i,x(i)
