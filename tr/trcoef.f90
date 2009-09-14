@@ -34,7 +34,7 @@
      &             RPM, RPP, RREFF, RRSTAR, RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, TRCOFSS, &
      &             TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX,     &
      &             BPA, PROFDL
-      REAL(8):: RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB
+      REAL(8):: RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP
       REAL(8):: chi_cdbm
       INTEGER:: MODEL
       REAL(8),DIMENSION(NRMAX):: S_HM
@@ -837,10 +837,11 @@
             DPDRl=DPP*1.D20*RKEV
             DVEXBDRL=DVE/RA
             cexb=RG1
+            ckap=1.d0
             MODEL=MDLKAI-130
 
             CALL cdbm(BB,RR,RS,RKAPL,QL,SHEARL,PNEL,rhoni,dpdrl, &
-                 &    dvexbdrl,calf,cexb,MODEL,chi_cdbm)
+                 &    dvexbdrl,calf,ckap,cexb,MODEL,chi_cdbm)
 
             AKDWEL=(CK0/12.D0)*chi_cdbm
             AKDWIL=(CK1/12.D0)*chi_cdbm

@@ -272,8 +272,8 @@
       call bpsd_get_data(equ1D,ierr)
 
       do nr=1,equ1D%nrmax
-         tempx(nr,1)=equ1D%data(nr)%psip
-         tempx(nr,2)=equ1D%data(nr)%psit
+         tempx(nr,1)=equ1D%data(nr)%psit
+         tempx(nr,2)=equ1D%data(nr)%psip
          tempx(nr,3)=equ1D%data(nr)%ppp
          tempx(nr,4)=equ1D%data(nr)%piq
          tempx(nr,5)=equ1D%data(nr)%pip*rmu0/(2.d0*pi)

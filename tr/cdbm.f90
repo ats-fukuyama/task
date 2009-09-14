@@ -1,6 +1,7 @@
 !     ********************************************
 
 !           CDBM Transport model (2009/03/06)
+!              Modified by M. Honda (2009/09/14)
 
 !     ********************************************
 
@@ -33,7 +34,7 @@ MODULE cdbm_mod
 CONTAINS
 
   SUBROUTINE cdbm(bb,rr,rs,rkap,qp,shear,pne,rhoni,dpdr,dvexbdr, &
-       &             calf,cexb,model,chi_cdbm)
+       &             calf,ckap,cexb,model,chi_cdbm,fsz,curvz,fez)
 
     real(rkind),intent(in):: bb      ! Magnetic field strength [T]
     real(rkind),intent(in):: rr      ! Major radius [m]
@@ -43,10 +44,11 @@ CONTAINS
     real(rkind),intent(in):: shear   ! Magnetic shear (r/q)(dq/dr)
     real(rkind),intent(in):: pne     ! Electron density [m^{-3}]
     real(rkind),intent(in):: dpdr    ! Pressure gradient [Pa/m]
-    real(rkind),intent(in):: rhoni   ! Ion mass density
+    real(rkind),intent(in):: rhoni   ! Ion mass density [kg/m^3]
     !                                  (sum of ion-mass times ion-density)
     real(rkind),intent(in):: dvexbdr ! ExB drift velocity gradient [1/s]
     real(rkind),intent(in):: calf    ! Factor in s-alpha effects [1.0]
+    real(rkind),intent(in):: ckap    ! Factor in magnetic curvature effects [1.0]
     real(rkind),intent(in):: cexb    ! Factor in ExB drift effects [1.0]
     integer(ikind),intent(in):: model! Model ID
     !                                    0: CDBM original
@@ -58,9 +60,12 @@ CONTAINS
 
     real(rkind),intent(out):: chi_cdbm! Thermal diffusion coefficient
     !                                   for both electrons and ions
+    real(rkind),intent(out),optional :: fsz   ! Fitting function for output
+    real(rkind),intent(out),optional :: curvz ! Magnetic curvature effect for output
+    real(rkind),intent(out),optional :: fez   ! ExB shear reduction for output
 
     real(rkind),parameter :: ckcdbm = 12.d0 ! Fixed numerical factor 
-    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fk,fs,fe
+    real(rkind):: va,wpe2,delta2,alpha,curv,wexb,shearl,fs,fk,fe
 
     if(model.lt.0.or.model.gt.5) then
        write(6,*) 'XX cdbm: model: out of range'
@@ -103,8 +108,13 @@ CONTAINS
        fe=cexb*fexb(wexb,shear,alpha)
     END SELECT
 
-    fs=trcofs(shear,calf*alpha,curv)
+    fs=trcofs(shear,calf*alpha,ckap*curv)
     chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
+
+    IF(PRESENT(fsz))   fsz=fs
+    IF(PRESENT(curvz)) curvz=curv
+    IF(PRESENT(fez))   fez=fe
+    
     RETURN
   END SUBROUTINE cdbm
 
