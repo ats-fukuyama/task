@@ -9,9 +9,12 @@
       PUBLIC mtx_set_vector
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
+      PUBLIC mtx_gather_vector
       PUBLIC mtx_cleanup
       PUBLIC mtx_finalize
       PUBLIC mtx_barrier
+      PUBLIC mtx_broadcast_integer
+      PUBLIC mtx_broadcast_real8
       PRIVATE
 !
 !  Description: Solves a linear system in parallel with KSP (Fortran code).
@@ -80,13 +83,12 @@
 !  However, local vector data can be easily accessed via VecGetArray().
 !  See the Fortran section of the PETSc users manual for details.
 !  
-      PetscInt  Istart,Iend
-      PetscMPIInt     rank,size
+      PetscMPIInt    rank,size
+      PetscInt       istart,iend,imax
       PetscErrorCode ierr
-      PetscTruth  flg
-      Vec         x,b
-      Mat         A 
-      KSP         ksp
+      Vec            x,b,xx
+      Mat            A 
+      KSP            ksp
       INTEGER,PARAMETER:: ione=1
       REAL(8),PARAMETER:: one=1.D0
 
@@ -96,23 +98,23 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_initialize(irank,isize)
-      INTEGER,INTENT(OUT):: irank,isize
+      SUBROUTINE mtx_initialize(rank_,size_)
+      INTEGER,INTENT(OUT):: rank_,size_
 
       call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
       call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
-      irank=rank
-      isize=size
+      rank_=rank
+      size_=size
       return
 
       END SUBROUTINE mtx_initialize
 
-      SUBROUTINE mtx_setup(i_max,j_width,i_start,i_end)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
 
-      INTEGER,INTENT(IN):: i_max           ! total matrix size
-      INTEGER,INTENT(IN):: j_width         ! band matrix width
-      INTEGER,INTENT(OUT):: i_start,i_end  ! allocated range of lines 
+      INTEGER,INTENT(IN):: imax_           ! total matrix size
+      INTEGER,INTENT(IN):: jwidth_         ! band matrix width
+      INTEGER,INTENT(OUT):: istart_,iend_   ! allocated range of lines 
 
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -125,16 +127,17 @@
 !  runtime. Also, the parallel partitioning of the matrix is
 !  determined by PETSc at runtime.
 
+      imax=imax_
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
-      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,i_max,i_max,ierr)
+      call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,imax,imax,ierr)
       call MatSetFromOptions(A,ierr)
 
-      call MatGetOwnershipRange(A,Istart,Iend,ierr)
-      i_start=Istart+1
-      i_end=Iend
+      call MatGetOwnershipRange(A,istart,iend,ierr)
+      istart_=istart+1
+      iend_=iend
 
       call VecCreate(PETSC_COMM_WORLD,b,ierr)
-      call VecSetSizes(b,PETSC_DECIDE,i_max,ierr)
+      call VecSetSizes(b,PETSC_DECIDE,imax,ierr)
       call VecSetFromOptions(b,ierr)
       call VecDuplicate(b,x,ierr)
 
@@ -242,6 +245,7 @@
       call KSPSolve(ksp,b,x,ierr)
       call KSPGetIterationNumber(ksp,its,ierr)
       call KSPDestroy(ksp,ierr)
+
       RETURN
       END SUBROUTINE mtx_solve
 
@@ -258,6 +262,50 @@
 
       RETURN
       END SUBROUTINE mtx_get_vector
+
+      SUBROUTINE mtx_gather_vector(xxxx)
+
+      VecScatter scatter
+      IS from,to
+      REAL(8),DIMENSION(imax),INTENT(OUT):: xxxx
+      REAL(8),DIMENSION(imax):: xxx
+      integer:: i,x_offset
+
+      write(6,*) 'istart=',istart
+      write(6,*) 'iend  =',iend
+      call VecGetArray(x,xxx,x_offset,ierr)
+      DO i=1,imax
+         WRITE(6,'(A,I5,1PE12.4)') 'i,x=',i,xxx(x_offset+i-istart)
+      ENDDO
+      call VecRestoreArray(x,xxx,x_offset,ierr)
+
+      CALL VecView(x,PETSC_VIEWer_DRAW_WORLD,ierr)
+
+      CALL VecCreateSeq(PETSC_COMM_SELF,imax,xx,ierr)
+      CALL ISCreateStride(PETSC_COMM_SELF,iend-istart,istart,1,
+     &     from,ierr)
+      CALL ISCreateStride(PETSC_COMM_SELF,iend-istart,istart,1,
+     &     to,ierr)
+      CALL VecScatterCreate(x,from,xx,to,scatter,ierr)
+      CALL VecScatterBegin(scatter,x,xx,INSERT_VALUES,SCATTER_FORWARD,
+     &     ierr)
+      CALL VecScatterEnd(scatter,x,xx,INSERT_VALUES,SCATTER_FORWARD,
+     &     ierr)
+      CALL mtx_barrier
+
+      call VecGetArray(xx,xxx,x_offset,ierr)
+      DO i=1,imax
+         WRITE(6,'(A,I5,1PE12.4)') 'i,xx=',i,xxx(x_offset+i-istart)
+         xxxx(i)=xxx(x_offset+i-istart)
+      ENDDO
+      call VecRestoreArray(xx,xxx,x_offset,ierr)
+
+      CALL ISDestroy(from,ierr)
+      CALL ISDestroy(to,ierr)
+      CALL VecScatterDestroy(scatter)
+
+      RETURN
+      END SUBROUTINE mtx_gather_vector
 
       SUBROUTINE mtx_cleanup
 
@@ -285,5 +333,27 @@
       call MPI_Barrier(PETSC_COMM_WORLD,ierr)
       RETURN
       END SUBROUTINE mtx_barrier
+
+      SUBROUTINE mtx_broadcast_integer(data,n)
+
+      INTEGER,DIMENSION(n),INTENT(INOUT):: data
+      INTEGER,INTENT(IN):: n
+      
+      call mpi_bcast(data,n,mpi_integer,
+     &               0,PETSC_COMM_WORLD,ierr)
+
+      RETURN
+      END SUBROUTINE mtx_broadcast_integer
+
+      SUBROUTINE mtx_broadcast_real8(data,n)
+
+      REAL(8),DIMENSION(n),INTENT(INOUT):: data
+      INTEGER,INTENT(IN):: n
+      
+      call mpi_bcast(data,n,mpi_integer,
+     &               0,PETSC_COMM_WORLD,ierr)
+
+      RETURN
+      END SUBROUTINE mtx_broadcast_real8
 
       END MODULE libmtx
