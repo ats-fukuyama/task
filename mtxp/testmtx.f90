@@ -12,7 +12,6 @@
       PROGRAM testmtx
 
       USE libmtx
-      USE IFPORT
       IMPLICIT NONE
       INTEGER:: idim,isiz,isource,itype
       INTEGER:: nrank,nprocs,istart,iend,its
@@ -22,8 +21,7 @@
       REAL(8):: v,tolerance
       REAL(8),DIMENSION(:),POINTER:: x
       INTEGER,DIMENSION(2):: idata
-      REAL(4),DIMENSION(2):: tarray
-      REAL(4):: ttot
+      REAL(4):: cputime1,cputime2
 
       CALL mtx_initialize(nrank,nprocs)
       idim=1
@@ -56,7 +54,7 @@
 
       IF(idim.EQ.0) GO TO 9000
 
-      IF(nrank.EQ.0) ttot=DTIME(tarray)
+      IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
 
       SELECT CASE(idim)
       CASE(1)
@@ -153,9 +151,9 @@
       IF(nrank.EQ.0) DEALLOCATE(x)
 
       IF(nrank.eq.0) THEN
-         ttot=DTIME(tarray)
-         write(6,'(A,3F12.3)') &
-              '--cpu time (tot,user,system)=',ttot,tarray(1),tarray(2)
+         CALL CPU_TIME(cputime2)
+         write(6,'(A,F12.3)') &
+              '--cpu time =',cputime2-cputime1
       ENDIF
       GO TO 1
 
