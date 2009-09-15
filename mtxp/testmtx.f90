@@ -46,7 +46,7 @@
             GO TO 2
          ENDIF
          GO TO 4
-    3    idim=0
+    3    idata(1)=0
     4    CONTINUE
       ENDIF
       CALL mtx_broadcast_integer(idata,3)
