@@ -75,7 +75,9 @@
       RETURN
       END SUBROUTINE mtx_set_vector
       
-      SUBROUTINE mtx_solve(its)
+      SUBROUTINE mtx_solve(itype,tolerance,its)
+      INTEGER,INTENT(IN):: itype     ! not used
+      REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
       INTEGER:: i
 

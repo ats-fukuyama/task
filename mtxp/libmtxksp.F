@@ -107,7 +107,7 @@
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
       rank_=rank
       size_=size
-      if(rank.eq.0) write(6,'(A,I5)') '# mtx_initialize: size=',size
+      if(rank.eq.0) write(6,'(A,I10)') '# mtx_initialize: size=',size
       return
 
       END SUBROUTINE mtx_initialize
@@ -162,7 +162,7 @@
          enddo
          write(6,'(A)') '# mtx_setup: '
          do i=0,size-1
-            write(6,'(A,4I5)') '#  rank,istart,iend,isiz=',
+            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=',
      &           i,istartx(i)+1,iendx(i),isiz(i)
          enddo
       endif
@@ -188,7 +188,9 @@
       return
       END SUBROUTINE mtx_set_vector
       
-      SUBROUTINE mtx_solve(its)
+      SUBROUTINE mtx_solve(itype,tolerance,its)
+      INTEGER,INTENT(IN):: itype     ! for futuer use
+      REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
 
 !  Assemble matrix, using the 2-step process:
@@ -232,8 +234,11 @@
 !      ptype = PCJACOBI
 !      call PCSetType(pc,ptype,ierr)
 !      tol = 1.e-7
-!      call KSPSetTolerances(ksp,tol,PETSC_DEFAULT_DOUBLE_PRECISION,
-!     &     PETSC_DEFAULT_DOUBLE_PRECISION,PETSC_DEFAULT_INTEGER,ierr)
+
+      call KSPSetTolerances(ksp,tolerance,
+     &     PETSC_DEFAULT_DOUBLE_PRECISION,
+     &     PETSC_DEFAULT_DOUBLE_PRECISION,
+     &     PETSC_DEFAULT_INTEGER,ierr)
 
 !  Set user-defined monitoring routine if desired
 
