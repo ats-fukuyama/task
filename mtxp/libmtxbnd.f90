@@ -12,7 +12,11 @@
       PUBLIC mtx_initialize
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
+      PUBLIC mtx_add_matrix
+      PUBLIC mtx_set_source
+      PUBLIC mtx_add_source
       PUBLIC mtx_set_vector
+      PUBLIC mtx_add_vector
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
@@ -47,6 +51,7 @@
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
       INTEGER,INTENT(IN):: jwidth_         ! band matrix width
+      INTEGER:: i,j
 
       imax=imax_
       jmax=jwidth_
@@ -55,6 +60,14 @@
       istart_=1
       iend_=imax
       joffset=(jmax+1)/2
+
+      DO i=1,imax
+         DO j=1,jmax
+            A(J,i)=0.D0
+         ENDDO
+         b(i)=0.D0
+         x(i)=0.d0
+      ENDDO
 
       RETURN
       END SUBROUTINE mtx_setup
@@ -67,19 +80,51 @@
       RETURN
       END SUBROUTINE mtx_set_matrix
       
-      SUBROUTINE mtx_set_vector(j,v)
+      SUBROUTINE mtx_add_matrix(i,j,v)
+      INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
+      REAL(8),INTENT(IN):: v    ! value to be inserted
+
+      A(j-i+joffset,i)=A(j-i+joffset,i)+v
+      RETURN
+      END SUBROUTINE mtx_add_matrix
+      
+      SUBROUTINE mtx_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
       RETURN
+      END SUBROUTINE mtx_set_source
+      
+      SUBROUTINE mtx_add_source(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      b(j)=b(j)+v
+      RETURN
+      END SUBROUTINE mtx_add_source
+      
+      SUBROUTINE mtx_set_vector(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      x(j)=v
+      RETURN
       END SUBROUTINE mtx_set_vector
+      
+      SUBROUTINE mtx_add_vector(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      x(j)=x(j)+v
+      RETURN
+      END SUBROUTINE mtx_add_vector
       
       SUBROUTINE mtx_solve(itype,tolerance,its)
       INTEGER,INTENT(IN):: itype     ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
-      INTEGER:: i
+      INTEGER:: i,j
 
       DO i=1,imax
          x(i)=b(i)
@@ -92,6 +137,13 @@
       ELSE
          its=0
       ENDIF
+      DO i=1,imax
+         DO j=1,jmax
+            A(J,i)=0.D0
+         ENDDO
+         b(i)=0.D0
+      ENDDO
+
       RETURN
       END SUBROUTINE mtx_solve
 

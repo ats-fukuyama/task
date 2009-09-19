@@ -109,9 +109,9 @@
       END SELECT
 
       DO i=istart,iend
-         CALL mtx_set_vector(i,0.d0)
+         CALL mtx_set_source(i,0.d0)
       ENDDO
-      CALL mtx_set_vector(jsource,-1.d0)
+      CALL mtx_set_source(jsource,-1.d0)
       CALL mtx_barrier
 
       CALL mtx_solve(itype,tolerance,its)

@@ -6,7 +6,11 @@
       PUBLIC mtx_initialize
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
+      PUBLIC mtx_add_matrix
+      PUBLIC mtx_set_source
+      PUBLIC mtx_add_source
       PUBLIC mtx_set_vector
+      PUBLIC mtx_add_vector
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
@@ -184,13 +188,45 @@
       return
       END SUBROUTINE mtx_set_matrix
       
-      SUBROUTINE mtx_set_vector(j,v)
+      SUBROUTINE mtx_add_matrix(i,j,v)
+      INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
+      REAL(8),INTENT(IN):: v    ! value to be inserted
+
+      call MatSetValues(A,ione,i-1,ione,j-1,v,ADD_VALUES,ierr)
+      return
+      END SUBROUTINE mtx_add_matrix
+      
+      SUBROUTINE mtx_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
       return
+      END SUBROUTINE mtx_set_source
+      
+      SUBROUTINE mtx_add_source(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      call VecSetValues(b,ione,j-1,v,ADD_VALUES,ierr)
+      return
+      END SUBROUTINE mtx_add_source
+      
+      SUBROUTINE mtx_set_vector(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
+      return
       END SUBROUTINE mtx_set_vector
+      
+      SUBROUTINE mtx_add_vector(j,v)
+      INTEGER,INTENT(IN):: j ! vector positon j=row
+      REAL(8),INTENT(IN):: v ! value to be inserted
+
+      call VecSetValues(x,ione,j-1,v,ADD_VALUES,ierr)
+      return
+      END SUBROUTINE mtx_add_vector
       
       SUBROUTINE mtx_solve(itype,tolerance,its)
       INTEGER,INTENT(IN):: itype     ! for futuer use

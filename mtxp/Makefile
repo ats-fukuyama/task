@@ -2,7 +2,7 @@ FFLAGS=-g
 
 include ${PETSC_DIR}/conf/base
 
-all: taskbnd taskkdp
+all: testbnd testksp
 libs: libmtxbnd.o libmtxksp.o
 
 testksp: libmtxksp.o testmtx.o 
