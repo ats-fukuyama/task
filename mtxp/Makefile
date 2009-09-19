@@ -2,6 +2,9 @@ FFLAGS=-g
 
 include ${PETSC_DIR}/conf/base
 
+all: taskbnd taskkdp
+libs: libmtxbnd.o libmtxksp.o
+
 testksp: libmtxksp.o testmtx.o 
 	-${FLINKER} -g -o testksp testmtx.o libmtxksp.o ${PETSC_KSP_LIB}
 
