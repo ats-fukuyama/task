@@ -169,6 +169,10 @@
 
       call mpi_bcast(isiz,size,MPI_INTEGER,0,PETSC_COMM_WORLD,ierr)
 
+!  Create linear solver context
+
+      call KSPCreate(PETSC_COMM_WORLD,ksp,ierr)
+
       return
       END SUBROUTINE mtx_setup
 
@@ -208,10 +212,6 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !         Create the linear solver and set various options
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
-
-!  Create linear solver context
-
-      call KSPCreate(PETSC_COMM_WORLD,ksp,ierr)
 
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
@@ -273,8 +273,6 @@
 
       call KSPSolve(ksp,b,x,ierr)
       call KSPGetIterationNumber(ksp,its,ierr)
-      call KSPDestroy(ksp,ierr)
-
       RETURN
       END SUBROUTINE mtx_solve
 
@@ -316,6 +314,8 @@
 
 !  Free work space.  All PETSc objects should be destroyed when they
 !  are no longer needed.
+
+      call KSPDestroy(ksp,ierr)
 
       DEALLOCATE(istartx,iendx,isiz)
 
