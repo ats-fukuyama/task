@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
@@ -13,13 +13,18 @@ SRCS = eq_bpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
 SRCT = trtest.f treqin.f
 SRCP = pltest.f
 SRCA = aktest.f akeqin.f
+SRC2D= eqg2d.f
+SRC3D= eqg3d.f
 
 OBJS = $(SRCS:.f=.o)
 OBJT = $(SRCT:.f=.o)
 OBJP = $(SRCP:.f=.o)
 OBJA = $(SRCA:.f=.o)
+OBJ2D=$(SRC2D:.f=.o)
+OBJ3D=$(SRC3D:.f=.o)
 
-LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+LIBS2 = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+LIBS3 = eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 
 .SUFFIXES: .f90
 
@@ -29,9 +34,12 @@ LIBS = eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : eq
+#all : eq3
 
-eqlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) eqlib.a $(OBJS)
+eqlib.a: $(OBJS) $(OBJ2D)
+	$(LD) $(LDFLAGS) eqlib.a $(OBJS) $(OBJ2D)
+eq3lib.a: $(OBJS) $(OBJ3D)
+	$(LD) $(LDFLAGS) eq3lib.a $(OBJS) $(OBJ3D)
 
 ../lib/tasklib.a:
 	(cd ../lib; make)
@@ -46,7 +54,9 @@ libs:
 	(cd ../pl; make pllib.a)
 
 eq: eqmain.o eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
-	$(FCFIXED) eqmain.o $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFIXED) eqmain.o $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
+eq3: eqmain.o eq3lib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
+	$(FCFIXED) eqmain.o $(LIBS3) -o $@ $(FFLAGS) $(FLIBS)
 tr : $(OBJT) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
 	$(FCFIXED) $(OBJT) $(LIBS) -o $@ $(FFLAGS) $(FLIBS)
 pl : $(OGJP) eqlib.a ../lib/tasklib.a ../../bpsd/bpsdlib.a ../pl/pllib.a
