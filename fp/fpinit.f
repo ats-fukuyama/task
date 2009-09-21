@@ -116,8 +116,8 @@ C     RIMPL : implicit computation parameter
 C     EPSM  : convergence limit in matrix equation solver
 C     EPSE  : convergence limit in electric field prediction
 C     LMAXE : maximum loop count in electric field prediction
-C     EPSFP : convergence limit in nonlinear collision operator iteration
-C     LMAXFP: maximum loop count in nonlinear collision operator iteration
+C     EPSFP : convergence limit in implicit iteration
+C     LMAXFP: maximum loop count in implicit iteration
 C     EPSDE : convergence limit in double-exponential integration
 C     H0DE  : initial step size in double-exponential integration
 C

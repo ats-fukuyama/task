@@ -1,4 +1,3 @@
-
 c     $Id$
 C
 C *****************
@@ -49,6 +48,7 @@ C     +++++ NSA loop +++++
             DEPS2(NSA)=1.D0
          END DO
          DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP)
+
             NCHECK=NCHECK+1
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
@@ -119,7 +119,11 @@ C     +++++ end of NSA loop +++++
             DO NSA=1,NSAMAX
                NS=NS_NSA(NSA)
                IF(DEPS2(NSA).ne.0.D0)THEN
+!            CALL GUTIME(gut)
+!            write(*,*)"time1", gut, NSA
                   IF (MOD(NT,NTSTPC).EQ.0) CALL FPCOEF(NSA)
+!            CALL GUTIME(gut)
+!            write(*,*)"time2", gut, NSA
                END IF
             END DO
 
@@ -232,7 +236,7 @@ C     +++++ calculate and save global data +++++
       IF(NT.eq.NTMAX)THEN
 !         open(8,file='radial_profile_four.dat')
 !         open(8,file='distri_func7.dat')
-         open(9,file='time_evolution_four7.dat')
+!         open(9,file='time_evolution_four19.dat')
 !         Do NP=1,NPMAX
 !            Write(8,646) NP
 !     &      ,FNS(1,NP,1,1),FNS(1,NP,1,2),FNS(1,NP,1,3),FNS(1,NP,1,4)
@@ -266,20 +270,19 @@ c     & ,FCPP(NTH,2,1,1),FCPP(NTH,2,1,2),FCPP(NTH,2,1,3)
 c         END DO
 !         close(8)
 
-         DO NTI=1,NTMAX
-            dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
-            WRITE(9,645) PTG(NTI)*1000
-     &      ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI)
-     &      ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI)
-     &      ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI)
-     &      ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI)
+!         DO NTI=1,NTMAX
+!            dw=PPCT(3,NTI)+PPWT(3,NTI)+PPET(3,NTI)
+!            WRITE(9,645) PTG(NTI)*1000
+!     &      ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI)
+!     &      ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI)
+!     &      ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI)
+!     &      ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI)
 !     &      ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)
-     &      ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)
-
-         END DO
-         close(9)
+!     &      ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)
+!         END DO
+!         close(9)
       END IF
- 645  FORMAT(21E14.6)
+ 645  FORMAT(25E14.6)
  646  FORMAT(I3,17E14.6)
          IF(IERR.NE.0) RETURN
       ENDDO

@@ -151,6 +151,7 @@ c     sum up coefficients by species
                   FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA)
      &                               +FCPP2(NTH,NP,NR,NSB,NSA)
                END DO
+!               write(*,*) NP, DCPP(1,NP,NR,NSA)
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1

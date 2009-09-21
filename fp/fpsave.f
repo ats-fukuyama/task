@@ -398,11 +398,13 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
 
       rtotalPW=0.D0
       rtotalPC=0.D0
+      rtotalSP=0.D0
       DO NSA=1,NSAMAX
          WRITE(6,103) NSA,NS_NSA(NSA),
      &        PPCT(NSA,NTG2),PPWT(NSA,NTG2),PPET(NSA,NTG2)
          rtotalPW=rtotalPW + PPWT(NSA,NTG2)
          rtotalPC=rtotalPC + PPCT(NSA,NTG2)
+         rtotalSP=rtotalSP + PSPT(NSA,NTG2)
       END DO
       DO NSA=1,NSAMAX
          IF(NSBMAX.GT.1) THEN
@@ -415,7 +417,7 @@ c            write(6,104)(PPCT2(NSB,NSA,NTG2),NSB=1,NSBMAX)
       END DO
       write(*,105) rtotalpw
       write(*,107) rtotalPC
-
+      write(*,109) rtotalSP
 c      write(8,106) PTG(NTG2)*1000, PPCT(1,NTG2),PPCT(2,NTG2)
 c     &  ,PPCT2(1,1,NTG2),PPCT2(2,1,NTG2),PPCT2(1,2,NTG2),PPCT2(2,2,NTG2)
 c     &     ,PPET(1,NTG2),PPET(2,NTG2)
@@ -452,10 +454,11 @@ c  104 FORMAT('             PCAB    =',11X,1P4E12.4)
   103 FORMAT('        ',2I2,' PC,PW,PE=',11X,1P4E12.4)
   104 FORMAT('        ',2I2,' PCAB    =',11X,1P4E12.4)
 
- 105  FORMAT('total absorption [MW]', E12.4)
+ 105  FORMAT('total absorption      [MW]', E12.4)
  106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power [MW]', E12.4)
  108  FORMAT('        ',2I2,' PSP     =',11X,1P4E12.4)
+ 109  FORMAT('total source power    [MW]', E12.4)
       END
 
 C ***********************************************************

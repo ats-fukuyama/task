@@ -78,8 +78,12 @@ C
             RHOL=RM(NR)
             IF(NTH.NE.NTHMAX/2+1) THEN
                DO 1100 NP=1,NPMAX
+!      call gutime(gut1)
+!      write(*,*) "time1", gut1, NTH
                   CALL FPSUMV(ETAG(NTH,NR),SING(NTH),COSG(NTH),PM(NP),
      &                        NR,DWPPS,DWPTS,DWTPS,DWTTS,NSA)
+!      call gutime(gut2)
+!      write(*,*) "time2", gut2-gut1, NTH
                   DWTP(NTH,NP,NR,NSA)=DWTPS
                   DWTT(NTH,NP,NR,NSA)=DWTTS
  1100          CONTINUE
@@ -130,10 +134,15 @@ C
 C      
       CALL PLBMIN(RHOL,BMIN)
 C
+
       DO 100 N=1,NAVMAX
          ETAL=DELH*(N-0.5D0)
          CALL FPDWRP(NR,ETAL,RSIN,RCOS,PSIN,PCOS,PSI,NSA)
+      call gutime(gut1)
          CALL FPWAVV(RHOL,ETAL,PSIN,PCOS,P,DWPPL,DWPTL,DWTPL,DWTTL,NSA)
+      call gutime(gut2)
+      gut=gut2-gut1
+      if(gut.gt.1.e-4) write(*,*) "time", gut2-gut1, p
 C
 C         RVPARA=RCOS/PCOS
 C         TAN0=RSIN/RCOS

@@ -558,7 +558,6 @@ c$$$         ENDIF
             FPMXWL=FACT*EXP(EX)
          ENDIF
       ENDIF
-
       RETURN
       END
 C
