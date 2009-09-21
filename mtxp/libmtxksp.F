@@ -254,6 +254,8 @@
 
       call KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
 
+      if(itype.eq.1) call KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,ierr)
+
 !  Set linear solver defaults for this problem (optional).
 !   - By extracting the KSP and PC contexts from the KSP context,
 !     we can then directly directly call any KSP and PC routines
