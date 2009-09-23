@@ -17,6 +17,7 @@
       PUBLIC mtx_add_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_add_vector
+      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
@@ -27,6 +28,7 @@
       PUBLIC mtx_broadcast_integer
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
+      PUBLIC mtx_gather_integer
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
@@ -125,6 +127,10 @@
       RETURN
       END SUBROUTINE mtx_add_vector
       
+      SUBROUTINE mtx_split_operation
+      RETURN
+      END SUBROUTINE mtx_split_operation
+      
       SUBROUTINE mtx_solve(itype,tolerance,its)
       INTEGER,INTENT(IN):: itype     ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
@@ -134,6 +140,10 @@
       DO i=1,imax
          x(i)=b(i)
       ENDDO
+
+!      do i=1,imax
+!         write(21,'(i5/(1P5E12.4))') i,(A(j,i),j=1,jmax)
+!      enddo
          
       CALL BANDRD(A,x,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
@@ -206,6 +216,16 @@
       INTEGER,INTENT(IN):: n
             RETURN
       END SUBROUTINE mtx_broadcast_complex8
+
+      SUBROUTINE mtx_gather_integer(idata,itot,ntot)
+
+      INTEGER,INTENT(IN):: idata
+      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+
+      itot=idata
+      RETURN
+      END SUBROUTINE mtx_gather_integer
 
       SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
 

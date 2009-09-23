@@ -11,6 +11,7 @@
       PUBLIC mtx_add_source
       PUBLIC mtx_set_vector
       PUBLIC mtx_add_vector
+      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
@@ -21,6 +22,7 @@
       PUBLIC mtx_broadcast_integer
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
+      PUBLIC mtx_gather_integer
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
@@ -116,7 +118,7 @@
       call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
       rank_=rank
       size_=size
-      if(rank.eq.0) write(6,'(A,I10)') '# mtx_initialize: size=',size
+!      if(rank.eq.0) write(6,'(A,I10)') '# mtx_initialize: size=',size
       return
 
       END SUBROUTINE mtx_initialize
@@ -171,13 +173,13 @@
       do i=0,size-1
          isiz(i)=iendx(i)-istartx(i)
       enddo
-      if(rank.eq.0) then
-         write(6,'(A)') '# mtx_setup: '
-         do i=0,size-1
-            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=',
-     &           i,istartx(i)+1,iendx(i),isiz(i)
-         enddo
-      endif
+!      if(rank.eq.0) then
+!         write(6,'(A)') '# mtx_setup: '
+!         do i=0,size-1
+!            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=',
+!     &           i,istartx(i)+1,iendx(i),isiz(i)
+!         enddo
+!      endif
 
 !  Create linear solver context
 
@@ -215,6 +217,8 @@
       REAL(8),INTENT(IN):: v ! value to be inserted
 
       call VecSetValues(b,ione,j-1,v,ADD_VALUES,ierr)
+      call VecAssemblyBegin(b,ierr)
+      call VecAssemblyEnd(b,ierr)
       return
       END SUBROUTINE mtx_add_source
       
@@ -230,10 +234,17 @@
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
-      call VecSetValues(x,ione,j-1,v,ADD_VALUES,ierr)
+      call VecAssemblyBegin(x,ierr)
       return
       END SUBROUTINE mtx_add_vector
-      
+
+      SUBROUTINE mtx_split_operation
+      call VecAssemblyBegin(b,ierr)
+      call VecAssemblyEnd(b,ierr)
+      call VecAssemblyBegin(x,ierr)
+      call VecAssemblyEnd(x,ierr)
+      return
+      END SUBROUTINE mtx_split_operation
       SUBROUTINE mtx_solve(itype,tolerance,its)
       INTEGER,INTENT(IN):: itype     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
@@ -428,6 +439,18 @@
 
       RETURN
       END SUBROUTINE mtx_broadcast_complex8
+
+      SUBROUTINE mtx_gather_integer(idata,itot,ntot)
+
+      INTEGER,INTENT(IN):: idata
+      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+
+      call MPI_GATHER(idata,1,MPI_INTEGER,
+     &                itot,1,MPI_INTEGER,
+     &                0,PETSC_COMM_WORLD,ierr)
+      RETURN
+      END SUBROUTINE mtx_gather_integer
 
       SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
 
