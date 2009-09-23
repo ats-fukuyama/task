@@ -23,8 +23,13 @@
       PUBLIC mtx_cleanup
       PUBLIC mtx_finalize
       PUBLIC mtx_barrier
+      PUBLIC mtx_broadcast_character
       PUBLIC mtx_broadcast_integer
       PUBLIC mtx_broadcast_real8
+      PUBLIC mtx_broadcast_complex8
+      PUBLIC mtx_allgather_integer
+      PUBLIC mtx_gatherv_real8
+      PUBLIC mtx_allgatherv_real8
       PRIVATE
 
       INTEGER:: imax,jmax,joffset,ierr
@@ -178,16 +183,68 @@
       RETURN
       END SUBROUTINE mtx_barrier
 
-      SUBROUTINE mtx_broadcast_integer(data,n)
-      INTEGER,DIMENSION(n),INTENT(INOUT):: data
+      SUBROUTINE mtx_broadcast_character(kdata,n)
+      CHARACTER(LEN=n),INTENT(INOUT):: kdata
+      INTEGER,INTENT(IN):: n      
+      RETURN
+      END SUBROUTINE mtx_broadcast_character
+
+      SUBROUTINE mtx_broadcast_integer(idata,n)
+      INTEGER,DIMENSION(n),INTENT(INOUT):: idata
       INTEGER,INTENT(IN):: n      
       RETURN
       END SUBROUTINE mtx_broadcast_integer
 
-      SUBROUTINE mtx_broadcast_real8(data,n)
-      REAL(8),DIMENSION(n),INTENT(INOUT):: data
+      SUBROUTINE mtx_broadcast_real8(vdata,n)
+      REAL(8),DIMENSION(n),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n
             RETURN
       END SUBROUTINE mtx_broadcast_real8
+
+      SUBROUTINE mtx_broadcast_complex8(vdata,n)
+      COMPLEX(8),DIMENSION(n),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: n
+            RETURN
+      END SUBROUTINE mtx_broadcast_complex8
+
+      SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
+
+      INTEGER,INTENT(IN):: idata
+      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+
+      itot=idata
+      RETURN
+      END SUBROUTINE mtx_allgather_integer
+
+      SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
+
+      INTEGER,INTENT(IN):: ndata
+      INTEGER,INTENT(INOUT):: ntot
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,DIMENSION(1):: ilena,iposa
+      INTEGER:: n
+
+      DO n=1,ndata
+         vtot(n)=vdata(n)
+      ENDDO
+      RETURN
+      END SUBROUTINE mtx_gatherv_real8
+
+      SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
+
+      INTEGER,INTENT(IN):: ndata
+      INTEGER,INTENT(INOUT):: ntot
+      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
+      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
+      INTEGER,DIMENSION(1):: ilena,iposa
+      INTEGER:: n
+
+      DO n=1,ndata
+         vtot(n)=vdata(n)
+      ENDDO
+      RETURN
+      END SUBROUTINE mtx_allgatherv_real8
 
       END MODULE libmtx
