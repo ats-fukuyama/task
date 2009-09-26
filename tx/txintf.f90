@@ -35,8 +35,9 @@ module tx_interface
   !****************!
 
   interface
-     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
+     subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
        real(8), dimension(*), intent(in) :: dNedr,dNidr,dTedr,dTidr,dQdr
+       real(8), dimension(*), intent(out), optional :: gamma
      end subroutine txmmm95
   end interface
 
@@ -199,6 +200,14 @@ module tx_interface
        real(8), intent(in) :: x, mu, sigma
        integer(4), intent(in), optional :: norm
      end function fgaussian
+  end interface
+
+  interface
+     pure real(8) function moving_average(i,f,imax,iend)
+       integer(4), intent(in) :: i, imax
+       integer(4), intent(in), optional :: iend
+       real(8), dimension(0:imax), intent(in) :: f
+     end function moving_average
   end interface
 
   !****************!

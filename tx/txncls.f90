@@ -191,12 +191,13 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
-       &               dTedr,dTidr,dPedr,dPidr,dErdr,dBthdr,IER,dErdr0,dBthdr0)
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,Nue2NC,Nui2NC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
+       &               dTedr,dTidr,dPedr,dPidr,IER,dErdr,dBthdr,dErdr0,dBthdr0,p_gr2phi_in)
 !****************************************************************************
 !
 !  Input : NR,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
-!  Output: NueNC,NuiNC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
+!          (optional) dErdr0,dBthdr0
+!  Output: NueNC,NuiNC,Nue2NC,Nui2NC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
 !
 !****************************************************************************
 !
@@ -279,9 +280,10 @@ contains
     INCLUDE 'txncls.inc'
     INTEGER(4), INTENT(IN)  :: NR
     INTEGER(4), INTENT(OUT) :: IER
-    real(8), intent(in)  :: dTedr,dTidr,dPedr,dPidr,dErdr,dBthdr
-    real(8), intent(in), optional :: dErdr0,dBthdr0
-    REAL(8), INTENT(OUT) :: NueNC, NuiNC, ETAout, JBSout
+    real(8), intent(in)  :: dTedr,dTidr,dPedr,dPidr
+    real(8), intent(in), optional :: dErdr,dBthdr,dErdr0,dBthdr0
+    real(4), intent(in), optional :: p_gr2phi_in
+    REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check, im, iz, model
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
@@ -300,8 +302,8 @@ contains
 
 !!$    PAL = 12.D0
 !!$    PZL = 6.D0
-    PAL = 56.D0
-    PZL = 18.D0
+    PAL = 56.D0 ! Fe
+    PZL = 18.D0 ! Fe
 
     !     *** Initialization ***
 
@@ -334,13 +336,13 @@ contains
     m_z      = INT(PZMAX)
     c_den    = 1.E10
     !  *** Potate orbit factors ****************
-    c_potb   = SNGL(RKAP*BphV(0)/(2.D0*Q(0)**2))
-    c_potl   = SNGL(Q(0)*RR)
+    c_potb   = REAL(RKAP*BphV(0)/(2.D0*Q(0)**2))
+    c_potl   = REAL(Q(0)*RR)
     !  *****************************************
 
-    amu_i(1) = SNGL(AME/AMP)
-    amu_i(2) = SNGL(PA)
-    IF(Zeff > 1.D0) amu_i(3) = SNGL(PAL)
+    amu_i(1) = REAL(AME/AMP)
+    amu_i(2) = REAL(PA)
+    IF(Zeff > 1.D0) amu_i(3) = REAL(PAL)
 
     !***** !! IMPORTANT !! **********************************************!
     !  When NR == 0, the values are evaluated at the position            !
@@ -355,9 +357,18 @@ contains
        PTeVL = PTeV(NR) ; PTiVL = PTiV(NR)
        PNeVL = PNeV(NR) ; PNiVL = PNiV(NR)
        PeVL  = PeV (NR) ; PiVL  = PiV (NR)
-       dErdrL = dErdr   ; dBthdrL = dBthdr
        dTedrL = dTedr   ; dTidrL  = dTidr
        dPedrL = dPedr   ; dPidrL  = dPidr
+       if(present(dErdr)) then
+          dErdrL = dErdr
+       else
+          dErdrL = 0.D0
+       end if
+       if(present(dBthdr)) then
+          dBthdrL = dBthdr
+       else
+          dBthdrL = 0.D0
+       end if
     ELSE
        RL    = 0.5D0 * R(NR+1)
        BphVL = 0.5D0 *(BphV(NR) + BphV(NR+1)) ; BthVL = 0.5D0 * BthV(NR+1)
@@ -368,29 +379,38 @@ contains
        PeVL  = 0.5D0 *(PeV (NR) + PeV (NR+1)) ; PiVL  = 0.5D0 *(PiV (NR) + PiV (NR+1))
        dTedrL = 0.5D0 * dTedr   ; dTidrL  = 0.5D0 * dTidr
        dPedrL = 0.5D0 * dPedr   ; dPidrL  = 0.5D0 * dPidr
-       dErdrL = 0.5D0 *(dErdr + dErdr0) ; dBthdrL = 0.5D0 *(dBthdr + dBthdr0)
+       if(present(dErdr)) then
+          dErdrL = 0.5D0 *(dErdr + dErdr0)
+       else
+          dErdrL = 0.D0
+       end if
+       if(present(dBthdr)) then
+          dBthdrL = 0.5D0 *(dBthdr + dBthdr0)
+       else
+          dBthdrL = 0.D0
+       end if
     END IF
 
     BBL   = SQRT(BphVL**2 + BthVL**2)
     EpsL  = RL / RR
-    p_b2  = SNGL(BBL**2)
-    p_bm2 = SNGL(1.D0 / BBL**2)
+    p_b2  = REAL(BBL**2)
+    p_bm2 = REAL(1.D0 / BBL**2)
 
-    p_eb  = SNGL(EphVL*BphVL + EthVL*BthVL)
-!    p_eb  = SNGL(EphV*BphV)
+    p_eb  = REAL(EphVL*BphVL + EthVL*BthVL)
+!    p_eb  = REAL(EphV*BphV)
 !!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeVL*1.D20)/(PTeVL))
 !!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiVL*SQRT(2.D0*PNiVL*1.D20*PZ**2/PTiVL))
 !!$    CALL SAUTER(PNeVL,PTeVL,dTedrL,dPedrL,PNiVL,PTiVL,dTidrL,dPidrL, &
 !!$         &      QL,BphVL,RR*RA*BthVL,RR*BphVL,EpsL,RR,PZ,Zeff,ft(nr), &
 !!$         &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),JBS=AJBSL,ETA=ETAL)
 !!$    IF(NR == 0) AJBSL = 0.D0
-!!$    p_eb  = SNGL(ETAL*(( (-   AEE*PNeVL*UephV(NR) &
+!!$    p_eb  = REAL(ETAL*(( (-   AEE*PNeVL*UephV(NR) &
 !!$         &                +PZ*AEE*PNiVL*UiphV(NR) &
 !!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
 !!$         &              +(-   AEE*PNeVL*UethV(NR) &
 !!$         &                +PZ*AEE*PNiVL*UithV(NR) &
 !!$         &                +PZ*AEE*PNbV(NR)*UbthV(NR))*BthVL)*1.D20-AJBSL*BBL))
-!!$    p_eb = SNGL(ETAL*( (-   AEE*PNeVL*UephV(NR) &
+!!$    p_eb = REAL(ETAL*( (-   AEE*PNeVL*UephV(NR) &
 !!$         &              +PZ*AEE*PNiVL*UiphV(NR) &
 !!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
 !!$         &            +(-   AEE*PNeVL*UethV(NR) &
@@ -403,49 +423,55 @@ contains
 !!$       p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
 !!$       p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
 !!$       p_fhat3 = BphV(NR+3)/(RA*BthV(NR+3))
-!!$       p_fhat  = SNGL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
+!!$       p_fhat  = REAL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
 !!$    ELSE
-       p_fhat  = SNGL(BphVL/(RA*BthVL))
+       p_fhat  = REAL(BphVL/(RA*BthVL))
 !!$    END IF
 
     !  Approximation inverse aspect ratio at the magnetix axis
 !!$    IF(NR == 0) EpsL = 0.01D0*R(NR+1)/RR
-    IF(SNGL(EpsL) > 0.0) THEN
+    IF(REAL(EpsL) > 0.0) THEN
        ! poloidal moments of geometric factor for PS viscosity
        DO i=1,3
-          p_fm(i)=SNGL(DBLE(i)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
+          p_fm(i)=REAL(DBLE(i)*( (1.D0-SQRT(1.D0-EpsL**2))/EpsL)**(2*i) &
                &                *(1.D0+DBLE(i)*SQRT(1.D0-EpsL**2))/((1.D0-EpsL**2)**1.5D0 &
                &                *(QL*RR)**2))
        ENDDO
     ENDIF
-!!    p_fm(1:3) = 0.0 ! No Pfirsch-Shulter viscosity
-    p_ft=SNGL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
+!!    p_fm(1:3) = 0.0 ! No Pfirsch-Schulter viscosity
+    p_ft=REAL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
-    p_grbm2   = SNGL(1.D0/RA**2)
-    p_grphi   = SNGL(-RA*ErVL)
-!    p_gr2phi  = SNGL(-RA**2*dErdrL) ! Orbit squeezing
+    p_grbm2   = REAL(1.D0/RA**2)
+    p_grphi   = REAL(-RA*ErVL)
+!    p_gr2phi  = REAL(-RA**2*dErdrL) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
-!!$    if(nr == 0) then
-!!$       p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
-!!$    else
-       p_gr2phi  = SNGL(-RA**2*dErdrL+RA**2*ErVL*dBthdrL/BthVL)
-!!$    end if
-    p_ngrth   = SNGL(BphVL/(RR*QL*BBL))
-    temp_i(1) = SNGL(PTeVL)
-    temp_i(2) = SNGL(PTiVL)
-    grt_i(1)  = SNGL(RA * dTedrL)
-    grt_i(2)  = SNGL(RA * dTidrL)
-    den_iz(1,1)       = SNGL(PNeVL) * 1.E20
-    den_iz(2,INT(PZ)) = SNGL(PNiVL) * 1.E20
-    grp_iz(1,1)       = SNGL(RA * dPedrL) * 1.E20
-    grp_iz(2,INT(PZ)) = SNGL(RA * dPidrL) * 1.E20
+    if(present(p_gr2phi_in)) then
+       p_gr2phi = p_gr2phi_in
+    else
+!!$       if(nr == 0) then
+!!$          p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
+!!$       else
+          p_gr2phi  = REAL(-RA**2*dErdrL+RA**2*ErVL*dBthdrL/BthVL)
+!!$          if(nt==ntmax)write(6,*) Rho(NR),-RA**2*dErdrL,RA**2*ErVL*dBthdrL/BthVL
+!!$          if(nr == 1) write(6,*) T_TX,p_gr2phi
+!!$       end if
+    end if
+    p_ngrth   = REAL(BphVL/(RR*QL*BBL))
+    temp_i(1) = REAL(PTeVL)
+    temp_i(2) = REAL(PTiVL)
+    grt_i(1)  = REAL(RA * dTedrL)
+    grt_i(2)  = REAL(RA * dTidrL)
+    den_iz(1,1)       = REAL(PNeVL) * 1.E20
+    den_iz(2,INT(PZ)) = REAL(PNiVL) * 1.E20
+    grp_iz(1,1)       = REAL(RA * dPedrL) * 1.E20
+    grp_iz(2,INT(PZ)) = REAL(RA * dPidrL) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
-       den_iz(2,INT(PZ))  = SNGL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiVL) * 1.E20
-       den_iz(3,INT(PZL)) = SNGL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiVL) * 1.E20
-       grp_iz(2,INT(PZ))  = SNGL(RA * dPidrL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = SNGL(RA * dPidrL * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+       den_iz(2,INT(PZ))  = REAL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiVL) * 1.E20
+       den_iz(3,INT(PZL)) = REAL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiVL) * 1.E20
+       grp_iz(2,INT(PZ))  = REAL(RA * dPidrL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = REAL(RA * dPidrL * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
 
     ! Even when NBI is activated, any external parallel force concerning NBI
@@ -465,13 +491,13 @@ contains
          &      chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
     IF(k_out >0 .and.k_out <= 7) THEN
-       p_eps = SNGL(RL/RR)
-       p_q   = SNGL(QL)
-       r0    = SNGL(RR)
-       a0    = SNGL(RA)
-       e0    = SNGL(1.D0)
-       bt0   = SNGL(BphV(0))
-       q0l   = SNGL(Q(0))
+       p_eps = REAL(RL/RR)
+       p_q   = REAL(QL)
+       r0    = REAL(RR)
+       a0    = REAL(RA)
+       e0    = REAL(1.D0)
+       bt0   = REAL(BphV(0))
+       q0l   = REAL(Q(0))
        CALL NCLASS_CHECK(6,NR, &
             &        k_out,k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
             &        p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
@@ -522,14 +548,20 @@ contains
     !   Neoclassical viscosity (so-called "Heuristic closure")
     !     T.A. Gianakon, S.E. Kruger, C.C. Hegna, PoP 9 (2002) 536, Eq.(12)
     !     D.D. Schnack, et al., PoP 13 (2006) 058103, Eqs.(11),(88) and (89)
-    NueNC = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeVL * 1.D20 * AME * BthVL**2)
-    NuiNC = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiVL * 1.D20 * AMI * BthVL**2)
+    NueNC  = FSNC * DBLE(p_b2 * ymu_s(1,1,1)) / (PNeVL * 1.D20 * AME * BthVL**2)  ! [/s]
+    NuiNC  = FSNC * DBLE(p_b2 * ymu_s(1,1,2)) / (PNiVL * 1.D20 * AMI * BthVL**2)  ! [/s]
+    Nue2NC = FSNC * DBLE(ymu_s(1,2,1)) * BphVL / (PNeVL * 1.D20 * AME * BthVL**2) ! [/Ts]
+    Nui2NC = FSNC * DBLE(ymu_s(1,2,2)) * BphVL / (PNiVL * 1.D20 * AMI * BthVL**2) ! [/Ts]
 
     !   Neoclassical thermal diffusivity (Diagonal effect only)
     ChiNCpel = ChiNC * DBLE(chip_ss(1,1))
     ChiNCtel = ChiNC * DBLE(chit_ss(1,1))
     ChiNCpil = ChiNC * DBLE(chip_ss(2,2))
     ChiNCtil = ChiNC * DBLE(chit_ss(2,2))
+    if(ChiNCpel < 0.d0) ChiNCpel = 0.d0
+    if(ChiNCtel < 0.d0) ChiNCtel = 0.d0
+    if(ChiNCpil < 0.d0) ChiNCpil = 0.d0
+    if(ChiNCtil < 0.d0) ChiNCtil = 0.d0
 
 !!$    !   Now not using
 !!$       DO i=1,m_s

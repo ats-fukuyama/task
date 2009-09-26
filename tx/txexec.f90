@@ -13,12 +13,12 @@ contains
 !***************************************************************
 
   SUBROUTINE TXEXEC
-    use tx_commons, only : IERR, T_TX
+    use tx_commons, only : IERR, T_TX, AVE_IC
     use tx_interface, only : APTOS
 
-    INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3
+    INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3, NSTR4
     REAL(4) :: gCTIME1, gCTIME2, gCTIME3
-    character(len=10) :: STR1, STR2, STR3
+    character(len=10) :: STR1, STR2, STR3, STR4
     INTEGER(4), DIMENSION(1:8) :: TIMES
     real(8) :: t_interval
 
@@ -44,12 +44,15 @@ contains
     NSTR1 = 0
     CALL APTOS(STR1, NSTR1, gCTIME3, 'F2')
     NSTR2 = 0
-    CALL APTOS(STR2, NSTR2, SNGL(t_interval), 'E1')
+    CALL APTOS(STR2, NSTR2, REAL(t_interval), 'E1')
     IF(gCTIME3 /= 0) THEN
        NSTR3 = 0
-       CALL APTOS(STR3, NSTR3, SNGL(t_interval) / gCTIME3 * 100, 'F5')
+       CALL APTOS(STR3, NSTR3, REAL(t_interval) / gCTIME3 * 100, 'F3')
+       NSTR4 = 0
+       CALL APTOS(STR4, NSTR4, REAL(AVE_IC),'F2')
        WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
-            &     'sim time = ', STR2(1:NSTR2), ' (sec)', '  (', STR3(1:NSTR3), '%)'
+            &     'sim time = ', STR2(1:NSTR2), ' (sec)', '  (', STR3(1:NSTR3), '%)  ', &
+            &     'ICave = ', STR4(1:NSTR4)
     ELSE
        WRITE(6,*) 'CPU = ', STR1(1:NSTR1), ' (sec)   ',  &
             &     'sim time = ', STR2(1:NSTR2), ' (sec)'
@@ -70,11 +73,11 @@ contains
 
   SUBROUTINE TXLOOP
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
-         &                 PNeV, PTeV, PNeV_FIX, PTeV_FIX, PNiV, PTiV, PNiV_FIX, PTiV_FIX, &
-         &                 NQM, IERR, LQb1, LQn1, LQr1, &
+         &                 PNeV, PTeV, PNiV, PTiV, ErV, PNeV_FIX, PTeV_FIX, PNiV_FIX, &
+         &                 PTiV_FIX, ErV_FIX, NQM, IERR, LQb1, LQn1, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
-         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT
+         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT, AVE_IC
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
@@ -82,7 +85,7 @@ contains
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
-    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID, IERR_LA
+    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID, IERR_LA, ICSUM
 !LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
     real(8), dimension(1:NQMAX) :: tiny_array
@@ -107,6 +110,7 @@ contains
     END IF
     TIME0 = T_TX
     IF(NTMAX /= 0) DIP = (rIPe - rIPs) / NTMAX
+    ICSUM = 0
 
     ! Save X -> XP -> XOLD for BDF only at the beginning of the calculation
     IF(IGBDF /= 0 .and. (T_TX == 0.D0 .OR. ICONT /= 0)) &
@@ -143,6 +147,7 @@ contains
              PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
              PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
              PTiV_FIX(0:NRMAX) = PTiV(0:NRMAX)
+             ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
           END IF
 
           CALL TXCALC
@@ -392,10 +397,12 @@ contains
           EXIT L_IC
        END DO L_IC
 
+       ICSUM = ICSUM + IC
+
        ! Save past X for BDF
        IF(IGBDF /= 0) THEN
           XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
-          CALL TXCALV(XOLD,0)
+          CALL TXCALV(XOLD,IGBDF)
        END IF
 
        IF(IDIAG >= 2) THEN
@@ -412,14 +419,13 @@ contains
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 
-!!$       do nr=0,nrmax
-!!$          do nq=1,nqmax
-!!$             write(6,*) nr,nq,x(nq,nr)
-!!$          end do
-!!$       end do
-
        ! Calculate mesh and coefficients at the next step
        CALL TXCALV(X)
+!!$       PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
+!!$       PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
+!!$       PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
+!!$       PTiV_FIX(0:NRMAX) = PTiV(0:NRMAX)
+!!$       ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
        CALL TXCALC
 
        IF(IDIAG == 0 .OR. IDIAG == 2) THEN
@@ -439,12 +445,12 @@ contains
 
        IF (MOD(NT, NGTSTP) == 0) THEN
           CALL TXGLOB
-          CALL TXSTGT(SNGL(T_TX))
+          CALL TXSTGT(REAL(T_TX))
           call txstgq !!!temporary
           if(IDIAG < 0) call steady_check
        END IF
 
-       IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(SNGL(T_TX))
+       IF (MOD(NT, NGVSTP) == 0) CALL TXSTGV(REAL(T_TX))
 
        IF (MOD(NT, NTMAX ) == 0) CALL TXSTGQ
 
@@ -457,6 +463,7 @@ contains
     rIPs = rIPe
 
     WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+    AVE_IC = REAL(ICSUM) / REAL(NTMAX)
 
     deallocate(BA,BL,BX)
     IF(MDSOLV == 1) deallocate(XNvec,FL,FLP,DltXN,DltXP,BAE)
@@ -745,10 +752,10 @@ contains
         &  XL(LQb1,NR) < 0.D0 .OR. XL(LQr1,NR) < 0.D0) THEN
           WRITE(6,'(2A,I4,2(A,I4),A)') '### ERROR(TXLOOP) : Negative density at ', &
                &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
-          WRITE(6,'(1X,4(A,1PE10.3))') 'ne =', SNGL(XL(LQe1,NR)), &
-               &                    ',   ni =', SNGL(XL(LQi1,NR)), &
-               &                    ',   nb =', SNGL(XL(LQb1,NR)), &
-               &                    ', nbrp =', SNGL(XL(LQr1,NR))
+          WRITE(6,'(1X,4(A,1PE10.3))') 'ne =',  REAL(XL(LQe1,NR)), &
+               &                    ',   ni =', REAL(XL(LQi1,NR)), &
+               &                    ',   nb =', REAL(XL(LQb1,NR)), &
+               &                    ', nbrp =', REAL(XL(LQr1,NR))
           IER = 1
           RETURN
        END IF
@@ -758,8 +765,8 @@ contains
        IF (XL(LQe5,NR) < 0.D0 .OR. XL(LQi5,NR) < 0.D0) THEN
           WRITE(6,'(2A,I4,2(A,I4),A)') '### ERROR(TXLOOP) : Negative temperature at ', &
                &           'NR =', NR, ', NT=', NTL, ', IC=', IC, '.'
-          WRITE(6,'(20X,2(A,1PE15.7))') 'Te =', SNGL(XL(LQe5,NR)), &
-               &           ',   Ti =', SNGL(XL(LQi5,NR))
+          WRITE(6,'(20X,2(A,1PE15.7))') 'Te =', REAL(XL(LQe5,NR)), &
+               &           ',   Ti =', REAL(XL(LQi5,NR))
           IER = 2
           RETURN
        END IF

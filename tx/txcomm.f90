@@ -2,7 +2,7 @@ module tx_commons
   implicit none
   public
 
-  integer(4), parameter :: NRM=101, NEM=NRM, NQM=22, NCM=29, NGRM=20, &
+  integer(4), parameter :: NRM=101, NEM=NRM, NQM=22, NCM=30, NGRM=20, &
        &                   NGTM=5000, NGVM=5000, NGYRM=141, NGYTM=51, &
        &                   NGYVM=55, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
@@ -64,10 +64,10 @@ module tx_commons
   real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0
 
   ! Amplitude parameters for transport
-  real(8) :: FSCBKP, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL, FSCDIM
+  real(8) :: FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL, FSCDIM
   real(8) :: PROFD, PROFD1, PROFD2, PROFM, PROFM1, PROFC, PROFC1
-  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, rG1, FSRP, FSNF
-  real(8), dimension(1:3) :: FSDFIX, FSANOM
+  real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, FSNCPL, rG1, FSRP, FSNF
+  real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB
   integer(4) :: MDLC, MDANOM
 
   ! Scale lengths in SOL
@@ -76,7 +76,7 @@ module tx_commons
   ! Heat sources
   real(8) :: Eb, RNBP, RNBP0, RNBT1, RNBT2, RNBT10, RNBT20, PNBH, PNBHP, PNBHT1, PNBHT2, PNBHex, &
        &     PNBCD, PNBMPD, &
-       &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi, Tqi0
+       &     rNRFe, RRFew, RRFe0, PRFHe, rNRFi, RRFiw, RRFi0, PRFHi, Tqt0, Tqp0
   integer(4) :: MDLNBD, MDLMOM
 
   ! Neutral parameters
@@ -116,7 +116,7 @@ module tx_commons
   integer(4) :: MDSOLV
 
   !  Transport model
-  integer(4) :: MDLETA, MDFIXT, MDVAHL
+  integer(4) :: MDOSQZ, MDLETA, MDFIXT, MDVAHL, MDLETB
 
   !  Initial condition
   integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINIT
@@ -127,6 +127,7 @@ module tx_commons
 
   ! Configuration parameters
   integer(4) :: NT, NQMAX, IERR, ICONT, IRPIN
+  real(4) :: AVE_IC
   real(8) :: T_TX, TMAX
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
@@ -147,33 +148,36 @@ module tx_commons
        & RUethV, RUithV, PT01V, PT02V, PT03V, PNbrpV
 !!rp_conv       &, PNbrpLV
 
-  real(8), dimension(:), allocatable :: PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX
+  real(8), dimension(:), allocatable :: PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX, ErV_FIX
 
   ! Coefficients
   real(8), dimension(:), allocatable :: &
-       & rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, &
+       & rNuION, rNu0e, rNu0i, rNu0b, rNuL, rNuiCX, rNubCX, rNuiCXT, &
        & rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, rNuD, &
        & rNubrp1, rNubrp2, rNuei1, rNuei2, rNuei3, rNuei2Bth, &
        & rNube1, rNube2, rNube3, rNube2Bth, rNuLTe, rNuLTi, &
-       & rNueNC, rNuiNC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
+       & rNueNC, rNuiNC, rNue2NC, rNui2NC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWthe, FWthi, WPM, FVpch, rMue, rMui, rNuB, rNuLB, ft, &
-       & Chie, Chii, De, Di, wexb, VWpch, D01, D02, D03, &
+       & Chie, Chii, De, Di, VWpch, D01, D02, D03, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid,rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, FWahle, FWahli, &
-       & SiVizA, SiVcxA
-  real(8), dimension(:,:), allocatable :: deltam
+       & SiVizA, SiVcxA, wexb, Ys
+  real(8), dimension(:,:), allocatable :: deltam, gamITG
 
   ! Read Wnm table
   real(8), dimension(:),   allocatable :: Fmnq, Wnm
   real(8), dimension(:,:), allocatable :: Umnq
  
   ! CDBM
-  real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa, pres0
+  real(8), dimension(:), allocatable :: rG1h2, FCDBM, S, Alpha, rKappa
+
+  ! For numerical stability
+  real(8), dimension(:), allocatable :: pres0, ErV0
 
   ! CDIM
   ! 09/06/17~ miki_m
@@ -181,7 +185,7 @@ module tx_commons
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
-       &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, Tqi, &
+       &                                SNB, SNBe, SNBi, SNBb, SNBPDi, SNBTGi, Tqt, Tqp, &
        &                                PNBe, PNBi, MNB, PRFe, PRFi, &
        &                                POH, POHe, POHi, PEQe, PEQi, &
        &                                SiLC, SiLCth, SiLCph, PALFe, PALFi
@@ -256,7 +260,7 @@ contains
     integer(4) :: iflag, N, NS, NF
     integer(4), dimension(1:18) :: ierl
 
-    ierl(1:18) = 0
+    ierl(1:19) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -294,12 +298,14 @@ contains
        ier = sum(ierl) ; iflag = 2
        if (ier /= 0) exit
 
-       allocate(PNeV_FIX(0:N), PTeV_FIX(0:N), PNiV_FIX(0:N), PTiV_FIX(0:N),   stat = ierl(1))
+       allocate(PNeV_FIX(0:N), PTeV_FIX(0:N), PNiV_FIX(0:N), PTiV_FIX(0:N),   &
+            &   ErV_FIX(0:N),                                                 stat = ierl(1))
        ier = sum(ierl) ; iflag = 3
        if (ier /= 0) exit
 
        allocate(rNuION(0:N), rNu0e(0:N),  rNu0i(0:N), rNu0b(0:N), rNuL(0:N),  stat = ierl(1))
-       allocate(rNuiCX(0:N), rNubCX(0:N), rNuee(0:N), rNuei(0:N), rNuie(0:N), stat = ierl(2))
+       allocate(rNuiCX(0:N), rNubCX(0:N), rNuee(0:N), rNuei(0:N), rNuie(0:N), &
+            &   rNuiCXT(0:N),                                                 stat = ierl(2))
        allocate(rNuii(0:N),  rNuTei(0:N), rNube(0:N), rNubi(0:N), rNuD(0:N),  stat = ierl(3))
        allocate(rNubrp1(0:N),rNubrp2(0:N),rNuei1(0:N),rNuei2(0:N),rNuei3(0:N), &
             &   rNuei2Bth(0:N),                                               stat = ierl(4))
@@ -312,29 +318,30 @@ contains
        allocate(FWthe(0:N),  FWthi(0:N),  WPM(0:N),   FVpch(0:N), rMue(0:N),  &
             &   rMui(0:N),   FWahle(0:N), FWahli(0:N),                        stat = ierl(8))
        allocate(rNuB(0:N),   rNuLB(0:N),  ft(0:N),    Chie(0:N),  Chii(0:N),  stat = ierl(9))
-       allocate(De(0:N),     Di(0:N),     wexb(0:N),  VWpch(0:N), D01(0:N),   &
-            &   D02(0:N),    D03(0:N),                                        stat = ierl(10))
+       allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),    D02(0:N),  &
+            &   D03(0:N),               stat = ierl(10))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(11))
        allocate(FWthphe(0:N),FWthphi(0:N),rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),stat = ierl(12))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), DltRP_mid(0:N), &
             &   rNubL(0:N),                                                   stat = ierl(13))
        allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(14))
        allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(15))
-       allocate(deltam(0:NRMAX,0:M_POL_M),                                    stat = ierl(16))
+       allocate(deltam(0:N,0:M_POL_M),gamITG(0:N,1:3),                        stat = ierl(16))
        allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(17))
-       allocate(SiVizA(0:N), SiVcxA(0:N),                                     stat = ierl(18))
+       allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),  Ys(0:N),                stat = ierl(18))
+       allocate(rNue2NC(0:N),rNui2NC(0:N),                                    stat = ierl(19))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
        allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
-       allocate(rG1h2IM(0:N),  FCDIM(0:N),  OMEGAPR(0:N),  RAQPR(0:N),        stat = ierl(1)) !09/06/17 miki_m
-       allocate(pres0(0:N),                                                   stat = ierl(2))
+       allocate(rG1h2IM(0:N),  FCDIM(0:N),  OMEGAPR(0:N),  RAQPR(0:N),        stat = ierl(2)) !09/06/17 miki_m
+       allocate(pres0(0:N),  ErV0(0:N),                                       stat = ierl(3))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
 
        allocate(PNB(0:N),   PNBTG(0:N),PNBPD(0:N),PNBcol_e(0:N),PNBcol_i(0:N),stat = ierl(1))
        allocate(SNB(0:N),   SNBe(0:N),   SNBi(0:N),   SNBb(0:N),              stat = ierl(2))
-       allocate(SNBPDi(0:N),SNBTGi(0:N), Tqi(0:N),                            stat = ierl(3))
+       allocate(SNBPDi(0:N),SNBTGi(0:N), Tqt(0:N),    Tqp(0:N),               stat = ierl(3))
        allocate(PNBe(0:N),  PNBi(0:N),   MNB(0:N),    PRFe(0:N),  PRFi(0:N),  stat = ierl(4))
        allocate(POH(0:N),   POHe(0:N),   POHi(0:N),   PEQe(0:N),  PEQi(0:N),  stat = ierl(5))
        allocate(SiLC(0:N),  SiLCth(0:N), SiLCph(0:N), PALFe(0:N), PALFi(0:N), stat = ierl(6))
@@ -393,10 +400,10 @@ contains
     deallocate(AphV,   PhiV,   RAthV, PeV,   PiV)
     deallocate(RUethV, RUithV, PT01V, PT02V, PT03V, PNbrpV)
 
-    deallocate(PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX)
+    deallocate(PNeV_FIX, PTeV_FIX, PNiV_FIX, PTiV_FIX, ErV_FIX)
 
     deallocate(rNuION, rNu0e,  rNu0i, rNu0b, rNuL)
-    deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie)
+    deallocate(rNuiCX, rNubCX, rNuee, rNuei, rNuie, rNuiCXT)
     deallocate(rNuii,  rNuTei, rNube, rNubi, rNuD)
     deallocate(rNubrp1,rNubrp2,rNuei1,rNuei2,rNuei3,rNuei2Bth)
     deallocate(rNube1, rNube2, rNube3,rNuLTe,rNuLTi,rNube2Bth)
@@ -407,24 +414,25 @@ contains
     deallocate(FWthe,  FWthi,  WPM,   FVpch, rMue,  rMui, &
          &     FWahle, FWahli)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
-    deallocate(De,     Di,     wexb,  VWpch, D01,   D02,  D03)
+    deallocate(De,     Di,     VWpch, D01,   D02,  D03)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
     deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, DltRP_mid, rNubL)
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC,Vbpara)
     deallocate(Fmnq,   Wnm,    Umnq)
-    deallocate(deltam)
+    deallocate(deltam, gamITG)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
-    deallocate(SiVizA, SiVcxA)
+    deallocate(SiVizA, SiVcxA, wexb,  Ys)
+    deallocate(rNue2NC,rNui2NC)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
-    deallocate(pres0)
+    deallocate(pres0,  ErV0)
 
     deallocate(rG1h2IM, FCDIM, OMEGAPR, RAQPR)  !***miki_m 09/06/17~
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
     deallocate(SNB,    SNBe,  SNBi,  SNBb)
-    deallocate(SNBPDi, SNBTGi,Tqi)
+    deallocate(SNBPDi, SNBTGi,Tqt,   Tqp)
     deallocate(PNBe,   PNBi,  MNB,   PRFe,   PRFi)
     deallocate(POH,    POHe,  POHi,  PEQe,   PEQi)
     deallocate(SiLC,   SiLCth,SiLCph,PALFe,  PALFi)

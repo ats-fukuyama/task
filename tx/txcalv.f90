@@ -24,8 +24,12 @@ contains
     real(8) :: FCTR
 
     IF(present(ID)) THEN
-       ! The pres0 is the pressure evaluated at the previous time step.
-       pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+       IF(ID /= 0) THEN
+          ! The pres0 and ErV0 are the values evaluated at the previous time step
+          !   for Backward Differential Formula.
+          pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+          ErV0 (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,XL(LQm1,0:NRMAX),NRMAX,0)
+       END IF
        return
     END IF
 
@@ -132,7 +136,8 @@ contains
     Q(1:NRMAX) = ABS(R(1:NRMAX) * BphV(1:NRMAX) / (RR * BthV(1:NRMAX)))
     Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
 
-    pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+!!$    pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
+!!$    ErV0 (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,PhiV,NRMAX,0)
 
     PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
 
@@ -179,40 +184,47 @@ contains
 !
 !***************************************************************
 
-  SUBROUTINE TXCALC
+  SUBROUTINE TXCALC(IC)
 
     use tx_commons
-    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx, txmmm95
+    use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx, txmmm95, &
+         &                   moving_average, fgaussian
     use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
     use tx_ripple
+
+    integer(4), optional :: IC
 
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
     INTEGER(4) :: NR, NP, NR1, IER, i, nrl, ist, npower, ideriv = 1, nrbound
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
-         &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, &
+         &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, SL1, SL2, &
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
-         &     rGIC, rH, PROFML, PROFCL, PALFL, DCDBM, DeL, AJPH, AJTH, EPARA, Vcr, &
-         &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
+         &     rGIC, rH, Smod, PROFML, PROFCL, PALFL, DCDBM, fk, rkap, DeL, AJPH, AJTH, EPARA, &
+         &     Vcr, Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, &
+         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, cap_val, &
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ETASL, &
-         &     Tqi0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
+         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ETASL, Ln, LT, etai_chk, kthrhos, &
+         &     Tqt0L, Tqp0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
          &     rGCIM, DCDIM, rGIM, rHIM !, 09/06/17~ miki_m 
+    real(8), save :: Fcoef = 1.d0
+    real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
     real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
     real(8) :: DERIV3, AITKEN2P, deriv4
+    real(4), dimension(0:NRMAX) :: p_gr2phi
     real(8), dimension(0:NRMAX) :: pres, Vexbr, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
          &                         SRFe, SRFi, Ubpara
     ! For derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
-         &                                dPedr, dPidr, dpdr, dNedr, dNidr
+         &                                dPedr, dPidr, dpdr, dNedr, dNidr, dErdrS, ErVlc, &
+         &                                qr, dqr, dBph, Tqp_tmp
 
     !     *** Constants ***
 
@@ -266,6 +278,8 @@ contains
     IF(PNBHP /= 0.D0) THEN
        CALL deposition_profile(SNBP,SL,RNBP0,RNBP,'NB')
        PNBP0 = PNBHP * 1.D6 / (2.D0 * Pi * RR * SL)
+       PNBPi0 = PNBP0
+       SNBPDi(0:NRMAX) = SNBP(0:NRMAX)
 
        IF(MDLNBD /= 0) THEN ! Orbit effect
           ! For ions
@@ -518,11 +532,32 @@ contains
        PALFe(NR) = PALFL - PALFi(NR)
     end do
 
+    !   Virtual torque input to LQi3 without net torque
+
+    if(Tqp0 /= 0.d0) then
+       allocate(Tqp_tmp(0:NRMAX))
+       do nr = 0, nrmax
+          Tqp(nr) = Tqp0 * fgaussian(Rho(nr),0.6d0,0.02d0)
+       end do
+       SL1 = 2.D0 * PI * INTG_F(Tqp)
+       do nr = 0, nrmax
+          Tqp_tmp(nr) = Tqp0 * fgaussian(Rho(nr),0.7d0,0.02d0)
+       end do
+       SL2 = 2.D0 * PI * INTG_F(Tqp_tmp)
+       do nr = 0, nrmax
+          Tqp(nr) = Tqp(nr) - (SL1 / SL2) * Tqp_tmp(nr)
+       end do
+!!for_check       SL = 2.D0 * PI * INTG_F(Tqp)
+       deallocate(Tqp_tmp)
+    else
+       Tqp(0:NRMAX) = 0.d0
+    end if
+
     !   Virtual torque input to LQi4
 
-    CALL deposition_profile(Tqi,SL,0.d0,0.d0,'Virtual')
-    Tqi0L = Tqi0 / (2.D0 * Pi * RR * SL)
-    Tqi(0:NRMAX) = Tqi0L * Tqi(0:NRMAX)
+    CALL deposition_profile(Tqt,SL,0.d0,0.d0,'Virtual')
+    Tqt0L = Tqt0 / (2.D0*Pi*RR*2.D0*Pi*SL) ! Tqt0 [N m], Tqt0L [N/m^2]
+    Tqt(0:NRMAX) = Tqt0L * Tqt(0:NRMAX)
 
     ! ************** Heating part end **************
 
@@ -532,13 +567,19 @@ contains
     !   In order to suppress oscillation of the pressure in the direction of time, 
     !      we take the average between pres and pres0, evaluated at the previous time step,
     !      when differentiating the pressure with respect to psi.
+    !   In addition, during iteration, pres is fixed.
+    !   This holds true with the radial electric field, ErV, if one prefers.
 
     pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
          &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
     IF(maxval(FSANOM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
-    Vexbr(0)       = 0.d0
-    Vexbr(1:NRMAX) = ErV(1:NRMAX) &
-         &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
+
+    allocate(ErVlc(0:NRMAX))
+    ErVlc(0:NRMAX) = 0.5d0 * (ErV_FIX(0:NRMAX) + ErV0(0:NRMAX))
+
+!    Vexbr(0)       = 0.d0
+!    Vexbr(1:NRMAX) = ErVlc(1:NRMAX) &
+!         &         / (R(1:NRMAX) * SQRT(BphV(1:NRMAX)**2 + BthV(1:NRMAX)**2))
 
     IF(PROFM == 0.D0 .AND. FSDFIX(2) /= 0.D0) THEN
        PROFML = (PTeV(NRA) * rKeV / (16.D0 * AEE * &
@@ -574,12 +615,13 @@ contains
     !          parameters (ex. radial electric field, poloidal magnetic field) should be
     !          directly calculated.
 
-    allocate(dQdr(0:NRMAX),dVebdr(0:NRMAX),dErdr(0:NRMAX),dBthdr(0:NRMAX))
+    allocate(dQdr(0:NRMAX),dVebdr(0:NRMAX),dErdr(0:NRMAX),dBthdr(0:NRMAX),dErdrS(0:NRMAX))
     allocate(dTedr(0:NRMAX),dTidr(0:NRMAX),dPedr(0:NRMAX),dPidr(0:NRMAX),dpdr(0:NRMAX), &
          &   dNedr(0:NRMAX),dNidr(0:NRMAX))
     dQdr  (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,Q    ,NRMAX,0)
-    dVebdr(0:NRMAX) =                     dfdx(R  ,Vexbr,NRMAX,0)
-    dErdr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,ErV  ,NRMAX,0)
+!    dVebdr(0:NRMAX) =                     dfdx(R  ,Vexbr,NRMAX,0)
+!    dErdr (0:NRMAX) =                     dfdx(R  ,ErV  ,NRMAX,0)
+    dErdr (0:NRMAX) =                     dfdx(R  ,ErVlc,NRMAX,0)
     dBthdr(0:NRMAX) =                     dfdx(R  ,BthV ,NRMAX,0)
     dTedr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PTeV ,NRMAX,0)
     dTidr (0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PTiV ,NRMAX,0)
@@ -591,9 +633,32 @@ contains
 
 !!D02    write(6,'(F8.5,I4,2F11.6)') T_TX,NRB,Rho(NRB),PT02V(NR)
 
+    !  Smoothing Er gradient for numerical stability
+    do NR = 0, NRMAX
+       dErdrS(NR) = moving_average(NR,dErdr,NRMAX,NRA)
+!       if(nr < 9) write(6,'(I4,5F15.7)') NT,Rho(nr),ErV(NR),ErVlc(NR),dErdrS(NR)
+    end do
+!!$    !  Double smoothing
+!!$    do NR = 0, NRMAX
+!!$       dErdr(NR) = moving_average(NR,dErdrS,NRMAX,NRA)
+!!$    end do
+!!$    dErdrS(0:NRMAX) = dErdr(0:NRMAX)
+
     ! Calculate CDIM coefficient
     RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * &  ! cf. txcalv.f90 L501
          &     dfdx (PSI(0:NRMAX) , (R(0:NRMAX) / RA)**4 / Q(0:NRMAX) , NRMAX , 0)
+
+    ! Orbit squeezing effect for NCLASS
+    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
+       p_gr2phi(0)  = 0.0
+       IF(MDOSQZ == 2) THEN
+          DO NR = 1, NRMAX
+             p_gr2phi(NR)  = REAL(-RA**2*dErdrS(NR)+RA**2*ErVlc(NR)*dBthdr(NR)/BthV(NR))
+          END DO
+       ELSE
+          p_gr2phi(1:NRMAX) = 0.0
+       END IF
+    END IF
 
     !  Coefficients
 
@@ -700,7 +765,9 @@ contains
 !old            & / (1.D0 + 0.1112D-14 * (PTiV(NR)*1.D3)**3.3d0) ! in m^2
 !old       Vave = SQRT(8.D0 * PTiV(NR) * rKeV / (PI * AMI))
 !old       rNuiCX(NR) = FSCX * Scxi * Vave * (PN01V(NR) + PN02V(NR)) * 1.D20
-       rNuiCX(NR) = FSCX * SiVcxA(NR) * PN0tot
+       rNuiCX(NR)  = FSCX * SiVcxA(NR) * PN0tot
+       !  For thermal loss by charge exchange
+       rNuiCXT(NR) = FSCX * SiVcxA(NR) * PN01V(NR) * 1.D20
 
        !  For beam ions
        !     (C.E. Singer et al., Comp. Phys. Comm. 49 (1988) 275, p.323, B163)
@@ -768,16 +835,23 @@ contains
        !     *** Parallel neoclassical viscosity ***
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
-          IF(NR == 0) THEN
-             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
+          IF(MDOSQZ == 0 .OR. MDOSQZ == 2) THEN
+             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
                   &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-                  &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1), &
-                  &         dErdr(NR+1),dBthdr(NR+1),IER,dErdr(0),dBthdr(0))
-          ELSE
-             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),ETA2(NR),AJBS2(NR), &
-                  &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-                  &         dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR), &
-                  &         dErdr(NR),dBthdr(NR),IER)
+                  &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1),IER, &
+                  &         p_gr2phi_in=p_gr2phi(NR))
+          ELSE IF(MDOSQZ == 1) THEN
+             IF(NR == 0) THEN
+                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
+                     &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+                     &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1),IER, &
+                     &         dErdrS(NR+1),dBthdr(NR+1),dErdrS(0),dBthdr(0))
+             ELSE
+                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
+                     &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
+                     &         dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER, &
+                     &         dErdrS(NR),dBthdr(NR))
+             END IF
           END IF
 !!$          if(nr == 0) then
 !!$             write(6,*) 0.5d0*Rho(nr+1),rNueNC(NR),ChiNCpe(NR)
@@ -827,9 +901,9 @@ contains
        !     &               * (1 + EpsL**1.5D0 * rNuAsI)
        !     &               / (1 + 1.44D0
        !     &                      * ((EpsL**1.5D0 * rNuAsI)**2
-       !     &                         + ( ErV(NR)
+       !     &                         + ( ErVlc(NR)
        !     &                             / ( Vti * BthV(NR)) )**2))
-       !!     &                         + ( ErV(NR) * BBL
+       !!     &                         + ( ErVlc(NR) * BBL
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
 
           ENDIF
@@ -905,7 +979,7 @@ contains
              QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
              Bthl = BB*R(NR)/(QL*RR)
              BLinv=BB/Bthl
-             omegaer=ErV(NR)/(BB*R(NR))
+             omegaer=ErVlc(NR)/(BB*R(NR))
           ENDIF
           omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
           omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
@@ -961,20 +1035,29 @@ contains
           rKappa(NR) = FSCBKP * (- R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2))
           ! Calculate CDBM coefficient
           FCDBM(NR) = TRCOFS(S(NR),Alpha(NR),rKappa(NR))
-          ! ExB rotational shear
+          ! ExB rotational shear 
+          !  e.g. [A.Fukuyama et al PPCF 38 (1996) 1319]
           IF(NR == 0) THEN
              rH = 0.D0
+             rG1h2(NR) = 1.D0
           ELSE
-             rH = Q(NR) * RR * R(NR) * dVebdr(NR) / (Va * S(NR))
+             IF(S(NR) /= 0.D0) THEN
+                Smod = sqrt(S(NR)**2 + 0.1d0**2) ! To avoid that S(NR) becomes zero.
+                rH = (Q(NR) * RR / Va) / (Smod * BBL) * dErdrS(NR)
+                ! Turbulence suppression by ExB shear
+                rG1h2(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rH**2))
+             ELSE
+                rG1h2(NR) = 0.D0
+             END IF
           END IF
-          ! Turbulence suppression by ExB shear
-          rG1h2(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rH**2))
+          ! Elongation effect (M.Honda and A.Fukuyama, NF 46 (2006) 580)
+          fk = (2.D0*SQRT(FSCBEL)/(1.D0+FSCBEL**2))**1.5D0
 
           ! Turbulent transport coefficient calculated by CDBM model
-          DCDBM = rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
+          DCDBM = fk * rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
                &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
           !DCDBM = MAX(DCDBM,1.D-05)
-          IF(Rho(NR) == 1.D0) DCDBMA = DCDBM 
+          IF(Rho(NR) == 1.D0) DCDBMA = DCDBM
        ELSE
           rG1h2(NR)  = 0.D0
           FCDBM(NR)  = 0.D0
@@ -1011,7 +1094,7 @@ contains
              rGIM = 1.04D0 * R(NR)**2.D0 / ( dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2) &
                   &                         * OMEGAPR(NR)**2.D0 * RA**2.D0 * RR**2.D0 )
 !             rHIM = Q(NR) * RR * R(NR)**2.D0 * dVebdr(NR) / (Va * RA)
-             rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdr(NR) / BBL
+             rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdrS(NR) / BBL
           END IF
 
           ! Turbulence suppression by ExB shear for CDIM mode
@@ -1045,6 +1128,7 @@ contains
        IF (RHO(NR) < RhoSOL) THEN
 !          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSANOM(1) * DCDBM
           DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.07d0) &
+!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.125d0) &
                & + FSANOM(1) * DCDBM + FSCDIM * DCDIM
        ELSE
           IF(FSPCLD == 0.D0) THEN
@@ -1064,6 +1148,10 @@ contains
 !!$          DeL = FSDFIX(1) * PROFD + FSANOM(1) * DCDBM + FSCDIM * DCDIM
        END IF
        ! Particle diffusivity
+!!$       if(rho(nr) > 0.7d0) then
+!!$          DeL = DeL * (-5.d0/3.d0*Rho(NR)+13.d0/6.d0)
+!!$!          DeL = DeL * (50.d0/9.d0*(Rho(NR)-1.d0)**2+0.5d0)
+!!$       end if
        De(NR)   = De0   * DeL
        Di(NR)   = Di0   * DeL
 
@@ -1296,25 +1384,130 @@ contains
 
 !!$    rNueNC(0) = AITKEN2P(R(0),rNueNC(1),rNueNC(2),rNueNC(3),R(1),R(2),R(3))
 !!$    rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
-    rNueNC(0) = 2.D0 * rNueNC(0) - rNueNC(1)
-    rNuiNC(0) = 2.D0 * rNuiNC(0) - rNuiNC(1)
-    if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
-    if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
+!    rNueNC(0) = 2.D0 * rNueNC(0) - rNueNC(1)
+!    rNuiNC(0) = 2.D0 * rNuiNC(0) - rNuiNC(1)
+!    if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
+!    if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
+!!    rNueNC(0)  = 0.D0
+!!    rNuiNC(0)  = 0.D0
+!!    rNue2NC(0) = 0.D0
+!!    rNui2NC(0) = 0.D0
+    rNueNC(0) = rNueNC(1)
+    rNuiNC(0) = rNuiNC(1)
+    rNue2NC(0) = rNue2NC(1)
+    rNui2NC(0) = rNui2NC(1)
 !!$    ChiNCpe(0) = AITKEN2P(R(0),ChiNCpe(1),ChiNCpe(2),ChiNCpe(3),R(1),R(2),R(3))
 !!$    ChiNCte(0) = AITKEN2P(R(0),ChiNCte(1),ChiNCte(2),ChiNCte(3),R(1),R(2),R(3))
 !!$    ChiNCpi(0) = AITKEN2P(R(0),ChiNCpi(1),ChiNCpi(2),ChiNCpi(3),R(1),R(2),R(3))
 !!$    ChiNCti(0) = AITKEN2P(R(0),ChiNCti(1),ChiNCti(2),ChiNCti(3),R(1),R(2),R(3))
-    ChiNCpe(0) = 2.D0 * ChiNCpe(0) - ChiNCpe(1)
-    ChiNCte(0) = 2.D0 * ChiNCte(0) - ChiNCte(1)
-    ChiNCpi(0) = 2.D0 * ChiNCpi(0) - ChiNCpi(1)
-    ChiNCti(0) = 2.D0 * ChiNCti(0) - ChiNCti(1)
+!!    ChiNCpe(0) = 2.D0 * ChiNCpe(0) - ChiNCpe(1)
+!!    ChiNCte(0) = 2.D0 * ChiNCte(0) - ChiNCte(1)
+!!    ChiNCpi(0) = 2.D0 * ChiNCpi(0) - ChiNCpi(1)
+!!    ChiNCti(0) = 2.D0 * ChiNCti(0) - ChiNCti(1)
+    ChiNCpe(0) = ChiNCpe(1)
+    ChiNCte(0) = ChiNCte(1)
+    ChiNCpi(0) = ChiNCpi(1)
+    ChiNCti(0) = ChiNCti(1)
+!!$    cap_val = 20.d0
+!!$    where(ChiNCpe > cap_val) ChiNCpe = cap_val
+!!$    where(ChiNCte > cap_val) ChiNCte = cap_val
+!!$    where(ChiNCpi > cap_val) ChiNCpi = cap_val
+!!$    where(ChiNCti > cap_val) ChiNCti = cap_val
     ETA2(0)  = 2.D0 * ETA2(0)  - ETA(1)
     AJBS2(0) = 2.D0 * AJBS2(0) - AJBS2(1)
+    ! For Neumann condition, finite viscosity is required at the magnetic axis.
+    De(0)    = De(1)
+    Di(0)    = Di(1)
+    rMue(0)  = rMue(1)
+    rMui(0)  = rMui(1)
 
 !    write(6,*) INTG_F(SNBe),INTG_F(SNBi)
 !    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6
 
+    !     *** ExB shearing rate (Hahm & Burrel PoP 1995) ***
+    ! omega_ExB = r/q d/dr(q v_E/r)
+    !           = r/q [q/r d/dr(v_E) + v_E d/dr(q/r)], where v_E = - ErV / BphV
+
+    allocate(qr(0:NRMAX),dqr(0:NRMAX),dBph(0:NRMAX))
+    qr(0)          = 0.d0 ! owing to l'Hopital's rule
+    qr(1:NRMAX)    = Q(1:NRMAX) / R(1:NRMAX)
+    dqr(0:NRMAX)   = dfdx(R,qr,NRMAX,0)
+    dBph(0:NRMAX)  = 2.d0 * R(0:NRMAX) * dfdx(PSI,BphV,NRMAX,0)
+    wexb(0:NRMAX)  = abs(- dErdrS(0:NRMAX)/BphV(0:NRMAX) + ErVlc(0:NRMAX)/BphV(0:NRMAX)**2*dBph(0:NRMAX) &
+         &               - R(0:NRMAX)*ErVlc(0:NRMAX)/(Q(0:NRMAX)*BphV(0:NRMAX))*dqr(0:NRMAX))
+
+    !     *** Linear stability theory parameter (Zhu, Horton, Sugama PoP 6 (1999) 2503) ***
+    ! Ys = sqrt(m_i/Te) abs[R d/dr(Er/(R Bth)) / d/dr(ln q)]
+    !      (point: d/dr(Er/(R Bth)) = d/dr (q/r Er/Bph) )
+    Ys(0) = 0.d0
+    do nr = 1, nrmax
+       if(s(nr) /= 0.d0) then
+          Ys(nr) = sqrt(AMi/(PTeV(NR)*rKeV)) &
+            & *abs(RR*R(NR)*( Q(NR)/R(NR)*(dErdrS(NR)*BphV(NR)-ErVlc(NR)*dBph(NR))/BphV(NR)**2 &
+            &                +ErVlc(NR)/BphV(NR)*dqr(NR))/S(NR))
+       else
+          Ys(nr) = 0.d0
+       end if
+    end do
+    deallocate(qr,dqr,dBph)
+
+    !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
+    !        (F.Crisanti et al, NF 41 (2001) 883)
+    gamITG(0:NRMAX,1) = 0.1d0 * sqrt(PTeV(0:NRMAX)*rKeV/AMi)/RA * sqrt(RA/RR) &
+         &            * sqrt(RA*abs(dNidr(0:NRMAX))/PNiV(0:NRMAX) + RA*abs(dTidr(0:NRMAX))/PTiV(0:NRMAX)) &
+         &            * sqrt(PTiV(0:NRMAX)/PTeV(0:NRMAX))
+
+    do nr = 0, nrmax
+       Ln = PNiV(NR) / abs(dNidr(NR))
+       LT = PTiV(NR) / abs(dTidr(NR))
+
+       !     *** Linear growth rate valid for low abs(S) ***
+       !        (A.L.Rogister, NF 41 (2001) 1101)
+       !        (B.Esposito et al, PPCF 45 (2003) 933)
+       etai_chk =  Ln / LT - 2.d0 / 3.d0
+       if(etai_chk < 0.d0) then
+          gamITG(NR,2) = 0.d0 ! marginally stable
+       else
+          gamITG(NR,2) = sqrt(Ln / LT - 2.d0 / 3.d0) * abs(S(NR)) * sqrt(PTiV(NR)*rKeV/AMi) / (Q(NR) * RR)
+       end if
+
+       !     *** Linear growth rate for q>2 and s=0 ***
+       !        (J.Candy, PoP 11 (2004) 1879)
+       kthrhos = sqrt(0.1d0)
+       gamITG(NR,3) = kthrhos * sqrt(PTeV(NR)*rKeV/Ami) / RA * sqrt(2.d0 * RA / RR * (RA / Ln + RA / LT))
+    end do
+
     if(MDANOM == 2) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
+
+    !     *** ETB model ***
+
+    IF(MDLETB /= 0) THEN ! ETB on
+       Frdc = 0.1d0
+       if(Fcoef > Frdc) then
+          Dcoef = (1.d0 - Frdc) / DBLE(NTMAX)
+          Fcoef = 1.d0 - DBLE(NT) * Dcoef
+       end if
+       DO NR = 0, NRA
+          IF(RhoETB(1) /= 0.D0) THEN
+             IF(Rho(NR) > RhoETB(1)) THEN
+                De(NR) = De(NR) * Fcoef
+                Di(NR) = Di(NR) * Fcoef
+             END IF
+          END IF
+          IF(RhoETB(2) /= 0.D0) THEN
+             IF(Rho(NR) > RhoETB(2)) THEN
+                rMue(NR) = rMue(NR) * Fcoef
+                rMui(NR) = rMui(NR) * Fcoef
+             END IF
+          END IF
+          IF(RhoETB(3) /= 0.D0) THEN
+             IF(Rho(NR) > RhoETB(3)) THEN
+                Chie(NR) = Chie(NR) * Fcoef
+                Chii(NR) = Chii(NR) * Fcoef
+             END IF
+          END IF
+       END DO
+    END IF
 
     !     *** Resistivity ***
 
@@ -1394,7 +1587,7 @@ contains
              Vti = SQRT(2.D0 * PTiV(NR) * rKeV / AMI)
              ! Orbit squeezing factor (K.C.Shaing, et al., Phys. Plasmas 1 (1994) 3365)
 !?? JCP version             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dVebdr(NR)
-             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdr(NR) / Vti
+             SQZ = 1.D0 - AMI / (PZ * AEE) / BthV(NR)**2 * dErdrS(NR) / Vti
 
              EpsL = R(NR) / RR
              BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
@@ -1431,7 +1624,7 @@ contains
                 RL = (R(NR) - (RA - 1.5D0 * RhoIT)) / DBW ! Alleviation factor
                 IF(R(NR) > (RA - RhoIT)) THEN
 !                IF(ABS(RA - R(NR)) <= RhoIT .AND. RHO(NR) < 1.D0) THEN
-                   ExpArg = -2.D0 * EpsL * (ErV(NR) / BthV(NR))**2 / Vti**2
+                   ExpArg = -2.D0 * EpsL * (ErVlc(NR) / BthV(NR))**2 / Vti**2
                    ExpArg = ExpArg * (R(NR) / RA)**2
                    rNuOL(NR) = RLOSS * rNuii(NR) / SQRT(EpsL) * EXP(ExpArg) &
                         &    * RL**2 / (1.D0 + RL**2)
@@ -1447,7 +1640,7 @@ contains
                 RhoIT = MIN(RhoIT,0.1D0)
                 Wti = Vti / (Q(NR) * RR)
                 rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
-                ExpArg = 2.D0 * EpsL / Vti**2 * (ErV(NR) / BthV(NR))**2
+                ExpArg = 2.D0 * EpsL / Vti**2 * (ErVlc(NR) / BthV(NR))**2
                 AiP = rNuii(NR) * SQRT(EpsL) * rNuAsI_inv / (1.D0 + rNuAsI_inv) &
                      & * EXPV(- ExpArg)
                 DO NR1 = NRA, NRMAX
@@ -1481,7 +1674,8 @@ contains
     rNuNTV(0:NRMAX) = 0.D0
     UastNC(0:NRMAX) = 0.D0
 
-    deallocate(dQdr,dVebdr,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,dpdr,dNedr,dNidr)
+    deallocate(dQdr,dVebdr,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr,dpdr,dNedr,dNidr,dErdrS)
+    deallocate(ErVlc)
 
     RETURN
   END SUBROUTINE TXCALC

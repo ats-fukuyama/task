@@ -235,7 +235,7 @@ contains
 !!rp_conv             CALL SPL1DF(tmp,PNbrpL(NR),R,U,NRMAX+1,IER)!
 !!rp_conv             PNbrpLV(NRL-1) = PNbrpLV(NRL-1) + Left  * PNbrpL(NR)
 !!rp_conv             PNbrpLV(NRL)   = PNbrpLV(NRL)   + Right * PNbrpL(NR)
-!!rp_conv             write(6,*) nrl,sngl(tmp),sngl(r(nrl-1)),sngl(r(nrl)),sngl(PNbrpL(NR)),sngl(Left  * PNbrpL(NR)),sngl(Right * PNbrpL(NR)),sngl(PNbrpLV(NRL-1)),sngl(PNbrpLV(NRL))
+!!rp_conv             write(6,*) nrl,real(tmp),real(r(nrl-1)),real(r(nrl)),real(PNbrpL(NR)),real(Left  * PNbrpL(NR)),real(Right * PNbrpL(NR)),real(PNbrpLV(NRL-1)),real(PNbrpLV(NRL))
 !!rp_conv          end if
 !!rp_conv       end do
 

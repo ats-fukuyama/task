@@ -41,7 +41,7 @@ SUBROUTINE TXMENU
      WRITE(6,*) '## INPUT: ', &
           &   'R:RUN  C:CONT  P,V:PARM  G:GRAPH  '// &
           &   'W:STAT  S:SAVE  L:LOAD  I:INIT '
-     WRITE(6,'(11X,A)') 'F,FR:FILE  N:PTRB  O:OUT  Q:QUIT'
+     WRITE(6,'(11X,A)') 'F,FR:FILE  N:PTRB  M:ITG  O:OUT  Q:QUIT'
      CALL GUFLSH
 
      CALL TXKLIN(LINE,KID,MODE)
@@ -167,6 +167,12 @@ SUBROUTINE TXMENU
            CYCLE
         END IF
         CALL outfile(ICONT,iret)
+     CASE('M')
+        IF (ICONT == 0) THEN
+           WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
+           CYCLE
+        END IF
+        CALL ITG_growthrate
      CASE('#')
         CONTINUE
      CASE DEFAULT

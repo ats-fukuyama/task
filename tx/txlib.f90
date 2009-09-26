@@ -256,6 +256,15 @@ contains
           x(ne,4) = (-     a(ne-1)*b(ne-1) +      a(ne-1)*b(ne) &
                &     -3.d0*a(ne)  *b(ne-1) + 3.d0*a(ne)  *b(ne)) * c112
        end do
+    case(30)
+       do ne = 1, nemax
+          a1 = a(ne-1) ; a2 = a(ne)
+          b1 = b(ne-1) ; b2 = b(ne)
+          x(ne,1) = (-3.d0*a1*b1 -      a1*b2 -      a2*b1 -      a2*b2) * c112
+          x(ne,2) = ( 3.d0*a1*b1 +      a1*b2 +      a2*b1 +      a2*b2) * c112
+          x(ne,3) = (-     a1*b1 -      a1*b2 -      a2*b1 - 3.d0*a2*b2) * c112
+          x(ne,4) = (      a1*b1 +      a1*b2 +      a2*b1 + 3.d0*a2*b2) * c112
+       end do
     case(32)
        do ne = 1, nemax
           a1 = a(ne-1) ; a2 = a(ne)
@@ -981,7 +990,7 @@ SUBROUTINE APDTOS(STR, NSTR, D, FORM)
      RETURN
   ELSE IF (L == 1) THEN
      IF (FORM(1:1) == '*') THEN
-        WRITE(KVALUE,*) SNGL(D)
+        WRITE(KVALUE,*) REAL(D)
      ELSE
         WRITE(6,*) '### ERROR(APDTOS) : Invalid Format : "', FORM , '"'
         NSTRD = 0
@@ -1694,3 +1703,45 @@ pure real(8) function fgaussian(x,mu,sigma,norm) result(f)
   if(present(norm)) f = f / (sqrt(2.d0 * pi) * sigma)
 
 end function fgaussian
+
+!***************************************************************
+!
+!   Moving windows averaging
+!      [Numerical Recipes 3rd p.767]
+!
+!   (input)
+!     i    : index of the position
+!     f    : function of interest
+!     imax : size of f
+!     iend : artificial end of averaging region
+!
+!***************************************************************
+
+pure real(8) function moving_average(i,f,imax,iend) result(g)
+  integer(4), intent(in) :: i, imax
+  integer(4), intent(in), optional :: iend
+  real(8), dimension(0:imax), intent(in) :: f
+  integer(4) :: imaxl
+  real(8) :: cn
+
+  if(present(iend)) then
+     imaxl = iend + 2
+     if(i > iend) then
+        g = f(i)
+        return
+     end if
+  else
+     imaxl = imax
+  end if
+
+  if(i == 0 .or. i == imaxl) then
+     g = f(i)
+  else if(i == 1 .or. i == imaxl - 1) then
+     cn = 1.d0 / 3.d0
+     g = sum(f(i-1:i+1)) * cn
+  else
+     cn = 1.d0 / 5.d0
+     g = sum(f(i-2:i+2)) * cn
+  end if
+
+end function moving_average

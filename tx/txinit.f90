@@ -137,6 +137,12 @@ SUBROUTINE TXINIT
   !   Effect of ExB shear stabilization
   FSCBSH = 0.D0
 
+  !   Position of ETB shoulder (valid only when MDLETB /= 0)
+  !     1 : particle transport
+  !     2 : momentum transport
+  !     3 : thermal transport
+  RhoETB(1:3) = 0.9D0
+
   !   ==== CDBM transport coefficient parameters ============================
   !      The finer time step size, typically less than or equal to DT=5.D-4,
   !         is anticipated when using CDBM.
@@ -144,6 +150,10 @@ SUBROUTINE TXINIT
   !   Effect of magnetic curvature
   !     (It could destabilize a numerical robustness when FS2 > FS1 (see TRCOFS).)
   FSCBKP = 0.D0
+
+  !   Effect of elongation (CDBM05 model)
+  !      [M.Honda and A.Fukuyama NF 46 (2006) 580]
+  FSCBEL = 1.D0
 
   !   Factor of E x B rotation shear
   rG1 = 24.D0
@@ -245,6 +255,9 @@ SUBROUTINE TXINIT
   !   Halo neutral diffusion factor
   FSD03 = 1.D0
 
+  !   Poloidal torque paramter due to neoclassical heat flux
+  FSNCPL = 0.D0
+
   !   ***** initial parameters *****
 
   !   Initial Density scale length in SOL (m), valid if MDITSN /= 0
@@ -322,7 +335,8 @@ SUBROUTINE TXINIT
   PRFHi = 0.D0
 
   !   Virtual torque input (N m)
-  Tqi0  = 0.D0
+  Tqt0  = 0.D0  ! Toroidal
+  Tqp0  = 0.D0  ! Poloidal
 
   !   ***** Neutral parameters *****
 
@@ -483,6 +497,12 @@ SUBROUTINE TXINIT
   !   else : Use LAPACK_DGBSV or LA_GBSV
   MDLPCK = 0
 
+  !   Mode of orbit squeezing effect in NCLASS
+  !   0    : No orbit squeezing effect
+  !   1    : Orbit squeezing effect
+  !   2    : Orbit squeezing effect, fixed during iteration
+  MDOSQZ = 2
+
   !   Mode of neoclassical resistivity model
   !   0    : original
   !   1    : NCLASS
@@ -537,6 +557,11 @@ SUBROUTINE TXINIT
   !   2    : Annihilate the inherent convection (= obtain pure diffusion)
   !          when FSNC = 0
   MDVAHL = 0
+
+  !   Mode of Edge Transport barrier
+  !   0    : Nothing to do
+  !   1    : Turn off anomalous effect outside RhoETB
+  MDLETB = 0
 
   !   Multiplication factor for graphic in the radial direction
   !   default : 1.0
@@ -1132,6 +1157,8 @@ SUBROUTINE TXPROF
   !  Define physical variables from X
 
   CALL TXCALV(X)
+  !  --- Fixed Er to keep it constant during iterations ---
+  ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
 
   !  Calculate various physical quantities
 
@@ -1194,6 +1221,8 @@ SUBROUTINE TXPROF
      deallocate(CMTX,RHSV,TMP)
 
      CALL TXCALV(X)
+     ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
+
      CALL TXCALC
 
   END IF
@@ -1217,12 +1246,12 @@ module tx_parameter_control
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
        & Chie0,Chii0,ChiNC, &
-       & FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM, &
+       & FSDFIX,FSANOM,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM,RhoETB, &
        & PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1, &
-       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,MDLC, &
+       & FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,MDLC, &
        & rLn,rLT, &
        & Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,PNBCD,PNBMPD, &
-       & rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFi,RRFiw,RRFi0,PRFHi, &
+       & rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFi,RRFiw,RRFi0,PRFHi, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & NTCOIL,DltRPn,kappa,m_pol,n_tor, &
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
@@ -1232,7 +1261,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
-       & MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL, &
+       & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB, &
        & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
   private :: TXPLST
 
@@ -1330,7 +1359,7 @@ contains
        IF(NTSTEP < 0 .OR. NGRSTP < 0 .OR. NGTSTP < 0 .OR. NGVSTP < 0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        ! Physical variables
-       IF(RA >= RB)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RA >= RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RC < 0.D0 .OR. RC > RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RR <= RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rIPs < 0.D0 .OR. rIPe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
@@ -1346,8 +1375,11 @@ contains
           idx = idx + 1 ; ENDIF
        IF(minval(FSDFIX) < 0.D0 .OR. minval(FSANOM) < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
+       IF(minval(RhoETB) < 0.D0 .OR. maxval(RhoETB) > 1.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
        IF(FSCDIM < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF !***09/06/17~ miki_m
-       IF(FSCBKP < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(FSCBKP < 0.D0 .OR. FSCBEL < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE
+          idx = idx + 1 ; ENDIF
        IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLM < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSLC < 0.D0 .OR. FSRP < 0.D0 .OR. FSNC < 0.D0) THEN ; EXIT ; ELSE
@@ -1359,6 +1391,7 @@ contains
        IF(FSION < 0.D0)  THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(FSD01 < 0.D0 .OR. FSD02 < 0.D0 .OR. FSD03 < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
+       IF(FSNCPL < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(MDLC /= 1 .AND. MDLC /= 2) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rG1 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(Eb < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
@@ -1407,13 +1440,14 @@ contains
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &
-         &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,MDANOM,'/ &
+         &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,'/ &
+         &       ' ',8X,'MDANOM,RhoETB,'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1,'/ &
          &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
-         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,'/&
+         &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
-         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqi0,rNRFe,RRFew,RRFe0,PRFHe,'/&
+         &       ' ',8X,'PNBCD,PNBMPD,rNRFe,RRFew,RRFe0,PRFHe,Tqt0,Tqp0,rNRFe,RRFew,RRFe0,PRFHe,'/&
          &       ' ',8X,'PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV,'/ &
          &       ' ',8X,'NTCOIL,DltRPn,kappa,m_pol,n_tor,'/ &
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
@@ -1423,7 +1457,7 @@ contains
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK'/ &
-         &       ' ',8X,'MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,' / & 
+         &       ' ',8X,'MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
 
@@ -1459,8 +1493,10 @@ contains
          &   'FSDFX1', FSDFIX(1),  'FSDFX2', FSDFIX(2),  &
          &   'FSDFX3', FSDFIX(3),  'FANOM1', FSANOM(1),  &
          &   'FANOM2', FSANOM(2),  'FANOM3', FSANOM(3),  &
-         &   'FSCBKP', FSCBKP,  'FSCBSH', FSCBSH,  &
-         &   'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
+         &   'RoETB1', RhoETB(1),  'RoETB2', RhoETB(2),  &
+         &   'RoETB3', RhoETB(3),  'FSCBKP', FSCBKP,  &
+         &   'FSCBEL', FSCBEL, &
+         &   'FSCBSH', FSCBSH,  'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
          &   'FSPCLM', FSPCLM,  'FSPCLC', FSPCLC,  &
          &   'FSVAHL', FSVAHL,  'FSCX  ', FSCX  ,  &
@@ -1469,8 +1505,9 @@ contains
          &   'FSLP  ', FSLP  ,  'FSLTE ', FSLTE ,  &
          &   'FSLTI ', FSLTI ,  'FSION ', FSION ,  &
          &   'FSD01 ', FSD01 ,  'FSD02 ', FSD02 ,  &
-         &   'FSD03 ', FSD03 ,  'rLn   ', rLn   ,  &
-         &   'rLT   ', rLT   ,  'Eb    ', Eb    ,  &
+         &   'FSD03 ', FSD03 ,  'FSNCPL', FSNCPL,  &
+         &   'rLn   ', rLn   ,  'rLT   ', rLT   ,  &
+         &   'Eb    ', Eb    ,  &
          &   'RNBP  ', RNBP  ,  'RNBP0 ', RNBP0 ,  &
          &   'RNBT1 ', RNBT1 ,  'RNBT10', RNBT10,  &
          &   'RNBT2 ', RNBT2 ,  'RNBT20', RNBT20,  &
@@ -1480,7 +1517,8 @@ contains
          &   'RRFew ', RRFew ,  'RRFe0 ', RRFe0 ,  &
          &   'PRFHe ', PRFHe ,  'rNRFi ', rNRFe ,  &
          &   'RRFiw ', RRFiw ,  'RRFi0 ', RRFi0 ,  &
-         &   'PRFHi ', PRFHi ,  'Tqi0  ', Tqi0  ,  &
+         &   'PRFHi ', PRFHi ,  &
+         &   'Tqt0  ', Tqt0  ,  'Tqp0  ', Tqp0  ,  &
          &   'rGamm0', rGamm0,  'V0    ', V0    ,  &
          &   'rGASPF', rGASPF,  'PNeDIV', PNeDIV,  &
          &   'PTeDIV', PTeDIV,  'PTiDIV', PTiDIV,  &
@@ -1501,12 +1539,14 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
+         &   'MDOSQZ', MDOSQZ,  &
          &   'MDLETA', MDLETA,  'MDANOM', MDANOM,  &
          &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
          &   'MDITST', MDITST,  'MDINTN', MDINTN,  &
          &   'MDINTT', MDINTT,  'MDINIT', MDINIT,  &
-         &   'MDVAHL', MDVAHL,  'IDIAG ', IDIAG ,  &
-         &   'IGBDF ', IGBDF,   'MDSOLV', MDSOLV,  &
+         &   'MDVAHL', MDVAHL,  'MDLETB', MDLETB,  &
+         &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
+         &   'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
          &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &

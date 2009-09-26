@@ -212,14 +212,14 @@ SUBROUTINE TXSAVE
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
-       & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,&
+       & FSNCPL,FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,&
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH, &
        & ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLETA,MDFIXT,MDVAHL, &
+       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM, &
        & MDLNBD,PNBMPD,thrp,kappa,FSCDIM
 
   use tx_interface, only : TOUPPER
@@ -272,7 +272,7 @@ SUBROUTINE TXSAVE
 
   ! *** Variables defined in tx_commons but not included in the following ***
   !
-  !   VWpch0, Tqi0, MDLMOM, NEMAX, NRA, NRC, DelRho, DelN,
+  !   VWpch0, Tqt0, Tqp0, MDLMOM, NEMAX, NRA, NRC, DelRho, DelN,
   !   EpsH, Q0, QA, NCph, NCth, DMAG0, RMAGMN, RMAGMX,
   !   MDITSN, MDITST, MDINTN, MDINTT, MDINIT
   !
@@ -287,7 +287,7 @@ SUBROUTINE TXSAVE
   WRITE(21) PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1
   WRITE(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
   WRITE(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSCDIM
-  WRITE(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSRP,FSNF,FSHL
+  WRITE(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,FSRP,FSNF,FSHL
   WRITE(21) rLn,rLT
   WRITE(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   WRITE(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
@@ -295,13 +295,13 @@ SUBROUTINE TXSAVE
   WRITE(21) DltRPn,kappa
   WRITE(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
   WRITE(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  WRITE(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLETA,MDFIXT,MDVAHL
+  WRITE(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM
   WRITE(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
   WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
-  WRITE(21) NGT,NGYTM,NGYVM
+  WRITE(21) NGT
   WRITE(21) (GTX(I), I=0, NGT)
   WRITE(21) (GVX(I), I=0, NGVV)
   WRITE(21) ((GTY(I,IGYT), I=0, NGT),  IGYT =1, NGYTM)
@@ -328,28 +328,26 @@ SUBROUTINE TXLOAD(IST)
        & PROFJ,PROFN1,PROFN2,PROFT1,PROFT2,PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC,FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1, &
        & FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03, &
-       & FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
+       & FSNCPL,FSRP,FSNF,FSHL,MDLC,rLn,rLT,Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP, &
        & PNBHT1,PNBHT2,rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD, &
        & PN0s,V0,rGamm0,rGASPF,PNeDIV,PTeDIV,PTiDIV, &
        & DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH, &
        & ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLETA,MDFIXT,MDVAHL, &
+       & MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM, &
        & MDLNBD,PNBMPD,NGR,rIP,thrp,kappa, &
-       & PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX,LQe1,LQe5,LQi1,LQi5,TAUE2, &
-       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,FSCDIM
+       & PNeV,PTeV,PNiV,PTiV,ErV,PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX,ErV_FIX, &
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,FSCDIM,TAUE2
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
   implicit none
   integer(4), intent(out) :: IST
-  INTEGER(4) :: NQ, NR, NC, NGYT, NGYV, I, IGYT, IGYV
+  INTEGER(4) :: NQ, NR, NC, I, IGYT, IGYV
   character(len=100) ::  TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
-
-  ! tmp : NGYT
 
   DO 
      WRITE(6,*) '# INPUT : LOAD FILE NAME'
@@ -375,12 +373,6 @@ SUBROUTINE TXLOAD(IST)
      END IF
   END DO
 
-  call allocate_txcomm(ierr)
-  if(ierr /= 0) then
-     call deallocate_txcomm
-     write(6,*) "XX Allocation error : TXGLOD"
-  end if
-
   READ(21,IOSTAT=IST) LOADSLID
   IF (IST > 0) THEN
      WRITE(6,*) 'XX READ ERROR in TXLOAD !'
@@ -396,7 +388,7 @@ SUBROUTINE TXLOAD(IST)
   READ(21) PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1
   READ(21) De0,Di0,VWpch0,rMue0,rMui0,WPM0,Chie0,Chii0,ChiNC
   READ(21) FSDFIX,FSANOM,FSCBKP,FSCBSH,rG1,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,FSCDIM
-  READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSRP,FSNF,FSHL
+  READ(21) FSCX,FSLC,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,FSRP,FSNF,FSHL
   READ(21) rLn,rLT
   READ(21) Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBH,PNBHP,PNBHT1,PNBHT2
   READ(21) rNRFe,RRFew,RRFe0,PRFHe,rNRFi,RRFiw,RRFi0,PRFHi,PNBCD,PNBMPD
@@ -404,17 +396,24 @@ SUBROUTINE TXLOAD(IST)
   READ(21) DltRPn,kappa
   READ(21) DT,EPS,ADV,tiny_cap,CMESH0,WMESH0,CMESH,WMESH
   READ(21) ICMAX,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
-  READ(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDLETA,MDFIXT,MDVAHL
+  READ(21) MODEG,MODEAV,MODEGL,IDIAG,MDLPCK,IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM
   READ(21) MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   READ(21) T_TX,TMAX,NT,NQMAX,IERR
+
+  call allocate_txcomm(ierr)
+  if(ierr /= 0) then
+     call deallocate_txcomm
+     write(6,*) "XX Allocation error : TXLOAD"
+  end if
+
   READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
-  READ(21) NGT,NGYT,NGYV
+  READ(21) NGT
   READ(21) (GTX(I), I=0, NGT)
   READ(21) (GVX(I), I=0, NGVV)
-  READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYT)
-  READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
+  READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYTM)
+  READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
   READ(21) (NLCMAX(NQ), NQ=1,NQM)
   READ(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
   READ(21) (thrp(I), I=1, 2*NRMAX)
@@ -437,10 +436,13 @@ SUBROUTINE TXLOAD(IST)
 
   CALL TXCALV(X)
 
-  PNeV_FIX(0:NRMAX) = X(LQe1,0:NRMAX)
-  PTeV_FIX(0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
-  PNiV_FIX(0:NRMAX) = X(LQi1,0:NRMAX)
-  PTiV_FIX(0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
+  PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
+  PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
+  PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
+  PTiV_FIX(0:NRMAX) = PTiV(0:NRMAX)
+  ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
+
+  CALL TXCALV(X,IGBDF)
 
   CALL TXCALC
   CALL TXCALA
@@ -479,8 +481,8 @@ SUBROUTINE TXGSAV
        & DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
-       & MDLNBD,PNBMPD,thrp,kappa,FSCDIM
+       & MODEG,MODEAV,MODEGL,MDLPCK,MDOSQZ,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
+       & MDLNBD,PNBMPD,thrp,kappa,FSCDIM,GYT
 
   implicit none
   INTEGER(4) :: IST, NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
@@ -546,14 +548,12 @@ SUBROUTINE TXGSAV
   WRITE(21) DT,EPS,ADV,tiny_cap
   WRITE(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   WRITE(21) MODEG,MODEAV,MODEGL,MDLPCK
-  WRITE(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
+  WRITE(21) MDOSQZ,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   WRITE(21) T_TX,TMAX,NT,NQMAX,IERR
   WRITE(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
-  WRITE(21) NGR,NGYRM
-  WRITE(21) NGT,NGYTM
-  WRITE(21) NGVV,NGYVM
+  WRITE(21) NGR,NGT,NGVV
   WRITE(21) (GT(IGR), IGR=0, NGR)
   WRITE(21)(((GY(I,IGR,IGYR), I=0,NRMAX), IGR=0,NGR), IGYR=1,NGYRM)
   WRITE(21) (GTX(I), I=0, NGT)
@@ -563,6 +563,7 @@ SUBROUTINE TXGSAV
   WRITE(21) (NLCMAX(NQ), NQ=1,NQM)
   WRITE(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
   WRITE(21) (thrp(I), I=1, 2*NRMAX)
+  WRITE(21) (((GYT(NR,I,IGYR), NR=0,NRMAX), I=0,NGT), IGYR=1,NGYRM)
   CLOSE(21)
   WRITE(6,*) '# DATA WAS SUCCESSFULLY SAVED IN THE FILE.'
 
@@ -589,19 +590,16 @@ SUBROUTINE TXGLOD(IST)
        & DT,EPS,ADV,tiny_cap,NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,rG1, &
        & rIPs,rIPe,T_TX,TMAX,NT,NQMAX,IERR,X,NGT,NGYTM,NGYVM,GTX,GVX,NGVV, &
        & GTY,GVY,NLCMAX,NQM,GQY,NCM,NGR,NGYRM,GT,GY,NTCOIL,DltRPn,m_pol,n_tor, &
-       & MODEG,MODEAV,MODEGL,MDLPCK,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
-       & MDLNBD,PNBMPD,rIP,thrp,kappa,rho,FSCDIM
+       & MODEG,MODEAV,MODEGL,MDLPCK,MDOSQZ,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV, &
+       & MDLNBD,PNBMPD,rIP,thrp,kappa,rho,FSCDIM,GYT
   use tx_variables
 
   implicit none
   integer(4), intent(out) :: IST
-  INTEGER(4) :: NQ, NR, NC, NGYR, NGYT, NGYV, IGR, I, IGYR, IGYT, IGYV
+  INTEGER(4) :: NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
   character(len=100) :: TXFNAM, RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
-  real(8) :: tmp
-
-  ! tmp : NGYT
 
   DO 
      WRITE(6,*) '# INPUT : LOAD FILE NAME'
@@ -627,12 +625,6 @@ SUBROUTINE TXGLOD(IST)
      END IF
   END DO
 
-  call allocate_txcomm(ierr)
-  if(ierr /= 0) then
-     call deallocate_txcomm
-     write(6,*) "XX Allocation error : TXGLOD"
-  end if
-
   READ(21,IOSTAT=IST) LOADSLID
   IF (IST > 0) THEN
      WRITE(6,*) 'XX READ ERROR in TXGLOD !'
@@ -657,23 +649,29 @@ SUBROUTINE TXGLOD(IST)
   READ(21) DT,EPS,ADV,tiny_cap
   READ(21) NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP
   READ(21) MODEG,MODEAV,MODEGL,MDLPCK
-  READ(21) MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
+  READ(21) MDOSQZ,MDLETA,MDFIXT,IDIAG,IGBDF,MDSOLV,MDLNBD,MDLC,NTCOIL,m_pol,n_tor
 
   READ(21) T_TX,TMAX,NT,NQMAX,IERR
+
+  call allocate_txcomm(ierr)
+  if(ierr /= 0) then
+     call deallocate_txcomm
+     write(6,*) "XX Allocation error : TXGLOD"
+  end if
+
   READ(21) ((X(NQ,NR), NQ=1, NQMAX), NR=0, NRMAX)
 
-  READ(21) NGR,NGYR
-  READ(21) NGT,NGYT
-  READ(21) NGVV,NGYV
+  READ(21) NGR,NGT,NGVV
   READ(21) (GT(IGR), IGR=0, NGR)
-  READ(21) (((GY(I,IGR,IGYR), I=0, NRMAX), IGR=0, NGR), IGYR=1, NGYR)
+  READ(21) (((GY(I,IGR,IGYR), I=0, NRMAX), IGR=0, NGR), IGYR=1, NGYRM)
   READ(21) (GTX(I), I=0, NGT)
   READ(21) (GVX(I), I=0, NGVV)
-  READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYT)
-  READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYV)
+  READ(21) ((GTY(I,IGYT), I=0, NGT), IGYT =1, NGYTM)
+  READ(21) ((GVY(I,IGYV), I=0, NGVV), IGYV =1, NGYVM)
   READ(21) (NLCMAX(NQ), NQ=1,NQM)
   READ(21) (((GQY(NR,NC,NQ), NR=0, NRMAX), NC=1, NCM), NQ=1, NQM)
   READ(21) (thrp(I), I=1, 2*NRMAX)
+  READ(21) (((GYT(NR,I,IGYR), NR=0,NRMAX), I=0,NGT), IGYR=1,NGYRM)
   !  END IF
   CLOSE(21)
   WRITE(6,'(2A)') '# DATA WAS SUCCESSFULLY LOADED FROM THE FILE. ID = ',LOADSLID
@@ -1249,6 +1247,8 @@ end subroutine for_ofmc
 !      Prepare three profiles of electron density and
 !         electron and ion temperatures for TASK/TX
 !
+!      List structure has been used.
+!
 !***************************************************************
 
 subroutine initprof_input(nr, idx, out)
@@ -1256,29 +1256,70 @@ subroutine initprof_input(nr, idx, out)
   use tx_commons, only : NRMAX, Rho
 
   integer(4), optional :: nr, idx
-  integer(4) :: nintin, ier, ist, i, j, k
+  integer(4) :: nintin, ier, ist, j, k
   integer(4), save :: nrinmax
   real(8), optional :: out
   real(8), dimension(:), allocatable, save :: rho_in, deriv
   real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3
 
+  type unit
+     integer(4)          :: l_p
+     real(8)             :: rho_p, prof1_p, prof2_p, prof3_p
+     type(unit), pointer :: next
+  end type unit
+  type(unit), pointer :: ent, new, p
+  integer(4) :: l
+  real(8)    :: rho_r, prof1_r, prof2_r, prof3_r
+
   if((present(nr) .eqv. .false.) .and. (present(idx) .eqv. .false.)) then
+     allocate(ent); nullify(ent%next)
+
      nintin = 24
      call FROPEN(nintin,'initprof.dat',1,0,'INIT PROF',ier)
      if(ier /= 0) return
 
-     read(nintin,'(I4)',iostat=ist) nrinmax
-     if(ist /= 0) return
-     allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:3))
-     allocate(deriv(1:nrinmax),u1(1:4,1:nrinmax),u2(1:4,1:nrinmax),u3(1:4,1:nrinmax))
-
-     do k = 1, nrinmax
-        read(nintin,'(1X,I3,4(E10.3))',iostat=ist) i, rho_in(k),(prof_in(k,j),j=1,3)
-!        write(6,'(1X,I3,1P4E10.3)') i, rho_in(k),(prof_in(k,j),j=1,3)
+     do
+        read(nintin,'(1X,I3,4(E10.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r
+        if(ist /= 0) exit
+        call rearrange
      end do
 
-     close(nintin)
+     p => ent%next
+     k = 0
+     do
+        if(associated(p)) then 
+!           write(6,*) p%l_p, p%rho_p, p%prof1_p, p%prof2_p, p%prof3_p
+           k = k + 1
+           p => p%next
+        else
+           exit
+        end if
+     end do
+     nrinmax = k
 
+     allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:3))
+     p => ent%next
+     do
+        if(associated(p)) then
+           rho_in (p%l_p)   = p%rho_p
+           prof_in(p%l_p,1) = p%prof1_p
+           prof_in(p%l_p,2) = p%prof2_p
+           prof_in(p%l_p,3) = p%prof3_p
+           p => p%next
+        else
+           exit
+        end if
+     end do
+
+!!$     do k = 1, nrinmax
+!!$        write(6,'(1X,I3,1P4E10.3)') k, rho_in(k),(prof_in(k,j),j=1,3)
+!!$     end do
+
+     close(nintin)
+     if(associated(ent)) deallocate(ent)
+     if(associated(new)) deallocate(new)
+
+     allocate(deriv(1:nrinmax),u1(1:4,1:nrinmax),u2(1:4,1:nrinmax),u3(1:4,1:nrinmax))
      call spl1d(rho_in,prof_in(1:nrinmax,1),deriv,u1,nrinmax,0,ier)
      if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(1)'
      call spl1d(rho_in,prof_in(1:nrinmax,2),deriv,u2,nrinmax,0,ier)
@@ -1312,5 +1353,12 @@ subroutine initprof_input(nr, idx, out)
   else
      stop 'initprof_input: wrong input!'
   end if
+
+contains
+  subroutine rearrange
+    allocate(new)
+    new = unit(l, rho_r, prof1_r, prof2_r, prof3_r, ent%next)
+    ent%next => new
+  end subroutine rearrange
 
 end subroutine initprof_input
