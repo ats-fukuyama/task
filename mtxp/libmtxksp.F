@@ -6,12 +6,8 @@
       PUBLIC mtx_initialize
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
-      PUBLIC mtx_add_matrix
       PUBLIC mtx_set_source
-      PUBLIC mtx_add_source
       PUBLIC mtx_set_vector
-      PUBLIC mtx_add_vector
-      PUBLIC mtx_split_operation
       PUBLIC mtx_solve
       PUBLIC mtx_get_vector
       PUBLIC mtx_gather_vector
