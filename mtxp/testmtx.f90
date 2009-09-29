@@ -20,7 +20,7 @@
       INTEGER:: nblock,nblock_per_proc,nblock_addition
       REAL(8):: v,tolerance
       REAL(8),DIMENSION(:),POINTER:: x
-      INTEGER,DIMENSION(2):: idata
+      INTEGER,DIMENSION(3):: idata
       REAL(4):: cputime1,cputime2
 
       CALL mtx_initialize(nrank,nprocs)
@@ -148,7 +148,7 @@
       CALL mtx_barrier
 
       CALL mtx_cleanup
-      IF(nrank.EQ.0) DEALLOCATE(x)
+      DEALLOCATE(x)
 
       IF(nrank.eq.0) THEN
          CALL CPU_TIME(cputime2)

@@ -228,17 +228,35 @@
 
       SUBROUTINE mtx_cleanup
 
+      if(rank.eq.0) write(6,*) '#1'
+      if(rank.eq.1) write(21,*) '#1'
       DEALLOCATE(id%IRN_loc)
+      if(rank.eq.0) write(6,*) '#2'
+      if(rank.eq.1) write(21,*) '#2'
       DEALLOCATE(id%JCN_loc)
+      if(rank.eq.0) write(6,*) '#3'
+      if(rank.eq.1) write(21,*) '#3'
       DEALLOCATE(id%A_loc)
+      if(rank.eq.0) write(6,*) '#4'
+      if(rank.eq.1) write(21,*) '#4'
       DEALLOCATE(id%RHS)
+      if(rank.eq.0) write(6,*) '#5'
+      if(rank.eq.1) write(21,*) '#5'
 
       DEALLOCATE(istartx,iendx,isizex)
+      if(rank.eq.0) write(6,*) '#6'
+      if(rank.eq.1) write(21,*) '#6'
       DEALLOCATE(nz_tot)
+      if(rank.eq.0) write(6,*) '#7'
+      if(rank.eq.1) write(21,*) '#7'
       DEALLOCATE(b,b_loc)
+      if(rank.eq.0) write(6,*) '#8'
+      if(rank.eq.1) write(21,*) '#8'
 
       id%JOB = -2
       CALL DMUMPS(id)
+      if(rank.eq.0) write(6,*) '#9'
+      if(rank.eq.1) write(21,*) '#9'
       RETURN
       END SUBROUTINE mtx_cleanup
 
