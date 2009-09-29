@@ -694,11 +694,18 @@
          ENDIF
 
          IF(MDLPCK.EQ.0) THEN
-            forall(NV=1:NEQRMAX,NW=1:NEQRMAX)
-               AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
-               AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
-               AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
-            end forall
+!            forall(NV=1:NEQRMAX,NW=1:NEQRMAX)
+!               AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
+!               AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
+!               AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
+!            end forall
+            DO NV=1,NEQRMAX
+               DO NW=1,NEQRMAX
+                  AX(  NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = A(NV,NW,NR)
+                  AX(2*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = B(NV,NW,NR)
+                  AX(3*NEQRMAX+NW-NV,NEQRMAX*(NR-1)+NV) = C(NV,NW,NR)
+               ENDDO
+            ENDDO
          ENDIF
 
       ENDDO

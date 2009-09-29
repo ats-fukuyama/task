@@ -1046,7 +1046,7 @@ C
 C     ***** Convert flux-surface-averaged quantities with grad V 
 C             to those with grad rho *****
 C
-      SUBROUTINE EQSETS_RHO
+      SUBROUTINE EQSETS_RHO(IERR)
 C
       INCLUDE '../eq/eqcomq.inc'
 C

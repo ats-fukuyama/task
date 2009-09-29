@@ -35,13 +35,25 @@ MF95 = mpif90
 GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 GLLIBS=-L/usr/local/lib -lgsgl
 
-## for g95 (intel)
+## for g95 32bit (intel)
 #GFLIBS=-L/usr/local/lib -lg3d-g95 -lgsp-g95 -lgdp-g95 -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl
-#OFLAGS = -O3 -fendian=big
+#OFLAGS = -g -O2 -fendian=big
 #DFLAGS = -g -fbounds-check -Wunused -ftrace=full -fendian=big
-#FCFIXED= g95
-#FCFREE = g95
+#FCFIXED= g95 -ffixed-form
+#FCFREE = g95 -ffree-form
+#MOD = mod
+#MODDIR = -fmod=mod
+#LD=ld
+#LDFLAGS=-r -o
+
+## for g95 64bit (intel)
+#GFLIBS=-L/usr/local/lib64 -lg3d-g95L -lgsp-g95L -lgdp-g95L -L/usr/X11R6/lib64 -lX11
+#GLLIBS=-L/usr/local/lib64 -lgsgl
+#OFLAGS = -g -O2 -fendian=big
+#DFLAGS = -g -fbounds-check -Wunused -ftrace=full -fendian=big
+#FCFIXED= g95 -ffixed-form -i4
+#FCFREE = g95 -ffree-form -i4
 #MOD = mod
 #MODDIR = -fmod=mod
 #LD=ld
