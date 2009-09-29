@@ -93,7 +93,7 @@
       PetscMPIInt    rank,size
       PetscInt       istart,iend,ilen,imax
       PetscErrorCode ierr
-      Vec            x,b,xx
+      Vec            x,b
       Mat            A 
       KSP            ksp
       INTEGER,PARAMETER:: ione=1

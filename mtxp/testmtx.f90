@@ -17,7 +17,6 @@
       INTEGER:: nrank,nprocs,istart,iend,its
       INTEGER:: imax,jwidth,jsource
       INTEGER:: i,j,k,l,m,n,iskip
-      INTEGER:: nblock,nblock_per_proc,nblock_addition
       REAL(8):: v,tolerance
       REAL(8),DIMENSION(:),POINTER:: x
       INTEGER,DIMENSION(3):: idata

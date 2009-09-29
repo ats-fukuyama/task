@@ -77,12 +77,22 @@
       iend_=iend
       nzmax=(iend-istart+1)*jwidth
 
-!      if(rank.eq.0) then
-!         write(21,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
-!      endif
-!      if(rank.eq.1) then
-!         write(22,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
-!      endif
+      if(rank.eq.0) then
+         write(6,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+         write(6,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+      endif
+      if(rank.eq.1) then
+         write(21,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+         write(21,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+      endif
+      if(rank.eq.2) then
+         write(22,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+         write(22,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+      endif
+      if(rank.eq.3) then
+         write(23,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+         write(23,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+      endif
 
       ALLOCATE(id%IRN_loc(nzmax))
       ALLOCATE(id%JCN_loc(nzmax))
@@ -228,35 +238,17 @@
 
       SUBROUTINE mtx_cleanup
 
-      if(rank.eq.0) write(6,*) '#1'
-      if(rank.eq.1) write(21,*) '#1'
       DEALLOCATE(id%IRN_loc)
-      if(rank.eq.0) write(6,*) '#2'
-      if(rank.eq.1) write(21,*) '#2'
       DEALLOCATE(id%JCN_loc)
-      if(rank.eq.0) write(6,*) '#3'
-      if(rank.eq.1) write(21,*) '#3'
       DEALLOCATE(id%A_loc)
-      if(rank.eq.0) write(6,*) '#4'
-      if(rank.eq.1) write(21,*) '#4'
       DEALLOCATE(id%RHS)
-      if(rank.eq.0) write(6,*) '#5'
-      if(rank.eq.1) write(21,*) '#5'
 
       DEALLOCATE(istartx,iendx,isizex)
-      if(rank.eq.0) write(6,*) '#6'
-      if(rank.eq.1) write(21,*) '#6'
       DEALLOCATE(nz_tot)
-      if(rank.eq.0) write(6,*) '#7'
-      if(rank.eq.1) write(21,*) '#7'
       DEALLOCATE(b,b_loc)
-      if(rank.eq.0) write(6,*) '#8'
-      if(rank.eq.1) write(21,*) '#8'
 
       id%JOB = -2
       CALL DMUMPS(id)
-      if(rank.eq.0) write(6,*) '#9'
-      if(rank.eq.1) write(21,*) '#9'
       RETURN
       END SUBROUTINE mtx_cleanup
 
