@@ -193,11 +193,27 @@
 !     ----- distributed matrix -----
       id%ICNTL(18)=3
 !     ----- error output level contrall -----
-      IF(itype.GE.1.AND.itype.LE.4) THEN
+      IF(itype.EQ.0) THEN
+         id%ICNTL(1)=0
+         id%ICNTL(2)=0
+         id%ICNTL(3)=0
+         id%ICNTL(4)=0
+      ELSE IF(itype.EQ.1) THEN
+         id%ICNTL(1)=6
+         id%ICNTL(2)=0
+         id%ICNTL(3)=0
+         id%ICNTL(4)=1
+      ELSE IF(itype.GE.2.AND.itype.LE.4) THEN
+         id%ICNTL(1)=6
+         id%ICNTL(2)=0
+         id%ICNTL(3)=6
          id%ICNTL(4)=itype
       ELSE
-         id%ICNTL(4)=0
-      ENDIF
+         id%ICNTL(1)=6
+         id%ICNTL(2)=0
+         id%ICNTL(3)=6
+         id%ICNTL(4)=2
+      END IF
 
 !      if(rank.eq.0) then
 !         do i=1,nzcount
