@@ -11,15 +11,16 @@
 
       PROGRAM testmtx
 
-      USE libmtx
-      IMPLICIT NONE
+      USE libmtx 
+      IMPLICIT NONE 
       INTEGER:: idim,isiz,isource,itype
-      INTEGER:: nrank,nprocs,istart,iend,its
-      INTEGER:: imax,jwidth,jsource
-      INTEGER:: i,j,k,l,m,n,iskip
-      REAL(8):: v,tolerance
+      INTEGER:: nrank,nprocs,istart,iend,its 
+      INTEGER:: imax,jwidth,jsource 
+      INTEGER:: i,j,k,l,m,n,iskip 
+      REAL(8):: v,tolerance 
       REAL(8),DIMENSION(:),POINTER:: x
-      INTEGER,DIMENSION(3):: idata
+      INTEGER,DIMENSION(4):: idata 
+      REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
       CALL mtx_initialize(nrank,nprocs)
@@ -38,6 +39,8 @@
          idata(1)=idim
          idata(2)=isiz
          idata(3)=isource
+         idata(4)=itype
+         ddata(1)=tolerance
          IF(idim.LT.0.OR.idim.GT.3) THEN
             WRITE(6,*) 'XX idim: out of range'
             GO TO 2
@@ -46,10 +49,13 @@
     3    idata(1)=0
     4    CONTINUE
       ENDIF
-      CALL mtx_broadcast_integer(idata,3)
+      CALL mtx_broadcast_integer(idata,4)
+      CALL mtx_broadcast_real8(ddata,1)
       idim=idata(1)
       isiz=idata(2)
       isource=idata(3)
+      itype=idata(4)
+      tolerance=ddata(1)
 
       IF(idim.EQ.0) GO TO 9000
 

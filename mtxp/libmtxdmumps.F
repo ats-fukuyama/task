@@ -112,10 +112,16 @@
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       REAL(8),INTENT(IN):: v    ! value to be inserted
 
-      nzcount=nzcount+1
-      id%A_loc(nzcount)=v
-      id%IRN_loc(nzcount)=i
-      id%JCN_loc(nzcount)=j
+      IF(i.GE.istart.AND.i.LE.iend) THEN
+         nzcount=nzcount+1
+         id%A_loc(nzcount)=v
+         id%IRN_loc(nzcount)=i
+         id%JCN_loc(nzcount)=j
+      ELSE
+         write(6,'(A)') 
+     &        'XX libmtxdmumps:mtx_set_matrix: i : out of range'
+         write(6,'(A,4I10)') '   rank,istart,iend,i=',rank,istart,iend,i
+      ENDIF
       return
       END SUBROUTINE mtx_set_matrix
       
@@ -123,7 +129,13 @@
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
-      b_loc(j-istart+1)=v
+      IF(j.GE.istart.AND.j.LE.iend) THEN
+         b_loc(j-istart+1)=v
+      ELSE
+         write(6,'(A)') 
+     &        'XX libmtxdmumps:mtx_set_source: j : out of range'
+         write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart,iend,j
+      ENDIF
       RETURN
       END SUBROUTINE mtx_set_source
       
@@ -135,7 +147,7 @@
       END SUBROUTINE mtx_set_vector
       
       SUBROUTINE mtx_solve(itype,tolerance,its)
-      INTEGER,INTENT(IN):: itype     ! for futuer use
+      INTEGER,INTENT(IN):: itype     ! info level
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
       INTEGER:: i,isum
@@ -181,7 +193,11 @@
 !     ----- distributed matrix -----
       id%ICNTL(18)=3
 !     ----- error output level contrall -----
-      id%ICNTL(4)=1
+      IF(itype.GE.1.AND.itype.LE.4) THEN
+         id%ICNTL(4)=itype
+      ELSE
+         id%ICNTL(4)=0
+      ENDIF
 
 !      if(rank.eq.0) then
 !         do i=1,nzcount
