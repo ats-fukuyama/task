@@ -110,7 +110,8 @@
       DO i=istart,iend
          CALL mtx_set_source(i,0.d0)
       ENDDO
-      CALL mtx_set_source(jsource,-1.d0)
+      IF(jsource.GE.istart.AND.jsource.LE.iend) &
+           CALL mtx_set_source(jsource,-1.d0)
 
       CALL mtx_solve(itype,tolerance,its)
       if(nrank.eq.0) then
@@ -144,7 +145,7 @@
             ENDDO
          END SELECT
       ENDIF
-      CALL mtx_barrier
+!      CALL mtx_barrier
 
       CALL mtx_cleanup
       DEALLOCATE(x)

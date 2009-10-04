@@ -77,22 +77,22 @@
       iend_=iend
       nzmax=(iend-istart+1)*jwidth
 
-      if(rank.eq.0) then
-         write(6,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
-         write(6,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
-      endif
-      if(rank.eq.1) then
-         write(21,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
-         write(21,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
-      endif
-      if(rank.eq.2) then
-         write(22,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
-         write(22,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
-      endif
-      if(rank.eq.3) then
-         write(23,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
-         write(23,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
-      endif
+!      if(rank.eq.0) then
+!         write(6,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(6,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+!      endif
+!      if(rank.eq.1) then
+!         write(21,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(21,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+!      endif
+!      if(rank.eq.2) then
+!         write(22,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(22,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+!      endif
+!      if(rank.eq.3) then
+!         write(23,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(23,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
+!      endif
 
       ALLOCATE(id%IRN_loc(nzmax))
       ALLOCATE(id%JCN_loc(nzmax))
@@ -181,8 +181,7 @@
 !     ----- distributed matrix -----
       id%ICNTL(18)=3
 !     ----- error output level contrall -----
-!      id%ICNTL(4)=4  ! most detail
-      id%ICNTL(4)=1  ! most detail
+      id%ICNTL(4)=1
 
 !      if(rank.eq.0) then
 !         do i=1,nzcount
@@ -238,6 +237,9 @@
 
       SUBROUTINE mtx_cleanup
 
+      id%JOB = -2
+      CALL DMUMPS(id)
+
       DEALLOCATE(id%IRN_loc)
       DEALLOCATE(id%JCN_loc)
       DEALLOCATE(id%A_loc)
@@ -247,8 +249,6 @@
       DEALLOCATE(nz_tot)
       DEALLOCATE(b,b_loc)
 
-      id%JOB = -2
-      CALL DMUMPS(id)
       RETURN
       END SUBROUTINE mtx_cleanup
 
@@ -307,7 +307,7 @@
       SUBROUTINE mtx_gather_integer(idata,itot,ntot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,INTENT(IN):: ntot
       INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
 
       call MPI_GATHER(idata,1,MPI_INTEGER,
@@ -319,7 +319,7 @@
       SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,INTENT(IN):: ntot
       INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
 
       call MPI_ALLGATHER(idata,1,MPI_INTEGER,
@@ -331,10 +331,10 @@
       SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
 
       INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,INTENT(IN):: ntot
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size):: ilena,iposa
+      INTEGER,DIMENSION(size),INTENT(IN):: ilena,iposa
 
       call MPI_GATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
      &                 vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
@@ -345,10 +345,10 @@
       SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
 
       INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(INOUT):: ntot
+      INTEGER,INTENT(IN):: ntot
       REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
       REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size):: ilena,iposa
+      INTEGER,DIMENSION(size),INTENT(IN):: ilena,iposa
 
       call MPI_ALLGATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
      &                    vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
