@@ -188,52 +188,45 @@
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       REAL(8),INTENT(IN):: v    ! value to be inserted
 
-      call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
+      IF(i.GE.istart+1.AND.i.LE.iend) THEN
+         call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
+      ELSE
+         write(6,'(A)') 
+     &        'XX libmtxksp:mtx_set_matrix: i : out of range'
+         write(6,'(A,4I10)') '   rank,istart,iend,i=',rank,istart+1,iend,i
+      ENDIF
+
       return
       END SUBROUTINE mtx_set_matrix
-      
-      SUBROUTINE mtx_add_matrix(i,j,v)
-      INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
-      REAL(8),INTENT(IN):: v    ! value to be inserted
-
-      call MatSetValues(A,ione,i-1,ione,j-1,v,ADD_VALUES,ierr)
-      return
-      END SUBROUTINE mtx_add_matrix
       
       SUBROUTINE mtx_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
-      call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
+      IF(j.GE.istart.AND.j.LE.iend) THEN
+         call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
+      ELSE
+         write(6,'(A)') 
+     &        'XX libmtxksp:mtx_set_source: j : out of range'
+         write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart+1,iend,j
+      ENDIF
       return
       END SUBROUTINE mtx_set_source
-      
-      SUBROUTINE mtx_add_source(j,v)
-      INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
-
-      call VecSetValues(b,ione,j-1,v,ADD_VALUES,ierr)
-      call VecAssemblyBegin(b,ierr)
-      call VecAssemblyEnd(b,ierr)
-      return
-      END SUBROUTINE mtx_add_source
       
       SUBROUTINE mtx_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
 
-      call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
-      return
+      IF(j.GE.istart.AND.j.LE.iend) THEN
+         call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
+      ELSE
+         write(6,'(A)') 
+     &        'XX libmtxksp:mtx_set_vector: j : out of range'
+         write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart+1,iend,j
+      ENDIF
+      RETURN
       END SUBROUTINE mtx_set_vector
       
-      SUBROUTINE mtx_add_vector(j,v)
-      INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
-
-      call VecAssemblyBegin(x,ierr)
-      return
-      END SUBROUTINE mtx_add_vector
-
       SUBROUTINE mtx_split_operation
       call VecAssemblyBegin(b,ierr)
       call VecAssemblyEnd(b,ierr)
@@ -241,6 +234,7 @@
       call VecAssemblyEnd(x,ierr)
       return
       END SUBROUTINE mtx_split_operation
+
       SUBROUTINE mtx_solve(itype,tolerance,its)
       INTEGER,INTENT(IN):: itype     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
