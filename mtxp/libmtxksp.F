@@ -19,6 +19,7 @@
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
       PUBLIC mtx_gather_integer
+      PUBLIC mtx_gather_real8
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
@@ -157,8 +158,8 @@
 
       ALLOCATE(istartx(0:size-1),iendx(0:size-1),isiz(0:size-1))
 
-      call mtx_allgather_integer(istart,istartx,size)
-      call mtx_allgather_integer(iend,iendx,size)
+      call mtx_allgather_integer(istart,istartx)
+      call mtx_allgather_integer(iend,iendx)
 !      call MPI_ALLGATHER(istart,1,MPI_INTEGER,
 !     &                   istartx,1,MPI_INTEGER,
 !     &                   PETSC_COMM_WORLD,ierr)
@@ -430,11 +431,10 @@
       RETURN
       END SUBROUTINE mtx_broadcast_complex8
 
-      SUBROUTINE mtx_gather_integer(idata,itot,ntot)
+      SUBROUTINE mtx_gather_integer(idata,itot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+      INTEGER,DIMENSION(size),INTENT(OUT):: itot
 
       call MPI_GATHER(idata,1,MPI_INTEGER,
      &                itot,1,MPI_INTEGER,
@@ -442,11 +442,21 @@
       RETURN
       END SUBROUTINE mtx_gather_integer
 
-      SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
+      SUBROUTINE mtx_gather_real8(ddata,dtot)
+
+      REAL(8),INTENT(IN):: ddata
+      REAL(8),DIMENSION(size),INTENT(OUT):: dtot
+
+      call MPI_GATHER(ddata,1,MPI_DOUBLE_PRECISION,
+     &                dtot,1,MPI_DOUBLE_PRECISION,
+     &                0,PETSC_COMM_WORLD,ierr)
+      RETURN
+      END SUBROUTINE mtx_gather_real8
+
+      SUBROUTINE mtx_allgather_integer(idata,itot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+      INTEGER,DIMENSION(size),INTENT(OUT):: itot
 
       call MPI_ALLGATHER(idata,1,MPI_INTEGER,
      &                   itot,1,MPI_INTEGER,

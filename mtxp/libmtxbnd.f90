@@ -25,6 +25,7 @@
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
       PUBLIC mtx_gather_integer
+      PUBLIC mtx_gather_real8
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
@@ -213,23 +214,30 @@
             RETURN
       END SUBROUTINE mtx_broadcast_complex8
 
-      SUBROUTINE mtx_gather_integer(idata,itot,ntot)
+      SUBROUTINE mtx_gather_integer(idata,itot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+      INTEGER,DIMENSION(1),INTENT(OUT):: itot
 
-      itot=idata
+      itot(1)=idata
       RETURN
       END SUBROUTINE mtx_gather_integer
 
-      SUBROUTINE mtx_allgather_integer(idata,itot,ntot)
+      SUBROUTINE mtx_gather_real8(ddata,dtot)
+
+      REAL(8),INTENT(IN):: ddata
+      REAL(8),DIMENSION(1),INTENT(OUT):: dtot
+
+      dtot(1)=ddata
+      RETURN
+      END SUBROUTINE mtx_gather_real8
+
+      SUBROUTINE mtx_allgather_integer(idata,itot)
 
       INTEGER,INTENT(IN):: idata
-      INTEGER,INTENT(INOUT):: ntot
-      INTEGER,DIMENSION(ntot),INTENT(OUT):: itot
+      INTEGER,DIMENSION(1),INTENT(OUT):: itot
 
-      itot=idata
+      itot(1)=idata
       RETURN
       END SUBROUTINE mtx_allgather_integer
 
