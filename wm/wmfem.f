@@ -222,7 +222,7 @@
 
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       complex(8),dimension(mwmax,12*nfcmax):: fml
-      real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
+      real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4,rhol,thl
       integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
       integer:: ns,nfc1,nfc2,ml1,mw1,mr
       complex(8):: csum,f1,f2,f3,f4,cx,cy,cxd,cyd
@@ -277,6 +277,14 @@
       enddo
 
 !----- boundary conditions -----
+
+      DO nr=1,2
+         rhol=rhoa(nr)
+         do nth=1,nthmax
+            thl=2.d0*pi*(nth-1)/nthmax
+            CALL wmeq_get_metricCL(rhol,thl)
+         enddo
+      enddo
 
       mc=(mwmax+1)/2
       mr=6*nfcmax
