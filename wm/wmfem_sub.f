@@ -233,66 +233,119 @@ c$$$      endif
 
 !     ***** calculated magnetic field from eqdata ****
 
-      subroutine wmeq_get_metricCL(rho,th)
+      subroutine wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
 
       INCLUDE '../eq/eqcomq.inc'
-      real(8),intent(in):: rho,th
-!      real(8),intent(out):: 
+      INTEGER,INTENT(IN):: nthmax2,nphmax2
+      COMPLEX(8),DIMENSION(3,3,nthmax2,nphmax2),INTENT(OUT):: mtxcl
       real(8):: rrl,zzl,drrpsi,dzzpsi,drrchi,dzzchi,rhol
       real(8):: bprr,bpzz,bthl,bphl,ttl,absdrho,bbl
-      real(8),dimension(3):: e1,e2,e3
+      real(8):: dth2,dph2,rho
+      INTEGER:: nth2,nph2,i,j
+      real(8),dimension(3,3):: em
+      COMPLEX(8),dimension(nthmax2,nphmax2):: cf1,cf2
 
-!      IF(rho.LE.1.D-8) THEN
-!         rhol=1.D-8
-!      ELSE
-      rhol=rho
-!      ENDIF
+      rho=0.d0
+      dth2=2.d0*pi/nthmax2
+      dph2=2.d0*pi/nphmax2
+      do nph2=1,nphmax2
+         do nth2=1,nthmax2
+            th=dth2*(nth2-1)
+            ph=dph2*(nph2-1)
+         
+            select case(modelg)
+            case(0,1,2)
+               drrrho=ra*cos(th)
+               dzzrho=ra*sin(th)
+            case(3,5)
+               psipl=fnpsip(rho)
+               CALL spl2dd(th,rho,rrl,drrchi,drrrho,
+     &                     THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+               CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
+     &                     THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
+            end select
+            absdrho=sqrt(drrrho**2+dzzrho**2)
+            em(1,1)=drrrho/absdrho
+            em(1,2)=dzzrho/absdrho
+            em(1,3)=0.D0
 
-      select case(modelg)
-      case(0,1,2)
-         drrrho=ra*cos(th)
-         dzzrho=ra*sin(th)
-      case(3,5)
-         psipl=fnpsip(rho)
-         CALL spl2dd(th,rho,rrl,drrchi,drrrho,
-     &               THIT,RHOT,URPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-         CALL spl2dd(th,rho,zzl,dzzchi,dzzrho,
-     &               THIT,RHOT,UZPS,NTHMP,NTHMAX+1,NRMAX,IERR)
-      end select
-      absdrho=sqrt(drrrho**2+dzzrho**2)
-      e1(1)=drrrho/absdrho
-      e1(2)=dzzrho/absdrho
-      e1(3)=0.D0
+            SELECT CASE(modelg)
+            CASE(0,1,2)
+               call wmfem_qprofile(rho,qinv)
+               rrl=rr+ra*rho*cos(th)
+               zzl=   ra*rho*sin(th)
+               bphl=bb*rr/rrl
+               bprr=-bb*qinv*ra*rho/rrl*sin(th)
+               bpzz= bb*qinv*ra*rho/rrl*cos(th)
+            CASE(3,5)
+               CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
+               bprr= DPSIDZ/(2.D0*PI*rrl)
+               bpzz=-DPSIDR/(2.D0*PI*rrl)
+               ttl=FNTTS(rhol)
+               bphl= ttl/(2.d0*PI*rrl)
+               bprr= DPSIDZ/(2.D0*PI*rrl)
+               bpzz=-DPSIDR/(2.D0*PI*rrl)
+            END SELECT
+            bbl=sqrt(bphl**2+bprr**2+bpzz**2)
+            em(3,1)=bprr/bbl
+            em(3,2)=bpzz/bbl
+            em(3,3)=bphl/bbl
+            em(2,1)=em(3,2)*em(1,3)-em(3,3)*em(1,2)
+            em(2,2)=em(3,3)*em(1,1)-em(3,1)*em(1,3)
+            em(2,3)=em(3,1)*em(1,2)-em(3,2)*em(1,1)
+            DO j=1,3
+               DO i=1,3
+                  mtxCL(i,j,nth2,nph2)=em(i,j)
+               END DO
+            END DO
+         END DO
+      ENDDO
 
-      SELECT CASE(modelg)
-      CASE(0,1,2)
-         call wmfem_qprofile(rho,qinv)
-         rrl=rr+ra*rho*cos(th)
-         bphl=bb*rr/rrl
-         bprr=-bb*qinv*ra*rho/rrl*sin(th)
-         bpzz= bb*qinv*ra*rho/rrl*cos(th)
-      CASE(3,5)
-         CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
-         bprr= DPSIDZ/(2.D0*PI*rrl)
-         bpzz=-DPSIDR/(2.D0*PI*rrl)
-         ttl=FNTTS(rhol)
-         bphl= ttl/(2.d0*PI*rrl)
-         bprr= DPSIDZ/(2.D0*PI*rrl)
-         bpzz=-DPSIDR/(2.D0*PI*rrl)
-      END SELECT
-      bbl=sqrt(bphl**2+bprr**2+bpzz**2)
-      e3(1)=bprr/bbl
-      e3(2)=bpzz/bbl
-      e3(3)=bphl/bbl
-      e2(1)=e3(2)*e1(3)-e3(3)*e1(2)
-      e2(2)=e3(3)*e1(1)-e3(1)*e1(3)
-      e2(3)=e3(1)*e1(2)-e3(2)*e1(1)
-      write(21,'(A,1P2E12.4)') 'rho,th=',rho,th
-      write(21,'(A,1P3E12.4)') '    e1=',e1(1),e1(2),e1(3)
-      write(21,'(A,1P3E12.4)') '    e2=',e2(1),e2(2),e2(3)
-      write(21,'(A,1P3E12.4)') '    e3=',e3(1),e3(2),e3(3)
-      return
-      end subroutine wmeq_get_metricCL
+!      DO nph2=1,nphmax2
+!         DO nth2=1,nthmax2
+!            th=dth2*(nth2-1)
+!            ph=dph2*(nph2-1)
+!            write(21,'(A,1P2E12.4)') 'th,ph=',th,ph
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e1=',(mtxcl(1,j,nth2,nph2),j=1,3)
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e2=',(mtxcl(2,j,nth2,nph2),j=1,3)
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e3=',(mtxcl(3,j,nth2,nph2),j=1,3)
+!         END DO
+!      END DO
+
+!     ----- Fourier transform -----
+      DO j=1,3
+         DO i=1,3
+            DO nph2=1,nphmax2
+               DO nth2=1,nthmax2
+                  cf1(nth2,nph2)=mtxCL(i,j,nth2,nph2)
+               END DO
+            END DO
+            CALL WMSUBFX(cf1,cf2,nthmax2,nphmax2)
+            DO nph2=1,nphmax2
+               DO nth2=1,nthmax2
+                  mtxCL(i,j,nth2,nph2)=cf2(nth2,nph2)
+               END DO
+            END DO
+         END DO
+      ENDDO
+
+!      DO nph2=1,nphmax2
+!         DO nth2=1,nthmax2
+!            write(21,'(A,2I6)') 'mm2,nn2=',nth2-1,nph2-1
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e1=',(mtxcl(1,j,nth2,nph2),j=1,3)
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e2=',(mtxcl(2,j,nth2,nph2),j=1,3)
+!            write(21,'(A,1P6E12.4)') 
+!     &           '  e3=',(mtxcl(3,j,nth2,nph2),j=1,3)
+!         END DO
+!      END DO
+
+      RETURN
+      END SUBROUTINE wmeq_get_mtxCL
 
 !     ****** CALCULATE Q PROFILE ******
 
@@ -1138,7 +1191,7 @@ C
       RETURN
       END
 C
-C     ****** 2D FOURIER TRANSFORM ******
+C     ****** INVERSE 2D FOURIER TRANSFORM ******
 C
       SUBROUTINE WMSUBEX(CF1,CF2,NTHMAX,NPHMAX)
 C

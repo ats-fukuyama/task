@@ -222,9 +222,18 @@
 
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       complex(8),dimension(mwmax,12*nfcmax):: fml
+      complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
+      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
+      complex(8),dimension(:,:),POINTER:: mtx0,mtx1,mtx0i,mtx1i
+      complex(8),dimension(:,:),POINTER:: vec0,vec1,sol0,sol1
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4,rhol,thl
-      integer:: nr,ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
-      integer:: ns,nfc1,nfc2,ml1,mw1,mr
+      integer:: nr,ml,mw,mc,nvmax,inod,nfc,nth,nph,mm,nn,mll
+      integer:: i,j,k,il,jl,kl
+      integer:: ns,nfc1,nfc2,ml1,mw1,mr,nn1,nn2,nn3,mm1,mm2,mm3
+      integer:: count0a,count0b,count1a,count1b
+      integer:: count1,count2,counta,countb
+      integer,dimension(nfcmax):: nfc0a,nfc0b,ipos0
+      integer,dimension(nfcmax):: nfc1a,nfc1b,ipos1
       complex(8):: csum,f1,f2,f3,f4,cx,cy,cxd,cyd
       integer:: id_base=1
       real(8):: angl=0.d0
@@ -278,111 +287,305 @@
 
 !----- boundary conditions -----
 
-      DO nr=1,2
-         rhol=rhoa(nr)
-         do nth=1,nthmax
-            thl=2.d0*pi*(nth-1)/nthmax
-            CALL wmeq_get_metricCL(rhol,thl)
+!----- boundary condition at rho=0 -----
+
+      CALL wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
+
+      do nfc1=1,nfcmax
+         do nfc2=1,nfcmax
+            nn1=nnnfc(nfc1)
+            mm1=mmnfc(nfc1)
+            nn2=nnnfc(nfc2)
+            mm2=mmnfc(nfc2)
+            nn3=nn1-nn2
+            mm3=mm1-mm2
+            IF(nn3.LT.0) nn3=nn3+nphmax2
+            IF(mm3.LT.0) mm3=mm3+nthmax2
+            do i=1,3
+               do j=1,3
+                  mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+     &                 =mtxcl(i,j,mm3+1,nn3+1)
+               enddo
+            enddo
          enddo
       enddo
 
-      mc=(mwmax+1)/2
-      mr=6*nfcmax
+!      do i=1,3*nfcmax
+!         do j=1,nfcmax
+!            write(21,'(2I3,1P6E12.4)') i,3*(j-1)+1,
+!     &           mtxclx(i,3*(j-1)+1),
+!     &           mtxclx(i,3*(j-1)+2),
+!     &           mtxclx(i,3*(j-1)+3)
+!         enddo
+!      enddo
 
-      nr=1
-      do nfc=1,nfcmax
-         mm=mmnfc(nfc)
-         mll=6*(nfc-1)
-         ml=6*nfcmax*(nr-1)+mll
-         if(mm.eq.0) then
-            do mw=1,mwmax
-               fma(mw,ml+3) = 0.d0
-               if(mdlwmd.ge.1) then
-                  do ns=0,nsmax
-                     fms(mw,mll+3,nr,ns)=0.d0
-                  enddo
-               end if
-            enddo
-            fma(mc,ml+3)=1.d0
-            if(mdlwmd.ge.1) fms(mc,mll+3,nr,0)=1.d0
-            fvb(ml+3)=0.d0
-         elseif(abs(mm).eq.1) then
-            do mw=4,mwmax
-               cx= fma(mw  ,ml+1)
-               cy= fma(mw-2,ml+3)
-               fma(mw  ,ml+1)=cx +ci*mm*cy
-               fma(mw-2,ml+3)=cx -ci*mm*cy
-               if(mdlwmd.ge.1) then
-                  do ns=0,nsmax
-                     cx= fms(mw  ,mll+1,nr,ns)
-                     cy= fms(mw-2,mll+3,nr,ns)
-                     fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
-                     fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
-                  enddo
-               endif
-            enddo
-            do mw=-mc+5,mc
-               if(ml+mw.ge.1.AND.ml+mw.LE.12*nfcmax) then
-                  cx= fma(mc-mw+1,ml+mw)
-                  cy= fma(mc-mw+3,ml+mw)
-                  fma(mc-mw+1,ml+mw)=cx -ci*mm*cy
-                  fma(mc-mw+3,ml+mw)=cx +ci*mm*cy
-                  if(mdlwmd.ge.1) then
-                     do ns=0,nsmax
-                        cx= fms(mc-mw+1,mll+mw,nr,ns)
-                        cy= fms(mc-mw+3,mll+mw,nr,ns)
-                        fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
-                        fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
-                        if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
-                           cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
-                           cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
-                           fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx-ci*mm*cy
-                           fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx+ci*mm*cy
-                        endif
-                     end do
-                  endif
-               endif
-            enddo
+!     ----- generate mm.ne.0 -----
 
-            do mw=1,mwmax
-               fma(mw,ml+1) = 0.d0
-               fma(mw,ml+5) = 0.d0
-               if(mdlwmd.ge.1) then
-                  do ns=0,nsmax
-                     fms(mw,mll+1,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
-                  end do
-               end if
-            end do
-            fma(mc  ,ml+1)=1.d0
-            fma(mc  ,ml+5)=1.d0
-            fvb(ml+1)=0.d0
-            fvb(ml+5)=0.d0
-            if(mdlwmd.ge.1) then
-               fms(mc  ,mll+1,nr,0)=1.d0
-               fms(mc  ,mll+5,nr,0)=1.d0
-            endif
-         else
-            do mw=1,mwmax
-               fma(mw,ml+3) = 0.d0
-               fma(mw,ml+5) = 0.d0
-               if(mdlwmd.ge.1) then
-                  do ns=0,nsmax
-                     fms(mw,mll+3,nr,ns)=0.d0
-                     fms(mw,mll+5,nr,ns)=0.d0
-                  enddo
-               endif
-            enddo
-            fma(mc,ml+3)=1.d0
-            fma(mc,ml+5)=1.d0
-            fvb(ml+3)=0.d0
-            fvb(ml+5)=0.d0
-            if(mdlwmd.ge.1) then
-               fms(mc,mll+3,nr,0)=1.d0
-               fms(mc,mll+5,nr,0)=1.d0
-            endif
-         endif
+      count0a=0
+      count0b=0
+      DO nfc=1,nfcmax
+         IF(mmnfc(nfc).EQ.0) THEN
+            count0b=count0b+1
+            nfc0b(count0b)=nfc
+            ipos0(nfc)=-count0b
+         ELSE
+            count0a=count0a+1
+            nfc0a(count0a)=nfc
+            ipos0(nfc)=count0a
+         ENDIF
+      ENDDO
+
+      allocate(mtx0(3*count0a,3*count0a))
+      allocate(mtx0i(3*count0a,3*count0a))
+      allocate(vec0(3*count0a,3*count0b))
+      allocate(sol0(3*count0a,3*count0b))
+
+      DO nfc1=1,nfcmax
+         IF(ipos0(nfc1).GT.0) THEN
+            count1=ipos0(nfc1)
+            DO nfc2=1,nfcmax
+               IF(ipos0(nfc2).GT.0) THEN
+                  count2=ipos0(nfc2)
+                  DO i=1,3
+                     DO j=1,3
+                       mtx0(3*(count1-1)+i,3*(count2-1)+j)
+     &                       =mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+                     ENDDO
+                  ENDDO
+               ELSE
+                  count2=-ipos0(nfc2)
+                  DO i=1,3
+                     DO j=1,3
+                       vec0(3*(count1-1)+i,3*(count2-1)+j)
+     &                       =mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+                     ENDDO
+                  ENDDO
+               ENDIF
+            ENDDO
+         ENDIF
+      ENDDO
+
+!      do i=1,3*count0a
+!         do j=1,count0a
+!            write(21,'(A,2I3,1P6E12.4)') 'M',i,3*(j-1)+1,
+!     &           mtx0(i,3*(j-1)+1),
+!     &           mtx0(i,3*(j-1)+2),
+!     &           mtx0(i,3*(j-1)+3)
+!         enddo
+!      enddo
+!      do j=1,3*count0b
+!         do i=1,count0a
+!            write(21,'(A,2I3,1P6E12.4)') 'V',3*(i-1)+1,j,
+!     &           vec0(3*(i-1)+1,j),
+!     &           vec0(3*(i-1)+2,j),
+!     &           vec0(3*(i-1)+3,j)
+!         enddo
+!      enddo
+
+      do i=1,3*count0a
+         do j=1,3*count0a
+            mtx0i(i,j)=mtx0(i,j)
+         enddo
       enddo
+      CALL invmcd(mtx0i,3*count0a,3*count0a,ierr)
+
+      do j=1,3*count0b
+         do i=1,3*count0a
+            sol0(i,j)=(0.d0,0d0)
+            do k=1,3*count0a
+               sol0(i,j)=sol0(i,j)+mtx0i(i,k)*vec0(k,j)
+            enddo
+         enddo
+      enddo
+
+!      do j=1,3*count0b
+!         do i=1,count0a
+!            write(21,'(A,2I3,1P6E12.4)') 'S',3*(i-1)+1,j,
+!     &           sol0(3*(i-1)+1,j),
+!     &           sol0(3*(i-1)+2,j),
+!     &           sol0(3*(i-1)+3,j)
+!         enddo
+!      enddo
+
+!     ----- generate abs(mm).ne.1 -----
+
+      count1a=0
+      count1b=0
+      DO nfc=1,nfcmax
+         IF(ABS(mmnfc(nfc)).EQ.1) THEN
+            count1b=count1b+1
+            nfc1b(count1b)=nfc
+            ipos1(nfc)=-count1b
+         ELSE
+            count1a=count1a+1
+            nfc1a(count1a)=nfc
+            ipos1(nfc)=count1a
+         ENDIF
+      ENDDO
+
+      allocate(mtx1(3*count1a,3*count1a))
+      allocate(mtx1i(3*count1a,3*count1a))
+      allocate(vec1(3*count1a,3*count1b))
+      allocate(sol1(3*count1a,3*count1b))
+
+      DO nfc1=1,nfcmax
+         IF(ipos1(nfc1).GT.0) THEN
+            count1=ipos1(nfc1)
+            DO nfc2=1,nfcmax
+               IF(ipos1(nfc2).GT.0) THEN
+                  count2=ipos1(nfc2)
+                  DO i=1,3
+                     DO j=1,3
+                        mtx1(3*(count1-1)+i,3*(count2-1)+j)
+     &                       =mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+                     ENDDO
+                  ENDDO
+               ELSE
+                  count2=-ipos1(nfc2)
+                  DO i=1,3
+                     DO j=1,3
+                        vec1(3*(count1-1)+i,3*(count2-1)+j)
+     &                       =mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+                     ENDDO
+                  ENDDO
+               ENDIF
+            ENDDO
+         ENDIF
+      ENDDO
+
+!      do i=1,3*count1a
+!         do j=1,count1a
+!            write(21,'(A,2I3,1P6E12.4)') 'M',i,3*(j-1)+1,
+!     &           mtx1(i,3*(j-1)+1),
+!     &           mtx1(i,3*(j-1)+2),
+!     &           mtx1(i,3*(j-1)+3)
+!         enddo
+!      enddo
+!      do j=1,3*count1b
+!         do i=1,count1a
+!            write(21,'(A,2I3,1P6E12.4)') 'V',3*(i-1)+1,j,
+!     &           vec1(3*(i-1)+1,j),
+!     &           vec1(3*(i-1)+2,j),
+!     &           vec1(3*(i-1)+3,j)
+!         enddo
+!      enddo
+
+      do i=1,3*count1a
+         do j=1,3*count1a
+            mtx1i(i,j)=mtx1(i,j)
+         enddo
+      enddo
+      CALL invmcd(mtx1i,3*count1a,3*count1a,ierr)
+
+      do j=1,3*count1b
+         do i=1,3*count1a
+            sol1(i,j)=(0.d0,0d0)
+            do k=1,3*count1a
+               sol1(i,j)=sol1(i,j)+mtx1i(i,k)*vec1(k,j)
+            enddo
+         enddo
+      enddo
+
+!      do j=1,3*count1b
+!         do i=1,count1a
+!            write(21,'(A,2I3,1P6E12.4)') 'S',3*(i-1)+1,j,
+!     &           sol1(3*(i-1)+1,j),
+!     &           sol1(3*(i-1)+2,j),
+!     &           sol1(3*(i-1)+3,j)
+!         enddo
+!      enddo
+
+!     ----- modify fma and fmv for E -----
+
+      mc=(mwmax+1)/2
+
+!     ----- add count0a to count0b for E -----
+      
+      DO countb=1,count0b
+         nfc1=nfc0b(countb)
+         do counta=1,count0a
+            nfc2=nfc0a(counta)
+            do i=1,3
+               il=6*(nfc1-1)+2*(i-1)+1
+               kl=6*(nfc2-1)+2*(i-1)+1
+               do j=1,mwmax
+                  fma(j,il)=fma(j,il)
+     &                     +fma(j+il-kl,kl)*conjg(sol0(counta,countb))
+               enddo
+               fvb(il)=fvb(il)+fvb(kl)*conjg(sol0(counta,countb))
+            enddo
+         enddo
+      enddo
+               
+!     ----- add count1a to count1b for E' -----
+      
+      DO countb=1,count1b
+         nfc1=nfc1b(countb)
+         do counta=1,count1a
+            nfc2=nfc1a(counta)
+            do i=1,3
+               il=6*(nfc1-1)+2*(i-1)+2
+               kl=6*(nfc2-1)+2*(i-1)+2
+               do j=1,mwmax
+                  fma(j,il)=fma(j,il)
+     &                     +fma(j+il-kl,kl)*conjg(sol1(counta,countb))
+               enddo
+               fvb(il)=fvb(il)+fvb(kl)*conjg(sol1(counta,countb))
+            enddo
+         enddo
+      enddo
+
+!     ----- replace fma for m=0 -----      
+            
+      DO counta=1,count0a
+         nfc1=nfc0a(counta)
+         do i=1,3
+            il=6*(nfc1-1)+2*(i-1)+1
+            do j=1,mwmax
+               fma(j,il)=(0.d0,0.d0)
+            enddo
+            do nfc2=1,nfcmax
+               do j=1,3
+                  jl=6*(nfc2-1)+2*(j-1)+1
+                  fma(jl-il+mc,il)=mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+               enddo
+            enddo
+            fvb(il)=(0.d0,0.d0)
+         enddo
+      enddo
+
+!     ----- replace for abs(m)=1 -----      
+            
+      DO counta=1,count1a
+         nfc1=nfc1a(counta)
+         do i=1,3
+            il=6*(nfc1-1)+2*(i-1)+2
+            do j=1,mwmax
+               fma(j,il)=(0.d0,0.d0)
+            enddo
+            do nfc2=1,nfcmax
+               do j=1,3
+                  jl=6*(nfc2-1)+2*(j-1)+2
+                  fma(jl-il+mc,il)=mtxclx(3*(nfc1-1)+i,3*(nfc2-1)+j)
+               enddo
+            enddo
+            fvb(il)=(0.d0,0.d0)
+         enddo
+      enddo
+
+      deallocate(mtx0,mtx0i,vec0,sol0)
+      deallocate(mtx1,mtx1i,vec1,sol1)
+
+!      do i=1,6*nfcmax
+!         do j=1,mwmax,3
+!            write(21,'(A,2I3,1P6E12.4)') 
+!     &           'f',i,j,fma(j,i),fma(j+1,i),fma(j+2,i)
+!         enddo
+!         write(21,'(A,I3,3X,1P2E12.4)') 
+!     &           'v',i,fvb(i)
+!      enddo
+
+!----- boundary condition at rho=b/a -----
 
       nr=nrmax
       do nfc=1,nfcmax

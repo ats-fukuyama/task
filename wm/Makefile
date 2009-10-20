@@ -124,9 +124,11 @@ wmpout1.o : wmpout1.f $(WMCOMM)
 wmtae.o : wmtae.f $(WMCOMM)
 
 wmfem.o : wmfem.f wmfem_com.f
+wmfem_com.o : wmfem_com.f
 wmfem_calc.o : wmfem_calc.f wmfem_com.f
 wmfem_sub.o : wmfem_sub.f wmfem_com.f $(WMCOMM)	
-wmfem_setg.o : wmfem_setg.f wmfem_com.f $(WMCOMM)	
+wmfem_setg.o : wmfem_setg.f wmfem_com.f $(WMCOMM)
+wmfem_vmec.o : wmfem_vmec.f wmfem_com.f $(WMCOMM) vmcomm.inc
 
 wmvmec.o : wmvmec.f $(WMCOMM) vmcomm.inc
 wmbooz.o : wmbooz.f $(WMCOMM) vmcomm.inc
