@@ -61,7 +61,7 @@ C
             ENDDO
          ENDDO
 C
-         CALL INVMCD(D(1,IBLC),NBSIZ,LD,NM,IERR)
+         CALL INVMCD(D(1,IBLC),NBSIZ,LD,IERR)
 C
       ENDDO
 C

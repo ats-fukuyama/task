@@ -88,7 +88,7 @@
 
 !     ***** COMPLEX MATRIX INVERSION *****
 
-      SUBROUTINE INVMCD(A,N,NA,NM,ILL)
+      SUBROUTINE INVMCD(A,N,NA,ILL)
 
       implicit none
       integer(4),                   intent(in)    :: N, NA

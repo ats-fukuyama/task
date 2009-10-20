@@ -84,7 +84,7 @@ C
             ENDDO
          ENDDO
 C     
-         CALL INVMCD(TINV1,NBSIZ,LD,NM,IERR)
+         CALL INVMCD(TINV1,NBSIZ,LD,IERR)
 C         if(ierr.ne.0) write(6,*) '0 ierr=',ierr
 C
          DO J=1,NBSIZ
@@ -233,7 +233,7 @@ C
          ENDDO
       ENDDO
 C
-      CALL INVMCD(TINV1,NBSIZ,LD,NM,IERR)
+      CALL INVMCD(TINV1,NBSIZ,LD,IERR)
 C      if(ierr.ne.0) write(6,*) '1 ierr=',ierr
 C
       DO J=1,NBSIZ
@@ -487,7 +487,7 @@ C
             ENDDO
          ENDDO
 C
-         CALL INVMCD(TINV1,NBSIZ,LD,NM,IERR)
+         CALL INVMCD(TINV1,NBSIZ,LD,IERR)
 C         if(ierr.ne.0) write(6,*) '2 ierr=',ierr
 C
          DO J=1,NBSIZ
@@ -595,7 +595,7 @@ C
          ENDDO
       ENDDO
 C
-      CALL INVMCD(TINV1,NBSIZ,LD,NM,IERR)
+      CALL INVMCD(TINV1,NBSIZ,LD,IERR)
 C      if(ierr.ne.0) write(6,*) '3 ierr=',ierr
 C
       RETURN

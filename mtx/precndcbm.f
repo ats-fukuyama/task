@@ -23,7 +23,7 @@ C
             ENDDO
          ENDDO
 C
-         CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,NM,IERR)
+         CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,IERR)
 C
       ENDDO
 C
@@ -118,7 +118,7 @@ C
             ENDDO
          ENDDO
 C
-         CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,NM,IERR)
+         CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,IERR)
 C
       ENDDO
 C
@@ -262,7 +262,7 @@ C
                   ENDDO
                ENDDO
 C
-               CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,NM,IERR)
+               CALL INVMCD(D(1,IBLC-ISTA+1),NBSIZ,LD,IERR)
 C
             ENDDO
 C
