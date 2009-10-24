@@ -110,8 +110,8 @@
          id%IRN_loc(nzcount)=i
          id%JCN_loc(nzcount)=j
       ELSE
-         write(6,'(A)') 
-     &        'XX libmtxdmumps:mtx_set_matrix: i : out of range'
+         write(6,'(A)') &
+              'XX libmtxdmumps:mtx_set_matrix: i : out of range'
          write(6,'(A,4I10)') '   rank,istart,iend,i=',rank,istart,iend,i
       ENDIF
       return
@@ -124,8 +124,8 @@
       IF(j.GE.istart.AND.j.LE.iend) THEN
          b_loc(j-istart+1)=v
       ELSE
-         write(6,'(A)') 
-     &        'XX libmtxdmumps:mtx_set_source: j : out of range'
+         write(6,'(A)') &
+              'XX libmtxdmumps:mtx_set_source: j : out of range'
          write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart,iend,j
       ENDIF
       RETURN
@@ -159,20 +159,19 @@
 !      if(rank.eq.0) then
 !         write(21,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
 !         do i=0,size-1
-!            write(21,'(A,4I10)') 'rank,istartx,iendx,isizex=',
-!     &            i,istartx(i),iendx(i),isizex(i)
+!            write(21,'(A,4I10)') 'rank,istartx,iendx,isizex=', &
+!                  i,istartx(i),iendx(i),isizex(i)
 !         enddo
 !      endif
 !      if(rank.eq.1) then
 !         write(22,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
 !         do i=0,size-1
-!            write(22,'(A,4I10)') 'rank,istartx,iendx,isizex=',
-!     &            i,istartx(i),iendx(i),isizex(i)
+!            write(22,'(A,4I10)') 'rank,istartx,iendx,isizex=', &
+!                  i,istartx(i),iendx(i),isizex(i)
 !         enddo
 !      endif
 
-      call mtx_allgatherv_real8(b_loc,iend-istart+1,b,imax,
-     &                          isizex,istartx)
+      call mtx_allgatherv_real8(b_loc,iend-istart+1,b,imax,isizex,istartx)
       do i=1,imax
          id%RHS(i)=b(i)
       enddo
@@ -209,8 +208,8 @@
 
 !      if(rank.eq.0) then
 !         do i=1,nzcount
-!            write(21,'(A,2I10,1PE12.4)') 'i,j,A=', 
-!     &           id%IRN_loc(i),id%JCN_loc(i),id%A_loc(i)
+!            write(21,'(A,2I10,1PE12.4)') 'i,j,A=', &
+!                 id%IRN_loc(i),id%JCN_loc(i),id%A_loc(i)
 !         enddo
 !         do i=1,imax
 !            write(21,'(A,I10,1PE12.4)') 'i,b=',i,id%RHS(i)
@@ -221,8 +220,8 @@
 !      endif
 !      if(rank.eq.1) then
 !         do i=1,nzcount
-!            write(22,'(A,2I10,1PE12.4)') 'i,j,A=', 
-!     &           id%IRN_loc(i),id%JCN_loc(i),id%A_loc(i)
+!            write(22,'(A,2I10,1PE12.4)') 'i,j,A=', &
+!                 id%IRN_loc(i),id%JCN_loc(i),id%A_loc(i)
 !         enddo
 !         do i=1,imax
 !            write(22,'(A,I10,1PE12.4)') 'i,b=',i,b(i)
