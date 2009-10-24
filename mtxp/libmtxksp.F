@@ -2,16 +2,11 @@
 
       MODULE libmtx
 
+      use libmpi
+
       IMPLICIT NONE
+
       PUBLIC mtx_initialize
-      PUBLIC mtx_setup
-      PUBLIC mtx_set_matrix
-      PUBLIC mtx_set_source
-      PUBLIC mtx_set_vector
-      PUBLIC mtx_solve
-      PUBLIC mtx_get_vector
-      PUBLIC mtx_gather_vector
-      PUBLIC mtx_cleanup
       PUBLIC mtx_finalize
       PUBLIC mtx_barrier
       PUBLIC mtx_broadcast_character
@@ -23,6 +18,16 @@
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
+
+      PUBLIC mtx_setup
+      PUBLIC mtx_set_matrix
+      PUBLIC mtx_set_source
+      PUBLIC mtx_set_vector
+      PUBLIC mtx_solve
+      PUBLIC mtx_get_vector
+      PUBLIC mtx_gather_vector
+      PUBLIC mtx_cleanup
+
       PRIVATE
 !
 !  Description: Solves a linear system in parallel with KSP (Fortran code).
@@ -63,7 +68,7 @@
 !     petscviewer.h - viewers
 !     petscis.h     - index sets
 !
-#include "finclude/petsc.h"
+!#include "finclude/petsc.h"
 #include "finclude/petscvec.h"
 #include "finclude/petscmat.h"
 #include "finclude/petscpc.h"
@@ -91,9 +96,7 @@
 !  However, local vector data can be easily accessed via VecGetArray().
 !  See the Fortran section of the PETSc users manual for details.
 !  
-      PetscMPIInt    rank,size
       PetscInt       istart,iend,ilen,imax
-      PetscErrorCode ierr
       Vec            x,b
       Mat            A 
       KSP            ksp
@@ -107,25 +110,12 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_initialize(rank_,size_)
-      INTEGER,INTENT(OUT):: rank_,size_
-
-      call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
-      call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
-      rank_=rank
-      size_=size
-!      if(rank.eq.0) write(6,'(A,I10)') '# mtx_initialize: size=',size
-      return
-
-      END SUBROUTINE mtx_initialize
-
       SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
 
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(IN):: jwidth_         ! band matrix width
       INTEGER,INTENT(OUT):: istart_,iend_   ! allocated range of lines 
-      INTEGER:: i
+      INTEGER:: i,ierr
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !      Compute the matrix and right-hand-side vector that define
@@ -188,13 +178,14 @@
       SUBROUTINE mtx_set_matrix(i,j,v)
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
       REAL(8),INTENT(IN):: v    ! value to be inserted
+      INTEGER:: ierr
 
       IF(i.GE.istart+1.AND.i.LE.iend) THEN
          call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
       ELSE
          write(6,'(A)') 
      &        'XX libmtxksp:mtx_set_matrix: i : out of range'
-         write(6,'(A,4I10)') '   rank,istart,iend,i=',rank,istart+1,iend,i
+         write(6,'(A,3I10)') '   ,istart,iend,i=',istart+1,iend,i
       ENDIF
 
       return
@@ -203,6 +194,7 @@
       SUBROUTINE mtx_set_source(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
+      INTEGER:: ierr
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
@@ -217,6 +209,7 @@
       SUBROUTINE mtx_set_vector(j,v)
       INTEGER,INTENT(IN):: j ! vector positon j=row
       REAL(8),INTENT(IN):: v ! value to be inserted
+      INTEGER:: ierr
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
@@ -229,6 +222,8 @@
       END SUBROUTINE mtx_set_vector
       
       SUBROUTINE mtx_split_operation
+      INTEGER:: ierr
+
       call VecAssemblyBegin(b,ierr)
       call VecAssemblyEnd(b,ierr)
       call VecAssemblyBegin(x,ierr)
@@ -240,6 +235,7 @@
       INTEGER,INTENT(IN):: itype     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
+      INTEGER:: ierr
 
 !  Assemble matrix, using the 2-step process:
 !       MatAssemblyBegin(), MatAssemblyEnd()
@@ -328,6 +324,7 @@
       REAL(8),INTENT(OUT):: v
       PetscScalar:: x_value(1)
       PetscOffset:: x_offset
+      INTEGER:: ierr
 
       call VecGetArray(x,x_value,x_offset,ierr)
       v=x_value(x_offset+j-Istart)
@@ -340,7 +337,7 @@
 
       REAL(8),DIMENSION(imax),INTENT(OUT):: x_
       REAL(8),DIMENSION(ilen):: v
-      INTEGER:: j
+      INTEGER:: j,ierr
       PetscScalar:: x_value(1)
       PetscOffset:: x_offset
 
@@ -359,6 +356,7 @@
       END SUBROUTINE mtx_gather_vector
 
       SUBROUTINE mtx_cleanup
+      INTEGER:: ierr
 
 !  Free work space.  All PETSc objects should be destroyed when they
 !  are no longer needed.
@@ -372,124 +370,5 @@
       call MatDestroy(A,ierr)
       RETURN
       END SUBROUTINE mtx_cleanup
-
-      SUBROUTINE mtx_finalize
-
-!  Always call PetscFinalize() before exiting a program.  This routine
-!    - finalizes the PETSc libraries as well as MPI
-!    - provides summary and diagnostic information if certain runtime
-!      options are chosen (e.g., -log_summary).  See PetscFinalize()
-!      manpage for more information.
-
-      call PetscFinalize(ierr)
-      END SUBROUTINE mtx_finalize
-
-      SUBROUTINE mtx_barrier
-      call MPI_Barrier(PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_barrier
-
-      SUBROUTINE mtx_broadcast_character(kdata,n)
-
-      CHARACTER(LEN=n),INTENT(INOUT):: kdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(kdata,n,MPI_CHARACTER,
-     &               0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_broadcast_character
-
-      SUBROUTINE mtx_broadcast_integer(idata,n)
-
-      INTEGER,DIMENSION(n),INTENT(INOUT):: idata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(idata,n,MPI_INTEGER,
-     &               0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_broadcast_integer
-
-      SUBROUTINE mtx_broadcast_real8(vdata,n)
-
-      REAL(8),DIMENSION(n),INTENT(INOUT):: vdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(vdata,n,MPI_DOUBLE_PRECISION,
-     &               0,PETSC_COMM_WORLD,ierr)
-
-      RETURN
-      END SUBROUTINE mtx_broadcast_real8
-
-      SUBROUTINE mtx_broadcast_complex8(vdata,n)
-
-      COMPLEX(8),DIMENSION(n),INTENT(INOUT):: vdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(vdata,n,MPI_DOUBLE_COMPLEX,
-     &               0,PETSC_COMM_WORLD,ierr)
-
-      RETURN
-      END SUBROUTINE mtx_broadcast_complex8
-
-      SUBROUTINE mtx_gather_integer(idata,itot)
-
-      INTEGER,INTENT(IN):: idata
-      INTEGER,DIMENSION(size),INTENT(OUT):: itot
-
-      call MPI_GATHER(idata,1,MPI_INTEGER,
-     &                itot,1,MPI_INTEGER,
-     &                0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gather_integer
-
-      SUBROUTINE mtx_gather_real8(ddata,dtot)
-
-      REAL(8),INTENT(IN):: ddata
-      REAL(8),DIMENSION(size),INTENT(OUT):: dtot
-
-      call MPI_GATHER(ddata,1,MPI_DOUBLE_PRECISION,
-     &                dtot,1,MPI_DOUBLE_PRECISION,
-     &                0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gather_real8
-
-      SUBROUTINE mtx_allgather_integer(idata,itot)
-
-      INTEGER,INTENT(IN):: idata
-      INTEGER,DIMENSION(size),INTENT(OUT):: itot
-
-      call MPI_ALLGATHER(idata,1,MPI_INTEGER,
-     &                   itot,1,MPI_INTEGER,
-     &                   PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_allgather_integer
-
-      SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
-
-      INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(INOUT):: ntot
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size):: ilena,iposa
-
-      call MPI_GATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
-     &                 vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
-     &                 0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gatherv_real8
-
-      SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
-
-      INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(INOUT):: ntot
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size):: ilena,iposa
-
-      call MPI_ALLGATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
-     &                    vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
-     &                    PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_allgatherv_real8
 
       END MODULE libmtx

@@ -2,19 +2,14 @@
 
       MODULE libmtx
 
+      use libmpi
+
       IMPLICIT NONE
+
       PUBLIC mtx_initialize
-      PUBLIC mtx_setup
-      PUBLIC mtx_set_matrix
-      PUBLIC mtx_set_source
-      PUBLIC mtx_set_vector
-      PUBLIC mtx_solve
-      PUBLIC mtx_get_vector
-      PUBLIC mtx_gather_vector
-      PUBLIC mtx_cleanup
       PUBLIC mtx_finalize
       PUBLIC mtx_barrier
-      PUBLIC mtx_broadcast_character   ! broadcast from rank=0
+      PUBLIC mtx_broadcast_character
       PUBLIC mtx_broadcast_integer
       PUBLIC mtx_broadcast_real8
       PUBLIC mtx_broadcast_complex8
@@ -23,30 +18,26 @@
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
+
+      PUBLIC mtx_setup
+      PUBLIC mtx_set_matrix
+      PUBLIC mtx_set_source
+      PUBLIC mtx_set_vector
+      PUBLIC mtx_solve
+      PUBLIC mtx_get_vector
+      PUBLIC mtx_gather_vector
+      PUBLIC mtx_cleanup
+
       PRIVATE
 
-#include "finclude/petsc.h"
       INCLUDE 'dmumps_struc.h'
       TYPE (DMUMPS_STRUC) id
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
       REAL(8),DIMENSION(:),POINTER:: b,b_loc
-      INTEGER:: rank,size,ierr
+      INTEGER:: ierr
       INTEGEr:: imax,istart,iend,jwidth,nzcount
 
       CONTAINS
-
-      SUBROUTINE mtx_initialize(rank_,size_)
-      INTEGER,INTENT(OUT):: rank_,size_
-
-      call PetscInitialize(PETSC_NULL_CHARACTER,ierr)
-      call MPI_Comm_rank(PETSC_COMM_WORLD,rank,ierr)
-      call MPI_Comm_size(PETSC_COMM_WORLD,size,ierr)
-      rank_=rank
-      size_=size
-!      if(rank.eq.0) write(6,'(A,I10)') '# mtx_initialize: size=',size
-      return
-
-      END SUBROUTINE mtx_initialize
 
       SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
 
@@ -284,118 +275,5 @@
 
       RETURN
       END SUBROUTINE mtx_cleanup
-
-      SUBROUTINE mtx_finalize
-
-      call PetscFinalize(ierr)
-      END SUBROUTINE mtx_finalize
-
-      SUBROUTINE mtx_barrier
-      call MPI_Barrier(PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_barrier
-
-      SUBROUTINE mtx_broadcast_character(kdata,n)
-
-      CHARACTER(LEN=n),INTENT(INOUT):: kdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(kdata,n,MPI_CHARACTER,
-     &               0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_broadcast_character
-
-      SUBROUTINE mtx_broadcast_integer(idata,n)
-
-      INTEGER,DIMENSION(n),INTENT(INOUT):: idata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(idata,n,MPI_INTEGER,
-     &               0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_broadcast_integer
-
-      SUBROUTINE mtx_broadcast_real8(vdata,n)
-
-      REAL(8),DIMENSION(n),INTENT(INOUT):: vdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(vdata,n,MPI_DOUBLE_PRECISION,
-     &               0,PETSC_COMM_WORLD,ierr)
-
-      RETURN
-      END SUBROUTINE mtx_broadcast_real8
-
-      SUBROUTINE mtx_broadcast_complex8(vdata,n)
-
-      COMPLEX(8),DIMENSION(n),INTENT(INOUT):: vdata
-      INTEGER,INTENT(IN):: n
-      
-      call mpi_bcast(vdata,n,MPI_DOUBLE_COMPLEX,
-     &               0,PETSC_COMM_WORLD,ierr)
-
-      RETURN
-      END SUBROUTINE mtx_broadcast_complex8
-
-      SUBROUTINE mtx_gather_integer(idata,itot)
-
-      INTEGER,INTENT(IN):: idata
-      INTEGER,DIMENSION(size),INTENT(OUT):: itot
-
-      call MPI_GATHER(idata,1,MPI_INTEGER,
-     &                itot,1,MPI_INTEGER,
-     &                0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gather_integer
-
-      SUBROUTINE mtx_gather_real8(ddata,dtot)
-
-      REAL(8),INTENT(IN):: ddata
-      REAL(8),DIMENSION(size),INTENT(OUT):: Dtot
-
-      call MPI_GATHER(ddata,1,MPI_DOUBLE_PRECISION,
-     &                dtot,1,MPI_DOUBLE_PRECISION,
-     &                0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gather_real8
-
-      SUBROUTINE mtx_allgather_integer(idata,itot)
-
-      INTEGER,INTENT(IN):: idata
-      INTEGER,DIMENSION(size),INTENT(OUT):: itot
-
-      call MPI_ALLGATHER(idata,1,MPI_INTEGER,
-     &                   itot,1,MPI_INTEGER,
-     &                   PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_allgather_integer
-
-      SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
-
-      INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(IN):: ntot
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size),INTENT(IN):: ilena,iposa
-
-      call MPI_GATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
-     &                 vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
-     &                 0,PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_gatherv_real8
-
-      SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
-
-      INTEGER,INTENT(IN):: ndata
-      INTEGER,INTENT(IN):: ntot
-      REAL(8),DIMENSION(ndata),INTENT(IN):: vdata
-      REAL(8),DIMENSION(ntot),INTENT(OUT):: vtot
-      INTEGER,DIMENSION(size),INTENT(IN):: ilena,iposa
-
-      call MPI_ALLGATHERV(vdata,ndata,MPI_DOUBLE_PRECISION,
-     &                    vtot,ilena,iposa,MPI_DOUBLE_PRECISION,
-     &                    PETSC_COMM_WORLD,ierr)
-      RETURN
-      END SUBROUTINE mtx_allgatherv_real8
 
       END MODULE libmtx
