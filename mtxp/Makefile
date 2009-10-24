@@ -27,4 +27,4 @@ libmtxmpi.o: libmtxmpi.F90
 libmtxnompi.o: libmtxnompi.f90
 libmtxbnd.o: libmtxbnd.f90
 libmtxdmumps.o: libmtxdmumps.f90
-libmtxksp.o: libmtxksp.F
+libmtxksp.o: libmtxksp.F90

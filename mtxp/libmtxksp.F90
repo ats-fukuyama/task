@@ -150,12 +150,12 @@
 
       call mtx_allgather_integer(istart,istartx)
       call mtx_allgather_integer(iend,iendx)
-!      call MPI_ALLGATHER(istart,1,MPI_INTEGER,
-!     &                   istartx,1,MPI_INTEGER,
-!     &                   PETSC_COMM_WORLD,ierr)
-!      call MPI_ALLGATHER(iend,1,MPI_INTEGER,
-!     &                   iendx,1,MPI_INTEGER,
-!     &                   PETSC_COMM_WORLD,ierr)
+!      call MPI_ALLGATHER(istart,1,MPI_INTEGER, &
+!                         istartx,1,MPI_INTEGER, &
+!                         PETSC_COMM_WORLD,ierr)
+!      call MPI_ALLGATHER(iend,1,MPI_INTEGER, &
+!                         iendx,1,MPI_INTEGER, &
+!                         PETSC_COMM_WORLD,ierr) 
 
       do i=0,size-1
          isiz(i)=iendx(i)-istartx(i)
@@ -163,8 +163,8 @@
 !      if(rank.eq.0) then
 !         write(6,'(A)') '# mtx_setup: '
 !         do i=0,size-1
-!            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=',
-!     &           i,istartx(i)+1,iendx(i),isiz(i)
+!            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=', &
+!                  i,istartx(i)+1,iendx(i),isiz(i)
 !         enddo
 !      endif
 
@@ -183,8 +183,8 @@
       IF(i.GE.istart+1.AND.i.LE.iend) THEN
          call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
       ELSE
-         write(6,'(A)') 
-     &        'XX libmtxksp:mtx_set_matrix: i : out of range'
+         write(6,'(A)') &
+              'XX libmtxksp:mtx_set_matrix: i : out of range'
          write(6,'(A,3I10)') '   ,istart,iend,i=',istart+1,iend,i
       ENDIF
 
@@ -199,8 +199,8 @@
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
       ELSE
-         write(6,'(A)') 
-     &        'XX libmtxksp:mtx_set_source: j : out of range'
+         write(6,'(A)') &
+              'XX libmtxksp:mtx_set_source: j : out of range'
          write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart+1,iend,j
       ENDIF
       return
@@ -214,8 +214,8 @@
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
       ELSE
-         write(6,'(A)') 
-     &        'XX libmtxksp:mtx_set_vector: j : out of range'
+         write(6,'(A)') &
+              'XX libmtxksp:mtx_set_vector: j : out of range'
          write(6,'(A,4I10)') '   rank,istart,iend,j=',rank,istart+1,iend,j
       ENDIF
       RETURN
@@ -277,18 +277,18 @@
 !      call PCSetType(pc,ptype,ierr)
 !      tol = 1.e-7
 
-      call KSPSetTolerances(ksp,tolerance,
-     &     PETSC_DEFAULT_DOUBLE_PRECISION,
-     &     PETSC_DEFAULT_DOUBLE_PRECISION,
-     &     PETSC_DEFAULT_INTEGER,ierr)
+      call KSPSetTolerances(ksp,tolerance, &
+           PETSC_DEFAULT_DOUBLE_PRECISION, &
+           PETSC_DEFAULT_DOUBLE_PRECISION, &
+           PETSC_DEFAULT_INTEGER,ierr)
 
 !  Set user-defined monitoring routine if desired
 
 !      call PetscOptionsHasName(PETSC_NULL_CHARACTER,'-my_ksp_monitor',  &
-!     &                    flg,ierr)
+!                               flg,ierr)
 !      if (flg) then
 !        call KSPMonitorSet(ksp,MyKSPMonitor,PETSC_NULL_OBJECT,          &
-!     &                     PETSC_NULL_FUNCTION,ierr)
+!                           PETSC_NULL_FUNCTION,ierr)
 !      endif
 
 
@@ -303,10 +303,10 @@
 !  Set convergence test routine if desired
 
 !      call PetscOptionsHasName(PETSC_NULL_CHARACTER,                    &
-!     &     '-my_ksp_convergence',flg,ierr)
+!           '-my_ksp_convergence',flg,ierr)
 !      if (flg) then
 !        call KSPSetConvergenceTest(ksp,MyKSPConverged,                  &
-!     &          PETSC_NULL_OBJECT,PETSC_NULL_FUNCTION,ierr)
+!                PETSC_NULL_OBJECT,PETSC_NULL_FUNCTION,ierr)
 !      endif
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -349,9 +349,9 @@
 
       call mtx_allgatherv_real8(v,iend-istart,x_,imax,isiz,istartx)
 !      call mtx_gatherv_real8(v,iend-istart,x_,imax,isiz,istartx)
-!      call MPI_GATHERV(v,isiz(rank),MPI_DOUBLE_PRECISION,
-!     &                 x_,isiz,istartx,MPI_DOUBLE_PRECISION,
-!     &                 0,PETSC_COMM_WORLD,ierr)
+!      call MPI_GATHERV(v,isiz(rank),MPI_DOUBLE_PRECISION, &
+!                       x_,isiz,istartx,MPI_DOUBLE_PRECISION, &
+!                       0,PETSC_COMM_WORLD,ierr)
       RETURN
       END SUBROUTINE mtx_gather_vector
 
