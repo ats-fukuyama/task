@@ -37,11 +37,11 @@ Optional Libraries:
 Present modules:
     pl: Module interface library (*)
     eq: 2D equilibrium module (fixed boundary)
-    tr: 1D transport module (diffusive transport) (**)
+    tr: 1D transport module (diffusive transport)
     wr: 3D ray tracing module
     wm: 3D full wave module
     dp: Wave dispersion module
-    fp: 3D Fokker Planck module (***)
+    fp: 3D Fokker Planck module
     tot: all-in-one program
     lib: common libraries
     mtx: common matrix libraries
@@ -49,16 +49,14 @@ Present modules:
     TOOLS: various tools to handle ufile
 
     (*)   Module interfaces are not completed in the present version.
-    (**)  NCLASS, GLF23, IFS/PPPL, Weiland routines are not 
-          included in the present version.
-    (***) Under reconstruction at present.  
-          Several limitations in the function.
 
 Install: 
     0: Install GSAF graphic library, Before installing TASK
+          tar xvzf gsafXXX.tar.gz
+          Follow README
     1: Expand tar.gz file
-          tar xvzf taskXXX.tar.gz               [gnu tar]
-          gzcat taskXXX.tar.gz | tar xvf -      [tar]
+          tar xvzf taskXXX.tar.gz
+          tar xvzf bpsdXXX.tar.gz
     2: Move to task directory
           cd task
     3: Create make.header
@@ -69,12 +67,18 @@ Install:
           Set the location of graphic libraries.
           If you have Lapack library, change "#"s.
           If you have MDSplus library, change "#"s.
-    5: Move to appropriate module directory
-          cd eq [for example]
-    6: Make a module
+    5: Make common library
+          cd lib
           make
-    7: Execute the module
-          ./eq [for example]
+          cd ..
+    6: Make bpsd library
+          cd ../bpsd
+          make
+          cd ../task
+    7: Make appropriate module
+          cd tot [for example]
+          make
+          ./tot [for example]
 
 Update:
     If you change a source file in the present module, 
@@ -122,14 +126,15 @@ Users of TASK codes and modules must acknowledge the TASK system and any
 modifications made when publishing or presenting results.  If you use the transport models, NCLASS, GLF23, IFS/PPPL, you must ackowledge also NTCC.  
 
 The following components may be copyrighted by the original authors.
-(*): not included in the present version
 
   *NCLASS:   Neoclassical transport model
              W.A. Houlberg (ORNL)           imported from NTCC
   *GLF23:    Turbulent transport model
              J.E. Kinsey (Lehigh U) et al.  imported from NTCC
-  *IFS/PPPL  Turbulent transport model
+  *IFS/PPPL: Turbulent transport model
              A.J. Redd (Lehigh U) et al.    imported from NTCC
+  *CYTRAN:   Cyclotron radiation 
+             W.A. Houlberg (ORNL)           imported from NTCC
       NTCC: National Transport Code Collaboration
             http://w3.pppl.gov/ntcc/
             see agreement: http://w3.pppl.gov/ntcc/downloads.html
@@ -138,7 +143,7 @@ The following components may be copyrighted by the original authors.
              J. Weiland (Chermers U)        by courtesy of the author
 
    DSPFNV:   Plasma dispersion function
-             T. Watanabe (formerly NIFS)    by courtesy of the author
+             T. Watanabe (NIFS)             by courtesy of the author
 
    FFT:      Fast Fourier transform
              T. Ooura (Kyoto U)
