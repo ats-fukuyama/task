@@ -166,7 +166,7 @@ C
          GX(NX)=GUCLIP(FX(NX))
       ENDDO
       DO NY=1,NYMAX
-         GY(NX)=GUCLIP(FY(NY))
+         GY(NY)=GUCLIP(FY(NY))
       ENDDO
       DO NY=1,NYMAX
          DO NX=1,NXMAX
