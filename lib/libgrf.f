@@ -214,7 +214,7 @@ C
      &             GXMIN,GXMAX,GXSTEP,GXORG,
      &             GYMIN,GYMAX,GYSTEP,GYORG,
      &             GZMIN,GZMAX,GZSTEP,GZORG,
-     &             GZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD)
+     &             GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE,IPRD)
 C
       RETURN
       END
@@ -225,12 +225,12 @@ C
      &                   GXMIN,GXMAX,GXSTEP,GXORG,
      &                   GYMIN,GYMAX,GYSTEP,GYORG,
      &                   GZMIN,GZMAX,GZSTEP,GZORG,
-     &                   GZ,NXM,NXMAX,NYMAX,
+     &                   GX,GY,GZ,NXM,NXMAX,NYMAX,
      &                   STR,MODE,IPRD)
 C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
-      DIMENSION GP(4),GZ(NXM,NYMAX)
+      DIMENSION GP(4),GX(NXMAX),GY(NYMAX),GZ(NXM,NYMAX)
       CHARACTER STR*(*),KT*80,KDL*1
       DIMENSION GZL(101),GRGB(3,101)
 C
@@ -274,20 +274,20 @@ C
                GFACTOR=FLOAT(I-1)/FLOAT(NSTEP-1)
                CALL R2Y2W(GFACTOR,GRGB(1,I))
             ENDDO
-            CALL CONTF1(GZ,NXM,NXMAX,NYMAX,GZL,GRGB,NSTEP,IPRD)
+            CALL CONTF2(GZ,GX,GY,NXM,NXMAX,NYMAX,GZL,GRGB,NSTEP,IPRD)
          ELSE
             DO I=1,NSTEP
                GFACTOR=FLOAT(I-1)/FLOAT(NSTEP-1)
                CALL W2G2B(GFACTOR,GRGB(1,I))
             ENDDO
-            CALL CONTF1(GZ,NXM,NXMAX,NYMAX,GZL,GRBG,NSTEP,IPRD)
+            CALL CONTF2(GZ,GX,GY,NXM,NXMAX,NYMAX,GZL,GRBG,NSTEP,IPRD)
          ENDIF
       ELSE
          DO I=1,NSTEP
             GFACTOR=FLOAT(I-1)/FLOAT(NSTEP-1)
             CALL R2W2B(GFACTOR,GRGB(1,I))
          ENDDO
-         CALL CONTF1(GZ,NXM,NXMAX,NYMAX,GZL,GRGB,NSTEP,IPRD)
+         CALL CONTF2(GZ,GX,GY,NXM,NXMAX,NYMAX,GZL,GRGB,NSTEP,IPRD)
       ENDIF
 C
       CALL SETRGB(0.0,0.0,0.0)
@@ -309,9 +309,13 @@ C
          CALL GVALUL(0.0,0,GYORG,1,NGULEN(2*GYSTEP))
       ENDIF
 C
-      CALL MOVE(0.5*(GP(1)+GP(2))-0.2*8,GP(3)-1.5)
-      CALL TEXT('STEP =',6)
-      CALL NUMBR(GZSTEP,'(1PE10.2)',10)
+      CALL MOVE(0.5*(GP(1)+GP(2))-0.2*32*GFACTOR,GP(3)-1.5*GFACTOR)
+      CALL TEXT('MIN  =',6)
+      CALL NUMBR(GZMIN ,'(1PE12.4)',12)
+      CALL TEXT('     MAX  =',11)
+      CALL NUMBR(GZMAX ,'(1PE12.4)',12)
+      CALL TEXT('     STEP =',11)
+      CALL NUMBR(GZSTEP,'(1PE12.4)',12)
 C
       CALL SETRGB(0.0,0.0,0.0)
       RETURN
@@ -352,7 +356,7 @@ C
      &             GXMIN,GXMAX,GXSTEP,GXORG,
      &             GYMIN,GYMAX,GYSTEP,GYORG,
      &             GZMIN,GZMAX,GZSTEP,GZORG,
-     &             GZ,NXM,NXMAX,NYMAX,
+     &             GX,GY,GZ,NXM,NXMAX,NYMAX,
      &             STR,GP3D)
       RETURN
       END
@@ -363,12 +367,12 @@ C
      &                   GXMIN,GXMAX,GXSTEP,GXORG,
      &                   GYMIN,GYMAX,GYSTEP,GYORG,
      &                   GZMIN,GZMAX,GZSTEP,GZORG,
-     &                   GZ,NXM,NXMAX,NYMAX,
+     &                   GX,GY,GZ,NXM,NXMAX,NYMAX,
      &                   STR,GP3D)
 C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
-      DIMENSION GP(4),GZ(NXM,NYMAX)
+      DIMENSION GP(4),GX(NXMAX),GY(NYMAX),GZ(NXM,NYMAX)
       DIMENSION GP3D(6)
       CHARACTER STR*(*),KT*80,KDL*1
       EXTERNAL R2W2B,W2G2B,R2Y2W
@@ -469,7 +473,7 @@ C
      &             GXMIN,GXMAX,GXSTEP,GXORG,
      &             GYMIN,GYMAX,GYSTEP,GYORG,
      &             GZMIN,GZMAX,GZSTEP,GZORG,
-     &             GZ,NXM,NXMAX,NYMAX,
+     &             GX,GY,GZ,NXM,NXMAX,NYMAX,
      &             STR,KA,MODE)
 C
       RETURN
@@ -481,12 +485,12 @@ C
      &                   GXMIN,GXMAX,GXSTEP,GXORG,
      &                   GYMIN,GYMAX,GYSTEP,GYORG,
      &                   GZMIN,GZMAX,GZSTEP,GZORG,
-     &                   GZ,NXM,NXMAX,NYMAX,
+     &                   GX,GY,GZ,NXM,NXMAX,NYMAX,
      &                   STR,KA,MODE)
 C
       IMPLICIT REAL*8 (A-F,H,O-Z)
 C
-      DIMENSION GP(4),GZ(NXM,NYMAX)
+      DIMENSION GP(4),GX(NXMAX),GY(NYMAX),GZ(NXM,NYMAX)
       DIMENSION KA(8,NXM,NYMAX)
       CHARACTER STR*(*),KT*80,KDL*1
 C
@@ -521,24 +525,26 @@ C
          NSTEP=NINT(ABS((GZMAX-GZMIN)/GZSTEP))+1
          IF(GZORG.GE.0.D0) THEN
             CALL SETRGB(1.0,0.0,0.0)
-            CALL CONTQ1(GZ,NXM,NXMAX,NYMAX,GZORG,GZSTEP,NSTEP,0,0,KA)
+            CALL CONTQ2(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &                  GZORG,GZSTEP,NSTEP,0,0,KA)
          ELSE
             CALL SETRGB(0.0,0.0,1.0)
-            CALL CONTQ1(GZ,NXM,NXMAX,NYMAX,GZORG,GZSTEP,NSTEP,0,3,KA)
+            CALL CONTQ2(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &                  GZORG,GZSTEP,NSTEP,0,3,KA)
          ENDIF
       ELSE
          CALL SETRGB(1.0,0.0,0.0)
          NSTEP=NINT(ABS(GZMAX/GZSTEP))+1
-         CALL CONTQ1(GZ,NXM,NXMAX,NYMAX, GZSTEP, GZSTEP,
-     &               NSTEP,0,0,KA)
+         CALL CONTQ2(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &               GZSTEP,GZSTEP,NSTEP,0,0,KA)
          CALL SETRGB(0.0,1.0,0.0)
          NSTEP=NINT(ABS(GZMAX/GZSTEP))+1
-         CALL CONTQ1(GZ,NXM,NXMAX,NYMAX, 0.0, GZSTEP,
-     &               1,0,0,KA)
+         CALL CONTQ2(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &               0.0,GZSTEP,1,0,0,KA)
          CALL SETRGB(0.0,0.0,1.0)
          NSTEP=NINT(ABS(GZMIN/GZSTEP))+1
-         CALL CONTQ1(GZ,NXM,NXMAX,NYMAX,-GZSTEP,-GZSTEP,
-     &               NSTEP,0,3,KA)
+         CALL CONTQ2(GZ,GX,GY,NXM,NXMAX,NYMAX,
+     &               -GZSTEP,-GZSTEP,NSTEP,0,3,KA)
       ENDIF
 C
       CALL SETRGB(0.0,0.0,0.0)
@@ -561,9 +567,13 @@ C
          CALL GVALUL(0.0,0,GYORG,1,NGULEN(2*GYSTEP))
       ENDIF
 C
-      CALL MOVE(0.5*(GP(1)+GP(2))-0.2*8,GP(3)-1.5)
-      CALL TEXT('STEP =',6)
-      CALL NUMBR(GZSTEP,'(1PE10.2)',10)
+      CALL MOVE(0.5*(GP(1)+GP(2))-0.2*32*GFACTOR,GP(3)-1.5*GFACTOR)
+      CALL TEXT('MIN  =',6)
+      CALL NUMBR(GZMIN ,'(1PE12.4)',12)
+      CALL TEXT('     MAX  =',11)
+      CALL NUMBR(GZMAX ,'(1PE12.4)',12)
+      CALL TEXT('     STEP =',11)
+      CALL NUMBR(GZSTEP,'(1PE12.4)',12)
 C
       CALL SETRGB(0.0,0.0,0.0)
       RETURN
@@ -595,9 +605,10 @@ C
       DIMENSION GY(NXM,NYMAX)
 C
       CALL GMNMX2(GY,NXM,1,NXMAX,1,1,NYMAX,1,GYMIN,GYMAX)
-      IF(ABS(GYMAX-GYMIN).LT.1.D-6) THEN
-         GYMIN=GYMIN-0.999E-6
-         GYMAX=GYMAX+1.000E-6
+      GYNORM=ABS(GYMIN)+ABS(GYMAX)
+      IF(ABS(GYMAX-GYMIN).LT.1.D-6*GYNORM) THEN
+         GYMIN=GYMIN-0.999E-6*GYNORM
+         GYMAX=GYMAX+1.000E-6*GYRNOM
       ENDIF
 C
       RETURN
