@@ -5,7 +5,7 @@
       module trunit
       use tr_bpsd
       public tr_init,tr_parm,tr_view,tr_prof,tr_exec,tr_load,tr_save, &
-      &      tr_gout,tr_term
+      &      tr_gout,tr_fout,tr_term
       private
 
      contains
@@ -90,7 +90,7 @@
       return
       end subroutine tr_save
 !=======================================================================
-!            graphics file
+!            graphics
 !-----------------------------------------------------------------------
       subroutine tr_gout
 
@@ -98,6 +98,15 @@
       call trgout
       return
       end subroutine tr_gout
+!=======================================================================
+!            text file
+!-----------------------------------------------------------------------
+      subroutine tr_fout
+
+      implicit none
+      call trfout
+      return
+      end subroutine tr_fout
 !=======================================================================
 !            terminate tr component
 !-----------------------------------------------------------------------

@@ -127,3 +127,18 @@
   100 KMATCH=.FALSE.
       RETURN
       END FUNCTION KMATCH
+
+      SUBROUTINE KKINT(I,K)
+      IMPLICIT NONE
+      INTEGER,INTENT(IN):: I
+      CHARACTER(LEN=*),INTENT(OUT):: K
+      CHARACTER(LEN=8):: LINE
+      INTEGER:: L
+
+      WRITE(LINE,'(I8)') I
+      L=0
+1     L=L+1
+      IF(LINE(L:L).EQ.' ') GOTO 1
+      K=LINE(L:8)
+      RETURN
+      END SUBROUTINE KKINT

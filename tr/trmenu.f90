@@ -27,7 +27,7 @@
               & 'D/DATA  H/HELP  Q/QUIT')
       ELSE
          WRITE(6,603)
-  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W/WRITE  ', &
+  603    FORMAT('## TR MENU: C/CONT  G/GRAPH  W,F/WRITE  ', &
               & 'S/SAVE  O/UFILEOUT  M/MDLTST'/ &
               & '            P,V,U/PARM  R/RUN  L/LOAD  ',&
               & 'D/DATA  H/HELP  Q/QUIT')
@@ -69,6 +69,9 @@
 
       ELSE IF(KID.EQ.'G'.AND.INIT.GE.1) THEN
          CALL tr_gout
+
+      ELSE IF(KID.EQ.'F'.AND.INIT.GE.1) THEN
+         CALL tr_fout
 
       ELSE IF(KID.EQ.'W'.AND.INIT.EQ.2) THEN
 !         write(6,*)  "J0=",AJ(1)*1.D-6
