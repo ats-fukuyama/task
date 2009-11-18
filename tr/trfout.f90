@@ -109,7 +109,7 @@
       WRITE(NFL,'(A,I8)') 'DIM=',1
       WRITE(NFL,'(A,I8)') 'NUM=',NTMAX
       WRITE(NFL,'(1P2E15.7)') (GT(NT),GF(NT,ID),NT=1,NTMAX)
-      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I,A)') ID,':',KSTR,'(',NTMAX,'): fout'
+      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I6,A)') ID,':',KSTR,'(',NTMAX,'): fout'
       RETURN
       END SUBROUTINE TRF1DGT
 
@@ -134,7 +134,7 @@
       DO NT=1,NTMAX
          WRITE(NFL,'(1P5E15.7)') (GF(NR,NT,ID),NR=1,NRMAX)
       ENDDO
-      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I,A,I,A)') &
+      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I4,A,I6,A)') &
            ID,':',KSTR,'(',NRMAX,',',NTMAX,'): fout'
       RETURN
       END SUBROUTINE TRF2DRT
@@ -157,7 +157,7 @@
       DO NR=1,NRMAX
          WRITE(NFL,'(1P2E15.7)') GR(NR),GF(NR,NTMAX,ID)
       ENDDO
-      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I,A)') &
+      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I4,A)') &
            ID,':',KSTR,'(',NRMAX,'): fout'
       RETURN
       END SUBROUTINE TRF2DRN
@@ -183,7 +183,7 @@
       DO NT=1,NTMAX
          WRITE(NFL,'(1P5E15.7)') (GF(NR,NT,ID),NR=1,NRMAX)
       ENDDO
-      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I,A,I,A)') &
+      IF(NFL.NE.6) WRITE(6,'(I4,A,A,A,I4,A,I6,A)') &
            ID,':',KSTR,'(',NRMAX,',',NTMAX,'): fout'
       RETURN
       END SUBROUTINE TRF2DRG
