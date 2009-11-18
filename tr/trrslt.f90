@@ -181,7 +181,6 @@
 !     *** Total NBI power distributed on electrons and bulk ions ***
 
       PBINT = SUM(PBIN(1:NRMAX)*DVRHO(1:NRMAX))*DR/1.D6
-      write(6,*) PBINT
       DO NS=1,NSM
          PBCLT(NS) = SUM(PBCL(1:NRMAX,NS)*DVRHO(1:NRMAX))*DR/1.D6
       ENDDO
