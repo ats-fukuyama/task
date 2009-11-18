@@ -830,7 +830,8 @@
          ELSEIF(MDLKAI.GE.100) THEN
 
             RS=RA*RG(NR)
-            RKAPL=RKPRHO(NR)
+!            RKAPL=RKPRHO(NR)
+            RKAPL=1.5d0
             SHEARL=S(NR)
             PNEL=ANE*1.D20
             RHONI=(AMD*ANDX+AMT*ANT+AMA*ANA)*1.D20

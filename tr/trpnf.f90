@@ -46,7 +46,8 @@
       DO NR=1,NRMAX
          ANE= RN(NR,1)
          TE = RT(NR,1)
-         WF = 1.5D0*RW(NR,2)
+!         WF = 1.5D0*RW(NR,2)
+         WF = RW(NR,2)
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
          VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
          VCT3 = P1*RN(NR,3)*PZ(3)**2/AMT
@@ -58,7 +59,8 @@
          TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
          IF(RNF(NR,2).GT.0.D0) THEN
-            RTF(NR,2)= WF/(1.5D0*RNF(NR,2))
+!            RTF(NR,2)= WF/(1.5D0*RNF(NR,2))
+            RTF(NR,2)= WF/RNF(NR,2)
          ELSE
             RTF(NR,2)= 0.D0
          ENDIF
