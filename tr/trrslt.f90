@@ -362,7 +362,7 @@
            & AJ, AJBS, AJBST, AJNB, AJNBT, AJOH, AJOHT, AJRF, AJRFT, AJRFV, &
            & AJT, AJTTOR, AK, AKDW, ALI, ANC, ANF0, ANFAV, ANFE, ANLAV, &
            & ANS0, ANSAV, AR1RHO, AR2RHO, BB, BETA, BETA0, BETAA, BETAP, &
-           & BETAP0, BETAPA, BP, DR, DVRHO, ER, ETA, EZOH, GRT, GT, GVT, &
+           & BETAP0, BETAPA, BP, DR, DVRHO, ER, ETA, EZOH, GVRT, GT, GVT, &
            & H98Y2, NGT, NRAMAX, NRM, NRMAX, NROMAX, NTM, PBCLT, PBINT, & 
            & PCX, PCXT, PEX, PEXT, PFCLT, PFINT, PI, PIE, PIET, PINT, PLT, &
            & PNB, PNBT, PNF, PNFT, POH, POHT, POUT, PRF, PRFT, PRFV, PRFVT, &
@@ -519,91 +519,91 @@
       CALL SPL1D  (RM,DVRHO,DERIV,U,NRMAX,0,IERR)
       CALL SPL1DI0(RM,U,U0,NRMAX,IERR)
       DO NR=1,NRMAX
-         GRT(NR,NGT, 1) = GUCLIP(RT(NR,1))
-         GRT(NR,NGT, 2) = GUCLIP(RT(NR,2))
-         GRT(NR,NGT, 3) = GUCLIP(RT(NR,3))
-         GRT(NR,NGT, 4) = GUCLIP(RT(NR,4))
+         GVRT(NR,NGT, 1) = GUCLIP(RT(NR,1))
+         GVRT(NR,NGT, 2) = GUCLIP(RT(NR,2))
+         GVRT(NR,NGT, 3) = GUCLIP(RT(NR,3))
+         GVRT(NR,NGT, 4) = GUCLIP(RT(NR,4))
 
-         GRT(NR,NGT, 5) = GUCLIP(RN(NR,1))
-         GRT(NR,NGT, 6) = GUCLIP(RN(NR,2))
-         GRT(NR,NGT, 7) = GUCLIP(RN(NR,3))
-         GRT(NR,NGT, 8) = GUCLIP(RN(NR,4))
+         GVRT(NR,NGT, 5) = GUCLIP(RN(NR,1))
+         GVRT(NR,NGT, 6) = GUCLIP(RN(NR,2))
+         GVRT(NR,NGT, 7) = GUCLIP(RN(NR,3))
+         GVRT(NR,NGT, 8) = GUCLIP(RN(NR,4))
 
-         GRT(NR,NGT, 9) = GUCLIP(AJ  (NR))
-         GRT(NR,NGT,10) = GUCLIP(AJOH(NR))
-         GRT(NR,NGT,11) = GUCLIP(AJNB(NR))
-         GRT(NR,NGT,12) = GUCLIP(AJRF(NR))
-         GRT(NR,NGT,13) = GUCLIP(AJBS(NR))
+         GVRT(NR,NGT, 9) = GUCLIP(AJ  (NR))
+         GVRT(NR,NGT,10) = GUCLIP(AJOH(NR))
+         GVRT(NR,NGT,11) = GUCLIP(AJNB(NR))
+         GVRT(NR,NGT,12) = GUCLIP(AJRF(NR))
+         GVRT(NR,NGT,13) = GUCLIP(AJBS(NR))
 
-         GRT(NR,NGT,14) = GUCLIP(POH(NR)+PNB(NR)+PNF(NR) &
+         GVRT(NR,NGT,14) = GUCLIP(POH(NR)+PNB(NR)+PNF(NR) &
      &                         +PEX(NR,1)+PEX(NR,2)+PEX(NR,3)+PEX(NR,4) &
      &                         +PRF(NR,1)+PRF(NR,2)+PRF(NR,3)+PRF(NR,4))
-         GRT(NR,NGT,15) = GUCLIP(POH(NR))
-         GRT(NR,NGT,16) = GUCLIP(PNB(NR))
-         GRT(NR,NGT,17) = GUCLIP(PNF(NR))
-         GRT(NR,NGT,18) = GUCLIP(PRF(NR,1))
-         GRT(NR,NGT,19) = GUCLIP(PRF(NR,2))
-         GRT(NR,NGT,20) = GUCLIP(PRF(NR,3))
-         GRT(NR,NGT,21) = GUCLIP(PRF(NR,4))
-         GRT(NR,NGT,22) = GUCLIP(PRL(NR))
-         GRT(NR,NGT,23) = GUCLIP(PCX(NR))
-         GRT(NR,NGT,24) = GUCLIP(PIE(NR))
-         GRT(NR,NGT,25) = GUCLIP(PEX(NR,1))
-         GRT(NR,NGT,26) = GUCLIP(PEX(NR,2))
+         GVRT(NR,NGT,15) = GUCLIP(POH(NR))
+         GVRT(NR,NGT,16) = GUCLIP(PNB(NR))
+         GVRT(NR,NGT,17) = GUCLIP(PNF(NR))
+         GVRT(NR,NGT,18) = GUCLIP(PRF(NR,1))
+         GVRT(NR,NGT,19) = GUCLIP(PRF(NR,2))
+         GVRT(NR,NGT,20) = GUCLIP(PRF(NR,3))
+         GVRT(NR,NGT,21) = GUCLIP(PRF(NR,4))
+         GVRT(NR,NGT,22) = GUCLIP(PRL(NR))
+         GVRT(NR,NGT,23) = GUCLIP(PCX(NR))
+         GVRT(NR,NGT,24) = GUCLIP(PIE(NR))
+         GVRT(NR,NGT,25) = GUCLIP(PEX(NR,1))
+         GVRT(NR,NGT,26) = GUCLIP(PEX(NR,2))
 
 !         IF (NR.EQ.1) THEN
-!            GRT(NR,NGT,27) = GUCLIP(Q0)
+!            GVRT(NR,NGT,27) = GUCLIP(Q0)
 !         ELSE
-            GRT(NR,NGT,27) = GUCLIP(QP(NR))
+            GVRT(NR,NGT,27) = GUCLIP(QP(NR))
 !         ENDIF
-         GRT(NR,NGT,28) = GUCLIP(EZOH(NR))
-         GRT(NR,NGT,29) = GUCLIP(BETA(NR))
-         GRT(NR,NGT,30) = GUCLIP(BETAP(NR))
-         GRT(NR,NGT,31) = GUCLIP(EZOH(NR)*2.D0*PI*RR)
-         GRT(NR,NGT,32) = GUCLIP(ETA(NR))
-         GRT(NR,NGT,33) = GUCLIP(ZEFF(NR))
-         GRT(NR,NGT,34) = GUCLIP(AK(NR,1))
-         GRT(NR,NGT,35) = GUCLIP(AK(NR,2))
+         GVRT(NR,NGT,28) = GUCLIP(EZOH(NR))
+         GVRT(NR,NGT,29) = GUCLIP(BETA(NR))
+         GVRT(NR,NGT,30) = GUCLIP(BETAP(NR))
+         GVRT(NR,NGT,31) = GUCLIP(EZOH(NR)*2.D0*PI*RR)
+         GVRT(NR,NGT,32) = GUCLIP(ETA(NR))
+         GVRT(NR,NGT,33) = GUCLIP(ZEFF(NR))
+         GVRT(NR,NGT,34) = GUCLIP(AK(NR,1))
+         GVRT(NR,NGT,35) = GUCLIP(AK(NR,2))
 
-         GRT(NR,NGT,36) = GUCLIP(PRFV(NR,1,1))
-         GRT(NR,NGT,37) = GUCLIP(PRFV(NR,1,2))
-         GRT(NR,NGT,38) = GUCLIP(PRFV(NR,1,3))
-         GRT(NR,NGT,39) = GUCLIP(PRFV(NR,2,1))
-         GRT(NR,NGT,40) = GUCLIP(PRFV(NR,2,2))
-         GRT(NR,NGT,41) = GUCLIP(PRFV(NR,2,3))
+         GVRT(NR,NGT,36) = GUCLIP(PRFV(NR,1,1))
+         GVRT(NR,NGT,37) = GUCLIP(PRFV(NR,1,2))
+         GVRT(NR,NGT,38) = GUCLIP(PRFV(NR,1,3))
+         GVRT(NR,NGT,39) = GUCLIP(PRFV(NR,2,1))
+         GVRT(NR,NGT,40) = GUCLIP(PRFV(NR,2,2))
+         GVRT(NR,NGT,41) = GUCLIP(PRFV(NR,2,3))
 
-         GRT(NR,NGT,42) = GUCLIP(AJRFV(NR,1))
-         GRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
-         GRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
+         GVRT(NR,NGT,42) = GUCLIP(AJRFV(NR,1))
+         GVRT(NR,NGT,43) = GUCLIP(AJRFV(NR,2))
+         GVRT(NR,NGT,44) = GUCLIP(AJRFV(NR,3))
 
-         GRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
-         GRT(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
-         GRT(NR,NGT,47) = GUCLIP(BP(NR))
-         GRT(NR,NGT,48) = GUCLIP(RPSI(NR))
+         GVRT(NR,NGT,45) = GUCLIP(RW(NR,1)+RW(NR,2))
+         GVRT(NR,NGT,46) = GUCLIP(ANC(NR)+ANFE(NR))
+         GVRT(NR,NGT,47) = GUCLIP(BP(NR))
+         GVRT(NR,NGT,48) = GUCLIP(RPSI(NR))
 
-         GRT(NR,NGT,49) = GUCLIP(RMJRHO(NR))
-         GRT(NR,NGT,50) = GUCLIP(RMNRHO(NR))
+         GVRT(NR,NGT,49) = GUCLIP(RMJRHO(NR))
+         GVRT(NR,NGT,50) = GUCLIP(RMNRHO(NR))
          RMN=(DBLE(NR)-0.5D0)*DR
          CALL SPL1DI(RMN,F0D,RM,U,U0,NRMAX,IERR)
-         GRT(NR,NGT,51) = GUCLIP(F0D)
-         GRT(NR,NGT,52) = GUCLIP(RKPRHO(NR))
-         GRT(NR,NGT,53) = GUCLIP(1.D0) ! DELTAR
-         GRT(NR,NGT,54) = GUCLIP(AR1RHO(NR))
-         GRT(NR,NGT,55) = GUCLIP(AR2RHO(NR))
-         GRT(NR,NGT,56) = GUCLIP(AKDW(NR,1))
-         GRT(NR,NGT,57) = GUCLIP(AKDW(NR,2))
-         GRT(NR,NGT,58) = GUCLIP(RN(NR,1)*RT(NR,1))
-         GRT(NR,NGT,59) = GUCLIP(RN(NR,2)*RT(NR,2))
+         GVRT(NR,NGT,51) = GUCLIP(F0D)
+         GVRT(NR,NGT,52) = GUCLIP(RKPRHO(NR))
+         GVRT(NR,NGT,53) = GUCLIP(1.D0) ! DELTAR
+         GVRT(NR,NGT,54) = GUCLIP(AR1RHO(NR))
+         GVRT(NR,NGT,55) = GUCLIP(AR2RHO(NR))
+         GVRT(NR,NGT,56) = GUCLIP(AKDW(NR,1))
+         GVRT(NR,NGT,57) = GUCLIP(AKDW(NR,2))
+         GVRT(NR,NGT,58) = GUCLIP(RN(NR,1)*RT(NR,1))
+         GVRT(NR,NGT,59) = GUCLIP(RN(NR,2)*RT(NR,2))
 
-         GRT(NR,NGT,60) = GUCLIP(VTOR(NR))
-         GRT(NR,NGT,61) = GUCLIP(VPOL(NR))
+         GVRT(NR,NGT,60) = GUCLIP(VTOR(NR))
+         GVRT(NR,NGT,61) = GUCLIP(VPOL(NR))
 
-         GRT(NR,NGT,62) = GUCLIP(S(NR)-ALPHA(NR))
-         GRT(NR,NGT,63) = GUCLIP(ER(NR))
-         GRT(NR,NGT,64) = GUCLIP(S(NR))
-         GRT(NR,NGT,65) = GUCLIP(ALPHA(NR))
-         GRT(NR,NGT,66) = GUCLIP(TRCOFS(S(NR),ALPHA(NR),RKCV(NR)))
-         GRT(NR,NGT,67) = GUCLIP(2.D0*PI/QP(NR))
+         GVRT(NR,NGT,62) = GUCLIP(S(NR)-ALPHA(NR))
+         GVRT(NR,NGT,63) = GUCLIP(ER(NR))
+         GVRT(NR,NGT,64) = GUCLIP(S(NR))
+         GVRT(NR,NGT,65) = GUCLIP(ALPHA(NR))
+         GVRT(NR,NGT,66) = GUCLIP(TRCOFS(S(NR),ALPHA(NR),RKCV(NR)))
+         GVRT(NR,NGT,67) = GUCLIP(2.D0*PI/QP(NR))
 
       ENDDO
       IF(RHOA.NE.1.D0) NRMAX=NRAMAX
@@ -1347,7 +1347,7 @@
 
       SUBROUTINE TR_UFILE1D_CREATE(KFID,NUM,AMP,IERR)
 
-      USE TRCOMM, ONLY : BB, GRT, GT, GVT, MDLUF, NGT, NRAMAX, NRM, NRMAX, NROMAX, NTM, RA, RG, RHOA, RKAP, RR
+      USE TRCOMM, ONLY : BB, GVRT, GT, GVT, MDLUF, NGT, NRAMAX, NRM, NRMAX, NROMAX, NTM, RA, RG, RHOA, RKAP, RR
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(INOUT):: KFID
       INTEGER(4),INTENT(IN) :: NUM
@@ -1399,7 +1399,7 @@
                NRMAX=NROMAX
             ENDIF
             DO NTL=1,NGT
-               F1(1:NRMAX)=DBLE(GRT(1:NRMAX,NTL,27))
+               F1(1:NRMAX)=DBLE(GVRT(1:NRMAX,NTL,27))
                CALL SPL1D (RG,F1,DERIVQ,UQ95,NRMAX,0,IERR)
                CALL SPL1DF(0.95D0,FQ95,RG,UQ95,NRMAX,IERR)
                TF(NTL)=FQ95
@@ -1449,7 +1449,7 @@
 
       SUBROUTINE TR_UFILE2D_CREATE(KFID,NUM,AMP,ID,IERR)
 
-      USE TRCOMM, ONLY : GRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM
+      USE TRCOMM, ONLY : GVRT, GRG, GRM, GT, NGT, NRMAX, NRMP, NTM
       IMPLICIT NONE
       CHARACTER(LEN=80),INTENT(IN) :: KFID
       INTEGER(4)       ,INTENT(IN) :: NUM, ID
@@ -1473,14 +1473,14 @@
       IF(ID.EQ.0) THEN
          DO NRL=1,NRLMAX
             GRL(NRL)=GRM(NRL)
-            DIN(1:NGT)=DBLE(GRT(NRL,1:NGT,NUM))
+            DIN(1:NGT)=DBLE(GVRT(NRL,1:NGT,NUM))
             CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GRT(',NUM,'): IERR=',IERR
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
 !
             DO NTL=1,NTLMAX
                TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
                CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GRT(',NUM,'): IERR=',IERR
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
                GTL(NTL)    =GUCLIP(TIN)
                GF2(NRL,NTL)=GUCLIP(F0*AMP)
             ENDDO
@@ -1490,37 +1490,37 @@
          NRL=1
             GRL(NRL)=GRG(NRL)
             IF(KFID.EQ.'Q') THEN
-               DIN(1:NGT)=(4.D0*DBLE(GRT(NRL,1:NGT,NUM))-DBLE(GRT(NRL+1,1:NGT,NUM)))/3.D0
+               DIN(1:NGT)=(4.D0*DBLE(GVRT(NRL,1:NGT,NUM))-DBLE(GVRT(NRL+1,1:NGT,NUM)))/3.D0
             ELSEIF(KFID.EQ.'BPOL') THEN
                DIN(1:NGT)=0.D0
             ELSE
                DO NTL=1,NGT
                   R1=DBLE(GRL(NRL))
                   R2=DBLE(GRL(NRL+1))
-                  F1=DBLE(GRT(NRL  ,NTL,NUM))
-                  F2=DBLE(GRT(NRL+1,NTL,NUM))
+                  F1=DBLE(GVRT(NRL  ,NTL,NUM))
+                  F2=DBLE(GVRT(NRL+1,NTL,NUM))
                   DIN(NTL)=FCTR(R1,R2,F1,F2)
                ENDDO
             ENDIF
             CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GRT(',NUM,'): IERR=',IERR
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
             DO NTL=1,NTLMAX
                TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
                CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GRT(',NUM,'): IERR=',IERR
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
                GTL(NTL)    =GUCLIP(TIN)
                GF2(NRL,NTL)=GUCLIP(F0*AMP)
             ENDDO
 
          DO NRL=2,NRLMAX
             GRL(NRL)=GRG(NRL)
-            DIN(1:NGT)=DBLE(GRT(NRL-1,1:NGT,NUM))
+            DIN(1:NGT)=DBLE(GVRT(NRL-1,1:NGT,NUM))
             CALL SPL1D(DGT,DIN,DERIV,U,NGT,0,IERR)
-            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GRT(',NUM,'): IERR=',IERR
+            IF(IERR.NE.0) WRITE(6,'(A,I2,A,I2)') 'XX TRXOUT: SPL1D GVRT(',NUM,'): IERR=',IERR
             DO NTL=1,NTLMAX
                TIN=DBLE(GT(1))+DTL*DBLE(NTL-1)
                CALL SPL1DF(TIN,F0,DGT,U,NGT,IERR)
-               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GRT(',NUM,'): IERR=',IERR
+               IF(IERR.NE.0) WRITE(*,'(A,I2,A,I2)') 'XX TRXOUT: SPL1DF GVRT(',NUM,'): IERR=',IERR
                GTL(NTL)    =GUCLIP(TIN)
                GF2(NRL,NTL)=GUCLIP(F0*AMP)
             ENDDO

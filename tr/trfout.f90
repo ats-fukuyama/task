@@ -6,7 +6,7 @@
 
       SUBROUTINE trfout
 
-      USE TRCOMM,ONLY : GT,GRM,GVT,GVR,GRT,NGT,NCTM,NCRTM,NRMAX,NGR,NCGM
+      USE TRCOMM,ONLY : GT,GRM,GVT,GVRT,GVR,NGT,NGR,NRMAX,NCTM,NCRTM,NCGM
       IMPLICIT NONE
       CHARACTER(LEN=80):: LINE
       CHARACTER(LEN=80),SAVE:: FILENAME='stdout'
@@ -20,11 +20,12 @@
 1     CALL KKINT(NCTM,KNCTM)
       CALL KKINT(NCGM,KNCGM)
       CALL KKINT(NCRTM,KNCRTM)
-      WRITE(6,'(12A)') &
+      WRITE(6,'(13A)') &
            '# FOUT: GT[0-',KNCTM(1:LEN_TRIM(KNCTM)),'], ', &
                    'RT[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
                    'RN[0-',KNCRTM(1:LEN_TRIM(KNCRTM)),'], ', &
-                   'RG[0-',KNCGM(1:LEN_TRIM(KNCGM)),'], F:filename, ?:help, X:exit'
+                   'RG[0-',KNCGM(1:LEN_TRIM(KNCGM)),'], ', &
+                   'A:all,F:filename,?:help,X:exit'
       READ(5,'(A80)',END=9000,ERR=1) LINE
       KID=LINE(1:2)
       CALL GUCPTL(KID(1:1))
@@ -37,7 +38,7 @@
             NFL=6
          ELSE
             NFL=21
-            CALL FWOPEN(NFL,FILENAME,1,1,'FOUT',IERR)
+            CALL FWOPEN(NFL,FILENAME,1,0,'FOUT',IERR)
             IF(IERR.NE.0) GOTO 1
          ENDIF
          GOTO 1
@@ -45,6 +46,21 @@
       IF(KID(1:1).EQ.'?') THEN
          CALL VIEWGTLIST(NCTM)
          CALL VIEWRTLIST(NCRTM)
+         GOTO 1
+      ENDIF
+      IF(KID(1:1).EQ.'A') THEN
+         DO I=1,NCTM
+            CALL TRF1DGT(NFL,GT,GVT,NGT,I)
+         ENDDO
+         DO I=1,NCRTM
+            CALL TRF2DRT(NFL,GRM,GT,GVRT,NRMAX,NGT,I)
+         ENDDO
+         DO I=1,NCRTM
+            CALL TRF2DRN(NFL,GRM,GVRT,NRMAX,NGT,I)
+         ENDDO
+         DO I=1,NCGM
+            CALL TRF2DRG(NFL,GRM,GT,GVR,NRMAX,NGR,I)
+         ENDDO
          GOTO 1
       ENDIF
 
@@ -62,20 +78,20 @@
 !     ----- history of profile data -----
       CASE('RT')
          IF(ID.EQ.0) then
-            DO I=1,NCTM
-               CALL TRF2DRT(NFL,GRM,GT,GRT,NRMAX,NGT,I)
+            DO I=1,NCRTM
+               CALL TRF2DRT(NFL,GRM,GT,GVRT,NRMAX,NGT,I)
             ENDDO
          ELSE
-            CALL TRF2DRT(NFL,GRM,GT,GRT,NRMAX,NGT,ID)
+            CALL TRF2DRT(NFL,GRM,GT,GVRT,NRMAX,NGT,ID)
          ENDIF
 !     ----- snapshot of profile data -----
       CASE('RN')
          IF(ID.EQ.0) then
-            DO I=1,NCTM
-               CALL TRF2DRN(NFL,GRM,GRT,NRMAX,NGT,I)
+            DO I=1,NCRTM
+               CALL TRF2DRN(NFL,GRM,GVRT,NRMAX,NGT,I)
             ENDDO
          ELSE
-            CALL TRF2DRN(NFL,GRM,GRT,NRMAX,NGT,ID)
+            CALL TRF2DRN(NFL,GRM,GVRT,NRMAX,NGT,ID)
          ENDIF
 !     ----- history of profile data -----
       CASE('RG')
@@ -86,7 +102,6 @@
          ELSE
             CALL TRF2DRG(NFL,GRM,GT,GVR,NRMAX,NGR,ID)
          ENDIF
-      CASE('FN')
       END SELECT
       GOTO 1
 
@@ -96,11 +111,11 @@
 !     ===== 1D file output ====
 
       SUBROUTINE TRF1DGT(NFL,GT,GF,NTMAX,ID)
-      USE TRCOMM,ONLY: NCTM
+      USE TRCOMM,ONLY: NTM,NCTM
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NFL,NTMAX,ID
       REAL(4),DIMENSION(NTMAX),INTENT(IN):: GT
-      REAL(4),DIMENSION(NTMAX,NCTM),INTENT(IN):: GF
+      REAL(4),DIMENSION(NTM,NCTM),INTENT(IN):: GF
       CHARACTER(LEN=4):: KSTR
       INTEGER:: NT
 
@@ -116,12 +131,12 @@
 !     ===== 2D file output ====
 
       SUBROUTINE TRF2DRT(NFL,GR,GT,GF,NRMAX,NTMAX,ID)
-      USE TRCOMM,ONLY: NCRTM
+      USE TRCOMM,ONLY: NCRTM,NTM
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NFL,NRMAX,NTMAX,ID
       REAL(4),DIMENSION(NRMAX),INTENT(IN):: GR
       REAL(4),DIMENSION(NTMAX),INTENT(IN):: GT
-      REAL(4),DIMENSION(NRMAX,NTMAX,NCRTM),INTENT(IN):: GF
+      REAL(4),DIMENSION(NRMAX,NTM,NCRTM),INTENT(IN):: GF
       CHARACTER(LEN=4):: KSTR
       INTEGER:: NR,NT
       
@@ -142,11 +157,11 @@
 !     ===== 2D file last data output ====
 
       SUBROUTINE TRF2DRN(NFL,GR,GF,NRMAX,NTMAX,ID)
-      USE TRCOMM,ONLY: NCRTM
+      USE TRCOMM,ONLY: NCRTM,NTM
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NFL,NRMAX,NTMAX,ID
       REAL(4),DIMENSION(NRMAX),INTENT(IN):: GR
-      REAL(4),DIMENSION(NRMAX,NTMAX,NCRTM),INTENT(IN):: GF
+      REAL(4),DIMENSION(NRMAX,NTM,NCRTM),INTENT(IN):: GF
       CHARACTER(LEN=4):: KSTR
       INTEGER:: NR
 
@@ -165,12 +180,12 @@
 !     ===== 2D file output ====
 
       SUBROUTINE TRF2DRG(NFL,GR,GT,GF,NRMAX,NTMAX,ID)
-      USE TRCOMM,ONLY: NCGM
+      USE TRCOMM,ONLY: NCGM,NGM
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NFL,NRMAX,NTMAX,ID
       REAL(4),DIMENSION(NRMAX),INTENT(IN):: GR
       REAL(4),DIMENSION(NTMAX),INTENT(IN):: GT
-      REAL(4),DIMENSION(NRMAX,NTMAX,NCGM),INTENT(IN):: GF
+      REAL(4),DIMENSION(NRMAX+1,NGM,NCGM),INTENT(IN):: GF
       CHARACTER(LEN=4):: KSTR
       INTEGER:: NR,NT
       
