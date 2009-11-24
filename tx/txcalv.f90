@@ -172,7 +172,7 @@ contains
        PT02V(NR) = PTiVav
     end do
 
-!       PT02V(0:NRMAX) =   PTiV(0:NRMAX)
+!    PT02V(0:NRMAX) =   PTiV(0:NRMAX)
     PT03V(0:NRMAX) =   PTiV(0:NRMAX)
 
     RETURN
