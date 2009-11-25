@@ -10,7 +10,11 @@ C
 C
       IERR=0
       CALL EQMESH
-      CALL EQPSIN
+      IF(Q0*QA.GT.0.D0) THEN
+         CALL EQPSIN
+      ELSE
+         CALL EQPSIR
+      ENDIF
       CALL EQDEFB
       CALL EQLOOP(IERR)
          IF(IERR.NE.0.AND.IERR.NE.100) RETURN
@@ -46,10 +50,65 @@ C
       END
 C
 C   ************************************************ 
-C   **                Initial Psi                 **
+C   **           Initial Psi for tokamak          **
 C   ************************************************
 C
       SUBROUTINE EQPSIN
+C
+      INCLUDE '../eq/eqcomc.inc'
+      DIMENSION DERIV(NRVM)
+C
+      RAXIS=RR
+      ZAXIS=0.0D0
+C
+C     --- assuming elliptic crosssection, flat current profile ---
+C
+      IF(MOD(MDLEQF,5).EQ.4) THEN
+         PSITA=PI*RKAP*RA**2*BB
+         PSIPA=PSITA*2/QA
+         PSI0=-PSIPA
+      ELSE
+         PSI0=-0.5D0*RMU0*RIP*1.D6*RR
+         PSIPA=-PSI0
+         PSITA=PI*RKAP*RA**2*BB
+      ENDIF
+C
+      DRHO=1.D0/(NRVMAX-1)
+      DO NRV=1,NRVMAX
+         RHOL=(NRV-1)*DRHO
+         PSIPNV(NRV)=RHOL*RHOL
+         PSIPV(NRV)=PSIPA*RHOL*RHOL
+         PSITV(NRV)=PSITA*RHOL*RHOL
+         QPV(NRV)=PSITA/PSIPA
+         TTV(NRV)=2.D0*PI*RR*BB
+      ENDDO
+C
+      DO NSG=1,NSGMAX
+      DO NTG=1,NTGMAX
+          PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
+          DELPSI(NTG,NSG)=0.D0
+      ENDDO
+      ENDDO
+C
+      CALL SPL1D(PSIPNV,PSITV,DERIV,UPSITV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for PSITV: IERR=',IERR
+      CALL SPL1D(PSIPNV,QPV,DERIV,UQPV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for QPV: IERR=',IERR
+      CALL SPL1D(PSIPNV,TTV,DERIV,UTTV,NRVMAX,0,IERR)
+      IF(IERR.NE.0) WRITE(6,*) 'XX SPL1D for TTV: IERR=',IERR
+C
+C      WRITE(6,'(A,I5,1P4E12.4)')
+C     &     ('NRV:',NRV,PSIPNV(NRV),PSITV(NRV),QPV(NRV),TTV(NRV),
+C     &      NRV=1,NRVMAX)
+C
+      RETURN
+      END
+C
+C   ************************************************ 
+C   **            Initial Psi for RFP             **
+C   ************************************************
+C
+      SUBROUTINE EQPSIR
 C
       INCLUDE '../eq/eqcomc.inc'
       DIMENSION DERIV(NRVM)
