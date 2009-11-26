@@ -1068,13 +1068,13 @@ contains
           !   *** CDIM model ***
           ELSE IF (MDANOM == 2) THEN
              ! Arbitrary coefficient for CDIM model
-             rGCIM = 8.D-1
-             OMEGAPR = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR(NR)
+             rGCIM = 10.D0
+             OMEGAPR = (RA / RR)**2 * (dble(NCph) / dble(NCth)) * RAQPR(NR)
          
              IF(NR == 0) THEN  ! for s=0
                 FCDIM(NR) = 0
              ELSE
-                FCDIM(NR) = 3.D0 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2)
+                FCDIM(NR) = 3.D0 * (0.5D0 * OMEGAPR)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2)
              END IF
 
              ! ExB rotational shear
@@ -1084,9 +1084,9 @@ contains
              ELSE
 !                rGIM = rG1
                 rGIM = 1.04D0 * R(NR)**2 / ( dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2) &
-                     &                         * OMEGAPR**2 * RA**2 * RR**2 )
+                     &                         * OMEGAPR * RA**2 * RR**2 )
 !                rHIM = Q(NR) * RR * R(NR)**2 * dVebdr(NR) / (Va * RA)
-                rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdrS(NR) / BBL
+                rHIM = RA * SQRT( rMU0 * AMI * PNiV(NR) * 1.D20 ) / BthV(NR) * dErdrS(NR) / BBL
              END IF
 
              ! Turbulence suppression by ExB shear for CDIM mode
