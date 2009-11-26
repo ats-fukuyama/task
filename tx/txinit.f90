@@ -117,7 +117,6 @@ SUBROUTINE TXINIT
   !   ***** Turbulent transport control parameters *****
 
   !   Fixed transport coefficient parameter
-  !   Suitable between 0.01 and 0.05
   !     1 : particle transport
   !     2 : momentum transport
   !     3 : thermal transport

@@ -81,7 +81,8 @@ contains
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
-    use f95_lapack ! for LAPACK95
+!    use f95_lapack ! for LAPACK95
+    use lapack95 ! for LAPACK95
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
@@ -174,7 +175,8 @@ contains
              ELSE
 !LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
 !LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
-                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
+!                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
+                CALL GBSV(BL,BX,INFO=IERR_LA)
                 IF(IERR_LA /= 0) THEN
                    WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                         &              NT, ' -', IC, ' step. IERR=',IERR_LA

@@ -995,7 +995,9 @@ contains
 !    09/02/11 mm
 
           UHth=(RR*NCth)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
-          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+!---- 09/11/26 AF
+!          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+          UHph=-Ncph/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
 
           rNueHLthth(NR)=UHth*UHth*rNueHL(NR)
           rNueHLthph(NR)=UHth*UHph*rNueHL(NR)
