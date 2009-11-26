@@ -125,7 +125,8 @@ SUBROUTINE TXINIT
 
   !   Anomalous turbulent transport models
   !     1 : CDBM model (Current diffusive ballooning mode)
-  !     2 : MMM95 (Multi-mode model)
+  !     2 : CDIM model (Current diffusive interchange mode)
+  !     3 : MMM95 (Multi-mode model)
   MDANOM = 1
 
   !   Switch and amplification of turbulence coefficients (typically 0 or 1)
@@ -159,10 +160,6 @@ SUBROUTINE TXINIT
   rG1 = 24.D0
 
   !   =======================================================================
-
-  !   CDIM transport coefficient parameter
-  !  09/06/17~ miki_m
-  FSCDIM = 0.D0
 
   !   Bohm transport coefficient parameter in SOL
   FSBOHM = 0.D0
@@ -1262,7 +1259,7 @@ module tx_parameter_control
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
        & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB, &
-       & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM,FSCDIM ! 09/06/17~ miki_m
+       & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM ! 09/06/17~ miki_m
   private :: TXPLST
 
 contains
@@ -1377,7 +1374,6 @@ contains
           idx = idx + 1 ; ENDIF
        IF(minval(RhoETB) < 0.D0 .OR. maxval(RhoETB) > 1.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
-       IF(FSCDIM < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF !***09/06/17~ miki_m
        IF(FSCBKP < 0.D0 .OR. FSCBEL < 0.D0 .OR. FSCBSH < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(FSBOHM < 0.D0 .OR. FSPCLD < 0.D0 .OR. FSPCLM < 0.D0 .OR. FSPCLC < 0.D0) THEN ; EXIT ; ELSE
@@ -1443,7 +1439,6 @@ contains
          &       ' ',8X,'FSDFIX,FSANOM,FSCBKP,FSCBEL,FSCBSH,FSBOHM,FSPCLD,FSPCLM,FSPCLC,FSVAHL,'/ &
          &       ' ',8X,'MDANOM,RhoETB,'/ &
          &       ' ',8X,'PROFD,PROFD1,PROFD2,PROFM,PROFM1,PROFC,PROFC1,'/ &
-         &       ' ',8X,'FSCDIM,'/ & !*** 09/06/17~ miki_m
          &       ' ',8X,'FSCX,FSLC,FSRP,FSNF,FSNC,FSLP,FSLTE,FSLTI,FSION,FSD01,FSD02,FSD03,FSNCPL,'/&
          &       ' ',8X,'MDLC,rLn,rLT,'/ &
          &       ' ',8X,'Eb,RNBP,RNBP0,RNBT1,RNBT2,RNBT10,RNBT20,PNBHP,PNBHT1,PNBHT2,'/ &
@@ -1495,8 +1490,7 @@ contains
          &   'FANOM2', FSANOM(2),  'FANOM3', FSANOM(3),  &
          &   'RoETB1', RhoETB(1),  'RoETB2', RhoETB(2),  &
          &   'RoETB3', RhoETB(3),  'FSCBKP', FSCBKP,  &
-         &   'FSCBEL', FSCBEL, &
-         &   'FSCBSH', FSCBSH,  'FSCDIM', FSCDIM, & !*** 09/06/17~ miki_m
+         &   'FSCBEL', FSCBEL,  'FSCBSH', FSCBSH,  &
          &   'FSBOHM', FSBOHM,  'FSPCLD', FSPCLD,  &
          &   'FSPCLM', FSPCLM,  'FSPCLC', FSPCLC,  &
          &   'FSVAHL', FSVAHL,  'FSCX  ', FSCX  ,  &

@@ -64,7 +64,7 @@ module tx_commons
   real(8) :: De0, Di0, rMue0, rMui0, Chie0, Chii0, ChiNC, VWpch0, WPM0
 
   ! Amplitude parameters for transport
-  real(8) :: FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL, FSCDIM
+  real(8) :: FSCBKP, FSCBEL, FSCBSH, FSBOHM, FSPCLD, FSPCLM, FSPCLC, FSVAHL
   real(8) :: PROFD, PROFD1, PROFD2, PROFM, PROFM1, PROFC, PROFC1
   real(8) :: FSCX, FSLC, FSNC, FSLP, FSLTE, FSLTI, FSION, FSD01, FSD02, FSD03, FSNCPL, rG1, FSRP, FSNF
   real(8), dimension(1:3) :: FSDFIX, FSANOM, RhoETB
@@ -181,7 +181,7 @@ module tx_commons
 
   ! CDIM
   ! 09/06/17~ miki_m
-  real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, OMEGAPR, RAQPR
+  real(8), dimension(:), allocatable :: rG1h2IM, FCDIM, RAQPR
 
   ! Sources and sinks
   real(8), dimension(:), allocatable :: PNB, PNBTG, PNBPD, PNBcol_e, PNBcol_i,  &
@@ -334,7 +334,7 @@ contains
        if (ier /= 0) exit
 
        allocate(rG1h2(0:N),  FCDBM(0:N),  S(0:N),     Alpha(0:N), rKappa(0:N),stat = ierl(1))
-       allocate(rG1h2IM(0:N),  FCDIM(0:N),  OMEGAPR(0:N),  RAQPR(0:N),        stat = ierl(2)) !09/06/17 miki_m
+       allocate(rG1h2IM(0:N),  FCDIM(0:N),  RAQPR(0:N),                       stat = ierl(2)) !09/06/17 miki_m
        allocate(pres0(0:N),  ErV0(0:N),                                       stat = ierl(3))
        ier = sum(ierl) ; iflag = 5
        if (ier /= 0) exit
@@ -428,7 +428,7 @@ contains
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
     deallocate(pres0,  ErV0)
 
-    deallocate(rG1h2IM, FCDIM, OMEGAPR, RAQPR)  !***miki_m 09/06/17~
+    deallocate(rG1h2IM, FCDIM, RAQPR)  !***miki_m 09/06/17~
 
     deallocate(PNB,    PNBTG, PNBPD, PNBcol_e, PNBcol_i)
     deallocate(SNB,    SNBe,  SNBi,  SNBb)

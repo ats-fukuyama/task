@@ -3625,7 +3625,7 @@ contains
     use tx_commons, only : SLID, PNBCD, BB, rIp, FSDFIX, FSANOM, FSBOHM, FSPCLD, FSPCLC, &
          &              PROFD, PROFC, FSCX, FSRP, FSLC, FSNC, FSLP, FSION, FSD02, &
          &              PNBHT1, PNBHT2, PNBHP, PNBHex, PRFHe, PRFHi, Vb, De0, rMue0, rMui0, &
-         &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff, FSCDIM
+         &              Chie0, Chii0, PTe0, PTea, PTi0, PTia, V0, rGamm0, rGASPF, Zeff
     INTEGER(4) :: IFNT
 
     CALL INQFNT(IFNT)
@@ -3660,8 +3660,6 @@ contains
     CALL TXWPS('@FSLP  @', FSLP)
     CALL TXWPS('@FSION @', FSION)
     CALL TXWPS('@FSD02 @', FSD02)
-
-!    CALL TXWPS('@FCDIM3@', FSCDIM)
 
     GXM = GXM + 0.35 * 17
     NP = 0

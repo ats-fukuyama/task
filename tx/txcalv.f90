@@ -205,14 +205,14 @@ contains
          &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
          &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
-         &     rGIC, rH, Smod, PROFML, PROFCL, PALFL, DCDBM, fk, rkap, DeL, AJPH, AJTH, EPARA, &
+         &     rGIC, rH, Smod, PROFML, PROFCL, PALFL, Dturb, fk, rkap, DeL, AJPH, AJTH, EPARA, &
          &     Vcr, Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
          &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, cap_val, &
          &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
          &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ETASL, Ln, LT, etai_chk, kthrhos, &
-         &     Tqt0L, Tqp0L, RhoSOL, V0ave, Viave, DCDBMA, DCDIMA, rLmean, rLmeanL, Sitot, costh, &
-         &     rGCIM, DCDIM, rGIM, rHIM !, 09/06/17~ miki_m 
+         &     Tqt0L, Tqp0L, RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, costh, &
+         &     rGCIM, rGIM, rHIM, OMEGAPR !, 09/06/17~ miki_m 
     real(8), save :: Fcoef = 1.d0
     real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
@@ -984,9 +984,9 @@ contains
           omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
           omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
           rNueHL(NR) = FSHL * Wte * BLinv * rNuAsE_inv &
-          &            /(3.D0+1.67*omegaere)
+          &            /(3.D0+1.67D0*omegaere)
           rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
-          &            /(3.D0+1.67*omegaeri)
+          &            /(3.D0+1.67D0*omegaeri)
 
 !          UHth=(RR/NCph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
 !          UHph=(R(NR)/NCth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
@@ -1028,97 +1028,87 @@ contains
           Va = SQRT(BBL**2 / (rMU0 * PNiV(NR) * 1.D20 * AMI))
           ! Squared plasma frequency
           Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
-          ! Arbitrary coefficient for CDBM model
-!          rGC = 8.D0
-          rGC = 12.D0
           ! Magnetic curvature
           rKappa(NR) = FSCBKP * (- R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2))
-          ! Calculate CDBM coefficient
-          FCDBM(NR) = TRCOFS(S(NR),Alpha(NR),rKappa(NR))
-          ! ExB rotational shear 
-          !  e.g. [A.Fukuyama et al PPCF 38 (1996) 1319]
-          IF(NR == 0) THEN
-             rH = 0.D0
-             rG1h2(NR) = 1.D0
-          ELSE
-             IF(S(NR) /= 0.D0) THEN
-                Smod = sqrt(S(NR)**2 + 0.1d0**2) ! To avoid that S(NR) becomes zero.
-                rH = (Q(NR) * RR / Va) / (Smod * BBL) * dErdrS(NR)
-                ! Turbulence suppression by ExB shear
-                rG1h2(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rH**2))
+
+          !   *** CDBM model ***
+          IF (MDANOM == 1) THEN
+             ! Arbitrary coefficient for CDBM model
+!             rGC = 8.D0
+             rGC = 12.D0
+             ! Calculate CDBM coefficient
+             FCDBM(NR) = TRCOFS(S(NR),Alpha(NR),rKappa(NR))
+             ! ExB rotational shear 
+             !  e.g. [A.Fukuyama et al PPCF 38 (1996) 1319]
+             IF(NR == 0) THEN
+                rH = 0.D0
+                rG1h2(NR) = 1.D0
              ELSE
-                rG1h2(NR) = 0.D0
+                IF(S(NR) /= 0.D0) THEN
+                   Smod = sqrt(S(NR)**2 + 0.1d0**2) ! To avoid that S(NR) becomes zero.
+                   rH = (Q(NR) * RR / Va) / (Smod * BBL) * dErdrS(NR)
+                   ! Turbulence suppression by ExB shear
+                   rG1h2(NR) = 1.D0 / (1.D0 + FSCBSH * (rG1 * rH**2))
+                ELSE
+                   rG1h2(NR) = 0.D0
+                END IF
              END IF
-          END IF
-          ! Elongation effect (M.Honda and A.Fukuyama, NF 46 (2006) 580)
-          fk = (2.D0*SQRT(FSCBEL)/(1.D0+FSCBEL**2))**1.5D0
+             ! Elongation effect (M.Honda and A.Fukuyama, NF 46 (2006) 580)
+             fk = (2.D0*SQRT(FSCBEL)/(1.D0+FSCBEL**2))**1.5D0
 
-          ! Turbulent transport coefficient calculated by CDBM model
-          DCDBM = fk * rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
-               &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
-          !DCDBM = MAX(DCDBM,1.D-05)
-          IF(Rho(NR) == 1.D0) DCDBMA = DCDBM
-       ELSE
-          rG1h2(NR)  = 0.D0
-          FCDBM(NR)  = 0.D0
-          DCDBM      = 0.D0
-       END IF
+             ! Turbulent transport coefficient calculated by CDBM model
+             Dturb = fk * rGC * FCDBM(NR) * rG1h2(NR) * ABS(Alpha(NR))**1.5D0 &
+                  &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
+             !Dturb = MAX(Dturb,1.D-05)
 
-       !   *** CDIM mode ***
-       !   09/06/17~ miki_m
-
-       IF (ABS(FSCDIM) > 0.D0) THEN
-          ! Alfven velocity
-          Va = SQRT(BBL**2 / (rMU0 * PNiV(NR) * 1.D20 * AMI))
-          ! Squared plasma frequency
-          Wpe2 = PNeV(NR) * 1.D20 * AEE**2 / (AME * EPS0)
-          ! Arbitrary coefficient for CDIM model
-          rGCIM = 8.D-1
-          ! Magnetic curvature
-          rKappa(NR) = - R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2)
-
-          OMEGAPR(NR) = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR(NR)
+          !   *** CDIM model ***
+          ELSE IF (MDANOM == 2) THEN
+             ! Arbitrary coefficient for CDIM model
+             rGCIM = 8.D-1
+             OMEGAPR = (RA / RR)**2.D0 * (NCph / NCth) * RAQPR(NR)
          
-          IF(NR == 0) THEN  ! for s=0
-             FCDIM(NR) = 0
-          ELSE
-             FCDIM(NR) = 3.D0 * (OMEGAPR(NR) / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2.D0)
-          END IF
+             IF(NR == 0) THEN  ! for s=0
+                FCDIM(NR) = 0
+             ELSE
+                FCDIM(NR) = 3.D0 * (OMEGAPR / 2.D0)**1.5D0 * (RR / RA)**1.5D0 / (Q(NR) * S(NR)**2)
+             END IF
 
-          ! ExB rotational shear
-          IF(NR == 0) THEN
-             rGIM = 0.D0
-             rHIM = 0.D0
-          ELSE
-!             rGIM = rG1
-             rGIM = 1.04D0 * R(NR)**2.D0 / ( dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2) &
-                  &                         * OMEGAPR(NR)**2.D0 * RA**2.D0 * RR**2.D0 )
-!             rHIM = Q(NR) * RR * R(NR)**2.D0 * dVebdr(NR) / (Va * RA)
-             rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdrS(NR) / BBL
-          END IF
+             ! ExB rotational shear
+             IF(NR == 0) THEN
+                rGIM = 0.D0
+                rHIM = 0.D0
+             ELSE
+!                rGIM = rG1
+                rGIM = 1.04D0 * R(NR)**2 / ( dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2) &
+                     &                         * OMEGAPR**2 * RA**2 * RR**2 )
+!                rHIM = Q(NR) * RR * R(NR)**2 * dVebdr(NR) / (Va * RA)
+                rHIM = RA * SQRT( rMU0 * AMI * ( PNeV(NR) + PNiV(NR) ) / BthV(NR) ) * dErdrS(NR) / BBL
+             END IF
 
-          ! Turbulence suppression by ExB shear for CDIM mode
-          rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rGIM * rHIM**2))
-
-          ! Turbulent transport coefficient calculated by CDIM model
-          DCDIM = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
-               &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
+             ! Turbulence suppression by ExB shear for CDIM mode
+             rG1h2IM(NR) = 1.D0 / (1.D0 + FSCBSH * (rGIM * rHIM**2))
+             ! Turbulent transport coefficient calculated by CDIM model
+             Dturb = rGCIM * FCDIM(NR) * rG1h2IM(NR) * ABS(Alpha(NR))**1.5D0 &
+                  &              * VC**2 / Wpe2 * Va / (Q(NR) * RR)
 
 !-----------------memo:beta'=dpdr(NR) * 2.D0 * rMU0 / (BphV(NR)**2 + BthV(NR)**2)-----------
 
-          IF(Rho(NR) == 1.D0) DCDIMA = DCDIM 
-
 !          IF(NR == 0 .OR. NR == 1) & 
-!                         write(6,*) ',NR=',NR,'RAQPR=',RAQPR(NR),'OMEGAPR=',OMEGAPR(NR), &
-!               &     'Q=',Q(NR),'S=',S(NR),'FCDIM=',FCDIM(NR),'DCDIM=',DCDIM
+!                         write(6,*) ',NR=',NR,'RAQPR=',RAQPR(NR),'OMEGAPR=',OMEGAPR, &
+!               &     'Q=',Q(NR),'S=',S(NR),'FCDIM=',FCDIM(NR),'Dturb=',Dturb
 
+          END IF
+          IF(Rho(NR) == 1.D0) DturbA = Dturb 
        ELSE
-          rG1h2IM(NR) = 0.D0
-          FCDIM(NR)   = 0.D0
-          DCDIM       = 0.D0
+          IF(MDANOM == 1) THEN
+             rG1h2(NR)  = 0.D0
+             FCDBM(NR)  = 0.D0
+          ELSE
+             rG1h2IM(NR) = 0.D0
+             FCDIM(NR)   = 0.D0
+          END IF
+          Dturb      = 0.D0
        END IF
-
-       !     *** end CDIM mode ***
 
        !     *** Turbulent transport of particles ***
        !     ***     Wave-particle interaction    ***
@@ -1126,14 +1116,14 @@ contains
 !parail       PROFD1 = 4
        RhoSOL = 1.D0
        IF (RHO(NR) < RhoSOL) THEN
-!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSANOM(1) * DCDBM
+!          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1) + FSANOM(1) * Dturb
           DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.07d0) &
 !          DeL = diff_prof(RHO(NR),FSDFIX(1),PROFD,PROFD1,PROFD2,0.99d0,0.125d0) &
-               & + FSANOM(1) * DCDBM + FSCDIM * DCDIM
+               & + FSANOM(1) * Dturb
        ELSE
           IF(FSPCLD == 0.D0) THEN
              ! Bohm-like diffusivity
-             factor_bohm = (FSDFIX(1) * PROFD + FSANOM(1) * DCDBM + FSCDIM * DCDIM) &
+             factor_bohm = (FSDFIX(1) * PROFD + FSANOM(1) * Dturb) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
              DeL = factor_bohm * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
           ELSE
@@ -1142,10 +1132,10 @@ contains
                 DeL = FSPCLD * diff_prof(RhoSOL,FSDFIX(1),PROFD,PROFD1,0.d0)
              ELSE
                 ! Theory-based anomalous diffusivity
-                DeL = FSANOM(1) * DCDBMA + FSCDIM * DCDIMA
+                DeL = FSANOM(1) * DturbA
              END IF
           END IF
-!!$          DeL = FSDFIX(1) * PROFD + FSANOM(1) * DCDBM + FSCDIM * DCDIM
+!!$          DeL = FSDFIX(1) * PROFD + FSANOM(1) * Dturb
        END IF
        ! Particle diffusivity
 !!$       if(rho(nr) > 0.7d0) then
@@ -1164,12 +1154,11 @@ contains
 !parail       RhoSOL = 0.93D0
 
        IF (RHO(NR) < RhoSOL) THEN
-          DeL = diff_prof(RHO(NR),FSDFIX(2),PROFML,PROFM1,0.d0) + FSANOM(2) * DCDBM &
-            & + FSCDIM * DCDIM
+          DeL = diff_prof(RHO(NR),FSDFIX(2),PROFML,PROFM1,0.d0) + FSANOM(2) * Dturb
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
           IF(FSPCLM == 0.D0) THEN
-             factor_bohm = (FSDFIX(2) * PROFML + FSANOM(2) * DCDBM + FSCDIM * DCDIM) &
+             factor_bohm = (FSDFIX(2) * PROFML + FSANOM(2) * Dturb) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
 !bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(2) * PROFML &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
@@ -1178,7 +1167,7 @@ contains
              IF(FSANOM(2) == 0.D0) THEN
                 DeL = FSPCLM * diff_prof(RhoSOL,FSDFIX(2),PROFML,PROFM1,0.d0)
              ELSE
-                DeL = FSANOM(2) * DCDBMA + FSCDIM * DCDIMA
+                DeL = FSANOM(2) * DturbA
              END IF
 !pedestal             DeL = FSPCLM * FSDFIX(2) * PROFML * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
@@ -1190,12 +1179,11 @@ contains
        !     *** Turbulent transport of heat ***
 
        IF (RHO(NR) < RhoSOL) THEN
-          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSANOM(3) * DCDBM &
-            & + FSCDIM * DCDIM
+          DeL = diff_prof(RHO(NR),FSDFIX(3),PROFCL,PROFC1,0.d0) + FSANOM(3) * Dturb
 !pedestal          if(rho(nr) > 0.9d0) DeL = DeL * exp(-120.d0*(rho(nr)-0.9d0)**2)
        ELSE
           IF(FSPCLC == 0.D0) THEN
-             factor_bohm = (FSDFIX(3) * PROFCL + FSANOM(3) * DCDBM + FSCDIM * DCDIM) &
+             factor_bohm = (FSDFIX(3) * PROFCL + FSANOM(3) * Dturb) &
                   &  / (PTeV(NRA) * rKeV / (16.D0 * AEE * SQRT(BphV(NRA)**2 + BthV(NRA)**2)))
 !bohm_model2             DeL =  (1.D0 - MOD(FSBOHM,2.D0)) * FSDFIX(3) * PROFCL &
 !bohm_model2                  &+ FSBOHM * PTeV(NR) * rKeV / (16.D0 * AEE * BBL)
@@ -1204,7 +1192,7 @@ contains
              IF(FSANOM(3) == 0.D0) THEN
                 DeL = FSPCLC * diff_prof(RhoSOL,FSDFIX(3),PROFCL,PROFC1,0.d0)
              ELSE
-                DeL = FSANOM(3) * DCDBMA + FSCDIM * DCDIMA
+                DeL = FSANOM(3) * DturbA
              END IF
 !pedestal             DeL = FSPCLC * FSDFIX(3) * PROFCL * exp(-120.d0*(rho(nra)-0.9d0)**2)
           END IF
@@ -1477,7 +1465,7 @@ contains
        gamITG(NR,3) = kthrhos * sqrt(PTeV(NR)*rKeV/Ami) / RA * sqrt(2.d0 * RA / RR * (RA / Ln + RA / LT))
     end do
 
-    if(MDANOM == 2) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
+    if(MDANOM == 3) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
 
     !     *** ETB model ***
 
