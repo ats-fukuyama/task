@@ -973,13 +973,15 @@ contains
           rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
           rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
           IF(NR.EQ.0) THEN
-             omegaer=0.d0
              BLinv=0.d0
+             omegaer=0.d0
           ELSE
-             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
-             Bthl = BB*R(NR)/(QL*RR)
-             BLinv=BB/Bthl
-             omegaer=ErVlc(NR)/(BB*R(NR))
+!             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
+!             Bthl = BB*R(NR)/(QL*RR)
+!             BLinv=BB/Bthl
+             BBL=SQRT(BphV(NR)**2 + BthV(NR)**2)
+             BLinv=BBL/BthV(NR)
+             omegaer=ErVlc(NR)/(BBL*R(NR))
           ENDIF
           omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
           omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
@@ -1102,13 +1104,10 @@ contains
           END IF
           IF(Rho(NR) == 1.D0) DturbA = Dturb 
        ELSE
-          IF(MDANOM == 1) THEN
-             rG1h2(NR)  = 0.D0
-             FCDBM(NR)  = 0.D0
-          ELSE
-             rG1h2IM(NR) = 0.D0
-             FCDIM(NR)   = 0.D0
-          END IF
+          rG1h2(NR)  = 0.D0
+          FCDBM(NR)  = 0.D0
+          rG1h2IM(NR) = 0.D0
+          FCDIM(NR)   = 0.D0
           Dturb      = 0.D0
        END IF
 

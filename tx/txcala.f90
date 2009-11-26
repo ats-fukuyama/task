@@ -1376,7 +1376,7 @@ contains
     ELM(1:NEMAX,1:4,25,LQi3) = - fem_int(2,rNuiHLthth)
     NLC(25,LQi3) = LQi3
 
-    ELM(1:NEMAX,1:4,26,LQi3) = - fem_int(15,rNuiHLthph)
+    ELM(1:NEMAX,1:4,26,LQi3) =   fem_int(15,rNuiHLthph)
     NLC(26,LQi3) = LQi4
 
     !  Diffusion of ions (***AF 2008-06-08)
