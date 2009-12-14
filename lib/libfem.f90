@@ -22,6 +22,7 @@
   real(8), dimension(1:8,1:8,1:6), save, public :: table_hhq
   real(8), dimension(1:8,1:6,1:6), save, public :: table_hqq
   real(8), dimension(1:4,1:6), save, public :: table_lq
+  real(8), dimension(1:6,1:4), save, public :: table_ql
   real(8), dimension(1:4,1:6,1:4), save, public :: table_lql
   real(8), dimension(1:4,1:4,1:6), save, public :: table_llq
   real(8), dimension(1:4,1:6,1:6), save, public :: table_lqq
@@ -3272,6 +3273,11 @@ contains
       table_lq(4,5)= 0.d0
       table_lq(4,6)= 1.d0
 
+      do j=1,4
+         do i=1,6
+            table_ql(i,j)=table_lq(j,i)
+         enddo
+      enddo
 
       table_lql(1,1,1)= 3.d0/20.d0
       table_lql(1,1,2)= 1.d0/60.d0
@@ -3400,7 +3406,6 @@ contains
             enddo
          enddo
       enddo
-
 
       table_lqq(1,1,1)= 7.d0/60.d0
       table_lqq(1,1,2)= 1.d0/15.d0
