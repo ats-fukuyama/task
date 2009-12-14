@@ -615,9 +615,11 @@
          endif
       enddo
 
-      do nr=1,nrmax
-         if(nphmax.gt.1) then
-            nn=nphmax/2+1
+!     ----- remove nn=nphmax/2+1 -----
+
+      if(nphmax.gt.1) then
+         nn=nphmax/2+1
+         do nr=1,nrmax
             do mm=1,nthmax
                mll=6*nthmax*(nn-1)+6*(mm-1)
                ml=6*nthmax*nphmax*(nr-1)+mll
@@ -657,9 +659,13 @@
                   enddo
                end if
             end do
-         endif
-         if(nthmax.gt.1) then
-            mm=nthmax/2+1
+         end do
+      end if
+      
+
+      if(nthmax.gt.1) then
+         mm=nthmax/2+1
+         do nr=1,nrmax
             do nn=1,nphmax
                mll=6*nthmax*(nn-1)+6*(mm-1)
                ml=6*nthmax*nphmax*(nr-1)+mll
@@ -699,8 +705,8 @@
                   end do
                endif
             end do
-         endif
-      enddo
+         enddo
+      endif
 
       return
       end subroutine wmfem_calculate_matrix

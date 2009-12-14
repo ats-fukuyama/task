@@ -1307,30 +1307,23 @@
       IF(MDLST.EQ.0) RETURN
 
       IF(MOD(MDLST,2).EQ.1) THEN
-         LQ = 1
-      ELSE
-         LQ = 0
-      ENDIF
-      IF(MOD(MDLST/2,2).EQ.1) THEN
          LT = 1
       ELSE
          LT = 0
       ENDIF
-      IF(MOD(MDLST/4,2).EQ.1) THEN
+      IF(MOD(MDLST/2,2).EQ.1) THEN
          LN = 1
       ELSE
          LN = 0
       ENDIF
+      IF(MOD(MDLST/4,2).EQ.1) THEN
+         LQ = 1
+      ELSE
+         LQ = 0
+      ENDIF
 
       WRITE(6,601) MDLST,T
   601 FORMAT(' ','# SAWTOOTH OSCILLATION -TYPE ',I1, ' AT ',F7.3,' SEC')
-
-      IF(MDLST.EQ.8) THEN
-         LQ = 0
-         LT = 1
-         LN = 1
-         MDLST = 0
-      ENDIF
 
       SUML=0.D0
       DO NR=1,NRMAX
@@ -1357,7 +1350,6 @@
             SUML1 = SUM(RN(1:IZEROX,NS)                *DVRHO(1:IZEROX))
             SUML2 = SUM(RN(1:IZEROX,NS)*RT(1:IZEROX,NS)*DVRHO(1:IZEROX))
             RTN = SUML2/SUML1
-
             RT(1:IZEROX,NS) = RTN
          ENDDO
       ENDIF
@@ -1381,6 +1373,11 @@
 
       WRITE(6,602) RM(IONE),RM(IZEROX),RTN,RNN
 602   FORMAT(' ',' R-ONE,R-ZERO,RTN,RNN = ',4F8.3)
+
+      DO NR=1,IZEROX+2
+         WRITE(6,'(A,I5,1P5E12.4)') 'NR,R,Q,B,Q,S=', &
+                       NR,RM(NR),QP(NR),BP(NR),QONE(NR),SUML
+      ENDDO
       RETURN
       END SUBROUTINE TRSAWT
 

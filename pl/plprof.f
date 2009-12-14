@@ -368,6 +368,9 @@ C
                ENDIF
             ENDIF
          ELSEIF(MODELQ.EQ.1) THEN
+            if(rip.eq.0.d0) then
+               ql=1.D6
+            else
             QA=2.D0*PI*RA*RA*BB/(RMU0*RIP*1.D6*RR)
             Q0=QA/(1.D0+PROFJ)
             IF(RHOL.GE.1.D0) THEN
@@ -377,6 +380,7 @@ C
             ELSE
                QL=QA*RHOL**2/(1.D0-(1.D0-RHOL**2)**(PROFJ+1.D0))
             ENDIF
+            endif
          ENDIF
       ELSE
          CALL GETQP(RHOL,QL)
