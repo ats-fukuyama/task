@@ -222,7 +222,7 @@
       integer(4),intent(out) :: ierr
 ! local variables
       integer(4) :: ns,nr
-      real(8)    :: temp(nrmp,nsm,3),tmp(nrm)
+      real(8)    :: temp(nrmp,nsm,3),tmp(nrmax)
       real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho
       REAL(8)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================

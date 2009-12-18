@@ -80,7 +80,7 @@
       USE TRCOMM,  ONLY : ABB2RHOG,     ADNCG,        ADNCP,        ADNCT,        AIB2RHOG,     AJBSNC,       AJEXNC,      &
      &         AJOH,      AKNCP,        AKNCT,        AR1RHO,       AR2RHO,       ARHBRHOG,     AVKNC,        AVNC,        &
      &         AVNCG,     BB,           BP,           CJBSP,        CJBST,        DR,           EPSRHO,       ER,          &
-     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRM,          NRMAX,        NSLMAX,       NSM,         &
+     &         ETA,       ETANC,        MDLEQZ,       MDLTPF,       NRMAX,        NSLMAX,       NSM,         &
      &         NSZMAX,    PA,           PADD,         PNSS,         PTS,          PZ,           Q0,           QP,          &
      &         RA,        RDP,          RG,           RGFLS,        RHOG,         RKAP,         RM,           RN,          &
      &         RQFLS,     RR,           RT,           TTRHOG,       VPAR,         VPOL,         VPRP,         VTOR
