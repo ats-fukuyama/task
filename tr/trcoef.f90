@@ -830,13 +830,15 @@
          ELSEIF(MDLKAI.GE.100) THEN
 
             RS=RA*RG(NR)
-!            RKAPL=RKPRHO(NR)
-            RKAPL=1.5d0
+            RKAPL=RKPRHO(NR)
             SHEARL=S(NR)
             PNEL=ANE*1.D20
             RHONI=(AMD*ANDX+AMT*ANT+AMA*ANA)*1.D20
             DPDRl=DPP*1.D20*RKEV
             DVEXBDRL=DVE/RA
+            SL=(S(NR)**2+0.1D0**2)
+            WE1=-QL*RR/(SL*VA)*DVE
+            RG1=CWEB*FEXB(ABS(WE1),S(NR),ALPHA(NR))
             cexb=RG1
             ckap=1.d0
             MODEL=MDLKAI-130
