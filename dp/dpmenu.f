@@ -52,17 +52,17 @@ C
          CKPP=RKX0
          CALL PLMAG(RL,0.D0,0.D0,RHON)
          CALL PLPROF(RHON)
-         MODELP(1)=4
+         MODELP(1)=1
          CALL DPTENS(CW,CKPR,CKPP,1,CD4)
-         MODELP(1)=5
+         MODELP(1)=4
          CALL DPTENS(CW,CKPR,CKPP,1,CD5)
-         MODELP(1)=6
+         MODELP(1)=5
          CALL DPTENS(CW,CKPR,CKPP,1,CD6)
-         MODELP(1)=7
+         MODELP(1)=16
          CALL DPTENS(CW,CKPR,CKPP,1,CD7)
          WRITE(6,602) 
-  602    FORMAT(6X,'MODELP=4',13X,'MODELP=5',
-     &         13X,'MODELP=6',13X,'MODELP=7')
+  602    FORMAT(6X,'MODELP=1',13X,'MODELP=4',
+     &         13X,'MODELP=5',13X,'MODELP=16')
          WRITE(6,603) (CD4(I),CD5(I),CD6(I),CD7(I),I=1,6)
   603    FORMAT((1PE9.2,1P7E10.2))
          GOTO 1001
