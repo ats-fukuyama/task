@@ -6,6 +6,8 @@
 
       CONTAINS
 
+!-----
+
       SUBROUTINE mtx_initialize(rank_,size_)
       IMPLICIT NONE
       INTEGER,INTENT(OUT):: rank_,size_
@@ -18,13 +20,19 @@
       RETURN
       END SUBROUTINE mtx_initialize
 
+!-----
+
       SUBROUTINE mtx_finalize
       RETURN
       END SUBROUTINE mtx_finalize
 
+!-----
+
       SUBROUTINE mtx_barrier
       RETURN
       END SUBROUTINE mtx_barrier
+
+!-----
 
       SUBROUTINE mtx_broadcast_character(kdata,n)
       IMPLICIT NONE
@@ -33,12 +41,16 @@
       RETURN
       END SUBROUTINE mtx_broadcast_character
 
+!-----
+
       SUBROUTINE mtx_broadcast_integer(idata,n)
       IMPLICIT NONE
       INTEGER,DIMENSION(n),INTENT(INOUT):: idata
       INTEGER,INTENT(IN):: n      
       RETURN
       END SUBROUTINE mtx_broadcast_integer
+
+!-----
 
       SUBROUTINE mtx_broadcast_real8(vdata,n)
       IMPLICIT NONE
@@ -47,12 +59,43 @@
             RETURN
       END SUBROUTINE mtx_broadcast_real8
 
+!-----
+
       SUBROUTINE mtx_broadcast_complex8(vdata,n)
       IMPLICIT NONE
       COMPLEX(8),DIMENSION(n),INTENT(INOUT):: vdata
       INTEGER,INTENT(IN):: n
             RETURN
       END SUBROUTINE mtx_broadcast_complex8
+
+!-----
+
+      SUBROUTINE mtx_broadcast_integer_2d(idata,n1,m1,m2)
+      IMPLICIT none
+      INTEGER,DIMENSION(n1,m2),INTENT(INOUT):: idata
+      INTEGER,INTENT(IN):: n1,m1,m2
+      RETURN
+      END SUBROUTINE mtx_broadcast_integer_2D
+
+!-----
+
+      SUBROUTINE mtx_broadcast_real8_2D(vdata,n1,m1,m2)
+      IMPLICIT NONE
+      REAL(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: n1,m1,m2
+      RETURN
+      END SUBROUTINE mtx_broadcast_real8_2D
+
+!-----
+
+      SUBROUTINE mtx_broadcast_complex8_2D(vdata,n1,m1,m2)
+      IMPLICIT NONE
+      COMPLEX(8),DIMENSION(n1,m2),INTENT(INOUT):: vdata
+      INTEGER,INTENT(IN):: n1,m1,m2
+      RETURN
+      END SUBROUTINE mtx_broadcast_complex8_2D
+
+!-----
 
       SUBROUTINE mtx_gather_integer(idata,itot)
       IMPLICIT NONE
@@ -63,6 +106,8 @@
       RETURN
       END SUBROUTINE mtx_gather_integer
 
+!-----
+
       SUBROUTINE mtx_gather_real8(ddata,dtot)
       IMPLICIT NONE
       REAL(8),INTENT(IN):: ddata
@@ -72,6 +117,8 @@
       RETURN
       END SUBROUTINE mtx_gather_real8
 
+!-----
+
       SUBROUTINE mtx_allgather_integer(idata,itot)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: idata
@@ -80,6 +127,8 @@
       itot(1)=idata
       RETURN
       END SUBROUTINE mtx_allgather_integer
+
+!-----
 
       SUBROUTINE mtx_gatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE
@@ -95,6 +144,8 @@
       ENDDO
       RETURN
       END SUBROUTINE mtx_gatherv_real8
+
+!-----
 
       SUBROUTINE mtx_allgatherv_real8(vdata,ndata,vtot,ntot,ilena,iposa)
       IMPLICIT NONE

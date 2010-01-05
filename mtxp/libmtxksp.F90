@@ -129,18 +129,34 @@
 
       imax=imax_
       call MatCreate(PETSC_COMM_WORLD,A,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: MatCreate: ierr=',ierr
       call MatSetSizes(A,PETSC_DECIDE,PETSC_DECIDE,imax,imax,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: MatSetSizes: ierr=',ierr
       call MatSetFromOptions(A,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: MatSetFromOptions: ierr=',ierr
 
       call MatGetOwnershipRange(A,istart,iend,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: MatGetOwnershipRange: ierr=',ierr
       istart_=istart+1
       iend_=iend
       ilen=iend-istart
 
       call VecCreate(PETSC_COMM_WORLD,b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: VecCreate: ierr=',ierr
       call VecSetSizes(b,PETSC_DECIDE,imax,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: VecSetSizes: ierr=',ierr
       call VecSetFromOptions(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: VecSetFromOptions: ierr=',ierr
       call VecDuplicate(b,x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: VecDuplicate: ierr=',ierr
 
 !  Currently, all PETSc parallel matrix formats are partitioned by
 !  contiguous chunks of rows across the processors.  Determine which
@@ -150,16 +166,11 @@
 
       call mtx_allgather_integer(istart,istartx)
       call mtx_allgather_integer(iend,iendx)
-!      call MPI_ALLGATHER(istart,1,MPI_INTEGER, &
-!                         istartx,1,MPI_INTEGER, &
-!                         PETSC_COMM_WORLD,ierr)
-!      call MPI_ALLGATHER(iend,1,MPI_INTEGER, &
-!                         iendx,1,MPI_INTEGER, &
-!                         PETSC_COMM_WORLD,ierr) 
 
       do i=0,size-1
          isiz(i)=iendx(i)-istartx(i)
       enddo
+
 !      if(rank.eq.0) then
 !         write(6,'(A)') '# mtx_setup: '
 !         do i=0,size-1
@@ -171,6 +182,8 @@
 !  Create linear solver context
 
       call KSPCreate(PETSC_COMM_WORLD,ksp,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_setup: KSPCreate: ierr=',ierr
 
       return
       END SUBROUTINE mtx_setup
@@ -182,6 +195,8 @@
 
       IF(i.GE.istart+1.AND.i.LE.iend) THEN
          call MatSetValues(A,ione,i-1,ione,j-1,v,INSERT_VALUES,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_set_matrix: MatSetValues: ierr=',ierr
       ELSE
          write(6,'(A)') &
               'XX libmtxksp:mtx_set_matrix: i : out of range'
@@ -198,6 +213,8 @@
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(b,ione,j-1,v,INSERT_VALUES,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_set_source: VecSetValues: ierr=',ierr
       ELSE
          write(6,'(A)') &
               'XX libmtxksp:mtx_set_source: j : out of range'
@@ -213,6 +230,8 @@
 
       IF(j.GE.istart.AND.j.LE.iend) THEN
          call VecSetValues(x,ione,j-1,v,INSERT_VALUES,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_set_vector: VecSetValues: ierr=',ierr
       ELSE
          write(6,'(A)') &
               'XX libmtxksp:mtx_set_vector: j : out of range'
@@ -225,9 +244,17 @@
       INTEGER:: ierr
 
       call VecAssemblyBegin(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_split_operation: VecAssemblyBegin: b: ierr=',ierr
       call VecAssemblyEnd(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_split_operation: VecAssemblyEnd: b: ierr=',ierr
       call VecAssemblyBegin(x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_split_operation: VecAssemblyBegin: x: ierr=',ierr
       call VecAssemblyEnd(x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_split_operation: VecAssemblyEnd: x: ierr=',ierr
       return
       END SUBROUTINE mtx_split_operation
 
@@ -243,11 +270,23 @@
 !  by placing code between these two statements.
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: MatAssemblyBegin: ierr=',ierr
       call MatAssemblyEnd(A,MAT_FINAL_ASSEMBLY,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: MatAssemblyEnd: ierr=',ierr
       call VecAssemblyBegin(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: VecAssemblyBegin: b: ierr=',ierr
       call VecAssemblyEnd(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: VecAssemblyEnd: b: ierr=',ierr
       call VecAssemblyBegin(x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: VecAssemblyBegin: x: ierr=',ierr
       call VecAssemblyEnd(x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: VecAssemblyEnd: x: ierr=',ierr
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 !         Create the linear solver and set various options
@@ -256,9 +295,16 @@
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
 
-      call KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+      CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSetOperators: ierr=',ierr
 
-      if(itype.eq.1) call KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,ierr)
+      IF(itype.eq.1) THEN
+         CALL KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,ierr)
+         IF(ierr.NE.0) WRITE(6,*) &
+              'XX mtx_solve: KSPSetInitialGuessNonzero: ierr=',ierr
+      END IF
+
 
 !  Set linear solver defaults for this problem (optional).
 !   - By extracting the KSP and PC contexts from the KSP context,
@@ -281,6 +327,8 @@
            PETSC_DEFAULT_DOUBLE_PRECISION, &
            PETSC_DEFAULT_DOUBLE_PRECISION, &
            PETSC_DEFAULT_INTEGER,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSetTolerances: ierr=',ierr
 
 !  Set user-defined monitoring routine if desired
 
@@ -299,6 +347,8 @@
 !  routines.
 
       call KSPSetFromOptions(ksp,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSetFromOptions: ierr=',ierr
 
 !  Set convergence test routine if desired
 
@@ -314,7 +364,11 @@
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 
       call KSPSolve(ksp,b,x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSolve: ierr=',ierr
       call KSPGetIterationNumber(ksp,its,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPGetIterationNumber: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_solve
 
@@ -327,8 +381,12 @@
       INTEGER:: ierr
 
       call VecGetArray(x,x_value,x_offset,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_get_vector: VecGetArray: ierr=',ierr
       v=x_value(x_offset+j-Istart)
       call VecRestoreArray(x,x_value,x_offset,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_get_vector: VecRestoreArray: ierr=',ierr
 
       RETURN
       END SUBROUTINE mtx_get_vector
@@ -342,16 +400,16 @@
       PetscOffset:: x_offset
 
       call VecGetArray(x,x_value,x_offset,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecGetArray: ierr=',ierr
       do j=1,ilen
          v(j)=x_value(x_offset+j)
       enddo
       call VecRestoreArray(x,x_value,x_offset,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_gather_vector: VecRestoreArray: ierr=',ierr
 
       call mtx_allgatherv_real8(v,iend-istart,x_,imax,isiz,istartx)
-!      call mtx_gatherv_real8(v,iend-istart,x_,imax,isiz,istartx)
-!      call MPI_GATHERV(v,isiz(rank),MPI_DOUBLE_PRECISION, &
-!                       x_,isiz,istartx,MPI_DOUBLE_PRECISION, &
-!                       0,PETSC_COMM_WORLD,ierr)
       RETURN
       END SUBROUTINE mtx_gather_vector
 
@@ -362,12 +420,20 @@
 !  are no longer needed.
 
       call KSPDestroy(ksp,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_cleanup: KSPDestroy: ierr=',ierr
 
       DEALLOCATE(istartx,iendx,isiz)
 
       call VecDestroy(x,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_cleanup: VecDestroy: x: ierr=',ierr
       call VecDestroy(b,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_cleanup: VecDestroy: b: ierr=',ierr
       call MatDestroy(A,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_cleanup: MatDestroy: ierr=',ierr
       RETURN
       END SUBROUTINE mtx_cleanup
 

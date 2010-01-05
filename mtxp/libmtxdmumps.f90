@@ -34,7 +34,6 @@
       TYPE (DMUMPS_STRUC) id
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
       REAL(8),DIMENSION(:),POINTER:: b,b_loc
-      INTEGER:: ierr
       INTEGEr:: imax,istart,iend,jwidth,nzcount
 
       CONTAINS
