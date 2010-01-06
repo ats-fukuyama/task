@@ -132,7 +132,7 @@
             IERR=6
             RETURN
          ENDIF
-         WRITE(6,'(A)') '## PARM INPUT ACCEPTED.'
+         WRITE(6,'(A,A6,A2,A)') '## PARM INPUT ACCEPTED: ',KWD,': ',LINE(1:KL2)
       ELSE
          WRITE(6,'(A,I4)') 'XX XXPARM : UNKNOWN MODE =',MODE
          IERR=7

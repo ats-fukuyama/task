@@ -51,6 +51,7 @@
 
       ELSE IF(KID.EQ.'R') THEN
          CALL tr_prof(ierr)
+         if(ierr.ne.0) GO TO 1
 
          CALL TRLOOP
 

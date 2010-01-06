@@ -4,7 +4,7 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TRPROF
+      SUBROUTINE TRPROF(ierr)
 
       USE TRCOMM, ONLY : ABRHOG, AJ, AJNB, AJNBU, AJOH, AJTOR, AJU, ALP, &
      & ANC, ANFE, ANNU, AR1RHOG, ARRHOG, BB, BP, BPRHO, DR, DVRHO, DVRHOG, &
@@ -673,8 +673,6 @@
       GRM(1:NRMAX)  =SNGL(RM(1:NRMAX))
       GRG(2:NRMAX+1)=SNGL(RG(1:NRMAX))
 
-!      IF(RHOA.NE.1.D0) NRMAX=NROMAX
-
       call trsetg(ierr)
 
       RETURN
@@ -708,7 +706,10 @@
          write(line,'(A,I5)') 'nsumax=',0
          call eq_parm(2,line,ierr)
          call eq_load(modelg,knameq,ierr) ! load eq data and calculate eq
-         if(ierr.ne.0) write(6,*) 'XX eq_load: ierr=',ierr
+         IF(ierr.NE.0) THEN
+            WRITE(6,*) 'XX eq_load: ierr=',ierr
+            RETURN
+         ENDIF
          call tr_bpsd_get(ierr)  ! 
          if(ierr.ne.0) write(6,*) 'XX tr_bpsd_get: ierr=',ierr
       elseif(modelg.eq.7) then

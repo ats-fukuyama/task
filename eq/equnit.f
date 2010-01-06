@@ -55,30 +55,45 @@
 !=======================================================================
 !            load equilibrium file
 !-----------------------------------------------------------------------
-      subroutine eq_load(modelg1,knameq1,ierr)
+      SUBROUTINE eq_load(modelg1,knameq1,ierr)
 
-      include '../eq/eqcomm.inc'
-      integer,intent(in):: modelg1
-      character(len=80),intent(in):: knameq1
-      integer,intent(out):: ierr
-      integer:: nrmax_save,nthmax_save,nsumax_save
+      INCLUDE '../eq/eqcomm.inc'
+      INTEGER,INTENT(IN):: modelg1
+      CHARACTER(LEN=80),INTENT(IN):: knameq1
+      INTEGER,INTENT(OUT):: ierr
+      INTEGER:: nrmax_save,nthmax_save,nsumax_save
 !-----------------------------------------------------------------------
       nrmax_save=nrmax
       nthmax_save=nthmax
       nsumax_save=nsumax
-      call eqload(modelg1,knameq1,ierr)
+      CALL eqload(modelg1,knameq1,ierr)
       nrmax=nrmax_save
       nthmax=nthmax_save
       nsumax=nsumax_save
+      IF(ierr.NE.0) THEN
+         WRITE(6,*) 'XX eq_load: eqload: ierr=',ierr
+         RETURN
+      ENDIF
 
-      call eq_bpsd_init(ierr)
-      if(ierr.ne.0) write(6,*) 'XX eq_bpsd_init: ierr=',ierr
-      call eqcalq(ierr)
-      if(ierr.ne.0) write(6,*) 'XX eq_calq: ierr=',ierr
+      CALL eq_bpsd_init(ierr)
+      IF(ierr.NE.0) THEN
+         write(6,*) 'XX eq_load: eq_bpsd_init: ierr=',ierr
+         RETURN
+      ENDIF
+
+      CALL eqcalq(ierr)
+      IF(ierr.NE.0) THEN
+         WRITE(6,*) 'XX eq_load: eqcalq: ierr=',ierr
+         RETURN
+      ENDIF
+
       call eq_bpsd_set(ierr)
-      if(ierr.ne.0) write(6,*) 'XX eq_bpsd_set: ierr=',ierr
-      return
-      end subroutine eq_load
+      IF(ierr.NE.0) THEN
+         WRITE(6,*) 'XX eq_load: eq_bpsd_set: ierr=',ierr
+         RETURN
+      ENDIF
+      RETURN
+      END SUBROUTINE eq_load
 !=======================================================================
 !            graphic output
 !-----------------------------------------------------------------------
