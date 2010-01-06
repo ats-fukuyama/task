@@ -1,25 +1,23 @@
 !     ***********************************************************
 
-!           PRODUCTION OF ALPHA PARTICLES
+!           Nuclear reaction (DT)
 
 !     ***********************************************************
 
-      SUBROUTINE TRALPH
+      SUBROUTINE TRNFDT
 
-      USE TRCOMM, ONLY : AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
-     &                   RN, RNF, RT, RTF, RW, SNF, TAUF
+      USE TRCOMM, ONLY : &
+           AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
+           PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
+           RN, RNF, RT, RTF, RW, SNF, TAUF
       IMPLICIT NONE
 !      INCLUDE 'trcomm.inc'
-      REAL(8)   :: AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, &
-     &             WF, ZEFFM
+      REAL(8)   :: &
+           AMA, AMD, AMT, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
+           TD, TE, TT, VC3, VCA3, VCD3, VCR, VCT3, VF, WF, ZEFFM
       INTEGER(4):: NR
       REAL(8)   :: SIGMAM, COULOG, SIGMAB, HY   !FUNCTION
 
-
-      IF(MDLNF.EQ.0) THEN
-         TAUF(1:NRMAX)=1.D0
-         RETURN
-      ENDIF
 
       AMD=PA(2)*AMM
       AMT=PA(3)*AMM
@@ -32,21 +30,27 @@
          TD = RT(NR,2)
          TT = RT(NR,3)
          SS = SIGMAM(TD,TT)
-         ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) +PZ(3)*PZ(3)*RN(NR,3)/PA(3) +PZ(4)*PZ(4)*RN(NR,4)/PA(4) &
-     &           +PZC(NR)*PZC(NR) *ANC(NR) /12.D0 +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
-         EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
-         TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
-         PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG*RKEV)
-         SSB = SIGMAB(PNBENG,EC,TT,PTNT)
+         IF(MDLNF/2.EQ.1) THEN
+            ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) &
+                    +PZ(3)*PZ(3)*RN(NR,3)/PA(3) &
+                    +PZ(4)*PZ(4)*RN(NR,4)/PA(4) &
+                    +PZC(NR)*PZC(NR) *ANC(NR) /12.D0 &
+                    +PZFE(NR)*PZFE(NR)*ANFE(NR)/52.D0)/ANE
+            EC  = 14.8D0*TE*PA(2)*ZEFFM**(2.D0/3.D0)
+            TAUS= 0.2D0*PA(2)*ABS(TE)**1.5D0 /(PZ(2)**2*ANE*COULOG(1,2,ANE,TE))
+            PTNT= PBIN(NR)*TAUS/(RN(NR,2)*1.D20*PNBENG*RKEV)
+            SSB = SIGMAB(PNBENG,EC,TT,PTNT)
+         ELSE
+            SSB=0.D0
+         ENDIF
          SNF(NR) = (SS+SSB)*RN(NR,2)*RN(NR,3)*1.D20
          PNF(NR) = SNF(NR)*3.5D3*RKEV*1.D20
-         IF(MDLNF.LE.1) SNF(NR) = 0.D0
+         IF(MOD(MDLNF,2).EQ.0) SNF(NR) = 0.D0
       ENDDO
 
       DO NR=1,NRMAX
          ANE= RN(NR,1)
          TE = RT(NR,1)
-!         WF = 1.5D0*RW(NR,2)
          WF = RW(NR,2)
          P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
          VCD3 = P1*RN(NR,2)*PZ(2)**2/AMD
@@ -59,7 +63,6 @@
          TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
          RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.5D3)
          IF(RNF(NR,2).GT.0.D0) THEN
-!            RTF(NR,2)= WF/(1.5D0*RNF(NR,2))
             RTF(NR,2)= WF/RNF(NR,2)
          ELSE
             RTF(NR,2)= 0.D0
@@ -72,7 +75,7 @@
       ENDDO
 
       RETURN
-      END SUBROUTINE TRALPH
+      END SUBROUTINE TRNFDT
 
 !     ***********************************************************
 
@@ -169,3 +172,111 @@
      &      +XC*RGL*(X-LOG(X+1.D0)/2.D0 -ATAN((2.D0*X-1.D0)/SQRT(3.D0))/SQRT(3.D0))
       RETURN
       END FUNCTION SIGMBS
+
+!     ***********************************************************
+
+!           Nuclear reaction (D-He3)
+
+!     ***********************************************************
+
+      SUBROUTINE TRNFDHe3
+
+      USE TRCOMM, ONLY : &
+           AME, AMM, ANC, ANFE, MDLNF, NRMAX, PA, PBIN, PFCL, &
+           PFIN, PI, PNBENG, PNF, PZ, PZC, PZFE, RKEV, &
+           RN, RNF, RT, RTF, RW, SNF, TAUF
+      IMPLICIT NONE
+      REAL(8)   :: &
+           AMA, AMD, AMHe3, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
+           TD, TE, THe3, VC3, VCA3, VCD3, VCR, VCHe3, VF, WF
+      INTEGER(4):: NR
+      REAL(8)   :: SIGMADHe3, COULOG, HY   !FUNCTION
+
+      AMD=  PA(2)*AMM
+      AMHe3=PA(3)*AMM
+      AMA=  PA(4)*AMM
+      VF =SQRT(2.D0*3.6D3 *RKEV/AMA)
+
+      DO NR=1,NRMAX
+         ANE  = RN(NR,1)
+         TE   = RT(NR,1)
+         TD   = RT(NR,2)
+         THe3 = RT(NR,3)
+         SS = SIGMADHe3(TD,THe3)
+         SNF(NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
+         PNF(NR) = SNF(NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
+                                                      ! for simplicity
+         IF(MOD(MDLNF,2).EQ.0) SNF(NR) = 0.D0
+      ENDDO
+
+      DO NR=1,NRMAX
+         ANE= RN(NR,1)
+         TE = RT(NR,1)
+         WF = RW(NR,2)
+         P1   = 3.D0*SQRT(0.5D0*PI)*AME/ANE *(ABS(TE)*RKEV/AME)**1.5D0
+         VCD3  = P1*RN(NR,2)*PZ(2)**2/AMD
+         VCHe3 = P1*RN(NR,3)*PZ(3)**2/AMHe3
+         VCA3  = P1*RN(NR,4)*PZ(4)**2/AMA
+         VC3  = VCD3+VCHe3+VCA3
+         VCR  = VC3**(1.D0/3.D0)
+         HYF=HY(VF/VCR)
+         TAUS = 0.2D0*PA(4)*ABS(TE)**1.5D0 /(PZ(4)**2*ANE*COULOG(1,2,ANE,TE))
+         TAUF(NR)= 0.5D0*TAUS*(1.D0-HYF)
+         RNF(NR,2)= 2.D0*LOG(1.D0+(VF/VCR)**3)*WF /(3.D0*(1.D0-HYF)*3.6D3)
+         IF(RNF(NR,2).GT.0.D0) THEN
+            RTF(NR,2)= WF/RNF(NR,2)
+         ELSE
+            RTF(NR,2)= 0.D0
+         ENDIF
+         PFIN(NR) = WF*RKEV*1.D20/TAUF(NR)
+         PFCL(NR,1)=    (1.D0-HYF)*PFIN(NR)
+         PFCL(NR,2)=(VCD3 /VC3)*HYF*PFIN(NR)
+         PFCL(NR,3)=(VCHe3/VC3)*HYF*PFIN(NR)
+         PFCL(NR,4)=(VCA3 /VC3)*HYF*PFIN(NR)
+      ENDDO
+
+      RETURN
+      END SUBROUTINE TRNFDHe3
+
+!     ***********************************************************
+
+!           REACTION CROSS SECTION (MAXELLIAN)
+
+!     ***********************************************************
+
+      REAL(8) FUNCTION SIGMADHe3(TD,THe3)
+
+      IMPLICIT NONE
+      REAL(8) TD,THe3,TI,ARG,TIL,XRATEL
+      REAL(8),DIMENSION(10),save:: RENG,RRATE
+      REAL(8),DIMENSION(10),save:: RENGL,RRATEL,DIFF
+      REAL(8),DIMENSION(4,10),save:: URRATE
+      INTEGER:: NX,IERR
+      INTEGER,save:: INIT=0
+      DATA RENG/1.D0, 2.D0, 5.D0, 10.D0, 20.D0, &
+                50.D0,100.D0,200.D0,500.D0,1000.D0/
+      DATA RRATE/1.0D-32, 1.4D-29, 6.7D-27, 2.3D-25, 3.8D-24, &
+                 5.4D-23, 1.6D-22, 2.4D-22, 2.3D-22, 1.8D-22/
+
+      IF(INIT.EQ.0) THEN
+         
+         DO NX=1,10
+            RENGL(NX)=LOG(RENG(NX))
+            RRATE(NX)=LOG(RRATEL(NX))
+         ENDDO
+         CALL SPL1D(RENGL,RRATEL,DIFF,URRATE,0,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SIGMADHe3: SPL1D: IERR=',IERR
+         INIT=1
+      ENDIF
+
+      TI = (3.D0*ABS(TD)+2.D0*ABS(THe3))/5.D0
+      IF(TI.GT.0.D0) THEN
+         TIL=LOG(TI)
+         CALL SPL1DF(TIL,XRATEL,RENGL,URRATE,10,IERR)
+         IF(IERR.NE.0) WRITE(6,*) 'XX SIGMADHe3: SPL1DF: IERR=',IERR
+         SIGMADHe3=EXP(XRATEL)
+      ELSE
+         SIGMADHe3=0.D0
+      ENDIF
+      RETURN
+      END FUNCTION SIGMADHe3

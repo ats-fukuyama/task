@@ -8,11 +8,11 @@
       SUBROUTINE TRCALC(IERR)
 
       USE TRCOMM, ONLY : AJBS, AJRF, AR1RHOG, ARRHOG, BP, DT, DVRHOG, MDLEQ0, &
-           MDLEQB, MDLJBS, MDLUF, MDLPR, MDNCLS, NRAMAX, NRMAX, &
+           MDLEQB, MDLJBS, MDLNF, MDLUF, MDLPR, MDNCLS, NRAMAX, NRMAX, &
            NROMAX, NSM, NSMAX, PBCL, PBIN, PCX, PELTIM, PEX, PFCL, PFIN, &
            PI, PIE, PIN, PN, PNB, PNF, POH, PRB, PRC, PRF, PRL, PRSUM, &
-           Q0, QP, RDP, RG, &
-           RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, T, TTRHOG, RDPVRHOG
+           Q0, QP, RDP, RG, RHOA, RR, SCX, SEX, SIE, SNB, SNF, SPE, SSIN, &
+           T, TAUF, TTRHOG, RDPVRHOG
       USE tr_cytran_mod
       IMPLICIT NONE
       INTEGER(4),INTENT(OUT)    :: IERR
@@ -93,7 +93,15 @@
          end select
       ENDIF
 
-      CALL TRALPH
+      SELECT CASE(MDLNF)
+      CASE(0)
+         TAUF(1:NRMAX)=1.D0
+      CASE(1:4)
+         CALL TRNFDT
+      CASE(5:6)
+         CALL TRNFDHE3
+      END SELECT
+      
       CALL TRAJOH
 
       DO NR=1,NRMAX

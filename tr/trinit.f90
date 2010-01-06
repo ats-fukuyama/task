@@ -365,7 +365,12 @@
 
 !        MDLNF  : FUSION REACTION MODEL TYPE
 !                    0:OFF
-!                    1:ON
+!                    1:ON (DT) without particle source
+!                    2:ON (DT) with particle source
+!                    3:ON (DT) with NB beam component without particle source
+!                    4:ON (DT) with NB beam component particle source
+!                    5:ON (DHe3) without particle source
+!                    6:ON (DHe3) with particle source
 
       MDLNF  = 0
 
@@ -864,7 +869,7 @@
          IERR=1
       ENDIF
 
-      IF(NTMAX.LT.1.OR.NTMAX/NGTSTP.GT.NTM) THEN
+      IF(NTMAX.LT.0.OR.NTMAX/NGTSTP.GT.NTM) THEN
          WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL NTMAX'
          WRITE(6,*) '                  NTMAX,NTM =',NTMAX,NTM
          NTMAX=NTM*NGTSTP

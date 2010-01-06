@@ -1673,5 +1673,7 @@
          RPV=0.5D0*(RN(NR,NS)*RT(NR,NS)+RN(NR+1,NS)*RT(NR+1,NS))
       ENDIF
 
+!      IF(NR.EQ.NRMAX.AND.NS.EQ.1) WRITE(6,'(A,1PE12.4)') 'RPV=',RPV
+
       RETURN
       END FUNCTION RPV
