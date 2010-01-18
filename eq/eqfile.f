@@ -238,7 +238,11 @@ C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
 !      RB   = 1.2d0 * RA
       !=================================================
       RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
-      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
+
+!  ---- corrected on 2010/01/18 for negative triangularity ----
+!      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
+
+      RDLT = 0.5d0 * ((RR-R_ZSUMIN) + (RR-R_ZSUMAX)) / RA
       BB   = Rctr * Bctr / RR
       RIPX = RIP
 C
