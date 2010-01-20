@@ -717,10 +717,19 @@ SUBROUTINE TXCALM
   END DO
   R(NRMAX) = RB
 
-  !  Maximum NR till RA
+!!$  !  Maximum NR till RA
+!!$
+!!$  DO NR = 0, NRMAX-1
+!!$     IF(R(NR) <= RA .AND. R(NR+1) >= RA) THEN
+!!$        NRL = NR
+!!$        EXIT
+!!$     END IF
+!!$  END DO
+
+  !  Maximum NR till RC
 
   DO NR = 0, NRMAX-1
-     IF(R(NR) <= RA.AND.R(NR+1) >= RA) THEN
+     IF(R(NR) <= RC .AND. R(NR+1) >= RC) THEN
         NRL = NR
         EXIT
      END IF
@@ -738,6 +747,36 @@ SUBROUTINE TXCALM
      RL = 0.5d0 * ABS(R(NRA) - RC)
      R(NRA  ) = RC
      R(NRA+1) = R(NRA+1) - RL
+  END IF
+
+  ! The case that
+  !   the mesh accumulation center RC doesn't coincide with the plasma surface RA
+
+  IF(RC /= RA) THEN
+
+     !  Maximum NR till RA
+
+     DO NR = 0, NRMAX-1
+        IF(R(NR) <= RA .AND. R(NR+1) >= RA) THEN
+           NRL = NR
+           EXIT
+        END IF
+     END DO
+
+     !  Adjust RA on mesh
+
+     IF(ABS(R(NRL)-RA) < ABS(R(NRL+1)-RA)) THEN
+        NRA = NRL
+        RL = 0.5d0 * ABS(R(NRA) - RA)
+        R(NRA  ) = RA
+        R(NRA-1) = R(NRA-1) + RL
+     ELSE
+        NRA = NRL + 1
+        RL = 0.5d0 * ABS(R(NRA) - RA)
+        R(NRA  ) = RA
+        R(NRA+1) = R(NRA+1) - RL
+     END IF
+     
   END IF
 
   !  Mesh number at the center of the core plasma
@@ -1440,10 +1479,10 @@ contains
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
 
-       IF(RC /= RA) THEN
-          write(6,'(A)') '!! consistency of input (RC /= RA) : RC is replaced by RA.'
-          RC = RA
-       END IF
+!!$       IF(RC /= RA) THEN
+!!$          write(6,'(A)') '!! consistency of input (RC /= RA) : RC is replaced by RA.'
+!!$          RC = RA
+!!$       END IF
           
        RETURN
     END DO
