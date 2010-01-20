@@ -28,10 +28,10 @@ SUBROUTINE TXINIT
   BB = 1.3D0
 
   !   Plasma current start (MA)
-  rIPs= 0.150D0
+  rIPs= 0.15D0
 
   !   Plasma current end (MA)
-  rIPe= 0.150D0
+  rIPe= 0.15D0
 
   !   ***** Plasma components *****
 
@@ -90,16 +90,16 @@ SUBROUTINE TXINIT
   VWpch0 = 0.D0
 
   !   Electron-driven diffusion parameter
-  De0 = 0.1D0
+  De0 = 0.05D0
 
   !   Ion-driven diffusion parameter
   Di0 = 0.D0
 
   !   Electron viscosity parameter
-  rMue0 = 3.D0
+  rMue0 = 0.3D0
 
   !   Ion viscosity parameter
-  rMui0 = 3.D0
+  rMui0 = 0.3D0
 
   !   Drift frequency parameter (omega/omega*e)
   WPM0 = 0.D0
@@ -108,11 +108,11 @@ SUBROUTINE TXINIT
 
   !   Electron thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chie0 = 3.D0
+  Chie0 = 0.3D0
 
   !   Ion thermal diffusivity parameter (Chie/D)
   !     0 for fixed temperature profile
-  Chii0 = 3.D0
+  Chii0 = 0.3D0
 
   !   ***** Turbulent transport control parameters *****
 
@@ -428,14 +428,14 @@ SUBROUTINE TXINIT
 
   !   Magnitude of mesh peakness
   CMESH0 =  2.D0
-  CMESH  = 30.D0
+  CMESH  = 10.D0
 
   !   Width of mesh peakness
   WMESH0 = 0.2D0
   WMESH  = 5.D-2
 
   !   Number of nodes
-  NRMAX  = 50
+  NRMAX  = 60
 
   !   Number of elements
   NEMAX = NRMAX
@@ -539,14 +539,14 @@ SUBROUTINE TXINIT
   !   Mode of initial density profile in the SOL
   !   0    : polynominal model
   !   1    : exponential decay model
-  MDITSN = 0
+  MDITSN = 1
 
   !   Mode of initial temperature profile in the SOL
   !   0    : polynominal model
   !   1    : exponential decay model
   !   2    : exponential decay model 2
   !          This should be chosen if MDINTT=2.
-  MDITST = 0
+  MDITST = 1
 
   !   Mode of initial plasma profils
   !   0    : many profiles are analytically calculated 
@@ -813,7 +813,7 @@ SUBROUTINE TXPROF
   if(MDINTN == -1) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
      call initprof_input(NRA,1,PNaL)
-     PNeDIVL = 0.25 * PNaL
+     PNeDIVL = 0.25d0 * PNaL
   else
      PN0L = PN0
      PNaL = PNa
@@ -824,8 +824,8 @@ SUBROUTINE TXPROF
      call initprof_input(  0,2,PTi0L)
      call initprof_input(NRA,3,PTeaL)
      call initprof_input(NRA,3,PTiaL)
-     PTeDIVL = 0.25 * PTeaL
-     PTiDIVL = 0.25 * PTiaL
+     PTeDIVL = 0.25d0 * PTeaL
+     PTiDIVL = 0.25d0 * PTiaL
   else
      PTe0L   = PTe0
      PTi0L   = PTi0
@@ -1418,8 +1418,8 @@ contains
        IF(ABS(PNBCD) > 1.D0 .OR. ABS(PNBMPD) > 1.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
        IF(RNBP0 > RB .OR. RNBP0 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(RNBT10 > RB .OR. RNBT10 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        ! /// idx = 31 - 40 ///
+       IF(RNBT10 > RB .OR. RNBT10 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RNBT20 > RB .OR. RNBT20 < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rNRFe < 0.D0 .OR. PRFHe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rNRFi < 0.D0 .OR. PRFHi < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
@@ -1430,17 +1430,24 @@ contains
        IF(rGASPF < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PNeDIV < 0.D0 .OR. PTeDIV < 0.D0 .OR. PTiDIV < 0.D0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
+       ! /// idx = 41 - 46 ///
        IF(NTCOIL <= 0 .OR. DltRPn < 0.D0 .OR. DltRPn > 1.D0 .OR. kappa < 0.D0) THEN
           EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       ! /// idx = 41 - 46 ///
        IF(DT < 0.D0 .OR. EPS < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(ICMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(ADV < 0.D0 .OR. ADV > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(tiny_cap < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+
+       IF(RC /= RA) THEN
+          write(6,'(A)') '!! consistency of input (RC /= RA) : RC is replaced by RA.'
+          RC = RA
+       END IF
+          
        RETURN
     END DO
+
 
     WRITE(6,'(A,I3)') 'XX INPUT ERROR: Please check consistency of INPUT PARAMETERS. idx =',idx
     STOP
