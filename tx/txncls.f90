@@ -284,15 +284,16 @@ contains
     real(8), intent(in), optional :: dErdr,dBthdr,dErdr0,dBthdr0
     real(4), intent(in), optional :: p_gr2phi_in
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, ETAout, JBSout
-    INTEGER(4) :: i, k_out, k_v, ier_check, im, iz, model
+    INTEGER(4) :: i, k_out, k_v, ier_check
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
-    REAL(8) :: EpsL, BBL, PZMAX, p_fhat1, p_fhat2, p_fhat3, &
-         &     btot, uthai, VPOL(0:NRMAX), PAL, PZL, RKAP, ppr, &
-         &     AJBSL, ETAL, ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
+    REAL(8) :: EpsL, BBL, PZMAX,  &
+         &     PAL, PZL, RKAP, &
+         &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
     real(8) :: RL, BphVL, BthVL, EphVL, EthVL, QL, ErVL, PTeVL, PTiVL, &
          &     PNeVL, PNiVL, PeVL, PiVL, &
          &     dErdrL, dBthdrL, dTedrL, dTidrL, dPedrL, dPidrL
-    REAL(8) :: AITKEN2P
+!!    real(8) :: p_fhat1, p_fhat2, p_fhat3, btot, uthai, VPOL(0:NRMAX), ppr, AJBSL, ETAL
+!!    REAL(8) :: AITKEN2P
 
     !     *** Ellipticity on axis ***
 
@@ -498,15 +499,12 @@ contains
        e0    = REAL(1.D0)
        bt0   = REAL(BphV(0))
        q0l   = REAL(Q(0))
-       CALL NCLASS_CHECK(6,NR, &
-            &        k_out,k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
-            &        p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
-            &        p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz, &
-            &        p_eps,p_q,r0,a0,e0,bt0,q0l, &
+       CALL NCLASS_CHECK(6,NR,k_out,k_order,m_i,m_z, &
+            &        p_fhat,p_grphi,amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
             &        m_s,jm_s,jz_s,p_bsjb, &
             &        p_etap,p_exjb,calm_i,caln_ii, &
             &        capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-            &        sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
+            &        upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
             &        chip_ss,chit_ss,dp_ss,dt_ss,iflag,ier_check)
        IER = ier_check
     ENDIF
@@ -586,15 +584,12 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE NCLASS_CHECK(nout,nr,k_out, &
-       &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
-       &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
-       &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz, &
-       &            p_eps,p_q,r0,a0,e0,bt0,q0, &
+  SUBROUTINE NCLASS_CHECK(nout,nr,k_out,k_order,m_i,m_z, &
+       &            p_fhat,p_grphi,amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
        &            m_s,jm_s,jz_s,p_bsjb, &
        &            p_etap,p_exjb,calm_i,caln_ii, &
        &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-       &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
+       &            upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
        &            chip_ss,chit_ss,dp_ss,dt_ss,iflag,ier)
 
     INCLUDE 'nclass/pamx_mi.inc'
@@ -607,7 +602,7 @@ contains
     integer(4), intent(out) :: ier
     INTEGER(4) :: i, im, iz, iza, j, jm, jza, k, l
     INTEGER(4) :: idum(8)
-    REAL(4)    :: a0, bt0, bpol, btor, btot, e0, p_eps, p_q, ppr, q0, r0, uthai
+    REAL(4)    :: bt0, bpol, btor, btot, p_eps, ppr, uthai
     REAL(4)    :: dq_s(mx_ms), vq_s(mx_ms)
     REAL(4)    :: z_coulomb, z_electronmass, z_j7kv, z_mu0, z_pi, z_protonmass
     REAL(4)    :: dum(8), edum(8), rdum(8)

@@ -10,7 +10,7 @@ subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
   real(8), dimension(0:NRMAX), intent(out), optional :: gamma
 
   integer(4), parameter :: mxmode = 12 ! at least 5
-  integer(4) :: N, NR, igamma, i
+  integer(4) :: N, NR, igamma
   integer(4) :: matdim, npoints, nprout, lprint, nerr, lsuper, lreset
   integer(4), dimension(:), allocatable :: lswitch
   real(4), dimension(:), allocatable :: &
@@ -20,7 +20,6 @@ subroutine txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr,gamma)
        & ztheig, zthzig, zthirb, zthdrb, ztherb, zthzrb, zthikb, zthdkb, zthekb, zthzkb
   real(4), dimension(:,:), allocatable :: zgamma, zomega, zvelthi, zvflux
   real(4), dimension(:,:,:), allocatable :: zdifthi
-  real(4) :: gammax
   real(8) :: factor_bohm, DeL, cap_val, PAL, PZL
 
   N = NRMAX ! used for abbreviation

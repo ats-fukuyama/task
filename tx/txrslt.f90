@@ -11,15 +11,16 @@ SUBROUTINE TXGLOB
   use tx_interface, only : INTG_F, INTG_P, dfdx, VALINT_SUB
   implicit none
 
-  INTEGER(4) :: I, NS, NF, NR
+  INTEGER(4) :: I, NR!, NS, NF
   REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
-       &     PNBINT, PNFINT, PRFeINT, PRFiINT, PRFeTOT, PRFiTOT, &
+       &     PNBINT, PNFINT, PRFeINT, PRFiINT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
-       &     BBL, SUMML, SUMPL, PNES, PAI, Vol, BPave
-  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUML, SUMdenom, SUMPNiV
+       &     BBL, PAI, Vol, BPave
+  REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUMdenom, SUMPNiV
+!!  real(8) :: SUMML, SUMPL, PNES, SUML
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
        &     dPPV, ALFA
-  REAL(8), DIMENSION(1:NRMAX) :: BP, BETA, BETAP, BETAL, BETAPL, BETAQ
+  REAL(8), DIMENSION(1:NRMAX) :: BETA, BETAP, BETAL, BETAPL, BETAQ
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
   real(8), dimension(:), allocatable :: denom
   real(8) :: dBetaSUM
@@ -252,7 +253,6 @@ SUBROUTINE TXGLOB
 !!$  SUMM = 0.D0
 !!$  SUMP = 0.D0
 !!$  SUML = 0.D0
-!!$  BP(1:NRMAX) = BthV(1:NRMAX)
 !!$  DO I=1,NRMAX-1
 !!$     BBL   = SQRT(BthV(I)**2+BphV(I)**2)
 !!$     SUMML = PNeV(I)*PTeV(I)*rKeV*1.D20+PNiV(I)*PTiV(I)*rKeV*1.D20
@@ -262,12 +262,12 @@ SUBROUTINE TXGLOB
 !!$
 !!$     SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR
 !!$     SUMP = SUMP + 0.5D0*SUMPL*PI*R(I)*R(I)*DR
-!!$     SUML = SUML + BP(I)**2*R(I)
+!!$     SUML = SUML + BthV(I)**2*R(I)
 !!$     BETA(I)   = 2.D0*SUMM *rMU0/(PI*(R(I)*BBL)**2)
-!!$     BETAL(I)  = 2.D0*SUMML*rMU0/(           BBL **2)
-!!$     BETAP(I)  = 2.D0*SUMM *rMU0/(PI*(R(I)*BP(NRMAX))**2)*FACT
-!!$     BETAPL(I) = 2.D0*SUMML*rMU0/(           BP(NRMAX)**2)*FACT
-!!$     BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BP(I))**2)*FACT
+!!$     BETAL(I)  = 2.D0*SUMML*rMU0/(         BBL **2)
+!!$     BETAP(I)  = 2.D0*SUMM *rMU0/(PI*(R(I)*BthV(NRMAX))**2)*FACT
+!!$     BETAPL(I) = 2.D0*SUMML*rMU0/(         BthV(NRMAX)**2)*FACT
+!!$     BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BthV(I))**2)*FACT
 !!$     SUMP = SUMP + 0.5D0*SUMPL*PI*R(I+1)*R(I+1)*DR
 !!$  END DO
 !!$
@@ -285,12 +285,12 @@ SUBROUTINE TXGLOB
 !!$
 !!$  SUMM = SUMM + SUMML*2.D0*PI*R(I)*DR
 !!$  SUMP = SUMP + 0.5D0*SUMPL*PI*R(I)*R(I)*DR
-!!$  SUML = SUML + 0.5D0*BP(I)**2*R(I)
+!!$  SUML = SUML + 0.5D0*BthV(I)**2*R(I)
 !!$  BETA(I)   = 2.D0*SUMM *rMU0/(PI*(R(I)*BBL)**2)
-!!$  BETAL(I)  = 2.D0*SUMML*rMU0/(           BBL **2)
-!!$  BETAP(I)  = 2.D0*SUMM *rMU0/(PI*(R(I)*BP(NRMAX))**2)*FACT
-!!$  BETAPL(I) = 2.D0*SUMML*rMU0/(           BP(NRMAX)**2)*FACT
-!!$  BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BP(I))**2)*FACT
+!!$  BETAL(I)  = 2.D0*SUMML*rMU0/(         BBL **2)
+!!$  BETAP(I)  = 2.D0*SUMM *rMU0/(PI*(R(I)*BthV(NRMAX))**2)*FACT
+!!$  BETAPL(I) = 2.D0*SUMML*rMU0/(         BthV(NRMAX)**2)*FACT
+!!$  BETAQ(I)  =-2.D0*SUMP *rMU0/(PI*(R(I)*BthV(I))**2)*FACT
 
   BETA0  = FCTR(R(1),R(2),BETA(1),BETA(2))
 

@@ -96,12 +96,13 @@ module tx_interface
 
   interface DERIVS
      SUBROUTINE DERIVS1D(R,F,NRMAX,G)
+       integer(4), intent(in) :: NRMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R, F
        real(8), dimension(0:NRMAX), intent(out) :: G
-       integer(4), intent(in) :: NRMAX
      end SUBROUTINE DERIVS1D
 
      SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
+       integer(4), intent(in) :: LQ, NRMAX, NQMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R
        real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
        real(8), dimension(0:NRMAX), intent(out) :: G
@@ -110,9 +111,9 @@ module tx_interface
 
   interface
      pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
+       integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R
        real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-       integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
      end FUNCTION DERIVF
   end interface
 
@@ -276,6 +277,7 @@ module tx_interface
        REAL(4), DIMENSION(NXMAX),     INTENT(IN) :: GX
        REAL(4), DIMENSION(NYMAX),     INTENT(IN) :: GY
        REAL(4), DIMENSION(NXM,NYMAX), INTENT(IN) :: GZ
+       CHARACTER(LEN=80) :: STR, KV
      end subroutine TXGR3D
   end interface
 

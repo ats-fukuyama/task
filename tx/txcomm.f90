@@ -2,7 +2,7 @@ module tx_commons
   implicit none
   public
 
-  integer(4), parameter :: NRM=101, NEM=NRM, NQM=22, NCM=30, NGRM=20, &
+  integer(4), parameter :: NQM=22, NCM=30, NGRM=20, &
        &                   NGTM=5000, NGVM=5000, NGYRM=141, NGYTM=51, &
        &                   NGYVM=55, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
@@ -119,7 +119,7 @@ module tx_commons
   integer(4) :: MDOSQZ, MDLETA, MDFIXT, MDVAHL, MDLETB
 
   !  Initial condition
-  integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINIT
+  integer(4) :: MDITSN, MDITST, MDINTN, MDINTT, MDINTC, MDINIT
 
   !**********************************!
   !   INTERNAL CONTOROL PARAMETERS   !
@@ -243,6 +243,7 @@ module tx_commons
                                         !   and the data are stored
      real(8) :: totS, totP ! Total number of ions per second and total power
      real(8), dimension(1:nmax_file) :: r, data, vb
+!!     real(8), dimension(:), pointer :: r, data, vb
   end type infiles_type
   type(infiles_type), allocatable :: infiles(:)
   integer(4) :: n_infiles ! number of data which are read from the file
@@ -258,7 +259,7 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont_in
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:18) :: ierl
+    integer(4), dimension(1:19) :: ierl
 
     ierl(1:19) = 0
     if(nrmax <= 1) then

@@ -10,7 +10,6 @@ SUBROUTINE TXWDAT
   use tx_interface, only : INTG_F, rLINEAVE
 
   implicit none
-  INTEGER(4) :: NR
   REAL(8) :: rNbar
 
   !     ***** Volume-averaged density *****
@@ -274,7 +273,7 @@ SUBROUTINE TXSAVE
   !
   !   VWpch0, Tqt0, Tqp0, MDLMOM, NEMAX, NRA, NRC, DelRho, DelN,
   !   EpsH, Q0, QA, NCph, NCth, DMAG0, RMAGMN, RMAGMX,
-  !   MDITSN, MDITST, MDINTN, MDINTT, MDINIT
+  !   MDITSN, MDITST, MDINTN, MDINTT, MDINTC, MDINIT
   !
   ! *************************************************************************
 
@@ -597,7 +596,8 @@ SUBROUTINE TXGLOD(IST)
   implicit none
   integer(4), intent(out) :: IST
   INTEGER(4) :: NQ, NR, NC, IGR, I, IGYR, IGYT, IGYV
-  character(len=100) :: TXFNAM, RCSId
+  character(len=100) :: TXFNAM
+!!  character(len=100) :: RCSId
   character(len=8) :: LOADSLID
   LOGICAL :: LEX
 
@@ -707,7 +707,7 @@ subroutine ascii_input
   character(len=100) :: TXFNAM
   character(len=140) :: kline, kline1, kline2
   character(len=20)  :: kmesh, kdata
-  integer(4) :: nol, ncol_mesh, ncol_data, itype
+  integer(4) :: nol, itype
   LOGICAL :: LEX
 
   ! Check a mode of input file
@@ -1244,8 +1244,11 @@ end subroutine for_ofmc
 !
 !   Read ASCII data file for initial profiles
 !
-!      Prepare three profiles of electron density and
-!         electron and ion temperatures for TASK/TX
+!      Prepare profiles of 
+!         PNeV          : electron density [/m^3], 
+!         PTeV, PTiV    : electron and ion temperatures [eV], and
+!         AEE*PNeV*UephV: toroidal current density [A/m^2]
+!         for TASK/TX
 !
 !      List structure has been used.
 !
@@ -1253,23 +1256,23 @@ end subroutine for_ofmc
 
 subroutine initprof_input(nr, idx, out)
 
-  use tx_commons, only : NRMAX, Rho
+  use tx_commons, only : NRMAX, Rho, AEE
 
   integer(4), optional :: nr, idx
-  integer(4) :: nintin, ier, ist, j, k
+  integer(4) :: nintin, ier, ist, k
   integer(4), save :: nrinmax
   real(8), optional :: out
   real(8), dimension(:), allocatable, save :: rho_in, deriv
-  real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3
+  real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3, u4
 
   type unit
      integer(4)          :: l_p
-     real(8)             :: rho_p, prof1_p, prof2_p, prof3_p
+     real(8)             :: rho_p, prof1_p, prof2_p, prof3_p, prof4_p
      type(unit), pointer :: next
   end type unit
   type(unit), pointer :: ent, new, p
   integer(4) :: l
-  real(8)    :: rho_r, prof1_r, prof2_r, prof3_r
+  real(8)    :: rho_r, prof1_r, prof2_r, prof3_r, prof4_r
 
   if((present(nr) .eqv. .false.) .and. (present(idx) .eqv. .false.)) then
      allocate(ent); nullify(ent%next)
@@ -1279,7 +1282,7 @@ subroutine initprof_input(nr, idx, out)
      if(ier /= 0) return
 
      do
-        read(nintin,'(1X,I3,4(E10.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r
+        read(nintin,'(1X,I3,5(E10.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
         if(ist /= 0) exit
         call rearrange
      end do
@@ -1288,7 +1291,7 @@ subroutine initprof_input(nr, idx, out)
      k = 0
      do
         if(associated(p)) then 
-!           write(6,*) p%l_p, p%rho_p, p%prof1_p, p%prof2_p, p%prof3_p
+!           write(6,*) p%l_p, p%rho_p, p%prof1_p, p%prof2_p, p%prof3_p, p%prof4_p
            k = k + 1
            p => p%next
         else
@@ -1297,7 +1300,7 @@ subroutine initprof_input(nr, idx, out)
      end do
      nrinmax = k
 
-     allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:3))
+     allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:4))
      p => ent%next
      do
         if(associated(p)) then
@@ -1305,6 +1308,7 @@ subroutine initprof_input(nr, idx, out)
            prof_in(p%l_p,1) = p%prof1_p
            prof_in(p%l_p,2) = p%prof2_p
            prof_in(p%l_p,3) = p%prof3_p
+           prof_in(p%l_p,4) = p%prof4_p
            p => p%next
         else
            exit
@@ -1312,20 +1316,22 @@ subroutine initprof_input(nr, idx, out)
      end do
 
 !!$     do k = 1, nrinmax
-!!$        write(6,'(1X,I3,1P4E10.3)') k, rho_in(k),(prof_in(k,j),j=1,3)
+!!$        write(6,'(1X,I3,1P5E10.3)') k, rho_in(k),(prof_in(k,j),j=1,4)
 !!$     end do
 
      close(nintin)
      if(associated(ent)) deallocate(ent)
      if(associated(new)) deallocate(new)
 
-     allocate(deriv(1:nrinmax),u1(1:4,1:nrinmax),u2(1:4,1:nrinmax),u3(1:4,1:nrinmax))
+     allocate(deriv(1:nrinmax),u1(1:4,1:nrinmax),u2(1:4,1:nrinmax),u3(1:4,1:nrinmax),u4(1:4,1:nrinmax))
      call spl1d(rho_in,prof_in(1:nrinmax,1),deriv,u1,nrinmax,0,ier)
      if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(1)'
      call spl1d(rho_in,prof_in(1:nrinmax,2),deriv,u2,nrinmax,0,ier)
      if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(2)'
      call spl1d(rho_in,prof_in(1:nrinmax,3),deriv,u3,nrinmax,0,ier)
      if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(3)'
+     call spl1d(rho_in,prof_in(1:nrinmax,4),deriv,u4,nrinmax,0,ier)
+     if(ier /= 0) stop 'Error at spl1d in initprof_input: prof_in(4)'
 
   else if((present(nr) .eqv. .true.) .and. (present(idx) .eqv. .true.)) then
      if(idx == 1) then ! Electron density
@@ -1340,6 +1346,10 @@ subroutine initprof_input(nr, idx, out)
         call spl1df(Rho(nr),out,rho_in,u3,nrinmax,ier)
         if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 3'
         out = out * 1.d-3
+     else if(idx == 4) then ! Toroidal current
+        call spl1df(Rho(nr),out,rho_in,u4,nrinmax,ier)
+        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 3'
+        out = out
      else 
         stop 'initprof_input: wrong input!'
      end if
@@ -1357,7 +1367,7 @@ subroutine initprof_input(nr, idx, out)
 contains
   subroutine rearrange
     allocate(new)
-    new = unit(l, rho_r, prof1_r, prof2_r, prof3_r, ent%next)
+    new = unit(l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r, ent%next)
     ent%next => new
   end subroutine rearrange
 

@@ -11,7 +11,7 @@ subroutine perturb_mag
   use tx_ripple, only : ripple
   implicit none
 
-  integer(4) :: m, m_max, max_ip, max_w, nr, ierr
+  integer(4) :: m, m_max, max_ip, max_w, nr
   integer(4), dimension(:), allocatable :: ip
   real(8), dimension(:), allocatable :: theta, delta_l, w
   real(8) :: dtheta

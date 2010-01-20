@@ -18,7 +18,7 @@ SUBROUTINE TXMENU
   use tx_interface, only : TXKLIN, TOUPPER, TXLOAD
   use tx_ripple, only : ripple_input, ripple_spl, deallocate_ripple
   implicit none
-  INTEGER(4) :: MODE, I, IST, ier, NR, iret, IER_RP
+  INTEGER(4) :: MODE, I, IST, ier, NR, IER_RP
   character(len=80) :: LINE
   character(len=1)  :: KID, KID2
 
@@ -166,7 +166,7 @@ SUBROUTINE TXMENU
            WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'
            CYCLE
         END IF
-        CALL outfile(ICONT,iret)
+        CALL outfile
      CASE('M')
         IF (ICONT == 0) THEN
            WRITE(6,*) 'XX RUN or LOAD before CONTINUE !'

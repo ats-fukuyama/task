@@ -158,10 +158,10 @@ contains
        x(1:nemax,4) = x(1:nemax,2)
     case(5)
        do ne = 1, nemax
-          x(ne,1) = (-2.d0 * a(ne-1) -        a(ne)) / 6.d0
-          x(ne,2) = ( 2.d0 * a(ne-1) +        a(ne)) / 6.d0
-          x(ne,3) = (-       a(ne-1) - 2.d0 * a(ne)) / 6.d0
-          x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) / 6.d0
+          x(ne,1) = (-2.d0 * a(ne-1) -        a(ne)) * c16
+          x(ne,2) = ( 2.d0 * a(ne-1) +        a(ne)) * c16
+          x(ne,3) = (-       a(ne-1) - 2.d0 * a(ne)) * c16
+          x(ne,4) = (        a(ne-1) + 2.d0 * a(ne)) * c16
        end do
     case(6)
        do ne = 1, nemax
@@ -508,6 +508,9 @@ contains
        a1 = a(node1) ; a2 = a(node2)
        if(present(b)) then
           b1 = b(node1) ; b2 = b(node2)
+       end if
+       if(present(c)) then
+          c1 = c(node1) ; c2 = c(node2)
        end if
     end if
     if(iflag == 1) a1 = 0.d0
@@ -1136,9 +1139,9 @@ END SUBROUTINE KSPLIT_TX
 SUBROUTINE DERIVS1D(R,F,NRMAX,G)
 
   implicit none
+  integer(4), intent(in) :: NRMAX
   real(8), dimension(0:NRMAX), intent(in)  :: R, F
   real(8), dimension(0:NRMAX), intent(out) :: G
-  integer(4), intent(in) :: NRMAX
   integer(4) :: NR
   real(8) :: DR1, DR2
 
@@ -1164,10 +1167,10 @@ END SUBROUTINE DERIVS1D
 SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
 
   implicit none
+  integer(4), intent(in) :: LQ, NRMAX, NQMAX
   real(8), dimension(0:NRMAX), intent(in)  :: R
   real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
   real(8), dimension(0:NRMAX), intent(out) :: G
-  integer(4), intent(in) :: LQ, NRMAX, NQMAX
   integer(4) :: NR
   real(8) :: DR1, DR2
 
@@ -1193,9 +1196,9 @@ END SUBROUTINE DERIVS2D
 pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
 
   implicit none
+  integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
   real(8), dimension(0:NRMAX), intent(in)  :: R
   real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
-  integer(4), intent(in) :: NR, LQ, NRMAX, NQMAX
   real(8) :: DR1, DR2
 
   IF(NR == 0) THEN

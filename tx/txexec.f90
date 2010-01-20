@@ -16,10 +16,9 @@ contains
     use tx_commons, only : IERR, T_TX, AVE_IC
     use tx_interface, only : APTOS
 
-    INTEGER(4) :: NDY, NDM, NDD, NTH, NTM, NTS, NSTR1, NSTR2, NSTR3, NSTR4
+    INTEGER(4) :: NSTR1, NSTR2, NSTR3, NSTR4
     REAL(4) :: gCTIME1, gCTIME2, gCTIME3
     character(len=10) :: STR1, STR2, STR3, STR4
-    INTEGER(4), DIMENSION(1:8) :: TIMES
     real(8) :: t_interval
 
     IF (IERR /= 0) THEN
@@ -81,25 +80,28 @@ contains
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
-!    use f95_lapack ! for LAPACK95
-    use lapack95 ! for LAPACK95
+    use f95_lapack ! for LAPACK95
+!    use lapack95 ! for LAPACK95
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
-    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IC = 0, IDIV, NTDO, IDISP, NRAVM, ID, IERR_LA, ICSUM
+    INTEGER(4) :: NR, NQ, IC = 0, IDIV, NTDO, IDISP, NRAVM, IERR_LA, ICSUM, IDIAGL
 !LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV
     real(8), dimension(1:NQMAX) :: tiny_array
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
     integer(4), dimension(1:2) :: iasg
-    real(8) :: denom, nume, tiny_denom
-    real(8), dimension(:,:), allocatable :: XN1, XN2
+!!    real(8) :: denom, nume, tiny_denom
+!!    real(8), dimension(:,:), allocatable :: XN1, XN2
+    character(len=80) :: MSG_NQ
 
     allocate(BA(1:4*NQM-1,1:NQM*(NRMAX+1)),BL(1:6*NQM-2,1:NQM*(NRMAX+1)),BX(1:NQM*(NRMAX+1)))
 !!$    IF(MDSOLV == 1) THEN
 !!$       allocate(XNvec(1:NQM*(NRMAX+1)),FL(1:NQM*(NRMAX+1)),FLP(1:NQM*(NRMAX+1)))
 !!$       allocate(BAE(1:(NQM*(NRMAX+1))**2),DltXN(1:NQM*(NRMAX+1)),DltXP(1:NQM*(NRMAX+1)))
 !!$    END IF
+
+    IDIAGL = MOD(IDIAG,10)
 
     !  Read spline table for neoclassical toroidal viscosity if not loaded when FSRP/=0
     IF(FSRP /= 0.D0 .AND. maxval(fmnq) == 0.D0) CALL Wnm_spline(fmnq, wnm, umnq, nmnqm)
@@ -175,8 +177,8 @@ contains
              ELSE
 !LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
 !LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
-!                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
-                CALL GBSV(BL,BX,INFO=IERR_LA)
+                CALL LA_GBSV(BL,BX,INFO=IERR_LA)
+!                CALL GBSV(BL,BX,INFO=IERR_LA)
                 IF(IERR_LA /= 0) THEN
                    WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                         &              NT, ' -', IC, ' step. IERR=',IERR_LA
@@ -358,7 +360,11 @@ contains
 
              ! Calculate root-mean-square X over the profile (Euclidean norm)
              AV    = SQRT(SUM(XN(NQ,0:NRMAX)**2)) / NRMAX
-             IF (AV == 0.D0) CYCLE L_NQ
+             IF (AV < epsilon(1.d0)) THEN
+                ! It means that the variable for NQ is zero over the profile.
+                ASG(NQ,0:NRMAX) = 0.d0
+                CYCLE L_NQ
+             END IF
 
              ERR1  = 0.D0
              IDISP = IDIV
@@ -384,18 +390,20 @@ contains
                    IDISP = IDIV + NT
                    IF (NQ == NQMAX) CYCLE L_IC
                 ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPS) THEN
-                   IF(IDIAG == 3) THEN
-!                      IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
-                      IASG(1:2) = MAXLOC(ASG(1:NQ,0:NR))
-                      WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                           &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
+                   IF(IC /= ICMAX) THEN
+                      IF(IDIAGL >= 3) THEN
+                         IF(MOD(IC,20) == 0 .OR. IC == 1) WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
+                              & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
+                         WRITE(6,'(3I4,1P4E17.8)') IC,NQ,NR,XP(NQ,NR),XN(NQ,NR),ASG(NQ,NR),EPS
+                      END IF
+                      CYCLE L_IC
                    END IF
-                   CYCLE L_IC
                 END IF
              END DO L_NR
 
           END DO L_NQ
-
+          ! NOT converged
+          IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
           EXIT L_IC
        END DO L_IC
 
@@ -407,15 +415,40 @@ contains
           CALL TXCALV(XOLD,IGBDF)
        END IF
 
-       IF(IDIAG >= 2) THEN
-          IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
-          IF(IC-1 == ICMAX) THEN
+       IF(IDIAGL >= 2) THEN
+          WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
+               & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
+          IF(IC == ICMAX) THEN ! NOT converged
              WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                  &                     XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS," *"
-          ELSE
+                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS," *"
+          ELSE ! converged
+             IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
              WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
                   &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
           END IF
+       END IF
+
+       IF(IDIAG >= 11) THEN
+          WRITE(6,'(A,2(X,A,X),5X,A,11X,A)') &
+               & "*****","NQ","VR","V_ERRMAX","EPS"
+          DO NQ = 1, NQMAX
+             IASG(1:2)  = MAXLOC( ASG(NQ:NQ,0:NRMAX))
+             WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(2)-1,ASG(NQ,IASG(2)-1),EPS
+             IF( ASG(NQ, IASG(2)-1) > EPS) THEN
+                MSG_NQ = trim(MSG_NQ)//' *'
+             ELSE
+                MSG_NQ = trim(MSG_NQ)//'  '
+             END IF
+             WRITE(6,'(A80)') MSG_NQ
+          END DO
+       END IF
+          
+       IF(IDIAGL >= 4) THEN
+          do nq = 1, nqmax
+             do nr = 0, nrmax
+                write(6,*) nq,nr,ASG(nq,nr)
+             end do
+          end do
        END IF
 
        ! Calculation fully converged
@@ -430,10 +463,10 @@ contains
 !!$       ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
        CALL TXCALC
 
-       IF(IDIAG == 0 .OR. IDIAG == 2) THEN
+       IF(IDIAGL == 0 .OR. IDIAGL == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &
                & WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
-       ELSE IF(IDIAG > 0) THEN
+       ELSE IF(IDIAGL > 0) THEN
           IF(NT /= NTMAX) THEN
              IF(IC-1 == ICMAX) THEN
                 WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3,"  *")') NT,T_TX,IC
@@ -495,7 +528,7 @@ contains
          &              PLC, X, XOLD!, lqb1, pnbv
     real(8), dimension(:,:), intent(inout) :: BA, BL
     real(8), dimension(:), intent(inout) :: BX
-    INTEGER(4) :: I, J, NR, NQ, NC, NC1, IA, IB, IC
+    INTEGER(4) :: J, NR, NQ, NC, NC1, IA, IB, IC
     INTEGER(4) :: JA, JB, JC, KL
     REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3!, suml1,suml2
     

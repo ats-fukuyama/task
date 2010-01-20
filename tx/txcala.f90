@@ -16,7 +16,8 @@ module tx_coefficients
        & rNube1BE, rNube2BthBE, rNube3BE, &
        & Vbparaph, RVbparath, &
        & Chie1, Chie2, Chii1, Chii2, &
-       & FVpchph, FWahlphe, FWahlphi, rNue2NCN, rNui2NCN
+       & FVpchph, FWahlphe, FWahlphi, rNue2NCN, rNui2NCN, &
+       & rGASPFA, rat_ei
 !!sqeps       &, sqeps_perp, sqeps_perp_inv
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -120,7 +121,7 @@ contains
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
        &     FVpchph(0:N), FWahlphe(0:N), FWahlphi(0:N), &
-       &     rNue2NCN(0:N), rNui2NCN(0:N))
+       &     rNue2NCN(0:N), rNui2NCN(0:N), rGASPFA(0:N), rat_ei(0:N))
 !!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthiBB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
@@ -236,7 +237,7 @@ contains
 
     CALL BOUNDARY(NRMAX,LQm2,1, 2.D0*PSI(NRMAX)*BB/rMU0)
     CALL BOUNDARY(NRMAX,LQm3,1,-2.D0*R(NRMAX)*Bthb/rMUb2)
-    CALL BOUNDARY(NRMAX,LQn1,1, 2.D0*R(NRMAX)*rGASPF)
+!    CALL BOUNDARY(NRMAX,LQn1,1, 2.D0*R(NRMAX)*rGASPF)
 
     deallocate(ELM,PELM)
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
@@ -249,7 +250,7 @@ contains
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
        &       FVpchph, FWahlphe, FWahlphi, &
-       &       rNue2NCN, rNui2NCN)
+       &       rNue2NCN, rNui2NCN, rGASPFA, rat_ei)
 !!ion    deallocate(FWphiBB, FWphiBB2, FWthiBB, FWphiB)
     deallocate(UNITY)
 
@@ -346,6 +347,10 @@ contains
     rNui2NCN(0:NRMAX) = rNui2NC(0:NRMAX) / PNiV(0:NRMAX)
 !!sqeps    sqeps_perp(0:NRMAX) = SQRT(PNiV(0:NRMAX)*1.D20*AMI/(BphV(0:NRMAX)**2+BthV(0:NRMAX)**2))
 !!sqeps    sqeps_perp_inv(0:NRMAX) = 1.D0 / sqeps_perp(0:NRMAX)
+
+    rGASPFA(0:NRMAX-1) = 0.D0
+    rGASPFA(NRMAX) = rGASPF
+    rat_ei(0:NRMAX) = PNeV(0:NRMAX) / PNiV(0:NRMAX)
 
   END SUBROUTINE LQCOEF
 
@@ -525,8 +530,6 @@ contains
 
   SUBROUTINE LQe1CC
 
-    integer(4) :: ne
-
     ELM(1:NEMAX,1:4,0,LQe1) = fem_int(1) * invDT
     NLC(0,LQe1) = LQe1
 
@@ -646,8 +649,6 @@ contains
 
   SUBROUTINE LQe3CC
 
-    integer(4) :: N
-
     ! Ns*UsTheta(0) : 0
 
     ELM(1:NEMAX,1:4, 0,LQe3) = fem_int(1) * invDT
@@ -718,13 +719,13 @@ contains
     ELM(1:NEMAX,1:4,15,LQe3) = - 1.D0 / AME * fem_int(2,FWthe)
     NLC(15,LQe3) = LQe3
 
-    ELM(1:NEMAX,1:4,16,LQe3) =   1.D0 / AME * fem_int(2,FWthe)
+    ELM(1:NEMAX,1:4,16,LQe3) =   1.D0 / AME * fem_int(28,FWthe,rat_ei)
     NLC(16,LQe3) = LQi3
 
     ELM(1:NEMAX,1:4,17,LQe3) =   1.D0 / AME * fem_int(15,FWpheBB) * AMPe4
     NLC(17,LQe3) = LQe4
 
-    ELM(1:NEMAX,1:4,18,LQe3) = - 1.D0 / AME * fem_int(15,FWpheBB)
+    ELM(1:NEMAX,1:4,18,LQe3) = - 1.D0 / AME * fem_int(44,FWpheBB,rat_ei)
     NLC(18,LQe3) = LQi4
 
     ! Wave interaction force (electron driven)
@@ -877,13 +878,13 @@ contains
     ELM(1:NEMAX,1:4,14,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB)
     NLC(14,LQe4) = LQe3
 
-    ELM(1:NEMAX,1:4,15,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB)
+    ELM(1:NEMAX,1:4,15,LQe4) = - 1.D0 / AME * fem_int(28,FWpheBB,rat_ei)
     NLC(15,LQe4) = LQi3
 
     ELM(1:NEMAX,1:4,16,LQe4) = - 1.D0 / AME * fem_int(2,FWpheBB2) * AMPe4
     NLC(16,LQe4) = LQe4
 
-    ELM(1:NEMAX,1:4,17,LQe4) =   1.D0 / AME * fem_int(2,FWpheBB2)
+    ELM(1:NEMAX,1:4,17,LQe4) =   1.D0 / AME * fem_int(28,FWpheBB2,rat_ei)
     NLC(17,LQe4) = LQi4
 
     ! Wave interaction force (electron driven)
@@ -1085,8 +1086,6 @@ contains
 
   SUBROUTINE LQi1CC
 
-    integer(4) :: ne
-
     ELM(1:NEMAX,1:4,0,LQi1) = fem_int(1) * invDT
     NLC(0,LQi1) = LQi1
 
@@ -1232,8 +1231,6 @@ contains
 
   SUBROUTINE LQi3CC
 
-    integer(4) :: N
-
     ! Ni*UiTheta(0) : 0
 
     ELM(1:NEMAX,1:4, 0,LQi3) = fem_int(1) * invDT
@@ -1298,13 +1295,13 @@ contains
     ELM(1:NEMAX,1:4,13,LQi3) =   1.D0 / AMI * fem_int(2,FWthe)
     NLC(13,LQi3) = LQe3
 
-    ELM(1:NEMAX,1:4,14,LQi3) = - 1.D0 / AMI * fem_int(2,FWthe)
+    ELM(1:NEMAX,1:4,14,LQi3) = - 1.D0 / AMI * fem_int(28,FWthe,rat_ei)
     NLC(14,LQi3) = LQi3
 
     ELM(1:NEMAX,1:4,15,LQi3) = - 1.D0 / AMI * fem_int(15,FWpheBB) * AMPe4
     NLC(15,LQi3) = LQe4
 
-    ELM(1:NEMAX,1:4,16,LQi3) =   1.D0 / AMI * fem_int(15,FWpheBB)
+    ELM(1:NEMAX,1:4,16,LQi3) =   1.D0 / AMI * fem_int(44,FWpheBB,rat_ei)
     NLC(16,LQi3) = LQi4
 
     ! Wave interaction force (electron driven)
@@ -1469,13 +1466,13 @@ contains
     ELM(1:NEMAX,1:4,12,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB)
     NLC(12,LQi4) = LQe3
 
-    ELM(1:NEMAX,1:4,13,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB)
+    ELM(1:NEMAX,1:4,13,LQi4) =   1.D0 / AMI * fem_int(28,FWpheBB,rat_ei)
     NLC(13,LQi4) = LQi3
 
     ELM(1:NEMAX,1:4,14,LQi4) =   1.D0 / AMI * fem_int(2,FWpheBB2) * AMPe4
     NLC(14,LQi4) = LQe4
 
-    ELM(1:NEMAX,1:4,15,LQi4) = - 1.D0 / AMI * fem_int(2,FWpheBB2) 
+    ELM(1:NEMAX,1:4,15,LQi4) = - 1.D0 / AMI * fem_int(28,FWpheBB2,rat_ei) 
     NLC(15,LQi4) = LQi4
 
     ! Wave interaction force (electron driven)
@@ -1946,7 +1943,12 @@ contains
     PELM(1:NEMAX,1:4,5,LQn1) = - rGamm0 * PNeDIV / PZ * fem_int(-1,rNuL)
     NLC(5,LQn1) = 0
 
-    NLCMAX(LQn1) = 5
+    ! Gas puff
+
+    PELM(1:NEMAX,1:4,6,LQn1) = 2.D0 * fem_int(-3,R,rGASPFA)
+    NLC(6,LQn1) = 0
+
+    NLCMAX(LQn1) = 6
     RETURN
   END SUBROUTINE LQn1CC
 
@@ -2106,10 +2108,10 @@ contains
        integer(4) :: IDXNC
        integer(4) :: IDXNQ
     end type list
-    type(list), save :: IDX(1:NQM,0:1,0:50)
+    type(list), save :: IDX(1:NQM,0:1,1:50)
 
     IF(ID == 0) THEN
-       ! Initialize ALC, BLC and CLC
+       ! Initialize ALC, BLC and CLC at NR
        ALC(0:NCM,LQ,NR) = 0.D0
        BLC(0:NCM,LQ,NR) = 0.D0
        CLC(0:NCM,LQ,NR) = 0.D0

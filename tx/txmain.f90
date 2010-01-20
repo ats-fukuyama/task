@@ -4,8 +4,10 @@
 !
 !             TOKAMAK TRANSPORT SIMULATION CODE
 !    INCLUDING RADIAL ELECTRIC FIELD AND PLASMA ROTATION
+!                        "TASK/TX"
 !
 !      FEM scheme with Linear interpolation function
+!      in the r^2 coordinates
 !
 !     DEVELOPED BY M. HONDA, Y. FUJI AND A. FUKUYAMA
 !
@@ -73,8 +75,8 @@ PROGRAM TASK_TX
 
   !     ***** Version ID *****
   !     SLID is used to identify data file.
-  SLID = 'tx456.0'
-  WRITE(6,*) '######## TASK/TX V4.56.00 09/09/28 ########'
+  SLID = 'tx456.5'
+  WRITE(6,*) '######## TASK/TX V4.56.50 10/01/20 ########'
 
   CALL TXINIT
   KPNAME='txparm'

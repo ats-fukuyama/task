@@ -30,8 +30,9 @@ contains
 
     integer(4) :: NR, IER, i, imax, irip, nr_potato
     real(8) :: thetab, sinthb, RL, ellE, ellK, EpsL, theta1, theta2, dlt, &
-         &     width0, width1, dltwidth, ARC, diff_min, theta_min, sum_rp, DltRP_ave, &
-         &     rhob, rNueff, rNubnc, DCB, DRP, Dltcr, Dlteff, DltR, Vdrift, Rpotato
+         &     width0, width1, dltwidth, ARC, diff_min, theta_min, &
+         &     rhob, rNueff, rNubnc, DRP, Dltcr, DltR, Vdrift, Rpotato
+!!    real(8) :: sum_rp, DltRP_ave, DCB, Dlteff
     real(8) :: ELLFC, ELLEC, AITKEN2P
     real(8), dimension(0:NRMAX) :: th1, th2
 !!rp_conv         &                         ,PNbrpL, DERIV

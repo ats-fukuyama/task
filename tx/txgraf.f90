@@ -35,7 +35,7 @@ contains
     character(len=1) :: KID1, KID2
 
     integer(4), parameter :: NXMAX = 51, NYMAX = 51, NTHMAX=51
-    integer(4) :: NX, NY, NR, NTH, NGTDO, IPAT, IPRD, NSTEP, IND, ICHK, IFNT
+    integer(4) :: NX, NY, NR, NTH, NGTDO, IPAT, IPRD, NSTEP, IND, IFNT
     integer(4), dimension(:,:,:), allocatable :: KA
     integer(4), dimension(:), allocatable :: NGPRL
     real(4) :: DR, DZ, AL, ZORG, ZSTEP, DltRPnL, GXMAX, GMAX, GMIN, GZ
@@ -45,7 +45,7 @@ contains
     real(8), dimension(:), allocatable :: FX
     real(8), dimension(:,:), allocatable :: FY
     real(4) :: GSRMIN,GSRMAX,GSRSTP,GSZMIN,GSZMAX,GSZSTP
-    real(8) :: RL, theta, dtheta, kappal, EpsL, width0, width1, thetab, TL
+    real(8) :: RL, theta, dtheta, kappal, thetab, TL
     character(len=50) :: STRL
     character(len=17) :: KOUT
     character(len=50), dimension(:), allocatable :: STRA
@@ -2204,7 +2204,7 @@ contains
 
     use tx_commons, only : NRMAX, NGT, MODEG, GT, DT, NGTSTP, R, NEMAX, GYT, gDIV, GX, GTX
     INTEGER(4), INTENT(IN) :: NGYRIN
-    INTEGER(4) :: IND, NG, NR, NGYR, NE, IFNT, I
+    INTEGER(4) :: IND, NG, NGYR, IFNT, I
     real(4), dimension(:),     allocatable :: GMAX, GMIN
     real(4), dimension(:,:,:), allocatable :: GYL
     character(len=50), dimension(:), allocatable :: STR
@@ -3034,7 +3034,7 @@ contains
     ELSE IF(KINDEX == 'ANIME') THEN
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
             &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG, &
-            &            GYMAX_IN=GMAX, GYMIN_IN=GMIN, KINDEX=KINDEX)
+            &            GYMAX_IN=GMAX, GYMIN_IN=GMIN)!, KINDEX=KINDEX)
     ELSE
        CALL TXGRAF(GPXY, GXL, GYL, NXMAX+1, NXMAX+1, NGMAX, &
             &            0.0, GXMAX, STR, FNTSIZE, MODE, IND, ILOG)
@@ -3054,7 +3054,6 @@ contains
     use tx_commons, only : NGVM, NGVV, MODEG, GVX, DT, NGVSTP, gDIV, GVY
     INTEGER(4), INTENT(IN) :: NGYV, MODE
     INTEGER(4) :: IND
-    REAL(4) :: gDIVL
     character(len=50) ::  STR
     REAL(4), DIMENSION(0:NGVM,1:4) :: GVYL
 
@@ -3329,9 +3328,7 @@ contains
     use tx_commons, only : NGTM, NGYTM, MODEG, GTX, GTY, NGT, DT, NGTSTP
     INTEGER(4), INTENT(IN) :: NGYT, MODE
     INTEGER(4) :: IND
-    REAL(4) :: gDIVL
     character(len=50) ::  STR
-    REAL(4), DIMENSION(0:NGTM,1:NGYTM) :: GTYL
 
     IF (NGT <= 1) THEN
        WRITE(6,*) 'GT', NGYT, ' has no data'
@@ -3561,7 +3558,7 @@ contains
     use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
-    INTEGER(4) :: NR, NC, NC1, NSTR, IND
+    INTEGER(4) :: NC, NSTR, IND
     REAL(4) :: GXMAX
     REAL(4), DIMENSION(0:NRMAX,1:NCM) :: GQYL
     REAL(4), DIMENSION(1:4) :: GPXY
@@ -3756,7 +3753,7 @@ contains
 
   SUBROUTINE TXGRAF(GPXY, GX, GY, NXM, NXMAX, NGMAX, &
        &                  GXMIN, GXMAX, STR, FONT, MODE, IND, ILOG, &
-       &                  GYMAX_IN, GYMIN_IN, KINDEX)
+       &                  GYMAX_IN, GYMIN_IN)!, KINDEX)
 
     INTEGER(4), INTENT(IN) :: NXM, NXMAX, NGMAX, MODE, IND
     REAL(4), INTENT(IN) :: GXMIN, GXMAX, FONT
@@ -3766,7 +3763,7 @@ contains
     integer(4), intent(in) :: ILOG
     REAL(4), INTENT(IN), OPTIONAL :: GYMAX_IN, GYMIN_IN
     character(len=*), INTENT(IN) :: STR
-    character(len=*), INTENT(IN), optional :: KINDEX
+!    character(len=*), INTENT(IN), optional :: KINDEX
 
     INTEGER(4) :: IFNT, NGV, NGULEN, ICL, IPAT, IMRK, ISTEP, NG
     REAL(4) :: GX1, GX2, GY1, GY2, gSLEN, GSXMIN, GSXMAX, GXSTEP, &

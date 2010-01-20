@@ -483,6 +483,8 @@ SUBROUTINE TXINIT
   !   1 : debug message output (ntstep == 1)
   !   2 : debug message output (few)
   !   3 : debug message output (many)
+  !   4 : debug message output (many,each prof)
+  ! +10 : convergence output for each equation
   !  -1 : message for steady state check at NGTSTP intervals
   IDIAG = 0
 
@@ -528,6 +530,11 @@ SUBROUTINE TXINIT
   !   1    : pedestal model
   !   2    : empirical steady state temperature profile
   MDINTT = 0
+
+  !   Mode of initial current density profiles
+  !   -1   : read from file
+  !   0    : original
+  MDINTC = 0
 
   !   Mode of initial density profile in the SOL
   !   0    : polynominal model
@@ -660,14 +667,12 @@ SUBROUTINE TXCALM
 
   implicit none
   INTEGER(4) :: NR, NRL, NR_RC_NEAR
-  real(8)    :: DR, MAXAMP, CL, WL, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
+  real(8)    :: MAXAMP, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
 
   !   Ion mass number
   AMI   = PA * AMP
   !   Beam ion mass number
   AMB   = AMI
-  !   Radial step width
-  !    DR    = RB / NRMAX
   !   Number of equations
   NQMAX = NQM
 
@@ -774,8 +779,8 @@ SUBROUTINE TXPROF
   use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, initprof_input
 
   implicit none
-  INTEGER(4) :: NR, NQ, I, IER, ifile
-  REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF, QL, RIP1, RIP2, dRIP, SSN, SSPe, SSPi
+  INTEGER(4) :: NR, IER, ifile
+  REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
@@ -805,7 +810,7 @@ SUBROUTINE TXPROF
   !  Variables
 
   if(MDINTN == -1 .or. MDINTT == -1) call initprof_input
-  if(MDINTN == -1) then
+  if(MDINTN == -1) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
      call initprof_input(NRA,1,PNaL)
      PNeDIVL = 0.25 * PNaL
@@ -814,7 +819,7 @@ SUBROUTINE TXPROF
      PNaL = PNa
      PNeDIVL = PNeDIV
   end if
-  if(MDINTT == -1) then
+  if(MDINTT == -1) then ! temperature at the boundaries
      call initprof_input(  0,2,PTe0L)
      call initprof_input(  0,2,PTi0L)
      call initprof_input(NRA,3,PTeaL)
@@ -846,6 +851,7 @@ SUBROUTINE TXPROF
   Cfpe2 =   (2.D0 * PBA * dpea + 3.D0 * (pea - pediv)) / PBA**4
   Cfpi1 = - (3.D0 * PBA * dpia + 4.D0 * (pia - pidiv)) / PBA**3
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
+
   DO NR = 0, NRMAX
      RL=R(NR)
      IF (RL <= RA) THEN ! +++ Core +++
@@ -969,27 +975,46 @@ SUBROUTINE TXPROF
   allocate(AJPHL(0:NRMAX))
   ifile = detect_datatype('LQe4')
   if(ifile == 0) then
-     DO NR = 0, NRMAX
-!!$        AJPHL(NR) = 2.D0 / rMUv1 * DERIV4(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
-!!$        X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
-
-        IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
-           PROF= 0.D0    
-        ELSE             
-           PROF= 1.D0-(R(NR)/RA)**2
-        END IF
-        IF(FSHL == 0.D0) THEN
-           ! Ne*UePhi
-           AJPHL(NR) = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
+     IF(MDINTC == -1) THEN
+        DO NR = 0, NRA
+           call initprof_input(NR,4,AJPHL(NR)) ! NeUeph
+        END DO
+        AJPHL(NRA+1:NRMAX) = 0.D0
+        AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
+        DO NR = 0, NRMAX
+           AJPHL(NR) = AJFCT * AJPHL(NR)
            X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
-           AJOH(NR)= AJPHL(NR)
-!           AJOH(NR)= PROF
-        ELSE
-           AJPHL(NR) = 0.D0
-           X(LQe4,NR) = 0.D0
-           AJOH(NR)= 0.D0
-        END IF
-     END DO
+           AJOH(NR) = AJPHL(NR)
+        END DO
+        BthV(0) = 0.d0
+        SUM_INT = 0.d0
+        DO NR = 1, NRMAX
+           SUM_INT = SUM_INT + INTG_P(AJPHL,NR,0)
+           BthV(NR) = rMUb1 * SUM_INT / R(NR)
+        END DO
+     ELSE
+        DO NR = 0, NRMAX
+!!$           AJPHL(NR) = 2.D0 / rMUv1 * DERIV4(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
+!!$           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+
+           IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
+              PROF= 0.D0    
+           ELSE             
+              PROF= 1.D0-(R(NR)/RA)**2
+           END IF
+           IF(FSHL == 0.D0) THEN
+              ! Ne*UePhi
+              AJPHL(NR)  = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
+              X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+              AJOH(NR)   = AJPHL(NR)
+!              AJOH(NR)   = PROF
+           ELSE
+              AJPHL(NR)  = 0.D0
+              X(LQe4,NR) = 0.D0
+              AJOH(NR)   = 0.D0
+           END IF
+        END DO
+     END IF
   else
      call inexpolate(infiles(ifile)%nol,infiles(ifile)%r,infiles(ifile)%data,NRMAX,RHO,5,AJPHL)
      AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
@@ -1257,7 +1282,7 @@ module tx_parameter_control
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
-       & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB, &
+       & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDINIT,MDVAHL,MDLETB, &
        & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM ! 09/06/17~ miki_m
   private :: TXPLST
 
@@ -1271,7 +1296,6 @@ contains
   SUBROUTINE TXPARM(KID)
 
     INTEGER(4) :: IST
-    LOGICAL :: LEX
     character(len=*)  :: KID
 
     DO 
@@ -1295,7 +1319,6 @@ contains
   SUBROUTINE TXPARL(KLINE)
 
     integer(4) :: IST
-    logical :: LEX
     character(len=*) :: KLINE
     character(len=90) :: KNAME
 
@@ -1350,7 +1373,7 @@ contains
     DO 
        ! /// idx = 1 - 10 ///
        ! System integers
-       IF(NRMAX > NRM .OR. NRMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(NRMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(NTMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(NTSTEP < 0 .OR. NGRSTP < 0 .OR. NGTSTP < 0 .OR. NGVSTP < 0) THEN ; EXIT ; ELSE
           idx = idx + 1 ; ENDIF
@@ -1532,11 +1555,11 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
-         &   'MDOSQZ', MDOSQZ,  &
-         &   'MDLETA', MDLETA,  'MDANOM', MDANOM,  &
-         &   'MDFIXT', MDFIXT,  'MDITSN', MDITSN,  &
-         &   'MDITST', MDITST,  'MDINTN', MDINTN,  &
-         &   'MDINTT', MDINTT,  'MDINIT', MDINIT,  &
+         &   'MDOSQZ', MDOSQZ,  'MDLETA', MDLETA,  &
+         &   'MDANOM', MDANOM,  'MDFIXT', MDFIXT,  &
+         &   'MDITSN', MDITSN,  'MDITST', MDITST,  &
+         &   'MDINTN', MDINTN,  'MDINTT', MDINTT,  &
+         &   'MDINTC', MDINTC,  'MDINIT', MDINIT,  &
          &   'MDVAHL', MDVAHL,  'MDLETB', MDLETB,  &
          &   'IDIAG ', IDIAG ,  'IGBDF ', IGBDF,   &
          &   'MDSOLV', MDSOLV,  &

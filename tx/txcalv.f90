@@ -199,28 +199,30 @@ contains
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
-    INTEGER(4) :: NR, NP, NR1, IER, i, nrl, ist, npower, ideriv = 1, nrbound
+    INTEGER(4) :: NR, NR1, IER, i, ideriv = 1, nrbound
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, SL1, SL2, &
-         &     Vte, Vti, Vtb, XXX, SiV, ScxV, Wte, Wti, EpsL, rNuPara, rNubes, &
-         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, SP, rGBM, &
+         &     Vte, Vti, Vtb, Wte, Wti, EpsL, rNuPara, rNubes, &
+         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, &
          &     Ne_m3, Ni_m3, Te_eV, Ti_eV, rat_mass, PN0tot, &
-         &     rGIC, rH, Smod, PROFML, PROFCL, PALFL, Dturb, fk, rkap, DeL, AJPH, AJTH, EPARA, &
-         &     Vcr, Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
-         &     SiLCL, SiLCthL, SiLCphL, Wbane, Wbani, RL, ALFA, DBW, PTiVA, &
-         &     Chicl, rNuBAR, Ecr, factor_bohm, rNuAsIL, cap_val, &
-         &     EbL, logEbL, Scxi, Scxb, Vave, Sion, Left, Right, RV0, tmp, &
-         &     RLOSS, SQZ, rNuDL, xl, alpha_l, facST, ETASL, Ln, LT, etai_chk, kthrhos, &
-         &     Tqt0L, Tqp0L, RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, costh, &
+         &     rH, Smod, PROFML, PROFCL, PALFL, Dturb, fk, DeL, AJPH, AJTH, EPARA, &
+         &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
+         &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
+         &     Chicl, Ecr, factor_bohm, rNuAsIL, &
+         &     EbL, logEbL, Scxb, Sion, &
+         &     RLOSS, SQZ, rNuDL, xl, ETASL, Ln, LT, etai_chk, kthrhos, &
+         &     Tqt0L, RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !, 09/06/17~ miki_m 
+!!    real(8) :: XXX, SiV, ScxV, Vcr, Wbane, Wbani, ALFA, cap_val, Scxi, Vave, bthl
     real(8), save :: Fcoef = 1.d0
     real(8) :: Frdc, Dcoef
-    real(8) :: omegaer, omegaere, omegaeri, blinv, bthl
-    real(8) :: FCL, EFT, CR, dPTeV, dPTiV, dPPe, dPPi
-    real(8) :: DERIV3, AITKEN2P, deriv4
+    real(8) :: omegaer, omegaere, omegaeri, blinv
+    real(8) :: EFT, CR, dPTeV, dPTiV, dPPe, dPPi
+    real(8) :: AITKEN2P
     real(4), dimension(0:NRMAX) :: p_gr2phi
-    real(8), dimension(0:NRMAX) :: pres, Vexbr, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
+    real(8), dimension(0:NRMAX) :: pres, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
          &                         SRFe, SRFi, Ubpara
+!!    real(8), dimension(0:NRMAX) :: Vexbr
     ! For derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
          &                                dPedr, dPidr, dpdr, dNedr, dNidr, dErdrS, ErVlc, &
@@ -291,6 +293,8 @@ contains
           PNBPi0 = PNBHP * 1.D6 / (2.D0 * Pi * RR * SL)
        END IF
     ELSE
+       PNBP0  = 0.D0
+       PNBPi0 = 0.D0
        SNBP(0:NRMAX)   = 0.D0
        SNBPDi(0:NRMAX) = 0.D0
     END IF
@@ -306,6 +310,7 @@ contains
           PNBTi10 = PNBHT1 * 1.D6 / (2.D0 * Pi * RR * SLT1)
        END IF
     ELSE
+       PNBT10 = 0.D0
        SNBT1(0:NRMAX)  = 0.D0
        SNBTi1(0:NRMAX) = 0.D0
     END IF
@@ -320,6 +325,7 @@ contains
           PNBTi20 = PNBHT2 * 1.D6 / (2.D0 * Pi * RR * SLT2)
        END IF
     ELSE
+       PNBT20 = 0.D0
        SNBT2(0:NRMAX)  = 0.D0
        SNBTi2(0:NRMAX) = 0.D0
     END IF
@@ -329,6 +335,7 @@ contains
        CALL deposition_profile(SRFe,SL,RRFe0,RRFew,'RFe')
        PRFe0 = PRFHe * 1.D6 / (2.D0 * Pi * RR * SL)
     ELSE
+       PRFe0 = 0.D0
        SRFe(0:NRMAX) = 0.D0
     END IF
 
@@ -336,6 +343,7 @@ contains
        CALL deposition_profile(SRFi,SL,RRFi0,RRFiw,'RFi')
        PRFi0 = PRFHi * 1.D6 / (2.D0 * Pi * RR * SL)
     ELSE
+       PRFi0 = 0.D0
        SRFi(0:NRMAX) = 0.D0
     END IF
 
@@ -836,9 +844,14 @@ contains
        !     (W. A. Houlberg, et al., Phys. Plasmas 4 (1997) 3230)
 
           IF(MDOSQZ == 0 .OR. MDOSQZ == 2) THEN
+             IF(NR == 0) THEN
+                NR1 = 1
+             ELSE
+                NR1 = NR
+             END IF
              CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
                   &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
-                  &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1),IER, &
+                  &         dTedr(NR1),dTidr(NR1),dPedr(NR1),dPidr(NR1),IER, &
                   &         p_gr2phi_in=p_gr2phi(NR))
           ELSE IF(MDOSQZ == 1) THEN
              IF(NR == 0) THEN
@@ -1446,7 +1459,8 @@ contains
          &            * sqrt(RA*abs(dNidr(0:NRMAX))/PNiV(0:NRMAX) + RA*abs(dTidr(0:NRMAX))/PTiV(0:NRMAX)) &
          &            * sqrt(PTiV(0:NRMAX)/PTeV(0:NRMAX))
 
-    do nr = 0, nrmax
+    gamITG(0,2:3) = 0.d0
+    do nr = 1, nrmax
        Ln = PNiV(NR) / abs(dNidr(NR))
        LT = PTiV(NR) / abs(dTidr(NR))
 
@@ -1515,11 +1529,14 @@ contains
        dPTiV = dTidr(NR) * RA
        dPPe  = dPedr(NR) * RA
        dPPi  = dPidr(NR) * RA
-       CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
-            &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-            &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),&
-            &      JBS=AJBS3(NR),ETA=ETA3(NR))
-       IF(NR == 0) AJBS3(NR) = 0.D0
+       IF(NR == 0) THEN
+          AJBS3(NR) = 0.D0
+       ELSE
+          CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
+               &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
+               &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),&
+               &      JBS=AJBS3(NR),ETA=ETA3(NR))
+       END IF
 
         ! +++ Hirshman, Hawryluk and Birge model +++
        Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME)
@@ -1529,6 +1546,7 @@ contains
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        ! Spitzer resistivity for hydrogen plasma (parallel direction)
        ETAS(NR) = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       IF(NR == 0) ETA3(NR) = ETAS(NR)
        ETA4(NR) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
             &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        IF(FSNC /= 0) THEN
@@ -1729,7 +1747,7 @@ contains
     real(8), intent(out) :: SINT
     integer(4) :: nr
     real(8) :: EpsL, Rshift, Rpotato, rhop
-    real(8) :: AITKEN2P
+!!    real(8) :: AITKEN2P
 
     if(CHR == 'Virtual') then
        S(0:NRA) = 1.D0 - (R(0:NRA) / RA)**2
