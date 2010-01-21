@@ -1546,7 +1546,7 @@ contains
        CR   = 0.56D0 * (3.D0 - Zeff) / ((3.D0 + Zeff) * Zeff)
        ! Spitzer resistivity for hydrogen plasma (parallel direction)
        ETAS(NR) = CORR(1.D0) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-       IF(NR == 0) ETA3(NR) = ETAS(NR)
+       IF(NR == 0) ETA3(NR) = ETAS(NR) * (CORR(Zeff) / CORR(1.D0))
        ETA4(NR) = ETAS(NR) * Zeff * (1.D0 + 0.27D0 * (Zeff - 1.D0)) &
             &   /((1.D0 - EFT) * (1.D0 - CR * EFT) * (1.D0 + 0.47D0 * (Zeff - 1.D0)))
        IF(FSNC /= 0) THEN

@@ -757,7 +757,7 @@ SUBROUTINE TXCALM
      R(NRA+1) = R(NRA+1) - RL
   END IF
 
-  ! RACCUM doesn't coincide with the plasma surface RA
+  !  RACCUM doesn't coincide with the plasma surface RA
 
   IF(RACCUM >= 0.D0) THEN
 
