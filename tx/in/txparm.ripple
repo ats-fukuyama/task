@@ -1,5 +1,5 @@
  &tx
-     RA=0.95,RB=1.045,RR=3.4,RC=0.95
+     RA=0.95,RB=1.045,RR=3.4
      BB=2.6,rIPs=1.0,rIPe=1.0
      PTe0=3.0,PTea=0.1,PTeDIV=0.05
      PTi0=3.0,PTia=0.1,PTiDIV=0.05
