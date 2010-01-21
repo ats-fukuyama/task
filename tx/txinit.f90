@@ -18,8 +18,10 @@ SUBROUTINE TXINIT
   !   Wall radius (m)
   RB = 0.38D0
 
-  !   Partition radius (m) available
-  RC = RA
+  !   Mesh accumulation radius (m)
+  !     RACCUM coincides with RA when RACCUM is minus. (-1: default)
+  !     RACCUM is valid when RACCUM is plus.
+  RACCUM = - 1.d0
 
   !   Plasma major radius (m)
   RR = 1.3D0
@@ -667,7 +669,7 @@ SUBROUTINE TXCALM
 
   implicit none
   INTEGER(4) :: NR, NRL, NR_RC_NEAR
-  real(8)    :: MAXAMP, C1L, C2L, W1L, W2L, RL, RCL, CLNEW
+  real(8)    :: MAXAMP, C1L, C2L, W1L, W2L, RL, RC, RCL, CLNEW
 
   !   Ion mass number
   AMI   = PA * AMP
@@ -684,6 +686,12 @@ SUBROUTINE TXCALM
   sqeps0 = sqrt(EPS0)
 
   !  Mesh
+
+  if(RACCUM < 0.d0) then
+     RC = RA
+  else
+     RC = RACCUM
+  end if
 
   !  As a trial, generate mesh using given CL and WL and seek the position in the
   !  original coordinate, which becomes the nearest mesh of separatrix after mapping.
@@ -735,7 +743,7 @@ SUBROUTINE TXCALM
      END IF
   END DO
 
-  !  Adjust RC on mesh
+  !  Adjust RC on mesh (for the time being RC is assumed to be equivalent to RA)
 
   IF(ABS(R(NRL)-RC) < ABS(R(NRL+1)-RC)) THEN
      NRA = NRL
@@ -749,10 +757,9 @@ SUBROUTINE TXCALM
      R(NRA+1) = R(NRA+1) - RL
   END IF
 
-  ! The case that
-  !   the mesh accumulation center RC doesn't coincide with the plasma surface RA
+  ! RACCUM doesn't coincide with the plasma surface RA
 
-  IF(RC /= RA) THEN
+  IF(RACCUM >= 0.D0) THEN
 
      !  Maximum NR till RA
 
@@ -1301,7 +1308,7 @@ module tx_parameter_control
   implicit none
   public
   NAMELIST /TX/ &
-       & RA,RB,RC,RR,BB, &
+       & RA,RB,RACCUM,RR,BB, &
        & PA,PZ,Zeff, &
        & PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,PROFN1,PROFN2,PROFT1,PROFT2, &
        & De0,Di0,VWpch0,rMue0,rMui0,WPM0, &
@@ -1418,7 +1425,7 @@ contains
           idx = idx + 1 ; ENDIF
        ! Physical variables
        IF(RA >= RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(RC < 0.D0 .OR. RC > RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(RACCUM > RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(RR <= RB) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(rIPs < 0.D0 .OR. rIPe < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(PA < 0.D0 .OR. PZ < 0.D0 .OR. Zeff < 1.D0) THEN ; EXIT ; ELSE
@@ -1479,11 +1486,6 @@ contains
        IF(CMESH0 < 0.D0 .OR. CMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(WMESH0 < 0.D0 .OR. WMESH < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
 
-!!$       IF(RC /= RA) THEN
-!!$          write(6,'(A)') '!! consistency of input (RC /= RA) : RC is replaced by RA.'
-!!$          RC = RA
-!!$       END IF
-          
        RETURN
     END DO
 
@@ -1500,7 +1502,7 @@ contains
     WRITE(6,601)
     RETURN
 
-601 FORMAT(' ','# &TX : RA,RB,RC,RR,BB,PA,PZ,Zeff,'/ &
+601 FORMAT(' ','# &TX : RA,RB,RACCUM,RR,BB,PA,PZ,Zeff,'/ &
          &       ' ',8X,'PN0,PNa,PTe0,PTea,PTi0,PTia,PROFJ,,PROFN1,PROFN2,PROFT1,PROFT2,'/ &
          &       ' ',8X,'De0,Di0,VWpch0,rMue0,rMui0,WPM0,'/ &
          &       ' ',8X,'Chie0,Chii0,ChiNC,'/ &

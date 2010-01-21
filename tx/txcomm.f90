@@ -52,7 +52,7 @@ module tx_commons
   !**********************!
 
   ! Configuration parameters
-  real(8) :: RA, RB, RC, RR, BB, rIPs, rIPe
+  real(8) :: RA, RB, RACCUM, RR, BB, rIPs, rIPe
 
   ! Species
   real(8) :: PA, PZ, Zeff
