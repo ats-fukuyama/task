@@ -1,0 +1,26 @@
+# Makefile for the Mixed Bohm/gyro-Bohm model
+# Alexei Pankin <pankin@fusion.physics.lehigh.edu> LU, 2003
+#
+include ../makeinclude
+
+OBJ = \
+ $(MLIB)(mixed_Bohm_gyro_Bohm.o) 
+
+MLIB = ../lib/mixed.a
+
+.SUFFIXES:
+.SUFFIXES: .o .f90 .a .F90 .for .f .F
+
+test_mixed::  $(OBJ)
+	$(FC) $(FFLAGS) $@.f -o ../bin/$@ $(MLIB) $(LIBS) $(LOADER_TRAILER); \
+	rm -f $@.o
+
+.f.a:
+	$(FC) $(FFLAGS) -c $<
+	$(AR) $(ARFLAGS) $(MLIB) $*.o
+	rm -f $*.o
+
+.f.o:
+	$(FC) $(FFLAGS) -c $<
+
+test: test_mixed

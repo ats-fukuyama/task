@@ -1,0 +1,42 @@
+ &nt
+
+ ! sample_input_1 testing the mixed Bohm/gyro-Bohm transport model
+
+ maxis   = 0,       ! index of magnetic axis
+ medge   = 20,      ! index of edge of plasma
+
+ rminor  = 0.9,     ! minor radius [m]
+ rmajor  = 2.5,     ! major radius [m]
+
+ denmin  = 0.0,     ! minimum density = 1.e7 [keV]
+ temin   = 0.0,     ! minimum temperature = 1.e-6 [keV]
+
+ deneaxis = 5.0e19, ! electron density at magnetic axis [m^-3]
+ deneedge = 0.5e19, ! electron density at plasma edge [m^-3]
+ deneexp  = 1.0,    ! exponential of parabola for profile [m^-3]
+
+ amassh   = 2.0141, ! isotopic mass of hydrogenic species (deuterium)
+ charge   = 1.0,    ! hydrogenic charge
+
+ teaxis   = 2.0,    ! electron temperature at magnetic axis [keV]
+ teedge   = 0.2,    ! electron temperature at plasma edge [keV]
+ teexp    = 1.0,    ! exponential of parabola for profile
+
+ tiaxis   = 2.0,    ! ion temperature at magnetic axis [keV]
+ tiedge   = 0.2,    ! ion temperature at plasma edge [keV]
+ tiexp    = 1.0,    ! exponential of parabola for profile
+
+ qaxis    = 0.8,    ! magnetic q-value at magnetic axis
+ qedge    = 4.4,    ! magnetic q-value at plasma edge
+ qexp     = 4.0,    ! q(x) = qaxis + (qedge-qaxis) * x**qexp
+
+ btor     = 5.0,    ! toroidal field at rmajor [Tesla]
+
+ wexbmax  = 0.0,    ! maximum flow shear rate [sec^-1]
+ xwexbinn = 0.4,    ! inner r/a cutoff for the flow shear rate
+ xwexbout = 0.6,    ! outer r/a cutoff for the flow shear rate
+
+ lflowshear = 0,    ! no flow shear stabilization
+
+ /
+
