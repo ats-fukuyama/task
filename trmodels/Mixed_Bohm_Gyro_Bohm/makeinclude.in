@@ -1,0 +1,26 @@
+# makeinclude file for mixed_bohm_gyro_bohm module and test case
+# Jan 2002 Alex Pankin <pankin@fusion.physics.lehigh.edu>
+# @configure_input@
+
+# POSIX shell.  
+SHELL		= /bin/sh
+HOST		= @host@
+BUILD		= @build@
+
+# Installation Directories:
+prefix		= @prefix@
+SRCDIR		= @prefix@/source
+exec_prefix	= @prefix@
+LIBDIR		= $(exec_prefix)/libs
+BINDIR		= $(exec_prefix)/bin
+MANDIR		= @prefix@/doc
+VPATH		= @prefix@/source
+
+# Compilation:
+FC		= @F90@
+FFLAGS		= @F90FLAGS@ @MFLAG@@prefix@/source
+FDFLAGS		= @F90DFLAGS@ @MFLAG@@prefix@/source
+COMPILEF	= @FC@ -c @FFLAGS@ @MFLAG@@prefix@/source
+COMPILEF90	= @F90@ -c @F90FLAGS@ @MFLAG@@prefix@/source
+
+LIBS = 

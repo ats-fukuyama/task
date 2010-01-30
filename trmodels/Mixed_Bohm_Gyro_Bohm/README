@@ -1,0 +1,84 @@
+Mixed Bohm/gyro-Bohm model 1.0
+
+The Mixed Bohm/gyro-Bohm anomalous transport model (also called the JET
+or JETTO transport model) contains Bohm and gyro-Bohm contributions.
+The Bohm contribution, which is linear in the gyro-radius, is a 
+non-local transport model, in which the transport throughout the plasma
+depends on a finite difference approximation to the electron temperature
+gradient at the edge of the plasma.  The gyro-Bohm contribution is a
+local transport model, which is proportional to the square of the
+gyro-radius.  The version of the Mixed Bohm/gyro-Bohm model in this
+module is described in detail in Nuclear Fusion 38 (1998) 1013.
+The magnetic and flow shear stabilization are described in Plasma
+Physics and Controlled Fusion 44 (2002) A495.
+
+Glenn Bateman, bateman@fusion.physics.lehigh.edu
+Alexei Pankin, pankin@fusion.physics.lehigh.edu
+Arnold Kritz, kritz@fusion.physics.lehigh.edu
+
+Files
+------------------------------------------------------------------------
+
+From the tarred/zipped files you should get the directory structure:
+
+  \mixed_model     -main directory plus configure and make files
+    \bin           -binaries
+    \data          -input and reference output file
+    \doc           -documentation
+    \lib           -libraries
+    \source        -source code
+
+Mixed Bohm/gyro-Bohm model on a UNIX system
+------------------------------------------------------------------------
+
+On a UNIX system you can configure the makefile with the command:
+
+./configure 
+
+The mixed Bohm/gyro-Bohm model does not require any additioanl libraries, 
+except the standard Fortran-90 libraries
+
+Then 'make' can be run with the following options:
+
+make doc        to create documentation tex files in the subdirectory ./doc
+make compile    to compile the source files and to build the drive program
+make run        to run the drive program and compare the results with the
+                reference case. The comparison results can be found in the
+		file ./data/output.diff. The file output.diff has zero size 
+                if the code is running correctly and there are no differences
+		there are no differences.
+make clean      to remove *.o, *.mod files
+make realclean  to remove *.o, *.mod plus library and binary files
+
+------------------------------------------------------------------------
+
+Source files in ./source
+
+test_mixed.f      Driver for the Mixed Bohm/gyro-Bohm model
+mixed.f           Mixed Bohm/gyro-Bohm model
+
+------------------------------------------------------------------------
+Documentation files in ./doc
+
+There are two LaTeX files with the description of the model 
+(./doc/test_mixed.tex) 
+and drive program (./doc/mixed_model.tex). 
+
+------------------------------------------------------------------------
+Other files in the distribution:
+
+configure
+configure.ac
+config.guess
+config.sub
+
+acextrafun.m4
+aclanguage.m4
+aclocal.m4
+
+makefile.in
+makeinclude.in
+
+install-sh
+config.sum
+config.guess

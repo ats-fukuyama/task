@@ -1,0 +1,341 @@
+                        MMM95 Transport Model
+
+                           Prepared by 
+
+        Glenn Bateman -- bateman@plasma.physics.lehigh.edu
+        Arnold Kritz  -- kritz@plasma.physics.lehigh.edu
+
+        Note this transport model has been tested and used
+        only with double precision.
+
+REVISION HISTORY
+----------------
+       date            Description
+
+   18-Dec-2001         Resistive ballooning diffusivity = abs ( ... )
+                       in order to avoid negative diffusivities when
+                       the pressure profile gradient reverses
+
+   13-Aug-2001         Fixed normalization of gamma and omega
+
+   09-Mar-1999         Revamped comments and included changes as 
+                       suggested by D. McCune, module reviewer for NTCC.
+
+
+UNPACKING INSTRUCTIONS
+
+  > gunzip mmm95.tar.gz
+  > tar xvf mmm95.tar
+
+
+INSTRUCTIONS FOR PRINTING DOCUMENTATION:
+
+	LaTeX files can be produced from three of the source files
+by typing:
+
+  > s2tex.py mmm95.f
+  > s2tex.py weiland14.f
+  > s2tex.py test_mmm95.f
+
+	The resulting LaTeX files can be turned into PostScript files
+by typing:  (Note: apply latex to these files twice to obtain correct 
+cross-references.)
+
+  > latex mmm95.tex
+  > latex mmm95.tex
+  > dvips -f mmm95.dvi > mmm95.ps
+
+with the same procedure applied to weiland14.tex and test_mmm95.tex.
+
+
+CONTENTS:
+
+        This directory should contain the following files:
+
+                README
+                test_mmm95.f
+                mmm95.f
+                weiland14.f
+                tomsqz.f
+                stripx.f
+                s2tex.py
+                sample_input_1
+                sample_input_2
+                sample_input_3
+                sample_output_1_ibm 
+                sample_output_1_hp
+                sample_output_1_sgi
+                sample_output_2_ibm 
+                sample_output_2_hp
+                sample_output_2_sgi
+                sample_output_3_ibm 
+                sample_output_3_hp
+                sample_output_3_sgi
+                makefile (uses gmake)
+
+        These files are as follows:
+
+        README:  This file.  Brief descriptions of the other files,
+                and instructions for compiling the module containing
+                the MMM95 transport model and its driver.  Note, the
+                MMM95 routine has been only tested using double precision
+                with the precision set by compiler flags.
+
+        test_mmm95.f:  File containing fortran code and documentation.
+                The fortran routine in file test_mmm95.f
+                reads the input file "input" and writes the output
+                file, "output".  Parabolic density and temperature
+                profiles, and the associated normalized gradients are
+                prepared for the call to the mmm95 subroutine.
+                Contributions of each of the modes to the thermal and
+                particle diffusitivities, along with their
+                contributions to the convective velocities are written
+                to the file "output".  
+                
+        mmm95.f:  File containing fortran code and documentation.
+                Plasma transport coefficients obtained 
+                using the Multi-Mode transport model, are computed.
+                Contributions to transport from the kinetic ballooning
+                and resistive ballooning modes are computed in this
+                routine.  The contributions form drift wave modes as
+                described by Weiland are in the weiland14.tex
+                described below.  Note, if the Multi-Mode module is 
+                used in another code, attention must be given to the
+                dimension requirements for cswitch, lswitch, fig, fkb,
+                and frb as indicated in the mmm95 routine.
+
+        weiland14.tex:  LaTeX file, with fortran code embedded inside,
+                that describes the Weiland computation of the itg and
+                tem contributions to transport.  The embedded fortran
+                calls weiland14flux where the transport fluxes and
+                diffusivities are computed.  This computation is 
+                carried out using the routines in tomsqz.f.
+
+        weiland14.f:  File containing fortran code and documentation.
+                This routine computes transport from the Weiland
+                model for drift modes [Ion Temperature Gradient (ITG)
+                and Trapped Eelectron Modes (TEM)].  This routine
+                calls weiland14flux where the transport fluxes and
+                diffusivities are computed.  This computation is 
+                carried out using the routines in tomsqz.f.
+
+
+        tomsqz.f:  Wrapper for the ACM/TOMS routine 535 implementing
+                the QZ algorithm solving Ax = lambda Bx where A and
+                B are complex matrices.  Three subroutines are called
+                in the tomsqz.f file.  These are cqzhes, which
+                contains the first step in the QZ algorithm, cqzval,
+                the second and third steps in QZ algorithm and cqzvec
+                which contains the fourth step in QZ algorithm.
+
+        stripx.f:  Utility routine, used by the driver program, which
+                strips all annotation and comments out of the input
+                namelist before it is read.
+
+        s2tex.py:  Python utility script that converts specially
+                labeled comments (comment lines that begin with !|
+                in Fortran code) into imbedded LaTeX documentation
+                (which is placed between \end{verbatim} and 
+                \begin{verbatim} to separate the LaTeX documentation
+                from the surrounding Fortran code).
+
+        sample_input_1:  Sample input namelist for running this module
+                that contains mutlti-mode MMM95 transport model.  Flow
+                Shear is set equal to 0. Copy this file to a file called 
+                "input" before running this module.
+
+        sample_input_2:  Sample input namelist for running this module
+                that contains mutlti-mode MMM95 transport model.  Flow 
+                Shear is turned on in this case.  Copy this file to a 
+                file called "input" before running this module.
+
+        sample_input_3:  Sample input namelist for running this module
+                that contains mutlti-mode MMM95 transport model.  Supershot
+                test case with more peaked profiles.  Copy this file to a 
+                file called "input" before running this module.
+
+        sample_output_1_ibm:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_1" file is copied to "input" and used on the 
+                RS6000 computer.
+
+        sample_output_1_hp:   Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_1" file is copied to "input" and used on the 
+                HP computer.
+
+        sample_output_1_sgi:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_1" file is copied to "input" and used on the 
+                Silicon Graphics computer.
+
+        sample_output_2_ibm:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_2" file is copied to "input" and used on the 
+                RS6000 computer.
+
+        sample_output_2_hp:   Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_2" file is copied to "input" and used on the 
+                HP computer.
+
+        sample_output_2_sgi:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_2" file is copied to "input" and used on the 
+                Silicon Graphics computer.
+
+        sample_output_3_ibm:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_3" file is copied to "input" and used on the 
+                RS6000 computer.
+
+        sample_output_3_hp:   Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_3" file is copied to "input" and used on the 
+                HP computer.
+
+        sample_output_3_sgi:  Sample output.  This file contains the output
+                that should be produced in file "output" when the the 
+                "sample_input_3" file is copied to "input" and used on the 
+                Silicon Graphics computer.
+
+
+        makefile: File used by the gmake utility.  NOTE, "gmake" not
+                "make" must be used. This makefile has been written to
+                work on the IBM/AIX, SUN/Solaris, SGI/IRIX, HP/UX, and
+                DEC platforms and can be modified to work on other
+                systems.  This makefile contains the instructions for
+                compiling and building the "xmmm95" program.
+                The executable file, "xmmm95"
+                is constructed using the files described above.
+
+COMPILATION INSTRUCTIONS:
+
+       * First, set the environmental variable "CPU" to one of the following:
+
+FUJITSU  for the Lahey/Fujitsu F90/95 compiler on LINUX systems
+IBM      for the standard compiler on IBM/AIX workstations
+SOL      for the standard compiler on Sun Solaris workstations
+SGI      for the standard compiler on SGI Origin 200 workstations
+DEC      for the standard compiler on DEC alpha workstations
+HP       for the standard compiler on Hewlett Packard workstations
+
+       For example, in the Bourne shell on an SGI workstation, type:
+
+export CPU=SGI
+
+       If you are using the C-shell on an SGI workstation, type
+
+setenv CPU SGI
+
+       * To compile the stand-alone test code "xmmm95"
+         simply type:
+
+                gmake
+
+        at the unix prompt.  The makefile contains all the
+        instructions needed by the "gmake" utility to create the test
+        executable, which is called "xmmm95".
+
+        NOTE: The makefile uses make-variable CPU to control platform-
+        dependent settings. CPU can be set either by defining an
+        environment variable CPU, or by editting the makefile to
+        include a line CPU=... , or by typing CPU=... on the gmake
+        execute line.  If CPU is not set, it is defaulted to IBM. This
+        version of the makefile is prepared for CPU=IBM (for an
+        IBM/AIX system), for CPU=SOL (for Solaris), for CPU=SGI
+        (for the SGI Origin 200), for CPU=DEC (for the DEC), and for
+        CPU=HP (for the Hewlett Packard), and for the Lahey/Fujitsu
+        F90/95 compiler set CPU=FUJITSU.  If you add another CPU
+        branch to the makefile, please let us know what works.
+
+
+      * If the make utility does not work, or if the module is being
+        compiled on a non-IBM, non-SUN platform, non-SGI, non-DEC, or 
+        non-HP platform then the compilations will need to be done by 
+        hand. What follows are step-by-step instructions for creating 
+        the test executable xmmm95.
+
+        1) Compile and produce object codes for "test_mmm95.f",
+           "mmm95.f", "weiland14.f", "tomsqz.f" and "stripx.f". 
+           Suppose the Fortran 90 compiler on your system is called
+           "f90".  Suppose "-r8" is the option needed to promote all
+           single precision variables to double precision.  
+           An object code is produced when
+           the compiler is invoked with a "-c" option:
+
+                f90 -c -r8 -o test_mmm95.o test_mmm95.f
+                f90 -c -r8 -o mmm95.o mmm95.f
+                f90 -c -r8 -o weiland14.o weiland14.f
+                f90 -c -r8 -o tomsqz.o tomsqz.f             
+                f90 -c -r8 -o stripx.o stripx.f
+
+        4) Link these object codes together, producing the executable "xip".
+          For example:
+
+                f90 -r8 -o xmmm95 \
+                test_mmm95.o mmm95.o weiland14.o tomzqz.o stripx.o
+
+        There are, of course, several compiling options that one could
+        use when carrying out steps (1)-(4).  The makefile contains
+        the recommended compiling options for the IBM and SUN systems,
+        along with a brief description of each.  These comments should
+        make the task of finding analogous compiling options on
+        another system easier.
+
+RUNNING INTRUCTIONS:
+
+        "xmmm95" requires only one input file, the namelist "input".
+
+        To produce each of the test cases, copy the sample input
+        file, "sample_input", to the file "input" and run "xmmm95".
+
+        As it runs, "xmmm95" will generate two files: "temp" and
+        "output".
+        
+        "temp" is a temporary file, containing the input namelist
+        without annotation and notes.  "temp" is actually the file
+        read during the namelist read in the xmmm95 program.
+
+        "output" is the output file.  At the beginning of this file,
+        the input namelist (with annotation) is reproduced.  Then, the
+        program produces a substantial amount of diagnostic output,
+        which fills out the rest of this file.
+
+        When this package is ported to a new platform, it is suggested
+        that the test cases be run first.  Each time, compare the
+        output file "output" to the appropriate sample output file, in
+        order to verify that all is working as expected.  For machines
+        other than HP and IBM, use the SGI version sample output files
+        for comparison.
+
+        When sbrtn mmm95 is used in the BALDUR transport code to
+        compute particle and thermal fluxes, smoothing of the gradients
+        is normally needed for numerical stability.  Note that the
+        lower bounds of the gradient scale lengths are limited by
+        the poloidal ion Larmor radius (zlarpo) in sbrtn mmm95.
+
+IF YOU HAVE ANY PROBLEMS, PLEASE CONTACT EITHER:
+
+
+        GLENN BATEMAN, Lehigh University 
+                 bateman@fusion.physics.lehigh.edu
+
+        or
+
+        ARNOLD KRITZ, Lehigh University 
+                 kritz@fusion.physics.lehigh.edu
+
+
+This implementation of the MMM95 transport model is based on work
+carried out by:
+
+Glenn Bateman, Lehigh University
+Jon Kinsey, Lehigh University and currently at General Atomics
+Jan Weiland, Chalmers University
+Par Strand, Chamlers University
+Hans Nordman, Chalmers University
+Clifford Singer, University of Illinois
+James Drake, University of Maryland
+Parvez Guzdar, University of Maryland
+

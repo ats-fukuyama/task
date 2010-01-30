@@ -1,0 +1,23 @@
+ &indata
+  k_out      = 2
+  k_order    = 2
+  k_potato   = 0
+  c_den      = 1.0e10
+  p_eps      = 0.1
+  p_grphi    = -5.0e3
+  p_gr2phi   = -2.0e4
+  p_q        = -3.0
+  r0         = 3.0
+  a0         = 1.0
+  e0         = 1.0
+  bt0        = -3.0
+  q0         = -5.0
+  amu_i      = 5.4463e-4 1.0       12.0      16.0
+  temp_i     = 10.0      15.0      15.0      15.0
+  den_iz(1,1)= 0.505e20 
+  den_iz(2,1)= 0.2e20
+  den_iz(3,2)= 0.05e20
+  den_iz(3,4)= 0.0125e20
+  den_iz(4,5)= 0.01e20
+  den_iz(4,7)= 0.015e20
+ /

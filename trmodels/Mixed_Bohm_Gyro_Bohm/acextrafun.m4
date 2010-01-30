@@ -1,0 +1,7 @@
+dnl 
+dnl
+
+AC_DEFUN(AP_CANONICAL_HOST, [
+  AC_CANONICAL_HOST
+])
+

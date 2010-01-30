@@ -1,0 +1,40 @@
+# Makefile for the Mixed Bohm/gyro-Bohm model
+# Alexei Pankin <pankin@fusion.physics.lehigh.edu> LU, 2003
+#
+include makeinclude
+SRCDIR=./source
+LIBDIR=./lib
+DOCDIR=./doc
+
+.SUFFIXES:
+.SUFFIXES: .f .tex .o
+
+all: doc compile run
+
+doc: test_mixed.tex mixed_Bohm_gyro_Bohm.tex
+
+compile:
+	cd ./source; \
+	make test
+
+run: compile
+	cd data; \
+	echo "running drive program...";\
+	../bin/test_mixed; \
+	rm -f temp; \
+	echo "comparing results...";\
+	diff output.dat output >& output.diff ;\
+	echo "differences are saved in data/output.diff";\
+	echo "done!";
+
+clean:
+	rm -f source/*.o source/*.mod 
+
+realclean:
+	rm -f  source/*.o source/*.mod lib/*.a bin/test_mixed
+
+.f.tex:
+	cd ./doc; \
+	python ../bin/s2tex.py $<; \
+	rm -f ../source/$*.pure.f ../source/$*.pure.tex; \
+	mv -f ../source/$*.tex .
