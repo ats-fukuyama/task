@@ -21,16 +21,23 @@
 !     Output transport coefficients              : grid
 !   *************************************************************
 
-      USE TRCOMM, ONLY : ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, AVKDW, BB, CDH, DR, MDDW, MDLEOI, &
-     &                   MDLEQN, MDLEQT, MDLKAI, MDLUF, NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG,  &
-     &                   RKAP, RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, WEXB, WROT, ZEFF, ALPHA
+      USE TRCOMM, ONLY : &
+           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
+           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
+           NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
+           RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
+           WEXB, WROT, ZEFF, ALPHA
       IMPLICIT NONE
       INCLUDE 'trglf.inc'
       REAL(8),DIMENSION(NRMAX), INTENT(IN):: S_HM
-      INTEGER(4):: i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
-      REAL(8)   :: alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, chiitim, deltat, diffnem, etaparm, etaperm, &
-     &             etaphim, exchm, fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, zpni_in, zpte_in, zpti_in
-
+      INTEGER(4):: &
+           i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
+           jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
+      REAL(8)   :: &
+           alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, &
+           chiitim, deltat, diffnem, etaparm, etaperm, etaphim, exchm, &
+           fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
+           zpni_in, zpte_in, zpti_in
 
       MDDW=1
 !     INPUTS
@@ -348,11 +355,19 @@
                ENDDO
 
             DO NR=1,NRMAX
-               AVKDW(NR, 1)=qe0(NR)-chien(NR)*zpni_m(NR)-chiee(NR)*zpte_m(NR)-chiei(NR)*zpti_m(NR)
-               AVDW (NR, 1)=qn0(NR)-ddnn (NR)*zpni_m(NR)-ddne (NR)*zpte_m(NR)-ddni (NR)*zpti_m(NR)
+               AVKDW(NR, 1)=qe0(NR)-chien(NR)*zpni_m(NR) &
+                                   -chiee(NR)*zpte_m(NR) &
+                                   -chiei(NR)*zpti_m(NR)
+               AVDW (NR, 1)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
+                                   -ddne (NR)*zpte_m(NR) &
+                                   -ddni (NR)*zpti_m(NR)
                DO NS=2,NSM
-                  AVKDW(NR,NS)=qi0(NR)-chiin(NR)*zpni_m(NR)-chiie(NR)*zpte_m(NR)-chiii(NR)*zpti_m(NR)
-                  AVDW (NR,NS)=qn0(NR)-ddnn (NR)*zpni_m(NR)-ddne (NR)*zpte_m(NR)-ddni (NR)*zpti_m(NR)
+                  AVKDW(NR,NS)=qi0(NR)-chiin(NR)*zpni_m(NR) &
+                                      -chiie(NR)*zpte_m(NR) &
+                                      -chiii(NR)*zpti_m(NR)
+                  AVDW (NR,NS)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
+                                      -ddne (NR)*zpte_m(NR) &
+                                      -ddni (NR)*zpti_m(NR)
                ENDDO
 !               write(6,'(I3,6F12.7)') NR,chiin(NR),zpni_m(NR)
 !     &              ,chiie(NR),zpte_m(NR),chiii(NR),zpti_m(NR)
@@ -439,16 +454,20 @@
 
 !***********************************************************************
 
-      USE TRCOMM, ONLY : AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, NGLF, NRMAX, NT, PA, PNSS, PTS, PZ, &
-     &                   QP, RA, RHOG, RHOM, RJCB, RKAP, RKEV, RMU0, RN, RR, RT, WEXB, S
+      USE TRCOMM, ONLY : &
+           AR1RHOG, AR2RHOG, BB, DR, EPSRHO, MDDW, MDLKAI, MDLTPF, NGLF, &
+           NRMAX, NT, PA, PNSS, PTS, PZ, QP, RA, RHOG, RHOM, RJCB, RKAP, &
+           RKEV, RMU0, RN, RR, RT, WEXB, S
       IMPLICIT NONE
       INTEGER(4):: ist, nr
-      REAL(8)   :: azl, betael, bql, coll, drl, eel, eil, ell, enl, enql, eps, epsa, eql, fll, fls, ftl, ftpf, &
-     &             pma, ql, rgkl, risbl, riwl, rlist, rneql, rnl, rotl, sche, schi, schq, sd, sdq, search, shat, &
-     &             sl, slbl, slnel, slnil, slnql, sltel, sltil, sltql, taul, tauzl, tel, wexbl, zl
+      REAL(8)   :: &
+           azl, betael, bql, coll, drl, eel, eil, ell, enl, enql, eps, &
+           epsa, eql, fll, fls, ftl, ftpf, pma, ql, rgkl, risbl, riwl, &
+           rlist, rneql, rnl, rotl, sche, schi, schq, sd, sdq, search, &
+           shat, sl, slbl, slnel, slnil, slnql, sltel, sltil, sltql, taul, &
+           tauzl, tel, wexbl, zl
       REAL(8)   :: deriv3p
       REAL(8),DIMENSION(5):: CHEL, CHIL, CHQL, DL, DQL
-
 
       MDDW=1
       IF(NT.EQ.0) THEN
@@ -487,7 +506,8 @@
          BQL   = (RN(NR+1,3)+RN(NR,3))/(RN(NR+1,1)+RN(NR,1))
          EQL   =       SLNQL/SLTQL
          ENQL  = 2.D0*(SLNQL/SLBL )
-         BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))*RKEV*1.D20/(BB**2/(2.D0*RMU0))
+         BETAEL= 0.5D0*(RN(NR+1,1)*RT(NR+1,1)+RN(NR,1)*RT(NR,1))*RKEV*1.D20 &
+                 /(BB**2/(2.D0*RMU0))
          TEL   = 0.5D0*(RT(NR+1,1)+RT(NR,1))
          TAUZL = (RT(NR+1,1)+RT(NR,1))/(RT(NR+1,3)+RT(NR,3))
          QL    = QP(NR)
@@ -508,9 +528,10 @@
 !         VEI  = COEF*RNL*RLAMB/TEL**1.5D0
 !         write(6,*) NR,COEF,VEI
 
-         CALL TR_WEILAND_BRIDGE (ENL,EIL,EEL,TAUL,FLL,FTL,BQL,EQL,ENQL,ZL,BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA, &
-     &      QL,SL,EPS,EPSA,RNL,RLIST,RNEQL,RKAP,RIWL,RISBL,BB,SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST, &
-     &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
+         CALL TR_WEILAND_BRIDGE (ENL,EIL,EEL,TAUL,FLL,FTL,BQL,EQL,ENQL,ZL, &
+              BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA,QL,SL,EPS,EPSA,RNL,RLIST, &
+              RNEQL,RKAP,RIWL,RISBL,BB,SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST, &
+              CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 
 !         write(6,'(I3,5F15.7)') NR,CHIL(2),CHEL(2),DL(2),CHQL(2),DQL(2)
 
@@ -524,12 +545,18 @@
 
       NR=NRMAX
          EPS   = EPSRHO(NR)
-         SLNEL =-PNSS(1)/DERIV3P(PNSS(1),RN(NR,1),RN(NR-1,1),RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLNIL =-PNSS(2)/DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLNQL =-PNSS(3)/DERIV3P(PNSS(3),RN(NR,3),RN(NR-1,3),RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTEL =-PTS (1)/DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1), RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTIL =-PTS (2)/DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), RHOG(NR),RHOM(NR),RHOM(NR-1))
-         SLTQL =-PTS (3)/DERIV3P(PTS(3),RT(NR,3),RT(NR-1,3), RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLNEL =-PNSS(1)/DERIV3P(PNSS(1),RN(NR,1),RN(NR-1,1), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLNIL =-PNSS(2)/DERIV3P(PNSS(2),RN(NR,2),RN(NR-1,2), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLNQL =-PNSS(3)/DERIV3P(PNSS(3),RN(NR,3),RN(NR-1,3), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTEL =-PTS (1)/DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTIL =-PTS (2)/DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
+         SLTQL =-PTS (3)/DERIV3P(PTS(3),RT(NR,3),RT(NR-1,3), &
+                                 RHOG(NR),RHOM(NR),RHOM(NR-1))
          SLBL  = RR
          ENL   = 2.D0*(SLNEL/SLBL )
          EIL   =       SLNIL/SLTIL
@@ -555,9 +582,10 @@
             FLL   = 2.D0*FLS/(1.D0+1.D0/TAUL)
          ENDIF
 
-         CALL TR_WEILAND_BRIDGE (ENL,EIL,EEL,TAUL,FLL,FTL,BQL,EQL,ENQL,ZL,BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA, &
-     &      QL,SL,EPS,EPSA,RNL,RLIST,RNEQL,RKAP,RIWL,RISBL,BB,SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST, &
-     &      CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
+         CALL TR_WEILAND_BRIDGE (ENL,EIL,EEL,TAUL,FLL,FTL,BQL,EQL,ENQL,ZL, &
+              BETAEL,AZL,COLL,ELL,TEL,TAUZL,RA,QL,SL,EPS,EPSA,RNL,RLIST, &
+              RNEQL,RKAP,RIWL,RISBL,BB,SEARCH,PMA,RGKL,WEXBL,ROTL,NR,IST, &
+              CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 
          CALL WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 
@@ -568,7 +596,8 @@
 
       SUBROUTINE WEILAND_COEF(NR,CHIL,CHEL,DL,CHQL,DQL,SCHI,SCHE,SD,SCHQ,SDQ)
 
-      USE TRCOMM, ONLY : ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NGLF, NSM, PA
+      USE TRCOMM, ONLY : &
+           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, MDLWLD, NGLF, NSM, PA
       IMPLICIT NONE
       INTEGER(4)  :: NR
       REAL(8)     :: SCHE, SCHI, SCHQ, SD, SDQ
@@ -695,27 +724,35 @@
 
 !     ****************************************************************
 
-      SUBROUTINE TR_WEILAND_BRIDGE (EN,EI,EE,TAU,FL,FT,BQ,EQ,ENQ,Z,BETAE,AZ,COL,EL,TE,TAUZ,PR, &
-     &      Q,S,EPSR,E,N,LIST,RNEQ,KAPPA,RIW,RISB,BTOR,SEARCH,MA,GKL,WEXBL,ROTL,IKL,ISTL, &
-     &      CHI,CHE,D,CHQ,DQ,SCHIL,SCHEL,SDL,SCHQL,SDQL)
+      SUBROUTINE TR_WEILAND_BRIDGE (EN,EI,EE,TAU,FL,FT,BQ,EQ,ENQ,Z,BETAE,AZ, &
+           COL,EL,TE,TAUZ,PR,Q,S,EPSR,E,N,LIST,RNEQ,KAPPA,RIW,RISB,BTOR, &
+           SEARCH,MA,GKL,WEXBL,ROTL,IKL,ISTL,CHI,CHE,D,CHQ,DQ,SCHIL,SCHEL, &
+           SDL,SCHQL,SDQL)
 
       IMPLICIT NONE
-      REAL(8),   INTENT(IN):: TE,BTOR,RIW,RISB,EI,TAU,FL,EN,FT,EE,BQ,EQ,ENQ,Z,TAUZ,BETAE,MA,E,Q,S,KAPPA, &
-     &                        PR,N,RNEQ,EPSR,AZ,COL,EL,LIST,SEARCH,GKL,WEXBL,ROTL
+      REAL(8),   INTENT(IN):: &
+           TE,BTOR,RIW,RISB,EI,TAU,FL,EN,FT,EE,BQ,EQ,ENQ,Z,TAUZ,BETAE,MA,E, &
+           Q,S,KAPPA,PR,N,RNEQ,EPSR,AZ,COL,EL,LIST,SEARCH,GKL,WEXBL,ROTL
       INTEGER(4),INTENT(IN):: IKL,ISTL
       REAL(8),DIMENSION(5),INTENT(INOUT):: CHI,CHE,D,CHQ,DQ
       REAL(8),INTENT(OUT)  :: SCHIL,SCHEL,SDL,SCHQL,SDQL
       INTEGER(4):: ICP, IR, NDISP
-      REAL(8)   :: A, B, C, DS, DTOT, ENN, G, H, LAMB, LNH, NI, NQ, R, TAUI, TVR, VEI, WI, WIS, WR, WRS, WST, ZEFF, ZX
+      REAL(8)   :: &
+           A, B, C, DS, DTOT, ENN, G, H, LAMB, LNH, NI, NQ, R, TAUI, TVR, &
+           VEI, WI, WIS, WR, WRS, WST, ZEFF, ZX
       REAL(8),DIMENSION(5,100):: U
       COMPLEX(8):: W
       COMPLEX(8),DIMENSION(10):: RP
 
-      INTEGER(4):: I,IW,IX,IK,IST,ITS,ITL,ITERA,ITC,ISB,LPRINTIN,NDIM,NEQ,IRET,SEARCHMODE
-      REAL(8)   :: THRD,STR,XIH,RFL,H1,FTR,GQ,BF,ZE,CS,KPPA,RAV,ALP,ALF,KPC,D1,SI,KIQ,KXQ,WDE,EPS
-      REAL(8)   :: SCHI,SCHE,SD,SCHQ,SDQ,EA,GK,ETE,ETI,ETQ,AZL,ALAF,GAV,VEF,BTA,EM
-      REAL(8)   :: EIC,EEC,ENC,TAUC,FLC,FTC,EQC,ENQC,BETAEC,TAUZC,QC,SC,ENHC,ZFS,KPS,CHIC,WEXB,ROT
-      REAL(8)   :: WZIMAX,TOL,SHPE,SCHEF,DEF,LTH,LTE,LN,LTQ,LNQ
+      INTEGER(4):: &
+           I,IW,IX,IK,IST,ITS,ITL,ITERA,ITC,ISB,LPRINTIN,NDIM,NEQ,IRET, &
+           SEARCHMODE
+      REAL(8)   :: &
+           THRD,STR,XIH,RFL,H1,FTR,GQ,BF,ZE,CS,KPPA,RAV,ALP,ALF,KPC,D1,SI, &
+           KIQ,KXQ,WDE,EPS,SCHI,SCHE,SD,SCHQ,SDQ,EA,GK,ETE,ETI,ETQ,AZL,ALAF, &
+           GAV,VEF,BTA,EM,EIC,EEC,ENC,TAUC,FLC,FTC,EQC,ENQC,BETAEC,TAUZC,QC, &
+           SC,ENHC,ZFS,KPS,CHIC,WEXB,ROT,WZIMAX,TOL,SHPE,SCHEF,DEF,LTH,LTE, &
+           LN,LTQ,LNQ
       REAL(8),DIMENSION(5):: HPT
       REAL(8),DIMENSION(32):: CETAIN
       REAL(8),DIMENSION(10,10):: ZVR,ZVI
@@ -978,22 +1015,27 @@
 
 !     ***********************************************************
 
-      SUBROUTINE IFSPPPL_DRIVER(NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG, &
-     &                          RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX,AR1RHOG,AR2RHOG,AKDW)
+      SUBROUTINE IFSPPPL_DRIVER(NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP, &
+           S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNFL,RBEEDG,MDLUF,NSMAX, &
+           AR1RHOG,AR2RHOG,AKDW)
 
       IMPLICIT NONE
 
       INTEGER(4),INTENT(IN):: NSM,NSTM,NRMAX,MDLUF,NSMAX
       REAL(8)   ,INTENT(IN):: RR,DR,BB,AMM,AME,RBEEDG
       REAL(8),DIMENSION(NRMAX,NSMAX),INTENT(IN):: RN, RT
-      REAL(8),DIMENSION(NRMAX)    ,INTENT(IN):: RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RNFL,AR1RHOG,AR2RHOG
+      REAL(8),DIMENSION(NRMAX),INTENT(IN):: &
+           RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RNFL,AR1RHOG,AR2RHOG
       REAL(8),DIMENSION(NSMAX)    ,INTENT(IN):: PNSS,PTS
       REAL(8),DIMENSION(NRMAX,NSTM),INTENT(OUT)::AKDW
       integer(4) :: ii, ierr, nr
       integer(4),parameter :: ipin=7,iptmp=8,ipout=9,screen=6
       integer(4),dimension(32):: switches
-      real(4)   :: btesla, chie, chii, gnu, grhoi, gtau, gvti, ne19, omegaexb, rmajor, tekev, tikev, zchie1, zchie2, &
-     &             zchii1, zchii2, zchiicyc, zeps, zkappa, znbne, zncne, znine, zq, zrln, zrlt, zrlt1, zrlt2, zshat
+      real(4) :: &
+           btesla, chie, chii, gnu, grhoi, gtau, gvti, ne19, omegaexb, &
+           rmajor, tekev, tikev, zchie1, zchie2, zchii1, zchii2, zchiicyc, &
+           zeps, zkappa, znbne, zncne, znine, zq, zrln, zrlt, zrlt1, zrlt2, &
+           zshat
       REAL(8)   :: DERIV3P
 
 
@@ -1022,8 +1064,10 @@
             zncne  = 0.0
          ENDIF
          znbne  = SNGL( (RNFL(NR+1 )+RNFL(NR ))/(RN (NR+1,1)+RN (NR,1)))
-         zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2)))*(RT(NR+1,2)-RT(NR,2))/DR*RJCB(NR))
-         zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1)))*(RN(NR+1,1)-RN(NR,1))/DR*RJCB(NR))
+         zrlt   =-SNGL(RR/(0.5D0*(RT(NR+1,2)+RT(NR,2))) &
+                           *(RT(NR+1,2)-RT(NR,2))/DR*RJCB(NR))
+         zrln   =-SNGL(RR/(0.5D0*(RN(NR+1,1)+RN(NR,1))) &
+                           *(RN(NR+1,1)-RN(NR,1))/DR*RJCB(NR))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
@@ -1040,9 +1084,10 @@
          grhoi  = SNGL(6.46D-3*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2)))/BB)
          gvti   = SNGL(2.19D5*SQRT(0.5D0*(RT(NR+1,2)+RT(NR,2))))
 
-         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps, zkappa, omegaexb, ne19, tekev, tikev, &
-     &                 rmajor, btesla, switches, grhoi, gvti, gnu, gtau, chii, chie, &
-     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2, zrlt1, zrlt2, ierr )
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln, zq, zshat, zeps, &
+              zkappa, omegaexb, ne19, tekev, tikev, rmajor, btesla, &
+              switches, grhoi, gvti, gnu, gtau, chii, chie, zchiicyc, &
+              zchii1, zchii2, zchie1, zchie2, zrlt1, zrlt2, ierr )
 !         IF(IERR.NE.0) THEN
 !            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
 !            STOP
@@ -1060,8 +1105,10 @@
             zncne  = 0.0
          ENDIF
          znbne  = SNGL(RBEEDG)
-         zrlt   =-SNGL(RR/PTS(2)*DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2),RHOG(NR),RHOM(NR),RHOM(NR-1)))
-         zrln   =-SNGL(RR/PTS(1)*DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1),RHOG(NR),RHOM(NR),RHOM(NR-1)))
+         zrlt   =-SNGL(RR/PTS(2)*DERIV3P(PTS(2),RT(NR,2),RT(NR-1,2), &
+                                         RHOG(NR),RHOM(NR),RHOM(NR-1)))
+         zrln   =-SNGL(RR/PTS(1)*DERIV3P(PTS(1),RT(NR,1),RT(NR-1,1), &
+                                         RHOG(NR),RHOM(NR),RHOM(NR-1)))
          zq     = SNGL(QP(NR))
          zshat  = SNGL(S(NR))
          zeps   = SNGL(EPSRHO(NR))
@@ -1077,9 +1124,10 @@
          grhoi  = SNGL(6.46D-3*SQRT(PTS(2))/BB)
          gvti   = SNGL(2.19D5*SQRT(PTS(2)))
 
-         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,zq, zshat, zeps, zkappa, omegaexb, &
-     &                 ne19, tekev, tikev, rmajor, btesla,switches, grhoi, gvti, gnu, gtau,chii, chie, &
-     &                 zchiicyc, zchii1, zchii2, zchie1, zchie2,zrlt1, zrlt2, ierr )
+         CALL IFSPPPL( znine, zncne, znbne, zrlt, zrln,zq, zshat, zeps, &
+              zkappa, omegaexb, ne19, tekev, tikev, rmajor, btesla, &
+              switches, grhoi, gvti, gnu, gtau,chii, chie, zchiicyc, &
+              zchii1, zchii2, zchie1, zchie2,zrlt1, zrlt2, ierr )
 !         IF(IERR.NE.0) THEN
 !            WRITE(6,*) 'XX IFS/PPPL : ERROR IERR=',IERR
 !            STOP

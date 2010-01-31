@@ -18,25 +18,35 @@
 
       SUBROUTINE TRCFDW
 
-      USE TRCOMM, ONLY : AEE, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, CK0, CK1, CKALFA, CKBETA, CKGUMA, &
-     &                   CWEB, DR, EPS0, EPSRHO, ER, EZOH, KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC,   &
-     &                   NRMAX, NSM, NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, RG, RHOG, RHOM,  &
-     &                   RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM,     &
-     &                   TAUK, VC, VEXB, VGR1, VGR2, VGR3, VGR4, WEXB, ZEFF
+      USE TRCOMM, ONLY : &
+           AEE, AGMP, AKDW, AME, AMM, AR1RHOG, AR2RHOG, BB, CALF, CDW, CK0, &
+           CK1, CKALFA, CKBETA, CKGUMA, CWEB, DR, EPS0, EPSRHO, ER, EZOH, &
+           KGR1, KGR2, KGR3, KGR4, MDCD05, MDLKAI, MDLUF, MDTC, NRMAX, NSM, &
+           NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
+           RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
+           RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
+           VGR2, VGR3, VGR4, WEXB, ZEFF
       USE cdbm_mod
+      USE trmodels,ONLY: mbgb_driver
       IMPLICIT NONE
-      INTEGER(4):: NS, NR08, NR
-      REAL(8)   :: AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, AMI, AMT, ANA, ANDX, ANE, ANT, &
-     &             ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, CLS, CLT, CRTCL, CS, DEDW, DELTA2, DERIV3, DIDW, DKAI, DND, DNE, &
-     &             DPE, DPERHO, DPP, DQ, DRL, DTD, DTE, DTERHO, DTI, DVE, EPS, ETAC, ETAI, EZOHL, F, FBHM, FDREV, FEXB, &
-     &             FS, FTAUE, FTAUI, HETA, OMEGAD, OMEGAS, OMEGASS, OMEGATT, PLOG, PNI, PPK, PTI, QL, RBEEDG, RG1, RGL, &
-     &             RGLC, RHOI, RHOS, RKPP2, RLAMBDA, RLAMDA, RNM, RNP, RNST2, RNTM, RNTP, RNUZ, ROUS, RPEM, RPEP, &
-     &             RPM, RPP, RREFF, RRSTAR, RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, TRCOFSS, &
-     &             TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX,     &
-     &             BPA, PROFDL
-      REAL(8):: RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP
-      REAL(8):: chi_cdbm
-      INTEGER:: MODEL
+      INTEGER(4):: &
+           NS, NR08, NR
+      REAL(8)   :: &
+           AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, &
+           AMI, AMT, ANA, ANDX, ANE, ANT, ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, &
+           CLS, CLT, CRTCL, CS, DEDW, DELTA2, DERIV3, DIDW, DKAI, DND, DNE, &
+           DPE, DPERHO, DPP, DQ, DRL, DTD, DTE, DTERHO, DTI, DVE, EPS, ETAC, &
+           ETAI, EZOHL, F, FBHM, FDREV, FEXB, FS, FTAUE, FTAUI, HETA, OMEGAD, &
+           OMEGAS, OMEGASS, OMEGATT, PLOG, PNI, PPK, PTI, QL, RBEEDG, RG1, &
+           RGL, RGLC, RHOI, RHOS, RKPP2, RLAMBDA, RLAMDA, RNM, RNP, RNST2, &
+           RNTM, RNTP, RNUZ, ROUS, RPEM, RPEP, RPM, RPP, RREFF, RRSTAR, &
+           RRSTAX, SA, SL, SLAMDA, TA, TAUAP, TAUD, TAUE, TD, TE, TI, TRCOFS, &
+           TRCOFSS, TRCOFSX, TRCOFT, TT, VA, VTE, VTI, WCI, WE1, WPE2, XCHI0, &
+           XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL
+      REAL(8):: &
+           RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
+           PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
+      INTEGER:: MODEL,ierr
       REAL(8),DIMENSION(NRMAX):: S_HM
       REAL(8)   :: DERIV3P
 
@@ -62,7 +72,7 @@
          KGR2='/ETAI,ETAC  vs r/'
          KGR3='/CLN,CLT  vs r/'
          KGR4='/CLS  vs r/'
-      case(30:40,130:140)
+      case(30:40,130:139)
          KGR1='/E$-r$=  vs r/'!'/NST$+2$= vs r/'
          KGR2='/V$-ExB$=  vs r/'!'/OmegaST vs r/'
 !         KGR3='@1/(1+G*WE1$+2$=)  vs r@'!'@lambda vs r@'
@@ -83,6 +93,11 @@
          KGR2='/E$-r$=/'
          KGR3='/GROWTH RATE/'
          KGR4='/ExB SHEARING RATE/'
+      case(140:149)
+         KGR1='/ExB SHEARING RATE/'
+         KGR2='//'
+         KGR3='/chi_e tot;B;GB/'
+         KGR4='/chi_i tot;B;GB/'
       case default
          KGR1='//'
          KGR2='//'
@@ -332,7 +347,7 @@
          RKCV(NR)=-EPS*(1.D0-1.D0/(QL*QL))
 
 !     rotational shear
-!        omega(or gamma)_e=r/q d(q v_exb/r)/dr
+!        omega(or gamma)_e=(r/q) d(q v_exb/r)/dr
          DVE = DERIV3(NR,RHOG,VEXB,NRMAX,1)
          WEXB(NR) = (S(NR)-1.D0)*VEXB(NR)/RHOG(NR)+DVE
 !     Doppler shear
@@ -347,7 +362,8 @@
 !   ***       MDLKAI.GE.60 : ITG(/TEM, ETG) MODEL ETC         ***
 !   *************************************************************
 !
-         IF(MDLKAI.LT.10) THEN
+         SELECT CASE(MDLKAI)
+            CASE(0:9)
 !   *********************************************************
 !   ***  MDLKAI.EQ. 0   : CONSTANT*(1+A*r**2)             ***
 !   ***  MDLKAI.EQ. 1   : CONSTANT/(1-A*r**2)             ***
@@ -393,7 +409,7 @@
             VGR4(NR,1)=CLS
             VGR4(NR,2)=CLS
 
-         ELSEIF(MDLKAI.LT.20) THEN
+          CASE(10:19)
 
             ETAI=CLN/CLT
             select case(MDLKAI)
@@ -501,7 +517,7 @@
             VGR4(NR,1)=CLS
             VGR4(NR,2)=CLS
 
-         ELSEIF(MDLKAI.LT.30) THEN
+          CASE(20:29)
 
             select case(MDLKAI)
             case(20)
@@ -533,7 +549,7 @@
             VGR4(NR,1)=CLS
             VGR4(NR,2)=CLS
 
-         ELSEIF(MDLKAI.LT.41) THEN
+          CASE(30:39)
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
@@ -659,7 +675,7 @@
             VGR4(NR,2)=1.D0/(1.D0+OMEGASS**2)
             VGR4(NR,3)=0.D0
 
-         ELSEIF(MDLKAI.LT.51) THEN
+          CASE(40:50)
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
@@ -776,9 +792,7 @@
 !            VGR4(NR,3)=1.D0/(1.D0+RG1*WE1*WE1)
             VGR4(NR,3)=RG1
 
-         ELSEIF(MDLKAI.GE.60.AND.MDLKAI.LE.64) THEN
-            CONTINUE
-         ELSEIF(MDLKAI.EQ.65) THEN
+          CASE(65)
 
             WPE2=ANE*1.D20*AEE*AEE/(AME*EPS0)
             DELTA2=VC**2/WPE2
@@ -827,7 +841,7 @@
                VGR1(NR,1) = FBHM(WEXB(NR),AGITG,S(NR))
             ENDIF
 
-         ELSEIF(MDLKAI.GE.100) THEN
+          CASE(130:139)
 
             RS=RA*RG(NR)
             RKAPL=RKPRHO(NR)
@@ -867,13 +881,50 @@
             VGR4(NR,2)=0.D0
             VGR4(NR,3)=0.D0
 
-         ELSE
+         CASE(140:149)
+            PAL=0.D0
+            PZL=0.D0
+            DO NS=2,NSMAX
+               PAL=PAL+PA(NS)*RN(NR,NS)
+               PZL=PZL+PZ(NS)*RN(NR,NS)
+            ENDDO
+            PAL=PAL/RN(NR,1)
+            PZL=PZL/RN(NR,1)
+           
+            CALL mbgb_driver(RA*RG(NR),RR,ANE*1.D20,TE,TI,DTE,DNE,PAL,PZL, &
+                             QP(NR),BB,WEXB(NR),S(NR), &
+                             ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
+                             ierr)
+!            WRITE(6,'(1P6E12.4)') &
+!                 RA*RG(NR),RR,ANE*1.D20,TE,TI,DTE, &
+!                 DNE,PAL,PZL,QP(NR),BB,WEXB(NR), &
+!                 S(NR),ADFFI, &
+!                 ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
+
+            AKDWEL=ACHIE
+            AKDWIL=ACHII
+
+            AKDW(NR,1)=AKDWEL
+            AKDW(NR,2)=AKDWIL
+            AKDW(NR,3)=AKDWIL
+            AKDW(NR,4)=AKDWIL
+
+            VGR1(NR,1)=WEXB(NR)
+            VGR2(NR,1)=0.D0
+            VGR3(NR,1)=ACHIE
+            VGR3(NR,2)=ACHIEB
+            VGR3(NR,3)=ACHIEGB
+            VGR4(NR,1)=ACHII
+            VGR4(NR,2)=ACHIIB
+            VGR4(NR,3)=ACHIIGB
+
+         CASE DEFAULT
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
             AKDW(NR,1)=0.D0
             AKDW(NR,2)=0.D0
             AKDW(NR,3)=0.D0
             AKDW(NR,4)=0.D0
-         ENDIF
+         END SELECT
       ENDDO
 !      STOP
 
@@ -882,8 +933,9 @@
       ELSEIF(MDLKAI.EQ.62) THEN
          CALL AITKEN(1.D0,RBEEDG,RM,RNF(1,1),2,NRMAX)
          RBEEDG=RBEEDG/PNSS(1)
-         CALL IFSPPPL_DRIVER(NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM,QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME, &
-     &                       PNSS,PTS,RNF(1,1),RBEEDG,MDLUF,NSMAX,AR1RHOG,AR2RHOG,AKDW)
+         CALL IFSPPPL_DRIVER(NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM, &
+              QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNF(1,1), &
+              RBEEDG,MDLUF,NSMAX,AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
          CALL WEILAND_DRIVER
       ENDIF

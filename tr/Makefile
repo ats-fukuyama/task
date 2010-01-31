@@ -31,8 +31,8 @@ PLLIBS=../pl/pl_vmec.o ../pl/modules.o ../../bpsd/bpsdlib.a
 
 SRC90M=trcom0.f90 trcom1.f90 trcomm.f90 tr_bpsd.f90
 SRC90=trinit.f90 trprof.f90 trufsub.f90 trufile.f90 trfile.f90 trhelp.f90 \
-      trexec.f90 trcalc.f90 cdbm.f90 trcoef.f90 tritg.f90 trrslt.f90 \
-      trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
+      trexec.f90 trcalc.f90 cdbm.f90 trcoef.f90 tritg.f90 trmodels.f90 \
+      trrslt.f90 trpnb.f90 trprf.f90 trpnf.f90 trpel.f90 trmdlt.f90 \
       trgout.f90 trgrar.f90 trgrat.f90 trgrap.f90 trgrae.f90 \
       trgrad.f90 trgram.f90 trgsub.f90 trfout.f90 \
       trunit.f90 trloop.f90 trmenu.f90 \
@@ -52,6 +52,8 @@ SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
 INCGLF=trglf.inc glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
+SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
+SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 
 OBJM= $(SRC90M:.f90=.o)
 OBJS= $(SRC90:.f90=.o) $(SRCITG:.f=.o) $(SRCITGF:.F=.o)
@@ -59,7 +61,9 @@ OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
 OBJCYT=$(SRCCYT:.f90=.o)
-OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJS)
+OBJMMM=$(SRCMMM:.f=.o)
+OBJMBGB=$(SRCMBGB:.f=.o)
+OBJTR=$(OBJM) $(OBJE) $(OBJL) $(OBJNC) $(OBJCYT) $(OBJMMM) $(OBJMBGB) $(OBJS)
 OBJ2D=$(SRC2D:.f90=.o)
 OBJ3D=$(SRC3D:.f90=.o)
 
@@ -71,8 +75,8 @@ LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all: tr2 tr3
-#all: tr2
+#all: tr2 tr3
+all: tr2
 
 tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) tr2lib.a $(OBJTR) $(OBJ2D)
@@ -175,6 +179,7 @@ trhelp.o : trhelp.f90 trcomm.f90
 trg2d.o  : trg2d.f90  trcomm.f90 
 trg3d.o  : trg3d.f90  trcomm.f90 
 tritg.o  : tritg.f90  trcomm.f90 
+trmodels.o : trmodels.f90  trcomm.f90 
 trmdlt.o : trmdlt.f90 trcomm.f90 
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
@@ -200,3 +205,8 @@ nclass/u_lu_decomp.o : nclass/u_lu_decomp.f
 nclass/write_mod.o   : nclass/write_mod.f
 cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
+mmm95/stripx.o: mmm95/stripx.f
+mmm95/tomsqz.o: mmm95/tomsqz.f
+mmm95/weiland14.: mmm95/weiland14.f
+mmm95/mmm95.o: mmm95/mmm95.f
+mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f
