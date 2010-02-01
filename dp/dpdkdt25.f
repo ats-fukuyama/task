@@ -3,7 +3,7 @@ C ******************************************************
 C                       DPDKDT
 C      dielectric tensor with Drift Kinetic effects
 C                 
-C                      2010/01/27             
+C                      2010/02/01             
 C                           programed by T.OKAMOTO
 C ******************************************************
 C
@@ -117,8 +117,8 @@ C
          PV(NP)=PG(NP)/AM
          DGP(NTH,NP)=DKPP*PV(NP)*TSNM(NTH)-(MM*AA*PV(NP)**2*TCSM(NTH)
      &              *TSNM(NTH)*CCHI2(NCH2))/RSL    
-         DGT(NTH,NP)=DKPP*PV(NP)*TCSM(NTH)-(MM*AA
-     &        *TCSM(NTH)*TSNM(NTH)*CCHI2(NCH2))/RSL
+         DGT(NTH,NP)=-DKPP*PV(NP)*TCSM(NTH)+(MM*AA*PV(NP)
+     &        (1+TCSM2(NTH))*CCHI2(NCH2))/RSL
       ENDDO
       ENDDO
 C------------------------------------------------------!
@@ -148,17 +148,17 @@ C
          TCSM2(NTH)=TCSM(NTH)**2
          COEF=AE**2*FP(NTH,NP,NR)
 C
-            CDENX = CW-DKPRX+MM*AA*PV(NP)*(1+TCSM2(NTH))*CCHI2(NCH2)
+            CDENX = CW-DKPRX+MM*AA*PV(NP)**2*(1+TCSM2(NTH))*CCHI2(NCH2)
      &                                                     /(2*RSL)
             CDEN  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*DELP)**2
      &                             +DELPL*(DGT(NP,NTH)*DELTH)**2)
 C
             CPART11=DPFP(NTH,NP)-CWAST(NTH,NP)/CW
 C
-            CPART12=(MM*AA**2*PV(NP)**4*(1+TCSM2(NTH))**2*CCHI2(NCH2)
+            CPART12=CI*(MM*AA**2*PV(NP)**4*(1+TCSM2(NTH))**2*CCHI2(NCH2)
      &           *SCHI2(NCH2)*(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)/(4*CDENX))
 C
-            PCART13=((AA/2)*PV(NP)**2*(1+TCSM2(NTH))*SCHI2(NCH2))
+            PCART13=CI*((AA/2)*PV(NP)**2*(1+TCSM2(NTH))*SCHI2(NCH2))
      &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
      &           +CWAST(NTH,NP)/(CW*RSL))
 C      
@@ -206,7 +206,7 @@ C
          TCSM2(NTH)=TCSM(NTH)**2
          COEF=AE**2*FP(NTH,NP,NR)
 C
-         CDENX = CW-DKPRX+MM*AA*PV(NP)*(1+TCSM2(NTH)*CCHI2(NCH2))
+         CDENX = CW-DKPRX+MM*AA*PV(NP)**2*(1+TCSM2(NTH)*CCHI2(NCH2))
      &        /(2*RSL)
          CDEN  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*DELP)**2
      &        +DELPL*(DGT(NP,NTH)*DELTH)**2)
@@ -276,8 +276,8 @@ C------------------------------------------------------!
       DIMENSION DRPFP(NTHMAX,NPMAX)
       DIMENSION DGP(NTHMAX,NPMAX)
       DIMENSION DGT(NTHMAX,NPMAX)
-      REAL(8):: TCSM2(NTHMAX)
-      REAL(8):: PV(NP)
+      DIMENSION TCSM2(NTHMAX)
+      DIMENSION PV(NPMAX)
 C
       AM=PA(NS)*AMP
       AE=PZ(NS)*AEE
