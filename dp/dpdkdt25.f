@@ -118,7 +118,7 @@ C
          DGP(NTH,NP)=DKPP*PV(NP)*TSNM(NTH)-(MM*AA*PV(NP)**2*TCSM(NTH)
      &              *TSNM(NTH)*CCHI2(NCH2))/RSL    
          DGT(NTH,NP)=-DKPP*PV(NP)*TCSM(NTH)+(MM*AA*PV(NP)
-     &        (1+TCSM2(NTH))*CCHI2(NCH2))/RSL
+     &        *(1+TCSM2(NTH))*CCHI2(NCH2))/RSL
       ENDDO
       ENDDO
 C------------------------------------------------------!
