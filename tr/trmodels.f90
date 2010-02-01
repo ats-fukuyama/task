@@ -41,7 +41,7 @@ CONTAINS
     zte_p8=RT(NR8,1)          ! T_e(0.8a)
     zte_edge=RT(NRMAX,1)      ! T_e(a)
     npoints=1
-    IF(MDLKAI.EQ.130) THEN
+    IF(MDLKAI.EQ.140) THEN
        lflowshear=0
     ELSE
        lflowshear=1
