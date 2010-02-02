@@ -53,6 +53,13 @@
 
       call wmfem_calculate_matrix
 
+!     ***** setup boundary conditions *****
+
+      call wmfem_boundary_condition_axis0
+!      call wmfem_boundary_condition_axis1
+      call wmfem_boundary_condition_wall
+      call wmfem_boundary_condition_fourier
+
 !     ***** solve matrix equation *****
 
       call wmfem_solve
@@ -165,6 +172,7 @@
          enddo
          enddo
       endif
+
       if(nphmax.eq.1) then
          do nth=1,nthmax
             nfc=nth
@@ -215,28 +223,13 @@
       return
       end subroutine wmfem_setup_index
 
-
 !     ----- calculate coefficint matrix fma -----
 
       subroutine wmfem_calculate_matrix
 
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       complex(8),dimension(mwmax,12*nfcmax):: fml
-      complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
-      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
-      complex(8),dimension(:,:),POINTER:: mtx0,mtx1,mtx0i,mtx1i
-      complex(8),dimension(:,:),POINTER:: vec0,vec1,sol0,sol1
-      real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4,rhol,thl
-      integer:: nr,ml,mw,mc,nvmax,inod,nfc,nth,nph,mm,nn,mll
-      integer:: i,j,k,il,jl,kl
-      integer:: ns,nfc1,nfc2,ml1,mw1,mr,nn1,nn2,nn3,mm1,mm2,mm3
-      integer:: count0a,count0b,count1a,count1b
-      integer:: count1,count2,counta,countb
-      integer,dimension(nfcmax):: nfc0a,nfc0b,ipos0
-      integer,dimension(nfcmax):: nfc1a,nfc1b,ipos1
-      complex(8):: csum,f1,f2,f3,f4,cx,cy,cxd,cyd
-      integer:: id_base=1
-      real(8):: angl=0.d0
+      integer:: ml,mw,ns,nfc,nth,nph,nr
 
       do ml=1,mlmax             ! clear fma
          do mw=1,mwmax
@@ -285,9 +278,136 @@
          enddo
       enddo
 
+      return
+      end subroutine wmfem_calculate_matrix
+
+!     ----- setup boundary conditions -----
+
+!     -----     boundary condition on axis: circular -----
+
+      subroutine wmfem_boundary_condition_axis0
+
+      integer:: mc,mr,nr,mm,mll,ml,mw,ns,nfc,nn
+      complex(8):: cx,cy
+      integer:: id_base=1
+
 !----- boundary conditions -----
 
-!----- boundary condition at rho=0 -----
+      mc=(mwmax+1)/2
+      mr=6*nfcmax
+
+      nr=1
+      do nfc=1,nfcmax
+         mm=mmnfc(nfc)
+         mll=6*(nfc-1)
+         ml=6*nfcmax*(nr-1)+mll
+         if(mm.eq.0) then
+            do mw=1,mwmax
+               fma(mw,ml+3) = 0.d0
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+3,nr,ns)=0.d0
+                  enddo
+               end if
+            enddo
+            fma(mc,ml+3)=1.d0
+            if(mdlwmd.ge.1) fms(mc,mll+3,nr,0)=1.d0
+            fvb(ml+3)=0.d0
+         elseif(abs(mm).eq.1) then
+            do mw=4,mwmax
+               cx= fma(mw  ,ml+1)
+               cy= fma(mw-2,ml+3)
+               fma(mw  ,ml+1)=cx +ci*mm*cy
+               fma(mw-2,ml+3)=cx -ci*mm*cy
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     cx= fms(mw  ,mll+1,nr,ns)
+                     cy= fms(mw-2,mll+3,nr,ns)
+                     fms(mw  ,mll+1,nr,ns)=cx +ci*mm*cy
+                     fms(mw-2,mll+3,nr,ns)=cx -ci*mm*cy
+                  enddo
+               endif
+            enddo
+            do mw=-mc+5,mc
+               if(ml+mw.ge.1.AND.ml+mw.LE.12*nfcmax) then
+                  cx= fma(mc-mw+1,ml+mw)
+                  cy= fma(mc-mw+3,ml+mw)
+                  fma(mc-mw+1,ml+mw)=cx -ci*mm*cy
+                  fma(mc-mw+3,ml+mw)=cx +ci*mm*cy
+                  if(mdlwmd.ge.1) then
+                     do ns=0,nsmax
+                        cx= fms(mc-mw+1,mll+mw,nr,ns)
+                        cy= fms(mc-mw+3,mll+mw,nr,ns)
+                        fms(mc-mw+1,mll+mw,nr,ns)=cx -ci*mm*cy
+                        fms(mc-mw+3,mll+mw,nr,ns)=cx +ci*mm*cy
+                        if(ml+mw.GT.mr.and.mc-mw+1-mr.GT.0) then
+                           cx= fms(mc-mw+1-mr,mll+mw-mr,nr,ns)
+                           cy= fms(mc-mw+3-mr,mll+mw-mr,nr,ns)
+                           fms(mc-mw+1-mr,mll+mw-mr,nr+1,ns)=cx-ci*mm*cy
+                           fms(mc-mw+3-mr,mll+mw-mr,nr+1,ns)=cx+ci*mm*cy
+                        endif
+                     end do
+                  endif
+               endif
+            enddo
+
+            do mw=1,mwmax
+               fma(mw,ml+1) = 0.d0
+               fma(mw,ml+5) = 0.d0
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+1,nr,ns)=0.d0
+                     fms(mw,mll+5,nr,ns)=0.d0
+                  end do
+               end if
+            end do
+            fma(mc  ,ml+1)=1.d0
+            fma(mc  ,ml+5)=1.d0
+            fvb(ml+1)=0.d0
+            fvb(ml+5)=0.d0
+            if(mdlwmd.ge.1) then
+               fms(mc  ,mll+1,nr,0)=1.d0
+               fms(mc  ,mll+5,nr,0)=1.d0
+            endif
+         else
+            do mw=1,mwmax
+               fma(mw,ml+3) = 0.d0
+               fma(mw,ml+5) = 0.d0
+               if(mdlwmd.ge.1) then
+                  do ns=0,nsmax
+                     fms(mw,mll+3,nr,ns)=0.d0
+                     fms(mw,mll+5,nr,ns)=0.d0
+                  enddo
+               endif
+            enddo
+            fma(mc,ml+3)=1.d0
+            fma(mc,ml+5)=1.d0
+            fvb(ml+3)=0.d0
+            fvb(ml+5)=0.d0
+            if(mdlwmd.ge.1) then
+               fms(mc,mll+3,nr,0)=1.d0
+               fms(mc,mll+5,nr,0)=1.d0
+            endif
+         endif
+      enddo
+
+      return
+      end subroutine wmfem_boundary_condition_axis0
+
+!     -----     boundary condition on axis: non-circular -----
+
+      subroutine wmfem_boundary_condition_axis1
+
+      complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
+      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
+      complex(8),dimension(:,:),POINTER:: mtx0,mtx1,mtx0i,mtx1i
+      complex(8),dimension(:,:),POINTER:: vec0,vec1,sol0,sol1
+      integer,dimension(nfcmax):: nfc0a,nfc0b,ipos0
+      integer,dimension(nfcmax):: nfc1a,nfc1b,ipos1
+      real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4,rhol,thl
+      integer:: nfc1,nfc2,nn1,mm1,nn2,mm2,nn3,mm3,i,j,k,nfc,il,jl,kl,mc
+      integer:: count0a,count0b,count1a,count1b
+      integer:: count1,count2,counta,countb
 
       CALL wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
 
@@ -508,9 +628,13 @@
             do i=1,3
                il=6*(nfc1-1)+2*(i-1)+1
                kl=6*(nfc2-1)+2*(i-1)+1
-               do j=1,mwmax
-                  fma(j,il)=fma(j,il)
-     &                     +fma(j+il-kl,kl)*conjg(sol0(counta,countb))
+               do j=7,mwmax
+!                  write(6,'(A,7I5)') 'nfc1,nfc2,i,il,kl,j,j+il-kl=',
+!     &                 nfc1,nfc2,i,il,kl,j,j+il-kl
+                  IF(j+il-kl.GE.1.AND.j+il-kl.LE.mwmax) THEN
+                     fma(j,il)=fma(j,il)
+     &                    +fma(j+il-kl,kl)*conjg(sol0(counta,countb))
+                  ENDIF
                enddo
                fvb(il)=fvb(il)+fvb(kl)*conjg(sol0(counta,countb))
             enddo
@@ -527,8 +651,10 @@
                il=6*(nfc1-1)+2*(i-1)+2
                kl=6*(nfc2-1)+2*(i-1)+2
                do j=1,mwmax
+                  IF(j+il-kl.GE.1.AND.j+il-kl.LE.mwmax) THEN
                   fma(j,il)=fma(j,il)
      &                     +fma(j+il-kl,kl)*conjg(sol1(counta,countb))
+                  ENDIF
                enddo
                fvb(il)=fvb(il)+fvb(kl)*conjg(sol1(counta,countb))
             enddo
@@ -585,7 +711,17 @@
 !     &           'v',i,fvb(i)
 !      enddo
 
-!----- boundary condition at rho=b/a -----
+      return
+      end subroutine wmfem_boundary_condition_axis1
+
+!     -----     boundary condition on wall -----
+
+      subroutine wmfem_boundary_condition_wall
+
+      integer:: mc,nr,nfc,mll,ml,mw
+      integer:: id_base=1
+
+      mc=(mwmax+1)/2
 
       nr=nrmax
       do nfc=1,nfcmax
@@ -615,11 +751,20 @@
          endif
       enddo
 
-!     ----- remove nn=nphmax/2+1 -----
+      return
+      end subroutine wmfem_boundary_condition_wall
+
+!     -----     boundary condition for fourier components -----
+
+      subroutine wmfem_boundary_condition_fourier
+
+      integer:: mc,nr,nn,mm,mll,ml,mw,ns,nfc
+
+      mc=(mwmax+1)/2
 
       if(nphmax.gt.1) then
-         nn=nphmax/2+1
          do nr=1,nrmax
+            nn=nphmax/2+1
             do mm=1,nthmax
                mll=6*nthmax*(nn-1)+6*(mm-1)
                ml=6*nthmax*nphmax*(nr-1)+mll
@@ -660,8 +805,7 @@
                end if
             end do
          end do
-      end if
-      
+      endif
 
       if(nthmax.gt.1) then
          mm=nthmax/2+1
@@ -709,7 +853,7 @@
       endif
 
       return
-      end subroutine wmfem_calculate_matrix
+      end subroutine wmfem_boundary_condition_fourier
 
 !     ***** Solve matrix equation *****
 

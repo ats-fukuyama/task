@@ -307,7 +307,11 @@ C
          DO NR=1,NRMAX+1
             RHOL=XRHO(NR)
             IF(RHOL.LE.1.D0) THEN
-               FEDGE=PNS(1)/PN(1)
+               IF(PN(1).LE.0.D0) THEN
+                  FEDGE=0.D0
+               ELSE
+                  FEDGE=PNS(1)/PN(1)
+               END IF
                FACTN=(1.D0-FEDGE)*(1.D0-RHOL**PROFN1)**PROFN2+FEDGE
                PT=(PTPR(1)+2*PTPP(1))/3.D0
                FEDGE=PTS(1)/PT
