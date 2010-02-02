@@ -6,7 +6,7 @@ FFLAGS=$(OFLAGS)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dptens.f dptnsr1.f dptnsr2.f \
-       dpfpin.f dphotf.f dphotr.f dpdkdtf.f
+       dpfpin.f dphotf.f dphotr.f dpdkdt.f
 
 OBJS = $(SRCS:.f=.o) 
 
