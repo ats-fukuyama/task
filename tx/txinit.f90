@@ -855,7 +855,7 @@ SUBROUTINE TXPROF
 
   !  Variables
 
-  if(MDINTN == -1 .or. MDINTT == -1) call initprof_input
+  if(MDINTN == -1 .or. MDINTT == -1 .or. MDINTC == -1) call initprof_input
   if(MDINTN == -1) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
      call initprof_input(NRA,1,PNaL)
@@ -867,8 +867,8 @@ SUBROUTINE TXPROF
   end if
   if(MDINTT == -1) then ! temperature at the boundaries
      call initprof_input(  0,2,PTe0L)
-     call initprof_input(  0,2,PTi0L)
-     call initprof_input(NRA,3,PTeaL)
+     call initprof_input(  0,3,PTi0L)
+     call initprof_input(NRA,2,PTeaL)
      call initprof_input(NRA,3,PTiaL)
      PTeDIVL = 0.25d0 * PTeaL
      PTiDIVL = 0.25d0 * PTiaL
@@ -990,7 +990,6 @@ SUBROUTINE TXPROF
         PTiV_FIX(NR) = X(LQi5,NR)
      END IF
   END DO
-  if(MDINTN == -1 .or. MDINTT == -1) call initprof_input(idx = 0)
 
   ! Poloidal magnetic field
 
@@ -1076,6 +1075,8 @@ SUBROUTINE TXPROF
         BthV(NR) = rMUb1 * SUM_INT / R(NR)
      END DO
   end if
+
+  if(MDINTN == -1 .or. MDINTT == -1 .or. MDINTC == -1) call initprof_input(idx = 0)
 
   ! Inverse matrix of derivative formula for integration
 

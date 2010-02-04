@@ -703,9 +703,9 @@ subroutine ascii_input
   use tx_commons, only : infiles, nmax_file, n_infiles, iflag_file, datatype
   use tx_interface, only : KSPLIT_TX
   implicit none
-  integer(4) :: IST, i, j, k, nrho, i_start
+  integer(4) :: IST, i, j, k, nrho, i_start, jshift
   character(len=100) :: TXFNAM
-  character(len=140) :: kline, kline1, kline2
+  character(len=150) :: kline, kline1, kline2
   character(len=20)  :: kmesh, kdata
   integer(4) :: nol, itype
   LOGICAL :: LEX
@@ -738,6 +738,7 @@ subroutine ascii_input
      END IF
 
      n_infiles = 8
+
   ! *** Arbitrary input *********************************************
   else if(iflag_file == 2) then
      ! Check ASCII file
@@ -810,14 +811,28 @@ subroutine ascii_input
      nrho = 0  ! number of times that "RHO" appears in kline, i.e. separator
      k    = 0  ! data is taken during k/=0
      do 
-        read(21,'(A140)',IOSTAT=IST) kline
-        if(ist < 0) exit ! detect the end of the file
+        read(21,'(A)',IOSTAT=IST) kline
+        if(ist > 0) then
+           stop 'Read file error'
+        else if(ist < 0) then
+           exit ! detect the end of the file
+        end if
         i = i + 1
         if(k == 0) then
            if(index(kline,"RHO") /= 0) then ! detect the start position of the data chunk
               nrho = nrho + 1
               k = 1
               i_start = i + 1
+
+              jshift = 2 ! denotes the index "I" and the radial coordinates "RHO"
+              if(index(kline,"PSI") /= 0) then ! detect whether the file is new or old
+                 !== jshift ================================================================
+                 !  Old type "OrbitEffctDist.dat" includes only the "RHO" coordinate.
+                 !  New type "OrbitEffctDist.dat" includes the "PSI" and "RHO" coordinates.
+                 !==========================================================================
+                 jshift = 3 ! denotes the radial coordinates "PSI", which will be discarded
+                            !   as well as "I" and "RHO"
+              end if
            end if
            cycle
         end if
@@ -856,10 +871,12 @@ subroutine ascii_input
                     read(kdata,'(E15.7)') infiles(j)%totP
                     kline = kline2
                  end if
-                 if(len_trim(kline2) == 0) exit ! all the data has been already taken.
+                 if(len_trim(kline2) == 0) then
+                    exit ! all the data has been already taken.
+                 end if
               end do
               
-              k = 0
+              k = 0 ! flag for the next data chunk
            end if
 
        else if(nrho == 2) then ! === Get "SMOOTHING" data ===
@@ -868,22 +885,27 @@ subroutine ascii_input
            end if
            nol = i - i_start + 1
 
-           do j = 1, n_infiles + 2 ! "+ 2" includes the index number and the mesh data columns
+           do j = 1, n_infiles + jshift
+              ! jshift denotes the index number and the mesh data columns
               kline = trim(adjustl(kline))
               call ksplit_tx(kline,' ',kline1,kline2)
               if(j == 1) then
-                 ! First line is discarded.
+                 ! First line (index I) is discarded.
                  kline = kline2
                  cycle
-              else if(j == 2) then
-                 ! Second line is defined as a mesh data, rho.
+              else if(j == jshift) then
+                 ! Second (jshift == 0) or third (jshift == 1) line is defined as a mesh data, rho.
                  kmesh = trim(kline1)
                  kline = kline2
-              else
-                 ! Third to eighth lines are defined as data. Please see "Name" shown above.
+              else if(j > jshift) then
+                 ! Third to eighth lines are defined as data, in case of jshift == 0
+                 ! Fourth to ninth lines are defined as data, in case of jshift == 1
+                 ! Please see "Name" shown above
                  kdata = trim(kline1)
-                 read(kmesh,'(E15.7)') infiles(j-2)%r(nol)
-                 read(kdata,'(E15.7)') infiles(j-2)%data(nol)
+                 read(kmesh,'(E15.7)') infiles(j-jshift)%r(nol)
+                 read(kdata,'(E15.7)') infiles(j-jshift)%data(nol)
+                 kline = kline2
+              else
                  kline = kline2
               end if
            end do
@@ -943,7 +965,7 @@ subroutine ascii_input
 !!$     write(6,'(9X,8(1PE12.4))') (infiles(i)%totS, i = 1, 8)
 !!$     write(6,*) "===== total W ====="
 !!$     write(6,'(9X,8(1PE12.4))') (infiles(i)%totP, i = 1, 8)
-!!$!     stop
+!!$     stop
 
   ! *** Arbitrary input *********************************************
   else if(iflag_file == 2) then
@@ -1014,7 +1036,7 @@ subroutine ascii_input
         ! Read data from the file
         nol = 0 ! number of lines
         do 
-           read(21,'(A140)',IOSTAT=IST) kline
+           read(21,'(A)',IOSTAT=IST) kline
            if(ist < 0) exit ! detect the end of the file
            nol = nol + 1
 
@@ -1258,10 +1280,10 @@ subroutine initprof_input(nr, idx, out)
 
   use tx_commons, only : NRMAX, Rho, AEE
 
-  integer(4), optional :: nr, idx
+  integer(4), optional, intent(in) :: nr, idx
+  real(8), optional, intent(out) :: out
   integer(4) :: nintin, ier, ist, k
   integer(4), save :: nrinmax
-  real(8), optional :: out
   real(8), dimension(:), allocatable, save :: rho_in, deriv
   real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3, u4
 
@@ -1282,8 +1304,14 @@ subroutine initprof_input(nr, idx, out)
      if(ier /= 0) return
 
      do
-        read(nintin,'(1X,I3,5(E10.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
-        if(ist /= 0) exit
+        read(nintin,'(1X,I3,5(E9.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
+        if(ist > 0) then
+           write(6,*) 'XX file format is invalid. Aborting.'
+           close(nintin)
+           stop
+        else if (ist < 0) then
+           exit
+        end if
         call rearrange
      end do
 
@@ -1348,7 +1376,7 @@ subroutine initprof_input(nr, idx, out)
         out = out * 1.d-3
      else if(idx == 4) then ! Toroidal current
         call spl1df(Rho(nr),out,rho_in,u4,nrinmax,ier)
-        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 3'
+        if(ier /= 0) stop 'Error at spl1df in initprof_input: idx = 4'
         out = out
      else 
         stop 'initprof_input: wrong input!'
@@ -1356,7 +1384,7 @@ subroutine initprof_input(nr, idx, out)
 
   else if((present(nr) .eqv. .false.) .and. (present(idx) .eqv. .true.)) then
      if(idx == 0) then
-        deallocate(rho_in,prof_in,deriv,u1,u2,u3)
+        deallocate(rho_in,prof_in,deriv,u1,u2,u3,u4)
      else
         stop 'initprof_input: wrong input!'
      end if
