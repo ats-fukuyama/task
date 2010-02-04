@@ -10,6 +10,7 @@ C
       DIMENSION GX(NXGM),GY(NXGM,6)
 C
       DIMENSION CD4(6),CD5(6),CD6(6),CD7(6)
+      DIMENSION CLDISP(9)
       CHARACTER KID*1,LINE*80
       EXTERNAL DPPARM
 C
@@ -72,6 +73,26 @@ C
          RKZ0=RKZS
          RKX0=RKXS
          GOTO 1
+      ELSEIF(KID.EQ.'K') THEN
+         NS=1
+         MM=1
+         RF0=0.1D0
+         RKPR0=0.1D0
+         MM=1
+         R1=0.5D0*RA
+         DR=0.05D0*RA
+         NCH1=1
+         NCH2=1
+ 3001    WRITE(6,*) '## INPUT NS,RF0,RKPR0,MM,R1,DR: '
+         READ(5,*,ERR=3001,END=1) NS,RF0,RKPR0,MM,R1,DR
+         IF(RF0.EQ.0.D0) GOTO 1
+         CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
+         CKPR=MAX(RKPR0,1.D-4)
+         CALL DPFMFLR(NS,R1,DR,0)
+         NR=2
+         CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP)
+         WRITE(6,*) (CLDISP(I),I=1,9)
+         GOTO 3001
       ELSEIF(KID.EQ.'S') THEN
          XMIN=-50.D0
          XMAX= 50.D0

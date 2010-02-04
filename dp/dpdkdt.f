@@ -25,7 +25,7 @@ C ******************************************************
 C                       DPDKDTR
 C ******************************************************
 C
-      SUBROUTINE DPDKDTR(CW,CKPR,NS,NTH,NP,NR,NCH1,NCH2,MM,CLDISP1)
+      SUBROUTINE DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP1)
 C
 C------------------------------------------------------!
 C     NS : PARTICLE SPECIES
