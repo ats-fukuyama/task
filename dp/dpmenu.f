@@ -89,6 +89,8 @@ C
          CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
          CKPR=MAX(RKPR0,1.D-4)
          CALL DPFMFLR(NS,R1,DR,0)
+         write(6,*) pmax,npmax,nthmax
+         CALL DPFPGRA(PMAX,NPMAX,NTHMAX,PM,THM,FP(1,1,2),'F2')
          NR=2
          CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP)
          WRITE(6,*) (CLDISP(I),I=1,9)

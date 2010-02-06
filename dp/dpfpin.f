@@ -37,14 +37,14 @@ C
       ENDDO
 C
       DO NTH=1,NTHMAX
-         THM=DELTH*(NTH-0.5D0)
-         THG=DELTH* NTH
-         TSNM(NTH) = SIN(THM)
-         TSNG(NTH) = SIN(THG)
-         TCSM(NTH) = COS(THM)
-         TCSG(NTH) = COS(THG)
-         TTNM(NTH) = TAN(THM)
-         TTNG(NTH) = TAN(THG)
+         THM(NTH)=DELTH*(NTH-0.5D0)
+         THG(NTH)=DELTH* NTH
+         TSNM(NTH) = SIN(THM(NTH))
+         TSNG(NTH) = SIN(THG(NTH))
+         TCSM(NTH) = COS(THM(NTH))
+         TCSG(NTH) = COS(THG(NTH))
+         TTNM(NTH) = TAN(THM(NTH))
+         TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 C
       IF(ID.EQ.0) THEN
@@ -131,14 +131,14 @@ C
       ENDDO
 C
       DO NTH=1,NTHMAX
-         THM=DELTH*(NTH-0.5D0)
-         THG=DELTH* NTH
-         TSNM(NTH) = SIN(THM)
-         TSNG(NTH) = SIN(THG)
-         TCSM(NTH) = COS(THM)
-         TCSG(NTH) = COS(THG)
-         TTNM(NTH) = TAN(THM)
-         TTNG(NTH) = TAN(THG)
+         THM(NTH)=DELTH*(NTH-0.5D0)
+         THG(NTH)=DELTH* NTH
+         TSNM(NTH) = SIN(THM(NTH))
+         TSNG(NTH) = SIN(THG(NTH))
+         TCSM(NTH) = COS(THM(NTH))
+         TCSG(NTH) = COS(THG(NTH))
+         TTNM(NTH) = TAN(THM(NTH))
+         TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 C
       DO NP=1,NPMAX
@@ -270,6 +270,13 @@ C
 
       DELP=PMAX/NPMAX
       DELTH=PI/NTHMAX
+      DELR=DR
+
+      IF(ID.EQ.0) THEN
+         PTH0W=0.D0
+      ELSE
+         PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
+      ENDIF
 
       DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
@@ -279,14 +286,14 @@ C
       ENDDO
 C
       DO NTH=1,NTHMAX
-         THM=DELTH*(NTH-0.5D0)
-         THG=DELTH* NTH
-         TSNM(NTH) = SIN(THM)
-         TSNG(NTH) = SIN(THG)
-         TCSM(NTH) = COS(THM)
-         TCSG(NTH) = COS(THG)
-         TTNM(NTH) = TAN(THM)
-         TTNG(NTH) = TAN(THG)
+         THM(NTH)=DELTH*(NTH-0.5D0)
+         THG(NTH)=DELTH* NTH
+         TSNM(NTH) = SIN(THM(NTH))
+         TSNG(NTH) = SIN(THG(NTH))
+         TCSM(NTH) = COS(THM(NTH))
+         TCSG(NTH) = COS(THG(NTH))
+         TTNM(NTH) = TAN(THM(NTH))
+         TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 
       DO NR=1,NRMAX
@@ -309,12 +316,6 @@ C
          TPR = RTPR(NS)
          TPP = RTPP(NS)
          RT0 = (TPR+2.D0*TPP)/3.D0
-
-         IF(ID.EQ.0) THEN
-            PTH0W=0.D0
-         ELSE
-            PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
-         ENDIF
 
          IF(ID.EQ.0) THEN
             FACT = 1.D0/SQRT(2.D0*PI)**3

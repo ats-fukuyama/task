@@ -1,11 +1,11 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
-       dptens.f dptnsr1.f dptnsr2.f \
+       dpgsub.f dptens.f dptnsr1.f dptnsr2.f \
        dpfpin.f dphotf.f dphotr.f dpdkdt.f
 
 OBJS = $(SRCS:.f=.o) 
