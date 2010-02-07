@@ -5,18 +5,19 @@ C
       SUBROUTINE DPMENU
 C
       INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
 C
       PARAMETER (NXGM=101)
       DIMENSION GX(NXGM),GY(NXGM,6)
 C
-      DIMENSION CD4(6),CD5(6),CD6(6),CD7(6)
+      DIMENSION CD4(6),CD5(6),CD6(6),CDC(9),CDH(9),CDK(9)
       DIMENSION CLDISP(9)
       CHARACTER KID*1,LINE*80
       EXTERNAL DPPARM
 C
     1 CONTINUE
          WRITE(6,*) '## DP MENU: P,V/PARM  ',
-     &       'D1,D2,D3/DISP  F/ROOT  T,S/TEST  Q/QUIT'
+     &       'D1,D2,D3/DISP  F/ROOT  T,S,K/TEST  Q/QUIT'
 C
          CALL TASK_KLIN(LINE,KID,MODE,DPPARM)
       IF(MODE.NE.1) GOTO 1
@@ -59,13 +60,11 @@ C
          CALL DPTENS(CW,CKPR,CKPP,1,CD5)
          MODELP(1)=5
          CALL DPTENS(CW,CKPR,CKPP,1,CD6)
-         MODELP(1)=16
-         CALL DPTENS(CW,CKPR,CKPP,1,CD7)
          WRITE(6,602) 
-  602    FORMAT(6X,'MODELP=1',13X,'MODELP=4',
-     &         13X,'MODELP=5',13X,'MODELP=16')
-         WRITE(6,603) (CD4(I),CD5(I),CD6(I),CD7(I),I=1,6)
-  603    FORMAT((1PE9.2,1P7E10.2))
+  602    FORMAT(8X,'MODELP=1',16X,'MODELP=4',
+     &         16X,'MODELP=5')
+         WRITE(6,603) (I,CD4(I),CD5(I),CD6(I),I=1,6)
+  603    FORMAT(I5,1P6E12.4)
          GOTO 1001
 C
  1002    MODELP(1)=MODELPS
@@ -74,6 +73,11 @@ C
          RKX0=RKXS
          GOTO 1
       ELSEIF(KID.EQ.'K') THEN
+         MODELPS=MODELP(1)
+         RFS=RF0
+         RKZS=RKZ0
+         RKXS=RKX0
+
          NS=1
          MM=1
          RF0=0.1D0
@@ -84,16 +88,61 @@ C
          NCH1=1
          NCH2=1
  3001    WRITE(6,*) '## INPUT NS,RF0,RKPR0,MM,R1,DR: '
-         READ(5,*,ERR=3001,END=1) NS,RF0,RKPR0,MM,R1,DR
-         IF(RF0.EQ.0.D0) GOTO 1
+         READ(5,*,ERR=3001,END=3002) NS,RF0,RKPR0,MM,R1,DR
+         IF(RF0.EQ.0.D0) GOTO 3002
          CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
-         CKPR=MAX(RKPR0,1.D-4)
+         CKPR=MAX(RKPR0,1.D-8)
+         CKPP=MM/R1
+
          CALL DPFMFLR(NS,R1,DR,0)
-         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FP(1,1,2),'F2')
+C         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FP(1,1,2),'F2')
          NR=2
          CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP)
-         WRITE(6,*) (CLDISP(I),I=1,9)
+
+         CALL PLMAG(RR+R1,0.D0,0.D0,RHON)
+         CALL PLPROF(RHON)
+         MODELP(1)=1
+         CALL DPTENS(CW,CKPR,CKPP,1,CD4)
+         MODELP(1)=4
+         CALL DPTENS(CW,CKPR,CKPP,1,CD5)
+         WRITE(6,612) 
+  612    FORMAT(8X,'  COLD  ',16X,'  HOT   ',
+     &         16X,' DPDKDT ')
+         CDC(1)=CD4(1)
+         CDC(2)=CD4(5)
+         CDC(3)=CD4(4)
+         CDC(4)=CD4(5)
+         CDC(5)=CD4(1)+CD4(3)
+         CDC(6)=CD4(6)
+         CDC(7)=CD4(4)
+         CDC(8)=CD4(6)
+         CDC(9)=CD4(1)+CD4(2)
+         CDH(1)=CD5(1)
+         CDH(2)=CD5(5)
+         CDH(3)=CD5(4)
+         CDH(4)=CD5(5)
+         CDH(5)=CD5(1)+CD5(3)
+         CDH(6)=CD5(6)
+         CDH(7)=CD5(4)
+         CDH(8)=CD5(6)
+         CDH(9)=CD5(1)+CD5(2)
+         CDK(1)=CI*CLDISP(1)/(CW*EPS0)
+         CDK(2)=CI*CLDISP(2)/(CW*EPS0)
+         CDK(3)=CI*CLDISP(3)/(CW*EPS0)
+         CDK(4)=CI*CLDISP(4)/(CW*EPS0)
+         CDK(5)=CI*CLDISP(5)/(CW*EPS0)
+         CDK(6)=CI*CLDISP(6)/(CW*EPS0)
+         CDK(7)=CI*CLDISP(7)/(CW*EPS0)
+         CDK(8)=CI*CLDISP(8)/(CW*EPS0)
+         CDK(9)=CI*CLDISP(9)/(CW*EPS0)
+         WRITE(6,613) (I,CDC(I),CDH(I),CDK(I),I=1,9)
+  613    FORMAT(I5,1P6E12.4)
          GOTO 3001
+ 3002    MODELP(1)=MODELPS
+         RF0=RFS
+         RKZ0=RKZS
+         RKX0=RKXS
+         GOTO 1
       ELSEIF(KID.EQ.'S') THEN
          XMIN=-50.D0
          XMAX= 50.D0
