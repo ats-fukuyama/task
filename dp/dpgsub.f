@@ -2,14 +2,14 @@
 
 !--------------------------------------------------
 
-      SUBROUTINE DPFPGRA(PMAX,NPMAX,NTHMAX,P,TH,F,STRING)
+      SUBROUTINE DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,P,TH,F,STRING)
 
       IMPLICIT NONE
       REAL(8),INTENT(IN):: PMAX
       INTEGER(4),INTENT(IN):: NPMAX,NTHMAX
       real(8),dimension(NPMAX),INTENT(IN):: P
       real(8),dimension(NTHMAX),INTENT(IN):: TH
-      real(8),DIMENSION(NPMAX,NTHMAX),INTENT(IN):: F
+      real(8),DIMENSION(NTHM,NPMAX),INTENT(IN):: F
       CHARACTER(LEN=*),INTENT(IN):: STRING
 
       real(4),DIMENSION(NPMAX,NTHMAX):: GF
@@ -21,12 +21,10 @@
       INTEGER,PARAMETER:: NGLM=30
       REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
-      REAL(4):: PXMIN,PXMAX,PYMIN,PYMAX,XMIN,XMAX,YMIN,YMAX
-      real(4):: GPMAX, GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
-      real(4):: GPMIN1, GPMAX1, GPSTEP, GLIN, GFFMAX
-      integer:: NR, NP, NTH, NSB, NRG, MODE, LMODE
-      integer:: NPG, NTHG, NPM, NTHM, NRM, NM, NGLMAX, NGL
-      integer:: I
+      real(4):: GPMAX, GPMIN1, GPMAX1, GPSTEP
+      real(4):: GFMIN, GFMAX, GFMIN1, GFMAX1, GFSTEP
+      integer:: NR, NP, NTH
+      integer:: NTHM,NGLMAX, NGL
       real(4):: GUCLIP
       integer:: NGULEN
 
@@ -38,7 +36,7 @@
       END DO
       DO NTH=1,NTHMAX
          DO NP=1,NPMAX
-            GF(NP,NTH)=GUCLIP(F(NTH,NP))
+            GF(NP,NTH)=GUCLIP(-LOG10(ABS(F(NTH,NP))))
          END DO
       END DO
 !
@@ -46,10 +44,10 @@
 !
       CALL PAGES
       CALL SETLNW(0.07)
-      CALL SETCHS(.3,0.)
+      CALL SETCHS(0.3,0.0)
       CALL SETFNT(32)
 !
-      CALL GMNMX2(GF,NPM,1,NPG,1,1,NTHG,1,GFMIN,GFMAX)
+      CALL GMNMX2(GF,NPMAX,1,NPMAX,1,1,NTHMAX,1,GFMIN,GFMAX)
       CALL GQSCAL(GFMIN,GFMAX,GFMIN1,GFMAX1,GFSTEP)
       CALL GQSCAL(0.0,GPMAX,GPMIN1,GPMAX1,GPSTEP)
 !
@@ -60,33 +58,16 @@
       CALL SETLNW(0.07)
       CALL GVALUE(0.,GPSTEP*2,0.,GPSTEP*2,NGULEN(2*GPSTEP))
 !
-      IF(GFMIN*GFMAX.GE.0.0) THEN
-         IF(GFMIN.GE.0.0) THEN
-            NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
-            DO NGL=1,NGLMAX
-               ZL(NGL)=GFMIN1+0.5*GFSTEP*(NGL-1)
-               RGB(1,NGL)=1.D0
-               RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
-               RGB(3,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
-               ILN(NGL)=0
-               WLN(NGL)=0.07
-            ENDDO
-            CALL CONTG4X(GF,GP,GTH,NPMAX,NPMAX,NTHMAX,
-     &                      ZL,RGB,ILN,WLN,NGLMAX,0)
-         ELSE
-            NGLMAX=INT((GFMAX1-GFMIN1)/(0.5*GFSTEP))
-            DO NGL=1,NGLMAX
-               ZL(NGL)=GFMAX1-0.5*GFSTEP*(NGL-1)
-               RGB(1,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
-               RGB(2,NGL)=0.9*FLOAT(NGLMAX-NGL)/FLOAT(NGLMAX-1)
-               RGB(3,NGL)=1.D0
-               ILN(NGL)=0
-               WLN(NGL)=0.07
-            ENDDO
-            CALL CONTG4X(GF,GP,GTH,NPMAX,NPMAX,NTHMAX, 
-     &                   ZL,RGB,ILN,WLN,NGLMAX,0)
-         ENDIF
-      ENDIF
+      NGLMAX=INT(SQRT((GFMAX1-GFMIN1)/(0.01*GFSTEP)))
+      DO NGL=1,NGLMAX
+         ZL(NGL)=GFMIN1+(0.1*GFSTEP*(NGL-1))**2
+         RGB(1,NGL)=1.D0
+         RGB(2,NGL)=0.9*FLOAT(NGL-1)/FLOAT(NGLMAX-1)
+         RGB(3,NGL)=0.9*FLOAT(NGL-1)/FLOAT(NGLMAX-1)
+         ILN(NGL)=0
+         WLN(NGL)=0.07
+      ENDDO
+      CALL CONTG4X(GF,GP,GTH,NPMAX,NPMAX,NTHMAX,ZL,RGB,ILN,WLN,NGLMAX,0)
 !
       CALL SETLIN(0,2,7)
       CALL MOVE(24.0,1.0)

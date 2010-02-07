@@ -9,7 +9,7 @@ C
 C
       NPMAX=100
       NTHMAX=100
-      PMAX=10.D0
+      PMAX=7.D0
 C
       PN0 = RN(NS)
       PT0 = (RTPR(NS)+2*RTPP(NS))/3.D0
@@ -78,15 +78,14 @@ C         WRITE(6,*) 'FM(10,10)=',FM(10,10)
             ENDDO
          ENDDO
          SUM=SUM*2.D0*PI*DELP*DELTH
-C         WRITE(6,*) 'SUM=',SUM
-         FACTOR=1.D0/SUM
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               FM(NP,NTH) = FACTOR*FM(NP,NTH)
-            ENDDO
-         ENDDO
-C         WRITE(6,*) 'FM(10,10)=',FM(10,10)
       ENDIF
+
+      FACTOR=1.D0/SUM
+      DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            FM(NP,NTH) = FACTOR*FM(NP,NTH)
+         ENDDO
+      ENDDO
       RETURN
       END                     
 C
@@ -264,13 +263,35 @@ C
       INCLUDE '../pl/plcom2.inc'
 C
       NRMAX=3
+      NCHMAX=16
+
+      DELR=DR
+      DELCH=2.D0*PI/NCHMAX
+
+      DO NR=1,3
+         SELECT CASE(NR)
+         CASE(1)
+            RS=R1-DR
+         CASE(2)
+            RS=R1
+         CASE(3)
+            RS=R1+DR
+         END SELECT
+         RM(NR)=RS
+      ENDDO
+
+      DO NCH=1,NCHMAX
+         CHI(NCH)=DELCH*(NCH-1)
+         CCHI(NCH)=COS(CHI(NCH))
+         SCHI(NCH)=SIN(CHI(NCH))
+      ENDDO
+
       NPMAX=50
       NTHMAX=50
       PMAX=10.D0
 
       DELP=PMAX/NPMAX
       DELTH=PI/NTHMAX
-      DELR=DR
 
       IF(ID.EQ.0) THEN
          PTH0W=0.D0
@@ -296,21 +317,17 @@ C
          TTNG(NTH) = TAN(THG(NTH))
       ENDDO
 
-      DO NR=1,NRMAX
-         SELECT CASE(NR)
-         CASE(1)
-            RS=R1-DR
-         CASE(2)
-            RS=R1
-         CASE(3)
-            RS=R1+DR
-         END SELECT
-         RHON=RS/RA
-         CALL PLPROF(RHON)
+      RHON=0.D0
+      CALL PLPROF(RHON)
 
-         PN0 = RN(NS)
-         PT0 = (RTPR(NS)+2*RTPP(NS))/3.D0
-         PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+      PN0 = RN(NS)
+      PT0 = (RTPR(NS)+2*RTPP(NS))/3.D0
+      PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+
+      DO NR=1,NRMAX
+         RHON=RM(NR)/RA
+
+         CALL PLPROF(RHON)
 
          RN0 = RN(NS)
          TPR = RTPR(NS)
