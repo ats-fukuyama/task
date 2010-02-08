@@ -136,7 +136,7 @@ module tx_commons
   real(8), dimension(:), allocatable :: H, HPSI
 
   ! Convergence accelerator
-  real(8) :: rMUb1, rMUb2, AMPe4, AMPm5
+  real(8) :: rMUb1, rMUb2
 
   ! Variables
   real(8), dimension(:), allocatable :: &

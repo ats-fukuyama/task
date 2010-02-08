@@ -40,7 +40,7 @@ contains
     EphV (0:NRMAX) = - XL(LQm3,0:NRMAX)
     AphV (0:NRMAX) =   XL(LQm4,0:NRMAX) * rMUb2
     BthV (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,AphV ,NRMAX,0)
-    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0 * AMPm5
+    RAthV(0:NRMAX) =   XL(LQm5,0:NRMAX) * rMU0
     BphV (0:NRMAX) =   2.D0              * dfdx(PSI,RAthV,NRMAX,0)
 
     PNeV (0:NRMAX) =   XL(LQe1,0:NRMAX)
@@ -49,7 +49,7 @@ contains
     RUethV(0:NRMAX)=   XL(LQe3,0:NRMAX) / PNeV(0:NRMAX)
     UethV(0)       =   0.D0
     UethV(1:NRMAX) =   XL(LQe3,1:NRMAX) / PNeV(1:NRMAX) / R(1:NRMAX)
-    UephV(0:NRMAX) =   XL(LQe4,0:NRMAX) / PNeV(0:NRMAX) * AMPe4
+    UephV(0:NRMAX) =   XL(LQe4,0:NRMAX) / PNeV(0:NRMAX)
     IF(MDFIXT == 0) THEN
        PeV  (0:NRMAX) =   XL(LQe5,0:NRMAX)
        PTeV (0:NRMAX) =   XL(LQe5,0:NRMAX) / PNeV(0:NRMAX)

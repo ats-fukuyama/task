@@ -87,7 +87,7 @@ contains
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
     INTEGER(4) :: NR, NQ, IC = 0, IDIV, NTDO, IDISP, NRAVM, IERR_LA, ICSUM, IDIAGL
 !LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
-    REAL(8) :: TIME0, DIP, AVM, ERR1, AV
+    REAL(8) :: TIME0, DIP, AVM, ERR1, AV, EPSabs
     real(8), dimension(1:NQMAX) :: tiny_array
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
     integer(4), dimension(1:2) :: iasg
@@ -102,6 +102,7 @@ contains
 !!$    END IF
 
     IDIAGL = MOD(IDIAG,10)
+    EPSabs = abs(EPS)
 
     !  Read spline table for neoclassical toroidal viscosity if not loaded when FSRP/=0
     IF(FSRP /= 0.D0 .AND. maxval(fmnq) == 0.D0) CALL Wnm_spline(fmnq, wnm, umnq, nmnqm)
@@ -279,7 +280,7 @@ contains
 !!$
 !!$             ! Steffensen's method (not completed)
 !!$
-!!$             tiny_denom = tiny_cap * EPS
+!!$             tiny_denom = tiny_cap * EPSabs
 !!$
 !!$             allocate(XN1(1:NQMAX,0:NRMAX),XN2(1:NQMAX,0:NRMAX))
 !!$
@@ -378,7 +379,7 @@ contains
                    IF (NQ == 1) THEN
                       WRITE(6,'((1X,A5,A3," =",I3))')'#####','IC',IC
                       WRITE(6,'((1X,A4," =",1PD9.2),2X,A2," =",I3)') &
-                           & 'EPS   ', EPS,'NRMAX   ', NRMAX
+                           & 'EPS   ', EPSabs,'NRMAX   ', NRMAX
                    END IF
                    ! Maximum relative error over the profile
                    ERR1 = MAX(ERR1, ASG(NQ,NR))
@@ -389,12 +390,12 @@ contains
                         & 'SCMAX ', ERR1
                    IDISP = IDIV + NT
                    IF (NQ == NQMAX) CYCLE L_IC
-                ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPS) THEN
+                ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPSabs) THEN
                    IF(IC /= ICMAX) THEN
                       IF(IDIAGL >= 3) THEN
                          IF(MOD(IC,20) == 0 .OR. IC == 1) WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
                               & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
-                         WRITE(6,'(3I4,1P4E17.8)') IC,NQ,NR,XP(NQ,NR),XN(NQ,NR),ASG(NQ,NR),EPS
+                         WRITE(6,'(3I4,1P4E17.8)') IC,NQ,NR,XP(NQ,NR),XN(NQ,NR),ASG(NQ,NR),EPSabs
                       END IF
                       CYCLE L_IC
                    END IF
@@ -404,7 +405,7 @@ contains
           END DO L_NQ
           ! NOT converged
           IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
-          EXIT L_IC
+          if(EPS > 0.D0) EXIT L_IC
        END DO L_IC
 
        ICSUM = ICSUM + IC
@@ -420,21 +421,21 @@ contains
                & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
           IF(IC == ICMAX) THEN ! NOT converged
              WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS," *"
+                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs," *"
           ELSE ! converged
              IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
              WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPS
+                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs
           END IF
        END IF
 
-       IF(IDIAG >= 11) THEN
+       IF(IDIAG >= 10) THEN
           WRITE(6,'(A,2(X,A,X),5X,A,11X,A)') &
                & "*****","NQ","VR","V_ERRMAX","EPS"
           DO NQ = 1, NQMAX
              IASG(1:2)  = MAXLOC( ASG(NQ:NQ,0:NRMAX))
-             WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(2)-1,ASG(NQ,IASG(2)-1),EPS
-             IF( ASG(NQ, IASG(2)-1) > EPS) THEN
+             WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(2)-1,ASG(NQ,IASG(2)-1),EPSabs
+             IF( ASG(NQ, IASG(2)-1) > EPSabs) THEN
                 MSG_NQ = trim(MSG_NQ)//' *'
              ELSE
                 MSG_NQ = trim(MSG_NQ)//'  '
@@ -497,7 +498,11 @@ contains
 
     rIPs = rIPe
 
-    WRITE(6,'(1x ,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+    IF(IC == ICMAX) THEN
+       WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3,"  *")') NT,T_TX,IC
+    ELSE
+       WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
+    END IF
     AVE_IC = REAL(ICSUM) / REAL(NTMAX)
 
     deallocate(BA,BL,BX)

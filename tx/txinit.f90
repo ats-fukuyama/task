@@ -393,6 +393,7 @@ SUBROUTINE TXINIT
   DT = 1.D-3
 
   !   Convergence parameter
+  !      Convergence calculation is going on until IC = ICMAX when EPS is negative.
   EPS = 1.D-2
 
   !   Iteration
@@ -417,10 +418,6 @@ SUBROUTINE TXINIT
 
   !   Lower bound of dependent variables
   tiny_cap = 1.d-14
-
-  !   Amplitude for numerical convergence
-  AMPe4 = 1.D3
-  AMPm5 = 1.D3
 
   !   Permittivity switch for numerical convergence
   rMUb1 = rMU0
@@ -683,6 +680,7 @@ SUBROUTINE TXCALM
   UHph  = 1.D0
 
   !   Square root permittivity for LQm1
+  !     for the sake of acceleration of convergence
   sqeps0 = sqrt(EPS0)
 
   !  Mesh
@@ -977,7 +975,7 @@ SUBROUTINE TXPROF
      ! N0_3 (halo neutrals)
      X(LQn3,NR) = 0.D0
      ! Bphi
-     X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0 / AMPm5
+     X(LQm5,NR) = 0.5D0 * PSI(NR) * BB / rMU0
      BphV(NR)   = BB
      ! Fixed densities to keep them constant during iterations
      PNeV_FIX(NR) = X(LQe1,NR)
@@ -1028,7 +1026,7 @@ SUBROUTINE TXPROF
         AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
         DO NR = 0, NRMAX
            AJPHL(NR) = AJFCT * AJPHL(NR)
-           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
            AJOH(NR) = AJPHL(NR)
         END DO
         BthV(0) = 0.d0
@@ -1040,7 +1038,7 @@ SUBROUTINE TXPROF
      ELSE
         DO NR = 0, NRMAX
 !!$           AJPHL(NR) = 2.D0 / rMUv1 * DERIV4(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
-!!$           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+!!$           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
 
            IF((1.D0-(R(NR)/RA)**2) <= 0.D0) THEN
               PROF= 0.D0    
@@ -1050,7 +1048,7 @@ SUBROUTINE TXPROF
            IF(FSHL == 0.D0) THEN
               ! Ne*UePhi
               AJPHL(NR)  = rIPs * 1.D6 / (PI * RA**2) * (PROFJ + 1.D0) * PROF**PROFJ
-              X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+              X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
               AJOH(NR)   = AJPHL(NR)
 !              AJOH(NR)   = PROF
            ELSE
@@ -1065,7 +1063,7 @@ SUBROUTINE TXPROF
      AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
      DO NR = 0, NRMAX
         AJPHL(NR) = AJFCT * AJPHL(NR)
-        X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20) / AMPe4
+        X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
         AJOH(NR) = AJPHL(NR)
      END DO
      BthV(0) = 0.d0
@@ -1252,18 +1250,18 @@ SUBROUTINE TXPROF
         ELSE
            ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
         END IF
-        X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 + (dPe + dPi) &
+        X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) + (dPe + dPi) &
              &     / (AEE * BphV(NR))) / (PZ + ALP) * R(NR)
         X(LQe3,NR) =- ALP * X(LQi3,NR)
-        ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+        ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
              &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
              &      + dPi / (PZ * AEE * PNiV(NR))
         X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
         X(LQi2,NR) = X(LQe2,NR) / PZ
         X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
-             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) * AMPe4 &
+             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
              &     +(dPe + dPi) / (AEE * BphV(NR)))) &
-             &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR) * AMPe4
+             &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR)
      END DO
 
      deallocate(dPedr,dPidr)
@@ -1285,7 +1283,7 @@ SUBROUTINE TXPROF
      CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
      RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
      X(LQm5,0) = 0.D0
-     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0 / AMPm5
+     X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
      deallocate(CMTX,RHSV,TMP)
 
      CALL TXCALV(X)
@@ -1480,7 +1478,7 @@ contains
        ! /// idx = 41 - 46 ///
        IF(NTCOIL <= 0 .OR. DltRPn < 0.D0 .OR. DltRPn > 1.D0 .OR. kappa < 0.D0) THEN
           EXIT ; ELSE ; idx = idx + 1 ; ENDIF
-       IF(DT < 0.D0 .OR. EPS < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
+       IF(DT < 0.D0 .OR. EPS == 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(ICMAX < 0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(ADV < 0.D0 .OR. ADV > 1.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
        IF(tiny_cap < 0.D0) THEN ; EXIT ; ELSE ; idx = idx + 1 ; ENDIF
