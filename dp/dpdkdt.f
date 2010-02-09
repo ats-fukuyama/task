@@ -181,8 +181,8 @@ C
      &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
      &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
 C      
-         CPART14= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
-     &            *COEF*(CPART11+CPART12+CPART13)*PN0*1.D20
+         CPART14= CI*2*PI*PV(NP)**2*TSNM(NTH)*DELTH*DELP
+     &            *COEF*(CPART11+CPART12+CPART13)
 C
          PI1=VD*VD
          PI2=VD*VPARA
@@ -237,9 +237,9 @@ C
 C         CDENY  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*PTH0*DELP)**2
 C     &                          +DELPL*(DGT(NP,NTH)*DELTH)**2)
 C
-         CPART2= -PI*PV(NP)**4*COEF*PM(NP)
+         CPART2= -PI*PV(NP)**4*COEF
      &        *TSNM(NTH)*AA*(1+TCSM2(NTH))*SCHI(NCH2)
-     &        *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN*PN0*1.D20
+     &        *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN
      &        *DELTH*DELP
 C
          PI1=VD**2
