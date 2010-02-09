@@ -71,6 +71,9 @@ C
       DKPP=MM/RSL
 C
 C
+      DO NP=1,NPMAX
+         PV(NP)=PTH0*PG(NP)/AM
+      ENDDO
       DO NTH=1,NTHMAX
           TCSM2(NTH)=TCSM(NTH)**2
       ENDDO
@@ -94,26 +97,26 @@ C
       DO NTH=1,NTHMAX
          NP=1
             DPFP(NTH,NP)   = (FP(NTH,NP+1,NR  )-FP(NTH,NP,NR  ))
-     &                      /(PTH0*DELP*FP(NTH,NP,NR))
+     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
             DPFPRP(NTH,NP) = (FP(NTH,NP+1,NR+1)-FP(NTH,NP,NR+1))
-     &                      /(PTH0*DELP*FP(NTH,NP,NR+1))
+     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
             DPFPRM(NTH,NP) = (FP(NTH,NP+1,NR-1)-FP(NTH,NP,NR-1))
-     &                      /(PTH0*DELP*FP(NTH,NP,NR-1))
+     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
          DO NP=2,NPMAX-2
             DPFP(NTH,NP)   = (FP(NTH,NP+1,NR  )-FP(NTH,NP-1,NR  ))
-     &                      /(2*PTH0*DELP*FP(NTH,NP,NR))
+     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
             DPFPRP(NTH,NP) = (FP(NTH,NP+1,NR+1)-FP(NTH,NP-1,NR+1))
-     &                      /(2*PTH0*DELP*FP(NTH,NP,NR+1))
+     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
             DPFPRM(NTH,NP) = (FP(NTH,NP+1,NR-1)-FP(NTH,NP-1,NR-1))
-     &                      /(2*PTH0*DELP*FP(NTH,NP,NR-1))
+     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
          ENDDO
          NP=NPMAX-1
             DPFP(NTH, NP)   = (FP(NTH,NP,NR  )-FP(NTH,NP-1,NR  ))
-     &                       /(PTH0*DELP*FP(NTH,NP,NR))
+     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
             DPFPRP(NTH, NP) = (FP(NTH,NP,NR+1)-FP(NTH,NP-1,NR+1))
-     &                       /(PTH0*DELP*FP(NTH,NP,NR+1))
+     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
             DPFPRM(NTH, NP) = (FP(NTH,NP,NR-1)-FP(NTH,NP-1,NR-1))
-     &                       /(PTH0*DELP*FP(NTH,NP,NR-1))
+     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
       ENDDO
 C
       DO NP=1,NPMAX
@@ -127,7 +130,6 @@ C
 !--------------diffrerential of g(v,theta),DGP,DGT----------!
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX
-         PV(NP)=PTH0*PG(NP)/AM
          DGP(NTH,NP)=DKPP*PV(NP)*TSNM(NTH)
      &            -(MM*AA*PV(NP)**2*TCSM(NTH)*TSNM(NTH)*CCHI(NCH2))/RSL
          DGT(NTH,NP)=-DKPP*TCSM(NTH)
@@ -153,12 +155,8 @@ C
       DO NP=1,NPMAX-1
       DO NTH=1,NTHMAX
 C        
-         PV(NP)=PTH0*PG(NP)/AM
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         CKPRY=CKPR*PV(NP)*TSNM(NTH)
-         DKPRY=DBLE(CKPRY)
-         TCSM2(NTH)=TCSM(NTH)**2
 C
          VD=AA*PV(NP)**2*0.5D0*(1+TCSM2(NTH))
          VPARA=PV(NP)*TCSM(NTH)
@@ -181,7 +179,8 @@ C
      &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
      &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
 C      
-         CPART14= CI*2*PI*PV(NP)**2*TSNM(NTH)*DELTH*DELP
+         CPART14= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
+     &            *PN0*1.D20
      &            *COEF*(CPART11+CPART12+CPART13)
 C
          PI1=VD*VD
@@ -220,12 +219,8 @@ C
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX-1
 C
-         PV(NP)=PTH0*PG(NP)/AM
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         CKPRY=CKPR*PV(NP)*TSNM(NTH)
-         DKPRY=DBLE(CKPRY)
-         TCSM2(NTH)=TCSM(NTH)**2
          COEF=AE**2*FP(NTH,NP,NR)
 C
          VD=AA*PV(NP)**2*0.5D0*(1+TCSM2(NTH))
@@ -279,9 +274,6 @@ C
       DO NP=1, NPMAX-1
       DO NTH=1, NTHMAX
 C
-         PV(NP)=PTH0*PG(NP)/AM
-         TCSM2(NTH)=TCSM(NTH)**2
-C
          EPART1 = DRFP(NTH,NP)*PV(NP)**4*(1+TCSM2(NTH))*TSNM(NTH)
          EPART2 = EPART1
          EPART3 = DRFP(NTH,NP)*PV(NP)**3*TCSM(NTH)*TSNM(NTH)
@@ -333,7 +325,7 @@ C
       CLDISP(1) = CINTG111+CINTG211
       CLDISP(2) = CINTG112+CINTG212+CINTG312+CINTG412
       CLDISP(3) = CINTG113+CINTG213+CINTG313
-      CLDISP(4) = CINTG121+CINTG221+CINTG421
+      CLDISP(4) = CINTG121+CINTG221         +CINTG421
       CLDISP(5) = CINTG122+CINTG222+CINTG322
       CLDISP(6) = CINTG123+CINTG223+CINTG323
       CLDISP(7) = CINTG131+CINTG231
@@ -474,8 +466,6 @@ C
          PV(NP)=PTH0*PG(NP)/AM
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         CKPRY=CKPR*PV(NP)*TSNM(NTH)
-         DKPRY=DBLE(CKPRY)
          TCSM2(NTH)=TCSM(NTH)**2
          COEF=AE**2*FP(NTH,NP,NR)
 C
@@ -560,8 +550,6 @@ C
          PV(NP)=PTH0*PG(NP)/AM
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         CKPRY=CKPR*PV(NP)*TSNM(NTH)
-         DKPRY=DBLE(CKPRY)
          TCSM2(NTH)=TCSM(NTH)**2
          COEF=AE**2*FP(NTH,NP,NR)
 C
