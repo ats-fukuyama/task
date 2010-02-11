@@ -11,8 +11,8 @@ C
       NTHMAX=100
       PMAX=7.D0
 C
-      PN0 = RN(NS)
-      PT0 = (RTPR(NS)+2*RTPP(NS))/3.D0
+      PN0 = PN(NS)
+      PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
 C
       RN0 = RN(NS)
@@ -48,13 +48,16 @@ C
       ENDDO
 C
       IF(ID.EQ.0) THEN
-         FACT = 1.D0/SQRT(2.D0*PI)**3
+         TNPR=TPR/RT0
+         TNPP=TPP/RT0
          SUM=0.D0
          DO NP=1,NPMAX
             PML=PM(NP)
-            EX =PML*PML/2.D0
             DO NTH=1,NTHMAX
-               FM(NP,NTH) = FACT * EXP(-EX)
+               PPP=PML*TSNM(NTH)
+               PPR=PML*TCSM(NTH)
+               EX=-(PPR**2/TNPR+PPP**2/TNPP)
+               FM(NP,NTH) = EXP(-EX)
                SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
             ENDDO
          ENDDO
