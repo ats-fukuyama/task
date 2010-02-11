@@ -2,14 +2,13 @@ C     $Id$
 C
 C****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA ******
 C
-      SUBROUTINE DPFMFL(NS,ID)
+      SUBROUTINE DPFMFL(NS)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
-      NPMAX=100
-      NTHMAX=100
-      PMAX=7.D0
+      RHON_MIN=0.D0
+      RHON_MAX=1.D0
 C
       PN0 = PN(NS)
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
@@ -32,8 +31,6 @@ C
       DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
          PG(NP)=DELP* NP
-         RGMM(NP)=SQRT(1+PTH0W*PM(NP)**2) 
-         RGMG(NP)=SQRT(1+PTH0W*PG(NP)**2)
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -62,8 +59,6 @@ C
             ENDDO
          ENDDO
          SUM=SUM*2.D0*PI*DELP*DELTH
-C         WRITE(6,*) 'SUM=',SUM
-C         WRITE(6,*) 'FM(10,10)=',FM(10,10)
       ELSE
          TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
@@ -115,7 +110,7 @@ C
 
       PN0   =RNFP0(NSA)
       PT0   =RTFP0(NSA)
-      PTH0  =SQRT(RTFP0(NSA)*1.D3*AEE*AMFP(NSA))
+      PTH0  =SQRT(PT0*1.D3*AEE*AMFP(NSA))
       DELR  =FPDATA(1)
       DELP  =FPDATA(2)
       DELTH =FPDATA(3)
@@ -128,8 +123,6 @@ C
       DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
          PG(NP)=DELP* NP
-         RGMM(NP)=SQRT(1+PTH0W*PM(NP)**2) 
-         RGMG(NP)=SQRT(1+PTH0W*PG(NP)**2)
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -258,15 +251,140 @@ C
   900 RETURN
       END
 C
+C****** LOAD Maxwellian VELOCITY DISTRIBUTION DATA ******
+C
+      SUBROUTINE DPLDFM(ID,NCHMAX)
+C
+      INCLUDE 'dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+C
+      RHON_MIN=0.D0
+      RHON_MAX=1.D0
+C
+      IF(NRMAX.EQ.1) THEN
+         DELR=0.1D0
+      ELSE
+         DELR=(RMAX-RMIN)/(NRMAX-1)
+      ENDIF
+
+      DELCH=2.D0*PI/NCHMAX
+      DO NCH=1,NCHMAX
+         CHI(NCH)=DELCH*(NCH-1)
+         CCHI(NCH)=COS(CHI(NCH))
+         SCHI(NCH)=SIN(CHI(NCH))
+      ENDDO
+
+      DELP=PMAX/NPMAX
+      DELTH=PI/NTHMAX
+C
+      DO NR=1,NRMAX
+         RM(NR)=RMIN+DELR*(NR-1)
+      ENDDO
+C
+      DO NP=1,NPMAX
+         PM(NP)=DELP*(NP-0.5D0)
+         PG(NP)=DELP* NP
+      ENDDO
+C
+      DO NTH=1,NTHMAX
+         THM(NTH)=DELTH*(NTH-0.5D0)
+         THG(NTH)=DELTH* NTH
+         TSNM(NTH) = SIN(THM(NTH))
+         TSNG(NTH) = SIN(THG(NTH))
+         TCSM(NTH) = COS(THM(NTH))
+         TCSG(NTH) = COS(THG(NTH))
+         TTNM(NTH) = TAN(THM(NTH))
+         TTNG(NTH) = TAN(THG(NTH))
+      ENDDO
+C
+      DO NS=1,NSAMAX
+         PN0 = PN(NS)
+         PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
+         PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+
+         NS_NSA(NS)=NS
+         RNFP0(NS)=PN0
+         RTFP0(NS)=PT0
+         AMFP(NS)=PA(NS)
+C
+         IF(ID.EQ.0) THEN
+            PTH0W=0.D0
+         ELSE
+            PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
+         ENDIF
+C
+         DO NR=1,NRMAX
+            RHON=RM(NR)
+            CALL PLPROF(RHON)
+
+            RN0 = RN(NS)
+            TPR = RTPR(NS)
+            TPP = RTPP(NS)
+C
+            IF(ID.EQ.0) THEN
+               TNPR=TPR/PT0
+               TNPP=TPP/PT0
+               SUM=0.D0
+               DO NP=1,NPMAX
+                  PML=PM(NP)
+                  DO NTH=1,NTHMAX
+                     PPP=PML*TSNM(NTH)
+                     PPR=PML*TCSM(NTH)
+                     EX=0.5D0*(PPR**2/TNPR+PPP**2/TNPP)
+                     FM(NP,NTH) = EXP(-EX)
+                     SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+                  ENDDO
+               ENDDO
+               SUM=SUM*2.D0*PI*DELP*DELTH
+            ELSE
+               TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
+               TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
+               TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
+               SUM=0.D0
+               DO NP=1,NPMAX
+                  PML=PM(NP)
+                  DO NTH=1,NTHMAX
+                     PPP=PML*TSNM(NTH)
+                     PPR=PML*TCSM(NTH)
+                     EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP)
+     &                 -SQRT(1.D0/TN00**2)
+                     FM(NP,NTH) = EXP(-EX)
+                     SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+                  ENDDO
+               ENDDO
+               SUM=SUM*2.D0*PI*DELP*DELTH
+            ENDIF
+
+            FACTOR=RN0/(PN0*SUM)
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX
+                  FNS(NTH,NP,NR,NS) = FACTOR*FM(NP,NTH)
+               ENDDO
+            ENDDO
+         ENDDO
+      ENDDO
+C
+      FPDATA(1)=DELR
+      FPDATA(2)=DELP
+      FPDATA(3)=DELTH
+      NFPDAT(1)=NRMAX
+      NFPDAT(2)=NPMAX
+      NFPDAT(3)=NTHMAX
+C
+  900 RETURN
+      END
+C
 C****** SET MAXWELLIAN VELOCITY DISTRIBUTION DATA with radial dep. ******
 C
-      SUBROUTINE DPFMFLR(NS,R1,DR,ID)
+      SUBROUTINE DPFMFLR(NS)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
       NRMAX=3
       NCHMAX=16
+      RHON_MIN=0.D0
+      RHON_MAX=1.D0
 
       DELR=DR
       DELCH=2.D0*PI/NCHMAX
@@ -305,8 +423,6 @@ C
       DO NP=1,NPMAX
          PM(NP)=DELP*(NP-0.5D0)
          PG(NP)=DELP* NP
-         RGMM(NP)=SQRT(1+PTH0W*PM(NP)**2) 
-         RGMG(NP)=SQRT(1+PTH0W*PG(NP)**2)
       ENDDO
 C
       DO NTH=1,NTHMAX

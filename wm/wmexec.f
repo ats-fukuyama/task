@@ -9,7 +9,7 @@ C
       IERR=0
       MODEEG=0
 C
-      CALL DPCHEK(IERR)
+      CALL DPCHEK(NTHMAX,IERR)
       IF(IERR.NE.0) RETURN
 C
       if(mdlwmf.eq.0) then
@@ -18,6 +18,7 @@ C
          IF(IERR.NE.0) RETURN
          CALL WMSETJ(IERR)
          IF(IERR.NE.0) RETURN
+
          CALL WMSOLV
          CALL WMEFLD
          CALL WMBFLD

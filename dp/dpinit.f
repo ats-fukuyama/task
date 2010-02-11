@@ -11,8 +11,8 @@ C                 4 : KINETIC MODEL WITHOUT FLR
 C                 5 : KINETIC MODEL WITH FLR
 C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
 C                 7 : GYROKINETIC MODEL (coming)
-C                 8 : GYROKINETIC MODEL (coming)
-C                 9 : LOCAL MODEL (MODELP locally specified by MODELPR)
+C                 8 : LOCAL MODEL (MODELV locally specified by MODELVR)
+C                 9 : LOCAL MODEL (MODELV,P locally specified by MODELV,PR)
 C                11 : (WM) MHD plasma
 C                12 : (WM) Cold plasma
 C                13 : (WM) Hot plasma (No FLR)
@@ -42,10 +42,8 @@ C              1 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 C              2 : KINETIC: READ FPDATA DISTRIBUTION
 C              3 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
 C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
-C              5*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
-C              6*: GYROKINETIC: READ FPDATA DISTRIBUTION
-C              7*: GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (REL.)
-C              8*: GYROKINETIC: READ FPDATA DISTRIBUTION (REL.)
+C              5 : GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              6 : GYROKINETIC: READ FPDATA DISTRIBUTION
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER
@@ -114,6 +112,14 @@ C
       EPSRT  = 1.D-8
       LMAXRT = 20
 C
+      NPMAX=50
+      NTHMAX=50
+      NRMAX=3
+      NSAMAX=2
+      PMAX=7.D0
+      RMIN=0.1D0
+      RMAX=0.3D0
+C
       RETURN
       END
 C
@@ -166,7 +172,7 @@ C
      &              RF1,RFI1,RKX1,RKY1,RKZ1,RX1,
      &              RF2,RFI2,RKX2,RKY2,RKZ2,RX2,
      &              NXMAX,EPSRT,LMAXRT,
-     &              MODELV
+     &              MODELV,NPMAX,NTHMAX,NRMAX,NSAMAX,PMAX,RMIN,RMAX
 C
       READ(NID,DP,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -196,23 +202,30 @@ C
      &       9X,'RF1,RFI1,RKX1,RKY1,RKZ1,RX1,'/
      &       9X,'RF2,RFI2,RKX2,RKY2,RKZ2,RX2,'/
      &       9X,'NXMAX,EPSRT,LMAXRT,'/
-     &       9X,'MODELV')
+     &       9X,'MODELV,NPMAX,NTHMAX,NRMAX,NSAMAX,PMAX,RMIN,RMAX')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
 C
-      SUBROUTINE DPCHEK(IERR)
+      SUBROUTINE DPCHEK(NCHMAX,IERR)
 C
       INCLUDE 'dpcomm.inc'
 
       DATA INITFP/0/
 C
+      INITFM=0
       DO NS=1,NSMAX
          IF((MODELV(NS).EQ.2.OR.MODELV(NS).EQ.4)) THEN
             IF(INITFP.EQ.0) THEN
                write(6,*) '----- DPLDFP ----- NS=',NS
                CALL DPLDFP
                INITFP=1
+            ENDIF
+         ELSEIF(MODELV(NS).EQ.5) THEN
+            IF(INITFM.EQ.0) THEN
+               write(6,*) '----- DPLDFM ----- NS=',NS
+               CALL DPLDFM(0,NCHMAX)
+               INITFM=1
             ENDIF
          ELSE
             RHON_MIN=0.D0
@@ -234,13 +247,17 @@ C
       DO NS=1,NSMAX
         WRITE(6,110) NS,MODELP(NS),MODELV(NS),NDISP1(NS),NDISP2(NS)
       ENDDO
+      WRITE(6,601) 'PMAX  ',PMAX  ,'RMIN  ',RMIN,
+     &             'RMAX  ',RMAX
+      WRITE(6,602) 'NPMAX ',NPMAX ,'NTHMAX',NTHMAX,
+     &             'NRMAX ',NRMAX ,'NSAMAX',NSAMAX
 C
       RETURN
 C
   100 FORMAT(1H ,'NS    MODELP  MODELV  NDISP1  NDISP2')
   110 FORMAT(1H ,I2,' ',4I8)                               
-C  601 FORMAT(1H ,A6,'=',1PE11.3:2X,A6,'=',1PE11.3:
-C     &        2X,A6,'=',1PE11.3:2X,A6,'=',1PE11.3)
+  601 FORMAT(' ',A6,'=',1PE11.3 :2X,A6,'=',1PE11.3:
+     &        2X,A6,'=',1PE11.3 :2X,A6,'=',1PE11.3)
   602 FORMAT(1H ,A6,'=',I7,4X  :2X,A6,'=',I7,4X  :
      &        2X,A6,'=',I7,4X  :2X,A6,'=',I7)
       END

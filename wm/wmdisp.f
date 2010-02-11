@@ -36,15 +36,6 @@ C
       ELSE
          IF(MODELP(NS).LT.0) THEN
             CALL WMTNSX(NR,NS)
-         ELSEIF(MODELP(NS).EQ.8) THEN
-            IF(MODELV(NS).EQ.9) THEN
-               MODELVS=MODELV(NS)
-               MODELV(NS)=MODELVR(NR,NS)
-               CALL WMDPIN(NR,NS)
-               MODELV(NS)=MODELVS
-            ELSE
-               CALL WMDPIN(NR,NS)
-            ENDIF
          ELSEIF(MODELP(NS).EQ.9) THEN
             MODELPS=MODELP(NS)
             MODELP(NS)=MODELPR(NR,NS)
@@ -62,7 +53,12 @@ C
             ENDIF
             MODELP(NS)=MODELPS
          ELSE
-            CALL WMDPIN(NR,NS)
+            IF(MODELV(NS).EQ.5) THEN
+               WRITE(6,*) NR,NS
+               CALL WMDPDK(NR,NS)
+            ELSE
+               CALL WMDPIN(NR,NS)
+            ENDIF
          ENDIF
       ENDIF
 C
@@ -485,6 +481,55 @@ C               WRITE(6,*) 'CGZ(0)=',CGZ(0)
 C               WRITE(6,*) 'CDZ(0)=',CDZ(0)
 C               WRITE(6,*) 'CTNSR(3,3)=',CTNSR(3,3,NTH,MDX)
 C            ENDIF
+         ENDDO
+         ENDDO
+      ENDDO
+      ENDDO
+C
+      RETURN
+      END
+C
+C     ****** IMPORT FROM TASK/DP ******
+C
+      SUBROUTINE WMDPDK(NR,NS)
+C
+C           NR : NODE NUMBER (RADIAL POSITION)
+C           NS : PARTICLE SPECIES 
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CDTNS(3,3)
+C
+      CW=2.D0*PI*CRF*1.D6
+C
+      RHON=XRHO(NR)
+      CALL PLPROF(RHON)
+C
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+         
+         CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
+
+         DO ND=-NDSIZX,NDSIZX
+            NN=NPH0+NHC*ND
+         DO MD=-MDSIZX,MDSIZX
+            MM=NTH0+MD
+C
+            RKTH=MM*BSUPTH/BABS
+            RKPH=NN*BSUPPH/BABS
+            RKPR=RKTH+RKPH
+            IF(ABS(RKPR).LT.1.D-5) RKPR=1.D-5
+C
+            CKPR=RKPR
+
+            CALL DPDKDT(CW,CKPR,NS,NR,NTH,NTH,MM,CDTNS)
+
+            DO j=1,3
+            DO i=1,3
+               CTNSR(i,j,MD,ND,NTH,NPH)
+     &              =CTNSR(i,j,MD,ND,NTH,NPH)+CDTNS(i,j)
+            ENDDO
+            ENDDO
          ENDDO
          ENDDO
       ENDDO

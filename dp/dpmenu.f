@@ -11,7 +11,7 @@ C
       DIMENSION GX(NXGM),GY(NXGM,6)
 C
       DIMENSION CD4(6),CD5(6),CD6(6),CDC(9),CDH(9),CDK(9)
-      DIMENSION CLDISP(9)
+      DIMENSION CDTNS(3,3)
       CHARACTER KID*1,LINE*80
       EXTERNAL DPPARM
 C
@@ -82,24 +82,29 @@ C
          MM=1
          RF0=0.1D0
          RKPR0=0.1D0
-         MM=1
-         R1=0.5D0*RA
-         DR=0.05D0*RA
+         RMIN=0.4D0*RA
+         RMAX=0.6D0*RA
+         NRMAX=3
+         NR=2
          NCH1=1
          NCH2=1
- 3001    WRITE(6,*) '## INPUT NS,RF0,RKPR0,MM,R1,DR: '
-         READ(5,*,ERR=3001,END=3002) NS,RF0,RKPR0,MM,R1,DR
+ 3001    WRITE(6,*) '## INPUT NS,RF0,RKPR0,MM,NR,NRMAX: '
+         READ(5,*,ERR=3001,END=3002) NS,RF0,RKPR0,MM,NR,NRMAX
          IF(RF0.EQ.0.D0) GOTO 3002
+         CALL DPLDFM(0,1)
+
          CW=2.D0*PI*DCMPLX(RF0,RFI0)*1.D6
          CKPR=MAX(RKPR0,1.D-8)
-         CKPP=MM/R1
 
-         CALL DPFMFLR(NS,R1,DR,0)
-C         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FP(1,1,2),'F2')
-         NR=2
-         CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP)
+!         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FNS(1,1,1,NS),'F2')
+!         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FNS(1,1,NR,1),'F2')
+!         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FNS(1,1,NR,2),'F2')
+!         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FNS(1,1,3,NS),'F2')
 
-         CALL PLMAG(RR+R1,0.D0,0.D0,RHON)
+         CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNS)
+
+         CKPP=MM/RM(NR)
+         CALL PLMAG(RR+RM(NR),0.D0,0.D0,RHON)
          CALL PLPROF(RHON)
          MODELP(1)=1
          CALL DPTENS(CW,CKPR,CKPP,NS,CD4)
@@ -126,15 +131,15 @@ C         CALL DPFPGRA(PMAX,NTHM,NPMAX,NTHMAX,PM,THM,FP(1,1,2),'F2')
          CDH(7)= CD5(4)
          CDH(8)=-CD5(6)
          CDH(9)= CD5(1)+CD5(2)
-         CDK(1)= CI*CLDISP(1)/(CW*EPS0)
-         CDK(2)= CI*CLDISP(2)/(CW*EPS0)
-         CDK(3)= CI*CLDISP(3)/(CW*EPS0)
-         CDK(4)= CI*CLDISP(4)/(CW*EPS0)
-         CDK(5)= CI*CLDISP(5)/(CW*EPS0)
-         CDK(6)= CI*CLDISP(6)/(CW*EPS0)
-         CDK(7)= CI*CLDISP(7)/(CW*EPS0)
-         CDK(8)= CI*CLDISP(8)/(CW*EPS0)
-         CDK(9)= CI*CLDISP(9)/(CW*EPS0)
+         CDK(1)= CDTNS(1,1)
+         CDK(2)= CDTNS(1,2)
+         CDK(3)= CDTNS(1,3)
+         CDK(4)= CDTNS(2,1)
+         CDK(5)= CDTNS(2,2)
+         CDK(6)= CDTNS(2,3)
+         CDK(7)= CDTNS(3,1)
+         CDK(8)= CDTNS(3,2)
+         CDK(9)= CDTNS(3,3)
          WRITE(6,613) (I,CDC(I),CDH(I),CDK(I),I=1,9)
   613    FORMAT(I5,1P6E12.4)
          GOTO 3001

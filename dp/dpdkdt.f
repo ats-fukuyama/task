@@ -7,16 +7,18 @@ C                      2010/02/08
 C                           programed by T.OKAMOTO
 C ******************************************************
 C
-      SUBROUTINE DPDKDT(CW,CKPR,NS,NTH,NP,NR,NCH1,NCH2,MM,CLDISP)
+      SUBROUTINE DPDKDT(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNS)
 C
       INCLUDE 'dpcomm.inc'
 C
-      DIMENSION CLDISP(9),CLDISP1(9),CLDISP2(9)
+      DIMENSION CDTNS(3,3),CDTNSR(3,3),CDTNSI(3,3)
 C
-      CALL DPDKDTR(CW,CKPR,NP,NR,NCH1,NCH2,MM,CLDISP1)
-      CALL DPDKDTI(CW,CKPR,NP,NR,NCH1,NCH2,MM,CLDISP2)
-      DO I=1,9
-         CLDISP(I)=CLDISP1(I)+CLDISP2(I)
+      CALL DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNSR)
+C      CALL DPDKDTI(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNSI)
+      DO J=1,3
+         DO I=1,3
+            CDTNS(I,J)=CDTNSR(I,J)+CDTNSI(I,J)
+         ENDDO
       ENDDO
       RETURN
       END
@@ -25,7 +27,7 @@ C ******************************************************
 C                       DPDKDTR
 C ******************************************************
 C
-      SUBROUTINE DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CLDISP)
+      SUBROUTINE DPDKDTR(CW,CKPR,NS,NR,NCH1,NCH2,MM,CDTNSR)
 C
 C------------------------------------------------------!
 C     NS : PARTICLE SPECIES
@@ -39,7 +41,7 @@ C------------------------------------------------------!
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
-      DIMENSION CLDISP(9)
+      DIMENSION CDTNSR(3,3)
       DIMENSION DRFP(NTHMAX,NPMAX)
       DIMENSION DRRFP(NTHMAX,NPMAX)
       DIMENSION CWAST(NTHMAX,NPMAX)
@@ -53,9 +55,13 @@ C
       DIMENSION TCSM2(NTHMAX)
       DIMENSION PV(NPMAX)
       REAL*8 CHIL,CCHIL
-C
+
       DELPL  = 0.5D0
-C      
+      
+      PN0 = PN(NS)
+      PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
+      PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
+
       RSL=RM(NR)
       CHIL= 0.5D0*( CHI(NCH1)+ CHI(NCH2))
       CCHIL=0.5D0*(CCHI(NCH1)+CCHI(NCH2))
@@ -70,7 +76,6 @@ C
       AA=AM/(AE*BABS*RR)
       DKPP=MM/RSL
 C
-C
       DO NP=1,NPMAX
          PV(NP)=PTH0*PG(NP)/AM
       ENDDO
@@ -80,62 +85,82 @@ C
 
 !--------derivation in radial direction & velocity---------------!
 C
-      DO NTH=1,NTHMAX
+      IF(NR.EQ.1) THEN
+         NRML=NR
+         NRPL=NR+1
+         DELRL=DELR
+      ELSEIF(NR.EQ.NRMAX) THEN
+         NRML=NR-1
+         NRPL=NR
+         DELRL=DELR
+      ELSE
+         NRML=NR-1
+         NRPL=NR+1
+         DELRL=2.D0*DELR
+      ENDIF
       DO NP=1,NPMAX-1
-         DRFP(NTH,NP)=      (FP(NTH,NP,NR+1)-FP(NTH,NP,NR-1))
-     &                     /(2*DELR)
-         DRRFP(NTH,NP)=     (     FP(NTH,NP,NR+1)
-     &                      -2.D0*FP(NTH,NP,NR  )
-     &                      +     FP(NTH,NP,NR-1))
-     &                     /(DELR*DELR)
-         CWAST(NTH,NP)=MM*(DRFP(NTH,NP)/FP(NTH,NP,NR))*BABS/(AA*RSL)
-         DRCWAST(NTH,NP)=MM*(DRRFP(NTH,NP)/FP(NTH,NP,NR))*BABS/(AA*RSL)
+      DO NTH=1,NTHMAX
+         DRFP(NTH,NP)=      (FNS(NTH,NP,NRPL,NS)-FNS(NTH,NP,NRML,NS))
+     &                     /(DELRL)
+C         DRRFP(NTH,NP)=    ((FNS(NTH,NP,NRPL,NS)-FNS(NTH,NP,NR  ,NS))
+C     &                     /DELR
+C     &                     -(FNS(NTH,NP,NR  ,NS)-FNS(NTH,NP,NRML,NS))
+C     &                     /DELR)/DELR
+         CWAST(NTH,NP)  =MM*(DRFP(NTH,NP)
+     &                  /FNS(NTH,NP,NR,NS))*BABS/(AA*RSL)
+C         DRCWAST(NTH,NP)=MM*(DRRFP(NTH,NP)
+C     &                  /FNS(NTH,NP,NR,NS))*BABS/(AA*RSL)
       ENDDO
       ENDDO
-C
-C
+
       DO NTH=1,NTHMAX
          NP=1
-            DPFP(NTH,NP)   = (FP(NTH,NP+1,NR  )-FP(NTH,NP,NR  ))
-     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
-            DPFPRP(NTH,NP) = (FP(NTH,NP+1,NR+1)-FP(NTH,NP,NR+1))
-     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
-            DPFPRM(NTH,NP) = (FP(NTH,NP+1,NR-1)-FP(NTH,NP,NR-1))
-     &                      /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
+            DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)-FNS(NTH,NP,NR,  NS))
+     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NRPL,NS)-FNS(NTH,NP,NRPL,NS))
+C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
+C            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NRML,NS)-FNS(NTH,NP,NRML,NS))
+C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRML,NS))
          DO NP=2,NPMAX-2
-            DPFP(NTH,NP)   = (FP(NTH,NP+1,NR  )-FP(NTH,NP-1,NR  ))
-     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
-            DPFPRP(NTH,NP) = (FP(NTH,NP+1,NR+1)-FP(NTH,NP-1,NR+1))
-     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
-            DPFPRM(NTH,NP) = (FP(NTH,NP+1,NR-1)-FP(NTH,NP-1,NR-1))
-     &                      /(2*PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
+            DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)
+     &                       -FNS(NTH,NP-1,NR,  NS))
+     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NRPL,NS)
+C     &                       -FNS(NTH,NP-1,NRPL,NS))
+C     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
+C            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NRML,NS)
+C     &                       -FNS(NTH,NP-1,NRML,NS))
+C     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NRML,NS))
          ENDDO
          NP=NPMAX-1
-            DPFP(NTH, NP)   = (FP(NTH,NP,NR  )-FP(NTH,NP-1,NR  ))
-     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR))
-            DPFPRP(NTH, NP) = (FP(NTH,NP,NR+1)-FP(NTH,NP-1,NR+1))
-     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR+1))
-            DPFPRM(NTH, NP) = (FP(NTH,NP,NR-1)-FP(NTH,NP-1,NR-1))
-     &                       /(PV(NP)*PTH0*DELP*FP(NTH,NP,NR-1))
+            DPFP(NTH, NP)   = (FNS(NTH,NP,  NR,  NS)
+     &                        -FNS(NTH,NP-1,NR,  NS))
+     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,  NS))
+C            DPFPRP(NTH, NP) = (FNS(NTH,NP,  NRPL,NS)
+C     &                        -FNS(NTH,NP-1,NRPL,NS))
+C     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
+C            DPFPRM(NTH, NP) = (FNS(NTH,NP,  NRML,NS)
+C     &                        -FNS(NTH,NP-1,NRML,NS))
+C     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRML,NS))
       ENDDO
-C
-      DO NP=1,NPMAX
-         DO NTH=1,NTHMAX
-            DRPFP(NTH,NP) = (DPFPRP(NTH,NP)-DPFPRM(NTH,NP))
-     &                      /(2*DELR)
-         ENDDO
-      ENDDO
-C           
-C  
+
+C      DO NP=1,NPMAX
+C         DO NTH=1,NTHMAX
+C            DRPFP(NTH,NP) = (DPFPRP(NTH,NP)-DPFPRM(NTH,NP))
+C     &                      /(2*DELR)
+C         ENDDO
+C      ENDDO
+           
 !--------------diffrerential of g(v,theta),DGP,DGT----------!
-      DO NTH=1,NTHMAX
-      DO NP=1,NPMAX
-         DGP(NTH,NP)=DKPP*PV(NP)*TSNM(NTH)
-     &            -(MM*AA*PV(NP)**2*TCSM(NTH)*TSNM(NTH)*CCHI(NCH2))/RSL
-         DGT(NTH,NP)=-DKPP*TCSM(NTH)
-     &            +(MM*AA*PV(NP)*(1+TCSM2(NTH))*CCHI(NCH2))/RSL
-      ENDDO
-      ENDDO
+
+C      DO NTH=1,NTHMAX
+C      DO NP=1,NPMAX
+C         DGP(NTH,NP)=DKPP*PV(NP)*TSNM(NTH)
+C     &            -(MM*AA*PV(NP)**2*TCSM(NTH)*TSNM(NTH)*CCHI(NCH2))/RSL
+C         DGT(NTH,NP)=-DKPP*TCSM(NTH)
+C     &            +(MM*AA*PV(NP)*(1+TCSM2(NTH))*CCHI(NCH2))/RSL
+C      ENDDO
+C      ENDDO
 C------------------------------------------------------!
 
 C*****************PRINCIPAL VALUE***********************
@@ -160,7 +185,7 @@ C
 C
          VD=AA*PV(NP)**2*0.5D0*(1+TCSM2(NTH))
          VPARA=PV(NP)*TCSM(NTH)
-         COEF=AE**2*FP(NTH,NP,NR)
+         COEF=AE**2*FNS(NTH,NP,NR,NS)
 C
          CDENX=CW-DKPRX+MM*VD*CCHI(NCH2)/RSL
          CDEN=1.D0/CDENX
@@ -169,90 +194,43 @@ C         CDENY  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*PTH0*DELP)**2
 C     &                             +DELPL*(DGT(NP,NTH)*DELTH)**2)
 C
          CPART11=(-DPFP(NTH,NP)-CWAST(NTH,NP)/CW)
-C         CPART12=(0.D0,0.D0)
-C         CPART13=(0.D0,0.D0)
+         CPART12=(0.D0,0.D0)
+         CPART13=(0.D0,0.D0)
+         CPART14=(0.D0,0.D0)
 C
-         CPART12= CI*MM*VD**2*CCHI(NCH2)*SCHI(NCH2)
-     &          *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN**2
+C         CPART12= CI*MM*VD**2*CCHI(NCH2)*SCHI(NCH2)
+C     &          *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN**2
 C
-         CPART13= CI*VD*SCHI(NCH2)
-     &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
-     &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
+C         CPART13= CI*VD*SCHI(NCH2)
+C     &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
+C     &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
 C      
-         CPART14= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
+C         CPART14= -PI*PV(NP)**4*COEF
+C     &        *TSNM(NTH)*AA*(1+TCSM2(NTH))*SCHI(NCH2)
+C     &        *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN
+C     &        *DELTH*DELP
+
+         CPART1= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
      &            *PN0*1.D20
-     &            *COEF*(CPART11+CPART12+CPART13)
+     &            *COEF*(CPART11+CPART12+CPART13+CPART14)
 C
          PI1=VD*VD
          PI2=VD*VPARA
          PI3=VPARA*VPARA
 C
 C
-      CINTG111 = CINTG111+CDEN*CPART14*PI1*CCHI(NCH1)*CCHI(NCH2)
-      CINTG112 = CINTG112+CDEN*CPART14*PI1*CCHI(NCH1)*SCHI(NCH2)
-      CINTG113 = CINTG113+CDEN*CPART14*PI2*CCHI(NCH1)
-      CINTG121 = CINTG121+CDEN*CPART14*PI1*SCHI(NCH1)*CCHI(NCH2)
-      CINTG122 = CINTG122+CDEN*CPART14*PI1*SCHI(NCH1)*SCHI(NCH2)
-      CINTG123 = CINTG123+CDEN*CPART14*PI2*SCHI(NCH1)
-      CINTG131 = CINTG131+CDEN*CPART14*PI2           *CCHI(NCH2)
-      CINTG132 = CINTG132+CDEN*CPART14*PI2           *SCHI(NCH2)
-      CINTG133 = CINTG133+CDEN*CPART14*PI3
+      CINTG111 = CINTG111+CDEN*CPART1*PI1*CCHI(NCH1)*CCHI(NCH2)
+      CINTG112 = CINTG112+CDEN*CPART1*PI1*CCHI(NCH1)*SCHI(NCH2)
+      CINTG113 = CINTG113+CDEN*CPART1*PI2*CCHI(NCH1)
+      CINTG121 = CINTG121+CDEN*CPART1*PI1*SCHI(NCH1)*CCHI(NCH2)
+      CINTG122 = CINTG122+CDEN*CPART1*PI1*SCHI(NCH1)*SCHI(NCH2)
+      CINTG123 = CINTG123+CDEN*CPART1*PI2*SCHI(NCH1)
+      CINTG131 = CINTG131+CDEN*CPART1*PI2           *CCHI(NCH2)
+      CINTG132 = CINTG132+CDEN*CPART1*PI2           *SCHI(NCH2)
+      CINTG133 = CINTG133+CDEN*CPART1*PI3
 C 
       ENDDO
       ENDDO
-C
-C
-C
-C*************SUM2********************
-C
-C
-      CINTG211 = (0.D0,0.D0)
-      CINTG212 = (0.D0,0.D0)
-      CINTG213 = (0.D0,0.D0)
-      CINTG221 = (0.D0,0.D0)
-      CINTG222 = (0.D0,0.D0)
-      CINTG223 = (0.D0,0.D0)
-      CINTG231 = (0.D0,0.D0)
-      CINTG232 = (0.D0,0.D0)
-      CINTG233 = (0.D0,0.D0)
-C
-      DO NP=1,NPMAX
-      DO NTH=1,NTHMAX-1
-C
-         CKPRX=CKPR*PV(NP)*TCSM(NTH)
-         DKPRX=DBLE(CKPRX)
-         COEF=AE**2*FP(NTH,NP,NR)
-C
-         VD=AA*PV(NP)**2*0.5D0*(1+TCSM2(NTH))
-         VPARA=PV(NP)*TCSM(NTH)
-C     
-         CDENX = CW-DKPRX+MM*VD*CCHI(NCH2)/RSL
-     &        /(2*RSL)
-         CDEN=1.D0/CDENX
-C         CDENY  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*PTH0*DELP)**2
-C     &                          +DELPL*(DGT(NP,NTH)*DELTH)**2)
-C
-         CPART2= -PI*PV(NP)**4*COEF
-     &        *TSNM(NTH)*AA*(1+TCSM2(NTH))*SCHI(NCH2)
-     &        *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN
-     &        *DELTH*DELP
-C
-         PI1=VD**2
-         PI2=VD*VPARA
-         PI3=VPARA**2
-C
-         CINTG211 = CINTG211+CDEN*CPART2*PI1*CCHI(NCH1)*CCHI(NCH2)
-         CINTG212 = CINTG212+CDEN*CPART2*PI1*CCHI(NCH1)*SCHI(NCH2)
-         CINTG213 = CINTG213+CDEN*CPART2*PI2*CCHI(NCH1)
-         CINTG221 = CINTG221+CDEN*CPART2*PI1*SCHI(NCH1)*CCHI(NCH2)
-         CINTG222 = CINTG222+CDEN*CPART2*PI1*SCHI(NCH1)*SCHI(NCH2)
-         CINTG223 = CINTG223+CDEN*CPART2*PI2*SCHI(NCH1)
-         CINTG231 = CINTG231+CDEN*CPART2*PI2           *CCHI(NCH2)
-         CINTG232 = CINTG232+CDEN*CPART2*PI2           *SCHI(NCH2)
-         CINTG233 = CINTG233+CDEN*CPART2*PI3
-      ENDDO
-      ENDDO
-C
 C
 C****************SUM3*********************************
 C
@@ -289,7 +267,7 @@ C
       ENDDO
 C
       COEE1 = -CI*PI*AE*AA/(CW*BABS)
-      COEE2 = COEE1
+      COEE2 =  COEE1
       COEE3 = -CI*2*PI*AE/(CW*BABS)
 C
       CINTG312 = COEE1*CINTG312a*SCHI(NCH1)
@@ -307,10 +285,10 @@ C
       DO NP=1, NPMAX-1
       DO NTH=1, NTHMAX
 C
-         FPART= 2*PI*PN0*1.D20*FP(NTH,NP,NR)*PM(NP)**2*TSNM(NTH)
+         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP)**2*TSNM(NTH)
 C
-      CINTG412 = CINTG412+FPART*DELTH*DELP
-      CINTG421 = CINTG421-FPART*DELTH*DELP
+         CINTG412 = CINTG412+FPART*DELTH*DELP
+         CINTG421 = CINTG421-FPART*DELTH*DELP
 C
       ENDDO
       ENDDO
@@ -322,15 +300,15 @@ C
 C
 C*****************************************************
 C
-      CLDISP(1) = CINTG111+CINTG211
-      CLDISP(2) = CINTG112+CINTG212+CINTG312+CINTG412
-      CLDISP(3) = CINTG113+CINTG213+CINTG313
-      CLDISP(4) = CINTG121+CINTG221         +CINTG421
-      CLDISP(5) = CINTG122+CINTG222+CINTG322
-      CLDISP(6) = CINTG123+CINTG223+CINTG323
-      CLDISP(7) = CINTG131+CINTG231
-      CLDISP(8) = CINTG132+CINTG232+CINTG332
-      CLDISP(9) = CINTG133+CINTG233+CINTG333
+      CDTNSR(1,1)=CI*(CINTG111                  )/(CW*EPS0)
+      CDTNSR(1,2)=CI*(CINTG112+CINTG312+CINTG412)/(CW*EPS0)
+      CDTNSR(1,3)=CI*(CINTG113+CINTG313         )/(CW*EPS0)
+      CDTNSR(2,1)=CI*(CINTG121         +CINTG421)/(CW*EPS0)
+      CDTNSR(2,2)=CI*(CINTG122+CINTG322         )/(CW*EPS0)
+      CDTNSR(2,3)=CI*(CINTG123+CINTG323         )/(CW*EPS0)
+      CDTNSR(3,1)=CI*(CINTG131                  )/(CW*EPS0)
+      CDTNSR(3,2)=CI*(CINTG132+CINTG332         )/(CW*EPS0)
+      CDTNSR(3,3)=CI*(CINTG133+CINTG333         )/(CW*EPS0)
 C
       RETURN
       END                     
@@ -339,7 +317,7 @@ C ******************************************************
 C                       DPDKDTI
 C ******************************************************
 C
-      SUBROUTINE DPDKDTI(CW,CKPR,NS,NP,NTH,NR,NCH1,NCH2,MM,CLDISP2)
+      SUBROUTINE DPDKDTI(CW,CKPR,NS,NP,NTH,NR,NCH1,NCH2,MM,CDTNSI)
 C
 C------------------------------------------------------! 
 C     NS : PARTICLE SPECIES
@@ -353,17 +331,15 @@ C------------------------------------------------------!
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 
-      DIMENSION CLDISP(9)
-      DIMENSION DRFP1(NTHMAX,NPMAX,NRMAX)
+      DIMENSION CDTNSI(3,3)
       DIMENSION DRFP(NTHMAX,NPMAX)
       DIMENSION DRRFP(NTHMAX,NPMAX)
       DIMENSION CWAST(NTHMAX,NPMAX)
       DIMENSION DRCWAST(NTHMAX,NPMAX)
       DIMENSION DPFP(NTHMAX,NPMAX)
-      DIMENSION DPFP1(NTHMAX,NPMAX,NRMAX)
+      DIMENSION DPFPRP(NTHMAX,NPMAX)
+      DIMENSION DPFPRM(NTHMAX,NPMAX)
       DIMENSION DRPFP(NTHMAX,NPMAX)
-      DIMENSION DGP(NTHMAX,NPMAX)
-      DIMENSION DGT(NTHMAX,NPMAX)
       DIMENSION TCSM2(NTHMAX)
       DIMENSION PV(NPMAX)
 C      
@@ -381,57 +357,68 @@ C
       AA=AM/(AE*BABS*RR)
       DKPP=MM/RSL
 C
+      DO NP=1,NPMAX
+         PV(NP)=PTH0*PG(NP)/AM
+      ENDDO
+      DO NTH=1,NTHMAX
+          TCSM2(NTH)=TCSM(NTH)**2
+      ENDDO
+
       CWP=PN0**1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
-C
 !--------derivation in radial direction & velocity---------------!
 C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
-         DRFP1(NTH,NP,NR) = (FP(NTH,NP,NR+1)
-     &        -FP(NTH,NP,NR-1))/(2*DELR)
-         DRFP(NTH,NP) = (FP(NTH,NP,NR+1)
-     &        -FP(NTH,NP,NR-1))/(2*DELR)
-         DRRFP(NTH,NP)=(DRFP1(NTH,NP,NR+1)-DRFP1(NTH,NP,NR-1))
-     &        /(2*DELR)
-         CWAST(NTH,NP)=MM*(DRFP(NTH,NP)/FP(NTH,NP,NR))*BABS/(AA*RSL)
-         DRCWAST(NTH,NP)=MM*(DRRFP(NTH,NP)/FP(NTH,NP,NR))*BABS/(AA*RSL)
+         DRFP(NTH,NP)=      (FNS(NTH,NP,NR+1,NS)-FNS(NTH,NP,NR-1,NS))
+     &                     /(2*DELR)
+         DRRFP(NTH,NP)=     (     FNS(NTH,NP,NR+1,NS)
+     &                      -2.D0*FNS(NTH,NP,NR  ,NS )
+     &                      +     FNS(NTH,NP,NR-1,nS))
+     &                     /(DELR*DELR)
+         CWAST(NTH,NP)=MM*(DRFP(NTH,NP)
+     &                /FNS(NTH,NP,NR,NS))*BABS/(AA*RSL)
+         DRCWAST(NTH,NP)=MM*(DRRFP(NTH,NP)
+     &                  /FNS(NTH,NP,NR,NS))*BABS/(AA*RSL)
       ENDDO
       ENDDO
-C
 C
       DO NTH=1,NTHMAX
-         IF (NP == 1) THEN
-            DPFP(NTH,NP) = (FP(NTH,NP+1,NR)-FP(NTH,NP,NR))
-     &                    /(PTH0*DELP*FP(NTH,NP,NR))
-         ELSE IF (NP.GE.2 .AND. NP.LE.NPMAX-2) THEN
-            DO NP=2,NPMAX-2
-               DPFP(NTH,NP) = (FP(NTH,NP+1,NR)- FP(NTH,NP-1,NR))
-     &                       /(2*PHT0*DELP*FP(NTH,NP,NR))
-            ENDDO
-         ELSE IF (NP == NPMAX-1) THEN
-            DPFP(NTH, NP) = (FP(NTH,NP,NR)-FP(NTH,NP-1,NR))
-     &                     /(PTH0*DELP*FP(NTH,NP,NR))
-         END IF
+         NP=1
+            DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)-FNS(NTH,NP,NR,  NS))
+     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NR+1,NS)-FNS(NTH,NP,NR+1,NS))
+     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
+            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NR-1,NS)-FNS(NTH,NP,NR-1,NS))
+     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR-1,NS))
+         DO NP=2,NPMAX-2
+            DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)
+     &                       -FNS(NTH,NP-1,NR,  NS))
+     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NR+1,NS)
+     &                       -FNS(NTH,NP-1,NR+1,NS))
+     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
+            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NR-1,NS)
+     &                       -FNS(NTH,NP-1,NR-1,NS))
+     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR-1,NS))
+         ENDDO
+         NP=NPMAX-1
+            DPFP(NTH, NP)   = (FNS(NTH,NP,  NR,  NS)
+     &                        -FNS(NTH,NP-1,NR,  NS))
+     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,  NS))
+            DPFPRP(NTH, NP) = (FNS(NTH,NP,  NR+1,NS)
+     &                        -FNS(NTH,NP-1,NR+1,NS))
+     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
+            DPFPRM(NTH, NP) = (FNS(NTH,NP,  NR-1,NS)
+     &                        -FNS(NTH,NP-1,NR-1,NS))
+     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR-1,NS))
       ENDDO
 C
-C
-      DO NTH=1,NTHMAX
-         IF (NP == 1) THEN
-            DPFP1(NTH,NP,NR) = (FP(NTH,NP+1,NR)-FP(NTH,NP,NR))
-     &                        /(PTH0*DELP*FP(NTH,NP,NR))
-         ELSE IF (NP.GE.2 .AND. NP.LE.NPMAX-2) THEN
-            DO NP=1,NPMAX-2
-               DPFP1(NTH,NP,NR) = (FP(NTH,NP+1,NR)-FP(NTH,NP-1,NR))
-     &                           /(2*PTH0*DELP*FP(NTH,NP,NR))
-            ENDDO
-         ELSE IF (NP == NPMAX-1) THEN
-            DPFP1(NTH,NP,NR) = (FP(NTH,NP,NR)-FP(NTH,NP-1,NR))
-     &                        /(PTH0*DELP*FP(NTH,NP,NR))
-         END IF
-         DRPFP(NTH,NP) = (DPFP1(NTH,NP,NR+1)-DPFP1(NTH,NP,NR-1))
-     &                  /(2*PTH0*DELP*FP(NTH,NP,NR))
+      DO NP=1,NPMAX
+         DO NTH=1,NTHMAX
+            DRPFP(NTH,NP) = (DPFPRP(NTH,NP)-DPFPRM(NTH,NP))
+     &                      /(2*DELR)
+         ENDDO
       ENDDO
-C      
 C
 !------------------------------------------------------!
 C
@@ -462,12 +449,10 @@ C
 C
 C
       DO NTH=1,NTHMAX
-C
-         PV(NP)=PTH0*PG(NP)/AM
+
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         TCSM2(NTH)=TCSM(NTH)**2
-         COEF=AE**2*FP(NTH,NP,NR)
+         COEF=AE**2*FNS(NTH,NP,NR,NS)
 C
 C
          D = DKPP**2*TCSM2(NTH)-(2*MM*AA*CW
@@ -547,11 +532,9 @@ C
 C
       DO NTH=1,NTHMAX
 C  
-         PV(NP)=PTH0*PG(NP)/AM
          CKPRX=CKPR*PV(NP)*TCSM(NTH)
          DKPRX=DBLE(CKPRX)
-         TCSM2(NTH)=TCSM(NTH)**2
-         COEF=AE**2*FP(NTH,NP,NR)
+         COEF=AE**2*FNS(NTH,NP,NR,NS)
 C
 CPNEAR2
 C
@@ -598,17 +581,17 @@ C
          CINTG433 = CINTG433 + CPART46*PI23
       ENDDO
 C
-      FACT = 2.0D0*PI*DBLE(CWP)
+      FACT = 2.0D0*PI*DBLE(CWP)/(CW*EPS0)
 C
-      CLDISP(1) = -CI*PI*(CINTG311+CINTG411)*CCHI(NCH1)*CCHI(NCH2)*FACT
-      CLDISP(2) = -CI*PI*(CINTG312+CINTG412)*CCHI(NCH1)*SCHI(NCH2)*FACT
-      CLDISP(3) = -CI*PI*(CINTG313+CINTG413)*CCHI(NCH1)           *FACT 
-      CLDISP(4) = -CI*PI*(CINTG321+CINTG421)*SCHI(NCH1)*CCHI(NCH2)*FACT
-      CLDISP(5) = -CI*PI*(CINTG322+CINTG422)*SCHI(NCH1)*SCHI(NCH2)*FACT
-      CLDISP(6) = -CI*PI*(CINTG323+CINTG423)*SCHI(NCH1)           *FACT
-      CLDISP(7) = -CI*PI*(CINTG331+CINTG431)           *CCHI(NCH2)*FACT
-      CLDISP(8) = -CI*PI*(CINTG332+CINTG432)           *SCHI(NCH2)*FACT
-      CLDISP(9) = -CI*PI*(CINTG333+CINTG433)                      *FACT
+      CDTNSI(1,1)=PI*(CINTG311+CINTG411)*CCHI(NCH1)*CCHI(NCH2)*FACT
+      CDTNSI(1,2)=PI*(CINTG312+CINTG412)*CCHI(NCH1)*SCHI(NCH2)*FACT
+      CDTNSI(1,3)=PI*(CINTG313+CINTG413)*CCHI(NCH1)           *FACT
+      CDTNSI(2,1)=PI*(CINTG321+CINTG421)*SCHI(NCH1)*CCHI(NCH2)*FACT
+      CDTNSI(2,2)=PI*(CINTG322+CINTG422)*SCHI(NCH1)*SCHI(NCH2)*FACT
+      CDTNSI(2,3)=PI*(CINTG323+CINTG423)*SCHI(NCH1)           *FACT
+      CDTNSI(3,1)=PI*(CINTG331+CINTG431)           *CCHI(NCH2)*FACT
+      CDTNSI(3,2)=PI*(CINTG332+CINTG432)           *SCHI(NCH2)*FACT
+      CDTNSI(3,3)=PI*(CINTG333+CINTG433)                      *FACT
 C
 C 
       RETURN

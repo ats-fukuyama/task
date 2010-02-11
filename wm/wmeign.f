@@ -36,9 +36,9 @@ C
          
          if(mdlwmf.eq.0) then
             CALL WMBFLD
-            CALL WMPABS
-            CALL WMPFLX
-            CALL WMPANT
+C            CALL WMPABS
+C            CALL WMPFLX
+C            CALL WMPANT
          else
             nrmax=nrmax+1
             call wmfem_post
@@ -456,9 +456,9 @@ C
          FIINI=YY
          if(mdlwmf.eq.0) then
             CALL WMBFLD
-            CALL WMPABS
-            CALL WMPFLX
-            CALL WMPANT
+C            CALL WMPABS
+C            CALL WMPFLX
+C            CALL WMPANT
          else
             nrmax=nrmax+1
             call wmfem_post
@@ -693,9 +693,9 @@ C
             FIINI=YY
             if(mdlwmf.eq.0) then
                CALL WMBFLD
-               CALL WMPABS
-               CALL WMPFLX
-               CALL WMPANT
+C               CALL WMPABS
+C               CALL WMPFLX
+C               CALL WMPANT
             else
                nrmax=nrmax+1
                call wmfem_post

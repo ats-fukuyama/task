@@ -16,9 +16,8 @@
       real(4),dimension(NPMAX):: GP
       real(4),dimension(NTHMAX):: GTH
       real(8),dimension(8,NPMAX,NTHMAX)::KA
-      CHARACTER(LEN=80):: STRING1
 
-      INTEGER,PARAMETER:: NGLM=30
+      INTEGER,PARAMETER:: NGLM=100
       REAL(4):: ZL(NGLM),RGB(3,NGLM),WLN(NGLM)
       INTEGER:: ILN(NGLM)
       real(4):: GPMAX, GPMIN1, GPMAX1, GPSTEP
@@ -76,7 +75,7 @@
       CALL TEXT('PPERP',5)
 !
       CALL MOVE(3.0,12.5)
-      CALL TEXT(STRING1,LEN(STRING1))
+      CALL TEXT(STRING,LEN(STRING))
       CALL MOVE(8.0,12.5)
       CALL TEXT('FMIN =',6)
       CALL NUMBR(GFMIN,'(1PE12.4)',12)

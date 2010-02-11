@@ -11,46 +11,45 @@ C
 C
       IF(RN(NS).LE.0.D0) THEN
          CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
+      ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
+         ID1=MOD(MODELP(NS),100)
+         CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
       ELSE
          ID1=MOD(MODELP(NS),100)
          ID2=MODELP(NS)/100
          IDV=MODELV(NS)
-C         write(6,'(A,3I8,1P3E12.4)') 'DPTNSR: ',NS,ID1,IDV,
-C     &        RHON_LOC,RHON_MIN,RHON_MAX
-C
-         IF(IDV.EQ.0) THEN
+         SELECT CASE(IDV)
+         CASE(0)
             CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
-         ELSEIF(RHON_LOC.LT.RHON_MIN.OR.RHON_LOC.GT.RHON_MAX) THEN
-            CALL DPTENS_AN(ID1,CW,CKPR,CKPP,NS,CLDISP)
-         ELSE IF(IDV.EQ.1) THEN
+         CASE(1)
             CALL DPFMFL(NS,0)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(IDV.EQ.2) THEN
+         CASE(2)
             CALL DPFPFL(NS)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTF(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(IDV.EQ.3) THEN
+         CASE(3)
             CALL DPFMFL(NS,1)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ELSE IF(IDV.EQ.4) THEN
+         CASE(4)
             CALL DPFPFL(NS)
             IF(ID2.EQ.2.OR.ID2.EQ.3) THEN
                CALL DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
             ELSE
                CALL DPHOTR(CW,CKPR,CKPP,NS,CLDISP)
             ENDIF
-         ENDIF
+         END SELECT
 C
          IF(ID2.EQ.2) THEN
             CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP1)
@@ -87,26 +86,27 @@ C
 C
       DIMENSION CLDISP(6)
 C
-      IF(ID1.EQ.0) THEN
+      SELECT CASE(ID1)
+      CASE(0) ! collisionless cold model
          CALL DPTNCL(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.1) THEN
+      CASE(1) ! collisional cold model
          CALL DPTNCC(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.2) THEN
+      CASE(2) ! idial MHD model
          CALL DPTNIM(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.3) THEN
+      CASE(3) ! resistive MHD model
          CALL DPTNRM(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.4) THEN
+      CASE(4) ! kinetic without FLR model
          CALL DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.5) THEN
+      CASE(5) ! kinetic with FLR model
          CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.6) THEN
+      CASE(6) ! weakly relativistic model
          CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.GE.11.AND.ID1.LE.15) THEN
+      CASE(11:15) ! old WM models model
          CALL DPTNFK2(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE IF(ID1.EQ.16) THEN
+      CASE(16) ! old WM drift kinetic model
          CALL DPTNDK0(CW,CKPR,CKPP,NS,CLDISP)
-      ELSE
+      CASE DEFAULT
          WRITE(6,*) 'XX WRONG MODELP IN DPTENS: ID1=',ID1
-      ENDIF
+      END SELECT
       RETURN
       END
