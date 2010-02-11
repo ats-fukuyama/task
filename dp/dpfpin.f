@@ -253,11 +253,14 @@ C
 C
 C****** LOAD Maxwellian VELOCITY DISTRIBUTION DATA ******
 C
-      SUBROUTINE DPLDFM(ID,NCHMAX)
+      SUBROUTINE DPLDFM(ID,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
 C
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
+      NRMAX=NRMAX_1
+      RMIN=RMIN_1
+      RMAX=RMAX_1
       RHON_MIN=0.D0
       RHON_MAX=1.D0
 C
@@ -266,6 +269,7 @@ C
       ELSE
          DELR=(RMAX-RMIN)/(NRMAX-1)
       ENDIF
+      WRITE(6,*) NRMAX,RMIN,RMAX,DELR
 
       DELCH=2.D0*PI/NCHMAX
       DO NCH=1,NCHMAX

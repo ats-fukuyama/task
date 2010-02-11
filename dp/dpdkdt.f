@@ -62,7 +62,7 @@ C
       PT0 = (PTPR(NS)+2*PTPP(NS))/3.D0
       PTH0 = SQRT(PT0*1.D3*AEE*AMP*PA(NS))
 
-      RSL=RM(NR)
+      RSL=MAX(RM(NR),1.D-6)
       CHIL= 0.5D0*( CHI(NCH1)+ CHI(NCH2))
       CCHIL=0.5D0*(CCHI(NCH1)+CCHI(NCH2))
       SCHIL=0.5D0*(SCHI(NCH1)+SCHI(NCH2))
@@ -71,6 +71,7 @@ C
       Z=   RSL*SCHIL
       CALL PLMAG(X,Y,Z,RHON)
 C
+      CALL GUFLSH
       AM=PA(NS)*AMP             
       AE=PZ(NS)*AEE             
       AA=AM/(AE*BABS*RR)

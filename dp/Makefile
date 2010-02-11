@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dpgsub.f dptens.f dptnsr1.f dptnsr2.f \

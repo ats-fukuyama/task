@@ -504,6 +504,7 @@ C
 C
       RHON=XRHO(NR)
       CALL PLPROF(RHON)
+      IF(RN(NS).EQ.0.D0) RETURN
 C
       DO NPH=1,NPHMAX
       DO NTH=1,NTHMAX

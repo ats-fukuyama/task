@@ -207,12 +207,15 @@ C
 C
 C     ***** CHECK INPUT PARAMETERS *****
 C
-      SUBROUTINE DPCHEK(NCHMAX,IERR)
+      SUBROUTINE DPCHEK(NCHMAX,NRMAX_1,RMIN_1,RMAX_1,RR_1,IERR)
 C
       INCLUDE 'dpcomm.inc'
 
       DATA INITFP/0/
 C
+      NRMAX=NRMAX_1
+      RR=RR_1
+
       INITFM=0
       DO NS=1,NSMAX
          IF((MODELV(NS).EQ.2.OR.MODELV(NS).EQ.4)) THEN
@@ -224,7 +227,7 @@ C
          ELSEIF(MODELV(NS).EQ.5) THEN
             IF(INITFM.EQ.0) THEN
                write(6,*) '----- DPLDFM ----- NS=',NS
-               CALL DPLDFM(0,NCHMAX)
+               CALL DPLDFM(0,NCHMAX,NRMAX_1,RMIN_1,RMAX_1)
                INITFM=1
             ENDIF
          ELSE

@@ -9,12 +9,12 @@ C
       IERR=0
       MODEEG=0
 C
-      CALL DPCHEK(NTHMAX,IERR)
-      IF(IERR.NE.0) RETURN
 C
       if(mdlwmf.eq.0) then
 C
          CALL WMSETG(IERR)
+         IF(IERR.NE.0) RETURN
+         CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
          IF(IERR.NE.0) RETURN
          CALL WMSETJ(IERR)
          IF(IERR.NE.0) RETURN
@@ -28,6 +28,8 @@ C
             CALL WMPANT
          endif
       else
+         CALL DPCHEK(NTHMAX,NRMAX+1,XRHO(1),XRHO(NRMAX+1),RR,IERR)
+         IF(IERR.NE.0) RETURN
          nrmax=nrmax+1
          call wmfem_main
          call wmfem_post
