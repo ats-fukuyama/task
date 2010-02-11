@@ -269,7 +269,6 @@ C
       ELSE
          DELR=(RMAX-RMIN)/(NRMAX-1)
       ENDIF
-      WRITE(6,*) NRMAX,RMIN,RMAX,DELR
 
       DELCH=2.D0*PI/NCHMAX
       DO NCH=1,NCHMAX
