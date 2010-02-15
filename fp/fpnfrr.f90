@@ -94,12 +94,12 @@
 
 !---- calculation of relative kinetic energy ----
 
-      SUBROUTINE RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0,E1)
+      SUBROUTINE RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,EE0,EE1)
 
       USE fpcomm
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NP1, NTH1, NP2, NTH2, NSB1, NSB2
-      REAL(8),INTENT(OUT):: E0, E1 ! Energy in keV
+      REAL(8),INTENT(OUT):: EE0, EE1 ! Energy in keV
       REAL(8):: VPARA1, VPARA2, VPERP1, VPERP2, V_MS
       REAL(8):: RED_MASS
 
@@ -113,8 +113,8 @@
 !      RED_MASS=AMFD(NSB1)*AMFD(NSB2)/(AMFD(NSB1)+AMFD(NSB2))
       RED_MASS=AMFD(NSB1)
 
-      E0=0.5D0*RED_MASS*V_MS/(AEE*1.D3)
-      E1=RED_MASS*VPERP1*VPERP2/(AEE*1.D3)
+      EE0=0.5D0*RED_MASS*V_MS/(AEE*1.D3)
+      EE1=RED_MASS*VPERP1*VPERP2/(AEE*1.D3)
       RETURN
       END SUBROUTINE RELATIVE_ENERGY
 
@@ -129,8 +129,8 @@
       REAL(8),DIMENSION(NEMAX,NEMAX):: SIGMAVA,FX,FY,FXY
       REAL(8),DIMENSION(4,4,NEMAX,NEMAX):: USV
       INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR
-      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0,E1
-      REAL(8):: E3
+      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM
+      REAL(8):: EE0,EE1,EE3
 
 !---- identify possible fusion reactions ----
 !     ---- identify related particle species ----
@@ -270,8 +270,8 @@
             DO NTH1=1,NTHMAX
                DO NP2=1,NPMAX
                   DO NTH2=1,NTHMAX
-                     CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0,E1)
-                     CALL SPL2DF(E0,ABS(E1), &
+                     CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,EE0,EE1)
+                     CALL SPL2DF(EE0,ABS(EE1), &
                                  SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID), &
                                  E0A,E1A,USV,NEMAX,NEMAX,NEMAX,IERR)
                      IF(IERR.NE.0) WRITE(6,*) &
@@ -285,14 +285,14 @@
  !        DO NTH1=1,NTHMAX
  !        DO NP2=1,NPMAX
  !        DO NTH2=1,NTHMAX
- !        E3=(PTFP0(NSB1)*PM(NP1,NSB1))**2/AMFP(NSB1)/(AEE*1.D3)
- !        SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID)=SIGMA_E(E3,ID)*SQRT(E3) &
+ !        EE3=(PTFP0(NSB1)*PM(NP1,NSB1))**2/AMFP(NSB1)/(AEE*1.D3)
+ !        SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID)=SIGMA_E(EE3,ID)*SQRT(EE3) &
  !                              *SQRT(AEE*1.D3/AMFP(NSB1))
  !        END DO
  !        END DO
  !        END DO
  !        END DO
- !        write(*,*)E3
+ !        write(*,*)EE3
 
 
          ENDIF

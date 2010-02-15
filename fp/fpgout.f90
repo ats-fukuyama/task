@@ -26,13 +26,12 @@
 !
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
-      DATA NSA,NSB/1,0/
       integer:: NR, NP, NTH, NSA1, NSBA
 !
       real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1)::TEMP
       CHARACTER KID*5,KID1*1,KID2*3
       CHARACTER(LEN=80):: STRING1
-!
+
     1 WRITE(6,*)'INPUT GRAPH TYPE : NSA,NSB=',NSA,NSB
       WRITE(6,*)'    : F/FX/FR/FS1/FS2 1/2, Nn:NSA=n, Nnm:NSA=n,NSB=m,'
       WRITE(6,*)'    : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
@@ -353,7 +352,7 @@
 
       GO TO 1
 
- 9000 RETURN
+9000  RETURN
     END SUBROUTINE FP_GOUT
 !
 ! ***********************************************************

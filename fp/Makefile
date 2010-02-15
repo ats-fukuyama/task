@@ -2,12 +2,12 @@
 include ../../task/make.header
 
 ##### Without PETSc library #####
-#LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
-#PETSCLIB=
+LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
+PETSCLIB=
 ##### With PETSc library #####
-include ${PETSC_DIR}/conf/variables
-LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
-PETSCLIBS=${PETSC_KSP_LIB}
+#include ${PETSC_DIR}/conf/variables
+#LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
+#PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
@@ -16,7 +16,7 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp
+            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
 
 SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \

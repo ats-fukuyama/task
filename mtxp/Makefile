@@ -4,17 +4,23 @@ include ../../task/make.header
 .SUFFIXES: .f .f90 .mod .o .a
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) -I${INCLUDE_MUMPS}
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) -I${INCLUDE_MUMPS}
 
-FLINKER=$(FCFREE)
+#FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
+##### Without PETSc library #####
+FLINKER=$(FCFREE)
+INCLUDE_MUMPS=.
+EXEC=testbnd
+
+##### With PETSc library #####
 #include ${PETSC_DIR}/conf/base
 #INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
 #INCLUDE_PETSC=${PETSC_DIR}/include
-#FFLAGS=-g -I${INCLUDE_MUMPS}
+#EXEC=testbnd testksp testdmumps
 
 LIBMPI=libmtxmpi.o
 LIBNOMPI=libmtxnompi.o
@@ -22,8 +28,7 @@ LIBKSP=$(LIBMPI) libmtxksp.o
 LIBMUMPS=$(LIBMPI) libmtxdmumps.o
 LIBBND=$(LIBNOMPI) libmtxbnd.o
 
-#all: testbnd testksp testdmumps
-all: testbnd
+all: $(EXEC)
 
 libs: $(LIBNOMPI) $(LIBMPI) libmtxbnd.o libmtxksp.o libmtxdmumps.o
 
@@ -35,6 +40,9 @@ testdmumps: $(LIBMUMPS) testmtx.o
 
 testbnd: $(LIBBND) testmtx.o 
 	-${FLINKER} -g -o testbnd testmtx.o $(LIBBND) ../../task/lib/libbnd.o
+
+clean :
+	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 testmtx.o: testmtx.f90
 libmtxmpi.o: libmtxmpi.F90
