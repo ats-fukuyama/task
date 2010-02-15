@@ -156,16 +156,16 @@ contains
 
           CALL TXCALC
           CALL TXCALA
-          IF(MDSOLV == 1.and. IC /= 1) THEN
+!!$          IF(MDSOLV == 1.and. IC /= 1) THEN
 !!$             ! Get FL and BX
 !!$             CALL TXCALB_SECANT(FL,BX,XNvec)
-          ELSE
+!!$          ELSE
              ! Get BA or BL, and BX
              CALL TXCALB(BA,BL,BX)
-          END IF
+!!$          END IF
           CALL TXGLOB
 
-          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
+!!$          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
              IF(MDLPCK == 0) THEN
                 CALL BANDRD(BA, BX, NQMAX*(NRMAX+1), 4*NQMAX-1, 4*NQM-1, IERR)
                 IF (IERR >= 30000) THEN
@@ -213,9 +213,9 @@ contains
 !!$                   GOTO 180
 !!$                ENDIF
 !!$             END IF
-          END IF
+!!$          END IF
 
-          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
+!!$          IF(MDSOLV /= 1 .or. (MDSOLV == 1 .and. IC == 1)) THEN
              ! Copy calculated variables' vector to variable matrix
              DO NR = 0, NRMAX
                 DO NQ = 1, NQMAX
@@ -230,7 +230,7 @@ contains
 !!$                   XNvec(NQMAX * NR + NQ) = XN(NQ,NR)
 !!$                END DO
 !!$             END DO
-          END IF
+!!$          END IF
 
           ! Avoid negative values
           CALL MINUS_GOES_ZERO(XN,LQb1,0)
@@ -503,10 +503,14 @@ contains
     ELSE
        WRITE(6,'(1x,"NT =",I4,"   T =",1PD9.2,"   IC =",I3)') NT,T_TX,IC
     END IF
-    AVE_IC = REAL(ICSUM) / REAL(NTMAX)
+    IF(NTMAX /= 0) THEN
+       AVE_IC = REAL(ICSUM) / REAL(NTMAX)
+    ELSE
+       AVE_IC = 0.d0
+    END IF
 
     deallocate(BA,BL,BX)
-    IF(MDSOLV == 1) deallocate(XNvec,FL,FLP,DltXN,DltXP,BAE)
+!!$    IF(MDSOLV == 1) deallocate(XNvec,FL,FLP,DltXN,DltXP,BAE)
 
     RETURN
   END SUBROUTINE TXLOOP
@@ -866,7 +870,7 @@ contains
 
 !!$  SUBROUTINE THRESHOLD(XL,ID)
 !!$
-!!$    real(8), dimension(0:NRMAX), intent(inout) :: XL
+!!$    real(8), dimension(:), intent(inout) :: XL
 !!$    integer(4), intent(out) :: ID
 !!$    integer(4) :: NR, NRL
 !!$
@@ -879,191 +883,191 @@ contains
 !!$
 !!$  END SUBROUTINE THRESHOLD
 
-!*********************************************************************************
-!
-!   Calculate coefficients matrix BA or BL and vector BX for linearlized equation
-!
-!      BA : coefficient matrix for BANDRD solver
-!      BL : coefficient matrix for LAPACK DGBSV or LAPACK95 LA_GBSV solver
-!      BX : right-hand-side vector
-!
-!   ** Simple explanation **
-!
-!      A(u)u=b(u)+c, where A denotes the matrix, u the vector to be solved
-!                          b the coefficients vector of u,
-!                          c the additive coefficients vector independent on u
-!
-!*********************************************************************************
-
-  SUBROUTINE TXCALB_SECANT(FL,BX,XNvec)
-
-    use tx_commons, only : IGBDF, ADV, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
-         &              PLC, X, XOLD
-    real(8), dimension(:), intent(out) :: FL
-    real(8), dimension(:), intent(inout) :: BX
-    real(8), dimension(:), intent(in) :: XNvec
-    INTEGER(4) :: NR, NQ, NC, NC1, IA, IB, IC
-    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
-    
-    IF(IGBDF /= 0) ADV = C23
-
-    !  NR : number of radial mesh 
-    !  NQ : number of equation
-
-    ! *** Left-hand-side coefficient matrix, denoted by "A" ***
-
-    !***************************************************************
-    !   ALC, BLC and CLC are NQMAX x max(NLCMAX) on each NR,
-    !   then IC, IB and IA are NQMAX away from each other,
-    !   which are pointers of columns of the matrix BA in terms of 
-    !   certain variable in certain term in certain equation.
-    !***************************************************************
-
-    FL(1:NQMAX*(NRMAX+1)) = 0.D0
-
-    ! Time derivative (NC=0)
-    DO NR = 0, NRMAX
-       DO NQ = 1, NQMAX
-          NC = 0
-          NC1 = NLCR(NC,NQ,NR)
-          IF(NC1 == 0) CYCLE
-          IC = NQMAX * (NR - 1) + NC1
-          IB = IC + NQMAX
-          IA = IB + NQMAX
-          IF(NR /= 0)     FL(IC) = FL(IC) + CLC(NC,NQ,NR) * XNvec(IC)
-                          FL(IB) = FL(IB) + BLC(NC,NQ,NR) * XNvec(IB)
-          IF(NR /= NRMAX) FL(IA) = FL(IA) + ALC(NC,NQ,NR) * XNvec(IA)
-       END DO
-    END DO
-
-    ! *** NC /= 0 ***
-    DO NR = 0, NRMAX
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
-             NC1 = NLCR(NC,NQ,NR)
-             IF(NC1 == 0) CYCLE
-             IC = NQMAX * (NR - 1) + NC1
-             IB = IC + NQMAX
-             IA = IB + NQMAX
-             IF(NR /= 0)     FL(IC) = FL(IC) - CLC(NC,NQ,NR) * ADV * XNvec(IC)
-                             FL(IB) = FL(IB) - BLC(NC,NQ,NR) * ADV * XNvec(IB)
-             IF(NR /= NRMAX) FL(IA) = FL(IA) - ALC(NC,NQ,NR) * ADV * XNvec(IA)
-!             write(6,'(7I6)') NR,NQ,NC,NC1,IC,IB,IA
-          END DO
-       END DO
-    END DO
-
-    ! *** Right-hand-side vector, denoted by "bu" ***
-
-    BX(1:NQMAX*(NRMAX+1)) = 0.D0
-
-    IF(IGBDF == 0) THEN
-       COEF1 = 1.D0
-       COEF2 = 0.D0
-       COEF3 = 1.D0
-    ELSE
-       COEF1 = C43
-       COEF2 = C13
-       COEF3 = C23
-    END IF
-
-    ! In the case of NC=0 i.e. time derivative term effects in any equations
-    NC = 0
-    NR = 0
-    DO NQ = 1, NQMAX
-       NC1 = NLCR(NC,NQ,NR)
-       IF(NC1 /= 0) THEN
-          BX(NQMAX * NR + NQ) &
-               & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-               &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
-               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
-               &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
-       END IF
-    END DO
-
-    DO NR = 1, NRMAX - 1
-       DO NQ = 1, NQMAX
-          NC1 = NLCR(NC,NQ,NR)
-          IF(NC1 /= 0) THEN
-             BX(NQMAX * NR + NQ) &
-                  &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
-                  &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-                  &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
-                  &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
-                  &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
-                  &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
-          END IF
-       END DO
-    END DO
-
-    NR = NRMAX
-    DO NQ = 1, NQMAX
-       NC1 = NLCR(NC,NQ,NR)
-       IF(NC1 /= 0) THEN
-          BX(NQMAX * NR + NQ) &
-               & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
-               &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
-               &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
-               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
-       END IF
-    END DO
-
-    ! *** In the case of general term effect in any equations, denoted by "c" ***
-    DO NR = 0, NRMAX
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
-             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR) * COEF3
-          END DO
-       END DO
-    END DO
-
-    ! *** Only the case of not BDF ***
-    !  Because "ADV" has no longer original meaning when BDF is used.
-
-    IF(IGBDF == 0) THEN
-    NR = 0
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
-             NC1 = NLCR(NC,NQ,NR)
-             IF(NC1 /= 0) THEN
-                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
-                     &              +(  BLC(NC,NQ,NR) * X(NC1,NR  ) &
-                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
-             END IF
-          END DO
-       END DO
-
-    DO NR = 1, NRMAX-1
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
-             NC1 = NLCR(NC,NQ,NR)
-             IF(NC1 /= 0) THEN
-                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
-                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
-                     &                + BLC(NC,NQ,NR) * X(NC1,NR  ) &
-                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
-             END IF
-          END DO
-       END DO
-    END DO
-
-    NR = NRMAX
-       DO NQ = 1, NQMAX
-          DO NC = 1, NLCMAX(NQ)
-             NC1 = NLCR(NC,NQ,NR)
-             IF(NC1 /= 0) THEN
-                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
-                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
-                     &                + BLC(NC,NQ,NR) * X(NC1,NR  )) * (1.D0 - ADV)
-             END IF
-          END DO
-       END DO
-    END IF
-
-    ! Making LHS term of "f(x)=0"
-    FL(1:NQMAX*(NRMAX+1)) = FL(1:NQMAX*(NRMAX+1)) - BX(1:NQMAX*(NRMAX+1))
-
-    RETURN
-  END SUBROUTINE TXCALB_SECANT
+!!$!*********************************************************************************
+!!$!
+!!$!   Calculate coefficients matrix BA or BL and vector BX for linearlized equation
+!!$!
+!!$!      BA : coefficient matrix for BANDRD solver
+!!$!      BL : coefficient matrix for LAPACK DGBSV or LAPACK95 LA_GBSV solver
+!!$!      BX : right-hand-side vector
+!!$!
+!!$!   ** Simple explanation **
+!!$!
+!!$!      A(u)u=b(u)+c, where A denotes the matrix, u the vector to be solved
+!!$!                          b the coefficients vector of u,
+!!$!                          c the additive coefficients vector independent on u
+!!$!
+!!$!*********************************************************************************
+!!$
+!!$  SUBROUTINE TXCALB_SECANT(FL,BX,XNvec)
+!!$
+!!$    use tx_commons, only : IGBDF, ADV, NQMAX, NRMAX, NLCR, CLC, BLC, ALC, NLCMAX, &
+!!$         &              PLC, X, XOLD
+!!$    real(8), dimension(:), intent(out) :: FL
+!!$    real(8), dimension(:), intent(inout) :: BX
+!!$    real(8), dimension(:), intent(in) :: XNvec
+!!$    INTEGER(4) :: NR, NQ, NC, NC1, IA, IB, IC
+!!$    REAL(8) :: C43 = 4.D0/3.D0, C23 = 2.D0/3.D0, C13 = 1.D0/3.D0, COEF1, COEF2, COEF3
+!!$    
+!!$    IF(IGBDF /= 0) ADV = C23
+!!$
+!!$    !  NR : number of radial mesh 
+!!$    !  NQ : number of equation
+!!$
+!!$    ! *** Left-hand-side coefficient matrix, denoted by "A" ***
+!!$
+!!$    !***************************************************************
+!!$    !   ALC, BLC and CLC are NQMAX x max(NLCMAX) on each NR,
+!!$    !   then IC, IB and IA are NQMAX away from each other,
+!!$    !   which are pointers of columns of the matrix BA in terms of 
+!!$    !   certain variable in certain term in certain equation.
+!!$    !***************************************************************
+!!$
+!!$    FL(1:NQMAX*(NRMAX+1)) = 0.D0
+!!$
+!!$    ! Time derivative (NC=0)
+!!$    DO NR = 0, NRMAX
+!!$       DO NQ = 1, NQMAX
+!!$          NC = 0
+!!$          NC1 = NLCR(NC,NQ,NR)
+!!$          IF(NC1 == 0) CYCLE
+!!$          IC = NQMAX * (NR - 1) + NC1
+!!$          IB = IC + NQMAX
+!!$          IA = IB + NQMAX
+!!$          IF(NR /= 0)     FL(IC) = FL(IC) + CLC(NC,NQ,NR) * XNvec(IC)
+!!$                          FL(IB) = FL(IB) + BLC(NC,NQ,NR) * XNvec(IB)
+!!$          IF(NR /= NRMAX) FL(IA) = FL(IA) + ALC(NC,NQ,NR) * XNvec(IA)
+!!$       END DO
+!!$    END DO
+!!$
+!!$    ! *** NC /= 0 ***
+!!$    DO NR = 0, NRMAX
+!!$       DO NQ = 1, NQMAX
+!!$          DO NC = 1, NLCMAX(NQ)
+!!$             NC1 = NLCR(NC,NQ,NR)
+!!$             IF(NC1 == 0) CYCLE
+!!$             IC = NQMAX * (NR - 1) + NC1
+!!$             IB = IC + NQMAX
+!!$             IA = IB + NQMAX
+!!$             IF(NR /= 0)     FL(IC) = FL(IC) - CLC(NC,NQ,NR) * ADV * XNvec(IC)
+!!$                             FL(IB) = FL(IB) - BLC(NC,NQ,NR) * ADV * XNvec(IB)
+!!$             IF(NR /= NRMAX) FL(IA) = FL(IA) - ALC(NC,NQ,NR) * ADV * XNvec(IA)
+!!$!             write(6,'(7I6)') NR,NQ,NC,NC1,IC,IB,IA
+!!$          END DO
+!!$       END DO
+!!$    END DO
+!!$
+!!$    ! *** Right-hand-side vector, denoted by "bu" ***
+!!$
+!!$    BX(1:NQMAX*(NRMAX+1)) = 0.D0
+!!$
+!!$    IF(IGBDF == 0) THEN
+!!$       COEF1 = 1.D0
+!!$       COEF2 = 0.D0
+!!$       COEF3 = 1.D0
+!!$    ELSE
+!!$       COEF1 = C43
+!!$       COEF2 = C13
+!!$       COEF3 = C23
+!!$    END IF
+!!$
+!!$    ! In the case of NC=0 i.e. time derivative term effects in any equations
+!!$    NC = 0
+!!$    NR = 0
+!!$    DO NQ = 1, NQMAX
+!!$       NC1 = NLCR(NC,NQ,NR)
+!!$       IF(NC1 /= 0) THEN
+!!$          BX(NQMAX * NR + NQ) &
+!!$               & = BX(NQMAX * NR + NQ) + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+!!$               &                       + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+!!$               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+!!$               &                       - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+!!$       END IF
+!!$    END DO
+!!$
+!!$    DO NR = 1, NRMAX - 1
+!!$       DO NQ = 1, NQMAX
+!!$          NC1 = NLCR(NC,NQ,NR)
+!!$          IF(NC1 /= 0) THEN
+!!$             BX(NQMAX * NR + NQ) &
+!!$                  &    = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+!!$                  &                          + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+!!$                  &                          + ALC(NC,NQ,NR) * X(NC1,NR+1) * COEF1 &
+!!$                  &                          - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+!!$                  &                          - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2 &
+!!$                  &                          - ALC(NC,NQ,NR) * XOLD(NC1,NR+1) * COEF2
+!!$          END IF
+!!$       END DO
+!!$    END DO
+!!$
+!!$    NR = NRMAX
+!!$    DO NQ = 1, NQMAX
+!!$       NC1 = NLCR(NC,NQ,NR)
+!!$       IF(NC1 /= 0) THEN
+!!$          BX(NQMAX * NR + NQ) &
+!!$               & = BX(NQMAX * NR + NQ) + CLC(NC,NQ,NR) * X(NC1,NR-1) * COEF1 &
+!!$               &                       + BLC(NC,NQ,NR) * X(NC1,NR  ) * COEF1 &
+!!$               &                       - CLC(NC,NQ,NR) * XOLD(NC1,NR-1) * COEF2 &
+!!$               &                       - BLC(NC,NQ,NR) * XOLD(NC1,NR  ) * COEF2
+!!$       END IF
+!!$    END DO
+!!$
+!!$    ! *** In the case of general term effect in any equations, denoted by "c" ***
+!!$    DO NR = 0, NRMAX
+!!$       DO NQ = 1, NQMAX
+!!$          DO NC = 1, NLCMAX(NQ)
+!!$             BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) + PLC(NC,NQ,NR) * COEF3
+!!$          END DO
+!!$       END DO
+!!$    END DO
+!!$
+!!$    ! *** Only the case of not BDF ***
+!!$    !  Because "ADV" has no longer original meaning when BDF is used.
+!!$
+!!$    IF(IGBDF == 0) THEN
+!!$    NR = 0
+!!$       DO NQ = 1, NQMAX
+!!$          DO NC = 1, NLCMAX(NQ)
+!!$             NC1 = NLCR(NC,NQ,NR)
+!!$             IF(NC1 /= 0) THEN
+!!$                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+!!$                     &              +(  BLC(NC,NQ,NR) * X(NC1,NR  ) &
+!!$                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+!!$             END IF
+!!$          END DO
+!!$       END DO
+!!$
+!!$    DO NR = 1, NRMAX-1
+!!$       DO NQ = 1, NQMAX
+!!$          DO NC = 1, NLCMAX(NQ)
+!!$             NC1 = NLCR(NC,NQ,NR)
+!!$             IF(NC1 /= 0) THEN
+!!$                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+!!$                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+!!$                     &                + BLC(NC,NQ,NR) * X(NC1,NR  ) &
+!!$                     &                + ALC(NC,NQ,NR) * X(NC1,NR+1)) * (1.D0 - ADV)
+!!$             END IF
+!!$          END DO
+!!$       END DO
+!!$    END DO
+!!$
+!!$    NR = NRMAX
+!!$       DO NQ = 1, NQMAX
+!!$          DO NC = 1, NLCMAX(NQ)
+!!$             NC1 = NLCR(NC,NQ,NR)
+!!$             IF(NC1 /= 0) THEN
+!!$                BX(NQMAX * NR + NQ) = BX(NQMAX * NR + NQ) &
+!!$                     &              +(  CLC(NC,NQ,NR) * X(NC1,NR-1) &
+!!$                     &                + BLC(NC,NQ,NR) * X(NC1,NR  )) * (1.D0 - ADV)
+!!$             END IF
+!!$          END DO
+!!$       END DO
+!!$    END IF
+!!$
+!!$    ! Making LHS term of "f(x)=0"
+!!$    FL(1:NQMAX*(NRMAX+1)) = FL(1:NQMAX*(NRMAX+1)) - BX(1:NQMAX*(NRMAX+1))
+!!$
+!!$    RETURN
+!!$  END SUBROUTINE TXCALB_SECANT
 
 end module tx_main

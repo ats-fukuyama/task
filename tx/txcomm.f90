@@ -164,7 +164,7 @@ module tx_commons
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
        & FWthphe, FWthphi, rlnLee, rlnLei, rlnLii, &
-       & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid,rNubL, rip_rat, rNuOL, &
+       & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, FWahle, FWahli, &
        & SiVizA, SiVcxA, wexb, Ys
   real(8), dimension(:,:), allocatable :: deltam, gamITG

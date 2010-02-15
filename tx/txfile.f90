@@ -19,13 +19,13 @@ SUBROUTINE TXWDAT
 
   WRITE(6,'((1X,A," =",1PD9.2,3(2X,A,"=",1PD9.2)))') &
        &     'Ne(0)',    PNeV(0),  &
-       &     'UePhi(0)', (9*X(LQe4,0)-X(LQe4,1))/(8*PNeV(0)) / 1.D3,  &
-       &     'UiPhi(0)', (9*X(LQi4,0)-X(LQi4,1))/(8*PNiV(0)) / 1.D3,  &
-       &     'N0(RB)',   (9*X(LQn1,NRMAX-1)-X(LQn1,NRMAX-2))/8 * 1.D20,&
+       &     'UePhi(0)', X(LQe4,0) / PNeV(0) / 1.D3,  &
+       &     'UiPhi(0)', X(LQi4,0) / PNiV(0) / 1.D3,  &
+       &     'N0(RB)',   X(LQn1,NRMAX) * 1.D20, &
        &     'NB(0)',    rLINEAVE(0.D0)   / 1.D20,  &
        &     'NB(0.24)', rLINEAVE(0.24D0) / 1.D20,  &
        &     'NB(0.60)', rLINEAVE(0.6D0)  / 1.D20,  &
-       &     'PF    ', PNeV(0) * 1.D20 / rNbar
+       &     'PF    ',   PNeV(0) * 1.D20 / rNbar
   WRITE(6,'(1X,A," =",1PD9.2,2(2X,A,"=",1PD9.2))') &
        &     'Te(0)',    PTeV(0),  &
        &     'Ti(0)   ', PTiV(0),  &

@@ -385,7 +385,6 @@ SUBROUTINE TXINIT
   Q0 = 3.D0       ! q(0) by external coils
   QA = 2.D0       ! q(a) by external coils
 
-
   !   ***** Numerical parameters *****
 
   !   Time step size(s)
@@ -897,7 +896,7 @@ SUBROUTINE TXPROF
   Cfpi2 =   (2.D0 * PBA * dpia + 3.D0 * (pia - pidiv)) / PBA**4
 
   DO NR = 0, NRMAX
-     RL=R(NR)
+     RL = R(NR)
      IF (RL <= RA) THEN ! +++ Core +++
         IF(MDINTN == -1) THEN
            call initprof_input(NR,1,X(LQe1,NR)) ! Ne
@@ -1152,10 +1151,10 @@ SUBROUTINE TXPROF
 
   ! Poloidal current density (Virtual current for helical system)
 
-  allocate(TMP(0:NRMAX))
   IF(FSHL == 0.D0) THEN
      AJV(0:NRMAX)=0.D0
   ELSE
+     allocate(TMP(0:NRMAX))
      TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
      DO NR = 1, NRMAX
         dRIP = DERIV4(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
@@ -1163,8 +1162,8 @@ SUBROUTINE TXPROF
      END DO
      AJV(0)=FCTR(R(1),R(2),AJV(1),AJV(2))
 !     write(6,'(I5,1P2E12.4)') (NR,R(NR),AJV(NR),NR=0,NRMAX)
+     deallocate(TMP)
   END IF
-  deallocate(TMP)
 
   ! Toroidal electric field for initial NCLASS calculation
 
@@ -1487,7 +1486,6 @@ contains
 
        RETURN
     END DO
-
 
     WRITE(6,'(A,I3)') 'XX INPUT ERROR: Please check consistency of INPUT PARAMETERS. idx =',idx
     STOP

@@ -286,7 +286,7 @@ contains
     REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
-    REAL(8) :: EpsL, BBL, PZMAX,  &
+    REAL(8) :: EpsL, BBL, PZMAX, &
          &     PAL, PZL, RKAP, &
          &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
     real(8) :: RL, BphVL, BthVL, EphVL, EthVL, QL, ErVL, PTeVL, PTiVL, &
@@ -1176,4 +1176,3 @@ contains
   end SUBROUTINE NCLASS_CHECK
 
 end module tx_nclass_mod
-

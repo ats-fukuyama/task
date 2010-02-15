@@ -77,7 +77,7 @@ SUBROUTINE TXGLOB
      TFAV(1)  = 0.D0
   END IF
   IF(ANF0(1) > 0.D0) THEN
-     TF0(1)  = (9.D0*SNB(1)-SNB(2))/8.D0/ANF0(1) ! undertaking
+     TF0(1)  = SNB(0)/ANF0(1)
   ELSE
      TF0(1)  = 0.D0
   END IF

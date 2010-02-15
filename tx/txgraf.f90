@@ -1083,7 +1083,7 @@ contains
 
     REAL(4), INTENT(IN) :: GTIME
     REAL(8) :: BthL, BphL, BBL, PNESUM1, PNESUM2
-    real(8), dimension(0:NRMAX) :: PNeION
+    real(8), dimension(:), allocatable :: PNeION
 
     IF (NGVV < NGVM) NGVV=NGVV+1
 
@@ -1139,12 +1139,12 @@ contains
     GVY(NGVV,39)  = REAL(rLINEAVE(0.24D0))
     GVY(NGVV,40)  = REAL(rLINEAVE(0.6D0))
 
-
-
     CALL VALINT_SUB(PNeV,NRA,PNESUM1)
     PNESUM1 = 2.D0*PI*RR*2.D0*PI*(PNESUM1 + PNeV(NRA)*R(NRA)*(RA-R(NRA)))
+    allocate(PNeION(0:NRMAX))
     PNeION(0:NRMAX) = PNeV(0:NRMAX)*rNuION(0:NRMAX)
     CALL VALINT_SUB(PNeION,NRA,PNESUM2)
+    deallocate(PNeION)
     PNESUM2 = 2.D0*PI*RR*2.D0*PI*(PNESUM2 + PNeV(NRA)*rNuION(NRA)*R(NRA)*(RA-R(NRA)))
 
     GVY(NGVV,41) = REAL(PNESUM1)
@@ -1828,9 +1828,6 @@ contains
     CASE(22)
        STR = '@F$-CDIM$=(r)@'
        CALL TXGRFRX(0,GX,GY(0,0,137),NRMAX,NGR,STR,MODE,IND)
-
-!       CALL TXWPGR
-
 
     CASE(-1)
        STR = '@E$-r$=(r)@'
@@ -2951,7 +2948,6 @@ contains
     RETURN
   END SUBROUTINE TXGRFRXS
 
-
   !***************************************************************
   !
   !   SLAVE ROUTINE TO Write graph of GX, GY at one slice time
@@ -3554,7 +3550,7 @@ contains
 
   SUBROUTINE TXGRFQ(NQ,ID)
 
-    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX,ame,ami
+    use tx_commons, only : NRMAX, NCM, NQM, NLCMAX, GQY, MODEG, RB, RA, GX
     use tx_interface, only : APTOS
 
     INTEGER(4), INTENT(IN) :: NQ, ID
@@ -3605,7 +3601,7 @@ contains
          &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 2, IND, 0)
 !         &      0.0, GXMAX, '@'//STR(1:NSTR)//'@', 0.3, 4, IND, 0)
     do nc=1,nlcmax(nq)
-       writE(6,*) nc,sum(gqyl(0:nrmax,nc))
+       write(6,*) nc,sum(gqyl(0:nrmax,nc))
     end do
 
     RETURN
@@ -3800,7 +3796,6 @@ contains
     CALL SETCHS(FONT, 0.0)
     CALL SETLIN(0, 0, 7)
     CALL SETLNW(0.035)
-
 
     allocate(GYAR(size(GY,1),size(GY,2)))
     GYAR = GY

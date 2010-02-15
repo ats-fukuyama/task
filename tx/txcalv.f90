@@ -189,7 +189,6 @@ contains
     use tx_commons
     use tx_interface, only : EXPV, VALINT_SUB, TRCOFS, INTG_F, inexpolate, dfdx, txmmm95, &
          &                   moving_average, fgaussian
-    use tx_core_module, only : inv_int
     use tx_nclass_mod
     use sauter_mod
     use tx_ripple
@@ -223,7 +222,7 @@ contains
     real(8), dimension(0:NRMAX) :: pres, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
          &                         SRFe, SRFi, Ubpara
 !!    real(8), dimension(0:NRMAX) :: Vexbr
-    ! For derivatives
+    ! Mainly for derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
          &                                dPedr, dPidr, dpdr, dNedr, dNidr, dErdrS, ErVlc, &
          &                                qr, dqr, dBph, Tqp_tmp
@@ -919,7 +918,7 @@ contains
        !!     &                         + ( ErVlc(NR) * BBL
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
 
-          ENDIF
+       ENDIF
 
        !     *** Beam slowing down time (momentum transfer with beam) ***
        ! reference : memo (92/04/02, 92/04/21)
@@ -1460,24 +1459,40 @@ contains
          &            * sqrt(PTiV(0:NRMAX)/PTeV(0:NRMAX))
 
     gamITG(0,2:3) = 0.d0
+    i = 0
     do nr = 1, nrmax
-       Ln = PNiV(NR) / abs(dNidr(NR))
-       LT = PTiV(NR) / abs(dTidr(NR))
-
-       !     *** Linear growth rate valid for low abs(S) ***
-       !        (A.L.Rogister, NF 41 (2001) 1101)
-       !        (B.Esposito et al, PPCF 45 (2003) 933)
-       etai_chk =  Ln / LT - 2.d0 / 3.d0
-       if(etai_chk < 0.d0) then
-          gamITG(NR,2) = 0.d0 ! marginally stable
+       if(dNidr(NR) /= 0.d0) then
+          Ln = PNiV(NR) / abs(dNidr(NR))
        else
-          gamITG(NR,2) = sqrt(Ln / LT - 2.d0 / 3.d0) * abs(S(NR)) * sqrt(PTiV(NR)*rKeV/AMi) / (Q(NR) * RR)
+          i = i + 1
        end if
+       if(dTidr(NR) /= 0.d0) then
+          LT = PTiV(NR) / abs(dTidr(NR))
+       else
+          i = i + 1
+       end if
+       if(i /= 0) then
+          gamITG(NR,2) = 0.d0
+          gamITG(NR,3) = 0.d0
+       else
 
-       !     *** Linear growth rate for q>2 and s=0 ***
-       !        (J.Candy, PoP 11 (2004) 1879)
-       kthrhos = sqrt(0.1d0)
-       gamITG(NR,3) = kthrhos * sqrt(PTeV(NR)*rKeV/Ami) / RA * sqrt(2.d0 * RA / RR * (RA / Ln + RA / LT))
+          !     *** Linear growth rate valid for low abs(S) ***
+          !        (A.L.Rogister, NF 41 (2001) 1101)
+          !        (B.Esposito et al, PPCF 45 (2003) 933)
+          etai_chk =  Ln / LT - 2.d0 / 3.d0
+          if(etai_chk < 0.d0) then
+             gamITG(NR,2) = 0.d0 ! marginally stable
+          else
+             gamITG(NR,2) = sqrt(Ln / LT - 2.d0 / 3.d0) * abs(S(NR)) &
+                  &       * sqrt(PTiV(NR)*rKeV/AMi) / (Q(NR) * RR)
+          end if
+
+          !     *** Linear growth rate for q>2 and s=0 ***
+          !        (J.Candy, PoP 11 (2004) 1879)
+          kthrhos = sqrt(0.1d0)
+          gamITG(NR,3) = kthrhos * sqrt(PTeV(NR)*rKeV/Ami) / RA &
+               &       * sqrt(2.d0 * RA / RR * (RA / Ln + RA / LT))
+       end if
     end do
 
     if(MDANOM == 3) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
@@ -1534,7 +1549,7 @@ contains
        ELSE
           CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
                &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-               &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),&
+               &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR), &
                &      JBS=AJBS3(NR),ETA=ETA3(NR))
        END IF
 
