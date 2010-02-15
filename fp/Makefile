@@ -16,7 +16,7 @@ FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../plx/$(MOD) -I../../task/eq/$(MOD) \
-            -I../../bpsd/$(MOD) -I../../task/mtxp/$(MOD)
+            -I../../bpsd/$(MOD) -I../../task/mtxp
 
 SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
        fpwmin.f90 fpwrin.f90 fpcalwm.f90 fpcalwr.f90 fpcalw.f90 \

@@ -7,21 +7,21 @@ FFLAGS=$(DFLAGS) -I$(INCLUDE_MUMPS)
 all: $(EXEC)
 
 ##### Without PETSc library #####
-#FLINKER=$(FCFREE)
-#INCLUDE_MUMPS=.
-#EXEC=testbnd
-#.SUFFIXES:
-#.SUFFIXES: .f .f90 .mod .o .a
-#.f90.o :
-#	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
-#clean :
-#	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
+FLINKER=$(FCFREE)
+INCLUDE_MUMPS=.
+EXEC=testbnd
+.SUFFIXES:
+.SUFFIXES: .f .f90 .mod .o .a
+.f90.o :
+	$(FCFREE) $(FFLAGS) -c $< -o $@
+clean :
+	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
 ##### With PETSc library #####
-include ${PETSC_DIR}/conf/base
-INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
-INCLUDE_PETSC=${PETSC_DIR}/include
-EXEC=testbnd testksp testdmumps
+#include ${PETSC_DIR}/conf/base
+#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
+#INCLUDE_PETSC=${PETSC_DIR}/include
+#EXEC=testbnd testksp testdmumps
 
 LIBMPI=libmtxmpi.o
 LIBNOMPI=libmtxnompi.o
