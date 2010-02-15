@@ -3,6 +3,28 @@
 ***** TASK : Transport Analyzing System for tokamaK *****
 *********************************************************
 
+2009/02/15
+   Major update of fp:
+      Parallel processing using PETSc library
+      Large number of radial grid points
+      Radial diffusion model included
+      Fusion reaction rate can be calculated from f.
+   mtxp directory added:
+      Interface for PETSc library
+      This will replace mtx in near future
+   plx directory added:
+      Fortran 90 version of pl
+      This will replace pl in near future
+   PETSc library can be downloaded from
+      http://www.mcs.anl.gov/petsc/
+   To use PETSs library
+      Install mpi or mpi2
+      Install PETSc library
+      Change mtxp/Makefile to use PETSc
+      make in mtxp
+      Change fp/Makefile to use PETSc
+      make in fp
+
 2008/01/27: 
    Directory bpsd is required at the same directory level with task.
    If you are using CVS, "cvs co bpsd" in the directory 
