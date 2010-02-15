@@ -59,8 +59,8 @@
       imax=imax_
       jwidth=jwidth_
 
-      iwork1 = imax/size
-      iwork2 = mod(imax,size)
+      iwork1 = imax/nsize
+      iwork2 = mod(imax,nsize)
       istart =  rank   *iwork1 + min(rank,  iwork2) + 1
       iend   = (rank+1)*iwork1 + min(rank+1,iwork2)
       
@@ -69,19 +69,19 @@
       nzmax=(iend-istart+1)*jwidth
 
 !      if(rank.eq.0) then
-!         write(6,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(6,'(A,3I10)') 'nsize,rank,nzmax=',nsize,rank,nzmax
 !         write(6,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
 !      endif
 !      if(rank.eq.1) then
-!         write(21,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(21,'(A,3I10)') 'nsize,rank,nzmax=',nsize,rank,nzmax
 !         write(21,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
 !      endif
 !      if(rank.eq.2) then
-!         write(22,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(22,'(A,3I10)') 'nsize,rank,nzmax=',nsize,rank,nzmax
 !         write(22,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
 !      endif
 !      if(rank.eq.3) then
-!         write(23,'(A,3I10)') 'size,rank,nzmax=',size,rank,nzmax
+!         write(23,'(A,3I10)') 'nsize,rank,nzmax=',nsize,rank,nzmax
 !         write(23,'(A,3I10)') 'imax,istart,iend=',imax,istart,iend
 !      endif
 
@@ -93,8 +93,8 @@
       DO i=1,imax
          id%RHS(i)=0.d0
       ENDDO
-      ALLOCATE(istartx(0:size-1),iendx(0:size-1),isizex(0:size-1))
-      ALLOCATE(nz_tot(0:size-1))
+      ALLOCATE(istartx(0:nsize-1),iendx(0:nsize-1),isizex(0:nsize-1))
+      ALLOCATE(nz_tot(0:nsize-1))
       ALLOCATE(b(imax),b_loc(iend-istart+1))
       RETURN
       END SUBROUTINE mtx_setup
@@ -145,26 +145,26 @@
 
       call mtx_allgather_integer(istart-1,istartx)
       call mtx_allgather_integer(iend,iendx)
-      do i=0,size-1
+      do i=0,nsize-1
          isizex(i)=iendx(i)-istartx(i)
       enddo
 
       call mtx_allgather_integer(nzcount,nz_tot)
       isum=0
-      do i=0,size-1
+      do i=0,nsize-1
          isum=isum+nz_tot(i)
       enddo
 
 !      if(rank.eq.0) then
 !         write(21,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
-!         do i=0,size-1
+!         do i=0,nsize-1
 !            write(21,'(A,4I10)') 'rank,istartx,iendx,isizex=', &
 !                  i,istartx(i),iendx(i),isizex(i)
 !         enddo
 !      endif
 !      if(rank.eq.1) then
 !         write(22,'(A,3I10)') 'imax,isum,nzcount=',imax,isum,nzcount
-!         do i=0,size-1
+!         do i=0,nsize-1
 !            write(22,'(A,4I10)') 'rank,istartx,iendx,isizex=', &
 !                  i,istartx(i),iendx(i),isizex(i)
 !         enddo

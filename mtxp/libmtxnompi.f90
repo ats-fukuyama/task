@@ -2,21 +2,21 @@
 
       MODULE libmpi
 
-      integer:: rank,size
+      integer:: rank,nsize
 
       CONTAINS
 
 !-----
 
-      SUBROUTINE mtx_initialize(rank_,size_)
+      SUBROUTINE mtx_initialize(rank_,nsize_)
       IMPLICIT NONE
-      INTEGER,INTENT(OUT):: rank_,size_
+      INTEGER,INTENT(OUT):: rank_,nsize_
 
       WRITE(6,'(A)') '# mtx_initialize: libmtxbnd'
       rank=0
-      size=1
+      nsize=1
       rank_=0
-      size_=1
+      nsize_=1
       RETURN
       END SUBROUTINE mtx_initialize
 

@@ -3,7 +3,7 @@
 !     Test program of libmtx for 1D/2D/3D Poisson equation
 
 !     Input parameters
-!        idim : number of dimension (i or 2 or 3),  0 for quit
+!        idimen : number of dimension (i or 2 or 3),  0 for quit
 !        isiz : number of mesh point in one dimension
 !        isource : source position (isource, isource, isource)
 !        itype: type of linear solver (0 for default)
@@ -13,7 +13,7 @@
 
       USE libmtx 
       IMPLICIT NONE 
-      INTEGER:: idim,isiz,isource,itype
+      INTEGER:: idimen,isiz,isource,itype
       INTEGER:: nrank,nprocs,istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip 
@@ -24,7 +24,7 @@
       REAL(4):: cputime1,cputime2
 
       CALL mtx_initialize(nrank,nprocs)
-      idim=1
+      idimen=1
       isiz=11
       isource=6
       itype=0
@@ -33,16 +33,16 @@
     1 CONTINUE
       IF(nrank.eq.0) then
     2    WRITE(6,'(A,4I5,1PE12.4)') &
-              '# INPUT: idim,isiz,isource,itype,tolerance=', &
-                        idim,isiz,isource,itype,tolerance
-         READ(5,*,END=3,ERR=2) idim,isiz,isource,itype,tolerance
-         idata(1)=idim
+              '# INPUT: idimen,isiz,isource,itype,tolerance=', &
+                        idimen,isiz,isource,itype,tolerance
+         READ(5,*,END=3,ERR=2) idimen,isiz,isource,itype,tolerance
+         idata(1)=idimen
          idata(2)=isiz
          idata(3)=isource
          idata(4)=itype
          ddata(1)=tolerance
-         IF(idim.LT.0.OR.idim.GT.3) THEN
-            WRITE(6,*) 'XX idim: out of range'
+         IF(idimen.LT.0.OR.idimen.GT.3) THEN
+            WRITE(6,*) 'XX idimen: out of range'
             GO TO 2
          ENDIF
          GO TO 4
@@ -51,17 +51,17 @@
       ENDIF
       CALL mtx_broadcast_integer(idata,4)
       CALL mtx_broadcast_real8(ddata,1)
-      idim=idata(1)
+      idimen=idata(1)
       isiz=idata(2)
       isource=idata(3)
       itype=idata(4)
       tolerance=ddata(1)
 
-      IF(idim.EQ.0) GO TO 9000
+      IF(idimen.EQ.0) GO TO 9000
 
       IF(nrank.EQ.0) CALL CPU_TIME(cputime1)
 
-      SELECT CASE(idim)
+      SELECT CASE(idimen)
       CASE(1)
          imax=isiz
          jwidth=3
@@ -79,7 +79,7 @@
 
       CALL mtx_setup(imax,istart,iend,jwidth)
 
-      SELECT CASE(idim)
+      SELECT CASE(idimen)
       CASE(1)
          DO i=istart,iend
             l=i
@@ -127,7 +127,7 @@
       CALL mtx_gather_vector(x)
 
       IF(nrank.eq.0) THEN
-         SELECT CASE(idim)
+         SELECT CASE(idimen)
          CASE(1)
             DO i=1,isiz
                WRITE(6,'(A,I5,1PE12.4)') 'i,x=',i,x(i)
