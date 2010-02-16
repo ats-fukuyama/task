@@ -146,7 +146,7 @@ contains
 !!$          END IF
 
           CALL TXCALV(XP)
-          IF(IC == 1) THEN
+          IF(IC <= 2) THEN
              PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
              PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
              PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
@@ -154,7 +154,7 @@ contains
              ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
           END IF
 
-          CALL TXCALC
+          CALL TXCALC(IC)
           CALL TXCALA
 !!$          IF(MDSOLV == 1.and. IC /= 1) THEN
 !!$             ! Get FL and BX
@@ -260,7 +260,7 @@ contains
           IF (IERR /= 0) THEN
              X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
              CALL TXCALV(X)
-!             CALL TXCALC
+!             CALL TXCALC(IC)
              CALL TXGLOB
              CALL TX_GRAPH_SAVE
              RETURN
@@ -288,7 +288,7 @@ contains
 !!$             XN1(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 !!$
 !!$             CALL TXCALV(XN1)
-!!$             CALL TXCALC
+!!$             CALL TXCALC(IC)
 !!$             CALL TXCALA
 !!$             CALL TXCALB(BA,BL,BX)
 !!$             CALL TXGLOB
@@ -410,12 +410,6 @@ contains
 
        ICSUM = ICSUM + IC
 
-       ! Save past X for BDF
-       IF(IGBDF /= 0) THEN
-          XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
-          CALL TXCALV(XOLD,IGBDF)
-       END IF
-
        IF(IDIAGL >= 2) THEN
           WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
                & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
@@ -452,17 +446,20 @@ contains
           end do
        END IF
 
+       ! Save past X for BDF
+       IF(IGBDF /= 0) XOLD(1:NQMAX,0:NRMAX) = X(1:NQMAX,0:NRMAX)
+
        ! Calculation fully converged
        X(1:NQMAX,0:NRMAX) = XN(1:NQMAX,0:NRMAX)
 
        ! Calculate mesh and coefficients at the next step
-       CALL TXCALV(X)
+       CALL TXCALV(X,1) ! Set new values to pres0 and ErV0
 !!$       PNeV_FIX(0:NRMAX) = PNeV(0:NRMAX)
 !!$       PTeV_FIX(0:NRMAX) = PTeV(0:NRMAX)
 !!$       PNiV_FIX(0:NRMAX) = PNiV(0:NRMAX)
 !!$       PTiV_FIX(0:NRMAX) = PTiV(0:NRMAX)
 !!$       ErV_FIX (0:NRMAX) = ErV (0:NRMAX)
-       CALL TXCALC
+       CALL TXCALC(IC)
 
        IF(IDIAGL == 0 .OR. IDIAGL == 2) THEN
           IF ((MOD(NT, NTSTEP) == 0) .AND. (NT /= NTMAX)) &

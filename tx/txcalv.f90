@@ -20,17 +20,20 @@ contains
     REAL(8), DIMENSION(1:NQM,0:NRMAX), INTENT(IN) :: XL
     integer(4), intent(in), optional :: ID
     INTEGER(4) :: NR
-    real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2, BBL
+    real(8) :: BBL
     real(8) :: FCTR
 
     IF(present(ID)) THEN
-       IF(ID /= 0) THEN
-          ! The pres0 and ErV0 are the values evaluated at the previous time step
-          !   for Backward Differential Formula.
+       ! The pres0 and ErV0 are the values evaluated at the previous time step
+       !   for numerical stability when using turbulent transport models.
+       IF(MDFIXT == 0) THEN
           pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
-          ErV0 (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,XL(LQm1,0:NRMAX),NRMAX,0)
+       ELSE
+          pres0(0:NRMAX) = (  XL(LQe1,0:NRMAX) * XL(LQe5,0:NRMAX) &
+               &            + XL(LQi1,0:NRMAX) * XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
        END IF
-       return
+       ErV0 (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,XL(LQm1,0:NRMAX),NRMAX,0)
+       IF(ID /= 0) return
     END IF
 
     PhiV (0:NRMAX) =   XL(LQm1,0:NRMAX)
@@ -139,42 +142,6 @@ contains
 !!$    pres0(0:NRMAX) = (XL(LQe5,0:NRMAX) + XL(LQi5,0:NRMAX)) * 1.D20 * rKeV
 !!$    ErV0 (0:NRMAX) = - 2.D0 * R(0:NRMAX) * dfdx(PSI,PhiV,NRMAX,0)
 
-    PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
-
-    !  *** For thermal neutrals originating from slow neutrals ***
-
-    ! SCX : source of PN02V
-    DO NR = 0, NRMAX
-       SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
-    END DO
-
-    ! NRB : Boundary of N02 source
-    NRB = NRA
-    do NR = NRMAX - 1, 0, -1
-       RatSCX = SCX(NR) / SCX(NRMAX)
-       if(RatSCX < 1.D-8) then
-          NRB = NR
-          exit
-       else if (RatSCX < tiny_cap) then
-          NRB = NR - 1
-       end if
-    end do
-
-    ! PTiVav : Particle (or density) averaged temperature across the N02 source region
-    sum1 = 0.d0 ; sum2 = 0.d0
-    do nr = nrb, nrmax
-       call VALINT_SUB(PN02V,NR,N02int,NR)
-       sum1 = sum1 + N02int
-       sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
-    end do
-    PTiVav = sum2 / sum1
-    do nr = 0, nrmax
-       PT02V(NR) = PTiVav
-    end do
-
-!    PT02V(0:NRMAX) =   PTiV(0:NRMAX)
-    PT03V(0:NRMAX) =   PTiV(0:NRMAX)
-
     RETURN
   END SUBROUTINE TXCALV
 
@@ -198,7 +165,7 @@ contains
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
-    INTEGER(4) :: NR, NR1, IER, i, ideriv = 1, nrbound
+    INTEGER(4) :: NR, NR1, IER, i, ideriv = 1, nrbound, MDANOMabs
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, SL1, SL2, &
          &     Vte, Vti, Vtb, Wte, Wti, EpsL, rNuPara, rNubes, &
@@ -214,6 +181,7 @@ contains
          &     rGCIM, rGIM, rHIM, OMEGAPR !, 09/06/17~ miki_m 
 !!    real(8) :: XXX, SiV, ScxV, Vcr, Wbane, Wbani, ALFA, cap_val, Scxi, Vave, bthl
     real(8), save :: Fcoef = 1.d0
+    real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
     real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri, blinv
     real(8) :: EFT, CR, dPTeV, dPTiV, dPPe, dPPi
@@ -226,6 +194,8 @@ contains
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
          &                                dPedr, dPidr, dpdr, dNedr, dNidr, dErdrS, ErVlc, &
          &                                qr, dqr, dBph, Tqp_tmp
+
+    MDANOMabs = abs(MDANOM)
 
     !     *** Constants ***
 
@@ -579,7 +549,7 @@ contains
 
     pres(0:NRMAX)  = ( PNeV_FIX(0:NRMAX)*PTeV_FIX(0:NRMAX) &
          &            +PNiV_FIX(0:NRMAX)*PTiV_FIX(0:NRMAX)) * 1.D20 * rKeV
-    IF(maxval(FSANOM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
+    IF(MDANOM > 0 .and. maxval(FSANOM) > 0.D0) pres(0:NRMAX)  = 0.5d0 * (pres(0:NRMAX) + pres0(0:NRMAX))
 
     allocate(ErVlc(0:NRMAX))
     ErVlc(0:NRMAX) = 0.5d0 * (ErV_FIX(0:NRMAX) + ErV0(0:NRMAX))
@@ -651,12 +621,54 @@ contains
 !!$    end do
 !!$    dErdrS(0:NRMAX) = dErdr(0:NRMAX)
 
+    ! *** Temperatures for neutrals ***
+
+    PT01V(0:NRMAX) =   0.5D0 * AMI * V0**2 / rKeV
+
+    !  --- For thermal neutrals originating from slow neutrals ---
+
+    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
+       ! SCX : source of PN02V
+       DO NR = 0, NRMAX
+          SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
+       END DO
+
+       ! NRB : Boundary of N02 source
+       NRB = NRA
+       do NR = NRMAX - 1, 0, -1
+          RatSCX = SCX(NR) / SCX(NRMAX)
+          if(RatSCX < 1.D-8) then
+             NRB = NR
+             exit
+          else if (RatSCX < tiny_cap) then
+             NRB = NR - 1
+          end if
+       end do
+    END IF
+
+    ! PTiVav : Particle (or density) averaged temperature across the N02 source region
+    sum1 = 0.d0 ; sum2 = 0.d0
+    do nr = nrb, nrmax
+       call VALINT_SUB(PN02V,NR,N02int,NR)
+       sum1 = sum1 + N02int
+       sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
+    end do
+    PTiVav = sum2 / sum1
+    do nr = 0, nrmax
+       PT02V(NR) = PTiVav
+    end do
+
+!    PT02V(0:NRMAX) =   PTiV(0:NRMAX)
+    PT03V(0:NRMAX) =   PTiV(0:NRMAX)
+
+    ! *********************************
+
     ! Calculate CDIM coefficient
     RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * &  ! cf. txcalv.f90 L501
          &     dfdx (PSI(0:NRMAX) , (R(0:NRMAX) / RA)**4 / Q(0:NRMAX) , NRMAX , 0)
 
     ! Orbit squeezing effect for NCLASS
-    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
+!    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
        p_gr2phi(0)  = 0.0
        IF(MDOSQZ == 2) THEN
           DO NR = 1, NRMAX
@@ -665,7 +677,7 @@ contains
        ELSE
           p_gr2phi(1:NRMAX) = 0.0
        END IF
-    END IF
+!    END IF
 
     !  Coefficients
 
@@ -1048,7 +1060,7 @@ contains
           rKappa(NR) = FSCBKP * (- R(NR) / RR * (1.D0 - 1.D0 / Q(NR)**2))
 
           !   *** CDBM model ***
-          IF (MDANOM == 1) THEN
+          IF (MDANOMabs == 1) THEN
              ! Arbitrary coefficient for CDBM model
 !             rGC = 8.D0
              rGC = 12.D0
@@ -1078,7 +1090,7 @@ contains
              !Dturb = MAX(Dturb,1.D-05)
 
           !   *** CDIM model ***
-          ELSE IF (MDANOM == 2) THEN
+          ELSE IF (MDANOMabs == 2) THEN
              ! Arbitrary coefficient for CDIM model
              rGCIM = 10.D0
              OMEGAPR = (RA / RR)**2 * (dble(NCph) / dble(NCth)) * RAQPR(NR)
@@ -1218,24 +1230,18 @@ contains
        ! <omega/m>
        WPM(NR) = WPM0 * PTeV(NR) * rKeV / (RA**2 * AEE * BphV(NR))
        ! Force induced by drift wave (e.q.(8),(13))
-       FWthe(NR)   = AEE**2         * BphV(NR)**2 * De(NR) / (PTeV(NR) * rKeV)
-       FWthi(NR)   = AEE**2 * PZ**2 * BphV(NR)**2 * Di(NR) / (PTiV(NR) * rKeV)
-       FWthphe(NR) = AEE**2         * BphV(NR)    * De(NR) / (PTeV(NR) * rKeV)
-       FWthphi(NR) = AEE**2 * PZ**2 * BphV(NR)    * Di(NR) / (PTiV(NR) * rKeV)
+       FWe(NR)     = AEE**2         * De(NR) / (PTeV(NR) * rKeV)
+       FWi(NR)     = AEE**2 * PZ**2 * De(NR) / (PTeV(NR) * rKeV)
+       FWthphe(NR) = FWe(NR)     * BphV(NR)
+       FWthphi(NR) = FWi(NR)     * BphV(NR)
+       FWthe(NR)   = FWthphe(NR) * BphV(NR)
+       FWthi(NR)   = FWthphi(NR) * BphV(NR)
        ! Ad hoc turbulent pinch velocity
        IF(NR == 0) THEN
           FVpch(NR) = 0.D0
        ELSE
           FVpch(NR) = AEE * BphV(NR) * VWpch(NR) / R(NR)
 !!$          FVpch(NR) = AEE * BphV(NR) * VWpch(NR)
-       END IF
-       ! Annihilator of inherent particle pinch induced by FWth terms
-       IF(MDVAHL == 0) THEN
-          FWahle(NR) = 0.D0
-          FWahli(NR) = 0.D0
-       ELSE
-          FWahle(NR) = AEE      * BphV(NR) * De(NR) / (PTeV(NR) * rKeV)
-          FWahli(NR) = AEE * PZ * BphV(NR) * Di(NR) / (PTiV(NR) * rKeV)
        END IF
 
        !     *** Heating profile ***
@@ -1495,7 +1501,7 @@ contains
        end if
     end do
 
-    if(MDANOM == 3) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
+    if(MDANOMabs == 3) call txmmm95(dNedr,dNidr,dTedr,dTidr,dQdr)
 
     !     *** ETB model ***
 

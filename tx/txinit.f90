@@ -128,6 +128,7 @@ SUBROUTINE TXINIT
   !     1 : CDBM model (Current diffusive ballooning mode)
   !     2 : CDIM model (Current diffusive interchange mode)
   !     3 : MMM95 (Multi-mode model)
+  !   If MDANOM is negative, smoothing of the pressure gradient in the direction of time is off.
   MDANOM = 1
 
   !   Switch and amplification of turbulence coefficients (typically 0 or 1)
@@ -1221,7 +1222,7 @@ SUBROUTINE TXPROF
 
   !  Define physical variables from X
 
-  CALL TXCALV(X)
+  CALL TXCALV(X,0) ! Set variables as well as pres0 and ErV0
   !  --- Fixed Er to keep it constant during iterations ---
   ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
 
@@ -1285,7 +1286,7 @@ SUBROUTINE TXPROF
      X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0
      deallocate(CMTX,RHSV,TMP)
 
-     CALL TXCALV(X)
+     CALL TXCALV(X,0) ! Set variables as well as ErV0
      ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
 
      CALL TXCALC
