@@ -3,7 +3,7 @@ C ******************************************************
 C                       DPDKDT
 C      dielectric tensor with Drift Kinetic effects
 C                 
-C                      2010/02/08             
+C                      2010/02/16             
 C                           programed by T.OKAMOTO
 C ******************************************************
 C
@@ -194,6 +194,18 @@ C
 C         CDENY  = CDENX/(CDENX**2+DELPL*(DGP(NP,NTH)*PTH0*DELP)**2
 C     &                             +DELPL*(DGT(NP,NTH)*DELTH)**2)
 C
+C<<<<<<< dpdkdt.f
+         CPART11=(-DPFP(NTH,NP)-CWAST(NTH,NP)/CW)
+C         CPART12=(0.D0,0.D0)
+C         CPART13=(0.D0,0.D0)
+C
+         CPART12= CI*MM*VD**2*CCHI(NCH2)*SCHI(NCH2)
+     &          *(DPFP(NTH,NP)-CWAST(NTH,NP)/CW)*CDEN**2
+C
+         CPART13= CI*VD*SCHI(NCH2)
+     &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
+     &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
+C=======
          CPART11=(-DPFP(NTH,NP)-CWAST(NTH,NP)/CW)
          CPART12=(0.D0,0.D0)
          CPART13=(0.D0,0.D0)
@@ -205,6 +217,7 @@ C
 C         CPART13= CI*VD*SCHI(NCH2)
 C     &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
 C     &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
+C>>>>>>> 1.16
 C      
 C         CPART14= -PI*PV(NP)**4*COEF
 C     &        *TSNM(NTH)*AA*(1+TCSM2(NTH))*SCHI(NCH2)
@@ -299,17 +312,38 @@ C
       CINTG412 = COEE4*CINTG412
       CINTG421 = COEE4*CINTG421
 C
+C************SUM5 : Polarization*****************************************
+C
+      CINTG511 = (0.D0,0.D0)
+      CINTG522 = (0.D0,0.D0)
+C
+      DO NP=1, NPMAX-1
+      DO NTH=1, NTHMAX
+C
+         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP)**2*TSNM(NTH)
+C
+      CINTG511 = CINTG511+FPART*DELTH*DELP
+      CINTG522 = CINTG522+FPART*DELTH*DELP
+C
+      ENDDO
+      ENDDO
+C
+      COEE5 = AM*CW/BABS**2
+C       
+      CINTG511 = -CI*COEE5*CINTG511
+      CINTG522 = -CI*COEE5*CINTG522
+C
 C*****************************************************
 C
-      CDTNSR(1,1)=CI*(CINTG111                  )/(CW*EPS0)
-      CDTNSR(1,2)=CI*(CINTG112+CINTG312+CINTG412)/(CW*EPS0)
-      CDTNSR(1,3)=CI*(CINTG113+CINTG313         )/(CW*EPS0)
-      CDTNSR(2,1)=CI*(CINTG121         +CINTG421)/(CW*EPS0)
-      CDTNSR(2,2)=CI*(CINTG122+CINTG322         )/(CW*EPS0)
-      CDTNSR(2,3)=CI*(CINTG123+CINTG323         )/(CW*EPS0)
-      CDTNSR(3,1)=CI*(CINTG131                  )/(CW*EPS0)
-      CDTNSR(3,2)=CI*(CINTG132+CINTG332         )/(CW*EPS0)
-      CDTNSR(3,3)=CI*(CINTG133+CINTG333         )/(CW*EPS0)
+      CDTNSR(1,1)=CI*(CINTG111                  +CINTG511)/(CW*EPS0)
+      CDTNSR(1,2)=CI*(CINTG112+CINTG312+CINTG412         )/(CW*EPS0)
+      CDTNSR(1,3)=CI*(CINTG113+CINTG313                  )/(CW*EPS0)
+      CDTNSR(2,1)=CI*(CINTG121         +CINTG421         )/(CW*EPS0)
+      CDTNSR(2,2)=CI*(CINTG122+CINTG322         +CINTG522)/(CW*EPS0)
+      CDTNSR(2,3)=CI*(CINTG123+CINTG323                  )/(CW*EPS0)
+      CDTNSR(3,1)=CI*(CINTG131                           )/(CW*EPS0)
+      CDTNSR(3,2)=CI*(CINTG132+CINTG332                  )/(CW*EPS0)
+      CDTNSR(3,3)=CI*(CINTG133+CINTG333                  )/(CW*EPS0)
 C
       RETURN
       END                     
