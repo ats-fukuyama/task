@@ -162,18 +162,18 @@
 !  contiguous chunks of rows across the processors.  Determine which
 !  rows of the matrix are locally owned. 
 
-      ALLOCATE(istartx(0:size-1),iendx(0:size-1),isiz(0:size-1))
+      ALLOCATE(istartx(0:nsize-1),iendx(0:nsize-1),isiz(0:nsize-1))
 
       call mtx_allgather_integer(istart,istartx)
       call mtx_allgather_integer(iend,iendx)
 
-      do i=0,size-1
+      do i=0,nsize-1
          isiz(i)=iendx(i)-istartx(i)
       enddo
 
 !      if(rank.eq.0) then
 !         write(6,'(A)') '# mtx_setup: '
-!         do i=0,size-1
+!         do i=0,nsize-1
 !            write(6,'(A,4I10)') '#  rank,istart,iend,isiz=', &
 !                  i,istartx(i)+1,iendx(i),isiz(i)
 !         enddo
