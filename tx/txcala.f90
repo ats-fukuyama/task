@@ -16,7 +16,7 @@ module tx_coefficients
        & rNube1BE, rNube2BthBE, rNube3BE, &
        & Vbparaph, RVbparath, &
        & Chie1, Chie2, Chii1, Chii2, &
-       & FVpchph, rNue2NCN, rNui2NCN, R2dPTeV, R2dPTiV, &
+       & FVpchph, rNue2NCN, rNui2NCN, &
        & rGASPFA, rat_ei
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -121,7 +121,7 @@ contains
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
-       &     FVpchph(0:N), rNue2NCN(0:N), rNui2NCN(0:N), R2dPTeV(0:N), R2dPTiV(0:N), &
+       &     FVpchph(0:N), rNue2NCN(0:N), rNui2NCN(0:N), &
        &     rGASPFA(0:N), rat_ei(0:N))
 !!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthphiB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
@@ -248,7 +248,7 @@ contains
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
-       &       FVpchph, rNue2NCN, rNui2NCN, R2dPTeV, R2dPTiV, &
+       &       FVpchph, rNue2NCN, rNui2NCN, &
        &       rGASPFA, rat_ei)
 !!ion    deallocate(FWphiBB, FWphiBB2, FWthphiB, FWphiB)
     deallocate(UNITY)
@@ -345,8 +345,6 @@ contains
 
     rNue2NCN(0:NRMAX) = rNue2NC(0:NRMAX) / PNeV(0:NRMAX)
     rNui2NCN(0:NRMAX) = rNui2NC(0:NRMAX) / PNiV(0:NRMAX)
-    R2dPTeV(0:NRMAX) = PSI(0:NRMAX) * (2.D0 * PSI(0:NRMAX) * dfdx(PSI,PTeV,NRMAX,0))
-    R2dPTiV(0:NRMAX) = PSI(0:NRMAX) * (2.D0 * PSI(0:NRMAX) * dfdx(PSI,PTiV,NRMAX,0))
 
     rGASPFA(0:NRMAX-1) = 0.D0
     rGASPFA(NRMAX) = rGASPF
@@ -816,8 +814,8 @@ contains
        ELM(1:NEMAX,1:4,21,NEQ) = 0.D0
        NLC(21,NEQ) = 0
 
-       ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(-2,rNue2NC,R2dPTeV)
-       NLC(29,NEQ) = 0
+       ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(37,rNue2NC,PTeV)
+       NLC(29,NEQ) = LQe1
 
        ELM(1:NEMAX,1:4,30,NEQ) = 0.D0
        NLC(30,NEQ) = 0
@@ -1453,8 +1451,8 @@ contains
        ELM(1:NEMAX,1:4,19,NEQ) = 0.D0
        NLC(19,NEQ) = 0
 
-       ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(-2,rNui2NC,R2dPTiV)
-       NLC(30,NEQ) = 0
+       ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NC,PTiV)
+       NLC(30,NEQ) = LQi1
 
        ELM(1:NEMAX,1:4,31,NEQ) = 0.D0
        NLC(31,NEQ) = 0
