@@ -784,7 +784,7 @@ contains
     NLC(26,NEQ) = LQe3
 
 !---- 09/11/26 AF
-    ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(15,R,rNueHLthph)
+    ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(15,rNueHLthph)
     NLC(27,NEQ) = LQe4
 
     !  Diffusion of electrons (***AF 2008-06-08)
@@ -965,7 +965,7 @@ contains
     ELM(1:NEMAX,1:4,25,NEQ) =   fem_int(2,rNueHLphth)
     NLC(25,NEQ) = LQe3
 
-    ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(15,R,rNueHLphph)
+    ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(15,rNueHLphph)
     NLC(26,NEQ) = LQe4
 
     !  Diffusion of electrons (***AF 2008-06-08)

@@ -1025,10 +1025,10 @@ contains
 !          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
           UHph=-Ncph/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
 
-          rNueHLthth(NR)=UHth*UHth*rNueHL(NR)
-          rNueHLthph(NR)=UHth*UHph*rNueHL(NR)
-          rNueHLphth(NR)=UHth*UHph*rNueHL(NR)
-          rNueHLphph(NR)=UHph*UHph*rNueHL(NR)
+          rNueHLthth(NR)=UHth*UHth*rNueHL(NR) ! [s^-1]
+          rNueHLthph(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
+          rNueHLphth(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
+          rNueHLphph(NR)=UHph*UHph*rNueHL(NR) ! [m^-2 s^-1]
           rNuiHLthth(NR)=UHth*UHth*rNuiHL(NR)
           rNuiHLthph(NR)=UHth*UHph*rNuiHL(NR)
           rNuiHLphth(NR)=UHth*UHph*rNuiHL(NR)
