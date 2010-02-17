@@ -9,14 +9,14 @@ module tx_coefficients
        & rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        & rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        & RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
-       & FWpheBB, FWpheBB2, FWtheBB, FWpheB, dAphV, &
-!!ion       & FWphiBB, FWphiBB2, FWthiBB, FWphiB, &
+       & FWpheBB, FWpheBB2, FWthpheB, FWpheB, FWphe, dAphV, &
+!!ion       & FWphiBB, FWphiBB2, FWthphiB, FWphiB, &
        & BphBNi, BthBNi, Dbrpft, &
        & rNuei1EI, rNuei2BthEI, rNuei3EI, &
        & rNube1BE, rNube2BthBE, rNube3BE, &
        & Vbparaph, RVbparath, &
        & Chie1, Chie2, Chii1, Chii2, &
-       & FVpchph, rNue2NCN, rNui2NCN, &
+       & FVpchph, rNue2NCN, rNui2NCN, R2dPTeV, R2dPTiV, &
        & rGASPFA, rat_ei
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
@@ -115,15 +115,15 @@ contains
        &     rNuCXN1(0:N), rMueNe(0:N), rMuiNi(0:N), &!dPNeV(0:N), dPNiV(0:N), &
        &     RUbthV(0:N), UethVR(0:N), UithVR(0:N), &
        &     EthVR(0:N), RUerV(0:N), RUirV(0:N), UerVR(0:N), UirVR(0:N), &
-       &     FWpheBB(0:N), FWpheBB2(0:N), FWtheBB(0:N), FWpheB(0:N), &
+       &     FWpheBB(0:N), FWpheBB2(0:N), FWthpheB(0:N), FWpheB(0:N), FWphe(0:N), &
        &     dAphV(0:N), BphBNi(0:N), BthBNi(0:N), Dbrpft(0:N), &
        &     rNuei1EI(0:N), rNuei2BthEI(0:N), rNuei3EI(0:N), &
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
-       &     FVpchph(0:N), &
-       &     rNue2NCN(0:N), rNui2NCN(0:N), rGASPFA(0:N), rat_ei(0:N))
-!!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthiBB(0:N), FWphiB(0:N))
+       &     FVpchph(0:N), rNue2NCN(0:N), rNui2NCN(0:N), R2dPTeV(0:N), R2dPTiV(0:N), &
+       &     rGASPFA(0:N), rat_ei(0:N))
+!!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthphiB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
 
@@ -242,15 +242,15 @@ contains
     deallocate(rNuIN0, rNuCXN0, rNubeBE, rNubiBI, rNuTeiEI,&
        &       rNuCXN1, rMueNe, rMuiNi, & !dPNeV, dPNiV, &
        &       RUbthV, UethVR, UithVR, EthVR, RUerV, RUirV, UerVR, UirVR, &
-       &       FWpheBB, FWpheBB2, FWtheBB, FWpheB, dAphV, &
+       &       FWpheBB, FWpheBB2, FWthpheB, FWpheB, FWphe, dAphV, &
        &       BphBNi, BthBNi, Dbrpft, &
        &       rNuei1EI, rNuei2BthEI, rNuei3EI, &
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
-       &       FVpchph, &
-       &       rNue2NCN, rNui2NCN, rGASPFA, rat_ei)
-!!ion    deallocate(FWphiBB, FWphiBB2, FWthiBB, FWphiB)
+       &       FVpchph, rNue2NCN, rNui2NCN, R2dPTeV, R2dPTiV, &
+       &       rGASPFA, rat_ei)
+!!ion    deallocate(FWphiBB, FWphiBB2, FWthphiB, FWphiB)
     deallocate(UNITY)
 
     IF(ICALA ==0) ICALA = 1
@@ -298,8 +298,10 @@ contains
 !    CALL DERIVS(PSI,X,LQe1,NQMAX,NRMAX,dPNeV)
 !    CALL DERIVS(PSI,X,LQi1,NQMAX,NRMAX,dPNiV)
     dAphV(0:NRMAX)    = dfdx(PSI,AphV,NRMAX,0)
+    FWphe(0:NRMAX)    =- 2.D0 * dAphV(0:NRMAX) * FWe(0:NRMAX)
     FWpheBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphe(0:NRMAX)
     FWpheBB2(0:NRMAX) = FWe(0:NRMAX) * BthV(0:NRMAX)**2
+!!ion    FWphi(0:NRMAX)    =- 2.D0 * dAphV(0:NRMAX) * FWi(0:NRMAX)
 !!ion    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphi(0:NRMAX)
 !!ion    FWphiBB2(0:NRMAX) = FWthi(0:NRMAX) * BthV(0:NRMAX)**2
 
@@ -315,10 +317,10 @@ contains
           RVbparath(NR) = Vbpara(NR) * (BthV(NR) / BBL) * R(NR)
        end if
 
-       FWtheBB(NR) = FWthphe(NR) * BBL
-       FWpheB (NR) = FWe    (NR) * BBL**2
-!!ion       FWthiBB(NR) = FWthphi(NR) * BBL
-!!ion       FWphiB (NR) = FWi    (NR) * BBL**2
+       FWthpheB(NR) = FWthphe(NR) * BBL
+       FWpheB  (NR) = FWphe  (NR) * BBL
+!!ion       FWthphiB(NR) = FWthphi(NR) * BBL
+!!ion       FWphiB  (NR) = FWphi  (NR) * BBL
     END DO
     BthBNi(0) = 0.D0 ! Any value is OK. (Never affect the result.)
 
@@ -343,6 +345,8 @@ contains
 
     rNue2NCN(0:NRMAX) = rNue2NC(0:NRMAX) / PNeV(0:NRMAX)
     rNui2NCN(0:NRMAX) = rNui2NC(0:NRMAX) / PNiV(0:NRMAX)
+    R2dPTeV(0:NRMAX) = PSI(0:NRMAX) * (2.D0 * PSI(0:NRMAX) * dfdx(PSI,PTeV,NRMAX,0))
+    R2dPTiV(0:NRMAX) = PSI(0:NRMAX) * (2.D0 * PSI(0:NRMAX) * dfdx(PSI,PTiV,NRMAX,0))
 
     rGASPFA(0:NRMAX-1) = 0.D0
     rGASPFA(NRMAX) = rGASPF
@@ -723,7 +727,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,19,NEQ) = - 1.D0 / AME * fem_int(44,FWtheBB,WPM)
+    ELM(1:NEMAX,1:4,19,NEQ) = - 1.D0 / AME * fem_int(44,FWthpheB,WPM)
     NLC(19,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -763,7 +767,7 @@ contains
 !!ion            &                    - 2.D0 * (1.D0 /  AME       ) * fem_int(37,FWthphi,PhiV) * FSVAHLE
 !!ion       NLC(19,NEQ) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,20,NEQ) =   1.D0 / AME * fem_int(44,FWthiBB,WPM)
+!!ion       ELM(1:NEMAX,1:4,20,NEQ) =   1.D0 / AME * fem_int(44,FWthphiB,WPM)
 !!ion       NLC(20,NEQ) = LQi1
 
     ! Loss to divertor
@@ -803,6 +807,22 @@ contains
     ! Ns*UsTheta(NRMAX) : 0
 
     NLCMAX(NEQ) = 30
+
+    IF(MDFIXT /= 0) THEN
+       ELM(1:NEMAX,1:4,20,NEQ) = - 2.D0 * (rKeV / (AME * AEE)) * fem_int(37,FWthphe,PTeV) &
+            &                           * (1.D0 - FSVAHLT)
+       NLC(20,NEQ) = LQe1
+
+       ELM(1:NEMAX,1:4,21,NEQ) = 0.D0
+       NLC(21,NEQ) = 0
+
+       ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(-2,rNue2NC,R2dPTeV)
+       NLC(29,NEQ) = 0
+
+       ELM(1:NEMAX,1:4,30,NEQ) = 0.D0
+       NLC(30,NEQ) = 0
+    END IF
+
     RETURN
   END SUBROUTINE LQe3CC
 
@@ -894,15 +914,15 @@ contains
 
     ! Contribution of off-diagonal term due to heat flux
 
-    ELM(1:NEMAX,1:4,19,NEQ) =   2.D0 * (rKeV / (AME * AEE)) * fem_int(17,FWpheBB) &
+    ELM(1:NEMAX,1:4,19,NEQ) =   2.D0 * (rKeV / (AME * AEE)) * fem_int(17,FWphe) &
          &                           * (1.D0 - FSVAHLT)
     NLC(19,NEQ) = LQe5
 
-    ELM(1:NEMAX,1:4,20,NEQ) = - 2.D0 * (rKeV / (AME * AEE)) * fem_int(38,FWpheBB,PTeV) &
+    ELM(1:NEMAX,1:4,20,NEQ) = - 2.D0 * (rKeV / (AME * AEE)) * fem_int(38,FWphe,PTeV) &
          &                           * (1.D0 - FSVAHLT)
     NLC(20,NEQ) = LQe1
 
-    ELM(1:NEMAX,1:4,21,NEQ) = - 2.D0 * (1.D0 /  AME       ) * fem_int(37,FWpheBB,PhiV) * FSVAHLE
+    ELM(1:NEMAX,1:4,21,NEQ) = - 2.D0 * (1.D0 /  AME       ) * fem_int(37,FWphe,PhiV) * FSVAHLE
     NLC(21,NEQ) = LQe1
 
     ! Ad hoc turbulent pinch term
@@ -956,6 +976,16 @@ contains
     NLC(27,NEQ) = LQe4
 
     NLCMAX(NEQ) = 27
+
+    IF(MDFIXT /= 0) THEN
+       ELM(1:NEMAX,1:4,19,NEQ) =   2.D0 * (rKeV / (AME * AEE)) * fem_int(37,FWphe,PTeV) &
+            &                           * (1.D0 - FSVAHLT)
+       NLC(19,NEQ) = LQe1
+
+       ELM(1:NEMAX,1:4,20,NEQ) = 0.D0
+       NLC(20,NEQ) = 0
+    END IF
+
     RETURN
   END SUBROUTINE LQe4CC
 
@@ -1315,7 +1345,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AMI * fem_int(44,FWtheBB,WPM)
+    ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AMI * fem_int(44,FWthpheB,WPM)
     NLC(17,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -1355,7 +1385,7 @@ contains
 !!ion            &                    + 2.D0 * (1.D0 /  AMI       ) * fem_int(37,FWthphi,PhiV) * FSVAHLE
 !!ion       NLC(17,NEQ) = LQi1
 !!ion
-!!ion       ELM(1:NEMAX,1:4,18,NEQ) = - 1.D0 / AMI * fem_int(44,FWthiBB,WPM)
+!!ion       ELM(1:NEMAX,1:4,18,NEQ) = - 1.D0 / AMI * fem_int(44,FWthphiB,WPM)
 !!ion       NLC(18,NEQ) = LQi1
 
     ! Loss to divertor
@@ -1414,6 +1444,22 @@ contains
     ! Ns*UsTheta(NRMAX) : 0
 
     NLCMAX(NEQ) = 32
+
+    IF(MDFIXT /= 0) THEN
+       ELM(1:NEMAX,1:4,18,NEQ) =   2.D0 * (rKeV / (AMI * AEE)) * fem_int(37,FWthphe,PTeV) &
+            &                           * (1.D0 - FSVAHLT)
+       NLC(18,NEQ) = LQe1
+
+       ELM(1:NEMAX,1:4,19,NEQ) = 0.D0
+       NLC(19,NEQ) = 0
+
+       ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(-2,rNui2NC,R2dPTiV)
+       NLC(30,NEQ) = 0
+
+       ELM(1:NEMAX,1:4,31,NEQ) = 0.D0
+       NLC(31,NEQ) = 0
+    END IF
+
     RETURN
   END SUBROUTINE LQi3CC
 
@@ -1499,15 +1545,15 @@ contains
 
     ! Contribution of off-diagonal term due to heat flux
 
-    ELM(1:NEMAX,1:4,17,NEQ) = - 2.D0 * (rKeV / (AMI * AEE)) * fem_int(17,FWpheBB) &
+    ELM(1:NEMAX,1:4,17,NEQ) = - 2.D0 * (rKeV / (AMI * AEE)) * fem_int(17,FWphe) &
          &                           * (1.D0 - FSVAHLT)
     NLC(17,NEQ) = LQe5
 
-    ELM(1:NEMAX,1:4,18,NEQ) = + 2.D0 * (rKeV / (AMI * AEE)) * fem_int(38,FWpheBB,PTeV) &
+    ELM(1:NEMAX,1:4,18,NEQ) = + 2.D0 * (rKeV / (AMI * AEE)) * fem_int(38,FWphe,PTeV) &
          &                           * (1.D0 - FSVAHLT)
     NLC(18,NEQ) = LQe1
 
-    ELM(1:NEMAX,1:4,19,NEQ) = + 2.D0 * (1.D0 /  AMI       ) * fem_int(37,FWpheBB,PhiV) * FSVAHLE
+    ELM(1:NEMAX,1:4,19,NEQ) = + 2.D0 * (1.D0 /  AMI       ) * fem_int(37,FWphe,PhiV) * FSVAHLE
     NLC(19,NEQ) = LQe1
 
     ! Ad hoc turbulent pinch term
@@ -1581,6 +1627,16 @@ contains
     NLC(29,NEQ) = 0
 
     NLCMAX(NEQ) = 29
+
+    IF(MDFIXT /= 0) THEN
+       ELM(1:NEMAX,1:4,17,NEQ) = - 2.D0 * (rKeV / (AMI * AEE)) * fem_int(37,FWphe,PTeV) &
+            &                           * (1.D0 - FSVAHLT)
+       NLC(17,NEQ) = LQe1
+
+       ELM(1:NEMAX,1:4,18,NEQ) = 0.D0
+       NLC(18,NEQ) = 0
+    END IF
+
     RETURN
   END SUBROUTINE LQi4CC
 
