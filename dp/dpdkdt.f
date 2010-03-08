@@ -205,7 +205,7 @@ C
 C
          CPART1= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
      &            *PN0*1.D20
-     &            *COEF*(CPART11+CPART12+CPART13+CPART14)
+     &            *COEF*(CPART11+CPART12+CPART13)
 C
          PI1=VD*VD
          PI2=VD*VPARA
@@ -291,7 +291,7 @@ C
       CINTG412 = COEE4*CINTG412
       CINTG421 = COEE4*CINTG421
 C
-C************SUM5 : Polarization*****************************************
+C************SUM 5 : Polarization*****************************************
 C
       CINTG511 = (0.D0,0.D0)
       CINTG522 = (0.D0,0.D0)
