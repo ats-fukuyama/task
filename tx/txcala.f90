@@ -586,48 +586,48 @@ contains
     ! Advection
     
     ELM(1:NEMAX,1:4,1,NEQ) = - 2.D0 * fem_int( 3,RUerV) + fem_int(2,UerVR) &
-         &                  +(- 2.D0 * fem_int(10,RUerV) + fem_int(9,UerVR)) * fem_int(0)
+         &                 +(- 2.D0 * fem_int(10,RUerV) + fem_int(9,UerVR)) * fem_int(0)
     ELM(1      ,1:4,1,NEQ) = - 2.D0 * fem_int_point( 3,0,RUerV) + fem_int_point(2,0,UerVR) &
-         &                  +(- 2.D0 * fem_int_point(10,0,RUerV) + fem_int_point(9,0,UerVR)) &
-         &                  * fem_int_point(0,1)
+         &                 +(- 2.D0 * fem_int_point(10,0,RUerV) + fem_int_point(9,0,UerVR)) &
+         &                 * fem_int_point(0,1)
     NLC(1,NEQ) = LQe2
 
     ! Centrifugal force
 
     ELM(1:NEMAX,1:4,2,NEQ) = fem_int(2,UethVR) &
-         &                  + fem_int(9,UethVR) * fem_int(0)
+         &                 + fem_int(9,UethVR) * fem_int(0)
     ELM(1      ,1:4,2,NEQ) = fem_int_point(2,0,UethVR) &
-         &                  + fem_int_point(9,0,UethVR) * fem_int_point(0,1)
+         &                 + fem_int_point(9,0,UethVR) * fem_int_point(0,1)
     NLC(2,NEQ) = LQe3
 
     ! Pressure gradient force
 
     ELM(1:NEMAX,1:4,3,NEQ) = - 2.D0 * rKeV / AME * fem_int(17,UNITY) &
-         &                    - 2.D0 * rKeV / AME * fem_int(18,UNITY) * fem_int(0)
+         &                   - 2.D0 * rKeV / AME * fem_int(18,UNITY) * fem_int(0)
     NLC(3,NEQ) = LQe5
 
     ! Radial E force
 
     ELM(1:NEMAX,1:4,4,NEQ) =   2.D0 * (AEE / AME) * fem_int(17,PNeV) &
-         &                  +   2.D0 * (AEE / AME) * fem_int(18,PNeV) * fem_int(0)
+         &                 +   2.D0 * (AEE / AME) * fem_int(18,PNeV) * fem_int(0)
     NLC(4,NEQ) = LQm1
 
     ! v x B force
 
     ELM(1:NEMAX,1:4,5,NEQ) = -        (AEE / AME) * fem_int( 2,BphV) &
-         &                    -        (AEE / AME) * fem_int( 9,BphV) * fem_int(0)
+         &                   -        (AEE / AME) * fem_int( 9,BphV) * fem_int(0)
     NLC(5,NEQ) = LQe3
 
     ELM(1:NEMAX,1:4,6,NEQ) = - 2.D0 * (AEE / AME) * fem_int(16,AphV) &
-         &                    - 2.D0 * (AEE / AME) * fem_int(20,UNITY,AphV) * fem_int(0)
+         &                   - 2.D0 * (AEE / AME) * fem_int(20,UNITY,AphV) * fem_int(0)
     NLC(6,NEQ) = LQe4
 
     NLCMAX(NEQ) = 6
 
     IF(MDFIXT /= 0) THEN
        ELM(1:NEMAX,1:4,3,NEQ) = - 2.D0 * rKeV / AME &
-            &                  * (  fem_int(17,PTeV) + fem_int(18,PTeV) * fem_int(0) &
-            &                     + fem_int(16,PTeV) + fem_int(34,PSI,PTeV) * fem_int(0))
+            &                 *(  fem_int(17,PTeV) + fem_int(18,PTeV) * fem_int(0) &
+            &                   + fem_int(16,PTeV) + fem_int(34,PSI,PTeV) * fem_int(0))
        NLC(3,NEQ) = LQe1
     END IF
 
@@ -794,17 +794,18 @@ contains
 
     !  Poloidal torque due to neoclassical heat flux
 
-    ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(17,rNue2NC)
-    NLC(29,NEQ) = LQe5
+    ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL / 1.D20 * fem_int(-2,R,FQeth)
+    NLC(29,NEQ) = 0
 
-!!$    ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / AEE * fem_int(38,rNue2NC,PTeV)
-!!$    NLC(30,NEQ) = LQe1
-    ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / AEE * fem_int(37,rNue2NCN,PNeV)
-    NLC(30,NEQ) = LQe5
+!    ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(17,rNue2NC)
+!    NLC(29,NEQ) = LQe5
+!
+!    ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / AEE * fem_int(37,rNue2NCN,PNeV)
+!    NLC(30,NEQ) = LQe5
 
     ! Ns*UsTheta(NRMAX) : 0
 
-    NLCMAX(NEQ) = 30
+    NLCMAX(NEQ) = 29
 
     IF(MDFIXT /= 0) THEN
        ELM(1:NEMAX,1:4,20,NEQ) = - 2.D0 * (rKeV / (AME * AEE)) * fem_int(37,FWthphe,PTeV) &
@@ -814,11 +815,11 @@ contains
        ELM(1:NEMAX,1:4,21,NEQ) = 0.D0
        NLC(21,NEQ) = 0
 
-       ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(37,rNue2NC,PTeV)
-       NLC(29,NEQ) = LQe1
-
-       ELM(1:NEMAX,1:4,30,NEQ) = 0.D0
-       NLC(30,NEQ) = 0
+!       ELM(1:NEMAX,1:4,29,NEQ) =   FSNCPL * 2.D0 * rKeV / AEE * fem_int(37,rNue2NC,PTeV)
+!       NLC(29,NEQ) = LQe1
+!
+!       ELM(1:NEMAX,1:4,30,NEQ) = 0.D0
+!       NLC(30,NEQ) = 0
     END IF
 
     RETURN
@@ -1204,54 +1205,54 @@ contains
     ! Ns*Usr(0) : fixed
 
     ELM(1:NEMAX,1:4,0,NEQ) = fem_int(1) * invDT &
-         &                  + fem_int(8) * fem_int(0) * invDT
+         &                 + fem_int(8) * fem_int(0) * invDT
     NLC(0,NEQ) = LQi2
 
     ! Advection
 
     ELM(1:NEMAX,1:4,1,NEQ) = - 2.D0 * fem_int( 3,RUirV) + fem_int(2,UirVR) &
-         &                  +(- 2.D0 * fem_int(10,RUirV) + fem_int(9,UirVR)) * fem_int(0)
+         &                 +(- 2.D0 * fem_int(10,RUirV) + fem_int(9,UirVR)) * fem_int(0)
     ELM(1      ,1:4,1,NEQ) = - 2.D0 * fem_int_point( 3,0,RUirV) + fem_int_point(2,0,UirVR) &
-         &                  +(- 2.D0 * fem_int_point(10,0,RUirV) + fem_int_point(9,0,UirVR)) &
-         &                  * fem_int_point(0,1)
+         &                 +(- 2.D0 * fem_int_point(10,0,RUirV) + fem_int_point(9,0,UirVR)) &
+         &                 * fem_int_point(0,1)
     NLC(1,NEQ) = LQi2
 
     ! Centrifugal force
 
     ELM(1:NEMAX,1:4,2,NEQ) = fem_int(2,UithVR) &
-         &                  + fem_int(9,UithVR) * fem_int(0)
+         &                 + fem_int(9,UithVR) * fem_int(0)
     ELM(1      ,1:4,2,NEQ) = fem_int_point(2,0,UithVR) &
-         &                  + fem_int_point(9,0,UithVR) * fem_int_point(0,1)
+         &                 + fem_int_point(9,0,UithVR) * fem_int_point(0,1)
     NLC(2,NEQ) = LQi3
 
     ! Pressure gradient force
 
     ELM(1:NEMAX,1:4,3,NEQ) = - 2.D0 * rKeV / AMI * fem_int(17,UNITY) &
-         &                    - 2.D0 * rKeV / AMI * fem_int(18,UNITY) * fem_int(0)
+         &                   - 2.D0 * rKeV / AMI * fem_int(18,UNITY) * fem_int(0)
     NLC(3,NEQ) = LQi5
 
     ! Radial E force
 
     ELM(1:NEMAX,1:4,4,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(17,PNiV) &
-         &                    - 2.D0 * (PZ * AEE / AMI) * fem_int(18,PNiV) * fem_int(0)
+         &                   - 2.D0 * (PZ * AEE / AMI) * fem_int(18,PNiV) * fem_int(0)
     NLC(4,NEQ) = LQm1
 
     ! v x B force
 
     ELM(1:NEMAX,1:4,5,NEQ) =          (PZ * AEE / AMI) * fem_int( 2,BphV) &
-         &                  +          (PZ * AEE / AMI) * fem_int( 9,BphV) * fem_int(0)
+         &                 +          (PZ * AEE / AMI) * fem_int( 9,BphV) * fem_int(0)
     NLC(5,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4,6,NEQ) =   2.D0 * (PZ * AEE / AMI) * fem_int(16,AphV) &
-         &                  +   2.D0 * (PZ * AEE / AMI) * fem_int(20,UNITY,AphV) * fem_int(0)
+         &                 +   2.D0 * (PZ * AEE / AMI) * fem_int(20,UNITY,AphV) * fem_int(0)
     NLC(6,NEQ) = LQi4
 
     NLCMAX(NEQ) = 6
 
     IF(MDFIXT /= 0) THEN
        ELM(1:NEMAX,1:4,3,NEQ) = - 2.D0 * rKeV / AMI &
-            &                  *(  fem_int(17,PTiV) + fem_int(18,PTiV) * fem_int(0) &
-            &                    + fem_int(16,PTiV) + fem_int(34,PSI,PTiV) * fem_int(0))
+            &                 *(  fem_int(17,PTiV) + fem_int(18,PTiV) * fem_int(0) &
+            &                   + fem_int(16,PTiV) + fem_int(34,PSI,PTiV) * fem_int(0))
        NLC(3,NEQ) = LQi1
     END IF
 
@@ -1426,14 +1427,15 @@ contains
 
     !  Poloidal torque due to neoclassical heat flux
 
-    ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(17,rNui2NC)
-    NLC(30,NEQ) = LQi5
+    ELM(1:NEMAX,1:4,30,NEQ) =   FSNCPL / 1.D20 * fem_int(-2,R,FQith)
+    NLC(30,NEQ) = 0
 
-!!$    ELM(1:NEMAX,1:4,31,NEQ) =   FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(38,rNui2NC,PTiV)
-!!$    NLC(31,NEQ) = LQi1
-    ELM(1:NEMAX,1:4,31,NEQ) =   FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NCN,PNiV)
-    NLC(31,NEQ) = LQi5
-
+!    ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(17,rNui2NC)
+!    NLC(30,NEQ) = LQi5
+!
+!    ELM(1:NEMAX,1:4,31,NEQ) =   FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NCN,PNiV)
+!    NLC(31,NEQ) = LQi5
+    
     !  Virtual torque input
 
     ELM(1:NEMAX,1:4,32,NEQ) =   1.D0 / (AMI * 1.D20) * fem_int(-1,Tqp)
@@ -1451,11 +1453,11 @@ contains
        ELM(1:NEMAX,1:4,19,NEQ) = 0.D0
        NLC(19,NEQ) = 0
 
-       ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NC,PTiV)
-       NLC(30,NEQ) = LQi1
-
-       ELM(1:NEMAX,1:4,31,NEQ) = 0.D0
-       NLC(31,NEQ) = 0
+!       ELM(1:NEMAX,1:4,30,NEQ) = - FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NC,PTiV)
+!       NLC(30,NEQ) = LQi1
+!
+!       ELM(1:NEMAX,1:4,31,NEQ) = 0.D0
+!       NLC(31,NEQ) = 0
     END IF
 
     RETURN

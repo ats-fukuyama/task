@@ -860,18 +860,21 @@ contains
              ELSE
                 NR1 = NR
              END IF
-             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
+             CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
+                  &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
                   &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                   &         dTedr(NR1),dTidr(NR1),dPedr(NR1),dPidr(NR1),IER, &
                   &         p_gr2phi_in=p_gr2phi(NR))
           ELSE IF(MDOSQZ == 1) THEN
              IF(NR == 0) THEN
-                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
+                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
+                     &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
                      &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                      &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1),IER, &
                      &         dErdrS(NR+1),dBthdr(NR+1),dErdrS(0),dBthdr(0))
              ELSE
-                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR),ETA2(NR),AJBS2(NR), &
+                CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
+                     &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
                      &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                      &         dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER, &
                      &         dErdrS(NR),dBthdr(NR))

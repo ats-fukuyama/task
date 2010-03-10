@@ -206,7 +206,7 @@ contains
           END DO
 
        CASE('C')
-          ! *** Comparison of resistivity and bootstrap current ***
+          ! *** Comparison of neoclassical characteristics ***
           CALL TXGRCP(MODE)
 
        CASE('D')
@@ -2769,7 +2769,7 @@ contains
   SUBROUTINE TXGRCP(MODE)
 
     use tx_commons, only : NRMAX, NGR, MODEG, GT, DT, NGRSTP, ETA1, ETA2, ETA3, ETAS, ETA4, &
-         &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV
+         &              GX, NRA, AJBS1, AJBS2, AJBS3, gDIV, UethV, UithV, Ueth_NC, Uith_NC
     integer(4), intent(in) :: MODE
     character(len=50) :: STR
     integer(4) :: IND, IFNT, NR
@@ -2806,6 +2806,8 @@ contains
     CALL TEXT('  NGRSTP = ', 11)
     CALL NUMBI(NGRSTP,'(I4)',4)
 
+    ! Resistivity
+
     DO NR = 0, NRMAX
        GYL(NR,1) = GLOG(ETA1(NR),1.D-10,1.D0)
        GYL(NR,2) = GLOG(ETA2(NR),1.D-10,1.D0)
@@ -2818,6 +2820,8 @@ contains
     CALL TXGRFRS(0, GX, GYL, NRA, 3, STR, MODE, IND, 1, 0, 'STATIC')
 !    CALL TXGRFRS(0, GX, GYL, NRA, 4, STR, MODE, IND, 1, 0, 'STATIC')
 
+    ! Bootstrap current
+
     GYL(0:NRMAX,1) = REAL(AJBS1(0:NRMAX))
     GYL(0:NRMAX,2) = REAL(AJBS2(0:NRMAX))
     GYL(0,2) = 0.0
@@ -2827,6 +2831,22 @@ contains
     STR = '@AJBS@'
     CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 3-1, gDIV(22))
     CALL TXGRFRS(1, GX, GYL2, NRA, 3, STR, MODE, IND, 0, 0, 'STATIC')
+
+    ! Poloidal rotations
+
+    GYL(0:NRMAX,1) = REAL(UethV(0:NRMAX))
+    GYL(0:NRMAX,2) = REAL(Ueth_NC(0:NRMAX))
+
+    STR = '@Ueth@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 2-1, gDIV(4))
+    CALL TXGRFRS(2, GX, GYL2, NRA, 2, STR, MODE, IND, 0, 0, 'STATIC')
+
+    GYL(0:NRMAX,1) = REAL(UithV(0:NRMAX))
+    GYL(0:NRMAX,2) = REAL(Uith_NC(0:NRMAX))
+
+    STR = '@Uith@'
+    CALL APPROPGY(MODEG, GYL, GYL2, STR, NRMAX, 2-1, gDIV(7))
+    CALL TXGRFRS(3, GX, GYL2, NRA, 2, STR, MODE, IND, 0, 0, 'STATIC')
 
     CALL PAGEE
 

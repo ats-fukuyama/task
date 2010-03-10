@@ -95,7 +95,7 @@ contains
     integer(4), intent(in) :: id
     real(8), intent(in), dimension(0:nrmax), optional  :: a, b, c
     integer(4) :: ne
-    real(8) :: x(1:nemax,1:4), csq15, csq25, a1, a2, b1, b2, c1, c2, p1, p2, hp
+    real(8) :: x(1:nemax,1:4), csq15, csq25, a1, a2, b1, b2, c1, c2, p1, p2, hp, r1, r2
     
     select case(id)
     case(-1)
@@ -234,6 +234,20 @@ contains
                &  * (b(ne-1) - b(ne)) / (12.d0 * hpsi(ne))
           x(ne,3) =-x(ne,1)
           x(ne,4) =-x(ne,2)
+       end do
+    case(21)
+       do ne = 1, nemax
+          p1 = psi(ne-1) ; p2 = psi(ne)
+          r1 = r(ne-1) ; r2 = r(ne)
+          a1 = a(ne-1) ; a2 = a(ne)
+          x(ne,1) = 2.d0*h(ne)*( 15.d0*p1**2+45.d0*p1*r1*r2+48.d0*p1*p2+24.d0*r1*p2*r2 &
+               &                + 8.d0*p2**2) / (105.d0*(r1+r2)**2) * a1
+          x(ne,2) = 4.d0*h(ne)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
+               &                + 3.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
+          x(ne,3) = 4.d0*h(ne)*(  3.d0*p1**2+ 9.d0*p1*r1*r2+11.d0*p1*p2+ 9.d0*r1*p2*r2 &
+               &                + 3.d0*p2**2) / (105.d0*(r1+r2)**2) * a1
+          x(ne,4) = 2.d0*h(ne)*(  8.d0*p1**2+24.d0*p1*r1*r2+48.d0*p1*p2+45.d0*r1*p2*r2 &
+               &                +15.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
        end do
     case(28)
        do ne = 1, nemax

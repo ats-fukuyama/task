@@ -191,13 +191,15 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,Nue2NC,Nui2NC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL,ETAout,JBSout, &
+       &               ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
        &               dTedr,dTidr,dPedr,dPidr,IER,dErdr,dBthdr,dErdr0,dBthdr0,p_gr2phi_in)
 !****************************************************************************
 !
 !  Input : NR,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
 !          (optional) dErdr0,dBthdr0
-!  Output: NueNC,NuiNC,Nue2NC,Nui2NC,ETAout,JBSout,ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
+!  Output: NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL,ETAout,JBSout,
+!          ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
 !
 !****************************************************************************
 !
@@ -252,6 +254,10 @@ contains
 !             m=3, classical
 !             m=4, banana-plateau, <E.B>
 !             m=5, banana-plateau, external parallel force fex_iz
+!  utheta_s(3,m,s)-poloidal flow of s from force m (m/s/T)
+!                  m=1, p', T'
+!                  m=2, <E.B>
+!                  m=3, fex_iz
 !  veb_s(s) - <E.B> particle convection velocity of s (rho/s)
 !  qeb_s(s) - <E.B> heat convection velocity of s (rho/s)
 !  ymu_s(s) - normalized viscosity for s (kg/m**3/s)
@@ -283,7 +289,7 @@ contains
     real(8), intent(in)  :: dTedr,dTidr,dPedr,dPidr
     real(8), intent(in), optional :: dErdr,dBthdr,dErdr0,dBthdr0
     real(4), intent(in), optional :: p_gr2phi_in
-    REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, ETAout, JBSout
+    REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, FQethL, FQithL, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, &
@@ -561,19 +567,35 @@ contains
     if(ChiNCpil < 0.d0) ChiNCpil = 0.d0
     if(ChiNCtil < 0.d0) ChiNCtil = 0.d0
 
-!!$    !   Now not using
-!!$       DO i=1,m_s
-!!$          uthai=DBLE(utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i))
-!!$          IF(DBLE(amu_i(jm_s(i))) == PA .and. jz_s(i) == INT(PZ)) then
-!!$             !     Poloidal
-!!$             VPOL(NR)=uthai*BthVL
-!!$!             !     Parallel
-!!$!             VPAR(NR)=DBLE(BthVL/btot*VPOL(NR)+BphVL/btot*VTOR(NR))
-!!$!             !     Perpendicular
-!!$!             VPRP(NR)=DBLE(BphVL/btot*VPOL(NR)-BthVL/btot*VTOR(NR))
-!!$          ENDIF
-!!$       ENDDO
-!!$!       IF(MOD(NT,1000)==0) write(6,'(5F15.7)') RL/RA,UithV(NR),VPOL(NR),utheta_s(1,1,2)*BthVL,utheta_s(1,2,2)*BthVL
+    !   Heat flux contribution (i.e. coef * (2 q_theta / 5 p))
+    FQethL = - DBLE(p_b2 * ymu_s(1,2,1)) / AME / BthVL * sum(utheta_s(2,1:2,1)) ! [/m^2s^2]
+    FQithL = - DBLE(p_b2 * ymu_s(1,2,2)) / AMI / BthVL * sum(utheta_s(2,1:2,2)) ! [/m^2s^2]
+
+    !   Poloidal flows by NCLASS for graphics
+    if(NR == 0) then
+       Ueth_NC(NR) = 0.d0
+       Uith_NC(NR) = 0.d0
+    else
+       Ueth_NC(NR) = dble(sum(utheta_s(1,1:2,1))) * BthVL
+       Uith_NC(NR) = dble(sum(utheta_s(1,1:2,2))) * BthVL
+    end if
+
+    !   Comparison between NCLASS output and TX result or assumption
+    !      in terms of poloidal flows
+    !                  ^^^^^^^^^^^^^^
+    !   (This comparison is valid when FSNCPL = 1.)
+!!$    if(nr /= 0) then
+!!$       ! Electron particle flow
+!!$       write(6,*) rho(nr), sum(utheta_s(1,1:2,1)), UethV(nr) / BthVL
+!!$       ! Electron heat flow (In this case, contribution of parallel electric field is 
+!!$       !    not negligible; hence analytic formula is compared to utheta_s(2,1,1) only.)
+!!$       write(6,*) rho(nr), utheta_s(2,1,1), - BphVL / BthVL / AEE / p_b2 * dTedrL * rKeV
+!!$       ! Ion particle flow
+!!$       write(6,*) rho(nr), sum(utheta_s(1,1:2,2)), UithV(nr) / BthVL
+!!$       ! Ion heat flow
+!!$       write(6,*) rho(nr), sum(utheta_s(2,1:2,2)), BphVL / BthVL / (PZ * AEE) / p_b2 &
+!!$            &                                      * dTidrL * rKeV
+!!$    end if
 
     RETURN
   end SUBROUTINE TX_NCLASS

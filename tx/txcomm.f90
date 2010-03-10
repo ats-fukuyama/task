@@ -168,7 +168,7 @@ module tx_commons
        & rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, &
-       & SiVizA, SiVcxA, wexb, Ys
+       & SiVizA, SiVcxA, wexb, Ys, FQeth, FQith
   real(8), dimension(:,:), allocatable :: deltam, gamITG
 
   ! Read Wnm table
@@ -199,11 +199,12 @@ module tx_commons
        &                                AJBS, AJBS1, AJBS2, AJBS3, AJBS4, &
        &                                ETA, ETAS, ETA1, ETA2, ETA3, ETA4
 
-  ! Global parameters for display
+  ! For display
   real(8), dimension(:), allocatable :: ANS0, TS0, ANSAV, TSAV, WST
   real(8), dimension(:), allocatable :: ANF0, TF0, ANFAV, TFAV, WFT
   real(8), dimension(:), allocatable :: PBCLT, PFCLT, PLT, SPET, SLT
   real(8), dimension(:), allocatable :: Deff, thrp
+  real(8), dimension(:), allocatable :: Ueth_NC, Uith_NC
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
   real(8) :: PINT, POHT, PNBT, PRFT, PRFTe, PRFTi, PNFT
@@ -334,7 +335,7 @@ contains
        allocate(deltam(0:N,0:M_POL_M),gamITG(0:N,1:3),                        stat = ierl(18))
        allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(19))
        allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),  Ys(0:N),                stat = ierl(20))
-       allocate(rNue2NC(0:N),rNui2NC(0:N),                                    stat = ierl(21))
+       allocate(rNue2NC(0:N),rNui2NC(0:N),FQeth(0:N), FQith(0:N),             stat = ierl(21))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -364,7 +365,7 @@ contains
        allocate(ANS0(1:NS), TS0(1:NS),   ANSAV(1:NS), TSAV(1:NS), WST(1:NS),  stat = ierl(1))
        allocate(ANF0(1:NF), TF0(1:NF),   ANFAV(1:NF), TFAV(1:NF), WFT(1:NF),  stat = ierl(2))
        allocate(PBCLT(1:NS),PFCLT(1:NS), PLT(1:NS),   SPET(1:NS), SLT(1:NS),  stat = ierl(3))
-       allocate(Deff(0:N),  thrp(1:2*N),                                      stat = ierl(4))
+       allocate(Deff(0:N),  thrp(1:2*N), Ueth_NC(0:N),Uith_NC(0:N),           stat = ierl(4))
        ier = sum(ierl) ; iflag = 8
        if (ier /= 0) exit
 
@@ -428,7 +429,7 @@ contains
     deallocate(deltam, gamITG)
     deallocate(DMAG,   DMAGe,  DMAGi)  !***AF (2008-06-08)
     deallocate(SiVizA, SiVcxA, wexb,  Ys)
-    deallocate(rNue2NC,rNui2NC)
+    deallocate(rNue2NC,rNui2NC,FQeth, FQith)
 
     deallocate(rG1h2,  FCDBM,  S,     Alpha, rKappa)
     deallocate(pres0,  ErV0)
@@ -450,7 +451,7 @@ contains
     deallocate(ANS0, TS0, ANSAV, TSAV, WST)
     deallocate(ANF0, TF0, ANFAV, TFAV, WFT)
     deallocate(PBCLT, PFCLT, PLT, SPET, SLT)
-    deallocate(Deff, thrp)
+    deallocate(Deff, thrp, Ueth_NC, Uith_NC)
 
     deallocate(ALC, BLC, CLC)
     deallocate(PLC)
