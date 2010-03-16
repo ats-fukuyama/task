@@ -573,11 +573,13 @@ contains
 
     !   Poloidal flows by NCLASS for graphics
     if(NR == 0) then
-       Ueth_NC(NR) = 0.d0
-       Uith_NC(NR) = 0.d0
+       Ueth_NC(NR,1:2) = 0.d0
+       Uith_NC(NR,1:2) = 0.d0
     else
-       Ueth_NC(NR) = dble(sum(utheta_s(1,1:2,1))) * BthVL
-       Uith_NC(NR) = dble(sum(utheta_s(1,1:2,2))) * BthVL
+       Ueth_NC(NR,1) = dble(utheta_s(1,1,1)) * BthVL
+       Ueth_NC(NR,2) = dble(utheta_s(1,2,1)) * BthVL
+       Uith_NC(NR,1) = dble(utheta_s(1,1,2)) * BthVL
+       Uith_NC(NR,2) = dble(utheta_s(1,2,2)) * BthVL
     end if
 
     !   Comparison between NCLASS output and TX result or assumption

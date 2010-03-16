@@ -204,7 +204,7 @@ module tx_commons
   real(8), dimension(:), allocatable :: ANF0, TF0, ANFAV, TFAV, WFT
   real(8), dimension(:), allocatable :: PBCLT, PFCLT, PLT, SPET, SLT
   real(8), dimension(:), allocatable :: Deff, thrp
-  real(8), dimension(:), allocatable :: Ueth_NC, Uith_NC
+  real(8), dimension(:,:), allocatable :: Ueth_NC, Uith_NC
   real(8) :: WBULKT, WTAILT, WPT
   real(8) :: AJT, AJOHT, AJNBT, AJRFT, AJBST
   real(8) :: PINT, POHT, PNBT, PRFT, PRFTe, PRFTi, PNFT
@@ -365,7 +365,7 @@ contains
        allocate(ANS0(1:NS), TS0(1:NS),   ANSAV(1:NS), TSAV(1:NS), WST(1:NS),  stat = ierl(1))
        allocate(ANF0(1:NF), TF0(1:NF),   ANFAV(1:NF), TFAV(1:NF), WFT(1:NF),  stat = ierl(2))
        allocate(PBCLT(1:NS),PFCLT(1:NS), PLT(1:NS),   SPET(1:NS), SLT(1:NS),  stat = ierl(3))
-       allocate(Deff(0:N),  thrp(1:2*N), Ueth_NC(0:N),Uith_NC(0:N),           stat = ierl(4))
+       allocate(Deff(0:N),  thrp(1:2*N), Ueth_NC(0:N,1:2),Uith_NC(0:N,1:2),   stat = ierl(4))
        ier = sum(ierl) ; iflag = 8
        if (ier /= 0) exit
 
