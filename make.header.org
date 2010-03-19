@@ -13,7 +13,9 @@
 #LIBLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
 #LIBLA = -L/opt/intel/Compiler/11.1/038/mkl/lib/32 -lmkl_intel -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95
+#LIBLA = -L/opt/intel/mkl/10.2.0.013/lib/em64t -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95_lp64
 #MODLA95 = -I/usr/local/lib/lapack95_modules
+#MODLA95 = -I/opt/intel/mkl/10.2.0.013/include/em64t/lp64
 ## else
 LAPACK = nolapack.f
 LIBLA =
