@@ -42,7 +42,8 @@
       imtx=1
 
 !-----------------------------------------------------------------------
-!     DRR0  : radial diffusion coefficient (m^2/s)
+!     DRR0  : radial diffusion coefficient at magnetic axis (m^2/s)
+!     DRRS  : radial diffusion coefficient at plasma surface (m^2/s)
 !     E0    : toroidal electric field (V/m)
 !     R1    : radial position for NRMAX=1 (r/a)
 !     DELR1 : radial spacing for NRMAX=1 (r/a)
@@ -50,6 +51,7 @@
 !     RMIN  : maximum radius for NRMAX<>1 (r/a)
 
       DRR0  = 0.D0
+      DRRS  = 0.D0
       E0    = 0.D0
       R1    = 0.1D0*RR
       DELR1 = 0.1D0
@@ -179,7 +181,7 @@
       PGMAX=10.D0
       RGMIN=0.D0
       RGMAX=1.D0
-      NGLINE= 30
+      NGLINE= 25
       NGRAPH= 1
 
 !-----------------------------------------------------------------------
@@ -347,7 +349,7 @@
            pmax,tloss,MODELW,MODELS,NBEAMMAX, &
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
-           LMAXFP, EPSFP,NCMIN,NCMAX
+           LMAXFP, EPSFP,NCMIN,NCMAX, DRRS
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -374,7 +376,7 @@
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG, &
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG, &
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
-           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX
+           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -411,7 +413,7 @@
       WRITE(6,*) '      NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,'
       WRITE(6,*) '      ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
-      WRITE(6,*) '      MODELS,NBEAMMAX'
+      WRITE(6,*) '      MODELS,NBEAMMAX,DRRS'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -437,7 +439,7 @@
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(32):: idata
-      real(8),DIMENSION(41):: rdata
+      real(8),DIMENSION(42):: rdata
       complex(8),DIMENSION(3):: cdata
 
 !----- PL input parameters -----     
@@ -646,7 +648,8 @@
       rdata(39)=SPFR0
       rdata(40)=SPFRW
       rdata(41)=SPFENG
-      CALL mtx_broadcast_real8(rdata,37)
+      rdata(42)=DRRS
+      CALL mtx_broadcast_real8(rdata,42)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -688,6 +691,7 @@
       SPFR0 =rdata(39)
       SPFRW =rdata(40)
       SPFENG=rdata(41)
+      DRRS  =rdata(42)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
@@ -736,7 +740,7 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
-           nbeammax
+           nbeammax,DRRS
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 

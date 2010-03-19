@@ -558,9 +558,9 @@
                   END DO
                END DO
                DO NSB=1,NSBMAX
-                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM11(NSB)*DELH/PI*RCOEF(NR) 
-                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM12(NSB)*DELH/PI*RCOEF(NR) 
-                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM13(NSB)*DELH/PI*RCOEF(NR)
+                  DCPP2(NTH,NP,NR,NSB,NSA)=SUM11(NSB)*DELH/PI*RCOEFG(NR) 
+                  FCPP2(NTH,NP,NR,NSB,NSA)=SUM12(NSB)*DELH/PI*RCOEFG(NR) 
+                  DCPT2(NTH,NP,NR,NSB,NSA)=SUM13(NSB)*DELH/PI*RCOEFG(NR)
                END DO
             END DO
          END DO
@@ -604,9 +604,9 @@
 
                END DO
                Do NSB=1,NSBMAX
-                  DCTT2(NTH,NP,NR,NSB,NSA)=SUM14(NSB)*DELH/PI*RCOEF(NR) 
-                  FCTH2(NTH,NP,NR,NSB,NSA)=SUM15(NSB)*DELH/PI*RCOEF(NR) 
-                  DCTP2(NTH,NP,NR,NSB,NSA)=SUM16(NSB)*DELH/PI*RCOEF(NR)
+                  DCTT2(NTH,NP,NR,NSB,NSA)=SUM14(NSB)*DELH/PI*RCOEFG(NR) 
+                  FCTH2(NTH,NP,NR,NSB,NSA)=SUM15(NSB)*DELH/PI*RCOEFG(NR) 
+                  DCTP2(NTH,NP,NR,NSB,NSA)=SUM16(NSB)*DELH/PI*RCOEFG(NR)
                END DO
             END DO
          END DO

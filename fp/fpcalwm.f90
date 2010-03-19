@@ -106,7 +106,6 @@
          END DO
 
          ENDIF
-!         write(*,*)"test",DWPP(2,2,1,NSA),NSA
          IF(RM(NR).le.2.D-2)THEN
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
@@ -173,8 +172,6 @@
                   DWTT(NTH,NP,NR,NSA)=DWTTL
                END DO
             ENDIF
-!     &           ,ABS(CEPH)**2,ABS(CETH)**2
-! 1234    FORMAT("RHOL-|E|^2",I3,3E14.6)
          END DO
 
          IF(MODELA.EQ.1) THEN
@@ -264,10 +261,10 @@
          DWTPS=DWTPS+DWTPL          /SQRT(PSI)
          DWTTS=DWTTS+DWTTL*PCOS/RCOS/PSI
       END DO
-      DWPPS=DWPPS*DELH/PI*RCOEF(NR)
-      DWPTS=DWPTS*DELH/PI*RCOEF(NR)
-      DWTPS=DWTPS*DELH/PI*RCOEF(NR)
-      DWTTS=DWTTS*DELH/PI*RCOEF(NR)
+      DWPPS=DWPPS*DELH/PI*RCOEFG(NR)
+      DWPTS=DWPTS*DELH/PI*RCOEFG(NR)
+      DWTPS=DWTPS*DELH/PI*RCOEFG(NR)
+      DWTTS=DWTTS*DELH/PI*RCOEFG(NR)
       RETURN
       END SUBROUTINE FPSUMV
 !
@@ -293,7 +290,6 @@
       REAL(8):: RFWM, RSIN,RCOS
 
       NS=NS_NSA(NSA)
-!      THETA0=RTFP0*1.D3*AEE/(AMFP*VC*VC)
       THETA0(NSA)=RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
 
       CALL FPSETV(RHOL,ETAL,RFWM,RKR,RKTH,RKPH,CER,CETH,CEPH,NSA)

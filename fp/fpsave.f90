@@ -27,7 +27,7 @@
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS
       integer:: IERR
-      real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7 
+      real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
       real(8):: PV, WPL, WPM, WPP
       real(8):: DFP, DFT, FFP, testa, testb, FACT
@@ -37,7 +37,6 @@
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
 !      real(8),dimension(NSAMAX, 0:NTMAX):: PWT2, PTT2
 
-!      IF(NTG1.eq.NTMAX) open(9,file='balance_ee.dat')
       IF(ISAVE.NE.0) RETURN
 
       DO NR=NRSTART,NRENDX
@@ -74,7 +73,7 @@
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
-                       *RLAMDA(NTH,NR)
+                       *RLAMDAG(NTH,NR)
                END DO
             ENDDO
             END IF
@@ -113,10 +112,10 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)*RLAMDA(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)*RLAMDAG(NTH,NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDA(NTH,NR)
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)
                      END DO
                   ENDDO
                ELSE
@@ -125,20 +124,19 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDA(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDAG(NTH,NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
                         RSUM123 = RSUM123                    &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDA(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
                      END DO
-!                     write(*,*) "ISAVE2", RLAMDA(1,NR)
                   END DO
                ENDIF               
             END IF
 
-!            open(8,file='dfp_dft_r33.dat')
+!            open(8,file='dfp_dft_r6_a1_50_200.dat')
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
@@ -232,19 +230,16 @@
                   testb=-PG(NP,NSBA)**2*SINM(NTH)/PV     &
                          *(FEPP(NTH,NP,NR,NSA)*FFP)
 
-!     &                 WRITE(8,888)NP,NTH,testa,testb,DFP,DFT,FFP,
-!     &                 RLAMDA(NTH,NR),VOLP(NTH,NP)*FNS(NTH,NP,1,3)
-!     &                ,DCPP(NTH,NP,NR,NSA),DCPT(NTH,NP,NR,NSA)
-!     &                ,FCPP(NTH,NP,NR,NSA),FEPP(NTH,NP,NR,NSA)
-!     &                ,FETH(NTH,NP,NR,NSA)
                   END IF
-!                  IF(NR.eq.33.and.NSA.eq.1)THEN
-!                     WRITE(8,'(3I4,1P6E12.4)') NR,NP,NTH &
+!                  IF(NR.eq.6.and.NSA.eq.1)THEN
+!                     WRITE(8,'(3I4,1P12E12.4)') NR,NP,NTH             &
 !                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
-!                          ,DFP,DFT,FFP,FNS(NTH,NP,NR,NSA)
+!                          ,DFP,DFT,FFP,FNS(NTH,NP,NR,NSA)            &
+!                          ,DCPP(NTH,NP,NR,NSA),DCPT(NTH,NP,NR,NSA)   &
+!                          ,FCPP(NTH,NP,NR,NSA)
 !                  END IF
                ENDDO
-!            IF(NR.eq.33.and.NSA.eq.1)then
+!            IF(NR.eq.6.and.NSA.eq.1)then
 !               write(8,*)" "
 !               write(8,*)" "
 !            END IF
@@ -288,6 +283,24 @@
             RSPLL(NR,NSA)= RSUM11L*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
          ENDDO
       ENDDO
+
+!      IF(NREND.eq.NRMAX)THEN
+!      DO NSA=1,NSAMAX
+!         NS=NS_NSA(NSA)
+!         NSBA=NSB_NSA(NSA)
+!         RSUM_FS2=0.D0
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               RSUM_FS2 = RSUM_FS2+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSA) &
+!                    *RLAMDAG(NTH,NRMAX+1)
+!            END DO
+!         ENDDO
+!         FACT=RNFP0(NSA)*1.D20
+!         RNS_S2(NSA) = RSUM_FS2*FACT                   *1.D-20
+!         WRITE(*,'(2I2,1P3E14.6)') NRANK, NSA, RNS_S2(NSA)
+!      END DO
+!      END IF
+      
 
       DO NSA=1,NSAMAX
          CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
@@ -581,6 +594,7 @@
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),      &
                     RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2)
+!                    RPCT2(NR,NSA,NSA,NTG2),RPCT2(NR,2,NSA,NTG2)
 !!                    RLHT(NR,NSA,NTG2),                        &
 !!                    RFWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2)
 !            ELSE

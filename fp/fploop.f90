@@ -278,7 +278,7 @@
       IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
 !         open(8,file='radial_profile_gcoe.dat')
 !         open(8,file='coef_14_3.dat')
-!         open(9,file='power_consint_150_4_loss.dat')
+         open(9,file='power_D_pinch_1s.dat')
 !         open(9,file='balance_nr40.dat')
 !         Do NP=1,NPMAX
 !            Write(8,646) NP , PG(NP,1)&
@@ -322,29 +322,22 @@
 !         END DO
 !         close(8)
 
-!         DO NTI=1,NTG1
-!            WRITE(9,645) NTI, PTG(NTI)*1000 &
-!                 ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
-!                 ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
-!                 ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
-!                 ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
-!                 ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
-!                 ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
-!                 ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)
-!         END DO
-!         close(9)
-!            IF(NTG1.eq.NTMAX.and.NSA.eq.1.and.NRSTART.eq.40) THEN
-!               NP=20
-!               DO NTH=1,NTHMAX
-!                  WRITE(9,888) NR,NTH, PG(np,NSA), PM(NP,NSA) &
-!                       ,DCPP(NTH,NP,NRSTART,NSA),DCPT(NTH,NP,NRSTART,NSA) &
-!                       ,DCTT(NTH,NP,NRSTART,NSA),FCPP(NTH,NP,NRSTART,NSA)
-!               END DO
-!            END IF 
-! 888        FORMAT(2I4,12E14.6)
+         DO NTI=1,NTG1
+            WRITE(9,645) NTI, PTG(NTI)*1000 &
+                 ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
+                 ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
+                 ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
+                 ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
+                 ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
+                 ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
+                 ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
+                 ,PTT(1,NTI),PTT(2,NTI),PTT(3,NTI),PTT(4,NTI)                 &
+                 ,PSPBT(2,NTI),PSPFT(4,NTI)
+         END DO
+         close(9)
 
       END IF
- 645  FORMAT(I3,34E14.6)
+ 645  FORMAT(I3,40E14.6)
  646  FORMAT(I3,17E14.6)
  647  FORMAT(12E14.6) 
          IF(IERR.NE.0) RETURN

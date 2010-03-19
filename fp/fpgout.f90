@@ -26,12 +26,13 @@
 !
       IMPLICIT NONE
       integer,SAVE:: NSA=1,NSB=0
+      DATA NSA,NSB/1,0/
       integer:: NR, NP, NTH, NSA1, NSBA
 !
       real(8),DIMENSION(NTHMAX+1,NPMAX+1,NRMAX+1)::TEMP
       CHARACTER KID*5,KID1*1,KID2*3
       CHARACTER(LEN=80):: STRING1
-
+!
     1 WRITE(6,*)'INPUT GRAPH TYPE : NSA,NSB=',NSA,NSB
       WRITE(6,*)'    : F/FX/FR/FS1/FS2 1/2, Nn:NSA=n, Nnm:NSA=n,NSB=m,'
       WRITE(6,*)'    : D/DC/DW PP/PT/TP/TT/RR, F/FC/FE P/T/R'
@@ -352,7 +353,7 @@
 
       GO TO 1
 
-9000  RETURN
+ 9000 RETURN
     END SUBROUTINE FP_GOUT
 !
 ! ***********************************************************
@@ -1334,13 +1335,20 @@
 !c$$$     &                  -0.25*GFSTEP,-0.5*GFSTEP,15,2,KA)
          ENDIF
       ELSE
-         DO I=1,NGLINE
-            GLIN=GFMAX-0.020*(I-1)**2
-            CALL SETLIN(0,0,7-MOD(I-1,5))
-            CALL SETLNW(0.07)
-            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,        &
-                 GLIN,GFSTEP*100,1,0,KA)
-         END DO
+         DO NGL=1,NGLINE
+            ZL(NGL)=GFMAX-0.020*(NGL-1)**2
+            CALL SETRGBFP(1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1),RGB(1,NGL))
+!            WRITE(6,'(I5,1P5E12.4)') &
+!               NGL,ZL(NGL),1.0-FLOAT(NGL-1)/FLOAT(NGLINE-1), &
+!               RGB(1,NGL),RGB(2,NGL),RGB(3,NGL)
+            ILN(NGL)=0
+            WLN(NGL)=0.07
+         ENDDO
+         CALL CONTG4X(GF,GP,GTH,NPM,NPG,NTHG,ZL,RGB,ILN,WLN,NGLINE,0)
+!            CALL SETLIN(0,0,7-MOD(I-1,5))
+!            CALL SETLNW(0.07)
+!            CALL CONTQ4(GF,GP,GTH,NPM,NPG,NTHG,        &
+!                 GLIN,GFSTEP*100,1,0,KA)
       ENDIF
 !
       CALL SETLIN(0,2,7)
@@ -1366,6 +1374,33 @@
 !
       RETURN
       END SUBROUTINE FPGRACX
+
+      SUBROUTINE SETRGBFP(F,RGB)
+        IMPLICIT NONE
+        REAL(4),INTENT(IN):: F
+        REAL(4),DIMENSION(3),INTENT(OUT):: RGB
+        INTEGER,PARAMETER:: NFMAX=8
+        REAL(4),DIMENSION(3,NFMAX):: RGBC
+        DATA RGBC/ 0.0,0.0,0.0, &
+                   0.0,0.0,1.0, &
+                   0.0,0.8,1.0, &
+                   0.0,0.8,0.0, &
+                   1.0,0.8,0.0, &
+                   1.0,0.4,0.0, &
+                   1.0,0.0,0.0, &
+                   1.0,1.0,1.0/
+        REAL(8):: GF,DF
+        INTEGER(4):: IM
+!
+        GF=F*DBLE(NFMAX)
+        IM=MIN(INT(GF),NFMAX-1)
+        DF=GF-IM
+        RGB(1)=RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF
+        RGB(2)=RGBC(2,IM)*(1.D0-DF)+RGBC(2,IM+1)*DF
+        RGB(3)=RGBC(3,IM)*(1.D0-DF)+RGBC(3,IM+1)*DF
+        RETURN
+        END SUBROUTINE SETRGBFP
+          
 !
 ! ***********************************************************
 !

@@ -22,7 +22,7 @@
       integer:: NBEAMMAX,NP2MAX
       real(rkind):: PGMAX, RGMAX, RGMIN
 
-      real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX
+      real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX,DRRS
       real(rkind):: DEC,PEC1,PEC2,RFEC,DELYEC
       real(rkind):: DLH,PLH1,PLH2,RLH
       real(rkind):: DFW,PFW1,PFW2,RFW
@@ -71,16 +71,20 @@
            F,F1
       integer,dimension(:),POINTER :: & ! (NRM)
            ITL,ITU
+      integer,dimension(:),POINTER :: & ! (NRM)
+           ITLG,ITUG
       real(rkind),dimension(:),POINTER :: & ! (NRM,NSBM)
-           RCOEF
+           RCOEF, RCOEF_G
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
-           RCOEF1,RCOEF2
+           RCOEF1,RCOEF2,RCOEF2_G
+      real(rkind),dimension(:),POINTER :: & ! (NSAM)
+           RCOEFG, RCOEF_GG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            volr
-      real(rkind),dimension(:),POINTER :: & ! (NRM,NSAM)
-           rlamdag(:,:),ETAMG(:,:)
-      real(rkind),dimension(:),POINTER :: & ! (NRM,NSAM)
-           epsrg
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
+           rlamdag,ETAMG,ETAM_GG,ETAG_GG,RLAMDA_GG
+      real(rkind),dimension(:),POINTER :: & ! (NRM)
+           epsrg,epsr_gg
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            RG,RM
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
@@ -95,7 +99,7 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTHM,NPM,NSBM)
            VOLP
       real(rkind),dimension(:,:),POINTER :: & ! (NTHM,NRMP)
-           ETAG,ETAM,RLAMDA,RLAMDC
+           ETAG,ETAM,RLAMDA,RLAMDC,ETAM_G,ETAG_G,RLAMDA_G,RlAMDC_G
       real(rkind),dimension(:),POINTER :: & ! (NTHM)
            SING,COSG,SINM,COSM
 
@@ -134,6 +138,8 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
            RSPB,RSPF,RSPS,RSPL
+      real(rkind),dimension(:),POINTER :: & ! (NSAM)
+           RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2
 
@@ -211,25 +217,31 @@
           allocate(F1(NTHMAX,NPMAX,NRSTART:NREND))
 
           allocate(RG(NRMAX+1),RM(NRMAX+1),VOLR(NRMAX))
-          allocate(RLAMDAG(NTHMAX,NRMAX))
-          allocate(ETAMG(NTHMAX,NRMAX))
-          allocate(EPSRG(NRMAX))
+          allocate(RLAMDAG(NTHMAX,NRMAX+1),RLAMDA_GG(NTHMAX,NRMAX+1))
+          allocate(ETAMG(NTHMAX,NRMAX+1),ETAM_GG(NTHMAX,NRMAX+1))
+          allocate(EPSRG(NRMAX+1))
+          allocate(EPSR_GG(NRMAX+1))
           allocate(BP(NRMAX+1),QR(NRMAX))
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
           allocate(EPSR(NRMAX+1))
-          allocate(ITL(NRMAX),ITU(NRMAX))
+          allocate(ITL(NRMAX+1),ITU(NRMAX+1))
+          allocate(ITLG(NRMAX+1),ITUG(NRMAX+1))
 
-          allocate(RCOEF(NRSTART:NREND))
+          allocate(RCOEF(NRSTART:NREND), RCOEF_G(NRSTART:NREND))
           allocate(RCOEF1(NSAMAX),RCOEF2(NSAMAX))
+          allocate(RCOEF2_G(NSAMAX))
+          allocate(RCOEFG(NRMAX+1), RCOEF_GG(NRMAX+1))
           allocate(PG(NPMAX+1,NSBMAX),PM(NPMAX,NSBMAX))
           allocate(THG(NTHMAX+1),THM(NTHMAX))
           allocate(DELP(NSBMAX))
           allocate(PG2(NP2MAX+1,NSBMAX),PM2(NP2MAX,NSBMAX))
 
           allocate(VOLP(NTHMAX,NPMAX,NSBMAX))
-          allocate(ETAG(NTHMAX+1,NRSTART:NREND+1),ETAM(NTHMAX,NRSTART:NREND))
+          allocate(ETAG(NTHMAX+1,NRSTART:NREND+1),ETAM(NTHMAX,NRSTART:NREND+1))
+          allocate(ETAG_G(NTHMAX+1,NRSTART:NREND+1),ETAM_G(NTHMAX,NRSTART:NREND+1))
           allocate(RLAMDA(NTHMAX,NRSTART:NREND),RLAMDC(NTHMAX+1,NRSTART:NREND))
+          allocate(RLAMDA_G(NTHMAX,NRSTART:NREND),RLAMDC_G(NTHMAX+1,NRSTART:NREND))
           allocate(SING(NTHMAX+1),COSG(NTHMAX+1))
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
@@ -311,6 +323,7 @@
           allocate(RPCS2L(NRSTART:NRENDX,NSBMAX,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX))
+          allocate(RNS_S2(NSAMAX))
           allocate(RWS(NRMAX,NSAMAX),RWS123(NRMAX,NSAMAX))
           allocate(RSPB(NRMAX,NSAMAX),RSPF(NRMAX,NSAMAX))
           allocate(RSPL(NRMAX,NSAMAX),RSPS(NRMAX,NSAMAX))
@@ -356,9 +369,11 @@
           deallocate(FNS1)
           deallocate(FNS2)
 
-          deallocate(RCOEF)
-          deallocate(RCOEF1,RCOEF2,VOLR)
+          deallocate(RCOEF,RCOEF_G)
+          deallocate(RCOEF1,RCOEF2,VOLR,RCOEF2_G)
+          deallocate(RCOEFG,RCOEF_GG)
           deallocate(ITL,ITU)
+          deallocate(ITLG,ITUG)
           deallocate(RG,RM)
           deallocate(PG,PM)
           deallocate(THG,THM)
@@ -413,6 +428,7 @@
           deallocate(RSPBL,RSPFL,RSPLL,RSPSL)
 
           deallocate(RNS,RJS,RWS)
+          deallocate(RNS_S2)
           deallocate(RPCS,RPES)
           deallocate(RPWS,RLHS,RFWS,RECS)
           deallocate(RWS123,RPCS2)
