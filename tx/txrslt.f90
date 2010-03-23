@@ -15,7 +15,7 @@ SUBROUTINE TXGLOB
   REAL(8) :: RKAP, FKAP, RNINT, RPINT, RPEINT, RPIINT, ANFINT, RWINT, POHINT, &
        &     PNBINT, PNFINT, PRFeINT, PRFiINT, &
        &     AJTINT, AOHINT, ANBINT, SNBINT, FACT, &
-       &     BBL, PAI, Vol, BPave
+       &     BBL, PAI, Vol, BPave, denomINT
   REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUMdenom, SUMPNiV
 !!  real(8) :: SUMML, SUMPL, PNES, SUML
   REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
@@ -377,14 +377,23 @@ SUBROUTINE TXGLOB
 
   allocate(denom(0:NRMAX))
   denom(0:NRMAX) = PNiV(0:NRMAX) * rNuION(0:NRMAX)
-  TAUP  = INTG_F(PNiV) / INTG_F(denom)
+  denomINT = INTG_F(denom)
+  if(denomINT < epsilon(1.d0)) then
+     TAUP = 0.d0
+  else
+     TAUP  = INTG_F(PNiV) / denomINT
+  end if
   deallocate(denom)
 
   allocate(denom(0:NRA))
   denom(0:NRA) = PNiV(0:NRA) * rNuION(0:NRA)
   CALL VALINT_SUB(PNiV,NRA,SUMPNiV)
   CALL VALINT_SUB(denom,NRA,SUMdenom)
-  TAUPA = SUMPNiV / SUMdenom
+  if(SUMdenom < epsilon(1.d0)) then
+     TAUPA = 0.d0
+  else
+     TAUPA = SUMPNiV / SUMdenom
+  end if
   deallocate(denom)
 
   ! *** Ion outflux through the separatrix ***

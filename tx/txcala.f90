@@ -462,8 +462,8 @@ contains
     NLC(4,NEQ) = LQb4
 
 !   ! Virtual current for helical system
-!
-    ELM(1:NEMAX,1:4,5,NEQ) =  rMUb1 * fem_int(-1,AJV)
+
+    ELM(1:NEMAX,1:4,5,NEQ) =   rMUb1 * fem_int(-1,AJV)
     NLC(5,NEQ) = 0
 
     ! Aphi'(NRMAX) : -Bthb

@@ -73,7 +73,7 @@ contains
   SUBROUTINE TXLOOP
     use tx_commons, only : T_TX, rIPe, rIPs, NTMAX, IGBDF, NQMAX, NRMAX, X, ICMAX, &
          &                 PNeV, PTeV, PNiV, PTiV, ErV, PNeV_FIX, PTeV_FIX, PNiV_FIX, &
-         &                 PTiV_FIX, ErV_FIX, NQM, IERR, LQb1, LQn1, LQr1, &
+         &                 PTiV_FIX, ErV_FIX, NQM, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
          &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT, AVE_IC
@@ -235,6 +235,7 @@ contains
           ! Avoid negative values
           CALL MINUS_GOES_ZERO(XN,LQb1,0)
           CALL MINUS_GOES_ZERO(XN,LQn1,1)
+          CALL MINUS_GOES_ZERO(XN,LQn2,1)
           IF(FSRP /= 0.D0) CALL MINUS_GOES_ZERO(XN,LQr1,2)
           ! Ignore tiny values
           DO NQ = 1, NQMAX

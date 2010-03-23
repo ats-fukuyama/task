@@ -1005,10 +1005,12 @@ SUBROUTINE TXPROF
      END DO
   ELSE
      BthV(0) = 0.D0
+     Q(0) = Q0
      DO NR = 1, NRMAX
         RL = R(NR)
-        QL = (Q0 - QA) * (1.D0 - (RL / RA)**2) + QA
-        BthV(NR) = BB * RL / (QL * RR)
+!        QL = (Q0 - QA) * (1.D0 - (RL / RA)**2) + QA
+        Q(NR) = (Q0 - QA) * (1.D0 - (RL / RA)**2) + QA
+        BthV(NR) = BB * RL / (Q(NR) * RR)
      END DO
   END IF
   Bthb = BthV(NRMAX)
@@ -1102,7 +1104,7 @@ SUBROUTINE TXPROF
   END DO
   CALL INVMRD(CMTX,NRMAX,NRMAX,IER)
 
-  ! Numerical solution for AphV
+  ! LQm4
 
   IF((FSHL == 0.0) .AND. (ifile == 0) .AND. &
      (PROFJ == 1 .OR. PROFJ == 2 .OR. PROFJ == 3 .OR. &
@@ -1145,6 +1147,9 @@ SUBROUTINE TXPROF
         END IF
      END DO
   ELSE
+
+  ! Numerical solution for AphV
+
      RHSV(1:NRMAX) = - 0.5D0 * BthV(1:NRMAX) / R(1:NRMAX)
      X(LQm4,0) = 0.D0
      X(LQm4,1:NRMAX) = matmul(CMTX,RHSV)
@@ -1154,22 +1159,23 @@ SUBROUTINE TXPROF
 
   IF(FSHL == 0.D0) THEN
      AJV(0:NRMAX)=0.D0
+
+     Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
+     Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
   ELSE
-     allocate(TMP(0:NRMAX))
-     TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
-     DO NR = 1, NRMAX
-        dRIP = DERIV4(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
-        AJV(NR)=dRIP / (2.D0 * PI * R(NR))
-     END DO
-     AJV(0)=FCTR(R(1),R(2),AJV(1),AJV(2))
-!     write(6,'(I5,1P2E12.4)') (NR,R(NR),AJV(NR),NR=0,NRMAX)
-     deallocate(TMP)
+     ! Integrate 1 / (r * rMU0) * d/dr (r * BthV) to obtain AJV
+!!$     allocate(TMP(0:NRMAX))
+!!$     TMP(0:NRMAX) = R(0:NRMAX) * BthV(0:NRMAX)
+!!$     DO NR = 1, NRMAX
+!!$        dRIP = DERIV4(NR,R,TMP,NRMAX,0) * 2.D0 * PI / rMUb1
+!!$        AJV(NR)=dRIP / (2.D0 * PI * R(NR))
+!!$     END DO
+!!$     AJV(0)=FCTR(R(1),R(2),AJV(1),AJV(2))
+!!$     deallocate(TMP)
+     AJV(0:NRMAX) = BB / (RR * rMU0) * 2.d0 * Q0 / Q(0:NRMAX)**2
   END IF
 
   ! Toroidal electric field for initial NCLASS calculation
-
-  Q(1:NRMAX) = ABS(R(1:NRMAX) * BB / (RR * BthV(1:NRMAX)))
-  Q(0) = FCTR(R(1),R(2),Q(1),Q(2))
 
   DO NR = 0, NRMAX
      ! +++ Hirshman, Hawryluk and Birge model +++
@@ -1281,6 +1287,7 @@ SUBROUTINE TXPROF
           &       / PSI(1:NRMAX)
      TMP(0) = FCTR(PSI(1),PSI(2),TMP(1),TMP(2))
      CALL INTDERIV3(TMP,PSI,BphV,BB,NRMAX,1)
+
      RHSV(1:NRMAX) = 0.5D0 * BphV(1:NRMAX)
      X(LQm5,0) = 0.D0
      X(LQm5,1:NRMAX) = matmul(CMTX,RHSV) / rMU0

@@ -215,8 +215,8 @@ contains
     IF(FSHL == 0.D0) THEN
        Bthb = rMU0 * rIP * 1.D6 / (2.D0 * PI * RB)
     ELSE
-       QL=(Q0-QA)*(1.D0-(RB/RA)**2)+QA
-       Bthb = BB*RB/(QL*RR)
+       QL = (Q0 - QA) * (1.D0 - (RB / RA)**2) + QA
+       Bthb = BB * RB / (QL * RR)
     END IF
 
     !     *** Trapped particle fraction ***
@@ -653,7 +653,11 @@ contains
        sum1 = sum1 + N02int
        sum2 = sum2 + N02int * (0.5d0 * (PTiV(NR-1) + PTiV(NR)))
     end do
-    PTiVav = sum2 / sum1
+    if(sum1 > epsilon(1.d0)) then
+       PTiVav = sum2 / sum1
+    else
+       PTiVav = PTiV(NRA)
+    end if
     do nr = 0, nrmax
        PT02V(NR) = PTiVav
     end do
@@ -1044,6 +1048,10 @@ contains
        ELSE
           rNueHL(0:NRMAX) = 0.D0
           rNuiHL(0:NRMAX) = 0.D0
+          rNueHLthth(0:NRMAX) = 0.D0
+          rNueHLthph(0:NRMAX) = 0.D0
+          rNueHLphth(0:NRMAX) = 0.D0
+          rNueHLphph(0:NRMAX) = 0.D0
        END IF
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
