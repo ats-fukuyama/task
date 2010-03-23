@@ -54,15 +54,15 @@
 
 !---- Sigma v as a function of phi: multiplied by SQRT(RMASS/2) ----
 
-      FUNCTION SIGMAV_PHI(E0,E1,PHI,ID)
+      FUNCTION SIGMAV_PHI(E0L,E1L,PHI,ID)
       IMPLICIT NONE
       REAL(8):: SIGMAV_PHI
-      REAL(8),INTENT(IN):: E0,E1,PHI
+      REAL(8),INTENT(IN):: E0L,E1L,PHI
       INTEGER,INTENT(IN):: ID
       REAL(8):: E
 
-      E=E0-E1*COS(PHI)
-!      write(*,*) "E0",E0
+      E=E0L-E1L*COS(PHI)
+!      write(*,*) "E0L",E0L
       IF(E.LE.0.D0) THEN
          SIGMAV_PHI=0.D0
       ELSE
@@ -73,10 +73,10 @@
 
 !---- gyro averaged Sigma v : multiplied by SQRT(RMASS/2) ----
 
-      FUNCTION SIGMAV_E(E0,E1,ID)
+      FUNCTION SIGMAV_E(E0L,E1L,ID)
       IMPLICIT NONE
       REAL(8):: SIGMAV_E
-      REAL(8),INTENT(IN):: E0,E1
+      REAL(8),INTENT(IN):: E0L,E1L
       INTEGER,INTENT(IN):: ID
       INTEGER,PARAMETER:: NPHIMAX=50 ! Number of phi mesh
       INTEGER:: NPHI
@@ -86,7 +86,7 @@
       RSUM=0.D0
        DO NPHI=1,NPHIMAX
          PHI=DPHI*(NPHI-0.5D0)
-         RSUM=RSUM+SIGMAV_PHI(E0,E1,PHI,ID)
+         RSUM=RSUM+SIGMAV_PHI(E0L,E1L,PHI,ID)
       ENDDO
       SIGMAV_E=RSUM/DBLE(NPHIMAX)   ! (1/(2*pi))*2*(\pi/nphimax)
       RETURN
@@ -94,12 +94,12 @@
 
 !---- calculation of relative kinetic energy ----
 
-      SUBROUTINE RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0,E1)
+      SUBROUTINE RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0L,E1L)
 
       USE fpcomm
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NP1, NTH1, NP2, NTH2, NSB1, NSB2
-      REAL(8),INTENT(OUT):: E0, E1 ! Energy in keV
+      REAL(8),INTENT(OUT):: E0L, E1L ! Energy in keV
       REAL(8):: VPARA1, VPARA2, VPERP1, VPERP2, V_MS
       REAL(8):: RED_MASS
 
@@ -113,8 +113,8 @@
 !      RED_MASS=AMFD(NSB1)*AMFD(NSB2)/(AMFD(NSB1)+AMFD(NSB2))
       RED_MASS=AMFD(NSB1)
 
-      E0=0.5D0*RED_MASS*V_MS/(AEE*1.D3)
-      E1=RED_MASS*VPERP1*VPERP2/(AEE*1.D3)
+      E0L=0.5D0*RED_MASS*V_MS/(AEE*1.D3)
+      E1L=RED_MASS*VPERP1*VPERP2/(AEE*1.D3)
       RETURN
       END SUBROUTINE RELATIVE_ENERGY
 
@@ -129,7 +129,7 @@
       REAL(8),DIMENSION(NEMAX,NEMAX):: SIGMAVA,FX,FY,FXY
       REAL(8),DIMENSION(4,4,NEMAX,NEMAX):: USV
       INTEGER:: NSA,NSB,NS,NSB1,NSB2,ID,NE0,NE1,NTH1,NTH2,NP1,NP2,IERR
-      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0,E1
+      REAL(8):: RED_MASS,V1MAX,V2MAX,E0MAX,E1MAX,DELE0,DELE1,SUM,E0L,E1L
       REAL(8):: E3
 
 !---- identify possible fusion reactions ----
@@ -270,8 +270,8 @@
             DO NTH1=1,NTHMAX
                DO NP2=1,NPMAX
                   DO NTH2=1,NTHMAX
-                     CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0,E1)
-                     CALL SPL2DF(E0,ABS(E1), &
+                     CALL RELATIVE_ENERGY(NTH1,NP1,NTH2,NP2,NSB1,NSB2,E0L,E1L)
+                     CALL SPL2DF(E0L,ABS(E1L), &
                                  SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID), &
                                  E0A,E1A,USV,NEMAX,NEMAX,NEMAX,IERR)
                      IF(IERR.NE.0) WRITE(6,*) &
