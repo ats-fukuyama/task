@@ -138,6 +138,9 @@ module tx_commons
   ! Convergence accelerator
   real(8) :: rMUb1, rMUb2
 
+  ! Convergenve parameter
+  integer(4) :: MODECV
+  
   ! Variables
   real(8), dimension(:), allocatable :: &
        & ErV,    EthV,   EphV,  BthV,  BphV, &

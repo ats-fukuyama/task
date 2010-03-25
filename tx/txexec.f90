@@ -76,10 +76,11 @@ contains
          &                 PTiV_FIX, ErV_FIX, NQM, IERR, LQb1, LQn1, LQn2, LQr1, &
          &                 tiny_cap, EPS, IDIAG, NTSTEP, NGRSTP, NGTSTP, NGVSTP, GT, GY, &
          &                 NGRM, NGYRM, FSRP, fmnq, wnm, umnq, nmnqm, MODEAV, XOLD, &
-         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT, AVE_IC
+         &                 NT, DT, rIP, MDLPCK, NGR, MDSOLV, ICONT, AVE_IC, MODECV
     use tx_variables
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
+    use tx_interface, only : INTG_F
     use f95_lapack ! for LAPACK95
 !    use lapack95 ! for LAPACK95
 
@@ -88,7 +89,7 @@ contains
     INTEGER(4) :: NR, NQ, IC = 0, IDIV, NTDO, IDISP, NRAVM, IERR_LA, ICSUM, IDIAGL
 !LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV, EPSabs
-    real(8), dimension(1:NQMAX) :: tiny_array
+    real(8), dimension(1:NQMAX) :: tiny_array, L2
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
     integer(4), dimension(1:2) :: iasg
 !!    real(8) :: denom, nume, tiny_denom
@@ -354,6 +355,8 @@ contains
 
 !          IF(IC == 1) EXIT L_IC
 
+          IF(MODECV == 0) THEN
+
           ASG(1:NQMAX,0:NRMAX) = 0.D0
           L_NQ:DO NQ = 1, NQMAX
              ! Calculate maximum local root-mean-square of X and corresponding grid point
@@ -361,7 +364,7 @@ contains
              AVM   = SQRT(XN(NQ,NRAVM)**2)
 
              ! Calculate root-mean-square X over the profile (Euclidean norm)
-             AV    = SQRT(SUM(XN(NQ,0:NRMAX)**2)) / NRMAX
+             AV    = SQRT(SUM(XN(NQ,0:NRMAX)**2) / NRMAX)
              IF (AV < epsilon(1.d0)) THEN
                 ! It means that the variable for NQ is zero over the profile.
                 ASG(NQ,0:NRMAX) = 0.d0
@@ -378,9 +381,9 @@ contains
                 ! Show results
                 IF (NT == IDISP .AND. NR == NRMAX) THEN
                    IF (NQ == 1) THEN
-                      WRITE(6,'((1X,A5,A3," =",I3))')'#####','IC',IC
-                      WRITE(6,'((1X,A4," =",1PD9.2),2X,A2," =",I3)') &
-                           & 'EPS   ', EPSabs,'NRMAX   ', NRMAX
+                      WRITE(6,'(1X,A5,A3," =",I3)')'#####','IC',IC
+                      WRITE(6,'(1X,A7," =",1PD9.2,2X,A7," =",I3)') &
+                           & 'EPS    ', EPSabs,'NRMAX  ', NRMAX
                    END IF
                    ! Maximum relative error over the profile
                    ERR1 = MAX(ERR1, ASG(NQ,NR))
@@ -392,11 +395,14 @@ contains
                    IDISP = IDIV + NT
                    IF (NQ == NQMAX) CYCLE L_IC
                 ELSEIF (NT /= IDISP .AND. ASG(NQ,NR) > EPSabs) THEN
+                   ! NOT converged
                    IF(IC /= ICMAX) THEN
                       IF(IDIAGL >= 3) THEN
-                         IF(MOD(IC,20) == 0 .OR. IC == 1) WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
+                         IF(MOD(IC,20) == 0 .OR. IC == 1) &
+                              & WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
                               & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
-                         WRITE(6,'(3I4,1P4E17.8)') IC,NQ,NR,XP(NQ,NR),XN(NQ,NR),ASG(NQ,NR),EPSabs
+                         WRITE(6,'(3I4,1P4E17.8)') IC,NQ,NR,XP(NQ,NR),XN(NQ,NR), &
+                              & ASG(NQ,NR),EPSabs
                       END IF
                       CYCLE L_IC
                    END IF
@@ -404,42 +410,94 @@ contains
              END DO L_NR
 
           END DO L_NQ
-          ! NOT converged
+          ! Converged or IC == ICMAX
           IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
           if(EPS > 0.D0) EXIT L_IC
+
+       ELSE
+          L_NQ2:DO NQ = 1, NQMAX
+             AV = SQRT(INTG_F(XN(NQ,0:NRMAX)**2))
+             IF(AV /= 0.d0) THEN
+                ASG(NQ,0:NRMAX) = (XN(NQ,0:NRMAX) - XP(NQ,0:NRMAX))**2
+                L2(NQ) = SQRT(INTG_F(ASG(NQ,0:NRMAX))) / AV
+             ELSE
+                L2(NQ) = 0.D0
+             END IF
+          END DO L_NQ2
+
+!          write(6,*) IC,L2(6)
+          ! Converged
+          IF(MAXVAL(L2) < EPSabs) THEN
+             if(EPS > 0.D0) EXIT L_IC
+          END IF
+
+          IF(IC /= ICMAX) THEN
+             IF(IDIAGL >= 3) THEN
+                IF(MOD(IC,20) == 0 .OR. IC == 1) &
+                     & WRITE(6,'(A,2(A,X),5X,A,7X,A)') &
+                     & "**","IC","VEQ","V_ERRMAX","EPS(1)"
+                WRITE(6,'(2I4,1PE17.8,1PE10.2)') &
+                     & IC,MAXLOC(L2)-1,MAXVAL(L2),EPSabs
+             END IF
+          ELSE
+             EXIT L_IC ! This is used so that IC exceeds ICMAX after "END DO L_IC".
+          END IF
+       END IF
+
        END DO L_IC
 
        ICSUM = ICSUM + IC
 
        IF(IDIAGL >= 2) THEN
-          WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
-               & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
-          IF(IC == ICMAX) THEN ! NOT converged
-             WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs," *"
-          ELSE ! converged
-             IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
-             WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
-                  &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs
+          IF(MODECV == 0) THEN
+             WRITE(6,'(A2,3(A,X),8X,A,15X,A,12X,A,11X,A)') &
+                  & "**","IC","VEQ","VNR","XP","XN","V_ERRMAX","EPS"
+             IF(IC == ICMAX) THEN ! NOT converged
+                WRITE(6,'(3I4,1P4E17.8,A2)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                     &                XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs," *"
+             ELSE ! converged
+                IASG(1:2) = MAXLOC(ASG(1:NQMAX,0:NRMAX))
+                WRITE(6,'(3I4,1P4E17.8)') IC,IASG(1),IASG(2)-1,XP(IASG(1),IASG(2)-1), &
+                     &                  XN(IASG(1),IASG(2)-1),ASG(IASG(1),IASG(2)-1),EPSabs
+             END IF
+          ELSE
+             WRITE(6,'(A,2(A,X),5X,A,7X,A)') &
+                  & "**","IC","VEQ","V_ERRMAX","EPS"
+             WRITE(6,'(2I4,1PE17.8,1PE10.2)') &
+                  & IC,MAXLOC(L2)-1,MAXVAL(L2),EPSabs
           END IF
        END IF
 
        IF(IDIAG >= 10) THEN
-          WRITE(6,'(A,2(X,A,X),5X,A,11X,A)') &
-               & "*****","NQ","VR","V_ERRMAX","EPS"
-          DO NQ = 1, NQMAX
-             IASG(1:2)  = MAXLOC( ASG(NQ:NQ,0:NRMAX))
-             WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(2)-1,ASG(NQ,IASG(2)-1),EPSabs
-             IF( ASG(NQ, IASG(2)-1) > EPSabs) THEN
-                MSG_NQ = trim(MSG_NQ)//' *'
-             ELSE
-                MSG_NQ = trim(MSG_NQ)//'  '
-             END IF
-             WRITE(6,'(A80)') MSG_NQ
-          END DO
+          IF(MODECV == 0) THEN
+             WRITE(6,'(A,2(X,A,X),5X,A,11X,A)') &
+                  & "*****","NQ","VR","V_ERRMAX","EPS"
+             DO NQ = 1, NQMAX
+                IASG(1:2)  = MAXLOC( ASG(NQ:NQ,0:NRMAX))
+                WRITE(MSG_NQ,'(4X,2I4,1P2E17.8)') NQ,IASG(2)-1,ASG(NQ,IASG(2)-1),EPSabs
+                IF( ASG(NQ, IASG(2)-1) > EPSabs) THEN
+                   MSG_NQ = trim(MSG_NQ)//' *'
+                ELSE
+                   MSG_NQ = trim(MSG_NQ)//'  '
+                END IF
+                WRITE(6,'(A80)') MSG_NQ
+             END DO
+          ELSE
+             WRITE(6,'(2(A,X),5X,A,7X,A)') &
+                  & "*********","NQ","V_ERRMAX","EPS"
+             DO NQ = 1, NQMAX
+                WRITE(MSG_NQ,'(8X,I4,1PE17.8,1PE10.2)') NQ,L2(NQ),EPSabs
+                IF(L2(NQ) > EPSabs) THEN
+                   MSG_NQ = trim(MSG_NQ)//' *'
+                ELSE
+                   MSG_NQ = trim(MSG_NQ)//'  '
+                END IF
+                WRITE(6,'(A80)') MSG_NQ
+             END DO
+          END IF
        END IF
           
-       IF(IDIAGL >= 4) THEN
+       IF(IDIAGL >= 4 .AND. MODECV == 0) THEN
           do nq = 1, nqmax
              do nr = 0, nrmax
                 write(6,*) nq,nr,ASG(nq,nr)

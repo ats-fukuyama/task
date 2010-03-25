@@ -423,6 +423,16 @@ SUBROUTINE TXINIT
   rMUb1 = rMU0
   rMUb2 = 1.d0
 
+  !   Convergence model
+  !     (Definition: ERROR means |X^j - X^{j-1}|, where j denotes the number of iteration.)
+  !     0: Relative error 
+  !          ERROR divided by root-mean-square,
+  !          evaluated for each equation and each grid point.
+  !     1: Relative error
+  !          L2 norm of ERROR divided by L2 norm of X^{j-1},
+  !          evaluated for each equation.
+  MODECV = 0
+
   !   ***** Mesh number parameters *****
 
   !   Magnitude of mesh peakness
@@ -472,9 +482,9 @@ SUBROUTINE TXINIT
   !   4 : Change Line Color, Style and Mark (With Legend)
   MODEGL = 1
 
-  !   Mode of AV
-  !   0 : OFF
-  !   n : Number of Display
+  !   Mode of AV (Diagnostic message in terms of convergence)
+  !   0 : OFF (recommended)
+  !   n : Interval of displaying diagnostic message
   MODEAV = 0
 
   !   Diagnostic parameter
@@ -1333,7 +1343,7 @@ module tx_parameter_control
        & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
-       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK, &
+       & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV, &
        & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDINIT,MDVAHL,MDLETB, &
        & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM ! 09/06/17~ miki_m
   private :: TXPLST
@@ -1526,7 +1536,7 @@ contains
          &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ &
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
-         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK'/ &
+         &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,'/ &
          &       ' ',8X,'MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINIT,MDVAHL,MDLETB,' / & 
          &       ' ',8X,'IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM')
   END SUBROUTINE TXPLST
@@ -1608,6 +1618,7 @@ contains
          &   'NGVSTP', NGVSTP,  'ICMAX ', ICMAX ,  &
          &   'MODEG ', MODEG ,  'MODEAV', MODEAV,  &
          &   'MODEGL', MODEGL,  'MDLPCK', MDLPCK,  &
+         &   'MODECV', MODECV,  &
          &   'MDOSQZ', MDOSQZ,  'MDLETA', MDLETA,  &
          &   'MDANOM', MDANOM,  'MDFIXT', MDFIXT,  &
          &   'MDITSN', MDITSN,  'MDITST', MDITST,  &
