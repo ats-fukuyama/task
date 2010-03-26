@@ -137,11 +137,12 @@ $$\halign to \displaywidth\bgroup\@eqnsel\hskip\@centering
 \newcommand{\hatomega}{\widehat{\omega}}
 
 \def\red#1{\textcolor{red}{#1}}
+\def\blue#1{\textcolor{blue}{#1}}
 
 \begin{document}
 
 \begin{center}
-TASK/TX V4.55 [09/07/16]
+TASK/TX V4.57 [10/03/26]
 \end{center}
 
 \section{Equations in $r$ coordinates}
@@ -251,8 +252,14 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\me} \nu_\r{be2} \nb (\ueph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
+%  turbulent particle flux model
+%
+%  - \frac{e^2 \Bph^2 \De}{\me\Te}\nee
+%    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+%     + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
+%     + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
   - \frac{e^2 \Bph^2 \De}{\me\Te}\nee
-    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+    \left[\ueth - \frac{\Bth}{\Bph}\ueph
      + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
      + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
 %
@@ -293,6 +300,11 @@ TASK/TX V4.55 [09/07/16]
 %  - \nu_\r{eHL} (1 - u_\r{H0}^2) \nee \ueth
 %
 %  + \nu_\r{eHL} u_{\r{H}\phi} u_{\r{H}\theta} \nee \ueph
+%
+%  neoclassical poloidal rotation drive
+%
+%  + \mu_{e2} \frac{\Bph}{\Bth^2} \frac{1}{\me e} \ddr \Te
+  + F_{\r{e}\theta}^\r{neo}
 \\[5mm]
 %=============%
 % \nee \ueph  %
@@ -317,8 +329,14 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\me} \nu_\r{be3} \nb (\ueph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
+%  turbulent particle flux model
+%
+%  + \frac{e^2 \Bph^2 \De}{\me\Te}\frac{\Bth}{\Bph}\nee
+%    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+%     + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}r
+%     + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
   + \frac{e^2 \Bph^2 \De}{\me\Te}\frac{\Bth}{\Bph}\nee
-    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+    \left[\ueth - \frac{\Bth}{\Bph}\ueph
      + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}r
      + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
 %
@@ -440,8 +458,14 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\mi} \nubi \nb (\uith - \ubth)
 \nonumber\\[2.5mm]&&{}
 %
+%  turbulent particle flux model
+%
+%  + \frac{e^2 \Bph^2 \De}{\mi\Te}\nee
+%    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+%     + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
+%     + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
   + \frac{e^2 \Bph^2 \De}{\mi\Te}\nee
-    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+    \left[\ueth - \frac{\Bth}{\Bph}\ueph
      + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
      + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
 %
@@ -488,6 +512,13 @@ TASK/TX V4.55 [09/07/16]
 %  - \nu_\r{iHL} (1 - u_{\r{H}\theta}^2) \ni \uith
 %
 %  + \nu_\r{iHL} u_{\r{H}\phi} u_{\r{H}\theta} \ni \uiph
+%
+%  neoclassical poloidal rotation drive
+%
+%  - \mu_{i2} \frac{\Bph}{\Bth^2} \frac{1}{\mi \Zi e} \ddr \Ti
+  + F_{\r{i}\theta}^\r{neo}
+%
+  + T_{\r{i}\theta}
 \\[5mm]
 %============%
 % \ni \uiph  %
@@ -511,8 +542,14 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\mi} \nubi \nb (\uiph - \ubph)
 \nonumber\\[2.5mm]&&{}
 %
+%  turbulent particle flux model
+%
+%  - \frac{e^2 \Bph^2 \De}{\mi\Te}\frac{\Bth}{\Bph}\nee
+%    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+%     + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
+%     + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
   - \frac{e^2 \Bph^2 \De}{\mi\Te}\frac{\Bth}{\Bph}\nee
-    \left[(\ueth - \uith) - \frac{\Bth}{\Bph}(\ueph - \uiph)
+    \left[\ueth - \frac{\Bth}{\Bph}\ueph
      + \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e} r
      + \frac{1-\alpha_\r{e}}{e\Bph}\ddr \Te + \frac{\Er}{\Bph}\right]
 %
@@ -530,6 +567,8 @@ TASK/TX V4.55 [09/07/16]
   + S_\r{LC\phi}
 %
   - \nuOL \ni \uiph
+%
+  + T_{\r{i}\phi}
 %\nonumber\\[2.5mm]&&{}
 %
 %  - \nu_\r{iHL} u_{\r{H}\phi} u_{\r{H}\theta} \ni \uith
@@ -659,6 +698,8 @@ TASK/TX V4.55 [09/07/16]
 \nonumber\\[2.5mm]&&{}
 %
   + \gamma_0 \frac{\nuL}{\Zi} \, (\nee - \nediv)
+%
+  + \frac{1}{r} \ddr r \Gamma^\r{puff}\biggr|_\r{b}
 \\[5mm]
 %=======%
 % \nnb  %
@@ -858,14 +899,19 @@ TASK/TX V4.55 [09/07/16]
   (\red{\ueph} - \red{\ubph})
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{e^2 \Bph^2 \De}{\me\Te}\red{\nee}
-    \left[(\red{r \ueth} - \red{r \uith})+
-     2\dd{\Aph}\frac{s}{\Bph}(\red{\ueph} - \red{\uiph})
-     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}\right.
-\nonumber\\[2.5mm]&&{}
+%  - \frac{e^2 \Bph^2 \De}{\me\Te}\red{\nee}
+%    \left[(\red{r \ueth} - \red{r \uith})+
+%     2\dd{\Aph}\frac{s}{\Bph}(\red{\ueph} - \red{\uiph})
+%     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}\right.
 %
-    \left.+ 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
+%    \left.+ 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
+%     - 2 s \frac{1}{\Bph} \dds \phi\right]
+  - \frac{e^2 \Bph^2 \De}{\me\Te}\red{\nee}
+    \left[\red{r \ueth} + 2\dd{\Aph}\frac{s}{\Bph}\red{\ueph}
+     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
      - 2 s \frac{1}{\Bph} \dds \phi\right]
+\nonumber\\[2.5mm]&&{}
 %
 %   + \frac{\Zi^2 e^2 \Bph^2 \Di}{\me\Ti}\ni
 %    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
@@ -879,6 +925,12 @@ TASK/TX V4.55 [09/07/16]
 %  - \nu_\r{eHL} (1 - u_\r{H0}^2) r \nee \ueth
 %
 %  + r \nu_\r{eHL} u_{\r{H}\phi} u_{\r{H}\theta} \nee \ueph
+%
+%  + 2 \mu_{e2} \frac{\Bph}{\Bth^2} \frac{s}{\me e \nee} \dds \red{\nee\Te}
+%
+%  - 2 \mu_{e2} \frac{\Bph}{\Bth^2} \frac{s}{\me e \nee^2} \dd{\nee}
+%  \red{\nee\Te}
+  + r F_{\r{e}\theta}^\r{neo}
 \\[5mm]
 %=============%
 % \nee \ueph  %
@@ -894,7 +946,7 @@ TASK/TX V4.55 [09/07/16]
 %
   + \frac{e}{\me} \nee \red{\Aphd}
 %
-  + 2 \frac{e}{\me} \dd{\Aph} \red{r \nee \uer} 
+  + 2 \frac{e}{\me} \dd{\Aph} \blue{r \nee \uer} 
 %
   - \nu_\r{ei3} \red{\nee} (\red{\ueph} - \red{\uiph})
 %
@@ -906,15 +958,24 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\me} \nu_\r{be3} \red{\nb} (\red{\ueph} - \red{\ubph})
 \nonumber\\[2.5mm]&&{}
 %
-  - 2\frac{e^2 \Bph \De}{\me\Te}\dd{\Aph}\red{\nee}
-    \left[(\red{r \ueth} - \red{r \uith})
-     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
-     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
-     - 2 s \frac{1}{\Bph} \dds \phi \right]
+%  - 2\frac{e^2 \Bph \De}{\me\Te}\dd{\Aph}\red{\nee}
+%    \left[(\red{r \ueth} - \red{r \uith})
+%     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+%     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
+%     - 2 s \frac{1}{\Bph} \dds \phi \right]
+%\nonumber\\[2.5mm]&&{}
+%
+%  - \frac{e^2 \Bph^2
+%  \De}{\me\Te}\left(\frac{\Bth}{\Bph}\right)^2\red{\nee}(\red{\ueph} - \red{\uiph})
+  - 2\frac{e^2 \Bph \De}{\me\Te}\dd{\Aph}\left[
+    \red{r\nee\ueth} + s \red{\nee}\frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \left(\dds \red{\nee\Te} - \Te
+					 \dds \red{\nee}\right)\right. 
 \nonumber\\[2.5mm]&&{}
 %
-  - \frac{e^2 \Bph^2
-  \De}{\me\Te}\left(\frac{\Bth}{\Bph}\right)^2\red{\nee}(\red{\ueph} - \red{\uiph})
+    \left.- 2 s \red{\nee}\frac{1}{\Bph} \dds \phi \right]
+    - \frac{e^2 \Bph^2
+    \De}{\me\Te}\left(\frac{\Bth}{\Bph}\right)^2\red{\nee}\red{\ueph}
 %
 %   + 2\frac{\Zi^2 e^2 \Bph \Di}{\me\Ti}\dd{\Aph}\ni
 %    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
@@ -1042,14 +1103,22 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\mi} \nubi \red{r \nb} (\red{\uith} - \red{\ubth})
 \nonumber\\[2.5mm]&&{}
 %
-  + \frac{e^2 \Bph^2 \De}{\mi\Te}\red{\nee}
-    \left[(\red{r \ueth} - \red{r \uith}) +
-     2\dd{\Aph}\frac{s}{\Bph}(\red{\ueph} - \red{\uiph})
-     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}\right.
+%  + \frac{e^2 \Bph^2 \De}{\mi\Te}\red{\nee}
+%    \left[(\red{r \ueth} - \red{r \uith}) +
+%     2\dd{\Aph}\frac{s}{\Bph}(\red{\ueph} - \red{\uiph})
+%     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}\right.
+%\nonumber\\[2.5mm]&&{}
+%
+%    \left.+ 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
+%     - 2 s \frac{1}{\Bph} \dds \phi \right]
+  + \frac{e^2 \Bph^2 \De}{\mi\Te}\left[
+    \red{r\nee\ueth} + 2\dd{\Aph}\frac{s}{\Bph}\red{\nee\ueph}
+     + s \red{\nee}\frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \left(\dds \red{\nee\Te} -
+					      \Te \dds \red{\nee}\right)\right.
 \nonumber\\[2.5mm]&&{}
 %
-    \left.+ 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
-     - 2 s \frac{1}{\Bph} \dds \phi \right]
+     \left.- 2 s \red{\nee}\frac{1}{\Bph} \dds \phi \right]
 %
 %  - \frac{\Zi^2 e^2 \Bph^2 \Di}{\mi\Ti}\ni
 %    \left(r \uith + 2\dd{\Aph}\frac{s}{\Bph}\uiph - s
@@ -1070,6 +1139,13 @@ TASK/TX V4.55 [09/07/16]
 %  - \nu_\r{iHL} (1 - u_{\r{H}\theta}^2) r \ni \uith
 %
 %  + r \nu_\r{iHL} u_{\r{H}\phi} u_{\r{H}\theta} \ni \uiph
+%
+%  - 2 \mu_{i2} \frac{\Bph}{\Bth^2} \frac{s}{\mi \Zi e \ni} \dds \red{\ni\Ti}
+%
+%  + 2 \mu_{i2} \frac{\Bph}{\Bth^2} \frac{s}{\mi \Zi e \ni^2} \dd{\ni} \red{\ni\Ti}
+  + F_{\r{i}\theta}^\r{neo}
+%
+  + T_{\r{i}\theta}
 \\[5mm]
 %============%
 % \ni \uiph  %
@@ -1084,7 +1160,7 @@ TASK/TX V4.55 [09/07/16]
 %
   - \Zi \frac{e}{\mi} \ni \red{\Aphd}
 %
-  - 2 \Zi \frac{e}{\mi} \dd{\Aph} \red{r \ni \uir} 
+  - 2 \Zi \frac{e}{\mi} \dd{\Aph} \blue{r \ni \uir} 
 \nonumber\\[2.5mm]&&{}
 %
   - \frac{\me}{\mi} \nu_\r{ei3} \red{\nee} (\red{\uiph} - \red{\ueph})
@@ -1094,15 +1170,21 @@ TASK/TX V4.55 [09/07/16]
   - \frac{\mb}{\mi} \nubi \red{\nb} (\red{\uiph} - \red{\ubph})
 \nonumber\\[2.5mm]&&{}
 %
-  + 2\frac{e^2 \Bph \De}{\mi\Te}\dd{\Aph}\red{\nee}
-    \left[(\red{r \ueth} - \red{r \uith})
-     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
-     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
-     - 2 s \frac{1}{\Bph} \dds \phi \right]
+%  + 2\frac{e^2 \Bph \De}{\mi\Te}\dd{\Aph}\red{\nee}
+%    \left[(\red{r \ueth} - \red{r \uith})
+%     + s \frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+%     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \dds \Te
+%     - 2 s \frac{1}{\Bph} \dds \phi \right]
+  + 2\frac{e^2 \Bph \De}{\mi\Te}\dd{\Aph}\left[
+     \red{r\nee\ueth} + s \red{\nee}\frac{B}{\Bph}\ave{\frac{\omega}{m}}_\r{e}
+     + 2 s \frac{1-\alpha_\r{e}}{e\Bph} \left(\dds \red{\nee\Te} - \Te
+					 \dds \red{\nee}\right) \right.
 \nonumber\\[2.5mm]&&{}
 %
+     \left.- 2 s \red{\nee}\frac{1}{\Bph} \dds \phi \right]
+%
   + \frac{e^2 \Bph^2
-  \De}{\mi\Te}\left(\frac{\Bth}{\Bph}\right)^2\red{\nee}(\red{\ueph} - \red{\uiph})
+  \De}{\mi\Te}\left(\frac{\Bth}{\Bph}\right)^2\red{\nee\ueph}
 %
 %  - 2\frac{\Zi^2 e^2 \Bph \Di}{\mi\Ti}\dd{\Aph}\ni
 %    \left(r \uith - s \ave{\frac{\omega}{m}}_\r{i} \right)
@@ -1120,6 +1202,8 @@ TASK/TX V4.55 [09/07/16]
   + S_\r{LC\phi}
 %
   - \nuOL \red{\ni \uiph}
+%
+  + T_{\phi,\r{i}}
 %
 %  - \nu_\r{iHL} u_{\r{H}\phi} u_{\r{H}\theta} \ni \uith
 %
@@ -1213,7 +1297,7 @@ TASK/TX V4.55 [09/07/16]
 %
   + 4 \dds s f_t \Db \dds \red{r \nb \ubth}
 %
-  - 4 \dds s f_t \Db \dd{r\ubth} \red{\nb}
+  - 4 \dds \left( s f_t \Db \dd{r\ubth} \right) \red{\nb}
 \\[5mm]
 %============%
 % \nb \ubph  %
@@ -1240,9 +1324,9 @@ TASK/TX V4.55 [09/07/16]
   - \nueff g \sqrt{\delta} \red{\nb \ubph}
 \nonumber\\[2.5mm]&&{}
 %
-  + 4 \dds s f_t \Db \dds \red{r \nb \ubph}
+  + 4 \dds s f_t \Db \dds \red{\nb \ubph}
 %
-  - 4 \dds s f_t \Db \dd{r\ubph} \red{\nb}
+  - 4 \dds \left( s f_t \Db \dd{\ubph} \right) \red{\nb}
 \\[5mm]
 %=======%
 % \nna  %
@@ -1257,6 +1341,8 @@ TASK/TX V4.55 [09/07/16]
 \nonumber\\[2.5mm]&&{}
 %
   + \gamma_0 \frac{\nuL}{\Zi} \, (\red{\nee} - \nediv)
+%
+  + 2 \dds r \Gamma^\r{puff}\biggr|_\r{b}
 \\[5mm]
 %=======%
 % \nnb  %
@@ -1302,34 +1388,39 @@ TASK/TX V4.55 [09/07/16]
 \section{Boundary Conditions}
 
 \begin{tabular}{|c|c|c|c|c|}\hline
- num. & name & variable      & center & edge \\\hline
- 1    & LQm1 & $\phi$        & N        & 0\\
- 2    & LQm2 & $r \Athd$     & 0        & $2s_b B_\r{V}$\\
- 3    & LQm3 & $\Aphd$       & N        & $-2bB_{\theta\r{b}}$\\
- 4    & LQm4 & $\Aph$        & $\times$ & $\times$\\
- 5    & LQm5 & $r \Ath$      & $\times$ & $\times$\\
- 6    & LQe1 & $\nee$         & $\times$ & $\times$(N)\\
- 7    & LQe2 & $r \nee \uer$  & 0        & 0($\times$)\\
+ num. & name & variable       & center & edge \\\hline
+ 1    & LQm1 & $\phi$         & N        & 0\\
+ 2    & LQm2 & $r \Athd$      & 0        & $2s_b B_\r{V}$\\
+ 3    & LQm3 & $\Aphd$        & N        & $-2bB_{\theta\r{b}}$\\
+ 4    & LQm4 & $\Aph$         & $\times$ & $\times$\\
+ 5    & LQm5 & $r \Ath$       & $\times$ & $\times$\\
+ 6    & LQe1 & $\nee$         & N        & N($\times$)\\
+ 7    & LQe2 & $r \nee \uer$  & 0        & $\times$(0)\\
  8    & LQe3 & $r \nee \ueth$ & 0        & 0\\
  9    & LQe4 & $\nee \ueph$   & N        & 0\\
  10   & LQe5 & $\nee \Te$     & N        & N\\
- 11   & LQi1 & $\ni$         & $\times$ & $\times$(N)\\
- 12   & LQi2 & $r \ni \uir$  & 0        & 0($\times$)\\
- 13   & LQi3 & $r \ni \uith$ & 0        & 0\\
- 14   & LQi4 & $\ni \uiph$   & N        & 0\\
- 15   & LQi5 & $\ni \Ti$     & N        & N\\
- 16   & LQb1 & $\nb$         & $\times$(N) & $\times$(N)\\
- 17   & LQb3 & $r \nb \ubth$ & $\times$(0) & $\times$(0)\\
- 18   & LQb4 & $\nb \ubph$   & $\times$(0) & $\times$(0)\\
- 19   & LQn1 & $\nna$        & N        & $2bS_\r{gas}$\\
- 20   & LQn2 & $\nnb$        & N        & 0\\
- 20   & LQn3 & $\nnc$        & N        & 0\\
- 21   & LQr1 & $\nbrp$       & N        & N\\\hline
+ 11   & LQi1 & $\ni$          & N        & N($\times$)\\
+ 12   & LQi2 & $r \ni \uir$   & 0        & $\times$(0)\\
+ 13   & LQi3 & $r \ni \uith$  & 0        & 0\\
+ 14   & LQi4 & $\ni \uiph$    & N        & 0\\
+ 15   & LQi5 & $\ni \Ti$      & N        & N\\
+ 16   & LQb1 & $\nb$          & $\times$(N) & $\times$(N)\\
+ 17   & LQb3 & $r \nb \ubth$  & $\times$(0) & $\times$(0)\\
+ 18   & LQb4 & $\nb \ubph$    & $\times$(N) & $\times$(0)\\
+ 19   & LQn1 & $\nna$         & N        & $2bS_\r{gas}$\\
+ 20   & LQn2 & $\nnb$         & N        & 0\\
+ 20   & LQn3 & $\nnc$         & N        & 0\\
+ 21   & LQr1 & $\nbrp$        & $\times$(N) & $\times$(N)\\\hline
  \multicolumn{5}{l}{0: Dirichlet condition $(u=0)$}\\
  \multicolumn{5}{l}{N: Neumann condition $(u'=0)$}\\
  \multicolumn{5}{l}{value: Neumann condition $(u'=\mbox{value})$}\\
  \multicolumn{5}{l}{$\times$: no condition}
 \end{tabular}
 
+\medskip
+
+Excess BCs are imposed on the equations LQe1 and LQi1, from the aspect
+of the order of their derivative. However, these BCs must be required to
+keep quasi-neutrality.
 
 \end{document}

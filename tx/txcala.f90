@@ -16,8 +16,8 @@ module tx_coefficients
        & rNube1BE, rNube2BthBE, rNube3BE, &
        & Vbparaph, RVbparath, &
        & Chie1, Chie2, Chii1, Chii2, &
-       & FVpchph, rNue2NCN, rNui2NCN, &
-       & rGASPFA, rat_ei
+       & FVpchph, rGASPFA, RNeUer, RNiUir, &
+       & rNue2NCN, rNui2NCN, rat_ei
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
   real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW, ThntSW, FSVAHLT, FSVAHLE, &
@@ -121,8 +121,8 @@ contains
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
-       &     FVpchph(0:N), rNue2NCN(0:N), rNui2NCN(0:N), &
-       &     rGASPFA(0:N), rat_ei(0:N))
+       &     FVpchph(0:N), rGASPFA(0:N), RNeUer(0:N), RNiUir(0:N))!, &
+!       &     rNue2NCN(0:N), rNui2NCN(0:N), rat_ei(0:N))
 !!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthphiB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
     UNITY(0:N) = 1.D0
@@ -216,12 +216,10 @@ contains
     CALL BOUNDARY(NRMAX,LQn3,0)
     ! When ripple effect is on (FSRP /= 0), ripple diffusion term will be activated.
     ! Then we must impose two boundary conditions at each equation.
-    IF(FSRP /= 0.D0) THEN
-       CALL BOUNDARY(0    ,LQb3,0)
-       CALL BOUNDARY(NRMAX,LQb3,0)
-       CALL BOUNDARY(NRMAX,LQb4,0)
-!       CALL BOUNDARY(0    ,LQr1,0)
-    END IF
+    CALL BOUNDARY(0    ,LQb3,0)
+    CALL BOUNDARY(NRMAX,LQb3,0)
+    CALL BOUNDARY(NRMAX,LQb4,0)
+!    IF(FSRP /= 0.D0) CALL BOUNDARY(0,LQr1,0)
 
     ! Neumann condition of the continuity equation at the boundary is naturally
     ! imposed through the diffusion term in the pressure equation. However, this
@@ -248,8 +246,8 @@ contains
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
-       &       FVpchph, rNue2NCN, rNui2NCN, &
-       &       rGASPFA, rat_ei)
+       &       FVpchph, rGASPFA, RNeUer, RNiUir)!, &
+!       &       rNue2NCN, rNui2NCN, rat_ei)
 !!ion    deallocate(FWphiBB, FWphiBB2, FWthphiB, FWphiB)
     deallocate(UNITY)
 
@@ -343,12 +341,14 @@ contains
 
     FVpchph (0:NRMAX) = FVpch(0:NRMAX)  / BphV(0:NRMAX)
 
-    rNue2NCN(0:NRMAX) = rNue2NC(0:NRMAX) / PNeV(0:NRMAX)
-    rNui2NCN(0:NRMAX) = rNui2NC(0:NRMAX) / PNiV(0:NRMAX)
-
     rGASPFA(0:NRMAX-1) = 0.D0
     rGASPFA(NRMAX) = rGASPF
-    rat_ei(0:NRMAX) = PNeV(0:NRMAX) / PNiV(0:NRMAX)
+    RNeUer(0:NRMAX) = R(0:NRMAX) * PNeV(0:NRMAX) * UerV(0:NRMAX)
+    RNiUir(0:NRMAX) = R(0:NRMAX) * PNiV(0:NRMAX) * UirV(0:NRMAX)
+
+!    rNue2NCN(0:NRMAX) = rNue2NC(0:NRMAX) / PNeV(0:NRMAX)
+!    rNui2NCN(0:NRMAX) = rNui2NC(0:NRMAX) / PNiV(0:NRMAX)
+!    rat_ei(0:NRMAX) = PNeV(0:NRMAX) / PNiV(0:NRMAX)
 
   END SUBROUTINE LQCOEF
 
@@ -714,14 +714,14 @@ contains
     ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AME * fem_int(2,FWthe)
     NLC(15,NEQ) = LQe3
 
-!!$    ELM(1:NEMAX,1:4,16,NEQ) =   1.D0 / AME * fem_int(28,FWthe,rat_ei)
-!!$    NLC(16,NEQ) = LQi3
+!    ELM(1:NEMAX,1:4,16,NEQ) =   1.D0 / AME * fem_int(28,FWthe,rat_ei)
+!    NLC(16,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AME * fem_int(15,FWpheBB)
     NLC(17,NEQ) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,18,NEQ) = - 1.D0 / AME * fem_int(44,FWpheBB,rat_ei)
-!!$    NLC(18,NEQ) = LQi4
+!    ELM(1:NEMAX,1:4,18,NEQ) = - 1.D0 / AME * fem_int(44,FWpheBB,rat_ei)
+!    NLC(18,NEQ) = LQi4
 
     ! Wave interaction force (electron driven)
 
@@ -861,8 +861,10 @@ contains
 
     ! v x B force
 
-    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(6,AphV)
-    NLC( 5,NEQ) = LQe2
+!!$    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(6,AphV)
+!!$    NLC( 5,NEQ) = LQe2
+    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(28,dAphV,RNeUer)
+    NLC( 5,NEQ) = 0
 
     ! Collisional friction with bulk ions
 
@@ -897,14 +899,14 @@ contains
     ELM(1:NEMAX,1:4,14,NEQ) =   1.D0 / AME * fem_int(2,FWpheBB)
     NLC(14,NEQ) = LQe3
 
-!!$    ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AME * fem_int(28,FWpheBB,rat_ei)
-!!$    NLC(15,NEQ) = LQi3
+!    ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AME * fem_int(28,FWpheBB,rat_ei)
+!    NLC(15,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4,16,NEQ) = - 1.D0 / AME * fem_int(2,FWpheBB2)
     NLC(16,NEQ) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AME * fem_int(28,FWpheBB2,rat_ei)
-!!$    NLC(17,NEQ) = LQi4
+!    ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AME * fem_int(28,FWpheBB2,rat_ei)
+!    NLC(17,NEQ) = LQi4
 
     ! Wave interaction force (electron driven)
 
@@ -1333,14 +1335,14 @@ contains
     ELM(1:NEMAX,1:4,13,NEQ) =   1.D0 / AMI * fem_int(2,FWthe)
     NLC(13,NEQ) = LQe3
 
-!!$    ELM(1:NEMAX,1:4,14,NEQ) = - 1.D0 / AMI * fem_int(28,FWthe,rat_ei)
-!!$    NLC(14,NEQ) = LQi3
+!    ELM(1:NEMAX,1:4,14,NEQ) = - 1.D0 / AMI * fem_int(28,FWthe,rat_ei)
+!    NLC(14,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AMI * fem_int(15,FWpheBB)
     NLC(15,NEQ) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,16,NEQ) =   1.D0 / AMI * fem_int(44,FWpheBB,rat_ei)
-!!$    NLC(16,NEQ) = LQi4
+!    ELM(1:NEMAX,1:4,16,NEQ) =   1.D0 / AMI * fem_int(44,FWpheBB,rat_ei)
+!    NLC(16,NEQ) = LQi4
 
     ! Wave interaction force (electron driven)
 
@@ -1499,8 +1501,10 @@ contains
 
     ! v x B force
 
-    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(6,AphV)
-    NLC( 5,NEQ) = LQi2
+!!$    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(6,AphV)
+!!$    NLC( 5,NEQ) = LQi2
+    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(28,dAphV,RNiUir)
+    NLC( 5,NEQ) = 0
 
     ! Collisional friction with bulk ions
 
@@ -1529,14 +1533,14 @@ contains
     ELM(1:NEMAX,1:4,12,NEQ) = - 1.D0 / AMI * fem_int(2,FWpheBB)
     NLC(12,NEQ) = LQe3
 
-!!$    ELM(1:NEMAX,1:4,13,NEQ) =   1.D0 / AMI * fem_int(28,FWpheBB,rat_ei)
-!!$    NLC(13,NEQ) = LQi3
+!    ELM(1:NEMAX,1:4,13,NEQ) =   1.D0 / AMI * fem_int(28,FWpheBB,rat_ei)
+!    NLC(13,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4,14,NEQ) =   1.D0 / AMI * fem_int(2,FWpheBB2)
     NLC(14,NEQ) = LQe4
 
-!!$    ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AMI * fem_int(28,FWpheBB2,rat_ei) 
-!!$    NLC(15,NEQ) = LQi4
+!    ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AMI * fem_int(28,FWpheBB2,rat_ei) 
+!    NLC(15,NEQ) = LQi4
 
     ! Wave interaction force (electron driven)
 
