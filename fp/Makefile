@@ -15,7 +15,7 @@ PETSCLIBS=${PETSC_KSP_LIB}
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../../taskx/plx/$(MOD) -I../../task/eq/$(MOD) \
+MODINCLUDE= -I.$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
 SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
@@ -26,7 +26,7 @@ SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
 
 OBJS = $(SRCS:.f90=.o)
 
-LIBS = fplib.a ../../taskx/plx/pllib.a ../../task/eq/eqlib.a   \
+LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
         ../../task/lib/tasklib.a ../../bpsd/bpsdlib.a $(LIBMTX)
 
 .f.o :
@@ -41,7 +41,7 @@ fplib.a: $(OBJS)
 
 ../../bpsd/bpsdlib.a:
 	(cd ../../bpsd; make bpsdlib.a)
-../../taskx/plx/pllib.a:
+../../task/plx/pllib.a:
 	(cd ../plx; make pllib.a)
 ../../task/eq/eqlib.a:
 	(cd ../../task/eq; make eqlib.a)
