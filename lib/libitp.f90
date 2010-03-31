@@ -582,6 +582,7 @@
 
 !     *** Extrapolate center value *********************************
 !     *  assuming the 1st-derivative is zero at the center (rho=0) *
+!     *    based on a three-point formula.                         *
 !     **************************************************************
 
       real(8) FUNCTION FCTR(R1,R2,F1,F2)
@@ -595,23 +596,45 @@
       END FUNCTION FCTR
 
 !     *** Extrapolate center value *********************************
+!     *  assuming the 1st-derivative is zero at the center (rho=0) *
+!     *    based on a four-point formula.                          *
+!     **************************************************************
+
+      FUNCTION FCTR4pt(R1,R2,R3,F1,F2,F3) result(F0)
+
+      implicit none
+      real(8), intent(in) :: R1, R2, R3, F1, F2, F3
+      real(8) :: F0, h2, h3, RHSinv, LHS
+
+      h2 = R2 - R1 ; h3 = R3 - R2
+
+      RHSinv = (R1 * R2 * R3) / (R1 * R3 + R2 * R3 + R1 * R2)
+      LHS =    R2 * R3 / (R1 * (R2 - R1) * (R3 - R1)) * F1 &
+           & - R1 * R3 / (R2 * (R2 - R1) * (R3 - R2)) * F2 &
+           & + R1 * R2 / (R3 * (R3 - R1) * (R3 - R2)) * F3
+      F0 = LHS * RHSinv
+
+      RETURN
+      END FUNCTION FCTR4pt
+
+!     *** Extrapolate center value *********************************
 !     *  assuming the 2st-derivative is zero at the center (rho=0) *
 !     *  (Higher order version)                                    *
 !     **************************************************************
 
-      real(8) FUNCTION FCTR2(R1,R2,R3,F1,F2,F3)
+      FUNCTION FCTR2(R1,R2,R3,F1,F2,F3) result(F0)
 
       implicit none
       real(8), intent(in) :: R1, R2, R3, F1, F2, F3
-      real(8) :: D1, D2, D3
+      real(8) :: F0, D1, D2, D3
 
       D1 = (R2 - R1) * (R3 - R1) * (R1 + R2 + R3)
       D2 = (R2 - R1) * (R3 - R2) * (R1 + R2 + R3)
       D3 = (R3 - R1) * (R3 - R2) * (R1 + R2 + R3)
 
-      FCTR2 =  R2 * R3 * (R2 + R3) / D1 * F1 &
-     &       - R3 * R1 * (R3 + R1) / D2 * F2 &
-     &       + R1 * R2 * (R1 + R2) / D3 * F3
+      F0 =  R2 * R3 * (R2 + R3) / D1 * F1 &
+     &    - R3 * R1 * (R3 + R1) / D2 * F2 &
+     &    + R1 * R2 * (R1 + R2) / D3 * F3
 
       RETURN
       END FUNCTION FCTR2
