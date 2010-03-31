@@ -43,7 +43,7 @@
             DO NTH=1,NTHMAX
                NM=NTH+NTHMAX*(NP-1)+NPMAX*NTHMAX*(NR-1)
                NMA(NTH,NP,NR)=NM
-               FM(NM)=FNS(NTH,NP,NR,NSBA)
+               FM(NM)=FNS22(NTH,NP,NR,NSBA)
             ENDDO
          ENDDO
       ENDDO
@@ -190,14 +190,14 @@
          ENDDO
       ENDDO
 
-      DO NR=1,NRMAX
-         DO NP=1,NPMAX
-            DO NTH=1,NTHMAX
-               NM=NMA(NTH,NP,NR)
-               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
-            ENDDO
-         ENDDO
-      ENDDO
+!      DO NR=1,NRMAX
+!         DO NP=1,NPMAX
+!            DO NTH=1,NTHMAX
+!               NM=NMA(NTH,NP,NR)
+!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+!            ENDDO
+!         ENDDO
+!      ENDDO
 
 !     ----- Clean up matrix solver -----
 

@@ -335,9 +335,9 @@
          FACT= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
 !         FACT=1.D0
          DRR(NTH,NP,NR,NSA)= FACT &
-              *FACTP      /(RA*RA)*RLAMDA_GG(NTH,NR)
+              *FACTP      /(RA*RA)*RLAMDA_GG(NTH,NR)!/PTFP0(NSA)**2
          FRR(NTH,NP,NR,NSA)= FACT &
-              *FACTP*FACTR/(RA*RA)*RLAMDA_GG(NTH,NR)
+              *FACTP*FACTR/(RA*RA)*RLAMDA_GG(NTH,NR)!/PTFP0(NSA)
       ENDDO
       ENDDO
 

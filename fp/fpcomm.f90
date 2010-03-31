@@ -106,7 +106,7 @@
        real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS
        real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSAM)
-           FNS1,FNS2
+           FNS1,FNS2,FNS22
        real(rkind),dimension(:,:,:,:),POINTER :: & ! (NTHM,NPM,NRM,NSBM)
            FNS_L
 
@@ -150,7 +150,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PSPT,PSPBT,PSPFT,PSPLT,PSPST
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
-           PNT2,PWT2,PTT2,PIT2
+           PNT2,PWT2,PTT2,PIT2,PWTD
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTG1M,NSAM,NSBM)
            PPCT2
 
@@ -250,6 +250,7 @@
 
           allocate(FNS1(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(FNS2(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
+          allocate(FNS22(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX))
           allocate(FS1(NTHMAX+1,NPMAX+1,NSAMAX))
           allocate(FS2(NTHMAX+1,NPMAX+1,NSAMAX))
 
@@ -368,6 +369,7 @@
           deallocate(FNS)
           deallocate(FNS1)
           deallocate(FNS2)
+          deallocate(FNS22)
 
           deallocate(RCOEF,RCOEF_G)
           deallocate(RCOEF1,RCOEF2,VOLR,RCOEF2_G)
@@ -481,6 +483,7 @@
           allocate(PWTT(NSAMAX,NTG1M))
           allocate(PNT2(NSAMAX,NTG1M))
           allocate(PWT2(NSAMAX,NTG1M))
+          allocate(PWTD(NSAMAX,NTG1M))
           allocate(PTT2(NSAMAX,NTG1M))
           allocate(PIT2(NSAMAX,NTG1M))
           allocate(PSPT(NSAMAX,NTG1M))
@@ -516,6 +519,7 @@
           deallocate(PWTT)
           deallocate(PNT2)
           deallocate(PWT2)
+          deallocate(PWTD)
           deallocate(PTT2)
           deallocate(PIT2)
           deallocate(PSPT,PSPBT,PSPFT,PSPLT,PSPST)
@@ -555,6 +559,7 @@
                       PWTT(NSA,NTG)=PWTT(NSA,2*NTG-1)
                       PNT2(NSA,NTG)=PNT2(NSA,2*NTG-1)
                       PWT2(NSA,NTG)=PWT2(NSA,2*NTG-1)
+                      PWTD(NSA,NTG)=PWTD(NSA,2*NTG-1)
                       PTT2(NSA,NTG)=PTT2(NSA,2*NTG-1)
                       PIT2(NSA,NTG)=PIT2(NSA,2*NTG-1)
                       PSPT(NSA,NTG)=PSPT(NSA,2*NTG-1)
@@ -592,6 +597,7 @@
                 call fp_adjust_ntg1_B(PWTT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PNT2,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PWT2,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PWTD,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PTT2,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PIT2,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PSPT,tempB,NTG1M_NEW)

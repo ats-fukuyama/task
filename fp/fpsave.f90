@@ -29,6 +29,7 @@
       integer:: IERR
       real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
+      real(8):: RSUM12
       real(8):: PV, WPL, WPM, WPP
       real(8):: DFP, DFT, FFP, testa, testb, FACT
       real(8),dimension(NSBMAX):: RSUM10
@@ -53,7 +54,7 @@
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
-            RSUM123=0.D0
+!            RSUM123=0.D0
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
@@ -62,7 +63,8 @@
             RSUM11S=0.D0
             RSUM11L=0.D0
 
-            NSBA=NSB_NSA(NSA)
+            RSUM12=0.D0
+!            NSBA=NSB_NSA(NSA)
             IF(MODELA.eq.0)THEN
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -100,9 +102,9 @@
                         RSUM3 = RSUM3                       &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
                              *(PV-1.D0)/THETA0(NSA)
-                        RSUM123 = RSUM123                   &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
-                             *(PV-1.D0)/THETA0(NSA)
+!                        RSUM123 = RSUM123                   &
+!                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
+!                             *(PV-1.D0)/THETA0(NSA)
                      END DO
                   END DO
                ENDIF
@@ -128,9 +130,9 @@
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
                              *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
-                        RSUM123 = RSUM123                    &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
+!                        RSUM123 = RSUM123                    &
+!                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
+!                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
                      END DO
                   END DO
                ENDIF               
@@ -210,6 +212,12 @@
                           +DCPT2(NTH,NP,NR,NSB,NSA)*DFT              & 
                           -FCPP2(NTH,NP,NR,NSB,NSA)*FFP)
                   END DO
+                  RSUM12 = RSUM12+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                         *(DPP(NTH,NP,NR,NSA)*DFP           &
+                          +DPT(NTH,NP,NR,NSA)*DFT           &
+                          -FPP(NTH,NP,NR,NSA)*FFP           &
+                       )
+
 
                   RSUM11B=RSUM11B+PG(NP,NSBA)**4*SINM(NTH)/PV    &
                                   *SPPB(NTH,NP,NR,NSA)
@@ -220,17 +228,17 @@
                   RSUM11L=RSUM11L+PG(NP,NSBA)**4*SINM(NTH)/PV    &
                                   *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)
 
-                  IF(NSA.eq.3)THEN
-                  testa=PG(NP,NSBA)**2*SINM(NTH)/PV  &
-                         *(DCPP(NTH,NP,NR,NSA)*DFP  &
-                          +DCPT(NTH,NP,NR,NSA)*DFT  &
-                          -FCPP(NTH,NP,NR,NSA)*FFP  &
-                       )
+!                  IF(NSA.eq.3)THEN
+!                  testa=PG(NP,NSBA)**2*SINM(NTH)/PV  &
+!                         *(DCPP(NTH,NP,NR,NSA)*DFP  &
+!                          +DCPT(NTH,NP,NR,NSA)*DFT  &
+!                          -FCPP(NTH,NP,NR,NSA)*FFP  &
+!                       )
 
-                  testb=-PG(NP,NSBA)**2*SINM(NTH)/PV     &
-                         *(FEPP(NTH,NP,NR,NSA)*FFP)
+!                  testb=-PG(NP,NSBA)**2*SINM(NTH)/PV     &
+!                         *(FEPP(NTH,NP,NR,NSA)*FFP)
+!                  END IF
 
-                  END IF
 !                  IF(NR.eq.6.and.NSA.eq.1)THEN
 !                     WRITE(8,'(3I4,1P12E12.4)') NR,NP,NTH             &
 !                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
@@ -264,7 +272,8 @@
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
-            RWS123L(NR,NSA) = RSUM123*FACT                   *1.D-6
+!            RWS123L(NR,NSA) = RSUM123*FACT                   *1.D-6
+            RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
             RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
@@ -309,6 +318,8 @@
                                 RJS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RPCSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
@@ -372,6 +383,7 @@
          PSPFT(NSA,NTG1)=0.D0
          PSPST(NSA,NTG1)=0.D0
          PSPLT(NSA,NTG1)=0.D0
+         PWTD(NSA,NTG1)=0.D0
          DO NSB=1,NSBMAX
             PPCT2(NSB,NSA,NTG1)= 0.D0
          END DO
@@ -382,6 +394,7 @@
             PNT(NSA,NTG1) =PNT(NSA,NTG1) +RNS(NR,NSA)*VOLR(NR)
             PIT(NSA,NTG1) =PIT(NSA,NTG1) +RJS(NR,NSA)*VOLR(NR)
             PWT(NSA,NTG1) =PWT(NSA,NTG1) +RWS(NR,NSA)*VOLR(NR)
+            PWTD(NSA,NTG1)=PWTD(NSA,NTG1)+RWS123(NR,NSA)*VOLR(NR)
             PPCT(NSA,NTG1)=PPCT(NSA,NTG1)+RPCS(NR,NSA)*VOLR(NR)
             PPWT(NSA,NTG1)=PPWT(NSA,NTG1)+RPWS(NR,NSA)*VOLR(NR)
             PPET(NSA,NTG1)=PPET(NSA,NTG1)+RPES(NR,NSA)*VOLR(NR)
@@ -395,7 +408,7 @@
             IF(MODELR.eq.1) then
                CALL FPNEWTON(NR,NSA,rtemp)
             else
-               EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA)     &
+               EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NSA)     &
                     /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
                THETAL=2.d0*EAVE/3.d0
                rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
@@ -499,7 +512,7 @@
               PNT(NSA,NTG1),PTT(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1)
          ELSE
             WRITE(6,102) NSA,NS_NSA(NSA), &
-              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1)
+              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT2(NSA,NTG1),PIT(NSA,NTG1)
          END IF
 !         WRITE(6,103) PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1)
          IF(NSBMAX.GT.1) THEN
@@ -537,10 +550,10 @@
          write(6,108) NSA,NS_NSA(NSA),PSPBT(NSA,NTG1),PSPFT(NSA,NTG1), &
                                       PSPST(NSA,NTG1),PSPLT(NSA,NTG1)
       END DO
-      write(*,105) rtotalpw
-      write(*,107) rtotalPC
-      write(*,109) rtotalSP
-      write(*,110) rtotalPC2
+      write(6,105) rtotalpw
+      write(6,107) rtotalPC
+      write(6,109) rtotalSP
+      write(6,110) rtotalPC2
 
 
  1001 FORMAT(I4,9E14.6)
@@ -693,7 +706,7 @@
       real(8):: rtemp, xeave, xtemp, thetal, EAVE
 
 !-----Average kinetic energy
-      EAVE=RWS123(NR,NSA)*AMFP(NSA)*THETA0(NSA) &
+      EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NSA) &
            /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
 
 !-----initial value of THETAL

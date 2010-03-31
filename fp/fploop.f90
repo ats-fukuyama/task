@@ -31,7 +31,6 @@
       IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
-!      open(8,file='dfdt_n10b_comp06.dat')
 
       DO NT=1,NTMAX
 
@@ -48,7 +47,6 @@
 
     1    L=L+1
 
-!     +++++ NSA loop +++++
 !         DO NP=1,NPMAX
 !         WRITE(*,*) NP, FNS(1,NP,1,1)
 !         END DO
@@ -64,32 +62,37 @@
                   END DO
                END DO
             END DO
+            DO NR=1,NRMAX
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX
+                     FNS22(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
+                  END DO
+               END DO
+            END DO
             DEPS2(NSA)=1.D2
          END DO
 
          DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP)
             NCHECK=NCHECK+1
-            DO NSA=1,NSAMAX
+            DO NSA=1,NSAMAX 
                NSBA=NSB_NSA(NSA)
                DO NR=NRSTART,NREND
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  F(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)
+                  F(NTH,NP,NR)=FNS2(NTH,NP,NR,NSBA)
                END DO
                END DO
                END DO
 
                IF(DEPS2(NSA).ge.EPSFP)THEN
 !                  write(*,*)NSA,EPSFP,DEPS2(NSA)
-!                  IF(NSA.eq.1) MODELA=0
                   CALL fp_exec(NSA,IERR)
-!                  IF(NSA.eq.1) MODELA=1
-                   IF(IERR.NE.0) GOTO 250
+                  IF(IERR.NE.0) GOTO 250
                ELSE
                   DO NR=NRSTART,NREND
                   DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     F1(NTH,NP,NR)=FNS2(NTH,NP,NR,NSA)
+                     F1(NTH,NP,NR)=FNS1(NTH,NP,NR,NSA)
                   END DO
                   END DO
                   END DO
@@ -102,13 +105,13 @@
                DO NTH=1,NTHMAX
                   FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                   RSUMF(NSA)=RSUMF(NSA) &
-                         +ABS(FNS1(NTH,NP,NR,NSA)-FNS2(NTH,NP,NR,NSA))**2
+                         +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA))**2
                ENDDO
                ENDDO
                ENDDO
-            ENDDO
+            ENDDO ! END OF NSA
 
             DO NSA=1,NSAMAX
                CALL mtx_gather_real8(RSUMF(NSA),RSUMA)
@@ -133,9 +136,9 @@
             DEPS=0.D0
             NSTEST=0
             DO NSA=1,NSAMAX
-               IF(DEPS2(NSA).le.RSUMF(NSA)/RSUMF0(NSA).and.DEPS2(NSA).ge.1.D-8)THEN
-                  NCHECK=LMAXFP+NCHECK ! exit do while
-               END IF
+!               IF(DEPS2(NSA).le.RSUMF(NSA)/RSUMF0(NSA).and.DEPS2(NSA).ge.1.D-8)THEN
+!                  NCHECK=LMAXFP+NCHECK ! exit do while
+!               END IF
                DEPS1=RSUMF(NSA)/RSUMF0(NSA)
                DEPS2(NSA)=RSUMF(NSA)/RSUMF0(NSA)
                IF(DEPS1.ge.DEPS) NSTEST=NSA
@@ -157,14 +160,14 @@
                DO NR=NRSTART,NREND
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
+!                  FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
                   FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
                ENDDO
                ENDDO
                ENDDO
             ENDDO
 
-!     +++++ end of NSA loop +++++
+!     +++++                                       +++++
 
             DO NSA=1,NSAMAX
                IF(DEPS2(NSA).ne.0.D0)THEN
@@ -176,19 +179,20 @@
                END IF
             END DO
 
-            DO NSA=1,NSAMAX
-               NSBA=NSB_NSA(NSA)
-               DO NR=NRSTART,NREND
-               DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
-                  FNS(NTH,NP,NR,NSBA)=FNS2(NTH,NP,NR,NSA)
-                  FNS2(NTH,NP,NR,NSA)=FNS1(NTH,NP,NR,NSA)
-               ENDDO
-               ENDDO
-               ENDDO
-            ENDDO
-         END DO
-! END OF DOWHILE
+!            DO NSA=1,NSAMAX
+!               NSBA=NSB_NSA(NSA)
+!               DO NR=NRSTART,NREND
+!               DO NP=1,NPMAX
+!               DO NTH=1,NTHMAX
+!                  FNS(NTH,NP,NR,NSBA)=FNS2(NTH,NP,NR,NSA)
+!                  FNS2(NTH,NP,NR,NSA)=FNS1(NTH,NP,NR,NSA)
+!               ENDDO
+!               ENDDO
+!               ENDDO
+!            ENDDO
+
+         END DO ! END OF DOWHILE
+
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART,NREND
@@ -278,7 +282,7 @@
       IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
 !         open(8,file='radial_profile_gcoe.dat')
 !         open(8,file='coef_14_3.dat')
-         open(9,file='power_D_pinch_1s.dat')
+         open(9,file='power_deriv_lossless.dat')
 !         open(9,file='balance_nr40.dat')
 !         Do NP=1,NPMAX
 !            Write(8,646) NP , PG(NP,1)&
@@ -329,20 +333,32 @@
                  ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
                  ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
                  ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
-                 ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
+                 ,PWT2(1,NTI),PWT2(2,NTI),PWT2(3,NTI),PWT2(4,NTI)                 &
                  ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
-                 ,PTT(1,NTI),PTT(2,NTI),PTT(3,NTI),PTT(4,NTI)                 &
+                 ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
                  ,PSPBT(2,NTI),PSPFT(4,NTI)
          END DO
          close(9)
+
+         open(8,file='deriv_W_lossless.dat')
+         DO NTI=2,NTG1
+            Write(8,645) NTI, PTG(NTI)*1000 &
+                 ,( PWT2(1,NTI)-PWT2(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,( PWT2(2,NTI)-PWT2(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,( PWT2(3,NTI)-PWT2(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
+                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
+                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
+                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI)
+         END DO
+         close(8)
 
       END IF
  645  FORMAT(I3,40E14.6)
  646  FORMAT(I3,17E14.6)
  647  FORMAT(12E14.6) 
          IF(IERR.NE.0) RETURN
-      ENDDO
-!      close(8)
+      ENDDO ! END OF NT LOOP
 
 !     +++++ end of time loop +++++
       

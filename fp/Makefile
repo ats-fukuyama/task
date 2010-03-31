@@ -60,7 +60,7 @@ libs:
 	(cd ../../bpsd; make bpsdlib.a)
 	(cd ../../task/eq; make eqlib.a)
 	(cd ../../task/mtxp; make libmtxbnd.o libmtxksp.o)
-	(cd ../plx; make pllib.a)
+	(cd ../../task/plx; make pllib.a)
 	(cd ../../task/lib; make tasklib.a)
 
 fp : $(LIBS) fpmain.o 
