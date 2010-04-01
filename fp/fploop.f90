@@ -103,11 +103,11 @@
                DO NR=NRSTART,NREND
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                   RSUMF(NSA)=RSUMF(NSA) &
                          +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA))**2
+                  FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                ENDDO
                ENDDO
                ENDDO
@@ -155,17 +155,17 @@
 
 !     +++++ update velocity distribution function +++++
 
-            DO NSA=1,NSAMAX
-               NSBA=NSB_NSA(NSA)
-               DO NR=NRSTART,NREND
-               DO NP=1,NPMAX
-               DO NTH=1,NTHMAX
+!            DO NSA=1,NSAMAX
+!               NSBA=NSB_NSA(NSA)
+!               DO NR=NRSTART,NREND
+!               DO NP=1,NPMAX
+!               DO NTH=1,NTHMAX
 !                  FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
-                  FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
-               ENDDO
-               ENDDO
-               ENDDO
-            ENDDO
+!                  FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
+!               ENDDO
+!               ENDDO
+!               ENDDO
+!            ENDDO
 
 !     +++++                                       +++++
 
@@ -282,7 +282,7 @@
       IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
 !         open(8,file='radial_profile_gcoe.dat')
 !         open(8,file='coef_14_3.dat')
-         open(9,file='power_deriv_lossless.dat')
+         open(9,file='power_D_pinch.dat')
 !         open(9,file='balance_nr40.dat')
 !         Do NP=1,NPMAX
 !            Write(8,646) NP , PG(NP,1)&
@@ -340,7 +340,7 @@
          END DO
          close(9)
 
-         open(8,file='deriv_W_lossless.dat')
+         open(8,file='deriv_W_D_pinch.dat')
          DO NTI=2,NTG1
             Write(8,645) NTI, PTG(NTI)*1000 &
                  ,( PWT2(1,NTI)-PWT2(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &

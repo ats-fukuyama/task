@@ -190,14 +190,14 @@
          ENDDO
       ENDDO
 
-!      DO NR=1,NRMAX
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               NM=NMA(NTH,NP,NR)
-!               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
-!            ENDDO
-!         ENDDO
-!      ENDDO
+      DO NR=1,NRMAX
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX
+               NM=NMA(NTH,NP,NR)
+               FNS(NTH,NP,NR,NSBA)=BMTOT(NM)
+            ENDDO
+         ENDDO
+      ENDDO
 
 !     ----- Clean up matrix solver -----
 
