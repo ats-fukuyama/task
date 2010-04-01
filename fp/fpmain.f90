@@ -21,6 +21,7 @@
       use equnit_mod
       use fpinit
       use fpmenu
+      use fpwrin
       use libmtx
 
       implicit none
@@ -46,5 +47,6 @@
       CLOSE(7)
       IF(nrank.EQ.0) CALL GSCLOS
       CALL mtx_finalize
+      CALL fp_wr_deallocate
       STOP
       END PROGRAM fp
