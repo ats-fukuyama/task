@@ -192,8 +192,6 @@
 
       CALL fp_wr_allocate
       ALLOCATE(rdata(NITMAXM+1))
-      ALLOCATE(CFD(0:NITMAXM))
-      ALLOCATE(FD(0:NITMAXM))
 
       IF(nrank.EQ.0) THEN
          DO NRAY=1,NRAYMAX
@@ -249,6 +247,8 @@
 
 !     ----- Calculate spline coefficients -----
 !
+      ALLOCATE(CFD(0:NITMAXM))
+      ALLOCATE(FD(0:NITMAXM))
       DO NRAY=1,NRAYMAX
          NITMX=NITMAX(NRAY)
          DO NIT=0,NITMX
@@ -284,7 +284,7 @@
                IF((PSIPRE-PSICR)*(PSIL-PSICR).LT.0.D0.OR. &
                    PSIL-PSICR.EQ.0.D0) THEN
                   CALL FPCROS(PSICR,NIT,NRAY,SICR)
-                  WRITE(6,'(A,3I4,1P2E15.6)') '# NR,NRAY,NIT,PSICR,SICR=', &
+                  WRITE(6,'(A,3I6,1P2E15.6)') '# NR,NRAY,NIT,PSICR,SICR=', &
                                                  NR,NRAY,NIT,PSICR,SICR
                   CALL FPCREK(SICR,NRAY,CEX,CEY,CEZ,RKX,RKY,RKZ,RX,RY,RZ)
                   IF(NCR.LT.NCRMAXM) THEN
