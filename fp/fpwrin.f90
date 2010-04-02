@@ -191,7 +191,9 @@
       CALL mtx_broadcast_integer(NITMAX,NRAYMAX)
 
       CALL fp_wr_allocate
-      ALLOCATE(rdata(NITMAXM))
+      ALLOCATE(rdata(NITMAXM+1))
+      ALLOCATE(CFD(0:NITMAXM))
+      ALLOCATE(FD(0:NITMAXM))
 
       IF(nrank.EQ.0) THEN
          DO NRAY=1,NRAYMAX
@@ -266,6 +268,7 @@
          CALL SPL1D (SI(0,NRAY),RZS(0,NRAY),FD,U9(1,0,NRAY),NITMX+1,0,IERR)
          CALL SPL1D (SI(0,NRAY),PSIX(0,NRAY),FD,U10(1,0,NRAY),NITMX+1,0,IERR)
       ENDDO
+      DEALLOCATE(cfd,fd)
 !
 !     ----- Find crossing point -----
 !
