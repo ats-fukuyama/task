@@ -542,7 +542,7 @@ contains
     ELM(1:NEMAX,1:4,3,NEQ) =   fem_int(2,rNuIN0) * ThntSW
     NLC(3,NEQ) = LQn2
 
-    ELM(1:NEMAX,1:4,4,NEQ) =   fem_int(2,rNuIN0)
+    ELM(1:NEMAX,1:4,4,NEQ) =   fem_int(2,rNuIN0) * BeamSW
     NLC(4,NEQ) = LQn3
 
     ! Loss to divertor
@@ -700,13 +700,13 @@ contains
     ELM(1:NEMAX,1:4,11,NEQ) = - (AMB / AME) * fem_int(2,rNube1BE)
     NLC(11,NEQ) = LQe3
 
-    ELM(1:NEMAX,1:4,12,NEQ) =   (AMB / AME) * fem_int(2,rNube1)
+    ELM(1:NEMAX,1:4,12,NEQ) =   (AMB / AME) * fem_int(2,rNube1) * BeamSW
     NLC(12,NEQ) = LQb3
 
     ELM(1:NEMAX,1:4,13,NEQ) =   2.D0 * (AMB / AME) * fem_int(37,rNube2BthBE,AphV)
     NLC(13,NEQ) = LQe4
 
-    ELM(1:NEMAX,1:4,14,NEQ) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2Bth,AphV)
+    ELM(1:NEMAX,1:4,14,NEQ) = - 2.D0 * (AMB / AME) * fem_int(37,rNube2Bth,AphV) * BeamSW
     NLC(14,NEQ) = LQb4
 
     ! Turbulent particle transport driver
@@ -861,10 +861,8 @@ contains
 
     ! v x B force
 
-!!$    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(6,AphV)
-!!$    NLC( 5,NEQ) = LQe2
-    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(28,dAphV,RNeUer)
-    NLC( 5,NEQ) = 0
+    ELM(1:NEMAX,1:4, 5,NEQ) =   2.D0 * (AEE / AME) * fem_int(6,AphV)
+    NLC( 5,NEQ) = LQe2
 
     ! Collisional friction with bulk ions
 
@@ -885,13 +883,13 @@ contains
     ELM(1:NEMAX,1:4,10,NEQ) = - (AMB / AME) * fem_int(2,rNube3BE)
     NLC(10,NEQ) = LQe4
 
-    ELM(1:NEMAX,1:4,11,NEQ) =   (AMB / AME) * fem_int(2,rNube3)
+    ELM(1:NEMAX,1:4,11,NEQ) =   (AMB / AME) * fem_int(2,rNube3) * BeamSW
     NLC(11,NEQ) = LQb4
 
     ELM(1:NEMAX,1:4,12,NEQ) =   2.D0 * (AMB / AME) * fem_int(29,rNube2BthBE,AphV)
     NLC(12,NEQ) = LQe3
 
-    ELM(1:NEMAX,1:4,13,NEQ) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2Bth,AphV)
+    ELM(1:NEMAX,1:4,13,NEQ) = - 2.D0 * (AMB / AME) * fem_int(29,rNube2Bth,AphV) * BeamSW
     NLC(13,NEQ) = LQb3
 
     ! Turbulent particle transport driver
@@ -1065,7 +1063,7 @@ contains
        ELM(1:NEMAX,1:4,14,NEQ) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
        NLC(14,NEQ) = LQn2
 
-       ELM(1:NEMAX,1:4,15,NEQ) = - (EION * 1.D-3) * fem_int(2,rNuIN0)
+       ELM(1:NEMAX,1:4,15,NEQ) = - (EION * 1.D-3) * fem_int(2,rNuIN0) * BeamSW
        NLC(15,NEQ) = LQn3
 
        ! Collisional NBI heating (Perp + Tan)
@@ -1080,7 +1078,7 @@ contains
 !!oldNBI      NLC(21,NEQ) = LQe4
 !!oldNBI
 !!oldNBI      ELM(1:NEMAX,1:4,22,NEQ) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!oldNBI           &                * fem_int(2,rNube)
+!!oldNBI           &                * fem_int(2,rNube) * BeamSW
 !!oldNBI      NLC(22,NEQ) = LQb4
 
        ! Simpified Alpha heating
@@ -1143,7 +1141,7 @@ contains
     ELM(1:NEMAX,1:4,3,NEQ) =     1.D0 / PZ * fem_int(2,rNuIN0) * ThntSW
     NLC(3,NEQ) = LQn2
 
-    ELM(1:NEMAX,1:4,4,NEQ) =     1.D0 / PZ * fem_int(2,rNuIN0)
+    ELM(1:NEMAX,1:4,4,NEQ) =     1.D0 / PZ * fem_int(2,rNuIN0) * BeamSW
     NLC(4,NEQ) = LQn3
 
     ! Loss to divertor
@@ -1293,7 +1291,7 @@ contains
     ELM(1:NEMAX,1:4, 3,NEQ) =   4.D0 * fem_int(41,rMui,RUithV)
     NLC( 3,NEQ) = LQi1
 
-    ! Poroidal E force
+    ! Poloidal E force
 
     ELM(1:NEMAX,1:4, 4,NEQ) = - (PZ * AEE / AMI) * fem_int(2,PNiV)
     NLC( 4,NEQ) = LQm2
@@ -1327,7 +1325,7 @@ contains
     ELM(1:NEMAX,1:4,11,NEQ) = - (AMB / AMI) * fem_int(2,rNubiBI)
     NLC(11,NEQ) = LQi3
 
-    ELM(1:NEMAX,1:4,12,NEQ) =   (AMB / AMI) * fem_int(2,rNubi)
+    ELM(1:NEMAX,1:4,12,NEQ) =   (AMB / AMI) * fem_int(2,rNubi) * BeamSW
     NLC(12,NEQ) = LQb3
 
     ! Turbulent particle transport driver
@@ -1501,10 +1499,8 @@ contains
 
     ! v x B force
 
-!!$    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(6,AphV)
-!!$    NLC( 5,NEQ) = LQi2
-    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(28,dAphV,RNiUir)
-    NLC( 5,NEQ) = 0
+    ELM(1:NEMAX,1:4, 5,NEQ) = - 2.D0 * (PZ * AEE / AMI) * fem_int(6,AphV)
+    NLC( 5,NEQ) = LQi2
 
     ! Collisional friction with bulk ions
 
@@ -1525,7 +1521,7 @@ contains
     ELM(1:NEMAX,1:4,10,NEQ) = - (AMB / AMI) * fem_int(2,rNubiBI)
     NLC(10,NEQ) = LQi4
 
-    ELM(1:NEMAX,1:4,11,NEQ) =   (AMB / AMI) * fem_int(2,rNubi)
+    ELM(1:NEMAX,1:4,11,NEQ) =   (AMB / AMI) * fem_int(2,rNubi) * BeamSW
     NLC(11,NEQ) = LQb4
 
     ! Turbulent particle transport driver (electron driven)
@@ -1702,7 +1698,7 @@ contains
 !!oldNBI      NLC( 9,NEQ) = LQi4
 !!oldNBI
 !!oldNBI      ELM(1:NEMAX,1:4,10,NEQ) =   0.5D0 * AMB * (PNBCD * Vb) / rKeV &
-!!oldNBI           &                * fem_int(2,rNubi)
+!!oldNBI           &                * fem_int(2,rNubi) * BeamSW
 !!oldNBI      NLC(10,NEQ) = LQb4
 
        ELM(1:NEMAX,1:4, 9,NEQ) = AMB * Vb / rKeV * fem_int(28,BthBNi,MNB)
@@ -1734,7 +1730,7 @@ contains
        ELM(1:NEMAX,1:4,16,NEQ) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT02V)
        NLC(16,NEQ) = LQn2
 
-       ELM(1:NEMAX,1:4,17,NEQ) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT03V)
+       ELM(1:NEMAX,1:4,17,NEQ) = 1.5D0 / PZ * fem_int(28,rNuIN0,PT03V) * BeamSW
        NLC(17,NEQ) = LQn3
 
        ! Charge exchange loss due to slow neutrals
@@ -1848,7 +1844,7 @@ contains
     ELM(1:NEMAX,1:4,0,NEQ) = fem_int(1) * invDT
     NLC(0,NEQ) = LQb3
 
-    ! Poroidal E force
+    ! Poloidal E force
 
     ELM(1:NEMAX,1:4,1,NEQ) = - (PZ * AEE / AMB) * fem_int(2,PNbV)
     NLC(1,NEQ) = LQm2
@@ -1861,7 +1857,7 @@ contains
     ELM(1:NEMAX,1:4,3,NEQ) =   fem_int(2,rNube1BE)
     NLC(3,NEQ) = LQe3
 
-    ELM(1:NEMAX,1:4,4,NEQ) =   2.D0 * fem_int(37,rNube2Bth,AphV)
+    ELM(1:NEMAX,1:4,4,NEQ) =   2.D0 * fem_int(37,rNube2Bth,AphV) * BeamSW
     NLC(4,NEQ) = LQb4
 
     ELM(1:NEMAX,1:4,5,NEQ) = - 2.D0 * fem_int(37,rNube2BthBE,AphV)

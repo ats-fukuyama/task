@@ -175,7 +175,7 @@ contains
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
          &     Chicl, Ecr, factor_bohm, rNuAsIL, &
-         &     EbL, logEbL, Scxb, Sion, &
+         &     EbL, logEbL, Scxb, Sion, ALFA, &
          &     RLOSS, SQZ, rNuDL, xl, ETASL, Ln, LT, etai_chk, kthrhos, &
          &     Tqt0L, RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR !, 09/06/17~ miki_m 
@@ -188,7 +188,7 @@ contains
     real(8) :: AITKEN2P
     real(4), dimension(0:NRMAX) :: p_gr2phi
     real(8), dimension(0:NRMAX) :: pres, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
-         &                         SRFe, SRFi, Ubpara
+         &                         SRFe, SRFi, Ubpara, ETA_coef, JBS_coef
 !!    real(8), dimension(0:NRMAX) :: Vexbr
     ! Mainly for derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
@@ -645,6 +645,7 @@ contains
           end if
        end do
     END IF
+    if(nrb == 0) nrb = 1
 
     ! PTiVav : Particle (or density) averaged temperature across the N02 source region
     sum1 = 0.d0 ; sum2 = 0.d0
@@ -865,20 +866,20 @@ contains
                 NR1 = NR
              END IF
              CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
-                  &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
+                  &         FQeth(NR),FQith(NR),ETA_coef(NR),JBS_coef(NR),ETA2(NR),AJBS2(NR), &
                   &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                   &         dTedr(NR1),dTidr(NR1),dPedr(NR1),dPidr(NR1),IER, &
                   &         p_gr2phi_in=p_gr2phi(NR))
           ELSE IF(MDOSQZ == 1) THEN
              IF(NR == 0) THEN
                 CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
-                     &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
+                     &         FQeth(NR),FQith(NR),ETA_coef(NR),JBS_coef(NR),ETA2(NR),AJBS2(NR), &
                      &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                      &         dTedr(NR+1),dTidr(NR+1),dPedr(NR+1),dPidr(NR+1),IER, &
                      &         dErdrS(NR+1),dBthdr(NR+1),dErdrS(0),dBthdr(0))
              ELSE
                 CALL TX_NCLASS(NR,rNueNC(NR),rNuiNC(NR),rNue2NC(NR),rNui2NC(NR), &
-                     &         FQeth(NR),FQith(NR),ETA2(NR),AJBS2(NR), &
+                     &         FQeth(NR),FQith(NR),ETA_coef(NR),JBS_coef(NR),ETA2(NR),AJBS2(NR), &
                      &         ChiNCpe(NR),ChiNCte(NR),ChiNCpi(NR),ChiNCti(NR), &
                      &         dTedr(NR),dTidr(NR),dPedr(NR),dPidr(NR),IER, &
                      &         dErdrS(NR),dBthdr(NR))
@@ -936,6 +937,8 @@ contains
        !     &                             / ( Vti * BthV(NR)) )**2))
        !!     &                         + ( ErVlc(NR) * BBL
        !!     &                             / ( Vti * BthV(NR)**2) )**2))
+          ETA_coef(NR) = 0.d0
+          JBS_coef(NR) = 0.d0
 
        ENDIF
 
@@ -1400,24 +1403,19 @@ contains
 
     !  Linear extrapolation
 
-!!$    rNueNC(0) = AITKEN2P(R(0),rNueNC(1),rNueNC(2),rNueNC(3),R(1),R(2),R(3))
-!!$    rNuiNC(0) = AITKEN2P(R(0),rNuiNC(1),rNuiNC(2),rNuiNC(3),R(1),R(2),R(3))
 !    rNueNC(0) = 2.D0 * rNueNC(0) - rNueNC(1)
 !    rNuiNC(0) = 2.D0 * rNuiNC(0) - rNuiNC(1)
 !    if(rNueNC(0) < 0.d0) rNueNC(0) = 0.d0
 !    if(rNuiNC(0) < 0.d0) rNuiNC(0) = 0.d0
 !!    rNueNC(0)  = 0.D0
 !!    rNuiNC(0)  = 0.D0
-!!    rNue2NC(0) = 0.D0
-!!    rNui2NC(0) = 0.D0
+!    rNue2NC(0) = 0.D0
+!    rNui2NC(0) = 0.D0
     rNueNC(0) = rNueNC(1)
     rNuiNC(0) = rNuiNC(1)
-    rNue2NC(0) = rNue2NC(1)
-    rNui2NC(0) = rNui2NC(1)
-!!$    ChiNCpe(0) = AITKEN2P(R(0),ChiNCpe(1),ChiNCpe(2),ChiNCpe(3),R(1),R(2),R(3))
-!!$    ChiNCte(0) = AITKEN2P(R(0),ChiNCte(1),ChiNCte(2),ChiNCte(3),R(1),R(2),R(3))
-!!$    ChiNCpi(0) = AITKEN2P(R(0),ChiNCpi(1),ChiNCpi(2),ChiNCpi(3),R(1),R(2),R(3))
-!!$    ChiNCti(0) = AITKEN2P(R(0),ChiNCti(1),ChiNCti(2),ChiNCti(3),R(1),R(2),R(3))
+    FQeth(0) = 0.d0 ! because it's proportional to poloidal rotation.
+    FQith(0) = 0.d0 ! because it's proportional to poloidal rotation. 
+
 !!    ChiNCpe(0) = 2.D0 * ChiNCpe(0) - ChiNCpe(1)
 !!    ChiNCte(0) = 2.D0 * ChiNCte(0) - ChiNCte(1)
 !!    ChiNCpi(0) = 2.D0 * ChiNCpi(0) - ChiNCpi(1)
@@ -1433,11 +1431,11 @@ contains
 !!$    where(ChiNCti > cap_val) ChiNCti = cap_val
     ETA2(0)  = 2.D0 * ETA2(0)  - ETA(1)
     AJBS2(0) = 2.D0 * AJBS2(0) - AJBS2(1)
-    ! For Neumann condition, finite viscosity is required at the magnetic axis.
-    De(0)    = De(1)
-    Di(0)    = Di(1)
-    rMue(0)  = rMue(1)
-    rMui(0)  = rMui(1)
+!!$    ! For Neumann condition, finite viscosity is required at the magnetic axis.
+!!$    De(0)    = De(1)
+!!$    Di(0)    = Di(1)
+!!$    rMue(0)  = rMue(1)
+!!$    rMui(0)  = rMui(1)
 
 !    write(6,*) INTG_F(SNBe),INTG_F(SNBi)
 !    write(6,*) (INTG_F(SNBi*PNBcol_i))*Eb*(1.D20 * rKeV)*2.D0*PI*RR*2.D0*PI/1.D6
@@ -1461,7 +1459,8 @@ contains
     do nr = 1, nrmax
        if(s(nr) /= 0.d0) then
           Ys(nr) = sqrt(AMi/(PTeV(NR)*rKeV)) &
-            & *abs(RR*R(NR)*( Q(NR)/R(NR)*(dErdrS(NR)*BphV(NR)-ErVlc(NR)*dBph(NR))/BphV(NR)**2 &
+            & *abs(RR*R(NR)*( Q(NR)/R(NR)*(dErdrS(NR)*BphV(NR) &
+            &                              -ErVlc(NR)*dBph(NR))/BphV(NR)**2 &
             &                +ErVlc(NR)/BphV(NR)*dqr(NR))/S(NR))
        else
           Ys(nr) = 0.d0
@@ -1472,7 +1471,8 @@ contains
     !     *** Linear growth rate for toroidal gamma_etai branch of the ITG mode ***
     !        (F.Crisanti et al, NF 41 (2001) 883)
     gamITG(0:NRMAX,1) = 0.1d0 * sqrt(PTeV(0:NRMAX)*rKeV/AMi)/RA * sqrt(RA/RR) &
-         &            * sqrt(RA*abs(dNidr(0:NRMAX))/PNiV(0:NRMAX) + RA*abs(dTidr(0:NRMAX))/PTiV(0:NRMAX)) &
+         &            * sqrt(RA*abs(dNidr(0:NRMAX))/PNiV(0:NRMAX) &
+         &                 + RA*abs(dTidr(0:NRMAX))/PTiV(0:NRMAX)) &
          &            * sqrt(PTiV(0:NRMAX)/PTeV(0:NRMAX))
 
     gamITG(0,2:3) = 0.d0
@@ -1549,11 +1549,19 @@ contains
     DO NR = 0, NRMAX
        ! +++ Original model +++
        EpsL = R(NR) / RR
+       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
        ETASL = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
-       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/(BthV(NR)**2+BphV(NR)**2))*rNueNC(NR)/(CORR(Zeff)*rNuei(NR)))
+       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/BBL**2)*rNueNC(NR)/(CORR(Zeff)*rNuei(NR))) &
+            &           / (1.D0 + ETA_coef(NR))
 !!$       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/(BthV(NR)**2+BphV(NR)**2))*rNueNC(NR)/(2.D0*CORR(Zeff)*rNuei(NR)))
 !!$       ETA1(NR) = AME / (AEE**2 * PNeV(NR)*1.D20) &
 !!$            &   * (CORR(Zeff)*rNuei(NR) + BthV(NR)**2/(BphV(NR)**2+BthV(NR)**2)*rNueNC(NR))
+
+       ! +++ Original model +++
+       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+       AJBS1(NR) =- 1.D0 / ((1.D0 + ALFA) * rNuei3(NR) * BphV(NR)) &
+            &    * (  BthV(NR) / BBL * rNueNC(NR) * dpdr(NR) - JBS_coef(NR))
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio

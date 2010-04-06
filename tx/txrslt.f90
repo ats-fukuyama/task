@@ -18,8 +18,7 @@ SUBROUTINE TXGLOB
        &     BBL, PAI, Vol, BPave, denomINT
   REAL(8) :: PIEINT, SIEINT, PCXINT, SUMM, SUMP, SUMdenom, SUMPNiV
 !!  real(8) :: SUMML, SUMPL, PNES, SUML
-  REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi, &
-       &     dPPV, ALFA
+  REAL(8) :: EpsL, FTL, DDX, RL31, RL32, DDD, dPTeV, dPTiV, dPPe, dPPi!, dPPV, ALFA
   REAL(8), DIMENSION(1:NRMAX) :: BETA, BETAP, BETAL, BETAPL, BETAQ
   real(8), dimension(0:NRMAX) :: Betadef, dBetadr, PP, BthV2, PNdiff
   real(8), dimension(:), allocatable :: denom
@@ -138,12 +137,12 @@ SUBROUTINE TXGLOB
   PP(0:NRMAX) = PeV(0:NRMAX) + PiV(0:NRMAX)
   DO NR = 0, NRMAX
      EpsL  = R(NR) / RR
-     BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-     ! +++ Original model +++
-     dPPV = DERIV4(NR,R,PP,NRMAX,0) * 1.D20 * rKeV
-     ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
-          & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
-     AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
+!!$     BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
+!!$     ! +++ Original model +++
+!!$     dPPV = DERIV4(NR,R,PP,NRMAX,0) * 1.D20 * rKeV
+!!$     ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+!!$          & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+!!$     AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * dPPV
      ! +++ Hirshman model +++
      dPTeV = DERIV4(NR,R,PTeV,NRMAX,0) * RA
      dPTiV = DERIV4(NR,R,PTiV,NRMAX,0) * RA

@@ -95,18 +95,18 @@ module tx_interface
   end interface
 
   interface DERIVS
-     SUBROUTINE DERIVS1D(R,F,NRMAX,G)
+     SUBROUTINE DERIVS1(R,F,NRMAX,G)
        integer(4), intent(in) :: NRMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R, F
        real(8), dimension(0:NRMAX), intent(out) :: G
-     end SUBROUTINE DERIVS1D
+     end SUBROUTINE DERIVS1
 
-     SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
+     SUBROUTINE DERIVS2(R,F,LQ,NQMAX,NRMAX,G)
        integer(4), intent(in) :: LQ, NRMAX, NQMAX
        real(8), dimension(0:NRMAX), intent(in)  :: R
        real(8), dimension(1:NQMAX,0:NRMAX), intent(in)  :: F
        real(8), dimension(0:NRMAX), intent(out) :: G
-     end SUBROUTINE DERIVS2D
+     end SUBROUTINE DERIVS2
   end interface
 
   interface

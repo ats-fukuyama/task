@@ -3,7 +3,7 @@ module tx_commons
   public
 
   integer(4), parameter :: NQM=22, NCM=32, NGRM=20, &
-       &                   NGTM=5000, NGVM=5000, NGYRM=141, NGYTM=51, &
+       &                   NGTM=5000, NGVM=5000, NGYRM=143, NGYTM=51, &
        &                   NGYVM=55, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
 !09/07/13 miki_m original : NGYRM=136

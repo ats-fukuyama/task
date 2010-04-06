@@ -558,9 +558,9 @@ SUBROUTINE TXINIT
   MDITST = 1
 
   !   Mode of initial plasma profils
-  !   0    : many profiles are analytically calculated 
-  !   1    : minimal profiles are calculated
-  MDINIT = 0
+  !   0    : minimal profiles are calculated
+  !   1    : many profiles are analytically calculated 
+  MDINIT = 1
 
   !   Mode of inherent convection annihilator
   !   0    : Nothing to do
@@ -645,6 +645,8 @@ SUBROUTINE TXINIT
   gDIV(137) = 1.E-6
   gDIV(138) = 1.E13
   gDIV(139) = 1.E3
+  gDIV(142) = 1.E27
+  gDIV(143) = 1.E27
 
   !   *** Density perturbation technique ***
 
@@ -1248,37 +1250,51 @@ SUBROUTINE TXPROF
 
   !  Initial condition Part II
 
-  IF(MDINIT == 0) THEN
+  IF(MDINIT == 1) THEN
 
      allocate(dPedr(0:NRMAX),dPidr(0:NRMAX))
      dPedr(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PeV,NRMAX,0) * rKeV
      dPidr(0:NRMAX) = 2.D0 * R(0:NRMAX) * dfdx(PSI,PiV,NRMAX,0) * rKeV
 
-     DO NR = 0, NRMAX
+     DO NR = 1, NRMAX
         dPe = dPedr(NR)
         dPi = dPidr(NR)
         IF(NR == NRMAX) THEN
            dPe = 0.D0
            dPi = 0.D0
         END IF
+!!$        IF(rNueNC(NR) == 0.D0) THEN
+!!$           ALP = 0.D0
+!!$        ELSE
+!!$           ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
+!!$        END IF
+!!$        X(LQi3,NR) =( (- BthV(NR) * X(LQe4,NR) + (dPe + dPi) / AEE) / BphV(NR) &
+!!$             &       +(FQeth(NR) + AMI / AME * FQith(NR)) /(rNueNC(NR) * 1.D20)) &
+!!$             &     / (PZ + ALP) * R(NR)
+!!$        X(LQe3,NR) =- ALP * X(LQi3,NR) + (FQeth(NR) + AMI / AME * FQith(NR)) &
+!!$             &                         /(rNueNC(NR) * 1.D20) * R(NR)
         IF(rNueNC(NR) == 0.D0) THEN
-           ALP = 0.D0
+           X(LQe3,NR) = 0.D0
+           X(LQi3,NR) = 0.D0
         ELSE
            ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
+           X(LQi3,NR) =( (- BthV(NR) * X(LQe4,NR) + (dPe + dPi) / AEE) / BphV(NR) &
+                &       +(FQeth(NR) + AMI / AME * FQith(NR)) /(rNueNC(NR) * 1.D20)) &
+                &     / (PZ + ALP) * R(NR)
+           X(LQe3,NR) =- ALP * X(LQi3,NR) + (FQeth(NR) + AMI / AME * FQith(NR)) &
+                &                         /(rNueNC(NR) * 1.D20) * R(NR)
         END IF
-        X(LQi3,NR) = (- BthV(NR) / BphV(NR) * X(LQe4,NR) + (dPe + dPi) &
-             &     / (AEE * BphV(NR))) / (PZ + ALP) * R(NR)
-        X(LQe3,NR) =- ALP * X(LQi3,NR)
-        ErV(NR)    =- BphV(NR) / PNiV(NR) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
-             &      + (dPe + dPi) / (AEE * BphV(NR))) / (PZ + ALP) &
-             &      + dPi / (PZ * AEE * PNiV(NR))
-        X(LQe2,NR) =- (AMI * rNuiNC(NR) /(AEE * BphV(NR))) * X(LQi3,NR)
+        ErV(NR)    =- BphV(NR) / PNiV(NR) * X(LQi3,NR) / R(NR) + dPi / (PZ * AEE * PNiV(NR))
+        X(LQe2,NR) = (rNueNC(NR) * X(LQe3,NR) - FQeth(NR) * 1.D-20 * R(NR)) &
+             &     * AME / (AEE * BphV(NR))
         X(LQi2,NR) = X(LQe2,NR) / PZ
-        X(LQm3,NR) = BthV(NR) / PNeV(NR) * (-(AMI * rNuiNC(NR) /(AEE * BphV(NR))) &
-             &     / (PZ + ALP) * (- BthV(NR) / BphV(NR) * X(LQe4,NR) &
-             &     +(dPe + dPi) / (AEE * BphV(NR)))) &
+        X(LQm3,NR) = BthV(NR) / PNeV(NR) * X(LQe2,NR) / R(NR) &
              &     + AME * rNuei3(NR) / (AEE * PNeV(NR)) * X(LQe4,NR)
      END DO
+     X(LQe3,0) = 0.D0 ; X(LQi3,0) = 0.D0
+     ErV(0)    = 0.D0
+     X(LQe2,0) = 0.D0 ; X(LQi2,0) = 0.D0
+     X(LQm3,0) = AME * rNuei3(0) / (AEE * PNeV(0)) * X(LQe4,0)
 
      deallocate(dPedr,dPidr)
 

@@ -656,7 +656,7 @@ contains
           CASE('C')
              CALL TXGRFRA(-5)
           CASE('D')
-             CALL TXGRFRA(-7)
+             CALL TXGRFRA(-8)
           CASE('N')
              DO
                 WRITE(6,*) '## HOW MANY GRAPHs ?: 4 or 6'
@@ -1061,6 +1061,10 @@ contains
 
     ! *** ExB shearing rate ***
     GYL(0:NXM,NG,141) = REAL(wexb(0:NXM))
+
+    ! *** Heat flux contribution ***
+    GYL(0:NXM,NG,142) = REAL(FQeth(0:NXM))
+    GYL(0:NXM,NG,143) = REAL(FQith(0:NXM))
 
     RETURN
   END SUBROUTINE TXSTGR
@@ -2096,19 +2100,17 @@ contains
        CALL TXGRFRXS(15,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
     CASE(-6)
-       STR = '@rNueNC@'
-       CALL APPROPGY(MODEG, GY(0,0,74), GYL, STR, NRMAX, NGR, gDIV(74))
-       CALL TXGRFRXS( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
-
-       STR = '@rNuiNC@'
-       CALL APPROPGY(MODEG, GY(0,0,75), GYL, STR, NRMAX, NGR, gDIV(75))
-       CALL TXGRFRXS( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
-
        STR = '@rNuiCX@'
-       CALL TXGRFRXS( 2,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
+       CALL TXGRFRXS( 0,GX,GY(0,0,78),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@rNuION@'
-       CALL TXGRFRXS( 3,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
+       CALL TXGRFRXS( 1,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
+
+       STR = '@rNueHL@'
+       CALL TXGRFRXS( 2,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
+
+       STR = '@rNuiHL@'
+       CALL TXGRFRXS( 3,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@rNuAse@'
 !!$       CALL TXGRFRXS( 4,GX,GY(0,0,94),NRMAX,NGR,STR,MODE,IND,GYMAX=8.0)
@@ -2155,11 +2157,22 @@ contains
        STR = '@rNuLB@'
        CALL TXGRFRXS(15,GX,GY(0,0,116),NRMAX,NGR,STR,MODE,IND)
 
-!!$       STR = '@rNueHL@'
-!!$       CALL TXGRFRXS(14,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
-!!$
-!!$       STR = '@rNuiHL@'
-!!$       CALL TXGRFRXS(15,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
+    CASE(-7)
+       STR = '@rNueNC@'
+       CALL APPROPGY(MODEG, GY(0,0,74), GYL, STR, NRMAX, NGR, gDIV(74))
+       CALL TXGRFRX( 0,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@rNuiNC@'
+       CALL APPROPGY(MODEG, GY(0,0,75), GYL, STR, NRMAX, NGR, gDIV(75))
+       CALL TXGRFRX( 1,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@FQeth@'
+       CALL APPROPGY(MODEG, GY(0,0,142), GYL, STR, NRMAX, NGR, gDIV(142))
+       CALL TXGRFRX( 2,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
+
+       STR = '@FQith@'
+       CALL APPROPGY(MODEG, GY(0,0,143), GYL, STR, NRMAX, NGR, gDIV(143))
+       CALL TXGRFRX( 3,GX,GYL       ,NRMAX,NGR,STR,MODE,IND)
 
     CASE DEFAULT
        WRITE(6,*) 'Unknown NGYR: NGYR = ',NGYR
@@ -2179,6 +2192,8 @@ contains
     CASE(-5)
        NGYR = -6  ; CYCLE
     CASE(-6)
+       NGYR = -7  ; CYCLE
+    CASE(-7)
        NGYR =  0  ; EXIT
     CASE DEFAULT
        EXIT
@@ -2575,20 +2590,20 @@ contains
        END DO
 
     CASE(-6)
-       STR(0) = '@rNueNC@'
-       CALL APPROPGY(MODEG, GYT(0,0,74), GYL(0,0,0), STR(0), NRMAX, NGT, gDIV(74), &
+       STR(0) = '@rNuiCX@'
+       CALL APPROPGY(MODEG, GYT(0,0,78), GYL(0,0,0), STR(0), NRMAX, NGT, gDIV(78), &
             &        GMAX=GMAX(0), GMIN=GMIN(0))
 
-       STR(1) = '@rNuiNC@'
-       CALL APPROPGY(MODEG, GYT(0,0,75), GYL(0,0,1), STR(1), NRMAX, NGT, gDIV(75), &
+       STR(1) = '@rNuION@'
+       CALL APPROPGY(MODEG, GYT(0,0,80), GYL(0,0,1), STR(1), NRMAX, NGT, gDIV(80), &
             &        GMAX=GMAX(1), GMIN=GMIN(1))
 
-       STR(2) = '@rNuiCX@'
-       CALL APPROPGY(MODEG, GYT(0,0,78), GYL(0,0,2), STR(2), NRMAX, NGT, gDIV(78), &
+       STR(2) = '@rNueHL@'
+       CALL APPROPGY(MODEG, GYT(0,0,75), GYL(0,0,2), STR(2), NRMAX, NGT, gDIV(75), &
             &        GMAX=GMAX(2), GMIN=GMIN(2))
 
-       STR(3) = '@rNuION@'
-       CALL APPROPGY(MODEG, GYT(0,0,80), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(80), &
+       STR(3) = '@rNuiHL@'
+       CALL APPROPGY(MODEG, GYT(0,0,76), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(76), &
             &        GMAX=GMAX(3), GMIN=GMIN(3))
 
        STR(4) = '@rNubrp1@'
@@ -2651,6 +2666,34 @@ contains
        END DO
 
     CASE(-7)
+       STR(0) = '@rNueNC@'
+       CALL APPROPGY(MODEG, GYT(0,0,74), GYL(0,0,0), STR(0), NRMAX, NGT, gDIV(74), &
+            &        GMAX=GMAX(0), GMIN=GMIN(0))
+
+       STR(1) = '@rNuiNC@'
+       CALL APPROPGY(MODEG, GYT(0,0,75), GYL(0,0,1), STR(1), NRMAX, NGT, gDIV(75), &
+            &        GMAX=GMAX(1), GMIN=GMIN(1))
+
+       STR(2) = '@rNueNC@'
+       CALL APPROPGY(MODEG, GYT(0,0,142), GYL(0,0,2), STR(2), NRMAX, NGT, gDIV(142), &
+            &        GMAX=GMAX(2), GMIN=GMIN(2))
+
+       STR(3) = '@rNuiNC@'
+       CALL APPROPGY(MODEG, GYT(0,0,143), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(143), &
+            &        GMAX=GMAX(3), GMIN=GMIN(3))
+
+       DO NG = 0, NGT
+          call animes
+          call gtextx(12.5,17.7,'@T=@',0)
+          call gnumbr(13.1,17.7,GTX(NG),3,0)
+          DO I = 0, 3
+             CALL TXGRFRS(I, GX, GYL(0:NRMAX,NG:NG,I), NRMAX, 1, STR(I), 0, IND, 0, 1, &
+                  &       'ANIME', GMAX(I), GMIN(I))
+          END DO
+          call animee
+       END DO
+
+    CASE(-8)
        STR(0) = '@E$-r$=(r)@'
        CALL APPROPGY(MODEG, GYT(0,0,9),  GYL(0,0,0), STR(0), NRMAX, NGT, gDIV(9), &
             &        GMAX=GMAX(0), GMIN=GMIN(0))
@@ -2746,8 +2789,10 @@ contains
     CASE(-5)
        NGYR = -6  ; CYCLE
     CASE(-6)
-       NGYR =  0  ; EXIT
+       NGYR = -7  ; CYCLE
     CASE(-7)
+       NGYR =  0  ; EXIT
+    CASE(-8)
        NGYR =  0  ; EXIT
     CASE DEFAULT
        EXIT
@@ -2805,6 +2850,10 @@ contains
     CALL NUMBD(DT, '(1PD9.2)', 9)
     CALL TEXT('  NGRSTP = ', 11)
     CALL NUMBI(NGRSTP,'(I4)',4)
+
+!    CALL SETFNT(44)
+    call gtextx(5.5,9.4,'@Please compare ETA and AJBS in the limit of Zeff = 1.@',0)
+!    CALL SETFNT(-1)
 
     ! Resistivity
 

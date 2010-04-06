@@ -191,14 +191,15 @@ contains
 !
 !***********************************************************
 
-  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL,ETAout,JBSout, &
+  SUBROUTINE TX_NCLASS(NR,NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL, &
+       &               ETA_heat,JBS_heat,ETAout,JBSout, &
        &               ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil, &
        &               dTedr,dTidr,dPedr,dPidr,IER,dErdr,dBthdr,dErdr0,dBthdr0,p_gr2phi_in)
 !****************************************************************************
 !
 !  Input : NR,dErdr,dBthdr,dTedr,dTidr,dPedr,dPidr
 !          (optional) dErdr0,dBthdr0
-!  Output: NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL,ETAout,JBSout,
+!  Output: NueNC,NuiNC,Nue2NC,Nui2NC,FQethL,FQithL,ETA_heat,JBS_heat,ETAout,JBSout,
 !          ChiNCpel,ChiNCtel,ChiNCpil,ChiNCtil,IER
 !
 !****************************************************************************
@@ -254,6 +255,10 @@ contains
 !             m=3, classical
 !             m=4, banana-plateau, <E.B>
 !             m=5, banana-plateau, external parallel force fex_iz
+!  upar_s(3,m,s)-parallel flow of s from force m (T*m/s)
+!                m=1, p', T', Phi'
+!                m=2, <E.B>
+!                m=3, fex_iz
 !  utheta_s(3,m,s)-poloidal flow of s from force m (m/s/T)
 !                  m=1, p', T'
 !                  m=2, <E.B>
@@ -289,7 +294,8 @@ contains
     real(8), intent(in)  :: dTedr,dTidr,dPedr,dPidr
     real(8), intent(in), optional :: dErdr,dBthdr,dErdr0,dBthdr0
     real(4), intent(in), optional :: p_gr2phi_in
-    REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, FQethL, FQithL, ETAout, JBSout
+    REAL(8), INTENT(OUT) :: NueNC, NuiNC, Nue2NC, Nui2NC, FQethL, FQithL, &
+         &                  ETA_heat, JBS_heat, ETAout, JBSout
     INTEGER(4) :: i, k_out, k_v, ier_check
     REAL(4) :: a0, bt0, e0, p_eps, p_q, q0l, r0
     REAL(8) :: EpsL, BBL, PZMAX, &
@@ -568,8 +574,15 @@ contains
     if(ChiNCtil < 0.d0) ChiNCtil = 0.d0
 
     !   Heat flux contribution (i.e. coef * (2 q_theta / 5 p))
-    FQethL = - DBLE(p_b2 * ymu_s(1,2,1)) / AME / BthVL * sum(utheta_s(2,1:2,1)) ! [/m^2s^2]
-    FQithL = - DBLE(p_b2 * ymu_s(1,2,2)) / AMI / BthVL * sum(utheta_s(2,1:2,2)) ! [/m^2s^2]
+    FQethL = - FSNCPL * DBLE(p_b2 * ymu_s(1,2,1)) / AME / BthVL * sum(utheta_s(2,1:2,1)) ! [/m^2s^2]
+    FQithL = - FSNCPL * DBLE(p_b2 * ymu_s(1,2,2)) / AMI / BthVL * sum(utheta_s(2,1:2,2)) ! [/m^2s^2]
+
+    !   Contribution from heat flux to neoclassical resistivity
+    ETA_heat = DBLE(p_b2 / p_eb * ymu_s(1,2,1) * utheta_s(2,2,1)) / (AEE * PNeVL * 1.D20)
+    !   Contribution from heat flux to bootstrap current
+    !   ("utheta_s - upar_s/p_b2" is calculated so as to extract pure Ti' effect from utheta_s.)
+    JBS_heat = DBLE(ymu_s(1,2,1) * (p_b2 * utheta_s(2,1,1) - upar_s(2,1,1))) &
+         &   * AEE * BBL / (AME * BphVL)
 
     !   Poloidal flows by NCLASS for graphics
     if(NR == 0) then

@@ -1150,7 +1150,7 @@ END SUBROUTINE KSPLIT_TX
 !
 !***************************************************************
 
-SUBROUTINE DERIVS1D(R,F,NRMAX,G)
+SUBROUTINE DERIVS1(R,F,NRMAX,G)
 
   implicit none
   integer(4), intent(in) :: NRMAX
@@ -1176,9 +1176,9 @@ SUBROUTINE DERIVS1D(R,F,NRMAX,G)
   G(NR) = (DR2**2 * F(NR-1) - DR1**2 * F(NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
        &- (DR2 + DR1) * F(NR) / (DR1 * DR2)
 
-END SUBROUTINE DERIVS1D
+END SUBROUTINE DERIVS1
 
-SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
+SUBROUTINE DERIVS2(R,F,LQ,NQMAX,NRMAX,G)
 
   implicit none
   integer(4), intent(in) :: LQ, NRMAX, NQMAX
@@ -1205,7 +1205,7 @@ SUBROUTINE DERIVS2D(R,F,LQ,NQMAX,NRMAX,G)
   G(NR) = (DR2**2 * F(LQ,NR-1) - DR1**2 * F(LQ,NR-2)) / (DR1 * DR2 * (DR2 - DR1)) &
        &- (DR2 + DR1) * F(LQ,NR) / (DR1 * DR2)
 
-END SUBROUTINE DERIVS2D
+END SUBROUTINE DERIVS2
 
 pure REAL(8) FUNCTION DERIVF(NR,R,F,LQ,NQMAX,NRMAX)
 
