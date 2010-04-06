@@ -2,7 +2,6 @@
 module tx_variables
   implicit none
   public
-  integer(4), save :: NRB
   real(8), save :: Vbabsmax
 
 contains
@@ -160,11 +159,12 @@ contains
     use sauter_mod
     use tx_ripple
 
-    integer(4), optional :: IC
+    integer(4) :: IC
 
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
 
+    integer(4), save :: NRB = 1
     INTEGER(4) :: NR, NR1, IER, i, ideriv = 1, nrbound, MDANOMabs
     REAL(8) :: Sigma0, QL, SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, SL1, SL2, &
@@ -627,7 +627,7 @@ contains
 
     !  --- For thermal neutrals originating from slow neutrals ---
 
-    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
+    IF(IC == 1) THEN
        ! SCX : source of PN02V
        DO NR = 0, NRMAX
           SCX(NR) = PNiV(NR) * SiVcx(PTiV(NR)) * PN01V(NR) * 1.D40
@@ -645,7 +645,6 @@ contains
           end if
        end do
     END IF
-    if(nrb == 0) nrb = 1
 
     ! PTiVav : Particle (or density) averaged temperature across the N02 source region
     sum1 = 0.d0 ; sum2 = 0.d0
@@ -673,7 +672,7 @@ contains
          &     dfdx (PSI(0:NRMAX) , (R(0:NRMAX) / RA)**4 / Q(0:NRMAX) , NRMAX , 0)
 
     ! Orbit squeezing effect for NCLASS
-!    IF((present(IC) .and. IC == 1) .or. (present(IC) .eqv. .false.)) THEN
+!    IF(IC == 1) THEN
        p_gr2phi(0)  = 0.0
        IF(MDOSQZ == 2) THEN
           DO NR = 1, NRMAX

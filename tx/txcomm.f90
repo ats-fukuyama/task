@@ -128,7 +128,7 @@ module tx_commons
   ! Configuration parameters
   integer(4) :: NT, NQMAX, IERR, ICONT, IRPIN
   real(4) :: AVE_IC
-  real(8) :: T_TX, TMAX
+  real(8) :: T_TX = 0.D0, TMAX
   real(8) :: AMI, AMB, Vb, sqeps0
   real(8) :: rIP, Bthb
   real(8) :: UHth, UHph
@@ -252,7 +252,7 @@ module tx_commons
 !!     real(8), dimension(:), pointer :: r, data, vb
   end type infiles_type
   type(infiles_type), allocatable :: infiles(:)
-  integer(4) :: n_infiles ! number of data which are read from the file
+  integer(4) :: n_infiles = 0 ! number of data which are read from the file
   integer(4) :: iflag_file = 0 ! Flag indicating whether infiles is null or not.
                                ! Default "null"
   character(len=6), dimension(1:5) :: datatype

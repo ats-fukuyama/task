@@ -1246,7 +1246,7 @@ SUBROUTINE TXPROF
 
   !  Calculate various physical quantities
 
-  CALL TXCALC
+  CALL TXCALC(0)
 
   !  Initial condition Part II
 
@@ -1263,16 +1263,6 @@ SUBROUTINE TXPROF
            dPe = 0.D0
            dPi = 0.D0
         END IF
-!!$        IF(rNueNC(NR) == 0.D0) THEN
-!!$           ALP = 0.D0
-!!$        ELSE
-!!$           ALP = (AMI / AME) * (rNuiNC(NR) / rNueNC(NR))
-!!$        END IF
-!!$        X(LQi3,NR) =( (- BthV(NR) * X(LQe4,NR) + (dPe + dPi) / AEE) / BphV(NR) &
-!!$             &       +(FQeth(NR) + AMI / AME * FQith(NR)) /(rNueNC(NR) * 1.D20)) &
-!!$             &     / (PZ + ALP) * R(NR)
-!!$        X(LQe3,NR) =- ALP * X(LQi3,NR) + (FQeth(NR) + AMI / AME * FQith(NR)) &
-!!$             &                         /(rNueNC(NR) * 1.D20) * R(NR)
         IF(rNueNC(NR) == 0.D0) THEN
            X(LQe3,NR) = 0.D0
            X(LQi3,NR) = 0.D0
@@ -1322,7 +1312,7 @@ SUBROUTINE TXPROF
      CALL TXCALV(X,0) ! Set variables as well as ErV0
      ErV_FIX(0:NRMAX) = ErV(0:NRMAX)
 
-     CALL TXCALC
+     CALL TXCALC(0)
 
   END IF
 

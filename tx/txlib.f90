@@ -419,7 +419,7 @@ contains
 
   end function fem_int
 
-  function fem_int_point(id,ne,a,b,c) result(x)
+  function fem_int_point(id,ne,a,b,c,nex) result(x)
 !-------------------------------------------------------
 !
 !   Calculate "\int_{psi_i}^{psi_{i+1}} function(psi) dpsi"
@@ -505,7 +505,8 @@ contains
 !
 !-------------------------------------------------------
     integer(4), intent(in) :: id, ne
-    real(8), intent(in), dimension(0:nrmax), optional  :: a, b, c
+    integer(4), intent(in), optional :: nex
+    real(8), intent(in), dimension(*), optional  :: a, b, c
     integer(4) :: nel, node1, node2, iflag
     real(8) :: x(1:4), a1, a2, r1, r2, p1, p2, b1, b2, c1, c2, hp, csq15
 
@@ -517,7 +518,7 @@ contains
        nel = ne
     end if
 
-    node1 = nel-1  ; node2 = nel
+    node1 = nel  ; node2 = nel+1
     if(present(a)) then
        a1 = a(node1) ; a2 = a(node2)
        if(present(b)) then
@@ -528,8 +529,8 @@ contains
        end if
     end if
     if(iflag == 1) a1 = 0.d0
-    r1 = r(node1) ; r2 = r(node2)
-    p1 = psi(node1) ; p2 = psi(node2) ; hp = hpsi(nel)
+    r1 = r(nel-1) ; r2 = r(nel)
+    p1 = psi(nel-1) ; p2 = psi(nel) ; hp = hpsi(nel)
 
     select case(id)
     case(-1)
@@ -1318,14 +1319,14 @@ REAL(8) FUNCTION INTG_P(X,NR,ID)
         INTG_P = 0.D0
      ELSE
         NE = NR
-        INTG_P = 0.5D0 * SUM(fem_int_point(-1,NE,X))
+        INTG_P = 0.5D0 * SUM(fem_int_point(-1,NE,X,nex=NE))
      END IF
   ELSEIF(ID == 1) THEN
      IF(NR == 0) THEN
         INTG_P = 0.D0
      ELSE
         NE = NR
-        INTG_P = 0.5D0 * SUM(fem_int_point(21,NE,X))
+        INTG_P = 0.5D0 * SUM(fem_int_point(21,NE,X,nex=NE))
      END IF
   END IF
 
@@ -1357,7 +1358,7 @@ SUBROUTINE VALINT_SUB(X,NRLMAX,VAL,NR_START)
 
   SUML = 0.D0
   DO NE = NE_START, NEMAX
-     SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X))
+     SUML = SUML + 0.5D0 * SUM(fem_int_point(-1,NE,X,nex=NEMAX))
   END DO
   VAL = SUML
 
