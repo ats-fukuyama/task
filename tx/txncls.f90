@@ -19,9 +19,11 @@ contains
        &            JBS,ETA,JBSB,ETAS)
 
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-!     Programmed by HONDA Mitsuru (2007/05/24)
+!     Programmed by HONDA Mitsuru (2007/05/24, 2010/04/07 modified)
 !     
 !     Note that all the parameters are on the GRID point.
+!     "rho" denotes the radial coordinate and whether or not it is dimensionless
+!        does not matter. It only requires that derivatives are consistent to DPSI.
 !
 !     *** INPUT VARIABLES ***
 !     NE    : electron density [10^20/m^3]
@@ -42,16 +44,16 @@ contains
 !     ZI    : charge number of bulk ion
 !     ZEFF  : effective charge number
 !     FT    : trapped particle fraction
-!     rlnLei: Coulomb logarithm for electron collisions, optional
-!     rlnLii: Coulomb logarithm for ion collisions,      optional
-!     NUE   : Normalized collisionality for electrons,   optional
-!     NUI   : Normalized collisionality for ions,        optional
+!     rlnLei: Coulomb logarithm for electron collisions,   optional
+!     rlnLii: Coulomb logarithm for ion collisions,        optional
+!     NUE   : Normalized collisionality for electrons,     optional
+!     NUI   : Normalized collisionality for ions,          optional
 !
 !     *** OUTPUT VARIABLES ***
 !     JBS   : bootstrap current [A/m^2]
-!     JBSB  : parallel current <J . B> [AT/m^2],         optional
+!     JBSB  : bootstrap parallel current <J . B> [AT/m^2], optional
 !     ETA   : neoclassical resistivity [Ohm m]
-!     ETAS  : classical resistivity [Ohm m],             optional
+!     ETAS  : classical resistivity [Ohm m],               optional
 !
 !+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -62,18 +64,21 @@ contains
     real(8), intent(out), optional :: JBSB, ETAS
 
     real(8) :: EPSS,LnLame,NUE,LnLamii,NUI,RPE,ALFA0,ALFA,L31,L32,L34,RNZ,SGMSPTZ,QABS,&
-         &     PE,PI,DPE,DPI
+         &     PE,PI,DPE,DPI,TEeV,TIeV
     real(8) :: F31TEFF,F32EETEFF,F32EITEFF,F34TEFF,F33TEFF
+
+    TEeV = TE * 1.D3
+    TIeV = TI * 1.D3
 
     ! On magnetic axis, the neoclassical resistivity reduces to the classical resistivity
     ! and the bootstrap current vanishes.
     IF(EPS == 0.D0) THEN
        RNZ = 0.58D0+0.74D0/(0.76D0+ZEFF)
-       LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
+       LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TEeV))
        IF(PRESENT(rlnLei_IN)) LnLame = rlnLei_IN
 
        JBS = 0.D0
-       ETA = 1.D0 / (1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame))
+       ETA = 1.D0 / (1.9012D4*TEeV**1.5D0/(ZEFF*RNZ*LnLame))
        IF(PRESENT(JBSB)) JBSB = 0.D0
        IF(PRESENT(ETAS)) ETAS = ETA
        RETURN
@@ -82,22 +87,22 @@ contains
     EPSS = SQRT(EPS)**3
     QABS = ABS(Q)
 
-    PE  = NE * TE * 1.D20 * AEE * 1.D3
-    PI  = NI * TI * 1.D20 * AEE * 1.D3
-    DPE = DPE_IN  * 1.D20 * AEE * 1.D3
-    DPI = DPI_IN  * 1.D20 * AEE * 1.D3
+    PE  = NE * TEeV * 1.D20 * AEE
+    PI  = NI * TIeV * 1.D20 * AEE
+    DPE = DPE_IN    * 1.D20 * AEE * 1.D3
+    DPI = DPI_IN    * 1.D20 * AEE * 1.D3
 
 !     LnLam : coulomb logarithm
 !     NU    : collisional frequency [/s]
 
-    LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TE*1.D3))
+    LnLame=31.3D0-LOG(SQRT(NE*1.D20)/ABS(TEeV))
     IF(PRESENT(rlnLei_IN)) LnLame = rlnLei_IN
-    NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TE*1.D3)**2*EPSS)
+    NUE=6.921D-18*QABS*RR*NE*1.D20*ZEFF*LnLame/(ABS(TEeV)**2*EPSS)
     IF(PRESENT(NUE_IN))   NUE    = NUE_IN
 
-    LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TI*1.D3)**1.5D0))
+    LnLamii=30.D0-LOG(ZI**3*SQRT(NI*1.D20)/(ABS(TIeV)**1.5D0))
     IF(PRESENT(rlnLii_IN)) LnLamii = rlnLii_IN
-    NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TI*1.D3)**2*EPSS)
+    NUI = 4.90D-18*QABS*RR*NI*1.D20*ZI**4*LnLamii/(ABS(TIeV)**2*EPSS)
     IF(PRESENT(NUI_IN))   NUI     = NUI_IN
 
 !     RPE   : ratio of electron pressure to total pressure 
@@ -120,15 +125,14 @@ contains
 !     *** Bootstrap Current, JBS ***
 
     JBS = -IPSI*PE/DPSI/BB &
-         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
-    if(present(jbsb)) JBSB = -IPSI*PE/DPSI &
-         & *( L31*(DPE/PE+DPI/PE)+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+         & *( L31*(DPE+DPI)/PE+L32*DTE/TE+L34*ALFA*(1.D0-RPE)/RPE*DTI/TI)
+    if(present(jbsb)) JBSB = -JBS*BB
 
 !     *** Spitzer and Neoclassical Resistivity, ETAS, ETA ***
 
-    F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(NUE)+0.45D0*(1.D0-FT)*NUE/ZEFF**1.5)
+    F33TEFF = FT/(1.D0+(0.55D0-0.1D0*FT)*SQRT(NUE)+0.45D0*(1.D0-FT)*NUE/ZEFF**1.5D0)
     RNZ     = 0.58D0+0.74D0/(0.76D0+ZEFF)
-    SGMSPTZ = 1.9012D4*(TE*1.D3)**1.5/(ZEFF*RNZ*LnLame)
+    SGMSPTZ = 1.9012D4*TEeV**1.5D0/(ZEFF*RNZ*LnLame)
     ETA  = 1.D0 / (SGMSPTZ * F33(F33TEFF,ZEFF))
     if(present(etas)) ETAS = 1.D0 / SGMSPTZ
 
@@ -142,7 +146,7 @@ contains
     
     real(8), intent(in) :: X,Z
 
-    F33 = 1.D0-(1.D0+0.36D0/Z)*X+0.59D0/Z*X**2-0.23D0/Z*X**3
+    F33 = 1.D0+(-(1.D0+0.36D0/Z)+(0.59D0-0.23D0*X)*X/Z)*X
 
   END FUNCTION F33
 
@@ -150,8 +154,7 @@ contains
 
     real(8), intent(in) :: X,Z
 
-    F31 = (1.D0+1.4D0/(Z+1.D0))*X-1.9D0/(Z+1.D0)*X**2 &
-         &     +0.3D0/(Z+1.D0)*X**3+0.2D0/(Z+1.D0)*X**4
+    F31 = ((1.D0+1.4D0/(Z+1.D0))+(-1.9D0+(0.3D0+0.2D0*X)*X)*X/(Z+1.D0))*X
 
   END FUNCTION F31
 
@@ -159,9 +162,9 @@ contains
 
     real(8), intent(in) :: X,Z
 
-    F32EE = (0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
-         &       +1.D0/(1.D0+0.22D0*Z)*(X**2-X**4-1.2D0*(X**3-X**4)) &
-         &       +1.2D0/(1.D0+0.5D0*Z)*X**4 
+    F32EE = ((0.05D0+0.62D0*Z)/(Z*(1.D0+0.44D0*Z))*(1.D0-X**3) &
+         &       +( 1.D0/(1.D0+0.22D0*Z)*(1.D0-1.2D0*X+0.2D0*X**2) &
+         &         +1.2D0/(1.D0+0.5D0*Z)*X**2)*X)*X
 
   END FUNCTION F32EE
 
@@ -169,9 +172,9 @@ contains
 
     real(8), intent(in) :: X,Z
 
-    F32EI =-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(X-X**4) &
-         &       +4.95D0/(1.D0+2.48D0*Z)*(X**2-X**4-0.55D0*(X**3-X**4)) &
-         &       -1.2D0/(1.D0+0.5D0*Z)*X**4
+    F32EI =(-(0.56D0+1.93D0*Z)/(Z*(1.D0+0.44D0*Z))*(1.D0-X**3) &
+         &       +( 4.95D0/(1.D0+2.48D0*Z)*(1.D0-0.55D0*X-0.45D0*X**2) &
+         &         -1.2D0/(1.D0+0.5D0*Z)*X**2)*X)*X
 
   END FUNCTION F32EI
 
@@ -410,25 +413,6 @@ contains
     p_bm2 = REAL(1.D0 / BBL**2)
 
     p_eb  = REAL(EphVL*BphVL + EthVL*BthVL)
-!    p_eb  = REAL(EphV*BphV)
-!!$    rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeVL*1.D20)/(PTeVL))
-!!$    rlnLii(NR) = 40.3d0 - LOG(PZ**2/PTiVL*SQRT(2.D0*PNiVL*1.D20*PZ**2/PTiVL))
-!!$    CALL SAUTER(PNeVL,PTeVL,dTedrL,dPedrL,PNiVL,PTiVL,dTidrL,dPidrL, &
-!!$         &      QL,BphVL,RR*RA*BthVL,RR*BphVL,EpsL,RR,PZ,Zeff,ft(nr), &
-!!$         &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR),JBS=AJBSL,ETA=ETAL)
-!!$    IF(NR == 0) AJBSL = 0.D0
-!!$    p_eb  = REAL(ETAL*(( (-   AEE*PNeVL*UephV(NR) &
-!!$         &                +PZ*AEE*PNiVL*UiphV(NR) &
-!!$         &                +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
-!!$         &              +(-   AEE*PNeVL*UethV(NR) &
-!!$         &                +PZ*AEE*PNiVL*UithV(NR) &
-!!$         &                +PZ*AEE*PNbV(NR)*UbthV(NR))*BthVL)*1.D20-AJBSL*BBL))
-!!$    p_eb = REAL(ETAL*( (-   AEE*PNeVL*UephV(NR) &
-!!$         &              +PZ*AEE*PNiVL*UiphV(NR) &
-!!$         &              +PZ*AEE*PNbV(NR)*UbphV(NR))*BphVL &
-!!$         &            +(-   AEE*PNeVL*UethV(NR) &
-!!$         &              +PZ*AEE*PNiVL*UithV(NR) &
-!!$         &              +PZ*AEE*PNbVL*UbthV(NR))*BthVL)*1.D20)
     ! No ohmic current causes infinite resistivity in the NCLASS module.
     IF(p_eb == 0.D0) p_eb = 1.e-10
 

@@ -184,7 +184,7 @@ contains
     real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
     real(8) :: Frdc, Dcoef
     real(8) :: omegaer, omegaere, omegaeri, blinv
-    real(8) :: EFT, CR, dPTeV, dPTiV, dPPe, dPPi
+    real(8) :: EFT, CR
     real(8) :: AITKEN2P
     real(4), dimension(0:NRMAX) :: p_gr2phi
     real(8), dimension(0:NRMAX) :: pres, SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, &
@@ -1552,9 +1552,6 @@ contains
        ETASL = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
        ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/BBL**2)*rNueNC(NR)/(CORR(Zeff)*rNuei(NR))) &
             &           / (1.D0 + ETA_coef(NR))
-!!$       ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/(BthV(NR)**2+BphV(NR)**2))*rNueNC(NR)/(2.D0*CORR(Zeff)*rNuei(NR)))
-!!$       ETA1(NR) = AME / (AEE**2 * PNeV(NR)*1.D20) &
-!!$            &   * (CORR(Zeff)*rNuei(NR) + BthV(NR)**2/(BphV(NR)**2+BthV(NR)**2)*rNueNC(NR))
 
        ! +++ Original model +++
        ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
@@ -1564,16 +1561,12 @@ contains
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio
-       dPTeV = dTedr(NR) * RA
-       dPTiV = dTidr(NR) * RA
-       dPPe  = dPedr(NR) * RA
-       dPPi  = dPidr(NR) * RA
        IF(NR == 0) THEN
           AJBS3(NR) = 0.D0
        ELSE
-          CALL SAUTER(PNeV(NR),PTeV(NR),dPTeV,dPPe,PNiV(NR),PTiV(NR),dPTiV,dPPi, &
-               &      Q(NR),BphV(NR),RR*RA*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff,ft(nr), &
-               &      rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR), &
+          CALL SAUTER(PNeV(NR),PTeV(NR),dTedr(NR),dPedr(NR),PNiV(NR),PTiV(NR),dTidr(NR), &
+               &      dPidr(NR),Q(NR),BphV(NR),RR*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff, &
+               &      ft(nr),rlnLei_IN=rlnLei(NR),rlnLii_IN=rlnLii(NR), &
                &      JBS=AJBS3(NR),ETA=ETA3(NR))
        END IF
 
@@ -1610,13 +1603,6 @@ contains
 !       AJOH(NR) = EphV(NR) / ETA(NR)
        EPARA =(BthV(NR)*EthV(NR) + BphV(NR)*EphV(NR))/BBL
 
-!!$       EpsL  = R(NR) / RR
-!!$       BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-!!$       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
-!!$            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
-!!$       AJBS1(NR) = -1.D0 / (1.D0 + ALFA) * BthV(NR) / (BBL * BphV(NR)) * rNueNC(NR) / rNuei3(NR) * (dPPe(NR) + dPPi(NR)) * 1.D20 * rKeV
-
-!       write(6,*) r(nr)/ra,epara/eta(nr),aj(nr)-ajbs1(nr)-ajnb(nr)
        AJOH(NR) = EPARA / ETA(NR)! - AJNB(NR) ! ????????????
     END DO
 
