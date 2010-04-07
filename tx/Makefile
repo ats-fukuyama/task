@@ -50,7 +50,7 @@ $(PROG2): $(LIBS2)
 	$(FCFREE) $(LIBS2) $(LIBLA) -o $@ $(FFLAGS) $(FLIBS)
 
 $(PROG3): $(LIBS3)
-	$(FCFREE) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS) $(GLIBS)
 
 check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
