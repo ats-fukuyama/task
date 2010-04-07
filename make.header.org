@@ -7,12 +7,11 @@
 #LIBLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 #LIBLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
 #LIBLA = /usr/local/lib/lapack-xlf.a /usr/local/lib/blas-xlf.a
-#LIBLA = -L/opt/intel/mkl/9.1/lib/em64t -lmkl_lapack -lmkl_em64t -lguide -lpthread
 #LIBLA = -L /Library/Frameworks/Intel_MKL.framework/Libraries/32 -lmkl_lapack64 -lmkl -lguide -lpthread
-#LIBLA =/Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
+#LIBLA = /Applications/Absoft/lib/liblapack.a /Applications/Absoft/lib/libblas.a
 #LIBLA = /home/j024/lib/lapack-ifc64.a /home/j024/lib/blas-ifc64.a
 #LIBLA = /home/j024/lib/lapack.a /home/j024/lib/blas.a
-#LIBLA = -L/opt/intel/Compiler/11.1/038/mkl/lib/32 -lmkl_intel -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95
+#LIBLA = -L/opt/intel/Compiler/11.1/059/mkl/lib/32 -lmkl_intel -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95
 #LIBLA = -L/opt/intel/mkl/10.2.0.013/lib/em64t -lmkl_intel_lp64 -lmkl_intel_thread -lmkl_core -lguide -lpthread -lmkl_lapack95_lp64
 #MODLA95 = -I/usr/local/lib/lapack95_modules
 #MODLA95 = -I/opt/intel/mkl/10.2.0.013/include/em64t/lp64
@@ -89,7 +88,8 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc -lgsp-ifc -lgdp-ifc -L/usr/X11R6/lib -lX11
 #GLLIBS=-L/usr/local/lib -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0 -convert big_endian
-#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -check uninit  -convert big_endian
+#OFLAGS = -g -traceback -O3 -xT -axT -ip -assume protect-parens -prec-sqrt -vec-report0 -align
+#DFLAGS = -g -CB -w90 -w95 -traceback -vec-report0 -align -check all -fpe0 -warn -nogen-interfaces
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod
@@ -122,13 +122,13 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LDFLAGS=-r -o
 
 ## for Fujitsu fortran compiler on IA64
-#GFLIBS=-L/usr/local/lib -lg3d-f95 -lgsp-f95 -lgdp-f95 -L/usr/X11R6/lib64 -lX11
+#GFLIBS=-L/usr/local/lib -lg3d-f95 -lgsp-f95 -lgdp-f95 -L/usr/lib64 -lX11
 #OFLAGS = -O3 -Am -SSL2
 #DFLAGS = -g -Am -Haesux -fi -SSL2
 #FCFIXED = f95 -X9
 #FCFREE = f95
 #MOD = mod
-#MODDIR = -module mod
+#MODDIR = -Mmod
 #LD=ar
 #LDFLAGS=ru
 
