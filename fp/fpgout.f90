@@ -1392,7 +1392,7 @@
         REAL(8):: GF,DF
         INTEGER(4):: IM
 !
-        GF=F*DBLE(NFMAX)
+        GF=F*DBLE(NFMAX-1)+1
         IM=MIN(INT(GF),NFMAX-1)
         DF=GF-IM
         RGB(1)=RGBC(1,IM)*(1.D0-DF)+RGBC(1,IM+1)*DF

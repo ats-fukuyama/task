@@ -282,7 +282,7 @@
       IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
 !         open(8,file='radial_profile_gcoe.dat')
 !         open(8,file='coef_14_3.dat')
-         open(9,file='power_D_pinch.dat')
+!         open(9,file='power_D_pinch.dat')
 !         open(9,file='balance_nr40.dat')
 !         Do NP=1,NPMAX
 !            Write(8,646) NP , PG(NP,1)&
@@ -326,32 +326,32 @@
 !         END DO
 !         close(8)
 
-         DO NTI=1,NTG1
-            WRITE(9,645) NTI, PTG(NTI)*1000 &
-                 ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
-                 ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
-                 ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
-                 ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
-                 ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
-                 ,PWT2(1,NTI),PWT2(2,NTI),PWT2(3,NTI),PWT2(4,NTI)                 &
-                 ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
-                 ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
-                 ,PSPBT(2,NTI),PSPFT(4,NTI)
-         END DO
-         close(9)
+!         DO NTI=1,NTG1
+!            WRITE(9,645) NTI, PTG(NTI)*1000 &
+!                 ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
+!                 ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
+!                 ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
+!                 ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
+!                 ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
+!                 ,PWT2(1,NTI),PWT2(2,NTI),PWT2(3,NTI),PWT2(4,NTI)                 &
+!                 ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
+!                 ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
+!                 ,PSPBT(2,NTI),PSPFT(4,NTI)
+!         END DO
+!         close(9)
 
-         open(8,file='deriv_W_D_pinch.dat')
-         DO NTI=2,NTG1
-            Write(8,645) NTI, PTG(NTI)*1000 &
-                 ,( PWT2(1,NTI)-PWT2(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,( PWT2(2,NTI)-PWT2(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,( PWT2(3,NTI)-PWT2(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
-                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
-                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
-                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI)
-         END DO
-         close(8)
+!         open(8,file='deriv_W_D_pinch.dat')
+!         DO NTI=2,NTG1
+!            Write(8,645) NTI, PTG(NTI)*1000 &
+!                 ,( PWT2(1,NTI)-PWT2(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,( PWT2(2,NTI)-PWT2(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,( PWT2(3,NTI)-PWT2(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
+!                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
+!                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
+!                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI)
+!         END DO
+!         close(8)
 
       END IF
  645  FORMAT(I3,40E14.6)

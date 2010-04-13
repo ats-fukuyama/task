@@ -8,7 +8,7 @@
 !
       MODULE FPCONT
 
-      USE fpcomm
+!      USE fpcomm
 
       contains
 !---------------------------------------
