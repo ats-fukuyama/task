@@ -189,15 +189,11 @@ CChonda      RB=1.1D0*RA
       ENDDO
       read (neqdsk,2020) RAXIS,ZAXIS,PSI0,PSIA,Bctr
 C
-      WRITE(6,'(A,1PE12.4)') 'PSI0     =',PSI0 
-      WRITE(6,'(A,1PE12.4)') 'PSIA     =',PSIA
-C
       PSI0=2.D0*PI*PSI0
       PSIA=2.D0*PI*PSIA
 C
       DPS=(PSIA-PSI0)/(NPSMAX-1)
       PSI0=PSI0-PSIA
-      PSIA=0.D0
       PSIPA=-PSI0
       DO NPS=1,NPSMAX
          PSIPS(NPS)=DPS*(NPS-1)
@@ -212,7 +208,7 @@ C
       read (neqdsk,2020) ((PSIRZ(i,j),i=1,NRGMAX),j=1,NZGMAX)
       read (neqdsk,2020) (QQPS(i),i=1,NPSMAX)
       read (neqdsk,2022) NSUMAX,limitr
-      read (neqdsk,2020,ERR=8888) (RSU(i),ZSU(i),i=1,NSUMAX)
+      read (neqdsk,2020) (RSU(i),ZSU(i),i=1,NSUMAX)
       read (neqdsk,2020) (rlim(i),zlim(i),i=1,limitr)
 C
       RSUMAX = Rctr
@@ -279,14 +275,13 @@ C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
 C
       DO NZG=1,NZGMAX
          DO NRG=1,NRGMAX
-            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSI0
+            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSIA
          ENDDO
       ENDDO
       DO i=1,NPSMAX
          TTPS(i)   =2.D0*PI*TTPS(i)
          TTDTTPS(i)=4.D0*PI**2*TTDTTPS(i)
          DTTPS(i)  =TTDTTPS(i)/TTPS(i)
-         write(6,*) PSIPS(i),QQPS(i)
 Chonda         write(6,*) PSIPS(i),QQPS(i)
       ENDDO
 C
@@ -305,8 +300,6 @@ c$$$     &              (-TTPS(i)*DPPPS(i)/BB-DTTPS(i)*BB/RMU0)/(2.D0*PI)
 c$$$      ENDDO
 C
       return
- 8888 write (6,'(I5,1P2E12.4)') (i,RSU(i),ZSU(i),i=1,NSUMAX)
-      stop
 c     
  2000 format (6a8,3i4)
  2020 format (5e16.9)
