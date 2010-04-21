@@ -175,16 +175,27 @@ C
 C
       CHARACTER KNAMEP*6
 C
-      IF(NPH0.EQ. 0) KNAMEP='pdata0'
-      IF(NPH0.EQ. 1) KNAMEP='pdata1'
-      IF(NPH0.EQ. 2) KNAMEP='pdata2'
-      IF(NPH0.EQ. 3) KNAMEP='pdata3'
-      IF(NPH0.EQ. 4) KNAMEP='pdata4'
-      IF(NPH0.EQ. 5) KNAMEP='pdata5'
-      IF(NPH0.EQ. 6) KNAMEP='pdata6'
-      IF(NPH0.EQ. 7) KNAMEP='pdata7'
-      IF(NPH0.EQ. 8) KNAMEP='pdata8'
-      IF(NPH0.EQ. 9) KNAMEP='pdata9'
+      IF(NPH0.GE.0) THEN
+         KNAMEP='pd+000'
+         SELECT CASE(NPH0)
+         CASE(0:9)
+            WRITE(KNAMEP(6:6),'(I1)') NPH0
+         CASE(10:99)
+            WRITE(KNAMEP(5:6),'(I2)') NPH0
+         CASE(100:999)
+            WRITE(KNAMEP(4:6),'(I3)') NPH0
+         END SELECT
+      ELSE
+         KNAMEP='pd-000'
+         SELECT CASE(-NPH0)
+         CASE(1:9)
+            WRITE(KNAMEP(6:6),'(I1)') -NPH0
+         CASE(10:99)
+            WRITE(KNAMEP(5:6),'(I2)') -NPH0
+         CASE(100:999)
+            WRITE(KNAMEP(4:6),'(I3)') -NPH0
+         END SELECT
+      ENDIF
 C
       RETURN
       END

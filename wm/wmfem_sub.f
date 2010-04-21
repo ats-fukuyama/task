@@ -961,13 +961,28 @@ C     +++++ Antenna impedance +++++
 C
 C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
-      NS=1
-      DO NR=1,NRMAX
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            PCUR(NTH,NPH,NR)=0.D0
+      ns=1
+      DO nr=1,nrmax
+!         rho=rhoa(nr)
+         DO nph=1,nphmax
+         DO nth=1,nthmax
+            pcur(nth,nph,nr)=0.D0
          ENDDO
          ENDDO
+!         dth=2.d0*pi/nthmax
+!         dph=2.d0*pi/nphmax
+!         IF(rho.EQ.0.d0) THEN
+!            rhol=1.d-6
+!         else
+!            rhol=rho
+!         endif
+!         DO nph=1,nphmax
+!            ph=dph*(nph-1)
+!            DO nth=1,nthmax
+!               th=dth*(nth-1)
+!               CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
+!               ckpara=mm*bsupth/babs+nn*bsupph/babs
+
 c$$$         CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
 c$$$         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
 c$$$         WW=DBLE(CW)
