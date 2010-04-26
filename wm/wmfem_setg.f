@@ -260,6 +260,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE wmmetric_eq(IERR)
 C
+      use equnit_mod
       INCLUDE 'wmcomm.inc'
       real(8),dimension(3,3):: gm
       real(8):: gj
@@ -275,21 +276,27 @@ C
       ENDIF
 C
       IF(KNAMEQ_SAVE.NE.KNAMEQ) THEN
+         write(LINE,'(A,I5)') 'nrmax=',NRMAX
+         call eq_parm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nthmax=',64
+         call eq_parm(2,line,ierr)
+         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+         call eq_parm(2,line,ierr)
 C
-         CALL EQLOAD(MODELG,KNAMEQ,IERR)
+         CALL EQ_LOAD(MODELG,KNAMEQ,IERR)
          IF(IERR.NE.0) RETURN
 C
          KNAMEQ_SAVE=KNAMEQ
 C
-         write(LINE,'(A,I5)') 'nrmax=',NRMAX
-         call eqparm(2,line,ierr)
+C         write(LINE,'(A,I5)') 'nrmax=',NRMAX
+C         call eqparm(2,line,ierr)
 C         write(LINE,'(A,I5)') 'nthmax=',NTHMAX
-         write(LINE,'(A,I5)') 'nthmax=',64
-         call eqparm(2,line,ierr)
-         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
-         call eqparm(2,line,ierr)
-         CALL EQCALQ(IERR)
-C         CALL EQGOUT(0)
+C         write(LINE,'(A,I5)') 'nthmax=',64
+C         call eqparm(2,line,ierr)
+C         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
+C         call eqparm(2,line,ierr)
+C         CALL EQ_CALQ(IERR)
+         CALL EQ_GOUT
 
          CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
 C
@@ -298,6 +305,12 @@ C
          CALL EQGETZ(ZPS,DZPSI,DZCHI,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETBB(BPR,BPZ,BPT,BTP,NTHM,NTHMAX,NRMAX+1)
          CALL EQGETA(RAXIS,ZAXIS,PSIPA,PSITA,Q0,QA)
+         write(6,'(A,1P12E12.4)') 'RAXIS=',RAXIS
+         write(6,'(A,1P12E12.4)') 'ZAXIS=',ZAXIS
+         write(6,'(A,1P12E12.4)') 'PSIPA=',PSIPA
+         write(6,'(A,1P12E12.4)') 'PSITA=',PSITA
+         write(6,'(A,1P12E12.4)') 'Q0   =',Q0
+         write(6,'(A,1P12E12.4)') 'QA   =',QA
 C
          CALL EQGETU(RSU,ZSU,RSW,ZSW,NSUMAX)
          NSWMAX=NSUMAX

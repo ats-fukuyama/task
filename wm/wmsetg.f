@@ -128,6 +128,7 @@ C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
 C
             IF(RHOL.LT.1.D0) THEN
                QPS(NR)=Q0+(QA-Q0)*RHOL**2
+CCC               QPS(NR)=Q0+(QA-Q0)*RHOL**6
             ELSE
                QPS(NR)=QA*RHOL**2
             ENDIF
@@ -258,6 +259,7 @@ C
                QPS(NR)  = QA*RHOL**2
             ELSEIF(RHOMIN.LE.0.D0)THEN
                QPS(NR)  =(Q0-QA)*(1-RHOL**2)+QA
+CCC               QPS(NR)  =(Q0-QA)*(1-RHOL**6)+QA
             ELSE
                QSA0    =1/Q0-1/QMIN
                QSAA    =1/QA-1/QMIN

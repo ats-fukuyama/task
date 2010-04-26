@@ -4,6 +4,7 @@ C     ****** CONTROL GRAPHICS ******
 C
       SUBROUTINE WMGOUT
 C
+      USE equnit_mod
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
@@ -11,7 +12,7 @@ C
     1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  CPM/P/123  CP/J',
      &           '  P/F/SBQ23J   R/GMZ  S'
       WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
-     &           '  G/01234  ?/HELP  X/EXIT'
+     &           '  G/01234  EQ  ?/HELP  X/EXIT'
       READ(5,'(A5)',ERR=1,END=900) KSTR
       K1=KSTR(1:1)
 C
@@ -33,7 +34,7 @@ C
       ENDIF
 C
       IF((K1.EQ.'R').OR.(K1.EQ.'C').OR.(K1.EQ.'M').OR.
-     &   (K1.EQ.'P').OR.(K1.EQ.'S')) THEN
+     &   (K1.EQ.'P').OR.(K1.EQ.'S').OR.(K1.EQ.'E')) THEN
 	 K2=KSTR(2:2)
 	 CALL GUCPTL(K2)
          K3=KSTR(3:3)
@@ -56,6 +57,7 @@ C
          IF(K1.EQ.'C') CALL WMGRTH(K2,K3,K4)
          IF(K1.EQ.'M') CALL WMGRMD(K2,K3,K4)
          IF(K1.EQ.'S'.AND.(MODELG.EQ.4.OR.MODELG.EQ.6)) CALL WMGRMS
+         IF(K1.EQ.'E'.AND.K2.EQ.'Q'.AND.MODELG.GE.3) CALL eq_gout
       ELSE
          WRITE(6,*) '## UNDEFINED CONTROL CHARACTER: K1=',K1
       END IF
