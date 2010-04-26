@@ -175,10 +175,6 @@ c
       read (neqdsk,2000) (case(i),i=1,6),idum,NRGMAX,NZGMAX
       NPSMAX=NRGMAX
       read (neqdsk,2020) rdim,zdim,Rctr,rleft,zmid
-CChonda      RA=0.5D0*rdim
-CChonda      RKAP=zdim/rdim
-CChonda      RDLT=0.D0
-CChonda      RB=1.1D0*RA
       DR=rdim/(NRGMAX-1)
       DZ=zdim/(NZGMAX-1)
       DO NRG=1,NRGMAX
@@ -229,6 +225,15 @@ C
             R_ZSUMIN = RSU(i)
          end if
       enddo
+C for negative Ip and negative BB
+      IF(RIP.LT.0.D0) RIP=-RIP
+      IF(Bctr.LT.0.D0) Bctr=-Bctr
+      IF(TTPS(1).LT.0.D0) THEN
+         DO NPS=1,NPSMAX
+            TTPS(NPS)=-TTPS(NPS)
+         ENDDO
+      ENDIF
+
 C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
       RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
       RA   = RR - RSUMIN
