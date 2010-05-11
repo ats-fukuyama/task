@@ -960,8 +960,10 @@
                RCOEF2(1)=RSUM2/RSUM1
                RCOEF2_G(1)=RSUM4/RSUM3
             ELSE
-               RCOEF2(1)=RSUM2/RSUM1
-               RCOEF2_G(1)=RSUM4/RSUM3
+               RCOEF2(1)=1.D0
+!RSUM2/RSUM1
+               RCOEF2_G(1)=1.D0
+!RSUM4/RSUM3
             END IF
 
          ENDDO

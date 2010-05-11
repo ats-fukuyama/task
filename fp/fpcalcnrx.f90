@@ -1102,7 +1102,11 @@
          END DO
          TX1(NP2MAX+NPMAX+1)=PMAX(NSB)
          TY1(NP2MAX+NPMAX+1)=0.D0
-         DF1(1)   = 0.D0
+         IF(NI.ne.0)THEN
+            DF1(1)   = 0.D0
+         ELSE
+            DF(1) = - AMFD(NSB)*VC/PTFD0(NSB)*FPL(1,L)
+         END IF
          DF1(NP2MAX+NPMAX+1)   = 0.D0
          PMAX2=PMAX(NSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NP2MAX+NPMAX+1,3,IER)

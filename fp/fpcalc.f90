@@ -12,7 +12,8 @@
       USE fpcomm
       USE fpcalcn
       USE fpcalcnr
-      real(8):: PNFP,TMC2FD,TMC2FD0, PMAXC
+!      real(8):: PNFP,TMC2FD,TMC2FD0
+      real(8):: PMAXC
 
       interface
          real(8) function ERF0(X)
@@ -33,7 +34,7 @@
       IMPLICIT NONE
       integer:: NSA,NSB,NR, NP, NTH
 !      integer::NTHM, NPM, NRM
-      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL
+      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, TMC2FP0, RGAMA
 
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX+1
@@ -114,6 +115,18 @@
             ENDIF
          ENDDO
 
+!      DO NSB=1,NSBMAX
+!         DO NP=2,NPMAX+1
+!         RGAMA=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
+!         DO NTH=1,NTHMAX
+!            DCPP2(NTH,NP,NR,NSB,NSA)=-RGAMA*RTFP(NR,NSB)*FCPP2(NTH,NP,NR,NSB,NSA)/PG(NP,NSA) &
+!                 *AEE*1.D3/PTFP0(NSA)/VTFP0(NSA)
+!            FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
+!                 /(RGAMA*RTFP(NR,NSB)*AEE*1.D3 )
+!         ENDDO
+!         ENDDO
+!      ENDDO
+
 !        ----- Simple electron-ion collision term using ZEFF -----
 
          IF(MODELC.LT.0) THEN
@@ -132,13 +145,11 @@
                         VFPL=PFPL/AMFP(NSA)
                         U=VFPL/VTFP0(NSA)
                         DCTTL=0.5D0*RZI*RGAMH2/VFPL
-!                        write(*,*)DCTTL
                         DO NTH=1,NTHMAX+1
                            DCTT2(NTH,NP,NR,NSB,NSA) &
                                 =DCTT2(NTH,NP,NR,NSB,NSA)+DCTTL
                         ENDDO
                      ENDDO
-!         write(*,*) "test",DCTT2(2,2,1,NSB,NSA),NSA,NSB
                   ENDIF
                ENDDO
             ENDIF
@@ -165,23 +176,28 @@
          ENDIF
 
 !     sum up coefficients by species
-
+         open(8,file='p-dcpp_r0c4ee_x.dat')
          DO NSB=1,NSBMAX
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
                   DCPP(NTH,NP,NR,NSA)=DCPP(NTH,NP,NR,NSA) &
                                      +DCPP2(NTH,NP,NR,NSB,NSA)
                   DCPT(NTH,NP,NR,NSA)=DCPT(NTH,NP,NR,NSA) &
-                                     +DCPT2(NTH,NP,NR,NSB,NSA)!*0.D0
+                                     +DCPT2(NTH,NP,NR,NSB,NSA)
                   FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
                                      +FCPP2(NTH,NP,NR,NSB,NSA)
                END DO
-!               write(*,*) NP,DCPP(1,NP,NR,NSA)
+               IF(NSA.eq.1.and.NSB.eq.1) write(8,'(I4,1P14E14.6)') &
+                    NP,PG(NP,NSA),PG(NP,NSA)+DELP(NSA)/2.D0 &
+                    ,DCPP2(10,NP,NR,NSB,NSA),FCPP2(10,NP,NR,NSB,NSA),DCTT2(10,NP,NR,NSB,NSA) &
+                    ,PTFP0(NSA),sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),AEE*1.D3 &
+                    ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(1,NP,NR,NSB,NSA)/FCPP2(1,NP,NR,NSB,NSA)/AEE/1.D3 &
+                    *VTFP0(NSA),FNS(10,NP,NR,NSA)
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
                   DCTP(NTH,NP,NR,NSA)=DCTP(NTH,NP,NR,NSA) &
-                                     +DCTP2(NTH,NP,NR,NSB,NSA)!*0.D0
+                                     +DCTP2(NTH,NP,NR,NSB,NSA)
                   DCTT(NTH,NP,NR,NSA)=DCTT(NTH,NP,NR,NSA) &
                                      +DCTT2(NTH,NP,NR,NSB,NSA)
                   FCTH(NTH,NP,NR,NSA)=FCTH(NTH,NP,NR,NSA) &
@@ -189,6 +205,7 @@
                END DO
             END DO
          END DO
+         CLOSE(8)
       ENDDO
 
 
@@ -404,9 +421,23 @@
          PMAXC=PMAX(NSBA)
          DO NP=1,NPMAX+1
             IF(NP.EQ.1) THEN
-              DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
-                          *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB)))
-              FCPPL=0.D0
+               PNFPL=PG(NP,NSBA)
+               PNFP=PNFPL
+               TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2
+               TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
+               TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
+               RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+               PCRIT=0.D0
+               CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
+               PNFP=PCRIT
+               CALL DEHIFT(RINT2,ES2,H0DE,EPSDE,0,FPFN2R)
+               DCPPL=RGAMH/(3.D0*RINT0)*( &
+                    (AMFD(NSB)*PTFP0(NSA))                     &
+                    /(AMFP(NSA)*PTFD0(NSB))*RINT2 )             &
+                    *RNFD(NR,NSB)*1.D20
+!              DCPPL=RGAMH*RNFD(NR,NSB)*1.D20*(2.D0/(3.D0*SQRT(PI))) &
+!                          *(VTFP0(NSA)/(SQRT(2.D0)*VTFD(NR,NSB)))
+               FCPPL=0.D0
             ELSE
                PFPL=PG(NP,NSBA)*PTFP0(NSA)
                VFPL=PFPL/SQRT(AMFP(NSA)**2+PFPL**2/VC**2)

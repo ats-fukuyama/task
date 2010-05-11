@@ -56,6 +56,7 @@
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 !
+!      IF(NCHECK.eq.0)THEN
 
       IF(MODELW(NS).EQ.0) THEN
          CALL FP_CALW(NSA)
@@ -73,6 +74,7 @@
          IF(nrank.eq.0) WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW(NS)
       ENDIF
 
+!      END IF
 !     ----- Collisional slowing down and diffusion term -----
 
       CALL FP_CALC(NSA)
@@ -524,7 +526,7 @@
                     /AMFP(NSABEAM))/PTFP0(NSA)
                ANGSP=PI*SPBANG(NBEAM)/180.D0
                SUML=0.D0
-               DO NP=0,NPMAX-1
+               DO NP=1,NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      DO NTH=1,NTHMAX
                         IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
@@ -537,7 +539,7 @@
                      ENDDO
                   ENDIF
                ENDDO
-               DO NP=0,NPMAX-1
+               DO NP=1,NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
                      DO NTH=1,NTHMAX
                         IF(THG(NTH).LE.ANGSP.AND.THG(NTH+1).GT.ANGSP) THEN
@@ -769,7 +771,7 @@
       RNFDL=PLF(NS)%RN/RNFD0L
       RTFDL=(PLF(NS)%RTPR+2.D0*PLF(NS)%RTPP)/3.D0
 
-      IF (MODELR.EQ.0) THEN
+      IF(MODELR.EQ.0) THEN
          FACT=RNFDL/SQRT(2.D0*PI*RTFDL/RTFD0L)**3
          EX=PML**2/(2.D0*RTFDL/RTFD0L)
          IF(EX.GT.100.D0) THEN
@@ -777,7 +779,6 @@
          ELSE
             FPMXWL=FACT*EXP(-EX)
          ENDIF
-
       ELSE
          THETA0L=RTFD0L*1.D3*AEE/(AMFDL*VC*VC)
          THETAL=THETA0L*RTFDL/RTFD0L
