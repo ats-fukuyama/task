@@ -299,7 +299,6 @@
 !                 +PPCT(3,NTI-1)+PPWT(3,NTI-1)+PSPBT(3,NTI-1)+PSPFT(3,NTI-1) )*0.5D0 
 !         END DO
 !         close(8)
-
          END IF
  645  FORMAT(I3,40E14.6)
  646  FORMAT(I3,17E14.6)

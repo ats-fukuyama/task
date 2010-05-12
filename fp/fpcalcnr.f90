@@ -150,12 +150,9 @@
          END DO
       END DO
 
-
-
 !
 !---- INTEGRAL ABBREVIATIONS
 !
-!      vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
 !      CALL INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
       CALL INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 !
@@ -844,14 +841,15 @@
 
       integer,parameter::LNM=5
 
-      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL, FPL0
+      real(8),DIMENSION(NPMAX+3,-1:LNM),INTENT(IN):: FPL
+      real(8),DIMENSION(NPMAX+3,-1:LNM):: FPL0
 
       real(8),DIMENSION(2*NPMAX+3):: TX1,TY1,DF1,UTY10
       real(8),DIMENSION(4,2*NPMAX+3):: UTY1
 
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
-      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2):: RJABM,RJABG 
-      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2):: RYABM,RYABG
+      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RJABM,RJABG 
+      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2),INTENT(OUT):: RYABM,RYABG
 
       integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSBA
       integer:: IER, NS, NPF
@@ -916,17 +914,17 @@
             END IF
          END DO
          TX1(NPF+1)=PMAX(NSB)
-         TY1(NPF+2)=0.D0
+         TY1(NPF+1)=0.D0
          DF1(1)   = 0.D0
-         DF1(NPF+2)   = 0.D0
+         DF1(NPF+1)   = 0.D0
          PMAX2=PMAX(NSB)
          CALL SPL1D(TX1,TY1,DF1,UTY1,NPF+1,3,IER)
          CALL SPL1DI0(TX1,UTY1,UTY10,NPF+1,IER)
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
 !         DO NP=1,NPF
-!         IF(NSB.eq.1.and.L.eq.0.and.nsa.eq.1) THEN
-!            write(9,'(2I2,1P14E14.6)') NA,NI,TX1(NP),TY1(NP)
+!         IF(NSB.eq.1.and.nsa.eq.2) THEN
+!            write(9,'(3I2,1P14E14.6)') L, NA,NI,TX1(NP),TY1(NP)
 !         END IF
 !         END DO
 
@@ -949,11 +947,21 @@
             ENDIF
          END DO
       RJABG(1,L,NI,NA)=0.D0
+!      WRITE(9,*) " "
+!      WRITE(9,*) " "
+!      WRITE(10,*) " "
+!      WRITE(10,*) " "
       END DO
 !-------
       DO L=0,LLMAX
          TX1(1)=0.D0
-         TY1(1)=0.D0
+         IF(L.eq.1.and.NI.eq.0)THEN
+            TY1(1)=-(AMFD(NSB)*VC/PTFD0(NSB))**2*FPL0(1,L)
+         ELSEIF(L.eq.2.and.NI.eq.0)THEN
+            TY1(1)=-3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSB)*VTFP0(NSA)/VTFD0(NSB)/PMAX(NSB))
+         ELSE
+            TY1(1)=0.D0
+         END IF
          DO NNP=1,NPMAX
             testP=PM(NNP,NSB)/PMAX(NSB)
             RGAMB=SQRT(1.D0+testP**2*TMC2FD0)
@@ -977,11 +985,15 @@
          END DO
          TX1(NPF+1)=PMAX(NSB)
          TY1(NPF+1)=0.D0
-         IF(NI.ne.0)THEN
-            DF1(1) = 0.D0
-         ELSE
-            DF1(1) = - AMFD(NSB)*VC/PTFD0(NSB)*FPL(1,L)
+         IF(L.eq.0.and.NI.ne.0)THEN
+            DF1(1) = - AMFD(NSB)*VC/PTFD0(NSB)*FPL0(1,L)
 !            DF1(1) = - AMFD(NSB)*VC/PTFD0(NSB)*(3.D0*FPL(1,L)-FPL(2,L))/2.D0
+         ELSEIF(L.eq.2.and.NI.eq.1)THEN
+            DF1(1) = - (AMFD(NSB)*VC/PTFD0(NSB))**2*FPL0(1,L)
+         ELSEIF(L.eq.2.and.NI.eq.0)THEN
+            DF1(1) = 3.D0*(AMFD(NSB)*VC/PTFD0(NSB))**3*FPL0(1,L)/(PM(1,NSB)*VTFP0(NSA)/VTFD0(NSA)/PMAX(NSB))**2
+         ELSE
+            DF1(1) = 0.D0
          END IF
          DF1(NPF+1)   = 0.D0
          PMAX2=PMAX(NSB)
@@ -990,8 +1002,8 @@
          CALL SPL1DI(PMAX2,PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
 !         DO NP=1,NPF
-!            IF(NSB.eq.1.and.L.eq.0.and.nsa.eq.1) THEN
-!               write(10,'(2I2,1P14E14.6)') NA,NI,TX1(NP),TY1(NP)
+!            IF(NSB.eq.1.and.nsa.eq.2) THEN
+!               write(10,'(3I2,1P14E14.6)') L,NA,NI,TX1(NP),TY1(NP)
 !            END IF
 !         END DO
 
@@ -1014,6 +1026,10 @@
             ENDIF
 
          END DO
+!      WRITE(9,*) " "
+!      WRITE(9,*) " "
+!      WRITE(10,*) " "
+!      WRITE(10,*) " "
       END DO
 !      WRITE(9,*) " "
 !      WRITE(9,*) " "

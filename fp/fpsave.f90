@@ -138,7 +138,7 @@
                ENDIF               
             END IF
 
-!            open(8,file='F_DFDP_r1c4.dat')
+            open(8,file='F_DFDP_r1c4_x.dat')
 !            open(8,file='nth10_3.dat')
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
@@ -277,7 +277,7 @@
                write(8,*)" "
             END IF
             ENDDO
-!            close(8)
+            close(8)
 
 !            IF(NTG1.eq.NTMAX.and.NSA.eq.1.and.NR.eq.40) THEN
 !               NP=20

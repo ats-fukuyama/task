@@ -176,7 +176,7 @@
          ENDIF
 
 !     sum up coefficients by species
-         open(8,file='p-dcpp_r0c4ee_x.dat')
+         open(8,file='p-dcpp_r0c1ee.dat')
          DO NSB=1,NSBMAX
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
