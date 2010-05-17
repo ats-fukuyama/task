@@ -126,7 +126,7 @@ C
                CFL=CBFLD(NG3,NTH,NPH,NR)
             ENDIF
 C
-            IF(K4.EQ.'R') THEn
+            IF(K4.EQ.'R') THEN
                GY(NR,NTH)=GUCLIP(DBLE(CFL))
             ELSEIF(K4.EQ.'I') THEN
                GY(NR,NTH)=GUCLIP(DIMAG(CFL))
@@ -728,17 +728,17 @@ C
       CALL SETLIN(-1,-1,7)
       CALL GPLOTP(GRS,GZS,1,NSUMAX+1,1,0,0,0)
 C
-      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
-         NPHD=NPH
-      ELSE
-         NPHD=1
-      ENDIF
-      DO NSW=1,NSWMAX
-         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
-         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
-      ENDDO
-      CALL SETLIN(-1,-1,7)
-      CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
+c$$$      IF(MODELG.EQ.4.OR.MODELG.EQ.6) THEN
+c$$$         NPHD=NPH
+c$$$      ELSE
+c$$$         NPHD=1
+c$$$      ENDIF
+c$$$      DO NSW=1,NSWMAX
+c$$$         GRS(NSW)=GUCLIP(RSW(NSW,NPHD))
+c$$$         GZS(NSW)=GUCLIP(ZSW(NSW,NPHD))
+c$$$      ENDDO
+c$$$      CALL SETLIN(-1,-1,7)
+c$$$      CALL GPLOTP(GRS,GZS,1,NSWMAX,1,0,0,0)
 C
       CALL MOVE(17.5,16.0)
       CALL TEXT('MAX :',5)

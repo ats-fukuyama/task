@@ -9,7 +9,7 @@ C
 C
       CHARACTER KSTR*5,K1,K2,K3,K4
 C
-    1 WRITE(6,*) ' ## INPUT GSTR : R/EB/ATM  CPM/P/123  CP/J',
+    1 WRITE(6,*) ' ## INPUT GSTR : R/AEB/ATM  CPM/P/123  CP/J',
      &           '  P/F/SBQ23J   R/GMZ  S'
       WRITE(6,*) '                 CMP/EB/RTZsbh+-P/RIA',
      &           '  G/01234  EQ  ?/HELP  X/EXIT'
@@ -104,6 +104,21 @@ C
          KTITL(2)='Etheta'
          KTITL(3)='Ez    '
          KTITL(4)='Pabs  '
+      ELSEIF(K2.EQ.'A') THEN
+         NR=1
+            GX1(NR)=GUCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(       XR(NR))
+         DO NR=2,NRMAX+1
+            GX1(NR)=GUCLIP(       XR(NR))
+            GX2(NR)=GUCLIP(0.5D0*(XR(NR-1)+XR(NR)))
+         ENDDO
+         NX1=NRMAX+1
+         NX2=NRMAX+1
+         NG4=NSMAX
+         KTITL(1)='Pabs  '
+         KTITL(2)='Pabs 1'
+         KTITL(3)='Pabs 2'
+         KTITL(4)='Pabs 3'
       ELSE
          NR=1
             GX2(NR)=GUCLIP(       XR(NR))
@@ -287,48 +302,18 @@ C
                ENDDO
             ENDDO
          ENDIF
+      ELSEIF(K3.EQ.' ') THEN
+         DO NS=1,NSMAX
+            DO NR=1,NRMAX
+               POWER(NR,NS)=PABSR(NR,NS)
+            ENDDO
+            POWER(NRMAX+1,NS)=0.D0
+         ENDDO
       ENDIF
 C
       CALL PAGES
       CALL SETCHS(0.3,0.0)
-      IF(K3.NE.'N') THEN
-C
-C        *** E/B(R) ****
-C
-         DO NR=1,NX2
-            GY(NR,1)=GUCLIP(DBLE(CF(NR,1)))
-            GY(NR,2)=GUCLIP(DIMAG(CF(NR,1)))
-            GY(NR,3)=GUCLIP(ABS(CF(NR,1)))
-         ENDDO
-         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,1),KTITL(1))
-C
-C        *** E/B(THETA) ****
-C
-         DO NR=1,NX1
-            GY(NR,1)=GUCLIP(DBLE(CF(NR,2)))
-            GY(NR,2)=GUCLIP(DIMAG(CF(NR,2)))
-            GY(NR,3)=GUCLIP(ABS(CF(NR,2)))
-         ENDDO
-         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,2),KTITL(2))
-C
-C        *** E/B(Z) ****
-C
-         DO NR=1,NX1
-            GY(NR,1)=GUCLIP(DBLE(CF(NR,3)))
-            GY(NR,2)=GUCLIP(DIMAG(CF(NR,3)))
-            GY(NR,3)=GUCLIP(ABS(CF(NR,3)))
-         ENDDO
-         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,3),KTITL(3))
-C
-C        *** POWER / CURRENT ***
-C
-         DO I=1,NG4
-         DO NR=1,NX2
-            GY(NR,I)=GUCLIP(POWER(NR,I))
-         ENDDO
-         ENDDO
-         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,NG4,GP(1,4),KTITL(4))
-      ELSE
+      IF(K3.EQ.'N') THEN
 C
 C        *** E/B(R) ****
 C
@@ -369,6 +354,74 @@ C
          ENDDO
          ENDDO
          CALL WMGN1D(NX2,GX2,GXMIN,GXMAX,GY1,GY2,IMAX,GP(1,4),KTITL(4))
+      ELSEIF(K3.EQ.' ') THEN
+C
+C        *** POWER : All species ***
+C
+         DO I=1,NG4
+         DO NR=1,NX2
+            GY(NR,I)=GUCLIP(POWER(NR,I))
+         ENDDO
+         ENDDO
+         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,NG4,GP(1,1),KTITL(1))
+C
+C        *** POWER : species 1 ***
+C
+         DO NR=1,NX2
+            GY(NR,1)=GUCLIP(POWER(NR,1))
+         ENDDO
+         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,2),KTITL(2))
+C
+C        *** POWER : species 2 ***
+C
+         DO NR=1,NX2
+            GY(NR,1)=GUCLIP(POWER(NR,2))
+         ENDDO
+         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,3),KTITL(3))
+C
+C        *** POWER : species 3 ***
+C
+         DO NR=1,NX2
+            GY(NR,1)=GUCLIP(POWER(NR,3))
+         ENDDO
+         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,  1,GP(1,4),KTITL(4))
+      ELSE
+C
+C        *** E/B(R) ****
+C
+         DO NR=1,NX2
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,1)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,1)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,1)))
+         ENDDO
+         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,1),KTITL(1))
+C
+C        *** E/B(THETA) ****
+C
+         DO NR=1,NX1
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,2)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,2)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,2)))
+         ENDDO
+         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,2),KTITL(2))
+C
+C        *** E/B(Z) ****
+C
+         DO NR=1,NX1
+            GY(NR,1)=GUCLIP(DBLE(CF(NR,3)))
+            GY(NR,2)=GUCLIP(DIMAG(CF(NR,3)))
+            GY(NR,3)=GUCLIP(ABS(CF(NR,3)))
+         ENDDO
+         CALL WMGSUB(NX1,GX1,GXMIN,GXMAX,GY,2,GP(1,3),KTITL(3))
+C
+C        *** POWER ***
+C
+         DO I=1,NG4
+         DO NR=1,NX2
+            GY(NR,I)=GUCLIP(POWER(NR,I))
+         ENDDO
+         ENDDO
+         CALL WMGSUB(NX2,GX2,GXMIN,GXMAX,GY,NG4,GP(1,4),KTITL(4))
       ENDIF
 C
       CALL SETLIN(0,0,7)
