@@ -296,7 +296,7 @@ C         call eqparm(2,line,ierr)
 C         write(LINE,'(A,I5)') 'nsumax=',NSUMAX
 C         call eqparm(2,line,ierr)
 C         CALL EQ_CALQ(IERR)
-         CALL EQ_GOUT
+C         CALL EQ_GOUT
 
          CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
 C
