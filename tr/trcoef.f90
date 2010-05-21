@@ -96,7 +96,7 @@
          KGR4='/ExB SHEARING RATE/'
       case(140:149)
          KGR1='/ExB SHEARING RATE/'
-         KGR2='//'
+         KGR2='/ExB Factor/'
          KGR3='/chi_e tot;B;GB/'
          KGR4='/chi_i tot;B;GB/'
       case default
