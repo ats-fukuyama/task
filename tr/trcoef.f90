@@ -25,7 +25,7 @@
            NSMAX, NSTM, PA, PADD, PBM, PI, PNSS, PTS, PZ, Q0, QP, RA, RDPS, &
            RG, RHOG, RHOM, RJCB, RKAP, RKEV, RKPRHO, RKPRHOG, RM, RMU0, RN, &
            RNF, RR, RT, RW, S, ALPHA, RKCV, SUMPBM, TAUK, VC, VEXB, VGR1, &
-           VGR2, VGR3, VGR4, WEXB, ZEFF
+           VGR2, VGR3, VGR4, WEXB, ZEFF, VEXBP, WEXBP, BP
       USE cdbm_mod
       USE trmodels,ONLY: mbgb_driver
       IMPLICIT NONE
@@ -45,7 +45,8 @@
            XCHI1, XCHI2, XXA, XXH, ZEFFL, FSDFIX, BPA, PROFDL
       REAL(8):: &
            RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
-           PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
+           PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
+           VTIL, GAMMA0, EXBfactor
       INTEGER:: MODEL,ierr
       REAL(8),DIMENSION(NRMAX):: S_HM
       REAL(8)   :: DERIV3P
@@ -127,6 +128,7 @@
 !     Calculate ExB velocity in advance
 !                            for ExB shearing rate calculation
          VEXB(NR)= -ER(NR)/BB
+         VEXBP(NR)= -ER(NR)/(RR*BP(NR))
       ENDDO
 
       DO NR=1,NRMAX
@@ -350,6 +352,8 @@
 !        omega(or gamma)_e=(r/q) d(q v_exb/r)/dr
          DVE = DERIV3(NR,RHOG,VEXB,NRMAX,1)
          WEXB(NR) = (S(NR)-1.D0)*VEXB(NR)/RHOG(NR)+DVE
+         DVE = DERIV3(NR,RHOG,VEXBP,NRMAX,1)
+         WEXBP(NR) = RR*BP(NR)*DVE/BB
 !     Doppler shear
          AGMP(NR) = QP(NR)/EPS*WEXB(NR)
 
@@ -819,7 +823,7 @@
             VGR3(NR,2)=0.D0
             VGR3(NR,3)=0.D0
             VGR4(NR,1)=WEXB(NR)
-            VGR4(NR,2)=WEXB(NR)
+            VGR4(NR,2)=WEXBP(NR)
             VGR4(NR,3)=0.D0
             IF(MDLKAI.EQ.65) THEN
                DPERHO=DPE/RJCB(NR)
@@ -892,12 +896,12 @@
             PZL=PZL/RN(NR,1)
            
             CALL mbgb_driver(RA*RG(NR),RR,ANE*1.D20,TE,TI,DTE,DNE,PAL,PZL, &
-                             QP(NR),BB,WEXB(NR),S(NR), &
+                             QP(NR),BB,WEXBP(NR),S(NR), &
                              ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
                              ierr)
 !            WRITE(6,'(1P6E12.4)') &
 !                 RA*RG(NR),RR,ANE*1.D20,TE,TI,DTE, &
-!                 DNE,PAL,PZL,QP(NR),BB,WEXB(NR), &
+!                 DNE,PAL,PZL,QP(NR),BB,WEXBP(NR), &
 !                 S(NR),ADFFI, &
 !                 ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB
 
@@ -909,8 +913,11 @@
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
 
-            VGR1(NR,1)=WEXB(NR)
-            VGR2(NR,1)=0.D0
+            VGR1(NR,1)=WEXBP(NR)
+            VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMM))
+            GAMMA0=VTIL/(QP(NR)*RR)
+            EXBfactor=1.D0/(1.D0+(WEXBP(NR)/GAMMA0)**2)
+            VGR2(NR,1)=EXBfactor
             VGR3(NR,1)=ACHIE
             VGR3(NR,2)=ACHIEB
             VGR3(NR,3)=ACHIEGB

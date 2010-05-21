@@ -233,7 +233,16 @@
 !      ***  MDLKAI.EQ. 62  : IFS/PPPL model                        ***
 !      ***  MDLKAI.EQ. 63  : Weiland model                         ***
 !      ***  MDLKAI.EQ. 64  : Modified Weiland model                ***
-!      ***  MDLKAI.EQ. 65  : Bohm/Gyro-Bohm model                  ***
+
+
+!      ***  MDLKAI.EQ. 130 : CDBM model                            ***
+!      ***  MDLKAI.EQ. 131 : CDBM05 model                          ***
+!      ***  MDLKAI.EQ. 132 : CDBM model with ExB shear             ***
+!      ***  MDLKAI.EQ. 134 : CDBM05 model with ExB shear           ***
+
+!      ***  MDLKAI.EQ. 140 : mBgB (mixed Bonm and gyro-Boahm) model ***
+!      ***  MDLKAI.EQ. 141 : mBgB model with suppresion by Tara     ***
+!      ***  MDLKAI.EQ. 142 : mBgB model with suppresion by Pacher   ***
 
 !     +++++ WARNING +++++++++++++++++++++++++++++++++++++++++++
 !     +  Parameters below are valid only if MDNCLS /= 0,      +

@@ -715,17 +715,17 @@
       elseif(modelg.eq.7) then
          call pl_vmec(knameq,ierr) ! load vmec data
          call tr_bpsd_get(ierr)  ! 
-         call trgout
+!         call trgout
       elseif(modelg.eq.8) then
          call equ_prof ! initial calculation of eq
          call equ_calc         ! recalculate eq
          call tr_bpsd_get(ierr)  ! 
-         call trgout
+!         call trgout
       elseif(modelg.eq.9) then
          call eq_prof ! initial calculation of eq
          call eq_calc         ! recalculate eq
          call tr_bpsd_get(ierr)  ! 
-         call trgout
+!         call trgout
       endif
 
       return

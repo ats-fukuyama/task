@@ -120,7 +120,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o a.out core *.a *.mod $(MOD)/*.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm9/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
 	rm -f tr2 tr3
