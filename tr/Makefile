@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 # without eq
 #MODINCLUDE= -I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
@@ -56,7 +56,7 @@ SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 
 OBJM= $(SRC90M:.f90=.o)
-OBJS= $(SRC90:.f90=.o) $(SRCITG:.f=.o) $(SRCITGF:.F=.o)
+OBJS= $(SRCITG:.f=.o) $(SRCITGF:.F=.o) $(SRC90:.f90=.o) 
 OBJE=$(SRCE:.f=.o)
 OBJL=$(SRCL:.f=.o)
 OBJNC=$(SRCNC:.f=.o)
@@ -120,7 +120,7 @@ check : $(SRCS)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRCE) $(SRCL) $(SRC2D) $(SRCNC) $(FCKPIPE) | less
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm9/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o a.out core *.a *.mod $(MOD)/*.mod
 
 veryclean : clean
 	rm -f tr2 tr3
