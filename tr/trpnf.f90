@@ -29,6 +29,7 @@
          TE = RT(NR,1)
          TD = RT(NR,2)
          TT = RT(NR,3)
+         WRITE(6,*) NR,TD,TT
          SS = SIGMAM(TD,TT)
          IF(MDLNF/2.EQ.1) THEN
             ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) &
@@ -202,11 +203,13 @@
          TE   = RT(NR,1)
          TD   = RT(NR,2)
          THe3 = RT(NR,3)
+         write(6,*) NR,TE,TD,THe3
          SS = SIGMADHe3(TD,THe3)
          SNF(NR) = SS*RN(NR,2)*RN(NR,3)*1.D20
          PNF(NR) = SNF(NR)*(3.5D3+14.7D3)*RKEV*1.D20  ! proton energy added
                                                       ! for simplicity
          IF(MOD(MDLNF,2).EQ.0) SNF(NR) = 0.D0
+         WRITE(6,*) NR,PNF(NR)
       ENDDO
 
       DO NR=1,NRMAX
@@ -233,6 +236,7 @@
          PFCL(NR,2)=(VCD3 /VC3)*HYF*PFIN(NR)
          PFCL(NR,3)=(VCHe3/VC3)*HYF*PFIN(NR)
          PFCL(NR,4)=(VCA3 /VC3)*HYF*PFIN(NR)
+         WRITE(6,*) NR,PFCL(NR,1)
       ENDDO
 
       RETURN
@@ -264,16 +268,18 @@
             RENGL(NX)=LOG(RENG(NX))
             RRATE(NX)=LOG(RRATEL(NX))
          ENDDO
-         CALL SPL1D(RENGL,RRATEL,DIFF,URRATE,0,IERR)
+         CALL SPL1D(RENGL,RRATEL,DIFF,URRATE,10,0,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX SIGMADHe3: SPL1D: IERR=',IERR
          INIT=1
       ENDIF
 
       TI = (3.D0*ABS(TD)+2.D0*ABS(THe3))/5.D0
       IF(TI.GT.0.D0) THEN
-         TIL=LOG(TI)
+         TIL=LOG(MAX(TI,1.D0))
          CALL SPL1DF(TIL,XRATEL,RENGL,URRATE,10,IERR)
          IF(IERR.NE.0) WRITE(6,*) 'XX SIGMADHe3: SPL1DF: IERR=',IERR
+         IF(IERR.NE.0) WRITE(6,*) TIL,RENGL(1),RENGL(10)
+         IF(IERR.NE.0) WRITE(6,*) TI,TD,THe3
          SIGMADHe3=EXP(XRATEL)
       ELSE
          SIGMADHe3=0.D0
