@@ -242,7 +242,8 @@
 
 !      ***  MDLKAI.EQ. 140 : mBgB (mixed Bonm and gyro-Boahm) model ***
 !      ***  MDLKAI.EQ. 141 : mBgB model with suppresion by Tara     ***
-!      ***  MDLKAI.EQ. 142 : mBgB model with suppresion by Pacher   ***
+!      ***  MDLKAI.EQ. 142 : mBgB model with suppresion by Pacher (EXB)  ***
+!      ***  MDLKAI.EQ. 143 : mBgB model with suppresion by Pacher (EXB+SHAR)***
 
 !     +++++ WARNING +++++++++++++++++++++++++++++++++++++++++++
 !     +  Parameters below are valid only if MDNCLS /= 0,      +

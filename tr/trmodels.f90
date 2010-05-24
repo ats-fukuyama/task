@@ -22,7 +22,7 @@ CONTAINS
             rminor,rmajor,tekev,tikev,q,btor,aimass,charge,wexbs, &
             grdte,grdne,shear, &
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
-    REAL(8):: zte_p8,zte_edge,VTI,GAMMA0,EXBfactor
+    REAL(8):: zte_p8,zte_edge,VTI,GAMMA0,EXBfactor,SHRfactor,factor
     INTEGER:: NR8,NPOINTS,lflowshear
 
     rminor(1)=RSL             ! minor radius [m]
@@ -44,17 +44,27 @@ CONTAINS
     SELECT CASE(MDLKAI)
     CASE(140)
        lflowshear=0
+       SHRfactor=1.D0
        EXBfactor=1.D0
     CASE(141)
        lflowshear=1
+       SHRfactor=1.D0
        EXBfactor=1.D0
     CASE(142)
        lflowshear=0
        VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMM))
        GAMMA0=VTI/(QPL*RRL)
+       SHRfactor=1.D0
+       EXBfactor=1.D0/(1.D0+(WEXBL/GAMMA0)**2)
+    CASE(143)
+       lflowshear=0
+       VTI=SQRT(2.D0*TIL*RKEV/(PAL*AMM))
+       GAMMA0=VTI/(QPL*RRL)
+       SHRfactor=1.D0/MAX(1.D0,(SL-0.5d0)**2)
        EXBfactor=1.D0/(1.D0+(WEXBL/GAMMA0)**2)
     CASE DEFAULT
        lflowshear=0
+       SHRfactor=1.D0
        EXBfactor=1.D0
     END SELECT
 
@@ -66,14 +76,15 @@ CONTAINS
          chi_i_mix,  themix,   thdmix, &
          thigb,   thegb,    thibohm, thebohm, &
          ierr, lflowshear)
-           
-    ADFFI=thdmix(1)   *EXBfactor
-    ACHIE=themix(1)   *EXBfactor
-    ACHII=chi_i_mix(1)*EXBfactor
-    ACHIEB=thebohm(1) *EXBfactor
-    ACHIIB=thibohm(1) *EXBfactor
-    ACHIEGB=thegb(1)  *EXBfactor
-    ACHIIGB=thigb(1)  *EXBfactor
+
+    factor=EXBfactor*SHRfactor
+    ADFFI=thdmix(1)   *factor
+    ACHIE=themix(1)   *factor
+    ACHII=chi_i_mix(1)*factor
+    ACHIEB=thebohm(1) *factor
+    ACHIIB=thibohm(1) *factor
+    ACHIEGB=thegb(1)  *factor
+    ACHIIGB=thigb(1)  *factor
     RETURN
   END SUBROUTINE mbgb_driver
 
