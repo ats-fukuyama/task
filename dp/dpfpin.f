@@ -212,7 +212,7 @@ C
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
          READ(21) NS_NSA(NSA)
-         READ(21) DELP(NSA)
+         READ(21) DELP
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          READ(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX),
      &                NP=1,NPMAX),NR=1,NRMAX)

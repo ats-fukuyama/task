@@ -274,6 +274,71 @@ C
       RETURN
       END
 C
+C     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
+C
+      SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
+C
+      INCLUDE '../dp/dpcomm.inc'
+      INCLUDE '../pl/plcom2.inc'
+      DIMENSION CLDISP(6)
+C
+      DO I=1,6
+         CLDISP(I)=0.D0
+      ENDDO
+C
+      NMIN=NDISP1(NS)
+      NMAX=NDISP2(NS)
+      IF(MAX(ABS(NMIN),ABS(NMAX))+1.GT.NHM) THEN
+        WRITE(6,*) 'XX NDISP+1 EXCEEDS NHM: NHM = ',NHM
+        NMIN=-NHM+1
+        NMAX= NHM-1
+      ENDIF
+C
+      CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
+      CWC=BABS*PZ(NS)*AEE/(AMP*PA(NS)*CW)
+C
+      WTPR=RTPR(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPP=RTPP(NS)*1.D3*AEE/(AMP*PA(NS))
+      WTPX=SQRT(WTPR/WTPP)
+      CBETA=CKPP*CKPP*WTPP/(CWC*CWC*CW*CW)
+      CALL LAMBDA(MAX(ABS(NMIN),ABS(NMAX))+1,CBETA,CALAM,IERR)
+      IF(IERR.EQ.1) WRITE(6,*) 'XX LAMBDA: N out of range'
+C      IF(IERR.EQ.2) WRITE(6,*) 'XX LAMBDA: CBETA out of range'
+C
+      DO NC=NMIN,NMAX
+C
+         IF(ABS(CKPR).LE.0.D0) THEN
+            CPR=CW/SQRT(2.D0*1.D-4**2*WTPR)
+            CK=CKPP/1.D-4
+         ELSE
+            CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
+            CK=CKPP/CKPR
+        ENDIF
+         CGZ= (1.D0-NC*CWC)*CPR
+         CALL DSPFNA(1,CGZ,CZ,CDZ)
+C
+         CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
+         CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
+         CFG=-CPR*(1.D0-NC*(1.D0-1.D0/WTPX))*CGZ*CDZ
+C
+         CLAM=CALAM(ABS(NC))
+         CLAMM=CALAM(ABS(NC-1))
+         CLAMP=CALAM(ABS(NC+1))
+         CDLAM=0.5D0*(CLAMM+CLAMP)-CLAM
+         CBLAM=0.5D0*(CLAMM-CLAMP)
+C
+         CLDISP(1)=CLDISP(1)+CWP*   NC*CBLAM*CFW
+         CLDISP(2)=CLDISP(2)+CWP*     (CLAM*CFG-NC*CBLAM*CFW)
+         CLDISP(3)=CLDISP(3)-CWP* 2.D0*CBETA*CDLAM*CFW
+!         CLDISP(4)=CLDISP(4)-CWP*   CK*CBLAM*CFF
+!         CLDISP(5)=CLDISP(5)+CWP*CI*NC*CDLAM*CFW
+         CLDISP(4)=0.D0
+         CLDISP(5)=0.D0
+         CLDISP(6)=CLDISP(6)+CWP*CI*CK*CDLAM*CFF
+      ENDDO
+      RETURN
+      END
+C
 C     ****** KINETIC MODEL WITH FLR ******
 C
       SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
