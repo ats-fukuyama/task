@@ -98,8 +98,10 @@ C
       CASE(4) ! kinetic without FLR model
          CALL DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
       CASE(5) ! kinetic with FLR model
+         CALL DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
+      CASE(6) ! kinetic with FLR model
          CALL DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
-      CASE(6) ! weakly relativistic model
+      CASE(7) ! weakly relativistic model
          CALL DPTNKR(CW,CKPR,CKPP,NS,CLDISP)
       CASE(11:15) ! old WM models model
          CALL DPTNFK2(CW,CKPR,CKPP,NS,CLDISP)

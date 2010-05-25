@@ -8,11 +8,11 @@ C                 1 : COLLISIONAL COLD MODEL
 C                 2 : IDEAL MHD MODEL
 C                 3 : RESISTIVE MHD MODEL
 C                 4 : KINETIC MODEL WITHOUT FLR
-C                 5 : KINETIC MODEL WITH FLR
-C                 6 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
-C                 7 : GYROKINETIC MODEL (coming)
-C                 8 : LOCAL MODEL (MODELV locally specified by MODELVR)
-C                 9 : LOCAL MODEL (MODELV,P locally specified by MODELV,PR)
+C                 5 : KINETIC MODEL WITH FLR (symmetric)
+C                 6 : KINETIC MODEL WITH FLR
+C                 7 : KINETIC MODEL WITH RELATIVISTIC EFFECTS (test)
+C                 8 : DRIFTKINETIC MODEL (coming)
+C                 9 : GYROKINETIC MODEL (coming)
 C                11 : (WM) MHD plasma
 C                12 : (WM) Cold plasma
 C                13 : (WM) Hot plasma (No FLR)
@@ -42,8 +42,8 @@ C              1 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
 C              2 : KINETIC: READ FPDATA DISTRIBUTION
 C              3 : KINETIC: ANALYTIC MAXWELLIAN DISTRIBUTUION (RELATIVISTIC)
 C              4 : KINETIC: READ FPDATA DISTRIBUTION (RELATIVISTIC)
-C              5 : GYROKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
-C              6 : GYROKINETIC: READ FPDATA DISTRIBUTION
+C              5 : DRIFTKINETIC: ANALYTIC MAXWELLIAN DISTRIBUTION
+C              6 : DRIFTKINETIC: READ FPDATA DISTRIBUTION
 C              9 : LOCAL MODEL (MODELV locally specified by MODELVR)
 C
 C     NDISP1: MINIMUM HARMONIC NUMBER
