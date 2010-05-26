@@ -53,7 +53,7 @@ C
 C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
       ENDDO
       ENDDO
       DO NP=1,NPMAX
@@ -66,12 +66,12 @@ C***********DGP1,DGP2,DGT1,DGT2************
 C
       DO NP=1,NPMAX
       DO NTH=1,NTHMAX
-         DGP1(NP,NTH)=PTH0W*PG(NP)/SQRT(1+PTH0W*PG(NP)**2)
+         DGP1(NP,NTH)=PTH0W*PG(NP,NS)/SQRT(1+PTH0W*PG(NP,NS)**2)
      &               -DKPRW*TCSM(NTH)
-         DGP2(NP,NTH)=PTH0W*PM(NP)/SQRT(1+PTH0W*PM(NP)**2)
+         DGP2(NP,NTH)=PTH0W*PM(NP,NS)/SQRT(1+PTH0W*PM(NP,NS)**2)
      &               -DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)=DKPRW*PG(NP)*TSNM(NTH)
-         DGT2(NP,NTH)=DKPRW*PM(NP)*TSNG(NTH)
+         DGT1(NP,NTH)=DKPRW*PG(NP,NS)*TSNM(NTH)
+         DGT2(NP,NTH)=DKPRW*PM(NP,NS)*TSNG(NTH)
       ENDDO
       ENDDO
 C
@@ -98,13 +98,13 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/WCM
+         X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
-            CDENX= RGMG(NP)-CKPRW*PG(NP)*TCSM(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP)**2
+            CDENX= RGMG(NP)-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2
      &                             +(DELPL*DGT1(NP,NTH)*DELTH)**2)
 C
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
@@ -132,9 +132,9 @@ C
             CSM33 = CSM33 + PAI3          *PAI3*CDEN
          ENDDO
 C
-         PART1= DFP(NP,NTH)*PG(NP)*PG(NP)*PG(NP)
+         PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS)
      &                     *TSNM(NTH)*TSNM(NTH)*TSNM(NTH)
-     &         *DELTH*DELP
+     &         *DELTH*DELP(NS)
 C     
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -169,13 +169,13 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/WCM
+         X = DKPP*PTH0*PM(NP,NS)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
-            CDENX = RGMM(NP)-CKPRW*PM(NP)*TCSG(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP)**2
+            CDENX = RGMM(NP)-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2
      &                             +(DELPL*DGT2(NP,NTH)*DELTH)**2)
 C
             IF(NC.LT.0.AND.MOD(-NC,2).EQ.1) THEN
@@ -203,10 +203,10 @@ C
             CSM33 = CSM33 + PAI3          *PAI3*CDEN
          ENDDO
 C 
-         CPART2= DFT(NP,NTH)*PM(NP)*PM(NP)
+         CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS)
      &                      *TSNG(NTH)*TSNG(NTH)
-     &          *(TCSG(NTH)-CKPRW*PM(NP)/RGMM(NP))
-     &          *DELTH*DELP
+     &          *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGMM(NP))
+     &          *DELTH*DELP(NS)
 C 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -217,9 +217,9 @@ C
          CINTG231= CINTG231 + CSM13*CPART2
          CINTG232= CINTG232 - CSM23*CPART2
          CINTG233= CINTG233 + CSM33*CPART2
-     &                      - PM(NP)*PM(NP)*TCSG(NTH)
+     &                      - PM(NP,NS)*PM(NP,NS)*TCSG(NTH)
      &                        *DFT(NP,NTH)/RGMM(NP)
-     &                        *DELTH*DELP
+     &                        *DELTH*DELP(NS)
       ENDDO
       ENDDO
 C
@@ -261,7 +261,7 @@ C
 C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
       ENDDO
       ENDDO
       DO NP=1,NPMAX
@@ -303,7 +303,7 @@ C   PNEAR1
 C
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)
      &              *(DNPR*NC*DCWC*TCSM(NTH)+SQRT(D))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP*NPMAX) GOTO 302
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX) GOTO 302
 CCCC            IF (DKPRW*TCSM(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 302
 C
 C            IF(DNPR**2.LE.1.D0) THEN
@@ -314,16 +314,16 @@ C     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
 C               ENDIF
 C            ENDIF
 C
-            NP1 = INT(PNEAR1/DELP)
+            NP1 = INT(PNEAR1/DELP(NS))
             IF (NP1.LT.0.OR.NP1.GE.NPMAX) GOTO 302
             IF (NP1.EQ.0) THEN
-               DIF = PNEAR1/DELP
+               DIF = PNEAR1/DELP(NS)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP1.EQ.NPMAX-1) THEN
-               DIF = (PNEAR1 - PG(NP1))/DELP
+               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
                DFP3 = (1.D0-DIF)*DFP(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PG(NP1))/DELP
+               DIF = (PNEAR1 - PG(NP1,NS))/DELP(NS)
                DFP3 = DIF*DFP(NP1+1,NTH)+(1.D0-DIF)*DFP(NP1,NTH)
             ENDIF
 C
@@ -363,7 +363,7 @@ C     PNEAR2
 C
   302       PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSM(NTH))**2)*
      &               (DNPR*NC*DCWC*TCSM(NTH)-SQRT(D))/PTH0
-            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP*NPMAX) GOTO 310
+            IF (PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX) GOTO 310
 CCCC            IF (DKPRW*TCSM(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 310
 C
 C            IF(DNPR**2.LE.1.D0) THEN
@@ -374,16 +374,16 @@ C     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
 C               ENDIF
 C            ENDIF
 C
-            NP2 = INT(PNEAR2/DELP)
+            NP2 = INT(PNEAR2/DELP(NS))
             IF (NP2.LT.0.OR.NP2.GE.NPMAX) GOTO 310
             IF(NP2.EQ.0) THEN
-               DIF = PNEAR2/DELP
+               DIF = PNEAR2/DELP(NS)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP2.EQ.NPMAX-1) THEN
-               DIF = (PNEAR2 - PG(NP2))/DELP
+               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
                DFP3 = (1.D0-DIF)*DFP(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PG(NP2))/DELP
+               DIF = (PNEAR2 - PG(NP2,NS))/DELP(NS)
                DFP3 = DIF*DFP(NP2+1,NTH)+(1.D0-DIF)*DFP(NP2,NTH)
             ENDIF
 C
@@ -465,7 +465,7 @@ C   PNEAR1
 C
             PNEAR1 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2)
      &              *(DNPR*NC*DCWC*TCSG(NTH)+SQRT(D))/PTH0
-            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP*NPMAX) GOTO 402
+            IF (PNEAR1.LT.0.D0.OR.PNEAR1.GT.DELP(NS)*NPMAX) GOTO 402
 CCC            IF (DKPRW*TCSG(NTH)*PNEAR1+NC*DCWC.LT.0.D0) GOTO 402
 C
 C            IF(DNPR**2.LE.1.D0) THEN
@@ -476,16 +476,16 @@ C     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
 C               ENDIF
 C            ENDIF
 C
-            NP1 = INT(PNEAR1/DELP+0.5D0)
+            NP1 = INT(PNEAR1/DELP(NS)+0.5D0)
             IF (NP1.LT.0.OR.NP1.GE.NPMAX) GOTO 402
             IF(NP1.EQ.0) THEN
-               DIF = (PNEAR1 - PM(1))/DELP
+               DIF = (PNEAR1 - PM(1,NS))/DELP(NS)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP1.EQ.NPMAX-1) THEN
-               DIF = (PNEAR1 - PM(NP1))/DELP
+               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
                DFT4  = (1.D0-DIF)*DFT(NP1,NTH)
             ELSE
-               DIF = (PNEAR1 - PM(NP1))/DELP
+               DIF = (PNEAR1 - PM(NP1,NS))/DELP(NS)
                DFT4  = DIF*DFT(NP1+1,NTH)+(1.D0-DIF)*DFT(NP1,NTH)
             ENDIF
 C
@@ -525,7 +525,7 @@ C   PNEAR2
 C
  402        PNEAR2 = (AMP*PA(NS)*VC)/(1-(DNPR*TCSG(NTH))**2)
      &              *(DNPR*NC*DCWC*TCSG(NTH)-SQRT(D))/PTH0
-            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP*NPMAX) GOTO 410
+            IF(PNEAR2.LT.0.D0.OR.PNEAR2.GT.DELP(NS)*NPMAX) GOTO 410
 CCCC            IF (DKPRW*TCSG(NTH)*PNEAR2+NC*DCWC.LT.0.D0) GOTO 410
 C
 C            IF(DNPR**2.LE.1.D0) THEN
@@ -536,16 +536,16 @@ C     &                 'FL:NC,DCWC,DNPR,FL=',NC,DCWC,DNPR,FL
 C               ENDIF
 C            ENDIF
 C
-            NP2 = INT(PNEAR2/DELP+0.5D0)
+            NP2 = INT(PNEAR2/DELP(NS)+0.5D0)
             IF (NP2.LT.0.OR.NP2.GE.NPMAX) GOTO 410
             IF(NP2.EQ.0) THEN
-               DIF = (PNEAR2 - PM(1))/DELP
+               DIF = (PNEAR2 - PM(1,NS))/DELP(NS)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSE IF(NP2.EQ.NPMAX-1) THEN
-               DIF = (PNEAR2 - PM(NP2))/DELP
+               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
                DFT4  = (1.D0-DIF)*DFT(NP2,NTH)
             ELSE
-               DIF = (PNEAR2 - PM(NP2))/DELP
+               DIF = (PNEAR2 - PM(NP2,NS))/DELP(NS)
                DFT4  = DIF*DFT(NP2+1,NTH)+(1.D0-DIF)*DFT(NP2,NTH)
             ENDIF
 C

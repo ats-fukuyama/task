@@ -56,7 +56,7 @@ C      WRITE(6,*) '-- dphotf.f: SUM,WP=',SUM,DBLE(CWP)
 C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
       ENDDO
       ENDDO
       DO NP=1,NPMAX
@@ -71,8 +71,8 @@ C
       DO NTH=1,NTHMAX
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)= DKPRW*PG(NP)*TSNM(NTH)
-         DGT2(NP,NTH)= DKPRW*PM(NP)*TSNG(NTH)
+         DGT1(NP,NTH)= DKPRW*PG(NP,NS)*TSNM(NTH)
+         DGT2(NP,NTH)= DKPRW*PM(NP,NS)*TSNG(NTH)
       ENDDO
       ENDDO
 C
@@ -99,13 +99,13 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PG(NP)*TSNM(NTH)/WCM
+         X = DKPP*PTH0*PG(NP,NS)*TSNM(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
-            CDENX= RGM-CKPRW*PG(NP)*TCSM(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP)**2
+            CDENX= RGM-CKPRW*PG(NP,NS)*TCSM(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP1(NP,NTH)*DELP(NS))**2
      &                             +(DELPL*DGT1(NP,NTH)*DELTH)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
@@ -129,9 +129,9 @@ C
             CSM33 = CSM33 + PAI3* PAI3*CDEN
          ENDDO
 C
-         PART1= DFP(NP,NTH)*PG(NP)*PG(NP)*PG(NP)
+         PART1= DFP(NP,NTH)*PG(NP,NS)*PG(NP,NS)*PG(NP,NS)
      &                     *TSNM(NTH)*TSNM(NTH)*TSNM(NTH)
-     &         *DELTH*DELP
+     &         *DELTH*DELP(NS)
 C     
          CINTG111= CINTG111 + CSM11*PART1
          CINTG112= CINTG112 + CSM12*PART1
@@ -166,13 +166,13 @@ C
          CSM23 = (0.D0,0.D0)
          CSM33 = (0.D0,0.D0)
 C
-         X = DKPP*PTH0*PM(NP)*TSNG(NTH)/WCM
+         X = DKPP*PTH0*PM(NP,NS)*TSNG(NTH)/WCM
          CALL BESSJN(X,NHMAX,ADJ,ADJD)
 C
          DO NC=NCMIN,NCMAX
             NCD = ABS(NC)
-            CDENX = RGM-CKPRW*PM(NP)*TCSG(NTH)-NC*CWC
-            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP)**2
+            CDENX = RGM-CKPRW*PM(NP,NS)*TCSG(NTH)-NC*CWC
+            CDEN  = CDENX/(CDENX**2+(DELPL*DGP2(NP,NTH)*DELP(NS))**2
      &                             +(DELPL*DGT2(NP,NTH)*DELTH)**2)
             IF(X.EQ.0.D0) THEN
                IF(NCD.EQ.0) THEN
@@ -195,10 +195,10 @@ C
             CSM33 = CSM33 + PAI3* PAI3*CDEN
          ENDDO
 C 
-         CPART2= DFT(NP,NTH)*PM(NP)*PM(NP)
+         CPART2= DFT(NP,NTH)*PM(NP,NS)*PM(NP,NS)
      &                      *TSNG(NTH)*TSNG(NTH)
-     &          *(TCSG(NTH)-CKPRW*PM(NP)/RGM)
-     &          *DELTH*DELP
+     &          *(TCSG(NTH)-CKPRW*PM(NP,NS)/RGM)
+     &          *DELTH*DELP(NS)
 C 
          CINTG211= CINTG211 + CSM11*CPART2
          CINTG212= CINTG212 + CSM12*CPART2
@@ -209,9 +209,9 @@ C
          CINTG231= CINTG231 + CSM13*CPART2
          CINTG232= CINTG232 - CSM23*CPART2
          CINTG233= CINTG233 + CSM33*CPART2
-     &                      - PM(NP)*PM(NP)*TCSG(NTH)
+     &                      - PM(NP,NS)*PM(NP,NS)*TCSG(NTH)
      &                        *DFT(NP,NTH)/RGM
-     &                        *DELTH*DELP
+     &                        *DELTH*DELP(NS)
       ENDDO
       ENDDO
 C
@@ -250,7 +250,7 @@ C
 C
       DO NTH=1,NTHMAX
       DO NP=1,NPMAX-1
-         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP
+         DFP(NP,NTH) = (FM(NP+1,NTH) - FM(NP,NTH))/DELP(NS)
       ENDDO
       ENDDO
       DO NP=1,NPMAX
@@ -265,8 +265,8 @@ C
       DO NTH=1,NTHMAX
          DGP1(NP,NTH)=-DKPRW*TCSM(NTH)
          DGP2(NP,NTH)=-DKPRW*TCSG(NTH)
-         DGT1(NP,NTH)= DKPRW*PG(NP)*TSNM(NTH)
-         DGT2(NP,NTH)= DKPRW*PM(NP)*TSNG(NTH)
+         DGT1(NP,NTH)= DKPRW*PG(NP,NS)*TSNM(NTH)
+         DGT2(NP,NTH)= DKPRW*PM(NP,NS)*TSNG(NTH)
       ENDDO
       ENDDO
 C
@@ -298,17 +298,17 @@ C
          DO NC=NCMIN,NCMAX
 C
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSM(NTH)))
-            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP*NPMAX) GOTO 310
-            NP = INT(PNEAR/DELP)
+            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NS)*NPMAX) GOTO 310
+            NP = INT(PNEAR/DELP(NS))
             IF (NP.LT.0.OR.NP.GE.NPMAX) GOTO 310
             IF (NP.EQ.0) THEN
-               DIF = PNEAR/DELP
+               DIF = PNEAR/DELP(NS)
                DFP3 = DIF*DFP(1,NTH)
             ELSE IF(NP.EQ.NPMAX-1) THEN
-               DIF = (PNEAR - PG(NP))/DELP
+               DIF = (PNEAR - PG(NP,NS))/DELP(NS)
                DFP3 = (1.D0-DIF)*DFP(NP,NTH)
             ELSE
-               DIF = (PNEAR - PG(NP))/DELP
+               DIF = (PNEAR - PG(NP,NS))/DELP(NS)
                DFP3 = DIF*DFP(NP+1,NTH)+(1.D0-DIF)*DFP(NP,NTH)
             ENDIF
 C
@@ -380,17 +380,17 @@ C
 C               
             IF(NTH*2.EQ.NTHMAX) GOTO 410
             PNEAR = DBLE((RGM-CWC*NC)/(CKPRW*TCSG(NTH)))
-            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP*NPMAX) GOTO 410
-            NP = INT(PNEAR/DELP+0.5D0)
+            IF(PNEAR.LT.0.D0.OR.PNEAR.GT.DELP(NS)*NPMAX) GOTO 410
+            NP = INT(PNEAR/DELP(NS)+0.5D0)
             IF(NP.LT.0.OR.NP.GE.NPMAX) GOTO 410
             IF (NP.EQ.0) THEN
-               DIF = (PNEAR - PM(1))/DELP
+               DIF = (PNEAR - PM(1,NS))/DELP(NS)
                DFT4  = DIF*DFT(1,NTH)-(1.D0-DIF)*DFT(1,NTH)
             ELSEIF(NP.EQ.NPMAX-1) THEN
-               DIF = (PNEAR - PM(NP))/DELP
+               DIF = (PNEAR - PM(NP,NS))/DELP(NS)
                DFT4  = (1.D0-DIF)*DFT(NP,NTH)
             ELSE
-               DIF = (PNEAR - PM(NP))/DELP
+               DIF = (PNEAR - PM(NP,NS))/DELP(NS)
                DFT4  = DIF*DFT(NP+1,NTH)+(1.D0-DIF)*DFT(NP,NTH)
             ENDIF
 C

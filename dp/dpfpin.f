@@ -25,12 +25,12 @@ C
          PTH0W=(PTH0/(AMP*PA(NS)*VC))**2
       ENDIF
 C
-      DELP=PMAX/NPMAX
+      DELP(NS)=PMAX(NS)/NPMAX
       DELTH=PI/NTHMAX
 C
       DO NP=1,NPMAX
-         PM(NP)=DELP*(NP-0.5D0)
-         PG(NP)=DELP* NP
+         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NS)* NP
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -49,33 +49,33 @@ C
          TNPP=TPP/RT0
          SUM=0.D0
          DO NP=1,NPMAX
-            PML=PM(NP)
+            PML=PM(NP,NS)
             DO NTH=1,NTHMAX
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
                EX=-(PPR**2/TNPR+PPP**2/TNPP)
                FM(NP,NTH) = EXP(-EX)
-               SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+               SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
-         SUM=SUM*2.D0*PI*DELP*DELTH
+         SUM=SUM*2.D0*PI*DELP(NS)*DELTH
       ELSE
          TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
          TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
          SUM=0.D0
          DO NP=1,NPMAX
-            PML=PM(NP)
+            PML=PM(NP,NS)
             DO NTH=1,NTHMAX
                PPP=PML*TSNM(NTH)
                PPR=PML*TCSM(NTH)
                EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP)
      &           -SQRT(1.D0/TN00**2)
                FM(NP,NTH) = EXP(-EX)
-               SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+               SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
             ENDDO
          ENDDO
-         SUM=SUM*2.D0*PI*DELP*DELTH
+         SUM=SUM*2.D0*PI*DELP(NS)*DELTH
       ENDIF
 
       FACTOR=1.D0/SUM
@@ -112,7 +112,7 @@ C
       PT0   =RTFP0(NSA)
       PTH0  =SQRT(PT0*1.D3*AEE*AMFP(NSA))
       DELR  =FPDATA(1)
-      DELP  =FPDATA(2)
+      DELP(NS)  =FPDATA(2)
       DELTH =FPDATA(3)
       NRMAX =NFPDAT(1)
       NPMAX =NFPDAT(2)
@@ -121,8 +121,8 @@ C
       PTH0W=(PTH0/(AMFP(NSA)*VC))**2
 C
       DO NP=1,NPMAX
-         PM(NP)=DELP*(NP-0.5D0)
-         PG(NP)=DELP* NP
+         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NS)* NP
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -212,7 +212,7 @@ C
       READ(21) DELR,DELTH,RMIN,RMAX
       DO NSA=1,NSAMAX
          READ(21) NS_NSA(NSA)
-         READ(21) DELP
+         READ(21) DELP(NSA)
          READ(21) AEFP(NSA),AMFP(NSA),RNFP0(NSA),RTFP0(NSA)
          READ(21) (((FNS(NTH,NP,NR,NSA),NTH=1,NTHMAX),
      &                NP=1,NPMAX),NR=1,NRMAX)
@@ -243,7 +243,7 @@ C
       RFP(NRMAX+2)=RMIN+DELR*NRMAX
 C
       FPDATA(1)=DELR
-      FPDATA(2)=DELP
+      FPDATA(2)=DELP(NS)
       FPDATA(3)=DELTH
       NFPDAT(1)=NRMAX
       NFPDAT(2)=NPMAX
@@ -278,7 +278,7 @@ C
          SCHI(NCH)=SIN(CHI(NCH))
       ENDDO
 
-      DELP=PMAX/NPMAX
+      DELP(NS)=PMAX(NS)/NPMAX
       DELTH=PI/NTHMAX
 C
       DO NR=1,NRMAX
@@ -286,8 +286,8 @@ C
       ENDDO
 C
       DO NP=1,NPMAX
-         PM(NP)=DELP*(NP-0.5D0)
-         PG(NP)=DELP* NP
+         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NS)* NP
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -330,33 +330,33 @@ C
                TNPP=TPP/PT0
                SUM=0.D0
                DO NP=1,NPMAX
-                  PML=PM(NP)
+                  PML=PM(NP,NS)
                   DO NTH=1,NTHMAX
                      PPP=PML*TSNM(NTH)
                      PPR=PML*TCSM(NTH)
                      EX=0.5D0*(PPR**2/TNPR+PPP**2/TNPP)
                      FM(NP,NTH) = EXP(-EX)
-                     SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+                     SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
                   ENDDO
                ENDDO
-               SUM=SUM*2.D0*PI*DELP*DELTH
+               SUM=SUM*2.D0*PI*DELP(NS)*DELTH
             ELSE
                TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
                TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
                TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
                SUM=0.D0
                DO NP=1,NPMAX
-                  PML=PM(NP)
+                  PML=PM(NP,NS)
                   DO NTH=1,NTHMAX
                      PPP=PML*TSNM(NTH)
                      PPR=PML*TCSM(NTH)
                      EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP)
      &                 -SQRT(1.D0/TN00**2)
                      FM(NP,NTH) = EXP(-EX)
-                     SUM=SUM+FM(NP,NTH)*PM(NP)*PM(NP)*TSNM(NTH)
+                     SUM=SUM+FM(NP,NTH)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
                   ENDDO
                ENDDO
-               SUM=SUM*2.D0*PI*DELP*DELTH
+               SUM=SUM*2.D0*PI*DELP(NS)*DELTH
             ENDIF
 
             FACTOR=RN0/(PN0*SUM)
@@ -369,7 +369,7 @@ C
       ENDDO
 C
       FPDATA(1)=DELR
-      FPDATA(2)=DELP
+      FPDATA(2)=DELP(NS)
       FPDATA(3)=DELTH
       NFPDAT(1)=NRMAX
       NFPDAT(2)=NPMAX
@@ -415,7 +415,7 @@ C
       NTHMAX=50
       PMAX=10.D0
 
-      DELP=PMAX/NPMAX
+      DELP(NS)=PMAX(NS)/NPMAX
       DELTH=PI/NTHMAX
 
       IF(ID.EQ.0) THEN
@@ -425,8 +425,8 @@ C
       ENDIF
 
       DO NP=1,NPMAX
-         PM(NP)=DELP*(NP-0.5D0)
-         PG(NP)=DELP* NP
+         PM(NP,NS)=DELP(NS)*(NP-0.5D0)
+         PG(NP,NS)=DELP(NS)* NP
       ENDDO
 C
       DO NTH=1,NTHMAX
@@ -461,31 +461,31 @@ C
             FACT = 1.D0/SQRT(2.D0*PI)**3
             SUM=0.D0
             DO NP=1,NPMAX
-               PML=PM(NP)
+               PML=PM(NP,NS)
                EX =PML*PML/2.D0
                DO NTH=1,NTHMAX
                   FP(NTH,NP,NR) = FACT * EXP(-EX)
-                  SUM=SUM+FP(NTH,NP,NR)*PM(NP)*PM(NP)*TSNM(NTH)
+                  SUM=SUM+FP(NTH,NP,NR)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
                ENDDO
             ENDDO
-            SUM=SUM*2.D0*PI*DELP*DELTH
+            SUM=SUM*2.D0*PI*DELP(NS)*DELTH
          ELSE
             TN00=RT0*1.D3*AEE/(AMP*PA(NS)*VC**2)
             TNPR=TPR*1.D3*AEE/(AMP*PA(NS)*VC**2)
             TNPP=TPP*1.D3*AEE/(AMP*PA(NS)*VC**2)
             SUM=0.D0
             DO NP=1,NPMAX
-               PML=PM(NP)
+               PML=PM(NP,NS)
                DO NTH=1,NTHMAX
                   PPP=PML*TSNM(NTH)
                   PPR=PML*TCSM(NTH)
                   EX=SQRT(1.D0/TN00**2+PPR**2/TNPR+PPP**2/TNPP)
      &                 -SQRT(1.D0/TN00**2)
                   FP(NTH,NP,NR) = EXP(-EX)
-                  SUM=SUM+FP(NTH,NP,NR)*PM(NP)*PM(NP)*TSNM(NTH)
+                  SUM=SUM+FP(NTH,NP,NR)*PM(NP,NS)*PM(NP,NS)*TSNM(NTH)
                ENDDO
             ENDDO
-            SUM=SUM*2.D0*PI*DELP*DELTH
+            SUM=SUM*2.D0*PI*DELP(NS)*DELTH
          ENDIF
          FACTOR=1.D0/SUM
          DO NP=1,NPMAX

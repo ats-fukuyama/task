@@ -78,7 +78,7 @@ C
       DKPP=MM/RSL
 C
       DO NP=1,NPMAX
-         PV(NP)=PTH0*PG(NP)/AM
+         PV(NP)=PTH0*PG(NP,NS)/AM
       ENDDO
       DO NTH=1,NTHMAX
           TCSM2(NTH)=TCSM(NTH)**2
@@ -117,7 +117,7 @@ C     &                  /FNS(NTH,NP,NR,NS))*BABS/(AA*RSL)
       DO NTH=1,NTHMAX
          NP=1
             DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)-FNS(NTH,NP,NR,  NS))
-     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+     &                      /(PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,NS))
 C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NRPL,NS)-FNS(NTH,NP,NRPL,NS))
 C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
 C            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NRML,NS)-FNS(NTH,NP,NRML,NS))
@@ -125,7 +125,7 @@ C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRML,NS))
          DO NP=2,NPMAX-2
             DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)
      &                       -FNS(NTH,NP-1,NR,  NS))
-     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+     &                      /(2*PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,NS))
 C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NRPL,NS)
 C     &                       -FNS(NTH,NP-1,NRPL,NS))
 C     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
@@ -136,7 +136,7 @@ C     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NRML,NS))
          NP=NPMAX-1
             DPFP(NTH, NP)   = (FNS(NTH,NP,  NR,  NS)
      &                        -FNS(NTH,NP-1,NR,  NS))
-     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,  NS))
+     &                       /(PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,  NS))
 C            DPFPRP(NTH, NP) = (FNS(NTH,NP,  NRPL,NS)
 C     &                        -FNS(NTH,NP-1,NRPL,NS))
 C     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NRPL,NS))
@@ -203,7 +203,7 @@ C
      &           *(DRPFP(NTH,NP)-DRCWAST(NTH,NP)/CW
      &           +CWAST(NTH,NP)/(CW*RSL))*CDEN
 C
-         CPART1= CI*2*PI*PM(NP)**2*TSNM(NTH)*DELTH*DELP
+         CPART1= CI*2*PI*PM(NP,NS)**2*TSNM(NTH)*DELTH*DELP(NS)
      &            *PN0*1.D20
      &            *COEF*(CPART11+CPART12+CPART13)
 C
@@ -249,12 +249,12 @@ C
          EPART2 = EPART1
          EPART3 = DRFP(NTH,NP)*PV(NP)**3*TCSM(NTH)*TSNM(NTH)
 C
-      CINTG312a = CINTG312a+EPART1*DELTH*DELP
-      CINTG313a = CINTG313a+EPART1*DELTH*DELP
-      CINTG322a = CINTG322a+EPART2*DELTH*DELP
-      CINTG323a = CINTG323a+EPART2*DELTH*DELP
-      CINTG332a = CINTG332a+EPART3*DELTH*DELP
-      CINTG333a = CINTG333a+EPART3*DELTH*DELP
+      CINTG312a = CINTG312a+EPART1*DELTH*DELP(NS)
+      CINTG313a = CINTG313a+EPART1*DELTH*DELP(NS)
+      CINTG322a = CINTG322a+EPART2*DELTH*DELP(NS)
+      CINTG323a = CINTG323a+EPART2*DELTH*DELP(NS)
+      CINTG332a = CINTG332a+EPART3*DELTH*DELP(NS)
+      CINTG333a = CINTG333a+EPART3*DELTH*DELP(NS)
 C
       ENDDO
       ENDDO
@@ -278,10 +278,10 @@ C
       DO NP=1, NPMAX-1
       DO NTH=1, NTHMAX
 C
-         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP)**2*TSNM(NTH)
+         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP,NS)**2*TSNM(NTH)
 C
-         CINTG412 = CINTG412+FPART*DELTH*DELP
-         CINTG421 = CINTG421-FPART*DELTH*DELP
+         CINTG412 = CINTG412+FPART*DELTH*DELP(NS)
+         CINTG421 = CINTG421-FPART*DELTH*DELP(NS)
 C
       ENDDO
       ENDDO
@@ -299,10 +299,10 @@ C
       DO NP=1, NPMAX-1
       DO NTH=1, NTHMAX
 C
-         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP)**2*TSNM(NTH)
+         FPART= 2*PI*PN0*1.D20*FNS(NTH,NP,NR,NS)*PM(NP,NS)**2*TSNM(NTH)
 C
-      CINTG511 = CINTG511+FPART*DELTH*DELP
-      CINTG522 = CINTG522+FPART*DELTH*DELP
+      CINTG511 = CINTG511+FPART*DELTH*DELP(NS)
+      CINTG522 = CINTG522+FPART*DELTH*DELP(NS)
 C
       ENDDO
       ENDDO
@@ -377,7 +377,7 @@ C
       DKPP=MM/RSL
 C
       DO NP=1,NPMAX
-         PV(NP)=PTH0*PG(NP)/AM
+         PV(NP)=PTH0*PG(NP,NS)/AM
       ENDDO
       DO NTH=1,NTHMAX
           TCSM2(NTH)=TCSM(NTH)**2
@@ -416,7 +416,7 @@ C
       DO NTH=1,NTHMAX
          NP=1
             DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)-FNS(NTH,NP,NR,  NS))
-     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+     &                      /(PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,NS))
 C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NR+1,NS)-FNS(NTH,NP,NR+1,NS))
 C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
 C            DPFPRM(NTH,NP) = (FNS(NTH,NP+1,NR-1,NS)-FNS(NTH,NP,NR-1,NS))
@@ -424,7 +424,7 @@ C     &                      /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR-1,NS))
          DO NP=2,NPMAX-2
             DPFP(NTH,NP)   = (FNS(NTH,NP+1,NR,  NS)
      &                       -FNS(NTH,NP-1,NR,  NS))
-     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,NS))
+     &                      /(2*PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,NS))
 C            DPFPRP(NTH,NP) = (FNS(NTH,NP+1,NR+1,NS)
 C     &                       -FNS(NTH,NP-1,NR+1,NS))
 C     &                      /(2*PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
@@ -436,7 +436,7 @@ C
         NP=NPMAX-1
             DPFP(NTH, NP)   = (FNS(NTH,NP,  NR,  NS)
      &                        -FNS(NTH,NP-1,NR,  NS))
-     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR,  NS))
+     &                       /(PV(NP)*PTH0*DELP(NS)*FNS(NTH,NP,NR,  NS))
 C            DPFPRP(NTH, NP) = (FNS(NTH,NP,  NR+1,NS)
 C     &                        -FNS(NTH,NP-1,NR+1,NS))
 C     &                       /(PV(NP)*PTH0*DELP*FNS(NTH,NP,NR+1,NS))
