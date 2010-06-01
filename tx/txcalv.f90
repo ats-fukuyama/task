@@ -1549,15 +1549,21 @@ contains
        ! +++ Original model +++
        EpsL = R(NR) / RR
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
-       ETASL = CORR(Zeff) * AME * rNuei(NR) / (PNeV(NR) * 1.D20 * AEE**2)
+       rNuPara = CORR(Zeff) * rNuei(NR)
+       ETASL = AME * rNuPara / (PNeV(NR) * 1.D20 * AEE**2)
        ETA1(NR) = ETASL * (1.D0+(BthV(NR)**2/BBL**2)*rNueNC(NR)/(CORR(Zeff)*rNuei(NR))) &
             &           / (1.D0 + ETA_coef(NR))
 
        ! +++ Original model +++
-       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
-            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
-       AJBS1(NR) =- 1.D0 / ((1.D0 + ALFA) * rNuei3(NR) * BphV(NR)) &
+!       ALFA = (rNuei1(NR)+rNueNC(NR))/rNuei3(NR)*(BthV(NR)/BphV(NR))**2 &
+!            & + 2.D0*rNuei2(NR)/rNuei3(NR)*BthV(NR)/BphV(NR)
+!       AJBS1(NR) =- 1.D0 / ((1.D0 + ALFA) * rNuei3(NR) * BphV(NR)) &
+!            &    * (  BthV(NR) / BBL * rNueNC(NR) * dpdr(NR) - JBS_coef(NR))
+       ALFA = (BBL**2 * rNuPara + BthV(NR)**2 * rNueNC(NR)) / BphV(NR)**2
+       AJBS1(NR) =- 1.D0 / (ALFA * BphV(NR)) &
             &    * (  BthV(NR) / BBL * rNueNC(NR) * dpdr(NR) - JBS_coef(NR))
+!!$       AJBS1(NR) =- 1.D0 / (ALFA * BphV(NR)) &
+!!$            &    * (  BthV(NR) / BBL * rNueNC(NR) * dpdr(NR))
 
        ! +++ Sauter model +++
        ! Inverse aspect ratio

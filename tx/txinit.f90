@@ -177,7 +177,7 @@ SUBROUTINE TXINIT
 
   !   Controller for the degree of the effect of Te'
   !     on the turbulent particle transport
-  !   Only valid if MDVAHL = 1.
+  !   Only valid if MDVAHL = 1 or 2.
   FSVAHL = 0.D0
 
   !   Particle diffusion coefficient profile parameter (D(r=a)/D(r=0))
@@ -566,7 +566,8 @@ SUBROUTINE TXINIT
   !   0    : Nothing to do
   !   1    : Use parameter FSVAHL controlling the contribution of d(lnT)/dln(n)
   !          (Te gradient term is only changed according to FSVAHL.)
-  !   2    : Annihilate the inherent convection (= obtain pure diffusion)
+  !   2    : Annihilate the contribution of Er to the flux
+  !   3    : Annihilate the inherent convection (= obtain pure diffusion)
   !          when FSNC = 0
   MDVAHL = 0
 

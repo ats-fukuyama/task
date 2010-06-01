@@ -99,8 +99,12 @@ contains
     IF(MDVAHL == 1) THEN
        FSVAHLT = FSVAHL
        FSVAHLE = 0.D0
-    ELSE IF(MDVAHL == 2) THEN
-       FSVAHLT = 0.D0
+    ELSE IF(MDVAHL >= 2) THEN
+       IF(MDVAHL == 2) THEN
+          FSVAHLT = FSVAHL
+       ELSE
+          FSVAHLT = 0.D0
+       END IF
        FSVAHLE = 1.D0
     ELSE ! MDVAHL == 0
        FSVAHLT = 1.D0
@@ -580,7 +584,7 @@ contains
     ! Ns*Usr(0) : fixed
 
     ELM(1:NEMAX,1:4,0,NEQ) = fem_int(1) * invDT &
-         &                  + fem_int(8) * fem_int(0) * invDT
+         &                 + fem_int(8) * fem_int(0) * invDT
     NLC(0,NEQ) = LQe2
 
     ! Advection
@@ -657,10 +661,10 @@ contains
     ! Viscosity force
 
 !    ELM(1:NEMAX,1:4, 2,NEQ) = - 4.D0 * fem_int(18,rMue) &
-!         &                     - 4.D0 * fem_int(39,rMueNe,dPNeV) &
-!         &                     - 4.D0 * fem_int( 3,rMue)
+!         &                    - 4.D0 * fem_int(39,rMueNe,dPNeV) &
+!         &                    - 4.D0 * fem_int( 3,rMue)
     ELM(1:NEMAX,1:4, 2,NEQ) = - 4.D0 * fem_int(18,rMue) &
-         &                     - 4.D0 * fem_int( 3,rMue)
+         &                    - 4.D0 * fem_int( 3,rMue)
     NLC( 2,NEQ) = LQe3
 
     ELM(1:NEMAX,1:4, 3,NEQ) =   4.D0 * fem_int(41,rMue,RUethV)
@@ -711,6 +715,15 @@ contains
 
     ! Turbulent particle transport driver
 
+!!$    ELM(1:NEMAX,1:4,15,NEQ) =   2.D0 * AEE / AME * fem_int(38,De,BphV)
+!!$    NLC(15,NEQ) = LQe1
+!!$
+!!$    ELM(1:NEMAX,1:4,16,NEQ) =   2.D0 * AEE / AME * fem_int(38,De,BphV/PTeV) * FSVAHLT
+!!$    NLC(16,NEQ) = LQe5
+!!$
+!!$    ELM(1:NEMAX,1:4,17,NEQ) = - 2.D0 * AEE / AME * fem_int(38,De,BphV) * FSVAHLT
+!!$    NLC(17,NEQ) = LQe1
+!!$
     ELM(1:NEMAX,1:4,15,NEQ) = - 1.D0 / AME * fem_int(2,FWthe)
     NLC(15,NEQ) = LQe3
 
@@ -725,7 +738,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,19,NEQ) = - 1.D0 / AME * fem_int(44,FWthpheB,WPM)
+    ELM(1:NEMAX,1:4,19,NEQ) =   1.D0 / AME * fem_int(44,FWthpheB,WPM)
     NLC(19,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -894,6 +907,15 @@ contains
 
     ! Turbulent particle transport driver
 
+!!$    ELM(1:NEMAX,1:4,14,NEQ) = - 2.D0 * AEE / AME * fem_int(38,De,BthV)
+!!$    NLC(14,NEQ) = LQe1
+!!$
+!!$    ELM(1:NEMAX,1:4,15,NEQ) = - 2.D0 * AEE / AME * fem_int(38,De,BthV/PTeV) * FSVAHLT
+!!$    NLC(15,NEQ) = LQe5
+!!$
+!!$    ELM(1:NEMAX,1:4,16,NEQ) =   2.D0 * AEE / AME * fem_int(38,De,BthV) * FSVAHLT
+!!$    NLC(16,NEQ) = LQe1
+!!$
     ELM(1:NEMAX,1:4,14,NEQ) =   1.D0 / AME * fem_int(2,FWpheBB)
     NLC(14,NEQ) = LQe3
 
@@ -908,7 +930,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,18,NEQ) =   1.D0 / AME * fem_int(44,FWpheB,WPM)
+    ELM(1:NEMAX,1:4,18,NEQ) = - 1.D0 / AME * fem_int(44,FWpheB,WPM)
     NLC(18,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -1282,10 +1304,10 @@ contains
     ! Viscosity force
 
 !    ELM(1:NEMAX,1:4, 2,NEQ) = - 4.D0 * fem_int(18,rMui) &
-!         &                     - 4.D0 * fem_int(39,rMuiNi,dPNiV) &
-!         &                     - 4.D0 * fem_int( 3,rMui)
+!         &                    - 4.D0 * fem_int(39,rMuiNi,dPNiV) &
+!         &                    - 4.D0 * fem_int( 3,rMui)
     ELM(1:NEMAX,1:4, 2,NEQ) = - 4.D0 * fem_int(18,rMui) &
-         &                     - 4.D0 * fem_int( 3,rMui)
+         &                    - 4.D0 * fem_int( 3,rMui)
     NLC( 2,NEQ) = LQi3
 
     ELM(1:NEMAX,1:4, 3,NEQ) =   4.D0 * fem_int(41,rMui,RUithV)
@@ -1330,6 +1352,15 @@ contains
 
     ! Turbulent particle transport driver
 
+!!$    ELM(1:NEMAX,1:4,13,NEQ) = - 2.D0 * AEE / AMI * fem_int(38,De,BphV)
+!!$    NLC(13,NEQ) = LQe1
+!!$
+!!$    ELM(1:NEMAX,1:4,14,NEQ) = - 2.D0 * AEE / AMI * fem_int(38,De,BphV/PTeV) * FSVAHLT
+!!$    NLC(14,NEQ) = LQe5
+!!$
+!!$    ELM(1:NEMAX,1:4,15,NEQ) =   2.D0 * AEE / AMI * fem_int(38,De,BphV) * FSVAHLT
+!!$    NLC(15,NEQ) = LQe1
+!!$
     ELM(1:NEMAX,1:4,13,NEQ) =   1.D0 / AMI * fem_int(2,FWthe)
     NLC(13,NEQ) = LQe3
 
@@ -1344,7 +1375,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,17,NEQ) =   1.D0 / AMI * fem_int(44,FWthpheB,WPM)
+    ELM(1:NEMAX,1:4,17,NEQ) = - 1.D0 / AMI * fem_int(44,FWthpheB,WPM)
     NLC(17,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -1526,6 +1557,15 @@ contains
 
     ! Turbulent particle transport driver (electron driven)
 
+!!$    ELM(1:NEMAX,1:4,12,NEQ) =   2.D0 * AEE / AMI * fem_int(38,De,BthV)
+!!$    NLC(12,NEQ) = LQe1
+!!$
+!!$    ELM(1:NEMAX,1:4,13,NEQ) =   2.D0 * AEE / AMI * fem_int(38,De,BthV/PTeV) * FSVAHLT
+!!$    NLC(13,NEQ) = LQe5
+!!$
+!!$    ELM(1:NEMAX,1:4,14,NEQ) = - 2.D0 * AEE / AMI * fem_int(38,De,BthV) * FSVAHLT
+!!$    NLC(14,NEQ) = LQe1
+!!$
     ELM(1:NEMAX,1:4,12,NEQ) = - 1.D0 / AMI * fem_int(2,FWpheBB)
     NLC(12,NEQ) = LQe3
 
@@ -1540,7 +1580,7 @@ contains
 
     ! Wave interaction force (electron driven)
 
-    ELM(1:NEMAX,1:4,16,NEQ) = - 1.D0 / AMI * fem_int(44,FWpheB,WPM)
+    ELM(1:NEMAX,1:4,16,NEQ) =   1.D0 / AMI * fem_int(44,FWpheB,WPM)
     NLC(16,NEQ) = LQe1
 
     ! Contribution of off-diagonal term due to heat flux
@@ -2069,10 +2109,10 @@ contains
     ELM(1:NEMAX,1:4,3,NEQ) = fem_int(2,rNuCXN0)
     NLC(3,NEQ) = LQn1
 
-!!$    ! NBI particle source (Charge exchange)
-!!$
-!!$    ELM(1:NEMAX,1:4,4,NEQ) = RatCX * fem_int(-1,SNBi)
-!!$    NLC(4,NEQ) = 0
+!    ! NBI particle source (Charge exchange)
+!
+!    ELM(1:NEMAX,1:4,4,NEQ) = RatCX * fem_int(-1,SNBi)
+!    NLC(4,NEQ) = 0
 
     NLCMAX(NEQ) = 3
     RETURN

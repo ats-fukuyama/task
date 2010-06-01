@@ -313,7 +313,6 @@ contains
     !     *** Ellipticity on axis ***
 
     RKAP = 1.D0
-
     !     *** Dummy impurity for using high Zeff ***
 
 !!$    PAL = 12.D0
@@ -438,7 +437,7 @@ contains
 !!    p_fm(1:3) = 0.0 ! No Pfirsch-Schulter viscosity
     p_ft=REAL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
-    p_grbm2   = REAL(1.D0/RA**2)
+    p_grbm2   = REAL(1.D0/(RA*BBL)**2)
     p_grphi   = REAL(-RA*ErVL)
 !    p_gr2phi  = REAL(-RA**2*dErdrL) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
@@ -505,6 +504,8 @@ contains
        IER = ier_check
     ENDIF
 
+!    write(6,*) r(NR)/ra,sum(gfl_s(1:5,1))*real(RA)*1.E-20
+!    write(6,*) r(NR)/ra,(sum(gfl_s(1:2,1))+sum(gfl_s(4:5,1)))*real(RA)*1.E-20
 !    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,1)/BBL,upar_s(1,2,1)/BBL,sum(upar_s(1,1:3,1))/BBL
 !    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,2)/BBL,upar_s(1,2,2)/BBL,sum(upar_s(1,1:3,2))/BBL
 
@@ -526,6 +527,8 @@ contains
               &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
               &  + DBLE(bsjbt_s(2)) *(RA * dTidrL/ PTiVL) &
               &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL)) / BBL
+!!$       JBSout =-(+ DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
+!!$              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL)) / BBL
     ELSE
        JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedrL/ PTeVL) &
               &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
