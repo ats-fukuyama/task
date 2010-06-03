@@ -218,7 +218,9 @@ C
 
       INITFM=0
       DO NS=1,NSMAX
-         IF((MODELV(NS).EQ.2.OR.MODELV(NS).EQ.4)) THEN
+         IF((MODELV(NS).EQ.2.OR.
+     &       MODELV(NS).EQ.4.OR.
+     &       MODELV(NS).EQ.9)) THEN
             IF(INITFP.EQ.0) THEN
                write(6,*) '----- DPLDFP ----- NS=',NS
                CALL DPLDFP
