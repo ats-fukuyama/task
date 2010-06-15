@@ -80,30 +80,23 @@ program testzmumps
      x(i)=exp(-0.1*(REAL(i)*dx-0.5)**2)
   end do
 
-!  call mtx_setup_complex8(imax,istart,iend,jwidth)
   call mtx_setup(imax,istart,iend,jwidth)
 
-do i=istart,iend
-!     if(i.gt.1) call mtx_set_matrix_complex8(i,i-1,k)
-!     call mtx_set_matrix_complex8(i,i,1-2*k)
-!     if(i.lt.isize) call mtx_set_matrix_complex8(i,i+1,k)
+  do i=istart,iend
      if(i.gt.1) call mtx_set_matrix(i,i-1,k)
      call mtx_set_matrix(i,i,1-2*k)
      if(i.lt.isize) call mtx_set_matrix(i,i+1,k)
   end do
 
 100 do i=istart,iend
-!    call mtx_set_source_complex8(i,x(i))
      call mtx_set_source(i,x(i))
   end do
 
-! call mtx_solve_complex8(itype,tolerance,its)
   call mtx_solve(itype,tolerance,its)
   if(nrank.eq.0) then
      write(6,*) 'Iteration Number=',its
   end if
 
-!  call mtx_gather_vector_complex8(x)
   call mtx_gather_vector(x)
 
   if(nrank.eq.0) then
@@ -127,8 +120,6 @@ do i=istart,iend
      call GRD1D(0,FX,FY,isize,isize,1,STR,MODE)
      call pagee
 
-     write(*,*) "DEBUG"
-
 3    write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
      read (5,*,ERR=3) character
      if (character.eq."c")then
@@ -141,7 +132,6 @@ do i=istart,iend
      end if
   end if
 
-!4 call mtx_cleanup_complex8
 4 call mtx_cleanup
   
   deallocate(x)
