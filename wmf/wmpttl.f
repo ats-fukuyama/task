@@ -1,0 +1,544 @@
+C     $Id$
+C
+C     ****** CALCULATE TOTAL ABSORPED POWER ROUTINE ******
+C
+      INCLUDE 'wmcomm.inc'
+C
+      CHARACTER KNAMEO*6,KNAMEP*13,KNAMER*10,KNAMES*6,KNAMET*6
+      CHARACTER KSTR*1
+      LOGICAL   LEX
+C
+      WRITE(6,*) '###### CALCULATE TOTAL ABSORPED POWER ROUTINE ######'
+C
+      CALL GSOPEN
+C
+      IERR=0
+C
+ 7000 WRITE(6,*) 'INPUT FILE NAME OF PARAMETER gout**: A6'
+      READ(5,'(A6)',ERR=7000,END=9000) KNAMES
+C
+ 8000 WRITE(6,*) 'INPUT FILE NAME OF ABSORPED POWER pdata**: A6'
+      READ(5,'(A6)',ERR=8000,END=9000) KNAMET
+C
+ 1000 WRITE(6,*) ' ## INPUT NUMBER OF FILE : ## '
+      READ(5,*,ERR=1000,END=9000) NFMAX
+C
+      KNAMER='gout'//KNAMES
+C
+      DO NS=1,NSMAXD
+      DO NR=1,NRMAXD
+      DO NPH=1,NPHMAXD
+      DO NTH=1,NTHMAXD
+         PABS(NTH,NPH,NR,NS)=0.D0
+      ENDDO
+      ENDDO
+      ENDDO
+      ENDDO
+C
+      DO NF=0,NFMAX-1
+C
+         CALL WMDTRC(KNAMER,KNAMET,NF,IERR)
+         IF(IERR.NE.0) GO TO 9000
+C
+      ENDDO
+C
+      CALL WMPGRP
+C
+  100 WRITE(6,*) 'INPUT : Q/ QUIT'
+      WRITE(6,*) '        A/ ANOTHER FILE OR CHANGE FILE NUMBER'
+      READ(5,'(A5)',ERR=100,END=9000) KSTR
+C
+      CALL GUCPTL(KSTR)
+      IF(KSTR.EQ.'Q') GO TO 200
+C
+      GO TO 7000
+C
+  200 CALL GSCLOS
+C
+ 9000 STOP
+      END
+C
+C     ****** READ DATA AND COMPARE IT WITH ORIGINAL DATA *****
+C
+      SUBROUTINE WMDTRC(KNAMER,KNAMET,NF,IERR)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      CHARACTER KNAMEO*6,KNAMEP*13,KNAMER*10,KNAMET*6
+      LOGICAL LEX
+C
+      INQUIRE(FILE=KNAMER,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(11,FILE=KNAMER,IOSTAT=IST,STATUS='OLD',ERR=100)
+         WRITE(6,*) '## FILE (',KNAMER,') IS ASSIGNED FOR PABS INPUT'
+         GO TO 200
+  100    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GO TO 9000
+      ELSE
+         WRITE(6,*) 'XX FILE ',KNAMER,' IS NOT FOUND'
+         GO TO 9000
+      ENDIF
+C
+  200 CONTINUE
+      CALL NAMEK(KNAMEO,NF)
+      KNAMEP=KNAMEO//KNAMET
+C
+      INQUIRE(FILE=KNAMEP,EXIST=LEX)
+      IF(LEX) THEN
+         OPEN(10,FILE=KNAMEP,IOSTAT=IST,STATUS='OLD',ERR=300)
+         WRITE(6,*) '## FILE (',KNAMEP,') IS ASSIGNED FOR PABS INPUT'
+         GO TO 400
+  300    WRITE(6,*) 'XX OLD FILE OPEN ERROR : IOSTAT = ',IST
+         GO TO 9000
+      ELSE
+         WRITE(6,*) 'XX FILE (',KNAMEP,') IS NOT FOUND'
+         GO TO 9000
+      ENDIF
+C
+  400 CONTINUE
+      READ(11,*) NSMAXD,NAMAXD,NRMAXD,NTHMAXD,NPHMAXD
+      READ(11,*) NHCD
+      READ(11,*) MODELGD,MODELJD,MODELPD,MODELAD,MODELKD,MODLEMD
+      READ(11,*) BBD,RRD,RAD,RBD,Q0D,QAD,RKAPD,RDLTD
+      READ(11,*) PROFN1D,PROFN2D,PROFT1D,PROFT2D
+      READ(11,*) ZEFFD
+      READ(11,*) PNAD,PNALD,PTAD
+      READ(11,*) RFD,RFID
+      READ(11,*) RDD,BETAJD
+C
+      READ(10,*) NSMAX,NAMAX,NRMAX,NTHMAX,NPHMAX
+      READ(10,*) NHC
+      READ(10,*) MODELG,MODELJ,MODELP,MODELA,MODELK,MODLEM
+      READ(10,*) BB,RR,RA,RB,Q0,QA,RKAP,RDLT
+      READ(10,*) PROFN1,PROFN2,PROFT1,PROFT2
+      READ(10,*) ZEFF
+      READ(10,*) PNA,PNAL,PTA
+      READ(10,*) RF,RFI
+      READ(10,*) RD,BETAJ
+C
+      IF(NSMAXD.NE.NSMAX) THEN
+         WRITE(6,*) 'NSMAX DIFFERENT',NSMAXD,NSMAX
+         GO TO 9000
+      ENDIF
+      IF(NAMAXD.NE.NAMAX) THEN
+         WRITE(6,*) 'NAMAX DIFFERENT',NAMAXD,NSMAX
+         GO TO 9000
+      ENDIF
+      IF(NRMAXD.NE.NRMAX) THEN
+         WRITE(6,*) 'NRMAXD DIFFERENT',NRMAXD,NRMAX
+         GO TO 9000
+      ENDIF
+      IF(NTHMAXD.NE.NTHMAX) THEN
+         WRITE(6,*) 'NTHMAX DIFFERENT',NTHMAXD,NTHMAX
+         GO TO 9000
+      ENDIF
+      IF(NPHMAXD.NE.NPHMAX) THEN
+         WRITE(6,*) 'NPHMAX DIFFERENT',NPHMAXD,NPHMAX
+         GO TO 9000
+      ENDIF
+      IF(NHCD.NE.NHC) THEN
+         WRITE(6,*) 'NHC DIFFERENT',NHCD,NHC
+         GO TO 9000
+      ENDIF
+      IF(MODELGD.NE.MODELG) THEN
+         WRITE(6,*) 'MODELG DIFFERENT',MODELGD,MODELG
+         GO TO 9000
+      ENDIF
+      IF(MODELJD.NE.MODELJ) THEN
+         WRITE(6,*) 'MODELJ DIFFERENT',MODELJD,MODELJ
+         GO TO 9000
+      ENDIF
+      IF(MODELPD.NE.MODELP) THEN
+         WRITE(6,*) 'MODELP DIFFERENT',MODELPD,MODELP
+         GO TO 9000
+      ENDIF
+      IF(MODELAD.NE.MODELA) THEN
+         WRITE(6,*) 'MODELA DIFFERENT',MODELAD,MODELA
+         GO TO 9000
+      ENDIF
+      IF(MODELKD.NE.MODELK) THEN
+         WRITE(6,*) 'MODELK DIFFERENT',MODELKD,MODELK
+         GO TO 9000
+      ENDIF
+      IF(MODELMD.NE.MODELM) THEN
+         WRITE(6,*) 'MODELM DIFFERENT',MODELMD,MODELM
+         GO TO 9000
+      ENDIF
+      IF(BBD.NE.BB) THEN
+         WRITE(6,*) 'BB DIFFERETN',BBD,BB
+         GO TO 9000
+      ENDIF
+      IF(RRD.NE.RR) THEN
+         WRITE(6,*) 'RR DIFFERENT',RRD,RR
+         GO TO 9000
+      ENDIF
+      IF(RAD.NE.RA) THEN
+         WRITE(6,*) 'RA DIFFERENT',RAD,RA
+         GO TO 9000
+      ENDIF
+      IF(RBD.NE.RB) THEN
+         WRITE(6,*) 'RB DIFFERENT',RBD,RB
+         GO TO 9000
+      ENDIF
+      IF(Q0D.NE.Q0) THEN
+         WRITE(6,*) 'Q0 DIFFERENT',Q0D,Q0
+         GO TO 9000
+      ENDIF
+      IF(QAD.NE.QA) THEN
+         WRITE(6,*) 'QA DIFFERENT',QAD,QA
+         GO TO 9000
+      ENDIF
+      IF(RKAPD.NE.RKAP) THEN
+         WRITE(6,*) 'RKAP DIFFERENT',RKAPD,RKAP
+         GO TO 9000
+      ENDIF
+      IF(RDLTD.NE.RDLT) THEN
+         WRITE(6,*) 'RDLT DIFFERENT',RDLTD,RDLT
+         GO TO 9000
+      ENDIF
+      IF(PROFN1D.NE.PROFN1) THEN
+         WRITE(6,*) 'PROFN1 DIFFERENT',PROFN1D,PROFN1
+         GO TO 9000
+      ENDIF
+      IF(PROFN2D.NE.PROFN2) THEN
+         WRITE(6,*) 'PROFN2 DIFFERENT',PROFN2D,PROFN2
+         GO TO 9000
+      ENDIF
+      IF(PROFT1D.NE.PROFT1) THEN
+         WRITE(6,*) 'PROFT1 DIFFERENT',PROFT1D,PROFT1
+         GO TO 9000
+      ENDIF
+      IF(PROFT2D.NE.PROFT2) THEN
+         WRITE(6,*) 'PROFT2 DIFFERENT',PROFT2D,PROFT2
+         GO TO 9000
+      ENDIF
+      IF(ZEFFD.NE.ZEFF) THEN
+         WRITE(6,*) 'ZEFF DIFFERENT',ZEFFD,ZEFF
+         GO TO 9000
+      ENDIF
+      IF(PNAD.NE.PNA) THEN
+         WRITE(6,*) 'PNA DIFFERENT',PNAD,PNA
+         GO TO 9000
+      ENDIF
+      IF(PNALD.NE.PNAL) THEN
+         WRITE(6,*) 'PNAL DIFFERENT',PNALD,PNAL
+         GO TO 9000
+      ENDIF
+      IF(PTAD.NE.PTA) THEN
+         WRITE(6,*) 'PTA DIFFERENT',PTAD,PTA
+         GO TO 9000
+      ENDIF
+      IF(RFD.NE.RF) THEN
+         WRITE(6,*) 'RF DIFFERENT',RFD,RF
+         GO TO 9000
+      ENDIF
+      IF(RFID.NE.RFI) THEN
+         WRITE(6,*) 'RFI DIFFERENT',RFID,RFI
+         GO TO 9000
+      ENDIF
+      IF(RDD.NE.RD) THEN
+         WRITE(6,*) 'RD DIFFERENT',RDD,RD
+         GO TO 9000
+      ENDIF
+      IF(BETAJD.NE.BETAJ) THEN
+         WRITE(6,*) 'BETAJ DIFFERENT',BETAJD,BETAJ
+         GO TO 9000
+      ENDIF
+C
+      DO NS=1,NSMAX
+         READ(11,*) PDATA1
+         READ(10,*) PDATA2
+         IF(PDATA1.NE.PDATA2) THEN
+            WRITE(6,*) 'DIFFERENT PA',NS,PDATA1,PDATA2
+            GO TO 9000
+         ENDIF
+         PA(NS)=PDATA2
+      ENDDO
+C
+      DO NS=1,NSMAX
+         READ(11,*) PDATA1
+         READ(10,*) PDATA2
+         IF(PDATA1.NE.PDATA2) THEN
+            WRITE(6,*) 'DIFFERENT PZ',NS,PDATA1,PDATA2
+            GO TO 9000
+         ENDIF
+         PZ(NS)=PDATA2
+      ENDDO
+C
+      DO NS=1,NSMAX
+         READ(11,*) PDATA1 ,PDATA2
+         READ(10,*) PDATA1D,PDATA2D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT PN',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         PN(NS)=PDATA1D
+         IF(PDATA2.NE.PDATA2D) THEN
+            WRITE(6,*) 'DIFFERENT PNS',NS,PDATA2,PDATA2D
+            GO TO 9000
+         ENDIF
+         PNS(NS)=PDATA2D
+      ENDDO
+C
+      DO NS=1,NSMAX
+         READ(11,*) PDATA1 
+         READ(10,*) PDATA1D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT PZCL',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         PZCL(NS)=PDATA1D
+      ENDDO
+C
+      DO NS=1,NSMAX
+         READ(11,*) PDATA1 ,PDATA2 ,PDATA3
+         READ(10,*) PDATA1D,PDATA2D,PDATA3D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT PTPR',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         PTPR(NS)=PDATA1D
+         IF(PDATA2.NE.PDATA2D) THEN
+            WRITE(6,*) 'DIFFERENT PTPP',NS,PDATA2,PDATA2D
+            GO TO 9000
+         ENDIF
+         PTPP(NS)=PDATA2D
+         IF(PDATA3.NE.PDATA3D) THEN
+            WRITE(6,*) 'DIFFERENT PTS',NS,PDATA3,PDATA3D
+            GO TO 9000
+         ENDIF
+         PTS(NS)=PDATA3D
+      ENDDO
+C
+      DO NA=1,NAMAX
+         READ(11,*) PDATA1 ,PDATA2
+         READ(10,*) PDATA1D,PDATA2D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT AJ',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         AJ(NS)=PDATA1D
+         IF(PDATA2.NE.PDATA2D) THEN
+            WRITE(6,*) 'DIFFERENT APH',NS,PDATA2,PDATA2D
+            GO TO 9000
+         ENDIF
+         APH(NS)=PDATA2D
+      ENDDO
+C
+      DO NA=1,NAMAX
+         READ(11,*) PDATA1 ,PDATA2
+         READ(10,*) PDATA1D,PDATA2D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT THJ1',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         THJ1(NS)=PDATA1D
+         IF(PDATA2.NE.PDATA2D) THEN
+            WRITE(6,*) 'DIFFERENT THJ2',NS,PDATA2,PDATA2D
+            GO TO 9000
+         ENDIF
+         THJ2(NS)=PDATA2D
+      ENDDO
+C
+      DO NA=1,NAMAX
+         READ(11,*) PDATA1 ,PDATA2
+         READ(10,*) PDATA1D,PDATA2D
+         IF(PDATA1.NE.PDATA1D) THEN
+            WRITE(6,*) 'DIFFERENT PHJ1',NS,PDATA1,PDATA1D
+            GO TO 9000
+         ENDIF
+         PHJ1(NS)=PDATA1D
+         IF(PDATA2.NE.PDATA2D) THEN
+            WRITE(6,*) 'DIFFERENT PHJ2',NS,PDATA2,PDATA2D
+            GO TO 9000
+         ENDIF
+         PHJ2(NS)=PDATA2D
+      ENDDO
+C
+      READ(11,*) RGMAX,RGMIN
+      READ(11,*) ZGMAX,ZGMIN
+      READ(11,*) NSUMAX,NSWMAX
+      READ(11,*) BICF
+C
+      DO NR=1,NRMAX+1
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+         READ(11,*) RPST(NTH,NPH,NR),ZPST(NTH,NPH,NR),
+     &        BPST(NTH,NPH,NR)
+      ENDDO
+      ENDDO
+      ENDDO
+C
+      DO NSU=1,NSUMAX
+      DO NPH=1,NPHMAX
+         READ(11,*) RSU(NSU,NPH),ZSU(NSU,NPH)
+      ENDDO
+      ENDDO
+C
+      DO NSW=1,NSWMAX
+      DO NPH=1,NPHMAX
+         READ(11,*) RSW(NSW,NPH),ZSW(NSW,NPH)
+      ENDDO
+      ENDDO
+C
+      CLOSE(11)
+C
+      DO NS=1,NSMAX
+      DO NR=1,NRMAX
+      DO NPH=1,NPHMAX
+      DO NTH=1,NTHMAX
+C
+         READ(10,*) PABSV
+C
+         PABS(NTH,NPH,NR,NS)
+     &        =PABS(NTH,NPH,NR,NS)+PABSV
+C     
+      ENDDO
+      ENDDO
+      ENDDO
+      ENDDO
+C
+      CLOSE(10)
+C
+      RETURN
+C
+ 9000 IERR=1
+      RETURN
+C
+      END
+C
+C     ****** GRAPHIC ROUTINE ******
+C
+      SUBROUTINE WMPGRP
+C
+      INCLUDE 'wmcomm.inc'
+C
+      DIMENSION GY(NRM,MDM)
+      CHARACTER KSTR*4,K1,K2,K3,K4
+C
+    1 WRITE(6,*) ' ## INPUT GRAPH TYPE : P/P/EDT1-6/ DPB '
+      WRITE(6,*) '                       X/ SELECT NUMBER OF FILE AGAIN'
+      READ(5,'(A4)',ERR=1,END=9000) KSTR
+      K1=KSTR(1:1)
+      CALL GUCPTL(K1)
+      IF(K1.EQ.'X') GO TO 9000
+C
+      IF(K1.EQ.'P') THEN
+         K2=KSTR(2:2)
+         CALL GUCPTL(K2)
+         K3=KSTR(3:3)
+         CALL GUCPTL(K3)
+         K4=KSTR(4:4)
+         CALL GUCPTL(K4)
+      ELSE
+         WRITE(6,*) 'XX UNDEFINED CONTROL CHARACTER K1: ',K1
+         GO TO 1
+      ENDIF
+C
+      IF(K2.EQ.'P') THEN
+C
+         IF(K3.EQ.'E') THEN
+            NG3=1
+         ELSE IF(K3.EQ.'D') THEN
+            NG3=2
+         ELSE IF(K3.EQ.'T') THEN
+            NG3=3
+         ELSE IF(K3.EQ.'1') THEN
+            NG3=1
+         ELSE IF(K3.EQ.'2') THEN
+            NG3=2
+         ELSE IF(K3.EQ.'3') THEN
+            NG3=3
+         ELSE IF(K3.EQ.'4') THEN
+            NG3=4
+         ELSE IF(K3.EQ.'5') THEN
+            NG3=5
+         ELSE IF(K3.EQ.'6') THEN
+            NG3=6
+         ELSE
+            WRITE(6,*) 'XX UNDFINED CONTROL CHARACTER K3: ',K3
+            GO TO 1
+         ENDIF
+C
+      ELSE
+         WRITE(6,*) 'XX UNDEFINED CONTROL CHARACTER K2: ',K2
+         GO TO 1
+C
+      ENDIF
+C
+    2 IF(NPHMAX.EQ.1) THEN
+         NPH=1
+      ELSE
+         WRITE(6,*) '## INPUT NPH : 1..',NPHMAX
+         READ(5,*,ERR=2,END=9000) NPH
+      ENDIF
+      IF(NPH.LT.1.OR.NPH.GT.NPHMAX) THEN
+         WRITE(6,*) 'XX ILLEAGAL NPH'
+         GO TO 2
+      ENDIF
+C
+      DO NTH=1,NTHMAX
+      DO NR=1,NRMAX
+         GY(NR,NTH)=GUCLIP(PABS(NTH,NPH,NR,NG3))
+      ENDDO
+      ENDDO
+C
+      IF(K4.EQ.'D') THEN
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMGXEQ(GY,NPH,K2,K3)
+      ELSE IF(K4.EQ.'P') THEN
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMGXEQP(GY,NPH,K2,K3)
+      ELSE IF(K4.EQ.'B') THEN
+         IF(NTHMAX.LE.2) THEN
+            WRITE(6,*) 'XX NTHMAX:',NTHMAX,'  CONDITION:NTHMAX >= 4'
+            GO TO 1
+         ENDIF
+         CALL PAGES
+         CALL SETCHS(0.3,0.0)
+         CALL WMG3DA(GY,NPH,K2,K3)
+      ELSE
+         WRITE(6,*) 'XX UNDEFINED CONTROL CHAR #4 IN WMGRTH K4: ',K4
+         GO TO 1
+      ENDIF
+C      
+      CALL MOVE(16.5,17.0)
+      IF(K2.EQ.'E') CALL TEXT('E ',2)
+      IF(K2.EQ.'B') CALL TEXT('B ',2)
+      IF(K2.EQ.'P') CALL TEXT('P ',2)
+      IF(K2.EQ.'J') CALL TEXT('J ',2)
+      IF(K2.EQ.'G') CALL TEXT('RG',2)
+      IF(K3.EQ.'R') CALL TEXT('r ',2)
+      IF(K3.EQ.'T') CALL TEXT('theta ',6)
+      IF(K3.EQ.'Z') CALL TEXT('phi ',4)
+      IF(K2.EQ.'P') THEN
+         IF(K3.EQ.'E') CALL TEXT('e ',2)
+         IF(K3.EQ.'D') CALL TEXT('D ',2)
+         IF(K3.EQ.'T') CALL TEXT('T ',2)
+         IF(K3.EQ.'1') CALL TEXT('1 ',2)
+         IF(K3.EQ.'2') CALL TEXT('2 ',2)
+         IF(K3.EQ.'3') CALL TEXT('3 ',2)
+         IF(K3.EQ.'4') CALL TEXT('4 ',2)
+         IF(K3.EQ.'5') CALL TEXT('5 ',2)
+         IF(K3.EQ.'6') CALL TEXT('6 ',2)
+      ENDIF
+      IF(K2.EQ.'G') THEN
+         CALL TEXT('  ',2)
+      ENDIF
+      IF(K4.EQ.'R') CALL TEXT('Real ',5)
+      IF(K4.EQ.'I') CALL TEXT('Imag ',5)
+      IF(K4.EQ.'A') CALL TEXT('Abs ',4)
+C
+      CALL WMGPRM('C',K3,0,0,0,0)
+C
+      CALL PAGEE
+C
+      GO TO 1
+C
+ 9000 RETURN
+      END
+C
+
+
