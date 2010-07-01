@@ -1575,3 +1575,182 @@ C
 C
       RETURN
       END
+C
+C    ****** DRAW BOOZER DATA ******
+C
+      SUBROUTINE WMGBOOZ
+C
+      INCLUDE 'wmcomm.inc'
+      INCLUDE 'vmcomm.inc'
+C
+      DIMENSION GX(NSRMP),GY(NSRMP,NMNM)
+      DIMENSION GXR(NRM),GYR(NRM,NMNM)
+C
+C     ----- graphics with psit axis -----
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/BBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/RBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/ZBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(XSH(NSR))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/PBOZH/',0)
+      CALL PAGEE
+C
+C     ----- graphics with rho axis -----
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(BBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/BBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(RBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/RBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(ZBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/ZBOZH/',0)
+      CALL PAGEE
+C
+      DO NSR=1,NSRMAX+3
+         GX(NSR)=GUCLIP(SQRT(XSH(NSR)))
+         DO MN=1,MNMAX
+            GY(NSR,MN)=GUCLIP(PBOZH(MN,NSR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GX,GY,NSRMP,NSRMAX+3,MNMAX,'/PBOZH/',0)
+      CALL PAGEE
+C
+C     ----- graphics with xrho axis -----
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(SBMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/SBMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(DBMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/DBMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(SRMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/SRMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(DRMNC(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/DRMNC/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(SZMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/SZMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(DZMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/DZMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(SPMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/SPMNS/',0)
+      CALL PAGEE
+C
+      DO NR=1,NRMAX+1
+         GXR(NR)=GUCLIP(XRHO(NR))
+         DO MN=1,MNMAX
+            GYR(NR,MN)=GUCLIP(DPMNS(MN,NR))
+         ENDDO
+      ENDDO
+      CALL PAGES
+      CALL GRF1D(0,GXR,GYR,NRM,NRMAX+1,MNMAX,'/DPMNS/',0)
+      CALL PAGEE
+C
+      RETURN
+      END
