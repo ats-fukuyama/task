@@ -491,15 +491,15 @@ C
       ENDIF
 C
       SELECT CASE(MDLWM_NPHS)
-      CASE(0): 
+      CASE(0)
          WRITE(6,*) '## MDLWM_NPHS=0: Single mode ##'
-      CASE(1): 
+      CASE(1)
          WRITE(6,*) '## MDLWM_NPHS=1: Multi mode (antenna current) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
-      CASE(2): 
+      CASE(2)
          WRITE(6,*) '## MDLWM_NPHS=2: Multi mode (antenna voltage) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
-      CASE(3): 
+      CASE(3)
          WRITE(6,*) '## MDLWM_NPHS=2: Multi given mode (power frac) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
          DO NPHS=1,NPHSMAX

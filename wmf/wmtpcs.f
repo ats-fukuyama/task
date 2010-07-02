@@ -7,7 +7,7 @@ c
       SUBROUTINE WM_TOPICS(IERR)
 c
       include 'wmcomm.inc'
-      DIMENSION PABSR_SV(NRM,NSM,MNPHMX), PABSTL(NSM), FACT(MNPHMX)
+      DIMENSION PABSR_SV(NRM,NSM,NPHSM), PABSTL(NSM), FACT(NPHSM)
       DIMENSION GPABS_SV(MDM,NDM,NRM,NSM)
 c
       NPH0_SV  = NPH0
@@ -24,12 +24,12 @@ C
       ENDDO
 C
       WRITE(6,*) "========= MULTI-MODE CALCULATION START ========="
-      DO NM = 1, MNPHMAX
-         NPH0 = MNPH0(NM)
-         PRFIN = PRFIN_SV * PFRAC(NM)
+      DO NPHS = 1, NPHSMAX
+         NPH0 = NPH0S(NPHS)
+         PRFIN = PRFIN_SV * PFRACS(NPHS)
          WRITE(6,*)
-         WRITE(6,'(A,I4)') "== Toroidal mode number : ",MNPH0(NM)
-         WRITE(6,'(A,F8.6)') "== Power fraction       : ",PFRAC(NM)
+         WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0S(NPHS)
+         WRITE(6,'(A,F8.6)') "== Power fraction       : ",PFRACS(NPHS)
 C
          CALL WMEXEC(IERR)
          CALL MPSYNC
@@ -38,7 +38,7 @@ C
          DO NS = 1, NSMAX
             PABSTL(NS) = 0.D0
             DO NR = 1, NRMAX
-               PABSR_SV(NR,NS,NM) = PABSR(NR,NS)
+               PABSR_SV(NR,NS,NPHS) = PABSR(NR,NS)
                PABSTL(NS) = PABSTL(NS) + PABSR(NR,NS)
             ENDDO
          ENDDO
