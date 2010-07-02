@@ -9,5 +9,5 @@ C
       include '../pl/plcom0.inc'
       include '../pl/plcom1.inc'
       include '../dp/dpcom1.inc'
-      include '../wmf/wmcom0.inc'
-      include '../wmf/wmcom1.inc'
+      include 'wmcom0.inc'
+      include 'wmcom1.inc'

@@ -42,14 +42,23 @@ C
 C
 C     (Multi-mode case)
 C
-C     MNPHMAX : Number of toroidal modes
-C     MNPH0  : Current central value of toroidal mode number
-C     PFRAC  : Fraction of power for each toroidal mode number
+C     MDLWM_NPHS : CONTROL PARAMETER FOR MULTI-NPHS
+C                  0 : single mode: NPH0
+C                  1 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
+C                                   PFRAC: given antenna current
+C                  2 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
+C                                   PFRAC: given antenna voltage
+C                  3 : given modes: NPH0=NPH0S(NPHS),NPHS=1,NPHSMAX
+C                                   PFRAC=PFRACS(NPHS)
+C     NPHSMAX : Number of toroidal modes
+C     NPH0S   : Current central value of toroidal mode number
+C     PFRACS  : Fraction of power for each toroidal mode number
 C
-      MNPHMAX = 1
-      DO NM = 1, MNPHMX
-         MNPH0(NM) = 8
-         PFRAC(NM) = 0.D0
+      MDLWM_NPHS = 0
+      NPHSMAX    = 1
+      DO NPHS = 1, NPHSMAX
+         NPH0S(NPHS)  = 8
+         PFRACS(NPHS) = 0.D0
       ENDDO
 C
 C
@@ -280,7 +289,7 @@ C
      &              RHOITB,PNITB,PTITB,PUITB,
      &              KNAMEQ,KNAMTR,KNAMWM,KNAMFP,KNAMFO,KNAMPF,
      &              WAEMIN,WAEMAX,PRFIN,MODELPR,MODELVR,
-     &              NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC
+     &              NSUMAX,NSWMAX,MDLWM_NPHS,NPHSMAX,NPH0S,PFRACS
 C
       RF=DREAL(CRF)
       RFI=DIMAG(CRF)
@@ -329,7 +338,7 @@ C
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
      &       9X,'WAEMIN,WAEMAX,KNAMWM,KNAMFP,KNAMFO'/
-     &       9X,'NSUMAX,NSWMAX,MNPHMAX,MNPH0,PFRAC')
+     &       9X,'NSUMAX,NSWMAX,MDLWM_NPHS,NPHSMAX,NPH0S,PFRACS')
       END
 C
 C     ***** CHECK INPUT PARAMETERS *****
@@ -388,6 +397,12 @@ C
          WRITE(6,*) 'XXX INPUT ERROR : ILLEGAL MODELJ'
          WRITE(6,*) '                  MODELJ =',MODELJ
          IERR=1
+      ENDIF
+C
+      IF(MDLWMF.EQ.0) THEN
+         WRITE(6,*) 'XXX INPUT ERROR : MDLWMF=0 not supported'
+         WRITE(6,*) '                  MDLWMF is changed to 1'
+         MDLWMF = 1
       ENDIF
 C
       RETURN
@@ -463,12 +478,10 @@ C
          WRITE(6,*) '## MODELM=10: BSTABCDBM ##'
       ENDIF
 C
-      IF(MDLWMF.EQ.0) THEN
-         WRITE(6,*) '## MDLWMF=0: Original FDM ##'
-      ELSE IF(MDLWMF.EQ.1) THEN
+      IF(MDLWMF.EQ.1) THEN
          WRITE(6,*) '## MDLWMF=1: FEM ##'
       ELSE IF(MDLWMF.EQ.2) THEN
-         WRITE(6,*) '## MDLWMF=2: FEM (cylindrical) ##'
+         WRITE(6,*) '## MDLWMF=2: (nsmax+3) times memory, but faster ##'
       ENDIF
 C
       IF(MDLWMD.EQ.0) THEN
@@ -476,6 +489,26 @@ C
       ELSE IF(MDLWMF.EQ.1) THEN
          WRITE(6,*) '## MDLWMF=2: (nsmax+3) times memory, but faster ##'
       ENDIF
+C
+      SELECT CASE(MDLWM_NPHS)
+      CASE(0): 
+         WRITE(6,*) '## MDLWM_NPHS=0: Single mode ##'
+      CASE(1): 
+         WRITE(6,*) '## MDLWM_NPHS=1: Multi mode (antenna current) ##'
+         WRITE(6,*) '   NPHSMAX=',NPHSMAX
+      CASE(2): 
+         WRITE(6,*) '## MDLWM_NPHS=2: Multi mode (antenna voltage) ##'
+         WRITE(6,*) '   NPHSMAX=',NPHSMAX
+      CASE(3): 
+         WRITE(6,*) '## MDLWM_NPHS=2: Multi given mode (power frac) ##'
+         WRITE(6,*) '   NPHSMAX=',NPHSMAX
+         DO NPHS=1,NPHSMAX
+            WRITE(6,'(A,I5,A,I5,A,1PE12.4)') '   NPHS  =',NPHS,
+     &                                       '   NPH0S =',NPH0S(NPHS),
+     &                                       '   PFRACS=',PFRACS(NPHS)
+         ENDDO
+      END SELECT
+
 C
       RF =DBLE(CRF)
       RFI=DIMAG(CRF)
