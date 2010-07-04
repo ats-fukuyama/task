@@ -35,7 +35,7 @@
       INTEGER(4)       ,INTENT(IN)   :: NTXMAX, MDLXP
       INTEGER(4)       ,INTENT(INOUT):: NTLMAX, ICK
       INTEGER(4)       ,INTENT(OUT)  :: IERR
-      INTEGER(4):: MDCHK, NTX
+      INTEGER(4):: MDCHK
 
 
       IF(MDLXP.EQ.0) THEN
@@ -118,7 +118,7 @@
       REAL(4),DIMENSION(NTUM),INTENT(IN)   :: GTL
       INTEGER(4),             INTENT(IN)   :: NINMAX, MDLXP
       INTEGER(4),             INTENT(OUT)  :: IERR
-      INTEGER(4):: NTXMAX, MDCHK, NTX, NIN, IERRL
+      INTEGER(4):: NTXMAX, MDCHK, NIN, IERRL
       REAL(8)   :: TLN, F0
       REAL(8),DIMENSION(NTUM):: F1(NTUM)
 
@@ -365,7 +365,7 @@
       INTEGER(4),                  INTENT(IN):: NTXMAX, NRMAX, NSW, ID, MDLXP
       INTEGER(4),                  INTENT(INOUT):: ICK
       INTEGER(4),                  INTENT(OUT):: NTLMAX, IERR
-      INTEGER(4):: MDCHK, NRL, NRLMAX, NRX, NTX
+      INTEGER(4):: MDCHK, NRL, NRLMAX, NTX
       REAL(8)   :: F0, RSL
       REAL(8),DIMENSION(NRUM):: RL
       REAL(8),DIMENSION(NTUM,NRUM):: F2
@@ -443,7 +443,7 @@
       INTEGER(4),                  INTENT(IN)   :: NTXMAX, NRAMAX, NRMAX, NSW, MDLXP
       INTEGER(4),                  INTENT(INOUT):: ICK
       INTEGER(4),                  INTENT(OUT)  :: NTLMAX, IERR
-      INTEGER(4):: MDCHK, NRL, NRLMAX, NRX, NTX
+      INTEGER(4):: MDCHK, NRL, NRLMAX, NTX
       REAL(8)   :: RSL, F0, RGN
       REAL(8),DIMENSION(NRUM)     :: DERIV, RL, TMP0
       REAL(8),DIMENSION(4,NRUM)   :: U

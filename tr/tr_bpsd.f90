@@ -17,7 +17,6 @@
 !=======================================================================
       use trcomm
 ! local variables
-      real(8)    :: qpl,rgl
       integer(4) :: ns,nr,ierr
       real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
@@ -222,8 +221,8 @@
       integer(4),intent(out) :: ierr
 ! local variables
       integer(4) :: ns,nr
-      real(8)    :: temp(nrmp,nsm,3),tmp(nrmax)
-      real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho
+      real(8)    :: temp(nrmp,nsm,3)
+      real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho,rgl
       REAL(8)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
 !      write(6,*) 'top of tr_bpsd_get: qp'
@@ -236,7 +235,6 @@
 
       RR=device%rr
       RA=device%ra
-      RB=device%rb
       BB=device%bb
       RIP=device%ip
       RKAP=device%elip
@@ -269,6 +267,11 @@
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
 
+      equ1D%nrmax=nrmax+1
+      equ1D%rho(1)=0.d0
+      do nr=2,nrmax+1
+         equ1D%rho(nr)=rg(nr-1)
+      enddo
       call bpsd_get_data(equ1D,ierr)
 
       do nr=1,equ1D%nrmax
@@ -289,6 +292,11 @@
       TTRHOG(1:nrmax)=tempx(2:nrmax+1,5)
       psita=equ1D%data(equ1D%nrmax)%psit
 
+      metric1D%nrmax=nrmax+1
+      metric1D%rho(1)=0.d0
+      do nr=2,nrmax+1
+         metric1D%rho(nr)=rg(nr-1)
+      enddo
       call bpsd_get_data(metric1D,ierr)
       do nr=2,metric1D%nrmax       ! metric1D%nrmax = nrmax + 1
          rgl=rg(nr-1) ! rgl is equivalent to metric1D%rho(nr)

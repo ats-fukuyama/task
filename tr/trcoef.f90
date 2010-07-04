@@ -46,7 +46,7 @@
       REAL(8):: &
            RS,RKAPL,SHEARL,PNEL,RHONI,DPDRL,DVEXBDRL,CEXB,CKAP,chi_cdbm, &
            PAL,PZL,ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
-           VTIL, GAMMA0, EXBfactor
+           VTIL, GAMMA0, EXBfactor, SHRfactor
       INTEGER:: MODEL,ierr
       REAL(8),DIMENSION(NRMAX):: S_HM
       REAL(8)   :: DERIV3P
@@ -97,8 +97,8 @@
       case(140:149)
          KGR1='/ExB SHEARING RATE/'
          KGR2='/ExB Factor/'
-         KGR3='/chi_e tot;B;GB/'
-         KGR4='/chi_i tot;B;GB/'
+         KGR3='/magnetic shear/'
+         KGR4='/alpha/'
       case default
          KGR1='//'
          KGR2='//'
@@ -917,13 +917,15 @@
             VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMM))
             GAMMA0=VTIL/(QP(NR)*RR)
             EXBfactor=1.D0/(1.D0+(WEXBP(NR)/GAMMA0)**2)
+            SHRfactor=1.D0/MAX(1.D0,(S(NR)-0.5d0)**2)
             VGR2(NR,1)=EXBfactor
-            VGR3(NR,1)=ACHIE
-            VGR3(NR,2)=ACHIEB
-            VGR3(NR,3)=ACHIEGB
-            VGR4(NR,1)=ACHII
-            VGR4(NR,2)=ACHIIB
-            VGR4(NR,3)=ACHIIGB
+            VGR2(NR,2)=SHRfactor
+            VGR3(NR,1)=S(NR)
+            VGR3(NR,2)=0.D0
+            VGR3(NR,3)=0.D0
+            VGR4(NR,1)=ALPHA(NR)
+            VGR4(NR,2)=0.D0
+            VGR4(NR,3)=0.D0
 
          CASE DEFAULT
             WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
@@ -940,8 +942,8 @@
       ELSEIF(MDLKAI.EQ.62) THEN
          CALL AITKEN(1.D0,RBEEDG,RM,RNF(1,1),2,NRMAX)
          RBEEDG=RBEEDG/PNSS(1)
-         CALL IFSPPPL_DRIVER(NSM,NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM, &
-              QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNF(1,1), &
+         CALL IFSPPPL_DRIVER(NSTM,NRMAX,RN,RR,DR,RJCB,RHOG,RHOM, &
+              QP,S,EPSRHO,RKPRHOG,RT,BB,AMM,AME,PNSS,PTS,RNF(1:NRMAX,1), &
               RBEEDG,MDLUF,NSMAX,AR1RHOG,AR2RHOG,AKDW)
       ELSEIF(MDLKAI.EQ.63.OR.MDLKAI.EQ.64) THEN
          CALL WEILAND_DRIVER

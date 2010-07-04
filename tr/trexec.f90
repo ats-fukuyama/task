@@ -21,10 +21,10 @@
       IMPLICIT NONE
       REAL(8),INTENT(IN) :: DT
       INTEGER(4),INTENT(OUT) :: IERR
-      INTEGER(4):: I, ICHCK, IDGLOB, INFO, J, L, LDB, M, MWRMAX, &
-     &   N, NEQ, NEQ1, NEQRMAX, NF, NR, NRHS, NS, NSSN, NSSN1, &
-     &   NSTN, NSTN1, NSVN, NSVN1, KL, KU
-      REAL(8)   :: AJL, FACTOR0, FACTORM, FACTORP, FCTR, TSL
+      INTEGER(4):: I, ICHCK, INFO, J, L, LDB, M, MWRMAX, &
+           N, NEQ, NEQ1, NEQRMAX, NR, NRHS, NSSN, NSSN1, &
+           NSTN, NSTN1, NSVN, NSVN1, KL, KU
+      REAL(8)   :: AJL, FACTOR0, FACTORM, FACTORP, TSL
       INTEGER(4),DIMENSION(NEQMAXM*NRMAX) :: IPIV
       REAL(8),DIMENSION(NEQMAXM*NRMAX)    :: XX
       REAL(8),DIMENSION(2,NRMAX)  :: YY
@@ -378,7 +378,7 @@
       IMPLICIT NONE
       INTEGER(4), INTENT(INOUT):: NEQRMAX
       INTEGER(4):: KL, MV, MVV, MW, MWMAX, NEQ, NEQ1, NR, NS, NS1, NSTN, NSW, &
-     &             NV, NW, NX
+     &             NV, NW
       REAL(8)   :: ADV, C1, COEF, COULOG, DV53, FADV, PRV, RDPA, RLP
 
       ! Boundary condition for magnetic diffusion equation
@@ -682,15 +682,15 @@
          ENDDO
 
          IF(NR.EQ.1) THEN
-            CALL TR_BANDREDUCE(B(1,1,NR),XV(1,NR  ),PPB(1,NR),NEQRMAX)
-            CALL TR_BANDREDUCE(C(1,1,NR),XV(1,NR+1),PPC(1,NR),NEQRMAX)
+            CALL TR_BANDREDUCE(B,XV,PPB,NR,NR,  NEQRMAX)
+            CALL TR_BANDREDUCE(C,XV,PPC,NR,NR+1,NEQRMAX)
          ELSEIF(NR.EQ.NRMAX) THEN
-            CALL TR_BANDREDUCE(A(1,1,NR),XV(1,NR-1),PPA(1,NR),NEQRMAX)
-            CALL TR_BANDREDUCE(B(1,1,NR),XV(1,NR  ),PPB(1,NR),NEQRMAX)
+            CALL TR_BANDREDUCE(A,XV,PPA,NR,NR-1,NEQRMAX)
+            CALL TR_BANDREDUCE(B,XV,PPB,NR,NR,  NEQRMAX)
          ELSE
-            CALL TR_BANDREDUCE(A(1,1,NR),XV(1,NR-1),PPA(1,NR),NEQRMAX)
-            CALL TR_BANDREDUCE(B(1,1,NR),XV(1,NR  ),PPB(1,NR),NEQRMAX)
-            CALL TR_BANDREDUCE(C(1,1,NR),XV(1,NR+1),PPC(1,NR),NEQRMAX)
+            CALL TR_BANDREDUCE(A,XV,PPA,NR,NR-1,NEQRMAX)
+            CALL TR_BANDREDUCE(B,XV,PPB,NR,NR,  NEQRMAX)
+            CALL TR_BANDREDUCE(C,XV,PPC,NR,NR+1,NEQRMAX)
          ENDIF
 
          IF(MDLPCK.EQ.0) THEN
@@ -753,14 +753,15 @@
 
 !     ***********************************************************
 
-      SUBROUTINE TR_BANDREDUCE(A,XR,P,NEQRMAX)
+      SUBROUTINE TR_BANDREDUCE(A,XR,P,NR,NR1,NEQRMAX)
 
 
-      USE TRCOMM, ONLY : NEQM, NEQMAX, NEQMAXM, NNS, NST
+      USE TRCOMM, ONLY : NEQM, NEQMAX, NEQMAXM, NNS, NRMAX, NST
       IMPLICIT NONE
-      REAL(8),DIMENSION(NEQMAXM,NEQMAXM),INTENT(INOUT):: A
-      REAL(8),DIMENSION(NEQMAXM)     ,INTENT(IN)   :: XR
-      REAL(8),DIMENSION(NEQMAXM)     ,INTENT(INOUT):: P
+      REAL(8),DIMENSION(NEQMAXM,NEQMAXM,NRMAX),INTENT(INOUT):: A
+      REAL(8),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(IN)   :: XR
+      REAL(8),DIMENSION(NEQMAXM,NRMAX)     ,INTENT(INOUT):: P
+      INTEGER(4)                     ,INTENT(IN)  :: NR,NR1
       INTEGER(4)                     ,INTENT(OUT)  :: NEQRMAX
       INTEGER(4) :: L, LOOP, NBSIZE, NEQ, NNSN, NNSN1, NNSOLD, NV, NW
       REAL(8),DIMENSION(NEQMAXM,NEQMAXM) :: AA, AL
@@ -768,7 +769,7 @@
 
       DO NV=1,NEQMAX
          DO NW=1,NEQMAX
-            AA(NV,NW)=A(NV,NW)
+            AA(NV,NW)=A(NV,NW,NR)
          ENDDO
       ENDDO
       AM(1:NEQMAX)=0.D0
@@ -797,7 +798,7 @@
 !     /* Obtaining correction terms */
 
          DO NV=1,NEQMAX
-            AL(LOOP,NV)=AA(NV,NNSN1)*XR(NNSN1)
+            AL(LOOP,NV)=AA(NV,NNSN1)*XR(NNSN1,NR1)
          ENDDO
 
 !     /* Band reducer*/
@@ -806,21 +807,21 @@
             NBSIZE=NBSIZE-1
             DO NV=1,NBSIZE+1
                DO NW=NNSN,NBSIZE
-                  A(NV,NW)=A(NV,NW+1)
+                  A(NV,NW,NR)=A(NV,NW+1,NR)
                ENDDO
             ENDDO
-            A(1:NBSIZE+1,NBSIZE+1)=0.D0
+            A(1:NBSIZE+1,NBSIZE+1,NR)=0.D0
 
             DO NW=1,NBSIZE+1
                DO NV=NNSN,NBSIZE
-                  A(NV,NW)=A(NV+1,NW)
+                  A(NV,NW,NR)=A(NV+1,NW,NR)
                ENDDO
             ENDDO
-            A(NBSIZE+1,1:NBSIZE+1)=0.D0
+            A(NBSIZE+1,1:NBSIZE+1,NR)=0.D0
          ELSE
             NBSIZE=NBSIZE-1
-            A(1:NBSIZE+1,NBSIZE+1)=0.D0
-            A(NBSIZE+1,1:NBSIZE+1)=0.D0
+            A(1:NBSIZE+1,NBSIZE+1,NR)=0.D0
+            A(NBSIZE+1,1:NBSIZE+1,NR)=0.D0
          ENDIF
       ENDDO
 
@@ -832,7 +833,7 @@
          AM(1:NEQMAX)=AM(1:NEQMAX)+AL(L,1:NEQMAX)
       ENDDO
       DO NEQ=1,NEQMAX
-         IF(NST(NEQ).NE.0) P(NEQ)=P(NEQ)-AM(NEQ)
+         IF(NST(NEQ).NE.0) P(NEQ,NR)=P(NEQ,NR)-AM(NEQ)
       ENDDO
 
       RETURN

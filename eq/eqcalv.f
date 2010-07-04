@@ -222,6 +222,8 @@ C
          PSIPNL=PSIPL/PSIPA
          CALL EQPPSI(PSIPNL,PPSI,DPPSI)
          CALL EQQPSI(PSIPNL,QPSI)
+C         write(6,'(I5,1P3E12.4)') NRV,PSIPNL,PPSI,QPSI
+C         write(6,'(5X,1P3E12.4)') RSV(NRV),AVIR2(NRV),VPV(NRV)
          PSIPLP=PSIPL
          XP=RSV(NRV)/QPSI
          ALP=4.D0*PI**2*BB**2*RR**2*XP/(AVIR2(NRV)*VPV(NRV))
@@ -232,6 +234,8 @@ C
          PSIPNL=PSIPL/PSIPA
          CALL EQPPSI(PSIPNL,PPSI,DPPSI)
          CALL EQQPSI(PSIPNL,QPSI)
+C         write(6,'(I5,1P3E12.4)') NRV,PSIPNL,PPSI,QPSI
+C         write(6,'(5X,1P3E12.4)') RSV(NRV),AVIR2(NRV),VPV(NRV)
          PSIPLM=PSIPL
          XM=RSV(NRV-1)/QPSI
          IF(NRV.EQ.2) THEN
@@ -245,6 +249,7 @@ C
          YP=0.5D0*FIPV(NRV)**2
          YM=YP+0.5D0*(BLP+BLM)*(PSIPLP-PSIPLM)
      &        +0.5D0*(ALP+ALM)*(FLP-FLM)
+C         write(6,'(I5,1P2E12.4)') NRV,YP,YM
          FIPV(NRV-1)=SQRT(2.D0*YM)
       ENDDO
 C

@@ -188,7 +188,7 @@
            RN, RNF, RT, RTF, RW, SNF, TAUF
       IMPLICIT NONE
       REAL(8)   :: &
-           AMA, AMD, AMHe3, ANE, EC, HYF, P1, PTNT, SS, SSB, TAUS, &
+           AMA, AMD, AMHe3, ANE, HYF, P1, SS, TAUS, &
            TD, TE, THe3, VC3, VCA3, VCD3, VCR, VCHe3, VF, WF
       INTEGER(4):: NR
       REAL(8)   :: SIGMADHe3, COULOG, HY   !FUNCTION
@@ -251,7 +251,7 @@
       REAL(8) FUNCTION SIGMADHe3(TD,THe3)
 
       IMPLICIT NONE
-      REAL(8) TD,THe3,TI,ARG,TIL,XRATEL
+      REAL(8) TD,THe3,TI,TIL,XRATEL
       REAL(8),DIMENSION(10),save:: RENG,RRATE
       REAL(8),DIMENSION(10),save:: RENGL,RRATEL,DIFF
       REAL(8),DIMENSION(4,10),save:: URRATE

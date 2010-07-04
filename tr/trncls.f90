@@ -88,12 +88,31 @@
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
-      INCLUDE 'trncls.inc'
+!      INCLUDE 'trncls.inc'
+!Declaration of input to NCLASS
+      INTEGER(4)::                        k_order,  k_potato, m_i,      m_z
+      REAL(4)::                           c_den,    c_potb,   c_potl,   p_b2,     p_bm2,    p_eb,   &
+     &                                    p_fhat,   p_ft,     p_grbm2,  p_ngrth,  p_grphi,  p_gr2phi
+      REAL(4),DIMENSION(3)            ::  p_fm
+      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+      REAL(4),DIMENSION(3,mx_mi,mx_mz)::  fex_iz
+
+!Declaration of output from NCLASS
+      INTEGER(4)::                        iflag,    m_s
+      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
+      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
+      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
+      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     sqz_s,    vn_s,     veb_s,    qeb_s,    xi_s
+      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+
       INTEGER(4),INTENT(OUT):: IERR
-      INTEGER(4)::  i,        im,       iz,       j,        k,        k_out,    k_v,      na,       nm,       nr,       &
-     &              ns,       ns1,      nsn,      nsz
-      REAL(4)   ::  a0,       bt0,      e0,       p_eps,    p_q,      q0l,      r0
-      REAL(8)   ::  aitken2p, bpol,     btor,     btot,     deriv3,   deriv3p,  eps,      ftpf,     pzmax,    uthai
+      INTEGER(4)::  i,iz,k_out,k_v,na,nm,nr,ns,ns1,nsn,nsz
+      REAL(4)   ::  a0,bt0,e0,p_eps,p_q,q0l,r0
+      REAL(8)   ::  aitken2p,bpol,btor,btot,deriv3p,eps,ftpf,pzmax,uthai
 
 
       REAL(8),DIMENSION(NRMAX):: EROPSI
@@ -177,7 +196,8 @@
                den_iz(NS,INT(ABS(PZ(NS))))=SNGL(PNSS(NS))*1.E20
                grp_iz(NS,INT(ABS(PZ(NS)))) &
      &              =SNGL(DERIV3P(PNSS(NS)*PTS(NS),RN(NR  ,NS)*RT(NR  ,NS), &
-     &                           RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
+     &                           RN(NR-1,NS)*RT(NR-1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
+!     &                           RN(NR+1,NS)*RT(NR+1,NS),RG(NR),RM(NR),RM(NR-1)))*1.E20
                DO NA=1,3
                   fex_iz(NA,NS,INT(ABS(PZ(NS))))=0.0
                ENDDO
@@ -250,14 +270,11 @@
          bt0   = SNGL(BB)
          q0l   = SNGL(Q0)
          CALL NCLASS_CHECK(6,NR, &
-     &        k_out,k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
-     &        p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
-     &        p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz, &
-     &        p_eps,p_q,r0,a0,e0,bt0,q0l, &
-     &        m_s,jm_s,jz_s,p_bsjb, &
-     &        p_etap,p_exjb,calm_i,caln_ii, &
+     &        k_out,k_order,m_i,m_z,p_fhat,p_grphi, &
+     &        amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
+     &        m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
      &        capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-     &        sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
+     &        upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
      &        chip_ss,chit_ss,dp_ss,dt_ss,iflag)
       ENDIF
 
@@ -329,7 +346,8 @@
             btot=SQRT(btor**2+bpol**2)*btor/ABS(btor)
             DO i=1,m_s
                uthai=utheta_s(1,1,i)+utheta_s(1,2,i)+utheta_s(1,3,i)
-               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.iz.eq.int(PZ(2))) then
+!               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.iz.eq.int(PZ(2))) then
+               IF(DBLE(amu_i(jm_s(i))).eq.PA(2).and.jz_s(i).eq.int(PZ(2))) then
 !     Poloidal
                   VPOL(NR)=DBLE(uthai*bpol)
 !     Parallel
@@ -351,22 +369,36 @@
 
 !     ***********************************************************
 
-      SUBROUTINE NCLASS_CHECK(nout,nr,k_out, &
-     &            k_order,k_potato,m_i,m_z,c_den,c_potb,c_potl,p_b2, &
-     &            p_bm2,p_eb,p_fhat,p_fm,p_ft,p_grbm2,p_grphi,p_gr2phi, &
-     &            p_ngrth,amu_i,grt_i,temp_i,den_iz,fex_iz,grp_iz, &
-     &            p_eps,p_q,r0,a0,e0,bt0,q0, &
-     &            m_s,jm_s,jz_s,p_bsjb, &
-     &            p_etap,p_exjb,calm_i,caln_ii, &
+      SUBROUTINE NCLASS_CHECK(nout,nr, &
+     &            k_out,k_order,m_i,m_z,p_fhat,p_grphi, &
+     &            amu_i,grt_i,temp_i,den_iz,grp_iz,p_eps,bt0, &
+     &            m_s,jm_s,jz_s,p_bsjb,p_etap,p_exjb,calm_i,caln_ii, &
      &            capm_ii,capn_ii,bsjbp_s,bsjbt_s,dn_s,gfl_s,qfl_s, &
-     &            sqz_s,upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
+     &            upar_s,utheta_s,vn_s,veb_s,qeb_s,xi_s,ymu_s, &
      &            chip_ss,chit_ss,dp_ss,dt_ss,iflag)
 
       IMPLICIT NONE
       INCLUDE 'nclass/pamx_mi.inc'
       INCLUDE 'nclass/pamx_ms.inc'
       INCLUDE 'nclass/pamx_mz.inc'
-      INCLUDE 'trncls.inc'
+!      INCLUDE 'trncls.inc'
+!Declaration of input to NCLASS
+      INTEGER(4)::                        k_order,  m_i,      m_z
+      REAL(4)::                           p_fhat,   p_grphi
+      REAL(4),DIMENSION(mx_mi)        ::  amu_i,    grt_i,    temp_i
+      REAL(4),DIMENSION(mx_mi,mx_mz)  ::  den_iz,   grp_iz
+
+!Declaration of output from NCLASS
+      INTEGER(4)::                        iflag,    m_s
+      INTEGER(4),DIMENSION(mx_ms)::       jm_s,     jz_s
+      REAL(4)::                           p_bsjb,   p_etap,    p_exjb
+      REAL(4),DIMENSION(3,3,mx_mi)::      calm_i
+      REAL(4),DIMENSION(3,3,mx_mi,mx_mi)::caln_ii,  capm_ii,  capn_ii
+      REAL(4),DIMENSION(mx_ms)::          bsjbp_s,  bsjbt_s,  dn_s,     vn_s,     veb_s,    qeb_s,    xi_s
+      REAL(4),DIMENSION(5,mx_ms)::        gfl_s,    qfl_s
+      REAL(4),DIMENSION(3,3,mx_ms)::      upar_s,   utheta_s, ymu_s
+      REAL(4),DIMENSION(mx_ms,mx_ms)::    chip_ss,  chit_ss,  dp_ss,    dt_ss
+
 !Declaration of local variables
       CHARACTER(LEN=120):: label
       INTEGER        nr
@@ -377,12 +409,11 @@
      &               k_out,                   l, &
      &               nout
       INTEGER        idum(8)
-      REAL           a0,                      bt0, &
+      REAL           bt0, &
      &               bpol,                    btor, &
      &               btot, &
-     &               e0,                      p_eps, &
-     &               p_q,                     ppr, &
-     &               q0,                      r0, &
+     &               p_eps, &
+     &               ppr, &
      &               uthai
       REAL           dq_s(mx_ms),             vq_s(mx_ms)
       REAL           z_coulomb,               z_electronmass, &

@@ -47,7 +47,6 @@
 !-----------------------------------------------------------------------
       call eq_bpsd_get(ierr)
       call eqcalc(ierr)
-!      call eq_bpsd_init(ierr)
       call eqcalq(ierr)
       call eq_bpsd_set(ierr)
       return

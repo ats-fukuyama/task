@@ -150,7 +150,7 @@
      &                   TPRE, TPRST, TSST, TST, TTRHO, TTRHOG, VPOL, VSEC, VTOR, WPPRE, &
      &                   ALLOCATE_TRCOMM, ABVRHO, ABVRHOG, RDPVRHOG
       IMPLICIT NONE
-      INTEGER(4):: IERR, NR
+      INTEGER(4):: IERR
       REAL(8)   :: FCTR
 
 

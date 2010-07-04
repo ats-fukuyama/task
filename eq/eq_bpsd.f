@@ -87,6 +87,15 @@
       enddo
       call bpsd_set_data(plasmaf,ierr)
 
+      equ1D%time=0.D0
+      if(equ1D%nrmax.ne.nrmax) then
+         if(associated(equ1D%rho)) deallocate(equ1D%rho)
+         if(associated(equ1D%data)) deallocate(equ1D%data)
+         equ1D%nrmax=NRMAX
+         allocate(equ1D%rho(NRMAX))
+         allocate(equ1D%data(NRMAX))
+      endif
+
       do nr=1,nrmax
          equ1D%rho(nr)       = rhot(nr) ! = SQRT(psit(nr)/psit(nrmax))
          equ1D%data(nr)%psit = psit(nr)
@@ -96,9 +105,16 @@
          equ1D%data(nr)%pip  = tts(nr)/rmu0
          equ1D%data(nr)%pit  = 0.d0
       enddo
+      call bpsd_set_data(equ1D,ierr)
 
-      call bpsd_set_equ1D(equ1D,ierr)
-
+      metric1D%time=0.D0
+      if(metric1D%nrmax.ne.nrmax) then
+         if(associated(metric1D%rho)) deallocate(metric1d%rho)
+         if(associated(metric1D%data)) deallocate(metric1d%data)
+         metric1D%nrmax=NRMAX
+         allocate(metric1D%rho(NRMAX))
+         allocate(metric1D%data(NRMAX))
+      endif
       do nr=1,nrmax
          metric1D%rho(nr)          = rhot(nr)
          metric1D%data(nr)%pvol    = fnvps(rhot(nr))    ! vps     on rhot
@@ -122,7 +138,7 @@
          metric1D%data(nr)%trig    = fntrgps (rhot(nr)) ! trigpsi on rhot
          metric1D%data(nr)%aveb    = fnavbb  (rhot(nr)) ! avebb   on rhot
       enddo
-      call bpsd_set_metric1D(metric1D,ierr)
+      call bpsd_set_data(metric1D,ierr)
 
       end subroutine eq_bpsd_set
 
@@ -131,36 +147,38 @@
 !=======================================================================
 !     interface transport => equilibrium
 !=======================================================================
-      INCLUDE '../eq/eqcomq.inc'
-      integer(4) :: ierr
+      INCLUDE '../eq/eqcomm.inc'
+      INCLUDE '../eq/eqcom4.inc'
+      real(8),DIMENSION(NTRM):: ptrrho,qtrrho,deriv
+      integer(4) :: ierr,ntr
 
-      call bpsd_get_data(device,ierr)
+      call bpsd_get_data(plasmaf,ierr)
 
-      RR=device%rr
-      RA=device%ra
-      RB=device%rb
-      BB=device%bb
-      RIP=device%ip
-      RKAP=device%elip
-      RDLT=device%trig
+      ntrmax=plasmaf%nrmax
+      DO ntr=1,ntrmax
+         rhotr(ntr)=plasmaf%rho(ntr)
+         psitrx(ntr)=rhotr(ntr)**2
+         ptot=0.d0
+         DO ns=1,plasmaf%nsmax
+            ptot=ptot+plasmaf%data(ntr,ns)%pn*plasmaf%data(ntr,ns)%pt
+     &                *aee
+         END DO
+         ptrrho(ntr)=ptot*1.D-6
+         qtrrho(ntr)=1.d0/plasmaf%qinv(ntr)
+C         write(6,'(A,I5,1P4E12.4)') 'eq_bpsd_get:',ntr,rhotr(ntr),
+C     &        psitrx(ntr),ptrrho(ntr),qtrrho(ntr)
+      END DO
 
-      equ1D%time=0.D0
-      if(equ1D%nrmax.ne.nrmax) then
-         if(associated(equ1D%rho)) deallocate(equ1D%rho)
-         if(associated(equ1D%data)) deallocate(equ1D%data)
-         equ1D%nrmax=NRMAX
-         allocate(equ1D%rho(NRMAX))
-         allocate(equ1D%data(NRMAX))
-      endif
+      CALL spl1d(psitrx,ptrrho,deriv,uppsi,ntrmax,0,ierr)
+      IF(ierr.NE.0) 
+     &     WRITE(6,*) 'XX eq_bpsd_get: spl1d ptrrho: ierr=',ierr
 
-      metric1D%time=0.D0
-      if(metric1D%nrmax.ne.nrmax) then
-         if(associated(metric1D%rho)) deallocate(metric1d%rho)
-         if(associated(metric1D%data)) deallocate(metric1d%data)
-         metric1D%nrmax=NRMAX
-         allocate(metric1D%rho(NRMAX))
-         allocate(metric1D%data(NRMAX))
-      endif
-      end subroutine eq_bpsd_get
+      CALL spl1d(psitrx,qtrrho,deriv,uqpsi,ntrmax,0,ierr)
+      IF(ierr.NE.0) 
+     &     WRITE(6,*) 'XX eq_bpsd_get: spl1d qtrrho: ierr=',ierr
 
-      end module eq_bpsd_mod
+      mdleqf=9
+
+      END SUBROUTINE eq_bpsd_get
+
+      END MODULE eq_bpsd_mod

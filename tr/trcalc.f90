@@ -16,12 +16,8 @@
       USE tr_cytran_mod
       IMPLICIT NONE
       INTEGER(4),INTENT(OUT)    :: IERR
-      INTEGER(4)                :: NR, NS, NWM, NWMMAX, NWR, NWRMAX
+      INTEGER(4)                :: NR
       REAL(8)                   :: FCTR
-      REAL(8),DIMENSION(NRMAX)      :: AJWMPL,AJWRPL
-      REAL(8),DIMENSION(NRMAX,NSMAX):: PWMPL, PWRPL
-      CHARACTER(LEN=80)         :: KID
-      real :: g1,g2
 
       IF(RHOA.NE.1.D0) NRMAX=NROMAX
       IERR=0
@@ -1398,18 +1394,20 @@
       REAL(8) FUNCTION FTPF(ID,EPS)
 
       IMPLICIT NONE
-      INTEGER(4)                  :: ID, IERR, N
+      INTEGER(4)                  :: ID, IERR, N, I
       INTEGER(4),PARAMETER        :: IMAX=20
       REAL(8)                     :: EPS, EPSC, FTLL, FTUL, OMEGA, PI, S
       REAL(8),DIMENSION(IMAX,IMAX):: TABLE
+      REAL(8)                     :: FTL, FTU
       EXTERNAL FTL, FTU
 
       IF(ID.EQ.1) THEN
 !  Y. R. Lin-Liu and R. L. Miller, PoP 2 1666 (1995), eqs(7)(13)(18)(19)
          PI=3.14159265358979323846D0
          EPSC=1.D-9
+         I=IMAX
          FTUL=1.D0-(1.D0-1.5D0*SQRT(EPS)+0.5D0*EPS**1.5D0)/SQRT(1-EPS**2)
-         CALL RMBRG(0.D0,2.D0*PI,EPSC,S,IMAX,N,IERR,TABLE,EPS,FTL)
+         CALL RMBRG(0.D0,2.D0*PI,EPSC,S,I,N,IERR,TABLE,EPS,FTL)
          FTLL=1.D0-(1.D0-EPS)**1.5D0/SQRT(1.D0+EPS)*(S/(2.D0*PI))
          OMEGA=(3.D0*SQRT(2.D0)/2.D0*0.69D0-3.D0*SQRT(2.D0)/PI)/(1.5D0-3.D0*SQRT(2.D0)/PI)
          FTPF=OMEGA*FTUL+(1.D0-OMEGA)*FTLL

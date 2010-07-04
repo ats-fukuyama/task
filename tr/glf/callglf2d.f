@@ -114,7 +114,7 @@ c external arrays
  
       integer jmaxm, jshoot, jmm, i_grad, idengrad, itport_pt(1:5),
      >  i_delay, j, jin, jout, jm, irotstab, iglf,
-     >  jpt, jptf, jptt, jj, ii, ik, bt_flag, leigen, nroot
+     >  jpt, jptf, jptt, jj, ii, bt_flag, leigen, nroot
       double precision alpha_e, x_alpha, xalpha,
      >  diffnem, chietem, chiitim, etaphim,
      >  etaparm, etaperm, exchm,
