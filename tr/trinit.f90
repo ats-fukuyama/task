@@ -17,7 +17,8 @@
      &                  PNBR0, PNBRTG, PNBRW, PNBTOT, PNBVW, PNBVY, PNC, PNFE, PNNU, PNNUS, PNS, PROFJ1, PROFJ2, PROFN1,       &
      &                  PROFN2, PROFT1, PROFT2, PROFU1, PROFU2, PT, PTS, PZ, RA, RDLT, RHOA, RIPE, RIPS, RKAP, RKEV, RMU0, RR, &
      &                  SUMPBM, TIME_INT, TPRST, TSST, VC, VOID, KUFDIR, &
-     MDLPR,SYNCABS,SYNCSELF
+     MDLPR,SYNCABS,SYNCSELF, PU, PUS, PROFNU1, PROFNU2, &
+     ELMWID, ELMDUR, ELMNRD, ELMTRD, ELMENH, NSMM, MDLELM
       IMPLICIT NONE
       INTEGER(4) NS, IERR
 
@@ -52,19 +53,13 @@
 !        PN(NS) : INITIAL NUMBER DENSITY ON AXIS (1.E20 M**-3)
 !        PNS(NS): INITIAL NUMBER DENSITY ON SURFACE (1.E20 M**-3)
 !        PT(NS) : INITIAL TEMPERATURE ON AXIS (KEV)
-!        PTS(IS): INITIAL TEMPERATURE ON SURFACE (KEV)
+!        PTS(NS): INITIAL TEMPERATURE ON SURFACE (KEV)
+!        PU(NS) : INITIAL TOROIDAL VELOCITY ON AXIS (KEV)
+!        PUS(US): INITIAL TOROIDAL VELOCITY ON SURFACE (KEV)
 
       NSMAX=2
-!      NSMAX=4
       NSZMAX=0  ! the number of impurities
       NSNMAX=2  ! the number of neutrals, 0 or 2 fixed
-
-!      NSTM  = NSMAX+NSZMAX+NSNMAX
-      ALLOCATE(PA(NSTM),PZ(NSTM),PN(NSTM),PT(NSTM),PTS(NSTM),PNS(NSTM),PELPAT(NSTM),STAT=IERR)
-      IF(IERR.NE.0) THEN
-         WRITE(6,*) "TRINIT ALLOCATE ERROR"
-         STOP
-      ENDIF
 
       PA(1)   = AME/AMM
       PZ(1)   =-1.D0
@@ -72,6 +67,8 @@
       PT(1)   = 1.5D0
       PTS(1)  = 0.05D0
       PNS(1)  = 0.05D0
+      PU(1)   = 0.D0
+      PUS(1)  = 0.D0
 
       PA(2)   = 2.D0
       PZ(2)   = 1.D0
@@ -79,6 +76,8 @@
       PT(2)   = 1.5D0
       PTS(2)  = 0.05D0
       PNS(2)  = 0.05D0-2.D-8
+      PU(2)   = 0.D0
+      PUS(2)  = 0.D0
 
       PA(3)   = 3.D0
       PZ(3)   = 1.D0
@@ -86,6 +85,8 @@
       PT(3)   = 1.5D0
       PTS(3)  = 0.05D0
       PNS(3)  = 1.D-8
+      PU(3)   = 0.D0
+      PUS(3)  = 0.D0
 
       PA(4)   = 4.D0
       PZ(4)   = 2.D0
@@ -93,6 +94,8 @@
       PT(4)   = 1.5D0
       PTS(4)  = 0.05D0
       PNS(4)  = 1.D-8
+      PU(4)   = 0.D0
+      PUS(4)  = 0.D0
 
       PA(5)   = 12.D0
       PZ(5)   = 2.D0
@@ -100,6 +103,8 @@
       PT(5)   = 0.D0
       PTS(5)  = 0.D0
       PNS(5)  = VOID
+      PU(5)   = 0.D0
+      PUS(5)  = 0.D0
 
       PA(6)   = 12.D0
       PZ(6)   = 4.D0
@@ -107,20 +112,19 @@
       PT(6)   = 0.D0
       PTS(6)  = 0.D0
       PNS(6)  = VOID
+      PU(6)   = 0.D0
+      PUS(6)  = 0.D0
 
-      PA(7)   = 2.D0
-      PZ(7)   = 0.D0
-      PN(7)   = 1.D-15
-      PT(7)   = 0.D0
-      PTS(7)  = 0.D0
-      PNS(7)  = 2.D-4
-
-      PA(8)   = 2.D0
-      PZ(8)   = 0.D0
-      PN(8)   = 0.D0
-      PT(8)   = 0.D0
-      PTS(8)  = 0.D0
-      PNS(8)  = 0.D0
+      DO NS=7,NSMM
+         PA(NS)  = 2.D0
+         PZ(NS)  = 0.D0
+         PN(NS)  = 0.D0
+         PT(NS)  = 0.D0
+         PTS(NS) = 0.D0
+         PNS(NS) = 0.D0
+         PU(NS)  = 0.D0
+         PUS(NS) = 0.D0
+      END DO
 
 !     ==== IMPURITY PARAMETERS ====
 
@@ -137,10 +141,11 @@
 
 !     ==== PROFILE PARAMETERS ====
 
-!        PROFN*: PROFILE PARAMETER OF INITIAL DENSITY
-!        PROFT*: PROFILE PARAMETER OF INITIAL TEMPERATURE
-!        PROFU*: PROFILE PARAMETER OF INITIAL NEUTRAL DENSITY
-!        PROFJ*: PROFILE PARAMETER OF INITIAL CURRENT DENSITY
+!        PROFN* : PROFILE PARAMETER OF INITIAL DENSITY
+!        PROFT* : PROFILE PARAMETER OF INITIAL TEMPERATURE
+!        PROFU* : PROFILE PARAMETER OF INITIAL TOROIDAL VELOCITY
+!        PROFNU*: PROFILE PARAMETER OF INITIAL NEUTRAL DENSITY
+!        PROFJ* : PROFILE PARAMETER OF INITIAL CURRENT DENSITY
 !                    (X0-XS)(1-RHO**PROFX1)**PROFX2+XS
 
 !        ALP   : ADDITIONAL PARAMETERS
@@ -152,8 +157,10 @@
       PROFN2 = 0.5D0
       PROFT1 = 2.D0
       PROFT2 = 1.D0
-      PROFU1 =12.D0
+      PROFU1 = 2.D0
       PROFU2 = 1.D0
+      PROFNU1=12.D0
+      PROFNU2= 1.D0
       PROFJ1 =-2.D0
       PROFJ2 = 1.D0
 
@@ -499,8 +506,10 @@
       PELVEL = 0.D0
       PELTIM = -10.D0
 
-      DO NS=1,NSMAX
-         PELPAT(NS) = 1.0D0
+      PELPAT(1) = 1.0D0
+      PELPAT(2) = 1.0D0
+      DO NS=3,NSMM
+         PELPAT(NS) = 0.0D0
       ENDDO
 
 !     ==== RADIATION ====
@@ -640,6 +649,24 @@
 !                 i.e. NSLMAX never be less than 2.
       MDNCLS=0
       NSLMAX=NSMAX
+
+!     ==== ELM MODEL ====
+!        MDLELM: 0: no ELM
+!                1: simple reduction model: ELMWID, ELMTRD, ELMTRD
+!        ELMWID: Factor of Radial width from plasma surface at ELM
+!        ELMDUR: Factor of Time duration of ELM
+!        ELMNRD: Density reduction factor at ELM for species NS
+!        ELMTRD: Temperature reduction factor at ELM for species NS
+!        ELMENH: Transport enhancement factor at ELM for species NS
+
+      MDLELM=0
+      ELMWID=1.D0
+      ELMDUR=1.D0
+      DO NS=1,NSMM
+         ELMNRD(NS)=1.D0
+         ELMTRD(NS)=1.D0
+         ELMENH(NS)=1.D0
+      END DO
 
 !     ==== MODERATE TIME EVOLUTION FOR ANOM. TRANSPORT COEFFICIENTS ====
 !        0    : off

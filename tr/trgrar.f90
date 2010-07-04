@@ -627,15 +627,23 @@
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(VGR1(NR,1))
+         GYR(NR+1,2) = GUCLIP(VGR1(NR,2))
+         GYR(NR+1,3) = GUCLIP(VGR1(NR,3))
       ENDDO
       GYR(1,1) = GUCLIP(VGR1(1,1))
-      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1,KGR1,2+INQ)
+      GYR(1,2) = GUCLIP(VGR1(1,2))
+      GYR(1,3) = GUCLIP(VGR1(1,3))
+      CALL TRGR1D( 3.0,12.0,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,3,KGR1,2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(VGR2(NR,1))
+         GYR(NR+1,2) = GUCLIP(VGR2(NR,2))
+         GYR(NR+1,3) = GUCLIP(VGR2(NR,3))
       ENDDO
       GYR(1,1) = GUCLIP(VGR2(1,1))
-      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,1,KGR2,2+INQ)
+      GYR(1,2) = GUCLIP(VGR2(1,2))
+      GYR(1,3) = GUCLIP(VGR2(1,3))
+      CALL TRGR1D(15.5,24.5,11.0,17.0,GRG,GYR,NRMP,NRMAX+1,3,KGR2,2+INQ)
 
       DO NR=1,NRMAX
          GYR(NR+1,1) = GUCLIP(VGR3(NR,1))
@@ -652,12 +660,9 @@
          GYR(NR+1,2) = GUCLIP(VGR4(NR,2))
          GYR(NR+1,3) = GUCLIP(VGR4(NR,3))
       ENDDO
-!$$$      GYR(1,1) = GUCLIP(VGR4(1,1))
-!$$$      GYR(1,2) = GUCLIP(VGR4(1,2))
-!$$$      GYR(1,3) = GUCLIP(VGR4(1,3))
-      GYR(1,1) = 0.0
-      GYR(1,2) = 0.0
-      GYR(1,3) = 0.0
+      GYR(1,1) = GUCLIP(VGR4(1,1))
+      GYR(1,2) = GUCLIP(VGR4(1,2))
+      GYR(1,3) = GUCLIP(VGR4(1,3))
 
       CALL TRGR1D(15.5,24.5, 2.0, 8.0,GRG,GYR,NRMP,NRMAX+1,3,KGR4,2+INQ)
 

@@ -30,7 +30,7 @@
       USE trmodels,ONLY: mbgb_driver
       IMPLICIT NONE
       INTEGER(4):: &
-           NS, NR08, NR
+           NS, NR08, NR, I
       REAL(8)   :: &
            AEI, AGITG, AKDWEL, AKDWIL, AKDWL, ALPHAL, ALNI, ALTI, AMA, AMD, &
            AMI, AMT, ANA, ANDX, ANE, ANT, ANYUE, ARG, CHIB, CHIGB, CLN, CLPE, &
@@ -74,10 +74,9 @@
          KGR3='/CLN,CLT  vs r/'
          KGR4='/CLS  vs r/'
       case(30:40,130:139)
-         KGR1='/E$-r$=  vs r/'!'/NST$+2$= vs r/'
-         KGR2='/V$-ExB$=  vs r/'!'/OmegaST vs r/'
-!         KGR3='@1/(1+G*WE1$+2$=)  vs r@'!'@lambda vs r@'
-         KGR3='@exp(-beta*WE1$+gamma$=)  vs r@'!'@lambda vs r@'
+         KGR1='/E$-r$=  vs r/'
+         KGR2='/V$-ExB$=  vs r/'
+         KGR3='@exp(-beta*WE1$+gamma$=)  vs r@'
          KGR4='@Lambda,1/(1+OmgST$+2$=)  vs r@'
       case(41:50)
          KGR1='/NST$+2$= vs r/'
@@ -105,6 +104,16 @@
          KGR3='//'
          KGR4='//'
       end select
+
+      DO I=1,3
+         DO NR=1,NRMAX
+            VGR1(NR,I)=0.D0
+            VGR2(NR,I)=0.D0
+            VGR3(NR,I)=0.D0
+            VGR4(NR,I)=0.D0
+         ENDDO
+      ENDDO
+
 !
 !     ***** PP   is the total pressure (nT) *****
 !     ***** DPP  is the derivative of total pressure (dnT/dr) *****
@@ -913,7 +922,7 @@
             AKDW(NR,3)=AKDWIL
             AKDW(NR,4)=AKDWIL
 
-            VGR1(NR,1)=WEXBP(NR)
+            VGR1(NR,1)=ER(NR)
             VTIL=SQRT(2.D0*TI*RKEV/(PAL*AMM))
             GAMMA0=VTIL/(QP(NR)*RR)
             EXBfactor=1.D0/(1.D0+(WEXBP(NR)/GAMMA0)**2)
