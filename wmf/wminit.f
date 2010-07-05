@@ -44,12 +44,12 @@ C     (Multi-mode case)
 C
 C     MDLWM_NPHS : CONTROL PARAMETER FOR MULTI-NPHS
 C                  0 : single mode: NPH0
-C                  1 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
-C                                   PFRAC: given antenna current
-C                  2 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
-C                                   PFRAC: given antenna voltage
-C                  3 : given modes: NPH0=NPH0S(NPHS),NPHS=1,NPHSMAX
+C                  1 : given modes: NPH0=NPH0S(NPHS),NPHS=1,NPHSMAX
 C                                   PFRAC=PFRACS(NPHS)
+C                  2 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
+C                                   PFRAC: given antenna current
+C                  3 : multi modes: NPH0=-NPHSMAX/2,NPHMAX/2
+C                                   PFRAC: given antenna voltage
 C     NPHSMAX : Number of toroidal modes
 C     NPH0S   : Current central value of toroidal mode number
 C     PFRACS  : Fraction of power for each toroidal mode number
