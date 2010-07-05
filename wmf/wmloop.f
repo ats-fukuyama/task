@@ -283,7 +283,6 @@ C
       DO NPHS=1,NPHSMAX
          CRADTT=CRADTT+CRADTTS(NPHS)
          PABSTT=PABSTT+PABSTTS(NPHS)
-         write(6,*) 'pabstt   =',pabstt
          DO NS=1,NSMAX
             PABST(NS)=PABST(NS)+PABSTS(NS,NPHS)
             DO NR=1,NRMAX
