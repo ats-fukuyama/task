@@ -865,7 +865,6 @@ C
       INCLUDE 'wmcomm.inc'
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
-      DIMENSION DS(NRM),DSS(NTHM,NPHM,NRM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
       real(8),dimension(3,3)::  gm
       real(8):: gj1,gj2
@@ -938,14 +937,6 @@ C
                ENDDO
             ENDDO
             ENDDO
-c$$$            if(nr.eq.1.or.nr.eq.2) then
-c$$$            DO NPH=1,NPHMAX
-c$$$            DO NTH=1,NTHMAX
-c$$$               write(6,'(3I8,1P2E12.4)') NR,NTH,NPH,
-c$$$     &                                   PABS(NTH,NPH,NR,NS)
-c$$$            ENDDO
-c$$$            ENDDO
-c$$$            endif
          ENDDO
          ENDDO
 
@@ -1028,146 +1019,6 @@ c$$$            ENDDO
 c$$$         ENDDO
 c$$$         ENDDO
       ENDDO
-C
-      DO NR=1,NRMAX
-         PCURR(NR)=0.D0
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            PCURR(NR)=PCURR(NR)+PCUR(NTH,NPH,NR)*DTH
-         ENDDO
-         ENDDO
-      ENDDO
-C
-      DO NS=1,NSMAX
-      DO NR=1,NRMAX
-         PABSR(NR,NS)=0.D0
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            PABSR(NR,NS)=PABSR(NR,NS)+PABS(NTH,NPH,NR,NS)*DTH*DPH
-         ENDDO
-         ENDDO
-C         write(6,'(2I8,1P3E12.4)') NR,NS,PABSR(NR,NS),DTH,DPH
-      ENDDO
-      ENDDO
-C
-      PCURT=0.D0
-      DO NR=1,NRMAX
-         PCURT=PCURT+PCURR(NR)
-      ENDDO
-C
-      DO NS=1,NSMAX
-         PABST(NS)=0.D0
-         DO NR=1,NRMAX
-            PABST(NS)=PABST(NS)+PABSR(NR,NS)
-         ENDDO
-      ENDDO
-C
-      PABSTT=0.D0
-      DO NS=1,NSMAX
-         PABSTT=PABSTT+PABST(NS)
-      ENDDO
-C
-      FACT=1.D0
-C
-      IF(PRFIN.GT.0.D0.AND.PABSTT.GT.0.D0) THEN
-         FACT=PRFIN/PABSTT
-      ENDIF
-      FACTSQ=SQRT(FACT)
-C
-      DO NR=1,NRMAX-1
-         DS(NR)=0.D0
-         DRHO=XRHO(NR+1)-XRHO(NR)
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            th=dth*(nth-1)
-            ph=dph*(nph-1)
-            call wmfem_metrics(xrho(nr),th,ph,gm,gj1)
-            call wmfem_metrics(xrho(nr+1),th,ph,gm,gj2)
-!            write(6,'(I5,1P6E12.4)') 
-!     &           nr,xrho(nr),xrho(nr+1),th,ph,gj1,gj2
-            DSSS=DRHO*0.5d0*(gj1+gj2)
-            DSS(NTH,NPH,NR)=1.D0/DSSS
-            DS(NR)=DS(NR)+DSSS*DTH*DPH
-         ENDDO
-         ENDDO
-         DS(NR)=1.D0/DS(NR)
-      ENDDO
-      DS(NRMAX)=0.D0
-      DO NTH=1,NTHMAX
-         DO NPH=1,NPHMAX
-            DSS(NTH,NPH,NRMAX)=0.d0
-         ENDDO
-      ENDDO
-C
-      PABSTT=FACT*PABSTT
-      DO NS=1,NSMAX
-         PABST(NS)=FACT*PABST(NS)
-         DO NR=1,NRMAX
-            PABSR(NR,NS)=FACT*PABSR(NR,NS)*DS(NR)
-            DO NPH=1,NPHMAX
-            DO NTH=1,NTHMAX
-               PABS(NTH,NPH,NR,NS)=FACT*PABS(NTH,NPH,NR,NS)
-     &                            *DSS(NTH,NPH,NR)
-            ENDDO
-            ENDDO
-         ENDDO
-!      write(6,'(2I5,1P2E12.4)') 
-!     &     (NR,NS,DS(NR),PABSR(NR,NS),NR=1,NRMAX)
-      ENDDO
-C
-      DO NS=1,NSMAX
-      DO NR=1,NRMAX
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            PABSK(MDX,NDX,NR,NS)=FACT*PABSK(MDX,NDX,NR,NS)*DS(NR)
-         ENDDO
-         ENDDO
-      ENDDO
-      ENDDO
-C
-      PCURT=FACT*PCURT
-      DO NR=1,NRMAX
-         PCURR(NR)=FACT*PCURR(NR)*DS(NR)
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            PCUR(NTH,NPH,NR)=FACT*PCUR(NTH,NPH,NR)*DSS(NTH,NPH,NR)
-         ENDDO
-         ENDDO
-      ENDDO
-C
-      DO NR=1,NRMAX
-         DO ND=NDMIN,NDMAX
-            NDX=ND-NDMIN+1
-         DO MD=MDMIN,MDMAX
-            MDX=MD-MDMIN+1
-            CEFLDK(1,MDX,NDX,NR)=FACTSQ*CEFLDK(1,MDX,NDX,NR)
-            CEFLDK(2,MDX,NDX,NR)=FACTSQ*CEFLDK(2,MDX,NDX,NR)
-            CEFLDK(3,MDX,NDX,NR)=FACTSQ*CEFLDK(3,MDX,NDX,NR)
-            CBFLDK(1,MDX,NDX,NR)=FACTSQ*CBFLDK(1,MDX,NDX,NR)
-            CBFLDK(2,MDX,NDX,NR)=FACTSQ*CBFLDK(2,MDX,NDX,NR)
-            CBFLDK(3,MDX,NDX,NR)=FACTSQ*CBFLDK(3,MDX,NDX,NR)
-         ENDDO
-         ENDDO
-         DO NPH=1,NPHMAX
-         DO NTH=1,NTHMAX
-            CEFLD(1,NTH,NPH,NR)=FACTSQ*CEFLD(1,NTH,NPH,NR)
-            CEFLD(2,NTH,NPH,NR)=FACTSQ*CEFLD(2,NTH,NPH,NR)
-            CEFLD(3,NTH,NPH,NR)=FACTSQ*CEFLD(3,NTH,NPH,NR)
-            CBFLD(1,NTH,NPH,NR)=FACTSQ*CBFLD(1,NTH,NPH,NR)
-            CBFLD(2,NTH,NPH,NR)=FACTSQ*CBFLD(2,NTH,NPH,NR)
-            CBFLD(3,NTH,NPH,NR)=FACTSQ*CBFLD(3,NTH,NPH,NR)
-            CEN(1,NTH,NPH,NR)  =FACTSQ*CEN(1,NTH,NPH,NR)
-            CEN(2,NTH,NPH,NR)  =FACTSQ*CEN(2,NTH,NPH,NR)
-            CEN(3,NTH,NPH,NR)  =FACTSQ*CEN(3,NTH,NPH,NR)
-            CEP(1,NTH,NPH,NR)  =FACTSQ*CEP(1,NTH,NPH,NR)
-            CEP(2,NTH,NPH,NR)  =FACTSQ*CEP(2,NTH,NPH,NR)
-            CEP(3,NTH,NPH,NR)  =FACTSQ*CEP(3,NTH,NPH,NR)
-         ENDDO
-         ENDDO
-      ENDDO
-      CALL MPSYNC
 C
       RETURN
       END
