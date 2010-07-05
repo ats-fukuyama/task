@@ -123,6 +123,10 @@ C
             ENDDO
          ENDDO
 
+         IF(MYRANK.EQ.0) THEN
+            CALL WMPOUT(NPH0)
+            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+         ENDIF
 
 !     ----- save data for NPHS ----
 
@@ -279,8 +283,9 @@ C
       DO NPHS=1,NPHSMAX
          CRADTT=CRADTT+CRADTTS(NPHS)
          PABSTT=PABSTT+PABSTTS(NPHS)
+         write(6,*) 'pabstt   =',pabstt
          DO NS=1,NSMAX
-            PABST(NS)=PABSt(NS)+PABSTS(NS,NPHS)
+            PABST(NS)=PABST(NS)+PABSTS(NS,NPHS)
             DO NR=1,NRMAX
                PABSR(NR,NS)=PABSR(NR,NS)+PABSRS(NR,NS,NPHS)
                DO NPH=1,NPHMAX
@@ -356,6 +361,16 @@ C
             END DO
          END DO
       ENDDO
+
+      IF(MYRANK.EQ.0) THEN
+         DO NPHS=1,NPHSMAX
+            WRITE(6,'(A,I5,1P5E12.4)') 
+     &        'PABSTS:',NPH0S(NPHS),(PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
+         ENDDO
+         NPH0=0
+         CALL WMPOUT
+         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+      ENDIF
 
  8000 CONTINUE
 

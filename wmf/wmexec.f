@@ -36,10 +36,6 @@ C      else
          nrmax=nrmax-1
 C      endif
 C
-      IF(MYRANK.EQ.0) THEN
-         CALL WMPOUT
-         IF(MODELW.EQ.1) CALL WMDOUT(IERR)
-      ENDIF
       RETURN
       END
 C
@@ -52,7 +48,7 @@ C
       IF(NPRINT.LT.1) RETURN
 C
       IF(MYRANK.EQ.0) THEN
-         WRITE(6,601) CRADTT,PABSTT,PCURT
+         WRITE(6,601) NPH0,CRADTT,PABSTT,PCURT
          WRITE(6,602) (PABST(NS),NS=1,NSMAX)
       ENDIF
 C
@@ -82,7 +78,8 @@ C
 C
       RETURN
 C
-  601 FORMAT(' ',5X,3X,'RANT=',1PE12.4,10X,'LANT=',1PE12.4/
+  601 FORMAT(' ',5X,3X,'NPH0=',I4/
+     &       ' ',5X,3X,'RANT=',1PE12.4,10X,'LANT=',1PE12.4/
      &       ' ',5X,3X,'PABS=',1PE12.4,10X,'IDRV=',1PE12.4)
   602 FORMAT(' ',5X,3X,27X,'PABS=',1P3E12.4)
 C  603 FORMAT(' ',I5,I5,3X,1P2E12.4,3X,1P3E12.4)
