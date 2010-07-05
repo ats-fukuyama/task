@@ -43,7 +43,7 @@ C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
-            CALL WMEXEC(IERR)
+            CALL WMLOOP(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
             KID=' '

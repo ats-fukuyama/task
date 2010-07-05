@@ -13,6 +13,8 @@ C
       INTEGER(4):: NPH0_SAVE,NPHSMAX_SAVE
       INTEGER(4),DIMENSION(NPHSM):: NPH0S_SAVE
       REAL(8),DIMENSION(NPHSM):: PFRACS_SAVE
+      REAL(8),DIMENSION(NPHSM):: PFRAC
+      COMPLEX(8),DIMENSION(NPHSM):: CEFACTS
 C
       NPH0_SAVE=NPH0
       NPHSMAX_SAVE=NPHSMAX
@@ -21,9 +23,10 @@ C
          PFRACS_SAVE(NPHS)=PFRAC(NPHS)
       ENDDO
 
-      CALL WMDVOL
+      DTH=2.D0*PI/NTHMAX
+      DPH=2.D0*PI/NPHMAX
 
-      SELECT CASE(MDLWM_NFS)
+      SELECT CASE(MDLWM_NPHS)
       CASE(0)
          NPHSMAX=1
          NPH0S(1)=NPH0
@@ -51,7 +54,7 @@ C
       ALLOCATE(CENS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
       ALLOCATE(CEPS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
 
-      DO NPHS=1,NPHS
+      DO NPHS=1,NPHSMAX
 
 !     ----- calculate for NPHS -----
 
@@ -60,6 +63,7 @@ C
          IF(IERR.NE.0) GOTO 8000
 
 !     ----- integrate power and current -----
+         CALL WMDVOL
 
          PABSTT=0.D0
          DO NS=1,NSMAX
@@ -170,10 +174,10 @@ C
          CEFACTS(1)=1.D0
       CASE(1)
          DO NPHS=1,NPHSMAX
-            IF(PABSTT(NPHS).LE.0.D0) THEN
+            IF(PABSTTS(NPHS).LE.0.D0) THEN
                CEFACTS(NPHS)=0.D0
             ELSE
-               CEFACTS(NPHS)=SQRT(PFRAC(NPHS)/PABSTT(NPHS))
+               CEFACTS(NPHS)=SQRT(PFRACS(NPHS)/PABSTTS(NPHS))
             ENDIF
          END DO
       CASE(2)
@@ -205,7 +209,7 @@ C
 
       DO NPHS=1,NPHSMAX
          CEFACT=CEFACTS(NPHS)*SQRT(PFACT)
-         PWFACT=ABS(CEFAC)**2
+         PWFACT=ABS(CEFACT)**2
 
          CRADTTS(NPHS)=CEFACT*CRADTTS(NPHS)
          PABSTTS(NPHS)=PWFACT*PABSTTS(NPHS)
@@ -375,6 +379,11 @@ C
       SUBROUTINE WMDVOL
 
       INCLUDE 'wmcomm.inc'
+      real(8),dimension(3,3)::  gm
+      real(8):: gj1,gj2
+
+      DTH=2.D0*PI/NTHMAX
+      DPH=2.D0*PI/NPHMAX
 
       DO NR=1,NRMAX-1
          DVOLS(NR)=0.D0
@@ -385,17 +394,19 @@ C
             ph=dph*(nph-1)
             call wmfem_metrics(xrho(nr),th,ph,gm,gj1)
             call wmfem_metrics(xrho(nr+1),th,ph,gm,gj2)
+!            write(6,'(A,1P6E12.4)') 
+!     &           'gj:',xrho(nr),xrho(nr+1),th,ph,gj1,gj2
             DSSS=DRHO*0.5d0*(gj1+gj2)
             DVOL(NTH,NPH,NR)=1.D0/DSSS
             DVOLS(NR)=DVOLS(NR)+DSSS*DTH*DPH
          ENDDO
          ENDDO
-         DS(NR)=1.D0/DS(NR)
+         DVOLS(NR)=1.D0/DVOLS(NR)
       ENDDO
-      DS(NRMAX)=0.D0
+      DVOLS(NRMAX)=0.D0
       DO NTH=1,NTHMAX
          DO NPH=1,NPHMAX
-            DSS(NTH,NPH,NRMAX)=0.d0
+            DVOL(NTH,NPH,NRMAX)=0.d0
          ENDDO
       ENDDO
 

@@ -7,7 +7,7 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../eq/$(MOD)
 
 SRC0 = wmfem_com.f wmmenu.f wminit.f wmeign.f \
-       wmexec.f \
+       wmexec.f wmloop.f \
        wmxprf.f wmdprf.f \
        wmgout.f wmgsub.f wmdout.f wmfout.f \
        wmtae.f wmfem.f wmfem_calc.f wmfem_sub.f wmfem_setg.f wmfem_vmec.f\

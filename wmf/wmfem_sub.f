@@ -866,8 +866,6 @@ C
 C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
-      real(8),dimension(3,3)::  gm
-      real(8):: gj1,gj2
 C
       DTH=2.D0*PI/DBLE(NTHMAX)
       DPH=2.D0*PI/DBLE(NPHMAX)
