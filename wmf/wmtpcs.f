@@ -35,6 +35,11 @@ C
          CALL MPSYNC
          IF(IERR.NE.0) EXIT
 C
+         IF(MYRANK.EQ.0) THEN
+            CALL WMPOUT(NPH0)
+            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+         ENDIF
+C
          DO NS = 1, NSMAX
             PABSTL(NS) = 0.D0
             DO NR = 1, NRMAX

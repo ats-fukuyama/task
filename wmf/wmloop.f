@@ -13,14 +13,15 @@ C
       INTEGER(4):: NPH0_SAVE,NPHSMAX_SAVE
       INTEGER(4),DIMENSION(NPHSM):: NPH0S_SAVE
       REAL(8),DIMENSION(NPHSM):: PFRACS_SAVE
-      REAL(8),DIMENSION(NPHSM):: PFRAC
+!mh      REAL(8),DIMENSION(NPHSM):: PFRAC
       COMPLEX(8),DIMENSION(NPHSM):: CEFACTS
 C
       NPH0_SAVE=NPH0
       NPHSMAX_SAVE=NPHSMAX
       DO NPHS=1,NPHSM
          NPH0S_SAVE(NPHS)=NPH0S(NPHS)
-         PFRACS_SAVE(NPHS)=PFRAC(NPHS)
+!mh         PFRACS_SAVE(NPHS)=PFRAC(NPHS)
+         PFRACS_SAVE(NPHS)=PFRACS(NPHS)
       ENDDO
 
       DTH=2.D0*PI/NTHMAX
@@ -210,7 +211,7 @@ C
          PFACT=PRFIN/PABSTOT
       ENDIF
 
-!     ----- normarize field quantities -----
+!     ----- normalize field quantities -----
 
       DO NPHS=1,NPHSMAX
          CEFACT=CEFACTS(NPHS)*SQRT(PFACT)
@@ -363,10 +364,14 @@ C
       ENDDO
 
       IF(MYRANK.EQ.0) THEN
+         WRITE(6,*)
          DO NPHS=1,NPHSMAX
             WRITE(6,'(A,I5,1P5E12.4)') 
      &        'PABSTS:',NPH0S(NPHS),(PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
          ENDDO
+         WRITE(6,'(A)') '--------------------------------------------'//
+     &                  '----------------------------'
+         WRITE(6,'(12X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,5))
          NPH0=0
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)
@@ -383,7 +388,7 @@ C
       NPHSMAX=NPHSMAX_SAVE
       DO NPHS=1,NPHSM
          NPH0S(NPHS)=NPH0S_SAVE(NPHS)
-         PFRAC(NPHS)=PFRACS_SAVE(NPHS)
+         PFRACS(NPHS)=PFRACS_SAVE(NPHS)
       ENDDO
 
       RETURN
