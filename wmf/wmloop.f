@@ -365,13 +365,16 @@ C
 
       IF(MYRANK.EQ.0) THEN
          WRITE(6,*)
+         WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [MW]'
          DO NPHS=1,NPHSMAX
-            WRITE(6,'(A,I5,1P5E12.4)') 
-     &        'PABSTS:',NPH0S(NPHS),(PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
+            WRITE(6,'(I5,1P6E12.4)') 
+     &           NPH0S(NPHS),
+     &           SUM(PABSTS(1:MIN(NSMAX,5),NPHS))/SUM(PABSTS),
+     &           (PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
          ENDDO
          WRITE(6,'(A)') '--------------------------------------------'//
-     &                  '----------------------------'
-         WRITE(6,'(12X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,5))
+     &                  '---------------------------------'
+         WRITE(6,'(17X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,5))
          NPH0=0
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)

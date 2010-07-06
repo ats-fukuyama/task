@@ -494,13 +494,13 @@ C
       CASE(0)
          WRITE(6,*) '## MDLWM_NPHS=0: Single mode ##'
       CASE(1)
-         WRITE(6,*) '## MDLWM_NPHS=1: Multi mode (antenna current) ##'
+         WRITE(6,*) '## MDLWM_NPHS=1: Given mode (power frac) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
       CASE(2)
-         WRITE(6,*) '## MDLWM_NPHS=2: Multi mode (antenna voltage) ##'
+         WRITE(6,*) '## MDLWM_NPHS=2: Multi mode (antenna current) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
       CASE(3)
-         WRITE(6,*) '## MDLWM_NPHS=2: Multi given mode (power frac) ##'
+         WRITE(6,*) '## MDLWM_NPHS=3: Multi mode (antenna voltage) ##'
          WRITE(6,*) '   NPHSMAX=',NPHSMAX
          DO NPHS=1,NPHSMAX
             WRITE(6,'(A,I5,A,I5,A,1PE12.4)') '   NPHS  =',NPHS,
