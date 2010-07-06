@@ -63,6 +63,7 @@ C
          IF(IERR.NE.0) GOTO 8000
 
 !     ----- integrate power and current -----
+
          CALL WMDVOL
 
          PABSTT=0.D0
@@ -190,7 +191,7 @@ C
          END DO
       CASE(3)
          DO NPHS=1,NPHSMAX
-            CEFACTS(NPHS)=1.D0/CRADTTS(NPHS)
+            CEFACTS(NPHS)=1.D0/ABS(CRADTTS(NPHS))
          ENDDO
       END SELECT
 
