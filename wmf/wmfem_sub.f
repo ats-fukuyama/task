@@ -867,6 +867,7 @@ C
       DIMENSION RN(NSM),RTPR(NSM),RTPP(NSM),RU(NSM)
       DIMENSION CPF1(nthmax2,nphmax2),CPF2(nthmax2,nphmax2)
 C
+      CW=2.D0*PI*CRF*1.D6
       DTH=2.D0*PI/DBLE(NTHMAX)
       DPH=2.D0*PI/DBLE(NPHMAX)
 C
@@ -952,71 +953,126 @@ C     +++++ CALCULATE DRIVEN CURRENT IN REAL SPACE +++++
 C
       ns=1
       DO nr=1,nrmax
-!         rho=rhoa(nr)
+         rho=xrho(nr)
          DO nph=1,nphmax
          DO nth=1,nthmax
             pcur(nth,nph,nr)=0.D0
          ENDDO
          ENDDO
-!         dth=2.d0*pi/nthmax
-!         dph=2.d0*pi/nphmax
-!         IF(rho.EQ.0.d0) THEN
-!            rhol=1.d-6
-!         else
-!            rhol=rho
-!         endif
-!         DO nph=1,nphmax
-!            ph=dph*(nph-1)
-!            DO nth=1,nthmax
-!               th=dth*(nth-1)
-!               CALL wmfem_magnetic(rhol,th,ph,babs,bsupth,bsupph)
-!               ckpara=mm*bsupth/babs+nn*bsupph/babs
 
-c$$$         CALL WMCDEN(NR,RN,RTPR,RTPP,RU)
-c$$$         VTE=SQRT(RTPR(1)*AEE*1.D3/(PA(1)*AMP))
-c$$$         WW=DBLE(CW)
-c$$$         IF(RN(1).LE.0.D0) THEN
-c$$$            RLNLMD=15.D0
-c$$$         ELSE
-c$$$            RT=(RTPR(1)+2*RTPP(1))/3.D0
-c$$$            RLNLMD=16.1D0 - 1.15D0*LOG10(RN(1))
-c$$$     &           + 2.30D0*LOG10(RT)
-c$$$         ENDIF
-c$$$         DO ND=NDMIN,NDMAX
-c$$$            NDX=ND-NDMIN+1
-c$$$            NN=NPH0+ND
-c$$$         DO MD=MDMIN,MDMAX
-c$$$            MDX=MD-MDMIN+1
-c$$$            MM=NTH0+MD
-c$$$            DO KKX=1,KDSIZ
-c$$$            DO LLX=1,LDSIZ
-c$$$               CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
-c$$$            ENDDO
-c$$$            ENDDO
-c$$$            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
-c$$$            DO NPH=1,NPHMAX
-c$$$            DO NTH=1,NTHMAX
-c$$$               CALL WMCMAG(NR,NTH,NPH,BABS,BSUPTH,BSUPPH)
-c$$$               RKPR=MM*BSUPTH/BABS+NN*BSUPPH/BABS
-c$$$              IF(ABS(RKPR).LT.1.D-8) RKPR=1.D-8
-c$$$              IF(ABS(WW/RKPR).LT.VC) THEN
-c$$$                 W=WW/(RKPR*VTE)
-c$$$                 XL=(RPST(NTH,NPH,NR)-RR  )/RR
-c$$$                 YL=(ZPST(NTH,NPH,NR)-0.D0)/RR
-c$$$                 EFCD=W1CDEF(ABS(W),ZEFF,XL,YL,1)
-c$$$                 IF(W.LT.0.D0) EFCD=-EFCD
-c$$$                 IF (RN(1).GT.0.D0) THEN
-c$$$                    PCUR(NTH,NPH,NR)=PCUR(NTH,NPH,NR)
-c$$$     &                   +0.384D0*RTPR(1)/(AEE*1.D3)*EFCD
-c$$$     &                   /((RN(1)/1.D20)*RLNLMD)*DBLE(CPF2(NTH,NPH))
-c$$$     &                   /(2.D0*PI*RPST(NTH,NPH,NR))
-c$$$                 END IF
-c$$$              ENDIF
-c$$$            ENDDO
-c$$$            ENDDO
-c$$$         ENDDO
-c$$$         ENDDO
+         CALL plprof2(rho,rn,rtpr,rtpp,ru)
+         vte=SQRT(rtpr(1)*aee*1.D3/(pa(1)*amp))
+         ww=DBLE(cw)
+         IF(rn(1).LE.0.D0) THEN
+            rlnlmd=15.D0
+         ELSE
+            rt=(rtpr(1)+2*rtpp(1))/3.D0
+            rlnlmd=16.1D0 - 1.15D0*LOG10(rn(1)) + 2.30D0*LOG10(rt)
+         ENDIF
+
+         DO ND=NDMIN,NDMAX
+            NDX=ND-NDMIN+1
+            NN=NPH0+ND
+         DO MD=MDMIN,MDMAX
+            MDX=MD-MDMIN+1
+            MM=NTH0+MD
+            DO KKX=1,KDSIZ
+            DO LLX=1,LDSIZ
+               CPF1(LLX,KKX)=CPABS(LLX,MDX,KKX,NDX,NS,NR)
+            ENDDO
+            ENDDO
+            CALL WMSUBEX(CPF1,CPF2,NTHMAX,NPHMAX)
+
+            DO nph=1,nphmax
+               ph=dph*(nph-1)
+            DO nth=1,nthmax
+               th=dth*(nth-1)
+               CALL wmfem_magnetic(rho,th,ph,babs,bsupth,bsupph)
+               rkpara=mm*bsupth/babs+nn*bsupph/babs
+               IF(ABS(rkpara).LT.1.D-8) rkpara=1.D-8
+
+               IF(ABS(ww/rkpara).LT.VC) THEN
+                  w=ww/(rkpara*vte)
+                  xl=(rpst(nth,nph,nr)-raxis)/rr
+                  yl=(ZPST(NTH,NPH,NR)-zaxis)/RR
+                  efcd=w1cdef(ABS(w),zeff,xl,yl,1)
+                  IF(w.LT.0.D0) efcd=-efcd
+                  IF (rn(1).GT.0.D0) THEN
+                     pcur(nth,nph,nr)=pcur(nth,nph,nr)
+     &                    +0.384D0*rtpr(1)*efcd
+     &                    /(rn(1)*rlnlmd)*DBLE(cpf2(nth,nph))
+     &                    /(2.D0*PI*rpst(nth,nph,nr))
+                  END IF
+               ENDIF
+            ENDDO
+            ENDDO
+         ENDDO
+         ENDDO
       ENDDO
+C
+      RETURN
+      END
+C
+C     ****** CALCULATE CURRENT DRIVE EFFICIENCY ******
+C
+C      WT = V / VT : PHASE VELOCITY NORMALIZED BY THERMAL VELOCITY
+C      Z  = ZEFF   : EFFECTIVE Z
+C      XL = X / RR : NORMALIZED X
+C      YL = Y / RR : NORMALIZED Y
+C      ID : 0 : LANDAU DAMPING
+C           1 : TTMP
+C
+C      Reference: D.A. Ehst and C.F.F. Karney, 
+C                 Nucl. Fusion, 31 (10) 1933-1938 (1991)
+C
+      FUNCTION W1CDEF(WT,Z,XL,YL,ID)
+C
+      INCLUDE 'wmcomm.inc'
+C
+      R=SQRT(XL*XL+YL*YL)
+      IF(ID.EQ.0) THEN
+         D=3.D0/Z
+         QC=3.83D0
+         A=0.D0
+         RM=1.38D0
+         RC=0.389D0
+      ELSE
+         D=11.91D0/(0.678D0+Z)
+         QC=4.13D0
+         A=12.3D0
+         RM=2.48D0
+         RC=0.0987D0
+      ENDIF
+      IF(WT.LE.1.D-20) THEN
+         W=1.D-20
+      ELSE
+         W=WT
+      ENDIF
+      EFF0=D/W+QC/Z**0.707D0+4.D0*W*W/(5.D0+Z)
+      EFF1=1.D0-R**0.77D0*SQRT(3.5D0**2+W*W)/(3.5D0*R**0.77D0+W)
+C
+      Y2=(R+XL)/(1.D0+R)
+      IF(Y2.LT.0.D0) Y2=0.D0
+      Y1=SQRT(Y2)
+      EFF2=1.D0+A*(Y1/W)**3
+C
+      IF(Y2.LE.1.D-20) THEN
+         YT=(1.D0-Y2)*WT*WT/1.D-60
+      ELSE
+         YT=(1.D0-Y2)*WT*WT/Y2
+      ENDIF
+      IF(YT.GE.0.D0.AND.RC*YT.LT.40.D0) THEN
+         ARG=(RC*YT)**RM
+         IF(ARG.LE.100.D0) THEN
+            EFF3=1.D0-MIN(EXP(-ARG),1.D0)
+         ELSE
+            EFF3=1.D0
+         ENDIF
+      ELSE
+         EFF3=1.D0
+      ENDIF
+C
+      W1CDEF=EFF0*EFF1*EFF2*EFF3
 C
       RETURN
       END

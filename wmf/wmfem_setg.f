@@ -114,6 +114,8 @@ C
          call wmfem_qprofile(xrho(nr),qinv)
          qps(nr)  = 1.D0/qinv
       ENDDO
+      raxis=rr
+      zaxis=0.d0
 
 !     --- 2D grid ---
       dth=2.d0*pi/nthmax
@@ -192,6 +194,8 @@ C
          call wmfem_qprofile(xrho(nr),qinv)
          qps(nr)  = 1.D0/qinv
       ENDDO
+      raxis=rr
+      zaxis=0.d0
 
 !     --- 2D grid ---
       dth=2.d0*pi/nthmax
