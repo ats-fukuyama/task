@@ -9,9 +9,11 @@ FFLAGS = $(OFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .mod .o .a
 
-SRCS =  eqcomm.f tpxssl.f
+SRCCOM =  eqcomm.f
 
 SRCLIB = ../lib/libspl.f90 ../lib/libspl2d.f90 ../lib/libchar.f90 ../lib/libkio.f90 ../lib/libfio.f90 ../lib/libgrf.f
+
+SRCTPX = tpxssl.f 
 
 SRCEQ = eqpfds.f eqsub.f eqinit.f \
         eqfct.f  eqinp.f eqset.f \
@@ -22,12 +24,12 @@ SRCTR = trpl.f trset.f tradv.f trunit.f
 
 #
 BPSDLIB= ../../bpsd/bpsdlib.a
-OBJS = $(SRCS:.f=.o)
+OBJCOM = $(SRCCOM:.f=.o)
 OBJLIB= $(SRCLIB:.f90=.o)
-OBJLIBG= $(SRCLIBG:.f=.o)
+OBJTPX= $(SRCTPX:.f=.o)
 OBJEQ= $(SRCEQ:.f=.o)
 OBJTR= $(SRCTR:.f=.o)
-LIBS = $(BPSDLIB) tpxlib.a eqlib.a trlib.a $(OBJLIB) $(OBJS)
+LIBS = $(BPSDLIB) $(OBJLIB) $(OBJCOM) tpxlib.a eqlib.a trlib.a 
 #
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD)
 #
@@ -42,8 +44,8 @@ all: $(LIBS) equ
 $(BPSDLIB):
 	(cd ../../bpsd; make bpsdlib.a)
 
-tpxlib.a: $(OBJS)
-	$(LD) $(LDFLAGS) $@ $(OBJS)
+tpxlib.a: $(OBJTPX)
+	$(LD) $(LDFLAGS) $@ $(OBJTPX)
 eqlib.a: $(OBJEQ)
 	$(LD) $(LDFLAGS) $@ $(OBJEQ)
 trlib.a: $(OBJTR)
