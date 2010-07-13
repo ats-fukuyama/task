@@ -1,0 +1,38 @@
+ &dsk ,&end
+ &plt , &end
+     test   
+ &equ rwmn=2.0 , rwmx=4.70,  zwmx=1.80,
+      ieqout=1,2,1,0,
+       icp =  1,  2,  0,  7,  0,  0,  0,  0,  0,  0,
+        cp = 2.000,1.0, 1.00, 1.0,0.9,1.0,1.00,.2,8.0,0.10,
+      ivac(0)= 0,cvac(0)= 0.0,
+      ivac(1)= 4,cvac(1)=-0.001,
+      ivac(2)=-1,cvac(2)= 0.0,
+      ivac(3)=-1,cvac(3)= 0.004397,
+      ivac(4)=-1,cvac(4)= 0.018,
+      ivac(5)=-1,cvac(5)= 0.022,
+      ivac(6)= 1,cvac(6)= 0.0,
+      ivac(7)= 2,cvac(7)= 0.0,
+      ivac(8)= 3,cvac(8)= 0.0,        
+      ivac(9)=-1,ncoil(9)= 0,cvac(9)= 0.00,
+      ivac(10)=-1,ncoil(10)= 0,cvac(10)= 0.00,
+      ncoil(2)=46,
+      isep = 1, dsep = 0.010, 
+      msfx = -11,ilimt=0,
+      rvac(0) = 2.450, zvac(0) = 0.000,
+      rvac(1) = 4.200, zvac(1) = 0.000,
+      rvac(2) = 2.850, zvac(2) =-1.300,
+      rvac(3) = 3.100, zvac(3) = 1.000,
+      rvac(4) = 2.737, zvac(4) =-1.000,
+      rvac(5) = 3.450, zvac(5) =-1.000,
+      rvac(6) = 2.506, zvac(6) =-0.600,
+      rvac(7) = 3.848, zvac(7) =-0.600,
+      rvac(8) = 2.469, zvac(8) = 0.600,
+      rvac(9) = 3.933, zvac(9) = 0.600,
+      rvac(10)= 2.777, zvac(10)= 0.800,
+      rvac(11)= 3.544, zvac(11)= 0.800,  
+      &end
+ &bal iblmax= 0,lblmin=0,lblmax=0,&end
+ &res nodemx=0,&end
+ &salf iblmax= 0,&end
+
