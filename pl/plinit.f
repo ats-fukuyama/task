@@ -130,12 +130,14 @@ C                   9: call TASK/EQ
 C        MODELN: Control plasma profile
 C                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 C                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
+C                   6: Read from file by means of PLREAD_PROFN
 C                   7: Read from file by means of WMDPRF routine (DIII-D)
 C                   8: Read from file by means of WMXPRF routine (JT-60)
 C                   9: Read from file KNAMTR (TASK/TR)
 C        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 C                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 C                   1: Given current profile (RIP,PROFJ)
+C                   6: Read from file by means of PLREAD_PROFQ
 C
       MODELG= 2
       MODELN= 0
@@ -292,17 +294,17 @@ C
             WRITE(6,*) 'XX PLPARM: INVALID MODELG: MODELG=',MODELG
             IERR=1
          ENDIF
-         IF((MODELN.NE.0).AND.(MODELN.NE.9)) THEN
+         IF((MODELN.NE.0).AND.(MODELN.NE.6).AND.(MODELN.NE.9)) THEN
             WRITE(6,*) 'XX PLPARM: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF
-         IF((MODELQ.NE.0).AND.(MODELQ.NE.1)) THEN
+         IF((MODELQ.NE.0).AND.(MODELQ.NE.1).AND.(MODELQ.NE.6)) THEN
             WRITE(6,*) 'XX PLPARM: INVALID MODELQ: MODELQ=',MODELQ
             IERR=1
          ENDIF
       ELSE
          IF((MODELN.NE.0).AND.(MODELN.NE.1).AND.(MODELN.NE.2).AND.
-     &      (MODELN.NE.9)) THEN
+     &      (MODELN.NE.6).AND.(MODELN.NE.9)) THEN
             WRITE(6,*) 'XX PLPARM: INVALID MODELN: MODELN=',MODELN
             IERR=1
          ENDIF

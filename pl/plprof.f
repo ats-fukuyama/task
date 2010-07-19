@@ -121,6 +121,7 @@ C             RZCL(NS) : Ratio of collision frequency to wave frequency
 C
       SUBROUTINE PLPROF(RHON)
 C
+      USE plfile_prof_mod
       INCLUDE '../pl/plcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION RNPL(NSM),RTPL(NSM),RUPL(NSM)
@@ -269,7 +270,12 @@ C
                ENDIF
             ENDDO
          ENDIF
-C
+      ELSEIF(MODELN.EQ.6) THEN
+         DO NS=1,NSMAX
+            CALL PLFILE_PROF_NTU(RHOL,NS,RN(NS),RTPR(NS),RU(NS))
+            RTPP(NS)=RTPR(NS)
+         ENDDO
+C         WRITE(6,'(A,1P3E12.4)') 'plprof:',rhol,rn(1),rtpr(1)
       ELSEIF(MODELN.EQ.8) THEN
 C
          DO NS=1,NSMAX
@@ -340,6 +346,7 @@ C     ****** CALCULATE Q PROFILE ******
 C
       SUBROUTINE PLQPRF(RHON,QL)
 C
+      USE plfile_prof_mod
       INCLUDE '../pl/plcomm.inc'
 C
       IF(RHON.LE.0.D0) THEN
@@ -381,6 +388,9 @@ C
                QL=QA*RHOL**2/(1.D0-(1.D0-RHOL**2)**(PROFJ+1.D0))
             ENDIF
             endif
+         ELSEIF(MODELQ.EQ.6) THEN
+            CALL PLFILE_PROF_Q(RHOL,QL)
+C            WRITE(6,'(A,1P3E12.4)') 'plqprof:',rhol,ql
          ENDIF
       ELSE
          CALL GETQP(RHOL,QL)
