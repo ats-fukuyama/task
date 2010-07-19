@@ -666,7 +666,8 @@ C
                DPSIPDRHOC =2.D0*PSIPA*XRHOC
             ENDIF
 C
-            CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
+C            CALL WMCDEN(NR+1,RN,RTPR,RTPP,RU)
+            CALL PLPROF2(XRHO1,RN,RTPR,RTPP,RU)
             RT=(RTPR(1)+2*RTPP(1))
             RJFACT=RN(1)*RT
             RJFACT=RJFACT*XRHO(NR+1)

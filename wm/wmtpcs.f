@@ -7,17 +7,19 @@ c
       SUBROUTINE WM_TOPICS(IERR)
 c
       include '../wm/wmcomm.inc'
-      DIMENSION PABSR_SV(NRM,NSM,MNPHMX), PABSTL(NSM), FACT(MNPHMX)
-      DIMENSION GPABS_SV(MDM,NDM,NRM,NSM)
+      DIMENSION PABSR_SV(NRM,NSM),PABST_SV(NSM)
+      DIMENSION PABS_SV(MDM,NDM,NRM,NSM)
 c
       NPH0_SV  = NPH0
       PRFIN_SV = PRFIN
 C
-      DO NS=1,NSMAX
-      DO NR=1,NRMAX+1
+      DO NS = 1, NSMAX
+         PABST_SV(NS)=0.D0
+      DO NR = 1, NRMAX
+         PABSR_SV(NR,NS) = 0.D0
       DO NPH=1,NDSIZ
       DO NTH=1,MDSIZ
-         GPABS_SV(NTH,NPH,NR,NS) = 0.0
+         PABS_SV(NTH,NPH,NR,NS) = 0.0
       ENDDO
       ENDDO
       ENDDO
@@ -35,33 +37,15 @@ C
          CALL MPSYNC
          IF(IERR.NE.0) EXIT
 C
-         DO NS = 1, NSMAX
-            PABSTL(NS) = 0.D0
-            DO NR = 1, NRMAX
-               PABSR_SV(NR,NS,NM) = PABSR(NR,NS)
-               PABSTL(NS) = PABSTL(NS) + PABSR(NR,NS)
-            ENDDO
-         ENDDO
-C
-         PABSTTL = 0.D0
-         DO NS = 1, NSMAX
-            PABSTTL = PABSTTL + PABSTL(NS)
-         ENDDO
-C
-         IF(PRFIN.GT.0.D0.AND.PABSTT.GT.0.D0) THEN
-            FACT(NM)=PRFIN/PABSTTL
-         ELSE
-            FACT(NM)=1.D0
-         ENDIF
-C
-C     === For Graphics: PP* ===
-C
+         PABSTT_SV=PABSTT_SV+PABSTT
          DO NS=1,NSMAX
-         DO NR=1,NRMAX+1
+            PABST_SV(NS)=PABST_SV(NS)+PABST(NS)
+         DO NR = 1, NRMAX
+            PABSR_SV(NR,NS) = PABSR_SV(NR,NS) + PABSR(NR,NS)
          DO NPH=1,NDSIZ
          DO NTH=1,MDSIZ
-            GPABS_SV(NTH,NPH,NR,NS) = GPABS_SV(NTH,NPH,NR,NS) 
-     &          + REAL(FACT(NM)) * GUCLIP(PABS(NTH,NPH,NR,NS))
+            PABS_SV(NTH,NPH,NR,NS) = PABS_SV(NTH,NPH,NR,NS) 
+     &          + PABS(NTH,NPH,NR,NS)
          ENDDO
          ENDDO
          ENDDO
@@ -70,32 +54,21 @@ C
       ENDDO
 C
       IF(IERR.EQ.0.AND.MYRANK.EQ.0) THEN
-         PABSTTM = 0.D0
-         DO NS = 1, NSMAX
-            PABST(NS) = 0.D0
-            DO NR = 1, NRMAX
-               PABSRM = 0.D0
-               DO NM = 1, MNPHMAX
-                  PABSRM = PABSRM + FACT(NM) * PABSR_SV(NR,NS,NM)
-               ENDDO
-               PABSR(NR,NS) = PABSRM
-               PABST(NS) = PABST(NS) + PABSRM
-            ENDDO
-            PABSTTM = PABSTTM + PABST(NS)
-         ENDDO
-         CALL WM_TOPICS_OUT
-C
-C     === For Graphics: PP* ===
-C
+         PABSTT=PABSTT_SV
          DO NS=1,NSMAX
-         DO NR=1,NRMAX+1
+            PABST(NS)=PABST_SV(NS)
+         DO NR = 1, NRMAX
+            PABSR(NR,NS) = PABSR_SV(NR,NS)
          DO NPH=1,NDSIZ
          DO NTH=1,MDSIZ
-            PABS(NTH,NPH,NR,NS) = DBLE(GPABS_SV(NTH,NPH,NR,NS))
+            PABS(NTH,NPH,NR,NS) = PABS_SV(NTH,NPH,NR,NS) 
          ENDDO
          ENDDO
          ENDDO
-         ENDDO         
+         ENDDO
+
+         CALL WM_TOPICS_OUT
+
       ENDIF
 C
       NPH0  = NPH0_SV
@@ -108,7 +81,7 @@ C
       ENDIF
 C
       WRITE(6,*)
-      WRITE(6,'(A,1PE12.4)')  "TOT. PABS=",PABSTTM
+      WRITE(6,'(A,1PE12.4)')  "TOT. PABS=",PABSTT
       WRITE(6,'(A,1P6E12.4)') "PABS(NS) =",(PABST(NS),NS=1,NSMAX)
       WRITE(6,*)
 C

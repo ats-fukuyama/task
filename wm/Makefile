@@ -4,7 +4,7 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
-MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../eq/$(MOD)
+MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD)
 
 SRC0 = wmfem_com.f wmmenu.f wminit.f wmeign.f wmsetg.f \
        wmexec.f wmprof.f wmdisp.f \

@@ -4,6 +4,7 @@ C     ***** TASK/WM MENU *****
 C
       SUBROUTINE WMMENU
 C
+      use plfile_prof_mod
       INCLUDE 'wmcomm.inc'
 C
       EXTERNAL WMPARM
@@ -43,6 +44,7 @@ C
 C        *** WAVE CALCULATION ***
 C
          ELSEIF (KID.EQ.'R') THEN
+            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WMEXEC(IERR)
             CALL MPSYNC
             IF(IERR.NE.0) GOTO 1
@@ -51,6 +53,7 @@ C
 C        *** AMPLITUDE SURVEY ***
 C
       ELSEIF(KID.EQ.'D') THEN
+         CALL plfile_prof_read(modeln,modelq,ierr)
          READ(LINE(2:),*,ERR=1,END=1) NID
          IF(NID.EQ.0) THEN
             CALL WMAM0D(KID,LINE)
@@ -67,6 +70,7 @@ C
 C        *** FIND ROOT ***
 C
          ELSE IF (KID.EQ.'F') THEN
+            CALL plfile_prof_read(modeln,modelq,ierr)
             CALL WMEIGN(KID,LINE)
 C
 C        *** GRAPHICS ***

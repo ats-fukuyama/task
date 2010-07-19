@@ -128,7 +128,6 @@ C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
 C
             IF(RHOL.LT.1.D0) THEN
                QPS(NR)=Q0+(QA-Q0)*RHOL**2
-CCC               QPS(NR)=Q0+(QA-Q0)*RHOL**6
             ELSE
                QPS(NR)=QA*RHOL**2
             ENDIF
@@ -236,6 +235,7 @@ C     ****** RADIAL MESH (TOROIDAL COORDINATES) ******
 C
       SUBROUTINE WMXRZT(IERR)
 C
+      USE plfile_prof_mod
       INCLUDE 'wmcomm.inc'
 C
 C
@@ -244,6 +244,8 @@ C
          NSUMAX=31
          NSWMAX=31
          NPHMAX=1
+
+C         CALL plfile_prof_read(modeln,modelq,ierr)
 C
          PSIPA=RA*RA*BB/(Q0+QA)
          DRHO=(RB/RA)/NRMAX
@@ -252,26 +254,7 @@ C
             RHOL=DRHO*(NR-1)
             XRHO(NR)=RHOL
             XR(NR)=RA*RHOL
-C
-C            WRITE(6,*) 'NR,RHO,XR=',NR,XRHO(NR),XR(NR)
-C
-            IF(RHOL.GT.1.D0) THEN
-               QPS(NR)  = QA*RHOL**2
-            ELSEIF(RHOMIN.LE.0.D0)THEN
-               QPS(NR)  =(Q0-QA)*(1-RHOL**2)+QA
-CCC               QPS(NR)  =(Q0-QA)*(1-RHOL**6)+QA
-            ELSE
-               QSA0    =1/Q0-1/QMIN
-               QSAA    =1/QA-1/QMIN
-               IF(RHOL.LE.RHOMIN)THEN
-                  QPS(NR) =1/(1/Q0-QSA0*(3*RHOL**2/RHOMIN**2
-     &                            -2*RHOL**3/RHOMIN**3))
-               ELSE
-                  QPS(NR) =1/(1/QMIN+3*QSA0*(RHOL-RHOMIN)**2/RHOMIN**2
-     &                  +(QSAA-3*QSA0*(1-RHOMIN)**2/RHOMIN**2)
-     &                  *(RHOL-RHOMIN)**3/(1-RHOMIN)**3)
-               ENDIF
-            ENDIF
+            CALL PLQPRF(RHOL,QPS(NR))
          ENDDO
 C
          DTH=2.D0*PI/NTHMAX
@@ -355,6 +338,8 @@ C
      &                       +DZPSI(NTH,NR)*DZCHI(NTH,NR)
             RG13(NTH,NPH,NR)= 0.D0
             RG22(NTH,NPH,NR)= DRCHI(NTH,NR)**2+DZCHI(NTH,NR)**2
+C            if(nth.eq.1) write(6,'(A,I5,1P3E12.4)') 
+C     &           '-- ',NR,DRCHI(NTH,NR),DZCHI(NTH,NR),RG22(NTH,NPH,NR)
             RG23(NTH,NPH,NR)= 0.D0
             RG33(NTH,NPH,NR)= RRG**2
             RJ  (NTH,NPH,NR)= RRG*( DRPSI(NTH,NR)*DZCHI(NTH,NR)
@@ -374,6 +359,7 @@ C     ****** RADIAL MESH AND METRIC TENSOR ******
 C
       SUBROUTINE WMXRZF(IERR)
 C
+      USE plfile_prof_mod
       INCLUDE 'wmcomm.inc'
 C
       CHARACTER*(80) LINE
@@ -444,6 +430,9 @@ C
          CALL EQGETG(RPSG,ZPSG,NTHGM,NTHGM,NRMAX+1)
 C
 C         WRITE(6,'(1P5E12.4)') (RPSG(NTH,NRMAX+1),NTH=1,NTHGM)
+
+C         CALL plfile_prof_read(modeln,modelq,ierr)
+
       ENDIF
       CALL MPBCDA(BB)
       CALL MPBCDA(RR)
@@ -496,9 +485,6 @@ C
             ENDIF
             XR(NR)=RA*XRHO(NR)
          ENDDO
-C
-C         WRITE(6,'(I5,1P5E12.4)') (NR,XRHO(NR),RHOT(NR),PSIP(NR),
-C     &                     PSITA*RHOT(NR)**2,QPS(NR),NR=1,NRMAX+1)
 C
          DO NR=1,NRMAX+1
          DO NPH=1,NPHMAX
