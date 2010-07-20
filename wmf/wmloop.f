@@ -14,7 +14,7 @@ C
       INTEGER(4),DIMENSION(NPHSM):: NPH0S_SAVE
       REAL(8),DIMENSION(NPHSM):: PFRACS_SAVE
 !mh      REAL(8),DIMENSION(NPHSM):: PFRAC
-      COMPLEX(8),DIMENSION(NPHSM):: CEFACTS
+      REAL(8),DIMENSION(NPHSM):: PFACT1S
 C
       NPH0_SAVE=NPH0
       NPHSMAX_SAVE=NPHSMAX
@@ -177,22 +177,26 @@ C
 
       SELECT CASE(MDLWM_NPHS)
       CASE(0)
-         CEFACTS(1)=1.D0
+         PFACT1S(1)=1.D0
       CASE(1)
          DO NPHS=1,NPHSMAX
-            IF(PABSTTS(NPHS).LE.0.D0) THEN
-               CEFACTS(NPHS)=0.D0
+            IF(PABSTTS(NPHS).EQ.0.D0) THEN
+               PFACT1S(NPHS)=0.D0
             ELSE
-               CEFACTS(NPHS)=SQRT(PFRACS(NPHS)/PABSTTS(NPHS))
+               PFACT1S(NPHS)=PFRACS(NPHS)/PABSTTS(NPHS)
             ENDIF
          END DO
       CASE(2)
          DO NPHS=1,NPHSMAX
-            CEFACTS(NPHS)=1.D0
+            PFACT1S(NPHS)=1.D0
          END DO
       CASE(3)
          DO NPHS=1,NPHSMAX
-            CEFACTS(NPHS)=1.D0/ABS(CRADTTS(NPHS))
+            IF(ABS(CRADTTS(NPHS)).EQ.0.D0) THEN
+               PFACT1S(NPHS)=0.D0
+            ELSE
+               PFACT1S(NPHS)=1.D0/ABS(CRADTTS(NPHS))**2
+            ENDIF
          ENDDO
       END SELECT
 
@@ -200,22 +204,22 @@ C
 
       PABSTOT=0.D0
       DO NPHS=1,NPHSMAX
-         PABSTOT=PABSTOT+ABS(CEFACTS(NPHS))**2*PABSTTS(NPHS)
+         PABSTOT=PABSTOT+PFACT1S(NPHS)*PABSTTS(NPHS)
       ENDDO
 
 !     ----- calculated power normalizing factor -----
 
       IF(PRFIN.EQ.0.D0.OR.PABSTOT.EQ.0.D0) THEN
-         PFACT=1.D0
+         PFACT2=1.D0
       ELSE
-         PFACT=PRFIN/PABSTOT
+         PFACT2=PRFIN/PABSTOT
       ENDIF
 
 !     ----- normalize field quantities -----
 
       DO NPHS=1,NPHSMAX
-         CEFACT=CEFACTS(NPHS)*SQRT(PFACT)
-         PWFACT=ABS(CEFACT)**2
+         PWFACT=PFACT1S(NPHS)*PFACT2
+         CEFACT=SQRT(PWFACT)
 
          CRADTTS(NPHS)=CEFACT*CRADTTS(NPHS)
          PABSTTS(NPHS)=PWFACT*PABSTTS(NPHS)
