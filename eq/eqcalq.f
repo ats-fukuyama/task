@@ -1039,8 +1039,10 @@ C
       QSURF=FNQPS(1.D0)    ! Safety factor at the separatrix
 C
       IF(NPRINT.GE.2) THEN
-         WRITE(6,'(A,1P4E12.4)') 
-     &        'PVOL,PAREA,PVAVE,PSAVE  =',PVOL,PAREA,PVAVE,PSAVE
+c$$$         WRITE(6,'(A,1P4E12.4)') 
+c$$$     &        'PVOL,PAREA,PVAVE,PSAVE  =',PVOL,PAREA,PVAVE,PSAVE
+         WRITE(6,'(A,1P3E12.4)') 
+     &        'PVOL,PAREA,PVAVE  =',PVOL,PAREA,PVAVE
          WRITE(6,'(A,1P4E12.4)') 
      &        'BETAT,BETAP,QAXIS,QSURF =',BETAT,BETAP,QAXIS,QSURF
       ENDIF

@@ -85,7 +85,7 @@ C
 C
       DO NSG=1,NSGMAX
       DO NTG=1,NTGMAX
-          PSI(NTG,NSG)=PSI0*(1-SIGM(NSG)*SIGM(NSG))
+          PSI(NTG,NSG)=PSI0*(1.D0-SIGM(NSG)*SIGM(NSG))
           DELPSI(NTG,NSG)=0.D0
       ENDDO
       ENDDO
@@ -191,17 +191,17 @@ C
 C
 C     ------ Define Delta theta on the boundary ------
 C
-      DRHOM(1)=(RHOM(2)-RHOM(NTGMAX))/(2*DTG)
+      DRHOM(1)=0.5D0*(RHOM(2)-RHOM(NTGMAX))/DTG
       DO NTG=2,NTGMAX-1
-         DRHOM(NTG)=(RHOM(NTG+1)-RHOM(NTG-1))/(2*DTG)
+         DRHOM(NTG)=0.5D0*(RHOM(NTG+1)-RHOM(NTG-1))/DTG
       ENDDO
-      DRHOM(NTGMAX)=(RHOM(1)-RHOM(NTGMAX-1))/(2*DTG)
+      DRHOM(NTGMAX)=0.5D0*(RHOM(1)-RHOM(NTGMAX-1))/DTG
 C
-      DRHOG(1)=(RHOG(2)-RHOG(NTGMAX))/(2*DTG)
+      DRHOG(1)=0.5D0*(RHOG(2)-RHOG(NTGMAX))/DTG
       DO NTG=2,NTGMAX-1
-         DRHOG(NTG)=(RHOG(NTG+1)-RHOG(NTG-1))/(2*DTG)
+         DRHOG(NTG)=0.5D0*(RHOG(NTG+1)-RHOG(NTG-1))/DTG
       ENDDO
-      DRHOG(NTGMAX)=(RHOG(1)-RHOG(NTGMAX-1))/(2*DTG)
+      DRHOG(NTGMAX)=0.5D0*(RHOG(1)-RHOG(NTGMAX-1))/DTG
       DRHOG(NTGMAX+1)=DRHOG(1)
 C
 C     ------ Calculate major radius on grid points ------
@@ -862,8 +862,8 @@ C
       SUMPSI=0.D0
       SUMHJT=0.D0
       DO NTG=1,NTGMAX
-         SUMPSI=SUMPSI+(9*PSI(NTG,1)-PSI(NTG,2))/8.D0
-         SUMHJT=SUMHJT+(9*HJT(NTG,1)-HJT(NTG,2))/8.D0
+         SUMPSI=SUMPSI+(9.D0*PSI(NTG,1)-PSI(NTG,2))/8.D0
+         SUMHJT=SUMHJT+(9.D0*HJT(NTG,1)-HJT(NTG,2))/8.D0
       ENDDO
       PSIL=SUMPSI/NTGMAX
       HJTL=SUMHJT/NTGMAX
@@ -880,14 +880,14 @@ C
       ENDDO
 C
       DO NSG=1,NSGMAX
-         PSIST(       1,NSG+1)=(9*PSI(     1,NSG)-PSI(       2,NSG))
+         PSIST(       1,NSG+1)=(9.D0*PSI(     1,NSG)-PSI(       2,NSG))
      &                         /16.D0
-     &                        +(9*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
+     &                        +(9.D0*PSI(NTGMAX,NSG)-PSI(NTGMAX-1,NSG))
      &                         /16.D0
          PSIST(NTGMAX+2,NSG+1)=PSIST(1,NSG+1)
-         HJTST(       1,NSG+1)=(9*HJT(     1,NSG)-HJT(       2,NSG))
+         HJTST(       1,NSG+1)=(9.D0*HJT(     1,NSG)-HJT(       2,NSG))
      &                         /16.D0
-     &                        +(9*HJT(NTGMAX,NSG)-HJT(NTGMAX-1,NSG))
+     &                        +(9.D0*HJT(NTGMAX,NSG)-HJT(NTGMAX-1,NSG))
      &                         /16.D0
          HJTST(NTGMAX+2,NSG+1)=HJTST(1,NSG+1)
       ENDDO

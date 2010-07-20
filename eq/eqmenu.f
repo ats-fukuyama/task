@@ -21,8 +21,10 @@ C
     1 CONTINUE
          IERR=0
          WRITE(6,601) 
+         WRITE(6,602) 
   601    FORMAT('## EQ MENU: R/RUN  C/CONT  P,V,I/PARM  G/GRAPH',
-     &                  '  M/MULT  S,L,K,F/FILE  Q/QUIT')
+     &                    '  M/MULT  S,L,K,F/FILE')
+ 602     FORMAT('            H/RPPL  Q/QUIT')
 C
          CALL TASK_KLIN(LINE,KID,MODE,EQPARM)
       IF(MODE.NE.1) GOTO 1
