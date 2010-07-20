@@ -13,7 +13,8 @@ SRCSFIXED = plmenu.f plinit.f plprof.f pldata.f plintf.f
 SRCSFREE = modules.f90 plfile_prof.f90 pl_vmec.f90 plcomm.f90 plunit.f90
 SRCO = noeqlib.f noequlib.f
 
-OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
+#OBJS = $(SRCSFIXED:.f=.o) $(SRCSFREE:.f90=.o) 
+OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o) 
 OBJO = $(SRCO:.f=.o) 
 
 LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../wm/wmlib.a
