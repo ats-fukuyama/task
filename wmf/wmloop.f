@@ -20,7 +20,6 @@ C
       NPHSMAX_SAVE=NPHSMAX
       DO NPHS=1,NPHSM
          NPH0S_SAVE(NPHS)=NPH0S(NPHS)
-!mh         PFRACS_SAVE(NPHS)=PFRAC(NPHS)
          PFRACS_SAVE(NPHS)=PFRACS(NPHS)
       ENDDO
 
@@ -368,17 +367,20 @@ C
       ENDDO
 
       IF(MYRANK.EQ.0) THEN
-         WRITE(6,*)
-         WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [MW]'
-         DO NPHS=1,NPHSMAX
-            WRITE(6,'(I5,1P6E12.4)') 
-     &           NPH0S(NPHS),
-     &           SUM(PABSTS(1:MIN(NSMAX,5),NPHS))/SUM(PABSTS),
-     &           (PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
-         ENDDO
-         WRITE(6,'(A)') '--------------------------------------------'//
-     &                  '---------------------------------'
-         WRITE(6,'(17X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,5))
+         IF(PABSTT.NE.0.D0) THEN
+            WRITE(6,*)
+            WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [MW]'
+            DO NPHS=1,NPHSMAX
+               WRITE(6,'(I5,1P6E12.4)') 
+     &              NPH0S(NPHS),
+     &              SUM(PABSTS(1:MIN(NSMAX,5),NPHS))/PABSTT,
+     &              (PABSTS(NS,NPHS),NS=1,MIN(NSMAX,5))
+            ENDDO
+            WRITE(6,'(A)') 
+     &           '--------------------------------------------'//
+     &           '---------------------------------'
+            WRITE(6,'(17X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,5))
+         ENDIF
          NPH0=0
          CALL WMPOUT
          IF(MODELW.EQ.1) CALL WMDOUT(IERR)

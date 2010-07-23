@@ -361,6 +361,7 @@ C
                QL = QA*RHOL**2
             ELSEIF(RHOMIN.LE.0.D0)THEN
                QL =(Q0-QA)*(1.D0-RHOL**2)+QA
+CCC               QL =(Q0-QA)*(1.D0-RHOL**6)+QA
             ELSE
                QSA0  =1.D0/Q0-1.D0/QMIN
                QSAA  =1.D0/QA-1.D0/QMIN

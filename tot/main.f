@@ -32,7 +32,7 @@ C
       CALL DPINIT
       CALL WRINIT
       CALL WMINIT
-      CALL FPINIT
+!      CALL FPINIT
       IF(MYRANK.EQ.0) THEN
          OPEN(7,STATUS='SCRATCH',FORM='FORMATTED')
          CALL PLPARM(1,'plparm',IERR)
@@ -41,7 +41,7 @@ C
          CALL DPPARM(1,'dpparm',IERR)
          CALL WRPARM(1,'wrparm',IERR)
          CALL WMPARM(1,'wmparm',IERR)
-         CALL FPPARM(1,'fpparm',IERR)
+!         CALL FPPARM(1,'fpparm',IERR)
       ENDIF
       CALL MPSYNC
       CALL WMPRBC
@@ -89,7 +89,7 @@ C
          ELSE IF (KID.EQ.'WM') THEN
             CALL WMMENU
          ELSE IF (KID.EQ.'FP') THEN
-            CALL FPMENU
+!            CALL FPMENU
          ELSE IF (KID.EQ.'DP') THEN
             CALL DPMENU
          ELSE IF (KID.EQ.'PL') THEN
