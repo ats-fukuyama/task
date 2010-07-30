@@ -7,7 +7,7 @@ FFLAGS=$(DFLAGS)
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-MODINCLUDE= -I.$(MOD) -Ihfreya2$(MOD) -Imcnbi$(MOD) -I../../../bpsd$(MOD) -I../../task/pl$(MOD)
+MODINCLUDE= -I./$(MOD) -Ihfreya2/$(MOD) -Imcnbi/$(MOD) -I../../../bpsd/$(MOD) -I../../task/pl/$(MOD)
 
 SRCSFREE = mcnbi_all.f90
 SRCSFIXED = 
