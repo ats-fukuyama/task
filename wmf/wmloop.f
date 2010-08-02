@@ -1,7 +1,9 @@
 C
-      SUBROUTINE WMLOOP(IERR)
+      SUBROUTINE WMLOOP(IERR,IFLG)
 C
       INCLUDE 'wmcomm.inc'
+      integer(4), intent(inout) :: IERR
+      integer(4), intent(in), optional :: IFLG
       COMPLEX(8),DIMENSION(:),pointer:: CRADTTS
       REAL(8),DIMENSION(:),pointer:: PABSTTS,PCURTS
       REAL(8),DIMENSION(:,:),pointer:: PABSTS,PCURRS
@@ -365,6 +367,12 @@ C
             END DO
          END DO
       ENDDO
+
+!     ----- Output P_abs(r,s) and J_CD(r) for TOPICS/ACCOME -----
+
+      IF(present(IFLG)) CALL WM_TOPICS_OUT(IERR)
+
+!     -----------------------------------------------------------
 
       IF(MYRANK.EQ.0) THEN
          IF(PABSTT.NE.0.D0) THEN

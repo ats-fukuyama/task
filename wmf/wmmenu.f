@@ -110,10 +110,11 @@ C
 C        *** Pabs(r,s) output for TOPICS ***
 C
          ELSE IF (KID.EQ.'O') THEN
-            CALL WM_TOPICS(IERR)
-            IF(IERR.NE.0) GOTO 1
+            CALL WMLOOP(IERR,0)
             CALL MPSYNC
+            IF(IERR.NE.0) GOTO 1
             KID=' '
+c$$$            CALL WM_TOPICS(IERR)
 C
          ELSE IF(KID.EQ.'H') THEN
             WRITE(6,*) '# KID: P: PARAMETER INPUT (VARNAME = VALUE)'

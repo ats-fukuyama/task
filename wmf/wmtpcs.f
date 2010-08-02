@@ -1,131 +1,131 @@
+c$$$C***********************************************************************
+c$$$C
+c$$$C     Multi-mode calculation for TOPICS
+c$$$C
+c$$$C***********************************************************************
+c$$$c
+c$$$      SUBROUTINE WM_TOPICS(IERR)
+c$$$c
+c$$$      include 'wmcomm.inc'
+c$$$      DIMENSION PABSR_SV(NRM,NSM,NPHSM), PABSTL(NSM), FACT(NPHSM)
+c$$$      DIMENSION GPABS_SV(MDM,NDM,NRM,NSM)
+c$$$c
+c$$$      NPH0_SV  = NPH0
+c$$$      PRFIN_SV = PRFIN
+c$$$C
+c$$$      DO NS=1,NSMAX
+c$$$      DO NR=1,NRMAX+1
+c$$$      DO NPH=1,NDSIZ
+c$$$      DO NTH=1,MDSIZ
+c$$$         GPABS_SV(NTH,NPH,NR,NS) = 0.0
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$      ENDDO
+c$$$C
+c$$$      WRITE(6,*) "========= MULTI-MODE CALCULATION START ========="
+c$$$      DO NPHS = 1, NPHSMAX
+c$$$         NPH0 = NPH0S(NPHS)
+c$$$         PRFIN = PRFIN_SV * PFRACS(NPHS)
+c$$$         WRITE(6,*)
+c$$$         WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0S(NPHS)
+c$$$         WRITE(6,'(A,F8.6)') "== Power fraction       : ",PFRACS(NPHS)
+c$$$C
+c$$$         CALL WMEXEC(IERR)
+c$$$         CALL MPSYNC
+c$$$         IF(IERR.NE.0) EXIT
+c$$$C
+c$$$         IF(MYRANK.EQ.0) THEN
+c$$$            CALL WMPOUT(NPH0)
+c$$$            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
+c$$$         ENDIF
+c$$$C
+c$$$         DO NS = 1, NSMAX
+c$$$            PABSTL(NS) = 0.D0
+c$$$            DO NR = 1, NRMAX
+c$$$               PABSR_SV(NR,NS,NPHS) = PABSR(NR,NS)
+c$$$               PABSTL(NS) = PABSTL(NS) + PABSR(NR,NS)
+c$$$            ENDDO
+c$$$         ENDDO
+c$$$C
+c$$$         PABSTTL = 0.D0
+c$$$         DO NS = 1, NSMAX
+c$$$            PABSTTL = PABSTTL + PABSTL(NS)
+c$$$         ENDDO
+c$$$C
+c$$$         IF(PRFIN.GT.0.D0.AND.PABSTT.GT.0.D0) THEN
+c$$$            FACT(NM)=PRFIN/PABSTTL
+c$$$         ELSE
+c$$$            FACT(NM)=1.D0
+c$$$         ENDIF
+c$$$C
+c$$$C     === For Graphics: PP* ===
+c$$$C
+c$$$         DO NS=1,NSMAX
+c$$$         DO NR=1,NRMAX+1
+c$$$         DO NPH=1,NDSIZ
+c$$$         DO NTH=1,MDSIZ
+c$$$            GPABS_SV(NTH,NPH,NR,NS) = GPABS_SV(NTH,NPH,NR,NS) 
+c$$$     &          + REAL(FACT(NM)) * GUCLIP(PABS(NTH,NPH,NR,NS))
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$C
+c$$$      ENDDO
+c$$$C
+c$$$      IF(IERR.EQ.0.AND.MYRANK.EQ.0) THEN
+c$$$         PABSTTM = 0.D0
+c$$$         DO NS = 1, NSMAX
+c$$$            PABST(NS) = 0.D0
+c$$$            DO NR = 1, NRMAX
+c$$$               PABSRM = 0.D0
+c$$$               DO NM = 1, MNPHMAX
+c$$$                  PABSRM = PABSRM + FACT(NM) * PABSR_SV(NR,NS,NM)
+c$$$               ENDDO
+c$$$               PABSR(NR,NS) = PABSRM
+c$$$               PABST(NS) = PABST(NS) + PABSRM
+c$$$            ENDDO
+c$$$            PABSTTM = PABSTTM + PABST(NS)
+c$$$         ENDDO
+c$$$         CALL WM_TOPICS_OUT
+c$$$C
+c$$$C     === For Graphics: PP* ===
+c$$$C
+c$$$         DO NS=1,NSMAX
+c$$$         DO NR=1,NRMAX+1
+c$$$         DO NPH=1,NDSIZ
+c$$$         DO NTH=1,MDSIZ
+c$$$            PABS(NTH,NPH,NR,NS) = DBLE(GPABS_SV(NTH,NPH,NR,NS))
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$         ENDDO
+c$$$         ENDDO         
+c$$$      ENDIF
+c$$$C
+c$$$      NPH0  = NPH0_SV
+c$$$      PRFIN = PRFIN_SV
+c$$$C
+c$$$      IF(IERR.NE.0) THEN
+c$$$         WRITE(6,*)
+c$$$     &        "======= MULTI-MODE CALCULATION ABNORMAL END ======="
+c$$$         RETURN
+c$$$      ENDIF
+c$$$C
+c$$$      WRITE(6,*)
+c$$$      WRITE(6,'(A,1PE12.4)')  "TOT. PABS=",PABSTTM
+c$$$      WRITE(6,'(A,1P6E12.4)') "PABS(NS) =",(PABST(NS),NS=1,NSMAX)
+c$$$      WRITE(6,*)
+c$$$C
+c$$$      WRITE(6,*) "======= MULTI-MODE CALCULATION NORMAL END ======="
+c$$$      WRITE(6,*)
+c$$$C
+c$$$      return
+c$$$      end
+C
 C***********************************************************************
 C
-C     Multi-mode calculation for TOPICS
-C
-C***********************************************************************
-c
-      SUBROUTINE WM_TOPICS(IERR)
-c
-      include 'wmcomm.inc'
-      DIMENSION PABSR_SV(NRM,NSM,NPHSM), PABSTL(NSM), FACT(NPHSM)
-      DIMENSION GPABS_SV(MDM,NDM,NRM,NSM)
-c
-      NPH0_SV  = NPH0
-      PRFIN_SV = PRFIN
-C
-      DO NS=1,NSMAX
-      DO NR=1,NRMAX+1
-      DO NPH=1,NDSIZ
-      DO NTH=1,MDSIZ
-         GPABS_SV(NTH,NPH,NR,NS) = 0.0
-      ENDDO
-      ENDDO
-      ENDDO
-      ENDDO
-C
-      WRITE(6,*) "========= MULTI-MODE CALCULATION START ========="
-      DO NPHS = 1, NPHSMAX
-         NPH0 = NPH0S(NPHS)
-         PRFIN = PRFIN_SV * PFRACS(NPHS)
-         WRITE(6,*)
-         WRITE(6,'(A,I4)') "== Toroidal mode number : ",NPH0S(NPHS)
-         WRITE(6,'(A,F8.6)') "== Power fraction       : ",PFRACS(NPHS)
-C
-         CALL WMEXEC(IERR)
-         CALL MPSYNC
-         IF(IERR.NE.0) EXIT
-C
-         IF(MYRANK.EQ.0) THEN
-            CALL WMPOUT(NPH0)
-            IF(MODELW.EQ.1) CALL WMDOUT(IERR)
-         ENDIF
-C
-         DO NS = 1, NSMAX
-            PABSTL(NS) = 0.D0
-            DO NR = 1, NRMAX
-               PABSR_SV(NR,NS,NPHS) = PABSR(NR,NS)
-               PABSTL(NS) = PABSTL(NS) + PABSR(NR,NS)
-            ENDDO
-         ENDDO
-C
-         PABSTTL = 0.D0
-         DO NS = 1, NSMAX
-            PABSTTL = PABSTTL + PABSTL(NS)
-         ENDDO
-C
-         IF(PRFIN.GT.0.D0.AND.PABSTT.GT.0.D0) THEN
-            FACT(NM)=PRFIN/PABSTTL
-         ELSE
-            FACT(NM)=1.D0
-         ENDIF
-C
-C     === For Graphics: PP* ===
-C
-         DO NS=1,NSMAX
-         DO NR=1,NRMAX+1
-         DO NPH=1,NDSIZ
-         DO NTH=1,MDSIZ
-            GPABS_SV(NTH,NPH,NR,NS) = GPABS_SV(NTH,NPH,NR,NS) 
-     &          + REAL(FACT(NM)) * GUCLIP(PABS(NTH,NPH,NR,NS))
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO
-C
-      ENDDO
-C
-      IF(IERR.EQ.0.AND.MYRANK.EQ.0) THEN
-         PABSTTM = 0.D0
-         DO NS = 1, NSMAX
-            PABST(NS) = 0.D0
-            DO NR = 1, NRMAX
-               PABSRM = 0.D0
-               DO NM = 1, MNPHMAX
-                  PABSRM = PABSRM + FACT(NM) * PABSR_SV(NR,NS,NM)
-               ENDDO
-               PABSR(NR,NS) = PABSRM
-               PABST(NS) = PABST(NS) + PABSRM
-            ENDDO
-            PABSTTM = PABSTTM + PABST(NS)
-         ENDDO
-         CALL WM_TOPICS_OUT
-C
-C     === For Graphics: PP* ===
-C
-         DO NS=1,NSMAX
-         DO NR=1,NRMAX+1
-         DO NPH=1,NDSIZ
-         DO NTH=1,MDSIZ
-            PABS(NTH,NPH,NR,NS) = DBLE(GPABS_SV(NTH,NPH,NR,NS))
-         ENDDO
-         ENDDO
-         ENDDO
-         ENDDO         
-      ENDIF
-C
-      NPH0  = NPH0_SV
-      PRFIN = PRFIN_SV
-C
-      IF(IERR.NE.0) THEN
-         WRITE(6,*)
-     &        "======= MULTI-MODE CALCULATION ABNORMAL END ======="
-         RETURN
-      ENDIF
-C
-      WRITE(6,*)
-      WRITE(6,'(A,1PE12.4)')  "TOT. PABS=",PABSTTM
-      WRITE(6,'(A,1P6E12.4)') "PABS(NS) =",(PABST(NS),NS=1,NSMAX)
-      WRITE(6,*)
-C
-      WRITE(6,*) "======= MULTI-MODE CALCULATION NORMAL END ======="
-      WRITE(6,*)
-C
-      return
-      end
-C
-C***********************************************************************
-C
-C     Make Pabs(r,s) output file for TOPICS
+C     Make P_abs(r,s)/J_CD(r) output file for TOPICS/ACCOME
 C
 C***********************************************************************
 C
@@ -136,15 +136,16 @@ C
       CHARACTER KNAMWT*80
       DATA KNAMWT /'wm_topics.out'/
 C
-C     Output: XRHO(NR), PABSR(NR,NS)
+C     Output: XRHO(NR), PABSR(NR,NS), PCURR(NR)
+C             8 columns
 C
       ntopics=21
       CALL FWOPEN(ntopics,KNAMWT,1,MODEFW,'WM',IERR)
       IF(IERR.NE.0) RETURN
 C
       REWIND(ntopics)
-      WRITE(ntopics,'(1P7E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
-     &     NR=1,NRMAX)
+      WRITE(ntopics,'(1P8E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
+     &     PCURR(NR),NR=1,NRMAX)
       CLOSE(ntopics)
 C
       RETURN
