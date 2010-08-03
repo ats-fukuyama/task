@@ -56,6 +56,8 @@ C
       ALLOCATE(CENS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
       ALLOCATE(CEPS(3,NTHMAX,NPHMAX,NRMAX,NPHSMAX))
 
+!     ===== Main calculation loop =====
+
       DO NPHS=1,NPHSMAX
 
 !     ----- calculate for NPHS -----
@@ -173,6 +175,9 @@ C
             END DO
          END DO
       ENDDO
+!     ===== END: Main calculation loop =====
+
+!     ===== Post processing  =====
 
 !     ----- calculate antenna weighting factor-----
 
@@ -205,6 +210,7 @@ C
 
       PABSTOT=0.D0
       DO NPHS=1,NPHSMAX
+         write(6,*) NPHS,PFACT1S(NPHS),PABSTTS(NPHS)
          PABSTOT=PABSTOT+PFACT1S(NPHS)*PABSTTS(NPHS)
       ENDDO
 
@@ -223,6 +229,7 @@ C
          CEFACT=SQRT(PWFACT)
 
          CRADTTS(NPHS)=CEFACT*CRADTTS(NPHS)
+!         write(6,*) NPHS,PWFACT,PABSTTS(NPHS)
          PABSTTS(NPHS)=PWFACT*PABSTTS(NPHS)
          DO NS=1,NSMAX
             PABSTS(NS,NPHS)=PWFACT*PABSTS(NS,NPHS)
@@ -290,8 +297,10 @@ C
       DO NPHS=1,NPHSMAX
          CRADTT=CRADTT+CRADTTS(NPHS)
          PABSTT=PABSTT+PABSTTS(NPHS)
+!         write(6,*) NPHS,PABSTT,PABSTTS(NPHS)
          DO NS=1,NSMAX
             PABST(NS)=PABST(NS)+PABSTS(NS,NPHS)
+!            write(6,*) NS,NPHS,PABST(NS),PABSTS(NS,NPHS)
             DO NR=1,NRMAX
                PABSR(NR,NS)=PABSR(NR,NS)+PABSRS(NR,NS,NPHS)
                DO NPH=1,NPHMAX
