@@ -164,7 +164,6 @@ C
 C
       REWIND(nout)
       WRITE(nout,'(3A)') '# NPH','    PFRACS ', '   PABSTS(NS) [W]'
-      write(6,*) PABSTS(1,0)
       DO NPHS=1,NPHSMAX
          WRITE(nout,'(I5,1P6E12.4)') 
      &        NPH0S(NPHS),
