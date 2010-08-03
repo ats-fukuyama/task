@@ -370,14 +370,14 @@ C
 
 !     ----- Output P_abs(r,s) and J_CD(r) for TOPICS/ACCOME -----
 
-      IF(present(IFLG)) CALL WM_TOPICS_OUT(IERR)
+      IF(present(IFLG)) CALL WM_TOPICS_OUT(PABSTS,IERR)
 
 !     -----------------------------------------------------------
 
       IF(MYRANK.EQ.0) THEN
          IF(PABSTT.NE.0.D0) THEN
             WRITE(6,*)
-            WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [MW]'
+            WRITE(6,'(3A)') '  NPH','    PFRACS ', '   PABSTS(NS) [W]'
             DO NPHS=1,NPHSMAX
                WRITE(6,'(I5,1P6E12.4)') 
      &              NPH0S(NPHS),

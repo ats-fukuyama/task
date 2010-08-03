@@ -129,24 +129,54 @@ C     Make P_abs(r,s)/J_CD(r) output file for TOPICS/ACCOME
 C
 C***********************************************************************
 C
-      SUBROUTINE WM_TOPICS_OUT
+      SUBROUTINE WM_TOPICS_OUT(PABSTS,IERR)
 C
       INCLUDE 'wmcomm.inc'
 C
-      CHARACTER KNAMWT*80
-      DATA KNAMWT /'wm_topics.out'/
+      real(8), dimension(NSMAX,NPHSMAX), intent(in) :: PABSTS
+      integer(4), intent(out) :: IERR
+C
+      CHARACTER KNAMWT(1:2)*80
+      DATA KNAMWT /'wm_pwrcur.out','wm_antenna.out'/
 C
 C     Output: XRHO(NR), PABSR(NR,NS), PCURR(NR)
 C             8 columns
 C
-      ntopics=21
-      CALL FWOPEN(ntopics,KNAMWT,1,MODEFW,'WM',IERR)
+      nout=21
+      CALL FWOPEN(nout,KNAMWT(1),1,MODEFW,'WM',IERR)
       IF(IERR.NE.0) RETURN
 C
-      REWIND(ntopics)
-      WRITE(ntopics,'(1P8E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
+      REWIND(nout)
+      WRITE(nout,'(A1,6X,A3,8X,6(A11,4X),A12)') '#','RHO',
+     &     'PABSR(1)[W]','PABSR(2)[W]','PABSR(3)[W]','PABSR(4)[W]',
+     &     'PABSR(5)[W]','PABSR(6)[W]','PCURR[A/m^2]'
+      WRITE(nout,'(1P8E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
      &     PCURR(NR),NR=1,NRMAX)
-      CLOSE(ntopics)
+      CLOSE(nout)
+C
+C     Power absorption ratio per toroidal mode
+C     Output: NPH0S(NPHS), Power fraction(NPHS), PABSTS(NS,NPHS)
+C             max 8 columns
+C
+      nout=21
+      CALL FWOPEN(nout,KNAMWT(2),1,MODEFW,'WM',IERR)
+      IF(IERR.NE.0) RETURN
+C
+      REWIND(nout)
+      WRITE(nout,'(3A)') '# NPH','    PFRACS ', '   PABSTS(NS) [W]'
+      write(6,*) PABSTS(1,0)
+      DO NPHS=1,NPHSMAX
+         WRITE(nout,'(I5,1P6E12.4)') 
+     &        NPH0S(NPHS),
+     &        SUM(PABSTS(1:MIN(NSMAX,6),NPHS))/PABSTT,
+     &        (PABSTS(NS,NPHS),NS=1,MIN(NSMAX,6))
+      ENDDO
+      WRITE(nout,'(A)') 
+     &     '--------------------------------------------'//
+     &     '---------------------------------'
+      WRITE(nout,'(17X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,6))
+      WRITE(nout,'(A8,1P1E11.4)') 'TOTAL = ',PABSTT
+      CLOSE(nout)
 C
       RETURN
       END
