@@ -132,6 +132,7 @@ C
       SUBROUTINE WM_TOPICS_OUT(PABSTS,IERR)
 C
       INCLUDE 'wmcomm.inc'
+      INCLUDE '../eq/eqcomq.inc'
 C
       real(8), dimension(NSMAX,NPHSMAX), intent(in) :: PABSTS
       integer(4), intent(out) :: IERR
@@ -147,10 +148,13 @@ C
       IF(IERR.NE.0) RETURN
 C
       REWIND(nout)
-      WRITE(nout,'(A1,6X,A3,8X,6(A11,4X),A12)') '#','RHO',
-     &     'PABSR(1)[W]','PABSR(2)[W]','PABSR(3)[W]','PABSR(4)[W]',
-     &     'PABSR(5)[W]','PABSR(6)[W]','PCURR[A/m^2]'
-      WRITE(nout,'(1P8E15.7)') (XRHO(NR),(PABSR(NR,NS),NS=1,6),
+      WRITE(nout,'(A1,2(2X,A))') '# units:','PABSR(NS) [W/m^3],',
+     &     'PCURR [A/m^2]'
+      WRITE(nout,'(A1,6X,A3,10X,6(A8,7X),A5)') '#','RHO',
+     &     'PABSR(1)','PABSR(2)','PABSR(3)','PABSR(4)',
+     &     'PABSR(5)','PABSR(6)','PCURR'
+      WRITE(nout,'(1P9E15.7)') (XRHO(NR),FNPSIP(XRHO(NR)),
+     &     (PABSR(NR,NS),NS=1,6),
      &     PCURR(NR),NR=1,NRMAX)
       CLOSE(nout)
 C
