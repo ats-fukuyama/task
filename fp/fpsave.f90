@@ -31,8 +31,9 @@
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
       real(8):: RSUM12
       real(8):: PV, WPL, WPM, WPP
-      real(8):: DFP, DFT, FFP, testa, testb, FACT, TMC2FP0, DFDP
+      real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP
       real(8),dimension(NSBMAX):: RSUM10
+      real(8),dimension(NTHMAX+1,NPMAX+1):: R_FLUX
 !      real(8),dimension(NRMAX, NSAMAX):: RWS123, RPCS, RPWS, RPES, RLHS
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
@@ -130,16 +131,16 @@
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
                              *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
-                        RSUM123 = RSUM123                    &
-                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
+!                        RSUM123 = RSUM123                    &
+!                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
+!                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
                      END DO
                   END DO
                ENDIF               
             END IF
 
-            open(8,file='F_DFDP_r1c4_x.dat')
-!            open(8,file='nth10_3.dat')
+!            open(8,file='F_DFDP_r0c4_w.dat')
+!            open(8,file='nth1_r1c4_x.dat')
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
@@ -191,13 +192,15 @@
                   FFP=    PG(NP,NSBA)                         &
                          *((1.D0-WPL)*FNS(NTH  ,NP  ,NR,NSBA)  &
                                 +WPL *FNS(NTH  ,NP-1,NR,NSBA))
-!                  FFP=    PG(NP,NSBA)                         &
-!                         *(0.5D0*FNS(NTH  ,NP  ,NR,NSBA)  &
-!                                +0.5D0 *FNS(NTH  ,NP-1,NR,NSBA))
                   RSUM4 = RSUM4+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                          *(DCPP(NTH,NP,NR,NSA)*DFP           &
                           +DCPT(NTH,NP,NR,NSA)*DFT           &
                           -FCPP(NTH,NP,NR,NSA)*FFP           &
+                       )
+                  R_FLUX(NTH,NP) = -  &
+                          (DPP(NTH,NP,NR,NSA)*DFP           &
+                          +DPT(NTH,NP,NR,NSA)*DFT           &
+                          -FPP(NTH,NP,NR,NSA)*FFP           &
                        )
                   RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                          *(DWPP(NTH,NP,NR,NSA)*DFP           &
@@ -235,58 +238,34 @@
                   RSUM11L=RSUM11L+PG(NP,NSBA)**4*SINM(NTH)/PV    &
                                   *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)
 
-!                  IF(NSA.eq.3)THEN
-!                  testa=PG(NP,NSBA)**2*SINM(NTH)/PV  &
-!                         *(DCPP(NTH,NP,NR,NSA)*DFP  &
-!                          +DCPT(NTH,NP,NR,NSA)*DFT  &
-!                          -FCPP(NTH,NP,NR,NSA)*FFP  &
-!                       )
 
-!                  testb=-PG(NP,NSBA)**2*SINM(NTH)/PV     &
-!                         *(FEPP(NTH,NP,NR,NSA)*FFP)
-!                  END IF
-
-!                  IF(NR.eq.1.and.NSA.eq.1.and.NTH.eq.1)THEN
-                  IF(NR.eq.1.and.NSA.eq.1)THEN
-                     TMC2FP0=(PTFD0(NSA)/(AMFD(NSA)*VC))**2 
-!                     DFDP=0.5D0*(FNS(NTH,NP,NR,NSA)+FNS(NTH,NP-1,NR,NSA))  &
+!                  IF(NR.eq.1.and.NSA.eq.1)THEN
+!                     DFDP=((1.D0-WPL)*FNS(NTH,NP,NR,NSA)+WPL*FNS(NTH,NP-1,NR,NSA))  &
 !                          /(FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA))*DELP(NSA)
-                     DFDP=DELP(NSA)/ &
-                          ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
-                     WRITE(8,'(3I4,1P14E14.6)') NR,NP,NTH             &
-                          ,PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH) &
-                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
+!!                     DFDP=DELP(NSA)/ &
+!!                          ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
+!                     WRITE(8,'(3I4,1P14E16.8)') NR,NP,NTH             &
+!                          ,PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH) &
+!                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
 !                          ,DFP,DFT,FFP,FNS(NTH,NP,NR,NSA)            &
-                          ,DCPP2(NTH,NP,NR,1,NSA) &
-                          ,FCPP2(NTH,NP,NR,1,NSA) &
-!                          ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(NTH,NP,NR,1,NSA)/FCPP2(NTH,NP,NR,1,NSA)/AEE/1.D3*VTFP0(NSA)
-             ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(NTH,NP,NR,1,NSA)/FCPP2(NTH,NP,NR,1,NSA)/AEE/1.D3*VTFP0(NSA)/sqrt(1.D0+TMC2FP0*PG(NP,NSA)**2) &
-             ,-PG(NP,NSA)*PTFP0(NSA)*DFDP/AEE/1.D3*VTFP0(NSA)/sqrt(1.D0+TMC2FP0*PG(NP,NSA)**2) &
-                   ,sqrt(1.D0+TMC2FP0*PG(NP,NSA)**2),sqrt(1.D0+TMC2FP0*PG(NP,NSA)**2),DFP &
-                     ,PG(NP,NSBA)**2*SINM(NTH)/PV   &
-                         *(DCPP(NTH,NP,NR,NSA)*DFP           &
-                          +DCPT(NTH,NP,NR,NSA)*DFT           &
-                          -FCPP(NTH,NP,NR,NSA)*FFP           &
-                       )
-!                          ,DCPP2(NTH,NP,NR,1,NSA)/FCPP2(NTH,NP,NR,1,NSA)- &
-!                          FNS(NTH,NP,NR,NSA)/(FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA))*DELP(NSA) 
-                  END IF
+!                          ,DCPP2(NTH,NP,NR,1,NSA) &
+!                          ,FCPP2(NTH,NP,NR,1,NSA) &
+!             ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(NTH,NP,NR,1,NSA)/FCPP2(NTH,NP,NR,1,NSA)/AEE/1.D3 &
+!             *VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2) &
+!             ,-PG(NP,NSA)*PTFP0(NSA)*DFDP/AEE/1.D3*VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2) &
+!                     ,PG(NP,NSBA)**2*SINM(NTH)/PV   &
+!                         *(DCPP(NTH,NP,NR,NSA)*DFP           &
+!                          +DCPT(NTH,NP,NR,NSA)*DFT           &
+!                          -FCPP(NTH,NP,NR,NSA)*FFP           &
+!                       )*RNFP0(NSA)*1.D20*PTFP0(NSA)**3/AMFP(NSA)
+!                  END IF
                ENDDO
-            IF(NR.eq.1.and.NSA.eq.1)then
-               write(8,*)" "
-               write(8,*)" "
-            END IF
-            ENDDO
-            close(8)
-
-!            IF(NTG1.eq.NTMAX.and.NSA.eq.1.and.NR.eq.40) THEN
-!               NP=20
-!               DO NTH=1,NTHMAX
-!                  WRITE(9,888) NR,NTH, PG(np,NSA), PM(NP,NSA) &
-!                       ,DCPP(NTH,NP,NR,NSA),DCPT(NTH,NP,NR,NSA) &
-!                       ,DCTT(NTH,NP,NR,NSA),FCPP(NTH,NP,NR,NSA)
-!               END DO
+!            IF(NR.eq.1.and.NSA.eq.1)then
+!               write(8,*)" "
+!               write(8,*)" "
 !            END IF
+            ENDDO
+!            close(8)
                
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20
@@ -317,23 +296,17 @@
          ENDDO
       ENDDO
 
-!      IF(NREND.eq.NRMAX)THEN
-!      DO NSA=1,NSAMAX
-!         NS=NS_NSA(NSA)
-!         NSBA=NSB_NSA(NSA)
-!         RSUM_FS2=0.D0
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               RSUM_FS2 = RSUM_FS2+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSA) &
-!                    *RLAMDAG(NTH,NRMAX+1)
-!            END DO
-!         ENDDO
-!         FACT=RNFP0(NSA)*1.D20
-!         RNS_S2(NSA) = RSUM_FS2*FACT                   *1.D-20
-!         WRITE(*,'(2I2,1P3E14.6)') NRANK, NSA, RNS_S2(NSA)
+!      OPEN(9,file='FLUX_r1c4.dat')
+!      NSA=1
+!      DO NTH=1,NTHMAX
+!         DO NP=2,NPMAX
+!            WRITE(9,'(1P10E14.6)') &
+!                 THM(NTH),PM(NP,NSA),0,( R_FLUX(NTH,NP+1)/PG(NP+1,NSA)-R_FLUX(NTH,NP)/PG(NP,NSA) )
+!         END DO
+!         WRITE(9,*) " "
+!         WRITE(9,*) " "
 !      END DO
-!      END IF
-      
+!      close(9)
 
       DO NSA=1,NSAMAX
          CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
@@ -631,7 +604,7 @@
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),      &
                     RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2)
-!                    RPCT2(NR,NSA,NSA,NTG2),RPCT2(NR,2,NSA,NTG2)
+!                    RPCT2(NR,1,NSA,NTG2),RPCT2(NR,2,NSA,NTG2)
 !!                    RLHT(NR,NSA,NTG2),                        &
 !!                    RFWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2)
 !            ELSE

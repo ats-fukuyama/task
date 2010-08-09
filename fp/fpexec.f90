@@ -211,7 +211,7 @@
 !        CALCULATION OF WEIGHT
 !     ***************************
 !
-      SUBROUTINE FPWEIGHT(NSA,IERR)
+      SUBROUTINE FPWEIGHT(NSA,IERR) ! proposed by Chang and Cooper [30] in Karney
 
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NSBA
@@ -234,8 +234,6 @@
                IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
                   DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
                         /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR))
-!                  DFDTH= ( LOG(F(NTHA,NP-1,NR))-LOG(F(NTHB,NP-1,NR)) ) &
-!                       /(2.D0*PG(NP,NSBA)*DELTH)
                ENDIF
             ELSE
                IF(ABS(F(NTH,NP-1,NR)).GT.EPSWT) THEN
@@ -244,22 +242,14 @@
                            /(4.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR)) &
                           + (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
                            /(4.D0*PG(NP,NSBA)*DELTH*F(NTH,NP  ,NR))
-!                     DFDTH= (LOG(F(NTHA,NP-1,NR))-LOG(F(NTHB,NP-1,NR))) &
-!                           /(4.D0*PG(NP,NSBA)*DELTH) &
-!                          + (LOG(F(NTHA,NP  ,NR))-LOG(F(NTHB,NP  ,NR))) &
-!                           /(4.D0*PG(NP,NSBA)*DELTH)
                   ELSE
                      DFDTH= (F(NTHA,NP-1,NR)-F(NTHB,NP-1,NR)) &
                            /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP-1,NR)) 
-!                     DFDTH= (LOG(F(NTHA,NP-1,NR))-LOG(F(NTHB,NP-1,NR))) &
-!                           /(2.D0*PG(NP,NSBA)*DELTH) 
                   ENDIF
                ELSE
                   IF(ABS(F(NTH,NP,NR)).GT.EPSWT) THEN
                      DFDTH= (F(NTHA,NP  ,NR)-F(NTHB,NP  ,NR)) &
                            /(2.D0*PG(NP,NSBA)*DELTH*F(NTH,NP  ,NR))
-!                     DFDTH= (LOG(F(NTHA,NP  ,NR))-LOG(F(NTHB,NP  ,NR))) &
-!                           /(2.D0*PG(NP,NSBA)*DELTH)
                   ENDIF
                ENDIF
             ENDIF
@@ -272,7 +262,8 @@
 
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX
-         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)!/SQRT(1.D0+THETA0(NSBA)*PM(NP,NSBA)**2)
+         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)
+!         DFDP=-PM(NP,NSBA)*RTFP0(NSA)/RTFP(NR,NSA)/SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
          DFDB=DFDP
       DO NTH=1,NTHMAX+1
          IF(NTH.EQ.1) THEN
@@ -283,13 +274,9 @@
                ELSEIF(NP.EQ.NPMAX) THEN
                   DFDP= (F(NTH  ,NP,NR)-F(NTH  ,NP-1,NR)) &
                        /(     DELP(NSBA)*F(NTH  ,NP,NR))
-!                  DFDP= ( LOG(F(NTH,NP,NR))-LOG(F(NTH,NP-1,NR)) ) &
-!                       /DELP(NSBA)
                ELSE
                   DFDP= (F(NTH  ,NP+1,NR)-F(NTH  ,NP-1,NR)) &
                        /(2.D0*DELP(NSBA)*F(NTH  ,NP,NR))
-!                  DFDP= ( LOG(F(NTH,NP+1,NR))-LOG(F(NTH,NP-1,NR)) ) &
-!                       /( 2.D0*DELP(NSBA) )
                ENDIF
             ENDIF
          ELSEIF(NTH.EQ.NTHMAX+1) THEN

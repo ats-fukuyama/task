@@ -22,12 +22,13 @@
       end interface 
 
       contains
-
+!-------------------------------------------------------------
       SUBROUTINE FP_COEF(NSA)
 
       IMPLICIT NONE
       integer:: NSA, NR, NTH, NP, NS
       real(8):: FPMAX
+      integer:: NCONST_RF
 
       ISAVE=0
       NS=NS_NSA(NSA)
@@ -53,6 +54,7 @@
 !     ----- Parallel electric field accleration term -----
 !
       CALL FP_CALE(NSA)
+
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 !
@@ -74,10 +76,30 @@
          IF(nrank.eq.0) WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW(NS)
       ENDIF
 
-!      END IF
+!     ----- Constant Dw
+      NCONST_RF=1
+      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.1.and.NTG1.ge.2)THEN
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX+1
+            DO NTH=1,NTHMAX
+               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1) 
+            END DO
+            END DO
+            DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+            END DO
+            END DO
+         END DO
+         WRITE(*,*) NTG1,PPWT(1,1)/PPWT(1,NTG1),PPWT(3,1)/PPWT(3,NTG1)
+      END IF
+
 !     ----- Collisional slowing down and diffusion term -----
 
       CALL FP_CALC(NSA)
+
 
 !     ----- Sum up velocity diffusion terms -----
 
@@ -112,23 +134,14 @@
             FTH(NTH,NP,NR,NSA)=FETH(NTH,NP,NR,NSA)+FCTH(NTH,NP,NR,NSA)
          ENDDO
          ENDDO
+!        EXTERNAL BOUNDARY CONDITION
+         DO NTH=1,NTHMAX
+            DPP(NTH,NPMAX+1,NR,NSA)=0.D0
+            DPT(NTH,NPMAX+1,NR,NSA)=0.D0
+            FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
+         END DO
+!
       ENDDO
-
-!      DO NR=NRSTART, NREND
-!      IF(NR.eq.8.and.NSA.eq.1)THEN
-!         open(8,file='Dw_R8_N1_a1.dat')
-!         DO NTH=1,NTHMAX+1
-!            DO NP=1,NPMAX
-!               WRITE(8,'(3I4,1P6E12.4)')NR,NP,NTH &
-!                    ,PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH) &
-!                    ,DWPP(NTH,NP,NR,NSA) &
-!                    ,DWPT(NTH,NP,NR,NSA),DWTT(NTH,NP,NR,NSA),DWTP(NTH,NP,NR,NSA)
-!            END DO
-!         END DO
-!         close(8)
-!      END IF
-!      END DO
-
 
 !     ----- Radial diffusion term -----
 
@@ -287,7 +300,7 @@
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND+1
          RHON=RG(NR)
-         IF(MODELD.EQ.2.OR.MODELD.EQ.4.OR.MODELD.eq.5) THEN
+         IF(MODELD.EQ.2.OR.MODELD.EQ.4.OR.MODELD.eq.5.OR.MODELD.eq.6) THEN
             SV=MAX(PNS(NS)/PN(NS),1.D-3)
             FACTRN=PROFN1*PROFN2*RHON**(PROFN1-1.D0)/((1-RHON**PROFN1)+SV)
             SV=MAX(PTS(NS)/PTPP(NS),1.D-3)
@@ -312,7 +325,7 @@
 
 !            IF(NSA.eq.1) write(*,*) NR, DNDR
          ENDIF
-         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4) THEN
+         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4.OR.MODELD.EQ.6) THEN
             RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
          ENDIF
       DO NP=1,NPMAX+1
@@ -329,9 +342,12 @@
          CASE(4)
             FACTR=-FACTRN+(1.5D0-0.5D0*PM(NP,NSBA)**2/RTFPL)*FACTRT
             FACTP=1.D0/SQRT(1.D0+PM(NP,NSBA)**2/RTFPL)
-         CASE(5)
+         CASE(5) ! case(1) with pinch
             FACTR=DNDR/NEDGE
             FACTP=1.D0
+         CASE(6) ! case(3) with pinch
+            FACTR=DNDR/NEDGE
+            FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)
         END SELECT
       DO NTH=1,NTHMAX
          FACT= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
@@ -638,7 +654,7 @@
                PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
                DO NP=1,NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-!                     IF(NCHECK.eq.0.or.NCHECK.gt.LMAXFP)THEN
+!                     If(NCHECK.eq.0.or.NCHECK.gt.LMAXFP)THEN
 !                        write(6,'(A,I5,1P3E12.4)') ' |-NP,PSP,PG=',&
 !                          NP,PSP,PG(NP,NSBA),PG(NP+1,NSBA)
 !                     END IF

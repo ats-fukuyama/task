@@ -34,7 +34,7 @@
       IMPLICIT NONE
       integer:: NSA,NSB,NR, NP, NTH
 !      integer::NTHM, NPM, NRM
-      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, TMC2FP0, RGAMA
+      real(8):: RGAMH, RGAMH2, RZI, RTE, PFPL, VFPL, U, DCTTL, RGAMA, DFDP, DFDTH
 
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX+1
@@ -116,15 +116,22 @@
          ENDDO
 
 !      DO NSB=1,NSBMAX
+!         IF(NSA.eq.1.and.NSB.eq.1)THEN
 !         DO NP=2,NPMAX+1
 !         RGAMA=SQRT(1.D0+THETA0(NSA)*PG(NP,NSA)**2)
 !         DO NTH=1,NTHMAX
-!            DCPP2(NTH,NP,NR,NSB,NSA)=-RGAMA*RTFP(NR,NSB)*FCPP2(NTH,NP,NR,NSB,NSA)/PG(NP,NSA) &
-!                 *AEE*1.D3/PTFP0(NSA)/VTFP0(NSA)
-!            FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
-!                 /(RGAMA*RTFP(NR,NSB)*AEE*1.D3 )
+!!            DCPP2(NTH,NP,NR,NSB,NSA)=-RGAMA*RTFP(NR,NSB)*FCPP2(NTH,NP,NR,NSB,NSA)/PG(NP,NSA) &
+!!                 *AEE*1.D3/PTFP0(NSA)/VTFP0(NSA)
+!            IF(NTG2.eq.0)THEN
+!               FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
+!                    /(RGAMA*RTFP(NR,NSB)*AEE*1.D3 )
+!            ELSE
+!               FCPP2(NTH,NP,NR,NSB,NSA)=-PG(NP,NSA)*PTFP0(NSA)*VTFP0(NSA)*DCPP2(NTH,NP,NR,NSB,NSA) &
+!                    /(RGAMA*RTT(NR,NSB,NTG2)*AEE*1.D3 )
+!            END IF
 !         ENDDO
 !         ENDDO
+!         END IF
 !      ENDDO
 
 !        ----- Simple electron-ion collision term using ZEFF -----
@@ -176,7 +183,7 @@
          ENDIF
 
 !     sum up coefficients by species
-         open(8,file='p-dcpp_r0c1ee.dat')
+!         open(8,file='p-dcpp_r1c4ee_x.dat')
          DO NSB=1,NSBMAX
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
@@ -187,12 +194,12 @@
                   FCPP(NTH,NP,NR,NSA)=FCPP(NTH,NP,NR,NSA) &
                                      +FCPP2(NTH,NP,NR,NSB,NSA)
                END DO
-               IF(NSA.eq.1.and.NSB.eq.1) write(8,'(I4,1P14E14.6)') &
-                    NP,PG(NP,NSA),PG(NP,NSA)+DELP(NSA)/2.D0 &
-                    ,DCPP2(10,NP,NR,NSB,NSA),FCPP2(10,NP,NR,NSB,NSA),DCTT2(10,NP,NR,NSB,NSA) &
-                    ,PTFP0(NSA),sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),AEE*1.D3 &
-                    ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(1,NP,NR,NSB,NSA)/FCPP2(1,NP,NR,NSB,NSA)/AEE/1.D3 &
-                    *VTFP0(NSA),FNS(10,NP,NR,NSA)
+!               IF(NSA.eq.1.and.NSB.eq.1) write(8,'(I4,1P14E14.6)') &
+!                    NP,PG(NP,NSA),PG(NP,NSA)+DELP(NSA)/2.D0 &
+!                    ,DCPP2(10,NP,NR,NSB,NSA),FCPP2(10,NP,NR,NSB,NSA),DCTT2(10,NP,NR,NSB,NSA) &
+!                    ,PTFP0(NSA),sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),AEE*1.D3 &
+!                    ,-PG(NP,NSA)*PTFP0(NSA)*DCPP2(1,NP,NR,NSB,NSA)/FCPP2(1,NP,NR,NSB,NSA)/AEE/1.D3 &
+!                    *VTFP0(NSA)/sqrt(1.D0+THETA0(NSA)*PG(NP,NSA)**2),FNS(10,NP,NR,NSA)
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
@@ -205,8 +212,20 @@
                END DO
             END DO
          END DO
-         CLOSE(8)
+!         CLOSE(8)
       ENDDO
+
+!      NR=1
+!      DFDP=( FNS(NTHMAX,NPMAX,NR,NSA)-FNS(NTHMAX,NPMAX-1,NR,NSA) )/DELP(NSA)
+!      DFDTH=( FNS(NTHMAX,NPMAX,NR,NSA)-FNS(NTHMAX-1,NPMAX,NR,NSA) )/DELTH
+!      WRITE(*,'(I3,1P10E14.6)') NSA &
+!           ,PMAX(NSA)*DCPP(NTHMAX,NPMAX,NR,NSA)*DFDP+DCPT(NTHMAX,NPMAX+1,NR,NSA)*DFDTH &
+!           -PMAX(NSA)*FCPP(NTHMAX,NPMAX,NR,NSA)*FNS(NTHMAX,NPMAX,NR,NSA) &
+!           ,PMAX(NSA)*DCPP(NTHMAX,NPMAX,NR,NSA)*DFDP &
+!           ,DCPT(NTHMAX,NPMAX+1,NR,NSA)*DFDTH &
+!           ,-PMAX(NSA)*FCPP(NTHMAX,NPMAX,NR,NSA)*FNS(NTHMAX,NPMAX,NR,NSA) &
+!           ,DFDP,DFDTH
+
 
 
       IF(nrank.eq.0) THEN
@@ -369,7 +388,7 @@
       real(8):: RNNL, RNUFL, RNUDL, DCPPL, FCPPL, V
       real(8):: PNFPL, RGAMA, vtatb, ptatb, PCRIT
       real(8):: RINT0, ES0, RINT1, ES1, RINT2, ES2, RINT4, ES4, RINT5, ES5
-      real(8):: RINT6, ES6, TMC2FP0, RINT7, ES7, RINT8, ES8, RINT9, ES9
+      real(8):: RINT6, ES6, RINT7, ES7, RINT8, ES8, RINT9, ES9
       real(8):: RINT3, ES3
 
 !     ------ define --------
@@ -425,8 +444,7 @@
                PNFP=PNFPL
                TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2
                TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-               TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
-               RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+               RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
                PCRIT=0.D0
                CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
                PNFP=PCRIT
@@ -445,8 +463,7 @@
                PNFP=PNFPL
                TMC2FD =(PTFD(NR,NSB)/(AMFD(NSB)*VC))**2
                TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-               TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
-               RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+               RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
                vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
                ptatb=PG(NP,NSBA)/RGAMA
                PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &
@@ -472,7 +489,7 @@
                     (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
                        *(3.D0*RINT4-TMC2FD0*RINT5)           &
                     +2.D0*(PTFP0(NSA)*PNFP)                  &
-                       /(PTFD0(NSB)*RGAMA)*TMC2FP0*RINT6 )   &
+                       /(PTFD0(NSB)*RGAMA)*THETA0(NSA)*RINT6 )   &
                    *RNFD(NR,NSB)*1.D20
                ELSEIF(PCRIT.gt.PMAX(NSB))THEN
                   CALL DEHIFT(RINT0,ES0,H0DE,EPSDE,0,FPFN0R)
@@ -501,7 +518,7 @@
                        (AMFP(NSA)*RGAMA**2)/(AMFD(NSB)*PNFP**2) &
                        *(3.D0*(RINT4+RINT8)-TMC2FD0*(RINT5+RINT9)) &
                        +2.D0*(PTFP0(NSA)*PNFP)/(PTFD0(NSB)*RGAMA) &
-                       *TMC2FP0*RINT6 ) &
+                       *THETA0(NSA)*RINT6 ) &
                        *RNFD(NR,NSB)*1.D20
                ENDIF
             ENDIF
@@ -518,8 +535,7 @@
             PNFP=PNFPL
             TMC2FD =PTFD(NR,NSB)**2/(AMFD(NSB)*VC)**2
             TMC2FD0=PTFD0(NSB)**2/(AMFD(NSB)*VC)**2
-            TMC2FP0=PTFP0(NSA)**2/(AMFP(NSA)*VC)**2
-            RGAMA=SQRT(1.D0+PNFP**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PNFP**2*THETA0(NSA))
             vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
             ptatb=PM(NP,NSA)/RGAMA
             PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2)) &

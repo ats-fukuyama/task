@@ -147,17 +147,15 @@
       DELTH=PI/NTHMAX
       DO NSB=1,NSBMAX
          DELP(NSB)=PMAX(NSB)/NPMAX
-!         PG2(1,NSB)=PG(1,NSB)
-!         PM2(1,NSB)=PG(2,NSB)/DBLE(NP2MAX)*0.5D0
          DO NP=1,NPMAX
             PG(NP,NSB)=DELP(NSB)*(NP-1)
             PM(NP,NSB)=DELP(NSB)*(NP-0.5D0)
          ENDDO
-         DO NP2=1,NP2MAX
-            PG2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-1)
-            PM2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-0.5D0)
-         END DO
-         PG2(NP2MAX+1,NSB)=PG(2,NSB)
+!         DO NP2=1,NP2MAX
+!            PG2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-1)
+!            PM2(NP2,NSB)=PG(2,NSB)/DBLE(NP2MAX)*(NP2-0.5D0)
+!         END DO
+!         PG2(NP2MAX+1,NSB)=PG(2,NSB)
          PG(NPMAX+1,NSB)=PMAX(NSB)
       ENDDO
 
@@ -1076,9 +1074,6 @@
             VTFP(NR,NSA)=SQRT(RTFP(NR,NSA)*1.D3*AEE/AMFP(NSA))
          ENDDO
 
-         RNE=PLF(1)%RN
-         RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
-
          DO NSB=1,NSBMAX
             NS=NS_NSB(NSB)
             AEFD(NSB)=PZ(NS)*AEE
@@ -1088,6 +1083,9 @@
             PTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE*AMFD(NSB))
             VTFD(NR,NSB)=SQRT(RTFD(NR,NSB)*1.D3*AEE/AMFD(NSB))
          ENDDO
+
+         RNE=PLF(1)%RN
+         RTE=(PLF(1)%RTPR+2.D0*PLF(1)%RTPP)/3.D0
 
          DO NSA=1,NSAMAX
             NSFP=NS_NSB(NSA)
@@ -1165,9 +1163,14 @@
 !      CLOSE(8)
 !      END IF
 
+!      NCALCNR=0
       DO NSA=1,NSAMAX
          CALL FP_COEF(NSA)
          CALL FPWEIGHT(NSA,IERR) 
+!         IF(MODELR.eq.1.and.MODELC.eq.4.and.NCALCNR.eq.2)THEN
+!            NCALCNR=1
+!            CALL FP_COEF(NSA)
+!         END IF
       END DO
 
       ISAVE=0

@@ -24,7 +24,7 @@
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
       integer:: L, IERR, NSTEST, I!, NCHECK
-      real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw
+      real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut2, gut3, gut4
       real(8),DIMENSION(nprocs):: RSUMA
 
@@ -85,18 +85,37 @@
                END DO
 
                IF(DEPS.ge.EPSFP)THEN
-                  CALL fp_exec(NSA,IERR)
+                  CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
                   IF(IERR.NE.0) GOTO 250
                ELSE
                   DO NR=NRSTART,NREND
                   DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
                      F1(NTH,NP,NR)=FNS1(NTH,NP,NR,NSA)
-!                     FNS(NTH,NP,NR,NSA)=FNS1(NTH,NP,NR,NSA)
+                     FNS(NTH,NP,NR,NSA)=FNS1(NTH,NP,NR,NSA)
                   END DO
                   END DO
                   END DO
                END IF
+
+!test
+!            NR=1
+!            RSUM1=0.D0
+!            RSUM2=0.D0
+!            DO NP=1,NPMAX
+!              DO NTH=1,NTHMAX
+!                  RSUM1=RSUM1+VOLP(NTH,NP,NSA)*FNS(NTH,NP,NR,NSA)
+!                  RSUM2=RSUM2+VOLP(NTH,NP,NSA)*FNS2(NTH,NP,NR,NSA)
+!               END DO
+!            END DO
+!            DO NP=1,NPMAX
+!               DO NTH=1,NTHMAX
+!                  FNS(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSA)*RSUM2/RSUM1
+!                  F1(NTH,NP,NR)=F1(NTH,NP,NR)*RSUM2/RSUM1
+!!                  write(*,*) NP, NTH, RSUM2/RSUM1
+!               END DO
+!            END DO
+!!end of test
 
                RSUMF(NSA)=0.D0
                RSUMF0(NSA)=0.D0
@@ -149,32 +168,31 @@
                     NSA=1,NSAMAX)
             ENDIF
 
+
             DO NSA=1,NSAMAX
-!               IF(DEPS2(NSA).ne.0.D0)THEN
 !            CALL GUTIME(gut)
 !            write(*,*)"time1", gut, NSA
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
 !            CALL GUTIME(gut)
 !            write(*,*)"time2", gut, NSA
-!               END IF
             END DO
 
          END DO ! END OF DOWHILE
 
-!         open(8,file='dfdt_r1c4.dat')
+!         open(8,file='dfdt_r0c1.dat')
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART,NREND
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
                FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
-               IF(NR.eq.1.and.NSA.eq.1)THEN
-                  WRITE(8,'(1P14E14.6)') PM(NP,NSBA)*COSM(NTH), PM(NP,NSBA)*SINM(NTH), &
-                       ( FNS(NTH,NP,NR,NSA)-FNS22(NTH,NP,NR,NSA) )!/FNS22(NTH,NP,NR,NSA)
-               END IF
+!               IF(NR.eq.1.and.NSA.eq.1)THEN
+!                  WRITE(8,'(1P14E14.6)') PM(NP,NSBA)*COSM(NTH), PM(NP,NSBA)*SINM(NTH), &
+!                       ( FNS(NTH,NP,NR,NSA)-FNS22(NTH,NP,NR,NSA) )/FNS22(NTH,NP,NR,NSA)
+!               END IF
             ENDDO
-            WRITE(8,*) " "
-            WRITE(8,*) " "
+!            WRITE(8,*) " "
+!            WRITE(8,*) " "
             ENDDO
             ENDDO
          ENDDO
@@ -255,7 +273,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-!            open(9,file='power_1s_5kev_2.dat')
+            open(9,file='power_SNA_1s_D6.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
@@ -267,27 +285,27 @@
 !       ,FCPP2(2,NP,1,2,1) 
 !         END DO
 
-!            DO NTI=1,NTG1
-!               WRITE(9,645) NTI, PTG(NTI)*1000 &
-!                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
-!                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
-!                    ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
-!                    ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
-!                    ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
-!                    ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
-!                    ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
-!                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
-!                    ,PSPBT(2,NTI),PSPFT(4,NTI)
-!            END DO
-!            close(9)
+            DO NTI=1,NTG1
+               WRITE(9,645) NTI, PTG(NTI)*1000 &
+                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
+                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
+                    ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
+                    ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
+                    ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
+                    ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
+                    ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
+                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
+                    ,PSPBT(2,NTI),PSPFT(4,NTI)
+            END DO
+            close(9)
 
-!         open(8,file='deriv_W.dat')
+!         open(8,file='deriv_W_r1c4_12.dat')
 !         DO NTI=2,NTG1
 !            Write(8,645) NTI, PTG(NTI)*1000 &
 !                 ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
 !                 ,( PWT(2,NTI)-PWT(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
 !                 ,( PWT(3,NTI)-PWT(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-!                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
+!                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) 
 !                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
 !                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
 !                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI) &
@@ -299,11 +317,19 @@
 !                 +PPCT(3,NTI-1)+PPWT(3,NTI-1)+PSPBT(3,NTI-1)+PSPFT(3,NTI-1) )*0.5D0 
 !         END DO
 !         close(8)
+!            open(8,file='PNT_r1c4_2.dat')
+!            DO NTI=1,NTMAX
+!               WRITE(*,*) NTI, PNT(1,NTI)/PNT(1,1)
+!            END DO
+!            close(8)
+
          END IF
+
  645  FORMAT(I3,40E14.6)
  646  FORMAT(I3,17E14.6)
  647  FORMAT(12E14.6) 
          IF(IERR.NE.0) RETURN
+
 
 !         CALL GUTIME(gut2)
 !         write(*,*)"1 loop time", nrank, gut2-gut

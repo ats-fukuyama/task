@@ -37,7 +37,7 @@
 
       integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSBA
       integer:: N,M
-      real(8):: RGAMH, TMC2FP0, TMC2FD0, FACT, WA, WC, WB, WD, WE, WF
+      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
       real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
       real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       integer:: LLMIN, IER
@@ -55,13 +55,6 @@
       pabbar=(PTFP0(NSA)*AMFD(NSB))/(PTFD0(NSB)*AMFP(NSA))
       NSBA=NSB_NSA(NSA)
 
-      IF(MODELR.eq.0)THEN
-         TMC2FD0=0.D0
-         TMC2FP0=0.D0
-      ELSE IF(MODELR.eq.1)THEN
-         TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-         TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
-      END IF
 !
 !     ----- calculation of Legendre Polynomials -----
 !
@@ -138,10 +131,9 @@
             END DO
             TX(NTHMAX+2)=PI
             TY(NTHMAX+2)=0.D0
-!            DF(1)       = 0.D0
-            DF(1)= FNS(1,NP,NR,NSB)*PLM(1,L)*COSM(1)
-!            DF(NTHMAX+2)= 0.D0
-            DF(NTHMAX+2)= FNS(NTHMAX,NP,NR,NSB)*PLM(NTHMAX,L)*COSM(NTHMAX)
+            DF(1)= FNS(1,NP,NR,NSB)*PLM(1,L)!*COSM(1)
+!            DF(NTHMAX+2)= FNS(NTHMAX,NP,NR,NSB)*PLM(NTHMAX,L)*COSM(NTHMAX)
+            DF(NTHMAX+2)= (-1)**(L+1)*FNS(NTHMAX,NP,NR,NSB)
             CALL SPL1D(TX,TY,DF,UTY,NTHMAX+2,3,IER)
             CALL SPL1DI0(TX,UTY,UTY0,NTHMAX+2,IER)
             CALL SPL1DI(PI,SUM1,TX,UTY,UTY0,NTHMAX+2,IER)
@@ -179,7 +171,7 @@
 !
       DO L=LLMIN,LLMAX
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             pabar=PTFP0(NSA)/(AMFP(NSA)*RGAMA)
             pbbar=PTFD0(NSB)/AMFD(NSB)
             pmbar=PM(NP,NSBA)*pabar/pbbar
@@ -216,7 +208,7 @@
       DO L=LLMIN,LLMAX
 !         DO NP=2,NPMAX+1
          DO NP=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
             pabar=PTFP0(NSA)/(AMFP(NSA)*RGAMA)
             pbbar=PTFD0(NSB)/AMFD(NSB)
             IF(NP.EQ.1) THEN
@@ -275,7 +267,7 @@
 !      L0MIN=0
 
       DO NP=1,NPMAX+1
-         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*TMC2FP0)
+         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
          DO NTH=1,NTHMAX
             WA=0 
             WC=0
@@ -297,7 +289,7 @@
       END DO
 
       DO NP=1,NPMAX
-         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
          DO NTH=1,NTHMAX+1
             WB=0 
             WD=0
@@ -321,7 +313,7 @@
       END DO
 
       DO NP=2,NPMAX+1
-         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*TMC2FP0)
+         RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
          DO NTH=1,NTHMAX
             WE=0
             DO L=LLMIN,LLMAX
@@ -334,7 +326,7 @@
       END DO
 
       DO NP=1,NPMAX
-         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+         RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
          DO NTH=1,NTHMAX+1
             WF=0
             DO L=LLMIN,LLMAX
@@ -523,7 +515,7 @@
 
       integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSBA
       integer:: N,M
-      real(8):: RGAMH, TMC2FP0, TMC2FD0, FACT, WA, WC, WB, WD, WE, WF
+      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
       real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
       real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       integer:: LLMIN, IER
@@ -536,14 +528,6 @@
       vtatb=(AMFD(NSB)*PTFP0(NSA))/(AMFP(NSA)*PTFD0(NSB))
       pabbar=(PTFP0(NSA)*AMFD(NSB))/(PTFD0(NSB)*AMFP(NSA))
       NSBA=NSB_NSA(NSA)
-
-      IF(MODELR.eq.0)THEN
-         TMC2FD0=0.D0
-         TMC2FP0=0.D0
-      ELSE IF(MODELR.eq.1)THEN
-         TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-         TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
-      END IF
 !
 !     ----- calculation of \hat{M}_l -----
 !
@@ -561,7 +545,7 @@
             TY1(1)=FPL(1,L)*PM(1,NSB)**(1-L)
          ENDIF
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             TX1(NNP+1)=PM(NNP,NSB)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(1-L))*RGAMB**(1+L)
          END DO
@@ -580,9 +564,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) THEN
                CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM1M(NP,L)=PSUM-SUM2
@@ -591,9 +575,9 @@
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) THEN
                CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM1G(NPG,L)=PSUM-SUM3
@@ -610,7 +594,7 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             TX1(NNP+1)=PM(NNP,NSB)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(2+L))*RGAMB**(-L)
          END DO
@@ -623,9 +607,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM2M(NP,L)=SUM4
@@ -634,9 +618,9 @@
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM2G(NPG,L)=SUM5
@@ -653,7 +637,7 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             TX1(NNP+1)=PM(NNP,NSB)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(3-L))*RGAMB**(L-1)
          END DO
@@ -666,9 +650,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM6,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM3M(NP,L)=PSUM-SUM6
@@ -677,9 +661,9 @@
             endif
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM7,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM3G(NPG,L)=PSUM-SUM7
@@ -696,7 +680,7 @@
          TX1(1)=0.D0
          TY1(1)=0.D0
          DO NNP=1,NPMAX
-            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
             TX1(NNP+1)=PM(NNP,NSB)
             TY1(NNP+1)=FPL(NNP,L)*(PM(NNP,NSB)**(4+L))*RGAMB**(-L-2)
          END DO
@@ -709,9 +693,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPMAX+2,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM8,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM4M(NP,L)=SUM8
@@ -720,9 +704,9 @@
             endif
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM9,TX1,UTY1,UTY10,NPMAX+2,IER)
                RM4G(NPG,L)=SUM9
@@ -752,7 +736,7 @@
 
       integer:: NR, NSB, NSA, NTH, L,  NP, NNP, NPG, NSBA
       integer:: N,M
-      real(8):: RGAMH, TMC2FP0, TMC2FD0, FACT, WA, WC, WB, WD, WE, WF
+      real(8):: RGAMH, FACT, WA, WC, WB, WD, WE, WF
       real(8):: SUM1, PSUM, SUM2, SUM3, SUM4, SUM5, SUM6, SUM7, SUM8, SUM9
       real(8):: RGAMA, RGAMB, vtatb, pabbar, ptatb, PCRIT, pabar, pbbar, pgbar, pmbar
       real(8):: testP, testF
@@ -767,13 +751,6 @@
       pabbar=(PTFP0(NSA)*AMFD(NSB))/(PTFD0(NSB)*AMFP(NSA))
       NSBA=NSB_NSA(NSA)
 
-      IF(MODELR.eq.0)THEN
-         TMC2FD0=0.D0
-         TMC2FP0=0.D0
-      ELSE IF(MODELR.eq.1)THEN
-         TMC2FD0=(PTFD0(NSB)/(AMFD(NSB)*VC))**2
-         TMC2FP0=(PTFP0(NSA)/(AMFP(NSA)*VC))**2
-      END IF
 !    SET FPL0
       DO L=0,LLMAX
          FPL0(1,L)=0.5D0*( FPL(1,L)+FPL(2,L) & 
@@ -815,14 +792,14 @@
          ENDIF
          DO NNP=1,NPMAX-1
             testP=PM(NNP,NSB)/PMAX(NSB)
-            RGAMB=SQRT(1.D0+testP**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             TX1(NNP+1)=testP
             TY1(NNP+1)=FPL0(NNP+1,L)*(testP**(1-L))*RGAMB**(1+L)
          END DO
          NPF=NPMAX
          DO NNP=1,NPMAX
             IF(PM(NNP,NSB).ge.1.D0)THEN
-               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
                NPF=NPF+1
                TX1(NPF)=PM(NNP,NSB)
                TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(1-L))*RGAMB**(1+L)
@@ -843,9 +820,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) THEN
                CALL SPL1DI(PCRIT,SUM2,TX1,UTY1,UTY10,NPF+1,IER)
                RM1M(NP,L)=PSUM-SUM2
@@ -854,9 +831,9 @@
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) THEN
                CALL SPL1DI(PCRIT,SUM3,TX1,UTY1,UTY10,NPF+1,IER)
                RM1G(NPG,L)=PSUM-SUM3
@@ -874,7 +851,7 @@
          TY1(1)=0.D0
          DO NNP=1,NPMAX-1
             testP=PM(NNP,NSB)/PMAX(NSB)
-            RGAMB=SQRT(1.D0+testP**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             TX1(NNP+1)=testP
             TY1(NNP+1)=FPL0(NNP+1,L)*(testP**(2+L))*RGAMB**(-L)
          END DO
@@ -882,7 +859,7 @@
          DO NNP=1,NPMAX
             IF(PM(NNP,NSB).ge.1.D0)THEN
                NPF=NPF+1
-               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
                TX1(NPF)=PM(NNP,NSB)
                TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(2+L))*RGAMB**(-L)
             END IF
@@ -896,9 +873,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM4,TX1,UTY1,UTY10,NPF+1,IER)
                RM2M(NP,L)=SUM4
@@ -907,9 +884,9 @@
             ENDIF
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM5,TX1,UTY1,UTY10,NPF+1,IER)
                RM2G(NPG,L)=SUM5
@@ -927,7 +904,7 @@
          TY1(1)=0.D0
          DO NNP=1,NPMAX-1
             testP=PM(NNP,NSB)/PMAX(NSB)
-            RGAMB=SQRT(1.D0+testP**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             TX1(NNP+1)=testP
             TY1(NNP+1)=FPL0(NNP+1,L)*(testP**(3-L))*RGAMB**(L-1)
          END DO
@@ -935,7 +912,7 @@
          DO NNP=1,NPMAX
             IF(PM(NNP,NSB).ge.1.D0)THEN
                NPF=NPF+1
-               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
                TX1(NPF)=PM(NNP,NSB)
                TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(3-L))*RGAMB**(L-1)
             END IF
@@ -949,9 +926,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM6,TX1,UTY1,UTY10,NPF+1,IER)
                RM3M(NP,L)=PSUM-SUM6
@@ -960,9 +937,9 @@
             endif
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM7,TX1,UTY1,UTY10,NPF+1,IER)
                RM3G(NPG,L)=PSUM-SUM7
@@ -980,7 +957,7 @@
          TY1(1)=0.D0
          DO NNP=1,NPMAX
             testP=PM(NNP,NSB)/PMAX(NSB)
-            RGAMB=SQRT(1.D0+testP**2*TMC2FD0)
+            RGAMB=SQRT(1.D0+testP**2*THETA0(NSB))
             TX1(NNP+1)=testP
             TY1(NNP+1)=FPL0(NNP+1,L)*(testP**(4+L))*RGAMB**(-L-2)
          END DO
@@ -988,7 +965,7 @@
          DO NNP=1,NPMAX
             IF(PM(NNP,NSB).ge.1.D0)THEN
                NPF=NPF+1
-               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*TMC2FD0)
+               RGAMB=SQRT(1.D0+PM(NNP,NSB)**2*THETA0(NSB))
                TX1(NPF)=PM(NNP,NSB)
                TY1(NPF)=FPL(NNP,L)*(PM(NNP,NSB)**(4+L))*RGAMB**(-L-2)
             END IF
@@ -1002,9 +979,9 @@
          CALL SPL1DI(PMAX(NSB),PSUM,TX1,UTY1,UTY10,NPF+1,IER)
 
          DO NP=1,NPMAX
-            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             ptatb=PM(NP,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM8,TX1,UTY1,UTY10,NPF+1,IER)
                RM4M(NP,L)=SUM8
@@ -1013,9 +990,9 @@
             endif
          END DO
          DO NPG=1,NPMAX+1
-            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*TMC2FP0)
+            RGAMA=SQRT(1.D0+PG(NPG,NSBA)**2*THETA0(NSA))
             ptatb=PG(NPG,NSBA)/RGAMA
-            PCRIT=SQRT(vtatb**2/(1.D0-TMC2FD0*vtatb**2*ptatb**2))*ptatb
+            PCRIT=SQRT(vtatb**2/(1.D0-THETA0(NSB)*vtatb**2*ptatb**2))*ptatb
             IF(PCRIT.le.PMAX(NSB)) then
                CALL SPL1DI(PCRIT,SUM9,TX1,UTY1,UTY10,NPF+1,IER)
                RM4G(NPG,L)=SUM9

@@ -186,7 +186,7 @@
            RATE_NF_D1, RATE_NF_D2 ! (NRSTART:NREND,6,NTHMAX+1,NPMAX+1)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
            PG2,PM2
-      integer:: NCHECK
+      integer:: NCHECK, NCALCNR
 
       contains
 
@@ -246,7 +246,7 @@
           allocate(SINM(NTHMAX),COSM(NTHMAX))
 
           allocate(FNS(NTHMAX+1,NPMAX+1,NRMAX+1,NSBMAX))
-          allocate(FNS_L(NTHMAX+1,NP2MAX+1,NRMAX+1,NSBMAX))
+!          allocate(FNS_L(NTHMAX+1,NP2MAX+1,NRMAX+1,NSBMAX))
 
           allocate(FNS1(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(FNS2(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
