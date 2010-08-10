@@ -273,7 +273,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_SNA_1s_D6.dat')
+            open(9,file='power_SNA.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
@@ -299,24 +299,19 @@
             END DO
             close(9)
 
-!         open(8,file='deriv_W_r1c4_12.dat')
-!         DO NTI=2,NTG1
-!            Write(8,645) NTI, PTG(NTI)*1000 &
-!                 ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-!                 ,( PWT(2,NTI)-PWT(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-!                 ,( PWT(3,NTI)-PWT(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-!                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) 
-!                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
-!                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
-!                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI) &
-!                 ,( PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
-!                 +PPCT(1,NTI-1)+PPWT(1,NTI-1)+PSPBT(1,NTI-1)+PSPFT(1,NTI-1) )*0.5D0 &
-!                 ,( PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
-!                 +PPCT(2,NTI-1)+PPWT(2,NTI-1)+PSPBT(2,NTI-1)+PSPFT(2,NTI-1) )*0.5D0 &
-!                 ,( PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
-!                 +PPCT(3,NTI-1)+PPWT(3,NTI-1)+PSPBT(3,NTI-1)+PSPFT(3,NTI-1) )*0.5D0 
-!         END DO
-!         close(8)
+         open(8,file='deriv_W_test.dat')
+         DO NTI=2,NTG1
+            Write(8,645) NTI, PTG(NTI)*1000 &
+                 ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,( PWT(2,NTI)-PWT(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,( PWT(3,NTI)-PWT(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
+                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
+                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
+                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI) &
+                 ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI)
+         END DO
+         close(8)
 !            open(8,file='PNT_r1c4_2.dat')
 !            DO NTI=1,NTMAX
 !               WRITE(*,*) NTI, PNT(1,NTI)/PNT(1,1)
