@@ -228,8 +228,11 @@
       subroutine wmfem_calculate_matrix
 
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
-      complex(8),dimension(mwmax,12*nfcmax):: fml
+!      complex(8),dimension(mwmax,12*nfcmax):: fml
+      complex(8),dimension(:,:),pointer:: fml
       integer:: ml,mw,ns,nfc,nth,nph,nr
+
+      allocate(fml(mwmax,12*nfcmax))
 
       do ml=1,mlmax             ! clear fma
          do mw=1,mwmax
@@ -277,6 +280,8 @@
             fvb(ml+5)=fvb_nr(nph,nth,3)
          enddo
       enddo
+
+      deallocate(fml) 
 
       return
       end subroutine wmfem_calculate_matrix
@@ -399,7 +404,8 @@
       subroutine wmfem_boundary_condition_axis1
 
       complex(8),dimension(3,3,nthmax2,nphmax2):: mtxcl
-      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
+!      complex(8),dimension(3*nfcmax,3*nfcmax):: mtxclx
+      complex(8),dimension(:,:),pointer:: mtxclx
       complex(8),dimension(:,:),POINTER:: mtx0,mtx1,mtx0i,mtx1i
       complex(8),dimension(:,:),POINTER:: vec0,vec1,sol0,sol1
       integer,dimension(nfcmax):: nfc0a,nfc0b,ipos0
@@ -408,6 +414,8 @@
       integer:: nfc1,nfc2,nn1,mm1,nn2,mm2,nn3,mm3,i,j,k,nfc,il,jl,kl,mc
       integer:: count0a,count0b,count1a,count1b
       integer:: count1,count2,counta,countb
+
+      allocate(mtxclx(3*nfcmax,3*nfcmax))
 
       CALL wmeq_get_mtxCL(nthmax2,nphmax2,mtxcl)
 
@@ -710,6 +718,8 @@
 !         write(21,'(A,I3,3X,1P2E12.4)') 
 !     &           'v',i,fvb(i)
 !      enddo
+
+      deallocate(mtxclx)
 
       return
       end subroutine wmfem_boundary_condition_axis1
@@ -1142,7 +1152,10 @@
       integer:: i1,ml1,ml2,nfc,nfc1,nfc2,mll,nr0
       real(8):: factor
       complex(8):: csum,csums,cfactor
-      complex(8),dimension(mwmax,12*nfcmax):: fml
+!      complex(8),dimension(mwmax,12*nfcmax):: fml
+      complex(8),dimension(:,:),pointer:: fml
+
+      allocate(fml(mwmax,12*nfcmax))
 
       mc=(mwmax+1)/2
 
@@ -1299,6 +1312,8 @@ c$$$               endif
             csum=csum-ci*conjg(fvx(ml))*fvb(ml)
          enddo
          write(6,'(A,5X,1P2E12.4)') '   PRADM=',csum
+
+      deallocate(fml)
 
       return
       end subroutine wmfem_calculate_power

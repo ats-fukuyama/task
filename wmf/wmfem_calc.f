@@ -8,8 +8,8 @@
       complex(8),dimension(mwmax,12*nfcmax),intent(out):: fml
 !      complex(8),dimension(3,3,4,nfcmax,nfcmax,4):: fmd
 !      complex(8),dimension(3,3,4,nfcmax,nfcmax)::  fmd1,fmd2,fmd3,fmd4
-      complex(8),dimension(:,:,:,:,:,:), allocatable :: fmd
-      complex(8),dimension(:,:,:,:,:),allocatable :: fmd1,fmd2,fmd3,fmd4
+      complex(8),dimension(:,:,:,:,:,:),pointer :: fmd
+      complex(8),dimension(:,:,:,:,:),pointer :: fmd1,fmd2,fmd3,fmd4
       complex(8),dimension(nphmax,nthmax,3):: fvb_nr
       real(8):: drho,rkth,rkph,rkth0,rho0,rho1,rho2,rho3,rho4
       integer:: ml,mw,mc,nvmax,i,j,k,inod,nfc,nth,nph,mm,nn,mll
@@ -371,7 +371,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       IMPLICIT NONE
       real(8),intent(in):: rho
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
-      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+!      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+      complex(8),dimension(:,:,:,:,:),pointer:: fmc
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       complex(8):: cfactor
       real(8):: rkth,rkph,rkth0,rho0
@@ -382,6 +383,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: mmdiff,nndiff,nfcdiff
       real(8):: rr,ra,rb
 
+      allocate(fmc(3,3,4,nfcmax2,nfcmax))
       call get_wmfem_parm1(rr,ra,rb)
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
@@ -479,6 +481,7 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             enddo
          enddo
       enddo
+      deallocate(fmc)
       return
       end subroutine wmfem_calculate_vacuum_c
 
@@ -491,7 +494,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8),intent(in):: rho
       integer,intent(in):: ns
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
-      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+!      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+      complex(8),dimension(:,:,:,:,:),pointer:: fmc
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       real(8),dimension(3,3,nthmax2,nphmax2) :: gma,muma,dmuma 
       real(8),dimension(nthmax2,nphmax2):: gja
@@ -501,6 +505,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
+
+      allocate(fmc(3,3,4,nfcmax2,nfcmax))
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
@@ -586,6 +592,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
          enddo
       enddo
 
+      deallocate(fmc)
+
       return
 
       end subroutine wmfem_calculate_plasma
@@ -599,7 +607,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       real(8),intent(in):: rho
       integer,intent(in):: ns
       complex(8),dimension(3,3,4,nfcmax,nfcmax),intent(out):: fmd
-      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+!      complex(8),dimension(3,3,4,nfcmax2,nfcmax):: fmc
+      complex(8),dimension(:,:,:,:,:),pointer:: fmc
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
 
       complex(8):: cfactor,cx
@@ -607,6 +616,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
       integer:: nn1,nn2,nndiff,mm1,mm2,mmdiff,nfcdiff,nfcadd
       integer:: mmadd1,mmadd2,nnadd1,nnadd2
       integer:: nfcadd1,nfcadd2,nfcadd3,nfcadd4
+
+      allocate(fmc(3,3,4,nfcmax2,nfcmax))
 
       cfactor=(2.d0*pi*crf*1.d6)**2/vc**2
 
@@ -684,6 +695,8 @@ c$$$     &                            fmd(i,j,4,nfc1,nfc2)
             enddo
          enddo
       enddo
+
+      deallocate(fmc)
       return
 
       end subroutine wmfem_calculate_plasma_c
@@ -1288,5 +1301,3 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
          enddo
       return
       end subroutine fem_hqq
-
-
