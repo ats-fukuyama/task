@@ -938,7 +938,7 @@
                CALL FPMXWL_EDGE(NP,NSA,FL)
 !               FL=FPMXWL(PM(NP,NSBA),NRMAX+1,NS)
                DO NTH=1,NTHMAX
-                  FS2(NTH,NP,NSA)=FL
+                  FS2(NTH,NP,NSA)=FL ! at R=1.0+DELR/2
                ENDDO
             ENDDO
             IF(MODELA.eq.1)THEN

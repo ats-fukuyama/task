@@ -829,6 +829,7 @@
       FL1=FPMXWL(PM(NP,NSBA),NRMAX,NS)
       FL2=FPMXWL(PM(NP,NSBA),NRMAX+1,NS)
 
+!     F at R=1.0+DELR/2
       FL=FL2+(FL2-FL1)
 
       RETURN

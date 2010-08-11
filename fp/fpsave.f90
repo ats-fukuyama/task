@@ -31,7 +31,7 @@
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
       real(8):: RSUM12
       real(8):: PV, WPL, WPM, WPP
-      real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP
+      real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP, WRL, WRH
       real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
       real(8),dimension(NSBMAX):: RSUM10
       real(8),dimension(NTHMAX+1,NPMAX+1):: R_FLUX
@@ -271,30 +271,37 @@
 ! --------- E radial transport (bounce average off ver)
             RSUM_DR=0.D0
             RSUMN_DR=0.D0
+            WRL=WEIGHR(NTH,NP,NR,NSA)
+            WRH=WEIGHR(NTH,NP,NR+1,NSA)
             DO NP=2,NPMAX+1
                RGAMA=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
                   IF(NR.ne.1.and.NR.ne.NRMAX)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
+                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+!                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
                      DFDT_R1 = RG(NR)*( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )
                      DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
-                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
+                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
+!                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   ELSEIF(NR.eq.1)THEN
                      DFDT_R1 = 0.D0
                      DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
-                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
+                     F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
+!                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   ELSEIF(NR.eq.NRMAX)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
-                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
+                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+!                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
                      DFDT_R1 = RG(NR)*( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )
-                     DFDR_R2 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR *2.D0
-                     F_R2 = FS2(NTH,NP,NSA)
+                     DFDR_R2 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
+                     F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
+!                     F_R2 = 0.5D0 *( FS2(NTH,NP,NSA) + FNS(NTH,NP,NR,NSA) )
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   END IF
-                  DINT_DR = ( DFDT_R2 - DFDT_R1 ) * 4.D0*PI**2*RR !*DELR
+                  DINT_DR = ( DFDT_R2 - DFDT_R1 ) *VOLR(NR)/(DELR*RM(NR)) 
                   IF(MODELR.eq.1)THEN
                      RSUM_DR=RSUM_DR+(RGAMA-1.D0)*PG(NP,NSBA)**2*SINM(NTH)*DINT_DR
                   ELSEIF(MODELR.eq.0)THEN
@@ -560,11 +567,11 @@
 
       DO NSA=1,NSAMAX
          IF(MODELR.eq.0)THEN
-            WRITE(6,112) NSA,NS_NSA(NSA), &
-              PNT(NSA,NTG1),PTT(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),PNDR(NSA,NTG1)
+            WRITE(6,102) NSA,NS_NSA(NSA), &
+              PNT(NSA,NTG1),PTT(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1)!,PNDR(NSA,NTG1)
          ELSE
-            WRITE(6,112) NSA,NS_NSA(NSA), &
-              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1),PNDR(NSA,NTG1)
+            WRITE(6,102) NSA,NS_NSA(NSA), &
+              PNT(NSA,NTG1),PTT2(NSA,NTG1),PWT(NSA,NTG1),PIT(NSA,NTG1)!,PNDR(NSA,NTG1)
          END IF
 !         WRITE(6,103) PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1)
          IF(NSBMAX.GT.1) THEN
@@ -662,7 +669,7 @@
                     RM(NR),RNT(NR,NSA,NTG2),RTT(NR,NSA,NTG2), &
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),      &
-                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
+                    RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2)!,RNDRT(NR,NSA,NTG2)
 !                    RPCT2(NR,1,NSA,NTG2),RPCT2(NR,2,NSA,NTG2)
 !!                    RLHT(NR,NSA,NTG2),                        &
 !!                    RFWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2)
@@ -692,7 +699,7 @@
   106 FORMAT(' TIME=',F12.3,' ms'/                   &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PW     ',5X,'PNB//PLH',5X,'PNF//PIC',5X,'PDR   ')
+           'PW     ',5X,'PNB//PLH',5X,'PNF//PIC',5X,'RPDR  ')
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
 !
