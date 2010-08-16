@@ -299,7 +299,7 @@
             END DO
             close(9)
 
-         open(8,file='deriv_W_test_D0.dat')
+         open(8,file='deriv_W_test.dat')
          DO NTI=2,NTG1
             Write(8,645) NTI, PTG(NTI)*1000 &
                  ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
