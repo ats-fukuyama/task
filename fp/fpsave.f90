@@ -275,39 +275,34 @@
             DINT_DFDT_R2=0.D0
 
             DO NP=1,NPMAX
-               RGAMA=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               RGAMA=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                DO NTH=1,NTHMAX
                   WRL=WEIGHR(NTH,NP,NR,NSA)
                   WRH=WEIGHR(NTH,NP,NR+1,NSA)
                   IF(NR.ne.1.and.NR.ne.NRMAX)THEN
-!                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      DFDT_R1 = RG(NR)*( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )
 
-!                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
                      F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
                      DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   ELSEIF(NR.eq.1)THEN
                      DFDT_R1 = 0.D0
+
                      DFDR_R2 = ( FNS(NTH,NP,NR+1,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
                      F_R2 = ( (1.D0-WRH)*FNS(NTH,NP,NR+1,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
-!                     F_R2 = 0.5D0 *( FNS(NTH,NP,NR+1,NSA) + FNS(NTH,NP,NR,NSA) )
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   ELSEIF(NR.eq.NRMAX)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
-!                     F_R1 = 0.5D0 *( FNS(NTH,NP,NR,NSA) + FNS(NTH,NP,NR-1,NSA) )
                      DFDT_R1 = RG(NR)*( DRR(NTH,NP,NR,NSA)*DFDR_R1 - FRR(NTH,NP,NR,NSA)*F_R1 )
+
                      DFDR_R2 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR,NSA) ) / DELR
                      F_R2 = ( (1.D0-WRH)*FS2(NTH,NP,NSA) + WRH*FNS(NTH,NP,NR,NSA) )
-!                     F_R2 = 0.5D0 *( FS2(NTH,NP,NSA) + FNS(NTH,NP,NR,NSA) )
                      DFDT_R2 = RG(NR+1)*( DRR(NTH,NP,NR+1,NSA)*DFDR_R2 - FRR(NTH,NP,NR+1,NSA)*F_R2)
                   END IF
                   DINT_DR = ( DFDT_R2 - DFDT_R1 ) *VOLR(NR)/(DELR*RM(NR)) 
-!                  DINT_DFDT_R1 = DINT_DFDT_R1 + DFDT_R1 * VOLP(NTH,NP,NSBA)
-!                  DINT_DFDT_R2 = DINT_DFDT_R2 + DFDT_R2 * VOLP(NTH,NP,NSBA)
 
                   RSUMN_DR=RSUMN_DR +             DINT_DR*VOLP(NTH,NP,NSBA)
                   IF(MODELR.eq.1)THEN
@@ -318,10 +313,6 @@
 
                END DO
             END DO
-!            DINT_DFDT_R1 = DINT_DFDT_R1 * VOLR(NR)/(DELR*RM(NR)) 
-!            DINT_DFDT_R2 = DINT_DFDT_R2 * VOLR(NR)/(DELR*RM(NR)) 
-!            IF(NSA.eq.2) WRITE(*,*) NR, DINT_DFDT_R1,DINT_DFDT_R2
-!            IF(NSA.eq.2.and.NR.eq.50) WRITE(*,*) DINT_DFDT_R2*RNFP0(NSA)/TVOLR
 
             RNDRL(NR,NSA) = RNFP0(NSA)*RSUMN_DR/VOLR(NR) 
             IF(MODELR.eq.1)THEN

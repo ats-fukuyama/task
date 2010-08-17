@@ -894,7 +894,7 @@
             DO NP=1,NPMAX
                FL=FPMXWL(PM(NP,NSBA),0,NS)
                DO NTH=1,NTHMAX
-                  FS1(NTH,NP,NSA)=FL
+                  FS1(NTH,NP,NSA)=FL ! at r=0
                ENDDO
             ENDDO
 !            IF(MODELA.eq.1)THEN
