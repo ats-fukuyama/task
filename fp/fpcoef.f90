@@ -546,7 +546,7 @@
                         DO NR=NRSTART,NREND
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML*RLAMDA(NTH,NR)
+                                + SPBTOT(NBEAM)*SPL/SUML*RLAMDAG(NTH,NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -587,7 +587,8 @@
                            DO NR=NRSTART,NREND
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +SPBTOT(NBEAM)*SPL/SUML*RLAMDA(NTH,NR)/RNFP0(NSABEAM)
+                                   +SPBTOT(NBEAM)*SPL/SUML*RLAMDAG(NTH,NR)*PZ(NSABEAM)
+!/RNFP0(NSABEAM)
                            ENDDO
                         ENDIF
                      ENDDO

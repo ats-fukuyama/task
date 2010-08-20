@@ -629,7 +629,7 @@
   102 FORMAT(' NSA,NS=',2I2,' n,T,W,I=',1PE11.4,1P3E12.4)
   112 FORMAT(' NSA,NS=',2I2,' n,T,W,I,dn=',1PE11.4,1P4E12.4)
   103 FORMAT('        ',2I2,' PC,PW,PE=',10X,1P4E12.4)
-  104 FORMAT('        ',2I2,' PCAB    =',10X,1P4E12.4)
+  104 FORMAT('        ',2I2,' PCAB    =',10X,1P14E12.4)
   113 FORMAT('        ',2I2,' PC,PW,PE,PDR=',6X,1P4E12.4)
 
  105  FORMAT('total absorption power [MW]', 1PE12.4)

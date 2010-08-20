@@ -554,6 +554,7 @@
                    DO NSA=1,NSAMAX
                       PNT(NSA,NTG)=PNT(NSA,2*NTG-1)
                       PWT(NSA,NTG)=PWT(NSA,2*NTG-1)
+                      PWT2(NSA,NTG)=PWT2(NSA,2*NTG-1)
                       PTT(NSA,NTG)=PTT(NSA,2*NTG-1)
                       PIT(NSA,NTG)=PIT(NSA,2*NTG-1)
                       PPCT(NSA,NTG)=PPCT(NSA,2*NTG-1)
@@ -574,7 +575,8 @@
                       PSPBT(NSA,NTG)=PSPBT(NSA,2*NTG-1)
                       PSPFT(NSA,NTG)=PSPFT(NSA,2*NTG-1)
                       PSPLT(NSA,NTG)=PSPLT(NSA,2*NTG-1)
-                      PSPST(NSA,NTG)=PSPST(NSA,2*NTG-1)
+                      PDR(NSA,NTG)  =PDR(NSA,2*NTG-1)
+                      PNDR(NSA,NTG) =PNDR(NSA,2*NTG-1)
                       DO NSB=1,NSBMAX
                          PPCT2(NSB,NSA,NTG)=PPCT2(NSB,NSA,2*NTG-1)
                       END DO
@@ -592,6 +594,7 @@
                 allocate(tempB(NSAMAX,NTG1M))
                 call fp_adjust_ntg1_B(PNT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PWT,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PWT2,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PTT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PIT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PPCT,tempB,NTG1M_NEW)
@@ -613,6 +616,8 @@
                 call fp_adjust_ntg1_B(PSPFT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PSPLT,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PSPST,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PDR,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PNDR,tempB,NTG1M_NEW)
                 deallocate(tempB)
                 allocate(tempC(NSBMAX,NSAMAX,NTG1M))
                 call fp_adjust_ntg1_C(PPCT2,tempC,NTG1M_NEW)
@@ -783,6 +788,8 @@
                          RSPFT(NR,NSA,NTG)=RSPFT(NR,NSA,2+NTG-1)
                          RSPLT(NR,NSA,NTG)=RSPLT(NR,NSA,2+NTG-1)
                          RSPST(NR,NSA,NTG)=RSPST(NR,NSA,2+NTG-1)
+                         RPDRT(NR,NSA,NTG)=RPDRT(NR,NSA,2+NTG-1)
+                         RNDRT(NR,NSA,NTG)=RNDRT(NR,NSA,2+NTG-1)
                       END DO
                       DO NSB=1,NSBMAX
                          DO NR=NRSTART,NREND
@@ -817,6 +824,8 @@
                 call fp_adjust_ntg2_B(RSPFT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RSPLT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RSPST,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RPDRT,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RNDRT,tempB,NTG2M_NEW)
                 deallocate(tempB)
                 allocate(tempC(NRMAX,NSAMAX,NSBMAX,NTG2M))
                 call fp_adjust_ntg2_C(RPCT2,tempC,NTG2M_NEW)

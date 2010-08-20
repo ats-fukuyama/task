@@ -163,7 +163,7 @@
                NCHECK=NCHECK+LMAXFP
             END IF
             IF(nrank.eq.0) THEN
-               write(6,'(A,1PE12.4,3I4,1P4E12.4)') 'DEPS',&
+               write(6,'(A,1PE12.4,3I4,1P14E12.4)') 'DEPS',&
                     DEPS,NCHECK,NREND,NSTEST,(RSUMF(NSA)/RSUMF0(NSA), &
                     NSA=1,NSAMAX)
             ENDIF
@@ -273,7 +273,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_SNA.dat')
+            open(9,file='power_SNA_test.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
@@ -292,6 +292,7 @@
                     ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
                     ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
                     ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
+                    ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI),PDR(4,NTI)                 &
                     ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
                     ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
                     ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
@@ -299,19 +300,19 @@
             END DO
             close(9)
 
-         open(8,file='deriv_W_test.dat')
-         DO NTI=2,NTG1
-            Write(8,645) NTI, PTG(NTI)*1000 &
-                 ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,( PWT(2,NTI)-PWT(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,( PWT(3,NTI)-PWT(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
-                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
-                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
-                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
-                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI) &
-                 ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI)
-         END DO
-         close(8)
+!         open(8,file='deriv_W_test.dat')
+!         DO NTI=2,NTG1
+!            Write(8,645) NTI, PTG(NTI)*1000 &
+!                 ,( PWT(1,NTI)-PWT(1,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,( PWT(2,NTI)-PWT(2,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,( PWT(3,NTI)-PWT(3,NTI-1) )/( PTG(NTI)-PTG(NTI-1) ) &
+!                 ,PPCT(1,NTI)+PPWT(1,NTI)+PSPBT(1,NTI)+PSPFT(1,NTI) &
+!                 ,PPCT(2,NTI)+PPWT(2,NTI)+PSPBT(2,NTI)+PSPFT(2,NTI) &
+!                 ,PPCT(3,NTI)+PPWT(3,NTI)+PSPBT(3,NTI)+PSPFT(3,NTI) &
+!                 ,PWTD(1,NTI),PWTD(2,NTI),PWTD(3,NTI) &
+!                 ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI)
+!         END DO
+!         close(8)
 !            open(8,file='PNT_r1c4_2.dat')
 !            DO NTI=1,NTMAX
 !               WRITE(*,*) NTI, PNT(1,NTI)/PNT(1,1)
