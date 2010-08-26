@@ -1632,14 +1632,14 @@ contains
 !!$         &   'EpsHM(1,:) ', EpsHM(1,0:3) ,         &
 !!$         &   'EpsHM(2,:) ', EpsHM(2,0:3) ,         &
 !!$         &   'EpsHM(3,:) ', EpsHM(3,0:3)
-         &   'EpsHM1_0 ', EpsHM(1,0), 'EpsHM1_1 ', EpsHM(1,1), &
-         &   'EpsHM1_2 ', EpsHM(1,2), 'EpsHM1_3 ', EpsHM(1,3), &
-         &   'EpsHM2_0 ', EpsHM(2,0), 'EpsHM2_1 ', EpsHM(2,1), &
-         &   'EpsHM2_2 ', EpsHM(2,2), 'EpsHM2_3 ', EpsHM(2,3), &
-         &   'EpsHM3_0 ', EpsHM(3,0), 'EpsHM3_1 ', EpsHM(3,1), &
-         &   'EpsHM3_2 ', EpsHM(3,2), 'EpsHM3_3 ', EpsHM(3,3), &
-         &   'EpsHM4_0 ', EpsHM(4,0), 'EpsHM4_1 ', EpsHM(4,1), &
-         &   'EpsHM4_2 ', EpsHM(4,2), 'EpsHM4_3 ', EpsHM(4,3)
+         &   'EpsH10 ', EpsHM(1,0), 'EpsH11 ', EpsHM(1,1), &
+         &   'EpsH12 ', EpsHM(1,2), 'EpsH13 ', EpsHM(1,3), &
+         &   'EpsH20 ', EpsHM(2,0), 'EpsH21 ', EpsHM(2,1), &
+         &   'EpsH22 ', EpsHM(2,2), 'EpsH23 ', EpsHM(2,3), &
+         &   'EpsH30 ', EpsHM(3,0), 'EpsH31 ', EpsHM(3,1), &
+         &   'EpsH32 ', EpsHM(3,2), 'EpsH33 ', EpsHM(3,3), &
+         &   'EpsH40 ', EpsHM(4,0), 'EpsH41 ', EpsHM(4,1), &
+         &   'EpsH42 ', EpsHM(4,2), 'EpsH43 ', EpsHM(4,3)
     WRITE(6,'((" ",A6," =",I5,3(6X,A6," =",I5)))') &
          &   'NRMAX ', NRMAX ,  &
          &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP,  &
