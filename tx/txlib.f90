@@ -249,6 +249,17 @@ contains
           x(ne,4) = 2.d0*h(ne)*(  8.d0*p1**2+24.d0*p1*r1*r2+48.d0*p1*p2+45.d0*r1*p2*r2 &
                &                +15.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
        end do
+    case(22)     ! add by miki_m 2010/8/26
+       do ne = 1, nemax
+          p1 = psi(ne-1) ; p2 = psi(ne)
+          r1 = r(ne-1) ; r2 = r(ne)
+          a1 = a(ne-1) ; a2 = a(ne)
+          hp = hpsi(ne)
+          x(ne,1) = (12.d0*r1*a1 + 3.d0*r2*a1 + 3.d0*r1*a2 + 2.d0*r2*a2) * hp / 60.d0
+          x(ne,2) = ( 3.d0*r1*a1 + 2.d0*r2*a1 + 2.d0*r1*a2 + 3.d0*r2*a2) * hp / 60.d0
+          x(ne,3) = ( 3.d0*r1*a1 + 2.d0*r2*a1 + 2.d0*r1*a2 + 3.d0*r2*a2) * hp / 60.d0
+          x(ne,4) = ( 2.d0*r1*a1 + 3.d0*r2*a1 + 3.d0*r1*a2 +12.d0*r2*a2) * hp / 60.d0
+       end do
     case(28)
        do ne = 1, nemax
           x(ne,1) = (12.d0*a(ne-1)*b(ne-1) + 3.d0*a(ne)*b(ne-1) &

@@ -941,8 +941,8 @@ contains
     GYL(0:NXM,NG,73) = REAL(D02(0:NXM))
     GYL(0:NXM,NG,74) = REAL(rNueNC(0:NXM))
     GYL(0:NXM,NG,75) = REAL(rNuiNC(0:NXM))
-    GYL(0:NXM,NG,76) = REAL(rNueHL(0:NXM))
-    GYL(0:NXM,NG,77) = REAL(rNuiHL(0:NXM))
+!    GYL(0:NXM,NG,76) = REAL(rNueHL(0:NXM))
+!    GYL(0:NXM,NG,77) = REAL(rNuiHL(0:NXM))
     GYL(0:NXM,NG,78) = REAL(rNuiCX(0:NXM))
     GYL(0:NXM,NG,79) = REAL(rNuB(0:NXM))
     GYL(0:NXM,NG,80) = REAL(rNuION(0:NXM))
@@ -2107,11 +2107,11 @@ contains
        STR = '@rNuION@'
        CALL TXGRFRXS( 1,GX,GY(0,0,80),NRMAX,NGR,STR,MODE,IND)     
 
-       STR = '@rNueHL@'
-       CALL TXGRFRXS( 2,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
+!       STR = '@rNueHL@'
+!       CALL TXGRFRXS( 2,GX,GY(0,0,76),NRMAX,NGR,STR,MODE,IND)     
 
-       STR = '@rNuiHL@'
-       CALL TXGRFRXS( 3,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
+!       STR = '@rNuiHL@'
+!       CALL TXGRFRXS( 3,GX,GY(0,0,77),NRMAX,NGR,STR,MODE,IND)
 
 !!$       STR = '@rNuAse@'
 !!$       CALL TXGRFRXS( 4,GX,GY(0,0,94),NRMAX,NGR,STR,MODE,IND,GYMAX=8.0)
@@ -2599,13 +2599,13 @@ contains
        CALL APPROPGY(MODEG, GYT(0,0,80), GYL(0,0,1), STR(1), NRMAX, NGT, gDIV(80), &
             &        GMAX=GMAX(1), GMIN=GMIN(1))
 
-       STR(2) = '@rNueHL@'
-       CALL APPROPGY(MODEG, GYT(0,0,75), GYL(0,0,2), STR(2), NRMAX, NGT, gDIV(75), &
-            &        GMAX=GMAX(2), GMIN=GMIN(2))
+!       STR(2) = '@rNueHL@'
+!       CALL APPROPGY(MODEG, GYT(0,0,75), GYL(0,0,2), STR(2), NRMAX, NGT, gDIV(75), &
+!            &        GMAX=GMAX(2), GMIN=GMIN(2))
 
-       STR(3) = '@rNuiHL@'
-       CALL APPROPGY(MODEG, GYT(0,0,76), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(76), &
-            &        GMAX=GMAX(3), GMIN=GMIN(3))
+!       STR(3) = '@rNuiHL@'
+!       CALL APPROPGY(MODEG, GYT(0,0,76), GYL(0,0,3), STR(3), NRMAX, NGT, gDIV(76), &
+!            &        GMAX=GMAX(3), GMIN=GMIN(3))
 
        STR(4) = '@rNubrp1@'
        CALL APPROPGY(MODEG, GYT(0,0,111), GYL(0,0,4), STR(4), NRMAX, NGT, gDIV(111), &

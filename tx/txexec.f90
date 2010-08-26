@@ -81,13 +81,13 @@ contains
     use tx_coefficients, only : TXCALA
     use tx_graphic, only : TX_GRAPH_SAVE, TXSTGT, TXSTGV, TXSTGR, TXSTGQ
     use tx_interface, only : INTG_F
-    use f95_lapack ! for self-compiled LAPACK95
-!    use lapack95 ! for intel mkl LAPACK95
+!    use f95_lapack ! for self-compiled LAPACK95
+    use lapack95 ! for intel mkl LAPACK95
 
     real(8), dimension(:,:), allocatable :: BA, BL
     real(8), dimension(:),   allocatable :: BX, XNvec, FL, FLP, DltXN, DltXP, BAE
     INTEGER(4) :: NR, NQ, IC = 0, IDIV, NTDO, IDISP, NRAVM, IERR_LA, ICSUM, IDIAGL
-!LA    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
+    INTEGER(4), DIMENSION(1:NQM*(NRMAX+1)) :: IPIV 
     REAL(8) :: TIME0, DIP, AVM, ERR1, AV, EPSabs
     real(8), dimension(1:NQMAX) :: tiny_array, L2
     REAL(8), DIMENSION(1:NQM,0:NRMAX) :: XN, XP, ASG
@@ -179,8 +179,8 @@ contains
              ELSE
 !LA                CALL LAPACK_DGBSV(NQMAX*(NRMAX+1),2*NQMAX-1,2*NQMAX-1,1,BL, & 
 !LA                     &            6*NQMAX-2,IPIV,BX,NQMAX*(NRMAX+1),IERR_LA) 
-                CALL LA_GBSV(BL,BX,INFO=IERR_LA) ! for self-compiled LAPACK95
-!                CALL GBSV(BL,BX,INFO=IERR_LA) ! for intel mkl LAPACK95
+!                CALL LA_GBSV(BL,BX,INFO=IERR_LA) ! for self-compiled LAPACK95
+                CALL GBSV(BL,BX,INFO=IERR_LA) ! for intel mkl LAPACK95
                 IF(IERR_LA /= 0) THEN
                    WRITE(6,'(3(A,I6))') '### ERROR(TXLOOP) : GBSV, NT = ',  &
                         &              NT, ' -', IC, ' step. IERR=',IERR_LA

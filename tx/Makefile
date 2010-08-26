@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS)
-#FFLAGS = $(DFLAGS)
+#FFLAGS = $(OFLAGS)
+FFLAGS = $(DFLAGS)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txrppl.f90 txcalv.f90 \
        txcala.f90 txgraf.f90 txinit.f90 txfile.f90 txexec.f90 txmenu.f90 \
@@ -31,8 +31,8 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
 
-#all: $(PROG2)
-all: $(PROG3)
+all: $(PROG2)
+#all: $(PROG3)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)

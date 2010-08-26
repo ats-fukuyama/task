@@ -380,11 +380,20 @@ SUBROUTINE TXINIT
   RMAGMX  = RA    ! maximum radius of the braiding region [m]
 
   !   Helical ripple amplitude at r=a, linear in (r/a)
-  EpsH = 0.1D0    ! amplitude 
-  NCph = 5        ! toroidal pitch number
-  NCth = 2        ! poloidal pitch number
+!  EpsH = 0.1D0     ! amplitude 
+  EpsHM(1:NHFMmx,0:3) = 0.d0
+!  EpsHM(1,0:3) = 0.D0, 0.D0, 0.1D0, 0.D0     ! amplitude 
+  EpsHM(1,2) = 0.1D0
+!  NCph = 5        ! toroidal pitch number
+!  NCth = 2        ! poloidal pitch number
+  HPN(1:NHFMmx, 1:2) = 0
+  HPN(1,1) = 2    ! poloidal pitch number
+  HPN(1,2) = 5    ! toroidal pitch number
   Q0 = 3.D0       ! q(0) by external coils
   QA = 2.D0       ! q(a) by external coils
+
+  !  Multiple helical Fouriet modes     miki_m 10-08-06
+!  NHFMmx = 1      ! number of helical Fouriet modes
 
   !   ***** Numerical parameters *****
 
@@ -689,8 +698,8 @@ SUBROUTINE TXCALM
   NQMAX = NQM
 
   !   Helical system
-  UHth  = DBLE(NCth) / DBLE(NCph)
-  UHph  = 1.D0
+!  UHth  = DBLE(NCth) / DBLE(NCph)
+!  UHph  = 1.D0
 
   !   Square root permittivity for LQm1
   !     for the sake of acceleration of convergence
@@ -1347,12 +1356,14 @@ module tx_parameter_control
        & DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH, &
        & NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP, &
        & DelRho,DelN, &
-       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
+!       & DMAG0,RMAGMN,RMAGMX,EpsH,NCph,NCth, &
+       & DMAG0,RMAGMN,RMAGMX, &
        & rG1,FSHL,Q0,QA, &
        & rIPs,rIPe, &
        & MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV, &
        & MDOSQZ,MDLETA,MDFIXT,MDITSN,MDITST,MDINTN,MDINTT,MDINTC,MDINIT,MDVAHL,MDLETB, &
-       & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM ! 09/06/17~ miki_m
+       & IDIAG,IGBDF,MDSOLV,MDLNBD,MDLMOM, & ! 09/06/17~ miki_m
+       & EpsHM, HPN  ! 10/08/06 miki_m
   private :: TXPLST
 
 contains
@@ -1540,7 +1551,8 @@ contains
          &       ' ',8X,'DT,EPS,ICMAX,ADV,tiny_cap,CMESH0,CMESH,WMESH0,WMESH,'/ &
          &       ' ',8X,'NRMAX,NTMAX,NTSTEP,NGRSTP,NGTSTP,NGVSTP,'/ &
          &       ' ',8X,'DelRho,DelN,'/ &
-         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ &
+!         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsH,NCph,NCth,'/ & 
+         &       ' ',8X,'Dmag0,RMAGMN,RMAGMX,EpsHM,HPN,'/ &   ! 10/08/06 miki_m
          &       ' ',8X,'rG1,FSHL,Q0,QA,'/ &
          &       ' ',8X,'rIPs,rIPe,'/ &
          &       ' ',8X,'MODEG,gDIV,MODEAV,MODEGL,MDLPCK,MODECV,'/ &
@@ -1613,11 +1625,21 @@ contains
          &   'tiny  ', tiny_cap,'DT    ', DT    ,  &
          &   'rG1   ', rG1   ,  'Zeff  ', Zeff  ,  &
          &   'rIPs  ', rIPs  ,  'rIPe  ', rIPe  ,  &
-         &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
          &   'DMAG0 ', DMAG0 ,  'RMAGMN', RMAGMN,  &
          &   'RMAGMX', RMAGMX,  &
-         &   'FSHL  ', FSHL  ,  'EpsH  ', EpsH  ,  &
-         &   'Q0    ', Q0    ,  'QA    ', QA
+         &   'FSHL  ', FSHL  ,    &  ! Too many elements of EpsHM to show miki_m 10-08-11
+         &   'Q0    ', Q0    ,  'QA    ', QA    ,  &
+!!$         &   'EpsHM(1,:) ', EpsHM(1,0:3) ,         &
+!!$         &   'EpsHM(2,:) ', EpsHM(2,0:3) ,         &
+!!$         &   'EpsHM(3,:) ', EpsHM(3,0:3)
+         &   'EpsHM1_0 ', EpsHM(1,0), 'EpsHM1_1 ', EpsHM(1,1), &
+         &   'EpsHM1_2 ', EpsHM(1,2), 'EpsHM1_3 ', EpsHM(1,3), &
+         &   'EpsHM2_0 ', EpsHM(2,0), 'EpsHM2_1 ', EpsHM(2,1), &
+         &   'EpsHM2_2 ', EpsHM(2,2), 'EpsHM2_3 ', EpsHM(2,3), &
+         &   'EpsHM3_0 ', EpsHM(3,0), 'EpsHM3_1 ', EpsHM(3,1), &
+         &   'EpsHM3_2 ', EpsHM(3,2), 'EpsHM3_3 ', EpsHM(3,3), &
+         &   'EpsHM4_0 ', EpsHM(4,0), 'EpsHM4_1 ', EpsHM(4,1), &
+         &   'EpsHM4_2 ', EpsHM(4,2), 'EpsHM4_3 ', EpsHM(4,3)
     WRITE(6,'((" ",A6," =",I5,3(6X,A6," =",I5)))') &
          &   'NRMAX ', NRMAX ,  &
          &   'NTMAX ', NTMAX ,  'NTSTEP', NTSTEP,  &
@@ -1636,9 +1658,12 @@ contains
          &   'MDSOLV', MDSOLV,  &
          &   'NTCOIL', NTCOIL,  'MDLC  ', MDLC,    &
          &   'm_pol ', m_pol ,  'n_tor ', n_tor,   &
-         &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM,  &
-         &   'NCph  ', NCph  ,  'NCth  ', NCth
-
+         &   'MDLNBD', MDLNBD,  'MDLMOM', MDLMOM ,  &
+!         &   'NCph  ', NCph  ,  'NCth  ', NCth,    &
+         &   'HPNth1   ', HPN(1,1), 'HPNph1   ', HPN(1,2), &
+         &   'HPNth2   ', HPN(2,1), 'HPNph2   ', HPN(2,2), &
+         &   'HPNth3   ', HPN(3,1), 'HPNph3   ', HPN(3,2), &
+         &   'HPNth4   ', HPN(4,1), 'HPNph4   ', HPN(4,2)
     RETURN
   END SUBROUTINE TXVIEW
 end module tx_parameter_control

@@ -178,12 +178,14 @@ contains
          &     EbL, logEbL, Scxb, Sion, ALFA, &
          &     RLOSS, SQZ, rNuDL, xl, ETASL, Ln, LT, etai_chk, kthrhos, &
          &     Tqt0L, RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, &
-         &     rGCIM, rGIM, rHIM, OMEGAPR !, 09/06/17~ miki_m 
+         &     rGCIM, rGIM, rHIM, OMEGAPR  !09/06/17~ miki_m
+    INTEGER(4) :: NHFM ! miki_m 10-08-06
+    real(8), dimension(1:NHFMmx) :: EpsLM 
 !!    real(8) :: XXX, SiV, ScxV, Vcr, Wbane, Wbani, ALFA, cap_val, Scxi, Vave, bthl
     real(8), save :: Fcoef = 1.d0
     real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
     real(8) :: Frdc, Dcoef
-    real(8) :: omegaer, omegaere, omegaeri, blinv
+    real(8) :: omegaer, omegaere, omegaeri
     real(8) :: EFT, CR
     real(8) :: AITKEN2P
     real(4), dimension(0:NRMAX) :: p_gr2phi
@@ -683,6 +685,12 @@ contains
        END IF
 !    END IF
 
+    ! Check whether (m=0, n>0) Fouriet component exists or not.
+    UHphSwitch = 0
+    do NHFM = 1, NHFMmx 
+       if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) UHphSwitch = 1
+    enddo
+
     !  Coefficients
 
     L_NR: DO NR = 0, NRMAX
@@ -999,62 +1007,161 @@ contains
 
        !     *** Helical neoclassical viscosity ***
 
-       IF(ABS(FSHL) > 0.D0 .AND. NR > 0) THEN
-          Wte = Vte * NCph / RR
-          Wti = Vti * NCph / RR
-          EpsL = EpsH * (R(NR) / RA)**2
-          rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
-          rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
-          IF(NR.EQ.0) THEN
-             BLinv=0.d0
+!       IF(ABS(FSHL) > 0.D0 .AND. NR > 0) THEN
+       IF(ABS(FSHL) > 0.D0 ) THEN
+!          IF(int(FSHL) .EQ. 1 ) THEN !! for FSHL = 1 (single Fouriet mode)
+!!$            Wte = Vte * NCph / RR
+!!$            Wti = Vti * NCph / RR
+!!$            EpsL = EpsH * (R(NR) / RA)**2
+!!$            rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))
+!!$            rNuAsI_inv = EpsL**1.5D0 * Wti / (SQRT(2.D0) * rNuii(NR))
+!!$            IF(NR.EQ.0) THEN
+!!$               BLinv=0.d0
+!!$               omegaer=0.d0
+!!$            ELSE
+!!$!             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
+!!$!             Bthl = BB*R(NR)/(QL*RR)
+!!$!             BLinv=BB/Bthl
+!!$               BBL=SQRT(BphV(NR)**2 + BthV(NR)**2)
+!!$               BLinv=BBL/BthV(NR)
+!!$               omegaer=ErVlc(NR)/(BBL*R(NR))
+!!$            ENDIF
+!!$            omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
+!!$!            rNueHL(NR) = FSHL * Wte * BLinv * rNuAsE_inv &
+!!$            rNueHL(NR) =        Wte * BLinv * rNuAsE_inv &
+!!$            &            /(3.D0+1.67D0*omegaere)
+!!$
+!!$            omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
+!!$!            rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
+!!$            rNuiHL(NR) =        Wti * BLinv * rNuAsI_inv &
+!!$            &            /(3.D0+1.67D0*omegaeri)
+!!$
+!!$!          UHth=(RR/NCph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!!$!          UHph=(R(NR)/NCth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
+!!$!          UHth  = DBLE(NCth) / DBLE(NCph)
+!!$!          UHph  = 1.D0
+!!$!    09/02/11 mm
+!!$
+!!$            UHth=(RR*NCth)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+!!$!---- 09/11/26 AF
+!!$!          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+!!$            UHph=-Ncph/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+!!$
+!!$            rNueHLthth(NR)=UHth*UHth*rNueHL(NR) ! [s^-1]
+!!$            rNueHLthph(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
+!!$            rNueHLphth(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
+!!$            rNueHLphph(NR)=UHph*UHph*rNueHL(NR) ! [m^-2 s^-1]
+!!$            rNuiHLthth(NR)=UHth*UHth*rNuiHL(NR)
+!!$            rNuiHLthph(NR)=UHth*UHph*rNuiHL(NR)
+!!$            rNuiHLphth(NR)=UHth*UHph*rNuiHL(NR)
+!!$            rNuiHLphph(NR)=UHph*UHph*rNuiHL(NR)
+!!$
+!          ELSE IF (abs(FSHL) .GE. 2.d0) THEN  !! for FSHL = 2 (multiple Fouriet modes)
+!!!kokokara
+          IF(NR == 0) THEN
              omegaer=0.d0
           ELSE
-!             QL=(Q0-QA)*(1.D0-(R(NR)/RA)**2)+QA
-!             Bthl = BB*R(NR)/(QL*RR)
-!             BLinv=BB/Bthl
-             BBL=SQRT(BphV(NR)**2 + BthV(NR)**2)
-             BLinv=BBL/BthV(NR)
              omegaer=ErVlc(NR)/(BBL*R(NR))
           ENDIF
-          omegaere=EpsL*R(NR) / RR * omegaer**2 / rNuei(NR)**2
-          omegaeri=EpsL*R(NR) / RR * omegaer**2 / rNuii(NR)**2
-          rNueHL(NR) = FSHL * Wte * BLinv * rNuAsE_inv &
-          &            /(3.D0+1.67D0*omegaere)
-          rNuiHL(NR) = FSHL * Wti * BLinv * rNuAsI_inv &
-          &            /(3.D0+1.67D0*omegaeri)
+!         
+          do NHFM = 1, NHFMmx 
+             if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) == 0) then
+                rNueHLththM(NHFM,NR) = 0.d0
+                rNueHLthphM(NHFM,NR) = 0.d0
+                rNueHLphthM(NHFM,NR) = 0.d0
+                rNueHLphphM(NHFM,NR) = 0.d0
+                rNuiHLththM(NHFM,NR) = 0.d0
+                rNuiHLthphM(NHFM,NR) = 0.d0
+                rNuiHLphthM(NHFM,NR) = 0.d0
+                rNuiHLphphM(NHFM,NR) = 0.d0
+                cycle
+             endif
 
-!          UHth=(RR/NCph)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
-!          UHph=(R(NR)/NCth)/SQRT((RR/NCph)**2+(R(NR)/NCth)**2)
-!          UHth  = DBLE(NCth) / DBLE(NCph)
-!          UHph  = 1.D0
-!    09/02/11 mm
+             EpsLM(NHFM) = EpsHM(NHFM,0)                   + EpsHM(NHFM,1) * (R(NR) / RA)  &
+                  &      + EpsHM(NHFM,2) * (R(NR) / RA)**2 + EpsHM(NHFM,3) * (R(NR) / RA)**3
+!
+             omegaere   = abs(EpsLM(NHFM)) * R(NR) / RR * omegaer**2 / rNuei(NR)**2
+             rNueHLM(NHFM, NR) = FSHL * abs(EpsLM(NHFM))**1.5D0 * PTeV(NR) * rKeV          &
+                  &            / (AME * RR**2 * rNuei(NR) * (3.D0 + 1.67D0 * omegaere)) ! [s^-1]
+!
+             omegaeri   = abs(EpsLM(NHFM)) * R(NR) / RR * omegaer**2 / rNuii(NR)**2
+             rNuiHLM(NHFM, NR) = FSHL * abs(EpsLM(NHFM))**1.5D0 * PTiV(NR) * rKeV          &
+                  &            / (AMP * RR**2 * rNuii(NR) * (3.D0 + 1.67D0 * omegaeri)) ! [s^-1]
+!
+             if (UHphSwitch == 0) then    ! For the case which (m=0, n>0) component DOES NOT exist
+                UHth =    RR * HPN(NHFM,1) / SQRT((RR * HPN(NHFM,1))**2 + (R(NR) * HPN(NHFM,2))**2) ! [nondimensional]
+                UHph =         HPN(NHFM,2) / SQRT((RR * HPN(NHFM,1))**2 + (R(NR) * HPN(NHFM,2))**2) ! [m^-1]
+             else if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) then ! to avoid NaN and Infty for (m=0, n>0) component
+                UHth = 0.d0 ! [nondimensional]
+                UHph = 1.d0 ! [nondimensional]
+             else   ! For the case which (m=0, n>0) component exist
+                UHth =    RR * HPN(NHFM,1) / SQRT((RR * HPN(NHFM,1))**2 + (R(NR) * HPN(NHFM,2))**2) ! [nondimensional]
+                UHph = R(NR) * HPN(NHFM,2) / SQRT((RR * HPN(NHFM,1))**2 + (R(NR) * HPN(NHFM,2))**2) ! [nondimensional]
+             endif
 
-          UHth=(RR*NCth)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
-!---- 09/11/26 AF
-!          UHph=-(R(NR)*Ncph)/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
-          UHph=-Ncph/SQRT((RR*NCth)**2+(R(NR)*NCph)**2)
+             ! Dimension of thph, phth, phph will change according to the value of UHphSwitch
+             rNueHLththM(NHFM,NR)=UHth*UHth*rNueHLM(NHFM,NR)
+             rNueHLthphM(NHFM,NR)=UHth*UHph*rNueHLM(NHFM,NR)
+             rNueHLphthM(NHFM,NR)=UHth*UHph*rNueHLM(NHFM,NR)
+             rNueHLphphM(NHFM,NR)=UHph*UHph*rNueHLM(NHFM,NR)
+             rNuiHLththM(NHFM,NR)=UHth*UHth*rNuiHLM(NHFM,NR)
+             rNuiHLthphM(NHFM,NR)=UHth*UHph*rNuiHLM(NHFM,NR)
+             rNuiHLphthM(NHFM,NR)=UHth*UHph*rNuiHLM(NHFM,NR)
+             rNuiHLphphM(NHFM,NR)=UHph*UHph*rNuiHLM(NHFM,NR)
+             
+!!$             if (ic == 0 .or. ic == 1) then
+!!$                write(*,*) 'IC=',IC, 'NR=', NR, 'R/RA=', R(NR)/RA
+!!$                write(*,*) ' NHFM=',NHFM, ',  EpsLM=', EpsLM(NHFM) 
+!!$!                write(*,*) '  rNuei=', rNuei(NR)
+!!$!                write(*,*) '  omegaere=', omegaere
+!!$                write(*,*) '  rNueHLM=', rNueHLM(NHFM, NR) 
+!!$             
+!!$!                write(*,*) '  rNuii=', rNuii(NR)
+!!$!                write(*,*) '  omegaeri=', omegaeri
+!!$                write(*,*) '  rNuiHLM=', rNuiHLM(NHFM, NR) 
+!!$                write(*,*) ' UHth=',UHth, ',  UHph=', UHph 
+!!$             endif
 
-          rNueHLthth(NR)=UHth*UHth*rNueHL(NR) ! [s^-1]
-          rNueHLthph(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
-          rNueHLphth(NR)=UHth*UHph*rNueHL(NR) ! [m^-1 s^-1]
-          rNueHLphph(NR)=UHph*UHph*rNueHL(NR) ! [m^-2 s^-1]
-          rNuiHLthth(NR)=UHth*UHth*rNuiHL(NR)
-          rNuiHLthph(NR)=UHth*UHph*rNuiHL(NR)
-          rNuiHLphth(NR)=UHth*UHph*rNuiHL(NR)
-          rNuiHLphph(NR)=UHph*UHph*rNuiHL(NR)
-
-!          rNueHL(NR) = FSHL * SQRT(PI) &
-!               &     * Wte * 1.78D0 / (rNuAsE_inv + 1.78D0)
-!          rNuiHL(NR) = FSHL * SQRT(PI) &
-!               &     * Wti * 1.78D0 / (rNuAsI_inv + 1.78D0)
+          ENDDO
+          rNueHLthth(NR) = sum(rNueHLththM(1:NHFMmx,NR))
+          rNueHLthph(NR) = sum(rNueHLthphM(1:NHFMmx,NR))
+          rNueHLphth(NR) = sum(rNueHLphthM(1:NHFMmx,NR))
+          rNueHLphph(NR) = sum(rNueHLphphM(1:NHFMmx,NR))
+          rNuiHLthth(NR) = sum(rNuiHLththM(1:NHFMmx,NR))
+          rNuiHLthph(NR) = sum(rNuiHLthphM(1:NHFMmx,NR))
+          rNuiHLphth(NR) = sum(rNuiHLphthM(1:NHFMmx,NR))
+          rNuiHLphph(NR) = sum(rNuiHLphphM(1:NHFMmx,NR))
+!          write(*,*) ' rNueHLthth=', rNueHLthth(NR)
+!          write(*,*) ' rNueHLthph=', rNueHLthph(NR)
+!          write(*,*) ' rNueHLphth=', rNueHLphth(NR)
+!          write(*,*) ' rNueHLphph=', rNueHLphph(NR)
+!          write(*,*) ' rNuiHLthth=', rNuiHLthth(NR)
+!          write(*,*) ' rNuiHLthph=', rNuiHLthph(NR)
+!          write(*,*) ' rNuiHLphth=', rNuiHLphth(NR)
+!          write(*,*) ' rNuiHLphph=', rNuiHLphph(NR)
+!!!kokomade 10-08-06
        ELSE
-          rNueHL(0:NRMAX) = 0.D0
-          rNuiHL(0:NRMAX) = 0.D0
           rNueHLthth(0:NRMAX) = 0.D0
           rNueHLthph(0:NRMAX) = 0.D0
           rNueHLphth(0:NRMAX) = 0.D0
           rNueHLphph(0:NRMAX) = 0.D0
+          rNuiHLthth(0:NRMAX) = 0.D0
+          rNuiHLthph(0:NRMAX) = 0.D0
+          rNuiHLphth(0:NRMAX) = 0.D0
+          rNuiHLphph(0:NRMAX) = 0.D0
        END IF
+!!$       if (ic == 0 .or. ic == 1) then
+!!$          if (nr == 0 .or. nr == 1) then
+!!$             write(*,*) ' rNueHLthth(',NR,')=', rNueHLthth(NR)
+!!$             write(*,*) ' rNueHLthph(',NR,')=', rNueHLthph(NR)
+!!$             write(*,*) ' rNueHLphth(',NR,')=', rNueHLphth(NR)
+!!$             write(*,*) ' rNueHLphph(',NR,')=', rNueHLphph(NR)
+!!$             write(*,*) ' rNuiHLthth(',NR,')=', rNuiHLthth(NR)
+!!$             write(*,*) ' rNuiHLthph(',NR,')=', rNuiHLthph(NR)
+!!$             write(*,*) ' rNuiHLphth(',NR,')=', rNuiHLphth(NR)
+!!$             write(*,*) ' rNuiHLphph(',NR,')=', rNuiHLphph(NR)
+!!$          endif
+!!$       endif
 
        !  Derivatives (beta, safety factor, mock ExB velocity)
        S(NR) = R(NR) / Q(NR) * dQdr(NR)

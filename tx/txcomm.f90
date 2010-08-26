@@ -99,6 +99,14 @@ module tx_commons
   ! Helical parameters
   real(8) :: EpsH, FSHL, Q0, QA
   integer(4) :: NCph, NCth
+    !!  multiple Fouriet mode miki_m 10-08-10
+!  integer(4) :: NHFMmx
+!  integer(4), dimension(:,:), allocatable :: HPN   ! helical pitch numbers
+!  real(8), dimension(:,:), allocatable :: EpsHM   ! helical amplitude
+  integer(4), parameter :: NHFMmx = 20   !! max value of helical Fouriet modes
+  integer(4), dimension(1:NHFMmx, 1:2) :: HPN   ! helical pitch numbers
+  real(8), dimension(1:NHFMmx, 0:3) :: EpsHM   ! helical amplitudes for rho^0 - rho^3
+
 
   ! Magnetic braiding parameters
   real(8) :: DMAG0, RMAGMN, RMAGMX
@@ -159,7 +167,8 @@ module tx_commons
        & rNuee, rNuei, rNuie, rNuii, rNuTei, rNube, rNubi, rNuD, &
        & rNubrp1, rNubrp2, rNuei1, rNuei2, rNuei3, rNuei2Bth, &
        & rNube1, rNube2, rNube3, rNube2Bth, rNuLTe, rNuLTi, &
-       & rNueNC, rNuiNC, rNue2NC, rNui2NC, rNuAse, rNuAsi, rNueHL, rNuiHL, &
+       & rNueNC, rNuiNC, rNue2NC, rNui2NC, rNuAse, rNuAsi, &
+!       & rNueHL, rNuiHL, &
        & rNueHLthth,rNueHLthph, rNueHLphth, rNueHLphph, &
        & rNuiHLthth,rNuiHLthph, rNuiHLphth, rNuiHLphph, &
        & FWe, FWi, FWthe, FWthi, FWthphe, FWthphi, &
@@ -173,6 +182,12 @@ module tx_commons
        & rNuNTV, UastNC, Vbpara, &
        & SiVizA, SiVcxA, wexb, Ys, FQeth, FQith
   real(8), dimension(:,:), allocatable :: deltam, gamITG
+
+  ! Multiple helical Fouriet modes    miki_m 10-08-06~
+  integer(4) :: UHphSwitch           !  To support (m=0, n>0) Fourier component
+  real(8), dimension(:,:), allocatable :: rNueHLM, rNuiHLM, &
+       & rNueHLththM, rNueHLthphM, rNueHLphthM, rNueHLphphM,&
+       & rNuiHLththM, rNuiHLthphM, rNuiHLphthM, rNuiHLphphM 
 
   ! Read Wnm table
   real(8), dimension(:),   allocatable :: Fmnq, Wnm
@@ -319,9 +334,18 @@ contains
        allocate(rNube1(0:N), rNube2(0:N), rNube3(0:N),rNuLTe(0:N),rNuLTi(0:N), &
             &   rNube2Bth(0:N),                                               stat = ierl(5))
        allocate(rNueNC(0:N), rNuiNC(0:N), rNuAse(0:N),rNuAsi(0:N),            stat = ierl(6))
-       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), &
-            &   rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N),rNueHLphph(0:N), &
-            &   rNuiHLphph(0:N),                                              stat = ierl(7))
+!       allocate(rNueHL(0:N), rNuiHL(0:N), rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), &
+!            &   rNuiHLthph(0:N), rNueHLphth(0:N), rNuiHLphth(0:N),rNueHLphph(0:N), &
+!            &   rNuiHLphph(0:N),                                              stat = ierl(7))
+!       allocate(HPN(1:2,1:NHFMmx),EpsHM(1:2,1:NHFMmx),                        stat = ierl(7))
+       allocate(rNueHLM(1:NHFMmx,0:N), rNuiHLM(1:NHFMmx,0:N), &
+            &   rNueHLthth(0:N), rNuiHLthth(0:N), rNueHLthph(0:N), rNuiHLthph(0:N), &
+            &   rNueHLphth(0:N), rNuiHLphth(0:N), rNueHLphph(0:N), rNuiHLphph(0:N), &
+            &   rNueHLththM(1:NHFMmx,0:N), rNueHLthphM(1:NHFMmx,0:N), &
+            &   rNueHLphthM(1:NHFMmx,0:N), rNueHLphphM(1:NHFMmx,0:N), &
+            &   rNuiHLththM(1:NHFMmx,0:N), rNuiHLthphM(1:NHFMmx,0:N), &
+            &   rNuiHLphthM(1:NHFMmx,0:N), rNuiHLphphM(1:NHFMmx,0:N),         stat = ierl(7))
+       ! miki_m 0-08-06
        allocate(FWe(0:N),    FWi(0:N),    FWthe(0:N), FWthi(0:N), FWthphe(0:N), &
             &   FWthphi(0:N),                                                 stat = ierl(8))
        allocate(WPM(0:N),    FVpch(0:N),                                      stat = ierl(9))
@@ -417,9 +441,15 @@ contains
     deallocate(rNubrp1,rNubrp2,rNuei1,rNuei2,rNuei3,rNuei2Bth)
     deallocate(rNube1, rNube2, rNube3,rNuLTe,rNuLTi,rNube2Bth)
     deallocate(rNueNC, rNuiNC, rNuAse,rNuAsi)
-    deallocate(rNueHL, rNuiHL, rNueHLthth, rNuiHLthth, rNueHLthph, &
-         &     rNuiHLthph, rNueHLphth, rNuiHLphth, rNueHLphph, &
-         &     rNuiHLphph)
+!    deallocate(rNueHL, rNuiHL, rNueHLthth, rNuiHLthth, rNueHLthph, &
+!         &     rNuiHLthph, rNueHLphth, rNuiHLphth, rNueHLphph, &
+!         &     rNuiHLphph)
+!    deallocate(HPN, EpsHM) ! miki_m 10-08-06
+    deallocate(rNueHLM, rNuiHLM, &
+         &     rNueHLthth, rNuiHLthth, rNueHLthph, rNuiHLthph, &
+         &     rNueHLphth, rNuiHLphth, rNueHLphph, rNuiHLphph, &
+         &     rNueHLththM, rNueHLthphM, rNueHLphthM, rNueHLphphM, &
+         &     rNuiHLththM, rNuiHLthphM, rNuiHLphthM, rNuiHLphphM) ! miki_m 10-08-06
     deallocate(FWe,    FWi,    FWthe,  FWthi,  WPM,   FVpch)
     deallocate(rMue,  rMui)
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)

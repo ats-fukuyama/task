@@ -17,7 +17,8 @@ module tx_coefficients
        & Vbparaph, RVbparath, &
        & Chie1, Chie2, Chii1, Chii2, &
        & FVpchph, rGASPFA, RNeUer, RNiUir, &
-       & rNue2NCN, rNui2NCN, rat_ei
+       & rNue2NCN, rNui2NCN, rat_ei, &
+       & rNueHLphthVR, rNuiHLphthVR   ! for UHphSwitch == 1 miki_m 2010/8/26
 !!rp_conv       &, rNubLL
   real(8), dimension(:), allocatable :: UNITY
   real(8) :: DTt, DTf(1:NQM), invDT, BeamSW, RpplSW, ThntSW, FSVAHLT, FSVAHLE, &
@@ -125,7 +126,8 @@ contains
        &     rNube1BE(0:N), rNube2BthBE(0:N), rNube3BE(0:N), &
        &     Vbparaph(0:N), RVbparath(0:N), &
        &     Chie1(0:N), Chie2(0:N), Chii1(0:N), Chii2(0:N), &
-       &     FVpchph(0:N), rGASPFA(0:N), RNeUer(0:N), RNiUir(0:N))!, &
+       &     FVpchph(0:N), rGASPFA(0:N), RNeUer(0:N), RNiUir(0:N), &
+       &     rNueHLphthVR(0:N), rNuiHLphthVR(0:N))!, &
 !       &     rNue2NCN(0:N), rNui2NCN(0:N), rat_ei(0:N))
 !!ion    allocate(FWphiBB(0:N), FWphiBB2(0:N), FWthphiB(0:N), FWphiB(0:N))
     allocate(UNITY(0:N))
@@ -250,7 +252,8 @@ contains
        &       rNube1BE, rNube2BthBE, rNube3BE, &
        &       Vbparaph, RVbparath, &
        &       Chie1, Chie2, Chii1, Chii2, &
-       &       FVpchph, rGASPFA, RNeUer, RNiUir)!, &
+       &       FVpchph, rGASPFA, RNeUer, RNiUir, &
+       &       rNueHLphthVR, rNuiHLphthVR)!, &
 !       &       rNue2NCN, rNui2NCN, rat_ei)
 !!ion    deallocate(FWphiBB, FWphiBB2, FWthphiB, FWphiB)
     deallocate(UNITY)
@@ -306,6 +309,10 @@ contains
 !!ion    FWphi(0:NRMAX)    =- 2.D0 * dAphV(0:NRMAX) * FWi(0:NRMAX)
 !!ion    FWphiBB(0:NRMAX)  =- 2.D0 * dAphV(0:NRMAX) * FWthphi(0:NRMAX)
 !!ion    FWphiBB2(0:NRMAX) = FWthi(0:NRMAX) * BthV(0:NRMAX)**2
+    rNueHLphthVR(1:NRMAX)   = rNueHLphth(1:NRMAX) / R(1:NRMAX)
+    rNueHLphthVR(0)         = 0.D0 ! Any value is OK. (Never affect the result.)
+    rNuiHLphthVR(1:NRMAX)   = rNuiHLphth(1:NRMAX) / R(1:NRMAX)
+    rNuiHLphthVR(0)         = 0.D0 ! Any value is OK. (Never affect the result.)
 
     DO NR = 0, NRMAX
        BBL = SQRT(BphV(NR)**2 + BthV(NR)**2)
@@ -797,7 +804,13 @@ contains
     NLC(26,NEQ) = LQe3
 
 !---- 09/11/26 AF
-    ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(15,rNueHLthph)
+    ! To deal with the existence of (m=0, n>0) component   miki_m  2010/8/26
+!    ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(15,rNueHLthph)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(15,rNueHLthph)
+    else
+       ELM(1:NEMAX,1:4,27,NEQ) =   fem_int(22,rNueHLthph)
+    endif
     NLC(27,NEQ) = LQe4
 
     !  Diffusion of electrons (***AF 2008-06-08)
@@ -985,12 +998,24 @@ contains
 
     ! Helical neoclassical viscosity force (***AF 2008-06-08)
 
-    ELM(1:NEMAX,1:4,25,NEQ) =   fem_int(2,rNueHLphth)
+    ! To deal with the existence of (m=0, n>0) component   miki_m  2010/8/26
+!    ELM(1:NEMAX,1:4,25,NEQ) =   fem_int(2,rNueHLphth)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,25,NEQ) =   fem_int(2,rNueHLphth)
+    ELSE
+       ELM(1:NEMAX,1:4,25,NEQ) =   fem_int(2,rNueHLphthVR)
+       ELM(1      ,1:4,25,NEQ) =   fem_int_point(2,0,rNueHLphthVR)
+    ENDIF
     NLC(25,NEQ) = LQe3
 
-    ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(15,rNueHLphph)
+!    ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(15,rNueHLphph)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(15,rNueHLphph)
+    else
+       ELM(1:NEMAX,1:4,26,NEQ) = - fem_int(2,rNueHLphph)
+    endif
     NLC(26,NEQ) = LQe4
-
+ 
     !  Diffusion of electrons (***AF 2008-06-08)
 
     ELM(1:NEMAX,1:4,27,NEQ) = - 4.D0 * fem_int(18,DMAGe)
@@ -1448,7 +1473,13 @@ contains
     ELM(1:NEMAX,1:4,27,NEQ) = - fem_int(2,rNuiHLthth)
     NLC(27,NEQ) = LQi3
 
-    ELM(1:NEMAX,1:4,28,NEQ) =   fem_int(15,rNuiHLthph)
+    ! To deal with the existence of (m=0, n>0) component   miki_m  2010/8/26
+!    ELM(1:NEMAX,1:4,28,NEQ) =   fem_int(15,rNuiHLthph)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,28,NEQ) =   fem_int(15,rNuiHLthph)
+    else
+       ELM(1:NEMAX,1:4,28,NEQ) =   fem_int(22,rNuiHLthph)
+    endif
     NLC(28,NEQ) = LQi4
 
     !  Diffusion of ions (***AF 2008-06-08)
@@ -1649,11 +1680,23 @@ contains
     NLC(25,NEQ) = LQi4
 
    ! Helical Neoclassical viscosity force
+   ! To deal with the existence of (m=0, n>0) component   miki_m  2010/8/26
 
-    ELM(1:NEMAX,1:4,26,NEQ) =   fem_int(2,rNuiHLphth)
+!    ELM(1:NEMAX,1:4,26,NEQ) =   fem_int(2,rNuiHLphth)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,26,NEQ) =   fem_int(2,rNuiHLphth)
+    ELSE
+       ELM(1:NEMAX,1:4,26,NEQ) =   fem_int(2,rNuiHLphthVR)
+       ELM(1      ,1:4,26,NEQ) =   fem_int_point(2,0,rNuiHLphthVR)
+    ENDIF
     NLC(26,NEQ) = LQi3
 
-    ELM(1:NEMAX,1:4,27,NEQ) = - fem_int(15,rNuiHLphph)
+!    ELM(1:NEMAX,1:4,27,NEQ) = - fem_int(15,rNuiHLphph)
+    IF(UHphSwitch == 0) THEN
+       ELM(1:NEMAX,1:4,27,NEQ) = - fem_int(15,rNuiHLphph)
+    else
+       ELM(1:NEMAX,1:4,27,NEQ) = - fem_int(2,rNuiHLphph)
+    endif
     NLC(27,NEQ) = LQi4
 
     !  Diffusion of ions (***AF 2008-06-08)
