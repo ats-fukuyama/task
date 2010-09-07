@@ -249,7 +249,7 @@ contains
           x(ne,4) = 2.d0*h(ne)*(  8.d0*p1**2+24.d0*p1*r1*r2+48.d0*p1*p2+45.d0*r1*p2*r2 &
                &                +15.d0*p2**2) / (105.d0*(r1+r2)**2) * a2
        end do
-    case(22)     ! add by miki_m 2010/8/26
+    case(22)     ! added by miki_m 2010/8/26
        do ne = 1, nemax
           p1 = psi(ne-1) ; p2 = psi(ne)
           r1 = r(ne-1) ; r2 = r(ne)

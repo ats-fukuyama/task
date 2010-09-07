@@ -99,13 +99,13 @@ module tx_commons
   ! Helical parameters
   real(8) :: EpsH, FSHL, Q0, QA
   integer(4) :: NCph, NCth
-    !!  multiple Fouriet mode miki_m 10-08-10
+  !!  multiple Fourier mode      miki_m 10-08-10
 !  integer(4) :: NHFMmx
 !  integer(4), dimension(:,:), allocatable :: HPN   ! helical pitch numbers
 !  real(8), dimension(:,:), allocatable :: EpsHM   ! helical amplitude
-  integer(4), parameter :: NHFMmx = 20   !! max value of helical Fouriet modes
+  integer(4), parameter :: NHFMmx = 20   !! max value of helical Fourier modes
   integer(4), dimension(1:NHFMmx, 1:2) :: HPN   ! helical pitch numbers
-  real(8), dimension(1:NHFMmx, 0:3) :: EpsHM   ! helical amplitudes for rho^0 - rho^3
+  real(8), dimension(1:NHFMmx, 0:3) :: EpsHM   ! helical amplitudes for rho^0:rho^3
 
 
   ! Magnetic braiding parameters
@@ -183,7 +183,7 @@ module tx_commons
        & SiVizA, SiVcxA, wexb, Ys, FQeth, FQith
   real(8), dimension(:,:), allocatable :: deltam, gamITG
 
-  ! Multiple helical Fouriet modes    miki_m 10-08-06~
+  ! Multiple helical Fourier modes    miki_m 10-08-06~
   integer(4) :: UHphSwitch           !  To support (m=0, n>0) Fourier component
   real(8), dimension(:,:), allocatable :: rNueHLM, rNuiHLM, &
        & rNueHLththM, rNueHLthphM, rNueHLphthM, rNueHLphphM,&
@@ -345,7 +345,7 @@ contains
             &   rNueHLphthM(1:NHFMmx,0:N), rNueHLphphM(1:NHFMmx,0:N), &
             &   rNuiHLththM(1:NHFMmx,0:N), rNuiHLthphM(1:NHFMmx,0:N), &
             &   rNuiHLphthM(1:NHFMmx,0:N), rNuiHLphphM(1:NHFMmx,0:N),         stat = ierl(7))
-       ! miki_m 0-08-06
+       ! miki_m 10-08-06
        allocate(FWe(0:N),    FWi(0:N),    FWthe(0:N), FWthi(0:N), FWthphe(0:N), &
             &   FWthphi(0:N),                                                 stat = ierl(8))
        allocate(WPM(0:N),    FVpch(0:N),                                      stat = ierl(9))

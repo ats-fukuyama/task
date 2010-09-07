@@ -671,7 +671,7 @@ contains
 
     ! Calculate CDIM coefficient
     RAQPR(0:NRMAX) = 2.D0 * R(0:NRMAX) * &  ! cf. txcalv.f90 L501
-         &     dfdx (PSI(0:NRMAX) , (R(0:NRMAX) / RA)**4 / Q(0:NRMAX) , NRMAX , 0)
+         &     dfdx (PSI(0:NRMAX) , RHO(0:NRMAX)**4 / Q(0:NRMAX) , NRMAX , 0)
 
     ! Orbit squeezing effect for NCLASS
 !    IF(IC == 1) THEN
@@ -684,12 +684,6 @@ contains
           p_gr2phi(1:NRMAX) = 0.0
        END IF
 !    END IF
-
-    ! Check whether (m=0, n>0) Fouriet component exists or not.
-    UHphSwitch = 0
-    do NHFM = 1, NHFMmx 
-       if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) UHphSwitch = 1
-    enddo
 
     !  Coefficients
 
@@ -1009,7 +1003,7 @@ contains
 
 !       IF(ABS(FSHL) > 0.D0 .AND. NR > 0) THEN
        IF(ABS(FSHL) > 0.D0 ) THEN
-!          IF(int(FSHL) .EQ. 1 ) THEN !! for FSHL = 1 (single Fouriet mode)
+!          IF(int(FSHL) .EQ. 1 ) THEN !! for FSHL = 1 (single Fourier mode)
 !!$            Wte = Vte * NCph / RR
 !!$            Wti = Vti * NCph / RR
 !!$            EpsL = EpsH * (R(NR) / RA)**2
@@ -1056,7 +1050,7 @@ contains
 !!$            rNuiHLphth(NR)=UHth*UHph*rNuiHL(NR)
 !!$            rNuiHLphph(NR)=UHph*UHph*rNuiHL(NR)
 !!$
-!          ELSE IF (abs(FSHL) .GE. 2.d0) THEN  !! for FSHL = 2 (multiple Fouriet modes)
+!          ELSE IF (abs(FSHL) .GE. 2.d0) THEN  !! for FSHL = 2 (multiple Fourier modes)
 !!!kokokara
           IF(NR == 0) THEN
              omegaer=0.d0
@@ -1077,8 +1071,8 @@ contains
                 cycle
              endif
 
-             EpsLM(NHFM) = EpsHM(NHFM,0)                   + EpsHM(NHFM,1) * (R(NR) / RA)  &
-                  &      + EpsHM(NHFM,2) * (R(NR) / RA)**2 + EpsHM(NHFM,3) * (R(NR) / RA)**3
+             EpsLM(NHFM) = EpsHM(NHFM,0)              + EpsHM(NHFM,1) * RHO(NR)        &
+                  &      + EpsHM(NHFM,2) * RHO(NR)**2 + EpsHM(NHFM,3) * RHO(NR)**3
 !
              omegaere   = abs(EpsLM(NHFM)) * R(NR) / RR * omegaer**2 / rNuei(NR)**2
              rNueHLM(NHFM, NR) = FSHL * abs(EpsLM(NHFM))**1.5D0 * PTeV(NR) * rKeV          &

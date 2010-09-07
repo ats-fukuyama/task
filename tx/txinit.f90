@@ -392,9 +392,6 @@ SUBROUTINE TXINIT
   Q0 = 3.D0       ! q(0) by external coils
   QA = 2.D0       ! q(a) by external coils
 
-  !  Multiple helical Fouriet modes     miki_m 10-08-06
-!  NHFMmx = 1      ! number of helical Fouriet modes
-
   !   ***** Numerical parameters *****
 
   !   Time step size(s)
@@ -697,10 +694,6 @@ SUBROUTINE TXCALM
   !   Number of equations
   NQMAX = NQM
 
-  !   Helical system
-!  UHth  = DBLE(NCth) / DBLE(NCph)
-!  UHph  = 1.D0
-
   !   Square root permittivity for LQm1
   !     for the sake of acceleration of convergence
   sqeps0 = sqrt(EPS0)
@@ -845,7 +838,7 @@ SUBROUTINE TXPROF
   use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, initprof_input
 
   implicit none
-  INTEGER(4) :: NR, IER, ifile
+  INTEGER(4) :: NR, IER, ifile, NHFM
   REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
@@ -1247,6 +1240,12 @@ SUBROUTINE TXPROF
   NGR=-1
   NGVV=-1
   rIP=rIPs
+
+  !  Check whether (m=0, n>0) Fourier component exists or not.   miki_m 10-09-07
+  UHphSwitch = 0
+  do NHFM = 1, NHFMmx 
+     if (HPN(NHFM,1) == 0 .and. HPN(NHFM,2) > 0) UHphSwitch = 1
+  enddo
 
   !  Define physical variables from X
 
