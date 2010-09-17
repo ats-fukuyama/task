@@ -1036,7 +1036,7 @@ contains
     GYL(0:NXM,NG,129) = REAL(ChiNCpe(0:NXM)+ChiNCte(0:NXM))
     GYL(0:NXM,NG,130) = REAL(ChiNCpi(0:NXM)+ChiNCti(0:NXM))
 
-    ! *** Virtual torque *********************************************
+    ! *** Additional torque *********************************************
     GYL(0:NXM,NG,131) = REAL(Tqt(0:NXM))
 
     ! *** Turbulent pinch velocity *********************************************
@@ -1801,7 +1801,7 @@ contains
        STR = '@VWpch(r)@'
        CALL TXGRFRX(0,GX,GY(0,0,132),NRMAX,NGR,STR,MODE,IND)
 
-       STR = '@Virtual Torque(r)@'
+       STR = '@Additional Torque(r)@'
        CALL TXGRFRX(1,GX,GY(0,0,131),NRMAX,NGR,STR,MODE,IND)
 
        STR = '@$#G$#$-e$==n$-e$=u$-er$=(r)@'

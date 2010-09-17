@@ -535,11 +535,13 @@ SUBROUTINE TXINIT
   MDSOLV = 0
 
   !   Mode of initial density profiles
+  !   -2   : read from file and smooth
   !   -1   : read from file
   !   0    : original
   MDINTN = 0
 
   !   Mode of initial temperature profiles
+  !   -2   : read from file and smooth
   !   -1   : read from file
   !   0    : original
   !   1    : pedestal model
@@ -547,6 +549,7 @@ SUBROUTINE TXINIT
   MDINTT = 0
 
   !   Mode of initial current density profiles
+  !   -2   : read from file and smooth
   !   -1   : read from file
   !   0    : original
   MDINTC = 0
@@ -835,11 +838,12 @@ SUBROUTINE TXPROF
 
   use tx_commons
   use tx_variables
-  use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, initprof_input
+  use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, &
+       &                   initprof_input, moving_average
 
   implicit none
-  INTEGER(4) :: NR, IER, ifile, NHFM
-  REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF, QL, dRIP
+  INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt
+  REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
   REAL(8) :: EpsL, Vte, Wte, rNuAsE_inv, FTL, EFT, CR
@@ -847,7 +851,7 @@ SUBROUTINE TXPROF
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
   REAL(8) :: DERIV4, FCTR ! External functions
-  real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr
+  real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr, Prof1, Prof2
   real(8), dimension(:,:), allocatable :: CMTX
 
   !  Read spline table for neoclassical toroidal viscosity
@@ -868,8 +872,8 @@ SUBROUTINE TXPROF
 
   !  Variables
 
-  if(MDINTN == -1 .or. MDINTT == -1 .or. MDINTC == -1) call initprof_input
-  if(MDINTN == -1) then ! density at the boundaries
+  if(MDINTN < 0 .or. MDINTT < 0 .or. MDINTC < 0) call initprof_input
+  if(MDINTN < 0) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
      call initprof_input(NRA,1,PNaL)
      PNeDIVL = 0.25d0 * PNaL
@@ -878,7 +882,7 @@ SUBROUTINE TXPROF
      PNaL = PNa
      PNeDIVL = PNeDIV
   end if
-  if(MDINTT == -1) then ! temperature at the boundaries
+  if(MDINTT < 0) then ! temperature at the boundaries
      call initprof_input(  0,2,PTe0L)
      call initprof_input(  0,3,PTi0L)
      call initprof_input(NRA,2,PTeaL)
@@ -914,7 +918,7 @@ SUBROUTINE TXPROF
   DO NR = 0, NRMAX
      RL = R(NR)
      IF (RL <= RA) THEN ! +++ Core +++
-        IF(MDINTN == -1) THEN
+        IF(MDINTN < 0) THEN
            call initprof_input(NR,1,X(LQe1,NR)) ! Ne
            X(LQi1,NR) = X(LQe1,NR) / PZ         ! Ni
         ELSE
@@ -922,7 +926,7 @@ SUBROUTINE TXPROF
            X(LQe1,NR) = (PN0L - PNaL) * PROFN + PNaL ! Ne
            X(LQi1,NR) = X(LQe1,NR) / PZ           ! Ni
         END IF
-        IF(MDINTT == -1) THEN
+        IF(MDINTT < 0) THEN
            call initprof_input(NR,2,PTePROF) ! Te
            call initprof_input(NR,3,PTiPROF) ! Ti
         ELSE IF(MDINTT == 0) THEN
@@ -1004,6 +1008,32 @@ SUBROUTINE TXPROF
      END IF
   END DO
 
+  IF(MDINTT == -2) THEN ! Smoothing temperatures
+     allocate(Prof1(0:NRMAX),Prof2(0:NRMAX))
+     Prof1(0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
+     Prof2(0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
+     NR_smt = NRA - 10 ! smoothing data only in the edge region
+     DO NR = NR_smt, NRMAX
+        X(LQe5,NR) = moving_average(NR,Prof1,NRMAX) * X(LQe1,NR)
+        X(LQi5,NR) = moving_average(NR,Prof2,NRMAX) * X(LQi1,NR)
+     END DO
+     deallocate(Prof1,Prof2)
+  END IF
+  IF(MDINTN == -2) THEN ! Smoothing densities
+     allocate(Prof1(0:NRMAX))
+     X(LQe5,0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
+     X(LQi5,0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
+     Prof1(0:NRMAX) = X(LQe1,0:NRMAX)
+     NR_smt = NRA - 10 ! smoothing data only in the edge region
+     DO NR = NR_smt, NRMAX
+        X(LQe1,NR) = moving_average(NR,Prof1,NRMAX)
+        X(LQi1,NR) = X(LQe1,NR) / PZ         ! Ni
+     END DO
+     X(LQe5,0:NRMAX) = X(LQe5,0:NRMAX) * X(LQe1,0:NRMAX)
+     X(LQi5,0:NRMAX) = X(LQi5,0:NRMAX) * X(LQi1,0:NRMAX)
+     deallocate(Prof1)
+  END IF
+
   ! Poloidal magnetic field
 
   IF(FSHL == 0.D0) THEN
@@ -1035,12 +1065,27 @@ SUBROUTINE TXPROF
   allocate(AJPHL(0:NRMAX))
   ifile = detect_datatype('LQe4')
   if(ifile == 0) then
-     IF(MDINTC == -1) THEN
+     IF(MDINTC < -1) THEN
         DO NR = 0, NRA
            call initprof_input(NR,4,AJPHL(NR)) ! NeUeph
         END DO
         AJPHL(NRA+1:NRMAX) = 0.D0
         AJFCT = rIPs * 1.D6 / (2.D0 * PI * INTG_F(AJPHL))
+        ! Artificially extrapolate a current density in the SOL for numerical stability
+        DO NR = NRA+1, NRMAX
+           AJPHL(NR) = AJPHL(NRA) * EXP(- (R(NR) - RA) / (0.5d0 * rLn))
+        END DO
+        
+        IF(MDINTC == -2) THEN ! Smoothing current density
+           allocate(Prof1(0:NRMAX))
+           Prof1(0:NRMAX) = AJPHL(0:NRMAX)
+           NR_smt = NRA - 10 ! smoothing data only in the edge region
+           DO NR = NR_smt, NRMAX
+              AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
+           END DO
+           deallocate(Prof1)
+        END IF
+
         DO NR = 0, NRMAX
            AJPHL(NR) = AJFCT * AJPHL(NR)
            X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
@@ -1091,7 +1136,7 @@ SUBROUTINE TXPROF
      END DO
   end if
 
-  if(MDINTN == -1 .or. MDINTT == -1 .or. MDINTC == -1) call initprof_input(idx = 0)
+  if(MDINTN < 0 .or. MDINTT < 0 .or. MDINTC < 0) call initprof_input(idx = 0)
 
   ! Inverse matrix of derivative formula for integration
 
@@ -1121,7 +1166,7 @@ SUBROUTINE TXPROF
 
   ! LQm4
 
-  IF((FSHL == 0.0) .AND. (ifile == 0) .AND. &
+  IF((FSHL == 0.0) .AND. (ifile == 0) .AND. (MDINTC == 0) .AND. &
      (PROFJ == 1 .OR. PROFJ == 2 .OR. PROFJ == 3 .OR. &
       PROFJ == 4 .OR. PROFJ == 5)) THEN
 

@@ -1,8 +1,8 @@
 ### $Id$ ###
 include ../make.header
 
-#FFLAGS = $(OFLAGS)
-FFLAGS = $(DFLAGS)
+FFLAGS = $(OFLAGS)
+#FFLAGS = $(DFLAGS)
 
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txncls.f90 txrslt.f90 txrppl.f90 txcalv.f90 \
        txcala.f90 txgraf.f90 txinit.f90 txfile.f90 txexec.f90 txmenu.f90 \
@@ -56,7 +56,7 @@ check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)
 
 clean:
-	rm -f *.o ./*~ ./#* nclass/*.o *.a $(MOD)/*.mod
+	rm -f *.o ./*~ ./#* nclass/*.o mmm/*.o *.a $(MOD)/*.mod
 
 veryclean: clean
 	rm -f $(PROG2) $(PROG3)

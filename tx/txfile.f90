@@ -705,14 +705,14 @@ subroutine ascii_input
   implicit none
   integer(4) :: IST, i, j, k, nrho, i_start, jshift
   character(len=100) :: TXFNAM
-  character(len=150) :: kline, kline1, kline2
+  character(len=180) :: kline, kline1, kline2
   character(len=20)  :: kmesh, kdata
   integer(4) :: nol, itype
   LOGICAL :: LEX
 
   ! Check a mode of input file
   do 
-     write(6,*) '# NBI input from OFMC (1) or arbitrary input (2) ?'
+     write(6,*) '# NBI input from OFMC (1)(2) or arbitrary input (3) ?'
      call guflsh
      read(*,'(I1)',iostat=ist) iflag_file
      if(ist > 0) then
@@ -720,14 +720,14 @@ subroutine ascii_input
      else if(ist < 0) then
         return
      end if
-     if(iflag_file == 1 .or. iflag_file == 2) then
+     if(iflag_file >= 1 .and. iflag_file <= 3) then
         exit
      else
         cycle
      end if
   end do
 
-  ! *** Pre-defined input (for OFMC data) ***************************
+  ! *** Pre-defined input (OFMC: OrbitEffectDist.dat) ***************
   if(iflag_file == 1) then
      TXFNAM = 'OrbitEffectDist.dat'
      INQUIRE(FILE=TXFNAM,EXIST=LEX)
@@ -739,8 +739,20 @@ subroutine ascii_input
 
      n_infiles = 8
 
-  ! *** Arbitrary input *********************************************
+  ! *** Pre-defined input (OFMC: Torque.txt) ************************
   else if(iflag_file == 2) then
+     TXFNAM = 'Torque.txt'
+     INQUIRE(FILE=TXFNAM,EXIST=LEX)
+     IF (LEX) THEN
+     ELSE
+        WRITE(6,*) 'XX  FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)), ' ) DOES NOT EXIST !'
+        return
+     END IF
+
+     n_infiles = 1 ! only the TOTAL torque
+
+  ! *** Arbitrary input *********************************************
+  else if(iflag_file == 3) then
      ! Check ASCII file
      DO
         WRITE(6,*) '# INPUT : LOAD ASCII FILE NAME'
@@ -780,7 +792,7 @@ subroutine ascii_input
   ! Allocate derived type
   allocate(infiles(1:n_infiles))
 
-  ! *** Pre-defined input (for OFMC data) ***************************
+  ! *** Pre-defined input (OFMC: OrbitEffectDist.dat) ***************
   if(iflag_file == 1) then
      ! Read data
      OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED')
@@ -967,8 +979,97 @@ subroutine ascii_input
 !!$     write(6,'(9X,8(1PE12.4))') (infiles(i)%totP, i = 1, 8)
 !!$     stop
 
-  ! *** Arbitrary input *********************************************
+  ! *** Pre-defined input (OFMC: Torque.txt) ************************
   else if(iflag_file == 2) then
+     ! Read data
+     OPEN(21,FILE=TXFNAM,IOSTAT=IST,STATUS='OLD',FORM='FORMATTED',POSITION='REWIND')
+     IF (IST == 0) THEN
+        WRITE(6,*) '# ASCII FILE ( ', TXFNAM(1:LEN_TRIM(TXFNAM)),  &
+             &     ' ) IS ASSIGNED FOR INPUT.'
+     ELSEIF (IST > 0) THEN
+        WRITE(6,*) 'XX  ASCII FILE OPEN ERROR !, IOSTAT = ', IST
+     ELSEIF (IST < 0) THEN
+        deallocate(infiles)
+        return
+     END IF
+
+     infiles(1:n_infiles)%name = 'TOTAL'
+
+     k  = 0  ! data is taken during k/=0
+     do 
+        read(21,'(A)',IOSTAT=IST) kline
+        if(ist > 0) then
+           stop 'Read file error'
+        else if(ist < 0) then
+           exit ! detect the end of the file
+        end if
+        
+        if(k == 0) then
+           if(index(kline,"I,") /= 0) then ! detect the start position of the data chunk
+              k = 1
+              nol = 0
+           end if
+           cycle
+        end if
+
+        j = 0
+        do
+           kline = trim(adjustl(kline))
+           if(kline == ' ') then
+              k = 0
+              exit
+           end if
+           call ksplit_tx(kline,',',kline1,kline2)
+           if(index(kline1,"E") == 0) then
+              kdata = trim(kline1)
+              if(kdata == ' ' .or. kdata == "TOTAL") then
+                 nol = 0
+              else
+                 read(kdata,'(I3)') nol
+              end if
+              kline = kline2
+              cycle
+           else
+              j = j + 1
+              kdata = trim(kline1)
+!              write(6,*) "nol",nol,kdata,"@",kline2,"@"
+              if(j == 1 .and. nol /= 0) then
+                 infiles(1)%nol = nol
+!                 write(6,*) nol,kdata
+                 if(nol /= 0) read(kdata,'(E15.7)') infiles(1)%r(nol)
+!                 write(6,*) "rho",nol,infiles(1)%r(nol)
+                 kline = kline2
+              else
+                 if(index(kline2,"E") /= 0) then
+                    kdata = trim(kline2)
+                    if(nol /= 0) then
+                       read(kdata,'(E15.7)') infiles(1)%data(nol)
+!                       write(6,*) "data",nol,infiles(1)%data(nol)
+                    else
+                       read(kdata,'(E15.7)') infiles(1)%totS
+!                       write(6,*) "total",nol,infiles(1)%totS
+                    end if
+                    kline = kline2
+                 else
+                    exit
+                 end if
+              end if
+!              pause
+              cycle
+           end if
+        end do
+     end do
+
+!!$     write(6,*) infiles(1)%nol
+!!$     do nol = 1, infiles(1)%nol
+!!$        write(6,*) nol,infiles(1)%r(nol),infiles(1)%data(nol)
+!!$     end do
+!!$     write(6,*) infiles(1)%totS
+
+     close(21)
+
+  ! *** Arbitrary input *********************************************
+  else if(iflag_file == 3) then
 
      ! Read data
      do i = 1, n_infiles
@@ -1282,10 +1383,11 @@ subroutine initprof_input(nr, idx, out)
 
   integer(4), optional, intent(in) :: nr, idx
   real(8), optional, intent(out) :: out
-  integer(4) :: nintin, ier, ist, k
+  integer(4) :: nintin, ier, ist, k, iflag, j
   integer(4), save :: nrinmax
   real(8), dimension(:), allocatable, save :: rho_in, deriv
   real(8), dimension(:,:), allocatable, save :: prof_in, u1, u2, u3, u4
+  real(8) :: FCTR4pt, AITKEN2P
 
   type unit
      integer(4)          :: l_p
@@ -1304,7 +1406,8 @@ subroutine initprof_input(nr, idx, out)
      if(ier /= 0) return
 
      do
-        read(nintin,'(1X,I3,5(E9.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
+!!!        read(nintin,'(1X,I3,5(E9.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
+        read(nintin,'(1X,I3,5(E10.3))',iostat=ist) l, rho_r, prof1_r, prof2_r, prof3_r, prof4_r
         if(ist > 0) then
            write(6,*) 'XX file format is invalid. Aborting.'
            close(nintin)
@@ -1315,18 +1418,27 @@ subroutine initprof_input(nr, idx, out)
         call rearrange
      end do
 
+     iflag = 0
      p => ent%next
      k = 0
      do
         if(associated(p)) then 
 !           write(6,*) p%l_p, p%rho_p, p%prof1_p, p%prof2_p, p%prof3_p, p%prof4_p
+           if(k == 0 .and. p%rho_p /= 1.d0) iflag = iflag + 1
+           if(p%l_p == 1 .and. p%rho_p /= 0.d0) iflag = iflag + 2
            k = k + 1
            p => p%next
         else
            exit
         end if
      end do
-     nrinmax = k
+     if(iflag == 0) then
+        nrinmax = k
+     else if(iflag == 1 .or. iflag == 2) then
+        nrinmax = k + 1
+     else
+        nrinmax = k + 2
+     end if
 
      allocate(rho_in(1:nrinmax),prof_in(1:nrinmax,1:4))
      p => ent%next
@@ -1343,10 +1455,39 @@ subroutine initprof_input(nr, idx, out)
         end if
      end do
 
+     if(iflag == 1) then ! Extrapolate values at r/a = 1.
+        rho_in(k+1) = 1.d0
+        do j = 1, 4
+           prof_in(nrinmax,j) = AITKEN2P(rho_in(nrinmax),prof_in(nrinmax-1,j), &
+                & prof_in(nrinmax-2,j),prof_in(nrinmax-3,j),rho_in(nrinmax-1), &
+                & rho_in(nrinmax-2),rho_in(nrinmax-3))
+        end do
+     else if(iflag == 2) then ! Extrapolate values at r/a = 0.
+        rho_in(2:k+1) = rho_in(1:k)
+        rho_in(1) = 0.d0
+        prof_in(2:k+1,1:4) = prof_in(1:k,1:4)
+        do j = 1, 4
+           prof_in(1,j) = FCTR4pt(rho_in(2),rho_in(3),rho_in(4), &
+                &                 prof_in(2,j),prof_in(3,j),prof_in(4,j))
+        end do
+     else if(iflag == 3) then ! Extrapolate values at r/a = 0 and 1.
+        rho_in(2:k+1) = rho_in(1:k)
+        rho_in(1) = 0.d0
+        rho_in(k+2) = 1.d0
+        prof_in(2:k+1,1:4) = prof_in(1:k,1:4)
+        do j = 1, 4
+           prof_in(1,j) = FCTR4pt(rho_in(2),rho_in(3),rho_in(4), &
+                &                 prof_in(2,j),prof_in(3,j),prof_in(4,j))
+           prof_in(nrinmax,j) = AITKEN2P(rho_in(nrinmax),prof_in(nrinmax-1,j), &
+                & prof_in(nrinmax-2,j),prof_in(nrinmax-3,j),rho_in(nrinmax-1), &
+                & rho_in(nrinmax-2),rho_in(nrinmax-3))
+        end do
+     end if
+
 !!$     do k = 1, nrinmax
 !!$        write(6,'(1X,I3,1P5E10.3)') k, rho_in(k),(prof_in(k,j),j=1,4)
 !!$     end do
-
+!!$
      close(nintin)
      if(associated(ent)) deallocate(ent)
      if(associated(new)) deallocate(new)

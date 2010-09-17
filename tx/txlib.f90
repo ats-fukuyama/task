@@ -1567,6 +1567,7 @@ END SUBROUTINE BISECTION
 !              r_std    : radial coordinate
 !              iedge    : indication of the treatment at the axis and the outer boundary
 !              ideriv   : (optional) r-derivative at the axis becomes zero when imode=4,5,6
+!              idx      : (optional) accept negative values if idx is true
 !     OUTPUT : dat_out  : interpolated and extrapolated value of dat_in
 !              nrbound  : (optional) outermost index corresponding to rho_in(nmax_in)
 !
@@ -1593,7 +1594,7 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
   real(8), dimension(1:nmax_in),  intent(in)  :: rho_in, dat_in
   real(8), dimension(0:nmax_std), intent(in)  :: rho_std
   real(8), dimension(0:nmax_std), intent(out) :: dat_out
-  integer(4) :: i, iaxis, iedge, nmax, isep
+  integer(4) :: i, iaxis, iedge, nmax, isep, ierr
   real(8) :: rhoa
   real(8), dimension(:), allocatable :: rho_tmp, dat_tmp
   real(8) :: aitken2p, fctr
@@ -1672,8 +1673,11 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
      if(rho_std(i) < rho_tmp(nmax)) then
         call aitken(rho_std(i),dat_out(i),rho_tmp,dat_tmp,2,size(dat_tmp))
      else
-        if(present(nrbound)) nrbound = i - 1
-        exit
+        if(present(nrbound)) then
+           nrbound = i - 1
+           exit
+        end if
+        dat_out(i) = 0.d0
      end if
   end do
 

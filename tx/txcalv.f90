@@ -195,7 +195,7 @@ contains
     ! Mainly for derivatives
     real(8), dimension(:), allocatable :: dQdr, dVebdr, dErdr, dBthdr, dTedr, dTidr, &
          &                                dPedr, dPidr, dpdr, dNedr, dNidr, dErdrS, ErVlc, &
-         &                                qr, dqr, dBph, Tqp_tmp
+         &                                qr, dqr, dBph, Tqt_tmp, Tqp_tmp
 
     MDANOMabs = abs(MDANOM)
 
@@ -328,7 +328,7 @@ contains
      !     (1) S_birth_ele,   (2) S_birth_trap, (3) S_birth_pass
      !     (4) S_orbit_total, (5) S_orbit_trap, (6) S_orbit_pass
 
-    ! *** Pre-defined input (for OFMC data) ***************************
+    ! *** Pre-defined input (OFMC: OrbitEffectDist.dat) ***************
     if(iflag_file == 1) then
 
        ! (1) Birth electrons
@@ -437,8 +437,18 @@ contains
        end do
        Vbabsmax = maxval(abs(Vbpara))
 
-    ! *** Arbitrary input *********************************************
+    ! *** Pre-defined input (OFMC: Torque.txt) ************************
     else if(iflag_file == 2) then
+
+       allocate(Tqt_tmp(0:NRMAX))
+       ! Total torque input
+       i = 1
+       call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,Tqt_tmp,ideriv,idx=0)
+       SL = 4.D0 * Pi**2 * RR * INTG_F(Tqt_tmp)
+       Tqt_tmp(0:NRMAX) = Tqt_tmp(0:NRMAX) * (infiles(i)%totS / SL)
+
+    ! *** Arbitrary input *********************************************
+    else if(iflag_file == 3) then
        do i = 1, n_infiles
           if(infiles(i)%name == datatype(1)) then ! Perp NB
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBP)
@@ -511,7 +521,7 @@ contains
        PALFe(NR) = PALFL - PALFi(NR)
     end do
 
-    !   Virtual torque input to LQi3 without net torque
+    !   Additional torque input to LQi3 without net torque
 
     if(Tqp0 /= 0.d0) then
        allocate(Tqp_tmp(0:NRMAX))
@@ -532,11 +542,15 @@ contains
        Tqp(0:NRMAX) = 0.d0
     end if
 
-    !   Virtual torque input to LQi4
+    !   Additional torque input to LQi4
 
-    CALL deposition_profile(Tqt,SL,0.d0,0.d0,'Virtual')
+    CALL deposition_profile(Tqt,SL,0.d0,0.d0,'Additional')
     Tqt0L = Tqt0 / (2.D0*Pi*RR*2.D0*Pi*SL) ! Tqt0 [N m], Tqt0L [N/m^2]
     Tqt(0:NRMAX) = Tqt0L * Tqt(0:NRMAX)
+    if(iflag_file == 2) then
+       Tqt(0:NRMAX) = Tqt(0:NRMAX) + Tqt_tmp(0:NRMAX)
+       deallocate(Tqt_tmp)
+    end if
 
     ! ************** Heating part end **************
 
@@ -1861,7 +1875,7 @@ contains
 !   Heating deposition profile
 !     Input : R0    : Deposition center (m)
 !             RW    : Deposition width (m)
-!             CHR   : Trapped NB, passing NB, RF or Virtual torque
+!             CHR   : Trapped NB, passing NB, RF or Additional torque
 !             PNBCD : Injection direction, optional
 !     Output : S(0:NRMAX) : Deposition profile
 !              SINT       : Normalization factor
@@ -1881,7 +1895,7 @@ contains
     real(8) :: EpsL, Rshift, Rpotato, rhop
 !!    real(8) :: AITKEN2P
 
-    if(CHR == 'Virtual') then
+    if(CHR == 'Additional') then
        S(0:NRA) = 1.D0 - (R(0:NRA) / RA)**2
        S(NRA+1:NRMAX) = 0.D0
     else if(CHR == 'RFe' .OR. CHR == 'RFi') then

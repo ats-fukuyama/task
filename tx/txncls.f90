@@ -304,7 +304,7 @@ contains
     REAL(8) :: EpsL, BBL, PZMAX, &
          &     PAL, PZL, RKAP, &
          &     ChiNCpel, ChiNCtel, ChiNCpil, ChiNCtil
-    real(8) :: RL, BphVL, BthVL, EphVL, EthVL, QL, ErVL, PTeVL, PTiVL, &
+    real(8) :: RL, RAL, BphVL, BthVL, EphVL, EthVL, QL, ErVL, PTeVL, PTiVL, &
          &     PNeVL, PNiVL, PeVL, PiVL, &
          &     dErdrL, dBthdrL, dTedrL, dTidrL, dPedrL, dPidrL
 !!    real(8) :: p_fhat1, p_fhat2, p_fhat3, btot, uthai, VPOL(0:NRMAX), ppr, AJBSL, ETAL
@@ -313,6 +313,13 @@ contains
     !     *** Ellipticity on axis ***
 
     RKAP = 1.D0
+!RKAP    RKAP = 2.1D0
+
+    !     *** Internal minor radius ***
+
+    RAL = RA
+!RKAP    RAL = 2.1D0
+
     !     *** Dummy impurity for using high Zeff ***
 
 !!$    PAL = 12.D0
@@ -366,6 +373,7 @@ contains
     
     IF (NR /= 0) THEN
        RL    = R(NR)
+!RKAP       RL    = R(NR) * (RAL / RA)
        BphVL = BphV(NR) ; BthVL = BthV(NR)
        EphVL = EphV(NR) ; EthVL = EthV(NR)
        QL    = Q   (NR) ; ErVL  = ErV (NR)
@@ -386,6 +394,7 @@ contains
        end if
     ELSE
        RL    = 0.5D0 * R(NR+1)
+!RKAP       RL    = 0.5D0 * R(NR+1) * (RAL / RA)
        BphVL = 0.5D0 *(BphV(NR) + BphV(NR+1)) ; BthVL = 0.5D0 * BthV(NR+1)
        EphVL = 0.5D0 *(EphV(NR) + EphV(NR+1)) ; EthVL = 0.5D0 * EthV(NR+1)
        QL    = 0.5D0 *(Q   (NR) + Q   (NR+1)) ; ErVL  = 0.5D0 * ErV (NR+1)
@@ -416,12 +425,12 @@ contains
     IF(p_eb == 0.D0) p_eb = 1.e-10
 
 !!$    IF(NR == 0) THEN
-!!$       p_fhat1 = BphV(NR+1)/(RA*BthV(NR+1))
-!!$       p_fhat2 = BphV(NR+2)/(RA*BthV(NR+2))
-!!$       p_fhat3 = BphV(NR+3)/(RA*BthV(NR+3))
+!!$       p_fhat1 = BphV(NR+1)/(RAL*BthV(NR+1))
+!!$       p_fhat2 = BphV(NR+2)/(RAL*BthV(NR+2))
+!!$       p_fhat3 = BphV(NR+3)/(RAL*BthV(NR+3))
 !!$       p_fhat  = REAL(AITKEN2P(R(0),p_fhat1,p_fhat2,p_fhat3,R(1),R(2),R(3)))
 !!$    ELSE
-       p_fhat  = REAL(BphVL/(RA*BthVL))
+       p_fhat  = REAL(BphVL/(RAL*BthVL))
 !!$    END IF
 
     !  Approximation inverse aspect ratio at the magnetix axis
@@ -437,9 +446,9 @@ contains
 !!    p_fm(1:3) = 0.0 ! No Pfirsch-Schulter viscosity
     p_ft=REAL(1.46D0 * SQRT(EpsL) - 0.46 * EpsL * SQRT(EpsL))
 
-    p_grbm2   = REAL(1.D0/(RA*BBL)**2)
-    p_grphi   = REAL(-RA*ErVL)
-!    p_gr2phi  = REAL(-RA**2*dErdrL) ! Orbit squeezing
+    p_grbm2   = REAL(1.D0/(RAL*BBL)**2)
+    p_grphi   = REAL(-RAL*ErVL)
+!    p_gr2phi  = REAL(-RAL**2*dErdrL) ! Orbit squeezing
     ! For orbit squeezing (Houlberg, PoP, 1997, Eq. (B2))
     if(present(p_gr2phi_in)) then
        p_gr2phi = p_gr2phi_in
@@ -447,27 +456,27 @@ contains
 !!$       if(nr == 0) then
 !!$          p_gr2phi = 0.0 ! Any value is OK because the value at nr=0 is discarded.
 !!$       else
-          p_gr2phi  = REAL(-RA**2*dErdrL+RA**2*ErVL*dBthdrL/BthVL)
-!!$          if(nt==ntmax)write(6,*) Rho(NR),-RA**2*dErdrL,RA**2*ErVL*dBthdrL/BthVL
+          p_gr2phi  = REAL(-RAL**2*dErdrL+RAL**2*ErVL*dBthdrL/BthVL)
+!!$          if(nt==ntmax)write(6,*) Rho(NR),-RAL**2*dErdrL,RAL**2*ErVL*dBthdrL/BthVL
 !!$          if(nr == 1) write(6,*) T_TX,p_gr2phi
 !!$       end if
     end if
     p_ngrth   = REAL(BphVL/(RR*QL*BBL))
     temp_i(1) = REAL(PTeVL)
     temp_i(2) = REAL(PTiVL)
-    grt_i(1)  = REAL(RA * dTedrL)
-    grt_i(2)  = REAL(RA * dTidrL)
+    grt_i(1)  = REAL(RAL * dTedrL)
+    grt_i(2)  = REAL(RAL * dTidrL)
     den_iz(1,1)       = REAL(PNeVL) * 1.E20
     den_iz(2,INT(PZ)) = REAL(PNiVL) * 1.E20
-    grp_iz(1,1)       = REAL(RA * dPedrL) * 1.E20
-    grp_iz(2,INT(PZ)) = REAL(RA * dPidrL) * 1.E20
+    grp_iz(1,1)       = REAL(RAL * dPedrL) * 1.E20
+    grp_iz(2,INT(PZ)) = REAL(RAL * dPidrL) * 1.E20
     IF (Zeff > 1.D0) THEN
        temp_i(3) = temp_i(2)
        grt_i(3)  = grt_i(2)
        den_iz(2,INT(PZ))  = REAL((PZL*PZ-Zeff)/(PZ*(PZL-PZ))*PNiVL) * 1.E20
        den_iz(3,INT(PZL)) = REAL((Zeff-PZ**2)/(PZL*(PZL-PZ))*PNiVL) * 1.E20
-       grp_iz(2,INT(PZ))  = REAL(RA * dPidrL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
-       grp_iz(3,INT(PZL)) = REAL(RA * dPidrL * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
+       grp_iz(2,INT(PZ))  = REAL(RAL * dPidrL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) * 1.E20
+       grp_iz(3,INT(PZL)) = REAL(RAL * dPidrL * (Zeff-PZ**2)/(PZL*(PZL-PZ))) * 1.E20
     END IF
 
     ! Even when NBI is activated, any external parallel force concerning NBI
@@ -490,7 +499,7 @@ contains
        p_eps = REAL(RL/RR)
        p_q   = REAL(QL)
        r0    = REAL(RR)
-       a0    = REAL(RA)
+       a0    = REAL(RAL)
        e0    = REAL(1.D0)
        bt0   = REAL(BphV(0))
        q0l   = REAL(Q(0))
@@ -504,10 +513,8 @@ contains
        IER = ier_check
     ENDIF
 
-!    write(6,*) r(NR)/ra,sum(gfl_s(1:5,1))*real(RA)*1.E-20
-!    write(6,*) r(NR)/ra,(sum(gfl_s(1:2,1))+sum(gfl_s(4:5,1)))*real(RA)*1.E-20
-!    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,1)/BBL,upar_s(1,2,1)/BBL,sum(upar_s(1,1:3,1))/BBL
-!    write(6,'(4F18.7)') r(nr)/ra,upar_s(1,1,2)/BBL,upar_s(1,2,2)/BBL,sum(upar_s(1,1:3,2))/BBL
+!    write(6,*) r(NR)/ra,sum(gfl_s(1:5,1))*real(RAL)*1.E-20
+!    write(6,*) r(NR)/ra,(sum(gfl_s(1:2,1))+sum(gfl_s(4:5,1)))*real(RAL)*1.E-20
 
     !     *** Takeover Parameters ***
 
@@ -523,19 +530,19 @@ contains
 
     !   Bootstrap current
     IF(Zeff == 1.D0) THEN
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedrL/ PTeVL) &
-              &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
-              &  + DBLE(bsjbt_s(2)) *(RA * dTidrL/ PTiVL) &
-              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL)) / BBL
-!!$       JBSout =-(+ DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
-!!$              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL)) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RAL * dTedrL/ PTeVL) &
+              &  + DBLE(bsjbp_s(1)) *(RAL * dPedrL/ PeVL) &
+              &  + DBLE(bsjbt_s(2)) *(RAL * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(2)) *(RAL * dPidrL/ PiVL)) / BBL
+!!$       JBSout =-(+ DBLE(bsjbp_s(1)) *(RAL * dPedrL/ PeVL) &
+!!$              &  + DBLE(bsjbp_s(2)) *(RAL * dPidrL/ PiVL)) / BBL
     ELSE
-       JBSout =-(  DBLE(bsjbt_s(1)) *(RA * dTedrL/ PTeVL) &
-              &  + DBLE(bsjbp_s(1)) *(RA * dPedrL/ PeVL) &
-              &  + DBLE(bsjbt_s(2)) *(RA * dTidrL/ PTiVL) &
-              &  + DBLE(bsjbp_s(2)) *(RA * dPidrL/ PiVL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
-              &  + DBLE(bsjbt_s(3)) *(RA * dTidrL/ PTiVL) &
-              &  + DBLE(bsjbp_s(3)) *(RA * dPidrL/ PiVL * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
+       JBSout =-(  DBLE(bsjbt_s(1)) *(RAL * dTedrL/ PTeVL) &
+              &  + DBLE(bsjbp_s(1)) *(RAL * dPedrL/ PeVL) &
+              &  + DBLE(bsjbt_s(2)) *(RAL * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(2)) *(RAL * dPidrL/ PiVL * (PZL*PZ-Zeff)/(PZ*(PZL-PZ))) &
+              &  + DBLE(bsjbt_s(3)) *(RAL * dTidrL/ PTiVL) &
+              &  + DBLE(bsjbp_s(3)) *(RAL * dPidrL/ PiVL * (Zeff-PZ**2)/(PZL*(PZL-PZ)))) / BBL
     END IF
     IF(k_potato == 0 .and. NR == 0) JBSout = 0.D0
 
@@ -565,10 +572,10 @@ contains
     FQithL = - FSNCPL * DBLE(p_b2 * ymu_s(1,2,2)) / AMI / BthVL * sum(utheta_s(2,1:2,2)) ! [/m^2s^2]
 
     !   Contribution from heat flux to neoclassical resistivity
-    ETA_heat = DBLE(p_b2 / p_eb * ymu_s(1,2,1) * utheta_s(2,2,1)) / (AEE * PNeVL * 1.D20)
+    ETA_heat = FSNCPL * DBLE(p_b2 / p_eb * ymu_s(1,2,1) * utheta_s(2,2,1)) / (AEE * PNeVL * 1.D20)
     !   Contribution from heat flux to bootstrap current
     !   ("utheta_s - upar_s/p_b2" is calculated so as to extract pure Ti' effect from utheta_s.)
-    JBS_heat = DBLE(ymu_s(1,2,1) * (p_b2 * utheta_s(2,1,1) - upar_s(2,1,1))) &
+    JBS_heat = FSNCPL * DBLE(ymu_s(1,2,1) * (p_b2 * utheta_s(2,1,1) - upar_s(2,1,1))) &
          &   * AEE * BBL / (AME * BphVL)
 
     !   Poloidal flows by NCLASS for graphics
