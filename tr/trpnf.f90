@@ -29,7 +29,7 @@
          TE = RT(NR,1)
          TD = RT(NR,2)
          TT = RT(NR,3)
-C         WRITE(6,*) NR,TD,TT
+!         WRITE(6,*) NR,TD,TT
          SS = SIGMAM(TD,TT)
          IF(MDLNF/2.EQ.1) THEN
             ZEFFM = (PZ(2)*PZ(2)*RN(NR,2)/PA(2) &

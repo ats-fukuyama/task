@@ -936,12 +936,12 @@
             VGR4(NR,2)=0.D0
             VGR4(NR,3)=0.D0
 
-         CASE DEFAULT
-            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
-            AKDW(NR,1)=0.D0
-            AKDW(NR,2)=0.D0
-            AKDW(NR,3)=0.D0
-            AKDW(NR,4)=0.D0
+!         CASE DEFAULT
+!            WRITE(6,*) 'XX INVALID MDLKAI : ',MDLKAI
+!            AKDW(NR,1)=0.D0
+!            AKDW(NR,2)=0.D0
+!            AKDW(NR,3)=0.D0
+!            AKDW(NR,4)=0.D0
          END SELECT
       ENDDO
 !      STOP
