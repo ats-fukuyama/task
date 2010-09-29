@@ -29,6 +29,8 @@
       integer:: NSA, NR, NTH, NP, NS
       real(8):: FPMAX
       integer:: NCONST_RF
+      real(8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
+      real(8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
 
       ISAVE=0
       NS=NS_NSA(NSA)
@@ -58,42 +60,101 @@
 !
 !     ----- Quasi-linear wave-particle interaction term -----
 !
-!      IF(NCHECK.eq.0)THEN
 
-      IF(MODELW(NS).EQ.0) THEN
+!     ----- Initialize ------------------------------------- 
+      DO NR=NRSTART,NREND
+         DO NP=1,NPMAX+1
+            DO NTH=1,NTHMAX
+               DWPPM(NTH,NP,NR)=0.D0
+               DWPTM(NTH,NP,NR)=0.D0
+            END DO
+         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               DWTPM(NTH,NP,NR)=0.D0
+               DWTTM(NTH,NP,NR)=0.D0
+            END DO
+         END DO
+      END DO
+
+!      IF(MODELW(NS).EQ.0) THEN
+      IF(DEC.ne.0.and.NSA.eq.1) THEN
          CALL FP_CALW(NSA)
-      ELSEIF(MODELW(NS).EQ.1) THEN
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX+1
+               DO NTH=1,NTHMAX
+                  DWPPM(NTH,NP,NR)=DWPP(NTH,NP,NR,NSA)
+                  DWPTM(NTH,NP,NR)=DWPT(NTH,NP,NR,NSA)
+                  DWPP(NTH,NP,NR,NSA)=0.D0
+                  DWPT(NTH,NP,NR,NSA)=0.D0
+               END DO
+            END DO
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX+1
+                  DWTPM(NTH,NP,NR)=DWTP(NTH,NP,NR,NSA)
+                  DWTTM(NTH,NP,NR)=DWTT(NTH,NP,NR,NSA)
+                  DWTP(NTH,NP,NR,NSA)=0.D0
+                  DWTT(NTH,NP,NR,NSA)=0.D0
+               END DO
+            END DO
+         END DO
+      END IF
+
+!      ELSEIF(MODELW(NS).EQ.1) THEN
+      IF(MODELW(NS).EQ.1) THEN
          CALL FP_CALWR(NSA)
       ELSEIF(MODELW(NS).EQ.2) THEN
          CALL FP_CALWR(NSA)
       ELSEIF(MODELW(NS).EQ.3) THEN
          CALL FP_CALWM(NSA)
       ELSEIF(MODELW(NS).EQ.4) THEN
-!         MODELA=0
          CALL FP_CALWM(NSA)
-!         MODELA=1
-      ELSE
+      ELSEIF(MODELW(NS).ne.0) THEN
          IF(nrank.eq.0) WRITE(6,*) 'XX UNKNOWN MODELW =',MODELW(NS)
       ENDIF
 
+      DO NR=NRSTART,NREND
+         DO NP=1,NPMAX+1
+            DO NTH=1,NTHMAX
+               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) + DWPPM(NTH,NP,NR)
+               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWPTM(NTH,NP,NR)
+            END DO
+         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) + DWTPM(NTH,NP,NR)
+               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) + DWTTM(NTH,NP,NR)
+            END DO
+         END DO
+      END DO
+      
+
 !     ----- Constant Dw
       NCONST_RF=1
-      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.1.and.NTG1.ge.2)THEN
+      IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.1.and.NTG2.ge.2)THEN
+         IF(PPWT(NSA,NTG1).ne.0.D0)THEN
          DO NR=NRSTART,NREND
+!            IF(RPWT(NR,NSA,NTG2).ne.0.D0)THEN
             DO NP=1,NPMAX+1
             DO NTH=1,NTHMAX
+!               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+!               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
                DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
                DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1) 
             END DO
             END DO
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX+1
+!               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+!               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
                DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
                DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
             END DO
             END DO
+!            END IF
          END DO
-         WRITE(*,*) NTG1,PPWT(1,1)/PPWT(1,NTG1),PPWT(3,1)/PPWT(3,NTG1)
+         END IF
+!        IF(NR.eq.1) WRITE(6,*) NSA,NTG2, PPWT(NSA,1)/PPWT(NSA,NTG1)
       END IF
 
 !     ----- Collisional slowing down and diffusion term -----
@@ -146,25 +207,6 @@
 !     ----- Radial diffusion term -----
 
       IF(MODELD.GT.0) CALL FP_CALR(NSA)
-!      IF(NSA.eq.1.and.NR.eq.6)THEN
-!         open(8,file='DRR_a1_R6.dat')
-!         DO NTH=1,NTHMAX
-!            DO NP=1,NPMAX
-!               WRITE(8,'(3I4,1P6E12.4)')NR,NP,NTH &
-!                    ,PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH) &
-!                    ,DRR(NTH,NP,NR,NSA)
-!            END DO
-!            WRITE(8,*) " "
-!            WRITE(8,*) " "
-!         END DO
-!         close(8)
-!      END IF
-
-!      IF(NSA.eq.1)THEN
-!         DO NR=NRSTART,NREND+1
-!            WRITE(*,'(I3,1P4E14.6)') NR, RG(NR),DRR(1,2,NR,NSA), RCOEF_GG(NR)
-!         END DO
-!      END IF
 
 !     ----- Particle source term -----
 

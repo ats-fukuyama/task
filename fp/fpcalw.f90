@@ -237,33 +237,43 @@
          IF(MODELA.EQ.0) THEN
             PSI=1.D0
             PSIN=RSIN
-            PCOS=ABS(RCOS)
+!            PCOS=ABS(RCOS)
+            PCOS=RCOS
          ELSE
             PSI=(1.D0+EPSR(NR))/(1.D0+X/RR)
             PSIN=SQRT(PSI)*RSIN
-            PCOS=SQRT(1.D0-PSI*RSIN**2)
+!            PCOS=SQRT(1.D0-PSI*RSIN**2)
+            IF (RCOS.GT.0.0D0) THEN
+               PCOS= SQRT(1.D0-PSI*RSIN**2)
+            ELSE
+               PCOS=-SQRT(1.D0-PSI*RSIN**2)
+            END IF
          ENDIF
 !
          PPERP=P*PSIN
-         IF (RCOS.GT.0.0) THEN
+!         IF (RCOS.GT.0.0) THEN
             PPARA =  P*PCOS
-         ELSE
-            PPARA = -P*PCOS
-         END IF
+!         ELSE
+!            PPARA = -P*PCOS
+!         END IF
 !
          CALL FPWAVE(PPARA,PPERP,NR,X,Y,DLHL,DFWL,DECL,NSA)
 !
          SUM1=SUM1+PCOS       *DLHL
          SUM2=SUM2+PCOS       *DFWL
-         SUM3=SUM3+PSI/PCOS   *DECL
-         SUM4=SUM4+PCOS       *DECL
-         SUM5=SUM5+PCOS**3/PSI*DECL
+!         SUM3=SUM3+PSI/PCOS   *DECL
+!         SUM4=SUM4+PCOS       *DECL
+!         SUM5=SUM5+PCOS**3/PSI*DECL
+         SUM3=SUM3+DECL*RCOS/PCOS
+         SUM4=SUM4+DECL/SQRT(PSI)
+         SUM5=SUM5+DECL*PCOS/RCOS/PSI
+!!! unverified for LH, FW
       END DO
-      SUM1=SUM1*DELH/PI
-      SUM2=SUM2*DELH/PI
-      SUM3=SUM3*DELH/PI
-      SUM4=SUM4*DELH/PI
-      SUM5=SUM5*DELH/PI
+      SUM1=SUM1*DELH/PI*RCOEFG(NR)
+      SUM2=SUM2*DELH/PI*RCOEFG(NR)
+      SUM3=SUM3*DELH/PI*RCOEFG(NR)
+      SUM4=SUM4*DELH/PI*RCOEFG(NR)
+      SUM5=SUM5*DELH/PI*RCOEFG(NR)
 
       RETURN
       END SUBROUTINE FPSUMW
@@ -397,7 +407,7 @@
                ARG2=(FN/DELF)**2
                IF(ARG2.LT.20.0) THEN
                   FACT2=EXP(-ARG2)
-                  DECL=DEC*RNUDL*FACT1*FACT2
+                  DECL=DEC!*RNUDL*FACT1*FACT2
                ELSE
                   DECL=0.D0
                ENDIF

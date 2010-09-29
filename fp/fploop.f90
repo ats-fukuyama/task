@@ -27,6 +27,7 @@
       real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut2, gut3, gut4
       real(8),DIMENSION(nprocs):: RSUMA
+      integer,dimension(NSAMAX)::NTCLSTEP2
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -86,6 +87,7 @@
 
                IF(DEPS.ge.EPSFP)THEN
                   CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
+!                  IF (MOD(NT,NTCLSTEP2(NSA)).EQ.0) CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
                   IF(IERR.NE.0) GOTO 250
                ELSE
                   DO NR=NRSTART,NREND
@@ -169,10 +171,16 @@
             ENDIF
 
 
+!            NTCLSTEP2(1)=1
+!            NTCLSTEP2(2)=5
+!            NTCLSTEP2(3)=5
+!            NTCLSTEP2(4)=5
+
             DO NSA=1,NSAMAX
 !            CALL GUTIME(gut)
 !            write(*,*)"time1", gut, NSA
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
+!                  IF (MOD(NT,NTCLSTEP2(NSA)).EQ.0) CALL FP_COEF(NSA)
 !            CALL GUTIME(gut)
 !            write(*,*)"time2", gut, NSA
             END DO
@@ -273,7 +281,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_SNA_test.dat')
+            open(9,file='power_SNA.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
@@ -287,15 +295,17 @@
 
             DO NTI=1,NTG1
                WRITE(9,645) NTI, PTG(NTI)*1000 &
-                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI) &
-                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI) &
-                    ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI) &
-                    ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI) &
-                    ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)             &
-                    ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI),PDR(4,NTI)                 &
-                    ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)                 &
-                    ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)                 &
-                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)                 &
+                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI)&!,PPCT2(5,1,NTI) &
+                    ,PPCT2(1,2,NTI),PPCT2(2,2,NTI),PPCT2(3,2,NTI),PPCT2(4,2,NTI)&!,PPCT2(5,2,NTI) &
+                    ,PPCT2(1,3,NTI),PPCT2(2,3,NTI),PPCT2(3,3,NTI),PPCT2(4,3,NTI)&!,PPCT2(5,3,NTI) &
+                    ,PPCT2(1,4,NTI),PPCT2(2,4,NTI),PPCT2(3,4,NTI),PPCT2(4,4,NTI)&!,PPCT2(5,4,NTI) &
+!                    ,PPCT2(1,5,NTI),PPCT2(2,5,NTI),PPCT2(3,5,NTI),PPCT2(4,5,NTI),PPCT2(5,5,NTI) &
+                    ,PPWT(1,NTI),PPWT(2,NTI),PPWT(3,NTI),PPWT(4,NTI)&!,PPWT(5,NTI)             &
+                    ,PDR(1,NTI),PDR(2,NTI),PDR(3,NTI),PDR(4,NTI)&!,PDR(5,NTI)                 &
+                    ,PWT(1,NTI),PWT(2,NTI),PWT(3,NTI),PWT(4,NTI)&!,PWT(5,NTI)                 &
+                    ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)&!,PNT(5,NTI)                 &
+                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)&!,PTT2(5,NTI)                 &
+                    ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
                     ,PSPBT(2,NTI),PSPFT(4,NTI)
             END DO
             close(9)
@@ -321,7 +331,7 @@
 
          END IF
 
- 645  FORMAT(I3,40E14.6)
+ 645  FORMAT(I3,60E14.6)
  646  FORMAT(I3,17E14.6)
  647  FORMAT(12E14.6) 
          IF(IERR.NE.0) RETURN

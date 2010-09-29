@@ -1172,7 +1172,6 @@
 !            CALL FP_COEF(NSA)
 !         END IF
       END DO
-
       ISAVE=0
       CALL FPSSUB
       IF(nrank.EQ.0) THEN

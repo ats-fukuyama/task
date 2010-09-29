@@ -131,7 +131,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
-           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR
+           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -150,7 +150,7 @@
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
            PSPT,PSPBT,PSPFT,PSPLT,PSPST
       real(rkind),dimension(:,:),POINTER :: & ! (NTG1M,NSAM)
-           PNT2,PWT2,PTT2,PIT2,PWTD,PDR,PNDR
+           PNT2,PWT2,PTT2,PIT2,PWTD,PDR,PNDR,PTT_BULK
       real(rkind),dimension(:,:,:),POINTER :: & ! (NTG1M,NSAM,NSBM)
            PPCT2
 
@@ -160,7 +160,7 @@
            RET,RQT
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM)
            RNT,RWT,RTT,RJT,RPCT,RPWT,RPET,RLHT,RFWT,RECT, &
-           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT
+           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
 
@@ -335,6 +335,8 @@
 
           allocate(RPDR(NRMAX,NSAMAX),RNDR(NRMAX,NSAMAX))
           allocate(RPDRL(NRSTART:NRENDX,NSAMAX),RNDRL(NRSTART:NRENDX,NSAMAX))
+          allocate(RT_BULK(NRMAX,NSAMAX))
+          allocate(RTL_BULK(NRSTART:NRENDX,NSAMAX))
 
 
 !         NLMAXM= 8   ! this is for analysis without bounce average
@@ -434,6 +436,7 @@
           deallocate(RSPBL,RSPFL,RSPLL,RSPSL)
           deallocate(RPDRL,RNDRL)
           deallocate(RPDR,RNDR)
+          deallocate(RT_BULK,RTL_BULK)
 
           deallocate(RNS,RJS,RWS)
           deallocate(RNS_S2)
@@ -499,6 +502,7 @@
           allocate(PSPST(NSAMAX,NTG1M))
           allocate(PPCT2(NSBMAX,NSAMAX,NTG1M))
           allocate(PDR(NSAMAX,NTG1M),PNDR(NSAMAX,NTG1M))
+          allocate(PTT_BULK(NSAMAX,NTG1M))
 
           NSAMAX_save=NSAMAX
           NSBMAX_save=NSBMAX
@@ -532,6 +536,7 @@
           deallocate(PSPT,PSPBT,PSPFT,PSPLT,PSPST)
           deallocate(PPCT2)
           deallocate(PDR,PNDR)
+          deallocate(PTT_BULK)
 
         end subroutine fp_deallocate_ntg1
 
@@ -577,6 +582,7 @@
                       PSPLT(NSA,NTG)=PSPLT(NSA,2*NTG-1)
                       PDR(NSA,NTG)  =PDR(NSA,2*NTG-1)
                       PNDR(NSA,NTG) =PNDR(NSA,2*NTG-1)
+                      PTT_BULK(NSA,NTG)=PTT_BULK(NSA,2*NTG-1)
                       DO NSB=1,NSBMAX
                          PPCT2(NSB,NSA,NTG)=PPCT2(NSB,NSA,2*NTG-1)
                       END DO
@@ -618,6 +624,7 @@
                 call fp_adjust_ntg1_B(PSPST,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PDR,tempB,NTG1M_NEW)
                 call fp_adjust_ntg1_B(PNDR,tempB,NTG1M_NEW)
+                call fp_adjust_ntg1_B(PTT_BULK,tempB,NTG1M_NEW)
                 deallocate(tempB)
                 allocate(tempC(NSBMAX,NSAMAX,NTG1M))
                 call fp_adjust_ntg1_C(PPCT2,tempC,NTG1M_NEW)
@@ -724,6 +731,7 @@
           allocate(RSPST(NRMAX,NSAMAX,NTG2M))
           allocate(RPCT2(NRMAX,NSBMAX,NSAMAX,NTG2M))
           allocate(RPDRT(NRMAX,NSAMAX,NTG2M),RNDRT(NRMAX,NSAMAX,NTG2M))
+          allocate(RTT_BULK(NRMAX,NSAMAX,NTG2M))
 
           NRMAX_save=NRMAX
           NSAMAX_save=NSAMAX
@@ -750,6 +758,8 @@
           deallocate(RSPBT,RSPFT,RSPLT,RSPST)
           deallocate(RPDRT,RNDRT)
           deallocate(RPCT2)
+          deallocate(RTT_BULK)
+
           return
         end subroutine fp_deallocate_ntg2
 !------
@@ -790,6 +800,7 @@
                          RSPST(NR,NSA,NTG)=RSPST(NR,NSA,2+NTG-1)
                          RPDRT(NR,NSA,NTG)=RPDRT(NR,NSA,2+NTG-1)
                          RNDRT(NR,NSA,NTG)=RNDRT(NR,NSA,2+NTG-1)
+                         RTT_BULK(NR,NSA,NTG)=RTT_BULK(NR,NSA,2*NTG-1)
                       END DO
                       DO NSB=1,NSBMAX
                          DO NR=NRSTART,NREND
@@ -826,6 +837,7 @@
                 call fp_adjust_ntg2_B(RSPST,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RPDRT,tempB,NTG2M_NEW)
                 call fp_adjust_ntg2_B(RNDRT,tempB,NTG2M_NEW)
+                call fp_adjust_ntg2_B(RTT_BULK,tempB,NTG2M_NEW)
                 deallocate(tempB)
                 allocate(tempC(NRMAX,NSAMAX,NSBMAX,NTG2M))
                 call fp_adjust_ntg2_C(RPCT2,tempC,NTG2M_NEW)
