@@ -359,8 +359,8 @@
 !     
                DO NG=1,NAVMAX
                   ETAL=DELH*(NG-0.5D0)
-                  X=EPSR(NR)*COS(ETAL)*RR
-                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+                  X=EPSRM(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
                   IF (COSM(NTH).GE.0.D0) THEN
                      PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                   ELSE
@@ -395,8 +395,8 @@
 !     
                DO NG=1,NAVMAX
                   ETAL=DELH*(NG-0.5D0)
-                  X=EPSR(NR)*COS(ETAL)*RR
-                  PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+                  X=EPSRM(NR)*COS(ETAL)*RR
+                  PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
                   IF(NTH.NE.NTHMAX/2+1) THEN
                      ARG=1.D0-PSIB*SING(NTH)**2
                      IF(ARG.GT.0.D0) THEN

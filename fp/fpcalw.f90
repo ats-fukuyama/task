@@ -16,6 +16,7 @@
 
       SUBROUTINE FP_CALW(NSA)
 !
+      USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NSA, NRDO, NR, NP, NTH
       real(8):: DLHA, DFWA, DECA, DECB, DECC, DLHL, DFWL, DECL
@@ -188,7 +189,7 @@
          ENDDO
 !
          DO NP=1,NPMAX
-            CALL FPWAVE(PM(NR,NSA),0.D0,NR,EPSR(NR)*RR,0.0D0, &
+            CALL FPWAVE(PM(NR,NSA),0.D0,NR,RSRHON(RM(NR)),0.0D0, &
                         DLHL,DFWL,DECL,NSA)
             DWTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
             DWTT(NTHMAX/2+1,NP,NR,NSA)=DLHL+DFWL
@@ -215,11 +216,12 @@
 !
       SUBROUTINE FPSUMW(ETA,RSIN,RCOS,P,NR,SUM1,SUM2,SUM3,SUM4,SUM5,NSA)
 !
+      USE plprof, only: rsrhon
       IMPLICIT NONE
       integer:: NR, NSA, N
       real(8):: ETA, RSIN, RCOS, P, SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: DELH, ETAL, X, Y, PSI, PSIN, PCOS, PPERP, PPARA
-      real(8):: DLHL, DFWL, DECL
+      real(8):: DLHL, DFWL, DECL, XM
 !
       DELH=2.D0*ETA/NAVMAX
 !
@@ -231,8 +233,9 @@
 !
       DO N=1,NAVMAX
          ETAL=DELH*(N-0.5D0)
-         X=EPSR(NR)*COS(ETAL)*RR
-         Y=EPSR(NR)*SIN(ETAL)*RR
+         X=RSRHON(RM(NR))*COS(ETAL)
+         Y=RSRHON(RM(NR))*SIN(ETAL)
+         XM=EPSRM(NR)*COS(ETAL)*RR
 !
          IF(MODELA.EQ.0) THEN
             PSI=1.D0
@@ -240,9 +243,11 @@
 !            PCOS=ABS(RCOS)
             PCOS=RCOS
          ELSE
-            PSI=(1.D0+EPSR(NR))/(1.D0+X/RR)
+            PSI=(1.D0+EPSRM(NR))/(1.D0+XM/RR)
             PSIN=SQRT(PSI)*RSIN
 !            PCOS=SQRT(1.D0-PSI*RSIN**2)
+!            write(6,'(A,I5,1P5E12.4)') 'NR:',NR,&
+!                 EPSRM(NR),X/RR,PSI,RSIN,1.D0-PSI*RSIN**2
             IF (RCOS.GT.0.0D0) THEN
                PCOS= SQRT(1.D0-PSI*RSIN**2)
             ELSE
@@ -407,7 +412,7 @@
                ARG2=(FN/DELF)**2
                IF(ARG2.LT.20.0) THEN
                   FACT2=EXP(-ARG2)
-                  DECL=DEC!*RNUDL*FACT1*FACT2
+                  DECL=DEC*RNUDL*FACT1*FACT2
                ELSE
                   DECL=0.D0
                ENDIF
@@ -438,7 +443,7 @@
          PSIN=RSIN
          PCOS=RCOS
       ELSE
-         PSI=(1.D0+EPSR(NR))/(1.D0+EPSR(NR)*COS(ETAL))
+         PSI=(1.D0+EPSRM(NR))/(1.D0+EPSRM(NR)*COS(ETAL))
          PSIN=SQRT(PSI)*RSIN
 !         PSIN=RSIN
          IF (RCOS.GT.0.0D0) THEN

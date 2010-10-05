@@ -62,7 +62,7 @@
 !     DEC   : Electron Cyclotron wave diffusion coefficient (normalized)
 !     PEC1  : EC wave spectrum N para center
 !     PEC2  : EC wave spectrum N para width
-!     RFEC  : EC wave frequency / electron cyclotron grequency at r = 0
+!     RFEC  : Electron cyclotron frequency at r = 0 / EC wave frequency
 !     DELYEC: EC wave beam vertical  width (m)
 !     DLH   : Lower Hybrid wave diffusion coefficient (normalized)
 !     PLH1  : LH wave spectrum (velocity minimum/N para center)

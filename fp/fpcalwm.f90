@@ -28,7 +28,7 @@
          PSIN=RSIN
          PCOS=RCOS
       ELSE
-         PSI=(1.D0+EPSR(NR))/(1.D0+EPSR(NR)*COS(ETAL))
+         PSI=(1.D0+EPSRM(NR))/(1.D0+EPSRM(NR)*COS(ETAL))
          PSIN=SQRT(PSI)*RSIN
          IF (RCOS.GT.0.0D0) THEN
             PCOS= SQRT(1.D0-PSI*RSIN**2)

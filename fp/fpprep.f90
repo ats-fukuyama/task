@@ -99,32 +99,25 @@
 
 !     ----- set approximate poloidal magneticl field -----
 
-!      DO NR=1,NRMAX+1
-!         RHON=RG(NR)
-!         CALL pl_qprf(RHON,QL)
-!         BT=BB
-!         BP= RSRHON(RHON)*BT/(RR*QL)
-!         EPSR(NR)=RSRHON(RHON)/RR
-!      ENDDO
       DO NR=1,NRMAX
          RHON=RM(NR)
          CALL pl_qprf(RHON,QL)
          BT=BB
          BP= RSRHON(RHON)*BT/(RR*QL)
-         EPSR(NR)=RSRHON(RHON)/RR
+         EPSRM(NR)=RSRHON(RHON)/RR
       ENDDO
       RHON=RG(NRMAX+1)
       CALL pl_qprf(RHON,QL)
       BT=BB
       BP= RSRHON(RHON)*BT/(RR*QL)
-      EPSR(NRMAX+1)=RSRHON(RHON)/RR
+      EPSRM(NRMAX+1)=RSRHON(RHON)/RR
 
       DO NR=1,NRMAX+1
          RHON=RG(NR)
          CALL pl_qprf(RHON,QL)
          BT=BB
          BP(NR)= RSRHON(RHON)*BT/(RR*QL)
-         EPSR_GG(NR)=RSRHON(RHON)/RR
+         EPSRG(NR)=RSRHON(RHON)/RR
       ENDDO
 
 !     ----- set parallel current density -----
@@ -205,7 +198,7 @@
          ENDDO
       ELSE
          DO NR=1,NRMAX+1
-            A1=ACOS(SQRT(2.D0*EPSR(NR)/(1.D0+EPSR(NR))))
+            A1=ACOS(SQRT(2.D0*EPSRM(NR)/(1.D0+EPSRM(NR))))
             DO NTH=1,NTHMAX/2
                IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 201
             ENDDO
@@ -217,16 +210,16 @@
 
             EPSL=COSM(ITL(NR))**2/(2.D0-COSM(ITL(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSR=',NR,NTH,EPSR(NR),EPSL
-!            WRITE(6,'(A,1P2E12.4)') 'EPSR(NR)=',EPSR(NR),EPSL
+                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRM=',NR,NTH,EPSRM(NR),EPSL
+!            WRITE(6,'(A,1P2E12.4)') 'EPSRM(NR)=',EPSRM(NR),EPSL
 !            WRITE(6,'(A,2I8)') 'ITL,ITU=',ITL(NR),ITU(NR)
-            EPSR(NR)=EPSL
+            EPSRM(NR)=EPSL
          ENDDO
 
          IF(NRANK.eq.1) WRITE(6,*) " "
 
          DO NR=1,NRMAX+1
-            A1=ACOS(SQRT(2.D0*EPSR_GG(NR)/(1.D0+EPSR_GG(NR))))
+            A1=ACOS(SQRT(2.D0*EPSRG(NR)/(1.D0+EPSRG(NR))))
             DO NTH=1,NTHMAX/2
                IF (THG(NTH).LE.A1.AND.THG(NTH+1).GE.A1) GOTO 202
             ENDDO
@@ -238,9 +231,9 @@
 
             EPSL=COSM(ITLG(NR))**2/(2.D0-COSM(ITLG(NR))**2)
             IF(nprocs.gt.1.and.NRANK.eq.1) &
-                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSR=',NR,NTH,EPSR_GG(NR),EPSL
+                 WRITE(6,'(A,2I5,1P2E12.4)') 'NR,NTHC,EPSRG=',NR,NTH,EPSRG(NR),EPSL
 
-            EPSR_GG(NR)=EPSL
+            EPSRG(NR)=EPSL
          ENDDO
 
       ENDIF
@@ -304,16 +297,6 @@
          ENDDO
       ENDDO
 
-      DO NR=NRSTART,NRENDX
-         work(NR)=EPSR(NR)
-      ENDDO
-      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
-           workg,NRMAX,MTXLEN,MTXPOS)
-      CALL mtx_broadcast_real8(workg,NRMAX)
-      DO NR=1,NRMAX
-         EPSRG(NR)=workg(NR)
-      ENDDO
-
       DO NTH=1,NTHMAX
          DO NR=NRSTART,NRENDX
             work(NR)=RLAMDA_G(NTH,NR)
@@ -362,7 +345,7 @@
       real(8):: EPSL, FACT, A1, RINT0, ES, DELH
       real(8):: SUML, ETAL, X, PSIB, PCOS, RINT2
 
-      EPSL=EPSR(NR)
+      EPSL=EPSRM(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
       
       DO NTH=1,ITL(NR)
@@ -402,8 +385,8 @@
             suml=0.D0
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
-               X=EPSR(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSR(NR))/(1.D0+X/RR)
+               X=EPSRM(NR)*COS(ETAL)*RR
+               PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
                IF(COSM(NTH).ge.0.D0)THEN
                   PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                ELSE
@@ -417,7 +400,7 @@
          ENDIF
          CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A)
          RLAMDA(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
-         RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSR(NR))*(COSG(NTH)))
+         RLAMDC(NTH,NR)=RINT2/(PI*(1.D0+EPSRM(NR))*(COSG(NTH)))
       ENDDO
       IF(ITL(NR).ne.NTHMAX/2)THEN
          RLAMDA(ITL(NR),NR)=0.5D0*(RLAMDA(ITL(NR)-1,NR) &
@@ -449,7 +432,7 @@
       real(8):: EPSL, FACT, A1, RINT0, ES, DELH
       real(8):: SUML, ETAL, X, PSIB, PCOS, RINT2
 
-      EPSL=EPSR_GG(NR)
+      EPSL=EPSRG(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
       
       DO NTH=1,ITLG(NR)
@@ -488,8 +471,8 @@
             suml=0.D0
             DO NG=1,NAVMAX
                ETAL=DELH*(NG-0.5D0)
-               X=EPSR_GG(NR)*COS(ETAL)*RR
-               PSIB=(1.D0+EPSR_GG(NR))/(1.D0+X/RR)
+               X=EPSRG(NR)*COS(ETAL)*RR
+               PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
                IF(COSM(NTH).ge.0.D0)THEN
                   PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                ELSE
@@ -503,7 +486,7 @@
          ENDIF
          CALL DEFT(RINT2,ES,H0DE,EPSDE,0,FPFN2A_G)
          RLAMDA_G(NTH,NR)=RINT0*ABS(COSM(NTH))/PI
-         RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSR_GG(NR))*(COSG(NTH)))
+         RLAMDC_G(NTH,NR)=RINT2/(PI*(1.D0+EPSRG(NR))*(COSG(NTH)))
       ENDDO
       IF(ITLG(NR).ne.NTHMAX/2)THEN
          RLAMDA_G(ITLG(NR),NR)=0.5D0*(RLAMDA_G(ITLG(NR)-1,NR) &
@@ -568,8 +551,8 @@
       XX=X
       XX=XM
       A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSR(NRX))*SINM(NTHX)**2
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
+      A2=(1.D0+EPSRM(NRX))*SINM(NTHX)**2
       FPFN0U=A0*SQRT(A1/(A1-A2))
 
       RETURN
@@ -585,8 +568,8 @@
       XX=X
       XX=XM
       A0=ETAM_G(NTHX,NRX)
-      A1=1.D0+EPSR_GG(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSR_GG(NRX))*SINM(NTHX)**2
+      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
+      A2=(1.D0+EPSRG(NRX))*SINM(NTHX)**2
       FPFN0U_G=A0*SQRT(A1/(A1-A2))
 
       RETURN
@@ -601,8 +584,8 @@
 
       XX=X
       A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
-      A2=2.D0*EPSR(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
+      A2=2.D0*EPSRM(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
       FPFN0T=A0*SQRT(A1/A2)
 
       RETURN
@@ -618,7 +601,7 @@
       XX=X
       XX=XM
       A0=ETAM(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
       FPFN1A=A0*SQRT(A1)
 
       RETURN
@@ -634,8 +617,8 @@
       XX=X
       XX=XM
       A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
-      A2=A1-(1.D0+EPSR(NRX))*SING(NTHX)**2
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
+      A2=A1-(1.D0+EPSRM(NRX))*SING(NTHX)**2
       FPFN2A=A0*SQRT(A1*A2)
 
       RETURN
@@ -650,8 +633,8 @@
       XX=X
       XX=XM
       A0=ETAG_G(NTHX,NRX)
-      A1=1.D0+EPSR_GG(NRX)*COS(A0*XP)
-      A2=A1-(1.D0+EPSR_GG(NRX))*SING(NTHX)**2
+      A1=1.D0+EPSRG(NRX)*COS(A0*XP)
+      A2=A1-(1.D0+EPSRG(NRX))*SING(NTHX)**2
       FPFN2A_G=A0*SQRT(A1*A2)
 
       RETURN
@@ -665,8 +648,8 @@
       XX=X
       XX=XM
       A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
-      A2=(1.D0+EPSR(NRX))*SING(NTHX)**2
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
+      A2=(1.D0+EPSRM(NRX))*SING(NTHX)**2
       FPFN2U=A0*SQRT(A1/(A1-A2))
 
       RETURN
@@ -679,8 +662,8 @@
 
       XX=X
       A0=ETAG(NTHX,NRX)
-      A1=1.D0+EPSR(NRX)*COS(A0*XP)
-      A2=2.D0*EPSR(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
+      A1=1.D0+EPSRM(NRX)*COS(A0*XP)
+      A2=2.D0*EPSRM(NRX)*SIN(0.5D0*A0*XM)*SIN(0.5D0*A0*(XP+2.D0))
       FPFN2T=A0*SQRT(A1/A2)
 
       RETURN
@@ -1166,6 +1149,14 @@
 !      NCALCNR=0
       DO NSA=1,NSAMAX
          CALL FP_COEF(NSA)
+         NSBA=NSB_NSA(NSA)
+         DO NTH=1,NTHMAX
+            DO NP=1,NPMAX
+               DO NR=1,NRMAX
+                  F(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)
+               END DO
+            END DO
+         END DO
          CALL FPWEIGHT(NSA,IERR) 
 !         IF(MODELR.eq.1.and.MODELC.eq.4.and.NCALCNR.eq.2)THEN
 !            NCALCNR=1
