@@ -294,7 +294,7 @@
       real(8):: PPARA, PPERP, X, Y, DLHL, DFWL, DECL
       real(8):: P2, PVPARA, RNUDL, RNUFL, AMI, AEI, WPI2, FACT, FACT2
       real(8):: DFWL1, DFWL2, ARG, ARG1, FACT1, W, PARAN, FN, DELF, ARG2
-      real(8):: WFW2
+      real(8):: WFW2, ARG3, FACT3
 !
       P2=PPARA**2+PPERP**2
       PVPARA=PPARA/SQRT(1.D0+P2*THETA0(NSA))
@@ -405,20 +405,31 @@
             ARG1=(Y/DELYEC)**2
             IF(ARG1.LT.20.0) THEN
                FACT1=EXP(-ARG1)
-               W=RFEC/(1.D0+X/RR)
-               PARAN=PPARA*SQRT(RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC))
-               FN=PEC1*PARAN-SQRT(1.D0+THETA0(NSA)*P2)+W
-               DELF=PEC2*PARAN
-               ARG2=(FN/DELF)**2
-               IF(ARG2.LT.20.0) THEN
-                  FACT2=EXP(-ARG2)
-                  DECL=DEC*RNUDL*FACT1*FACT2
-               ELSE
-                  DECL=0.D0
-               ENDIF
             ELSE
-               DECL=0.D0
+               FACT1=0.D0
+            END IF
+
+            W=RFEC/(1.D0+X/RR)
+            PARAN=PPARA*SQRT(RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC))
+            FN=PEC1*PARAN-SQRT(1.D0+THETA0(NSA)*P2)+W
+            DELF=PEC2*PARAN
+            ARG2=(FN/DELF)**2
+            IF(ARG2.LT.20.0) THEN
+               FACT2=EXP(-ARG2)
+            ELSE
+               FACT2=0.D0
+            END IF
+
+            ARG3=(X-PEC3)/PEC4
+            IF(ARG3.GT.20.D0) THEN
+               FACT3=1.D0
+            ELSE IF(ARG3.LT.-20.D0) THEN
+               FACT3=0.D0
+            ELSE
+               FACT3=0.5D0*(1.D0*TANH(ARG3))
             ENDIF
+              
+            DECL=DEC*RNUDL*FACT1*FACT2*FACT3
          ELSE
             DECL=0.D0
          ENDIF
