@@ -426,7 +426,7 @@
             ELSE IF(ARG3.LT.-20.D0) THEN
                FACT3=0.D0
             ELSE
-               FACT3=0.5D0*(1.D0*TANH(ARG3))
+               FACT3=0.5D0*(1.D0+TANH(ARG3))
             ENDIF
               
             DECL=DEC*RNUDL*FACT1*FACT2*FACT3

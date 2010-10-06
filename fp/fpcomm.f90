@@ -23,7 +23,7 @@
       real(rkind):: PGMAX, RGMAX, RGMIN
 
       real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX,DRRS
-      real(rkind):: DEC,PEC1,PEC2,RFEC,DELYEC
+      real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
       real(rkind):: DLH,PLH1,PLH2,RLH
       real(rkind):: DFW,PFW1,PFW2,RFW
       real(rkind):: RFDW,DELNPR

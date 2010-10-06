@@ -62,6 +62,8 @@
 !     DEC   : Electron Cyclotron wave diffusion coefficient (normalized)
 !     PEC1  : EC wave spectrum N para center
 !     PEC2  : EC wave spectrum N para width
+!     PEC3  : EC wave horizontal minimum x [m]
+!     PEC4  : EC wave horizontal decay length [m]
 !     RFEC  : Electron cyclotron frequency at r = 0 / EC wave frequency
 !     DELYEC: EC wave beam vertical  width (m)
 !     DLH   : Lower Hybrid wave diffusion coefficient (normalized)
@@ -76,6 +78,8 @@
       DEC   = 0.D0
       PEC1  = 0.5D0
       PEC2  = 0.1D0
+      PEC3  =-3.D0
+      PEC4  = 0.1D0
       RFEC  = 0.8D0
       DELYEC= 0.1D0
       DLH   = 0.D0
@@ -340,7 +344,7 @@
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
-           DEC,PEC1,PEC2,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
+           DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
            DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH, &
            RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR, &
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
@@ -369,7 +373,7 @@
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
-           DEC,PEC1,PEC2,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
+           DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
            DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH, &
            RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR, &
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
@@ -406,7 +410,7 @@
       WRITE(6,*) '      NTG1STEP,NTG1MIN,NTG1MAX,LLMAX,IDBGFP,'
       WRITE(6,*) '      NTG2STEP,NTG2MIN,NTG2MAX,'
       WRITE(6,*) '      DRR0,E0,R1,DELR1,RMIN,RMAX,'
-      WRITE(6,*) '      DEC,PEC1,PEC2,RFEC,DELYEC,DLH,PLH1,PLH2,RLH,'
+      WRITE(6,*) '      DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH,'
       WRITE(6,*) '      DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH,'
       WRITE(6,*) '      RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR,'
       WRITE(6,*) '      NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,'
@@ -439,7 +443,7 @@
       USE libmtx
       IMPLICIT NONE
       INTEGER,DIMENSION(32):: idata
-      real(8),DIMENSION(42):: rdata
+      real(8),DIMENSION(44):: rdata
       complex(8),DIMENSION(3):: cdata
 
 !----- PL input parameters -----     
@@ -649,7 +653,9 @@
       rdata(40)=SPFRW
       rdata(41)=SPFENG
       rdata(42)=DRRS
-      CALL mtx_broadcast_real8(rdata,42)
+      rdata(43)=PEC3
+      rdata(44)=PEC4
+      CALL mtx_broadcast_real8(rdata,44)
       DELT  =rdata( 1)
       RMIN  =rdata( 2)
       RMAX  =rdata( 3)
@@ -692,6 +698,8 @@
       SPFRW =rdata(40)
       SPFENG=rdata(41)
       DRRS  =rdata(42)
+      PEC3  =rdata(43)
+      PEC4  =rdata(44)
 
       CALL mtx_broadcast_real8(pmax,NSAMAX)
       CALL mtx_broadcast_real8(TLOSS,NSMAX)
@@ -733,7 +741,7 @@
            NTG1STEP,NTG1MIN,NTG1MAX, &
            NTG2STEP,NTG2MIN,NTG2MAX, &
            DRR0,E0,R1,DELR1,RMIN,RMAX, &
-           DEC,PEC1,PEC2,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
+           DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC,DLH,PLH1,PLH2,RLH, &
            DFW,PFW1,PFW2,RFW,RFDW,DELNPR,CEWR,CEWTH,CEWPH, &
            RKWR,RKWTH,RKWPH,REWY,DREWY,FACTWM,PWAVE,EPSNWR, &
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,&
@@ -776,6 +784,7 @@
             
             WRITE(6,600) 'DEC     ',DEC     ,'RFEC    ',RFEC  
             WRITE(6,600) 'PEC1    ',PEC1    ,'PEC2    ',PEC2    ,'DELYEC  ',DELYEC
+            WRITE(6,600) 'PEC3    ',PEC3    ,'PEC4    ',PEC4
             WRITE(6,600) 'DLH     ',DLH     ,'RLH     ',RLH
             WRITE(6,600) 'PLH1    ',PLH1    ,'PLH2    ',PLH2
             WRITE(6,600) 'DFW     ',DFW     ,'RFW     ',RFW
