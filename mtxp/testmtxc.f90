@@ -7,9 +7,9 @@
 !        itype: type of linear solver (0 for default)
 !        tolerance : tolerance in iterative method
 
-program testzmumps
+program testmtxc
 
-  use libmtx 
+  use libmtxc
   implicit none
   integer :: nrank,nprocs
   integer :: isize,itype,idata(2)
@@ -144,4 +144,4 @@ program testzmumps
   call mtx_finalize
 
   stop
-end program testzmumps
+end program testmtxc

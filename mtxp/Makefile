@@ -40,14 +40,14 @@ testksp: $(LIBKSP) testmtx.o
 testdmumps: $(LIBDMUMPS) testmtx.o
 	-${FLINKER} -g -o testdmumps testmtx.o $(LIBDMUMPS) ${PETSC_KSP_LIB}
 
-testzmumps: $(LIBZMUMPS) testzmumps.o
-	-${FLINKER} -g -o testzmumps testzmumps.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/intel111/lib/libzmumps.a $(GFLIBS) ../lib/tasklib.a
+testzmumps: $(LIBZMUMPS) testmtxc.o
+	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/intel111/lib/libzmumps.a $(GFLIBS) ../lib/tasklib.a
 
 testbnd: $(LIBBND) testmtx.o 
 	-${FLINKER} -g -o testbnd testmtx.o $(LIBBND) ../../task/lib/libbnd.o
 
 testmtx.o: testmtx.f90
-testzmumps.o: testzmumps.f90
+testmtxc.o: testmtxc.f90
 libmtxmpi.o: libmtxmpi.F90
 libmtxnompi.o: libmtxnompi.f90
 libmtxbnd.o: libmtxbnd.f90

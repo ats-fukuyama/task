@@ -1,6 +1,6 @@
 !     $Id$
 
-      MODULE libmtx
+      MODULE libmtxc
 
       use libmpi
 
@@ -275,4 +275,4 @@
       RETURN
       END SUBROUTINE mtx_cleanup
 
-      END MODULE libmtx
+      END MODULE libmtxc
