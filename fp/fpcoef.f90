@@ -116,6 +116,8 @@
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX+1
             DO NTH=1,NTHMAX
+               DWICPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
+               DWICPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
                DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) + DWPPM(NTH,NP,NR)
                DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWPTM(NTH,NP,NR)
             END DO
@@ -150,28 +152,7 @@
                END DO
             END DO
          END IF
-      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.NTG2.ge.2)THEN
-         DO NR=NRSTART,NREND
-            DO NP=1,NPMAX+1
-               DO NTH=1,NTHMAX
-                  IF(RPWT(NR,NSA,NTG2).gt.0.D0)THEN
-                     DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-                     DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
-                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
-                  END IF
-               END DO
-            END DO
-            DO NP=1,NPMAX
-               DO NTH=1,NTHMAX+1
-                  IF(RPWT(NR,NSA,NTG2).gt.0.D0)THEN
-                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-                  END IF
-               END DO
-            END DO
-         END DO
-      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN
+      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.N_IMPL.ne.0)THEN ! TOTAL Pabs(r) constant
          DO NR=NRSTART,NREND
 !         WRITE(6,*) NR, RPW_IMPL(NR,NSA,N_IMPL), RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
             DO NP=1,NPMAX+1
@@ -187,8 +168,35 @@
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
                   IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPW_IMPL(NR,NSA,N_IMPL)
-                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                  END IF
+               END DO
+            END DO
+         END DO
+      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN ! Pabs_EC(r), Pabs_IC(r) constant
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX+1
+               DO NTH=1,NTHMAX
+                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
+                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL)
+                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL)
+                     DWICPP(NTH,NP,NR,NSA)=DWICPP(NTH,NP,NR,NSA)*RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL)
+                     DWICPT(NTH,NP,NR,NSA)=DWICPT(NTH,NP,NR,NSA)*RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL)
+                     DWPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)+DWICPP(NTH,NP,NR,NSA)
+                     DWPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)+DWICPT(NTH,NP,NR,NSA)
+                  END IF
+               END DO
+            END DO
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX+1
+                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
+                     DWTP(NTH,NP,NR,NSA)=( DWTP(NTH,NP,NR,NSA)-DWTPM(NTH,NP,NR) ) &
+                          *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) &
+                          + DWTPM(NTH,NP,NR)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
+                     DWTT(NTH,NP,NR,NSA)=( DWTT(NTH,NP,NR,NSA)-DWTTM(NTH,NP,NR) ) &
+                          *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) &
+                          + DWTTM(NTH,NP,NR)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
                   END IF
                END DO
             END DO
@@ -958,7 +966,7 @@
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS
       integer:: IERR
-      real(8):: RSUM5,RSUM9
+      real(8):: RSUM_W,RSUM_EC,RSUM_IC
       real(8):: PV, WPL, WPM, WPP
       real(8):: DFP, DFT, FFP, FACT
 
@@ -967,8 +975,9 @@
             NS=NS_NSA(NSA)
             NSBA=NSB_NSA(NSA)
 
-            RSUM5=0.D0
-            RSUM9=0.D0
+            RSUM_W=0.D0
+            RSUM_EC=0.D0
+            RSUM_IC=0.D0
 
             DO NP=2,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
@@ -1016,21 +1025,26 @@
                                   )
                   ENDIF
 
-                  RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM_W = RSUM_W+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                          *(DWPP(NTH,NP,NR,NSA)*DFP           &
                           +DWPT(NTH,NP,NR,NSA)*DFT)
-                  RSUM9 = RSUM9+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                  RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                         *(DWICPP(NTH,NP,NR,NSA)*DFP         &
+                          +DWICPT(NTH,NP,NR,NSA)*DFT)
+                  RSUM_EC = RSUM_EC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                          *(DWECPP(NTH,NP,NR,NSA)*DFP         &
                           +DWECPT(NTH,NP,NR,NSA)*DFT)
                ENDDO
             ENDDO
                
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
-            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
+            RPWIC_IMPL(NR,NSA,N_IMPL)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             IF(N_IMPL.eq.0)THEN
-               RPW_INIT(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-               RPWEC_INIT(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+               RPW_INIT(NR,NSA)=-RSUM_W*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
+               RPWIC_INIT(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+               RPWEC_INIT(NR,NSA)=-RSUM_EC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             END IF
          ENDDO
       ENDDO

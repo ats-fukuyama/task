@@ -29,7 +29,7 @@
       integer:: IERR
       real(8):: RSUM1, RSUM2, RSUM3, RSUM4, RSUM5, RSUM6, RSUM7, RSUM_FS2
       real(8):: RSUM8, RSUM9, RSUM123, RSUM11B,RSUM11F,RSUM11S,RSUM11L
-      real(8):: RSUM12
+      real(8):: RSUM12, RSUM_IC
       real(8):: PV, WPL, WPM, WPP
       real(8):: DFP, DFT, FFP, testa, testb, FACT, DFDP, WRL, WRH, DINT_DFDT_R1, DINT_DFDT_R2
       real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
@@ -60,6 +60,7 @@
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
+            RSUM_IC=0.D0
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
@@ -224,6 +225,9 @@
                   RSUM9 = RSUM9+PG(NP,NSBA)**2*SINM(NTH)/PV   &
                          *(DWECPP(NTH,NP,NR,NSA)*DFP         &
                           +DWECPT(NTH,NP,NR,NSA)*DFT)
+                  RSUM_IC = RSUM_IC+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                         *(DWICPP(NTH,NP,NR,NSA)*DFP         &
+                          +DWICPT(NTH,NP,NR,NSA)*DFT)
                   DO NSB=1,NSBMAX
                      RSUM10(NSB)=RSUM10(NSB)+PG(NP,NSBA)**2*SINM(NTH)/PV &
                          *(DCPP2(NTH,NP,NR,NSB,NSA)*DFP              &
@@ -369,6 +373,7 @@
             RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            RICSL(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
 
             DO NSB=1,NSBMAX
                RPCS2L(NR,NSB,NSA)=-RSUM10(NSB) &
@@ -405,6 +410,8 @@
                                 RFWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RECSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RECS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+         CALL mtx_gatherv_real8(RICSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+                                RICS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          DO NSB=1,NSBMAX
             CALL mtx_gatherv_real8(RPCS2L(NRSTART:NRENDX,NSB,NSA), &
                                    MTXLEN(NRANK+1), &
@@ -455,6 +462,7 @@
          PLHT(NSA,NTG1)=0.D0
          PFWT(NSA,NTG1)=0.D0
          PECT(NSA,NTG1)=0.D0
+         PICT(NSA,NTG1)=0.D0
          PWT2(NSA,NTG1)=0.D0
          PSPBT(NSA,NTG1)=0.D0
          PSPFT(NSA,NTG1)=0.D0
@@ -481,6 +489,7 @@
             PLHT(NSA,NTG1)=PLHT(NSA,NTG1)+RLHS(NR,NSA)*VOLR(NR)
             PFWT(NSA,NTG1)=PFWT(NSA,NTG1)+RFWS(NR,NSA)*VOLR(NR)
             PECT(NSA,NTG1)=PECT(NSA,NTG1)+RECS(NR,NSA)*VOLR(NR)
+            PICT(NSA,NTG1)=PICT(NSA,NTG1)+RICS(NR,NSA)*VOLR(NR)
             PSPBT(NSA,NTG1)=PSPBT(NSA,NTG1)+RSPB(NR,NSA)*VOLR(NR)
             PSPFT(NSA,NTG1)=PSPFT(NSA,NTG1)+RSPF(NR,NSA)*VOLR(NR)
             PSPST(NSA,NTG1)=PSPST(NSA,NTG1)+RSPS(NR,NSA)*VOLR(NR)
@@ -569,6 +578,7 @@
             RLHT(NR,NSA,NTG2)= RLHS(NR,NSA)
             RFWT(NR,NSA,NTG2)= RFWS(NR,NSA)
             RECT(NR,NSA,NTG2)= RECS(NR,NSA)
+            RICT(NR,NSA,NTG2)= RICS(NR,NSA)
             DO NSB=1,NSBMAX
                RPCT2(NR,NSB,NSA,NTG2)= RPCS2(NR,NSB,NSA)
             END DO
@@ -616,7 +626,7 @@
 !
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NP, NTH
-      real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2, rtotalDR
+      real(8):: rtotalPW, rtotalPC,rtotalSP,rtotalPC2, rtotalDR,rtotalEC,rtotalIC
 !      INCLUDE '../wr/wrcom1.inc'
 !
       WRITE(6,*)"--------------------------------------------"
@@ -641,6 +651,8 @@
       rtotalPC=0.D0
       rtotalSP=0.D0
       rtotalPC2=0.D0
+      rtotalEC=0.D0
+      rtotalIC=0.D0
       DO NSA=1,NSAMAX
 !         WRITE(6,103) NSA,NS_NSA(NSA), &
 !              PPCT(NSA,NTG1),PPWT(NSA,NTG1),PPET(NSA,NTG1)
@@ -650,6 +662,8 @@
          rtotalPC=rtotalPC + PPCT(NSA,NTG1)
          rtotalSP=rtotalSP + PSPT(NSA,NTG1)
          rtotalPC2 = rtotalPC2 +PPCT(NSA,NTG1)-PPCT2(NSA,NSA,NTG1)
+         rtotalEC=rtotalEC + PECT(NSA,NTG1)
+         rtotalIC=rtotalIC + PICT(NSA,NTG1)
       END DO
       DO NSA=1,NSAMAX
          IF(NSBMAX.GT.1) THEN
@@ -669,11 +683,11 @@
          write(6,108) NSA,NS_NSA(NSA),PSPBT(NSA,NTG1),PSPFT(NSA,NTG1), &
                                       PSPST(NSA,NTG1),PSPLT(NSA,NTG1)
       END DO
-      write(6,105) rtotalpw
+      write(6,105) rtotalpw,rtotalEC,rtotalIC
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
-      write(6,1111) PECT(1,NTG1)
+!      write(6,1111) PECT(1,NTG1)
 
  1001 FORMAT(I4,9E14.6)
       RETURN
@@ -684,13 +698,13 @@
   104 FORMAT('        ',2I2,' PCAB    =',10X,1P14E12.4)
   113 FORMAT('        ',2I2,' PC,PW,PE,PDR=',6X,1P4E12.4)
 
- 105  FORMAT('total absorption power [MW]', 1PE12.4)
+ 105  FORMAT('Total absorption power [MW]', 1PE12.4,' EC [MW]',1PE12.4,' IC [MW]',1PE12.4)
  106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power  [MW]', 1PE12.4)
  108  FORMAT('        ',2I2,' PSPB/F/S/L=',8X,1P4E12.4) 
  109  FORMAT('total source power     [MW]', 1PE12.4)
  110  FORMAT('collision balance      [MW]', 1PE12.4)
- 1111 FORMAT('Absorption by EC       [MW]', 1PE12.4)
+! 1111 FORMAT('Absorption by EC       [MW]', 1PE12.4)
       END SUBROUTINE FPWRTGLB
 
 ! ***********************************************************
