@@ -128,35 +128,73 @@
          END DO
       END DO
       
-
+      IF(N_IMPL.ne.0) CALL FPWAVE_CONST
 !     ----- Constant Dw
-      NCONST_RF=1
+      NCONST_RF=3
       IF(MODELW(NSA).eq.4.and.NCONST_RF.eq.1.and.NTG2.ge.2)THEN
          IF(PPWT(NSA,NTG1).ne.0.D0)THEN
-         DO NR=NRSTART,NREND
-!            IF(RPWT(NR,NSA,NTG2).ne.0.D0)THEN
-            DO NP=1,NPMAX+1
-            DO NTH=1,NTHMAX
-!               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-!               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
-               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
-               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1) 
+            DO NR=NRSTART,NREND
+               DO NP=1,NPMAX+1
+                  DO NTH=1,NTHMAX
+                     DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+                     DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1) 
+                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1) 
+                  END DO
+               END DO
+               DO NP=1,NPMAX
+                  DO NTH=1,NTHMAX+1
+                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+                  END DO
+               END DO
             END DO
+         END IF
+      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.2.and.NTG2.ge.2)THEN
+         DO NR=NRSTART,NREND
+            DO NP=1,NPMAX+1
+               DO NTH=1,NTHMAX
+                  IF(RPWT(NR,NSA,NTG2).gt.0.D0)THEN
+                     DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+                     DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
+                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2) 
+                  END IF
+               END DO
             END DO
             DO NP=1,NPMAX
-            DO NTH=1,NTHMAX+1
-!               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-!               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
-               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
-               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*PPWT(NSA,1)/PPWT(NSA,NTG1)
+               DO NTH=1,NTHMAX+1
+                  IF(RPWT(NR,NSA,NTG2).gt.0.D0)THEN
+                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPWT(NR,NSA,NTG2)
+                  END IF
+               END DO
             END DO
-            END DO
-!            END IF
          END DO
-         END IF
-!        IF(NR.eq.1) WRITE(6,*) NSA,NTG2, PPWT(NSA,1)/PPWT(NSA,NTG1)
+      ELSEIF(MODELW(NSA).eq.4.and.NCONST_RF.eq.3.and.N_IMPL.ne.0)THEN
+         DO NR=NRSTART,NREND
+!         WRITE(6,*) NR, RPW_IMPL(NR,NSA,N_IMPL), RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+            DO NP=1,NPMAX+1
+               DO NTH=1,NTHMAX
+                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
+                     DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWECPP(NTH,NP,NR,NSA)=DWECPP(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWECPT(NTH,NP,NR,NSA)=DWECPT(NTH,NP,NR,NSA)*RPW_INIT(NR,NSA)/RPW_IMPL(NR,NSA,N_IMPL)
+                  END IF
+               END DO
+            END DO
+            DO NP=1,NPMAX
+               DO NTH=1,NTHMAX+1
+                  IF(RPW_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
+                     DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPW_IMPL(NR,NSA,N_IMPL)
+                     DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)*RPWT(NR,NSA,1)/RPW_IMPL(NR,NSA,N_IMPL)
+                  END IF
+               END DO
+            END DO
+         END DO
       END IF
-
+!      WRITE(6,*) NRSTART, NRANK, NPROCS
 !     ----- Collisional slowing down and diffusion term -----
 
       CALL FP_CALC(NSA)
@@ -341,11 +379,11 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND+1
-         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4.OR.MODELD.EQ.6) THEN
+         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4.OR.MODELD.EQ.6.OR.MODELD.EQ.7) THEN
             RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
          ENDIF
          RHON=RG(NR)
-         IF(MODELD.EQ.2.OR.MODELD.EQ.4.OR.MODELD.eq.5) THEN
+         IF(MODELD.EQ.2.OR.MODELD.EQ.4.OR.MODELD.eq.5) THEN ! analytical pinch
             SV=MAX(PNS(NS)/PN(NS),1.D-3)
             FACTRN=PROFN1*PROFN2*RHON**(PROFN1-1.D0)/((1-RHON**PROFN1)+SV)
             SV=MAX(PTS(NS)/PTPP(NS),1.D-3)
@@ -367,7 +405,7 @@
                   DNDR=( -NEDGE+RNFPS(NSA))/DELR
                END IF
             END IF
-         ELSEIF(MODELD.eq.6)THEN
+         ELSEIF(MODELD.eq.6.or.MODELD.eq.7)THEN ! numarical pinch
             DINT_D=0.D0
             DINT_F=0.D0
             DO NP=1,NPMAX
@@ -388,8 +426,13 @@
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                   END IF
-                  DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
-                  DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+                  IF(MODELD.eq.6)THEN
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+                  ELSEIF(MODELD.eq.7)THEN
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*F_R1
+                  END IF
                END DO
             END DO
             FACTR = DINT_D/DINT_F
@@ -412,9 +455,12 @@
             CASE(5) ! case(1) with pinch, independent on p
                FACTR=DNDR/NEDGE
                FACTP=1.D0
-            CASE(6) ! case(3) with pinch, depend on p
+            CASE(6) ! case(3) with pinch, depend on 1/p
 !               FACTR=DNDR/NEDGE
                FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)
+            CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
+!               FACTR=DNDR/NEDGE
+               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)/RTFPL)
             END SELECT
             DO NTH=1,NTHMAX
                FACT= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
@@ -468,8 +514,8 @@
                   sumf=0.D0
                   DO NG=1,NAVMAX
                      ETAL=DELH*(NG-0.5D0)
-                     X=EPSRG(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
                      IF (COSM(NTH).GE.0.D0) THEN
                         PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                      ELSE
@@ -714,7 +760,7 @@
 
       IF(MODELS.EQ.2) THEN
          DO ID=1,6
-!            IF(NCHECK.eq.0.or.NCHECK.gt.LMAXFP.and.NR.eq.1)THEN
+!            IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP.and.NR.eq.1)THEN
 !               WRITE(6,'(A,4I5,1PE12.4)') 'ID,NSA,NS,NSA1_NF,ENG1_NF=', &
 !                 ID,NSA,NS,NSA1_NF(ID),ENG1_NF(ID)
 !            END IF
@@ -722,7 +768,7 @@
                PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
                DO NP=1,NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-!                     If(NCHECK.eq.0.or.NCHECK.gt.LMAXFP)THEN
+!                     If(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
 !                        write(6,'(A,I5,1P3E12.4)') ' |-NP,PSP,PG=',&
 !                          NP,PSP,PG(NP,NSBA),PG(NP+1,NSBA)
 !                     END IF
@@ -741,7 +787,7 @@
                ENDDO
                IF(PSP.ge.PG(NPMAX,NSBA))THEN
                   NP=NPMAX
-                  IF(NCHECK.eq.0.or.NCHECK.gt.LMAXFP)THEN
+                  IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
                      write(6,'(A,I5,1P3E12.4)') '  |-NP,PSP,PG=',&
                        NP,PSP,PMAX(NSBA)
                      WRITE(6,*) ' |-  OUT OF RANGE PMAX'
@@ -905,6 +951,91 @@
 
       RETURN
       END SUBROUTINE FPMXWL_EDGE
+!-------------------------------------------------------------
 
+      SUBROUTINE FPWAVE_CONST
+!
+      IMPLICIT NONE
+      integer:: NR, NSA, NSB, NSBA, NP, NTH, NS
+      integer:: IERR
+      real(8):: RSUM5,RSUM9
+      real(8):: PV, WPL, WPM, WPP
+      real(8):: DFP, DFT, FFP, FACT
+
+      DO NR=NRSTART,NREND
+         DO NSA=1,NSAMAX
+            NS=NS_NSA(NSA)
+            NSBA=NSB_NSA(NSA)
+
+            RSUM5=0.D0
+            RSUM9=0.D0
+
+            DO NP=2,NPMAX
+               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
+               DO NTH=1,NTHMAX
+                  WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                  IF(NTH.EQ.1) THEN
+                     WPM=0.D0
+                  ELSE
+                     WPM=WEIGHP(NTH-1,NP,NR,NSA)
+                  ENDIF
+                  IF(NTH.EQ.NTHMAX) THEN
+                     WPP=0.D0
+                  ELSE
+                     WPP=WEIGHP(NTH+1,NP,NR,NSA)
+                  ENDIF
+                  DFP=    PG(NP,NSBA) &
+                       /DELP(NSBA)*(FNS(NTH,NP,NR,NSBA)-FNS(NTH,NP-1,NR,NSBA))
+                  IF(NTH.EQ.1) THEN
+                     DFT=1.D0/DELTH                             &
+                         *(                                     &
+                            ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNS(NTH+1,NP-1,NR,NSBA))&
+                           -                                    &
+                            ((1.D0-WPM)*FNS(NTH,NP  ,NR,NSBA)     &
+                                  +WPM *FNS(NTH,NP-1,NR,NSBA))&
+                          )
+
+                  ELSE IF(NTH.EQ.NTHMAX) THEN
+                     DFT=    1.D0/DELTH                         & 
+                         *(-                                    &
+                            ((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNS(NTH-1,NP-1,NR,NSBA))&
+                          +                                     &
+                            ((1.D0-WPP)*FNS(NTH,NP  ,NR,NSBA)     &
+                                  +WPP *FNS(NTH,NP-1,NR,NSBA))&
+                          )
+                  ELSE
+                     DFT=    1.D0/(2.D0*DELTH)                  &
+                         *(                                     &
+                            ((1.D0-WPP)*FNS(NTH+1,NP  ,NR,NSBA)   &
+                                  +WPP *FNS(NTH+1,NP-1,NR,NSBA))&
+                           -                                    &
+                            ((1.D0-WPM)*FNS(NTH-1,NP  ,NR,NSBA)   &
+                                  +WPM *FNS(NTH-1,NP-1,NR,NSBA))&
+                                  )
+                  ENDIF
+
+                  RSUM5 = RSUM5+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                         *(DWPP(NTH,NP,NR,NSA)*DFP           &
+                          +DWPT(NTH,NP,NR,NSA)*DFT)
+                  RSUM9 = RSUM9+PG(NP,NSBA)**2*SINM(NTH)/PV   &
+                         *(DWECPP(NTH,NP,NR,NSA)*DFP         &
+                          +DWECPT(NTH,NP,NR,NSA)*DFT)
+               ENDDO
+            ENDDO
+               
+            FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
+            RPW_IMPL(NR,NSA,N_IMPL)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
+            RPWEC_IMPL(NR,NSA,N_IMPL)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            IF(N_IMPL.eq.0)THEN
+               RPW_INIT(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
+               RPWEC_INIT(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+            END IF
+         ENDDO
+      ENDDO
+
+      RETURN
+      END SUBROUTINE FPWAVE_CONST
 
       END MODULE fpcoef

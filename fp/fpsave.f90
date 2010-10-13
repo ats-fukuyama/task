@@ -60,7 +60,6 @@
             RSUM7=0.D0
             RSUM8=0.D0
             RSUM9=0.D0
-!            RSUM123=0.D0
             DO NSB=1,NSBMAX
                RSUM10(NSB)=0.D0
             ENDDO
@@ -70,7 +69,7 @@
             RSUM11L=0.D0
 
             RSUM12=0.D0
-!            NSBA=NSB_NSA(NSA)
+
             IF(MODELA.eq.0)THEN
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
@@ -88,17 +87,10 @@
                ENDDO
             END IF
 
-!            DO NP=NPMAX,1,-1
-!               ratio=1.D0-RSUMNP_N(NP)/RSUMNP_N(NPMAX)
-!               IF(ratio.le.1.D-2) NP_BULK(NSA)=NP
+!           DEFINE BULK MOMENTUM RANGE
             DO NP=NPMAX, 1, -1
                IF(PG(NP,NSA).gt.2.5D0) NP_BULK(NSA)=NP
             END DO
-!            IF(NR.eq.1)THEN
-!            DO NP=1,NPMAX
-!               WRITE(*,*) NP, NP_BULK(NSA),RSUMNP_N(NP)/RSUMNP_N(NPMAX)
-!            END DO
-!            END IF
 
 !
             IF(MODELA.eq.0) THEN
@@ -124,9 +116,6 @@
                         RSUM3 = RSUM3                       &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
                              *(PV-1.D0)/THETA0(NSA)
-!                        RSUM123 = RSUM123                   &
-!                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
-!                             *(PV-1.D0)/THETA0(NSA)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   END DO
@@ -154,9 +143,6 @@
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
                              *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
-!                        RSUM123 = RSUM123                    &
-!                             +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-!                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   END DO
@@ -182,9 +168,6 @@
                   ENDIF
                   DFP=    PG(NP,NSBA) &
                        /DELP(NSBA)*(FNS(NTH,NP,NR,NSBA)-FNS(NTH,NP-1,NR,NSBA))
-!                  DFP=    PG(NP,NSBA)/(DELP(NSBA)) &
-!                       *((1.D0-WPL)*FNS(NTH,NP,NR,NSBA)+WPL*FNS(NTH,NP-1,NR,NSBA)) &
-!                       *(log(FNS(NTH,NP,NR,NSBA))-log(FNS(NTH,NP-1,NR,NSBA)) )
                   IF(NTH.EQ.1) THEN
                      DFT=1.D0/DELTH                             &
                          *(                                     &
@@ -264,19 +247,6 @@
                                   *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)
 
 
-                  DFDP=DELP(NSA)/ &
-                       ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
-                  T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
-                          /AEE/1.D3*VTFP0(NSA)/PV 
-
-!                  IF(NSA.eq.2.and.NR.eq.1)THEN
-!                     WRITE(8,'(2I4,1P14E16.8)') NP, NTH &
-!                          ,PG(NP,NSA)*COSM(NTH),PG(NP,NSA)*SINM(NTH) &
-!                          ,PM(NP,NSA)*COSM(NTH),PM(NP,NSA)*SINM(NTH) &
-!                     ,-PG(NP,NSA)*PTFP0(NSA)*DFDP &
-!                          /AEE/1.D3*VTFP0(NSA)/PV, DFDP
-!                  END IF
-
 !                  IF(NR.eq.1.and.NSA.eq.1)THEN
 !                     DFDP=((1.D0-WPL)*FNS(NTH,NP,NR,NSA)+WPL*FNS(NTH,NP-1,NR,NSA))  &
 !                          /(FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA))*DELP(NSA)
@@ -304,18 +274,32 @@
             ENDDO
 !            close(8)
 
+!-------    Calculation of bulk temperature
             RSUM_T=0.D0
             RSUM_V=0.D0
             DO NP=2,NP_BULK(NSA)
+               PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
-                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)
-                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)
+                  IF(FNS(NTH,NP,NR,NSA).gt.0.D0)THEN
+                     DFDP=DELP(NSA)/ &
+                       ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
+                  ELSE
+                     WPL=WEIGHP(NTH  ,NP,NR,NSA)
+                     FFP=   ( (1.D0-WPL)*FNS(NTH  ,NP  ,NR,NSBA)  &
+                          +WPL *FNS(NTH  ,NP-1,NR,NSBA) )
+                     DFDP=DELP(NSA)*FFP/(                         &
+                          FNS(NTH,NP,NR,NSA)-FNS(NTH,NP-1,NR,NSA) )
+                  END IF
+                  T_BULK(NTH,NP)=-PG(NP,NSA)*PTFP0(NSA)*DFDP &
+                          /AEE/1.D3*VTFP0(NSA)/PV 
+                  RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
+                  RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
                END DO
             END DO
-!            RTL_BULK(NR,NSA)=RSUM_T/DBLE((NP_BULK(NSA)-1)*NTHMAX)
             RTL_BULK(NR,NSA)=RSUM_T/RSUM_V
+!-------    Calculation of bulk temperature
 
-! --------- E radial transport 
+! --------- radial transport 
             RSUM_DR=0.D0
             RSUMN_DR=0.D0
             DINT_DFDT_R1=0.D0
@@ -368,19 +352,16 @@
                RPDRL(NR,NSA) = PTFP0(NSA)**2/AMFP(NSA)*RNFP0(NSA)*1.D20 &
                     *1.D-6*RSUM_DR/VOLR(NR)
             END IF
-! --------- end of E radial transport
+! --------- end of radial transport
                
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20
             RNSL(NR,NSA) = RSUM1*FACT                   *1.D-20
-!            RNSL_BULK(NR,NSA) = RSUMNP_N(NP_BULK(NSA))*FACT   *1.D-20
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
-!            RWSL_BULK(NR,NSA) = RSUMNP_E(NP_BULK(NSA))*FACT  *1.D-6
-!            RWS123L(NR,NSA) = RSUM123*FACT                   *1.D-6
             RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
             RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
@@ -402,17 +383,6 @@
       ENDDO
 
 
-!      OPEN(9,file='FLUX_r1c4.dat')
-!      NSA=1
-!      DO NTH=1,NTHMAX
-!         DO NP=2,NPMAX
-!            WRITE(9,'(1P10E14.6)') &
-!                 THM(NTH),PM(NP,NSA),0,( R_FLUX(NTH,NP+1)/PG(NP+1,NSA)-R_FLUX(NTH,NP)/PG(NP,NSA) )
-!         END DO
-!         WRITE(9,*) " "
-!         WRITE(9,*) " "
-!      END DO
-!      close(9)
 
       DO NSA=1,NSAMAX
          CALL mtx_gatherv_real8(RNSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
@@ -421,8 +391,6 @@
                                 RJS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RWSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RWS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!                                RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RWS123L(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RWS123(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RPCSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
@@ -456,8 +424,6 @@
                                 RNDR(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RTL_BULK(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RT_BULK(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-!         CALL mtx_gatherv_real8(RWSL_BULK(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-!                                RWS_BULK(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
       ENDDO
 
       ISAVE=1
@@ -501,9 +467,6 @@
          PDR(NSA,NTG1)=0.D0
          PNDR(NSA,NTG1)=0.D0
          PTT_BULK(NSA,NTG1)=0.D0
-!         PNT_BULK(NSA,NTG1)=0.D0
-!         PWT_BULK(NSA,NTG1)=0.D0
-!         PWT_BULK2(NSA,NTG1)=0.D0
       ENDDO
 
       DO NSA=1,NSAMAX
@@ -524,12 +487,9 @@
             PSPLT(NSA,NTG1)=PSPLT(NSA,NTG1)+RSPL(NR,NSA)*VOLR(NR)
             PDR(NSA,NTG1) = PDR(NSA,NTG1) + RPDR(NR,NSA)*VOLR(NR)
             PNDR(NSA,NTG1) = PNDR(NSA,NTG1) + RNDR(NR,NSA)*VOLR(NR)
-!            PNT_BULK(NSA,NTG1) =PNT_BULK(NSA,NTG1) +RNS_BULK(NR,NSA)*VOLR(NR)
-!            PWT_BULK(NSA,NTG1) =PWT_BULK(NSA,NTG1) +RWS_BULK(NR,NSA)*VOLR(NR)
             PTT_BULK(NSA,NTG1)=PTT_BULK(NSA,NTG1) + RT_BULK(NR,NSA)*VOLR(NR)*RNS(NR,NSA)
 
             IF(MODELR.eq.1) then
-!               CALL FPNEWTON(NR,NSA,rtemp,rtemp2)
                CALL FPNEWTON(NR,NSA,rtemp)
             else
 !               EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NSA)     &
@@ -713,7 +673,7 @@
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
-
+      write(6,1111) PECT(1,NTG1)
 
  1001 FORMAT(I4,9E14.6)
       RETURN
@@ -730,6 +690,7 @@
  108  FORMAT('        ',2I2,' PSPB/F/S/L=',8X,1P4E12.4) 
  109  FORMAT('total source power     [MW]', 1PE12.4)
  110  FORMAT('collision balance      [MW]', 1PE12.4)
+ 1111 FORMAT('Absorption by EC       [MW]', 1PE12.4)
       END SUBROUTINE FPWRTGLB
 
 ! ***********************************************************
@@ -870,7 +831,6 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-!      Subroutine FPNEWTON(NR,NSA,rtemp,rtemp2)
       Subroutine FPNEWTON(NR,NSA,rtemp)
 
       IMPLICIT NONE
@@ -882,22 +842,14 @@
       EAVE=RWS(NR,NSA)*AMFP(NSA)*THETA0(NSA) &
            /(RNS(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
 
-!      EAVE2=RWS_BULK(NR,NSA)*AMFP(NSA)*THETA0(NSA) &
-!           /(RNS_BULK(NR,NSA)*1.D20*PTFP0(NSA)**2*1.D-6)
 !-----initial value of THETAL
       THETAL=2.d0*EAVE/3.d0
-!      THETAL2=2.d0*EAVE2/3.d0
       xtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
-!      xtemp2=AMFP(NSA)*VC**2*THETAL2/(AEE*1.D3)
 
       CALL XNEWTON(EAVE,THETAL,ncount)
-!      CALL XNEWTON(EAVE2,THETAL2,ncount)
 
       rtemp=AMFP(NSA)*VC**2*THETAL/(AEE*1.D3)
-!      rtemp2=AMFP(NSA)*VC**2*THETAL2/(AEE*1.D3)
       xeave=AMFP(NSA)*VC**2*EAVE/(AEE*1.D3)
-!      xeave2=AMFP(NSA)*VC**2*EAVE2/(AEE*1.D3)
-!      write(6,'(3I5,1P3E12.4)') NSA,NR,ncount,xeave,xtemp,rtemp
 
       RETURN
 

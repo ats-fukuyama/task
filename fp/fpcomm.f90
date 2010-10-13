@@ -137,6 +137,11 @@
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
+      real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
+           RPW_IMPL, RPWEC_IMPL
+      real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM,NSBM)
+           RPW_INIT, RPWEC_INIT
+
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
            RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL
@@ -188,7 +193,7 @@
            RATE_NF_D1, RATE_NF_D2 ! (NRSTART:NREND,6,NTHMAX+1,NPMAX+1)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
            PG2,PM2
-      integer:: NCHECK, NCALCNR
+      integer:: N_IMPL, NCALCNR
 
       contains
 
@@ -339,6 +344,10 @@
           allocate(RT_BULK(NRMAX,NSAMAX))
           allocate(RTL_BULK(NRSTART:NRENDX,NSAMAX))
 
+          allocate(RPW_IMPL(NRSTART:NRENDX,NSAMAX,LMAXFP+1))
+          allocate(RPWEC_IMPL(NRSTART:NRENDX,NSAMAX,LMAXFP+1))
+          allocate(RPW_INIT(NRSTART:NRENDX,NSAMAX))
+          allocate(RPWEC_INIT(NRSTART:NRENDX,NSAMAX))
 
 !         NLMAXM= 8   ! this is for analysis without bounce average
 !         NLMAXM=11   ! this is for analysis without radial transport

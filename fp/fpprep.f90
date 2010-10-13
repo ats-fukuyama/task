@@ -322,7 +322,6 @@
          ENDDO
       ENDDO
 
-
       deallocate(work,workg)
 
       IERR=0
@@ -880,28 +879,6 @@
                   FS1(NTH,NP,NSA)=FL ! at r=0
                ENDDO
             ENDDO
-!            IF(MODELA.eq.1)THEN
-!               RSUM1=0.D0
-!               RSUM2=0.D0
-!               DO NP=1,NPMAX
-!                  DO NTH=1,NTHMAX
-!                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSA) &
-!                                  *RLAMDAG(NTH,1)
-!                     RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS1(NTH,NP,NSA)
-!                  END DO
-!               END DO
-!!               RCOEF1(NSA)=RSUM2/RSUM1
-!!               RCOEF(NRSTART,1)=RCOEF1(1)
-!!               DO NP=1,NPMAX
-!               DO NTH=1,NTHMAX
-!!                     FS1(NTH,NP,NSA) = FS1(NTH,NP,NSA)*RCOEF1(NSA)
-!!                  RLAMDA(NTH,1)=RLAMDA(NTH,1)*RCOEF1(NSA)
-!!                  RLAMDAG(NTH,1)=RLAMDAG(NTH,1)*RCOEF1(NSA)
-!               END DO
-!!               END DO
-!            ELSE
-!!               RCOEF1(NSA)=1.D0
-!            END IF
          END DO
       ELSE
          DO NSA=1,NSAMAX
@@ -942,9 +919,7 @@
                RCOEF2_G(1)=RSUM4/RSUM3
             ELSE
                RCOEF2(1)=1.D0
-!RSUM2/RSUM1
                RCOEF2_G(1)=1.D0
-!RSUM4/RSUM3
             END IF
 
          ENDDO
@@ -1132,7 +1107,7 @@
 !$$$         ENDDO
 !$$$      ENDDO
 !$$$      ENDDO
-      NCHECK=0
+      N_IMPL=0
       CALL NF_REACTION_COEF
 !      IF(nprocs.gt.1.and.NRANK.eq.1)THEN 
 !      open(8,file='rlamdag_new.dat')
@@ -1145,25 +1120,26 @@
 !         END DO
 !      CLOSE(8)
 !      END IF
-
 !      NCALCNR=0
       DO NSA=1,NSAMAX
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-               DO NR=1,NRMAX
+!               DO NR=1,NRMAX
+               DO NR=NRSTART,NREND
                   F(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)
                END DO
             END DO
          END DO
-         CALL FPWEIGHT(NSA,IERR) 
+         CALL FPWEIGHT(NSA,IERR)
 !         IF(MODELR.eq.1.and.MODELC.eq.4.and.NCALCNR.eq.2)THEN
 !            NCALCNR=1
 !            CALL FP_COEF(NSA)
 !         END IF
       END DO
       ISAVE=0
+      IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB
       IF(nrank.EQ.0) THEN
          CALL FPSGLB

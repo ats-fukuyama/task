@@ -23,7 +23,7 @@
       real(8),dimension(NSAMAX)::RSUMF,RSUMF0!,DEPS2
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
-      integer:: L, IERR, NSTEST, I!, NCHECK
+      integer:: L, IERR, NSTEST, I!, N_IMPL
       real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut2, gut3, gut4
       real(8),DIMENSION(nprocs):: RSUMA
@@ -32,11 +32,8 @@
       IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
-!      CALL GUTIME(gut3)
 
       DO NT=1,NTMAX
-!         CALL GUTIME(gut)
-!         write(*,*)"time1", gut, NSA
          
 !     +++++ Iteration loop for toroidal electric field +++++
 
@@ -51,7 +48,7 @@
 
     1    L=L+1
 
-         NCHECK=0
+         N_IMPL=0
          DEPS=1.D0
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
@@ -70,11 +67,10 @@
                   END DO
                END DO
             END DO
-!            DEPS2(NSA)=1.D2
          END DO
 
-         DO WHILE(DEPS.gt.EPSFP.and.NCHECK.le.LMAXFP) ! start do while
-            NCHECK=NCHECK+1
+         DO WHILE(DEPS.gt.EPSFP.and.N_IMPL.le.LMAXFP) ! start do while
+            N_IMPL=N_IMPL+1
             DO NSA=1,NSAMAX 
                NSBA=NSB_NSA(NSA)
                DO NR=NRSTART,NREND
@@ -99,25 +95,6 @@
                   END DO
                   END DO
                END IF
-
-!test
-!            NR=1
-!            RSUM1=0.D0
-!            RSUM2=0.D0
-!            DO NP=1,NPMAX
-!              DO NTH=1,NTHMAX
-!                  RSUM1=RSUM1+VOLP(NTH,NP,NSA)*FNS(NTH,NP,NR,NSA)
-!                  RSUM2=RSUM2+VOLP(NTH,NP,NSA)*FNS2(NTH,NP,NR,NSA)
-!               END DO
-!            END DO
-!            DO NP=1,NPMAX
-!               DO NTH=1,NTHMAX
-!                  FNS(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSA)*RSUM2/RSUM1
-!                  F1(NTH,NP,NR)=F1(NTH,NP,NR)*RSUM2/RSUM1
-!!                  write(*,*) NP, NTH, RSUM2/RSUM1
-!               END DO
-!            END DO
-!!end of test
 
                RSUMF(NSA)=0.D0
                RSUMF0(NSA)=0.D0
@@ -162,19 +139,13 @@
                DEPS=MAX(DEPS,DEPS1)
             END DO
             IF(DEPS.le.EPSFP)THEN ! exit do while
-               NCHECK=NCHECK+LMAXFP
+               N_IMPL=N_IMPL+LMAXFP
             END IF
             IF(nrank.eq.0) THEN
                write(6,'(A,1PE12.4,3I4,1P14E12.4)') 'DEPS',&
-                    DEPS,NCHECK,NREND,NSTEST,(RSUMF(NSA)/RSUMF0(NSA), &
+                    DEPS,N_IMPL,NREND,NSTEST,(RSUMF(NSA)/RSUMF0(NSA), &
                     NSA=1,NSAMAX)
             ENDIF
-
-
-!            NTCLSTEP2(1)=1
-!            NTCLSTEP2(2)=5
-!            NTCLSTEP2(3)=5
-!            NTCLSTEP2(4)=5
 
             DO NSA=1,NSAMAX
 !            CALL GUTIME(gut)
@@ -187,24 +158,16 @@
 
          END DO ! END OF DOWHILE
 
-!         open(8,file='dfdt_r0c1.dat')
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
             DO NR=NRSTART,NREND
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
                FNS(NTH,NP,NR,NSBA)=FNS1(NTH,NP,NR,NSA)
-!               IF(NR.eq.1.and.NSA.eq.1)THEN
-!                  WRITE(8,'(1P14E14.6)') PM(NP,NSBA)*COSM(NTH), PM(NP,NSBA)*SINM(NTH), &
-!                       ( FNS(NTH,NP,NR,NSA)-FNS22(NTH,NP,NR,NSA) )/FNS22(NTH,NP,NR,NSA)
-!               END IF
             ENDDO
-!            WRITE(8,*) " "
-!            WRITE(8,*) " "
             ENDDO
             ENDDO
          ENDDO
-!         close(8)
 !     ----- calculation of current density -----
 
          IF(MODELE.NE.0) THEN
@@ -281,7 +244,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_SNA.dat')
+            open(9,file='power_SNA_0.3_BULK_D5_EC3_3.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
@@ -306,7 +269,7 @@
                     ,PNT(1,NTI),PNT(2,NTI),PNT(3,NTI),PNT(4,NTI)&!,PNT(5,NTI)                 &
                     ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI)&!,PTT2(5,NTI)                 &
                     ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
-                    ,PSPBT(2,NTI),PSPFT(4,NTI)
+                    ,PSPBT(2,NTI),PSPFT(4,NTI),PECT(1,NTI)
             END DO
             close(9)
 

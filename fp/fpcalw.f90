@@ -189,7 +189,7 @@
          ENDDO
 !
          DO NP=1,NPMAX
-            CALL FPWAVE(PM(NR,NSA),0.D0,NR,RSRHON(RM(NR)),0.0D0, &
+            CALL FPWAVE(PM(NP,NSA),0.D0,NR,RSRHON(RM(NR)),0.0D0, &
                         DLHL,DFWL,DECL,NSA)
             DWTP(NTHMAX/2+1,NP,NR,NSA)=0.D0
             DWTT(NTHMAX/2+1,NP,NR,NSA)=DLHL+DFWL

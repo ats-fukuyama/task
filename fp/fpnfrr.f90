@@ -367,7 +367,7 @@
       END DO
       END DO
 
-      IF((NCHECK.eq.0.or.NCHECK.gt.LMAXFP).and.NR.eq.1)THEN
+      IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
          WRITE(6,*) '|-NF_REACTION_RATE:'
 !         WRITE(6,'(A,3I5)') '   |-ID,NSB1,NSB2=',ID,NSB1,NSB2
          WRITE(6,'(A,3I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
