@@ -139,7 +139,7 @@
                DEPS=MAX(DEPS,DEPS1)
             END DO
             IF(DEPS.le.EPSFP)THEN ! exit do while
-               N_IMPL=N_IMPL+LMAXFP
+               N_IMPL=1+LMAXFP
             END IF
             IF(nrank.eq.0) THEN
                write(6,'(A,1PE12.4,3I4,1P14E12.4)') 'DEPS',&
@@ -244,7 +244,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_SNA_0.3_BULK_D5_EC3_3.dat')
+            open(9,file='power_steady_10s_D5.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &
