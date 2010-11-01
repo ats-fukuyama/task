@@ -12,8 +12,8 @@ C
 C 
       CALL GUTIME(TIME1)
 C
-      CALL DPCHEK(IERR)
-      IF(IERR.NE.0) RETURN
+C      CALL DPCHEK(IERR)
+C      IF(IERR.NE.0) RETURN
 C
       IF(MDLWRI.EQ.0) THEN
          WRITE(6,*) 
@@ -113,7 +113,7 @@ C
             ANGZ=ANGZIN(NRAY)
             ANGPH=ANGPHIN(NRAY)
             UUI=UUIN(NRAY)
-            IF(MDLWRI.EQ..10)THEN
+            IF(MDLWRI.EQ.10)THEN
                WRITE(6,*) 
      &         '# initial values: RF,RP,ZP,PHI,RKR0,RNZ,RNPHI,UU'
                WRITE(6,'(1PE12.4,0P7F9.2)') 
@@ -852,36 +852,40 @@ C
             YL=RAYS(2,IT,NRAY)
             ZL=RAYS(3,IT,NRAY)
             CALL PLMAG(XL,YL,ZL,RHON1)
-	    NRS1=INT(RHON1/DRHO)+1
-            XL=RAYS(1,IT+1,NRAY)
-            YL=RAYS(2,IT+1,NRAY)
-            ZL=RAYS(3,IT+1,NRAY)
-            CALL PLMAG(XL,YL,ZL,RHON2)
-            NRS2=INT(RHON2/DRHO)+1
-            NDR=ABS(NRS2-NRS1)
-            IF(NDR.EQ.0) THEN
-               PWRRAY(NRS1,NRAY)
-     &              =PWRRAY(NRS1,NRAY)+RAYS(8,IT+1,NRAY)
-            ELSE IF(NRS1.LT.NRS2) THEN
-               SDR=(RHON2-RHON1)/DRHO
-               DELP=RAYS(8,IT+1,NRAY)/SDR
-               PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
-     &              +(DBLE(NRS1)-RHON1/DRHO)*DELP
-               DO NR=NRS1+1,NRS2-1
-                  PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
-               ENDDO
-               PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
-     &              +(RHON2/DRHO-DBLE(NRS2-1))*DELP
-            ELSE
-               SDR=(RHON1-RHON2)/DRHO
-               DELP=RAYS(8,IT+1,NRAY)/SDR
-               PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
-     &              +(DBLE(NRS2)-RHON2/DRHO)*DELP
-               DO NR=NRS2+1,NRS1-1
-                  PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
-               ENDDO
-               PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
-     &              +(RHON1/DRHO-DBLE(NRS1-1))*DELP
+            IF(RHON1.LE.1.D0) THEN
+               NRS1=INT(RHON1/DRHO)+1
+               WRITE(6,*) RHON1,DRHO,NRS1
+               XL=RAYS(1,IT+1,NRAY)
+               YL=RAYS(2,IT+1,NRAY)
+               ZL=RAYS(3,IT+1,NRAY)
+               CALL PLMAG(XL,YL,ZL,RHON2)
+               NRS2=INT(RHON2/DRHO)+1
+C               WRITE(6,*) RHON2,DRHO,NRS2
+               NDR=ABS(NRS2-NRS1)
+               IF(NDR.EQ.0) THEN
+                  PWRRAY(NRS1,NRAY)
+     &                 =PWRRAY(NRS1,NRAY)+RAYS(8,IT+1,NRAY)
+               ELSE IF(NRS1.LT.NRS2) THEN
+                  SDR=(RHON2-RHON1)/DRHO
+                  DELP=RAYS(8,IT+1,NRAY)/SDR
+                  PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
+     &                 +(DBLE(NRS1)-RHON1/DRHO)*DELP
+                  DO NR=NRS1+1,NRS2-1
+                     PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
+                  ENDDO
+                  PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
+     &                 +(RHON2/DRHO-DBLE(NRS2-1))*DELP
+               ELSE
+                  SDR=(RHON1-RHON2)/DRHO
+                  DELP=RAYS(8,IT+1,NRAY)/SDR
+                  PWRRAY(NRS2,NRAY)=PWRRAY(NRS2,NRAY)
+     &                 +(DBLE(NRS2)-RHON2/DRHO)*DELP
+                  DO NR=NRS2+1,NRS1-1
+                     PWRRAY(NR,NRAY)=PWRRAY(NR,NRAY)+DELP
+                  ENDDO
+                  PWRRAY(NRS1,NRAY)=PWRRAY(NRS1,NRAY)
+     &                 +(RHON1/DRHO-DBLE(NRS1-1))*DELP
+               ENDIF
             ENDIF
          ENDDO
 C         WRITE(6,'(5(I3,1PE12.4))') (NR,PWRRAY(NR,NRAY),NR=1,NRMAXPL)
