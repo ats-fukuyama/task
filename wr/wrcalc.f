@@ -196,10 +196,13 @@ C************************************************************************
 C
       SUBROUTINE WRRKFT(Y,YN,NIT)
 C
-      INCLUDE 'wrcomm.inc'      
+      INCLUDE 'wrcomm.inc'  
+c_zhenya
+	  INCLUDE '../pl/plcom2.inc'
+c_zhenya    
 C
       EXTERNAL WRFDRV
-      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
+      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ),YK(3)
 C
       X0 = 0.D0
       XE = DELS     
@@ -216,7 +219,11 @@ C
          CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
 C
          YN(0,IT)=XE
-         DO I=1,7
+c_zhenya 
+		call WRMODNWTN(YM, YK)
+		 YM(4:6)=YK
+c_zhenya		
+		  DO I=1,7
             YN(I,IT)=YM(I)
          ENDDO
          IF(YM(7).GT.0.D0) THEN
@@ -237,8 +244,18 @@ C
             RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
          ENDIF
 C
-         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
- 6001    FORMAT(1H ,1P7E11.3)
+c_zhenya
+      OMG=2.D6*PI*RF
+		CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+			CALL PLPROF(PSIN)	  
+			OMG_C = BABS*AEE/(AME)
+			WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+			wp2=sqrt(WP2)
+c_zhenya
+		 delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
+		 WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT),WP2/OMG,RN(1),
+     & delta
+ 6001    FORMAT(1H ,1P10E11.3)
 C
          DO I=1,7
             Y(I)=YM(I)
@@ -270,6 +287,9 @@ C
 C
       INCLUDE 'wrcomm.inc'      
 C
+c_zhenya
+	  INCLUDE '../pl/plcom2.inc'
+c_zhenya    
       EXTERNAL WRFDRV,WRFDRVR
       DIMENSION Y(NEQ),F(NEQ),YN(0:NEQ,0:NITM)
 C
@@ -316,10 +336,21 @@ C
             RKRL=(Y(4)*Y(1)+Y(5)*Y(2))/RL
          ENDIF
 C
-         WRITE(6,6001) X,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT)
- 6001    FORMAT(1P7E11.3)
+c_zhenya
+      OMG=2.D6*PI*RF
+		CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
+			CALL PLPROF(PSIN)	  
+			OMG_C = BABS*AEE/(AME)
+			WP2=RN(1)*1.D20*AEE*AEE/(EPS0*AMP*PA(1))
+			wp2=sqrt(WP2)
+c_zhenya
+		 delta=DISPXR(Y(1),Y(2),Y(3),Y(4),Y(5),Y(6),OMG)
+		 WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,Y(7),YN(8,IT),WP2/OMG,RN(1),
+     & delta
 C
-         IF(Y(7).LT.UUMIN) THEN
+6001    FORMAT(1H ,1P10E11.3)
+
+		  IF(Y(7).LT.UUMIN) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -854,7 +885,7 @@ C
             CALL PLMAG(XL,YL,ZL,RHON1)
             IF(RHON1.LE.1.D0) THEN
                NRS1=INT(RHON1/DRHO)+1
-               WRITE(6,*) RHON1,DRHO,NRS1
+C               WRITE(6,*) RHON1,DRHO,NRS1
                XL=RAYS(1,IT+1,NRAY)
                YL=RAYS(2,IT+1,NRAY)
                ZL=RAYS(3,IT+1,NRAY)
@@ -921,3 +952,62 @@ C
 C
       RETURN
       END
+
+
+C_ZHENYA_2010_11_1
+C************************************************************************
+C
+      SUBROUTINE WRMODNWTN(Y_zh, YK) 
+C
+      INCLUDE 'wrcomm.inc'      
+C
+      DIMENSION Y(NEQ),YK(3),Y_zh(NEQ)
+C
+		Y=Y_zh
+		OMG=2.D6*PI*RF
+		DELTA=DISPXR( Y(1), Y(2), Y(3), Y(4), Y(5), Y(6), OMG )
+		XP=Y(1)
+		YP=Y(2)
+		ZP=Y(3)
+		VV=DELDER
+		TT=DELDER
+
+		  DO I=1,100
+			RKXP=Y(4)
+			RKYP=Y(5)
+			RKZP=Y(6)
+			RRKXP=MAX(ABS(RKXP)*VV,TT)
+			RRKYP=MAX(ABS(RKYP)*VV,TT)
+			RRKZP=MAX(ABS(RKZP)*VV,TT)
+c
+			DKXP=(DISPXR(XP,YP,ZP,RKXP+RRKXP,RKYP,RKZP,OMG)
+     &			-DISPXR(XP,YP,ZP,RKXP-RRKXP,RKYP,RKZP,OMG))/(2.D0*RRKXP)
+			DKYP=(DISPXR(XP,YP,ZP,RKXP,RKYP+RRKYP,RKZP,OMG)
+     &			-DISPXR(XP,YP,ZP,RKXP,RKYP-RRKYP,RKZP,OMG))/(2.D0*RRKYP)
+			DKZP=(DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP+RRKZP,OMG)
+     &			-DISPXR(XP,YP,ZP,RKXP,RKYP,RKZP-RRKZP,OMG))/(2.D0*RRKZP)
+c
+			DS2 = DKXP**2+DKYP**2+DKZP**2
+			FAC_NWTN = 10.D0
+			DO IMODNWTN=1,10
+			    FAC_NWTN = FAC_NWTN/10.D0
+				Y(4) = RKXP - (DELTA*DKXP)/DS2*FAC_NWTN
+				Y(5) = RKYP - (DELTA*DKYP)/DS2*FAC_NWTN
+				Y(6) = RKZP - (DELTA*DKZP)/DS2*FAC_NWTN
+				DDELTA = DISPXR(XP,YP,ZP,Y(4),Y(5),Y(6),OMG)
+c				WRITE (6,*) 'DDELTA', DDELTA
+			    IF (ABS(DDELTA) .LT. ABS(DELTA)) EXIT
+			END DO
+			IF (ABS(DDELTA).LT.1.0D-6) EXIT
+			DELTA = DDELTA
+		  END DO
+		  
+		DO I =1,3
+			YK(I) = Y(I+3)
+		END DO  
+
+      RETURN
+      END
+C
+C************************************************************************
+
