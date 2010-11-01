@@ -175,6 +175,8 @@ C
             CALL WRRKFT(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSEIF(MDLWRQ.EQ.1) THEN
             CALL WRSYMP(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSEIF(MDLWRQ.EQ.2) THEN
+            CALL WRRKFT_NW(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSE
             WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
          ENDIF
@@ -197,6 +199,78 @@ C
       SUBROUTINE WRRKFT(Y,YN,NIT)
 C
       INCLUDE 'wrcomm.inc'  
+C
+      EXTERNAL WRFDRV
+      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ),YK(3)
+C
+      X0 = 0.D0
+      XE = DELS     
+      ITMAX=INT(SMAX/DELS)
+      IT=0
+      YN(0,IT)=X0
+      DO I=1,7
+         YN(I,IT)=Y(I)
+      ENDDO
+      YN(8,IT)=0.D0
+C
+      DO 10 IT = 1,ITMAX
+         Y7=Y(7)
+         CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+C
+         YN(0,IT)=XE
+         DO I=1,7
+            YN(I,IT)=YM(I)
+         ENDDO
+         IF(YM(7).GT.0.D0) THEN
+            YN(8,IT)=Y7-YM(7)
+         ELSE
+            YN(8,IT)=Y7
+         ENDIF
+C
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+            RL  =YM(1)
+            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            ZL  =YM(3)
+            RKRL=YM(4)
+         ELSE
+            RL  =SQRT(YM(1)**2+YM(2)**2)
+            PHIL=ATAN2(YM(2),YM(1))
+            ZL  =YM(3)
+            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
+         ENDIF
+C
+         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+ 6001    FORMAT(1H ,1P7E11.3)
+C
+         DO I=1,7
+            Y(I)=YM(I)
+         ENDDO
+         X0=XE
+         XE=X0+DELS
+         IF(Y(7).LT.UUMIN) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA*1.2D0) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+ 10   CONTINUE
+      NIT=ITMAX
+C     
+ 11   IF(YN(7,NIT).LT.0.D0) THEN
+         YN(7,NIT)=0.D0
+      ENDIF
+C
+      RETURN
+      END
+C
+C************************************************************************
+C
+      SUBROUTINE WRRKFT_NW(Y,YN,NIT)
+C
+      INCLUDE 'wrcomm.inc'  
 c_zhenya
 	  INCLUDE '../pl/plcom2.inc'
 c_zhenya    
@@ -217,13 +291,16 @@ C
       DO 10 IT = 1,ITMAX
          Y7=Y(7)
          CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+         delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
 C
          YN(0,IT)=XE
 c_zhenya 
-		call WRMODNWTN(YM, YK)
-		 YM(4:6)=YK
+         IF(ABS(delta).GT.1.D-6) THEN
+            call WRMODNWTN(YM, YK)
+            YM(4:6)=YK
+         ENDIF
 c_zhenya		
-		  DO I=1,7
+         DO I=1,7
             YN(I,IT)=YM(I)
          ENDDO
          IF(YM(7).GT.0.D0) THEN
