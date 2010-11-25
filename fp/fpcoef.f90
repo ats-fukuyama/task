@@ -314,9 +314,26 @@
          IF(MODELA.eq.1)then
 !         FACT=1.D0/SQRT(1.D0-EPSR(NR)**2)
             FACT=1.D0
-            DO NP=1,NPMAX+1
-               DO NTH=1,ITL(NR)-1
-                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
+            DO NTH=1,ITL(NR)-1
+               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+               DO NP=1,NPMAX+1
+                  sum11=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     IF (COSM(NTH).GE.0.D0) THEN
+                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ELSE
+                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ENDIF
+                     DO NSB=1,NSBMAX
+                        sum11=sum11 &
+                             +FEPP(NTH,NP,NR,NSA)*PSIB*COSG(NTH)/ABS(COSG(NTH))
+                     END DO
+                  END DO
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+!                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
             
@@ -326,9 +343,26 @@
                ENDDO
             ENDDO
             
-            DO NP=1,NPMAX+1
-               DO NTH=ITU(NR)+1,NTHMAX
-                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
+            DO NTH=ITU(NR)+1,NTHMAX
+               DELH=2.D0*ETAM(NTH,NR)/NAVMAX
+               DO NP=1,NPMAX+1
+                  sum11=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     IF (COSM(NTH).GE.0.D0) THEN
+                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ELSE
+                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ENDIF
+                     DO NSB=1,NSBMAX
+                        sum11=sum11 &
+                             +FEPP(NTH,NP,NR,NSA)*PSIB
+                     END DO
+                  END DO
+                  FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+!                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
                FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
                     *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
@@ -338,10 +372,27 @@
                
                FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
             ENDDO
-            
-            DO NP=1,NPMAX
-               DO NTH=1,ITL(NR)
-                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
+!!!             
+            DO NTH=1,ITL(NR)
+               DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+               DO NP=1,NPMAX
+                  sum11=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     IF (COSM(NTH).GE.0.D0) THEN
+                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ELSE
+                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ENDIF
+                     DO NSB=1,NSBMAX
+                        sum11=sum11 &
+                             +FETH(NTH,NP,NR,NSA)*PSIB
+                     END DO
+                  END DO
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+!                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
             
@@ -351,17 +402,32 @@
                ENDDO
             ENDDO
             
-            DO NP=1,NPMAX
-               DO NTH=ITU(NR)+1,NTHMAX+1
-                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
+            DO NTH=ITU(NR)+1,NTHMAX+1
+               DELH=2.D0*ETAG(NTH,NR)/NAVMAX
+               DO NP=1,NPMAX
+                  sum11=0.D0
+                  DO NG=1,NAVMAX
+                     ETAL=DELH*(NG-0.5D0)
+                     X=EPSRM(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     IF (COSM(NTH).GE.0.D0) THEN
+                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ELSE
+                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     ENDIF
+                     DO NSB=1,NSBMAX
+                        sum11=sum11 &
+                             +FETH(NTH,NP,NR,NSA)*PSIB
+                     END DO
+                  END DO
+                  FETH(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
+!                  FETH(NTH,NP,NR,NSA)=FACT*FETH(NTH,NP,NR,NSA)
                ENDDO
             ENDDO
-            
 
-      END IF
-
+         END IF
       ENDDO
-
+      
       RETURN
       END SUBROUTINE FP_CALE
 
@@ -380,7 +446,8 @@
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
       DO NR=NRSTART,NREND+1
-         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4.OR.MODELD.EQ.6.OR.MODELD.EQ.7) THEN
+!         IF(MODELD.EQ.2.OR.MODELD.EQ.3.OR.MODELD.EQ.4.OR.MODELD.EQ.6.OR.MODELD.EQ.7) THEN
+         IF(MODELD.ne.1.and.MODELD.ne.5) THEN
             RTFPL=RTFP(NR,NSA)/RTFP0(NSA)
          ENDIF
          RHON=RG(NR)
@@ -406,7 +473,8 @@
                   DNDR=( -NEDGE+RNFPS(NSA))/DELR
                END IF
             END IF
-         ELSEIF(MODELD.eq.6.or.MODELD.eq.7)THEN ! numarical pinch
+!         ELSEIF(MODELD.eq.6.or.MODELD.eq.7)THEN ! numarical pinch
+         ELSEIF(MODELD.ge.6)THEN ! numarical pinch
             DINT_D=0.D0
             DINT_F=0.D0
             DO NP=1,NPMAX
@@ -428,11 +496,23 @@
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                   END IF
                   IF(MODELD.eq.6)THEN
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
-                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1
                   ELSEIF(MODELD.eq.7)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*F_R1
+                  ELSEIF(MODELD.eq.8)THEN
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1
+                  ELSEIF(MODELD.eq.9)THEN
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1
                   END IF
                END DO
             END DO
@@ -458,18 +538,23 @@
                FACTP=1.D0
             CASE(6) ! case(3) with pinch, depend on 1/p
 !               FACTR=DNDR/NEDGE
-               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)
-            CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
-!               FACTR=DNDR/NEDGE
+!               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL) 
+               FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
+           CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
                FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)/RTFPL)
+            CASE(8) ! case(3) with pinch, depend on 1/p^2
+!               FACTP=1.D0/(1.D0+PG(NP,NSBA)**2/RTFPL)
+               FACTP=1.D0/(RTFPL+PG(NP,NSBA)**2)
+            CASE(9) ! case(3) with pinch, = MODELD=5
+!               FACTP=1.D0/(1.D0+PG(NP,NSBA)**2/RTFPL)
+               FACTP=1.D0
             END SELECT
             DO NTH=1,NTHMAX
                FACT= (DRR0-DRRS)*(1.D0-RHON**2)+DRRS 
-!         FACT=1.D0
                DRR(NTH,NP,NR,NSA)= FACT &
-                    *FACTP      /(RA*RA)*RLAMDA_GG(NTH,NR)!/PTFP0(NSA)**2
+                    *FACTP      /(RA*RA)*RLAMDA_GG(NTH,NR)
                FRR(NTH,NP,NR,NSA)= FACT &
-                    *FACTP*FACTR/(RA*RA)*RLAMDA_GG(NTH,NR)!/PTFP0(NSA)
+                    *FACTP*FACTR/(RA*RA)*RLAMDA_GG(NTH,NR)
             ENDDO
          ENDDO
 
@@ -761,10 +846,6 @@
 
       IF(MODELS.EQ.2) THEN
          DO ID=1,6
-!            IF(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP.and.NR.eq.1)THEN
-!               WRITE(6,'(A,4I5,1PE12.4)') 'ID,NSA,NS,NSA1_NF,ENG1_NF=', &
-!                 ID,NSA,NS,NSA1_NF(ID),ENG1_NF(ID)
-!            END IF
             IF(NSA.EQ.NSA1_NF(ID)) THEN
                PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
                DO NP=1,NPMAX-1

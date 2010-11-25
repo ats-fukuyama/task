@@ -37,8 +37,8 @@
       real(8),dimension(NTHMAX+1,NPMAX+1):: R_FLUX
       real(8),dimension(NPMAX):: RSUMNP_N, RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
-      integer,dimension(NSBMAX):: NP_BULK
-      real(8):: ratio, RSUM_T, RSUM_V
+      integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
+      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R
 !      real(8),dimension(NRMAX, NSAMAX):: RWS123, RPCS, RPWS, RPES, RLHS
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
@@ -90,7 +90,8 @@
 
 !           DEFINE BULK MOMENTUM RANGE
             DO NP=NPMAX, 1, -1
-               IF(PG(NP,NSA).gt.2.5D0) NP_BULK(NSA)=NP
+               P_BULK_R = 2.5D0*( 1.D0 - RM(NR)**2 ) 
+               IF(PG(NP,NSA).gt.P_BULK_R) NP_BULK(NR,NSA)=NP
             END DO
 
 !
@@ -281,10 +282,10 @@
 !-------    Calculation of bulk temperature
             RSUM_T=0.D0
             RSUM_V=0.D0
-            DO NP=2,NP_BULK(NSA)
+            DO NP=2,NP_BULK(NR,NSA)
                PV=SQRT(1.D0+THETA0(NSA)*PG(NP,NSBA)**2)
                DO NTH=1,NTHMAX
-                  IF(FNS(NTH,NP,NR,NSA).gt.0.D0)THEN
+                  IF(FNS(NTH,NP,NR,NSA).gt.0.D0.and.FNS(NTH,NP-1,NR,NSA).gt.0.D0)THEN
                      DFDP=DELP(NSA)/ &
                        ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP-1,NR,NSA)) )
                   ELSE
