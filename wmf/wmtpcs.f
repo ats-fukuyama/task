@@ -142,6 +142,8 @@ C
 C     Output: XRHO(NR), PABSR(NR,NS), PCURR(NR)
 C             8 columns
 C
+      IF(MODELG.LE.2) RETURN
+C
       nout=21
       CALL FWOPEN(nout,KNAMWT(1),1,MODEFW,'WM',IERR)
       IF(IERR.NE.0) RETURN

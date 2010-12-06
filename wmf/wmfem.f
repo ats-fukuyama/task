@@ -982,8 +982,8 @@
 
       complex(8),dimension(3,3,3):: cq
       complex(8),dimension(3,3):: cp
-      complex(8),dimension(3,3,3,nfcmax2):: cqa
-      complex(8),dimension(3,3,nfcmax2):: cpa
+      complex(8),dimension(3,3,3,nfcmax2):: cqq
+      complex(8),dimension(3,3,nfcmax2):: cpp
       complex(8),dimension(nthmax2,nphmax2):: fv1,fv1f
       integer:: i,j,k,l,nthm,nthp,nphm,nphp
       integer:: nfc2,nph,nth,imn,ml
@@ -998,7 +998,7 @@
 
       call wmfem_tensors(rho,gma,muma,dmuma,gja)
 
-!     ----- calculation rot coefficients cpa and cqa -----
+!     ----- calculation rot coefficients cpp and cqq -----
 
       do nfc2=1,nfcmax2
          nth=nthnfc2(nfc2)
@@ -1056,9 +1056,9 @@
          do imn=1,3
             do i=1,3
                do j=1,3
-                  cqa(i,j,imn,nfc2)=0.d0
+                  cqq(i,j,imn,nfc2)=0.d0
                   do l=1,3
-                     cqa(i,j,imn,nfc2)=cqa(i,j,imn,nfc2)
+                     cqq(i,j,imn,nfc2)=cqq(i,j,imn,nfc2)
      &                 +gma(i,l,nth,nph)*cq(l,j,imn)*gj
                   enddo
                enddo
@@ -1066,16 +1066,16 @@
          enddo
          do i=1,3
             do j=1,3
-               cpa(i,j,nfc2)=0.d0
+               cpp(i,j,nfc2)=0.d0
                do l=1,3
-                  cpa(i,j,nfc2)=cpa(i,j,nfc2)
+                  cpp(i,j,nfc2)=cpp(i,j,nfc2)
      &                 +gma(i,l,nth,nph)*cp(l,j)*gj
                enddo
             enddo
          enddo
       enddo
 
-!     ----- FFT of cqa and cpa -----
+!     ----- FFT of cqq and cpp -----
             
       do i=1,3
          do j=1,3
@@ -1083,25 +1083,25 @@
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
                   nph=nphnfc2(nfc2)
-                  fv1(nth,nph)=cqa(i,j,imn,nfc2)
+                  fv1(nth,nph)=cqq(i,j,imn,nfc2)
                enddo
                call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
                do nfc2=1,nfcmax2
                   nth=nthnfc2(nfc2)
                   nph=nphnfc2(nfc2)
-                  cqa(i,j,imn,nfc2)=fv1f(nth,nph)
+                  cqq(i,j,imn,nfc2)=fv1f(nth,nph)
                enddo
             enddo
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
                nph=nphnfc2(nfc2)
-               fv1(nth,nph)=cpa(i,j,nfc2)
+               fv1(nth,nph)=cpp(i,j,nfc2)
             enddo
             call wmsubfx(fv1,fv1f,nthmax2,nphmax2)
             do nfc2=1,nfcmax2
                nth=nthnfc2(nfc2)
                nph=nphnfc2(nfc2)
-               cpa(i,j,nfc2)=fv1f(nth,nph)
+               cpp(i,j,nfc2)=fv1f(nth,nph)
             enddo
          enddo
       enddo
@@ -1131,10 +1131,10 @@
                do j=1,3
                   cbf(i,nth1,nph1)=cbf(i,nth1,nph1)
      &                 +cfactor*(
-     &                  (cqa(i,j,1,nfcdiff)
-     &                  +cqa(i,j,2,nfcdiff)*mm2
-     &                  +cqa(i,j,3,nfcdiff)*nn2)*fvx(ml+2*j-1)
-     &                 + cpa(i,j,  nfcdiff)     *fvx(ml+2*j  ))
+     &                  (cqq(i,j,1,nfcdiff)
+     &                  +cqq(i,j,2,nfcdiff)*mm2
+     &                  +cqq(i,j,3,nfcdiff)*nn2)*fvx(ml+2*j-1)
+     &                 + cpp(i,j,  nfcdiff)     *fvx(ml+2*j  ))
                enddo
             enddo
          enddo
