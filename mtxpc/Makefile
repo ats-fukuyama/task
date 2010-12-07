@@ -9,7 +9,7 @@ all: $(EXEC)
 ##### Without PETSc library #####
 #FLINKER=$(FCFREE)
 #INCLUDE_MUMPS=.
-#EXEC=testbnd
+#EXEC=testbndc
 #.SUFFIXES:
 #.SUFFIXES: .f .f90 .mod .o .a
 #.f90.o :
@@ -21,7 +21,7 @@ all: $(EXEC)
 include ${PETSC_DIR}/conf/base
 INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
 INCLUDE_PETSC=${PETSC_DIR}/include
-EXEC=testbndc testkspc testzmumps testmtxp 
+EXEC=testbndc testkspc testzmumps
 
 LIBMPI=../mtxp/libmtxmpi.o
 LIBNOMPI=../mtxp/libmtxnompi.o
