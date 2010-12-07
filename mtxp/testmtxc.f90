@@ -1,11 +1,5 @@
-!     Test program of libmtx for 1D/2D/3D Poisson equation
-
-!     Input parameters
-!        idimen : number of dimension (i or 2 or 3),  0 for quit
-!        isiz : number of mesh point in one dimension
-!        isource : source position (isource, isource, isource)
-!        itype: type of linear solver (0 for default)
-!        tolerance : tolerance in iterative method
+!     Test program of libmtxc for 1D Shroedinger equation
+!     coded by Y.maruyama
 
 program testmtxc
 
@@ -40,8 +34,7 @@ program testmtxc
 1 continue
 
   if(nrank.eq.0) then
-     write(6,*) "########## test program : Schroedinger equation solver ##############"
-     write(6,*) "                    coded Y.Maruyama                                 "   
+     write(6,*) "TEST PROGRAM : Schroedinger equation solver"
 2    write(6,"(A,/E12.4,1X,2I4,D12.4)")&
              &  "#INPUT: dt,ndiv,itype=",&
                &         dt,ndiv,itype
@@ -71,7 +64,6 @@ program testmtxc
 
   if(nrank.eq.0) call cpu_time(cputime1)
 
-  !first order solver
   imax = isize
   jwidth = 3
   allocate(x(imax))
@@ -100,11 +92,7 @@ program testmtxc
   call mtx_gather_vector(x)
 
   if(nrank.eq.0) then
-!     open(7,file='out')
-!     do i=1,isize
-!        write(7,'(E12.4,1X,E12.4)'),dx*i,real(x(i))
-!     end do
-!     close(7 )
+
      call gsopen
 
      allocate(FX(isize),FY(isize,1))
