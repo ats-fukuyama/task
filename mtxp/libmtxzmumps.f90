@@ -35,7 +35,7 @@
       TYPE (ZMUMPS_STRUC) id
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
       COMPLEX(8),DIMENSION(:),POINTER:: b,b_loc
-      INTEGEr:: imax,istart,iend,jwidth,nzcount
+      INTEGER:: imax,istart,iend,jwidth,nzcount
 
       CONTAINS
 
