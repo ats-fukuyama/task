@@ -34,7 +34,7 @@ program testmtxc
 1 continue
 
   if(nrank.eq.0) then
-     write(6,*) "TEST PROGRAM : Schroedinger equation solver"
+     write(6,'(A)') "#TEST PROGRAM : Schroedinger equation solver"
 2    write(6,"(A,/E12.4,1X,2I4,D12.4)")&
              &  "#INPUT: dt,ndiv,itype=",&
                &         dt,ndiv,itype
