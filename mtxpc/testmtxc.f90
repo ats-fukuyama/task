@@ -57,6 +57,8 @@ program testmtxc
 
   end if
 
+  if(nrank.eq.0) write(6,*) 'point 1'
+
   call mtx_broadcast_integer(idata,2)
   call mtx_broadcast_real8(ddata,1)
   call mtx_broadcast_complex8(cdata,1)
@@ -76,7 +78,14 @@ program testmtxc
      x(i)=exp(-0.1*(REAL(i)*dx-0.5)**2)
   end do
 
+100 continue
+
+  if(nrank.eq.0) write(6,*) 'point 2'
+
   call mtx_setup(imax,istart,iend,jwidth)
+
+  if(nrank.eq.0) write(6,*) 'point 3'
+
 
   do i=istart,iend
      if(i.gt.1) call mtx_set_matrix(i,i-1,k)
@@ -84,16 +93,27 @@ program testmtxc
      if(i.lt.isize) call mtx_set_matrix(i,i+1,k)
   end do
 
-100 do i=istart,iend
+  if(nrank.eq.0) write(6,*) 'point 4'
+
+  do i=istart,iend
      call mtx_set_source(i,x(i))
   end do
+
+  if(nrank.eq.0) write(6,*) 'point 5'
 
   call mtx_solve(itype,tolerance,its)
   if(nrank.eq.0) then
      write(6,*) 'Iteration Number=',its
   end if
 
+!  if(nrank.eq.0) write(6,*) 'point 6'
+  write(6,*) 'point 6: nrank=',nrank
+
+  call mtx_barrier
+
   call mtx_gather_vector(x)
+
+3 continue
 
   if(nrank.eq.0) then
 
@@ -109,20 +129,23 @@ program testmtxc
      call pages
      call GRD1D(0,FX,FY,isize,isize,1,STR,MODE)
      call pagee
+     deallocate(FX,FY)
 
-3    write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
+     write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
      read (5,*,ERR=3) character
-     if (character.eq."c")then
-        goto 100
-     else if(character.eq."q")then
-        deallocate(FX,FY)
-        goto 4
-     else
-        go to 3
-     end if
-  end if
+  endif
+  CALL mtx_broadcast_character(character,1)
 
-4 call mtx_cleanup
+   call mtx_cleanup
+   if (character.eq."c")then
+      goto 100
+   else if(character.eq."q")then
+      goto 4
+   else
+      go to 3
+   end if
+
+4 continue
   
   deallocate(x)
   if(nrank.eq.0) then

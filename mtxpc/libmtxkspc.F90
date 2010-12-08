@@ -401,6 +401,7 @@
       PetscOffset:: x_offset
 
       call VecGetArray(x,x_value,x_offset,ierr)
+
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecGetArray: ierr=',ierr
       do j=1,ilen
