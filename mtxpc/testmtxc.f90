@@ -15,7 +15,7 @@ program testmtxc
   real(8) :: xmin,xmax,dt,dx
   real(4) :: cputime1,cputime2
   complex(8),dimension(:),pointer:: x
-  complex(8) :: k,cdata(1)
+  complex(8) :: k
   character :: character*1
   real(8),dimension(:)  ,pointer :: FX
   real(8),dimension(:,:),pointer :: FY
@@ -44,27 +44,23 @@ program testmtxc
                &         dt,ndiv,itype
      read(5,*,ERR=2) dt,ndiv,itype
 
-     dx = (xmax-xmin)/DBLE(ndiv-1)
-
-     k = dt/((0.d0, 1.d0)*(dx**2))
-
      isize = ndiv
 
      idata(1)= isize
      idata(2)= itype
      ddata(1)= tolerance
-     cdata(1)= k
 
   end if
 
   call mtx_broadcast_integer(idata,2)
   call mtx_broadcast_real8(ddata,1)
-  call mtx_broadcast_complex8(cdata,1)
 
   isize     = idata(1)
   itype     = idata(2)
   tolerance = ddata(1)
-  k         = cdata(1)
+
+  dx = (xmax-xmin)/DBLE(ndiv-1)
+  k = dt/((0.d0, 1.d0)*(dx**2))
 
   if(nrank.eq.0) call cpu_time(cputime1)
 
