@@ -22,6 +22,10 @@ program testmtxc
   character ::STR*80
 
   call mtx_initialize(nrank,nprocs)
+  if(nrank.eq.0) then
+     write(6,*) 'nrank, nprocs = ',nrank,nprocs
+     call gsopen
+  endif
 
   itype = 0
   tolerance=1.d-7
@@ -92,8 +96,6 @@ program testmtxc
   call mtx_gather_vector(x)
 
   if(nrank.eq.0) then
-
-     call gsopen
 
      allocate(FX(isize),FY(isize,1))
      do i=1,isize
