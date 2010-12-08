@@ -6,7 +6,7 @@
 !
 ! -----------------------------------------------------------------------
 
-      MODULE libmtx
+      MODULE libmtxc
 
       use libmpi
 
@@ -34,8 +34,8 @@
 
       PRIVATE
       INTEGER:: imax,jmax,joffset,ierr
-      REAL(8),DIMENSION(:),POINTER:: x,b
-      REAL(8),DIMENSION(:,:),POINTER:: A
+      COMPLEX(8),DIMENSION(:),POINTER:: x,b
+      COMPLEX(8),DIMENSION(:,:),POINTER:: A
 
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 Beginning of program
@@ -72,7 +72,7 @@
       SUBROUTINE mtx_set_matrix(i,j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: i,j  ! matrix position i=line, j=row
-      REAL(8),INTENT(IN):: v    ! value to be inserted
+      COMPLEX(8),INTENT(IN):: v    ! value to be inserted
 
       A(j-i+joffset,i)=v
       RETURN
@@ -81,7 +81,7 @@
       SUBROUTINE mtx_set_source(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       b(j)=v
       RETURN
@@ -90,7 +90,7 @@
       SUBROUTINE mtx_set_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       x(j)=v
       RETURN
@@ -99,7 +99,7 @@
       SUBROUTINE mtx_add_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j ! vector positon j=row
-      REAL(8),INTENT(IN):: v ! value to be inserted
+      COMPLEX(8),INTENT(IN):: v ! value to be inserted
 
       x(j)=x(j)+v
       RETURN
@@ -125,7 +125,7 @@
 !         write(21,'(i5/(1P5E12.4))') i,(A(j,i),j=1,jmax)
 !      enddo
          
-      CALL BANDRD(A,x,imax,jmax,jmax,ierr)
+      CALL BANDCD(A,x,imax,jmax,jmax,ierr)
       IF(ierr.ne.0) then
          WRITE(6,'(A,I5)') 'XX BANDRD in mtx_solve: ierr=',ierr
          its=-1
@@ -145,14 +145,14 @@
       SUBROUTINE mtx_get_vector(j,v)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: j
-      REAL(8),INTENT(OUT):: v
+      COMPLEX(8),INTENT(OUT):: v
       v=x(j)
       RETURN
       END SUBROUTINE mtx_get_vector
 
       SUBROUTINE mtx_gather_vector(v)
       IMPLICIT NONE
-      REAL(8),DIMENSION(imax),INTENT(OUT):: v
+      COMPLEX(8),DIMENSION(imax),INTENT(OUT):: v
       INTEGER:: i
 
       DO i=1,imax
@@ -169,4 +169,4 @@
       RETURN
       END SUBROUTINE mtx_cleanup
 
-      END MODULE libmtx
+      END MODULE libmtxc

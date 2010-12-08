@@ -1,8 +1,8 @@
 include ../../task/make.header
 
 
-#FFLAGS=$(OFLAGS) -I$(INCLUDE_MUMPS)
-FFLAGS=$(DFLAGS) -I$(INCLUDE_MUMPS)
+FFLAGS=$(OFLAGS) -I$(INCLUDE_MUMPS) -I../mtxp
+#FFLAGS=$(DFLAGS) -I$(INCLUDE_MUMPS) -I../mtxp
 
 all: $(EXEC)
 
@@ -35,13 +35,13 @@ all: $(EXEC)
 libs: $(LIBNOMPI) $(LIBMPI) libmtxbndc.o libmtxkspc.o libmtxzmumps.o
 
 testkspc: $(LIBKSPC) testmtxc.o
-	-${FLINKER} -g -o testkspc testmtxc.o $(LIBKSPC) ${PETSC_KSP_LIB} $(GFLIBS) ../lib/tasklib.a
+	-${FLINKER} -g -o testkspc testmtxc.o $(LIBKSPC) ${PETSC_KSP_LIB} ../lib/tasklib.a $(FLIBS)
 
 testzmumps: $(LIBZMUMPS) testmtxc.o
-	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/intel111/lib/libzmumps.a $(GFLIBS) ../lib/tasklib.a
+	-${FLINKER} -g -o testzmumps testmtxc.o $(LIBZMUMPS) ${PETSC_KSP_LIB} ${PETSC_DIR}/intel111/lib/libzmumps.a ../lib/tasklib.a $(FLIBS)
 
-testbndc: $(LIBBND) testmtxc.o 
-	-${FLINKER} -g -o testbndc testmtxc.o $(LIBBNDC) ../../task/lib/libbnd.o
+testbndc: $(LIBBNDC) testmtxc.o 
+	-${FLINKER} -g -o testbndc testmtxc.o $(LIBBNDC) ../lib/tasklib.a $(FLIBS) 
 
 testmtxc.o: testmtxc.f90
 ../mtxp/libmtxmpi.o: ../mtxp/libmtxmpi.F90
