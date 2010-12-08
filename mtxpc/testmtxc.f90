@@ -30,10 +30,10 @@ program testmtxc
   itype = 0
   tolerance=1.d-7
  
-  dt   = 0.001
+  dt   = 0.05
   xmin = 0.d0
   xmax = 1.d0
-  ndiv = 100
+  ndiv = 101
 
 1 continue
 
@@ -44,7 +44,7 @@ program testmtxc
                &         dt,ndiv,itype
      read(5,*,ERR=2) dt,ndiv,itype
 
-     dx = (xmax-xmin)/DBLE(ndiv)
+     dx = (xmax-xmin)/DBLE(ndiv-1)
 
      k = dt/((0.d0, 1.d0)*(dx**2))
 
@@ -56,8 +56,6 @@ program testmtxc
      cdata(1)= k
 
   end if
-
-  if(nrank.eq.0) write(6,*) 'point 1'
 
   call mtx_broadcast_integer(idata,2)
   call mtx_broadcast_real8(ddata,1)
@@ -75,17 +73,12 @@ program testmtxc
   allocate(x(imax))
 
   do i=1,imax
-     x(i)=exp(-0.1*(REAL(i)*dx-0.5)**2)
+     x(i)=exp(-20.0D0*((i-1)*dx-0.5D0)**2)
   end do
 
 100 continue
 
-  if(nrank.eq.0) write(6,*) 'point 2'
-
   call mtx_setup(imax,istart,iend,jwidth)
-
-  if(nrank.eq.0) write(6,*) 'point 3'
-
 
   do i=istart,iend
      if(i.gt.1) call mtx_set_matrix(i,i-1,k)
@@ -93,23 +86,14 @@ program testmtxc
      if(i.lt.isize) call mtx_set_matrix(i,i+1,k)
   end do
 
-  if(nrank.eq.0) write(6,*) 'point 4'
-
   do i=istart,iend
      call mtx_set_source(i,x(i))
   end do
-
-  if(nrank.eq.0) write(6,*) 'point 5'
 
   call mtx_solve(itype,tolerance,its)
   if(nrank.eq.0) then
      write(6,*) 'Iteration Number=',its
   end if
-
-!  if(nrank.eq.0) write(6,*) 'point 6'
-  write(6,*) 'point 6: nrank=',nrank
-
-  call mtx_barrier
 
   call mtx_gather_vector(x)
 
@@ -117,35 +101,33 @@ program testmtxc
 
   if(nrank.eq.0) then
 
-     allocate(FX(isize),FY(isize,1))
+     allocate(FX(isize),FY(isize,2))
      do i=1,isize
-        FX(i) = dx*i
+        FX(i) = dx*(i-1)
      end do
         do i=1,isize
            FY(i,1) = real(x(i))
+           FY(i,2) = aimag(x(i))
         end do
      STR=""
      MODE = 0
      call pages
-     call GRD1D(0,FX,FY,isize,isize,1,STR,MODE)
+     call GRD1D(0,FX,FY,isize,isize,2,STR,MODE)
      call pagee
      deallocate(FX,FY)
 
+4    CONTINUE
      write(6,*) "#INPUT: (C)CONTINUE,(Q)QUIT"
-     read (5,*,ERR=3) character
+     read (5,*,ERR=4) character
   endif
   CALL mtx_broadcast_character(character,1)
 
-   call mtx_cleanup
-   if (character.eq."c")then
-      goto 100
-   else if(character.eq."q")then
-      goto 4
-   else
-      go to 3
-   end if
-
-4 continue
+  call mtx_cleanup
+  if (character.eq."c")then
+     goto 100
+  else if(character.ne."q")then
+     go to 3
+  end if
   
   deallocate(x)
   if(nrank.eq.0) then
