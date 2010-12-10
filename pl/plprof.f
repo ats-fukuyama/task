@@ -322,6 +322,9 @@ C
                RU(NS)  = (PU(NS)  -PUS(NS))*FACTU+PUS(NS)
             ENDDO
          ENDIF
+c$$$         WRITE(6,'(1P7(1XE10.3))') Rhol,(RN(NS),NS=1,NSMAX)
+c$$$         WRITE(6,'(1P7(1XE10.3))') Rhol,(RTPR(NS),NS=1,NSMAX)
+c$$$         WRITE(6,'(1P7(1XE10.3))') Rhol,(RTPP(NS),NS=1,NSMAX)
 C
       ELSEIF(MODELN.EQ.9) THEN
          CALL PLDATA_GETPL(RHOL,RNPL,RTPL,RUPL)
@@ -579,16 +582,17 @@ C----  Debug write
 C
 c$$$      WRITE(6,8000)
 c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFN(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N,PRFRHO(N),(PRFN(N,I),I=1,NXSPC)
 c$$$      ENDDO
 c$$$      WRITE(6,8010)
 c$$$      DO N=1,NPRF
-c$$$         WRITE(6,'(I3,1P6(1XE10.3))') N,PRFRHO(N),(PRFT(N,I),I=1,NXSPC)
+c$$$         WRITE(6,'(I3,1P7(1XE10.3))') N,PRFRHO(N),(PRFT(N,I),I=1,NXSPC)
 c$$$      ENDDO
  8000 FORMAT(' N ',3X,'PRFRHO',6X,'PRFNE',6X,'PRFNI1',5X,'PRFNI2',
-     >             5X,'PRFNI3',5X,'PRFNI4')
+     >             5X,'PRFNI3',5X,'PRFNI4',5X,'PRFTI5')
  8010 FORMAT(' N ',3X,'PRFRHO',6X,'PRFTE',6X,'PRFTI1',5X,'PRFTI2',
-     >             5X,'PRFTI3',5X,'PRFTI4')
+     >             5X,'PRFTI3',5X,'PRFTI4',5X,'PRFTI5')
+c
       GO TO 9999
 c
  9995 WRITE(6,*) '==========  PLWMXPRF FILE OPEN ERROR  =========='
