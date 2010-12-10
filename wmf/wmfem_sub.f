@@ -145,25 +145,25 @@ C     $Id$
       return
       end subroutine wmfem_magnetic
 
-!     ****** CALCULATE PLASMA DENSITY AND TEMPERATURE ******
-
-      SUBROUTINE wmfem_plasma(rho,nsmax_,rn_,rtpr_,rtpp_,ru_)
-
-      INCLUDE 'wmcomm.inc'
-      integer,intent(in):: nsmax_
-      real(8),intent(in):: rho
-      real(8),dimension(nsmax),intent(out):: rn_,rtpr_,rtpp_,ru_
-      INCLUDE '../pl/plcom2.inc'
-      
-      CALL PLPROF(rho)
-      DO ns=1,nsmax_
-         rn_(ns)=rn(ns)
-         rtpr_(ns)=ptpr(ns)
-         rtpp_(ns)=rtpp(ns)
-         ru_(ns)=ru(ns)
-      ENDDO
-      return
-      end subroutine wmfem_plasma
+c$$$!     ****** CALCULATE PLASMA DENSITY AND TEMPERATURE ******
+c$$$
+c$$$      SUBROUTINE wmfem_plasma(rho,nsmax_,rn_,rtpr_,rtpp_,ru_)
+c$$$
+c$$$      INCLUDE 'wmcomm.inc'
+c$$$      integer,intent(in):: nsmax_
+c$$$      real(8),intent(in):: rho
+c$$$      real(8),dimension(nsmax),intent(out):: rn_,rtpr_,rtpp_,ru_
+c$$$      INCLUDE '../pl/plcom2.inc'
+c$$$      
+c$$$      CALL PLPROF(rho)
+c$$$      DO ns=1,nsmax_
+c$$$         rn_(ns)=rn(ns)
+c$$$         rtpr_(ns)=ptpr(ns)
+c$$$         rtpp_(ns)=rtpp(ns)
+c$$$         ru_(ns)=ru(ns)
+c$$$      ENDDO
+c$$$      return
+c$$$      end subroutine wmfem_plasma
 
 !     ***** calculate position R and Z from eqdata ****
 
