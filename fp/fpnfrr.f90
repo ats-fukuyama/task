@@ -201,7 +201,7 @@
                NSB1_NF(ID)=NSB_T
                NSB2_NF(ID)=NSB_T
                NSA1_NF(ID)=NSA_HE4
-               ENG1_NF(ID)=1.25D6   ! This value is an isotropic estimate
+               ENG1_NF(ID)=1.25D6   ! This value is an isotropic estimation
             ENDIF
          CASE(6)
             IF(NSB_T.NE.0.AND.NSB_HE3) THEN ! One reaction is implemented

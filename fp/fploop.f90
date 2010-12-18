@@ -20,7 +20,7 @@
       IMPLICIT NONE
       real(8),dimension(NRSTART:NREND,NSAMAX):: RJNS
       real(8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
-      real(8),dimension(NSAMAX)::RSUMF,RSUMF0!,DEPS2
+      real(8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS!,DEPS2
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
       integer:: L, IERR, NSTEST, I!, N_IMPL
@@ -52,7 +52,7 @@
          DEPS=1.D0
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
-            DO NR=NRSTART,NREND
+            DO NR=NRSTART,NREND ! local
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
                      FNS2(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA)
@@ -60,7 +60,7 @@
                   END DO
                END DO
             END DO
-            DO NR=1,NRMAX
+            DO NR=1,NRMAX ! global
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
                      FNS22(NTH,NP,NR,NSA)=FNS(NTH,NP,NR,NSBA) ! before
@@ -98,6 +98,7 @@
 
                RSUMF(NSA)=0.D0
                RSUMF0(NSA)=0.D0
+               RSUM_SS(NSA)=0.D0
                DO NR=NRSTART,NREND
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
@@ -105,6 +106,8 @@
                          +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA))**2
+                  RSUM_SS(NSA)=RSUM_SS(NSA) &
+                         +ABS(FNS2(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
                   FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                ENDDO
                ENDDO
@@ -129,6 +132,15 @@
                RSUMA(1)=RSUMF0(NSA)
                CALL mtx_broadcast_real8(RSUMA,1)
                RSUMF0(NSA)=RSUMA(1)
+
+               CALL mtx_gather_real8(RSUM_SS(NSA),RSUMA)
+               RSUM_SS(NSA)=0.D0
+               DO i=1,nprocs
+                  RSUM_SS(NSA)=RSUM_SS(NSA)+RSUMA(i)
+               ENDDO
+               RSUMA(1)=RSUM_SS(NSA)
+               CALL mtx_broadcast_real8(RSUMA,1)
+               RSUM_SS(NSA)=RSUMA(1)
             ENDDO
 
             DEPS=0.D0
@@ -137,6 +149,7 @@
                DEPS1=RSUMF(NSA)/RSUMF0(NSA)
                IF(DEPS1.ge.DEPS) NSTEST=NSA 
                DEPS=MAX(DEPS,DEPS1)
+               DEPS_SS(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
             IF(DEPS.le.EPSFP)THEN ! exit do while
                N_IMPL=1+LMAXFP
@@ -244,7 +257,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_steady_baundary2.dat')
+            open(9,file='power_D_D9.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &

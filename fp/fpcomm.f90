@@ -193,6 +193,8 @@
            RATE_NF_D1, RATE_NF_D2 ! (NRSTART:NREND,6,NTHMAX+1,NPMAX+1)
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
            PG2,PM2
+      real(rkind),dimension(:),POINTER :: & ! (NSAM)
+           DEPS_SS
       integer:: N_IMPL, NCALCNR
 
       contains
@@ -372,6 +374,7 @@
           allocate(RATE_NF_D1(NRSTART:NREND,6,NTHMAX+1,NPMAX+1))
           allocate(RATE_NF_D2(NRSTART:NREND,6,NTHMAX+1,NPMAX+1))
 
+          allocate(DEPS_SS(NSAMAX))
           NPMAX_save=NPMAX
           NTHMAX_save=NTHMAX
           NRMAX_save=NRMAX
@@ -473,6 +476,8 @@
 
           deallocate(SIGMAV_NF,RATE_NF)
           deallocate(RATE_NF_D1,RATE_NF_D2)
+
+          deallocate(DEPS_SS)
           return
 
         end subroutine fp_deallocate

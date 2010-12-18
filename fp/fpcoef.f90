@@ -240,6 +240,18 @@
             DPT(NTH,NPMAX+1,NR,NSA)=0.D0
             FPP(NTH,NPMAX+1,NR,NSA)=max(0.D0,FPP(NTH,NPMAX+1,NR,NSA))
          END DO
+!         NTH=1
+!         DO NP=1,NPMAX
+!            DTP(NTH,NP,NR,NSA)=0.D0
+!            DTT(NTH,NP,NR,NSA)=0.D0
+!            FTH(NTH,NP,NR,NSA)=0.D0
+!         END DO
+!         NTH=NTHMAX+1
+!         DO NP=1,NPMAX
+!            DTP(NTH,NP,NR,NSA)=0.D0
+!            DTT(NTH,NP,NR,NSA)=0.D0
+!            FTH(NTH,NP,NR,NSA)=0.D0
+!         END DO
 !
       ENDDO
 
@@ -488,7 +500,7 @@
                   IF(NR.eq.1)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FS1(NTH,NP,NSA) )
-                  ELSEIF(NR.eq.NRMAX+1)THEN
+                  ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
                      DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                   ELSE
@@ -496,23 +508,23 @@
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                   END IF
                   IF(MODELD.eq.6)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
-                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.7)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*F_R1
                   ELSEIF(MODELD.eq.8)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
-                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.9)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(1.D0+PG(NP,NSBA)**2/RTFPL)*F_R1
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1
-                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1
+!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1
+!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1 * RLAMDA_GG(NTH,NR)
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1 * RLAMDA_GG(NTH,NR)
                   END IF
                END DO
             END DO
@@ -540,7 +552,7 @@
 !               FACTR=DNDR/NEDGE
 !               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL) 
                FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
-           CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
+            CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
                FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)/RTFPL)
             CASE(8) ! case(3) with pinch, depend on 1/p^2
 !               FACTP=1.D0/(1.D0+PG(NP,NSBA)**2/RTFPL)
@@ -630,16 +642,16 @@
                   FRR(NTHMAX-NTH+1,NP,NR,NSA) &
                        =FRR(NTH,NP,NR,NSA)
                END DO
-               DRR(ITL(NR),NP,NR,NSA)=RLAMDAG(ITL(NR),NR)/4.D0     &
-                    *( DRR(ITL(NR)-1,NP,NR,NSA)/RLAMDAG(ITL(NR)-1,NR) &
-                    +DRR(ITL(NR)+1,NP,NR,NSA)/RLAMDAG(ITL(NR)+1,NR) &
-                    +DRR(ITU(NR)-1,NP,NR,NSA)/RLAMDAG(ITU(NR)-1,NR) &
-                    +DRR(ITU(NR)+1,NP,NR,NSA)/RLAMDAG(ITU(NR)+1,NR))
-               FRR(ITL(NR),NP,NR,NSA)=RLAMDAG(ITL(NR),NR)/4.D0     &
-                    *( FRR(ITL(NR)-1,NP,NR,NSA)/RLAMDAG(ITL(NR)-1,NR) &
-                    +FRR(ITL(NR)+1,NP,NR,NSA)/RLAMDAG(ITL(NR)+1,NR) &
-                    +FRR(ITU(NR)-1,NP,NR,NSA)/RLAMDAG(ITU(NR)-1,NR) &
-                    +FRR(ITU(NR)+1,NP,NR,NSA)/RLAMDAG(ITU(NR)+1,NR))
+               DRR(ITL(NR),NP,NR,NSA)=RLAMDA_GG(ITL(NR),NR)/4.D0     &
+                    *( DRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
+                    +DRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR) &
+                    +DRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR) &
+                    +DRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR))
+               FRR(ITL(NR),NP,NR,NSA)=RLAMDA_GG(ITL(NR),NR)/4.D0     &
+                    *( FRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
+                    +FRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR) &
+                    +FRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR) &
+                    +FRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR))
                DRR(ITU(NR),NP,NR,NSA)=DRR(ITL(NR),NP,NR,NSA)
                FRR(ITU(NR),NP,NR,NSA)=FRR(ITL(NR),NP,NR,NSA)
             END DO

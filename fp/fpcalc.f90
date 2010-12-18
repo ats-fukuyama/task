@@ -148,8 +148,9 @@
                      (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
 !                     RZI=-PZ(2)/PZ(1)*RNUD(NR,NSB,NSA)/RNUD(NR,NSA,NSA)
                      DO NP=1,NPMAX
+                        RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
                         PFPL=PM(NP,NSA)*PTFP0(NSA)
-                        VFPL=PFPL/AMFP(NSA)
+                        VFPL=PFPL/AMFP(NSA)/RGAMA
                         U=VFPL/VTFP0(NSA)
                         DCTTL=0.5D0*RZI*RGAMH2/VFPL
                         DO NTH=1,NTHMAX+1

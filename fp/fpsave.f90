@@ -38,7 +38,7 @@
       real(8),dimension(NPMAX):: RSUMNP_N, RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
-      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R
+      real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
 !      real(8),dimension(NRMAX, NSAMAX):: RWS123, RPCS, RPWS, RPES, RLHS
 !      real(8),dimension(NRMAX, NSAMAX):: RFWS, RECS
 !      real(8),dimension(NRMAX, NSBMAX, NSAMAX):: RPCS2
@@ -89,11 +89,15 @@
             END IF
 
 !           DEFINE BULK MOMENTUM RANGE
+            FACT_BULK=4.D0
+            RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA))
             DO NP=NPMAX, 1, -1
-               P_BULK_R = 2.5D0*( 1.D0 - RM(NR)**2 ) 
+!               P_BULK_R = 4.0D0*( 1.D0 - RM(NR)**2 ) 
+               P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
                IF(PG(NP,NSA).gt.P_BULK_R) NP_BULK(NR,NSA)=NP
             END DO
-
+!            WRITE(*,*) NSA, NR, NP_BULK(NR,NSA)
+               
 !
             IF(MODELA.eq.0) THEN
                IF(MODELR.EQ.0) THEN
@@ -688,6 +692,10 @@
       write(6,107) rtotalPC
       write(6,109) rtotalSP
       write(6,110) rtotalPC2
+      IF(NTG1.gt.1)THEN
+         write(6,'("Steady State Criterion ",6E14.6)')  (DEPS_SS(NSA),NSA=1,NSAMAX)
+      END IF
+
 !      write(6,1111) PECT(1,NTG1)
 
  1001 FORMAT(I4,9E14.6)
@@ -745,7 +753,7 @@
                     RJT(NR,NSA,NTG2),RPCT(NR,NSA,NTG2),       &
                     RPET(NR,NSA,NTG2),RPWT(NR,NSA,NTG2),RECT(NR,NSA,NTG2),    &
                     RSPBT(NR,NSA,NTG2),RSPFT(NR,NSA,NTG2),RPDRT(NR,NSA,NTG2), &
-                    RTT_BULK(NR,NSA,NTG2)
+                    RTT_BULK(NR,NSA,NTG2),RNDRT(NR,NSA,NTG2)
 !                    ( RWT(NR,NSA,NTG2)-RWT(NR,NSA,NTG2-1) )/DELT, &
 !                    RNDRT(NR,NSA,NTG2), &
 !                    ( RNT(NR,NSA,NTG2)-RNT(NR,NSA,NTG2-1) )/DELT
@@ -779,7 +787,8 @@
   106 FORMAT(' TIME=',F12.3,' ms'/                   &
            'NSA/NS',5X,'RM',10X,' n',8X,' T    ',6X, &
            ' j     ',5X,'PC     ',5X,'PE     ',5X,   &
-           'PW     ',5X,'PEC    ',5X,'PNB//PLH',4X,'PNF//PIC',4X,'RPDR   ',5X,'T_BULK')
+           'PW     ',5X,'PEC    ',5X,'PNB//PLH',4X,  &
+           ' PNF/PIC',4X,'RPDR   ',5X,'T_BULK ',5X,'RNDR' )
       END SUBROUTINE FPWRTPRF
 ! ***********************************************************
 !
@@ -788,6 +797,7 @@
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NP, NTH
       real(8):: rnute, resist2, resist, dtaue, dtaui 
+      real(8):: FACT1, FACT2, rntv
 !      INCLUDE '../wr/wrcom1.inc'
 !
       WRITE(6,101) TIMEFP*1000
@@ -795,19 +805,20 @@
 !$$$      if(NTG1.ne.1)then
 !$$$c-----check of conductivity--------
       IF(NTG1.ne.1)then
+!         NSA=1
 !         FACT1 =  &
 !      2.D0*PI*RSRHON(RM(NRMAX))*(RSRHON(RG(2))-RSRHON(RG(NRMAX)))
 !         FACT2 = 2.D0*PI*RR
-!         rntv = 1.6D0/1.D19*1.5D0*
-!     &FACT1*FACT2*(PTT(NTG1)-PTT(NTG1-1))*PNT(NTG1)*1.D3*1.D20/DELT
+!         rntv = 1.6D0/1.D19*1.5D0* &
+!      FACT1*FACT2*(PTT(NSA,NTG1)-PTT(NSA,NTG1-1))*PNT(NSA,NTG1)*1.D3*1.D20/DELT
 
-!      write(6,*) "Pw+Pc",(PPWT(NTG1)+PPCT(NTG1))*1.D6,"n*delta T*V",rntv
-!      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12
-!     & ,"Pw[W]",PPWT(NTG1)*1.D6
-!      write(6,*) "Pc+PE+Pw",PPCT(NTG1)+PPET(NTG1)+PPWT(NTG1),
-!     &     "(Pc+Pe+Pw)/Pc",(PPCT(NTG1)+PPET(NTG1)+PPWT(NTG1))/PPCT(NTG1)
-!      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG1)-PPCT(NTG1-1))/PPCT(NTG1)
-!     Spitzer
+!!      write(6,*) "Pw+Pc",(PPWT(NTG1)+PPCT(NTG1))*1.D6,"n*delta T*V",rntv
+!!      write(6,*) "c*epsilon*RabsE*S",RABSE**2*FACT1*8.8D0*VC/1.D12 &
+!!      ,"Pw[W]",PPWT(NTG1)*1.D6
+!!      write(6,*) "Pc+PE+Pw",PPCT(NTG1)+PPET(NTG1)+PPWT(NTG1), &
+!!          "(Pc+Pe+Pw)/Pc",(PPCT(NTG1)+PPET(NTG1)+PPWT(NTG1))/PPCT(NTG1)
+!!      write(6,*) "Pc+-Pc-/Pc",(PPCT(NTG1)-PPCT(NTG1-1))/PPCT(NTG1)
+!!     Spitzer
 
 !      Do NSA=1,NSAMAX
 !      Do NSB=1,NSBMAX
@@ -816,24 +827,25 @@
 !         resist2=RNUTE*AMFP(NSA)/RNFP(1,NSA)/AEFP(NSA)**2/1.D20
 !      resist = 1.D0/(RNFP0(NSA)/RNFP(1,NSA)*1.D20*AEFP(NSA)**2/AMFP(NSA)&
 !          /RNUD(1,1,NSA)*RNFD(1,NSA)/RNFP0(NSA) ) *SQRT(2.D0)/rnfp0(NSA)
-!      if(E0.ne.0.d0) 
-!     &    write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG1)/E0*1.D6/FACT1*resist2
-!     &     ,resist,resist2
-!     &     ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC)
-!     & ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2
-!     &     ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
+!      if(E0.ne.0.d0) &
+!         write(6,*) "J/E*eta*1.D6", PIT(NSA,NTG1)/E0*1.D6/FACT1*resist2 &
+!!          ,resist,resist2 &
+!!          ,RTFP0(NSA)*1.D3*AEE/(AMFP(NSA)*VC*VC) &
+!      ,"THETA0", (PTFP0(NSA)/(AMFP(NSA)*VC))**2 !&
+!!          ,DCTT2(2,2,1,NSB,NSA),NSA,NSB
 !      END DO
 !      END DO
 
-      dtaue=1.09D16*(PTT(1,NTG1))**(1.5D0)/PNT(1,NTG1)/PZ(2)**2 &
-           /15.D0*1.D-20
-      if(nsamax.gt.1) then
-      dtaui=6.6D17*(PTT(2,NTG1))**(1.5D0)/PNT(2,NTG1)/PZ(2)**4  &
-           /15.D0*1.D-20*(AMFP(2)/AMFP(2))**0.5D0
-      else
-         dtaui=0.d0
-      endif
-!      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
+!      dtaue=1.09D16*(PTT(1,NTG1))**(1.5D0)/PNT(1,NTG1)/PZ(2)**2 &
+!           /15.D0*1.D-20
+!      if(nsamax.gt.1) then
+!      dtaui=6.6D17*(PTT(2,NTG1))**(1.5D0)/PNT(2,NTG1)/PZ(2)**4  &
+!           /15.D0*1.D-20*(AMFP(2)/AMFP(2))**0.5D0
+!      else
+!         dtaui=0.d0
+!      endif
+!!      write(6,*)"tau_e tau_i[ms]",dtaue*1.D3,dtaui*1.D3
+
       end if
 !----end of conductivity check---------
 
