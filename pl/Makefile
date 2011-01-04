@@ -16,7 +16,7 @@ SRCO = noeqlib.f noequlib.f
 OBJS = $(SRCSFREE:.f90=.o) $(SRCSFIXED:.f=.o)
 OBJO = $(SRCO:.f=.o) 
 
-LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../wm/wmlib.a
+LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../wmf/wmlib.a
 
 .f.o :
 	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
@@ -52,7 +52,7 @@ new:
 	cp -f *.f ../plnew
 	cp -f *.inc ../plnew
 
-WMCOMM = ../wm/wmcomm.inc ../wm/wmcom0.inc ../wm/wmcom1.inc ../mpi/mpicom.inc ../dp/dpcom1.inc
+WMCOMM = ../wmf/wmcomm.inc ../wmf/wmcom0.inc ../wmf/wmcom1.inc ../mpi/mpicom.inc ../dp/dpcom1.inc
 
 plmain.o: plmain.f plcomm.f90 plcom0.f90 plcom1.inc
 plmenu.o: plmenu.f plcomm.inc plcom0.inc plcom1.inc
