@@ -170,15 +170,15 @@ C
       REWIND(nout)
       WRITE(nout,'(3A)') '# NPH','    PFRACS ', '   PABSTS(NS) [W]'
       DO NPHS=1,NPHSMAX
-         WRITE(nout,'(I5,1P6E12.4)') 
+         WRITE(nout,'(I5,1P7E12.4)') 
      &        NPH0S(NPHS),
      &        SUM(PABSTS(1:MIN(NSMAX,6),NPHS))/PABSTT,
      &        (PABSTS(NS,NPHS),NS=1,MIN(NSMAX,6))
       ENDDO
       WRITE(nout,'(A)') 
      &     '--------------------------------------------'//
-     &     '---------------------------------'
-      WRITE(nout,'(17X,1P5E12.4)') (PABST(NS),NS=1,MIN(NSMAX,6))
+     &     '---------------------------------------------'
+      WRITE(nout,'(17X,1P6E12.4)') (PABST(NS),NS=1,MIN(NSMAX,6))
       WRITE(nout,'(A8,1P1E11.4)') 'TOTAL = ',PABSTT
       CLOSE(nout)
 C
