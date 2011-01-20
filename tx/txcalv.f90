@@ -336,7 +336,7 @@ contains
        call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBe,ideriv)
        ! Calibration by using total power of electrons
        SL = 2.D0 * Pi * INTG_F(SNBe)
-       SNBe(0:NRMAX) = SNBe(0:NRMAX) * 1.D-20 &
+       if(SL /= 0.d0) SNBe(0:NRMAX) = SNBe(0:NRMAX) * 1.D-20 &
             &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
 
        ! (2) Birth TOTAL ions (SNB for heating profiles)
@@ -345,7 +345,7 @@ contains
        ! Calibration by using total power of all ions
        SL = 2.D0 * Pi * INTG_F(SNBi)
        PNBHex = infiles(i)%totP * 1.D-6
-       SNBi(0:NRMAX) = SNBi(0:NRMAX) * 1.D-20 &
+       if(SL /= 0.d0) SNBi(0:NRMAX) = SNBi(0:NRMAX) * 1.D-20 &
             &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
        PNBex0 = Eb * rKeV * 1.D20
        !  "or"= infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBi)))
@@ -360,7 +360,7 @@ contains
           call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,2,SNBPDi)
           ! Calibration by using total power of all ions
           SL = 2.D0 * Pi * INTG_F(SNBPDi)
-          SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
+          if(SL /= 0.d0) SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
                &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
           PNBPi0 = Eb * rKeV * 1.D20
           ! "or" = infiles(2)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
@@ -370,7 +370,7 @@ contains
           call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
           ! Calibration by using total power of trapped ions
           SL = 2.D0 * Pi * INTG_F(SNBTGi)
-          SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+          if(SL /= 0.d0) SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
                &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
           PNBT10 = Eb * rKeV * 1.D20
           ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
@@ -385,7 +385,7 @@ contains
           call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBPDi,ideriv)
           ! Calibration by using total power of trapped ions
           SL = 2.D0 * Pi * INTG_F(SNBPDi)
-          SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
+          if(SL /= 0.d0) SNBPDi(0:NRMAX) = SNBPDi(0:NRMAX) * 1.D-20 &
                &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
           PNBPi0 = Eb * rKeV * 1.D20
           ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBPDi)))
@@ -397,7 +397,7 @@ contains
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBTGi)
-             SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+             if(SL /= 0.d0) SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
                   &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
              PNBT10 = Eb * rKeV * 1.D20
              ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
@@ -412,7 +412,7 @@ contains
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBb,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBb)
-             SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
+             if(SL /= 0.d0) SNBb(0:NRMAX) = SNBb(0:NRMAX) * 1.D-20 &
                   &        * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
 
              ! (8) Orbit Passing (SNBTGi for passing beam ions)
@@ -420,7 +420,7 @@ contains
              call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,SNBTGi,ideriv)
              ! Calibration by using total power of trapped ions
              SL = 2.D0 * Pi * INTG_F(SNBTGi)
-             SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
+             if(SL /= 0.d0) SNBTGi(0:NRMAX) = SNBTGi(0:NRMAX) * 1.D-20 &
                   &          * (infiles(i)%totP / (Eb * rKeV * (2.D0 * Pi * RR * SL)))
              PNBT10 = Eb * rKeV * 1.D20
              ! "or" = infiles(i)%totP / (2.D0 * Pi * RR * (2.D0 * Pi * INTG_F(SNBTGi)))
@@ -445,7 +445,7 @@ contains
        i = 1
        call inexpolate(infiles(i)%nol,infiles(i)%r,infiles(i)%data,NRMAX,RHO,5,Tqt_tmp,ideriv,idx=0)
        SL = 4.D0 * Pi**2 * RR * INTG_F(Tqt_tmp)
-       Tqt_tmp(0:NRMAX) = Tqt_tmp(0:NRMAX) * (infiles(i)%totS / SL)
+       if(SL /= 0.d0) Tqt_tmp(0:NRMAX) = Tqt_tmp(0:NRMAX) * (infiles(i)%totS / SL)
 
     ! *** Arbitrary input *********************************************
     else if(iflag_file == 3) then

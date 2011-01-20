@@ -842,7 +842,7 @@ SUBROUTINE TXPROF
        &                   initprof_input, moving_average
 
   implicit none
-  INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt
+  INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
   REAL(8) :: RL, PROF, PROFN, PROFT, PTePROF, PTiPROF!, QL, dRIP
   REAL(8) :: AJFCT, SUM_INT
   REAL(8) :: ALP, dPe, dPi, DR1, DR2
@@ -872,7 +872,7 @@ SUBROUTINE TXPROF
 
   !  Variables
 
-  if(MDINTN < 0 .or. MDINTT < 0 .or. MDINTC < 0) call initprof_input
+  if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input
   if(MDINTN < 0) then ! density at the boundaries
      call initprof_input(  0,1,PN0L)
      call initprof_input(NRA,1,PNaL)
@@ -959,7 +959,6 @@ SUBROUTINE TXPROF
            X(LQe1,NR) = PNaL * EXP(- (RL - RA) / rLn)
            X(LQi1,NR) = X(LQe1,NR) / PZ
         END IF
-        ! pressure (MDFIXT=0) or temperature (MDFIXT=1)
         IF(MDITST == 0) THEN
            X(LQe5,NR) = pea + dpea * (RL - RA) + Cfpe1 * (RL - RA)**3 &
                 &                              + Cfpe2 * (RL - RA)**4
@@ -977,6 +976,7 @@ SUBROUTINE TXPROF
               PTiPROF = PTi0L   * exp(- log(PTi0L / PTiaL) * RHO(NR)**2) *         fexp &
                    &  + PTiDIVL                                          * (1.d0 - fexp)
            END IF
+           ! pressure (MDFIXT=0) or temperature (MDFIXT=1)
            IF(MDFIXT == 0) THEN
               X(LQe5,NR) = PTePROF * X(LQe1,NR)
               X(LQi5,NR) = PTiPROF * X(LQi1,NR)
@@ -1012,7 +1012,7 @@ SUBROUTINE TXPROF
      allocate(Prof1(0:NRMAX),Prof2(0:NRMAX))
      Prof1(0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
      Prof2(0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
-     NR_smt = NRA - 10 ! smoothing data only in the edge region
+     NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(LQe5,NR) = moving_average(NR,Prof1,NRMAX) * X(LQe1,NR)
         X(LQi5,NR) = moving_average(NR,Prof2,NRMAX) * X(LQi1,NR)
@@ -1024,7 +1024,7 @@ SUBROUTINE TXPROF
      X(LQe5,0:NRMAX) = X(LQe5,0:NRMAX) / X(LQe1,0:NRMAX)
      X(LQi5,0:NRMAX) = X(LQi5,0:NRMAX) / X(LQi1,0:NRMAX)
      Prof1(0:NRMAX) = X(LQe1,0:NRMAX)
-     NR_smt = NRA - 10 ! smoothing data only in the edge region
+     NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
      DO NR = NR_smt, NRMAX
         X(LQe1,NR) = moving_average(NR,Prof1,NRMAX)
         X(LQi1,NR) = X(LQe1,NR) / PZ         ! Ni
@@ -1065,7 +1065,7 @@ SUBROUTINE TXPROF
   allocate(AJPHL(0:NRMAX))
   ifile = detect_datatype('LQe4')
   if(ifile == 0) then
-     IF(MDINTC < -1) THEN
+     IF(MDINTC <= -1) THEN
         DO NR = 0, NRA
            call initprof_input(NR,4,AJPHL(NR)) ! NeUeph
         END DO
@@ -1079,7 +1079,7 @@ SUBROUTINE TXPROF
         IF(MDINTC == -2) THEN ! Smoothing current density
            allocate(Prof1(0:NRMAX))
            Prof1(0:NRMAX) = AJPHL(0:NRMAX)
-           NR_smt = NRA - 10 ! smoothing data only in the edge region
+           NR_smt = NRA - NR_smt_start ! smoothing data only in the edge region
            DO NR = NR_smt, NRMAX
               AJPHL(NR) = moving_average(NR,Prof1,NRMAX)
            END DO
@@ -1097,7 +1097,7 @@ SUBROUTINE TXPROF
            SUM_INT = SUM_INT + INTG_P(AJPHL,NR,0)
            BthV(NR) = rMUb1 * SUM_INT / R(NR)
         END DO
-     ELSE
+     ELSE ! (MDINTC == 0)
         DO NR = 0, NRMAX
 !!$           AJPHL(NR) = 2.D0 / rMUv1 * DERIV4(NR,PSI,R(0:NRMAX)*BthV(0:NRMAX),NRMAX,0)
 !!$           X(LQe4,NR) = - AJPHL(NR) / (AEE * 1.D20)
@@ -1136,7 +1136,7 @@ SUBROUTINE TXPROF
      END DO
   end if
 
-  if(MDINTN < 0 .or. MDINTT < 0 .or. MDINTC < 0) call initprof_input(idx = 0)
+  if(MDINTN < 0 .or. MDINTT < 0 .or. ABS(MDINTC) /= 0) call initprof_input(idx = 0)
 
   ! Inverse matrix of derivative formula for integration
 

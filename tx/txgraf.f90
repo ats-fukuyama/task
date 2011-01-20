@@ -1173,7 +1173,8 @@ contains
     GVY(NGVV,54) = REAL(PiV(0) * 1.D20 * rKeV)
 
     GVY(NGVV,55) = REAL(FCDIM(NRC)) !09/07/13 miki_m
-
+    GVY(NGVV,56) = REAL(-   AEE*PNeV(NRC)*UerV(NRC) &
+         &              +PZ*AEE*PNiV(NRC)*UirV(NRC))*1.D20
     RETURN
   END SUBROUTINE TXSTGV
 
@@ -3247,7 +3248,10 @@ contains
        CALL APPROPGY(MODEG, GVY(0,24), GVYL, STR, NGVV, 1, gDIV(24))
        CALL TXGRFVX(2, GVX, GVYL, NGVM, NGVV, 1, STR, MODE, IND)
 
-       CALL TXWPGR
+       STR = '@j$-r$=(a/2)@'
+       CALL TXGRFVX(3, GVX, GVY(0,56), NGVM, NGVV, 1, STR, MODE, IND)
+
+!       CALL TXWPGR
 
     CASE(7)
        STR = '@u$-er$=(a/2)@'

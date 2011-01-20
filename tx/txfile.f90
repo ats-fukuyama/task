@@ -1025,7 +1025,8 @@ subroutine ascii_input
               if(kdata == ' ' .or. kdata == "TOTAL") then
                  nol = 0
               else
-                 read(kdata,'(I3)') nol
+                 nol = nol + 1 ! Not use "I" index
+!                 read(kdata,'(I3)') nol ! Use "I" index
               end if
               kline = kline2
               cycle
