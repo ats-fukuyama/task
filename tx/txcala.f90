@@ -1498,7 +1498,7 @@ contains
 !    ELM(1:NEMAX,1:4,31,NEQ) =   FSNCPL * 2.D0 * rKeV / (PZ * AEE) * fem_int(37,rNui2NCN,PNiV)
 !    NLC(31,NEQ) = LQi5
     
-    !  Virtual torque input
+    !  Additional torque input
 
     ELM(1:NEMAX,1:4,32,NEQ) =   1.D0 / (AMI * 1.D20) * fem_int(-1,Tqp)
     NLC(32,NEQ) = 0
@@ -1704,7 +1704,7 @@ contains
     ELM(1:NEMAX,1:4,28,NEQ) = - 4.D0 * fem_int(18,DMAGi)
     NLC(28,NEQ) = LQi4
 
-    !  Virtual torque input
+    !  Additional torque input
 
     ELM(1:NEMAX,1:4,29,NEQ) =   1.D0 / (AMI * RR * 1.D20) * fem_int(-1,Tqt)
     NLC(29,NEQ) = 0

@@ -333,7 +333,7 @@ SUBROUTINE TXINIT
   PRFHe = 0.D0
   PRFHi = 0.D0
 
-  !   Virtual torque input (N m)
+  !   Additional torque input (N m)
   Tqt0  = 0.D0  ! Toroidal
   Tqp0  = 0.D0  ! Poloidal
 

@@ -339,7 +339,7 @@ SUBROUTINE TXLOAD(IST)
        & IGBDF,MDSOLV,MDOSQZ,MDLETA,MDFIXT,MDVAHL,MDANOM, &
        & MDLNBD,PNBMPD,NGR,rIP,thrp,kappa, &
        & PNeV,PTeV,PNiV,PTiV,ErV,PTeV_FIX,PNeV_FIX,PTiV_FIX,PNiV_FIX,ErV_FIX, &
-       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2
+       & rMU0,rMUb1,rMUb2,NEMAX,ICONT,TAUE2,LQb1
   use tx_variables
   use tx_coefficients, only : TXCALA
   use tx_parameter_control, only : TXPARM_CHECK
@@ -430,7 +430,8 @@ SUBROUTINE TXLOAD(IST)
   NEMAX = NRMAX
   CALL TXCALM
 
-  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
+!!  IF(rMUb1 == rMU0 .and. (PNBHT1 /= 0.D0 .OR. PNBHT2 /= 0.D0 .OR. PNBHP /= 0.D0)) THEN
+  IF(rMUb1 == rMU0 .and. (maxval(X(LQb1,0:NRMAX)) > epsilon(1.d0))) THEN
      rMUb1 = 1.D0
      rMUb2 = rMU0
   END IF
