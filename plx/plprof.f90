@@ -398,7 +398,7 @@
          ENDIF
 
       ELSEIF(MODELN.EQ.9) THEN
-         CALL pl_bpsd_get(RHOL,NSMAX,RNPL,RTPRPL,RTPPPL,RUPL)
+         CALL pl_bpsd_get(RHOL,RNPL,RTPRPL,RTPPPL,RUPL)
          DO NS=1,NSMAX
             PLF(NS)%RN  =RNPL(NS)
             PLF(NS)%RTPR=RTPRPL(NS)
@@ -414,11 +414,10 @@
       RETURN
     END SUBROUTINE pl_prof
 
-    SUBROUTINE pl_bpsd_get(rho,nsmax,rn,rtpr,rtpp,ru)
+    SUBROUTINE pl_bpsd_get(rho,rn,rtpr,rtpp,ru)
       USE plcomm
       USE bpsd
       REAL(rkind),INTENT(IN):: rho
-      INTEGER(ikind),INTENT(IN):: nsmax
       REAL(rkind),DIMENSION(nsmax),INTENT(OUT):: rn,rtpr,rtpp,ru
       TYPE(bpsd_plasmaf_type),save :: plasmaf
       INTEGER(ikind):: ns

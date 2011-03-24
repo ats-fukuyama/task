@@ -665,7 +665,7 @@
 !------
         subroutine fp_adjust_ntg1_A(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG
          
@@ -681,7 +681,7 @@
 !------
         subroutine fp_adjust_ntg1_B(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:,:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG,NR,NSA
          
@@ -701,7 +701,7 @@
 !-------
         subroutine fp_adjust_ntg1_C(data,temp,NTG1M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG1M_NEW
           integer NTG1,NTG,NR,NSA,NSB
          
@@ -882,7 +882,7 @@
 !-----
         subroutine fp_adjust_ntg2_0(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG
          
@@ -898,7 +898,7 @@
 !-----
         subroutine fp_adjust_ntg2_A(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR
          
@@ -918,7 +918,7 @@
 !------
         subroutine fp_adjust_ntg2_B(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR,NSA
          
@@ -942,7 +942,7 @@
 !--------
         subroutine fp_adjust_ntg2_C(data,temp,NTG2M_NEW)
           implicit none
-          real(rkind),dimension(:,:,:,:),POINTER,intent(inout):: data,temp
+          real(rkind),dimension(:,:,:,:),POINTER:: data,temp
           integer,intent(in):: NTG2M_NEW
           integer NTG2,NTG,NR,NSA,NSB
          
