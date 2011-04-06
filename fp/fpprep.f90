@@ -844,9 +844,9 @@
             RSUM4=0.D0
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
-                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)*FNS(NTH,NP,NR,NSB) &
+                  RSUM1 = RSUM1+VOLP(NTH,NP,NSB)&!*FNS(NTH,NP,NR,NSB) &
                        *RLAMDAG(NTH,NR)
-                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)*FNS(NTH,NP,NR,NSB)
+                  RSUM2 = RSUM2+VOLP(NTH,NP,NSB)!*FNS(NTH,NP,NR,NSB)
                   RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)
                   RSUM4 = rsum4+VOLP(NTH,NP,NSB)
                END DO
@@ -908,9 +908,9 @@
                RSUM4=0.D0
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
-                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSA) &
+                     RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)&!*FS2(NTH,NP,NSA) &
                                   *RLAMDAG(NTH,NRMAX+1)
-                     RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)*FS2(NTH,NP,NSA)
+                     RSUM2 = RSUM2+VOLP(NTH,NP,NSBA)!*FS2(NTH,NP,NSA)
                      RSUM3 = RSUM3+VOLP(NTH,NP,NSBA)*RLAMDA_GG(NTH,NRMAX+1)
                      RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)
                   END DO

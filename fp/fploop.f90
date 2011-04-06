@@ -257,7 +257,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_D_D9.dat')
+            open(9,file='power_D_3s_D6_dens_NF.dat')
 
 !       ,DCPP(2,NP,1,1),DCPP(2,NP,1,2),DCPP(2,NP,1,3),DCPP(2,NP,1,4) &
 !       ,DCPT(2,NP,1,1),DCPT(2,NP,1,2),DCPT(2,NP,1,3),DCPT(2,NP,1,4) &

@@ -485,7 +485,6 @@
                   DNDR=( -NEDGE+RNFPS(NSA))/DELR
                END IF
             END IF
-!         ELSEIF(MODELD.eq.6.or.MODELD.eq.7)THEN ! numarical pinch
          ELSEIF(MODELD.ge.6)THEN ! numarical pinch
             DINT_D=0.D0
             DINT_F=0.D0
@@ -496,10 +495,9 @@
                   ELSEIF(NTG1.eq.1)THEN
                      WRL=0.5D0
                   END IF
-!                  WRH=WEIGHR(NTH,NP,NR+1,NSA)
                   IF(NR.eq.1)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
-                     F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FS1(NTH,NP,NSA) )
+                     F_R1 = FS1(NTH,NP,NSA) 
                   ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
                      DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
@@ -508,21 +506,15 @@
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
                   END IF
                   IF(MODELD.eq.6)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.7)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*F_R1
                   ELSEIF(MODELD.eq.8)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.9)THEN
-!                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1
-!                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)*DFDR_R1 * RLAMDA_GG(NTH,NR)
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)*F_R1 * RLAMDA_GG(NTH,NR)
                   END IF
@@ -549,16 +541,12 @@
                FACTR=DNDR/NEDGE
                FACTP=1.D0
             CASE(6) ! case(3) with pinch, depend on 1/p
-!               FACTR=DNDR/NEDGE
-!               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)**2/RTFPL) 
                FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
             CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
                FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)/RTFPL)
             CASE(8) ! case(3) with pinch, depend on 1/p^2
-!               FACTP=1.D0/(1.D0+PG(NP,NSBA)**2/RTFPL)
                FACTP=1.D0/(RTFPL+PG(NP,NSBA)**2)
             CASE(9) ! case(3) with pinch, = MODELD=5
-!               FACTP=1.D0/(1.D0+PG(NP,NSBA)**2/RTFPL)
                FACTP=1.D0
             END SELECT
             DO NTH=1,NTHMAX
@@ -612,8 +600,8 @@
                   sumf=0.D0
                   DO NG=1,NAVMAX
                      ETAL=DELH*(NG-0.5D0)
-                     X=EPSRM(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
+                     X=EPSRG(NR)*COS(ETAL)*RR
+                     PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
                      IF (COSM(NTH).GE.0.D0) THEN
                         PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
                      ELSE
@@ -624,8 +612,8 @@
                      sumf=sumf &
                           +FRR(NTH,NP,NR,NSA)*COSM(NTH)/PCOS
                   END DO
-                  DRR(NTH,NP,NR,NSA)=SUMd*DELH/PI!*RCOEF(NR)
-                  FRR(NTH,NP,NR,NSA)=SUMf*DELH/PI!*RCOEF(NR)
+                  DRR(NTH,NP,NR,NSA)=SUMd*DELH/PI*RCOEF_GG(NR)
+                  FRR(NTH,NP,NR,NSA)=SUMf*DELH/PI*RCOEF_GG(NR)
                END DO
             END DO
             
@@ -718,7 +706,7 @@
                         DO NR=1,NRMAX
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SUML=SUML &
-                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)
+                                +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -732,7 +720,7 @@
                         DO NR=NRSTART,NREND
                            SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                            SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                + SPBTOT(NBEAM)*SPL/SUML*RLAMDAG(NTH,NR)
+                                + SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
                         ENDDO
                      ENDIF
                   ENDDO
@@ -760,7 +748,7 @@
                            DO NR=1,NRMAX
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SUML=SUML &
-                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)
+                                   +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
                            ENDDO
                         ENDIF
                      ENDDO
@@ -773,8 +761,7 @@
                            DO NR=NRSTART,NREND
                               SPL=EXP(-(RM(NR)-SPBR0(NBEAM))**2/SPBRW(NBEAM)**2)
                               SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                                   +SPBTOT(NBEAM)*SPL/SUML*RLAMDAG(NTH,NR)*PZ(NSABEAM)
-!/RNFP0(NSABEAM)
+                                   +PZ(NSABEAM)*SPBTOT(NBEAM)*SPL/SUML!*RLAMDAG(NTH,NR)
                            ENDDO
                         ENDIF
                      ENDDO
@@ -797,7 +784,7 @@
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
                         SUML=SUML &
-                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)
+                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
                      ENDDO
                   ENDDO
                ENDIF
@@ -809,7 +796,7 @@
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                             + SPFTOT*SPL/SUML*RLAMDA(NTH,NR)
+                             + SPFTOT*SPL/SUML!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                ENDIF
@@ -833,7 +820,7 @@
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
                         SUML=SUML &
-                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)*RLAMDAG(NTH,NR)
+                            +SPL*VOLP(NTH,NP,NSBA)*VOLR(NR)!*RLAMDAG(NTH,NR)
                      ENDDO
                   ENDDO
                ENDIF
@@ -845,7 +832,7 @@
                      SPL=EXP(-(RM(NR)-SPFR0)**2/SPFRW**2)
                      DO NTH=1,NTHMAX
                         SPPB(NTH,NP,NR,NSA)=SPPB(NTH,NP,NR,NSA) &
-                             +SPFTOT*SPL/SUML*RLAMDA(NTH,NR)
+                             +SPFTOT*SPL/SUML!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                ENDIF
@@ -862,19 +849,15 @@
                PSP=SQRT(2.D0*AMFP(NSA)*ENG1_NF(ID)*AEE)/PTFP0(NSA)
                DO NP=1,NPMAX-1
                   IF(PG(NP,NSBA).LE.PSP.AND.PG(NP+1,NSBA).GT.PSP) THEN
-!                     If(N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP)THEN
-!                        write(6,'(A,I5,1P3E12.4)') ' |-NP,PSP,PG=',&
-!                          NP,PSP,PG(NP,NSBA),PG(NP+1,NSBA)
-!                     END IF
                      DO NR=NRSTART,NREND
                         SUML=0.D0
                         DO NTH=1,NTHMAX
-                           SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)
+                           SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
                         ENDDO
                         CALL NF_REACTION_RATE(NR,ID)
                         DO NTH=1,NTHMAX
                            SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                               +RATE_NF(NR,ID)/SUML/RNFP0(NSA)*RLAMDA(NTH,NR)
+                               +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                         ENDDO
                      ENDDO
                   ENDIF
@@ -889,12 +872,12 @@
                   DO NR=NRSTART,NREND
                      SUML=0.D0
                      DO NTH=1,NTHMAX
-                        SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)
+                        SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
                      ENDDO
                      CALL NF_REACTION_RATE(NR,ID)
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)*RLAMDA(NTH,NR)
+                             +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                END IF
@@ -906,11 +889,11 @@
                      DO NR=NRSTART,NREND
                         SUML=0.D0
                         DO NTH=1,NTHMAX
-                           SUML=SUML+VOLP(NTH,NP,NSBA)*RLAMDA(NTH,NR)
+                           SUML=SUML+VOLP(NTH,NP,NSBA)!*RLAMDA(NTH,NR)
                         ENDDO
                         DO NTH=1,NTHMAX
                            SPPF(NTH,NP,NR,NSA)=SPPF(NTH,NP,NR,NSA) &
-                                +RATE_NF(NR,ID)/SUML/RNFP0(NSA)*RLAMDA(NTH,NR)
+                                +RATE_NF(NR,ID)/SUML/RNFP0(NSA)!*RLAMDA(NTH,NR)
                         ENDDO
                      ENDDO
                   ENDIF
@@ -922,12 +905,12 @@
                      DO NTH=1,NTHMAX
                         SPPF(NTH,NP,NR,NSB1_NF(ID))=                  &
                              SPPF(NTH,NP,NR,NSB1_NF(ID))              &
-                             -RATE_NF_D1(NR,ID,NTH,NP)*RLAMDA(NTH,NR) &
-                             /RNFP0(NSB1_NF(ID))
+                             -RATE_NF_D1(NR,ID,NTH,NP)                &
+                             /RNFP0(NSB1_NF(ID))!*RLAMDA(NTH,NR)
                         SPPF(NTH,NP,NR,NSB2_NF(ID))=                  &
                              SPPF(NTH,NP,NR,NSB2_NF(ID))              &
-                             -RATE_NF_D2(NR,ID,NTH,NP)*RLAMDA(NTH,NR) &
-                             /RNFP0(NSB2_NF(ID))
+                             -RATE_NF_D2(NR,ID,NTH,NP)                &
+                             /RNFP0(NSB2_NF(ID))!*RLAMDA(NTH,NR)
                      ENDDO
                   ENDDO
                ENDDO
@@ -950,9 +933,9 @@
          DO NR=NRSTART,NREND
             DO NTH=1,NTHMAX
                DO NP=1,NPMAX-1
-                  PPL(NTH,NP,NR,NSA)=-RLAMDA(NTH,NR)/TLOSS(NS)
+                  PPL(NTH,NP,NR,NSA)=-1.D0/TLOSS(NS)!*RLAMDA(NTH,NR)
                   SPPS(NTH,NP,NR,NSA)=FPMXWL(PM(NP,NSBA),NR,NS) &
-                                     /TLOSS(NS)*RLAMDA(NTH,NR)
+                                     /TLOSS(NS)!*RLAMDA(NTH,NR)
                ENDDO
             ENDDO
          ENDDO
