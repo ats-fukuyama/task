@@ -478,81 +478,6 @@ contains
 
 !***************************************************************
 !
-!   Shifting deposition profile loaded from files
-!     Input  : kchar      : 'TRAP' or 'PASS'
-!              direct     : direction of NBI, -1 or 1
-!     In/Out : f(0:NRMAX) : Deposition center (m)
-!
-!***************************************************************
-
-  subroutine shift_prof(f,kchar,direct)
-    use tx_commons, only : NRMAX, R, RR, AMb, Vb, PZ, AEE, BthV, Q, BphV, PNBCD
-    real(8), dimension(0:NRMAX), intent(inout) :: f
-    character(len=4), intent(in) :: kchar
-    real(8), intent(in) :: direct
-    integer(4) :: nr, nrl
-    real(8) :: EpsL, rhop, Rpotato, Rshift
-    real(8), dimension(0:nrmax) :: r_shift, fl1, fl2
-    real(8), dimension(:), allocatable :: r_alloc, f_alloc
-
-    ! Shift the horizontal axis
-    do nr = 0, nrmax
-       EpsL = R(NR) / RR
-       if(nr /= 0) rhop = AMb * Vb / (PZ * AEE * BthV(NR)) ! poloidal Larmor radius
-       if(kchar == 'TRAP') then
-          ! potato width
-          Rpotato = (Q(NR)**2*(AMb * Vb / (PZ * AEE * BphV(NR)))**2*RR)**(1.D0/3.D0)
-          if(nr == 0) then
-             Rshift = direct * Rpotato ! potato particle
-          else
-             Rshift = direct * MIN(SQRT(EpsL) * rhop, Rpotato) ! potato or banana particle
-          end if
-       else if(kchar == 'PASS') then
-          if (nr == 0) then ! passing particle
-             Rshift = direct * (AMb * Vb * Q(NR) / (PZ * AEE * BphV(NR)))
-          else
-             Rshift = direct * (     EpsL  * rhop)
-          end if
-       else
-          stop 'shift_prof: input error!'
-       end if
-
-       r_shift(nr) = r(nr) - Rshift
-    end do
-
-    fl1(0:nrmax) = 0.d0
-    fl2(0:nrmax) = 0.d0
-
-    ! Fold back at the magnetic axis
-    if(r_shift(0) < 0.d0) then
-       do nr = 1, nrmax
-          if(r_shift(nr) > 0.d0) then
-             nrl = nr - 1
-             exit
-          end if
-       end do
-
-       allocate(r_alloc(0:nrl),f_alloc(0:nrl))
-       r_alloc(0:nrl) = abs(r_shift(nrl:0:-1))
-       f_alloc(0:nrl) = f(nrl:0:-1)
-       do nr = 0, nrl
-          call aitken(r(nr),fl1(nr),r_alloc,f_alloc,2,nrl+1)
-       end do
-       deallocate(r_alloc,f_alloc)
-    end if
-
-    ! Interpolate
-    do nr = 0, nrmax
-       call aitken(r(nr),fl2(nr),r_shift,f,2,nrmax+1)
-    end do
-
-    ! Sum of both contributions 
-    f(0:nrmax) = fl1(0:nrmax) + fl2(0:nrmax)
-    
-  end subroutine shift_prof
-
-!***************************************************************
-!
 !   Heating deposition profile
 !     Input : R0    : Deposition center (m)
 !             RW    : Deposition width (m)
@@ -634,6 +559,81 @@ contains
     SINT = 2.D0 * PI * INTG_F(S)
 
   end subroutine deposition_profile
+
+!***************************************************************
+!
+!   Shifting deposition profile loaded from files
+!     Input  : kchar      : 'TRAP' or 'PASS'
+!              direct     : direction of NBI, -1 or 1
+!     In/Out : f(0:NRMAX) : Deposition center (m)
+!
+!***************************************************************
+
+  subroutine shift_prof(f,kchar,direct)
+    use tx_commons, only : NRMAX, R, RR, AMb, Vb, PZ, AEE, BthV, Q, BphV, PNBCD
+    real(8), dimension(0:NRMAX), intent(inout) :: f
+    character(len=4), intent(in) :: kchar
+    real(8), intent(in) :: direct
+    integer(4) :: nr, nrl
+    real(8) :: EpsL, rhop, Rpotato, Rshift
+    real(8), dimension(0:nrmax) :: r_shift, fl1, fl2
+    real(8), dimension(:), allocatable :: r_alloc, f_alloc
+
+    ! Shift the horizontal axis
+    do nr = 0, nrmax
+       EpsL = R(NR) / RR
+       if(nr /= 0) rhop = AMb * Vb / (PZ * AEE * BthV(NR)) ! poloidal Larmor radius
+       if(kchar == 'TRAP') then
+          ! potato width
+          Rpotato = (Q(NR)**2*(AMb * Vb / (PZ * AEE * BphV(NR)))**2*RR)**(1.D0/3.D0)
+          if(nr == 0) then
+             Rshift = direct * Rpotato ! potato particle
+          else
+             Rshift = direct * MIN(SQRT(EpsL) * rhop, Rpotato) ! potato or banana particle
+          end if
+       else if(kchar == 'PASS') then
+          if (nr == 0) then ! passing particle
+             Rshift = direct * (AMb * Vb * Q(NR) / (PZ * AEE * BphV(NR)))
+          else
+             Rshift = direct * (     EpsL  * rhop)
+          end if
+       else
+          stop 'shift_prof: input error!'
+       end if
+
+       r_shift(nr) = r(nr) - Rshift
+    end do
+
+    fl1(0:nrmax) = 0.d0
+    fl2(0:nrmax) = 0.d0
+
+    ! Fold back at the magnetic axis
+    if(r_shift(0) < 0.d0) then
+       do nr = 1, nrmax
+          if(r_shift(nr) > 0.d0) then
+             nrl = nr - 1
+             exit
+          end if
+       end do
+
+       allocate(r_alloc(0:nrl),f_alloc(0:nrl))
+       r_alloc(0:nrl) = abs(r_shift(nrl:0:-1))
+       f_alloc(0:nrl) = f(nrl:0:-1)
+       do nr = 0, nrl
+          call aitken(r(nr),fl1(nr),r_alloc,f_alloc,2,nrl+1)
+       end do
+       deallocate(r_alloc,f_alloc)
+    end if
+
+    ! Interpolate
+    do nr = 0, nrmax
+       call aitken(r(nr),fl2(nr),r_shift,f,2,nrmax+1)
+    end do
+
+    ! Sum of both contributions 
+    f(0:nrmax) = fl1(0:nrmax) + fl2(0:nrmax)
+    
+  end subroutine shift_prof
 
 !***************************************************************
 !

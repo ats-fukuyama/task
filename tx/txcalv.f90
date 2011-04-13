@@ -162,20 +162,20 @@ contains
 
     integer(4) :: IC
     integer(4), save :: NRB = 1
-    INTEGER(4) :: NR, NR1, IER, i, nrbound, MDANOMabs
+    INTEGER(4) :: NR, NR1, IER, i, MDANOMabs
     REAL(8) :: Sigma0, QL, &
          &     Vte, Vti, Vtb, Wte, Wti, EpsL, rNuPara, &
-         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, &
-         &     rat_mass, PN0tot, &
+         &     rNuAsE_inv, rNuAsI_inv, BBL, Va, Wpe2, rGC, PN0tot, &
          &     rH, Smod, PROFML, PROFCL, Dturb, fk, DeL, AJPH, AJTH, EPARA, &
          &     Cs, RhoIT, ExpArg, AiP, DISTAN, UbparaL, &
          &     SiLCL, SiLCthL, SiLCphL, RL, DBW, PTiVA, &
          &     Chicl, factor_bohm, rNuAsIL, ALFA, &
          &     RLOSS, SQZ, rNuDL, ETASL, Ln, LT, etai_chk, kthrhos, &
-         &     RhoSOL, V0ave, Viave, DturbA, rLmean, rLmeanL, Sitot, &
+         &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
          &     rGCIM, rGIM, rHIM, OMEGAPR  !09/06/17~ miki_m
     INTEGER(4) :: NHFM ! miki_m 10-08-06
     real(8), dimension(1:NHFMmx) :: EpsLM 
+!    real(8) :: rLmeanL
 !!    real(8) :: XXX, SiV, ScxV, Vcr, Wbane, Wbani, ALFA, cap_val, Scxi, Vave, bthl
     real(8), save :: Fcoef = 1.d0
     real(8) :: PTiVav, N02INT, RatSCX, sum1, sum2
@@ -416,9 +416,9 @@ contains
 
        !  Mean free path for fast neutrals
        rLmean = Viave / Sitot
-       !  Locally determined mean free path for fast neutrals
-       rLmeanL = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi)) &
-            &  / ((SiVcxA(NR) * PNiV(NR) + SiVizA(NR) * PNeV(NR)) *1.D20)
+!!D02       !  Locally determined mean free path for fast neutrals
+!!D02       rLmeanL = sqrt(8.D0 * PTiV(NR) * rKeV / (Pi * AMi)) &
+!!D02            &  / ((SiVcxA(NR) * PNiV(NR) + SiVizA(NR) * PNeV(NR)) *1.D20)
 
        !  Diffusion coefficient for fast neutrals (short to long m.f.p.)
 !old       D02(NR) = FSD02 * Vti**2 &

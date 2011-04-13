@@ -1637,6 +1637,8 @@ subroutine inexpolate(nmax_in,rho_in,dat_in,nmax_std,rho_std,imode,dat_out,ideri
         end if
         dat_out(i) = 0.d0
      end if
+!!$        if(present(nrbound)) nrbound = i - 1
+!!$        exit
   end do
 
   deallocate(rho_tmp,dat_tmp)

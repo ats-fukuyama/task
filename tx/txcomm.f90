@@ -4,7 +4,7 @@ module tx_commons
 
   integer(4), parameter :: NQM=22, NCM=32, NGRM=20, &
        &                   NGTM=5000, NGVM=5000, NGYRM=143, NGYTM=51, &
-       &                   NGYVM=56, NGPRM=20, NGPTM=8, NGPVM=15, &
+       &                   NGYVM=56, NGPRM=21, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
 !09/07/13 miki_m original : NGYRM=136
   integer(4), parameter :: NSM=2, NFM=2
@@ -279,9 +279,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont_in
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:NGPRM) :: ierl
+    integer(4), dimension(1:20) :: ierl
 
-    ierl(1:NGPRM) = 0
+    ierl(:) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
