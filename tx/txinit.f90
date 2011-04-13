@@ -839,7 +839,7 @@ SUBROUTINE TXPROF
   use tx_commons
   use tx_variables
   use tx_interface, only : INTG_P, INTDERIV3, detect_datatype, INTG_F, dfdx, &
-       &                   initprof_input, moving_average
+       &                   initprof_input, moving_average, CORR, coulog
 
   implicit none
   INTEGER(4) :: NR, IER, ifile, NHFM, NR_smt, NR_smt_start = 10
@@ -1250,8 +1250,8 @@ SUBROUTINE TXPROF
      EpsL = R(NR) / RR
      Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME) ! Thermal velocity for ions
      Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
-     rlnLei(NR) = 37.8d0 - LOG(SQRT(PNeV(NR)*1.D20)/(PTeV(NR)))
-     rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 * rlnLei(NR) &
+     rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 &
+          &     * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
           &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
           &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
      rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))

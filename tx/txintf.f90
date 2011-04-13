@@ -157,12 +157,6 @@ module tx_interface
   end interface
 
   interface
-     pure REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
-       real(8), intent(in) :: S, ALFA, RKCV
-     end FUNCTION TRCOFS
-  end interface
-
-  interface
      pure REAL(8) FUNCTION LORENTZ(R,C1,C2,W1,W2,RC1,RC2,AMP)
        real(8), intent(in) :: r, c1, c2, w1, w2, rc1, rc2
        real(8), intent(in), optional :: AMP
@@ -209,6 +203,30 @@ module tx_interface
        integer(4), intent(in), optional :: iend
        real(8), dimension(0:imax), intent(in) :: f
      end function moving_average
+  end interface
+
+  !*****************!
+  !   txmisc.f90    !
+  !*****************!
+
+  interface
+     pure REAL(8) FUNCTION TRCOFS(S,ALFA,RKCV)
+       real(8), intent(in) :: S, ALFA, RKCV
+     end FUNCTION TRCOFS
+  end interface
+
+  interface
+     pure real(8) function coulog(imodel, Ne, Te, Ni, Ti, PA, PZ) result(f)
+       integer(4), intent(in) :: imodel
+       real(8), intent(in) :: Ne, Te
+       real(8), intent(in), optional :: Ni, Ti, PA, PZ
+     end function coulog
+  end interface
+
+  interface
+     pure REAL(8) FUNCTION CORR(X)
+       real(8), intent(in) :: X
+     end FUNCTION CORR
   end interface
 
   !****************!

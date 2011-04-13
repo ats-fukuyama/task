@@ -4,7 +4,7 @@ module tx_commons
 
   integer(4), parameter :: NQM=22, NCM=32, NGRM=20, &
        &                   NGTM=5000, NGVM=5000, NGYRM=143, NGYTM=51, &
-       &                   NGYVM=56, NGPRM=21, NGPTM=8, NGPVM=15, &
+       &                   NGYVM=56, NGPRM=20, NGPTM=8, NGPVM=15, &
        &                   NMNQM=446, M_POL_M=64
 !09/07/13 miki_m original : NGYRM=136
   integer(4), parameter :: NSM=2, NFM=2
@@ -177,7 +177,6 @@ module tx_commons
        & Chie, Chii, De, Di, VWpch, D01, D02, D03, &
        & ChiNCpe, ChiNCte, ChiNCpi, ChiNCti, &
        & DMAG, DMAGe, DMAGi, &
-       & rlnLee, rlnLei, rlnLii, &
        & Ubrp, RUbrp, Dbrp, DltRP, DltRP_mid, rNubL, rip_rat, rNuOL, &
        & rNuNTV, UastNC, Vbpara, &
        & SiVizA, SiVcxA, wexb, Ys, FQeth, FQith
@@ -280,9 +279,9 @@ contains
     integer(4), intent(out) :: ier
     integer(4), intent(in), optional :: icont_in
     integer(4) :: iflag, N, NS, NF
-    integer(4), dimension(1:21) :: ierl
+    integer(4), dimension(1:NGPRM) :: ierl
 
-    ierl(1:21) = 0
+    ierl(1:NGPRM) = 0
     if(nrmax <= 1) then
       write(6,*) "XXX ALLOCATE_TXCOMM : ILLEGAL PARAMETER    NRMAX=", nrmax
       ier = 1
@@ -354,15 +353,14 @@ contains
        allocate(De(0:N),     Di(0:N),     VWpch(0:N), D01(0:N),    D02(0:N),  &
             &   D03(0:N),                                                     stat = ierl(12))
        allocate(ChiNCpe(0:N),ChiNCte(0:N),ChiNCpi(0:N),ChiNCti(0:N),          stat = ierl(13))
-       allocate(rlnLee(0:N),rlnLei(0:N),rlnLii(0:N),                          stat = ierl(14))
        allocate(Ubrp(0:N),   RUbrp(0:N),  Dbrp(0:N),  DltRP(0:N), DltRP_mid(0:N), &
-            &   rNubL(0:N),                                                   stat = ierl(15))
-       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(16))
-       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(17))
-       allocate(deltam(0:N,0:M_POL_M),gamITG(0:N,1:3),                        stat = ierl(18))
-       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(19))
-       allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),  Ys(0:N),                stat = ierl(20))
-       allocate(rNue2NC(0:N),rNui2NC(0:N),FQeth(0:N), FQith(0:N),             stat = ierl(21))
+            &   rNubL(0:N),                                                   stat = ierl(14))
+       allocate(rip_rat(0:N),rNuOL(0:N),  rNuNTV(0:N),UastNC(0:N),Vbpara(0:N),stat = ierl(15))
+       allocate(Fmnq(1:NMNQM), Wnm(1:NMNQM), Umnq(1:4,1:NMNQM),               stat = ierl(16))
+       allocate(deltam(0:N,0:M_POL_M),gamITG(0:N,1:3),                        stat = ierl(17))
+       allocate(DMAG(0:N),   DMAGe(0:N),  DMAGi(0:N),                         stat = ierl(18))
+       allocate(SiVizA(0:N), SiVcxA(0:N), wexb(0:N),  Ys(0:N),                stat = ierl(19))
+       allocate(rNue2NC(0:N),rNui2NC(0:N),FQeth(0:N), FQith(0:N),             stat = ierl(20))
        ier = sum(ierl) ; iflag = 4
        if (ier /= 0) exit
 
@@ -455,7 +453,7 @@ contains
     deallocate(rNuB,   rNuLB,  ft,    Chie,  Chii)
     deallocate(De,     Di,     VWpch, D01,   D02,  D03)
     deallocate(ChiNCpe,ChiNCte,ChiNCpi,ChiNCti)
-    deallocate(FWthphe,FWthphi,rlnLee,rlnLei,rlnLii)
+    deallocate(FWthphe,FWthphi)
     deallocate(Ubrp,   RUbrp,  Dbrp,  DltRP, DltRP_mid, rNubL)
     deallocate(rip_rat,rNuOL,  rNuNTV,UastNC,Vbpara)
     deallocate(Fmnq,   Wnm,    Umnq)
