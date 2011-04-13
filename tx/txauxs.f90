@@ -8,7 +8,7 @@ module aux_system
   implicit none
   private
   real(8), save :: Vbabsmax, Scxb
-  public :: txauxs
+  public :: txauxs, Vbabsmax, Scxb
 
 contains
 
