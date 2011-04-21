@@ -70,7 +70,7 @@
             RSUM11L=0.D0
 
             RSUM12=0.D0
-            RSUM_test=0.D0
+!            RSUM_test=0.D0
 
             IF(MODELA.eq.0)THEN
                DO NP=1,NPMAX
@@ -83,8 +83,8 @@
                DO NP=1,NPMAX
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) &
-                          *RLAMDAG(NTH,NR)
-                     RSUM_test = RSUM_test+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) 
+                          *RLAMDAG(NTH,NR)*RCOEFN(NR)
+!                     RSUM_test = RSUM_test+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) 
                   END DO
                   RSUMNP_N(NP)=RSUM1
                ENDDO
@@ -134,10 +134,10 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)*RLAMDAG(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)
+                             *0.5D0*PM(NP,NSBA)**2*RLAMDAG(NTH,NR)*RCOEFN(NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   ENDDO
@@ -147,10 +147,10 @@
                      DO NTH=1,NTHMAX
                         RSUM2 = RSUM2                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDAG(NTH,NR)
+                             *PM(NP,NSBA)*COSM(NTH)/PV*RLAMDAG(NTH,NR)*RCOEFN(NR)
                         RSUM3 = RSUM3                        &
                              +VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)  &
-                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)
+                             *(PV-1.D0)/THETA0(NSA)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                      END DO
                   RSUMNP_E(NP)=RSUM3
                   END DO
@@ -288,18 +288,16 @@
             DO NP=1,NPMAX
                PV=SQRT(1.D0+THETA0(NSA)*PM(NP,NSBA)**2)
                DO NTH=1,NTHMAX
-
                   RSUM11B=RSUM11B+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-                                  *SPPB(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
+                       *SPPB(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                   RSUM11F=RSUM11F+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-                                  *SPPF(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
+                       *SPPF(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                   RSUM11S=RSUM11S+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-                                  *SPPS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)
+                       *SPPS(NTH,NP,NR,NSA)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                   RSUM11L=RSUM11L+PM(NP,NSBA)**4*SINM(NTH)/PV    &
-                                  *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)*RLAMDAG(NTH,NR)
+                       *PPL(NTH,NP,NR,NSA)*FNS(NTH,NP,NR,NSBA)*RLAMDAG(NTH,NR)*RCOEFN(NR)
                END DO
             END DO
-
 
 !-------    Calculation of bulk temperature
             RSUM_T=0.D0
@@ -372,36 +370,35 @@
                END DO
             END DO
 
-            RNDRL(NR,NSA) = RNFP0(NSA)*RSUMN_DR/VOLR(NR) 
+            RNDRL(NR,NSA) = RNFP0(NSA)*RSUMN_DR/VOLR(NR) *RCOEFN(NR)
             IF(MODELR.eq.1)THEN
-               RPDRL(NR,NSA) = AMFP(NSA)*VC**2*RNFP0(NSA)*1.D20*1.D-6*RSUM_DR/VOLR(NR)
+               RPDRL(NR,NSA) = AMFP(NSA)*VC**2*RNFP0(NSA)*1.D20*1.D-6*RSUM_DR/VOLR(NR)*RCOEFN(NR)
             ELSEIF(MODELR.eq.0)THEN
                RPDRL(NR,NSA) = PTFP0(NSA)**2/AMFP(NSA)*RNFP0(NSA)*1.D20 &
-                    *1.D-6*RSUM_DR/VOLR(NR)
+                    *1.D-6*RSUM_DR/VOLR(NR)*RCOEFN(NR)
             END IF
+
 ! --------- end of radial transport
                
  888        FORMAT(2I4,12E14.6)
             FACT=RNFP0(NSA)*1.D20
             RNSL(NR,NSA) = RSUM1*FACT                   *1.D-20
-            RNSL_test(NR,NSA) = RSUM_test*FACT                   *1.D-20
             RJSL(NR,NSA) = RSUM2*FACT*AEFP(NSA)*PTFP0(NSA) &
                            /AMFP(NSA)*1.D-6
 
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)
             RWSL(NR,NSA) = RSUM3*FACT               *1.D-6
-            RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6 
-            RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-            RICSL(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
-
+            RWS123L(NR,NSA) =-RSUM12*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RPCSL(NR,NSA)=-RSUM4*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RPWSL(NR,NSA)=-RSUM5*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RPESL(NR,NSA)=-RSUM6*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RLHSL(NR,NSA)=-RSUM7*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RFWSL(NR,NSA)=-RSUM8*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RECSL(NR,NSA)=-RSUM9*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
+            RICSL(NR,NSA)=-RSUM_IC*FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
             DO NSB=1,NSBMAX
                RPCS2L(NR,NSB,NSA)=-RSUM10(NSB) &
-                                *FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6
+                    *FACT*2.D0*PI*DELP(NSBA)*DELTH *1.D-6*RCOEFN(NR)
             END DO
             FACT=RNFP0(NSA)*1.D20*PTFP0(NSA)**2/AMFP(NSA)*0.5D0
             RSPBL(NR,NSA)= RSUM11B*FACT*2.D0*PI*DELP(NSBA)*DELTH*1.D-6
@@ -436,8 +433,8 @@
                                 RECS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          CALL mtx_gatherv_real8(RICSL(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
                                 RICS(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
-         CALL mtx_gatherv_real8(RNSL_test(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
-                                RNS_test(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
+!         CALL mtx_gatherv_real8(RNSL_test(NRSTART:NRENDX,NSA),MTXLEN(NRANK+1), &
+!                                RNS_test(1:NRMAX,NSA),NRMAX,MTXLEN,MTXPOS)
          DO NSB=1,NSBMAX
             CALL mtx_gatherv_real8(RPCS2L(NRSTART:NRENDX,NSB,NSA), &
                                    MTXLEN(NRANK+1), &
@@ -596,7 +593,7 @@
       DO NSA=1,NSAMAX
          DO NR=1,NRMAX
             RNT(NR,NSA,NTG2) = RNS(NR,NSA)
-            RNT_test(NR,NSA,NTG2) = RNS_test(NR,NSA)
+!            RNT_test(NR,NSA,NTG2) = RNS_test(NR,NSA)
             RJT(NR,NSA,NTG2) = RJS(NR,NSA)
             RWT(NR,NSA,NTG2) = RWS(NR,NSA)
             RPCT(NR,NSA,NTG2)= RPCS(NR,NSA)

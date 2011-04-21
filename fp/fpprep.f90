@@ -102,22 +102,28 @@
       DO NR=1,NRMAX
          RHON=RM(NR)
          CALL pl_qprf(RHON,QL)
+         QLM(NR)=QL
          BT=BB
          BP= RSRHON(RHON)*BT/(RR*QL)
          EPSRM(NR)=RSRHON(RHON)/RR
+         BPM(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
       RHON=RG(NRMAX+1)
       CALL pl_qprf(RHON,QL)
+      QLM(NRMAX+1)=QL
       BT=BB
       BP= RSRHON(RHON)*BT/(RR*QL)
       EPSRM(NRMAX+1)=RSRHON(RHON)/RR
+      BPM(NRMAX+1)= RSRHON(RHON)*BT/(RR*QL)
 
       DO NR=1,NRMAX+1
          RHON=RG(NR)
          CALL pl_qprf(RHON,QL)
+         QLG(NR)=QL
          BT=BB
          BP(NR)= RSRHON(RHON)*BT/(RR*QL)
          EPSRG(NR)=RSRHON(RHON)/RR
+         BPG(NR)= RSRHON(RHON)*BT/(RR*QL)
       ENDDO
 
 !     ----- set parallel current density -----
@@ -179,6 +185,8 @@
          RHOL2=RG(NR+1)
          VOLR(NR)=2.D0*PI*RSRHON(RHOL)*(RSRHON(RHOL2)-RSRHON(RHOL1)) &
                 *2.D0*PI*RR
+!         VOLR(NR)=2.D0*PI*EPSRM(NR)*RR*(EPSRG(NR+1)-EPSRG(NR))*RR &
+!                *2.D0*PI*RR
       ENDDO
       TVOLR=0.D0
       DO NR=1,NRMAX
@@ -237,6 +245,20 @@
          ENDDO
 
       ENDIF
+
+!
+!      IF(MODELA.eq.1)THEN
+!      DO NR=1,NRMAX
+!         VOLR(NR)=2.D0*PI*EPSRM(NR)*RR*(EPSRG(NR+1)-EPSRG(NR))*RR &
+!                *2.D0*PI*RR
+!      ENDDO
+!      TVOLR=0.D0
+!      DO NR=1,NRMAX
+!         TVOLR=TVOLR+VOLR(NR)
+!      ENDDO
+!      END IF
+!
+
 
       IF (MODELA.EQ.0) THEN
          DO NR=NRSTART,NREND
@@ -838,6 +860,8 @@
       IF(MODELA.eq.1)THEN
          NSB=1 ! arbitrary
          DO NR=NRSTART,NREND
+            RCOEF(NR)=1.D0/ ( QLM(NR)*RR )
+            RCOEF_G(NR)=1.D0/ ( QLG(NR)*RR )
             RSUM1=0.D0
             RSUM2=0.D0
             RSUM3=0.D0
@@ -845,23 +869,26 @@
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   RSUM1 = RSUM1+VOLP(NTH,NP,NSB)&!*FNS(NTH,NP,NR,NSB) &
-                       *RLAMDAG(NTH,NR)
+                       *RLAMDAG(NTH,NR)*RCOEF(NR)
                   RSUM2 = RSUM2+VOLP(NTH,NP,NSB)!*FNS(NTH,NP,NR,NSB)
-                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)
+                  RSUM3 = rsum3+VOLP(NTH,NP,NSB)*RLAMDA_GG(NTH,NR)*RCOEF_G(NR)
                   RSUM4 = rsum4+VOLP(NTH,NP,NSB)
                END DO
             END DO
             IF(RSUM1.EQ.0.D0) &
                  WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNS(1,1,1,NSB),RLAMDA(1,1)
-            RCOEF(NR)=RSUM2/RSUM1
-            RCOEF_G(NR)=RSUM4/RSUM3
-!            write(*,*) rsum2/rsum1, rsum4/rsum3
+            RCOEFN(NR)=RSUM2/RSUM1
+            RCOEFN_G(NR)=RSUM4/RSUM3
+!            RCOEF(NR)=1.D0
+!            RCOEF_G(NR)=1.D0
          END DO
       ELSE
          DO NSB=1,NSBMAX
             DO NR=NRSTART,NREND
                RCOEF(NR)=1.D0
                RCOEF_G(NR)=1.D0
+               RCOEFN(NR)=1.D0
+               RCOEFN_G(NR)=1.D0
            ENDDO
          ENDDO
       END IF
@@ -915,8 +942,12 @@
                      RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)
                   END DO
                END DO
-               RCOEF2(1)=RSUM2/RSUM1
-               RCOEF2_G(1)=RSUM4/RSUM3
+!               RCOEF2(1)=RSUM2/RSUM1
+!               RCOEF2_G(1)=RSUM4/RSUM3
+               RCOEF2(1)=1.D0/ ( QLM(NRMAX+1)*RR )
+               RCOEF2_G(1)=1.D0/ ( QLG(NRMAX+1)*RR )
+!               RCOEF2(1)=1.D0
+!               RCOEF2_G(1)=1.D0
             ELSE
                RCOEF2(1)=1.D0
                RCOEF2_G(1)=1.D0
@@ -937,7 +968,7 @@
          RCOEFG(NR)=workg(NR)
       ENDDO
       RCOEFG(NRMAX+1)=RCOEF2(1)
-!      RCOEFG(NRMAX+1)=RCOEFG(NRMAX)
+!      RCOEFG(NRMAX+1)=1.D0
 
       DO NR=NRSTART,NRENDX
          work(NR)=RCOEF_G(NR)
@@ -949,6 +980,7 @@
          RCOEF_GG(NR)=workg(NR)
       ENDDO
       RCOEF_GG(NRMAX+1)=RCOEF2_G(1)
+!      RCOEF_GG(NRMAX+1)=1.D0
 
       deallocate(work,workg)
 
@@ -968,28 +1000,6 @@
          END DO
       ENDDO
 
-!      IF(NRANK.eq.1)THEN
-!      DO NR=1,NRMAX+1
-!         RSUM4=0.D0
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               RSUM4 = rsum4+VOLP(NTH,NP,1)*RLAMDAG(NTH,NR)
-!            END DO
-!         END DO
-!         WRITE(*,'(I3,1P4E14.6)') NR,RM(NR),RLAMDAG(1,NR),RCOEFG(NR),RSUM4
-!      END DO
-!      write(*,*) " "
-!      write(*,*) " "
-!         RSUM4=0.D0
-!         DO NP=1,NPMAX
-!            DO NTH=1,NTHMAX
-!               RSUM4 = rsum4+VOLP(NTH,NP,1)*RLAMDA_GG(NTH,NR)
-!            END DO
-!         END DO
-!      DO NR=1,NRMAX+1
-!         WRITE(*,'(I3,1P4E14.6)') NR,RG(NR),RLAMDA_GG(1,NR),RCOEF_GG(NR),rsum4
-!      END DO
-!      END IF
 
 !     ----- set parameters for target species -----
 

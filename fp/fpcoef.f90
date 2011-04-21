@@ -591,61 +591,6 @@
       ENDDO
       
 
-      IF(MODELA.eq.2)THEN 
-         DO NR=NRSTART, NREND+1
-            DO NTH=1,NTHMAX
-               DELH=2.D0*ETAMG(NTH,NR)/NAVMAX
-               DO NP=1,NPMAX+1
-                  sumd=0.D0
-                  sumf=0.D0
-                  DO NG=1,NAVMAX
-                     ETAL=DELH*(NG-0.5D0)
-                     X=EPSRG(NR)*COS(ETAL)*RR
-                     PSIB=(1.D0+EPSRG(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
-                     ENDIF
-                     sumd=sumd &
-                          +DRR(NTH,NP,NR,NSA)*COSM(NTH)/PCOS
-                     sumf=sumf &
-                          +FRR(NTH,NP,NR,NSA)*COSM(NTH)/PCOS
-                  END DO
-                  DRR(NTH,NP,NR,NSA)=SUMd*DELH/PI*RCOEF_GG(NR)
-                  FRR(NTH,NP,NR,NSA)=SUMf*DELH/PI*RCOEF_GG(NR)
-               END DO
-            END DO
-            
-            DO NP=1,NPMAX+1
-               DO NTH=ITL(NR)+1,NTHMAX/2
-                  DRR(NTH,NP,NR,NSA) &
-                       =(DRR(NTH,NP,NR,NSA) &
-                       +DRR(NTHMAX-NTH+1,NP,NR,NSA))/2.D0
-                  FRR(NTH,NP,NR,NSA) &
-                       =(FRR(NTH,NP,NR,NSA) &
-                       +FRR(NTHMAX-NTH+1,NP,NR,NSA))/2.D0
-                  DRR(NTHMAX-NTH+1,NP,NR,NSA) &
-                       =DRR(NTH,NP,NR,NSA)
-                  FRR(NTHMAX-NTH+1,NP,NR,NSA) &
-                       =FRR(NTH,NP,NR,NSA)
-               END DO
-               DRR(ITL(NR),NP,NR,NSA)=RLAMDA_GG(ITL(NR),NR)/4.D0     &
-                    *( DRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
-                    +DRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR) &
-                    +DRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR) &
-                    +DRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR))
-               FRR(ITL(NR),NP,NR,NSA)=RLAMDA_GG(ITL(NR),NR)/4.D0     &
-                    *( FRR(ITL(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)-1,NR) &
-                    +FRR(ITL(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITL(NR)+1,NR) &
-                    +FRR(ITU(NR)-1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)-1,NR) &
-                    +FRR(ITU(NR)+1,NP,NR,NSA)/RLAMDA_GG(ITU(NR)+1,NR))
-               DRR(ITU(NR),NP,NR,NSA)=DRR(ITL(NR),NP,NR,NSA)
-               FRR(ITU(NR),NP,NR,NSA)=FRR(ITL(NR),NP,NR,NSA)
-            END DO
-         ENDDO
-      END IF
-
 !      DO NR=NRSTART,NREND
 !      IF(NR.eq.20.and.NSA.eq.1)THEN
 !         open(8,file='drr_L20_r.dat')
@@ -729,7 +674,8 @@
          ENDIF
       ENDDO
 !  ----  FOR ELECTRON (NS=1)
-      IF(NS_NSA(NSA).EQ.1) THEN
+!      IF(NS_NSA(NSA).EQ.1) THEN
+      IF(NS_NSA(NSA).EQ.1.and.NSSPB(1).ne.1) THEN
          DO NBEAM=1,NBEAMMAX
             NSABEAM=0
             DO NSAX=1,NSAMAX

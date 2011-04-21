@@ -74,11 +74,11 @@
       integer,dimension(:),POINTER :: & ! (NRM)
            ITLG,ITUG
       real(rkind),dimension(:),POINTER :: & ! (NRM,NSBM)
-           RCOEF, RCOEF_G
+           RCOEF, RCOEF_G, RCOEFN, RCOEFN_G
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RCOEF1,RCOEF2,RCOEF2_G
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
-           RCOEFG, RCOEF_GG
+           RCOEFG, RCOEF_GG, RCOEFNG, RCOEFN_GG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            volr
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
@@ -93,7 +93,7 @@
            THG,THM
 
       real(rkind),dimension(:),POINTER :: & ! (NRM)
-           BP,QR,RJ1,E1,RJ2,E2
+           BP,QR,RJ1,E1,RJ2,E2,BPG,BPM,QLM,QLG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            EPSRM,EPSRG
       real(rkind),dimension(:),POINTER :: & ! (NRM)
@@ -133,7 +133,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNSL,RJSL,RWSL,RPCSL,RPWSL,RPESL,RLHSL,RFWSL,RECSL,RWS123L, &
-           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL, RNSL_test
+           RSPBL,RSPFL,RSPSL,RSPLL,RPDR,RNDR, RTL_BULK, RT_BULK, RICSL!, RNSL_test
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
            RPCS2L
 
@@ -144,7 +144,7 @@
 
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
            RNS,RJS,RWS,RPCS,RPWS,RPES,RLHS,RFWS,RECS,RWS123, &
-           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS, RNS_test
+           RSPB,RSPF,RSPS,RSPL, RPDRL,RNDRL, RICS!, RNS_test
       real(rkind),dimension(:),POINTER :: & ! (NSAM)
            RNS_S2
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NSAM,NSBM)
@@ -167,7 +167,7 @@
            RET,RQT
       real(rkind),dimension(:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM)
            RNT,RWT,RTT,RJT,RPCT,RPWT,RPET,RLHT,RFWT,RECT, &
-           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT, RNT_test
+           RSPBT,RSPFT,RSPLT,RSPST,RPDRT,RNDRT,RTT_BULK,RICT!, RNT_test
       real(rkind),dimension(:,:,:,:),POINTER :: & ! (NRM,NTG2M,NSAM,NSBM)
            RPCT2
 
@@ -229,6 +229,8 @@
           allocate(RLAMDAG(NTHMAX,NRMAX+1),RLAMDA_GG(NTHMAX,NRMAX+1))
           allocate(ETAMG(NTHMAX,NRMAX+1),ETAM_GG(NTHMAX,NRMAX+1))
           allocate(BP(NRMAX+1),QR(NRMAX))
+          allocate(BPG(NRMAX+1),BPM(NRMAX+1))
+          allocate(QLG(NRMAX+1),QLM(NRMAX+1))
           allocate(RJ1(NRMAX),E1(NRMAX))
           allocate(RJ2(NRMAX),E2(NRMAX))
           allocate(EPSRM(NRMAX+1),EPSRG(NRMAX+1))
@@ -237,9 +239,11 @@
           allocate(ITLG(NRMAX+1),ITUG(NRMAX+1))
 
           allocate(RCOEF(NRSTART:NREND), RCOEF_G(NRSTART:NREND))
+          allocate(RCOEFN(NRSTART:NREND), RCOEFN_G(NRSTART:NREND))
           allocate(RCOEF1(NSAMAX),RCOEF2(NSAMAX))
           allocate(RCOEF2_G(NSAMAX))
           allocate(RCOEFG(NRMAX+1), RCOEF_GG(NRMAX+1))
+          allocate(RCOEFNG(NRMAX+1), RCOEFN_GG(NRMAX+1))
           allocate(PG(NPMAX+1,NSBMAX),PM(NPMAX,NSBMAX))
           allocate(THG(NTHMAX+1),THM(NTHMAX))
           allocate(DELP(NSBMAX))
@@ -325,7 +329,7 @@
           allocate(FCTH2(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSBMAX,NSAMAX))
           
           allocate(RNSL(NRSTART:NRENDX,NSAMAX),RJSL(NRSTART:NRENDX,NSAMAX))
-          allocate(RNSL_test(NRSTART:NRENDX,NSAMAX))
+!          allocate(RNSL_test(NRSTART:NRENDX,NSAMAX))
           allocate(RWSL(NRSTART:NRENDX,NSAMAX),RWS123L(NRSTART:NRENDX,NSAMAX))
           allocate(RSPBL(NRSTART:NRENDX,NSAMAX),RSPFL(NRSTART:NRENDX,NSAMAX))
           allocate(RSPSL(NRSTART:NRENDX,NSAMAX),RSPLL(NRSTART:NRENDX,NSAMAX))
@@ -336,7 +340,7 @@
           allocate(RPCS2L(NRSTART:NRENDX,NSBMAX,NSAMAX))
 
           allocate(RNS(NRMAX,NSAMAX),RJS(NRMAX,NSAMAX))
-          allocate(RNS_test(NRMAX,NSAMAX))
+!          allocate(RNS_test(NRMAX,NSAMAX))
           allocate(RNS_S2(NSAMAX))
           allocate(RWS(NRMAX,NSAMAX),RWS123(NRMAX,NSAMAX))
           allocate(RSPB(NRMAX,NSAMAX),RSPF(NRMAX,NSAMAX))
@@ -419,6 +423,8 @@
           deallocate(RNFP,RTFP)
           deallocate(PTFP,VTFP)
           deallocate(BP,QR,RJ1,E1,RJ2,E2)
+          deallocate(BPG,BPM)
+          deallocate(QLG,QLM)
           deallocate(EPSRM,EPSRG,EPSRMX,EPSRGX)
           deallocate(THETA,DKBSR)
 
@@ -453,7 +459,7 @@
           deallocate(FCPP2,FCTH2)
           
           deallocate(RNSL,RJSL,RWSL)
-          deallocate(RNSL_test)
+!          deallocate(RNSL_test)
           deallocate(RPCSL,RPESL)
           deallocate(RPWSL,RLHSL,RFWSL,RECSL,RICSL)
           deallocate(RWS123L,RPCS2L)
@@ -465,7 +471,7 @@
           deallocate(RPW_INIT, RPWEC_INIT, RPWIC_INIT)
 
           deallocate(RNS,RJS,RWS)
-          deallocate(RNS_test)
+!          deallocate(RNS_test)
           deallocate(RNS_S2)
           deallocate(RPCS,RPES)
           deallocate(RPWS,RLHS,RFWS,RECS,RICS)
@@ -749,7 +755,7 @@
           allocate(RET(NRMAX,NTG2M))
           allocate(RQT(NRMAX,NTG2M))
           allocate(RNT(NRMAX,NSAMAX,NTG2M))
-          allocate(RNT_test(NRMAX,NSAMAX,NTG2M))
+!          allocate(RNT_test(NRMAX,NSAMAX,NTG2M))
           allocate(RWT(NRMAX,NSAMAX,NTG2M))
           allocate(RTT(NRMAX,NSAMAX,NTG2M))
           allocate(RJT(NRMAX,NSAMAX,NTG2M))
@@ -780,7 +786,8 @@
           deallocate(RTG)
           deallocate(RET)
           deallocate(RQT)
-          deallocate(RNT, RNT_test)
+          deallocate(RNT)
+!          deallocate(RNT_test)
           deallocate(RWT)
           deallocate(RTT)
           deallocate(RJT)
