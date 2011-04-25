@@ -498,15 +498,36 @@
                   IF(NR.eq.1)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
                      F_R1 = FS1(NTH,NP,NSA) 
+!                     IF(FS1(NTH,NP,NSA).gt.0.D0.and.FNS(NTH,NP,NR,NSA).gt.0.D0)THEN
+!                        DFDR_R1= ( log(FNS(NTH,NP,NR,NSA))-log(FS1(NTH,NP,NSA)) )/DELR *2.D0
+!                        F_R1=1.D0
+!                     ELSE
+!                        DFDR_R1=0.D0
+!                        F_R1=1.D0
+!                     END IF
                   ELSEIF(NR.eq.NRMAX+1)THEN ! FS2 = F_INIT at rho=1+delR/2
                      DFDR_R1 = ( FS2(NTH,NP,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FS2(NTH,NP,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+!                     IF(FS2(NTH,NP,NSA).gt.0.D0.and.FNS(NTH,NP,NR-1,NSA).gt.0.D0)THEN
+!                        DFDR_R1= ( log(FS2(NTH,NP,NSA))-log(FNS(NTH,NP,NR-1,NSA)) )/DELR
+!                        F_R1=1.D0
+!                     ELSE
+!                        DFDR_R1=0.D0
+!                        F_R1=1.D0
+!                     END IF
                   ELSE
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FNS(NTH,NP,NR-1,NSA) ) / DELR
                      F_R1 = ( (1.D0-WRL)*FNS(NTH,NP,NR,NSA) + WRL*FNS(NTH,NP,NR-1,NSA) )
+!                     IF(FNS(NTH,NP,NR,NSA).gt.0.D0.and.FNS(NTH,NP,NR-1,NSA).gt.0.D0)THEN
+!                        DFDR_R1= ( log(FNS(NTH,NP,NR,NSA))-log(FNS(NTH,NP,NR-1,NSA)) )/DELR
+!                        F_R1=1.D0
+!                     ELSE
+!                        DFDR_R1=0.D0
+!                        F_R1=1.D0
+!                     END IF
                   END IF
                   IF(MODELD.eq.6)THEN
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)!PM?
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.7)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1

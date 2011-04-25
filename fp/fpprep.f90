@@ -877,8 +877,10 @@
             END DO
             IF(RSUM1.EQ.0.D0) &
                  WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNS(1,1,1,NSB),RLAMDA(1,1)
-            RCOEFN(NR)=RSUM2/RSUM1
-            RCOEFN_G(NR)=RSUM4/RSUM3
+!            RCOEFN(NR)=RSUM2/RSUM1
+!            RCOEFN_G(NR)=RSUM4/RSUM3
+            RCOEFN(NR)=1.D0
+            RCOEFN_G(NR)=1.D0
 !            RCOEF(NR)=1.D0
 !            RCOEF_G(NR)=1.D0
          END DO
@@ -955,7 +957,7 @@
 
          ENDDO
 !      END IF
-
+!!!!
       allocate(work(nrstart:nrendx),workg(NRMAX))
 
       DO NR=NRSTART,NRENDX
@@ -982,8 +984,28 @@
       RCOEF_GG(NRMAX+1)=RCOEF2_G(1)
 !      RCOEF_GG(NRMAX+1)=1.D0
 
-      deallocate(work,workg)
+      DO NR=NRSTART,NRENDX
+         work(NR)=RCOEFN(NR)
+      ENDDO
+      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+           workg,NRMAX,MTXLEN,MTXPOS)
+      CALL mtx_broadcast_real8(workg,NRMAX)
+      DO NR=1,NRMAX
+         RCOEFNG(NR)=workg(NR)
+      ENDDO
 
+      DO NR=NRSTART,NRENDX
+         work(NR)=RCOEFN_G(NR)
+      ENDDO
+      CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
+           workg,NRMAX,MTXLEN,MTXPOS)
+      CALL mtx_broadcast_real8(workg,NRMAX)
+      DO NR=1,NRMAX+1
+         RCOEFN_GG(NR)=workg(NR)
+      ENDDO
+
+      deallocate(work,workg)
+!!!!
       DO NTH=1,NTHMAX
          DO NR=1,NRMAX+1
             RLAMDAG(NTH,NR)=RLAMDAG(NTH,NR)*RCOEFG(NR)
