@@ -48,7 +48,7 @@
 
 
       integer:: NP, NTH, NSA, NSB, L, NR, LLMIN, NI, NA, NNP, NPG, NSBA
-      integer:: IER
+      integer:: IER, LTEST
       real(8):: RGAMH, SUM1, SUM2, SUM3, SUM4, SUM5
       real(8):: PSUM, PCRIT, RGAMA, RGAMB, RUFP, FACT, FACT2, RUFD
       real(8):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
@@ -160,12 +160,12 @@
 !
 !---- INTEGRAL ABBREVIATIONS
 !
-!      CALL INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
-      IF(NCALCNR.eq.0)THEN
-         CALL INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
-      ELSE
-         CALL INTEGRATION_RJAB_RYAB_weighp(NR,NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
-      END IF
+      CALL INTEGRATION_RJAB_RYAB(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
+!      IF(NCALCNR.eq.0)THEN
+!         CALL INTEGRATION_RJAB_RYAB_FINE(NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
+!      ELSE
+!         CALL INTEGRATION_RJAB_RYAB_weighp(NR,NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
+!      END IF
 !
 !---- END OF INTEGRALS
 !
@@ -176,7 +176,10 @@
 !
 !---------- FOR MID OF GRID
 !
-      DO L = 0,LLMAX
+!      open(8,file='DPSIM_LL2.dat')
+!       open(8,file='RJYM_LL2_500.dat')
+!       open(8,file='RJYM.dat')
+     DO L = 0,LLMAX
          DO NP = 1, NPMAX
             RGAMA=SQRT(1.D0+PM(NP,NSBA)**2*THETA0(NSA))
             RUFP = (PTFP0(NSA)*PM(NP,NSBA))/AMFP(NSA)
@@ -232,14 +235,36 @@
             PSI1M(NP,L) = ( RY_1(L,1)*RJABM(NP,L,0,1) &
                  +RJ_1(L,1)*RYABM(NP,L,0,1) )/VC
 
+!            WRITE(8,'(2I4,1P14E14.6)') L, NP, &
+!                 PM(NP,NSA), DPSI02M(NP,L), DPSI022M(NP,L), &
+!                 PSI02M(NP,L), PSI022M(NP,L), PSI11M(NP,L), PSI1M(NP,L)
+!            WRITE(8,'(2I4,1P20E14.6)') L, NP, RUFP/VC, &
+!                 PM(NP,NSA), RY_1(L,0), RJABM(NP,L,2,0), RY_1(L-1,1), &
+!                 RJABM(NP,L,1,1), RJABM(NP,L,2,0), RY_1(L-2,0), RJABM(NP,L,0,2), &
+!                 RJ_1(L+2,0), RYABM(NP,L,0,0), RJ_1(L+1,1), RJ_1(L+2,0), &
+!                 RYABM(NP,L,1,1), RJ_1(L,2), RYABM(NP,L,2,0)
+!            IF(L.eq.0)THEN
+!               WRITE(8,'(2I4,1P50E14.6)') L, NP, RUFP/VC, &
+!                    PM(NP,NSA), (RJ_1(0,LTEST),LTEST=0,2), &
+!                    (RJ_1(1,LTEST),LTEST=0,2), (RJ_1(2,LTEST),LTEST=0,2), &
+!                    (RJ_1(3,LTEST),LTEST=0,2), (RJ_1(4,LTEST),LTEST=0,2), &
+!                    (RY_1(0,LTEST),LTEST=0,2), &
+!                    (RY_1(1,LTEST),LTEST=0,2), (RY_1(2,LTEST),LTEST=0,2), &
+!                    (RY_1(3,LTEST),LTEST=0,2), (RY_1(4,LTEST),LTEST=0,2)
+!            END IF
          END DO
+!         WRITE(8,*)" "
+!         WRITE(8,*)" "
       END DO
+      close(8)
 !
 !----------- END OF MID 
 !
 !
 !----------- ON GRID
 !
+!      open(9,file='DPSIG_LL2.dat')
+!      open(9,file='RJYG_LL2_500.dat')
       DO L=0,LLMAX
          DO NP = 2, NPMAX+1
             RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
@@ -295,9 +320,19 @@
                  +(RJ_1(L+1,0)+RUFP*DERJ(L+1,0))*RYABG(NP,L,0,1) &
                  -DERJ(L,1)*RYABG(NP,L,1,0) )
 
+!            WRITE(9,'(2I4,1P14E14.6)') L, NP, &
+!                 PG(NP,NSA), DPSI02G(NP,L), DPSI022G(NP,L), PSI0G(NP,L),&
+!                 PSI02G(NP,L), PSI022G(NP,L), DPSI1G(NP,L), DPSI11G(NP,L)
+!            WRITE(9,'(2I4,1P20E14.6)') L, NP, RUFP/VC, &
+!                 PG(NP,NSA), RY_1(L,0), RJABG(NP,L,2,0), RY_1(L-1,1), &
+!                 RJABG(NP,L,1,1), RJABG(NP,L,2,0), RY_1(L-2,0), RJABG(NP,L,0,2), &
+!                 RJ_1(L+2,0), RYABG(NP,L,0,0), RJ_1(L+1,1), RJ_1(L+2,0), &
+!                 RYABG(NP,L,1,1), RJ_1(L,2), RYABG(NP,L,2,0)
          END DO
+!         WRITE(9,*)" "
+!         WRITE(9,*)" "
       END DO
-
+!      close(9)
 !
 !----------END OF ON GIRD
 !---- END OF PSI AND ITS DERIVATIVES
@@ -495,7 +530,7 @@
 !      real(8),DIMENSION(-2:LLMAX+2, -1:2):: FKLF_J,FKLF_Y
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
       integer:: L, NA
-      real(8):: RUFP, RGAMA, RZ, RSIGMA, ra1
+      real(8):: RUFP, RGAMA, RZ, RSIGMA, ra1, ra2
 
 !     FKLF_J(L,NA) = P^{-L-1/2}_{A-1/2}
 !     FKLF_Y(L,NA) = P^{L+1/2}_{A-1/2}
@@ -522,7 +557,7 @@
       RZ = RUFP/VC
       IF(RZ.le.1.d-1)THEN
          RSIGMA =                 &
-              5.D0/384.D0*RZ**9   &
+              35.D0/1152.D0*RZ**9 &
               -5.D0/112.D0*RZ**7  &
               +3.D0/40.D0*RZ**5   &
               -RZ**3/6.D0         &
@@ -630,20 +665,37 @@
          END IF
 
          IF(LLMAX.ge.2)THEN
-            RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
-            IF(RZ.le.3.D-2)THEN
-               RJ_1(4,0) = (9.D0/5.D0)*RZ**4/576.D0
-               RJ_1(4,1) = ((357.D0/64.D0)*RZ**4  &
-                    -(999.D0/224.D0+19.D0/16.D0)*RZ**6 )/720.D0
-               RJ_1(4,2) = (525.D0/96.D0-267.D0/56.D0)*RZ**4/1440.D0
+            IF(RZ.le.1.D-1)THEN
+               RJ_1(4,0) = ( (125.D0/128.D0+3675.D0/1152.D0-249.D0/70.D0)*RZ**4 &
+               )/576.D0
+               ra2=35.D0/1152.D0-5.D0/224.D0-3.D0/320.D0-1.D0/96.D0-5.D0/128.D0
+               RJ_1(4,1) = ( &
+                    (-105.D0*ra2-480.D0/105.D0)*RZ**4  &
+                    )/720.D0
+               RJ_1(4,2) = (301.D0/128.D0+3675.D0/1152.D0-225.D0/56.D0) & 
+                    *RZ**4/1440.D0
+!            ELSEIF(RZ.le.5.D-2)THEN
+!!            RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
+!               ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
+!               RJ_1(4,0) =                               &
+!                    (3.D0*(8.D0*RZ**4+4.D1*RZ**2)*RSIGMA &
+!                    -50.D0*RGAMA*RZ**3+RA1)/576.D0/RZ**5
+!               RJ_1(4,1) = ((6.D0*RZ**4+95.D0*RZ**2+105.D0)*RZ &
+!                    -(60.D0*RZ**2+105.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
+!               RJ_1(4,2) = ((90.D0*RGAMA**2+15.D0)*RSIGMA +              &
+!                    (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ) &
+!                    /1440.D0/RZ**5               
             ELSE
+!               RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
                ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
                RJ_1(4,0) =                               &
                     (3.D0*(8.D0*RZ**4+4.D1*RZ**2)*RSIGMA &
                     -50.D0*RGAMA*RZ**3+RA1)/576.D0/RZ**5
 
-               RJ_1(4,1) = ((6.D0*rgama**4+83.D0*RGAMA**2+16.D0)*RZ &
-                    -(60.D0*RGAMA**2+45.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
+!               RJ_1(4,1) = ((6.D0*rgama**4+83.D0*RGAMA**2+16.D0)*RZ &
+!                    -(60.D0*RGAMA**2+45.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
+               RJ_1(4,1) = ((6.D0*RZ**4+95.D0*RZ**2+105.D0)*RZ &
+                    -(60.D0*RZ**2+105.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
                RJ_1(4,2) = ((90.D0*RGAMA**2+15.D0)*RSIGMA +              &
                     (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ) &
                     /1440.D0/RZ**5               
@@ -728,6 +780,8 @@
       real(8),DIMENSION(-2:LLMAX+2, 0:2):: RJ_1, RY_1
       real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2):: RJABM,RJABG 
       real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, -1:2):: RYABM,RYABG
+!      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, 0:2):: RJABM,RJABG 
+!      real(8),DIMENSION(NPMAX+4, 0:LLMAX, 0:2, 0:2):: RYABM,RYABG
 
       integer:: NP, NTH, NSA, NSB, L, LLMIN, NI, NA, NNP, NPG, NSBA
       integer:: IER, NS

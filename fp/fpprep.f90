@@ -877,10 +877,10 @@
             END DO
             IF(RSUM1.EQ.0.D0) &
                  WRITE(6,'(1P3E12.4)') VOLP(1,1,NSB),FNS(1,1,1,NSB),RLAMDA(1,1)
-!            RCOEFN(NR)=RSUM2/RSUM1
-!            RCOEFN_G(NR)=RSUM4/RSUM3
-            RCOEFN(NR)=1.D0
-            RCOEFN_G(NR)=1.D0
+            RCOEFN(NR)=RSUM2/RSUM1
+            RCOEFN_G(NR)=RSUM4/RSUM3
+!            RCOEFN(NR)=1.D0
+!            RCOEFN_G(NR)=1.D0
 !            RCOEF(NR)=1.D0
 !            RCOEF_G(NR)=1.D0
          END DO
@@ -944,10 +944,10 @@
                      RSUM4 = RSUM4+VOLP(NTH,NP,NSBA)
                   END DO
                END DO
-!               RCOEF2(1)=RSUM2/RSUM1
-!               RCOEF2_G(1)=RSUM4/RSUM3
-               RCOEF2(1)=1.D0/ ( QLM(NRMAX+1)*RR )
-               RCOEF2_G(1)=1.D0/ ( QLG(NRMAX+1)*RR )
+               RCOEF2(1)=RSUM2/RSUM1
+               RCOEF2_G(1)=RSUM4/RSUM3
+!               RCOEF2(1)=1.D0/ ( QLM(NRMAX+1)*RR )
+!               RCOEF2_G(1)=1.D0/ ( QLG(NRMAX+1)*RR )
 !               RCOEF2(1)=1.D0
 !               RCOEF2_G(1)=1.D0
             ELSE
@@ -969,7 +969,8 @@
       DO NR=1,NRMAX
          RCOEFG(NR)=workg(NR)
       ENDDO
-      RCOEFG(NRMAX+1)=RCOEF2(1)
+      RCOEFG(NRMAX+1)=1.D0/ ( QLM(NRMAX+1)*RR )
+!      RCOEFG(NRMAX+1)=RCOEF2(1)
 !      RCOEFG(NRMAX+1)=1.D0
 
       DO NR=NRSTART,NRENDX
@@ -981,7 +982,8 @@
       DO NR=1,NRMAX
          RCOEF_GG(NR)=workg(NR)
       ENDDO
-      RCOEF_GG(NRMAX+1)=RCOEF2_G(1)
+      RCOEF_GG(NRMAX+1)=1.D0/ ( QLG(NRMAX+1)*RR )
+!      RCOEF_GG(NRMAX+1)=RCOEF2_G(1)
 !      RCOEF_GG(NRMAX+1)=1.D0
 
       DO NR=NRSTART,NRENDX
@@ -1000,10 +1002,11 @@
       CALL mtx_gatherv_real8(work(NRSTART:NRENDX),MTXLEN(NRANK+1), &
            workg,NRMAX,MTXLEN,MTXPOS)
       CALL mtx_broadcast_real8(workg,NRMAX)
-      DO NR=1,NRMAX+1
+      DO NR=1,NRMAX
          RCOEFN_GG(NR)=workg(NR)
       ENDDO
-
+!      RCOEFN_GG(NRMAX+1)=1.D0
+      RCOEFN_GG(NRMAX+1)=RCOEF2_G(1)
       deallocate(work,workg)
 !!!!
       DO NTH=1,NTHMAX
@@ -1116,49 +1119,14 @@
          ENDDO
       ENDIF
 
-!$$$      DO NSA=1,NSAMAX
-!$$$         NS=NS_NSA(NSA)
-!$$$      DO NR=NRSTART,NREND
-!$$$         NTH=1
-!$$$         DO NP=2,NPMAX-1
-!$$$            IF(FNS(NTH,NP+1,NR,NSA).LE.1.D-70) THEN
-!$$$               DFDP=0.D0
-!$$$            ELSE
-!$$$               DFDP=(FNS(NTH,NP+1,NR,NS)-FNS(NTH,NP-1,NR,NS))
-!$$$     &                    /(2.D0*DELP*FNS(NTH,NP,NR,NS))
-!$$$            ENDIF
-!$$$            IF(FNS(NTH,NP,NR,NSA).LE.1.D-70) THEN
-!$$$               DFDP1=0.D0
-!$$$            ELSE
-!$$$               DFDP1=(LOG(FNS(NTH,NP+1,NR,NS))-LOG(FNS(NTH,NP-1,NR,NS)))
-!$$$     &                    /(2.D0*DELP)
-!$$$            ENDIF
-!$$$            DFDP2=-PM(NP)*RTFP0(NSA)/RTFP(NR,NSA)
-!$$$            write(6,'(I5,1P5E12.4)')
-!$$$     &           NP,PM(NP),DFDP,DFDP1,DFDP2,FNS(NTH,NP,NR,NS)
-!$$$         ENDDO
-!$$$      ENDDO
-!$$$      ENDDO
       N_IMPL=0
       CALL NF_REACTION_COEF
-!      IF(nprocs.gt.1.and.NRANK.eq.1)THEN 
-!      open(8,file='rlamdag_new.dat')
-!         DO NR=1,NRMAX
-!         DO NTH=1,NTHMAX
-!            WRITE(8,'(2I5,1PE12.4)') NR,NTH,RLAMDAG(NTH,NR)
-!         END DO
-!         WRITE(8,*)" "
-!         WRITE(8,*)" "
-!         END DO
-!      CLOSE(8)
-!      END IF
-!      NCALCNR=0
+      NCALCNR=0
       DO NSA=1,NSAMAX
          CALL FP_COEF(NSA)
          NSBA=NSB_NSA(NSA)
          DO NTH=1,NTHMAX
             DO NP=1,NPMAX
-!               DO NR=1,NRMAX
                DO NR=NRSTART,NREND
                   F(NTH,NP,NR)=FNS(NTH,NP,NR,NSBA)
                END DO

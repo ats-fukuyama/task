@@ -216,17 +216,22 @@
 !         CLOSE(8)
       ENDDO
 
-!      NR=1
-!      DFDP=( FNS(NTHMAX,NPMAX,NR,NSA)-FNS(NTHMAX,NPMAX-1,NR,NSA) )/DELP(NSA)
-!      DFDTH=( FNS(NTHMAX,NPMAX,NR,NSA)-FNS(NTHMAX-1,NPMAX,NR,NSA) )/DELTH
-!      WRITE(*,'(I3,1P10E14.6)') NSA &
-!           ,PMAX(NSA)*DCPP(NTHMAX,NPMAX,NR,NSA)*DFDP+DCPT(NTHMAX,NPMAX+1,NR,NSA)*DFDTH &
-!           -PMAX(NSA)*FCPP(NTHMAX,NPMAX,NR,NSA)*FNS(NTHMAX,NPMAX,NR,NSA) &
-!           ,PMAX(NSA)*DCPP(NTHMAX,NPMAX,NR,NSA)*DFDP &
-!           ,DCPT(NTHMAX,NPMAX+1,NR,NSA)*DFDTH &
-!           ,-PMAX(NSA)*FCPP(NTHMAX,NPMAX,NR,NSA)*FNS(NTHMAX,NPMAX,NR,NSA) &
-!           ,DFDP,DFDTH
 
+!      open(8,file='p-dcpp_c4r1a0_2000_new.dat')
+!      NSA=1
+!      NR=1
+!      DO NP=1,NPMAX
+!         DO NTH=1,NTHMAX
+!            WRITE(8,'(2I4,1P14E14.6)') NP, NTH, &
+!                 PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
+!                 PM(NP,NSA)*COSG(NTH), PM(NP,NSA)*SING(NTH), &
+!                 DCPP(NTH,NP,NR,NSA), DCPT(NTH,NP,NR,NSA), &
+!                 DCTT(NTH,NP,NR,NSA), DCTP(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA)
+!         END DO
+!         WRITE(8,*) " "
+!         WRITE(8,*) " "
+!      END DO
+!      close(8)
 
 
       IF(nrank.eq.0) THEN
