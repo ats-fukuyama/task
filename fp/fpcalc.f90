@@ -216,8 +216,8 @@
 !         CLOSE(8)
       ENDDO
 
-
-!      open(8,file='p-dcpp_c4r1a0_2000_new.dat')
+      
+!      open(8,file='p-dcpp_c4r1a0_2000_new2.dat')
 !      NSA=1
 !      NR=1
 !      DO NP=1,NPMAX
@@ -226,7 +226,8 @@
 !                 PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH), &
 !                 PM(NP,NSA)*COSG(NTH), PM(NP,NSA)*SING(NTH), &
 !                 DCPP(NTH,NP,NR,NSA), DCPT(NTH,NP,NR,NSA), &
-!                 DCTT(NTH,NP,NR,NSA), DCTP(NTH,NP,NR,NSA), FCPP(NTH,NP,NR,NSA)
+!                 DCTT(NTH,NP,NR,NSA), DCTP(NTH,NP,NR,NSA), &
+!                 FCPP(NTH,NP,NR,NSA),FCTH(NTH,NP,NR,NSA)
 !         END DO
 !         WRITE(8,*) " "
 !         WRITE(8,*) " "

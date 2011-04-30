@@ -166,7 +166,7 @@
 !      ELSE
 !         CALL INTEGRATION_RJAB_RYAB_weighp(NR,NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 !      END IF
-!
+
 !---- END OF INTEGRALS
 !
 
@@ -329,10 +329,10 @@
 !                 RJ_1(L+2,0), RYABG(NP,L,0,0), RJ_1(L+1,1), RJ_1(L+2,0), &
 !                 RYABG(NP,L,1,1), RJ_1(L,2), RYABG(NP,L,2,0)
          END DO
-!         WRITE(9,*)" "
-!         WRITE(9,*)" "
+         WRITE(9,*)" "
+         WRITE(9,*)" "
       END DO
-!      close(9)
+      close(9)
 !
 !----------END OF ON GIRD
 !---- END OF PSI AND ITS DERIVATIVES
@@ -421,9 +421,15 @@
                SUMG = SUMG + PSI1M(NP,L) * D1PLG(NTH,L)
                SUMH = SUMH + PSI11M(NP,L) * D1PLG(NTH,L)
             END DO
+!            DCTT2(NTH,NP,NR,NSB,NSA) = DCTT2(NTH,NP,NR,NSB,NSA)   &
+!                 +FACT/RGAMA/RUFP                                 &
+!                 *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB + SUMC/RUFP   &
+!                 +4.D0*RGAMA**2/VC**2*SUMD                        &
+!                 - (4.D0*RUFP/VC**4*SUME - 4.D0/RUFP/VC**2*SUMF ) &
+!                 )
             DCTT2(NTH,NP,NR,NSB,NSA) = DCTT2(NTH,NP,NR,NSB,NSA)   &
                  +FACT/RGAMA/RUFP                                 &
-                 *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB + SUMC/RUFP   &
+                 *(-RGAMA**2*SUMA - RUFP/VC**2*SUMB - SUMC/RUFP   &
                  +4.D0*RGAMA**2/VC**2*SUMD                        &
                  - (4.D0*RUFP/VC**4*SUME - 4.D0/RUFP/VC**2*SUMF ) &
                  )
@@ -674,19 +680,7 @@
                     )/720.D0
                RJ_1(4,2) = (301.D0/128.D0+3675.D0/1152.D0-225.D0/56.D0) & 
                     *RZ**4/1440.D0
-!            ELSEIF(RZ.le.5.D-2)THEN
-!!            RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
-!               ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
-!               RJ_1(4,0) =                               &
-!                    (3.D0*(8.D0*RZ**4+4.D1*RZ**2)*RSIGMA &
-!                    -50.D0*RGAMA*RZ**3+RA1)/576.D0/RZ**5
-!               RJ_1(4,1) = ((6.D0*RZ**4+95.D0*RZ**2+105.D0)*RZ &
-!                    -(60.D0*RZ**2+105.D0)*RGAMA*RSIGMA )/720.D0/RZ**5
-!               RJ_1(4,2) = ((90.D0*RGAMA**2+15.D0)*RSIGMA +              &
-!                    (4.D0*RGAMA**2*RZ**2-24.D0*RGAMA**2-81.D0)*RGAMA*RZ) &
-!                    /1440.D0/RZ**5               
             ELSE
-!               RSIGMA = LOG(RZ+SQRT(1.D0+RZ**2))
                ra1 = 105.D0*(RSIGMA-RGAMA*RZ)
                RJ_1(4,0) =                               &
                     (3.D0*(8.D0*RZ**4+4.D1*RZ**2)*RSIGMA &
