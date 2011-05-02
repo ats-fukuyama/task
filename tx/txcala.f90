@@ -209,12 +209,12 @@ contains
     CALL BOUNDARY(NRMAX,LQm1,0)
     CALL BOUNDARY(0    ,LQm2,0)
     CALL BOUNDARY(0    ,LQe2,0)
-!    CALL BOUNDARY(NRMAX,LQe2,0)
+    CALL BOUNDARY(NRMAX,LQe2,0)
     CALL BOUNDARY(0    ,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe3,0)
     CALL BOUNDARY(NRMAX,LQe4,0)
     CALL BOUNDARY(0    ,LQi2,0)
-!    CALL BOUNDARY(NRMAX,LQi2,0)
+    CALL BOUNDARY(NRMAX,LQi2,0)
     CALL BOUNDARY(0    ,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi3,0)
     CALL BOUNDARY(NRMAX,LQi4,0)
@@ -233,8 +233,8 @@ contains
     ! the density constant in the last element, we can force the density gradient
     ! to be nought at the boundary explicitly.
 
-    CALL BOUNDARY(NRMAX,LQe1,0,PNeV(NRMAX-1))
-    CALL BOUNDARY(NRMAX,LQi1,0,PNiV(NRMAX-1))
+!    CALL BOUNDARY(NRMAX,LQe1,0,PNeV(NRMAX-1))
+!    CALL BOUNDARY(NRMAX,LQi1,0,PNiV(NRMAX-1))
 
     !     Integral term stemming from integration by parts in the diffusion term
 
