@@ -376,13 +376,14 @@
                   FEPP(NTH,NP,NR,NSA)=SUM11*DELH/PI*RCOEFG(NR)
 !                  FEPP(NTH,NP,NR,NSA)= FACT*FEPP(NTH,NP,NR,NSA)
                ENDDO
+               DO NP=1,NPMAX+1
                FEPP(ITL(NR),NP,NR,NSA)=RLAMDA(ITL(NR),NR)/4.D0 &
                     *( FEPP(ITL(NR)-1,NP,NR,NSA)/RLAMDA(ITL(NR)-1,NR) &
-                    +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
-                    +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
-                    +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
-               
+                      +FEPP(ITL(NR)+1,NP,NR,NSA)/RLAMDA(ITL(NR)+1,NR) &
+                      +FEPP(ITU(NR)-1,NP,NR,NSA)/RLAMDA(ITU(NR)-1,NR) &
+                      +FEPP(ITU(NR)+1,NP,NR,NSA)/RLAMDA(ITU(NR)+1,NR))
                FEPP(ITU(NR),NP,NR,NSA)=FEPP(ITL(NR),NP,NR,NSA)
+               ENDDO
             ENDDO
 !!!             
             DO NTH=1,ITL(NR)
@@ -422,10 +423,10 @@
                      ETAL=DELH*(NG-0.5D0)
                      X=EPSRM(NR)*COS(ETAL)*RR
                      PSIB=(1.D0+EPSRM(NR))/(1.D0+X/RR)
-                     IF (COSM(NTH).GE.0.D0) THEN
-                        PCOS=SQRT(1.D0-PSIB*SINM(NTH)**2)
+                     IF (COSM(NTH-1).GE.0.D0) THEN
+                        PCOS=SQRT(1.D0-PSIB*SINM(NTH-1)**2)
                      ELSE
-                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH)**2)
+                        PCOS=-SQRT(1.D0-PSIB*SINM(NTH-1)**2)
                      ENDIF
                      DO NSB=1,NSBMAX
                         sum11=sum11 &
