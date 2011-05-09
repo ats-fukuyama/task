@@ -596,7 +596,7 @@
       ENDIF
       IF(NTBP.NE.0) THEN
          WRBP=WEIGHR(NTBP,NP  ,NR+1  ,NSA)
-         VRBP=1.D0-WRBM
+         VRBP=1.D0-WRBP
       ENDIF
       DIVDPP=1.D0/(     PL*PL*DELP(NSBA) *DELP(NSBA))
       DIVDPT=1.D0/(2.D0*PL*PL*DELP(NSBA) *DELTH)
@@ -796,16 +796,7 @@
              -FTH(NTH+1,NP  ,NR  ,NSA)*WTP*DIVFTH*DTPP &
              -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
              +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM &
-             +DTP(NTH+1,NP  ,NR  ,NSA)*WTP*DIVDTP*DTPP &
-             -DTP(NTH  ,NP  ,NR  ,NSA)*VTM*DIVDTP*DTPM &
              +PPL(NTH  ,NP  ,NR  ,NSA)                 
-
-      IF(NP.EQ.NPMAX) THEN
-         IF(NTB.NE.0) THEN
-            DL(NM)=DL(NM) &
-                +DTP(NTB+1,NP  ,NR  ,NSA)*VTB*DIVDTP*DTPM
-         ENDIF
-      ENDIF
 
       IF(NTB.NE.0) THEN
          DL(NM)=DL(NM) &
@@ -841,8 +832,8 @@
                  +FRR(NTH  ,NP  ,NR  ,NSA)*VRM*DIVFRR*DRRM 
                IF(NTBM.NE.0) THEN
                   DL(NM)= DL(NM) &
-                       -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
-                       +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM 
+                    -DRR(NTBM ,NP  ,NR  ,NSA)     *DIVDRR*DRRM &
+                    +FRR(NTBM ,NP  ,NR  ,NSA)*VRBM*DIVFRR*DRRM 
                ENDIF
             ENDIF
          ENDIF
