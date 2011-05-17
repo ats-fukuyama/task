@@ -591,7 +591,7 @@
          VTB=1.D0-WTB
       ENDIF
       IF(NTBM.NE.0) THEN
-         WRBM=WEIGHR(NTBM,NP  ,NR-1  ,NSA)
+         WRBM=WEIGHR(NTBM,NP  ,NR  ,NSA)
          VRBM=1.D0-WRBM
       ENDIF
       IF(NTBP.NE.0) THEN
