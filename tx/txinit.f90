@@ -850,7 +850,7 @@ SUBROUTINE TXPROF
   real(8) :: FACT, PBA, dPN, CfN1, CfN2, pea, pia, pediv, pidiv, dpea, dpia, &
        &     Cfpe1, Cfpe2, Cfpi1, Cfpi2, sigma, fexp, PN0L, PNaL, PNeDIVL, &
        &     PTe0L, PTi0L, PTeaL, PTiaL, PTeDIVL, PTiDIVL
-  REAL(8) :: DERIV4, FCTR ! External functions
+  REAL(8) :: FCTR!, DERIV4
   real(8), dimension(:), allocatable :: AJPHL, TMP, RHSV, dPedr, dPidr, Prof1, Prof2
   real(8), dimension(:,:), allocatable :: CMTX
 
@@ -1243,15 +1243,17 @@ SUBROUTINE TXPROF
      PNiV(NR) = X(LQi1,NR)
      IF(MDFIXT == 0) THEN
         PTeV(NR) = X(LQe5,NR) / X(LQe1,NR)
+        PTiV(NR) = X(LQi5,NR) / X(LQi1,NR)
      ELSE
         PTeV(NR) = X(LQe5,NR)
+        PTiV(NR) = X(LQi5,NR)
      END IF
      ! Inverse aspect ratio
      EpsL = R(NR) / RR
      Vte = SQRT(2.D0 * ABS(PTeV(NR)) * rKeV / AME) ! Thermal velocity for ions
      Wte = Vte / (Q(NR) * RR) ! Omega_te; transit frequency for electrons
      rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 &
-          &     * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+          &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ) &
           &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
           &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
      rNuAsE_inv = EpsL**1.5D0 * Wte / (SQRT(2.D0) * rNuei(NR))

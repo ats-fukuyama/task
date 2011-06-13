@@ -471,16 +471,16 @@ contains
        !     c.f. Braginskii's collision time: rNue = rNuei, rNui = rNuii / sqrt(2)
 
        rNuee(NR) = PNeV(NR) * 1.D20 *         AEE**4 &
-            &     * coulog(1,PNeV(NR),PTeV(NR)) &
+            &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,AEP,1.d0) &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
             &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
        rNuei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 &
-            &     * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+            &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ) &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AME) &
             &     * (ABS(PTeV(NR)) * rKeV)**1.5D0)
        rNuie(NR) = (AME / AMI) * rNuei(NR)
        rNuii(NR) = PNiV(NR) * 1.D20 * PZ**4 * AEE**4 &
-            &     * coulog(3,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+            &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ) &
             &     / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * SQRT(AMI) &
             &     * (ABS(PTiV(NR)) * rKeV)**1.5D0)
 
@@ -489,7 +489,7 @@ contains
        !         Energy relaxation time between two kinds of particles
 !approximate formula (AME << AMI)      rNuTei(NR) = rNuei(NR) * (2.D0 * AME / AMI)
        rNuTei(NR) = PNiV(NR) * 1.D20 * PZ**2 * AEE**4 &
-            &     * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+            &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ) &
             &     / (3.D0 * SQRT(2.D0 * PI) * PI * EPS0**2 * AME * AMI &
             &     * (  ABS(PTeV(NR))*rKeV / AME + ABS(PTiV(NR))*rKeV / AMI)**1.5D0)
 
@@ -978,7 +978,7 @@ contains
           ! Classical heat conduction [s**4/(kg**2.5*m**6)]
           ! (C S Pitcher and P C Stangeby, PPCF 39 (1997) 779)
           Chicl = (4.D0*PI*EPS0)**2 &
-               & /(SQRT(AME)*coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ)*AEE**4*Zeff)
+               & /(SQRT(AME)*coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ)*AEE**4*Zeff)
 
           ! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
           !   to obain good convergence.
@@ -1237,8 +1237,8 @@ contains
        ELSE
           CALL SAUTER(PNeV(NR),PTeV(NR),dTedr(NR),dPedr(NR),PNiV(NR),PTiV(NR),dTidr(NR), &
                &      dPidr(NR),Q(NR),BphV(NR),RR*BthV(NR),RR*BphV(NR),EpsL,RR,PZ,Zeff, &
-               &      ft(nr),rlnLei_IN=coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ), &
-               &             rlnLii_IN=coulog(3,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ), &
+               &      ft(nr),rlnLei_IN=coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ), &
+               &             rlnLii_IN=coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ), &
                &      JBS=AJBS3(NR),ETA=ETA3(NR))
        END IF
 
@@ -1297,7 +1297,7 @@ contains
              BBL = sqrt(BphV(NR)**2 + BthV(NR)**2)
              ! rNuDL : deflection collisional frequency at V = Vti
              rNuDL = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 & 
-                  &   * coulog(3,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+                  &   * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ) &
                   &   / (2.D0 * PI * EPS0**2 * AMI**2 * Vti**3) &
                   &   * 0.6289d0 ! <-- Numerical value of (Phi - G) at V = Vti
              rNuAsIL = rNuDL * RR * Q(NR) / (Vti * (abs(SQZ) * EpsL)**1.5D0)

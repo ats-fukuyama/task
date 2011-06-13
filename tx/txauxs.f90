@@ -21,7 +21,7 @@ contains
     REAL(8) :: SL, SLT1, SLT2, PNBP0, PNBT10, PNBT20, PNBex0, SNBPDi_INTG, &
          &     PNBPi0, PNBTi10, PNBTi20, PRFe0, PRFi0, SL1, SL2, &
          &     Vti, rNuPara, rNubes, BBL, PALFL, Ecr, &
-         &     EbL, logEbL, Sion, xl, Tqt0L
+         &     EbL, logEbL, Sion, xl, Tqt0L, Tb
     real(8), parameter :: PAHe = 4.D0, & ! Atomic mass number of He
          &                Enf  = 3.5D3   ! in keV, equal to 3.5 MeV
     real(8), dimension(0:NRMAX) :: SNBP, SNBT1, SNBT2, SNBTi1, SNBTi2, SRFe, SRFi
@@ -33,6 +33,7 @@ contains
     !     NBI beam speed
 
     Vb =  SQRT(2.D0 * Eb * rKeV / AMB)
+    Tb =  2.d0 / 3.d0 * Eb ! Mean temperature of beam ions
     Vbpara(0:NRMAX) = Vb
     Vbabsmax = Vb
 
@@ -382,11 +383,11 @@ contains
           rNuB (NR) = 0.D0
        ELSE
           rNube(NR) = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 &
-               &     * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+               &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ,Tb) &
                &     / (3.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * AMB * AME &
                &             * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
           rNubi(NR) = PNiV(NR) * 1.D20 * PZ**2 * PZ**2 * AEE**4 &
-               &     * coulog(3,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+               &     * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ,Tb) &
                &     / (4.D0 * PI * EPS0**2 * AMB) &
                &     * (1.D0 / AMB + 1.D0 / AMI) &
                &     * 1.D0 / (Vb**3 + 0.75D0 * SQRT(PI) * Vti**3)
@@ -402,7 +403,7 @@ contains
           !     ** rNuD is similar to rNubi. **
           xl = Vb / Vti
           rNuD(NR) = PNiV(NR) *1.D20 * PZ**2 * PZ**2 * AEE**4 &
-               &   * coulog(3,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+               &   * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ,Tb) &
                &   / (2.D0 * PI * EPS0**2 * AMB**2 * Vb**3) &
                &   * (  SQRT(1.D0 - EXP(- 4.D0 * xl**2 / PI)) &
                &      - 2.D0 * xl / (4.D0 * xl**3 + 3.D0 * SQRT(PI)))
@@ -413,7 +414,7 @@ contains
           !     (originally from the book by Spitzer (1962))
           !     Note that this is a half value of rNube(NR).
           rNubes = PNeV(NR) * 1.D20 * PZ**2 * AEE**4 &
-               & * coulog(2,PNeV(NR),PTeV(NR),PNiV(NR),PTiV(NR),PA,PZ) &
+               & * coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),PA,PZ,PA,PZ) &
                & / (6.D0 * PI * SQRT(2.D0 * PI) * EPS0**2 * AMB * AME &
                & * (ABS(PTeV(NR)) * rKeV / AME)**1.5D0)
 

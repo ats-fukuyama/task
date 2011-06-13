@@ -216,17 +216,36 @@ module tx_interface
   end interface
 
   interface
-     pure real(8) function coulog(imodel, Ne, Te, Ni, Ti, PA, PZ) result(f)
-       integer(4), intent(in) :: imodel
-       real(8), intent(in) :: Ne, Te
-       real(8), intent(in), optional :: Ni, Ti, PA, PZ
+     pure REAL(8) FUNCTION CORR(X)
+       real(8), intent(in) :: X
+     end FUNCTION CORR
+  end interface
+
+  !**********************!
+  !   coulomb_log.f90    !
+  !**********************!
+
+  interface
+     function coulog( zeff, ne, te, ti, A1, Z1, A2, Z2, tb ) result( lambda )
+       real(8), intent(in) :: zeff, ne, te, ti, A1, Z1, A2, Z2
+       real(8), intent(in), optional :: tb
+       real(8) :: lambda
      end function coulog
   end interface
 
   interface
-     pure REAL(8) FUNCTION CORR(X)
-       real(8), intent(in) :: X
-     end FUNCTION CORR
+     function coulog_gen( ne, te, CDi, A1, Z1, t1, A2, Z2, t2 ) result( lambda )
+       real(8), intent(in) :: ne, te, CDi, A1, Z1, t1, A2, Z2, t2
+       real(8) :: lambda
+     end function coulog_gen
+  end interface
+
+  interface
+     real(8) function coulog_NRL(imodel, Ne, Te, Ni, Ti, PA, PZ) result(f)
+       integer(4), intent(in) :: imodel
+       real(8), intent(in) :: Ne, Te
+       real(8), intent(in), optional :: Ni, Ti, PA, PZ
+     end function coulog_NRL
   end interface
 
   !****************!

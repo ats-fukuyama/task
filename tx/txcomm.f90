@@ -17,19 +17,19 @@ module tx_commons
   integer(4), parameter :: nmax_file = 100
 
   !**********************************************!
-  ! Set physical constants, based on CODATA 2006 !
+  ! Set physical constants, based on CODATA 2010 !
   !**********************************************!
 
   !   Electron charge (C)
-  real(8), parameter :: AEE  = 1.602176487D-19
+  real(8), parameter :: AEE  = 1.602176565D-19
 
   !   Electron mass (kg)
-  real(8), parameter :: AME  = 9.10938215D-31
+  real(8), parameter :: AME  = 9.10938291D-31
 
   !   Proton mass (kg)
-  real(8), parameter :: AMP  = 1.672621637D-27
+  real(8), parameter :: AMP  = 1.672621777D-27
 
-  !   Light velocity (m/s)
+  !   Speed of light in vacuum (m/s)
   real(8), parameter :: VC   = 2.99792458D8
 
   !   Pi (circle ratio)
@@ -46,6 +46,9 @@ module tx_commons
   
   !   Hydrogen ionization energy
   real(8), parameter :: EION = 13.6D0
+
+  !   Electron-proton mass ratio
+  real(8), parameter :: AEP = AME / AMP
 
   !**********************!
   !   INPUT PARAMETERS   !

@@ -362,7 +362,7 @@ contains
     c_potl   = REAL(Q(0)*RR)
     !  *****************************************
 
-    amu_i(1) = REAL(AME/AMP)
+    amu_i(1) = REAL(AEP)
     amu_i(2) = REAL(PA)
     IF(Zeff > 1.D0) amu_i(3) = REAL(PAL)
 
