@@ -38,19 +38,19 @@ function coulog( zeff, ne, te, ti, A1, Z1, A2, Z2, tb ) result( lambda )
   CD = ne * ( 1.d0 / te + zeff / ti ) * fac_n / fac_t
 
   if ( present( tb ) ) then
-     if ( ( A1 - Ae ) < eps ) then
+     if ( abs( A1 - Ae ) < eps ) then
         t1 = te ; t2 = tb
-        if ( ( A2 - Ae ) < eps ) stop 'Error!'
-     else if ( ( A2 - Ae ) < eps ) then
+        if ( abs( A2 - Ae ) < eps ) stop 'Error!'
+     else if ( abs( A2 - Ae ) < eps ) then
         t1 = tb ; t2 = te
-        if ( ( A1 - Ae ) < eps ) stop 'Error!'
+        if ( abs( A1 - Ae ) < eps ) stop 'Error!'
      else
         t1 = ti ; t2 = tb
      end if
   else
      t1 = te ; t2 = te
-     if ( ( A1 - Ae ) > eps ) t1 = ti
-     if ( ( A2 - Ae ) > eps ) t2 = ti
+     if ( abs( A1 - Ae ) > eps ) t1 = ti
+     if ( abs( A2 - Ae ) > eps ) t2 = ti
   end if
 
   coef1 = ( A1 + A2 ) / ( A2 * t1 + A1 * t2 ) / fac_t
