@@ -100,6 +100,7 @@
       Vec            x,b
       Mat            A 
       KSP            ksp
+      PC             pc
       INTEGER,PARAMETER:: ione=1
       REAL(8),PARAMETER:: one=1.D0
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isiz
@@ -258,16 +259,94 @@
       return
       END SUBROUTINE mtx_split_operation
 
-      SUBROUTINE mtx_solve(itype,tolerance,its)
+      SUBROUTINE mtx_solve(itype,tolerance,its, &
+           methodKSP_,methodPC_,damping_factor_,emax_,emin_,max_steps_)
+
       INTEGER,INTENT(IN):: itype     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
+      INTEGER,OPTIONAL:: methodKSP_,methodPC_,max_steps_
+      REAL(8),OPTIONAL:: damping_factor_,emax_,emin_
+      INTEGER:: methodKSP,methodPC,max_steps
+      REAL(8):: damping_factor,emax,emin
       INTEGER:: ierr
+
+!      Options:
+!        itype: preconditioning matrix pattern, initial guess
+!        itype=0: DIFFERENT_NONZERO_PATTERN, initial guess zero
+!        itype=1: DIFFERENT_NONZERO_PATTERN, initial guess nonzero
+!        itype=2: SAME_NONZERO_PATTERN, initial guess zero
+!        itype=3: SAME_NONZERO_PATTERN, initial guess nonzero
+!        itype=4: SAME_PRECONDITIONER, initial guess zero
+!        itype=5: SAME_PRECONDITIONER, initial guess nonzero
+!
+!        methodKSP: type of KSP solver (default=4)
+!        methodKSP= 0: Richardson (optional damping factor = 1.0)
+!        methodKSP= 1: Chebychev (optional emin=0.01 emax=100.)
+!        methodKSP= 2: Conjugate Gradient
+!        methodKSP= 3: BiConjugate Gradient
+!        methodKSP= 4..7: Generalized Gradient Residual (optional max_steps=30)
+!           methodKSP= 4:       (Clasical orthogonalization, no refine) 
+!           methodKSP= 5:       (Clasical orthogonalization, refine if needed)
+!           methodKSP= 6:       (Clasical orthogonalization, refine always)
+!           methodKSP= 7:       (Modified orthogonalization) XX not supported
+!        methodKSP= 8: BiCGSTAB
+!        methodKSP= 9: Conjugate Gradient Squared (CGS)
+!        methodKSP=10: Transpose-Free Quasi Minimal Residual (1)
+!        methodKSP=11: Transpose-Free Quasi Minimal Residual (2)
+!        methodKSP=12: Least Square Method
+!        methodKSP=13: Shell for no KSP method
+!
+!        methodPC : type of Pre-Conditioner (default=5)
+!        mdthodPC=  0: Jacobi
+!        mdthodPC=  1: Block Jacobi
+!        mdthodPC=  2: SOR
+!        mdthodPC=  3: SOR with Eisenstat trick
+!        mdthodPC=  4: Incomplete Cholesky
+!        mdthodPC=  5: Incomplete LU
+!        mdthodPC=  6: Additive Schwarz
+!        mdthodPC=  7: Linear solver
+!        mdthodPC=  8: Combination of preconditioners
+!        mdthodPC=  9: LU
+!        mdthodPC= 10: Cholesky
+!        mdthodPC= 11: No preconditioning
+!        mdthodPC= 12: Shell for user-defined PC
 
 !  Assemble matrix, using the 2-step process:
 !       MatAssemblyBegin(), MatAssemblyEnd()
 !  Computations can be done while messages are in transition,
 !  by placing code between these two statements.
+
+      IF(PRESENT(methodKSP_)) THEN
+         methodKSP=methodKSP_
+      ELSE
+         methodKSP=4
+      ENDIF
+      IF(PRESENT(methodPC_)) THEN
+         methodPC=methodPC_
+      ELSE
+         methodPC=5
+      ENDIF
+      IF(PRESENT(max_steps_)) THEN
+         max_steps=max_steps_
+      ELSE
+         max_steps=30
+      ENDIF
+      IF(PRESENT(damping_factor_)) THEN
+         damping_factor=damping_factor_
+      ELSE
+         damping_factor=1.D0
+      ENDIF
+      IF(PRESENT(emin_)) THEN
+         emin=emin_
+      ELSE
+         emin=0.01D0
+      ENDIF
+      IF(PRESENT(emax_)) THEN
+         emax=emax_
+      ELSE
+         emax=100.D0
+      ENDIF
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
@@ -295,11 +374,18 @@
 !  Set operators. Here the matrix that defines the linear system
 !  also serves as the preconditioning matrix.
 
-      CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+      SELECT CASE(itype/2)
+      CASE(0)
+         CALL KSPSetOperators(ksp,A,A,DIFFERENT_NONZERO_PATTERN,ierr)
+      CASE(1)
+         CALL KSPSetOperators(ksp,A,A,SAME_NONZERO_PATTERN,ierr)
+      CASE(2)
+         CALL KSPSetOperators(ksp,A,A,SAME_PRECONDITIONER,ierr)
+      END SELECT
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPSetOperators: ierr=',ierr
 
-      IF(itype.eq.1) THEN
+      IF(MOD(itype,2).eq.1) THEN
          CALL KSPSetInitialGuessNonzero(ksp,PETSC_TRUE,ierr)
          IF(ierr.NE.0) WRITE(6,*) &
               'XX mtx_solve: KSPSetInitialGuessNonzero: ierr=',ierr
@@ -322,6 +408,90 @@
 !      ptype = PCJACOBI
 !      call PCSetType(pc,ptype,ierr)
 !      tol = 1.e-7
+
+      call KSPSetup(ksp,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSetup: ierr=',ierr
+
+      call KSPGetPC(ksp,pc,ierr)
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPGetPC: ierr=',ierr
+
+      SELECT CASE(methodKSP)
+      CASE(0) 
+         CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
+         CALL KSPRichardsonSetScale(ksp,damping_factor,ierr)
+      CASE(1)
+         CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
+         CALL KSPChebychevSetEigenvalues(ksp,emax,emin,ierr)
+      CASE(2)
+         CALL KSPSetType(ksp,KSPCG,ierr)
+      CASE(3)
+         CALL KSPSetType(ksp,KSPBICG,ierr)
+      CASE(4:7)
+         CALL KSPSetType(ksp,KSPGMRES,ierr)
+         CALL KSPGMRESSetRestart(ksp,max_steps,ierr)
+         SELECT CASE(methodKSP)
+         CASE(5)
+            CALL KSPGMRESSetCGSRefinementType(ksp, &
+                 KSP_GMRES_CGS_REFINE_IFNEEDED,ierr)
+         CASE(6)
+            CALL KSPGMRESSetCGSRefinementType(ksp, &
+                 KSP_GMRES_CGS_REFINE_ALWAYS,ierr)
+         CASE(7)
+            !    CALL KSPGMRESSetOrthogonalization(ksp, &
+            !    KSPGMRESModifiedGramSchmidtOrthogonalization,ierr)
+         END SELECT
+      CASE(8)
+         CALL KSPSetType(ksp,KSPBCGS,ierr)
+      CASE(9)
+         CALL KSPSetType(ksp,KSPCGS,ierr)
+      CASE(10)
+         CALL KSPSetType(ksp,KSPTFQMR,ierr)
+      CASE(11)
+         CALL KSPSetType(ksp,KSPTCQMR,ierr)
+      CASE(12)
+         CALL KSPSetType(ksp,KSPCR,ierr)
+      CASE(13)
+         CALL KSPSetType(ksp,KSPLSQR,ierr)
+      CASE(14)
+         CALL KSPSetType(ksp,KSPPREONLY,ierr)
+      END SELECT
+	
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: KSPSetType: methodKSP,ierr=',methodKSP,ierr
+
+      SELECT CASE(methodPC)
+      CASE(0) 
+         CALL PCSetType(pc,PCJACOBI,ierr)
+      CASE(1) 
+         CALL PCSetType(pc,PCBJACOBI,ierr)
+      CASE(2) 
+         CALL PCSetType(pc,PCSOR,ierr)
+      CASE(3) 
+         CALL PCSetType(pc,PCEISENSTAT,ierr)
+      CASE(4) 
+         CALL PCSetType(pc,PCICC,ierr)
+      CASE(5) 
+         CALL PCSetType(pc,PCILU,ierr)
+      CASE(6) 
+         CALL PCSetType(pc,PCASM,ierr)
+      CASE(7) 
+         CALL PCSetType(pc,PCKSP,ierr)
+      CASE(8) 
+         CALL PCSetType(pc,PCCOMPOSITE,ierr)
+      CASE(9) 
+         CALL PCSetType(pc,PCLU,ierr)
+      CASE(10) 
+         CALL PCSetType(pc,PCCHOLESKY,ierr)
+      CASE(11) 
+         CALL PCSetType(pc,PCNONE,ierr)
+      CASE(12) 
+         CALL PCSetType(pc,PCSHELL,ierr)
+      END SELECT
+
+      IF(ierr.NE.0) WRITE(6,*) &
+           'XX mtx_solve: PC: methodPC,ierr=',methodPC,ierr
 
       call KSPSetTolerances(ksp,tolerance, &
            PETSC_DEFAULT_DOUBLE_PRECISION, &
@@ -402,7 +572,6 @@
       call VecGetArray(x,x_value,x_offset,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecGetArray: ierr=',ierr
-	   write(*,*) x_offset
       do j=1,ilen
          v(j)=x_value(x_offset+j)
       enddo

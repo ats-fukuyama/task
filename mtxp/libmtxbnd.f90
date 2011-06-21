@@ -110,11 +110,14 @@
       RETURN
       END SUBROUTINE mtx_split_operation
       
-      SUBROUTINE mtx_solve(itype,tolerance,its)
+      SUBROUTINE mtx_solve(itype,tolerance,its, &
+           methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: itype     ! not used
       REAL(8),INTENT(IN):: tolerance ! not used
       INTEGER,INTENT(OUT):: its
+      INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
+      REAL(8),OPTIONAL:: damping_factor,emax,emin
       INTEGER:: i,j
 
       DO i=1,imax

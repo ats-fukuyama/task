@@ -137,10 +137,13 @@
       return
       END SUBROUTINE mtx_set_vector
       
-      SUBROUTINE mtx_solve(itype,tolerance,its)
+      SUBROUTINE mtx_solve(itype,tolerance,its, &
+           methodKSP,methodPC,damping_factor,emax,emin,max_steps)
       INTEGER,INTENT(IN):: itype     ! info level
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
+      INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
+      REAL(8),OPTIONAL:: damping_factor,emax,emin
       INTEGER:: i,isum
 
       call mtx_allgather_integer(istart-1,istartx)

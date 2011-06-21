@@ -1,4 +1,4 @@
-!     $Id
+!     $Id$
 
 !     Test program of libmtx for 1D/2D/3D Poisson equation
 
@@ -7,19 +7,21 @@
 !        isiz : number of mesh point in one dimension
 !        isource : source position (isource, isource, isource)
 !        itype: type of linear solver (0 for default)
+!        m1: methodKSP 0..13 (default=4)
+!        m2: methodPC  0..12 (default=5)
 !        tolerance : tolerance in iterative method
 
       PROGRAM testmtx
 
       USE libmtx 
       IMPLICIT NONE 
-      INTEGER:: idimen,isiz,isource,itype
+      INTEGER:: idimen,isiz,isource,itype,m1,m2
       INTEGER:: nrank,nprocs,istart,iend,its 
       INTEGER:: imax,jwidth,jsource 
       INTEGER:: i,j,k,l,m,n,iskip 
       REAL(8):: v,tolerance 
       REAL(8),DIMENSION(:),POINTER:: x
-      INTEGER,DIMENSION(4):: idata 
+      INTEGER,DIMENSION(6):: idata 
       REAL(8),DIMENSION(1):: ddata
       REAL(4):: cputime1,cputime2
 
@@ -28,18 +30,22 @@
       isiz=11
       isource=6
       itype=0
+      m1=4
+      m2=5
       tolerance=1.d-7
 
     1 CONTINUE
       IF(nrank.eq.0) then
-    2    WRITE(6,'(A,4I5,1PE12.4)') &
-              '# INPUT: idimen,isiz,isource,itype,tolerance=', &
-                        idimen,isiz,isource,itype,tolerance
-         READ(5,*,END=3,ERR=2) idimen,isiz,isource,itype,tolerance
+    2    WRITE(6,'(A/6I5,1PE12.4)') &
+              '# INPUT: idimen,isiz,isource,itype,m1,m2,tolerance=', &
+                        idimen,isiz,isource,itype,m1,m2,tolerance
+         READ(5,*,END=3,ERR=2) idimen,isiz,isource,itype,m1,m2,tolerance
          idata(1)=idimen
          idata(2)=isiz
          idata(3)=isource
          idata(4)=itype
+         idata(5)=m1
+         idata(6)=m2
          ddata(1)=tolerance
          IF(idimen.LT.0.OR.idimen.GT.3) THEN
             WRITE(6,*) 'XX idimen: out of range'
@@ -49,12 +55,14 @@
     3    idata(1)=0
     4    CONTINUE
       ENDIF
-      CALL mtx_broadcast_integer(idata,4)
+      CALL mtx_broadcast_integer(idata,6)
       CALL mtx_broadcast_real8(ddata,1)
       idimen=idata(1)
       isiz=idata(2)
       isource=idata(3)
       itype=idata(4)
+      m1=idata(5)
+      m2=idata(6)
       tolerance=ddata(1)
 
       IF(idimen.EQ.0) GO TO 9000
@@ -77,7 +85,11 @@
       END SELECT
       ALLOCATE(x(imax))
 
+      WRITE(6,*) 'before setup'
+
       CALL mtx_setup(imax,istart,iend,jwidth)
+
+      WRITE(6,*) 'after setup'
 
       SELECT CASE(idimen)
       CASE(1)
@@ -119,7 +131,7 @@
       IF(jsource.GE.istart.AND.jsource.LE.iend) &
            CALL mtx_set_source(jsource,-1.d0)
 
-      CALL mtx_solve(itype,tolerance,its)
+      CALL mtx_solve(itype,tolerance,its,methodKSP=m1,methodPC=m2)
       if(nrank.eq.0) then
          write(6,*) 'Iteration Number=',its
       endif
