@@ -85,11 +85,7 @@
       END SELECT
       ALLOCATE(x(imax))
 
-      WRITE(6,*) 'before setup'
-
       CALL mtx_setup(imax,istart,iend,jwidth)
-
-      WRITE(6,*) 'after setup'
 
       SELECT CASE(idimen)
       CASE(1)

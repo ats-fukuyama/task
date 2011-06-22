@@ -297,7 +297,7 @@
 !        methodKSP=12: Least Square Method
 !        methodKSP=13: Shell for no KSP method
 !
-!        methodPC : type of Pre-Conditioner (default=5)
+!        methodPC : type of Pre-Conditioner (default=5 or 1)
 !        mdthodPC=  0: Jacobi
 !        mdthodPC=  1: Block Jacobi
 !        mdthodPC=  2: SOR
@@ -325,7 +325,11 @@
       IF(PRESENT(methodPC_)) THEN
          methodPC=methodPC_
       ELSE
-         methodPC=5
+         IF(nsize.EQ.1) THEN
+            methodPC=5
+         ELSE
+            methodPC=1
+         ENDIF
       ENDIF
       IF(PRESENT(max_steps_)) THEN
          max_steps=max_steps_
