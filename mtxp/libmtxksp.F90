@@ -294,8 +294,9 @@
 !        methodKSP= 9: Conjugate Gradient Squared (CGS)
 !        methodKSP=10: Transpose-Free Quasi Minimal Residual (1)
 !        methodKSP=11: Transpose-Free Quasi Minimal Residual (2)
-!        methodKSP=12: Least Square Method
-!        methodKSP=13: Shell for no KSP method
+!        methodKSP=12: Conjugate Residual Method
+!        methodKSP=13: Least Square Method
+!        methodKSP=14: Preconditioning only
 !
 !        methodPC : type of Pre-Conditioner (default=5 or 1)
 !        mdthodPC=  0: Jacobi
