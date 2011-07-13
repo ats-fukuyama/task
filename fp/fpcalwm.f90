@@ -367,14 +367,14 @@
                A21=0
                A22=RTHETA2*RKW**2
             ELSE
-!               A11= (RKW*PCOS)**2  *RTHETA2
-!               A12=-RKW**2*PCOS*PSIN*RTHETA2
-!               A21=-RKW**2*PCOS*PSIN*RTHETA2
-!               A22= (RKW*PSIN)**2  *RTHETA2
                A11= (RKW*RCOS)**2  *RTHETA2
                A12=-RKW**2*RCOS*RSIN*RTHETA2
                A21=-RKW**2*RCOS*RSIN*RTHETA2
                A22= (RKW*RSIN)**2  *RTHETA2
+!               A11= (RKW*PCOS)**2  *RTHETA2
+!               A12=-RKW**2*PCOS*PSIN*RTHETA2
+!               A21=-RKW**2*PCOS*PSIN*RTHETA2
+!               A22= (RKW*PSIN)**2  *RTHETA2
             ENDIF
 	 ELSE
             IF(NTEST.eq.0)THEN
@@ -383,18 +383,18 @@
                A21=RTHETA2*RKW*VPERP*(1.D0-RKW*VPARA)
                A22=RTHETA2*RKW**2*VPERP**2
             ELSE
-!               A11=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )**2*RTHETA2
-!               A12=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )          &
-!                    *(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )*RTHETA2
-!               A21=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )          &
-!                    *(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )*RTHETA2
-!               A22=(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )**2*RTHETA2
                A11=(N*RWC/RW/RGAMMA*RSIN + RKW*VPERP*RCOS )**2*RTHETA2
                A12=(N*RWC/RW/RGAMMA*RSIN + RKW*VPERP*RCOS )          &
                     *(N*RWC/RW/RGAMMA*RCOS - RKW*VPERP*RSIN )*RTHETA2
                A21=(N*RWC/RW/RGAMMA*RSIN + RKW*VPERP*RCOS )          &
                     *(N*RWC/RW/RGAMMA*RCOS - RKW*VPERP*RSIN )*RTHETA2
                A22=(N*RWC/RW/RGAMMA*RCOS - RKW*VPERP*RSIN )**2*RTHETA2
+!               A11=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )**2*RTHETA2
+!               A12=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )          &
+!                    *(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )*RTHETA2
+!               A21=(N*RWC/RW/RGAMMA*PSIN + RKW*VPERP*PCOS )          &
+!                    *(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )*RTHETA2
+!               A22=(N*RWC/RW/RGAMMA*PCOS - RKW*VPERP*PSIN )**2*RTHETA2
             END IF
          ENDIF
          IF(VPARA.EQ.0.D0) THEN

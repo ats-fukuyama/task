@@ -493,8 +493,9 @@
                DO NTH=1,NTHMAX
                   IF(NTG1.ne.1)THEN
                      WRL=WEIGHR(NTH,NP,NR,NSA)
-                  ELSEIF(NTG1.eq.1)THEN
-                     WRL=0.5D0
+                  ELSEIF(NTG1.eq.1.and.NR.ne.1)THEN
+!                     WRL=0.5D0
+                     WRL=(4.D0*NR-3.D0)/(2.D0*NR-2.D0)/4.D0
                   END IF
                   IF(NR.eq.1)THEN
                      DFDR_R1 = ( FNS(NTH,NP,NR,NSA)-FS1(NTH,NP,NSA) ) / DELR * 2.D0
@@ -528,8 +529,8 @@
 !                     END IF
                   END IF
                   IF(MODELD.eq.6)THEN
-                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)!PM?
-                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PG(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
+                     DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PM(NP,NSBA)**2)*DFDR_R1 * RLAMDA_GG(NTH,NR)!PM?
+                     DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(RTFPL+PM(NP,NSBA)**2)*F_R1 * RLAMDA_GG(NTH,NR)
                   ELSEIF(MODELD.eq.7)THEN
                      DINT_D = DINT_D + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*DFDR_R1
                      DINT_F = DINT_F + VOLP(NTH,NP,NSBA)/SQRT(1.D0+PG(NP,NSBA)/RTFPL)*F_R1
@@ -555,7 +556,7 @@
                FACTP=1.D0
             CASE(3)
                FACTR=0.D0
-               FACTP=1.D0/SQRT(1.D0+PM(NP,NSBA)**2/RTFPL)
+               FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
             CASE(4)
                FACTR=-FACTRN+(1.5D0-0.5D0*PM(NP,NSBA)**2/RTFPL)*FACTRT
                FACTP=1.D0/SQRT(1.D0+PM(NP,NSBA)**2/RTFPL)
@@ -565,7 +566,7 @@
             CASE(6) ! case(3) with pinch, depend on 1/p
                FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA)**2)
             CASE(7) ! case(3) with pinch, depend on 1/sqrt{p}
-               FACTP=1.D0/SQRT(1.D0+PG(NP,NSBA)/RTFPL)
+               FACTP=1.D0/SQRT(RTFPL+PG(NP,NSBA))
             CASE(8) ! case(3) with pinch, depend on 1/p^2
                FACTP=1.D0/(RTFPL+PG(NP,NSBA)**2)
             CASE(9) ! case(3) with pinch, = MODELD=5

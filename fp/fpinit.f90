@@ -257,7 +257,9 @@
       DO NS=1,NSM
          MODELW(NS)=0
       END DO
-         
+
+      MODEL_KSP=4
+      MODEL_PC =5
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 
@@ -353,7 +355,7 @@
            pmax,tloss,MODELW,MODELS,NBEAMMAX, &
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG,&
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
-           LMAXFP, EPSFP,NCMIN,NCMAX, DRRS
+           LMAXFP, EPSFP,NCMIN,NCMAX, DRRS, MODEL_KSP, MODEL_PC
 
       IMPLICIT NONE
       INTEGER,INTENT(IN) :: nid
@@ -380,7 +382,7 @@
            NSSPB,SPBTOT,SPBR0,SPBRW,SPBENG,SPBANG, &
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG, &
            pmax,tloss,LMAXFP,EPSFP,MODELS,NBEAMMAX, &
-           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS
+           nsamax,nsbmax,ns_nsa,ns_nsb,NCMIN,NCMAX,DRRS, MODEL_KSP, MODEL_PC
 
       READ(nid,FP,IOSTAT=ist,ERR=9800,END=9900)
 
@@ -417,7 +419,7 @@
       WRITE(6,*) '      NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,'
       WRITE(6,*) '      ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE,'
       WRITE(6,*) '      nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,'
-      WRITE(6,*) '      MODELS,NBEAMMAX,DRRS'
+      WRITE(6,*) '      MODELS,NBEAMMAX,DRRS,MODEL_KSP,MODEL_PC'
 
       RETURN
     END SUBROUTINE fp_plst
@@ -455,6 +457,7 @@
       idata( 5)=MODEFR
       idata( 6)=MODEFW
       idata( 7)=IDEBUG
+
       CALL mtx_broadcast_integer(idata,7)
       NSMAX =idata( 1)
       MODELG=idata( 2)
@@ -568,7 +571,9 @@
       idata(30)=NBEAMMAX
       idata(31)=NSSPF
       idata(32)=MODELS
-      CALL mtx_broadcast_integer(idata,32)
+      idata(33)=MODEL_KSP
+      idata(34)=MODEL_PC
+      CALL mtx_broadcast_integer(idata,34)
       NPMAX   =idata( 1)
       NTHMAX  =idata( 2)
       NRMAX   =idata( 3)
@@ -603,6 +608,8 @@
       NBEAMMAX=idata(30)
       NSSPF   =idata(31)
       MODELS  =idata(32)
+      MODEL_KSP=idata(33)
+      MODEL_PC =idata(34)
 
       CALL mtx_broadcast_integer(NS_NSA,NSAMAX)
       CALL mtx_broadcast_integer(NS_NSB,NSBMAX)
@@ -748,7 +755,7 @@
            NSSPF,SPFTOT,SPFR0,SPFRW,SPFENG,&
            ZEFF,DELT,RIMPL,EPSM,EPSE,EPSDE,H0DE, &
            nsamax,nsbmax,ns_nsa,ns_nsb,pmax,tloss,MODELS,NCMIN,NCMAX, &
-           nbeammax,DRRS
+           nbeammax,DRRS,MODEL_KSP, MODEL_PC
       IMPLICIT NONE
       integer:: nsa,nsb,ns,NBEAM
 
@@ -871,7 +878,7 @@
       WRITE(6,603) 'NTG2STEP',NTG2STEP,'NTG2MIN ',NTG2MIN ,'NTG2MAX ',NTG2MAX
       WRITE(6,603) 'MODELE  ',MODELE  ,'MODELA  ',MODELA  ,'MODELC  ',MODELC
       WRITE(6,603) 'MODEFR  ',MODEFR  ,'MODELD  ',MODELD  ,'MODEFW  ',MODEFW
-      WRITE(6,603) 'IMTX    ',IMTX
+      WRITE(6,603) 'IMTX    ',IMTX    ,'MODEL_KSP',MODEL_KSP,'MODEL_PC ',MODEL_PC
 
       WRITE(6,*) "-------- PLASMA MODELS --------"
 

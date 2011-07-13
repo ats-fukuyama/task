@@ -20,6 +20,7 @@
       integer:: NTEST, NGRAPH
       integer,parameter:: NBEAMM=20
       integer:: NBEAMMAX,NP2MAX
+      integer:: MODEL_KSP, MODEL_PC
       real(rkind):: PGMAX, RGMAX, RGMIN
 
       real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX,DRRS
@@ -82,7 +83,7 @@
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            volr
       real(rkind),dimension(:,:),POINTER :: & ! (NRM,NSAM)
-           rlamdag,ETAMG,ETAM_GG,ETAG_GG,RLAMDA_GG
+           rlamdag,ETAMG,ETAM_GG,ETAG_GG,RLAMDA_GG,ETAG_G_GL
       real(rkind),dimension(:),POINTER :: & ! (NRM)
            RG,RM
       real(rkind),dimension(:,:),POINTER :: & ! (NPM:NSAM)
@@ -228,6 +229,7 @@
           allocate(RG(NRMAX+1),RM(NRMAX+1),VOLR(NRMAX))
           allocate(RLAMDAG(NTHMAX,NRMAX+1),RLAMDA_GG(NTHMAX,NRMAX+1))
           allocate(ETAMG(NTHMAX,NRMAX+1),ETAM_GG(NTHMAX,NRMAX+1))
+          allocate(ETAG_G_GL(NTHMAX+1,NRMAX+1))
           allocate(BP(NRMAX+1),QR(NRMAX))
           allocate(BPG(NRMAX+1),BPM(NRMAX+1))
           allocate(QLG(NRMAX+1),QLM(NRMAX+1))

@@ -25,13 +25,16 @@
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
       integer:: L, IERR, NSTEST, I!, N_IMPL
       real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
-      real(4):: gut, gut2, gut3, gut4
+      real(4):: gut, gut1, gut2, gut3, gut4, gut_ex, gut_calc
       real(8),DIMENSION(nprocs):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
 
       IF(MODELE.NE.0) CALL FPNEWE
 
 !     +++++ Time loop +++++
+
+      gut_EX = 0.D0
+      gut_CALC= 0.D0
 
       DO NT=1,NTMAX
          
@@ -81,6 +84,7 @@
                END DO
                END DO
 
+               CALL GUTIME(gut1)
                IF(DEPS.ge.EPSFP)THEN
                   CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
 !                  IF (MOD(NT,NTCLSTEP2(NSA)).EQ.0) CALL fp_exec(NSA,IERR) ! F1 and FNS are changed
@@ -95,6 +99,8 @@
                   END DO
                   END DO
                END IF
+               CALL GUTIME(gut2)
+               GUT_EX = GUT_EX + (gut2-gut1)
 
                RSUMF(NSA)=0.D0
                RSUMF0(NSA)=0.D0
@@ -160,6 +166,7 @@
                     NSA=1,NSAMAX)
             ENDIF
 
+            CALL GUTIME(gut3)
             DO NSA=1,NSAMAX
 !            CALL GUTIME(gut)
 !            write(*,*)"time1", gut, NSA
@@ -168,8 +175,12 @@
 !            CALL GUTIME(gut)
 !            write(*,*)"time2", gut, NSA
             END DO
+            CALL GUTIME(gut4)
+            GUT_CALC = GUT_CALC + (gut4-gut3)
 
          END DO ! END OF DOWHILE
+         IF(NRANK.eq.0) &
+         WRITE(*,'(" GUT_EX = ", E14.6, " GUT_CALC = ", E14.6)') GUT_EX, GUT_CALC
 
          DO NSA=1,NSAMAX
             NSBA=NSB_NSA(NSA)
@@ -257,7 +268,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
 !         IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-!            open(9,file='power_D_3s_D6_dens_NF.dat')
+!            open(9,file='power_D_3s_D0_taul100_47.dat')
 !            DO NTI=1,NTG1
 !               WRITE(9,645) NTI, PTG(NTI)*1000 &
 !                    ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI),PPCT(1,NTI) &
@@ -271,9 +282,9 @@
 !                    ,PTT2(1,NTI),PTT2(2,NTI),PTT2(3,NTI),PTT2(4,NTI) &
 !                    ,PTT_BULK(1,NTI),PTT_BULK(2,NTI),PTT_BULK(3,NTI),PTT_BULK(4,NTI) &
 !                    ,PSPBT(2,NTI),PSPFT(2,NTI),PSPFT(3,NTI),PSPFT(4,NTI) &
-!                    ,PECT(1,NTI)
-!            END DO
-!            close(9)
+!                   ,PECT(1,NTI)
+!           END DO
+!           close(9)
 !         END IF
 
  645  FORMAT(I3,60E16.8)

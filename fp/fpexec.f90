@@ -18,11 +18,11 @@
       integer:: NTHS, NLL
       integer:: IERR,its,i,j,ll1
       integer:: imtxstart1,imtxend1
+!      integer,optional:: methodKSP, methodPC
 
       NSBA=NSB_NSA(NSA)
 
 !     ----- Set up matrix solver -----
-
       CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
       IF(imtxstart1.NE.imtxstart.OR.imtxend1.NE.imtxend) THEN
          WRITE(6,*) 'XX fp_exec: '
@@ -171,7 +171,7 @@
 
 !     ----- Solve matrix equation -----
 
-      CALL mtx_solve(imtx,epsm,its)
+      CALL mtx_solve(imtx,epsm,its,MODEL_KSP,MODEL_PC)
       if(nrank.eq.0) then
          write(6,*) 'Number of iterations =',its
       endif

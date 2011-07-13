@@ -339,7 +339,7 @@
               + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
               * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
               * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR)
+              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * RCOEFNG(NR)**2
 
 !         RATE_NF_D1(NR,ID,NTH1,NP1) = RATE_NF_D1(NR,ID,NTH1,NP1) &
 !              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
@@ -350,7 +350,7 @@
               + FNS(NTH1,NP1,NR,NSB1) &
               * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
               * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-              * RLAMDAG(NTH2,NR) * FACT
+              * RLAMDAG(NTH2,NR) * FACT *RCOEFNG(NR)
 
 !         RATE_NF_D2(NR,ID,NTH2,NP2) = RATE_NF_D2(NR,ID,NTH2,NP2) &
 !              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
@@ -361,7 +361,7 @@
               + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
               * FNS(NTH2,NP2,NR,NSB2) &
               * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-              * RLAMDAG(NTH1,NR) * FACT
+              * RLAMDAG(NTH1,NR) * FACT * RCOEFNG(NR)
       END DO
       END DO
       END DO

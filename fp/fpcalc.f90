@@ -140,18 +140,18 @@
             IF(NS_NSA(NSA).EQ.1) THEN
                DO NSB=1,NSBMAX
                   IF(NS_NSB(NSB).EQ.2) THEN
-                RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
-              /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
-                   RGAMH2=RGAMH*RNFP(1,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)
-              rZI = -PZ(2)/PZ(1) &
-                    /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
-                     (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
+                     RGAMH=RNUD(NR,NSA,NSA)*SQRT(2.D0)*VTFD(NR,NSA)*AMFP(NSA) &
+                          /(RNFP0(NSA)*PTFP0(NSA)*1.D20)
+                     RGAMH2=RGAMH*RNFP(1,NSA)*1.D20*PTFP0(NSA)/AMFP(NSA)
+                     rZI = -PZ(2)/PZ(1) &
+                          /(14.9D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))* &
+                          (15.2D0-0.5D0*LOG(RNFP(NR,NSA))+LOG(RTFP(NR,NSA)))
 !                     RZI=-PZ(2)/PZ(1)*RNUD(NR,NSB,NSA)/RNUD(NR,NSA,NSA)
                      DO NP=1,NPMAX
                         RGAMA =SQRT(1.D0+PM(NP,NSA)**2*THETA0(NSA))
+!                        RGAMA =1.D0
                         PFPL=PM(NP,NSA)*PTFP0(NSA)
                         VFPL=PFPL/AMFP(NSA)/RGAMA
-                        U=VFPL/VTFP0(NSA)
                         DCTTL=0.5D0*RZI*RGAMH2/VFPL
                         DO NTH=1,NTHMAX+1
                            DCTT2(NTH,NP,NR,NSB,NSA) &
