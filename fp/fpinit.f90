@@ -258,8 +258,8 @@
          MODELW(NS)=0
       END DO
 
-      MODEL_KSP=4
-      MODEL_PC =5
+      MODEL_KSP=5
+      MODEL_PC =1
 !-----------------------------------------------------------------------
 !     LLMAX : dimension of legendre polynomials's calculation
 

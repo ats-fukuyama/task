@@ -796,7 +796,7 @@
              -FTH(NTH+1,NP  ,NR  ,NSA)*WTP*DIVFTH*DTPP &
              -DTT(NTH  ,NP  ,NR  ,NSA)    *DIVDTT*DTTM &
              +FTH(NTH  ,NP  ,NR  ,NSA)*VTM*DIVFTH*DTPM &
-             +PPL(NTH  ,NP  ,NR  ,NSA)                 
+             +PPL(NTH  ,NP  ,NR  ,NSA)*RLAMDAG(NTH,NR)                 
 
       IF(NTB.NE.0) THEN
          DL(NM)=DL(NM) &

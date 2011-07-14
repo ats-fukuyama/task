@@ -705,7 +705,8 @@
 
       DO NSA=1,NSAMAX
          write(6,108) NSA,NS_NSA(NSA),PSPBT(NSA,NTG1),PSPFT(NSA,NTG1), &
-                                      PSPST(NSA,NTG1),PSPLT(NSA,NTG1)
+                                      PSPST(NSA,NTG1),PSPLT(NSA,NTG1), &
+                                      PSPST(NSA,NTG1)+PSPLT(NSA,NTG1)
       END DO
       write(6,105) rtotalpw,rtotalEC,rtotalIC
       write(6,107) rtotalPC
@@ -729,7 +730,7 @@
  105  FORMAT('Total absorption power [MW]', 1PE12.4,'    EC:',1PE12.4,'    IC:',1PE12.4)
  106  FORMAT(F12.4, 8E12.4)
  107  FORMAT('total collision power  [MW]', 1PE12.4)
- 108  FORMAT('        ',2I2,' PSPB/F/S/L=',8X,1P4E12.4) 
+ 108  FORMAT('        ',2I2,' PSPB/F/S/L/S+L=',4X,1P5E12.4) 
  109  FORMAT('total source power     [MW]', 1PE12.4)
  110  FORMAT('collision balance      [MW]', 1PE12.4)
 ! 1111 FORMAT('Absorption by EC       [MW]', 1PE12.4)

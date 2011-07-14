@@ -349,7 +349,8 @@
          RGAMA=SQRT(1.D0+PG(NP,NSBA)**2*THETA0(NSA))
          RUFP = (PTFP0(NSA)*PG(NP,NSBA))/AMFP(NSA)
          DO NTH=1,NTHMAX
-            DO L=LLMIN,LLMAX
+!            DO L=LLMIN,LLMAX
+            DO L=LLMAX,LLMIN,-1
                SUMA = DPSI02G(NP,L) *PLM(NTH,L)
                SUMB = DPSI022G(NP,L)*PLM(NTH,L)
                SUMC = PSI0G(NP,L)   *PLM(NTH,L)
@@ -411,7 +412,8 @@
             SUMF = 0.D0
             SUMG = 0.D0
             SUMH = 0.D0
-            DO L=LLMIN,LLMAX
+!            DO L=LLMIN,LLMAX
+            DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI02M(NP,L) * PLG(NTH,L)
                SUMB = SUMB + PSI02M(NP,L) * PLG(NTH,L)
                SUMC = SUMC + PSI02M(NP,L) * D2PLG(NTH,L)
@@ -454,7 +456,8 @@
             SUMB = 0.D0
             SUMC = 0.D0
             SUMD = 0.D0
-            DO L=LLMIN,LLMAX
+!            DO L=LLMIN,LLMAX
+            DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI022G(NP,L) * D1PLM(NTH,L)
                SUMB = SUMB + DPSI02G(NP,L) * D1PLM(NTH,L)
                SUMC = SUMC + PSI022G(NP,L) * D1PLM(NTH,L)
@@ -475,7 +478,8 @@
             SUMB = 0.D0
             SUMC = 0.D0
             SUMD = 0.D0
-            DO L=LLMIN,LLMAX
+!            DO L=LLMIN,LLMAX
+            DO L=LLMAX,LLMIN,-1
                SUMA = SUMA + DPSI022M(NP,L) * D1PLG(NTH,L)
                SUMB = SUMB + DPSI02M(NP,L) * D1PLG(NTH,L)
                SUMC = SUMC + PSI022M(NP,L) * D1PLG(NTH,L)
