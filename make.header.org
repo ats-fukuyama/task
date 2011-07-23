@@ -190,14 +190,25 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=sxld
 #LDFLAGS=-r -o
 
-## for gfortran
+## for gfortran (32 bit)
 #GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
-#OFLAGS = -g -O3 -I mod
-#DFLAGS = -g -fbounds-check -I mod
-#FCFIXED = gfortran
-#FCFREE = gfortran
+#OFLAGS = -g -O3 -m32
+#DFLAGS = -g -m32 -fbounds-check -ffpe-trap=invalid,zero,overflow
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
 #MOD = mod
-#MODDIR = -M mod
+#MODDIR = -Jmod
+#LD=ld
+#LDFLAGS=-r -o
+
+## for gfortran (64bit)
+#GFLIBS=-L/usr/local/lib -lg3d-gfc64 -lgsp-gfc64 -lgdp-gfc64  -L/usr/X11R6/lib -lX11
+#OFLAGS = -g -O3 -m64
+#DFLAGS = -g -m64 -fbounds-check -ffpe-trap=invalid,zero,overflow
+#FCFIXED = gfortran -ffixed-form
+#FCFREE = gfortran -ffree-form
+#MOD = mod
+#MODDIR = -Jmod
 #LD=ld
 #LDFLAGS=-r -o
 
