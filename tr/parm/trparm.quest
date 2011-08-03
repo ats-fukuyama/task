@@ -1,13 +1,17 @@
  &tr
-   RR=0.64
-   RA=0.36
-   RKAP=1.60
-   RDLT=0.80
-   BB=0.64
-   RIPS=0.30
-   RIPE=0.30
-   PT=0.2,0.2
-   PLHR0=0.1
-   PLHRW=0.05
-   PLHCD=1.0
+   RR=0.68
+   RA=0.40
+   BB=0.25
+   nsmax=2
+   pa(2)=1
+   pz(2)=1
+   pn=0.1,0.1
+   pns=0.001,0.001
+   profn1=2.0
+   profn2=1.0
+   pt=0.3,0.3
+   pts=0.01,0.01
+   rips=0.15,ripe=0.15
+   dt=5.D-4
+   ntmax=400
  &end
