@@ -35,7 +35,7 @@
       real(8):: DFDR_R1, DFDR_R2, DFDT_R1, DFDT_R2, DINT_DR, RSUM_DR,RGAMA,F_R1,F_R2, RSUMN_DR
       real(8),dimension(NSBMAX):: RSUM10
       real(8),dimension(NTHMAX+1,NPMAX+1):: R_FLUX
-      real(8),dimension(NPMAX):: RSUMNP_N, RSUMNP_E
+      real(8),dimension(NPMAX):: RSUMNP_E
       real(8),dimension(NTHMAX,NPMAX):: T_BULK
       integer,dimension(NRSTART:NRENDX,NSBMAX):: NP_BULK
       real(8):: ratio, RSUM_T, RSUM_V, P_BULK_R, FACT_BULK, RATIO_0_S
@@ -77,7 +77,7 @@
                   DO NTH=1,NTHMAX
                      RSUM1 = RSUM1+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA)
                   END DO
-                  RSUMNP_N(NP)=RSUM1
+!                  RSUMNP_N(NP)=RSUM1
                ENDDO
             ELSE
                DO NP=1,NPMAX
@@ -86,12 +86,12 @@
                           *RLAMDAG(NTH,NR)*RCOEFNG(NR)
 !                     RSUM_test = RSUM_test+VOLP(NTH,NP,NSBA)*FNS(NTH,NP,NR,NSBA) 
                   END DO
-                  RSUMNP_N(NP)=RSUM1
+!                  RSUMNP_N(NP)=RSUM1
                ENDDO
             END IF
 
 !           DEFINE BULK MOMENTUM RANGE
-            FACT_BULK=4.D0
+            FACT_BULK=3.D0
             RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA))
             DO NP=NPMAX, 1, -1
 !               P_BULK_R = 4.0D0*( 1.D0 - RM(NR)**2 ) 
@@ -319,8 +319,15 @@
                           /AEE/1.D3*VTFP0(NSA)/PV 
                   RSUM_T = RSUM_T + T_BULK(NTH,NP)*VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
                   RSUM_V = RSUM_V + VOLP(NTH,NP,NSBA)!*FNS(NTH,NP,NR,NSBA)
+
+!                  IF(NSA.eq.4) WRITE(10,'(10E14.6)') &
+!                       PG(NP,NSA)*COSM(NTH), PG(NP,NSA)*SINM(NTH),T_BULK(NTH,NP), FFP, DFDP
                END DO
             END DO
+!            IF(NSA.eq.4) WRITE(10,*) "  " 
+!            IF(NSA.eq.4) WRITE(10,*) "  " 
+
+
             RTL_BULK(NR,NSA)=RSUM_T/RSUM_V
 !-------    Calculation of bulk temperature
 

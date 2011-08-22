@@ -1288,6 +1288,7 @@
       ISAVE=0
       IF(NTG1.eq.0) CALL FPWAVE_CONST ! all nrank must have RPWT  
       CALL FPSSUB
+!      OPEN(10,file='TBULK_TEST.dat')
       IF(nrank.EQ.0) THEN
          CALL FPSGLB
          CALL FPWRTGLB

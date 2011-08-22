@@ -268,7 +268,7 @@
          IF(NRANK.EQ.0.AND.NTG1.GT.0) call FPWRTSNAP
 
          IF(NT.eq.NTMAX.or.NTMAX.eq.0)THEN
-            open(9,file='power_D_1s_D0_taul100_110714.dat')
+            open(9,file='power_D_5s_D0_taul1000_2kev_NB.dat')
             DO NTI=1,NTG1
                WRITE(9,645) NTI, PTG(NTI)*1000 &
                     ,PPCT2(1,1,NTI),PPCT2(2,1,NTI),PPCT2(3,1,NTI),PPCT2(4,1,NTI),PPCT(1,NTI) &
