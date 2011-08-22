@@ -1,11 +1,11 @@
       PROGRAM UFILE_READER_WITH_GSGL
       IMPLICIT REAL*8(A-F,H,O-Z)
       PARAMETER (NRM=100,NTM=2001)
-      DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM)
+      DIMENSION T(NTM),R(NRM),F1(NTM),F2(NRM,NTM),RL(NRM),FL(NRM)
       DIMENSION GT(NTM),GR(NRM),GF1(NTM),GF2(NRM,NTM)
       COMMON /TRKID1/ KDIRR1,KDIRR2
       CHARACTER KDEV*80,KDCG*80
-      CHARACTER KDIRR1*80,KDIRR2*80,KDIR*80
+      CHARACTER KDIRR1*80,KDIRR2*80,KDIR*80,KVAL*80
       CHARACTER KDIRX*80
       CHARACTER KFID*80,KFIDX*80,KVAR*80
       CHARACTER KFIDCK*90,KFILE*110
@@ -83,22 +83,22 @@ C
     7    WRITE(6,*) '# INPUT T'
          READ(5,*,ERR=7,END=5) TL
          IF(TL.LT.0.0) GOTO 5
-         CALL TRXT1D(TL,FL,T,F1,NTM,NTXMAX)
-         WRITE(6,'(1PE12.4)') FL
+         CALL TRXT1D(TL,FLL,T,F1,NTM,NTXMAX)
+         WRITE(6,'(1PE12.4)') FLL
          GOTO 7
       ELSE IF(NDIM.EQ.4) THEN
          CALL TRXR2D(KDIRR2,KFID,T,R,F2,NRM,NTM,NRXMAX,NTXMAX,1)
     8    WRITE(6,*) '# INPUT T,R'
-         READ(5,*,ERR=8,END=5) TL,RL
+         READ(5,*,ERR=8,END=5) TL,RLL
          IF(TL.LT.0.0) GOTO 5
-         CALL TRXT2D(TL,RL,FL,T,R,F2,NRM,NTM,NRXMAX,NTXMAX)
-         WRITE(6,'(1PE12.4)') FL
+         CALL TRXT2D(TL,RLL,FLL,T,R,F2,NRM,NTM,NRXMAX,NTXMAX)
+         WRITE(6,'(1PE12.4)') FLL
          GOTO 8
       ENDIF
 C      write(6,*) NDIM,NRM,NTM,NRXMAX,NTXMAX
 C     
-      GX1=3.0
-      GX2=18.0
+      GX1=2.0
+      GX2=17.0
       GY1=2.0
       GY2=17.0
 C
@@ -109,44 +109,115 @@ C      WRITE(6,'(1P6E12.4)') ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
 C
       CALL PAGES
       IF(NDIM.EQ.1) THEN
-         DO 5000 NTX=1,NTXMAX
-            GT(NTX)=GUCLIP(T(NTX))
-            GF1(NTX)=GUCLIP(F1(NTX))
- 5000    CONTINUE
-         CALL KTRIM(KFID,KL)
-         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
-     &            //KFID(1:KL)//'@'
-         CALL TRGR1D(GX1,GX2,GY1,GY2,
-     &               GT,GF1,NTM,NTXMAX,1,KFIDX,2)
+         IF(NTXMAX.EQ.1) THEN
+            WRITE(KVAL,'(A13)') '@** VALUE **@'
+            CALL GTEXTX(18.0,15.0,KVAL,0)
+            WRITE(KVAL,'(A9,1PE9.3,A1)') '@TIME  = ',REAL(T(1)),'@'
+            CALL GTEXTX(18.5,14.3,KVAL,0)
+            WRITE(KVAL,'(A9,1PE9.3,A1)') '@VALUE = ',REAL(F1(1)),'@'
+            CALL GTEXTX(18.5,13.7,KVAL,0)
+         ELSE
+            DO NTX=1,NTXMAX
+               GT(NTX)=GUCLIP(T(NTX))
+               GF1(NTX)=GUCLIP(F1(NTX))
+            ENDDO
+            CALL KTRIM(KFID,KL)
+            KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
+     &           //KFID(1:KL)//'@'
+            CALL TRGR1D(GX1,GX2,GY1,GY2,
+     &                  GT,GF1,NTM,NTXMAX,1,KFIDX,2)
+         ENDIF
       ELSE
+C
+         CALL label_of_slice_time(STIME,T,NTM,NTXMAX,NTSL,IERR)
+         IF(IERR.NE.0) STOP
 C
          DO NTX=1,NTXMAX
             GT(NTX)=GUCLIP(T(NTX))
          ENDDO
 C
-         DO NRX=1,NRXMAX
-            GR(NRX)=GUCLIP(R(NRX))
-            DO NTX=1,NTXMAX
-               IF(KFID.EQ.'TE'.OR.KFID.EQ.'TI') THEN
-                  FACT=1.D-3
-               ELSE
-                  FACT=1.D0
-               ENDIF
-               GF2(NRX,NTX)=GUCLIP(F2(NRX,NTX)*FACT)
+         NTXMAX1=NTXMAX
+         IF(KFID(1:1).EQ.'T') THEN
+            FACT=1.D-3
+         ELSEIF(KFID(1:1).EQ.'N') THEN
+            FACT=1.D-19
+         ELSE
+            FACT=1.D0
+         ENDIF
+         IF(NTSL.EQ.0) THEN
+C     *** F-t-r graph ***
+            DO NRX=1,NRXMAX
+               GR(NRX)=GUCLIP(R(NRX))
+               DO NTX=1,NTXMAX
+                  GF2(NRX,NTX)=GUCLIP(F2(NRX,NTX)*FACT)
+               ENDDO
             ENDDO
-         ENDDO
-C         write(6,'(1P6E12.4)') ((F2(NRX,NTX),NRX=1,NRXMAX),NTX=1,NTXMAX)
-C         STOP
+         ELSE
+C     *** F-r graph ***
+            NRLMAX=NRXMAX
+            DO NRX=1,NRXMAX
+               NTXMAX=1
+               RL(NRX)=R(NRX)
+               FL(NRX)=F2(NRX,NTSL)
+               GR(NRX)=GUCLIP(R(NRX))
+               GF2(NRX,1)=GUCLIP(F2(NRX,NTSL)*FACT)
+            ENDDO
+            IF(RL(1).NE.0.D0) THEN
+               DO NRL=NRLMAX,1,-1
+                  RL(NRL+1)=RL(NRL)
+                  FL(NRL+1)=FL(NRL)*FACT
+               ENDDO
+               RL(1)=0.D0
+               FL(1)=FCTR(RL(2),RL(3),FL(2),FL(3))
+               NRLMAX=NRLMAX+1
+            ENDIF
+            IF(RL(NRLMAX).NE.1.D0) THEN
+               RL(NRLMAX+1)=1.D0
+               FL(NRLMAX+1)=AITKEN2P(1.D0,FL(NRLMAX),FL(NRLMAX-1),
+     &                               FL(NRLMAX-2),RL(NRLMAX),
+     &                               RL(NRLMAX-1),RL(NRLMAX-2))*FACT
+               NRLMAX=NRLMAX+1
+            ENDIF
+         ENDIF
 C
-         CALL KTRIM(KFID,KL)
-         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
-     &            //KFID(1:KL)//'@'
+c$$$         CALL KTRIM(KFID,KL)
+c$$$         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
+c$$$     &            //KFID(1:KL)//'@'
+c$$$         IF (NTXMAX.EQ.1) THEN
+c$$$            CALL TRGR1D(GX1,GX2,GY1,GY2,
+c$$$     &           GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
+c$$$         ELSE
+c$$$            CALL GSGLENABLELIGHTING
+c$$$            KVAR='@'//KFID(1:KL)//'@'
+c$$$            CALL GRAPH3(GX1,GX2,GY1,GY2,GT,
+c$$$     &           GR,GF2,NTM,NRM,NRXMAX,NTXMAX,KFIDX,KVAR,2)
+c$$$         ENDIF
+         CALL KTRIM(KDEV,IKDEV)
+         CALL KTRIM(KDCG,IKDCG)
+         CALL KTRIM(KFID,IKFID)
+C         KFIDX='@'//KDEV(1:IKDEV)//'/'//KDCG(1:IKDCG)//'/'
+C     &            //KFID(1:IKFID)//'@'
+         KFIDX=' '
          IF (NTXMAX.EQ.1) THEN
             CALL TRGR1D(GX1,GX2,GY1,GY2,
-     &           GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
-         ELSE
+     &                  GR,GF2,NRM,NRXMAX,NTXMAX,KFIDX,2)
+            WRITE(KVAL,'(A26)') '@** INTERPOLATED VALUE **@'
+            CALL GTEXTX(18.0,15.0,KVAL,0)
+            WRITE(KVAL,'(A16)') '@RHO      VALUE@'
+            CALL GTEXTX(18.5,14.3,KVAL,0)
+            DO NL=1,11
+               RP=(NL-1)*0.1D0
+               CALL AITKEN(RP,FP,RL,FL,2,NRLMAX)
+               WRITE(KVAL,'(A1,F6.4,A3,1PE9.3,A1)') '@',RP,'   ',FP,'@'
+               CALL GTEXTX(18.0,14.0-0.6*REAL(NL),KVAL,0)
+            ENDDO
+            IF(NTXMAX1.NE.1.AND.NTSL.NE.1) THEN
+               WRITE(KTIME,'(A5,F6.3,A1)') '@t = ',STIME,'@'
+               CALL GTEXTX(21.2, 2.0, KTIME, 0)
+            ENDIF
+         ELSE IF(NTXMAX.GT.1) THEN
             CALL GSGLENABLELIGHTING
-            KVAR='@'//KFID(1:KL)//'@'
+            KVAR='@'//KFID(1:IKFID)//'@'
             CALL GRAPH3(GX1,GX2,GY1,GY2,GT,
      &           GR,GF2,NTM,NRM,NRXMAX,NTXMAX,KFIDX,KVAR,2)
          ENDIF
@@ -156,6 +227,53 @@ C
 C
  9000 CALL GSCLOS
       STOP
+      END
+C
+C     *** RETRIEVING LABEL NUMBER OF SLICE TIME ***
+C
+      SUBROUTINE label_of_slice_time(STIME,TL,NTM,NTXMAX,NTSL,IERR)
+      IMPLICIT NONE
+      INTEGER NTX, NTM, NTXMAX, NTSL, IERR
+      REAL STIME
+      REAL*8 TL_MIN, TL_MIN_OLD
+      REAL*8 TL(NTM)
+      CHARACTER KERR*100
+C
+      IF(NTXMAX.EQ.1) THEN
+         NTSL=NTXMAX
+         RETURN
+      ENDIF
+      IF(STIME.EQ.0.0) THEN
+         NTSL=0
+         RETURN
+      ENDIF
+      IF(DBLE(STIME).LT.TL(1).OR.DBLE(STIME).GT.TL(NTXMAX)) GOTO 100
+C
+      DO NTX=1,NTXMAX
+         IF(ABS(TL(NTX)-DBLE(STIME)).LE.1.D-5) THEN
+            NTSL=NTX
+            RETURN
+         ENDIF
+      ENDDO
+C
+      TL_MIN=TL(NTXMAX)
+      DO NTX=1,NTXMAX
+         TL_MIN_OLD=TL_MIN
+         TL_MIN=MIN(ABS(TL(NTX)-DBLE(STIME)),TL_MIN)
+         IF(TL_MIN_OLD.EQ.TL_MIN) THEN
+            NTSL=NTX-1
+            STIME=SNGL(TL(NTSL))
+            RETURN
+         ENDIF
+      ENDDO
+C
+ 100  WRITE(KERR,'(A,2(F7.4,A))') 
+     &     '@XX: SLICE TIME IS OUT OF THE RANGE OF ',
+     &     SNGL(TL(1)),' - ',SNGL(TL(NTXMAX)),'@'
+      CALL GTEXTX(10.0,10.0,KERR,2)
+      IERR=1
+C
+      RETURN
       END
 C
 C     *** READING PARAMETER FILE ***
