@@ -444,7 +444,7 @@
       USE fpcomm
       USE libmtx
       IMPLICIT NONE
-      INTEGER,DIMENSION(32):: idata
+      INTEGER,DIMENSION(34):: idata
       real(8),DIMENSION(44):: rdata
       complex(8),DIMENSION(3):: cdata
 
