@@ -3,6 +3,8 @@
 ## if you have lapack library
 #LAPACK = lapack.f
 #LIBLA = /usr/local/lib/lapack.a /usr/local/lib/blas.a
+#LIBLA = /usr/local/lib/lapack-ifc.a /usr/local/lib/blas-ifc.a
+#LIBLA = /usr/local/lib/lapack-ifc64.a /usr/local/lib/blas-ifc64.a
 #LIBLA = /usr/local/lib/lapack-g95.a /usr/local/lib/blas-g95.a
 #LIBLA = /usr/local/lib/lapack-pgf.a /usr/local/lib/blas-pgf.a
 #LIBLA = /usr/local/lib/lapack-ixc8.a /usr/local/lib/blas-ixc8.a
@@ -148,7 +150,7 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #GFLIBS=-L/usr/local/lib -lg3d-ifc64 -lgsp-ifc64 -lgdp-ifc64 -L/usr/X11R6/lib64 -lX11
 #GLLIBS=-L/usr/local/lib64 -lgsgl-ixc
 #OFLAGS = -O3 -vec-report0 -convert big_endian -mcmodel=medium -shared-intel
-#DFLAGS = -g -CB -CU -w90 -w95 -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check -convert big_endian -mcmodel=medium -shared-intel
+#DFLAGS = -g -CB -CU -traceback -debug extended -vec-report0 -align -check all -fpe-all0 -fmath-errno -fstack-security-check -convert big_endian -shared-intel
 #FCFIXED = ifort
 #FCFREE  = ifort
 #MOD = mod
