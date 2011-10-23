@@ -31,7 +31,7 @@ C
          PRFIN = PRFIN_SV * PFRAC(NM)
          WRITE(6,*)
          WRITE(6,'(A,I4)') "== Toroidal mode number : ",MNPH0(NM)
-         WRITE(6,'(A,F8.6)') "== Power fraction       : ",PFRAC(NM)
+         WRITE(6,'(A,F12.4)') "== Power fraction       : ",PFRAC(NM)
 C
          CALL WMEXEC(IERR)
          CALL MPSYNC

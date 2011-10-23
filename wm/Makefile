@@ -33,7 +33,7 @@ LIBM = $(LIB0) mpiwmlib.a ../mtx/mpimtxlib.a ../mpi/mpilib.o
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : wm
+all: libs wm
 
 wmlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wmlib.a $(OBJS)

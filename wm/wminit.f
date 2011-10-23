@@ -113,7 +113,7 @@ C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
 C
-C        ANTANG: Antenna angle: 0 : theta direction (degree)
+C        ANTANG: deleted due to redundancy; use THJ1 and THJ2
 C        MWGMAX: Antenna angle: 0 : theta direction (degree)
 C
 C        MODELA: Control alpha particle contribution
@@ -144,7 +144,6 @@ C
       NGRAPH = 1
       MODELJ = 0
       MODELA = 0
-      ANTANG = 0.D0
       MWGMAX = 2
       MODELM = 0
       MODELW = 0
@@ -272,7 +271,7 @@ C
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
-     &              ANTANG,MWGMAX,MODEFR,MODEFW,
+     &              MWGMAX,MODEFR,MODEFW,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -315,7 +314,7 @@ C
   601 FORMAT(' ','# &WM : BB,RR,RA,RB,Q0,QA,RKAP,RDLT,'/
      &       9X,'PA,PZ,PN,PNS,PZCL,PTPR,PTPP,PTS,'/
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,ZEFF,'/
-     &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,ANTANG,'/
+     &       9X,'NSMAX,PNA,PNAL,PTA,RF,RFI,RD,BETAJ,'/
      &       9X,'AJ,APH,THJ1,THJ2,PHJ1,PHJ2,NAMAX,MWGMAX,'/
      &       9X,'NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,'/
      &       9X,'MODELG,MODELJ,MODELP,MODELA,MODELN,'/
@@ -492,7 +491,6 @@ C
       WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
-      WRITE(6,601) 'ANTANG',ANTANG
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
      &             'NPHMAX',NPHMAX
       WRITE(6,602) 'NTH0  ',NTH0  ,'NPH0  ',NPH0  ,
