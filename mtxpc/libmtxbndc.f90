@@ -43,19 +43,26 @@
 
       CONTAINS
 
-      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth_)
+      SUBROUTINE mtx_setup(imax_,istart_,iend_,jwidth,nzmax)
       IMPLICIT NONE
       INTEGER,INTENT(IN):: imax_           ! total matrix size
       INTEGER,INTENT(OUT):: istart_,iend_  ! allocated range of lines 
-      INTEGER,INTENT(IN):: jwidth_         ! band matrix width
+      INTEGER,OPTIONAL,INTENT(IN):: jwidth ! band matrix width
+      INTEGER,OPTIONAL,INTENT(IN):: nzmax  ! number of nonzero components
       INTEGER:: i,j
 
+      istart_=1
+      iend_=imax_
+
       imax=imax_
-      jmax=jwidth_
+      IF(PRESENT(jwidth)) THEN
+         jmax=jwidth
+      ELSE
+         jmax=2*imax_-1
+      ENDIF
+
       ALLOCATE(A(jmax,imax))
       ALLOCATE(b(imax),x(imax))
-      istart_=1
-      iend_=imax
       joffset=(jmax+1)/2
 
       DO i=1,imax

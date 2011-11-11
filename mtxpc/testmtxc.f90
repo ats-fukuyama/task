@@ -4,6 +4,7 @@
 program testmtxc
 
   use libmtxc
+!  use libgrf
   implicit none
   integer :: nrank,nprocs
   integer :: isize,itype,idata(2)
@@ -104,8 +105,9 @@ program testmtxc
         do i=1,isize
            FY(i,1) = real(x(i))
            FY(i,2) = aimag(x(i))
+           write(6,'(i5,1p3e12.4)') i,FX(i),FY(i,1),FY(i,2)
         end do
-     STR=""
+     STR="@test1@"
      MODE = 0
      call pages
      call GRD1D(0,FX,FY,isize,isize,2,STR,MODE)

@@ -31,6 +31,7 @@
 
       PRIVATE
 
+#include "finclude/petsc.h"
       INCLUDE 'zmumps_struc.h'
       TYPE (ZMUMPS_STRUC) id
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot
@@ -261,7 +262,7 @@
       SUBROUTINE mtx_cleanup
 
       id%JOB = -2
-      CALL DMUMPS(id)
+      CALL ZMUMPS(id)
 
       DEALLOCATE(id%IRN_loc)
       DEALLOCATE(id%JCN_loc)
