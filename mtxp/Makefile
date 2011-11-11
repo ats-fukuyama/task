@@ -17,9 +17,16 @@ all: $(EXEC)
 #clean :
 #	-rm -f core a.out *.o *.a ./#* ./*~ ./mod/*.mod
 
-##### With PETSc library(real) #####
-include ${PETSC_DIR}/conf/base
-INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
+##### With PETSc library 3.0 (real) #####
+#include ${PETSC_DIR}/conf/base
+#INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.8.4/include
+#INCLUDE_PETSC=${PETSC_DIR}/include
+#EXEC=testbnd testksp testdmumps
+
+##### With PETSc library 3.2 (real) #####
+include ${PETSC_DIR}/conf/variables
+include ${PETSC_DIR}/conf/rules
+INCLUDE_MUMPS=${PETSC_DIR}/externalpackages/MUMPS_4.10.0/include
 INCLUDE_PETSC=${PETSC_DIR}/include
 EXEC=testbnd testksp testdmumps
 
@@ -42,9 +49,10 @@ testdmumps: $(LIBDMUMPS) testmtx.o
 testbnd: $(LIBBND) testmtx.o 
 	-${FLINKER} -g -o testbnd testmtx.o $(LIBBND) ../../task/lib/libbnd.o
 
+
 testmtx.o: testmtx.f90
 libmtxmpi.o: libmtxmpi.F90
 libmtxnompi.o: libmtxnompi.f90
 libmtxbnd.o: libmtxbnd.f90
-libmtxdmumps.o: libmtxdmumps.f90
+libmtxdmumps.o: libmtxdmumps.F90
 libmtxksp.o: libmtxksp.F90

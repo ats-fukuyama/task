@@ -30,6 +30,7 @@
 
       PRIVATE
 
+#include "finclude/petsc.h"
       INCLUDE 'dmumps_struc.h'
       TYPE (DMUMPS_STRUC) id
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isizex,nz_tot

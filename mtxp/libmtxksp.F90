@@ -68,12 +68,12 @@
 !     petscviewer.h - viewers
 !     petscis.h     - index sets
 !
-!#include "finclude/petsc.h"
-#include "finclude/petscvec.h"
-#include "finclude/petscmat.h"
-#include "finclude/petscpc.h"
-#include "finclude/petscksp.h"
-#include "finclude/petscsys.h"
+#include "finclude/petsc.h"
+!#include "finclude/petscvec.h"
+!#include "finclude/petscmat.h"
+!#include "finclude/petscpc.h"
+!#include "finclude/petscksp.h"
+!#include "finclude/petscsys.h"
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                   Variable declarations
@@ -260,15 +260,15 @@
       END SUBROUTINE mtx_split_operation
 
       SUBROUTINE mtx_solve(itype,tolerance,its, &
-           methodKSP_,methodPC_,damping_factor_,emax_,emin_,max_steps_)
+           methodKSP,methodPC,damping_factor,emax,emin,max_steps)
 
       INTEGER,INTENT(IN):: itype     ! for futuer use
       REAL(8),INTENT(IN):: tolerance
       INTEGER,INTENT(OUT):: its
-      INTEGER,OPTIONAL:: methodKSP_,methodPC_,max_steps_
-      REAL(8),OPTIONAL:: damping_factor_,emax_,emin_
-      INTEGER:: methodKSP,methodPC,max_steps
-      REAL(8):: damping_factor,emax,emin
+      INTEGER,OPTIONAL:: methodKSP,methodPC,max_steps
+      REAL(8),OPTIONAL:: damping_factor,emax,emin
+      INTEGER:: methodKSP_,methodPC_,max_steps_
+      REAL(8):: damping_factor_,emax_,emin_
       INTEGER:: ierr
 
 !      Options:
@@ -318,39 +318,39 @@
 !  Computations can be done while messages are in transition,
 !  by placing code between these two statements.
 
-      IF(PRESENT(methodKSP_)) THEN
-         methodKSP=methodKSP_
+      IF(PRESENT(methodKSP)) THEN
+         methodKSP_=methodKSP
       ELSE
-         methodKSP=4
+         methodKSP_=4
       ENDIF
-      IF(PRESENT(methodPC_)) THEN
-         methodPC=methodPC_
+      IF(PRESENT(methodPC)) THEN
+         methodPC_=methodPC
       ELSE
          IF(nsize.EQ.1) THEN
-            methodPC=5
+            methodPC_=5
          ELSE
-            methodPC=1
+            methodPC_=1
          ENDIF
       ENDIF
-      IF(PRESENT(max_steps_)) THEN
-         max_steps=max_steps_
+      IF(PRESENT(max_steps)) THEN
+         max_steps_=max_steps
       ELSE
-         max_steps=30
+         max_steps_=30
       ENDIF
-      IF(PRESENT(damping_factor_)) THEN
-         damping_factor=damping_factor_
+      IF(PRESENT(damping_factor)) THEN
+         damping_factor_=damping_factor
       ELSE
-         damping_factor=1.D0
+         damping_factor_=1.D0
       ENDIF
-      IF(PRESENT(emin_)) THEN
-         emin=emin_
+      IF(PRESENT(emin)) THEN
+         emin_=emin
       ELSE
-         emin=0.01D0
+         emin_=0.01D0
       ENDIF
-      IF(PRESENT(emax_)) THEN
-         emax=emax_
+      IF(PRESENT(emax)) THEN
+         emax_=emax
       ELSE
-         emax=100.D0
+         emax_=100.D0
       ENDIF
 
       call MatAssemblyBegin(A,MAT_FINAL_ASSEMBLY,ierr)
@@ -422,20 +422,20 @@
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_solve: KSPGetPC: ierr=',ierr
 
-      SELECT CASE(methodKSP)
+      SELECT CASE(methodKSP_)
       CASE(0) 
          CALL KSPSetType(ksp,KSPRICHARDSON,ierr)
-         CALL KSPRichardsonSetScale(ksp,damping_factor,ierr)
+         CALL KSPRichardsonSetScale(ksp,damping_factor_,ierr)
       CASE(1)
          CALL KSPSetType(ksp,KSPCHEBYCHEV,ierr)
-         CALL KSPChebychevSetEigenvalues(ksp,emax,emin,ierr)
+         CALL KSPChebychevSetEigenvalues(ksp,emax_,emin_,ierr)
       CASE(2)
          CALL KSPSetType(ksp,KSPCG,ierr)
       CASE(3)
          CALL KSPSetType(ksp,KSPBICG,ierr)
       CASE(4:7)
          CALL KSPSetType(ksp,KSPGMRES,ierr)
-         CALL KSPGMRESSetRestart(ksp,max_steps,ierr)
+         CALL KSPGMRESSetRestart(ksp,max_steps_,ierr)
          SELECT CASE(methodKSP)
          CASE(5)
             CALL KSPGMRESSetCGSRefinementType(ksp, &
@@ -464,9 +464,9 @@
       END SELECT
 	
       IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_solve: KSPSetType: methodKSP,ierr=',methodKSP,ierr
+           'XX mtx_solve: KSPSetType: methodKSP,ierr=',methodKSP_,ierr
 
-      SELECT CASE(methodPC)
+      SELECT CASE(methodPC_)
       CASE(0) 
          CALL PCSetType(pc,PCJACOBI,ierr)
       CASE(1) 
@@ -496,7 +496,7 @@
       END SELECT
 
       IF(ierr.NE.0) WRITE(6,*) &
-           'XX mtx_solve: PC: methodPC,ierr=',methodPC,ierr
+           'XX mtx_solve: PC: methodPC,ierr=',methodPC_,ierr
 
       call KSPSetTolerances(ksp,tolerance, &
            PETSC_DEFAULT_DOUBLE_PRECISION, &
