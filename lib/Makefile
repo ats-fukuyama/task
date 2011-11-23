@@ -13,12 +13,12 @@ MODINCLUDE= -I$(MOD)
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
              libspl.f90 libspl2d.f90 libspl3d.f90 \
-             libeq.f90 libgut.f90 \
+             libeq.f90 libgut.f90 libgrf.f90 \
              libchar.f90 libkio.f90 \
              libfio.f90 ufile.f90 libitp.f90 libfem.f90
 SRCSFIXED =  libspf.f libbes.f libell.f \
              libde.f libfft.f libdsp.f \
-             libfp.f libgrf.f $(LAPACK)
+             libfp.f $(LAPACK)
 
 OBJSFREE  = $(SRCSFREE:.f90=.o)
 OBJSFIXED = $(SRCSFIXED:.f=.o)
@@ -32,7 +32,7 @@ OBJSMDS = $(MDSPLUS:.f=.o)
 all : tasklib.a mdslib.a
 
 tasklib.a: $(OBJSFREE) $(OBJSFIXED)
-	$(LD) $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
+	$(LD) -g $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
 
 mdslib.a: $(OBJSMDS)
 	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
@@ -65,6 +65,9 @@ testspl3d: tasklib.a testspl3d.o
 
 mmconvert: mmconvert.o
 	$(FCFIXED) mmconvert.o $(FFLAGS) -o $@
+
+testgrf: tasklib.a testgrf.o 
+	$(FCFIXED) testgrf.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
 #libspl.o: libspl.f90
 #	$(FCFREE) -O3 -tp p7 -c libspl.f90 -o libspl.o
