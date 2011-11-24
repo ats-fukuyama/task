@@ -1,10 +1,18 @@
+MODULE tritg
+
+  PRIVATE
+  PUBLIC GLF23_DRIVER
+
+
+
 !     ***********************************************************
 
 !            GLF23 Model
 
 !     ***********************************************************
 
-      SUBROUTINE GLF23_DRIVER(S_HM)
+      SUBROUTINE GLF23_DRIVER(ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, &
+                              AVDW, AVKDW)
 
 !   *************************************************************
 !     In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
@@ -22,14 +30,11 @@
 !   *************************************************************
 
       USE TRCOMM, ONLY : &
-           ADDW, ADDWD, ADDWP, AKDW, AKDWD, AKDWP, AR1RHO, AR2RHO, AVDW, &
-           AVKDW, BB, CDH, DR, MDDW, MDLEOI, MDLEQN, MDLEQT, MDLKAI, MDLUF, &
-           NGLF, NRMAX, NSM, NSMAX, PA, PHIA, PI, PZ, Q0, QP, RA, RG, RKAP, &
-           RKPRHO, RM, RMJRHO, RMNRHO, RN, RNF, RR, RT, VPAR, VPRP, VTOR, &
-           WEXB, WROT, ZEFF, ALPHA
+           BB, MDLD, &
+           NRMAX, NSAMAX, PA, PI, PZ, Q0, QP, RA, RG, RKAP, &
+           RN, RR, RT, RMU0
       IMPLICIT NONE
       INCLUDE 'trglf.inc'
-      REAL(8),DIMENSION(NRMAX), INTENT(IN):: S_HM
       INTEGER(4):: &
            i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
            jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
@@ -38,6 +43,51 @@
            chiitim, deltat, diffnem, etaparm, etaperm, etaphim, exchm, &
            fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
+
+      REAL(8),DIMENSION(nrmax,nsamax):: ADDW,AKDW,AVDW,AVKDW
+      REAL(8),DIMENSION(nrmax,nsamax,nsamax):: ADDWD,ADDWP,AKDWD,AKDWP
+      REAL(8),DIMENSION(nrmax):: ar1rho,ar2rho,rkaprho,rmjrho,rmnrho,dr,rm
+      REAL(8),DIMENSION(nrmax):: wexb,wrot,vpar,vprp,vtor,phia,zeff
+
+      zeff=1.d0
+      cdh=1.D0
+      nsm=nsamax
+      nsmax=nsamax
+      nglf=nrmax
+      mddw=0
+      mdluf=0
+      mdleqn=1
+      mdleqt=1
+      mdleo1=0
+      DO nr=1,nrmax
+         dr(nr)=rg(nr)-rg(nr-1)
+         rm(nr)=0.5D0*(rg(nr)+rg(nr-1))
+         ar1rho(nr)=1.D0/(sqrt(rkap)*ra)
+         ar2rho(nr)=1.D0/(sqrt(rkap)*ra)**2
+         rkaprho(nr)=rkap
+         rmjrho(nr)=rr
+         rmnrho(nr)=ra*rg(nr)
+         ppp=0.D0
+         ppm=0.D0
+         do nsa=1,nsamax
+            ppp=ppp+rn(nsa,nr  )*rt(nsa,nr  )
+            ppm=ppm+rn(nsa,nr-1)*rt(nsa,nr-1)
+         end do
+         dpp=(ppp-ppm)/(rg(nr)-rg(nr-1))
+         alpha(nr)=-2.D0*RMU0*QP(NR)**2*RR/BB**2*(DPP*1.D20*RKEV)
+         wexb(nr)=0.d0
+         wrot(nr)=0.d0
+         vpar(nr)=0.d0
+         vprp(nr)=0.d0
+         vtor(nr)=0.d0
+         phia(nr)=0.d0
+         zeff(nr)=2.d0
+      ENDDO
+
+      DO nr=1,nrmax
+         s_hm(nr)= (rg(nr)+rg(nr-1))*(qp(nr)-qp(nr-1)) &
+                 /((rg(nr)-rg(nr-1))*(qp(nr)*qp(nr-1)))
+      END DO
 
       MDDW=1
 !     INPUTS
@@ -84,17 +134,17 @@
       irotstab=1      ! 1 uses internally computed ExB shear
 
       jm=0
-         te_m(jm) =RT (jm+1,1)
-         ti_m(jm) =RT (jm+1,2)
-         rne_m(jm)=RN (jm+1,1)*10.D0
-         rni_m(jm)=RN (jm+1,2)*10.D0
-         rns_m(jm)=RNF(jm+1,1)*10.D0
+         te_m(jm) =RT (1,jm+1)
+         ti_m(jm) =RT (2,jm+1)
+         rne_m(jm)=RN (1,jm+1)*10.D0
+         rni_m(jm)=RN (2,jm+1)*10.D0
+         rns_m(jm)=0.D0
       DO jm=1,jmaxm
-         te_m(jm) =RT (jm,1)        ! Te [keV] ! halfmesh
-         ti_m(jm) =RT (jm,2)        ! Ti [keV]
-         rne_m(jm)=RN (jm,1)*10.D0  ! Ne [^19m^-3]
-         rni_m(jm)=RN (jm,2)*10.D0  ! Ni [^19m^-3]
-         rns_m(jm)=RNF(jm,1)*10.D0  ! Nf [^19m^-3]
+         te_m(jm) =RT (1,jm)        ! Te [keV] ! halfmesh
+         ti_m(jm) =RT (2,jm)        ! Ti [keV]
+         rne_m(jm)=RN (1,jm)*10.D0  ! Ne [^19m^-3]
+         rni_m(jm)=RN (2,jm)*10.D0  ! Ni [^19m^-3]
+         rns_m(jm)=0.D0
       ENDDO
 
       IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
@@ -236,10 +286,10 @@
          deltat=0.03D0
          MODE=0   ! 0: Kinsey type, 1: Angioni type
          do j=1,jmaxm-1
-            zpte_m(j)=-(LOG(RT(j+1,1))-LOG(RT(j,1)))/DR ! grid
-            zpti_m(j)=-(LOG(RT(j+1,2))-LOG(RT(j,2)))/DR ! grid
-            zpne_m(j)=-(LOG(RN(j+1,1))-LOG(RN(j,1)))/DR ! grid
-            zpni_m(j)=-(LOG(RN(j+1,2))-LOG(RN(j,2)))/DR ! grid
+            zpte_m(j)=-(LOG(RT(j+1,1))-LOG(RT(j,1)))/DR(j) ! grid
+            zpti_m(j)=-(LOG(RT(j+1,2))-LOG(RT(j,2)))/DR(j) ! grid
+            zpne_m(j)=-(LOG(RN(j+1,1))-LOG(RN(j,1)))/DR(j) ! grid
+            zpni_m(j)=-(LOG(RN(j+1,2))-LOG(RN(j,2)))/DR(j) ! grid
             zpte_in=zpte_m(j)
             zpti_in=zpti_m(j)
             zpne_in=zpne_m(j)

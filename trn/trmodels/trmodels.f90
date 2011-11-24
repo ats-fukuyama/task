@@ -1,5 +1,3 @@
-!     $Id$
-
 MODULE trmodels
   PRIVATE
   PUBLIC mbgb_driver
@@ -11,7 +9,7 @@ CONTAINS
                          ADFFI,ACHIE,ACHII,ACHIEB,ACHIIB,ACHIEGB,ACHIIGB, &
                          ierr)
     USE trcomm, ONLY: &
-         RT,NRMAX,MDLKAI,RKEV,AMM
+         RT,NRMAX,mdld,aee,amp
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
     IMPLICIT NONE
     REAL(8),INTENT(IN) :: &
@@ -24,6 +22,13 @@ CONTAINS
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
     REAL(8):: zte_p8,zte_edge,VTI,GAMMA0,EXBfactor,SHRfactor,factor
     INTEGER:: NR8,NPOINTS,lflowshear
+
+    REAL(8):: rkev,amm
+    integer:: mdlkai
+
+    rkev=aee*1.D-3
+    amm=amp
+    mdlkai=mdld
 
     rminor(1)=RSL             ! minor radius [m]
     rmajor(1)=RRL             ! major radius [m]

@@ -1,16 +1,35 @@
 MODULE trcoef
 
-  PUBLIC tr_coef
+  USE bpsd_kinds
 
+  PUBLIC tr_coef
   PRIVATE
+
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: ADDW,AKDW,AVDW,AVKDW
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: ADDWD,ADDWP,AKDWD,AKDWP
 
 CONTAINS
 
 ! ***** calculate transport coefficients and souce terms *****
 
   SUBROUTINE tr_coef
-    USE trcomm, ONLY: rkind,ikind,mdlprv,nrmax,dfa,pha
+    USE trcomm, ONLY: rkind,ikind,mdlprv,nrmax,nsamax,dfa,pha,mdld
+    USE trglf, ONLY: tr_glf23
     IMPLICIT NONE
+
+    SELECT CASE(mdld)
+    CASE(60,61)
+       ALLOCATE(ADDW(nrmax,nsamax))
+       ALLOCATE(AKDW(nrmax,nsamax))
+       ALLOCATE(AVDW(nrmax,nsamax))
+       ALLOCATE(AVKDW(nrmax,nsamax))
+       ALLOCATE(ADDWD(nrmax,nsamax,nsamax))
+       ALLOCATE(ADDWP(nrmax,nsamax,nsamax))
+       ALLOCATE(AKDWD(nrmax,nsamax,nsamax))
+       ALLOCATE(AKDWP(nrmax,nsamax,nsamax))
+       CALL tr_glf23(ADDW,ADDWD,ADDWP,AKDW,AKDWD,AKDWP,AVDW,AVKDW)
+    END SELECT
+    
 
     CALL tr_calc_dfa
     CALL tr_calc_vca

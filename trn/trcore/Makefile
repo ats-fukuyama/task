@@ -13,10 +13,12 @@ FFLAGS=$(DFLAGS) -warn
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) 
 
-TRLIBS=	$(TASKDIR)/plx/pllib.a \
+
+TRLIBS=	../trmodels/trmodelslib.a \
+	$(TASKDIR)/plx/pllib.a \
         $(TASKDIR)/eq/eqlib.a \
         $(TASKDIR)/lib/tasklib.a \
-	$(BPSDDIR)/bpsdlib.a \
+	$(BPSDDIR)/bpsdlib.a
 
 SRCS = trcomm.f90 trcoef.f90 \
        trexec.f90 trstep.f90 trresult.f90 trloop.f90 \
