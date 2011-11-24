@@ -213,6 +213,106 @@ C
       END
 C
 C     *************************************************************
+C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+C                    (0, +INFINITE)
+C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+C     *************************************************************
+C
+      SUBROUTINE DEHIFTC(CS,ES,H0,EPS,ILST,CFUNC,KID)
+      IMPLICIT REAL*8(A-H,O-Z)
+      COMPLEX*16 CFUNC,CS,CSI,CSP,CT
+      EXTERNAL CFUNC
+      CHARACTER*(*) KID
+      DATA HP/1.5707 96326 79489 66192D0/
+C
+      EPS1=EPS**0.75D0
+      H=H0
+      X=1.D0
+      CSI=HP*CFUNC(X)
+      CS=H*CSI
+      CSP=0.D0
+      NP=0
+      NM=0
+      NPMIN=1
+      NMMIN=1
+C
+    1 IND=0
+      ATP=ABS(CSI)
+      ATM=ATP
+      NPD=2
+      IF(NP.EQ.0) NPD=1
+      NMD=2
+      IF(NM.EQ.0) NMD=1
+C
+   10 IF(IND.NE.1) THEN
+         IF(NP.EQ.NPMIN+2) NPD=1
+         NP=NP+NPD
+         HN=DBLE(NP)*H
+         HC=HP*H*COSH(HN)
+         HS=HP*SINH(-HN)
+         X=EXP(HS)
+         CT=HC*X*CFUNC(X)
+         CS=CS+CT
+         AT=ATP
+         ATP=ABS(CT)/H
+         IF(NP.GE.NPMIN) THEN
+            IF(AT+ATP.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.-1) GO TO 100
+               IND=1
+            ENDIF
+         ENDIF
+      ENDIF
+C
+      IF(IND.NE.-1) THEN
+         IF(NM.EQ.NMMIN+2) NMD=1
+         NM=NM+NMD
+         HN=DBLE(NM)*H
+         HC=HP*H*COSH(HN)
+         HS=HP*SINH( HN)
+         X=EXP(HS)
+         CT=HC*X*CFUNC(X)
+         CS=CS+CT
+         AT=ATM
+         ATM=ABS(CT)/H
+         IF(NM.GE.NMMIN) THEN
+            IF(AT+ATM.LE.EPS1*ABS(CS)) THEN
+               IF(IND.EQ.1) GO TO 100
+               IND=-1
+            ENDIF
+         ENDIF
+      ENDIF
+      GO TO 10
+C
+  100 ES=ABS(CS-CSP)
+      IF(ILST.NE.0) THEN
+         IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
+         IF(H.LT.H0) WRITE(6,602) H,NP,NM,CS,ES
+      ENDIF
+      CSP=CS
+      IF(ES.LE.EPS1*ABS(CS)) GO TO 200
+      NMAX=MAX0(NP,NM)
+      IF(NMAX.GT.1000) THEN
+         WRITE(6,603) TRIM(KID)
+         GO TO 9999
+      ENDIF
+      H=0.5D0*H
+      CS=0.5D0*CS
+      NPMIN=NP*2-1
+      NMMIN=NM*2-1
+      NP=-1
+      NM=-1
+      GO TO 1
+C
+  200 RETURN
+C
+  501 FORMAT(A1)
+  601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
+  602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
+  603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
+ 9999 STOP
+      END
+C
+C     *************************************************************
 C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
 C               FOR INTEGRAND WITH FACTOR EXP(-X)
 C                    (0, +INFINITE)
