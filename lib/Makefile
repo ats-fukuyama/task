@@ -32,7 +32,7 @@ OBJSMDS = $(MDSPLUS:.f=.o)
 all : tasklib.a mdslib.a
 
 tasklib.a: $(OBJSFREE) $(OBJSFIXED)
-	$(LD) -g $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
+	$(LD) $(LDFLAGS) tasklib.a $(OBJSFREE) $(OBJSFIXED)
 
 mdslib.a: $(OBJSMDS)
 	$(LD) $(LDFLAGS) mdslib.a $(OBJSMDS)
