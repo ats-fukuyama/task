@@ -27,16 +27,6 @@
          eq_bpsd_init_flag=.FALSE.
       endif
 
-      device%rr   = RR
-      device%zz   = 0.d0
-      device%ra   = RA
-      device%rb   = RB
-      device%bb   = BB
-      device%ip   = RIP
-      device%elip = RKAP
-      device%trig = RDLT
-      call bpsd_set_data(device,ierr)
-
       equ1D%time=0.D0
       if(equ1D%nrmax.ne.nrmax) then
          if(associated(equ1D%rho)) deallocate(equ1D%rho)
@@ -72,6 +62,16 @@
 ! local variables
 !=======================================================================
 
+      device%rr   = RR
+      device%zz   = 0.d0
+      device%ra   = RA
+      device%rb   = RB
+      device%bb   = BB
+      device%ip   = RIP
+      device%elip = RKAP
+      device%trig = RDLT
+      call bpsd_set_data(device,ierr)
+
       plasmaf%nrmax=0
       call bpsd_get_data(plasmaf,ierr)
       do nr=1,nrmax
@@ -91,9 +91,9 @@
       if(equ1D%nrmax.ne.nrmax) then
          if(associated(equ1D%rho)) deallocate(equ1D%rho)
          if(associated(equ1D%data)) deallocate(equ1D%data)
-         equ1D%nrmax=NRMAX
-         allocate(equ1D%rho(NRMAX))
-         allocate(equ1D%data(NRMAX))
+         equ1D%nrmax=nrmac
+         allocate(equ1D%rho(nrmax))
+         allocate(equ1D%data(nrmax))
       endif
 
       do nr=1,nrmax
@@ -111,9 +111,9 @@
       if(metric1D%nrmax.ne.nrmax) then
          if(associated(metric1D%rho)) deallocate(metric1d%rho)
          if(associated(metric1D%data)) deallocate(metric1d%data)
-         metric1D%nrmax=NRMAX
-         allocate(metric1D%rho(NRMAX))
-         allocate(metric1D%data(NRMAX))
+         metric1D%nrmax=nrmax
+         allocate(metric1D%rho(nrmax))
+         allocate(metric1D%data(nrmax))
       endif
       do nr=1,nrmax
          metric1D%rho(nr)          = rhot(nr)

@@ -268,6 +268,7 @@ C     ****** CORE SOLVER ******
 C
       SUBROUTINE EQGX1D
 C
+      USE libgrf,ONLY: grf1d
       INCLUDE '../eq/eqcomx.inc'
       PARAMETER (NIM=301)
       DIMENSION GX(NIM),GY(NIM,3)
