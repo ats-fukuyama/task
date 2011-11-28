@@ -11,7 +11,7 @@ FLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS) -warn
 
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
-           -I $(MOD) 
+           -I ../trmodels/mod -I $(MOD) 
 
 
 TRLIBS=	../trmodels/trmodelslib.a \

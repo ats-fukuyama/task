@@ -2,8 +2,8 @@ MODULE trcoef
 
   USE bpsd_kinds
 
-  PUBLIC tr_coef
   PRIVATE
+  PUBLIC tr_coef
 
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: ADDW,AKDW,AVDW,AVKDW
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: ADDWD,ADDWP,AKDWD,AKDWP
