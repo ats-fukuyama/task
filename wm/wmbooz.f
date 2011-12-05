@@ -647,6 +647,7 @@ C    ****** DRAW BOOZER DATA ******
 C
       SUBROUTINE WMGBOOZ
 C
+      USE libgrf
       INCLUDE 'wmcomm.inc'
       INCLUDE 'vmcomm.inc'
 C

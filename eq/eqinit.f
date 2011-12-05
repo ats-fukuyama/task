@@ -386,6 +386,8 @@ C
       MDLEQX = 0
 C
 C        MDLEQV : Order of extrapolation of psi in the vacuum region
+C                 if positive, wall is linearly extended from plasma surface
+C                 if negative, wall is extraporated by polynomials
 C
       MDLEQV = 3
 C

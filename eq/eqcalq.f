@@ -454,6 +454,8 @@ C
          ZGMIN=ZSU(1)
          ZGMAX=ZSU(1)
          DO NTH=2,NTHMAX
+C            write(6,'(A,I5,1P2E12.4)') 
+C     &           'NTH,RSU,ZSU=',NTH,RSU(NTH),ZSU(NTH)
             RGMIN=MIN(RGMIN,RSU(NTH))
             RGMAX=MAX(RGMAX,RSU(NTH))
             ZGMIN=MIN(ZGMIN,ZSU(NTH))
@@ -485,14 +487,16 @@ C
       DIMENSION RPSW(NTHMP),DRPSW(NTHMP),URPSW(4,NTHMP)
       DIMENSION ZPSW(NTHMP),DZPSW(NTHMP),UZPSW(4,NTHMP)
 C
-      npmax=MDLEQV
+      npmax=abs(MDLEQV)
       IERR=0
 C
 C     +++++ SETUP VACUUM DATA +++++
 C
+C      write(6,'(A,1P5E12.4)') 'RB,RA,REDGE-RAXIS:',
+C     &     RB,RA,REDGE-RAXIS,REDGE,RAXIS
       DR=(RB-RA+REDGE-RAXIS)/(NRMAX-1)
       NRPMAX=NINT((REDGE-RAXIS)/DR)+1
-      DR=(RB-RA)/(NRMAX-NRPMAX)
+      DR=(RR+RB-REDGE)/(NRMAX-NRPMAX)
       DTH=2.d0*PI/NTHMAX
       IF(MDLEQF.LT.10) THEN
          DO NR=NRPMAX+1,NRMAX
@@ -522,9 +526,16 @@ C            call polintx(nr,npmax,nrm,dsdpsit)
             call polintx(nr,npmax,nrm,sps)
             call polintx(nr,npmax,nrm,aveir)
 
-            call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
-            call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
-
+            IF(MDLEQV.GT.0) THEN
+               FACTOR=(RL-RR)/(REDGE-RR)
+               DO nth=1,nthmax+1
+                  rps(NTH,NR)=RR+(RPS(NTH,NRPMAX)-RR)*FACTOR
+                  zps(NTH,NR)=    ZPS(NTH,NRPMAX)    *FACTOR
+               END DO
+            ELSE
+               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,rps)
+               call polintxx(nr,nthmax+1,npmax,nthmp,nrm,zps)
+            ENDIF
             RMIN=RAXIS
             RMAX=RAXIS
             ZMIN=ZAXIS
@@ -785,7 +796,7 @@ C     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
       THW(NTH)=2.d0*PI
       RPSW(NTH)=RPS(1,NRMAX)
       ZPSW(NTH)=ZPS(1,NRMAX)
-C         WRITE(6,'(A,I5,1P3E12.4)') 
+C         WRITE(6,'(A,I5,1P5E12.4)') 
 C     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
       CALL SPL1D(THW,RPSW,DRPSW,URPSW,NTHMAX+1,4,IERR)
       CALL SPL1D(THW,ZPSW,DZPSW,UZPSW,NTHMAX+1,4,IERR)
@@ -793,8 +804,8 @@ C     &        'NTH: ',NTH,THW(NTH),RPSW(NTH),ZPSW(NTH)
          THWL=(NSU-1)*2.d0*PI/NSUMAX
          CALL SPL1DF(THWL,RSW(NSU),THW,URPSW,NTHMAX+1,IERR)
          CALL SPL1DF(THWL,ZSW(NSU),THW,UZPSW,NTHMAX+1,IERR)
-C         WRITE(6,'(A,I5,1P3E12.4)') 
-C     &        'NSU: ',NSU,THWL,RSW(NSU),ZSW(NSU)
+C         WRITE(6,'(A,I5,1P5E12.4)') 
+C     &        'NSU: ',NSU,THWL,RSU(NSU),ZSU(NSU),RSW(NSU),ZSW(NSU)
       ENDDO
 C
       IF(MDLEQF.LT.10) THEN
