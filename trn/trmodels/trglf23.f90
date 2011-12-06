@@ -1,4 +1,4 @@
-MODULE trglf
+MODULE trglf23
 
   PRIVATE
 
@@ -34,7 +34,23 @@ CONTAINS
            NRMAX, NSAMAX, PA, PI, PZ, Q0, QP, RA, RG, RKAP, &
            RN, RR, RT, RMU0, aee
       IMPLICIT NONE
-      INCLUDE 'trglf.inc'
+!     Inputs
+      INTEGER(4),DIMENSION(5)  :: itport_pt
+      REAL(8),DIMENSION(0:Nrmax):: &
+      te_m, ti_m, rne_m, rni_m, rns_m, angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, &
+     &                  vper_m, zeff_exp, rho, rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, q_exp, shat_exp, &
+     &                  alpha_exp, elong_exp
+
+!     Outputs
+      REAL(8),DIMENSION(0:nrmax)   :: &
+           diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m, exch_m, &
+           egamma_m, rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m
+      REAL(8),DIMENSION(0:NRMAX,10)::egamma_d
+
+!     Auxiliaries
+      REAL(8),DIMENSION(0:NRMAX):: &
+           zpte_m, zpti_m, zpne_m, zpni_m, qe0, qi0, qn0, ddnn, ddne, ddni, &
+           chien, chiee, chiei, chiin,chiie,chiii
       INTEGER(4):: &
            i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
            jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
@@ -430,5 +446,5 @@ CONTAINS
 
       RETURN
       END SUBROUTINE tr_glf23
-    END MODULE trglf
+    END MODULE trglf23
     

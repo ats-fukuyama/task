@@ -17,14 +17,14 @@ SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 SRCITG= glf/callglf2d.f \
         itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
-#SRC90=trmodels.f90 trglf.f90
-SRC90=trglf.f90
+#SRC90=trmodels.f90 trglf23.f90
+SRC90=trglf23.f90
 SRCCDBM=cdbm/cdbm.f90
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
       nclass/u_lu_backsub.f nclass/u_lu_decomp.f nclass/write_mod.f
 INCNC=trncls.inc nclass/pamx_mi.inc nclass/pamx_ms.inc nclass/pamx_mz.inc
-INCGLF=trglf.inc glf/glf.m
+INCGLF=glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 
