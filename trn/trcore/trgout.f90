@@ -9,7 +9,7 @@ CONTAINS
 
   SUBROUTINE tr_gout
 
-    USE trcomm, ONLY: rkind,ikind,nrmax,nsamax,rg,rn,ru,rt,qp,dfa,pha,vca, &
+    USE trcomm, ONLY: rkind,ikind,nrmax,nsamax,rg,rn,ru,rt,qp,dtr,str,vtr, &
          nitmax,error_it,lmaxtr,epsltr,lt_save,neqrmax,neqmax,neq_neqr, &
          nsa_neq,gvt,gvts,gvrt,gvrts,ngt
     USE libgrf,ONLY: grd1d
@@ -98,9 +98,9 @@ CONTAINS
        ELSE
           nsa=nsa_neq(neq)
           rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
-          dfg(0:nrmax,neqr)=dfa(neq,neq,0:nrmax)
-          phg(0:nrmax,neqr)=pha(neq,0:nrmax)
-          vcg(0:nrmax,neqr)=vca(neq,neq,0:nrmax)
+          dfg(0:nrmax,neqr)=dtr(neq,neq,0:nrmax)
+          phg(0:nrmax,neqr)=str(neq,0:nrmax)
+          vcg(0:nrmax,neqr)=vtr(neq,neq,0:nrmax)
        ENDIF
     END DO
 

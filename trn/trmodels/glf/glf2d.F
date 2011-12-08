@@ -1428,6 +1428,7 @@ c
 ctemp
         zgamax = -1.D10
         jmax=0
+c        jmax=1
         gamma=0.D0
         do j=1,ieq
          if(j.ne.jroot(1).and.j.ne.jroot(2).and.j.ne.jroot(3)) then
@@ -1438,6 +1439,7 @@ ctemp
          endif
         enddo
 c
+c        write(*,*) jmax
         freq = AREAL( zomega(jmax) )
         gamma = aimag( zomega(jmax) )
 c

@@ -54,11 +54,12 @@ MODULE trcomm
        ru_prev, &! previous toroidal velocity [m/s]
        rt_prev   ! previous temperature [keV]
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       DFa,      &! diffusion coefficient [m^2/s]
-       VCa,      &! convection velocity [m^2/s]
-       EXa        ! heat exchange freuency [1/s]
+       dtr,      &! diffusion coefficient [m^2/s]
+       vtr,      &! convection velocity [m^2/s]
+       ctr        ! heat exchange freuency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       PHa        ! heating power density [MW/m^3]
+       str,      &! heating power density [MW/m^3]
+       htr        ! current
 
 ! ----- computation variables -----
 
@@ -74,13 +75,13 @@ MODULE trcomm
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: &
        neqr_neq,neq_neqr
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       RHV,XV_NEW,XV,XV_PREV
+       rhv,xv_new,xv,xv_prev
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       ELMTX,LHMTX
+       elmtx,lhmtx
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
-       LIMTX,RPIMTX
+       limtx, rjimtx, rsimtx
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: &
-       R1IMTX, R2IMTX, R3IMTX, RIMTX
+       r1imtx, r2imtx, r3imtx, rimtx
 
 ! ----- diagnostics -----
 
@@ -123,10 +124,11 @@ CONTAINS
        ALLOCATE(rn_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(ru_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(rt_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(DFa(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(VCa(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(EXa(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(PHa(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(dtr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vtr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(lt_save(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        nsamax_save=nsamax
@@ -149,10 +151,11 @@ CONTAINS
     IF(ALLOCATED(rn_prev)) DEALLOCATE(rn_prev)
     IF(ALLOCATED(ru_prev)) DEALLOCATE(ru_prev)
     IF(ALLOCATED(rt_prev)) DEALLOCATE(rt_prev)
-    IF(ALLOCATED(DFa)) DEALLOCATE(DFa)
-    IF(ALLOCATED(VCa)) DEALLOCATE(VCa)
-    IF(ALLOCATED(EXa)) DEALLOCATE(EXa)
-    IF(ALLOCATED(PHa)) DEALLOCATE(PHa)
+    IF(ALLOCATED(dtr)) DEALLOCATE(dtr)
+    IF(ALLOCATED(vtr)) DEALLOCATE(vtr)
+    IF(ALLOCATED(ctr)) DEALLOCATE(ctr)
+    IF(ALLOCATED(htr)) DEALLOCATE(htr)
+    IF(ALLOCATED(str)) DEALLOCATE(str)
     IF(ALLOCATED(lt_save)) DEALLOCATE(lt_save)
 
     RETURN
@@ -184,7 +187,8 @@ CONTAINS
 
     ALLOCATE(neqr_neq(neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(limtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-    ALLOCATE(rpimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    ALLOCATE(rjimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+    ALLOCATE(rsimtx(2,2,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(rimtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(r1imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(r2imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -212,7 +216,8 @@ CONTAINS
 
     IF(ALLOCATED(neqr_neq)) DEALLOCATE(neqr_neq)
     IF(ALLOCATED(limtx)) DEALLOCATE(limtx)
-    IF(ALLOCATED(rpimtx)) DEALLOCATE(rpimtx)
+    IF(ALLOCATED(rjimtx)) DEALLOCATE(rjimtx)
+    IF(ALLOCATED(rsimtx)) DEALLOCATE(rsimtx)
     IF(ALLOCATED(rimtx)) DEALLOCATE(rimtx)
     IF(ALLOCATED(r1imtx)) DEALLOCATE(r1imtx)
     IF(ALLOCATED(r2imtx)) DEALLOCATE(r2imtx)
