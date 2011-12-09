@@ -206,6 +206,17 @@ GLLIBS=-L/usr/local/lib -lgsgl
 #LD=sxld
 #LDFLAGS=-r -o
 
+## for aix-f90-64 dor NIFS ps
+#GFLIBS=-L$(HOME)/lib -lg3d-aix64 -lgsp-aix64 -lgdum-aix64
+#OFLAGS = -O -i,L
+#DFLAGS = -g -i,L
+#FCFIXED = f90 -fixed
+#FCFREE  = f90 -free
+#MOD = mod
+#MODDIR = -moddir=mod
+#LD=ld
+#LDFLAGS=-b64 -r -o
+
 ## for gfortran (32 bit)
 #GFLIBS=-L/usr/local/lib -lg3d -lgsp -lgdp -L/usr/X11R6/lib -lX11
 #OFLAGS = -g -O3 -m32
