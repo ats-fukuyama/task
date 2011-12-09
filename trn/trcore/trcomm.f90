@@ -56,10 +56,24 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
        dtr,      &! diffusion coefficient [m^2/s]
        vtr,      &! convection velocity [m^2/s]
-       ctr        ! heat exchange freuency [1/s]
+       ctr        ! exchange freuency [1/s]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
-       str,      &! heating power density [MW/m^3]
-       htr        ! current
+       str,      &! source density [MW/m^3]
+       htr        ! current density [MA/m^2]
+  REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: &
+       dtr_tb,   &! turbulent diffusion coefficient [m^2/s]
+       vtr_tb,   &! turbulent convection velocity [m^2/s]
+       dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
+       vtr_nc     ! neoclassical convection velocity [m^2/s]
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       eta_nc,   &! neoclassical resistivity [ohm m]
+       jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
+       jcd_nb,   &! current driven by NBI [A/m^2]
+       jcd_ec,   &! current driven by ECRF waves [A/m^2]
+       jcd_lh,   &! current driven by LHRF waves [A/m^2]
+       jcd_ic     ! current driven by ICRF waves [A/m^2]
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
+       lt_save    ! temperature scale length [m]
 
 ! ----- computation variables -----
 
@@ -86,7 +100,7 @@ MODULE trcomm
 ! ----- diagnostics -----
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       error_it,lt_save
+       error_it
   INTEGER(ikind):: &
        nitmax
 
@@ -124,12 +138,31 @@ CONTAINS
        ALLOCATE(rn_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(ru_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(rt_prev(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(dtr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(vtr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(ctr(neqmax,neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(htr(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(str(neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
-       ALLOCATE(lt_save(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(dtr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vtr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr) 
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(ctr(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(htr(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(str(3*neqmax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
+       ALLOCATE(dtr_tb(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vtr_tb(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(dtr_nc(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vtr_nc(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jcd_ec(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jcd_lh(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(jcd_ic(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
+       ALLOCATE(lt_save(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        nsamax_save=nsamax
        nrmax_save=nrmax

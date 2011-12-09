@@ -22,6 +22,7 @@ CONTAINS
     REAL(rkind),DIMENSION(0:ngt):: gt
     REAL(rkind),DIMENSION(0:ngt,nsamax):: gt1,gt2,gt3,gt4
     REAL(rkind),DIMENSION(nitmax):: ig,erg
+    REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: temp
 
 ! ----- current radial profile -----
 
@@ -135,7 +136,10 @@ CONTAINS
        CALL GRD1D(1,ig,erg, NITMAXL, NITMAXL, 1, LABEL, 2)
 
        LABEL = '/LT vs r/'
-       CALL GRD1D(2,rg,lt_save,nrmax+1,nrmax+1,1,LABEL,1)
+       allocate(temp(0:nrmax,1:nsamax)
+       temp(0:nrmax,1:nsamax)=lt_save(1:nsamax,0:nrmax)
+       CALL GRD1D(2,rg,temp,nrmax+1,nrmax+1,nsamax,LABEL,1)
+       deallocate(temp)
        
        CALL PAGEE
 

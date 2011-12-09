@@ -19,15 +19,12 @@ CONTAINS
 
     SELECT CASE(mdld)
     CASE(60,61)
-       ALLOCATE(ADDW(nrmax,nsamax))
-       ALLOCATE(AKDW(nrmax,nsamax))
-       ALLOCATE(AVDW(nrmax,nsamax))
-       ALLOCATE(AVKDW(nrmax,nsamax))
-       ALLOCATE(ADDWD(nrmax,nsamax,nsamax))
-       ALLOCATE(ADDWP(nrmax,nsamax,nsamax))
-       ALLOCATE(AKDWD(nrmax,nsamax,nsamax))
-       ALLOCATE(AKDWP(nrmax,nsamax,nsamax))
-       CALL tr_glf23(ADDW,ADDWD,ADDWP,AKDW,AKDWD,AKDWP,AVDW,AVKDW)
+       ALLOCATE(vtrglf(nrmax,3*nsamax))
+       ALLOCATE(dtrglf(nrmax,3*nsamax,3*nsamax))
+       CALL tr_glf23(dtrglf,vtrglf)
+       DTR(1:nrmax,1:3*nsamax,1:3*nsamax) &
+            =DTR(1:nrmax,1:3*nsamax,1:3*nsamax) &
+            +DTR(1:nrmax,1:3*nsamax,1:3*nsamax)
     END SELECT
     
 
@@ -49,16 +46,17 @@ CONTAINS
     IMPLICIT NONE
     INTEGER(ikind) :: NR, NEQ, nsa
     REAL(rkind) :: LT
-    REAL(rkind),DIMENSION(neqmax,nrmax):: DFG
+    REAL(rkind),DIMENSION(neqmax,nrmax):: DTR_DIAG
 
     SELECT CASE(MDLD)
        ! --- FLAT PROFILE ---
     CASE(0)
        DO NR = 1, NRMAX
           DO NEQ = 1, NEQMAX
-             DFG(NEQ,NR) = D0
+             nsa=nsa_neq(neq)
+             DTR_DIAG(NEQ,NR) = D0
+             if(nsa /= 0) lt_save(nsa,nr)=0.d0
           END DO
-          lt_save(nr)=0.d0
        END DO
       
        ! --- Typical stiff model (Pereverzev) ---
@@ -67,19 +65,18 @@ CONTAINS
           DO NEQ = 1, NEQMAX
              nsa=nsa_neq(neq)
              IF(nsa == 0) THEN
-                DFG(NEQ,NR) = D0
-                lt_save(nr)=0.D0
+                DTR_DIAG(NEQ,NR) = D0
              ELSE
                 IF(RT(nsa,NR)-RT(nsa,NR-1) > 0) THEN
                    LT = 0.D0
                 ELSE
                    LT = - (RT(nsa,NR)-RT(nsa,NR-1))/(RG(NR)-RG(NR-1))
                 END IF
-                lt_save(nr)=lt
+                lt_save(nr,nsa)=lt
                 IF(LT > LTCR)THEN
-                   DFG(NEQ,NR) = D0 + D1 - D1*LTCR/LT
+                   DTR_DIAG(NEQ,NR) = D0 + D1 - D1*LTCR/LT
                 ELSE
-                   DFG(NEQ,NR) = D0
+                   DTR_DIAG(NEQ,NR) = D0
                 END IF
              END IF
           END DO
@@ -89,7 +86,7 @@ CONTAINS
     DO NR = 1, NRMAX
        DO NEQ = 1, NEQMAX
           dtr(NEQ,1:NEQMAX,NR) = 0.D0
-          dtr(NEQ,NEQ,NR) = DFG(NEQ,NR)
+          dtr(NEQ,NEQ,NR) = DTR_DIAG(NEQ,NR)
        END DO
     END DO
     NR = 0
