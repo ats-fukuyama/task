@@ -75,8 +75,8 @@ LIBS3=$(EQLIBS) tr3lib.a ../lib/tasklib.a ../lib/mdslib.a $(PLLIBS)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-#all: tr2 tr3
-all: tr2
+#all: libs tr2 tr3
+all: libs tr2
 
 tr2lib.a: $(OBJTR) $(OBJ2D) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) tr2lib.a $(OBJTR) $(OBJ2D)
