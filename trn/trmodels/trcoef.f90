@@ -13,6 +13,7 @@ CONTAINS
     USE trcomm, ONLY: mdltr_nc,mdltr_tb,mdltr_prv
     USE trsimple, ONLY: tr_simple
     USE trglf23, ONLY: tr_glf23
+    USE trcdbm, ONLY: tr_cdbm
     IMPLICIT NONE
 
     SELECT CASE(mdltr_nc) ! results are in dtr_nc and vtr_nc
