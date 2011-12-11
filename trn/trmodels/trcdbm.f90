@@ -44,6 +44,7 @@ CONTAINS
        ppm=0.D0
        rhoni=0.D0
        DO nsa=1,nsamax
+          ns=ns_nsa(nsa)
           SELECT CASE(idnsa(nsa))
           CASE(-1) ! electron
              pnel=pnel+rn(nsa,nr)
@@ -66,7 +67,7 @@ CONTAINS
           IF(idnsa(nsa) /= 0) THEN
              dtr_tb(3*nsa-2,3*nsa-2,nr)=cdtrn*chi_cdbm
              dtr_tb(3*nsa-1,3*nsa-1,nr)=cdtru*chi_cdbm
-             dtr_tb(3*nsa  ,3*nsa  ,nr)=cdtrT*chi_cdbm
+             dtr_tb(3*nsa  ,3*nsa  ,nr)=cdtrt*chi_cdbm
           ENDIF
        END DO
     END DO

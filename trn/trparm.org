@@ -1,0 +1,17 @@
+ &tr
+  rr=2.D0
+  ra=1.D0
+  rkap=1.D0
+  rdlt=0.D0
+  bb=1.D0
+  ntmax=100
+  nrmax=50
+  lmaxtr=100
+  epsltr=1.D-8
+  ptpr(1)=1.D0,1.d0
+  ptpp(1)=1.D0,1.d0
+  pts(1)=0.1D0,0.1D0
+  pns(1)=0.05D0,0.05D0
+  ph0=0.1D0
+  phs=0.1D0
+ &end

@@ -20,6 +20,7 @@ CONTAINS
     CALL tr_nsa_allocate
 
     DO nsa=1,nsamax
+       ns=ns_nsa(nsa)
        IF(NINT(pz0(ns)) == -1) THEN
           idnsa(nsa) = -1
        ELSE

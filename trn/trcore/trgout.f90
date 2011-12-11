@@ -99,7 +99,7 @@ CONTAINS
        ELSE
           nsa=nsa_neq(neq)
           rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
-          dfg(0:nrmax,neqr)=dtr(neq,neq,0:nrmax)
+          dfg(0:nrmax,neqr)=MIN(dtr(neq,neq,0:nrmax),10.D0)
           phg(0:nrmax,neqr)=str(neq,0:nrmax)
           vcg(0:nrmax,neqr)=vtr(neq,neq,0:nrmax)
        ENDIF
