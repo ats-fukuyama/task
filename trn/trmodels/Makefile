@@ -13,12 +13,10 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) 
 
+SRC90=trglf23.f90 trcdbm.f90 trsimple.f90 trcoef.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
-SRCITG= glf/callglf2d.f \
-        itg/ifspppl_model.f itg/weiland.f
+SRCITG= glf/callglf2d.f  itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
-#SRC90=trmodels.f90 trglf23.f90
-SRC90=trglf23.f90
 SRCCDBM=cdbm/cdbm.f90
 SRCNC=trncls.f nclass/nclass_mod.f nclass/rarray_sum.f \
       nclass/rarray_copy.f nclass/rarray_zero.f nclass/u_erf.f \
@@ -28,7 +26,9 @@ INCGLF=glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 
-OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRC90:.f90=.o) $(SRCCDBM:.f90=.o) 
+OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRCCDBM:.f90=.o) \
+$(SRC90:.f90=.o) 
+
 # $(SRCNC:.f=.o) $(SRCCYT:.f90=.o) $(SRCMMM:.f=.o) $(SRCMBGB:.f=.o)
 
 .f.o :
@@ -43,6 +43,7 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 
 clean : 
 	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o a.out core *.a *.mod 
+
 tritg.o  : tritg.f90
 trmodels.o : trmodels.f90
 trmdlt.o : trmdlt.f90

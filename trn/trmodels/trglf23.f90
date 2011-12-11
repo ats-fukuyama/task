@@ -12,7 +12,7 @@ CONTAINS
 
 !     ***********************************************************
 
-      SUBROUTINE tr_glf23(dtr_tb,vtr_tb)
+      SUBROUTINE tr_glf23
 
 !   *************************************************************
 !     In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
@@ -30,9 +30,9 @@ CONTAINS
 !   *************************************************************
 
       USE TRCOMM, ONLY : &
-           BB, MDLD, &
-           NRMAX, NSAMAX, PA, PI, PZ, Q0, QP, RA, RG, RKAP, &
-           RN, RR, RT, RMU0, aee
+           BB, mdltr_tb, &
+           NRMAX, NSAMAX, PA, PI, PZ, PZ0, Q0, QP, RA, RG, RKAP, &
+           RN, RR, RT, RMU0, aee, ns_nsa, dtr_tb,vtr_tb
       IMPLICIT NONE
 !     Inputs
       INTEGER(4),DIMENSION(5)  :: itport_pt
@@ -61,15 +61,13 @@ CONTAINS
            fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
 
-      REAL(8),DIMENSION(3*nsamax,nrmax),INTENT(OUT):: dtr_tb
-      REAL(8),DIMENSION(3*nsamax,3*nsamax,nrmax),INTENT(OUT):: vtr_tb
       REAL(8),DIMENSION(nrmax):: ar1rho,ar2rho,rkprho,rmjrho,rmnrho,dr,rm
       REAL(8),DIMENSION(nrmax):: wexb,wrot,vpar,vprp,vtor,zeff,alpha,s_hm
       REAL(8)   :: &
            CDH,ppp,ppm,dpp,phia,rkev
-      INTEGER:: nsm,nsmax,mddw,mdluf,mdleqn,mdleqt,mdleoi,nsa,mdlkai
+      INTEGER:: nsm,nsmax,mddw,mdluf,mdleqn,mdleqt,mdleoi,nsa,mdlkai,nbase
 
-      mdlkai=mdld
+      mdlkai=mdltr_tb
       rkev=aee*1.D3
       phia=0.d0
       cdh=1.D0
@@ -274,221 +272,23 @@ CONTAINS
               anrate2_m, anfreq_m, anfreq2_m )
 
          dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-         vtr_tb(1:3*nsamax,1:nrmax)=0.D0
+         vtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
          DO NR=1,NRMAX
             DO nsa=1,nsamax
                ns=ns_nsa(nsa)
-               base=3*(nsa-1)
+               nbase=3*(nsa-1)
                IF(pz0(ns) < 0.D0) THEN ! for electron
-                  dtr_tb(base+1,base+1,nr)=MAX(diff_m(NR),0.D0)
-                  dtr_tb(base+3,base+3,nr)=MAX(chie_m(NR),0.D0)
-               ELSE IF
+                  dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
+                  dtr_tb(nbase+3,nbase+3,nr)=MAX(chie_m(NR),0.D0)
+               ELSE
                   IF(pz(ns) /= 0.d0) THEN ! for ion
-                     dtr_tb(base+1,base+1,nr)=MAX(diff_m(NR),0.D0)
-                     dtr_tb(base+3,base+3,nr)=MAX(chii_m(NR),0.d0)
+                     dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
+                     dtr_tb(nbase+3,nbase+3,nr)=MAX(chii_m(NR),0.d0)
                   END IF
                END IF
             END DO
          END DO
 
-      ELSEIF(MDLKAI.EQ.61) THEN
-!     +++ D-V (diffusion convection) method +++
-
-         igrad=1  ! compute gradients (1=input gradients)
-         deltat=0.03D0
-         MODE=0   ! 0: Kinsey type, 1: Angioni type
-         do j=1,jmaxm-1
-            zpte_m(j)=-(LOG(RT(j+1,1))-LOG(RT(j,1)))/DR(j) ! grid
-            zpti_m(j)=-(LOG(RT(j+1,2))-LOG(RT(j,2)))/DR(j) ! grid
-            zpne_m(j)=-(LOG(RN(j+1,1))-LOG(RN(j,1)))/DR(j) ! grid
-            zpni_m(j)=-(LOG(RN(j+1,2))-LOG(RN(j,2)))/DR(j) ! grid
-            zpte_in=zpte_m(j)
-            zpti_in=zpti_m(j)
-            zpne_in=zpne_m(j)
-            zpni_in=zpni_m(j)
-
-            jmm=j
-            call callglf2d( leigen, nroot, iglf, jshoot, jmm, jmaxm, itport_pt &
-     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m, igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in &
-     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, bt_exp, nbt_flag, rho &
-     & , arho_exp, rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp &
-     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp, alpha_e, x_alpha, i_delay &
-     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm, exchm, diff_m, chie_m, chii_m, etaphi_m &
-     & , etapar_m, etaper_m, exch_m, egamma_m, egamma_d, rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m )
-
-            qe0(j)=chietem*zpte_in
-            qi0(j)=chiitim*zpti_in
-            qn0(j)=diffnem*zpni_in
-
-!     1/Lt1=1/Lt0+DELTAt*1/Lt0
-
-            zpte_in=zpte_m(j)*(1.D0+deltat)
-            zpti_in=zpti_m(j)*(1.D0+deltat)
-            zpne_in=zpne_m(j)*(1.D0+deltat)
-            zpni_in=zpni_m(j)*(1.D0+deltat)
-
-            call callglf2d( leigen, nroot, iglf, jshoot, jmm, jmaxm, itport_pt &
-     & , irotstab, te_m, ti_m, rne_m, rni_m, rns_m, igrad, idengrad, zpte_in, zpti_in, zpne_in, zpni_in &
-     & , angrotp_exp, egamma_exp, rgamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, bt_exp, nbt_flag, rho &
-     & , arho_exp, rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp &
-     & , q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp, alpha_e, x_alpha, i_delay &
-     & , diffnem, chietem, chiitim, etaphim, etaparm, etaperm, exchm, diff_m, chie_m, chii_m, etaphi_m &
-     & , etapar_m, etaper_m, exch_m, egamma_m, egamma_d, rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m )
-
-            qe=chietem*zpte_in
-            qi=chiitim*zpti_in
-            qn=diffnem*zpni_in
-
-            chien(j)=(qe-qe0(j))/(zpni_in-zpni_m(j))
-            chiee(j)=(qe-qe0(j))/(zpte_in-zpte_m(j))
-            chiei(j)=(qe-qe0(j))/(zpti_in-zpti_m(j))
-            chiin(j)=(qi-qi0(j))/(zpni_in-zpni_m(j))
-            chiie(j)=(qi-qi0(j))/(zpte_in-zpte_m(j))
-            chiii(j)=(qi-qi0(j))/(zpti_in-zpti_m(j))
-            ddnn (j)=(qn-qn0(j))/(zpni_in-zpni_m(j))
-            ddne (j)=(qn-qn0(j))/(zpte_in-zpte_m(j))
-            ddni (j)=(qn-qn0(j))/(zpti_in-zpti_m(j))
-
-            IF(MODE.EQ.0) THEN
-               AKDW (j,1)  =chiee(j)
-               AKDWP(j,1,1)=chiee(j)
-               AVKDW(j,1)  =(qe0(j)/zpte_m(j)-chiee(j))*zpte_m(j)
-               IF(chiee(j).LT.0.D0) THEN
-                  AKDW(j,1)   =0.D0
-                  AKDWP(j,1,1)=0.D0
-                  AVKDW(j,1)  =qe0(j)
-               ENDIF
-               DO NS=2,NSM
-                  AKDW (j,NS)   =chiii(j)
-                  AKDWP(j,NS,NS)=chiii(j)
-                  AVKDW(j,NS)   =(qi0(j)/zpti_m(j)-chiii(j))*zpti_m(j)
-                  IF(chiii(j).LT.0.D0) THEN
-                     AKDW (j,NS)   =0.D0
-                     AKDWP(j,NS,NS)=0.D0
-                     AVKDW(j,NS)   =qi0(j)
-                  ENDIF
-               ENDDO
-            ENDIF
-         enddo
-         qe0(jmaxm)=0.D0
-         qi0(jmaxm)=0.D0
-         qn0(jmaxm)=0.D0
-
-!     Let AVDW enable by turning on CDH for anomalous particle convection
-         CDH=1.D0
-
-         dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-         vtr_tb(1:3*nsamax,1:nrmax)=0.D0
-
-         IF(MODE.EQ.1) THEN
-         DO NR=1,NRMAX
-            DO nsa=1,nsamax
-               ns=ns_nsa(nsa)
-               base=3*(nsa-1)
-               IF(pz0(ns) < 0.D0) THEN ! for electron
-                  vtr_tb(base+1,nr)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
-                                   -ddne (NR)*zpte_m(NR) &
-                                   -ddni (NR)*zpti_m(NR)
-                  vtr_tb(base+3,nr)=qe0(NR)-chien(NR)*zpni_m(NR) &
-                                   -chiee(NR)*zpte_m(NR) &
-                                   -chiei(NR)*zpti_m(NR)
-                  DO nsa1=1,nsamax
-                     ns1=ns_nsa(nsa1)
-                     base1=3*(nsa1-1)
-                     IF(pz0(ns1) < 0.D0) THEN ! for electron
-                        dtr_tb(base+1,base1+1,nr)=MAX(ddnn(NR)+ddne(NR),0.D0)
-                        dtr_tb(base+1,base1+3,nr)=MAX(         ddne(NR),0.D0)
-                        dtr_tb(base+3,base1+1,nr)=MAX(chien(NR)+chiee(NR),0.D0)
-                        dtr_tb(base+3,base1+3,nr)=MAX(          chiee(NR),0.D0)
-                     ELSE IF(pz(ns1) /= 0.d0) THEN ! for ion
-                        dtr_tb(base+1,base1+1,nr)=MAX(ddnn(NR)+ddne(NR),0.D0)
-                        dtr_tb(base+1,base1+3,nr)=MAX(         ddne(NR),0.D0)
-                        dtr_tb(base+3,base1+1,nr)=MAX(chien(NR)+chiee(NR),0.D0)
-                        dtr_tb(base+3,base1+3,nr)=MAX(          chiee(NR),0.D0)
-                     END IF
-                  END DO
-               ELSE IF(pz(ns) /= 0.d0) THEN ! for ion
-                  vtr_tb(base+1,nr)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
-                                           -ddne (NR)*zpte_m(NR) &
-                                           -ddni (NR)*zpti_m(NR)
-                  vtr_tb(base+3,nr)=qi0(NR)-chiin(NR)*zpni_m(NR) &
-                                           -chiie(NR)*zpte_m(NR) &
-                                           -chiii(NR)*zpti_m(NR)
-                  DO nsa1=1,nsamax
-                     IF(pz0(ns1) < 0.D0) THEN ! for electron
-                        dtr_tb(base+1,base1+1,nr)=MAX(ddnn(NR)+ddni(NR),0.D0)
-                        dtr_tb(base+1,base1+3,nr)=MAX(         ddni(NR),0.D0)
-                        dtr_tb(base+3,base1+1,nr)=MAX(chien(NR)+chiei(NR),0.D0)
-                        dtr_tb(base+3,base1+3,nr)=MAX(          chiei(NR),0.D0)
-                     ELSE IF(pz(ns1) /= 0.d0) THEN ! for ion
-                        dtr_tb(base+1,base1+1,nr)=MAX(ddnn(NR)+ddni(NR),0.D0)
-                        dtr_tb(base+1,base1+3,nr)=MAX(         ddni(NR),0.D0)
-                        dtr_tb(base+3,base1+1,nr)=MAX(chiin(NR)+chiii(NR),0.D0)
-                        dtr_tb(base+3,base1+3,nr)=MAX(          chiii(NR),0.D0)
-                     END IF
-                  END DO
-               END IF
-            END DO
-         END DO
-
-         IF(MODE.EQ.1) THEN
-            DO NR=1,NRMAX-1
-               ADDWD(NR,1,1)=ddnn(NR)
-               ADDWP(NR,1,1)=ddne(NR)
-               AKDWD(NR,1,1)=chien(NR)
-               AKDWP(NR,1,1)=chiee(NR)
-               DO NS=2,NSM
-                  ADDWD(NR,NS,1)=ddnn(NR)
-                  ADDWP(NR,NS,1)=ddni(NR)
-                  AKDWD(NR,NS,1)=chien(NR)
-                  AKDWP(NR,NS,1)=chiei(NR)
-               ENDDO
-               DO NS1=2,NSM
-                  ADDWD(NR,1,NS1)=ddnn(NR)
-                  ADDWP(NR,1,NS1)=ddne(NR)
-                  AKDWD(NR,1,NS1)=chiin(NR)
-                  AKDWP(NR,1,NS1)=chiie(NR)
-                  DO NS=2,NSM
-                     ADDWD(NR,NS,NS1)=ddnn(NR)
-                     ADDWP(NR,NS,NS1)=ddni(NR)
-                     AKDWD(NR,NS,NS1)=chiin(NR)
-                     AKDWP(NR,NS,NS1)=chiii(NR)
-                  ENDDO
-               ENDDO
-               DO NS=1,NSM
-                  ADDW(NR,NS)=ADDWD(NR,NS,NS)
-                  AKDW(NR,NS)=AKDWP(NR,NS,NS)
-               ENDDO
-            ENDDO
-            NR=NRMAX
-               ADDWD(NR,1:NSM,1:NSM)=ADDWD(NR-1,1:NSM,1:NSM)
-               ADDWP(NR,1:NSM,1:NSM)=ADDWP(NR-1,1:NSM,1:NSM)
-               AKDWD(NR,1:NSM,1:NSM)=AKDWD(NR-1,1:NSM,1:NSM)
-               AKDWP(NR,1:NSM,1:NSM)=AKDWP(NR-1,1:NSM,1:NSM)
-               DO NS=1,NSM
-                  ADDW(NR,NS)=ADDWD(NR,NS,NS)
-                  AKDW(NR,NS)=AKDWP(NR,NS,NS)
-               ENDDO
-
-            DO NR=1,NRMAX
-               AVKDW(NR, 1)=qe0(NR)-chien(NR)*zpni_m(NR) &
-                                   -chiee(NR)*zpte_m(NR) &
-                                   -chiei(NR)*zpti_m(NR)
-               AVDW (NR, 1)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
-                                   -ddne (NR)*zpte_m(NR) &
-                                   -ddni (NR)*zpti_m(NR)
-               DO NS=2,NSM
-                  AVKDW(NR,NS)=qi0(NR)-chiin(NR)*zpni_m(NR) &
-                                      -chiie(NR)*zpte_m(NR) &
-                                      -chiii(NR)*zpti_m(NR)
-                  AVDW (NR,NS)=qn0(NR)-ddnn (NR)*zpni_m(NR) &
-                                      -ddne (NR)*zpte_m(NR) &
-                                      -ddni (NR)*zpti_m(NR)
-               ENDDO
-!               write(6,'(I3,6F12.7)') NR,chiin(NR),zpni_m(NR)
-!     &              ,chiie(NR),zpte_m(NR),chiii(NR),zpti_m(NR)
-            ENDDO
-         ENDIF
       ENDIF
 
       RETURN

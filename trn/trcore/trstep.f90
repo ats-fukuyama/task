@@ -13,7 +13,7 @@ CONTAINS
 
     USE trcomm, ONLY: rkind,ikind,nrmax,neqmax,xv,xv_prev,xv_new,qp,rn,ru,rt, &
          lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,nitmax
-    USE trcoef, ONLY: tr_coef
+    USE trcalc, ONLY: tr_calc
     USE trexec, ONLY: tr_exec
 
     IMPLICIT NONE
@@ -45,7 +45,7 @@ CONTAINS
        
     DO NIT = 1, lmaxtr
 
-       CALL tr_coef
+       CALL tr_calc
 
        CALL tr_exec
 

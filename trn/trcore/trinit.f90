@@ -33,7 +33,8 @@ CONTAINS
     USE plcomm
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
-           lmaxtr,epsltr,mdld,mdlprv,d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
            ntstep,ngtmax,ngtstp
     USE plinit
     IMPLICIT NONE
@@ -174,14 +175,16 @@ CONTAINS
         
 !     ==== TR PARAMETERS for stiff modeling by Ikari  ====
 
-!        mdld  = 0 : CONSTANT
-!                1 : STIFF MODEL (Pereverzev)
-!        mdlprv= 0 : no Pereverzev method
-!                1 : Pereverzev method applied : Denh=dprv1
-!                2 : Pereverzev method applied : Denh=dprv2*Dorg
-!                3 : Pereverzev method applied : Denh=dprv2*Dorg+dprv1
-!                4 : Pereverzev method applied : Denh=MIN(dprv2*Dorg,dprv1)
-!                5 : Pereverzev method applied : Denh=MAX(dprv2*Dorg,dprv1)
+!        mdltr_nc  = 0 : no neoclassical transport
+!        mdltr_tb  = 0 : no turbulent transport
+!                    1 : constant diffusion
+!                    2 : STIFF MODEL (Pereverzev)
+!        mdltr_prv = 0 : no Pereverzev method
+!                    1 : Pereverzev method applied : Denh=dprv1
+!                    2 : Pereverzev method applied : Denh=dprv2*Dorg
+!                    3 : Pereverzev method applied : Denh=dprv2*Dorg+dprv1
+!                    4 : Pereverzev method applied : Denh=MIN(dprv2*Dorg,dprv1)
+!                    5 : Pereverzev method applied : Denh=MAX(dprv2*Dorg,dprv1)
 !        d0        : lower diffusion coefficient
 !        d1        : upper diffusion coefficnet
 !        ltcr      : critical scale length [m]
@@ -190,8 +193,9 @@ CONTAINS
 !        dprv1     : enhanced diffusion coefficient
 !        dprv2     : diffusion enhancement factor
 
-    mdld  = 0
-    mdlprv= 0
+    mdltr_nc  = 1
+    mdltr_tb  = 1
+    mdltr_prv = 0
     d0    = 0.01D0
     d1    = 0.1D0
     ltcr  = 1.D0
@@ -236,7 +240,8 @@ CONTAINS
              9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/ &
              9X,'MODEFW,MODEFR'/ &
              9X,'nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa'/ &
-             9X,'lmaxtr,epsltr,mdld,,mdlprv,d0,d1,ltcr,ph0,phs,dprv1,dprv2'/ &
+             9X,'lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,'/ &
+             9X,'d0,d1,ltcr,ph0,phs,dprv1,dprv2'/ &
              9X,'ngtmax,ngtstep')
   END SUBROUTINE tr_plist
 
@@ -247,7 +252,8 @@ CONTAINS
     USE plcomm
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
-           lmaxtr,epsltr,mdld,mdlprv,d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
@@ -263,7 +269,8 @@ CONTAINS
          KNAMEQ,KNAMWR,KNAMWM,KNAMFP,KNAMFO,KNAMPF, &
          MODEFR,MODEFW,IDEBUG, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
-         lmaxtr,epsltr,mdld,mdlprv,d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+         lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+         d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
          ntstep,ngtmax,ngtstp
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
@@ -344,7 +351,8 @@ CONTAINS
     USE plinit
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
-           lmaxtr,epsltr,mdld,mdlprv,d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -367,7 +375,8 @@ CONTAINS
     END DO
     WRITE(6,601) 'd0      ',d0      ,'d1      ',d1, &
                  'ltcr    ',ltcr
-    WRITE(6,602) 'mdld  ',mdld  ,'mdlprv',mdlprv
+    WRITE(6,602) 'mdltr_nc',mdltr_nc,'mdltr_tb',mdltr_tb, &
+                 'mdltr_prv',mdltr_prv
     WRITE(6,601) 'drpv1 ',dprv1 ,'dprv2 ',dprv2
     WRITE(6,601) 'ph0   ',ph0   ,'phs   ',phs
     RETURN

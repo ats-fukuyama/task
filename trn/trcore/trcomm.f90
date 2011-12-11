@@ -17,8 +17,9 @@ MODULE trcomm
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
 
-  INTEGER(ikind):: mdld        ! model type of diffusion coefficient
-  INTEGER(ikind):: mdlprv      ! model type of Pereverzev method
+  INTEGER(ikind):: mdltr_nc    ! model type of neoclassical transport coef.
+  INTEGER(ikind):: mdltr_tb    ! model type of turbulent transport coef.
+  INTEGER(ikind):: mdltr_prv   ! model type of Pereverzev method
   REAL(rkind)::    d0          ! lower diffusion coefficient
   REAL(rkind)::    d1          ! upper diffusion coefficient
   REAL(rkind)::    ltcr        ! critical scale length
@@ -64,7 +65,8 @@ MODULE trcomm
        dtr_tb,   &! turbulent diffusion coefficient [m^2/s]
        vtr_tb,   &! turbulent convection velocity [m^2/s]
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
-       vtr_nc     ! neoclassical convection velocity [m^2/s]
+       vtr_nc,   &! neoclassical convection velocity [m^2/s]
+       ctr_ex     ! exchange frequency [1/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
@@ -155,6 +157,8 @@ CONTAINS
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(vtr_nc(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
+       ALLOCATE(ctr_ex(3*neqmax,3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
        ALLOCATE(eta_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jbs_nc(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(jcd_nb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -189,6 +193,17 @@ CONTAINS
     IF(ALLOCATED(ctr)) DEALLOCATE(ctr)
     IF(ALLOCATED(htr)) DEALLOCATE(htr)
     IF(ALLOCATED(str)) DEALLOCATE(str)
+    IF(ALLOCATED(dtr_nc)) DEALLOCATE(dtr_nc)
+    IF(ALLOCATED(dtr_tb)) DEALLOCATE(dtr_tb)
+    IF(ALLOCATED(vtr_nc)) DEALLOCATE(vtr_nc)
+    IF(ALLOCATED(vtr_tb)) DEALLOCATE(vtr_tb)
+    IF(ALLOCATED(ctr_ex)) DEALLOCATE(ctr_ex)
+    IF(ALLOCATED(eta_nc)) DEALLOCATE(eta_nc)
+    IF(ALLOCATED(jbs_nc)) DEALLOCATE(jbs_nc)
+    IF(ALLOCATED(jcd_nb)) DEALLOCATE(jcd_nb)
+    IF(ALLOCATED(jcd_ec)) DEALLOCATE(jcd_ec)
+    IF(ALLOCATED(jcd_lh)) DEALLOCATE(jcd_lh)
+    IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
     IF(ALLOCATED(lt_save)) DEALLOCATE(lt_save)
 
     RETURN

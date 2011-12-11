@@ -136,7 +136,7 @@ CONTAINS
        CALL GRD1D(1,ig,erg, NITMAXL, NITMAXL, 1, LABEL, 2)
 
        LABEL = '/LT vs r/'
-       allocate(temp(0:nrmax,1:nsamax)
+       allocate(temp(0:nrmax,1:nsamax))
        temp(0:nrmax,1:nsamax)=lt_save(1:nsamax,0:nrmax)
        CALL GRD1D(2,rg,temp,nrmax+1,nrmax+1,nsamax,LABEL,1)
        deallocate(temp)
