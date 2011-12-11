@@ -27,6 +27,9 @@ MODULE trcomm
   REAL(rkind)::    phs         ! heating power density at r = a
   REAL(rkind)::    dprv1       ! enhanced diffusion coefficient
   REAL(rkind)::    dprv2       ! diffusion enhancement factor
+  REAL(rkind)::    cdtrn       ! factor for particle diffusion
+  REAL(rkind)::    cdtru       ! factor for toroidal flow viscosity
+  REAL(rkind)::    cdtrt       ! factor for thermal diffusivity
 
   INTEGER(ikind):: ntstep      ! number of time step for status report
   INTEGER(ikind):: ngtmax      ! number of saved data
@@ -114,6 +117,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts
 
 ! ----- species id -----
+  INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
   CHARACTER(LEN=1),DIMENSION(:),ALLOCATABLE:: kidnsa
 
 CONTAINS
@@ -389,6 +393,7 @@ CONTAINS
 
        IF(nsamax_save /= 0) CALL tr_nsa_deallocate
 
+       ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
        nsamax_save=nsamax

@@ -34,7 +34,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     USE plinit
     IMPLICIT NONE
@@ -192,6 +192,9 @@ CONTAINS
 !        phs       : heating power density [MW/m^3] at r = a
 !        dprv1     : enhanced diffusion coefficient
 !        dprv2     : diffusion enhancement factor
+!        cdtrn     : factor for particle diffusivity
+!        cdtru     : factor for toroidal viscosity
+!        cdtrt     : factor for thermal diffusivity
 
     mdltr_nc  = 1
     mdltr_tb  = 1
@@ -203,6 +206,9 @@ CONTAINS
     phs   = 0.1D0
     dprv1 = 0.1D0
     dprv2 = 3.0D0
+    cdtrn = 1.D0
+    cdtru = 1.D0
+    cdtrt = 1.D0
 
 !     ==== TR PARAMETERS for data saving  ====
 !        ntstep    : number of time step for status report
@@ -241,7 +247,7 @@ CONTAINS
              9X,'MODEFW,MODEFR'/ &
              9X,'nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa'/ &
              9X,'lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv,'/ &
-             9X,'d0,d1,ltcr,ph0,phs,dprv1,dprv2'/ &
+             9X,'d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt,'/ &
              9X,'ngtmax,ngtstep')
   END SUBROUTINE tr_plist
 
@@ -253,7 +259,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
@@ -270,7 +276,7 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-         d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+         d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
@@ -352,7 +358,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2, &
+           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind):: nsa
@@ -378,6 +384,8 @@ CONTAINS
     WRITE(6,602) 'mdltr_nc',mdltr_nc,'mdltr_tb',mdltr_tb, &
                  'mdltr_prv',mdltr_prv
     WRITE(6,601) 'drpv1 ',dprv1 ,'dprv2 ',dprv2
+    WRITE(6,601) 'cdtrn     ',cdtrn     ,'cdtru     ',cdtru     , &
+                 'cdtrt     ',cdtrt
     WRITE(6,601) 'ph0   ',ph0   ,'phs   ',phs
     RETURN
 

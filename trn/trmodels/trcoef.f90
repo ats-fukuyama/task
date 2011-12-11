@@ -22,8 +22,10 @@ CONTAINS
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb
     CASE(0:9)
        CALL tr_simple
-    CASE(60,61)
+    CASE(60:69)
        CALL tr_glf23
+    CASE(130:139)
+       CALL tr_cdbm
     END SELECT
     
     IF(mdltr_prv /= 0) CALL Pereverzev_method

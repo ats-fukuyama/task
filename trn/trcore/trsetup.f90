@@ -10,7 +10,7 @@ CONTAINS
 
   SUBROUTINE tr_setup
 
-    USE trcomm, ONLY: ikind,t,ngt,kidnsa,ns_nsa,nsamax,pa,pz0, &
+    USE trcomm, ONLY: ikind,t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0, &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate
     USE trloop, ONLY: tr_save_pvprev
     USE trresult, ONLY: tr_calc_global,tr_save_ngt
@@ -18,6 +18,20 @@ CONTAINS
     INTEGER(ikind):: nsa,ns
 
     CALL tr_nsa_allocate
+
+    DO nsa=1,nsamax
+       IF(NINT(pz0(ns)) == -1) THEN
+          idnsa(nsa) = -1
+       ELSE
+          IF(NINT(pz(ns)) == 0) THEN
+             idnsa(nsa) = 0
+          ELSE
+             idnsa(nsa) = 1
+          END IF
+       END IF
+    END DO
+
+          
 
     DO nsa=1,nsamax
        ns=ns_nsa(nsa)
