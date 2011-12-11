@@ -43,9 +43,7 @@ $(BPSDDIR)/bpsdlib.a:
 	(cd $(BPSDDIR)/lib; make bpsdlib.a)
 
 clean:
-	rm -f *.o *~ *.mod
-veryclean: clean
-	rm -f trn
+	rm -f *.o *~ *.mod $(MOD)/*.mod
 
 COMMON=trcomm.f90 $(TASKDIR)/plx/plcomm.f90
 trcomm.o: trcomm.f90 $(TASKDIR)/plx/plcomm.f90
