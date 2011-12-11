@@ -38,7 +38,8 @@ CONTAINS
 
   SUBROUTINE Pereverzev_method
     USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rt_prev, &
-         mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb
+         mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb, &
+         cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     REAL(rkind) :: dtr_new,vtr_new,lt,drt,rtave
     INTEGER(ikind) :: nr,nsa
@@ -62,8 +63,12 @@ CONTAINS
           END SELECT
           vtr_new = dtr_new * lt / rtave
 
-          dtr_tb(3*nsa,3*nsa,nr) = dtr_tb(3*nsa,3*nsa,nr) + dtr_new
-          vtr_tb(3*nsa,3*nsa,nr) = vtr_tb(3*nsa,3*nsa,nr) + vtr_new
+          dtr_tb(3*nsa-2,3*nsa-2,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtrn*dtr_new
+          dtr_tb(3*nsa-1,3*nsa-1,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtru*dtr_new
+          dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtrt*dtr_new
+          vtr_tb(3*nsa-2,3*nsa-2,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtrn*vtr_new
+          vtr_tb(3*nsa-1,3*nsa-1,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtru*vtr_new
+          vtr_tb(3*nsa  ,3*nsa  ,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtrt*vtr_new
        END DO
     END DO
     RETURN

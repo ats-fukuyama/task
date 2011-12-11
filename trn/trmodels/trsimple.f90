@@ -12,7 +12,7 @@ CONTAINS
   SUBROUTINE tr_simple
 
     USE trcomm, ONLY: nrmax,nsamax,mdltr_tb,ltcr,d0,d1,rg,rt,dtr_tb,vtr_tb, &
-         lt_save
+         lt_save,cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     INTEGER(ikind) :: NR, NEQ, nsa
     REAL(rkind) :: LT
@@ -55,9 +55,9 @@ CONTAINS
          
     DO nr = 1, nrmax
        DO nsa = 1, nsamax
-          dtr_tb(3*nsa-2,3*nsa-2,nr) = dtr_diag(nsa,nr)
-          dtr_tb(3*nsa-1,3*nsa-1,nr) = dtr_diag(nsa,nr)
-          dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_diag(nsa,nr)
+          dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn*dtr_diag(nsa,nr)
+          dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru*dtr_diag(nsa,nr)
+          dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt*dtr_diag(nsa,nr)
        END DO
     END DO
     RETURN
