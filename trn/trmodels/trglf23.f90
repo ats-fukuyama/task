@@ -85,12 +85,15 @@ CONTAINS
          ar2rho(nr)=1.D0/(sqrt(rkap)*ra)**2
          rkprho(nr)=rkap
          rmjrho(nr)=rr
-         rmnrho(nr)=ra*rg(nr)
+         rmnrho(nr)=rg(nr)
          ppp=0.D0
          ppm=0.D0
          do nsa=1,nsamax
-            ppp=ppp+rn(nsa,nr  )*rt(nsa,nr  )
-            ppm=ppm+rn(nsa,nr-1)*rt(nsa,nr-1)
+            ns=ns_nsa(nsa)
+            IF(pz(ns) /= 0.d0) THEN
+               ppp=ppp+rn(nsa,nr  )*rt(nsa,nr  )
+               ppm=ppm+rn(nsa,nr-1)*rt(nsa,nr-1)
+            END IF
          end do
          dpp=(ppp-ppm)/dr(nr)
          alpha(nr)=-2.D0*RMU0*QP(NR)**2*RR/BB**2*(DPP*1.D20*RKEV)

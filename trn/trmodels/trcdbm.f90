@@ -19,6 +19,7 @@ CONTAINS
     USE trcomm, ONLY: &
          bb,rr,rg,rkap,qp,rn,rt,pa,amp,aee,cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb, &
          nrmax,nsamax,ns_nsa,idnsa,mdltr_tb
+    USE cdbm_mod, ONLY: cdbmm
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model
     REAL(rkind):: rkev,calf,ckap,cexb,rsl,qpl,shearl,pnel,ppp,ppm, &
