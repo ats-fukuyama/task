@@ -35,10 +35,10 @@ CONTAINS
           dtr(2:neqmax,neq,nr) &
                =dtr_nc(1:neqmax-1,neq-1,nr) &
                +dtr_tb(1:neqmax-1,neq-1,nr)
-          vtr(neq,2:neqmax,nr) &
+          vtr(2:neqmax,neq,nr) &
                =vtr_nc(1:neqmax-1,neq-1,nr) &
                +vtr_tb(1:neqmax-1,neq-1,nr)
-          ctr(neq,2:neqmax,nr) &
+          ctr(2:neqmax,neq,nr) &
                =ctr_ex(1:neqmax-1,neq-1,nr)
        END DO
     END DO
