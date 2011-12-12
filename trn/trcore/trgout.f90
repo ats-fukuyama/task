@@ -105,7 +105,6 @@ CONTAINS
        ENDIF
     END DO
 
-    ! --- #1 ---
     CALL PAGES
     LABEL = '/T vs r/'
     CALL GRD1D(1,RG,rtg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
@@ -118,7 +117,6 @@ CONTAINS
     CALL PAGEE
 
     
-    ! --- #2 ---
     nitmaxl=MIN(nitmax,lmaxtr)
     DO nit=1,nitmaxl
        ig(nit)=dble(nit)
@@ -129,7 +127,6 @@ CONTAINS
           erg(nit)=log10(error_it(nit)+epsltr*1.D-2)
        END DO
 
-       ! --- #2 ---
        CALL PAGES
        ! MODE = 2 ; X:LINEAR  Y:LOG
        LABEL = '/convergence vs NIT/'
@@ -137,7 +134,10 @@ CONTAINS
 
        LABEL = '/LT vs r/'
        allocate(temp(0:nrmax,1:nsamax))
-       temp(0:nrmax,1:nsamax)=lt_save(1:nsamax,0:nrmax)
+       write(*,*) 'XXX nsamax = ',nsamax
+!       temp(0:nrmax,1:nsamax)=lt_save(1:nsamax,0:nrmax)
+       temp=transpose(lt_save)
+
        CALL GRD1D(2,rg,temp,nrmax+1,nrmax+1,nsamax,LABEL,1)
        deallocate(temp)
        

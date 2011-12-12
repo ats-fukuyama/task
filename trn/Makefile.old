@@ -54,7 +54,7 @@ INCGLF=trglf.inc glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
-
+¢å¢å¢å¢å
 OBJM= $(SRC90M:.f90=.o)
 OBJS= $(SRCITG:.f=.o) $(SRCITGF:.F=.o) $(SRC90:.f90=.o) 
 OBJE=$(SRCE:.f=.o)

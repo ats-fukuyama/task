@@ -1426,7 +1426,8 @@ c..save growth rates and frequencies in real variables
 c
         zgamax = 0.0D0
 ctemp
-        zgamax = -1.D10
+c        zgamax = -1.D10
+        zgamax = -1.D15
         jmax=0
 c        jmax=1
         gamma=0.D0
@@ -1436,10 +1437,12 @@ c        jmax=1
             zgamax = aimag(zomega(j))
             jmax=j
           endif
+!          WRITE(*,*) j, aimag(zomega(j)), zgamax
          endif
         enddo
 c
-c        write(*,*) jmax
+!        write(*,*) j, jroot(1), jroot(2), jroot(3)
+!        write(*,*) aimag(zomega(j)), zgamax
         freq = AREAL( zomega(jmax) )
         gamma = aimag( zomega(jmax) )
 c

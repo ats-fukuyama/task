@@ -10,7 +10,7 @@ CONTAINS
 ! ***** calculate transport coefficients and souce terms *****
 
   SUBROUTINE tr_coef
-    USE trcomm, ONLY: mdltr_nc,mdltr_tb,mdltr_prv
+    USE trcomm, ONLY: mdltr_nc,mdltr_tb,mdltr_prv,dtr_nc,vtr_nc
     USE trsimple, ONLY: tr_simple
     USE trglf23, ONLY: tr_glf23
     USE trcdbm, ONLY: tr_cdbm
@@ -18,6 +18,8 @@ CONTAINS
 
     SELECT CASE(mdltr_nc) ! results are in dtr_nc and vtr_nc
     CASE(1)
+       dtr_nc = 0.d0
+       vtr_nc = 0.d0
     END SELECT
 
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb

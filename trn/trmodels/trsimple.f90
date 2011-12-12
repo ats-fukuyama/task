@@ -43,7 +43,7 @@ CONTAINS
              ELSE
                 lt = - (rt(nsa,nr)-rt(nsa,nr-1))/(rg(nr)-rg(nr-1))
              END IF
-             lt_save(nr,nsa)=lt
+             lt_save(nsa,nr)=lt
              IF(lt > ltcr)THEN
                 dtr_diag(nsa,nr) = d0 + d1 - d1*ltcr/lt
              else
