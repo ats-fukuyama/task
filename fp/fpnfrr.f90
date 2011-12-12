@@ -31,8 +31,8 @@
 
       FUNCTION SIGMA_E(E,ID)
       IMPLICIT NONE
-      REAL(8):: SIGMA_E      ! m^2 (1 barn = 10^{-28} m^2)
-      REAL(8),INTENT(IN):: E ! Energy in keV
+      REAL(8):: SIGMA_E      ! [m^2] (1 barn = 10^{-28} m^2)
+      REAL(8),INTENT(IN):: E ! Energy in [keV]
       INTEGER,INTENT(IN):: ID
 
 !      write(6,'(1P3E12.4)') E, &
@@ -204,7 +204,7 @@
                ENG1_NF(ID)=1.25D6   ! This value is an isotropic estimation
             ENDIF
          CASE(6)
-            IF(NSB_T.NE.0.AND.NSB_HE3) THEN ! One reaction is implemented
+            IF(NSB_T.NE.0.AND.NSB_HE3.NE.0) THEN ! One reaction is implemented
                NSB1_NF(ID)=NSB_T
                NSB2_NF(ID)=NSB_HE3
                NSA1_NF(ID)=NSA_HE4
@@ -314,7 +314,7 @@
       IMPLICIT NONE
       INTEGER,INTENT(IN):: NR,ID
       INTEGER:: NSB1, NSB2, NSA1, NSA2, NP1, NP2, NTH1, NTH2
-      REAL(8):: RSUM, FACT
+      REAL(8):: RSUM, FACT, RSUM2
 
       NSB1=NSB1_NF(ID)
       NSB2=NSB2_NF(ID)
@@ -335,11 +335,11 @@
       DO NTH1=1,NTHMAX
       DO NP2=1,NPMAX
       DO NTH2=1,NTHMAX
-         RSUM = RSUM  &
-              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
-              * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
-              * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * RCOEFNG(NR)**2
+!         RSUM = RSUM  &
+!              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
+!              * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
+!              * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
+!              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * RCOEFNG(NR)**2
 
 !         RATE_NF_D1(NR,ID,NTH1,NP1) = RATE_NF_D1(NR,ID,NTH1,NP1) &
 !              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
@@ -347,10 +347,10 @@
 !              * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
 !              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * FACT
         RATE_NF_D1(NR,ID,NTH1,NP1) = RATE_NF_D1(NR,ID,NTH1,NP1) &
-              + FNS(NTH1,NP1,NR,NSB1) &
+              +                     FNS(NTH1,NP1,NR,NSB1) &
               * VOLP(NTH2,NP2,NSB2)*FNS(NTH2,NP2,NR,NSB2) &
               * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
-              * RLAMDAG(NTH2,NR) * FACT *RCOEFNG(NR)
+              * RLAMDAG(NTH2,NR) * FACT * RCOEFNG(NR)
 
 !         RATE_NF_D2(NR,ID,NTH2,NP2) = RATE_NF_D2(NR,ID,NTH2,NP2) &
 !              + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
@@ -359,7 +359,7 @@
 !              * RLAMDAG(NTH1,NR) * RLAMDAG(NTH2,NR) * FACT
          RATE_NF_D2(NR,ID,NTH2,NP2) = RATE_NF_D2(NR,ID,NTH2,NP2) &
               + VOLP(NTH1,NP1,NSB1)*FNS(NTH1,NP1,NR,NSB1) &
-              * FNS(NTH2,NP2,NR,NSB2) &
+              *                     FNS(NTH2,NP2,NR,NSB2) &
               * SIGMAV_NF(NTH1,NP1,NTH2,NP2,ID) &
               * RLAMDAG(NTH1,NR) * FACT * RCOEFNG(NR)
       END DO
@@ -367,15 +367,29 @@
       END DO
       END DO
 
+!     int RATE_NF_D1 = RATE_NF
+      RSUM2=0.D0
+      DO NP1=1,NPMAX
+      DO NTH1=1,NTHMAX
+         RSUM2 = RSUM2 &
+              + RATE_NF_D1(NR,ID,NTH1,NP1) *VOLP(NTH1,NP1,NSB1) &
+              * RLAMDAG(NTH1,NR) * RCOEFNG(NR) 
+      END DO
+      END DO
+
+
+
       IF((N_IMPL.eq.0.or.N_IMPL.gt.LMAXFP).and.NR.eq.1)THEN
          WRITE(6,*) '|-NF_REACTION_RATE:'
 !         WRITE(6,'(A,3I5)') '   |-ID,NSB1,NSB2=',ID,NSB1,NSB2
          WRITE(6,'(A,3I5,A,2I5)') '   |-ID,NSB1,NSB2 -> NSA1,NSA2=' &
               ,ID,NSB1,NSB2,' -> ',NSA1,NSA2
          WRITE(6, *) "  |-ID,  NR,NSB1,NSB2,  <sigma*v>,    ENG1_NF"
-         WRITE(6,'("  ",4I5,1P2E12.4)') ID,NR,NSB1,NSB2,RSUM,ENG1_NF(ID)
+!         WRITE(6,'("  ",4I5,1P2E12.4)') ID,NR,NSB1,NSB2,RSUM,ENG1_NF(ID)
+         WRITE(6,'("  ",4I5,1P2E12.4)') ID,NR,NSB1,NSB2,RSUM2/FACT,ENG1_NF(ID)
       END IF
-      RATE_NF(NR,ID) = RSUM * FACT
+!      RATE_NF(NR,ID) = RSUM * FACT
+      RATE_NF(NR,ID) = RSUM2
 
       end SUBROUTINE NF_REACTION_RATE
 !===========================================================

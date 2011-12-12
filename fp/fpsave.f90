@@ -92,9 +92,8 @@
 
 !           DEFINE BULK MOMENTUM RANGE
             FACT_BULK=3.D0
-            RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA))
+            RATIO_0_S=SQRT(RTFPS(NSA)/RTFP0(NSA)) ! p_th(r)/p_th(0)
             DO NP=NPMAX, 1, -1
-!               P_BULK_R = 4.0D0*( 1.D0 - RM(NR)**2 ) 
                P_BULK_R = FACT_BULK* ( (1.D0-RATIO_0_S)*(1.D0-RM(NR)**2)+RATIO_0_S )
                IF(PG(NP,NSA).gt.P_BULK_R) NP_BULK(NR,NSA)=NP
             END DO

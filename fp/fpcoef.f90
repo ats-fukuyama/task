@@ -29,8 +29,8 @@
       integer:: NSA, NR, NTH, NP, NS
       real(8):: FPMAX
       integer:: NCONST_RF
-      real(8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
-      real(8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
+!      real(8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
+!      real(8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
       real(8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
 
       ISAVE=0
@@ -62,38 +62,44 @@
 !     ----- Quasi-linear wave-particle interaction term -----
 !
 
+!!!   reduce the number of calling fp_calwm and fp_calw
+!     include 2 IF
+      IF(N_IMPL.eq.0)THEN ! N_IMPL=0
+
 !     ----- Initialize ------------------------------------- 
       DO NR=NRSTART,NREND
          DO NP=1,NPMAX+1
             DO NTH=1,NTHMAX
-               DWPPM(NTH,NP,NR)=0.D0
-               DWPTM(NTH,NP,NR)=0.D0
+               DWECPP(NTH,NP,NR,NSA)=0.D0
+               DWECPT(NTH,NP,NR,NSA)=0.D0
             END DO
          END DO
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX+1
-               DWTPM(NTH,NP,NR)=0.D0
-               DWTTM(NTH,NP,NR)=0.D0
+               DWECTP(NTH,NP,NR,NSA)=0.D0
+               DWECTT(NTH,NP,NR,NSA)=0.D0
             END DO
          END DO
       END DO
 
-!      IF(MODELW(NS).EQ.0) THEN
+!     ECRF 
       IF(DEC.ne.0.and.NSA.eq.1) THEN
          CALL FP_CALW(NSA)
          DO NR=NRSTART,NREND
             DO NP=1,NPMAX+1
                DO NTH=1,NTHMAX
-                  DWPPM(NTH,NP,NR)=DWPP(NTH,NP,NR,NSA)
-                  DWPTM(NTH,NP,NR)=DWPT(NTH,NP,NR,NSA)
+!                  DWPPM(NTH,NP,NR)=DWPP(NTH,NP,NR,NSA)
+!                  DWPTM(NTH,NP,NR)=DWPT(NTH,NP,NR,NSA)
+                  DWECPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
+                  DWECPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
                   DWPP(NTH,NP,NR,NSA)=0.D0
                   DWPT(NTH,NP,NR,NSA)=0.D0
                END DO
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
-                  DWTPM(NTH,NP,NR)=DWTP(NTH,NP,NR,NSA)
-                  DWTTM(NTH,NP,NR)=DWTT(NTH,NP,NR,NSA)
+                  DWECTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA)
+                  DWECTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA)
                   DWTP(NTH,NP,NR,NSA)=0.D0
                   DWTT(NTH,NP,NR,NSA)=0.D0
                END DO
@@ -101,7 +107,7 @@
          END DO
       END IF
 
-!      ELSEIF(MODELW(NS).EQ.1) THEN
+!     ICRF
       IF(MODELW(NS).EQ.1) THEN
          CALL FP_CALWR(NSA)
       ELSEIF(MODELW(NS).EQ.2) THEN
@@ -119,18 +125,67 @@
             DO NTH=1,NTHMAX
                DWICPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA)
                DWICPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA)
-               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) + DWPPM(NTH,NP,NR)
-               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWPTM(NTH,NP,NR)
+               DWPP(NTH,NP,NR,NSA)=DWPP(NTH,NP,NR,NSA) + DWECPP(NTH,NP,NR,NSA)
+               DWPT(NTH,NP,NR,NSA)=DWPT(NTH,NP,NR,NSA) + DWECPT(NTH,NP,NR,NSA)
             END DO
          END DO
          DO NP=1,NPMAX
             DO NTH=1,NTHMAX+1
-               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) + DWTPM(NTH,NP,NR)
-               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) + DWTTM(NTH,NP,NR)
+               DWTP(NTH,NP,NR,NSA)=DWTP(NTH,NP,NR,NSA) + DWECTP(NTH,NP,NR,NSA)
+               DWTT(NTH,NP,NR,NSA)=DWTT(NTH,NP,NR,NSA) + DWECTT(NTH,NP,NR,NSA)
             END DO
          END DO
       END DO
+
+!     POOL coef DW in order to reduce the number of call fp_calwm
+      DO NR=NRSTART, NREND
+         DO NP=1, NPMAX+1
+            DO NTH=1,NTHMAX
+               DWPP_P(NTH,NP,NR,NSA) = DWPP(NTH,NP,NR,NSA)
+               DWPT_P(NTH,NP,NR,NSA) = DWPT(NTH,NP,NR,NSA)
+               DWICPP_P(NTH,NP,NR,NSA) = DWICPP(NTH,NP,NR,NSA)
+               DWICPT_P(NTH,NP,NR,NSA) = DWICPT(NTH,NP,NR,NSA)
+               DWECPP_P(NTH,NP,NR,NSA) = DWECPP(NTH,NP,NR,NSA)
+               DWECPT_P(NTH,NP,NR,NSA) = DWECPT(NTH,NP,NR,NSA)
+            END DO
+         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               DWTP_P(NTH,NP,NR,NSA) = DWTP(NTH,NP,NR,NSA)
+               DWTT_P(NTH,NP,NR,NSA) = DWTT(NTH,NP,NR,NSA)
+!              IC, EC is not updated
+            END DO
+         END DO
+      END DO
+
+      END IF ! N_IMPL=0
+
+      IF(N_IMPL.ne.0)THEN ! N_IMPL!=0
+      DO NR=NRSTART, NREND
+         DO NP=1, NPMAX+1
+            DO NTH=1,NTHMAX
+               DWPP(NTH,NP,NR,NSA) = DWPP_P(NTH,NP,NR,NSA)
+               DWPT(NTH,NP,NR,NSA) = DWPT_P(NTH,NP,NR,NSA)
+               DWICPP(NTH,NP,NR,NSA) = DWICPP_P(NTH,NP,NR,NSA)
+               DWICPT(NTH,NP,NR,NSA) = DWICPT_P(NTH,NP,NR,NSA)
+               DWECPP(NTH,NP,NR,NSA) = DWECPP_P(NTH,NP,NR,NSA)
+               DWECPT(NTH,NP,NR,NSA) = DWECPT_P(NTH,NP,NR,NSA)
+            END DO
+         END DO
+         DO NP=1,NPMAX
+            DO NTH=1,NTHMAX+1
+               DWTP(NTH,NP,NR,NSA) = DWTP_P(NTH,NP,NR,NSA)
+               DWTT(NTH,NP,NR,NSA) = DWTT_P(NTH,NP,NR,NSA)
+!              IC, EC is not updated
+            END DO
+         END DO
+      END DO
+      END IF ! N_IMPL!=0
+!!!   end of the reduction of the number of calling fp_calwm and fp_calw
+
+
       
+!     N_IMPL = 0 means initial state in fpprep
       IF(N_IMPL.ne.0) CALL FPWAVE_CONST
 !      DO NR=NRSTART,NREND
 !         IF(NSA.eq.3)THEN
@@ -179,14 +234,18 @@
             END DO
             DO NP=1,NPMAX
                DO NTH=1,NTHMAX+1
+                  DWTPEC=0.D0
+                  DWTPIC=0.D0
+                  DWTTEC=0.D0
+                  DWTTIC=0.D0
                   IF(RPWEC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTPEC = DWTPM(NTH,NP,NR)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
-                     DWTTEC = DWTTM(NTH,NP,NR)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
+                     DWTPEC = DWECTP(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
+                     DWTTEC = DWECTT(NTH,NP,NR,NSA)*RPWEC_INIT(NR,NSA)/RPWEC_IMPL(NR,NSA,N_IMPL) 
                   END IF
                   IF(RPWIC_IMPL(NR,NSA,N_IMPL).gt.0.D0)THEN
-                     DWTPIC =( DWTP(NTH,NP,NR,NSA)-DWTPM(NTH,NP,NR) ) &
+                     DWTPIC =( DWTP(NTH,NP,NR,NSA)-DWECTP(NTH,NP,NR,NSA) ) &
                           *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) 
-                     DWTTIC =( DWTT(NTH,NP,NR,NSA)-DWTTM(NTH,NP,NR) ) &
+                     DWTTIC =( DWTT(NTH,NP,NR,NSA)-DWECTT(NTH,NP,NR,NSA) ) &
                           *RPWIC_INIT(NR,NSA)/RPWIC_IMPL(NR,NSA,N_IMPL) 
                   END IF
                   DWTP(NTH,NP,NR,NSA)=DWTPEC+DWTPIC
