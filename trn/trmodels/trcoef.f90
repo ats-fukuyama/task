@@ -41,11 +41,11 @@ CONTAINS
   SUBROUTINE Pereverzev_method
     USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rt_prev, &
          mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb, &
-         cdtrn,cdtru,cdtrt
+         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     REAL(rkind) :: dtr_new,vtr_new,lt,drt,rtave
     INTEGER(ikind) :: nr,nsa
-      
+
     DO nr=1,nrmax
        DO nsa=1,nsamax
           drt=rt_prev(nsa,nr)-rt_prev(nsa,nr-1)
@@ -61,16 +61,32 @@ CONTAINS
           CASE(2)
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)
           CASE(3)
-             dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)*+dprv1
+             dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)+dprv1
           END SELECT
           vtr_new = dtr_new * lt / rtave
 
-          dtr_tb(3*nsa-2,3*nsa-2,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtrn*dtr_new
-          dtr_tb(3*nsa-1,3*nsa-1,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtru*dtr_new
-          dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_tb(3*nsa,3*nsa,nr) + cdtrt*dtr_new
-          vtr_tb(3*nsa-2,3*nsa-2,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtrn*vtr_new
-          vtr_tb(3*nsa-1,3*nsa-1,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtru*vtr_new
-          vtr_tb(3*nsa  ,3*nsa  ,nr) = vtr_tb(3*nsa,3*nsa,nr) + cdtrt*vtr_new
+          dtr_prv(3*nsa-2,nr) = cdtrn*dtr_new
+          dtr_prv(3*nsa-1,nr) = cdtru*dtr_new
+          dtr_prv(3*nsa  ,nr) = cdtrt*dtr_new
+
+          dtr_tb(3*nsa-2,3*nsa-2,nr) = dtr_tb(3*nsa-2,3*nsa-2,nr) &
+                                      +dtr_prv(3*nsa-2,nr)
+          dtr_tb(3*nsa-1,3*nsa-1,nr) = dtr_tb(3*nsa-1,3*nsa-1,nr) &
+                                      +dtr_prv(3*nsa-1,nr) 
+          dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_tb(3*nsa  ,3*nsa  ,nr) &
+                                      +dtr_prv(3*nsa  ,nr)
+
+          vtr_prv(3*nsa-2,nr) = cdtrn*vtr_new
+          vtr_prv(3*nsa-1,nr) = cdtru*vtr_new
+          vtr_prv(3*nsa  ,nr) = cdtrt*vtr_new
+
+          vtr_tb(3*nsa-2,3*nsa-2,nr) = vtr_tb(3*nsa-2,3*nsa-2,nr) &
+                                      +vtr_prv(3*nsa-2,nr) 
+          vtr_tb(3*nsa-1,3*nsa-1,nr) = vtr_tb(3*nsa-1,3*nsa-1,nr) &
+                                      +vtr_prv(3*nsa-1,nr) 
+          vtr_tb(3*nsa  ,3*nsa  ,nr) = vtr_tb(3*nsa  ,3*nsa  ,nr) &
+                                      +vtr_prv(3*nsa  ,nr) 
+
        END DO
     END DO
     RETURN

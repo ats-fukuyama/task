@@ -11,11 +11,11 @@ CONTAINS
 
     USE trcomm, ONLY: rkind,ikind,nrmax,nsamax,rg,rn,ru,rt,qp,dtr,str,vtr, &
          nitmax,error_it,lmaxtr,epsltr,lt_save,neqrmax,neqmax,neq_neqr, &
-         nsa_neq,gvt,gvts,gvrt,gvrts,ngt
+         nsa_neq,gvt,gvts,gvrt,gvrts,ngt, mdltr_prv,dtr_prv,vtr_prv
     USE libgrf,ONLY: grd1d
     IMPLICIT NONE
     CHARACTER(LEN=20):: label
-    INTEGER(ikind):: neqr,neq,nsa,nit,nitmaxl,ngg,ngg_interval
+    INTEGER(ikind):: nr,neqr,neq,nsa,nit,nitmaxl,ngg,ngg_interval
     INTEGER(ikind),parameter:: nggmax=10
     REAL(rkind),DIMENSION(0:nrmax,nsamax):: rtg,dfg,phg,vcg,vg1,vg2,vg3,vg4
     REAL(rkind),DIMENSION(0:nrmax,0:nggmax):: gg1,gg2,gg3,gg4
@@ -23,6 +23,8 @@ CONTAINS
     REAL(rkind),DIMENSION(0:ngt,nsamax):: gt1,gt2,gt3,gt4
     REAL(rkind),DIMENSION(nitmax):: ig,erg
     REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: temp
+
+    REAL(rkind),DIMENSION(3*neqmax,0:nrmax) :: dtrg,vtrg
 
 ! ----- current radial profile -----
 
@@ -97,11 +99,24 @@ CONTAINS
           phg(0:nrmax,neqr)=0.D0
           vcg(0:nrmax,neqr)=0.D0
        ELSE
-          nsa=nsa_neq(neq)
-          rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
-          dfg(0:nrmax,neqr)=MIN(dtr(neq,neq,0:nrmax),10.D0)
-          phg(0:nrmax,neqr)=str(neq,0:nrmax)
-          vcg(0:nrmax,neqr)=vtr(neq,neq,0:nrmax)
+          IF(mdltr_prv /= 0)THEN
+             DO nr=0,nrmax
+                ! neq ? neqr?
+                dtrg(neq,nr) = dtr(neq,neq,nr) - dtr_prv(neqr,nr)
+                vtrg(neq,nr) = vtr(neq,neq,nr) - vtr_prv(neqr,nr)
+             END DO
+             nsa=nsa_neq(neq)
+             rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
+             dfg(0:nrmax,neqr)=MIN(dtrg(neq,0:nrmax),10.D0)
+             phg(0:nrmax,neqr)=str(neq,0:nrmax)
+             vcg(0:nrmax,neqr)=vtrg(neq,0:nrmax)
+          ELSE
+             nsa=nsa_neq(neq)
+             rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
+             dfg(0:nrmax,neqr)=MIN(dtr(neq,neq,0:nrmax),10.D0)
+             phg(0:nrmax,neqr)=str(neq,0:nrmax)
+             vcg(0:nrmax,neqr)=vtr(neq,neq,0:nrmax)
+          END IF
        ENDIF
     END DO
 

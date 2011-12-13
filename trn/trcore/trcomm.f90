@@ -70,6 +70,10 @@ MODULE trcomm
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
        vtr_nc,   &! neoclassical convection velocity [m^2/s]
        ctr_ex     ! exchange frequency [1/s]
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
+                  ! variables for Pereverzev method
+       dtr_prv,  &! additional diffusion coefficient [m^2/s]
+       vtr_prv    ! additional convection velocity [m^2/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
@@ -172,6 +176,12 @@ CONTAINS
 
        ALLOCATE(lt_save(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
+       ! for Pereverzev method
+       ALLOCATE(dtr_prv(3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vtr_prv(3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
+
        nsamax_save=nsamax
        nrmax_save=nrmax
     END IF
@@ -209,6 +219,10 @@ CONTAINS
     IF(ALLOCATED(jcd_lh)) DEALLOCATE(jcd_lh)
     IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
     IF(ALLOCATED(lt_save)) DEALLOCATE(lt_save)
+
+    ! for Pereverzev method
+    IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
+    IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
 
     RETURN
   END SUBROUTINE tr_nr_deallocate

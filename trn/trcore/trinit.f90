@@ -105,7 +105,6 @@ CONTAINS
 !        MODELQ: Control safety factor profile (for MODELG=0,1,2)
 !                   0: Parabolic q profile (Q0,QA,RHOMIN,RHOITB)
 !                   1: Given current profile (RIP,PROFJ)
-
 !        RHOMIN: rho at minimum q (0 for positive shear)
 !        QMIN  : q minimum for reversed shear
 !        RHOITB: rho at ITB (0 for no ITB)
@@ -357,7 +356,7 @@ CONTAINS
     USE plinit
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
-           lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
+           lmaxtr,epsltr,nitmax,mdltr_nc,mdltr_tb,mdltr_prv, &
            d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
@@ -369,7 +368,7 @@ CONTAINS
     WRITE(6,602) 'nrmax ',nrmax ,'ntmax ',ntmax , &
                  'nsamax',nsamax,'lmaxtr',lmaxtr
     WRITE(6,602) 'ntstep',ntstep,'ngtstp',ngtstp ,&
-                 'ngtmax',ngtmax
+                 'ngtmax',ngtmax,'nitmax',nitmax
     WRITE(6,'(A,15I4)') 'NSA:',(NSA,NSA=1,NSAMAX)
     WRITE(6,'(A,15I4)') 'NS :',(NS_NSA(NSA),NSA=1,NSMAX)
     WRITE(6,601) 'dt      ',dt      ,'epsltr  ',epsltr

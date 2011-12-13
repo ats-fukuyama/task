@@ -20,17 +20,18 @@ CONTAINS
     CALL tr_calc_exchange ! calculate exchange rate
     CALL tr_calc_source   ! calculate source and sink term
 
-    dtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
-    vtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
-    ctr(1:neqmax,1:neqmax,0:nrmax)=0.D0
-    htr(1:neqmax,0:nrmax)=0.D0
-    str(1:neqmax,0:nrmax)=0.D0
+!    dtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+!    vtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+!    ctr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+!    htr(1:neqmax,0:nrmax)=0.D0
+!    str(1:neqmax,0:nrmax)=0.D0
+
 
     DO nr=1,nrmax
        dtr(1,1,nr)=0.D0       ! registivity term
        htr(1,nr)=0.D0         ! driven current term
 
-       str(2:neqmax,nr)=0.D0  ! source and sink term
+!       str(2:neqmax,nr)=0.D0  ! source and sink term
        DO neq=2,neqmax
           dtr(2:neqmax,neq,nr) &
                =dtr_nc(1:neqmax-1,neq-1,nr) &
@@ -60,13 +61,13 @@ CONTAINS
 ! ----- calculate source -----
 
   SUBROUTINE tr_calc_source
-    USE trcomm, ONLY: nrmax,nsamax,ph0,phs,rg,ra,str
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,ph0,phs,rg,ra,str
     IMPLICIT NONE
-    INTEGER(ikind) :: nr, nsa
+    INTEGER(ikind) :: nr, nsa,neq
 
     DO nr = 0, nrmax
-       DO nsa=1,nsamax
-          str(3*nsa,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
+       DO neq=1,neqmax
+          str(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
        END DO
     END DO
     RETURN
