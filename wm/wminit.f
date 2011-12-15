@@ -113,7 +113,7 @@ C                   3: Toroidal current
 C                  2X: Vacuum eigen mode, poloidal current
 C                  3X: Vacuum eigen mode, toroidal current
 C
-C        ANTANG: deleted due to redundancy; use THJ1 and THJ2
+C        ANTANG: Antenna angle: 0 for vertical antenna 
 C        MWGMAX: Antenna angle: 0 : theta direction (degree)
 C
 C        MODELA: Control alpha particle contribution
@@ -150,6 +150,7 @@ C
       MDLWMF = 0
       MDLWMX = 0
       MDLWMD = 0
+      ANTANG = 0.D0
 C
 C     *** EIGEN VALUE PARAMETERS ***
 C
@@ -271,7 +272,7 @@ C
      &              NRMAX,NTHMAX,NPHMAX,NTH0,NPH0,NHC,
      &              NPRINT,NGRAPH,MODELG,MODELJ,MODELP,MODELN,MODELA,
      &              MODELQ,MODELM,MODELW,MODELV,MDLWMF,MDLWMX,MDLWMD,
-     &              MWGMAX,MODEFR,MODEFW,
+     &              MWGMAX,MODEFR,MODEFW,ANTANG,
      &              FRMIN,FRMAX,FIMIN,FIMAX,FI0,FRINI,FIINI,
      &              NGFMAX,NGXMAX,NGYMAX,SCMIN,SCMAX,NSCMAX,LISTEG,
      &              DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,
@@ -323,7 +324,7 @@ C
      &       9X,'NPRINT,NGRAPH,PRFIN,MODELPR,MODELVR,'/
      &       9X,'FRMIN,FRMAX,FIMIN,FIMAX,FI0,'/
      &       9X,'FRINI,FIINI,NGFMAX,NGXMAX,NGYMAX,'/
-     &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,'/
+     &       9X,'SCMIN,SCMAX,NSCMAX,LISTEG,ANTANG,'/
      &       9X,'DLTNW,EPSNW,LMAXNW,LISTNW,MODENW,'/
      &       9X,'RHOMIN,QMIN,PU,PUS,PROFU1,PROFU2'/
      &       9X,'RHOITB,PNITB,PTITB,PUITB'/
@@ -488,7 +489,8 @@ C
      &             'PNAL  ',PNAL  ,'PTA   ',PTA
       WRITE(6,601) 'PROFU1',PROFU1,'PROFU2',PROFU2,
      &             'RHOMIN',RHOMIN,'QMIN  ',QMIN
-      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN
+      WRITE(6,601) 'RHOITB',RHOITB,'PRFIN ',PRFIN ,
+     &             'ANTANG',ANTANG
       WRITE(6,601) 'RF    ',RF    ,'RFI   ',RFI   ,
      &             'RD    ',RD    ,'BETAJ ',BETAJ
       WRITE(6,602) 'NRMAX ',NRMAX ,'NTHMAX',NTHMAX,
