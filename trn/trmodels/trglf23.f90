@@ -283,7 +283,7 @@ CONTAINS
                IF(pz0(ns) < 0.D0) THEN ! for electron
                   dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
                   dtr_tb(nbase+3,nbase+3,nr)=MAX(chie_m(NR),0.D0)
-               ELSE
+               ELSE 
                   IF(pz(ns) /= 0.d0) THEN ! for ion
                      dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
                      dtr_tb(nbase+3,nbase+3,nr)=MAX(chii_m(NR),0.d0)

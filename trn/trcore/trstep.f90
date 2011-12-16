@@ -90,7 +90,7 @@ CONTAINS
        END DO
 
        IF(difmax < epsltr) THEN
-          nitmax=nit
+          nitmax=MAX(nit,nitmax)
           GO TO 700
        END IF
     END DO

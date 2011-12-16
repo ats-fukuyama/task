@@ -100,6 +100,7 @@ CONTAINS
           vcg(0:nrmax,neqr)=0.D0
        ELSE
           IF(mdltr_prv /= 0)THEN
+          ! for Pereverzev method
              DO nr=0,nrmax
                 ! neq ? neqr?
                 dtrg(neq,nr) = dtr(neq,neq,nr) - dtr_prv(neqr,nr)

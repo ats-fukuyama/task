@@ -50,6 +50,7 @@ CONTAINS
        DO nsa=1,nsamax
           drt=rt_prev(nsa,nr)-rt_prev(nsa,nr-1)
           rtave=0.5D0*(rt_prev(nsa,nr)+rt_prev(nsa,nr-1))
+!          rtave=rt_prev(nsa,nr)
           IF(drt > 0.D0) THEN
              lt = 0.D0
           ELSE

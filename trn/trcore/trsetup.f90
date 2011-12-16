@@ -11,7 +11,8 @@ CONTAINS
   SUBROUTINE tr_setup
 
     USE trcomm, ONLY: ikind,t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0, &
-         tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate
+         tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate,&
+         nitmax
     USE trloop, ONLY: tr_save_pvprev
     USE trresult, ONLY: tr_calc_global,tr_save_ngt
     IMPLICIT NONE
@@ -66,6 +67,7 @@ CONTAINS
 
     t=0.D0                 ! time is initialized.
     ngt=-1                 ! save data count
+    nitmax=0               ! iteration count is initialized
     CALL tr_calc_global
     CALL tr_save_ngt
     CALL tr_save_pvprev
