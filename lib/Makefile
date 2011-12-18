@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-LFLAGS = $(OFLAGS)
-#LFLAGS = $(DFLAGS)
+#LFLAGS = $(OFLAGS)
+LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD)
@@ -13,9 +13,14 @@ MODINCLUDE= -I$(MOD)
 SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
              librk.f90 libsympl.f90 \
              libspl.f90 libspl2d.f90 libspl3d.f90 \
-             libeq.f90 libgut.f90 libgrf.f90 \
+             libeq.f90 libgut.f90 \
              libchar.f90 libkio.f90 \
-             libfio.f90 ufile.f90 libitp.f90 libfem.f90
+             libfio.f90 ufile.f90 libitp.f90 libfem.f90 \
+	     libgrf/grftype.f90 libgrf/grfutils.f90 \
+	     libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+	     libgrf/grfconvert.f90 libgrf/grdconvert.f90 \
+             libgrf/grf1d.f90 libgrf/grd1d.f90 \
+	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf.f90
 SRCSFIXED =  libspf.f libbes.f libell.f \
              libde.f libfft.f libdsp.f \
              libfp.f $(LAPACK)

@@ -1,0 +1,54 @@
+MODULE grd2d_mod
+
+  PRIVATE
+  PUBLIC grd2d
+
+CONTAINS
+
+! ***** DRAW 2D GRAPH *****
+
+  SUBROUTINE GRD2D(NGP,FX,FY,FZ,NXM,NXMAX,NYMAX,STR,MODE_LS,IPRD,IG2D)
+
+!     +++++ MODE_LS=0 X:LINEAR  Y:LINEAR
+!     +++++ MODE_LS=1 X:LOG     Y:LINEAR
+!     +++++ MODE_LS=2 X:LINEAR  Y:LOG
+!     +++++ MODE_LS=3 X:LOG     Y:LOG
+
+!     +++++ IG2D=0 Contour plot
+!     +++++ IG2D=1 Bird's eye view
+!     +++++ IG2D=2 Contour plot
+
+    USE grfutils,ONLY: grf2da,grf2db,grf2dc
+      IMPLICIT NONE
+      INTEGER NGP,NXM,NXMAX,NYMAX,MODE_LS,IPRD,IG2D
+      REAL*8 FX(NXMAX),FY(NYMAX),FZ(NXM,NYMAX)
+      CHARACTER STR*(*)
+      REAL*4 GX(NXMAX),GY(NYMAX),GZ(NXMAX,NYMAX)
+      INTEGER NX,NY
+      REAL*4 GUCLIP
+
+      DO NX=1,NXMAX
+         GX(NX)=GUCLIP(FX(NX))
+      ENDDO
+      DO NY=1,NYMAX
+         GY(NY)=GUCLIP(FY(NY))
+      ENDDO
+      DO NY=1,NYMAX
+         DO NX=1,NXMAX
+            GZ(NX,NY)=GUCLIP(FZ(NX,NY))
+         ENDDO
+      ENDDO
+
+      IF(IG2D.EQ.0) THEN
+         CALL GRF2DA(NGP,GX,GY,GZ,NXMAX,NXMAX,NYMAX,STR,MODE_LS,IPRD)
+      ELSEIF(IG2D.EQ.1) THEN
+         CALL GRF2DB(NGP,GX,GY,GZ,NXMAX,NXMAX,NYMAX,STR)
+      ELSEIF(IG2D.EQ.2) THEN
+         CALL GRF2DC(NGP,GX,GY,GZ,NXMAX,NXMAX,NYMAX,STR,MODE_LS)
+      ELSE
+         WRITE(6,*) 'XX GRD2D: INVALID IG2D'
+      ENDIF
+      RETURN
+  END SUBROUTINE GRD2D
+
+END MODULE grd2d_mod

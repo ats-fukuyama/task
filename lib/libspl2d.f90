@@ -34,7 +34,7 @@
 
       IMPLICIT NONE
 
-      INTEGER(4),                       INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
+      INTEGER(4),                   INTENT(IN) :: NXM, NXMAX, NYMAX, IDX, IDY
       REAL(8), DIMENSION(NXMAX),        INTENT(IN) :: X
       REAL(8), DIMENSION(NYMAX),        INTENT(IN) :: Y
       REAL(8), DIMENSION(NXM,NYMAX),    INTENT(IN) :: F
@@ -48,10 +48,20 @@
       REAL(8)               :: T11,T12,T13,T14,T21,T22,T23,T24
       REAL(8)               :: T31,T32,T33,T34,T41,T42,T43,T44
       REAL(8)               :: V13,V14,V23,V24,V31,V32,V33,V34,V41,V42,V43,V44
-      REAL(8),    DIMENSION(4,NXMAX):: UX, UX0
-      REAL(8),    DIMENSION(4,NYMAX):: UY, UY0
-      REAL(8),    DIMENSION(NXMAX)  :: BX
-      REAL(8),    DIMENSION(NYMAX)  :: BY
+
+
+      REAL(8),    DIMENSION(:,:),ALLOCATABLE:: UX, UX0
+      REAL(8),    DIMENSION(:,:),ALLOCATABLE:: UY, UY0
+      REAL(8),    DIMENSION(:)  ,ALLOCATABLE:: BX
+      REAL(8),    DIMENSION(:)  ,ALLOCATABLE:: BY
+
+      ALLOCATE(UX(4,NXMAX),UX0(4,NXMAX),BX(NXMAX))
+      ALLOCATE(UY(4,NYMAX),UY0(4,NYMAX),BY(NYMAX))
+
+!      REAL(8),    DIMENSION(4,NXMAX):: UX, UX0
+!      REAL(8),    DIMENSION(4,NYMAX):: UY, UY0
+!      REAL(8),    DIMENSION(NXMAX)  :: BX
+!      REAL(8),    DIMENSION(NYMAX)  :: BY
 
 !      IF(NXMAX.GT.NMAX) GOTO 9001
 !      IF(NYMAX.GT.NMAX) GOTO 9002
