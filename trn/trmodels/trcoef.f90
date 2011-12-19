@@ -17,10 +17,11 @@ CONTAINS
     IMPLICIT NONE
 
     SELECT CASE(mdltr_nc) ! results are in dtr_nc and vtr_nc
-    CASE(1)
+    CASE(0)
        dtr_nc = 0.d0
        vtr_nc = 0.d0
     END SELECT
+
 
     SELECT CASE(mdltr_tb) ! results are in dtr_tb and vtr_tb
     CASE(0:9)

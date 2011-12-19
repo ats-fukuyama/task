@@ -20,9 +20,9 @@ CONTAINS
     CALL tr_calc_exchange ! calculate exchange rate
     CALL tr_calc_source   ! calculate source and sink term
 
-!    dtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
-!    vtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
-!    ctr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+    dtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+    vtr(1:neqmax,1:neqmax,0:nrmax)=0.D0
+    ctr(1:neqmax,1:neqmax,0:nrmax)=0.D0
 !    htr(1:neqmax,0:nrmax)=0.D0
 !    str(1:neqmax,0:nrmax)=0.D0
 

@@ -152,7 +152,7 @@ CONTAINS
           id_neqnr(neq,1:nrmax-1)=1
           id_neqnr(neq,nrmax)=3
        CASE DEFAULT
-          WRITE(6,*) 'XX tr_setup_table: unideficed id_neq:'
+          WRITE(6,*) 'XX tr_setup_table: undefied id_neq:'
           WRITE(6,*) '   neq,id_neq(neq)=',neq,id_neq(neq)
           STOP
        END SELECT

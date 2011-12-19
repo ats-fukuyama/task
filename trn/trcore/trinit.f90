@@ -195,7 +195,7 @@ CONTAINS
 !        cdtru     : factor for toroidal viscosity
 !        cdtrt     : factor for thermal diffusivity
 
-    mdltr_nc  = 1
+    mdltr_nc  = 0
     mdltr_tb  = 1
     mdltr_prv = 0
     d0    = 0.01D0

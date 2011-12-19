@@ -103,8 +103,8 @@ CONTAINS
           ! for Pereverzev method
              DO nr=0,nrmax
                 ! neq ? neqr?
-                dtrg(neq,nr) = dtr(neq,neq,nr) - dtr_prv(neqr,nr)
-                vtrg(neq,nr) = vtr(neq,neq,nr) - vtr_prv(neqr,nr)
+                dtrg(neq,nr) = dtr(neq,neq,nr) - dtr_prv(neq-1,nr)
+                vtrg(neq,nr) = vtr(neq,neq,nr) - vtr_prv(neq-1,nr)
              END DO
              nsa=nsa_neq(neq)
              rtg(0:nrmax,neqr)=rt(nsa,0:nrmax)
