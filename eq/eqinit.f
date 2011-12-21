@@ -164,6 +164,7 @@ C        KNAMWM: Filename of full wave data
 C        KNAMFP: Filename of Fokker-Planck data
 C        KNAMFO: Filename of File output
 C        KNAMPF: Filename of profile data
+C        KNAMEQ2:Filename of addisional equilibrium data
 C
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
@@ -171,6 +172,7 @@ C
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
+      KNAMEQ2= 'eqdata2'
 C
       NRMAXPL= 100
       NSMAXPL= NSMAX
@@ -475,7 +477,8 @@ C
       INCLUDE 'eqcomm.inc'
 C
       NAMELIST /EQ/ RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ,
-     &              RHOMIN,QMIN,MODELQ,RHOITB,IDEBUG,KNAMEQ,
+     &              RHOMIN,QMIN,MODELG,MODELQ,RHOITB,
+     &              IDEBUG,KNAMEQ,KNAMEQ2,
      &              PP0,PP1,PP2,PROFP0,PROFP1,PROFP2,
      &              FF0,FF1,FF2,PROFF0,PROFF1,PROFF2,
      &              PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2,
@@ -508,7 +511,8 @@ C
       RETURN
 C
   601 FORMAT(' ','# &EQ : RR,RA,RB,RKAP,RDLT,BB,Q0,QA,RIP,PROFJ'/
-     &       9X,'RHOMIN,QMIN,MODELQ,RHOITB,IDEBUG,KNAMEQ'/
+     &       9X,'RHOMIN,QMIN,MODELG,MODELQ,RHOITB,'/
+     &       9X,'IDEBUG,KNAMEQ,KNAMEQ2,'/
      &       9X,'PJ0,PJ1,PJ2,PROFJ0,PROFJ1,PROFJ2'/
      &       9X,'PP0,PP1,PP2,PROFP0,PROFP1,PROFP2'/
      &       9X,'FF0,FF1,FF2,PROFF0,PROFF1,PROFF2'/
@@ -659,7 +663,8 @@ C
       ENDIF
       WRITE(6,602) 'NSGMAX',NSGMAX,
      &             'NTGMAX',NTGMAX,
-     &             'NUGMAX',NUGMAX
+     &             'NUGMAX',NUGMAX,
+     &             'MODELG',MODELG
       WRITE(6,602) 'NRGMAX',NRGMAX,
      &             'NZGMAX',NZGMAX,
      &             'NRVMAX',NRVMAX,

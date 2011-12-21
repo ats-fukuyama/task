@@ -45,7 +45,7 @@ CONTAINS
                    LINE_RGB_SUB,PAINT_RGB_SUB)
 
     USE grftype, ONLY: grf_attr_type
-    USE grfconvert, ONLY: grf_convert
+    USE grdconvert, ONLY: grd_convert
     USE grf1dexec, ONLY: grf1d_exec
     USE grf2dexec, ONLY: grf2d_exec
 

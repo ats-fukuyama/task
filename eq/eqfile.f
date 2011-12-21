@@ -72,6 +72,8 @@ C
          CALL EQRTSK(IERR)
       ELSEIF(MODELG.EQ.5) THEN
          CALL EQDSKR(IERR)
+      ELSEIF(MODELG.EQ.8) THEN
+         CALL EQJAEAR(IERR)
       ELSE
          WRITE(6,*) 'XX EQLOAD: UNKNOWN MODELG: MODELG=',MODELG
       ENDIF
@@ -270,6 +272,223 @@ C
       REWIND(neqdsk)
       CLOSE(neqdsk)
 !      write (6,'(I5,1PE12.4)') (i,QQPS(i),i=1,NPSMAX)
+C
+C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
+C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIA
+C      WRITE(6,'(1P4E12.4)') RG(1),RG(2),RG(NRGMAX-1),RG(NRGMAX)
+C      WRITE(6,'(1P4E12.4)') ZG(1),ZG(2),ZG(NZGMAX-1),ZG(NZGMAX)
+C      WRITE(6,'(1P4E12.4)') PSIPS(1),PSIPS(2),
+C     &                      PSIPS(NPSMAX-1),PSIPS(NPSMAX)
+C
+      DO NZG=1,NZGMAX
+         DO NRG=1,NRGMAX
+            PSIRZ(NRG,NZG)=2.D0*PI*PSIRZ(NRG,NZG)-PSIA
+         ENDDO
+      ENDDO
+      DO i=1,NPSMAX
+         TTPS(i)   =2.D0*PI*TTPS(i)
+         TTDTTPS(i)=4.D0*PI**2*TTDTTPS(i)
+         DTTPS(i)  =TTDTTPS(i)/TTPS(i)
+Chonda         write(6,*) PSIPS(i),QQPS(i)
+      ENDDO
+C
+      DO NZG=1,NZGMAX
+      DO NRG=1,NRGMAX
+         HJTRZ(NRG,NZG)=0.D0
+      ENDDO
+      ENDDO
+C
+C     ** Simplified check for Toroidal current and parallel current **
+C
+c$$$      DO i=1,NPSMAX
+c$$$         write(6,*) PSIPS(i),
+c$$$     &              -RR*DPPPS(i)-TTDTTPS(i)/(4.D0*PI**2*RR*RMU0),
+c$$$     &              (-TTPS(i)*DPPPS(i)/BB-DTTPS(i)*BB/RMU0)/(2.D0*PI)
+c$$$      ENDDO
+C
+      return
+c     
+ 2000 format (6a8,3i4)
+ 2020 format (5e16.9)
+ 2022 format (2i5)
+c 2024 format (i5,e16.9,i5)
+       end
+C
+C     ***** READ JAEA EQ FORMAT FILE *****
+C
+      SUBROUTINE EQJAEAR(IERR)
+C
+      USE libgrf
+      INCLUDE '../eq/eqcomc.inc'
+C
+      integer(4):: ir,iz
+      REAL(8),DIMENSION(:,:),ALLOCATABLE:: psi_temp
+      DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
+      DIMENSION PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM)
+      EXTERNAL R2G2B
+C
+      neqdsk=21
+      CALL FROPEN(neqdsk,KNAMEQ,0,MODEFR,'EQ',IERR)
+      IF(IERR.NE.0) RETURN
+      write(6,*) 'open'
+c
+      REWIND(neqdsk)
+      write(6,*) 'rewind'
+      READ (neqdsk) NRGMAX,NZGMAX
+      write(6,*) nrgmax,nzgmax
+      READ (neqdsk) rmin,rmax,zmin,zmax
+      write(6,*) rmin,rmax,zmin,zmax
+      DR=(rmax-rmin)/(NRGMAX-1)
+      DZ=(zmax-zmin)/(NZGMAX-1)
+      DO NRG=1,NRGMAX
+         RG(NRG)=rmin+DR*(NRG-1)
+      ENDDO
+      DO NZG=1,NZGMAX
+         ZG(NZG)=zmin+DZ*(NZG-1)
+      ENDDO
+C
+      ALLOCATE(psi_temp(NRGMAX,NZGMAX))
+      READ(neqdsk) psi_temp
+      psirz(1:nrgmax,1:nzgmax)=psi_temp(1:nrgmax,1:nzgmax)
+      DEALLOCATE(psi_temp)
+!      do nz=1,nzgmax
+!         do nr=1,nrgmax
+!            write(15,'(2I5,1PE12.4)') nr,nz,psirz(nr,nz)
+!         end do
+!      end do
+
+      do nz=1,nzgmax-1
+         do nr=1,nrgmax-1
+            dpsipdrl=psirz(nr+1,nz)-psirz(nr,nz)
+            dpsipdrll=psirz(nr+1,nz+1)-psirz(nr,nz+1)
+            dpsipdzl=psirz(nr,nz+1)-psirz(nr,nz)
+            psix1(nr,nz)=sqrt(dpsipdrl**2+dpsipzl**2)
+            psix2(nr,nz)=dpsipdrll-dpsipdrl
+!            write(6,'(2I5,1P3E12.4)') 
+!     &           nr,nz,psirz(nr,nz),psix1(nr,nz),psix2(nr,nz)
+         end do
+      END do
+
+      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
+      CALL PAGES
+      CALL GRD2D(0,rg,zg,psirz,nrgm,nrgmax,nzgmax,'@psirz@',0,0,1,
+     &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
+      CALL PAGEE
+      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
+      CALL PAGES
+      CALL GRD2D(0,rg,zg,psix1,nrgm,nrgmax-1,nzgmax-1,
+     &           '@abs(dpsirz)@',0,0,1,
+     &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
+      CALL PAGEE
+      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
+      CALL PAGES
+      CALL GRD2D(0,rg,zg,psix2,nrgm,nrgmax-1,nzgmax-1,
+     &           '@ddpsirz@',0,0,1,
+     &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
+      CALL PAGEE
+      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
+
+      write(6,*) 'read psi'
+      read (neqdsk) BtR
+      write(6,*) 'read BtR=',BtR
+      CLOSE(neqdsk)
+
+      neqdsk=22
+      CALL FROPEN(neqdsk,KNAMEQ2,1,MODEFR,'EQ',IERR)
+      IF(IERR.NE.0) RETURN
+      write(6,*) 'open 2'
+      npsmax=41
+      REWIND(neqdsk)
+      READ(neqdsk,*)
+      DO nps=1,npsmax
+         READ(neqdsk,*) i,ttps(nps),ppps(nps)
+         write(6,'(I5,1P2E12.4)') i,ttps(nps),ppps(nps)
+      ENDDO
+      CLOSE(neqdsk)
+
+      CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
+     &           NRGM,NRGMAX,NZGMAX,0,0,IER)
+         IF(IER.NE.0) THEN
+            WRITE(6,*) 'XX EQAXIS: SPL2D for PSIRZ: IER=',IER
+         ENDIF
+      write(6,*) 'spline2d'
+      MDLEQF=10
+      RAXIS=0.5D0*(rmin+rmax)
+      ZAXIS=0.5D0*(zmin+zmax)
+      CALL EQAXIS(IEER)
+      write(6,*) 'eqaxis:ierr=',ierr
+
+      DPS=-PSI0/(NPSMAX-1)
+      DO NPS=1,NPSMAX
+         PSIPS(NPS)=DPS*(NPS-1)
+      ENDDO
+
+      RIP=RIP/1.D6
+      TTDTTPS(1:npsmax)=0.D0
+      DPPPS(1:npsmax)=0.D0
+C
+      CALL eqcalq(ierr)
+C
+      RSUMAX = RAXIS
+      RSUMIN = RAXIS
+      ZSUMAX = ZAXIS
+      ZSUMIN = ZAXIS
+      R_ZSUMAX = 0.d0
+      R_ZSUMIN = 0.d0
+      do i = 1, nsumax
+         if(RSU(i) .GT. RSUMAX) RSUMAX = RSU(i)
+         if(RSU(i) .LT. RSUMIN) RSUMIN = RSU(i)
+         if(ZSU(i) .GT. ZSUMAX) then
+            ZSUMAX   = ZSU(i)
+            R_ZSUMAX = RSU(i)
+         end if
+         if(ZSU(i) .LT. ZSUMIN) then
+            ZSUMIN   = ZSU(i)
+            R_ZSUMIN = RSU(i)
+         end if
+      enddo
+C for negative Ip and negative BB
+      IF(RIP.LT.0.D0) RIP=-RIP
+      IF(Bctr.LT.0.D0) Bctr=-Bctr
+      IF(TTPS(1).LT.0.D0) THEN
+         DO NPS=1,NPSMAX
+            TTPS(NPS)=-TTPS(NPS)
+         ENDDO
+      ENDIF
+
+C *** The following variable defined in Tokamaks 3rd, Sec. 14.14 ***
+      RR   = 0.5d0 * (RSUMAX - RSUMIN) + RSUMIN
+      RA   = RR - RSUMIN
+      !==  RB: wall minor radius  ======================
+      !    Multiplication factor 1.1 is tentatively set.
+      RB   = 1.1d0 * RA
+!      RB   = 1.2d0 * RA
+      !=================================================
+      RKAP = (ZSUMAX - ZSUMIN) / (RSUMAX - RSUMIN)
+
+!  ---- corrected on 2010/01/18 for negative triangularity ----
+!      RDLT = 0.5d0 * (ABS(RR-R_ZSUMIN) + ABS(RR-R_ZSUMAX)) / RA
+
+      RDLT = 0.5d0 * ((RR-R_ZSUMIN) + (RR-R_ZSUMAX)) / RA
+      BB   = Rctr * Bctr / RR
+      RIPX = RIP
+C
+C      GOTO 1000
+C      kvtor=0
+C      rvtor=0
+C      nmass=0
+C      read (neqdsk,2024,end=1000) kvtor,rvtor,nmass
+C      WRITE(6,*) kvtor,rvtor,nmass
+C      if (kvtor.gt.0) then
+C         read (neqdsk,2020) (pressw(i),i=1,NPSMAX)
+C         read (neqdsk,2020) (pwprim(i),i=1,NPSMAX)
+C      endif
+C      if (nmass.gt.0) then
+C         read (neqdsk,2020) (dmion(i),i=1,NPSMAX)
+C      endif
+C      read (neqdsk,2020,end=1000) (rhovn(i),i=1,NPSMAX)
+C 1000 CONTINUE
+C
 C
 C      WRITE(6,'(1P3E12.4)') RR,BB,RIP
 C      WRITE(6,'(1P4E12.4)') RAXIS,ZAXIS,PSI0,PSIA
