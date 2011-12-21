@@ -325,15 +325,13 @@ C
       REAL(8),DIMENSION(:,:),ALLOCATABLE:: psi_temp
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       DIMENSION PSIx1(NRGM,NZGM),psix2(NRGM,NZGM),PSIx3(NRGM,NZGM)
-      EXTERNAL R2G2B
+      EXTERNAL R2G2B,R2W2B
 C
       neqdsk=21
       CALL FROPEN(neqdsk,KNAMEQ,0,MODEFR,'EQ',IERR)
       IF(IERR.NE.0) RETURN
-      write(6,*) 'open'
 c
       REWIND(neqdsk)
-      write(6,*) 'rewind'
       READ (neqdsk) NRGMAX,NZGMAX
       write(6,*) nrgmax,nzgmax
       READ (neqdsk) rmin,rmax,zmin,zmax
@@ -369,24 +367,18 @@ C
          end do
       END do
 
-      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
       CALL PAGES
       CALL GRD2D(0,rg,zg,psirz,nrgm,nrgmax,nzgmax,'@psirz@',0,0,1,
      &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
       CALL PAGEE
-      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
       CALL PAGES
-      CALL GRD2D(0,rg,zg,psix1,nrgm,nrgmax-1,nzgmax-1,
-     &           '@abs(dpsirz)@',0,0,1,
-     &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
+      CALL GRD2D(0,rg,zg,psirz,nrgm,nrgmax,nzgmax,'@psirz@',0,0,2,
+     &           NLMAX=31,ASPECT=0.D0,PAINT_RGB_SUB=R2W2B)
       CALL PAGEE
-      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
-      CALL PAGES
-      CALL GRD2D(0,rg,zg,psix2,nrgm,nrgmax-1,nzgmax-1,
-     &           '@ddpsirz@',0,0,1,
-     &           NLMAX=31,ASPECT=0.D0,LINE_RGB_SUB=R2G2B)
-      CALL PAGEE
-      WRITE(6,*) ZG(1),ZG(nzgmax/2),zg(nzgmax)
+!      CALL PAGES
+!      CALL GRD2D(0,rg,zg,psirz,nrgm,nrgmax,nzgmax,'@psirz@',0,0,5,
+!     &           NLMAX=31,PAINT_RGB_SUB=R2W2B)
+!      CALL PAGEE
 
       write(6,*) 'read psi'
       read (neqdsk) BtR
