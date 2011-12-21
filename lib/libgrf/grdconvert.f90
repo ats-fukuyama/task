@@ -10,13 +10,13 @@ CONTAINS
   SUBROUTINE GRD_CONVERT(NGP,GX,GY,GF,NXM,NXMAX,NYMAX, &
                          GPXMIN,GPXMAX,GPYMIN,GPYMAX, &
                          XMIN,XMAX,XORG,YMIN,YMAX,YORG,FMIN,FMAX,FORG, &
-                         XSPACE_FACTOR,YSPACE_FACTOR,FSPACE_FACTOR, &
+                         XSPACE_FACTOR,YSPACE_FACTOR, &
                          NXMIN,NYMIN,NXSTEP,NYSTEP,NLMAX,NPMAX, &
                          LINE_VALUE,LINE_RGB,LINE_THICKNESS,LINE_PAT, &
                          LINE_MARK,LINE_MARK_STEP,LINE_MARK_SIZE, &
                          PAINT_VALUE,PAINT_RGB, &
-                         BEV_XORG,BEV_YORG,BEV_ZORG, &
-                         BEV_PHI,BEV_CHI,BEV_DISTANCE, &
+                         ASPECT,BEV_XLEN,BEV_YLEN,BEV_ZLEN, &
+                         BEV_PHI,BEV_CHI,BEV_DISTANCE,BEV_TYPE, &
                          TITLE,XTITLE,YTITLE, &
                          TITLE_LEN,XTITLE_LEN,YTITLE_LEN, &
                          TITLE_SIZE,XTITLE_SIZE,YTITLE_SIZE, &
@@ -34,10 +34,12 @@ CONTAINS
                          XSCALE_ZERO_PAT,YSCALE_ZERO_PAT,FSCALE_ZERO_PAT, &
                          VALUE_FONT,VALUE_SIZE,VALUE_RGB, &
                          XVALUE_STEP,YVALUE_STEP,FVALUE_STEP, &
+                         XVALUE_POS,YVALUE_POS,FVALUE_POS, &
                          XVALUE_TYPE,YVALUE_TYPE,FVALUE_TYPE, &
                          XVALUE_LTYPE,YVALUE_LTYPE,FVALUE_LTYPE, &
-                         MODE_2D,MODE_XY,MODE_PRD,MODE_LS,FRAME_TYPE, &
-                         NOTITLE,NOFRAME, &
+                         MODE_2D,MODE_XY,MODE_PRD,MODE_SPL, &
+                         MODE_LS,FRAME_TYPE, &
+                         NOTITLE,NOFRAME,NOINFO, &
                          NOXSCALE,NOYSCALE,NOFSCALE, &
                          NOXVALUE,NOYVALUE,NOFVALUE, &
                          LINE_RGB_SUB,PAINT_RGB_SUB,A)
@@ -54,18 +56,19 @@ CONTAINS
     REAL(8),INTENT(IN),OPTIONAL:: XMIN,XMAX,XORG
     REAL(8),INTENT(IN),OPTIONAL:: YMIN,YMAX,YORG
     REAL(8),INTENT(IN),OPTIONAL:: FMIN,FMAX,FORG
-    REAL(8),INTENT(IN),OPTIONAL:: XSPACE_FACTOR,YSPACE_FACTOR,FSPACE_FACTOR
+    REAL(8),INTENT(IN),OPTIONAL:: XSPACE_FACTOR,YSPACE_FACTOR
     INTEGER,INTENT(IN),OPTIONAL:: NXMIN,NYMIN,NXSTEP,NYSTEP
 
     INTEGER,INTENT(IN),OPTIONAL:: NLMAX,NPMAX
-    REAL(8),INTENT(IN),OPTIONAL:: LINE_VALUE(*),LINE_RGB(3,*)
-    REAL(8),INTENT(IN),OPTIONAL:: LINE_THICKNESS(*)
-    INTEGER,INTENT(IN),OPTIONAL:: LINE_PAT(*)
-    INTEGER,INTENT(IN),OPTIONAL:: LINE_MARK(*),LINE_MARK_STEP(*)
-    REAL(8),INTENT(IN),OPTIONAL:: LINE_MARK_SIZE(*)
-    REAL(8),INTENT(IN),OPTIONAL:: PAINT_VALUE(*),PAINT_RGB(3,*)
-    REAL(8),INTENT(IN),OPTIONAL:: BEV_XORG,BEV_YORG,BEV_ZORG
+    REAL(8),INTENT(IN),OPTIONAL:: LINE_VALUE(:),LINE_RGB(:,:)
+    REAL(8),INTENT(IN),OPTIONAL:: LINE_THICKNESS(:)
+    INTEGER,INTENT(IN),OPTIONAL:: LINE_PAT(:)
+    INTEGER,INTENT(IN),OPTIONAL:: LINE_MARK(:),LINE_MARK_STEP(:)
+    REAL(8),INTENT(IN),OPTIONAL:: LINE_MARK_SIZE(:)
+    REAL(8),INTENT(IN),OPTIONAL:: PAINT_VALUE(:),PAINT_RGB(:,:)
+    REAL(8),INTENT(IN),OPTIONAL:: ASPECT,BEV_XLEN,BEV_YLEN,BEV_ZLEN
     REAL(8),INTENT(IN),OPTIONAL:: BEV_PHI,BEV_CHI,BEV_DISTANCE
+    INTEGER,INTENT(IN),OPTIONAL:: BEV_TYPE
 
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: TITLE,XTITLE,YTITLE
     INTEGER,INTENT(IN),OPTIONAL:: TITLE_LEN,XTITLE_LEN,YTITLE_LEN
@@ -90,11 +93,13 @@ CONTAINS
     INTEGER,INTENT(IN),OPTIONAL:: VALUE_FONT
     REAL(8),INTENT(IN),OPTIONAL:: VALUE_SIZE,VALUE_RGB(3)
     INTEGER,INTENT(IN),OPTIONAL:: XVALUE_STEP,YVALUE_STEP,FVALUE_STEP
+    INTEGER,INTENT(IN),OPTIONAL:: XVALUE_POS,YVALUE_POS,FVALUE_POS
     INTEGER,INTENT(IN),OPTIONAL:: XVALUE_TYPE,YVALUE_TYPE,FVALUE_TYPE
     INTEGER,INTENT(IN),OPTIONAL:: XVALUE_LTYPE,YVALUE_LTYPE,FVALUE_LTYPE
 
-    INTEGER,INTENT(IN),OPTIONAL:: MODE_2D,MODE_XY,MODE_PRD,MODE_LS,FRAME_TYPE
-    INTEGER,INTENT(IN),OPTIONAL:: NOTITLE,NOFRAME
+    INTEGER,INTENT(IN),OPTIONAL:: MODE_2D,MODE_XY,MODE_PRD,MODE_SPL
+    INTEGER,INTENT(IN),OPTIONAL:: MODE_LS,FRAME_TYPE
+    INTEGER,INTENT(IN),OPTIONAL:: NOTITLE,NOFRAME,NOINFO
     INTEGER,INTENT(IN),OPTIONAL:: NOXSCALE,NOYSCALE,NOFSCALE
     INTEGER,INTENT(IN),OPTIONAL:: NOXVALUE,NOYVALUE,NOFVALUE
 
@@ -118,8 +123,8 @@ CONTAINS
     REAL(4):: GXMIN,GXMAX,GXSTEP,GXORG
     REAL(4):: GYMIN,GYMAX,GYSTEP,GYORG
     REAL(4):: GFMIN,GFMAX,GFSTEP,GFORG
-    REAL(4):: GRGB(3,NLM)
-    INTEGER:: NL,NCH,NGULEN
+    REAL(4):: GRGB(3,NLM),FACTOR
+    INTEGER:: NCH,NGULEN,NL,NLL,NP,NPL
     INTEGER:: IPAT(NLM)
     CHARACTER(LEN=80):: KTITLE
     CHARACTER(LEN=1):: KDL
@@ -144,17 +149,18 @@ CONTAINS
     ELSE
        A%MODE_PRD=0
     ENDIF
+    IF(PRESENT(MODE_SPL)) THEN
+       A%MODE_SPL=MODE_SPL
+    ELSE
+       A%MODE_SPL=0
+    ENDIF
     IF(PRESENT(MODE_LS)) THEN
        A%MODE_LS=MODE_LS
     ELSE
        A%MODE_LS=0
     ENDIF
 
-    IF(PRESENT(MODE_2D)) THEN
-       A%MODE_2D=MODE_2D
-    ELSE
-       A%MODE_2D=0
-    ENDIF
+!     ----- define graph position -----
 
     CALL GRFUT4(NGP,GP) ! assign predefined graph position to GP
     IF(PRESENT(GPXMIN)) THEN
@@ -177,6 +183,19 @@ CONTAINS
     ELSE
        A%GPYMAX=GP(4)
     ENDIF
+
+    IF(PRESENT(ASPECT)) THEN
+       A%ASPECT=ASPECT
+       IF(A%ASPECT /= 0.0) THEN
+          IF(A%ASPECT >= 1.0) THEN
+             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)*A%ASPECT
+          ELSE
+             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)/A%ASPECT
+          END IF
+       END IF
+    ELSE
+       A%ASPECT=0.75
+    END IF
 
 !     ----- define graph size scaling factor -----
 
@@ -315,18 +334,35 @@ CONTAINS
     GL=A%YMAX-A%YMIN
     A%YMAX=A%YMAX+0.5*GL*A%YSPACE_FACTOR
     A%YMIN=A%YMIN-0.5*GL*A%YSPACE_FACTOR
-    GL=A%FMAX-A%FMIN
-    A%FMAX=A%FMAX+0.5*GL*A%FSPACE_FACTOR
-    A%FMIN=A%FMIN-0.5*GL*A%FSPACE_FACTOR
+
+!     ----- Adjust of graph shape by actual 2D shape -----
+
+    IF(A%MODE_2D >= 1) THEN
+       IF(A%ASPECT == 0.0) THEN
+          IF(A%XMAX-A%XMIN /= 0.0) THEN
+             A%ASPECT=(A%YMAX-A%YMIN)/(A%XMAX-A%XMIN)
+             IF(A%ASPECT /= 0.0) THEN
+                IF(A%ASPECT >= 1.0) THEN
+                   A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)/A%ASPECT
+                ELSE
+                   A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)*A%ASPECT
+                END IF
+             END IF
+          END IF
+       END IF
+    END IF
+
 
 !     ----- LINE SECTION -----
 
-    IF(A%MODE_2D.EQ.0) THEN  ! 1D data
+    SELECT CASE(A%MODE_2D)
+    CASE(0) ! 1D data
        IF(PRESENT(NLMAX)) THEN
           A%NLMAX=NLMAX
        ELSE
           A%NLMAX=NLM
        ENDIF
+
        ALLOCATE(A%LINE_RGB(3,A%NLMAX))
        ALLOCATE(A%LINE_THICKNESS(A%NLMAX))
        ALLOCATE(A%LINE_PAT(A%NLMAX))
@@ -335,60 +371,256 @@ CONTAINS
        ALLOCATE(A%LINE_MARK_SIZE(A%NLMAX))
 
        IF(PRESENT(LINE_RGB)) THEN
-          A%LINE_RGB(1:3,1:A%NLMAX)=LINE_RGB(1:3,1:A%NLMAX)
+          NLL=SIZE(LINE_RGB,DIM=2)
+          DO NL=1,A%NLMAX
+             A%LINE_RGB(1:3,NL)=GUCLIP(LINE_RGB(1:3,MOD(NL-1,NLL)+1))
+          ENDDO
        ELSE
           DO NL=1,A%NLMAX
-             A%LINE_RGB(1:3,NL)=GRGB(1:3,MOD(NL-1,NLM)+1)
-          ENDDO
+             A%LINE_RGB(1:3,NL)=GUCLIP(GRGB(1:3,MOD(NL-1,NLM)+1))
+          END DO
        END IF
        IF(PRESENT(LINE_THICKNESS)) THEN
-          A%LINE_THICKNESS(1:A%NLMAX)=LINE_THICKNESS(1:A%NLMAX)*GFACTOR
+          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_THICKNESS(NL)=GUCLIP(LINE_THICKNESS(MOD(NL-1,NLL)+1)) &
+                                 *GFACTOR
+          END DO
        ELSE
           A%LINE_THICKNESS(1:A%NLMAX)=0.07*GFACTOR
        ENDIF
        IF(PRESENT(LINE_PAT)) THEN
-          A%LINE_PAT(1:A%NLMAX)=LINE_PAT(1:A%NLMAX)
+          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+          END DO
        ELSE
           DO NL=1,A%NLMAX
              A%LINE_PAT(NL)=IPAT(MOD(NL-1,NLM)+1)
           END DO
        ENDIF
        IF(PRESENT(LINE_MARK)) THEN
-          A%LINE_MARK(1:A%NLMAX)=LINE_MARK(1:A%NLMAX)
+          NLL=SIZE(LINE_MARK,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_MARK(NL)=LINE_MARK(MOD(NL-1,NLL)+1)
+          END DO
        ELSE
           A%LINE_MARK(1:A%NLMAX)=0
        ENDIF
        IF(PRESENT(LINE_MARK_STEP)) THEN
-          A%LINE_MARK_STEP(1:A%NLMAX)=LINE_MARK_STEP(1:A%NLMAX)
+          NLL=SIZE(LINE_MARK_STEP,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_MARK_STEP(NL)=LINE_MARK_STEP(MOD(NL-1,NLL)+1)
+          END DO
        ELSE
           A%LINE_MARK_STEP(1:A%NLMAX)=0
        ENDIF
        IF(PRESENT(LINE_MARK_SIZE)) THEN
-          A%LINE_MARK_SIZE(1:A%NLMAX)=LINE_MARK_SIZE(1:A%NLMAX)*GFACTOR
+          NLL=SIZE(LINE_MARK_SIZE,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_MARK_SIZE(NL)=LINE_MARK_SIZE(MOD(NL-1,NLL)+1)*GFACTOR
+          END DO
        ELSE
           A%LINE_MARK_SIZE(1:A%NLMAX)=0.3*GFACTOR
        ENDIF
-    END IF
 
-!     ----- PAINT SECTION -----
+    CASE(1:5) ! 2D contour line and paint and 3D Bird's ey view
 
-    IF(PRESENT(NPMAX)) THEN
-       A%NPMAX=NPMAX
-    ELSE
-       A%NPMAX=0
-    END IF
-    IF(A%NPMAX.GT.0) THEN
+       IF(A%FMIN*A%FMAX < 0.0) THEN
+           A%FMAX=MAX(ABS(A%FMIN),ABS(A%FMAX))
+           A%FMIN=-A%FMAX
+       ENDIF
+
+       IF(PRESENT(NLMAX)) THEN
+          A%NLMAX=NLMAX
+       ELSE
+          A%NLMAX=MIN(NINT(ABS((A%FMAX-A%FMIN)/A%FSCALE_STEP))+2,1001)
+          IF(A%FMIN*A%FMAX < 0.0) THEN
+             IF(MOD(A%NLMAX,2) == 0) A%NLMAX=A%NLMAX+1
+          ENDIF
+       ENDIF
+
+       IF(PRESENT(NPMAX)) THEN
+          A%NPMAX=NPMAX
+       ELSE
+          A%NPMAX=A%NLMAX
+       ENDIF
+
+       ALLOCATE(A%LINE_VALUE(A%NLMAX))
+       ALLOCATE(A%LINE_RGB(3,A%NLMAX))
+       ALLOCATE(A%LINE_THICKNESS(A%NLMAX))
+       ALLOCATE(A%LINE_PAT(A%NLMAX))
        ALLOCATE(A%PAINT_VALUE(A%NPMAX))
        ALLOCATE(A%PAINT_RGB(3,A%NPMAX))
-       IF(PRESENT(PAINT_VALUE)) THEN
-          A%PAINT_VALUE(1:A%NLMAX)=PAINT_VALUE(1:A%NLMAX)
-       END IF
-       IF(PRESENT(PAINT_RGB)) THEN
-          A%PAINT_RGB(1:3,1:A%NLMAX)=PAINT_RGB(1:3,1:A%NLMAX)
+
+       IF(PRESENT(LINE_VALUE)) THEN
+          NLL=SIZE(LINE_VALUE,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_VALUE(NL)=GUCLIP(LINE_VALUE(MOD(NL-1,NLL)+1))
+          END DO
        ELSE
-          A%PAINT_RGB(1:3,1:A%NLMAX)=GRGB(1:3,1:A%NLMAX)
+          IF(A%NLMAX == 1) THEN
+             FACTOR=0.0
+          ELSE
+             FACTOR=(A%FMAX-A%FMIN)/(A%NLMAX-1)
+          END IF
+          DO NL=1,A%NLMAX
+             A%LINE_VALUE(NL)=A%FMIN+FACTOR*(NL-1)
+          END DO
+       ENDIF
+
+       IF(PRESENT(LINE_RGB)) THEN
+          NLL=SIZE(LINE_RGB,DIM=2)
+          DO NL=1,A%NLMAX
+             A%LINE_RGB(1:3,NL)=GUCLIP(LINE_RGB(1:3,MOD(NL-1,NLL)+1))
+          END DO
+       ELSE IF(PRESENT(LINE_RGB_SUB)) THEN
+          DO NL=1,A%NLMAX
+             FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+             CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
+          END DO
+       ELSE
+          IF(A%FMIN*A%FMAX >= 0.0) THEN
+             IF(A%FORG >= 0.0) THEN
+                DO NL=1,A%NLMAX
+                   FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+                   CALL R2Y2W(FACTOR,A%LINE_RGB(1:3,NL))
+                END DO
+             ELSE
+                DO NL=1,A%NLMAX
+                   FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+                   CALL W2G2B(FACTOR,A%LINE_RGB(1:3,NL))
+                END DO
+             END IF
+          ELSE
+             DO NL=1,A%NLMAX
+                FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
+                CALL R2W2B(FACTOR,A%LINE_RGB(1:3,NL))
+             END DO
+          END IF
        END IF
-    END IF
+
+       IF(PRESENT(PAINT_VALUE)) THEN
+          NPL=SIZE(PAINT_VALUE,DIM=1)
+          DO NP=1,A%NPMAX
+             A%PAINT_VALUE(NP)=GUCLIP(PAINT_VALUE(MOD(NP-1,NPL)+1))
+          END DO
+       ELSE
+          IF(A%NPMAX == 1) THEN
+             FACTOR=0.0
+          ELSE
+             FACTOR=(A%FMAX-A%FMIN)/(A%NPMAX-1)
+          END IF
+          DO NP=1,A%NPMAX
+             A%PAINT_VALUE(NP)=A%FMIN+FACTOR*(NP-0.5)
+          END DO
+       ENDIF
+
+       IF(PRESENT(PAINT_RGB)) THEN
+          NPL=SIZE(PAINT_RGB,DIM=2)
+          DO NP=1,A%NPMAX
+             A%PAINT_RGB(1:3,NP)=GUCLIP(PAINT_RGB(1:3,MOD(NP-1,NPL)+1))
+          END DO
+       ELSE IF(PRESENT(PAINT_RGB_SUB)) THEN
+          DO NP=1,A%NPMAX
+             FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+             CALL PAINT_RGB_SUB(FACTOR,A%PAINT_RGB(1:3,NP))
+          END DO
+       ELSE
+          IF(A%FMIN*A%FMAX >= 0.0) THEN
+             IF(A%FORG >= 0.0) THEN
+                DO NP=1,A%NPMAX
+                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                   CALL R2Y2W(FACTOR,A%PAINT_RGB(1:3,NP))
+                END DO
+             ELSE
+                DO NP=1,A%NPMAX
+                   FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                   CALL W2G2B(FACTOR,A%PAINT_RGB(1:3,NP))
+                END DO
+             END IF
+          ELSE
+             DO NP=1,A%NPMAX
+                FACTOR=FLOAT(NP-1)/FLOAT(A%NPMAX-1)
+                CALL R2W2B(FACTOR,A%PAINT_RGB(1:3,NP))
+             END DO
+          END IF
+       END IF
+
+       IF(PRESENT(LINE_THICKNESS)) THEN
+          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_THICKNESS(NL)=GUCLIP(LINE_THICKNESS(MOD(NL-1,NLL)+1)) &
+                                 *GFACTOR
+          END DO
+       ELSE
+          A%LINE_THICKNESS(1:A%NLMAX)=0.07*GFACTOR
+       ENDIF
+
+       IF(PRESENT(LINE_PAT)) THEN
+          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          DO NL=1,A%NLMAX
+             A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
+          END DO
+       ELSE
+          DO NL=1,A%NLMAX
+             A%LINE_PAT(NL)=0
+          END DO
+       ENDIF
+
+       SELECT CASE(A%MODE_2D)
+       CASE(4:5)
+          IF(PRESENT(BEV_XLEN)) THEN
+             A%BEV_XLEN=GUCLIP(BEV_XLEN)*GFACTOR
+          ELSE
+             A%BEV_XLEN=15.0*GFACTOR
+          END IF
+          IF(PRESENT(BEV_YLEN)) THEN
+             A%BEV_YLEN=GUCLIP(BEV_YLEN)*GFACTOR
+          ELSE
+             A%BEV_YLEN=30.0*GFACTOR
+          END IF
+          IF(PRESENT(BEV_ZLEN)) THEN
+             A%BEV_ZLEN=GUCLIP(BEV_ZLEN)*GFACTOR
+          ELSE
+             A%BEV_ZLEN=15.0*GFACTOR
+          END IF
+          IF(PRESENT(BEV_PHI)) THEN
+             A%BEV_PHI=GUCLIP(BEV_PHI)
+          ELSE
+             A%BEV_PHI=-60.0
+          END IF
+          IF(PRESENT(BEV_CHI)) THEN
+             A%BEV_CHI=GUCLIP(BEV_CHI)
+          ELSE
+             A%BEV_CHI=65.0
+          END IF
+          IF(PRESENT(BEV_DISTANCE)) THEN
+             A%BEV_DISTANCE=GUCLIP(BEV_DISTANCE)
+          ELSE
+             A%BEV_DISTANCE=100.0
+          END IF
+          
+          IF(PRESENT(BEV_TYPE)) THEN
+             A%BEV_TYPE=BEV_TYPE
+          ELSE
+             SELECT CASE(A%MODE_2D)
+             CASE(4)
+                IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
+                   A%BEV_TYPE=4
+                ELSE
+                   A%BEV_TYPE=7
+                ENDIF
+             CASE(5)
+                IF(NXMAX.GT.100.OR.NYMAX.GT.100) THEN
+                   A%BEV_TYPE=24
+                ELSE
+                   A%BEV_TYPE=27
+                ENDIF
+             END SELECT
+          END IF
+       END SELECT
+    END SELECT
 
 !     ----- TITLE SECTION -----
 

@@ -52,7 +52,7 @@ check :
 	ftnchek $(SRCSFREE) $(SRCSFIXED) $(MDSPLUS) | less
 
 clean:
-	-rm -f core* a.out *.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
+	-rm -f core* a.out *.o libgrf/*.o *.mod *.a ./*~ ./#* $(MOD)/*.mod
 
 veryclean: clean
 
@@ -74,5 +74,21 @@ mmconvert: mmconvert.o
 testgrf: tasklib.a testgrf.o 
 	$(FCFIXED) testgrf.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
-#libspl.o: libspl.f90
-#	$(FCFREE) -O3 -tp p7 -c libspl.f90 -o libspl.o
+libgrf/grftype.o: libgrf/grftype.f90
+libgrf/grfutils.o: libgrf/grfutils.f90 libgrf/grftype.f90
+libgrf/grfconvert.o: libgrf/grfconvert.f90 libgrf/grfutils.f90 \
+                     libgrf/grftype.f90
+libgrf/grdconvert.o: libgrf/grdconvert.f90 libgrf/grfutils.f90 \
+                     libgrf/grftype.f90
+libgrf/grf1dexec.o: libgrf/grf1dexec.f90 libgrf/grfutils.f90 \
+                    libgrf/grftype.f90
+libgrf/grf2dexec.o: libgrf/grf2dexec.f90 libgrf/grfutils.f90 \
+                    libgrf/grftype.f90
+libgrf/grf1d.o: libgrf/grf1d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grfconvert.f90 libgrf/grftype.f90
+libgrf/grd1d.o: libgrf/grd1d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grdconvert.f90 libgrf/grftype.f90
+libgrf/grf2d.o: libgrf/grf2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grfconvert.f90 libgrf/grftype.f90
+libgrf/grd2d.o: libgrf/grd2d.f90 libgrf/grf1dexec.f90 libgrf/grf2dexec.f90 \
+                libgrf/grdconvert.f90 libgrf/grftype.f90

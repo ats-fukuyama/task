@@ -1,11 +1,11 @@
 MODULE grftype
 
   TYPE grf_attr_type
-     REAL(4):: GPXMIN,GPXMAX,GPYMIN,GPYMAX ! page size
+     REAL(4):: GPXMIN,GPXMAX,GPYMIN,GPYMAX ! graph size
      REAL(4):: XMIN,XMAX,XORG    ! X axis range, orgin of scale and value
      REAL(4):: YMIN,YMAX,YORG    ! Y axis range, orgin of scale and value
      REAL(4):: FMIN,FMAX,FORG    ! Z axis range, orgin of scale and value
-     REAL(4):: XSPACE_FACTOR,YSPACE_FACTOR,FSPACE_FACTOR ! Axis rage reduction
+     REAL(4):: XSPACE_FACTOR,YSPACE_FACTOR ! Axis range reduction
      INTEGER:: NXMIN,NYMIN   ! Top of plot data
      INTEGER:: NXSTEP,NYSTEP ! Interval of plot data
      INTEGER:: NLMAX         ! Number of line attribute
@@ -19,12 +19,18 @@ MODULE grftype
      REAL(4),DIMENSION(:),ALLOCATABLE:: LINE_MARK_SIZE ! Mark size (NLMAX)
      REAL(4),DIMENSION(:),ALLOCATABLE:: PAINT_VALUE ! Paint value (NPMAX)
      REAL(4),DIMENSION(:,:),ALLOCATABLE :: PAINT_RGB! Paint color array (NPMAX)
-     REAL(4):: BEV_XORG     ! Bird's eye view : x pos of origin 
-     REAL(4):: BEV_YORG     ! Bird's eye view : y pos of origin 
-     REAL(4):: BEV_ZORG     ! Bird's eye view : z pos of origin 
-     REAL(4):: BEV_PHI      ! Bird's eye view : angle in xy plane
-     REAL(4):: BEV_CHI      ! Bird's eye view : angle from xy plane
-     REAL(4):: BEV_DISTANCE ! Bird's eye view : distance from origin
+     REAL(4):: ASPECT       ! Aspect ratio of the graph 
+!                                  Default 0.75
+!                                  Square for 1.0
+!                                  0.0 for (YMAX-YMIN)/(XMAX-XMIN)
+     REAL(4):: BEV_XLEN     ! Bird's eye view : length of x-axis [15 cm]
+     REAL(4):: BEV_YLEN     ! Bird's eye view : length of y-axis [30 cm]
+     REAL(4):: BEV_ZLEN     ! Bird's eye view : length of z-axis [15 cm]
+     REAL(4):: BEV_PHI      ! Bird's eye view : angle in xy plane [-60 deg.]
+     REAL(4):: BEV_CHI      ! Bird's eye view : angle from xy plane [65 deg.]
+     REAL(4):: BEV_DISTANCE ! Bird's eye view : distance from origin [100 cm]
+
+     INTEGER:: BEV_TYPE     ! Bird's eye view : type of distance from origin
      CHARACTER(LEN=80):: TITLE,XTITLE,YTITLE       ! Title contents
      INTEGER:: TITLE_LEN,XTITLE_LEN,YTITLE_LEN     ! Number of chars in title
      REAL(4):: TITLE_SIZE,XTITLE_SIZE,YTITLE_SIZE       ! Title font size
@@ -57,6 +63,7 @@ MODULE grftype
      REAL(4):: VALUE_SIZE   ! Value font size
      REAL(4):: VALUE_RGB(3) ! Value font color
      INTEGER:: XVALUE_STEP,YVALUE_STEP,FVALUE_STEP ! Value step size
+     INTEGER:: XVALUE_POS,YVALUE_POS,FVALUE_POS    ! Value pos for 3D
      INTEGER:: XVALUE_TYPE,YVALUE_TYPE,FVALUE_TYPE ! Value type
      INTEGER:: XVALUE_LTYPE,YVALUE_LTYPE,FVALUE_LTYPE ! Value type for log plot
      INTEGER:: MODE_2D   ! Graph tupe
@@ -82,11 +89,16 @@ MODULE grftype
 !                           1 : periodic in X
 !                           2 : periodic in Y
 !                           3 : periodic in both X and Y
+     INTEGER:: MODE_SPL     ! Spline tupe for 2D contour
+!                           0 : No spline
+!                           1 : Same point number for spline
+!                           n : n times point number for spline
      INTEGER:: FRAME_TYPE   ! Frame type
 !                           0 : Rectangular frame (Default)
 !                           1 : XY axis only
      INTEGER:: NOTITLE                      ! /= 0 for no title
      INTEGER:: NOFRAME                      ! /= 0 for no frame
+     INTEGER:: NOINFO                       ! /= 0 for no info (min,max,step)
      INTEGER:: NOXSCALE,NOYSCALE,NOFSCALE   ! /= 0 for no scale
      INTEGER:: NOXVALUE,NOYVALUE,NOFVALUE   ! /= 0 for no value
   END TYPE grf_attr_type

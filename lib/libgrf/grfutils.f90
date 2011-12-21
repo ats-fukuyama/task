@@ -1,7 +1,7 @@
 MODULE grfutils
 
   PRIVATE
-  PUBLIC grf_title,grf_frame,grfut1,grfut2,grfut3,grfut4,setrgba, &
+  PUBLIC grf_title,grf_frame,grf_info,grfut1,grfut2,grfut3,grfut4,setrgba, &
          grf2da,grf2db,grf2dc
 
 CONTAINS
@@ -74,10 +74,10 @@ CONTAINS
     CALL SETLNW(A%FRAME_THICKNESS)
     CALL GFRAME
 
-    CALL SETRGBA(A%SCALE_RGB(1:3))
     CALL SETLNW(A%SCALE_THICKNESS)
     CALL SETCHS(A%VALUE_SIZE,0.0)
     CALL SETFNT(A%VALUE_FONT)
+    CALL SETRGBA(A%SCALE_RGB(1:3))
 
     IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.2) THEN
        IF(A%XSCALE_ZERO.NE.0) &
@@ -91,6 +91,8 @@ CONTAINS
        CALL SETRGBA(A%VALUE_RGB(1:3))
        CALL GVALUL(A%XORG,A%XVALUE_LTYPE,0.0,0,A%XVALUE_TYPE)
     ENDIF
+
+    CALL SETRGBA(A%SCALE_RGB(1:3))
 
     IF(A%MODE_LS.EQ.0.OR.A%MODE_LS.EQ.1) THEN
        IF(A%FSCALE_ZERO.NE.0) &
@@ -106,6 +108,37 @@ CONTAINS
     ENDIF
 
   END SUBROUTINE GRF_FRAME
+
+! ***** DRAW GRAPH INFO *****
+
+  SUBROUTINE GRF_INFO(A)
+
+    USE grftype, ONLY: grf_attr_type
+    IMPLICIT NONE
+
+    TYPE(grf_attr_type),INTENT(IN):: A
+    REAL(4):: STEP
+    CHARACTER(LEN=64) LINE
+
+    SELECT CASE(A%MODE_2D)
+    CASE(1)
+       STEP=A%LINE_VALUE(2)-A%LINE_VALUE(1)
+    CASE(2)
+       STEP=A%PAINT_VALUE(2)-A%PAINT_VALUE(1)
+    CASE DEFAULT
+       STEP=0.0
+    END SELECT
+       
+    CALL SETCHS(A%VALUE_SIZE,0.0)
+    CALL SETRGB(0.0,0.0,0.0)
+    CALL MOVE(0.5*(A%GPXMIN+A%GPXMAX)-32*A%VALUE_SIZE, &
+              A%GPYMIN-6*A%VALUE_SIZE)
+    WRITE(LINE,'(A,1PE12.4,A,1PE12.4,A,1PE12.4)') &
+         'MIN  =',A%FMIN,'     MAX  =',A%FMAX,'     STEP =', STEP
+    CALL TEXT(LINE,64)
+    CALL SETRGB(0.0,0.0,0.0)
+    RETURN
+  END SUBROUTINE GRF_INFO
 
 
 !     ***** EVALUATE GXMIN,GXMAX,GYMIN,GYMAX *****
