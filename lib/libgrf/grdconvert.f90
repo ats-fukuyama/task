@@ -390,7 +390,7 @@ CONTAINS
           A%LINE_THICKNESS(1:A%NLMAX)=0.07*GFACTOR
        ENDIF
        IF(PRESENT(LINE_PAT)) THEN
-          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
              A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
@@ -558,7 +558,7 @@ CONTAINS
        ENDIF
 
        IF(PRESENT(LINE_PAT)) THEN
-          NLL=SIZE(LINE_THICKNESS,DIM=1)
+          NLL=SIZE(LINE_PAT,DIM=1)
           DO NL=1,A%NLMAX
              A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
