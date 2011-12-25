@@ -478,24 +478,25 @@ CONTAINS
              CALL LINE_RGB_SUB(FACTOR,A%LINE_RGB(1:3,NL))
           END DO
        ELSE
-          IF(A%FMIN*A%FMAX >= 0.0) THEN
-             IF(A%FORG >= 0.0) THEN
-                DO NL=1,A%NLMAX
-                   FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
-                   CALL R2Y2W(FACTOR,A%LINE_RGB(1:3,NL))
-                END DO
-             ELSE
-                DO NL=1,A%NLMAX
-                   FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
-                   CALL W2G2B(FACTOR,A%LINE_RGB(1:3,NL))
-                END DO
-             END IF
+          IF(A%FMIN*A%FMAX < 0.0) THEN
+             DO NL=1,A%NLMAX
+                IF(A%LINE_VALUE(NL) > 0.0) THEN
+                   A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
+                ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
+                   A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
+                ELSE
+                   A%LINE_RGB(1:3,NL)=(/0.5,0.5,0.5/)
+                END IF
+             END DO
+          ELSE IF(A%FMIN >= 0.0) THEN
+             DO NL=1,A%NLMAX
+                A%LINE_RGB(1:3,NL)=(/1.0,0.0,0.0/)
+             END DO
           ELSE
              DO NL=1,A%NLMAX
-                FACTOR=FLOAT(NL-1)/FLOAT(A%NLMAX-1)
-                CALL R2W2B(FACTOR,A%LINE_RGB(1:3,NL))
+                A%LINE_RGB(1:3,NL)=(/0.0,0.0,1.0/)
              END DO
-          END IF
+          ENDIF
        END IF
 
        IF(PRESENT(PAINT_VALUE)) THEN
@@ -560,9 +561,21 @@ CONTAINS
              A%LINE_PAT(1:NL)=LINE_PAT(MOD(NL-1,NLL)+1)
           END DO
        ELSE
-          DO NL=1,A%NLMAX
-             A%LINE_PAT(NL)=0
-          END DO
+          IF(A%FMIN*A%FMAX < 0.0) THEN
+             DO NL=1,A%NLMAX
+                IF(A%LINE_VALUE(NL) > 0.0) THEN
+                   A%LINE_PAT(NL)=0
+                ELSE IF(A%LINE_VALUE(NL) < 0.0) THEN
+                   A%LINE_PAT(NL)=3
+                ELSE
+                   A%LINE_PAT(NL)=5
+                END IF
+             END DO
+          ELSE
+             DO NL=1,A%NLMAX
+                A%LINE_PAT(NL)=0
+             END DO
+          END IF
        ENDIF
 
        IF(PRESENT(XVALUE_POS)) THEN
