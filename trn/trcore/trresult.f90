@@ -39,7 +39,7 @@ CONTAINS
 
     USE trcomm, ONLY : &
          rkind,ikind,nrmax,nsamax,ngtmax, &
-         ngt,gvt,gvts,gvrt,gvrts,t,rg,rn,ru,rt,qp
+         ngt,gvt,gvts,gvrt,gvrts,gparts,t,rg,rn,ru,rt,qp,add_prv
     IMPLICIT NONE
     INTEGER(ikind):: nsa,nr
 
@@ -65,6 +65,11 @@ CONTAINS
           gvrts(nr,ngt,nsa, 1) = rn(nsa,nr)
           gvrts(nr,ngt,nsa, 2) = ru(nsa,nr)
           gvrts(nr,ngt,nsa, 3) = rt(nsa,nr)
+
+          ! for Pereverzev method
+          gparts(nr,ngt,nsa,1) = add_prv(3*nsa-2,nr)
+          gparts(nr,ngt,nsa,2) = add_prv(3*nsa-1,nr)
+          gparts(nr,ngt,nsa,3) = add_prv(3*nsa  ,nr)
        END DO
     END DO
 

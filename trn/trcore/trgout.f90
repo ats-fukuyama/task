@@ -11,7 +11,8 @@ CONTAINS
 
     USE trcomm, ONLY: rkind,ikind,nrmax,nsamax,rg,rn,ru,rt,qp,dtr,str,vtr, &
          nitmax,error_it,lmaxtr,epsltr,lt_save,neqrmax,neqmax,neq_neqr, &
-         nsa_neq,gvt,gvts,gvrt,gvrts,ngt, mdltr_prv,dtr_prv,vtr_prv,add_prv
+         nsa_neq,gvt,gvts,gvrt,gvrts,gparts,ngt, &
+         mdltr_prv,dtr_prv,vtr_prv,add_prv
     USE libgrf,ONLY: grd1d
     IMPLICIT NONE
     CHARACTER(LEN=20):: label
@@ -19,7 +20,7 @@ CONTAINS
     INTEGER(ikind),parameter:: nggmax=10
     REAL(rkind),DIMENSION(0:nrmax,nsamax):: rtg,dfg,phg,vcg,vg1,vg2,vg3,vg4
     REAL(rkind),DIMENSION(0:nrmax,nsamax):: pdg,pvg,add_prt,add_pru,add_prn
-    REAL(rkind),DIMENSION(0:nrmax,0:nggmax):: gg1,gg2,gg3,gg4
+    REAL(rkind),DIMENSION(0:nrmax,0:nggmax):: gg1,gg2,gg3,gg4,gparg1,gparg2
     REAL(rkind),DIMENSION(0:ngt):: gt
     REAL(rkind),DIMENSION(0:ngt,nsamax):: gt1,gt2,gt3,gt4
     REAL(rkind),DIMENSION(nitmax):: ig,erg
@@ -168,6 +169,21 @@ CONTAINS
     CALL GRD1D(3,RG,pvg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
     LABEL = '/add_numerical vs r/'
     CALL GRD1D(4,RG,add_prt, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    CALL PAGEE
+
+!--- history of additional diffusive profile
+
+    ngg_interval=ngt/(MOD(ngt-1,nggmax)+1)
+    DO ngg = 0, nggmax
+       gparg1(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,1,3)
+       gparg2(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,2,3)
+    END DO
+
+    CALL PAGES
+    LABEL = '/add_numerical(1) vs r'
+    CALL GRD1D(1,rg,gparg1,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
+    LABEL = '/add_numerical(2) vs r'
+    CALL GRD1D(2,rg,gparg2,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
     CALL PAGEE
 
 !--- convergence

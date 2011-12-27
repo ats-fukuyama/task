@@ -119,7 +119,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: gvt
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvts
   REAL(rkind),DIMENSION(:,:,:),ALLOCATABLE:: gvrt
-  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts
+  REAL(rkind),DIMENSION(:,:,:,:),ALLOCATABLE:: gvrts,gparts
 
 ! ----- species id -----
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: idnsa
@@ -380,6 +380,10 @@ CONTAINS
        ALLOCATE(gvrts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
             IF(ierr /= 0) GOTO 9000
 
+       ! for Pereverzev method
+       ALLOCATE(gparts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
+            IF(ierr /= 0) GOTO 9000
+
        ngtmax_save=ngtmax
        nsamax_save=nsamax
        nrmax_save=nrmax
@@ -396,6 +400,7 @@ CONTAINS
     IF(ALLOCATED(gvts)) DEALLOCATE(gvts)
     IF(ALLOCATED(gvrt)) DEALLOCATE(gvrt)
     IF(ALLOCATED(gvrts)) DEALLOCATE(gvrts)
+    IF(ALLOCATED(gparts)) DEALLOCATE(gparts)
 
     RETURN
   END SUBROUTINE tr_ngt_deallocate
