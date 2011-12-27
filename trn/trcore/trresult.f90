@@ -16,7 +16,7 @@ CONTAINS
 
   SUBROUTINE tr_status
 
-    USE trcomm, ONLY : rkind,ikind,nsamax,t,qp,rt,kidnsa
+    USE trcomm, ONLY : rkind,ikind,nsamax,t,qp,rt,kidnsa,nitmax
     IMPLICIT NONE
     REAL(rkind):: wp,taue
     INTEGER(ikind):: nsa
@@ -29,6 +29,7 @@ CONTAINS
            '  TAUE:',F7.3,'(s)   Q0:',F7.3)
     WRITE(6,602) (kidnsa(nsa),rt(nsa,0),nsa=1,nsamax)
 602 FORMAT(4(' T',A1,':',F7.3,'(keV)  ':))
+    WRITE(6,'(I4)') nitmax
     RETURN
   END SUBROUTINE tr_status
 

@@ -3,7 +3,7 @@ MODULE trcoef
   USE bpsd_kinds
 
   PRIVATE
-  PUBLIC tr_coef
+  PUBLIC tr_coef, Pereverzev_check
 
 CONTAINS
 
@@ -42,20 +42,27 @@ CONTAINS
   SUBROUTINE Pereverzev_method
     USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rt_prev, &
          mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb, &
-         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt
+         dtr_prv,vtr_prv,add_prv,cdtrn,cdtru,cdtrt,rn,ru,rt
     IMPLICIT NONE
-    REAL(rkind) :: dtr_new,vtr_new,lt,drt,rtave
+    REAL(rkind) :: dtr_new,vtr_new,lt,drt,rtave,dvdrp,dvdrm,dtr_elm,vtr_elm
     INTEGER(ikind) :: nr,nsa
 
     DO nr=1,nrmax
+
+       dvdrp = rg(nr  )
+       dvdrm = rg(nr-1)
+
        DO nsa=1,nsamax
           drt=rt_prev(nsa,nr)-rt_prev(nsa,nr-1)
-          rtave=0.5D0*(rt_prev(nsa,nr)+rt_prev(nsa,nr-1))
-!          rtave=rt_prev(nsa,nr)
+
+          rtave=( (2.d0*dvdrm +      dvdrp)*rt_prev(nsa,nr-1)  &
+                 +(     dvdrm + 2.d0*dvdrp)*rt_prev(nsa,nr  )) &
+                /(3.d0*(dvdrm+dvdrp))
+
           IF(drt > 0.D0) THEN
              lt = 0.D0
           ELSE
-             lt = - drt/(rg(nr)-rg(nr-1))
+             lt = drt/(rg(nr)-rg(nr-1))
           END IF
           SELECT CASE(mdltr_prv)
           CASE(1)
@@ -93,4 +100,48 @@ CONTAINS
     END DO
     RETURN
   END SUBROUTINE Pereverzev_method
+
+  SUBROUTINE Pereverzev_check
+    USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,dtr_prv,vtr_prv,&
+                      add_prv,rn,ru,rt
+
+    REAL(rkind),DIMENSION(3*neqmax,0:nrmax) :: dtr_elm,vtr_elm
+    REAL(rkind) :: dvdrm,dvdrp
+    INTEGER(ikind) :: nr,nsa
+    
+    ! need to adjust for geometric factor
+    DO nr = 1, nrmax
+       dvdrp = rg(nr  )
+       dvdrm = rg(nr-1)
+       
+       DO nsa = 1, nsamax
+          dtr_elm(3*nsa-2,nr) =                            &
+               0.5D0*dtr_prv(3*nsa-2,nr)/(rg(nr)-rg(nr-1)) &
+               *(dvdrm+dvdrp)*(rn(nsa,nr)-rn(nsa,nr-1))
+          dtr_elm(3*nsa-1,nr) =                            &
+               0.5D0*dtr_prv(3*nsa-1,nr)/(rg(nr)-rg(nr-1)) &
+               *(dvdrm+dvdrp)*(ru(nsa,nr)-ru(nsa,nr-1))
+          dtr_elm(3*nsa  ,nr) =                            &
+               0.5D0*dtr_prv(3*nsa  ,nr)/(rg(nr)-rg(nr-1)) &
+               *(dvdrm+dvdrp)*(rt(nsa,nr)-rt(nsa,nr-1))
+          
+          vtr_elm(3*nsa-2,nr) =                            &
+            vtr_prv(3*nsa-2,nr)/6.D0                       &
+            *((2.D0*dvdrm+dvdrp)*rn(nsa,nr-1) + (dvdrm+2.D0*dvdrp)*rn(nsa,nr))
+          vtr_elm(3*nsa-1,nr) =                            &
+            vtr_prv(3*nsa-1,nr)/6.D0                       &
+            *((2.D0*dvdrm+dvdrp)*ru(nsa,nr-1) + (dvdrm+2.D0*dvdrp)*ru(nsa,nr))
+          vtr_elm(3*nsa  ,nr) =                            &
+            vtr_prv(3*nsa  ,nr)/6.D0                       &
+            *((2.D0*dvdrm+dvdrp)*rt(nsa,nr-1) + (dvdrm+2.D0*dvdrp)*rt(nsa,nr))
+
+          ! numerically additional term in nodal equation
+          add_prv(3*nsa-2,nr) = dtr_elm(3*nsa-2,nr) - vtr_elm(3*nsa-2,nr)
+          add_prv(3*nsa-1,nr) = dtr_elm(3*nsa-1,nr) - vtr_elm(3*nsa-1,nr)
+          add_prv(3*nsa  ,nr) = dtr_elm(3*nsa  ,nr) - vtr_elm(3*nsa  ,nr)
+          
+       END DO
+    END DO
+
+  END SUBROUTINE Pereverzev_check
 END MODULE trcoef

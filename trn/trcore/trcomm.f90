@@ -73,7 +73,8 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
-       vtr_prv    ! additional convection velocity [m^2/s]
+       vtr_prv,  &! additional convection velocity [m^2/s]
+       add_prv    ! numerically additional term
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
@@ -181,6 +182,8 @@ CONTAINS
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(vtr_prv(3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
+       ALLOCATE(add_prv(3*neqmax,0:nrmax),STAT=ierr)
+          IF(ierr /= 0) GOTO 9000
 
        nsamax_save=nsamax
        nrmax_save=nrmax
@@ -223,6 +226,7 @@ CONTAINS
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
     IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
+    IF(ALLOCATED(add_prv)) DEALLOCATE(add_prv)
 
     RETURN
   END SUBROUTINE tr_nr_deallocate

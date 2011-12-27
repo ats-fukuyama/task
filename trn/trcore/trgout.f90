@@ -11,13 +11,14 @@ CONTAINS
 
     USE trcomm, ONLY: rkind,ikind,nrmax,nsamax,rg,rn,ru,rt,qp,dtr,str,vtr, &
          nitmax,error_it,lmaxtr,epsltr,lt_save,neqrmax,neqmax,neq_neqr, &
-         nsa_neq,gvt,gvts,gvrt,gvrts,ngt, mdltr_prv,dtr_prv,vtr_prv
+         nsa_neq,gvt,gvts,gvrt,gvrts,ngt, mdltr_prv,dtr_prv,vtr_prv,add_prv
     USE libgrf,ONLY: grd1d
     IMPLICIT NONE
     CHARACTER(LEN=20):: label
     INTEGER(ikind):: nr,neqr,neq,nsa,nit,nitmaxl,ngg,ngg_interval
     INTEGER(ikind),parameter:: nggmax=10
     REAL(rkind),DIMENSION(0:nrmax,nsamax):: rtg,dfg,phg,vcg,vg1,vg2,vg3,vg4
+    REAL(rkind),DIMENSION(0:nrmax,nsamax):: pdg,pvg,add_prt,add_pru,add_prn
     REAL(rkind),DIMENSION(0:nrmax,0:nggmax):: gg1,gg2,gg3,gg4
     REAL(rkind),DIMENSION(0:ngt):: gt
     REAL(rkind),DIMENSION(0:ngt,nsamax):: gt1,gt2,gt3,gt4
@@ -76,6 +77,7 @@ CONTAINS
        gt3(0:ngt,nsa)=gvts(0:ngt,nsa,3)
     END DO
     gt4(0:ngt,1)=gvt(0:ngt,1)
+
     gt4(0:ngt,2)=gvt(0:ngt,2)
     
     CALL PAGES
@@ -132,6 +134,43 @@ CONTAINS
     CALL GRD1D(4,RG,vcg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
     CALL PAGEE
 
+!--- for Pereverzev method ---
+
+    IF(mdltr_prv == 0)THEN
+       pdg     = 0.D0
+       pvg     = 0.D0
+       add_prn = 0.D0
+       add_pru = 0.D0
+       add_prt = 0.D0
+    ELSE
+       DO neqr = 1, neqrmax
+          neq=neq_neqr(neqr)       
+          IF(neq == 0)THEN
+             pdg(0:nrmax,neqr) = 0.D0
+             pvg(0:nrmax,neqr) = 0.D0
+          ELSE
+             nsa=nsa_neq(neq)          
+             pdg(0:nrmax,neqr) = dtr_prv(neq-1,0:nrmax)
+             pvg(0:nrmax,neqr) = vtr_prv(neq-1,0:nrmax)
+             add_prn(0:nrmax,neqr) = add_prv(3*nsa-2,0:nrmax)
+             add_pru(0:nrmax,neqr) = add_prv(3*nsa-1,0:nrmax)
+             add_prt(0:nrmax,neqr) = add_prv(3*nsa  ,0:nrmax)
+          END IF
+       END DO
+    END IF
+    
+    CALL PAGES
+    LABEL = '/T vs r/'
+    CALL GRD1D(1,RG,rtg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    LABEL = '/add_Diff vs r/'
+    CALL GRD1D(2,RG,pdg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    LABEL = '/add_Conv vs r/'
+    CALL GRD1D(3,RG,pvg, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    LABEL = '/add_numerical vs r/'
+    CALL GRD1D(4,RG,add_prt, NRMAX+1, NRMAX+1, neqrmax, LABEL, 0)
+    CALL PAGEE
+
+!--- convergence
     
     nitmaxl=MIN(nitmax,lmaxtr)
     DO nit=1,nitmaxl
@@ -150,7 +189,7 @@ CONTAINS
 
        LABEL = '/LT vs r/'
        allocate(temp(0:nrmax,1:nsamax))
-       write(*,*) 'XXX nsamax = ',nsamax
+!       write(*,*) 'XXX nsamax = ',nsamax
 !       temp(0:nrmax,1:nsamax)=lt_save(1:nsamax,0:nrmax)
        temp=transpose(lt_save)
 

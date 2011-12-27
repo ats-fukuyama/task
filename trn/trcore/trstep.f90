@@ -12,7 +12,8 @@ CONTAINS
   SUBROUTINE tr_step(ierr)
 
     USE trcomm, ONLY: rkind,ikind,nrmax,neqmax,xv,xv_prev,xv_new,qp,rn,ru,rt, &
-         lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,nitmax
+         lmaxtr,epsltr,nsa_neq,nva_neq,nvmax,error_it,nitmax,mdltr_prv
+    USE trcoef, ONLY: Pereverzev_check
     USE trcalc, ONLY: tr_calc
     USE trexec, ONLY: tr_exec
 
@@ -42,6 +43,7 @@ CONTAINS
     END DO
 
     xv_prev(1:nvmax)=xv(1:nvmax)
+    error_it(1:lmaxtr) = epsltr
        
     DO NIT = 1, lmaxtr
 
@@ -118,6 +120,11 @@ CONTAINS
           END IF
        END DO
     END DO
+
+    IF(mdltr_prv /= 0)THEN
+       CALL Pereverzev_check
+!       WRITE(*,*)
+    END IF
        
 !   --- error check here ---
     ierr=0

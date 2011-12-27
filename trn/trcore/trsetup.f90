@@ -173,7 +173,7 @@ CONTAINS
     CALL tr_neqr_allocate
 
     DO neq=1,neqmax
-       IF(neqr_neq(neq) /= 0) neq_neqr(neqr)=neq
+       IF(neqr_neq(neq) /= 0) neq_neqr(neqr_neq(neq))=neq
     ENDDO
           
 

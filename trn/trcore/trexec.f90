@@ -62,10 +62,14 @@ CONTAINS
              r1imtx(2,2,neq,neq1)=   dh3*dtr(neq,neq1,nr)
            
              ! at the center of element
-             r2imtx(1,1,neq,neq1)= - dh4*vtr(neq,neq1,nr)
-             r2imtx(2,1,neq,neq1)= - dh4*vtr(neq,neq1,nr)
-             r2imtx(1,2,neq,neq1)=   dh4*vtr(neq,neq1,nr)
-             r2imtx(2,2,neq,neq1)=   dh4*vtr(neq,neq1,nr)
+             r2imtx(1,1,neq,neq1)= - dh1*vtr(neq,neq1,nr) &
+                                    *(2.d0*dvdrm +      dvdrp)
+             r2imtx(2,1,neq,neq1)=   dh1*vtr(neq,neq1,nr) &
+                                    *(2.d0*dvdrm +      dvdrp)
+             r2imtx(1,2,neq,neq1)= - dh1*vtr(neq,neq1,nr) &
+                                    *(     dvdrm + 2.d0*dvdrp)
+             r2imtx(2,2,neq,neq1)=   dh1*vtr(neq,neq1,nr) &
+                                    *(     dvdrm + 2.d0*dvdrp)
            
              r3imtx(1,1,neq,neq1)= dh2*(3.D0*ctr(neq,neq1,nr-1)*dvdrm &
                                       +      ctr(neq,neq1,nr  )*dvdrp)
@@ -77,13 +81,13 @@ CONTAINS
                                       + 3.D0*ctr(neq,neq1,nr  )*dvdrp)
 
              rimtx(1,1,neq,neq1) &
-                =r1imtx(1,1,neq,neq1)+r2imtx(1,1,neq,neq1)-r3imtx(1,1,neq,neq1)
+                =r1imtx(1,1,neq,neq1)-r2imtx(1,1,neq,neq1)-r3imtx(1,1,neq,neq1)
              rimtx(2,1,neq,neq1) &
-                =r1imtx(2,1,neq,neq1)+r2imtx(2,1,neq,neq1)-r3imtx(2,1,neq,neq1)
+                =r1imtx(2,1,neq,neq1)-r2imtx(2,1,neq,neq1)-r3imtx(2,1,neq,neq1)
              rimtx(1,2,neq,neq1) &
-                =r1imtx(1,2,neq,neq1)+r2imtx(1,2,neq,neq1)-r3imtx(1,2,neq,neq1)
+                =r1imtx(1,2,neq,neq1)-r2imtx(1,2,neq,neq1)-r3imtx(1,2,neq,neq1)
              rimtx(2,2,neq,neq1) &
-                =r1imtx(2,2,neq,neq1)+r2imtx(2,2,neq,neq1)-r3imtx(2,2,neq,neq1)
+                =r1imtx(2,2,neq,neq1)-r2imtx(2,2,neq,neq1)-r3imtx(2,2,neq,neq1)
           END DO
         
           !--- fixed value ---
