@@ -670,7 +670,7 @@ C               WRITE(6,'(A,2I5,1PE12.4)') 'NS,NC,BCF=',NS,NC,BCF
             ENDDO
          ENDDO
 C
-C     ****** DRAW PLASMA CUTOFF SURFACE (light blue, two-dot-dashed) ******
+C     ****** DRAW PLASMA CUTOFF SURFACE (medium blue, two-dot-dashed) ******
 C
          CALL SETRGB(0.0,1.0,1.0)
          CALL CONTQ5(GTCO,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
@@ -682,7 +682,7 @@ C
          CALL CONTQ5(GTRC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,
      &               0.0,1.0,1,2,6,KACONT)
 C
-C     ****** DRAW LEFT CUT OFF SURFACE (light blue, two-dots-dashed) ******
+C     ****** DRAW LEFT CUT OFF SURFACE (light purple, two-dots-dashed) ******
 C
          CALL SETRGB(1.0,0.5,1.0)
          CALL CONTQ5(GTLC,GRL,GZL,NRM,NRMAX+1,NTHGMAX,

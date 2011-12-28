@@ -198,7 +198,7 @@ c      DPSIP=(PHI(NSRMAX)-PHI(NSRMAX-5))/(XS(NSRMAX)-XS(NSRMAX-5))
          IF(XRHO(NR).GT.1.D0) THEN
 c            PSIP(NR)=PHI(NSRMAX)+DPSIP*(XRHO(NR)-XS(NSRMAX))
 c
-c
+dddc
             do i=1,np
                nra(i)=nr-np-1+i
                psipax(i)=psip(nr-np-1+i)
@@ -438,20 +438,16 @@ C
          BSTHSV(MN)=BSUS(NSRMAX-1)
          BSTHSD(MN)=(BSUS(NSRMAX-1)-BSUS(NSRMAX-5))
      &             /(XS(NSRMAX-1)  -XS(NSRMAX-5))
-c        BSTHSD(MN)=0.0
          BSPHSV(MN)=BSVS(NSRMAX)
          BSPHSD(MN)=(BSVS(NSRMAX)-BSVS(NSRMAX-5))
      &             /(XS(NSRMAX)  -XS(NSRMAX-5))
-c        BSPHSD(MN)=0.0
          DO NR=1,NRMAX+1
-            IF((XRHO(NR)-XS(NSRMAX).LT.0.D0).and.(nr.ne.84)) THEN!
-c               BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
-c               BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
-c
-               CALL SPL1DF(XRHO(NR),BSTHL,XS,U3(1,1,MN),NSRMAX,IERR)
-               CALL SPL1DF(XRHO(NR),BSPHL,XS,U4(1,1,MN),NSRMAX,IERR)
-               else
-            ENDIF
+C
+C               BSTHL=BSTHSV(MN)+BSTHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+C               BSPHL=BSPHSV(MN)+BSPHSD(MN)*(XRHO(NR)-XS(NSRMAX))
+C
+            CALL SPL1DF(XRHO(NR),BSTHL,XS,U3(1,1,MN),NSRMAX,IERR)
+            CALL SPL1DF(XRHO(NR),BSPHL,XS,U4(1,1,MN),NSRMAX,IERR)
             BSTH(MN,NR)=BSTHL
             BSPH(MN,NR)=BSPHL
          ENDDO

@@ -24,7 +24,8 @@ C
 C
 C     *** WAVE PARAMETER ***
 C
-C     CRF   : Wave frequency                            (MHz)
+C     RF    : Wave frequency                            (MHz)
+C     RFI   : Wave growth rate                          (MHz)
 C     RD    : Antenna minor radius                      (m)
 C     BETAJ : Antenna current profile parameter
 C     NTH0  : Central value of poloidal mode number
@@ -32,7 +33,9 @@ C     NPH0  : Central value of toroidal mode number
 C     NHC   : Number of helical coils
 C     PRFIN : Input Power (0 for given antenna current) (W)
 C
-      CRF    = (50.0D0,0.D0)
+      RF     = 50.D0
+      RFI    = 0.D0
+      CRF    = DCMPLX(RF,RFI)
       RD     = 1.1D0
       BETAJ  = 0.D0
       NTH0   = 0

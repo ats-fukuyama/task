@@ -14,7 +14,6 @@
 
       implicit none
       call eqinit
-      call eqtabl
       return
       end subroutine eq_init
 !=======================================================================

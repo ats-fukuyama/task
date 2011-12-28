@@ -75,14 +75,14 @@
       plasmaf%nrmax=0
       call bpsd_get_data(plasmaf,ierr)
       do nr=1,nrmax
-         sa(nr)=rhot(nr)**2 ! = psit(nr)/psit(nrmax)
+         sa(nr)=rhot(nr)**2 ! = psit(nr)/psit(nrpmax)
          data(nr)=1.d0/qps(nr)
       enddo
       call spl1d(sa,data,diff,udata,nrmax,0,ierr)
       if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1d: ierr=',ierr
       do nr=1,plasmaf%nrmax
          call spl1df((plasmaf%rho(nr))**2,plasmaf%qinv(nr),
-     &               sa,udata,nrmax,ierr)
+     &               sa,udata,nrpmax,ierr)
          if(ierr.ne.0) write(6,*) 'eq_bpsd_set: spl1df: ierr=',ierr
       enddo
       call bpsd_set_data(plasmaf,ierr)
