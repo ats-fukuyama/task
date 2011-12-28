@@ -169,6 +169,7 @@ C        KNAMWM: Filename of full wave data
 C        KNAMFP: Filename of Fokker-Planck data
 C        KNAMFO: Filename of File output
 C        KNAMPF: Filename of profile data
+C        KNAMEQ2:Filename of additional equilibrium data
 C
       KNAMEQ = 'eqdata'
       KNAMWR = 'wrdata'
@@ -176,6 +177,7 @@ C
       KNAMFP = 'fpdata'
       KNAMFO = 'fodata'
       KNAMPF = 'pfdata'
+      KNAMEQ2= 'eqdata2'
 C
 C     ======( FILE IO MODES )======
 C
@@ -247,8 +249,8 @@ C
      &              PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,
      &              RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,
      &              MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,
-     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG,
-     &              MODEFR,MODEFW
+     &              KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,
+     &              MODEFR,MODEFW,IDEBUG
 C
       READ(NID,PL,IOSTAT=IST,ERR=9800,END=9900)
       IERR=0
@@ -272,8 +274,8 @@ C
      &       9X,'PROFN1,PROFN2,PROFT1,PROFT2,PROFU1,PROFU2,'/
      &       9X,'RHOMIN,QMIN,RHOITB,PNITB,PTITB,PUITB,RHOEDG,'/
      &       9X,'MODELG,MODELN,MODELQ,RHOGMN,RHOGMX,'/
-     &       9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,IDEBUG'/
-     &       9X,'MODEFW,MODEFR')
+     &       9X,'KNAMEQ,KNAMWR,KNAMFP,KNAMFO,KNAMEQ2,'/
+     &       9X,'MODEFW,MODEFR,IDEBUG')
       END
 C
 C     ****** CHECK INPUT PARAMETER ******

@@ -18,7 +18,7 @@ LIBS = wrlib.a ../pl/pllib.a ../eq/eqlib.a ../dp/dplib.a \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : wr
+all : libs wr
 
 wrlib.a: $(OBJS)
 	$(LD) $(LDFLAGS) wrlib.a $(OBJS)

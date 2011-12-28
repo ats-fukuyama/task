@@ -58,11 +58,10 @@ C
          BX = BR*RCOST-BT*RSINT
          BY = BR*RSINT+BT*RCOST
 C
-      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG.EQ.5.OR.MODELG.EQ.8) THEN
          RL=SQRT(X**2+Y**2)
          PP=0.D0
          CALL GETRZ(RL,Z,PP,BR,BZ,BT,RHON)
-C         WRITE(6,'(1P6E12.4)') RL,ZZ,BR,BZ,BT,RHON
          RCOST=X/RL
          RSINT=Y/RL
          BX = BR*RCOST-BT*RSINT
@@ -527,7 +526,7 @@ C
             RSU(NSU)=RR+     RA*COS(TH)
             ZSU(NSU)=   RKAP*RA*SIN(TH)
          ENDDO
-      ELSEIF(MODELG.EQ.3) THEN
+      ELSEIF(MODELG.EQ.3.OR.MODELG == 8) THEN
          CALL GETRSU(RSU,ZSU,NM,NSUMAX)
       ENDIF
       RETURN

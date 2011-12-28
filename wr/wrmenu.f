@@ -8,7 +8,10 @@ C
 C
       EXTERNAL WRPARM
       CHARACTER KID*1,LINE*80
-C
+      INTEGER:: NSTAT
+
+      NSTAT=0
+
     1 CONTINUE
          IERR=0
          WRITE(6,601)
@@ -38,10 +41,12 @@ C
          CALL DPROOT
       ELSEIF(KID.EQ.'R') THEN
          CALL WRCALC
+         NSTAT=1
       ELSEIF(KID.EQ.'B') THEN
          CALL WRBEAM
+         NSTAT=2
       ELSEIF(KID.EQ.'G') THEN
-         CALL WRGOUT
+         CALL WRGOUT(NSTAT)
       ELSEIF(KID.EQ.'S') THEN
          CALL WRSAVE
       ELSEIF(KID.EQ.'Q') THEN

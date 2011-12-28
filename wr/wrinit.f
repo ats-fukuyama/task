@@ -159,7 +159,7 @@ C
      &              LMAXNW,NRZMAX,NRAYMX,KNAMWR,
      &              RCURVA,RCURVB,RBRADA,RBRADB,NRADMX,
      &              RFIN,RPIN,ZPIN,PHIIN,RNZIN,RNPHIIN,RKRIN,UUIN,
-     &              RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
+     &              ANGZIN,ANGPHIN,RCURVAIN,RCURVBIN,RBRADAIN,RBRADBIN
 
 C
       READ(NID,WR,IOSTAT=IST,ERR=9800,END=9900)
@@ -223,6 +223,17 @@ C
                INITEQ=1
             ELSE
                WRITE(6,*) 'XX EQLOAD: IERR=',IERR
+               INITEQ=0
+            ENDIF
+         ENDIF
+      ELSE IF(MODELG.EQ.8) THEN
+         IF(INITEQ.EQ.0) THEN
+            CALL EQREAD(IERR)
+            IF(IERR == 0) THEN
+               CALL EQGETB(BB,RR,RIP,RA,RKAP,RDLT,RB)
+               INITEQ=1
+            ELSE
+               WRITE(6,*) 'XX EQREAD: IERR=',IERR
                INITEQ=0
             ENDIF
          ENDIF

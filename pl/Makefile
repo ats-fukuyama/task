@@ -23,7 +23,7 @@ LIBS = pllib.a ../eq/eqlib.a ../lib/tasklib.a ../wmf/wmlib.a
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : pllib.a  noeqlib.o noequlib.o
+all: libs pllib.a noeqlib.o noequlib.o
 
 ../lib/tasklib.a:
 	(cd ../lib; make tasklib.a)
