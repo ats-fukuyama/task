@@ -38,15 +38,6 @@ C
             ELSEIF(K2.EQ.'2') THEN
                CALL EQGC2D
             ENDIF
-         ELSEIF(MODE.EQ.2.OR.MODE.EQ.-1) THEN
-            IF(K2.EQ.' ') THEN
-               CALL EQGX1D
-               CALL EQGX2D
-            ELSEIF(K2.EQ.'1') THEN
-               CALL EQGX1D
-            ELSEIF(K2.EQ.'2') THEN
-               CALL EQGX2D
-            ENDIF
          ELSE
             WRITE(6,*) 'XX: EQGOUT: NO DATA CREATED!'
          ENDIF

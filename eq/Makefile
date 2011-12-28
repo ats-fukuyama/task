@@ -6,9 +6,9 @@ FFLAGS=$(DFLAGS)
 
 MODINCLUDE=-I$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD) -I../lib/$(MOD)
 
-SRCS = eq_bpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f eqcalx.f \
+SRCS = eq_bpsd.f eqinit.f eqmenu.f eqcalc.f eqcalq.f eqcalv.f \
        eqsub.f eqfunc.f eqintf.f eqsplf.f eqfile.f \
-       eqgout.f eqgoutx.f eqgsub.f \
+       eqgout.f eqgsub.f \
        newton.f invematrix.f equnit.f eqrppl.f
 SRCT = trtest.f treqin.f
 SRCP = pltest.f

@@ -27,11 +27,11 @@ C
       PSIN=1.D0-PSI/PSI0
       IF(PSIN.LE.0.D0) THEN
          PSIN=0.D0
-         BT=FNTTS(0.D0)/RR
+         BT=FNTTS(0.D0)/(2.D0*PI*RR)
          BR=0.D0
          BZ=0.D0
       ELSE
-         BT=FNTTS(SQRT(PSIN))/RP
+         BT=FNTTS(SQRT(PSIN))/(2.D0*PI*RP)
          BR=-DPSIZ/(2.D0*PI*RP)
          BZ= DPSIR/(2.D0*PI*RP)
 C         write(6,'(A,1P3E12.4)') 'PSI,DPSIZ,DPSIR      =',PSI,DPSIR,DPSIZ

@@ -45,7 +45,7 @@ C
          SUMAVIR2=0.D0
          SUMAVRR2=0.D0
          DO N=2,NA
-            CALL EQPSID(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
+            CALL PSIGD(YA(1,N),YA(2,N),DPSIDR,DPSIDZ)
             R=YA(1,N)
             H=XA(N)-XA(N-1)
             BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)

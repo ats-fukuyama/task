@@ -31,21 +31,9 @@ C
 C
       IF(KID.EQ.'R') THEN
          MSTAT=0
-         IF(MDLEQF.LT.10) THEN
-            CALL EQCALC(IERR)
-            MSTAT=1
-         ELSEIF(MDLEQF.LT.20) THEN
-            CALL EQCALX(0,IERR)
-            IF(IERR.EQ.100) THEN
-               MSTAT=-1
-               GOTO 1
-            ENDIF
-            MSTAT=2
-         ELSE
-            WRITE(6,*) 'XX UNDEFINED MDLEQF: ',MDLEQF
-            GOTO 1
-         ENDIF
-C
+         CALL EQCALC(IERR)
+            IF(IERR.NE.0) GOTO 1
+         MSTAT=1
          CALL EQCALQ(IERR)
             IF(IERR.NE.0) GOTO 1
 C
@@ -53,25 +41,14 @@ C
          IF(MSTAT.GE.1) THEN 
   101       WRITE(6,*) '#EQ> INPUT PP0,PP1,PP2,PJ0,PJ1,PJ2,RIP,HM:'
             READ(5,*,ERR=101,END=1) PP0,PP1,PP2,PJ0,PJ1,PJ2,RIP,HM
-            IF(MDLEQF.LT.10) THEN
-               CALL EQLOOP(IERR)
-               CALL EQTORZ
-               CALL EQCALP
-               MSTAT=1
-            ELSEIF(MDLEQF.LT.20) THEN
-               CALL EQCALX(1,IERR)
-                  IF(IERR.EQ.100) THEN
-                     MSTAT=-1
-                     GOTO 1
-                  ENDIF
-               MSTAT=2
-            ELSE
-               WRITE(6,*) 'XX UNDEFINED MDLEQF: ',MDLEQF
-               GOTO 1
-            ENDIF
-C
+
+            CALL EQLOOP(IERR)
+               IF(IERR.NE.0) GO TO 101
+            CALL EQTORZ
+            CALL EQCALP
+            MSTAT=1
             CALL EQCALQ(IERR)
-            IF(IERR.NE.0) GOTO 1
+               IF(IERR.NE.0) GOTO 1
          ELSE
             WRITE(6,*) 'XX No data for continuing calculation!'
          ENDIF

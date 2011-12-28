@@ -59,7 +59,7 @@ C
       DIMENSION PSIRG(NRGM,NZGM),PSIZG(NRGM,NZGM),PSIRZG(NRGM,NZGM)
       DIMENSION HJTRG(NRGM,NZGM),HJTZG(NRGM,NZGM),HJTRZG(NRGM,NZGM)
       DIMENSION DERIV(NPSM)
-      EXTERNAL EQPSID
+      EXTERNAL PSIGD
 C
       CALL SPL2D(RG,ZG,PSIRZ,PSIRG,PSIZG,PSIRZG,UPSIRZ,
      &           NRGM,NRGMAX,NZGMAX,0,0,IERR)
@@ -165,7 +165,6 @@ C
          PSIP(NR)=PSIG(RINIT,ZINIT)-PSI0
          PPS(NR)=PPFUNC(PSIP(NR))
          TTS(NR)=TTFUNC(PSIP(NR))
-C         write(6,*) PSIG(RINIT,ZINIT)/PSI0,tts(nr),2.D0*PI*BB*RR
 C
 C         WRITE(6,'(A,I5,1P5E12.4)') 'NR:',NR,
 C     &        PSIP(NR),PPS(NR),TTS(NR),RINIT,ZINIT
@@ -202,7 +201,7 @@ C
             H=XA(N)-XA(N-1)
             R=0.5D0*(YA(1,N-1)+YA(1,N))
             Z=0.5D0*(YA(2,N-1)+YA(2,N))
-            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+            CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
             BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
             BTL=TTS(NR)/(2.D0*PI*R)
             B2L=BTL**2+BPL**2
@@ -227,7 +226,7 @@ C
 C
             R=YA(1,N)
             Z=YA(2,N)
-            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+            CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
             BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
             BTL=TTS(NR)/(2.D0*PI*R)
             B2L=BTL**2+BPL**2
@@ -414,7 +413,7 @@ C
          H=XA(N)-XA(N-1)
          R=0.5D0*(YA(1,N-1)+YA(1,N))
          Z=0.5D0*(YA(2,N-1)+YA(2,N))
-         CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+         CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
          BPRL=SQRT(DPSIDR**2+DPSIDZ**2)
          BPL=BPRL/(2.D0*PI*R)
          BTL=TTSA/(2.D0*PI*R)
@@ -448,20 +447,18 @@ C     ----- CALCULATE PLASMA SURFACE -----
 C
       CALL EQCALF(REDGE,ZAXIS,NTHMAX,RSU,ZSU,IERR)
 C
-      IF(MDLEQF.LT.10) THEN
-         RGMIN=RSU(1)
-         RGMAX=RSU(1)
-         ZGMIN=ZSU(1)
-         ZGMAX=ZSU(1)
-         DO NTH=2,NTHMAX
+      RGMIN=RSU(1)
+      RGMAX=RSU(1)
+      ZGMIN=ZSU(1)
+      ZGMAX=ZSU(1)
+      DO NTH=2,NTHMAX
 C            write(6,'(A,I5,1P2E12.4)') 
 C     &           'NTH,RSU,ZSU=',NTH,RSU(NTH),ZSU(NTH)
-            RGMIN=MIN(RGMIN,RSU(NTH))
-            RGMAX=MAX(RGMAX,RSU(NTH))
-            ZGMIN=MIN(ZGMIN,ZSU(NTH))
-            ZGMAX=MAX(ZGMAX,ZSU(NTH))
-         ENDDO
-      ENDIF
+         RGMIN=MIN(RGMIN,RSU(NTH))
+         RGMAX=MAX(RGMAX,RSU(NTH))
+         ZGMIN=MIN(ZGMIN,ZSU(NTH))
+         ZGMAX=MAX(ZGMAX,ZSU(NTH))
+      ENDDO
       DO NTH=1,NTHMAX
          RSW(NTH)=RSU(NTH)
          ZSW(NTH)=ZSU(NTH)
@@ -624,7 +621,7 @@ C
                H=XA(N)-XA(N-1)
                R=0.5D0*(YA(1,N-1)+YA(1,N))
                Z=0.5D0*(YA(2,N-1)+YA(2,N))
-               CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+               CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
                BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
                BTL=TTS(NR)/(2.D0*PI*R)
                B2L=BTL**2+BPL**2
@@ -649,7 +646,7 @@ C
 C
                R=YA(1,N)
                Z=YA(2,N)
-               CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+               CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
                BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
                BTL=TTS(NR)/(2.D0*PI*R)
                B2L=BTL**2+BPL**2
@@ -951,7 +948,7 @@ C
 !            IF(NR.LE.5) WRITE(6,'(I5,1P4E12.4)')
 !     &           NR,DRRHOL,DRPSI(NTH,NR),QPSL,PSITA
 C
-            CALL EQPSID(RPSL,ZPSL,DPSIDR,DPSIDZ)
+            CALL PSIGD(RPSL,ZPSL,DPSIDR,DPSIDZ)
             BPR(NTH,NR)= DPSIDZ/(2.D0*PI*RPSL)
             BPZ(NTH,NR)=-DPSIDR/(2.D0*PI*RPSL)
             BPT(NTH,NR)=SQRT(BPR(NTH,NR)**2+BPZ(NTH,NR)**2)

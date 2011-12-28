@@ -364,8 +364,6 @@ C            7: given spline profile    P,J_para      + Ip
 C            8: given spline profile    P,J_para
 C            9: given spline profile    P,q
 C
-C           10: Free boundary
-C
       MDLEQF = 0
 C
 C        MDLEQA : Rho in P(rho), F(rho), q(rho),...

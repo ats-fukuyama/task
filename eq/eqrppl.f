@@ -46,7 +46,7 @@ C     +++++ SETUP AXIS DATA +++++
 C
       NR = 1
       NA=NTVMAX
-      CALL EQPSID(RAXIS,ZAXIS,DPSIDR,DPSIDZ)
+      CALL PSIGD(RAXIS,ZAXIS,DPSIDR,DPSIDZ)
       BTL=TTS(NR)/(2.D0*PI*RAXIS)
       CALL SPL2DF(RAXIS,ZAXIS,DLTRP,Rrp,Zrp,URpplRZ,
      &                  NRrpM,NRrpM,NZrpM,IERR)
@@ -103,7 +103,7 @@ C
             H=XA(N)-XA(N-1)
             R=0.5D0*(YA(1,N-1)+YA(1,N))
             Z=0.5D0*(YA(2,N-1)+YA(2,N))
-            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
+            CALL PSIGD(R,Z,DPSIDR,DPSIDZ)
             BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
             BTL=TTS(NR)/(2.D0*PI*R)
             B2L=BTL**2+BPL**2
@@ -160,48 +160,11 @@ C
                DltRPV(NR) = 0.5d0 * (DltRPV(NR) + DLTRP)
                idx2 = 2
             end if
-C
-c$$$            if(R < RAXIS) then
-c$$$               if(idx2 == 0) then ! Upper side
-c$$$                  DltRPV(NR) = DLTRP 
-c$$$                  idx2 = 1
-c$$$               else ! Average between upper and lower sides
-c$$$                  write(6,*) NR,N,R,RAXIS
-c$$$                  DltRPV(NR) = 0.5d0 * (DltRPV(NR) + DLTRP)
-c$$$               end if
-c$$$            end if
-C
-c$$$            R=YA(1,N)
-c$$$            Z=YA(2,N)
-c$$$            CALL EQPSID(R,Z,DPSIDR,DPSIDZ)
-c$$$            BPL=SQRT(DPSIDR**2+DPSIDZ**2)/(2.D0*PI*R)
-c$$$            BTL=TTS(NR)/(2.D0*PI*R)
-c$$$            B2L=BTL**2+BPL**2
-c$$$            B=SQRT(B2L)
-c$$$C
-c$$$            RMIN=MIN(RMIN,R)
-c$$$            RMAX=MAX(RMAX,R)
-c$$$            IF(Z.LT.ZMIN) THEN
-c$$$               ZMIN=Z
-c$$$               NZMINR=N
-c$$$            ENDIF
-c$$$            IF(Z.GT.ZMAX) THEN
-c$$$               ZMAX=Z
-c$$$               NZMAXR=N
-c$$$            ENDIF
-c$$$            BMIN=MIN(BMIN,B)
-c$$$            BMAX=MAX(BMAX,B)
          ENDDO
 C
          NtrcMAX(NR) = NA
          rip_rat(NR) = ARC / XA(NA)
 C
-c$$$      DO NR = 1, NRPMAX
-c$$$         DO N = 1, NtrcMAX(NR)
-c$$$            if(GRal(NR,J) > 0.d0) write(6,*) GRal(NR,N),GZal(NR,N),GAlpRP(NR,N)
-c$$$         ENDDO
-c$$$         write(6,*) 
-c$$$      ENDDO
       ENDDO
 C
 C     ----- File output for TASK/TX -----
