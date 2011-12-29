@@ -2209,7 +2209,7 @@ C
 !
       integer function cfttree(n, j, k, a, nw, w)
       integer n, j, k, nw, i, isplt, m
-      real*8 a(0 : n - 1), w(0 : nw - 1)
+      real*8 a(0 : j - 1), w(0 : nw - 1)
       if (mod(k, 4) .ne. 0) then
           isplt = mod(k, 2)
           if (isplt .ne. 0) then
