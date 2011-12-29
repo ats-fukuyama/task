@@ -1,5 +1,154 @@
 C     $Id$
 C
+C     ****** Complex FFT2D ******
+C
+      SUBROUTINE cfft2d(ca,cb,n1max,n2max,key)
+C
+      implicit none
+      integer,intent(in):: n1max,n2max,key
+      complex(8),dimension(n1max,n2max),intent(in):: CA
+      complex(8),dimension(n1max,n2max),intent(out):: CB
+      complex(8),dimension(n1max):: CA1,CB1
+      complex(8),dimension(n2max):: CA2,CB2
+      integer:: n1,n2
+C
+      IF(key.ne.0.AND.key.ne.1) THEN
+         WRITE(6,*) 'XX cfft2d ERROR: key is not 0 or 1'
+         STOP
+      ENDIF
+C
+      DO n2=1,n2
+         DO n1=1,n1max
+            CA1(n1)=CA(n1,n2)
+         ENDDO
+         CALL CFFT1D1(CA1,CB1,n1max,key)
+         DO n1=1,n1max
+            CB(n1,n2)=CB1(n1)
+         ENDDO
+      ENDDO
+C
+      DO n1=1,n1max
+         DO n2=1,n2max
+            CA2(n2)=CB(n1,n2)
+         ENDDO
+         CALL CFFT1D2(CA2,CB2,n2max,key)
+         DO n2=1,n2max
+            CB(n1,n2)=CB2(n2)
+         ENDDO
+      ENDDO
+      RETURN
+      END
+C
+C     ****** Complex FFT1D ******
+C
+      SUBROUTINE CFFT1D(CA,CB,N,KEY)
+C
+      IMPLICIT NONE
+C
+      COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
+      COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
+      INTEGER,INTENT(IN):: N,KEY
+      REAL(8),DIMENSION(:),POINTER:: RFFT
+      INTEGER,DIMENSION(:),POINTER:: LFFT
+      INTEGER,SAVE:: NS
+      INTEGER:: IND
+      DATA NS/0/
+C
+      IF(key.ne.0.AND.key.ne.1) THEN
+         WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
+         STOP
+      ENDIF
+C
+      IF(N.NE.1) THEN
+         IF(N.EQ.NS) THEN
+            IND=0
+         ELSE
+            IF(N.GT.NS) THEN
+               IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+               ALLOCATE(RFFT(N),LFFT(N))
+            ENDIF
+            IND=1
+            NS=N
+         ENDIF
+         CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ****** Complex FFT1D (separate interface for 2D) ******
+C
+      SUBROUTINE CFFT1D1(CA,CB,N,KEY)
+C
+      IMPLICIT NONE
+C
+      COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
+      COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
+      INTEGER,INTENT(IN):: N,KEY
+      REAL(8),DIMENSION(:),POINTER:: RFFT
+      INTEGER,DIMENSION(:),POINTER:: LFFT
+      INTEGER,SAVE:: NS
+      INTEGER:: IND
+      DATA NS/0/
+C
+      IF(key.ne.0.AND.key.ne.1) THEN
+         WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
+         STOP
+      ENDIF
+C
+      IF(N.NE.1) THEN
+         IF(N.EQ.NS) THEN
+            IND=0
+         ELSE
+            IF(N.GT.NS) THEN
+               IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+               ALLOCATE(RFFT(N),LFFT(N))
+            ENDIF
+            IND=1
+            NS=N
+         ENDIF
+         CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
+      ENDIF
+C
+      RETURN
+      END
+C
+C     ****** Complex FFT1D (separate interface for 2D) ******
+C
+      SUBROUTINE CFFT1D2(CA,CB,N,KEY)
+C
+      IMPLICIT NONE
+C
+      COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
+      COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
+      INTEGER,INTENT(IN):: N,KEY
+      REAL(8),DIMENSION(:),POINTER:: RFFT
+      INTEGER,DIMENSION(:),POINTER:: LFFT
+      INTEGER,SAVE:: NS
+      INTEGER:: IND
+      DATA NS/0/
+C
+      IF(key.ne.0.AND.key.ne.1) THEN
+         WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
+         STOP
+      ENDIF
+C
+      IF(N.NE.1) THEN
+         IF(N.EQ.NS) THEN
+            IND=0
+         ELSE
+            IF(N.GT.NS) THEN
+               IF(NS.NE.0) DEALLOCATE(RFFT,LFFT)
+               ALLOCATE(RFFT(N),LFFT(N))
+            ENDIF
+            IND=1
+            NS=N
+         ENDIF
+         CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
+      ENDIF
+C
+      RETURN
+      END
 C
 C     ====== FFT USING FFT package ======
 C     ====== http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html ======
