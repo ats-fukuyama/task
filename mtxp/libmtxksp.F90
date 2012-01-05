@@ -552,11 +552,11 @@
 
       INTEGER,INTENT(IN):: j
       REAL(8),INTENT(OUT):: v
-      PetscScalar:: x_value(1)
+      PetscScalar:: x_value(ilen)
       PetscOffset:: x_offset
       INTEGER:: ierr
 
-      call VecGetArray(x,x_value,x_offset,ierr)
+      call VecGetArrayF90(x,x_value,x_offset,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecGetArray: ierr=',ierr
       v=x_value(x_offset+j-Istart)
