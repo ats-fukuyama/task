@@ -1,7 +1,7 @@
       USE libgrf,ONLY: grf1d,grf2d
       IMPLICIT REAL*8 (A-F,H,O-Z)
 
-      PARAMETER (NXM=1001)
+      PARAMETER (NXM=101)
       PARAMETER (NYM=101)
       PARAMETER (NGM=10)
       DIMENSION GX(NXM),GF(NXM,NGM)
