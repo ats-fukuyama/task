@@ -31,7 +31,11 @@
       isource=6
       itype=0
       m1=4
-      m2=5
+      IF(nprocs == 0) THEN
+         m2=5
+      ELSE
+         m2=0
+      ENDIF
       tolerance=1.d-7
 
     1 CONTINUE
