@@ -16,6 +16,7 @@
 
       SUBROUTINE FPCALC_NL(NR,NSB,NSA)
 !
+      USE libgrf,ONLY: grd1d
       IMPLICIT NONE
 !
 !      integer,parameter::N=NPM+2, M=NTHM+2, LNM=5

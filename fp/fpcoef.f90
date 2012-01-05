@@ -13,13 +13,7 @@
       USE fpcalw
       USE fpcalwm
       USE fpcalwr
-
-      interface
-         DOUBLE PRECISION FUNCTION BESEKN(N,X)
-           real(8) :: X
-           integer :: N
-         end function BESEKN
-      end interface 
+      USE libbes,ONLY: besekn
 
       contains
 !-------------------------------------------------------------

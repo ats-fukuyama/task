@@ -9,6 +9,7 @@
       MODULE fpcalwr
 
       USE fpcomm
+      USE libbes,ONLY: bessjn
       USE fpcalwm, only: FPDWRP
 
       contains

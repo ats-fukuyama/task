@@ -18,6 +18,7 @@
 
       SUBROUTINE FPCALC_NLR(NR,NSB,NSA)
 
+      USE libgrf,ONLY: grd1d
       Implicit none
 !      PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
       integer,parameter::LNM=5
@@ -1140,6 +1141,7 @@
 !-------------------------------------------
       SUBROUTINE INTEGRATION_RJAB_RYAB_weighp(NR,NSB,NSA,FPL,RJABG,RJABM,RYABG,RYABM)
 
+      USE libgrf,ONLY: grd1d
       IMPLICIT NONE
 
       integer,parameter::LNM=5

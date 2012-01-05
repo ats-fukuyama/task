@@ -11,6 +11,7 @@
       USE fpcomm
       USE plprof
       USE fpwmin
+      USE libbes,ONLY: bessjn
 
       contains
 !

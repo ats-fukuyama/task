@@ -272,6 +272,7 @@
       SUBROUTINE FPGRFA(ID,DATA,P,IND,TITLE,NTHM,NPM,NRM, &
                                             NTHMAX,NPMAX,NRMAX,NSA)
 
+      USE libgrf,ONLY: grd1d
       implicit none
       integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX,NSA
       real(8), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA
@@ -336,6 +337,7 @@
       SUBROUTINE FPGRFB(ID,DATA,TH,IND,TITLE,NTHM,NPM,NRM, &
                                             NTHMAX,NPMAX,NRMAX,NSA)
 !
+      USE libgrf,ONLY: grd1d
       implicit none
       integer, intent(IN)::  ID,IND,NTHM,NPM,NRM,NTHMAX,NPMAX,NRMAX,NSA
       real(8), dimension(NTHM,NPM,NRM,NSA), intent(IN):: DATA

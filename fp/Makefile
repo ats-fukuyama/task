@@ -3,7 +3,7 @@ include ../../task/make.header
 
 ##### Without PETSc library #####
 #LIBMTX=../../task/mtxp/libmtxbnd.o ../../task/mtxp/libmtxnompi.o
-#PETSCLIB=
+#PETSCLIBS=
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
 LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
@@ -15,7 +15,8 @@ PETSCLIBS=${PETSC_KSP_LIB}
 FFLAGS=$(OFLAGS)
 #FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I.$(MOD) -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
+MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
+            -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \
             -I../../bpsd/$(MOD) -I../../task/mtxp
 
 SRCS = fpcomm.f90 fpinit.f90 fpbroadcast.f90 fpexec.f90 fpsave.f90 \
@@ -34,7 +35,7 @@ LIBS = fplib.a ../../task/plx/pllib.a ../../task/eq/eqlib.a   \
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
-all : fp
+all: libs fp
 
 fplib.a: $(OBJS)
 	$(LD) $(LDFLAGS) fplib.a $(OBJS)
