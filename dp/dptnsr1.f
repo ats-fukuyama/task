@@ -278,6 +278,7 @@ C     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
 C
       SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: lambda
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
@@ -343,6 +344,7 @@ C     ****** KINETIC MODEL WITH FLR ******
 C
       SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: lambda
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)

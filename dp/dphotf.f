@@ -28,6 +28,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTFR(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: bessjn
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
@@ -232,6 +233,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTFI(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: bessjn
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C

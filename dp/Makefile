@@ -4,6 +4,8 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
+MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD)
+
 SRCS = dpmenu.f dpinit.f dproot.f dpcont.f dpdisp.f \
        dpgsub.f dptens.f dptnsr1.f dptnsr2.f \
        dpfpin.f dphotf.f dphotr.f dpdkdt.f
@@ -13,9 +15,9 @@ OBJS = $(SRCS:.f=.o)
 LIBS = dplib.a ../pl/pllib.a  ../eq/eqlib.a ../../bpsd/bpsdlib.a \
 	 ../lib/tasklib.a
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
 all : dp
 

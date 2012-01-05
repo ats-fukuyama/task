@@ -33,6 +33,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTRR(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: bessjn
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
 C
@@ -241,6 +242,7 @@ C ******************************************************
 C
       SUBROUTINE DPHOTRI(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libbes,ONLY: bessjn
       INCLUDE 'dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
