@@ -1,8 +1,6 @@
-!     $Id$
-
-  module libfem_mod
-  implicit none
-  private
+MODULE libfem
+  IMPLICIT NONE
+  PRIVATE
   real(8), dimension(1:4,1:4), save, public :: table_ll
   real(8), dimension(1:4,1:4), save, public :: table_lg
   real(8), dimension(1:8,1:8), save, public :: table_hh
@@ -29,7 +27,7 @@
   integer, save, public :: table_initialize_flag = 0
   public :: table_initialize, fem_integrate
 
-contains
+CONTAINS
 
   subroutine table_initialize
 
@@ -3756,4 +3754,4 @@ contains
 
   end subroutine fem_integrate
 
-end module libfem_mod
+END MODULE libfem

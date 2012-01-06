@@ -4,8 +4,8 @@ include ../make.header
 .SUFFIXES:
 .SUFFIXES: .f .f90 .mod .o .a
 
-LFLAGS = $(OFLAGS)
-#LFLAGS = $(DFLAGS)
+#LFLAGS = $(OFLAGS)
+LFLAGS = $(DFLAGS)
 FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD)
@@ -21,10 +21,9 @@ SRCSFREE  =  libbrn.f90 libinv.f90 libbnd.f90 \
 	     libgrf/grfconvert.f90 libgrf/grdconvert.f90 \
              libgrf/grf1d.f90 libgrf/grd1d.f90 \
 	     libgrf/grf2d.f90 libgrf/grd2d.f90 libgrf.f90 \
-             libbes.f90
-SRCSFIXED =  libspf.f libell.f \
-             libde.f libfft.f libdsp.f \
-             libfp.f netlib-bes.f $(LAPACK)
+             libbes.f90 libde.f90 libdsp.f90 libell.f90 libspf.f90 \
+	     libfft.f90
+SRCSFIXED =  netlib-bes.f $(LAPACK)
 
 OBJSFREE  = $(SRCSFREE:.f90=.o)
 OBJSFIXED = $(SRCSFIXED:.f=.o)
@@ -57,8 +56,8 @@ clean:
 
 veryclean: clean
 
-femtest: tasklib.a femtest.o 
-	$(FCFIXED) femtest.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
+testfem: tasklib.a testfem.o 
+	$(FCFREE) testfem.o tasklib.a $(FFLAGS) -o $@ $(FLIBS) $(MODINCLUDE)
 
 testbes: tasklib.a testbes.o 
 	$(FCFIXED) testbes.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)

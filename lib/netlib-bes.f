@@ -140,9 +140,10 @@ C          Argonne National Laboratory
 C          Argonne, IL  60439
 C
 C---------------------------------------------------------------------
+      USE libspf,ONLY: DGAMMA
       INTEGER I,J,K,L,M,MAGX,N,NB,NBMX,NCALC,NEND,NSTART
 CS    REAL               GAMMA,
-      DOUBLE PRECISION  DGAMMA,
+      DOUBLE PRECISION  
      1 ALPHA,ALPEM,ALP2EM,B,CAPP,CAPQ,CONV,EIGHTH,EM,EN,ENMTEN,ENSIG,
      2 ENTEN,FACT,FOUR,FUNC,GNU,HALF,HALFX,ONE,ONE30,P,PI2,PLAST,
      3 POLD,PSAVE,PSAVEL,RTNSIG,S,SUM,T,T1,TEMPA,TEMPB,TEMPC,TEST,
@@ -644,6 +645,7 @@ C               Argonne National Laboratory
 C               Argonne, IL  60439
 C
 C----------------------------------------------------------------------
+      USE libspf,ONLY: DGAMMA
       INTEGER I,K,NA,NB,NCALC
 CS    REAL
       DOUBLE PRECISION
@@ -1119,9 +1121,10 @@ C               Argonne National Laboratory
 C               Argonne, IL  60439
 C
 C-------------------------------------------------------------------
+      USE libspf,ONLY: DGAMMA
       INTEGER IZE,K,L,MAGX,N,NB,NBMX,NCALC,NEND,NSIG,NSTART
 CS    REAL              GAMMA,
-      DOUBLE PRECISION DGAMMA,             
+      DOUBLE PRECISION 
      1 ALPHA,B,CONST,CONV,EM,EMPAL,EMP2AL,EN,ENMTEN,ENSIG,
      2 ENTEN,EXPARG,FUNC,HALF,HALFX,ONE,P,PLAST,POLD,PSAVE,PSAVEL,
      3 RTNSIG,SUM,TEMPA,TEMPB,TEMPC,TEST,TOVER,TWO,X,XLARGE,ZERO

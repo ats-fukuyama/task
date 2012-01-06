@@ -1,25 +1,43 @@
-C     $Id$
-C
-C     ************************************************************
-C        FINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
-C                    (-1.D0, +1.D0)
-C         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
-C     ************************************************************
-C
-C        For integral with respect to y from a to b,
-C            variable transformation should be
-C                 x = (2*y-a-b)/(b-a)
-C
-C                 near y ~ a   y-a=(b-a)*(1+x)/2
-C                 near y ~ b   b-y=(b-a)*(1-x)/2
-C                 otherwize      y=(b-a)*x/2+(a+b)/2
-C
-      SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC,KID)
-      IMPLICIT REAL*8(A-H,O-Z)
-      EXTERNAL FUNC
-      CHARACTER*(*) KID
-      DATA HP/1.5707 96326 79489 66192D0/
-C
+!
+MODULE libde
+
+  PRIVATE
+  PUBLIC DEFT,DEHIFT,DEHIFTC,DEHIFE,DEHIFEC
+
+CONTAINS
+!     ************************************************************
+!        FINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+!                    (-1.D0, +1.D0)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X,1-X,1+X)
+!     ************************************************************
+!
+!        For integral with respect to y from a to b,
+!            variable transformation should be
+!                 x = (2*y-a-b)/(b-a)
+!
+!                 near y ~ a   y-a=(b-a)*(1+x)/2
+!                 near y ~ b   b-y=(b-a)*(1-x)/2
+!                 otherwize      y=(b-a)*x/2+(a+b)/2
+
+  SUBROUTINE DEFT(CS,ES,H0,EPS,ILST,FUNC,KID)
+    IMPLICIT NONE
+    REAL(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION FUNC(X,XM,XP)
+         REAL(8):: FUNC
+         REAL(8),INTENT(IN):: X,XM,XP
+       END FUNCTION FUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
       EPS1=EPS**0.75D0
       H=H0
       X=0.D0
@@ -30,7 +48,7 @@ C
       NM=0
       NPMIN=1
       NMMIN=1
-C
+
     1 IND=0
       ATP=ABS(CSI)
       ATM=ATP
@@ -38,7 +56,7 @@ C
       IF(NP.EQ.0) NPD=1
       NMD=2
       IF(NM.EQ.0) NMD=1
-C
+
    10 IF(IND.NE.1) THEN
          IF(NP.EQ.NPMIN+2) NPD=1
          NP=NP+NPD
@@ -60,7 +78,7 @@ C
             ENDIF
          ENDIF
       ENDIF
-C
+
       IF(IND.NE.-1) THEN
          IF(NM.EQ.NMMIN+2) NMD=1
          NM=NM+NMD
@@ -83,7 +101,7 @@ C
          ENDIF
       ENDIF
       GO TO 10
-C
+
   100 ES=ABS(CS-CSP)
       IF(ILST.NE.0) THEN
          IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
@@ -103,28 +121,41 @@ C
       NP=-1
       NM=-1
       GO TO 1
-C
+
   200 RETURN
-C
+
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   603 FORMAT(1H ,'XX DEFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
-      END
-C
-C     *************************************************************
-C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
-C                    (0, +INFINITE)
-C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
-C     *************************************************************
-C
-      SUBROUTINE DEHIFT(CS,ES,H0,EPS,ILST,FUNC,KID)
-      IMPLICIT REAL*8(A-H,O-Z)
-      EXTERNAL FUNC
-      CHARACTER*(*) KID
-      DATA HP/1.5707 96326 79489 66192D0/
-C
+ END SUBROUTINE DEFT
+
+!     *************************************************************
+!      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+!                    (0, +INFINITE)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+!     *************************************************************
+
+ SUBROUTINE DEHIFT(CS,ES,H0,EPS,ILST,FUNC,KID)
+    IMPLICIT NONE
+    REAL(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION FUNC(X)
+         REAL(8):: FUNC
+         REAL(8):: X
+       END FUNCTION FUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
       EPS1=EPS**0.75D0
       H=H0
       X=1.D0
@@ -135,7 +166,7 @@ C
       NM=0
       NPMIN=1
       NMMIN=1
-C
+
     1 IND=0
       ATP=ABS(CSI)
       ATM=ATP
@@ -143,7 +174,7 @@ C
       IF(NP.EQ.0) NPD=1
       NMD=2
       IF(NM.EQ.0) NMD=1
-C
+
    10 IF(IND.NE.1) THEN
          IF(NP.EQ.NPMIN+2) NPD=1
          NP=NP+NPD
@@ -162,7 +193,7 @@ C
             ENDIF
          ENDIF
       ENDIF
-C
+
       IF(IND.NE.-1) THEN
          IF(NM.EQ.NMMIN+2) NMD=1
          NM=NM+NMD
@@ -182,7 +213,7 @@ C
          ENDIF
       ENDIF
       GO TO 10
-C
+
   100 ES=ABS(CS-CSP)
       IF(ILST.NE.0) THEN
          IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
@@ -202,29 +233,42 @@ C
       NP=-1
       NM=-1
       GO TO 1
-C
+
   200 RETURN
-C
+
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
-      END
-C
-C     *************************************************************
-C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
-C                    (0, +INFINITE)
-C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
-C     *************************************************************
-C
-      SUBROUTINE DEHIFTC(CS,ES,H0,EPS,ILST,CFUNC,KID)
-      IMPLICIT REAL*8(A-H,O-Z)
-      COMPLEX*16 CFUNC,CS,CSI,CSP,CT
-      EXTERNAL CFUNC
-      CHARACTER*(*) KID
-      DATA HP/1.5707 96326 79489 66192D0/
-C
+  END SUBROUTINE DEHIFT
+
+!     *************************************************************
+!      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA
+!                    (0, +INFINITE)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+!     *************************************************************
+
+  SUBROUTINE DEHIFTC(CS,ES,H0,EPS,ILST,CFUNC,KID)
+    IMPLICIT NONE
+    COMPLEX(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION CFUNC(X)
+         COMPLEX(8):: CFUNC
+         REAL(8),INTENT(IN):: X
+       END FUNCTION CFUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    COMPLEX(8):: CSI,CSP,CT
+    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,XM,XP,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
       EPS1=EPS**0.75D0
       H=H0
       X=1.D0
@@ -235,7 +279,7 @@ C
       NM=0
       NPMIN=1
       NMMIN=1
-C
+
     1 IND=0
       ATP=ABS(CSI)
       ATM=ATP
@@ -243,7 +287,7 @@ C
       IF(NP.EQ.0) NPD=1
       NMD=2
       IF(NM.EQ.0) NMD=1
-C
+
    10 IF(IND.NE.1) THEN
          IF(NP.EQ.NPMIN+2) NPD=1
          NP=NP+NPD
@@ -262,7 +306,7 @@ C
             ENDIF
          ENDIF
       ENDIF
-C
+
       IF(IND.NE.-1) THEN
          IF(NM.EQ.NMMIN+2) NMD=1
          NM=NM+NMD
@@ -282,7 +326,7 @@ C
          ENDIF
       ENDIF
       GO TO 10
-C
+
   100 ES=ABS(CS-CSP)
       IF(ILST.NE.0) THEN
          IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
@@ -302,28 +346,42 @@ C
       NP=-1
       NM=-1
       GO TO 1
-C
+
   200 RETURN
-C
+
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   603 FORMAT(1H ,'XX DEHIFT: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
-      END
-C
-C     *************************************************************
-C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
-C               FOR INTEGRAND WITH FACTOR EXP(-X)
-C                    (0, +INFINITE)
-C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
-C     *************************************************************
-C
-      SUBROUTINE DEHIFE(CS,ES,H0,EPS,ILST,FUNC,KID)
-      IMPLICIT REAL*8(A-H,O-Z)
-      CHARACTER*(*) KID
-      EXTERNAL FUNC
-C
+  END SUBROUTINE DEHIFTC
+
+!     *************************************************************
+!      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
+!               FOR INTEGRAND WITH FACTOR EXP(-X)
+!                    (0, +INFINITE)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+!     *************************************************************
+
+  SUBROUTINE DEHIFE(CS,ES,H0,EPS,ILST,FUNC,KID)
+    IMPLICIT NONE
+    REAL(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION FUNC(X)
+         REAL(8):: FUNC
+         REAL(8),INTENT(IN):: X
+       END FUNCTION FUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    REAL(8):: EPS1,H,X,CSI,CSP,ATP,ATM,HN,HC,HS,CC,XM,XP,CT,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
       EPS1=EPS**0.75D0
       H=H0
       X=EXP(-1.D0)
@@ -334,7 +392,7 @@ C
       NM=0
       NPMIN=1
       NMMIN=1
-C
+
     1 IND=0
       ATP=ABS(CSI)
       ATM=ATP 
@@ -342,7 +400,7 @@ C
       IF(NP.EQ.0) NPD=1
       NMD=2
       IF(NM.EQ.0) NMD=1
-C
+
    10 IF(IND.NE.1) THEN
          IF(NP.EQ.NPMIN+2) NPD=1
          NP=NP+NPD
@@ -360,7 +418,7 @@ C
             ENDIF
          ENDIF
       ENDIF
-C
+
       IF(IND.NE.-1) THEN
          IF(NM.EQ.NMMIN+2) NMD=1
          NM=NM+NMD
@@ -379,7 +437,7 @@ C
          ENDIF
       ENDIF
       GO TO 10
-C
+
   100 ES=ABS(CS-CSP)
       IF(ILST.EQ.2) THEN
          IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
@@ -399,32 +457,46 @@ C
       NP=-1
       NM=-1
       GO TO 1
-C
+
   200 IF(ILST.EQ.1) THEN
          WRITE(6,602) H,NP,NM,CS,ES
       ENDIF
       RETURN
-C
+
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD13.5,2I8,1PD24.15)
   602 FORMAT(1H ,1PD13.5,2I8,1PD24.15,1PD14.5)
   603 FORMAT(1H ,'XX DEHIFE: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
-      END
-C
-C     *************************************************************
-C      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
-C               FOR INTEGRAND WITH FACTOR EXP(-X)
-C                    (0, +INFINITE)
-C         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
-C     *************************************************************
-C
-      SUBROUTINE DEHIFEC(CS,ES,H0,EPS,ILST,CFUNC,KID)
-      IMPLICIT REAL*8(A-H,O-Z)
-      COMPLEX*16 CFUNC,CS,CSI,CSP,CT
-      CHARACTER*(*) KID
-      EXTERNAL CFUNC
-C
+  END SUBROUTINE DEHIFE
+
+!     *************************************************************
+!      HALF INFINITE INTEGRAL BY DOUBLE-EXPONENTIAL FORMULA 
+!               FOR INTEGRAND WITH FACTOR EXP(-X)
+!                    (0, +INFINITE)
+!         INTEGRAND SHOULD BE DEFINED BY FUNC(X)
+!     *************************************************************
+
+  SUBROUTINE DEHIFEC(CS,ES,H0,EPS,ILST,CFUNC,KID)
+    IMPLICIT NONE
+    COMPLEX(8),INTENT(OUT):: CS   ! Integral
+    REAL(8),INTENT(OUT):: ES   ! Estimated error 
+    REAL(8),INTENT(IN)::  H0   ! Initial step size
+    REAL(8),INTENT(IN)::  EPS  ! Convergence thrshold
+    INTEGER,INTENT(IN)::  ILST ! print out control: 0 for no print out
+    INTERFACE
+       FUNCTION CFUNC(X)
+         COMPLEX(8):: CFUNC
+         REAL(8),INTENT(IN):: X
+       END FUNCTION CFUNC
+    END INTERFACE
+    CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
+    REAL(8),PARAMETER:: HP=1.5707963267948966192D0
+
+    COMPLEX(8):: CSI,CSP,CT
+    REAL(8):: EPS1,H,X,ATP,ATM,HN,HC,HS,CC,XM,XP,AT
+    INTEGER:: NP,NM,NPMIN,NMMIN,IND,NPD,NMD,NMAX
+
       EPS1=EPS**0.75D0
       H=H0
       X=EXP(-1.D0)
@@ -435,7 +507,7 @@ C
       NM=0
       NPMIN=1
       NMMIN=1
-C
+
     1 IND=0
       ATP=ABS(CSI)
       ATM=ATP 
@@ -443,7 +515,7 @@ C
       IF(NP.EQ.0) NPD=1
       NMD=2
       IF(NM.EQ.0) NMD=1
-C
+
    10 IF(IND.NE.1) THEN
          IF(NP.EQ.NPMIN+2) NPD=1
          NP=NP+NPD
@@ -461,7 +533,7 @@ C
             ENDIF
          ENDIF
       ENDIF
-C
+
       IF(IND.NE.-1) THEN
          IF(NM.EQ.NMMIN+2) NMD=1
          NM=NM+NMD
@@ -480,7 +552,7 @@ C
          ENDIF
       ENDIF
       GO TO 10
-C
+
   100 ES=ABS(CS-CSP)
       IF(ILST.EQ.2) THEN
          IF(H.GE.H0) WRITE(6,601) H,NP,NM,CS
@@ -500,15 +572,16 @@ C
       NP=-1
       NM=-1
       GO TO 1
-C
+
   200 IF(ILST.EQ.1) THEN
          WRITE(6,602) H,NP,NM,CS,ES
       ENDIF
       RETURN
-C
+
   501 FORMAT(A1)
   601 FORMAT(1H ,1PD12.4,2I8,1P2D12.4)
   602 FORMAT(1H ,1PD12.4,2I8,1P2D12.4,1PD12.4)
   603 FORMAT(1H ,'XX DEHIFEC: NMAX EXCEEDS 1000: FUNC=',A)
  9999 STOP
-      END
+  END SUBROUTINE DEHIFEC
+END MODULE libde

@@ -1,9 +1,14 @@
-C     $Id$
-C
-C     ****** Complex FFT2D ******
-C
-      SUBROUTINE cfft2d(ca,cb,n1max,n2max,key)
-C
+MODULE libfft
+
+  PRIVATE
+  PUBLIC CFFT2D,CFFT1D,FFT2L
+
+CONTAINS
+
+!     ****** Complex FFT2D ******
+
+      SUBROUTINE CFFT2D(ca,cb,n1max,n2max,key)
+
       implicit none
       integer,intent(in):: n1max,n2max,key
       complex(8),dimension(n1max,n2max),intent(in):: CA
@@ -11,12 +16,12 @@ C
       complex(8),dimension(n1max):: CA1,CB1
       complex(8),dimension(n2max):: CA2,CB2
       integer:: n1,n2
-C
+
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft2d ERROR: key is not 0 or 1'
          STOP
       ENDIF
-C
+
       DO n2=1,n2
          DO n1=1,n1max
             CA1(n1)=CA(n1,n2)
@@ -26,7 +31,7 @@ C
             CB(n1,n2)=CB1(n1)
          ENDDO
       ENDDO
-C
+
       DO n1=1,n1max
          DO n2=1,n2max
             CA2(n2)=CB(n1,n2)
@@ -37,14 +42,14 @@ C
          ENDDO
       ENDDO
       RETURN
-      END
-C
-C     ****** Complex FFT1D ******
-C
-      SUBROUTINE CFFT1D(CA,CB,N,KEY)
-C
+    END SUBROUTINE CFFT2D
+
+!     ****** Complex FFT1D ******
+
+    SUBROUTINE CFFT1D(CA,CB,N,KEY)
+
       IMPLICIT NONE
-C
+
       COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
       COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
       INTEGER,INTENT(IN):: N,KEY
@@ -53,12 +58,12 @@ C
       INTEGER,SAVE:: NS
       INTEGER:: IND
       DATA NS/0/
-C
+
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
          STOP
       ENDIF
-C
+
       IF(N.NE.1) THEN
          IF(N.EQ.NS) THEN
             IND=0
@@ -72,16 +77,16 @@ C
          ENDIF
          CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
       ENDIF
-C
+
       RETURN
-      END
-C
-C     ****** Complex FFT1D (separate interface for 2D) ******
-C
-      SUBROUTINE CFFT1D1(CA,CB,N,KEY)
-C
+    END SUBROUTINE CFFT1D
+
+!     ****** Complex FFT1D (separate interface for 2D) ******
+
+    SUBROUTINE CFFT1D1(CA,CB,N,KEY)
+
       IMPLICIT NONE
-C
+
       COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
       COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
       INTEGER,INTENT(IN):: N,KEY
@@ -90,12 +95,12 @@ C
       INTEGER,SAVE:: NS
       INTEGER:: IND
       DATA NS/0/
-C
+
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
          STOP
       ENDIF
-C
+
       IF(N.NE.1) THEN
          IF(N.EQ.NS) THEN
             IND=0
@@ -109,16 +114,16 @@ C
          ENDIF
          CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
       ENDIF
-C
+
       RETURN
-      END
-C
-C     ****** Complex FFT1D (separate interface for 2D) ******
-C
+    END SUBROUTINE CFFT1D1
+
+!     ****** Complex FFT1D (separate interface for 2D) ******
+
       SUBROUTINE CFFT1D2(CA,CB,N,KEY)
-C
+
       IMPLICIT NONE
-C
+
       COMPLEX(8),INTENT(IN),DIMENSION(N):: CA
       COMPLEX(8),INTENT(OUT),DIMENSION(N):: CB
       INTEGER,INTENT(IN):: N,KEY
@@ -127,12 +132,12 @@ C
       INTEGER,SAVE:: NS
       INTEGER:: IND
       DATA NS/0/
-C
+
       IF(key.ne.0.AND.key.ne.1) THEN
          WRITE(6,*) 'XX cfft1d ERROR: key is not 0 or 1'
          STOP
       ENDIF
-C
+
       IF(N.NE.1) THEN
          IF(N.EQ.NS) THEN
             IND=0
@@ -146,19 +151,19 @@ C
          ENDIF
          CALL FFT2L(CA,CB,RFFT,LFFT,N,IND,KEY)
       ENDIF
-C
+
       RETURN
-      END
-C
-C     ====== FFT USING FFT package ======
-C     ====== http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html ======
-C
+    END SUBROUTINE CFFT1D2
+!
+!     ====== FFT USING FFT package ======
+!     ====== http://www.kurims.kyoto-u.ac.jp/~ooura/fft.html ======
+!
       SUBROUTINE FFT2L ( A , B , WORK , IWORK , N , IND , KEY )
-C
+!
       COMPLEX*16 A(N),B(N)
       REAL*8 WORK(N),RB(2*N)
       DIMENSION IWORK(N)
-C
+!
       IF(N.EQ.1) THEN
          B(1)=A(1)
       ELSE
@@ -183,7 +188,7 @@ C
          ENDIF
       ENDIF
       RETURN
-      END
+    END SUBROUTINE FFT2L
 !
 ! Fast Fourier/Cosine/Sine Transform
 !     dimension   :one
@@ -453,7 +458,7 @@ C
 !     w() and ip() are compatible with all routines.
 !
 !
-      subroutine cdft(n, isgn, a, ip, w)
+    subroutine cdft(n, isgn, a, ip, w)
       integer n, isgn, ip(0 : *), nw
       real*8 a(0 : n - 1), w(0 : *)
       nw = ip(0)
@@ -466,9 +471,9 @@ C
       else
           call cftbsub(n, a, ip, nw, w)
       end if
-      end
-!
-      subroutine rdft(n, isgn, a, ip, w)
+    end subroutine cdft
+
+    subroutine rdft(n, isgn, a, ip, w)
       integer n, isgn, ip(0 : *), nw, nc
       real*8 a(0 : n - 1), w(0 : *), xi
       nw = ip(0)
@@ -501,9 +506,9 @@ C
               call cftbsub(n, a, ip, nw, w)
           end if
       end if
-      end
+    end subroutine rdft
 !
-      subroutine ddct(n, isgn, a, ip, w)
+    subroutine ddct(n, isgn, a, ip, w)
       integer n, isgn, ip(0 : *), j, nw, nc
       real*8 a(0 : n - 1), w(0 : *), xr
       nw = ip(0)
@@ -547,9 +552,9 @@ C
           end do
           a(n - 1) = xr
       end if
-      end
-!
-      subroutine ddst(n, isgn, a, ip, w)
+    end subroutine ddct
+
+    subroutine ddst(n, isgn, a, ip, w)
       integer n, isgn, ip(0 : *), j, nw, nc
       real*8 a(0 : n - 1), w(0 : *), xr
       nw = ip(0)
@@ -593,9 +598,9 @@ C
           end do
           a(n - 1) = -xr
       end if
-      end
-!
-      subroutine dfct(n, a, t, ip, w)
+    end subroutine ddst
+
+    subroutine dfct(n, a, t, ip, w)
       integer n, ip(0 : *), j, k, l, m, mh, nw, nc
       real*8 a(0 : n), t(0 : n / 2), w(0 : *), xr, xi, yr, yi
       nw = ip(0)
@@ -678,9 +683,9 @@ C
           a(2) = t(0)
           a(0) = t(1)
       end if
-      end
-!
-      subroutine dfst(n, a, t, ip, w)
+    end subroutine dfct
+
+    subroutine dfst(n, a, t, ip, w)
       integer n, ip(0 : *), j, k, l, m, mh, nw, nc
       real*8 a(0 : n - 1), t(0 : n / 2 - 1), w(0 : *), xr, xi, yr, yi
       nw = ip(0)
@@ -754,11 +759,11 @@ C
           a(l) = t(0)
       end if
       a(0) = 0
-      end
+    end subroutine dfst
 !
 ! -------- initializing routines --------
 !
-      subroutine makewt(nw, ip, w)
+    subroutine makewt(nw, ip, w)
       integer nw, ip(0 : *), j, nwh, nw0, nw1
       real*8 w(0 : nw - 1), delta, wn4r, wk1r, wk1i, wk3r, wk3i
       ip(0) = nw
@@ -813,9 +818,9 @@ C
               nw0 = nw1
           end do
       end if
-      end
+    end subroutine makewt
 !
-      subroutine makeipt(nw, ip)
+    subroutine makeipt(nw, ip)
       integer nw, ip(0 : *), j, l, m, m2, p, q
       ip(2) = 0
       ip(3) = 16
@@ -832,9 +837,9 @@ C
           m = m2
           l = l / 4
       end do
-      end
+    end subroutine makeipt
 !
-      subroutine makect(nc, ip, c)
+    subroutine makect(nc, ip, c)
       integer nc, ip(0 : *), j, nch
       real*8 c(0 : nc - 1), delta
       ip(1) = nc
@@ -848,11 +853,11 @@ C
               c(nc - j) = 0.5d0 * sin(delta * j)
           end do
       end if
-      end
+    end subroutine makect
 !
 ! -------- child routines --------
 !
-      subroutine cftfsub(n, a, ip, nw, w)
+    subroutine cftfsub(n, a, ip, nw, w)
       integer n, ip(0 : *), nw
       real*8 a(0 : n - 1), w(0 : nw - 1)
       if (n .gt. 8) then
@@ -878,9 +883,9 @@ C
       else if (n .eq. 4) then
           call cftx020(a)
       end if
-      end
+    end subroutine cftfsub
 !
-      subroutine cftbsub(n, a, ip, nw, w)
+    subroutine cftbsub(n, a, ip, nw, w)
       integer n, ip(0 : *), nw
       real*8 a(0 : n - 1), w(0 : nw - 1)
       if (n .gt. 8) then
@@ -906,9 +911,9 @@ C
       else if (n .eq. 4) then
           call cftx020(a)
       end if
-      end
+    end subroutine cftbsub
 !
-      subroutine bitrv2(n, ip, a)
+    subroutine bitrv2(n, ip, a)
       integer n, ip(0 : *), j, j1, k, k1, l, m, nh, nm
       real*8 a(0 : n - 1), xr, xi, yr, yi
       m = 1
@@ -1252,9 +1257,9 @@ C
               a(k1 + 1) = xi
           end do
       end if
-      end
+    end subroutine bitrv2
 !
-      subroutine bitrv2conj(n, ip, a)
+    subroutine bitrv2conj(n, ip, a)
       integer n, ip(0 : *), j, j1, k, k1, l, m, nh, nm
       real*8 a(0 : n - 1), xr, xi, yr, yi
       m = 1
@@ -1606,9 +1611,9 @@ C
               a(k1 + 3) = -a(k1 + 3)
           end do
       end if
-      end
+    end subroutine bitrv2conj
 !
-      subroutine bitrv216(a)
+    subroutine bitrv216(a)
       real*8 a(0 : 31), x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i
       real*8 x5r, x5i, x7r, x7i, x8r, x8i, x10r, x10i
       real*8 x11r, x11i, x12r, x12i, x13r, x13i, x14r, x14i
@@ -1660,9 +1665,9 @@ C
       a(27) = x11i
       a(28) = x7r
       a(29) = x7i
-      end
+    end subroutine bitrv216
 !
-      subroutine bitrv216neg(a)
+    subroutine bitrv216neg(a)
       real*8 a(0 : 31), x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i
       real*8 x5r, x5i, x6r, x6i, x7r, x7i, x8r, x8i
       real*8 x9r, x9i, x10r, x10i, x11r, x11i, x12r, x12i
@@ -1727,9 +1732,9 @@ C
       a(29) = x4i
       a(30) = x8r
       a(31) = x8i
-      end
+    end subroutine bitrv216neg
 !
-      subroutine bitrv208(a)
+    subroutine bitrv208(a)
       real*8 a(0 : 15), x1r, x1i, x3r, x3i, x4r, x4i, x6r, x6i
       x1r = a(2)
       x1i = a(3)
@@ -1747,9 +1752,9 @@ C
       a(9) = x1i
       a(12) = x3r
       a(13) = x3i
-      end
+    end subroutine bitrv208
 !
-      subroutine bitrv208neg(a)
+    subroutine bitrv208neg(a)
       real*8 a(0 : 15), x1r, x1i, x2r, x2i, x3r, x3i, x4r, x4i
       real*8 x5r, x5i, x6r, x6i, x7r, x7i
       x1r = a(2)
@@ -1780,9 +1785,9 @@ C
       a(13) = x2i
       a(14) = x4r
       a(15) = x4i
-      end
+    end subroutine bitrv208neg
 !
-      subroutine cftf1st(n, a, w)
+    subroutine cftf1st(n, a, w)
       integer n, j, j0, j1, j2, j3, k, m, mh
       real*8 a(0 : n - 1), w(0 : *)
       real*8 wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i
@@ -1984,9 +1989,9 @@ C
       x0i = x1i - x3r
       a(j3 + 2) = wk3i * x0r + wk3r * x0i
       a(j3 + 3) = wk3i * x0i - wk3r * x0r
-      end
-!
-      subroutine cftb1st(n, a, w)
+    end subroutine cftf1st
+
+    subroutine cftb1st(n, a, w)
       integer n, j, j0, j1, j2, j3, k, m, mh
       real*8 a(0 : n - 1), w(0 : *)
       real*8 wn4r, csc1, csc3, wk1r, wk1i, wk3r, wk3i
@@ -2188,10 +2193,10 @@ C
       x0i = x1i - x3r
       a(j3 + 2) = wk3i * x0r + wk3r * x0i
       a(j3 + 3) = wk3i * x0i - wk3r * x0r
-      end
-!
-      subroutine cftrec4(n, a, nw, w)
-      integer n, nw, cfttree, isplt, j, k, m
+    end subroutine cftb1st
+
+    subroutine cftrec4(n, a, nw, w)
+      integer n, nw, isplt, j, k, m
       real*8 a(0 : n - 1), w(0 : nw - 1)
       m = n
       do while (m .gt. 512)
@@ -2205,9 +2210,9 @@ C
           isplt = cfttree(m, j, k, a, nw, w)
           call cftleaf(m, isplt, a(j - m), nw, w)
       end do
-      end
-!
-      integer function cfttree(n, j, k, a, nw, w)
+    end subroutine cftrec4
+
+    integer function cfttree(n, j, k, a, nw, w)
       integer n, j, k, nw, i, isplt, m
       real*8 a(0 : j - 1), w(0 : nw - 1)
       if (mod(k, 4) .ne. 0) then
@@ -2238,9 +2243,9 @@ C
           end if
       end if
       cfttree = isplt
-      end
-!
-      subroutine cftleaf(n, isplt, a, nw, w)
+    end function cfttree
+
+    subroutine cftleaf(n, isplt, a, nw, w)
       integer n, isplt, nw
       real*8 a(0 : n - 1), w(0 : nw - 1)
       if (n .eq. 512) then
@@ -2296,9 +2301,9 @@ C
           call cftf082(a(208), w(nw - 8))
           call cftf081(a(224), w(nw - 8))
       end if
-      end
+    end subroutine cftleaf
 !
-      subroutine cftmdl1(n, a, w)
+    subroutine cftmdl1(n, a, w)
       integer n, j, j0, j1, j2, j3, k, m, mh
       real*8 a(0 : n - 1), w(0 : *)
       real*8 wn4r, wk1r, wk1i, wk3r, wk3i
@@ -2404,9 +2409,9 @@ C
       x0i = x1i - x3r
       a(j3) = -wn4r * (x0r + x0i)
       a(j3 + 1) = -wn4r * (x0i - x0r)
-      end
+    end subroutine cftmdl1
 !
-      subroutine cftmdl2(n, a, w)
+    subroutine cftmdl2(n, a, w)
       integer n, j, j0, j1, j2, j3, k, kr, m, mh
       real*8 a(0 : n - 1), w(0 : *)
       real*8 wn4r, wk1r, wk1i, wk3r, wk3i, wd1r, wd1i, wd3r, wd3i
@@ -2537,9 +2542,9 @@ C
       a(j2 + 1) = y0i - y2i
       a(j3) = y0r + y2r
       a(j3 + 1) = y0i + y2i
-      end
+    end subroutine cftmdl2
 !
-      subroutine cftfx41(n, a, nw, w)
+    subroutine cftfx41(n, a, nw, w)
       integer n, nw
       real*8 a(0 : n - 1), w(0 : nw - 1)
       if (n .eq. 128) then
@@ -2553,9 +2558,9 @@ C
           call cftf081(a(32), w(nw - 8))
           call cftf081(a(48), w(nw - 8))
       end if
-      end
+    end subroutine cftfx41
 !
-      subroutine cftf161(a, w)
+    subroutine cftf161(a, w)
       real*8 a(0 : 31), w(0 : *), wn4r, wk1r, wk1i
       real*8 x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       real*8 y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i
@@ -2709,9 +2714,9 @@ C
       a(5) = x1i + x3r
       a(6) = x1r + x3i
       a(7) = x1i - x3r
-      end
+    end subroutine cftf161
 !
-      subroutine cftf162(a, w)
+    subroutine cftf162(a, w)
       real*8 a(0 : 31), w(0 : *)
       real*8 wn4r, wk1r, wk1i, wk2r, wk2i, wk3r, wk3i
       real*8 x0r, x0i, x1r, x1i, x2r, x2i
@@ -2890,9 +2895,9 @@ C
       a(29) = x1i + x2r
       a(30) = x1r + x2i
       a(31) = x1i - x2r
-      end
+    end subroutine cftf162
 !
-      subroutine cftf081(a, w)
+    subroutine cftf081(a, w)
       real*8 a(0 : 15), w(0 : *)
       real*8 wn4r, x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       real*8 y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i
@@ -2950,9 +2955,9 @@ C
       a(5) = y2i + y6r
       a(6) = y2r + y6i
       a(7) = y2i - y6r
-      end
+    end subroutine cftf081
 !
-      subroutine cftf082(a, w)
+    subroutine cftf082(a, w)
       real*8 a(0 : 15), w(0 : *)
       real*8 wn4r, wk1r, wk1i, x0r, x0i, x1r, x1i
       real*8 y0r, y0i, y1r, y1i, y2r, y2i, y3r, y3i
@@ -3020,9 +3025,9 @@ C
       a(13) = x0i + x1r
       a(14) = x0r + x1i
       a(15) = x0i - x1r
-      end
+    end subroutine cftf082
 !
-      subroutine cftf040(a)
+    subroutine cftf040(a)
       real*8 a(0 : 7), x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       x0r = a(0) + a(4)
       x0i = a(1) + a(5)
@@ -3040,9 +3045,9 @@ C
       a(5) = x0i - x2i
       a(6) = x1r + x3i
       a(7) = x1i - x3r
-      end
+    end subroutine cftf040
 !
-      subroutine cftb040(a)
+    subroutine cftb040(a)
       real*8 a(0 : 7), x0r, x0i, x1r, x1i, x2r, x2i, x3r, x3i
       x0r = a(0) + a(4)
       x0i = a(1) + a(5)
@@ -3060,9 +3065,9 @@ C
       a(5) = x0i - x2i
       a(6) = x1r - x3i
       a(7) = x1i + x3r
-      end
+    end subroutine cftb040
 !
-      subroutine cftx020(a)
+    subroutine cftx020(a)
       real*8 a(0 : 3), x0r, x0i
       x0r = a(0) - a(2)
       x0i = a(1) - a(3)
@@ -3070,9 +3075,9 @@ C
       a(1) = a(1) + a(3)
       a(2) = x0r
       a(3) = x0i
-      end
+    end subroutine cftx020
 !
-      subroutine rftfsub(n, a, nc, c)
+    subroutine rftfsub(n, a, nc, c)
       integer n, nc, j, k, kk, ks, m
       real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
       m = n / 2
@@ -3092,9 +3097,9 @@ C
           a(k) = a(k) + yr
           a(k + 1) = a(k + 1) - yi
       end do
-      end
+    end subroutine rftfsub
 !
-      subroutine rftbsub(n, a, nc, c)
+    subroutine rftbsub(n, a, nc, c)
       integer n, nc, j, k, kk, ks, m
       real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr, xi, yr, yi
       m = n / 2
@@ -3114,9 +3119,9 @@ C
           a(k) = a(k) + yr
           a(k + 1) = a(k + 1) - yi
       end do
-      end
+    end subroutine rftbsub
 !
-      subroutine dctsub(n, a, nc, c)
+    subroutine dctsub(n, a, nc, c)
       integer n, nc, j, k, kk, ks, m
       real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
       m = n / 2
@@ -3132,9 +3137,9 @@ C
           a(k) = xr
       end do
       a(m) = c(0) * a(m)
-      end
+    end subroutine dctsub
 !
-      subroutine dstsub(n, a, nc, c)
+    subroutine dstsub(n, a, nc, c)
       integer n, nc, j, k, kk, ks, m
       real*8 a(0 : n - 1), c(0 : nc - 1), wkr, wki, xr
       m = n / 2
@@ -3150,5 +3155,5 @@ C
           a(j) = xr
       end do
       a(m) = c(0) * a(m)
-      end
-!
+    END subroutine dstsub
+  END MODULE libfft

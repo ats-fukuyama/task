@@ -1,6 +1,4 @@
-!     $Id$
-
-      program femtest
+program testfem
 
       implicit none
       integer:: mwmax,mlmax
@@ -2945,6 +2943,6 @@ c$$$      enddo
       return
       end subroutine fem_calc_r6
 
-      include 'femtest-sub.f'
+      include 'testfem-sub.f90'
 
-      end program femtest
+      end program testfem

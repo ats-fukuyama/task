@@ -1,12 +1,17 @@
-C     $Id$
-C
-C     ***** PLASMA DISPAERSION FUNCTION *****
-C
+MODULE libdsp
+
+  PRIVATE
+  PUBLIC DSPFNV,DSPFN,DSPFNA
+
+CONTAINS
+
+!     ***** PLASMA DISPAERSION FUNCTION *****
+
       SUBROUTINE DSPFNV(N,X,Z,DZ,DDZ,DDDZ)
-C
-C      PROGRAMMED BY T. WATANABE (1991/01/09)
-C      CODE IN KAKUYUUGOU-KENKYUU 
-C
+
+!      PROGRAMMED BY T. WATANABE (1991/01/09)
+!      CODE IN KAKUYUUGOU-KENKYUU 
+
       IMPLICIT REAL*8(A-H,O-Z)
       COMPLEX*16 X(*),Z(*),DZ(*),DDZ(*),DDDZ(*)
       SAVE INIT,H,CPAI1,CPAI2,COEF0,COEF1,COEF2,COEF3
@@ -25,24 +30,24 @@ C
       SAVE FN28,FN29,FN2A,FN2B,FN2C,FN2D,FN2E
       SAVE EN1S,EN2S,FN1S,FN2S
       DATA INIT/0/
-C
+
       IF(INIT.EQ.0) THEN
          INIT=1
          H=0.484375D0
-C
+
          CPAI1= 3.141592653589793D0
          CPAI2= 6.283185307179586D0
          COEF0= 5.641895835477563D-1
          COEF1=-1.128379167095513D0
          COEF2=-COEF1
          COEF3=-2.256758334191025D0
-C
+
          H2=H*0.5D0
          HW=H+H
          H2PAI=CPAI2/H
          HPAI=CPAI1/H
          HH=H*H
-C
+
          EN11=          HH
          EN12=   4.00D0*HH
          EN13=   9.00D0*HH
@@ -57,7 +62,7 @@ C
          EN1C= 144.00D0*HH
          EN1D= 169.00D0*HH
          EN1E= 196.00D0*HH
-C
+
          FN11=   0.25D0*HH
          FN12=   2.25D0*HH
          FN13=   6.25D0*HH
@@ -72,7 +77,7 @@ C
          FN1C= 132.25D0*HH
          FN1D= 156.25D0*HH
          FN1E= 182.25D0*HH
-C
+
          EE1=EXP(-       HH)*HW
          EE2=EXP(- 3.0D0*HH)
          EE3=EXP(- 5.0D0*HH)
@@ -87,7 +92,7 @@ C
          EEC=EXP(-23.0D0*HH)
          EED=EXP(-25.0D0*HH)
          EEE=EXP(-27.0D0*HH)
-C
+
          FE1=EXP(- .25D0*HH)*HW
          FE2=EXP(- 2.0D0*HH)
          FE3=EXP(- 4.0D0*HH)
@@ -102,7 +107,7 @@ C
          FEC=EXP(-22.0D0*HH)
          FED=EXP(-24.0D0*HH)
          FEE=EXP(-26.0D0*HH)
-C
+
          EN21=EN11*EN11
          EN22=EN12*EN12
          EN23=EN13*EN13
@@ -117,7 +122,7 @@ C
          EN2C=EN1C*EN1C
          EN2D=EN1D*EN1D
          EN2E=EN1E*EN1E
-C
+
          FN21=FN11*FN11
          FN22=FN12*FN12
          FN23=FN13*FN13
@@ -132,19 +137,19 @@ C
          FN2C=FN1C*FN1C
          FN2D=FN1D*FN1D
          FN2E=FN1E*FN1E
-C
+
          EN1S=EN1E*EEE
          FN1S=FN1E*FEE
          EN2S=EN2E*EEE
          FN2S=FN2E*FEE
       ENDIF
-C
+
       DO L=1,N
          XRE=DREAL( X(L) )
          XIM=DIMAG( X(L) )
          XXR=(XRE-XIM)*(XRE+XIM)
          XXI=XRE*XIM*2.0D0
-C
+
          IF((XIM.LT.0.0D0).AND.(XXR.LT.-50.65D0)) THEN
             Z(L)   =1.D22
             DZ(L)  =1.D22
@@ -167,7 +172,7 @@ C
          ELSE
             SRE=0.D0
          ENDIF
-C
+
          ABZS2=1.0D0/(SRE+SIM)
          XREH2=ABS(XRE/H2)
          IF(XREH2.GT.1.D8) THEN
@@ -190,7 +195,7 @@ C
             DC=FN1C-XXR
             DD=FN1D-XXR
             DE=FN1E-XXR
-C
+
             SD1=D1*D1
             SD2=D2*D2
             SD3=D3*D3
@@ -205,7 +210,7 @@ C
             SDC=DC*DC
             SDD=DD*DD
             SDE=DE*DE
-C
+
             D11=1.0D0/(SD1+SXI)
             D12=1.0D0/(SD2+SXI)
             D13=1.0D0/(SD3+SXI)
@@ -220,7 +225,7 @@ C
             D1C=1.0D0/(SDC+SXI)
             D1D=1.0D0/(SDD+SXI)
             D1E=1.0D0/(SDE+SXI)
-C
+
             D31=D11*D11*D11
             D32=D12*D12*D12
             D33=D13*D13*D13
@@ -235,7 +240,7 @@ C
             D3C=D1C*D1C*D1C
             D3D=D1D*D1D*D1D
             D3E=D1E*D1E*D1E
-C
+
             DR1=D11*D1
             DR2=D12*D2
             DR3=D13*D3
@@ -250,7 +255,7 @@ C
             DRC=D1C*DC
             DRD=D1D*DD
             DRE=D1E*DE
-C
+
             QR1=D31*(SD1-SXI*3.D0)*D1
             QR2=D32*(SD2-SXI*3.D0)*D2
             QR3=D33*(SD3-SXI*3.D0)*D3
@@ -265,7 +270,7 @@ C
             QRC=D3C*(SDC-SXI*3.D0)*DC
             QRD=D3D*(SDD-SXI*3.D0)*DD
             QRE=D3E*(SDE-SXI*3.D0)*DE
-C
+
             QI1=D31*(SD1*3.D0-SXI)
             QI2=D32*(SD2*3.D0-SXI)
             QI3=D33*(SD3*3.D0-SXI)
@@ -280,57 +285,57 @@ C
             QIC=D3C*(SDC*3.D0-SXI)
             QID=D3D*(SDD*3.D0-SXI)
             QIE=D3E*(SDE*3.D0-SXI)
-C
-            SZ0R=(((((((((((((     DRE *FEE+     DRD)*FED
-     &        +     DRC)*FEC +     DRB)*FEB+     DRA)*FEA
-     &        +     DR9)*FE9 +     DR8)*FE8+     DR7)*FE7
-     &        +     DR6)*FE6 +     DR5)*FE5+     DR4)*FE4
-     &        +     DR3)*FE3 +     DR2)*FE2+     DR1)*FE1
-            SZ0I=(((((((((((((     D1E *FEE+     D1D)*FED
-     &        +     D1C)*FEC +     D1B)*FEB+     D1A)*FEA
-     &        +     D19)*FE9 +     D18)*FE8+     D17)*FE7
-     &        +     D16)*FE6 +     D15)*FE5+     D14)*FE4
-     &        +     D13)*FE3 +     D12)*FE2+     D11)*FE1
-            TZ1R=(((((((((((((FN1S*DRE     +FN1D*DRD)*FED
-     &        +FN1C*DRC)*FEC +FN1B*DRB)*FEB+FN1A*DRA)*FEA
-     &        +FN19*DR9)*FE9 +FN18*DR8)*FE8+FN17*DR7)*FE7
-     &        +FN16*DR6)*FE6 +FN15*DR5)*FE5+FN14*DR4)*FE4
-     &        +FN13*DR3)*FE3 +FN12*DR2)*FE2+FN11*DR1)*FE1
-            TZ1I=(((((((((((((FN1S*D1E     +FN1D*D1D)*FED
-     &        +FN1C*D1C)*FEC +FN1B*D1B)*FEB+FN1A*D1A)*FEA
-     &        +FN19*D19)*FE9 +FN18*D18)*FE8+FN17*D17)*FE7
-     &        +FN16*D16)*FE6 +FN15*D15)*FE5+FN14*D14)*FE4
-     &        +FN13*D13)*FE3 +FN12*D12)*FE2+FN11*D11)*FE1*XXI
-            RZ0R=(((((((((((((     QRE *FEE+     QRD)*FED
-     &        +     QRC)*FEC +     QRB)*FEB+     QRA)*FEA
-     &        +     QR9)*FE9 +     QR8)*FE8+     QR7)*FE7
-     &        +     QR6)*FE6 +     QR5)*FE5+     QR4)*FE4
-     &        +     QR3)*FE3 +     QR2)*FE2+     QR1)*FE1
-            RZ0I=(((((((((((((     QIE *FEE+     QID)*FED
-     &        +     QIC)*FEC +     QIB)*FEB+     QIA)*FEA
-     &        +     QI9)*FE9 +     QI8)*FE8+     QI7)*FE7
-     &        +     QI6)*FE6 +     QI5)*FE5+     QI4)*FE4
-     &        +     QI3)*FE3 +     QI2)*FE2+     QI1)*FE1
-            RZ1R=(((((((((((((FN1S*QRE     +FN1D*QRD)*FED
-     &        +FN1C*QRC)*FEC +FN1B*QRB)*FEB+FN1A*QRA)*FEA
-     &        +FN19*QR9)*FE9 +FN18*QR8)*FE8+FN17*QR7)*FE7
-     &        +FN16*QR6)*FE6 +FN15*QR5)*FE5+FN14*QR4)*FE4
-     &        +FN13*QR3)*FE3 +FN12*QR2)*FE2+FN11*QR1)*FE1
-            RZ1I=(((((((((((((FN1S*QIE     +FN1D*QID)*FED
-     &        +FN1C*QIC)*FEC +FN1B*QIB)*FEB+FN1A*QIA)*FEA
-     &        +FN19*QI9)*FE9 +FN18*QI8)*FE8+FN17*QI7)*FE7
-     &        +FN16*QI6)*FE6 +FN15*QI5)*FE5+FN14*QI4)*FE4
-     &        +FN13*QI3)*FE3 +FN12*QI2)*FE2+FN11*QI1)*FE1
-            RZ2R=(((((((((((((FN2S*QRE     +FN2D*QRD)*FED
-     &        +FN2C*QRC)*FEC +FN2B*QRB)*FEB+FN2A*QRA)*FEA
-     &        +FN29*QR9)*FE9 +FN28*QR8)*FE8+FN27*QR7)*FE7
-     &        +FN26*QR6)*FE6 +FN25*QR5)*FE5+FN24*QR4)*FE4
-     &        +FN23*QR3)*FE3 +FN22*QR2)*FE2+FN21*QR1)*FE1
-            RZ2I=(((((((((((((FN2S*QIE     +FN2D*QID)*FED
-     &        +FN2C*QIC)*FEC +FN2B*QIB)*FEB+FN2A*QIA)*FEA
-     &        +FN29*QI9)*FE9 +FN28*QI8)*FE8+FN27*QI7)*FE7
-     &        +FN26*QI6)*FE6 +FN25*QI5)*FE5+FN24*QI4)*FE4
-     &        +FN23*QI3)*FE3 +FN22*QI2)*FE2+FN21*QI1)*FE1
+
+            SZ0R=(((((((((((((     DRE *FEE+     DRD)*FED &
+              +     DRC)*FEC +     DRB)*FEB+     DRA)*FEA &
+              +     DR9)*FE9 +     DR8)*FE8+     DR7)*FE7 &
+              +     DR6)*FE6 +     DR5)*FE5+     DR4)*FE4 &
+              +     DR3)*FE3 +     DR2)*FE2+     DR1)*FE1
+            SZ0I=(((((((((((((     D1E *FEE+     D1D)*FED &
+              +     D1C)*FEC +     D1B)*FEB+     D1A)*FEA &
+              +     D19)*FE9 +     D18)*FE8+     D17)*FE7 &
+              +     D16)*FE6 +     D15)*FE5+     D14)*FE4 &
+              +     D13)*FE3 +     D12)*FE2+     D11)*FE1
+            TZ1R=(((((((((((((FN1S*DRE     +FN1D*DRD)*FED &
+              +FN1C*DRC)*FEC +FN1B*DRB)*FEB+FN1A*DRA)*FEA &
+              +FN19*DR9)*FE9 +FN18*DR8)*FE8+FN17*DR7)*FE7 &
+              +FN16*DR6)*FE6 +FN15*DR5)*FE5+FN14*DR4)*FE4 &
+              +FN13*DR3)*FE3 +FN12*DR2)*FE2+FN11*DR1)*FE1
+            TZ1I=(((((((((((((FN1S*D1E     +FN1D*D1D)*FED &
+              +FN1C*D1C)*FEC +FN1B*D1B)*FEB+FN1A*D1A)*FEA &
+              +FN19*D19)*FE9 +FN18*D18)*FE8+FN17*D17)*FE7 &
+              +FN16*D16)*FE6 +FN15*D15)*FE5+FN14*D14)*FE4 &
+              +FN13*D13)*FE3 +FN12*D12)*FE2+FN11*D11)*FE1*XXI
+            RZ0R=(((((((((((((     QRE *FEE+     QRD)*FED &
+              +     QRC)*FEC +     QRB)*FEB+     QRA)*FEA &
+              +     QR9)*FE9 +     QR8)*FE8+     QR7)*FE7 &
+              +     QR6)*FE6 +     QR5)*FE5+     QR4)*FE4 &
+              +     QR3)*FE3 +     QR2)*FE2+     QR1)*FE1
+            RZ0I=(((((((((((((     QIE *FEE+     QID)*FED &
+              +     QIC)*FEC +     QIB)*FEB+     QIA)*FEA &
+              +     QI9)*FE9 +     QI8)*FE8+     QI7)*FE7 &
+              +     QI6)*FE6 +     QI5)*FE5+     QI4)*FE4 &
+              +     QI3)*FE3 +     QI2)*FE2+     QI1)*FE1
+            RZ1R=(((((((((((((FN1S*QRE     +FN1D*QRD)*FED &
+              +FN1C*QRC)*FEC +FN1B*QRB)*FEB+FN1A*QRA)*FEA &
+              +FN19*QR9)*FE9 +FN18*QR8)*FE8+FN17*QR7)*FE7 &
+              +FN16*QR6)*FE6 +FN15*QR5)*FE5+FN14*QR4)*FE4 &
+              +FN13*QR3)*FE3 +FN12*QR2)*FE2+FN11*QR1)*FE1
+            RZ1I=(((((((((((((FN1S*QIE     +FN1D*QID)*FED &
+              +FN1C*QIC)*FEC +FN1B*QIB)*FEB+FN1A*QIA)*FEA &
+              +FN19*QI9)*FE9 +FN18*QI8)*FE8+FN17*QI7)*FE7 &
+              +FN16*QI6)*FE6 +FN15*QI5)*FE5+FN14*QI4)*FE4 &
+              +FN13*QI3)*FE3 +FN12*QI2)*FE2+FN11*QI1)*FE1
+            RZ2R=(((((((((((((FN2S*QRE     +FN2D*QRD)*FED &
+              +FN2C*QRC)*FEC +FN2B*QRB)*FEB+FN2A*QRA)*FEA &
+              +FN29*QR9)*FE9 +FN28*QR8)*FE8+FN27*QR7)*FE7 &
+              +FN26*QR6)*FE6 +FN25*QR5)*FE5+FN24*QR4)*FE4 &
+              +FN23*QR3)*FE3 +FN22*QR2)*FE2+FN21*QR1)*FE1
+            RZ2I=(((((((((((((FN2S*QIE     +FN2D*QID)*FED &
+              +FN2C*QIC)*FEC +FN2B*QIB)*FEB+FN2A*QIA)*FEA &
+              +FN29*QI9)*FE9 +FN28*QI8)*FE8+FN27*QI7)*FE7 &
+              +FN26*QI6)*FE6 +FN25*QI5)*FE5+FN24*QI4)*FE4 &
+              +FN23*QI3)*FE3 +FN22*QI2)*FE2+FN21*QI1)*FE1
             TZ0R=(SZ0R-SIM*SZ0I)*XRE
             TZ0I=(SZ0R+SRE*SZ0I)*XIM
             SZ2R=RZ1R*3.0D0+XXR*RZ0R-RZ0I*SXI
@@ -339,7 +344,7 @@ C
             TZ2I=(SZ2R+SRE*SZ2I)*XIM
             TZ3R= RZ2R+(XXR*RZ1R-RZ1I*SXI)*3.0D0
             TZ3I=(RZ2I+(    RZ1R+RZ1I*XXR)*3.0D0)*XXI
-C
+
             IF((XIM.GT.HPAI).OR.(XXR.GT.161.18D0)) THEN
                Z(L)   =DCMPLX(TZ0R,TZ0I)*COEF0
                DZ(L)  =DCMPLX(TZ1R,TZ1I)*COEF1
@@ -347,7 +352,7 @@ C
                DDDZ(L)=DCMPLX(TZ3R,TZ3I)*COEF3
                GOTO 1000
             ENDIF
-C
+
             IF(ABS(XIM).LT.HPAI) THEN
                EXXPHR=DEXP(XIM*H2PAI)
                DC=COS(XRE*H2PAI)
@@ -412,7 +417,7 @@ C
             DC=EN1C-XXR
             DD=EN1D-XXR
             DE=EN1E-XXR
-C
+
             SD1=D1*D1
             SD2=D2*D2
             SD3=D3*D3
@@ -427,7 +432,7 @@ C
             SDC=DC*DC
             SDD=DD*DD
             SDE=DE*DE
-C
+
             D11=1.0D0/(SD1+SXI)
             D12=1.0D0/(SD2+SXI)
             D13=1.0D0/(SD3+SXI)
@@ -442,7 +447,7 @@ C
             D1C=1.0D0/(SDC+SXI)
             D1D=1.0D0/(SDD+SXI)
             D1E=1.0D0/(SDE+SXI)
-C
+
             D31=D11*D11*D11
             D32=D12*D12*D12
             D33=D13*D13*D13
@@ -457,7 +462,7 @@ C
             D3C=D1C*D1C*D1C
             D3D=D1D*D1D*D1D
             D3E=D1E*D1E*D1E
-C
+
             DR1=D11*D1
             DR2=D12*D2
             DR3=D13*D3
@@ -472,7 +477,7 @@ C
             DRC=D1C*DC
             DRD=D1D*DD
             DRE=D1E*DE
-C
+
             QR1=D31*(SD1-SXI*3.D0)*D1
             QR2=D32*(SD2-SXI*3.D0)*D2
             QR3=D33*(SD3-SXI*3.D0)*D3
@@ -487,7 +492,7 @@ C
             QRC=D3C*(SDC-SXI*3.D0)*DC
             QRD=D3D*(SDD-SXI*3.D0)*DD
             QRE=D3E*(SDE-SXI*3.D0)*DE
-C
+
             QI1=D31*(SD1*3.D0-SXI)
             QI2=D32*(SD2*3.D0-SXI)
             QI3=D33*(SD3*3.D0-SXI)
@@ -502,57 +507,57 @@ C
             QIC=D3C*(SDC*3.D0-SXI)
             QID=D3D*(SDD*3.D0-SXI)
             QIE=D3E*(SDE*3.D0-SXI)
-C
-            SZ0R=(((((((((((((     DRE *EEE+     DRD)*EED
-     &        +     DRC)*EEC +     DRB)*EEB+     DRA)*EEA
-     &        +     DR9)*EE9 +     DR8)*EE8+     DR7)*EE7
-     &        +     DR6)*EE6 +     DR5)*EE5+     DR4)*EE4
-     &        +     DR3)*EE3 +     DR2)*EE2+     DR1)*EE1
-            SZ0I=(((((((((((((     D1E *EEE+     D1D)*EED
-     &        +     D1C)*EEC +     D1B)*EEB+     D1A)*EEA
-     &        +     D19)*EE9 +     D18)*EE8+     D17)*EE7
-     &        +     D16)*EE6 +     D15)*EE5+     D14)*EE4
-     &        +     D13)*EE3 +     D12)*EE2+     D11)*EE1
-            TZ1R=(((((((((((((EN1S*DRE     +EN1D*DRD)*EED
-     &        +EN1C*DRC)*EEC +EN1B*DRB)*EEB+EN1A*DRA)*EEA
-     &        +EN19*DR9)*EE9 +EN18*DR8)*EE8+EN17*DR7)*EE7
-     &        +EN16*DR6)*EE6 +EN15*DR5)*EE5+EN14*DR4)*EE4
-     &        +EN13*DR3)*EE3 +EN12*DR2)*EE2+EN11*DR1)*EE1
-            TZ1I=(((((((((((((EN1S*D1E     +EN1D*D1D)*EED
-     &        +EN1C*D1C)*EEC +EN1B*D1B)*EEB+EN1A*D1A)*EEA
-     &        +EN19*D19)*EE9 +EN18*D18)*EE8+EN17*D17)*EE7
-     &        +EN16*D16)*EE6 +EN15*D15)*EE5+EN14*D14)*EE4
-     &        +EN13*D13)*EE3 +EN12*D12)*EE2+EN11*D11)*EE1*XXI
-            RZ0R=(((((((((((((     QRE *EEE+     QRD)*EED
-     &        +     QRC)*EEC +     QRB)*EEB+     QRA)*EEA
-     &        +     QR9)*EE9 +     QR8)*EE8+     QR7)*EE7
-     &        +     QR6)*EE6 +     QR5)*EE5+     QR4)*EE4
-     &        +     QR3)*EE3 +     QR2)*EE2+     QR1)*EE1
-            RZ0I=(((((((((((((     QIE *EEE+     QID)*EED
-     &        +     QIC)*EEC +     QIB)*EEB+     QIA)*EEA
-     &        +     QI9)*EE9 +     QI8)*EE8+     QI7)*EE7
-     &        +     QI6)*EE6 +     QI5)*EE5+     QI4)*EE4
-     &        +     QI3)*EE3 +     QI2)*EE2+     QI1)*EE1
-            RZ1R=(((((((((((((EN1S*QRE     +EN1D*QRD)*EED
-     &        +EN1C*QRC)*EEC +EN1B*QRB)*EEB+EN1A*QRA)*EEA
-     &        +EN19*QR9)*EE9 +EN18*QR8)*EE8+EN17*QR7)*EE7
-     &        +EN16*QR6)*EE6 +EN15*QR5)*EE5+EN14*QR4)*EE4
-     &        +EN13*QR3)*EE3 +EN12*QR2)*EE2+EN11*QR1)*EE1
-            RZ1I=(((((((((((((EN1S*QIE     +EN1D*QID)*EED
-     &        +EN1C*QIC)*EEC +EN1B*QIB)*EEB+EN1A*QIA)*EEA
-     &        +EN19*QI9)*EE9 +EN18*QI8)*EE8+EN17*QI7)*EE7
-     &        +EN16*QI6)*EE6 +EN15*QI5)*EE5+EN14*QI4)*EE4
-     &        +EN13*QI3)*EE3 +EN12*QI2)*EE2+EN11*QI1)*EE1
-            RZ2R=(((((((((((((EN2S*QRE     +EN2D*QRD)*EED
-     &        +EN2C*QRC)*EEC +EN2B*QRB)*EEB+EN2A*QRA)*EEA
-     &        +EN29*QR9)*EE9 +EN28*QR8)*EE8+EN27*QR7)*EE7
-     &        +EN26*QR6)*EE6 +EN25*QR5)*EE5+EN24*QR4)*EE4
-     &        +EN23*QR3)*EE3 +EN22*QR2)*EE2+EN21*QR1)*EE1
-            RZ2I=(((((((((((((EN2S*QIE     +EN2D*QID)*EED
-     &        +EN2C*QIC)*EEC +EN2B*QIB)*EEB+EN2A*QIA)*EEA
-     &        +EN29*QI9)*EE9 +EN28*QI8)*EE8+EN27*QI7)*EE7
-     &        +EN26*QI6)*EE6 +EN25*QI5)*EE5+EN24*QI4)*EE4
-     &        +EN23*QI3)*EE3 +EN22*QI2)*EE2+EN21*QI1)*EE1
+
+            SZ0R=(((((((((((((     DRE *EEE+     DRD)*EED &
+              +     DRC)*EEC +     DRB)*EEB+     DRA)*EEA &
+              +     DR9)*EE9 +     DR8)*EE8+     DR7)*EE7 &
+              +     DR6)*EE6 +     DR5)*EE5+     DR4)*EE4 &
+              +     DR3)*EE3 +     DR2)*EE2+     DR1)*EE1
+            SZ0I=(((((((((((((     D1E *EEE+     D1D)*EED &
+              +     D1C)*EEC +     D1B)*EEB+     D1A)*EEA &
+              +     D19)*EE9 +     D18)*EE8+     D17)*EE7 &
+              +     D16)*EE6 +     D15)*EE5+     D14)*EE4 &
+              +     D13)*EE3 +     D12)*EE2+     D11)*EE1
+            TZ1R=(((((((((((((EN1S*DRE     +EN1D*DRD)*EED &
+              +EN1C*DRC)*EEC +EN1B*DRB)*EEB+EN1A*DRA)*EEA &
+              +EN19*DR9)*EE9 +EN18*DR8)*EE8+EN17*DR7)*EE7 &
+              +EN16*DR6)*EE6 +EN15*DR5)*EE5+EN14*DR4)*EE4 &
+              +EN13*DR3)*EE3 +EN12*DR2)*EE2+EN11*DR1)*EE1
+            TZ1I=(((((((((((((EN1S*D1E     +EN1D*D1D)*EED &
+              +EN1C*D1C)*EEC +EN1B*D1B)*EEB+EN1A*D1A)*EEA &
+              +EN19*D19)*EE9 +EN18*D18)*EE8+EN17*D17)*EE7 &
+              +EN16*D16)*EE6 +EN15*D15)*EE5+EN14*D14)*EE4 &
+              +EN13*D13)*EE3 +EN12*D12)*EE2+EN11*D11)*EE1*XXI
+            RZ0R=(((((((((((((     QRE *EEE+     QRD)*EED &
+              +     QRC)*EEC +     QRB)*EEB+     QRA)*EEA &
+              +     QR9)*EE9 +     QR8)*EE8+     QR7)*EE7 &
+              +     QR6)*EE6 +     QR5)*EE5+     QR4)*EE4 &
+              +     QR3)*EE3 +     QR2)*EE2+     QR1)*EE1
+            RZ0I=(((((((((((((     QIE *EEE+     QID)*EED &
+              +     QIC)*EEC +     QIB)*EEB+     QIA)*EEA &
+              +     QI9)*EE9 +     QI8)*EE8+     QI7)*EE7 &
+              +     QI6)*EE6 +     QI5)*EE5+     QI4)*EE4 &
+              +     QI3)*EE3 +     QI2)*EE2+     QI1)*EE1
+            RZ1R=(((((((((((((EN1S*QRE     +EN1D*QRD)*EED &
+              +EN1C*QRC)*EEC +EN1B*QRB)*EEB+EN1A*QRA)*EEA &
+              +EN19*QR9)*EE9 +EN18*QR8)*EE8+EN17*QR7)*EE7 &
+              +EN16*QR6)*EE6 +EN15*QR5)*EE5+EN14*QR4)*EE4 &
+              +EN13*QR3)*EE3 +EN12*QR2)*EE2+EN11*QR1)*EE1
+            RZ1I=(((((((((((((EN1S*QIE     +EN1D*QID)*EED &
+              +EN1C*QIC)*EEC +EN1B*QIB)*EEB+EN1A*QIA)*EEA &
+              +EN19*QI9)*EE9 +EN18*QI8)*EE8+EN17*QI7)*EE7 &
+              +EN16*QI6)*EE6 +EN15*QI5)*EE5+EN14*QI4)*EE4 &
+              +EN13*QI3)*EE3 +EN12*QI2)*EE2+EN11*QI1)*EE1
+            RZ2R=(((((((((((((EN2S*QRE     +EN2D*QRD)*EED &
+              +EN2C*QRC)*EEC +EN2B*QRB)*EEB+EN2A*QRA)*EEA &
+              +EN29*QR9)*EE9 +EN28*QR8)*EE8+EN27*QR7)*EE7 &
+              +EN26*QR6)*EE6 +EN25*QR5)*EE5+EN24*QR4)*EE4 &
+              +EN23*QR3)*EE3 +EN22*QR2)*EE2+EN21*QR1)*EE1
+            RZ2I=(((((((((((((EN2S*QIE     +EN2D*QID)*EED &
+              +EN2C*QIC)*EEC +EN2B*QIB)*EEB+EN2A*QIA)*EEA &
+              +EN29*QI9)*EE9 +EN28*QI8)*EE8+EN27*QI7)*EE7 &
+              +EN26*QI6)*EE6 +EN25*QI5)*EE5+EN24*QI4)*EE4 &
+              +EN23*QI3)*EE3 +EN22*QI2)*EE2+EN21*QI1)*EE1
             DD=HW*ABZS2
             DQ=DD*ABZS2*ABZS2*2.0D0
             TZ0R=(SZ0R-SIM*SZ0I-DD)*XRE
@@ -563,7 +568,7 @@ C
             TZ2I=(SZ2R+SRE*SZ2I+(SRE*3.0D0-SIM      )*DQ)*XIM
             TZ3R= RZ2R+(XXR*RZ1R-RZ1I*SXI)*3.0D0
             TZ3I=(RZ2I+(    RZ1R+RZ1I*XXR)*3.0D0)*XXI
-C
+
             IF((XIM.GT.HPAI).OR.(XXR.GT.161.18D0)) THEN
                Z(L)   =DCMPLX(TZ0R,TZ0I)*COEF0
                DZ(L)  =DCMPLX(TZ1R,TZ1I)*COEF1
@@ -571,7 +576,7 @@ C
                DDDZ(L)=DCMPLX(TZ3R,TZ3I)*COEF3
                GOTO 1000
             ENDIF
-C
+
             IF(ABS(XIM).LT.HPAI) THEN
                EXXPHR=DEXP(XIM*H2PAI)
                DC=COS(XRE*H2PAI)
@@ -625,15 +630,27 @@ C
  1000    CONTINUE
       ENDDO
       RETURN
-      END
-C
-C     ***** PLASMA DISPAERSION FUNCTION *****
-C
-      SUBROUTINE DSPFNA(N,X,Z,DZ)
-C
-C      PROGRAMMED BY T. WATANABE (1991/01/09)
-C      CODE IN KAKUYUUGOU-KENKYUU 
-C
+  END SUBROUTINE DSPFNV
+
+!     ***** PLASMA DISPAERSION FUNCTION *****
+
+  SUBROUTINE DSPFN(X,Z,DZ)
+    IMPLICIT NONE
+    COMPLEX(8),INTENT(IN):: X
+    COMPLEX(8),INTENT(OUT):: Z,DZ
+    COMPLEX(8):: XA(1),ZA(1),DZA(1)
+    XA(1)=X
+    CALL DSPFNA(1,XA,ZA,DZA)
+    Z=ZA(1)
+    DZ=DZA(1)
+    RETURN
+  END SUBROUTINE DSPFN
+
+  SUBROUTINE DSPFNA(N,X,Z,DZ)
+
+!      PROGRAMMED BY T. WATANABE (1991/01/09)
+!      CODE IN KAKUYUUGOU-KENKYUU 
+
       IMPLICIT REAL*8(A-H,O-Z)
       COMPLEX*16 X(*),Z(*),DZ(*)
       SAVE INIT,H,CPAI1,CPAI2,COEF0,COEF1
@@ -648,22 +665,22 @@ C
       SAVE FE8,FE9,FEA,FEB,FEC,FED,FEE
       SAVE EN1S,FN1S
       DATA INIT/0/
-C
+
       IF(INIT.EQ.0) THEN
          INIT=1
          H=0.484375D0
-C
+
          CPAI1= 3.141592653589793D0
          CPAI2= 6.283185307179586D0
          COEF0= 5.641895835477563D-1
          COEF1=-1.128379167095513D0
-C
+
          H2=H*0.5D0
          HW=H+H
          H2PAI=CPAI2/H
          HPAI=CPAI1/H
          HH=H*H
-C
+
          EN11=          HH
          EN12=   4.00D0*HH
          EN13=   9.00D0*HH
@@ -678,7 +695,7 @@ C
          EN1C= 144.00D0*HH
          EN1D= 169.00D0*HH
          EN1E= 196.00D0*HH
-C
+
          FN11=   0.25D0*HH
          FN12=   2.25D0*HH
          FN13=   6.25D0*HH
@@ -693,7 +710,7 @@ C
          FN1C= 132.25D0*HH
          FN1D= 156.25D0*HH
          FN1E= 182.25D0*HH
-C
+
          EE1=EXP(-       HH)*HW
          EE2=EXP(- 3.0D0*HH)
          EE3=EXP(- 5.0D0*HH)
@@ -708,7 +725,7 @@ C
          EEC=EXP(-23.0D0*HH)
          EED=EXP(-25.0D0*HH)
          EEE=EXP(-27.0D0*HH)
-C
+
          FE1=EXP(- .25D0*HH)*HW
          FE2=EXP(- 2.0D0*HH)
          FE3=EXP(- 4.0D0*HH)
@@ -723,17 +740,17 @@ C
          FEC=EXP(-22.0D0*HH)
          FED=EXP(-24.0D0*HH)
          FEE=EXP(-26.0D0*HH)
-C
+
          EN1S=EN1E*EEE
          FN1S=FN1E*FEE
       ENDIF
-C
+
       DO L=1,N
          XRE=DREAL( X(L) )
          XIM=DIMAG( X(L) )
          XXR=(XRE-XIM)*(XRE+XIM)
          XXI=XRE*XIM*2.0D0
-C
+
          IF((XIM.LT.0.0D0).AND.(XXR.LT.-50.65D0)) THEN
             Z(L)   =1.D22
             DZ(L)  =1.D22
@@ -754,7 +771,7 @@ C
          ELSE
             SRE=0.D0
          ENDIF
-C
+
          ABZS2=1.0D0/(SRE+SIM)
          XREH2=ABS(XRE/H2)
          IF(XREH2.GT.1.D8) THEN
@@ -777,7 +794,7 @@ C
             DC=FN1C-XXR
             DD=FN1D-XXR
             DE=FN1E-XXR
-C
+
             SD1=D1*D1
             SD2=D2*D2
             SD3=D3*D3
@@ -792,7 +809,7 @@ C
             SDC=DC*DC
             SDD=DD*DD
             SDE=DE*DE
-C
+
             D11=1.0D0/(SD1+SXI)
             D12=1.0D0/(SD2+SXI)
             D13=1.0D0/(SD3+SXI)
@@ -807,7 +824,7 @@ C
             D1C=1.0D0/(SDC+SXI)
             D1D=1.0D0/(SDD+SXI)
             D1E=1.0D0/(SDE+SXI)
-C
+
             DR1=D11*D1
             DR2=D12*D2
             DR3=D13*D3
@@ -822,36 +839,36 @@ C
             DRC=D1C*DC
             DRD=D1D*DD
             DRE=D1E*DE
-C
-            SZ0R=(((((((((((((     DRE *FEE+     DRD)*FED
-     &        +     DRC)*FEC +     DRB)*FEB+     DRA)*FEA
-     &        +     DR9)*FE9 +     DR8)*FE8+     DR7)*FE7
-     &        +     DR6)*FE6 +     DR5)*FE5+     DR4)*FE4
-     &        +     DR3)*FE3 +     DR2)*FE2+     DR1)*FE1
-            SZ0I=(((((((((((((     D1E *FEE+     D1D)*FED
-     &        +     D1C)*FEC +     D1B)*FEB+     D1A)*FEA
-     &        +     D19)*FE9 +     D18)*FE8+     D17)*FE7
-     &        +     D16)*FE6 +     D15)*FE5+     D14)*FE4
-     &        +     D13)*FE3 +     D12)*FE2+     D11)*FE1
-            TZ1R=(((((((((((((FN1S*DRE     +FN1D*DRD)*FED
-     &        +FN1C*DRC)*FEC +FN1B*DRB)*FEB+FN1A*DRA)*FEA
-     &        +FN19*DR9)*FE9 +FN18*DR8)*FE8+FN17*DR7)*FE7
-     &        +FN16*DR6)*FE6 +FN15*DR5)*FE5+FN14*DR4)*FE4
-     &        +FN13*DR3)*FE3 +FN12*DR2)*FE2+FN11*DR1)*FE1
-            TZ1I=(((((((((((((FN1S*D1E     +FN1D*D1D)*FED
-     &        +FN1C*D1C)*FEC +FN1B*D1B)*FEB+FN1A*D1A)*FEA
-     &        +FN19*D19)*FE9 +FN18*D18)*FE8+FN17*D17)*FE7
-     &        +FN16*D16)*FE6 +FN15*D15)*FE5+FN14*D14)*FE4
-     &        +FN13*D13)*FE3 +FN12*D12)*FE2+FN11*D11)*FE1*XXI
+
+            SZ0R=(((((((((((((     DRE *FEE+     DRD)*FED &
+              +     DRC)*FEC +     DRB)*FEB+     DRA)*FEA &
+              +     DR9)*FE9 +     DR8)*FE8+     DR7)*FE7 &
+              +     DR6)*FE6 +     DR5)*FE5+     DR4)*FE4 &
+              +     DR3)*FE3 +     DR2)*FE2+     DR1)*FE1
+            SZ0I=(((((((((((((     D1E *FEE+     D1D)*FED &
+              +     D1C)*FEC +     D1B)*FEB+     D1A)*FEA &
+              +     D19)*FE9 +     D18)*FE8+     D17)*FE7 &
+              +     D16)*FE6 +     D15)*FE5+     D14)*FE4 &
+              +     D13)*FE3 +     D12)*FE2+     D11)*FE1
+            TZ1R=(((((((((((((FN1S*DRE     +FN1D*DRD)*FED &
+              +FN1C*DRC)*FEC +FN1B*DRB)*FEB+FN1A*DRA)*FEA &
+              +FN19*DR9)*FE9 +FN18*DR8)*FE8+FN17*DR7)*FE7 &
+              +FN16*DR6)*FE6 +FN15*DR5)*FE5+FN14*DR4)*FE4 &
+              +FN13*DR3)*FE3 +FN12*DR2)*FE2+FN11*DR1)*FE1
+            TZ1I=(((((((((((((FN1S*D1E     +FN1D*D1D)*FED &
+              +FN1C*D1C)*FEC +FN1B*D1B)*FEB+FN1A*D1A)*FEA &
+              +FN19*D19)*FE9 +FN18*D18)*FE8+FN17*D17)*FE7 &
+              +FN16*D16)*FE6 +FN15*D15)*FE5+FN14*D14)*FE4 &
+              +FN13*D13)*FE3 +FN12*D12)*FE2+FN11*D11)*FE1*XXI
             TZ0R=(SZ0R-SIM*SZ0I)*XRE
             TZ0I=(SZ0R+SRE*SZ0I)*XIM
-C
+
             IF((XIM.GT.HPAI).OR.(XXR.GT.161.18D0)) THEN
                Z(L)   =DCMPLX(TZ0R,TZ0I)*COEF0
                DZ(L)  =DCMPLX(TZ1R,TZ1I)*COEF1
                GOTO 1000
             ENDIF
-C
+
             IF(ABS(XIM).LT.HPAI) THEN
                EXXPHR=DEXP(XIM*H2PAI)
                DC=COS(XRE*H2PAI)
@@ -890,7 +907,7 @@ C
             DC=EN1C-XXR
             DD=EN1D-XXR
             DE=EN1E-XXR
-C
+
             SD1=D1*D1
             SD2=D2*D2
             SD3=D3*D3
@@ -905,7 +922,7 @@ C
             SDC=DC*DC
             SDD=DD*DD
             SDE=DE*DE
-C
+
             D11=1.0D0/(SD1+SXI)
             D12=1.0D0/(SD2+SXI)
             D13=1.0D0/(SD3+SXI)
@@ -920,7 +937,7 @@ C
             D1C=1.0D0/(SDC+SXI)
             D1D=1.0D0/(SDD+SXI)
             D1E=1.0D0/(SDE+SXI)
-C
+
             DR1=D11*D1
             DR2=D12*D2
             DR3=D13*D3
@@ -935,37 +952,37 @@ C
             DRC=D1C*DC
             DRD=D1D*DD
             DRE=D1E*DE
-C
-            SZ0R=(((((((((((((     DRE *EEE+     DRD)*EED
-     &        +     DRC)*EEC +     DRB)*EEB+     DRA)*EEA
-     &        +     DR9)*EE9 +     DR8)*EE8+     DR7)*EE7
-     &        +     DR6)*EE6 +     DR5)*EE5+     DR4)*EE4
-     &        +     DR3)*EE3 +     DR2)*EE2+     DR1)*EE1
-            SZ0I=(((((((((((((     D1E *EEE+     D1D)*EED
-     &        +     D1C)*EEC +     D1B)*EEB+     D1A)*EEA
-     &        +     D19)*EE9 +     D18)*EE8+     D17)*EE7
-     &        +     D16)*EE6 +     D15)*EE5+     D14)*EE4
-     &        +     D13)*EE3 +     D12)*EE2+     D11)*EE1
-            TZ1R=(((((((((((((EN1S*DRE     +EN1D*DRD)*EED
-     &        +EN1C*DRC)*EEC +EN1B*DRB)*EEB+EN1A*DRA)*EEA
-     &        +EN19*DR9)*EE9 +EN18*DR8)*EE8+EN17*DR7)*EE7
-     &        +EN16*DR6)*EE6 +EN15*DR5)*EE5+EN14*DR4)*EE4
-     &        +EN13*DR3)*EE3 +EN12*DR2)*EE2+EN11*DR1)*EE1
-            TZ1I=(((((((((((((EN1S*D1E     +EN1D*D1D)*EED
-     &        +EN1C*D1C)*EEC +EN1B*D1B)*EEB+EN1A*D1A)*EEA
-     &        +EN19*D19)*EE9 +EN18*D18)*EE8+EN17*D17)*EE7
-     &        +EN16*D16)*EE6 +EN15*D15)*EE5+EN14*D14)*EE4
-     &        +EN13*D13)*EE3 +EN12*D12)*EE2+EN11*D11)*EE1*XXI
+
+            SZ0R=(((((((((((((     DRE *EEE+     DRD)*EED &
+              +     DRC)*EEC +     DRB)*EEB+     DRA)*EEA &
+              +     DR9)*EE9 +     DR8)*EE8+     DR7)*EE7 &
+              +     DR6)*EE6 +     DR5)*EE5+     DR4)*EE4 &
+              +     DR3)*EE3 +     DR2)*EE2+     DR1)*EE1
+            SZ0I=(((((((((((((     D1E *EEE+     D1D)*EED &
+              +     D1C)*EEC +     D1B)*EEB+     D1A)*EEA &
+              +     D19)*EE9 +     D18)*EE8+     D17)*EE7 &
+              +     D16)*EE6 +     D15)*EE5+     D14)*EE4 &
+              +     D13)*EE3 +     D12)*EE2+     D11)*EE1
+            TZ1R=(((((((((((((EN1S*DRE     +EN1D*DRD)*EED &
+              +EN1C*DRC)*EEC +EN1B*DRB)*EEB+EN1A*DRA)*EEA &
+              +EN19*DR9)*EE9 +EN18*DR8)*EE8+EN17*DR7)*EE7 &
+              +EN16*DR6)*EE6 +EN15*DR5)*EE5+EN14*DR4)*EE4 &
+              +EN13*DR3)*EE3 +EN12*DR2)*EE2+EN11*DR1)*EE1
+            TZ1I=(((((((((((((EN1S*D1E     +EN1D*D1D)*EED &
+              +EN1C*D1C)*EEC +EN1B*D1B)*EEB+EN1A*D1A)*EEA &
+              +EN19*D19)*EE9 +EN18*D18)*EE8+EN17*D17)*EE7 &
+              +EN16*D16)*EE6 +EN15*D15)*EE5+EN14*D14)*EE4 &
+              +EN13*D13)*EE3 +EN12*D12)*EE2+EN11*D11)*EE1*XXI
             DD=HW*ABZS2
             TZ0R=(SZ0R-SIM*SZ0I-DD)*XRE
             TZ0I=(SZ0R+SRE*SZ0I+DD)*XIM
-C
+
             IF((XIM.GT.HPAI).OR.(XXR.GT.161.18D0)) THEN
                Z(L)   =DCMPLX(TZ0R,TZ0I)*COEF0
                DZ(L)  =DCMPLX(TZ1R,TZ1I)*COEF1
                GOTO 1000
             ENDIF
-C
+
             IF(ABS(XIM).LT.HPAI) THEN
                EXXPHR=DEXP(XIM*H2PAI)
                DC=COS(XRE*H2PAI)
@@ -993,4 +1010,5 @@ C
  1000    CONTINUE
       ENDDO
       RETURN
-      END
+  END SUBROUTINE DSPFNA
+END MODULE libdsp
