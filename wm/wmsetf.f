@@ -456,6 +456,7 @@ C     ****** INTERFACE FOR FFT ******
 C
       SUBROUTINE WMXFFT(CA,N,KEY)
 C
+      USE libfft,ONLY: FFT2L
       INCLUDE 'wmcomm.inc'
 C
       COMPLEX*16 CA(N)

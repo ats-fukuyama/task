@@ -349,6 +349,7 @@
 !
       SUBROUTINE FPFFT(CA,N,KEY)
 
+      USE libfft,ONLY: FFT2L
       IMPLICIT NONE
       integer:: N, KEY, IND, IX, I
       integer,save:: NS=0

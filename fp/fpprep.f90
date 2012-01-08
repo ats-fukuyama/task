@@ -356,6 +356,7 @@
 !
       SUBROUTINE SET_RLAMDA(NR)
 
+      USE libde,ONLY: DEFT
       USE libmtx
       USE plprof
 !      USE fpbroadcast
@@ -444,6 +445,7 @@
 !
       SUBROUTINE SET_RLAMDA_G(NR)
 
+      USE libde,ONLY: DEFT
       USE libmtx
       USE plprof
 !      USE fpbroadcast
@@ -530,6 +532,7 @@
 !
       SUBROUTINE SET_RLAMDA_GMAX(NR)
 
+      USE libde,ONLY: DEFT
       USE libmtx
       USE plprof
 !      USE fpbroadcast
@@ -656,7 +659,8 @@
       REAL*8 FUNCTION  FPFN0U(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -673,7 +677,8 @@
       REAL*8 FUNCTION  FPFN0U_G(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -690,7 +695,8 @@
       REAL*8 FUNCTION FPFN0T(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       A0=ETAM(NTHX,NRX)
@@ -706,7 +712,8 @@
       REAL*8 FUNCTION FPFN1A(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -722,7 +729,8 @@
       REAL*8 FUNCTION FPFN2A(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -738,7 +746,8 @@
       REAL*8 FUNCTION FPFN2A_G(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -753,7 +762,8 @@
       REAL*8 FUNCTION  FPFN2U(X,XM,XP)
                            
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -768,7 +778,8 @@
       REAL*8 FUNCTION FPFN2T(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       A0=ETAG(NTHX,NRX)
@@ -784,7 +795,8 @@
       REAL*8 FUNCTION FPFN2A_GG(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM
@@ -799,7 +811,8 @@
       REAL*8 FUNCTION  FPFN0U_GG(X,XM,XP)
 
       IMPLICIT NONE
-      real(8):: X, XM, XP, XX, A0, A1, A2
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: XX, A0, A1, A2
 
       XX=X
       XX=XM

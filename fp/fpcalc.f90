@@ -12,18 +12,8 @@
       USE fpcomm
       USE fpcalcn
       USE fpcalcnr
-!      real(8):: PNFP,TMC2FD,TMC2FD0
+      USE libspf, ONLY: ERF0,ERF1
       real(8):: PMAXC
-
-      interface
-         real(8) function ERF0(X)
-           real(8)::X
-         end function erf0
-
-         real(8) function ERF1(X)
-           real(8)::X
-         end function erf1
-      end interface
 
       contains
 
@@ -382,6 +372,205 @@
       end SUBROUTINE FPGRFB
 
 !
+! ***************************************************************
+!
+!                       SET OF INTEGRAND
+!
+! ***************************************************************
+!
+      FUNCTION FPFN0R(X)
+!
+      IMPLICIT NONE
+      real(8)::FPFN0R
+      real(8),INTENT(IN):: X
+      real(8)::PN
+!
+      PN=X
+      FPFN0R=PN**2*FPRMXW(PN)
+!
+      RETURN
+      END FUNCTION FPFN0R
+!---------------------------------------------------------------
+      FUNCTION FPFN1R(X,XM,XP)
+
+      IMPLICIT NONE
+      real(8)::FPFN1R
+      real(8),INTENT(IN)::X, XM, XP
+      real(8)::PN, A, B
+
+      A=0.5D0*PNFP
+      PN=A*XP
+      B=PN**4/(1.D0+PN**2*TMC2FD0)
+      FPFN1R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN1R
+!
+! ===============================================================
+!
+      FUNCTION FPFN2R(X)
+
+      real(8):: FPFN2R
+      real(8),INTENT(IN):: X
+      real(8):: A, PN, B
+
+      A=1.D0
+      PN=A*(X+PNFP)
+      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
+      FPFN2R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN2R
+!
+! ==============================================================
+!
+      FUNCTION FPFN3R(X,XM,XP)
+
+      real(8):: FPFN3R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN
+
+      A=0.5D0*PNFP
+      PN=A*XP
+      FPFN3R=A*PN**2*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN3R
+!
+! ===============================================================
+!
+      FUNCTION FPFN4R(X,XM,XP)
+
+      real(8):: FPFN4R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B
+
+      A=0.5D0*PNFP
+      PN=A*XP
+      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
+      FPFN4R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN4R
+!
+! ===============================================================
+!
+      FUNCTION FPFN5R(X,XM,XP)
+
+      real(8):: FPFN5R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B
+
+      A=0.5D0*PNFP
+      PN=A*XP
+      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
+      FPFN5R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN5R
+!
+! ===============================================================
+!
+      FUNCTION FPFN6R(X)
+
+      real(8):: FPFN6R
+      real(8),INTENT(IN):: X
+      real(8):: A, PN
+
+      A=1.D0
+      PN=A*(X+PNFP)
+      FPFN6R=A*PN*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN6R
+!
+! =============================================================== 
+      FUNCTION FPFN7R(X,XM,XP)
+!                            
+      real(8):: FPFN7R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B, PMAX2
+
+      PMAX2=PMAXC
+      A=0.5D0*(PNFP-PMAX2)
+      PN=A*XP+0.5D0*(PNFP+PMAX2)
+      B=PN**4/(1.D0+PN**2*TMC2FD0)
+      FPFN7R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN7R
+!
+! =============================================================== 
+!
+      FUNCTION FPFN8R(X,XM,XP)
+
+      real(8):: FPFN8R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B, PMAX2
+
+      PMAX2=PMAXC
+      A=0.5D0*(PNFP-PMAX2)
+      PN=A*XP+0.5D0*(PNFP+PMAX2)
+      FPFN8R=A*PN**2*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN8R
+!
+! =============================================================== 
+!
+      FUNCTION FPFN9R(X,XM,XP)
+
+      real(8):: FPFN9R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B, PMAX2
+
+      PMAX2=PMAXC
+      A=0.5D0*(PNFP-PMAX2)
+      PN=A*XP+0.5D0*(PNFP+PMAX2)
+      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
+      FPFN9R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN9R
+!
+! =============================================================== 
+!
+      FUNCTION FPFN10R(X,XM,XP)
+
+      real(8):: FPFN10R
+      real(8),INTENT(IN):: X, XM, XP
+      real(8):: A, PN, B, PMAX2
+
+      PMAX2=PMAXC
+      A=0.5D0*(PNFP-PMAX2)
+      PN=A*XP+0.5D0*(PNFP+PMAX2)
+      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
+      FPFN10R=A*B*FPRMXW(PN)
+
+      RETURN
+      END FUNCTION FPFN10R
+!
+! ===============================================================
+!
+      FUNCTION FPRMXW(PN)
+
+      real(8):: FPRMXW
+      real(8),INTENT(IN):: PN
+      real(8):: EX
+
+      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
+      IF (EX.LT.-100.D0)THEN
+         FPRMXW=0.D0
+      ELSE
+         FPRMXW=EXP(EX)
+      ENDIF
+
+      RETURN
+      END FUNCTION FPRMXW
+
+!-------------------------------------------
+
+!
 ! ************************************************************
 !
 !       CALCULATION OF LINEAR COLLISIONAL OPERATOR
@@ -390,6 +579,7 @@
 !
       SUBROUTINE FPCALC_L(NR,NSB,NSA)
 
+      USE libde
       IMPLICIT NONE
 
       integer:: NSA, NSB, NR, NP, NTH, NSBA
@@ -654,191 +844,4 @@
 
       RETURN
       END SUBROUTINE FPCALC_LAV
-!
-! ***************************************************************
-!
-!                       SET OF INTEGRAND
-!
-! ***************************************************************
-!
-      FUNCTION FPFN0R(X)
-!
-      IMPLICIT NONE
-      real(8)::FPFN0R
-      real(8)::PN, X
-!
-      PN=X
-      FPFN0R=PN**2*FPRMXW(PN)
-!
-      RETURN
-      END FUNCTION FPFN0R
-!---------------------------------------------------------------
-      FUNCTION FPFN1R(X,XM,XP)
-
-      IMPLICIT NONE
-      real(8)::FPFN1R
-      real(8)::PN, X, A, XM, XP, B
-
-      A=0.5D0*PNFP
-      PN=A*XP
-      B=PN**4/(1.D0+PN**2*TMC2FD0)
-      FPFN1R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN1R
-!
-! ===============================================================
-!
-      FUNCTION FPFN2R(X)
-
-      real(8):: FPFN2R
-      real(8):: X, A, PN, B
-
-      A=1.D0
-      PN=A*(X+PNFP)
-      B=PN*SQRT(1.D0+PN**2*TMC2FD0)
-      FPFN2R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN2R
-!
-! ==============================================================
-!
-      FUNCTION FPFN3R(X,XM,XP)
-
-      real(8):: FPFN3R
-      real(8):: X, XM, XP, A, PN
-
-      A=0.5D0*PNFP
-      PN=A*XP
-      FPFN3R=A*PN**2*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN3R
-!
-! ===============================================================
-!
-      FUNCTION FPFN4R(X,XM,XP)
-
-      real(8):: FPFN4R
-      real(8):: X, XM, XP, A, PN, B
-
-      A=0.5D0*PNFP
-      PN=A*XP
-      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
-      FPFN4R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN4R
-!
-! ===============================================================
-!
-      FUNCTION FPFN5R(X,XM,XP)
-
-      real(8):: FPFN5R
-      real(8):: X, XM, XP, A, PN, B
-
-      A=0.5D0*PNFP
-      PN=A*XP
-      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
-      FPFN5R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN5R
-!
-! ===============================================================
-!
-      FUNCTION FPFN6R(X)
-
-      real(8):: FPFN6R
-      real(8):: X, A, PN
-
-      A=1.D0
-      PN=A*(X+PNFP)
-      FPFN6R=A*PN*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN6R
-!
-! =============================================================== 
-      FUNCTION FPFN7R(X,XM,XP)
-!                            
-      real(8):: FPFN7R
-      real(8):: X, XM, XP, A, PN, B, PMAX2
-
-      PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**4/(1.D0+PN**2*TMC2FD0)
-      FPFN7R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN7R
-!
-! =============================================================== 
-!
-      FUNCTION FPFN8R(X,XM,XP)
-
-      real(8):: FPFN8R
-      real(8):: X, XM, XP, A, PN, B, PMAX2
-
-      PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      FPFN8R=A*PN**2*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN8R
-!
-! =============================================================== 
-!
-      FUNCTION FPFN9R(X,XM,XP)
-
-      real(8):: FPFN9R
-      real(8):: X, XM, XP, A, PN, B, PMAX2
-
-      PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**2/SQRT(1.D0+PN**2*TMC2FD0)
-      FPFN9R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN9R
-!
-! =============================================================== 
-!
-      FUNCTION FPFN10R(X,XM,XP)
-
-      real(8):: FPFN10R
-      real(8):: X, XM, XP, A, PN, B, PMAX2
-
-      PMAX2=PMAXC
-      A=0.5D0*(PNFP-PMAX2)
-      PN=A*XP+0.5D0*(PNFP+PMAX2)
-      B=PN**4/(SQRT(1.D0+PN**2*TMC2FD0))**3
-      FPFN10R=A*B*FPRMXW(PN)
-
-      RETURN
-      END FUNCTION FPFN10R
-!
-! ===============================================================
-!
-      FUNCTION FPRMXW(PN)
-
-      real(8):: FPRMXW
-      real(8):: PN, EX
-
-      EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
-      IF (EX.LT.-100.D0)THEN
-         FPRMXW=0.D0
-      ELSE
-         FPRMXW=EXP(EX)
-      ENDIF
-
-      RETURN
-      END FUNCTION FPRMXW
-
-!-------------------------------------------
-
       END MODULE fpcalc

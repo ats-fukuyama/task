@@ -4,7 +4,7 @@ include ../make.header
 #FFLAGS=$(OFLAGS)
 FFLAGS=$(DFLAGS)
 
-MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../pl/$(MOD)
+MODINCLUDE= -I./$(MOD) -I../../bpsd/$(MOD) -I../lib/$(MOD) -I../pl/$(MOD)
 
 SRCS = wrmenu.f wrinit.f wrcalc.f wrbeam.f wrgout.f
 

@@ -9,6 +9,7 @@
       MODULE fpcalcnr
 
       USE fpcomm
+      USE libspf, ONLY: dpleg
       real(8):: PNFP, TMC2FD0, TMC2FD
 
 
@@ -18,6 +19,7 @@
 
       SUBROUTINE FPCALC_NLR(NR,NSB,NSA)
 
+      USE libde,ONLY: DEHIFT
       USE libgrf,ONLY: grd1d
       Implicit none
 !      PARAMETER (N=NPM+2,M=NTHM+2,LNM=5)
@@ -55,12 +57,6 @@
       real(8):: SUMA, SUMB, SUMC, SUMD, SUME, SUMF, SUMG, SUMH
       real(8):: vtatb, ptatb, PMAX2, RINT0, RINT2, ES0, ES2, testF, testP
       real(8):: DKBSL0, DKBSL1, DKBSL2, Z
-      interface
-         DOUBLE PRECISION FUNCTION BESEKN(N,X)
-           real(8) :: X
-           integer :: N
-         end function BESEKN
-      end interface
 !
 !----- DEFINITION OF LOCAL QUANTITIES -------------
 !
@@ -890,7 +886,8 @@
 !
       IMPLICIT NONE
       real(8)::FPFN0R2
-      real(8)::PN, X
+      real(8),INTENT(IN):: X
+      real(8)::PN
 !
       PN=X
       FPFN0R2=PN**2*FPRMXW2(PN)
@@ -903,7 +900,8 @@
       FUNCTION FPFN2R2(X)
 
       real(8):: FPFN2R2
-      real(8):: X, A, PN, B
+      real(8),INTENT(IN):: X
+      real(8):: A, PN, B
 
       A=1.D0
       PN=A*(X+PNFP)
@@ -919,7 +917,8 @@
       FUNCTION FPRMXW2(PN)
 
       real(8):: FPRMXW2
-      real(8):: PN, EX
+      real(8),INTENT(IN):: PN
+      real(8):: EX
 
       EX=(1.D0-SQRT(1.D0+PN**2*TMC2FD0))/TMC2FD
       IF (EX.LT.-100.D0)THEN

@@ -4,6 +4,8 @@ include ../make.header
 FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
+MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD)
+
 SRCS = txintf.f90 txcomm.f90 txlib.f90 txmisc.f90 txncls.f90 txrslt.f90 txrppl.f90 \
        txauxs.f90 txcalv.f90 txcala.f90 txgraf.f90 txinit.f90 txfile.f90 txexec.f90 \
        txmenu.f90 txmain.f90 txntv.f90 txmmm.f90 coulomb_log.f90
@@ -27,12 +29,12 @@ LIBS3= tx3lib.a ../lib/tasklib.a
 .SUFFIXES: .f90
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
+	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(MODLA95)
 .f90.o :
-	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODLA95)
+	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE) $(MODLA95)
 
-#all: $(PROG2)
-all: $(PROG3)
+all: $(PROG2)
+#all: $(PROG3)
 
 tx2lib.a: $(OBJS) $(OBJ2D) $(OBJNC) $(INCNC) $(OBJMM)
 	$(LD) $(LDFLAGS) tx2lib.a $(OBJS) $(OBJ2D) $(OBJNC) $(OBJMM)
@@ -47,10 +49,10 @@ libs:
 	(cd ../lib; make)
 
 $(PROG2): $(LIBS2)
-	$(FCFREE) $(LIBS2) $(LIBLA) -o $@ $(FFLAGS) $(FLIBS)
+	$(FCFREE) $(LIBS2) -o $@ $(FFLAGS) $(FLIBS)
 
 $(PROG3): $(LIBS3)
-	$(FCFREE) $(LIBS3) $(LIBLA) -o $@ $(FFLAGS) $(GLIBS)
+	$(FCFREE) $(LIBS3) -o $@ $(FFLAGS) $(GLIBS)
 
 check: $(SRCS) $(SRC2D) $(SRC3D)
 	ftnchek $(FCKFLAGS) $(SRCS) $(SRC2D) $(SRC3D) | $(PAGER)

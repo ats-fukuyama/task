@@ -1,7 +1,7 @@
 ### $Id$ ###
 include ../make.header
 
-FFLAGS = $(OFLAGS) -mcmodel=medium
+FFLAGS = $(OFLAGS)
 #FFLAGS = $(DFLAGS)
 
 MODINCLUDE= -I$(MOD) -I../lib/$(MOD) -I../pl/$(MOD) -I../eq/$(MOD) \

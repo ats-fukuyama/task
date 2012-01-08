@@ -313,10 +313,10 @@
 !     volume-averaged isotopic mass number
       PAI = (PA(2)*ANSAV(2)+PA(3)*ANSAV(3)+PA(4)*ANSAV(4))  /(ANSAV(2)+ANSAV(3)+ANSAV(4))
 
-      TAUE89=4.8D-2*(RIP**0.85D0)    *(RR**1.2D0) *(RA**0.3D0)  *(RKAP**0.5D0) &
-     &             *(ANLAV(1)**0.1D0)*(BB**0.2D0) *(PAI**0.5D0) *(PINT**(-0.5D0))
-      TAUE98=0.145D0*(RIP**0.93D0)   *(RR**1.39D0)*(RA**0.58D0) *(RKAP**0.78D0) &
-     &            *(ANLAV(1)**0.41D0)*(BB**0.15D0)*(PAI**0.19D0)*(PINT**(-0.69D0))
+      TAUE89=4.8D-2*(ABS(RIP)**0.85D0)    *(RR**1.2D0) *(RA**0.3D0)  *(RKAP**0.5D0) &
+     &             *(ANLAV(1)**0.1D0)*(ABS(BB)**0.2D0) *(PAI**0.5D0) *(PINT**(-0.5D0))
+      TAUE98=0.145D0*(ABS(RIP)**0.93D0)   *(RR**1.39D0)*(RA**0.58D0) *(RKAP**0.78D0) &
+     &            *(ANLAV(1)**0.41D0)*(ABS(BB)**0.15D0)*(PAI**0.19D0)*(PINT**(-0.69D0))
       H98Y2=TAUE2/TAUE98
 
 !     *** Fusion production rate ***

@@ -1,7 +1,7 @@
 MODULE libfft
 
   PRIVATE
-  PUBLIC CFFT2D,CFFT1D,FFT2L
+  PUBLIC CFFT2D,CFFT1D,FFT2L,cdft,rdft,ddct,ddst,dfct,dfst
 
 CONTAINS
 

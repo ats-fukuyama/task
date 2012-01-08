@@ -27,6 +27,8 @@ contains
          &                 IRPIN, DltRPn, NTCOIL, DltRP_mid, DltRP
     use tx_interface, only : TXGRUR, TOUPPER, TXGLOD!, INTG_F
     use tx_ripple, only : ripple
+    use libgrf, only : grd1d
+    use libbes, only : besin
 
     INTEGER(4) :: MODE, NGPR, NGPT, NGPV, NGYR, NQ, NQL, NGF, NGFMAX, I, IST, NGRT, NG, IER, J, NGTL
 !    real(4), dimension(0:NRMAX,0:5,1:NGYRM) :: GYL
@@ -50,7 +52,6 @@ contains
     character(len=17) :: KOUT
     character(len=50), dimension(:), allocatable :: STRA
     integer(4) :: NGULEN
-    real(8) :: BESIN
 
     !     *** MENU ***
 

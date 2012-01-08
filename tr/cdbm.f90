@@ -109,6 +109,7 @@ CONTAINS
     END SELECT
 
     fs=trcofs(shear,calf*alpha,ckap*curv)
+
     chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
 
     IF(PRESENT(fsz))   fsz=fs
@@ -128,19 +129,23 @@ CONTAINS
     real(rkind),intent(in):: curv  ! Magnetic curvature
     real(rkind):: fs1,fs2,sa
 
+
     IF(alpha.GE.0.D0) THEN
        sa=shear-alpha
+
        IF(sa.GE.0.D0) THEN
           fs1=(1.D0+9.0D0*SQRT(2.D0)*sa**2.5D0) &
                & /(SQRT(2.D0)*(1.D0-2.D0*SA+3.D0*sa*sa+2.0D0*sa*sa*sa))
        ELSE
           fs1=1.D0/SQRT(2.D0*(1.D0-2.D0*sa)*(1.D0-2.D0*sa+3.D0*sa*sa))
        ENDIF
+
        IF(curv.GT.0.D0) THEN
           fs2=SQRT(curv)**3/(shear*shear)
        ELSE
           fs2=0.D0
        ENDIF
+
     ELSE
        sa=alpha-shear
        IF(sa.GE.0.D0) THEN
@@ -156,6 +161,7 @@ CONTAINS
        ENDIF
     ENDIF
     trcofs=MAX(fs1,fs2)
+
     RETURN
   END FUNCTION trcofs
 
@@ -167,7 +173,7 @@ CONTAINS
     REAL(rkind),intent(in):: wexb  ! omega ExB
     REAL(rkind),intent(in):: shear ! Magnetic shear
     REAL(rkind),intent(in):: alpha ! Normalized pressure gradient
-    REAL(8):: alpha1,alpha2,beta,gamma
+    REAL(8):: alpha1,alpha2,beta,gamma,arg
 
     IF(ABS(alpha).LT.1.D-3) THEN
        alpha1=1.D-3
@@ -185,7 +191,13 @@ CONTAINS
        gamma = (1.D0-0.5D0*shear) &
             & /(1.1D0-2.D0*shear+alpha2*shear**2+4.D0*shear**3)+0.75D0
     ENDIF
-    fexb=EXP(-beta*wexb**gamma)
+
+    arg=beta*abs(wexb)**gamma
+    IF(arg.GT.70.D0) THEN
+       fexb=0.D0
+    ELSE
+       fexb=EXP(-arg)
+    ENDIF
     RETURN
   END FUNCTION FEXB
 END MODULE cdbm_mod

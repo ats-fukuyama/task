@@ -775,7 +775,7 @@ SUBROUTINE TXCALM
 
   !  RACCUM doesn't coincide with the plasma surface RA
 
-  IF(RACCUM >= 0.D0) THEN
+  IF(RACCUM >= 0.D0 .AND. RACCUM /= RA) THEN
 
      !  Maximum NR till RA
 

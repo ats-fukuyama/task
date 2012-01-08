@@ -620,6 +620,7 @@ C     ***** BEAM AND POWER *****
 C
       SUBROUTINE WRGRFD
 C
+      USE libspf,ONLY: erf0
       INCLUDE 'wrcomm.inc'
 C
       DIMENSION GPX(NITM+1),GPY(NITM+1,NRAYM)

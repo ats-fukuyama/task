@@ -25,6 +25,7 @@ contains
 
     use tx_commons
     use tx_interface, only : fgaussian
+    use libell,only : ellfc, ellec
 
     real(8), dimension(0:NRMAX), intent(in) :: dQdr
 
@@ -33,7 +34,7 @@ contains
          &     width0, width1, dltwidth, ARC, diff_min, theta_min, &
          &     rhob, rNueff, rNubnc, DRP, Dltcr, DltR, Vdrift, Rpotato
 !!    real(8) :: sum_rp, DltRP_ave, DCB, Dlteff
-    real(8) :: ELLFC, ELLEC, AITKEN2P
+    real(8) :: AITKEN2P
     real(8), dimension(0:NRMAX) :: th1, th2
 !!rp_conv         &                         ,PNbrpL, DERIV
 !!rp_conv    real(8), dimension(1:4,0:NRMAX) :: U
@@ -357,9 +358,9 @@ contains
 
   real(8) function ripple(RL,theta,FSRP) result(f)
     use tx_commons, only : RR, NTCOIL, DltRPn, RA
+    use libbes, only : besin
     real(8), intent(in) :: RL, theta, FSRP
     real(8) :: a, L0, Rmag0 = 2.4D0 ! specific value for JT-60U
-    real(8) :: BESIN
 
     if(FSRP /= 0.D0) then
        L0 = RR - Rmag0

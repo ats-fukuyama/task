@@ -28,22 +28,6 @@
          tr_bpsd_init_flag=.FALSE.
       endif
 
-!      write(6,*) 'top of tr_bpsd_init:qp'
-!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of tr_bpsd_init:rt'
-!      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
-!      pause
-
-      device%rr=RR
-      device%zz=0.d0
-      device%ra=RA
-      device%rb=RA+0.1D0
-      device%bb=BB
-      device%ip=RIP
-      device%elip=RKAP
-      device%trig=RDLT
-      call bpsd_set_data(device,ierr)
-
       if(species%nsmax.ne.nsmax) then
          if(associated(species%data)) then
             deallocate(species%data)
@@ -71,7 +55,6 @@
          allocate(equ1D%data(equ1D%nrmax))
       endif
 
-      equ1D%time=0.d0
       equ1D%rho(1)=0.d0
       do nr=1,nrmax
          equ1D%rho(nr+1)=rg(nr)
@@ -113,36 +96,11 @@
          allocate(plasmaf%qinv(plasmaf%nrmax))
       endif
 
-      plasmaf%time=0.d0
       plasmaf%rho(1)=0.d0
       do nr=1,nrmax
          plasmaf%rho(nr+1)=rg(nr)
       enddo
-      do ns=1,nsmax
-         call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:nrmax,ns,1),nrmax)
-         call mesh_convert_mtog(rt(1:nrmax,ns),temp(1:nrmax,ns,2),nrmax)
-         call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:nrmax,ns,3),nrmax)
-      enddo
-      do nr=1,plasmaf%nrmax
-         do ns=1,plasmaf%nsmax
-            plasmaf%data(nr,ns)%pn=temp(nr,ns,1)*1.d20
-            plasmaf%data(nr,ns)%pt=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%ptpr=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%ptpp=temp(nr,ns,2)*1.D3
-            plasmaf%data(nr,ns)%pu=temp(nr,ns,3)
-         enddo
-      enddo
-!!      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)*DVRHOG(1:NRMAX) &
-!!           &              /(4.D0*PI**2*RDP(1:NRMAX))
-      QP(1:NRMAX)=TTRHOG(1:NRMAX)*ARRHOG(1:NRMAX)/(4.D0*PI**2*RDPVRHOG(1:NRMAX))
-      do nr=2,plasmaf%nrmax
-         plasmaf%qinv(nr)=1.d0/qp(nr-1)
-      enddo
-      plasmaf%qinv(1)=((plasmaf%rho(3))**2*plasmaf%qinv(2) &
-     &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
-     &               /((plasmaf%rho(3))**2-(plasmaf%rho(2))**2)
 
-      call bpsd_set_data(plasmaf,ierr)
       return
       end subroutine tr_bpsd_init
 
@@ -156,12 +114,6 @@
       real(8)    :: temp(nrmp,nsm,3)
 !=======================================================================
 
-!      write(6,*) 'top of tr_bpsd_set:qp'
-!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of tr_bpsd_set: rt'
-!      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
-!      pause
-
       device%rr=RR
       device%zz=0.d0
       device%ra=RA
@@ -174,16 +126,14 @@
 
       plasmaf%time=t
       do ns=1,nsmax
-         call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:nrmax,ns,1),nrmax)
-         call mesh_convert_mtog(rt(1:nrmax,ns),temp(1:nrmax,ns,2),nrmax)
-         call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:nrmax,ns,3),nrmax)
+         call mesh_convert_mtog(rn(1:nrmax,ns),temp(1:plasmaf%nrmax,ns,1), &
+                                nrmax)
+         call mesh_convert_mtog(rt(1:nrmax,ns),temp(1:plasmaf%nrmax,ns,2), &
+                                nrmax)
+         call mesh_convert_mtog(ru(1:nrmax,ns),temp(1:plasmaf%nrmax,ns,3), &
+                                nrmax)
       enddo
       do nr=1,plasmaf%nrmax
-         if(nr.eq.1) then
-            plasmaf%rho(nr)=0.d0
-         else
-            plasmaf%rho(nr)=rg(nr-1)
-         endif
          do ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%pn=temp(nr,ns,1)*1.d20
             plasmaf%data(nr,ns)%pt=temp(nr,ns,2)*1.D3
@@ -193,22 +143,12 @@
          enddo
       enddo
 
-!      write(6,*) 'RDP_set:',(rdp(nr),nr=1,nrmax)
-
       do nr=1,nrmax
-!!         plasmaf%qinv(nr+1) &
-!!         & =(4.D0*PI**2*RDP(nr))/(TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr))
          plasmaf%qinv(nr+1)=(4.D0*PI**2*RDPVRHOG(nr))/(TTRHOG(nr)*ARRHOG(nr))
       enddo
       plasmaf%qinv(1)=((plasmaf%rho(3))**2*plasmaf%qinv(2) &
      &                -(plasmaf%rho(2))**2*plasmaf%qinv(3)) &
      &               /((plasmaf%rho(3))**2-(plasmaf%rho(2))**2)
-
-!      write(6,*) 'end of tr_bpsd_set:qp'
-!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'end of tr_bpsd_set:rt'
-!      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
-!      pause
 
       call bpsd_set_data(plasmaf,ierr)
       return
@@ -225,11 +165,6 @@
       real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho,rgl
       REAL(8)    :: FACTOR0, FACTORM, FACTORP
 !=======================================================================
-!      write(6,*) 'top of tr_bpsd_get: qp'
-!      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)
-!      write(6,*) 'top of tr_bpsd_get: rt'
-!      write(6,'(1P5E12.4)') (rt(nr,1),nr=1,nrmax)
-!      pause
 
       call bpsd_get_data(device,ierr)
 
@@ -239,11 +174,6 @@
       RIP=device%ip
       RKAP=device%elip
       RDLT=device%trig
-
-      if(modelg.eq.3.or.modelg.eq.5) then
-         RIPS=RIP
-         RIPE=RIP
-      endif
 
       call bpsd_get_data(plasmaf,ierr)
 
@@ -260,9 +190,12 @@
       Q0=2.d0*qp(1)-qp(2)
 
       do ns=1,nsmax
-         call mesh_convert_gtom(temp(1:nrmax,ns,1),rn(1:nrmax,ns),nrmax)
-         call mesh_convert_gtom(temp(1:nrmax,ns,2),rt(1:nrmax,ns),nrmax)
-         call mesh_convert_gtom(temp(1:nrmax,ns,3),ru(1:nrmax,ns),nrmax)
+         call mesh_convert_gtom(temp(1:plasmaf%nrmax,ns,1),rn(1:nrmax,ns), &
+                                nrmax)
+         call mesh_convert_gtom(temp(1:plasmaf%nrmax,ns,2),rt(1:nrmax,ns), &
+                                nrmax)
+         call mesh_convert_gtom(temp(1:plasmaf%nrmax,ns,3),ru(1:nrmax,ns), &
+                                nrmax)
       enddo
 
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then

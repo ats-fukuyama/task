@@ -9,6 +9,7 @@
 subroutine perturb_mag
   use tx_commons, only : nrmax, m_pol, PI, n_tor, deltam, r
   use tx_ripple, only : ripple
+  use libfft,only : ddct
   implicit none
 
   integer(4) :: m, m_max, max_ip, max_w, nr

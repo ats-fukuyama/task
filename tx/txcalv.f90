@@ -172,7 +172,8 @@ contains
          &     Chicl, factor_bohm, rNuAsIL, ALFA, &
          &     RLOSS, SQZ, rNuDL, ETASL, Ln, LT, etai_chk, kthrhos, &
          &     RhoSOL, V0ave, Viave, DturbA, rLmean, Sitot, &
-         &     rGCIM, rGIM, rHIM, OMEGAPR  !09/06/17~ miki_m
+         &     rGCIM, rGIM, rHIM, OMEGAPR, &  !09/06/17~ miki_m
+         &     rLMFL ! 11/06/15 AF
     INTEGER(4) :: NHFM ! miki_m 10-08-06
     real(8), dimension(1:NHFMmx) :: EpsLM 
 !    real(8) :: rLmeanL
@@ -968,32 +969,40 @@ contains
 
        !     *** Loss to divertor ***
 
-!       IF (R(NR) + DBW > RA) THEN
        IF (R(NR) > RA) THEN
-!          Cs = SQRT(2.D0 * PTeV(NR) * rKeV / AMI)
           Cs = SQRT((PZ * PTeV(NR) + 3.D0 * PTiV(NR)) * rKeV / AMI)
-          RL = (R(NR) - RA) / DBW! / 2.D0
-          rNuL  (NR) = FSLP  * Cs / (2.D0 * PI * Q(NR) * RR) &
-               &             * RL**2 / (1.D0 + RL**2)
-          ! Classical heat conduction [s**4/(kg**2.5*m**6)]
-          ! (C S Pitcher and P C Stangeby, PPCF 39 (1997) 779)
-          Chicl = (4.D0*PI*EPS0)**2 &
-               & /(SQRT(AME)*coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR),AEP,1.d0,PA,PZ)*AEE**4*Zeff)
+!          rLMFL = 2.D0 * PI * Q(NR) * RR   ! Length of field line to divertor
+          rLMFL = 2.D0 * PI * Q(NR) * RR  &
+                  * (1.D0 + LOG(1.D0 + 0.03D0 / (R(NR) - RA)))
 
-          ! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
-          !   to obain good convergence.
+          RL = (R(NR) - RA) / DBW! / 2.D0
+          rNuL  (NR) = FSLP  * Cs / rLMFL &
+               &             * RL**2 / (1.D0 + RL**2)
+
+! Classical heat conduction [s**4/(kg**2.5*m**6)]
+! (C S Pitcher and P C Stangeby, PPCF 39 (1997) 779)
+
+          Chicl = (4.D0*PI*EPS0)**2 &
+                /(SQRT(AME)*coulog(1.d0,PNeV(NR),PTeV(NR),PTiV(NR), &
+                                   AEP,1.d0,PA,PZ)*AEE**4*Zeff)
+
+! When calculating rNuLTe, we fix PNeV and PTeV constant during iteration
+!   to obain good convergence.
+
           rNuLTe(NR) = FSLTE * Chicl * (PTeV_FIX(NR)*rKeV)**2.5D0 &
-               &                  /((2.D0 * PI * Q(NR) * RR)**2 * PNeV_FIX(NR)*1.D20) &
-               &             * RL**2 / (1.D0 + RL**2)
-          rNuLTi(NR) = FSLTI * Cs / (2.D0 * PI * Q(NR) * RR) &
-               &             * RL**2 / (1.D0 + RL**2)
+                             /(rLMFL**2 &
+                               * PNeV_FIX(NR)*1.D20) &
+                             * RL**2 / (1.D0 + RL**2)
+          rNuLTi(NR) = FSLTI * Cs / rLMFL &
+                             * RL**2 / (1.D0 + RL**2)
           IF(ABS(FSRP) > 0.D0) THEN
              Ubpara(NR) = (BphV(NR) * UbphV(NR) + BthV(NR) * UbthV(NR)) / BBL
              IF(NR == NRMAX) Ubpara(NR) = AITKEN2P(R(NRMAX), &
                   & Ubpara(NRMAX-1),Ubpara(NRMAX-2),Ubpara(NRMAX-3),&
                   & R(NRMAX-1),R(NRMAX-2),R(NRMAX-3))
              UbparaL = max(Ubpara(NR), FSLP*Cs)
-             rNuLB(NR) = UbparaL / (2.D0 * PI * Q(NR) * RR) * RL**2 / (1.D0 + RL**2)
+             rNuLB(NR) = UbparaL / rLMFL &
+                       * RL**2 / (1.D0 + RL**2)
           END IF
        ELSE
           rNuL(NR) = 0.D0
