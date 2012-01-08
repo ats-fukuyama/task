@@ -207,7 +207,7 @@ c$$$      end subroutine wmfem_plasma
       gm(2,3)= 0.d0
       gm(3,3)= rrl**2
 
-      CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
+      CALL psigd(rrl,zzl,DPSIDR,DPSIDZ)
 
       bprr= DPSIDZ/(2.D0*PI*rrl)
       bpzz=-DPSIDR/(2.D0*PI*rrl)
@@ -278,7 +278,7 @@ c$$$      endif
                bprr=-bb*qinv*ra*rho/rrl*sin(th)
                bpzz= bb*qinv*ra*rho/rrl*cos(th)
             CASE(3,5)
-               CALL EQPSID(rrl,zzl,DPSIDR,DPSIDZ)
+               CALL psigd(rrl,zzl,DPSIDR,DPSIDZ)
                bprr= DPSIDZ/(2.D0*PI*rrl)
                bpzz=-DPSIDR/(2.D0*PI*rrl)
                ttl=FNTTS(rhol)
@@ -1149,6 +1149,7 @@ C     ****** INTERFACE FOR FFT ******
 C
       SUBROUTINE WMFFFT(CA,N,KEY)
 C
+      USE libfft,ONLY: fft2l
       INCLUDE 'wmcomm.inc'
 C
       COMPLEX*16 CA(N)

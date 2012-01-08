@@ -221,6 +221,7 @@ c
 c=======================================================================
       subroutine eqgr1d(ngp,x,y,nxmax,str)
 c
+      USE libgrf,ONLY: grf1d
       implicit none
       integer ngp,nxmax,nx
       real*8, dimension(nxmax) :: x,y
@@ -244,7 +245,12 @@ c
 c
 c=======================================================================
       subroutine eqgr2d(ngp,x,y,z,nxm,nxmax,nymax,str,ntype)
+!     &                  ngline,
+!     &                  ngcoil,rgcoil,zgcoil,
+!     &                  ngbound,rgboud,zgboud)
 c
+      USE libgrf,ONLY: grfut1,grfut2,grfut3,grfut4, 
+     &                 grf2dax,grf2dbx,grf2dcx
       implicit none
       integer ngp,nxm,nxmax,nymax,nx,ny,ntype
       real*8, dimension(nxmax) :: x
@@ -289,7 +295,11 @@ c
       call grfut3(gxmin,gxmax,gsxmin,gsxmax,gxstep,gxorg)
       call grfut3(gymin,gymax,gsymin,gsymax,gystep,gyorg)
       call grfut3(gzmin,gzmax,gszmin,gszmax,gzstep,gzorg)
-      gzstep=0.2*gzstep
+!      IF(ngline.EQ.0) THEN
+         gzstep=0.2*gzstep
+!      ELSE
+!         gzstep=(gzmax-gzmin)/ngline
+!      ENDDO
 c
       call grfut4(ngp,gp)
 c
@@ -319,7 +329,7 @@ c
      &                gsxmin,gsxmax,gxstep,gxorg,
      &                gsymin,gsymax,gystep,gyorg,
      &                gszmin,gszmax,gzstep,gzorg,
-     &                gx,gy,gz,nxm,nxmax,nymax,str,ka,0)
+     &                gx,gy,gz,nxm,nxmax,nymax,str,0,0)
 c
       elseif(ntype.eq.2) then
          call grf2dax(gp,

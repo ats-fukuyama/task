@@ -867,7 +867,7 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       subroutine fem_hhh(fmd,drho,fml)
 
-      use libfem_mod
+      use libfem
       use wmfem_com
       implicit none
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
@@ -994,7 +994,7 @@ c$$$     &         mm,nn,dble(ckpara),rho,babs,bsupth,bsupph
 
       subroutine fem_hqq(fmd,drho,fml)
 
-      use libfem_mod
+      use libfem
       use wmfem_com
       implicit none
       complex(8),dimension(3,3,4,nfcmax,nfcmax,4),intent(in):: fmd
