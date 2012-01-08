@@ -146,6 +146,7 @@ C     ******  UNMAGNETIZE KINETIC DISPERSION ******
 C
       SUBROUTINE DPTNUP(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libdsp,ONLY: DSPFN
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
@@ -154,7 +155,7 @@ C
       CK2=SQRT(CKPR**2+CKPP**2)
       VT2=RT*AEE*1.D3/(AMP*PA(NS))
       CGZ=CW/SQRT(2.D0*CK2*VT2)
-      CALL DSPFNA(1,CGZ,CZ,CDZ)
+      CALL DSPFN(CGZ,CZ,CDZ)
 C
       CWP=RN(NS)*1.D20*PZ(NS)*PZ(NS)*AEE*AEE/(EPS0*AMP*PA(NS)*CW*CW)
       CFX=CKPP/CK2
@@ -175,6 +176,7 @@ C     ****** KINETIC MODEL WITHOUT FLR ******
 C
       SUBROUTINE DPTNHP(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libdsp,ONLY: DSPFN
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
@@ -198,7 +200,7 @@ C
 C
          CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
          CGZ= (1.D0-NC*CWC)*CPR
-         CALL DSPFNA(1,CGZ,CZ,CDZ)
+         CALL DSPFN(CGZ,CZ,CDZ)
 C
          CK=CKPP/CKPR
 C
@@ -226,6 +228,7 @@ C     ****** KINETIC MODEL WITH LOWEST FLR ******
 C
       SUBROUTINE DPTNKL(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libdsp,ONLY: DSPFN
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
       DIMENSION CLDISP(6)
@@ -250,7 +253,7 @@ C
 C
          CPR=CW/SQRT(2.D0*CKPR**2*WTPR)
          CGZ= (1.D0-NC*CWC)*CPR
-         CALL DSPFNA(1,CGZ,CZ,CDZ)
+         CALL DSPFN(CGZ,CZ,CDZ)
 C
          CK=CKPP/CKPR
 C
@@ -278,6 +281,7 @@ C     ****** KINETIC MODEL WITH FLR (SYMMETRIC) ******
 C
       SUBROUTINE DPTNKS(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: lambda
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -316,7 +320,7 @@ C
             CK=CKPP/CKPR
         ENDIF
          CGZ= (1.D0-NC*CWC)*CPR
-         CALL DSPFNA(1,CGZ,CZ,CDZ)
+         CALL DSPFN(CGZ,CZ,CDZ)
 C
          CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
          CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
@@ -344,6 +348,7 @@ C     ****** KINETIC MODEL WITH FLR ******
 C
       SUBROUTINE DPTNKP(CW,CKPR,CKPP,NS,CLDISP)
 C
+      USE libdsp,ONLY: DSPFN
       USE libbes,ONLY: lambda
       INCLUDE '../dp/dpcomm.inc'
       INCLUDE '../pl/plcom2.inc'
@@ -382,7 +387,7 @@ C
             CK=CKPP/CKPR
         ENDIF
          CGZ= (1.D0-NC*CWC)*CPR
-         CALL DSPFNA(1,CGZ,CZ,CDZ)
+         CALL DSPFN(CGZ,CZ,CDZ)
 C
          CFW=CPR*CZ+0.5D0*(1.D0-WTPX)*CDZ
          CFF=0.5D0*(WTPX/CWC-NC*(WTPX-1.D0))*CDZ
@@ -539,6 +544,7 @@ C           *** WITH Z-FUNCTION ***
 C
       FUNCTION CFQZ(Q,CZ)
 C
+      USE libdsp,ONLY: DSPFN
       INCLUDE '../dp/dpcomm.inc'
 C
       IF(ABS(CZ).GT.15.D0) THEN
@@ -565,7 +571,7 @@ C
             CSUM=CSUM+CTERM
          ENDDO
          CGZ=CI*SQRT(CZ)
-         CALL DSPFNA(1,CGZ,CZ2,CDZ2)
+         CALL DSPFN(CGZ,CZ2,CDZ2)
          CSUM=CSUM+SQRT(PI)*(-CZ)**NUMAX*(CI*SQRT(CZ)*CZ2)
          CFQZ=CSUM/DGAMM(Q)
       ENDIF
@@ -577,6 +583,7 @@ C           *** WITH Z-FUNCTION ***
 C
       FUNCTION CFQZ_Z(Q,CZ)
 C
+      USE libdsp,ONLY: DSPFN
       INCLUDE '../dp/dpcomm.inc'
 C
       NUMAX=NINT(Q-3.D0/2.D0)
@@ -586,7 +593,7 @@ C
          CSUM=CSUM+CTERM
       ENDDO
       CGZ=CI*SQRT(CZ)
-      CALL DSPFNA(1,CGZ,CZ2,CDZ2)
+      CALL DSPFN(CGZ,CZ2,CDZ2)
       CSUM=CSUM+SQRT(PI)*(-CZ)**NUMAX*(CI*SQRT(CZ)*CZ2)
       CFQZ_Z=CSUM/DGAMM(Q)
       RETURN

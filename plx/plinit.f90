@@ -44,6 +44,7 @@
 !        NSMAX : Number of particle species
 !        PA    : Mass number
 !        PZ    : Charge number
+!        PZ0   : Atomic number (-1 for electron)
 !        PN    : Density at center                     (1.0E20/m**3)
 !        PNS   : Density on plasma surface             (1.0E20/m**3)
 !        PTPR  : Parallel temperature at center                (keV)
