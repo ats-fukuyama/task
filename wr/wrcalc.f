@@ -174,10 +174,12 @@ C
          IF(MDLWRQ.EQ.0) THEN
             CALL WRRKFT(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSEIF(MDLWRQ.EQ.1) THEN
-            CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+            CALL WRRKFT_WITHD0(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSEIF(MDLWRQ.EQ.2) THEN
-            CALL WRRKFT_RKF(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+            CALL WRRKFT_WITHMC(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSEIF(MDLWRQ.EQ.3) THEN
+            CALL WRRKFT_ODE(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
+         ELSEIF(MDLWRQ.EQ.4) THEN
             CALL WRSYMP(Y,RAYS(0,0,NRAY),NITMAX(NRAY))
          ELSE
             WRITE(6,*) 'XX WRCALC: unknown MDLWRQ =', MDLWRQ
@@ -194,6 +196,179 @@ C
       WRITE(6,*) '% CPU TIME = ',TIME2-TIME1,' sec'
 C
  9000 RETURN
+      END
+C
+C************************************************************************
+C
+      SUBROUTINE WRRKFT(Y,YN,NIT)
+C
+      INCLUDE 'wrcomm.inc'  
+c_zhenya
+      INCLUDE '../pl/plcom2.inc'
+c_zhenya    
+C
+      EXTERNAL WRFDRV
+      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
+CIDEI
+	  DIMENSION YK(3), F(NEQ)
+CIDEI	   
+      X0 = 0.D0
+      XE = DELS
+      INIT = 1
+      ITMAX=INT(SMAX/DELS)
+      IT=0
+      YN(0,IT)=X0
+      DO I=1,7
+         YN(I,IT)=Y(I)
+      ENDDO
+      YN(8,IT)=0.D0
+      OMG=2.D6*PI*RF
+      IOX=0
+C
+      DO 10 IT = 1,ITMAX
+         Y7=Y(7)
+         CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+
+         YN(0,IT)=XE
+         DO I=1,7
+            YN(I,IT)=YM(I)
+         ENDDO
+         YN(8,IT)=Y7-YM(7)
+
+         CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+            RL  =YM(1)
+            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            ZL  =YM(3)
+            RKRL=YM(4)
+         ELSE
+            RL  =SQRT(YM(1)**2+YM(2)**2)
+            PHIL=ATAN2(YM(2),YM(1))
+            ZL  =YM(3)
+            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
+         ENDIF
+         RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
+         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG )
+         RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
+         RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
+
+         DO I=1,7
+            Y(I)=YM(I)
+         ENDDO
+         X0=XE
+         XE=X0+DELS
+         IF(Y(7).LT.UUMIN) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA*1.2D0) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+ 10   CONTINUE
+      NIT=ITMAX
+C     
+ 11   IF(YN(7,NIT).LT.0.D0) THEN
+         YN(7,NIT)=0.D0
+      ENDIF
+C
+      RETURN
+      END
+C
+C************************************************************************
+C
+      SUBROUTINE WRRKFT_WITHD0(Y,YN,NIT)
+C
+      INCLUDE 'wrcomm.inc'  
+c_zhenya
+      INCLUDE '../pl/plcom2.inc'
+c_zhenya    
+C
+      EXTERNAL WRFDRV
+      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
+CIDEI
+	  DIMENSION YK(3), F(NEQ)
+CIDEI	   
+      X0 = 0.D0
+      XE = DELS
+      INIT = 1
+      ITMAX=INT(SMAX/DELS)
+      IT=0
+      YN(0,IT)=X0
+      DO I=1,7
+         YN(I,IT)=Y(I)
+      ENDDO
+      YN(8,IT)=0.D0
+      OMG=2.D6*PI*RF
+      IOX=0
+C
+      DO 10 IT = 1,ITMAX
+         Y7=Y(7)
+         CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
+
+         delta=DISPXR(YM(1),YM(2),YM(3),YM(4),YM(5),YM(6),OMG)
+CBGNIDEI_WRMOD		 
+         IF (ABS(DELTA).GT.1.0D-6) THEN
+            CALL WRMODNWTN(YM,YK)
+            DO I=1,3
+               YM(I+3) = YK(I)
+            END DO
+         END IF 
+CENDIDEI		 
+
+         YN(0,IT)=XE
+         DO I=1,7
+            YN(I,IT)=YM(I)
+         ENDDO
+         YN(8,IT)=Y7-YM(7)
+
+         CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
+         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
+            RL  =YM(1)
+            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
+            ZL  =YM(3)
+            RKRL=YM(4)
+         ELSE
+            RL  =SQRT(YM(1)**2+YM(2)**2)
+            PHIL=ATAN2(YM(2),YM(1))
+            ZL  =YM(3)
+            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
+         ENDIF
+         RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
+         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG )
+         RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
+         RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
+
+CIDEI	 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
+C	 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
+C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
+C     &	               DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
+C     &	               RNPHI_IDEI
+C 6001    FORMAT(1H ,1P14E13.5)
+
+         DO I=1,7
+            Y(I)=YM(I)
+         ENDDO
+         X0=XE
+         XE=X0+DELS
+         IF(Y(7).LT.UUMIN) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+         CALL PLMAG(Y(1),Y(2),Y(3),RHON)
+         IF(RHON.GT.RB/RA*1.2D0) THEN
+            NIT = IT
+            GOTO 11
+         ENDIF         
+ 10   CONTINUE
+      NIT=ITMAX
+C     
+ 11   IF(YN(7,NIT).LT.0.D0) THEN
+         YN(7,NIT)=0.D0
+      ENDIF
+C
+      RETURN
       END
 C
 C************************************************************************
@@ -270,7 +445,7 @@ C
 C
 C************************************************************************
 C
-      SUBROUTINE WRRKFT_RKF(Y,YN,NIT)
+      SUBROUTINE WRRKFT_WITHMC(Y,YN,NIT)
 C
       INCLUDE 'wrcomm.inc'  
 c_zhenya
@@ -349,13 +524,16 @@ C
          RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
          RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA**2)
 
+         IF(MDLWRW.GE.1)
+     &        WRITE(6,'1P7E11.3') XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
+
 CIDEI	 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
 C	 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
 C     &                YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
 C     &	               DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
 C     &	               RNPHI_IDEI
 C 6001    FORMAT(1H ,1P14E13.5)
-C
+
          DO I=1,7
             Y(I)=YM(I)
          ENDDO
@@ -367,99 +545,6 @@ C
          ENDIF         
          CALL PLMAG(Y(1),Y(2),Y(3),RHON)
          IF(RHON.GT.RB/RA*1.2D0) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
- 10   CONTINUE
-      NIT=ITMAX
-C     
- 11   IF(YN(7,NIT).LT.0.D0) THEN
-         YN(7,NIT)=0.D0
-      ENDIF
-C
-      RETURN
-      END
-C
-C************************************************************************
-C
-      SUBROUTINE WRRKFT(Y,YN,NIT)
-C
-      INCLUDE 'wrcomm.inc'      
-CIDEI
-      INCLUDE '../pl/plcom2.inc'
-CIDEI
-C
-      EXTERNAL WRFDRV
-      DIMENSION Y(NEQ),YM(NEQ),YN(0:NEQ,0:NITM),WORK(2,NEQ)
-C
-      X0 = 0.D0
-      XE = DELS     
-      ITMAX=INT(SMAX/DELS)
-      IT=0
-      YN(0,IT)=X0
-      DO I=1,7
-         YN(I,IT)=Y(I)
-      ENDDO
-      YN(8,IT)=0.D0
-C
-      DO 10 IT = 1,ITMAX
-         Y7=Y(7)
-         CALL ODERK(7,WRFDRV,X0,XE,1,Y,YM,WORK)
-C
-         YN(0,IT)=XE
-         DO I=1,7
-            YN(I,IT)=YM(I)
-         ENDDO
-         YN(8,IT)=Y7-YM(7)
-C
-         IF(MODELG.EQ.0.OR.MODELG.EQ.1) THEN
-            RL  =YM(1)
-            PHIL=ASIN(YM(2)/(2.D0*PI*RR))
-            ZL  =YM(3)
-            RKRL=YM(4)
-         ELSE
-            RL  =SQRT(YM(1)**2+YM(2)**2)
-            PHIL=ATAN2(YM(2),YM(1))
-            ZL  =YM(3)
-            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
-         ENDIF
-C
-CC         WRITE(6,6001) XE,RL,PHIL,ZL,RKRL,YM(7),YN(8,IT)
-CC 6001    FORMAT(1H ,1P7E11.3)
-
-CIDEI
-		 CALL PLMAG(YM(1),YM(2),YM(3),PSIN)
-		 OMG=2.D6*PI*RF
-            RL  =SQRT(YM(1)**2+YM(2)**2)
-            PHIL=ATAN2(YM(2),YM(1))
-            ZL  =YM(3)
-            RKRL=(YM(4)*YM(1)+YM(5)*YM(2))/RL
-			RNPHI_IDEI= -YM(4)*VC/OMG*SIN(PHIL) + YM(5)*VC/OMG*COS(PHIL)
-			
-         DELTA=DISPXR( YM(1), YM(2), YM(3), YM(4), YM(5), YM(6), OMG )
-		 RKPARA=YM(4)*BNX+YM(5)*BNY+YM(6)*BNZ
-		 RKPERP=SQRT((YM(4)*YM(4)+YM(5)*YM(5)+YM(6)*YM(6))-RKPARA*RKPARA)
-C
-CIDEI		 WRITE(6,*) 'BX=',BNX*BABS,'BY=',BNY*BABS,'BZ=',BNZ*BABS
-		 WRITE(6,6001) YN(0,IT),RL,ZL,PHIL,YN(1,IT),
-     &                    YN(2,IT),YN(3,IT),YN(6,IT)*VC/OMG,YN(7,IT),
-     &					  DELTA,RKPARA*VC/OMG,RKPERP*VC/OMG,RKRL,
-     &					  RNPHI_IDEI
- 6001    FORMAT(1H ,1P14E13.5)
-C
-  
-C
-         DO I=1,7
-            Y(I)=YM(I)
-         ENDDO
-         X0=XE
-         XE=X0+DELS
-         IF(Y(7).LT.UUMIN) THEN
-            NIT = IT
-            GOTO 11
-         ENDIF         
-         CALL PLMAG(Y(1),Y(2),Y(3),PSIN)
-         IF(PSIN.GT.(RB/RA)**2) THEN
             NIT = IT
             GOTO 11
          ENDIF         
@@ -1364,6 +1449,4 @@ c				WRITE (6,*) 'DDELTA', DDELTA
 
       RETURN
       END
-C
-C************************************************************************
 
