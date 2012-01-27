@@ -75,6 +75,7 @@
 !#include "finclude/petscksp.h"
 !#include "finclude/petscsys.h"
 #include "finclude/petsckspdef.h"
+#include "finclude/petscvec.h90"
 !
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                   Variable declarations
@@ -105,7 +106,7 @@
       INTEGER,PARAMETER:: ione=1
       REAL(8),PARAMETER:: one=1.D0
       INTEGER,DIMENSION(:),POINTER:: istartx,iendx,isiz
-
+      PetscScalar,pointer:: x_value(:)
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 !                 Beginning of program
 ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
@@ -552,15 +553,18 @@
 
       INTEGER,INTENT(IN):: j
       REAL(8),INTENT(OUT):: v
-      PetscScalar:: x_value(ilen)
-      PetscOffset:: x_offset
+!      PetscScalar:: x_value(ilen)
+!      PetscOffset:: x_offset
       INTEGER:: ierr
 
-      call VecGetArrayF90(x,x_value,x_offset,ierr)
+!      call VecGetArrayF90(x,x_value,x_offset,ierr)
+      call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecGetArray: ierr=',ierr
-      v=x_value(x_offset+j-Istart)
-      call VecRestoreArray(x,x_value,x_offset,ierr)
+!      v=x_value(x_offset+j-Istart)
+      v=x_value(j-Istart)
+!      call VecRestoreArray(x,x_value,x_offset,ierr)
+      call VecRestoreArray(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_get_vector: VecRestoreArray: ierr=',ierr
 
@@ -572,16 +576,19 @@
       REAL(8),DIMENSION(imax),INTENT(OUT):: x_
       REAL(8),DIMENSION(ilen):: v
       INTEGER:: j,ierr
-      PetscScalar:: x_value(1)
-      PetscOffset:: x_offset
+!      PetscScalar:: x_value(1)
+!      PetscOffset:: x_offset
 
-      call VecGetArray(x,x_value,x_offset,ierr)
+!      call VecGetArray(x,x_value,x_offset,ierr)
+      call VecGetArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecGetArray: ierr=',ierr
       do j=1,ilen
-         v(j)=x_value(x_offset+j)
+!         v(j)=x_value(x_offset+j)
+         v(j)=x_value(j)
       enddo
-      call VecRestoreArray(x,x_value,x_offset,ierr)
+!      call VecRestoreArray(x,x_value,x_offset,ierr)
+      call VecRestoreArrayF90(x,x_value,ierr)
       IF(ierr.NE.0) WRITE(6,*) &
            'XX mtx_gather_vector: VecRestoreArray: ierr=',ierr
 
