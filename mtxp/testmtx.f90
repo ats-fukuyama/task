@@ -37,7 +37,6 @@
          m2=0
       ENDIF
       tolerance=1.d-7
-
     1 CONTINUE
       IF(nrank.eq.0) then
     2    WRITE(6,'(A/6I5,1PE12.4)') &
