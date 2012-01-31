@@ -26,9 +26,6 @@ mtxlib.a : $(OBJN)
 mpimtxlib.a : $(OBJN) $(OBJM)
 	$(LD) $(LDFLAGS) mpimtxlib.a $(OBJN) $(OBJM)
 
-check : 
-	ftnchek -array=0 -usage=no-com-block-unused $(SRCS) | less
-
 new:
 	mkdir ../mtxnew
 	cp -f Makefile ../mtxnew
