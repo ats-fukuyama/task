@@ -18,6 +18,10 @@
       PUBLIC mtx_allgather_integer
       PUBLIC mtx_gatherv_real8
       PUBLIC mtx_allgatherv_real8
+      PUBLIC mtx_reduce_real8
+      PUBLIC mtx_maxloc_real8
+      PUBLIC mtx_reduce_v_real8
+      PUBLIC mtx_broadcast_integer1
 
       PUBLIC mtx_setup
       PUBLIC mtx_set_matrix
