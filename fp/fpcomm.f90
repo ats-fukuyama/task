@@ -21,8 +21,8 @@
       integer,parameter:: NBEAMM=20
       integer:: NBEAMMAX,NP2MAX
       integer:: MODEL_KSP, MODEL_PC
+      integer,parameter:: kind8=rkind
       real(rkind):: PGMAX, RGMAX, RGMIN
-
       real(rkind):: DRR0,E0,R1,DELR1,RMIN,RMAX,DRRS
       real(rkind):: DEC,PEC1,PEC2,PEC3,PEC4,RFEC,DELYEC
       real(rkind):: DLH,PLH1,PLH2,RLH
@@ -268,8 +268,10 @@
           allocate(FNS1(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(FNS2(NTHMAX+1,NPMAX+1,NRSTART:NREND+1,NSAMAX))
           allocate(FNS22(NTHMAX+1,NPMAX+1,NRMAX+1,NSAMAX))
-          allocate(FS1(NTHMAX+1,NPMAX+1,NSAMAX))
-          allocate(FS2(NTHMAX+1,NPMAX+1,NSAMAX))
+!          allocate(FS1(NTHMAX+1,NPMAX+1,NSAMAX))
+!          allocate(FS2(NTHMAX+1,NPMAX+1,NSAMAX))
+          allocate(FS1(NTHMAX,NPMAX,NSAMAX))
+          allocate(FS2(NTHMAX,NPMAX,NSAMAX))
 
           allocate(RNFP0(NSAMAX),RNFPS(NSAMAX))
           allocate(RTFP0(NSAMAX),RTFPS(NSAMAX))

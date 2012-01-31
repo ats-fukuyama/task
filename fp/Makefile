@@ -6,14 +6,15 @@ include ../../task/make.header
 #PETSCLIBS=
 ##### With PETSc library #####
 include ${PETSC_DIR}/conf/variables
+
 LIBMTX=../../task/mtxp/libmtxksp.o ../../task/mtxp/libmtxmpi.o
 PETSCLIBS=${PETSC_KSP_LIB}
 
 .SUFFIXES:
 .SUFFIXES: .f90 .mod .o .a
 
-FFLAGS=$(OFLAGS)
-#FFLAGS=$(DFLAGS)
+#FFLAGS=$(OFLAGS)
+FFLAGS=$(DFLAGS)
 
 MODINCLUDE= -I.$(MOD) -I../../task/lib/$(MOD) \
             -I../../task/plx/$(MOD) -I../../task/eq/$(MOD) \

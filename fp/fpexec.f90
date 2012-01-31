@@ -21,6 +21,7 @@
 !      integer,optional:: methodKSP, methodPC
 
       NSBA=NSB_NSA(NSA)
+!      WRITE(*,*) "NRANK, NSA = ",NRANK,NSA
 
 !     ----- Set up matrix solver -----
       CALL mtx_setup(imtxsize,imtxstart1,imtxend1,imtxwidth)
@@ -84,7 +85,7 @@
 
 !     ----- Diagonal term -----
 
-      DO NR=NRSTART,NREND
+      DO NR=NRSTART,NREND ! LHS
          IF(MODELA.EQ.0) THEN
             DO NP=1,NPMAX
             DO NTH=1,NTHMAX
@@ -121,8 +122,7 @@
                ENDDO
                DO NTH=ITU(NR)+1,NTHMAX
                   NM=NMA(NTH,NP,NR)
-                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM)) &
-                         *FM(NM) &
+                  BM(NM)=(RLAMDA(NTH,NR)+(1.D0-RIMPL)*DELT*DL(NM))*FM(NM) &
                         +DELT*SPP(NTH,NP,NR,NSA)
                   IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
                      CALL mtx_set_matrix(nm,nm, &
@@ -136,7 +136,7 @@
 
 !     ----- Off diagonal term -----
 
-      DO NM=NMSTART,NMEND
+      DO NM=NMSTART,NMEND ! LHS
          IF(nm.GE.imtxstart.AND.nm.LE.imtxend) THEN
             DO NL=1,NLMAX(NM)
                IF(LL(NM,NL).NE.0) THEN
@@ -158,7 +158,7 @@
 
 !     ----- Source vector: contribution from off-diagonal term -----
 
-      DO NM=NMSTART,NMEND
+      DO NM=NMSTART,NMEND ! RHS
          DO NL=1,NLMAX(NM)
             IF(LL(NM,NL).NE.0) THEN
                BM(NM)=BM(NM)+(1.D0-RIMPL)*DELT*AL(NM,NL)*FM(LL(NM,NL))
@@ -517,7 +517,7 @@
 !     Calculation of matrix coefficients
 ! ******************************************
 
-      SUBROUTINE FPSETM(NTH,NP,NR,NSA,NL)
+      SUBROUTINE FPSETM(NTH,NP,NR,NSA,NL) ! NL intent(out)
 
       IMPLICIT NONE
       integer:: NSA, NP, NTH, NR, NL, NM, NTHA, NTHB, NTB, NTBM, NTBP

@@ -882,10 +882,10 @@
       END SUBROUTINE INTEGRATION_RJAB_RYAB
 
 !------
-      FUNCTION FPFN0R2(X)
+      REAL*8 FUNCTION FPFN0R2(X)
 !
       IMPLICIT NONE
-      real(8)::FPFN0R2
+!      real(8)::FPFN0R2
       real(8),INTENT(IN):: X
       real(8)::PN
 !
@@ -897,9 +897,9 @@
 !
 ! ===============================================================
 !
-      FUNCTION FPFN2R2(X)
+      REAL*8 FUNCTION FPFN2R2(X)
 
-      real(8):: FPFN2R2
+!      real(8):: FPFN2R2
       real(8),INTENT(IN):: X
       real(8):: A, PN, B
 

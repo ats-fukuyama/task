@@ -18,16 +18,22 @@
 
       USE libmtx
       IMPLICIT NONE
-      real(8),dimension(NRSTART:NREND,NSAMAX):: RJNS
-      real(8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
-      real(8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS!,DEPS2
+      real(kind8),dimension(NRSTART:NREND,NSAMAX):: RJNS
+      real(kind8),dimension(NRSTART:NREND):: RJN,RJ3,E3,DELE
+      real(kind8),dimension(NSAMAX)::RSUMF,RSUMF0,RSUM_SS!,DEPS2
 
       integer:: NT, NR, NP, NTH, NSA, NTI, NSBA
-      integer:: L, IERR, NSTEST, I!, N_IMPL
-      real(8):: DEPS, DEPS1, RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
+      integer:: L, IERR, I!, N_IMPL
+      real(kind8):: RSUM, DELEM, RJNL, dw, RSUM1, RSUM2
       real(4):: gut, gut1, gut2, gut3, gut4, gut_ex, gut_calc
-      real(8),DIMENSION(nprocs):: RSUMA
+      real(kind8),DIMENSION(nprocs):: RSUMA
       integer,dimension(NSAMAX)::NTCLSTEP2
+      real(kind8):: DEPS_MAX, DEPS, DEPS1
+      real(kind8),dimension(NSAMAX):: DEPS_MAXV, DEPSV
+      integer,dimension(NSAMAX):: ILOC
+      integer:: NSTEST
+      real(kind8):: temp_send, temp_recv
+      character:: fmt*40
 
       IF(MODELE.NE.0) CALL FPNEWE
 
@@ -72,7 +78,8 @@
             END DO
          END DO
 
-         DO WHILE(DEPS.gt.EPSFP.and.N_IMPL.le.LMAXFP) ! start do while
+!         DO WHILE(DEPS.gt.EPSFP.and.N_IMPL.le.LMAXFP) ! start do while
+         DO WHILE(N_IMPL.le.LMAXFP) ! start do while
             N_IMPL=N_IMPL+1
             DO NSA=1,NSAMAX 
                NSBA=NSB_NSA(NSA)
@@ -109,71 +116,85 @@
                DO NP=1,NPMAX
                DO NTH=1,NTHMAX
                   RSUMF(NSA)=RSUMF(NSA) &
-                         +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
+                         +ABS(FNS1(NTH,NP,NR,NSA)-F1(NTH,NP,NR))**2
+!                         +ABS(FNS1(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
+
                   RSUMF0(NSA)=RSUMF0(NSA) &
                          +ABS(FNS2(NTH,NP,NR,NSA))**2
+
                   RSUM_SS(NSA)=RSUM_SS(NSA) &
-                         +ABS(FNS2(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
+                         +ABS(FNS2(NTH,NP,NR,NSA)-F1(NTH,NP,NR))**2
+!                         +ABS(FNS2(NTH,NP,NR,NSA)-FNS(NTH,NP,NR,NSA))**2
+
                   FNS1(NTH,NP,NR,NSA)=F1(NTH,NP,NR)
                ENDDO
                ENDDO
                ENDDO
             ENDDO ! END OF NSA
 
-            DO NSA=1,NSAMAX
-               CALL mtx_gather_real8(RSUMF(NSA),RSUMA)
-               RSUMF(NSA)=0.D0
-               DO i=1,nprocs
-                  RSUMF(NSA)=RSUMF(NSA)+RSUMA(i)
-               ENDDO
-               RSUMA(1)=RSUMF(NSA)
-               CALL mtx_broadcast_real8(RSUMA,1)
-               RSUMF(NSA)=RSUMA(1)
+!            DO NSA=1,NSAMAX
+!            WRITE(*,'(2I3,"RSUMF(NSA)=",E14.6)') NRANK, NSA, RSUMF(NSA)
+!            END DO
 
-               CALL mtx_gather_real8(RSUMF0(NSA),RSUMA)
-               RSUMF0(NSA)=0.D0
-               DO i=1,nprocs
-                  RSUMF0(NSA)=RSUMF0(NSA)+RSUMA(i)
-               ENDDO
-               RSUMA(1)=RSUMF0(NSA)
-               CALL mtx_broadcast_real8(RSUMA,1)
-               RSUMF0(NSA)=RSUMA(1)
-
-               CALL mtx_gather_real8(RSUM_SS(NSA),RSUMA)
-               RSUM_SS(NSA)=0.D0
-               DO i=1,nprocs
-                  RSUM_SS(NSA)=RSUM_SS(NSA)+RSUMA(i)
-               ENDDO
-               RSUMA(1)=RSUM_SS(NSA)
-               CALL mtx_broadcast_real8(RSUMA,1)
-               RSUM_SS(NSA)=RSUMA(1)
-            ENDDO
+!            DO NSA=1,NSAMAX
+!               CALL mtx_gather_real8(RSUMF(NSA),RSUMA)
+!               RSUMF(NSA)=0.D0
+!               DO i=1,nprocs
+!                  RSUMF(NSA)=RSUMF(NSA)+RSUMA(i)
+!               ENDDO
+!               RSUMA(1)=RSUMF(NSA)
+!               CALL mtx_broadcast_real8(RSUMA,1)
+!               RSUMF(NSA)=RSUMA(1)
+!
+!               CALL mtx_gather_real8(RSUMF0(NSA),RSUMA)
+!               RSUMF0(NSA)=0.D0
+!               DO i=1,nprocs
+!                  RSUMF0(NSA)=RSUMF0(NSA)+RSUMA(i)
+!               ENDDO
+!               RSUMA(1)=RSUMF0(NSA)
+!               CALL mtx_broadcast_real8(RSUMA,1)
+!               RSUMF0(NSA)=RSUMA(1)
+!
+!               CALL mtx_gather_real8(RSUM_SS(NSA),RSUMA)
+!               RSUM_SS(NSA)=0.D0
+!               DO i=1,nprocs
+!                  RSUM_SS(NSA)=RSUM_SS(NSA)+RSUMA(i)
+!               ENDDO
+!               RSUMA(1)=RSUM_SS(NSA)
+!               CALL mtx_broadcast_real8(RSUMA,1)
+!               RSUM_SS(NSA)=RSUMA(1)
+!            ENDDO
 
             DEPS=0.D0
-            NSTEST=0
+!            NSTEST=0
             DO NSA=1,NSAMAX
-               DEPS1=RSUMF(NSA)/RSUMF0(NSA)
-               IF(DEPS1.ge.DEPS) NSTEST=NSA 
+               DEPSV(NSA) = RSUMF(NSA)/RSUMF0(NSA)
+               DEPS1 = DEPSV(NSA)
+!               IF(DEPS1.ge.DEPS) NSTEST=NSA 
                DEPS=MAX(DEPS,DEPS1)
                DEPS_SS(NSA)=RSUM_SS(NSA)/RSUMF0(NSA)/DELT ! steady state
             END DO
-            IF(DEPS.le.EPSFP)THEN ! exit do while
-               N_IMPL=1+LMAXFP
-            END IF
+
+            DEPS_MAX=0.D0
+            CALL mtx_reduce_real8(DEPS,1,DEPS_MAX)
+            DEPS = DEPS_MAX
+            IF(DEPS.le.EPSFP)THEN
+               N_IMPL=1+LMAXFP ! exit dowhile
+            ENDIF
+
+            CALL mtx_maxloc_real8(DEPSV,NSAMAX,DEPS_MAXV,ILOC)
+
             IF(nrank.eq.0) THEN
-               write(6,'(A,1PE12.4,3I4,1P14E12.4)') 'DEPS',&
-                    DEPS,N_IMPL,NREND,NSTEST,(RSUMF(NSA)/RSUMF0(NSA), &
-                    NSA=1,NSAMAX)
+               WRITE(fmt,'(a16,I1,a6,I1,a3)') &
+                    '(A,1PE12.4,I4,1P',NSAMAX,'E12.4,',NSAMAX,'I4)'
+               WRITE(6,fmt) 'DEPS',&
+                    DEPS,N_IMPL,(DEPS_MAXV(NSA),NSA=1,NSAMAX) &
+                    ,(ILOC(NSA),NSA=1,NSAMAX)
             ENDIF
 
             CALL GUTIME(gut3)
             DO NSA=1,NSAMAX
-!            CALL GUTIME(gut)
-!            write(*,*)"time1", gut, NSA
                   IF (MOD(NT,NTCLSTEP).EQ.0) CALL FP_COEF(NSA)
-!                  IF (MOD(NT,NTCLSTEP2(NSA)).EQ.0) CALL FP_COEF(NSA)
-!            CALL GUTIME(gut)
-!            write(*,*)"time2", gut, NSA
             END DO
             CALL GUTIME(gut4)
             GUT_CALC = GUT_CALC + (gut4-gut3)

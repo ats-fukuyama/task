@@ -26,9 +26,9 @@
       Implicit none
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,id,NP2
       character(LEN=80)::line 
-      real(8)::rhon,rhol,rhol1,rhol2,A1,epsl,fact,rint0,es,rint2,ql,BT
-      real(8),DIMENSION(:),POINTER:: work,workg
-      real(8)::suml, delh, etal, x, psib, pcos
+      real(kind8)::rhon,rhol,rhol1,rhol2,A1,epsl,fact,rint0,es,rint2,ql,BT
+      real(kind8),DIMENSION(:),POINTER:: work,workg
+      real(kind8)::suml, delh, etal, x, psib, pcos
       integer:: NG
 
 !     ----- exec EQ -----
@@ -346,7 +346,6 @@
       ENDDO
 
       deallocate(work,workg)
-
       IERR=0
       RETURN
       END subroutine fp_mesh
@@ -365,8 +364,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(8):: SUML, ETAL, X, PSIB, PCOS, RINT2
+      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
 
       EPSL=EPSRM(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -454,8 +453,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(8):: SUML, ETAL, X, PSIB, PCOS, RINT2
+      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
 
       EPSL=EPSRG(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -541,8 +540,8 @@
 
       IMPLICIT NONE
       integer:: NR, NTH, NG
-      real(8):: EPSL, FACT, A1, RINT0, ES, DELH
-      real(8):: SUML, ETAL, X, PSIB, PCOS, RINT2
+      real(kind8):: EPSL, FACT, A1, RINT0, ES, DELH
+      real(kind8):: SUML, ETAL, X, PSIB, PCOS, RINT2
 
       EPSL=EPSRG(NR)
       FACT=(1.D0+EPSL)/(2.D0*EPSL)
@@ -831,15 +830,15 @@
       USE plprof
       USE fpnfrr
       USE libmtx
-      USE libmtx
+
       Implicit none
 
       integer :: ierr,NSA,NSB,NS,NR,NP,NTH,NSFP,NSFD,NSBA,N,NREND1
-      real(8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
-      real(8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4
+      real(kind8) :: FL, RSUM1, RSUM2, RTFD0L, RHON, RNE, RTE
+      real(kind8) :: RLNRL, FACT, RSUM, RSUM11, rsum3, rsum4
       TYPE(pl_plf_type),DIMENSION(NSMAX):: PLF
       INTEGER,DIMENSION(nprocs):: ima1,ima2,nra1,nra2,nma1,nma2
-      real(8),DIMENSION(:),POINTER:: work,workg
+      real(kind8),DIMENSION(:),POINTER:: work,workg
 
 !     ----- Initialize time counter -----
 
@@ -1031,7 +1030,6 @@
            ENDDO
          ENDDO
       END IF
-
 
 !     ----- set boundary distribution functions -----
 
@@ -1309,6 +1307,7 @@
          CALL FPWRTPRF
       ENDIF
       IERR=0
+
       RETURN
       END subroutine fp_prep
 

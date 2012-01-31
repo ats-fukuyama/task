@@ -21,11 +21,11 @@
 
       IMPLICIT NONE
       integer:: NSA, NR, NTH, NP, NS
-      real(8):: FPMAX
+      real(kind8):: FPMAX
       integer:: NCONST_RF
-!      real(8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
-!      real(8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
-      real(8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
+!      real(kind8),dimension(NTHMAX,NPMAX+1,NRSTART:NREND):: DWPPM, DWPTM
+!      real(kind8),dimension(NTHMAX+1,NPMAX,NRSTART:NREND):: DWTPM, DWTTM
+      real(kind8):: DWTTEC, DWTTIC, DWTPEC, DWTPIC
 
       ISAVE=0
       NS=NS_NSA(NSA)
@@ -353,9 +353,9 @@
 
       IMPLICIT NONE
       integer:: NSA, NSB, NR, NTH, NP
-      real(8):: PSP, SUML, ANGSP, SPL, FPMAX
+      real(kind8):: PSP, SUML, ANGSP, SPL, FPMAX
       integer:: NG
-      real(8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
+      real(kind8):: FACT, DELH, sum11, ETAL, X, PSIB, PCOS, sum15, ARG
 
       DO NR=NRSTART,NREND
       DO NP=1,NPMAX+1
@@ -505,9 +505,9 @@
 
       IMPLICIT NONE
       integer:: NSA, NSBA, NS, NR, NTH, NP, NG
-      real(8):: RHON, RTFPL, FACTR, FACTP, FACTRN, FACTRT, SV
-      real(8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
-      real(8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, DFDR_R1, F_R1, WRL
+      real(kind8):: RHON, RTFPL, FACTR, FACTP, FACTRN, FACTRT, SV
+      real(kind8):: PSIB, PCOS, X, ETAL, sumd, sumf, DELH
+      real(kind8):: DNDR, NEDGE, FACT, DINT_D, DINT_F, DFDR_R1, F_R1, WRL
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
@@ -695,7 +695,7 @@
       IMPLICIT NONE
       integer:: NSA, NSB, NSBA, NR, NTH, NP, NS, ID
       integer:: NBEAM, NSABEAM, NSAX
-      real(8):: PSP, SUML, ANGSP, SPL
+      real(kind8):: PSP, SUML, ANGSP, SPL
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
@@ -975,10 +975,10 @@
       USE plprof
       implicit none
       integer :: NR, NS
-      real(8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
-      real(8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
+      real(kind8) :: PML,amfdl,aefdl,rnfd0l,rtfd0l,ptfd0l,rl,rhon
+      real(kind8) :: rnfdl,rtfdl,fact,ex,theta0l,thetal,z,dkbsl
       TYPE(pl_plf_type),DIMENSION(NSMAX):: plf
-      real(8):: FPMXWL
+      real(kind8):: FPMXWL
 
       AMFDL=PA(NS)*AMP
       AEFDL=PZ(NS)*AEE
@@ -993,6 +993,9 @@
          RL=RM(NRSTART)-DELR
          RHON=ABS(RL)
       ELSEIF(NR.EQ.NREND+1) THEN
+         RL=RM(NREND)+DELR
+         RHON=MIN(RL,1.D0)
+      ELSEIF(NR.EQ.NRMAX+1) THEN
          RL=RM(NREND)+DELR
          RHON=MIN(RL,1.D0)
       ELSE
@@ -1035,9 +1038,12 @@
       SUBROUTINE FPMXWL_EDGE(NP,NSA,FL)
 
       implicit none
-      integer :: NP, NSA, NSBA, NS
-      real(8):: FL1, FL2
-      real(8),intent(out):: FL
+!      integer,intent(in):: NP, NSA
+      integer:: NP, NSA
+      integer:: NSBA, NS
+      real(kind8):: FL1, FL2
+!      real(kind8),intent(out):: FL
+      real(kind8):: FL
 
       NS=NS_NSA(NSA)
       NSBA=NSB_NSA(NSA)
@@ -1057,9 +1063,9 @@
       IMPLICIT NONE
       integer:: NR, NSA, NSB, NSBA, NP, NTH, NS
       integer:: IERR
-      real(8):: RSUM_W,RSUM_EC,RSUM_IC
-      real(8):: PV, WPL, WPM, WPP
-      real(8):: DFP, DFT, FFP, FACT
+      real(kind8):: RSUM_W,RSUM_EC,RSUM_IC
+      real(kind8):: PV, WPL, WPM, WPP
+      real(kind8):: DFP, DFT, FFP, FACT
 
       DO NR=NRSTART,NREND
          DO NSA=1,NSAMAX
