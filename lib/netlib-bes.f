@@ -1538,7 +1538,7 @@ CS    REAL
      1    A,ALPHA,BLPHA,BK,BK1,BK2,C,D,DM,D1,D2,D3,ENU,EPS,ESTF,ESTM,
      2    EX,FOUR,F0,F1,F2,HALF,ONE,P,P0,Q,Q0,R,RATIO,S,SQXMIN,T,TINYX,
      3    TWO,TWONU,TWOX,T1,T2,WMINF,X,XINF,XMAX,XMIN,X2BY4,ZERO
-      DIMENSION BK(1),P(8),Q(7),R(5),S(4),T(6),ESTM(6),ESTF(7)
+      DIMENSION BK(4),P(8),Q(7),R(5),S(4),T(6),ESTM(6),ESTF(7)
 C---------------------------------------------------------------------
 C  Mathematical constants
 C    A = LOG(2.D0) - Euler's constant

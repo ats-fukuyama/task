@@ -147,7 +147,7 @@ CONTAINS
     INTERFACE
        FUNCTION FUNC(X)
          REAL(8):: FUNC
-         REAL(8):: X
+         REAL(8),INTENT(IN):: X
        END FUNCTION FUNC
     END INTERFACE
     CHARACTER(LEN=*),INTENT(IN),OPTIONAL:: KID   ! function identifier string
