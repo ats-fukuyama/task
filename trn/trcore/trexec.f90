@@ -12,9 +12,11 @@ CONTAINS
     USE trcomm,ONLY: &
          rkind,ikind,pi,rr,rkap,neqmax,neqrmax,nvmax,nvrmax,nrmax,dt,dr,rg, &
          dtr,vtr,ctr,str,htr,elmtx,limtx,rsimtx,rjimtx,r1imtx,r2imtx,r3imtx, &
-         rimtx,lhmtx,rhv,xv,xv_new,xv_prev,neqr_neq,id_neq,id_neqnr
+         rimtx,lhmtx,rhv,xv,xv_new,xv_prev,neqr_neq,id_neq,id_neqnr, &
+         dvrho,ar1rho,ar2rho
     IMPLICIT NONE
-    REAL(rkind) :: dh0,dh1,dh2,dh3,dh4,dvdrp,dvdrm,dvdr0
+    REAL(rkind) :: dh0,dh1,dh2,dh3,dh4,dvdrp,dvdrm,dvdr0,  &
+                   gm1p,gm1m,gm10,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
     lhmtx(1:4*neqrmax-1,1:nvrmax) = 0.D0
@@ -22,16 +24,22 @@ CONTAINS
 
     DO nr = 1, nrmax
 
-!       DVDRP = 2.D0*PI*RR*2.D0*PI*RG(nr  )*RKAP
-!       DVDRM = 2.D0*PI*RR*2.D0*PI*RG(nr-1)*RKAP
-       dvdrp = rg(nr  )
-       dvdrm = rg(nr-1)
+       dvdrp = dvrho(nr)
+       dvdrm = dvrho(nr-1)
        dvdr0 = 0.5D0*(dvdrm+dvdrp)
+
+       gm1p = dvdrp*ar1rho(nr) 
+       gm1m = dvdrm*ar1rho(nr-1)
+       gm10 = 0.5d0*(gm1p+gm1m)
+
+       gm2p = dvdrp*ar2rho(nr)
+       gm2m = dvdrm*ar2rho(nr-1)
+       gm20 = 0.5d0*(gm2p+gm2m)
 
        dh0 = (rg(nr)-rg(nr-1))/12.D0
        dh1 = dt/6.D0
        dh2 = dt*dh0
-       dh3 = dt*dvdr0/(rg(nr)-rg(nr-1))
+       dh3 = dt*gm20/(rg(nr)-rg(nr-1))
        dh4 = 0.5D0*dt*dvdr0
 
        elmtx(1:2*neqrmax,1:2*neqrmax)=0.D0
@@ -63,13 +71,13 @@ CONTAINS
            
              ! at the center of element
              r2imtx(1,1,neq,neq1)= - dh1*vtr(neq,neq1,nr) &
-                                    *(2.d0*dvdrm +      dvdrp)
+                                    *(2.d0*gm1m +      gm1p)
              r2imtx(2,1,neq,neq1)=   dh1*vtr(neq,neq1,nr) &
-                                    *(2.d0*dvdrm +      dvdrp)
+                                    *(2.d0*gm1m +      gm1p)
              r2imtx(1,2,neq,neq1)= - dh1*vtr(neq,neq1,nr) &
-                                    *(     dvdrm + 2.d0*dvdrp)
+                                    *(     gm1m + 2.d0*gm1p)
              r2imtx(2,2,neq,neq1)=   dh1*vtr(neq,neq1,nr) &
-                                    *(     dvdrm + 2.d0*dvdrp)
+                                    *(     gm1m + 2.d0*gm1p)
            
              r3imtx(1,1,neq,neq1)= dh2*(3.D0*ctr(neq,neq1,nr-1)*dvdrm &
                                       +      ctr(neq,neq1,nr  )*dvdrp)

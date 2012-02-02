@@ -16,10 +16,14 @@ CONTAINS
 
   SUBROUTINE tr_cdbm
 
+    USE cdbm_mod, ONLY: cdbm
     USE trcomm, ONLY: &
          bb,rr,rg,rkap,qp,rn,rt,pa,amp,aee,cdtrn,cdtru,cdtrt,dtr_tb,vtr_tb, &
          nrmax,nsamax,ns_nsa,idnsa,mdltr_tb
-    USE cdbm_mod, ONLY: cdbm
+
+! --- Variables using in this subroutine should be declared explicitly ---  
+!    USE trcalv, ONLY: &
+
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model
     REAL(rkind):: rkev,calf,ckap,cexb,rsl,qpl,shearl,pnel,ppp,ppm, &
@@ -53,7 +57,9 @@ CONTAINS
           CASE(1) ! ion
              ppp=ppp+rn(nsa,nr  )*rt(nsa,nr  )
              ppm=ppm+rn(nsa,nr-1)*rt(nsa,nr-1)
+!  --- to be remained ---
              rhoni=rhoni+pa(ns)*amp*rn(nsa,nr)*1.D20
+
           END SELECT
        END DO
        pnel=pnel*1.D20

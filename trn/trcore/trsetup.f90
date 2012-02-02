@@ -3,8 +3,8 @@ MODULE trsetup
 ! This module setup table for computation and 
 ! initializes the plasma profiles
 
-PUBLIC tr_setup
-PRIVATE
+  PUBLIC tr_setup
+  PRIVATE
 
 CONTAINS
 
@@ -13,10 +13,11 @@ CONTAINS
     USE trcomm, ONLY: ikind,t,ngt,kidnsa,ns_nsa,idnsa,nsamax,pa,pz,pz0, &
          tr_nit_allocate,tr_nsa_allocate,tr_nr_allocate,tr_ngt_allocate,&
          nitmax
+    USE trbpsd, ONLY: tr_bpsd_init
     USE trloop, ONLY: tr_save_pvprev
     USE trresult, ONLY: tr_calc_global,tr_save_ngt
     IMPLICIT NONE
-    INTEGER(ikind):: nsa,ns
+    INTEGER(ikind):: nsa,ns,ierr
 
     CALL tr_nsa_allocate
 
@@ -32,9 +33,7 @@ CONTAINS
           END IF
        END IF
     END DO
-
           
-
     DO nsa=1,nsamax
        ns=ns_nsa(nsa)
        SELECT CASE(NINT(pz0(ns)))
@@ -57,20 +56,30 @@ CONTAINS
           kidnsa(nsa)=' '
        END SELECT
     END DO
+
     CALL tr_ngt_allocate
 
-    CALL tr_setup_table    ! calculate table for matrix generation
+    CALL tr_setup_table     ! calculate table for matrix generation
 
     CALL tr_nr_allocate
-    CALL tr_setup_profile  ! calculate initial profile
+    CALL tr_setup_profile   ! calculate initial profile
+
     CALL tr_nit_allocate
 
-    t=0.D0                 ! time is initialized.
-    ngt=-1                 ! save data count
-    nitmax=0               ! iteration count is initialized
+    t      = 0.D0           ! time is initialized
+    ngt    = -1             ! save data count is initilaized
+    nitmax = 0              ! iteration count is initialized
+
     CALL tr_calc_global
     CALL tr_save_ngt
+
     CALL tr_save_pvprev
+
+    CALL tr_bpsd_init(ierr)
+
+    ! read TASK/EQ output file at the initilization phase.
+!    CALL TASK/EQ
+    CALL tr_setup_geometric ! calculate geometric factor in TASK/TR
 
     RETURN
   END SUBROUTINE tr_setup
@@ -184,8 +193,8 @@ CONTAINS
 
   SUBROUTINE tr_setup_profile
 
-    USE trcomm, ONLY: ikind,rkind,nrmax,nsmax,nsamax,rg,ra,rn,ru,rt,ns_nsa, &
-         qp
+    USE trcomm, ONLY: ikind,rkind,rkap,rdlt,nrmax,nsmax,nsamax, &
+         rg,rm,ra,rn,ru,rt,ns_nsa,qp
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
     IMPLICIT NONE
@@ -193,9 +202,10 @@ CONTAINS
     INTEGER(ikind):: nr,nsa,ns
     REAL(rkind):: dr,rhon
 
-    dr=ra/dble(nrmax)
+    dr=SQRT(rkap)*ra/dble(nrmax)
     DO nr=0,nrmax
        rg(nr)=dble(nr)*dr
+       IF(nr /= 0) rm(nr)=0.5d0*(rg(nr-1)+rg(nr))
        rhon=rg(nr)/ra
        CALL pl_qprf(rhon,qp(nr))
        CALL pl_prof2(rhon,rn_ns,rtpr_ns,rtpp_ns,ru_ns)
@@ -204,7 +214,81 @@ CONTAINS
           rn(nsa,nr)=rn_ns(ns)
           ru(nsa,nr)=ru_ns(ns)
           rt(nsa,nr)=(rtpr_ns(ns)+2.D0*rtpp_ns(ns))/3.D0
+
+          ! MDLUF = 0 : trprof.f90
+!          pex(nsa,nr) = 0.d0
+!          sex(nsa,nr) = 0.d0
+!          prf(nsa,nr) = 0.d0
+
+!          pbm(nr)     = 0.d0
+!          wrot(nr)    = 0.d0
+!          vtor(nr)    = 0.d0
        ENDDO
     ENDDO
   END SUBROUTINE tr_setup_profile
+
+
+  SUBROUTINE tr_setup_geometric
+
+    USE trcomm, ONLY: ikind,rkind,pi,nrmax,ra,rr,rkap,bb,rg,qp,rhoa,  &
+       ttrho,dvrho,abrho,abvrho,arrho,ar1rho,ar2rho,rmjrho,rmnrho,rkprho, &
+       rjcb,rhog,epsrho,abb2rho,pvolrho,psurrho,rdpvrho,bp,rdp
+
+    IMPLICIT NONE
+    INTEGER(ikind) :: nr
+
+    rhoa = 1.D0
+
+    ! --- values on grid mesh ---
+    DO nr = 0, nrmax
+
+!       IF(MDLUF .ne. 0) THEN ! input UFILE
+!          DO nr = 0, nrmax
+!             ! normalized variables
+!             rjcb(nr)    = 1.d0/(SQRT(rkap)*ra) ! const
+!             rhog(nr)    = rg(nr)/rjcb(nr)
+!             !       rhom(nr)    = rm(nr)/rjcb(nr)
+!          END DO
+
+!       ELSE IF ! not input UFILE
+             ttrho(nr)   = bb*rr ! const
+
+             pvolrho(nr) = pi*rkap*(ra*rg(nr))**2*2.d0*pi*rr
+             psurrho(nr) = pi*(rkap+1.d0)*ra*rg(nr)*2.d0*pi*rr
+             dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rg(nr)
+!
+             arrho(nr)   = 1.d0/rr**2 ! const
+
+             ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra) ! const
+             ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2 ! const
+             abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2   ! const
+             rmjrho(nr)  = rr ! const
+             rmnrho(nr)  = ra*rg(nr) 
+             rkprho(nr)  = rkap
+!
+             epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
+
+             abb2rho(nr) = bb*(1.d0+0.25d0*epsrho(nr)**2)
+             abvrho(nr)  = dvrho(nr)**2*abrho(nr)
+
+             ! normalized variables
+             rjcb(nr)    = 1.d0/(SQRT(rkap)*ra)
+             rhog(nr)    = rg(nr)/rjcb(nr)
+!             rhom(nr)    = 
+
+!       END IF
+
+! create BP from given Q profile
+       ! d psi/d V
+       rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))
+       rdp(nr)     = dvrho(nr)*rdpvrho(nr) ! d psi/d rho
+
+       ! This part should be calculated in another module ----------
+       ! poloidal magnetic field ~ (kappa^-2 * r * BB)/(RR * q)
+       bp(nr)      = ar1rho(nr)*rdp(nr)/rr ! poloidal magnetic field
+       ! -----------------------------------------------------------
+
+    END DO
+
+  END SUBROUTINE tr_setup_geometric
 END MODULE trsetup

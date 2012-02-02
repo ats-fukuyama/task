@@ -10,6 +10,7 @@ CONTAINS
   SUBROUTINE tr_loop
 
     USE trcomm, ONLY: ikind,rkind,ntmax,t,dt,ntstep,ngtstp
+    USE trbpsd, ONLY: tr_bpsd_set,tr_bpsd_get
     USE trstep, ONLY: tr_step
     USE trresult, ONLY: tr_status,tr_calc_global,tr_save_ngt
     IMPLICIT NONE
@@ -24,7 +25,12 @@ CONTAINS
        t=t+dt
        CALl tr_save_pvprev
 
+!       CALL TASK/EQ
+!       CALL tr_bpsd_get(ierr)
+
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
+
+       CALL tr_bpsd_set(ierr)
 
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global

@@ -26,17 +26,22 @@ CONTAINS
 !     zeroth value of rmin_exp are not used in this case.
 
 !     Input parameters except pressure gradients : half grid
-!     Output transport coefficients              : grid
+!     Output transport coefficients              : half grid
 !   *************************************************************
 
       USE TRCOMM, ONLY : &
            BB, mdltr_tb, &
            NRMAX, NSAMAX, PA, PI, PZ, PZ0, Q0, QP, RA, RG, RKAP, &
            RN, RR, RT, RMU0, aee, ns_nsa, dtr_tb,vtr_tb
+
+! --- Variables using in this subroutine should be declared explicitly ---  
+!      USE trcalv, ONLY: &
+
+
       IMPLICIT NONE
 !     Inputs
       INTEGER(4),DIMENSION(5)  :: itport_pt
-      REAL(8),DIMENSION(0:Nrmax):: &
+      REAL(8),DIMENSION(0:nrmax):: &
            te_m, ti_m, rne_m, rni_m, rns_m, angrotp_exp, egamma_exp, &
            rgamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, rho, &
            rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, q_exp, &
@@ -46,7 +51,7 @@ CONTAINS
       REAL(8),DIMENSION(0:nrmax)   :: &
            diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m, exch_m, &
            egamma_m, rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m
-      REAL(8),DIMENSION(0:NRMAX,10)::egamma_d
+      REAL(8),DIMENSION(0:nrmax,10)::egamma_d
 
 !     Auxiliaries
       REAL(8),DIMENSION(0:NRMAX):: &

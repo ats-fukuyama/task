@@ -61,6 +61,7 @@ CONTAINS
 !        NSMAX : Number of particle species
 !        PA    : Mass number
 !        PZ    : Charge number
+!        PZ0   : Atomic number (-1 for electron)
 !        PN    : Density at center                     (1.0E20/m**3)
 !        PNS   : Density on plasma surface             (1.0E20/m**3)
 !        PTPR  : Parallel temperature at center                (keV)
@@ -217,6 +218,7 @@ CONTAINS
     ntstep =    10
     ngtmax = 10001
     ngtstp =     1
+
     RETURN
   END SUBROUTINE tr_init
 
@@ -339,8 +341,8 @@ CONTAINS
        IERR=1
     ENDIF
 
-    IF(nsamax < 2) THEN
-       WRITE(6,*) 'XXX tr_check: input error : illegal nrmax'
+    IF(nsamax < 2) THEN ! nsamax > nsmax ??
+       WRITE(6,*) 'XXX tr_check: input error : illegal nsamax'
        WRITE(6,*) '                  nsamax =',nsamax
        IERR=1
     ENDIF

@@ -3,17 +3,28 @@ MODULE trcomm
   USE plcomm
   IMPLICIT NONE
 
+!  --- module bpsd_constants ---
+!  real(rkind),parameter :: pi   = 3.14159265358979323846_dp
+!  real(rkind),parameter :: aee  = 1.602176487E-19_dp ! elementary charge
+!  real(rkind),parameter :: ame  = 9.10938215E-31_dp  ! electron mass
+!  real(rkind),parameter :: amp  = 1.672621637E-27_dp ! proton mass
+!  real(rkind),parameter :: vc   = 2.99792458E8_dp    ! speed of light
+!  real(rkind),parameter :: rmu0 = 4.E-7_dp*PI        ! permeability
+!  real(rkind),parameter :: eps0 = ONE/(VC*VC*RMU0)   ! permittivity
+
+  REAL(rkind),PARAMETER :: rkev = aee*1.d3 ! the factor ([keV] -> [J])
+
 ! ----- contral parameters -----
 
   INTEGER(ikind):: nrmax       ! number of radial step (except rg=0)
   INTEGER(ikind):: ntmax       ! number of time step
-  REAL(rkind):: dt             ! size of time step
+  REAL(rkind)::    dt          ! size of time step
   REAL(rkind),DIMENSION(3,0:NSM):: &
-       rg_fixed                ! minimum radius of fixed profile
+                   rg_fixed    ! minimum radius of fixed profile
 
   INTEGER(ikind):: nsamax      ! number of active particle species
-  INTEGER(ikind),DIMENSION(nsm):: ns_nsa
-                               ! table of NS for NSA
+  INTEGER(ikind),DIMENSION(nsm)::  &
+                   ns_nsa      ! table of NS for NSA
   INTEGER(ikind):: lmaxtr      ! maximum number of iterations
   REAL(rkind)::    epsltr      ! tolerance of iteration
 
@@ -37,19 +48,20 @@ MODULE trcomm
 
 ! ----- global variables -----
 
-  REAL(rkind)::                t       ! time [s]
-  REAL(rkind)::                dr      ! size of radial step
-  INTEGER(ikind)::             neqmax  ! number of equations
-  INTEGER(ikind)::             neqrmax ! number of active equations
-  INTEGER(ikind)::             nvmax   ! number of variables
-  INTEGER(ikind)::             nvrmax  ! number of active variables
+  REAL(rkind)::        t       ! time [s]
+  REAL(rkind)::        dr      ! size of radial step
+  INTEGER(ikind)::     neqmax  ! number of equations
+  INTEGER(ikind)::     neqrmax ! number of active equations
+  INTEGER(ikind)::     nvmax   ! number of variables
+  INTEGER(ikind)::     nvrmax  ! number of active variables
 
 ! ----- plasma variables -----
 
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        rg,      &! radial mesh position [m]
+       rm,      &! radial half mesh position [m]
        qp,      &! safety factor
-       qp_prev   ! previous,safety factor
+       qp_prev   ! previous safety factor
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        rn,      &! particle density [10^{20] m^{-3}]
        ru,      &! toroidal velocity [m/s]
@@ -70,7 +82,7 @@ MODULE trcomm
        dtr_nc,   &! neoclassical diffusion coefficient [m^2/s]
        vtr_nc,   &! neoclassical convection velocity [m^2/s]
        ctr_ex     ! exchange frequency [1/s]
-  REAL(rkind),DIMENSION(:,:),ALLOCATABLE::&
+  REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
        vtr_prv,  &! additional convection velocity [m^2/s]
@@ -84,6 +96,61 @@ MODULE trcomm
        jcd_ic     ! current driven by ICRF waves [A/m^2]
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
        lt_save    ! temperature scale length [m]
+
+! ----- profile variables -----
+
+  REAL(rkind),DIMENSION(:),ALLOCATABLE::&
+       vtor,     &! toroidal rotation velocity [m/s]
+       vpol       ! poloidal rotation velocity [m/s]
+
+! --- equilibrium interface variables -----
+! ------ interface variables fot bpsd_equ1D
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       psitrho,  &! Toroidal magnetic flux [Wb] ~ pi*r^2*B
+       psiprho,  &! Poloidal magnetic flux [Wb] ~ pi*R*r*Bp
+       ppprho,   &! Plasma pressure [Pa]
+       piqrho,   &! Inverse of safety factor, iota
+       ttrho,    &! R*B
+       pirho      ! Toroidal current [A] ~ 2*pi*r*Bp/mu_0
+
+! ------ interface variables for bpsd_metric1D
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       pvolrho,  &! Plasma volume
+       psurrho,  &! Plasma surface
+       dvrho,    &! dV/drho
+       rdpvrho,  &! dpsi/dV
+       arrho,    &! <1/R^2> ; aver2i
+       abb2rho,  &! <B^2>
+       aib2rho,  &! <1/B^2>
+       abvrho,   &! <|grad V|^2/R^2>
+       ar1rho,   &! <|grad rho|>
+       ar2rho,   &! <|grad rho|^2>
+       abrho,    &! <|grad rho|^2/R^2> ; avegrr2
+       rmjrho,   &! local R
+       rmnrho,   &! local r
+       rkprho,   &! local kappa
+       abb1rho,  &! <B>
+       arhbrho,  &! not used
+       epsrho     ! r/R
+
+! ----- normalized variables -----
+  REAL(rkind) :: &
+       rhoa       ! normalized minor radius
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       rdp,      &! dpsi/drho
+       rhog,     &! normalized minor radius mesh position
+       rhom,     &! normalized minor radius half-mesh position
+       rjcb       ! 1/rho : rho ~ kappa * r : effective minor radius ?
+
+! ----- unclassified -----
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       bp,       &! poloidal magnetic field [T]
+       er         ! radial electric field [V/m]
+
+! ----- switch variables -----
+  INTEGER(ikind) :: &
+       mdluf,    &! model type of UFILE
+       mdler      ! model type of radial electric field
 
 ! ----- computation variables -----
 
@@ -138,9 +205,10 @@ CONTAINS
     IF(nrmax /= nrmax_save .OR. &
        nsamax /= nsamax_save ) THEN
 
-       IF(nrmax_save /= 0) CALL tr_nr_deallocate
+       IF(nrmax_save /= 0 ) CALL tr_nr_deallocate
 
        ALLOCATE(rg(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(rm(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(qp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(qp_prev(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(rn(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
@@ -177,6 +245,10 @@ CONTAINS
 
        ALLOCATE(lt_save(nsamax,0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
+       ! profile variables
+       ALLOCATE(vtor(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+       ALLOCATE(vpol(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
        ! for Pereverzev method
        ALLOCATE(dtr_prv(3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
@@ -185,8 +257,46 @@ CONTAINS
        ALLOCATE(add_prv(3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
 
-       nsamax_save=nsamax
-       nrmax_save=nrmax
+      ! geometric factors
+      ! +-- interface variables for bpsd_equ1D
+      ALLOCATE(psitrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(psiprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(ppprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(piqrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(ttrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(pirho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
+      ! +-- interface variables for bpsd_metric1D
+      ALLOCATE(pvolrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(psurrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(dvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(rdpvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(arrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(abb2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(aib2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(abvrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(ar1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(ar2rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(abrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(rmjrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(rmnrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(rkprho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(abb1rho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(arhbrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+      ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
+
+      !    normalized variables
+      ALLOCATE(rdp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
+      ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
+      ALLOCATE(rjcb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
+
+      ! unclassified
+      ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+     
+      nrmax_save  = nrmax
+      nsamax_save = nsamax
     END IF
 
     RETURN
@@ -197,6 +307,7 @@ CONTAINS
   SUBROUTINE tr_nr_deallocate
 
     IF(ALLOCATED(rg)) DEALLOCATE(rg)
+    IF(ALLOCATED(rm)) DEALLOCATE(rm)
     IF(ALLOCATED(qp)) DEALLOCATE(qp)
     IF(ALLOCATED(qp_prev)) DEALLOCATE(qp_prev)
     IF(ALLOCATED(rn)) DEALLOCATE(rn)
@@ -223,11 +334,52 @@ CONTAINS
     IF(ALLOCATED(jcd_ic)) DEALLOCATE(jcd_ic)
     IF(ALLOCATED(lt_save)) DEALLOCATE(lt_save)
 
+    ! profile variables
+    IF(ALLOCATED(vtor)) DEALLOCATE(vtor)
+    IF(ALLOCATED(vpol)) DEALLOCATE(vpol)
+
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
     IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
     IF(ALLOCATED(add_prv)) DEALLOCATE(add_prv)
 
+    ! interface variables for bpsd_equ1D
+    IF(ALLOCATED(psitrho)) DEALLOCATE(psitrho)   
+    IF(ALLOCATED(psiprho)) DEALLOCATE(psiprho)   
+    IF(ALLOCATED(ppprho)) DEALLOCATE(ppprho)   
+    IF(ALLOCATED(piqrho)) DEALLOCATE(piqrho)   
+    IF(ALLOCATED(ttrho)) DEALLOCATE(ttrho)   
+    IF(ALLOCATED(pirho)) DEALLOCATE(pirho)   
+
+    ! interface variables for bpsd_metric1D
+    IF(ALLOCATED(pvolrho)) DEALLOCATE(pvolrho)
+    IF(ALLOCATED(psurrho)) DEALLOCATE(psurrho)
+    IF(ALLOCATED(dvrho)) DEALLOCATE(dvrho)
+    IF(ALLOCATED(rdpvrho)) DEALLOCATE(rdpvrho)
+    IF(ALLOCATED(arrho)) DEALLOCATE(arrho)
+    IF(ALLOCATED(abb2rho)) DEALLOCATE(abb2rho)
+    IF(ALLOCATED(aib2rho)) DEALLOCATE(aib2rho)
+    IF(ALLOCATED(abvrho)) DEALLOCATE(abvrho)
+    IF(ALLOCATED(ar1rho)) DEALLOCATE(ar1rho)
+    IF(ALLOCATED(ar2rho)) DEALLOCATE(ar2rho)
+    IF(ALLOCATED(abrho)) DEALLOCATE(abrho)
+    IF(ALLOCATED(rmjrho)) DEALLOCATE(rmjrho)
+    IF(ALLOCATED(rmnrho)) DEALLOCATE(rmnrho)
+    IF(ALLOCATED(rkprho)) DEALLOCATE(rkprho)
+    IF(ALLOCATED(abb1rho)) DEALLOCATE(abb1rho)
+    IF(ALLOCATED(arhbrho)) DEALLOCATE(arhbrho)
+    IF(ALLOCATED(epsrho)) DEALLOCATE(epsrho)
+
+    ! normalized variables
+    IF(ALLOCATED(rdp)) DEALLOCATE(rdp)
+    IF(ALLOCATED(rhog)) DEALLOCATE(rhog)
+    IF(ALLOCATED(rhom)) DEALLOCATE(rhom)
+    IF(ALLOCATED(rjcb)) DEALLOCATE(rjcb)
+
+    ! unclassified
+    IF(ALLOCATED(bp)) DEALLOCATE(bp)
+    IF(ALLOCATED(er)) DEALLOCATE(er)
+       
     RETURN
   END SUBROUTINE tr_nr_deallocate
 
@@ -264,9 +416,9 @@ CONTAINS
     ALLOCATE(r2imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(r3imtx(2,2,neqmax,neqmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-    nrmax_save=nrmax
-    neqmax_save=neqmax
-    nvmax_save=nvmax
+    nrmax_save  = nrmax
+    neqmax_save = neqmax
+    nvmax_save  = nvmax
 
     RETURN
 9000 WRITE(6,*) 'XX tr_neq_allocate: allocation error: ierr=',ierr
@@ -314,8 +466,8 @@ CONTAINS
     ALLOCATE(elmtx(2*neqrmax,2*neqrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
     ALLOCATE(lhmtx(4*neqrmax-1,nvrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-    neqrmax_save=neqrmax
-    nvrmax_save=nvrmax
+    neqrmax_save = neqrmax
+    nvrmax_save  = nvrmax
 
     RETURN
 9000 WRITE(6,*) 'XX tr_neqr_allocate: allocation error: ierr=',ierr
@@ -345,7 +497,7 @@ CONTAINS
 
     ALLOCATE(error_it(lmaxtr),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-    lmaxtr_save=lmaxtr
+    lmaxtr_save = lmaxtr
 
     RETURN
 9000 WRITE(6,*) 'XX tr_nit_allocate: allocation error: ierr=',ierr
@@ -384,9 +536,9 @@ CONTAINS
        ALLOCATE(gparts(0:nrmax,0:ngtmax,nsamax,3),STAT=ierr)
             IF(ierr /= 0) GOTO 9000
 
-       ngtmax_save=ngtmax
-       nsamax_save=nsamax
-       nrmax_save=nrmax
+       nrmax_save  = nrmax
+       ngtmax_save = ngtmax
+       nsamax_save = nsamax
     END IF
 
     RETURN
@@ -415,11 +567,10 @@ CONTAINS
     IF(nsamax /= nsamax_save) THEN
 
        IF(nsamax_save /= 0) CALL tr_nsa_deallocate
-
        ALLOCATE(idnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
        ALLOCATE(kidnsa(nsamax),STAT=ierr); IF(ierr /= 0) GOTO 9000
 
-       nsamax_save=nsamax
+       nsamax_save = nsamax
     END IF
 
     RETURN
@@ -429,6 +580,7 @@ CONTAINS
 
   SUBROUTINE tr_nsa_deallocate
 
+    IF(ALLOCATED(idnsa)) DEALLOCATE(idnsa)
     IF(ALLOCATED(kidnsa)) DEALLOCATE(kidnsa)
 
     RETURN

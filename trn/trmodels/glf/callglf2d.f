@@ -492,6 +492,7 @@ c******************************************************************************
        jin=1
        jout=jmaxm-1
       endif
+
       do jm=jin,jout
  
 c time dependent codes jshoot=0
@@ -1048,7 +1049,7 @@ c
 c
 c     write(6,*) jm,rho(jm),zpmte, zpmti, zpmne, zpmni
  
-        enddo
+      enddo
  
 c      if(jmm.eq.0)  write(6,*) 'jmm=', jmm,'going out'
 c

@@ -20,7 +20,7 @@ TRLIBS=	../trmodels/trmodelslib.a \
         $(TASKDIR)/lib/tasklib.a \
 	$(BPSDDIR)/bpsdlib.a
 
-SRCS = trcomm.f90 trcalc.f90 \
+SRCS = trcomm.f90 trbpsd.f90 trcalc.f90 \
        trexec.f90 trstep.f90 trresult.f90 trloop.f90 \
        trinit.f90 trsetup.f90 trgout.f90 \
        trmenu.f90 trmain.f90
@@ -47,12 +47,13 @@ clean:
 
 COMMON=trcomm.f90 $(TASKDIR)/plx/plcomm.f90
 trcomm.o: trcomm.f90 $(TASKDIR)/plx/plcomm.f90
+trbpsd.o: trbpsd.f90 $(COMMON)
 trinit.o: trinit.f90 $(COMMON)
 trcalc.o: trcalc.f90 $(COMMON)
 trexec.o: trexec.f90 $(COMMON)
 trstep.o: trstep.f90 trexec.f90 trcalc.f90 $(COMMON)
-trloop.o: trloop.f90 trstep.f90 $(COMMON)
-trsetup.o: trsetup.f90 $(COMMON)
+trloop.o: trloop.f90 trstep.f90 trbpsd.f90 $(COMMON)
+trsetup.o: trsetup.f90 trbpsd.f90 $(COMMON)
 trgout.o: trgout.f90 $(COMMON)
 trmenu.o: trmenu.f90 $(COMMON)
 trmain.o: trmain.f90 $(COMMON)
