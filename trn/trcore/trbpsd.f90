@@ -223,7 +223,7 @@
 !      real(8)    :: temp(nrmp,nsm,3)
 !      real(8)    :: tempx(nrmp,17),psita,dpsitdrho,dvdrho,rgl
       REAL(rkind)    :: psita
-      REAL(rkind)    :: FACTOR0, FACTORM, FACTORP
+!      REAL(rkind)    :: FACTOR0, FACTORM, FACTORP
 
 !      write(6,*) 'top of tr_bpsd_get: qp'
 !      write(6,'(1P5E12.4)') (qp(nr),nr=1,nrmax)

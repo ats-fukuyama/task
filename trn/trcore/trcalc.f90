@@ -63,7 +63,7 @@ CONTAINS
   SUBROUTINE tr_calc_source
     USE trcomm, ONLY: nrmax,nsamax,neqmax,ph0,phs,rg,ra,str
     IMPLICIT NONE
-    INTEGER(ikind) :: nr, nsa,neq
+    INTEGER(ikind) :: nr, neq
 
     DO nr = 0, nrmax
        DO neq=1,neqmax
