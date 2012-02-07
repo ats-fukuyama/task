@@ -25,17 +25,20 @@ CONTAINS
        t=t+dt
        CALl tr_save_pvprev
 
-!       CALL TASK/EQ
-!       CALL tr_bpsd_get(ierr)
+       ! Interaction with EQ
+!       IF(modelg .eq. 3) THEN
+!          CALL TASK/EQ
+!          CALL tr_bpsd_get(ierr)
+!       END IF       
 
        CALL tr_step(ierr); IF(ierr /= 0) GO TO 9000
-
-       CALL tr_bpsd_set(ierr)
 
        IF(MOD(nt,ntstep) == 0 .OR. &
           MOD(nt,ngtstp) == 0) CALL tr_calc_global
        IF(MOD(nt,ntstep) == 0) CALL tr_status
        IF(MOD(nt,ngtstp) == 0) CALL tr_save_ngt
+
+       CALL tr_bpsd_set(ierr)
        
     END DO
 

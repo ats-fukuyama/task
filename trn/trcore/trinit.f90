@@ -34,7 +34,8 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+           mdluf,mdler,modelg, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     USE plinit
     IMPLICIT NONE
@@ -97,6 +98,12 @@ CONTAINS
 !                   7: new VMEC output geometry
 !                   8: call TOPICS/EQU
 !                   9: call TASK/EQ
+!
+!        NTEQIT: Step interval of EQ calulation
+!                  0 : Initial equilibrium only
+
+    modelg=2
+
 !        MODELN: Control plasma profile
 !                   0: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; 0 in SOL
 !                   1: Calculated from PN,PNS,PTPR,PTPP,PTS,PU,PUS; PNS in SOL
@@ -110,6 +117,12 @@ CONTAINS
 !        QMIN  : q minimum for reversed shear
 !        RHOITB: rho at ITB (0 for no ITB)
 !        RHOEDG: rho at EDGE for smoothing (1 for no smooth)
+
+!        MDLUF: the type of UFILE
+!        MDLER: the type of radial electric field
+
+    mdluf  = 0
+    mdler  = 0
 
 !     ======( GRAPHIC PARAMETERS )======
 
@@ -175,37 +188,37 @@ CONTAINS
         
 !     ==== TR PARAMETERS for stiff modeling by Ikari  ====
 
-!        mdltr_nc  = 0 : no neoclassical transport
-!        mdltr_tb  = 0 : no turbulent transport
-!                    1 : constant diffusion
-!                    2 : STIFF MODEL (Pereverzev)
-!        mdltr_prv = 0 : no Pereverzev method
-!                    1 : Pereverzev method applied : Denh=dprv1
-!                    2 : Pereverzev method applied : Denh=dprv2*Dorg
-!                    3 : Pereverzev method applied : Denh=dprv2*Dorg+dprv1
-!                    4 : Pereverzev method applied : Denh=MIN(dprv2*Dorg,dprv1)
-!                    5 : Pereverzev method applied : Denh=MAX(dprv2*Dorg,dprv1)
-!        d0        : lower diffusion coefficient
-!        d1        : upper diffusion coefficnet
-!        ltcr      : critical scale length [m]
-!        ph0       : heating power density [MW/m^3] at r = 0
-!        phs       : heating power density [MW/m^3] at r = a
-!        dprv1     : enhanced diffusion coefficient
-!        dprv2     : diffusion enhancement factor
-!        cdtrn     : factor for particle diffusivity
-!        cdtru     : factor for toroidal viscosity
-!        cdtrt     : factor for thermal diffusivity
+!       mdltr_nc  = 0 : no neoclassical transport
+!       mdltr_tb  = 0 : no turbulent transport
+!                   1 : constant diffusion
+!                   2 : STIFF MODEL (Pereverzev)
+!       mdltr_prv = 0 : no Pereverzev method
+!                   1 : Pereverzev method applied : Denh=dprv1
+!                   2 : Pereverzev method applied : Denh=dprv2*Dorg
+!                   3 : Pereverzev method applied : Denh=dprv2*Dorg+dprv1
+!                   4 : Pereverzev method applied : Denh=MIN(dprv2*Dorg,dprv1)
+!                   5 : Pereverzev method applied : Denh=MAX(dprv2*Dorg,dprv1)
+!       dtr0        : lower diffusion coefficient
+!       dtr1        : upper diffusion coefficnet
+!       ltcr      : critical scale length [m]
+!       ph0       : heating power density [MW/m^3] at r = 0
+!       phs       : heating power density [MW/m^3] at r = a
+!       dprv1     : enhanced diffusion coefficient
+!       dprv2     : diffusion enhancement factor
+!       cdtrn     : factor for particle diffusivity
+!       cdtru     : factor for toroidal viscosity
+!       cdtrt     : factor for thermal diffusivity
 
     mdltr_nc  = 0
     mdltr_tb  = 1
     mdltr_prv = 0
-    d0    = 0.01D0
-    d1    = 0.1D0
+    dtr0    = 0.01D0
+    dtr1    = 0.1D0
     ltcr  = 1.D0
     ph0   = 0.1D0
     phs   = 0.1D0
-    dprv1 = 0.1D0
-    dprv2 = 3.0D0
+    dprv1 = 1.D0
+    dprv2 = 2.D0
     cdtrn = 1.D0
     cdtru = 1.D0
     cdtrt = 1.D0
@@ -260,7 +273,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind),INTENT(IN) :: nid
@@ -277,7 +290,7 @@ CONTAINS
          MODEFR,MODEFW,IDEBUG, &
          nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
          lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-         d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+         dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
          ntstep,ngtmax,ngtstp
 
     READ(nid,TR,IOSTAT=ist,ERR=9800,END=9900)
@@ -359,40 +372,48 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,nitmax,mdltr_nc,mdltr_tb,mdltr_prv, &
-           d0,d1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
+           dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     IMPLICIT NONE
     INTEGER(ikind):: nsa
 
     CALL pl_view
 
+    WRITE(6,*) ! --------------------------------------------------
     WRITE(6,*) '** TRANSPORT **'
-    WRITE(6,602) 'nrmax ',nrmax ,'ntmax ',ntmax , &
-                 'nsamax',nsamax,'lmaxtr',lmaxtr
-    WRITE(6,602) 'ntstep',ntstep,'ngtstp',ngtstp ,&
-                 'ngtmax',ngtmax,'nitmax',nitmax
-    WRITE(6,'(A,15I4)') 'NSA:',(NSA,NSA=1,NSAMAX)
-    WRITE(6,'(A,15I4)') 'NS :',(NS_NSA(NSA),NSA=1,NSMAX)
-    WRITE(6,601) 'dt      ',dt      ,'epsltr  ',epsltr
+    WRITE(6,603) 'nrmax  ',nrmax ,'ntmax  ',ntmax , &
+                 'nsamax ',nsamax,'lmaxtr ',lmaxtr
+    WRITE(6,603) 'ntstep ',ntstep,'ngtstp ',ngtstp ,&
+                 'ngtmax ',ngtmax,'nitmax ',nitmax
+    WRITE(6,'(1X,A,15I4)') 'NSA:',(NSA,NSA=1,NSAMAX)
+    WRITE(6,'(1X,A,15I4)') 'NS :',(NS_NSA(NSA),NSA=1,NSMAX)
+
+    WRITE(6,*) ! --------------------------------------------------
+    WRITE(6,601) 'dt        ',dt,       'epsltr    ',epsltr
     DO nsa=1,nsamax
        IF(MIN(rg_fixed(1,nsa),rg_fixed(2,nsa),rg_fixed(3,nsa)) < rb) THEN
           WRITE(6,'(A,I5,1P3E12.4)') 'rg_fixed(n,u,t): nsa=', &
                nsa,rg_fixed(1,nsa),rg_fixed(2,nsa),rg_fixed(3,nsa)
        END IF
     END DO
-    WRITE(6,601) 'd0      ',d0      ,'d1      ',d1, &
-                 'ltcr    ',ltcr
-    WRITE(6,602) 'mdltr_nc',mdltr_nc,'mdltr_tb',mdltr_tb, &
-                 'mdltr_prv',mdltr_prv
-    WRITE(6,601) 'drpv1 ',dprv1 ,'dprv2 ',dprv2
-    WRITE(6,601) 'cdtrn     ',cdtrn     ,'cdtru     ',cdtru     , &
+    WRITE(6,602) 'mdltr_nc  ',mdltr_nc, 'mdltr_tb  ',mdltr_tb, &
+                 'mdltr_prv ',mdltr_prv
+    WRITE(6,601) 'dtr0      ',dtr0,     'dtr1      ',dtr1, &
+                 'ltcr      ',ltcr
+    WRITE(6,601) 'drpv1     ',dprv1,    'dprv2     ',dprv2
+    WRITE(6,601) 'cdtrn     ',cdtrn,    'cdtru     ',cdtru     , &
                  'cdtrt     ',cdtrt
-    WRITE(6,601) 'ph0   ',ph0   ,'phs   ',phs
+
+    WRITE(6,*) ! --------------------------------------------------
+    WRITE(6,601) 'ph0       ',ph0,      'phs       ',phs
     RETURN
 
   601 FORMAT(' ',A10,'=',1PE12.4 :2X,A10,'=',1PE12.4: &
      &        2X,A10,'=',1PE12.4)
-  602 FORMAT(' ',A6,'=',I7,4X   :2X,A6,'=',I7,4X  : &
-     &        2X,A6,'=',I7,4X   :2X,A6,'=',I7)
+  602 FORMAT(' ',A10,'=',I12 :2X,A10,'=',I12: &
+     &        2X,A10,'=',I12)
+  603 FORMAT(' ',A7, '=',I7,3X   :2X,A7, '=',I7,3X  : &
+     &        2X,A7, '=',I7,3X   :2X,A7, '=',I7)
+
   END SUBROUTINE tr_view
 END MODULE trinit

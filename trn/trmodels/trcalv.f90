@@ -5,7 +5,7 @@ MODULE trcalv
 !    and other effects. 
 !
 !   The variables declared below should be refered 
-!    from only 'trmodels' directory.
+!    from only 'trn/trmodels' directory.
 !
 !---------------------------------------------------------------------------
 
@@ -25,6 +25,7 @@ MODULE trcalv
        rt_e,     &! the electron temperature
        rt_em,    &! the electron temperature (half-mesh)
        rt_ed,    &! the deriv. of electron temperature (half-mesh)
+       rt_ecl,   &! the scale length of electron temperature (half-mesh)
        rt_i,     &! the effective ion temperature
        rt_im,    &! the effective ion temperature (half-mesh)
        rt_id,    &! the deriv. of effective ion temperature (half-mesh)
@@ -34,8 +35,8 @@ MODULE trcalv
        rn_em,    &! the electron density (half-mesh)
        rn_ed,    &! the deriv. of electron density (half-mesh)
        rn_ecl,   &! the scale length of electron density (half-mesh)
-       rn_i,     &! the ion density
-       rn_im,    &! the ion density (half-mesh)
+       rn_i,     &! the sum of ion density
+       rn_im,    &! the sum of ion density (half-mesh)
        rn_id,    &! the deriv. of ion density (half-mesh)
        qp_m,     &! safety factor (half-mesh)
        qp_d,     &! the deriv. of safety factor (half-mesh)
@@ -43,9 +44,11 @@ MODULE trcalv
        mshear,   &! magnetic shear            r/q * (dq/dr)
        mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
        mcurv,    &! magnetic curvature
-       vexb,     &! ExB velocity
-       vexbp,    &! poloidal ExB velocity
-       v_alf,    &! Alfven wave velocity
+       vexb,     &! ExB velocity [m/s]
+       vexbp,    &! poloidal ExB velocity [m/s]
+       dvexbpdr, &! poloidal ExB velocity gradient [1/s]
+       wexbp,    &! ExB shearing rate [rad/s]
+!       v_alf,    &! Alfven wave velocity
        v_se       ! speed of sound for electron
 
 CONTAINS
@@ -73,6 +76,7 @@ CONTAINS
        ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
        ALLOCATE(rt_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
        ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
        ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
        ALLOCATE(rt_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
        ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
@@ -92,7 +96,9 @@ CONTAINS
        ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
        ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
        ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
+       ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000       
+!       ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
        ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
 
        nrmax_save  = nrmax
@@ -116,6 +122,7 @@ CONTAINS
     IF(ALLOCATED(rt_e)) DEALLOCATE(rt_e)
     IF(ALLOCATED(rt_em)) DEALLOCATE(rt_em)
     IF(ALLOCATED(rt_ed)) DEALLOCATE(rt_ed)
+    IF(ALLOCATED(rt_ecl)) DEALLOCATE(rt_icl)
     IF(ALLOCATED(rt_i)) DEALLOCATE(rt_i)
     IF(ALLOCATED(rt_im)) DEALLOCATE(rt_im)
     IF(ALLOCATED(rt_id)) DEALLOCATE(rt_id)
@@ -135,7 +142,9 @@ CONTAINS
     IF(ALLOCATED(mcurv)) DEALLOCATE(mcurv)
     IF(ALLOCATED(vexb)) DEALLOCATE(vexb)
     IF(ALLOCATED(vexbp)) DEALLOCATE(vexbp)
-    IF(ALLOCATED(v_alf)) DEALLOCATE(v_alf)
+    IF(ALLOCATED(dvexbpdr)) DEALLOCATE(dvexbpdr)
+    IF(ALLOCATED(wexbp)) DEALLOCATE(wexbp)
+!    IF(ALLOCATED(v_alf)) DEALLOCATE(v_alf)
     IF(ALLOCATED(v_se)) DEALLOCATE(v_se)
 
     RETURN
@@ -144,13 +153,15 @@ CONTAINS
 !==========================================================================
 
   SUBROUTINE tr_calc_variables
-    USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,RR,BB,rg,rm,rt,rn,bp,qp,er
+    USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rg,rhog,rm, &
+         rt,rn,bp,qp,er
 
     IMPLICIT NONE
 
     ! --- control and internal variables
     INTEGER(ikind) :: nr,ns,nsa
-    REAL(rkind) :: rt_isum
+    REAL(rkind) :: rt_isum, dr_norm
+    REAL(rkind) :: deriv3 ! the 2nd order accuracy derivative in TASK/lib
 
     rp_add  = 0.d0
     rp_beam = 0.d0
@@ -190,16 +201,16 @@ CONTAINS
 
     ! ---------------
 
-
     DO nr = 1, nrmax
        rt_isum = 0.d0
+       dr_norm = ar1rho(nr)/(rhog(nr)-rhog(nr-1))
        
        rt_e(nr) = rt(1,nr)
        rn_e(nr) = rn(1,nr)
        DO nsa = 1, nsamax
           ! the pressure of each species
           rp(nsa,nr)  = rn(nsa,nr)*1.d20 * rt(nsa,nr)*rkev
-          rp_d(nsa,nr) = (rp(nsa,nr)-rp(nsa,nr-1)) / (rg(nr)-rg(nr-1))
+          rp_d(nsa,nr) = (rp(nsa,nr)-rp(nsa,nr-1)) * dr_norm
 
           rp_tot(nr)  = rp_tot(nr) + rp(nsa,nr)
 
@@ -217,19 +228,20 @@ CONTAINS
        rt_im(nr)   = 0.5d0*(rt_i(nr)+rt_i(nr-1))
 
        ! derivatives
-       rn_ed(nr)   = (rn_e(nr)-rn_e(nr-1)) / (rg(nr)-rg(nr-1))
-       rn_id(nr)   = (rn_i(nr)-rn_i(nr-1)) / (rg(nr)-rg(nr-1))
-       rt_ed(nr)   = (rt_e(nr)-rt_e(nr-1)) / (rg(nr)-rg(nr-1))
-       rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) / (rg(nr)-rg(nr-1))
-       rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) / (rg(nr)-rg(nr-1))
+       rn_ed(nr)   = (rn_e(nr)-rn_e(nr-1)) * dr_norm
+       rn_id(nr)   = (rn_i(nr)-rn_i(nr-1)) * dr_norm
+       rt_ed(nr)   = (rt_e(nr)-rt_e(nr-1)) * dr_norm
+       rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) * dr_norm
+       rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) * dr_norm
 
        ! scale length
        rt_icl(nr)  = rt_im(nr) / rt_id(nr)
+       rt_ecl(nr)  = rt_em(nr) / rt_ed(nr)
        rn_ecl(nr)  = rn_em(nr) / rn_ed(nr)
 
        ! safety factor
        qp_m(nr) = 0.5d0*(qp(nr)+qp(nr-1))
-       qp_d(nr) = (qp(nr)-qp(nr-1)) / (rg(nr)-rg(nr-1))
+       qp_d(nr) = (qp(nr)-qp(nr-1)) * dr_norm
 
        ! magnetic shear
        mshear(nr) =  rm(nr)/qp_m(nr) * qp_d(nr)
@@ -242,16 +254,19 @@ CONTAINS
        vexb(nr)  = -er(nr) / BB
        vexbp(nr) = -er(nr) / (RR*bp(nr))
 
+       !:the 2nd order accuracy derivative of V_exb
+       dvexbpdr(nr) = deriv3(nr,rg,vexbp,nrmax,1)
 
-       ! rotational shear
-       ! Doppler shift
-       ! Alfven wave velocity
-       v_alf = 0.d0
-       ! sound speed for electron
-       v_se  = 0.d0
-       ! pressure gradient for MHD instability
-
+       ! rotational shear (poloidal) ??? the dimension is NOT [rad/s]
+       wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
     END DO
+
+    ! Doppler shift
+    ! AGMP(NR) = QP(NR)/EPS*WEXB(NR)
+
+    ! sound speed for electron
+    v_se  = 0.d0
+    ! pressure gradient for MHD instability
 
   END SUBROUTINE tr_calc_variables
 
@@ -291,9 +306,10 @@ CONTAINS
 
 ! DPD -> rp_d(nsa,nr)
 
-       ! second species (main ion) only  for now
+       ! second species (main ion: D) only  for now (half-mesh)
        term_dp = rp_d(2,nr) / (pz(2)*aee*0.5d0*(rn(2,nr)+rn(2,nr-1))*1.d20)
 
+       ! toroidal and poloidal rotation velocity <- from experiments for now
        vtor = 0.d0
        vpol = 0.d0
 
@@ -330,6 +346,7 @@ CONTAINS
 !          ER(NR) =-BB*( (TIL/TEL)*RHO_S*CS*(RLNI+ALPHA_NEO*RLTI)-EPS/QP(NR)*\
 !          VTOR(NR))
        ENDIF
+
     ENDDO
 
     RETURN

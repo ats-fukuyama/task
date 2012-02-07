@@ -120,11 +120,6 @@ CONTAINS
           END IF
        END DO
     END DO
-
-    IF(mdltr_prv /= 0)THEN
-       CALL Pereverzev_check
-!       WRITE(*,*)
-    END IF
        
 !   --- error check here ---
     ierr=0

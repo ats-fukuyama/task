@@ -13,7 +13,7 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) 
 
-SRC90=trcalv.f90 trglf23.f90 trcdbm.f90 trsimple.f90 trcoef.f90
+SRC90=trcalv.f90 trglf23.f90 trmbgb.f90 trcdbm.f90 trsimple.f90 trcoef.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 SRCITG= glf/callglf2d.f  itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
@@ -26,8 +26,8 @@ INCGLF=glf/glf.m
 SRCCYT=cytran/cytran_mod.f90 cytran/tr_cytran_mod.f90
 SRCMMM=mmm95/stripx.f mmm95/tomsqz.f mmm95/weiland14.f mmm95/mmm95.f
 
-OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRCCDBM:.f90=.o) \
-$(SRC90:.f90=.o) 
+OBJS= $(SRCMMM:.f=.o) $(SRCITGF:.F=.o) $(SRCITG:.f=.o) $(SRCMBGB:.f=.o) \
+$(SRCCDBM:.f90=.o) $(SRC90:.f90=.o) 
 
 # $(SRCNC:.f=.o) $(SRCCYT:.f90=.o) $(SRCMMM:.f=.o) $(SRCMBGB:.f=.o)
 

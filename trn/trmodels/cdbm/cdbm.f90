@@ -27,9 +27,9 @@ MODULE cdbm_mod
   real(rkind),parameter :: AEE  = 1.602176487E-19_dp ! elementary charge
   real(rkind),parameter :: AME  = 9.10938215E-31_dp  ! electron mass
   real(rkind),parameter :: AMP  = 1.672621637E-27_dp ! proton mass
-  real(rkind),parameter :: VC   = 2.99792458E8_dp  ! speed of light
-  real(rkind),parameter :: RMU0 = 4.E-7_dp*PI      ! permeability
-  real(rkind),parameter :: EPS0 = ONE/(VC*VC*RMU0) ! permittivity
+  real(rkind),parameter :: VC   = 2.99792458E8_dp    ! speed of light
+  real(rkind),parameter :: RMU0 = 4.E-7_dp*PI        ! permeability
+  real(rkind),parameter :: EPS0 = ONE/(VC*VC*RMU0)   ! permittivity
 
 CONTAINS
 
@@ -51,12 +51,12 @@ CONTAINS
     real(rkind),intent(in):: ckap    ! Factor in magnetic curvature effects [1.0]
     real(rkind),intent(in):: cexb    ! Factor in ExB drift effects [1.0]
     integer(ikind),intent(in):: model! Model ID
-    !                                    0: CDBM original
-    !                                    1: CDBM05 including elongation
-    !                                    2: CDBM original with weak ExB shear
-    !                                    3: CDBM05 with weak ExB shear
-    !                                    4: CDBM original with strong ExB shear
-    !                                    5: CDBM05 with strong ExB shear
+    !                               0: CDBM original
+    !                               1: CDBM05 including elongation
+    !                               2: CDBM original with weak ExB shear
+    !                               3: CDBM05 with weak ExB shear
+    !                               4: CDBM original with strong ExB shear
+    !                               5: CDBM05 with strong ExB shear
 
     real(rkind),intent(out):: chi_cdbm! Thermal diffusion coefficient
     !                                   for both electrons and ions

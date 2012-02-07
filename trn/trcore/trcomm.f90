@@ -31,13 +31,13 @@ MODULE trcomm
   INTEGER(ikind):: mdltr_nc    ! model type of neoclassical transport coef.
   INTEGER(ikind):: mdltr_tb    ! model type of turbulent transport coef.
   INTEGER(ikind):: mdltr_prv   ! model type of Pereverzev method
-  REAL(rkind)::    d0          ! lower diffusion coefficient
-  REAL(rkind)::    d1          ! upper diffusion coefficient
-  REAL(rkind)::    ltcr        ! critical scale length
+  REAL(rkind)::    dtr0        ! lower diffusion coefficient in simple model
+  REAL(rkind)::    dtr1        ! upper diffusion coefficient in simple model
+  REAL(rkind)::    ltcr        ! critical scale length in simple model
   REAL(rkind)::    ph0         ! heating power density at r = 0
   REAL(rkind)::    phs         ! heating power density at r = a
-  REAL(rkind)::    dprv1       ! enhanced diffusion coefficient
-  REAL(rkind)::    dprv2       ! diffusion enhancement factor
+  REAL(rkind)::    dprv1       ! enhanced diffusion coefficient in Prv method
+  REAL(rkind)::    dprv2       ! diffusion enhancement factor in Prv method
   REAL(rkind)::    cdtrn       ! factor for particle diffusion
   REAL(rkind)::    cdtru       ! factor for toroidal flow viscosity
   REAL(rkind)::    cdtrt       ! factor for thermal diffusivity
@@ -85,8 +85,7 @@ MODULE trcomm
   REAL(rkind),DIMENSION(:,:),ALLOCATABLE:: &
                   ! variables for Pereverzev method
        dtr_prv,  &! additional diffusion coefficient [m^2/s]
-       vtr_prv,  &! additional convection velocity [m^2/s]
-       add_prv    ! numerically additional term
+       vtr_prv    ! additional convection velocity [m^2/s]
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
        eta_nc,   &! neoclassical resistivity [ohm m]
        jbs_nc,   &! bootstrap current by neoclassical effect [A/m^2]
@@ -151,7 +150,10 @@ MODULE trcomm
   INTEGER(ikind) :: &
        mdluf,    &! model type of UFILE
        mdler      ! model type of radial electric field
-
+         
+!       modelg,   &! control plasma geometry model
+!       nteqit     ! step interval of EQ calculation
+  
 ! ----- computation variables -----
 
   INTEGER(ikind),DIMENSION(:),ALLOCATABLE:: &
@@ -254,8 +256,6 @@ CONTAINS
           IF(ierr /= 0) GOTO 9000
        ALLOCATE(vtr_prv(3*neqmax,0:nrmax),STAT=ierr)
           IF(ierr /= 0) GOTO 9000
-       ALLOCATE(add_prv(3*neqmax,0:nrmax),STAT=ierr)
-          IF(ierr /= 0) GOTO 9000
 
       ! geometric factors
       ! +-- interface variables for bpsd_equ1D
@@ -341,7 +341,6 @@ CONTAINS
     ! for Pereverzev method
     IF(ALLOCATED(dtr_prv)) DEALLOCATE(dtr_prv)
     IF(ALLOCATED(vtr_prv)) DEALLOCATE(vtr_prv)
-    IF(ALLOCATED(add_prv)) DEALLOCATE(add_prv)
 
     ! interface variables for bpsd_equ1D
     IF(ALLOCATED(psitrho)) DEALLOCATE(psitrho)   
@@ -484,7 +483,7 @@ CONTAINS
     RETURN
   END SUBROUTINE tr_neqr_deallocate
 
-! ----- allocation for diagnostics -----
+! ----- allocation for diagnostics of iteration -----
 
   SUBROUTINE tr_nit_allocate
 

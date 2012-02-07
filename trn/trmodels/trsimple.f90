@@ -11,8 +11,8 @@ CONTAINS
 
   SUBROUTINE tr_simple
 
-    USE trcomm, ONLY: nrmax,nsamax,mdltr_tb,ltcr,d0,d1,rg,rt,dtr_tb,vtr_tb, &
-         lt_save,cdtrn,cdtru,cdtrt
+    USE trcomm, ONLY: nrmax,nsamax,mdltr_tb,rg,rt,ltcr,dtr0,dtr1, &
+         dtr_tb,vtr_tb,lt_save,cdtrn,cdtru,cdtrt
     IMPLICIT NONE
     INTEGER(ikind) :: NR, NEQ, nsa
     REAL(rkind) :: LT
@@ -29,7 +29,7 @@ CONTAINS
     CASE(1)
        DO nr = 1, nrmax
           DO nsa = 1, nsamax
-             dtr_diag(nsa,nr) = d0
+             dtr_diag(nsa,nr) = dtr0
              if(nsa /= 0) lt_save(nsa,nr)=0.d0
           END DO
        END DO
@@ -45,9 +45,9 @@ CONTAINS
              END IF
              lt_save(nsa,nr)=lt
              IF(lt > ltcr)THEN
-                dtr_diag(nsa,nr) = d0 + d1 - d1*ltcr/lt
+                dtr_diag(nsa,nr) = dtr0 + dtr1 - dtr1*ltcr/lt
              else
-                dtr_diag(nsa,nr) = d0
+                dtr_diag(nsa,nr) = dtr0
              END IF
           END DO
        END DO

@@ -61,13 +61,14 @@ CONTAINS
 ! ----- calculate source -----
 
   SUBROUTINE tr_calc_source
-    USE trcomm, ONLY: nrmax,nsamax,neqmax,ph0,phs,rg,ra,str
+    USE trcomm, ONLY: nrmax,nsamax,neqmax,ph0,phs,rhog,ra,str
     IMPLICIT NONE
     INTEGER(ikind) :: nr, neq
 
     DO nr = 0, nrmax
        DO neq=1,neqmax
-          str(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
+          str(neq,nr) = phs+(ph0-phs)*(1.D0-(rhog(nr)/ra)**2)
+!          str(neq,nr) = phs+(ph0-phs)*(1.D0-(rg(nr)/ra)**2)
        END DO
     END DO
     RETURN

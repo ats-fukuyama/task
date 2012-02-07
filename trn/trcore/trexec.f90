@@ -10,12 +10,12 @@ CONTAINS
   SUBROUTINE tr_exec
 
     USE trcomm,ONLY: &
-         rkind,ikind,pi,rr,rkap,neqmax,neqrmax,nvmax,nvrmax,nrmax,dt,dr,rg, &
+         rkind,ikind,pi,rr,rkap,neqmax,neqrmax,nvmax,nvrmax,nrmax,dt,rhog, &
          dtr,vtr,ctr,str,htr,elmtx,limtx,rsimtx,rjimtx,r1imtx,r2imtx,r3imtx, &
          rimtx,lhmtx,rhv,xv,xv_new,xv_prev,neqr_neq,id_neq,id_neqnr, &
          dvrho,ar1rho,ar2rho
     IMPLICIT NONE
-    REAL(rkind) :: dh0,dh1,dh2,dh3,dh4,dvdrp,dvdrm,dvdr0,  &
+    REAL(rkind) :: dh0,dh1,dh2,dh3,dvdrp,dvdrm,dvdr0,  &
                    gm1p,gm1m,gm10,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,neq,neq1,neqr,neqr1,nvrm,nvrp,ierr,nvm,nvp
 
@@ -36,11 +36,10 @@ CONTAINS
        gm2m = dvdrm*ar2rho(nr-1)
        gm20 = 0.5d0*(gm2p+gm2m)
 
-       dh0 = (rg(nr)-rg(nr-1))/12.D0
+       dh0 = (rhog(nr)-rhog(nr-1))/12.D0
        dh1 = dt/6.D0
        dh2 = dt*dh0
-       dh3 = dt*gm20/(rg(nr)-rg(nr-1))
-       dh4 = 0.5D0*dt*dvdr0
+       dh3 = dt*gm20/(rhog(nr)-rhog(nr-1))
 
        elmtx(1:2*neqrmax,1:2*neqrmax)=0.D0
 

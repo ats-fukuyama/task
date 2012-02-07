@@ -15,6 +15,7 @@ CONTAINS
     USE trsimple, ONLY: tr_simple
     USE trglf23, ONLY: tr_glf23
     USE trcdbm, ONLY: tr_cdbm
+    USE trmbgb, ONLY: tr_mbgb
     IMPLICIT NONE
 
     call tr_calv_nr_alloc
@@ -33,6 +34,8 @@ CONTAINS
        CALL tr_glf23
     CASE(130:139)
        CALL tr_cdbm
+    CASE(140:149)
+       CALL tr_mbgb
     END SELECT
     
     IF(mdltr_prv /= 0) CALL Pereverzev_method
@@ -41,7 +44,7 @@ CONTAINS
   END SUBROUTINE tr_coef
 
 
-! ----------------------- Pereverzev method -----------------------------
+! ------------------------- Pereverzev method ----------------------------
 !
 !   Numerical stabilization method for stiff turbulent transport models*
 !    (especially for GLF23 model)
@@ -50,34 +53,45 @@ CONTAINS
 !   
 !   Switch variable
 !         mdltr_prv = 0 : off
-!                   > 1 : on
+!                   = 1 : D_add = dprv1
+!                   = 2 : D_add = dprv2*dtr_tb(nr)
+!                   = 3 : D_add = dprv2*dtr_tb(nr) + dprv1
 !
 ! * G.V.Pereverzev, G.Corrigan, Computer Physics Comm. 179 (2008) 579-585
-!------------------------------------------------------------------------
+!-------------------------------------------------------------------------
   SUBROUTINE Pereverzev_method
-    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rt_prev, &
-         mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb,    &
-         dtr_prv,vtr_prv,add_prv,cdtrn,cdtru,cdtrt,rn,ru,rt
+    USE trcomm, ONLY: ikind,rkind,nrmax,nsamax,ph0,rg,rhog,rt_prev, &
+         mdltr_prv,dprv1,dprv2,dtr,vtr,nsa_neq,dtr_tb,vtr_tb,  &
+         dtr_prv,vtr_prv,cdtrn,cdtru,cdtrt,rn,ru,rt,   &
+         ar1rho,ar2rho,dvrho
     IMPLICIT NONE
-    REAL(rkind) :: dtr_new,vtr_old,lt,drt,rtave,dvdrp,dvdrm,dtr_elm,vtr_elm
+    REAL(rkind) :: dtr_new,vtr_old,lt,drt,rt_ave,dvdrp,dvdrm,dtr_elm,vtr_elm,&
+         gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
 
     DO nr=1,nrmax
 
-       dvdrp = rg(nr  )
-       dvdrm = rg(nr-1)
+       dvdrp = dvrho(nr  )
+       dvdrm = dvrho(nr-1)
+
+       gm1p = dvdrp*ar1rho(nr)
+       gm1m = dvdrm*ar1rho(nr-1)
+
+       gm2p = dvdrp*ar2rho(nr)
+       gm2m = dvdrm*ar2rho(nr-1)
+       gm20 = gm2p + gm2m
 
        DO nsa=1,nsamax
           drt=rt_prev(nsa,nr)-rt_prev(nsa,nr-1)
 
-          rtave=( (2.d0*dvdrm +      dvdrp)*rt_prev(nsa,nr-1)  &
-                 +(     dvdrm + 2.d0*dvdrp)*rt_prev(nsa,nr  )) &
-                /(3.d0*(dvdrm+dvdrp))
+          rt_ave=((2.d0*gm1m +      gm1p)*rt_prev(nsa,nr-1)  &
+                 +(     gm1m + 2.d0*gm1p)*rt_prev(nsa,nr  )) &
+                 /(3.d0*gm20)
 
           IF(drt > 0.D0) THEN
              lt = 0.D0
           ELSE
-             lt = drt/(rg(nr)-rg(nr-1))
+             lt = drt/(rhog(nr)-rhog(nr-1))
           END IF
           SELECT CASE(mdltr_prv)
           CASE(1)
@@ -99,7 +113,7 @@ CONTAINS
           dtr_tb(3*nsa  ,3*nsa  ,nr) = dtr_tb(3*nsa  ,3*nsa  ,nr) &
                                       +dtr_prv(3*nsa  ,nr)
 
-          vtr_old = dtr_new * lt / rtave
+          vtr_old = dtr_new * lt / rt_ave
 
           vtr_prv(3*nsa-2,nr) = cdtrn*vtr_old
           vtr_prv(3*nsa-1,nr) = cdtru*vtr_old
@@ -117,12 +131,14 @@ CONTAINS
     RETURN
   END SUBROUTINE Pereverzev_method
 
-  SUBROUTINE Pereverzev_check
+  SUBROUTINE Pereverzev_check(add_prv)
     USE trcomm, ONLY: ikind,rkind,neqmax,nsamax,nrmax,rg,dtr_prv,vtr_prv,&
-                      add_prv,rn,ru,rt,dvrho,ar1rho,ar2rho
+                      dtr,rn,ru,rt,dvrho,ar1rho,ar2rho,rhog
 
-    REAL(rkind),DIMENSION(3*neqmax,0:nrmax) :: dtr_elm,vtr_elm
-    REAL(rkind) :: dvdrm,dvdrp,gm1p,gm1m,gm2p,gm2m
+    REAL(rkind),DIMENSION(3*neqmax,0:nrmax) :: dtr_elm,vtr_elm,dtr_all
+    REAL(rkind),DIMENSION(3*neqmax,0:nrmax),INTENT(OUT) :: add_prv
+    REAL(rkind) :: term_n,term_u,term_t
+    REAL(rkind) :: dvdrm,dvdrp,gm1p,gm1m,gm2p,gm2m,gm20
     INTEGER(ikind) :: nr,nsa
     
     DO nr = 1, nrmax
@@ -134,22 +150,28 @@ CONTAINS
 
        gm2p = dvdrp*ar2rho(nr)
        gm2m = dvdrm*ar2rho(nr-1)
-
-!       gm1p = rg(nr)
-!       gm1m = rg(nr-1)
-!       gm2p = rg(nr)
-!       gm2m = rg(nr-1)       
+       gm20 = 0.5d0*(gm2p+gm2m)
        
        DO nsa = 1, nsamax
-          dtr_elm(3*nsa-2,nr) =                            &
-               0.5D0*dtr_prv(3*nsa-2,nr)/(rg(nr)-rg(nr-1)) &
-               *(gm2m+gm2p)*(rn(nsa,nr)-rn(nsa,nr-1))
+          term_n = gm20*(rn(nsa,nr)-rn(nsa,nr-1))/(rhog(nr)-rhog(nr-1))
+          term_u = gm20*(ru(nsa,nr)-ru(nsa,nr-1))/(rhog(nr)-rhog(nr-1))
+          term_t = gm20*(rt(nsa,nr)-rt(nsa,nr-1))/(rhog(nr)-rhog(nr-1))
+
+          dtr_elm(3*nsa-2,nr) = dtr_prv(3*nsa-2,nr) * term_n
+          dtr_elm(3*nsa-1,nr) = dtr_prv(3*nsa-1,nr) * term_u
+          dtr_elm(3*nsa  ,nr) = dtr_prv(3*nsa  ,nr) * term_t
+
+          ! diagonal element only
+          dtr_all(3*nsa-2,nr) = dtr(3*nsa-2+1,3*nsa-2+1,nr) * term_n
+          dtr_all(3*nsa-1,nr) = dtr(3*nsa-1+1,3*nsa-1+1,nr) * term_u
+          dtr_all(3*nsa  ,nr) = dtr(3*nsa  +1,3*nsa  +1,nr) * term_t
+
           dtr_elm(3*nsa-1,nr) =                            &
-               0.5D0*dtr_prv(3*nsa-1,nr)/(rg(nr)-rg(nr-1)) &
-               *(gm2m+gm2p)*(ru(nsa,nr)-ru(nsa,nr-1))
+               dtr_prv(3*nsa-1,nr)/(rhog(nr)-rhog(nr-1))   &
+               *gm20*(ru(nsa,nr)-ru(nsa,nr-1))
           dtr_elm(3*nsa  ,nr) =                            &
-               0.5D0*dtr_prv(3*nsa  ,nr)/(rg(nr)-rg(nr-1)) &
-               *(gm2m+gm2p)*(rt(nsa,nr)-rt(nsa,nr-1))
+               dtr_prv(3*nsa  ,nr)/(rhog(nr)-rhog(nr-1))   &
+               *gm20*(rt(nsa,nr)-rt(nsa,nr-1))
           
           vtr_elm(3*nsa-2,nr) =                            &
             vtr_prv(3*nsa-2,nr)/6.D0                       &
@@ -162,9 +184,12 @@ CONTAINS
             *((2.D0*gm1m+gm1p)*rt(nsa,nr-1) + (gm1m+2.D0*gm1p)*rt(nsa,nr))
 
           ! numerically additional term in nodal equation
-          add_prv(3*nsa-2,nr) = dtr_elm(3*nsa-2,nr) - vtr_elm(3*nsa-2,nr)
-          add_prv(3*nsa-1,nr) = dtr_elm(3*nsa-1,nr) - vtr_elm(3*nsa-1,nr)
-          add_prv(3*nsa  ,nr) = dtr_elm(3*nsa  ,nr) - vtr_elm(3*nsa  ,nr)
+!          add_prv(3*nsa-2,nr) = (dtr_elm(3*nsa-2,nr)-vtr_elm(3*nsa-2,nr)) &
+!                                / dtr_all(3*nsa-2,nr)
+!          add_prv(3*nsa-1,nr) = (dtr_elm(3*nsa-1,nr)-vtr_elm(3*nsa-1,nr)) &
+!                                / dtr_all(3*nsa-1,nr)
+          add_prv(3*nsa  ,nr) = (dtr_elm(3*nsa  ,nr)-vtr_elm(3*nsa  ,nr)) &
+                                / dtr_all(3*nsa  ,nr)
           
        END DO
     END DO

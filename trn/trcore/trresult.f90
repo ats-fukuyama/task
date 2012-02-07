@@ -38,10 +38,12 @@ CONTAINS
   SUBROUTINE tr_save_ngt
 
     USE trcomm, ONLY : &
-         rkind,ikind,nrmax,nsamax,ngtmax, &
-         ngt,gvt,gvts,gvrt,gvrts,gparts,t,rg,rn,ru,rt,qp,add_prv
+         rkind,ikind,nrmax,nsamax,ngtmax,neqmax, &
+         ngt,gvt,gvts,gvrt,gvrts,gparts,t,rn,ru,rt,qp
+    USE trcoef, ONLY: Pereverzev_check
     IMPLICIT NONE
     INTEGER(ikind):: nsa,nr
+    REAL(rkind),DIMENSION(3*neqmax,0:nrmax):: add_prv
 
     IF(ngt >= ngtmax) RETURN
 
@@ -60,18 +62,29 @@ CONTAINS
     DO nr=0,nrmax
        gvrt(nr,ngt, 1) = qp(nr)
     END DO
-    DO nsa=1,nsamax
-       DO nr=0,nrmax
-          gvrts(nr,ngt,nsa, 1) = rn(nsa,nr)
-          gvrts(nr,ngt,nsa, 2) = ru(nsa,nr)
-          gvrts(nr,ngt,nsa, 3) = rt(nsa,nr)
 
-          ! for Pereverzev method
-          gparts(nr,ngt,nsa,1) = add_prv(3*nsa-2,nr)
-          gparts(nr,ngt,nsa,2) = add_prv(3*nsa-1,nr)
-          gparts(nr,ngt,nsa,3) = add_prv(3*nsa  ,nr)
-       END DO
+    DO nsa=1,nsamax
+          gvrts(0:nrmax,ngt,nsa, 1) = rn(nsa,0:nrmax)
+          gvrts(0:nrmax,ngt,nsa, 2) = ru(nsa,0:nrmax)
+          gvrts(0:nrmax,ngt,nsa, 3) = rt(nsa,0:nrmax)
     END DO
+
+    ! for Pereverzev method
+    ! numerically addtional term in nodal equation (relative value)
+    IF(t == 0)THEN
+       gparts(0:nrmax,ngt,1:nsamax,1) = 0.d0
+       gparts(0:nrmax,ngt,1:nsamax,2) = 0.d0
+       gparts(0:nrmax,ngt,1:nsamax,3) = 0.d0
+    ELSE
+       CALL Pereverzev_check(add_prv)
+       DO nsa=1,nsamax
+          DO nr=0,nrmax
+!             gparts(nr,ngt,nsa,1) = add_prv(3*nsa-2,nr)
+!             gparts(nr,ngt,nsa,2) = add_prv(3*nsa-1,nr)
+             gparts(nr,ngt,nsa,3) = add_prv(3*nsa  ,nr)
+          END DO
+       END DO
+    END IF
 
     RETURN
   END SUBROUTINE tr_save_ngt

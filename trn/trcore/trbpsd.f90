@@ -73,11 +73,11 @@
          allocate(equ1D%data(0:equ1D%nrmax))
       endif
 
-      equ1D%time   = 0.d0
-      equ1D%rho(0) = 0.d0
-      do nr=0,nrmax
-         equ1D%rho(nr) = rg(nr)
-      enddo
+!      equ1D%time   = 0.d0
+!      equ1D%rho(0) = 0.d0
+!      do nr=0,nrmax
+!         equ1D%rho(nr) = rhog(nr)
+!      enddo
 
       ! --- metric1D ---
       if((metric1D%nrmax.ne.nrmax)) then
@@ -92,11 +92,11 @@
          allocate(metric1D%data(0:metric1D%nrmax))
       endif
 
-      metric1D%time   = 0.d0
-      metric1D%rho(0) = 0.d0
-      do nr=0,nrmax
-         metric1D%rho(nr) = rg(nr)
-      enddo
+!      metric1D%time   = 0.d0
+!      metric1D%rho(0) = 0.d0
+!      do nr=0,nrmax
+!         metric1D%rho(nr) = rhog(nr)
+!      enddo
 
       ! --- plasmaf ---
       if((plasmaf%nsmax.ne.nsmax).or. &
@@ -120,7 +120,7 @@
       plasmaf%time   = 0.d0
       plasmaf%rho(0) = 0.d0
       do nr=0,nrmax
-         plasmaf%rho(nr) = rg(nr)
+         plasmaf%rho(nr) = rhog(nr)
       enddo
 
       do nr=0,plasmaf%nrmax
@@ -177,7 +177,7 @@
       plasmaf%time = t
 
       do nr=0,plasmaf%nrmax
-         plasmaf%rho(nr)=rg(nr)
+         plasmaf%rho(nr)=rhog(nr)
 
          do ns=1,plasmaf%nsmax
             plasmaf%data(nr,ns)%pn   = rn(ns,nr)*1.d20
@@ -264,9 +264,9 @@
       if(modelg.eq.3.or.modelg.eq.5.or.modelg.eq.8.or.modelg.eq.9) then
 
          equ1D%nrmax = nrmax
-         do nr=0,nrmax
-            equ1D%rho(nr) = rg(nr)
-         enddo
+!         do nr=0,nrmax
+!            equ1D%rho(nr) = rhog(nr)
+!         enddo
          call bpsd_get_data(equ1D,ierr)
 
          do nr=0,equ1D%nrmax
@@ -281,16 +281,17 @@
          psita=equ1D%data(equ1D%nrmax)%psit
 
          metric1D%nrmax  = nrmax
-         metric1D%rho(0) = 0.d0
-         do nr=0,nrmax
-            metric1D%rho(nr)=rg(nr)
-         enddo
+!         metric1D%rho(0) = 0.d0
+!         do nr=0,nrmax
+!            metric1D%rho(nr)=rhog(nr)
+!         enddo
 
          call bpsd_get_data(metric1D,ierr)
          do nr=0,metric1D%nrmax
+!            rhog(nr)
             pvolrho(nr) = metric1D%data(nr)%pvol      ! Plasma volume
             psurrho(nr) = metric1D%data(nr)%psur      ! Plasma surface
-            dvrho(nr)   = metric1D%data(nr)%dvpsit * (2.d0*psita*rg(nr))
+            dvrho(nr)   = metric1D%data(nr)%dvpsit * (2.d0*psita*rhog(nr))
                                                       ! dV/drho
             rdpvrho(nr) = 1.d0 / (metric1D%data(nr)%dvpsip * 2.d0*pi)
                                                       ! dpsi/dV
@@ -322,10 +323,10 @@
 ! =================== now considering
 ! === This part should be seperated into another subroutine ??? ===
 
-         do nr=0,nrmax
+ !        do nr=0,nrmax
             !RDP(nr)=TTRHOG(nr)*ARRHOG(nr)*DVRHOG(nr)/(4.D0*PI**2*QP(nr))
-            rdp(nr)=dvrho(nr)*rdpvrho(nr)
-         enddo
+!            rdp(nr)=dvrho(nr)*rdpvrho(nr)
+!         enddo
          !      BP(1:NRMAX) =AR1RHOG(1:NRMAX)*RDP(1:NRMAX)/RR
          !      write(6,*) 'RDP_get:',(rdp(nr),nr=1,nrmax)
 
