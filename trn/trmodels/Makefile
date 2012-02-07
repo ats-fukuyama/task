@@ -42,10 +42,9 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 	$(LD) $(LDFLAGS) trmodelslib.a $(OBJS)
 
 clean : 
-	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
+	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
 
 tritg.o  : tritg.f90
-trmodels.o : trmodels.f90
 trmdlt.o : trmdlt.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h

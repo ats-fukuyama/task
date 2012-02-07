@@ -88,7 +88,7 @@ CONTAINS
     curv=-(rs/rr)*(1.D0-1.D0/(qp*qp))
 
     !     rotational shear
-    shearl=sqrt(shear**2+0.1D0**2)   !
+    shearl=sqrt(shear**2+0.1D0**2)
     wexb = -qp*rr/(shearl*va)*dvexbdr
 
     SELECT CASE(MOD(model,2))
