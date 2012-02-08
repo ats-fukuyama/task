@@ -517,7 +517,7 @@ C
 C
 C     PHASE 3.  SUM IS MID-RANGE.  NO SCALING.
 C
-         DO 95 J = IX,N
+         DO 95 J = IX,IEND ! N 2012/02/08 by Seki
             IF(CDABS(DX(I-ISTA+1)) .GE. HITEST) GO TO 100
             SUM = SUM + DX(I-ISTA+1)*DCONJG(DX(I-ISTA+1))
             I = I + INC
