@@ -113,7 +113,7 @@ CONTAINS
 
     IF(ALLOCATED(rp)) DEALLOCATE(rp)
     IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
-    
+!    
     IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
     IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
     IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)
