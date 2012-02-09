@@ -172,12 +172,12 @@ CONTAINS
        gparg2(0:nrmax,ngg) = gparts(0:nrmax,ngg*ngg_interval,2,3)
     END DO
 
-    CALL PAGES
-    LABEL = '/add_Net(T_e) vs rho'
-    CALL GRD1D(1,rhog,gparg1,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
-    LABEL = '/add_Net(T_D) vs rho'
-    CALL GRD1D(2,rhog,gparg2,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
-    CALL PAGEE
+!!$    CALL PAGES
+!!$    LABEL = '/add_Net(T_e) vs rho'
+!!$    CALL GRD1D(1,rhog,gparg1,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
+!!$    LABEL = '/add_Net(T_D) vs rho'
+!!$    CALL GRD1D(2,rhog,gparg2,nrmax+1,nrmax+1,nggmax+1,LABEL,0)
+!!$    CALL PAGEE
 
 !--- convergence
     

@@ -120,7 +120,8 @@ CONTAINS
 !
 !   chi_i_mix(jz) = total ion thermal diffusivity from the MIXED model
 !   themix(jz)    = total electron thermal diffusivity from the MIXED model
-!   thdmix(jz)    = total hydrogenic ion diffusivity from the MIXED model
+!   thdmix(jz)    = total hydrogenic ion particle diffusivity 
+!                                                      from the MIXED model
 !
 ! The following contributions to the effective diffusivities are
 !  for diagnostic purposes:
@@ -144,7 +145,6 @@ CONTAINS
              dtr_tb(3*nsa-2,3*nsa-2,nr) = cdtrn *chi_i_mix(1)*factor
              dtr_tb(3*nsa-1,3*nsa-1,nr) = cdtru *chi_i_mix(1)*factor
              dtr_tb(3*nsa  ,3*nsa  ,nr) = cdtrt *chi_i_mix(1)*factor
-             
           END IF
        END DO
 
