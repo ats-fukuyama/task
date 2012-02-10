@@ -594,7 +594,6 @@ CONTAINS
           A%FVALUE_POS=2
        ENDIF
        
-
        SELECT CASE(A%MODE_2D)
        CASE(4:5)
           IF(PRESENT(BEV_XLEN)) THEN
