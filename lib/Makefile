@@ -73,6 +73,8 @@ mmconvert: mmconvert.o
 
 testgrf: tasklib.a testgrf.o 
 	$(FCFIXED) testgrf.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
+testgrd: tasklib.a testgrd.o 
+	$(FCFIXED) testgrd.o tasklib.a $(FFLAGS) -o $@ $(FLIBS)
 
 libgrf/grftype.o: libgrf/grftype.f90
 libgrf/grfutils.o: libgrf/grfutils.f90 libgrf/grftype.f90

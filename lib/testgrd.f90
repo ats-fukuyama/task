@@ -1,0 +1,118 @@
+      USE libgrf,ONLY: grd1d,grd2d
+      IMPLICIT REAL*8 (A-H,O-Z)
+
+      PARAMETER (NXM=1001)
+      PARAMETER (NYM=101)
+      PARAMETER (NGM=10)
+      DIMENSION GX(NXM),GF(NXM,NGM)
+      DIMENSION GY(NYM),GZ(NXM,NYM)
+      DIMENSION GBLACK(3,1),GTHIN(1)
+      CHARACTER STR*80
+      GBLACK(1:3,1)=0.0
+      GTHIN(1)=0.03
+
+      CALL GSOPEN
+
+      XMIN=0.D0
+      XMAX=4.D0*ASIN(1.D0)
+      NXMAX=101
+      DX=(XMAX-XMIN)/(NXMAX-1)
+      DO NX=1,NXMAX
+         X=XMIN+DX*(NX-1)
+         GX(NX)=X
+         GF(NX,1)=SIN(X)
+         GF(NX,2)=SIN(2*X)
+         GF(NX,3)=SIN(3*X)
+         GF(NX,4)=SIN(4*X)
+         GF(NX,5)=SIN(5*X)
+         GF(NX,6)=SIN(6*X)
+      ENDDO
+      NGMAX=6
+      STR='/SIN(n*X)/'
+      MODE=0
+      CALL PAGES
+      CALL GRD1D(0,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(1,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL GRD1D(7,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL GRD1D(25,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL PAGEE
+
+      XMIN=0.001D0
+      XMAX=1.D0
+      NXMAX=101
+      DX=(XMAX-XMIN)/(NXMAX-1)
+      DO NX=1,NXMAX
+         X=XMIN+DX*(NX-1)
+         GX(NX)=LOG10(X)
+         GF(NX,1)=LOG10(EXP(-X))
+         GF(NX,2)=LOG10(EXP(-2*X))
+         GF(NX,3)=LOG10(EXP(-3*X))
+         GF(NX,4)=LOG10(EXP(-4*X))
+         GF(NX,5)=LOG10(EXP(-5*X))
+         GF(NX,6)=LOG10(EXP(-6*X))
+      ENDDO
+      NGMAX=6
+      STR='/EXP(n*X)/'
+      MODE=3
+      CALL PAGES
+      CALL GRD1D(0,GX,GF,NXM,NXMAX,NGMAX,STR,MODE,ASPECT=1.D0)
+      CALL PAGEE
+      CALL PAGES
+      CALL GRD1D(1,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL GRD1D(7,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL GRD1D(25,GX,GF,NXM,NXMAX,NGMAX,STR,MODE)
+      CALL PAGEE
+
+      XMIN=0.D0
+      XMAX=4.D0*ASIN(1.D0)
+      YMIN=0.D0
+      YMAX=4.D0*ASIN(1.D0)
+      NXMAX=101
+      NYMAX=101
+      DX=(XMAX-XMIN)/(NXMAX-1)
+      DY=(YMAX-YMIN)/(NYMAX-1)
+      DO NX=1,NXMAX
+         X=XMIN+DX*(NX-1)
+         GX(NX)=X
+      ENDDO
+      DO NY=1,NYMAX
+         Y=YMIN+DY*(NY-1)
+         GY(NY)=Y
+      ENDDO
+      DO NY=1,NYMAX
+         Y=YMIN+DY*(NY-1)
+         DO NX=1,NXMAX
+            X=XMIN+DX*(NX-1)
+            GZ(NX,NY)=COS(X)*COS(Y)
+         ENDDO
+      ENDDO
+      STR='/COS(X)COS(Y)/'
+
+      MODE=0
+      CALL PAGES
+      CALL GRD2D(0,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE_2D=1,XMAX=GX(NXMAX))
+      CALL PAGEE
+
+      CALL PAGES
+      CALL GRD2D(0,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE_2D=2,XMAX=GX(NXMAX))
+      CALL PAGEE
+
+      CALL PAGES
+      CALL GRD2D(0,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE_2D=3,XMAX=GX(NXMAX), &
+                 LINE_RGB=GBLACK,LINE_THICKNESS=GTHIN)
+      CALL PAGEE
+
+      CALL PAGES
+      CALL GRD2D(0,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE_2D=4,XMAX=GX(NXMAX))
+      CALL PAGEE
+
+      CALL PAGES
+      CALL GRD2D(0,GX,GY,GZ,NXM,NXMAX,NYMAX,STR,MODE_2D=5,XMAX=GX(NXMAX), &
+                 NLMAX=20,LINE_THICKNESS=GTHIN)
+      CALL PAGEE
+
+      CALL GSCLOS
+      STOP
+      END

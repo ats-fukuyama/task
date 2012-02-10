@@ -185,7 +185,7 @@ CONTAINS
     ENDIF
 
     IF(PRESENT(ASPECT)) THEN
-       A%ASPECT=ASPECT
+       A%ASPECT=GUCLIP(ASPECT)
        IF(A%ASPECT /= 0.0) THEN
           IF(A%ASPECT >= 1.0) THEN
              A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)*A%ASPECT
@@ -377,7 +377,7 @@ CONTAINS
           ENDDO
        ELSE
           DO NL=1,A%NLMAX
-             A%LINE_RGB(1:3,NL)=GUCLIP(GRGB(1:3,MOD(NL-1,NLM)+1))
+             A%LINE_RGB(1:3,NL)=GRGB(1:3,MOD(NL-1,NLM)+1)
           END DO
        END IF
        IF(PRESENT(LINE_THICKNESS)) THEN
