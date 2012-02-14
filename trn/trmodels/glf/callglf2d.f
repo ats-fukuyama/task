@@ -39,7 +39,7 @@ c added i_dengrad switch for dilution
      >                 ! if itport_pt(4)=1 itport_pt(5)=1 otherwise output
      > vper_m,         ! 0:jmaxm perp. velocity m/sec
      >                 ! if itport_pt(4)=1 itport_pt(5)=1 otherwise output
-     > zeff_exp,       ! 0:jmaxm ne in 10**19 1/m**3
+     > zeff_exp,       ! effective charge
      > bt_exp,         ! vaccuum axis toroidal field in tesla
      > bt_flag,        ! switch for effective toroidal field use in rhosda
      > rho,            ! 0:jmaxm 0 < rho < 1 normalized toroidal flux (rho=rho/rho(a))

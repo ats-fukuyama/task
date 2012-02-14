@@ -100,6 +100,21 @@ CONTAINS
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)
           CASE(3)
              dtr_new = dprv2*dtr_tb(3*nsa,3*nsa,nr)+dprv1
+          CASE(4)
+             IF(nr==1)THEN
+                dtr_new = dprv2 &
+                         *0.5d0**(dtr_tb(3*nsa,3*nsa,nr  )   &
+                                 +dtr_tb(3*nsa,3*nsa,nr+1))
+             ELSE IF(nr==nrmax)THEN
+                dtr_new = dprv2 &
+                         *0.5d0**(dtr_tb(3*nsa,3*nsa,nr-1)   &
+                                 +dtr_tb(3*nsa,3*nsa,nr  ))
+             ELSE
+                dtr_new = dprv2 &                  
+                         *0.33d0*(dtr_tb(3*nsa,3*nsa,nr-1)   &
+                                 +dtr_tb(3*nsa,3*nsa,nr  )   &
+                                 +dtr_tb(3*nsa,3*nsa,nr+1))
+             END IF
           END SELECT
 
           dtr_prv(3*nsa-2,nr) = cdtrn*dtr_new
@@ -183,14 +198,18 @@ CONTAINS
             vtr_prv(3*nsa  ,nr)/6.D0                       &
             *((2.D0*gm1m+gm1p)*rt(nsa,nr-1) + (gm1m+2.D0*gm1p)*rt(nsa,nr))
 
+
+          IF(dtr_all(3*nsa-2,nr)==0.d0) dtr_all(3*nsa-2,nr) = 0.01d0
+          IF(dtr_all(3*nsa-1,nr)==0.d0) dtr_all(3*nsa-1,nr) = 0.01d0
+          IF(dtr_all(3*nsa  ,nr)==0.d0) dtr_all(3*nsa  ,nr) = 0.01d0
+
           ! numerically additional term in nodal equation
-!          add_prv(3*nsa-2,nr) = (dtr_elm(3*nsa-2,nr)-vtr_elm(3*nsa-2,nr)) &
-!                                / dtr_all(3*nsa-2,nr)
-!          add_prv(3*nsa-1,nr) = (dtr_elm(3*nsa-1,nr)-vtr_elm(3*nsa-1,nr)) &
-!                                / dtr_all(3*nsa-1,nr)
+          add_prv(3*nsa-2,nr) = (dtr_elm(3*nsa-2,nr)-vtr_elm(3*nsa-2,nr)) &
+                                / dtr_all(3*nsa-2,nr)
+          add_prv(3*nsa-1,nr) = (dtr_elm(3*nsa-1,nr)-vtr_elm(3*nsa-1,nr)) &
+                                / dtr_all(3*nsa-1,nr)
           add_prv(3*nsa  ,nr) = (dtr_elm(3*nsa  ,nr)-vtr_elm(3*nsa  ,nr)) &
-                                / dtr_all(3*nsa  ,nr)
-          
+                                / dtr_all(3*nsa  ,nr)          
        END DO
     END DO
 

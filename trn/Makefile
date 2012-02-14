@@ -3,7 +3,7 @@ all:
 	(cd ../plx; make)
 	(cd ../pl; make)
 	(cd ../eq; make)
-	(cd trcore; make trcomm.o)
+	(cd trcore; make trcomm.o trlib.o)
 	(cd trmodels; make)
 	(cd trcore; make)
 

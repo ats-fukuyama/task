@@ -1,11 +1,11 @@
 MODULE trcalv
 !---------------------------------------------------------------------------
 !
-!   This routine calculates variables to evaluate transport coefficients
+!   This module calculates variables to evaluate transport coefficients
 !    and other effects. 
 !
 !   The variables declared below should be refered 
-!    from only 'trn/trmodels' directory.
+!    from ONLY 'trn/trmodels' directory.
 !
 !---------------------------------------------------------------------------
 
@@ -38,130 +38,80 @@ MODULE trcalv
        rn_i,     &! the sum of ion density
        rn_im,    &! the sum of ion density (half-mesh)
        rn_id,    &! the deriv. of ion density (half-mesh)
+       rn_icl,   &! the scale length of ion density (half-mesh)
        qp_m,     &! safety factor (half-mesh)
        qp_d,     &! the deriv. of safety factor (half-mesh)
 !       
        mshear,   &! magnetic shear            r/q * (dq/dr)
        mshear_cl,&! magnetic shear length  R*q**2/(r*dq/dr)
        mcurv,    &! magnetic curvature
-       vexb,     &! ExB velocity [m/s]
-       vexbp,    &! poloidal ExB velocity [m/s]
-       dvexbpdr, &! poloidal ExB velocity gradient [1/s]
-       wexbp,    &! ExB shearing rate [rad/s]
+       vexb,     &! ExBt velocity [m/s]
+!       dvexbdr,  &! ExBt velocity gradient [1/s]
+       vexbp,    &! ExBp velocity [m/s]
+       dvexbpdr, &! ExBp velocity gradient [1/s]
+!       wexb,     &! ExBt shearing rate [rad/s]
+       wexbp,    &! ExBp shearing rate [rad/s]
 !       v_alf,    &! Alfven wave velocity
        v_se       ! speed of sound for electron
 
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       z_eff      ! Z_eff: effective charge
+
 CONTAINS
+!==========================================================================
+  SUBROUTINE tr_calc_variables
+!--------------------------------------------------------------------------
+!   Calculate variables and some effects used in calculate transport 
+!--------------------------------------------------------------------------
+    USE trcomm, ONLY: ikind,nrmax,RR,rhog,BB,rdp,bp,er
 
-  SUBROUTINE tr_calv_nr_alloc
+    IMPLICIT NONE
+    INTEGER(ikind) :: nr
+    REAL(rkind) :: deriv3 ! the 2nd order accuracy derivative in TASK/lib
 
-    INTEGER(ikind),SAVE:: nrmax_save
-    INTEGER(ikind),SAVE:: nsamax_save
-    INTEGER(ikind)     :: ierr
+    CALL tr_calv_fundamental
 
+    CALL tr_er_field
 
-    IF(nrmax /= nrmax_save .OR. &
-       nsamax /= nsamax_save) THEN
+    CALL tr_zeff
 
-       IF(nrmax_save /= 0) CALL tr_calv_nr_dealloc
-
-       ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
-       ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+    ! half grid
+    DO nr = 1, nrmax
+       ! ExB velocity : er [V/m] / BB [T] -> [m/s]
+       !    vexb(nr)  = -er(nr) / BB
+       vexbp(nr) = -er(nr) / (RR*bp(nr)) ! [1/s]
        
-       ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
-       ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rp_beam(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
+       !:the 2nd order accuracy derivative of V_exb
+       dvexbpdr(nr) = deriv3(nr,rhog,vexbp,nrmax,1)
 
-       ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rt_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-
-       ALLOCATE(rn_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rn_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(rn_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(rn_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(qp_m(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
-       ALLOCATE(qp_d(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
+       ! poloidal rotational shear [1/s]
+       wexbp(nr) = (RR*bp(nr))**2/(rdp(nr)*sqrt(BB**2+bp(nr)**2)) &
+                   *dvexbpdr(nr)
+       ! wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
        
-       ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
-       ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
-       ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
-       ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000       
-!       ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
-       ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+       ! Doppler shift
+       ! AGMP(NR) = QP(NR)/EPS*WEXB(NR)
 
-       nrmax_save  = nrmax
-       nsamax_save = nsamax
-   END IF
-   RETURN
-9000 WRITE(6,*) 'XX tr_calv_nr_alloc: allocation error: ierr=',ierr
-   STOP
-  END SUBROUTINE tr_calv_nr_alloc
+       ! sound speed for electron
+       v_se  = 0.d0
+       ! pressure gradient for MHD instability
 
-  SUBROUTINE tr_calv_nr_dealloc
-
-    IF(ALLOCATED(rp)) DEALLOCATE(rp)
-    IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
-!    
-    IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
-    IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
-    IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)
-    IF(ALLOCATED(rp_beam)) DEALLOCATE(rp_beam)
-!
-    IF(ALLOCATED(rt_e)) DEALLOCATE(rt_e)
-    IF(ALLOCATED(rt_em)) DEALLOCATE(rt_em)
-    IF(ALLOCATED(rt_ed)) DEALLOCATE(rt_ed)
-    IF(ALLOCATED(rt_ecl)) DEALLOCATE(rt_icl)
-    IF(ALLOCATED(rt_i)) DEALLOCATE(rt_i)
-    IF(ALLOCATED(rt_im)) DEALLOCATE(rt_im)
-    IF(ALLOCATED(rt_id)) DEALLOCATE(rt_id)
-    IF(ALLOCATED(rt_icl)) DEALLOCATE(rt_icl)
-!
-    IF(ALLOCATED(rn_e)) DEALLOCATE(rn_e)
-    IF(ALLOCATED(rn_em)) DEALLOCATE(rn_em)
-    IF(ALLOCATED(rn_ed)) DEALLOCATE(rn_ed)
-    IF(ALLOCATED(rn_ecl)) DEALLOCATE(rn_ecl)
-    IF(ALLOCATED(rn_i)) DEALLOCATE(rn_i)
-    IF(ALLOCATED(rn_im)) DEALLOCATE(rn_im)
-    IF(ALLOCATED(rn_id)) DEALLOCATE(rn_id)
-    IF(ALLOCATED(qp_m)) DEALLOCATE(qp_m)
-    IF(ALLOCATED(qp_d)) DEALLOCATE(qp_d)
-!       
-    IF(ALLOCATED(mshear)) DEALLOCATE(mshear)
-    IF(ALLOCATED(mcurv)) DEALLOCATE(mcurv)
-    IF(ALLOCATED(vexb)) DEALLOCATE(vexb)
-    IF(ALLOCATED(vexbp)) DEALLOCATE(vexbp)
-    IF(ALLOCATED(dvexbpdr)) DEALLOCATE(dvexbpdr)
-    IF(ALLOCATED(wexbp)) DEALLOCATE(wexbp)
-!    IF(ALLOCATED(v_alf)) DEALLOCATE(v_alf)
-    IF(ALLOCATED(v_se)) DEALLOCATE(v_se)
+    END DO
 
     RETURN
-  END SUBROUTINE tr_calv_nr_dealloc
+  END SUBROUTINE tr_calc_variables
 
 !==========================================================================
 
-  SUBROUTINE tr_calc_variables
+  SUBROUTINE tr_calv_fundamental
     USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rg,rhog,rm, &
-         rt,rn,bp,qp,er
+         rt,rn,bp,qp
 
     IMPLICIT NONE
 
     ! --- control and internal variables
     INTEGER(ikind) :: nr,ns,nsa
     REAL(rkind) :: rt_isum, dr_norm
-    REAL(rkind) :: deriv3 ! the 2nd order accuracy derivative in TASK/lib
 
     rp_add  = 0.d0
     rp_beam = 0.d0
@@ -179,7 +129,7 @@ CONTAINS
 !       ! padd = experimental - calculating result (beam pressure)
 !    ENDIF
 
-    
+    rn_i    = 0.d0
     rp_tot  = 0.d0
     rp_totd = 0.d0
     rt_isum = 0.d0
@@ -200,10 +150,9 @@ CONTAINS
        rt_i(0) = rt_isum / rn_i(0)
 
     ! ---------------
-
     DO nr = 1, nrmax
        rt_isum = 0.d0
-       dr_norm = ar1rho(nr)/(rhog(nr)-rhog(nr-1))
+       dr_norm = 0.5d0*(ar1rho(nr)+ar1rho(nr-1))/(rhog(nr)-rhog(nr-1))
        
        rt_e(nr) = rt(1,nr)
        rn_e(nr) = rn(1,nr)
@@ -216,7 +165,7 @@ CONTAINS
 
           IF(idnsa(nsa) == 1) THEN ! ion
              rn_i(nr) = rn_i(nr) + rn(nsa,nr)
-             rt_isum  = rt_isum + rn(nsa,0)*rt(nsa,0)
+             rt_isum  = rt_isum + rn(nsa,nr)*rt(nsa,nr)
           END IF            
        END DO         
        rt_i(nr)    = rt_isum / rn_i(nr)
@@ -226,18 +175,20 @@ CONTAINS
        rn_im(nr)   = 0.5d0*(rn_i(nr)+rn_i(nr-1))          
        rt_em(nr)   = 0.5d0*(rt_e(nr)+rt_e(nr-1))
        rt_im(nr)   = 0.5d0*(rt_i(nr)+rt_i(nr-1))
+!       write(*,*) rt_im(nr)
 
-       ! derivatives
+       ! derivatives with respect to 'r' ( d XX/dr = <|grad rho|>*d XX/d rho)
        rn_ed(nr)   = (rn_e(nr)-rn_e(nr-1)) * dr_norm
        rn_id(nr)   = (rn_i(nr)-rn_i(nr-1)) * dr_norm
        rt_ed(nr)   = (rt_e(nr)-rt_e(nr-1)) * dr_norm
        rt_id(nr)   = (rt_i(nr)-rt_i(nr-1)) * dr_norm
        rp_totd(nr) = (rp_tot(nr)-rp_tot(nr-1)) * dr_norm
 
-       ! scale length
-       rt_icl(nr)  = rt_im(nr) / rt_id(nr)
+       ! scale length ( XX / (d XX/d rho))
        rt_ecl(nr)  = rt_em(nr) / rt_ed(nr)
+       rt_icl(nr)  = rt_im(nr) / rt_id(nr)
        rn_ecl(nr)  = rn_em(nr) / rn_ed(nr)
+       rn_icl(nr)  = rn_im(nr) / rn_id(nr)
 
        ! safety factor
        qp_m(nr) = 0.5d0*(qp(nr)+qp(nr-1))
@@ -249,33 +200,15 @@ CONTAINS
        ! magnetic curvature
        mcurv = 0.d0
        
-       ! ExB velocity : er [V/m] / BB [T] -> [m/s]
-       CALL tr_er_field
-       vexb(nr)  = -er(nr) / BB
-       vexbp(nr) = -er(nr) / (RR*bp(nr))
-
-       !:the 2nd order accuracy derivative of V_exb
-       dvexbpdr(nr) = deriv3(nr,rg,vexbp,nrmax,1)
-
-       ! rotational shear (poloidal) ??? the dimension is NOT [rad/s]
-       wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
     END DO
 
-    ! Doppler shift
-    ! AGMP(NR) = QP(NR)/EPS*WEXB(NR)
-
-    ! sound speed for electron
-    v_se  = 0.d0
-    ! pressure gradient for MHD instability
-
-  END SUBROUTINE tr_calc_variables
+  END SUBROUTINE tr_calv_fundamental
 
 
+  SUBROUTINE tr_er_field
 !---------------------------------------------------------------------------
 !        Radial Electric Field
 !---------------------------------------------------------------------------
-
-  SUBROUTINE tr_er_field
     USE trcomm, ONLY: nrmax,aee,bb,bp,rg,rt,rn,rg,rm,er, &
          pa,pz, &
          mdler,vtor,vpol
@@ -352,6 +285,161 @@ CONTAINS
     RETURN
 
   END SUBROUTINE tr_er_field
+
+
+  SUBROUTINE tr_zeff
+!---------------------------------------------------------------------------
+!           Caluculate Z_eff (effective charge)
+!---------------------------------------------------------------------------
+!!$    USE TRCOMM, ONLY : ANC, ANFE, MDLEQN, MDLUF, NRMAX, PZ, PZC, PZFE, RN, R\
+!!$    NF, RT, ZEFF
+    USE trcomm, ONLY: nrmax,idnsa,ns_nsa,pz,rn,mdluf
+    IMPLICIT NONE
+    INTEGER(4):: nr,nsa,ns
+
+    z_eff =0.d0
+
+    ! not include impurities
+    IF(mdluf == 0)THEN
+       DO nr = 1, nrmax
+          DO nsa = 1, nsamax
+             IF(idnsa(nsa) == 1)THEN
+                ns=ns_nsa(nsa)
+                z_eff(nr) = z_eff(nr) + pz(ns)*rn(nsa,nr)
+             END IF
+          END DO
+       END DO
+    END IF
+
+!!$    IF(MDLUF.EQ.0) THEN
+!!$       DO NR=1,NRMAX
+!!$          TE =RT(NR,1)
+!!$          ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +PZ(\
+!!$4         )  *PZ(4)  *RN(NR,4) &
+!!$               &     &                +TRZEC(TE)**2   *ANC (NR) +TRZEFE(TE)**2  *ANFE(NR))/RN(\
+!!$          NR,1)
+!!$       ENDDO
+!!$    ELSE
+!!$       IF(MDLEQN.EQ.0) THEN ! fixed density
+!!$          DO NR=1,NRMAX
+!!$             ZEFF(NR) =(PZ(2)  *PZ(2)  *RN(NR,2) +PZ(3)  *PZ(3)  *RN(NR,3) +\
+!!$             PZ(2)  *PZ(2)  *RNF(NR,1))/RN(NR,1)
+!!$          ENDDO
+!!$       ENDIF
+!!$    ENDIF
+!!$
+!!$    DO NR=1,NRMAX
+!!$       TE=RT(NR,1)
+!!$       PZC(NR)=TRZEC(TE)
+!!$       PZFE(NR)=TRZEFE(TE)
+!!$    ENDDO
+
+    RETURN
+  END SUBROUTINE tr_zeff
+
+!============================================================================
+  SUBROUTINE tr_calv_nr_alloc
+
+    INTEGER(ikind),SAVE:: nrmax_save
+    INTEGER(ikind),SAVE:: nsamax_save
+    INTEGER(ikind)     :: ierr
+
+
+    IF(nrmax /= nrmax_save .OR. &
+       nsamax /= nsamax_save) THEN
+
+       IF(nrmax_save /= 0) CALL tr_calv_nr_dealloc
+
+       ALLOCATE(rp(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+       ALLOCATE(rp_d(nsamax,0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+       
+       ALLOCATE(rp_tot(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+       ALLOCATE(rp_totd(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
+       ALLOCATE(rp_add(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+       ALLOCATE(rp_beam(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000  
+
+       ALLOCATE(rt_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rt_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rt_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(rt_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+       ALLOCATE(rt_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rt_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rt_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(rt_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+
+       ALLOCATE(rn_e(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rn_em(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rn_ed(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(rn_ecl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(rn_i(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rn_im(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(rn_id(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+       ALLOCATE(rn_icl(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000        
+       ALLOCATE(qp_m(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
+       ALLOCATE(qp_d(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000      
+       
+       ALLOCATE(mshear(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000   
+       ALLOCATE(mcurv(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+!       ALLOCATE(vexb(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000     
+       ALLOCATE(vexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(dvexbpdr(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000 
+       ALLOCATE(wexbp(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000       
+!       ALLOCATE(v_alf(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000    
+       ALLOCATE(v_se(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+
+       ALLOCATE(z_eff(0:nrmax),STAT=ierr); IF(ierr /=0 ) GOTO 9000
+
+       nrmax_save  = nrmax
+       nsamax_save = nsamax
+   END IF
+   RETURN
+9000 WRITE(6,*) 'XX tr_calv_nr_alloc: allocation error: ierr=',ierr
+   STOP
+  END SUBROUTINE tr_calv_nr_alloc
+
+  SUBROUTINE tr_calv_nr_dealloc
+
+    IF(ALLOCATED(rp)) DEALLOCATE(rp)
+    IF(ALLOCATED(rp_d)) DEALLOCATE(rp_d)
+!    
+    IF(ALLOCATED(rp_tot)) DEALLOCATE(rp_tot)
+    IF(ALLOCATED(rp_totd)) DEALLOCATE(rp_totd)
+    IF(ALLOCATED(rp_add)) DEALLOCATE(rp_add)
+    IF(ALLOCATED(rp_beam)) DEALLOCATE(rp_beam)
+!
+    IF(ALLOCATED(rt_e)) DEALLOCATE(rt_e)
+    IF(ALLOCATED(rt_em)) DEALLOCATE(rt_em)
+    IF(ALLOCATED(rt_ed)) DEALLOCATE(rt_ed)
+    IF(ALLOCATED(rt_ecl)) DEALLOCATE(rt_ecl)
+    IF(ALLOCATED(rt_i)) DEALLOCATE(rt_i)
+    IF(ALLOCATED(rt_im)) DEALLOCATE(rt_im)
+    IF(ALLOCATED(rt_id)) DEALLOCATE(rt_id)
+    IF(ALLOCATED(rt_icl)) DEALLOCATE(rt_icl)
+!
+    IF(ALLOCATED(rn_e)) DEALLOCATE(rn_e)
+    IF(ALLOCATED(rn_em)) DEALLOCATE(rn_em)
+    IF(ALLOCATED(rn_ed)) DEALLOCATE(rn_ed)
+    IF(ALLOCATED(rn_ecl)) DEALLOCATE(rn_ecl)
+    IF(ALLOCATED(rn_i)) DEALLOCATE(rn_i)
+    IF(ALLOCATED(rn_im)) DEALLOCATE(rn_im)
+    IF(ALLOCATED(rn_id)) DEALLOCATE(rn_id)
+    IF(ALLOCATED(rn_icl)) DEALLOCATE(rn_icl)
+    IF(ALLOCATED(qp_m)) DEALLOCATE(qp_m)
+    IF(ALLOCATED(qp_d)) DEALLOCATE(qp_d)
+!       
+    IF(ALLOCATED(mshear)) DEALLOCATE(mshear)
+    IF(ALLOCATED(mcurv)) DEALLOCATE(mcurv)
+!    IF(ALLOCATED(vexb)) DEALLOCATE(vexb)
+    IF(ALLOCATED(vexbp)) DEALLOCATE(vexbp)
+    IF(ALLOCATED(dvexbpdr)) DEALLOCATE(dvexbpdr)
+    IF(ALLOCATED(wexbp)) DEALLOCATE(wexbp)
+!    IF(ALLOCATED(v_alf)) DEALLOCATE(v_alf)
+    IF(ALLOCATED(v_se)) DEALLOCATE(v_se)
+
+    IF(ALLOCATED(z_eff)) DEALLOCATE(z_eff)
+
+    RETURN
+  END SUBROUTINE tr_calv_nr_dealloc
 
 END MODULE trcalv
 

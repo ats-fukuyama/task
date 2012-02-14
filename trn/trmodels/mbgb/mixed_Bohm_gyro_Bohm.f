@@ -713,8 +713,12 @@ c
       v_sound   = sqrt (tekev * zckb /em_i) !                   [m/sec]
       omega_ci  = zi * zce * btor / em_i
       rho       = v_sound / omega_ci
-      chi_e_gyro_bohm = abs(alfa_gbe * chi0 * gradte * rho / tekev)
-      chi_i_gyro_bohm = abs(alfa_gbi * chi0 * gradte * rho / tekev)
+
+! '/ tekev' is fault.  (modified by T.Ikari)
+!      chi_e_gyro_bohm = abs(alfa_gbe * chi0 * gradte * rho / tekev)
+!      chi_i_gyro_bohm = abs(alfa_gbi * chi0 * gradte * rho / tekev)
+      chi_e_gyro_bohm = abs(alfa_gbe * chi0 * gradte * rho )
+      chi_i_gyro_bohm = abs(alfa_gbi * chi0 * gradte * rho )
 c
 c Calculate function for EXB and magnetic shear stabilization
 c   use lflow = 1 for the stabilization term described by

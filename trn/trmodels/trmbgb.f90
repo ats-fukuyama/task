@@ -11,7 +11,7 @@ CONTAINS
 
     USE trcomm, ONLY: &
          ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,     &
-         RR,ra,BB,rm,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb, &
+         RR,ra,BB,rm,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb,vtr_tb, &
          cdtrn,cdtru,cdtrt
     USE trcalv, ONLY: &
          rn_im,rn_ecl,rt_e,rt_em,rt_im,rt_ecl,qp_m,mshear,wexbp
@@ -29,6 +29,9 @@ CONTAINS
     INTEGER(ikind):: nr8,npoints,lflowshear
 
     INTEGER(ikind):: nr,nsa,ns,ierr
+
+    dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
+    vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
 
     amm      = amp          ! proton mass
     npoints  = 1            ! num. of values of 'jz' in all of arrays [int]
@@ -62,11 +65,21 @@ CONTAINS
        tikev(1)  = rt_im(nr)         ! T_i [keV] :effective ion temperature
        q(1)      = qp_m(nr)          ! safety-factor (half-mesh)
 
-       grdte(1)  = - RR / rt_ecl(nr) ! -R ( d T_e / d r ) / T_e
-       grdne(1)  = - RR / rn_ecl(nr) ! -R ( d n_e / d r ) / n_e
+       ! *** There is a fault in 'mixed model' subroutine ***
+       !       fault   : -R ( d T_e / d r ) / T_e
+       !                 -R ( d n_e / d r ) / n_e
+       !       correct : -r ( d T_e / d r ) / T_e
+       !                 -r ( d n_e / d r ) / n_e
+
+       grdte(1)  = - ra / rt_ecl(nr) ! -r ( d T_e / d r ) / T_e
+       grdne(1)  = - ra / rn_ecl(nr) ! -r ( d n_e / d r ) / n_e
        shear(1)  = mshear(nr)        !  r ( d q   / d r ) / q
        
        wexbs(1)  = wexbp(nr)         ! ExB shearing rate [rad/s]
+!      wexbs : ExB Rotation shear
+!       "Effects of {ExB} velocity shear and magnetic shear
+!           on turbulence and transport in magnetic confinement devices"
+!       [Phys. of Plasmas, 4, 1499 (1997)]
 
 
        SELECT CASE(mdltr_tb)
@@ -149,16 +162,17 @@ CONTAINS
        END DO
 
        ! *** for diagnostic ***
-       ! Hydrogenic ion particle diffusivity [m^2/s]
-!       D_hyd(nr)   = thdmix(1)  *factor 
-       ! Bohm contribution to electron thermal diffusivity [m^2/s]
-!       chie_b(nr)  = thebohm(1) *factor
-       ! Bohm contribution to ion thermal diffusivity [m^2/s]
-!       chii_b(nr)  = thibohm(1) *factor
-       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
-!       chie_gb(nr) = thegb(1)   *factor
-       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
-!       chii_gb(nr) = thigb(1)   *factor
+!!$       ! Hydrogenic ion particle diffusivity [m^2/s]
+!!$       D_hyd(nr)   = thdmix(1)  *factor 
+!!$       ! Bohm contribution to electron thermal diffusivity [m^2/s]
+!!$       chie_b(nr)  = thebohm(1) *factor
+!!$       ! Bohm contribution to ion thermal diffusivity [m^2/s]
+!!$       chii_b(nr)  = thibohm(1) *factor
+!!$       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
+!!$       chie_gb(nr) = thegb(1)   *factor
+!!$       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
+!!$       chii_gb(nr) = thigb(1)   *factor
+!!$       write(*,*) chii_gb(1)
 
     END DO
 

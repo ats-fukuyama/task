@@ -34,7 +34,7 @@ CONTAINS
     USE trcomm, ONLY: &
            nrmax,ntmax,dt,rg_fixed,nsamax,ns_nsa, &
            lmaxtr,epsltr,mdltr_nc,mdltr_tb,mdltr_prv, &
-           mdluf,mdler,modelg, &
+           mdluf,mdler,modelg,mdleqn, &
            dtr0,dtr1,ltcr,ph0,phs,dprv1,dprv2,cdtrn,cdtru,cdtrt, &
            ntstep,ngtmax,ngtstp
     USE plinit
@@ -218,10 +218,23 @@ CONTAINS
     ph0   = 0.1D0
     phs   = 0.1D0
     dprv1 = 1.D0
-    dprv2 = 2.D0
+    dprv2 = 1.D0
     cdtrn = 1.D0
     cdtru = 1.D0
     cdtrt = 1.D0
+
+!!$    !     ==== Eqs. Selection Parameter ====
+!!$
+!!$    MDLEQB=1  ! 0/1 for B_theta
+    MDLEQN=0  ! 0/1 for density
+!!$    MDLEQT=1  ! 0/1 for heat
+!!$    MDLEQU=0  ! 0/1 for rotation
+!!$    MDLEQZ=0  ! 0/1 for impurity
+!!$    MDLEQ0=0  ! 0/1 for neutral
+!!$    MDLEQE=0  ! 0/1/2 for electron density
+!!$    !               ! 0: electron only, 1: both, 2: ion only
+!!$    MDLEOI=0  ! 0/1/2 for electron only or bulk ion only if NSMAX=1
+!!$    !               ! 0: both, 1: electron, 2: ion
 
 !     ==== TR PARAMETERS for data saving  ====
 !        ntstep    : number of time step for status report

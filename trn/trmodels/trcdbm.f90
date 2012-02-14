@@ -25,7 +25,7 @@ CONTAINS
          rp_totd, &! the total pressure
          qp_m,    &! safety factor (half-mesh)
          mshear,  &! magnetic shear (half-mesh)
-         dvexbpdr  ! the gradient of ExB(poloidal) drift velocity
+         dvexbpdr  ! the gradient of ExBp drift velocity
 
     IMPLICIT NONE
     INTEGER(ikind):: nr,ns,nsa,model
@@ -34,6 +34,13 @@ CONTAINS
     dtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
     vtr_tb(1:3*nsamax,1:3*nsamax,0:nrmax) = 0.D0
 
+! model : Model ID
+!     0 : CDBM original
+!     1 : CDBM05 including elongation
+!     2 : CDBM original with weak ExB shear
+!     3 : CDBM05 with weak ExB shear
+!     4 : CDBM original with strong ExB shear
+!     5 : CDBM05 with strong ExB shear       
     model = mdltr_tb - 130
 
     ! Factor in s-slpha effects [1.0]

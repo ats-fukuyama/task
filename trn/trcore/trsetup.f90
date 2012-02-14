@@ -219,18 +219,18 @@ CONTAINS
              rhog(nr)    = rg(nr)*rjcb(nr)
              IF(nr /= 0) rhom(nr) = 0.5d0*(rhog(nr-1)+rhog(nr))
 
-             ttrho(nr)   = bb*rr ! const
+             ttrho(nr)   = bb*rr                         ! const
              
              pvolrho(nr) = pi*rkap*(ra*rhog(nr))**2*2.d0*pi*rr
              psurrho(nr) = pi*(rkap+1.d0)*ra*rhog(nr)*2.d0*pi*rr
              dvrho(nr)   = 2.d0*pi*rkap*ra**2*2.d0*pi*rr*rhog(nr)
 !
-             arrho(nr)   = 1.d0/rr**2 ! const
+             arrho(nr)   = 1.d0/rr**2                    ! const
 
-             ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra) ! const
-             ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2 ! const
-             abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2   ! const
-             rmjrho(nr)  = rr ! const
+             ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
+             ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
+             abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
+             rmjrho(nr)  = rr                            ! const
              rmnrho(nr)  = ra*rhog(nr) 
              rkprho(nr)  = rkap
 !

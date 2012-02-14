@@ -1,7 +1,6 @@
 MODULE trglf23
 
   PRIVATE
-
   PUBLIC tr_glf23
 
 CONTAINS
@@ -14,290 +13,351 @@ CONTAINS
 
       SUBROUTINE tr_glf23
 
-!   *************************************************************
-!     In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
-!         te_m, ti_m, ne_m and ni_m
-!     require finite values
-!     typically the same ones as first arguments,
-!     and those of
-!         rho and rmin_exp
-!     require zero avoiding numerical error due to the absence
-!     of the value. However, the value calculated by using
-!     zeroth value of rmin_exp are not used in this case.
+! *************************************************************
+!  In case of jshoot=0 and sometimes jmm=0, zeroth arguments of
+!     te_m, ti_m, ne_m and ni_m
+!   require finite values
+!   typically the same ones as first arguments,
+!   and those of
+!     rho and rmin_exp
+!   require zero avoiding numerical error due to the absence
+!   of the value. However, the value calculated by using
+!   zeroth value of rmin_exp are not used in this case.
 
-!     Input parameters except pressure gradients : half grid
-!     Output transport coefficients              : half grid
-!   *************************************************************
+      ! on the grid points
+!   Output transport coefficients              : half grid
+! *************************************************************
 
-      USE TRCOMM, ONLY : &
-           BB, mdltr_tb, &
-           NRMAX, NSAMAX, PA, PI, PZ, PZ0, Q0, QP, RA, RG, RKAP, &
-           RN, RR, RT, RMU0, aee, ns_nsa, dtr_tb,vtr_tb
+      USE trcomm, ONLY : &
+           rkind,ikind,BB, mdltr_tb, rkev, &
+           nrmax, nsamax, pa, pi, pz, pz0, qp, RR,ra,rhog,rkap, &
+           rn,rt,rmu0,ns_nsa,dtr_tb,vtr_tb,  &
+           ar1rho,ar2rho,rkprho,rmjrho,rmnrho,    &
+           vtor
+      USE trlib, ONLY: mesh_convert_mtog
 
-! --- Variables using in this subroutine should be declared explicitly ---  
-!      USE trcalv, ONLY: &
-
+      USE trcalv, ONLY: &
+      rt_e,rt_i,rn_i,rn_e,rt_ecl,rt_icl,rn_ecl,rn_icl,rp_totd,mshear,z_eff
 
       IMPLICIT NONE
-!     Inputs
-      INTEGER(4),DIMENSION(5)  :: itport_pt
-      REAL(8),DIMENSION(0:nrmax):: &
-           te_m, ti_m, rne_m, rni_m, rns_m, angrotp_exp, egamma_exp, &
-           rgamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, rho, &
-           rgradrho_exp, rgradrhosq_exp, rmin_exp, rmaj_exp, q_exp, &
+!     Inputs for callglf2d
+      INTEGER(ikind),DIMENSION(5) :: itport_pt
+      REAL(rkind),DIMENSION(0:nrmax) :: &
+           te_m, ti_m, ne_m, ni_m, ns_m, angrotp_exp, egamma_exp, &
+           gamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, rho, &
+           gradrho_exp, gradrhosq_exp, rmin_exp, rmaj_exp, q_exp, &
            shat_exp, alpha_exp, elong_exp
 
-!     Outputs
-      REAL(8),DIMENSION(0:nrmax)   :: &
+!     Outputs for callglf2d
+      REAL(rkind),DIMENSION(0:nrmax) :: &
            diff_m, chie_m, chii_m, etaphi_m, etapar_m, etaper_m, exch_m, &
            egamma_m, rgamma_p_m, anrate_m, anrate2_m, anfreq_m, anfreq2_m
-      REAL(8),DIMENSION(0:nrmax,10)::egamma_d
+      REAL(rkind),DIMENSION(0:nrmax,10) :: egamma_d
 
 !     Auxiliaries
-      REAL(8),DIMENSION(0:NRMAX):: &
-           zpte_m, zpti_m, zpne_m, zpni_m, qe0, qi0, qn0, ddnn, ddne, ddni, &
-           chien, chiee, chiei, chiin,chiie,chiii
-      INTEGER(4):: &
-           i_delay, idengrad, iglf, igrad, irotstab, j, jm, jmaxm, jmm, &
-           jshoot, leigen, mode, nbt_flag, nr, nroot, ns, ns1
-      REAL(8)   :: &
+      INTEGER(ikind) :: &
+           i_delay, idengrad, iglf, i_grad, irotstab, jmaxm, jmm, &
+           jshoot, leigen, bt_flag, nr, nroot, ns, ns1
+      REAL(rkind) :: &
            alpha_e, amassgas_exp, amassimp_exp, arho_exp, bt_exp, chietem, &
-           chiitim, deltat, diffnem, etaparm, etaperm, etaphim, exchm, &
-           fctr, qe, qi, qn, rmajor_exp, x_alpha, zimp_exp, zpne_in, &
+           chiitim, diffnem, etaparm, etaperm, etaphim, exchm, &
+           rmajor_exp, x_alpha, zimp_exp, zpne_in, &
            zpni_in, zpte_in, zpti_in
 
-      REAL(8),DIMENSION(nrmax):: ar1rho,ar2rho,rkprho,rmjrho,rmnrho,dr,rm
-      REAL(8),DIMENSION(nrmax):: wexb,wrot,vpar,vprp,vtor,zeff,alpha,s_hm
-      REAL(8)   :: &
-           CDH,ppp,ppm,dpp,phia,rkev
-      INTEGER:: nsm,nsmax,mddw,mdluf,mdleqn,mdleqt,mdleoi,nsa,mdlkai,nbase
+      ! others
+      REAL(rkind),DIMENSION(0:nrmax)::&
+           Wexb_exp,Wrot,Vpar,Vprp,Vpar_shear,rp_totdg, &
+           Lte,Lti,Lne,Lni,Lteg,Ltig,Lneg,Lnig,diff_glf,chie_glf,chii_glf
+      REAL(rkind) :: phia
+      INTEGER(ikind) :: nsmax,mdluf,mdleqn,mdleqt,mdleoi,nsa,nbase
 
-      mdlkai=mdltr_tb
-      rkev=aee*1.D3
-      phia=0.d0
-      cdh=1.D0
-      nsm=nsamax
-      nsmax=nsamax
-      mddw=0
-      mdluf=0
-      mdleqn=0
-      mdleqt=1
-      mdleoi=0
-      DO nr=1,nrmax
-         dr(nr)=rg(nr)-rg(nr-1)
-         rm(nr)=0.5D0*(rg(nr)+rg(nr-1))
-         ar1rho(nr)=1.D0/(sqrt(rkap)*ra)
-         ar2rho(nr)=1.D0/(sqrt(rkap)*ra)**2
-         rkprho(nr)=rkap
-         rmjrho(nr)=rr
-         rmnrho(nr)=rg(nr)
-         ppp=0.D0
-         ppm=0.D0
-         do nsa=1,nsamax
-            ns=ns_nsa(nsa)
-            IF(pz(ns) /= 0.d0) THEN
-               ppp=ppp+rn(nsa,nr  )*rt(nsa,nr  )
-               ppm=ppm+rn(nsa,nr-1)*rt(nsa,nr-1)
-            END IF
-         end do
-         dpp=(ppp-ppm)/dr(nr)
-         alpha(nr)=-2.D0*RMU0*QP(NR)**2*RR/BB**2*(DPP*1.D20*RKEV)
-         wexb(nr)=0.d0
-         wrot(nr)=0.d0
-         vpar(nr)=0.d0
-         vprp(nr)=0.d0
-         vtor(nr)=0.d0
-         zeff(nr)=2.d0
-      ENDDO
+      ! initilization
+      dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
+      vtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
 
-      DO nr=1,nrmax
-         s_hm(nr)= (rg(nr)+rg(nr-1))*(qp(nr)-qp(nr-1)) &
-                 /((rg(nr)-rg(nr-1))*(qp(nr)+qp(nr-1)))
-      END DO
 
-      MDDW=1
-!     INPUTS
-      leigen=1        ! 1 for tomsqz, 0 for cgg solver
+      phia  = 0.d0
+      nsmax = nsamax
+      jmaxm = nrmax     ! maximum num. of grid points
+
+      ! --- switches and variables from TASK/TR ---
+      mdluf = 0
+      mdleqn= 0 ! density transport
+      mdleqt= 1 ! energy transport
+      mdleoi= 0 ! electron or ion
+
+      Vtor = 0.d0
+      Vpar = 0.d0
+      Vprp = 0.d0
+
+      ! from experimental data
+      Wrot       = 0.d0
+      Wexb_exp   = 0.d0
+      Vpar_shear = 0.d0
+      !---------------------------------------------
+
+
+      leigen=1    ! 1 for tomsqz, 0 for cgg solver
       IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-         nroot=12   ! num. of equations, 8 for default, 12 for imp.
+         nroot=12 ! num. of equations, 8 for default, 12 for impurity dynamics
       ELSE
          nroot=8
       ENDIF
-      iglf=1          ! 0 for original model, 1 for retuned model
-      jshoot=0        ! 0 for time-dep code, 1 for shooting code
-!   In case of jshoot=0,
-!      maximum argument of array is important;
-!      values of zeroth argument are not important, but avoiding
-!      Inf error due to logarithm calculation some finite values
-!      need to be stored;
-!      NR=1 to NRMAX corresponds to jm=1 to jmaxm in callglf2d.f.
-!
-      jmm=0           ! jmm=0 does full grid from jm=1,jmaxm-1
-      jmaxm=NRMAX     ! maximum num. of grid points
-      itport_pt(1)=MDLEQN  ! density transport
-      IF(MDLEQT.NE.0) THEN
-         IF(NSMAX.EQ.1) THEN
-            IF(MDLEOI.EQ.1) THEN
-               itport_pt(2)=MDLEQT ! electron transport
-               itport_pt(3)=0      ! ion transport
-            ELSEIF(MDLEOI.EQ.2) THEN
-               itport_pt(2)=0
-               itport_pt(3)=MDLEQT
+      iglf   = 1  ! 0 for original model, 1 for retuned model
+      jshoot = 0  ! 0 for time-dep code, 1 for shooting code
+
+! *** In case of jshoot=0, maximum argument of array is important;
+! ***  values of zeroth argument are not important, but avoiding Inf error 
+! ***  due to logarithm calculation some finite values need to be stored.
+! *** nr=1, nrmax corresponds in TASK/TR to jm=1, jmaxm in callglf2d.f.
+
+
+      itport_pt(1) = MDLEQN          ! density transport
+      IF(MDLEQT /= 0) THEN
+         IF(nsamax == 1) THEN
+            IF(MDLEOI == 1) THEN
+               itport_pt(2) = MDLEQT ! electron transport
+               itport_pt(3) = 0      ! ion transport
+            ELSEIF(MDLEOI == 2) THEN
+               itport_pt(2) = 0
+               itport_pt(3) = MDLEQT
             ELSE
-               itport_pt(2)=MDLEQT
-               itport_pt(3)=MDLEQT
+               itport_pt(2) = MDLEQT
+               itport_pt(3) = MDLEQT
             ENDIF
          ELSE
-            itport_pt(2)=MDLEQT
-            itport_pt(3)=MDLEQT
+            itport_pt(2) = MDLEQT
+            itport_pt(3) = MDLEQT
          ENDIF
       ELSE
-         itport_pt(2)=MDLEQT
-         itport_pt(3)=MDLEQT
+         itport_pt(2) = MDLEQT
+         itport_pt(3) = MDLEQT
       ENDIF
-      itport_pt(4)=0  ! v_phi transport
-      itport_pt(5)=0  ! v_theta transport
-      irotstab=1      ! 1 uses internally computed ExB shear
+      itport_pt(4) = 0  ! v_phi transport
+      itport_pt(5) = 0  ! v_theta transport
 
-      jm=0
-         te_m(jm) =RT (1,jm+1)
-         ti_m(jm) =RT (2,jm+1)
-         rne_m(jm)=RN (1,jm+1)*10.D0
-         rni_m(jm)=RN (2,jm+1)*10.D0
-         rns_m(jm)=0.D0
-      DO jm=1,jmaxm
-         te_m(jm) =RT (1,jm)        ! Te [keV] ! halfmesh
-         ti_m(jm) =RT (2,jm)        ! Ti [keV]
-         rne_m(jm)=RN (1,jm)*10.D0  ! Ne [^19m^-3]
-         rni_m(jm)=RN (2,jm)*10.D0  ! Ni [^19m^-3]
-         rns_m(jm)=0.D0
-      ENDDO
+      irotstab=1    ! 1 uses internally computed ExB shear, 0 for prescribed
 
       IF(MDLUF.NE.0.AND.NSMAX.GT.2) THEN
-         idengrad=3   ! compute simple dilution (3=actual dilution)
+         idengrad=3 ! actual dilution
       ELSE
-         idengrad=2
+         idengrad=2 ! compute simple dilution
       ENDIF
 
-      jm=1
-         angrotp_exp(jm)  =FCTR(RG(jm),RG(jm+1),WROT(jm),WROT(jm+1))
-         egamma_exp(jm)  = FCTR(RG(jm),RG(jm+1),WEXB(jm),WEXB(jm+1))
-         rgamma_p_exp(jm)= 0.D0
-         vphi_m(jm)      = FCTR(RG(jm),RG(jm+1),VTOR(jm),VTOR(jm+1))
-         vpar_m(jm)      = FCTR(RG(jm),RG(jm+1),VPAR(jm),VPAR(jm+1))
-         vper_m(jm)      = FCTR(RG(jm),RG(jm+1),VPAR(jm),VPAR(jm+1))
-         zeff_exp(jm)    = ZEFF(jm)
-      DO jm=2,jmaxm
-!     exp. toroidal ang. vel. [1/s]
-         angrotp_exp(jm) = 0.5D0*(WROT(jm-1)+WROT(jm))
-!     exp. ExB shearing rate: valid if irotstab=0
-         egamma_exp(jm)  = 0.5D0*(WEXB(jm-1)+WEXB(jm))
-!     exp. para. vel. shearing rate
-!       : valid if itport_pt(4)=-1 or irotstab=0
-         rgamma_p_exp(jm)= 0.D0
-!     toroidal velocity [m/s]
-!       : valid if finite itport_pt(4) and itport_pt(5)=0
-         vphi_m(jm)      = 0.5D0*(VTOR(jm-1)+VTOR(jm))
-!     parallel velocity [m/s]: valid if finite itport_pt(4&5)
-         vpar_m(jm)      = 0.5D0*(VPAR(jm-1)+VPAR(jm))
-!     perpendicular velocity [m/s]: valid if finite itport_pt(5)
-         vper_m(jm)      = 0.5D0*(VPRP(jm-1)+VPRP(jm))
-!     effective charge
-         zeff_exp(jm)    = ZEFF(jm)
-      ENDDO
 
-      bt_exp=BB      ! toroidal field [T]
-      nbt_flag=1     ! >0 for Beff, Bt otherwise
+      bt_exp     = BB   ! toroidal field [T]
+      bt_flag    = 1    ! >0 for Beff, Bt otherwise
+      rmajor_exp = RR   ! geometrical major radius of magnetix axis [m]
 
-!     normalized flux surface; 0 < rho < 1.
-      rho(0)=0.D0
-      DO jm=1,jmaxm
-         rho(jm)=RM(jm) ! norm. toroidal flux surf. label
-      ENDDO
+      q_exp(0:nrmax)    = qp(0:nrmax)     ! safety factor
+      shat_exp(0:nrmax) = mshear(0:nrmax) ! magnetic shear
 
-      IF(PHIA.EQ.0.D0) THEN
-         arho_exp=SQRT(RKAP)*RA ! rho at last closed flux surface [m]
+
+      ! --- geometiric factor
+      ! ------ for the time being ---
+      ! ------ arho_exp(& phia) should be calculateds trprof/trsetup ---
+      phia = 0.d0
+      IF(phia.EQ.0.D0) THEN
+         arho_exp=SQRT(rkap)*ra ! rho at last closed flux surface [m]
       ELSE
-         arho_exp=SQRT(PHIA/(PI*bt_exp))
-      ENDIF
+         arho_exp=SQRT(phia/(pi*BB))
+      END IF
+      rho(0:nrmax) = rhog(0:nrmax)
 
-      rmin_exp(0)=0.D0
-      CALL AITKEN(RM(1),rmin_exp(1),RG,RMNRHO,1,NRMAX)
-      CALL AITKEN(RM(1),rmaj_exp(1),RG,RMJRHO,1,NRMAX)
-      rgradrho_exp(1)  =AR1RHO(1)*arho_exp
-      rgradrhosq_exp(1)=AR2RHO(1)*arho_exp**2
-      DO jm=2,jmaxm
-         rgradrho_exp(jm)  =AR1RHO(jm)*arho_exp
-         rgradrhosq_exp(jm)=AR2RHO(jm)*arho_exp**2
-         rmin_exp(jm)      =0.5D0*(RMNRHO(jm-1)+RMNRHO(jm))
-                                       ! local minor radius [m]
-         rmaj_exp(jm)      =0.5D0*(RMJRHO(jm-1)+RMJRHO(jm))
-                                       ! local major radius [m]
-      ENDDO
-      rmajor_exp=RR  ! geometrical major radius of magnetix axis [m]
+      rmin_exp(0:nrmax) = rmnrho(0:nrmax) ! local minor radius [m]
+      rmaj_exp(0:nrmax) = rmjrho(0:nrmax) ! local major radius [m]
 
-      zimp_exp=PZ(3)         ! Zimp; finite data is necessary
-      amassimp_exp=PA(3)     ! Aimp; finite data is necessary
+      gradrho_exp(0:nrmax)   = ar1rho(0:nrmax)
+      gradrhosq_exp(0:nrmax) = ar2rho(0:nrmax)
 
-      q_exp(1)=0.5D0*(Q0+QP(1))
-      DO jm=2,jmaxm
-         q_exp(jm)=0.5D0*(QP(jm-1)+QP(jm))  ! safety factor
-      ENDDO
+      elong_exp(0:nrmax) = rkprho(0:nrmax)
 
-      shat_exp (1)=S_HM(1)
-      alpha_exp(1)=FCTR(RG(1),RG(2),ALPHA(1),ALPHA(2))
-      elong_exp(1)=RKPRHO(1)
-      DO jm=2,jmaxm
-         shat_exp (jm)=S_HM(jm)      ! magnetic shear
-         alpha_exp(jm)=0.5D0*(ALPHA(jm-1)+ALPHA(jm)) ! MHD alpha
-         elong_exp(jm)=RKPRHO(jm)    ! local elongation
-      ENDDO
 
-      amassgas_exp=PA(2) ! atomic num. of working gas
-      alpha_e=1.D0       ! ExB shear stabilization (0=off,>0=on)
-      x_alpha=1.D0       ! alpha stabilization (0=off,>0=on)
-      i_delay=0          ! default(usually recommended)
+      te_m(0:nrmax) = rt_e(0:nrmax)       ! Te [keV]
+      ti_m(0:nrmax) = rt_i(0:nrmax)       ! Ti [keV]
+      ne_m(0:nrmax) = rn_e(0:nrmax)*10.D0 ! Ne [10^19 /m^3]
+      ni_m(0:nrmax) = rn_i(0:nrmax)*10.D0 ! Ni [10^19 /m^3]
+      ns_m(0:nrmax) = 0.D0                ! Fast ion density [10^19 /m^3]
 
-      IF(MDLKAI.EQ.60) THEN
-!     +++ Normal type +++
 
-         igrad=0         ! compute gradients (1=input gradients)
-         zpte_in=0.D0    ! 1/Lte (necessary if igrad and jmm != 0)
-         zpti_in=0.D0    ! 1/Lti (necessary if igrad and jmm != 0)
-         zpne_in=0.D0    ! 1/Lne (necessary if igrad and jmm != 0)
-         zpni_in=0.D0    ! 1/Lni (necessary if igrad and jmm != 0)
+      ! variables form experimental data ---------------------
+      zeff_exp(0:nrmax) = z_eff(0:nrmax)
 
-         call callglf2d( leigen, nroot, iglf, jshoot, jmm, jmaxm, itport_pt, &
-              irotstab, te_m, ti_m, rne_m, rni_m, rns_m, igrad, idengrad, &
-              zpte_in, zpti_in, zpne_in, zpni_in, angrotp_exp, egamma_exp, &
-              rgamma_p_exp, vphi_m, vpar_m, vper_m, zeff_exp, bt_exp, &
-              nbt_flag, rho, arho_exp, rgradrho_exp, rgradrhosq_exp, &
-              rmin_exp, rmaj_exp, rmajor_exp, zimp_exp, amassimp_exp, &
-              q_exp, shat_exp, alpha_exp, elong_exp, amassgas_exp, alpha_e, &
-              x_alpha, i_delay, diffnem, chietem, chiitim, etaphim, etaparm, &
-              etaperm, exchm, diff_m, chie_m, chii_m, etaphi_m, etapar_m, &
-              etaper_m, exch_m, egamma_m, egamma_d, rgamma_p_m, anrate_m, &
-              anrate2_m, anfreq_m, anfreq2_m )
+      IF(     itport_pt(4) ==  0 .AND. itport_pt(5) ==  0)THEN
+         angrotp_exp(0:nrmax) = Wrot(0:nrmax)
 
-         dtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-         vtr_tb(1:3*nsamax,1:3*nsamax,1:nrmax)=0.D0
-         DO NR=1,NRMAX
-            DO nsa=1,nsamax
-               ns=ns_nsa(nsa)
-               nbase=3*(nsa-1)
-               IF(pz0(ns) < 0.D0) THEN ! for electron
-                  dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
-                  dtr_tb(nbase+3,nbase+3,nr)=MAX(chie_m(NR),0.D0)
-               ELSE 
-                  IF(pz(ns) /= 0.d0) THEN ! for ion
-                     dtr_tb(nbase+1,nbase+1,nr)=MAX(diff_m(NR),0.D0)
-                     dtr_tb(nbase+3,nbase+3,nr)=MAX(chii_m(NR),0.d0)
-                  END IF
+      ELSE IF(itport_pt(4) == -1 .AND. itport_pt(5) ==  0)THEN
+         egamma_exp(0:nrmax) = Wexb_exp(0:nrmax)
+
+      ELSE IF(itport_pt(4) ==  0 .AND. itport_pt(5) == -1)THEN
+         gamma_p_exp(0:nrmax) = Vpar_shear(0:nrmax)
+
+
+      ELSE IF(itport_pt(4) ==  1 .AND. itport_pt(5) ==  0)THEN
+         vphi_m(0:nrmax) = Vtor(0:nrmax)
+
+      ELSE IF(itport_pt(4) ==  1 .AND. itport_pt(5) ==  1)THEN
+         vpar_m(0:nrmax) = Vpar(0:nrmax)
+
+      ELSE IF(itport_pt(4) ==  1 .AND. itport_pt(5) ==  1)THEN
+         vper_m(0:nrmax) = Vprp(0:nrmax)
+      END IF
+      ! ------------------------------------------------------
+
+      CALL mesh_convert_mtog(rp_totd(1:nrmax),rp_totdg,nrmax)
+      alpha_exp(0:nrmax) = -2.d0*rmu0*qp(0:nrmax)**2*RR  &
+                           /BB**2*rp_totdg(0:nrmax)
+
+
+      alpha_e = 1.D0        ! ExB shear stabilization (0=off,>0=on)
+      x_alpha = 1.D0        ! alpha stabilization (0=off,>0=on)
+      i_delay = 0           ! default(usually recommended)
+
+      zimp_exp     = PZ(3)  ! Zimp; finite data is necessary
+      amassimp_exp = PA(3)  ! Aimp; finite data is necessary
+      
+      amassgas_exp = PA(2)  ! atomic num. of working hydrogen gas
+
+
+      Lte(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rt_ecl(1:nrmax)
+      Lti(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rt_icl(1:nrmax)
+      Lne(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rn_ecl(1:nrmax)
+      Lni(1:nrmax)=0.5d0*(ar1rho(1:nrmax)+ar1rho(0:nrmax-1))*rn_icl(1:nrmax)
+      call mesh_convert_mtog(Lte(1:nrmax),Lteg,nrmax)
+      call mesh_convert_mtog(Lti(1:nrmax),Ltig,nrmax)
+      call mesh_convert_mtog(Lne(1:nrmax),Lneg,nrmax)
+      call mesh_convert_mtog(Lni(1:nrmax),Lnig,nrmax)
+
+
+      !--- NR LOOP -----------------------------------------
+      DO nr = 1, nrmax-1
+         jmm   = nr      ! jmm=0 does full grid from jm=1,jmaxm-1
+         
+         IF(mdltr_tb.EQ.60) THEN
+            !  +++ Normal type +++
+
+            ! compute gradients (1=input gradients)
+            i_grad=1
+            ! the derivatives below variables are with respect to 'rho'
+            ! ( see callglf2d.f l.592~l.603 )
+            ! 1/Lte (necessary if i_grad and jmm != 0)
+            zpte_in = - 1.d0/Lteg(nr)
+            ! 1/Lne (necessary if i_grad and jmm != 0)
+            zpti_in = - 1.d0/Ltig(nr)
+            ! 1/Lti (necessary if i_grad and jmm != 0)
+            zpne_in = - 1.d0/Lneg(nr)
+            ! 1/Lni (necessary if i_grad and jmm != 0)
+            zpni_in = - 1.d0/Lnig(nr)
+!            write(*,*) zpte_in,zpti_in,zpne_in,zpni_in
+         ENDIF
+
+
+         call callglf2d( &
+!          << INPUTS >>
+              leigen,    &! eigenvalue solver
+!                         ! 0 for cgg (default), 1 for tomsqz, 2 for zgeev
+              nroot,     &! no. roots, 8 for default, 12 for impurity dynamics
+              iglf,      &! 0 for original GLF23, 1 for retuned version
+              jshoot,    &! jshoot=0 time-dep code; jshoot=1 shooting code
+              jmm,       &! grid number; jmm=0 does full grid jm=1 to jmaxm-1
+              jmaxm,     &! profile grids 0 to jmaxm
+              itport_pt, &! transport flags (array[1:5])
+              irotstab,  &! 0 to use egamma_exp; 1 use egamma_m
+              te_m,      &! 0:jmaxm te [keV]        : itport_pt(2)=1 transport
+              ti_m,      &! 0:jmaxm ti [keV]        : itport_pt(3)=1 transport
+              ne_m,      &! 0:jmaxm ne [10^19 /m^3]
+              ni_m,      &! 0:jmaxm ni [10^19 /m^3] : itport_pt(1)=1 transport
+              ns_m,      &! 0:jmaxm ns [10^19 /m^3]
+              i_grad,    &! default 0, 
+!                         ! for D-V method use i_grad=1 to input gradients
+              idengrad,  &! default 2, for simple dilution
+!                         ! ** below zpXX's are for i_grad=1
+              zpte_in,   &! externally provided log gradient te w.r.t rho
+              zpti_in,   &! externally provided log gradient ti w.r.t rho
+              zpne_in,   &! externally provided log gradient ne w.r.t rho
+              zpni_in,   &! externally provided log gradient ni w.r.t rho
+              angrotp_exp,&!0:jmaxm exp plasma toroidal angular velocity 1/sec
+!                          ! if itport_pt(4)=0 itport_pt(5)=0 
+              egamma_exp, &!0:jmaxm exp exb shear rate in units of csda_exp
+!                          ! if itport_pt(4)=-1 itport_pt(5)=0 
+              gamma_p_exp,&!0:jmaxm exp par.vel.shear rate in units of csda_exp
+!                          ! if itport_pt(4)=0  itport_pt(5)=-1
+              vphi_m,    &! 0:jmaxm toroidal velocity m/sec
+!                         !  if itport_pt(4)=1 itport_pt(5)=0 otherwise output
+              vpar_m,    &! 0:jmaxm parallel velocity m/sec
+!                         !  if itport_pt(4)=1 itport_pt(5)=1 otherwise output
+              vper_m,    &! 0:jmaxm perp. velocity m/sec
+!                         !  if itport_pt(4)=1 itport_pt(5)=1 otherwise output 
+              zeff_exp,  &! effective charge
+              bt_exp,    &! vaccume axis toroidal field in Tesla
+              bt_flag,   &! switch for effective toroidal field use in rhosda
+              rho,       &! 0:jmaxm 0<rho<1 normalized toloidal flux
+!                         !  (rho = rho/rho(a))
+              arho_exp,  &! rho(a); toroidal flux at last closed flux surface
+!                         ! (LCFS)   toroidal flux = B0*rho_phys^2/2 [m]
+!                         !          B0 = bt_exp,  arho_exp = rho_phys_LCFS
+              gradrho_exp,&  ! 0:jmaxm dimensionless <|grad rho_phys|^2>
+              gradrhosq_exp,&! 0:jmaxm dimensionless <|grad rho_phys|>
+              rmin_exp,  &! 0:jmaxm minor radius in meters
+              rmaj_exp,  &! 0:jmaxm major radius in meters
+              rmajor_exp,&! axis major radius
+              zimp_exp,  &  ! effective Z of impurity 
+              amassimp_exp,&! effective A of impurity
+              q_exp,     &! 0:jmaxm safety factor   
+              shat_exp,  &! 0:jmaxm magnetic shear, d (ln q_exp)/ d (ln rho)
+              alpha_exp, &! 0:jmaxm MHD alpha from experiment   
+              elong_exp, &! 0:jmaxm elongation 
+              amassgas_exp,&! atomic number working hydrogen gas
+              alpha_e,   &! 1 full (0 no) no ExB shear stab
+              x_alpha,   &! 1 full (0 no) alpha stabilization  with alpha_exp
+!                         !-1 full (0 no) self consistent alpha_m stab.
+              i_delay,   &! i_delay time delay for ExB shear 
+!                         !  should be non-zero only once per step 
+!                            and is less than or equal 10.
+!
+!          << OUTPUTS >>
+              diffnem,   &! ion plasma diffusivity             [m^2/sec]
+              chietem,   &! electron ENERGY diffuivity         [m^2/sec]
+              chiitim,   &! ion      ENERGY diffusivity        [m^2/sec]
+              etaphim,   &! toroidal velocity diffusivity      [m^2/sec]
+              etaparm,   &! parallel velocity diffusivity      [m^2/sec]
+              etaperm,   &! perpendicular velocity diffusivity [m^2_sec]
+              exchm,     &! turbulent electron to ion ENERGY exchange [MW/m^3]
+              diff_m,    &! **
+              chie_m,    &! ** 
+              chii_m,    &! ** 
+              etaphi_m,  &! **  These arguments are arrays of above arguments.
+              etapar_m,  &! **
+              etaper_m,  &! **
+              exch_m,    &! **
+              egamma_m,  &!0:jmaxm exb shear rate in units of local csda_m
+              egamma_d,  &!0:jmaxm exb shear rate delayed by i_delay steps
+              rgamma_p_m,&!0:jmaxm par.vel.shear rate in units of local csda_m
+              anrate_m,  &!0:jmaxm leading mode rate in unints of local csda_m
+              anrate2_m, &!0:jmaxm 2nd mode rate in units of local csda_m
+              anfreq_m,  &!0:jmaxm leading mode frequency
+              anfreq2_m ) !0:jmaxm 2nd mode frequency
+
+         DO nsa=1,nsamax
+            ns=ns_nsa(nsa)
+            nbase=3*(nsa-1)
+            IF(pz0(ns) < 0.D0) THEN ! for electron
+               dtr_tb(nbase+1,nbase+1,nr+1)=MAX(diffnem,0.D0)
+!               diff_glf(nr) = MAX(diffnem,0.d0)
+               dtr_tb(nbase+3,nbase+3,nr+1)=MAX(chietem,0.D0)
+!               chie_glf(nr) = MAX(chietem,0.d0)
+!               write(*,*) chietem,diffnem
+            ELSE 
+               IF(pz(ns) /= 0.d0) THEN ! for ion
+                  dtr_tb(nbase+1,nbase+1,nr+1)=MAX(diffnem,0.D0)
+!                  diff_glf(nr) = MAX(diffnem,0.d0)
+                  dtr_tb(nbase+3,nbase+3,nr+1)=MAX(chiitim,0.d0)
+!                  chii_glf(nr) = MAX(chiitem,0.d0)
                END IF
-            END DO
+            END IF
          END DO
 
-      ENDIF
+      ENDDO
 
       RETURN
       END SUBROUTINE tr_glf23

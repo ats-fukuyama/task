@@ -149,7 +149,8 @@ MODULE trcomm
 ! ----- switch variables -----
   INTEGER(ikind) :: &
        mdluf,    &! model type of UFILE
-       mdler      ! model type of radial electric field
+       mdler,    &! model type of radial electric field
+       mdleqn     !
          
 !       modelg,   &! control plasma geometry model
 !       nteqit     ! step interval of EQ calculation

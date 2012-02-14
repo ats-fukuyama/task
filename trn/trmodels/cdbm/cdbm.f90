@@ -73,47 +73,47 @@ CONTAINS
     endif
 
     !     Alfven wave velocity
-    va=SQRT(bb**2/(RMU0*rhoni))
+    va     = SQRT(bb**2/(RMU0*rhoni))
 
     !     Square of Plasma frequency
-    wpe2=pne*AEE*AEE/(AME*EPS0)
+    wpe2   = pne*AEE*AEE/(AME*EPS0)
 
     !     Square of collisionless skin-denpth
-    delta2=VC**2/wpe2
+    delta2 = VC**2/wpe2
 
     !     Normalized pressure gradient (Shafranov shift factor)
-    alpha=-2.D0*RMU0*qp**2*rr/bb**2*dpdr
+    alpha  = -2.D0*RMU0*qp**2*rr/bb**2*dpdr
 
     !     magnetic curvature
-    curv=-(rs/rr)*(1.D0-1.D0/(qp*qp))
+    curv   = -(rs/rr)*(1.D0-1.D0/(qp*qp))
 
     !     rotational shear
-    shearl=sqrt(shear**2+0.1D0**2)
-    wexb = -qp*rr/(shearl*va)*dvexbdr
+    shearl = sqrt(shear**2+0.1D0**2)
+    wexb   = -qp*rr/(shearl*va)*dvexbdr
 
     SELECT CASE(MOD(model,2))
     CASE(0)
-       fk=1.d0
+       fk = 1.d0
     CASE(1)
-       fk=(2.D0*SQRT(rkap)/(1.D0+rkap**2))**1.5D0
+       fk = (2.D0*SQRT(rkap)/(1.D0+rkap**2))**1.5D0
     END SELECT
 
     SELECT CASE(MOD((model/2),3))
     CASE(0)
-       fe=1.D0
+       fe = 1.D0
     CASE(1)
-       fe=1.D0/(1.D0+cexb*wexb**2)
+       fe = 1.D0/(1.D0+cexb*wexb**2)
     CASE(2)
-       shearl=sqrt(shear**2+0.1D0**2)   !
-       fe=cexb*fexb(wexb,shear,alpha)
+       shearl = sqrt(shear**2+0.1D0**2)
+       fe     = cexb*fexb(wexb,shear,alpha)
     END SELECT
 
-    fs=trcofs(shear,calf*alpha,ckap*curv)
-    chi_cdbm=ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
+    fs       = trcofs(shear,calf*alpha,ckap*curv)
+    chi_cdbm = ckcdbm*fs*fk*fe*SQRT(ABS(alpha))**3*delta2*va/(qp*rr)
 
-    IF(PRESENT(fsz))   fsz=fs
-    IF(PRESENT(curvz)) curvz=curv
-    IF(PRESENT(fez))   fez=fe
+    IF(PRESENT(fsz))   fsz   = fs
+    IF(PRESENT(curvz)) curvz = curv
+    IF(PRESENT(fez))   fez   = fe
     
     RETURN
   END SUBROUTINE cdbm
@@ -185,7 +185,7 @@ CONTAINS
        gamma = (1.D0-0.5D0*shear) &
             & /(1.1D0-2.D0*shear+alpha2*shear**2+4.D0*shear**3)+0.75D0
     ENDIF
-    fexb=EXP(-beta*wexb**gamma)
+    fexb=EXP(-beta*abs(wexb)**gamma)
     RETURN
   END FUNCTION FEXB
 END MODULE cdbm_mod
