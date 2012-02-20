@@ -45,6 +45,9 @@ $(BPSDDIR)/bpsdlib.a:
 clean:
 	rm -f *.o *.f90~ *.mod $(MOD)/*.mod
 
+veryclean:
+	rm -f *.o *.~ *.mod $(MOD)/*.mod
+
 COMMON=trcomm.f90 $(TASKDIR)/plx/plcomm.f90
 trcomm.o: trcomm.f90 $(TASKDIR)/plx/plcomm.f90
 trbpsd.o: trbpsd.f90 $(COMMON)

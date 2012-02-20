@@ -10,8 +10,8 @@ CONTAINS
     USE mixed_Bohm_gyro_Bohm, ONLY: mixed_model
 
     USE trcomm, ONLY: &
-         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,     &
-         RR,ra,BB,rm,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb,vtr_tb, &
+         ikind,rkind,ns_nsa,idnsa,pa,nsamax,nrmax,RR,ra,BB,      &
+         rmnrho,rmjrho,nrmax,mdltr_tb,amp,rkev,rn,dtr_tb,vtr_tb, &
          cdtrn,cdtru,cdtrt
     USE trcalv, ONLY: &
          rn_im,rn_ecl,rt_e,rt_em,rt_im,rt_ecl,qp_m,mshear,wexbp
@@ -26,6 +26,7 @@ CONTAINS
             grdte,grdne,shear, &
             chi_i_mix,themix,thdmix,thigb,thegb,thibohm,thebohm
 !    REAL(rkind),DIMENSION(0:nrmax) :: D_hyd,chie_b,chii_b,chie_gb,chii_gb
+    REAL(rkind),DIMENSION(0:nrmax) :: chie_b,chie_gb
     INTEGER(ikind):: nr8,npoints,lflowshear
 
     INTEGER(ikind):: nr,nsa,ns,ierr
@@ -43,10 +44,10 @@ CONTAINS
 
     DO nr = 1, nrmax
        ! minor radius (half-width) of zone boundary [m]
-       rminor(1)  = ra*rm(nr)
+       rminor(1)  = 0.5d0*(rmnrho(nr-1)+rmnrho(nr))
        ! major radius to geometric center of zone boundary [m] <- approx.
-       rmajor(1)   = RR
-       btor(1)     = BB          ! toroidal magnetic field [T] <- approx.
+       rmajor(1)  = 0.5d0*(rmjrho(nr-1)*rmjrho(nr))
+       btor(1)    = BB     ! toroidal magnetic field [T] <- approx.
 
        sum_pan = 0.d0
        DO nsa = 1, nsamax
@@ -66,10 +67,10 @@ CONTAINS
        q(1)      = qp_m(nr)          ! safety-factor (half-mesh)
 
        ! *** There is a fault in 'mixed model' subroutine ***
-       !       fault   : -R ( d T_e / d r ) / T_e
-       !                 -R ( d n_e / d r ) / n_e
-       !       correct : -r ( d T_e / d r ) / T_e
-       !                 -r ( d n_e / d r ) / n_e
+       !      fault   : -RR ( d T_e / d r ) / T_e
+       !                -RR ( d n_e / d r ) / n_e
+       !      correct : -Ra ( d T_e / d r ) / T_e
+       !                -Ra ( d n_e / d r ) / n_e
 
        grdte(1)  = - ra / rt_ecl(nr) ! -r ( d T_e / d r ) / T_e
        grdne(1)  = - ra / rn_ecl(nr) ! -r ( d n_e / d r ) / n_e
@@ -165,11 +166,11 @@ CONTAINS
 !!$       ! Hydrogenic ion particle diffusivity [m^2/s]
 !!$       D_hyd(nr)   = thdmix(1)  *factor 
 !!$       ! Bohm contribution to electron thermal diffusivity [m^2/s]
-!!$       chie_b(nr)  = thebohm(1) *factor
+!!$       nrd1(nr)  = thebohm(1) *factor
 !!$       ! Bohm contribution to ion thermal diffusivity [m^2/s]
 !!$       chii_b(nr)  = thibohm(1) *factor
 !!$       ! gyro-Bohm contribution to electron thermal diffusivity [m^2/s]
-!!$       chie_gb(nr) = thegb(1)   *factor
+!!$       nrd2(nr) = thegb(1)   *factor
 !!$       ! gyro-Bohm contribution to ion thermal diffusivity [m^2/s]
 !!$       chii_gb(nr) = thigb(1)   *factor
 !!$       write(*,*) chii_gb(1)

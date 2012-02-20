@@ -10,3 +10,7 @@ all:
 clean:
 	(cd trcore; make clean)
 	(cd trmodels; make clean)
+
+veryclean:
+	(cd trcore; make veryclean)
+	(cd trmodels; make veryclean)

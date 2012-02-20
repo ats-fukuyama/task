@@ -13,7 +13,7 @@ FFLAGS = $(DFLAGS)
 MODINCLUDE=-I $(BPSDDIR)/mod -I $(TASKDIR)/plx/mod -I $(TASKDIR)/lib/mod \
            -I $(MOD) 
 
-SRC90=trcalv.f90 trglf23.f90 trmbgb.f90 trcdbm.f90 trsimple.f90 trcoef.f90
+SRC90=trcalv.f90 trglf23.f90 trmbgb.f90 trmmm95.f90 trcdbm.f90 trsimple.f90 trcoef.f90
 SRCMBGB=mbgb/mixed_Bohm_gyro_Bohm.f
 SRCITG= glf/callglf2d.f  itg/ifspppl_model.f itg/weiland.f
 SRCITGF= glf/glf2d.F glf/r8tomsqz.F
@@ -32,7 +32,7 @@ $(SRCCDBM:.f90=.o) $(SRC90:.f90=.o)
 # $(SRCNC:.f=.o) $(SRCCYT:.f90=.o) $(SRCMMM:.f=.o) $(SRCMBGB:.f=.o)
 
 .f.o :
-	$(FCFIXED) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
+	$(FCFIXED) -r8 $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 .f90.o :
 	$(FCFREE) $(FFLAGS) -c $< -o $@ $(MODDIR) $(MODINCLUDE)
 
@@ -44,8 +44,10 @@ trmodelslib.a: $(OBJS) $(INCNC) $(INCGLF)
 clean : 
 	rm -f ./#* ./*f90~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod 
 
+veryclean : 
+	rm -f ./#* ./*~ *.o nclass/*.o itg/*.o glf/*.o cytran/*.o mmm95/*.o mbgb/*.o cdbm/*.o a.out core *.a *.mod
+
 tritg.o  : tritg.f90
-trmdlt.o : trmdlt.f90
 glf/callglf2d.o : glf/callglf2d.f glf/glf.m
 glf/glf2d.o  : glf/glf2d.F glf/glf.m glf/f77_dcomplx.h
 	$(FCFIXED) $(FFLAGS) -c -o glf/glf2d.o -Iglf glf/glf2d.F
@@ -72,6 +74,6 @@ cytran/cytran_mod.o: cytran/cytran_mod.f90
 cytran/tr_cytran_mod.o: cytran/tr_cytran_mod.f90
 mmm95/stripx.o: mmm95/stripx.f
 mmm95/tomsqz.o: mmm95/tomsqz.f
-mmm95/weiland14.: mmm95/weiland14.f
+mmm95/weiland14.o: mmm95/weiland14.f
 mmm95/mmm95.o: mmm95/mmm95.f
 mbgb/mixed_Bohm_gyro_Bohm.o: mbgb/mixed_Bohm_gyro_Bohm.f

@@ -136,7 +136,7 @@ MODULE trcomm
   REAL(rkind) :: &
        rhoa       ! normalized minor radius
   REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
-       rdp,      &! dpsi/drho
+       dpdrho,   &! dpsi/drho
        rhog,     &! normalized minor radius mesh position
        rhom,     &! normalized minor radius half-mesh position
        rjcb       ! 1/rho : rho ~ kappa * r : effective minor radius ?
@@ -154,6 +154,13 @@ MODULE trcomm
          
 !       modelg,   &! control plasma geometry model
 !       nteqit     ! step interval of EQ calculation
+
+! ----- daignostic variables -----
+  REAL(rkind),DIMENSION(:),ALLOCATABLE:: &
+       nrd1,     &! a diagnostic array for radial grid
+       nrd2,     &! a diagnostic array for radial grid
+       nrd3,     &! a diagnostic array for radial grid
+       nrd4       ! a diagnostic array for radial grid
   
 ! ----- computation variables -----
 
@@ -287,7 +294,7 @@ CONTAINS
       ALLOCATE(epsrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000 
 
       !    normalized variables
-      ALLOCATE(rdp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(dpdrho(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(rhog(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
       ALLOCATE(rhom(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
       ALLOCATE(rjcb(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000   
@@ -295,6 +302,12 @@ CONTAINS
       ! unclassified
       ALLOCATE(bp(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
       ALLOCATE(er(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+
+      ! for diagnostic
+      ALLOCATE(nrd1(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(nrd2(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(nrd3(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
+      ALLOCATE(nrd4(0:nrmax),STAT=ierr); IF(ierr /= 0) GOTO 9000
      
       nrmax_save  = nrmax
       nsamax_save = nsamax
@@ -371,7 +384,7 @@ CONTAINS
     IF(ALLOCATED(epsrho)) DEALLOCATE(epsrho)
 
     ! normalized variables
-    IF(ALLOCATED(rdp)) DEALLOCATE(rdp)
+    IF(ALLOCATED(dpdrho)) DEALLOCATE(dpdrho)
     IF(ALLOCATED(rhog)) DEALLOCATE(rhog)
     IF(ALLOCATED(rhom)) DEALLOCATE(rhom)
     IF(ALLOCATED(rjcb)) DEALLOCATE(rjcb)
@@ -379,6 +392,12 @@ CONTAINS
     ! unclassified
     IF(ALLOCATED(bp)) DEALLOCATE(bp)
     IF(ALLOCATED(er)) DEALLOCATE(er)
+
+    ! for diagnostic
+    IF(ALLOCATED(nrd1)) DEALLOCATE(nrd1)
+    IF(ALLOCATED(nrd2)) DEALLOCATE(nrd2)
+    IF(ALLOCATED(nrd3)) DEALLOCATE(nrd3)
+    IF(ALLOCATED(nrd4)) DEALLOCATE(nrd4)
        
     RETURN
   END SUBROUTINE tr_nr_deallocate

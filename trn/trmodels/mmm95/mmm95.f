@@ -68,8 +68,9 @@ c
      & , thirb,   thdrb,    therb,    thzrb
      & , thikb,   thdkb,    thekb,    thzkb
      & , gamma,   omega,    difthi,   velthi,  vflux
-     & , matdim,  npoints,  nprout,   lprint,  nerr
-     & , lsuper,  lreset,   lswitch,  cswitch, fig,    frb,     fkb)
+     & , matdim,  npoints,  nprout,   lprint
+     & , lsuper,  lreset,   nerr,     lswitch,  cswitch
+     & , fig,     frb,      fkb)
 c
 c
 c    All the following 1-D arrays are assumed to be defined on flux

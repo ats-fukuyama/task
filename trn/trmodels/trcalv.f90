@@ -63,7 +63,7 @@ CONTAINS
 !--------------------------------------------------------------------------
 !   Calculate variables and some effects used in calculate transport 
 !--------------------------------------------------------------------------
-    USE trcomm, ONLY: ikind,nrmax,RR,rhog,BB,rdp,bp,er
+    USE trcomm, ONLY: ikind,nrmax,RR,rhog,rmnrho,BB,dpdrho,bp,er
 
     IMPLICIT NONE
     INTEGER(ikind) :: nr
@@ -82,10 +82,10 @@ CONTAINS
        vexbp(nr) = -er(nr) / (RR*bp(nr)) ! [1/s]
        
        !:the 2nd order accuracy derivative of V_exb
-       dvexbpdr(nr) = deriv3(nr,rhog,vexbp,nrmax,1)
+       dvexbpdr(nr) = deriv3(nr,rmnrho,vexbp,nrmax,1)
 
        ! poloidal rotational shear [1/s]
-       wexbp(nr) = (RR*bp(nr))**2/(rdp(nr)*sqrt(BB**2+bp(nr)**2)) &
+       wexbp(nr) = (RR*bp(nr))**2/(dpdrho(nr)*sqrt(BB**2+bp(nr)**2)) &
                    *dvexbpdr(nr)
        ! wexbp(nr) = RR*bp(nr)*dvexbpdr(nr)/BB
        
@@ -104,7 +104,7 @@ CONTAINS
 !==========================================================================
 
   SUBROUTINE tr_calv_fundamental
-    USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rg,rhog,rm, &
+    USE trcomm, ONLY: rkev,pa,pz,pz0,idnsa,ar1rho,RR,BB,rhog,rmnrho, &
          rt,rn,bp,qp
 
     IMPLICIT NONE
@@ -152,7 +152,7 @@ CONTAINS
     ! ---------------
     DO nr = 1, nrmax
        rt_isum = 0.d0
-       dr_norm = 0.5d0*(ar1rho(nr)+ar1rho(nr-1))/(rhog(nr)-rhog(nr-1))
+       dr_norm = 1.d0/(rmnrho(nr)-rmnrho(nr-1))
        
        rt_e(nr) = rt(1,nr)
        rn_e(nr) = rn(1,nr)
@@ -190,12 +190,16 @@ CONTAINS
        rn_ecl(nr)  = rn_em(nr) / rn_ed(nr)
        rn_icl(nr)  = rn_im(nr) / rn_id(nr)
 
+       ! mean atomic mass of thermal ions [AMU]
+
+       ! impurity and hydrogen density, density weighted charge/atomic number
+
        ! safety factor
        qp_m(nr) = 0.5d0*(qp(nr)+qp(nr-1))
        qp_d(nr) = (qp(nr)-qp(nr-1)) * dr_norm
 
        ! magnetic shear
-       mshear(nr) =  rm(nr)/qp_m(nr) * qp_d(nr)
+       mshear(nr) =  0.5d0*(rmnrho(nr-1)+rmnrho(nr))/qp_m(nr) * qp_d(nr)
 
        ! magnetic curvature
        mcurv = 0.d0
@@ -208,6 +212,7 @@ CONTAINS
   SUBROUTINE tr_er_field
 !---------------------------------------------------------------------------
 !        Radial Electric Field
+!        *** half grid ***
 !---------------------------------------------------------------------------
     USE trcomm, ONLY: nrmax,aee,bb,bp,rg,rt,rn,rg,rm,er, &
          pa,pz, &
@@ -290,6 +295,7 @@ CONTAINS
   SUBROUTINE tr_zeff
 !---------------------------------------------------------------------------
 !           Caluculate Z_eff (effective charge)
+!           *** half grid ***
 !---------------------------------------------------------------------------
 !!$    USE TRCOMM, ONLY : ANC, ANFE, MDLEQN, MDLUF, NRMAX, PZ, PZC, PZFE, RN, R\
 !!$    NF, RT, ZEFF

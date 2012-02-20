@@ -230,8 +230,8 @@ CONTAINS
              ar1rho(nr)  = 1.d0/(SQRT(rkap)*ra)          ! const
              ar2rho(nr)  = 1.d0/(SQRT(rkap)*ra)**2       ! const
              abrho(nr)   = 1.d0/(SQRT(rkap)*ra*rr)**2    ! const
-             rmjrho(nr)  = rr                            ! const
-             rmnrho(nr)  = ra*rhog(nr) 
+             rmjrho(nr)  = rr                            ! const [m]
+             rmnrho(nr)  = ra*rhog(nr) ! [m]
              rkprho(nr)  = rkap
 !
              epsrho(nr)  = rmnrho(nr)/rmjrho(nr)
@@ -255,7 +255,7 @@ CONTAINS
 
     USE trcomm, ONLY: ikind,rkind,pi,rkap,rdlt,nrmax,nsmax,nsamax, &
          rg,rm,rhog,rhom,ra,rr,rn,ru,rt,ns_nsa,qp, &
-         ttrho,dvrho,arrho,ar1rho,rdpvrho,rdp,bp
+         ttrho,dvrho,arrho,ar1rho,rdpvrho,dpdrho,bp
     USE plprof, ONLY: pl_prof2,pl_qprf
                       
     IMPLICIT NONE
@@ -284,11 +284,11 @@ CONTAINS
 ! create BP from given Q profile
        ! d psi/d V
        rdpvrho(nr) = ttrho(nr)*arrho(nr)/(4.d0*pi**2*qp(nr))
-       rdp(nr)     = dvrho(nr)*rdpvrho(nr) ! d psi/d rho
+       dpdrho(nr)  = dvrho(nr)*rdpvrho(nr) ! d psi/d rho
 
        ! This part should be calculated in another module ----------
        ! poloidal magnetic field ~ (kappa^-2 * r * BB)/(RR * q)
-       bp(nr)      = ar1rho(nr)*rdp(nr)/rr ! poloidal magnetic field
+       bp(nr)      = ar1rho(nr)*dpdrho(nr)/rr ! poloidal magnetic field
        ! -----------------------------------------------------------
 
     ENDDO

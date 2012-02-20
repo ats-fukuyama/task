@@ -13,7 +13,8 @@ CONTAINS
          rn,ru,rt,qp,dtr,str,vtr, &
          nitmax,error_it,lmaxtr,epsltr,lt_save,neqrmax,neqmax,neq_neqr, &
          nsa_neq,gvt,gvts,gvrt,gvrts,gparts,ngt, &
-         mdltr_prv,dtr_prv,vtr_prv,er
+         mdltr_prv,dtr_prv,vtr_prv,er, &
+         nrd1,nrd2,nrd3,nrd4
     USE libgrf,ONLY: grd1d,grf1d
     IMPLICIT NONE
     CHARACTER(LEN=20):: label
@@ -31,6 +32,14 @@ CONTAINS
 
     REAL(rkind),DIMENSION(3*neqmax,1:nrmax) :: dtrg,vtrg
 
+! --- variables for diagnostic graphic view
+    REAL(rkind),DIMENSION(0:nrmax) :: nrd1g,nrd2g,nrd3g,nrd4g
+    REAL(rkind),DIMENSION(1:nrmax) :: nrd1mg,nrd2mg,nrd3mg,nrd4mg
+
+
+    ! half grid array for graphic
+    rhomg(1:nrmax) = rhom(1:nrmax)
+
 ! ----- current radial profile -----
 
     DO nsa=1,nsamax
@@ -38,8 +47,8 @@ CONTAINS
        vg2(0:nrmax,nsa)=ru(nsa,0:nrmax)
        vg3(0:nrmax,nsa)=rt(nsa,0:nrmax)
     END DO
-!       vg4(0:nrmax,1)=qp(0:nrmax
-       vg4(0:nrmax,1)=er(0:nrmax)
+       vg4(0:nrmax,1)=qp(0:nrmax)
+!       vg4(0:nrmax,1)=er(0:nrmax)
 
     CALL PAGES
        LABEL = '/n vs rho/'
@@ -98,7 +107,6 @@ CONTAINS
 
 ! ----- diffusion coefficients -----
 
-    rhomg(1:nrmax) = rhom(1:nrmax)
     DO neqr=1,neqrmax
        neq=neq_neqr(neqr)
        IF(neq == 0) THEN
@@ -213,6 +221,29 @@ CONTAINS
        CALL PAGEE
 
     END IF
+
+!--- for diagnostic array 
+
+    nrd1mg(1:nrmax) = nrd1(1:nrmax)
+    nrd2mg(1:nrmax) = nrd2(1:nrmax)
+    nrd3mg(1:nrmax) = nrd3(1:nrmax)
+    nrd4mg(1:nrmax) = nrd4(1:nrmax)
+
+    nrd1g(0:nrmax) = nrd1(0:nrmax)
+    nrd2g(0:nrmax) = nrd2(0:nrmax)
+    nrd3g(0:nrmax) = nrd3(0:nrmax)
+    nrd4g(0:nrmax) = nrd4(0:nrmax)
+
+!!$    CALL PAGES
+!!$    LABEL = '/diagnostic1 vs rho/'
+!!$    CALL GRD1D(1,rhomg,nrd1mg, nrmax, nrmax, 1, LABEL, 0)
+!!$    LABEL = '/diagnostic2 vs rho/'
+!!$    CALL GRD1D(2,rhomg,nrd2mg, nrmax, nrmax, 1, LABEL, 0)
+!!$    LABEL = '/diagnostic3 vs rho/'
+!!$    CALL GRD1D(3,rhomg,nrd3mg, NRMAX+1, NRMAX+1, 1, LABEL, 0)
+!!$    LABEL = '/diagnostic4 vs rho/'
+!!$    CALL GRD1D(4,rhomg,nrd4mg, NRMAX+1, NRMAX+1, 1, LABEL, 0)
+!!$    CALL PAGEE
 
   END SUBROUTINE tr_gout
 END MODULE trgout

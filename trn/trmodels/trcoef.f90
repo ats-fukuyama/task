@@ -16,6 +16,7 @@ CONTAINS
     USE trglf23, ONLY: tr_glf23
     USE trcdbm, ONLY: tr_cdbm
     USE trmbgb, ONLY: tr_mbgb
+    USE trmmm95,ONLY: tr_mmm95
     IMPLICIT NONE
 
     call tr_calv_nr_alloc
@@ -36,6 +37,8 @@ CONTAINS
        CALL tr_cdbm
     CASE(140:149)
        CALL tr_mbgb
+    CASE(150:159)
+       CALL tr_mmm95
     END SELECT
     
     IF(mdltr_prv /= 0) CALL Pereverzev_method
