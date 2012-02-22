@@ -185,13 +185,6 @@ CONTAINS
 
     IF(PRESENT(ASPECT)) THEN
        A%ASPECT=ASPECT
-       IF(A%ASPECT /= 0.0) THEN
-          IF(A%ASPECT >= 1.0) THEN
-             A%GPXMAX=A%GPXMIN+(A%GPYMAX-A%GPYMIN)*A%ASPECT
-          ELSE
-             A%GPYMAX=A%GPYMIN+(A%GPXMAX-A%GPXMIN)/A%ASPECT
-          END IF
-       END IF
     ELSE
        A%ASPECT=0.75
     END IF
